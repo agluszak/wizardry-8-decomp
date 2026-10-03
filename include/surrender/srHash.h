@@ -27,6 +27,9 @@ inline unsigned int srHashValue(const void* key)
     return srHashValue(reinterpret_cast<unsigned long>(key));
 }
 
+/* Concrete TEMPLATE names are recomp selectors unless independently backed
+   by original symbols or typed flow. Plain allocation, copying and release
+   constrain storage shape, not exact key/value arguments. */
 template <class Key, class Value> struct srHashEntry {
     int next_index;
     Key key;
@@ -65,7 +68,8 @@ public:
     }
 
     // TEMPLATE: SURRENDER 0x10027890
-    // srHashTableBase<srGERD::Renderer::TextureSetKey, unsigned long>::Clear
+    // NAME: srHashTableBase<Key,Value>::Clear
+    // RECOMP: srHashTableBase<srGERD::Renderer::TextureSetKey, unsigned long>::Clear
     void Clear()
     {
         if (bucket_count != 0) {
@@ -88,10 +92,12 @@ public:
 template <class Key, class Value> class srHashTable : public srHashTableBase<Key, Value> {
 public:
     // TEMPLATE: SURRENDER 0x10027840
-    // srHashTable<srGERD::Renderer::TextureSetKey, unsigned long>::srHashTable
+    // NAME: srHashTable<Key,Value>::srHashTable
+    // RECOMP: srHashTable<srGERD::Renderer::TextureSetKey, unsigned long>::srHashTable
     srHashTable() {}
     // TEMPLATE: SURRENDER 0x10027860
-    // srHashTable<srGERD::Renderer::TextureSetKey, unsigned long>::~srHashTable
+    // NAME: srHashTable<Key,Value>::~srHashTable
+    // RECOMP: srHashTable<srGERD::Renderer::TextureSetKey, unsigned long>::~srHashTable
     ~srHashTable()
     {
         this->Release();
@@ -207,9 +213,11 @@ template <class Key, class Value> void srHashTableBase<Key, Value>::RemoveAt(int
 }
 
 // TEMPLATE: SURRENDER 0x100279E0
-// srHashTableBase<srGERD::Renderer::TextureSetKey, unsigned long>::Grow
+// NAME: srHashTableBase<Key,Value>::Grow
+// RECOMP: srHashTableBase<srGERD::Renderer::TextureSetKey, unsigned long>::Grow
 // TEMPLATE: SURRENDER 0x10014750
-// srHashTableBase<srScheduler::Job*, srScheduler::QueueEntry*>::Grow
+// NAME: srHashTableBase<Key,Value>::Grow
+// RECOMP: srHashTableBase<srScheduler::Job*, srScheduler::QueueEntry*>::Grow
 template <class Key, class Value> void srHashTableBase<Key, Value>::Grow()
 {
     unsigned int capacity = bucket_count << 1;

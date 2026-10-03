@@ -77,17 +77,16 @@ public:
        channel and accumulated in a 0x8000-bucket open hash; entries hold the
        packed color and its total weight, linked through a parallel index
        array. */
-    class Sampler {
+    class SR_DLL_EXPORT Sampler {
     public:
         struct ColorEntry {
             srARGB color;
             long count;
         };
 
-        SR_DLL_EXPORT Sampler(long sample_limit = 0);
+        Sampler(long sample_limit = 0);
         Sampler(const Sampler& other);
         ~Sampler();
-        Sampler& operator=(const Sampler& other);
 
         long getColorCount();
         long getOutputPaletteSize();

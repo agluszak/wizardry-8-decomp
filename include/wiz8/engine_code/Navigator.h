@@ -222,7 +222,6 @@ struct W8NavigatorMovementState {
 
 /* Navigator.cpp owns the path, position, orientation, and scene-node state
    below. It is GrCycle's ordinary second base, not a representation object. */
-#pragma pack(push, 4)
 class W8Navigator {
 public:
     W8Navigator();                         /* 0x00451EC0 */
@@ -351,15 +350,6 @@ public:
     void SetTurnRate(float turn_rate);                /* 0x00453C90 */
 
 public:
-    /* Monster.cpp reaches this state as a secondary base through
-       `lea ecx,[monster+0x18]`. It used to be unioned with an unsigned int[98]
-       dword view, because the recovered constructor wrote it as a memset plus
-       indexed stores. The retail constructor contains no memset and constructs
-       movement_0c0 through its own constructor, so the dword view was modelling
-       a body that does not exist - and while it existed it made this a union
-       member, which C++98 forbids from having a constructor or destructor and
-       which therefore blocked both of the movement tail's special members. */
-    unsigned char padding_004[4];
     int navigation_mode_008;
     unsigned int flags_00c;
     double collision_margin_010;
@@ -429,7 +419,6 @@ public:
     W8NavigatorMovementState movement_0c0;
     srNode* node_18c; /* 0x18c: constructed srNode */
 }; /* 0x190 */
-#pragma pack(pop)
 
 void SetNavigatorLinkMode(unsigned char mode);
 void StopAllNavigators(void);

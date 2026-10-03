@@ -42,13 +42,10 @@ public:
         BitIStream(const BitIStream& stream);
         BitIStream& operator=(const BitIStream& stream);
 
-        /* Retail inlines these into get/getBit and the Decompressor bodies at
-           every site; the standalone emissions exist only because the class
-           is dllexport-ed. */
-        inline void fetchCache(long position);
-        inline unsigned long getByte(long position);
-        inline unsigned long getDWord(long position);
-        inline unsigned long getWordOrLess(unsigned long bits);
+        void fetchCache(long position);
+        unsigned long getByte(long position);
+        unsigned long getDWord(long position);
+        unsigned long getWordOrLess(unsigned long bits);
 
         srBinIStream* stream_00;
         unsigned char cache_04[0x80];

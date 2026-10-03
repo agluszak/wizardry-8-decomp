@@ -46,14 +46,11 @@ struct W8PortraitQuoteState {
    lifecycle, not TU dynamic initializers for standalone globals. */
 #pragma pack(push, 1)
 struct W8MonsterManagerEntry {
-    W8MonsterManagerEntry();
-    ~W8MonsterManagerEntry();
-
     bool portrait_event_active;
     int voice_sound_handle;
     W8MouthGapTrack mouth_gap;  /* 0x005 */
     W8PortraitQuoteState quote; /* 0x019 */
-    unsigned char unknown_029[0x4c];
+    unsigned char unknown_025[0x4c];
     W8CharacterEvent* active_character_event;
     int previous_portrait_frame;
     int portrait_frame;

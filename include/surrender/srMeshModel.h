@@ -208,7 +208,9 @@ public:
     /* Lazily grown mesh table pair. Retail's constructor/destructor emit the
        pair records through array ctors/dtors; every table accessor resizes
        `data` to its governing count on first use. POD elements zero-fill;
-       srPtr elements release through their own destructor. */
+       srPtr elements release through their own destructor. Concrete marker
+       names are recomp selectors unless independently bound to typed owners;
+       equal-width POD copies and bare frees do not distinguish exact T. */
     template <class T> struct MeshTable {
         MeshTable() : data(0), count(0) {}
         MeshTable(const MeshTable& other) : data(0), count(0)
@@ -219,21 +221,29 @@ public:
            per-element release loop while the POD copies fold to a bare
            free + zero. */
         // TEMPLATE: SURRENDER 0x10042B10
-        // srMeshModel::MeshTable<srPtr<srTextureIFace> >::~MeshTable
+        // NAME: srMeshModel::MeshTable<T>::~MeshTable
+        // RECOMP: srMeshModel::MeshTable<srPtr<srTextureIFace> >::~MeshTable
         // TEMPLATE: SURRENDER 0x10042D00
-        // srMeshModel::MeshTable<srShader>::~MeshTable
+        // NAME: srMeshModel::MeshTable<T>::~MeshTable
+        // RECOMP: srMeshModel::MeshTable<srShader>::~MeshTable
         // TEMPLATE: SURRENDER 0x10042DF0
-        // srMeshModel::MeshTable<srPtr<srMaterialIFace> >::~MeshTable
+        // NAME: srMeshModel::MeshTable<T>::~MeshTable
+        // RECOMP: srMeshModel::MeshTable<srPtr<srMaterialIFace> >::~MeshTable
         // TEMPLATE: SURRENDER 0x10042FE0
-        // srMeshModel::MeshTable<srVector3i>::~MeshTable
+        // NAME: srMeshModel::MeshTable<T>::~MeshTable
+        // RECOMP: srMeshModel::MeshTable<srVector3i>::~MeshTable
         // TEMPLATE: SURRENDER 0x100431E0
-        // srMeshModel::MeshTable<srVector4T<float> >::~MeshTable
+        // NAME: srMeshModel::MeshTable<T>::~MeshTable
+        // RECOMP: srMeshModel::MeshTable<srVector4T<float> >::~MeshTable
         // TEMPLATE: SURRENDER 0x100433F0
-        // srMeshModel::MeshTable<srVector2T<float> >::~MeshTable
+        // NAME: srMeshModel::MeshTable<T>::~MeshTable
+        // RECOMP: srMeshModel::MeshTable<srVector2T<float> >::~MeshTable
         // TEMPLATE: SURRENDER 0x100435B0
-        // srMeshModel::MeshTable<srVector3T<float> >::~MeshTable
+        // NAME: srMeshModel::MeshTable<T>::~MeshTable
+        // RECOMP: srMeshModel::MeshTable<srVector3T<float> >::~MeshTable
         // TEMPLATE: SURRENDER 0x100437B0
-        // srMeshModel::MeshTable<unsigned long>::~MeshTable
+        // NAME: srMeshModel::MeshTable<T>::~MeshTable
+        // RECOMP: srMeshModel::MeshTable<unsigned long>::~MeshTable
         ~MeshTable()
         {
             Release();
@@ -242,15 +252,20 @@ public:
            srMeshModel::operator= inlines this member as the three separate
            calls while the standalone emissions inline the member bodies. */
         // TEMPLATE: SURRENDER 0x10043010
-        // srMeshModel::MeshTable<srVector3i>::operator=
+        // NAME: srMeshModel::MeshTable<T>::operator=
+        // RECOMP: srMeshModel::MeshTable<srVector3i>::operator=
         // TEMPLATE: SURRENDER 0x10043210
-        // srMeshModel::MeshTable<srVector4T<float> >::operator=
+        // NAME: srMeshModel::MeshTable<T>::operator=
+        // RECOMP: srMeshModel::MeshTable<srVector4T<float> >::operator=
         // TEMPLATE: SURRENDER 0x10043420
-        // srMeshModel::MeshTable<srVector2T<float> >::operator=
+        // NAME: srMeshModel::MeshTable<T>::operator=
+        // RECOMP: srMeshModel::MeshTable<srVector2T<float> >::operator=
         // TEMPLATE: SURRENDER 0x100435E0
-        // srMeshModel::MeshTable<srVector3T<float> >::operator=
+        // NAME: srMeshModel::MeshTable<T>::operator=
+        // RECOMP: srMeshModel::MeshTable<srVector3T<float> >::operator=
         // TEMPLATE: SURRENDER 0x100437E0
-        // srMeshModel::MeshTable<unsigned long>::operator=
+        // NAME: srMeshModel::MeshTable<T>::operator=
+        // RECOMP: srMeshModel::MeshTable<unsigned long>::operator=
         MeshTable& operator=(const MeshTable& other)
         {
             if (this != &other) {
@@ -268,21 +283,29 @@ public:
            copies default-construct every element while the POD copies allocate
            only, exactly as VC6 lowers an array new through srHeap. */
         // TEMPLATE: SURRENDER 0x10043B10
-        // srMeshModel::MeshTable<srPtr<srTextureIFace> >::Allocate
+        // NAME: srMeshModel::MeshTable<T>::Allocate
+        // RECOMP: srMeshModel::MeshTable<srPtr<srTextureIFace> >::Allocate
         // TEMPLATE: SURRENDER 0x10043B80
-        // srMeshModel::MeshTable<srShader>::Allocate
+        // NAME: srMeshModel::MeshTable<T>::Allocate
+        // RECOMP: srMeshModel::MeshTable<srShader>::Allocate
         // TEMPLATE: SURRENDER 0x10043C20
-        // srMeshModel::MeshTable<srPtr<srMaterialIFace> >::Allocate
+        // NAME: srMeshModel::MeshTable<T>::Allocate
+        // RECOMP: srMeshModel::MeshTable<srPtr<srMaterialIFace> >::Allocate
         // TEMPLATE: SURRENDER 0x10043CA0
-        // srMeshModel::MeshTable<srVector3i>::Allocate
+        // NAME: srMeshModel::MeshTable<T>::Allocate
+        // RECOMP: srMeshModel::MeshTable<srVector3i>::Allocate
         // TEMPLATE: SURRENDER 0x10043D00
-        // srMeshModel::MeshTable<srVector4T<float> >::Allocate
+        // NAME: srMeshModel::MeshTable<T>::Allocate
+        // RECOMP: srMeshModel::MeshTable<srVector4T<float> >::Allocate
         // TEMPLATE: SURRENDER 0x10043D50
-        // srMeshModel::MeshTable<srVector2T<float> >::Allocate
+        // NAME: srMeshModel::MeshTable<T>::Allocate
+        // RECOMP: srMeshModel::MeshTable<srVector2T<float> >::Allocate
         // TEMPLATE: SURRENDER 0x10043DB0
-        // srMeshModel::MeshTable<srVector3T<float> >::Allocate
+        // NAME: srMeshModel::MeshTable<T>::Allocate
+        // RECOMP: srMeshModel::MeshTable<srVector3T<float> >::Allocate
         // TEMPLATE: SURRENDER 0x10044E10
-        // srMeshModel::MeshTable<unsigned long>::Allocate
+        // NAME: srMeshModel::MeshTable<T>::Allocate
+        // RECOMP: srMeshModel::MeshTable<unsigned long>::Allocate
         T* Allocate(unsigned long elements)
         {
             T* replacement = static_cast<T*>(srHeap.allocate(elements * sizeof(T)));
@@ -296,21 +319,29 @@ public:
            srPtr copies emit per-element releases while POD copies fold to a
            bare free. */
         // TEMPLATE: SURRENDER 0x10042B70
-        // srMeshModel::MeshTable<srPtr<srTextureIFace> >::Release
+        // NAME: srMeshModel::MeshTable<T>::Release
+        // RECOMP: srMeshModel::MeshTable<srPtr<srTextureIFace> >::Release
         // TEMPLATE: SURRENDER 0x10042D30
-        // srMeshModel::MeshTable<srShader>::Release
+        // NAME: srMeshModel::MeshTable<T>::Release
+        // RECOMP: srMeshModel::MeshTable<srShader>::Release
         // TEMPLATE: SURRENDER 0x10042E50
-        // srMeshModel::MeshTable<srPtr<srMaterialIFace> >::Release
+        // NAME: srMeshModel::MeshTable<T>::Release
+        // RECOMP: srMeshModel::MeshTable<srPtr<srMaterialIFace> >::Release
         // TEMPLATE: SURRENDER 0x10043100
-        // srMeshModel::MeshTable<srVector3i>::Release
+        // NAME: srMeshModel::MeshTable<T>::Release
+        // RECOMP: srMeshModel::MeshTable<srVector3i>::Release
         // TEMPLATE: SURRENDER 0x10043300
-        // srMeshModel::MeshTable<srVector4T<float> >::Release
+        // NAME: srMeshModel::MeshTable<T>::Release
+        // RECOMP: srMeshModel::MeshTable<srVector4T<float> >::Release
         // TEMPLATE: SURRENDER 0x100434E0
-        // srMeshModel::MeshTable<srVector2T<float> >::Release
+        // NAME: srMeshModel::MeshTable<T>::Release
+        // RECOMP: srMeshModel::MeshTable<srVector2T<float> >::Release
         // TEMPLATE: SURRENDER 0x100436D0
-        // srMeshModel::MeshTable<srVector3T<float> >::Release
+        // NAME: srMeshModel::MeshTable<T>::Release
+        // RECOMP: srMeshModel::MeshTable<srVector3T<float> >::Release
         // TEMPLATE: SURRENDER 0x100438A0
-        // srMeshModel::MeshTable<unsigned long>::Release
+        // NAME: srMeshModel::MeshTable<T>::Release
+        // RECOMP: srMeshModel::MeshTable<unsigned long>::Release
         void Release()
         {
             if (data != 0) {
@@ -329,21 +360,29 @@ public:
            retargets. operator= and the copy-ctor pass preserve=1 on an
            empty table where the prefix copy is dead. */
         // TEMPLATE: SURRENDER 0x10042BD0
-        // srMeshModel::MeshTable<srPtr<srTextureIFace> >::Resize
+        // NAME: srMeshModel::MeshTable<T>::Resize
+        // RECOMP: srMeshModel::MeshTable<srPtr<srTextureIFace> >::Resize
         // TEMPLATE: SURRENDER 0x10042D60
-        // srMeshModel::MeshTable<srShader>::Resize
+        // NAME: srMeshModel::MeshTable<T>::Resize
+        // RECOMP: srMeshModel::MeshTable<srShader>::Resize
         // TEMPLATE: SURRENDER 0x10042EB0
-        // srMeshModel::MeshTable<srPtr<srMaterialIFace> >::Resize
+        // NAME: srMeshModel::MeshTable<T>::Resize
+        // RECOMP: srMeshModel::MeshTable<srPtr<srMaterialIFace> >::Resize
         // TEMPLATE: SURRENDER 0x10043130
-        // srMeshModel::MeshTable<srVector3i>::Resize
+        // NAME: srMeshModel::MeshTable<T>::Resize
+        // RECOMP: srMeshModel::MeshTable<srVector3i>::Resize
         // TEMPLATE: SURRENDER 0x10043330
-        // srMeshModel::MeshTable<srVector4T<float> >::Resize
+        // NAME: srMeshModel::MeshTable<T>::Resize
+        // RECOMP: srMeshModel::MeshTable<srVector4T<float> >::Resize
         // TEMPLATE: SURRENDER 0x10043510
-        // srMeshModel::MeshTable<srVector2T<float> >::Resize
+        // NAME: srMeshModel::MeshTable<T>::Resize
+        // RECOMP: srMeshModel::MeshTable<srVector2T<float> >::Resize
         // TEMPLATE: SURRENDER 0x10043700
-        // srMeshModel::MeshTable<srVector3T<float> >::Resize
+        // NAME: srMeshModel::MeshTable<T>::Resize
+        // RECOMP: srMeshModel::MeshTable<srVector3T<float> >::Resize
         // TEMPLATE: SURRENDER 0x100438D0
-        // srMeshModel::MeshTable<unsigned long>::Resize
+        // NAME: srMeshModel::MeshTable<T>::Resize
+        // RECOMP: srMeshModel::MeshTable<unsigned long>::Resize
         void Resize(unsigned long elements, int preserve)
         {
             if (count != elements) {
@@ -365,21 +404,29 @@ public:
            instantiations run the addref/release handoff through each
            element's own assignment. */
         // TEMPLATE: SURRENDER 0x10043AB0
-        // srMeshModel::MeshTable<srPtr<srTextureIFace> >::Copy
+        // NAME: srMeshModel::MeshTable<T>::Copy
+        // RECOMP: srMeshModel::MeshTable<srPtr<srTextureIFace> >::Copy
         // TEMPLATE: SURRENDER 0x10043B50
-        // srMeshModel::MeshTable<srShader>::Copy
+        // NAME: srMeshModel::MeshTable<T>::Copy
+        // RECOMP: srMeshModel::MeshTable<srShader>::Copy
         // TEMPLATE: SURRENDER 0x10043BC0
-        // srMeshModel::MeshTable<srPtr<srMaterialIFace> >::Copy
+        // NAME: srMeshModel::MeshTable<T>::Copy
+        // RECOMP: srMeshModel::MeshTable<srPtr<srMaterialIFace> >::Copy
         // TEMPLATE: SURRENDER 0x10043C60
-        // srMeshModel::MeshTable<srVector3i>::Copy
+        // NAME: srMeshModel::MeshTable<T>::Copy
+        // RECOMP: srMeshModel::MeshTable<srVector3i>::Copy
         // TEMPLATE: SURRENDER 0x10043CC0
-        // srMeshModel::MeshTable<srVector4T<float> >::Copy
+        // NAME: srMeshModel::MeshTable<T>::Copy
+        // RECOMP: srMeshModel::MeshTable<srVector4T<float> >::Copy
         // TEMPLATE: SURRENDER 0x10043D20
-        // srMeshModel::MeshTable<srVector2T<float> >::Copy
+        // NAME: srMeshModel::MeshTable<T>::Copy
+        // RECOMP: srMeshModel::MeshTable<srVector2T<float> >::Copy
         // TEMPLATE: SURRENDER 0x10043D70
-        // srMeshModel::MeshTable<srVector3T<float> >::Copy
+        // NAME: srMeshModel::MeshTable<T>::Copy
+        // RECOMP: srMeshModel::MeshTable<srVector3T<float> >::Copy
         // TEMPLATE: SURRENDER 0x10043DD0
-        // srMeshModel::MeshTable<unsigned long>::Copy
+        // NAME: srMeshModel::MeshTable<T>::Copy
+        // RECOMP: srMeshModel::MeshTable<unsigned long>::Copy
         static void Copy(T* destination, const T* source, unsigned long count)
         {
             for (unsigned long index = 0; index < count; ++index) {

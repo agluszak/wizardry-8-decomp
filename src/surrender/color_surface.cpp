@@ -76,8 +76,8 @@ const char* srColorSurfaceIFace::sGetClassName()
     return "srColorSurfaceIFace";
 }
 
-// FUNCTION: SURRENDER 0x10021260
-srColorSurfaceIFace::~srColorSurfaceIFace() {}
+// SYNTHETIC: SURRENDER 0x10021260
+// srColorSurfaceIFace::~srColorSurfaceIFace
 
 // FUNCTION: SURRENDER 0x10021310
 srPalette* srColorSurfaceIFace::getPalette()

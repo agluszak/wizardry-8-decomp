@@ -9,12 +9,12 @@
 srBounder::srBounder(srNode* parent)
     : srClassSupport<srBounder, srNode, false, 0x1600>(static_cast<srNode*>(0))
 {
-    bound_mode_138_ = BOUND_MODE_POSITIONAL_0;
+    bound_mode_138_ = BOUND_MODE_DYNAMIC;
     bounds_13c_.state_28 = 2;
     if (parent != 0) {
         setParent(parent, 0);
     }
-    setNotify(NOTIFY_POSITIONAL_0);
+    setNotify(NOTIFY_BOUNDS_DIRTY);
 }
 
 // FUNCTION: SURRENDER 0x1004b080
@@ -32,7 +32,7 @@ srBounder::e_boundMode srBounder::getBoundMode() const
 // FUNCTION: SURRENDER 0x1004b160
 void srBounder::setBoundMode(e_boundMode mode)
 {
-    if (testNotify(NOTIFY_POSITIONAL_0)) {
+    if (testNotify(NOTIFY_BOUNDS_DIRTY)) {
         updateBounds();
     }
     bound_mode_138_ = mode;
@@ -41,8 +41,8 @@ void srBounder::setBoundMode(e_boundMode mode)
 // FUNCTION: SURRENDER 0x1004b0e0
 void srBounder::getBounds(BoundInfo& bounds)
 {
-    if (bound_mode_138_ == BOUND_MODE_POSITIONAL_0) {
-        if (testNotify(NOTIFY_POSITIONAL_0)) {
+    if (bound_mode_138_ == BOUND_MODE_DYNAMIC) {
+        if (testNotify(NOTIFY_BOUNDS_DIRTY)) {
             updateBounds();
         }
     }
@@ -52,8 +52,8 @@ void srBounder::getBounds(BoundInfo& bounds)
 // FUNCTION: SURRENDER 0x1004b120
 void srBounder::setBounds(const BoundInfo& bounds)
 {
-    if (bound_mode_138_ == BOUND_MODE_POSITIONAL_0) {
-        if (testNotify(NOTIFY_POSITIONAL_0)) {
+    if (bound_mode_138_ == BOUND_MODE_DYNAMIC) {
+        if (testNotify(NOTIFY_BOUNDS_DIRTY)) {
             updateBounds();
         }
     }
@@ -63,8 +63,8 @@ void srBounder::setBounds(const BoundInfo& bounds)
 // FUNCTION: SURRENDER 0x1004b1b0
 void srBounder::checkBounds()
 {
-    if (bound_mode_138_ == BOUND_MODE_POSITIONAL_0) {
-        if (testNotify(NOTIFY_POSITIONAL_0)) {
+    if (bound_mode_138_ == BOUND_MODE_DYNAMIC) {
+        if (testNotify(NOTIFY_BOUNDS_DIRTY)) {
             updateBounds();
         }
     }
@@ -75,9 +75,9 @@ void srBounder::forceUpdateBounds()
 {
     e_boundMode mode;
 
-    setNotify(NOTIFY_POSITIONAL_0);
+    setNotify(NOTIFY_BOUNDS_DIRTY);
     mode = bound_mode_138_;
-    bound_mode_138_ = BOUND_MODE_POSITIONAL_0;
+    bound_mode_138_ = BOUND_MODE_DYNAMIC;
     updateBounds();
     bound_mode_138_ = mode;
 }
@@ -92,7 +92,7 @@ srBounder& srBounder::operator=(const srBounder& other)
         srNode::operator=(other);
         bound_mode_138_ = other.bound_mode_138_;
         bounds_13c_ = other.bounds_13c_;
-        setNotify(NOTIFY_POSITIONAL_0);
+        setNotify(NOTIFY_BOUNDS_DIRTY);
     }
     return *this;
 }
@@ -109,8 +109,7 @@ void srBounder::traverse(TraverseInfo& info)
     if (testFlag(FLAG_TERMINATE) == 0) {
         srGERD* renderer = info.renderer;
         if (testFlag(FLAG_DISABLE) == 0 && renderer != 0 && first_child_ != 0) {
-            if (bound_mode_138_ == BOUND_MODE_POSITIONAL_0 &&
-                testNotify(NOTIFY_POSITIONAL_0) != 0) {
+            if (bound_mode_138_ == BOUND_MODE_DYNAMIC && testNotify(NOTIFY_BOUNDS_DIRTY) != 0) {
                 updateBounds();
             }
             if (bounds_13c_.state_28 == 0) {
@@ -119,13 +118,13 @@ void srBounder::traverse(TraverseInfo& info)
             if (bounds_13c_.state_28 == 1) {
                 applyWorldSpaceMatrix(*renderer);
                 if (renderer->testBoundingSphere(bounds_13c_.center, bounds_13c_.radius) ==
-                    srGERD::VISIBILITY_POSITIONAL_0) {
+                    srGERD::VISIBILITY_OUTSIDE) {
                     renderer->matrixMode(srGERD::MATRIX_MODELVIEW);
                     renderer->popMatrix();
                     return;
                 }
                 if (renderer->testBoundingBox(bounds_13c_.minimum, bounds_13c_.maximum) ==
-                    srGERD::VISIBILITY_POSITIONAL_0) {
+                    srGERD::VISIBILITY_OUTSIDE) {
                     renderer->matrixMode(srGERD::MATRIX_MODELVIEW);
                     renderer->popMatrix();
                     return;
@@ -143,7 +142,7 @@ void srBounder::traverse(TraverseInfo& info)
 // FUNCTION: SURRENDER 0x1004A800
 void srBounder::updateBounds()
 {
-    if (testNotify(NOTIFY_POSITIONAL_0) != 0 && bound_mode_138_ == BOUND_MODE_POSITIONAL_0) {
+    if (testNotify(NOTIFY_BOUNDS_DIRTY) != 0 && bound_mode_138_ == BOUND_MODE_DYNAMIC) {
         bounds_13c_.minimum.SetZero();
         bounds_13c_.maximum.SetZero();
         bounds_13c_.center.SetZero();
@@ -165,7 +164,7 @@ void srBounder::updateBounds()
             bounds_13c_.radius = (float)sqrt(dx * dx + dy * dy + dz * dz);
         }
     }
-    clearNotify(NOTIFY_POSITIONAL_0);
+    clearNotify(NOTIFY_BOUNDS_DIRTY);
 }
 
 // FUNCTION: SURRENDER 0x1004AC60
@@ -229,7 +228,7 @@ void srBounder::dump(std::ostream& stream)
     stream.width(0x20);
     stream << "  Bound mode: ";
     stream << (bound_mode_138_ == 1 ? "static\n" : "dynamic\n");
-    if (testNotify(NOTIFY_POSITIONAL_0) != 0) {
+    if (testNotify(NOTIFY_BOUNDS_DIRTY) != 0) {
         stream << "Bounds not calculated.\n";
     } else if (bounds_13c_.state_28 == 0) {
         stream << "Bounding area empty\n";

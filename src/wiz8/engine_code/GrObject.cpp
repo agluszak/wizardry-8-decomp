@@ -90,13 +90,16 @@ W8GrObject::~W8GrObject()
 // class W8Vector<W8SoundEvent*>
 
 // SYNTHETIC: WIZ8 0x004b6dc0
-// W8Vector<W8SoundEvent*>::`scalar deleting destructor'
+// NAME: W8Vector<T>::`scalar deleting destructor'
+// RECOMP: W8Vector<W8SoundEvent*>::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x004b6d90
-// W8GrowableVector<W8SoundEvent*>::`scalar deleting destructor'
+// NAME: W8GrowableVector<T>::`scalar deleting destructor'
+// RECOMP: W8GrowableVector<W8SoundEvent*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x004b6de0
-// W8Vector<W8SoundEvent*>::~W8Vector<W8SoundEvent*>
+// NAME: W8Vector<T>::~W8Vector<T>
+// RECOMP: W8Vector<W8SoundEvent*>::~W8Vector<W8SoundEvent*>
 
 /* Creates the list on first use and appends one event to it. Only one argument
    reaches this from its three call sites, each of which builds the event with

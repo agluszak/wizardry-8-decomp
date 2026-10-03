@@ -699,6 +699,7 @@ EXPORTS
     ??0srMaterialIFace@@QAE@XZ
     ??1srMaterialIFace@@UAE@XZ
     ?sGetClassName@srMaterialIFace@@SAPBDXZ
+    ??0srMaterial@@QAE@XZ
     ??1srMaterial@@MAE@XZ
     ??4srMaterial@@QAEAAV0@ABV0@@Z
     ??_7srMaterial@@6B@

@@ -1126,11 +1126,11 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, unsigned
         if (minutes < monster_info->look_timer_302) {
             monster_info->look_timer_302 -= static_cast<unsigned char>(minutes);
         } else {
-            float duration = monster_info->p3D->look_duration_2cc;
+            int duration = monster_info->p3D->look_duration_2cc;
 
             monster_info->look_timer_302 = 0;
             monster_info->look_timer_303 = static_cast<unsigned char>(
-                Random(static_cast<unsigned int>(duration)) + static_cast<int>(duration) / 2);
+                Random(static_cast<unsigned int>(duration)) + duration / 2);
             if (monster_info->look_timer_303 == 0) {
                 monster_info->look_timer_303 = 1;
             }
@@ -1139,11 +1139,11 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, unsigned
         if (minutes < monster_info->look_timer_303) {
             monster_info->look_timer_303 -= static_cast<unsigned char>(minutes);
         } else {
-            float frequency = monster_info->p3D->look_frequency_2c8;
+            int frequency = monster_info->p3D->look_frequency_2c8;
 
             monster_info->look_timer_303 = 0;
             monster_info->look_timer_302 = static_cast<unsigned char>(
-                Random(static_cast<unsigned int>(frequency)) + static_cast<int>(frequency) / 2);
+                Random(static_cast<unsigned int>(frequency)) + frequency / 2);
             if (monster_info->look_timer_302 == 0) {
                 monster_info->look_timer_302 = 1;
             }

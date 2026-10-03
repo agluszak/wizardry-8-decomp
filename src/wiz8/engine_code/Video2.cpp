@@ -77,8 +77,6 @@
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/Octree.h"
 
-/* Video2-internal helpers. Their only recovered callers are in this unit, so
-   they are declared here instead of the released Video2 header. */
 srModelInstance* Video2DRectToSquarePolygon(int* rect, void* source, int source_pitch,
                                             srNode* parent, unsigned char overlay);
 srModelInstance* Video2DRectToPolygon(int* rect, void* source, int source_pitch, srNode* parent,
@@ -1199,8 +1197,7 @@ void RenderFrame(void)
     clear_viewport: {
         unsigned long height = g_gerd->getHeight();
         unsigned long width = g_gerd->getWidth();
-        g_gerd->setScissor(g_viewport.left * width / 640,
-                           g_viewport.top * height / 480,
+        g_gerd->setScissor(g_viewport.left * width / 640, g_viewport.top * height / 480,
                            (g_viewport.right - g_viewport.left) * width / 640,
                            (g_viewport.bottom - g_viewport.top) * height / 480);
         g_gerd->clear(srFlags<srGERD::e_buffer>(3));
@@ -1337,11 +1334,10 @@ unsigned char RenderWorldToSurface(srColorSurface* target, W8ScreenRect* rect,
                           (rect->right - rect->left) * gerd->getWidth() / 640,
                           (rect->bottom - rect->top) * gerd->getHeight() / 480);
     } else {
-        gerd->setViewPort(
-            g_viewport.left * gerd->getWidth() / 640,
-            g_viewport.top * gerd->getHeight() / 480,
-            (g_viewport.right - g_viewport.left) * gerd->getWidth() / 640,
-            (g_viewport.bottom - g_viewport.top) * gerd->getHeight() / 480);
+        gerd->setViewPort(g_viewport.left * gerd->getWidth() / 640,
+                          g_viewport.top * gerd->getHeight() / 480,
+                          (g_viewport.right - g_viewport.left) * gerd->getWidth() / 640,
+                          (g_viewport.bottom - g_viewport.top) * gerd->getHeight() / 480);
     }
     if (IsFogEnabled()) {
         GetLightDirection(&clear_color);
@@ -1402,12 +1398,12 @@ void PublishLightDirection(const EnvironmentColour* direction)
 }
 
 // FUNCTION: WIZ8 0x00427230
-void SetRendererOption4Enabled(bool enabled)
+void SetRendererAutoFlipEnabled(bool enabled)
 {
     if (g_gerd != 0) {
-        if ((!enabled && g_gerd->isEnabled(srGERD::ENABLE_POSITIONAL_4)) ||
-            (enabled && !g_gerd->isEnabled(srGERD::ENABLE_POSITIONAL_4))) {
-            g_gerd->toggle(srGERD::ENABLE_POSITIONAL_4);
+        if ((!enabled && g_gerd->isEnabled(srGERD::ENABLE_AUTO_FLIP)) ||
+            (enabled && !g_gerd->isEnabled(srGERD::ENABLE_AUTO_FLIP))) {
+            g_gerd->toggle(srGERD::ENABLE_AUTO_FLIP);
         }
     }
 }
@@ -1517,9 +1513,9 @@ srModelInstance* MakePolygonBrush(srNode* parent, srColorSurfaceIFace* surface, 
         texture->setWrapT(srTextureIFace::WRAP_CLAMP);
         model->setMaterial(g_blit_material, 0, static_cast<srMeshModel::e_side>(0));
         model->setTexture(texture, 0, 0);
-        texture->enableHint(overlay ? srTextureIFace::HINT_POSITIONAL_2
-                                    : srTextureIFace::HINT_POSITIONAL_1);
-        texture->enableHint(srTextureIFace::HINT_POSITIONAL_3);
+        texture->enableHint(overlay ? srTextureIFace::HINT_ONE_BIT_ALPHA
+                                    : srTextureIFace::HINT_NO_ALPHA);
+        texture->enableHint(srTextureIFace::HINT_NO_MIPMAPS);
     }
     model->setShader(shader, 0);
 
@@ -1663,9 +1659,8 @@ BOOLEAN ResizeMouseCursorSurface(int width, int height)
     g_cursor_node->release();
     g_cursor_texture->release();
     mapping_scale = g_surface_scale / extent;
-    g_cursor_node =
-        MakePolygonBrush(g_cursor_scene, g_mouse_surface, extent / 640.0, extent / 480.0,
-                         mapping_scale, mapping_scale, 1.0f, 1.0f, 1);
+    g_cursor_node = MakePolygonBrush(g_cursor_scene, g_mouse_surface, extent / 640.0,
+                                     extent / 480.0, mapping_scale, mapping_scale, 1.0f, 1.0f, 1);
     g_cursor_node->setName("MouseResize");
     PositionMouseCursor(g_cursor_width, g_cursor_height, 0);
     g_cursor_model = static_cast<srMeshModel*>(g_cursor_node->getModel());
@@ -1771,8 +1766,8 @@ bool IsCursorInsideViewport(void)
 {
     int x = g_cursor_hotspot_x + g_cursor_width;
     int y = g_cursor_hotspot_y + g_cursor_height;
-    return x >= g_viewport.left && y >= g_viewport.top &&
-           x <= g_viewport.right && y <= g_viewport.bottom;
+    return x >= g_viewport.left && y >= g_viewport.top && x <= g_viewport.right &&
+           y <= g_viewport.bottom;
 }
 
 // FUNCTION: WIZ8 0x004280c0
@@ -1828,10 +1823,9 @@ unsigned char GetCursorPositionInViewport(srVector3T<float>* position)
     int y = g_cursor_hotspot_y + g_cursor_height;
     if (x >= g_viewport.left && y >= g_viewport.top && x <= g_viewport.right &&
         y <= g_viewport.bottom) {
-        position->x = (x - g_viewport.left) /
-                      static_cast<float>(g_viewport.right - g_viewport.left);
-        position->y = (y - g_viewport.top) /
-                      static_cast<float>(g_viewport.bottom - g_viewport.top);
+        position->x =
+            (x - g_viewport.left) / static_cast<float>(g_viewport.right - g_viewport.left);
+        position->y = (y - g_viewport.top) / static_cast<float>(g_viewport.bottom - g_viewport.top);
         position->z = 0.0f;
         return 1;
     }
@@ -2203,8 +2197,8 @@ void FlushDirtyTiles(void)
 // FUNCTION: WIZ8 0x00425C90
 void SetAutomapScaledViewport(int left, int top, int right, int bottom)
 {
-    if (left == g_viewport.left && top == g_viewport.top &&
-        right == g_viewport.right && bottom == g_viewport.bottom) {
+    if (left == g_viewport.left && top == g_viewport.top && right == g_viewport.right &&
+        bottom == g_viewport.bottom) {
         return;
     }
     g_gerd->setViewPort(g_gerd->getWidth() * left / 640, g_gerd->getHeight() * top / 480,
@@ -2256,12 +2250,9 @@ void SetViewport(int left, int top, int right, int bottom)
 
         plane.left = fractional_left * (view.right - view.left) + view.left;
         plane.right = fractional_right * (view.right - view.left) + view.left;
-        plane.bottom = static_cast<double>((g_double_005ebc30 - fractional_bottom) *
-                                               static_cast<float>(view.top - view.bottom) +
-                                           static_cast<float>(view.bottom));
-        plane.top = static_cast<double>((g_double_005ebc30 - fractional_top) *
-                                            static_cast<float>(view.top - view.bottom) +
-                                        static_cast<float>(view.bottom));
+        plane.bottom =
+            (g_double_005ebc30 - fractional_bottom) * (view.top - view.bottom) + view.bottom;
+        plane.top = (g_double_005ebc30 - fractional_top) * (view.top - view.bottom) + view.bottom;
 
         g_world->camera->setViewPlane(plane, 1.0);
         if (g_secondary_world != 0) {
@@ -2397,15 +2388,8 @@ void VideoRemoveToolTip(void)
     }
 }
 
-// FUNCTION: WIZ8 0x00424A40
-srShader::srShader()
-{
-    value = 0x0100241b;
-}
-
 // FUNCTION: WIZ8 0x00424A90
-srNode* VideoMakePoster(srColorSurfaceIFace* surface, float width, float height,
-                        bool additive)
+srNode* VideoMakePoster(srColorSurfaceIFace* surface, float width, float height, bool additive)
 {
     srTextureIFace::e_hint hint;
     srTextureMap* texture = SR_NEW(srTextureMap)(static_cast<srColorSurfaceIFace*>(0));
@@ -2416,9 +2400,9 @@ srNode* VideoMakePoster(srColorSurfaceIFace* surface, float width, float height,
     texture->setWrapS(srTextureIFace::WRAP_CLAMP);
     texture->setWrapT(srTextureIFace::WRAP_CLAMP);
     if (additive == 0) {
-        hint = srTextureIFace::HINT_POSITIONAL_1;
+        hint = srTextureIFace::HINT_NO_ALPHA;
     } else {
-        hint = srTextureIFace::HINT_POSITIONAL_2;
+        hint = srTextureIFace::HINT_ONE_BIT_ALPHA;
     }
     texture->enableHint(hint);
     return MakePosterQuad(texture, width, height, additive);
@@ -2431,7 +2415,7 @@ void PresentMenuOverlayFrame(void)
     FlushDirtyTiles();
     g_gerd->beginFrame();
     process.renderer = g_gerd;
-    g_surface_node->process(process, static_cast<srNode::e_processType>(0));
+    g_surface_node->process(process, srNode::PROCESS_RENDER);
     g_gerd->flushRenderers();
     g_gerd->endFrame();
 }
@@ -3525,10 +3509,10 @@ stTextureAnim* VideoVObjectToTextureAnim(HVOBJECT object, unsigned short start_f
                 texture->setWrapT(srTextureIFace::WRAP_CLAMP);
                 texture->setMagFilter(srTextureIFace::FILTER_NONE);
                 texture->setMinFilter(srTextureIFace::FILTER_NONE);
-                texture->enableHint(srTextureIFace::HINT_POSITIONAL_3);
+                texture->enableHint(srTextureIFace::HINT_NO_MIPMAPS);
                 texture->setMipmap(srTextureIFace::MIPMAP_NONE);
-                texture->enableHint(use_argb1555 ? srTextureIFace::HINT_POSITIONAL_2
-                                                 : srTextureIFace::HINT_POSITIONAL_1);
+                texture->enableHint(use_argb1555 ? srTextureIFace::HINT_ONE_BIT_ALPHA
+                                                 : srTextureIFace::HINT_NO_ALPHA);
                 animation->AddTexture(texture);
             }
         }
@@ -3573,23 +3557,23 @@ unsigned int MeasureNodeRenderWithoutPositionalOption(srNode* node)
     srGERD::Statistics statistics;
     srNode::ProcessInfo process;
 
-    if (g_gerd != 0 && g_gerd->isEnabled(srGERD::ENABLE_POSITIONAL_4)) {
-        g_gerd->toggle(srGERD::ENABLE_POSITIONAL_4);
+    if (g_gerd != 0 && g_gerd->isEnabled(srGERD::ENABLE_AUTO_FLIP)) {
+        g_gerd->toggle(srGERD::ENABLE_AUTO_FLIP);
     }
     g_gerd->flushRenderers();
     g_gerd->resetStatistics();
     g_gerd->beginFrame();
     srNode::lockSceneGraph();
     process.renderer = g_gerd;
-    g_world->camera->process(process, static_cast<srNode::e_processType>(1));
-    node->process(process, static_cast<srNode::e_processType>(0));
-    g_world->camera->process(process, static_cast<srNode::e_processType>(2));
+    g_world->camera->process(process, srNode::PROCESS_PUSH);
+    node->process(process, srNode::PROCESS_RENDER);
+    g_world->camera->process(process, srNode::PROCESS_POP);
     srNode::unlockSceneGraph();
     g_gerd->endFrame();
     g_gerd->flushRenderers();
     g_gerd->getStatistics(statistics);
-    if (g_gerd != 0 && !g_gerd->isEnabled(srGERD::ENABLE_POSITIONAL_4)) {
-        g_gerd->toggle(srGERD::ENABLE_POSITIONAL_4);
+    if (g_gerd != 0 && !g_gerd->isEnabled(srGERD::ENABLE_AUTO_FLIP)) {
+        g_gerd->toggle(srGERD::ENABLE_AUTO_FLIP);
     }
     return static_cast<unsigned int>(statistics.value_10);
 }
@@ -3599,8 +3583,8 @@ unsigned int MeasureNodeRenderWithoutPositionalOption(srNode* node)
 // FUNCTION: WIZ8 0x00428910
 void BeginRenderProbe(void)
 {
-    if (g_gerd->isEnabled(srGERD::ENABLE_POSITIONAL_4)) {
-        g_gerd->toggle(srGERD::ENABLE_POSITIONAL_4);
+    if (g_gerd->isEnabled(srGERD::ENABLE_AUTO_FLIP)) {
+        g_gerd->toggle(srGERD::ENABLE_AUTO_FLIP);
     }
     g_gerd->setClearColor(0.0f, 0.0f, 1.0f, 1.0f);
     g_gerd->setAmbientLight(1.0f, 1.0f, 1.0f, 1.0f);
@@ -3623,9 +3607,9 @@ unsigned int MeasureNodeRender(srNode* node)
     g_gerd->beginFrame();
     srNode::lockSceneGraph();
     process.renderer = g_gerd;
-    g_world->camera->process(process, static_cast<srNode::e_processType>(1));
-    node->process(process, static_cast<srNode::e_processType>(0));
-    g_world->camera->process(process, static_cast<srNode::e_processType>(2));
+    g_world->camera->process(process, srNode::PROCESS_PUSH);
+    node->process(process, srNode::PROCESS_RENDER);
+    g_world->camera->process(process, srNode::PROCESS_POP);
     srNode::unlockSceneGraph();
     g_gerd->endFrame();
     g_gerd->flushRenderers();
@@ -3637,8 +3621,8 @@ unsigned int MeasureNodeRender(srNode* node)
 // FUNCTION: WIZ8 0x004289c0
 void EndRenderProbe(void)
 {
-    if (!g_gerd->isEnabled(srGERD::ENABLE_POSITIONAL_4)) {
-        g_gerd->toggle(srGERD::ENABLE_POSITIONAL_4);
+    if (!g_gerd->isEnabled(srGERD::ENABLE_AUTO_FLIP)) {
+        g_gerd->toggle(srGERD::ENABLE_AUTO_FLIP);
     }
     g_gerd->flipFrame();
 }
@@ -3879,13 +3863,12 @@ void DrawColorSurface(srColorSurface* surface, int x, int y)
 // FUNCTION: WIZ8 0x00425DA0
 void SetWorldScaledViewport(int left, int top, int right, int bottom)
 {
-    if (left == g_viewport.left && top == g_viewport.top &&
-        right == g_viewport.right && bottom == g_viewport.bottom) {
+    if (left == g_viewport.left && top == g_viewport.top && right == g_viewport.right &&
+        bottom == g_viewport.bottom) {
         return;
     }
     if (left == g_viewport.left) {
-        if (top == g_viewport.top && right == g_viewport.right &&
-            bottom == g_viewport.bottom) {
+        if (top == g_viewport.top && right == g_viewport.right && bottom == g_viewport.bottom) {
             goto store;
         }
     }
@@ -3930,7 +3913,8 @@ void SetPickKey(void* key)
 }
 
 // TEMPLATE: WIZ8 0x00429B00
-// srPtr assignment emission: release the held interface, addref and store the new one
+// NAME: srPtr<T>::retained emission
+// RECOMP: srPtr assignment emission: release the held interface, addref and store the new one
 
 // SYNTHETIC: WIZ8 0x0042A360
 // srVertexProcessor::~srVertexProcessor trivial body

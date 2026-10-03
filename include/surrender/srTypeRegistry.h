@@ -15,7 +15,7 @@ class srRuntimeClass;
 class srNode;
 class srColorSurfaceIFace;
 
-class srRegistry {
+class SR_DLL_EXPORT srRegistry {
 public:
     class ClassNode {
         friend class srRegistry;
@@ -111,8 +111,6 @@ public:
 
     SR_DLL_IMPORT srRegistry();
     SR_DLL_IMPORT ~srRegistry();
-    /* Class-level dllexport emits a memberwise assignment body. */
-    SR_DLL_IMPORT srRegistry& operator=(const srRegistry& other);
 
     SR_DLL_IMPORT unsigned long allocateID();
     SR_DLL_IMPORT int checkValidity();

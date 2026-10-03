@@ -57,8 +57,6 @@
 // class W8NormalTexcoordMapper
 class W8NormalTexcoordMapper : public srVertexProcessor {
 public:
-    W8NormalTexcoordMapper();
-    virtual ~W8NormalTexcoordMapper() override {}
     // FUNCTION: WIZ8 0x004D6190
     virtual int isActive(srVertexPipe&) override
     {
@@ -81,8 +79,8 @@ bool g_material_emissive_override_enabled;
 // GLOBAL: WIZ8 0x0065BAA8
 float g_material_emissive_override;
 
-// FUNCTION: WIZ8 0x004B89A0
-W8NormalTexcoordMapper::W8NormalTexcoordMapper() {}
+// SYNTHETIC: WIZ8 0x004B89A0
+// W8NormalTexcoordMapper::W8NormalTexcoordMapper (implicit)
 
 /* Convert eye-space normals to the material's first texture-coordinate set.
    The exported srVertexPipe queries preserve the closed renderer's ownership
@@ -266,13 +264,14 @@ static int WeldVertex(W8HashTable<unsigned int, int>* table, W8OctPreTreeVertex*
                       unsigned int index, unsigned int link);
 static int AccumulateVertexLight(OctPreTree* tree, W8OctPreTreeVertex* vertex, short light_count,
                                  W8LevelFileLight* lights, int* sun_map);
-static int PropReceivesLight(OctPreTree* tree, W8LevelFileProp* prop, W8LevelFileLight* light);
+static unsigned char PropReceivesLight(OctPreTree* tree, W8LevelFileProp* prop,
+                                       W8LevelFileLight* light);
 static int BuildRegionPolygons(W8LevelFile* level, W8OctPreTreeGeometry* geometry,
                                unsigned char* classify);
-static int SplitVerticesByMaterial(W8OctPreTreeGeometry* geometry);
+static unsigned char SplitVerticesByMaterial(W8OctPreTreeGeometry* geometry);
 static unsigned char* ClassifyTextures(W8MaterialRecord* textures, int count, char* stem);
-static int MaterialSort(W8OctPreTreeGeometry* geometry, W8MaterialRecord* textures, int count,
-                        unsigned char* classify);
+static unsigned char MaterialSort(W8OctPreTreeGeometry* geometry, W8MaterialRecord* textures,
+                                  int count, unsigned char* classify);
 
 // FUNCTION: WIZ8 0x00492E60
 char W8Octree::BuildPreprocessedFiles(const char* level_path)
@@ -1198,12 +1197,8 @@ static int BuildRegionPolygons(W8LevelFile* level, W8OctPreTreeGeometry* geometr
     W8OctPreTreeVertex* current;
     W8OctPreTreeVertex* created;
 
-    {
-        W8HashTable<unsigned int, int> keys;
-        keys.Grow();
-    }
     W8HashTable<unsigned int, int> weld_table;
-    weld_table.Grow();
+    weld_table.Clear();
     kind_counts[0] = 0;
     kind_counts[1] = 0;
     kind_counts[2] = 0;
@@ -1415,7 +1410,7 @@ invalid:
    polygon corner can point at a vertex carrying that polygon's material and
    uv, then repacks the vertex array and repoints the corners. */
 // FUNCTION: WIZ8 0x00495860
-static int SplitVerticesByMaterial(W8OctPreTreeGeometry* geometry)
+static unsigned char SplitVerticesByMaterial(W8OctPreTreeGeometry* geometry)
 {
     char message[1024];
     unsigned int source;
@@ -1597,7 +1592,8 @@ static int AccumulateVertexLight(OctPreTree* tree, W8OctPreTreeVertex* vertex, s
    the light to the record position must be clear, else each corner of each
    recorded bounds pair is tried. */
 // FUNCTION: WIZ8 0x00495E90
-static int PropReceivesLight(OctPreTree* tree, W8LevelFileProp* prop, W8LevelFileLight* light)
+static unsigned char PropReceivesLight(OctPreTree* tree, W8LevelFileProp* prop,
+                                       W8LevelFileLight* light)
 {
     int corner_x;
     int corner_y;
@@ -1674,9 +1670,7 @@ static unsigned char* ClassifyTextures(W8MaterialRecord* textures, int count, ch
             bool opaque = 1.0f <= record->opacity_0fd;
             texture[0] = '\0';
             if (record->texture_name_001[0] != 0) {
-                strcpy(texture, reinterpret_cast<const char*>(/* reinterpret-ok: texture-name text
-                            bytes */
-                                                              record->texture_name_001));
+                strcpy(texture, record->texture_name_001);
             }
             if (record->texture_names_029[0][0] == '\0') {
                 if (record->texture_names_029[1][0] == '\0') {
@@ -1759,8 +1753,8 @@ static unsigned char* ClassifyTextures(W8MaterialRecord* textures, int count, ch
    string, remaps each polygon's material index at its group's representative
    and moves the old index into the texture slot. */
 // FUNCTION: WIZ8 0x00496500
-static int MaterialSort(W8OctPreTreeGeometry* geometry, W8MaterialRecord* textures, int count,
-                        unsigned char* classify)
+static unsigned char MaterialSort(W8OctPreTreeGeometry* geometry, W8MaterialRecord* textures,
+                                  int count, unsigned char* classify)
 {
     char name[516];
     char* material_names;
@@ -1806,12 +1800,9 @@ static int MaterialSort(W8OctPreTreeGeometry* geometry, W8MaterialRecord* textur
     if (1 < count) {
         W8MaterialRecord* record = textures + 1;
         int* material_slot = material_lookup;
-        for (index = 1; index < count; ++index) {
+        for (index = 1; index < count; ++index, ++record) {
             ++material_slot;
-            ++record;
-            texture_name = reinterpret_cast<const char*>(/* reinterpret-ok: texture-name text
-                    bytes */
-                                                         record->texture_name_001);
+            texture_name = record->texture_name_001;
             if (*texture_name == '\0') {
                 texture_name = record->texture_names_029[0];
             }

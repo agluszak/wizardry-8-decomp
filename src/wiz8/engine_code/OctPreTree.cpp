@@ -98,7 +98,7 @@ void W8OctSpatialState::SetWorkingBounds(const srVector3T<float>* minimum,
 /* Resets the collected-id run and appends every not-yet-seen polygon id the
    leaf under `cell` lists.  The trace walk inlines this sequence at each of
    the six cells it probes. */
-inline void OctPreTree::CollectLeafPolygons(const int* cell)
+void OctPreTree::CollectLeafPolygons(const int* cell)
 {
     m_gd_result_count_1b8 = 0;
     unsigned int leaf_index = LeafIndexForCell(cell);
@@ -1697,7 +1697,8 @@ char OctPreTree::PropFramesDiffer(W8LevelFileAnimObj* anim, unsigned short first
 // W8OctSpatialState::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x0046cca0
-// W8GrowableVector<GDProp*>::~W8GrowableVector
+// NAME: W8GrowableVector<T>::~W8GrowableVector
+// RECOMP: W8GrowableVector<GDProp*>::~W8GrowableVector
 
 /* Construct the spatial value used by both the runtime octree and the level
    build tree.  A source value describes the next child: its extent halves and

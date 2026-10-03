@@ -237,7 +237,7 @@ unsigned char GetLevelLocationCode(int level_id, char* location_code)
     return 1;
 }
 
-static inline int LevelFindIDByLocationCode(const char* location_code)
+static int LevelFindIDByLocationCode(const char* location_code)
 {
     int level_id;
 

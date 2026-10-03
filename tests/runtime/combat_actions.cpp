@@ -326,7 +326,7 @@ static void ReadHostileEngagementOnGameThread(void* opaque)
             }
         }
     }
-    s->round_active = g_combat_state != 0 ? g_combat_state->combat_over_000 : 0;
+    s->round_active = g_combat_state != 0 ? g_combat_state->execution_active_000 : 0;
     s->action_status = g_combat_state != 0 ? g_combat_state->eCombatActionStatus : 0;
     s->action_monster = g_combat_state != 0 && g_combat_state->pActionMonsterInfo != 0
                             ? g_combat_state->pActionMonsterInfo->location_id
@@ -879,7 +879,7 @@ static void StartCombatRoundOnGameThread(void* opaque)
 {
     bool* active = static_cast<bool*>(opaque);
     DispatchMGSCommand(W8_MGS_COMMAND_START_COMBAT_ROUND);
-    *active = g_combat_state != 0 && g_combat_state->combat_over_000 != 0;
+    *active = g_combat_state != 0 && g_combat_state->execution_active_000 != 0;
 }
 
 bool StartCombatRound(RuntimeCase& test, const char* step)

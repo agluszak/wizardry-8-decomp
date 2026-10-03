@@ -15,7 +15,7 @@
 namespace {
 unsigned long next_instance_id = 1;
 
-inline unsigned long hashName(const char* name)
+unsigned long hashName(const char* name)
 {
     unsigned long hash = 0;
     for (unsigned long index = 0; name[index] != '\0'; ++index) {
@@ -456,7 +456,8 @@ void srRegistry::ClassNode::IDIndex::clearLinks()
 }
 
 // TEMPLATE: SURRENDER 0x10010BD0
-// srHashTableBase<unsigned long, srRegistry::ClassNode::IDIndex::InstanceLink*>::Grow
+// NAME: srHashTableBase<Key,Value>::Grow
+// RECOMP: srHashTableBase<unsigned long, srRegistry::ClassNode::IDIndex::InstanceLink*>::Grow
 
 /* member-dtor-ok: the body is clearBlocks and the implicit ~srArray member
    teardown releases blocks_08 again; by_id_20 is a dtorless srHashTableBase so no
@@ -956,17 +957,8 @@ srRegistry::~srRegistry()
     }
 }
 
-/* Retail 0x1000EBA0 is a memberwise copy of root_00, class_index_04,
-   valid_08 and critical_section_0c. No srRegistry copy constructor is emitted. */
-// FUNCTION: SURRENDER 0x1000EBA0
-srRegistry& srRegistry::operator=(const srRegistry& other)
-{
-    root_00 = other.root_00;
-    class_index_04 = other.class_index_04;
-    valid_08 = other.valid_08;
-    critical_section_0c = other.critical_section_0c;
-    return *this;
-}
+// SYNTHETIC: SURRENDER 0x1000EBA0
+// srRegistry::operator=
 
 // FUNCTION: SURRENDER 0x1000EBD0
 srRegistry::ClassNode* srRegistry::getClassNode(unsigned long class_id)
@@ -1568,8 +1560,7 @@ long srClass::getReferenceCount() const
 
 /* Retail 0x10010780 drains the {count_00, first_04, last_08} sentinel list
    embedded at ClassNode+0x00, freeing each ChildLink through operator delete;
-   the only callers are exception-unwind funclets. It is the out-of-line
-   emission of ClassNode::ChildList's destructor. */
+   exception-unwind funclets call this ClassNode::ChildList destructor. */
 
 /* member-dtor-ok: ~IDIndex (retail 0x100109F0) — the body is clearBlocks and
    the implicit ~srArray member teardown releases blocks_08 again; by_id_20
@@ -1579,40 +1570,49 @@ long srClass::getReferenceCount() const
 /* Funclet-invoked on this+8 during the IDIndex constructor unwind: the
    blocks_08 member destructor. */
 // TEMPLATE: SURRENDER 0x10010B40
-// srArray<srRegistry::ClassNode::IDIndex::InstanceLink*>::~srArray
+// NAME: srArray<T>::~srArray
+// RECOMP: srArray<srRegistry::ClassNode::IDIndex::InstanceLink*>::~srArray
 
 // TEMPLATE: SURRENDER 0x10010B60
-// srArray<srRegistry::ClassNode::IDIndex::InstanceLink*>::setCapacity
+// NAME: srArray<T>::setCapacity
+// RECOMP: srArray<srRegistry::ClassNode::IDIndex::InstanceLink*>::setCapacity
 
 // TEMPLATE: SURRENDER 0x10010D20
-// srHashTableBase<unsigned long, srRegistry::ClassNode*>::Grow
+// NAME: srHashTableBase<Key,Value>::Grow
+// RECOMP: srHashTableBase<unsigned long, srRegistry::ClassNode*>::Grow
 
 // TEMPLATE: SURRENDER 0x10011270
-// srHashTable<Key, Value>::~srHashTable
+// NAME: srHashTable<Key,Value>::~srHashTable
+// RECOMP: srHashTable<Key, Value>::~srHashTable
 
 // TEMPLATE: SURRENDER 0x100112A0
-// srHashTableBase<srRuntimeClass*, srRegistry::ClassNode::NameIndex::NameEntry*>::Lookup
+// NAME: srHashTableBase<Key,Value>::Lookup
+// RECOMP: srHashTableBase<srRuntimeClass*, srRegistry::ClassNode::NameIndex::NameEntry*>::Lookup
 
 /* Retail calls this Remove emission for by_instance_00 from the unregister
    and refresh paths; the by_id_20 Remove is inlined at its call sites. */
 // TEMPLATE: SURRENDER 0x100112F0
-// srHashTableBase<srRuntimeClass*, srRegistry::ClassNode::NameIndex::NameEntry*>::Remove
+// NAME: srHashTableBase<Key,Value>::Remove
+// RECOMP: srHashTableBase<srRuntimeClass*, srRegistry::ClassNode::NameIndex::NameEntry*>::Remove
 
 // TEMPLATE: SURRENDER 0x10011380
-// srHashTableBase<srRuntimeClass*, srRegistry::ClassNode::NameIndex::NameEntry*>::Clear
+// NAME: srHashTableBase<Key,Value>::Clear
+// RECOMP: srHashTableBase<srRuntimeClass*, srRegistry::ClassNode::NameIndex::NameEntry*>::Clear
 
 /* Called on the fresh NameIndex's by_instance_00 from the instance-index
    setup path (0x1000F82D) and from the inlined AllocateEntry inside the
    register path (0x1000FC5E). */
 // TEMPLATE: SURRENDER 0x100114D0
-// srHashTableBase<srRuntimeClass*, srRegistry::ClassNode::NameIndex::NameEntry*>::Grow
+// NAME: srHashTableBase<Key,Value>::Grow
+// RECOMP: srHashTableBase<srRuntimeClass*, srRegistry::ClassNode::NameIndex::NameEntry*>::Grow
 
 /* AllocateEntry emits standalone for by_instance_00: its body is the
    free_head == -1 guard, the inlined Grow, then the free-slot pop. Called
    from the inherited-instance population loop (0x1000F9F6) and resize's
    reinsert path (0x100111B4). */
 // TEMPLATE: SURRENDER 0x10011620
-// srHashTableBase<srRuntimeClass*, srRegistry::ClassNode::NameIndex::NameEntry*>::AllocateEntry
+// NAME: srHashTableBase<Key,Value>::AllocateEntry
+// RECOMP: srHashTableBase<srRuntimeClass*, srRegistry::ClassNode::NameIndex::NameEntry*>::AllocateEntry
 
 // SYNTHETIC: SURRENDER 0x1000E2D0
 // srClass scalar deleting destructor

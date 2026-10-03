@@ -517,8 +517,8 @@ struct W8LevelParticleRecord {
     short attachment_key_216;
     /* 0x218, version >= 3: copied to the particle's emission_limit_184. */
     int emission_limit_218;
-    /* 0x21c, version >= 3: copied to the particle's requires_positional_138. */
-    unsigned char requires_positional_21c;
+    /* 0x21c, version >= 3: copied to the particle's requires_sorted_renderer_138. */
+    unsigned char requires_sorted_renderer_21c;
     int start_frame_21d; /* 0x21d, unaligned, version >= 4 */
     int end_frame_221;   /* 0x221, version >= 4 */
 };

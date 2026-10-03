@@ -1,7 +1,7 @@
 import subprocess
 import threading
 import time
-from contextlib import nullcontext
+from contextlib import contextmanager, nullcontext
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -14,8 +14,10 @@ from wiz8decomp.runtime import (
     _merge_case_observations,
     _parse_runtime_crash,
     _parse_runtime_observation,
+    _parse_runtime_scenarios,
     _parse_wine_dump,
     _run_runtime_scenario,
+    _runtime_audio,
     _runtime_failure,
     _runtime_history,
     _runtime_phase_summary,
@@ -150,6 +152,195 @@ def test_runtime_test_environment_honours_explicit_renderer(tmp_path: Path, monk
 
     _, environment = runtime_test_environment(settings, renderer="softpipe")
     assert environment["GALLIUM_DRIVER"] == "softpipe"
+
+
+@pytest.mark.parametrize("mode", ["soundless", "explicit", "native", "device"])
+def test_runtime_audio_preserves_host_endpoints_and_soundless_isolation(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mode: str
+) -> None:
+    environment = {"XDG_RUNTIME_DIR": str(tmp_path), "WINEDLLOVERRIDES": "dsound=d"}
+    if mode == "explicit":
+        environment["PULSE_SERVER"] = "unix:/host/pulse/native"
+    previous = environment.copy()
+    native = tmp_path / "pulse/native"
+    exists = Path.exists
+    monkeypatch.setattr(
+        Path,
+        "exists",
+        lambda path: (
+            (mode == "native")
+            if path == native
+            else ((mode == "device") if path == Path("/dev/snd") else exists(path))
+        ),
+    )
+
+    def no_tool_lookup(_):
+        raise AssertionError("host/soundless paths must not start an owned server")
+
+    monkeypatch.setattr("wiz8decomp.runtime.shutil.which", no_tool_lookup)
+    with _runtime_audio(
+        environment,
+        enabled=mode != "soundless",
+        directory=tmp_path / "diagnostics",
+        temporary_root=tmp_path / "audio",
+    ):
+        assert environment == previous
+    assert environment == previous
+    assert not (tmp_path / "diagnostics").exists()
+
+
+def test_runtime_audio_fails_closed_without_backend_tools(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr(Path, "exists", lambda _: False)
+    monkeypatch.setattr("wiz8decomp.runtime.shutil.which", lambda _: None)
+    with (
+        pytest.raises(RuntimeError, match="sound-startup.*requires pulseaudio and pactl"),
+        _runtime_audio(
+            {}, enabled=True, directory=tmp_path / "diagnostics", temporary_root=tmp_path / "audio"
+        ),
+    ):
+        pytest.fail("unavailable backend must not run a sound-enabled scenario")
+
+
+@pytest.mark.parametrize(
+    "outcome", ["success", "case-error", "exit", "timeout", "probe-timeout", "kill"]
+)
+def test_runtime_audio_owns_only_private_process_and_restores_environment(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, outcome: str
+) -> None:
+    environment = {"PULSE_COOKIE": "/host/cookie", "PULSE_CLIENTCONFIG": "/host/client.conf"}
+    previous = environment.copy()
+    exists = Path.exists
+    monkeypatch.setattr(
+        Path,
+        "exists",
+        lambda path: False if path == Path("/dev/snd") or path.name == "native" else exists(path),
+    )
+    monkeypatch.setattr("wiz8decomp.runtime.shutil.which", lambda name: f"/usr/bin/{name}")
+    monkeypatch.setattr("wiz8decomp.runtime.time.sleep", lambda _: None)
+    if outcome == "timeout":
+        times = iter([0, 11])
+        monkeypatch.setattr("wiz8decomp.runtime.time.monotonic", lambda: next(times))
+    calls = []
+    wait_count = 0
+
+    def wait(**kwargs):
+        nonlocal wait_count
+        wait_count += 1
+        calls.append(("wait", kwargs))
+        if outcome == "kill" and wait_count == 1:
+            raise subprocess.TimeoutExpired("owned-pulse", 5)
+        return 0
+
+    process = SimpleNamespace(
+        poll=lambda: 1 if outcome == "exit" else None,
+        terminate=lambda: calls.append(("terminate",)),
+        kill=lambda: calls.append(("kill",)),
+        wait=wait,
+    )
+
+    def start(argv, **kwargs):
+        calls.append(("start", argv, kwargs))
+        return process
+
+    probe_count = 0
+
+    def probe(argv, **kwargs):
+        nonlocal probe_count
+        probe_count += 1
+        assert argv == ["/usr/bin/pactl", "info"]
+        assert kwargs["env"] is environment
+        if outcome == "probe-timeout" and probe_count == 1:
+            raise subprocess.TimeoutExpired(argv, 1)
+        return SimpleNamespace(returncode=0)
+
+    monkeypatch.setattr("wiz8decomp.runtime.subprocess.Popen", start)
+    monkeypatch.setattr("wiz8decomp.runtime.subprocess.run", probe)
+    owned_root = None
+
+    def execute():
+        nonlocal owned_root
+        with _runtime_audio(
+            environment,
+            enabled=True,
+            directory=tmp_path / "diagnostics",
+            temporary_root=tmp_path / "audio",
+        ):
+            owned_root = Path(environment["PULSE_COOKIE"]).parent
+            assert owned_root.parent == tmp_path / "audio"
+            assert environment["PULSE_SERVER"] == f"unix:{owned_root / 'native'}"
+            cookie = Path(environment["PULSE_COOKIE"])
+            assert len(cookie.read_bytes()) == 256
+            assert cookie.stat().st_mode & 0o777 == 0o600
+            assert "autospawn = no" in Path(environment["PULSE_CLIENTCONFIG"]).read_text()
+            server_environment = calls[0][2]["env"]
+            assert server_environment["HOME"] == str(owned_root)
+            assert server_environment["PULSE_STATE_PATH"] == str(owned_root)
+            assert "auth-anonymous" not in " ".join(calls[0][1])
+            assert "auth-cookie=" in " ".join(calls[0][1])
+            if outcome == "case-error":
+                raise RuntimeError("scenario failed")
+
+    if outcome in {"exit", "timeout"}:
+        with pytest.raises(RuntimeError, match="private Pulse endpoint unavailable"):
+            execute()
+    elif outcome == "case-error":
+        with pytest.raises(RuntimeError, match="scenario failed"):
+            execute()
+    else:
+        execute()
+    assert environment == previous
+    assert list((tmp_path / "audio").iterdir()) == []
+    if owned_root is not None:
+        assert not owned_root.exists()
+    assert sum(call[0] == "terminate" for call in calls) == (0 if outcome == "exit" else 1)
+    assert sum(call[0] == "kill" for call in calls) == (1 if outcome == "kill" else 0)
+
+
+def test_runtime_suite_provisions_audio_only_for_voice_case(tmp_path: Path, monkeypatch) -> None:
+    settings = _settings(tmp_path)
+    registry = _parse_runtime_scenarios(
+        "name\tphase\ttier\tkind\ttimeout_ms\tfixture\tpath\tbatch\n"
+        "voice-portrait-sync\tmain-game\tmain\tintegration\t15000\tparty\tnatural\tno\n"
+        "main-menu-startup\tmain-menu\tpr\tintegration\t15000\tmain-menu\tnatural\tno\n"
+    )
+    monkeypatch.setattr("wiz8decomp.runtime.shutil.which", lambda name: f"/usr/bin/{name}")
+    monkeypatch.setattr("wiz8decomp.runtime.runtime_display", lambda *a, **kw: nullcontext(None))
+    monkeypatch.setattr(
+        "wiz8decomp.runtime.configure_wine_window_management", lambda *a, **kw: None
+    )
+    monkeypatch.setattr("wiz8decomp.runtime.subprocess.run", lambda *a, **kw: None)
+    monkeypatch.setattr("wiz8decomp.runtime._read_runtime_scenarios", lambda *a: registry)
+    enabled_cases = []
+
+    @contextmanager
+    def audio(environment, *, enabled, directory, temporary_root):
+        enabled_cases.append(enabled)
+        assert temporary_root == settings.repo_dir / "build/runtime/audio"
+        assert ("WINEDLLOVERRIDES" not in environment) == enabled
+        if enabled:
+            environment["PULSE_SERVER"] = "unix:/owned/pulse/native"
+        yield
+
+    def run(executable, stage, environment, scenario, timeout_seconds, object_root, map_path):
+        if scenario == "voice-portrait-sync":
+            identity = (stage / "diagnostics/audio-endpoint.txt").read_text()
+            assert "PULSE_SERVER=unix:/owned/pulse/native" in identity
+            assert "WINEDLLOVERRIDES=\n" in identity
+        else:
+            assert "PULSE_SERVER" not in environment
+        return {"scenario": scenario, "teardown": 1}
+
+    monkeypatch.delenv("PULSE_SERVER", raising=False)
+    monkeypatch.setattr("wiz8decomp.runtime._runtime_audio", audio)
+    monkeypatch.setattr("wiz8decomp.runtime._run_runtime_scenario", run)
+    result = run_runtime_suite(
+        settings,
+        scenarios=("voice-portrait-sync", "main-menu-startup"),
+        check_order=False,
+        workers=1,
+    )
+    assert set(result["runs"]["forward"]) == {"voice-portrait-sync", "main-menu-startup"}
+    assert enabled_cases == [True, False]
 
 
 def test_runtime_observation_is_normalized_to_typed_fields() -> None:

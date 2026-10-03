@@ -322,20 +322,20 @@ public:
        DirectX7: D3DCULL_NONE / D3DCULL_CCW / D3DCULL_CW. */
     enum e_cullMode { CULL_NONE = 0, CULL_BACK = 1, CULL_FRONT = 2 };
     /* toggle XORs 1<<option into +0x20. Option 0 also dirties dirty_24 bit 0
-       (Wizardry render-option 5). Option 1 is the particle path. Option 4 is
-       SetRendererOption4Enabled. Option 5 wraps/unwraps srDebugDD. GERD dump
+       (Wizardry render-option 5). Option 1 selects sorted rendering. Option 4 is
+       SetRendererAutoFlipEnabled. Option 5 wraps/unwraps srDebugDD. GERD dump
        has no enable-name table. */
     /* The constructor sets bits 4 and 6 on enable_flags_20_; ~srGERD toggles
        bit 5, which openWindow's comment identifies as the debug-DD wrap. */
     enum e_enable {
         ENABLE_POSITIONAL_0 = 0,
-        ENABLE_POSITIONAL_1 = 1,
-        ENABLE_POSITIONAL_4 = 4,
-        ENABLE_POSITIONAL_5 = 5,
-        ENABLE_POSITIONAL_6 = 6
+        ENABLE_SORTED_RENDERING = 1,
+        ENABLE_AUTO_FLIP = 4,
+        ENABLE_DEBUG_DD = 5,
+        ENABLE_CLEAR_ON_OPEN = 6
     };
     enum e_winding { WINDING_POSITIONAL_0 = 0, WINDING_POSITIONAL_1 = 1 };
-    enum e_visibility { VISIBILITY_POSITIONAL_0 = 0 };
+    enum e_visibility { VISIBILITY_OUTSIDE = 0 };
     /* dump(stream, flags) section selectors: bit 0 driver/device info plus
        the window block, bit 1 the texture cache, bit 3 the statistics
        snapshot, bit 5 the srDebugDD call profile. dump(stream) passes 0x3f. */

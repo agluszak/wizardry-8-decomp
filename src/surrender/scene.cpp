@@ -105,7 +105,7 @@ void srScene::process(const ProcessInfo& info, e_processType type)
     ProcessInfo process_info = info;
     long count = node_count;
     while (count > 0) {
-        (*nodes)->process(process_info, static_cast<e_processType>(3));
+        (*nodes)->process(process_info, PROCESS_PUSH_GLOBAL);
         --count;
         ++nodes;
     }
@@ -123,7 +123,7 @@ void srScene::process(const ProcessInfo& info, e_processType type)
         nodes = traversal_158.nodes.data + node_count - 1;
         count = node_count;
         do {
-            (*nodes)->process(process_info, static_cast<e_processType>(4));
+            (*nodes)->process(process_info, PROCESS_POP_GLOBAL);
             --nodes;
             --count;
         } while (count != 0);
@@ -150,11 +150,11 @@ void srScene::render(srGERD& renderer, srCamera* camera)
     ProcessInfo process_info;
     process_info.renderer = &renderer;
     if (camera != 0) {
-        camera->process(process_info, static_cast<e_processType>(1));
+        camera->process(process_info, PROCESS_PUSH);
     }
-    process(process_info, static_cast<e_processType>(0));
+    process(process_info, PROCESS_RENDER);
     if (camera != 0) {
-        camera->process(process_info, static_cast<e_processType>(2));
+        camera->process(process_info, PROCESS_POP);
     }
     srNode::unlockSceneGraph();
 }

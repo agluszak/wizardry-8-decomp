@@ -66,7 +66,6 @@ class W8AnimRep : public W8AnimRepBase {
 public:
     W8AnimRep();
     W8AnimRep(const W8AnimRep& other);
-    virtual ~W8AnimRep() override;
     void SetFrameMethod(signed char method);
 
 public:

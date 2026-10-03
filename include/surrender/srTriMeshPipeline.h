@@ -52,7 +52,7 @@ public:
         }
 
         srTextureIFace* texture_00;
-        unsigned long pass_value_04;
+        srTextureIFace* texture_04;
         srShader flags_08;
         /* Per-stage per-vertex texture tables; the mesh fills both slots of
            the {0x0c,0x10} pair through (&texture_array_0c)[layer]. Writers
@@ -126,7 +126,7 @@ public:
     unsigned long unknown_70;
     srShader shader_74;
     srTextureIFace* texture_78;
-    unsigned long pass_value_7c;
+    srTextureIFace* texture_7c;
     srMaterialIFace* material_80;
     unsigned long slot_count_84;
     srGERD* renderer_88;

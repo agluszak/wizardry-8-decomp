@@ -77,9 +77,7 @@ static bool g_flag_0061cc10 = true;
 // GLOBAL: WIZ8 0x0068D520
 static unsigned int g_monster_group_tick = 0;
 
-/* Member info by group list position, defined near the end of the file and
-   always inlined into its callers. */
-static inline W8MonsterInfo* GetGroupMemberInfo(W8MonsterGroup* group, unsigned int index);
+static W8MonsterInfo* GetGroupMemberInfo(W8MonsterGroup* group, unsigned int index);
 static void QueueMonsterAction(W8MonsterInfo* monster_info, int action_kind, int action_detail,
                                int attack_index, W8TargetKind target_kind, int target_value);
 
@@ -2019,7 +2017,7 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
         break;
     case W8_TARGET_TYPE_ALL_ENEMIES:
         ResetCombatSlot(&slot);
-        slot.iType = W8_TARGET_KIND_FIVE;
+        slot.iType = W8_TARGET_KIND_ALL_ENEMIES;
         if (MonsterSpellTargetOK(monster_info, spell_id, &slot) == 0 ||
             SpellAreaHitsNeutralMonster(monster_info, spell_id, &slot) != 0) {
             break;
@@ -2370,7 +2368,7 @@ bool IsMonsterActionUsable(W8MonsterInfo* monster_info)
         case W8_TARGET_KIND_CHARACTER:
         case W8_TARGET_KIND_PARTY:
             return 1;
-        case W8_TARGET_KIND_FIVE:
+        case W8_TARGET_KIND_ALL_ENEMIES:
         case W8_TARGET_KIND_PLACE:
             break;
         default:
@@ -2559,7 +2557,7 @@ bool MonsterGroupHasReinforcement(W8MonsterGroup* monster_group)
 /* Member info by group list position: entry id at the index, resolved through
    the location index to the script part. Assert lines 3199/3204 pin it late
    in the original file. */
-static inline W8MonsterInfo* GetGroupMemberInfo(W8MonsterGroup* group, unsigned int index)
+static W8MonsterInfo* GetGroupMemberInfo(W8MonsterGroup* group, unsigned int index)
 {
     if (group == 0) {
         srAssertFail("pMonsterGroup", MONSTER_AI_CPP, 3199, 0);
@@ -2740,7 +2738,9 @@ bool ShouldMonsterGroupEnterCombat(W8MonsterGroup* monster_group)
 }
 
 // TEMPLATE: WIZ8 0x005358D0
-// W8GrowableVector<W8CombatSlot>::~W8GrowableVector<W8CombatSlot>
+// NAME: W8GrowableVector<T>::~W8GrowableVector<T>
+// RECOMP: W8GrowableVector<W8CombatSlot>::~W8GrowableVector<W8CombatSlot>
 
 // SYNTHETIC: WIZ8 0x005358F0
-// W8GrowableVector<W8CombatSlot>::`scalar deleting destructor'
+// NAME: W8GrowableVector<T>::`scalar deleting destructor'
+// RECOMP: W8GrowableVector<W8CombatSlot>::`scalar deleting destructor'

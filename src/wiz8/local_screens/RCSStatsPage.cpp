@@ -1374,8 +1374,8 @@ W8CharacterPersonalityPage* CreateCharacterPersonalityPage()
 // SYNTHETIC: WIZ8 0x005c74c0
 // W8CharacterPersonalityPage::`scalar deleting destructor'
 
-// FUNCTION: WIZ8 0x005c74e0
-W8CharacterPersonalityPage::~W8CharacterPersonalityPage() {}
+// SYNTHETIC: WIZ8 0x005c74e0
+// W8CharacterPersonalityPage::~W8CharacterPersonalityPage
 
 // VTABLE: WIZ8 0x005ef5c8 W8CharacterPage
 // VTABLE: WIZ8 0x005ef5c0 W8CharacterPageEntryListener
@@ -1574,5 +1574,5 @@ void W8CharacterSkillsPage::Refresh()
 // SYNTHETIC: WIZ8 0x005c7d40
 // W8CharacterSkillsPage::`scalar deleting destructor'
 
-// FUNCTION: WIZ8 0x005c7d60
-W8CharacterSkillsPage::~W8CharacterSkillsPage() {}
+// SYNTHETIC: WIZ8 0x005c7d60
+// W8CharacterSkillsPage::~W8CharacterSkillsPage

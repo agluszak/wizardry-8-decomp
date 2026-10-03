@@ -334,10 +334,7 @@ static const double pi = 3.141592653589793;
 // SYNTHETIC: SURRENDER 0x100380C0
 // srModeler::`vector deleting destructor'
 
-/* Inline so the Polygon/Triangle array-construction loops in this TU inline
-   the reset() call like retail; consumers see the declaration only and import
-   the standalone copy (Wiz8.exe imports ??0Vertex@srModeler@@QAE@XZ). */
-inline srModeler::Vertex::Vertex()
+srModeler::Vertex::Vertex()
 {
     reset();
 }

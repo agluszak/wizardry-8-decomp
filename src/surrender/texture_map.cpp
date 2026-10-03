@@ -122,7 +122,8 @@ srClass* srTextureMap::vInstance()
 // srClientSupport<srTextureMap, 0x2111>::~srClientSupport
 
 // SYNTHETIC: SURRENDER 0x10060760
-// srPtr element destructor emission
+// NAME: srPtr<T>::retained emission
+// RECOMP: srPtr element destructor emission
 
 // SYNTHETIC: SURRENDER 0x100608D0
 // srTextureMap scalar deleting destructor

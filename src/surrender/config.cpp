@@ -11,7 +11,7 @@
 namespace {
 /* The provider's name hash: identical to the registry index in
    type_registry.cpp. Retail inlines it in this unit. */
-inline unsigned long hashName(const char* name)
+unsigned long hashName(const char* name)
 {
     unsigned long hash = 0;
     for (unsigned long index = 0; name[index] != '\0'; ++index) {
@@ -98,9 +98,7 @@ struct srConfig::Index {
                 for (long bucket = 0; bucket < count_0c; ++bucket) {
                     for (int old = heads_00[bucket]; old != -1; old = records_04[old].next_00) {
                         records[used].key_04 = records_04[old].key_04;
-                        int next_bucket =
-                            srHashValue(records[used].key_04) &
-                            (count - 1);
+                        int next_bucket = srHashValue(records[used].key_04) & (count - 1);
                         records[used].value_08 = records_04[old].value_08;
                         records[used].next_00 = heads[next_bucket];
                         heads[next_bucket] = used++;
@@ -473,8 +471,7 @@ void srInlineString::init()
 }
 
 /* The provider's reset releases non-inline storage, unlike the bare
-   reinitialize Wiz8's unit emits. Retail emits this copy out of line and
-   append's inlined operator= calls it, so it is deliberately not inline. */
+   reinitialization at 0x0047D290 in Wiz8. */
 // FUNCTION: SURRENDER 0x10012C80
 void srInlineString::reset()
 {
@@ -538,8 +535,7 @@ void srConfig::Index::EntryMap::insert(Entry*& key, NameEntry*& value)
     free_08 = records_04[record].next_00;
     records_04[record].key_04 = key;
     records_04[record].value_08 = value;
-    unsigned long bucket =
-        srHashValue(key) & (count_0c - 1);
+    unsigned long bucket = srHashValue(key) & (count_0c - 1);
     records_04[record].next_00 = heads_00[bucket];
     heads_00[bucket] = record;
 }
@@ -547,8 +543,7 @@ void srConfig::Index::EntryMap::insert(Entry*& key, NameEntry*& value)
 // FUNCTION: SURRENDER 0x100134F0
 void srConfig::Index::EntryMap::erase(Entry*& key)
 {
-    unsigned long bucket =
-        srHashValue(key) & (count_0c - 1);
+    unsigned long bucket = srHashValue(key) & (count_0c - 1);
     int* link = &heads_00[bucket];
     int record = *link;
     if (record != -1) {

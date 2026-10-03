@@ -470,8 +470,8 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
     if (mesh.polygon_count_04 != 0 && mesh.vertex_count_00 != 0) {
         renderer.pushEnable();
         if ((g_inverted_depth_render != 0 || (mesh.control_flags_0c & 0x40) != 0) &&
-            !renderer.isEnabled(srGERD::ENABLE_POSITIONAL_1)) {
-            renderer.toggle(srGERD::ENABLE_POSITIONAL_1);
+            !renderer.isEnabled(srGERD::ENABLE_SORTED_RENDERING)) {
+            renderer.toggle(srGERD::ENABLE_SORTED_RENDERING);
         }
 
         if (g_render_cull_front != 0) {
@@ -1567,12 +1567,14 @@ void stMeshModel::FinalizeVertexFrame(int frame)
 // srClassSupport<stMeshModel,srMeshModel,0,65539>::getClassNode
 
 /* Ordinary primary-template instantiation emissions. The generic methods live
-   inline in srArray.h; there are no per-element authored bodies here. */
+   in srArray.h; there are no per-element authored bodies here. */
 // TEMPLATE: WIZ8 0x00474930
-// srArray<srTriMeshPipeline::Record>::setCapacity
+// NAME: srArray<T>::setCapacity
+// RECOMP: srArray<srTriMeshPipeline::Record>::setCapacity
 
 // TEMPLATE: WIZ8 0x00474A80
-// srArray<srTriMeshPipeline::Pass>::setCapacity
+// NAME: srArray<T>::setCapacity
+// RECOMP: srArray<srTriMeshPipeline::Pass>::setCapacity
 
 // TEMPLATE: WIZ8 0x00475240
 // srHeapBuffer<srVertexProcessor*>::ensure (folded four-byte-element instantiations)
@@ -1585,10 +1587,12 @@ void stMeshModel::FinalizeVertexFrame(int frame)
    array, member vector dtors/deleting destructors, and the copy machinery the
    srClassSupport clone reaches. */
 // TEMPLATE: WIZ8 0x004700D0
-// srArray<srVector3T<float> >::setCapacity
+// NAME: srArray<T>::setCapacity
+// RECOMP: srArray<srVector3T<float> >::setCapacity
 
 // TEMPLATE: WIZ8 0x004701D0
-// srArray<srVector3T<float> >::release
+// NAME: srArray<T>::release
+// RECOMP: srArray<srVector3T<float> >::release
 
 // TEMPLATE: WIZ8 0x004744A0
 // srHeapBuffer<srVector3T<float> >::setCapacity (preserving two-argument emission)
@@ -1609,45 +1613,58 @@ void stMeshModel::FinalizeVertexFrame(int frame)
 // srClassSupport<stMeshModel,srMeshModel,0,65539>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x00474B80
-// W8GrowableVector<int>::~W8GrowableVector<int>
+// NAME: W8GrowableVector<T>::~W8GrowableVector<T>
+// RECOMP: W8GrowableVector<int>::~W8GrowableVector<int>
 
 // TEMPLATE: WIZ8 0x00474BA0
-// W8GrowableVector<srPtr<srTextureIFace>*>::~W8GrowableVector<srPtr<srTextureIFace>*>
+// NAME: W8GrowableVector<T>::~W8GrowableVector<T>
+// RECOMP: W8GrowableVector<srPtr<srTextureIFace>*>::~W8GrowableVector<srPtr<srTextureIFace>*>
 
 // TEMPLATE: WIZ8 0x00474BC0
-// W8GrowableVector<short>::~W8GrowableVector<short>
+// NAME: W8GrowableVector<T>::~W8GrowableVector<T>
+// RECOMP: W8GrowableVector<short>::~W8GrowableVector<short>
 
 // TEMPLATE: WIZ8 0x00474D20
-// W8GrowableVector<unsigned char>::RemoveAt
+// NAME: W8GrowableVector<T>::RemoveAt
+// RECOMP: W8GrowableVector<unsigned char>::RemoveAt
 
 // SYNTHETIC: WIZ8 0x00474D60
-// W8GrowableVector<srPtr<srTextureIFace>*>::`scalar deleting destructor'
+// NAME: W8GrowableVector<T>::`scalar deleting destructor'
+// RECOMP: W8GrowableVector<srPtr<srTextureIFace>*>::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x00474D90
-// W8GrowableVector<srPtr<srTextureIFace>*>::`scalar deleting destructor' (out-of-line destructor emission)
+// NAME: W8GrowableVector<T>::`scalar deleting destructor' (out-of-line destructor emission)
+// RECOMP: W8GrowableVector<srPtr<srTextureIFace>*>::`scalar deleting destructor' (out-of-line destructor emission)
 
 // SYNTHETIC: WIZ8 0x00474DB0
-// W8GrowableVector<short>::`scalar deleting destructor'
+// NAME: W8GrowableVector<T>::`scalar deleting destructor'
+// RECOMP: W8GrowableVector<short>::`scalar deleting destructor'
 
 /* Stores table 0x005EC518, the W8GrowableVector<W8VectorElement005EC514*>
    specialization's one-slot table - not 0x005EC514 of W8GrowableVector<stMeshModel*>. */
 // SYNTHETIC: WIZ8 0x00474DE0
-// W8GrowableVector<W8VectorElement005EC514*>::`scalar deleting destructor'
+// NAME: W8GrowableVector<T>::`scalar deleting destructor'
+// RECOMP: W8GrowableVector<W8VectorElement005EC514*>::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x00474E60
-// W8GrowableVector<unsigned long*>::`scalar deleting destructor'
+// NAME: W8GrowableVector<T>::`scalar deleting destructor'
+// RECOMP: W8GrowableVector<unsigned long*>::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x00474E90
-// W8GrowableVector<int>::`scalar deleting destructor'
+// NAME: W8GrowableVector<T>::`scalar deleting destructor'
+// RECOMP: W8GrowableVector<int>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x00474EC0
-// W8GrowableVector<T>::operator= (four-byte-element emission)
+// NAME: W8GrowableVector<T>::operator= (four-byte-element emission)
+// RECOMP: W8GrowableVector<T>::operator= (four-byte-element emission)
 
 // TEMPLATE: WIZ8 0x00474F60
-// W8GrowableVector<srPtr<srTextureIFace>*>::W8GrowableVector (capacity emission)
+// NAME: W8GrowableVector<T>::W8GrowableVector (capacity emission)
+// RECOMP: W8GrowableVector<srPtr<srTextureIFace>*>::W8GrowableVector (capacity emission)
 
 // TEMPLATE: WIZ8 0x00475000
-// W8GrowableVector<short>::operator= (two-byte-element emission)
+// NAME: W8GrowableVector<T>::operator= (two-byte-element emission)
+// RECOMP: W8GrowableVector<short>::operator= (two-byte-element emission)
 
 // SYNTHETIC: WIZ8 0x004752D0
 // srTriMeshPipeline::`scalar deleting destructor'
@@ -1673,7 +1690,7 @@ void srTriMeshPipeline::PrepareSlot()
     current_record_14->disable_mask_04 = 0;
     current_record_14->material_08 = material_80;
     current_pass_18->texture_00 = texture_78;
-    current_pass_18->pass_value_04 = pass_value_7c;
+    current_pass_18->texture_04 = texture_7c;
     current_pass_18->flags_08.value = shader_74.value;
     current_pass_18->texture_array_0c = 0;
     current_pass_18->texture_array_10 = 0;
@@ -1712,13 +1729,13 @@ void srTriMeshPipeline::Reset(srGERD* renderer)
     sort_bias_40 = 0.0f;
     shader_74.value = 0x0100241b;
     texture_78 = 0;
-    pass_value_7c = 0;
+    texture_7c = 0;
     material_80 = srCore.getMaterial();
 
     PrepareSlot();
 }
 
-inline srTriMeshPipeline::srTriMeshPipeline()
+srTriMeshPipeline::srTriMeshPipeline()
 {
     flags_28 = 0;
     shader_74.value = 0;
@@ -1978,7 +1995,8 @@ void srTriMeshPipeline::FlushSlots()
 // unresolved generic srHeap allocator instantiation for four-byte elements
 
 // TEMPLATE: WIZ8 0x004760A0
-// srArray<srVertexArray>::setCapacity
+// NAME: srArray<T>::setCapacity
+// RECOMP: srArray<srVertexArray>::setCapacity
 
 /* Lazy singleton: construct once against the imported pipe static, then bind
    the caller's renderer and rebuild the current slot. */

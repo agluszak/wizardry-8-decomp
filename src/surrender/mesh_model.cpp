@@ -980,7 +980,7 @@ void srMeshModel::render(srGERD& renderer)
         srVector3T<float> center;
         float radius;
         getBoundingSphere(center, radius);
-        if (renderer.testBoundingSphere(center, radius) == srGERD::VISIBILITY_POSITIONAL_0) {
+        if (renderer.testBoundingSphere(center, radius) == srGERD::VISIBILITY_OUTSIDE) {
             return;
         }
     }
@@ -988,7 +988,7 @@ void srMeshModel::render(srGERD& renderer)
         srVector3T<float> minimum;
         srVector3T<float> maximum;
         getBoundingBox(minimum, maximum);
-        if (renderer.testBoundingBox(minimum, maximum) == srGERD::VISIBILITY_POSITIONAL_0) {
+        if (renderer.testBoundingBox(minimum, maximum) == srGERD::VISIBILITY_OUTSIDE) {
             return;
         }
     }
@@ -1005,13 +1005,15 @@ void srMeshModel::render(srGERD& renderer)
 // permuteObjects<srShader>
 
 // TEMPLATE: SURRENDER 0x10045300
-// permuteObjects<srPtr<srTextureIFace> >
+// NAME: permuteObjects<srPtr<T> >
+// RECOMP: permuteObjects<srPtr<srTextureIFace> >
 
 // TEMPLATE: SURRENDER 0x10045450
 // permuteTable<srVector3T<float> >
 
 // TEMPLATE: SURRENDER 0x100454F0
-// permuteObjects<srPtr<srMaterialIFace> >
+// NAME: permuteObjects<srPtr<T> >
+// RECOMP: permuteObjects<srPtr<srMaterialIFace> >
 
 // TEMPLATE: SURRENDER 0x10045640
 // permuteTable<srVector2T<float> >
@@ -1641,19 +1643,13 @@ void srMeshModel::dump(std::ostream& stream)
     stream.flags(flags & 0x7fff);
 }
 
-/* SR.DLL's own copy of the shared pipeline singleton; the consumer build
-   carries a parallel copy in stMeshModel.cpp. Retail keeps the provider
-   bodies inside this TU: the pipeline block (0x10043D50-0x10045030) sits
-   between this file's functions and its permuteTable template emissions
-   (0x10045130+), so same-TU /Ob2 inlining reproduces the call/inline split
-   retail shows (PrepareSlot expands inside renderTriMesh and Reset, while Get
-   calls it). */
+/* Provider pipeline ownership remains provisional; linked address order does
+   not establish original TU placement. */
 
 // GLOBAL: SURRENDER 0x100A4790
 srTriMeshPipeline* srTriMeshPipeline::pipe = 0;
 
-/* The constructor has no standalone retail emission; Get expands it inline. */
-inline srTriMeshPipeline::srTriMeshPipeline()
+srTriMeshPipeline::srTriMeshPipeline()
 {
     flags_28 = 0;
     vertex_pipe_90 = new srVertexPipe();
@@ -1701,7 +1697,7 @@ void srTriMeshPipeline::Reset(srGERD* renderer)
     sort_bias_40 = 0.0f;
     shader_74.value = 0x0100241b;
     texture_78 = 0;
-    pass_value_7c = 0;
+    texture_7c = 0;
     material_80 = srCore.getMaterial();
 
     PrepareSlot();
@@ -1729,7 +1725,7 @@ void srTriMeshPipeline::PrepareSlot()
     current_record_14->disable_mask_04 = 0;
     current_record_14->material_08 = material_80;
     current_pass_18->texture_00 = texture_78;
-    current_pass_18->pass_value_04 = pass_value_7c;
+    current_pass_18->texture_04 = texture_7c;
     current_pass_18->flags_08.value = shader_74.value;
     current_pass_18->texture_array_0c = 0;
     current_pass_18->texture_array_10 = 0;
@@ -2000,9 +1996,7 @@ srTriMeshPipeline* srTriMeshPipeline::Get(srGERD* renderer)
 }
 
 /* Provider-side renderTriMesh: the consumer's stMeshModel override extends
-   this same shape with its software-cull and inverted-depth paths. The
-   pipeline calls expand PrepareSlot inline here while SetFlags, Get and the
-   pipeline vtable call stay out-of-line, matching retail's emissions. */
+   this same shape with its software-cull and inverted-depth paths. */
 // FUNCTION: SURRENDER 0x1003CA80
 void srMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
 {
@@ -2010,8 +2004,8 @@ void srMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
         renderer.pushEnable();
 
         if ((mesh.control_flags_0c & 0x40) != 0 &&
-            !renderer.isEnabled(srGERD::ENABLE_POSITIONAL_1)) {
-            renderer.toggle(srGERD::ENABLE_POSITIONAL_1);
+            !renderer.isEnabled(srGERD::ENABLE_SORTED_RENDERING)) {
+            renderer.toggle(srGERD::ENABLE_SORTED_RENDERING);
         }
 
         long material_side;
@@ -2221,10 +2215,12 @@ long srMeshModel::getVertexCount() const
 // srClassSupport<srMeshModel,srModel,0,8208>::`scalar deleting destructor'
 
 // SYNTHETIC: SURRENDER 0x10043A10
-// srPtr<srTextureIFace> element destructor emission
+// NAME: srPtr<T> element destructor emission
+// RECOMP: srPtr<srTextureIFace> element destructor emission
 
 // SYNTHETIC: SURRENDER 0x10043A40
-// srPtr<srMaterialIFace> element destructor emission
+// NAME: srPtr<T> element destructor emission
+// RECOMP: srPtr<srMaterialIFace> element destructor emission
 
 // TEMPLATE: SURRENDER 0x10043A70
 // srClassSupport<srModel, srClass, true, 0x2000>::sGetClassNode
@@ -2248,13 +2244,16 @@ long srMeshModel::getVertexCount() const
 // srClassSupport<srMeshModel, srModel, 0, 0x2010>::vClone
 
 // TEMPLATE: SURRENDER 0x10044010
-// srArray<T>::release emission
+// NAME: srArray<T>::release emission
+// RECOMP: srArray<T>::release emission
 
 // TEMPLATE: SURRENDER 0x10044030
-// srArray<T>::release emission
+// NAME: srArray<T>::release emission
+// RECOMP: srArray<T>::release emission
 
 // TEMPLATE: SURRENDER 0x10044050
-// srArray<T>::release emission
+// NAME: srArray<T>::release emission
+// RECOMP: srArray<T>::release emission
 
 // SYNTHETIC: SURRENDER 0x100425D0
 // srMeshModel::`vector deleting destructor'

@@ -67,20 +67,11 @@ srTriangulator::srTriangulator(srVector2T<float>* points, int count) : list_04(c
     current_00.node_00 = list_04.nodes_04;
 }
 
-// FUNCTION: SURRENDER 0x1003bce0
-srTriangulator::~srTriangulator()
-{
-}
+// SYNTHETIC: SURRENDER 0x1003bce0
+// srTriangulator::~srTriangulator (implicit list-member teardown)
 
-// FUNCTION: SURRENDER 0x1003bcb0
-srTriangulator& srTriangulator::operator=(const srTriangulator& other)
-{
-    current_00 = other.current_00;
-    list_04.count_00 = other.list_04.count_00;
-    list_04.nodes_04 = other.list_04.nodes_04;
-    points_0c = other.points_0c;
-    return *this;
-}
+// SYNTHETIC: SURRENDER 0x1003bcb0
+// srTriangulator::operator= (implicit shallow copy)
 
 // FUNCTION: SURRENDER 0x1003c0e0
 srVector3i srTriangulator::next()
@@ -153,4 +144,3 @@ int srTriangulator::isInsideTriangle(const srVector2T<float>& p, const srVector2
 {
     return sameSide(p, a, b, c) && sameSide(p, b, a, c) && sameSide(p, c, a, b);
 }
-

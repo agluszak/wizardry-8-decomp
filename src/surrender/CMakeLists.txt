@@ -68,6 +68,7 @@ set_source_files_properties(
     config.cpp
     core.cpp
     debug.cpp
+    debug_dd.cpp
     debug_vp.cpp
     dynamic_library.cpp
     extension.cpp

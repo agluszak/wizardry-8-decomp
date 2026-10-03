@@ -69,7 +69,6 @@ public:
     W8MainGameTextKeyHandler(Controls* panel, int left, int top, int right, int bottom,
                              int line_count, const unsigned short* line_string_ids,
                              unsigned int* region_set);
-    virtual ~W8MainGameTextKeyHandler() override;
     virtual void Redraw(unsigned char full_redraw) override;
     virtual void OnMouseLeave(int event) override;
     virtual void OnMouseMove(int event) override;
@@ -100,7 +99,6 @@ W8_ASSERT_BASE_END(W8MainGameTextKeyHandler, W8RangeListener, m_range_038, 0x34)
 class W8MainGameTextEntry : public W8TextControl {
 public:
     W8MainGameTextEntry(Controls* panel, int index);
-    virtual ~W8MainGameTextEntry() override;
     virtual void Redraw(unsigned char full_redraw) override;
     virtual void OnMouseEnter(int event) override;
     virtual void OnLeftButtonDown(int event) override;
@@ -262,7 +260,6 @@ public:
     // SYNTHETIC: WIZ8 0x0055E5B0
     // W8NpcDialogueScrollWidget::`scalar deleting destructor'
 
-    virtual ~W8NpcDialogueScrollWidget() override {}
     virtual void OnMouseEnter(int event) override;     /* 0x0055E5E0 */
     virtual void OnMouseLeave(int event) override;     /* 0x0055E610 */
     virtual void OnLeftButtonDown(int event) override; /* 0x0055E640 */
@@ -350,7 +347,7 @@ public:
 
     int m_tumbler_count_50;          /* 0x50: pins in use, clamped to [2,8] */
     W8LockTumbler* m_tumblers_54[8]; /* 0x54 */
-    bool m_animating_74;    /* 0x74: a pin is in flight; input is locked out */
+    bool m_animating_74;             /* 0x74: a pin is in flight; input is locked out */
     unsigned char unknown_75[3];
     int m_phase_78;                            /* 0x78: sway accumulator feeding g_lock_phase */
     W8GameTimer m_phase_timer_7c;              /* 0x7c: 0.04s */
@@ -617,7 +614,7 @@ unsigned char WorldViewRegionEvent(const InputAtom* event,
 unsigned char MonsterListRegionEvent(const InputAtom* event,
                                      struct W8Region* region); /* 0x00568100 */
 void SetMainGameMode(int mode);                                /* 0x00568390 */
-void SetFormationBoardVisible(bool visible);          /* 0x00569390 */
+void SetFormationBoardVisible(bool visible);                   /* 0x00569390 */
 void ToggleMainGamePause(void);                                /* 0x0056ABE0 */
 /* The numbered action-key space IsMGSActionKeyEnabled, RunMGSActionKey and
    TryMGSActionKey share: the interface commands map to views and recorded
@@ -646,13 +643,13 @@ enum W8MGSAction {
 void TryMGSActionKey(int command); /* 0x0056B4C0 */
 /* The action-key command gate and executor the dispatcher's 0x131..0x141
    cases and TryMGSActionKey share. */
-bool IsMGSActionKeyEnabled(short command);                               /* 0x0056AF80 */
-void RunMGSActionKey(short command);                                     /* 0x0056B270 */
-void LoadMainGameCursorResources(void);                                  /* 0x00568E10 */
-short GetMainGameViewportMode(void);                                     /* 0x005698C0 */
-void CloseMainGameOverlays(void);                                        /* 0x00569570 */
-void SetRadarMapVisible(bool visible);                          /* 0x00568EB0 */
-void SetActionPanelVisible(bool visible);                       /* 0x00569120 */
+bool IsMGSActionKeyEnabled(short command);                                /* 0x0056AF80 */
+void RunMGSActionKey(short command);                                      /* 0x0056B270 */
+void LoadMainGameCursorResources(void);                                   /* 0x00568E10 */
+short GetMainGameViewportMode(void);                                      /* 0x005698C0 */
+void CloseMainGameOverlays(void);                                         /* 0x00569570 */
+void SetRadarMapVisible(bool visible);                                    /* 0x00568EB0 */
+void SetActionPanelVisible(bool visible);                                 /* 0x00569120 */
 void OpenCharacterScreenForPartySlot(unsigned int party_slot, bool flag); /* 0x00560E10 */
 void RebuildNpcTradeItemList(bool scroll_to_top);
 /* 0x005ADAA0: the trade-stock index behind a visible NPC item row. */
@@ -673,9 +670,9 @@ bool AttemptNpcItemTrade(W8ItemInstance* item, unsigned char quantity, int index
    chosen count to the editor slot and refreshes the trade selection. */
 void NpcTradeSplitDialogResult(W8DialogBase* dialog);
 void RefreshFormationPanel(bool show_portraits); /* 0x005B2980 */
-void EndLockInteractMode(char suspend);                   /* 0x005879A0 */
-void UpdateMainGameScreen(void);                          /* 0x0058A750 */
-void EndTrapInteractMode(char suspend);                   /* 0x0058A790 */
+void EndLockInteractMode(char suspend);          /* 0x005879A0 */
+void UpdateMainGameScreen(void);                 /* 0x0058A750 */
+void EndTrapInteractMode(char suspend);          /* 0x0058A790 */
 int GetPartySlotSkill10Level(int slot);
 int OpenLockInteraction(Trigger* trigger);
 int OpenTrapInteraction(Trigger* trigger);

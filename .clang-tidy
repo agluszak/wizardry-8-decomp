@@ -37,11 +37,13 @@
 #   only changed lines; WIZ8_REDUNDANT_CAST_LINES=* is the explicit full-corpus
 #   audit mode for all three reconstruction-debt checks. Cross-record project
 #   reinterpret casts have no source-comment waiver: reconcile the type/prototype.
-#   Boolean-domain proofs include exact whole-record memset(..., 0/1, sizeof(T))
-#   initialization. Predicate-shaped byte functions with missing bodies are
-#   surfaced as non-gating warnings only when recovered code actually uses them.
-#   A proven intentional byte boolean can use `bool-byte-ok: reason` on or
-#   immediately above its declaration.
+#   Byte name/domain findings are non-gating review diagnostics, not historical
+#   bool-type proof. Observed producers include exact whole-record
+#   memset(..., 0/1, sizeof(T)); indirect/aggregate aliases are not a complete
+#   retail write census. Referenced predicates with missing bodies also warn.
+#   Review independent source/ABI evidence before changing a type. Existing
+#   `bool-byte-ok: reason` storage notes suppress redundant review output; no
+#   conversion or new waiver is required merely for a 0/1 domain.
 #
 # The stock checks below the project-specific ones are gated because a
 # whole-tree trial over all 295 recovered translation units found zero hits, so
@@ -51,7 +53,8 @@
 # into an allocation size, a malformed empty statement where a loop body
 # belongs, a control-flow reconstruction whose loop can never terminate, and a
 # reference member mistaken for an assignable pointer-like relationship. An
-# empty `if (...) ;` or a genuinely infinite loop is never faithful source.
+# suspicious empty conditional or infinite loop needs retail review; independently
+# established retail behavior, including UB, must not be 'repaired' for lint.
 #
 # bugprone-suspicious-string-compare is configured rather than left at its
 # defaults: `if (strcmp(a, b))` and `!strcmp(a, b)` are entirely plausible

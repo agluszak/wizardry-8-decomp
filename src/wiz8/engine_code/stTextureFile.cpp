@@ -182,7 +182,7 @@ srColorSurface* __stdcall LoadSurface(int handle, long* unused_out)
         if (palette == 0) {
             palette = SR_NEW(W8Palette)(palette_colors, header.color_map_length);
             palette->autoRelease();
-            palette->setName("TGA importer generated palette");
+            palette->setName("TGA-importer generated palette");
         }
         break;
     case 1:
@@ -192,7 +192,7 @@ srColorSurface* __stdcall LoadSurface(int handle, long* unused_out)
             if (palette == 0) {
                 palette = SR_NEW(W8Palette)(palette_colors, header.color_map_length);
                 palette->autoRelease();
-                palette->setName("TGA importer generated palette");
+                palette->setName("TGA-importer generated palette");
             }
         } else {
             palette = srCore.getPalette();

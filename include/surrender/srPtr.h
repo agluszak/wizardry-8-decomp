@@ -2,7 +2,9 @@
 
 /* SurRender exposes template specializations using this spelling in its
    decorated exports. The polygon-texture accessors prove the instantiated
-   object is one pointer wide and that ordinary pointer access is inline. */
+   object is one pointer wide and that ordinary pointer access is inline.
+   Other concrete TEMPLATE names are recomp selectors until independently
+   bound; a common addReference/release call does not identify the pointee. */
 template <class T> class srPtr {
 public:
     srPtr() : pointer_(0) {}
@@ -20,9 +22,11 @@ public:
        array uses the srPtr<srMaterialIFace> copy at 0x10042B00 while
        textures_3c's deduplicates to the earlier emission at 0x1001EE90. */
     // TEMPLATE: SURRENDER 0x10042B00
-    // srPtr<srMaterialIFace>::~srPtr
+    // NAME: srPtr<T>::~srPtr
+    // RECOMP: srPtr<srMaterialIFace>::~srPtr
     // TEMPLATE: SURRENDER 0x1001EE90
-    // srPtr<srTextureIFace>::~srPtr
+    // NAME: srPtr<T>::~srPtr
+    // RECOMP: srPtr<srTextureIFace>::~srPtr
     ~srPtr()
     {
         if (pointer_ != 0) {

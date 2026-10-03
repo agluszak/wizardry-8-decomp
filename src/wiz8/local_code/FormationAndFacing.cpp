@@ -457,9 +457,8 @@ wchar_t g_formation_row_names[5][20] = {
 /* Make room in `row` for one more character and return the column it should
    take: an empty row, or one whose lead column is already open, seats it in
    column 0; a lone leader moves over to column 1 and the newcomer takes column
-   2. A full row has no room (-1). Retail inlines this at every use (all five
-   copies assert with the same source lines) and keeps no out-of-line body. */
-static inline signed char MakeRoomInFormationRow(W8PartyFormationState* formation, int row)
+   2. A full row has no room (-1). */
+static signed char MakeRoomInFormationRow(W8PartyFormationState* formation, int row)
 {
     switch (formation->ubQuadrantOccupants[row]) {
     case 0:

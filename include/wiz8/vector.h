@@ -3,13 +3,14 @@
 
 #include <new>
 
-/* One hand-rolled growable-array template. Each element type emits its own
-   constructor, destructor, vtable and element-width-specific methods. */
+/* One hand-rolled growable-array template. Retained storage/lifecycle emissions
+   may be shared by different element types; concrete pairing names alone do not
+   establish their original template arguments. */
 template <class T> class W8GrowableVector {
 public:
     /* Retail emits both a no-argument constructor with capacity five and a
-       capacity-taking constructor. The no-argument form is out of line for
-       unsigned char, float and srVector3T<float> elements. */
+       capacity-taking constructor. Observed no-argument allocations include
+       one-, four- and twelve-byte elements; width alone does not name T. */
     W8GrowableVector()
     {
         data = new T[5];
@@ -36,7 +37,8 @@ public:
     }
 
     /* The copy is sized to the source's live count rather than its capacity.
-       The concrete int body at 0x004ED900 is an ordinary template emission. */
+       Retail 0x004ed900 copies four-byte elements without distinguishing their
+       scalar/pointer interpretation. */
     W8GrowableVector(const W8GrowableVector& other)
     {
         data = new T[other.count];

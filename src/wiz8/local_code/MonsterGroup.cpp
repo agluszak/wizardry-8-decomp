@@ -341,7 +341,8 @@ W8MonsterGroup* GetMonsterGroupByListIndex(unsigned int group_list_index)
         if (group_list_index >= PLLength(gXStatus.plsMonsterGroupList)) {
             return 0;
         }
-        result = static_cast<W8MonsterGroup*>(PLGet(gXStatus.plsMonsterGroupList, group_list_index));
+        result =
+            static_cast<W8MonsterGroup*>(PLGet(gXStatus.plsMonsterGroupList, group_list_index));
         if (result != 0) {
             return result;
         }
@@ -935,10 +936,8 @@ void RepairMonsterGroupLeaderLinks(void)
 /* Detaches a group from whatever leader it currently has: the leader's ally slot
    pointing back at it is cleared and its own leader link cut. Answers the group
    the id resolved to, which the callers then re-lay-out.
- 
-   Written as an inline because 0x0050F4A0 and 0x0050FC20 both compile it, at the
-   same two source lines. */
-static inline W8MonsterGroup* UnlinkMonsterGroupFromLeader(W8MonsterGroup* monster_group)
+ */
+static W8MonsterGroup* UnlinkMonsterGroupFromLeader(W8MonsterGroup* monster_group)
 {
     W8MonsterGroup* current;
     W8MonsterGroup* previous_leader;

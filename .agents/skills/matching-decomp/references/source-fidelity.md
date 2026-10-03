@@ -58,9 +58,11 @@ Source and translation-unit ownership rules belong to the
   remains is decompiler representation or established compiler/linker lowering, keep the clean source
   and record it instead.
 - Source-shaping compiler controls are source claims, not matching knobs. Do not add `__forceinline`,
-  noinline attributes, per-function optimizer pragmas or equivalent controls merely to change generated
-  code. The forbidden inlining controls above have no source-model exception. Existing suspicious
-  sites are recovery debt, not precedent.
+  noinline attributes, optimizer pragmas or per-TU compiler-option overrides merely to change generated
+  code. Historical option claims need independent project evidence; retail unwind operations constrain
+  required lifetime behavior without proving literal flags or original TU placement. The forbidden
+  inlining controls above have no source-model exception. Existing suspicious sites are recovery debt,
+  not precedent.
 - Never promote compiler output into an authored source construct. A concrete template emission proves
   that a primary-template body was emitted, but it proves exact template arguments only to the extent
   that the generated body distinguishes them. Body-equivalent constructors, destructors, clears,

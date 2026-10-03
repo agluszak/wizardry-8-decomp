@@ -212,27 +212,30 @@ RUN echo "deb http://deb.debian.org/debian trixie-backports main" \
       /tmp/wiz8-clang-tidy-plugin/record_cast_audit.log)" -eq 18 \
  && grep -q 'explicit full-tree audit mode selected' \
       /tmp/wiz8-clang-tidy-plugin/record_cast_audit.log \
- && if WIZ8_REDUNDANT_CAST_LINES='/tmp/wiz8-clang-tidy-plugin/bool_test.cpp@1-240' clang-tidy \
-      --checks=-*,wiz8-bool-like-byte \
+ && WIZ8_REDUNDANT_CAST_LINES='/tmp/wiz8-clang-tidy-plugin/bool_test.cpp@1-300' clang-tidy \
+      --checks=-*,wiz8-bool-like-byte --warnings-as-errors=* \
       /tmp/wiz8-clang-tidy-plugin/bool_test.cpp \
       -- --target=i686-pc-windows-msvc -std=c++17 \
-      > /tmp/wiz8-clang-tidy-plugin/bool_test.log 2>&1; then \
-      cat /tmp/wiz8-clang-tidy-plugin/bool_test.log; exit 1; \
+      > /tmp/wiz8-clang-tidy-plugin/bool_test.log 2>&1 \
+ && test "$(grep -c 'warning:.*\[wiz8-bool-like-byte\]' \
+      /tmp/wiz8-clang-tidy-plugin/bool_test.log)" -eq 17 \
+ && for candidate in HasEntries Both HasLineOfSightToBounds0046FD70 m_dirty \
+      selection_settled settled transition_active left_ready right_ready both_ready \
+      fCombatMode talking execution_active_000 initialized display_active \
+      SetPanelVisible::visible handed_ready; do \
+      grep -q "'$candidate'" /tmp/wiz8-clang-tidy-plugin/bool_test.log || exit 1; \
+    done \
+ && ! grep -Eq 'error:|use bool|bool-byte-ok' /tmp/wiz8-clang-tidy-plugin/bool_test.log \
+ && ! grep -Eq 'SetPanelLayered|SetCallbackEnabled|g_menu_active|has_group|monster_bound|nested_active' \
+      /tmp/wiz8-clang-tidy-plugin/bool_test.log \
+ && if WIZ8_REDUNDANT_CAST_LINES='/tmp/wiz8-clang-tidy-plugin/bool_test.cpp@1-300' clang-tidy \
+      --checks=-*,wiz8-bool-like-byte \
+      /tmp/wiz8-clang-tidy-plugin/bool_test.cpp \
+      -- --target=i686-pc-windows-msvc -std=c++17 -DWIZ8_BOOL_TEST_INVALID \
+      > /tmp/wiz8-clang-tidy-plugin/bool_test_invalid.log 2>&1; then \
+      cat /tmp/wiz8-clang-tidy-plugin/bool_test_invalid.log; exit 1; \
     fi \
- && bool_diagnostics="$(grep -c '\[wiz8-bool-like-byte\]' \
-      /tmp/wiz8-clang-tidy-plugin/bool_test.log)" \
- && if [ "$bool_diagnostics" -ne 15 ]; then \
-      echo "expected 15 bool-like diagnostics, got $bool_diagnostics"; \
-      cat /tmp/wiz8-clang-tidy-plugin/bool_test.log; exit 1; \
-    fi \
- && grep -q "warning: byte-returning predicate 'HasLineOfSightToBounds0046FD70'" \
-      /tmp/wiz8-clang-tidy-plugin/bool_test.log \
- && grep -q "byte declaration 'SetPanelVisible::visible'" \
-      /tmp/wiz8-clang-tidy-plugin/bool_test.log \
- && grep -q "byte declaration 'handed_ready'" \
-      /tmp/wiz8-clang-tidy-plugin/bool_test.log \
- && ! grep -Eq "SetPanelLayered|SetCallbackEnabled|g_menu_active|has_group|monster_bound|nested_active" \
-      /tmp/wiz8-clang-tidy-plugin/bool_test.log \
+ && grep -q '\[clang-diagnostic-error\]' /tmp/wiz8-clang-tidy-plugin/bool_test_invalid.log \
  && WIZ8_SCALAR_FACTS_DIR=/tmp/wiz8-clang-tidy-plugin/scalar-facts clang-tidy \
       --checks=-*,wiz8-bool-like-byte,wiz8-scalar-facts \
       /tmp/wiz8-clang-tidy-plugin/scalar_test.cpp \

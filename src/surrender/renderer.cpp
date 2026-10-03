@@ -390,8 +390,7 @@ void srGERD::Renderer::assignTextureSets(unsigned long* texture_set, const unsig
 {
     TextureSetKey key;
     key.texture0_00 = pass->texture_00;
-    /* reinterpret-ok: the second key word rides the pass's value slot. */
-    key.texture1_04 = reinterpret_cast<srTextureIFace*>(pass->pass_value_04);
+    key.texture1_04 = pass->texture_04;
     key.shader_08 = pass->flags_08;
     unsigned char mask = pass->texture_array_0c != 0;
     if (pass->texture_array_10 != 0) {
@@ -622,8 +621,7 @@ void srGERD::Renderer::expandTriangles(const TriInput& input, int sorted)
                 if (sorted != 0) {
                     const srVector4T<float>* positions = &vertices_78_.positions_10[0];
                     sortKeys(write.sort_key_08 + written, write.triangles_00 + written, positions,
-                             input.sort_bias_24,
-                             input.triangle_count_00);
+                             input.sort_bias_24, input.triangle_count_00);
                 }
                 free_vertex = base + new_count;
             } else {
@@ -632,9 +630,8 @@ void srGERD::Renderer::expandTriangles(const TriInput& input, int sorted)
                                        input.triangle_count_00);
                 if (sorted != 0) {
                     const srVector4T<float>* positions = &vertices_78_.positions_10[0];
-                    sortKeys(write.sort_key_08 + written, write.triangles_00 + written,
-                             positions, input.sort_bias_24,
-                             input.triangle_count_00);
+                    sortKeys(write.sort_key_08 + written, write.triangles_00 + written, positions,
+                             input.sort_bias_24, input.triangle_count_00);
                 }
             }
             written += input.triangle_count_00;
@@ -652,29 +649,27 @@ void srGERD::Renderer::expandTriangles(const TriInput& input, int sorted)
 void srGERD::Renderer::transformVertices(const TriInput& input, unsigned char* clip_flags)
 {
     srVector4T<float>* write = &vertices_78_.positions_10[first_vertex_c0_];
-    const float* matrix =
-        /* reinterpret-ok: the projection matrix is consumed elementwise. */
-        reinterpret_cast<const float*>(input.project_clip_near_20);
+    const srMatrix4T<float>& matrix = *input.project_clip_near_20;
     unsigned long zero_mask = 0;
     unsigned long bit = 1;
     for (long row = 0; row < 4; row++) {
-        if (matrix[row * 4] == 0.0f) {
+        if (matrix.vectors[row].x == 0.0f) {
             zero_mask |= bit;
         }
-        if (matrix[row * 4 + 1] == 0.0f) {
+        if (matrix.vectors[row].y == 0.0f) {
             zero_mask |= bit * 2;
         }
-        if (matrix[row * 4 + 2] == 0.0f) {
+        if (matrix.vectors[row].z == 0.0f) {
             zero_mask |= bit * 4;
         }
-        if (matrix[row * 4 + 3] == 0.0f) {
+        if (matrix.vectors[row].w == 0.0f) {
             zero_mask |= bit * 8;
         }
         bit *= 0x10;
     }
     int mode;
-    if (zero_mask == 0x7bde && matrix[0] == 1.0f && matrix[5] == 1.0f && matrix[10] == 1.0f &&
-        matrix[15] == 1.0f) {
+    if (zero_mask == 0x7bde && matrix.vectors[0].x == 1.0f && matrix.vectors[1].y == 1.0f &&
+        matrix.vectors[2].z == 1.0f && matrix.vectors[3].w == 1.0f) {
         mode = 4;
     } else if ((zero_mask & 0xb39a) == 0xb39a) {
         mode = 6;
@@ -684,7 +679,7 @@ void srGERD::Renderer::transformVertices(const TriInput& input, unsigned char* c
         mode = 0;
     } else {
         mode = 3;
-        if (matrix[15] != 1.0f) {
+        if (matrix.vectors[3].w != 1.0f) {
             mode = 0;
         }
     }
@@ -1165,16 +1160,20 @@ void srGERD::Renderer::bindTextureSet(unsigned long index)
 // srGERD::Renderer::~Renderer
 
 // TEMPLATE: SURRENDER 0x10026DC0
-// srArray<T>::release emission
+// NAME: srArray<T>::release emission
+// RECOMP: srArray<T>::release emission
 
 // TEMPLATE: SURRENDER 0x10026E30
-// srArray<T>::release emission
+// NAME: srArray<T>::release emission
+// RECOMP: srArray<T>::release emission
 
 // TEMPLATE: SURRENDER 0x10027040
-// srArray<T>::release emission
+// NAME: srArray<T>::release emission
+// RECOMP: srArray<T>::release emission
 
 // TEMPLATE: SURRENDER 0x100270E0
-// srArray<T>::release emission
+// NAME: srArray<T>::release emission
+// RECOMP: srArray<T>::release emission
 
 // TEMPLATE: SURRENDER 0x100271A0
 // srHeapBuffer<T>::release emission

@@ -52,16 +52,10 @@ srFileManager::Path* srFileManager::Path::getNext() const
     return next_04;
 }
 
-/* Retail 0x100163A0 copies name_00, next_04 and previous_08 memberwise.
-   No Path copy constructor is emitted. */
-// FUNCTION: SURRENDER 0x100163A0
-srFileManager::Path& srFileManager::Path::operator=(const Path& other)
-{
-    name_00 = other.name_00;
-    next_04 = other.next_04;
-    previous_08 = other.previous_08;
-    return *this;
-}
+/* Retail 0x100163A0 copies name_00, next_04 and previous_08 memberwise,
+   preserving the pointer aliasing even though Path owns name_00. */
+// SYNTHETIC: SURRENDER 0x100163A0
+// srFileManager::Path::operator= (implicit shallow copy)
 
 // FUNCTION: SURRENDER 0x1002E0B0
 void srFileManager::addPath(const char* path)

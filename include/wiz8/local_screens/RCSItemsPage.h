@@ -72,10 +72,9 @@ bool IsSpecialItemId(W8ItemInstance* item);
    callback_id; gap-owned table, also read by the AssayDialog TU. */
 extern unsigned short g_equip_slot_label_ids[12];
 
-/* Camp panel lifecycle helpers. Their retail addresses interleave with the
-   RCSItemsPage.cpp functions (0x005B9070-0x005B9FD0), and ReviewCharacterScreen.cpp
-   callers reach the refresh helpers by call rather than expansion, so one unit
-   owns them all. */
+/* Camp panel lifecycle helpers, currently placed in RCSItemsPage.cpp.
+   Retail DrawCampScreen calls the three refresh helpers, but their addresses
+   lie in an assertion-only TU gap; the exact original unit remains unknown. */
 int CreateCampActionPanel(void);                 /* 0x005B9070 */
 void ReleaseCampActionPanel(void);               /* 0x005B9220 */
 void EnableCampActionButtons(void);              /* 0x005B9270 */

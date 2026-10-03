@@ -254,14 +254,12 @@ signed char FindFactionByName(const char* name)
     return -1;
 }
 
-/* One faction's runtime value. */
 // FUNCTION: WIZ8 0x005360f0
 int GetFactionValue(signed char faction)
 {
     return g_factions[faction].band_changed_clock_06;
 }
 
-/* Raise or lower one faction's flag. */
 // FUNCTION: WIZ8 0x00536110
 void SetFactionFlag(signed char faction, bool flag)
 {
@@ -286,7 +284,6 @@ void ResetTargetSource(W8TargetSource* source)
     source->iMonsterID = BAD_INDEX;
 }
 
-/* The same for the shorter inline form, which has a third id to invalidate. */
 // FUNCTION: WIZ8 0x00536170
 void ResetCombatSlot(W8CombatSlot* slot)
 {
@@ -408,7 +405,6 @@ void AimByKind(int actor, W8TargetKind kind, W8TargetingContext context)
     AimAtTarget(actor, &target, context);
 }
 
-/* Aim at one character. */
 // FUNCTION: WIZ8 0x00538670
 void AimAtCharacter(int actor, int character_slot, W8TargetingContext context)
 {
@@ -422,7 +418,6 @@ void AimAtCharacter(int actor, int character_slot, W8TargetingContext context)
     AimAtTarget(actor, &target, context);
 }
 
-/* Aim at a character through the indirect kind (type 9). */
 // FUNCTION: WIZ8 0x005386C0
 void AimAtCharacterIndirect(int actor, int character_slot, W8TargetingContext context)
 {
@@ -878,8 +873,7 @@ int PickNearestMonsterUnderCursor(int cursor_x, int cursor_y)
     }
     if (g_dev_mode != 0) {
         for (index = 0; index < PLLength(gXStatus.plsUnbornMonsterList); ++index) {
-            W8MonsterInfo* monster_info =
-                GetUnbornMonsterEntry(index);
+            W8MonsterInfo* monster_info = GetUnbornMonsterEntry(index);
             float distance;
 
             if (monster_info->fActive == 0) {
@@ -1484,8 +1478,8 @@ W8TargetingContext ResolveTargetingContext(int party_slot, W8TargetingContext co
         return W8_TARGETING_CONTEXT_SPELL;
     case W8_TARGETING_CONTEXT_ITEM:
         return W8_TARGETING_CONTEXT_ITEM;
-    case W8_TARGETING_CONTEXT_FIVE:
-        return W8_TARGETING_CONTEXT_FIVE;
+    case W8_TARGETING_CONTEXT_BREATH:
+        return W8_TARGETING_CONTEXT_BREATH;
     case W8_TARGETING_CONTEXT_DIALOGUE:
         return W8_TARGETING_CONTEXT_DIALOGUE;
     default:
@@ -1517,8 +1511,8 @@ W8CombatSlot* GetTargetBlockForContext(int party_slot, W8TargetingContext contex
         return &row->spell_target;
     case W8_TARGETING_CONTEXT_ITEM:
         return &row->item_target;
-    case W8_TARGETING_CONTEXT_FIVE:
-        return &row->target_context_5;
+    case W8_TARGETING_CONTEXT_BREATH:
+        return &row->breath_target;
     case W8_TARGETING_CONTEXT_DIALOGUE:
         return 0;
     default:
@@ -1527,9 +1521,6 @@ W8CombatSlot* GetTargetBlockForContext(int party_slot, W8TargetingContext contex
     return &row->target_in_combat;
 }
 
-/* Replace a monster's current combat target with one monster id. The target
-   block is cleared as a whole before its four discriminating fields are
-   established, matching the other target builders in this unit. */
 // FUNCTION: WIZ8 0x0053A2C0
 void SetMonsterCombatTarget(W8MonsterInfo* monster_info, int location_id)
 {
@@ -2103,8 +2094,8 @@ W8TargetingContext GetValidatedTargetingContext(int party_slot, W8TargetingConte
         return W8_TARGETING_CONTEXT_SPELL;
     case W8_TARGETING_CONTEXT_ITEM:
         return W8_TARGETING_CONTEXT_ITEM;
-    case W8_TARGETING_CONTEXT_FIVE:
-        return W8_TARGETING_CONTEXT_FIVE;
+    case W8_TARGETING_CONTEXT_BREATH:
+        return W8_TARGETING_CONTEXT_BREATH;
     case W8_TARGETING_CONTEXT_DIALOGUE:
         return W8_TARGETING_CONTEXT_DIALOGUE;
     default:
@@ -2993,14 +2984,13 @@ bool IsMonsterVisibleWithinDistance(W8Monster* monster, const srVector3T<float>*
         minimum += projected;
         maximum += projected;
         input.SetFromFloat(&center);
-        if (g_world->camera->project(projected, input) !=
-            srCamera::PROJECTION_RESULT_POSITIONAL_0) {
+        if (g_world->camera->project(projected, input) != srCamera::PROJECTION_RESULT_ACCEPTED) {
             input.SetFromFloat(&minimum);
             if (g_world->camera->project(projected, input) !=
-                srCamera::PROJECTION_RESULT_POSITIONAL_0) {
+                srCamera::PROJECTION_RESULT_ACCEPTED) {
                 input.SetFromFloat(&maximum);
                 if (g_world->camera->project(projected, input) !=
-                    srCamera::PROJECTION_RESULT_POSITIONAL_0) {
+                    srCamera::PROJECTION_RESULT_ACCEPTED) {
                     return false;
                 }
             }
@@ -3027,16 +3017,14 @@ bool AnyMonsterVisible(void)
     GetCameraPosition(&camera);
     count = PLLength(gXStatus.plsMonsterList);
     if (0 <= g_last_visible_monster && g_last_visible_monster < count) {
-        W8MonsterInfo* monster_info =
-            GetMonsterListEntry(g_last_visible_monster);
+        W8MonsterInfo* monster_info = GetMonsterListEntry(g_last_visible_monster);
         if (monster_info->p3D != 0 &&
             IsMonsterVisibleWithinDistance(monster_info->p3D, &camera, limit) != 0) {
             return 1;
         }
     }
     for (index = 0; index < count; ++index) {
-        W8MonsterInfo* monster_info =
-            GetMonsterListEntry(index);
+        W8MonsterInfo* monster_info = GetMonsterListEntry(index);
 
         if (monster_info->p3D != 0 &&
             IsMonsterVisibleWithinDistance(monster_info->p3D, &camera, limit) != 0) {
@@ -3148,7 +3136,7 @@ void AimAtTarget(int actor, W8CombatSlot* target, W8TargetingContext context)
             } else if (action == W8_ACTION_USE_ITEM) {
                 row->item_target = *target;
             } else if (action == W8_ACTION_BREATHE) {
-                row->target_context_5 = *target;
+                row->breath_target = *target;
             }
         }
     }
@@ -3351,7 +3339,7 @@ void ConfigureSpellTargetFilter(int target_type, unsigned int needed_kind)
         goto aim_done;
     case 7:
         ResetCombatSlot(&target);
-        target.iType = W8_TARGET_KIND_FIVE;
+        target.iType = W8_TARGET_KIND_ALL_ENEMIES;
         break;
     case 10:
         ResetCombatSlot(&target);
@@ -3496,7 +3484,7 @@ int ChooseFallbackMonsterTarget(int party_slot, int group_id, W8TargetingContext
     if (g_settings.autoswap_weapons != 0 &&
         gXStatus.monster_manager_entries[party_slot].item_swap_in_progress == 0 &&
         row->item_action_pending_0f5 == 0 &&
-        (g_combat_state->combat_over_000 == 0 ||
+        (g_combat_state->execution_active_000 == 0 ||
          g_combat_state->characters[party_slot].dead_34 == 0 ||
          g_combat_state->characters[party_slot].phase == 0) &&
         !IsItemBoundToWearer(&character->EquippedItem[8]) &&

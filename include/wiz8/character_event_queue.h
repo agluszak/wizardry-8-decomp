@@ -113,16 +113,12 @@ struct W8CharacterEventQueue {
     unsigned char IsMainQueueEmpty() const;                                   /* 0x0052E470 */
     void CompleteActiveEvent(W8CharacterEvent* entry);
     void CompleteFirstActiveEvent();
-    /* Restarts the follow-up clock for entries of the middle event band while
-       the state flag selects it. QueueEntry calls the emitted body; Dispatch,
-       CompleteActiveEvent, and CompleteFirstActiveEvent inline copies of the
-       same logic in retail, so the source repeats it there. */
     void RestartFollowUpClock(W8CharacterEvent* entry);
     /* Removes every queued event belonging to a character; active ones are
        completed, the rest deleted. Runs when a character dies. */
     void RemoveCharacterEvents(W8Character* character); /* 0x0052D970 */
-    void CompleteAllActiveEvents();  /* 0x0052DB30 */
-    unsigned char HasActiveEvents(); /* 0x0052E460 */
+    void CompleteAllActiveEvents();                     /* 0x0052DB30 */
+    unsigned char HasActiveEvents();                    /* 0x0052E460 */
     /* Advances the ambient follow-up exchange: arms it, then on each clock
        expiry queues another middle-band event on a random member, excluding
        the previous speaker. */

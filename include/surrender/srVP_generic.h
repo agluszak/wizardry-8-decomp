@@ -11,7 +11,6 @@
 // VTABLE: SURRENDER 0x100776B0 srVP_generic
 class srVP_generic : public srVP {
 public:
-    virtual ~srVP_generic() override;
     // SYNTHETIC: SURRENDER 0x100658B0
     // srVP_generic::`scalar deleting destructor'
 

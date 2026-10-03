@@ -3058,8 +3058,5 @@ void UpdateLevelMovementAudio(void)
     }
 }
 
-/* The record's only non-trivial member is the interval gate at +0xc4, so the
-   whole destructor is that member's teardown. Retail emits the member teardown
-   as the bare `add ecx,0xc4` body rather than an adjustor thunk. */
-// FUNCTION: WIZ8 0x00421890
-W8LevelDataRecord::~W8LevelDataRecord() {}
+// SYNTHETIC: WIZ8 0x00421890
+// W8LevelDataRecord::~W8LevelDataRecord

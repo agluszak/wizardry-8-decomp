@@ -18,8 +18,6 @@ public:
     void Update(const srVector3T<float>* position);
     void StartFadeOut();
 
-    virtual ~MonsterLight() override; /* 0x0049E0D0 */
-
     /* The retail secondary table at 0x005ECD0C carries real override slots for
        both vertex-processor hooks: isActive's body (0x004D6190) is the
        constant-return-1 frame folded across the identically-shaped overrides

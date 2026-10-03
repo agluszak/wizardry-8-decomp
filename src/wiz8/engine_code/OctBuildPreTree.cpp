@@ -497,10 +497,12 @@ unsigned char OctBuildPreTree::UpdateRegionForGeometry(const srVector3T<float>* 
    refresh the selected region-to-short association for every intersected
    leaf. The temporary child record carries the exact subcell bounds into the
    recursive call. */
-// FUNCTION: WIZ8 0x004b07e0
 #pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsometimes-uninitialized" // uninit-ok: retail tests the unset intersects byte for modes other than 5/6; that value controls region-map updates.
-#pragma clang diagnostic ignored "-Wuninitialized" // uninit-ok: retail tests the unset intersects byte for modes other than 5/6; that value controls region-map updates.
+#pragma clang diagnostic ignored                                                                   \
+    "-Wsometimes-uninitialized" // uninit-ok: retail tests the unset intersects byte for modes other than 5/6; that value controls region-map updates.
+#pragma clang diagnostic ignored                                                                   \
+    "-Wuninitialized" // uninit-ok: retail tests the unset intersects byte for modes other than 5/6; that value controls region-map updates.
+// FUNCTION: WIZ8 0x004b07e0
 unsigned char OctBuildPreTree::UpdateRegionMap(const W8OctSpatialState* spatial,
                                                const srVector3T<float>* geometry, short value,
                                                short mode)
@@ -1139,8 +1141,7 @@ void OctBuildPreTree::AssignInitialRegions(const W8OctSpatialState* spatial)
         int contained_count = 0;
         for (unsigned long index = 0; index < g_poly_list_count; ++index) {
             W8OctRegionPolygon* polygon = static_cast<W8OctRegionPolygon*>(g_poly_list[index]);
-            if (polygon->region_32 == 0 &&
-                polygon->ContainsPoint(&spatial->minimum_0c) != 0) {
+            if (polygon->region_32 == 0 && polygon->ContainsPoint(&spatial->minimum_0c) != 0) {
                 ++contained_count;
                 polygon->region_32 = spatial_00.region_id_bound_58;
             }
@@ -1331,9 +1332,9 @@ unsigned char OctBuildPreTree::MergeRegion(W8OctBuildNode* node, const int* cell
         path = region_path_map_124->Lookup(&node_region);
     }
 
-    neighbor_center =
-        (node_center * static_cast<double>(moved_count) + neighbor_center * static_cast<double>(neighbor_count)) /
-        static_cast<double>(moved_count + neighbor_count);
+    neighbor_center = (node_center * static_cast<double>(moved_count) +
+                       neighbor_center * static_cast<double>(neighbor_count)) /
+                      static_cast<double>(moved_count + neighbor_count);
     return 1;
 }
 
@@ -1560,7 +1561,8 @@ void OctBuildPreTree::ValidatePolygonRegions()
 
         if (!found) {
             char message[256];
-            sprintf(message, "Poly %d not found in correct region.\n", static_cast<int>(polygon_index));
+            sprintf(message, "Poly %d not found in correct region.\n",
+                    static_cast<int>(polygon_index));
             ReportBuildStatus(6, message);
         }
     }
@@ -1993,8 +1995,8 @@ OctPreTree* OctBuildPreTree::BuildOctPreTree()
     for (int grid_axis = 0; grid_axis != 3; ++grid_axis) {
         (&tree->m_leaf_grid_dim_x_0a4)[grid_axis] =
             static_cast<int>(((&tree->spatial_000.clipped_maximum_30.x)[grid_axis] -
-                   (&tree->spatial_000.clipped_minimum_24.x)[grid_axis]) /
-                  tree->spatial_000.node_extent_70) +
+                              (&tree->spatial_000.clipped_minimum_24.x)[grid_axis]) /
+                             tree->spatial_000.node_extent_70) +
             1;
     }
     tree->m_owned_0b0 = static_cast<unsigned long*>(
@@ -2026,26 +2028,34 @@ int GetBuildNodeInstanceCount(void)
     return g_build_node_instances;
 }
 
-/* Two value specializations of the same 16-bit-key open hash table are
-   emitted at the end of OctBuildPreTree.cpp. The generic definition lives in
-   stHash.hpp; callers inline the same grow and allocation operations. */
+/* Region-path entries have 16-bit keys and four-byte values (Lookup caller
+   0x004B25C0; Grow owner 0x004B19F0). Region maps at +0x12C/+0x130 have word
+   keys/values (callers 0x004B3F90 and 0x004B07E0). These flows establish storage
+   families, not unsigned-long spelling or word-value signedness. */
 // TEMPLATE: WIZ8 0x004b4bd0
-// W8HashTable<unsigned short,unsigned long>::Lookup
+// NAME: W8HashTable<Key,Value>::Lookup (region-path owner)
+// RECOMP: W8HashTable::Lookup (region-path owner)
 
 // TEMPLATE: WIZ8 0x004b4c30
-// W8HashTable<unsigned short,short>::Insert
+// NAME: W8HashTable<Key,Value>::Insert (region-map owner)
+// RECOMP: W8HashTable::Insert (region-map owner)
 
 // TEMPLATE: WIZ8 0x004b4dd0
-// W8HashTable<unsigned short,short>::Remove
+// NAME: W8HashTable<Key,Value>::Remove (region-map owner)
+// RECOMP: W8HashTable::Remove (region-map owner)
 
 // TEMPLATE: WIZ8 0x004b4e70
-// W8HashTable<unsigned short,unsigned long>::Grow
+// NAME: W8HashTable<Key,Value>::Grow (region-path owner)
+// RECOMP: W8HashTable::Grow (region-path owner)
 
 // TEMPLATE: WIZ8 0x004b4fc0
-// W8HashTable<unsigned short,unsigned long>::AllocateEntry
+// NAME: W8HashTable<Key,Value>::AllocateEntry (region-path owner)
+// RECOMP: W8HashTable::AllocateEntry (region-path owner)
 
 // TEMPLATE: WIZ8 0x004b5130
-// W8HashTable<unsigned short,short>::Grow
+// NAME: W8HashTable<Key,Value>::Grow (region-map owner)
+// RECOMP: W8HashTable::Grow (region-map owner)
 
 // TEMPLATE: WIZ8 0x004b5270
-// W8HashTable<unsigned short,short>::AllocateEntry
+// NAME: W8HashTable<Key,Value>::AllocateEntry (region-map owner)
+// RECOMP: W8HashTable::AllocateEntry (region-map owner)

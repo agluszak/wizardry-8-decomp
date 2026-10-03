@@ -14,12 +14,10 @@ enum { W8_RIFF_CHUNK_ID = 0x46464952 };
 // FUNCTION: WIZ8 0x0055bce0
 W8Chunk::W8Chunk() : m_hFile(0), m_fWriting(0) {}
 
-/* Empty. The four member vectors release their own backing storage in reverse
-   declaration order and nothing else happens - in particular the heads are not
-   deleted here, because W8Chunk removes and deletes each one as it releases it
-   rather than at teardown. */
-// FUNCTION: WIZ8 0x0055bde0
-W8Chunk::~W8Chunk() {}
+/* Implicit member destruction releases the four backing arrays in reverse
+   order. Retail 0x0055bde0 neither deletes remaining heads nor closes the file. */
+// SYNTHETIC: WIZ8 0x0055bde0
+// W8Chunk::~W8Chunk
 
 // FUNCTION: WIZ8 0x0055ca20
 unsigned char W8Chunk::Read(void* buffer, unsigned int size, unsigned int* transferred)
@@ -335,7 +333,6 @@ int W8Chunk::CurrentChunkExtent()
     return head->extent_08;
 }
 
-/* The active group count is the top of the first integer navigation stack. */
 // FUNCTION: WIZ8 0x0055c6c0
 int W8Chunk::ChunkCount()
 {

@@ -150,7 +150,7 @@ public:
 
 static_assert(sizeof(W8Missile) == 0x328, "W8Missile_size_must_be_0x328");
 /* Secondary vftable 0x005ecdf4 keeps the W8Navigator subobject at +0x18. */
-W8_ASSERT_BASE_OFFSET(W8Missile, W8Navigator, padding_004, 0x18);
+W8_ASSERT_BASE_OFFSET(W8Missile, W8Navigator, navigation_mode_008, 0x18);
 
 W8Missile* FireMissile(unsigned int missile_table_index, srVector3T<float>* source,
                        srVector3T<float>* target, float flight_speed, unsigned int trace_mask,

@@ -46,7 +46,6 @@ public:
     static SR_DLL_IMPORT const char* sGetClassName();
 
     virtual SR_DLL_IMPORT void dump(std::ostream& stream) override;
-    virtual SR_DLL_IMPORT ~srColorSurfaceIFace() override;
     virtual SR_DLL_IMPORT unsigned long getPixel(long x, long y);
     virtual SR_DLL_IMPORT void setPixel(long x, long y, unsigned long pixel);
     virtual SR_DLL_IMPORT unsigned long getPixelRaw(long x, long y);

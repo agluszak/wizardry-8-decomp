@@ -307,7 +307,7 @@ unsigned char EnableCursorScene(void);
 void SetOverlayViewport(const int* value);
 void SetWorldModelPickingEnabled(char enabled);
 bool RendererBufferIsLockable(void);
-void SetRendererOption4Enabled(bool enabled);
+void SetRendererAutoFlipEnabled(bool enabled);
 bool HasEnoughFreeDiskSpace(void);
 int GetUsedPageFileBytes(void);
 srModelInstance* GetPickedModelInstance(void);

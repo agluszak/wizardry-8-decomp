@@ -227,8 +227,7 @@ void UpdateShakeEffects()
 /* Bit 2 gates the distance test, bit 3 selects the quadratic falloff, bit 4
    fades out with the remaining time and bit 5 fades in. */
 // FUNCTION: WIZ8 0x004AE4E0
-unsigned char W8CameraShakeEffect::Evaluate(const srVector3T<float>* position,
-                                                    float* out_amount)
+unsigned char W8CameraShakeEffect::Evaluate(const srVector3T<float>* position, float* out_amount)
 {
     float progress = timer_18.GetProgress();
     if (g_float_005ebb38 <= progress) {
@@ -1300,16 +1299,20 @@ static W8GrowableVector<char*> g_grcycle_names;
 // class W8GrowableVector<W8GrCycle*>
 
 // SYNTHETIC: WIZ8 0x004a9050
-// W8GrowableVector<W8GrCycle*>::`scalar deleting destructor'
+// NAME: W8GrowableVector<T>::`scalar deleting destructor'
+// RECOMP: W8GrowableVector<W8GrCycle*>::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x004a9020
-// W8GrowableVector<W8GrCycle*>::`scalar deleting destructor' (companion table 0x005ECEE0)
+// NAME: W8GrowableVector<T>::`scalar deleting destructor' (companion table 0x005ECEE0)
+// RECOMP: W8GrowableVector<W8GrCycle*>::`scalar deleting destructor' (companion table 0x005ECEE0)
 
 // TEMPLATE: WIZ8 0x004a9070
-// W8GrowableVector<W8GrCycle*>::~W8GrowableVector<W8GrCycle*>
+// NAME: W8GrowableVector<T>::~W8GrowableVector<T>
+// RECOMP: W8GrowableVector<W8GrCycle*>::~W8GrowableVector<W8GrCycle*>
 
 // TEMPLATE: WIZ8 0x004a9090
-// W8GrowableVector<stLight*>::W8GrowableVector<stLight*>
+// NAME: W8GrowableVector<T>::W8GrowableVector<T>
+// RECOMP: W8GrowableVector<stLight*>::W8GrowableVector<stLight*>
 
 // GLOBAL: WIZ8 0x0065be00
 static W8GrowableVector<W8GrowableVector<W8GrCycle*>*> g_grcycles_by_name;
@@ -1321,25 +1324,31 @@ static W8GrowableVector<W8GrowableVector<W8GrCycle*>*> g_grcycles_by_name;
 // class W8Vector<W8CameraShakeEffect*>
 
 // SYNTHETIC: WIZ8 0x004a8f70
-// W8Vector<W8CameraShakeEffect*>::`scalar deleting destructor'
+// NAME: W8Vector<T>::`scalar deleting destructor'
+// RECOMP: W8Vector<W8CameraShakeEffect*>::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x004a8f40
-// W8GrowableVector<W8CameraShakeEffect*>::`scalar deleting destructor'
+// NAME: W8GrowableVector<T>::`scalar deleting destructor'
+// RECOMP: W8GrowableVector<W8CameraShakeEffect*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x004a8f90
-// W8Vector<W8CameraShakeEffect*>::~W8Vector<W8CameraShakeEffect*>
+// NAME: W8Vector<T>::~W8Vector<T>
+// RECOMP: W8Vector<W8CameraShakeEffect*>::~W8Vector<W8CameraShakeEffect*>
 
 // VTABLE: WIZ8 0x005ececc
 // class W8Vector<W8GrCycleParticleAttachment*>
 
 // SYNTHETIC: WIZ8 0x004a8fe0
-// W8Vector<W8GrCycleParticleAttachment*>::`scalar deleting destructor'
+// NAME: W8Vector<T>::`scalar deleting destructor'
+// RECOMP: W8Vector<W8GrCycleParticleAttachment*>::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x004a8fb0
-// W8GrowableVector<W8GrCycleParticleAttachment*>::`scalar deleting destructor'
+// NAME: W8GrowableVector<T>::`scalar deleting destructor'
+// RECOMP: W8GrowableVector<W8GrCycleParticleAttachment*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x004a9000
-// W8Vector<W8GrCycleParticleAttachment*>::~W8Vector<W8GrCycleParticleAttachment*>
+// NAME: W8Vector<T>::~W8Vector<T>
+// RECOMP: W8Vector<W8GrCycleParticleAttachment*>::~W8Vector<W8GrCycleParticleAttachment*>
 
 // FUNCTION: WIZ8 0x004a8430
 void W8GrCycle::SetSubCycle(unsigned char subcycle)

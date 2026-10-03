@@ -172,8 +172,9 @@ static unsigned int g_trade_highlight_tick;
 // GLOBAL: WIZ8 0x00649f20
 static int g_dialogue_place_keyword_count = 15;
 // GLOBAL: WIZ8 0x00649f24
-static int g_dialogue_place_keyword_ids[15] = {0x751, 0x752, 0x753, 0x754, 0x755, 0x756, 0x757, 0x758,
-                                        0x759, 0x75a, 0x75b, 0x75c, 0x75d, 0x75e, 0x75f};
+static int g_dialogue_place_keyword_ids[15] = {0x751, 0x752, 0x753, 0x754, 0x755,
+                                               0x756, 0x757, 0x758, 0x759, 0x75a,
+                                               0x75b, 0x75c, 0x75d, 0x75e, 0x75f};
 // GLOBAL: WIZ8 0x00649F64
 static int g_dialogue_fallback_ids_00649f64[5] = {0x760, 0x761, 0x762, 0x763, 0x764};
 // GLOBAL: WIZ8 0x00649F78
@@ -2168,7 +2169,7 @@ void SelectNpcDialogueExit(void)
     OpenNpcDialogueOptionLayout();
 }
 
-static inline void SyncNpcDialogueTranscriptScrollButtons()
+static void SyncNpcDialogueTranscriptScrollButtons()
 {
     if (static_cast<W8NpcDialogueTextController*>(g_npc_interaction_state->dialogue_panels[2])->IsExpanded()) {
         g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_SCROLL_UP_BUTTON]->SetEnabled(1);
@@ -3658,7 +3659,7 @@ void HandleNpcDialogueReply(wchar_t* text, bool echo)
 /* Copy the next space-separated word of `text` into `word`. Returns the text
    after the word, or 0 when no word is left. Retail expands this inline at all
    five uses in HandleNpcDialogueInput and keeps no out-of-line copy. */
-static inline wchar_t* ReadNextWord(wchar_t* text, wchar_t* word)
+static wchar_t* ReadNextWord(wchar_t* text, wchar_t* word)
 {
     wchar_t* out;
     int length = 0;
@@ -4950,7 +4951,7 @@ void HandleNpcDialogueDeparture(unsigned char value)
         info->p3D->SetScript("Guard.msf", 1);
     }
     if ((value == 0 || g_npc_interaction_state->dialogue_npc->dismissed_flag == 0 ||
-         g_npc_interaction_state->dialogue_npc->record->unknown_2ef[1] != 0) &&
+         g_npc_interaction_state->dialogue_npc->record->unknown_2f0 != 0) &&
         g_npc_interaction_state->transcript_open_count < 1) {
         if (g_npc_interaction_state->dialogue_npc->greeting_pending == 0) {
             QueueNpcScriptLine(1, 0, 0, 0);
@@ -5213,28 +5214,37 @@ bool ProcessPendingEvent(void)
 // class W8GrowableVector<W8GrowableVector<unsigned short*>*>
 
 // TEMPLATE: WIZ8 0x00577a80
-// W8GrowableVector<W8DialogueTranscriptRecord*>::~W8GrowableVector<W8DialogueTranscriptRecord*>
+// NAME: W8GrowableVector<T>::~W8GrowableVector<T>
+// RECOMP: W8GrowableVector<W8DialogueTranscriptRecord*>::~W8GrowableVector<W8DialogueTranscriptRecord*>
 
 // SYNTHETIC: WIZ8 0x00577aa0
-// W8GrowableVector<unsigned short*>::`scalar deleting destructor'
+// NAME: W8GrowableVector<T>::`scalar deleting destructor'
+// RECOMP: W8GrowableVector<unsigned short*>::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x00577ad0
-// W8GrowableVector<W8DialogueTranscriptRecord*>::`scalar deleting destructor'
+// NAME: W8GrowableVector<T>::`scalar deleting destructor'
+// RECOMP: W8GrowableVector<W8DialogueTranscriptRecord*>::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x00577b00
-// W8Vector<W8DialogueTranscriptRecord*>::`scalar deleting destructor'
+// NAME: W8Vector<T>::`scalar deleting destructor'
+// RECOMP: W8Vector<W8DialogueTranscriptRecord*>::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x00577b20
-// W8GrowableVector<W8PendingNoticeLine*>::`scalar deleting destructor'
+// NAME: W8GrowableVector<T>::`scalar deleting destructor'
+// RECOMP: W8GrowableVector<W8PendingNoticeLine*>::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x00577b50
-// W8Vector<W8PendingNoticeLine*>::`scalar deleting destructor'
+// NAME: W8Vector<T>::`scalar deleting destructor'
+// RECOMP: W8Vector<W8PendingNoticeLine*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x00577b70
-// W8GrowableVector<W8PendingNoticeLine*>::~W8GrowableVector<W8PendingNoticeLine*>
+// NAME: W8GrowableVector<T>::~W8GrowableVector<T>
+// RECOMP: W8GrowableVector<W8PendingNoticeLine*>::~W8GrowableVector<W8PendingNoticeLine*>
 
 // SYNTHETIC: WIZ8 0x00577b90
-// W8GrowableVector<W8GrowableVector<W8GrowableVector<unsigned short*>*>*>::`scalar deleting destructor'
+// NAME: W8GrowableVector<T>::`scalar deleting destructor'
+// RECOMP: W8GrowableVector<W8GrowableVector<W8GrowableVector<unsigned short*>*>*>::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x00577bc0
-// W8GrowableVector<W8GrowableVector<unsigned short*>*>::`scalar deleting destructor'
+// NAME: W8GrowableVector<T>::`scalar deleting destructor'
+// RECOMP: W8GrowableVector<W8GrowableVector<unsigned short*>*>::`scalar deleting destructor'

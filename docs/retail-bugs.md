@@ -1,62 +1,25 @@
 # Retail bugs
 
-Defects in the shipped Wizardry 8 executable (GOG build) that the recovered
-source reproduces. Preservation policy belongs to the
-[source-fidelity guidance](../.agents/skills/matching-decomp/references/source-fidelity.md).
-Each entry names the function, defect and evidence; the source carries a comment
-at the site.
+Reviewed defect facts have one editable home:
+[`evidence/reviewed/wiz8/claims.csv`](../evidence/reviewed/wiz8/claims.csv),
+using the `retail-bug` predicate. Each claim binds a retained function entry
+to observed behavior and instruction references. This document contains no
+separately maintained defect inventory.
 
-Add an entry when a recovery confirms a retail defect from the instructions.
-Behavior that only looks odd, or an unmatched recompiled body, is not an entry.
+Generate the current document with:
 
-## Logic and data bugs
+```sh
+uv run wiz8 report retail-bugs
+```
 
-| Function | Address | Defect | Evidence |
-| --- | --- | --- | --- |
-| `ClearNpcMessageQueue` | `0x00524C50` | After freeing the queued message lines it zeroes the whole `W8NpcScriptingState`, clobbering the vfptrs and data pointers of the embedded `message_lines` and `pending_script_values` vectors; `pending_script_values` storage leaks. | `MOV ECX,0x33` / `MOV EDI,0x68C430` / `REP STOSD` (`0x00524C7E`-`0x00524C94`) clears `0xCC` bytes from the start of `g_npc_scripting`. |
-| `CountItemOnCharacter` | `0x005211A0` | A matching backpack slot adds the stack count of the *equipped* slot with the same index, not its own. | The backpack loop compares `[edx]` (`backpack[slot].iItemNo`, from character offset `0x1029`) but reads the count from `[edx - 0xC8]`, which is offset `0xF61 + 12*slot`: `EquippedItem[slot].stack_count`. |
-| `GetFact` / `SetFact` | `0x00506280` / `0x005061A0` | The range check is `fact_id > 1000`, so id 1000 passes. It reads and writes one past the 1000-entry `g_fact_values`, into `g_npc_name_buffer[0]`. | The bound constant is 1000 and `g_fact_values` ends exactly at `g_npc_name_buffer`. |
-| `TrimAndLowercaseString` | `0x00497940` | The trailing-space check looks at `text[length]`, the terminator, so trailing spaces are never trimmed. | The first trailing test is `cmp byte ptr [text + length], 0x20` (`0x0049796E`), the terminator, so the trim loop never starts. |
-| `W8Octree::UpdateVisibility`, `W8Octree::UpdatePathVisualization` | `0x004304A0`, `0x00434170` | The cursor position guard tests `y` twice and never tests `x`. | Both bodies compare the same `y` component twice against the same constant. |
-| `W8Octree::ResolveTraceHit` | `0x004353F0` | The returned hit point comes from the last colliding monster, while the returned id is the nearest one's, so the two can describe different monsters. | Every collider rewrites the offset slot (`0x004357F8`-`0x0043580C`); only `best` and `best_index` depend on the nearest test, and the post-loop store (`0x004358C5`) reads the offset slot. |
-| `PathNodeObstructed` / `BuildPathLists` | — | The support and block appends write the slot before the `> 29` assertion runs, so a 30th entry overruns the array. | The store precedes the assertion in both appends. |
-| `ResetSkillContribution` | `0x00557C90` | Stores 1 to byte 1 of the skill record instead of the active flag at byte 0, so resetting a skill leaves its active flag unchanged. No retail code reads byte 1. | The store is `mov byte ptr [edx + 0x19E], 1` (`0x00557CAB`); the skill array starts at character offset `0x19D`, where `ApplyAttributeChange` tests and sets the flag (`0x00553AF8`). |
-| `MonGen::SetEncounterTable` | `0x0048CC50` | Sets the HARASSMENT bit (bit 5) for a harassment table but never clears it when a later table is not a harassment table. | The body's only flag write is `or dword ptr [esi], 0x20` (`0x0048CC8B`). |
-| `NpcDialogueTextBoxRegionEvent` | `0x0056F1D0` | Left-button release falls through and also raises the right-button-held flag. | The `LEFT_BUTTON_UP` path (`0x0056F213`) ends at the shared `or dword ptr [edi], 0x80` (`0x0056F234`) that `RIGHT_BUTTON_DOWN` uses. |
+The report is written under `build/reports/retail-bugs/`. Add a reviewed claim
+when retail instructions establish a defect; suspicious source or a comparison
+disagreement alone is insufficient. Binary behavior does not establish original
+local declarations or compiler-storage aliases.
 
-## Memory and resource bugs
-
-| Function | Address | Defect | Evidence |
-| --- | --- | --- | --- |
-| `FormatCharacterQuoteText` | `0x0052D0B0` | Stores zero at `buffer[wcslen(buffer) - 1]` without checking the reader result, so an empty string writes `buffer[-1]`. | There is no test of the read result or of the length before the store. |
-| `OctPreTree::WriteOctFile` | `0x004683F0` | Every write-failure return skips `FileClose`, leaking the handle. | Verified at `0x004686B4` and the following error paths. |
-| `OctPreTree::SplitMeshes` | `0x00469670` | The allocation-failure paths leak the five sort arrays. | The failure returns do not free them. |
-| `AddMessageBoxLine` | `0x00528A80` | If vector growth fails, the newly allocated message line leaks. | `0x00528AEC`–`0x00528AF7` restores the old vector pointer and returns without freeing the line; the recovered method ignores `Add`'s result. |
-
-## Uninitialized reads
-
-Several loaders read locals that a short-circuited `FileRead` chain left
-unassigned. The source keeps these reads and does not add initializers; the
-lint lane relaxes `-Wsometimes-uninitialized` for them per file, each marked
-`uninit-ok`. Affected sites include:
-
-- `ReadWorldEnvironment` (`0x004BC9D0`)
-- `ReadMesh` material and group readers
-- `Trigger` loaders
-- the spell database loader
-- `AnimObj` frame reads
-- `stListBox` track edges
-- `FireMissileSourceToTarget` (`0x00544630`), when the target monster is missing
-
-## Retail behavior the recovery cannot reproduce exactly
-
-In these cases retail's result depends on compiler-owned stack contents, and
-this build's stack holds something different. The source substitutes the value
-retail observably produced, or the behavior it clearly intended, and says so at
-the site. They are known departures, not fixes.
-
-| Function | Address | Retail behavior | Recovery |
-| --- | --- | --- | --- |
-| `ReadWorldLights` | `0x004BBAD0` | When no light loads an AI path, `path_success` is returned uninitialized. The stack residue is nonzero in practice, so level loading continues. | Initializes `path_success = true`. With the recompiled stack's residue the level load failed, which broke every level in the runtime tests. |
-| `Trigger::RunDestination` | `0x00440DD0` | On the named-entity path `location_id` and `entrance` are uninitialized and read the stack slot holding `this`, so a level transition to a nonsense id is requested. | Uses the current level, a same-level move. |
-| `stModelInstance` render walk | — | The `FLAG_TERMINATE` child pointer is never stored; its slot overlaps dead locals, so the walk effectively never fired. | Seeds the pointer to zero; the uninitialized read faults under this build's layout. |
+Preservation and explicit compatibility deviations follow the canonical
+[source-fidelity policy](../.agents/skills/matching-decomp/references/source-fidelity.md).
+An uninitialized-read suppression needs an `uninit-ok` reason identifying the
+retail read and missing assignment. Source comments should only prevent an
+accidental behavior change and refer to the reviewed claim when further detail
+is needed.

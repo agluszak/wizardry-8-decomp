@@ -309,7 +309,6 @@ public:
     {
     }
 
-    virtual ~W8PartySelectionListControl() override;
     virtual void Redraw(unsigned char full_redraw) override;
     virtual void OnMouseLeave(int event) override;
     virtual void OnMouseMove(int event) override;
@@ -329,8 +328,8 @@ W8_ASSERT_BASE_END(W8PartySelectionListControl, W8RangeListener, m_visible_rows,
 // SYNTHETIC: WIZ8 0x005bff20
 // W8PartySelectionListControl::`scalar deleting destructor'
 
-// FUNCTION: WIZ8 0x005bff40
-W8PartySelectionListControl::~W8PartySelectionListControl() {}
+// SYNTHETIC: WIZ8 0x005bff40
+// W8PartySelectionListControl::~W8PartySelectionListControl
 
 // FUNCTION: WIZ8 0x005bff60
 void W8PartySelectionListControl::Redraw(unsigned char full_redraw)
@@ -432,7 +431,6 @@ public:
 class W8PartySelectionCharacterRow : public W8TextControl {
 public:
     W8PartySelectionCharacterRow(Controls* panel, int top, int row);
-    virtual ~W8PartySelectionCharacterRow() override;
     virtual void Redraw(unsigned char full_redraw) override;
     virtual void AdjustValue(int amount) override;
     virtual void OnRightButtonUp(int event) override;
@@ -510,7 +508,6 @@ W8_ASSERT_BASE_TAIL(W8PartySelectionCharacterGridPanel, W8TextControl::Listener,
 class W8PartySelectionPartySlotRow : public W8TextControl {
 public:
     W8PartySelectionPartySlotRow(Controls* panel, int row);
-    virtual ~W8PartySelectionPartySlotRow() override;
     virtual void Redraw(unsigned char full_redraw) override;
     virtual void OnRightButtonUp(int event) override;
     virtual void OnLeftButtonDoubleClick(int event) override;
@@ -538,7 +535,6 @@ W8_ASSERT_BASE_END(W8PartySelectionPartySlotPanel, W8ControlSelectionListener, m
 class W8PartySelectionCharacterSummaryPanel : public Controls {
 public:
     W8PartySelectionCharacterSummaryPanel() : Controls(), m_character_4c(0) {}
-    virtual ~W8PartySelectionCharacterSummaryPanel();
     virtual void Redraw() override;
 
     W8Character* m_character_4c;
@@ -661,7 +657,7 @@ bool PartySelectionInReviewMode(void)
     return g_party_selection_controller->m_mode == 1;
 }
 
-inline W8PartySelectionCharacterRow::W8PartySelectionCharacterRow(Controls* panel, int top, int row)
+W8PartySelectionCharacterRow::W8PartySelectionCharacterRow(Controls* panel, int top, int row)
     : W8TextControl(panel, 0xffffffff, 0, top, 0, 0, 0xfb, 0, 0, 1, 2, 1, -1), m_row(row),
       m_character_index(0), m_selection_listener(0)
 {
@@ -671,8 +667,8 @@ inline W8PartySelectionCharacterRow::W8PartySelectionCharacterRow(Controls* pane
     Invalidate(0);
 }
 
-// FUNCTION: WIZ8 0x005be950
-W8PartySelectionCharacterRow::~W8PartySelectionCharacterRow() {}
+// SYNTHETIC: WIZ8 0x005be950
+// W8PartySelectionCharacterRow::~W8PartySelectionCharacterRow
 
 // SYNTHETIC: WIZ8 0x005BE930
 // W8PartySelectionCharacterRow::`scalar deleting destructor'
@@ -890,8 +886,8 @@ W8PartySelectionPartySlotRow::W8PartySelectionPartySlotRow(Controls* panel, int 
 // SYNTHETIC: WIZ8 0x005BF200
 // W8PartySelectionPartySlotRow::`scalar deleting destructor'
 
-// FUNCTION: WIZ8 0x005bf220
-W8PartySelectionPartySlotRow::~W8PartySelectionPartySlotRow() {}
+// SYNTHETIC: WIZ8 0x005bf220
+// W8PartySelectionPartySlotRow::~W8PartySelectionPartySlotRow
 
 // FUNCTION: WIZ8 0x005bf280
 void W8PartySelectionPartySlotRow::Redraw(unsigned char full_redraw)
@@ -1378,8 +1374,8 @@ void W8PartySelectionController::Setup()
 // SYNTHETIC: WIZ8 0x005C1560
 // W8PartySelectionCharacterSummaryPanel::`scalar deleting destructor'
 
-// FUNCTION: WIZ8 0x005c1580
-W8PartySelectionCharacterSummaryPanel::~W8PartySelectionCharacterSummaryPanel() {}
+// SYNTHETIC: WIZ8 0x005c1580
+// W8PartySelectionCharacterSummaryPanel::~W8PartySelectionCharacterSummaryPanel
 
 // SYNTHETIC: WIZ8 0x005C0460
 // W8PartySelectionOptionPanel::`scalar deleting destructor'

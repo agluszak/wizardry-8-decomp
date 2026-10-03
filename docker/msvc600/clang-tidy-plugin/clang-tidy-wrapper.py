@@ -1,17 +1,25 @@
 #!/usr/bin/env python3
-"""Load Wizardry's clang-tidy plugin and post-process whole-program recovery facts."""
+"""Load Wizardry's plugin and review recovered-AST observations, not historical type proof.
+
+Byte names, observed producers and predicate uses do not independently establish an
+original C++ bool declaration or an exhaustive retail write/alias census.
+"""
 
 from __future__ import annotations
 
+import argparse
 import os
 import re
 import subprocess
 import sys
 import tempfile
 from collections import Counter, defaultdict
-from contextlib import nullcontext
+from contextlib import nullcontext, redirect_stderr
 from dataclasses import dataclass
+from io import StringIO
 from pathlib import Path
+from typing import Literal
+from unittest.mock import patch
 
 from scalar_facts import DeclarationFact, read_scalar_facts, write_integer_report
 
@@ -36,7 +44,7 @@ HUNK = re.compile(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@")
 @dataclass(frozen=True)
 class Diagnostic:
     declaration: DeclarationFact
-    proven: bool
+    evidence: Literal["observed_boolean_domain", "referenced_predicate_without_body"]
 
 
 def _git(repository: Path, *args: str) -> subprocess.CompletedProcess[str]:
@@ -272,8 +280,8 @@ def _bool_diagnostics(
             touched.add(key)
 
     diagnostics: list[Diagnostic] = []
-    proven = survivors & anchored
-    for key in sorted(proven & touched):
+    observed_domain = survivors & anchored
+    for key in sorted(observed_domain & touched):
         declaration = declarations[key]
         # Dependencies may cross into retained/vendor headers. A changed Wizardry
         # use must never cause a diagnostic on a declaration outside the recovered
@@ -284,7 +292,7 @@ def _bool_diagnostics(
             continue
         if honor_suppressions and _bool_suppressed(declaration):
             continue
-        diagnostics.append(Diagnostic(declaration, proven=True))
+        diagnostics.append(Diagnostic(declaration, evidence="observed_boolean_domain"))
 
     referenced = {
         dependency
@@ -306,34 +314,35 @@ def _bool_diagnostics(
         and key not in escaped
         and (key in referenced or key in supported)
     }
-    for key in sorted((probable - proven) & touched):
+    for key in sorted((probable - observed_domain) & touched):
         declaration = declarations[key]
         if not _in_scope(declaration.file) and declaration.file not in parsed_filter:
             continue
         if honor_suppressions and _bool_suppressed(declaration):
             continue
-        diagnostics.append(Diagnostic(declaration, proven=False))
+        diagnostics.append(Diagnostic(declaration, evidence="referenced_predicate_without_body"))
 
     return diagnostics
 
 
 def _render_bool_diagnostic(diagnostic: Diagnostic) -> str:
     declaration = diagnostic.declaration
-    if diagnostic.proven:
+    if diagnostic.evidence == "observed_boolean_domain":
         subject = (
             "byte-returning function" if declaration.kind == "function" else "byte declaration"
         )
         return (
-            f"{declaration.file}:{declaration.line}:{declaration.column}: error: "
-            f"{subject} '{declaration.name}' stays in the boolean domain across all recovered "
-            "typed writes; use bool, or add 'bool-byte-ok: reason' if byte storage is intentional "
+            f"{declaration.file}:{declaration.line}:{declaration.column}: warning: "
+            f"{subject} '{declaration.name}' has a boolean-like name and observed 0/1 typed "
+            "producers; review independent source/ABI evidence before changing its type "
             "[wiz8-bool-like-byte]"
         )
 
     return (
         f"{declaration.file}:{declaration.line}:{declaration.column}: warning: "
         f"byte-returning predicate '{declaration.name}' has no recovered body, but recovered "
-        "code consumes it as a boolean-domain source; review whether its return type is bool "
+        "code consumes it as a boolean-domain source; review independent source/ABI evidence "
+        "before changing its return type "
         "[wiz8-bool-like-byte]"
     )
 
@@ -418,18 +427,86 @@ diff --git a/include/surrender/example.h b/include/surrender/example.h
         ]
         facts.write_text("\n".join(rows) + "\n", encoding="utf-8")
         selected = f"{source}@1-26"
-        found = [(item.declaration.key, item.proven) for item in _bool_diagnostics(root, selected)]
-        expected_found = [("A", True), ("B", True), ("G", True), ("I", False)]
+        diagnostics = _bool_diagnostics(root, selected)
+        found = [(item.declaration.key, item.evidence) for item in diagnostics]
+        expected_found = [
+            ("A", "observed_boolean_domain"),
+            ("B", "observed_boolean_domain"),
+            ("G", "observed_boolean_domain"),
+            ("I", "referenced_predicate_without_body"),
+        ]
         if found != expected_found:
             raise SystemExit(f"boolean fact self-test failed: {found!r}")
         if _bool_diagnostics(root, "*"):
             raise SystemExit("full audit leaked a declaration outside recovered source roots")
+        touched_dependency = _bool_diagnostics(root, f"{source}@23")
+        if [(item.declaration.key, item.evidence) for item in touched_dependency] != [
+            ("I", "referenced_predicate_without_body")
+        ]:
+            raise SystemExit("changed dependency use did not surface declaration-only predicate")
+        if _bool_diagnostics(root, f"{source}@26"):
+            raise SystemExit("untouched declaration produced a review diagnostic")
+
+        # The wrapper must preserve real clang failures, but never turn current
+        # AST/name heuristics into an original-type obligation or a lint failure.
+        for returncode in (0, 7):
+            output = StringIO()
+            with (
+                patch.object(
+                    subprocess, "run", return_value=subprocess.CompletedProcess([], returncode)
+                ),
+                patch.dict(globals(), {"_bool_diagnostics": lambda *_args: diagnostics}),
+                redirect_stderr(output),
+            ):
+                status = _run_clang_tidy([], {FILTER_ENV: selected})
+            rendered = output.getvalue()
+            expected_warnings = len(diagnostics) if returncode == 0 else 0
+            if status != returncode or rendered.count("warning:") != expected_warnings:
+                raise SystemExit("review severity/clang exit propagation self-test failed")
+            if "error:" in rendered or "use bool" in rendered or "bool-byte-ok" in rendered:
+                raise SystemExit("heuristic review demanded a source conversion or waiver")
+        output = StringIO()
+        with (
+            patch.object(subprocess, "run", return_value=subprocess.CompletedProcess([], 0)),
+            patch.dict(globals(), {"_bool_diagnostics": lambda *_args: []}),
+            redirect_stderr(output),
+        ):
+            if _run_clang_tidy([], {}) != 0 or output.getvalue():
+                raise SystemExit("absent facts invented a diagnostic or failure")
+
+
+def _run_clang_tidy(arguments: list[str], environment: dict[str, str]) -> int:
+    supplied_facts = environment.get(SCALAR_FACTS_ENV)
+    if supplied_facts:
+        Path(supplied_facts).mkdir(parents=True, exist_ok=True)
+    context = (
+        nullcontext(supplied_facts)
+        if supplied_facts
+        else tempfile.TemporaryDirectory(prefix="wiz8-scalar-facts-")
+    )
+    with context as facts:
+        environment = environment.copy()
+        environment[SCALAR_FACTS_ENV] = facts
+        result = subprocess.run(
+            [REAL_CLANG_TIDY, f"--load={PLUGIN}", *arguments],
+            env=environment,
+            check=False,
+        )
+        if result.returncode != 0:
+            return result.returncode
+        if report_path := environment.get("WIZ8_SCALAR_REPORT"):
+            evidence_path = environment.get("WIZ8_SCALAR_EVIDENCE")
+            write_integer_report(
+                Path(facts), Path(evidence_path) if evidence_path else None, Path(report_path)
+            )
+        diagnostics = _bool_diagnostics(Path(facts), environment.get(FILTER_ENV, ""))
+        for diagnostic in diagnostics:
+            print(_render_bool_diagnostic(diagnostic), file=sys.stderr)
+        return result.returncode
 
 
 def main() -> None:
     if sys.argv[1:2] == ["--wiz8-scalar-report"]:
-        import argparse
-
         parser = argparse.ArgumentParser(
             description="Report integer recovery from shared scalar facts"
         )
@@ -463,36 +540,7 @@ def main() -> None:
             file=sys.stderr,
         )
 
-    supplied_facts = os.environ.get(SCALAR_FACTS_ENV)
-    if supplied_facts:
-        Path(supplied_facts).mkdir(parents=True, exist_ok=True)
-    context = (
-        nullcontext(supplied_facts)
-        if supplied_facts
-        else tempfile.TemporaryDirectory(prefix="wiz8-scalar-facts-")
-    )
-    with context as facts:
-        environment = os.environ.copy()
-        environment[SCALAR_FACTS_ENV] = facts
-        result = subprocess.run(
-            [REAL_CLANG_TIDY, f"--load={PLUGIN}", *arguments],
-            env=environment,
-            check=False,
-        )
-        # A crashed/failed compiler can leave a partially buffered fact record.
-        # Preserve its failure instead of parsing incomplete recovery input.
-        if result.returncode != 0:
-            raise SystemExit(result.returncode)
-        if report_path := environment.get("WIZ8_SCALAR_REPORT"):
-            evidence_path = environment.get("WIZ8_SCALAR_EVIDENCE")
-            write_integer_report(
-                Path(facts), Path(evidence_path) if evidence_path else None, Path(report_path)
-            )
-        diagnostics = _bool_diagnostics(Path(facts), environment.get(FILTER_ENV, ""))
-        for diagnostic in diagnostics:
-            print(_render_bool_diagnostic(diagnostic), file=sys.stderr)
-        if any(diagnostic.proven for diagnostic in diagnostics):
-            raise SystemExit(1)
+    raise SystemExit(_run_clang_tidy(arguments, dict(os.environ)))
 
 
 if __name__ == "__main__":

@@ -402,8 +402,6 @@ bool AllSpellEffectsStillRunning(void)
     return true;
 }
 
-/* The queued effect that holds monsters under the party's control, if one is
-   running. */
 // FUNCTION: WIZ8 0x00500f30
 W8SpellEffectEntry* FindMonsterControlSpellEffect(void)
 {
@@ -449,7 +447,6 @@ void TickSpellEffects(void)
     }
 }
 
-/* Whether the party as a whole is under one particular condition. */
 // FUNCTION: WIZ8 0x005012b0
 bool PartyHasCondition(int condition_id)
 {
@@ -495,8 +492,6 @@ bool CombatHasCondition(int condition_id)
     return false;
 }
 
-/* Record the spell one party slot is about to cast, at what strength, and at
-   what, from a target block the caller already holds. */
 // FUNCTION: WIZ8 0x004f9aa0
 void SetPartySlotSpell(int party_slot, int spell_id, int power_level, const W8CombatSlot* target)
 {
@@ -508,8 +503,6 @@ void SetPartySlotSpell(int party_slot, int spell_id, int power_level, const W8Co
     row->spell_target = *target;
 }
 
-/* The same, addressed by character rather than by slot, and taking the target
-   block from the targeting code instead of the caller. */
 // FUNCTION: WIZ8 0x004f9a20
 void SetCharacterSpell(const W8Character* character, int spell_id, int power_level)
 {
@@ -552,8 +545,8 @@ void StartCharacterBreathAttack(int party_slot)
         srAssertFail("CanCharReBreathe(uiChar)", MAGIC_CPP, 5320, 0);
     }
     ChooseAction(party_slot, W8_ACTION_BREATHE, -1, 0, 0, 1);
-    AimAtTarget(party_slot, &row->target_context_5, W8_TARGETING_CONTEXT_CURRENT);
-    if (IsSpellTargetStillValidIn(party_slot, 0x77, W8_TARGETING_CONTEXT_FIVE)) {
+    AimAtTarget(party_slot, &row->breath_target, W8_TARGETING_CONTEXT_CURRENT);
+    if (IsSpellTargetStillValidIn(party_slot, 0x77, W8_TARGETING_CONTEXT_BREATH)) {
         StartBreathCycle(party_slot, 0);
         return;
     }
@@ -586,10 +579,9 @@ void AbsorbMissileDamage(W8Missile* missile)
     }
 }
 
-// FUNCTION: WIZ8 0x0042bac0
-W8SpellEffectEntry::~W8SpellEffectEntry() {}
+// SYNTHETIC: WIZ8 0x0042bac0
+// W8SpellEffectEntry::~W8SpellEffectEntry
 
-/* Append one effect to the shared queue. */
 // FUNCTION: WIZ8 0x005008a0
 void AddSpellEffect(W8SpellEffectEntry* effect)
 {
@@ -1720,7 +1712,7 @@ unsigned int GetSpellCastRating(W8Character* character, int spell_id, unsigned i
    roll: base plus the dice at one each, and base plus the dice at their
    faces. The die count is multiplied by the power level first, in a byte, so a
    high power level on a many-dice spell wraps rather than growing. */
-static inline int AverageEffectAtPower(W8Dice dice, unsigned int power_level)
+static int AverageEffectAtPower(W8Dice dice, unsigned int power_level)
 {
     unsigned char count =
         static_cast<unsigned char>(dice.count * static_cast<unsigned char>(power_level));
@@ -1747,8 +1739,8 @@ enum {
    against the spell's cost band, plus the spell's level for every caster level
    short of what it asks for, scaled by the caster's combat pace. Retail
    carries this sequence in both choosers and has no out-of-line copy. */
-static inline unsigned int GetCastFailureChance(W8Character* character, int spell_id,
-                                                unsigned int power_level)
+static unsigned int GetCastFailureChance(W8Character* character, int spell_id,
+                                         unsigned int power_level)
 {
     const W8SpellRuntimeRecord* record = &g_spell_records[spell_id];
     unsigned int skill = GetBestSpellbookSkillForSpell(character, spell_id, 1, 1, power_level);
@@ -2109,7 +2101,7 @@ wchar_t* SpellTargetString(const W8TargetSource* source, const W8CombatSlot* tar
             GetMonsterGroupName(GetMonsterGroupByListIndex(
                 GetMonsterGroupIndexByID(0xcf, MAGIC_CPP, target->iGroupID, 1))));
 
-    case W8_TARGET_KIND_FIVE:
+    case W8_TARGET_KIND_ALL_ENEMIES:
         return gppStringList[W8_MESSAGE_TARGET_PLACE / 4];
 
     case 7:

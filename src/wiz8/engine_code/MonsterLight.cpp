@@ -25,7 +25,7 @@ const double g_double_005ec318 = 6.2831852;
 MonsterLight::MonsterLight(srNode* parent, bool cycle_color, float range,
                            const srVector3T<float>* first_color,
                            const srVector3T<float>* second_color)
-    : srLight(parent, srLight::PRESET_POSITIONAL_1), m_vertical_offset_228(0.0f),
+    : srLight(parent, srLight::PRESET_POINT), m_vertical_offset_228(0.0f),
       m_color_first_22c(*first_color), m_color_second_238(*second_color), m_start_time_244(0.0f),
       m_cycle_color_248(cycle_color), m_fade_out_249(0)
 {
@@ -93,10 +93,8 @@ MonsterLight::MonsterLight(const MonsterLight& other) : srLight(0)
     m_start_time_244 = g_game_time_accumulator->GetElapsed();
 }
 
-/* The concrete class owns no allocation beyond its regular srLight base.
-   VC6 emits the registry teardown for the ordinary empty derived body. */
-// FUNCTION: WIZ8 0x0049E0D0
-MonsterLight::~MonsterLight() {}
+// SYNTHETIC: WIZ8 0x0049E0D0
+// MonsterLight::~MonsterLight
 
 // FUNCTION: WIZ8 0x0049D940
 void MonsterLight::SetRange(float range)

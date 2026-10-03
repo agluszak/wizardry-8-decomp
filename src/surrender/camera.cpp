@@ -24,7 +24,7 @@ std::ostream& operator<<(std::ostream& stream, const srCamera::Rect& rectangle)
 // FUNCTION: SURRENDER 0x10047DF0
 void srCamera::process(const ProcessInfo& info, e_processType type)
 {
-    if (static_cast<int>(type) == 1) {
+    if (type == PROCESS_PUSH) {
         processPush(info.renderer);
         return;
     }
@@ -40,7 +40,7 @@ srCamera::e_project srCamera::getProjectionType() const
 // FUNCTION: SURRENDER 0x10047E20
 void srCamera::setProjectionType(e_project projection)
 {
-    if (projection == PROJECT_POSITIONAL_0) {
+    if (projection == PROJECT_PERSPECTIVE) {
         flags_138.value &= ~(1UL << FLAG_PROJECTION_TYPE);
         return;
     }
@@ -430,7 +430,7 @@ srCamera::e_projectionResult srCamera::project(srVector3T<float>& output,
         output.z = (float)point.z;
         if (point.z * x_upper <= point.x && point.x <= point.z * x_lower &&
             point.z * lower <= point.y && point.y <= point.z * upper) {
-            return PROJECTION_RESULT_POSITIONAL_0;
+            return PROJECTION_RESULT_ACCEPTED;
         }
         return static_cast<e_projectionResult>(1);
     }

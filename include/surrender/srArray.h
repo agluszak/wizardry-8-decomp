@@ -8,7 +8,11 @@
 
 #include "srHeap.h"
 
-/* SurRender's ordinary two-word growable-array boundary. Repeated
+/* Concrete TEMPLATE names below are recomp pairing selectors; trivial
+   construction/release and same-width copies do not prove exact T. Recover
+   argument bindings from typed element use and lifetime evidence.
+
+   SurRender's ordinary two-word growable-array boundary. Repeated
    instantiations prove the {data, capacity} layout, indexed growth rule,
    element construction, assignment, and teardown. `srArray` is a provisional
    spelling because the closed SDK's identifier did not survive; the primary
@@ -28,11 +32,14 @@
 template <class T> class srArray {
 public:
     // TEMPLATE: SURRENDER 0x10027CE0
-    // srArray<float>::srArray
+    // NAME: srArray<T>::srArray
+    // RECOMP: srArray<float>::srArray
     // TEMPLATE: SURRENDER 0x100569A0
-    // srArray<srNode::TraverseInfo::Entry>::srArray
+    // NAME: srArray<T>::srArray
+    // RECOMP: srArray<srNode::TraverseInfo::Entry>::srArray
     // TEMPLATE: SURRENDER 0x10027CD0
-    // srArray<srVector2T<float> >::srArray
+    // NAME: srArray<T>::srArray
+    // RECOMP: srArray<srVector2T<float> >::srArray
     inline srArray() : data(0), capacity(0) {}
 
     /* The reserve form retail emits out of line for the srGERD::Renderer
@@ -40,11 +47,14 @@ public:
        unsigned-char form at 0x10026FD0): conditional exact-size storage
        through reserve(), never the preserving grow. */
     // TEMPLATE: SURRENDER 0x10026FD0
-    // srArray<unsigned char>::srArray
+    // NAME: srArray<T>::srArray
+    // RECOMP: srArray<unsigned char>::srArray
     // TEMPLATE: SURRENDER 0x10027090
-    // srArray<unsigned long>::srArray
+    // NAME: srArray<T>::srArray
+    // RECOMP: srArray<unsigned long>::srArray
     // TEMPLATE: SURRENDER 0x10026E00
-    // srArray<srVector4T<float> >::srArray
+    // NAME: srArray<T>::srArray
+    // RECOMP: srArray<srVector4T<float> >::srArray
     inline explicit srArray(unsigned long reserve_capacity) : data(0), capacity(0)
     {
         if (reserve_capacity != 0) {
@@ -67,9 +77,11 @@ public:
        these trivially destructible element types while still running each
        element constructor, matching retail. */
     // TEMPLATE: SURRENDER 0x10038120
-    // srArray<srModeler::Triangle>::reserve
+    // NAME: srArray<T>::reserve
+    // RECOMP: srArray<srModeler::Triangle>::reserve
     // TEMPLATE: SURRENDER 0x10027330
-    // srArray<srVector4T<float> >::reserve
+    // NAME: srArray<T>::reserve
+    // RECOMP: srArray<srVector4T<float> >::reserve
     void reserve(unsigned long count);
 
     /* Retail's canonical emissions (srArray<srNode*>::setCapacity at
@@ -78,11 +90,14 @@ public:
        scalar operator call for these trivially destructible element types;
        sr.dll imports no vector delete emission at all. */
     // TEMPLATE: SURRENDER 0x10026F10
-    // srArray<float>::~srArray
+    // NAME: srArray<T>::~srArray
+    // RECOMP: srArray<float>::~srArray
     // TEMPLATE: SURRENDER 0x10012C60
-    // srArray<srConfig::Entry*>::~srArray<srConfig::Entry*>
+    // NAME: srArray<T>::~srArray<T>
+    // RECOMP: srArray<srConfig::Entry*>::~srArray<srConfig::Entry*>
     // TEMPLATE: SURRENDER 0x10026EA0
-    // srArray<srVector2T<float> >::~srArray
+    // NAME: srArray<T>::~srArray
+    // RECOMP: srArray<srVector2T<float> >::~srArray
     inline ~srArray()
     {
         release();
@@ -93,23 +108,32 @@ public:
        across arrays of different element types. Both delete with the scalar
        operator and zero the pointer and capacity. */
     // TEMPLATE: SURRENDER 0x10026DE0
-    // srArray<srGERD::Renderer::TextureSet>::release
+    // NAME: srArray<T>::release
+    // RECOMP: srArray<srGERD::Renderer::TextureSet>::release
     // TEMPLATE: SURRENDER 0x10026F30
-    // srArray<float>::release
+    // NAME: srArray<T>::release
+    // RECOMP: srArray<float>::release
     // TEMPLATE: SURRENDER 0x10027020
-    // srArray<unsigned char>::release
+    // NAME: srArray<T>::release
+    // RECOMP: srArray<unsigned char>::release
     // TEMPLATE: SURRENDER 0x10027100
-    // srArray<unsigned long>::release
+    // NAME: srArray<T>::release
+    // RECOMP: srArray<unsigned long>::release
     // TEMPLATE: SURRENDER 0x1003BE80
-    // srArray<srModeler::Triangle>::release
+    // NAME: srArray<T>::release
+    // RECOMP: srArray<srModeler::Triangle>::release
     // TEMPLATE: SURRENDER 0x100027D0
-    // srArray<srHuffman::Sampler::Symbol>::release
+    // NAME: srArray<T>::release
+    // RECOMP: srArray<srHuffman::Sampler::Symbol>::release
     // TEMPLATE: SURRENDER 0x10004080
-    // srArray<char*>::release
+    // NAME: srArray<T>::release
+    // RECOMP: srArray<char*>::release
     // TEMPLATE: SURRENDER 0x10026E50
-    // srArray<srVector4T<float> >::release
+    // NAME: srArray<T>::release
+    // RECOMP: srArray<srVector4T<float> >::release
     // TEMPLATE: SURRENDER 0x10026EC0
-    // srArray<srVector2T<float> >::release
+    // NAME: srArray<T>::release
+    // RECOMP: srArray<srVector2T<float> >::release
     inline void release()
     {
         delete[] data;
@@ -136,49 +160,70 @@ public:
        the new storage before copy-assigning the preserved prefix; new T[]
        emits that construction for the non-trivial element type. */
     // TEMPLATE: SURRENDER 0x100274E0
-    // srArray<float>::setCapacity
+    // NAME: srArray<T>::setCapacity
+    // RECOMP: srArray<float>::setCapacity
     // TEMPLATE: SURRENDER 0x10027550
-    // srArray<unsigned char>::setCapacity
+    // NAME: srArray<T>::setCapacity
+    // RECOMP: srArray<unsigned char>::setCapacity
     // TEMPLATE: SURRENDER 0x10027650
-    // srArray<unsigned long>::setCapacity
+    // NAME: srArray<T>::setCapacity
+    // RECOMP: srArray<unsigned long>::setCapacity
     // TEMPLATE: SURRENDER 0x10027720
-    // srArray<srGERD::Renderer::TextureSet>::setCapacity
+    // NAME: srArray<T>::setCapacity
+    // RECOMP: srArray<srGERD::Renderer::TextureSet>::setCapacity
     // TEMPLATE: SURRENDER 0x1003BCF0
-    // srArray<srModeler::Triangle>::setCapacity
+    // NAME: srArray<T>::setCapacity
+    // RECOMP: srArray<srModeler::Triangle>::setCapacity
     // TEMPLATE: SURRENDER 0x10044EE0
-    // srArray<srTriMeshPipeline::Record>::setCapacity
+    // NAME: srArray<T>::setCapacity
+    // RECOMP: srArray<srTriMeshPipeline::Record>::setCapacity
     // TEMPLATE: SURRENDER 0x10044E60
-    // srArray<srVertexArray>::setCapacity
+    // NAME: srArray<T>::setCapacity
+    // RECOMP: srArray<srVertexArray>::setCapacity
     // TEMPLATE: SURRENDER 0x10045030
-    // srArray<srTriMeshPipeline::Pass>::setCapacity
+    // NAME: srArray<T>::setCapacity
+    // RECOMP: srArray<srTriMeshPipeline::Pass>::setCapacity
     // TEMPLATE: SURRENDER 0x10002AC0
-    // srArray<srHuffman::Sampler::Symbol>::setCapacity
+    // NAME: srArray<T>::setCapacity
+    // RECOMP: srArray<srHuffman::Sampler::Symbol>::setCapacity
     // TEMPLATE: SURRENDER 0x1004A430
-    // srArray<srNode*>::setCapacity
+    // NAME: srArray<T>::setCapacity
+    // RECOMP: srArray<srNode*>::setCapacity
     // TEMPLATE: SURRENDER 0x1004A4A0
-    // srArray<srNode::TraverseInfo::Entry>::setCapacity
+    // NAME: srArray<T>::setCapacity
+    // RECOMP: srArray<srNode::TraverseInfo::Entry>::setCapacity
     // TEMPLATE: SURRENDER 0x10012EA0
-    // srArray<srConfig::Entry*>::setCapacity
+    // NAME: srArray<T>::setCapacity
+    // RECOMP: srArray<srConfig::Entry*>::setCapacity
     // TEMPLATE: SURRENDER 0x10027390
-    // srArray<srVector4T<float> >::setCapacity
+    // NAME: srArray<T>::setCapacity
+    // RECOMP: srArray<srVector4T<float> >::setCapacity
     // TEMPLATE: SURRENDER 0x10027440
-    // srArray<srVector2T<float> >::setCapacity
+    // NAME: srArray<T>::setCapacity
+    // RECOMP: srArray<srVector2T<float> >::setCapacity
     // TEMPLATE: SURRENDER 0x100275B0
-    // srArray<srVector3i>::setCapacity
+    // NAME: srArray<T>::setCapacity
+    // RECOMP: srArray<srVector3i>::setCapacity
     void setCapacity(unsigned long new_capacity);
 
     // TEMPLATE: SURRENDER 0x10026F50
-    // srArray<float>::operator[]
+    // NAME: srArray<T>::operator[]
+    // RECOMP: srArray<float>::operator[]
     // TEMPLATE: SURRENDER 0x10027120
-    // srArray<unsigned long>::operator[]
+    // NAME: srArray<T>::operator[]
+    // RECOMP: srArray<unsigned long>::operator[]
     // TEMPLATE: SURRENDER 0x10044E30
-    // srArray<srTriMeshPipeline::Record>::operator[]
+    // NAME: srArray<T>::operator[]
+    // RECOMP: srArray<srTriMeshPipeline::Record>::operator[]
     // TEMPLATE: SURRENDER 0x10026E70
-    // srArray<srVector4T<float> >::operator[]
+    // NAME: srArray<T>::operator[]
+    // RECOMP: srArray<srVector4T<float> >::operator[]
     // TEMPLATE: SURRENDER 0x10026EE0
-    // srArray<srVector2T<float> >::operator[]
+    // NAME: srArray<T>::operator[]
+    // RECOMP: srArray<srVector2T<float> >::operator[]
     // TEMPLATE: SURRENDER 0x10027060
-    // srArray<srVector3i>::operator[]
+    // NAME: srArray<T>::operator[]
+    // RECOMP: srArray<srVector3i>::operator[]
     T& operator[](unsigned long index);
 
     T* data;

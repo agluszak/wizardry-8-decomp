@@ -7,7 +7,6 @@
 class W8GameTimeAccumulator : public W8GameTimer {
 public:
     W8GameTimeAccumulator(); /* 0x0043A910 */
-    virtual ~W8GameTimeAccumulator() override;
     void SetDurationScale(float scale);
     void ResetDurationScale();
     float Update();

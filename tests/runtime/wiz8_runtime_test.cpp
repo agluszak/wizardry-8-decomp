@@ -69,6 +69,7 @@
 #include "lock_device_semantic_test.h"
 #include "mongen_semantic_test.h"
 #include "mouth_gap_semantic_test.h"
+#include "soundman.h"
 #include "sight_semantic_test.h"
 #include "split_stack_semantic_test.h"
 #include "party_movement_semantic_test.h"
@@ -868,23 +869,55 @@ static bool MouselookDragCase(RuntimeCase& test)
     return yaw_delta > 0.01f || test.fail("right-drag", "yaw-unchanged");
 }
 
+struct VoiceQueueResult {
+    bool driver_available;
+    bool queued;
+};
+
+struct VoiceCompletionResult {
+    W8CharacterEvent* event;
+    unsigned int sound_handle;
+    bool playing;
+    bool event_active;
+    bool event_queued;
+    bool portrait_active;
+};
+
 static void QueueVoiceEventOnGameThread(void* opaque)
 {
-    bool* queued = static_cast<bool*>(opaque);
+    VoiceQueueResult* result = static_cast<VoiceQueueResult*>(opaque);
+    result->driver_available = SoundGetDriverHandle() != 0;
+    if (!result->driver_available) {
+        return;
+    }
     W8Character* character = &g_status.buffers.Char[2];
     character->gender = W8_GENDER_FEMALE;
     character->personality_0081 = 0;
     character->voice_0085 = 0;
     g_status.greeting_pending_2497 = 0;
-    *queued = QueueCharacterEvent(character, 4, 0, W8_EVENT_BYPASS_CHECKS, 0x7f) != 0;
+    result->queued = QueueCharacterEvent(character, 4, 0, W8_EVENT_BYPASS_CHECKS, 0x7f) != 0;
+}
+
+static void CheckVoiceCompletionOnGameThread(void* opaque)
+{
+    VoiceCompletionResult* result = static_cast<VoiceCompletionResult*>(opaque);
+    W8MonsterManagerEntry* record = &gXStatus.monster_manager_entries[2];
+    if (result->event == 0) {
+        result->event = record->active_character_event;
+    }
+    result->playing = SoundIsPlaying(result->sound_handle) != 0;
+    result->event_active = record->active_character_event != 0;
+    result->event_queued = gXStatus.character_event_queue->active_events.IndexOf(result->event) >= 0;
+    result->portrait_active = record->portrait_event_active != 0;
 }
 
 static bool VoicePortraitSyncCase(RuntimeCase& test)
 {
-    bool queued = false;
-    RT_REQUIRE(test, test.on_game_thread("voice-event-queue", QueueVoiceEventOnGameThread, &queued,
+    VoiceQueueResult result = {false, false};
+    RT_REQUIRE(test, test.on_game_thread("voice-event-queue", QueueVoiceEventOnGameThread, &result,
                                          30000));
-    RT_REQUIRE(test, queued || test.fail("voice-event-queue", "event-not-queued"));
+    RT_REQUIRE(test, result.driver_available || test.fail("sound-startup", "driver-unavailable"));
+    RT_REQUIRE(test, result.queued || test.fail("voice-event-queue", "event-not-queued"));
     RT_REQUIRE(test, test.wait_for_event(RUNTIME_VOICE_STARTED, 5000));
     RT_REQUIRE(test, test.wait_for_event(RUNTIME_MOUTH_CHANGED, 5000));
     RT_REQUIRE(test, test.wait_for_event(RUNTIME_PORTRAIT_FRAME_CHANGED, 5000));
@@ -896,6 +929,9 @@ static bool VoicePortraitSyncCase(RuntimeCase& test)
     unsigned long count = RuntimeCopyRecentEvents(events, 512);
     unsigned long voice_sequence = 0;
     unsigned long mouth_sequence = 0;
+    unsigned int voice_handle = static_cast<unsigned int>(-1);
+    unsigned int voice_total_ms = 0;
+    W8CharacterEvent* voice_event = 0;
     bool frame_synced = false;
     bool frame_drawn = false;
     for (unsigned long index = 0; index < count; ++index) {
@@ -913,6 +949,10 @@ static bool VoicePortraitSyncCase(RuntimeCase& test)
         }
         if (event.kind == RUNTIME_VOICE_STARTED && event.c > 0) {
             voice_sequence = event.sequence;
+            voice_handle = event.b;
+        } else if (event.kind == RUNTIME_VOICE_TIMING && event.sequence > voice_sequence &&
+                   voice_sequence != 0) {
+            voice_total_ms = event.b;
         } else if (event.kind == RUNTIME_MOUTH_CHANGED && event.c == 1 &&
                    event.sequence > voice_sequence && voice_sequence != 0) {
             mouth_sequence = event.sequence;
@@ -924,7 +964,26 @@ static bool VoicePortraitSyncCase(RuntimeCase& test)
         }
     }
     test.expected("voice starts, GAP changes the frame, and the portrait blits it");
-    return frame_drawn || test.fail("voice-portrait-sync", "event-order-or-frame-not-drawn");
+    RT_REQUIRE(test,
+               frame_drawn || test.fail("voice-portrait-sync", "event-order-or-frame-not-drawn"));
+    RT_REQUIRE(test, voice_handle != static_cast<unsigned int>(-1) && voice_total_ms != 0);
+
+    VoiceCompletionResult completion = {0, voice_handle, true, true, true, true};
+    RT_REQUIRE(test,
+               test.on_game_thread("voice-event-active", CheckVoiceCompletionOnGameThread,
+                                   &completion, 5000));
+    voice_event = completion.event;
+    RT_REQUIRE(test, voice_event != 0 && completion.playing && completion.event_active &&
+                         completion.event_queued && completion.portrait_active);
+    RT_REQUIRE(test, test.wait_for_event(RUNTIME_VOICE_FINISHED, voice_total_ms + 5000));
+    RT_REQUIRE(test,
+               test.on_game_thread("voice-event-finished", CheckVoiceCompletionOnGameThread,
+                                   &completion, 5000));
+    RT_REQUIRE(test, !completion.playing && !completion.event_active && !completion.event_queued &&
+                         !completion.portrait_active);
+    test.observe("voice_total_ms", voice_total_ms);
+    test.observe("voice_finished", 1U);
+    return true;
 }
 
 static bool SaveLoadMoveCase(RuntimeCase& test)

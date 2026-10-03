@@ -615,7 +615,7 @@ void srPixelConvert::selectFuncs(const PixelFormat& format, ConversionFunc& writ
 }
 
 /* Clamps a decoded YUV channel to a byte for the srARGB pack. */
-static inline int clampChannel(float value)
+static int clampChannel(float value)
 {
     if (0.0f < value) {
         if (value < 255.0f) {

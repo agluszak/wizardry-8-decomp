@@ -22,9 +22,9 @@
    virtual srBinStream base at +0x10, inherits getSize from SR.DLL in slot 1 and
    overrides the destructor and the three seek/tell slots locally.
 
-   The 0x20-byte size the sole caller of the constructor allocates is what the
-   assertion below checks, and it holds only if the srBinIStream base really is
-   vptr, vbptr and a virtual srBinStream subobject placed last.
+   The observed constructor allocation is 0x20 bytes, as checked below.
+   The modeled srBinIStream base has vptr, vbptr and a virtual srBinStream
+   subobject placed last; that allocation does not establish unique callers.
 
    The path normalization is the one Wiz8.exe reach of SurRender's srInlineString:
    the retail body constructs three objects here and calls this TU's out-of-line
@@ -54,7 +54,7 @@ W8VirtualFileBinIStream::W8VirtualFileBinIStream(const char* path) : m_hFile(0)
     }
 }
 
-inline srInlineString::srInlineString(const char* source)
+srInlineString::srInlineString(const char* source)
 {
     reset();
     if (source != 0) {
@@ -62,7 +62,7 @@ inline srInlineString::srInlineString(const char* source)
     }
 }
 
-inline srInlineString::srInlineString(const srInlineString& source)
+srInlineString::srInlineString(const srInlineString& source)
 {
     reset();
     if (source.data_ != 0) {
@@ -70,7 +70,7 @@ inline srInlineString::srInlineString(const srInlineString& source)
     }
 }
 
-inline srInlineString::srInlineString(const srInlineString& source, long begin, long end)
+srInlineString::srInlineString(const srInlineString& source, long begin, long end)
 {
     reset();
     char* temporary = static_cast<char*>(srHeap.allocate(end - begin + 2));
@@ -84,7 +84,7 @@ inline srInlineString::srInlineString(const srInlineString& source, long begin, 
    from deeper ones: insert's `*this =` tail and the EH unwind entries. Our
    build splits the same way. */
 // FUNCTION: WIZ8 0x0047CDD0
-inline srInlineString::~srInlineString()
+srInlineString::~srInlineString()
 {
     release();
 }
@@ -94,7 +94,7 @@ inline srInlineString::~srInlineString()
    emission above: operator='s expansion and the EH unwinders call the same
    body, so whether retail spelled a separate release member is unprovable.
    There is no independently retained retail address for release(). */
-inline void srInlineString::release()
+void srInlineString::release()
 {
     if (data_ != inline_) {
         srHeap.free(data_);
@@ -106,7 +106,7 @@ inline void srInlineString::release()
    srEXT_Unzip delegates to the (const char*) overload, this product's copy
    releases first and copies inline - insert's tail calls the shared
    emission and performs the copy without a second call. */
-inline srInlineString& srInlineString::operator=(const srInlineString& source)
+srInlineString& srInlineString::operator=(const srInlineString& source)
 {
     release();
     if (source.data_ != 0 && *source.data_ != '\0') {
@@ -186,18 +186,14 @@ srInlineString& srInlineString::operator+=(const char* suffix)
     return *this;
 }
 
-inline srInlineString::srInlineString()
+srInlineString::srInlineString()
 {
     reset();
 }
 
-/* Retail has a callable emission here - deep expansion sites (insert's
-   destroyed temporaries, the operator+ copy-out) keep calls while shallow
-   sites expand the three stores. Our build inlines it at every site, so the
-   emission does not materialize; the divergence is VC6's per-site inline
-   budget, not the declaration. Address 0x0047D290 is the retail callable
-   form and is not claimed here. */
-inline void srInlineString::reset()
+/* Retail reset at 0x0047D290 has both calls and expanded uses. Original
+   declaration/visibility and the cause of the split remain unresolved. */
+void srInlineString::reset()
 {
     inline_[0] = '\0';
     data_ = inline_;

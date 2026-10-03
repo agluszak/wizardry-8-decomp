@@ -1149,7 +1149,8 @@ bool BoundsInsideFrustum(const W8OctRegionVolume* volume, const W8BoundingBox* b
 /* Scalar-delete array teardown shared by the Sampler symbol array and other
    folded array instantiations. The primary template lives in srArray.h. */
 // TEMPLATE: WIZ8 0x004701b0
-// srArray<T>::release
+// NAME: srArray<T>::release
+// RECOMP: srArray<T>::release
 
 /* srMatrix4T<float>::Set emitted for this TU (BakeInstanceVertexLighting's
    transform builds); the primary template lives in srMath.h. */

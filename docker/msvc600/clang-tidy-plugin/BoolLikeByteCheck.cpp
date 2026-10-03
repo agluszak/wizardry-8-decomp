@@ -537,23 +537,8 @@ public:
             return true;
         }
 
-        if (opcode == BO_AndAssign || opcode == BO_OrAssign || opcode == BO_XorAssign) {
-            if (const NamedDecl* target = resolve_candidate(binary->getLHS())) {
-                DomainExpr rhs = domain(binary->getRHS());
-                if (!rhs.possible) {
-                    writer_.invalid_write(target, binary->getOperatorLoc());
-                } else {
-                    const std::string self = writer_.key(target);
-                    if (!self.empty() && std::find(rhs.dependencies.begin(), rhs.dependencies.end(),
-                                                   self) == rhs.dependencies.end()) {
-                        rhs.dependencies.push_back(self);
-                    }
-                    writer_.write(target, rhs.dependencies, binary->getOperatorLoc());
-                }
-            }
-            return true;
-        }
-
+        // Compound bitwise operations are byte/mask operations even with a
+        // 0/1 RHS. Do not classify them as boolean-domain review candidates.
         if (binary->isCompoundAssignmentOp()) {
             if (const NamedDecl* target = resolve_candidate(binary->getLHS())) {
                 writer_.invalid_write(target, binary->getOperatorLoc());
@@ -630,11 +615,9 @@ public:
             return true;
         }
 
-        // Whole-record memset is a real producer for byte fields. This is
-        // common in recovered C-style runtime layouts (notably the MGS level
-        // block), where no scalar `field = 0` exists for the initial state.
-        // Require an exact sizeof(record) so partial/raw buffer clears do not
-        // become evidence for unrelated fields.
+        // Exact whole-record memset is an observed producer for byte fields,
+        // not evidence of their historical source types. Require sizeof(record)
+        // so partial/raw buffer clears do not become unrelated field facts.
         if (function->getNameAsString() == "memset" && call->getNumArgs() >= 3 &&
             is_zero_or_one(call->getArg(1))) {
             record_aggregate_byte_write(call->getArg(0), call->getArg(2), call->getExprLoc());
@@ -1045,6 +1028,9 @@ public:
         if (context_ == nullptr || translation_unit_ == nullptr) {
             return;
         }
+        // Facts describe the current recovered AST and naming heuristics. They
+        // are not independent retail declarations or an exhaustive alias/write
+        // census: indirect calls and escaped aggregates remain outside this view.
         FactWriter writer(*context_, translation_unit_);
         if (writer.enabled()) {
             BoolDomainWriter bool_writer(writer, *context_);

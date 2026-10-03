@@ -6,30 +6,18 @@
    helpers (AAE mangling), but no copy constructor and no Opener vftable
    (??_7Opener@srIStreamOpener@@6B@ is absent). Consumers import the whole
    declared surface member by member, so the declaration itself stays unimported. */
-class srIStreamOpener {
+class SR_DLL_EXPORT srIStreamOpener {
 public:
     class __declspec(novtable) Opener {
     public:
-        /* srInit inlines the trivial construction through srFStreamOpener.
-           The member dllexport keeps the header body for that folding while
-           still emitting the exported standalone copy consumers import. */
         // FUNCTION: SURRENDER 0x10032680
         // ??0Opener@srIStreamOpener@@QAE@XZ
-#if defined(SURRENDER_BUILD)
-        __declspec(dllexport)
-#endif
-        Opener()
+        SR_DLL_EXPORT Opener()
         {
         }
-        /* Trivial body inlines into ~srFStreamOpener, leaving that emission a
-           bare ret; the member dllexport still emits the exported standalone
-           copy. */
         // FUNCTION: SURRENDER 0x10032690
         // ??1Opener@srIStreamOpener@@UAE@XZ
-#if defined(SURRENDER_BUILD)
-        __declspec(dllexport)
-#endif
-        virtual ~Opener()
+        virtual SR_DLL_EXPORT ~Opener()
         {
         }
         SR_DLL_IMPORT Opener& operator=(const Opener& other);
@@ -38,14 +26,8 @@ public:
         virtual const char* getDescription() const = 0;
     };
 
-    /* srInit inlines the constructor including its sentinel allocation.
-       The member dllexport keeps the header body for that folding while
-       still emitting the exported standalone copy consumers import. */
     // FUNCTION: SURRENDER 0x100326B0
     // ??0srIStreamOpener@@QAE@XZ
-#if defined(SURRENDER_BUILD)
-    __declspec(dllexport)
-#endif
     srIStreamOpener()
     {
         first_04 = new StreamType;
@@ -55,7 +37,9 @@ public:
         count_00 = 0;
     }
     SR_DLL_IMPORT ~srIStreamOpener();
+#if !defined(SURRENDER_BUILD)
     SR_DLL_IMPORT srIStreamOpener& operator=(const srIStreamOpener& other);
+#endif
 
     SR_DLL_IMPORT void addStreamType(Opener* opener, const char* extension);
     SR_DLL_IMPORT srBinIStream* open(const char* path);

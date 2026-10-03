@@ -5,51 +5,8 @@
 static void sortSymbolPairs(srHuffman::Sampler::Symbol* pairs, unsigned long count);
 static void* copyMemory(void* destination, const void* source, long size);
 
-// FUNCTION: SURRENDER 0x100010A0
-srHuffman::BitIStream::BitIStream(srBinIStream& stream)
-{
-    stream_00 = &stream;
-    cache_base_84 = -0x100;
-    bit_pos_88 = stream_00->tell() << 3;
-}
-
-// FUNCTION: SURRENDER 0x100010E0
-inline unsigned long srHuffman::BitIStream::get(unsigned long bits)
-{
-    if (bits <= 0x10) {
-        return getWordOrLess(bits);
-    }
-    unsigned long low = getWordOrLess(0x10);
-    unsigned long high = getWordOrLess(bits - 0x10);
-    return (high << 0x10) | low;
-}
-
-// FUNCTION: SURRENDER 0x10001290
-inline unsigned long srHuffman::BitIStream::getBit()
-{
-    unsigned long bit = (getByte(bit_pos_88 / 8) >> (bit_pos_88 & 7)) & 1;
-    ++bit_pos_88;
-    return bit;
-}
-
-// FUNCTION: SURRENDER 0x10001320
-inline void srHuffman::BitIStream::rewind(long bits)
-{
-    bit_pos_88 -= bits;
-}
-
-// FUNCTION: SURRENDER 0x10001340
-inline unsigned long srHuffman::BitIStream::getWordOrLess(unsigned long bits)
-{
-    long position = bit_pos_88 / 8;
-    unsigned long shift = bit_pos_88 & 7;
-    unsigned long data = getDWord(position);
-    bit_pos_88 += bits;
-    return (data & ((1 << (shift + bits)) - 1)) >> shift;
-}
-
 // FUNCTION: SURRENDER 0x100013D0
-inline void srHuffman::BitIStream::fetchCache(long position)
+void srHuffman::BitIStream::fetchCache(long position)
 {
     cache_base_84 = position;
     stream_00->seek(position);
@@ -57,14 +14,19 @@ inline void srHuffman::BitIStream::fetchCache(long position)
     stream_00->setState(srBinStream::SR_STREAM_OK);
 }
 
-// FUNCTION: SURRENDER 0x10001420
-srHuffman::BitOStream& srHuffman::BitOStream::operator=(const BitOStream& stream)
+// FUNCTION: SURRENDER 0x100015C0
+unsigned long srHuffman::BitIStream::getByte(long position)
 {
-    return *this;
+    unsigned long offset = position - cache_base_84;
+    if (offset >= 0x80) {
+        fetchCache(position);
+        offset = 0;
+    }
+    return cache_04[offset];
 }
 
 // FUNCTION: SURRENDER 0x10001490
-inline unsigned long srHuffman::BitIStream::getDWord(long position)
+unsigned long srHuffman::BitIStream::getDWord(long position)
 {
     unsigned long offset = position - cache_base_84;
     if (offset >= 0x7d) {
@@ -75,21 +37,60 @@ inline unsigned long srHuffman::BitIStream::getDWord(long position)
     return *reinterpret_cast<unsigned long*>(cache_04 + offset);
 }
 
+// FUNCTION: SURRENDER 0x10001340
+unsigned long srHuffman::BitIStream::getWordOrLess(unsigned long bits)
+{
+    long position = bit_pos_88 / 8;
+    unsigned long shift = bit_pos_88 & 7;
+    unsigned long data = getDWord(position);
+    bit_pos_88 += bits;
+    return (data & ((1 << (shift + bits)) - 1)) >> shift;
+}
+
+// FUNCTION: SURRENDER 0x100010A0
+srHuffman::BitIStream::BitIStream(srBinIStream& stream)
+{
+    stream_00 = &stream;
+    cache_base_84 = -0x100;
+    bit_pos_88 = stream_00->tell() << 3;
+}
+
+// FUNCTION: SURRENDER 0x100010E0
+unsigned long srHuffman::BitIStream::get(unsigned long bits)
+{
+    if (bits <= 0x10) {
+        return getWordOrLess(bits);
+    }
+    unsigned long low = getWordOrLess(0x10);
+    unsigned long high = getWordOrLess(bits - 0x10);
+    return (high << 0x10) | low;
+}
+
+// FUNCTION: SURRENDER 0x10001290
+unsigned long srHuffman::BitIStream::getBit()
+{
+    unsigned long data = getByte(bit_pos_88 / 8);
+    unsigned long bit = (data >> (bit_pos_88 & 7)) & 1;
+    ++bit_pos_88;
+    return bit;
+}
+
+// FUNCTION: SURRENDER 0x10001320
+void srHuffman::BitIStream::rewind(long bits)
+{
+    bit_pos_88 -= bits;
+}
+
+// FUNCTION: SURRENDER 0x10001420
+srHuffman::BitOStream& srHuffman::BitOStream::operator=(const BitOStream& stream)
+{
+    return *this;
+}
+
 /* Retail copies table_00 memberwise and assigns symbols_10 through
    srArray::operator=. */
 // SYNTHETIC: SURRENDER 0x100014F0
 // srHuffman::Sampler copy constructor (implicit)
-
-// FUNCTION: SURRENDER 0x100015C0
-inline unsigned long srHuffman::BitIStream::getByte(long position)
-{
-    unsigned long offset = position - cache_base_84;
-    if (offset >= 0x80) {
-        fetchCache(position);
-        offset = 0;
-    }
-    return cache_04[offset];
-}
 
 /* Retail assigns table_00 memberwise and symbols_10 through srArray::operator=. */
 // SYNTHETIC: SURRENDER 0x10001630
@@ -553,12 +554,14 @@ static void* copyMemory(void* destination, const void* source, long size)
 /* srHashTable<unsigned long,int>::Grow — called out of line from AllocateEntry
    inside insert's inlined Insert. */
 // TEMPLATE: SURRENDER 0x10002BA0
-// srHashTableBase<unsigned long,int>::Grow
+// NAME: srHashTableBase<Key,Value>::Grow
+// RECOMP: srHashTableBase<unsigned long,int>::Grow
 
 /* srHashTable<unsigned long,Compressor::Node*>::Grow — called out of line from
    AllocateEntry inside setupPath's inlined Insert. */
 // TEMPLATE: SURRENDER 0x10002CF0
-// srHashTableBase<unsigned long,srHuffman::Compressor::Node*>::Grow
+// NAME: srHashTableBase<Key,Value>::Grow
+// RECOMP: srHashTableBase<unsigned long,srHuffman::Compressor::Node*>::Grow
 
 // SYNTHETIC: SURRENDER 0x10002B40
 // member pointer-pair destructor emission (EH unwind)

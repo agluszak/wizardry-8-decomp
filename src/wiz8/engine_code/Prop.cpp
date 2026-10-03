@@ -73,16 +73,20 @@ bool g_animated_prop_present;
 // class W8Vector<W8PropAnimationSegment*>
 
 // SYNTHETIC: WIZ8 0x0044ef60
-// W8Vector<W8PropAnimationSegment*>::`scalar deleting destructor'
+// NAME: W8Vector<T>::`scalar deleting destructor'
+// RECOMP: W8Vector<W8PropAnimationSegment*>::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x0044ef30
-// W8GrowableVector<W8PropAnimationSegment*>::`scalar deleting destructor'
+// NAME: W8GrowableVector<T>::`scalar deleting destructor'
+// RECOMP: W8GrowableVector<W8PropAnimationSegment*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x0044ef00
-// W8Vector<W8PropAnimationSegment*>::~W8Vector<W8PropAnimationSegment*>
+// NAME: W8Vector<T>::~W8Vector<T>
+// RECOMP: W8Vector<W8PropAnimationSegment*>::~W8Vector<W8PropAnimationSegment*>
 
-// TEMPLATE: WIZ8 0x0044efe0 SYMBOL
-// ??0?$W8GrowableVector@PAUW8PropAnimationSegment@@@@QAE@H@Z
+// TEMPLATE: WIZ8 0x0044efe0
+// NAME: W8GrowableVector<T>::W8GrowableVector (four-byte capacity)
+// RECOMP: ??0?$W8GrowableVector@PAUW8PropAnimationSegment@@@@QAE@H@Z
 
 /* Prop::Prop() - GrObject base, then m_pRep / m_pTimer and two identity
    rotation bases.  Retail expands PropRep after the AnimRep constructor:
@@ -1390,7 +1394,7 @@ bool W8Prop::IsTriggerInView(srVector3T<float>* position)
                                          static_cast<double>(center.z));
 
                 if (g_world->camera->project(projected, input) ==
-                    srCamera::PROJECTION_RESULT_POSITIONAL_0) {
+                    srCamera::PROJECTION_RESULT_ACCEPTED) {
                     return true;
                 }
             }
@@ -1400,7 +1404,7 @@ bool W8Prop::IsTriggerInView(srVector3T<float>* position)
                                          static_cast<double>(minimum.z));
 
                 if (g_world->camera->project(projected, input) ==
-                    srCamera::PROJECTION_RESULT_POSITIONAL_0) {
+                    srCamera::PROJECTION_RESULT_ACCEPTED) {
                     return true;
                 }
             }
@@ -1410,7 +1414,7 @@ bool W8Prop::IsTriggerInView(srVector3T<float>* position)
                                          static_cast<double>(maximum.z));
 
                 if (g_world->camera->project(projected, input) ==
-                    srCamera::PROJECTION_RESULT_POSITIONAL_0) {
+                    srCamera::PROJECTION_RESULT_ACCEPTED) {
                     return true;
                 }
             }

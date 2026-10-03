@@ -60,24 +60,13 @@ struct W8OctreeTrace {
 };
 
 static_assert(sizeof(W8OctreeTrace) == 0x30, "W8OctreeTrace_must_be_0x30");
-/* Bulk vector-array writes and reads the .oct submesh serializers share. The
-   writers stage at most 0x100 records through a stack buffer per FileWrite.
-
-   Retail emits exactly one reader/writer pair per record width and every call
-   site lives in OctMeshModel::Read/Write. The width-12 entries serve both
-   srVector3T<float> arrays (vertex locations, normals, lights) and srVector3i
-   index triples (poly-vertex, poly-UV); this incremental-link build performs
-   no identical-function folding, so the shared entry is one source function,
-   not a folded overload pair or a per-type template instantiation. The
-   writer's elementwise staging copy proves the declared element was a
-   complete 12-byte record rather than raw storage, and the family is keyed
-   on the float vector width (srVector2/3/4 are the float typedefs), so the
-   float spelling is canonical and the integer triples are the reused case. */
+/* Bulk .oct vector I/O. Writers stage at most 0x100 records per FileWrite;
+   the raw twelve-byte reader serves float vectors and polygon index triples. */
 BOOLEAN WriteVector4Array(int file, const srVector4T<float>* values, int count);
 BOOLEAN WriteVector3Array(int file, const srVector3T<float>* values, int count);
 BOOLEAN WriteVector2Array(int file, const srVector2T<float>* values, int count);
 bool ReadVector4Array(int file, srVector4T<float>* values, int count);
-bool ReadVector3Array(int file, srVector3T<float>* values, int count);
+bool ReadVector3Array(int file, void* values, int count);
 bool ReadVector2Array(int file, srVector2T<float>* values, int count);
 /* Distance from `point` to the `from`-`to` segment, shared by the trace
    resolver and the GameData surface walk. When `clamp_point` is set the
@@ -98,17 +87,7 @@ char GrowBoundsByPoint(const srVector3T<float>* point, srVector3T<float>* minimu
 bool SphereNearBounds(const srVector3T<float>* point, float radius,
                       const W8BoundingBox* bounds); /* 0x004386A0 */
 
-/* The polygon index triples reuse the canonical float-vector entry point
-   above (see the family comment); the inline integer view keeps that one
-   cast at the call-site boundary. */
-inline bool ReadVectorArray(int file, srVector3i* values, int count)
-{
-    return ReadVector3Array(
-        file, reinterpret_cast<srVector3T<float>*>(values), /* reinterpret-ok: the
-            float reader's raw 12-byte record is the index-triple record */
-        count);
-}
-inline bool ReadVectorArray(int file, srVector3T<float>* values, int count)
+inline bool ReadVectorArray(int file, void* values, int count)
 {
     return ReadVector3Array(file, values, count);
 }
@@ -344,9 +323,9 @@ public:
                                    const srVector3T<float>* delta, float extent,
                                    unsigned short kind); /* 0x0042ED60 */
     /* Kind-12 box query; `exclusion` 0 maps to none. */
-    unsigned int QueryLocationsInBox(unsigned long** results, const srVector3T<float>* lower,
-                                     const srVector3T<float>* upper,
-                                     unsigned short exclusion); /* 0x0042EF00 */
+    int QueryLocationsInBox(unsigned long** results, const srVector3T<float>* lower,
+                            const srVector3T<float>* upper,
+                            unsigned short exclusion); /* 0x0042EF00 */
     /* AABB occupancy test: GD triangles, kind-12 location objects (with each
        monster's navigator radius) and collidable-prop surfaces. */
     unsigned char TestBoxOccupied(const srVector3T<float>* lower,
@@ -573,7 +552,7 @@ public:
     bool m_reset_visibility_168;
     bool m_region_links_ready_169;
     bool m_projected_regions_valid_16a;
-    bool m_positional_16b;
+    unsigned char unknown_16b;
     bool m_region_links_dirty_16c;
     bool m_points_dirty_16d;
     unsigned char m_padding_16e[2];

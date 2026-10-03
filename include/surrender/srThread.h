@@ -4,12 +4,9 @@
 
 /* Provider-side utility. No known Wizardry/JPEG/ZIP consumer imports srThread
    symbols, so its declarations must not carry consumer dllimport codegen. */
-class srThread {
+class SR_DLL_EXPORT srThread {
 public:
-    srThread& operator=(const srThread& thread);
-
-    static unsigned long begin(
-        void (__cdecl* entry)(void*), void* argument);
+    static unsigned long begin(void(__cdecl* entry)(void*), void* argument);
     static void end();
     static unsigned long getHandle();
     static long getYieldCount();

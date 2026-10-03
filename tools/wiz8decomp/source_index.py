@@ -65,9 +65,17 @@ def validate_synthetic_marker_blocks(repository: Path) -> int:
                 if index + 1 >= len(lines) or not lines[index + 1].lstrip().startswith("//"):
                     failures.append(f"{location}: SYNTHETIC lacks its identity comment")
                     continue
-                if index + 2 >= len(lines):
+                following_index = index + 2
+                if re.match(r"^\s*//\s*NAME:\s+", lines[index + 1]):
+                    if following_index >= len(lines) or not re.match(
+                        r"^\s*//\s*RECOMP:\s+\S", lines[following_index]
+                    ):
+                        failures.append(f"{location}: SYNTHETIC NAME lacks its RECOMP selector")
+                        continue
+                    following_index += 1
+                if following_index >= len(lines):
                     continue
-                following = lines[index + 2]
+                following = lines[following_index]
                 if following.strip() and not _SOURCE_MARKER.match(following):
                     failures.append(
                         f"{location}: SYNTHETIC owns no declaration or body; "
@@ -209,6 +217,8 @@ class AddressBoundIdentity:
     is_variadic: bool
     owning_class: str | None
     is_definition: bool
+    recomp_selector: str | None = None
+    selector_is_symbol: bool = False
 
 
 _INSTANCE_KINDS = frozenset({"constructor", "destructor", "instance_method"})
@@ -281,6 +291,8 @@ def _identity_from_declaration(
     address: int,
     marker_kind: str | None = None,
     kind: str | None = None,
+    recomp_selector: str | None = None,
+    selector_is_symbol: bool = False,
 ) -> AddressBoundIdentity:
     qualified = str(entry.get("qualified_name") or "")
     return AddressBoundIdentity(
@@ -302,6 +314,8 @@ def _identity_from_declaration(
         is_variadic=bool(entry.get("is_variadic")),
         owning_class=str(entry["owning_class"]) if entry.get("owning_class") else None,
         is_definition=bool(entry.get("is_definition")),
+        recomp_selector=recomp_selector,
+        selector_is_symbol=selector_is_symbol,
     )
 
 
@@ -346,6 +360,10 @@ def address_bound_identities(
                     address=address,
                     marker_kind=marker_kind,
                     kind=kind,
+                    recomp_selector=str(marker["recomp_selector"])
+                    if marker.get("recomp_selector")
+                    else None,
+                    selector_is_symbol=bool(marker.get("selector_is_symbol")),
                 )
             )
             continue
@@ -367,7 +385,11 @@ def address_bound_identities(
                 has_this=False,
                 is_variadic=False,
                 owning_class=None,
-                is_definition=marker_kind == "FUNCTION",
+                is_definition=False,
+                recomp_selector=str(marker["recomp_selector"])
+                if marker.get("recomp_selector")
+                else None,
+                selector_is_symbol=bool(marker.get("selector_is_symbol")),
             )
         )
 

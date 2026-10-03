@@ -540,16 +540,8 @@ srMemoryAllocator::srMemoryAllocator()
 // FUNCTION: SURRENDER 0x10036520
 srMemoryAllocator::~srMemoryAllocator() {}
 
-// FUNCTION: SURRENDER 0x100042E0
-srMemoryAllocator& srMemoryAllocator::operator=(const srMemoryAllocator& other)
-{
-    first_block_00 = other.first_block_00;
-    allocated_bytes_04 = other.allocated_bytes_04;
-    allocation_count_08 = other.allocation_count_08;
-    alignment_0c = other.alignment_0c;
-    clear_10 = other.clear_10;
-    return *this;
-}
+// SYNTHETIC: SURRENDER 0x100042E0
+// srMemoryAllocator::operator= (implicit shallow copy)
 
 // FUNCTION: SURRENDER 0x100042D0
 void srMemoryAllocator::setAlignment(e_alignSize alignment)

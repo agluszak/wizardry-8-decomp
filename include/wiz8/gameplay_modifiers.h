@@ -4,7 +4,7 @@
 #include <stddef.h>
 
 /*
- * The two packed records the gameplay-modifier passes accumulate through.
+ * The effect-slot and modifier records the gameplay-modifier passes accumulate through.
  *
  * A W8EffectSlot is one running effect or condition: the party keeps twelve in
  * the status block, a monster keeps twelve more, and combat keeps nine records
@@ -31,6 +31,7 @@ struct W8EffectSlot {
     unsigned int duration_0d; /* 0x0d: remaining lifetime, aged down in whole
                                   minutes by AgeMonsterSight */
 }; /* 0x11 */
+#pragma pack(pop)
 
 static_assert(sizeof(W8EffectSlot) == 0x11, "W8EffectSlot_must_be_0x11");
 static_assert(offsetof(W8EffectSlot, active) == 0x00, "W8EffectSlot_active");
@@ -92,8 +93,6 @@ static_assert(offsetof(W8GameplayModifierBlock, damage_reduction_adjustment) == 
 static_assert(offsetof(W8GameplayModifierBlock, attribute_adjustments) == 0x0c,
               "W8GameplayModifierBlock_attribute_adjustments_offset");
 static_assert(sizeof(W8GameplayModifierBlock) == 0x67, "W8GameplayModifierBlock_must_be_0x67");
-
-#pragma pack(pop)
 
 /* The spell that fills each being effect slot; the monster side indexes
    W8MonsterInfo::effect_slots_10f, the party side

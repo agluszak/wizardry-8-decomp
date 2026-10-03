@@ -62,10 +62,12 @@ extern const unsigned int g_W8TextControlMask = 0x10;
 extern const unsigned int g_W8TextControlLayoutImageAtOrigin = 0x80;
 
 // SYNTHETIC: WIZ8 0x004f68a0
-// W8Vector<W8Widget*>::`scalar deleting destructor'
+// NAME: W8Vector<T>::`scalar deleting destructor'
+// RECOMP: W8Vector<W8Widget*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x004f68c0
-// W8Vector<W8Widget*>::~W8Vector<W8Widget*>
+// NAME: W8Vector<T>::~W8Vector<T>
+// RECOMP: W8Vector<W8Widget*>::~W8Vector<W8Widget*>
 
 /* The default constructor. Everything the seven-argument one takes from its
    caller, this one zeroes or sets to -1. */
@@ -107,7 +109,7 @@ Controls::Controls(int left, int top, int right_bound, int bottom_bound, int ren
 }
 
 // FUNCTION: WIZ8 0x004f2d30
-inline Controls::~Controls() {}
+Controls::~Controls() {}
 
 /* 0x00562A50 takes the redraw-request mask the panel raises. */
 // GLOBAL: WIZ8 0x0060CC74
@@ -230,10 +232,12 @@ W8Widget::W8Widget(Controls* owner, unsigned int region, int left, int top, int 
     if (region != 0xffffffff) {
         origin_y = owner->m_bounds.top;
         origin_x = owner->m_bounds.left;
-        SetRegionBounds(region, static_cast<unsigned short>(static_cast<short>(origin_x) + static_cast<short>(left)),
-                        static_cast<unsigned short>(static_cast<short>(origin_y) + static_cast<short>(top)),
-                        static_cast<unsigned short>(static_cast<short>(right) + static_cast<short>(origin_x)),
-                        static_cast<unsigned short>(static_cast<short>(bottom) + static_cast<short>(origin_y)));
+        SetRegionBounds(
+            region,
+            static_cast<unsigned short>(static_cast<short>(origin_x) + static_cast<short>(left)),
+            static_cast<unsigned short>(static_cast<short>(origin_y) + static_cast<short>(top)),
+            static_cast<unsigned short>(static_cast<short>(right) + static_cast<short>(origin_x)),
+            static_cast<unsigned short>(static_cast<short>(bottom) + static_cast<short>(origin_y)));
         DisableRegionInput(m_region);
     }
 
@@ -345,10 +349,15 @@ void W8Widget::SetRegion(unsigned int region)
         if (holder != 0) {
             origin_y = holder->m_bounds.top;
             origin_x = holder->m_bounds.left;
-            SetRegionBounds(region, static_cast<unsigned short>(static_cast<short>(m_left) + static_cast<short>(origin_x)),
-                            static_cast<unsigned short>(static_cast<short>(m_top) + static_cast<short>(origin_y)),
-                            static_cast<unsigned short>(static_cast<short>(m_right) + static_cast<short>(origin_x)),
-                            static_cast<unsigned short>(static_cast<short>(m_bottom) + static_cast<short>(origin_y)));
+            SetRegionBounds(region,
+                            static_cast<unsigned short>(static_cast<short>(m_left) +
+                                                        static_cast<short>(origin_x)),
+                            static_cast<unsigned short>(static_cast<short>(m_top) +
+                                                        static_cast<short>(origin_y)),
+                            static_cast<unsigned short>(static_cast<short>(m_right) +
+                                                        static_cast<short>(origin_x)),
+                            static_cast<unsigned short>(static_cast<short>(m_bottom) +
+                                                        static_cast<short>(origin_y)));
         }
     }
     bound = m_region;
@@ -366,11 +375,6 @@ void W8Widget::SetRegion(unsigned int region)
  * is the one field the encodings name for themselves: the destructor frees it
  * and 0x004F33A0 fills it with wcscpy. Everything else the constructor touches
  * is positional.
- *
- * The destructor is written inside the class body because that is what folds it
- * into the deleting destructor, the same shape the widget base above needed,
- * and the constructor is what emits the vtable so the fold has something to
- * hang on.
  */
 
 // SYNTHETIC: WIZ8 0x004f3370
@@ -498,18 +502,22 @@ void W8TextBuffer::UpdateLayout()
         while (*break_at != L'\0') {
             *break_at = L'\0';
             short word_width = StringPixLength(line, m_font);
-            if (static_cast<unsigned int>(static_cast<int>(word_width) + accumulated_width) < available_width) {
-                accumulated_width += static_cast<int>(separator_width) + static_cast<int>(word_width);
+            if (static_cast<unsigned int>(static_cast<int>(word_width) + accumulated_width) <
+                available_width) {
+                accumulated_width +=
+                    static_cast<int>(separator_width) + static_cast<int>(word_width);
                 previous_break = break_at;
             } else {
                 if (previous_break != 0) {
                     *previous_break = L'\n';
                 }
-                unsigned int completed_width = accumulated_width - static_cast<int>(separator_width);
+                unsigned int completed_width =
+                    accumulated_width - static_cast<int>(separator_width);
                 if (m_maxLineWidth < completed_width) {
                     m_maxLineWidth = completed_width;
                 }
-                accumulated_width = static_cast<int>(separator_width) + static_cast<int>(word_width);
+                accumulated_width =
+                    static_cast<int>(separator_width) + static_cast<int>(word_width);
                 previous_break = 0;
                 ++m_lineCount;
             }
@@ -745,7 +753,7 @@ unsigned int W8TextBuffer::GetLineHeight()
 
 /* The text-control declaration is shared in Controls.h so every consumer sees
    the same 20-slot hierarchy and its embedded W8TextBuffer at +0x60. */
-inline void W8TextControl::InvalidateCore(unsigned char immediate)
+void W8TextControl::InvalidateCore(unsigned char immediate)
 {
     if (m_pPanel != 0) {
         m_dirty = true;
@@ -945,8 +953,9 @@ void W8TextControl::Redraw(unsigned char full_redraw)
             if (m_textBuffer.HasBuffer()) {
                 m_textBuffer.RenderToTarget(text_state, full_redraw, -14);
             }
-            ShadowVideoSurfaceRect(-14, m_pPanel->m_bounds.left + m_left, m_pPanel->m_bounds.top + m_top,
-                                   m_pPanel->m_bounds.left + m_right, m_pPanel->m_bounds.top + m_bottom);
+            ShadowVideoSurfaceRect(
+                -14, m_pPanel->m_bounds.left + m_left, m_pPanel->m_bounds.top + m_top,
+                m_pPanel->m_bounds.left + m_right, m_pPanel->m_bounds.top + m_bottom);
             m_dirty = false;
             return;
         }
@@ -991,10 +1000,15 @@ void W8TextControl::SetBoundsFromRect(const W8ControlsRect* bounds)
 {
     SetBounds(bounds->left, bounds->top, bounds->right, bounds->bottom);
     if (m_region != -1 && m_pPanel != 0) {
-        SetRegionBounds(m_region, static_cast<unsigned short>(static_cast<short>(bounds->left) + static_cast<short>(m_pPanel->m_bounds.left)),
-                        static_cast<unsigned short>(static_cast<short>(bounds->top) + static_cast<short>(m_pPanel->m_bounds.top)),
-                        static_cast<unsigned short>(static_cast<short>(bounds->right) + static_cast<short>(m_pPanel->m_bounds.left)),
-                        static_cast<unsigned short>(static_cast<short>(bounds->bottom) + static_cast<short>(m_pPanel->m_bounds.top)));
+        SetRegionBounds(m_region,
+                        static_cast<unsigned short>(static_cast<short>(bounds->left) +
+                                                    static_cast<short>(m_pPanel->m_bounds.left)),
+                        static_cast<unsigned short>(static_cast<short>(bounds->top) +
+                                                    static_cast<short>(m_pPanel->m_bounds.top)),
+                        static_cast<unsigned short>(static_cast<short>(bounds->right) +
+                                                    static_cast<short>(m_pPanel->m_bounds.left)),
+                        static_cast<unsigned short>(static_cast<short>(bounds->bottom) +
+                                                    static_cast<short>(m_pPanel->m_bounds.top)));
     }
 }
 
@@ -1007,10 +1021,16 @@ void W8TextControl::SetBounds(int left, int top, int right, int bottom)
     W8Widget::SetBounds(left, top, right, bottom);
     if (m_pPanel != 0) {
         if (m_region != -1) {
-            SetRegionBounds(m_region, static_cast<unsigned short>(static_cast<short>(left) + static_cast<short>(m_pPanel->m_bounds.left)),
-                            static_cast<unsigned short>(static_cast<short>(top) + static_cast<short>(m_pPanel->m_bounds.top)),
-                            static_cast<unsigned short>(static_cast<short>(right) + static_cast<short>(m_pPanel->m_bounds.left)),
-                            static_cast<unsigned short>(static_cast<short>(bottom) + static_cast<short>(m_pPanel->m_bounds.top)));
+            SetRegionBounds(
+                m_region,
+                static_cast<unsigned short>(static_cast<short>(left) +
+                                            static_cast<short>(m_pPanel->m_bounds.left)),
+                static_cast<unsigned short>(static_cast<short>(top) +
+                                            static_cast<short>(m_pPanel->m_bounds.top)),
+                static_cast<unsigned short>(static_cast<short>(right) +
+                                            static_cast<short>(m_pPanel->m_bounds.left)),
+                static_cast<unsigned short>(static_cast<short>(bottom) +
+                                            static_cast<short>(m_pPanel->m_bounds.top)));
         }
         if ((m_flags_38 & 2) != 0) {
             int absolute_left = m_pPanel->m_bounds.left + left;
@@ -1046,7 +1066,8 @@ void W8TextControl::Invalidate(unsigned char immediate)
 void W8TextControl::SetFlaggedRegionBounds(int left, int top, int right)
 {
     if (m_region != -1 && m_pPanel != 0 && RegionHasFlags(m_region, 2)) {
-        SetRegionBounds(m_region, m_pPanel->m_bounds.left + left, m_pPanel->m_bounds.top + top, right, 0);
+        SetRegionBounds(m_region, m_pPanel->m_bounds.left + left, m_pPanel->m_bounds.top + top,
+                        right, 0);
     }
 }
 
@@ -1083,8 +1104,9 @@ void W8TextControl::AddLayoutFlags(unsigned int flags)
 void W8TextControl::RemoveLayoutFlags(unsigned int flags)
 {
     if ((flags & 2) != 0 && m_pPanel != 0) {
-        m_textBuffer.SetLayoutBounds(m_pPanel->m_bounds.left + m_left, m_pPanel->m_bounds.top + m_top,
-                                     m_pPanel->m_bounds.left + m_right, m_pPanel->m_bounds.top + m_bottom);
+        m_textBuffer.SetLayoutBounds(
+            m_pPanel->m_bounds.left + m_left, m_pPanel->m_bounds.top + m_top,
+            m_pPanel->m_bounds.left + m_right, m_pPanel->m_bounds.top + m_bottom);
         if (m_textBuffer.HasBuffer()) {
             m_textBuffer.UpdateLayout();
         }
@@ -1457,10 +1479,10 @@ protected:
     void SynchronizeRangeValue();
 };
 
-inline W8RangeButton::W8RangeButton(Controls* panel, unsigned int region, int left, int top,
-                                    int right, int bottom, int text_40, int text_44, int text_48,
-                                    int text_4c, int text_54, int text_50, int text_58,
-                                    short direction, W8RangeControl* range)
+W8RangeButton::W8RangeButton(Controls* panel, unsigned int region, int left, int top, int right,
+                             int bottom, int text_40, int text_44, int text_48, int text_4c,
+                             int text_54, int text_50, int text_58, short direction,
+                             W8RangeControl* range)
     : W8TextControl(panel, region, left, top, right, bottom, text_40, text_44, text_48, text_4c,
                     text_54, text_50, text_58),
       m_direction(direction), m_range(range)
@@ -1571,7 +1593,7 @@ void W8RangeControl::SetRangeEnabled(bool enabled)
     m_thumb->SetEnabled(enabled);
 }
 
-inline void W8VerticalRangeThumb::ClampPositionAndInvalidate()
+void W8VerticalRangeThumb::ClampPositionAndInvalidate()
 {
     if (m_position < m_minimumPosition) {
         m_position = m_minimumPosition;
@@ -1579,9 +1601,9 @@ inline void W8VerticalRangeThumb::ClampPositionAndInvalidate()
     if (m_maximumPosition < m_position) {
         m_position = m_maximumPosition;
     }
-    m_pixelPosition =
-        static_cast<int>(((m_position - m_minimumPosition) / (m_maximumPosition - m_minimumPosition)) *
-              m_trackLength);
+    m_pixelPosition = static_cast<int>(
+        ((m_position - m_minimumPosition) / (m_maximumPosition - m_minimumPosition)) *
+        m_trackLength);
     if (m_pPanel != 0) {
         m_dirty = true;
         m_pPanel->InvalidateLayout();
@@ -1589,7 +1611,7 @@ inline void W8VerticalRangeThumb::ClampPositionAndInvalidate()
     }
 }
 
-inline void W8VerticalRangeThumb::SynchronizeRangeValue()
+void W8VerticalRangeThumb::SynchronizeRangeValue()
 {
     int value = static_cast<int>(m_range->m_thumb->m_position *
                                  (m_range->m_maximum - m_range->m_minimum + 1)) +
@@ -1881,7 +1903,7 @@ void W8HelpTextControl::OnLeftButtonDoubleClick(int event)
    the movable thumb sprite and retains the remaining horizontal travel at
    +0x4c. The interaction methods independently prove that geometry: cursor X
    is converted through +0x4c into the normalized float range +0x60..+0x68. */
-inline void W8HorizontalRangeThumb::InvalidateThumb()
+void W8HorizontalRangeThumb::InvalidateThumb()
 {
     if (m_pPanel != 0) {
         m_dirty = true;
@@ -1890,7 +1912,7 @@ inline void W8HorizontalRangeThumb::InvalidateThumb()
     }
 }
 
-inline void W8HorizontalRangeThumb::ClampPositionAndInvalidate()
+void W8HorizontalRangeThumb::ClampPositionAndInvalidate()
 {
     if (m_position < m_minimumPosition) {
         m_position = m_minimumPosition;
@@ -1898,9 +1920,9 @@ inline void W8HorizontalRangeThumb::ClampPositionAndInvalidate()
     if (m_maximumPosition < m_position) {
         m_position = m_maximumPosition;
     }
-    m_pixelPosition =
-        static_cast<int>(((m_position - m_minimumPosition) / (m_maximumPosition - m_minimumPosition)) *
-              m_trackLength);
+    m_pixelPosition = static_cast<int>(
+        ((m_position - m_minimumPosition) / (m_maximumPosition - m_minimumPosition)) *
+        m_trackLength);
     InvalidateThumb();
 }
 
@@ -2085,8 +2107,8 @@ void W8HorizontalRangeThumb::Redraw(unsigned char full_redraw)
 
 // SYNTHETIC: WIZ8 0x004f69b0
 // W8HorizontalRangeThumb::`scalar deleting destructor'
-// FUNCTION: WIZ8 0x004f69d0
-W8HorizontalRangeThumb::~W8HorizontalRangeThumb() {}
+// SYNTHETIC: WIZ8 0x004f69d0
+// W8HorizontalRangeThumb::~W8HorizontalRangeThumb
 
 /* Enables or disables the whole panel: the panel's own flag, then every child's,
    and each child's region follows - mode 4 restores the disabled region and
@@ -2202,8 +2224,8 @@ void Controls::Redraw()
         }
         if (m_fWholeAreaDirty) {
             if (m_renderTarget != -1) {
-                InvalidateCatalogImageRect(m_renderTarget, m_renderArg_1c, m_renderArg_20, m_bounds.left,
-                                           m_bounds.top, 2);
+                InvalidateCatalogImageRect(m_renderTarget, m_renderArg_1c, m_renderArg_20,
+                                           m_bounds.left, m_bounds.top, 2);
             }
         } else {
             InvalidateRegion(m_dirtyRect.left, m_dirtyRect.top, m_dirtyRect.right,
@@ -2323,15 +2345,13 @@ void W8Widget::SetBoundsFromRect(const W8ControlsRect* bounds)
    vector +0x10. Controls.cpp:2679 names m_lsButtons and checks iSelected against
    its count. The selected index is stored at +0x0c. */
 
-/* No destructor is declared here on purpose. Under /GX a user-declared base
-   destructor makes the derived constructor carry an unwind frame, because the
-   vector's operator new can throw after the base is built; the canonical body
-   has no frame, so the original base's destructor is implicit. */
 // SYNTHETIC: WIZ8 0x004f6910
-// W8Vector<W8TextControl*>::`scalar deleting destructor'
+// NAME: W8Vector<T>::`scalar deleting destructor'
+// RECOMP: W8Vector<W8TextControl*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x004f6930
-// W8Vector<W8TextControl*>::~W8Vector<W8TextControl*>
+// NAME: W8Vector<T>::~W8Vector<T>
+// RECOMP: W8Vector<W8TextControl*>::~W8Vector<W8TextControl*>
 
 // FUNCTION: WIZ8 0x004f5450
 W8ControlSelection::W8ControlSelection()

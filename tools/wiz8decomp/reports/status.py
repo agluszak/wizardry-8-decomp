@@ -114,7 +114,7 @@ def _pairing_statistics(
         # markers (SYMBOL) may legitimately stay unpaired when the recomp
         # emits no standalone copy of a header inline.
         "unpaired_line_refs": len(unpaired - name_ref_addresses),
-        "name_ref_non_emissions": len(unpaired & name_ref_addresses),
+        "unpaired_name_refs": len(unpaired & name_ref_addresses),
         "ignored": ignored,
         "pair_basis": dict(sorted(basis.items())),
     }
@@ -189,7 +189,7 @@ def _totals(targets: Mapping[str, dict[str, Any]]) -> dict[str, Any]:
         "paired": sum(row["pairing"]["paired"] for row in comparison),
         "unpaired": sum(row["pairing"]["unpaired"] for row in comparison),
         "unpaired_line_refs": sum(row["pairing"]["unpaired_line_refs"] for row in comparison),
-        "name_ref_non_emissions": sum(
+        "unpaired_name_refs": sum(
             row["pairing"]["unpaired"] - row["pairing"]["unpaired_line_refs"] for row in comparison
         ),
         "ignored": sum(row["pairing"]["ignored"] for row in comparison),

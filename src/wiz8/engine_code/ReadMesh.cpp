@@ -25,6 +25,11 @@
 #include <string.h>
 #include <stdio.h>
 
+static int operator==(const srShader& left, const srShader& right)
+{
+    return left.value == right.value;
+}
+
 // FUNCTION: WIZ8 0x004896C0
 void ReadMeshTransform(int file, srVector3T<float>* location, srMatrix3T<float>* rotation,
                        srVector3T<float>* scale)
@@ -109,10 +114,12 @@ static W8GrowableVector<srMaterialIFace*> g_retained_materials(5);
 namespace {
 
 // TEMPLATE: WIZ8 0x00489fe0
-// W8HashTable<unsigned int,W8MeshStripPolygon*>::W8HashTable
+// NAME: W8HashTable<Key,Value>::W8HashTable
+// RECOMP: W8HashTable<unsigned int,W8MeshStripPolygon*>::W8HashTable
 
 // TEMPLATE: WIZ8 0x0055db80
-// W8HashTable<unsigned int,int>::~W8HashTable
+// NAME: W8HashTable<Key,Value>::~W8HashTable
+// RECOMP: W8HashTable<unsigned int,int>::~W8HashTable
 
 bool ReadMeshFaceNeedsSplit(const W8ReadMeshFace& face, srMaterialIFace** materials)
 {
@@ -176,32 +183,41 @@ struct W8MeshStripBuilder {
 // TEMPLATE: WIZ8 0x00489bf0
 // SortByKey<W8MeshStripPolygon>
 
-/* Retail's BuildSingleLevelMesh constructs two W8GrowableVector<int>
-   scratch banks in this TU. Its Grow emission fills fresh capacity with the
-   0x0100241b sentinel, unlike the primary template's uninitialized new[]; the
-   discrepancy is recorded, not worked around. */
+/* The names below are recomp pairing selectors, not original symbol or
+   argument-type evidence. BuildSingleLevelMesh's local type bank calls the
+   srShader default constructor at 0x0048869d and Grow initializes fresh words
+   to 0x0100241b. This supports class-element lifetime, not an initialized-int
+   specialization. The grouping vector owns srShader values. The separate
+   malloc/memset material table owns packed words and converts at shader API
+   boundaries. */
 // TEMPLATE: WIZ8 0x00489B70
 // srClassSupport<srModel,srClass,1,8192>::sGetClassNode
 
-// TEMPLATE: WIZ8 0x00489BB0 SYMBOL
-// ??0?$W8GrowableVector@H@@QAE@XZ
+// TEMPLATE: WIZ8 0x00489BB0
+// NAME: W8GrowableVector<T>::W8GrowableVector
+// RECOMP: W8GrowableVector<srShader>::W8GrowableVector
 
 // TEMPLATE: WIZ8 0x00489F50
-// W8GrowableVector<short>::~W8GrowableVector
+// NAME: W8GrowableVector<T>::~W8GrowableVector
+// RECOMP: W8GrowableVector<srShader>::~W8GrowableVector
 
 // TEMPLATE: WIZ8 0x00489F70
-// W8GrowableVector<int>::Add
+// NAME: W8GrowableVector<T>::Add
+// RECOMP: W8GrowableVector<srShader>::Add
 
 // TEMPLATE: WIZ8 0x00489FB0
-// W8GrowableVector<int>::IndexOf
+// NAME: W8GrowableVector<T>::IndexOf
+// RECOMP: W8GrowableVector<srShader>::IndexOf
 
 // TEMPLATE: WIZ8 0x0048A530
-// W8GrowableVector<int>::Grow (ReadMesh.cpp emission)
+// NAME: W8GrowableVector<T>::Grow
+// RECOMP: W8GrowableVector<srShader>::Grow
 
 /* Stores the W8Vector<srMaterialIFace*> table 0x005ECA58, not a
    W8GrowableVector<short> table. */
 // SYNTHETIC: WIZ8 0x0048A160
-// W8Vector<srMaterialIFace*>::`scalar deleting destructor'
+// NAME: W8Vector<T>::`scalar deleting destructor'
+// RECOMP: W8Vector<srMaterialIFace*>::`scalar deleting destructor'
 
 /* Sorts each run of equal group ids by its key, then renumbers the groups so
    equal keys within a group stay together. */
@@ -228,7 +244,7 @@ static void SortGroupsByKey(unsigned long* order, unsigned long* keys, unsigned 
     }
 }
 
-inline W8MeshStripBuilder::W8MeshStripBuilder(srVector3i* vertices, unsigned int polygon_count)
+W8MeshStripBuilder::W8MeshStripBuilder(srVector3i* vertices, unsigned int polygon_count)
 {
     polygon_vertices = vertices;
     count = polygon_count;
@@ -267,7 +283,7 @@ unsigned int W8MeshStripBuilder::EdgeKey(const W8MeshStripPolygon* polygon, int 
     return (second << 8) ^ first;
 }
 
-inline W8MeshStripPolygon* W8MeshStripBuilder::EdgePolygon(int slot)
+W8MeshStripPolygon* W8MeshStripBuilder::EdgePolygon(int slot)
 {
     return edges.entries[slot].value;
 }
@@ -523,7 +539,7 @@ BuildSingleLevelMesh(int face_count, W8ReadMeshFace* faces, int vertex_count, in
                      unsigned int* mesh_count, int*** vertex_maps, unsigned int* vertex_map_count,
                      W8GrowableVector<short>* mapped_values, W8GrowableVector<short>* mapped_keys)
 {
-    W8GrowableVector<unsigned long> polygon_types;
+    W8GrowableVector<srShader> polygon_types;
     W8OctreeIndex vertex_indices[8];
     W8GrowableVector<int> duplicated_from[8];
     W8GrowableVector<int> duplicated_to[8];
@@ -552,7 +568,7 @@ BuildSingleLevelMesh(int face_count, W8ReadMeshFace* faces, int vertex_count, in
     }
 
     for (int material = 0; material < material_count; ++material) {
-        if (polygon_types.IndexOf(render_flags[material].value) == -1) {
+        if (polygon_types.IndexOf(render_flags[material]) == -1) {
             int capacity = 0;
             for (face_index = 0; face_index < face_count; ++face_index) {
                 W8ReadMeshFace& face = faces[face_index];
@@ -565,7 +581,7 @@ BuildSingleLevelMesh(int face_count, W8ReadMeshFace* faces, int vertex_count, in
             }
             if (capacity != 0) {
                 capacities[polygon_types.count] = capacity;
-                polygon_types.Add(render_flags[material].value);
+                polygon_types.Add(render_flags[material]);
             }
         }
     }
@@ -599,7 +615,7 @@ BuildSingleLevelMesh(int face_count, W8ReadMeshFace* faces, int vertex_count, in
 
     for (face_index = 0; face_index < face_count; ++face_index) {
         W8ReadMeshFace& face = faces[face_index];
-        type = polygon_types.IndexOf(render_flags[face.material_index].value);
+        type = polygon_types.IndexOf(render_flags[face.material_index]);
         if (type < 0) {
             srAssertFail("iPolyType >=0", "C:\\Projects\\Wizardry 8\\Engine Code\\ReadMesh.cpp",
                          0x45b, 0);
@@ -734,8 +750,7 @@ BuildSingleLevelMesh(int face_count, W8ReadMeshFace* faces, int vertex_count, in
         memcpy(model_shades, vertex_shades[type], vertex_counts[type] * sizeof(unsigned long));
 
         srShader shader;
-        shader.value = 0x0100241b;
-        shader.value = polygon_types.data[type];
+        shader = *polygon_types.GetAt(type);
         model->setShader(shader, 0);
 
         free(polygon_shades[type]);
@@ -747,7 +762,7 @@ BuildSingleLevelMesh(int face_count, W8ReadMeshFace* faces, int vertex_count, in
         free(vertex_shades[type]);
 
         model->setDirtyAll();
-        if ((polygon_types.data[type] & 0x6000) == 0x4000) {
+        if ((polygon_types.GetAt(type)->value & 0x6000) == 0x4000) {
             model->flags_3a0 |= 1;
             model->enable(srMeshModel::CONTROL_STARTUP);
         } else {

@@ -39,13 +39,16 @@
 // srClassSupport<srTextureIFace,srClass,1,8448>::sGetClassNode
 
 // SYNTHETIC: WIZ8 0x00485A80
-// W8GrowableVector<srTextureIFace*>::`scalar deleting destructor' (companion table 0x005EC9BC)
+// NAME: W8GrowableVector<T>::`scalar deleting destructor' (companion table 0x005EC9BC)
+// RECOMP: W8GrowableVector<srTextureIFace*>::`scalar deleting destructor' (companion table 0x005EC9BC)
 
 // SYNTHETIC: WIZ8 0x00485AB0
-// W8Vector<srTextureIFace*>::`scalar deleting destructor'
+// NAME: W8Vector<T>::`scalar deleting destructor'
+// RECOMP: W8Vector<srTextureIFace*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x00485AD0
-// W8GrowableVector<srTextureIFace*>::~W8GrowableVector
+// NAME: W8GrowableVector<T>::~W8GrowableVector
+// RECOMP: W8GrowableVector<srTextureIFace*>::~W8GrowableVector
 
 // FUNCTION: WIZ8 0x00484BE0
 stTextureAnim::stTextureAnim()
@@ -152,7 +155,8 @@ void stTextureAnim::UpdateFrame()
         return;
     }
 
-    elapsed_frames = static_cast<int>((GetTickCount() - frame_tick_6c) * frame_rate_68 * g_float_005ec128);
+    elapsed_frames =
+        static_cast<int>((GetTickCount() - frame_tick_6c) * frame_rate_68 * g_float_005ec128);
     if (animation_mode_60 == 0) {
         int frame = (direction_5c * elapsed_frames) % textures_54->GetCount();
         if (frame < frame_58) {

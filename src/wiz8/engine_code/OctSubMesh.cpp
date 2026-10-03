@@ -31,8 +31,8 @@ srShader* g_oct_mesh_default_shader;
 /* The loader verifies every array the same way: a null getter result and a
    failed bulk read each stop with the call site's own diagnostic. */
 template <class T>
-inline void ReadMeshArray(int file, T* values, int count, const char* get_message,
-                          const char* read_message)
+void ReadMeshArray(int file, T* values, int count, const char* get_message,
+                   const char* read_message)
 {
     if (values == 0) {
         ShutdownWithErrorBox(get_message);

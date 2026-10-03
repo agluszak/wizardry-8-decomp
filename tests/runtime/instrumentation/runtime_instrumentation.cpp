@@ -115,6 +115,7 @@ const char* RuntimeEventName(RuntimeEventKind kind)
                                                                 "region-activated",
                                                                 "voice-started",
                                                                 "voice-timing",
+                                                                "voice-finished",
                                                                 "mouth-changed",
                                                                 "portrait-frame-changed",
                                                                 "portrait-blit",

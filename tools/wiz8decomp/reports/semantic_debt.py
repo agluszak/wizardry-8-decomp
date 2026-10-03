@@ -212,7 +212,19 @@ def _storage_debt(index: dict[str, Any], usage: _Usage) -> dict[str, list[dict[s
                     "location": f"{path}:{field.get('line')}",
                 }
             )
-    member_rows = [{**row, **usage(row["name"], len(row["fields"]))} for row in members.values()]
+    # This index has declarations, not receiver bindings for token occurrences.
+    # Even a unique indexed field may share a spelling with a local or vendor
+    # field. Never present these aggregate counts as owner-filtered accesses.
+    member_rows = [
+        {
+            **row,
+            **usage(row["name"], len(row["fields"])),
+            "usage_scope": "identifier_spelling",
+            "receiver_verified": False,
+            "possible_nonmember_matches": True,
+        }
+        for row in members.values()
+    ]
     padding_accessed = [
         row for row in member_rows if row["kind"] == "padding" and row["references"] > 0
     ]

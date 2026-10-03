@@ -8,9 +8,11 @@
 // class srFileManager
 class SR_DLL_EXPORT srFileManager {
 public:
-    class Path {
+    class SR_DLL_EXPORT Path {
     public:
+#if !defined(SURRENDER_BUILD)
         SR_DLL_IMPORT Path& operator=(const Path& other);
+#endif
 
         SR_DLL_IMPORT const char* getName() const;
         SR_DLL_IMPORT Path* getNext() const;

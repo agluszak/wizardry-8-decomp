@@ -96,7 +96,7 @@ static W8OptionsMenuRow g_options_menu_rows[8] = {
 
 // GLOBAL: WIZ8 0x0064d078
 static W8OptionsPanelRange g_options_panel_ranges[8] = {{0, 2},   {3, 3},   {4, 5}, {6, 10},
-                                                 {11, 11}, {12, 12}, {0, 0}, {0, 0}};
+                                                        {11, 11}, {12, 12}, {0, 0}, {0, 0}};
 // GLOBAL: WIZ8 0x0064d730
 static int g_options_difficulty_labels[3] = {0x7f8, 0x7f9, 0x7fa};
 // GLOBAL: WIZ8 0x0064d73c
@@ -154,13 +154,13 @@ static W8OptionsKeyRow g_options_key_rows[] = {
 static W8OptionsKeyboardPage g_options_keyboard_pages[5] = {
     {0x835, 200, 214}, {0x836, 300, 305}, {0x837, 402, 401}, {0x838, 500, 504}, {0x839, 600, 614}};
 
-inline W8OptionsPanelSet::W8OptionsPanelSet()
+W8OptionsPanelSet::W8OptionsPanelSet()
     : m_page_count_000(0), m_compact_layout(0), m_hide_navigation(0), m_active(false),
       m_current_00c(0)
 {
 }
 
-inline W8OptionsPanelSet::~W8OptionsPanelSet()
+W8OptionsPanelSet::~W8OptionsPanelSet()
 {
     for (int index = m_panels_010.count - 1; index >= 0; --index) {
         m_panels_010.RemoveAtAndDelete(index);
@@ -180,7 +180,7 @@ inline W8OptionsPanelSet::~W8OptionsPanelSet()
 // SYNTHETIC: WIZ8 0x005A76D0
 // W8TextControl subclass 0x005EEDDC::~subclass (emitted)
 
-inline W8OptionsGamePanel::W8OptionsGamePanel() : W8OptionsPanel(0) {}
+W8OptionsGamePanel::W8OptionsGamePanel() : W8OptionsPanel(0) {}
 
 // SYNTHETIC: WIZ8 0x005ac680
 // W8OptionsGamePanel::`scalar deleting destructor'
@@ -188,7 +188,7 @@ inline W8OptionsGamePanel::W8OptionsGamePanel() : W8OptionsPanel(0) {}
 // SYNTHETIC: WIZ8 0x005ac6a0
 // W8OptionsGamePanel::~W8OptionsGamePanel
 
-inline W8OptionsMousePanel::W8OptionsMousePanel() : W8OptionsPanel(1) {}
+W8OptionsMousePanel::W8OptionsMousePanel() : W8OptionsPanel(1) {}
 
 // SYNTHETIC: WIZ8 0x005ac7c0
 // W8OptionsMousePanel::`scalar deleting destructor'
@@ -196,7 +196,7 @@ inline W8OptionsMousePanel::W8OptionsMousePanel() : W8OptionsPanel(1) {}
 // SYNTHETIC: WIZ8 0x005ac7e0
 // W8OptionsMousePanel::~W8OptionsMousePanel
 
-inline W8OptionsInterfacePanel::W8OptionsInterfacePanel() : W8OptionsPanel(2) {}
+W8OptionsInterfacePanel::W8OptionsInterfacePanel() : W8OptionsPanel(2) {}
 
 // SYNTHETIC: WIZ8 0x005AC900
 // W8OptionsInterfacePanel::`scalar deleting destructor'
@@ -204,7 +204,7 @@ inline W8OptionsInterfacePanel::W8OptionsInterfacePanel() : W8OptionsPanel(2) {}
 // SYNTHETIC: WIZ8 0x005AC920
 // W8OptionsInterfacePanel::~W8OptionsInterfacePanel
 
-inline W8OptionsAudioPanel::W8OptionsAudioPanel() : W8OptionsPanel(3) {}
+W8OptionsAudioPanel::W8OptionsAudioPanel() : W8OptionsPanel(3) {}
 
 // SYNTHETIC: WIZ8 0x005ACCC0
 // W8OptionsAudioPanel::`scalar deleting destructor'
@@ -212,7 +212,7 @@ inline W8OptionsAudioPanel::W8OptionsAudioPanel() : W8OptionsPanel(3) {}
 // SYNTHETIC: WIZ8 0x005ACCE0
 // W8OptionsAudioPanel::~W8OptionsAudioPanel
 
-inline W8OptionsGraphicsPanel::W8OptionsGraphicsPanel() : W8OptionsPanel(4) {}
+W8OptionsGraphicsPanel::W8OptionsGraphicsPanel() : W8OptionsPanel(4) {}
 
 // SYNTHETIC: WIZ8 0x005ACA40
 // W8OptionsGraphicsPanel::`scalar deleting destructor'
@@ -220,7 +220,7 @@ inline W8OptionsGraphicsPanel::W8OptionsGraphicsPanel() : W8OptionsPanel(4) {}
 // SYNTHETIC: WIZ8 0x005ACA60
 // W8OptionsGraphicsPanel::~W8OptionsGraphicsPanel
 
-inline W8OptionsAdvancedGraphicsPanel::W8OptionsAdvancedGraphicsPanel() : W8OptionsPanel(5) {}
+W8OptionsAdvancedGraphicsPanel::W8OptionsAdvancedGraphicsPanel() : W8OptionsPanel(5) {}
 
 // SYNTHETIC: WIZ8 0x005acb80
 // W8OptionsAdvancedGraphicsPanel::`scalar deleting destructor'
@@ -228,12 +228,11 @@ inline W8OptionsAdvancedGraphicsPanel::W8OptionsAdvancedGraphicsPanel() : W8Opti
 // SYNTHETIC: WIZ8 0x005acba0
 // W8OptionsAdvancedGraphicsPanel::~W8OptionsAdvancedGraphicsPanel
 
-inline W8OptionsKeyboardPanel::W8OptionsKeyboardPanel(int panel)
+W8OptionsKeyboardPanel::W8OptionsKeyboardPanel(int panel)
     : W8OptionsPanel(panel), m_panel(panel), m_captured_button(0)
 {
 }
-inline W8OptionsSaveLoadPanel::W8OptionsSaveLoadPanel(int panel)
-    : W8OptionsPanel(panel), m_panel(panel)
+W8OptionsSaveLoadPanel::W8OptionsSaveLoadPanel(int panel) : W8OptionsPanel(panel), m_panel(panel)
 {
     m_renderTarget = 0xf7;
     m_renderArg_20 = 0;
@@ -241,9 +240,10 @@ inline W8OptionsSaveLoadPanel::W8OptionsSaveLoadPanel(int panel)
 // SYNTHETIC: WIZ8 0x005ace00
 // W8OptionsSaveLoadPanel::`scalar deleting destructor'
 
-// FUNCTION: WIZ8 0x005ace20
-W8OptionsSaveLoadPanel::~W8OptionsSaveLoadPanel() {}
-inline W8OptionsUnavailablePanel::W8OptionsUnavailablePanel(int message)
+// SYNTHETIC: WIZ8 0x005ace20
+// W8OptionsSaveLoadPanel::~W8OptionsSaveLoadPanel
+
+W8OptionsUnavailablePanel::W8OptionsUnavailablePanel(int message)
     : W8OptionsPanel(13), m_message(message)
 {
 }
@@ -588,16 +588,16 @@ void W8OptionsSaveLoadPanel::SaveSelectedSave()
     SetPendingScreenState(W8_SCREEN_PLEASE_WAIT);
 }
 
-inline W8OptionsButton::W8OptionsButton(Controls* owner, int left, int top, int right, int bottom,
-                                        const wchar_t* text)
+W8OptionsButton::W8OptionsButton(Controls* owner, int left, int top, int right, int bottom,
+                                 const wchar_t* text)
     : W8TextControl(owner, 0xffffffff, left, top, right, bottom, -1, -1, -1, -1, -1, -1, -1)
 {
     m_textBuffer.SetLayoutMode(g_W8TextBufferAlignTop);
     m_textBuffer.SetText(text, g_options_detail_font);
 }
 
-inline W8OptionsKeyButton::W8OptionsKeyButton(Controls* owner, int top, int primary_binding,
-                                              int secondary_binding)
+W8OptionsKeyButton::W8OptionsKeyButton(Controls* owner, int top, int primary_binding,
+                                       int secondary_binding)
     : W8OptionsButton(owner, 100, top, 0x15e, top + 22, &g_empty_wide_string),
       m_primary_binding(primary_binding), m_secondary_binding(secondary_binding)
 {
@@ -606,7 +606,7 @@ inline W8OptionsKeyButton::W8OptionsKeyButton(Controls* owner, int top, int prim
                                g_W8TextBufferAlignTop);
 }
 
-inline W8OptionsSaveRow::W8OptionsSaveRow(Controls* owner, int top, unsigned char save_mode)
+W8OptionsSaveRow::W8OptionsSaveRow(Controls* owner, int top, unsigned char save_mode)
     : W8TextControl(owner, 0xffffffff, 10, top, 0, 0, 0xf9, 0, save_mode ? 2 : 0, save_mode ? 3 : 1,
                     -1, -1, 4),
       m_save_mode(save_mode), m_editing(0), m_save(0), m_save_listener(0)
@@ -617,8 +617,8 @@ inline W8OptionsSaveRow::W8OptionsSaveRow(Controls* owner, int top, unsigned cha
 // SYNTHETIC: WIZ8 0x005a7730
 // W8OptionsSaveRow::`scalar deleting destructor'
 
-// FUNCTION: WIZ8 0x005a7750
-W8OptionsSaveRow::~W8OptionsSaveRow() {}
+// SYNTHETIC: WIZ8 0x005a7750
+// W8OptionsSaveRow::~W8OptionsSaveRow
 
 // FUNCTION: WIZ8 0x005a77b0
 void W8OptionsSaveRow::Redraw(unsigned char full_redraw)
@@ -710,8 +710,8 @@ void W8OptionsScreen::BeginSaveNameEdit(W8OptionsTextEditor::Listener* listener,
     editor->m_listener = listener;
 }
 
-// FUNCTION: WIZ8 0x005a7c20
-W8OptionsButton::~W8OptionsButton() {}
+// SYNTHETIC: WIZ8 0x005a7c20
+// W8OptionsButton::~W8OptionsButton
 
 // SYNTHETIC: WIZ8 0x005a7c00
 // W8OptionsButton::`scalar deleting destructor'
@@ -750,8 +750,8 @@ void W8OptionsButton::OnMouseLeave(int event)
     Invalidate(static_cast<unsigned char>(event));
 }
 
-// FUNCTION: WIZ8 0x005a7d60
-W8OptionsKeyButton::~W8OptionsKeyButton() {}
+// SYNTHETIC: WIZ8 0x005a7d60
+// W8OptionsKeyButton::~W8OptionsKeyButton
 
 // SYNTHETIC: WIZ8 0x005a7d40
 // W8OptionsKeyButton::`scalar deleting destructor'
@@ -817,8 +817,8 @@ void W8OptionsKeyButton::SetKeyText(unsigned short key)
     m_textBuffer.SetText(text, g_options_detail_font);
 }
 
-// FUNCTION: WIZ8 0x005ab810
-W8OptionsKeyboardPanel::~W8OptionsKeyboardPanel() {}
+// SYNTHETIC: WIZ8 0x005ab810
+// W8OptionsKeyboardPanel::~W8OptionsKeyboardPanel
 
 // SYNTHETIC: WIZ8 0x005ab7f0
 // W8OptionsKeyboardPanel::`scalar deleting destructor'
@@ -1649,8 +1649,8 @@ W8OptionsMenuButton::W8OptionsMenuButton(Controls* owner, const W8OptionsMenuRow
     }
 }
 
-// FUNCTION: WIZ8 0x005a7510
-W8OptionsMenuButton::~W8OptionsMenuButton() {}
+// SYNTHETIC: WIZ8 0x005a7510
+// W8OptionsMenuButton::~W8OptionsMenuButton
 
 // SYNTHETIC: WIZ8 0x005a74f0
 // W8OptionsMenuButton::`scalar deleting destructor'
@@ -1663,7 +1663,7 @@ void W8OptionsMenuButton::OnPrimary(W8TextControl*)
     }
 }
 
-inline W8OptionsCheckbox::W8OptionsCheckbox(Controls* owner, int top, int* value)
+W8OptionsCheckbox::W8OptionsCheckbox(Controls* owner, int top, int* value)
     : W8TextControl(owner, 0xffffffff, 0x14d, top - 2, 0, 0, 0xf1, 0, 2, 0, 3, 1, -1),
       m_value(value)
 {
@@ -1673,8 +1673,8 @@ inline W8OptionsCheckbox::W8OptionsCheckbox(Controls* owner, int top, int* value
     }
 }
 
-// FUNCTION: WIZ8 0x005a7620
-W8OptionsCheckbox::~W8OptionsCheckbox() {}
+// SYNTHETIC: WIZ8 0x005a7620
+// W8OptionsCheckbox::~W8OptionsCheckbox
 
 // SYNTHETIC: WIZ8 0x005a7600
 // W8OptionsCheckbox::`scalar deleting destructor'
@@ -1686,8 +1686,7 @@ void W8OptionsCheckbox::OnLeftButtonUp(int event)
     *m_value = static_cast<unsigned char>(m_stateFlags) & g_W8TextControlStateSecondary & 0xff;
 }
 
-inline W8OptionsSlider::W8OptionsSlider(Controls* owner, int top, float* value,
-                                        bool alternate)
+W8OptionsSlider::W8OptionsSlider(Controls* owner, int top, float* value, bool alternate)
     : W8HorizontalRangeThumb(owner, 0xffffffff, 0xc9, top - 2, 0xf5, 0, alternate != 0 ? 4 : 0, 1,
                              2, 3),
       m_value(value)
@@ -1697,8 +1696,8 @@ inline W8OptionsSlider::W8OptionsSlider(Controls* owner, int top, float* value,
     }
 }
 
-// FUNCTION: WIZ8 0x005a7f50
-W8OptionsSlider::~W8OptionsSlider() {}
+// SYNTHETIC: WIZ8 0x005a7f50
+// W8OptionsSlider::~W8OptionsSlider
 
 // SYNTHETIC: WIZ8 0x005a7f30
 // W8OptionsSlider::`scalar deleting destructor'
@@ -1731,15 +1730,15 @@ void W8OptionsSlider::Redraw(unsigned char full_redraw)
     }
 }
 
-/* The control-selection base emits its implicit destructor pair in this TU;
-   the body tears down the m_lsButtons vector. */
+/* The base cleanup at 0x005A93A0 destroys m_lsButtons; absence of constructor
+   unwind registration does not establish its authored declaration. */
 // SYNTHETIC: WIZ8 0x005A9380
 // W8ControlSelection::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x005A93A0
 // W8ControlSelection::~W8ControlSelection
 
-inline W8OptionsSelection::W8OptionsSelection(int* value) : m_value(value) {}
+W8OptionsSelection::W8OptionsSelection(int* value) : m_value(value) {}
 
 // SYNTHETIC: WIZ8 0x005A8B30
 // W8OptionsSelection::`scalar deleting destructor'
@@ -2193,9 +2192,9 @@ void OptionsScreenFrame()
     }
     screen->Redraw();
     if (g_options_first_frame != 0) {
-        SetRendererOption4Enabled(0);
+        SetRendererAutoFlipEnabled(0);
         RenderFrame();
-        SetRendererOption4Enabled(1);
+        SetRendererAutoFlipEnabled(1);
         g_options_first_frame = 0;
     }
     RenderFrame();

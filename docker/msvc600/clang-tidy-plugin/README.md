@@ -9,9 +9,10 @@ locals participate in the same graph. Dependent/incomplete template types are
 excluded until a concrete layout exists; member pointers retain pointer domain.
 
 `BoolDomainVisitor` adds the existing byte-domain annotations. The bool solver
-continues to gate the same byte declarations, with the same naming, suppression,
-escape and missing-body rules. Generic escapes and source type metadata do not
-silently change that proof. Its 15 native fixture diagnostics remain identical.
+reports byte-domain observations with the same naming, suppression, escape and
+missing-body rules. Generic escapes and source type metadata do not establish
+historical types. These observations remain review guidance; actual compiler
+errors fail the wrapper before potentially incomplete facts are read.
 
 `scalar_facts.py` aggregates the shared facts and implements the report-only
 integer solver. Width, signedness and semantic domain are separate properties;
@@ -30,7 +31,7 @@ from a numeric range. Pointer and floating recovery solvers are not implemented.
 
 Inside the compiler image, select `wiz8-scalar-facts` (enabled in the normal
 lint profile) and supply these optional environment variables. The separate
-`wiz8-bool-like-byte` client supplies bool proofs and predicate-name metadata:
+`wiz8-bool-like-byte` client supplies byte-domain observations and predicate-name metadata:
 
 - `WIZ8_SCALAR_FACTS_DIR`: retain facts for the supplied TUs. Start with an empty
   directory for a new source revision/compilation; reuse only within that run.

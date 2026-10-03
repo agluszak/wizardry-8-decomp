@@ -235,7 +235,7 @@ bool CharacterHasTrait(const W8Character* character, int trait)
     return false;
 }
 
-static inline float ScaleValueByLevel(unsigned int level, float base)
+static float ScaleValueByLevel(unsigned int level, float base)
 {
     if (level > 0x14) {
         return base;

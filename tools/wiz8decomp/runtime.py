@@ -8,9 +8,11 @@ import selectors
 import shutil
 import subprocess
 import sys
+import tempfile
 import threading
 import time
-from collections.abc import Mapping
+from collections.abc import Iterator, Mapping
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -265,6 +267,7 @@ def stage_game(
     staged_executable = stage / executable.name
     staged_map = None
     map_written = False
+    executable_written = False
 
     def publish_executable() -> None:
         nonlocal staged_map, map_written, executable_written
@@ -285,7 +288,6 @@ def stage_game(
             map_written = write_if_changed(staged_map, map_bytes)
         executable_written = write_if_changed(staged_executable, executable_bytes)
 
-    executable_written = False
     # The linker writes both files while holding this same lock. Publish the
     # complete executable only after its MAP snapshot is safely in place. A
     # pinned input is immutable already, so staging it needs no lock and can
@@ -445,8 +447,8 @@ def _parse_wine_dump(output: str) -> _RuntimeCrash | None:
     }
     for name in ("ebp", "eax", "ebx", "ecx", "edx", "esi", "edi"):
         fields[name] = f"{registers[name]:08x}" if name in registers else ""
-    if match := WINE_EXCEPTION.search(output):
-        fields["operation"] = match.group("operation").strip()[:120]
+    if exception_match := WINE_EXCEPTION.search(output):
+        fields["operation"] = exception_match.group("operation").strip()[:120]
     candidates: list[_CrashCandidate] = []
     seen: set[int] = set()
 
@@ -816,6 +818,115 @@ def runtime_test_environment(
     return prefix, environment
 
 
+@contextmanager
+def _runtime_audio(
+    environment: dict[str, str], *, enabled: bool, directory: Path, temporary_root: Path
+) -> Iterator[None]:
+    """Own a real headless endpoint only when a sound-enabled case lacks one.
+
+    Explicit/default native endpoints and physical devices remain host-owned.
+    A null sink supplies PCM and the real audio clock, not physical speaker or
+    full-speech acceptance. No released sound implementation is bypassed.
+    """
+    native = Path(environment.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}")) / "pulse/native"
+    if (
+        not enabled
+        or environment.get("PULSE_SERVER")
+        or native.exists()
+        or Path("/dev/snd").exists()
+    ):
+        yield
+        return
+    pulse = shutil.which("pulseaudio")
+    pactl = shutil.which("pactl")
+    if pulse is None or pactl is None:
+        raise RuntimeError(
+            "sound-startup: no host audio endpoint; a headless sound-enabled case requires "
+            "pulseaudio and pactl on PATH or an accessible PULSE_SERVER"
+        )
+    directory.mkdir(parents=True, exist_ok=True)
+    log_path = directory / "pulse.log"
+    # Per-scenario diagnostic paths exceed Unix socket path limits. Keep the
+    # private socket in the shorter shared build root, with unique owned dirs.
+    temporary_root.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix="pulse-", dir=temporary_root) as temporary:
+        root = Path(temporary)
+        endpoint = root / "native"
+        cookie = root / "cookie"
+        cookie.write_bytes(os.urandom(256))
+        cookie.chmod(0o600)
+        client = root / "client.conf"
+        client.write_text(f"autospawn = no\ncookie-file = {cookie}\n")
+        owned = {
+            "PULSE_SERVER": f"unix:{endpoint}",
+            "PULSE_COOKIE": str(cookie),
+            "PULSE_CLIENTCONFIG": str(client),
+        }
+        previous = {key: environment.get(key) for key in owned}
+        server_environment = {
+            **environment,
+            "HOME": str(root),
+            "XDG_CONFIG_HOME": str(root),
+            "XDG_RUNTIME_DIR": str(root),
+            "PULSE_RUNTIME_PATH": str(root),
+            "PULSE_STATE_PATH": str(root),
+        }
+        with log_path.open("wb") as log:
+            process = subprocess.Popen(
+                [
+                    pulse,
+                    "--daemonize=no",
+                    "--use-pid-file=no",
+                    "--exit-idle-time=-1",
+                    "--disable-shm=yes",
+                    "--log-target=stderr",
+                    "-n",
+                    f'--load=module-native-protocol-unix socket="{endpoint}" auth-cookie="{cookie}"',
+                    "--load=module-null-sink sink_name=wiz8_runtime rate=44100 channels=2",
+                ],
+                env=server_environment,
+                stdout=log,
+                stderr=subprocess.STDOUT,
+            )
+            environment.update(owned)
+            try:
+                deadline = time.monotonic() + 10
+                ready = False
+                while process.poll() is None and time.monotonic() < deadline:
+                    try:
+                        result = subprocess.run(
+                            [pactl, "info"],
+                            env=environment,
+                            capture_output=True,
+                            timeout=1,
+                            check=False,
+                        )
+                        if result.returncode == 0:
+                            ready = True
+                            break
+                    except subprocess.TimeoutExpired:
+                        pass
+                    time.sleep(0.05)
+                if not ready:
+                    raise RuntimeError(
+                        f"sound-startup: private Pulse endpoint unavailable; see {log_path}"
+                    )
+                yield
+            finally:
+                for key, value in previous.items():
+                    if value is None:
+                        environment.pop(key, None)
+                    else:
+                        environment[key] = value
+                if process.poll() is None:
+                    process.terminate()
+                    try:
+                        process.wait(timeout=5)
+                    except subprocess.TimeoutExpired:
+                        process.kill()
+                        process.wait()
+
+
 def _wine_control_command(environment: dict[str, str], *arguments: str) -> list[str]:
     return [environment["WIZ8_UMU_RUN"], *arguments]
 
@@ -1117,9 +1228,9 @@ def _drive_runtime_process(
         stdout = proton_output.read_text(encoding="utf-8", errors="replace")
     if proton_log.exists():
         stderr = proton_log.read_text(encoding="utf-8", errors="replace") + stderr
-    for line in stderr.splitlines():
-        if line.startswith("WIZ8_RUNTIME_STEP "):
-            fields = dict(item.split("=", 1) for item in line.split()[1:] if "=" in item)
+    for stderr_line in stderr.splitlines():
+        if stderr_line.startswith("WIZ8_RUNTIME_STEP "):
+            fields = dict(item.split("=", 1) for item in stderr_line.split()[1:] if "=" in item)
             last_step = fields.get("step", last_step)
             last_step_scenario = fields.get("scenario")
     if timed_out:
@@ -1488,18 +1599,32 @@ def run_runtime_suite(
                 if scenario == "voice-portrait-sync":
                     scenario_environment = {**environment}
                     scenario_environment.pop("WINEDLLOVERRIDES", None)
-                job["runs"][scenario] = _run_runtime_scenario(
-                    staged.executable,
-                    staged.root,
+                with _runtime_audio(
                     scenario_environment,
-                    scenario,
-                    # Engine initialization precedes the native case deadline.
-                    # The outer process watchdog must cover both, plus launch
-                    # and teardown, just as it does for a batch.
-                    2 * registry[scenario].timeout_ms / 1000 + 60,
-                    object_root,
-                    staged.map,
-                )
+                    enabled=scenario == "voice-portrait-sync",
+                    directory=staged.root / "diagnostics",
+                    temporary_root=settings.repo_dir / "build/runtime/audio",
+                ):
+                    if scenario == "voice-portrait-sync":
+                        (staged.root / "diagnostics").mkdir(parents=True, exist_ok=True)
+                        (staged.root / "diagnostics" / "audio-endpoint.txt").write_text(
+                            f"PULSE_SERVER={scenario_environment.get('PULSE_SERVER', 'host-default')}\n"
+                            f"WINEPREFIX={scenario_environment['WINEPREFIX']}\n"
+                            f"PROTONPATH={scenario_environment['PROTONPATH']}\n"
+                            f"WINEDLLOVERRIDES={scenario_environment.get('WINEDLLOVERRIDES', '')}\n"
+                        )
+                    job["runs"][scenario] = _run_runtime_scenario(
+                        staged.executable,
+                        staged.root,
+                        scenario_environment,
+                        scenario,
+                        # Engine initialization precedes the native case deadline.
+                        # The outer process watchdog must cover both, plus launch
+                        # and teardown, just as it does for a batch.
+                        2 * registry[scenario].timeout_ms / 1000 + 60,
+                        object_root,
+                        staged.map,
+                    )
             except RuntimeError as error:
                 failure = str(error)
                 job["failures"].append(f"{stage_name}: {failure}")

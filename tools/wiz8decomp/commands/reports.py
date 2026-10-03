@@ -6,7 +6,17 @@ from typing import Annotated
 
 import typer
 
+from .. import command_support as cli
+from ..reports.retail_bugs import retail_bug_report
+
 app = typer.Typer(help="Generate reports from collected evidence.", no_args_is_help=True)
+
+
+@app.command("retail-bugs")
+def retail_bugs_command() -> None:
+    """Render reviewed bug claims without rebuilding or reading Ghidra."""
+    settings = cli.settings()
+    cli.emit(retail_bug_report(settings.repo_dir, settings.build_dir / "reports" / "retail-bugs"))
 
 
 @app.command("field-uses")

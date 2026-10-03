@@ -256,7 +256,6 @@ public:
             m_realms_074[realm] = 0;
         }
     }
-    virtual ~W8CharacterSpellsPage() override;
     virtual void SetCharacter(W8Character*, W8CharacterCreationState*, int) override;
     virtual void Redraw() override; /* 0x005C88C0 */
     virtual void Activate() override;
@@ -282,7 +281,6 @@ static_assert(sizeof(W8CharacterSpellsPage) == 0x624, "W8CharacterSpellsPage_siz
 class W8CharacterSkillsPage : public W8CharacterPage, public W8CharacterPageEntryListener {
 public:
     W8CharacterSkillsPage() : W8CharacterPage(0x108) {}
-    virtual ~W8CharacterSkillsPage() override;
     virtual void Redraw() override;
     virtual void SetCharacter(W8Character*, W8CharacterCreationState*, int) override;
     virtual void Activate() override;
@@ -312,7 +310,6 @@ public:
         : W8CharacterPage(0x105), m_animation_timer_0d4(0.4f, 1), m_animation_active_0fc(0)
     {
     }
-    virtual ~W8CharacterPersonalityPage() override;
     virtual void Redraw() override;
     virtual void SetCharacter(W8Character*, W8CharacterCreationState*, int) override;
     virtual void Activate() override;

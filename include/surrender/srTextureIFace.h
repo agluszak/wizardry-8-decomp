@@ -73,9 +73,9 @@ public:
        print these. Wizardry 2D tiles pair 1/2 with shader ALPHATEST; overlay
        and poster paths also set 3; stTexture2D's ctor also sets 6. */
     enum e_hint {
-        HINT_POSITIONAL_1 = 1,
-        HINT_POSITIONAL_2 = 2,
-        HINT_POSITIONAL_3 = 3,
+        HINT_NO_ALPHA = 1,
+        HINT_ONE_BIT_ALPHA = 2,
+        HINT_NO_MIPMAPS = 3,
         HINT_POSITIONAL_6 = 6
     };
     /* Dump prints REPEAT then CLAMP for wrap S/T. Wizardry requests 1. */

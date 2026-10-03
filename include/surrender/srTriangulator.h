@@ -4,7 +4,7 @@
 
 /* Recovered SR provider utility. No known Wizardry/JPEG/ZIP consumer imports
    this class, so provider exports do not justify consumer dllimport codegen. */
-class srTriangulator {
+class SR_DLL_EXPORT srTriangulator {
 public:
     /* Doubly-linked circular vertex list. The constructor allocates the node
        array with a raw scalar operator new and links every node to its
@@ -44,8 +44,6 @@ public:
     static_assert(sizeof(CircularList) == 0x8, "CircularList_must_be_0x8");
 
     srTriangulator(srVector2T<float>* points, int count);
-    ~srTriangulator();
-    srTriangulator& operator=(const srTriangulator& other);
 
     srVector3i next();
 

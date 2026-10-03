@@ -91,3 +91,10 @@ static_assert(offsetof(W8NavigatorMovementState, scale_0c4) == 0xc4,
 static_assert(offsetof(W8NavigatorMovementState, position_adjusted_0c8) == 0xc8,
               "W8NavigatorMovementState_position_adjusted_0c8");
 static_assert(sizeof(W8Navigator) == 0x190, "W8Navigator_size_must_be_0x190");
+static_assert(offsetof(W8Navigator, navigation_mode_008) == 0x08,
+              "W8Navigator_navigation_mode_008");
+static_assert(offsetof(W8Navigator, flags_00c) == 0x0c, "W8Navigator_flags_00c");
+static_assert(offsetof(W8Navigator, collision_margin_010) == 0x10,
+              "W8Navigator_collision_margin_010");
+static_assert(offsetof(W8Navigator, movement_0c0) == 0xc0, "W8Navigator_movement_0c0");
+static_assert(offsetof(W8Navigator, node_18c) == 0x18c, "W8Navigator_node_18c");

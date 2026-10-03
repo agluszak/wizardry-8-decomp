@@ -154,7 +154,7 @@ bool W8Item::IsRadarBlipLit()
 
 /* Inlined into both item construction paths. Retail leaves the mesh pointer
    and bounds untouched until ReadFromFile; do not initialize them here. */
-inline W8ItemRep::W8ItemRep()
+W8ItemRep::W8ItemRep()
 {
     flags = 0;
     pulse_level = static_cast<float>(Random(20) * 0.05);

@@ -103,6 +103,7 @@ private:
     CommandBinding binding_;
     bool held_;
     bool consumed_;
+    bool rearming_;
     unsigned long last_repeat_;
 };
 

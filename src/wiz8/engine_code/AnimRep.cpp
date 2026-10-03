@@ -137,8 +137,8 @@ W8AnimRep::W8AnimRep(const W8AnimRep& other)
 
 // SYNTHETIC: WIZ8 0x004b5760
 // W8AnimRep::`scalar deleting destructor'
-// FUNCTION: WIZ8 0x0044ef20
-W8AnimRep::~W8AnimRep() {}
+// SYNTHETIC: WIZ8 0x0044ef20
+// W8AnimRep::~W8AnimRep
 
 /* The abstract emitter host copies its stable settings, but starts with no
    selected emitter and the canonical 00 00 FF FF transient byte pattern. */
@@ -160,5 +160,5 @@ W8EmitterHost::W8EmitterHost()
 
 // SYNTHETIC: WIZ8 0x004b5660
 // W8EmitterHost::`scalar deleting destructor'
-// FUNCTION: WIZ8 0x004b56f0
-W8EmitterHost::~W8EmitterHost() {}
+// SYNTHETIC: WIZ8 0x004b56f0
+// W8EmitterHost::~W8EmitterHost

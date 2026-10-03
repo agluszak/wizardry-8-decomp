@@ -532,9 +532,9 @@ BOOLEAN ReadMeshFile(int hFile, W8LevelFileMesh* pMesh)
         fSuccess = FileRead(hFile, &pMesh->flags_0c, 1, 0);
     }
     if (pMesh->version_00 >= 2) {
-        fSuccess &= FileRead(hFile, &pMesh->location_10, 0xc, 0);
+        fSuccess &= FileRead(hFile, &pMesh->location_10, sizeof(pMesh->location_10), 0);
         fSuccess &= FileRead(hFile, &pMesh->rotation_angle_1c, 0x10, 0);
-        fSuccess &= FileRead(hFile, &pMesh->scale_2c, 0xc, 0);
+        fSuccess &= FileRead(hFile, &pMesh->scale_2c, sizeof(pMesh->scale_2c), 0);
     }
     if (pMesh->version_00 >= 4) {
         fSuccess &= FileRead(hFile, &pMesh->mapping_count_38, 1, 0);
@@ -627,9 +627,9 @@ BOOLEAN WriteMeshFile(int hFile, W8LevelFileMesh* pMesh)
         fSuccess = FileWrite(hFile, &pMesh->flags_0c, 1, 0);
     }
     if (pMesh->version_00 >= 2) {
-        fSuccess &= FileWrite(hFile, &pMesh->location_10, 0xc, 0);
+        fSuccess &= FileWrite(hFile, &pMesh->location_10, sizeof(pMesh->location_10), 0);
         fSuccess &= FileWrite(hFile, &pMesh->rotation_angle_1c, 0x10, 0);
-        fSuccess &= FileWrite(hFile, &pMesh->scale_2c, 0xc, 0);
+        fSuccess &= FileWrite(hFile, &pMesh->scale_2c, sizeof(pMesh->scale_2c), 0);
     }
     if (pMesh->version_00 >= 4) {
         fSuccess &= FileWrite(hFile, &pMesh->mapping_count_38, 1, 0);
@@ -711,8 +711,8 @@ BOOLEAN ReadLightFile(int hFile, W8LevelFileLight* pLight)
     fSuccess &= FileRead(hFile, &pLight->version_00, 2, 0);
     fSuccess &= FileRead(hFile, &pLight->create_02, 4, 0);
     fSuccess &= FileRead(hFile, pLight->unknown_06, 2, 0);
-    fSuccess &= FileRead(hFile, &pLight->position_08, 0xc, 0);
-    fSuccess &= FileRead(hFile, &pLight->colour_14, 0xc, 0);
+    fSuccess &= FileRead(hFile, &pLight->position_08, sizeof(pLight->position_08), 0);
+    fSuccess &= FileRead(hFile, &pLight->colour_14, sizeof(pLight->colour_14), 0);
     fSuccess &= FileRead(hFile, &pLight->intensity_20, 4, 0);
     fSuccess &= FileRead(hFile, &pLight->range_24, 4, 0);
     if (fSuccess == 0) {
@@ -754,8 +754,8 @@ BOOLEAN WriteLightFile(int hFile, W8LevelFileLight* pLight)
     fSuccess &= FileWrite(hFile, &pLight->version_00, 2, 0);
     fSuccess &= FileWrite(hFile, &pLight->create_02, 4, 0);
     fSuccess &= FileWrite(hFile, pLight->unknown_06, 2, 0);
-    fSuccess &= FileWrite(hFile, &pLight->position_08, 0xc, 0);
-    fSuccess &= FileWrite(hFile, &pLight->colour_14, 0xc, 0);
+    fSuccess &= FileWrite(hFile, &pLight->position_08, sizeof(pLight->position_08), 0);
+    fSuccess &= FileWrite(hFile, &pLight->colour_14, sizeof(pLight->colour_14), 0);
     fSuccess &= FileWrite(hFile, &pLight->intensity_20, 4, 0);
     fSuccess &= FileWrite(hFile, &pLight->range_24, 4, 0);
     if (fSuccess == 0) {
@@ -786,8 +786,8 @@ BOOLEAN ReadAnimLightFile(int hFile, W8LevelFileAnimLight* pLight)
 {
     BOOLEAN fSuccess = TRUE;
     fSuccess &= FileRead(hFile, &pLight->version_00, 1, 0);
-    fSuccess &= FileRead(hFile, &pLight->position_01, 0xc, 0);
-    fSuccess &= FileRead(hFile, &pLight->color_0d, 0xc, 0);
+    fSuccess &= FileRead(hFile, &pLight->position_01, sizeof(pLight->position_01), 0);
+    fSuccess &= FileRead(hFile, &pLight->color_0d, sizeof(pLight->color_0d), 0);
     fSuccess &= FileRead(hFile, &pLight->intensity_19, 4, 0);
     fSuccess &= FileRead(hFile, &pLight->range_1d, 4, 0);
     if (fSuccess == 0) {
@@ -812,8 +812,8 @@ BOOLEAN WriteAnimLightFile(int hFile, W8LevelFileAnimLight* pLight)
 {
     BOOLEAN fSuccess = TRUE;
     fSuccess &= FileWrite(hFile, &pLight->version_00, 1, 0);
-    fSuccess &= FileWrite(hFile, &pLight->position_01, 0xc, 0);
-    fSuccess &= FileWrite(hFile, &pLight->color_0d, 0xc, 0);
+    fSuccess &= FileWrite(hFile, &pLight->position_01, sizeof(pLight->position_01), 0);
+    fSuccess &= FileWrite(hFile, &pLight->color_0d, sizeof(pLight->color_0d), 0);
     fSuccess &= FileWrite(hFile, &pLight->intensity_19, 4, 0);
     fSuccess &= FileWrite(hFile, &pLight->range_1d, 4, 0);
     if (fSuccess == 0) {
@@ -901,7 +901,7 @@ BOOLEAN ReadTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
         memset(pInvis, 0, sizeof(W8LevelFileInvisible));
         fSuccess &= FileRead(hFile, &pInvis->version_00, 1, 0);
         fSuccess &= FileRead(hFile, &pInvis->range_01, 4, 0);
-        fSuccess &= FileRead(hFile, &pInvis->position_05, 0xc, 0);
+        fSuccess &= FileRead(hFile, &pInvis->position_05, sizeof(pInvis->position_05), 0);
         fSuccess &= FileRead(hFile, &pInvis->action_11, 4, 0);
         fSuccess &= FileRead(hFile, &pInvis->searchable_15, 4, 0);
         fSuccess &= FileRead(hFile, &pInvis->fire_linked_19, 1, 0);
@@ -925,7 +925,7 @@ BOOLEAN ReadTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
         }
         if (pInvis->version_00 > 2) {
             fSuccess &= FileRead(hFile, &pInvis->angle_1a0, 4, 0);
-            fSuccess &= FileRead(hFile, &pInvis->direction_1a4, 0xc, 0);
+            fSuccess &= FileRead(hFile, &pInvis->direction_1a4, sizeof(pInvis->direction_1a4), 0);
             fSuccess &= FileRead(hFile, &pInvis->unused_1b0, 1, 0);
             fSuccess &= FileRead(hFile, pInvis->action_string_1b1, 0x80, 0);
         }
@@ -981,19 +981,20 @@ BOOLEAN ReadTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
         fSuccess &= FileRead(hFile, &pSound->time_max_15, 4, 0);
         fSuccess &= FileRead(hFile, &pSound->unbounded_19, 4, 0);
         fSuccess &= FileRead(hFile, &pSound->radius_1d, 4, 0);
-        fSuccess &= FileRead(hFile, &pSound->position_21, 0xc, 0);
-        fSuccess &= FileRead(hFile, &pSound->region_u_2d, 0xc, 0);
-        fSuccess &= FileRead(hFile, &pSound->region_v_39, 0xc, 0);
+        fSuccess &= FileRead(hFile, &pSound->position_21, sizeof(pSound->position_21), 0);
+        fSuccess &= FileRead(hFile, &pSound->region_u_2d, sizeof(pSound->region_u_2d), 0);
+        fSuccess &= FileRead(hFile, &pSound->region_v_39, sizeof(pSound->region_v_39), 0);
         fSuccess &= FileRead(hFile, pSound->wave_45, 0x80, 0);
         if (pSound->version_00 > 1) {
             fSuccess &= FileRead(hFile, &pSound->has_position_c5, 1, 0);
             fSuccess &= FileRead(hFile, &pSound->looping_c6, 1, 0);
         }
         if (pSound->version_00 > 2) {
-            fSuccess &= FileRead(hFile, &pSound->region_center_c7, 0xc, 0);
+            fSuccess &=
+                FileRead(hFile, &pSound->region_center_c7, sizeof(pSound->region_center_c7), 0);
             fSuccess &= FileRead(hFile, &pSound->region_angle_d3, 4, 0);
-            fSuccess &= FileRead(hFile, &pSound->region_min_d7, 0xc, 0);
-            fSuccess &= FileRead(hFile, &pSound->region_max_e3, 0xc, 0);
+            fSuccess &= FileRead(hFile, &pSound->region_min_d7, sizeof(pSound->region_min_d7), 0);
+            fSuccess &= FileRead(hFile, &pSound->region_max_e3, sizeof(pSound->region_max_e3), 0);
         }
         if (pSound->version_00 > 3) {
             fSuccess &= FileRead(hFile, pSound->name_ef, 0x80, 0);
@@ -1069,7 +1070,7 @@ BOOLEAN WriteTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
         }
         fSuccess &= FileWrite(hFile, &pInvis->version_00, 1, 0);
         fSuccess &= FileWrite(hFile, &pInvis->range_01, 4, 0);
-        fSuccess &= FileWrite(hFile, &pInvis->position_05, 0xc, 0);
+        fSuccess &= FileWrite(hFile, &pInvis->position_05, sizeof(pInvis->position_05), 0);
         fSuccess &= FileWrite(hFile, &pInvis->action_11, 4, 0);
         fSuccess &= FileWrite(hFile, &pInvis->searchable_15, 4, 0);
         fSuccess &= FileWrite(hFile, &pInvis->fire_linked_19, 1, 0);
@@ -1083,7 +1084,7 @@ BOOLEAN WriteTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
         }
         if (pInvis->version_00 > 2) {
             fSuccess &= FileWrite(hFile, &pInvis->angle_1a0, 4, 0);
-            fSuccess &= FileWrite(hFile, &pInvis->direction_1a4, 0xc, 0);
+            fSuccess &= FileWrite(hFile, &pInvis->direction_1a4, sizeof(pInvis->direction_1a4), 0);
             fSuccess &= FileWrite(hFile, &pInvis->unused_1b0, 1, 0);
             fSuccess &= FileWrite(hFile, pInvis->action_string_1b1, 0x80, 0);
         }
@@ -1128,19 +1129,20 @@ BOOLEAN WriteTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
         fSuccess &= FileWrite(hFile, &pSound->time_max_15, 4, 0);
         fSuccess &= FileWrite(hFile, &pSound->unbounded_19, 4, 0);
         fSuccess &= FileWrite(hFile, &pSound->radius_1d, 4, 0);
-        fSuccess &= FileWrite(hFile, &pSound->position_21, 0xc, 0);
-        fSuccess &= FileWrite(hFile, &pSound->region_u_2d, 0xc, 0);
-        fSuccess &= FileWrite(hFile, &pSound->region_v_39, 0xc, 0);
+        fSuccess &= FileWrite(hFile, &pSound->position_21, sizeof(pSound->position_21), 0);
+        fSuccess &= FileWrite(hFile, &pSound->region_u_2d, sizeof(pSound->region_u_2d), 0);
+        fSuccess &= FileWrite(hFile, &pSound->region_v_39, sizeof(pSound->region_v_39), 0);
         fSuccess &= FileWrite(hFile, pSound->wave_45, 0x80, 0);
         if (pSound->version_00 > 1) {
             fSuccess &= FileWrite(hFile, &pSound->has_position_c5, 1, 0);
             fSuccess &= FileWrite(hFile, &pSound->looping_c6, 1, 0);
         }
         if (pSound->version_00 > 2) {
-            fSuccess &= FileWrite(hFile, &pSound->region_center_c7, 0xc, 0);
+            fSuccess &=
+                FileWrite(hFile, &pSound->region_center_c7, sizeof(pSound->region_center_c7), 0);
             fSuccess &= FileWrite(hFile, &pSound->region_angle_d3, 4, 0);
-            fSuccess &= FileWrite(hFile, &pSound->region_min_d7, 0xc, 0);
-            fSuccess &= FileWrite(hFile, &pSound->region_max_e3, 0xc, 0);
+            fSuccess &= FileWrite(hFile, &pSound->region_min_d7, sizeof(pSound->region_min_d7), 0);
+            fSuccess &= FileWrite(hFile, &pSound->region_max_e3, sizeof(pSound->region_max_e3), 0);
         }
         if (pSound->version_00 > 3) {
             fSuccess &= FileWrite(hFile, pSound->name_ef, 0x80, 0);
@@ -1194,7 +1196,7 @@ BOOLEAN ReadSuperTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
         reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
             String("Super Trigger: %s, recipients: %s\n", pSuper->name_01, pSuper->recipients_94)));
     if (pSuper->version_00 >= 2) {
-        fSuccess &= FileRead(hFile, pSuper->size_49b, 0xc, 0);
+        fSuccess &= FileRead(hFile, pSuper->size_49b, sizeof(pSuper->size_49b), 0);
         fSuccess &= FileRead(hFile, &pSuper->direction_4a7, 4, 0);
         fSuccess &= FileRead(hFile, &pSuper->wait_4ab, 1, 0);
         fSuccess &= FileRead(hFile, &pSuper->wait_4ac, 1, 0);
@@ -1324,7 +1326,7 @@ BOOLEAN WriteSuperTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
         return 0;
     }
     if (pSuper->version_00 >= 2) {
-        fSuccess &= FileWrite(hFile, pSuper->size_49b, 0xc, 0);
+        fSuccess &= FileWrite(hFile, pSuper->size_49b, sizeof(pSuper->size_49b), 0);
         fSuccess &= FileWrite(hFile, &pSuper->direction_4a7, 4, 0);
         fSuccess &= FileWrite(hFile, &pSuper->wait_4ab, 1, 0);
         fSuccess &= FileWrite(hFile, &pSuper->wait_4ac, 1, 0);
@@ -1431,7 +1433,7 @@ BOOLEAN ReadDoorTriggerFile(int hFile, W8LevelFileDoorRef* pDoor)
     fSuccess &= FileRead(hFile, &pDoorRec->flags_01[8], 1, 0);
     fSuccess &= FileRead(hFile, &pDoorRec->item_0a, 2, 0);
     fSuccess &= FileRead(hFile, &pDoorRec->has_position_0c, 1, 0);
-    fSuccess &= FileRead(hFile, &pDoorRec->position_0d, 0xc, 0);
+    fSuccess &= FileRead(hFile, &pDoorRec->position_0d, sizeof(pDoorRec->position_0d), 0);
     fSuccess &= FileRead(hFile, pDoorRec->linked_trigger_19, 0x80, 0);
     pDoor->door_01 = pDoorRec;
     return fSuccess;
@@ -1456,7 +1458,7 @@ BOOLEAN WriteDoorTriggerFile(int hFile, W8LevelFileDoorRef* pDoor)
     fSuccess &= FileWrite(hFile, &pDoorRec->flags_01[8], 1, 0);
     fSuccess &= FileWrite(hFile, &pDoorRec->item_0a, 2, 0);
     fSuccess &= FileWrite(hFile, &pDoorRec->has_position_0c, 1, 0);
-    fSuccess &= FileWrite(hFile, &pDoorRec->position_0d, 0xc, 0);
+    fSuccess &= FileWrite(hFile, &pDoorRec->position_0d, sizeof(pDoorRec->position_0d), 0);
     fSuccess &= FileWrite(hFile, pDoorRec->linked_trigger_19, 0x80, 0);
     free(pDoorRec);
     return fSuccess;
@@ -2110,10 +2112,10 @@ BOOLEAN ReadParticleSystemFile(int hFile, W8LevelFileParticleSystem* pSystem)
     }
     if (pSystem->version_00 > 2) {
         fSuccess &= FileRead(hFile, &pSystem->particle_01.emission_limit_218, 4, 0);
-        fSuccess &= FileRead(hFile, &pSystem->particle_01.requires_positional_21c, 1, 0);
+        fSuccess &= FileRead(hFile, &pSystem->particle_01.requires_sorted_renderer_21c, 1, 0);
     } else {
         pSystem->particle_01.emission_limit_218 = 0;
-        pSystem->particle_01.requires_positional_21c = 0;
+        pSystem->particle_01.requires_sorted_renderer_21c = 0;
     }
     if (pSystem->version_00 > 3) {
         fSuccess &= FileRead(hFile, &pSystem->particle_01.start_frame_21d, 4, 0);
@@ -2144,7 +2146,7 @@ BOOLEAN WriteParticleSystemFile(int hFile, W8LevelFileParticleSystem* pSystem)
     }
     if (pSystem->version_00 > 2) {
         fSuccess &= FileWrite(hFile, &pSystem->particle_01.emission_limit_218, 4, 0);
-        fSuccess &= FileWrite(hFile, &pSystem->particle_01.requires_positional_21c, 1, 0);
+        fSuccess &= FileWrite(hFile, &pSystem->particle_01.requires_sorted_renderer_21c, 1, 0);
     }
     if (pSystem->version_00 > 3) {
         fSuccess &= FileWrite(hFile, &pSystem->particle_01.start_frame_21d, 4, 0);
@@ -2168,11 +2170,12 @@ BOOLEAN ReadLevelFileBlock(int hFile, W8LevelFileBlock* pBlock)
     fSuccess &= FileRead(hFile, &pBlock->view_distance_11, 4, 0);
     fSuccess &= FileRead(hFile, &pBlock->camera_mode_15, 1, 0);
     if (pBlock->camera_mode_15 >= 1) {
-        fSuccess &= FileRead(hFile, &pBlock->camera_position_16, 0xc, 0);
+        fSuccess &=
+            FileRead(hFile, &pBlock->camera_position_16, sizeof(pBlock->camera_position_16), 0);
     }
     if (pBlock->camera_mode_15 >= 2) {
         fSuccess &= FileRead(hFile, &pBlock->camera_angle_22, 4, 0);
-        fSuccess &= FileRead(hFile, &pBlock->camera_axis_26, 0xc, 0);
+        fSuccess &= FileRead(hFile, &pBlock->camera_axis_26, sizeof(pBlock->camera_axis_26), 0);
     }
     fSuccess = fSuccess != 0 && FileRead(hFile, &pBlock->has_light_colours_32, 1, 0) != 0;
     if (pBlock->has_light_colours_32 != 0) {
@@ -2197,11 +2200,12 @@ BOOLEAN WriteLevelFileBlock(int hFile, W8LevelFileBlock* pBlock)
     fSuccess &= FileWrite(hFile, &pBlock->view_distance_11, 4, 0);
     fSuccess &= FileWrite(hFile, &pBlock->camera_mode_15, 1, 0);
     if (pBlock->camera_mode_15 >= 1) {
-        fSuccess &= FileWrite(hFile, &pBlock->camera_position_16, 0xc, 0);
+        fSuccess &=
+            FileWrite(hFile, &pBlock->camera_position_16, sizeof(pBlock->camera_position_16), 0);
     }
     if (pBlock->camera_mode_15 >= 2) {
         fSuccess &= FileWrite(hFile, &pBlock->camera_angle_22, 4, 0);
-        fSuccess &= FileWrite(hFile, &pBlock->camera_axis_26, 0xc, 0);
+        fSuccess &= FileWrite(hFile, &pBlock->camera_axis_26, sizeof(pBlock->camera_axis_26), 0);
     }
     fSuccess = fSuccess != 0 && FileWrite(hFile, &pBlock->has_light_colours_32, 1, 0) != 0;
     if (pBlock->has_light_colours_32 != 0) {

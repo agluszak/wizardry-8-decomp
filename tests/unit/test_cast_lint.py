@@ -10,6 +10,7 @@ from wiz8decomp.cast_lint import (
     CastGateError,
     _added_c_style_casts,
     _added_format_off,
+    _added_uninit_suppressions,
     _raw_offset_violations,
     _sgp_notice_violations,
     added_lines_without_marker,
@@ -235,6 +236,33 @@ def test_format_off_marker_with_reason_passes() -> None:
     )
 
     assert _added_format_off(diff) == []
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        "src/wiz8/example.cpp",
+        "src/wiz8/CMakeLists.txt",
+        "src/surrender/CMakeLists.txt",
+        "cmake/Warnings.cmake",
+    ],
+)
+@pytest.mark.parametrize("marked", [False, True])
+def test_uninitialized_suppression_requires_retail_evidence(path: str, marked: bool) -> None:
+    line = '"-Wno-error=sometimes-uninitialized"'
+    if marked:
+        line += " # uninit-ok: retail named-entity path lacks a destination assignment"
+    diff = _diff(path, "@@ -0,0 +1 @@", "+" + line)
+    assert bool(_added_uninit_suppressions(diff)) is not marked
+
+
+def test_moved_uninitialized_suppression_is_reaudited() -> None:
+    line = '"-Wno-error=sometimes-uninitialized"'
+    diff = _diff("src/wiz8/CMakeLists.txt", "@@ -0,0 +1 @@", "+" + line)
+    diff += "\n" + _diff("cmake/Warnings.cmake", "@@ -1 +0,0 @@", "-" + line)
+    assert _added_uninit_suppressions(diff) == [
+        {"file": "src/wiz8/CMakeLists.txt", "line": 1, "text": line}
+    ]
 
 
 def test_literal_byte_offset_into_typed_object_is_reported(tmp_path: Path) -> None:

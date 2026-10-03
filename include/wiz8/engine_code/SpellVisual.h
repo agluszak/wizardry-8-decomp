@@ -85,7 +85,7 @@ public:
 
 static_assert(sizeof(W8SpellVisual) == 0x1f8, "W8SpellVisual_size_must_be_0x1f8");
 /* Secondary vftable 0x005ecf2c keeps the W8Navigator subobject at +0x18. */
-W8_ASSERT_BASE_OFFSET(W8SpellVisual, W8Navigator, padding_004, 0x18);
+W8_ASSERT_BASE_OFFSET(W8SpellVisual, W8Navigator, navigation_mode_008, 0x18);
 
 inline W8SpellVisual::W8SpellVisual(const W8SpellVisual& other) : W8GrCycle(other)
 {

@@ -43,9 +43,9 @@ srLight::srLight(srNode* parent, e_preset preset)
     far_start_168 = 0.0;
     far_end_170 = 1000.0;
     enable_flags_194 |= 0x10;
-    if (preset == PRESET_POSITIONAL_0) {
+    if (preset == PRESET_DIRECTIONAL) {
         enable_flags_194 |= 0x12;
-    } else if (preset == PRESET_POSITIONAL_2) {
+    } else if (preset == PRESET_SPOT) {
         enable_flags_194 |= 0x1;
     }
     if (parent != 0) {
@@ -171,11 +171,8 @@ void srLight::dump(std::ostream& stream)
 void srLight::process(const ProcessInfo& info, e_processType type)
 {
     srGERD* renderer = info.renderer;
-    /* See srIlluminator::process for the unnamed-enumerator rationale. */
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wtautological-compare"
-    if (type != 1 && type != 3) {
-        if (type != 2 && type != 4) {
+    if (type != PROCESS_PUSH && type != PROCESS_PUSH_GLOBAL) {
+        if (type != PROCESS_POP && type != PROCESS_POP_GLOBAL) {
             return;
         }
         if ((derived_flags_21c & 0x1) == 0) {
@@ -184,7 +181,6 @@ void srLight::process(const ProcessInfo& info, e_processType type)
         renderer->popVertexProcessor();
         return;
     }
-#pragma clang diagnostic pop
     applyWorldSpaceMatrix(*renderer);
     srMatrix4T<float> model_view;
     renderer->getMatrix(model_view);

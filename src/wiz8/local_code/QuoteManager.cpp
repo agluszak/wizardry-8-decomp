@@ -391,14 +391,15 @@ static void CharacterEventSoundEndCallback(void* callback_data)
     if (entry->sound_end_handled != 0 || queue == 0) {
         return;
     }
+#ifdef WIZ8_RUNTIME_TESTS
+    RuntimeObserve(RUNTIME_VOICE_FINISHED, CharacterPointerToPartySlot(entry->character),
+                   entry->event_type, 0);
+#endif
     int index = queue->active_events.IndexOf(entry);
     if (index >= 0) {
         queue->active_events.RemoveAt(index);
     }
-    if ((queue->follow_up_flags & 1) != 0 && entry->event_type >= 14 && entry->event_type < 16) {
-        queue->follow_up_clock = SetCountdownClock(
-            (queue->follow_up_flags & 2) != 0 ? Random(6000) + 2000 : Random(60000) + 300000);
-    }
+    queue->RestartFollowUpClock(entry);
     entry->Complete();
     delete entry;
 }
@@ -595,13 +596,7 @@ void W8CharacterEventQueue::CompleteFirstActiveEvent()
     if (active_events.count > 0) {
         entry = *active_events.GetAt(0);
         active_events.RemoveAt(active_events.IndexOf(entry));
-        if ((follow_up_flags & 1) != 0 && entry->event_type >= 14 && entry->event_type < 16) {
-            if ((follow_up_flags & 2) != 0) {
-                follow_up_clock = SetCountdownClock(Random(6000) + 2000);
-            } else {
-                follow_up_clock = SetCountdownClock(Random(60000) + 300000);
-            }
-        }
+        RestartFollowUpClock(entry);
         entry->Complete();
         delete entry;
     }
@@ -760,8 +755,7 @@ unsigned char W8CharacterEvent::PlayEventSound()
         g_current_screen_state.id == W8_SCREEN_CHARACTER) {
         char gender_code = static_cast<char>(((character->gender != 0) - 1U & 7) + 0x66);
         sprintf(voice_stem, "%c_%s%d0", gender_code,
-                g_quote_personality_names[character->personality_0081],
-                (character->voice_0085 != 0) + 1);
+                g_quote_personality_names[character->personality_0081], character->voice_0085 + 1);
         sprintf(sound_path, "Data\\Sound\\PCs\\%s\\%s_%03d.wav", voice_stem, voice_stem,
                 sound_event);
     } else {
@@ -781,8 +775,8 @@ unsigned char W8CharacterEvent::PlayEventSound()
     record->voice_sound_handle = sound_handle;
     if (sound_handle == 0xffffffff) {
         if (event_type > 0x91) {
-            record->voice_time_remaining_ms =
-                ComputePortraitMessageDuration(const_cast<wchar_t*>(FALLBACK_VOICE_TEXT));
+            wchar_t fallback_text[] = FALLBACK_VOICE_TEXT;
+            record->voice_time_remaining_ms = ComputePortraitMessageDuration(fallback_text);
         } else {
             record->voice_time_remaining_ms = ComputePortraitMessageDuration(g_character_text);
         }
@@ -910,21 +904,7 @@ unsigned char W8CharacterEvent::Dispatch()
             gXStatus.character_event_queue->active_party_slot = party_slot;
         }
         gXStatus.character_event_queue->recent_event_clock = SetCountdownClock(5000);
-        if ((gXStatus.character_event_queue->follow_up_flags & 1) == 0) {
-            return 0;
-        }
-        if (event_type < 14) {
-            return 0;
-        }
-        if (event_type >= 16) {
-            return 0;
-        }
-        if ((gXStatus.character_event_queue->follow_up_flags & 2) != 0) {
-            gXStatus.character_event_queue->follow_up_clock =
-                SetCountdownClock(Random(6000) + 2000);
-            return 0;
-        }
-        gXStatus.character_event_queue->follow_up_clock = SetCountdownClock(Random(60000) + 300000);
+        gXStatus.character_event_queue->RestartFollowUpClock(this);
         return 0;
     }
 finish_without_dispatch:
@@ -1114,11 +1094,6 @@ void SetPartyPortraitEventState(unsigned int party_slot, bool active,
 // FUNCTION: WIZ8 0x0052E160
 void W8CharacterEventQueue::RestartFollowUpClock(W8CharacterEvent* entry)
 {
-    /* 0x0052E163 tests bit 0 first and only reads entry->event_type at 0x0052E16A
-       once that passes, so the range test stays in the condition rather than
-       being hoisted into a local. 0x0052E17D jumps to the long clock when bit 1
-       is clear, which puts the short clock in the taken arm, and each arm keeps
-       its own store to follow_up_clock. */
     if ((follow_up_flags & 1) && entry->event_type > 13 && entry->event_type < 16) {
         if (follow_up_flags & 2) {
             follow_up_clock = SetCountdownClock(Random(6000) + 2000);
@@ -1385,8 +1360,9 @@ void W8CharacterEventQueue::ProcessDeferredCharacterEvents()
                 if (PartyPortraitEventsIdle() == 0) {
                     return;
                 }
-                if (entry->dispatch_delay_ms != 0 && GetTickCount() - entry->dispatch_delay_start <=
-                                                         static_cast<unsigned int>(entry->dispatch_delay_ms)) {
+                if (entry->dispatch_delay_ms != 0 &&
+                    GetTickCount() - entry->dispatch_delay_start <=
+                        static_cast<unsigned int>(entry->dispatch_delay_ms)) {
                     return;
                 }
                 pending_events.RemoveAt(index);
@@ -1473,13 +1449,7 @@ void W8CharacterEventQueue::CompleteActiveEvent(W8CharacterEvent* entry)
     if (index >= 0) {
         active_events.RemoveAt(index);
     }
-    if ((follow_up_flags & 1) != 0 && entry->event_type >= 14 && entry->event_type < 16) {
-        if ((follow_up_flags & 2) == 0) {
-            follow_up_clock = SetCountdownClock(Random(60000) + 300000);
-        } else {
-            follow_up_clock = SetCountdownClock(Random(6000) + 2000);
-        }
-    }
+    RestartFollowUpClock(entry);
     entry->Complete();
     delete entry;
 }

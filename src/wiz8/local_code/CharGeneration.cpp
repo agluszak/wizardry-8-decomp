@@ -87,10 +87,6 @@ static int g_spell_point_bonus;
 // GLOBAL: WIZ8 0x0068de34
 static bool g_gender_locked;
 
-/* Empty every item record the character carries. 0x00520070 expands the
-   per-slot helper at both loops, which is why the body lives in PC Item.cpp
-   and duplicates that helper instead of calling it. */
-
 /* A fresh creation: zero the character and the editing state, install the
    sentinel values, and hand out the level-one pools. */
 // FUNCTION: WIZ8 0x00556dc0
@@ -365,7 +361,8 @@ void ApplyProfessionMinimumAttributes(W8Character* character,
             if (character->uiExpLevel > 1) {
                 int minimum = g_profession_attribute_minimums[character->iProfession].values[index];
                 int value = creation_state->attribute_values_008[index];
-                while (character->attributes[index].value - value < static_cast<unsigned int>(minimum)) {
+                while (character->attributes[index].value - value <
+                       static_cast<unsigned int>(minimum)) {
                     creation_state->attribute_values_008[index] = value - 1;
                     --creation_state->attribute_points_total;
                     ++creation_state->attribute_baselines_048[index];
@@ -468,9 +465,10 @@ void DetermineEligibleProfessions(W8Character* character, W8CharacterCreationSta
             }
             for (attribute = 0; attribute < 7; ++attribute) {
                 if (static_cast<unsigned int>(creation_state->attribute_limits_028[attribute] -
-                                   creation_state->attribute_values_008[attribute]) +
+                                              creation_state->attribute_values_008[attribute]) +
                         character->attributes[attribute].value <
-                    static_cast<unsigned int>(g_profession_attribute_minimums[profession].values[attribute])) {
+                    static_cast<unsigned int>(
+                        g_profession_attribute_minimums[profession].values[attribute])) {
                     eligibility[profession] = 0;
                     break;
                 }

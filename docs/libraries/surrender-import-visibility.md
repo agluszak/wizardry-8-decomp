@@ -6,7 +6,7 @@
 
 Use consumer evidence to decide visibility:
 
-1. The original consumer import surface (`src/wiz8/imports/sr.def`, `src/srext_jpegimporter/sr-jpeg-imports.def`, and `src/srext_unzip/sr-unzip-imports.def`) establishes that a symbol crosses the DLL boundary.
+1. Original consumer PE import tables establish which symbols cross the DLL boundary. The current import-library DEF files are link inputs and may include unused provider exports; they do not independently establish retail consumer imports.
 2. Retail caller assembly establishes whether that consumer actually calls an import or expands a header body/client emission locally.
 3. SR.DLL exports establish the provider ABI and signatures, but an export by itself never proves `dllimport` in a consumer header.
 
@@ -50,6 +50,39 @@ header-visible dirty and control methods are absent from that table. Class-wide 
 would turn an out-of-line `setDirty` emission in large consumer functions into an
 unresolved `__imp_?setDirty@srMeshModel` reference. The provider class remains exported
 whole to preserve its retail vector deleting destructor and vtable emission.
+
+The Wizardry import library also exposes `srMaterial`'s default constructor,
+exported by retail SR.DLL at `0x10034700`. VC6 can call that exported copy when
+compiling the header-visible constructor. This link input does not claim that
+the original Wizardry executable imported it; its import table contains no such
+entry. Per-TU inlining options must not hide a missing provider binding.
+
+## Compiler-owned provider exports
+
+The provider declarations for `srMemoryAllocator`, `srVertexPipe`,
+`srIStreamOpener`, `srTriangulator` and `srThread` use class-level
+`SR_DLL_EXPORT`. The original export inventory includes their public
+memberwise assignments together with their private helpers or static state.
+These assignments remain compiler-owned, including the one-byte empty-class
+copy in retail `srThread::operator=` at `0x100458C0`. Their source model does
+not infer new consumer imports from the provider exports.
+
+Nested owners have separate export declarations: `srFileManager::Path` and
+`srPalette::Sampler`. A VC6 fixture confirms
+that exporting an enclosing class does not export its nested class's implicit
+assignment. The abstract `srIStreamOpener::Opener` retains member exports and
+its public no-op assignment. Exporting it whole also exports a copy constructor
+absent from retail. The evidence does not establish a private copy-suppression
+declaration, so its assignment's authored/implicit spelling remains unresolved.
+Its root virtual destructor and `novtable` remain declared.
+
+`srShader` copy construction has one header-visible value-copy body. Retail
+`srModeler::Triangle` (`0x10037C10`) and `Polygon` (`0x10037CF0`) copy four
+shader elements separately from the surrounding aggregate storage. The VC6
+fixture emits their exported implicit copy constructors with a user-provided
+shader copy constructor; a trivial shader copy leaves those exports
+undefined. These observations support the nontrivial member-copy model;
+they do not recover the exact historical declaration spelling.
 
 ## Gate
 

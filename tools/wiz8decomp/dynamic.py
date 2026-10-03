@@ -17,6 +17,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from reccmp.source.records import SourceMarker
+
+from .binary.linker_map import LinkerMap, MapSymbol, demangle_names
 from .debug.session import WineGdbProxy, allocate_port
 from .paths import json_hash, sha256_file
 from .subprocesses import tool_version
@@ -107,6 +110,15 @@ class StateProbe:
     indirect: bool  # the base holds a pointer; read through it
 
 
+def _trace_name(function: SourceMarker) -> str:
+    selector = function.recomp_selector
+    if selector is None:
+        return function.name
+    if function.selector_is_symbol:
+        return _bare_symbol_name(demangle_names([selector]).get(selector) or selector)
+    return selector
+
+
 def bring_up_points(repo: Path) -> list[TracePoint]:
     """Source-owned startup functions, derived from physical TU ownership."""
 
@@ -118,7 +130,7 @@ def bring_up_points(repo: Path) -> list[TracePoint]:
         if not (path.stem.startswith("startup_") or path.name in {"game_init.cpp", "winmain.cpp"}):
             continue
         points.append(
-            TracePoint(address=f"{function.address:08x}", name=function.name, kind="gate")
+            TracePoint(address=f"{function.address:08x}", name=_trace_name(function), kind="gate")
         )
     return sorted(points, key=lambda point: point.address)
 
@@ -167,7 +179,7 @@ def load_points(repo: Path) -> list[TracePoint]:
         if Path(function.source_file).name != "LoadSaveGame.cpp":
             continue
         points.append(
-            TracePoint(address=f"{function.address:08x}", name=function.name, kind="load")
+            TracePoint(address=f"{function.address:08x}", name=_trace_name(function), kind="load")
         )
     return sorted(points, key=lambda point: point.address)
 
@@ -225,8 +237,6 @@ def verified_link_map(image: Path, link_map_path: Path) -> Any:
     from reccmp.formats import detect_image
     from reccmp.formats.pe import PEImage
 
-    from .binary.linker_map import LinkerMap
-
     link_map = LinkerMap.read(link_map_path)
     detected = detect_image(image)
     if (
@@ -253,15 +263,13 @@ def _bare_symbol_name(demangled: str) -> str:
     return text.split("(", 1)[0].strip()
 
 
-def _map_functions_by_name(link_map: Any) -> dict[str, list[Any]]:
+def _map_functions_by_name(link_map: LinkerMap) -> dict[str, list[MapSymbol]]:
     """The map's function symbols indexed by their canonical (undecorated)
     name - the identity the stream comparison actually uses."""
 
-    from .binary.linker_map import demangle_names
-
     decorated = [symbol.decorated_name for symbol in link_map.symbols if symbol.is_function]
     demangled = demangle_names(decorated)
-    by_name: dict[str, list[Any]] = {}
+    by_name: dict[str, list[MapSymbol]] = {}
     for symbol in link_map.symbols:
         if not symbol.is_function:
             continue
@@ -271,7 +279,7 @@ def _map_functions_by_name(link_map: Any) -> dict[str, list[Any]]:
 
 
 def rebase_plan(
-    repo: Path, points: list[TracePoint], link_map: Any
+    repo: Path, points: list[TracePoint], link_map: LinkerMap
 ) -> tuple[list[TracePoint], list[str]]:
     """Translate a retail plan into a rebuilt image's addresses, by name.
 
@@ -290,20 +298,32 @@ def rebase_plan(
     }
     rebased = []
     dropped = []
-    by_name: dict[str, list[Any]] | None = None
+    by_name: dict[str, list[MapSymbol]] | None = None
     for point in points:
         address = int(point.address, 16)
-        semantic_id = semantic_ids.get(address)
-        symbol = link_map.find_decorated(semantic_id) if semantic_id is not None else None
-        if symbol is None:
+        function = functions.get(address)
+        selector = function.recomp_selector if function is not None else None
+        is_symbol = function.selector_is_symbol if function is not None else False
+        symbol = None
+        if selector and is_symbol:
+            candidates = [
+                candidate
+                for candidate in link_map.symbols
+                if candidate.is_function and candidate.decorated_name == selector
+            ]
+            if len(candidates) == 1:
+                symbol = candidates[0]
+        elif selector is None:
+            semantic_id = semantic_ids.get(address)
+            symbol = link_map.find_decorated(semantic_id) if semantic_id is not None else None
+        if symbol is None and not is_symbol:
             # The linker may keep another unit's instantiation or spell the
             # declaration differently: retry on the canonical name, which is
             # the identity the comparison uses anyway. Ambiguous candidates
             # stay dropped rather than binding to an arbitrary emission.
             if by_name is None:
                 by_name = _map_functions_by_name(link_map)
-            function = functions.get(address)
-            candidates = by_name.get(function.name, []) if function is not None else []
+            candidates = by_name.get(_trace_name(function), []) if function is not None else []
             if len(candidates) == 1:
                 symbol = candidates[0]
         if symbol is None:
