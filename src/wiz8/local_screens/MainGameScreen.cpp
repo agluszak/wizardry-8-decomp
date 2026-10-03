@@ -385,7 +385,7 @@ int OpenLockInteraction(Trigger* trigger)
         return 0;
     }
     if (gXStatus.fLockInteractMode != 0 || (gXStatus.fLockInteract != 0 && trigger != 0)) {
-        event = ApplyItemEffectToRandomCharacter(g_lock_notice_event, -1, g_event_flag_005ed8e8,
+        event = ApplyItemEffectToRandomCharacter(g_lock_notice_event, -1, g_character_event_no_preempt,
                                                  g_character_event_no_flags);
         if (event != 0) {
             event->dispatch_delay_ms = 600;
@@ -395,7 +395,7 @@ int OpenLockInteraction(Trigger* trigger)
         return 1;
     }
     if (gXStatus.fCombatMode != 0) {
-        event = ApplyItemEffectToRandomCharacter(g_lock_notice_event, -1, g_event_flag_005ed8e8,
+        event = ApplyItemEffectToRandomCharacter(g_lock_notice_event, -1, g_character_event_no_preempt,
                                                  g_character_event_no_flags);
         if (event != 0) {
             event->dispatch_delay_ms = 600;
@@ -422,7 +422,7 @@ int OpenLockInteraction(Trigger* trigger)
     RequestRedrawCombatBar();
     RequestRedraw(0x1000);
     if (gXStatus.fLockInteract == 0) {
-        event = ApplyItemEffectToRandomCharacter(g_lock_notice_event, -1, g_event_flag_005ed8e8,
+        event = ApplyItemEffectToRandomCharacter(g_lock_notice_event, -1, g_character_event_no_preempt,
                                                  g_character_event_no_flags);
         if (event != 0) {
             event->dispatch_delay_ms = 600;
@@ -2548,7 +2548,7 @@ int OpenTrapInteraction(Trigger* trigger)
         if (g_main_game_screen != 0 && g_main_game_screen->m_disarm_state_018 == 9) {
             return 1;
         }
-        event = ApplyItemEffectToRandomCharacter(g_trap_notice_event, -1, g_event_flag_005ed8e8,
+        event = ApplyItemEffectToRandomCharacter(g_trap_notice_event, -1, g_character_event_no_preempt,
                                                  g_character_event_no_flags);
         if (event != 0) {
             event->dispatch_delay_ms = 600;
@@ -2558,7 +2558,7 @@ int OpenTrapInteraction(Trigger* trigger)
         return 1;
     }
     if (gXStatus.fCombatMode != 0) {
-        event = ApplyItemEffectToRandomCharacter(g_trap_notice_event, -1, g_event_flag_005ed8e8,
+        event = ApplyItemEffectToRandomCharacter(g_trap_notice_event, -1, g_character_event_no_preempt,
                                                  g_character_event_no_flags);
         if (event != 0) {
             event->dispatch_delay_ms = 600;
@@ -2608,7 +2608,7 @@ int OpenTrapInteraction(Trigger* trigger)
         if (0x13 < Random(100)) {
             event_type = g_trap_notice_event;
         }
-        event = ApplyItemEffectToRandomCharacter(event_type, -1, g_event_flag_005ed8e8,
+        event = ApplyItemEffectToRandomCharacter(event_type, -1, g_character_event_no_preempt,
                                                  g_character_event_no_flags);
         if (event != 0) {
             event->dispatch_delay_ms = 600;

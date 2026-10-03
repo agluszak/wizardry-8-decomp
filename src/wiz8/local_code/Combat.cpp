@@ -542,7 +542,7 @@ void BeginCombatExecution(void)
         ClearCombatSelection();
     }
     ++g_combat_state->round_count_004;
-    ++g_value_659c14;
+    ++g_combat_round_counter;
     if (g_combat_state->uiCurrentPartyAction == 1 || g_combat_state->uiCurrentPartyAction == 2) {
         gXStatus.flPartyMoveDistLimit = GetPartyMovementSpeed();
         ResetLevelMovement(gXStatus.flPartyMoveDistLimit, 0,

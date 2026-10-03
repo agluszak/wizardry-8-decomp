@@ -1177,7 +1177,7 @@ unsigned char FindNearbyFreePosition(float radius, srVector3T<float>* position,
             *position = candidate;
             return 1;
         }
-        angle += g_float_005ec2a8;
+        angle += g_quarter_turn;
     } while (angle < g_camera_pi);
     return 0;
 }

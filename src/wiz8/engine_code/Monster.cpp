@@ -96,7 +96,7 @@
 #include "wiz8/engine_code/GrCycle.h"
 #include "input.h"
 // GLOBAL: WIZ8 0x00659c14
-int g_value_659c14;
+int g_combat_round_counter;
 
 // GLOBAL: WIZ8 0x005ebcf8
 const float g_float_005ebcf8 = 0.0055555556900799274f;
@@ -5345,5 +5345,5 @@ void RefreshMonsterStandingHeight(W8Monster* monster)
 void SetCombatInactiveFlag(unsigned char value)
 {
     g_combat_inactive = value;
-    g_value_659c14 = 0;
+    g_combat_round_counter = 0;
 }

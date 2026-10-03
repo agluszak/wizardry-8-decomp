@@ -20,7 +20,7 @@
 
 /* 0x005ED1E8: the negative quarter turn the axis-aligned heading case returns. */
 // GLOBAL: WIZ8 0x005ed1e8
-const float g_float_005ed1e8 = -1.570796012878418f;
+const float g_negative_quarter_turn = -1.570796012878418f;
 
 /* 0x004BE420: the heading angle from source to target. The angle is measured
    in the x/z plane; an exactly axis-aligned target answers one of the two
@@ -35,7 +35,7 @@ float GetHeadingAngle(const srVector3T<float>* source, const srVector3T<float>* 
         if (x > g_float_005ebb34) {
             return g_camera_half_pi;
         }
-        return g_float_005ed1e8;
+        return g_negative_quarter_turn;
     }
     {
         float angle = static_cast<float>(atan2(x, z));
@@ -63,7 +63,7 @@ float GetElevationAngle(const srVector3T<float>* source, const srVector3T<float>
     if (!_finite(angle)) {
         return g_float_005ebb34;
     }
-    return angle - g_float_005ec2a8;
+    return angle - g_quarter_turn;
 }
 
 /* 0x004BE520: GetElevationAngle evaluated from the camera to the target;
@@ -84,7 +84,7 @@ float ElevationToTargetCPP(const srVector3T<float>* target)
     if (!_finite(angle)) {
         return g_float_005ebb34;
     }
-    return angle - g_float_005ec2a8;
+    return angle - g_quarter_turn;
 }
 
 // FUNCTION: WIZ8 0x004BE5C0
@@ -99,7 +99,7 @@ float GetCameraFacingYaw(const srVector3T<float>* position)
         if (g_float_005ebb34 < camera_position.x - position_x) {
             return g_camera_half_pi;
         }
-        return g_float_005ed1e8;
+        return g_negative_quarter_turn;
     }
     {
         float angle = static_cast<float>(
@@ -125,7 +125,7 @@ float HeadingToTargetCPP(const srVector3T<float>* target)
         if (x > g_float_005ebb34) {
             return g_camera_half_pi;
         }
-        return g_float_005ed1e8;
+        return g_negative_quarter_turn;
     }
     {
         float angle = static_cast<float>(atan2(x, z));

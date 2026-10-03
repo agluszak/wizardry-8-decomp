@@ -61,7 +61,7 @@ const float g_float_005ed7b8 = 20000.0f;
 
 /* 0x005ED7A8: pi, the amplitude cursor-driven throw angles are scaled from. */
 // GLOBAL: WIZ8 0x005ed7a8
-extern const double g_double_005ed7a8 = 3.141592653589793;
+extern const double g_throw_angle_amplitude = 3.141592653589793;
 
 /* 0x005EBF48: the screen-y coefficient in the drop-item yaw. */
 // GLOBAL: WIZ8 0x005ebf48
@@ -873,7 +873,7 @@ void DropHeldItem(int arg_1)
     cursor.y = (cursor.y - g_float_005ebc7c) * g_float_005ec390;
     cursor.z = (cursor.z - g_float_005ebc7c) * g_float_005ec390;
 
-    double amplitude = g_double_005ed7a8 * g_float_005ebcf8;
+    double amplitude = g_throw_angle_amplitude * g_float_005ebcf8;
     double pitch = amplitude * g_float_005ebc28 + amplitude * cursor.z * g_drop_item_pitch_scale;
     float base = static_cast<float>(cos(pitch) * g_double_005ec030);
     double yaw = amplitude * cursor.y * g_drop_item_yaw_scale;

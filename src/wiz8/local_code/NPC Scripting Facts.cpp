@@ -979,7 +979,7 @@ void HandleScriptedNpcDeath(unsigned int monster_list_index)
     for (index = 0; index < eligible_count; ++index) {
         if (eligible_slots[index] == lead_index) {
             QueueCharacterEvent(&g_status.buffers.Char[eligible_slots[index]], g_effect_005ee618,
-                                g_event_flag_005ed8e0, g_character_event_no_flags,
+                                g_character_event_no_npc_defer, g_character_event_no_flags,
                                 g_character_event_full_volume);
         }
     }
@@ -988,14 +988,14 @@ void HandleScriptedNpcDeath(unsigned int monster_list_index)
             pick = Random(eligible_count);
         } while (eligible_slots[pick] == lead_index);
         QueueCharacterEvent(&g_status.buffers.Char[eligible_slots[pick]], g_effect_005ee618,
-                            g_event_flag_005ed8e0, g_character_event_no_flags,
+                            g_character_event_no_npc_defer, g_character_event_no_flags,
                             g_character_event_full_volume);
     }
     for (slot = 0; slot < 8; ++slot) {
         W8Character* character = &g_status.buffers.Char[slot];
         if (g_status.buffers.XChar[slot].fOccupied != 0 && character->hp_current != 0 &&
             character->highest_condition < 0xf) {
-            QueueCharacterEvent(character, g_effect_005ee630, g_event_flag_005ed8e0,
+            QueueCharacterEvent(character, g_effect_005ee630, g_character_event_no_npc_defer,
                                 g_character_event_no_flags, g_character_event_full_volume);
         }
     }

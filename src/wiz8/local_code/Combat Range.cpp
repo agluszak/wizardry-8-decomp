@@ -46,7 +46,7 @@
 #include "random.h"
 
 // GLOBAL: WIZ8 0x0068C518
-int g_special_event_0068c518 = g_first_remapped_event + 30;
+int g_event_sight_blocked = g_first_remapped_event + 30;
 
 /*
  * Local Code\Combat Range.cpp.
@@ -330,7 +330,7 @@ bool CanPartyMemberAimAtMonster(int party_slot, int hand, W8MonsterInfo* monster
         }
         if (range == W8_RANGE_NONE) {
             if (notify_failure != 0) {
-                QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_special_event_0068c530, 0,
+                QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_event_target_out_of_range, 0,
                                     g_character_event_no_flags, g_character_event_full_volume);
             }
             return 0;
@@ -338,7 +338,7 @@ bool CanPartyMemberAimAtMonster(int party_slot, int hand, W8MonsterInfo* monster
     }
     if (monster_info->party_threat.los_flags_05[flag] == 0) {
         if (notify_failure != 0) {
-            QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_special_event_0068c518, 0,
+            QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_event_sight_blocked, 0,
                                 g_character_event_no_flags, g_character_event_full_volume);
         }
         return 0;
@@ -346,7 +346,7 @@ bool CanPartyMemberAimAtMonster(int party_slot, int hand, W8MonsterInfo* monster
     if (CalcRangeDistance(static_cast<W8RangeCategory>(range)) <
         monster_info->p3D->GetDistanceToPlayer()) {
         if (notify_failure != 0) {
-            QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_special_event_0068c530, 0,
+            QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_event_target_out_of_range, 0,
                                 g_character_event_no_flags, g_character_event_full_volume);
         }
         return 0;
@@ -424,7 +424,7 @@ bool IsSlotInRangeOfGroup(int party_slot, int group_id, W8TargetingContext conte
     SetTargetSourceToCharacter(party_slot, &source);
     if (IsTargetSourceInRangeOfGroup(&source, group, context) == 0) {
         if (notify != 0) {
-            QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_special_event_0068c530, 0,
+            QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_event_target_out_of_range, 0,
                                 g_character_event_no_flags, g_character_event_full_volume);
         }
         return false;

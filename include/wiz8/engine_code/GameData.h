@@ -392,4 +392,4 @@ extern const double g_motion_vector_epsilon;
 extern const float g_footstep_fall_threshold;
 extern unsigned char g_environment_motion_active;
 extern bool g_environ_ground_latch;
-extern srVector3T<float> g_origin_652940;
+extern srVector3T<float> g_world_origin;

@@ -318,7 +318,7 @@ int g_special_event_0068c528 = g_first_remapped_event + 28;
 // GLOBAL: WIZ8 0x0068C52C
 static int g_special_event_0068c52c = g_first_remapped_event + 2;
 // GLOBAL: WIZ8 0x0068C530
-int g_special_event_0068c530 = g_first_remapped_event + 29;
+int g_event_target_out_of_range = g_first_remapped_event + 29;
 // GLOBAL: WIZ8 0x0068C534
 int g_special_event_0068c534 = g_first_remapped_event + 4;
 // GLOBAL: WIZ8 0x0068C538
