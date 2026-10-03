@@ -23,18 +23,14 @@
 /*
  * Wizardry's product fork of Sir-Tech's released Utils/Text_Input.c.
  *
- * The unmodified released unit and header are retained at
- * third_party/sfi-ja2-utils/utils/Text_Input.{c,h}.  This derivative is distributed
- * under the SFI Source Code License Agreement retained with that source.
- * Modified 2026-09-07 to identify the released source and keep only
- * retail-evidenced Wizardry declarations and behavior in the product unit.
- * See third_party/sfi-ja2-utils/README.md for the demonstrated boundary.
+ * Released ancestor: ja2-stracciatella/ja2-stracciatella commit
+ * 5ac0a9d56d27e8a7e2c4a7b48ed8932ae7f64033,
+ * ja2/Build/Utils/Text_Input.{c,h}. This derivative is distributed under the
+ * SFI Source Code License Agreement retained in src/sgp.
  *
- * JA2 Utils ancestry is proven by the retained oracle, but retail has no
- * Text_Input / Utils path string (source-tree.csv, assertions, Wiz8.exe
- * strings). original-tu promotion requires that path evidence; leave
- * unresolved-fragment until one appears. Recovered .cpp / local_code/ placement
- * is a recovery choice, not a proved Wizardry path.
+ * The released JA2 source establishes ancestry, not Wizardry's original source
+ * path. Retail contains no Text_Input / Utils path string, so the recovered
+ * .cpp / local_code/ placement remains a recovery choice.
  */
 
 typedef void (*INPUT_CALLBACK)(unsigned char index, int active);
