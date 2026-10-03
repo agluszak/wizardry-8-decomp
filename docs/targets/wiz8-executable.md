@@ -116,10 +116,14 @@ and PDB:
 uv run wiz8 compare 0x0044e010
 ```
 
-Selected comparison builds current inputs itself; `WIZ8` is not an address selector.
+Selected comparisons consume built inputs; run `uv run wiz8 build` when they are stale.
+`WIZ8` is not an address selector.
 Use the [comparison reference](../../.agents/skills/matching-decomp/references/comparison.md)
 when COFF contributions, folding, or relocation targets require a different modality.
 
-`src/wiz8/vc6_runtime.cpp` marks the twelve currently reviewed CRT/linker identities with
-`// LIBRARY: WIZ8 0x...`. These annotations let reccmp account for library-owned bodies without
-claiming them as first-party recovery; `--nolib` can exclude them from a report.
+`config/reccmp/wiz8-msvc-runtime.csv` and `config/reccmp/wiz8-zlib.csv` retain
+reviewed library identities as `library` rows. These let reccmp account for
+library-owned bodies without claiming first-party recovery; `--nolib` excludes
+them from reports. Vector vtable annotations live with the canonical templates
+in `include/wiz8/vector.h`; compiler emissions use the generated metadata
+[described here](../reccmp-emissions.md).

@@ -1,6 +1,6 @@
 /*
- * Linker- and CRT-owned functions in the canonical sr.dll. As in
- * src/wiz8/vc6_runtime.cpp, LIBRARY markers give reccmp address ownership
+ * Linker- and CRT-owned functions in the canonical sr.dll.
+ * LIBRARY markers give reccmp address ownership
  * without pretending these bodies are first-party recovered source.
  */
 

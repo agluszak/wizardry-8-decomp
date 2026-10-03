@@ -1,7 +1,7 @@
 # Explicit link order for recovered first-party sources. Renaming or moving a
 # unit must not move its slot. Classification lives in source_units.json.
-# original-tu, unresolved-fragment, or compiler-emission.
-# Compiler-emission units collect template/vtable/synthetic material.
+# original-tu or unresolved-fragment.
+# Compiler identities live in reccmp metadata; templates own their vtable annotations.
 # Their original translation-unit ownership is not established.
 set(WIZ8_SOURCE_UNITS
     "src/wiz8/local_code/PC Item.cpp"
@@ -160,7 +160,6 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/level_specific_code/SavantTower.cpp
     src/wiz8/level_specific_code/ConnectiveTissue.cpp
     src/wiz8/level_specific_code/Arnika.cpp
-    src/wiz8/vector.cpp
     src/wiz8/imports/mss.cpp
     src/wiz8/engine_code/Quality.cpp
     src/wiz8/startup_render_state.cpp
@@ -216,9 +215,7 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/music_playlist.cpp
     src/wiz8/npc_items.cpp
     src/wiz8/npc_script_file.cpp
-    src/wiz8/surrender_math.cpp
     src/wiz8/virtual_file_stream.cpp
-    src/wiz8/vc6_runtime.cpp
     src/wiz8/engine_code/trim_string.cpp
 )
 

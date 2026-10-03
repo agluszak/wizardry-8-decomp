@@ -2,6 +2,8 @@ targets:
   WIZ8:
     filename: Wiz8.exe
     data-sources:
+      - config/reccmp/wiz8-msvc-runtime.csv
+      - config/reccmp/wiz8-zlib.csv
       - build/generated/reccmp/wiz8-emissions.csv
     source-root:
       - src/wiz8

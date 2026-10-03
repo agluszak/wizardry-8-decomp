@@ -18,6 +18,7 @@ Everything else remains a preservation failure; there is no waiver list.
 
 from __future__ import annotations
 
+import csv
 import hashlib
 import io
 import re
@@ -37,7 +38,7 @@ MARKER_KINDS = (
     "LIBRARY",
     "STUB",
 )
-IDENTITY_KINDS = frozenset({"FUNCTION", "GLOBAL", "VTABLE", "EMISSION"})
+IDENTITY_KINDS = frozenset({"FUNCTION", "GLOBAL", "VTABLE", "EMISSION", "LIBRARY"})
 PRESERVING_RECLASSIFICATIONS = {
     "FUNCTION": frozenset({"EMISSION", "LIBRARY"}),
     "GLOBAL": frozenset({"STRING"}),
@@ -47,6 +48,12 @@ EMISSION_FILES = (
     "evidence/observations/compiler-emissions.csv",
     "config/reccmp/emission_overrides.csv",
 )
+LIBRARY_FILES = (
+    "config/reccmp/wiz8-msvc-runtime.csv",
+    "config/reccmp/wiz8-zlib.csv",
+)
+METADATA_FILES = EMISSION_FILES + LIBRARY_FILES
+
 SOURCE_SUFFIXES = (".c", ".cpp", ".h", ".hpp")
 
 _MARKER = re.compile(
@@ -169,22 +176,22 @@ def _tree_sources(repo_dir: Path, revision: str | None) -> dict[str, str]:
             "--exclude-standard",
             "--",
             *SOURCE_ROOTS,
-            *EMISSION_FILES,
+            *METADATA_FILES,
         )
         return {
             name: (repo_dir / name).read_text(encoding="utf-8", errors="replace")
             for name in sorted(set(listing.split("\0")))
-            if (name.endswith(SOURCE_SUFFIXES) or name in EMISSION_FILES)
+            if (name.endswith(SOURCE_SUFFIXES) or name in METADATA_FILES)
             and (repo_dir / name).is_file()
         }
-    listing = _git(repo_dir, "ls-tree", "-r", "-z", revision, "--", *SOURCE_ROOTS, *EMISSION_FILES)
+    listing = _git(repo_dir, "ls-tree", "-r", "-z", revision, "--", *SOURCE_ROOTS, *METADATA_FILES)
     files: dict[str, str] = {}
     for entry in listing.split("\0"):
         if not entry:
             continue
         metadata, name = entry.split("\t", 1)
         _mode, kind, oid = metadata.split()
-        if kind == "blob" and (name.endswith(SOURCE_SUFFIXES) or name in EMISSION_FILES):
+        if kind == "blob" and (name.endswith(SOURCE_SUFFIXES) or name in METADATA_FILES):
             files[name] = oid
     if not files:
         return {}
@@ -265,7 +272,7 @@ def collect_identities(
     identities: dict[Identity, list[dict[str, str]]] = defaultdict(list)
     sources = sources if sources is not None else _tree_sources(repo_dir, revision)
     for name, content in sources.items():
-        if name in EMISSION_FILES:
+        if name in METADATA_FILES:
             continue
         lines = content.splitlines()
         for index, line in enumerate(lines):
@@ -323,6 +330,21 @@ def collect_identities(
                 "selector": row.recomp_selector or row.symbol or row.name,
             }
         )
+    for filename in LIBRARY_FILES:
+        if filename not in sources:
+            continue
+        for row in csv.DictReader(io.StringIO(sources[filename]), delimiter="|"):
+            if row["type"] != "library":
+                raise ValueError(f"{filename} contains a non-library identity")
+            key = ("LIBRARY", "WIZ8", int(row["address"], 16))
+            identities[key].append(
+                {
+                    "file": filename,
+                    "entity": "// " + (row["symbol"] or row["name"]),
+                    "form": "",
+                    "name": "",
+                }
+            )
     return identities
 
 
@@ -332,7 +354,7 @@ def _references(sources: dict[str, str], names: set[str]) -> dict[str, int]:
     counts = dict.fromkeys(names, 0)
     pattern = re.compile(r"\b(" + "|".join(re.escape(name) for name in sorted(names)) + r")\b")
     for filename, content in sources.items():
-        if filename in EMISSION_FILES:
+        if filename in METADATA_FILES:
             continue
         for match in pattern.finditer(content):
             counts[match.group(1)] += 1
