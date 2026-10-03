@@ -2,10 +2,8 @@
  * Shared in-process crash diagnostics for the runnable Wizardry 8 images.
  *
  * The matching comparison image does not link this unit. The runnable images
- * use the generated runtime trap stubs instead of /FORCE:UNRESOLVED, so a
- * missing body stops in W8UnrecoveredFunctionTrap with the caller's stack
- * intact. This filter remains for a genuine unhandled fault outside a
- * debugger: it records the register file and every stack word that points
+ * require complete native links. For an unhandled fault outside a debugger,
+ * this filter records the register file and every stack word that points
  * into the main image, and the host-side MAP symbolizer names them.
  */
 

@@ -3,7 +3,7 @@
 # VC6 spells __FILE__ from the compile source argument. The product container
 # mounts this same source tree at the retail path; lint keeps the checkout path.
 set(SGP_DIRECTDRAW_SOURCE "DirectDraw Calls.c")
-if(NOT WIZ8_LINT_COMPILE_ONLY)
+if(NOT WIZ8_ANALYSIS_BUILD)
     set(SGP_DIRECTDRAW_SOURCE "C:/Projects/SGP/DirectDraw Calls.c")
 endif()
 
@@ -51,8 +51,8 @@ add_library(WIZ8_SGP STATIC
 set_source_files_properties(PCX.C DEBUG.C PROPERTIES LANGUAGE C)
 set_source_files_properties(DEBUG.C PROPERTIES COMPILE_DEFINITIONS _NO_DEBUG_TXT)
 target_compile_options(WIZ8_SGP PRIVATE /nologo /Z7 /O2 /Ob2)
-if(NOT WIZ8_LINT_COMPILE_ONLY)
-    target_compile_options(WIZ8_SGP PRIVATE /G5)
+if(NOT WIZ8_ANALYSIS_BUILD)
+    target_compile_options(WIZ8_SGP PRIVATE /G5 /MD)
 endif()
 target_include_directories(WIZ8_SGP PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 target_include_directories(WIZ8_SGP PRIVATE

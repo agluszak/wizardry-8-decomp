@@ -74,7 +74,7 @@ Tests are not a progress ritual.
 - Reuse successful checks until relevant inputs change.
 - Documentation/skill-only changes need diff/link inspection, not product tests.
 
-`wiz8 check` / `pr-check` use the fast non-integration test lane. Real VC6/runtime-stub integration
+`wiz8 check` / `pr-check` use the fast non-integration test lane. Real VC6 integration
 checks and live Ghidra tests remain explicit dedicated lanes; do not duplicate them in the fast suite.
 
 Broad `pr-check` belongs near completion of the coherent change, not after each helper edit.

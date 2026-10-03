@@ -42,13 +42,14 @@ _PRODUCT_INPUT_SUFFIXES = frozenset(
 )
 _LINT_SOURCE_SUFFIXES = frozenset({".c", ".cc", ".cpp", ".cxx", ".h", ".hpp", ".hxx"})
 _LINT_HEADER_SUFFIXES = frozenset({".h", ".hpp", ".hxx"})
-PRODUCT_GENERATOR = "NMake Makefiles"
-_PRODUCT_MOUNT_SENTINELS = {
+PRODUCT_GENERATOR = "NMake Makefiles JOM"
+_SOURCE_MOUNT_SENTINELS = {
     "/jpeg": "jpeglib.h",
     "/zlib": "zlib.h",
     "/infozip": "unzip.c",
 }
-JOM_PROGRAM = r"C:\jom\jom.exe"
+CMAKE_PROGRAM = r"C:\cmake\bin\cmake.exe"
+JOM_PROGRAM = "C:/jom/jom.exe"
 
 
 @dataclass(frozen=True)
@@ -68,9 +69,7 @@ class ContainerBuild:
 
     image: str
     mounts: tuple[Mount, ...]
-    source_dir: Path
     build_dir: Path
-    container_source_dir: str = "Z:/repo"
 
     @classmethod
     def from_settings(cls, settings: Settings) -> ContainerBuild:
@@ -88,7 +87,6 @@ class ContainerBuild:
                 Mount(sources / "infozip-unzip-5.4", "/infozip"),
                 Mount(settings.product_build_dir, "/out", read_only=False),
             ),
-            source_dir=settings.repo_dir,
             build_dir=settings.product_build_dir,
         )
 
@@ -107,17 +105,19 @@ class ContainerBuild:
         command = self.docker_prefix()
         command.extend(
             (
-                r"C:\cmake\bin\cmake.exe",
+                CMAKE_PROGRAM,
+                "--fresh",
                 "-S",
-                self.container_source_dir,
+                "Z:/repo",
                 "-B",
                 "Z:/out",
                 "-G",
                 PRODUCT_GENERATOR,
+                f"-DCMAKE_MAKE_PROGRAM={JOM_PROGRAM}",
                 "-DIJG_JPEG_SOURCE=Z:/jpeg",
                 "-DZLIB_SOURCE=Z:/zlib",
                 "-DINFOZIP_SOURCE=Z:/infozip",
-                "-DCMAKE_BUILD_TYPE=RelWithDebInfo",
+                "-DCMAKE_BUILD_TYPE=",
             )
         )
         return command
@@ -125,23 +125,13 @@ class ContainerBuild:
     def build_command(self, target: str, jobs: int) -> list[str]:
         return [
             *self.docker_prefix(),
-            "cmd",
-            "/c",
-            (
-                r"set TEMP=Z:\out\tmp&& set TMP=Z:\out\tmp&& "
-                rf"cd /d Z:\out&& {JOM_PROGRAM} -j {jobs} {target}"
-            ),
-        ]
-
-    def check_build_system_command(self) -> list[str]:
-        return [
-            *self.docker_prefix(),
-            "cmd",
-            "/c",
-            (
-                r"set TEMP=Z:\out\tmp&& set TMP=Z:\out\tmp&& "
-                rf"cd /d Z:\out&& {JOM_PROGRAM} cmake_check_build_system"
-            ),
+            CMAKE_PROGRAM,
+            "--build",
+            "Z:/out",
+            "--target",
+            target,
+            "--parallel",
+            str(jobs),
         ]
 
 
@@ -369,6 +359,7 @@ def _ensure_sr_assert_import(settings: Settings) -> Path:
 
 def _configure(settings: Settings) -> None:
     build = ContainerBuild.from_settings(settings)
+    _require_prepared_mounts(build.mounts)
     build.build_dir.mkdir(parents=True, exist_ok=True)
     (build.build_dir / "tmp").mkdir(parents=True, exist_ok=True)
     run(
@@ -384,7 +375,10 @@ def _product_cache_ready(build_dir: Path) -> bool:
     if not cache.is_file() or not makefile.is_file():
         return False
     content = cache.read_text(encoding="utf-8", errors="replace").replace("\r", "")
-    return f"CMAKE_GENERATOR:INTERNAL={PRODUCT_GENERATOR}\n" in content
+    return (
+        f"CMAKE_GENERATOR:INTERNAL={PRODUCT_GENERATOR}\n" in content
+        and "CMAKE_BUILD_TYPE:STRING=\n" in content
+    )
 
 
 def prepared_mount_ready(mount: Mount) -> bool:
@@ -392,28 +386,23 @@ def prepared_mount_ready(mount: Mount) -> bool:
 
     if mount.container in {"/repo", "/out"}:
         return mount.host.exists()
-    sentinel = _PRODUCT_MOUNT_SENTINELS.get(mount.container)
+    sentinel = _SOURCE_MOUNT_SENTINELS.get(mount.container)
     if sentinel is None:
         return mount.host.exists()
     return (mount.host / sentinel).is_file()
 
 
-def _enable_jom_parallelism(build_dir: Path) -> list[str]:
-    """Remove only CMake's NMake serialization guards after regeneration.
-
-    CMake runs in the VC6 container and may leave generated files unwritable by
-    the host runner. Replace them atomically instead of truncating them in place.
-    """
-
-    updated: list[str] = []
-    for path in (build_dir / "Makefile", build_dir / "CMakeFiles/Makefile2"):
-        content = path.read_bytes()
-        replacement = content.replace(b".NOTPARALLEL:\r\n", b"# .NOTPARALLEL removed for JOM\r\n")
-        replacement = replacement.replace(b".NOTPARALLEL:\n", b"# .NOTPARALLEL removed for JOM\n")
-        if replacement != content:
-            atomic_write(path, replacement)
-            updated.append(str(path))
-    return updated
+def _require_prepared_mounts(mounts: tuple[Mount, ...]) -> None:
+    missing = [
+        mount.host
+        for mount in mounts
+        if mount.container not in {"/repo", "/out"} and not prepared_mount_ready(mount)
+    ]
+    if missing:
+        rendered = ", ".join(str(path) for path in missing)
+        raise RuntimeError(
+            f"prepared build inputs are missing ({rendered}); run `uv run wiz8 prepare`"
+        )
 
 
 def require_product(settings: Settings, target: str) -> tuple[Path, Path]:
@@ -480,46 +469,12 @@ def build_target(
     with build_lock(settings):
         build = ContainerBuild.from_settings(settings)
         resolved_target = TARGET_ALIASES.get(target, target)
-        missing = [
-            mount.host
-            for mount in build.mounts
-            if mount.container not in {"/repo", "/out"} and not prepared_mount_ready(mount)
-        ]
-        if missing:
-            rendered = ", ".join(str(path) for path in missing)
-            raise RuntimeError(
-                f"prepared build inputs are missing ({rendered}); run `uv run wiz8 prepare`"
-            )
+        _require_prepared_mounts(build.mounts)
         _ensure_sr_assert_import(settings)
         tick = time.perf_counter()
         if not _product_cache_ready(build.build_dir):
             _configure(settings)
         tick = mark("configure_ms", tick)
-        run(
-            build.check_build_system_command(),
-            cwd=settings.repo_dir,
-            log_path=settings.repo_dir / "build/logs/product-regenerate.json",
-        )
-        tick = mark("regenerate_ms", tick)
-        _enable_jom_parallelism(build.build_dir)
-        stubs: dict[str, Any] | None = None
-        if resolved_target in {"WIZ8_RUNTIME", "WIZ8_RUNTIME_TEST"}:
-            # The runnable products must link without /FORCE:UNRESOLVED, so the
-            # comparison MAP and the generated trap thunks must be current
-            # before their link runs. The comparison product keeps /FORCE.
-            run(
-                build.build_command("WIZ8", jobs or max(1, os.cpu_count() or 1)),
-                cwd=settings.repo_dir,
-                log_path=settings.repo_dir / "build" / "logs" / "runtime-prereq.json",
-            )
-            tick = mark("compile_prereq_ms", tick)
-            from .runtime_stubs import write_runtime_stubs
-            from .source_index import write_source_index
-
-            write_source_index(settings)
-            tick = mark("source_index_ms", tick)
-            stubs = write_runtime_stubs(settings)
-            tick = mark("stubs_ms", tick)
         run(
             build.build_command(resolved_target, jobs or max(1, os.cpu_count() or 1)),
             cwd=settings.repo_dir,
@@ -540,7 +495,6 @@ def build_target(
             "log": str(Path("build/logs/product-build.json")),
             "phases_ms": phases,
             "total_ms": int((time.perf_counter() - started) * 1000),
-            "stubs": stubs,
         }
 
 
@@ -629,6 +583,7 @@ def clang_container_prefix(settings: Settings, output: Path) -> list[str]:
         ),
     )
 
+    _require_prepared_mounts(mounts)
     command = [docker, "run", "--rm", "--init", "--network", "none"]
     for mount in mounts:
         command.extend(("--volume", mount.docker_argument()))

@@ -13,9 +13,8 @@
    It also exercises the shared stHash sort helpers the build path uses:
    InsertionSort/QuickSort and the SortByKey ordering heuristics.
 
-   The created objects are deliberately leaked: the runtime image stubs the
-   destructor-side helpers (~W8GameData calls an unrecovered body), and the
-   scenario exits the process immediately after reporting. The globals the
+   The scenario exits the process immediately after reporting and leaves its
+   created objects for process teardown. The globals the
    constructors publish through are restored so the report path runs clean. */
 
 #include "oct_file_semantic_test.h"
@@ -640,8 +639,7 @@ static void RunOctFileRoundTrip(OctFileSemanticResult* result)
 
 restore:
     /* Everything allocated above is deliberately left for process teardown:
-       ~W8GameData and parts of ~W8Octree route through unrecovered stubs in
-       this image. The reader's W8GameData ctor deleted the writer-side
+       the reader's W8GameData ctor deleted the writer-side
        object's environ record through g_environ and republished the
        globals, so all four are restored here. */
     g_oct_pre_tree = saved_pre_tree;

@@ -59,6 +59,14 @@ generic query protocol or alternate runtime harness when the existing owner can 
 ProgramDB is useful analysis annotation, but it is not independent retail evidence confirming that
 same source fact.
 
+## Managed cloud tools
+
+When `/workspace/.tools/activate.sh` exists, source it before tool commands.
+`/workspace/.tools/onboarding-toolchain.sh` provisions and smoke-tests the pinned
+VC6/QEMU and analysis images. Follow [compiler image instructions](docker/msvc600/README.md)
+for Wine/QEMU requirements. With Docker VFS, run compiler containers sequentially
+and source indexing with `uv run wiz8 analyze source-index --jobs 1`.
+
 ## Work by recovery campaign
 
 For a mismatch campaign:

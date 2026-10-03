@@ -9,6 +9,9 @@ target_compile_options(wiz8_compile_settings INTERFACE
     /nologo /Z7
     "/FI${CMAKE_CURRENT_SOURCE_DIR}/include/wiz8/compat/compiler.h"
     /O2
+    "$<$<COMPILE_LANG_AND_ID:C,MSVC>:/MD>"
+    "$<$<COMPILE_LANG_AND_ID:CXX,MSVC>:/MD>"
+    "$<$<COMPILE_LANG_AND_ID:CXX,MSVC>:/GR->"
     "$<$<COMPILE_LANG_AND_ID:C,MSVC>:/G6>"
     "$<$<COMPILE_LANG_AND_ID:CXX,MSVC>:/G6>"
 )
@@ -22,11 +25,3 @@ target_include_directories(wiz8_compile_settings INTERFACE
     include/wiz8/sgp-compat
     src/sgp
 )
-
-# Source reconstruction relies on the compat header being force-included in
-# every recovered C++ translation unit, in the product and lint lanes alike.
-function(wiz8_enable_cpp_compat TARGET)
-    target_compile_options(${TARGET} PRIVATE
-        "$<$<COMPILE_LANGUAGE:CXX>:/FI${PROJECT_SOURCE_DIR}/include/wiz8/compat/compiler.h>"
-    )
-endfunction()

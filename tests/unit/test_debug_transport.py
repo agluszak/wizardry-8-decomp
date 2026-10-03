@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-import json
 import sys
 from dataclasses import replace
 from pathlib import Path
@@ -11,7 +10,7 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 from wiz8decomp.binary.linker_map import LinkerMap
-from wiz8decomp.debug.debugger import find_runtime_stub, format_crash_snapshot
+from wiz8decomp.debug.debugger import format_crash_snapshot
 from wiz8decomp.debug.mi_process import DebuggerTransportError, GdbMiProcess
 from wiz8decomp.debug.mi_protocol import parse_mi_record
 from wiz8decomp.debug.session import (
@@ -42,7 +41,6 @@ def test_exit_during_interrupt_does_not_capture(tmp_path: Path, monkeypatch, sto
             session,
             timeout=1,
             map_path=tmp_path / "runtime.map",
-            manifest_path=tmp_path / "stubs.json",
             provenance=tmp_path / "session.json",
         )
     )
@@ -217,81 +215,14 @@ def test_crossing_into_next_symbol_does_not_bleed(tmp_path: Path) -> None:
     assert resolution.symbol.decorated_name == "_second"
 
 
-def test_stub_recognition_uses_map_not_gdb_names(tmp_path: Path, monkeypatch) -> None:
-    map_path = tmp_path / "Wiz8Runtime.map"
-    map_path.write_text(
-        " 0001:001F1234       _Wiz8UnrecoveredFunctionTrap 005F1234 f   wiz8_unrecovered.cpp.obj\n"
-        " 0001:001F1270       _wiz8_runtime_stub_00506670 005F1270 f   runtime_stubs.cpp.obj\n"
-        " 0001:000F9876       ?SetFact@@YAXH@Z 004F9876 f   fact_state.cpp.obj\n",
-        encoding="ascii",
-    )
-    manifest_path = tmp_path / "runtime_stubs.json"
-    manifest_path.write_text(
-        json.dumps(
-            {
-                "schema": "wiz8.runtime-stubs",
-                "stubs": [
-                    {
-                        "address": "00506670",
-                        "symbol": "?HandleFactChange@@YAXHE@Z",
-                        "stub": "_wiz8_runtime_stub_00506670",
-                        "name": "HandleFactChange",
-                        "requesters": ["fact_state.cpp.obj"],
-                    }
-                ],
-            }
-        ),
-        encoding="utf-8",
-    )
-
-    event = stop_event_from_record(
-        parse_mi_record('*stopped,reason="signal-received",signal-name="SIGTRAP"')
-    )
-    assert event is not None
-    snapshot = CrashSnapshot(
-        event=event,
-        registers={"eip": 0x005F1234},
-        frame_addresses=(0x005F1270,),
-        stack_words=(),
-        fault_address=None,
-        raw_path=tmp_path / "raw.txt",
-    )
-    monkeypatch.setattr(
-        "wiz8decomp.debug.debugger.image_layout", lambda _: (0x400000, 0x200000, 0x1000)
-    )
-    report, resolutions = format_crash_snapshot(snapshot, tmp_path / "runtime.exe", map_path)
-    assert "SIGTRAP" in report
-    stub = find_runtime_stub(resolutions, manifest_path)
-    assert stub is not None
-    assert stub["address"] == "00506670"
-    assert stub["symbol"] == "?HandleFactChange@@YAXHE@Z"
-
-
 @pytest.mark.parametrize("signal", ["SIGSEGV", "SIGTRAP"])
-def test_incidental_address_does_not_classify_runtime_stub(
-    tmp_path: Path, monkeypatch, signal
-) -> None:
+def test_debugger_signal_stops_return_failure(tmp_path: Path, monkeypatch, signal) -> None:
     from wiz8decomp.debug.debugger import _debug_result
 
     map_path = tmp_path / "runtime.map"
     map_path.write_text(
-        " 0001:001F1270       _wiz8_runtime_stub_00506670 005F1270 f   runtime_stubs.cpp.obj\n",
+        " 0001:001F1270       _game_function 005F1270 f   game.cpp.obj\n",
         encoding="ascii",
-    )
-    manifest_path = tmp_path / "runtime_stubs.json"
-    manifest_path.write_text(
-        json.dumps(
-            {
-                "stubs": [
-                    {
-                        "address": "00506670",
-                        "symbol": "?HandleFactChange@@YAXHE@Z",
-                        "stub": "_wiz8_runtime_stub_00506670",
-                    }
-                ]
-            }
-        ),
-        encoding="utf-8",
     )
     event = stop_event_from_record(
         parse_mi_record(f'*stopped,reason="signal-received",signal-name="{signal}"')
@@ -321,13 +252,12 @@ def test_incidental_address_does_not_classify_runtime_stub(
             session,
             timeout=1,
             map_path=map_path,
-            manifest_path=manifest_path,
             provenance=tmp_path / "session.json",
         )
     )
 
     assert result["reason"] == signal
-    assert "UNRECOVERED FUNCTION" not in result["report"]
+    assert result["exit_code"] == 1
 
 
 def test_pe_header_crash_recovers_raw_stack_candidates_without_foreign_frames(
