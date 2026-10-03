@@ -21,7 +21,7 @@ Keep one owner per concern:
 Delete redundant layers. Do not add a second differ, equivalence engine, marker database, source
 inventory, runtime harness, generic query language or parallel report framework.
 
-Observation commands (`compare`, `report compare`, `status`, `addr`, `vtable`, `datacmp`,
+Observation commands (`compare`, `report compare`, `addr`, `vtable`, `datacmp`,
 Ghidra reads) should consume existing state and must not silently rebuild/mutate it unless an explicit
 `--build`/apply operation requests that.
 

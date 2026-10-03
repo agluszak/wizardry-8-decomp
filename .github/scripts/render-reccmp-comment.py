@@ -50,31 +50,12 @@ print(
     "against retail on both revisions._"
 )
 print()
-print("#### Function recovery")
-print()
-print(
-    "| Target | Recovered | Retail | Recovery | Paired | Unpaired line refs | Unpaired name refs |"
-)
-print("| --- | ---: | ---: | ---: | ---: | ---: | ---: |")
-for target, row in rows:
-    project = row["project"]
-    head, delta = project["head"], project["delta"]
-    print(
-        f"| `{target}` "
-        f"| {count_with_delta(head['source_functions'], delta.get('source_functions'))} "
-        f"| {count_with_delta(head.get('original_functions'), delta.get('original_functions'))} "
-        f"| {ratio_with_delta(head.get('source_coverage'), delta.get('source_coverage'))} "
-        f"| {count_with_delta(head['paired'], delta.get('paired'))} "
-        f"| {count_with_delta(head.get('unpaired_line_refs'), delta.get('unpaired_line_refs'))} "
-        f"| {count_with_delta(head.get('unpaired_name_refs'), delta.get('unpaired_name_refs'))} |"
-    )
-
 comparison_rows = [(target, row["comparison"]) for target, row in rows if row.get("comparison")]
 if comparison_rows:
     print()
     print("#### Function quality")
     print()
-    print("Function quality covers the compared selection; catalog counts cover the full targets.")
+    print("Function quality covers the compared selection.")
     print()
     print(
         "| Target | Compared | Similarity scores | Avg similarity | Median | Exact/clean | Clean rate | "

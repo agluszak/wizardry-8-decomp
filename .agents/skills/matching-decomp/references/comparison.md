@@ -121,10 +121,6 @@ function (`different`) from a slot at an unpaired function (`unpaired`, typicall
 `--program` for a non-WIZ8 product when that product is current. `datacmp` is for reviewed `GLOBAL`
 data; it is not a raw whole-section equality test.
 
-`uv run wiz8 report status` reports source coverage, which recovered functions reccmp pairs and on
-what basis, and the counts of the last `compare` report when it compared the current build. It never
-runs Ghidra.
-
 Not every upstream reccmp console entry point belongs in routine verification. `roadmap` is a placement
 report, `cvdump` is a lower-level CodeView inspection tool, and `project`/`ghidra-import` overlap
 project-owned setup/import workflows. Use them directly for a concrete diagnostic need rather than

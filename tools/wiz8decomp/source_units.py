@@ -16,7 +16,6 @@ from typing import Any
 ORIGINAL_TU = "original-tu"
 UNRESOLVED_FRAGMENT = "unresolved-fragment"
 COMPILER_EMISSION = "compiler-emission"
-CLASSIFICATIONS = frozenset({ORIGINAL_TU, UNRESOLVED_FRAGMENT, COMPILER_EMISSION})
 CLASSIFICATION_PATH = Path("src/wiz8/source_units.json")
 SOURCE_TREE_PATH = Path("evidence/observations/wiz8/source-tree.csv")
 SOURCES_CMAKE = Path("src/wiz8/sources.cmake")

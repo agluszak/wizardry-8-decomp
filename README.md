@@ -31,12 +31,6 @@ There are three useful views of the reconstruction:
 The runnable build is intentionally incomplete. Unrecovered first-party calls trap instead of being
 silently replaced with fake implementations.
 
-For current source coverage and pairing statistics, developers can run:
-
-```sh
-uv run wiz8 report status
-```
-
 ## How the reconstruction works
 
 The project combines several kinds of evidence rather than treating decompiler output as source code:

@@ -479,44 +479,10 @@ def _parse_wine_dump(output: str) -> _RuntimeCrash | None:
     return _RuntimeCrash("", fields, candidates)
 
 
-_ADDRESS_PLACEHOLDER = re.compile(r"^\??Function[0-9A-Fa-f]+(?:@|$)")
-
-
-def _unresolved_rank(name: str) -> tuple[int, str]:
-    """Named first-party gaps precede placeholder and compiler-internal ones."""
-
-    if name.startswith("__"):
-        return (2, name)
-    if _ADDRESS_PLACEHOLDER.match(name):
-        return (1, name)
-    return (0, name)
-
-
-def _unresolved_for_owners(
-    object_root: Path | None, map_path: Path | None, owners: list[str]
-) -> dict[str, list[str]]:
-    if object_root is None or not object_root.is_dir():
-        return {}
-    from .unresolved import unresolved_report
-
-    try:
-        report = unresolved_report(object_root, map_path)
-    except Exception:  # noqa: BLE001 - crash correlation must not hide the crash record
-        return {}
-    by_basename: dict[str, list[str]] = {}
-    for unit, symbols in report["by_unit"].items():
-        by_basename.setdefault(Path(unit).name, []).extend(symbols)
-    return {
-        owner: sorted(set(by_basename.get(owner, [])), key=_unresolved_rank)
-        for owner in dict.fromkeys(owners)
-        if owner in by_basename
-    }
-
-
 def format_crash_candidates(
     map_path: Path, object_root: Path | None, candidates: list[tuple[str, int]]
 ) -> tuple[str, list[SymbolResolution]]:
-    """Symbolize candidates and correlate unresolved references at their object owners."""
+    """Symbolize crash candidates through the runtime linker map."""
     resolved = _resolve_addresses(map_path, [address for _, address in candidates])
     lines: list[str] = []
     resolved_pairs = [
@@ -524,13 +490,6 @@ def format_crash_candidates(
     ]
     for index, (candidate, item) in enumerate(resolved_pairs[:8]):
         lines.append(f"#{index} {candidate[0]}: {item.format()}")
-    owners = [item.owner for item in resolved if item is not None]
-    for owner, symbols in _unresolved_for_owners(object_root, map_path, owners).items():
-        lines.append(f"unresolved references from {owner}:")
-        for symbol in symbols[:12]:
-            lines.append(f"  {symbol}")
-        if len(symbols) > 12:
-            lines.append(f"  ... (+{len(symbols) - 12} more)")
     return "\n".join(lines), [item for item in resolved if item is not None]
 
 
@@ -609,7 +568,6 @@ def analyze_runtime_crash(
             if item.location:
                 entry["source_location"] = item.location.strip()
         candidates.append(entry)
-    owners = [item.owner for item in resolved if item is not None]
     report: dict[str, Any] = {
         "schema": "wiz8.runtime-crash",
         "crashes": [
@@ -625,7 +583,6 @@ def analyze_runtime_crash(
                     for name in ("ebp", "eax", "ebx", "ecx", "edx", "esi", "edi")
                 },
                 "candidates": candidates,
-                "unresolved_by_owner": _unresolved_for_owners(object_root, map_path, owners),
             }
         ],
     }

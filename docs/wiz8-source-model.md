@@ -8,10 +8,7 @@ canonical GOG program uses `C:\Projects\Wizardry 8`; the demo uses
 is tracked in `evidence/observations/wiz8/source-tree.csv` with exact absolute spellings and per-build
 presence.
 
-`uv run wiz8 report translation-units` generates the current unit and assertion
-census under `build/reports/translation-units/`. “Demo-only” means that the
-retained absolute string is demo-only; it does not prove that corresponding code
-is absent from retail.
+“Demo-only” means that a retained absolute source string is demo-only; it does not prove that corresponding code is absent from retail.
 
 ## Translation-unit layout
 
@@ -30,8 +27,7 @@ contradiction, surfaced rather than papered over. A gap may contain a unit's una
 invisible TU, or the next unit's head, and is never assigned heuristically. Other official builds
 (demo, 1.2.6, 1.2.8) contribute `cross-build` anchors through unique relocation-insensitive body
 matches, which can establish a retail hull for a unit whose retail path string is gone; ambiguous or
-non-unique matches stay unknown. The same layout drives `wiz8 ghidra decompile`/`sym`
-and `wiz8 report translation-units`; the placement validator in
+non-unique matches stay unknown. The same layout drives `wiz8 ghidra decompile`/`sym`; the placement validator in
 `uv run wiz8 check` compares it against the current source-index placement and enforces every
 anchored function.
 

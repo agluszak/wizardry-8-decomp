@@ -140,29 +140,7 @@ def test_comparison_metrics_count_inline_retries_by_retry_outcome() -> None:
     assert metrics["inline_retry_failures"] == 1
 
 
-def test_pr_report_contains_project_and_comparison_deltas(tmp_path: Path) -> None:
-    head_status = {
-        "targets": {
-            "WIZ8": {
-                "state": "comparison",
-                "source": {"functions": 100},
-                "original_functions": 200,
-                "source_coverage": 0.5,
-                "pairing": {"paired": 95, "unpaired": 5, "unpaired_line_refs": 2},
-            }
-        }
-    }
-    base_status = {
-        "targets": {
-            "WIZ8": {
-                "state": "comparison",
-                "source": {"functions": 90},
-                "original_functions": 200,
-                "source_coverage": 0.45,
-                "pairing": {"paired": 86, "unpaired": 4, "unpaired_line_refs": 2},
-            }
-        }
-    }
+def test_pr_report_contains_comparison_and_data_deltas(tmp_path: Path) -> None:
     head_summary = _summary(
         _row(1, "no-differences"),
         _row(2, "differences", code=True),
@@ -177,8 +155,6 @@ def test_pr_report_contains_project_and_comparison_deltas(tmp_path: Path) -> Non
     )
 
     files = {
-        "head_status": head_status,
-        "base_status": base_status,
         "head_summary": head_summary,
         "base_summary": base_summary,
     }
@@ -219,8 +195,6 @@ def test_pr_report_contains_project_and_comparison_deltas(tmp_path: Path) -> Non
 
     report = pr_comparison_report(
         "WIZ8",
-        paths["head_status"],
-        paths["base_status"],
         head_summary_path=paths["head_summary"],
         base_summary_path=paths["base_summary"],
         head_ghidriff_path=head_md,
@@ -229,9 +203,6 @@ def test_pr_report_contains_project_and_comparison_deltas(tmp_path: Path) -> Non
         base_datacmp_path=base_data,
     )
 
-    assert report["project"]["delta"]["source_functions"] == 10
-    assert report["project"]["delta"]["source_coverage"] == pytest.approx(0.05)
-    assert report["project"]["delta"]["paired"] == 9
     comparison = report["comparison"]
     assert comparison is not None
     assert comparison["head"]["average_similarity"] == pytest.approx((1 + 0.9 + 1) / 3)

@@ -413,14 +413,8 @@ jobs:
         shell: bash
         run: |
           set -uo pipefail
-          status_json="$RUNNER_TEMP/wiz8-head-status.json"
           comparison_status=0
 
-          if uv run wiz8 report status > "$status_json"; then
-            jq -e '.targets.WIZ8.state == "comparison"' "$status_json" >/dev/null || comparison_status=1
-          else
-            comparison_status=1
-          fi
           vtable_status=0
           datacmp_status=0
           uv run wiz8 vtable || vtable_status=$?
@@ -472,8 +466,6 @@ jobs:
           set -euo pipefail
           args=(
             --target WIZ8
-            --head-status "$RUNNER_TEMP/wiz8-head-status.json"
-            --base-status "$RUNNER_TEMP/wiz8-base-status.json"
           )
           args+=(
             --head-summary "$RUNNER_TEMP/wiz8-head-summary.json"
@@ -632,22 +624,11 @@ jobs:
             cp "$latest/direct-calls.json" "$RUNNER_TEMP/surrender-head-direct-calls.json"
           fi
           if (( quality_status != 0 )); then
-            echo "::notice::target-wide SURRENDER comparison contains unpaired/incomplete functions"
+            echo "::error::target-wide SURRENDER comparison contains unpaired/incomplete functions"
+            exit "$quality_status"
           fi
-      - name: Verify SURRENDER catalog
-        id: surrender-status
+      - name: Compare reviewed SURRENDER data
         run: |
-          status_json="$RUNNER_TEMP/surrender-head-status.json"
-          uv run wiz8 report status > "$status_json"
-          # error_count covers live reccmp diagnostics; unpaired_line_refs covers
-          # the same "Failed to find function symbol" failures when the prepared
-          # catalog cache serves the engine without re-emitting log records.
-          jq -e '
-            .targets.SURRENDER.state == "comparison"
-            and .targets.SURRENDER.diagnostics.error_count == 0
-            and .targets.SURRENDER.pairing.unpaired_line_refs == 0
-          ' "$status_json" >/dev/null
-          jq '.targets.SURRENDER' "$status_json"
           datacmp_status=0
           uv run wiz8 datacmp --program sr.dll > "$RUNNER_TEMP/surrender-head-datacmp.json" || datacmp_status=$?
           cat "$RUNNER_TEMP/surrender-head-datacmp.json"
@@ -668,8 +649,6 @@ jobs:
           set -euo pipefail
           args=(
             --target SURRENDER
-            --head-status "$RUNNER_TEMP/surrender-head-status.json"
-            --base-status "$RUNNER_TEMP/surrender-base-status.json"
           )
           args+=(
             --head-summary "$RUNNER_TEMP/surrender-head-summary.json"

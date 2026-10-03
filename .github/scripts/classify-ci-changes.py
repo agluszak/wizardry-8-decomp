@@ -50,7 +50,6 @@ _WIZ8_COMPARISON_FILES = {
     "reccmp-project.yml",
     "tools/wiz8decomp/comparison.py",
     "tools/wiz8decomp/reccmp_data.py",
-    "tools/wiz8decomp/reports/status.py",
 }
 _SURRENDER_PREFIXES = (
     "src/surrender/",
@@ -115,7 +114,6 @@ def classify(paths: Iterable[str]) -> dict[str, bool]:
             if path in {
                 "reccmp-project.yml",
                 "tools/wiz8decomp/comparison.py",
-                "tools/wiz8decomp/reports/status.py",
             }:
                 surrender = True
 
