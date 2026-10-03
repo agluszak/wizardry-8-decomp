@@ -48,21 +48,18 @@ EMISSION_FILES = (
     "evidence/observations/compiler-emissions.csv",
     "config/reccmp/emission_overrides.csv",
 )
-LIBRARY_FILES = (
-    "config/reccmp/wiz8-msvc-runtime.csv",
-    "config/reccmp/wiz8-zlib.csv",
-)
-METADATA_FILES = EMISSION_FILES + LIBRARY_FILES
+LIBRARY_FILES = {
+    "config/reccmp/wiz8-msvc-runtime.csv": "WIZ8",
+    "config/reccmp/wiz8-zlib.csv": "WIZ8",
+    "config/reccmp/surrender-libraries.csv": "SURRENDER",
+}
+METADATA_FILES = EMISSION_FILES + tuple(LIBRARY_FILES)
 
 SOURCE_SUFFIXES = (".c", ".cpp", ".h", ".hpp")
 
 _MARKER = re.compile(
     r"^\s*//\s*(?P<kind>FUNCTION|GLOBAL|STRING|VTABLE|LIBRARY|STUB):\s*"
     r"(?P<target>[A-Za-z0-9_]+)\s+(?P<address>0x[0-9A-Fa-f]+)",
-)
-_LEGACY_EMISSION = re.compile(
-    r"^\s*//\s*(?:SYNTHETIC|TEMPLATE):\s*(?P<target>[A-Za-z0-9_]+)\s+"
-    r"(?P<address>0x[0-9A-Fa-f]+)"
 )
 _DECLARATOR = re.compile(r"([A-Za-z_]\w*(?:::[A-Za-z_]\w*)*)\s*(?:\(|=|;|\[)")
 
@@ -276,29 +273,6 @@ def collect_identities(
             continue
         lines = content.splitlines()
         for index, line in enumerate(lines):
-            # Historical revisions still carry the migrated emission annotations.
-            legacy = _LEGACY_EMISSION.match(line)
-            if legacy is not None:
-                label = lines[index + 1].strip().removeprefix("//").strip()
-                explicit_name = label.startswith("NAME:")
-                label = label.removeprefix("NAME:").strip()
-                selector = (
-                    lines[index + 2].strip().removeprefix("// RECOMP:").strip()
-                    if explicit_name
-                    else label
-                )
-                key = ("EMISSION", legacy.group("target"), int(legacy.group("address"), 16))
-                identities[key].append(
-                    {
-                        "file": name,
-                        "entity": label,
-                        "form": "",
-                        "name": "",
-                        "selector": selector,
-                        "legacy": "true",
-                    }
-                )
-                continue
             marker = _MARKER.match(line)
             if marker is None:
                 continue
@@ -330,13 +304,13 @@ def collect_identities(
                 "selector": row.recomp_selector or row.symbol or row.name,
             }
         )
-    for filename in LIBRARY_FILES:
+    for filename, target in LIBRARY_FILES.items():
         if filename not in sources:
             continue
         for row in csv.DictReader(io.StringIO(sources[filename]), delimiter="|"):
             if row["type"] != "library":
                 raise ValueError(f"{filename} contains a non-library identity")
-            key = ("LIBRARY", "WIZ8", int(row["address"], 16))
+            key = ("LIBRARY", target, int(row["address"], 16))
             identities[key].append(
                 {
                     "file": filename,
@@ -426,15 +400,7 @@ def merge_preservation_report(
         for key in sorted(before.keys() & after.keys())
         if key[0] in IDENTITY_KINDS
         and (
-            # Repeated historical comments collapse to one inventory owner. Its
-            # display identity and selector must be one of the original variants.
-            not all(
-                (item["entity"], item.get("selector", ""))
-                in {(old["entity"], old.get("selector", "")) for old in before[key]}
-                for item in after[key]
-            )
-            if all(item.get("legacy") == "true" for item in before[key])
-            else sorted((item["entity"], item.get("selector", "")) for item in before[key])
+            sorted((item["entity"], item.get("selector", "")) for item in before[key])
             != sorted((item["entity"], item.get("selector", "")) for item in after[key])
         )
     ]

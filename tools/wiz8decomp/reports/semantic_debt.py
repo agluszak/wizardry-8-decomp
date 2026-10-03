@@ -8,7 +8,7 @@ from typing import Any
 
 from ..ghidra.unit_intervals import TranslationUnitLayout, assertion_anchors, read_assertions
 from ..source_index import load_source_index, source_functions
-from ..source_units import UNRESOLVED_FRAGMENT, source_unit_records
+from ..source_units import UNMAPPED_SOURCE, source_unit_records
 
 _PLACEHOLDER = re.compile(r"^Function[0-9A-Fa-f]{6,9}$")
 _ADDRESS_SUFFIX = re.compile(r"[A-Za-z_][A-Za-z0-9_:<>]*[0-9A-Fa-f]{6,8}$")
@@ -938,8 +938,8 @@ def semantic_debt_report(
 
     index = load_source_index(repository)
     units = source_unit_records(repository)
-    fragment_paths = [
-        path for path, record in units.items() if record["class"] == UNRESOLVED_FRAGMENT
+    unmapped_paths = [
+        path for path, record in units.items() if record["mapping"] == UNMAPPED_SOURCE
     ]
     functions = source_functions(repository, target)
     suffixed = [
@@ -952,12 +952,12 @@ def semantic_debt_report(
         if _ADDRESS_SUFFIX.fullmatch(function.name) and not _PLACEHOLDER.fullmatch(function.name)
     ]
 
-    unit_set = set(fragment_paths)
+    unit_set = set(unmapped_paths)
     anchors, headers = assertion_anchors(read_assertions(repository))
     layout = TranslationUnitLayout(anchors, header_anchors=headers)
     provisional_by_file: dict[str, dict[str, Any]] = {
         path: {"source_file": path, "function_count": 0, "candidate_original_units": set()}
-        for path in fragment_paths
+        for path in unmapped_paths
     }
     for marker in index.get("markers", []):
         current = str(marker.get("source_file") or "")
@@ -1010,7 +1010,7 @@ def semantic_debt_report(
         "schema": "wiz8.semantic-debt-v2",
         "non_gating": True,
         "summary": {
-            "unresolved_fragments": len(fragment_paths),
+            "unmapped_sources": len(unmapped_paths),
             "unresolved_function_identities": len(unresolved),
             "address_suffixed_names": len(suffixed),
             "source_shaping_directives": len(source_shaping),
@@ -1030,7 +1030,7 @@ def semantic_debt_report(
             "empty_special_members": len(empty_special),
             "explicit_base_assignments": len(base_assignments),
         },
-        "unresolved_fragments": provisional,
+        "unmapped_sources": provisional,
         "unresolved_function_identities": unresolved,
         "address_suffixed_names": suffixed,
         "source_shaping_directives": source_shaping,

@@ -596,7 +596,10 @@ def compare_selected(
     counts = Counter(row["outcome"] for row in functions)
     retries = [row for row in functions if row.get("inline_callees")]
     output = report_directory(repository, target).resolve()
-    return {
+    result = {
+        "target": target,
+        "requested": len(functions),
+        "inputs": (summary or {}).get("inputs", {}),
         "ok": counts["analysis-failed"] == 0 and counts["unpaired"] == 0 and counts["missing"] == 0,
         "selected": len(functions),
         "counts": {
@@ -621,22 +624,25 @@ def compare_selected(
             "summary": str((output / "summary.json").relative_to(repository))
             if summary is not None
             else None,
+            "classified_summary": str((output / "classified-summary.json").relative_to(repository)),
             "ghidriff": str((output / f"{target}.ghidriff.md").relative_to(repository))
             if summary is not None
             else None,
         },
         "functions": functions,
     }
+    atomic_json(output / "classified-summary.json", result)
+    return result
 
 
 def last_comparison(repository: Path, target: str, recompiled: Path) -> dict[str, Any] | None:
     """Counts from the last reccmp report for this target, if it compared the
     current recompiled binary. Never runs a comparison."""
-    path = report_directory(repository, target) / "summary.json"
+    path = report_directory(repository, target) / "classified-summary.json"
     if not path.is_file():
         return None
     summary = json.loads(path.read_text())
-    if summary["inputs"]["recomp"]["sha256"] != sha256_file(recompiled):
+    if summary.get("inputs", {}).get("recomp", {}).get("sha256") != sha256_file(recompiled):
         return None
     return {"requested": summary["requested"], **summary["counts"]}
 

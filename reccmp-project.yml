@@ -32,6 +32,7 @@ targets:
   SURRENDER:
     filename: sr.dll
     data-sources:
+      - config/reccmp/surrender-libraries.csv
       - build/generated/reccmp/surrender-emissions.csv
     source-root:
       - src/surrender

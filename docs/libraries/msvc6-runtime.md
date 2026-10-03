@@ -16,10 +16,10 @@ across all five snapshots.
 | `0x005E1E71` | 104 | `??_M@YGXPAXIHP6EX0@Z@Z` | vector-destructor iterator |
 | `0x005E1EF1` | 81 | `?__ArrayUnwind@@YGXPAXIHP6EX0@Z@Z` | array unwind after construction failure |
 
-Ghidra already recognizes `__aulldiv`, `__allmul`, and `__aullshr`. `LIBRARY` source markers supply
+Ghidra already recognizes `__aulldiv`, `__allmul`, and `__aullshr`. `config/reccmp/wiz8-msvc-runtime.csv` supplies
 the reviewed names with their original decorated spelling. Keeping these functions classified as compiler support prevents them from
 inflating Wizardry source-recovery counts. `uv run wiz8 check`'s `source-oracle` gate treats the
-documented CRT helper cluster, CRT startup range, and these `LIBRARY` / `fid-variants` claims as
+documented CRT helper cluster, CRT startup range, and these library metadata rows / `fid-variants` claims as
 oracle-owned: a Wizardry `FUNCTION` body in that space is a gate failure.
 
 The agreement across snapshots is deliberately not described as evidence for one VC6 service
@@ -41,7 +41,7 @@ read directly from the imported decorated export and is therefore ABI-backed. Th
 is not imported under that name: its descriptive identity comes from its exact forwarding body and
 the compiler-generated destructor sites that call it. The IAT jumps belong in generated emission
 metadata because the linker emits them, while the
-local delete wrapper retains its `LIBRARY` marker. The IAT identities and their ownership meaning
+local delete wrapper retains its library metadata identity. The IAT identities and their ownership meaning
 are reviewed separately in `evidence/reviewed/wiz8/allocator-layers.csv` because an IAT slot is data,
 not a function.
 

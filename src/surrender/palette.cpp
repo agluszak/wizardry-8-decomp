@@ -1298,11 +1298,3 @@ srPalette* srPalette::Optimizer::createOptimalPalette(const PaletteInfo& info)
     }
     return palette;
 }
-
-// LIBRARY: SURRENDER 0x10004FA0
-// ??_L@YGXPAXIIP6EX0@Z@Z
-
-/* The linked memset body lands mid-unit (0x10007470): Quantizer::setPalette
-   and the renderer call it with the three-argument cdecl convention. */
-// LIBRARY: SURRENDER 0x10007470
-// memset

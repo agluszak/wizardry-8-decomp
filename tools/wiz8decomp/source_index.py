@@ -22,7 +22,7 @@ from .config import Settings
 from .paths import compile_database_relative
 
 _SOURCE_SUFFIXES = frozenset({".c", ".cc", ".cpp", ".cxx", ".h", ".hpp", ".hxx"})
-_EMISSION_MARKER = re.compile(r"^\s*//\s*(?:SYNTHETIC|TEMPLATE):\s+")
+_EMISSION_MARKER = re.compile(r"^\s*//\s*(?:SYNTHETIC|TEMPLATE|LIBRARY):\s+")
 
 LINT_ONLY_SOURCE_ROOTS = ("tests/runtime",)
 _ATTACHED_INCLUDE_FLAGS = (
@@ -45,7 +45,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 def validate_authored_marker_blocks(repository: Path) -> int:
-    """Compiler emission identities belong in generated reccmp data sources."""
+    """Compiler and library identities belong in reccmp data sources."""
     failures: list[str] = []
     for root_name in ("src", "include"):
         root = repository / root_name
@@ -59,7 +59,7 @@ def validate_authored_marker_blocks(repository: Path) -> int:
                     failures.append(f"{path.relative_to(repository)}:{index}")
     if failures:
         raise SourceIndexError(
-            "compiler emissions belong in the emission inventory, not source markers:\n"
+            "compiler/library identities belong in reccmp metadata, not source markers:\n"
             + "\n".join(failures)
         )
     return 0

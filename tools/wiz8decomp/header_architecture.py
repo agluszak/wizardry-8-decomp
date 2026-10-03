@@ -11,7 +11,7 @@ Every header under ``include/wiz8`` gets an inferred role:
 - ``multi-tu``: declarations resolve to several original TUs; allowed only
   when ``allowed-multi-tu-headers`` covers the resolved set.
 - ``provisional-interface``: every resolved declaration lives in an
-  ``unresolved-fragment`` source file; inferred, never persisted.
+  unmapped source file; inferred, never persisted.
 - ``unresolved``: no declaration resolves to an implementation or a retail
   placement.
 
@@ -41,9 +41,8 @@ from .ghidra.unit_intervals import (
     read_assertions,
 )
 from .source_units import (
-    COMPILER_EMISSION,
-    ORIGINAL_TU,
-    UNRESOLVED_FRAGMENT,
+    MAPPED_ORIGINAL_TU,
+    UNMAPPED_SOURCE,
     SourceUnitError,
     source_unit_records,
 )
@@ -181,18 +180,15 @@ def _index_maps(
 def _classify_source(
     source_file: str,
     units: set[str],
-    fragments: set[str],
-    emissions: set[str],
+    unmapped_sources: set[str],
     recovered: set[str],
     unit_records: dict[str, dict[str, Any]],
 ) -> None:
     record = unit_records.get(source_file)
-    if record is not None and record["class"] == ORIGINAL_TU:
+    if record is not None and record["mapping"] == MAPPED_ORIGINAL_TU:
         units.add(record["original_path"])
-    elif record is not None and record["class"] == UNRESOLVED_FRAGMENT:
-        fragments.add(source_file)
-    elif record is not None and record["class"] == COMPILER_EMISSION:
-        emissions.add(source_file)
+    elif record is not None and record["mapping"] == UNMAPPED_SOURCE:
+        unmapped_sources.add(source_file)
     else:
         recovered.add(source_file)
 
@@ -246,8 +242,7 @@ def analyze_header_architecture(
         relative = str(path.relative_to(repo_dir))
         decls = decls_by_header.get(relative, [])
         units: set[str] = set()
-        fragments: set[str] = set()
-        emissions: set[str] = set()
+        unmapped_sources: set[str] = set()
         recovered: set[str] = set()
         header_defined = 0
         unresolved: list[str] = []
@@ -273,8 +268,7 @@ def analyze_header_architecture(
                 _classify_source(
                     source_file,
                     units,
-                    fragments,
-                    emissions,
+                    unmapped_sources,
                     recovered,
                     unit_records,
                 )
@@ -306,7 +300,7 @@ def analyze_header_architecture(
             role = BRIDGE
         elif is_layout or not decls:
             role = SHARED_LAYOUT
-        elif not units and not fragments and not emissions and not recovered:
+        elif not units and not unmapped_sources and not recovered:
             if unresolved:
                 role = UNRESOLVED
             else:
@@ -361,8 +355,7 @@ def analyze_header_architecture(
                 "role": role,
                 "original_units": sorted(units),
                 "original_path": proven.get(relative),
-                "fragment_units": sorted(fragments),
-                "emission_units": sorted(emissions),
+                "unmapped_source_files": sorted(unmapped_sources),
                 "recovered_files": sorted(recovered),
                 "functions": sum(1 for d in decls if d["kind"] == "function"),
                 "globals": sum(1 for d in decls if d["kind"] == "global"),
@@ -405,54 +398,45 @@ def analyze_header_architecture(
         "provisional": sorted(provisional),
         "multi_tu": multi_tu,
         "unresolved": unresolved_headers,
-        "unresolved_fragments": _fragment_ownership(repo_dir, layout, index),
+        "unmapped_sources": _unmapped_source_ownership(repo_dir, layout, index),
         "violations": violations,
     }
 
 
-def _fragment_ownership(
+def _unmapped_source_ownership(
     repo_dir: Path, layout: TranslationUnitLayout, index: dict[str, Any]
 ) -> list[dict[str, Any]]:
-    """Report current fragment evidence without a separate ownership layer."""
+    """Report current original-path attribution without a separate ownership layer."""
     try:
         units = source_unit_records(repo_dir)
     except (SourceUnitError, OSError):
         return []
-    fragment_files = {
-        path for path, record in units.items() if record["class"] == UNRESOLVED_FRAGMENT
+    unmapped_files = {
+        path for path, record in units.items() if record["mapping"] == UNMAPPED_SOURCE
     }
-    fragments: list[dict[str, Any]] = []
-    for fragment_file in sorted(fragment_files):
+    unmapped_sources: list[dict[str, Any]] = []
+    for unmapped_file in sorted(unmapped_files):
         functions = []
         for marker in index["markers"]:
             if (
-                marker.get("marker_kind") != "function"
+                marker.get("marker_kind") != "FUNCTION"
                 or marker.get("address") is None
-                or marker.get("source_file") != fragment_file
+                or marker.get("source_file") != unmapped_file
             ):
                 continue
             owner = layout.owner(int(marker["address"]))
-            if owner["attribution"] == "direct":
-                suggestion = "merge"
-            elif owner["attribution"] in {
-                "bounded",
-                "inlined-or-conflicting",
-                "cross-build",
-            }:
-                suggestion = "split"
-            else:
-                suggestion = "keep-fragment"
             functions.append(
                 {
                     "marker": marker["marker_name"],
                     "address": marker["address"],
-                    "suggestion": suggestion,
                     "attribution": owner["attribution"],
                     "owner": owner["source_path"],
                 }
             )
-        fragments.append({"file": fragment_file, "functions": functions, "path": fragment_file})
-    return fragments
+        unmapped_sources.append(
+            {"file": unmapped_file, "functions": functions, "path": unmapped_file}
+        )
+    return unmapped_sources
 
 
 def header_architecture_violations(report: dict[str, Any]) -> list[str]:

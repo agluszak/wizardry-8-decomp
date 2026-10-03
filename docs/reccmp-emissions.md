@@ -73,3 +73,16 @@ Scoped generation updates only selected targets. Body/structural correlation is
 outside this migration; ambiguous inventory identities remain unresolved until
 independent analysis or reviewed overrides establish a match. Live pairing/report
 parity requires compiled images and a compiler-backed source index.
+
+Library identities are owned by `config/reccmp/wiz8-msvc-runtime.csv`,
+`wiz8-zlib.csv`, and `surrender-libraries.csv`; authored source rejects
+`LIBRARY:` just as it rejects `SYNTHETIC:` and `TEMPLATE:`.
+
+Comparisons retain reccmp's native `summary.json` for detailed differencing and
+persist the source/PDB-classified result as `classified-summary.json`. CI uses
+the classified result on both PR head and merge base to report requested,
+analyzed, non-emitted (internal/template/header), unpaired, and failed coverage.
+A merge-base procedure that becomes an internal non-emission fails PR validation.
+SurRender export validation likewise compares the extra decorated export names
+against the merge-base build: existing compiler debt can shrink, but new or
+replacement exports fail. Neither gate uses a function or export waiver list.

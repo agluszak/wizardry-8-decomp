@@ -6,13 +6,7 @@ using the `retail-bug` predicate. Each claim binds a retained function entry
 to observed behavior and instruction references. This document contains no
 separately maintained defect inventory.
 
-Generate the current document with:
-
-```sh
-uv run wiz8 report retail-bugs
-```
-
-The report is written under `build/reports/retail-bugs/`. Add a reviewed claim
+Add a reviewed claim
 when retail instructions establish a defect; suspicious source or a comparison
 disagreement alone is insufficient. Binary behavior does not establish original
 local declarations or compiler-storage aliases.

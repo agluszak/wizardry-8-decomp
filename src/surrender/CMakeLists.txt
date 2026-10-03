@@ -51,7 +51,6 @@ add_library(wiz8_surrender_objects OBJECT
     variable_timer.cpp
     triangulator.cpp
     type_registry.cpp
-    vc6_runtime.cpp
     video_manager.cpp
     window.cpp
     window_out.cpp

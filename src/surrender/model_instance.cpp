@@ -234,12 +234,3 @@ void srModelInstance::setExclusionMask(unsigned long mask)
 {
     exclusion_mask_15c = mask;
 }
-
-// LIBRARY: SURRENDER 0x10050230
-// std::ios_base::Init::Init
-
-// LIBRARY: SURRENDER 0x10050270
-// std::_Winit::_Winit
-
-// LIBRARY: SURRENDER 0x100502B0
-// MFC CRect::CRect

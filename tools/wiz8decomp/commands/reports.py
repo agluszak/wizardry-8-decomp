@@ -7,16 +7,8 @@ from typing import Annotated
 import typer
 
 from .. import command_support as cli
-from ..reports.retail_bugs import retail_bug_report
 
 app = typer.Typer(help="Generate reports from collected evidence.", no_args_is_help=True)
-
-
-@app.command("retail-bugs")
-def retail_bugs_command() -> None:
-    """Render reviewed bug claims without rebuilding or reading Ghidra."""
-    settings = cli.settings()
-    cli.emit(retail_bug_report(settings.repo_dir, settings.build_dir / "reports" / "retail-bugs"))
 
 
 @app.command("compare")
@@ -41,7 +33,6 @@ def comparison_command(
     ] = 0,
 ) -> None:
     """Inspect a saved comparison without compiling or starting Ghidra."""
-    from .. import command_support as cli
     from ..comparison import parse_address
     from ..reports.comparison import comparison_report
     from ..source_index import target_for_program
@@ -88,6 +79,8 @@ def pr_comparison_command(
     base_ghidriff: Annotated[Path | None, typer.Option("--base-ghidriff")] = None,
     head_datacmp: Annotated[Path | None, typer.Option("--head-datacmp")] = None,
     base_datacmp: Annotated[Path | None, typer.Option("--base-datacmp")] = None,
+    head_exports: Annotated[Path | None, typer.Option("--head-exports")] = None,
+    base_exports: Annotated[Path | None, typer.Option("--base-exports")] = None,
     head_direct_calls: Annotated[Path | None, typer.Option("--head-direct-calls")] = None,
     base_direct_calls: Annotated[Path | None, typer.Option("--base-direct-calls")] = None,
     since: Annotated[
@@ -100,7 +93,6 @@ def pr_comparison_command(
 ) -> None:
     """Summarize PR-head comparison health and its change from the merge base."""
 
-    from .. import command_support as cli
     from ..reports.comparison_delta import pr_comparison_report
 
     header_includers = None
@@ -119,20 +111,23 @@ def pr_comparison_command(
                 str(file.resolve()) for file in dependents if _includes_directly(file, header)
             }
 
-    cli.emit(
-        pr_comparison_report(
-            target,
-            head_summary_path=head_summary,
-            base_summary_path=base_summary,
-            head_ghidriff_path=head_ghidriff,
-            base_ghidriff_path=base_ghidriff,
-            head_datacmp_path=head_datacmp,
-            base_datacmp_path=base_datacmp,
-            head_direct_calls_path=head_direct_calls,
-            base_direct_calls_path=base_direct_calls,
-            header_includers=header_includers,
-        )
+    result = pr_comparison_report(
+        target,
+        head_summary_path=head_summary,
+        base_summary_path=base_summary,
+        head_ghidriff_path=head_ghidriff,
+        base_ghidriff_path=base_ghidriff,
+        head_datacmp_path=head_datacmp,
+        base_datacmp_path=base_datacmp,
+        head_direct_calls_path=head_direct_calls,
+        base_direct_calls_path=base_direct_calls,
+        header_includers=header_includers,
+        head_exports_path=head_exports,
+        base_exports_path=base_exports,
     )
+    cli.emit(result)
+    if not result["ok"]:
+        raise typer.Exit(1)
 
 
 @app.command("semantic-debt")
@@ -141,7 +136,6 @@ def semantic_debt_command(
 ) -> None:
     """Rank provisional recovery work without turning it into a gate."""
 
-    from .. import command_support as cli
     from ..reports.semantic_debt import semantic_debt_report
     from ..source_index import target_for_program, warn_if_source_index_may_be_stale
 
@@ -155,7 +149,6 @@ def semantic_debt_command(
 def source_oracle_command() -> None:
     """Report proven available-source ownership and fail on Wizardry misplaced recoveries."""
 
-    from .. import command_support as cli
     from ..source_index import warn_if_source_index_may_be_stale
     from ..source_oracle import source_oracle_report
 
@@ -171,7 +164,6 @@ def source_oracle_command() -> None:
 def semantic_names_command() -> None:
     """Rank frequently referenced FunctionXXXXXXXX declarations for recovery."""
 
-    from .. import command_support as cli
     from ..reports.semantic_debt import semantic_name_opportunity_report
     from ..source_index import warn_if_source_index_may_be_stale
 
@@ -191,7 +183,6 @@ def merge_preservation_command(
 ) -> None:
     """Compare FUNCTION/GLOBAL/VTABLE identities by retail address between two revisions."""
 
-    from .. import command_support as cli
     from ..merge_preservation import base_ancestry_report, merge_preservation_report
 
     repository = cli.settings().repo_dir

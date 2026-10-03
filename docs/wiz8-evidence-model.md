@@ -201,7 +201,7 @@ Ghidra defaults and compiler-local labels do not establish original source names
 
 Authority counts are derived from the reviewed catalogs rather than copied into this
 document. The central source model scans `src/wiz8` and `include/wiz8` once and derives address,
-current name, prototype, and source path from authored `FUNCTION` and retained `LIBRARY` markers.
+current name, prototype, and source path from authored `FUNCTION` markers; library identities live in reccmp CSV metadata.
 Compiler/template emissions use the [binary emission inventory](reccmp-emissions.md), outside the source
 model. Unrecovered identities remain Ghidra entities.
 

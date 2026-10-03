@@ -91,6 +91,8 @@ def test_comment_discloses_partial_similarity_coverage(monkeypatch, capsys) -> N
         str(Path(__file__).resolve().parents[2] / ".github/scripts/render-reccmp-comment.py")
     )
     rendered = capsys.readouterr().out
+    assert "Requested | Analyzed | Non-emitted" in rendered
+    assert "Unpaired | Analysis failed | Missing" in rendered
     assert "Similarity scores" in rendered
     assert "| 1/2 | 100.00% |" in rendered
     assert "missing ratios are excluded" in rendered
@@ -238,3 +240,117 @@ def test_datacmp_metrics_report_matches_and_differences() -> None:
         "field_differences": 4,
         "raw_only_issues": 1,
     }
+
+
+@pytest.mark.parametrize("paired", [True, False])
+def test_internal_non_emission_cannot_hide_disappearing_procedure(tmp_path: Path, paired: bool):
+    base = _summary(
+        {
+            **_row(1, "differences" if paired else "internal-non-emission"),
+            "recomp": "0x10001" if paired else None,
+        }
+    )
+    head = _summary({**_row(1, "internal-non-emission"), "recomp": None})
+    paths = {}
+    for name, value in {
+        "head_summary": head,
+        "base_summary": base,
+        "head_ghidriff": _ghidriff(),
+        "base_ghidriff": _ghidriff(),
+    }.items():
+        paths[name] = tmp_path / f"{name}.json"
+        paths[name].write_text(json.dumps(value))
+    report = pr_comparison_report("WIZ8", **{f"{key}_path": value for key, value in paths.items()})
+    assert report["ok"] is not paired
+    assert len(report["emission_regressions"]) == int(paired)
+    assert report["comparison"]["head"]["non_emitted"] == 1
+    assert report["comparison"]["delta"]["non_emitted"] == int(paired)
+
+
+@pytest.mark.parametrize(
+    "head,added,removed",
+    [
+        (["existing-a", "existing-b"], [], []),
+        (["existing-a", "existing-b", "new"], ["new"], []),
+        (["existing-a", "replacement"], ["replacement"], ["existing-b"]),
+        (["existing-a"], [], ["existing-b"]),
+    ],
+)
+def test_export_debt_is_compared_by_identity(tmp_path: Path, head, added, removed):
+    paths = []
+    for name, symbols in [("head", head), ("base", ["existing-a", "existing-b"])]:
+        path = tmp_path / f"{name}.json"
+        path.write_text(json.dumps({"compiler_exports_absent_from_retail": symbols}))
+        paths.append(path)
+    report = pr_comparison_report(
+        "SURRENDER", head_exports_path=paths[0], base_exports_path=paths[1]
+    )
+    assert report["exports"]["added"] == added
+    assert report["exports"]["removed"] == removed
+    assert report["ok"] is (not added)
+
+
+def test_surender_export_baseline_is_required(tmp_path: Path):
+    with pytest.raises(ValueError, match="both head and merge-base export reports"):
+        pr_comparison_report("SURRENDER", head_summary_path=tmp_path / "head.json")
+
+
+def test_classified_comparison_coverage_includes_all_debt():
+    summary = _summary(
+        *[
+            _row(i, outcome)
+            for i, outcome in enumerate(
+                [
+                    "no-differences",
+                    "internal-non-emission",
+                    "template-non-emission",
+                    "header-emission",
+                    "unpaired",
+                    "analysis-failed",
+                    "missing",
+                ]
+            )
+        ]
+    )
+    metrics = comparison_metrics(summary, _ghidriff())
+    assert [
+        metrics[key]
+        for key in [
+            "requested",
+            "analyzed",
+            "non_emitted",
+            "unpaired",
+            "analysis_failed",
+            "missing",
+        ]
+    ] == [7, 1, 3, 1, 1, 1]
+
+
+@pytest.mark.parametrize("added", [False, True])
+def test_pr_report_cli_fails_on_new_export_debt(tmp_path: Path, added: bool):
+    from typer.testing import CliRunner
+    from wiz8decomp.commands.reports import app
+
+    paths = {}
+    for side, symbols in [
+        ("head", ["existing", "new"] if added else ["existing"]),
+        ("base", ["existing"]),
+    ]:
+        paths[side] = tmp_path / f"{side}.json"
+        paths[side].write_text(json.dumps({"compiler_exports_absent_from_retail": symbols}))
+    result = CliRunner().invoke(
+        app,
+        [
+            "pr-comparison",
+            "--target",
+            "SURRENDER",
+            "--head-exports",
+            str(paths["head"]),
+            "--base-exports",
+            str(paths["base"]),
+        ],
+    )
+    assert result.exit_code == int(added)
+    report = json.loads(result.stdout)
+    assert report["ok"] is (not added)
+    assert report["exports"]["added"] == (["new"] if added else [])

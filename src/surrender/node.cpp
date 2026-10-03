@@ -1511,9 +1511,3 @@ void srNode::rollAt(const srNode* target, double amount)
     rollAt(srVector3T<double>(rotation.vectors[0].x, rotation.vectors[1].x, rotation.vectors[2].x),
            amount);
 }
-
-// LIBRARY: SURRENDER 0x10055640
-// std::ios_base::Init::Init
-
-// LIBRARY: SURRENDER 0x10055680
-// std::_Winit::_Winit

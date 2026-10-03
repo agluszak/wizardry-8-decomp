@@ -116,9 +116,9 @@ Source and translation-unit ownership rules belong to the
 - A vtable, lifecycle body, deleting destructor, address or template emission alone does not prove an
   authored class. Compare canonical bases/templates first. Compiler-generated deleting destructors,
   vtordisp/adjustor thunks and template instantiations belong in generated reccmp metadata,
-  never `SYNTHETIC`/`TEMPLATE` source markers or invented `FUNCTION` bodies. `LIBRARY`
-  markers remain marker-only; generic template implementations stay at their canonical owner. A
-  compiler-emission TU contains provenance only, not handwritten function/global definitions.
+  never `SYNTHETIC`/`TEMPLATE` source markers or invented `FUNCTION` bodies. Library
+  identities likewise belong in reccmp metadata, not `LIBRARY` source markers or separate
+  translation units. Generic template implementations stay at their canonical owner.
 - Matching markers bind to the following source entity. Keep `// FUNCTION:` immediately adjacent to
   its declaration/definition; move pragmas/unrelated comments above the marker. Follow the matching
   skill for binary emission metadata and `LIBRARY`, `VTABLE` and `GLOBAL` ownership.

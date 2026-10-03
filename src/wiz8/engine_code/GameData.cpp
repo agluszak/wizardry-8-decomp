@@ -2171,8 +2171,6 @@ unsigned char W8GDSurface::ApplyEnvironContact(srVector3T<float>* direction)
 
 /* VC6 vector constructor iterator, emitted for an ordinary array construction.
    This is compiler support, not an authored Wizardry callback wrapper. */
-// LIBRARY: WIZ8 0x0041e880
-// vector constructor iterator
 
 // FUNCTION: WIZ8 0x0041EEE0
 void ResetLevelMovement(float movement_limit, bool reset, bool fast_move)
