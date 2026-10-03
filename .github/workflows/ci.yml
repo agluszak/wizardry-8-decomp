@@ -224,6 +224,13 @@ jobs:
           key: analysis-state-v1-${{ runner.os }}-${{ hashFiles('uv.lock', 'docker/msvc600/**', 'config/build-inputs.yml') }}-${{ github.sha }}
           restore-keys: |
             analysis-state-v1-${{ runner.os }}-${{ hashFiles('uv.lock', 'docker/msvc600/**', 'config/build-inputs.yml') }}-
+      - name: Restore public library source cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.WIZ8_WORK_DIR }}/sources
+          key: wiz8-sources-v1-${{ hashFiles('config/build-inputs.yml', 'tools/wiz8decomp/build_inputs.py') }}
+      - name: Prepare public library sources
+        run: uv run wiz8 prepare --sources-only
       - name: Run repository checks and Python tests
         run: uv run wiz8 check
       - name: Run clang-cl and clang-tidy lints
@@ -291,10 +298,6 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             innoextract llvm wine wine32:i386 wine64
           mkdir -p "$WIZ8_INPUT_DIR" "$WIZ8_WORK_DIR"
-          mkdir -p \
-            "$WIZ8_WORK_DIR/sources/unpacked/zlib-1.0.4/zlib-1.0.4" \
-            "$WIZ8_WORK_DIR/sources/unpacked/ijg-jpeg-6/jpeg-6" \
-            "$WIZ8_WORK_DIR/sources/unpacked/infozip-unzip-5.4"
           command -v llvm-undname
           command -v wine
       # reccmp comparison consumes the compiler-backed source index, which
@@ -360,7 +363,7 @@ jobs:
             echo "Could not resolve PR merge base" >&2
             exit 1
           fi
-          if ! git diff --name-only "$merge_base" HEAD | \
+          if ! git diff --name-only --diff-filter=d "$merge_base" HEAD | \
             grep -Eq '^(src/wiz8/|src/sgp/|include/wiz8/|include/surrender/).*\.(c|cc|cpp|cxx|h|hpp|hxx)$'; then
             echo 'No changed WIZ8 C/C++ source; skipping function comparison.'
             exit 0
@@ -594,7 +597,7 @@ jobs:
             echo "Could not resolve PR merge base" >&2
             exit 1
           fi
-          if ! git diff --name-only "$merge_base" HEAD | \
+          if ! git diff --name-only --diff-filter=d "$merge_base" HEAD | \
             grep -Eq '^(src/surrender/|include/surrender/).*\.(c|cc|cpp|cxx|h|hpp|hxx)$'; then
             echo 'No changed SURRENDER C/C++ source; skipping function comparison.'
             exit 0

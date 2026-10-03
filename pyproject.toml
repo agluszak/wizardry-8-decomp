@@ -25,7 +25,6 @@ dev = [
   "clang-format==21.1.8",
   "cmake>=3.26,<5",
   "pytest>=8.4,<10",
-  "pytest-cov>=6.2,<8",
   "pyright>=1.1.403,<2",
   "reccmp",
   "ruff>=0.12,<1",

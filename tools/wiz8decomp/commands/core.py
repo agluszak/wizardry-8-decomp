@@ -26,15 +26,27 @@ def prepare_command(
             help="Prepare only reviewed original binaries for this reccmp target; repeatable.",
         ),
     ] = None,
+    sources_only: Annotated[
+        bool,
+        typer.Option("--sources-only", help="Fetch public library sources without game inputs."),
+    ] = False,
 ) -> None:
-    """Prepare full runtime inputs or a minimal comparison-only corpus."""
+    """Prepare public sources, full runtime inputs or a minimal comparison corpus."""
     from .. import command_support as cli
     from ..build import prepare, prepare_comparison
+    from ..build_inputs import fetch_sources
 
+    if sources_only and comparison_target:
+        raise typer.BadParameter("--sources-only cannot be combined with --comparison-target")
     settings = cli.settings()
-    cli.emit(
-        prepare_comparison(settings, comparison_target) if comparison_target else prepare(settings)
-    )
+    if sources_only:
+        cli.emit(fetch_sources(settings))
+    else:
+        cli.emit(
+            prepare_comparison(settings, comparison_target)
+            if comparison_target
+            else prepare(settings)
+        )
 
 
 def check_command() -> None:

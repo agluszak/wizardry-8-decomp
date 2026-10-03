@@ -9,22 +9,6 @@ refresh_app = typer.Typer(
 app.add_typer(refresh_app, name="refresh")
 
 
-def debug_artifacts_command(
-    update_snapshot: bool = typer.Option(False, "--update-snapshot"),
-    archive_password: str | None = typer.Option(
-        None, "--archive-password", envvar="WIZ8_DEBUG_ARCHIVE_PASSWORD"
-    ),
-) -> None:
-    from .. import command_support as cli
-    from ..debug_artifacts import sweep_debug_artifacts
-
-    cli.emit(
-        sweep_debug_artifacts(
-            cli.settings(), update_snapshot=update_snapshot, archive_password=archive_password
-        )
-    )
-
-
 def surrender_abi_command(update_snapshot: bool = typer.Option(False, "--update-snapshot")) -> None:
     from .. import command_support as cli
     from ..surrender_abi import sweep_surrender_abi
@@ -32,7 +16,6 @@ def surrender_abi_command(update_snapshot: bool = typer.Option(False, "--update-
     cli.emit(sweep_surrender_abi(cli.settings(), update_snapshot=update_snapshot))
 
 
-refresh_app.command("debug-artifacts")(debug_artifacts_command)
 refresh_app.command("surrender-abi")(surrender_abi_command)
 
 

@@ -19,6 +19,9 @@ The demo's asymmetry against the other alternate builds is part of the model: de
 Sir-Tech development history, while 1.261 and 1.28 differences are third-party modifications.
 `evidence/reviewed/cross-build/oracles.csv` already records that role per build.
 
+The input-container investigation found no source, debug-symbol or project-file artifacts in the
+inspected corpus; this finding does not establish their absence from uninspected releases.
+
 ## Four independent axes
 
 A reviewed identity answers four separate questions. Collapsing them is the mistake this model
