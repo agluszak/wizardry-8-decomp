@@ -6,7 +6,7 @@ client-emitted bodies do not prove that `Derived` authored duplicate methods.
 
 Check decorated base names and the retail `getClassNode` shape. A generic ClassID lookup followed by
 registration through `Derived::sGetClassName()` and `Base::sGetClassNode()` is template evidence.
-Mark emitted instantiations with `TEMPLATE` and keep the generic definition in its canonical header.
+Record emitted instantiations in the binary emission inventory and keep the generic definition in its canonical header.
 
 ## Emission identity is weaker than source type identity
 
@@ -30,8 +30,8 @@ model that matches the typed producer/consumer semantics. Do not preserve pointe
 record reinterpretations or other casts merely because one body-equivalent emission was first labeled
 with an integer specialization.
 
-A `TEMPLATE` marker therefore binds a retail emission address to a template implementation family. Its
-human-readable comment may name an exact specialization only when independent evidence establishes it;
+A binary emission inventory entry binds a retail emission address to a template implementation family. Its
+human-readable name may name an exact specialization only when independent evidence establishes it;
 otherwise describe the family/member without pretending the arguments are known. Constructor/destructor
 ownership must not be used to force unrelated use sites to adopt an arbitrary ABI-equivalent
 specialization.
@@ -52,10 +52,9 @@ disagreement. Type erasure through `void*`/byte pointers, `reinterpret_cast` bet
 records, or other provenance-hiding conversions remain model debt.
 
 Never hand-write a scalar- or vector-deleting destructor. Use ordinary virtual destruction and typed
-`delete` or `delete[]`; VC6 owns the deleting wrapper. Mark the wrapper with `SYNTHETIC` and no
-declaration/body. A separately emitted authored ordinary destructor has a `FUNCTION` marker;
-an implicit non-template destructor normally has a marker-only `SYNTHETIC` identity. Template
-destructor emissions have `TEMPLATE` markers at their canonical owner. Do not add an explicit
+`delete` or `delete[]`; VC6 owns the deleting wrapper. Identify the wrapper in generated reccmp
+metadata. A separately emitted authored ordinary destructor has a `FUNCTION` marker;
+implicit and template destructor emissions belong in the binary emission inventory. Do not add an explicit
 special-member declaration merely to force emission. When retail emits no standalone ordinary
 destructor, do not invent an address for one.
 

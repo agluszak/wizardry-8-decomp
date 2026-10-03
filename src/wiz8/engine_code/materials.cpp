@@ -79,9 +79,6 @@ bool g_material_emissive_override_enabled;
 // GLOBAL: WIZ8 0x0065BAA8
 float g_material_emissive_override;
 
-// SYNTHETIC: WIZ8 0x004B89A0
-// W8NormalTexcoordMapper::W8NormalTexcoordMapper (implicit)
-
 /* Convert eye-space normals to the material's first texture-coordinate set.
    The exported srVertexPipe queries preserve the closed renderer's ownership
    of its internal workspace while expressing every operation in this body. */
@@ -106,23 +103,11 @@ void W8NormalTexcoordMapper::process(srVertexPipe& pipe)
     }
 }
 
-// SYNTHETIC: WIZ8 0x004B8A50
-// W8NormalTexcoordMapper::`scalar deleting destructor'
-
 // FUNCTION: WIZ8 0x004925B0
 stMaterial::stMaterial()
 {
     m_shader_flags_78 = 0;
 }
-
-// TEMPLATE: WIZ8 0x00492940
-// srClassSupport<stMaterial,srMaterial,0,65538>::getClassID
-
-// TEMPLATE: WIZ8 0x00492950
-// srClassSupport<stMaterial,srMaterial,0,65538>::getClassName
-
-// TEMPLATE: WIZ8 0x00492960
-// srClassSupport<stMaterial,srMaterial,0,65538>::getClassNode
 
 // FUNCTION: WIZ8 0x00492D00
 srClass* stMaterial::vInstance()
@@ -163,19 +148,8 @@ stMaterial::~stMaterial()
     }
 }
 
-// SYNTHETIC: WIZ8 0x004926F0
-// stMaterial::`scalar deleting destructor'
-
-// TEMPLATE: WIZ8 0x00492A30
-// srClassSupport<stMaterial,srMaterial,0,65538>::~srClassSupport<stMaterial,srMaterial,0,65538>
-
-// SYNTHETIC: WIZ8 0x00492C40
-// srClassSupport<stMaterial,srMaterial,0,65538>::`scalar deleting destructor'
-
 /* The srMaterialIFace class-support base's own construction: installs the
    0x005EBF94 table and registers class 8704. */
-// TEMPLATE: WIZ8 0x00492C70
-// srClassSupport<srMaterialIFace,srClass,1,8704>::srClassSupport
 
 /* ===== OctBuild level preprocessing =====
    The retail level preprocessor lives in this TU between the stMaterial

@@ -28,12 +28,6 @@ W8NotificationDialog::W8NotificationDialog(int message_index, int caption_id, in
     ActivateDialogRegion(0x138);
 }
 
-// SYNTHETIC: WIZ8 0x005A8170
-// W8NotificationDialog::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x005a8190
-// W8NotificationDialog::~W8NotificationDialog
-
 // FUNCTION: WIZ8 0x005a81a0
 unsigned char W8NotificationDialog::ProcessInput()
 {

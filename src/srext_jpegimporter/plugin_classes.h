@@ -12,9 +12,6 @@
 // heap routing (srClass), and cloning (srColorSurface::operator=) all come
 // from the canonical type below.
 
-// SYNTHETIC: SREXT_JPEGIMPORTER 0x100151D0
-// srClientSupport<srColorSurface,12560>::`scalar deleting destructor'
-
 class srJPEGImporter :
     public srSurfaceIOManager::SurfaceImporter,
     public srSurfaceIOManager::SurfaceExporter {
@@ -43,13 +40,6 @@ private:
     JpegExportOptions32 export_options_;
 };
 
-// SYNTHETIC: SREXT_JPEGIMPORTER 0x10014DB0
-// srJPEGImporter::`scalar deleting destructor'
-// SYNTHETIC: SREXT_JPEGIMPORTER 0x100155E0
-// ?getTypeName@srJPEGImporter@@W3BEPBDXZ
-// SYNTHETIC: SREXT_JPEGIMPORTER 0x100155F0
-// ??_EsrJPEGImporter@@W3AEPAXI@Z
-
 class srJPEGPlugin : public srPlugin {
 public:
     virtual ~srJPEGPlugin();
@@ -58,8 +48,3 @@ public:
 private:
     srJPEGImporter jpeg_importer_;
 };
-
-// SYNTHETIC: SREXT_JPEGIMPORTER 0x10014BB0
-// srJPEGPlugin::`scalar deleting destructor'
-// SYNTHETIC: SREXT_JPEGIMPORTER 0x10014BD0
-// srJPEGPlugin::~srJPEGPlugin

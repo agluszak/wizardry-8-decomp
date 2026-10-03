@@ -18,9 +18,6 @@ void srVP_generic::unknown_2a0(SRDWORD arg0, SRDWORD arg1) {}
 // FUNCTION: SURRENDER 0x100658A0
 void srVP_generic::unknown_2a4() {}
 
-// SYNTHETIC: SURRENDER 0x100658D0
-// srVP_generic::~srVP_generic
-
 // FUNCTION: SURRENDER 0x100658E0
 void srVP_generic::_addS(SRBYTE* destination, const SRBYTE* source_0, const SRBYTE* source_1,
                          SRDWORD count)

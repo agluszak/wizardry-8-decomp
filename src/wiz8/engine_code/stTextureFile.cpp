@@ -247,42 +247,6 @@ srColorSurface* __stdcall LoadSurface(int handle, long* unused_out)
 // VTABLE: WIZ8 0x005EC5D8
 // class srClientSupport<srPalette,10496>
 
-// TEMPLATE: WIZ8 0x0047D650
-// srClientSupport<srPalette,10496>::getClassID
-
-// TEMPLATE: WIZ8 0x0047D660
-// srClientSupport<srPalette,10496>::getClassName
-
-// TEMPLATE: WIZ8 0x0047D670
-// srClientSupport<srPalette,10496>::getClassNode
-
-// TEMPLATE: WIZ8 0x0047D6B0
-// srClientSupport<srPalette,10496>::vClone
-
-// SYNTHETIC: WIZ8 0x0047C5C0
-// srClientSupport<srPalette,10496>::`scalar deleting destructor'
-
-// TEMPLATE: WIZ8 0x0047D6D0
-// srClassSupport<stTextureFile,srTexture,0,65537>::getClassID
-
-// TEMPLATE: WIZ8 0x0047D6E0
-// srClassSupport<stTextureFile,srTexture,0,65537>::getClassName
-
-// TEMPLATE: WIZ8 0x0047D6F0
-// srClassSupport<stTextureFile,srTexture,0,65537>::getClassNode
-
-// TEMPLATE: WIZ8 0x0047D790
-// srClassSupport<stTextureFile,srTexture,0,65537>::vClone
-
-// TEMPLATE: WIZ8 0x0047D870
-// srClassSupport<stTextureFile,srTexture,0,65537>::~srClassSupport<stTextureFile,srTexture,0,65537>
-
-// SYNTHETIC: WIZ8 0x0047D970
-// srClassSupport<stTextureFile,srTexture,0,65537>::`scalar deleting destructor'
-
-// TEMPLATE: WIZ8 0x0047D9A0
-// srClassSupport<srTexture,srTextureIFace,false,8464>::sGetClassNode
-
 // FUNCTION: WIZ8 0x0047BBD0
 void stTextureFile::releaseSurface()
 {
@@ -349,9 +313,6 @@ srClass* stTextureFile::vInstance()
 {
     return new stTextureFile(0, 0);
 }
-
-// SYNTHETIC: WIZ8 0x0047C800
-// stTextureFile::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x0047C830
 void stTextureFile::setFileName(const char* file_name)

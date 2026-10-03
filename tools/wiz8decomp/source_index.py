@@ -1,4 +1,4 @@
-"""Project paths, SYNTHETIC rules, and the compile-DB adapter for reccmp's source index."""
+"""Project paths, authored-marker rules, and the compile-DB adapter for reccmp's source index."""
 
 from __future__ import annotations
 
@@ -22,8 +22,7 @@ from .config import Settings
 from .paths import compile_database_relative
 
 _SOURCE_SUFFIXES = frozenset({".c", ".cc", ".cpp", ".cxx", ".h", ".hpp", ".hxx"})
-_SYNTHETIC_MARKER = re.compile(r"^\s*//\s*SYNTHETIC:\s+")
-_SOURCE_MARKER = re.compile(r"^\s*//\s*(?:FUNCTION|TEMPLATE|SYNTHETIC|LIBRARY|VTABLE|GLOBAL):\s+")
+_EMISSION_MARKER = re.compile(r"^\s*//\s*(?:SYNTHETIC|TEMPLATE):\s+")
 
 LINT_ONLY_SOURCE_ROOTS = ("tests/runtime",)
 _ATTACHED_INCLUDE_FLAGS = (
@@ -45,10 +44,9 @@ _ANALYSIS_LINUX_TEMP = ("-e", "TMPDIR=/tmp", "-e", "TMP=/tmp", "-e", "TEMP=/tmp"
 LOGGER = logging.getLogger(__name__)
 
 
-def validate_synthetic_marker_blocks(repository: Path) -> int:
-    """Require marker-only synthetic identities with an explicit block end."""
+def validate_authored_marker_blocks(repository: Path) -> int:
+    """Compiler emission identities belong in generated reccmp data sources."""
     failures: list[str] = []
-    count = 0
     for root_name in ("src", "include"):
         root = repository / root_name
         if not root.is_dir():
@@ -56,34 +54,15 @@ def validate_synthetic_marker_blocks(repository: Path) -> int:
         for path in sorted(root.rglob("*")):
             if path.suffix.lower() not in _SOURCE_SUFFIXES:
                 continue
-            lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
-            for index, line in enumerate(lines):
-                if not _SYNTHETIC_MARKER.match(line):
-                    continue
-                count += 1
-                location = f"{path.relative_to(repository)}:{index + 1}"
-                if index + 1 >= len(lines) or not lines[index + 1].lstrip().startswith("//"):
-                    failures.append(f"{location}: SYNTHETIC lacks its identity comment")
-                    continue
-                following_index = index + 2
-                if re.match(r"^\s*//\s*NAME:\s+", lines[index + 1]):
-                    if following_index >= len(lines) or not re.match(
-                        r"^\s*//\s*RECOMP:\s+\S", lines[following_index]
-                    ):
-                        failures.append(f"{location}: SYNTHETIC NAME lacks its RECOMP selector")
-                        continue
-                    following_index += 1
-                if following_index >= len(lines):
-                    continue
-                following = lines[following_index]
-                if following.strip() and not _SOURCE_MARKER.match(following):
-                    failures.append(
-                        f"{location}: SYNTHETIC owns no declaration or body; "
-                        "end the marker block before the next source entity"
-                    )
+            for index, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+                if _EMISSION_MARKER.match(line):
+                    failures.append(f"{path.relative_to(repository)}:{index}")
     if failures:
-        raise SourceIndexError("invalid SYNTHETIC marker blocks:\n" + "\n".join(failures))
-    return count
+        raise SourceIndexError(
+            "compiler emissions belong in the emission inventory, not source markers:\n"
+            + "\n".join(failures)
+        )
+    return 0
 
 
 def project_targets(repository: Path) -> dict[str, dict[str, Any]]:
@@ -348,8 +327,6 @@ def address_bound_identities(
             "FUNCTION": "definition" if embedded.get("is_definition") else "declaration",
             "GLOBAL": "global",
             "VTABLE": "vtable",
-            "TEMPLATE": "template",
-            "SYNTHETIC": "synthetic",
             "LIBRARY": "library",
         }.get(marker_kind, marker_kind.lower() or "declaration")
         if embedded:
@@ -547,7 +524,7 @@ def _reccmp_index_producers() -> list[Path]:
 
 
 def validate_source_index(repository: Path) -> dict[str, int]:
-    validate_synthetic_marker_blocks(repository)
+    validate_authored_marker_blocks(repository)
     validate_cross_tu_declarations(repository)
     index = SourceIndex.from_dict(load_source_index(repository))
     counts = {
@@ -1049,7 +1026,7 @@ def write_source_index(
     if jobs is not None and jobs < 1:
         raise ValueError("source-index jobs must be positive")
     repository = settings.repo_dir.resolve()
-    validate_synthetic_marker_blocks(repository)
+    validate_authored_marker_blocks(repository)
     database = repository / LINT_BUILD_DIR / "compile_commands.json"
     index_path = repository / "build/source-index.json"
     stamp = repository / "build/reccmp-source/source-index-inputs.sha256"

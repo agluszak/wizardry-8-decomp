@@ -2736,11 +2736,3 @@ bool ShouldMonsterGroupEnterCombat(W8MonsterGroup* monster_group)
     }
     return 0;
 }
-
-// TEMPLATE: WIZ8 0x005358D0
-// NAME: W8GrowableVector<T>::~W8GrowableVector<T>
-// RECOMP: W8GrowableVector<W8CombatSlot>::~W8GrowableVector<W8CombatSlot>
-
-// SYNTHETIC: WIZ8 0x005358F0
-// NAME: W8GrowableVector<T>::`scalar deleting destructor'
-// RECOMP: W8GrowableVector<W8CombatSlot>::`scalar deleting destructor'

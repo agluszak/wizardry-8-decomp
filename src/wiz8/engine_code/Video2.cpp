@@ -3633,22 +3633,8 @@ void EndRenderProbe(void)
 // VTABLE: WIZ8 0x005EBE98
 // class srClientSupport<srMeshModel,8208>
 
-// TEMPLATE: WIZ8 0x00429B30
-// srClientSupport<srMeshModel,8208>::getClassID
-
-// TEMPLATE: WIZ8 0x00429B40
-// srClientSupport<srMeshModel,8208>::getClassName
-
-// TEMPLATE: WIZ8 0x00429B50
-// srClientSupport<srMeshModel,8208>::getClassNode
-
-// TEMPLATE: WIZ8 0x00429BC0
-// srClientSupport<srMeshModel,8208>::clone
-
 /* 0x00424A50 calls the imported ~srMeshModel: it is the local
    ??_GsrMeshModel thunk, not the support-class deleting destructor. */
-// SYNTHETIC: WIZ8 0x00424A50
-// srMeshModel::`scalar deleting destructor'
 
 /* CVDUMP includes the class tag on the repeated self-type argument in each
    vftable symbol below. These remain ordinary self-support instantiations. */
@@ -3657,20 +3643,6 @@ void EndRenderProbe(void)
 
 /* 0x00424B70 calls the imported ~srTextureMap: it is the local
    ??_GsrTextureMap thunk, not the support-class deleting destructor. */
-// SYNTHETIC: WIZ8 0x00424B70
-// srTextureMap::`scalar deleting destructor'
-
-// TEMPLATE: WIZ8 0x00429BE0
-// srClientSupport<srTextureMap,8465>::getClassID
-
-// TEMPLATE: WIZ8 0x00429BF0
-// srClientSupport<srTextureMap,8465>::getClassName
-
-// TEMPLATE: WIZ8 0x00429C00
-// srClientSupport<srTextureMap,8465>::getClassNode
-
-// TEMPLATE: WIZ8 0x00429CA0
-// srClientSupport<srTextureMap,8465>::clone
 
 /* The constructor at 0x00429D70 registers class 8720 under the 8704 class
    node owned by srMaterialIFace through srMaterial::sGetClassNode: the
@@ -3679,115 +3651,37 @@ void EndRenderProbe(void)
 // VTABLE: WIZ8 0x005EBDE0
 // class srClientSupport<srMaterial,8720>
 
-// TEMPLATE: WIZ8 0x00429D70
-// srClientSupport<srMaterial,8720>::srClientSupport
-
-// SYNTHETIC: WIZ8 0x0042A230
-// srClientSupport<srMaterial,8720>::`scalar deleting destructor'
-
-// TEMPLATE: WIZ8 0x00429CC0
-// srClientSupport<srMaterial,8720>::getClassID
-
-// TEMPLATE: WIZ8 0x00429CD0
-// srClientSupport<srMaterial,8720>::getClassName
-
-// TEMPLATE: WIZ8 0x00429CE0
-// srClientSupport<srMaterial,8720>::getClassNode
-
-// TEMPLATE: WIZ8 0x00429D50
-// srClientSupport<srMaterial,8720>::clone
-
 /* 0x00423E50 calls the imported ~srMaterial: it is the local ??_GsrMaterial
    thunk, not the support-class deleting destructor. */
-// SYNTHETIC: WIZ8 0x00423e50
-// srMaterial::`scalar deleting destructor'
-
-// TEMPLATE: WIZ8 0x00429E80
-// srClassSupport<srMaterialIFace,srClass,1,8704>::getClassID
-
-// TEMPLATE: WIZ8 0x00429EE0
-// srClassSupport<srMaterialIFace,srClass,1,8704>::clone
-
-// TEMPLATE: WIZ8 0x0042A1A0
-// srClassSupport<srMaterialIFace,srClass,1,8704>::~srClassSupport
-
-// SYNTHETIC: WIZ8 0x0042A170
-// srClassSupport<srMaterialIFace,srClass,1,8704>::`scalar deleting destructor'
 
 /* CVDUMP includes the class tag on the repeated self-type argument in the
    vftable symbol.  It is still the ordinary srCamera self-support template. */
 // VTABLE: WIZ8 0x005EBE14
 // class srClientSupport<srCamera,5120>
 
-// TEMPLATE: WIZ8 0x0042A010
-// srClientSupport<srCamera,5120>::getClassID
-
-// TEMPLATE: WIZ8 0x0042A020
-// srClientSupport<srCamera,5120>::getClassName
-
-// TEMPLATE: WIZ8 0x0042A030
-// srClientSupport<srCamera,5120>::getClassNode
-
-// TEMPLATE: WIZ8 0x0042A0A0
-// srClientSupport<srCamera,5120>::clone
-
 /* 0x00423E80 calls the imported ~srCamera: it is the local ??_GsrCamera
    thunk, not the support-class deleting destructor. */
-// SYNTHETIC: WIZ8 0x00423e80
-// srCamera::`scalar deleting destructor'
 
 /* CVDUMP includes the class tag on the repeated self-type argument in the
    vftable symbol.  It is still the ordinary srScene self-support template. */
 // VTABLE: WIZ8 0x005EBE48
 // class srClientSupport<srScene,4112>
 
-// TEMPLATE: WIZ8 0x0042A0C0
-// srClientSupport<srScene,4112>::getClassID
-
-// TEMPLATE: WIZ8 0x0042A0D0
-// srClientSupport<srScene,4112>::getClassName
-
-// TEMPLATE: WIZ8 0x0042A0E0
-// srClientSupport<srScene,4112>::getClassNode
-
-// TEMPLATE: WIZ8 0x0042A150
-// srClientSupport<srScene,4112>::clone
-
 /* 0x00423EB0 calls the imported ~srScene: it is the local ??_GsrScene
    thunk, not the support-class deleting destructor. */
-// SYNTHETIC: WIZ8 0x00423eb0
-// srScene::`scalar deleting destructor'
 
 /* 0x00423EE0 calls the imported ~srModeler: it is the local ??_GsrModeler
    thunk emitted for the g_modeler delete, not a support-class deleting
    destructor. */
-// SYNTHETIC: WIZ8 0x00423EE0
-// srModeler::`scalar deleting destructor'
 
 /* 0x004229C0 is a bare JMP to RenderFrame: a tail-jump thunk with no
    distinct source entity. */
-// SYNTHETIC: WIZ8 0x004229C0
-// RenderFrame (tail-jump thunk)
 
 // VTABLE: WIZ8 0x005EBD10
 // class srClientSupport<srColorSurface,12560>
 
-// TEMPLATE: WIZ8 0x00429A40
-// srClientSupport<srColorSurface,12560>::getClassID
-
-// TEMPLATE: WIZ8 0x00429A50
-// srClientSupport<srColorSurface,12560>::getClassName
-
-// TEMPLATE: WIZ8 0x00429A60
-// srClientSupport<srColorSurface,12560>::getClassNode
-
-// TEMPLATE: WIZ8 0x00429AD0
-// srClientSupport<srColorSurface,12560>::clone
-
 /* 0x00423F00 calls the imported ~srColorSurface: it is the local
    ??_GsrColorSurface thunk, not the support-class deleting destructor. */
-// SYNTHETIC: WIZ8 0x00423f00
-// srColorSurface::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x00424BA0
 srNode* MakePosterQuad(srTextureIFace* texture, float width, float height, bool additive)
@@ -3915,18 +3809,6 @@ void SetPickKey(void* key)
     }
 }
 
-// TEMPLATE: WIZ8 0x00429B00
-// NAME: srPtr<T>::retained emission
-// RECOMP: srPtr assignment emission: release the held interface, addref and store the new one
-
-// SYNTHETIC: WIZ8 0x0042A360
-// srVertexProcessor::~srVertexProcessor trivial body
-
-// SYNTHETIC: WIZ8 0x0042B890
-// srVertexProcessor scalar deleting destructor
-
 /* srVertexProcessor::MaterialInfo's inline ctor emitted out-of-line inside
    srMaterial's locally-compiled constructor; the primary is in
    srVertexProcessor.h. */
-// SYNTHETIC: WIZ8 0x00424A80
-// srVertexProcessor::MaterialInfo::MaterialInfo (Video2.cpp emission)

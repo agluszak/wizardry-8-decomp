@@ -105,9 +105,6 @@ srTimer::srTimer(int argument_0, int argument_1, int argument_2)
     reset(argument_0, argument_1, argument_2);
 }
 
-// SYNTHETIC: SURRENDER 0x10060B30
-// srTimer::`vector deleting destructor'
-
 /* Retail copies the two 0x400 strings and the 13-byte CPU signature with
    byte-at-a-time loops, reloads kernel32, and omits +0x82c..+0x840
    (including both conversion scales and CPU count). */
@@ -1017,21 +1014,3 @@ std::ostream& operator<<(std::ostream& stream, const srTimer& timer)
     stream.width(mode);
     return stream;
 }
-
-// SYNTHETIC: SURRENDER 0x100621D0
-// srTimer default constructor closure
-
-// SYNTHETIC: SURRENDER 0x10060B10
-// srTimer scalar deleting destructor
-
-// SYNTHETIC: SURRENDER 0x10063250
-// std::ios_base::Init global static-init block
-
-// SYNTHETIC: SURRENDER 0x10063260
-// std::ios_base::Init global atexit registrar
-
-// SYNTHETIC: SURRENDER 0x10063290
-// std::_Winit global static-init block
-
-// SYNTHETIC: SURRENDER 0x100632A0
-// std::_Winit global atexit registrar

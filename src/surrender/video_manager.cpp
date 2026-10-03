@@ -67,9 +67,3 @@ srVideoManager::VStream* srVideoManager::openVStream(const char* path)
     }
     return 0;
 }
-
-// SYNTHETIC: SURRENDER 0x1002DFF0
-// srVideoManager::Stream scalar deleting destructor
-
-// SYNTHETIC: SURRENDER 0x10016CB0
-// srVideoManager::Stream default constructor closure

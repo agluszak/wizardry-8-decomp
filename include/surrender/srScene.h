@@ -29,8 +29,6 @@ public:
 
     /* Destruction is consistent with base-only cleanup; the reconstruction
        leaves the derived destructor implicit. */
-    // SYNTHETIC: SURRENDER 0x10056F90
-    // srScene::~srScene
 
     virtual void dump(std::ostream& stream) override;
     virtual srClass* vInstance() override;

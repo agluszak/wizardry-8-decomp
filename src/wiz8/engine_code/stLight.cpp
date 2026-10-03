@@ -489,40 +489,8 @@ void LoadLightStates(int handle)
     }
 }
 
-// TEMPLATE: WIZ8 0x0049DB10
-// srClassSupport<srIlluminator,srNode,0,4608>::getClassID
-
-// TEMPLATE: WIZ8 0x0049DB30
-// srClassSupport<srIlluminator,srNode,0,4608>::getClassNode
-
-// TEMPLATE: WIZ8 0x0049DBA0
-// srClassSupport<srIlluminator,srNode,0,4608>::vClone
-
-// TEMPLATE: WIZ8 0x0049DFE0
-// srClassSupport<srIlluminator,srNode,0,4608>::~srClassSupport
-
-// SYNTHETIC: WIZ8 0x0049DFB0
-// srClassSupport<srIlluminator,srNode,0,4608>::`scalar deleting destructor'
-
-// TEMPLATE: WIZ8 0x0049DC60
-// srClassSupport<stLight,srLight,0,65542>::getClassID
-
-// TEMPLATE: WIZ8 0x0049DC70
-// srClassSupport<stLight,srLight,0,65542>::getClassName
-
-// TEMPLATE: WIZ8 0x0049DC80
-// srClassSupport<stLight,srLight,0,65542>::getClassNode
-
-// TEMPLATE: WIZ8 0x0049DD60
-// srClassSupport<stLight,srLight,0,65542>::vClone
-
 /* The registry base's own destructor, emitted out of line here rather than
    inlined the way 0x0049C430 expands it. */
-// TEMPLATE: WIZ8 0x0049DD80
-// srClassSupport<stLight,srLight,0,65542>::~srClassSupport
-
-// SYNTHETIC: WIZ8 0x0049E260
-// srClassSupport<stLight,srLight,0,65542>::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x0049E3A0
 srClass* stLight::vInstance()
@@ -530,22 +498,9 @@ srClass* stLight::vInstance()
     return new stLight(0);
 }
 
-// SYNTHETIC: WIZ8 0x0049E400
-// stLight::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x0049E450
-// stLight::`scalar deleting destructor'`adjustor{312}'
-
 /* Test a point against the six inward-facing planes of one region volume. */
 // FUNCTION: WIZ8 0x0049e460
 unsigned char W8OctRegionVolume::ContainsPoint(const srVector3T<float>* point) const
 {
     return PointInsideFrustum(point, planes_88);
 }
-
-// SYNTHETIC: WIZ8 0x004A2200
-// stParametricLightDefinition::`scalar deleting destructor'
-
-// TEMPLATE: WIZ8 0x0049E290
-// NAME: srArray<T>::setCapacity
-// RECOMP: srArray<srNode*>::setCapacity

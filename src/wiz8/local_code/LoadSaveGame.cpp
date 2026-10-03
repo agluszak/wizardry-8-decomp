@@ -2400,9 +2400,6 @@ void LoadMonsterControlSpellEffect(W8Chunk* chunks)
 
 /* The byte-vector Grow LoadMonster's script-condition copy emits; the linker
    kept this unit's instance for AddItem as well. */
-// TEMPLATE: WIZ8 0x005169a0
-// NAME: W8GrowableVector<T>::Grow
-// RECOMP: W8GrowableVector<unsigned char>::Grow
 
 /* The remove-and-delete emission LoadGame calls while ResetLiveSessionForLoad
    inlines it (0x00516A00) is instantiated explicitly in vector.cpp. */

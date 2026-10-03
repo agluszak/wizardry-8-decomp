@@ -109,9 +109,6 @@ stMeshModel::stMeshModel(long polygons, long vertices)
     skin_blanking_checked_460 = 0;
 }
 
-// SYNTHETIC: WIZ8 0x00470e90
-// stMeshModel::`scalar deleting destructor'
-
 // FUNCTION: WIZ8 0x00470ED0
 stMeshModel::~stMeshModel()
 {
@@ -1554,120 +1551,16 @@ void stMeshModel::FinalizeVertexFrame(int frame)
     ComputeFrameNormals(frame);
 }
 
-// TEMPLATE: WIZ8 0x004741E0
-// srClassSupport<stMeshModel,srMeshModel,0,65539>::getClassID
-
-// TEMPLATE: WIZ8 0x004741F0
-// srClassSupport<stMeshModel,srMeshModel,0,65539>::getClassName
-
-// TEMPLATE: WIZ8 0x00474200
-// srClassSupport<stMeshModel,srMeshModel,0,65539>::vClone
-
-// TEMPLATE: WIZ8 0x00474820
-// srClassSupport<stMeshModel,srMeshModel,0,65539>::getClassNode
-
 /* Ordinary primary-template instantiation emissions. The generic methods live
    in srArray.h; there are no per-element authored bodies here. */
-// TEMPLATE: WIZ8 0x00474930
-// NAME: srArray<T>::setCapacity
-// RECOMP: srArray<srTriMeshPipeline::Record>::setCapacity
-
-// TEMPLATE: WIZ8 0x00474A80
-// NAME: srArray<T>::setCapacity
-// RECOMP: srArray<srTriMeshPipeline::Pass>::setCapacity
-
-// TEMPLATE: WIZ8 0x00475240
-// srHeapBuffer<srVertexProcessor*>::ensure (folded four-byte-element instantiations)
-
-// TEMPLATE: WIZ8 0x004741b0
-// srHeapBuffer<T>::release (null-checked; four-byte-element instantiations)
 
 /* Further primary-template emissions in this TU: the preserving setCapacity
    overloads, the unconditional release for the twelve-byte-element vector
    array, member vector dtors/deleting destructors, and the copy machinery the
    srClassSupport clone reaches. */
-// TEMPLATE: WIZ8 0x004700D0
-// NAME: srArray<T>::setCapacity
-// RECOMP: srArray<srVector3T<float> >::setCapacity
-
-// TEMPLATE: WIZ8 0x004701D0
-// NAME: srArray<T>::release
-// RECOMP: srArray<srVector3T<float> >::release
-
-// TEMPLATE: WIZ8 0x004744A0
-// srHeapBuffer<srVector3T<float> >::setCapacity (preserving two-argument emission)
-
-// TEMPLATE: WIZ8 0x004747D0
-// srHeapBuffer<srVector3T<float> >::allocate
-
-// TEMPLATE: WIZ8 0x00474650
-// srHeapBuffer<float>::setCapacity (preserving two-argument emission)
-
-// TEMPLATE: WIZ8 0x00474790
-// srVector3T<float> elementwise copy (clone member-copy emission)
-
-// TEMPLATE: WIZ8 0x00474560
-// srClassSupport<stMeshModel,srMeshModel,0,65539>::~srClassSupport<stMeshModel,srMeshModel,0,65539>
-
-// SYNTHETIC: WIZ8 0x00474760
-// srClassSupport<stMeshModel,srMeshModel,0,65539>::`scalar deleting destructor'
-
-// TEMPLATE: WIZ8 0x00474B80
-// NAME: W8GrowableVector<T>::~W8GrowableVector<T>
-// RECOMP: W8GrowableVector<int>::~W8GrowableVector<int>
-
-// TEMPLATE: WIZ8 0x00474BA0
-// NAME: W8GrowableVector<T>::~W8GrowableVector<T>
-// RECOMP: W8GrowableVector<srPtr<srTextureIFace>*>::~W8GrowableVector<srPtr<srTextureIFace>*>
-
-// TEMPLATE: WIZ8 0x00474BC0
-// NAME: W8GrowableVector<T>::~W8GrowableVector<T>
-// RECOMP: W8GrowableVector<short>::~W8GrowableVector<short>
-
-// TEMPLATE: WIZ8 0x00474D20
-// NAME: W8GrowableVector<T>::RemoveAt
-// RECOMP: W8GrowableVector<unsigned char>::RemoveAt
-
-// SYNTHETIC: WIZ8 0x00474D60
-// NAME: W8GrowableVector<T>::`scalar deleting destructor'
-// RECOMP: W8GrowableVector<srPtr<srTextureIFace>*>::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x00474D90
-// NAME: W8GrowableVector<T>::`scalar deleting destructor' (out-of-line destructor emission)
-// RECOMP: W8GrowableVector<srPtr<srTextureIFace>*>::`scalar deleting destructor' (out-of-line destructor emission)
-
-// SYNTHETIC: WIZ8 0x00474DB0
-// NAME: W8GrowableVector<T>::`scalar deleting destructor'
-// RECOMP: W8GrowableVector<short>::`scalar deleting destructor'
 
 /* Stores table 0x005EC518, the W8GrowableVector<W8VectorElement005EC514*>
    specialization's one-slot table - not 0x005EC514 of W8GrowableVector<stMeshModel*>. */
-// SYNTHETIC: WIZ8 0x00474DE0
-// NAME: W8GrowableVector<T>::`scalar deleting destructor'
-// RECOMP: W8GrowableVector<W8VectorElement005EC514*>::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x00474E60
-// NAME: W8GrowableVector<T>::`scalar deleting destructor'
-// RECOMP: W8GrowableVector<unsigned long*>::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x00474E90
-// NAME: W8GrowableVector<T>::`scalar deleting destructor'
-// RECOMP: W8GrowableVector<int>::`scalar deleting destructor'
-
-// TEMPLATE: WIZ8 0x00474EC0
-// NAME: W8GrowableVector<T>::operator= (four-byte-element emission)
-// RECOMP: W8GrowableVector<T>::operator= (four-byte-element emission)
-
-// TEMPLATE: WIZ8 0x00474F60
-// NAME: W8GrowableVector<T>::W8GrowableVector (capacity emission)
-// RECOMP: W8GrowableVector<srPtr<srTextureIFace>*>::W8GrowableVector (capacity emission)
-
-// TEMPLATE: WIZ8 0x00475000
-// NAME: W8GrowableVector<T>::operator= (two-byte-element emission)
-// RECOMP: W8GrowableVector<short>::operator= (two-byte-element emission)
-
-// SYNTHETIC: WIZ8 0x004752D0
-// srTriMeshPipeline::`scalar deleting destructor'
 
 /* Mirror the active shader onto both the pipeline and the current Pass record
    selected at +0x18. */
@@ -1990,13 +1883,6 @@ void srTriMeshPipeline::FlushSlots()
         processed += batch_limit;
     }
 }
-
-// TEMPLATE: WIZ8 0x00476080
-// unresolved generic srHeap allocator instantiation for four-byte elements
-
-// TEMPLATE: WIZ8 0x004760A0
-// NAME: srArray<T>::setCapacity
-// RECOMP: srArray<srVertexArray>::setCapacity
 
 /* Lazy singleton: construct once against the imported pipe static, then bind
    the caller's renderer and rebuild the current slot. */

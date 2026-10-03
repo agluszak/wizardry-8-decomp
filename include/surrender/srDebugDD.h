@@ -16,15 +16,9 @@ class
 public:
     srDebugDD(srDD* device);
     /* Destruction is consistent with base-only cleanup; the reconstruction leaves it implicit. */
-    // SYNTHETIC: SURRENDER 0x10016D60
-    // srDebugDD::~srDebugDD
 
     /* The copy constructor stores the vtable last; the assignment
        does not. */
-    // SYNTHETIC: SURRENDER 0x100177D0
-    // ??0srDebugDD@@QAE@ABV0@@Z
-    // SYNTHETIC: SURRENDER 0x10017830
-    // ??4srDebugDD@@QAEAAV0@ABV0@@Z
 
     virtual void getInfo(Info& info) override;
     virtual void getWindowList(WindowInfoList& list) override;

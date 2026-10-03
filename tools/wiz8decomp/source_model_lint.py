@@ -32,7 +32,7 @@ from .source_units import load_source_unit_document
 
 _RECOVERED_ROOTS = ("src/wiz8", "include/wiz8", "src/surrender", "include/surrender")
 _CPP_SUFFIXES = frozenset({".c", ".cc", ".cpp", ".cxx", ".h", ".hpp", ".hxx"})
-_MARKER_ONLY_KINDS = frozenset({"SYNTHETIC", "LIBRARY"})
+_MARKER_ONLY_KINDS = frozenset({"LIBRARY"})
 
 _NOISE = re.compile(
     r'//[^\n]*|/\*.*?\*/|"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'',
@@ -274,6 +274,16 @@ def _compiler_emission_violations(repository: Path) -> list[dict[str, Any]]:
         declaration = declaration_for_marker(marker, declarations_by_key)
         name = str(marker.get("marker_name") or declaration.get("qualified_name") or "")
 
+        if kind in {"SYNTHETIC", "TEMPLATE"}:
+            violations.append(
+                {
+                    "kind": "compiler-emission-source-marker",
+                    "file": source_file,
+                    "line": line,
+                    "detail": f"{kind} identity belongs in generated reccmp metadata",
+                }
+            )
+
         if kind == "FUNCTION" and declaration and _template_emission(declaration):
             violations.append(
                 {
@@ -284,13 +294,13 @@ def _compiler_emission_violations(repository: Path) -> list[dict[str, Any]]:
                 }
             )
 
-        if name and _COMPILER_SYNTHETIC_NAME.search(name) and kind != "SYNTHETIC":
+        if name and _COMPILER_SYNTHETIC_NAME.search(name):
             violations.append(
                 {
                     "kind": "compiler-helper-as-authored",
                     "file": source_file,
                     "line": line,
-                    "detail": f"{name} is {kind or 'unmarked'}, expected SYNTHETIC",
+                    "detail": f"{name} is {kind or 'unmarked'}, expected emission metadata",
                 }
             )
 

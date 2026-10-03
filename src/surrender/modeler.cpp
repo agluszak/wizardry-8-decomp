@@ -331,9 +331,6 @@ void AutoSmoother::smooth()
    0x10076C90 (pi + pi / pi * 2.0 in retail emission). */
 static const double pi = 3.141592653589793;
 
-// SYNTHETIC: SURRENDER 0x100380C0
-// srModeler::`vector deleting destructor'
-
 srModeler::Vertex::Vertex()
 {
     reset();
@@ -1656,6 +1653,3 @@ void srModeler::convert(srMeshModel& model, int preserve)
     model.setDirty(static_cast<srMeshModel::e_flags>(3));
     delete hash;
 }
-
-// SYNTHETIC: SURRENDER 0x10037DC0
-// srModeler::MappingInfo default constructor closure

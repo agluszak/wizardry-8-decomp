@@ -17,9 +17,6 @@
    gap between AssayDialog.cpp (upper 0x005D9460) and that hull; those methods
    stay in this file so the class and the sources.cmake slot stay together. */
 
-// SYNTHETIC: WIZ8 0x005db210
-// W8DialogButton::`scalar deleting destructor'
-
 // FUNCTION: WIZ8 0x005db4e0
 void W8DialogButton::Draw()
 {

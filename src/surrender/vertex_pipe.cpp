@@ -595,8 +595,6 @@ void srVertexPipe::applyFog(const float* values)
 /* Retail copies the two owned allocations at +0x00/+0x04 verbatim. Assigning
    two live pipes aliases their storage and leaves the old destination storage
    behind; the function has no retail ownership repair. */
-// SYNTHETIC: SURRENDER 0x1002BB80
-// srVertexPipe::operator= (implicit shallow copy)
 
 // FUNCTION: SURRENDER 0x1002BCC0
 void srVertexPipe::applyDiffuseLight(const float* values, const srVector4T<float>& light)
@@ -1025,6 +1023,3 @@ void* srVertexPipe::getUserArray(unsigned long index)
 {
     return current_record_74->user_2c[index];
 }
-
-// TEMPLATE: SURRENDER 0x1002C860
-// srHeapBuffer<T>::release emission

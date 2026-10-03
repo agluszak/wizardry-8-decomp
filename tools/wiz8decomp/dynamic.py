@@ -21,6 +21,7 @@ from reccmp.source.records import SourceMarker
 
 from .binary.linker_map import LinkerMap, MapSymbol, demangle_names
 from .debug.session import WineGdbProxy, allocate_port
+from .emissions import Emission, emission_inventory
 from .paths import json_hash, sha256_file
 from .subprocesses import tool_version
 
@@ -110,9 +111,22 @@ class StateProbe:
     indirect: bool  # the base holds a pointer; read through it
 
 
-def _trace_name(function: SourceMarker) -> str:
+def _trace_functions(repo: Path) -> dict[int, SourceMarker | Emission]:
+    from .source_index import source_functions
+
+    return {
+        **{row.address: row for row in emission_inventory(repo, "WIZ8")},
+        **source_functions(repo),
+    }
+
+
+def _trace_files(function: SourceMarker | Emission) -> tuple[str, ...]:
+    return (function.source_file,) if isinstance(function, SourceMarker) else function.source_files
+
+
+def _trace_name(function: SourceMarker | Emission) -> str:
     selector = function.recomp_selector
-    if selector is None:
+    if not selector:
         return function.name
     if function.selector_is_symbol:
         return _bare_symbol_name(demangle_names([selector]).get(selector) or selector)
@@ -120,14 +134,15 @@ def _trace_name(function: SourceMarker) -> str:
 
 
 def bring_up_points(repo: Path) -> list[TracePoint]:
-    """Source-owned startup functions, derived from physical TU ownership."""
-
-    from .source_index import source_functions
+    """Startup functions and retained emissions associated with startup TUs."""
 
     points = []
-    for function in source_functions(repo).values():
-        path = Path(function.source_file)
-        if not (path.stem.startswith("startup_") or path.name in {"game_init.cpp", "winmain.cpp"}):
+    for function in _trace_functions(repo).values():
+        if not any(
+            Path(path).stem.startswith("startup_")
+            or Path(path).name in {"game_init.cpp", "winmain.cpp"}
+            for path in _trace_files(function)
+        ):
             continue
         points.append(
             TracePoint(address=f"{function.address:08x}", name=_trace_name(function), kind="gate")
@@ -172,11 +187,9 @@ def load_points(repo: Path) -> list[TracePoint]:
     Derived from the same physical TU ownership as the startup points, so the
     plan regenerates when the loading chain's recovery moves."""
 
-    from .source_index import source_functions
-
     points = []
-    for function in source_functions(repo).values():
-        if Path(function.source_file).name != "LoadSaveGame.cpp":
+    for function in _trace_functions(repo).values():
+        if not any(Path(path).name == "LoadSaveGame.cpp" for path in _trace_files(function)):
             continue
         points.append(
             TracePoint(address=f"{function.address:08x}", name=_trace_name(function), kind="load")
@@ -288,13 +301,11 @@ def rebase_plan(
     its own linker map. Points the rebuilt image does not carry (unrecovered
     functions) cannot be watched and are reported, not silently dropped."""
 
-    from .source_index import source_functions
-
-    functions = source_functions(repo)
+    functions = _trace_functions(repo)
     semantic_ids = {
         address: function.declaration.semantic_id
         for address, function in functions.items()
-        if function.declaration is not None
+        if isinstance(function, SourceMarker) and function.declaration is not None
     }
     rebased = []
     dropped = []

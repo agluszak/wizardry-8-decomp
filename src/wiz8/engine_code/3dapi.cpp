@@ -380,15 +380,6 @@ void UpdateWorld(W8World* world)
 // VTABLE: WIZ8 0x005EC208
 // class srClientSupport<srNode,4096>
 
-// TEMPLATE: WIZ8 0x004519D0
-// srClientSupport<srNode,4096>::getClassID
-
-// TEMPLATE: WIZ8 0x004519F0
-// srClientSupport<srNode,4096>::vClone
-
-// SYNTHETIC: WIZ8 0x0044F3D0
-// srClientSupport<srNode,4096>::`scalar deleting destructor'
-
 /* Detach the item meshes in every registered world before the renderer-side
    resource transition. */
 // FUNCTION: WIZ8 0x0044f5b0
@@ -728,11 +719,6 @@ void UpdateWorldCameraAndPaths(W8World* world, unsigned int flags)
         }
     }
 }
-
-// SYNTHETIC: WIZ8 0x00450060
-// `dynamic atexit destructor for 's_saved_camera_rotation''
-// SYNTHETIC: WIZ8 0x00450070
-// `dynamic atexit destructor for 's_last_automap_refresh_position''
 
 /* Note that the renderer is up. Eight bytes and no branch. */
 // FUNCTION: WIZ8 0x00451010

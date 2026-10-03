@@ -511,9 +511,6 @@ srBinIStream& operator>>(srBinIStream& stream, srMatrix4T<double>& value)
     return stream;
 }
 
-// SYNTHETIC: SURRENDER 0x10031D40
-// srBinIStream::`vector deleting destructor'
-
 // FUNCTION: SURRENDER 0x10031DA0
 unsigned short srBinOStream::vput(char character)
 {
@@ -611,9 +608,6 @@ srBinOStream& srBinOStream::putDouble(double value)
     return *this;
 }
 
-// SYNTHETIC: SURRENDER 0x10032120
-// srBinOStream::`vector deleting destructor'
-
 // FUNCTION: SURRENDER 0x10032180
 srBinStream::srBinStream()
 {
@@ -707,9 +701,6 @@ unsigned long srBinStream::getSize()
 // FUNCTION: SURRENDER 0x1002E950
 srBinStream::~srBinStream() {}
 
-// SYNTHETIC: SURRENDER 0x10032460
-// srFStreamOpener::`vector deleting destructor'
-
 // FUNCTION: SURRENDER 0x100324C0
 void srIStreamOpener::parsePrefix(char** prefix, char** path, const char* source)
 {
@@ -779,9 +770,6 @@ srBinIStream* srIStreamOpener::open(const char* path)
     delete[] prefix;
     return stream;
 }
-
-// SYNTHETIC: SURRENDER 0x10032740
-// srIStreamOpener::operator= (implicit shallow copy)
 
 // FUNCTION: SURRENDER 0x10032780
 srBinIStream* srIStreamOpener::open(const char* prefix, const char* path)
@@ -900,7 +888,3 @@ srBinIStream* srFStreamOpener::open(const char* path)
     delete stream;
     return 0;
 }
-
-// TEMPLATE: SURRENDER 0x10031100
-// NAME: srArray<T>::release emission
-// RECOMP: srArray<T>::release emission

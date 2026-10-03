@@ -72,9 +72,6 @@ W8ProfRaceInfoDialogBase::W8ProfRaceInfoDialogBase()
     SetBackground(g_popup_race_profession_path, 0);
 }
 
-// SYNTHETIC: WIZ8 0x005deb90
-// W8ProfRaceInfoDialogBase::`scalar deleting destructor'
-
 // FUNCTION: WIZ8 0x005DEC40
 int W8ProfRaceInfoDialogBase::CreateControls()
 {
@@ -240,12 +237,6 @@ W8ProfessionInfoDialog::W8ProfessionInfoDialog(unsigned int uiIndex)
     }
 }
 
-// SYNTHETIC: WIZ8 0x005df1a0
-// W8ProfessionInfoDialog::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x005df1c0
-// W8ProfessionInfoDialog::~W8ProfessionInfoDialog
-
 // FUNCTION: WIZ8 0x005DF250
 unsigned char W8ProfessionInfoDialog::PopulateText()
 {
@@ -330,12 +321,6 @@ W8RaceInfoDialog::W8RaceInfoDialog(unsigned int uiIndex)
         }
     }
 }
-
-// SYNTHETIC: WIZ8 0x005df640
-// W8RaceInfoDialog::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x005df660
-// W8RaceInfoDialog::~W8RaceInfoDialog
 
 // FUNCTION: WIZ8 0x005DF6F0
 unsigned char W8RaceInfoDialog::PopulateText()

@@ -1670,7 +1670,3 @@ static void OnCampItemActionButton7(void)
     }
     SetCampItemActionMode(0);
 }
-
-// SYNTHETIC: WIZ8 0x005b1b90
-// NAME: W8GrowableVector<T>::`scalar deleting destructor'
-// RECOMP: W8GrowableVector<W8CharacterPageEntry*>::`scalar deleting destructor'

@@ -66,12 +66,6 @@
 // GLOBAL: WIZ8 0x0069b7e4
 MGSKeyboard* g_mgs_keyboard;
 
-// SYNTHETIC: WIZ8 0x0055CFD0
-// MGSKeyboard::MGSKeyboard (implicit member construction)
-
-// SYNTHETIC: WIZ8 0x0055D160
-// MGSKeyboard::`scalar deleting destructor'
-
 // FUNCTION: WIZ8 0x0055D180
 MGSKeyboard::~MGSKeyboard()
 {

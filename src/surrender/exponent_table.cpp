@@ -141,32 +141,3 @@ srCachedExponentTable* srCachedExponentTable::get(float exponent)
 }
 
 /* Emitted inside this TU by the constructor defaults. */
-// SYNTHETIC: SURRENDER 0x10003160
-// srExponentTable default constructor closure
-
-// SYNTHETIC: SURRENDER 0x100031A0
-// srCachedExponentTable default constructor closure
-
-// SYNTHETIC: SURRENDER 0x100031C0
-// srBoxFilter global static-init block
-
-// SYNTHETIC: SURRENDER 0x100031D0
-// srBoxFilter global atexit registrar
-
-// SYNTHETIC: SURRENDER 0x10003200
-// srTriangleFilter global static-init block
-
-// SYNTHETIC: SURRENDER 0x10003210
-// srTriangleFilter global atexit registrar
-
-// SYNTHETIC: SURRENDER 0x10003240
-// srBellFilter global static-init block
-
-// SYNTHETIC: SURRENDER 0x10003250
-// srBellFilter global atexit registrar
-
-// SYNTHETIC: SURRENDER 0x10003280
-// srBSplineFilter global static-init block
-
-// SYNTHETIC: SURRENDER 0x10003290
-// srBSplineFilter global atexit registrar

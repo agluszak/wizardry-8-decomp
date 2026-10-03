@@ -3,9 +3,6 @@
 #include "surrender/srCore.h"
 #include "surrender/srGERD.h"
 
-// SYNTHETIC: SURRENDER 0x1004C7C0
-// srFog::`vector deleting destructor'`adjustor{312}'
-
 // FUNCTION: SURRENDER 0x1004C7D0
 srIlluminator::srIlluminator(srNode* parent)
     : srClassSupport<srIlluminator, srNode, false, 0x1200>(static_cast<srNode*>(0))
@@ -99,21 +96,3 @@ unsigned long srIlluminator::getGroupMask() const
 {
     return group_mask_13c;
 }
-
-// SYNTHETIC: SURRENDER 0x1004CB20
-// srIlluminator::srIlluminator (implicit copy constructor)
-
-// SYNTHETIC: SURRENDER 0x1004CC20
-// srIlluminator default constructor closure
-
-// SYNTHETIC: SURRENDER 0x1004CB10
-// srVertexProcessor subobject destructor emission (vtable restore)
-
-// SYNTHETIC: SURRENDER 0x1004CC30
-// srIlluminator scalar deleting destructor
-
-// SYNTHETIC: SURRENDER 0x1004CC50
-// srIlluminator::`vector deleting destructor'
-
-// SYNTHETIC: SURRENDER 0x1004CCB0
-// srIlluminator::`vector deleting destructor'`adjustor{312}'

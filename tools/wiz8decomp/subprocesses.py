@@ -31,8 +31,17 @@ def actionable_diagnostics(stdout: str, stderr: str, *, limit: int = 20) -> list
     """Keep compiler/test diagnostics and discard repetitive build-tool unwinding."""
 
     combined = f"{stdout}\n{stderr}".strip()
-    useful: list[str] = []
-    seen: set[str] = set()
+    # Keep pytest's failure identities even when repeated assertion diagnostics
+    # fill the bounded output before its final summary is reached.
+    summaries = list(
+        dict.fromkeys(
+            line.strip() for line in combined.splitlines() if line.startswith(("FAILED ", "ERROR "))
+        )
+    )
+    useful: list[str] = [line[-500:] for line in summaries[:limit]]
+    seen: set[str] = set(summaries)
+    if len(useful) == limit:
+        return useful
     markers = (
         "error C",
         "error LNK",

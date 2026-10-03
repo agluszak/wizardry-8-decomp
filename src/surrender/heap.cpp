@@ -540,9 +540,6 @@ srMemoryAllocator::srMemoryAllocator()
 // FUNCTION: SURRENDER 0x10036520
 srMemoryAllocator::~srMemoryAllocator() {}
 
-// SYNTHETIC: SURRENDER 0x100042E0
-// srMemoryAllocator::operator= (implicit shallow copy)
-
 // FUNCTION: SURRENDER 0x100042D0
 void srMemoryAllocator::setAlignment(e_alignSize alignment)
 {
@@ -653,36 +650,3 @@ void srMemoryAllocator::free(void* allocation)
 
 // GLOBAL: SURRENDER 0x100A48D0
 class srHeap srHeap;
-
-// SYNTHETIC: SURRENDER 0x10035990
-// srHeap global static-init call
-
-// SYNTHETIC: SURRENDER 0x100359A0
-// srHeap global atexit registrar
-
-// SYNTHETIC: SURRENDER 0x100359B0
-// srHeap global atexit dtor thunk
-
-// SYNTHETIC: SURRENDER 0x10036490
-// std::ios_base::Init global static-init block
-
-// SYNTHETIC: SURRENDER 0x100364A0
-// std::ios_base::Init global atexit registrar
-
-// SYNTHETIC: SURRENDER 0x100364D0
-// std::_Winit global static-init block
-
-// SYNTHETIC: SURRENDER 0x100364E0
-// std::_Winit global atexit registrar
-
-// SYNTHETIC: SURRENDER 0x100367E0
-// std::ios_base::Init global static-init block
-
-// SYNTHETIC: SURRENDER 0x100367F0
-// std::ios_base::Init global atexit registrar
-
-// SYNTHETIC: SURRENDER 0x10036820
-// std::_Winit global static-init block
-
-// SYNTHETIC: SURRENDER 0x10036830
-// std::_Winit global atexit registrar

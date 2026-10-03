@@ -209,8 +209,6 @@ W8OctBuildTree::~W8OctBuildTree()
 
 /* Recursive node teardown: internal nodes delete the eight children, leaf
    nodes (leaf_kind_2a != 0) clear the ten link/array slots. */
-// SYNTHETIC: WIZ8 0x004467d0
-// W8OctBuildNode::`scalar deleting destructor'
 
 /* Reject triangles outside the build domain, lazily create the root node, and
    then hand the complete typed working record to the recursive inserter. */

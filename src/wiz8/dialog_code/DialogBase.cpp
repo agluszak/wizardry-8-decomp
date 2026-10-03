@@ -43,8 +43,6 @@ W8DialogBase::W8DialogBase()
     m_right_button_down = 0;
 }
 
-// SYNTHETIC: WIZ8 0x005dc810
-// W8DialogBase::`scalar deleting destructor'
 // FUNCTION: WIZ8 0x005dc860
 W8DialogBase::~W8DialogBase()
 {

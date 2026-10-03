@@ -23,9 +23,6 @@ srTextureFile::srTextureFile(const char* file_name, int cached)
     }
 }
 
-// SYNTHETIC: SURRENDER 0x1005FF80
-// srTextureFile::srTextureFile (implicit copy constructor)
-
 // FUNCTION: SURRENDER 0x1005F780
 srTextureFile& srTextureFile::operator=(const srTextureFile& other)
 {
@@ -201,51 +198,3 @@ void srTextureFile::dump(std::ostream& stream)
     stream << "  Cached: " << (surface_5c != 0 ? "yes\n" : "no\n");
     stream.flags(static_cast<std::ios::fmtflags>(flags & 0x7fff));
 }
-
-// SYNTHETIC: SURRENDER 0x10060090
-// srTextureFile default constructor closure
-
-// TEMPLATE: SURRENDER 0x1005FD40
-// srClassSupport<srTextureFile,srTexture,0,8466>::getClassID
-
-// TEMPLATE: SURRENDER 0x1005FD50
-// srClassSupport<srTextureFile,srTexture,0,8466>::getClassName
-
-// TEMPLATE: SURRENDER 0x1005FD60
-// srClassSupport<srTextureFile,srTexture,0,8466>::getClassNode
-
-// TEMPLATE: SURRENDER 0x1005FDF0
-// srClassSupport<srTextureFile, srTexture, 0, 0x2112>::vClone
-
-// TEMPLATE: SURRENDER 0x1005FE10
-// srClientSupport<srTextureFile, 0x2112>::~srClientSupport
-
-// SYNTHETIC: SURRENDER 0x100600A0
-// srTextureFile scalar deleting destructor
-
-// SYNTHETIC: SURRENDER 0x100600C0
-// srTextureFile::`vector deleting destructor'
-
-// SYNTHETIC: SURRENDER 0x10060120
-// srClassSupport<srTextureFile,srTexture,0,8466>::`scalar deleting destructor'
-
-// SYNTHETIC: SURRENDER 0x10060150
-// std::ios_base::Init global static-init block
-
-// SYNTHETIC: SURRENDER 0x10060160
-// std::ios_base::Init global atexit registrar
-
-// SYNTHETIC: SURRENDER 0x10060190
-// std::_Winit global static-init block
-
-// SYNTHETIC: SURRENDER 0x100601A0
-// std::_Winit global atexit registrar
-
-// SYNTHETIC: SURRENDER 0x1005F840
-// catch funclet emission
-
-// SYNTHETIC: SURRENDER 0x1005F854
-// catch funclet emission
-
-// SYNTHETIC: SURRENDER 0x1005F86D
-// catch-body continuation funclet emission

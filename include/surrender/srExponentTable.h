@@ -12,8 +12,6 @@ class
 public:
     srExponentTable(float exponent = 1.0f);
     /* The exported assignment is consistent with whole-object memberwise copying. */
-    // SYNTHETIC: SURRENDER 0x10003140
-    // srExponentTable::operator=
 
     float getExponent() const;
     float getValue(float x) const;
@@ -43,8 +41,6 @@ public:
     void release();
 
     /* The exported assignment is consistent with whole-object memberwise copying. */
-    // SYNTHETIC: SURRENDER 0x10003180
-    // srCachedExponentTable::operator=
 
 protected:
     /* The ??_F default-constructor closures (0x10003160 base, 0x100031A0

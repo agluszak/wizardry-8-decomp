@@ -53,9 +53,6 @@ stLevel::stLevel(srNode* parent)
     m_active = 0;
 }
 
-// SYNTHETIC: WIZ8 0x004B9D10
-// stLevel::~stLevel
-
 // FUNCTION: WIZ8 0x004BA3D0
 srClass* stLevel::vInstance()
 {
@@ -175,27 +172,6 @@ void stLevel::process(const ProcessInfo& info, e_processType)
     }
     renderer.popMatrix();
 }
-
-// TEMPLATE: WIZ8 0x004BA1B0
-// srClassSupport<stLevel,srNode,0,65543>::getClassID
-
-// TEMPLATE: WIZ8 0x004BA1C0
-// srClassSupport<stLevel,srNode,0,65543>::getClassName
-
-// TEMPLATE: WIZ8 0x004BA1D0
-// srClassSupport<stLevel,srNode,0,65543>::getClassNode
-
-// SYNTHETIC: WIZ8 0x004B9CE0
-// stLevel::`scalar deleting destructor'
-
-// TEMPLATE: WIZ8 0x004BA240
-// srClassSupport<stLevel,srNode,0,65543>::vClone
-
-// TEMPLATE: WIZ8 0x004BA280
-// srClassSupport<stLevel,srNode,0,65543>::~srClassSupport
-
-// SYNTHETIC: WIZ8 0x004BA3A0
-// srClassSupport<stLevel,srNode,0,65543>::`scalar deleting destructor'
 
 namespace {
 
@@ -1221,20 +1197,5 @@ unsigned char ReadLevel(W8World* world, int handle, bool use_octree,
 
 // VTABLE: WIZ8 0x005ED180
 // class srClientSupport<srClipPlane,5376>
-
-// TEMPLATE: WIZ8 0x004BDF00
-// srClientSupport<srClipPlane,5376>::getClassID
-
-// TEMPLATE: WIZ8 0x004BDF10
-// srClientSupport<srClipPlane,5376>::getClassName
-
-// TEMPLATE: WIZ8 0x004BDF20
-// srClientSupport<srClipPlane,5376>::getClassNode
-
-// TEMPLATE: WIZ8 0x004BDF90
-// srClientSupport<srClipPlane,5376>::vClone
-
-// SYNTHETIC: WIZ8 0x004BDFB0
-// srClientSupport<srClipPlane,5376>::`scalar deleting destructor'
 
 #undef CHECK_PVL_OFFSET

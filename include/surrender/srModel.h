@@ -22,10 +22,6 @@ public:
         Client();
         /* Copy construction/assignment are plain memberwise srPtr/links copies;
            the custom destructor remains because it detaches from the model. */
-        // SYNTHETIC: SURRENDER 0x1003C710
-        // srModel::Client::Client(const Client&)
-        // SYNTHETIC: SURRENDER 0x1003C750
-        // srModel::Client::operator=
 
         virtual ~Client();
         virtual void setModel(srModel* model);
@@ -42,9 +38,6 @@ public:
     };
 
     srModel();
-
-    // SYNTHETIC: SURRENDER 0x1003C7B0
-    // srModel::srModel(const srModel&)
 
     srModel& operator=(const srModel& other);
     friend class Client;

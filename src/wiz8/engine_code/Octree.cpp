@@ -2630,35 +2630,8 @@ no_probes:;
     return 0;
 }
 
-// TEMPLATE: WIZ8 0x00439290
-// NAME: W8HashTable<Key,Value>::Grow
-// RECOMP: W8HashTable<unsigned int,int>::Grow
-
-// TEMPLATE: WIZ8 0x00439140
-// NAME: W8HashTable<Key,Value>::Grow
-// RECOMP: W8HashTable<unsigned int,short>::Grow
-
-// TEMPLATE: WIZ8 0x004393e0
-// NAME: W8HashTable<Key,Value>::AllocateEntry
-// RECOMP: W8HashTable<unsigned int,int>::AllocateEntry
-
-// TEMPLATE: WIZ8 0x00438c90
-// NAME: W8HashTable<Key,Value>::Remove
-// RECOMP: W8HashTable<unsigned int,int>::Remove
-
-// TEMPLATE: WIZ8 0x00438d50
-// NAME: W8HashTable<Key,Value>::FindNextEntry
-// RECOMP: W8HashTable<unsigned int,int>::FindNextEntry
-
-// TEMPLATE: WIZ8 0x0055dbb0
-// NAME: W8HashTable<Key,Value>::Insert
-// RECOMP: W8HashTable<unsigned int,int>::Insert
-
 /* Second Remove emission (0x00438C90 above is the other), serving the
    keyboard/automap tables' callers. */
-// TEMPLATE: WIZ8 0x0055DD60
-// NAME: W8HashTable<Key,Value>::Remove (second emission)
-// RECOMP: W8HashTable<unsigned int,int>::Remove (second emission)
 
 // FUNCTION: WIZ8 0x00436840
 W8OctreeObjectRegistry::W8OctreeObjectRegistry()

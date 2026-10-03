@@ -77,60 +77,30 @@ def test_program_target_resolution_uses_configured_identity() -> None:
         target_for_program(repository, "unregistered.dll")
 
 
-def test_synthetic_marker_cannot_own_a_declaration(tmp_path: Path) -> None:
+@pytest.mark.parametrize("kind", ["SYNTHETIC", "TEMPLATE"])
+def test_compiler_emissions_cannot_be_source_markers(tmp_path: Path, kind: str) -> None:
     source = tmp_path / "src/wiz8/item.cpp"
     source.parent.mkdir(parents=True)
-    source.write_text(
-        "// SYNTHETIC: WIZ8 0x0049F420\n"
-        "// W8Item::`scalar deleting destructor'\n"
-        "W8Item::~W8Item() {}\n",
-        encoding="utf-8",
-    )
-
-    with pytest.raises(SourceIndexError, match="SYNTHETIC owns no declaration or body"):
-        source_index.validate_synthetic_marker_blocks(tmp_path)
-
-    source.write_text(
-        "// SYNTHETIC: WIZ8 0x0049F420\n"
-        "// W8Item::`scalar deleting destructor'\n\n"
-        "// FUNCTION: WIZ8 0x0049F440\n"
-        "W8Item::~W8Item() {}\n",
-        encoding="utf-8",
-    )
-    assert source_index.validate_synthetic_marker_blocks(tmp_path) == 1
+    source.write_text(f"// {kind}: WIZ8 0x0049F420\n// W8Item::~W8Item\n\n")
+    with pytest.raises(SourceIndexError, match="emission inventory"):
+        source_index.validate_authored_marker_blocks(tmp_path)
+    source.write_text("// FUNCTION: WIZ8 0x0049F440\nW8Item::~W8Item() {}\n")
+    assert source_index.validate_authored_marker_blocks(tmp_path) == 0
 
 
 @pytest.mark.parametrize("attached_body", [False, True])
-def test_synthetic_display_and_selector_metadata(tmp_path: Path, attached_body: bool) -> None:
+def test_display_selector_annotations_cannot_restore_emission_source_identity(
+    tmp_path, attached_body
+):
     source = tmp_path / "src/item.cpp"
     source.parent.mkdir()
     source.write_text(
         "// SYNTHETIC: WIZ8 0x1000\n"
         "// NAME: Vec<T>::~Vec\n"
-        "// RECOMP: ??1?$Vec@H@@QAE@XZ\n"
-        + (
-            "void body() {}\n"
-            if attached_body
-            else "// SYNTHETIC: WIZ8 0x2000\n"
-            "// NAME: Vec<T>::~Vec\n"
-            "// RECOMP: ??1?$Vec@M@@QAE@XZ\n\n"
-            "void body() {}\n"
-        ),
-        encoding="utf-8",
+        "// RECOMP: ??1?$Vec@H@@QAE@XZ\n" + ("void body() {}\n" if attached_body else "\n")
     )
-    if attached_body:
-        with pytest.raises(SourceIndexError, match="SYNTHETIC owns no declaration or body"):
-            source_index.validate_synthetic_marker_blocks(tmp_path)
-    else:
-        assert source_index.validate_synthetic_marker_blocks(tmp_path) == 2
-
-
-def test_synthetic_display_requires_a_selector(tmp_path: Path) -> None:
-    source = tmp_path / "src/item.cpp"
-    source.parent.mkdir()
-    source.write_text("// SYNTHETIC: WIZ8 0x1000\n// NAME: Vec<T>::~Vec\n\n", encoding="utf-8")
-    with pytest.raises(SourceIndexError, match="SYNTHETIC NAME lacks its RECOMP selector"):
-        source_index.validate_synthetic_marker_blocks(tmp_path)
+    with pytest.raises(SourceIndexError, match="emission inventory"):
+        source_index.validate_authored_marker_blocks(tmp_path)
 
 
 @pytest.mark.parametrize("existing_database", [False, True])

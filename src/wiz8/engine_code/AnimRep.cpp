@@ -111,9 +111,6 @@ W8AnimRepBase* W8AnimRepBase::Clone()
     return new W8AnimRepBase(*this);
 }
 
-// SYNTHETIC: WIZ8 0x0044ee50
-// W8AnimRepBase::`scalar deleting destructor'
-
 /* AnimRep.cpp copies persistent animation state, then timestamps the new
    representation from the shared SurRender timer.  The source assertion names
    that global `gpsrTimer`. */
@@ -135,11 +132,6 @@ W8AnimRep::W8AnimRep(const W8AnimRep& other)
     timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
 }
 
-// SYNTHETIC: WIZ8 0x004b5760
-// W8AnimRep::`scalar deleting destructor'
-// SYNTHETIC: WIZ8 0x0044ef20
-// W8AnimRep::~W8AnimRep
-
 /* The abstract emitter host copies its stable settings, but starts with no
    selected emitter and the canonical 00 00 FF FF transient byte pattern. */
 // FUNCTION: WIZ8 0x004b5680
@@ -157,8 +149,3 @@ W8EmitterHost::W8EmitterHost()
       forced_subcycle_0a6(-1), pending_cycle(-1), animation_radius_0a8(0)
 {
 }
-
-// SYNTHETIC: WIZ8 0x004b5660
-// W8EmitterHost::`scalar deleting destructor'
-// SYNTHETIC: WIZ8 0x004b56f0
-// W8EmitterHost::~W8EmitterHost

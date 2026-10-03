@@ -42,12 +42,6 @@ OctPreTree* g_oct_pre_tree = 0;
 /* Paired item/key sorts shared through stHash.hpp; these emissions are this
    file's unsigned long and unsigned short instantiations. */
 
-// TEMPLATE: WIZ8 0x00467640
-// QuickSortByKey<unsigned long>
-
-// TEMPLATE: WIZ8 0x004677a0
-// QuickSortByKey<unsigned short>
-
 /* The build-time runtime tree extends the ordinary 0x29c octree with transfer
    bookkeeping and one separately owned pointer vector.  Its only recovered
    construction caller allocates exactly 0x3bc bytes. */
@@ -907,8 +901,6 @@ static_assert(sizeof(W8OctUvPoolEntry) == 0xc, "W8OctUvPoolEntry_must_be_0xc");
 /* Builds one record's UV map: walks the three corners of every polygon,
    deduplicates uvs through the pool and emits the corner-to-uv index
    triplets plus the final srVector2 map.  Returns the uv count. */
-// TEMPLATE: WIZ8 0x0046a490
-// srVector3T<float>::operator=
 
 // FUNCTION: WIZ8 0x0046a4b0
 unsigned long OctPreTree::SplitUVMaps(W8OctSubmeshBuild* record, W8OctPreTreeGeometry* geometry)
@@ -1686,19 +1678,6 @@ char OctPreTree::PropFramesDiffer(W8LevelFileAnimObj* anim, unsigned short first
     }
     return differ;
 }
-
-// TEMPLATE: WIZ8 0x0046ca50
-// QuickSortByKey<srVector3i>
-
-// SYNTHETIC: WIZ8 0x0046cc50
-// W8Octree::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x0046cc80
-// W8OctSpatialState::`scalar deleting destructor'
-
-// TEMPLATE: WIZ8 0x0046cca0
-// NAME: W8GrowableVector<T>::~W8GrowableVector
-// RECOMP: W8GrowableVector<GDProp*>::~W8GrowableVector
 
 /* Construct the spatial value used by both the runtime octree and the level
    build tree.  A source value describes the next child: its extent halves and

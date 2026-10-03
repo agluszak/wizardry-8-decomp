@@ -35,9 +35,6 @@
 // STRING: WIZ8 0x0064F6B0
 #define MONSTER_INFO_DIALOG_CPP "C:\\Projects\\Wizardry 8\\Dialog Code\\MonsterInfoDialog.cpp"
 
-// SYNTHETIC: WIZ8 0x005d5ee0
-// W8MonsterInfoDialog::`scalar deleting destructor'
-
 /* The background and scroll track the monster and statistic info dialogs
    load, read through this pointer. */
 // GLOBAL: WIZ8 0x0064f610

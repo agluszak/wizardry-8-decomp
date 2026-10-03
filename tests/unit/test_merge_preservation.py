@@ -160,7 +160,13 @@ def test_function_may_be_reclassified_as_synthetic(tmp_path: Path) -> None:
     )
     head = _commit(
         tmp_path,
-        {"src/foo.cpp": ("// SYNTHETIC: WIZ8 0x00401000\n// compiler-owned teardown emission\n")},
+        {
+            "src/foo.cpp": "",
+            "evidence/observations/compiler-emissions.csv": (
+                "target|address|symbol|name|type\n"
+                "WIZ8|00401000||compiler-owned teardown emission|synthetic\n"
+            ),
+        },
         "head",
     )
 
@@ -168,7 +174,7 @@ def test_function_may_be_reclassified_as_synthetic(tmp_path: Path) -> None:
 
     assert report["status"] == "passed"
     assert report["lost"] == []
-    assert report["reclassified"][0]["replacement"] == "SYNTHETIC WIZ8 0x00401000"
+    assert report["reclassified"][0]["replacement"] == "EMISSION WIZ8 0x00401000"
 
 
 def test_function_may_be_reclassified_as_template(tmp_path: Path) -> None:
@@ -180,14 +186,19 @@ def test_function_may_be_reclassified_as_template(tmp_path: Path) -> None:
     )
     head = _commit(
         tmp_path,
-        {"src/foo.cpp": "// TEMPLATE: WIZ8 0x00401000\n// Hash<int>::Grow\n"},
+        {
+            "src/foo.cpp": "",
+            "config/reccmp/emission_overrides.csv": (
+                "target|address|symbol|name|type\nWIZ8|00401000||Hash<int>::Grow|template\n"
+            ),
+        },
         "head",
     )
 
     report = merge_preservation_report(tmp_path, base, head)
 
     assert report["status"] == "passed"
-    assert report["reclassified"][0]["replacement"] == "TEMPLATE WIZ8 0x00401000"
+    assert report["reclassified"][0]["replacement"] == "EMISSION WIZ8 0x00401000"
 
 
 def test_global_may_be_reclassified_as_string(tmp_path: Path) -> None:
@@ -396,3 +407,48 @@ def test_base_ancestry_fails_on_diverged_branch(tmp_path: Path) -> None:
         "head": ["src/stale.cpp"],
         "base": ["src/new.cpp"],
     }
+
+
+def test_removing_binary_emission_identity_is_a_preservation_failure(tmp_path: Path) -> None:
+    _repo(tmp_path)
+    base = _commit(
+        tmp_path,
+        {
+            "evidence/observations/compiler-emissions.csv": (
+                "target|address|symbol|name|type\nWIZ8|00401000|??_GFoo@@UAEPAXI@Z||synthetic\n"
+            )
+        },
+        "base",
+    )
+    head = _commit(
+        tmp_path,
+        {"evidence/observations/compiler-emissions.csv": "target|address|symbol|name|type\n"},
+        "head",
+    )
+    report = merge_preservation_report(tmp_path, base, head)
+    assert report["status"] == "failed"
+    assert report["lost"][0]["identity"] == "EMISSION WIZ8 0x00401000"
+
+
+@pytest.mark.parametrize("result", ["preserved", "removed", "changed-selector"])
+def test_legacy_emission_migration_preserves_identity_and_selector(tmp_path: Path, result: str):
+    _repo(tmp_path)
+    source = "src/wiz8/foo.cpp"
+    base = _commit(
+        tmp_path,
+        {source: "// TEMPLATE: WIZ8 0x00401000\n// NAME: Hash<T>::Grow\n// RECOMP: ??Grow@@\n"},
+        "base",
+    )
+    inventory = "target|address|symbol|name|type|recomp_selector\n"
+    if result != "removed":
+        selector = "??Grow@@" if result == "preserved" else "??Wrong@@"
+        inventory += f"WIZ8|00401000||Hash<T>::Grow|template|{selector}\n"
+    head = _commit(
+        tmp_path, {source: "", "evidence/observations/compiler-emissions.csv": inventory}, "head"
+    )
+    report = merge_preservation_report(tmp_path, base, head)
+    assert report["status"] == ("failed" if result == "removed" else "passed")
+    if result == "removed":
+        assert report["lost"][0]["identity"] == "EMISSION WIZ8 0x00401000"
+    if result == "changed-selector":
+        assert report["changed"][0]["identity"] == "EMISSION WIZ8 0x00401000"

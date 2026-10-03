@@ -184,8 +184,6 @@ public:
 
 template <class T> srVector3T<T>::srVector3T() {}
 
-// TEMPLATE: WIZ8 0x00421670
-// srVector3T<float>::SetZero
 template <class T> void srVector3T<T>::SetZero()
 {
     x = (T)0;
@@ -193,10 +191,6 @@ template <class T> void srVector3T<T>::SetZero()
     z = (T)0;
 }
 
-// TEMPLATE: WIZ8 0x00421680
-// srVector3T<float>::Set
-// TEMPLATE: SURRENDER 0x10044DF0
-// srVector3T<float>::Set
 template <class T>
 srVector3T<T>* srVector3T<T>::Set(double source_0, double source_1, double source_2)
 {
@@ -222,9 +216,6 @@ template <class T> srVector3T<T>& srVector3T<T>::operator-=(const srVector3T<T>&
     return *this;
 }
 
-// TEMPLATE: SURRENDER 0x10055480
-// NAME: srVector3T<double>::operator*= (double-lane arithmetic)
-// RECOMP: ??X?$srVector3T@N@@QAEAAV0@ABV0@@Z
 template <class T> srVector3T<T>& srVector3T<T>::operator*=(const srVector3T<T>& other)
 {
     x = other.x * x;
@@ -292,8 +283,6 @@ template <class T> srVector3T<T>* srVector3T<T>::Unitize()
     return this;
 }
 
-// TEMPLATE: WIZ8 0x00421700
-// srVector3T<float>::Length
 template <class T> T srVector3T<T>::Length() const
 {
     return (T)sqrt(x * x + y * y + z * z);
@@ -323,8 +312,6 @@ template <class T> srVector3T<T>* srVector3T<T>::SetFromFloat(const srVector3T<f
     return this;
 }
 
-// TEMPLATE: WIZ8 0x004258B0
-// srVector3T<float>::SetSaturated
 template <class T> void srVector3T<T>::SetSaturated(const srVector3T<T>& source)
 {
     x = (T)source.x;
@@ -344,8 +331,6 @@ template <class T> void srVector3T<T>::SetSaturated(const srVector3T<T>& source)
         z = 1.0f;
 }
 
-// TEMPLATE: WIZ8 0x00451A10
-// srVector3T<float>::RotateAboutY
 template <class T> srVector3T<T>* srVector3T<T>::RotateAboutY(double sine, double cosine)
 {
     T new_z = (T)(z * cosine - x * sine);
@@ -354,8 +339,6 @@ template <class T> srVector3T<T>* srVector3T<T>::RotateAboutY(double sine, doubl
     return this;
 }
 
-// TEMPLATE: WIZ8 0x0049BA80
-// srVector3T<float>::RotateAboutX
 template <class T> srVector3T<T>* srVector3T<T>::RotateAboutX(double sine, double cosine)
 {
     T new_z = (T)(z * cosine + y * sine);
@@ -500,8 +483,6 @@ public:
 
 template <class T> srVector4T<T>::srVector4T() {}
 
-// TEMPLATE: WIZ8 0x004D6B30
-// srVector4T<float>::Set
 template <class T> srVector4T<T>* srVector4T<T>::Set(T source_0, T source_1, T source_2, T source_3)
 {
     x = source_0;
@@ -532,8 +513,6 @@ public:
     srVector2T<T> vectors[2];
 };
 
-// TEMPLATE: WIZ8 0x004D6B80
-// srMatrix2T<float>::MultiplyBy
 template <class T> srMatrix2T<T>* srMatrix2T<T>::MultiplyBy(const srMatrix2T<T>& other)
 {
     T result[4];
@@ -577,8 +556,6 @@ public:
     srVector3T<T> vectors[3];
 };
 
-// TEMPLATE: WIZ8 0x004219F0
-// srMatrix3T<float>::SetRows
 template <class T>
 srMatrix3T<T>* srMatrix3T<T>::SetRows(const srVector3T<T>& first, const srVector3T<T>& second,
                                       const srVector3T<T>& third)
@@ -589,8 +566,6 @@ srMatrix3T<T>* srMatrix3T<T>::SetRows(const srVector3T<T>& first, const srVector
     return this;
 }
 
-// TEMPLATE: WIZ8 0x00421A40
-// srMatrix3T<float>::MultiplyBy
 template <class T> srMatrix3T<T>* srMatrix3T<T>::MultiplyBy(const srMatrix3T<T>& other)
 {
     srMatrix3T<T> result;
@@ -627,8 +602,6 @@ template <class T> bool srMatrix3T<T>::operator==(const srMatrix3T<T>& other) co
            vectors[2] == other.vectors[2];
 }
 
-// TEMPLATE: WIZ8 0x00438F90
-// srMatrix3T<float>::RotateAboutY
 template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutY(double sine, double cosine)
 {
     srMatrix3T<T> rotation;
@@ -639,8 +612,6 @@ template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutY(double sine, doubl
     return this;
 }
 
-// TEMPLATE: WIZ8 0x00478EB0
-// srMatrix3T<float>::RotateAboutX
 template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutX(double sine, double cosine)
 {
     srMatrix3T<T> rotation;
@@ -695,8 +666,6 @@ template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutX(double angle)
     return this;
 }
 
-// TEMPLATE: WIZ8 0x004CAB60
-// srMatrix3T<float>::RotateAboutZ
 template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutZ(double angle)
 {
     srMatrix3T<T> rotation;
@@ -716,8 +685,6 @@ template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutZ(double angle)
 /* Single-angle overload of the Rodrigues rotation above, keeping the
    trigonometry and the basis products in double precision until the float
    stores. The MartensBluff2 arrow trap emits it at 0x004DE940. */
-// TEMPLATE: WIZ8 0x004DE940
-// srMatrix3T<float>::RotateAroundAxis(double, const srVector3T<float>&)
 template <class T>
 srMatrix3T<T>* srMatrix3T<T>::RotateAroundAxis(double angle, const srVector3T<T>& axis)
 {
@@ -744,8 +711,6 @@ srMatrix3T<T>* srMatrix3T<T>::RotateAroundAxis(double angle, const srVector3T<T>
     return this;
 }
 
-// TEMPLATE: WIZ8 0x0042B910
-// srMatrix3T<float>::RotateAroundAxis(double, double, const srVector3T<float>&)
 template <class T>
 srMatrix3T<T>* srMatrix3T<T>::RotateAroundAxis(double sine, double cosine,
                                                const srVector3T<T>& axis)
@@ -786,8 +751,6 @@ template <class T> srVector3T<T> srMatrix3T<T>::Transform(const srVector3T<T>& v
 /* The transposed product: each result component is a column dot, so
    result = M^T * value. Emitted standalone at 0x004ED950 for the Combat.cpp
    breath-effect direction rotation. */
-// TEMPLATE: WIZ8 0x004ed950
-// srMatrix3T<float>::TransformTransposed
 template <class T>
 srVector3T<T> srMatrix3T<T>::TransformTransposed(const srVector3T<T>& value) const
 {
@@ -843,8 +806,6 @@ public:
    Retail emits the double instantiation out-of-line for the srNode
    world-space setters. Retail stores each finished row into this before
    reading other for the next row, so other must not alias this. */
-// TEMPLATE: SURRENDER 0x10055A60
-// srMatrix4T<double>::MultiplyBy
 template <class T> srMatrix4T<T>* srMatrix4T<T>::MultiplyBy(const srMatrix4T<T>& other)
 {
     for (int index = 0; index != 4; ++index) {
@@ -867,8 +828,6 @@ template <class T> srMatrix4T<T>* srMatrix4T<T>::MultiplyBy(const srMatrix4T<T>&
 /* Three-operand row-major multiply: result.row_i.j = row_i · other.column_j.
    Retail emits the float instantiation out-of-line for
    srBounder::getChildBoundingBox. */
-// TEMPLATE: SURRENDER 0x1004B4D0
-// srMatrix4T<float>::Multiply
 template <class T>
 srMatrix4T<T>* srMatrix4T<T>::Multiply(const srMatrix4T<T>& other, srMatrix4T<T>& result)
 {
@@ -886,8 +845,6 @@ srMatrix4T<T>* srMatrix4T<T>::Multiply(const srMatrix4T<T>& other, srMatrix4T<T>
     return this;
 }
 
-// TEMPLATE: WIZ8 0x0049BAB0
-// srMatrix4T<float>::Invert
 template <class T> srMatrix4T<T>* srMatrix4T<T>::Invert()
 {
     srMatrix4T<T> inverse;
@@ -1128,10 +1085,6 @@ public:
     srVector4T<T> rows[3];
 };
 
-// TEMPLATE: SURRENDER 0x10055710
-// srMatrix4x3T<double>::SetIdentity
-// TEMPLATE: SURRENDER 0x10055770
-// srMatrix4x3T<float>::SetIdentity
 template <class T> void srMatrix4x3T<T>::SetIdentity()
 {
     rows[0].x = static_cast<T>(1);

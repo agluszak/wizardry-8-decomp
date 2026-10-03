@@ -39,9 +39,6 @@ struct W8JournalEntry {
 };
 static_assert(sizeof(W8JournalEntry) == 0x0c, "W8JournalEntry_size");
 
-// SYNTHETIC: WIZ8 0x005bd7d0
-// W8JournalPanel::`scalar deleting destructor'
-
 /* 0x0068de40: the fact journal, created lazily by the initializer below and
    appended to whenever a fact changes. */
 extern W8GrowableVector<W8JournalEntry>* g_fact_journal_entries;

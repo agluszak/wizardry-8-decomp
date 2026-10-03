@@ -1068,8 +1068,6 @@ void W8GameData::ReadProcessedGameData(int handle)
    below follow the image order rather than field order. */
 /* 0x0044902E is the constructor's shared body entry: the SEH wrapper at
    0x00449010 zeroes EBX and falls through into the code below. */
-// SYNTHETIC: WIZ8 0x0044902E
-// W8GameData::W8GameData shared constructor entry
 // FUNCTION: WIZ8 0x00449010
 W8GameData::W8GameData(int handle, bool secondary)
 {

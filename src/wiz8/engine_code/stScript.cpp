@@ -59,35 +59,11 @@ unsigned char ReadTextLine(int handle, char* destination, int capacity, unsigned
 // VTABLE: WIZ8 0x005ED358
 // class srClassSupport<stScript,srClass,1,65549>
 
-// SYNTHETIC: WIZ8 0x004CF020
-// stScript::stScript
-
 // FUNCTION: WIZ8 0x004CF110
 srClass* stScript::vInstance()
 {
     return new stScript;
 }
-
-// SYNTHETIC: WIZ8 0x004CF230
-// stScript::`scalar deleting destructor'
-
-// TEMPLATE: WIZ8 0x004CF7C0
-// srClassSupport<stScript,srClass,1,65549>::getClassID
-
-// TEMPLATE: WIZ8 0x004CF7D0
-// srClassSupport<stScript,srClass,1,65549>::getClassName
-
-// TEMPLATE: WIZ8 0x004CF7E0
-// srClassSupport<stScript,srClass,1,65549>::getClassNode
-
-// TEMPLATE: WIZ8 0x004CF820
-// srClassSupport<stScript,srClass,1,65549>::vClone
-
-// TEMPLATE: WIZ8 0x004CF940
-// srClassSupport<stScript,srClass,1,65549>::~srClassSupport<stScript,srClass,1,65549>
-
-// SYNTHETIC: WIZ8 0x004CF9D0
-// srClassSupport<stScript,srClass,1,65549>::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x004CF260
 stScript::~stScript()

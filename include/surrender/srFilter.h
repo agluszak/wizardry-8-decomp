@@ -8,12 +8,6 @@ class SR_DLL_IMPORT SR_DLL_EXPORT srFilter {
 public:
     /* The reconstruction leaves trivial construction and copying implicit.
        The explicit virtual destructor supplies the modeled destruction interface. */
-    // SYNTHETIC: SURRENDER 0x10003300
-    // ??0srFilter@@QAE@XZ
-    // SYNTHETIC: SURRENDER 0x10003310
-    // ??0srFilter@@QAE@ABV0@@Z
-    // SYNTHETIC: SURRENDER 0x10003330
-    // ??4srFilter@@QAEAAV0@ABV0@@Z
 
     // FUNCTION: SURRENDER 0x100032B0
     // ??1srFilter@@UAE@XZ
@@ -30,14 +24,6 @@ class SR_DLL_IMPORT SR_DLL_EXPORT srBoxFilter : public srFilter {
 public:
     /* No derived state is modeled; lifecycle bodies are consistent with
        ordinary base-only operations and derived table setup. */
-    // SYNTHETIC: SURRENDER 0x10003480
-    // srBoxFilter::srBoxFilter()
-    // SYNTHETIC: SURRENDER 0x100034A0
-    // srBoxFilter::srBoxFilter(const srBoxFilter&)
-    // SYNTHETIC: SURRENDER 0x10003520
-    // srBoxFilter::operator=
-    // SYNTHETIC: SURRENDER 0x10003530
-    // srBoxFilter::~srBoxFilter
 
     virtual const char* getName() const override;
     virtual double getWeight(double value) const override;
@@ -50,14 +36,6 @@ class SR_DLL_IMPORT SR_DLL_EXPORT srBellFilter : public srFilter {
 public:
     /* No derived state is modeled; lifecycle bodies are consistent with
        ordinary base-only operations and derived table setup. */
-    // SYNTHETIC: SURRENDER 0x100035E0
-    // srBellFilter::srBellFilter()
-    // SYNTHETIC: SURRENDER 0x100035F0
-    // srBellFilter::srBellFilter(const srBellFilter&)
-    // SYNTHETIC: SURRENDER 0x10003600
-    // srBellFilter::operator=
-    // SYNTHETIC: SURRENDER 0x10003610
-    // srBellFilter::~srBellFilter
 
     virtual const char* getName() const override;
     virtual double getWeight(double value) const override;
@@ -70,14 +48,6 @@ class SR_DLL_IMPORT SR_DLL_EXPORT srBSplineFilter : public srFilter {
 public:
     /* No derived state is modeled; lifecycle bodies are consistent with
        ordinary base-only operations and derived table setup. */
-    // SYNTHETIC: SURRENDER 0x10003780
-    // srBSplineFilter::srBSplineFilter()
-    // SYNTHETIC: SURRENDER 0x10003790
-    // srBSplineFilter::srBSplineFilter(const srBSplineFilter&)
-    // SYNTHETIC: SURRENDER 0x100037A0
-    // srBSplineFilter::operator=
-    // SYNTHETIC: SURRENDER 0x100037B0
-    // srBSplineFilter::~srBSplineFilter
 
     virtual const char* getName() const override;
     virtual double getWeight(double value) const override;
@@ -90,14 +60,6 @@ class SR_DLL_IMPORT SR_DLL_EXPORT srTriangleFilter : public srFilter {
 public:
     /* No derived state is modeled; lifecycle bodies are consistent with
        ordinary base-only operations and derived table setup. */
-    // SYNTHETIC: SURRENDER 0x100036B0
-    // srTriangleFilter::srTriangleFilter()
-    // SYNTHETIC: SURRENDER 0x100036C0
-    // srTriangleFilter::srTriangleFilter(const srTriangleFilter&)
-    // SYNTHETIC: SURRENDER 0x100036D0
-    // srTriangleFilter::operator=
-    // SYNTHETIC: SURRENDER 0x100036E0
-    // srTriangleFilter::~srTriangleFilter
 
     virtual const char* getName() const override;
     virtual double getWeight(double value) const override;

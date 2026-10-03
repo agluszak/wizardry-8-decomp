@@ -1031,12 +1031,6 @@ unsigned long W8Missile::GetAnimationState(int mode)
     }
 }
 
-// SYNTHETIC: WIZ8 0x004a3e30
-// W8Missile::`vector deleting destructor'
-
-// SYNTHETIC: WIZ8 0x004a5da0
-// W8Missile::`vector deleting destructor'`adjustor{24}'
-
 /* Release the representation and every external reference before ordinary
    vector and GrCycle teardown. */
 // FUNCTION: WIZ8 0x004a3fc0
@@ -1112,9 +1106,6 @@ void DestroyAllMissiles(W8World* world)
         missile->DestroyMissile();
     }
 }
-
-// SYNTHETIC: WIZ8 0x004a2d80
-// W8MissileRep::`scalar deleting destructor'
 
 /* Release the two owned animations and every light vector before the ordinary
    vector members and W8EmitterHost base tear themselves down. */
@@ -1228,8 +1219,6 @@ bool W8Missile::IsCycleSupported(signed char cycle)
 /* 0x004A4440 is a split address inside this body: it resumes at the
    animation-record field copy after the timestamp read, not a separate
    authored function. */
-// SYNTHETIC: WIZ8 0x004A4440
-// W8Missile::SetCycle mid-body continuation
 // FUNCTION: WIZ8 0x004a4300
 void W8Missile::SetCycle(signed char cycle)
 {
@@ -1492,5 +1481,3 @@ miss:
 
 /* srMatrix3T<float>::RotateAboutX emitted for this TU; the primary template
    lives in srMath.h. */
-// TEMPLATE: WIZ8 0x004A5AB0
-// srMatrix3T<float>::RotateAboutX

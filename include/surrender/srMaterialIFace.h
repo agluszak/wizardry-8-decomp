@@ -18,12 +18,6 @@ public:
     static const char* sGetClassName();
     /* Provider construction/destruction are consistent with base-only lifecycle.
        Wiz8 imports the standalone public symbols. */
-    // SYNTHETIC: SURRENDER 0x10034BE0
-    // srMaterialIFace::srMaterialIFace()
-    // SYNTHETIC: SURRENDER 0x10034C70
-    // srMaterialIFace::srMaterialIFace(const srMaterialIFace&)
-    // SYNTHETIC: SURRENDER 0x10016310
-    // srMaterialIFace::~srMaterialIFace
 
 #if !defined(SURRENDER_BUILD)
     srMaterialIFace();
@@ -32,8 +26,6 @@ public:
     /* Provider assignment is consistent with srClassSupport/base assignment.
        Wiz8 imports the standalone symbol, so the consumer keeps only the
        dllimport declaration. */
-    // SYNTHETIC: SURRENDER 0x10034D80
-    // srMaterialIFace::operator=
 
 #if !defined(SURRENDER_BUILD)
     srMaterialIFace& operator=(const srMaterialIFace& other);

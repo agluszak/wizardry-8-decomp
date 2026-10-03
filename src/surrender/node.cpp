@@ -467,9 +467,6 @@ srNode* srNode::getPrev() const
     return previous_sibling_;
 }
 
-// SYNTHETIC: SURRENDER 0x10051AA0
-// srNode::srNode (implicit copy constructor)
-
 // FUNCTION: SURRENDER 0x10051A60
 void srNode::setScale(double scale)
 {
@@ -483,9 +480,6 @@ void srNode::checkTransformation() const
         updateTransformation();
     }
 }
-
-// SYNTHETIC: SURRENDER 0x10051BF0
-// srNode::`vector deleting destructor'
 
 // FUNCTION: SURRENDER 0x10051C50
 void srNode::setFlag(e_flag flag)
@@ -1518,86 +1512,8 @@ void srNode::rollAt(const srNode* target, double amount)
            amount);
 }
 
-// SYNTHETIC: SURRENDER 0x100502E0
-// srNode::sceneGraphCSect global constructor emission
-
-// SYNTHETIC: SURRENDER 0x100502F0
-// srNode::sceneGraphCSect global atexit registrar
-
-// TEMPLATE: SURRENDER 0x100553E0
-// srVector3T<double>::srVector3T
-
-// TEMPLATE: SURRENDER 0x100553F0
-// srVector3T<double>::Set
-
-// TEMPLATE: SURRENDER 0x10055420
-// srVector3T<double>::operator-=
-
-// TEMPLATE: SURRENDER 0x10055450
-// srVector3T<double>::Length
-
-// TEMPLATE: SURRENDER 0x100554B0
-// srClassSupport<srNode,srClass,1,4096>::getClassID
-
-// TEMPLATE: SURRENDER 0x100554D0
-// srClassSupport<srNode,srClass,1,4096>::getClassNode
-
-// TEMPLATE: SURRENDER 0x10055510
-// srClassSupport<srNode, srClass, true, 0x1000>::vClone
-
-// TEMPLATE: SURRENDER 0x10055530
-// srClassSupport<srNode, srClass, true, 0x1000>::~srClassSupport
-
-// TEMPLATE: SURRENDER 0x100555C0
-// srMatrix3T<double>::TransformTransposed
-
 // LIBRARY: SURRENDER 0x10055640
 // std::ios_base::Init::Init
 
-// SYNTHETIC: SURRENDER 0x10055650
-// std::ios_base::Init global atexit registrar
-
 // LIBRARY: SURRENDER 0x10055680
 // std::_Winit::_Winit
-
-// SYNTHETIC: SURRENDER 0x10055690
-// std::_Winit global atexit registrar
-
-// SYNTHETIC: SURRENDER 0x100556B0
-// srClassSupport<srNode,srClass,1,4096>::`scalar deleting destructor'
-
-// TEMPLATE: SURRENDER 0x100556D0
-// srClassSupport<srNode, srClass, true, 0x1000>::sGetClassNode
-
-// TEMPLATE: SURRENDER 0x100557A0
-// srMatrix3T<double>::RotateAboutX(double angle)
-
-// TEMPLATE: SURRENDER 0x10055930
-// srMatrix3T<double>::MultiplyBy
-
-// TEMPLATE: SURRENDER 0x10055C70
-// operator*(const srVector3T<double>&, double)
-
-// TEMPLATE: SURRENDER 0x10055CB0
-// DotProduct(const srVector3T<double>&, const srVector3T<double>&)
-
-// TEMPLATE: SURRENDER 0x10055CD0
-// srVector3T<double>::operator*=(double)
-
-// TEMPLATE: SURRENDER 0x10055D00
-// srMatrix3T<double>::SetRows
-
-// TEMPLATE: SURRENDER 0x10055D40
-// srMatrix3T<double>::RotateAroundAxis(double sine, double cosine, const srVector3T<double>&)
-
-// TEMPLATE: SURRENDER 0x10055F00
-// srMatrix3T<double>::RotateAboutX(double sine, double cosine)
-
-// TEMPLATE: SURRENDER 0x10056080
-// srMatrix3T<double>::RotateAboutY(double sine, double cosine)
-
-// SYNTHETIC: SURRENDER 0x10051BC0
-// srNode default constructor closure
-
-// SYNTHETIC: SURRENDER 0x10051BD0
-// srNode scalar deleting destructor

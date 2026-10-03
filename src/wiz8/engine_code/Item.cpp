@@ -28,9 +28,6 @@
 // VTABLE: WIZ8 0x005ECD78 W8Item
 // class W8Item
 
-// SYNTHETIC: WIZ8 0x0049F420
-// W8Item::`scalar deleting destructor'
-
 // FUNCTION: WIZ8 0x0049F440
 W8Item::~W8Item()
 {
@@ -148,9 +145,6 @@ bool W8Item::IsRadarBlipLit()
 
 // VTABLE: WIZ8 0x005ECD70 W8ItemRep
 // class W8ItemRep
-
-// SYNTHETIC: WIZ8 0x0049F100
-// W8ItemRep::`scalar deleting destructor'
 
 /* Inlined into both item construction paths. Retail leaves the mesh pointer
    and bounds untouched until ReadFromFile; do not initialize them here. */

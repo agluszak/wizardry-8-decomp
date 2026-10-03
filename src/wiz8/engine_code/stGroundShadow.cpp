@@ -56,9 +56,6 @@ static_assert(sizeof(W8GroundShadowMapper) == 0x98, "W8GroundShadowMapper004D618
 // GLOBAL: WIZ8 0x00683430
 static W8GroundShadowMapper g_ground_shadow_material_parameters;
 
-// SYNTHETIC: WIZ8 0x004D6180
-// W8GroundShadowMapper::W8GroundShadowMapper (implicit)
-
 /* Retail ICF folds this class's scalar deleting destructor onto
    W8NormalTexcoordMapper's at 0x004B8A50. */
 
@@ -89,17 +86,8 @@ void W8GroundShadowMapper::process(srVertexPipe& pipe)
     } while (--count != 0);
 }
 
-// SYNTHETIC: WIZ8 0x004D6340
-// stGroundShadow::`scalar deleting destructor'
-
 // VTABLE: WIZ8 0x005ed3f8
 // class srClassSupport<stGroundShadow,srNode,0,65552>
-
-// SYNTHETIC: WIZ8 0x004D6B50
-// srClassSupport<stGroundShadow,srNode,0,65552>::`scalar deleting destructor'
-
-// TEMPLATE: WIZ8 0x004D6A70
-// srClassSupport<stGroundShadow,srNode,0,65552>::~srClassSupport
 
 // FUNCTION: WIZ8 0x004D61B0
 stGroundShadow::stGroundShadow(srNode* parent)
@@ -239,21 +227,6 @@ void stGroundShadow::renderGroundShadow(srGERD* renderer)
     }
     renderer->setPolygonOffset(saved_offset);
 }
-
-// TEMPLATE: WIZ8 0x004d69a0
-// srClassSupport<stGroundShadow,srNode,0,65552>::getClassID
-
-// TEMPLATE: WIZ8 0x004d69b0
-// srClassSupport<stGroundShadow,srNode,0,65552>::getClassName
-
-// TEMPLATE: WIZ8 0x004d69c0
-// srClassSupport<stGroundShadow,srNode,0,65552>::getClassNode
-
-// SYNTHETIC: WIZ8 0x004D6370
-// stGroundShadow::~stGroundShadow
-
-// TEMPLATE: WIZ8 0x004d6a30
-// srClassSupport<stGroundShadow,srNode,0,65552>::vClone
 
 // FUNCTION: WIZ8 0x004d6bf0
 srClass* stGroundShadow::vInstance()

@@ -16,7 +16,8 @@ def test_check_uses_completed_index_and_propagates_command_failures(
     monkeypatch.setattr(build, "load_settings", lambda: settings)
 
     def write_index(_settings):
-        index.parent.mkdir()
+        index.parent.mkdir(exist_ok=True)
+        assert (tmp_path / "build/generated/reccmp/wiz8-emissions.csv").is_file()
         index.write_text("completed projection")
         return {"path": str(index), "cached": False}
 
@@ -387,3 +388,31 @@ def test_surrender_build_indexes_before_provider_validation_on_a_fresh_runner(
     result = build.build_target(settings, "SURRENDER")
     assert events == ["index", "provider", "exports"]
     assert result["provider_objects"]["compiler_exports_absent_from_retail"] == ["implicit"]
+
+
+@pytest.mark.parametrize("indexed", [False, True])
+def test_product_build_never_opens_a_reccmp_catalog(tmp_path, monkeypatch, indexed):
+    from reccmp.compare import Compare
+    from wiz8decomp.emissions import OUTPUT
+
+    settings = _settings(tmp_path)
+    _prepare_sources(settings)
+    output = settings.product_build_dir
+    output.mkdir(parents=True)
+    (output / "Makefile").write_text("all:\n")
+    (output / "CMakeCache.txt").write_text(
+        f"CMAKE_GENERATOR:INTERNAL={build.PRODUCT_GENERATOR}\nCMAKE_BUILD_TYPE:STRING=\n"
+    )
+    # A second product and a stale index must not change compilation behavior.
+    for filename in ("Wiz8.exe", "Wiz8.pdb", "sr.dll", "sr.pdb"):
+        (output / filename).write_bytes(b"existing product")
+        os.utime(output / filename, ns=(1, 1))
+    if indexed:
+        (tmp_path / "build/source-index.json").write_text("stale projection")
+    monkeypatch.setattr(Compare, "from_target", lambda *_: pytest.fail("build must not analyze"))
+    commands = []
+    monkeypatch.setattr(build, "run", lambda command, **_kwargs: commands.append(command))
+
+    assert build.build_target(settings, "WIZ8", 2)["status"] == "ok"
+    assert len(commands) == 1
+    assert (tmp_path / OUTPUT / "wiz8-emissions.csv").is_file()

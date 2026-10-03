@@ -193,14 +193,14 @@ def test_function_marker_cannot_claim_class_template_emission(tmp_path: Path) ->
         ("FUNCTION", "W8Thing::Method`adjustor{12}'"),
     ],
 )
-def test_compiler_helpers_must_be_synthetic(tmp_path: Path, kind: str, name: str) -> None:
+def test_compiler_helpers_must_be_binary_metadata(tmp_path: Path, kind: str, name: str) -> None:
     repository = _index(tmp_path, markers=[_marker(kind, name=name)])
 
     with pytest.raises(SourceModelGateError, match="compiler-helper-as-authored"):
         validate_source_model(repository)
 
 
-@pytest.mark.parametrize("kind", ["SYNTHETIC", "LIBRARY"])
+@pytest.mark.parametrize("kind", ["LIBRARY"])
 def test_marker_only_emissions_cannot_bind_authored_declarations(tmp_path: Path, kind: str) -> None:
     declaration = _definition("W8Thing::Body", owning_class="W8Thing")
     marker = _marker(
@@ -227,7 +227,7 @@ def test_compiler_emission_tu_cannot_contain_authored_definition(tmp_path: Path)
         validate_source_model(repository)
 
 
-def test_compiler_emission_tu_allows_marker_only_provenance(tmp_path: Path) -> None:
+def test_compiler_emission_tu_rejects_source_identity_markers(tmp_path: Path) -> None:
     path = "src/wiz8/vector.cpp"
     repository = _index(
         tmp_path,
@@ -242,7 +242,8 @@ def test_compiler_emission_tu_allows_marker_only_provenance(tmp_path: Path) -> N
         compiler_files=[path],
     )
 
-    assert validate_source_model(repository)["ok"] is True
+    with pytest.raises(SourceModelGateError, match="compiler-emission-source-marker"):
+        validate_source_model(repository)
 
 
 @pytest.mark.parametrize("root", ["src/wiz8", "include/wiz8", "src/surrender", "include/surrender"])

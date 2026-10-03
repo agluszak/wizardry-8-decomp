@@ -119,9 +119,6 @@ void srCamera::processPop(srGERD* renderer)
     renderer->popEnvironment();
 }
 
-// SYNTHETIC: SURRENDER 0x10048310
-// srCamera::`vector deleting destructor'
-
 // FUNCTION: SURRENDER 0x10048430
 double srCamera::getAspectRatio() const
 {
@@ -486,48 +483,3 @@ int srCamera::unproject(srVector3T<float>& output, const srVector3T<double>& inp
     }
     return 0;
 }
-
-// TEMPLATE: SURRENDER 0x10049380
-// srClassSupport<srCamera,srNode,0,5120>::getClassID
-
-// TEMPLATE: SURRENDER 0x10049390
-// srClassSupport<srCamera,srNode,0,5120>::getClassName
-
-// TEMPLATE: SURRENDER 0x100493A0
-// srClassSupport<srCamera,srNode,0,5120>::getClassNode
-
-// TEMPLATE: SURRENDER 0x10049400
-// srClassSupport<srCamera, srNode, 0, 0x1400>::vClone
-
-// TEMPLATE: SURRENDER 0x10049420
-// srClassSupport<srCamera, srNode, 0, 0x1400>::getClassNode
-
-// SYNTHETIC: SURRENDER 0x10049560
-// srClassSupport<srCamera,srNode,0,5120>::`scalar deleting destructor'
-
-// TEMPLATE: SURRENDER 0x10049580
-// srMatrix4T<double>::Scale
-
-// TEMPLATE: SURRENDER 0x10049620
-// srMatrix4T<double>::Det
-
-// TEMPLATE: SURRENDER 0x10049780
-// srMatrix4T<double>::AdjugateFrom
-
-// SYNTHETIC: SURRENDER 0x100482B0
-// srCamera default constructor closure
-
-// SYNTHETIC: SURRENDER 0x100482C0
-// srCamera::`scalar deleting destructor'
-
-// SYNTHETIC: SURRENDER 0x100494F0
-// std::ios_base::Init global static-init block
-
-// SYNTHETIC: SURRENDER 0x10049500
-// std::ios_base::Init global atexit registrar
-
-// SYNTHETIC: SURRENDER 0x10049530
-// std::_Winit global static-init block
-
-// SYNTHETIC: SURRENDER 0x10049540
-// std::_Winit global atexit registrar

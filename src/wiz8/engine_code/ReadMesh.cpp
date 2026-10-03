@@ -113,14 +113,6 @@ static W8GrowableVector<srMaterialIFace*> g_retained_materials(5);
 
 namespace {
 
-// TEMPLATE: WIZ8 0x00489fe0
-// NAME: W8HashTable<Key,Value>::W8HashTable
-// RECOMP: W8HashTable<unsigned int,W8MeshStripPolygon*>::W8HashTable
-
-// TEMPLATE: WIZ8 0x0055db80
-// NAME: W8HashTable<Key,Value>::~W8HashTable
-// RECOMP: W8HashTable<unsigned int,int>::~W8HashTable
-
 bool ReadMeshFaceNeedsSplit(const W8ReadMeshFace& face, srMaterialIFace** materials)
 {
     return (face.flags & 4) != 0 ||
@@ -171,18 +163,6 @@ struct W8MeshStripBuilder {
 /* The paired-sort templates live in stHash.hpp so every octree TU sees the
    same definitions; the marker pairs below bind this file's emissions. */
 
-// TEMPLATE: WIZ8 0x0048a330
-// InsertionSortByKey<unsigned long>
-
-// TEMPLATE: WIZ8 0x0048a3d0
-// QuickSortByKey<unsigned long>
-
-// TEMPLATE: WIZ8 0x0048a190
-// QuickSortByKey<W8MeshStripPolygon>
-
-// TEMPLATE: WIZ8 0x00489bf0
-// SortByKey<W8MeshStripPolygon>
-
 /* The names below are recomp pairing selectors, not original symbol or
    argument-type evidence. BuildSingleLevelMesh's local type bank calls the
    srShader default constructor at 0x0048869d and Grow initializes fresh words
@@ -190,34 +170,9 @@ struct W8MeshStripBuilder {
    specialization. The grouping vector owns srShader values. The separate
    malloc/memset material table owns packed words and converts at shader API
    boundaries. */
-// TEMPLATE: WIZ8 0x00489B70
-// srClassSupport<srModel,srClass,1,8192>::sGetClassNode
-
-// TEMPLATE: WIZ8 0x00489BB0
-// NAME: W8GrowableVector<T>::W8GrowableVector
-// RECOMP: W8GrowableVector<srShader>::W8GrowableVector
-
-// TEMPLATE: WIZ8 0x00489F50
-// NAME: W8GrowableVector<T>::~W8GrowableVector
-// RECOMP: W8GrowableVector<srShader>::~W8GrowableVector
-
-// TEMPLATE: WIZ8 0x00489F70
-// NAME: W8GrowableVector<T>::Add
-// RECOMP: W8GrowableVector<srShader>::Add
-
-// TEMPLATE: WIZ8 0x00489FB0
-// NAME: W8GrowableVector<T>::IndexOf
-// RECOMP: W8GrowableVector<srShader>::IndexOf
-
-// TEMPLATE: WIZ8 0x0048A530
-// NAME: W8GrowableVector<T>::Grow
-// RECOMP: W8GrowableVector<srShader>::Grow
 
 /* Stores the W8Vector<srMaterialIFace*> table 0x005ECA58, not a
    W8GrowableVector<short> table. */
-// SYNTHETIC: WIZ8 0x0048A160
-// NAME: W8Vector<T>::`scalar deleting destructor'
-// RECOMP: W8Vector<srMaterialIFace*>::`scalar deleting destructor'
 
 /* Sorts each run of equal group ids by its key, then renumbers the groups so
    equal keys within a group stay together. */

@@ -10,8 +10,6 @@
 
 class SR_DYNAMIC_LIBRARY_API srDynamicLibrary {
 public:
-    // SYNTHETIC: SURRENDER 0x10045890
-    // srDynamicLibrary::operator=(srDynamicLibrary const &)
 
     enum Compatibility {
         COMPATIBILITY_0 = 0,

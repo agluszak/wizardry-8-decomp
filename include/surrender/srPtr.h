@@ -21,12 +21,6 @@ public:
     /* The scalar-array element-dtor emissions: mesh_model's materials_1c
        array uses the srPtr<srMaterialIFace> copy at 0x10042B00 while
        textures_3c's deduplicates to the earlier emission at 0x1001EE90. */
-    // TEMPLATE: SURRENDER 0x10042B00
-    // NAME: srPtr<T>::~srPtr
-    // RECOMP: srPtr<srMaterialIFace>::~srPtr
-    // TEMPLATE: SURRENDER 0x1001EE90
-    // NAME: srPtr<T>::~srPtr
-    // RECOMP: srPtr<srTextureIFace>::~srPtr
     ~srPtr()
     {
         if (pointer_ != 0) {
@@ -47,8 +41,6 @@ public:
         return pointer_;
     }
 
-    // TEMPLATE: WIZ8 0x00429B00
-    // srPtr<srPalette>::operator=
     srPtr& operator=(T* pointer)
     {
         if (pointer != pointer_) {

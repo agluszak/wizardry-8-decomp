@@ -67,12 +67,6 @@ srTriangulator::srTriangulator(srVector2T<float>* points, int count) : list_04(c
     current_00.node_00 = list_04.nodes_04;
 }
 
-// SYNTHETIC: SURRENDER 0x1003bce0
-// srTriangulator::~srTriangulator (implicit list-member teardown)
-
-// SYNTHETIC: SURRENDER 0x1003bcb0
-// srTriangulator::operator= (implicit shallow copy)
-
 // FUNCTION: SURRENDER 0x1003c0e0
 srVector3i srTriangulator::next()
 {

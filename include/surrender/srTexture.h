@@ -9,8 +9,6 @@ public:
     static const char* sGetClassName();
     /* The copy body is consistent with ordinary member copy-construction;
        in particular Dimensions' srPtr palette is addref'd as a fresh member. */
-    // SYNTHETIC: SURRENDER 0x1005F150
-    // srTexture::srTexture(const srTexture&)
 
     srTexture& operator=(const srTexture& other);
     virtual void dump(std::ostream& stream) override;

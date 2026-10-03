@@ -16,8 +16,6 @@ W8Chunk::W8Chunk() : m_hFile(0), m_fWriting(0) {}
 
 /* Implicit member destruction releases the four backing arrays in reverse
    order. Retail 0x0055bde0 neither deletes remaining heads nor closes the file. */
-// SYNTHETIC: WIZ8 0x0055bde0
-// W8Chunk::~W8Chunk
 
 // FUNCTION: WIZ8 0x0055ca20
 unsigned char W8Chunk::Read(void* buffer, unsigned int size, unsigned int* transferred)

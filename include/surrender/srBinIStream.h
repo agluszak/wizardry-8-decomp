@@ -28,14 +28,6 @@ class
 public:
     /* The reconstruction leaves provider lifecycle implicit. Wiz8 keeps the
        header-visible default/destructor and imports copy/assignment emissions. */
-    // SYNTHETIC: SURRENDER 0x10031C40
-    // srBinIStream::srBinIStream()
-    // SYNTHETIC: SURRENDER 0x10031C80
-    // srBinIStream::srBinIStream(const srBinIStream&)
-    // SYNTHETIC: SURRENDER 0x10031CE0
-    // srBinIStream::operator=
-    // SYNTHETIC: SURRENDER 0x1002EF30
-    // srBinIStream::~srBinIStream
 
 #if !defined(SURRENDER_BUILD)
     srBinIStream() {}
@@ -51,9 +43,6 @@ public:
     SR_DLL_IMPORT srQuadWord getQuadWord();
     SR_DLL_IMPORT unsigned short getWord();
     SR_DLL_IMPORT srBinIStream& read(void* destination, unsigned long size);
-
-    // SYNTHETIC: SURRENDER 0x10031D30
-    // srBinIStream::`vbase destructor'
 
 protected:
     virtual SR_DLL_IMPORT unsigned short vget();
@@ -110,15 +99,9 @@ public:
     SR_DLL_IMPORT srBinIMStream(const void* data, unsigned long size);
 
     /* The emitted bodies are consistent with ordinary memberwise copying. */
-    // SYNTHETIC: SURRENDER 0x10030BB0
-    // ??0srBinIMStream@@QAE@ABV0@@Z
-    // SYNTHETIC: SURRENDER 0x10030C50
-    // srBinIMStream::operator=
 
     /* The reconstruction leaves provider destruction implicit; consumers retain the
        evidenced header-visible empty body. */
-    // SYNTHETIC: SURRENDER 0x10030CE0
-    // srBinIMStream::~srBinIMStream
 
 #if !defined(SURRENDER_BUILD)
     virtual ~srBinIMStream() override {}
@@ -132,9 +115,6 @@ public:
 
 private:
     virtual SR_DLL_IMPORT unsigned long vread(void* destination, unsigned long size) override;
-
-    // SYNTHETIC: SURRENDER 0x10030CF0
-    // srBinIMStream::`vbase destructor'
 
     const unsigned char* data_08;
     unsigned long size_0c;

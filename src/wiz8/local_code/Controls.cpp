@@ -61,14 +61,6 @@ extern const unsigned int g_W8TextControlMask = 0x10;
 // GLOBAL: WIZ8 0x005ed594
 extern const unsigned int g_W8TextControlLayoutImageAtOrigin = 0x80;
 
-// SYNTHETIC: WIZ8 0x004f68a0
-// NAME: W8Vector<T>::`scalar deleting destructor'
-// RECOMP: W8Vector<W8Widget*>::`scalar deleting destructor'
-
-// TEMPLATE: WIZ8 0x004f68c0
-// NAME: W8Vector<T>::~W8Vector<T>
-// RECOMP: W8Vector<W8Widget*>::~W8Vector<W8Widget*>
-
 /* The default constructor. Everything the seven-argument one takes from its
    caller, this one zeroes or sets to -1. */
 // FUNCTION: WIZ8 0x004f2c30
@@ -140,8 +132,6 @@ void Controls::EnableRegionSet(unsigned char enable)
     }
 }
 
-// SYNTHETIC: WIZ8 0x004f3d90
-// W8Widget::`scalar deleting destructor'
 // FUNCTION: WIZ8 0x004f3f10
 W8Widget::~W8Widget()
 {
@@ -376,9 +366,6 @@ void W8Widget::SetRegion(unsigned int region)
  * and 0x004F33A0 fills it with wcscpy. Everything else the constructor touches
  * is positional.
  */
-
-// SYNTHETIC: WIZ8 0x004f3370
-// W8TextBuffer::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x004f3480
 W8TextBuffer::~W8TextBuffer()
@@ -2105,11 +2092,6 @@ void W8HorizontalRangeThumb::Redraw(unsigned char full_redraw)
     DrawCatalogImage(-14, m_renderArg0, m_renderArg1, sprite, x + m_pixelPosition, y, 2, 0);
 }
 
-// SYNTHETIC: WIZ8 0x004f69b0
-// W8HorizontalRangeThumb::`scalar deleting destructor'
-// SYNTHETIC: WIZ8 0x004f69d0
-// W8HorizontalRangeThumb::~W8HorizontalRangeThumb
-
 /* Enables or disables the whole panel: the panel's own flag, then every child's,
    and each child's region follows - mode 4 restores the disabled region and
    clearing the mode bits re-arms it. */
@@ -2344,14 +2326,6 @@ void W8Widget::SetBoundsFromRect(const W8ControlsRect* bounds)
 /* Selection controller: the listener occupies +0, the text-control pointer
    vector +0x10. Controls.cpp:2679 names m_lsButtons and checks iSelected against
    its count. The selected index is stored at +0x0c. */
-
-// SYNTHETIC: WIZ8 0x004f6910
-// NAME: W8Vector<T>::`scalar deleting destructor'
-// RECOMP: W8Vector<W8TextControl*>::`scalar deleting destructor'
-
-// TEMPLATE: WIZ8 0x004f6930
-// NAME: W8Vector<T>::~W8Vector<T>
-// RECOMP: W8Vector<W8TextControl*>::~W8Vector<W8TextControl*>
 
 // FUNCTION: WIZ8 0x004f5450
 W8ControlSelection::W8ControlSelection()

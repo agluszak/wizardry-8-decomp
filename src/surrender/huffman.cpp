@@ -89,12 +89,8 @@ srHuffman::BitOStream& srHuffman::BitOStream::operator=(const BitOStream& stream
 
 /* Retail copies table_00 memberwise and assigns symbols_10 through
    srArray::operator=. */
-// SYNTHETIC: SURRENDER 0x100014F0
-// srHuffman::Sampler copy constructor (implicit)
 
 /* Retail assigns table_00 memberwise and symbols_10 through srArray::operator=. */
-// SYNTHETIC: SURRENDER 0x10001630
-// srHuffman::Sampler::operator= (implicit)
 
 // FUNCTION: SURRENDER 0x100016D0
 srHuffman::BitOStream::BitOStream(srBinOStream& stream)
@@ -553,18 +549,6 @@ static void* copyMemory(void* destination, const void* source, long size)
 
 /* srHashTable<unsigned long,int>::Grow — called out of line from AllocateEntry
    inside insert's inlined Insert. */
-// TEMPLATE: SURRENDER 0x10002BA0
-// NAME: srHashTableBase<Key,Value>::Grow
-// RECOMP: srHashTableBase<unsigned long,int>::Grow
 
 /* srHashTable<unsigned long,Compressor::Node*>::Grow — called out of line from
    AllocateEntry inside setupPath's inlined Insert. */
-// TEMPLATE: SURRENDER 0x10002CF0
-// NAME: srHashTableBase<Key,Value>::Grow
-// RECOMP: srHashTableBase<unsigned long,srHuffman::Compressor::Node*>::Grow
-
-// SYNTHETIC: SURRENDER 0x10002B40
-// member pointer-pair destructor emission (EH unwind)
-
-// SYNTHETIC: SURRENDER 0x10002B70
-// member pointer-pair destructor emission (EH unwind)
