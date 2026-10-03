@@ -2,6 +2,7 @@
    Reconstruct Wizardry stack-buffer PATH setup in its original translation unit.
    Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
    Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
+   Recover retail path and file-age arithmetic and control flow.
    Distributed under the accompanying SFI Source Code license agreement. */
 //**************************************************************************
 //
@@ -1550,25 +1551,21 @@ BOOLEAN AddSubdirectoryToPath(CHAR8* subdirectory)
     CHAR environment[520];
     unsigned int length;
 
-    if (!subdirectory) {
-        return FALSE;
+    if (subdirectory && strlen(subdirectory)) {
+        _getcwd(path, 0x208);
+        length = strlen(path);
+        if (path[length != 0 ? length - 1 : 0] != '\\') {
+            strcat(path, "\\");
+        }
+        strcat(path, subdirectory);
+        if (GetEnvironmentVariableA("PATH", environment, 0x208)) {
+            strcat(environment, ";");
+            strcat(environment, path);
+            SetEnvironmentVariableA("PATH", environment);
+            return TRUE;
+        }
     }
-    if (strlen(subdirectory) == 0) {
-        return FALSE;
-    }
-    _getcwd(path, 0x208);
-    length = strlen(path);
-    if (path[length != 0 ? length - 1 : 0] != '\\') {
-        strcat(path, "\\");
-    }
-    strcat(path, subdirectory);
-    if (GetEnvironmentVariableA("PATH", environment, 0x208) == 0) {
-        return FALSE;
-    }
-    strcat(environment, ";");
-    strcat(environment, path);
-    SetEnvironmentVariableA("PATH", environment);
-    return TRUE;
+    return FALSE;
 }
 
 // FUNCTION: WIZ8 0x004058a0
@@ -1578,9 +1575,7 @@ BOOLEAN FileIsOlderThanFile(CHAR8 *pcFileName1, CHAR8 *pcFileName2, UINT32 ulNum
     WIN32_FIND_DATA second;
     HANDLE search;
     INT32 compared;
-    ULARGE_INTEGER first_time;
-    ULARGE_INTEGER second_time;
-    ULARGE_INTEGER difference;
+    ULONGLONG difference;
 
     /* Retail never checks for INVALID_HANDLE_VALUE: a failed search leaves
        the WIN32_FIND_DATA uninitialized and the timestamps read as garbage. */
@@ -1590,23 +1585,19 @@ BOOLEAN FileIsOlderThanFile(CHAR8 *pcFileName1, CHAR8 *pcFileName2, UINT32 ulNum
     FindClose(search);
 
     compared = CompareFileTime(&first.ftLastWriteTime, &second.ftLastWriteTime);
-    if (compared > 0) {
-        return FALSE;
-    }
-    if (ulNumSeconds == 0) {
-        if (compared == 0) {
-            return FALSE;
+    if (compared <= 0) {
+        if (ulNumSeconds == 0) {
+            if (compared != 0) {
+                return TRUE;
+            }
+        } else {
+            /* FILETIME counts 100ns units. */
+            difference = ((ULONGLONG)second.ftLastWriteTime.dwHighDateTime - first.ftLastWriteTime.dwHighDateTime) * 0x100000000
+                - first.ftLastWriteTime.dwLowDateTime + second.ftLastWriteTime.dwLowDateTime;
+            if (difference / 10000000 >= ulNumSeconds) {
+                return TRUE;
+            }
         }
-        return TRUE;
-    }
-
-    first_time.LowPart = first.ftLastWriteTime.dwLowDateTime;
-    first_time.HighPart = first.ftLastWriteTime.dwHighDateTime;
-    second_time.LowPart = second.ftLastWriteTime.dwLowDateTime;
-    second_time.HighPart = second.ftLastWriteTime.dwHighDateTime;
-    difference.QuadPart = second_time.QuadPart - first_time.QuadPart;
-    if (difference.QuadPart / 10000000 >= ulNumSeconds) {
-        return TRUE;
     }
     return FALSE;
 }

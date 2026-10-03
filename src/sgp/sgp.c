@@ -3,6 +3,7 @@
    Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
    Drop the unused exception-handling include.
    Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
+   Keep gfGameInitialized set across shutdown, as retail does.
    Distributed under the accompanying SFI Source Code license agreement. */
 #include "types.h"
 #include <windows.h>
@@ -483,7 +484,6 @@ void ShutdownStandardGamingPlatform(void)
 	if (gfGameInitialized)
 	{
 		ShutdownGame();
-		gfGameInitialized = FALSE;
 	}
 
 

@@ -3,6 +3,7 @@
    Restore retail sequential-scan flags for library and stream handles.
    Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
    Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
+   Recover the library-stream CD fallback in the released InitializeLibrary form.
    Distributed under the accompanying SFI Source Code license agreement. */
 #include "Types.h"
 #include "windows.h"
@@ -392,22 +393,22 @@ HANDLE OpenLibraryStream(HWFILE file)
     UINT32 file_id = DB_EXTRACT_FILE_ID(file);
     HANDLE handle;
     CHAR8 path[SGPFILENAME_LEN];
-    CHAR error[1024];
-    DWORD error_id;
 
     handle = CreateFile(gGameLibaries[library_id].sLibraryName, GENERIC_READ,
         FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
     if (handle == INVALID_HANDLE_VALUE) {
-        if (!gGameLibaries[library_id].fOnCDrom) {
-            return INVALID_HANDLE_VALUE;
-        }
-        sprintf(path, "%s%s", gzCdDirectory, gGameLibaries[library_id].sLibraryName);
-        handle = CreateFile(path, GENERIC_READ, FILE_SHARE_READ, NULL,
-            OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
-        if (handle == INVALID_HANDLE_VALUE) {
-            error_id = GetLastError();
-            FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, error_id, 0,
-                error, sizeof(error), NULL);
+        if (gGameLibaries[library_id].fOnCDrom) {
+            sprintf(path, "%s%s", gzCdDirectory, gGameLibaries[library_id].sLibraryName);
+            handle = CreateFile(path, GENERIC_READ, FILE_SHARE_READ, NULL,
+                OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+            if (handle == INVALID_HANDLE_VALUE) {
+                UINT32 uiLastError = GetLastError();
+                char zString[1024];
+                FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0, uiLastError, 0, zString, 1024, NULL);
+
+                return INVALID_HANDLE_VALUE;
+            }
+        } else {
             return INVALID_HANDLE_VALUE;
         }
     }

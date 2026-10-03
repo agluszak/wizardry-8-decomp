@@ -1,6 +1,7 @@
 /* Modified for the Wizardry 8 reconstruction, 2026-10-03.
    Declare Wizardry key translation in the owning input interface.
    Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
+   Recover the wide-character predicate return width.
    Distributed under the accompanying SFI Source Code license agreement. */
 #ifndef __INPUT_
 #define __INPUT_
@@ -89,9 +90,9 @@ void KeyChange(UINT32 key, UINT32 flags, UINT8 pressed);
 void RedirectToString(UINT16 key);
 UINT16 TranslateKeyToCharacter(UINT16 key, UINT8 modifiers);
 UINT16 TranslateCharacterToKey(UINT16 character);
-UINT16 IsUppercaseWideChar(UINT16 character);
-UINT16 IsLowercaseWideChar(UINT16 character);
-UINT16 IsPunctuationWideChar(UINT16 character);
+BOOLEAN IsUppercaseWideChar(UINT16 character);
+BOOLEAN IsLowercaseWideChar(UINT16 character);
+BOOLEAN IsPunctuationWideChar(UINT16 character);
 INT32 ToUppercaseWideChar(INT32 character);
 INT32 ToLowercaseWideChar(INT32 character);
 INT32 CompareWideTextIgnoreAsciiCase(const wchar_t* first, const wchar_t* second);

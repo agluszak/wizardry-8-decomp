@@ -2,6 +2,7 @@
    Reconstruct Wizardry physical-key mapping, raw-key string input, and character helpers.
    Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
    Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
+   Recover the wide-character predicate return width and key translation modulo.
    Distributed under the accompanying SFI Source Code license agreement. */
 #include "types.h"
 #include <windows.h>
@@ -873,32 +874,38 @@ unsigned short TranslateCharacterToKey(unsigned short character)
 {
     UINT16 key;
     for (key = 0; key < 0x200; ++key) {
-        if (gsKeyTranslationTable[key & 0xffff] == character) {
-            return (UINT8)key;
+        if (gsKeyTranslationTable[key] == character) {
+            return key % 256;
         }
     }
     return 0;
 }
 
 // FUNCTION: WIZ8 0x00402800
-unsigned short IsUppercaseWideChar(unsigned short character)
+BOOLEAN IsUppercaseWideChar(unsigned short character)
 {
-    return character > L'@' && character < L'[';
+    if (character >= L'A' && character <= L'Z')
+        return TRUE;
+    return FALSE;
 }
 
 // FUNCTION: WIZ8 0x00402820
-unsigned short IsLowercaseWideChar(unsigned short character)
+BOOLEAN IsLowercaseWideChar(unsigned short character)
 {
-    return character > L'`' && character < L'{';
+    if (character >= L'a' && character <= L'z')
+        return TRUE;
+    return FALSE;
 }
 
 // FUNCTION: WIZ8 0x00402840
-unsigned short IsPunctuationWideChar(unsigned short character)
+BOOLEAN IsPunctuationWideChar(unsigned short character)
 {
-    return (character >= L'!' && character <= L'/') ||
-           (character >= L':' && character <= L'@') ||
-           (character >= L'[' && character <= L'_') ||
-           (character >= L'{' && character <= L'}');
+    if ((character >= L'!' && character <= L'/') ||
+        (character >= L':' && character <= L'@') ||
+        (character >= L'[' && character <= L'_') ||
+        (character >= L'{' && character <= L'}'))
+        return TRUE;
+    return FALSE;
 }
 
 // FUNCTION: WIZ8 0x00402880

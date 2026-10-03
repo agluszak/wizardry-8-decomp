@@ -2,6 +2,7 @@
    Reconstruct the Wizardry 252-entry font translation table.
    Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
    Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
+   Restore the released translation-table body with Wizardry's 252 entries.
    Distributed under the accompanying SFI Source Code license agreement. */
 // font.c
 #include "types.h"
@@ -1045,44 +1046,533 @@ void DestroyEnglishTransTable( void )
 //
 // Creates the English text->font map table.
 //*****************************************************************************
-/* Retail's 252-entry default translation table, represented as authored data
-   rather than as compiler-lowering-shaped scalar stores. */
-static const unsigned short g_default_font_translation[252] = {
-    0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4a, 0x4b, 0x4c,
-    0x4d, 0x4e, 0x4f, 0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58,
-    0x59, 0x5a, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69, 0x6a,
-    0x6b, 0x6c, 0x6d, 0x6e, 0x6f, 0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76,
-    0x77, 0x78, 0x79, 0x7a, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37,
-    0x38, 0x39, 0x21, 0x40, 0x23, 0x24, 0x25, 0x5e, 0x26, 0x2a, 0x28, 0x29,
-    0x2d, 0x5f, 0x2b, 0x3d, 0x7c, 0x5c, 0x7b, 0x7d, 0x5b, 0x5d, 0x3a, 0x3b,
-    0x22, 0x27, 0x3c, 0x3e, 0x2c, 0x2e, 0x3f, 0x2f, 0x20, 0xc1, 0xc0, 0xc1,
-    0xc4, 0xc3, 0xc5, 0xc7, 0xc9, 0xc8, 0xca, 0xcb, 0xcd, 0xcc, 0xce, 0xcf,
-    0xd1, 0xd3, 0xd2, 0xd4, 0xd6, 0xd5, 0xd8, 0xda, 0xd9, 0xdb, 0xdc, 0xdd,
-    0xe1, 0xe0, 0xe2, 0xe4, 0xe3, 0xe5, 0xe7, 0xe9, 0xe8, 0xea, 0xeb, 0xed,
-    0xec, 0xee, 0xef, 0xf1, 0xf3, 0xf2, 0xf4, 0xf6, 0xf5, 0xf8, 0xfa, 0xf9,
-    0xfb, 0xfc, 0xfe, 0xff, 0xdf, 0xfff0, 0xfff1, 0xfff2, 0xfff3, 0xfff4, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xbf, 0xa1
-};
-
 // FUNCTION: WIZ8 0x00407ec0
-FontTranslationTable* CreateEnglishTransTable(void)
+FontTranslationTable *CreateEnglishTransTable(  )
 {
-    FontTranslationTable* table =
-        (FontTranslationTable*)MemAlloc(sizeof(FontTranslationTable));
-    table->usNumberOfSymbols =
-        sizeof(g_default_font_translation) / sizeof(g_default_font_translation[0]);
-    table->DynamicArrayOf16BitValues =
-        (unsigned short*)MemAlloc(sizeof(g_default_font_translation));
-    memcpy(table->DynamicArrayOf16BitValues, g_default_font_translation,
-           sizeof(g_default_font_translation));
-    return table;
+	FontTranslationTable *pTable = NULL;
+	UINT16	*temp;
+
+  pTable = (FontTranslationTable *)MemAlloc(sizeof(FontTranslationTable));
+	pTable->usNumberOfSymbols = 252;
+	pTable->DynamicArrayOf16BitValues = (UINT16 *)MemAlloc(pTable->usNumberOfSymbols * 2);
+	temp = pTable->DynamicArrayOf16BitValues;
+
+	*temp = 'A';
+	temp++;
+	*temp='B';
+	temp++;
+	*temp ='C';
+	temp++;
+	*temp ='D';
+	temp++;
+	*temp = 'E';
+	temp++;
+	*temp = 'F';
+	temp++;
+	*temp='G';
+	temp++;
+	*temp ='H';
+	temp++;
+	*temp ='I';
+	temp++;
+	*temp = 'J';
+	temp++;
+	*temp = 'K';
+	temp++;
+	*temp='L';
+	temp++;
+	*temp ='M';
+	temp++;
+	*temp ='N';
+	temp++;
+	*temp = 'O';
+	temp++;
+	*temp = 'P';
+	temp++;
+	*temp='Q';
+	temp++;
+	*temp ='R';
+	temp++;
+	*temp ='S';
+	temp++;
+	*temp = 'T';
+	temp++;
+	*temp ='U';
+	temp++;
+	*temp ='V';
+	temp++;
+	*temp = 'W';
+	temp++;
+	*temp = 'X';
+	temp++;
+	*temp='Y';
+	temp++;
+	*temp ='Z';
+	temp++;
+	*temp ='a';
+	temp++;
+	*temp = 'b';
+	temp++;
+	*temp ='c';
+	temp++;
+	*temp = 'd';
+	temp++;
+	*temp ='e';
+	temp++;
+	*temp = 'f';
+	temp++;
+	*temp ='g';
+	temp++;
+	*temp = 'h';
+	temp++;
+	*temp ='i';
+	temp++;
+	*temp = 'j';
+	temp++;
+	*temp ='k';
+	temp++;
+	*temp = 'l';
+	temp++;
+	*temp ='m';
+	temp++;
+	*temp = 'n';
+	temp++;
+	*temp ='o';
+	temp++;
+	*temp = 'p';
+	temp++;
+	*temp ='q';
+	temp++;
+	*temp = 'r';
+	temp++;
+	*temp ='s';
+	temp++;
+	*temp = 't';
+	temp++;
+	*temp ='u';
+	temp++;
+	*temp = 'v';
+	temp++;
+	*temp ='w';
+	temp++;
+	*temp = 'x';
+	temp++;
+	*temp ='y';
+	temp++;
+	*temp = 'z';
+	temp++;
+	*temp ='0';
+	temp++;
+	*temp = '1';
+	temp++;
+	*temp ='2';
+	temp++;
+	*temp = '3';
+	temp++;
+	*temp ='4';
+	temp++;
+	*temp = '5';
+	temp++;
+	*temp ='6';
+	temp++;
+	*temp = '7';
+	temp++;
+	*temp ='8';
+	temp++;
+	*temp = '9';
+	temp++;
+	*temp ='!';
+	temp++;
+	*temp = '@';
+	temp++;
+	*temp ='#';
+	temp++;
+	*temp = '$';
+	temp++;
+	*temp ='%';
+	temp++;
+	*temp = '^';
+	temp++;
+	*temp ='&';
+	temp++;
+	*temp = '*';
+	temp++;
+	*temp ='(';
+	temp++;
+	*temp = ')';
+	temp++;
+	*temp ='-';
+	temp++;
+	*temp = '_';
+	temp++;
+	*temp ='+';
+	temp++;
+	*temp = '=';
+	temp++;
+	*temp ='|';
+	temp++;
+	*temp = '\\';
+	temp++;
+	*temp ='{';
+	temp++;
+	*temp = '}';// 80
+	temp++;
+	*temp = '[';
+	temp++;
+	*temp =']';
+	temp++;
+	*temp = ':';
+	temp++;
+	*temp =';';
+	temp++;
+	*temp = '"';
+	temp++;
+	*temp ='\'';
+	temp++;
+	*temp = '<';
+	temp++;
+	*temp = '>';
+	temp++;
+	*temp =',';
+	temp++;
+	*temp = '.';
+	temp++;
+	*temp ='?';
+	temp++;
+	*temp = '/';
+	temp++;
+	*temp = ' '; //93
+	temp++;
+
+// Windows Code Page 1252 Western Standard Character Set
+
+	*temp = 193;	// "A" acute
+	temp++;
+	*temp = 192;	// "A" grave
+	temp++;
+	*temp = 193;	// "A" circumflex
+	temp++;
+	*temp = 196;	// "A" umlaut
+	temp++;
+	*temp = 195;	// "A" tilde
+	temp++;
+	*temp = 197;	// "A" ring
+	temp++;
+	*temp = 199;	// "C" cedile
+	temp++;
+	*temp = 201;	// "E" acute
+	temp++;
+	*temp = 200;	// "E" grave
+	temp++;
+	*temp = 202;	// "E" circumflex
+	temp++;
+	*temp = 203;	// "E" umlaut
+	temp++;
+	*temp = 205; // "I" acute
+	temp++;
+	*temp = 204;	// "I" grave
+	temp++;
+	*temp = 206;	// "I" circumflex
+	temp++;
+	*temp = 207;	// "I" umlaut
+	temp++;
+	*temp = 209;	// "N" tilde
+	temp++;
+	*temp = 211;	// "O" acute
+	temp++;
+	*temp = 210;	// "O" grave
+	temp++;
+	*temp = 212;	// "O" circumflex
+	temp++;
+	*temp = 214;	// "O" umlaut
+	temp++;
+	*temp = 213;	// "O" tilde
+	temp++;
+	*temp = 216;	// "0" O strike-through
+	temp++;
+	*temp = 218;	// "U" acute
+	temp++;
+	*temp = 217;	// "U" grave
+	temp++;
+	*temp = 219;	// "U" circumflex
+	temp++;
+	*temp = 220;	// "U" umlaut
+	temp++;
+	*temp = 221;	// "Y" acute
+	temp++;
+	*temp = 225;	// "a" acute
+	temp++;
+	*temp = 224;	// "a" grave
+	temp++;
+	*temp = 226;	// "a" circumflex
+	temp++;
+	*temp = 228;	// "a" umlaut
+	temp++;
+	*temp = 227;	// "a" tilde
+	temp++;
+	*temp = 229;	// "a" ring
+	temp++;
+	*temp = 231;	// "c" cedile
+	temp++;
+	*temp = 233;	// "e" acute
+	temp++;
+	*temp = 232;	// "e" grave
+	temp++;
+	*temp = 234;	// "e" circumflex
+	temp++;
+	*temp = 235;	// "e" umlaut
+	temp++;
+	*temp = 237;	// "i" acute
+	temp++;
+	*temp = 236;	// "i" grave
+	temp++;
+	*temp = 238;	// "i" circumflex
+	temp++;
+	*temp = 239;	// "i" umlaut
+	temp++;
+	*temp = 241;	// "n" tilde
+	temp++;
+	*temp = 243;	// "o" acute
+	temp++;
+	*temp = 242;	// "o" grave
+	temp++;
+	*temp = 244;	// "o" circumflex
+	temp++;
+	*temp = 246;	// "o" umlaut
+	temp++;
+	*temp = 245;	// "o" tilde
+	temp++;
+	*temp = 248;	// "o" strike-through
+	temp++;
+	*temp = 250;	// "u" acute
+	temp++;
+	*temp = 249;	// "u" grave
+	temp++;
+	*temp = 251;	// "u" circumflex
+	temp++;
+	*temp = 252;	// "u" umlaut
+	temp++;
+	*temp = 254;	// "y" acute
+	temp++;
+	*temp = 255;	// "y" umlaut
+	temp++;
+	*temp = 223;	// beta
+
+// Font glyphs for spell targeting icons
+	//ATE: IMPORTANT! INcreate the array above if you add any new items here...
+	temp++;
+	*temp = FONT_GLYPH_TARGET_POINT;
+	temp++;
+	*temp = FONT_GLYPH_TARGET_CONE;
+	temp++;
+	*temp = FONT_GLYPH_TARGET_SINGLE;
+	temp++;
+	*temp = FONT_GLYPH_TARGET_GROUP;
+	temp++;
+	*temp = FONT_GLYPH_TARGET_NONE;
+
+// 154
+
+	// Wizardry: entries 154-249 are unused
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+	temp++;
+	*temp = 0;
+
+	temp++;
+	*temp = 191;	// inverted question mark
+	temp++;
+	*temp = 161;	// inverted exclamation mark
+
+	return pTable;
 }
 
 //*****************************************************************************

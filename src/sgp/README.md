@@ -97,6 +97,18 @@ them were present in Wizardry's file, and they stay. Elsewhere, absence from the
 link proves only that a body was not retained; the original fork may still have
 contained it.
 
+Remaining SGP comparison differences after the delta recovery are classified:
+
+- `DirectDraw Calls.c` `ATTEMPT` line numbers exceed retail by exactly one per
+  `// FUNCTION:` marker above the call (plus the modification notice): the
+  drift is our annotation, not authored source.
+- Past-the-end loop bounds (`pSoundList`, `pSampleList`, `gFileDataBase`) and
+  calls into the `0x004023a0`/`0x005a1140` folds are relocation/fold noise.
+- `GetRuntimeSettings` is inlined into `InitializeStandardGamingPlatform` by
+  the recomp but called by retail; both standalone bodies match. The remaining
+  `LibraryDataBase.c`, `RedirectToString` and `AddSubdirectoryToPath` residuals
+  are block-layout, CSE and stack-slot lowering.
+
 Retail list callers reach the folded size/delete bodies through `ListSize` and
 `DeleteList`; product code uses the list API for `HLIST` values.
 

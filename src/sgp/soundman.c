@@ -2,6 +2,7 @@
    Reconstruct Wizardry sound lifecycle, driver setup, channel reset, and sample loading.
    Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
    Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
+   Restore the Wizardry fade-volume and music-flag bookkeeping when samples start.
    Distributed under the accompanying SFI Source Code license agreement. */
 /*********************************************************************************
 * SGP Digital Sound Module
@@ -1612,7 +1613,7 @@ UINT32 uiCount;
 // FUNCTION: WIZ8 0x00409fe0
 UINT32 SoundStartSample(UINT32 uiSample, UINT32 uiChannel, SOUNDPARMS *pParms)
 {
-UINT32 uiSoundID;
+UINT32 uiSoundID, uiVolume;
 CHAR8 AILString[200];
 
 	if(!fSoundSystemInit)
@@ -1666,15 +1667,12 @@ CHAR8 AILString[200];
 	}
 
 	if((pParms!=NULL) && (pParms->uiVolume!=SOUND_PARMS_DEFAULT))
-    {
-        AIL_set_sample_volume(pSoundList[uiChannel].hMSS, pParms->uiVolume);
-        pSoundList[uiChannel].uiFadeVolume = pParms->uiVolume;
-    }
+		uiVolume=pParms->uiVolume;
 	else
-    {
-        AIL_set_sample_volume(pSoundList[uiChannel].hMSS, guiSoundDefaultVolume);
-        pSoundList[uiChannel].uiFadeVolume = guiSoundDefaultVolume;
-    }
+		uiVolume=guiSoundDefaultVolume;
+
+	AIL_set_sample_volume(pSoundList[uiChannel].hMSS, uiVolume);
+	pSoundList[uiChannel].uiFadeVolume=uiVolume;
 
 	if((pParms!=NULL) && (pParms->uiLoop!=SOUND_PARMS_DEFAULT))
 	{
@@ -2346,7 +2344,7 @@ UINT32 Sound3DPlay(STR pFilename, SOUND3DPARMS *pParms)
 // FUNCTION: WIZ8 0x0040ad40
 UINT32 Sound3DStartSample(UINT32 uiSample, UINT32 uiChannel, SOUND3DPARMS *pParms)
 {
-UINT32 uiSoundID;
+UINT32 uiSoundID, uiVolume;
 CHAR8 AILString[200];
 
 	if(!fSoundSystemInit || !gh3DProvider)
@@ -2399,9 +2397,12 @@ CHAR8 AILString[200];
 	}
 
 	if((pParms!=NULL) && (pParms->uiVolume!=SOUND_PARMS_DEFAULT))
-		AIL_set_3D_sample_volume(pSoundList[uiChannel].hM3D, pParms->uiVolume);
+		uiVolume=pParms->uiVolume;
 	else
-		AIL_set_3D_sample_volume(pSoundList[uiChannel].hM3D, guiSoundDefaultVolume);
+		uiVolume=guiSoundDefaultVolume;
+
+	AIL_set_3D_sample_volume(pSoundList[uiChannel].hM3D, uiVolume);
+	pSoundList[uiChannel].uiFadeVolume=uiVolume;
 
 	if((pParms!=NULL) && (pParms->uiLoop!=SOUND_PARMS_DEFAULT))
 	{
@@ -2444,6 +2445,7 @@ CHAR8 AILString[200];
 	pSoundList[uiChannel].uiSample=uiSample;
 	pSoundList[uiChannel].uiTimeStamp=GetTickCount();
 
+	pSoundList[uiChannel].fMusic=FALSE;
 	pSampleList[uiSample].uiCacheHits++;
 
 	AIL_start_3D_sample(pSoundList[uiChannel].hM3D);
