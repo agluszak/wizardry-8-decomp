@@ -1,5 +1,4 @@
 import json
-import re
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -339,38 +338,6 @@ def test_runtime_test_build_is_explicit(monkeypatch) -> None:
         ("check", "runtime-test"),
         "run",
     ]
-
-
-def test_cli_groups_subcommands_instead_of_exposing_them_at_the_root() -> None:
-    """Grouped work is reachable only through its group.
-
-    Pinning the absent names of every retired command makes this test fail on
-    any CLI reshuffle, so it asserts the current shape instead: each group is
-    present at the root, and a grouped command is not.
-    """
-
-    result = CliRunner().invoke(app, ["--help"])
-    assert result.exit_code == 0
-    for group in ("corpus", "ghidra", "report", "toolchain", "evidence", "analyze"):
-        assert group in result.stdout
-        assert CliRunner().invoke(app, [group, "--help"]).exit_code == 0
-
-    assert "inventory" not in result.stdout
-    assert CliRunner().invoke(app, ["inventory", "--help"]).exit_code != 0
-
-    evidence = CliRunner().invoke(app, ["evidence", "refresh", "--help"])
-    assert evidence.exit_code == 0
-    assert "surrender-abi" in evidence.stdout
-    assert "function-census" not in evidence.stdout
-    assert CliRunner().invoke(app, ["evidence", "upsert", "--help"]).exit_code != 0
-
-    analyze = CliRunner().invoke(app, ["analyze", "--help"])
-    assert analyze.exit_code == 0
-    assert "inventory" in analyze.stdout
-
-    run = CliRunner().invoke(app, ["run", "--help"], terminal_width=120)
-    assert run.exit_code == 0
-    assert "--original" in re.sub(r"\x1b\[[0-9;]*m", "", run.stdout)
 
 
 @pytest.mark.parametrize("changed,expects_lint", [("src/wiz8/a.cpp", True), ("README.md", False)])

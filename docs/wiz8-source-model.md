@@ -96,9 +96,6 @@ assertion-evidenced filename. `header_architecture.json` therefore contains
 only human decisions — proven original filenames and allowed multi-TU
 interfaces — never generated state.
 
-`wiz8 report header-architecture` writes
-`build/reports/header-architecture/report.json`.
-
 ## RTTI result
 
 The canonical executable contains no MSVC Type Descriptor strings beginning with `.?AV` or `.?AU`.

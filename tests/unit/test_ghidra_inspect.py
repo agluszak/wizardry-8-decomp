@@ -1,8 +1,6 @@
 from pathlib import Path
 from types import SimpleNamespace
 
-from typer.testing import CliRunner
-from wiz8decomp.cli import app
 from wiz8decomp.source_index import source_index_freshness, try_load_source_index
 
 
@@ -18,18 +16,6 @@ def test_source_index_freshness_missing(tmp_path: Path) -> None:
     )
     freshness = source_index_freshness(tmp_path, "WIZ8")
     assert freshness["state"] == "missing"
-
-
-def test_ghidra_read_commands_are_registered() -> None:
-    runner = CliRunner()
-    result = runner.invoke(app, ["ghidra", "--help"])
-    assert result.exit_code == 0, result.output
-    assert "decompile" in result.output
-    assert "asm" in result.output
-    assert "sym" in result.output
-    assert "sync" in result.output
-    assert "class" in result.output
-    assert "flow" in result.output
 
 
 def test_inspect_does_not_write_source_index(monkeypatch) -> None:

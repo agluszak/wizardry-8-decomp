@@ -40,7 +40,6 @@ from .ghidra.unit_intervals import (
     assertion_anchors,
     read_assertions,
 )
-from .paths import atomic_json
 from .source_units import (
     COMPILER_EMISSION,
     ORIGINAL_TU,
@@ -496,22 +495,3 @@ def header_architecture_violations(report: dict[str, Any]) -> list[str]:
 def validate_header_architecture(repo_dir: Path) -> list[str]:
     """Fail the fast lane when a header violates the ownership model."""
     return header_architecture_violations(analyze_header_architecture(repo_dir))
-
-
-def write_header_architecture_report(repo_dir: Path) -> dict[str, Any]:
-    """Persist the classification report and return its compact summary."""
-    report = analyze_header_architecture(repo_dir)
-    path = repo_dir / "build/reports/header-architecture/report.json"
-    atomic_json(path, report)
-    summary = {
-        "schema": report["schema"],
-        "headers": len(report["headers"]),
-        "roles": {
-            role: sum(1 for header in report["headers"] if header["role"] == role)
-            for role in {header["role"] for header in report["headers"]}
-        },
-        "unresolved_fragments": len(report["unresolved_fragments"]),
-        "violations": len(report["violations"]),
-        "path": str(path.relative_to(repo_dir)),
-    }
-    return summary

@@ -27,8 +27,7 @@ declaration. Agreement between source-projected retail ProgramDB and recomp PDB 
 When comparison preparation needs independently reviewed retail ABI/type evidence, require provenance
 that excludes current-source/PDB projection.
 
-Keep uncertain facts unknown. Parameter-ID or other heuristic inference is investigation material until
-independently established.
+Keep uncertain facts unknown. Heuristic inference is investigation material until independently established.
 
 ## Ordinary reads
 
@@ -39,7 +38,6 @@ uv run wiz8 ghidra decompile ADDRESS...
 uv run wiz8 ghidra asm ADDRESS...
 uv run wiz8 ghidra sym ADDRESS...
 uv run wiz8 ghidra class NAME
-uv run wiz8 ghidra flow ADDRESS --root NAME
 ```
 
 Batch related addresses. Reads do not compile, refresh the source index or synchronize ProgramDB.
