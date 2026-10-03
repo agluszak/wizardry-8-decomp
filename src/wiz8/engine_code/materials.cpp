@@ -2145,7 +2145,7 @@ accepted:
 // FUNCTION: WIZ8 0x004B8A70
 unsigned char LoadMaterial(const char* bitmap_folder, const W8MaterialRecord* source,
                            srMaterialIFace** material, srTextureIFace** texture,
-                           unsigned long* render_flags, int)
+                           srShader* render_flags, int)
 {
     char texture_path[80] = "";
     char material_name[80] = "";
@@ -2159,7 +2159,7 @@ unsigned char LoadMaterial(const char* bitmap_folder, const W8MaterialRecord* so
     bool has_alpha = false;
     int index;
 
-    *render_flags = 0x0100a51b; /* packed srShader; TEXTURING set until no texture */
+    render_flags->value = 0x0100a51b; /* packed srShader; TEXTURING set until no texture */
     for (index = 0; index < 4; ++index) {
         if (source->texture_names_029[index][0] != '\0') {
             if (bitmap_folder[0] == '\0') {
@@ -2173,7 +2173,7 @@ unsigned char LoadMaterial(const char* bitmap_folder, const W8MaterialRecord* so
     }
 
     if (texture_path[0] == '\0') {
-        *render_flags &= ~srShader::MASK_TEXTURING;
+        render_flags->value &= ~srShader::MASK_TEXTURING;
     } else {
         _splitpath(texture_path, drive, directory, file_name, extension);
         strcpy(texture_folder, drive);
@@ -2215,11 +2215,11 @@ unsigned char LoadMaterial(const char* bitmap_folder, const W8MaterialRecord* so
 
     if (source->opacity_0fd < 1.0f || has_alpha) {
         if (texture_index == 0 || texture_index == 1) {
-            *render_flags = (*render_flags & 0xffffdfbfUL) | 0x40a0;
+            render_flags->value = (render_flags->value & 0xffffdfbfUL) | 0x40a0;
         } else if (texture_index == 2 || texture_index == 3) {
-            *render_flags = (*render_flags & 0xffffdc3fUL) | 0x4020;
+            render_flags->value = (render_flags->value & 0xffffdc3fUL) | 0x4020;
         }
-        *render_flags &= ~8UL;
+        render_flags->value &= ~8UL;
     }
 
     sprintf(material_name,
@@ -2299,7 +2299,7 @@ unsigned char LoadMaterial(const char* bitmap_folder, const W8MaterialRecord* so
 
 // FUNCTION: WIZ8 0x004B9280
 unsigned char CreateDefaultMaterial(srMaterialIFace** material, srTextureIFace** texture,
-                                    unsigned long* render_flags)
+                                    srShader* render_flags)
 {
     char name[64] = "";
     srRegistry* registry;
@@ -2307,7 +2307,7 @@ unsigned char CreateDefaultMaterial(srMaterialIFace** material, srTextureIFace**
     stMaterial* concrete;
     srVector4T<float> color;
 
-    *render_flags = 0x0100251b;
+    render_flags->value = 0x0100251b;
     sprintf(name, DEFAULT_MATERIAL_NAME);
     *texture = 0;
 

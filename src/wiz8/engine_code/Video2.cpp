@@ -3643,9 +3643,6 @@ void EndRenderProbe(void)
     g_gerd->flipFrame();
 }
 
-/* Compiler-generated vtable and template emissions, grouped here as emission
-   provenance. They are instantiation output from the SurRender headers, not
-   authored Video2 bodies. */
 // VTABLE: WIZ8 0x005EBE98
 // class srClientSupport<srMeshModel,8208>
 
@@ -3931,10 +3928,6 @@ void SetPickKey(void* key)
             reinterpret_cast<unsigned long>(key)); // reinterpret-ok: opaque pick token
     }
 }
-
-/* Compiler emissions between Video2.cpp's authored bodies and Levels.cpp's
-   first anchor: sr refcounted-pointer and class-support template bodies plus
-   their deleting destructors. */
 
 // TEMPLATE: WIZ8 0x00429B00
 // srPtr assignment emission: release the held interface, addref and store the new one

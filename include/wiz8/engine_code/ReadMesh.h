@@ -20,6 +20,7 @@ static_assert(sizeof(W8ReadMeshFace) == 0x29, "W8ReadMeshFace_size_must_be_0x29"
 class srMaterialIFace;
 class srModelInstance;
 class srTextureIFace;
+class srShader;
 class stMeshModel;
 class srMeshModel;
 class srClass;
@@ -37,13 +38,11 @@ bool IsReadMeshMaterial(const srClass* material);
 unsigned char ReadSingleLevelMeshBody(W8ReadLevelInfo* info, srModelInstance** instance,
                                       int positional_0, int positional_1, const char* name,
                                       bool load_materials);
-stMeshModel* BuildSingleLevelMesh(int face_count, W8ReadMeshFace* faces, int vertex_count,
-                                  int material_count, srMaterialIFace** materials,
-                                  srTextureIFace** textures, unsigned long* render_flags,
-                                  unsigned int* mesh_count, int*** vertex_maps,
-                                  unsigned int* vertex_map_count,
-                                  W8GrowableVector<short>* mapped_values,
-                                  W8GrowableVector<short>* mapped_keys);
+stMeshModel*
+BuildSingleLevelMesh(int face_count, W8ReadMeshFace* faces, int vertex_count, int material_count,
+                     srMaterialIFace** materials, srTextureIFace** textures, srShader* render_flags,
+                     unsigned int* mesh_count, int*** vertex_maps, unsigned int* vertex_map_count,
+                     W8GrowableVector<short>* mapped_values, W8GrowableVector<short>* mapped_keys);
 
 void OptimizeMeshOrder(srMeshModel* model, unsigned long flags);
 

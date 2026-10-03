@@ -1,7 +1,7 @@
 # Retail bugs
 
 Defects in the shipped Wizardry 8 executable (GOG build) that the recovered
-source reproduces on purpose. The source-fidelity rules in `CLAUDE.md` require
+source reproduces on purpose. The source-fidelity rules in `AGENTS.md` require
 keeping a retail bug once retail instructions establish it: the recovered body
 must behave like retail, not like what the author probably meant. Each entry
 names the function, the defect, and the evidence. The source carries a comment
@@ -32,6 +32,7 @@ Behavior that only looks odd, or an unmatched recompiled body, is not an entry.
 | `FormatCharacterQuoteText` | `0x0052D0B0` | Stores zero at `buffer[wcslen(buffer) - 1]` without checking the reader result, so an empty string writes `buffer[-1]`. | There is no test of the read result or of the length before the store. |
 | `OctPreTree::WriteOctFile` | `0x004683F0` | Every write-failure return skips `FileClose`, leaking the handle. | Verified at `0x004686B4` and the following error paths. |
 | `OctPreTree::SplitMeshes` | `0x00469670` | The allocation-failure paths leak the five sort arrays. | The failure returns do not free them. |
+| `AddMessageBoxLine` | `0x00528A80` | If vector growth fails, the newly allocated message line leaks. | `0x00528AEC`–`0x00528AF7` restores the old vector pointer and returns without freeing the line; the recovered method ignores `Add`'s result. |
 
 ## Uninitialized reads
 

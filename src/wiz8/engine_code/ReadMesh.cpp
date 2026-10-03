@@ -55,7 +55,7 @@ static srMaterialIFace** g_read_mesh_materials;
 // GLOBAL: WIZ8 0x0065B9EC
 static srTextureIFace** g_read_mesh_textures;
 // GLOBAL: WIZ8 0x0065B9F0
-static unsigned long* g_read_mesh_render_flags;
+static srShader* g_read_mesh_render_flags;
 // GLOBAL: WIZ8 0x0065B9F4
 static W8MaterialRecord* g_read_mesh_material_records;
 /* Element count of the three scratch tables; every retail access is 16-bit. */
@@ -97,7 +97,7 @@ static srMaterialIFace** g_multi_mesh_materials;
 static srTextureIFace** g_multi_mesh_textures;
 
 // GLOBAL: WIZ8 0x0065BA04
-static unsigned long* g_multi_mesh_render_flags;
+static srShader* g_multi_mesh_render_flags;
 /* The retained-material list is a real W8GrowableVector object at 0x0065B9D0:
    its static initializer at 0x00485AF0 constructs it with capacity five and
    its destructor is run through atexit. The element type is srMaterialIFace*
@@ -517,13 +517,11 @@ void OptimizeMeshOrder(srMeshModel* model, unsigned long flags)
 }
 
 // FUNCTION: WIZ8 0x00488650
-stMeshModel* BuildSingleLevelMesh(int face_count, W8ReadMeshFace* faces, int vertex_count,
-                                  int material_count, srMaterialIFace** materials,
-                                  srTextureIFace** textures, unsigned long* render_flags,
-                                  unsigned int* mesh_count, int*** vertex_maps,
-                                  unsigned int* vertex_map_count,
-                                  W8GrowableVector<short>* mapped_values,
-                                  W8GrowableVector<short>* mapped_keys)
+stMeshModel*
+BuildSingleLevelMesh(int face_count, W8ReadMeshFace* faces, int vertex_count, int material_count,
+                     srMaterialIFace** materials, srTextureIFace** textures, srShader* render_flags,
+                     unsigned int* mesh_count, int*** vertex_maps, unsigned int* vertex_map_count,
+                     W8GrowableVector<short>* mapped_values, W8GrowableVector<short>* mapped_keys)
 {
     W8GrowableVector<unsigned long> polygon_types;
     W8OctreeIndex vertex_indices[8];
@@ -554,11 +552,11 @@ stMeshModel* BuildSingleLevelMesh(int face_count, W8ReadMeshFace* faces, int ver
     }
 
     for (int material = 0; material < material_count; ++material) {
-        if (polygon_types.IndexOf(render_flags[material]) == -1) {
+        if (polygon_types.IndexOf(render_flags[material].value) == -1) {
             int capacity = 0;
             for (face_index = 0; face_index < face_count; ++face_index) {
                 W8ReadMeshFace& face = faces[face_index];
-                if (render_flags[face.material_index] == render_flags[material]) {
+                if (render_flags[face.material_index].value == render_flags[material].value) {
                     ++capacity;
                     if (ReadMeshFaceNeedsSplit(face, materials)) {
                         ++capacity;
@@ -567,7 +565,7 @@ stMeshModel* BuildSingleLevelMesh(int face_count, W8ReadMeshFace* faces, int ver
             }
             if (capacity != 0) {
                 capacities[polygon_types.count] = capacity;
-                polygon_types.Add(render_flags[material]);
+                polygon_types.Add(render_flags[material].value);
             }
         }
     }
@@ -601,7 +599,7 @@ stMeshModel* BuildSingleLevelMesh(int face_count, W8ReadMeshFace* faces, int ver
 
     for (face_index = 0; face_index < face_count; ++face_index) {
         W8ReadMeshFace& face = faces[face_index];
-        type = polygon_types.IndexOf(render_flags[face.material_index]);
+        type = polygon_types.IndexOf(render_flags[face.material_index].value);
         if (type < 0) {
             srAssertFail("iPolyType >=0", "C:\\Projects\\Wizardry 8\\Engine Code\\ReadMesh.cpp",
                          0x45b, 0);
@@ -770,7 +768,7 @@ stMeshModel* BuildSingleLevelMesh(int face_count, W8ReadMeshFace* faces, int ver
 
 // FUNCTION: WIZ8 0x00487E10
 static int ReadMeshMaterials(W8ReadLevelInfo* info, srMaterialIFace*** materials,
-                             srTextureIFace*** textures, unsigned long** render_flags,
+                             srTextureIFace*** textures, srShader** render_flags,
                              int load_materials)
 {
     if (info == 0) {
@@ -828,7 +826,7 @@ static int ReadMeshMaterials(W8ReadLevelInfo* info, srMaterialIFace*** materials
     ReleaseReadMeshScratch();
     *materials = static_cast<srMaterialIFace**>(malloc(count * sizeof(**materials)));
     *textures = static_cast<srTextureIFace**>(malloc(count * sizeof(**textures)));
-    *render_flags = static_cast<unsigned long*>(malloc(count * sizeof(**render_flags)));
+    *render_flags = static_cast<srShader*>(malloc(count * sizeof(**render_flags)));
     memset(*materials, 0, count * sizeof(**materials));
     memset(*textures, 0, count * sizeof(**textures));
     memset(*render_flags, 0, count * sizeof(**render_flags));
@@ -1033,7 +1031,7 @@ unsigned char ReadSingleLevelMeshBody(W8ReadLevelInfo* info, srModelInstance** i
 
     srMaterialIFace** materials;
     srTextureIFace** textures;
-    unsigned long* render_flags;
+    srShader* render_flags;
     int material_count =
         ReadMeshMaterials(info, &materials, &textures, &render_flags, load_materials);
     if (materials == 0) {

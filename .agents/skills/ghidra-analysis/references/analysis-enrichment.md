@@ -65,8 +65,10 @@ calling-convention disagreements are reported rather than overwritten.
   `ANALYSIS`. Ordinary `CALL [IAT]` callers are not the import.
 - `uv run wiz8 analyze parameter-id` is collect-only. Never apply it over
   `IMPORTED` or `USER_DEFINED` signatures or silently promote it into sync.
-- `decompiler-quality` and `high-function-debt` measure the current ProgramDB.
-  They do not apply facts or create reviewed evidence.
+- `decompiler-quality` measures C-text debt and informational HighFunction typing metrics
+  from the same decompilation of the current ProgramDB. Only C-text debt participates in the
+  checkpoint regression gate.
+  The report does not apply facts or create reviewed evidence.
 
 Do not bulk-import PDB locals into retail Ghidra, guess enums/bools from value
 patterns, or add more manual callback families.

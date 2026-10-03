@@ -5,12 +5,14 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 from wiz8decomp.decompiler_quality import (
+    HIGH_FUNCTION_METRIC_KEYS,
     METRIC_KEYS,
     _stratified_sample,
     compute_quality_delta,
     debt_total,
     require_quality_measurement,
     score_decompiled,
+    score_high_function,
 )
 
 
@@ -327,3 +329,169 @@ def test_run_decompiler_quality_records_canonical_program_name(tmp_path, monkeyp
     report = json.loads((report_dir / "report.json").read_text(encoding="utf-8"))
     assert evaluated_programs == [canonical_name]
     assert report["program"] == canonical_name
+
+
+class _Op:
+    def __init__(self, mnemonic: str) -> None:
+        self._mnemonic = mnemonic
+
+    def getMnemonic(self) -> str:
+        return self._mnemonic
+
+
+class _Ops:
+    def __init__(self, ops: list[_Op]) -> None:
+        self._ops = list(ops)
+
+    def hasNext(self) -> bool:
+        return bool(self._ops)
+
+    def next(self) -> _Op:
+        return self._ops.pop(0)
+
+
+def test_score_high_function_counts_undefined_this_and_indirect_calls() -> None:
+    this = SimpleNamespace(
+        getName=lambda: "this",
+        getDataType=lambda: SimpleNamespace(getDisplayName=lambda: "undefined4"),
+    )
+    other = SimpleNamespace(
+        getName=lambda: "count", getDataType=lambda: SimpleNamespace(getDisplayName=lambda: "int")
+    )
+    prototype = SimpleNamespace(
+        getModelName=lambda: "unknown",
+        getReturnType=lambda: SimpleNamespace(getDisplayName=lambda: "void *"),
+        getNumParams=lambda: 2,
+        getParam=lambda index: this if index == 0 else other,
+    )
+
+    class _Callind(_Op):
+        def getInput(self, _index: int):
+            return SimpleNamespace(
+                getHigh=lambda: SimpleNamespace(
+                    getDataType=lambda: SimpleNamespace(getDisplayName=lambda: "undefined4")
+                )
+            )
+
+    class _Locals:
+        def __init__(self) -> None:
+            self._items = [
+                SimpleNamespace(getName=lambda: "unaff_ESI"),
+                SimpleNamespace(getName=lambda: "count"),
+            ]
+
+        def hasNext(self) -> bool:
+            return bool(self._items)
+
+        def next(self):
+            return self._items.pop(0)
+
+    high = SimpleNamespace(
+        getFunctionPrototype=lambda: prototype,
+        getLocalSymbolMap=lambda: SimpleNamespace(getSymbols=lambda: _Locals()),
+        getPcodeOps=lambda: _Ops([_Op("CAST"), _Callind("CALLIND"), _Op("PTRADD"), _Op("CALL")]),
+    )
+    counts = score_high_function(high)
+    assert counts["undefined_this"] == 1
+    assert counts["undefined_params"] == 1
+    assert counts["untyped_return"] == 1
+    assert counts["default_convention"] == 1
+    assert counts["cast_ops"] == 1
+    assert counts["callind_ops"] == 1
+    assert counts["untyped_callind"] == 1
+    assert counts["suspicious_ptr_ops"] == 1
+    assert counts["unaff_vars"] == 1
+    assert set(counts) == set(HIGH_FUNCTION_METRIC_KEYS)
+
+
+def test_score_high_function_treats_typed_ptrsub_as_healthy() -> None:
+    class _Struct:
+        def getDefinedComponents(self):
+            return [SimpleNamespace(getOffset=lambda: 4)]
+
+        def getDisplayName(self):
+            return "W8Foo"
+
+    class _PointerType:
+        def getDisplayName(self):
+            return "W8Foo *"
+
+        def getDataType(self):
+            return _Struct()
+
+    class _PtrSub(_Op):
+        def getInput(self, index: int):
+            if index == 0:
+                return SimpleNamespace(
+                    getHigh=lambda: SimpleNamespace(getDataType=lambda: _PointerType()),
+                    getDataType=lambda: _PointerType(),
+                )
+            return SimpleNamespace(
+                isConstant=lambda: True, getOffset=lambda: 4, getHigh=lambda: None
+            )
+
+    prototype = SimpleNamespace(
+        getModelName=lambda: "__thiscall",
+        getReturnType=lambda: SimpleNamespace(getDisplayName=lambda: "void"),
+        getNumParams=lambda: 0,
+        getParam=lambda _index: None,
+    )
+    high = SimpleNamespace(
+        getFunctionPrototype=lambda: prototype,
+        getLocalSymbolMap=lambda: SimpleNamespace(getSymbols=lambda: _Ops([])),
+        getPcodeOps=lambda: _Ops([_PtrSub("PTRSUB")]),
+    )
+    counts = score_high_function(high)
+    assert counts["suspicious_ptr_ops"] == 0
+
+
+def test_evaluate_corpus_shares_decompilation_and_keeps_high_metrics_informational(
+    tmp_path, monkeypatch
+) -> None:
+    from contextlib import nullcontext
+
+    import wiz8decomp.decompiler_quality as dq
+    from wiz8decomp.ghidra import env, inspect
+
+    high = SimpleNamespace(
+        getFunctionPrototype=lambda: SimpleNamespace(
+            getModelName=lambda: "unknown",
+            getReturnType=lambda: "undefined4",
+            getNumParams=lambda: 0,
+        ),
+        getPcodeOps=lambda: _Ops([]),
+    )
+    calls = []
+    closed = []
+
+    class Session:
+        def __init__(self, program, *, profile):
+            pass
+
+        def decompile(self, function):
+            calls.append(function)
+            return SimpleNamespace(
+                decompileCompleted=lambda: function != 3,
+                getDecompiledFunction=lambda: SimpleNamespace(getC=lambda: "void f() {}"),
+                getHighFunction=lambda: high if function == 1 else None,
+                getErrorMessage=lambda: "timeout",
+            )
+
+        def close(self):
+            closed.append(True)
+
+    monkeypatch.setattr(env, "open_program", lambda *_args: nullcontext(object()))
+    monkeypatch.setattr(inspect, "DecompileSession", Session)
+    monkeypatch.setattr(dq, "program_analysis_fingerprint", lambda _program: {"test": True})
+    monkeypatch.setattr(dq, "_resolve_function", lambda _program, addr: addr if addr < 4 else None)
+    report = dq.evaluate_corpus(SimpleNamespace(repo_dir=tmp_path), [1, 2, 3, 4], markers={})
+    assert calls == [1, 2, 3]
+    assert closed == [True]
+    assert report["summary"]["ok"] == 2
+    assert report["summary"]["failures"] == 2
+    assert report["summary"]["high_function_measured"] == 1
+    assert report["summary"]["high_function_totals"]["untyped_return"] == 1
+    assert report["summary"]["mean_debt"] == 0
+    assert report["functions"][1]["high_function_metrics"] is None
+    assert report["functions"][2]["status"] == "decompiler-failure"
+    assert report["functions"][3]["status"] == "missing-function"

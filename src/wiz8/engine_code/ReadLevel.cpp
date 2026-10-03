@@ -967,8 +967,7 @@ unsigned char ReadWorldParticles(W8ReadLevelInfo* pInfo, srNode* pScene,
         particle->emission_limit_184 = record.emission_limit_218;
         particle->release_when_done_190 = false;
 
-        LoadMaterial(pInfo->bitmap_folder, &record.material, &material, &texture,
-                     &render_flags.value, 1);
+        LoadMaterial(pInfo->bitmap_folder, &record.material, &material, &texture, &render_flags, 1);
         particle->SetRetainedObject(material);
         particle->SetRenderFlags(render_flags);
         particle->SetTexture(texture);

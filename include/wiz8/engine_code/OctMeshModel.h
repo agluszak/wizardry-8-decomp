@@ -17,8 +17,7 @@ public:
     OctMeshModel();  /* 0x0049E4C0 */
     ~OctMeshModel(); /* 0x0049E500 */
     stMeshModel* Read(int file, srMaterialIFace** materials, srTextureIFace** textures,
-                              unsigned long* render_flags, stMeshModel** meshes,
-                              int material_count);
+                      srShader* render_flags, stMeshModel** meshes, int material_count);
     bool Write(int hFile); /* 0x0049E5D0 */
 
     short version_00;

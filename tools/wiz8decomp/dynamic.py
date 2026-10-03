@@ -1,32 +1,7 @@
-"""A scenario-bounded dynamic oracle: watch the original run, from evidence.
+"""Scenario-bounded retail/recomp event and state comparison.
 
-Everything else in this repository reasons about the image at rest. That is
-where most of the evidence is, but some questions only the running program
-answers: which gates actually run and in what order, which screen handler the
-dispatcher reaches, whether a recompiled body is reached at all. This runs the
-original under Wine with a debugger attached and turns the addresses the
-reviewed model already knows into an event stream.
-
-Three properties keep it honest.
-
-**The breakpoints come from canonical owners.** A trace plan is generated from
-compiler-bound source markers and the original frame-dispatch observation, so
-it can be regenerated after either model changes rather than drifting away.
-
-**A claim is bounded by the scenario that produced it.** An event stream says
-what happened in *this* run to *this* point - it never says a function is
-unreachable, only that this scenario did not reach it. Every recorded stream
-carries the scenario that produced it.
-
-**Comparison is by name, across builds.** Two builds put the same function at
-different addresses, so streams are compared on the reviewed name each
-breakpoint carries. The first divergence is the answer; the counts after it are
-noise, because one extra event shifts everything that follows.
-
-The runtime side is deliberately thin: `winedbg --gdb` proxies the Windows
-process to an ordinary gdb, which prints one line per hit and continues. There
-is no in-process agent, nothing is injected into the image, and the game runs
-from a copy so the immutable input trees are never written to.
+Plans use canonical source/evidence owners; debugger transport uses debug.session.
+Scenario contracts and interpretation live in docs/dynamic-oracle.md.
 """
 
 from __future__ import annotations
@@ -37,19 +12,18 @@ import json
 import os
 import re
 import shutil
-import signal
-import socket
 import subprocess
-import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from .debug.session import WineGdbProxy, allocate_port
 from .paths import json_hash, sha256_file
 from .subprocesses import tool_version
 
 EVENT = re.compile(r"^EVENT\s+(?P<kind>\S+)\s+(?P<name>\S+)\s+(?P<address>[0-9a-f]{8})\s*$")
 READY = "TRACE_READY"
+NORMAL_EXIT = "PROCESS_EXIT 0"
 STATE = re.compile(r"^STATE\s+(?P<name>\S+)\s+(?P<value>\S+)\s*$")
 
 # Scenario names are part of every claim this module makes, so they are fixed
@@ -466,6 +440,8 @@ def gdb_script(
     points: list[TracePoint],
     port: int,
     actions: dict[str, BreakpointAction] | None = None,
+    *,
+    observe_exit: bool = False,
 ) -> str:
     """A batch script that prints one line per hit and never stops the run.
 
@@ -503,6 +479,8 @@ def gdb_script(
                 ]
         lines += ["continue", "end"]
     lines += [f'printf "{READY}\\n"', "continue"]
+    if observe_exit:
+        lines += ["if $_exitcode == 0", f'printf "{NORMAL_EXIT}\\n"', "end"]
     return "\n".join(lines) + "\n"
 
 
@@ -644,46 +622,6 @@ class Sandbox:
         return destination
 
 
-def _listening(port: int, deadline: float) -> bool:
-    """Wait for the proxy's port without connecting to it.
-
-    `winedbg --gdb` accepts exactly one connection, so a probe that connects
-    consumes the one gdb needs - which presents as gdb timing out against a
-    port that is demonstrably open.
-    """
-
-    while time.monotonic() < deadline:
-        result = subprocess.run(
-            ["ss", "-ltnH", f"sport = :{port}"], capture_output=True, text=True, check=False
-        )
-        if "LISTEN" in result.stdout:
-            return True
-        time.sleep(0.5)
-    return False
-
-
-def _allocate_port() -> int:
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as listener:
-        listener.bind(("127.0.0.1", 0))
-        return int(listener.getsockname()[1])
-
-
-def _terminate_process_group(process: subprocess.Popen[Any]) -> None:
-    """Terminate only the group created for this trace."""
-
-    if process.poll() is not None:
-        return
-    try:
-        os.killpg(process.pid, signal.SIGTERM)
-        process.wait(timeout=10)
-    except (ProcessLookupError, subprocess.TimeoutExpired):
-        try:
-            os.killpg(process.pid, signal.SIGKILL)
-        except ProcessLookupError:
-            pass
-        process.wait(timeout=10)
-
-
 def _repository_revision(repo: Path) -> str:
     completed = subprocess.run(
         ["jj", "log", "-r", "@", "--no-graph", "-T", "commit_id"],
@@ -715,6 +653,86 @@ def _text(value: str | bytes | None) -> str:
     return value.decode("utf-8", "replace") if isinstance(value, bytes) else value
 
 
+def _capture(
+    sandbox: Sandbox,
+    executable: str,
+    script: Path,
+    port: int,
+    seconds: int,
+    arguments: tuple[str, ...] = (),
+) -> tuple[str, int | None]:
+    """Capture one debugger batch; a missing return code denotes timeout."""
+    proxy = WineGdbProxy(
+        sandbox.game_dir / executable,
+        sandbox.game_dir,
+        sandbox.environment(),
+        port=port,
+        arguments=arguments,
+        inferior_path=sandbox.windows_path(executable),
+        start_timeout=60,
+    )
+    try:
+        proxy.start()
+        completed = subprocess.run(
+            ["gdb", "-q", "-batch", "-x", str(script)],
+            cwd=sandbox.game_dir,
+            env=sandbox.environment(),
+            capture_output=True,
+            text=True,
+            timeout=seconds,
+            check=False,
+        )
+        return completed.stdout + completed.stderr, completed.returncode
+    except subprocess.TimeoutExpired as expired:
+        return _text(expired.stdout) + _text(expired.stderr), None
+    finally:
+        try:
+            proxy.close()
+        finally:
+            try:
+                subprocess.run(
+                    ["wineserver", "-k"],
+                    cwd=sandbox.game_dir,
+                    env=sandbox.environment(),
+                    check=False,
+                )
+            finally:
+                script.unlink(missing_ok=True)
+
+
+def _provenance(
+    repo: Path,
+    sandbox: Sandbox,
+    executable: str,
+    link_map: Path | None,
+    plan_hash: str,
+    seconds: int,
+    selected_port: int,
+    unwatched: list[str],
+) -> dict[str, Any]:
+    image = sandbox.game_dir / executable
+    provenance: dict[str, Any] = {
+        "executable": executable,
+        "executable_sha256": sha256_file(image),
+        "unwatched": unwatched,
+        "link_map_sha256": sha256_file(link_map) if link_map is not None else None,
+        "variant_identity": os.environ.get("WIZ8_DYNAMIC_VARIANT", f"sha256:{sha256_file(image)}"),
+        "trace_plan_sha256": plan_hash,
+        "reviewed_evidence_sha256": _reviewed_evidence_hash(repo),
+        "repository_revision": _repository_revision(repo),
+        "wine": tool_version("wine", ("--version",)),
+        "gdb": tool_version("gdb", ("--version",)),
+        "timeout_seconds": seconds,
+        "proxy_port": selected_port,
+    }
+    # Which SurRender provider the run actually loaded is part of the claim:
+    # a rebuilt exe under a stock provider says nothing about the provider.
+    provider = sandbox.game_dir / "sr.dll"
+    if provider.is_file():
+        provenance["provider_sha256"] = sha256_file(provider)
+    return provenance
+
+
 def run_trace(
     repo: Path,
     sandbox: Sandbox,
@@ -729,7 +747,7 @@ def run_trace(
 ) -> dict[str, Any]:
     """Run one scenario under the debugger and return its event stream."""
 
-    for tool in ("winedbg", "wineserver", "gdb", "ss"):
+    for tool in ("winedbg", "wineserver", "gdb"):
         if shutil.which(tool) is None:
             raise ValueError(f"{tool} is not on PATH; the dynamic oracle needs it")
     if not (sandbox.game_dir / executable).is_file():
@@ -755,7 +773,7 @@ def run_trace(
             "name": save.name,
             "sha256": sha256_file(staged_save),
         }
-    selected_port = port if port is not None else _allocate_port()
+    selected_port = port if port is not None else allocate_port()
     plan_hash = json_hash(
         [{"address": point.address, "name": point.name, "kind": point.kind} for point in points]
     )
@@ -774,69 +792,15 @@ def run_trace(
     script = sandbox.game_dir.parent / f"trace-{scenario}-{selected_port}.gdb"
     script.write_text(gdb_script(points, selected_port, actions=actions), encoding="utf-8")
 
-    proxy = subprocess.Popen(
-        [
-            "winedbg",
-            "--gdb",
-            "--no-start",
-            "--port",
-            str(selected_port),
-            sandbox.windows_path(executable),
-            *launch_arguments,
-        ],
-        cwd=sandbox.game_dir,
-        env=sandbox.environment(),
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.STDOUT,
-        start_new_session=True,
+    output, _ = _capture(
+        sandbox, executable, script, selected_port, seconds, tuple(launch_arguments)
     )
-    try:
-        if not _listening(selected_port, time.monotonic() + 60):
-            raise ValueError("winedbg --gdb never opened its port")
-        completed = subprocess.run(
-            ["gdb", "-q", "-batch", "-x", str(script)],
-            cwd=sandbox.game_dir,
-            env=sandbox.environment(),
-            capture_output=True,
-            text=True,
-            timeout=seconds,
-            check=False,
-        )
-        output = completed.stdout + completed.stderr
-    except subprocess.TimeoutExpired as expired:
-        output = _text(expired.stdout) + _text(expired.stderr)
-    finally:
-        _terminate_process_group(proxy)
-        subprocess.run(
-            ["wineserver", "-k"],
-            cwd=sandbox.game_dir,
-            env=sandbox.environment(),
-            check=False,
-        )
-        script.unlink(missing_ok=True)
 
     events = parse_events(output)
-    image = sandbox.game_dir / executable
-    provenance: dict[str, Any] = {
-        "executable": executable,
-        "executable_sha256": sha256_file(image),
-        "arguments": launch_arguments,
-        "unwatched": unwatched,
-        "link_map_sha256": sha256_file(link_map) if link_map is not None else None,
-        "variant_identity": os.environ.get("WIZ8_DYNAMIC_VARIANT", f"sha256:{sha256_file(image)}"),
-        "trace_plan_sha256": plan_hash,
-        "reviewed_evidence_sha256": _reviewed_evidence_hash(repo),
-        "repository_revision": _repository_revision(repo),
-        "wine": tool_version("wine", ("--version",)),
-        "gdb": tool_version("gdb", ("--version",)),
-        "timeout_seconds": seconds,
-        "proxy_port": selected_port,
-    }
-    # Which SurRender provider the run actually loaded is part of the claim:
-    # a rebuilt exe under a stock provider says nothing about the provider.
-    provider = sandbox.game_dir / "sr.dll"
-    if provider.is_file():
-        provenance["provider_sha256"] = sha256_file(provider)
+    provenance = _provenance(
+        repo, sandbox, executable, link_map, plan_hash, seconds, selected_port, unwatched
+    )
+    provenance["arguments"] = launch_arguments
     if fixture is not None:
         provenance["fixture"] = fixture
     return {
@@ -870,7 +834,7 @@ def run_smoke(
     it queues the confirming Return. A gesture that never lands leaves the
     run at the timeout - `exited` stays false rather than guessing."""
 
-    for tool in ("winedbg", "wineserver", "gdb", "ss", "xdotool"):
+    for tool in ("winedbg", "wineserver", "gdb", "xdotool"):
         if shutil.which(tool) is None:
             raise ValueError(f"{tool} is not on PATH; the smoke test needs it")
     if not (sandbox.game_dir / executable).is_file():
@@ -897,77 +861,23 @@ def run_smoke(
         )
         if name in watched_names
     }
-    selected_port = port if port is not None else _allocate_port()
+    selected_port = port if port is not None else allocate_port()
     plan_hash = json_hash(
         [{"address": point.address, "name": point.name, "kind": point.kind} for point in points]
     )
     script = sandbox.game_dir.parent / f"smoke-{selected_port}.gdb"
-    script.write_text(gdb_script(points, selected_port, actions=actions), encoding="utf-8")
-
-    proxy = subprocess.Popen(
-        [
-            "winedbg",
-            "--gdb",
-            "--no-start",
-            "--port",
-            str(selected_port),
-            sandbox.windows_path(executable),
-        ],
-        cwd=sandbox.game_dir,
-        env=sandbox.environment(),
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.STDOUT,
-        start_new_session=True,
+    script.write_text(
+        gdb_script(points, selected_port, actions=actions, observe_exit=True), encoding="utf-8"
     )
-    timed_out = False
-    try:
-        if not _listening(selected_port, time.monotonic() + 60):
-            raise ValueError("winedbg --gdb never opened its port")
-        try:
-            completed = subprocess.run(
-                ["gdb", "-q", "-batch", "-x", str(script)],
-                cwd=sandbox.game_dir,
-                env=sandbox.environment(),
-                capture_output=True,
-                text=True,
-                timeout=seconds,
-                check=False,
-            )
-            output = completed.stdout + completed.stderr
-            finished = completed.returncode is not None
-        except subprocess.TimeoutExpired as expired:
-            timed_out = True
-            output = _text(expired.stdout) + _text(expired.stderr)
-            finished = False
-    finally:
-        _terminate_process_group(proxy)
-        subprocess.run(
-            ["wineserver", "-k"],
-            cwd=sandbox.game_dir,
-            env=sandbox.environment(),
-            check=False,
-        )
-        script.unlink(missing_ok=True)
+
+    output, returncode = _capture(sandbox, executable, script, selected_port, seconds)
+    timed_out = returncode is None
+    finished = returncode == 0 and NORMAL_EXIT in output.splitlines()
 
     events = parse_events(output)
-    image = sandbox.game_dir / executable
-    provenance: dict[str, Any] = {
-        "executable": executable,
-        "executable_sha256": sha256_file(image),
-        "unwatched": unwatched,
-        "link_map_sha256": sha256_file(link_map) if link_map is not None else None,
-        "variant_identity": os.environ.get("WIZ8_DYNAMIC_VARIANT", f"sha256:{sha256_file(image)}"),
-        "trace_plan_sha256": plan_hash,
-        "reviewed_evidence_sha256": _reviewed_evidence_hash(repo),
-        "repository_revision": _repository_revision(repo),
-        "wine": tool_version("wine", ("--version",)),
-        "gdb": tool_version("gdb", ("--version",)),
-        "timeout_seconds": seconds,
-        "proxy_port": selected_port,
-    }
-    provider = sandbox.game_dir / "sr.dll"
-    if provider.is_file():
-        provenance["provider_sha256"] = sha256_file(provider)
+    provenance = _provenance(
+        repo, sandbox, executable, link_map, plan_hash, seconds, selected_port, unwatched
+    )
     reached = {event.name for event in events}
     requirements = {
         "started": READY in output,
@@ -976,7 +886,7 @@ def run_smoke(
         "exit_screen_entered": "screen_12_enter" in reached,
         "sgp_exit_reached": "SGPExit" in reached,
         # SGPExit is the last product-side step; the inferior exiting under
-        # the debugger - gdb finishing inside the timeout - is the product's
+        # the debugger with zero status, observed by the script, is the product's
         # real process exit, not the test harness's TerminateProcess.
         "process_exited": finished and not timed_out,
         "no_unwatched_points": not unwatched,
