@@ -1,25 +1,21 @@
-/* Modified for the Wizardry 8 reconstruction, 2026-09-10.
+/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
    Restore the original pixel-mask storage owner and record its retail addresses.
+   Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
+   Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
    Distributed under the accompanying SFI Source Code license agreement. */
-#ifdef JA2_PRECOMPILED_HEADERS
-	#include "JA2 SGP ALL.H"
-#elif defined( WIZ8_PRECOMPILED_HEADERS )
-	#include "WIZ8 SGP ALL.H"
-#else
-	#include <math.h>
-	#include <stdlib.h>
-	#include "types.h"
-	#include "string.h"
-	#include "debug.h"
-	#include "fileman.h"
-	#include "himage.h"
-	#include "impTGA.h"
-	#include "pcx.h"
-	#include "STCI.h"
-	#include "wcheck.h"
-	#include "Compression.h"
-	#include "vobject.h"
-#endif
+#include <math.h>
+#include <stdlib.h>
+#include "types.h"
+#include "string.h"
+#include "debug.h"
+#include "fileman.h"
+#include "himage.h"
+#include "impTGA.h"
+#include "pcx.h"
+#include "STCI.h"
+#include "wcheck.h"
+#include "Compression.h"
+#include "vobject.h"
 
 // This is the color substituted to keep a 24bpp -> 16bpp color
 // from going transparent (0x0000) -- DB
@@ -108,11 +104,6 @@ HIMAGE CreateImage( SGPFILENAME ImageFile, UINT16 fContents )
 	if ( !FileExists( ImageFile ) )
 	{
 		//If in debig, make fatal!
-#ifdef JA2
-#ifdef _DEBUG
-		//FatalError( "Resource file %s does not exist.", ImageFile );
-#endif
-#endif
 		DbgMessage( TOPIC_HIMAGE, DBG_LEVEL_2, String("Resource file %s does not exist.", ImageFile) );
 		return( NULL );
 	}
@@ -256,13 +247,13 @@ BOOLEAN CopyImageToBuffer( HIMAGE hImage, UINT32 fBufferType, BYTE *pDestBuf, UI
 
 	if ( hImage->ubBitDepth == 8 && fBufferType == BUFFER_8BPP )
 	{
-		#ifndef NO_ZLIB_COMPRESSION
+#ifndef NO_ZLIB_COMPRESSION
 			if ( hImage->fFlags & IMAGE_COMPRESSED )
 			{
 				DbgMessage( TOPIC_HIMAGE, DBG_LEVEL_2, "Copying Compressed 8 BPP Imagery." );
 				return( Copy8BPPCompressedImageTo8BPPBuffer( hImage, pDestBuf, usDestWidth, usDestHeight, usX, usY, srcRect ) );
 			}
-		#endif
+#endif
 
 		// Default do here
 		DbgMessage( TOPIC_HIMAGE, DBG_LEVEL_2, "Copying 8 BPP Imagery." );
@@ -272,13 +263,13 @@ BOOLEAN CopyImageToBuffer( HIMAGE hImage, UINT32 fBufferType, BYTE *pDestBuf, UI
 
 	if ( hImage->ubBitDepth == 8 && fBufferType == BUFFER_16BPP )
 	{
-		#ifndef NO_ZLIB_COMPRESSION
+#ifndef NO_ZLIB_COMPRESSION
 			if ( hImage->fFlags & IMAGE_COMPRESSED )
 			{
 				DbgMessage( TOPIC_HIMAGE, DBG_LEVEL_3, "Copying Compressed 8 BPP Imagery to 16BPP Buffer." );
 				return ( Copy8BPPCompressedImageTo16BPPBuffer( hImage, pDestBuf, usDestWidth, usDestHeight, usX, usY, srcRect ) );
 			}
-		#endif
+#endif
 
 		// Default do here
 		DbgMessage( TOPIC_HIMAGE, DBG_LEVEL_3, "Copying 8 BPP Imagery to 16BPP Buffer." );
@@ -289,13 +280,13 @@ BOOLEAN CopyImageToBuffer( HIMAGE hImage, UINT32 fBufferType, BYTE *pDestBuf, UI
 
 	if ( hImage->ubBitDepth == 16 && fBufferType == BUFFER_16BPP )
 	{
-		#ifndef NO_ZLIB_COMPRESSION
+#ifndef NO_ZLIB_COMPRESSION
 			if ( hImage->fFlags & IMAGE_COMPRESSED )
 			{
 				DbgMessage( TOPIC_HIMAGE, DBG_LEVEL_3, "Automatically Copying Compressed 16 BPP Imagery." );
 				return( Copy16BPPCompressedImageTo16BPPBuffer( hImage, pDestBuf, usDestWidth, usDestHeight, usX, usY, srcRect ) );
 			}
-		#endif
+#endif
 
 			DbgMessage( TOPIC_HIMAGE, DBG_LEVEL_3, "Automatically Copying 16 BPP Imagery." );
 		return( Copy16BPPImageTo16BPPBuffer( hImage, pDestBuf, usDestWidth, usDestHeight, usX, usY, srcRect ) );
@@ -584,18 +575,6 @@ BOOLEAN Copy16BPPImageTo16BPPBuffer( HIMAGE hImage, BYTE *pDestBuf, UINT16 usDes
 
 }
 
-BOOLEAN Extract8BPPCompressedImageToBuffer( HIMAGE hImage, BYTE *pDestBuf )
-{
-
-	return( FALSE );
-}
-
-BOOLEAN Extract16BPPCompressedImageToBuffer( HIMAGE hImage, BYTE *pDestBuf )
-{
-
-	return( FALSE );
-}
-
 
 // FUNCTION: WIZ8 0x00410050
 BOOLEAN Copy8BPPImageTo16BPPBuffer( HIMAGE hImage, BYTE *pDestBuf, UINT16 usDestWidth, UINT16 usDestHeight, UINT16 usX, UINT16 usY, SGPRect *srcRect )
@@ -841,40 +820,6 @@ UINT16 Get16BPPColor( UINT32 RGBValue )
 }
 
 
-// Convert from 16 BPP to RGBvalue
-UINT32 GetRGBColor( UINT16 Value16BPP )
-{
-	UINT16 r16, g16, b16;
-	UINT32 r,g,b,val;
-
-	r16 = Value16BPP & gusRedMask;
-	g16 = Value16BPP & gusGreenMask;
-	b16 = Value16BPP & gusBlueMask;
-
-	if(gusRedShift < 0)
-		r=((UINT32)r16<<abs(gusRedShift));
-	else
-		r=((UINT32)r16>>gusRedShift);
-
-	if(gusGreenShift < 0)
-		g=((UINT32)g16<<abs(gusGreenShift));
-	else
-		g=((UINT32)g16>>gusGreenShift);
-
-	if(gusBlueShift < 0)
-		b=((UINT32)b16<<abs(gusBlueShift));
-	else
-		b=((UINT32)b16>>gusBlueShift);
-
-	r &= 0x000000ff;
-	g &= 0x000000ff;
-	b &= 0x000000ff;
-
-	val = FROMRGB(r,g,b);
-
-	return(val);
-}
-
 //*****************************************************************************
 //
 // ConvertToPaletteEntry
@@ -887,26 +832,6 @@ UINT32 GetRGBColor( UINT16 Value16BPP )
 // Dec 15th 1996 -> modified for use by Wizardry
 //
 //*****************************************************************************
-
-SGPPaletteEntry *ConvertRGBToPaletteEntry(UINT8 sbStart, UINT8 sbEnd, UINT8 *pOldPalette)
-{
-	UINT16 Index;
-  SGPPaletteEntry *pPalEntry;
-	SGPPaletteEntry *pInitEntry;
-
-	pPalEntry = (SGPPaletteEntry *)MemAlloc(sizeof(SGPPaletteEntry) * 256);
-	pInitEntry = pPalEntry;
-  DbgMessage(TOPIC_HIMAGE, DBG_LEVEL_0, "Converting RGB palette to SGPPaletteEntry");
-  for(Index=0; Index <= (sbEnd-sbStart);Index++)
-  {
-    pPalEntry->peRed = *(pOldPalette + (Index*3));
-	  pPalEntry->peGreen = *(pOldPalette + (Index*3) + 1);
- 	  pPalEntry->peBlue = *(pOldPalette + (Index*3) + 2);
-    pPalEntry->peFlags = 0;
-	  pPalEntry++;
-  }
-  return pInitEntry;
-}
 
 // FUNCTION: WIZ8 0x00410580
 BOOLEAN GetETRLEImageData( HIMAGE hImage, ETRLEData *pBuffer )

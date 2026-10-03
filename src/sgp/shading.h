@@ -1,3 +1,7 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
+   Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
+   Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
+   Distributed under the accompanying SFI Source Code license agreement. */
 #ifndef _SHADING_H_
 #define _SHADING_H_
 
@@ -10,16 +14,9 @@
 extern "C" {
 #endif
 
-BOOLEAN ShadesCalculateTables(SGPPaletteEntry *p8BPPPalette);
-
 void BuildShadeTable(void);
-void BuildIntensityTable(void);
 void SetShadeTablePercent( FLOAT uiShadePercent );
 
-#ifdef JA2	// Jul. 23 '97 - ALEX - because Wizardry isn't using it & no longer has a version of Set8BPPPalette() available
-void Init8BitTables(void);
-BOOLEAN Set8BitModePalette(SGPPaletteEntry *pPal);
-#endif
 
 extern SGPPaletteEntry Shaded8BPPPalettes[HVOBJECT_SHADE_TABLES+3][256];
 extern UINT8 ubColorTables[HVOBJECT_SHADE_TABLES+3][256];

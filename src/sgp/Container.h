@@ -1,3 +1,6 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
+   Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
+   Distributed under the accompanying SFI Source Code license agreement. */
 //***********************************************
 //
 // Filename : Container.h
@@ -78,13 +81,6 @@ extern BOOLEAN PeekStack(HSTACK hStack, void *data);
 // DeleteQueue(handle to container) Delete the queue container
 // : returns BOOLEAN
 
-extern HQUEUE  CreateQueue(UINT32 num_of_elem, UINT32 siz_of_each);
-extern HQUEUE AddtoQueue(HQUEUE hQueue, void *data);
-extern BOOLEAN RemfromQueue(HQUEUE hQueue,void *data);
-extern BOOLEAN PeekQueue(HQUEUE hQueue, void *data);
-extern UINT32  QueueSize(HQUEUE hQueue);
-extern BOOLEAN DeleteQueue(HQUEUE hQueue);
-
 // List Functions
 // CreateList(estimated number of items in queue, size of each item
 // AddtoList(handle to container returned from CreateQueue, data to be passed in (must be void *)
@@ -99,11 +95,9 @@ extern BOOLEAN DeleteQueue(HQUEUE hQueue);
 
 extern HLIST   CreateList(UINT32 num_of_elem, UINT32 siz_of_each);
 extern HLIST   AddtoList(HLIST hList, void *data, UINT32 position);
-extern BOOLEAN RemfromList(HLIST hList,void *data, UINT32 position);
 extern BOOLEAN PeekList(HLIST hList, void *data, UINT32 position);
 extern UINT32  ListSize(HLIST hList);
 extern BOOLEAN DeleteList(HLIST hList);
-extern BOOLEAN SwapListNode(HLIST hList, void *pdata, UINT32 uiPos);
 extern BOOLEAN StoreListNode(HLIST hList, void *pdata, UINT32 uiPos);
 
 // Ordered List Functions
@@ -117,13 +111,6 @@ extern BOOLEAN StoreListNode(HLIST hList, void *pdata, UINT32 uiPos);
 //          position where data is to be peeked (0...sizeof(list)-1)
 // OrdListSize(handle to the list) returns the ordered list size
 // DeleteOrdList(handle to the list) Delete the ordered list container
-
-extern HLIST  CreateOrdList(UINT32 num_of_elem, UINT32 siz_of_each, INT8 (*compare)(void *,void *, UINT32));
-extern HLIST AddtoOrdList(HLIST hList, void *data);
-extern BOOLEAN RemfromOrdList(HLIST hList,void *data, UINT32 position);
-extern BOOLEAN PeekOrdList(HLIST hList, void *data, UINT32 position);
-extern UINT32  OrdListSize(HLIST hList);
-extern BOOLEAN DeleteOrdList(HLIST hList);
 
 #ifdef __cplusplus
 }

@@ -361,7 +361,7 @@ void ReadGameplaySnapshotOnGameThread(void* opaque)
     s->held_key_down = request->held_key != 0 && gfKeyState[request->held_key] != 0;
     s->application_active = gfApplicationActive != 0;
     s->window_has_focus = GetFocus() == ghWindow;
-    s->string_input_active = StringInputHasFocus() != 0;
+    s->string_input_active = gfCurrentStringInputState != 0;
     s->os_key_down = request->held_key != 0 && (GetAsyncKeyState(request->held_key) & 0x8000) != 0;
     s->keypad_left_down = gfKeyState[VK_NUMPAD4] != 0;
     s->taken_ms = GetTickCount();

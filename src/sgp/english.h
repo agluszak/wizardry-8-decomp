@@ -1,5 +1,6 @@
-/* Modified for the Wizardry 8 reconstruction, 2026-09-10.
+/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
    Declare the retail two-bank character table.
+   Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
    Distributed under the accompanying SFI Source Code license agreement. */
 #ifndef __ENGLISH_
 #define __ENGLISH_
@@ -74,12 +75,8 @@
 #define INSERT              245
 #define DEL                 246
 
-#ifndef JA2
 // Stupid definition causes problems with headers that use the keyword END -- DB
 	#define KEY_END           247
-#else
-	#define END								247
-#endif
 
 #define DNARROW             248
 #define PGDN                249

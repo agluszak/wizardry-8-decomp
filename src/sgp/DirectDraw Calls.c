@@ -1,19 +1,14 @@
-/* Modified for the Wizardry 8 reconstruction, 2026-09-10.
+/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
    Include the declarations used by the Wizardry build explicitly.
+   Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
    Distributed under the accompanying SFI Source Code license agreement. */
 #include "sgp.h"
-#ifdef JA2_PRECOMPILED_HEADERS
-	#include "JA2 SGP ALL.H"
-#elif defined( WIZ8_PRECOMPILED_HEADERS )
-	#include "WIZ8 SGP ALL.H"
-#else
-	#include "DirectX Common.h"
-	#include "DirectDraw Calls.h"
+#include "DirectX Common.h"
+#include "DirectDraw Calls.h"
 
-	#include <ddraw.h>
-	#include "debug.h"
-	#include "video_private.h"
-#endif
+#include <ddraw.h>
+#include "debug.h"
+#include "video_private.h"
 
 // DirectDrawSurface2 Calls
 // FUNCTION: WIZ8 0x0040f0b0

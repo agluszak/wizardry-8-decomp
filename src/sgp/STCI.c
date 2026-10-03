@@ -1,20 +1,16 @@
-/* Modified for the Wizardry 8 reconstruction, 2026-09-16.
+/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
    Add matching markers for retained SGP functions and globals.
+   Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
+   Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
    Distributed under the accompanying SFI Source Code license agreement. */
-#ifdef JA2_PRECOMPILED_HEADERS
-	#include "JA2 SGP ALL.H"
-#elif defined( WIZ8_PRECOMPILED_HEADERS )
-	#include "WIZ8 SGP ALL.H"
-#else
-	#include <string.h>
-	#include "MemMan.h"
-	#include "FileMan.h"
-	#include "imgfmt.h"
-	#include "himage.h"
-	#include "Types.h"
-	#include "Debug.h"
-	#include "WCheck.h"
-#endif
+#include <string.h>
+#include "MemMan.h"
+#include "FileMan.h"
+#include "imgfmt.h"
+#include "himage.h"
+#include "Types.h"
+#include "Debug.h"
+#include "WCheck.h"
 
 BOOLEAN STCILoadRGB( HIMAGE hImage, UINT16 fContents, HWFILE hFile, STCIHeader * pHeader );
 BOOLEAN STCILoadIndexed( HIMAGE hImage, UINT16 fContents, HWFILE hFile, STCIHeader * pHeader );
@@ -158,12 +154,8 @@ BOOLEAN STCILoadRGB( HIMAGE hImage, UINT16 fContents, HWFILE hFile, STCIHeader *
 			}
 		}
 	}
-#ifdef JA2
-	return( TRUE );
-#else
 // Anything else is an ERROR! --DB
 	return(FALSE);
-#endif
 }
 
 
@@ -381,31 +373,3 @@ BOOLEAN STCISetPalette( PTR pSTCIPalette, HIMAGE hImage )
 }
 
 
-BOOLEAN IsSTCIETRLEFile( CHAR8 * ImageFile )
-{
-	HWFILE		hFile;
-	STCIHeader	Header;
-	UINT32		uiBytesRead;
-
-	CHECKF( FileExists( ImageFile ) );
-
-	// Open the file and read the header
-	hFile = FileOpen( ImageFile, FILE_ACCESS_READ, FALSE );
-	CHECKF( hFile );
-
-	if (!FileRead( hFile, &Header, STCI_HEADER_SIZE, &uiBytesRead ) || uiBytesRead != STCI_HEADER_SIZE || memcmp( Header.cID, STCI_ID_STRING, STCI_ID_LEN ) != 0 )
-	{
-		DbgMessage( TOPIC_HIMAGE, DBG_LEVEL_3, "Problem reading STCI header." );
-		FileClose( hFile );
-		return( FALSE );
-	}
-	FileClose( hFile );
-	if (Header.fFlags & STCI_ETRLE_COMPRESSED)
-	{
-	    return( TRUE );
-	}
-	else
-	{
-	    return( FALSE );
-	}
-}

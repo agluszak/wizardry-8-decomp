@@ -43,10 +43,8 @@ add_library(WIZ8_SGP STATIC
 # The retained non-JA2 cursor entry folds to the byte-zero body at 0x5a1140;
 # MSYS_UpdateMouseRegion still calls it. Button creation calls the scheme-byte
 # writer at 0x413fb0. The product ButtonSound.cpp is a different component.
-# DbMan, Install and WinFont have no recognized retained function/data surface;
-# retail imports also exclude WinFont/Mutex APIs. Mutex startup/shutdown and
-# ExceptionHandling are disabled in the Wizardry source branch. video.c is the
-# JA2 renderer, replaced by Wizardry's Video2.cpp, not a second SGP renderer.
+# Released units without a Wizardry contribution are not part of this source
+# tree; README.md records them and the pinned released baseline.
 
 set_source_files_properties(PCX.C DEBUG.C PROPERTIES LANGUAGE C)
 set_source_files_properties(DEBUG.C PROPERTIES COMPILE_DEFINITIONS _NO_DEBUG_TXT)

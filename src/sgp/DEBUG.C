@@ -1,5 +1,7 @@
-/* Modified for the Wizardry 8 reconstruction, 2026-09-10.
+/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
    Include the declarations used by the Wizardry build explicitly.
+   Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
+   Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
    Distributed under the accompanying SFI Source Code license agreement. */
 #include "VObject.h"
 
@@ -23,34 +25,21 @@
 #define SGP_DEBUG
 
 
-#ifdef JA2_PRECOMPILED_HEADERS
-	#include "JA2 SGP ALL.H"
-#elif defined( WIZ8_PRECOMPILED_HEADERS )
-	#include "WIZ8 SGP ALL.H"
-#else
-	#include "types.h"
-	#include <windows.h>
-	#include <ddeml.h>
-	#include <stdio.h>
-	#include "debug.h"
-	#include "WCheck.h"
-	#include "TopicIDs.h"
-	#include "TopicOps.h"
-	#include "WizShare.h"
+#include "types.h"
+#include <windows.h>
+#include <ddeml.h>
+#include <stdio.h>
+#include "debug.h"
+#include "WCheck.h"
+#include "TopicIDs.h"
+#include "TopicOps.h"
+#include "WizShare.h"
 
 	//Kris addition
-	#ifdef JA2
-		#include "screenids.h"
-		#include "Sys Globals.h"
-		#include "jascreens.h"
-		#include "gameloop.h"
-		#include "input.h"
-	#endif
 
 	// CJC added
-	#ifndef _NO_DEBUG_TXT
-		#include "fileman.h"
-	#endif
+#ifndef _NO_DEBUG_TXT
+	#include "fileman.h"
 #endif
 
 #ifdef __cplusplus
@@ -397,11 +386,6 @@ void DbgMessageReal(UINT16 uiTopicId, UINT8 uiCommand, UINT8 uiDebugLevel, CHAR 
 //
 //**************************************************************************
 
-BOOLEAN DbgSetDebugLevel(UINT16 uiTopicId, UINT8 uiDebugLevel)
-{
-	return(TRUE);
-}
-
 //**************************************************************************
 //
 // DbgFailedAssertion
@@ -416,36 +400,10 @@ BOOLEAN DbgSetDebugLevel(UINT16 uiTopicId, UINT8 uiDebugLevel)
 //
 //**************************************************************************
 
-void DbgFailedAssertion( BOOLEAN fExpression, char *szFile, int nLine )
-{
-#ifndef _NO_DEBUG_TXT
-  FILE *OutFile;
-
-	if ( fExpression == FALSE )
-	{
-		if ((OutFile = fopen(gpcDebugLogFileName, "a+t")) != NULL)
-		{
-		  fprintf(OutFile, "Assertion Failed at:\n    line %i\n    %s\n", nLine, szFile);
-	    fclose(OutFile);
-		}
-	}
-#endif
-}
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-void			_DebugRecordToFile(BOOLEAN gfState)
-{
-	gfRecordToFile = gfState;
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-
-void			_DebugRecordToDebugger(BOOLEAN gfState)
-{
-	gfRecordToDebugger = gfState;
-}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -499,77 +457,6 @@ void _Null(void)
 
 extern HVOBJECT FontObjs[25];
 
-#ifdef JA2 //JAGGED ALLIANCE 2 VERSION ONLY
-void _FailMessage( UINT8 *pString, UINT32 uiLineNum, UINT8 *pSourceFile )
-{
-	MSG Message;
-	UINT8 ubOutputString[512];
-#ifndef _NO_DEBUG_TXT
-	FILE *DebugFile;
-#endif
-	BOOLEAN fDone = FALSE;
-	//Build the output strings
-	sprintf( ubOutputString, "{ %ld } Assertion Failure [Line %d in %s]\n", GetTickCount(), uiLineNum, pSourceFile );
-	if( pString )
-		sprintf( gubAssertString, pString );
-	else
-		sprintf( gubAssertString, "" );
-
-	//Output to debugger
-	if (gfRecordToDebugger)
-		OutputDebugString( ubOutputString );
-
-	//Record to file if required
-#ifndef _NO_DEBUG_TXT
-	if (gfRecordToFile)
-	{
-		if ((DebugFile = fopen( gpcDebugLogFileName, "a+t" )) != NULL)
-		{
-			fputs( ubOutputString, DebugFile );
-			fclose( DebugFile );
-		}
-	}
-
-#if 0
-	if( !FontObjs[0] )
-	{ //Font manager hasn't yet been initialized so use the windows error system
-		sprintf( gubErrorText, "Assertion Failure -- Line %d in %s", uiLineNum, pSourceFile );
-		MessageBox( NULL, gubErrorText, "Jagged Alliance 2", MB_OK );
-		gfProgramIsRunning = FALSE;
-		return;
-	}
-#endif
-
-	//Kris:
-	//NASTY HACK, THE GAME IS GOING TO DIE ANYWAY, SO WHO CARES WHAT WE DO.
-	//This will actually bring up a screen that prints out the assert message
-	//until the user hits esc or alt-x.
-	sprintf( gubErrorText, "Assertion Failure -- Line %d in %s", uiLineNum, pSourceFile );
-	SetPendingNewScreen( ERROR_SCREEN );
-	SetCurrentScreen( ERROR_SCREEN );
-	while (gfProgramIsRunning)
-	{
-		if (PeekMessage(&Message, NULL, 0, 0, PM_NOREMOVE))
-		{ // We have a message on the WIN95 queue, let's get it
-			if (!GetMessage(&Message, NULL, 0, 0))
-			{ // It's quitting time
-				continue;
-			}
-			// Ok, now that we have the message, let's handle it
-			TranslateMessage(&Message);
-			DispatchMessage(&Message);
-		}
-		else
-		{ // Windows hasn't processed any messages, therefore we handle the rest
-			GameLoop();
-			gfSGPInputReceived  =  FALSE;
-		}
-	}
-#endif
-	exit(0);
-}
-
-#else //NOT JAGGED ALLIANCE 2
 
 void _FailMessage(UINT8 *pString, UINT32 uiLineNum, UINT8 *pSourceFile)
 {
@@ -612,7 +499,6 @@ void _FailMessage(UINT8 *pString, UINT32 uiLineNum, UINT8 *pSourceFile)
 	exit( 0 );
 }
 
-#endif
 
 #endif
 

@@ -1,17 +1,12 @@
-/* Modified for the Wizardry 8 reconstruction, 2026-09-16.
+/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
    Add matching markers for retained SGP functions and globals.
+   Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
    Distributed under the accompanying SFI Source Code license agreement. */
-#ifdef JA2_PRECOMPILED_HEADERS
-	#include "JA2 SGP ALL.H"
-#elif defined( WIZ8_PRECOMPILED_HEADERS )
-	#include "WIZ8 SGP ALL.H"
-#else
-	#include <stdio.h>
-	#include <stdarg.h>
-	#include "pcx.h"
-	#include "memman.h"
-	#include "fileman.h"
-#endif
+#include <stdio.h>
+#include <stdarg.h>
+#include "pcx.h"
+#include "memman.h"
+#include "fileman.h"
 
 // Local typedefs
 

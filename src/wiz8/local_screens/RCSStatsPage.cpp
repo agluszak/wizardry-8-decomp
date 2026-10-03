@@ -432,7 +432,7 @@ void RebuildCampEffectList(void)
 {
     W8CampScreenState* screen = g_camp_screen;
     if (screen->effect_list != 0) {
-        DeleteStack(screen->effect_list);
+        DeleteList(screen->effect_list);
         screen->effect_list = 0;
     }
     screen->effect_list = CreateList(10, sizeof(W8CampEffectEntry));
@@ -465,7 +465,7 @@ void RebuildCampEffectList(void)
             }
             entry.index = condition;
             screen->effect_list =
-                AddtoList(screen->effect_list, &entry, StackSize(screen->effect_list));
+                AddtoList(screen->effect_list, &entry, ListSize(screen->effect_list));
             if (entry.beneficial != 0) {
                 ++screen->effect_beneficial_count;
             }
@@ -485,7 +485,7 @@ void RebuildCampEffectList(void)
             entry.lines = 2;
             entry.index = index;
             screen->effect_list =
-                AddtoList(screen->effect_list, &entry, StackSize(screen->effect_list));
+                AddtoList(screen->effect_list, &entry, ListSize(screen->effect_list));
             if (entry.beneficial != 0) {
                 ++screen->effect_beneficial_count;
             }
@@ -510,7 +510,7 @@ void RebuildCampEffectList(void)
                 entry.turns = 9999;
                 entry.index = slot;
                 screen->effect_list =
-                    AddtoList(screen->effect_list, &entry, StackSize(screen->effect_list));
+                    AddtoList(screen->effect_list, &entry, ListSize(screen->effect_list));
                 if (entry.beneficial != 0) {
                     ++screen->effect_beneficial_count;
                 }
@@ -532,7 +532,7 @@ void FilterCampEffectList(void)
     W8CampScreenState* screen = g_camp_screen;
     screen->effect_visible_lines = 0;
     bool any_visible = false;
-    unsigned int count = StackSize(screen->effect_list);
+    unsigned int count = ListSize(screen->effect_list);
     for (unsigned int pos = 0; pos < count; ++pos) {
         W8CampEffectEntry entry;
         if (PeekList(screen->effect_list, &entry, pos) == 0) {
@@ -553,7 +553,7 @@ void FilterCampEffectList(void)
             screen->effect_visible_lines += entry.lines + 1;
         }
         StoreListNode(screen->effect_list, &entry, pos);
-        count = StackSize(screen->effect_list);
+        count = ListSize(screen->effect_list);
     }
     int second = screen->effect_visible_lines - 0x11;
     W8RangeControl* range = screen->stats_range->m_range;
@@ -579,7 +579,7 @@ void DrawCampEffectList(void)
     W8CampScreenState* screen = g_camp_screen;
     SetFontDestBuffer(0xfffffff2, 0, 0xbe, 0x280, 0x1ac, 0);
     int line = -screen->effect_scroll;
-    unsigned int count = StackSize(screen->effect_list);
+    unsigned int count = ListSize(screen->effect_list);
     for (unsigned int pos = 0; pos < count; ++pos) {
         if (line > 0x10) {
             break;
@@ -595,7 +595,7 @@ void DrawCampEffectList(void)
                 DrawCampEffectEntry(&entry, &line);
             }
         }
-        count = StackSize(screen->effect_list);
+        count = ListSize(screen->effect_list);
     }
     SetFontDestBuffer(0xfffffff2, 0, 0, 0x280, 0x1e0, 0);
 }
@@ -932,7 +932,8 @@ void DrawCampSkillsPage(void)
                                                        Wiz8ToSgpWideText(g_format_d), value->level);
                 gprintfDirty((0x24 - value_width) / 2 + 0xee + left, top + 1,
                              Wiz8ToSgpWideText(g_format_d), value->level);
-                SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_wiz_text_font_secondary_palette);
+                SetFontObjectPalette16BPP(g_wiz_text_font_secondary,
+                                          g_wiz_text_font_secondary_palette);
                 SetObjectShade(g_wiz_text_font_secondary_object, 4);
                 ++category_count[category];
             }

@@ -33,8 +33,9 @@ does not prove equivalence or original spelling, and a differing decompilation d
   One entity has one canonical owner and one evidence-backed type.
 - SurRender import/export spelling is ABI evidence, not source ownership. Follow
   `docs/libraries/surrender-import-visibility.md`.
-- Do not incidentally edit released SGP source. SGP changes need accepted-source/retail evidence and
-  the required modification notice.
+- The pinned released SGP baseline is the immutable SGP oracle; `src/sgp` is our editable
+  reconstruction of Wizardry's fork. Its markers establish ownership, not `sgp-source` provenance.
+  SGP changes need released-baseline/retail evidence and the required modification notice.
 - Never commit extracted trees, live Ghidra projects or build products. Only reviewed GZF checkpoints
   listed in `vendor/ghidra/exports/manifest.json` may be tracked.
 - Work stays in our Wizardry/reccmp/Ghidriff forks. Do not prepare or suggest upstream submissions

@@ -51,7 +51,7 @@ Two further columns apply where a layout rather than a name is at stake:
 | Token | Meaning |
 | --- | --- |
 | `original-source` | A released or recovered original source file compiles to this body. |
-| `sgp-source` | Released SGP ancestry of the reconstructed Wizardry component. |
+| `sgp-source` | The pinned released SGP baseline supplies the name/body; never current `src/sgp` text. |
 | `original-export` | A decorated export or import preserves the exact ABI name. |
 | `original-runtime-string` | The program itself names the entity at runtime, e.g. class registration. |
 | `original-source-path` | A `__FILE__`, assertion, logging, or diagnostic path assigns translation-unit ownership. |
@@ -63,7 +63,8 @@ Two further columns apply where a layout rather than a name is at stake:
 
 `sgp-source` is deliberately narrower than `original-source`: it also asserts the licence and
 non-commercial source handling described in
-[src/sgp/README.md](../src/sgp/README.md).
+[src/sgp/README.md](../src/sgp/README.md). Only an explicit reviewed claim adds it. A marker in the
+editable `src/sgp` reconstruction establishes SGP ownership, not `sgp-source` provenance.
 
 ## `authority` vocabulary and its ceiling rule
 

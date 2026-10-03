@@ -8,7 +8,7 @@ from wiz8decomp.source_oracle import (
     OracleFamily,
     SourceOracleGateError,
     contribution_hulls,
-    proven_oracle_symbols,
+    oracle_symbols,
     source_oracle_violations,
     validate_source_oracle_ownership,
 )
@@ -143,7 +143,7 @@ def test_function_placeholder_in_sgp_space_fails(tmp_path: Path) -> None:
     violations = source_oracle_violations(tmp_path)
 
     assert [item["kind"] for item in violations] == ["oracle-placeholder"]
-    assert "recover from the oracle" in violations[0]["detail"]
+    assert "recover it at that owner" in violations[0]["detail"]
 
 
 def test_sgp_source_claim_requires_src_sgp_marker(tmp_path: Path) -> None:
@@ -202,7 +202,7 @@ def test_contribution_hulls_span_proven_starts(tmp_path: Path) -> None:
             _marker(0x5E1C30, "src/wiz8/vc6_runtime.cpp", kind="LIBRARY", name="__aulldiv"),
         ],
     )
-    symbols = proven_oracle_symbols(tmp_path)
+    symbols = oracle_symbols(tmp_path)
     hulls = contribution_hulls(symbols)
 
     assert {(hull.source_file, hull.start, hull.end) for hull in hulls} == {
@@ -210,6 +210,36 @@ def test_contribution_hulls_span_proven_starts(tmp_path: Path) -> None:
         ("src/sgp/soundman.c", 0x406000, 0x406000),
     }
     assert {item.family for item in symbols} >= {"sgp", "msvc-runtime"}
+
+
+def test_sgp_owner_marker_is_not_oracle_evidence_without_claim(tmp_path: Path) -> None:
+    _write_claims(
+        tmp_path,
+        [
+            {
+                "claim_id": "function-source:wiz8:00405200:CreateStack",
+                "entity_key": "00405200",
+                "predicate": "accepted-identity",
+                "value": "CreateStack",
+                "origin": "sgp-source",
+            }
+        ],
+    )
+    _write_index(
+        tmp_path,
+        [
+            _marker(0x405000, "src/sgp/LibraryDataBase.c", name="OpenLibraryStream"),
+            _marker(0x405200, "src/sgp/Container.c", name="CreateStack"),
+        ],
+    )
+
+    symbols = {item.address: item for item in oracle_symbols(tmp_path)}
+
+    assert not symbols[0x405000].proven
+    assert symbols[0x405000].evidence == "owner-marker:FUNCTION"
+    assert symbols[0x405200].proven
+    assert symbols[0x405200].source_file == "src/sgp/Container.c"
+    assert symbols[0x405200].evidence == "claim:accepted-identity"
 
 
 def test_crt_range_rejects_wiz8_function(tmp_path: Path) -> None:
@@ -427,6 +457,6 @@ def test_fid_claim_requires_library_ownership_in_csv(tmp_path: Path, row_type: s
         [] if row_type == "library" else ["missing-oracle-owner"]
     )
     if row_type == "library":
-        symbols = proven_oracle_symbols(tmp_path)
+        symbols = oracle_symbols(tmp_path)
         assert [(item.name, item.family) for item in symbols] == [("__aulldiv", "msvc-runtime")]
         assert contribution_hulls(symbols) == []

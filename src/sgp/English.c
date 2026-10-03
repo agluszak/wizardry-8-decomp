@@ -1,13 +1,8 @@
-/* Modified for the Wizardry 8 reconstruction, 2026-09-10.
+/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
    Restore the retail two-bank key-to-character table at 0x005ffc3c.
+   Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
    Distributed under the accompanying SFI Source Code license agreement. */
-#ifdef JA2_PRECOMPILED_HEADERS
-	#include "JA2 SGP ALL.H"
-#elif defined( WIZ8_PRECOMPILED_HEADERS )
-	#include "WIZ8 SGP ALL.H"
-#else
-	#include "english.h"
-#endif
+#include "english.h"
 
 /* Virtual key to character: unmodified keys, then Shift keys.
    Alt/Ctrl are rejected by TranslateKeyToCharacter. Non-character keys map

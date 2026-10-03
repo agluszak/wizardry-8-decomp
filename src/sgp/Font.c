@@ -1,36 +1,28 @@
-/* Modified for the Wizardry 8 reconstruction, 2026-09-10.
+/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
    Reconstruct the Wizardry 252-entry font translation table.
+   Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
+   Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
    Distributed under the accompanying SFI Source Code license agreement. */
 // font.c
-#ifdef JA2_PRECOMPILED_HEADERS
-	#include "JA2 SGP ALL.H"
-#elif defined( WIZ8_PRECOMPILED_HEADERS )
-	#include "WIZ8 SGP ALL.H"
-#else
-	#include "types.h"
-	#include <stdio.h>
-	#include <stdarg.h>
-	#include <malloc.h>
-	#include <windows.h>
-	#include <stdarg.h>
-	#include <wchar.h>
-	#include "sgp.h"
-	#include "pcx.h"
-	#include "memman.h"
-	#include "fileman.h"
-	#include "Font.h"
-	#include "Debug.h"
+#include "types.h"
+#include <stdio.h>
+#include <stdarg.h>
+#include <malloc.h>
+#include <windows.h>
+#include <stdarg.h>
+#include <wchar.h>
+#include "sgp.h"
+#include "pcx.h"
+#include "memman.h"
+#include "fileman.h"
+#include "Font.h"
+#include "Debug.h"
 
-	#if defined( JA2 ) || defined( UTIL )
-	#include "video.h"
-	#else
-	#include "video2.h"
-	#endif
+#include "video2.h"
 
-	#include "himage.h"
-	#include "vobject.h"
-	#include "vobject_blitters.h"
-#endif
+#include "himage.h"
+#include "vobject.h"
+#include "vobject_blitters.h"
 //*******************************************************
 //
 //   Defines
@@ -109,26 +101,6 @@ UINT16		SaveFontBackground16=0;
 UINT8			SaveFontForeground8=0;
 // GLOBAL: WIZ8 0x00650e49
 UINT8			SaveFontBackground8=0;
-
-//*****************************************************************************
-// SetFontColors
-//
-//	Sets both the foreground and the background colors of the current font. The
-// top byte of the parameter word is the background color, and the bottom byte
-// is the foreground.
-//
-//*****************************************************************************
-void SetFontColors(UINT16 usColors)
-{
-UINT8 ubForeground, ubBackground;
-
-	ubForeground=(UINT8)(usColors&0xff);
-	ubBackground=(UINT8)((usColors&0xff00)>>8);
-
-	SetFontForeground(ubForeground);
-	SetFontBackground(ubBackground);
-
-}
 
 //*****************************************************************************
 // SetFontForeground
@@ -215,22 +187,6 @@ UINT32 uiRed, uiGreen, uiBlue;
 }
 
 
-//Kris:  These are new counterparts to the above functions.  They won't
-//			 effect an 8BPP font, only 16.
-void SetRGBFontForeground( UINT32 uiRed, UINT32 uiGreen, UINT32 uiBlue )
-{
-	if((FontDefault < 0) || (FontDefault > MAX_FONTS))
-		return;
-	FontForeground16 = Get16BPPColor( FROMRGB( uiRed, uiGreen, uiBlue ) );
-}
-
-void SetRGBFontBackground( UINT32 uiRed, UINT32 uiGreen, UINT32 uiBlue )
-{
-	if((FontDefault < 0) || (FontDefault > MAX_FONTS))
-		return;
-	FontBackground16 = Get16BPPColor( FROMRGB( uiRed, uiGreen, uiBlue ) );
-}
-
 // FUNCTION: WIZ8 0x00406d80
 void SetRGBFontShadow( UINT32 uiRed, UINT32 uiGreen, UINT32 uiBlue )
 {
@@ -240,48 +196,6 @@ void SetRGBFontShadow( UINT32 uiRed, UINT32 uiGreen, UINT32 uiBlue )
 }
 //end Kris
 
-//*****************************************************************************
-// ResetFontObjectPalette
-//
-//	Sets the palette of a font, using an 8 bit palette (which is converted to
-// the appropriate 16-bit palette, and assigned to the HVOBJECT).
-//
-//*****************************************************************************
-BOOLEAN ResetFontObjectPalette(INT32 iFont)
-{
-	Assert(iFont >= 0);
-	Assert(iFont <= MAX_FONTS);
-	Assert(FontObjs[iFont] !=NULL);
-
-	SetFontObjectPalette8BPP(iFont, FontObjs[iFont]->pPaletteEntry);
-
-	return(TRUE);
-}
-
-
-//*****************************************************************************
-// SetFontObjectPalette8BPP
-//
-//	Sets the palette of a font, using an 8 bit palette (which is converted to
-// the appropriate 16-bit palette, and assigned to the HVOBJECT).
-//
-//*****************************************************************************
-UINT16 *SetFontObjectPalette8BPP(INT32 iFont, SGPPaletteEntry *pPal8)
-{
-UINT16 *pPal16;
-
-	Assert(iFont >= 0);
-	Assert(iFont <= MAX_FONTS);
-	Assert(FontObjs[iFont] !=NULL);
-
-	if((pPal16=Create16BPPPalette(pPal8))==NULL)
-		return(NULL);
-
-	FontObjs[iFont]->p16BPPPalette=pPal16;
-	FontObjs[iFont]->pShadeCurrent=pPal16;
-
-	return(pPal16);
-}
 
 //*****************************************************************************
 // SetFontObjectPalette16BPP
@@ -372,9 +286,6 @@ UINT32					LoadIndex;
 	if((LoadIndex=FindFreeFont())==(-1))
 	{
 		  DbgMessage(TOPIC_FONT_HANDLER, DBG_LEVEL_0, String("Out of font slots (%s)", filename));
-#ifdef JA2
-			FatalError( "Cannot init FONT file %s", filename );
-#endif
 			return(-1);
 	}
 
@@ -384,9 +295,6 @@ UINT32					LoadIndex;
 	if((FontObjs[LoadIndex]=CreateVideoObject(&vo_desc))==NULL)
 	{
 		  DbgMessage(TOPIC_FONT_HANDLER, DBG_LEVEL_0, String("Error creating VOBJECT (%s)", filename));
-#ifdef JA2
-			FatalError( "Cannot init FONT file %s", filename );
-#endif
 			return(-1);
 	}
 
@@ -471,62 +379,6 @@ wchar_t	string[512];
   }
 
 	return(StringPixLength(string, usUseFont));
-}
-
-//*****************************************************************************
-// StringPixLengthArg
-//
-// Returns the length of a string with a variable number of arguments, in
-// pixels, using the current font. Maximum length in characters the string can
-// evaluate to is 512.  Because this is for fast help text, all '|' characters are ignored for the
-// width calculation.
-// 'uiCharCount' specifies how many characters of the string are counted.
-// YOU HAVE TO PREBUILD THE FAST HELP STRING!
-//*****************************************************************************
-INT16 StringPixLengthArgFastHelp(INT32 usUseFont, INT32 usBoldFont, UINT32 uiCharCount, UINT16 *pFontString )
-{
-	wchar_t	string[512];
-	UINT32 i, index;
-	INT16 sBoldDiff = 0;
-	UINT16 str[2];
-
-	Assert(pFontString!=NULL);
-
-	wcscpy( string, pFontString );
-
-  // make sure the character count is legal
-  if (uiCharCount > wcslen(string))
-  {
-    uiCharCount = wcslen(string);
-  }
-  else
-  {
-    if (uiCharCount < wcslen(string))
-    {
-      // less than the full string, so whack off the end of it (it's temporary anyway)
-      string[uiCharCount] = '\0';
-    }
-  }
-	//now eliminate all '|' characters from the string.
-	i = 0;
-	while( i < uiCharCount )
-	{
-		if( string[ i ] == '|' )
-		{
-			for( index = i; index < uiCharCount; index++ )
-			{
-				string[ index ] = string[ index + 1 ];
-			}
-			uiCharCount--;
-			//now we have eliminated the '|' character, so now calculate the size difference of the
-			//bolded character.
-			str[ 0 ] = string[ i ];
-			str[ 1 ] = 0;
-			sBoldDiff += StringPixLength( str, usBoldFont ) - StringPixLength( str, usUseFont );
-		}
-		i++;
-	}
-	return StringPixLength(string, usUseFont) + sBoldDiff;
 }
 
 
@@ -972,16 +824,10 @@ UINT8				*pDestBuf;
 	// Unlock buffer
 	UnLockVideoSurface( FontDestBuffer );
 
-#if defined ( JA2 ) || defined( UTIL )
-	InvalidateRegion(x, y,
-										x + StringPixLength(string, FontDefault),
-										y + GetFontHeight(FontDefault));
-#else
 	InvalidateRegion(x, y,
 										x + StringPixLength(string, FontDefault),
 										y + GetFontHeight(FontDefault),
 										INVAL_SRC_TRANS);
-#endif
 
 	return(0);
 }
@@ -1084,132 +930,6 @@ wchar_t	string[512];
 }
 
 
-UINT32 mprintf_buffer_coded( UINT8 *pDestBuf, UINT32 uiDestPitchBYTES, UINT32 FontType, INT32 x, INT32 y, UINT16 *pFontString, ...)
-{
-INT32		destx, desty;
-UINT16	*curletter, transletter;
-va_list argptr;
-wchar_t	string[512];
-UINT16	usOldForeColor;
-
-	Assert(pFontString!=NULL);
-
-	va_start(argptr, pFontString);       	// Set up variable argument pointer
-	vswprintf(string, pFontString, argptr);	// process gprintf string (get output str)
-	va_end(argptr);
-
-	curletter=string;
-
-	destx=x;
-	desty=y;
-
-	usOldForeColor = FontForeground16;
-
-	while((*curletter)!=0)
-	{
-		if ( (*curletter) == 180 )
-		{
-			curletter++;
-			SetFontForeground( (UINT8)(*curletter) );
-			curletter++;
-		}
-		else if ( (*curletter) == 181 )
-		{
-			FontForeground16 = usOldForeColor;
-			curletter++;
-		}
-
-		transletter=GetIndex(*curletter++);
-
-
-		if(FontDestWrap && BltIsClipped(FontObjs[FontDefault], destx, desty, transletter, &FontDestRegion))
-		{
-			destx=x;
-			desty+=GetHeight(FontObjs[FontDefault], transletter);
-		}
-
-		// Blit directly
-		if ( gbPixelDepth == 8 )
-		{
-			Blt8BPPDataTo8BPPBufferMonoShadowClip(pDestBuf, uiDestPitchBYTES, FontObjs[FontDefault], destx, desty, transletter, &FontDestRegion, FontForeground8, FontBackground8);
-		}
-		else
-		{
-			Blt8BPPDataTo16BPPBufferMonoShadowClip((UINT16*)pDestBuf, uiDestPitchBYTES, FontObjs[FontDefault], destx, desty, transletter, &FontDestRegion, FontForeground16, FontBackground16, FontShadow16 );
-		}
-		destx+=GetWidth(FontObjs[FontDefault], transletter);
-	}
-
-	return(0);
-}
-
-
-UINT32 mprintf_coded( INT32 x, INT32 y, UINT16 *pFontString, ...)
-{
-INT32		destx, desty;
-UINT16	*curletter, transletter;
-va_list argptr;
-wchar_t	string[512];
-UINT16	usOldForeColor;
-UINT32			uiDestPitchBYTES;
-UINT8				*pDestBuf;
-
-	Assert(pFontString!=NULL);
-
-	va_start(argptr, pFontString);       	// Set up variable argument pointer
-	vswprintf(string, pFontString, argptr);	// process gprintf string (get output str)
-	va_end(argptr);
-
-	curletter=string;
-
-	destx=x;
-	desty=y;
-
-	usOldForeColor = FontForeground16;
-
-	// Lock the dest buffer
-	pDestBuf = LockVideoSurface( FontDestBuffer, &uiDestPitchBYTES );
-
-	while((*curletter)!=0)
-	{
-		if ( (*curletter) == 180 )
-		{
-			curletter++;
-			SetFontForeground( (UINT8)(*curletter) );
-			curletter++;
-		}
-		else if ( (*curletter) == 181 )
-		{
-			FontForeground16 = usOldForeColor;
-			curletter++;
-		}
-
-		transletter=GetIndex(*curletter++);
-
-
-		if(FontDestWrap && BltIsClipped(FontObjs[FontDefault], destx, desty, transletter, &FontDestRegion))
-		{
-			destx=x;
-			desty+=GetHeight(FontObjs[FontDefault], transletter);
-		}
-
-		// Blit directly
-		if ( gbPixelDepth == 8 )
-		{
-			Blt8BPPDataTo8BPPBufferMonoShadowClip(pDestBuf, uiDestPitchBYTES, FontObjs[FontDefault], destx, desty, transletter, &FontDestRegion, FontForeground8, FontBackground8);
-		}
-		else
-		{
-			Blt8BPPDataTo16BPPBufferMonoShadowClip((UINT16*)pDestBuf, uiDestPitchBYTES, FontObjs[FontDefault], destx, desty, transletter, &FontDestRegion, FontForeground16, FontBackground16, FontShadow16 );
-		}
-		destx+=GetWidth(FontObjs[FontDefault], transletter);
-	}
-
-	// Unlock buffer
-	UnLockVideoSurface( FontDestBuffer );
-
-	return(0);
-}
 
 
 

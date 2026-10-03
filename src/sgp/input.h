@@ -1,5 +1,6 @@
-/* Modified for the Wizardry 8 reconstruction, 2026-09-26.
+/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
    Declare Wizardry key translation in the owning input interface.
+   Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
    Distributed under the accompanying SFI Source Code license agreement. */
 #ifndef __INPUT_
 #define __INPUT_
@@ -103,37 +104,11 @@ extern void					QueueEvent(UINT16 ubInputEvent, UINT32 usParam, UINT32 uiParam);
 extern void					KeyDown(UINT32 usParam, UINT32 uiParam);
 extern void					KeyUp(UINT32 usParam, UINT32 uiParam);
 
-extern void					EnableDoubleClk(void);
-extern void					DisableDoubleClk(void);
-extern void					GetMousePos(SGPPoint *Point);
-
-extern StringInput *InitStringInput(UINT16 *pInputString, UINT16 usLength, UINT16 *pFilter);
-extern void         LinkPreviousString(StringInput *pCurrentString, StringInput *pPreviousString);
-extern void         LinkNextString(StringInput *pCurrentString, StringInput *pNextString);
 extern UINT16       GetStringLastInput(void);
-extern BOOLEAN      StringInputHasFocus(void);
-extern BOOLEAN      SetStringFocus(StringInput *pStringDescriptor);
-extern UINT16       GetCursorPositionInString(StringInput *pStringDescriptor);
-extern UINT16       GetStringInputState(void);
-extern BOOLEAN      StringHasFocus(StringInput *pStringDescriptor);
 extern UINT16      *GetString(StringInput *pStringDescriptor);
-extern void         EndStringInput(StringInput *pStringDescriptor);
-extern BOOLEAN DequeueSpecificEvent(InputAtom *Event, UINT32 uiMaskFlags );
-
-extern void					RestrictMouseToXYXY(UINT16 usX1, UINT16 usY1, UINT16 usX2, UINT16 usY2);
-extern void					RestrictMouseCursor(SGPRect *pRectangle);
 extern void					FreeMouseCursor(void);
-extern BOOLEAN			IsCursorRestricted( void );
-extern void					GetRestrictedClipCursor( SGPRect *pRectangle );
-extern void         RestoreCursorClipRect( void );
-
-
-void SimulateMouseMovement( UINT32 uiNewXPos, UINT32 uiNewYPos );
-BOOLEAN InputEventInside(InputAtom *Event, UINT32 uiX1, UINT32 uiY1, UINT32 uiX2, UINT32 uiY2);
 
 INT16 GetMouseWheelDeltaValue( UINT32 wParam );
-
-extern void DequeueAllKeyBoardEvents();
 
 
 extern BOOLEAN   gfKeyState[256];    // TRUE = Pressed, FALSE = Not Pressed

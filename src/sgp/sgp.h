@@ -1,5 +1,6 @@
-/* Modified for the Wizardry 8 reconstruction, 2026-09-10.
+/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
    Consolidate the reconstructed platform declarations at their source owner.
+   Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
    Distributed under the accompanying SFI Source Code license agreement. */
 #ifndef __SGP_
 #define __SGP_
@@ -9,13 +10,8 @@
 #include "timer.h"
 #include "debug.h"
 
-#if defined( JA2 ) || defined( UTIL )
-#include "video.h"
-#else
 #include "video2.h"
-#endif
 
-#ifndef JA2
 #include "input.h"
 #include "memman.h"
 #include "fileman.h"
@@ -30,7 +26,6 @@
 #include "vobject.h"
 #include "Random.h"
 #include "shading.h"
-#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -42,13 +37,11 @@ extern CHAR8			gzCommandLine[100];	// Command line given
 extern UINT8			gbPixelDepth;				// GLOBAL RUN-TIME SETTINGS
 extern BOOLEAN		gfDontUseDDBlits;		// GLOBAL FOR USE OF DD BLITTING
 
-#if !defined(JA2) && !defined(UTILS)
 extern BOOLEAN		gfLoadAtStartup;
 extern CHAR8		*gzStringDataOverride;
 extern BOOLEAN		gfUsingBoundsChecker;
 extern BOOLEAN		gfCapturingVideo;
 
-#endif
 
 extern HINSTANCE ghInstance;
 extern BOOLEAN gfApplicationActive;
