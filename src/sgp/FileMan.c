@@ -1,5 +1,8 @@
-/* Modified for the Wizardry 8 reconstruction, 2026-09-10.
+/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
    Reconstruct Wizardry stack-buffer PATH setup in its original translation unit.
+   Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
+   Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
+   Recover retail path and file-age arithmetic and control flow.
    Distributed under the accompanying SFI Source Code license agreement. */
 //**************************************************************************
 //
@@ -27,27 +30,21 @@
 //				Includes
 //
 //**************************************************************************
-#ifdef JA2_PRECOMPILED_HEADERS
-	#include "JA2 SGP ALL.H"
-#elif defined( WIZ8_PRECOMPILED_HEADERS )
-	#include "WIZ8 SGP ALL.H"
-#else
-	#include "Types.h"
-	#include <stdlib.h>
-	#include <malloc.h>
-	#include <stdio.h>
-	#include <direct.h>
+#include "Types.h"
+#include <stdlib.h>
+#include <malloc.h>
+#include <stdio.h>
+#include <direct.h>
 
-	#include "windows.h"
-	#include "FileMan.h"
-	#include "MemMan.h"
-	#include "DbMan.h"
-	#include "Debug.h"
-	#include "RegInst.h"
-	#include "Container.h"
-	#include "LibraryDataBase.h"
-	#include "io.h"
-#endif
+#include "windows.h"
+#include "FileMan.h"
+#include "MemMan.h"
+#include "DbMan.h"
+#include "Debug.h"
+#include "RegInst.h"
+#include "Container.h"
+#include "LibraryDataBase.h"
+#include "io.h"
 //**************************************************************************
 //
 //				Defines
@@ -61,7 +58,6 @@
 #define CHECKN(exp)  if (!(exp)) { return(NULL); }
 #define CHECKBI(exp) if (!(exp)) { return(-1); }
 
-#define PRINT_DEBUG_INFO	FileDebugPrint();
 
 //**************************************************************************
 //
@@ -132,13 +128,8 @@ HANDLE hFindInfoHandle[20] = {INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE,
 
 void W32toSGPFileFind( GETFILESTRUCT *pGFStruct, WIN32_FIND_DATA *pW32Struct );
 
-void		FileDebugPrint( void );
-HANDLE	GetHandleToRealFile( HWFILE hFile, BOOLEAN *pfDatabaseFile );
 HWFILE	CreateFileHandle( HANDLE hRealFile, BOOLEAN fDatabaseFile );
 void		DestroyFileHandle( HWFILE hFile );
-void		BuildFileDirectory( void );
-INT32		GetFilesInDirectory( HCONTAINER hStack, CHAR *, HANDLE hFile, WIN32_FIND_DATA *pFind );
-
 //**************************************************************************
 //
 //				Functions
@@ -201,11 +192,6 @@ void ShutdownFileManager( void )
 //		24sep96:HJH		-> creation
 //
 //**************************************************************************
-
-void FileDebug( BOOLEAN f )
-{
-//	gfs.fDebug = f;
-}
 
 //**************************************************************************
 //
@@ -566,11 +552,6 @@ void FileClose( HWFILE hFile )
 //
 //**************************************************************************
 
-#ifdef JA2TESTVERSION
-	extern UINT32 uiTotalFileReadTime;
-	extern UINT32 uiTotalFileReadCalls;
-	#include "Timer Control.h"
-#endif
 
 // FUNCTION: WIZ8 0x00404ea0
 BOOLEAN FileRead( HWFILE hFile, PTR pDest, UINT32 uiBytesToRead, UINT32 *puiBytesRead )
@@ -581,9 +562,6 @@ BOOLEAN FileRead( HWFILE hFile, PTR pDest, UINT32 uiBytesToRead, UINT32 *puiByte
 	INT16 sLibraryID;
 	UINT32 uiFileNum;
 
-#ifdef JA2TESTVERSION
-	UINT32 uiStartTime = GetJA2Clock();
-#endif
 
 	//init the variables
 	dwNumBytesToRead = dwNumBytesRead = 0;
@@ -635,11 +613,6 @@ BOOLEAN FileRead( HWFILE hFile, PTR pDest, UINT32 uiBytesToRead, UINT32 *puiByte
 			}
 		}
 	}
-	#ifdef JA2TESTVERSION
-		//Add the time that we spent in this function to the total.
-		uiTotalFileReadTime += GetJA2Clock() - uiStartTime;
-		uiTotalFileReadCalls++;
-	#endif
 
 	return(fRet);
 }
@@ -731,32 +704,6 @@ BOOLEAN FileWrite( HWFILE hFile, PTR pDest, UINT32 uiBytesToWrite, UINT32 *puiBy
 //
 //**************************************************************************
 
-BOOLEAN FileLoad( STR strFilename, PTR pDest, UINT32 uiBytesToRead, UINT32 *puiBytesRead )
-{
-	HWFILE	hFile;
-	UINT32	uiNumBytesRead;
-	BOOLEAN	fRet;
-
-	hFile = FileOpen( strFilename, FILE_ACCESS_READ, FALSE );
-	if ( hFile )
-	{
-		fRet = FileRead( hFile, pDest, uiBytesToRead, &uiNumBytesRead );
-		FileClose( hFile );
-
-		if (uiBytesToRead != uiNumBytesRead)
-			fRet = FALSE;
-
-		if ( puiBytesRead )
-			*puiBytesRead = uiNumBytesRead;
-
-		CHECKF( uiNumBytesRead == uiBytesToRead );
-	}
-	else
-		fRet = FALSE;
-
-	return(fRet);
-}
-
 //**************************************************************************
 //
 // FilePrintf
@@ -780,35 +727,6 @@ BOOLEAN FileLoad( STR strFilename, PTR pDest, UINT32 uiBytesToRead, UINT32 *puiB
 //		9 Feb 98	DEF - modified to work with the library system
 //
 //**************************************************************************
-
-BOOLEAN _cdecl FilePrintf( HWFILE hFile, UINT8 *strFormatted, ... )
-{
-	UINT8		strToSend[80];
-	va_list	argptr;
-	BOOLEAN fRetVal = FALSE;
-
-	INT16 sLibraryID;
-	UINT32 uiFileNum;
-
-	GetLibraryAndFileIDFromLibraryFileHandle( hFile, &sLibraryID, &uiFileNum );
-
-	//if its a real file, read the data from the file
-	if( sLibraryID == REAL_FILE_LIBRARY_ID )
-	{
-		va_start(argptr, strFormatted);
-		vsprintf( strToSend, strFormatted, argptr );
-		va_end(argptr);
-
-		fRetVal = FileWrite( hFile, strToSend, strlen(strToSend), NULL );
-	}
-	else
-	{
-		//its a library file, cant write to it so return an error
-		fRetVal = FALSE;
-	}
-
-	return( fRetVal );
-}
 
 //**************************************************************************
 //
@@ -1016,10 +934,6 @@ UINT32 FileGetSize( HWFILE hFile )
 //
 //**************************************************************************
 
-void FileDebugPrint( void )
-{
-}
-
 //**************************************************************************
 //
 // GetHandleToRealFile
@@ -1035,31 +949,6 @@ void FileDebugPrint( void )
 //		9 Feb 98	DEF - modified to work with the library system
 //
 //**************************************************************************
-
-HANDLE GetHandleToRealFile( HWFILE hFile, BOOLEAN *pfDatabaseFile )
-{
-	HANDLE	hRealFile;
-
-	INT16 sLibraryID;
-	UINT32 uiFileNum;
-
-	GetLibraryAndFileIDFromLibraryFileHandle( hFile, &sLibraryID, &uiFileNum );
-
-	//if its a real file, read the data from the file
-	if( sLibraryID == REAL_FILE_LIBRARY_ID )
-	{
-		//Get the handle to the real file
-		hRealFile = gFileDataBase.RealFiles.pRealFilesOpen[ uiFileNum ].hRealFileHandle;
-		*pfDatabaseFile = FALSE;
-	}
-	else
-	{
-		*pfDatabaseFile = TRUE;
-		hRealFile = (HANDLE) hFile;
-	}
-
-	return(hRealFile);
-}
 
 //**************************************************************************
 //
@@ -1164,93 +1053,6 @@ void DestroyFileHandle( HWFILE hFile )
 //
 //**************************************************************************
 
-void BuildFileDirectory( void )
-{
-
-	return;	// temporary until container stuff is fixed
-/*
-	INT32					i, iNumFiles = 0;
-	HANDLE				hFile, hFileIn;
-	WIN32_FIND_DATA	find, inFind;
-	BOOLEAN				fMore = TRUE;
-	CHAR					cName[FILENAME_LENGTH], cDir[FILENAME_LENGTH], cSubDir[FILENAME_LENGTH];
-	HCONTAINER			hStack;
-
-
-
-	//
-	//	First, push all the file names in the directory (and subdirectories)
-	//	onto the stack.
-	//
-
-	GetProfileChar( "Startup", "InstPath", "", cDir );
-
-	if ( strlen( cDir ) == 0 )
-		return;
-
-	hStack = CreateStack( 100, FILENAME_LENGTH );
-	if (hStack == NULL)
-	{
-		FastDebugMsg(String("BuildFileDirectory: CreateStack Failed for the filename stack"));
-		return;
-	}
-
-	find.dwFileAttributes = FILE_ATTRIBUTE_NORMAL | FILE_ATTRIBUTE_DIRECTORY;
-
-	strcpy( &(cDir[strlen(cDir)]), "\\*.*\0" );
-	hFile = FindFirstFile( cDir, &find );
-	while ( fMore )
-	{
-		if ( find.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
-		{
-			if ( strcmp( find.cFileName, "." ) != 0 && strcmp( find.cFileName, ".." ) != 0 )
-			{
-				// a valid directory
-				inFind.dwFileAttributes = FILE_ATTRIBUTE_NORMAL | FILE_ATTRIBUTE_DIRECTORY;
-				strcpy( cSubDir, cDir );
-				strcpy( &(cSubDir[strlen(cDir)-3]), find.cFileName );
-				strcpy( &(cSubDir[strlen(cSubDir)]), "\\*.*\0" );
-				hFileIn = FindFirstFile( cSubDir, &inFind );
-				iNumFiles += GetFilesInDirectory( hStack, cSubDir, hFileIn, &inFind );
-				FindClose( hFileIn );
-			}
-		}
-		else
-		{
-			iNumFiles++;
-			strcpy( cName, cDir );
-			strcpy( &(cName[strlen(cName)-3]), find.cFileName );
-			CharLower( cName );
-			hStack = Push( hStack, cName );
-		}
-		find.dwFileAttributes = FILE_ATTRIBUTE_NORMAL | FILE_ATTRIBUTE_DIRECTORY;
-		fMore = FindNextFile( hFile, &find );
-	}
-	FindClose( hFile );
-
-	//
-	//	Okay, we have all the files in the stack, now put them in place.
-	//
-	gfs.uiNumFilesInDirectory = iNumFiles;
-
-	gfs.pcFileNames = (CHAR *)MemAlloc( iNumFiles * FILENAME_LENGTH );
-
-	if ( gfs.pcFileNames )
-	{
-		for ( i=0 ; i<iNumFiles ; i++ )
-		{
-			Pop( hStack, (void *)(&gfs.pcFileNames[i*FILENAME_LENGTH]) );
-		}
-	}
-
-	//
-	//	Clean up.
-	//
-
-	DeleteStack( hStack );
-*/
-}
-
 //**************************************************************************
 //
 // GetFilesInDirectory
@@ -1265,63 +1067,6 @@ void BuildFileDirectory( void )
 //
 //**************************************************************************
 
-INT32 GetFilesInDirectory( HCONTAINER hStack, CHAR *pcDir, HANDLE hFile, WIN32_FIND_DATA *pFind )
-{
-	INT32					iNumFiles;
-	WIN32_FIND_DATA	inFind;
-	BOOLEAN				fMore;
-	CHAR					cName[FILENAME_LENGTH], cDir[FILENAME_LENGTH];
-	HANDLE				hFileIn;
-
-	fMore = TRUE;
-	iNumFiles = 0;
-
-	while ( fMore )
-	{
-		if ( pFind->dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
-		{
-			if ( strcmp( pFind->cFileName, "." ) != 0 && strcmp( pFind->cFileName, ".." ) != 0 )
-			{
-				// a valid directory - recurse and find the files in that directory
-
-				inFind.dwFileAttributes = FILE_ATTRIBUTE_NORMAL | FILE_ATTRIBUTE_DIRECTORY;
-				strcpy( cDir, pcDir );
-				strcpy( &(cDir[strlen(cDir)-3]), pFind->cFileName );
-				strcpy( &(cDir[strlen(cDir)]), "\\*.*\0" );
-				hFileIn = FindFirstFile( cDir, &inFind );
-				iNumFiles += GetFilesInDirectory( hStack, cDir, hFileIn, &inFind );
-				FindClose( hFileIn );
-			}
-		}
-		else
-		{
-			iNumFiles++;
-			strcpy( cName, pcDir );
-			strcpy( &(cName[strlen(cName)-3]), pFind->cFileName );
-			CharLower( cName );
-			hStack = Push( hStack, cName );
-		}
-		pFind->dwFileAttributes = FILE_ATTRIBUTE_NORMAL | FILE_ATTRIBUTE_DIRECTORY;
-		fMore = FindNextFile( hFile, pFind );
-	}
-
-	return(iNumFiles);
-}
-
-BOOLEAN SetFileManCurrentDirectory( STR pcDirectory )
-{
-	 return( SetCurrentDirectory( pcDirectory ) );
-}
-
-
-BOOLEAN GetFileManCurrentDirectory( STRING512 pcDirectory )
-{
-	if (GetCurrentDirectory( 512, pcDirectory ) == 0)
-	{
-		return( FALSE );
-	}
-	return( TRUE );
-}
 
 
 // FUNCTION: WIZ8 0x004051d0
@@ -1363,144 +1108,6 @@ BOOLEAN MakeFileManDirectory( STRING512 pcDirectory )
 }
 
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Removes ALL FILES in the specified directory (and all subdirectories with their files if fRecursive is TRUE)
-// Use EraseDirectory() to simply delete directory contents without deleting the directory itself
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-BOOLEAN RemoveFileManDirectory( STRING512 pcDirectory, BOOLEAN fRecursive )
-{
-	WIN32_FIND_DATA sFindData;
-	HANDLE		SearchHandle;
-	const CHAR8	*pFileSpec = "*.*";
-	BOOLEAN	fDone = FALSE;
-	BOOLEAN fRetval=FALSE;
-	CHAR8		zOldDir[512];
-	CHAR8		zSubdirectory[512];
-
-	GetFileManCurrentDirectory( zOldDir );
-
-	if( !SetFileManCurrentDirectory( pcDirectory ) )
-	{
-		FastDebugMsg(String("RemoveFileManDirectory: ERROR - SetFileManCurrentDirectory on %s failed, error %d", pcDirectory, GetLastError()));
-		return( FALSE );		//Error going into directory
-	}
-
-	//If there are files in the directory, DELETE THEM
-	SearchHandle = FindFirstFile( pFileSpec, &sFindData);
-	if( SearchHandle !=  INVALID_HANDLE_VALUE )
-	{
-
-		fDone = FALSE;
-		do
-		{
-			// if the object is a directory
-			if( GetFileAttributes( sFindData.cFileName ) == FILE_ATTRIBUTE_DIRECTORY )
-			{
-				// only go in if the fRecursive flag is TRUE (like Deltree)
-				if (fRecursive)
-				{
-					sprintf(zSubdirectory, "%s\\%s", pcDirectory, sFindData.cFileName);
-
-					if ((strcmp(sFindData.cFileName, ".") != 0) && (strcmp(sFindData.cFileName, "..") != 0))
-					{
-						if (!RemoveFileManDirectory(zSubdirectory, TRUE))
-						{
-				   		FastDebugMsg(String("RemoveFileManDirectory: ERROR - Recursive call on %s failed", zSubdirectory));
-							break;
-						}
-					}
-				}
-				// otherwise, all the individual files will be deleted, but the subdirectories remain, causing
-				// RemoveDirectory() at the end to fail, thus this function will return FALSE in that event (failure)
-			}
-			else
-			{
-				FileDelete( sFindData.cFileName );
-			}
-
-			//find the next file in the directory
-			fRetval = FindNextFile( SearchHandle, &sFindData );
-			if( fRetval == 0 )
-			{
-				fDone = TRUE;
-			}
-		}	while(!fDone);
-
-		// very important: close the find handle, or subsequent RemoveDirectory() calls will fail
-		FindClose( SearchHandle );
-	}
-
-	if( !SetFileManCurrentDirectory( zOldDir ) )
-	{
-		FastDebugMsg(String("RemoveFileManDirectory: ERROR - SetFileManCurrentDirectory on %s failed, error %d", zOldDir, GetLastError()));
-		return( FALSE );		//Error returning from subdirectory
-	}
-
-
-	// The directory MUST be empty
-	fRetval = RemoveDirectory( pcDirectory );
-	if (!fRetval)
-	{
-		FastDebugMsg(String("RemoveFileManDirectory: ERROR - RemoveDirectory on %s failed, error %d", pcDirectory, GetLastError()));
-	}
-
-	return fRetval;
-}
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Removes ALL FILES in the specified directory but leaves the directory alone.  Does not affect any subdirectories!
-// Use RemoveFilemanDirectory() to also delete the directory itself, or to recursively delete subdirectories.
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-BOOLEAN EraseDirectory( STRING512 pcDirectory)
-{
-	WIN32_FIND_DATA sFindData;
-	HANDLE		SearchHandle;
-	const CHAR8	*pFileSpec = "*.*";
-	BOOLEAN	fDone = FALSE;
-	CHAR8		zOldDir[512];
-
-	GetFileManCurrentDirectory( zOldDir );
-
-	if( !SetFileManCurrentDirectory( pcDirectory ) )
-	{
-		FastDebugMsg(String("EraseDirectory: ERROR - SetFileManCurrentDirectory on %s failed, error %d", pcDirectory, GetLastError()));
-		return( FALSE );		//Error going into directory
-	}
-
-	//If there are files in the directory, DELETE THEM
-	SearchHandle = FindFirstFile( pFileSpec, &sFindData);
-	if( SearchHandle !=  INVALID_HANDLE_VALUE )
-	{
-
-		fDone = FALSE;
-		do
-		{
-			// if it's a file, not a directory
-			if( GetFileAttributes( sFindData.cFileName ) != FILE_ATTRIBUTES_DIRECTORY )
-			{
-				FileDelete( sFindData.cFileName );
-			}
-
-			//find the next file in the directory
-			if ( !FindNextFile( SearchHandle, &sFindData ))
-			{
-				fDone = TRUE;
-			}
-		} while(!fDone);
-
-		// very important: close the find handle, or subsequent RemoveDirectory() calls will fail
-		FindClose( SearchHandle );
-	}
-
-	if( !SetFileManCurrentDirectory( zOldDir ) )
-	{
-		FastDebugMsg(String("EraseDirectory: ERROR - SetFileManCurrentDirectory on %s failed, error %d", zOldDir, GetLastError()));
-		return( FALSE );		//Error returning from directory
-	}
-
-	return( TRUE );
-}
 
 
 // FUNCTION: WIZ8 0x00405200
@@ -1730,41 +1337,6 @@ BOOLEAN FileCopy(STR strSrcFile, STR strDstFile, BOOLEAN fFailIfExists)
 */
 }
 
-BOOLEAN FileMove(STR strOldName, STR strNewName)
-{
-	// rename
-	return(MoveFile(strOldName, strNewName));
-}
-
-//Additions by Kris Morness
-BOOLEAN FileSetAttributes( STR strFilename, UINT32 uiNewAttribs )
-{
-	UINT32	uiFileAttrib = 0;
-
-	if( uiNewAttribs & FILE_ATTRIBUTES_ARCHIVE )
-		uiFileAttrib |= FILE_ATTRIBUTE_ARCHIVE;
-
-	if( uiNewAttribs & FILE_ATTRIBUTES_HIDDEN )
-		uiFileAttrib |= FILE_ATTRIBUTE_HIDDEN;
-
-	if( uiNewAttribs & FILE_ATTRIBUTES_NORMAL )
-		uiFileAttrib |= FILE_ATTRIBUTE_NORMAL;
-
-	if( uiNewAttribs & FILE_ATTRIBUTES_OFFLINE )
-		uiFileAttrib |= FILE_ATTRIBUTE_OFFLINE;
-
-	if( uiNewAttribs & FILE_ATTRIBUTES_READONLY )
-		uiFileAttrib |= FILE_ATTRIBUTE_READONLY;
-
-	if( uiNewAttribs & FILE_ATTRIBUTES_SYSTEM	)
-		uiFileAttrib |= FILE_ATTRIBUTE_SYSTEM;
-
-	if( uiNewAttribs & FILE_ATTRIBUTES_TEMPORARY )
-		uiFileAttrib |= FILE_ATTRIBUTE_TEMPORARY;
-
-	return SetFileAttributes( strFilename, uiFileAttrib );
-}
-
 
 // FUNCTION: WIZ8 0x004054f0
 UINT32 FileGetAttributes( STR strFilename )
@@ -1956,48 +1528,7 @@ INT32	CompareSGPFileTimes( SGP_FILETIME	*pFirstFileTime, SGP_FILETIME *pSecondFi
 	return( CompareFileTime( pFirstFileTime, pSecondFileTime ) );
 }
 
-UINT32 FileSize(STR strFilename)
-{
-HWFILE hFile;
-UINT32 uiSize;
 
-	if((hFile=FileOpen(strFilename, FILE_OPEN_EXISTING | FILE_ACCESS_READ, FALSE))==0)
-		return(0);
-
-	uiSize=FileGetSize(hFile);
-	FileClose(hFile);
-
-	return(uiSize);
-}
-
-
-
-HANDLE	GetRealFileHandleFromFileManFileHandle( HWFILE hFile )
-{
-	INT16 sLibraryID;
-	UINT32 uiFileNum;
-
-	GetLibraryAndFileIDFromLibraryFileHandle( hFile, &sLibraryID, &uiFileNum );
-
-	//if its the 'real file' library
-	if( sLibraryID == REAL_FILE_LIBRARY_ID )
-	{
-		//if its not already closed
-		if( gFileDataBase.RealFiles.pRealFilesOpen[ uiFileNum ].uiFileID != 0 )
-		{
-			return( gFileDataBase.RealFiles.pRealFilesOpen[ uiFileNum ].hRealFileHandle );
-		}
-	}
-	else
-	{
-		//if the file is not opened, dont close it
-		if( gFileDataBase.pLibraries[ sLibraryID ].pOpenFiles[ uiFileNum ].uiFileID != 0 )
-		{
-			return( gFileDataBase.pLibraries[ sLibraryID ].hLibraryHandle );
-		}
-	}
-	return( 0 );
-}
 
 //**************************************************************************
 //
@@ -2020,25 +1551,21 @@ BOOLEAN AddSubdirectoryToPath(CHAR8* subdirectory)
     CHAR environment[520];
     unsigned int length;
 
-    if (!subdirectory) {
-        return FALSE;
+    if (subdirectory && strlen(subdirectory)) {
+        _getcwd(path, 0x208);
+        length = strlen(path);
+        if (path[length != 0 ? length - 1 : 0] != '\\') {
+            strcat(path, "\\");
+        }
+        strcat(path, subdirectory);
+        if (GetEnvironmentVariableA("PATH", environment, 0x208)) {
+            strcat(environment, ";");
+            strcat(environment, path);
+            SetEnvironmentVariableA("PATH", environment);
+            return TRUE;
+        }
     }
-    if (strlen(subdirectory) == 0) {
-        return FALSE;
-    }
-    _getcwd(path, 0x208);
-    length = strlen(path);
-    if (path[length != 0 ? length - 1 : 0] != '\\') {
-        strcat(path, "\\");
-    }
-    strcat(path, subdirectory);
-    if (GetEnvironmentVariableA("PATH", environment, 0x208) == 0) {
-        return FALSE;
-    }
-    strcat(environment, ";");
-    strcat(environment, path);
-    SetEnvironmentVariableA("PATH", environment);
-    return TRUE;
+    return FALSE;
 }
 
 // FUNCTION: WIZ8 0x004058a0
@@ -2048,9 +1575,7 @@ BOOLEAN FileIsOlderThanFile(CHAR8 *pcFileName1, CHAR8 *pcFileName2, UINT32 ulNum
     WIN32_FIND_DATA second;
     HANDLE search;
     INT32 compared;
-    ULARGE_INTEGER first_time;
-    ULARGE_INTEGER second_time;
-    ULARGE_INTEGER difference;
+    ULONGLONG difference;
 
     /* Retail never checks for INVALID_HANDLE_VALUE: a failed search leaves
        the WIN32_FIND_DATA uninitialized and the timestamps read as garbage. */
@@ -2060,72 +1585,24 @@ BOOLEAN FileIsOlderThanFile(CHAR8 *pcFileName1, CHAR8 *pcFileName2, UINT32 ulNum
     FindClose(search);
 
     compared = CompareFileTime(&first.ftLastWriteTime, &second.ftLastWriteTime);
-    if (compared > 0) {
-        return FALSE;
-    }
-    if (ulNumSeconds == 0) {
-        if (compared == 0) {
-            return FALSE;
+    if (compared <= 0) {
+        if (ulNumSeconds == 0) {
+            if (compared != 0) {
+                return TRUE;
+            }
+        } else {
+            /* FILETIME counts 100ns units. */
+            difference = ((ULONGLONG)second.ftLastWriteTime.dwHighDateTime - first.ftLastWriteTime.dwHighDateTime) * 0x100000000
+                - first.ftLastWriteTime.dwLowDateTime + second.ftLastWriteTime.dwLowDateTime;
+            if (difference / 10000000 >= ulNumSeconds) {
+                return TRUE;
+            }
         }
-        return TRUE;
-    }
-
-    first_time.LowPart = first.ftLastWriteTime.dwLowDateTime;
-    first_time.HighPart = first.ftLastWriteTime.dwHighDateTime;
-    second_time.LowPart = second.ftLastWriteTime.dwLowDateTime;
-    second_time.HighPart = second.ftLastWriteTime.dwHighDateTime;
-    difference.QuadPart = second_time.QuadPart - first_time.QuadPart;
-    if (difference.QuadPart / 10000000 >= ulNumSeconds) {
-        return TRUE;
     }
     return FALSE;
 }
 
 
-UINT32 GetFreeSpaceOnHardDriveWhereGameIsRunningFrom( )
-{
-  STRING512		zExecDir;
-  STRING512		zDrive;
-	STRING512		zDir;
-	STRING512		zFileName;
-	STRING512		zExt;
-
-	UINT32 uiFreeSpace = 0;
-
-	GetExecutableDirectory( zExecDir );
-
-	//get the drive letter from the exec dir
-	_splitpath( zExecDir, zDrive, zDir, zFileName, zExt);
-
-	sprintf( zDrive, "%s\\", zDrive );
-
-	uiFreeSpace = GetFreeSpaceOnHardDrive( zDrive );
-
-	return( uiFreeSpace );
-}
 
 
 
-
-UINT32 GetFreeSpaceOnHardDrive( STR pzDriveLetter )
-{
-	UINT32			uiBytesFree=0;
-
-	UINT32			uiSectorsPerCluster=0;
-	UINT32			uiBytesPerSector=0;
-	UINT32			uiNumberOfFreeClusters=0;
-	UINT32			uiTotalNumberOfClusters=0;
-
-	if( !GetDiskFreeSpace( pzDriveLetter, &uiSectorsPerCluster, &uiBytesPerSector, &uiNumberOfFreeClusters, &uiTotalNumberOfClusters ) )
-	{
-		UINT32 uiLastError = GetLastError();
-		char zString[1024];
-		FormatMessage( FORMAT_MESSAGE_FROM_SYSTEM, 0, uiLastError, 0, zString, 1024, NULL);
-
-		return( TRUE );
-	}
-
-	uiBytesFree = uiBytesPerSector * uiNumberOfFreeClusters * uiSectorsPerCluster;
-
-	return( uiBytesFree );
-}

@@ -1,5 +1,7 @@
-/* Modified for the Wizardry 8 reconstruction, 2026-09-10.
+/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
    Reconstruct Wizardry archive mapping and patch-library record layouts.
+   Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
+   Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
    Distributed under the accompanying SFI Source Code license agreement. */
 #ifndef _LIBRARY_DATABASE_H
 #define _LIBRARY_DATABASE_H
@@ -44,14 +46,7 @@ typedef struct
 
 
 
-#ifdef JA2
-	#include "Ja2 Libs.h"
-#elif UTIL
-	#define NUMBER_OF_LIBRARIES 0
-	typedef	FILETIME				SGP_FILETIME;
-#else	//wizardry
 	#include "WizLibs.h"
-#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -109,9 +104,6 @@ typedef struct
 //
 //	Temp:	Total memory used for each library ( all memory allocated
 //
-	#ifdef JA2TESTVERSION
-		UINT32	uiTotalMemoryAllocatedForLibrary;
-	#endif
 
 } LibraryHeaderStruct;
 
@@ -193,7 +185,6 @@ extern DatabaseManagerHeaderStruct gFileDataBase;
 
 //Function Prototypes
 
-BOOLEAN CheckForLibraryExistence( STR pLibraryName );
 BOOLEAN InitializeLibrary( STR pLibraryName, LibraryHeaderStruct *pLibheader, BOOLEAN fCanBeOnCDrom );
 HANDLE OpenLibraryStream(HWFILE file);
 

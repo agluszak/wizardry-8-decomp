@@ -1,5 +1,6 @@
-/* Modified for the Wizardry 8 reconstruction, 2026-09-16.
+/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
    Add matching markers for retained SGP functions and globals.
+   Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
    Distributed under the accompanying SFI Source Code license agreement. */
 //**************************************************************************
 //
@@ -19,24 +20,14 @@
 //
 //**************************************************************************
 
-#ifdef JA2_PRECOMPILED_HEADERS
-	#include "JA2 SGP ALL.H"
-#elif defined( WIZ8_PRECOMPILED_HEADERS )
-	#include "WIZ8 SGP ALL.H"
-#else
-	#include "types.h"
-	#include "Fileman.h"
-	#include "memman.h"
-	#include "WCheck.h"
-	#include "himage.h"
-	#include "string.h"
-	#include "debug.h"
-	#if defined( JA2 ) || defined( UTIL )
-		#include "video.h"
-	#else
-		#include "video2.h"
-	#endif
-#endif
+#include "types.h"
+#include "Fileman.h"
+#include "memman.h"
+#include "WCheck.h"
+#include "himage.h"
+#include "string.h"
+#include "debug.h"
+#include "video2.h"
 
 //**************************************************************************
 //
@@ -283,7 +274,7 @@ BOOLEAN ReadUncompRGBImage( HIMAGE hImage, HWFILE hFile, UINT8 uiImgID, UINT8 ui
 			hImage->fFlags |= IMAGE_BITMAPDATA;
 		}
 
-		#if 0
+#if 0
 		// 32 bit not yet allowed in SGP
 		else if ( uiImagePixelSize == 32 )
 		{
@@ -305,7 +296,7 @@ BOOLEAN ReadUncompRGBImage( HIMAGE hImage, HWFILE hFile, UINT8 uiImgID, UINT8 ui
 				pBMData[ i*3+2 ] = b;
 			}
 		}
-		#endif
+#endif
 
 	}
 	return( TRUE );

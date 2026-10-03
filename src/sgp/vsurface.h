@@ -1,3 +1,6 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
+   Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
+   Distributed under the accompanying SFI Source Code license agreement. */
 #ifndef __VSURFACE_H
 #define __VSURFACE_H
 
@@ -170,11 +173,7 @@ BOOLEAN SetPrimaryVideoSurfaces( );
 BOOLEAN SetVideoSurfaceTransparency( UINT32 uiIndex, COLORVAL TransColor );
 
 // Adds a video Surface region
-BOOLEAN AddVideoSurfaceRegion( UINT32 uiIndex, VSURFACE_REGION *pNewRegion );
-
 // Gets width, hight, bpp information
-BOOLEAN GetVideoSurfaceDescription( UINT32 uiIndex, UINT16 *usWidth, UINT16 *usHeight, UINT8 *ubBitDepth );
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // Video Surface manipulation functions
@@ -188,8 +187,6 @@ BOOLEAN PixelateVideoSurfaceRect(  UINT32	uiDestVSurface, INT32 X1, INT32 Y1, IN
 HVSURFACE CreateVideoSurface( VSURFACE_DESC *VSurfaceDesc );
 
 // Gets the RGB palette entry values
-BOOLEAN GetVSurfacePaletteEntries( HVSURFACE hVSurface, SGPPaletteEntry *pPalette );
-
 BOOLEAN RestoreVideoSurface( HVSURFACE hVSurface );
 
 // Returns a flat pointer for direct manipulation of data
@@ -223,14 +220,7 @@ BOOLEAN DeleteVideoSurfaceFromIndex( UINT32 uiIndex );
 
 // Regions will allow creation of sections within the Surface to manipulate quickly and cleanly
 // An example would be a cursor tileset
-BOOLEAN AddVSurfaceRegion( HVSURFACE hVSurface, VSURFACE_REGION *pNewRegion );
-BOOLEAN AddVSurfaceRegionAtIndex( HVSURFACE hVSurface, UINT16 usIndex, VSURFACE_REGION *pNewRegion );
-BOOLEAN AddVSurfaceRegions( HVSURFACE hVSurface, VSURFACE_REGION **ppNewRegions, UINT16 uiNumRegions );
-BOOLEAN RemoveVSurfaceRegion( HVSURFACE hVSurface, UINT16 usIndex );
-BOOLEAN ClearAllVSurfaceRegions( HVSURFACE hVSurface );
 BOOLEAN GetVSurfaceRegion( HVSURFACE hVSurface, UINT16 usIndex,  VSURFACE_REGION *aRegion );
-BOOLEAN GetNumRegions( HVSURFACE hVSurface , UINT32 *puiNumRegions );
-BOOLEAN ReplaceVSurfaceRegion( HVSURFACE hVSurface , UINT16 usIndex, VSURFACE_REGION *aRegion );
 BOOLEAN DeleteVideoSurfaceFromIndex( UINT32 uiIndex );
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -252,19 +242,10 @@ BOOLEAN SetClipList( HVSURFACE hVSurface, SGPRect *RegionData, UINT16 usNumRegio
 
 BOOLEAN BltVideoSurfaceToVideoSurface( HVSURFACE hDestVSurface, HVSURFACE hSrcVSurface, UINT16 usIndex, INT32 iDestX, INT32 iDestY, INT32 fBltFlags, blt_vs_fx *pBltFx );
 
-HVSURFACE GetPrimaryVideoSurface( );
-HVSURFACE GetBackBufferVideoSurface( );
-
 BOOLEAN ShadowVideoSurfaceRect(  UINT32	uiDestVSurface, INT32 X1, INT32 Y1, INT32 X2, INT32 Y2);
-BOOLEAN ShadowVideoSurfaceImage( UINT32	uiDestVSurface, HVOBJECT hImageHandle, INT32 iPosX, INT32 iPosY);
-
 // If the Dest Rect and the source rect are not the same size, the source surface will be either
 //enlraged or shunk.
-BOOLEAN BltStretchVideoSurface(UINT32 uiDestVSurface, UINT32 uiSrcVSurface, INT32 iDestX, INT32 iDestY, UINT32 fBltFlags, SGPRect *SrcRect, SGPRect *DestRect );
-
 BOOLEAN MakeVSurfaceFromVObject(UINT32 uiVObject, UINT16 usSubIndex, UINT32 *puiVSurface);
-
-BOOLEAN ShadowVideoSurfaceRectUsingLowPercentTable(  UINT32	uiDestVSurface, INT32 X1, INT32 Y1, INT32 X2, INT32 Y2);
 
 #ifdef __cplusplus
 }

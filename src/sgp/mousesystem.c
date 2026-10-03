@@ -1,5 +1,7 @@
-/* Modified for the Wizardry 8 reconstruction, 2026-09-10.
+/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
    Include the declarations used by the Wizardry build explicitly.
+   Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
+   Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
    Distributed under the accompanying SFI Source Code license agreement. */
 #include "wiz8/fonts.h"
 
@@ -15,42 +17,22 @@
 //
 //=================================================================================================
 
-#ifdef JA2_PRECOMPILED_HEADERS
-	#include "JA2 SGP ALL.H"
-#elif defined( WIZ8_PRECOMPILED_HEADERS )
-	#include "WIZ8 SGP ALL.H"
-#else
-	#include "types.h"
-	#include <windows.h>
-	#include <stdio.h>
-	#include <memory.h>
-	#include "debug.h"
-	#include "input.h"
-	#include "memman.h"
-	#include "line.h"
-	#if (defined( JA2 ) || defined( UTIL ))
-		#include "video.h"
-		#define BASE_REGION_FLAGS		(MSYS_REGION_ENABLED | MSYS_SET_CURSOR)
-	#else
-		#include "video2.h"
-		#define BASE_REGION_FLAGS		MSYS_REGION_ENABLED				// Wiz doesn't ever want MSYS_SET_CURSOR to be on...
-	#endif
-	#ifdef _JA2_RENDER_DIRTY
-		#include "render dirty.h"
-		#include "\JA2\Build\utils\Font Control.h"
-	#endif
-	#include "english.h"
+#include "types.h"
+#include <windows.h>
+#include <stdio.h>
+#include <memory.h>
+#include "debug.h"
+#include "input.h"
+#include "memman.h"
+#include "line.h"
+#include "video2.h"
+#define BASE_REGION_FLAGS		MSYS_REGION_ENABLED				// Wiz doesn't ever want MSYS_SET_CURSOR to be on...
+#include "english.h"
 	// Include mouse system defs and macros
-	#include "mousesystem.h"
-	#include "Cursor Control.h"
-	#include "Button System.h"
-#endif
+#include "mousesystem.h"
+#include "Cursor Control.h"
+#include "Button System.h"
 
-#ifdef JA2_PRECOMPILED_HEADERS
-	#define BASE_REGION_FLAGS		(MSYS_REGION_ENABLED | MSYS_SET_CURSOR)
-#elif defined( WIZ8_PRECOMPILED_HEADERS )
-	#define BASE_REGION_FLAGS		MSYS_REGION_ENABLED				// Wiz doesn't ever want MSYS_SET_CURSOR to be on...
-#endif
 
 
 
@@ -71,13 +53,7 @@ UINT32				guiRegionLastLButtonDownTime = 0;
 
 
 
-extern void ReleaseAnchorMode();  //private function used here (implemented in Button System.c)
-
 // number of lines in height help text will be
-INT16 GetNumberOfLinesInHeight( STR16 pStringA );
-INT16 GetWidthOfString( STR16 pStringA );
-void DisplayHelpTokenizedString( STR16 pStringA, INT16 sX, INT16 sY );
-
 
 
 // GLOBAL: WIZ8 0x00650e78
@@ -128,8 +104,6 @@ INT16   gsFastHelpDelay = 600; // In timer ticks
 BOOLEAN gfShowFastHelp  = TRUE;
 
 // help text is done, now execute callback, if there is one
-void ExecuteMouseHelpEndCallBack( MOUSE_REGION *region );
-
 
 
 //Kris:
@@ -151,13 +125,6 @@ BOOLEAN					gfRefreshUpdate = FALSE;
 //an already deleted region.  It will also ensure that you don't create an identical region
 //that already exists.
 //TO REMOVE ALL DEBUG FUNCTIONALITY:  simply comment out MOUSESYSTEM_DEBUGGING definition
-#ifdef JA2
-  #ifdef _DEBUG
-	#ifndef BOUNDS_CHECKER
-	  #define MOUSESYSTEM_DEBUGGING
-	#endif
-  #endif
-#endif
 
 #ifdef MOUSESYSTEM_DEBUGGING
 BOOLEAN gfIgnoreShutdownAssertions;
@@ -173,9 +140,9 @@ INT32 MSYS_Init(void)
 {
 	RegisterDebugTopic(TOPIC_MOUSE_SYSTEM, "Mouse Region System");
 
-	#ifdef MOUSESYSTEM_DEBUGGING
+#ifdef MOUSESYSTEM_DEBUGGING
 		gfIgnoreShutdownAssertions = FALSE;
-	#endif
+#endif
 	if(MSYS_RegList!=NULL)
 		MSYS_TrashRegList();
 
@@ -242,9 +209,9 @@ INT32 MSYS_Init(void)
 // FUNCTION: WIZ8 0x0040b450
 void MSYS_Shutdown(void)
 {
-	#ifdef MOUSESYSTEM_DEBUGGING
+#ifdef MOUSESYSTEM_DEBUGGING
 		gfIgnoreShutdownAssertions = TRUE;
-	#endif
+#endif
 	MSYS_SystemInitialized = FALSE;
 	MSYS_UseMouseHandlerHook = FALSE;
 	MSYS_TrashRegList();
@@ -289,9 +256,6 @@ void MSYS_SGP_Mouse_Handler_Hook(UINT16 Type,UINT16 Xcoord, UINT16 Ycoord, BOOLE
 				//you release inside of the button, the action is selected -- but later in the code.
 				//NOTE:  It has to be here, because the mouse can be released anywhere regardless of
 				//regions, buttons, etc.
-				#ifdef JA2
-					ReleaseAnchorMode();
-				#endif
 			}
 			else if(Type == RIGHT_BUTTON_DOWN)
 				MSYS_Action |= MSYS_DO_RBUTTON_DWN;
@@ -634,24 +598,16 @@ void MSYS_UpdateMouseRegion(void)
 			{
 				//ExecuteMouseHelpEndCallBack( MSYS_PrevRegion );
 
-				#ifdef _JA2_RENDER_DIRTY
-					if( MSYS_PrevRegion->uiFlags & MSYS_GOT_BACKGROUND )
-						FreeBackgroundRectPending( MSYS_PrevRegion->FastHelpRect );
-				#endif
 				MSYS_PrevRegion->uiFlags &= (~MSYS_GOT_BACKGROUND);
 				MSYS_PrevRegion->uiFlags &= (~MSYS_FASTHELP_RESET);
 
-				#ifndef UTIL
 					// dirty buttons, need a re-render
 //DEF: Nov 30 98
 //				PausedMarkButtonsDirty( );
-				#endif
 
 				//if( region->uiFlags & MSYS_REGION_ENABLED )
 				//	region->uiFlags |= BUTTON_DIRTY;
-#ifndef JA2
 							VideoRemoveToolTip();
-#endif
 			}
 
 			MSYS_CurrRegion->FastHelpTimer = gsFastHelpDelay;
@@ -676,16 +632,10 @@ void MSYS_UpdateMouseRegion(void)
 				{
 				  //ExecuteMouseHelpEndCallBack( MSYS_CurrRegion );
 					MSYS_CurrRegion->FastHelpTimer = gsFastHelpDelay;
-					#ifdef _JA2_RENDER_DIRTY
-						if( MSYS_CurrRegion->uiFlags & MSYS_GOT_BACKGROUND )
-							FreeBackgroundRectPending( MSYS_CurrRegion->FastHelpRect );
-					#endif
 					MSYS_CurrRegion->uiFlags &= (~MSYS_GOT_BACKGROUND);
 					MSYS_CurrRegion->uiFlags |= MSYS_FASTHELP_RESET;
 
-#ifndef JA2
 							VideoRemoveToolTip();
-#endif
 
 					//if( b->uiFlags & BUTTON_ENABLED )
 					//	b->uiFlags |= BUTTON_DIRTY;
@@ -800,10 +750,6 @@ void MSYS_UpdateMouseRegion(void)
 						{
 							// Button was clicked so remove any FastHelp text
 							MSYS_CurrRegion->uiFlags &= (~MSYS_FASTHELP);
-							#ifdef _JA2_RENDER_DIRTY
-								if( MSYS_CurrRegion->uiFlags & MSYS_GOT_BACKGROUND )
-									FreeBackgroundRectPending( MSYS_CurrRegion->FastHelpRect );
-							#endif
 							MSYS_CurrRegion->uiFlags &= (~MSYS_GOT_BACKGROUND);
 
 							//ExecuteMouseHelpEndCallBack( MSYS_CurrRegion );
@@ -812,9 +758,7 @@ void MSYS_UpdateMouseRegion(void)
 
 							//if( b->uiFlags & BUTTON_ENABLED )
 							//	b->uiFlags |= BUTTON_DIRTY;
-#ifndef JA2
 							VideoRemoveToolTip();
-#endif
 						}
 
 						//Kris: Nov 31, 1999 -- Added support for double click events.
@@ -905,10 +849,10 @@ void MSYS_UpdateMouseRegion(void)
 void MSYS_DefineRegion(MOUSE_REGION *region,UINT16 tlx,UINT16 tly,UINT16 brx,UINT16 bry,INT8 priority,
 					   UINT16 crsr,MOUSE_CALLBACK movecallback,MOUSE_CALLBACK buttoncallback)
 {
-	#ifdef MOUSESYSTEM_DEBUGGING
+#ifdef MOUSESYSTEM_DEBUGGING
 		if( region->uiFlags & MSYS_REGION_EXISTS )
 			AssertMsg( 0, "Attempting to define a region that already exists." );
-	#endif
+#endif
 
 	region->IDNumber = MSYS_ID_BASE;
 
@@ -965,40 +909,7 @@ void MSYS_DefineRegion(MOUSE_REGION *region,UINT16 tlx,UINT16 tly,UINT16 brx,UIN
 
 
 
-//=================================================================================================
-//	MSYS_ChangeRegionCursor
-//
-void MSYS_ChangeRegionCursor(MOUSE_REGION *region,UINT16 crsr)
-{
-	region->uiFlags &= (~MSYS_SET_CURSOR);
-	region->Cursor = crsr;
-	if(crsr != MSYS_NO_CURSOR)
-	{
-		region->uiFlags |= MSYS_SET_CURSOR;
 
-		// If we are not in the region, donot update!
-		if ( !( region->uiFlags & MSYS_MOUSE_IN_AREA ) )
-		{
-			return;
-		}
-
-		// Update cursor
-		MSYS_SetCurrentCursor( crsr );
-	}
-}
-
-
-
-//=================================================================================================
-//	MSYS_AddRegion
-//
-//	Adds a defined mouse region to the system list. Once inserted, it enables the region then
-//	calls the callback functions, if any, for initialization.
-//
-INT32 MSYS_AddRegion(MOUSE_REGION *region)
-{
-	return(1);
-}
 
 
 
@@ -1013,34 +924,23 @@ void MSYS_RemoveRegion(MOUSE_REGION *region)
 {
 	if( !region )
 	{
-		#ifdef MOUSESYSTEM_DEBUGGING
+#ifdef MOUSESYSTEM_DEBUGGING
 		if( gfIgnoreShutdownAssertions )
-		#endif
+#endif
 			return;
 		AssertMsg( 0, "Attempting to remove a NULL region.");
 	}
-	#ifdef MOUSESYSTEM_DEBUGGING
+#ifdef MOUSESYSTEM_DEBUGGING
 	if( !(region->uiFlags & MSYS_REGION_EXISTS) )
 		AssertMsg( 0, "Attempting to remove an already removed region." );
-	#endif
-
-#ifdef _JA2_RENDER_DIRTY
-	if( region->uiFlags & MSYS_HAS_BACKRECT )
-	{
-		FreeBackgroundRectPending( region->FastHelpRect );
-		region->uiFlags &= (~MSYS_HAS_BACKRECT);
-
-
-	}
 #endif
+
 
 	// Get rid of the FastHelp text (if applicable)
 	if( region->FastHelpText )
 	{
-#ifndef JA2
 		if(region->uiFlags & MSYS_FASTHELP)
 			VideoRemoveToolTip();
-#endif
 		MemFree( region->FastHelpText );
 	}
 	region->FastHelpText = NULL;
@@ -1110,19 +1010,6 @@ void MSYS_SetCurrentCursor(UINT16 Cursor)
 
 
 
-//=================================================================================================
-//	MSYS_ChangeRegionPriority
-//
-//	Set the priority of a mouse region
-//
-void MSYS_ChangeRegionPriority(MOUSE_REGION *region,INT8 priority)
-{
-	if(priority==MSYS_PRIORITY_AUTO)
-		priority=MSYS_PRIORITY_NORMAL;
-
-	region->PriorityLevel = priority;
-}
-
 
 
 //=================================================================================================
@@ -1136,9 +1023,9 @@ void MSYS_SetRegionUserData(MOUSE_REGION *region,INT32 index,INT32 userdata)
 	if(index < 0 || index > 3)
 	{
 		UINT8 str[80];
-		#ifdef MOUSESYSTEM_DEBUGGING
+#ifdef MOUSESYSTEM_DEBUGGING
 		if( gfIgnoreShutdownAssertions )
-		#endif
+#endif
 			return;
 		sprintf( str, "Attempting MSYS_SetRegionUserData() with out of range index %d.", index );
 		AssertMsg( 0, str );
@@ -1159,9 +1046,9 @@ INT32 MSYS_GetRegionUserData(MOUSE_REGION *region,INT32 index)
 	if(index < 0 || index > 3)
 	{
 		UINT8 str[80];
-		#ifdef MOUSESYSTEM_DEBUGGING
+#ifdef MOUSESYSTEM_DEBUGGING
 		if( gfIgnoreShutdownAssertions )
-		#endif
+#endif
 			return 0;
 		sprintf( str, "Attempting MSYS_GetRegionUserData() with out of range index %d", index );
 		AssertMsg( 0, str );
@@ -1220,28 +1107,6 @@ void MSYS_ReleaseMouse(MOUSE_REGION *region)
 
 */
 
-void MSYS_MoveMouseRegionTo( MOUSE_REGION *region, INT16 sX, INT16 sY)
-{
-
-  INT16 sWidth;
-	INT16 sHeight;
-
-
-	sWidth =  region ->RegionBottomRightX - region ->RegionTopLeftX;
-	sHeight = region ->RegionBottomRightY - region ->RegionTopLeftY;
-
-
-	// move top left
-	region -> RegionTopLeftX = sX;
-	region -> RegionTopLeftY = sY;
-
-	// now move bottom right based on topleft + width or height
-  region -> RegionBottomRightX = sX + sWidth;
-	region -> RegionBottomRightY = sY + sHeight;
-
-	return;
-}
-
 /* ==================================================================================
    MSYS_MoveMouseRegionBy( MOUSE_REGION *region, INT16 sDeltaX, INT16 sDeltaY)
 
@@ -1249,30 +1114,6 @@ void MSYS_MoveMouseRegionTo( MOUSE_REGION *region, INT16 sX, INT16 sY)
 
 */
 
-void MSYS_MoveMouseRegionBy( MOUSE_REGION *region, INT16 sDeltaX, INT16 sDeltaY)
-{
-
-	// move top left
-	region -> RegionTopLeftX = region -> RegionTopLeftX + sDeltaX;
-	region -> RegionTopLeftY = region -> RegionTopLeftY + sDeltaY;
-
-	// now move bottom right
-  region -> RegionBottomRightX = region -> RegionBottomRightX + sDeltaX;
-	region -> RegionBottomRightY = region -> RegionBottomRightY + sDeltaY;
-
-	return;
-}
-
-
-// This function will force a re-evaluation of mouse regions
-// Usually used to force change of mouse cursor if panels switch, etc
-void RefreshMouseRegions( )
-{
-	MSYS_Action|=MSYS_DO_MOVE;
-
-	MSYS_UpdateMouseRegion( );
-
-}
 
 // FUNCTION: WIZ8 0x0040c040
 void SetRegionFastHelpText( MOUSE_REGION *region, UINT16 *szText )
@@ -1302,246 +1143,19 @@ void SetRegionFastHelpText( MOUSE_REGION *region, UINT16 *szText )
   // ATE: We could be replacing already existing, active text
   // so let's remove the region so it be rebuilt...
 
-	#ifdef JA2
-	if ( guiCurrentScreen != MAP_SCREEN )
-	{
-	#endif
 
-	#ifdef _JA2_RENDER_DIRTY
-	  if( region->uiFlags & MSYS_GOT_BACKGROUND )
-		  FreeBackgroundRectPending( region->FastHelpRect );
-  #endif
 
   region->uiFlags &= (~MSYS_GOT_BACKGROUND);
   region->uiFlags &= (~MSYS_FASTHELP_RESET);
 
-	#ifdef JA2
-	}
-	#endif
 
 	//region->FastHelpTimer = gsFastHelpDelay;
 }
 
-INT16 GetNumberOfLinesInHeight( STR16 pStringA )
-{
-	STR16 pToken;
-	INT16 sCounter = 0;
-	CHAR16 pString[ 512 ];
-
-	wcscpy( pString, pStringA );
-
-	// tokenize
-	pToken = wcstok( pString, L"\n" );
-
-	while( pToken != NULL )
-  {
-		 pToken = wcstok( NULL, L"\n" );
-		 sCounter++;
-	}
-
-	return( sCounter );
-}
 
 
-
-#ifdef _JA2_RENDER_DIRTY
-//=============================================================================
-//	DisplayFastHelp
-//
-//
-void DisplayFastHelp( MOUSE_REGION *region )
-{
-	UINT16 usFillColor;
-	INT32 iX,iY,iW,iH;
-	INT32 iNumberOfLines = 1;
-
-	if ( region->uiFlags & MSYS_FASTHELP )
-	{
-		usFillColor = Get16BPPColor(FROMRGB(250, 240, 188));
-
-		iW = (INT32)GetWidthOfString( region->FastHelpText ) + 10;
-		iH = (INT32)( GetNumberOfLinesInHeight( region->FastHelpText ) * (GetFontHeight(FONT10ARIAL)+1) + 8 );
-
-		iX = (INT32)region->RegionTopLeftX + 10;
-
-		if (iX < 0)
-			iX = 0;
-
-		if ( (iX + iW) >= SCREEN_WIDTH )
-			iX = (SCREEN_WIDTH - iW - 4);
-
-		iY = (INT32)region->RegionTopLeftY - (iH * 3 / 4);
-		if (iY < 0)
-			iY = 0;
-
-		if ( (iY + iH) >= SCREEN_HEIGHT )
-			iY = (SCREEN_HEIGHT - iH - 15);
-
-		if ( !(region->uiFlags & MSYS_GOT_BACKGROUND) )
-		{
-			region->FastHelpRect = RegisterBackgroundRect(BGND_FLAG_PERMANENT | BGND_FLAG_SAVERECT, NULL, (INT16)iX, (INT16)iY,
-						(INT16)(iX + iW), (INT16)(iY + iH) );
-			region->uiFlags |= MSYS_GOT_BACKGROUND;
-			region->uiFlags |= MSYS_HAS_BACKRECT;
-		}
-		else
-		{
-			UINT8 *pDestBuf;
-			UINT32 uiDestPitchBYTES;
-			pDestBuf = LockVideoSurface( FRAME_BUFFER, &uiDestPitchBYTES );
-			SetClippingRegionAndImageWidth( uiDestPitchBYTES, 0, 0, 640, 480 );
-			RectangleDraw( TRUE, iX + 1, iY + 1, iX + iW - 1, iY + iH - 1, Get16BPPColor( FROMRGB( 65, 57, 15 ) ), pDestBuf );
-			RectangleDraw( TRUE, iX, iY, iX + iW - 2, iY + iH - 2, Get16BPPColor( FROMRGB( 227, 198, 88 ) ), pDestBuf );
-			UnLockVideoSurface( FRAME_BUFFER );
-			ShadowVideoSurfaceRect( FRAME_BUFFER, iX + 2, iY + 2, iX + iW - 3, iY + iH - 3 );
-			ShadowVideoSurfaceRect( FRAME_BUFFER, iX + 2, iY + 2, iX + iW - 3, iY + iH - 3 );
-
-			SetFont( FONT10ARIAL );
-			SetFontShadow( FONT_NEARBLACK );
-			DisplayHelpTokenizedString( region->FastHelpText ,( INT16 )( iX + 5 ), ( INT16 )( iY + 5 ) );
-			InvalidateRegion(  iX, iY, (iX + iW) , (iY + iH) );
-		}
-	}
-}
-
-
-INT16 GetWidthOfString( STR16 pStringA )
-{
-	CHAR16 pString[ 512 ];
-	STR16 pToken;
-	INT16 sWidth = 0;
-	wcscpy( pString, pStringA );
-
-	// tokenize
-	pToken = wcstok( pString, L"\n" );
-
-	while( pToken != NULL )
-  {
-		if( sWidth < StringPixLength( pToken, FONT10ARIAL ) )
-		{
-			sWidth = StringPixLength( pToken, FONT10ARIAL );
-		}
-
-		pToken = wcstok( NULL, L"\n" );
-	}
-
-	return( sWidth );
-
-}
-
-void DisplayHelpTokenizedString( STR16 pStringA, INT16 sX, INT16 sY )
-{
-	STR16 pToken;
-	INT32 iCounter = 0, i;
-	UINT32 uiCursorXPos;
-	CHAR16 pString[ 512 ];
-	INT32 iLength;
-
-	wcscpy( pString, pStringA );
-
-	// tokenize
-	pToken = wcstok( pString, L"\n" );
-
-	while( pToken != NULL )
-  {
-		iLength = (INT32)wcslen( pToken );
-		for( i = 0; i < iLength; i++ )
-		{
-			uiCursorXPos = StringPixLengthArgFastHelp( FONT10ARIAL, FONT10ARIALBOLD, i, pToken );
-			if( pToken[ i ] == '|' )
-			{
-				i++;
-				SetFont( FONT10ARIALBOLD );
-				SetFontForeground( 146 );
-			}
-			else
-			{
-				SetFont( FONT10ARIAL );
-				SetFontForeground( FONT_BEIGE );
-			}
-			mprintf( sX + uiCursorXPos, sY + iCounter * (GetFontHeight(FONT10ARIAL)+1), L"%c", pToken[ i ] );
-		}
-		pToken = wcstok( NULL, L"\n" );
-		iCounter++;
-	}
-}
-
-void RenderFastHelp()
-{
-	static INT32 iLastClock;
-	INT32 iTimeDifferential, iCurrentClock;
-
-	if( !gfRenderHilights )
-		return;
-
-	iCurrentClock = GetClock();
-	iTimeDifferential = iCurrentClock - iLastClock;
-	if (iTimeDifferential < 0)
-		iTimeDifferential += 0x7fffffff;
-	iLastClock = iCurrentClock;
-
-	if( MSYS_CurrRegion && MSYS_CurrRegion->FastHelpText )
-	{
-		if( !MSYS_CurrRegion->FastHelpTimer )
-		{
-			if( MSYS_CurrRegion->uiFlags & ( MSYS_ALLOW_DISABLED_FASTHELP | MSYS_REGION_ENABLED ) )
-			{
-				if( MSYS_CurrRegion->uiFlags & MSYS_MOUSE_IN_AREA )
-					MSYS_CurrRegion->uiFlags |= MSYS_FASTHELP;
-				else
-				{
-					MSYS_CurrRegion->uiFlags &= ( ~( MSYS_FASTHELP | MSYS_FASTHELP_RESET ) );
-				}
-				//Do I really need this?
-				//MSYS_CurrRegion->uiFlags |= REGION_DIRTY;
-				DisplayFastHelp( MSYS_CurrRegion );
-			}
-		}
-		else
-		{
-			if( MSYS_CurrRegion->uiFlags & ( MSYS_ALLOW_DISABLED_FASTHELP | MSYS_REGION_ENABLED ) )
-			{
-				if ( MSYS_CurrRegion->uiFlags & MSYS_MOUSE_IN_AREA &&
-						!MSYS_CurrRegion->ButtonState)// & (MSYS_LEFT_BUTTON|MSYS_RIGHT_BUTTON)) )
-				{
-					MSYS_CurrRegion->FastHelpTimer -= (INT16)max( iTimeDifferential, 0 );
-
-					if( MSYS_CurrRegion->FastHelpTimer < 0 )
-					{
-						MSYS_CurrRegion->FastHelpTimer = 0;
-					}
-				}
-			}
-		}
-	}
-}
-#else
 
 // **********Wiz8 Versions**************************************************************************
-
-INT16 GetWidthOfString( STR16 pStringA )
-{
-	CHAR16 pString[ 512 ];
-	STR16 pToken;
-	INT16 sWidth = 0;
-	wcscpy( pString, pStringA );
-
-	// tokenize
-	pToken = wcstok( pString, L"\n" );
-
-	while( pToken != NULL )
-  {
-		if( sWidth < StringPixLength( pToken, ghTinyMonoFont ) )
-		{
-			sWidth = StringPixLength( pToken, ghTinyMonoFont );
-		}
-
-		pToken = wcstok( NULL, L"\n" );
-	}
-
-	return( sWidth );
-
-}
 
 void DisplayFastHelp( MOUSE_REGION *region )
 {
@@ -1570,43 +1184,6 @@ void DisplayFastHelp( MOUSE_REGION *region )
 			iY = (SCREEN_HEIGHT - iH - 15);
 
 		VideoPositionToolTip(iX, iY);
-	}
-}
-
-void DisplayHelpTokenizedString( STR16 pStringA, INT16 sX, INT16 sY )
-{
-	STR16 pToken;
-	INT32 iCounter = 0, i;
-	UINT32 uiCursorXPos;
-	CHAR16 pString[ 512 ];
-	INT32 iLength;
-
-	wcscpy( pString, pStringA );
-
-	// tokenize
-	pToken = wcstok( pString, L"\n" );
-
-	while( pToken != NULL )
-  {
-		iLength = (INT32)wcslen( pToken );
-		for( i = 0; i < iLength; i++ )
-		{
-			uiCursorXPos = StringPixLengthArgFastHelp( ghTinyMonoFont, ghTinyMonoFont, i, pToken );
-			if( pToken[ i ] == '|' )
-			{
-				i++;
-				SetFont(ghTinyMonoFont);
-				SetFontForeground( 2 );
-			}
-			else
-			{
-				SetFont( ghTinyMonoFont );
-				SetFontForeground( 2 );
-			}
-			mprintf( sX + uiCursorXPos, sY + iCounter * (GetFontHeight(ghTinyMonoFont)+1), L"%c", pToken[ i ] );
-		}
-		pToken = wcstok( NULL, L"\n" );
-		iCounter++;
 	}
 }
 
@@ -1662,70 +1239,9 @@ void RenderFastHelp()
 		}
 	}
 }
-#endif
-
-BOOLEAN	SetRegionSavedRect( MOUSE_REGION *region)
-{
-	return FALSE;
-}
-
-void FreeRegionSavedRect( MOUSE_REGION *region )
-{
-
-}
-
-void MSYS_AllowDisabledRegionFastHelp( MOUSE_REGION *region, BOOLEAN fAllow )
-{
-	if( fAllow )
-	{
-		region->uiFlags |= MSYS_ALLOW_DISABLED_FASTHELP;
-	}
-	else
-	{
-		region->uiFlags &= ~MSYS_ALLOW_DISABLED_FASTHELP;
-	}
-}
 
 // new stuff to allow mouse callbacks when help text finishes displaying
 
-void SetRegionHelpEndCallback( MOUSE_REGION *region, MOUSE_HELPTEXT_DONE_CALLBACK CallbackFxn )
-{
-	// make sure region is non null
-	if( region == NULL )
-	{
-		return;
-	}
-
-	// now set the region help text
-	region-> HelpDoneCallback = CallbackFxn;
-
-	return;
-}
-
-
-void ExecuteMouseHelpEndCallBack( MOUSE_REGION *region )
-{
-	if( region == NULL )
-	{
-		return;
-	}
-
-	if( region->FastHelpTimer )
-	{
-		return;
-	}
-	// check if callback is non null
-	if( region->HelpDoneCallback == NULL )
-	{
-		return;
-	}
-
-	// we have a callback, excecute
-	// ATE: Disable these!
-	//( *( region->HelpDoneCallback ) )( );
-
-	return;
-}
 
 
 // FUNCTION: WIZ8 0x0040c1f0

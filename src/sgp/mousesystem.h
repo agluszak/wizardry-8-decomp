@@ -1,3 +1,7 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
+   Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
+   Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
+   Distributed under the accompanying SFI Source Code license agreement. */
 // *****************************************************************************
 //
 // Filename :	MouseSystem.h
@@ -27,9 +31,6 @@
 //
 // *****************************************************************************
 
-#ifdef JA2
-#define _JA2_RENDER_DIRTY		// Undef this if not using the JA2 Dirty Rectangle System.
-#endif
 
 typedef void (*MOUSE_CALLBACK)(struct _MOUSE_REGION *,INT32);	// Define MOUSE_CALLBACK type as pointer to void
 typedef void (*MOUSE_HELPTEXT_DONE_CALLBACK)( ); // the help is done callback
@@ -179,29 +180,17 @@ INT32 MSYS_Init(void);
 void MSYS_Shutdown(void);
 void MSYS_DefineRegion(MOUSE_REGION *region,UINT16 tlx,UINT16 tly,UINT16 brx,UINT16 bry,INT8 priority,
 					   UINT16 crsr,MOUSE_CALLBACK movecallback,MOUSE_CALLBACK buttoncallback);
-void MSYS_ChangeRegionCursor(MOUSE_REGION *region,UINT16 crsr);
-INT32 MSYS_AddRegion(MOUSE_REGION *region);
 void MSYS_RemoveRegion(MOUSE_REGION *region);
 void MSYS_EnableRegion(MOUSE_REGION *region);
 void MSYS_DisableRegion(MOUSE_REGION *region);
-void MSYS_ChangeRegionPriority(MOUSE_REGION *region,INT8 priority);
 void MSYS_SetRegionUserData(MOUSE_REGION *region,INT32 index,INT32 userdata);
 INT32 MSYS_GetRegionUserData(MOUSE_REGION *region,INT32 index);
 
 INT32 MSYS_GrabMouse(MOUSE_REGION *region);
 void MSYS_ReleaseMouse(MOUSE_REGION *region);
-void MSYS_MoveMouseRegionBy( MOUSE_REGION *region, INT16 sDeltaX, INT16 sDeltaY);
-void MSYS_MoveMouseRegionTo( MOUSE_REGION *region, INT16 sX, INT16 sY);
-
-void MSYS_AllowDisabledRegionFastHelp( MOUSE_REGION *region, BOOLEAN fAllow );
-
 // This function will force a re-evaluation of mous regions
 // Usually used to force change of mouse cursor if panels switch, etc
-void RefreshMouseRegions( );
-
 void SetRegionFastHelpText( MOUSE_REGION *region, UINT16 *szText );
-
-void SetRegionHelpEndCallback( MOUSE_REGION *region, MOUSE_HELPTEXT_DONE_CALLBACK CallbackFxn );
 
 // Now also used by Wizardry -- DB
 void DisplayFastHelp( MOUSE_REGION *region );
@@ -213,12 +202,6 @@ void DisableMouseFastHelp( void );
 
 void ResetClickedMode(void);
 
-#ifdef _JA2_RENDER_DIRTY
-
-BOOLEAN	SetRegionSavedRect( MOUSE_REGION *region);
-void		FreeRegionSavedRect( MOUSE_REGION *region );
-
-#endif
 
 // *****************************************************************************
 

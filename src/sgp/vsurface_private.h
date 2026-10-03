@@ -1,5 +1,6 @@
-/* Modified for the Wizardry 8 reconstruction, 2026-09-10.
+/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
    Declare the original C interfaces for product callers.
+   Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
    Distributed under the accompanying SFI Source Code license agreement. */
 #ifndef __VSURFACE_PRIVATE_
 #define __VSURFACE_PRIVATE_
@@ -19,10 +20,6 @@ extern "C" {
 // Allows direct access to underlying Direct Draw Implementation
 //
 // ***********************************************************************
-
-LPDIRECTDRAWSURFACE2 GetVideoSurfaceDDSurface( HVSURFACE hVSurface );
-LPDIRECTDRAWSURFACE  GetVideoSurfaceDDSurfaceOne( HVSURFACE hVSurface );
-LPDIRECTDRAWPALETTE  GetVideoSurfaceDDPalette( HVSURFACE hVSurface );
 
 HVSURFACE CreateVideoSurfaceFromDDSurface( LPDIRECTDRAWSURFACE2 lpDDSurface );
 

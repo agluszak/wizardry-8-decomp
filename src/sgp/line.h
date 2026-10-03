@@ -1,3 +1,6 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
+   Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
+   Distributed under the accompanying SFI Source Code license agreement. */
 // *****************************************************************************
 //
 // Filename :	line.h
@@ -54,12 +57,8 @@ void SetClippingRegionAndImageWidth(
 //	Don't send fClip==TRUE to LineDraw if you don't have to. So if you know
 //  that your line will be within the region you want it to be in, set
 //	fClip == FALSE.
-void PixelDraw( BOOLEAN fClip, INT32 xp, INT32 yp, INT16 sColor, INT8 *pScreen );
 void LineDraw( BOOL fClip, int XStart, int YStart, int XEnd, int YEnd, short Color, char *ScreenPtr);
-void LineDraw8( BOOL fClip, int XStart, int YStart, int XEnd, int YEnd, short Color, char *ScreenPtr);
 void RectangleDraw( BOOL fClip, int XStart, int YStart, int XEnd, int YEnd, short Color, char *ScreenPtr);
-void RectangleDraw8( BOOL fClip, int XStart, int YStart, int XEnd, int YEnd, short Color, char *ScreenPtr);
-
 // *****************************************************************************
 
 #ifdef __cplusplus

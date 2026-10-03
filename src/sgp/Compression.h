@@ -1,3 +1,6 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
+   Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
+   Distributed under the accompanying SFI Source Code license agreement. */
 #if !defined( COMPRESSION_H )
 
 #define COMPRESSION_H
@@ -43,10 +46,5 @@ void DecompressFini( PTR pDecompPtr );
 // of bytes of output.
 //
 // 3) call CompressFini() with the compression pointer when you're done
-
-UINT32 CompressedBufferSize( UINT32 uiDataSize );
-PTR CompressInit( BYTE * pUncompressedData, UINT32 uiDataSize );
-UINT32 Compress( PTR pCompPtr, BYTE * pBuffer, UINT32 uiBufferLen );
-void CompressFini( PTR pCompPtr );
 
 #endif

@@ -1,3 +1,6 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
+   Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
+   Distributed under the accompanying SFI Source Code license agreement. */
 #ifndef __RANDOM_
 #define __RANDOM_
 
@@ -18,9 +21,6 @@ extern BOOLEAN Chance( UINT32 uiChance );
 
 //Wizardry can use it too, but I'm saving them a K in the meantime...
 //If Wizardry wants it, then removing the #ifdef JA2 will make it work.
-#ifdef JA2
-	#define PRERANDOM_GENERATOR
-#endif
 
 #ifdef PRERANDOM_GENERATOR
 	//Returns a pregenerated random number.

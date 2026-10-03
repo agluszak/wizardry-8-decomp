@@ -4,9 +4,15 @@ Once a retail address is proven to belong to an available-source oracle, agents
 must recover it from that oracle rather than independently decompiling it into
 Wizardry TUs.
 
+Ownership and provenance are distinct. ``src/sgp`` is the editable
+reconstruction of Wizardry's SGP fork, not the oracle: its FUNCTION/LIBRARY
+markers establish only that the address is owned by the SGP component. The
+immutable oracle is the pinned released SGP baseline; only an explicit reviewed
+``sgp-source`` claim promotes an address to source-backed oracle evidence.
+Owner markers still feed the misplacement gate and the per-TU hulls.
+
 Proven evidence is point-wise first:
 
-* FUNCTION/LIBRARY markers under oracle source roots (SGP);
 * LIBRARY markers for CRT helpers and embedded zlib entry points;
 * strong reviewed claims (``sgp-source`` retained identities, ``fid`` CRT
   variants);
@@ -14,7 +20,7 @@ Proven evidence is point-wise first:
 * sized reviewed bodies (CRT helpers and named zlib entries);
 * ``config/reccmp/*.csv`` ``library`` rows for CRT, zlib and extension DLLs.
 
-Contiguous contribution hulls are built only for oracle translation units with
+Contiguous contribution hulls are built only for owner translation units with
 real source roots (today: ``src/sgp``). Library identity catalogs must not form
 a single hull across the image.
 
@@ -32,7 +38,7 @@ import re
 import struct
 from collections import defaultdict
 from collections.abc import Iterable, Mapping, Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
 
@@ -88,6 +94,9 @@ class OracleFamily:
     claim_predicates: frozenset[str] = field(default_factory=frozenset)
     # Inclusive documented contribution ranges (start address .. last covered byte).
     address_ranges: tuple[tuple[int, int], ...] = ()
+    # Markers under source_roots are oracle evidence, not merely ownership.
+    # False for editable reconstructions whose oracle is an immutable baseline.
+    owner_markers_are_evidence: bool = True
     # LIBRARY markers may own this family without living under source_roots.
     library_marker_ownership: bool = False
     # When set, only LIBRARY marker names containing these tokens join the family.
@@ -126,6 +135,7 @@ ORACLE_FAMILIES: tuple[OracleFamily, ...] = (
         target="WIZ8",
         source_roots=("src/sgp/",),
         name_origins=frozenset({"sgp-source"}),
+        owner_markers_are_evidence=False,
     ),
     OracleFamily(
         name="zlib",
@@ -236,7 +246,9 @@ def _family_for_library_marker(
 
 
 @dataclass(frozen=True)
-class ProvenOracleSymbol:
+class OracleSymbol:
+    """An address owned by an oracle family; ``proven`` when backed by oracle evidence."""
+
     address: int
     family: str
     target: str
@@ -244,6 +256,7 @@ class ProvenOracleSymbol:
     evidence: str
     name: str = ""
     marker_kind: str = ""
+    proven: bool = True
 
 
 @dataclass(frozen=True)
@@ -315,8 +328,8 @@ def _sized_body_owners(
 
 def _load_reccmp_library_symbols(
     repo_dir: Path, families: Sequence[OracleFamily]
-) -> list[ProvenOracleSymbol]:
-    symbols: list[ProvenOracleSymbol] = []
+) -> list[OracleSymbol]:
+    symbols: list[OracleSymbol] = []
     for family in families:
         if not family.reccmp_csv:
             continue
@@ -333,7 +346,7 @@ def _load_reccmp_library_symbols(
                     continue
                 name = (row.get("name") or row.get("symbol") or "").strip()
                 symbols.append(
-                    ProvenOracleSymbol(
+                    OracleSymbol(
                         address=address,
                         family=family.name,
                         target=family.target,
@@ -346,18 +359,22 @@ def _load_reccmp_library_symbols(
     return symbols
 
 
-def proven_oracle_symbols(
+def oracle_symbols(
     repo_dir: Path,
     *,
     index: Mapping[str, Any] | None = None,
     claims: Sequence[Mapping[str, str]] | None = None,
     families: Sequence[OracleFamily] = ORACLE_FAMILIES,
-) -> list[ProvenOracleSymbol]:
-    """Collect proven oracle-owned retail addresses from markers and claims."""
+) -> list[OracleSymbol]:
+    """Collect oracle-owned retail addresses from markers and claims.
+
+    Owner markers of a family whose markers are not evidence stay unproven
+    until a retained claim for the same address supplies the provenance.
+    """
 
     source_index = index if index is not None else _load_index(repo_dir)
     claim_rows = claims if claims is not None else load_claims(repo_dir)
-    by_address: dict[tuple[str, int], ProvenOracleSymbol] = {}
+    by_address: dict[tuple[str, int], OracleSymbol] = {}
 
     for marker in source_index.get("markers", ()):
         kind = str(marker.get("marker_kind") or "")
@@ -379,14 +396,16 @@ def proven_oracle_symbols(
             continue
         target = target or family.target
         key = (target, address)
-        by_address[key] = ProvenOracleSymbol(
+        proven = kind == "LIBRARY" or family.owner_markers_are_evidence
+        by_address[key] = OracleSymbol(
             address=address,
             family=family.name,
             target=target,
             source_file=source_file,
-            evidence=f"marker:{kind}",
+            evidence=f"marker:{kind}" if proven else f"owner-marker:{kind}",
             name=marker_name,
             marker_kind=kind,
+            proven=proven,
         )
 
     # Retained library labels are the owner; claim values may describe matching
@@ -405,9 +424,14 @@ def proven_oracle_symbols(
             continue
         address = parse_hex(claim["entity_key"], field="entity_key", path=claims_path) or 0
         key = (family.target, address)
-        if key in by_address:
+        existing = by_address.get(key)
+        if existing is not None:
+            if not existing.proven and existing.family == family.name:
+                by_address[key] = replace(
+                    existing, evidence=f"claim:{claim['predicate'].strip()}", proven=True
+                )
             continue
-        by_address[key] = ProvenOracleSymbol(
+        by_address[key] = OracleSymbol(
             address=address,
             family=family.name,
             target=family.target,
@@ -420,10 +444,10 @@ def proven_oracle_symbols(
 
 
 def contribution_hulls(
-    symbols: Sequence[ProvenOracleSymbol],
+    symbols: Sequence[OracleSymbol],
     families: Sequence[OracleFamily] = ORACLE_FAMILIES,
 ) -> list[ContributionHull]:
-    """Convex start-address spans per oracle TU with a real source root."""
+    """Convex start-address spans per owner TU with a real source root."""
 
     hullable = {family.name for family in families if family.source_roots}
     grouped: dict[tuple[str, str, str], list[int]] = defaultdict(list)
@@ -450,11 +474,11 @@ def _owner_at(
     address: int,
     *,
     target: str,
-    symbols_by_key: Mapping[tuple[str, int], ProvenOracleSymbol],
+    symbols_by_key: Mapping[tuple[str, int], OracleSymbol],
     hulls: Sequence[ContributionHull],
     ranges: Sequence[AddressRangeOwner],
     bodies: Sequence[SizedBodyOwner] = (),
-) -> ProvenOracleSymbol | ContributionHull | AddressRangeOwner | SizedBodyOwner | None:
+) -> OracleSymbol | ContributionHull | AddressRangeOwner | SizedBodyOwner | None:
     if address in REJECTED_FID_ADDRESSES:
         return None
     direct = symbols_by_key.get((target, address))
@@ -498,9 +522,9 @@ def _oracle_owned_markers(
 
 
 def _owner_detail(
-    owner: ProvenOracleSymbol | ContributionHull | AddressRangeOwner | SizedBodyOwner,
+    owner: OracleSymbol | ContributionHull | AddressRangeOwner | SizedBodyOwner,
 ) -> tuple[str, str]:
-    if isinstance(owner, ProvenOracleSymbol):
+    if isinstance(owner, OracleSymbol):
         return owner.family, owner.source_file or owner.evidence
     if isinstance(owner, ContributionHull):
         return (
@@ -604,9 +628,7 @@ def source_oracle_violations(
 
     source_index = index if index is not None else _load_index(repo_dir)
     claim_rows = claims if claims is not None else load_claims(repo_dir)
-    symbols = proven_oracle_symbols(
-        repo_dir, index=source_index, claims=claim_rows, families=families
-    )
+    symbols = oracle_symbols(repo_dir, index=source_index, claims=claim_rows, families=families)
     hulls = contribution_hulls(symbols, families)
     ranges = _range_owners(families)
     bodies = _sized_body_owners(families)
@@ -648,8 +670,8 @@ def source_oracle_violations(
                 "owner": owner_detail,
                 "detail": (
                     f"{source_file}:{marker.get('line')}: FUNCTION {_format_address(address)} "
-                    f"falls in proven {family_name} oracle space ({owner_detail}); "
-                    "recover from the oracle / mark LIBRARY, do not decompile under Wizardry TUs"
+                    f"is owned by the {family_name} boundary ({owner_detail}); "
+                    "recover it at that owner / mark LIBRARY, do not decompile under Wizardry TUs"
                 ),
             }
         )
@@ -708,8 +730,8 @@ def source_oracle_violations(
                 "name": qualified,
                 "detail": (
                     f"{source_file}:{declaration.get('line')}: {qualified} at "
-                    f"{_format_address(address)} is in proven {family_name} oracle space; "
-                    "recover from the oracle, do not decompile"
+                    f"{_format_address(address)} is owned by the {family_name} boundary; "
+                    "recover it at that owner, do not decompile"
                 ),
             }
         )
@@ -771,13 +793,13 @@ def source_oracle_report(
 
     index = _load_index(repo_dir)
     claims = load_claims(repo_dir)
-    symbols = proven_oracle_symbols(repo_dir, index=index, claims=claims, families=families)
+    symbols = oracle_symbols(repo_dir, index=index, claims=claims, families=families)
     hulls = contribution_hulls(symbols, families)
     ranges = _range_owners(families)
     bodies = _sized_body_owners(families)
     violations = source_oracle_violations(repo_dir, index=index, claims=claims, families=families)
     artifact = {
-        "schema": "wiz8.source-oracle-v1",
+        "schema": "wiz8.source-oracle-v2",
         "families": [
             {
                 "name": family.name,
@@ -793,7 +815,7 @@ def source_oracle_report(
             }
             for family in families
         ],
-        "proven_symbols": [
+        "symbols": [
             {
                 "address": _format_address(item.address),
                 "family": item.family,
@@ -802,6 +824,7 @@ def source_oracle_report(
                 "evidence": item.evidence,
                 "name": item.name,
                 "marker_kind": item.marker_kind,
+                "proven": item.proven,
             }
             for item in symbols
         ],
@@ -842,12 +865,14 @@ def source_oracle_report(
     for item in violations:
         counts[str(item["kind"])] += 1
     by_family: dict[str, int] = defaultdict(int)
+    owned_by_family: dict[str, int] = defaultdict(int)
     for item in symbols:
-        by_family[item.family] += 1
+        (by_family if item.proven else owned_by_family)[item.family] += 1
     return {
         "status": "passed" if not violations else "failed",
-        "proven_symbols": len(symbols),
+        "proven_symbols": sum(by_family.values()),
         "proven_symbols_by_family": dict(by_family),
+        "unproven_owned_symbols_by_family": dict(owned_by_family),
         "contribution_hulls": len(hulls),
         "address_ranges": len(ranges),
         "sized_bodies": len(bodies),
@@ -876,6 +901,7 @@ def validate_source_oracle_ownership(
         "gate": "source-oracle",
         "proven_symbols": report["proven_symbols"],
         "proven_symbols_by_family": report["proven_symbols_by_family"],
+        "unproven_owned_symbols_by_family": report["unproven_owned_symbols_by_family"],
         "contribution_hulls": report["contribution_hulls"],
         "address_ranges": report["address_ranges"],
         "artifact": report["artifact"],

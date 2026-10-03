@@ -1,15 +1,11 @@
-/* Modified for the Wizardry 8 reconstruction, 2026-09-16.
+/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
    Add matching markers for retained SGP functions and globals.
+   Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
+   Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
    Distributed under the accompanying SFI Source Code license agreement. */
-#ifdef JA2_PRECOMPILED_HEADERS
-	#include "JA2 SGP ALL.H"
-#elif defined( WIZ8_PRECOMPILED_HEADERS )
-	#include "WIZ8 SGP ALL.H"
-#else
-	#include "MemMan.h"
-	#include "debug.h"
-	#include "zlib.h"
-#endif
+#include "MemMan.h"
+#include "debug.h"
+#include "zlib.h"
 
 
 // mem allocation functions for ZLIB's purposes
@@ -97,77 +93,3 @@ void DecompressFini( PTR pDecompPtr )
 	MemFree( pZStream );
 }
 
-UINT32 CompressedBufferSize( UINT32 uiDataSize )
-{ // Function that calculates the worst-case buffer size needed to
-	// hold uiDataSize bytes compressed
-
-	return( uiDataSize + uiDataSize / 10 + 13 );
-}
-
-PTR CompressInit( BYTE * pUncompressedData, UINT32 uiDataSize )
-{
-	z_stream *	pZStream;
-	int					iZRetCode;
-
-	// allocate memory for the z_stream struct
-	pZStream = MemAlloc( sizeof( z_stream ) );
-	if( pZStream == NULL )
-	{ // out of memory!
-		return( NULL );
-	}
-
-	// initial defines
-	pZStream->zalloc = ZAlloc;
-	pZStream->zfree = ZFree;
-	pZStream->opaque = NULL;
-
-	// call the ZLIB init routine
-	iZRetCode = deflateInit( pZStream, Z_BEST_COMPRESSION );
-	if( iZRetCode != Z_OK )
-	{ // ZLIB init error!
-		MemFree( pZStream );
-		return( NULL );
-	}
-
-	// set up our parameters
-	pZStream->next_in = pUncompressedData;
-	pZStream->avail_in = uiDataSize;
-	return( (PTR) pZStream );
-}
-
-UINT32 Compress( PTR pCompPtr, BYTE * pBuffer, UINT32 uiBufferLen )
-{
-	int					iZRetCode;
-	z_stream *	pZStream = (z_stream *) pCompPtr;
-
-	// these assertions is in here to ensure that we get passed a proper z_stream pointer
-	Assert( pZStream != NULL );
-	Assert( pZStream->zalloc == ZAlloc );
-
-	if (pZStream->avail_in == 0)
-	{ // There is nothing left to compress!
-		return( 0 );
-	}
-
-	// set up the z_stream with our parameters
-	pZStream->next_out = pBuffer;
-	pZStream->avail_out = uiBufferLen;
-
-	// decompress!
-	iZRetCode = deflate( pZStream, Z_FINISH );
-	Assert( iZRetCode == Z_STREAM_END );
-
-	return( uiBufferLen - pZStream->avail_out );
-}
-
-void CompressFini( PTR pCompPtr )
-{
-	z_stream *	pZStream = (z_stream *) pCompPtr;
-
-	// these assertions is in here to ensure that we get passed a proper z_stream pointer
-	Assert( pZStream != NULL );
-	Assert( pZStream->zalloc == ZAlloc );
-
-	deflateEnd( pZStream );
-	MemFree( pZStream );
-}

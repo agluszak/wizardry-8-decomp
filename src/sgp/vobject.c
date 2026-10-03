@@ -1,27 +1,19 @@
-/* Modified for the Wizardry 8 reconstruction, 2026-09-16.
+/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
    Add matching markers for retained SGP functions and globals.
+   Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
+   Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
    Distributed under the accompanying SFI Source Code license agreement. */
-#ifdef JA2_PRECOMPILED_HEADERS
-	#include "JA2 SGP ALL.H"
-#elif defined( WIZ8_PRECOMPILED_HEADERS )
-	#include "WIZ8 SGP ALL.H"
-#else
-	#include "DirectDraw Calls.h"
-	#include <stdio.h>
-	#include "debug.h"
-	#if defined( JA2 ) || defined( UTIL )
-		#include "video.h"
-	#else
-		#include "video2.h"
-	#endif
-	#include "himage.h"
-	#include "vobject.h"
-	#include "vobject_private.h"
-	#include "video_private.h"
-	#include "wcheck.h"
-	#include "vobject_blitters.h"
-	#include "sgp.h"
-#endif
+#include "DirectDraw Calls.h"
+#include <stdio.h>
+#include "debug.h"
+#include "video2.h"
+#include "himage.h"
+#include "vobject.h"
+#include "vobject_private.h"
+#include "video_private.h"
+#include "wcheck.h"
+#include "vobject_blitters.h"
+#include "sgp.h"
 
 // ******************************************************************************
 //
@@ -74,10 +66,10 @@ typedef struct VOBJECT_NODE
 	UINT32 uiIndex;
   struct VOBJECT_NODE *next, *prev;
 
-	#ifdef SGP_VIDEO_DEBUGGING
+#ifdef SGP_VIDEO_DEBUGGING
 		UINT8									*pName;
 		UINT8									*pCode;
-	#endif
+#endif
 
 }VOBJECT_NODE;
 
@@ -143,12 +135,12 @@ BOOLEAN ShutdownVideoObjectManager( )
 		curr = gpVObjectHead;
 		gpVObjectHead = gpVObjectHead->next;
 		DeleteVideoObject( curr->hVObject );
-		#ifdef SGP_VIDEO_DEBUGGING
+#ifdef SGP_VIDEO_DEBUGGING
 			if( curr->pName )
 				MemFree( curr->pName );
 			if( curr->pCode )
 				MemFree( curr->pCode );
-		#endif
+#endif
 		MemFree( curr );
 	}
 	gpVObjectHead = NULL;
@@ -159,19 +151,6 @@ BOOLEAN ShutdownVideoObjectManager( )
 	UnRegisterDebugTopic(TOPIC_VIDEOOBJECT, "Video Objects");
 	gfVideoObjectsInit=FALSE;
 	return TRUE;
-}
-
-UINT32 CountVideoObjectNodes()
-{
-	VOBJECT_NODE *curr;
-	UINT32 i = 0;
-	curr = gpVObjectHead;
-	while( curr )
-	{
-		i++;
-		curr = curr->next;
-	}
-	return i;
 }
 
 // FUNCTION: WIZ8 0x00405ef0
@@ -212,10 +191,10 @@ BOOLEAN AddStandardVideoObject( VOBJECT_DESC *pVObjectDesc, UINT32 *puiIndex )
 		gpVObjectHead->prev = gpVObjectHead->next = NULL;
 		gpVObjectTail = gpVObjectHead;
 	}
-	#ifdef SGP_VIDEO_DEBUGGING
+#ifdef SGP_VIDEO_DEBUGGING
 		gpVObjectTail->pName = NULL;
 		gpVObjectTail->pCode = NULL;
-	#endif
+#endif
 	//Set the hVObject into the node.
 	gpVObjectTail->hVObject = hVObject;
 	gpVObjectTail->uiIndex = guiVObjectIndex+=2;
@@ -225,41 +204,19 @@ BOOLEAN AddStandardVideoObject( VOBJECT_DESC *pVObjectDesc, UINT32 *puiIndex )
 	guiVObjectSize++;
 	guiVObjectTotalAdded++;
 
-	#ifdef JA2TESTVERSION
-		if( CountVideoObjectNodes() != guiVObjectSize )
-		{
-			guiVObjectSize = guiVObjectSize;
-		}
-	#endif
 
 	return TRUE ;
 }
 
-
-BOOLEAN SetVideoObjectTransparency( UINT32 uiIndex, COLORVAL TransColor )
-{
-	HVOBJECT hVObject;
-
-	// Get video object
-	#ifdef _DEBUG
-		gubVODebugCode = DEBUGSTR_SETVIDEOOBJECTTRANSPARENCY;
-	#endif
-	CHECKF( GetVideoObject( &hVObject, uiIndex ) );
-
-	// Set transparency
-	SetVideoObjectTransparencyColor( hVObject, TransColor );
-
-	return( TRUE );
-}
 
 // FUNCTION: WIZ8 0x00405fc0
 BOOLEAN GetVideoObject( HVOBJECT *hVObject, UINT32 uiIndex )
 {
 	VOBJECT_NODE *curr;
 
-	#ifdef _DEBUG
+#ifdef _DEBUG
 		CheckValidVObjectIndex( uiIndex );
-	#endif
+#endif
 
 	curr = gpVObjectHead;
 	while( curr )
@@ -290,9 +247,9 @@ BOOLEAN BltVideoObjectFromIndex(UINT32 uiDestVSurface, UINT32 uiSrcVObject, UINT
 	}
 
 	// Get video object
-	#ifdef _DEBUG
+#ifdef _DEBUG
 		gubVODebugCode = DEBUGSTR_BLTVIDEOOBJECTFROMINDEX;
-	#endif
+#endif
 	if( !GetVideoObject( &hSrcVObject, uiSrcVObject ) )
 	{
 		UnLockVideoSurface( uiDestVSurface );
@@ -317,10 +274,10 @@ BOOLEAN DeleteVideoObjectFromIndex( UINT32 uiVObject  )
 {
 	VOBJECT_NODE *curr;
 
-	#ifdef _DEBUG
+#ifdef _DEBUG
 		gubVODebugCode = DEBUGSTR_DELETEVIDEOOBJECTFROMINDEX;
 		CheckValidVObjectIndex( uiVObject );
-	#endif
+#endif
 
 	curr = gpVObjectHead;
 	while( curr )
@@ -349,21 +306,15 @@ BOOLEAN DeleteVideoObjectFromIndex( UINT32 uiVObject  )
 				curr->prev->next = curr->next;
 			}
 			//The node is now detached.  Now deallocate it.
-			#ifdef SGP_VIDEO_DEBUGGING
+#ifdef SGP_VIDEO_DEBUGGING
 				if( curr->pName )
 					MemFree( curr->pName );
 				if( curr->pCode )
 					MemFree( curr->pCode );
-			#endif
+#endif
 			MemFree( curr );
 			curr = NULL;
 			guiVObjectSize--;
-			#ifdef JA2TESTVERSION
-				if( CountVideoObjectNodes() != guiVObjectSize )
-				{
-					guiVObjectSize = guiVObjectSize;
-				}
-			#endif
 			return TRUE;
 		}
 		curr = curr->next;
@@ -751,7 +702,6 @@ BOOLEAN BltVideoObjectToBuffer( UINT16 *pBuffer, UINT32 uiDestPitchBYTES, HVOBJE
 				{
 					if(gbPixelDepth==16)
 					{
-#ifndef JA2
 						if ( fBltFlags & VO_BLT_MIRROR_Y)
 						{
 							if(!BltIsClipped(hSrcVObject, iDestX, iDestY, usIndex, &ClippingRect))
@@ -761,7 +711,6 @@ BOOLEAN BltVideoObjectToBuffer( UINT16 *pBuffer, UINT32 uiDestPitchBYTES, HVOBJE
 							break;
 						}
 						else
-#endif
 						if ( fBltFlags & VO_BLT_SRCTRANSPARENCY  )
 						{
 							if(BltIsClipped(hSrcVObject, iDestX, iDestY, usIndex, &ClippingRect))
@@ -810,51 +759,6 @@ BOOLEAN BltVideoObjectToBuffer( UINT16 *pBuffer, UINT32 uiDestPitchBYTES, HVOBJE
 
 	return( TRUE );
 
-}
-
-BOOLEAN PixelateVideoObjectRect(  UINT32	uiDestVSurface, INT32 X1, INT32 Y1, INT32 X2, INT32 Y2)
-{
-	UINT16 *pBuffer;
-	UINT32 uiPitch;
-	SGPRect   area;
-	UINT8 uiPattern[8][8]={	{0,1,0,1,0,1,0,1},
-													{1,0,1,0,1,0,1,0},
-													{0,1,0,1,0,1,0,1},
-													{1,0,1,0,1,0,1,0},
-													{0,1,0,1,0,1,0,1},
-													{1,0,1,0,1,0,1,0},
-													{0,1,0,1,0,1,0,1},
-													{1,0,1,0,1,0,1,0}};
-
-	// Lock video surface
-	pBuffer = (UINT16*)LockVideoSurface( uiDestVSurface, &uiPitch );
-
-	if ( pBuffer == NULL )
-	{
-		return( FALSE );
-	}
-
-	area.iTop=Y1;
-	area.iBottom=Y2;
-	area.iLeft=X1;
-	area.iRight=X2;
-
-	// Now we have the video object and surface, call the shadow function
-	if(!Blt16BPPBufferPixelateRect(pBuffer, uiPitch, &area, uiPattern))
-	{
-		UnLockVideoSurface( uiDestVSurface );
-		// Blit has failed if false returned
-		return( FALSE );
-	}
-
-	// Mark as dirty if it's the backbuffer
-	//if ( uiDestVSurface == BACKBUFFER )
-	//{
-	//	InvalidateBackbuffer( );
-	//}
-
-	UnLockVideoSurface( uiDestVSurface );
-	return( TRUE );
 }
 
 
@@ -921,21 +825,6 @@ UINT16 SetObjectShade(HVOBJECT pObj, UINT32 uiShade)
 
 	pObj->pShadeCurrent=pObj->pShades[uiShade];
 	return(TRUE);
-}
-
-UINT16 SetObjectHandleShade(UINT32 uiHandle, UINT32 uiShade)
-{
-	HVOBJECT hObj;
-
-	#ifdef _DEBUG
-		gubVODebugCode = DEBUGSTR_SETOBJECTHANDLESHADE;
-	#endif
-	if(!GetVideoObject(&hObj, uiHandle))
-	{
-	  DbgMessage(TOPIC_VIDEOOBJECT, DBG_LEVEL_2, String("Invalid object handle for setting shade level"));
-		return(FALSE);
-	}
-	return(SetObjectShade(hObj, uiShade));
 }
 
 /*
@@ -1066,9 +955,9 @@ BOOLEAN GetVideoObjectETRLESubregionProperties( UINT32 uiVideoObject, UINT16 usI
 	ETRLEObject						ETRLEObject;
 
 	// Get video object
-	#ifdef _DEBUG
+#ifdef _DEBUG
 		gubVODebugCode = DEBUGSTR_GETVIDEOOBJECTETRLESUBREGIONPROPERTIES;
-	#endif
+#endif
 	CHECKF( GetVideoObject( &hVObject, uiVideoObject ) );
 
 	CHECKF( GetVideoObjectETRLEProperties( hVObject, &ETRLEObject, usIndex ) );
@@ -1086,9 +975,9 @@ BOOLEAN GetVideoObjectETRLEPropertiesFromIndex( UINT32 uiVideoObject, ETRLEObjec
 	HVOBJECT							hVObject;
 
 	// Get video object
-	#ifdef _DEBUG
+#ifdef _DEBUG
 		gubVODebugCode = DEBUGSTR_GETVIDEOOBJECTETRLEPROPERTIESFROMINDEX;
-	#endif
+#endif
 	CHECKF( GetVideoObject( &hVObject, uiVideoObject ) );
 
 	CHECKF( GetVideoObjectETRLEProperties( hVObject, pETRLEObject, usIndex ) );
@@ -1096,34 +985,6 @@ BOOLEAN GetVideoObjectETRLEPropertiesFromIndex( UINT32 uiVideoObject, ETRLEObjec
 	return( TRUE );
 }
 
-BOOLEAN SetVideoObjectPalette8BPP(INT32 uiVideoObject, SGPPaletteEntry *pPal8)
-{
-	HVOBJECT							hVObject;
-
-	// Get video object
-	#ifdef _DEBUG
-		gubVODebugCode = DEBUGSTR_SETVIDEOOBJECTPALETTE8BPP;
-	#endif
-	CHECKF( GetVideoObject( &hVObject, uiVideoObject ) );
-
-	return( SetVideoObjectPalette( hVObject, pPal8 ) );
-}
-
-
-BOOLEAN GetVideoObjectPalette16BPP(INT32 uiVideoObject, UINT16 **ppPal16)
-{
-	HVOBJECT							hVObject;
-
-	// Get video object
-	#ifdef _DEBUG
-		gubVODebugCode = DEBUGSTR_GETVIDEOOBJECTPALETTE16BPP;
-	#endif
-	CHECKF( GetVideoObject( &hVObject, uiVideoObject ) );
-
-	*ppPal16 = hVObject->p16BPPPalette;
-
-	return( TRUE );
-}
 
 // FUNCTION: WIZ8 0x00406b30
 BOOLEAN CopyVideoObjectPalette16BPP(INT32 uiVideoObject, UINT16 *ppPal16)
@@ -1131,9 +992,9 @@ BOOLEAN CopyVideoObjectPalette16BPP(INT32 uiVideoObject, UINT16 *ppPal16)
 	HVOBJECT							hVObject;
 
 	// Get video object
-	#ifdef _DEBUG
+#ifdef _DEBUG
 		gubVODebugCode = DEBUGSTR_COPYVIDEOOBJECTPALETTE16BPP;
-	#endif
+#endif
 	CHECKF( GetVideoObject( &hVObject, uiVideoObject ) );
 
 	memcpy(ppPal16, hVObject->p16BPPPalette, 256*2);
@@ -1141,293 +1002,8 @@ BOOLEAN CopyVideoObjectPalette16BPP(INT32 uiVideoObject, UINT16 *ppPal16)
 	return( TRUE );
 }
 
-BOOLEAN CheckFor16BPPRegion( HVOBJECT hVObject, UINT16 usRegionIndex, UINT8 ubShadeLevel, UINT16 * pusIndex )
-{
-	UINT16					usLoop;
-	SixteenBPPObjectInfo *	p16BPPObject;
-
-	if (hVObject->usNumberOf16BPPObjects > 0)
-	{
-		for (usLoop = 0; usLoop < hVObject->usNumberOf16BPPObjects; usLoop++)
-		{
-			p16BPPObject = &(hVObject->p16BPPObject[usLoop]);
-			if (p16BPPObject->usRegionIndex == usRegionIndex && p16BPPObject->ubShadeLevel == ubShadeLevel)
-			{
-				if (pusIndex != NULL)
-				{
-					*pusIndex = usLoop;
-				}
-				return( TRUE );
-			}
-		}
-	}
-	return( FALSE );
-}
-
-BOOLEAN ConvertVObjectRegionTo16BPP( HVOBJECT hVObject, UINT16 usRegionIndex, UINT8 ubShadeLevel )
-{
-	SixteenBPPObjectInfo *	p16BPPObject;
-	UINT8 *					pInput;
-	UINT8 *					pOutput;
-	UINT16 *				p16BPPPalette;
-	UINT32					uiDataLoop;
-	UINT32					uiDataLength;
-	UINT8					ubRunLoop;
-	//UINT8					ubRunLength;
-	INT8					bData;
-	UINT32					uiLen;
-
-	// check for existing 16BPP region and then allocate memory
-	if (usRegionIndex >= hVObject->usNumberOfObjects || ubShadeLevel >= HVOBJECT_SHADE_TABLES)
-	{
-		return( FALSE );
-	}
-	if (CheckFor16BPPRegion( hVObject, usRegionIndex, ubShadeLevel, NULL) == TRUE)
-	{
-		// it already exists; no need to do anything!
-		return( TRUE );
-	}
-
-	if (hVObject->usNumberOf16BPPObjects > 0)
-	{
-		// have to reallocate memory
-		hVObject->p16BPPObject = MemRealloc( hVObject->p16BPPObject, sizeof( SixteenBPPObjectInfo ) * (hVObject->usNumberOf16BPPObjects + 1) );
-	}
-	else
-	{
-		// allocate memory for the first 16BPPObject
-		hVObject->p16BPPObject = MemAlloc( sizeof( SixteenBPPObjectInfo ) );
-	}
-	if (hVObject->p16BPPObject == NULL)
-	{
-		hVObject->usNumberOf16BPPObjects = 0;
-		return( FALSE );
-	}
-
-	// the new object is the last one in the array
-	p16BPPObject = &(hVObject->p16BPPObject[hVObject->usNumberOf16BPPObjects]);
-
-	// need twice as much memory because of going from 8 to 16 bits
-	p16BPPObject->p16BPPData = MemAlloc( hVObject->pETRLEObject[usRegionIndex].uiDataLength * 2 );
-	if (p16BPPObject->p16BPPData == NULL)
-	{
-		return( FALSE );
-	}
-
-	p16BPPObject->usRegionIndex = usRegionIndex;
-	p16BPPObject->ubShadeLevel = ubShadeLevel;
-	p16BPPObject->usHeight = hVObject->pETRLEObject[ usRegionIndex ].usHeight;
-	p16BPPObject->usWidth = hVObject->pETRLEObject[ usRegionIndex ].usWidth;
-	p16BPPObject->sOffsetX=hVObject->pETRLEObject[ usRegionIndex ].sOffsetX;
-	p16BPPObject->sOffsetY=hVObject->pETRLEObject[ usRegionIndex ].sOffsetY;
-
-	// get the palette
-	p16BPPPalette = hVObject->pShades[ubShadeLevel];
-	pInput = (UINT8 *) hVObject->pPixData + hVObject->pETRLEObject[ usRegionIndex ].uiDataOffset;
-
-	uiDataLength=hVObject->pETRLEObject[usRegionIndex].uiDataLength;
-
-	// now actually do the conversion
-
-	uiLen=0;
-	pOutput = (UINT8 *)p16BPPObject->p16BPPData;
-	for (uiDataLoop = 0; uiDataLoop < uiDataLength; uiDataLoop++)
-	{
-		bData= *pInput;
-		if(bData&0x80)
-		{
-			// transparent
-			*pOutput = *pInput;
-			pOutput++;
-			pInput++;
-			//uiDataLoop++;
-			uiLen+=(UINT32)(bData&0x7f);
-		}
-		else if(bData > 0)
-		{
-			// nontransparent
-			*pOutput = *pInput;
-			pOutput++;
-			pInput++;
-			//uiDataLoop++;
-			for(ubRunLoop=0; ubRunLoop < bData; ubRunLoop++)
-			{
-				*((UINT16 *)pOutput) = p16BPPPalette[*pInput];
-				pOutput++;
-				pOutput++;
-				pInput++;
-				uiDataLoop++;
-			}
-			uiLen+=(UINT32)bData;
-		}
-		else
-		{
-			// eol
-			*pOutput = *pInput;
-			pOutput++;
-			pInput++;
-			//uiDataLoop++;
-			if(uiLen!=p16BPPObject->usWidth)
-		    DbgMessage(TOPIC_VIDEOOBJECT, DBG_LEVEL_1, String( "Actual pixel width different from header width" ));
-			uiLen=0;
-		}
-
-		// copy the run-length byte
-	/*	*pOutput = *pInput;
-		pOutput++;
-		if (((*pInput) & COMPRESS_TRANSPARENT) == 0 && *pInput > 0)
-		{
-			// non-transparent run; deal with the pixel data
-			ubRunLoop = 0;
-			ubRunLength = ((*pInput) & COMPRESS_RUN_LIMIT);
-			// skip to the next input byte
-			pInput++;
-			for (ubRunLoop = 0; ubRunLoop < ubRunLength; ubRunLoop++)
-			{
-				*((UINT16 *)pOutput) = p16BPPPalette[*pInput];
-				// advance two bytes in output, one in input
-				pOutput++;
-				pOutput++;
-				pInput++;
-				uiDataLoop++;
-			}
-		}
-		else
-		{
-			// transparent run or end of scanline; skip to the next input byte
-			pInput++;
-		} */
-	}
-	hVObject->usNumberOf16BPPObjects++;
-	return( TRUE );
-}
 
 
-BOOLEAN BltVideoObjectOutlineFromIndex(UINT32 uiDestVSurface, UINT32 uiSrcVObject, UINT16 usIndex, INT32 iDestX, INT32 iDestY, INT16 s16BPPColor, BOOLEAN fDoOutline )
-{
-	UINT16               *pBuffer;
-	UINT32								uiPitch;
-	HVOBJECT							hSrcVObject;
-
-	// Lock video surface
-	pBuffer = (UINT16*)LockVideoSurface( uiDestVSurface, &uiPitch );
-
-	if ( pBuffer == NULL )
-	{
-		return( FALSE );
-	}
-
-	// Get video object
-	#ifdef _DEBUG
-		gubVODebugCode = DEBUGSTR_BLTVIDEOOBJECTOUTLINEFROMINDEX;
-	#endif
-	CHECKF( GetVideoObject( &hSrcVObject, uiSrcVObject ) );
-
-	if( BltIsClipped( hSrcVObject, iDestX, iDestY, usIndex, &ClippingRect) )
-	{
-		 Blt8BPPDataTo16BPPBufferOutlineClip((UINT16*)pBuffer, uiPitch, hSrcVObject, iDestX, iDestY, usIndex, s16BPPColor, fDoOutline, &ClippingRect );
-	}
-	else
-	{
-		 Blt8BPPDataTo16BPPBufferOutline((UINT16*)pBuffer, uiPitch, hSrcVObject, iDestX, iDestY, usIndex, s16BPPColor, fDoOutline );
-	}
-
-	// Now we have the video object and surface, call the VO blitter function
-
-	UnLockVideoSurface( uiDestVSurface );
-	return( TRUE );
-}
-
-BOOLEAN BltVideoObjectOutline(UINT32 uiDestVSurface, HVOBJECT hSrcVObject, UINT16 usIndex, INT32 iDestX, INT32 iDestY, INT16 s16BPPColor, BOOLEAN fDoOutline )
-{
-	UINT16               *pBuffer;
-	UINT32								uiPitch;
-	// Lock video surface
-	pBuffer = (UINT16*)LockVideoSurface( uiDestVSurface, &uiPitch );
-
-	if ( pBuffer == NULL )
-	{
-		return( FALSE );
-	}
-
-	if( BltIsClipped( hSrcVObject, iDestX, iDestY, usIndex, &ClippingRect) )
-	{
-		 Blt8BPPDataTo16BPPBufferOutlineClip((UINT16*)pBuffer, uiPitch, hSrcVObject, iDestX, iDestY, usIndex, s16BPPColor, fDoOutline, &ClippingRect );
-	}
-	else
-	{
-		 Blt8BPPDataTo16BPPBufferOutline((UINT16*)pBuffer, uiPitch, hSrcVObject, iDestX, iDestY, usIndex, s16BPPColor, fDoOutline );
-	}
-
-	// Now we have the video object and surface, call the VO blitter function
-
-	UnLockVideoSurface( uiDestVSurface );
-	return( TRUE );
-}
-
-
-
-BOOLEAN BltVideoObjectOutlineShadowFromIndex(UINT32 uiDestVSurface, UINT32 uiSrcVObject, UINT16 usIndex, INT32 iDestX, INT32 iDestY )
-{
-	UINT16               *pBuffer;
-	UINT32								uiPitch;
-	HVOBJECT							hSrcVObject;
-
-	// Lock video surface
-	pBuffer = (UINT16*)LockVideoSurface( uiDestVSurface, &uiPitch );
-
-	if ( pBuffer == NULL )
-	{
-		return( FALSE );
-	}
-
-	// Get video object
-	#ifdef _DEBUG
-		gubVODebugCode = DEBUGSTR_BLTVIDEOOBJECTOUTLINESHADOWFROMINDEX;
-	#endif
-	CHECKF( GetVideoObject( &hSrcVObject, uiSrcVObject ) );
-
-	if( BltIsClipped( hSrcVObject, iDestX, iDestY, usIndex, &ClippingRect) )
-	{
-		 Blt8BPPDataTo16BPPBufferOutlineShadowClip((UINT16*)pBuffer, uiPitch, hSrcVObject, iDestX, iDestY, usIndex, &ClippingRect );
-	}
-	else
-	{
-		 Blt8BPPDataTo16BPPBufferOutlineShadow((UINT16*)pBuffer, uiPitch, hSrcVObject, iDestX, iDestY, usIndex );
-	}
-
-	// Now we have the video object and surface, call the VO blitter function
-
-	UnLockVideoSurface( uiDestVSurface );
-	return( TRUE );
-}
-
-BOOLEAN BltVideoObjectOutlineShadow(UINT32 uiDestVSurface, HVOBJECT hSrcVObject, UINT16 usIndex, INT32 iDestX, INT32 iDestY )
-{
-	UINT16               *pBuffer;
-	UINT32								uiPitch;
-	// Lock video surface
-	pBuffer = (UINT16*)LockVideoSurface( uiDestVSurface, &uiPitch );
-
-	if ( pBuffer == NULL )
-	{
-		return( FALSE );
-	}
-
-	if( BltIsClipped( hSrcVObject, iDestX, iDestY, usIndex, &ClippingRect) )
-	{
-		 Blt8BPPDataTo16BPPBufferOutlineShadowClip((UINT16*)pBuffer, uiPitch, hSrcVObject, iDestX, iDestY, usIndex, &ClippingRect );
-	}
-	else
-	{
-		 Blt8BPPDataTo16BPPBufferOutlineShadow((UINT16*)pBuffer, uiPitch, hSrcVObject, iDestX, iDestY, usIndex );
-	}
-
-	// Now we have the video object and surface, call the VO blitter function
-
-	UnLockVideoSurface( uiDestVSurface );
-	return( TRUE );
-}
 
 #ifdef _DEBUG
 void CheckValidVObjectIndex( UINT32 uiIndex )

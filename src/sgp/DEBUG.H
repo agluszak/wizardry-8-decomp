@@ -1,3 +1,7 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
+   Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
+   Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
+   Distributed under the accompanying SFI Source Code license agreement. */
 //**************************************************************************
 //
 // Filename :	debug.h
@@ -110,20 +114,12 @@ extern BOOLEAN		gfDebugTopics[MAX_TOPICS_ALLOTED];
 #define ErrorMsg(a)									_DebugMessage( (UINT8 *)(a), (UINT32)(__LINE__), (UINT8 *)(__FILE__))
 
 // Enable the debug topic we want
-#if defined( JA2 ) || defined( UTIL )
-#define RegisterJA2DebugTopic(a, b)	DbgTopicRegistration( TOPIC_REGISTER, &(a), (b) )
-#define RegisterDebugTopic(a, b)
-#define DebugMsg(a, b, c)						DbgMessageReal( (a), TOPIC_MESSAGE, (b), (c) )
-#else
 #define RegisterJA2DebugTopic(a, b)
 #define RegisterDebugTopic(a, b)		DbgTopicRegistration( (UINT8)TOPIC_REGISTER, (UINT16 *)(&(a)), (CHAR8 *)(b) )
 #define DebugMsg(a)									_DebugMessage((UINT8 *)(a), (UINT32)(__LINE__), (UINT8 *)(__FILE__))
-#endif
 
 // public interface to debug methods:
 extern	void		DbgMessageReal(UINT16 TopicId, UINT8 uiCommand, UINT8 uiDebugLevel, CHAR8 *Str);
-extern	BOOLEAN	DbgSetDebugLevel(UINT16 TopicId, UINT8 uiDebugLevel);
-extern	void		DbgFailedAssertion( BOOLEAN fExpression, char *szFile, int nLine );
 //extern	void		_FailMessage(UINT8 *pString, UINT32 uiLineNum, UINT8 *pSourceFile );
 extern	void		DbgTopicRegistration( UINT8 ubCmd, UINT16 *usTopicID, CHAR8 *zMessage );
 extern	void		DbgClearAllTopics( void );
@@ -148,12 +144,7 @@ extern	void		_DebugMessage(UINT8 *pSourceFile, UINT32 uiLineNum, UINT8 *pString)
 #define DbgTopicRegistration(a, b, c);
 #define DbgMessage(a, b, c)
 
-#if defined( JA2 ) || defined( UTIL )
-#define RegisterJA2DebugTopic(a, b)
-#define DebugMsg(a, b, c)
-#else
 #define DebugMsg(a)
-#endif
 
 //*******************************************************************************************
 #endif

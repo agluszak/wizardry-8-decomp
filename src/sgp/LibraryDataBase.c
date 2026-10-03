@@ -1,38 +1,24 @@
-/* Modified for the Wizardry 8 reconstruction, 2026-09-30.
+/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
    Reconstruct Wizardry archive initialization, mapping, and patch lookup.
    Restore retail sequential-scan flags for library and stream handles.
+   Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
+   Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
+   Recover the library-stream CD fallback in the released InitializeLibrary form.
    Distributed under the accompanying SFI Source Code license agreement. */
-#ifdef JA2_PRECOMPILED_HEADERS
-	#include "JA2 SGP ALL.H"
-#elif defined( WIZ8_PRECOMPILED_HEADERS )
-	#include "WIZ8 SGP ALL.H"
-#else
-	#include "Types.h"
-	#include "windows.h"
-	#include "FileMan.h"
-	#include "LibraryDataBase.h"
-	#include "MemMan.h"
-	#include "stdio.h"
-	#include "WCheck.h"
-	#include "Debug.h"
+#include "Types.h"
+#include "windows.h"
+#include "FileMan.h"
+#include "LibraryDataBase.h"
+#include "MemMan.h"
+#include "stdio.h"
+#include "WCheck.h"
+#include "Debug.h"
 
-	#if defined(JA2) || defined( UTIL )
-		#include "video.h"
-	#else
-		#include "video2.h"
-	#endif
-#endif
+#include "video2.h"
 
 //NUMBER_OF_LIBRARIES
-#ifdef JA2
-	#include	"Ja2 Libs.c"
-	#include	"GameSettings.h"
-#elif defined(UTIL)
-	LibraryInitHeader gGameLibaries[ ] = { 0 };
-#else
 // We link it as an .obj file
 //	#include "WizLibs.c"
-#endif
 
 
 
@@ -49,7 +35,6 @@ CHAR8	gzCdDirectory[ SGPFILENAME_LEN ];
 
 INT			CompareFileNames( CHAR8 **arg1, FileHeaderStruct **arg2 );
 BOOLEAN	GetFileHeaderFromLibrary( INT16 sLibraryID, STR pstrFileName, FileHeaderStruct **pFileHeader );
-void		AddSlashToPath( STR pName );
 HWFILE	CreateLibraryFileHandle( INT16 sLibraryID, UINT32 uiFileNum );
 BOOLEAN CheckIfFileIsAlreadyOpen( STR pFileName, INT16 sLibraryID );
 
@@ -227,30 +212,6 @@ BOOLEAN ShutDownFileDatabase( )
 
 
 
-BOOLEAN CheckForLibraryExistence( STR pLibraryName )
-{
-	BOOLEAN fRetVal = FALSE;
-	HANDLE	hFile;
-
-	//try to opent the file, if we canm the library exists
-	hFile = CreateFile( pLibraryName, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_FLAG_RANDOM_ACCESS, NULL );
-
-	//if the file was not opened
-	if( hFile == INVALID_HANDLE_VALUE )
-	{
-
-		//the file wasnt opened
-		fRetVal = FALSE;
-	}
-	else
-	{
-		CloseHandle( hFile );
-		fRetVal = TRUE;
-	}
-
-	return( fRetVal );
-}
-
 
 
 
@@ -326,9 +287,6 @@ BOOLEAN InitializeLibrary( STR pLibraryName, LibraryHeaderStruct *pLibHeader, BO
 	//Allocate enough memory for the library header
 	pLibHeader->pFileHeader = MemAlloc( sizeof( FileHeaderStruct ) * usNumEntries );
 
-	#ifdef JA2TESTVERSION
-		pLibHeader->uiTotalMemoryAllocatedForLibrary = sizeof( FileHeaderStruct ) * usNumEntries;
-	#endif
 
 
 	//place the file pointer at the begining of the file headers ( they are at the end of the file )
@@ -361,9 +319,6 @@ BOOLEAN InitializeLibrary( STR pLibraryName, LibraryHeaderStruct *pLibHeader, BO
 			}
 
 
-			#ifdef JA2TESTVERSION
-				pLibHeader->uiTotalMemoryAllocatedForLibrary += strlen( DirEntry.sFileName ) + 1;
-			#endif
 
 
 			//copy the file name, offset and length into the header
@@ -399,9 +354,6 @@ BOOLEAN InitializeLibrary( STR pLibraryName, LibraryHeaderStruct *pLibHeader, BO
 	}
 
 
-	#ifdef JA2TESTVERSION
-		pLibHeader->uiTotalMemoryAllocatedForLibrary += strlen( LibFileHeader.sPathToLibrary ) + 1;
-	#endif
 
 
 	//allocate space for the open files array
@@ -414,9 +366,6 @@ BOOLEAN InitializeLibrary( STR pLibraryName, LibraryHeaderStruct *pLibHeader, BO
 
 	memset( pLibHeader->pOpenFiles, 0, INITIAL_NUM_HANDLES * sizeof( FileOpenStruct ) );
 
-	#ifdef JA2TESTVERSION
-		pLibHeader->uiTotalMemoryAllocatedForLibrary += INITIAL_NUM_HANDLES * sizeof( FileOpenStruct );
-	#endif
 
 
 
@@ -444,22 +393,22 @@ HANDLE OpenLibraryStream(HWFILE file)
     UINT32 file_id = DB_EXTRACT_FILE_ID(file);
     HANDLE handle;
     CHAR8 path[SGPFILENAME_LEN];
-    CHAR error[1024];
-    DWORD error_id;
 
     handle = CreateFile(gGameLibaries[library_id].sLibraryName, GENERIC_READ,
         FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
     if (handle == INVALID_HANDLE_VALUE) {
-        if (!gGameLibaries[library_id].fOnCDrom) {
-            return INVALID_HANDLE_VALUE;
-        }
-        sprintf(path, "%s%s", gzCdDirectory, gGameLibaries[library_id].sLibraryName);
-        handle = CreateFile(path, GENERIC_READ, FILE_SHARE_READ, NULL,
-            OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
-        if (handle == INVALID_HANDLE_VALUE) {
-            error_id = GetLastError();
-            FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, error_id, 0,
-                error, sizeof(error), NULL);
+        if (gGameLibaries[library_id].fOnCDrom) {
+            sprintf(path, "%s%s", gzCdDirectory, gGameLibaries[library_id].sLibraryName);
+            handle = CreateFile(path, GENERIC_READ, FILE_SHARE_READ, NULL,
+                OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+            if (handle == INVALID_HANDLE_VALUE) {
+                UINT32 uiLastError = GetLastError();
+                char zString[1024];
+                FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0, uiLastError, 0, zString, 1024, NULL);
+
+                return INVALID_HANDLE_VALUE;
+            }
+        } else {
             return INVALID_HANDLE_VALUE;
         }
     }
@@ -662,34 +611,6 @@ INT CompareFileNames( CHAR8 *arg1[], FileHeaderStruct **arg2 )
 }
 
 
-
-void AddSlashToPath( STR pName )
-{
-	UINT32	uiLoop, uiCounter;
-	BOOLEAN	fDone = FALSE;
-	BOOLEAN fFound = FALSE;
-	CHAR8		sNewName[ FILENAME_SIZE ];
-
-	//find out if there is a '\' in the file name
-
-	uiCounter=0;
-	for( uiLoop=0; uiLoop < strlen( pName ) && !fDone; uiLoop++)
-	{
-		if( pName[ uiLoop ] == '\\' )
-		{
-			sNewName[ uiCounter ] = pName[ uiLoop ];
-			uiCounter++;
-			sNewName[ uiCounter ] = '\\';
-		}
-		else
-			sNewName[ uiCounter ] = pName[ uiLoop ];
-
-		uiCounter++;
-	}
-	sNewName[ uiCounter ] = '\0';
-
-	strcpy( pName, sNewName );
-}
 
 
 
@@ -998,10 +919,6 @@ BOOLEAN CloseLibrary( INT16 sLibraryID )
 	if( !IsLibraryOpened( sLibraryID ) )
 		return( FALSE );
 
-	#ifdef JA2TESTVERSION
-		FastDebugMsg( String("ShutDownFileDatabase( ): %d bytes of ram used for the Library #%3d, path '%s',  in the File Database System\n", gFileDataBase.pLibraries[ sLibraryID ].uiTotalMemoryAllocatedForLibrary, sLibraryID, gFileDataBase.pLibraries[ sLibraryID ].sLibraryPath ));
-		gFileDataBase.pLibraries[ sLibraryID ].uiTotalMemoryAllocatedForLibrary = 0;
-	#endif
 
 	//if there are any open files, loop through the library and close down whatever file is still open
 	if( gFileDataBase.pLibraries[ sLibraryID ].iNumFilesOpen )

@@ -1760,7 +1760,7 @@ void DeactivateCampPage(void)
         state->stats_controls->EnableRegionSet(0);
         state->character_info->SetEnabled(0);
         if (state->effect_list != 0) {
-            DeleteStack(state->effect_list);
+            DeleteList(state->effect_list);
             state->effect_list = 0;
             return;
         }

@@ -1,3 +1,7 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
+   Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
+   Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
+   Distributed under the accompanying SFI Source Code license agreement. */
 #ifndef __CURSOR_DATABASE_
 #define __CURSOR_DATABASE_
 
@@ -11,17 +15,11 @@ extern "C" {
 #endif
 
 
-#if defined( JA2 ) || defined( UTIL )
-#include "Video.h"
-#else
 #include "video2.h"
-#endif
 
 
 extern UINT32		GetCursorHandle(UINT32 uiCursorIndex);
 extern void     UnloadCursorData(UINT32 uiCursorIndex);
-extern BOOLEAN  LoadCursorData(UINT32 uiCursorIndex);
-extern void     CursorDatabaseClear(void);
 extern UINT16		GetCursorSubIndex(UINT32 uiCursorIndex);
 extern BOOLEAN  SetCurrentCursorFromDatabase( UINT32 uiCursorIndex  );
 
@@ -103,12 +101,6 @@ extern UINT16				 gusExtern2VoSubIndex;
 extern BOOLEAN				 gfExternUse2nd;
 
 typedef void (*MOUSEBLT_HOOK)( void );
-
-void InitCursorDatabase( CursorFileData *pCursorFileData, CursorData *pCursorData, UINT16 suNumDataFiles );
-void SetMouseBltHook( MOUSEBLT_HOOK pMouseBltOverride );
-
-void SetExternVOData( UINT32 uiCursorIndex, HVOBJECT hVObject, UINT16 usSubIndex );
-void RemoveExternVOData( UINT32 uiCursorIndex );
 
 
 #ifdef __cplusplus

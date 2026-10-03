@@ -1,3 +1,6 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
+   Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
+   Distributed under the accompanying SFI Source Code license agreement. */
 //**************************************************************************
 //
 // Filename :	MemMan.h
@@ -50,7 +53,6 @@ extern UINT32 guiMemAlloced;
 extern UINT32 guiMemFreed;
 
 extern BOOLEAN	InitializeMemoryManager( void );
-extern void		MemDebug( BOOLEAN f );
 extern void		ShutdownMemoryManager( void );
 
 // Creates and adds a video object to list
@@ -87,17 +89,10 @@ extern void		ShutdownMemoryManager( void );
 
 
 
-extern PTR     *MemAllocLocked( UINT32 size );
-extern void		MemFreeLocked( PTR, UINT32 size );
-
 // get total free on the system at this moment
 extern UINT32	MemGetFree( void );
 
 // get the total on the system
-extern UINT32 MemGetTotalSystem( void );
-
-extern BOOLEAN	MemCheckPool( void );
-
 #ifdef __cplusplus
 }
 #endif

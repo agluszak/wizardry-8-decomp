@@ -1,3 +1,6 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
+   Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
+   Distributed under the accompanying SFI Source Code license agreement. */
 //**************************************************************************
 //
 // Filename :	RegInst.h
@@ -53,21 +56,10 @@ extern BOOLEAN InitializeRegistryKeys(STR strAppName, STR strRegistryKey);
 // returns key for HKEY_CURRENT_USER\"Software"\RegistryKey\ProfileName
 // creating it if it doesn't exist
 // responsibility of the caller to call RegCloseKey() on the returned HKEY
-extern HKEY GetAppRegistryKey();
-
 // returns key for:
 //      HKEY_CURRENT_USER\"Software"\RegistryKey\AppName\lpszSection
 // creating it if it doesn't exist.
 // responsibility of the caller to call RegCloseKey() on the returned HKEY
-extern HKEY GetSectionKey(STR lpszSection);
-
-extern UINT GetProfileInteger(STR lpszSection, STR lpszEntry, int nDefault);
-extern BOOLEAN GetProfileChar(STR lpszSection, STR lpszEntry,	STR lpszDefault, STR lpszValue);
-extern BOOL GetProfileBinary(STR lpszSection, STR lpszEntry, BYTE** ppData, UINT* pBytes);
-extern BOOL WriteProfileInt(STR lpszSection, STR lpszEntry, int nValue);
-extern BOOL WriteProfileChar(STR lpszSection, STR lpszEntry, STR lpszValue);
-extern BOOL WriteProfileBinary(STR lpszSection, STR lpszEntry, LPBYTE pData, UINT nBytes);
-
 #ifdef __cplusplus
 }
 #endif

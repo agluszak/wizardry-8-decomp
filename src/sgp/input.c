@@ -1,26 +1,19 @@
-/* Modified for the Wizardry 8 reconstruction, 2026-09-26.
+/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
    Reconstruct Wizardry physical-key mapping, raw-key string input, and character helpers.
+   Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
+   Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
+   Recover the wide-character predicate return width and key translation modulo.
    Distributed under the accompanying SFI Source Code license agreement. */
-#ifdef JA2_PRECOMPILED_HEADERS
-	#include "JA2 SGP ALL.H"
-#elif defined( WIZ8_PRECOMPILED_HEADERS )
-	#include "WIZ8 SGP ALL.H"
-#else
-	#include "types.h"
-	#include <windows.h>
-	#include <stdio.h>
-	#include <memory.h>
-	#include "debug.h"
-	#include "input.h"
-	#include "memman.h"
-	#include "english.h"
-	#if defined( JA2 ) || defined( UTIL )
-		#include "video.h"
-	#else
-		#include "video2.h"
-	#endif
-	#include "local.h"
-#endif
+#include "types.h"
+#include <windows.h>
+#include <stdio.h>
+#include <memory.h>
+#include "debug.h"
+#include "input.h"
+#include "memman.h"
+#include "english.h"
+#include "video2.h"
+#include "local.h"
 
 #include "zmouse.h"
 
@@ -31,12 +24,10 @@
 
 #include "sgp.h"
 
-#ifndef JA2
 
 #undef GetCursorPos
 #define GetCursorPos SGPMouseGetPos
 
-#endif
 
 // The gfKeyState table is used to track which of the keys is up or down at any one time. This is used while polling
 // the interface.
@@ -133,11 +124,7 @@ void		AdjustMouseForWindowOrigin(void);
 // FUNCTION: WIZ8 0x00401b30
 LRESULT CALLBACK KeyboardHandler(int Code, WPARAM wParam, LPARAM lParam)
 {
-#ifndef JA2
   if((Code < 0) || (!gfApplicationActive))
-#else
-  if (Code < 0)
-#endif
   { // Do not handle this message, pass it on to another window
     return CallNextHookEx(ghKeyboardHook, Code, wParam, lParam);
   }
@@ -156,99 +143,6 @@ LRESULT CALLBACK KeyboardHandler(int Code, WPARAM wParam, LPARAM lParam)
   return TRUE;
 }
 
-#ifdef JA2
-
-LRESULT CALLBACK MouseHandler(int Code, WPARAM wParam, LPARAM lParam)
-{
-  UINT32 uiParam;
-
-#ifndef JA2
-  if((Code < 0) || (!gfApplicationActive))
-#else
-  if (Code < 0)
-#endif
-  { // Do not handle this message, pass it on to another window
-    return CallNextHookEx(ghMouseHook, Code, wParam, lParam);
-  }
-
-  switch (wParam)
-  {
-    case WM_LBUTTONDOWN
-    : // Update the current mouse position
-      gusMouseXPos = (UINT16)(((MOUSEHOOKSTRUCT *)lParam)->pt).x;
-      gusMouseYPos = (UINT16)(((MOUSEHOOKSTRUCT *)lParam)->pt).y;
-      uiParam = gusMouseYPos;
-      uiParam = uiParam << 16;
-      uiParam = uiParam | gusMouseXPos;
-      // Update the button state
-			gfLeftButtonState = TRUE;
-			//Set that we have input
-      gfSGPInputReceived =  TRUE;
-      // Trigger an input event
-      QueueEvent(LEFT_BUTTON_DOWN, 0, uiParam);
-	    break;
-    case WM_LBUTTONUP
-    : // Update the current mouse position
-      gusMouseXPos = (UINT16)(((MOUSEHOOKSTRUCT *)lParam)->pt).x;
-      gusMouseYPos = (UINT16)(((MOUSEHOOKSTRUCT *)lParam)->pt).y;
-      uiParam = gusMouseYPos;
-      uiParam = uiParam << 16;
-      uiParam = uiParam | gusMouseXPos;
-      // Update the button state
-      gfLeftButtonState = FALSE;
-			//Set that we have input
-      gfSGPInputReceived =  TRUE;
-      // Trigger an input event
-      QueueEvent(LEFT_BUTTON_UP, 0, uiParam);
-      break;
-    case WM_RBUTTONDOWN
-    : // Update the current mouse position
-      gusMouseXPos = (UINT16)(((MOUSEHOOKSTRUCT *)lParam)->pt).x;
-      gusMouseYPos = (UINT16)(((MOUSEHOOKSTRUCT *)lParam)->pt).y;
-      uiParam = gusMouseYPos;
-      uiParam = uiParam << 16;
-      uiParam = uiParam | gusMouseXPos;
-      // Update the button state
-      gfRightButtonState = TRUE;
-			//Set that we have input
-      gfSGPInputReceived =  TRUE;
-      // Trigger an input event
-      QueueEvent(RIGHT_BUTTON_DOWN, 0, uiParam);
-      break;
-    case WM_RBUTTONUP
-    : // Update the current mouse position
-      gusMouseXPos = (UINT16)(((MOUSEHOOKSTRUCT *)lParam)->pt).x;
-      gusMouseYPos = (UINT16)(((MOUSEHOOKSTRUCT *)lParam)->pt).y;
-      uiParam = gusMouseYPos;
-      uiParam = uiParam << 16;
-      uiParam = uiParam | gusMouseXPos;
-      // Update the button state
-      gfRightButtonState = FALSE;
-			//Set that we have input
-      gfSGPInputReceived =  TRUE;
-      // Trigger an input event
-      QueueEvent(RIGHT_BUTTON_UP, 0, uiParam);
-      break;
-    case WM_MOUSEMOVE
-    : // Update the current mouse position
-      gusMouseXPos = (UINT16)(((MOUSEHOOKSTRUCT *)lParam)->pt).x;
-      gusMouseYPos = (UINT16)(((MOUSEHOOKSTRUCT *)lParam)->pt).y;
-      uiParam = gusMouseYPos;
-      uiParam = uiParam << 16;
-      uiParam = uiParam | gusMouseXPos;
-      // Trigger an input event
-      if (gfTrackMousePos == TRUE)
-      {
-        QueueEvent(MOUSE_POS, 0, uiParam);
-      }
-			//Set that we have input
-      gfSGPInputReceived =  TRUE;
-      break;
-  }
-  return TRUE;
-}
-
-#else
 
 // Wizardry mouse hander
 
@@ -342,7 +236,6 @@ LRESULT Result;
   return(TRUE);
 }
 
-#endif
 
 // FUNCTION: WIZ8 0x00401ea0
 BOOLEAN InitializeInputManager(void)
@@ -394,41 +287,6 @@ void ShutdownInputManager(void)
   UnRegisterDebugTopic(TOPIC_INPUT, "Input Manager");
   UnhookWindowsHookEx(ghKeyboardHook);
   UnhookWindowsHookEx(ghMouseHook);
-}
-
-void QueuePureEvent(UINT16 ubInputEvent, UINT32 usParam, UINT32 uiParam)
-{
-  UINT32 uiTimer;
-  UINT16 usKeyState;
-
-  uiTimer = GetTickCount();
-  usKeyState = gfShiftState | gfCtrlState | gfAltState;
-
-  // Can we queue up one more event, if not, the event is lost forever
-  if (gusQueueCount == 256)
-  { // No more queue space
-    return;
-  }
-
-  // Okey Dokey, we can queue up the event, so we do it
-  gEventQueue[gusTailIndex].uiTimeStamp = uiTimer;
-  gEventQueue[gusTailIndex].usKeyState = usKeyState;
-  gEventQueue[gusTailIndex].usEvent = ubInputEvent;
-  gEventQueue[gusTailIndex].usParam = usParam;
-  gEventQueue[gusTailIndex].uiParam = uiParam;
-
-  // Increment the number of items on the input queue
-  gusQueueCount++;
-
-  // Increment the gusTailIndex pointer
-  if (gusTailIndex == 255)
-  { // The gusTailIndex is about to wrap around the queue ring
-    gusTailIndex = 0;
-  }
-  else
-  { // We simply increment the gusTailIndex
-    gusTailIndex++;
-  }
 }
 
 // FUNCTION: WIZ8 0x00401f90
@@ -542,23 +400,6 @@ void QueueEvent(UINT16 ubInputEvent, UINT32 usParam, UINT32 uiParam)
   { // We simply increment the gusTailIndex
     gusTailIndex++;
   }
-}
-
-BOOLEAN DequeueSpecificEvent(InputAtom *Event, UINT32 uiMaskFlags )
-{
-  // Is there an event to dequeue
-  if (gusQueueCount > 0)
-  {
-		memcpy( Event, &( gEventQueue[gusHeadIndex] ), sizeof( InputAtom ) );
-
-		// Check if it has the masks!
-		if ( ( Event->usEvent & uiMaskFlags ) )
-		{
-			return( DequeueEvent( Event) );
-		}
-	}
-
-	return( FALSE );
 }
 
 // FUNCTION: WIZ8 0x00402140
@@ -733,28 +574,6 @@ void KeyUp(UINT32 usParam, UINT32 uiParam)
   }
 }
 
-void EnableDoubleClk(void)
-{
-	// Obsolete
-}
-
-void DisableDoubleClk(void)
-{
-	// Obsolete
-}
-
-void GetMousePos(SGPPoint *Point)
-{
-  POINT MousePos;
-
-  GetCursorPos(&MousePos);
-
-  Point->iX = (UINT32) MousePos.x;
-  Point->iY = (UINT32) MousePos.y;
-
-  return;
-}
-
 // These functions will be used for string input
 
 // Since all string input will have to be handle by reentrant capable functions (since we must attend
@@ -766,106 +585,6 @@ void GetMousePos(SGPPoint *Point)
 // event queue or registered in the state table. Also note that several string inputs can occur
 // at the same time. Use the SetStringFocus() function to manager the focus for multiple
 // string inputs
-
-StringInput *InitStringInput(UINT16 *pInputString, UINT16 usLength, UINT16 *pFilter)
-{
-  StringInput *pStringDescriptor;
-
-  if ((pStringDescriptor = MemAlloc(sizeof(StringInput))) == NULL)
-  {
-    //
-    // Hum we failed to allocate memory for the string descriptor
-    //
-
-    DbgMessage(TOPIC_INPUT, DBG_LEVEL_1, "Failed to allocate memory for string descriptor");
-    return NULL;
-  }
-  else
-  {
-    if ((pStringDescriptor->pOriginalString = MemAlloc(usLength * 2)) == NULL)
-    {
-      //
-      // free up structure before aborting
-      //
-
-      MemFree(pStringDescriptor);
-      DbgMessage(TOPIC_INPUT, DBG_LEVEL_1, "Failed to allocate memory for string duplicate");
-      return NULL;
-    }
-
-    memcpy(pStringDescriptor->pOriginalString, pInputString, usLength * 2);
-
-    pStringDescriptor->pString = pInputString;
-    pStringDescriptor->pFilter = pFilter;
-    pStringDescriptor->usMaxStringLength = usLength;
-    pStringDescriptor->usStringOffset = 0;
-    pStringDescriptor->usCurrentStringLength = 0;
-    while ((pStringDescriptor->usStringOffset < pStringDescriptor->usMaxStringLength)&&(*(pStringDescriptor->pString + pStringDescriptor->usStringOffset) != 0))
-    {
-      //
-      // Find the last character in the string
-      //
-
-      pStringDescriptor->usStringOffset++;
-      pStringDescriptor->usCurrentStringLength++;
-    }
-
-    if (pStringDescriptor->usStringOffset == pStringDescriptor->usMaxStringLength)
-    {
-      //
-      // Hum the current string has no null terminator. Invalidate the string and
-      // start from scratch
-      //
-
-      memset(pStringDescriptor->pString, 0, usLength * 2);
-      pStringDescriptor->usStringOffset = 0;
-      pStringDescriptor->usCurrentStringLength = 0;
-    }
-
-    pStringDescriptor->fInsertMode = FALSE;
-    pStringDescriptor->fFocus = FALSE;
-    pStringDescriptor->pPreviousString = NULL;
-    pStringDescriptor->pNextString = NULL;
-
-    return pStringDescriptor;
-  }
-}
-
-void    LinkPreviousString(StringInput *pCurrentString, StringInput *pPreviousString)
-{
-  if (pCurrentString != NULL)
-  {
-    if (pCurrentString->pPreviousString != NULL)
-    {
-      pCurrentString->pPreviousString->pNextString = NULL;
-    }
-
-    pCurrentString->pPreviousString = pPreviousString;
-
-    if (pPreviousString != NULL)
-    {
-      pPreviousString->pNextString = pCurrentString;
-    }
-  }
-}
-
-void    LinkNextString(StringInput *pCurrentString, StringInput *pNextString)
-{
-  if (pCurrentString != NULL)
-  {
-    if (pCurrentString->pNextString != NULL)
-    {
-      pCurrentString->pNextString->pPreviousString = NULL;
-    }
-
-    pCurrentString->pNextString = pNextString;
-
-    if (pNextString != NULL)
-    {
-      pNextString->pPreviousString = pCurrentString;
-    }
-  }
-}
 
 BOOLEAN CharacterIsValid(UINT16 usCharacter, UINT16 *pFilter)
 {
@@ -1015,12 +734,8 @@ void    RedirectToString(UINT16 usInputCharacter)
         gpCurrentStringDescriptor->usStringOffset = 0 ;
         gpCurrentStringDescriptor->usLastCharacter = usInputCharacter;
         break;
-#ifndef JA2
 // Stupid definition causes problems with headers that use the keyword END -- DB
 		case 0x23
-#else
-		case END
-#endif
       : // Go to the end of the input string
         gpCurrentStringDescriptor->usStringOffset = gpCurrentStringDescriptor->usCurrentStringLength;
         gpCurrentStringDescriptor->usLastCharacter = usInputCharacter;
@@ -1071,142 +786,11 @@ void    RedirectToString(UINT16 usInputCharacter)
   }
 }
 
-UINT16 GetStringInputState(void)
-{
-  if (gpCurrentStringDescriptor != NULL)
-  {
-    return gpCurrentStringDescriptor->usLastCharacter;
-  }
-  else
-  {
-    return 0;
-  }
-}
-
-BOOLEAN StringInputHasFocus(void)
-{
-  return gfCurrentStringInputState;
-}
-
-BOOLEAN SetStringFocus(StringInput *pStringDescriptor)
-{
-  if (pStringDescriptor != NULL)
-  {
-    if (gpCurrentStringDescriptor != NULL)
-    {
-      gpCurrentStringDescriptor->fFocus = FALSE;
-    }
-    // Ok overide current entry
-    gfCurrentStringInputState = TRUE;
-    gpCurrentStringDescriptor = pStringDescriptor;
-    gpCurrentStringDescriptor->fFocus = TRUE;
-    gpCurrentStringDescriptor->usLastCharacter = 0;
-    return TRUE;
-  }
-  else
-  {
-    if (gpCurrentStringDescriptor != NULL)
-    {
-      gpCurrentStringDescriptor->fFocus = FALSE;
-    }
-    // Ok overide current entry
-    gfCurrentStringInputState = FALSE;
-    gpCurrentStringDescriptor = NULL;
-    return TRUE;
-  }
-}
-
-UINT16 GetCursorPositionInString(StringInput *pStringDescriptor)
-{
-  return pStringDescriptor->usStringOffset;
-}
-
-BOOLEAN StringHasFocus(StringInput *pStringDescriptor)
-{
-  if (pStringDescriptor != NULL)
-  {
-    return pStringDescriptor->fFocus;
-  }
-  else
-  {
-    return FALSE;
-  }
-}
-
-void RestoreString(StringInput *pStringDescriptor)
-{
-  memcpy(pStringDescriptor->pString, pStringDescriptor->pOriginalString, pStringDescriptor->usMaxStringLength * 2);
-
-  pStringDescriptor->usStringOffset = 0;
-  pStringDescriptor->usCurrentStringLength = 0;
-  while ((pStringDescriptor->usStringOffset < pStringDescriptor->usMaxStringLength)&&(*(pStringDescriptor->pString + pStringDescriptor->usStringOffset) != 0))
-  {
-    //
-    // Find the last character in the string
-    //
-
-    pStringDescriptor->usStringOffset++;
-    pStringDescriptor->usCurrentStringLength++;
-  }
-
-  if (pStringDescriptor->usStringOffset == pStringDescriptor->usMaxStringLength)
-  {
-    //
-    // Hum the current string has no null terminator. Invalidate the string and
-    // start from scratch
-    //
-    memset(pStringDescriptor->pString, 0, pStringDescriptor->usMaxStringLength * 2);
-    pStringDescriptor->usStringOffset = 0;
-    pStringDescriptor->usCurrentStringLength = 0;
-  }
-
-  pStringDescriptor->fInsertMode = FALSE;
-}
-
-void EndStringInput(StringInput *pStringDescriptor)
-{ // Make sure we have a valid pStringDescriptor
-  if (pStringDescriptor != NULL)
-  { // make sure the gpCurrentStringDescriptor is NULL if necessary
-    if (pStringDescriptor == gpCurrentStringDescriptor)
-    {
-      gpCurrentStringDescriptor = NULL;
-      gfCurrentStringInputState = FALSE;
-    }
-    // Make sure we have a valid string within the string descriptor
-    if (pStringDescriptor->pOriginalString != NULL)
-    { // free up the string
-      MemFree(pStringDescriptor->pOriginalString);
-    }
-    // free up the descriptor
-    MemFree(pStringDescriptor);
-  }
-}
-
 
 
 //
 // Miscellaneous input-related utility functions:
 //
-
-void RestrictMouseToXYXY(UINT16 usX1, UINT16 usY1, UINT16 usX2, UINT16 usY2)
-{
-	SGPRect TempRect;
-
-	TempRect.iLeft   = usX1;
-	TempRect.iTop    = usY1;
-	TempRect.iRight  = usX2;
-	TempRect.iBottom = usY2;
-
-	RestrictMouseCursor(&TempRect);
-}
-
-void RestrictMouseCursor(SGPRect *pRectangle)
-{
-  // Make a copy of our rect....
-  memcpy( &gCursorClipRect, pRectangle, sizeof( gCursorClipRect ) );
-  ClipCursor((RECT *)pRectangle);
-	fCursorWasClipped = TRUE;
-}
 
 // FUNCTION: WIZ8 0x00402750
 void FreeMouseCursor(void)
@@ -1215,73 +799,8 @@ void FreeMouseCursor(void)
 	fCursorWasClipped = FALSE;
 }
 
-void RestoreCursorClipRect( void )
-{
-  if ( fCursorWasClipped )
-  {
-    ClipCursor( &gCursorClipRect );
-  }
-}
-
-void GetRestrictedClipCursor( SGPRect *pRectangle )
-{
-	GetClipCursor((RECT *) pRectangle );
-}
-
-BOOLEAN IsCursorRestricted( void )
-{
-	return( fCursorWasClipped );
-}
-
-void SimulateMouseMovement( UINT32 uiNewXPos, UINT32 uiNewYPos )
-{
-	FLOAT flNewXPos, flNewYPos;
-
-	// Wizardry NOTE: This function currently doesn't quite work right for in any Windows resolution other than 640x480.
-	// mouse_event() uses your current Windows resolution to calculate the resulting x,y coordinates.  So in order to get
-	// the right coordinates, you'd have to find out the current Windows resolution through a system call, and then do:
-	//		uiNewXPos = uiNewXPos * SCREEN_WIDTH  / WinScreenResX;
-	//		uiNewYPos = uiNewYPos * SCREEN_HEIGHT / WinScreenResY;
-	//
-	// JA2 doesn't have this problem, 'cause they use DirectDraw calls that change the Windows resolution properly.
-	//
-	// Alex Meduna, Dec. 3, 1997
-
-	// Adjust coords based on our resolution
-	flNewXPos = ( (FLOAT)uiNewXPos / SCREEN_WIDTH ) * 65536;
-	flNewYPos = ( (FLOAT)uiNewYPos / SCREEN_HEIGHT ) * 65536;
-
-	mouse_event( MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_MOVE, (UINT32)flNewXPos, (UINT32)flNewYPos, 0, 0 );
-}
 
 
-
-BOOLEAN InputEventInside(InputAtom *Event, UINT32 uiX1, UINT32 uiY1, UINT32 uiX2, UINT32 uiY2)
-{
-  UINT32 uiEventX, uiEventY;
-
-  uiEventX = _EvMouseX(Event);
-  uiEventY = _EvMouseY(Event);
-
-  return((uiEventX >= uiX1) && (uiEventX <= uiX2) && (uiEventY >= uiY1) && (uiEventY <= uiY2));
-}
-
-
-void DequeueAllKeyBoardEvents()
-{
-	InputAtom  InputEvent;
-	MSG				 KeyMessage;
-
-
-	//dequeue all the events waiting in the windows queue
-	while( PeekMessage( &KeyMessage, ghWindow, WM_KEYFIRST, WM_KEYLAST, PM_REMOVE ) );
-
-	//Deque all the events waiting in the SGP queue
-	while (DequeueEvent(&InputEvent) == TRUE)
-  {
-		//dont do anything
-	}
-}
 
 
 
@@ -1355,32 +874,38 @@ unsigned short TranslateCharacterToKey(unsigned short character)
 {
     UINT16 key;
     for (key = 0; key < 0x200; ++key) {
-        if (gsKeyTranslationTable[key & 0xffff] == character) {
-            return (UINT8)key;
+        if (gsKeyTranslationTable[key] == character) {
+            return key % 256;
         }
     }
     return 0;
 }
 
 // FUNCTION: WIZ8 0x00402800
-unsigned short IsUppercaseWideChar(unsigned short character)
+BOOLEAN IsUppercaseWideChar(unsigned short character)
 {
-    return character > L'@' && character < L'[';
+    if (character >= L'A' && character <= L'Z')
+        return TRUE;
+    return FALSE;
 }
 
 // FUNCTION: WIZ8 0x00402820
-unsigned short IsLowercaseWideChar(unsigned short character)
+BOOLEAN IsLowercaseWideChar(unsigned short character)
 {
-    return character > L'`' && character < L'{';
+    if (character >= L'a' && character <= L'z')
+        return TRUE;
+    return FALSE;
 }
 
 // FUNCTION: WIZ8 0x00402840
-unsigned short IsPunctuationWideChar(unsigned short character)
+BOOLEAN IsPunctuationWideChar(unsigned short character)
 {
-    return (character >= L'!' && character <= L'/') ||
-           (character >= L':' && character <= L'@') ||
-           (character >= L'[' && character <= L'_') ||
-           (character >= L'{' && character <= L'}');
+    if ((character >= L'!' && character <= L'/') ||
+        (character >= L':' && character <= L'@') ||
+        (character >= L'[' && character <= L'_') ||
+        (character >= L'{' && character <= L'}'))
+        return TRUE;
+    return FALSE;
 }
 
 // FUNCTION: WIZ8 0x00402880

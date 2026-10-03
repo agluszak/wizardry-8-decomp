@@ -1,3 +1,6 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
+   Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
+   Distributed under the accompanying SFI Source Code license agreement. */
 #ifndef __VOBJECT_H
 #define __VOBJECT_H
 
@@ -179,8 +182,6 @@ BOOLEAN BltVideoObjectFromIndex(  UINT32	uiDestVSurface,
 												 blt_fx *pBltFx );
 
 // Sets transparency
-BOOLEAN SetVideoObjectTransparency( UINT32 uiIndex, COLORVAL TransColor );
-
 
 // **********************************************************************************
 //
@@ -208,8 +209,6 @@ BOOLEAN DestroyObjectPaletteTables(HVOBJECT hVObject);
 UINT16 SetObjectShade(HVOBJECT pObj, UINT32 uiShade);
 
 // Sets the current object shade table using a vobject handle
-UINT16 SetObjectHandleShade(UINT32 uiHandle, UINT32 uiShade);
-
 // Fills a rectangular area of an object with a color
 UINT16 FillObjectRect(UINT32 iObj, INT32 x1, INT32 y1, INT32 x2, INT32 y2, COLORVAL color32);
 
@@ -251,19 +250,8 @@ BOOLEAN GetVideoObjectETRLEProperties( HVOBJECT hVObject, ETRLEObject *pETRLEObj
 BOOLEAN GetVideoObjectETRLEPropertiesFromIndex( UINT32 uiVideoObject, ETRLEObject *pETRLEObject, UINT16 usIndex );
 BOOLEAN GetVideoObjectETRLESubregionProperties( UINT32 uiVideoObject, UINT16 usIndex, UINT16 *pusWidth, UINT16 *pusHeight );
 
-BOOLEAN SetVideoObjectPalette8BPP(INT32 uiVideoObject, SGPPaletteEntry *pPal8);
 BOOLEAN SetVideoObjectPalette16BPP(INT32 uiVideoObject, UINT16 *pPal16);
-BOOLEAN GetVideoObjectPalette16BPP(INT32 uiVideoObject, UINT16 **ppPal16);
 BOOLEAN CopyVideoObjectPalette16BPP(INT32 uiVideoObject, UINT16 *ppPal16);
-
-BOOLEAN ConvertVObjectRegionTo16BPP( HVOBJECT hVObject, UINT16 usRegionIndex, UINT8 ubShadeLevel );
-BOOLEAN CheckFor16BPPRegion( HVOBJECT hVObject, UINT16 usRegionIndex, UINT8 ubShadeLevel, UINT16 * pusIndex );
-
-BOOLEAN BltVideoObjectOutlineFromIndex(UINT32 uiDestVSurface, UINT32 uiSrcVObject, UINT16 usIndex, INT32 iDestX, INT32 iDestY, INT16 s16BPPColor, BOOLEAN fDoOutline );
-BOOLEAN BltVideoObjectOutline(UINT32 uiDestVSurface, HVOBJECT hSrcVObject, UINT16 usIndex, INT32 iDestX, INT32 iDestY, INT16 s16BPPColor, BOOLEAN fDoOutline );
-BOOLEAN BltVideoObjectOutlineShadowFromIndex(UINT32 uiDestVSurface, UINT32 uiSrcVObject, UINT16 usIndex, INT32 iDestX, INT32 iDestY );
-BOOLEAN BltVideoObjectOutlineShadow(UINT32 uiDestVSurface, HVOBJECT hSrcVObject, UINT16 usIndex, INT32 iDestX, INT32 iDestY );
-BOOLEAN PixelateVideoObjectRect(  UINT32	uiDestVSurface, INT32 X1, INT32 Y1, INT32 X2, INT32 Y2);
 
 #ifdef __cplusplus
 }

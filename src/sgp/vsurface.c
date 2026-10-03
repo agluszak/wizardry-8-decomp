@@ -1,27 +1,19 @@
-/* Modified for the Wizardry 8 reconstruction, 2026-09-10.
+/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
    Use the Wizardry Video2 primary-surface locking interface.
+   Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
+   Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
    Distributed under the accompanying SFI Source Code license agreement. */
-#ifdef JA2_PRECOMPILED_HEADERS
-	#include "JA2 SGP ALL.H"
-#elif defined( WIZ8_PRECOMPILED_HEADERS )
-	#include "WIZ8 SGP ALL.H"
-#else
-	#include "DirectDraw Calls.h"
-	#include <stdio.h>
-	#include <stdlib.h>
-	#include "debug.h"
-	#if defined( JA2 ) || defined( UTIL )
-		#include "video.h"
-	#else
-		#include "video2.h"
-	#endif
-	#include "himage.h"
-	#include "vsurface.h"
-	#include "vsurface_private.h"
-	#include "video_private.h"
-	#include "wcheck.h"
-	#include "vobject_blitters.h"
-#endif
+#include "DirectDraw Calls.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include "debug.h"
+#include "video2.h"
+#include "himage.h"
+#include "vsurface.h"
+#include "vsurface_private.h"
+#include "video_private.h"
+#include "wcheck.h"
+#include "vobject_blitters.h"
 
 extern void SetClippingRect(SGPRect *clip);
 extern void GetClippingRect(SGPRect *clip);
@@ -59,7 +51,6 @@ BOOLEAN ClipReleatedSrcAndDestRectangles( HVSURFACE hDestVSurface, HVSURFACE hSr
 BOOLEAN FillSurface( HVSURFACE hDestVSurface, blt_vs_fx *pBltFx );
 BOOLEAN FillSurfaceRect( HVSURFACE hDestVSurface, blt_vs_fx *pBltFx );
 BOOLEAN BltVSurfaceUsingDD( HVSURFACE hDestVSurface, HVSURFACE hSrcVSurface, UINT32 fBltFlags, INT32 iDestX, INT32 iDestY, RECT *SrcRect );
-BOOLEAN BltVSurfaceUsingDDBlt( HVSURFACE hDestVSurface, HVSURFACE hSrcVSurface, UINT32 fBltFlags, INT32 iDestX, INT32 iDestY, RECT *SrcRect, RECT *DestRect );
 BOOLEAN GetVSurfaceRect( HVSURFACE hVSurface, RECT *pRect);
 
 void DeletePrimaryVideoSurfaces( );
@@ -76,10 +67,10 @@ typedef struct VSURFACE_NODE
 	UINT32 uiIndex;
   struct VSURFACE_NODE *next, *prev;
 
-	#ifdef SGP_VIDEO_DEBUGGING
+#ifdef SGP_VIDEO_DEBUGGING
 		UINT8									*pName;
 		UINT8									*pCode;
-	#endif
+#endif
 
 }VSURFACE_NODE;
 
@@ -176,12 +167,12 @@ BOOLEAN ShutdownVideoSurfaceManager( )
 		curr = gpVSurfaceHead;
 		gpVSurfaceHead = gpVSurfaceHead->next;
 		DeleteVideoSurface( curr->hVSurface );
-		#ifdef SGP_VIDEO_DEBUGGING
+#ifdef SGP_VIDEO_DEBUGGING
 			if( curr->pName )
 				MemFree( curr->pName );
 			if( curr->pCode )
 				MemFree( curr->pCode );
-		#endif
+#endif
 		MemFree( curr );
 	}
 	gpVSurfaceHead = NULL;
@@ -253,10 +244,10 @@ BOOLEAN AddStandardVideoSurface( VSURFACE_DESC *pVSurfaceDesc, UINT32 *puiIndex 
 		gpVSurfaceHead->prev = gpVSurfaceHead->next = NULL;
 		gpVSurfaceTail = gpVSurfaceHead;
 	}
-	#ifdef SGP_VIDEO_DEBUGGING
+#ifdef SGP_VIDEO_DEBUGGING
 		gpVSurfaceTail->pName = NULL;
 		gpVSurfaceTail->pCode = NULL;
-	#endif
+#endif
 	//Set the hVSurface into the node.
 	gpVSurfaceTail->hVSurface = hVSurface;
 	gpVSurfaceTail->uiIndex = guiVSurfaceIndex+=2;
@@ -278,17 +269,6 @@ BYTE *LockVideoSurface( UINT32 uiVSurface, UINT32 *puiPitch )
   //
   // Check if given backbuffer or primary buffer
   //
-#ifdef JA2
-  if ( uiVSurface == PRIMARY_SURFACE )
-  {
-    return LockPrimarySurface( puiPitch );
-  }
-
-  if ( uiVSurface == BACKBUFFER )
-  {
-    return LockBackBuffer( puiPitch );
-  }
-#endif
 
   if ( uiVSurface == FRAME_BUFFER )
   {
@@ -334,19 +314,6 @@ void UnLockVideoSurface( UINT32 uiVSurface )
   //
   // Check if given backbuffer or primary buffer
   //
-#ifdef JA2
-  if ( uiVSurface == PRIMARY_SURFACE )
-  {
-    UnlockPrimarySurface();
-    return;
-  }
-
-  if ( uiVSurface == BACKBUFFER )
-  {
-    UnlockBackBuffer();
-    return;
-  }
-#endif
 
   if ( uiVSurface == FRAME_BUFFER )
   {
@@ -390,9 +357,9 @@ BOOLEAN SetVideoSurfaceTransparency( UINT32 uiIndex, COLORVAL TransColor )
 	// Get Video Surface
   //
 
-	#ifdef _DEBUG
+#ifdef _DEBUG
 		gubVSDebugCode = DEBUGSTR_SETVIDEOSURFACETRANSPARENCY;
-	#endif
+#endif
 	CHECKF( GetVideoSurface( &hVSurface, uiIndex ) );
 
   //
@@ -404,61 +371,14 @@ BOOLEAN SetVideoSurfaceTransparency( UINT32 uiIndex, COLORVAL TransColor )
 	return( TRUE );
 }
 
-BOOLEAN AddVideoSurfaceRegion( UINT32 uiIndex, VSURFACE_REGION *pNewRegion )
-{
-	HVSURFACE hVSurface;
-
-  //
-	// Get Video Surface
-  //
-
-	#ifdef _DEBUG
-		gubVSDebugCode = DEBUGSTR_ADDVIDEOSURFACEREGION;
-	#endif
-	CHECKF( GetVideoSurface( &hVSurface, uiIndex ) );
-
-  //
-	// Add Region
-  //
-
-	CHECKF( AddVSurfaceRegion( hVSurface, pNewRegion ) );
-
-	return( TRUE );
-
-}
-
-BOOLEAN GetVideoSurfaceDescription( UINT32 uiIndex, UINT16 *usWidth, UINT16 *usHeight, UINT8 *ubBitDepth )
-{
-	HVSURFACE hVSurface;
-
-	Assert( usWidth != NULL );
-	Assert( usHeight != NULL );
-	Assert( ubBitDepth != NULL );
-
-  //
-	// Get Video Surface
-  //
-
-	#ifdef _DEBUG
-		gubVSDebugCode = DEBUGSTR_GETVIDEOSURFACEDESCRIPTION;
-	#endif
-	CHECKF( GetVideoSurface( &hVSurface, uiIndex ) );
-
-	*usWidth = hVSurface->usWidth;
-	*usHeight = hVSurface->usHeight;
-	*ubBitDepth = hVSurface->ubBitDepth;
-
-	return TRUE;
-}
-
 // FUNCTION: WIZ8 0x00402db0
 BOOLEAN GetVideoSurface( HVSURFACE *hVSurface, UINT32 uiIndex )
 {
 	VSURFACE_NODE *curr;
 
-	#ifdef _DEBUG
+#ifdef _DEBUG
 		CheckValidVSurfaceIndex( uiIndex );
-	#endif
+#endif
 
   if ( uiIndex == PRIMARY_SURFACE )
   {
@@ -508,33 +428,6 @@ BOOLEAN SetPrimaryVideoSurfaces( )
   //
 	// Get Primary surface
   //
-#ifdef JA2
-	pSurface = GetPrimarySurfaceObject();
-	CHECKF( pSurface != NULL );
-
-	ghPrimary = CreateVideoSurfaceFromDDSurface( pSurface );
-	CHECKF( ghPrimary != NULL );
-
-  //
-	// Get Backbuffer surface
-  //
-
-	pSurface = GetBackBufferObject( );
-	CHECKF( pSurface != NULL );
-
-	ghBackBuffer = CreateVideoSurfaceFromDDSurface( pSurface );
-	CHECKF( ghBackBuffer != NULL );
-
-  //
-	// Get mouse buffer surface
-  //
-	pSurface = GetMouseBufferObject( );
-	CHECKF( pSurface != NULL );
-
-	ghMouseBuffer = CreateVideoSurfaceFromDDSurface( pSurface );
-	CHECKF( ghMouseBuffer != NULL );
-
-#endif
 
   //
 	// Get frame buffer surface
@@ -599,16 +492,16 @@ BOOLEAN BltVideoSurface(UINT32 uiDestVSurface, UINT32 uiSrcVSurface, UINT16 usRe
 	HVSURFACE	hDestVSurface;
 	HVSURFACE	hSrcVSurface;
 
-	#ifdef _DEBUG
+#ifdef _DEBUG
 		gubVSDebugCode = DEBUGSTR_BLTVIDEOSURFACE_DST;
-	#endif
+#endif
 	if( !GetVideoSurface( &hDestVSurface, uiDestVSurface ) )
 	{
 		return FALSE;
 	}
-	#ifdef _DEBUG
+#ifdef _DEBUG
 		gubVSDebugCode = DEBUGSTR_BLTVIDEOSURFACE_SRC;
-	#endif
+#endif
 	if( !GetVideoSurface( &hSrcVSurface, uiSrcVSurface ) )
 	{
 		return FALSE;
@@ -633,9 +526,9 @@ BOOLEAN ColorFillVideoSurfaceArea(UINT32 uiDestVSurface, INT32 iDestX1, INT32 iD
 	HVSURFACE	hDestVSurface;
 	SGPRect Clip;
 
-	#ifdef _DEBUG
+#ifdef _DEBUG
 		gubVSDebugCode = DEBUGSTR_COLORFILLVIDEOSURFACEAREA;
-	#endif
+#endif
 	if( !GetVideoSurface( &hDestVSurface, uiDestVSurface ) )
 	{
 		return FALSE;
@@ -834,11 +727,7 @@ HVSURFACE CreateVideoSurface( VSURFACE_DESC *VSurfaceDesc )
   //
 	// The description structure contains memory usage flag
   //
-#ifdef JA2
-	fMemUsage = VSurfaceDesc->fCreateFlags;
-#else
 	fMemUsage = VSURFACE_SYSTEM_MEM_USAGE;
-#endif
 
   //
 	// Check creation options
@@ -1199,10 +1088,8 @@ BYTE *LockVideoSurfaceBuffer( HVSURFACE hVSurface, UINT32 *pPitch )
 	Assert( hVSurface != NULL );
 	Assert( pPitch != NULL );
 
-#ifndef JA2
 	if(hVSurface==ghFrameBuffer)
 		return(LockPrimarySurface(pPitch));
-#endif
 
 	DDLockSurface( (LPDIRECTDRAWSURFACE2)hVSurface->pSurfaceData, NULL, &SurfaceDescription, 0, NULL);
 
@@ -1215,13 +1102,11 @@ void UnLockVideoSurfaceBuffer( HVSURFACE hVSurface )
 {
 	Assert( hVSurface != NULL );
 
-#ifndef JA2
 	if(hVSurface==ghFrameBuffer)
 	{
 		UnlockPrimarySurface();
 		return;
 	}
-#endif
 
 	DDUnlockSurface( (LPDIRECTDRAWSURFACE2)hVSurface->pSurfaceData, NULL );
 
@@ -1400,25 +1285,16 @@ BOOLEAN SetVideoSurfaceTransparencyColor( HVSURFACE hVSurface, COLORVAL TransCol
 }
 
 
-BOOLEAN GetVSurfacePaletteEntries( HVSURFACE hVSurface, SGPPaletteEntry *pPalette )
-{
-	CHECKF( hVSurface->pPalette != NULL );
-
-	DDGetPaletteEntries( (LPDIRECTDRAWPALETTE)hVSurface->pPalette, 0, 0, 256, (PALETTEENTRY*)pPalette );
-
-	return( TRUE );
-}
-
 
 // FUNCTION: WIZ8 0x004039c0
 BOOLEAN DeleteVideoSurfaceFromIndex( UINT32 uiIndex )
 {
 	VSURFACE_NODE *curr;
 
-	#ifdef _DEBUG
+#ifdef _DEBUG
 		gubVSDebugCode = DEBUGSTR_DELETEVIDEOSURFACEFROMINDEX;
 		CheckValidVSurfaceIndex( uiIndex );
-	#endif
+#endif
 
 	curr = gpVSurfaceHead;
 	while( curr )
@@ -1448,7 +1324,7 @@ BOOLEAN DeleteVideoSurfaceFromIndex( UINT32 uiIndex )
 			}
 			//The node is now detached.  Now deallocate it.
 
-			#ifdef SGP_VIDEO_DEBUGGING
+#ifdef SGP_VIDEO_DEBUGGING
 				if( curr->pName )
 				{
 					MemFree( curr->pName );
@@ -1457,7 +1333,7 @@ BOOLEAN DeleteVideoSurfaceFromIndex( UINT32 uiIndex )
 				{
 					MemFree( curr->pCode );
 				}
-			#endif
+#endif
 
 			MemFree( curr );
 			guiVSurfaceSize--;
@@ -1602,69 +1478,6 @@ BOOLEAN SetClipList( HVSURFACE hVSurface, SGPRect *RegionData, UINT16 usNumRegio
 //
 // ********************************************************
 
-BOOLEAN GetNumRegions( HVSURFACE hVSurface , UINT32 *puiNumRegions )
-{
-	Assert( hVSurface );
-
-	*puiNumRegions = ListSize( hVSurface->RegionList );
-
-	return( TRUE );
-
-}
-
-BOOLEAN AddVSurfaceRegion( HVSURFACE hVSurface, VSURFACE_REGION *pNewRegion )
-{
-	Assert( hVSurface != NULL );
-	Assert( pNewRegion != NULL );
-
-	// Add new region to list
-	hVSurface->RegionList = AddtoList( hVSurface->RegionList, pNewRegion, ListSize( hVSurface->RegionList ) );
-
-	return( TRUE );
-}
-
-// Add a group of regions
-BOOLEAN AddVSurfaceRegions( HVSURFACE hVSurface, VSURFACE_REGION **ppNewRegions, UINT16 uiNumRegions )
-{
-	UINT16 cnt;
-
-	Assert( hVSurface != NULL );
-	Assert( ppNewRegions != NULL );
-
-	for ( cnt = 0; cnt < uiNumRegions; cnt++ )
-	{
-		AddVSurfaceRegion( hVSurface, ppNewRegions[ cnt ] );
-	}
-
-	return( TRUE );
-}
-
-BOOLEAN RemoveVSurfaceRegion( HVSURFACE hVSurface, UINT16 usIndex )
-{
-	VSURFACE_REGION	aRegion;
-
-	Assert( hVSurface != NULL );
-
-	return( RemfromList( hVSurface->RegionList, &aRegion, usIndex ) );
-
-}
-
-BOOLEAN ClearAllVSurfaceRegions( HVSURFACE hVSurface )
-{
-	UINT32 uiListSize, cnt;
-
-	Assert( hVSurface != NULL );
-
-	uiListSize = ListSize( hVSurface->RegionList );
-
-	for ( cnt = uiListSize - 1; cnt >= 0; cnt-- )
-	{
-		RemoveVSurfaceRegion( hVSurface, (UINT16)cnt );
-	}
-
-	return( TRUE );
-}
-
 BOOLEAN GetVSurfaceRegion( HVSURFACE hVSurface, UINT16 usIndex, VSURFACE_REGION *aRegion )
 {
 	Assert( hVSurface != NULL );
@@ -1688,36 +1501,6 @@ BOOLEAN GetVSurfaceRect( HVSURFACE hVSurface, RECT *pRect)
 	pRect->bottom=hVSurface->usHeight;
 
 	return( TRUE );
-}
-
-BOOLEAN ReplaceVSurfaceRegion( HVSURFACE hVSurface , UINT16 usIndex, VSURFACE_REGION *aRegion )
-{
-	VSURFACE_REGION OldRegion;
-
-	Assert( hVSurface != NULL );
-
-	// Validate index given
-	if ( !PeekList( hVSurface->RegionList, &OldRegion, usIndex ) )
-	{
-		return( FALSE );
-	}
-
-	// Replace information
-	hVSurface->RegionList = AddtoList( hVSurface->RegionList, aRegion, usIndex );
-
-	return( TRUE );
-}
-
-BOOLEAN AddVSurfaceRegionAtIndex( HVSURFACE hVSurface, UINT16 usIndex, VSURFACE_REGION *pNewRegion )
-{
-	Assert( hVSurface != NULL );
-	Assert( pNewRegion != NULL );
-
-	// Add new region to list
-	hVSurface->RegionList = AddtoList( hVSurface->RegionList, pNewRegion, usIndex );
-
-	return( TRUE );
-
 }
 
 // *******************************************************************
@@ -1894,7 +1677,6 @@ BOOLEAN BltVideoSurfaceToVideoSurface( HVSURFACE hDestVSurface, HVSURFACE hSrcVS
 			return(TRUE);
 		}
 // For testing with non-DDraw blitting, uncomment to test -- DB
-#ifndef JA2
 		else
 		{
 			if((pSrcSurface16=(UINT16 *)LockVideoSurfaceBuffer(hSrcVSurface, &uiSrcPitch))==NULL)
@@ -1915,7 +1697,6 @@ BOOLEAN BltVideoSurfaceToVideoSurface( HVSURFACE hDestVSurface, HVSURFACE hSrcVS
 			UnLockVideoSurfaceBuffer(hDestVSurface);
 			return(TRUE);
 		}
-#endif
 
 		CHECKF( BltVSurfaceUsingDD( hDestVSurface, hSrcVSurface, fBltFlags, iDestX, iDestY, &SrcRect ) );
 
@@ -1989,27 +1770,6 @@ BOOLEAN UpdateBackupSurface( HVSURFACE hVSurface )
 //
 // *****************************************************************************
 
-LPDIRECTDRAWSURFACE2 GetVideoSurfaceDDSurface( HVSURFACE hVSurface )
-{
-	Assert( hVSurface != NULL );
-
-	return( (LPDIRECTDRAWSURFACE2) hVSurface->pSurfaceData );
-}
-
-LPDIRECTDRAWSURFACE GetVideoSurfaceDDSurfaceOne( HVSURFACE hVSurface )
-{
-	Assert( hVSurface != NULL );
-
-	return( (LPDIRECTDRAWSURFACE) hVSurface->pSurfaceData1 );
-}
-
-
-LPDIRECTDRAWPALETTE  GetVideoSurfaceDDPalette( HVSURFACE hVSurface )
-{
-	Assert( hVSurface != NULL );
-
-	return( (LPDIRECTDRAWPALETTE) hVSurface->pPalette );
-}
 
 // FUNCTION: WIZ8 0x004044c0
 HVSURFACE CreateVideoSurfaceFromDDSurface( LPDIRECTDRAWSURFACE2 lpDDSurface )
@@ -2071,26 +1831,6 @@ HVSURFACE CreateVideoSurfaceFromDDSurface( LPDIRECTDRAWSURFACE2 lpDDSurface )
   DbgMessage( TOPIC_VIDEOSURFACE, DBG_LEVEL_0, String("Success in Creating Video Surface from DD Surface" ) );
 
 	return( hVSurface );
-}
-
-HVSURFACE GetPrimaryVideoSurface( )
-{
-	return( ghPrimary );
-}
-
-HVSURFACE GetBackBufferVideoSurface( )
-{
-	return( ghBackBuffer );
-}
-
-HVSURFACE GetFrameBufferVideoSurface( )
-{
-	return( ghFrameBuffer );
-}
-
-HVSURFACE GetMouseBufferVideoSurface( )
-{
-	return( ghMouseBuffer );
 }
 
 
@@ -2322,9 +2062,9 @@ BOOLEAN InternalShadowVideoSurfaceRect(  UINT32	uiDestVSurface, INT32 X1, INT32 
   //
 	// Get Video Surface
   //
-	#ifdef _DEBUG
+#ifdef _DEBUG
 		gubVSDebugCode = DEBUGSTR_SHADOWVIDEOSURFACERECT;
-	#endif
+#endif
 	CHECKF( GetVideoSurface( &hVSurface, uiDestVSurface ) );
 
 	if ( X1 < 0 )
@@ -2410,91 +2150,8 @@ BOOLEAN ShadowVideoSurfaceRect(  UINT32	uiDestVSurface, INT32 X1, INT32 Y1, INT3
 }
 
 
-BOOLEAN ShadowVideoSurfaceRectUsingLowPercentTable(  UINT32	uiDestVSurface, INT32 X1, INT32 Y1, INT32 X2, INT32 Y2)
-{
- return( InternalShadowVideoSurfaceRect( uiDestVSurface, X1, Y1, X2, Y2, TRUE ) );
-}
 
 
-//
-// BltVSurfaceUsingDDBlt will always use Direct Draw Blt,NOT BltFast
-BOOLEAN BltVSurfaceUsingDDBlt( HVSURFACE hDestVSurface, HVSURFACE hSrcVSurface, UINT32 fBltFlags, INT32 iDestX, INT32 iDestY, RECT *SrcRect, RECT *DestRect )
-{
-	UINT32		uiDDFlags;
-
-	// Default flags
-	uiDDFlags = DDBLT_WAIT;
-
-	// Convert flags into DD flags, ( for transparency use, etc )
-	if ( fBltFlags & VS_BLT_USECOLORKEY )
-	{
-		uiDDFlags |= DDBLT_KEYSRC;
-	}
-
-	DDBltSurface( (LPDIRECTDRAWSURFACE2)hDestVSurface->pSurfaceData, DestRect, (LPDIRECTDRAWSURFACE2)hSrcVSurface->pSurfaceData,
-						SrcRect, uiDDFlags, NULL );
-
-	// Update backup surface with new data
-	if ( hDestVSurface->fFlags & VSURFACE_VIDEO_MEM_USAGE && !hDestVSurface->fFlags & VSURFACE_RESERVED_SURFACE )
-	{
-		UpdateBackupSurface( hDestVSurface );
-	}
-
-	return( TRUE );
-}
-
-
-//
-// This function will stretch the source image to the size of the dest rect.
-//
-// If the 2 images are not 16 Bpp, it returns false.
-//
-BOOLEAN BltStretchVideoSurface(UINT32 uiDestVSurface, UINT32 uiSrcVSurface, INT32 iDestX, INT32 iDestY, UINT32 fBltFlags, SGPRect *SrcRect, SGPRect *DestRect )
-{
-	HVSURFACE	hDestVSurface;
-	HVSURFACE	hSrcVSurface;
-
-	#ifdef _DEBUG
-		gubVSDebugCode = DEBUGSTR_BLTSTRETCHVIDEOSURFACE_DST;
-	#endif
-	if( !GetVideoSurface( &hDestVSurface, uiDestVSurface ) )
-	{
-		return FALSE;
-	}
-	#ifdef _DEBUG
-		gubVSDebugCode = DEBUGSTR_BLTSTRETCHVIDEOSURFACE_SRC;
-	#endif
-	if( !GetVideoSurface( &hSrcVSurface, uiSrcVSurface ) )
-	{
-		return FALSE;
-	}
-
-	//if the 2 images are not both 16bpp, return FALSE
-	if( (hDestVSurface->ubBitDepth != 16) && (hSrcVSurface->ubBitDepth != 16) )
-		return(FALSE);
-
-	if(!BltVSurfaceUsingDDBlt( hDestVSurface, hSrcVSurface, fBltFlags, iDestX, iDestY, (RECT*)SrcRect, (RECT*)DestRect ) )
-	{
-    //
-		// VO Blitter will set debug messages for error conditions
-    //
-
-		return( FALSE );
-	}
-
-	return( TRUE );
-}
-
-
-BOOLEAN ShadowVideoSurfaceImage( UINT32	uiDestVSurface, HVOBJECT hImageHandle, INT32 iPosX, INT32 iPosY)
-{
-	//Horizontal shadow
-	ShadowVideoSurfaceRect( uiDestVSurface, iPosX+3, iPosY+hImageHandle->pETRLEObject->usHeight, iPosX+hImageHandle->pETRLEObject->usWidth, iPosY+	hImageHandle->pETRLEObject->usHeight+3);
-
-	//vertical shadow
-	ShadowVideoSurfaceRect( uiDestVSurface, iPosX+hImageHandle->pETRLEObject->usWidth, iPosY+3, iPosX+hImageHandle->pETRLEObject->usWidth+3, iPosY+	hImageHandle->pETRLEObject->usHeight);
-	return( TRUE );
-}
 
 // FUNCTION: WIZ8 0x004048d0
 BOOLEAN MakeVSurfaceFromVObject(UINT32 uiVObject, UINT16 usSubIndex, UINT32 *puiVSurface)
