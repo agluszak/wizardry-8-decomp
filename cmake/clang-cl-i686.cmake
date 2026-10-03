@@ -8,8 +8,9 @@ set(CMAKE_C_COMPILER clang-cl)
 set(CMAKE_CXX_COMPILER clang-cl)
 set(CMAKE_C_COMPILER_TARGET ${_target})
 set(CMAKE_CXX_COMPILER_TARGET ${_target})
-# The lint target emits object files only. Avoid CMake's static-library probe,
-# which requires Microsoft's lib.exe even though the real build never links.
+# LLVM archives the retained SGP objects without Microsoft's lib.exe.
+find_program(CMAKE_AR NAMES llvm-lib-21 llvm-lib REQUIRED)
+# Compiler probes stay compile-only; this lane does not link Windows images.
 set(CMAKE_C_COMPILER_WORKS TRUE)
 set(CMAKE_CXX_COMPILER_WORKS TRUE)
 
@@ -25,4 +26,4 @@ endforeach()
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
-set(WIZ8_LINT_COMPILE_ONLY ON CACHE BOOL "Compile only with modern diagnostics")
+set(WIZ8_ANALYSIS_BUILD ON CACHE INTERNAL "Compile only with modern diagnostics" FORCE)

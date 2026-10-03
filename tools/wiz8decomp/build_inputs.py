@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import os
 import shutil
 import sys
 import tarfile
@@ -315,6 +316,9 @@ def build_toolchain_images(
     if docker["executable"] is None:
         raise RuntimeError("docker is required to build the VC6 toolchain")
     records = []
+    build_options = ["--build-arg", f"WIZ8_EMULATE_I386={os.environ.get('WIZ8_EMULATE_I386', '0')}"]
+    if proxy_ca := os.environ.get("CODEX_PROXY_CERT"):
+        build_options.extend(("--secret", f"id=proxy_ca,src={proxy_ca}"))
     context = settings.repo_dir / "docker" / "msvc600"
     for toolchain in select_toolchains(config, toolchain_ids):
         commands: dict[str, str] = {}
@@ -327,8 +331,7 @@ def build_toolchain_images(
                     docker["executable"],
                     "build",
                     "--pull",
-                    "--network",
-                    "host",
+                    *build_options,
                     "--build-arg",
                     f"MSVC_REPOSITORY={toolchain.repository}",
                     "--build-arg",

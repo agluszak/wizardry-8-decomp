@@ -28,32 +28,6 @@ from .mi_process import DebuggerTransportError
 from .session import CrashSnapshot, GdbSession, is_terminal_stop, terminal_stop_summary
 
 
-def _load_manifest(manifest_path: Path) -> dict[str, dict[str, Any]]:
-    if not manifest_path.is_file():
-        return {}
-    document = json.loads(manifest_path.read_text(encoding="utf-8"))
-    by_stub: dict[str, dict[str, Any]] = {}
-    for entry in document.get("stubs", []):
-        stub = str(entry.get("stub", ""))
-        if stub:
-            by_stub[stub] = entry
-            by_stub[stub.lstrip("_")] = entry
-    return by_stub
-
-
-def find_runtime_stub(
-    resolutions: list[SymbolResolution], manifest_path: Path
-) -> dict[str, Any] | None:
-    """Identify a generated trap through the MAP, never through GDB names."""
-
-    by_stub = _load_manifest(manifest_path)
-    for resolution in resolutions:
-        symbol = resolution.symbol
-        if symbol is not None and (entry := by_stub.get(symbol.decorated_name)) is not None:
-            return entry
-    return None
-
-
 def _snapshot_candidates(snapshot: CrashSnapshot) -> list[tuple[str, int]]:
     """Collect plausible code addresses for section-aware MAP resolution."""
 
@@ -105,7 +79,6 @@ async def _debug_result(
     *,
     timeout: int,
     map_path: Path | None,
-    manifest_path: Path,
     provenance: Path,
 ) -> dict[str, Any]:
     event = await session.wait_for_stop(timeout)
@@ -134,32 +107,12 @@ async def _debug_result(
         label = event.signal.lower() if event.signal else event.reason
         snapshot = await session.capture_stop(label, event)
 
-    report, resolutions = format_crash_snapshot(snapshot, session.executable, map_path)
-    causal_addresses = set(snapshot.frame_addresses)
-    if (pc := snapshot.registers.get("eip")) is not None:
-        causal_addresses.add(pc)
-    stub = (
-        find_runtime_stub(
-            [item for item in resolutions if item.address in causal_addresses], manifest_path
-        )
-        if event.signal == "SIGTRAP"
-        else None
-    )
+    report, _ = format_crash_snapshot(snapshot, session.executable, map_path)
     reason = "debugger timeout" if timed_out else event.signal or event.reason
-    if stub is not None:
-        report = (
-            "UNRECOVERED FUNCTION\n"
-            f"  retail: {stub.get('address') or 'unmapped'}\n"
-            f"  symbol: {stub.get('symbol')}\n"
-            f"  stub:   {stub.get('stub')}\n\n" + report
-        )
-        reason = f"unrecovered {stub.get('address') or 'unmapped'}"
     return {
         "report": report,
         "reason": reason,
-        "exit_code": 0
-        if event.reason == "breakpoint-hit" and not timed_out and stub is None
-        else 1,
+        "exit_code": 0 if event.reason == "breakpoint-hit" and not timed_out else 1,
         "log": str(snapshot.raw_path),
         "session": str(provenance),
     }
@@ -171,7 +124,6 @@ async def _run_debug_session(
     *,
     timeout: int,
     map_path: Path | None,
-    manifest_path: Path,
     provenance: Path,
 ) -> dict[str, Any]:
     try:
@@ -183,7 +135,6 @@ async def _run_debug_session(
             session,
             timeout=timeout,
             map_path=map_path,
-            manifest_path=manifest_path,
             provenance=provenance,
         )
     finally:
@@ -307,7 +258,6 @@ def _run_debugger_locked(
     executable = staged.executable
     map_path = staged.map
     artifact_dir = settings.repo_dir / "build/debug"
-    manifest_path = settings.product_build_dir / "generated/runtime-stubs/runtime_stubs.json"
     prefix, environment = _debug_environment(settings, scenario=scenario is not None)
     umu_run = require_umu_runner(environment)
     _stop_debug_wineserver(environment)
@@ -349,7 +299,6 @@ def _run_debugger_locked(
                     breakpoints,
                     timeout=timeout,
                     map_path=map_path,
-                    manifest_path=manifest_path,
                     provenance=provenance,
                 )
             )

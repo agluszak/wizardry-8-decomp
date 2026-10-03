@@ -56,3 +56,25 @@ function(wiz8_add_import_library NAME DEF_FILE)
     set(${NAME}_IMPORT_LIBRARY "${import_library}" PARENT_SCOPE)
     set(${NAME}_IMPORT_TARGET "${target_stem}_import_library" PARENT_SCOPE)
 endfunction()
+
+# VC6 LINK under Wine needs a COFF object rather than RC's raw .res.
+function(wiz8_compile_resource OUT RC_FILE)
+    find_program(CVTRES_EXECUTABLE cvtres.exe REQUIRED)
+    get_filename_component(stem "${RC_FILE}" NAME_WE)
+    set(resource_res "${CMAKE_CURRENT_BINARY_DIR}/${stem}_resource.res")
+    set(resource_object "${CMAKE_CURRENT_BINARY_DIR}/${stem}_resource.obj")
+    add_custom_command(
+        OUTPUT "${resource_object}"
+        COMMAND "${CMAKE_RC_COMPILER}"
+            "/fo${resource_res}" "${CMAKE_CURRENT_SOURCE_DIR}/${RC_FILE}"
+        COMMAND "${CVTRES_EXECUTABLE}" /nologo /machine:ix86
+            "/out:${resource_object}" "${resource_res}"
+        DEPENDS "${RC_FILE}"
+        VERBATIM
+    )
+    set_source_files_properties("${resource_object}" PROPERTIES
+        EXTERNAL_OBJECT TRUE
+        GENERATED TRUE
+    )
+    set(${OUT} "${resource_object}" PARENT_SCOPE)
+endfunction()

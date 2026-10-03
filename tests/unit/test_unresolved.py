@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 import wiz8decomp.unresolved as unresolved_module
-from wiz8decomp.unresolved import parse_map_publics, unresolved_report
+from wiz8decomp.unresolved import linked_objects, parse_map_publics, unresolved_report
 
 REPOSITORY = Path(__file__).resolve().parents[2]
 
@@ -74,3 +74,14 @@ def test_imports_are_reported_separately_and_units_are_ranked(
         "__imp__CreateFileA@28": ["recovered.dir/src/first.cpp.obj"]
     }
     assert "__imp__CreateFileA@28" not in report["by_symbol"]
+
+
+def test_linked_objects_use_component_paths_and_preserve_quoted_names(tmp_path: Path) -> None:
+    component = tmp_path / "src/wiz8"
+    response = component / "CMakeFiles/WIZ8.dir/objects1.rsp"
+    response.parent.mkdir(parents=True)
+    response.write_text('CMakeFiles/unit.dir/one.cpp.obj "CMakeFiles/unit.dir/space name.cpp.obj"')
+    assert linked_objects(tmp_path) == [
+        (component / "CMakeFiles/unit.dir/one.cpp.obj").resolve(),
+        (component / "CMakeFiles/unit.dir/space name.cpp.obj").resolve(),
+    ]

@@ -106,25 +106,8 @@ set_source_files_properties(
 target_link_libraries(wiz8_surrender_objects PRIVATE wiz8_compile_settings)
 wiz8_lint_target(wiz8_surrender_objects)
 
-if(WIZ8_BUILD_PRODUCTS)
-    find_program(CVTRES_EXECUTABLE cvtres.exe REQUIRED)
-    set(SURRENDER_RESOURCE_RES "${CMAKE_CURRENT_BINARY_DIR}/sr_resource.res")
-    set(SURRENDER_RESOURCE_OBJECT "${CMAKE_CURRENT_BINARY_DIR}/sr_resource.obj")
-    add_custom_command(
-        OUTPUT "${SURRENDER_RESOURCE_OBJECT}"
-        COMMAND "${CMAKE_RC_COMPILER}"
-            "/fo${SURRENDER_RESOURCE_RES}"
-            "${CMAKE_CURRENT_SOURCE_DIR}/sr.rc"
-        COMMAND "${CVTRES_EXECUTABLE}" /nologo /machine:ix86
-            "/out:${SURRENDER_RESOURCE_OBJECT}"
-            "${SURRENDER_RESOURCE_RES}"
-        DEPENDS sr.rc
-        VERBATIM
-    )
-    set_source_files_properties("${SURRENDER_RESOURCE_OBJECT}" PROPERTIES
-        EXTERNAL_OBJECT TRUE
-        GENERATED TRUE
-    )
+if(NOT WIZ8_ANALYSIS_BUILD)
+    wiz8_compile_resource(SURRENDER_RESOURCE_OBJECT sr.rc)
 
     add_library(SURRENDER SHARED
         $<TARGET_OBJECTS:wiz8_surrender_objects>
@@ -145,10 +128,6 @@ if(WIZ8_BUILD_PRODUCTS)
         /OSVERSION:4.0 /SUBSYSTEM:WINDOWS,4.0
         "/MAP:${CMAKE_BINARY_DIR}/sr.map"
     )
-    set_target_properties(SURRENDER PROPERTIES
-        OUTPUT_NAME sr
-        PREFIX ""
-        PDB_NAME sr
-    )
-    reccmp_add_target(SURRENDER)
+    set_target_properties(SURRENDER PROPERTIES OUTPUT_NAME sr)
+
 endif()
