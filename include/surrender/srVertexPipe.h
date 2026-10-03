@@ -20,7 +20,7 @@ public:
         const unsigned long* indices_08;
         int position_is_float3_0c;
         const srVector3T<float>* positions_10;
-        const void* values_14;
+        const srVector3T<float>* values_14;
         srVector3T<float> eye_center_18;
         float eye_radius_24;
         const srMatrix4T<float>* model_view_28;
@@ -163,7 +163,9 @@ private:
         unsigned long flags_b00;
     };
 
-    void* scratch_00;                                 /* 0x00 */
+    static_assert(sizeof(Scratch) == 0xb04, "Scratch_must_be_0xb04");
+
+    Scratch* scratch_00;                              /* 0x00 */
     srVertexProcessor** processor_heap_04;            /* 0x04 */
     unsigned long processor_heap_capacity_08;         /* 0x08 */
     unsigned long channel_mask_0c;                    /* 0x0c */

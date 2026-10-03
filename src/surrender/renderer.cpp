@@ -496,8 +496,7 @@ void srGERD::Renderer::expandTriangles(const TriInput& input, int sorted)
 {
     IndexWrite write;
     indices_54_.alloc(write, input.triangle_count_00 * input.record_count_04);
-    const srTriMeshPipeline::Pass* passes =
-        static_cast<const srTriMeshPipeline::Pass*>(input.passes_18);
+    const srTriMeshPipeline::Pass* passes = input.passes_18;
     unsigned long record = 0;
     while (record < input.record_count_04 && passes[record].poly_uv_1c == 0) {
         record++;
