@@ -17,9 +17,9 @@ without that provenance reports `unknown`/`untracked`; do not treat matching bin
 counts, or timestamps as proof that its analysis equals the reviewed checkpoint.
 
 Doctor never overwrites Ghidra state. If a stale/unknown live project contains work that must survive,
-reconcile it with the current reviewed checkpoint as described below. If it contains nothing worth
-preserving, replacing the checkout-owned project is still an explicit state-management/destructive
-operation: preserve/authorize it first, then let the canonical opener restore the current seed.
+reconcile it with the current reviewed checkpoint as described below. Otherwise replace it only on the
+user's explicit instruction; that instruction is sufficient. Delete the live program (`*.gpr` and
+`*.rep`; keep `checkout-owner.json`) and restore the current seed. Do not make a backup copy.
 
 ## Restore
 
