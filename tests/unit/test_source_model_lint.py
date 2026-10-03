@@ -17,7 +17,6 @@ def _index(
     markers: list[dict] | None = None,
     declarations: list[dict] | None = None,
     variables: list[dict] | None = None,
-    compiler_files: list[str] | None = None,
 ) -> Path:
     build = tmp_path / "build"
     build.mkdir(parents=True, exist_ok=True)
@@ -39,8 +38,6 @@ def _index(
         json.dumps(
             {
                 "schema": "wiz8.source-units-v1",
-                "compiler-emission": compiler_files or [],
-                "unresolved-fragment": [],
                 "original-path-map": {},
             }
         ),
@@ -214,32 +211,18 @@ def test_marker_only_emissions_cannot_bind_authored_declarations(tmp_path: Path,
         validate_source_model(repository)
 
 
-def test_compiler_emission_tu_cannot_contain_authored_definition(tmp_path: Path) -> None:
-    path = "src/wiz8/vector.cpp"
-    declaration = _definition("HandWrittenBody", source_file=path)
-    repository = _index(
-        tmp_path,
-        declarations=[declaration],
-        compiler_files=[path],
-    )
-
-    with pytest.raises(SourceModelGateError, match="authored-definition-in-compiler-unit"):
-        validate_source_model(repository)
-
-
-def test_compiler_emission_tu_rejects_source_identity_markers(tmp_path: Path) -> None:
+def test_source_rejects_binary_identity_markers(tmp_path: Path) -> None:
     path = "src/wiz8/vector.cpp"
     repository = _index(
         tmp_path,
         markers=[
-            _marker("TEMPLATE", name="W8GrowableVector<int>::Grow", source_file=path),
+            _marker("LIBRARY", name="W8GrowableVector<int>::Grow", source_file=path),
             _marker(
                 "SYNTHETIC",
                 name="W8GrowableVector<int>::`scalar deleting destructor'",
                 source_file=path,
             ),
         ],
-        compiler_files=[path],
     )
 
     with pytest.raises(SourceModelGateError, match="compiler-emission-source-marker"):

@@ -26,11 +26,11 @@ from .ghidra.unit_intervals import (
 from .source_index import load_source_index
 from .source_units import (
     CLASSIFICATION_PATH,
-    ORIGINAL_TU,
+    MAPPED_ORIGINAL_TU,
     SourceUnitError,
-    classification_for,
     load_source_unit_document,
     mapped_repository_source_file,
+    mapping_for,
     original_source_paths,
 )
 
@@ -51,8 +51,7 @@ def _expected_recovered_source(
 ) -> str | None:
     """Map an original path onto a recovered original-tu file.
 
-    A matching basename in an unresolved-fragment or compiler-emission file
-    does not prove original-TU identity.
+    A matching basename alone does not prove original-TU identity.
     """
 
     mapped = mapped_repository_source_file(repo_dir, unit)
@@ -60,7 +59,7 @@ def _expected_recovered_source(
         return None
     if document is None:
         return mapped
-    if classification_for(mapped, document, originals) != ORIGINAL_TU:
+    if mapping_for(mapped, originals) != MAPPED_ORIGINAL_TU:
         return None
     return mapped
 
@@ -76,7 +75,7 @@ def placement_violations(
     violations: list[dict[str, Any]] = []
     function_markers = [marker for marker in markers if marker["marker_kind"] == "FUNCTION"]
     expected_by_unit: dict[str, str | None] = {}
-    classes: dict[str, str] = {}
+    mappings: dict[str, str] = {}
     document = None
     originals: dict[str, str] = {}
     if (repo_dir / CLASSIFICATION_PATH).is_file():
@@ -86,8 +85,8 @@ def placement_violations(
         except SourceUnitError:
             document = None
     if document is not None:
-        classes = {
-            source: classification_for(source, document, originals)
+        mappings = {
+            source: mapping_for(source, originals)
             for source in {str(marker.get("source_file") or "") for marker in function_markers}
         }
     for marker in function_markers:
@@ -123,7 +122,7 @@ def placement_violations(
         if unit not in expected_by_unit:
             expected_by_unit[unit] = _expected_recovered_source(repo_dir, unit, document, originals)
         expected = expected_by_unit[unit]
-        current_class = classes.get(source_file, "")
+        current_mapping = mappings.get(source_file, "")
         if expected is None:
             violations.append(
                 {
@@ -134,7 +133,7 @@ def placement_violations(
                     "attribution": attribution,
                     "evidence": owner.get("evidence", []),
                     "current_source": source_file,
-                    "current_class": current_class,
+                    "current_mapping": current_mapping,
                     "expected_source": "",
                     "detail": (
                         f"0x{address:08x} {marker.get('marker_name') or ''}: original {unit} "
@@ -154,7 +153,7 @@ def placement_violations(
                 "attribution": attribution,
                 "evidence": owner.get("evidence", []),
                 "current_source": source_file,
-                "current_class": current_class,
+                "current_mapping": current_mapping,
                 "expected_source": expected,
                 "detail": (
                     f"0x{address:08x} {marker.get('marker_name') or ''}: original {unit} "

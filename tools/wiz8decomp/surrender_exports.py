@@ -1,8 +1,8 @@
 """Check ``src/surrender/sr.def`` against the reviewed retail export evidence.
 
-The provider DEF is deliberately a subset of the original 2059 exports -
-member ``dllexport`` declarations contribute the rest - but every entry it
-carries is an established provider fact. The reviewed export table
+The provider DEF pins the original 2059 exports and their ordinals. Member
+``dllexport`` declarations may additionally emit implicit special members;
+PR validation compares that compiler debt against the merge-base build. The reviewed export table
 (``evidence/snapshots/surrender-abi/exports.csv``, ``sr.dll`` rows of the
 gog-base program) therefore bounds what sr.def may say:
 

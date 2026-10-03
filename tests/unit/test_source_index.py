@@ -77,12 +77,12 @@ def test_program_target_resolution_uses_configured_identity() -> None:
         target_for_program(repository, "unregistered.dll")
 
 
-@pytest.mark.parametrize("kind", ["SYNTHETIC", "TEMPLATE"])
+@pytest.mark.parametrize("kind", ["SYNTHETIC", "TEMPLATE", "LIBRARY"])
 def test_compiler_emissions_cannot_be_source_markers(tmp_path: Path, kind: str) -> None:
     source = tmp_path / "src/wiz8/item.cpp"
     source.parent.mkdir(parents=True)
     source.write_text(f"// {kind}: WIZ8 0x0049F420\n// W8Item::~W8Item\n\n")
-    with pytest.raises(SourceIndexError, match="emission inventory"):
+    with pytest.raises(SourceIndexError, match="reccmp metadata"):
         source_index.validate_authored_marker_blocks(tmp_path)
     source.write_text("// FUNCTION: WIZ8 0x0049F440\nW8Item::~W8Item() {}\n")
     assert source_index.validate_authored_marker_blocks(tmp_path) == 0
@@ -99,7 +99,7 @@ def test_display_selector_annotations_cannot_restore_emission_source_identity(
         "// NAME: Vec<T>::~Vec\n"
         "// RECOMP: ??1?$Vec@H@@QAE@XZ\n" + ("void body() {}\n" if attached_body else "\n")
     )
-    with pytest.raises(SourceIndexError, match="emission inventory"):
+    with pytest.raises(SourceIndexError, match="reccmp metadata"):
         source_index.validate_authored_marker_blocks(tmp_path)
 
 

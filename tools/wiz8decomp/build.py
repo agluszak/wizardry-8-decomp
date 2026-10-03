@@ -20,7 +20,7 @@ from typing import Any
 from .binary.coff_archive import named_iat_archive
 from .build_inputs import build_toolchain_images, fetch_sources
 from .config import Settings, load_settings
-from .paths import atomic_write, compile_database_relative
+from .paths import atomic_json, atomic_write, compile_database_relative
 from .subprocesses import resolve_executable, run
 from .surrender_exports import validate_surrender_provider_objects
 
@@ -511,6 +511,7 @@ def build_target(
             from .surrender_exports import validate_built_surrender_exports
 
             exports = validate_built_surrender_exports(settings.repo_dir, provider)
+            atomic_json(settings.repo_dir / "build/reports/surrender-exports.json", exports)
             mark("exports_ms", tick)
         return {
             "status": "ok",

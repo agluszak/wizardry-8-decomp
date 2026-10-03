@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 _ANALYZED = frozenset({"differences", "no-differences"})
+_NON_EMITTED = ("internal-non-emission", "template-non-emission", "header-emission")
 
 # Callee names Ghidriff records for each side, import thunks included
 # ("SR.DLL::srHeap::free", "operator_new", "__3_YAXPAX_Z").
@@ -233,6 +234,11 @@ def comparison_metrics(summary: dict[str, Any], ghidriff: dict[str, Any]) -> dic
         "data_differences": sum(
             bool(row.get("data")) for row in functions if row.get("outcome") in _ANALYZED
         ),
+        "non_emitted": sum(outcomes[kind] for kind in _NON_EMITTED),
+        "internal_non_emission": outcomes["internal-non-emission"],
+        "template_non_emission": outcomes["template-non-emission"],
+        "header_emission": outcomes["header-emission"],
+        "missing": outcomes["missing"],
         "unpaired": outcomes["unpaired"],
         "analysis_failed": outcomes["analysis-failed"],
         "unidentified_references": sum(
@@ -309,6 +315,31 @@ def _transitions(head: dict[str, Any], base: dict[str, Any]) -> dict[str, int]:
     }
 
 
+def non_emission_regressions(head: dict[str, Any], base: dict[str, Any]) -> list[dict[str, Any]]:
+    """Existing PDB procedures may not disappear behind a debt classification."""
+    previous = {int(row["orig"], 16): row for row in base.get("functions", ())}
+    return [
+        {"orig": row["orig"], "name": row.get("name"), "outcome": row["outcome"]}
+        for row in head.get("functions", ())
+        if row.get("outcome") == "internal-non-emission"
+        and (before := previous.get(int(row["orig"], 16))) is not None
+        and before.get("recomp") is not None
+    ]
+
+
+def export_delta(head: dict[str, Any], base: dict[str, Any]) -> dict[str, Any]:
+    """Existing compiler exports are debt; additions, including replacements, fail."""
+    current = set(head["compiler_exports_absent_from_retail"])
+    previous = set(base["compiler_exports_absent_from_retail"])
+    return {
+        "head": sorted(current),
+        "base": sorted(previous),
+        "added": sorted(current - previous),
+        "removed": sorted(previous - current),
+        "delta": len(current) - len(previous),
+    }
+
+
 def pr_comparison_report(
     target: str,
     *,
@@ -321,13 +352,32 @@ def pr_comparison_report(
     head_direct_calls_path: Path | None = None,
     base_direct_calls_path: Path | None = None,
     header_includers: dict[str, set[str]] | None = None,
+    head_exports_path: Path | None = None,
+    base_exports_path: Path | None = None,
 ) -> dict[str, Any]:
     report: dict[str, Any] = {
         "schema": "wiz8.pr-comparison-v1",
+        "ok": True,
+        "emission_regressions": [],
+        "exports": None,
         "target": target,
         "comparison": None,
         "datacmp": None,
     }
+
+    if (
+        target == "SURRENDER"
+        and (head_summary_path is not None or head_exports_path is not None)
+        and (head_exports_path is None or base_exports_path is None)
+    ):
+        raise ValueError("SurRender fidelity requires both head and merge-base export reports")
+    if head_exports_path is not None or base_exports_path is not None:
+        if head_exports_path is None or base_exports_path is None:
+            raise ValueError("export delta requires both head and base reports")
+        report["exports"] = export_delta(
+            _read_json(head_exports_path), _read_json(base_exports_path)
+        )
+        report["ok"] = not report["exports"]["added"]
 
     datacmp_paths = (head_datacmp_path, base_datacmp_path)
     if any(path is not None for path in datacmp_paths):
@@ -365,6 +415,8 @@ def pr_comparison_report(
 
     head_ghidriff = _read_json(head_ghidriff_path)
     base_ghidriff = _read_json(base_ghidriff_path)
+    report["emission_regressions"] = non_emission_regressions(head_summary, base_summary)
+    report["ok"] = report["ok"] and not report["emission_regressions"]
     head_metrics = comparison_metrics(head_summary, head_ghidriff)
     base_metrics = comparison_metrics(base_summary, base_ghidriff)
     head_allocators = allocator_call_disagreements(

@@ -53,6 +53,46 @@ print()
 comparison_rows = [(target, row["comparison"]) for target, row in rows if row.get("comparison")]
 if comparison_rows:
     print()
+    print("#### Comparison coverage and compiler debt")
+    print()
+    print(
+        "| Target | Requested | Analyzed | Non-emitted | Internal | Template | Header | Unpaired | Analysis failed | Missing |"
+    )
+    print("| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |")
+    for target, comparison in comparison_rows:
+        head, delta = comparison["head"], comparison["delta"]
+        values = [
+            count_with_delta(head.get(key), delta.get(key))
+            for key in (
+                "requested",
+                "analyzed",
+                "non_emitted",
+                "internal_non_emission",
+                "template_non_emission",
+                "header_emission",
+                "unpaired",
+                "analysis_failed",
+                "missing",
+            )
+        ]
+        print(f"| `{target}` | " + " | ".join(values) + " |")
+    for target, row in rows:
+        for regression in row.get("emission_regressions", []):
+            print(
+                f"\n**Emission regression ({target}):** `{regression['orig']}` {regression.get('name') or ''}"
+            )
+
+for target, row in rows:
+    exports = row.get("exports")
+    if exports is not None:
+        print(
+            f"\n**{target} extra compiler exports:** {len(exports['head'])} ({exports['delta']:+d})."
+        )
+        for symbol in exports["added"]:
+            print(f"\n**New extra export:** `{symbol}`")
+
+if comparison_rows:
+    print()
     print("#### Function quality")
     print()
     print("Function quality covers the compared selection.")

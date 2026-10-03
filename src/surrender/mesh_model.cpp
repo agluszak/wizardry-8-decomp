@@ -2151,15 +2151,3 @@ long srMeshModel::getVertexCount() const
 {
     return vertex_location_count_22c;
 }
-
-// LIBRARY: SURRENDER 0x10043980
-// std::ios_base::Init::Init
-
-// LIBRARY: SURRENDER 0x100439A0
-// std::ios_base::Init::~Init
-
-// LIBRARY: SURRENDER 0x100439C0
-// std::_Winit::_Winit
-
-// LIBRARY: SURRENDER 0x100439E0
-// std::_Winit::~_Winit

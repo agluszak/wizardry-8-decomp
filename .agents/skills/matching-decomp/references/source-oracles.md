@@ -25,7 +25,7 @@ Search `src/sgp` before recovering or declaring an SGP API elsewhere.
   `sgp-source` claims and per-TU start-address hulls) must not acquire `src/wiz8` `FUNCTION` bodies or
   `FunctionXXXXXXXX` recoveries, and retained `sgp-source` claims must be owned under `src/sgp`.
   `src/sgp` markers alone are ownership; only `sgp-source` claims are proven provenance. The same
-  gate also enforces documented zlib and MSVC CRT ranges plus CRT/`zlib` `LIBRARY` markers and
+  gate also enforces documented zlib and MSVC CRT ranges plus CRT/`zlib` library metadata and
   `fid-variants` claims. Detail lands in `build/reports/source-oracle.json`; `uv run wiz8 report
   source-oracle` reprints the summary.
 
@@ -38,8 +38,8 @@ object evidence are particularly useful here; masked equality still does not pro
 
 | Boundary | Source/evidence owner |
 | --- | --- |
-| Windows/MSVC runtime | Pinned toolchain source/headers; [MSVC6 runtime](../../../../docs/libraries/msvc6-runtime.md) records reviewed matches. Gate covers CRT ranges, `LIBRARY` markers, `fid-variants`, sized helper bodies, and IAT-thunk hygiene. |
-| zlib 1.0.4 | Pinned source and [zlib boundary](../../../../docs/libraries/zlib-1.0.4.md). Gate covers the documented corpus range plus named `LIBRARY` markers. |
+| Windows/MSVC runtime | Pinned toolchain source/headers; [MSVC6 runtime](../../../../docs/libraries/msvc6-runtime.md) records reviewed matches. Gate covers CRT ranges, library metadata, `fid-variants`, sized helper bodies, and IAT-thunk hygiene. |
+| zlib 1.0.4 | Pinned source and [zlib boundary](../../../../docs/libraries/zlib-1.0.4.md). Gate covers the documented corpus range plus named library metadata. |
 | IJG JPEG release 6 | Accepted codec source; recover the product adapter/delta described in [JPEG importer](../../../../docs/targets/srext-jpegimporter.md). Gate treats `config/reccmp/srext-jpegimporter.csv` `library` rows as oracle-owned. |
 | Info-ZIP UnZip 5.4 | Accepted library source; [ZIP extension](../../../../docs/targets/srext-unzip.md) owns adapter evidence. Stock UnZip is `library` in the reccmp CSV; Sir-Tech retained subsets (`api_subset` / `windll_subset`) stay `function` to match recovered `FUNCTION` markers. |
 

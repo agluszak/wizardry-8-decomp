@@ -13,3 +13,4 @@ address|symbol|name|type
 005e1def||??_L@YGXPAXIHP6EX0@Z1@Z|library
 005e1e71||??_M@YGXPAXIHP6EX0@Z@Z|library
 005e1ef1||?__ArrayUnwind@@YGXPAXIHP6EX0@Z@Z|library
+0041e880||vector constructor iterator|library

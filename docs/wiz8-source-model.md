@@ -72,7 +72,7 @@ directives are the only line-level fact the checker reads.
   `float_constants.h`. Fails `wiz8 check` unless the resolved set is covered
   by `allowed-multi-tu-headers`, which is the human decision being persisted.
 - **provisional-interface**: inferred when every resolved declaration is
-  implemented by an `unresolved-fragment` source file (`npc_items.h`,
+  implemented by an unmapped source file (`npc_items.h`,
   `character_skills.h`, the unmapped dialog helpers, …). Report-only — the
   checker derives it from `source_units.json` rather than persisting it, and
   it disappears automatically as fragments are rehomed.

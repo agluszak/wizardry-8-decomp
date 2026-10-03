@@ -410,7 +410,9 @@ def test_focused_comparison_preserves_previous_report_and_diff(tmp_path, monkeyp
     assert result["ok"] is True
     assert previous_diff.read_text() == "previous comparison"
     assert previous_summary.read_text() == '{"functions": []}'
-    current = tmp_path / result["report"]["summary"]
+    current = tmp_path / result["report"]["classified_summary"]
+    assert json.loads(current.read_text()) == result
+    assert current.name == "classified-summary.json"
     assert current.parent != output
     assert not (current.parent / "00402000.diff").exists()
 
@@ -685,3 +687,15 @@ def test_comparison_bootstraps_cleaned_generated_metadata(tmp_path, monkeypatch)
 
     monkeypatch.setattr(comparison, "_project", load_project)
     assert comparison.comparison_target(tmp_path, "WIZ8") is target
+
+
+def test_comparison_without_native_procedures_is_not_a_binary_health_snapshot(
+    tmp_path, monkeypatch
+):
+    output = tmp_path / "report"
+    output.mkdir()
+    (output / "classified-summary.json").write_text(json.dumps({"inputs": {}, "functions": []}))
+    monkeypatch.setattr(comparison, "report_directory", lambda *_: output)
+    binary = tmp_path / "Wiz8.exe"
+    binary.write_bytes(b"product")
+    assert comparison.last_comparison(tmp_path, "WIZ8", binary) is None

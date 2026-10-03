@@ -430,43 +430,24 @@ def test_removing_binary_emission_identity_is_a_preservation_failure(tmp_path: P
     assert report["lost"][0]["identity"] == "EMISSION WIZ8 0x00401000"
 
 
-@pytest.mark.parametrize("result", ["preserved", "removed", "changed-selector"])
-def test_legacy_emission_migration_preserves_identity_and_selector(tmp_path: Path, result: str):
-    _repo(tmp_path)
-    source = "src/wiz8/foo.cpp"
-    base = _commit(
-        tmp_path,
-        {source: "// TEMPLATE: WIZ8 0x00401000\n// NAME: Hash<T>::Grow\n// RECOMP: ??Grow@@\n"},
-        "base",
-    )
-    inventory = "target|address|symbol|name|type|recomp_selector\n"
-    if result != "removed":
-        selector = "??Grow@@" if result == "preserved" else "??Wrong@@"
-        inventory += f"WIZ8|00401000||Hash<T>::Grow|template|{selector}\n"
-    head = _commit(
-        tmp_path, {source: "", "evidence/observations/compiler-emissions.csv": inventory}, "head"
-    )
-    report = merge_preservation_report(tmp_path, base, head)
-    assert report["status"] == ("failed" if result == "removed" else "passed")
-    if result == "removed":
-        assert report["lost"][0]["identity"] == "EMISSION WIZ8 0x00401000"
-    if result == "changed-selector":
-        assert report["changed"][0]["identity"] == "EMISSION WIZ8 0x00401000"
-
-
+@pytest.mark.parametrize(
+    "target,metadata", [("WIZ8", "wiz8-msvc-runtime.csv"), ("SURRENDER", "surrender-libraries.csv")]
+)
 @pytest.mark.parametrize("preserve", [True, False])
-def test_library_identity_migration_is_audited(tmp_path: Path, preserve: bool) -> None:
+def test_library_identity_migration_is_audited(
+    tmp_path: Path, preserve: bool, target: str, metadata: str
+) -> None:
     _repo(tmp_path)
     source = "src/wiz8/vc6_runtime.cpp"
-    base = _commit(tmp_path, {source: "// LIBRARY: WIZ8 0x005e1c30\n// __aulldiv\n"}, "base")
+    base = _commit(tmp_path, {source: f"// LIBRARY: {target} 0x005e1c30\n// __aulldiv\n"}, "base")
     rows = "address|symbol|name|type\n"
     if preserve:
         rows += "005e1c30||__aulldiv|library\n"
-    head = _commit(tmp_path, {source: "", "config/reccmp/wiz8-msvc-runtime.csv": rows}, "head")
+    head = _commit(tmp_path, {source: "", f"config/reccmp/{metadata}": rows}, "head")
     report = merge_preservation_report(tmp_path, base, head)
     assert report["status"] == ("passed" if preserve else "failed")
     assert report["counts"]["LIBRARY"] == {"base": 1, "head": int(preserve)}
     if preserve:
         assert report["changed"] == []
     else:
-        assert report["lost"][0]["identity"] == "LIBRARY WIZ8 0x005E1C30"
+        assert report["lost"][0]["identity"] == f"LIBRARY {target} 0x005E1C30"

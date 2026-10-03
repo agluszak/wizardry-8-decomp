@@ -1,7 +1,7 @@
 """Recovered source-unit classification and original-path mapping.
 
-A normal ``.cpp`` is an original translation unit, an unresolved fragment, or
-compiler-emitted material. Classification lives next to ``sources.cmake``.
+Each source file either maps to an evidenced original translation unit or has
+no original-path mapping. Absence of a mapping says nothing about its provenance.
 Original-TU identity is directory + filename from the retail source path, never
 a basename coincidence.
 """
@@ -13,9 +13,8 @@ import re
 from pathlib import Path
 from typing import Any
 
-ORIGINAL_TU = "original-tu"
-UNRESOLVED_FRAGMENT = "unresolved-fragment"
-COMPILER_EMISSION = "compiler-emission"
+MAPPED_ORIGINAL_TU = "mapped-original-tu"
+UNMAPPED_SOURCE = "unmapped-source"
 CLASSIFICATION_PATH = Path("src/wiz8/source_units.json")
 SOURCE_TREE_PATH = Path("evidence/observations/wiz8/source-tree.csv")
 SOURCES_CMAKE = Path("src/wiz8/sources.cmake")
@@ -31,7 +30,7 @@ UNIT_DIRECTORIES = {
 ORIGINAL_DIRECTORIES = {value: key for key, value in UNIT_DIRECTORIES.items()}
 
 _SOURCE_UNIT_LINE = re.compile(r'^\s*(?:"([^"]+)"|(\S+))\s*$')
-_CODE_MARKERS = re.compile(r"^\s*//\s*(?:FUNCTION|VTABLE|GLOBAL|LIBRARY):\s+", re.IGNORECASE)
+_CODE_MARKERS = re.compile(r"^\s*//\s*(?:FUNCTION|VTABLE|GLOBAL):\s+", re.IGNORECASE)
 
 
 class SourceUnitError(RuntimeError):
@@ -131,23 +130,18 @@ def mapped_repository_source_file(repo_dir: Path, unit: str) -> str | None:
     return matches[0].relative_to(repo_dir).as_posix()
 
 
-def classification_for(path: str, document: dict[str, Any], originals: dict[str, str]) -> str:
-    compiler = {str(item) for item in document.get("compiler-emission") or ()}
-    if path in compiler:
-        return COMPILER_EMISSION
-    if path in originals:
-        return ORIGINAL_TU
-    return UNRESOLVED_FRAGMENT
+def mapping_for(path: str, originals: dict[str, str]) -> str:
+    return MAPPED_ORIGINAL_TU if path in originals else UNMAPPED_SOURCE
 
 
 def source_unit_records(repo_dir: Path) -> dict[str, dict[str, str]]:
-    document = load_source_unit_document(repo_dir)
+    load_source_unit_document(repo_dir)
     originals = original_source_paths(repo_dir)
     records: dict[str, dict[str, str]] = {}
     for path in cmake_source_units(repo_dir):
-        kind = classification_for(path, document, originals)
-        record = {"class": kind, "path": path}
-        if kind == ORIGINAL_TU:
+        kind = mapping_for(path, originals)
+        record = {"mapping": kind, "path": path}
+        if kind == MAPPED_ORIGINAL_TU:
             record["original_path"] = originals[path]
         records[path] = record
     return records
@@ -167,42 +161,15 @@ def file_emits_code_or_data(path: Path) -> bool:
 
 
 def source_unit_violations(repo_dir: Path) -> list[dict[str, Any]]:
-    document = load_source_unit_document(repo_dir)
-    originals = original_source_paths(repo_dir)
-    listed = cmake_source_units(repo_dir)
-    compiler = {str(item) for item in document.get("compiler-emission") or ()}
-    classified = compiler
+    load_source_unit_document(repo_dir)
     violations: list[dict[str, Any]] = []
-
-    unknown_classes = classified - set(listed)
-    for path in sorted(unknown_classes):
-        violations.append(
-            {
-                "kind": "unknown-classified-unit",
-                "file": path,
-                "detail": f"{path} is classified but missing from {SOURCES_CMAKE}",
-            }
-        )
-
-    for path in listed:
-        kind = classification_for(path, document, originals)
-        if kind == ORIGINAL_TU and path not in originals:
-            violations.append(
-                {
-                    "kind": "original-tu-without-path",
-                    "file": path,
-                    "detail": f"{path} is original-tu but has no evidence-backed original path",
-                }
-            )
-        if kind != COMPILER_EMISSION and not file_emits_code_or_data(repo_dir / path):
+    for path in cmake_source_units(repo_dir):
+        if not file_emits_code_or_data(repo_dir / path):
             violations.append(
                 {
                     "kind": "empty-translation-unit",
                     "file": path,
-                    "detail": (
-                        f"{path} contains no FUNCTION/VTABLE/GLOBAL/LIBRARY "
-                        "marker that emits code or data"
-                    ),
+                    "detail": f"{path} contains no FUNCTION/VTABLE/GLOBAL definition marker",
                 }
             )
     return violations
@@ -215,10 +182,9 @@ def validate_source_units(repo_dir: Path) -> dict[str, Any]:
         raise SourceUnitError("source-unit classification failed:\n  " + "\n  ".join(rendered))
     records = source_unit_records(repo_dir)
     counts = {
-        ORIGINAL_TU: 0,
-        UNRESOLVED_FRAGMENT: 0,
-        COMPILER_EMISSION: 0,
+        MAPPED_ORIGINAL_TU: 0,
+        UNMAPPED_SOURCE: 0,
     }
     for record in records.values():
-        counts[record["class"]] += 1
+        counts[record["mapping"]] += 1
     return {"ok": True, "gate": "source-units", "units": len(records), **counts}

@@ -1,6 +1,5 @@
 # Explicit link order for recovered first-party sources. Renaming or moving a
-# unit must not move its slot. Classification lives in source_units.json.
-# original-tu or unresolved-fragment.
+# unit must not move its slot. source_units.json records original-path mappings.
 # Compiler identities live in reccmp metadata; templates own their vtable annotations.
 # Their original translation-unit ownership is not established.
 set(WIZ8_SOURCE_UNITS

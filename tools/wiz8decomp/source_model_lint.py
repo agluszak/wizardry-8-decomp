@@ -28,7 +28,6 @@ from .source_index import (
     declarations_by_semantic_key,
     load_source_index,
 )
-from .source_units import load_source_unit_document
 
 _RECOVERED_ROOTS = ("src/wiz8", "include/wiz8", "src/surrender", "include/surrender")
 _CPP_SUFFIXES = frozenset({".c", ".cc", ".cpp", ".cxx", ".h", ".hpp", ".hxx"})
@@ -263,8 +262,6 @@ def _template_emission(declaration: dict[str, Any]) -> bool:
 def _compiler_emission_violations(repository: Path) -> list[dict[str, Any]]:
     index = load_source_index(repository)
     declarations_by_key = declarations_by_semantic_key(index)
-    units = load_source_unit_document(repository)
-    compiler_files = {str(path) for path in units.get("compiler-emission") or ()}
     violations: list[dict[str, Any]] = []
 
     for marker in index.get("markers") or ():
@@ -274,13 +271,13 @@ def _compiler_emission_violations(repository: Path) -> list[dict[str, Any]]:
         declaration = declaration_for_marker(marker, declarations_by_key)
         name = str(marker.get("marker_name") or declaration.get("qualified_name") or "")
 
-        if kind in {"SYNTHETIC", "TEMPLATE"}:
+        if kind in {"SYNTHETIC", "TEMPLATE", "LIBRARY"}:
             violations.append(
                 {
                     "kind": "compiler-emission-source-marker",
                     "file": source_file,
                     "line": line,
-                    "detail": f"{kind} identity belongs in generated reccmp metadata",
+                    "detail": f"{kind} identity belongs in reccmp metadata",
                 }
             )
 
@@ -313,46 +310,6 @@ def _compiler_emission_violations(repository: Path) -> list[dict[str, Any]]:
                     "detail": f"{kind} {name or marker.get('address')} binds an authored declaration",
                 }
             )
-
-        if source_file in compiler_files and kind in {"FUNCTION", "GLOBAL"}:
-            violations.append(
-                {
-                    "kind": "authored-marker-in-compiler-unit",
-                    "file": source_file,
-                    "line": line,
-                    "detail": f"compiler-emission TU contains {kind}",
-                }
-            )
-
-    for declaration in index.get("declarations") or ():
-        source_file = str(declaration.get("source_file") or "")
-        if source_file not in compiler_files or not declaration.get("is_definition"):
-            continue
-        violations.append(
-            {
-                "kind": "authored-definition-in-compiler-unit",
-                "file": source_file,
-                "line": int(declaration.get("line") or 0),
-                "detail": str(
-                    declaration.get("qualified_name") or declaration.get("semantic_id") or ""
-                ),
-            }
-        )
-
-    for variable in index.get("variables") or ():
-        source_file = str(variable.get("source_file") or "")
-        if source_file not in compiler_files:
-            continue
-        if str(variable.get("definition_kind") or "") == "declaration":
-            continue
-        violations.append(
-            {
-                "kind": "authored-data-in-compiler-unit",
-                "file": source_file,
-                "line": int(variable.get("line") or 0),
-                "detail": str(variable.get("qualified_name") or variable.get("semantic_id") or ""),
-            }
-        )
 
     return violations
 

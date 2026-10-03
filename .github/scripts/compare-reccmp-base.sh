@@ -40,22 +40,42 @@ uv run --no-sync wiz8 analyze source-index
 if [[ -s "$head_summary" ]]; then
   mapfile -t addresses < <(jq -r '.functions[].orig' "$head_summary")
   if (( ${#addresses[@]} > 0 )); then
-    compare_status=0
-    uv run --no-sync wiz8 compare "${addresses[@]}" --program "$program" || compare_status=$?
+    # Use the same source/PDB classification on both sides. Numeric CLI
+    # selectors deliberately skip it, and raw reccmp summaries hide this debt.
+    uv run --no-sync python - "$target" "$head_summary" "$base_summary" <<'PYTHON'
+import json
+import sys
+from pathlib import Path
+from wiz8decomp.comparison import compare_selected
+from wiz8decomp.config import load_settings
+settings = load_settings()
+target, head, output = sys.argv[1:]
+addresses = [int(row["orig"], 16) for row in json.loads(Path(head).read_text())["functions"]]
+result = compare_selected(
+    settings.repo_dir, target, addresses, settings.ghidra_install_dir,
+    classify_source_non_emissions=True, classify_template_emissions=True,
+)
+Path(output).write_text(json.dumps({"target": target, "requested": len(addresses), **result}))
+PYTHON
     latest="build/reports/compare/${target,,}/latest"
-    if [[ ! -f "$latest/summary.json" ]]; then
-      echo "merge-base comparison produced no summary" >&2
-      exit "$compare_status"
-    fi
-    cp "$latest/summary.json" "$base_summary"
     cp "$latest/json/$target.ghidriff.json" "$base_ghidriff"
     if [[ -f "$latest/direct-calls.json" ]]; then
       cp "$latest/direct-calls.json" "$base_direct_calls"
     fi
-    if (( compare_status != 0 )); then
-      echo "::notice::merge-base comparison has unpaired/incomplete selected functions"
-    fi
   fi
+fi
+
+if [[ "$target" == "SURRENDER" ]]; then
+  uv run --no-sync python - "$RUNNER_TEMP/$prefix-base-exports.json" <<'PYTHON'
+import json
+import sys
+from pathlib import Path
+from wiz8decomp.config import load_settings
+from wiz8decomp.surrender_exports import validate_built_surrender_exports
+settings = load_settings()
+report = validate_built_surrender_exports(settings.repo_dir, settings.product_build_dir / "sr.dll")
+Path(sys.argv[1]).write_text(json.dumps(report))
+PYTHON
 fi
 
 datacmp_status=0
