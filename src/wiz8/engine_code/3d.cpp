@@ -91,7 +91,7 @@ void DetachWorldItemMeshes(W8World* world)
 // FUNCTION: WIZ8 0x0046e4a0
 void DestroyWorldLights(W8World* world)
 {
-    W8PList* lights = &world->m_lights_0a8;
+    W8PList* lights = &world->transient_lights;
 
     while (PLLength(lights) != 0) {
         stLight* light = static_cast<stLight*>(PLGet(lights, 0));
@@ -392,7 +392,7 @@ void SetWorldMeshVertexLightTable(W8World* world, int table)
             model->flags_3a0 |= 2;
         }
     } else {
-        for (unsigned int mesh = 0; mesh < world->octree->m_meshCount_1b4; ++mesh) {
+        for (unsigned int mesh = 0; mesh < world->octree->m_meshCount; ++mesh) {
             srModelInstance* instance = world->psrMeshes[mesh];
             if (instance != 0) {
                 for (stMeshModel* model = static_cast<stMeshModel*>(instance->getModel());
@@ -646,7 +646,7 @@ stLight* CreateWorldLight(W8World* world, const char* name)
     light->enable_flags_194 |= 4;    /* ENABLE_BOUNDING_SPHERE */
 
     if (world != 0) {
-        PLAdoptAppend(&world->m_lights_0a8, light);
+        PLAdoptAppend(&world->transient_lights, light);
     }
     return light;
 }
@@ -678,7 +678,7 @@ stLight* CreateRangedWorldLight(W8World* world, const char* name)
     light->far_end_170 = 1500.0;
     light->safe_range_1d4 = 5000.0f;
     light->setLinearAttenuation(1500.0f, 0.0019569471f);
-    PLAdoptAppend(&world->m_lights_0a8, light);
+    PLAdoptAppend(&world->transient_lights, light);
     return light;
 }
 
@@ -693,7 +693,7 @@ void WorldRemoveLight(W8World* world, stLight* light)
     if (light == 0) {
         srAssertFail("pLight", THREE_D_CPP, 0x279, 0);
     }
-    PListRemove(&world->m_lights_0a8, light);
+    PListRemove(&world->transient_lights, light);
     world->lights_to_update->Remove(light);
     if (light != 0) {
         light->release();

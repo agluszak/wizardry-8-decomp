@@ -111,22 +111,22 @@ W8OctBuildTree::W8OctBuildTree(float leaf_size, srVector3T<float>* minimum,
     spatial_00.level_kind_6c = 2;
     spatial_00.extent_04 = 0.0f;
     spatial_00.root_90 = 0;
-    spatial_00.owned_98 = 0;
+    spatial_00.m_triangle_vertices = 0;
     spatial_00.depth_44 = 0;
 
     if (minimum != 0 || maximum != 0) {
         float half_leaf = leaf_size * g_float_005ebc7c;
         float* source_minimum = &minimum->x;
         float* source_maximum = &maximum->x;
-        float* stored_minimum = &spatial_00.clipped_minimum_24.x;
+        float* stored_minimum = &spatial_00.m_clipped_minimum.x;
         for (int axis = 0; axis != 3; ++axis) {
             source_minimum[axis] -= half_leaf;
             source_maximum[axis] += half_leaf;
             (&spatial_00.minimum_0c.x)[axis] = source_minimum[axis];
             stored_minimum[axis] = source_minimum[axis];
-            (&spatial_00.working_minimum_78.x)[axis] = source_minimum[axis];
-            (&spatial_00.clipped_maximum_30.x)[axis] = source_maximum[axis];
-            (&spatial_00.working_maximum_84.x)[axis] = source_maximum[axis];
+            (&spatial_00.m_working_minimum.x)[axis] = source_minimum[axis];
+            (&spatial_00.m_clipped_maximum.x)[axis] = source_maximum[axis];
+            (&spatial_00.m_working_maximum.x)[axis] = source_maximum[axis];
             float span = source_maximum[axis] - source_minimum[axis];
             if (spatial_00.extent_04 < span) {
                 spatial_00.extent_04 = span;
@@ -135,13 +135,13 @@ W8OctBuildTree::W8OctBuildTree(float leaf_size, srVector3T<float>* minimum,
 
         spatial_00.depth_44 = 0;
         if (extent_mode == 0) {
-            spatial_00.node_extent_70 = spatial_00.extent_04;
-            while (leaf_size + leaf_size <= spatial_00.node_extent_70 && spatial_00.depth_44 < 6) {
-                spatial_00.node_extent_70 *= g_float_005ebc7c;
+            spatial_00.m_node_extent = spatial_00.extent_04;
+            while (leaf_size + leaf_size <= spatial_00.m_node_extent && spatial_00.depth_44 < 6) {
+                spatial_00.m_node_extent *= g_float_005ebc7c;
                 ++spatial_00.depth_44;
             }
         } else if (extent_mode == 1) {
-            spatial_00.node_extent_70 = leaf_size;
+            spatial_00.m_node_extent = leaf_size;
             spatial_00.cell_size_08 = leaf_size;
             while (spatial_00.cell_size_08 < spatial_00.extent_04) {
                 if (spatial_00.depth_44 > 6) {
@@ -155,21 +155,21 @@ W8OctBuildTree::W8OctBuildTree(float leaf_size, srVector3T<float>* minimum,
             }
             spatial_00.extent_04 = spatial_00.cell_size_08;
         } else {
-            spatial_00.node_extent_70 = spatial_00.extent_04;
-            while (leaf_size + leaf_size <= spatial_00.node_extent_70 && spatial_00.depth_44 < 6) {
-                spatial_00.node_extent_70 *= g_float_005ebc7c;
+            spatial_00.m_node_extent = spatial_00.extent_04;
+            while (leaf_size + leaf_size <= spatial_00.m_node_extent && spatial_00.depth_44 < 6) {
+                spatial_00.m_node_extent *= g_float_005ebc7c;
                 ++spatial_00.depth_44;
             }
             if (extent_mode == 2) {
-                float doubled = spatial_00.node_extent_70 + spatial_00.node_extent_70;
-                if (doubled - leaf_size < leaf_size - spatial_00.node_extent_70) {
+                float doubled = spatial_00.m_node_extent + spatial_00.m_node_extent;
+                if (doubled - leaf_size < leaf_size - spatial_00.m_node_extent) {
                     --spatial_00.depth_44;
-                    spatial_00.node_extent_70 = doubled;
+                    spatial_00.m_node_extent = doubled;
                 }
             }
         }
 
-        spatial_00.cell_size_08 = spatial_00.node_extent_70 * g_float_005ec188;
+        spatial_00.cell_size_08 = spatial_00.m_node_extent * g_float_005ec188;
         spatial_00.maximum_18.Set(minimum->x + spatial_00.extent_04,
                                   minimum->y + spatial_00.extent_04,
                                   minimum->z + spatial_00.extent_04);
@@ -177,7 +177,7 @@ W8OctBuildTree::W8OctBuildTree(float leaf_size, srVector3T<float>* minimum,
         spatial_00.polygon_count_3c = 1;
         spatial_00.item_count_40 = 0;
         spatial_00.root_90 = 0;
-        spatial_00.owned_98 = 0;
+        spatial_00.m_triangle_vertices = 0;
         link_lists_9c = new W8OctBuildLinkLists;
     }
 }
@@ -194,7 +194,7 @@ W8OctBuildTree::~W8OctBuildTree()
     }
     g_oct_build_scratch = 0;
 
-    spatial_00.owned_98 = 0;
+    spatial_00.m_triangle_vertices = 0;
     if (link_lists_9c != 0) {
         for (int index = 0; index != 100; ++index) {
             if (link_lists_9c->m_apLinkLists[index] != 0) {
@@ -239,7 +239,7 @@ unsigned char W8OctBuildTree::InsertSurface(W8GDSurface* surface, unsigned long 
         }
     }
     working.root_90 = spatial_00.root_90;
-    working.owned_98 = vertices;
+    working.m_triangle_vertices = vertices;
     working.depth_44 = 0;
     working.level_kind_6c = 1;
     if (InsertSurfaceRecursive(&working, surface, &plane_point, mode) == 0) {
@@ -284,7 +284,7 @@ unsigned char W8OctBuildTree::InsertSurfaceRecursive(W8OctSpatialState* working,
                     child.minimum_0c.z = working->minimum_0c.z + z * half_extent;
                     child.maximum_18.z = child.minimum_0c.z + half_extent;
 
-                    if (TestSpatialTriangle(&child.minimum_0c, working->owned_98, plane_point) !=
+                    if (TestSpatialTriangle(&child.minimum_0c, working->m_triangle_vertices, plane_point) !=
                         0) {
                         W8OctBuildNode* node = working->root_90;
                         if (node->children_00[octant] == 0) {
@@ -295,7 +295,7 @@ unsigned char W8OctBuildTree::InsertSurfaceRecursive(W8OctSpatialState* working,
                             }
                         }
                         child.root_90 = node->children_00[octant];
-                        child.owned_98 = working->owned_98;
+                        child.m_triangle_vertices = working->m_triangle_vertices;
                         if (InsertSurfaceRecursive(&child, surface, plane_point, mode) != 0) {
                             inserted = 1;
                         }

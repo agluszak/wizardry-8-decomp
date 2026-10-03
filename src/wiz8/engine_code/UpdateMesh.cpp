@@ -45,7 +45,7 @@ static void RasterizeQuadTriangle(W8World* world, long x1, long y1, long x2, lon
 // FUNCTION: WIZ8 0x004BA530
 void CollectViewQuadCells(W8World* world, long* x_list, long* y_list, long* count)
 {
-    W8Quad* quad = world->m_owned_06c;
+    W8Quad* quad = world->quads;
     float cell_size = quad->cell_size;
 
     long cam_x = static_cast<long>((world->camera->getLocationX() - quad->origin_x) / cell_size);
@@ -108,11 +108,11 @@ static void ScanQuadTriangleTop(W8World* world, long x1, long y1, long x2, long 
         right_edge -= row * right_step;
         row = y1 = 0;
     }
-    long max_row = static_cast<long>(world->m_owned_06c->column_count) - 1;
+    long max_row = static_cast<long>(world->quads->column_count) - 1;
     if (y3 > max_row) {
         y3 = max_row;
     }
-    long max_x = static_cast<long>(world->m_owned_06c->row_count) - 1;
+    long max_x = static_cast<long>(world->quads->row_count) - 1;
 
     if (x1 < 0 || x1 > max_x || x2 < 0 || x2 > max_x || x3 < 0 || x3 > max_x) {
         for (; row <= y3; ++row) {
@@ -197,11 +197,11 @@ static int ScanQuadTriangleBase(W8World* world, long x1, long y1, long x2, long 
         right_edge -= row * right_step;
         row = 0;
     }
-    long max_row = static_cast<long>(world->m_owned_06c->column_count) - 1;
+    long max_row = static_cast<long>(world->quads->column_count) - 1;
     if (y3 > max_row) {
         y3 = max_row;
     }
-    long max_x = static_cast<long>(world->m_owned_06c->row_count) - 1;
+    long max_x = static_cast<long>(world->quads->row_count) - 1;
 
     if (x1 < 0 || x1 > max_x || x_left < 0 || x_left > max_x || x_right < 0 || x_right > max_x) {
         for (; row <= y3; ++row) {
@@ -315,12 +315,12 @@ void UpdateWorldMeshFromQuads(W8World* world)
     if (world == 0) {
         srAssertFail("pWorld", "C:\\Projects\\Wizardry 8\\Engine Code\\UpdateMesh.cpp", 0x21f, 0);
     }
-    if (world->m_owned_06c == 0) {
+    if (world->quads == 0) {
         srAssertFail("pWorld->Tree.pQuads", "C:\\Projects\\Wizardry 8\\Engine Code\\UpdateMesh.cpp",
                      0x220, 0);
     }
     srMeshModel* mesh = static_cast<srMeshModel*>(world->update_mesh_source->getModel());
-    W8Quad* quad = world->m_owned_06c;
+    W8Quad* quad = world->quads;
     g_visible_quad_count = 0;
     CollectViewQuadCells(world, g_visible_quad_rows, g_visible_quad_columns, &g_visible_quad_count);
     long index;
@@ -353,7 +353,7 @@ void UpdateWorldMeshFromQuads(W8World* world)
                                 void***>(item + entry * 8 + 0x1c);
                         long slot = *reinterpret_cast< // reinterpret-ok: slot index field at +0x30
                             long*>(item + 0x30);
-                        PLAdoptAppend(&world->m_list_09c, nodes[slot]);
+                        PLAdoptAppend(&world->nodes_to_disable, nodes[slot]);
                     }
                 }
             }

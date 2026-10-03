@@ -1141,12 +1141,12 @@ void ServiceNpcDialogue(void)
             static_cast<W8NpcDialogueTextController*>(g_npc_interaction_state->dialogue_panels[2])->HandleScrollDownCommand(1) != 0);
     }
     if (static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24]) != 0 &&
-        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_textBuffer.m_flag_4c != 0 &&
+        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_textBuffer.m_highlighted != 0 &&
         GetTickCount() - g_trade_highlight_tick > 500) {
-        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_textBuffer.m_flag_4c = false;
+        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_textBuffer.m_highlighted = false;
         static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_textBuffer.SetGeometryDirty();
         static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->Invalidate(0);
-        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_35])->m_textBuffer.m_flag_4c = false;
+        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_35])->m_textBuffer.m_highlighted = false;
         static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_35])->m_textBuffer.SetGeometryDirty();
         static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_35])->Invalidate(0);
     }
@@ -3070,10 +3070,10 @@ W8ItemInstance* ResolveNpcTradeRow(int index, bool pick, char decrement, char co
                     if (entry->item.stack_count < g_npc_interaction_state->trade_quantity) {
                         g_npc_interaction_state->trade_quantity = entry->item.stack_count;
                     } else if (entry->item.stack_count != 0) {
-                        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_textBuffer.m_flag_4c = true;
+                        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_textBuffer.m_highlighted = true;
                         static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_textBuffer.SetGeometryDirty();
                         static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->Invalidate(0);
-                        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_35])->m_textBuffer.m_flag_4c = true;
+                        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_35])->m_textBuffer.m_highlighted = true;
                         static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_35])->m_textBuffer.SetGeometryDirty();
                         static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_35])->Invalidate(0);
                         g_trade_highlight_tick = GetTickCount();
@@ -3084,10 +3084,10 @@ W8ItemInstance* ResolveNpcTradeRow(int index, bool pick, char decrement, char co
                 if (g_npc_interaction_state->trade_quantity == 0) {
                     g_npc_interaction_state->trade_quantity = 1;
                 } else if (entry->item.stack_count != 0) {
-                    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_textBuffer.m_flag_4c = true;
+                    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_textBuffer.m_highlighted = true;
                     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_textBuffer.SetGeometryDirty();
                     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->Invalidate(0);
-                    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_35])->m_textBuffer.m_flag_4c = true;
+                    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_35])->m_textBuffer.m_highlighted = true;
                     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_35])->m_textBuffer.SetGeometryDirty();
                     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_35])->Invalidate(0);
                     g_trade_highlight_tick = GetTickCount();

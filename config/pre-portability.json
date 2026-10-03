@@ -168,6 +168,118 @@
       "classification": "external ABI",
       "reference": "docs/libraries/surrender-abi.md",
       "reason": "Provider/consumer class ABI, including native Windows or virtual-object representation."
+    },
+    {
+      "record": "W8LevelFilePathNode",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "disk-format",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "ReadPathAIFile and WritePathAIFile transfer complete 28-byte position/axis-angle keyframes."
+    },
+    {
+      "record": "W8LevelFileScaledPathNode",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "disk-format",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Scaled path keyframes append a 12-byte scale to the 28-byte path keyframe."
+    },
+    {
+      "record": "W8LevelFileCompressedFace",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "disk-format",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "ReadMeshFile and WriteMeshFile transfer complete packed 33-byte compressed faces."
+    },
+    {
+      "record": "W8LevelFileLightExtra",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "disk-format",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "The serialized 60-byte light payload excludes the runtime light vtable and type prefix."
+    },
+    {
+      "record": "W8LevelFileItemRecord",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "disk-format",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "ReadLevelFile and WriteLevelFile transfer complete 68-byte item records."
+    },
+    {
+      "record": "W8LevelFilePlane",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "disk-format",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Trigger readers and writers transfer four position vectors as a 48-byte plane payload."
+    },
+    {
+      "record": "W8LevelFileBounds",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "disk-format",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "ReadAnimObjFile and WriteAnimObjFile transfer complete 24-byte minimum/maximum pairs."
+    },
+    {
+      "record": "W8LevelFilePathAI",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "mixed",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Versioned path header and counts are serialized separately; the two path-array pointers are live malloc-backed storage."
+    },
+    {
+      "record": "W8LevelFileMesh",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "mixed",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Versioned mesh fields exclude padding and pointers. Position/face arrays are live allocations; the non-LOD reader reserves twice the serialized element count."
+    },
+    {
+      "record": "W8LevelFileLight",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "mixed",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Versioned light payload is serialized separately from optional owned light-definition and path-AI allocations."
+    },
+    {
+      "record": "W8LevelFileDoorRef",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "mixed",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "The stream stores a kind byte followed by a door payload; the workspace stores a live door pointer, never its address on disk."
+    },
+    {
+      "record": "W8LevelFileSwitch",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "mixed",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Versioned switch payload excludes workspace padding and owns an optional door allocation through door_264."
+    },
+    {
+      "record": "W8LevelFileInvisible",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "mixed",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Versioned trigger fields coexist with live plane and linked-record pointers; field_237 and geometry_kind_238 are distinct retail bytes."
+    },
+    {
+      "record": "W8LevelFileSuperTrigger",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "mixed",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Versioned trigger fields coexist with allocated placement, plane, hotspot, door and linked-record payloads; workspace padding is not serialized."
+    },
+    {
+      "record": "W8LevelFileFrame",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "mixed",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "A flag, mesh payload and texture count/table are serialized; mesh and texture pointers refer to live allocations."
+    },
+    {
+      "record": "W8LevelFileAnimObj",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "mixed",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Versioned animation fields coexist with owned channel, bounds, light, path, morph and transform arrays; byte-count signedness follows retail extension instructions."
     }
   ],
   "lifetimes": [
@@ -190,6 +302,46 @@
       "owner": "W8NpcDatabaseRecord::item_stock_rules",
       "source_file": "include/wiz8/layouts/gameplay_databases.h",
       "contract": "Constructed by InitializeNpcDatabase and destroyed by DestroyNpcDatabase; the field is live storage inside a database-sized record."
+    },
+    {
+      "owner": "W8OctSpatialState",
+      "source_file": "include/wiz8/engine_code/OctPreTree.h",
+      "contract": "Shallow-copy spatial view: copy construction copies region/root/triangle pointers; destruction clears them without freeing. m_triangle_vertices borrows the inserter's stack triangle for recursive bounds tests."
+    },
+    {
+      "owner": "W8Octree",
+      "source_file": "include/wiz8/engine_code/Octree.h",
+      "contract": "Owns malloc-backed branches, leaves, lookup/index streams and m_spatial.m_region_volumes; destruction frees these buffers. BitArray fields and the region-link owner use scalar delete, separately from their backing data."
+    },
+    {
+      "owner": "W8PathingService::m_search_nodes",
+      "source_file": "include/wiz8/engine_code/OctPath.h",
+      "contract": "Allocated with new W8PathSearchNode[g_path_reserve + 0x14] and destroyed with delete[]. Other path buffers use malloc/free, while heap/hash/bitset owners use scalar delete."
+    },
+    {
+      "owner": "W8World::game_data",
+      "source_file": "include/wiz8/layouts/world.h",
+      "contract": "Owned W8GameData is destroyed by scalar delete in DestroyWorld; the world clears the pointer afterwards."
+    },
+    {
+      "owner": "W8World::quads",
+      "source_file": "include/wiz8/layouts/world.h",
+      "contract": "Owned quad hierarchy is released by DestroyWorldQuad, separately from game_data and octree destruction."
+    },
+    {
+      "owner": "W8World::nodes_to_disable",
+      "source_file": "include/wiz8/layouts/world.h",
+      "contract": "Borrowed srNode pointers: UpdateWorld disables the nodes and clears the list. World teardown frees list backing storage without deleting the nodes."
+    },
+    {
+      "owner": "W8World::transient_lights",
+      "source_file": "include/wiz8/layouts/world.h",
+      "contract": "Adopts the existing light reference when appended; PLAdoptAppend itself does not addReference. WorldRemoveLight and DestroyWorldLights remove borrowed update-list entries and release each adopted reference; teardown separately frees PList backing storage."
+    },
+    {
+      "owner": "W8LevelFileMesh",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "contract": "ReadMeshFile allocates position/LOD/face buffers with malloc. WriteMeshFile consumes the mesh and frees vertex/face buffers and each LOD frame after writing; existing error paths and pointer-table release behavior are preserved."
     }
   ],
   "components": [

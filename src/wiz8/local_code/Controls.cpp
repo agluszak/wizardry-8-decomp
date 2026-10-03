@@ -388,7 +388,7 @@ W8TextBuffer::W8TextBuffer()
     m_renderMode = 4;
     m_alternateRenderer = 0;
     m_fontStateIndex = -1;
-    m_flag_4c = false;
+    m_highlighted = false;
     m_layoutBounds.left = 0;
     m_layoutBounds.top = 0;
     m_layoutBounds.right = 0;
@@ -413,7 +413,7 @@ W8TextBuffer::W8TextBuffer(const W8ControlsRect* bounds, const wchar_t* text, in
     SetLayoutMode(layout_mode);
     m_renderMode = render_mode;
     m_fontStateIndex = -1;
-    m_flag_4c = false;
+    m_highlighted = false;
     m_layoutBounds = *bounds;
     m_pendingBounds = *bounds;
     m_lineCount = 0;
@@ -686,7 +686,7 @@ void W8TextBuffer::RenderToTarget(int offset, unsigned char force, int target)
     if (m_fontStateIndex != -1) {
         SetFontObjectPalette16BPP(m_font, g_font_state_palettes[m_fontStateIndex]);
     }
-    if (m_flag_4c) {
+    if (m_highlighted) {
         SetFontObjectPalette16BPP(m_font, g_font_state_palettes[1]);
     }
 

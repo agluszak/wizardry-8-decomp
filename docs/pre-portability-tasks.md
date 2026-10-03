@@ -77,3 +77,11 @@ boundary asserts 16-bit Wizardry code units. The scalar collector distinguishes 
 addresses from call results; saved report inputs carry hashes and explicitly unverified
 source freshness. Existing pointer-valued mesh/path hash specializations must not be
 reopened from older scalar snapshots that still describe them as integers.
+
+The next source batch names 115 spatial/pathing/world fields across 193 marked
+function regions. It distinguishes borrowed triangle and node views from owned
+region/search storage and adopted light references. Mesh float positions now use
+the existing vector type; allocation and transfer sizes retain retail's doubled
+non-LOD reservation. Sixteen level-file records have reviewed disk/mixed layout
+classifications, and eight additional allocator/lifetime contracts identify their
+canonical owners. Unresolved payload types and unused bitset roles remain open.

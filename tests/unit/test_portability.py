@@ -69,6 +69,40 @@ def test_pointer_fields_are_candidates_and_duplicate_tu_observations_are_dedupli
     assert result["pointer_fields"][0]["ownership"] == "requires_review"
 
 
+def test_included_layout_contract_uses_projected_declaration_owner(tmp_path: Path):
+    config = tmp_path / "config/pre-portability.json"
+    config.parent.mkdir()
+    config.write_text(
+        json.dumps(
+            {
+                "layouts": [
+                    {
+                        "record": "Record",
+                        "source_file": "include/wiz8/canonical.h",
+                        "classification": "mixed",
+                    }
+                ]
+            }
+        )
+    )
+    record = {
+        "qualified_name": "Record",
+        "source_file": "include/wiz8/canonical.h",
+        "line": 3,
+        "asserted_size": 12,
+        "fields": [],
+    }
+    other = {**record, "source_file": "include/wiz8/other.h"}
+    unasserted = {**record, "qualified_name": "Unasserted", "asserted_size": None}
+    result = portability_queues(tmp_path, {"classes": [record, record, other, unasserted]})
+    layouts = result["layout_candidates"]
+    assert len(layouts) == 2
+    assert layouts[0]["classification"] == "mixed"
+    assert layouts[0]["evidence"] == "source_index_layout_contract"
+    assert layouts[1]["classification"] == "unclassified"
+    assert layouts[1]["review"] is None
+
+
 def test_marker_stripping_preserves_behavior_prose_and_string_literals():
     text = '// FUNCTION: WIZ8 0x00401000\n// Retail bug: 0x00401000 leaks its allocation.\nconst char* s = "// GLOBAL: WIZ8 0x00600000";\nint value; // GLOBAL: WIZ8 0x00600000\n// reinterpret-ok: required external ABI storage\n'
     stripped = strip_recovery_markers(text)

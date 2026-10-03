@@ -70,14 +70,16 @@ struct W8LevelFileMesh {
     unsigned char padding_41;           /* never serialized */
     short num_lods_42;                  /* flags_0c & 1 */
     short** lod_shorts_44; /* flags_0c & 2: num_lods_42 elements of num_vertices_04 * 3 shorts */
-    float**
-        lods_48; /* flags_0c & 1 && !(flags_0c & 2): num_lods_42 elements of num_vertices_04 * 0xc */
-    float*
-        pstVertices; /* 0x4c: !(flags_0c & 1): num_vertices_04 * 0x18 allocated, 0x12a..0xc read each */
+    srVector3T<float>** lods_48; /* float-position arrays, one per LOD */
+    /* The reader reserves twice the serialized position count. */
+    srVector3T<float>* pstVertices; /* 0x4c: !(flags_0c & 1) */
     W8LevelFileCompressedFace* pstCompFaces; /* 0x50: flags_0c & 4: num_faces_08 records */
     W8ReadMeshFace* pstFaces;                /* 0x54: 0x52 allocated each, 0x29 read each */
     float lod_scale_58;                      /* flags_0c & 1 && lod_mode_40 > 1 */
 };
+
+static_assert(sizeof(srVector3T<float>) == 0xc, "Level mesh position record size");
+static_assert(offsetof(W8LevelFileMesh, pstVertices) == 0x4c, "Level mesh position pointer offset");
 
 /* The 0x3c-byte serialized block covering stParametricLightDefinition fields
    flags_08 through subcycle_max_40: the runtime object's first 8 bytes
@@ -432,13 +434,12 @@ struct W8LevelFileAnimObj { /* 0x5f */
     char* abHowMany;                  /* 0x43: num_anims_01 channel bytes */
     unsigned char num_bound_box_47;   /* version_00 > 6 */
     W8LevelFileBounds* pBoundBox;     /* 0x48: num_bound_box_47 * 0x18 */
-    /* version_00 > 7. The count is a signed char, and this is the only one of
-       the four counts here that is: ReadAnimObjFile sign-extends it with
+    /* version_00 > 7. ReadAnimObjFile sign-extends this count with
        movsx at 0x004D3C9E, 0x004D3CC4 and 0x004D3D0B, and tests it signed
        with jle at 0x004D3CE3; WriteAnimObjFile does the same with jle at
        0x004D46B3 and movsx at 0x004D46CF. By contrast num_bound_box_47 is
        masked with and eax,0xff at 0x004D3BCD and num_transforms_5a is a
-       plain char, so the three are not interchangeable. */
+       sign-extended plain char, so the three are not interchangeable. */
     signed char num_anim_lights_4c;
     W8LevelFileAnimLight* pAnimLights_4d; /* num_anim_lights_4c * 0x25 */
     unsigned char has_path_ai_51;         /* version_00 > 8 && path_lists_06 == 0 */

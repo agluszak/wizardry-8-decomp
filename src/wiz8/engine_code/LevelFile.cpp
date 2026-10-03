@@ -546,28 +546,33 @@ BOOLEAN ReadMeshFile(int hFile, W8LevelFileMesh* pMesh)
         return FALSE;
     }
     if ((pMesh->flags_0c & 1) == 0) {
-        pMesh->pstVertices = static_cast<float*>(malloc(pMesh->num_vertices_04 * 0x18));
+        pMesh->pstVertices = static_cast<srVector3T<float>*>(
+            malloc(pMesh->num_vertices_04 * 2 * sizeof(*pMesh->pstVertices)));
         if (pMesh->pstVertices == 0) {
             srAssertFail("pMesh->pstVertices", LEVELFILE_CPP, 0x29a, 0);
         }
-        memset(pMesh->pstVertices, 0, pMesh->num_vertices_04 * 0x18);
-        if (FileRead(hFile, pMesh->pstVertices, pMesh->num_vertices_04 * 0xc, 0) == 0) {
+        memset(pMesh->pstVertices, 0, pMesh->num_vertices_04 * 2 * sizeof(*pMesh->pstVertices));
+        if (FileRead(hFile, pMesh->pstVertices,
+                     pMesh->num_vertices_04 * sizeof(*pMesh->pstVertices), 0) == 0) {
             return FALSE;
         }
     } else {
         fSuccess &= FileRead(hFile, &pMesh->lod_mode_40, 1, 0);
         fSuccess &= FileRead(hFile, &pMesh->num_lods_42, 2, 0);
         if ((pMesh->flags_0c & 2) == 0) {
-            float** pLods = static_cast<float**>(malloc(pMesh->num_lods_42 * sizeof(float*)));
+            srVector3T<float>** pLods = static_cast<srVector3T<float>**>(
+                malloc(pMesh->num_lods_42 * sizeof(*pLods)));
             if (pLods == 0) {
                 return FALSE;
             }
             for (i = 0; i < pMesh->num_lods_42; ++i) {
-                pLods[i] = static_cast<float*>(malloc(pMesh->num_vertices_04 * 0xc));
+                pLods[i] = static_cast<srVector3T<float>*>(
+                    malloc(pMesh->num_vertices_04 * sizeof(*pLods[i])));
                 if (pLods[i] == 0) {
                     return FALSE;
                 }
-                fSuccess &= FileRead(hFile, pLods[i], pMesh->num_vertices_04 * 0xc, 0);
+                fSuccess &= FileRead(hFile, pLods[i],
+                                     pMesh->num_vertices_04 * sizeof(*pLods[i]), 0);
                 if (fSuccess == 0) {
                     return FALSE;
                 }
@@ -582,11 +587,11 @@ BOOLEAN ReadMeshFile(int hFile, W8LevelFileMesh* pMesh)
                 return FALSE;
             }
             for (i = 0; i < pMesh->num_lods_42; ++i) {
-                pLods[i] = static_cast<short*>(malloc(pMesh->num_vertices_04 * 6));
+                pLods[i] = static_cast<short*>(malloc(pMesh->num_vertices_04 * 3 * sizeof(short)));
                 if (pLods[i] == 0) {
                     return FALSE;
                 }
-                fSuccess &= FileRead(hFile, pLods[i], pMesh->num_vertices_04 * 6, 0);
+                fSuccess &= FileRead(hFile, pLods[i], pMesh->num_vertices_04 * 3 * sizeof(short), 0);
                 if (fSuccess == 0) {
                     return FALSE;
                 }
@@ -644,7 +649,8 @@ BOOLEAN WriteMeshFile(int hFile, W8LevelFileMesh* pMesh)
         if (pMesh->pstVertices == 0) {
             srAssertFail("pMesh->pstVertices", LEVELFILE_CPP, 0x315, 0);
         }
-        if (FileWrite(hFile, pMesh->pstVertices, pMesh->num_vertices_04 * 0xc, 0) == 0) {
+        if (FileWrite(hFile, pMesh->pstVertices,
+                      pMesh->num_vertices_04 * sizeof(*pMesh->pstVertices), 0) == 0) {
             ReportBuildStatus(7, "WriteFileMesh: Could not write mesh vertices.\n");
         }
     } else {
@@ -654,7 +660,7 @@ BOOLEAN WriteMeshFile(int hFile, W8LevelFileMesh* pMesh)
             fSuccess &= FileWrite(hFile, &pMesh->lod_scale_58, 4, 0);
         }
         if ((pMesh->flags_0c & 2) == 0) {
-            float** pLods = pMesh->lods_48;
+            srVector3T<float>** pLods = pMesh->lods_48;
             if (pLods == 0) {
                 return FALSE;
             }
@@ -662,7 +668,8 @@ BOOLEAN WriteMeshFile(int hFile, W8LevelFileMesh* pMesh)
                 if (pLods[i] == 0) {
                     return FALSE;
                 }
-                fSuccess &= FileWrite(hFile, pLods[i], pMesh->num_vertices_04 * 0xc, 0);
+                fSuccess &= FileWrite(hFile, pLods[i],
+                                      pMesh->num_vertices_04 * sizeof(*pLods[i]), 0);
                 if (fSuccess == 0) {
                     ReportBuildStatus(7, "WriteFileMesh: Could not write mesh vertices.\n");
                 }
@@ -677,7 +684,7 @@ BOOLEAN WriteMeshFile(int hFile, W8LevelFileMesh* pMesh)
                 if (pLods[i] == 0) {
                     return FALSE;
                 }
-                fSuccess &= FileWrite(hFile, pLods[i], pMesh->num_vertices_04 * 6, 0);
+                fSuccess &= FileWrite(hFile, pLods[i], pMesh->num_vertices_04 * 3 * sizeof(short), 0);
                 if (fSuccess == 0) {
                     return FALSE;
                 }

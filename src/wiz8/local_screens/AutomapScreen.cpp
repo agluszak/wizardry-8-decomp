@@ -325,7 +325,7 @@ void ResetAutomapView(void)
         g_automap_grid_min.Set(-250000.0f, -250000.0f, -250000.0f);
         g_automap_grid_max.Set(250000.0f, 250000.0f, 250000.0f);
     } else {
-        g_octree->spatial_000.GetClippedBounds(&g_automap_grid_min, &g_automap_grid_max);
+        g_octree->m_spatial.GetClippedBounds(&g_automap_grid_min, &g_automap_grid_max);
     }
     g_automap_grid_origin = g_automap_grid_min;
     g_automap_grid_center.Set((g_automap_grid_min.x + g_automap_grid_max.x) * g_float_005ebc7c,
@@ -752,7 +752,7 @@ unsigned char AutomapScreenEnter(void)
                     }
                 }
             }
-            for (unsigned int mesh = 0; mesh < g_world->octree->m_meshCount_1b4; ++mesh) {
+            for (unsigned int mesh = 0; mesh < g_world->octree->m_meshCount; ++mesh) {
                 for (stMeshModel* model =
                          static_cast<stMeshModel*>(g_world->psrMeshes[mesh]->getModel());
                      model; model = model->next) {
@@ -1057,7 +1057,7 @@ unsigned char AutomapScreenLeave(int)
     MSYS_Shutdown();
     UpdateHeldItemCursor();
     EnableCursorScene();
-    for (unsigned int mesh = 0; mesh < g_world->octree->m_meshCount_1b4; ++mesh) {
+    for (unsigned int mesh = 0; mesh < g_world->octree->m_meshCount; ++mesh) {
         for (stMeshModel* model = static_cast<stMeshModel*>(g_world->psrMeshes[mesh]->getModel());
              model; model = model->next) {
             model->ClearAutomapPolygonFilter();
@@ -1364,7 +1364,7 @@ unsigned char ZoomAutomapIn(const srVector3T<float>* point)
 void ResetAutomapLighting(void)
 {
     if (g_world->octree != 0) {
-        for (unsigned int mesh = 0; mesh < g_world->octree->m_meshCount_1b4; ++mesh) {
+        for (unsigned int mesh = 0; mesh < g_world->octree->m_meshCount; ++mesh) {
             srModelInstance* instance = g_world->psrMeshes[mesh];
             if (instance != 0) {
                 for (stMeshModel* model = static_cast<stMeshModel*>(instance->getModel());

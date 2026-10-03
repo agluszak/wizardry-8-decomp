@@ -36,7 +36,9 @@ struct W8OctRegionVolume {
    at the start of its 0x29c owner, while OctBuildTree.cpp constructs the same
    value at the start of its 0xbc build tree and uses standalone copies while
    inserting surfaces.  Same-address construction proves the common value
-   boundary, but not whether either owner used inheritance or a first member. */
+   boundary, but not whether either owner used inheritance or a first member.
+   Copies borrow the region/root/triangle pointers; the destructor only clears
+   them. W8Octree releases its region allocation separately. */
 struct W8OctSpatialState {
     explicit W8OctSpatialState(const W8OctSpatialState* source = 0);
     ~W8OctSpatialState();
@@ -51,10 +53,10 @@ struct W8OctSpatialState {
     float cell_size_08;
     srVector3T<float> minimum_0c;
     srVector3T<float> maximum_18;
-    srVector3T<float> clipped_minimum_24;
-    srVector3T<float> clipped_maximum_30;
+    srVector3T<float> m_clipped_minimum;
+    srVector3T<float> m_clipped_maximum;
     /* Mode-2 insertions increment this once per region polygon; the build
-       conversion copies it to the pre-tree and sizes m_owned_190 from it. */
+       conversion copies it to the pre-tree and sizes m_visited_polygon_bits from it. */
     unsigned long polygon_count_3c;
     unsigned long item_count_40;
     unsigned short depth_44;
@@ -63,39 +65,39 @@ struct W8OctSpatialState {
     unsigned char padding_4a[6];
     /* Packed auto-region cell coordinate bound per axis, derived from the
        leaf level when a loaded octree is initialized. */
-    unsigned short region_cells_per_axis_50;
+    unsigned short m_region_cells_per_axis;
     /* The bottom octree level: insertion stops and masks saturate here. */
-    unsigned short leaf_level_52;
+    unsigned short m_leaf_level;
     /* Auto-region grid pitch: packed (x<<16|y<<8|z) cell coordinates scale
        to world units through it. */
-    float region_grid_cell_54;
+    float m_region_grid_cell;
     /* Auto-region id allocator bound: each new region takes this value and
        bumps it; region_count_46 mirrors it during the build. */
-    unsigned short region_id_bound_58;
+    unsigned short m_region_id_bound;
     unsigned short padding_5a;
-    W8OctRegionVolume* owned_5c;
+    W8OctRegionVolume* m_region_volumes;
     /* Maximum vertex distance from its region's center across the
        auto-regions. */
-    float max_region_radius_60;
+    float m_max_region_radius;
     /* Leaf-grid strides: dim_y*dim_z for one x step, dim_z for one y
        step. */
-    unsigned long leaf_grid_stride_x_64;
-    unsigned long leaf_grid_stride_y_68;
+    unsigned long m_leaf_grid_stride_x;
+    unsigned long m_leaf_grid_stride_y;
     unsigned short level_kind_6c;
     unsigned short padding_6e;
-    float node_extent_70;
+    float m_node_extent;
     /* Emitted submesh record bound: the build packs kind-0 then kind-1
        records beneath it. */
     unsigned long submesh_count_74;
-    srVector3T<float> working_minimum_78;
-    srVector3T<float> working_maximum_84;
+    srVector3T<float> m_working_minimum;
+    srVector3T<float> m_working_maximum;
     /* The build octree root: W8OctBuildNode or the counted subclass
        when the owning build tree counts surfaces per node. */
     W8OctBuildNode* root_90;
     unsigned long node_index_94;
     /* The working triangle's three vertices, borrowed from the inserter's
        stack for the recursion's bounds tests. */
-    const srVector3T<float>* owned_98;
+    const srVector3T<float>* m_triangle_vertices;
 };
 
 unsigned char TestSpatialTriangle(const srVector3T<float>* bounds,
@@ -214,7 +216,7 @@ struct W8OctFileHeader {
     unsigned short version_00; /* written 0x22 */
     float extent_02;
     float cell_size_06;
-    float node_extent_0a;
+    float m_node_extent;
     srVector3T<float> bounds_0e[6];
     /* The uiLeaf grid dimensions: three integer cell counts serialized in the
        vector slot. */
@@ -222,7 +224,7 @@ struct W8OctFileHeader {
     unsigned short depth_62;
     /* Auto-region id bound; the reader sizes the region-indexed
        m_owned_154/m_pfRegsVisited arrays from it. */
-    unsigned short region_id_bound_64;
+    unsigned short m_region_id_bound;
     /* The finished submesh record bound (the octree's +0x74), not a
        mesh-file count. */
     unsigned long submesh_count_66;
@@ -246,7 +248,7 @@ struct W8OctFileHeader {
     unsigned short region_count_96;
     /* The spatial state's leaf level; the reader derives the region mask and
        packed cell bound from it. */
-    unsigned short leaf_level_98;
+    unsigned short m_leaf_level;
     /* Kind-0 emitted submesh count; carries the same value as
        mesh_total_9e. */
     unsigned long root_mesh_count_9a;
@@ -254,9 +256,9 @@ struct W8OctFileHeader {
     /* Kind-1 emitted submesh count.  Serialized for information only - the
        lookup tables on both sides size from mesh_total_9e. */
     unsigned long kind1_submesh_count_a2;
-    /* +0xa6 and +0xb9 serialize spatial_000's +0x54/+0x60 floats; retail
+    /* +0xa6 and +0xb9 serialize m_spatial's +0x54/+0x60 floats; retail
        copies them with plain movs, which requires float-typed fields. */
-    float region_grid_cell_a6;
+    float m_region_grid_cell;
     unsigned short pad_aa;
     float region_cell_ac;
     unsigned long edge_node_count_b0;
@@ -265,7 +267,7 @@ struct W8OctFileHeader {
        it into +0x17c and feeds it to ConfigureForLevel. */
     unsigned long path_clearance_b4;
     unsigned char prop_sun_bits_b8;
-    float max_region_radius_b9;
+    float m_max_region_radius;
     unsigned long prop_count_bd;
     unsigned long particle_count_c1;
     unsigned short particle_len_c5;

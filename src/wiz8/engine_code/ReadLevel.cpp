@@ -1053,7 +1053,7 @@ unsigned char ReadLevel(W8World* world, int handle, bool use_octree,
         if (!ReadMultipleLevelMeshes(&info, world->psrMeshes, world->octree->GetMeshCount(), 0)) {
             ShutdownWithErrorBox("ReadLevel: Error reading multi-meshes.");
         }
-        for (unsigned int mesh_index = 0; mesh_index < world->octree->m_meshCount_1b4;
+        for (unsigned int mesh_index = 0; mesh_index < world->octree->m_meshCount;
              ++mesh_index) {
             if (world->psrMeshes[mesh_index] != 0) {
                 world->psrMeshes[mesh_index]->setParent(world->level, 1);
@@ -1106,8 +1106,8 @@ unsigned char ReadLevel(W8World* world, int handle, bool use_octree,
             for (index = 0; index < section_count; ++index) {
                 Trigger::CreateAndLoadLevelTrigger(info.hFile, world);
             }
-            if (world->m_owned_04c != 0 && world->m_owned_04c->geometry_index_00 != 0) {
-                world->m_owned_04c->IntegrateTriggers();
+            if (world->game_data != 0 && world->game_data->geometry_index_00 != 0) {
+                world->game_data->IntegrateTriggers();
             }
         }
     }
@@ -1129,7 +1129,7 @@ unsigned char ReadLevel(W8World* world, int handle, bool use_octree,
     if (use_octree != 0) {
         srMeshModel* model = static_cast<srMeshModel*>(level_mesh->getModel());
         model->getBoundingBox(minimum, maximum);
-        world->m_owned_06c =
+        world->quads =
             BuildWorldQuad(level_mesh, 0, minimum.x, minimum.y, minimum.z, maximum.x, maximum.y,
                            maximum.z, world->static_scene, 0);
     }

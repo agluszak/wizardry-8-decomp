@@ -253,6 +253,29 @@ def portability_queues(repository: Path, index: dict[str, Any]) -> dict[str, Any
     pointers = []
     seen_fields = set()
     for record in index.get("classes", []):
+        # The source index owns contracts declared in included evidence fragments.
+        # Keep their canonical declaration owner instead of guessing it from .inc names.
+        path = str(record.get("source_file") or "")
+        name = str(record.get("qualified_name") or "")
+        if (
+            record.get("asserted_size") is not None
+            and path.startswith(tuple(root + "/" for root in ROOTS))
+            and (path, name) not in seen_layouts
+        ):
+            seen_layouts.add((path, name))
+            review = layout_reviews.get(name)
+            if review and review["source_file"] != path:
+                review = None
+            layouts.append(
+                {
+                    "record": name,
+                    "source_file": path,
+                    "line": record.get("line"),
+                    "classification": review["classification"] if review else "unclassified",
+                    "review": review,
+                    "evidence": "source_index_layout_contract",
+                }
+            )
         for field in record.get("fields", []):
             path = str(field.get("source_file") or "")
             if not path.startswith(tuple(root + "/" for root in ROOTS)):

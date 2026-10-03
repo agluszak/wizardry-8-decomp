@@ -479,7 +479,7 @@ W8SpellEmitterHost::W8SpellEmitterHost(const W8SpellEmitterHost& other)
                     copied_light->ConfigureMonsterCopy();
                     copied_light->setLocation(x, y, z);
                     copied_light->setParent(0, 0);
-                    PLAdoptAppend(&g_world->m_lights_0a8, copied_light);
+                    PLAdoptAppend(&g_world->transient_lights, copied_light);
                     copied_lights->Add(copied_light);
                 }
             }

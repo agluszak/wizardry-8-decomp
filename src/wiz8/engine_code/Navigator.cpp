@@ -1353,7 +1353,7 @@ unsigned char W8NavigatorAttachment::CheckPositionHopHeight(const srVector3T<flo
     from.Set(position_4c[base].x, position_4c[base].z);
     to.Set(position_4c[end].x, position_4c[end].z);
     distance = PointToSegmentDistance2D(&point, &from, &to, 0, &fraction);
-    surfaces = g_octree->pathing_180->m_pSurfaces_048;
+    surfaces = g_octree->pathing_180->m_pSurfaces;
     from_height = (surfaces[path_values_50[base]].flags_00 >> 0xc) * g_world_scale;
     to_height = (surfaces[path_values_50[end]].flags_00 >> 0xc) * g_world_scale;
     if (from_height != to_height) {
@@ -1392,7 +1392,7 @@ unsigned char W8NavigatorAttachment::CheckPredictedHopHeight(const srVector3T<fl
             distance = other_distance;
         }
     }
-    surfaces = g_octree->pathing_180->m_pSurfaces_048;
+    surfaces = g_octree->pathing_180->m_pSurfaces;
     from_height = (surfaces[path_values_50[base]].flags_00 >> 0xc) * g_world_scale;
     to_height = (surfaces[path_values_50[base + 1]].flags_00 >> 0xc) * g_world_scale;
     if (from_height != to_height) {

@@ -390,10 +390,10 @@ static unsigned char PreprocessLevel(int handle, char* stem)
             maximum.Set(-1e7f, -1e7f, -1e7f);
             redundant = 0;
             for (i = 1; i < mesh->num_vertices_04; ++i) {
-                const float* source = mesh->pstVertices + (i - 1) * 3;
-                vertices[i].position_0c.Set(source[0] * g_world_scale, source[1] * g_world_scale,
-                                            source[2] * g_world_scale);
-                vertices[i].original_position_54.Set(source[0], source[1], source[2]);
+                const srVector3T<float>& source = mesh->pstVertices[i - 1];
+                vertices[i].position_0c.Set(source.x * g_world_scale, source.y * g_world_scale,
+                                            source.z * g_world_scale);
+                vertices[i].original_position_54.Set(source.x, source.y, source.z);
                 vertices[i].visited_0a = 0;
                 for (j = 0; j < 3; ++j) {
                     float v = (&vertices[i].position_0c.x)[j];
@@ -467,7 +467,7 @@ static unsigned char PreprocessLevel(int handle, char* stem)
                     if (g_option_mesh_linking == 0) {
                         build_tree->mesh_linking_f4 = 0;
                     }
-                    build_tree->spatial_00.region_grid_cell_54 = g_option_auto_region_size;
+                    build_tree->spatial_00.m_region_grid_cell = g_option_auto_region_size;
                     int alpha_polys = BuildRegionPolygons(level, &geometry, classify);
                     build_tree->SortGeometry(&geometry);
                     short light_total = level->nLights;
@@ -517,11 +517,11 @@ static unsigned char PreprocessLevel(int handle, char* stem)
                             build_tree->spatial_00.extent_04, build_tree->spatial_00.depth_44);
                     ReportBuildStatus(6, message);
                     sprintf(message, "Width of Leaves: %f,  %f metres\n",
-                            build_tree->spatial_00.node_extent_70,
-                            (build_tree->spatial_00.node_extent_70 * g_float_005ebc60));
+                            build_tree->spatial_00.m_node_extent,
+                            (build_tree->spatial_00.m_node_extent * g_float_005ebc60));
                     ReportBuildStatus(6, message);
                     sprintf(message, "Width of auto-generated regions: %f metres\n",
-                            (build_tree->spatial_00.region_grid_cell_54 * g_float_005ebc60));
+                            (build_tree->spatial_00.m_region_grid_cell * g_float_005ebc60));
                     g_oct_node_count = GetBuildNodeInstanceCount();
                     g_oct_max_objects = build_tree->deepest_link_list_b8;
                     ReportBuildStatus(3, message);
@@ -536,14 +536,14 @@ static unsigned char PreprocessLevel(int handle, char* stem)
                             build_tree->spatial_00.maximum_18.z);
                     ReportBuildStatus(6, message);
                     sprintf(message, "World Dimensions:\n\tX: %fm  \tY: %fm  \tZ: %fm\n",
-                            ((build_tree->spatial_00.clipped_maximum_30.x -
-                              build_tree->spatial_00.clipped_minimum_24.x) *
+                            ((build_tree->spatial_00.m_clipped_maximum.x -
+                              build_tree->spatial_00.m_clipped_minimum.x) *
                              g_float_005ebc60),
-                            ((build_tree->spatial_00.clipped_maximum_30.y -
-                              build_tree->spatial_00.clipped_minimum_24.y) *
+                            ((build_tree->spatial_00.m_clipped_maximum.y -
+                              build_tree->spatial_00.m_clipped_minimum.y) *
                              g_float_005ebc60),
-                            ((build_tree->spatial_00.clipped_maximum_30.z -
-                              build_tree->spatial_00.clipped_minimum_24.z) *
+                            ((build_tree->spatial_00.m_clipped_maximum.z -
+                              build_tree->spatial_00.m_clipped_minimum.z) *
                              g_float_005ebc60));
                     ReportBuildStatus(6, message);
                     for (i = 0; i < level->num_switch_triggers_6c1; ++i) {
@@ -614,16 +614,16 @@ static unsigned char PreprocessLevel(int handle, char* stem)
                         return 0;
                     }
                     tree->SetPathStem(stem);
-                    tree->spatial_000.SetWorkingBounds(&g_weld_min, &g_weld_max);
-                    tree->m_alpha_polygon_count_1b0 = alpha_polys;
+                    tree->m_spatial.SetWorkingBounds(&g_weld_min, &g_weld_max);
+                    tree->m_alpha_polygon_count = alpha_polys;
                     value->octree_04 = tree;
                     sprintf(message, "Poly List Len: %d\n",
                             static_cast<int>(tree->polygon_cursor_3a0));
                     ReportBuildStatus(6, message);
-                    tree->spatial_000.polygon_count_3c = geometry.polygon_count_08;
+                    tree->m_spatial.polygon_count_3c = geometry.polygon_count_08;
                     SetOctreeGameData(value);
                     if (light_total != 0) {
-                        tree->m_sun_count_296 = static_cast<unsigned short>(sun_count);
+                        tree->m_sun_count = static_cast<unsigned short>(sun_count);
                         ReportBuildStatus(6, "\nCalculating Vertex Lighting  --------------\n");
                         mark = 0;
                         lit_vertices = 0;
@@ -745,17 +745,17 @@ static unsigned char PreprocessLevel(int handle, char* stem)
                             sprintf(message,
                                     "   %d Normal,   %d Sutractive Alpha,   %d "
                                     "Additive Alpha\n",
-                                    static_cast<int>(tree->m_root_mesh_count_1a8),
-                                    static_cast<int>((tree->m_kind1_submesh_count_1ac -
-                                                      tree->m_root_mesh_count_1a8)),
+                                    static_cast<int>(tree->m_root_mesh_count),
+                                    static_cast<int>((tree->m_kind1_submesh_count -
+                                                      tree->m_root_mesh_count)),
                                     static_cast<int>(
-                                        (tree->GetMeshCount() - tree->m_kind1_submesh_count_1ac)));
+                                        (tree->GetMeshCount() - tree->m_kind1_submesh_count)));
                             ReportBuildStatus(6, message);
                             if (g_option_pathing != 0) {
-                                tree->m_region_cell_178 = g_option_path_node_spacing;
+                                tree->m_region_cell = g_option_path_node_spacing;
                                 /* Retail copies the head-room float's bits
                                    into the unsigned-long field. */
-                                tree->m_path_clearance_17c =
+                                tree->m_path_clearance =
                                     (unsigned long&)/* c-style-cast-ok: float-bit copy */
                                     g_option_path_head_room;
                                 tree->BuildPathLists(value, level, g_option_delete_percentage);
@@ -769,7 +769,7 @@ static unsigned char PreprocessLevel(int handle, char* stem)
                                 ReportBuildStatus(7, "Could not create submesh data.\n");
                                 result = 0;
                             } else {
-                                tree->spatial_000.GetWorkingBounds(&bound_min, &bound_max);
+                                tree->m_spatial.GetWorkingBounds(&bound_min, &bound_max);
                                 ReportBuildStatus(6, "Graphic Data Bounding Box:\n");
                                 sprintf(message, "     Minimum: %f   %f   %f\n", bound_min.x,
                                         bound_min.y, bound_min.z);
@@ -800,7 +800,7 @@ static unsigned char PreprocessLevel(int handle, char* stem)
                             }
                             sprintf(message, fmt, i, submeshes[i].polygon_count_44,
                                     submeshes[i].vertex_count_40);
-                            strcat(message, static_cast<int>(tree->spatial_000.region_count_46) <= i
+                            strcat(message, static_cast<int>(tree->m_spatial.region_count_46) <= i
                                                 ? "\n"
                                                 : " Regioned Manually\n");
                             ReportBuildStatus(5, message);
@@ -819,7 +819,7 @@ static unsigned char PreprocessLevel(int handle, char* stem)
                             result = 0;
                         } else {
                             level->submesh_count_00 = tree->GetMeshCount();
-                            level->mesh_count_04 = tree->m_meshCount_1b4;
+                            level->mesh_count_04 = tree->m_meshCount;
                             level->pModels_0c = submeshes;
                             ReportBuildStatus(6, "\nWriting PVL File...\n");
                             result = result & WriteLevelFile(file, handle, level);

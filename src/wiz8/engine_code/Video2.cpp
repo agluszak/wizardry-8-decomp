@@ -1114,7 +1114,7 @@ static RuntimeWorldRenderData ObserveWorldRenderState()
                  (g_render_mesh_sky ? 16UL : 0UL) | (g_world_pick_enabled ? 32UL : 0UL);
     data.scene_children = g_world->static_scene->getChildCount();
     if (g_world->octree != 0 && g_world->psrMeshes != 0) {
-        for (unsigned long index = 0; index < g_world->octree->m_meshCount_1b4; ++index) {
+        for (unsigned long index = 0; index < g_world->octree->m_meshCount; ++index) {
             srModelInstance* instance = g_world->psrMeshes[index];
             if (instance != 0 && !instance->testFlag(srNode::FLAG_DISABLE)) {
                 ++data.visible_meshes;

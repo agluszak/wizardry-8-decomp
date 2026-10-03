@@ -585,10 +585,9 @@ void GDProp::TransformMeshGeometry(const W8LevelFileScaledPathNode* node, W8Leve
                     ++m_vertex_count_18;
                 }
             } else {
-                float* vertices = mesh->lods_48[lod];
+                const srVector3T<float>* vertices = mesh->lods_48[lod];
                 for (int vertex = 0; vertex < mesh->num_vertices_04; ++vertex) {
-                    m_pVertices[m_vertex_count_18] = matrix.TransformPoint(srVector3T<float>(
-                        vertices[vertex * 3], vertices[vertex * 3 + 1], vertices[vertex * 3 + 2]));
+                    m_pVertices[m_vertex_count_18] = matrix.TransformPoint(vertices[vertex]);
                     ++m_vertex_count_18;
                 }
             }
@@ -614,10 +613,9 @@ void GDProp::TransformMeshGeometry(const W8LevelFileScaledPathNode* node, W8Leve
         }
     } else {
         int vertex_base = m_vertex_count_18;
-        float* vertices = mesh->pstVertices;
+        const srVector3T<float>* vertices = mesh->pstVertices;
         for (int vertex = 0; vertex < mesh->num_vertices_04; ++vertex) {
-            m_pVertices[m_vertex_count_18] = matrix.TransformPoint(srVector3T<float>(
-                vertices[vertex * 3], vertices[vertex * 3 + 1], vertices[vertex * 3 + 2]));
+            m_pVertices[m_vertex_count_18] = matrix.TransformPoint(vertices[vertex]);
             ++m_vertex_count_18;
         }
         if ((mesh->flags_0c & 2) != 0) {
