@@ -171,7 +171,8 @@ frame handler gets a periodic `Escape` (every 30th hit, the same re-arm cadence 
 harness uses to dismiss intro videos); `screen_1_enter` queues `PageDown`+`Return` (the menu's
 exit-screen binding); `screen_12_enter` queues the confirming `Return`. A gesture that never lands
 leaves the run at the timeout and the verdict stays false - `process_exited` requires gdb to
-finish inside the window, which only happens when the inferior really exited.
+finish successfully inside the window and emit `PROCESS_EXIT 0` after observing a zero
+inferior exit status. A debugger error, signal stop or nonzero product exit cannot satisfy it.
 
 ```sh
 uv run wiz8 analyze smoke --seconds 120

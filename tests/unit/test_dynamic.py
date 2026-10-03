@@ -366,3 +366,66 @@ def test_state_comparison_reports_field_level_divergence() -> None:
 
 def test_identical_fingerprints_agree() -> None:
     assert compare_states({"a": "0x1"}, {"a": "0x1"})["agrees"] is True
+
+
+def test_smoke_script_observes_exit_after_continue() -> None:
+    script = gdb_script([], 4242, observe_exit=True)
+    assert script.endswith('continue\nif $_exitcode == 0\nprintf "PROCESS_EXIT 0\\n"\nend\n')
+    assert "PROCESS_EXIT" not in gdb_script([], 4242)
+
+
+@pytest.mark.parametrize(
+    ("returncode", "exit_line", "timeout", "expected"),
+    [
+        (0, "PROCESS_EXIT 0", False, True),
+        (0, "", False, False),
+        (1, "PROCESS_EXIT 0", False, False),
+        (0, "PROCESS_EXIT 1", False, False),
+        (0, "prefix PROCESS_EXIT 0", False, False),
+        (0, "PROCESS_EXIT 0", True, False),
+    ],
+)
+def test_smoke_requires_observed_exit(
+    tmp_path: Path, monkeypatch, returncode: int, exit_line: str, timeout: bool, expected: bool
+) -> None:
+    import subprocess
+    from unittest.mock import Mock
+
+    from wiz8decomp import dynamic
+
+    image = tmp_path / "Wiz8Runtime.exe"
+    image.touch()
+    names = ["WinMain", "screen_1_enter", "screen_12_enter", "SGPExit"]
+    points = [
+        TracePoint(address=f"{index:08x}", name=name, kind="gate")
+        for index, name in enumerate(names)
+    ]
+    output = (
+        "TRACE_READY\n"
+        + "".join(f"EVENT {point.kind} {point.name} {point.address}\n" for point in points)
+        + exit_line
+        + "\n"
+    )
+    monkeypatch.setattr(dynamic.shutil, "which", lambda tool: tool)
+    monkeypatch.setattr(dynamic, "trace_plan", lambda repo, scenario: points)
+    monkeypatch.setattr(dynamic, "tool_version", lambda *args: "test")
+    monkeypatch.setattr(dynamic, "_reviewed_evidence_hash", lambda repo: "test")
+    monkeypatch.setattr(dynamic, "_repository_revision", lambda repo: "test")
+    proxy = Mock()
+    monkeypatch.setattr(dynamic, "WineGdbProxy", Mock(return_value=proxy))
+
+    def run(command, **kwargs):
+        if command[0] == "gdb":
+            if timeout:
+                raise subprocess.TimeoutExpired(command, 1, output=output)
+            return subprocess.CompletedProcess(command, returncode, output, "")
+        return subprocess.CompletedProcess(command, 0)
+
+    monkeypatch.setattr(dynamic.subprocess, "run", run)
+    sandbox = dynamic.Sandbox(tmp_path, tmp_path / "prefix", ":99")
+    result = dynamic.run_smoke(tmp_path, sandbox, port=4242)
+    assert result["requirements"]["process_exited"] is expected
+    assert result["affirmative"] is expected
+    assert result["timed_out"] is timeout
+    proxy.close.assert_called_once()
+    assert not (tmp_path.parent / "smoke-4242.gdb").exists()
