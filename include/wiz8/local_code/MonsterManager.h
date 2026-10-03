@@ -49,7 +49,7 @@ struct W8MonsterManagerEntry {
     W8MonsterManagerEntry();
     ~W8MonsterManagerEntry();
 
-    unsigned char portrait_event_active;
+    bool portrait_event_active;
     int voice_sound_handle;
     W8MouthGapTrack mouth_gap;  /* 0x005 */
     W8PortraitQuoteState quote; /* 0x019 */

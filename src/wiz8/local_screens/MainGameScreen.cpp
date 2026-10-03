@@ -2771,7 +2771,7 @@ unsigned char W8NpcDialogueTextController::AddTranscriptEntry(const wchar_t* tex
     added = text_area.AddEntry(0, text, 0, 7, category);
     InvalidateLayout();
     if (mark != 0) {
-        text_area.SetEntryState60(added, 1);
+        text_area.SetEntryState60(added, true);
     }
     if (1u < (unsigned)text_area.m_all_lines_01c.count) {
         for (index = 0; index < text_area.m_all_lines_01c.count; ++index) {
@@ -8743,7 +8743,7 @@ void W8NpcDialogueTextController::SelectTranscriptKeywordAtPoint(int x, int y)
         text_area.SetEntryState5D(static_cast<int>(hit));
         SetDialogueFieldKeyword(keyword, 0);
         HandleNpcDialogueInput();
-        text_area.SetEntryState60(text_area.GetOwningEntryIndex(static_cast<int>(hit)), 0);
+        text_area.SetEntryState60(text_area.GetOwningEntryIndex(static_cast<int>(hit)), false);
         InvalidateLayout();
         return;
     }

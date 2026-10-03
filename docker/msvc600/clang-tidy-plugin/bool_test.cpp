@@ -182,3 +182,20 @@ int parameter_and_numeric_uses()
     g_menu_active = 1;
     return 3 + g_menu_active;
 }
+
+struct HandedRecord {
+    unsigned char handed_ready;
+};
+
+void settle_handed(HandedRecord* record)
+{
+    record->handed_ready = 1;
+}
+
+void handed_record_use(HandedRecord* record)
+{
+    record->handed_ready = 0;
+    settle_handed(record);
+    if (record->handed_ready) {
+    }
+}

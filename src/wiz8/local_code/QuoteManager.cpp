@@ -612,7 +612,7 @@ void W8CharacterEvent::Complete()
 {
     W8MonsterManagerEntry* slot;
     int party_slot;
-    unsigned char sound_was_active;
+    bool sound_was_active;
 
     party_slot = CharacterPointerToPartySlot(character);
     slot = &gXStatus.monster_manager_entries[party_slot];

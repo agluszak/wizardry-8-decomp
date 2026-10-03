@@ -46,7 +46,7 @@ struct W8Region {
     short y2;
     W8RegionCallback callback;
     unsigned short callback_id;
-    unsigned char help_enabled;
+    bool help_enabled;
     unsigned char unknown_13;
     int help_text_id;
     Controls* owner;

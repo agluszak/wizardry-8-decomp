@@ -22,7 +22,7 @@ public:
     void SetActive(unsigned char active);
     void SetTraversalEnabled(bool enabled);
     void DeactivateParticle(unsigned int index);
-    unsigned char ActivateParticle(unsigned int* out_index, unsigned char replace_when_full);
+    unsigned char ActivateParticle(unsigned int* out_index, bool replace_when_full);
     void InitializeParticlePosition(srVector3T<float>* output);
     void SetTexture(srTextureIFace* texture);
     void SetRetainedObject(srMaterialIFace* material);
@@ -79,18 +79,18 @@ public:
     unsigned int emission_count_188;
     unsigned int active_particle_count_18c;
     bool release_when_done_190;
-    unsigned char replace_when_full_191;
-    unsigned char persisted_192;
+    bool replace_when_full_191;
+    bool persisted_192;
     unsigned char padding_193;
     /* Per-particle liveness flag byte; the update loop retires it when the
        birth tick plus lifetime expires. */
-    unsigned char* particle_active_194;
+    bool* particle_active_194;
     /* Per-particle velocity; acceleration_1f4 integrates it each update. */
     srVector3T<float>* velocities_198;
     /* Unsigned millisecond birth ticks, one per particle. */
     unsigned int* birth_ticks_19c;
     unsigned char emitting_1a0;
-    unsigned char traversal_enabled_1a1;
+    bool traversal_enabled_1a1;
     unsigned char padding_1a2[2];
     int bounds_mode_1a4;
     int has_acceleration_1a8;

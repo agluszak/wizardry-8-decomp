@@ -239,7 +239,7 @@ struct W8GameData {
     W8EnvironRecord** m_ppEnvirons;
     /* Set by W8Octree::SettleToGround around its TestTraceResult calls: while
        set, only flag-4 surfaces are admitted by the surface trace. */
-    unsigned char trace_flag4_gate_88;
+    bool trace_flag4_gate_88;
     unsigned char pad_89[3];
 
     void IntegrateTriggers();

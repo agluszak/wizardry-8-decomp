@@ -39,7 +39,7 @@ public:
     int volume;                 /* 0x140: base volume before distance/effects scale */
     float falloff;              /* 0x144: audible range in world units */
     char* wave_name;            /* 0x148: owned copy of the wave filename */
-    unsigned char auto_release; /* 0x14c: release the node when playback ends */
+    bool auto_release; /* 0x14c: release the node when playback ends */
     unsigned char unknown_14d[3];
 
     /* srClassSupport::clone expands this class-specific assignment in the

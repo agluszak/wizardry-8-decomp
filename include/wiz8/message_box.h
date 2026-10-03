@@ -124,7 +124,7 @@ enum W8NpcMessageKind {
    W8NpcQuoteEntry*. */
 struct W8MessageBoxLine {
     int quote_index;            /* 0x00: QUOTE script quote; -1 otherwise */
-    unsigned char mark_pending; /* 0x04: QUOTE records quote_index pending */
+    bool mark_pending; /* 0x04: QUOTE records quote_index pending */
     /* 0x08: QUOTE_ENTRY only; producers always store a W8NpcQuoteEntry*. */
     W8NpcQuoteEntry* quote_entry;
     W8NpcMessageKind type; /* 0x0c */
@@ -132,7 +132,7 @@ struct W8MessageBoxLine {
        are the proven members. */
     W8MessageBoxPayload payload_10;
     int continuation_quote;         /* 0x14: QUOTE_ENTRY's owning quote index */
-    unsigned char suppress_entries; /* 0x18: QUOTE skips the quote-entry scan */
+    bool suppress_entries; /* 0x18: QUOTE skips the quote-entry scan */
     /* 0x1c: ownership is selected by `type`. SKILL_NOTICES hands a
        W8SkillNoticePayload* to the dispatcher or portrait bubble; LEVEL_UP
        hands an int party-slot pointer to the bubble. PORTRAIT_EXTRA hands a

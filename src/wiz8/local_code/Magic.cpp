@@ -4191,8 +4191,8 @@ void PruneSpellTargetMarkers(int spell_id, W8GrowableVector<int>* monster_marker
 // FUNCTION: WIZ8 0x00501D20
 void TrackItemSpellSource(W8Character* character, int spell_id)
 {
-    unsigned char has_spell_storage[0x96] = {0};
-    unsigned char* has_spell = has_spell_storage + 1;
+    bool has_spell_storage[0x96] = {false};
+    bool* has_spell = has_spell_storage + 1;
     W8ItemInstance* item;
     int count;
 
@@ -4228,7 +4228,7 @@ void TrackItemSpellSource(W8Character* character, int spell_id)
     W8ItemSpellUsageRecord* record = g_status.item_spell_usage_24a0;
     int index = 0;
     while (record < g_status.item_spell_usage_24a0 + 150) {
-        if (has_spell[index - 1] != '\0') {
+        if (has_spell[index - 1]) {
             ++record->usable_cast_count;
         }
         ++index;

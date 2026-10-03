@@ -28,10 +28,10 @@ private:
     unsigned int m_prefix_palette; /* 0x50 */
     unsigned int m_text_palette;   /* 0x54 */
     int m_prefix_length;           /* 0x58: includes ": " */
-    unsigned char m_selected;      /* 0x5c */
-    unsigned char m_state_5d;      /* 0x5d: palette override, separate from selection */
+    bool m_selected;      /* 0x5c */
+    bool m_state_5d;      /* 0x5d: palette override, separate from selection */
     unsigned char m_category;      /* 0x5e: text-area filter key */
     unsigned char m_shorten;       /* 0x5f */
-    unsigned char m_state_60;      /* 0x60: another palette override */
+    bool m_state_60;      /* 0x60: another palette override */
 };
 static_assert(sizeof(W8DialogTextEntry) == 0x64, "W8DialogTextEntry_size");

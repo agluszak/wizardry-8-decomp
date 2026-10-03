@@ -170,8 +170,8 @@ struct W8NavigatorMovementState {
     float turn_rate_068;
     unsigned short flags_06c;
     unsigned char padding_06e[6];
-    char pitch_enabled_074;
-    char roll_enabled_075;
+    bool pitch_enabled_074;
+    bool roll_enabled_075;
     bool boundary_enabled_076;
     unsigned char padding_077;
     float vertical_velocity_078;
@@ -377,7 +377,7 @@ public:
        reports motion actually halting. */
     bool halted_025;
     bool movement_complete_026;
-    unsigned char unknown_027;
+    bool unknown_027;
     srVector3T<float> position_028;
     float minimum_height_034;
     float maximum_height_038;
@@ -406,10 +406,10 @@ public:
     unsigned int unknown_098;
     /* 0x09c: byte flag - SetMonsterGroupNavigatorDirty stores its uchar
        parameter raw, with no bool normalization. */
-    unsigned char position_dirty_09c;
+    bool position_dirty_09c;
     /* 0x09d: raised by the trigger sweep after it reactivates the monster
        (members_active, animation restart, rep/path reset). */
-    unsigned char reactivated_09d;
+    bool reactivated_09d;
     unsigned char padding_09e[2];
     W8NavigatorOwned0A0* owned_object_0a0;
     srVector3T<float> tracked_position_0a4;
@@ -417,7 +417,7 @@ public:
     bool tracked_dirty_0b4;
     unsigned char padding_0b5[3];
     int linked_update_time_0b8;
-    unsigned char unknown_0bc;
+    bool unknown_0bc;
     /* Raised on combat entry for the group leader's navigator (or the monster
        itself when unlinked); SetNavigatorLinkMode uses it to re-base the group
        onto the navigator's path when free-roam resumes. */

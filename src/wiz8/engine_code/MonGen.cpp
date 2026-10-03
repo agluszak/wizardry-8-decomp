@@ -350,7 +350,7 @@ unsigned char MonGen::GenerateEncounter(const srVector3T<float>* position)
 {
     W8GrowableVector<int> candidates;
     W8EncounterCompanionRecord companion_records[2];
-    unsigned char companion_active[2] = {0, 0};
+    bool companion_active[2] = {false, false};
     srVector3T<float> spawn_position;
     W8EncounterTableRuntime* table;
     W8MonsterRecord* record;

@@ -325,7 +325,7 @@ public:
 private:
     unsigned int m_kind_0cc;        /* 0x0cc: 0 inventory, 1 and 2 trade modes */
     W8ItemInstance* m_item_0d0;     /* 0x0d0 */
-    unsigned char m_first_draw_0d4; /* 0x0d4: draw the item icon once */
+    bool m_first_draw_0d4; /* 0x0d4: draw the item icon once */
     unsigned char padding_0d5[3];
 };
 

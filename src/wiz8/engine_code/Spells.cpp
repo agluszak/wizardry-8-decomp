@@ -1561,7 +1561,7 @@ void Update3DSounds()
             if (sound->sound_handle != -1) {
                 srVector3T<double> world = sound->getWorldSpaceLocation();
                 if (SoundIsPlaying(sound->sound_handle) == 0) {
-                    unsigned char dead = sound->auto_release;
+                    bool dead = sound->auto_release;
                     sound->sound_handle = -1;
                     if (dead != 0) {
                         sound->release();

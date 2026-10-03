@@ -40,7 +40,7 @@ public:
     unsigned char ClearEntryState5D();
     W8DialogTextEntry* GetEntry(unsigned int index);
     int GetOwningEntryIndex(int visible_index);
-    void SetEntryState60(int index, unsigned char state);
+    void SetEntryState60(int index, bool state);
     int AddEntry(const wchar_t* prefix, const wchar_t* text, unsigned int prefix_palette,
                  unsigned int text_palette, unsigned char category);
     void RemoveEntry(unsigned int index);
@@ -71,7 +71,7 @@ private:
     int m_line_height_override;      /* 0x48 */
     int m_selected_visible_entry;    /* 0x4c */
     int m_state_5d_entry;            /* 0x50 */
-    unsigned char m_relayout_needed; /* 0x54 */
+    bool m_relayout_needed; /* 0x54 */
     signed char m_category_filter;   /* 0x55 */
     unsigned char m_sorted;          /* 0x56 */
     unsigned char unknown_057;

@@ -296,7 +296,7 @@ public:
 private:
     void UpdateEntries(); /* 0x005C7B50 */
     bool m_force_redraw_074;
-    unsigned char m_show_fifth_category_075;
+    bool m_show_fifth_category_075;
     bool m_navigation_state_076;
     unsigned char padding_077;
 };

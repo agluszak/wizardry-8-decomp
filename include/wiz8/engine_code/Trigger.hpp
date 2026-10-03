@@ -28,7 +28,7 @@ public:
     W8GameTimer timer_008;
     W8GameTimer* m_pCountdown;
     Trigger* trigger_030;
-    unsigned char repeat_034;
+    bool repeat_034;
     bool completed_035;
     unsigned char unknown_036[2];
 };

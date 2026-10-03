@@ -142,7 +142,7 @@ void ResetCharacterAttributes(W8Character* character);
    and the race and profession skill adjustments. */
 void ResetCharacterSkills(W8Character* character);
 bool IsCharacterSkillAvailable(W8Character* character, unsigned int skill_id,
-                               const unsigned char* expert_realm_flags);
+                               const bool* expert_realm_flags);
 void InvalidateAndRecalculateCharacterClassData(W8Character* character);
 bool CharacterHasTrait(const W8Character* character, int trait);
 int RevealCharacterItemBindingsByProfession(int party_slot, unsigned int target_slot);

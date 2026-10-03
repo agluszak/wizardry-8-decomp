@@ -247,6 +247,8 @@ def _read_bool_facts(
     escaped: set[str] = set()
     supported: set[str] = set()
     locations: list[tuple[str, str, int]] = []
+    pending: list[tuple[str, str]] = []
+    bodies: set[str] = set()
 
     for path in sorted(facts_dir.glob("facts-*.tsv")):
         for raw in path.read_text(encoding="utf-8", errors="replace").splitlines():
@@ -288,8 +290,17 @@ def _read_bool_facts(
                     else:
                         supported.add(key)
                     locations.append((key, fields[2], int(fields[3])))
+                elif tag == "P" and len(fields) >= 6:
+                    pending.append((fields[1], fields[5]))
+                    locations.append((fields[1], fields[2], int(fields[3])))
+                elif tag == "B" and len(fields) >= 2:
+                    bodies.add(fields[1])
             except ValueError:
                 continue
+
+    # A typed record handed to a callee with no recovered body may be mutated
+    # by code outside the observed facts.
+    escaped.update(key for key, callee in pending if callee not in bodies)
 
     return declarations, writes, invalid, escaped, supported, locations
 

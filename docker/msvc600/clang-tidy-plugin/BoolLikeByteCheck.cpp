@@ -488,6 +488,24 @@ public:
         event("E", declaration, location);
     }
 
+    // Escape that holds only if no TU supplies a body for `callee`.
+    void pending_escape(const NamedDecl* declaration, SourceLocation location,
+                        const std::string& callee)
+    {
+        const std::string declaration_key = key(declaration);
+        const SourcePoint point = source_point(sources_, location);
+        if (declaration_key.empty() || !point) {
+            return;
+        }
+        emit({"P", declaration_key, point.file, std::to_string(point.line),
+              std::to_string(point.column), callee});
+    }
+
+    void body(const std::string& function)
+    {
+        emit({"B", function});
+    }
+
     void support(const std::string& declaration_key, SourceLocation location)
     {
         const SourcePoint point = source_point(sources_, location);
@@ -609,6 +627,9 @@ public:
 
     bool VisitFunctionDecl(FunctionDecl* function)
     {
+        if (function->doesThisDeclarationHaveABody()) {
+            writer_.body(function_identity(function));
+        }
         if (const NamedDecl* candidate = canonical_candidate(function)) {
             writer_.declaration(candidate);
         }
@@ -789,12 +810,20 @@ public:
             // Mutable aggregate arguments can expose byte fields to writes
             // outside the scalar producers observed here (e.g. FileRead).
             // Keep the exact zero/one memset producer recognized above.
+            // A typed record pointer reaches a recovered callee whose own field
+            // writes are facts in its TU; only raw-memory parameters (FileRead,
+            // memcpy from a byte buffer, ...) can store unobserved byte values.
             const bool known_memset = index == 0 && function->getName() == "memset" &&
                 call->getNumArgs() >= 3 && is_zero_or_one(call->getArg(1)) &&
                 exact_memset_record(argument, call->getArg(2)) != nullptr;
-            if (!known_memset && is_mutable_indirection(parameter_type)) {
-                escape_record(argument->IgnoreParenImpCasts()->getType(),
+            const bool typed_record_copy = index == 0 && is_record_copy(function, call);
+            if (known_memset || typed_record_copy) {
+            } else if (is_mutable_raw_indirection(parameter_type)) {
+                escape_record(argument->IgnoreParenCasts()->getType(),
                               argument->getExprLoc());
+            } else if (is_mutable_indirection(parameter_type) && !function->hasBody()) {
+                escape_record(argument->IgnoreParenImpCasts()->getType(),
+                              argument->getExprLoc(), function_identity(function));
             }
         }
         return true;
@@ -834,7 +863,43 @@ private:
             !type->getPointeeType().isConstQualified();
     }
 
-    void escape_record(QualType type, SourceLocation location)
+    static bool is_mutable_raw_indirection(QualType type)
+    {
+        if (!is_mutable_indirection(type)) {
+            return false;
+        }
+        const QualType pointee = canonical(canonical(type)->getPointeeType());
+        return pointee->isVoidType() || pointee->isCharType();
+    }
+
+    static QualType pointee_record(const Expr* expression)
+    {
+        QualType type = canonical(expression->IgnoreParenImpCasts()->getType());
+        if (!type->isPointerType()) {
+            return QualType();
+        }
+        type = canonical(type->getPointeeType()).getUnqualifiedType();
+        return type->isRecordType() ? type : QualType();
+    }
+
+    static bool is_record_copy(const FunctionDecl* function, const CallExpr* call)
+    {
+        const StringRef name = function->getName();
+        if ((name != "memcpy" && name != "memmove") || call->getNumArgs() < 2) {
+            return false;
+        }
+        const QualType destination = pointee_record(call->getArg(0));
+        return !destination.isNull() && destination == pointee_record(call->getArg(1));
+    }
+
+    static std::string function_identity(const FunctionDecl* function)
+    {
+        function = function->getCanonicalDecl();
+        return function->getQualifiedNameAsString() + "/" +
+            std::to_string(function->getNumParams());
+    }
+
+    void escape_record(QualType type, SourceLocation location, const std::string& callee = "")
     {
         type = canonical(type);
         if (type->isPointerType() || type->isReferenceType()) {
@@ -851,9 +916,13 @@ private:
         for (const FieldDecl* field : record->fields()) {
             if (const NamedDecl* candidate = canonical_candidate(field)) {
                 writer_.declaration(candidate);
-                writer_.escape(candidate, location);
+                if (callee.empty()) {
+                    writer_.escape(candidate, location);
+                } else {
+                    writer_.pending_escape(candidate, location, callee);
+                }
             } else if (canonical(field->getType())->isRecordType()) {
-                escape_record(field->getType(), location);
+                escape_record(field->getType(), location, callee);
             }
         }
     }

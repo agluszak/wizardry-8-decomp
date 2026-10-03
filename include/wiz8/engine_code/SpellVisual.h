@@ -73,10 +73,10 @@ public:
     /* Held at 0 while a spell effect owns the visual; the releasing pass in
        Local Code\Magic.cpp sets it back to 1, which lets
        UpdateWorldSpellVisuals delete a finished visual. */
-    unsigned char auto_release;
+    bool auto_release;
     /* Set when the caller supplied the position and rotation directly;
        mode-3 updates then skip the monster/camera follow logic. */
-    unsigned char fixed_transform;
+    bool fixed_transform;
     float scale_1e8;
     int location_id_1ec;
     int effect_value_1f0; /* 0x1f0: spawn `value` payload */

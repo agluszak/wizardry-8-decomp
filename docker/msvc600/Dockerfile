@@ -203,15 +203,17 @@ RUN cmake \
     fi \
  && bool_diagnostics="$(grep -c '\[wiz8-bool-like-byte\]' \
       /tmp/wiz8-clang-tidy-plugin/bool_test.log)" \
- && if [ "$bool_diagnostics" -ne 14 ]; then \
-      echo "expected 14 bool-like diagnostics, got $bool_diagnostics"; \
+ && if [ "$bool_diagnostics" -ne 15 ]; then \
+      echo "expected 15 bool-like diagnostics, got $bool_diagnostics"; \
       cat /tmp/wiz8-clang-tidy-plugin/bool_test.log; exit 1; \
     fi \
  && grep -q "warning: byte-returning predicate 'HasLineOfSightToBounds0046FD70'" \
       /tmp/wiz8-clang-tidy-plugin/bool_test.log \
  && grep -q "byte declaration 'SetPanelVisible::visible'" \
       /tmp/wiz8-clang-tidy-plugin/bool_test.log \
- && ! grep -Eq "SetPanelLayered|SetCallbackEnabled|g_menu_active" \
+ && grep -q "byte declaration 'handed_ready'" \
+      /tmp/wiz8-clang-tidy-plugin/bool_test.log \
+ && ! grep -Eq "SetPanelLayered|SetCallbackEnabled|g_menu_active|has_group|monster_bound|nested_active" \
       /tmp/wiz8-clang-tidy-plugin/bool_test.log \
  && rm -rf /tmp/wiz8-clang-tidy-plugin
 

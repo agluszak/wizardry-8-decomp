@@ -847,7 +847,7 @@ public:
 
     W8CameraShakeEffect* effect_038;
     int intensity_03c;
-    unsigned char reverse_040;
+    bool reverse_040;
     unsigned char unknown_041[3];
 };
 

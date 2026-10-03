@@ -365,7 +365,7 @@ void BrewAlchemistPotion(W8Character* character)
    reached its cap. */
 // FUNCTION: WIZ8 0x00553d90
 bool IsCharacterSkillAvailable(W8Character* character, unsigned int skill_id,
-                               const unsigned char* expert_realm_flags)
+                               const bool* expert_realm_flags)
 {
     int profession;
     unsigned int index;
@@ -602,7 +602,7 @@ void InitializeSkillBaseLevels(W8Character* character)
 // FUNCTION: WIZ8 0x00553cd0
 void RefreshCharacterSkillAvailability(W8Character* character)
 {
-    unsigned char expert_realm_flags[8];
+    bool expert_realm_flags[8];
     int index;
 
     for (index = 0; index < 8; ++index) {

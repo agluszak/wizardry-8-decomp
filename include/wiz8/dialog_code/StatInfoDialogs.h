@@ -65,9 +65,9 @@ protected:
 
 private:
     unsigned int m_skill_148;
-    unsigned char m_first_14c;
-    unsigned char m_second_14d;
-    unsigned char m_bonus_14e;
+    bool m_first_14c;
+    bool m_second_14d;
+    bool m_bonus_14e;
     unsigned char pad_14f;
 };
 

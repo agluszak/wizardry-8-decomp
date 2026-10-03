@@ -173,12 +173,12 @@ public:
     W8Vector<W8GrCycleParticleAttachment*>* m_plsParticles; /* 0x1b8 */
     /* 0x1bc: set when the frame walk wrapped to first_frame; suppresses the
        per-subcycle light reset. */
-    unsigned char wrapped_1bc;
+    bool wrapped_1bc;
     bool enabled_1bd;
     /* 0x1be: mirror the model on X (the left-handed strike pick). */
     unsigned char mirror_x_1be;
     /* 0x1bf: m_axis_1c0 holds an aim point; mode-3 particles orient along it. */
-    unsigned char aim_set_1bf;
+    bool aim_set_1bf;
     /* The axis 0x004A7E50 aims a mode-three particle along. */
     srVector3T<float> m_axis_1c0;
     float scale_1cc;
