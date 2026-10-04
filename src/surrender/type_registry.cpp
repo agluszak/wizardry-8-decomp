@@ -63,18 +63,24 @@ struct srRegistry::ClassNode::NameIndex {
         return case_sensitive != 0 ? strcmp(first, second) == 0 : _stricmp(first, second) == 0;
     }
 
+    /* Shared free-slot allocation expanded by add and resize. */
+    NameEntry* allocateEntry()
+    {
+        if (free == 0) {
+            resize(bucket_count * 2);
+        }
+        NameEntry* entry = free;
+        free = entry->next;
+        return entry;
+    }
+
     void add(srRuntimeClass* instance)
     {
         const char* name = instance->getName();
         if (name == 0) {
             return;
         }
-        if (free == 0) {
-            resize(bucket_count * 2);
-        }
-
-        NameEntry* entry = free;
-        free = entry->next;
+        NameEntry* entry = allocateEntry();
         /* Retail clears the popped entry's link before reconfiguring it
            (0x1000F97B), even though the bucket push below overwrites it. */
         entry->next = 0;
@@ -177,14 +183,10 @@ private:
             free = entries;
             if (this->buckets != 0 && old_bucket_count != 0) {
                 for (unsigned long bucket = 0; bucket < old_bucket_count; ++bucket) {
-                    for (NameEntry* entry = this->buckets[bucket]; entry != 0;
+                    for (NameEntry* entry = buckets[bucket]; entry != 0;
                          entry = entry->next) {
                         const char* name = entry->name;
-                        if (free == 0) {
-                            resize(this->bucket_count * 2);
-                        }
-                        NameEntry* reused = free;
-                        free = reused->next;
+                        NameEntry* reused = allocateEntry();
                         unsigned long new_bucket = bucketIndex(name);
                         reused->bucket = new_bucket;
                         reused->name = name;
