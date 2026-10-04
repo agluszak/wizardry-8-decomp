@@ -28,7 +28,7 @@ extern const unsigned int g_W8DialogTextAreaAlignRight = 0x04;
 // FUNCTION: WIZ8 0x005d1ab0
 void W8DialogTextArea::SetFirstVisibleEntry(unsigned int index)
 {
-    if (m_all_lines.GetCount() != 0 && index <= static_cast<unsigned int>(m_all_lines.GetCount()) &&
+    if (m_all_lines.count != 0 && index <= static_cast<unsigned int>(m_all_lines.count) &&
         (static_cast<unsigned int>(m_first_visible_entry) != index || m_first_visible_line != 0)) {
         m_first_visible_entry = index;
         m_first_visible_line = 0;
@@ -45,7 +45,7 @@ void W8DialogTextArea::Configure(const W8ControlsRect* bounds, int font, unsigne
     m_relayout_needed = 1;
     m_behavior_flags = flags;
     m_font = font;
-    for (int index = 0; index < m_all_lines.GetCount(); ++index) {
+    for (int index = 0; index < m_all_lines.count; ++index) {
         W8DialogTextEntry* entry = *m_all_lines.GetAt(index);
         entry->m_pendingBounds = m_bounds;
     }
@@ -62,7 +62,7 @@ void W8DialogTextArea::Draw(unsigned char force)
             bounds.right = m_bounds.right;
             bounds.top = m_bounds.top - m_first_visible_line * font_height;
         }
-        for (int index = m_first_visible_entry; index < m_visible_lines.GetCount(); ++index) {
+        for (int index = m_first_visible_entry; index < m_visible_lines.count; ++index) {
             if (m_relayout_needed) {
                 unsigned int height = GetLineHeight();
                 bounds.bottom =
@@ -83,7 +83,7 @@ void W8DialogTextArea::SetFirstVisibleLine(int requested_line)
 {
     int position = 0;
     unsigned int font_height = GetFontHeight(m_font);
-    for (unsigned int index = 0; index < static_cast<unsigned int>(m_visible_lines.GetCount());
+    for (unsigned int index = 0; index < static_cast<unsigned int>(m_visible_lines.count);
          ++index) {
         for (unsigned int line = 0;
              line < (*m_visible_lines.GetAt(index))->m_lineCount +
@@ -107,7 +107,7 @@ void W8DialogTextArea::SetFirstVisibleLine(int requested_line)
 int W8DialogTextArea::GetTotalLineCount()
 {
     int total = 0;
-    for (int index = 0; index < m_visible_lines.GetCount(); ++index) {
+    for (int index = 0; index < m_visible_lines.count; ++index) {
         int lines = (*m_visible_lines.GetAt(index))->m_lineCount;
         total += lines + static_cast<unsigned int>(m_entry_spacing) / GetFontHeight(m_font);
     }
@@ -144,7 +144,7 @@ void W8DialogTextArea::SetLineHeight(unsigned int height)
     m_line_height_override = height;
     m_relayout_needed = 1;
     /* Retail uses the visible count with the owning list, not visible entries. */
-    for (int index = 0; index < m_visible_lines.GetCount(); ++index) {
+    for (int index = 0; index < m_visible_lines.count; ++index) {
         (*m_all_lines.GetAt(index))->SetLineHeight(m_line_height_override);
     }
 }
@@ -152,7 +152,7 @@ void W8DialogTextArea::SetLineHeight(unsigned int height)
 // FUNCTION: WIZ8 0x005d1e80
 unsigned char W8DialogTextArea::SelectEntry(int index)
 {
-    if (m_visible_lines.GetCount() != 0 && !(*m_visible_lines.GetAt(index))->m_selected) {
+    if (m_visible_lines.count != 0 && !(*m_visible_lines.GetAt(index))->m_selected) {
         (*m_visible_lines.GetAt(index))->SetSelected(1);
         m_selected_visible_entry = index;
         selection_dirty = 1;
@@ -164,7 +164,7 @@ unsigned char W8DialogTextArea::SelectEntry(int index)
 // FUNCTION: WIZ8 0x005d1ed0
 unsigned char W8DialogTextArea::ClearSelection()
 {
-    if (m_visible_lines.GetCount() == 0) {
+    if (m_visible_lines.count == 0) {
         m_selected_visible_entry = -1;
     } else if (m_selected_visible_entry != -1) {
         (*m_visible_lines.GetAt(m_selected_visible_entry))->SetSelected(0);
@@ -178,7 +178,7 @@ unsigned char W8DialogTextArea::ClearSelection()
 // FUNCTION: WIZ8 0x005d2120
 unsigned char W8DialogTextArea::CopyEntryText(unsigned int index, wchar_t* output)
 {
-    if (index >= static_cast<unsigned int>(m_all_lines.GetCount()))
+    if (index >= static_cast<unsigned int>(m_all_lines.count))
         return 0;
     (*m_all_lines.GetAt(index))->CopyTextTo(output);
     return 1;
@@ -192,7 +192,7 @@ unsigned int W8DialogTextArea::HitTestEntry(int, int y)
     unsigned int spacing_pixels = m_entry_spacing;
     int line_height = GetLineHeight();
     for (unsigned int index = m_first_visible_entry;
-         index < static_cast<unsigned int>(m_visible_lines.GetCount()); ++index) {
+         index < static_cast<unsigned int>(m_visible_lines.count); ++index) {
         for (unsigned int line = m_first_visible_line;
              line < (*m_visible_lines.GetAt(index))->m_lineCount + spacing_pixels / font_height;
              ++line, ++position) {
@@ -216,7 +216,7 @@ unsigned char W8DialogTextArea::UpdateSelectionFromPoint(int, int y)
         return 0;
     unsigned char changed = ClearSelection();
     for (unsigned int index = m_first_visible_entry;
-         index < static_cast<unsigned int>(m_visible_lines.GetCount()); ++index) {
+         index < static_cast<unsigned int>(m_visible_lines.count); ++index) {
         for (unsigned int line = m_first_visible_line;
              line < (*m_visible_lines.GetAt(index))->m_lineCount + spacing;
              ++line, ++position) {
@@ -236,7 +236,7 @@ unsigned char W8DialogTextArea::ClearPointSelection()
 // FUNCTION: WIZ8 0x005d20f0
 unsigned char W8DialogTextArea::CopyVisibleEntryText(unsigned int index, wchar_t* output)
 {
-    if (index >= static_cast<unsigned int>(m_visible_lines.GetCount()))
+    if (index >= static_cast<unsigned int>(m_visible_lines.count))
         return 0;
     (*m_visible_lines.GetAt(index))->CopyTextTo(output);
     return 1;
@@ -245,7 +245,7 @@ unsigned char W8DialogTextArea::CopyVisibleEntryText(unsigned int index, wchar_t
 // FUNCTION: WIZ8 0x005d2150
 unsigned char W8DialogTextArea::SetEntryState5D(int index)
 {
-    if (m_visible_lines.GetCount() != 0 && !(*m_visible_lines.GetAt(index))->m_state0) {
+    if (m_visible_lines.count != 0 && !(*m_visible_lines.GetAt(index))->m_state0) {
         W8DialogTextEntry* entry = *m_visible_lines.GetAt(index);
         if (entry->m_state0 != 1) {
             entry->m_state0 = 1;
@@ -261,7 +261,7 @@ unsigned char W8DialogTextArea::SetEntryState5D(int index)
 // FUNCTION: WIZ8 0x005d21a0
 unsigned char W8DialogTextArea::ClearEntryState5D()
 {
-    if (m_visible_lines.GetCount() == 0) {
+    if (m_visible_lines.count == 0) {
         m_state_5d_entry = -1;
     } else if (m_state_5d_entry != -1) {
         W8DialogTextEntry* entry = *m_visible_lines.GetAt(m_state_5d_entry);
@@ -279,7 +279,7 @@ unsigned char W8DialogTextArea::ClearEntryState5D()
 // FUNCTION: WIZ8 0x005d2420
 W8DialogTextEntry* W8DialogTextArea::GetEntry(unsigned int index)
 {
-    if (index >= static_cast<unsigned int>(m_all_lines.GetCount()))
+    if (index >= static_cast<unsigned int>(m_all_lines.count))
         return 0;
     return *m_all_lines.GetAt(index);
 }
@@ -288,7 +288,7 @@ W8DialogTextEntry* W8DialogTextArea::GetEntry(unsigned int index)
 int W8DialogTextArea::GetOwningEntryIndex(int visible_index)
 {
     W8DialogTextEntry** visible = m_visible_lines.GetAt(visible_index);
-    for (int index = 0; index < m_all_lines.GetCount(); ++index) {
+    for (int index = 0; index < m_all_lines.count; ++index) {
         if (*m_all_lines.GetAt(index) == *visible)
             return index;
     }
@@ -333,17 +333,17 @@ int W8DialogTextArea::AddEntry(const wchar_t* prefix, const wchar_t* text,
 // FUNCTION: WIZ8 0x005d1820
 void W8DialogTextArea::RemoveEntry(unsigned int index)
 {
-    if (m_all_lines.GetCount() != 0 && index < static_cast<unsigned int>(m_all_lines.GetCount())) {
+    if (m_all_lines.count != 0 && index < static_cast<unsigned int>(m_all_lines.count)) {
         if ((*m_all_lines.GetAt(index))->m_state0)
             m_state_5d_entry = -1;
         if ((*m_all_lines.GetAt(index))->m_selected)
             m_selected_visible_entry = -1;
         m_all_lines.RemoveAtAndDelete(index);
         if (m_first_visible_entry != 0 &&
-            static_cast<unsigned int>(m_all_lines.GetCount()) <=
+            static_cast<unsigned int>(m_all_lines.count) <=
                 static_cast<unsigned int>(m_first_visible_entry) &&
-            m_all_lines.GetCount() != 0) {
-            SetFirstVisibleEntry(m_all_lines.GetCount() - 1);
+            m_all_lines.count != 0) {
+            SetFirstVisibleEntry(m_all_lines.count - 1);
         }
         m_relayout_needed = 1;
         m_dirty = true;
@@ -359,7 +359,7 @@ void W8DialogTextArea::RebuildVisibleEntries()
     ClearEntryState5D();
     ClearSelection();
     m_visible_lines.Clear();
-    for (int index = 0; index < m_all_lines.GetCount(); ++index) {
+    for (int index = 0; index < m_all_lines.count; ++index) {
         if ((*m_all_lines.GetAt(index))->m_category ==
                 static_cast<unsigned char>(m_category_filter) ||
             m_category_filter == -1) {
@@ -368,12 +368,12 @@ void W8DialogTextArea::RebuildVisibleEntries()
             } else {
                 CopyEntryText(index, text);
                 int position;
-                for (position = 0; position < m_visible_lines.GetCount(); ++position) {
+                for (position = 0; position < m_visible_lines.count; ++position) {
                     CopyVisibleEntryText(position, other);
                     if (CompareWideTextIgnoreAsciiCase(text, other) < 0)
                         break;
                 }
-                if (position == m_visible_lines.GetCount()) {
+                if (position == m_visible_lines.count) {
                     m_visible_lines.Add(*m_all_lines.GetAt(index));
                 } else {
                     m_visible_lines.InsertAt(position, *m_all_lines.GetAt(index));
@@ -410,7 +410,7 @@ unsigned char W8DialogTextArea::ScrollDown(unsigned char check_only)
     int height = m_bounds.bottom - m_bounds.top;
     int visible_line = 1;
     for (unsigned int index = m_first_visible_entry;
-         index < static_cast<unsigned int>(m_visible_lines.GetCount()); ++index) {
+         index < static_cast<unsigned int>(m_visible_lines.count); ++index) {
         for (unsigned int line = m_first_visible_line;
              line < (*m_visible_lines.GetAt(index))->m_lineCount + spacing;
              ++line, ++visible_line) {
@@ -429,7 +429,7 @@ unsigned char W8DialogTextArea::ScrollDown(unsigned char check_only)
                         ++m_first_visible_line;
                 } else {
                     if (static_cast<unsigned int>(m_first_visible_entry) >=
-                        static_cast<unsigned int>(m_visible_lines.GetCount() - 1)) {
+                        static_cast<unsigned int>(m_visible_lines.count - 1)) {
                         return 0;
                     }
                     if (!check_only) {
@@ -452,7 +452,7 @@ unsigned char W8DialogTextArea::ScrollDown(unsigned char check_only)
 unsigned char W8DialogTextArea::ScrollUp(unsigned char check_only)
 {
     unsigned int spacing = static_cast<unsigned int>(m_entry_spacing) / GetFontHeight(m_font);
-    if (m_all_lines.GetCount() == 0 || (m_first_visible_entry == 0 && m_first_visible_line == 0)) {
+    if (m_all_lines.count == 0 || (m_first_visible_entry == 0 && m_first_visible_line == 0)) {
         return 0;
     }
     if (!check_only) {

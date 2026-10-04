@@ -443,7 +443,7 @@ W8WorldCursorNode* FindNearestWorldCursorNode(int x, int y)
 {
     float nearest = 999999.0f;
     W8WorldCursorNode* result = 0;
-    int count = g_world_cursor_nodes.GetCount();
+    int count = g_world_cursor_nodes.count;
 
     for (int index = 0; index < count; ++index) {
         W8WorldCursorNode* entry = *g_world_cursor_nodes.GetAt(index);
@@ -567,7 +567,7 @@ unsigned char SaveWorldCursorNodeStates(int handle)
     if (!FileWrite(handle, &version, 4, 0)) {
         return 0;
     }
-    count = g_world_cursor_nodes.GetCount();
+    count = g_world_cursor_nodes.count;
     if (!FileWrite(handle, &count, 4, 0)) {
         return 0;
     }
@@ -696,7 +696,7 @@ unsigned char SaveWorldCursorNodes(int handle)
         return 0;
     }
     FileWrite(handle, &gXStatus.mipe_cube_serial, 4, 0);
-    count = g_world_cursor_nodes.GetCount();
+    count = g_world_cursor_nodes.count;
     if (!FileWrite(handle, &count, 4, 0)) {
         return 0;
     }
@@ -723,7 +723,7 @@ unsigned char SaveWorldCursorNodes(int handle)
 // FUNCTION: WIZ8 0x0048ED00
 int GetWorldCursorNodeCount(void)
 {
-    return g_world_cursor_nodes.GetCount();
+    return g_world_cursor_nodes.count;
 }
 
 // FUNCTION: WIZ8 0x0048ED10
@@ -760,7 +760,7 @@ void SetWorldCursorNodeName(W8WorldCursorNode* entry, const char* name)
 // FUNCTION: WIZ8 0x0048ED70
 void SetWorldCursorNodesVisible(bool visible)
 {
-    unsigned int count = g_world_cursor_nodes.GetCount();
+    unsigned int count = g_world_cursor_nodes.count;
 
     for (unsigned int index = 0; index < count; ++index) {
         W8WorldCursorNode* entry = *g_world_cursor_nodes.GetAt(index);
@@ -782,7 +782,7 @@ void SetWorldCursorNodesVisible(bool visible)
 W8WorldCursorNode* FindWorldCursorNodeAtPoint(W8WorldCursorNode* after, srVector3T<float>* point)
 {
     unsigned int index = 0;
-    unsigned int count = g_world_cursor_nodes.GetCount();
+    unsigned int count = g_world_cursor_nodes.count;
 
     if (after != 0) {
         for (unsigned int i = 0; i < count; ++i) {
@@ -874,7 +874,7 @@ bool SelectWorldCursorNode(void)
         GetCameraPosition(&camera_position);
         camera_location.SetFromFloat(&camera_position);
         int selected = g_cursor_node_index;
-        if (selected >= 0 && selected < g_world_cursor_nodes.GetCount()) {
+        if (selected >= 0 && selected < g_world_cursor_nodes.count) {
             W8WorldCursorNode* entry = g_world_cursor_nodes.data[selected];
             srVector3T<double> target = entry->node->getLocation();
 
@@ -887,7 +887,7 @@ bool SelectWorldCursorNode(void)
                 }
             }
         }
-        int count = g_world_cursor_nodes.GetCount();
+        int count = g_world_cursor_nodes.count;
         for (int index = 0; index < count; ++index) {
             W8WorldCursorNode* entry = g_world_cursor_nodes.data[index];
             srVector3T<double> target = entry->node->getLocation();
@@ -912,8 +912,8 @@ bool SelectWorldCursorNode(void)
 // FUNCTION: WIZ8 0x0048DB30
 void ReleaseWorldCursorNodes(void)
 {
-    while (g_world_cursor_nodes.GetCount() != 0) {
-        W8WorldCursorNode* entry = (*g_world_cursor_nodes.GetAt(0));
+    while (g_world_cursor_nodes.count != 0) {
+        W8WorldCursorNode* entry = g_world_cursor_nodes.data[0];
 
         DestroyWorldCursorCube(entry);
     }

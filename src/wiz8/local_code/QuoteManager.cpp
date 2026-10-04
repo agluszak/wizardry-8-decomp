@@ -524,13 +524,13 @@ W8CharacterEventQueue::~W8CharacterEventQueue()
 void W8CharacterEventQueue::DestroyAllEvents()
 {
     CompleteAllActiveEvents();
-    while (npc_deferred_events.GetCount() > 0) {
+    while (npc_deferred_events.count > 0) {
         npc_deferred_events.RemoveAtAndDelete(0);
     }
-    while (pending_events.GetCount() > 0) {
+    while (pending_events.count > 0) {
         pending_events.RemoveAtAndDelete(0);
     }
-    while (vector0.GetCount() > 0) {
+    while (vector0.count > 0) {
         vector0.RemoveAtAndDelete(0);
     }
 }
@@ -541,7 +541,7 @@ void W8CharacterEventQueue::RemoveCharacterEvents(W8Character* character)
     int index;
     W8CharacterEvent* entry;
 
-    for (index = 0; index < active_events.GetCount(); ++index) {
+    for (index = 0; index < active_events.count; ++index) {
         entry = *active_events.GetAt(index);
         if (entry->character == character) {
             active_events.RemoveAt(index);
@@ -549,7 +549,7 @@ void W8CharacterEventQueue::RemoveCharacterEvents(W8Character* character)
             entry->Complete();
         }
     }
-    for (index = 0; index < vector1.GetCount(); ++index) {
+    for (index = 0; index < vector1.count; ++index) {
         entry = *vector1.GetAt(index);
         if (entry->character == character) {
             vector1.RemoveAt(index);
@@ -557,7 +557,7 @@ void W8CharacterEventQueue::RemoveCharacterEvents(W8Character* character)
             delete entry;
         }
     }
-    for (index = 0; index < pending_events.GetCount(); ++index) {
+    for (index = 0; index < pending_events.count; ++index) {
         entry = *pending_events.GetAt(index);
         if (entry->character == character) {
             pending_events.RemoveAt(index);
@@ -565,7 +565,7 @@ void W8CharacterEventQueue::RemoveCharacterEvents(W8Character* character)
             delete entry;
         }
     }
-    for (index = 0; index < vector0.GetCount(); ++index) {
+    for (index = 0; index < vector0.count; ++index) {
         entry = *vector0.GetAt(index);
         if (entry->character == character) {
             vector0.RemoveAt(index);
@@ -573,7 +573,7 @@ void W8CharacterEventQueue::RemoveCharacterEvents(W8Character* character)
             delete entry;
         }
     }
-    for (index = 0; index < npc_deferred_events.GetCount(); ++index) {
+    for (index = 0; index < npc_deferred_events.count; ++index) {
         entry = *npc_deferred_events.GetAt(index);
         if (entry->character == character) {
             npc_deferred_events.RemoveAt(index);
@@ -586,7 +586,7 @@ void W8CharacterEventQueue::RemoveCharacterEvents(W8Character* character)
 // FUNCTION: WIZ8 0x0052DB30
 void W8CharacterEventQueue::CompleteAllActiveEvents()
 {
-    while (active_events.GetCount() > 0) {
+    while (active_events.count > 0) {
         active_events.RemoveAt(0)->Complete();
     }
 }
@@ -596,7 +596,7 @@ void W8CharacterEventQueue::CompleteFirstActiveEvent()
 {
     W8CharacterEvent* entry;
 
-    if (active_events.GetCount() > 0) {
+    if (active_events.count > 0) {
         entry = *active_events.GetAt(0);
         active_events.RemoveAt(active_events.IndexOf(entry));
         RestartFollowUpClock(entry);
@@ -1184,12 +1184,12 @@ int W8CharacterEventQueue::QueueEntry(W8CharacterEvent* entry)
     }
     if (entry->event_type == 0x21) {
         int index;
-        if (active_events.GetCount() > 0 && (*active_events.GetAt(0))->event_type == 0x21) {
+        if (active_events.count > 0 && active_events.data[0]->event_type == 0x21) {
             delete entry;
             return 0;
         }
-        for (index = 0; index < pending_events.GetCount(); ++index) {
-            if ((*pending_events.GetAt(index))->event_type == 0x21) {
+        for (index = 0; index < pending_events.count; ++index) {
+            if (pending_events.data[index]->event_type == 0x21) {
                 delete entry;
                 return 0;
             }
@@ -1270,13 +1270,13 @@ unsigned char W8CharacterEventQueue::TryAdjustQueuedEvent(W8CharacterEvent* entr
 // FUNCTION: WIZ8 0x0052E460
 unsigned char W8CharacterEventQueue::HasActiveEvents()
 {
-    return active_events.GetCount() > 0;
+    return active_events.count > 0;
 }
 
 // FUNCTION: WIZ8 0x0052E470
 unsigned char W8CharacterEventQueue::IsMainQueueEmpty() const
 {
-    return pending_events.GetCount() <= 0;
+    return pending_events.count <= 0;
 }
 
 // FUNCTION: WIZ8 0x0052DDD0
@@ -1295,20 +1295,20 @@ void W8CharacterEventQueue::ProcessDeferredCharacterEvents()
         return;
     }
 
-    if (npc_deferred_events.GetCount() > 0 && ShouldDeferCharacterEventForNpcScript(0) == 0 &&
+    if (npc_deferred_events.count > 0 && ShouldDeferCharacterEventForNpcScript(0) == 0 &&
         IsNpcScriptSessionActive() == 0) {
-        for (index = 0; index < npc_deferred_events.GetCount(); ++index) {
-            QueueEntry(*npc_deferred_events.GetAt(index));
+        for (index = 0; index < npc_deferred_events.count; ++index) {
+            QueueEntry(npc_deferred_events.data[index]);
         }
         npc_deferred_events.Clear();
     }
 
-    if (pending_events.GetCount() != 0) {
+    if (pending_events.count != 0) {
         conflict_count = 1;
-        baseline = (*pending_events.GetAt(0));
-        conflict_indices = new int[pending_events.GetCount()];
+        baseline = pending_events.data[0];
+        conflict_indices = new int[pending_events.count];
         conflict_indices[0] = 0;
-        for (index = 1; index < pending_events.GetCount(); ++index) {
+        for (index = 1; index < pending_events.count; ++index) {
             entry = *pending_events.GetAt(index);
             event_type = entry->event_type;
             if (event_type == baseline->event_type && entry->character != baseline->character &&
@@ -1336,7 +1336,7 @@ void W8CharacterEventQueue::ProcessDeferredCharacterEvents()
         delete[] conflict_indices;
     }
 
-    if (pending_events.GetCount() == 0) {
+    if (pending_events.count == 0) {
         UpdateNpcDialogueVoiceAndCursor();
         if (PartyPortraitEventsIdle() != 0) {
             ProcessNpcScriptingFrame();
@@ -1345,7 +1345,7 @@ void W8CharacterEventQueue::ProcessDeferredCharacterEvents()
     }
 
     index = 0;
-    while (index < pending_events.GetCount()) {
+    while (index < pending_events.count) {
         entry = *pending_events.GetAt(index);
         event_type = entry->event_type;
         if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME) {

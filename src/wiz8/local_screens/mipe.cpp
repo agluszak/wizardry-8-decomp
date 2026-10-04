@@ -1860,9 +1860,9 @@ int HandleMonsterGeneratorEditKey(unsigned short key)
         g_mipe_category_list = list;
         if (list != 0) {
             PListClear(list);
-            count = g_encounter_tables.GetCount();
+            count = g_encounter_tables.count;
             index = 0;
-            if (0 < g_encounter_tables.GetCount()) {
+            if (0 < g_encounter_tables.count) {
                 do {
                     table = GetEncounterTable(index);
                     if (table->category == static_cast<unsigned int>(g_mipe_category)) {
@@ -1896,9 +1896,9 @@ int HandleMonsterGeneratorEditKey(unsigned short key)
             g_mipe_category = static_cast<unsigned char>(table->category);
             if (g_mipe_category_list != 0) {
                 PListClear(g_mipe_category_list);
-                count = g_encounter_tables.GetCount();
+                count = g_encounter_tables.count;
                 index = 0;
-                if (0 < g_encounter_tables.GetCount()) {
+                if (0 < g_encounter_tables.count) {
                     do {
                         table = GetEncounterTable(index);
                         if (table->category == static_cast<unsigned int>(g_mipe_category)) {
@@ -2027,14 +2027,14 @@ void HandleMipeGeneratorTableKey(unsigned short key)
     int row;
     unsigned int palette;
 
-    count = g_encounter_tables.GetCount();
+    count = g_encounter_tables.count;
     switch (key) {
     case 0xd:
         if (g_mipe_state->generator != 0) {
             found = 0;
             table_index = 0;
             index = g_mipe_table_base + g_mipe_table_row;
-            if (0 < g_encounter_tables.GetCount()) {
+            if (0 < g_encounter_tables.count) {
                 unsigned int category = g_mipe_category & 0xff;
                 do {
                     entry = GetEncounterTable(table_index);
@@ -2109,16 +2109,16 @@ void HandleMipeGeneratorTableKey(unsigned short key)
             list = g_mipe_category_list;
             unsigned char category;
             if (g_mipe_category == 0) {
-                g_mipe_category = static_cast<unsigned char>(g_encounter_names.GetCount());
+                g_mipe_category = static_cast<unsigned char>(g_encounter_names.count);
                 ++wraps;
             }
             category = g_mipe_category - 1;
             g_mipe_category = category;
             if (g_mipe_category_list != 0) {
                 PListClear(g_mipe_category_list);
-                count = g_encounter_tables.GetCount();
+                count = g_encounter_tables.count;
                 index = 0;
-                if (0 < g_encounter_tables.GetCount()) {
+                if (0 < g_encounter_tables.count) {
                     do {
                         entry = GetEncounterTable(index);
                         if (entry->category == static_cast<unsigned int>(category)) {
@@ -2179,7 +2179,7 @@ void HandleMipeGeneratorTableKey(unsigned short key)
         wraps = 0;
         do {
             list = g_mipe_category_list;
-            if ((g_mipe_category & 0xff) < g_encounter_names.GetCount() - 1) {
+            if ((g_mipe_category & 0xff) < g_encounter_names.count - 1) {
                 ++g_mipe_category;
             } else {
                 ++wraps;
@@ -2187,9 +2187,9 @@ void HandleMipeGeneratorTableKey(unsigned short key)
             }
             if (g_mipe_category_list != 0) {
                 PListClear(g_mipe_category_list);
-                count = g_encounter_tables.GetCount();
+                count = g_encounter_tables.count;
                 index = 0;
-                if (0 < g_encounter_tables.GetCount()) {
+                if (0 < g_encounter_tables.count) {
                     do {
                         entry = GetEncounterTable(index);
                         if (entry->category == static_cast<unsigned int>(g_mipe_category)) {

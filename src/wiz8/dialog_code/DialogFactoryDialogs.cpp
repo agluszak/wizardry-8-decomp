@@ -126,36 +126,36 @@ void W8ListBoxDialog::SetCurrentLine(int line)
         return;
     }
     int target = line < 0 ? 0 : line;
-    if (m_lines.GetCount() - 1 < target) {
-        target = m_lines.GetCount() - 1;
+    if (m_lines.count - 1 < target) {
+        target = m_lines.count - 1;
     }
     int visible = GetVisibleLineCount();
     if (target < m_first_visible_line) {
         if (m_area_button != 0) {
             int first = target;
-            if (m_lines.GetCount() - GetVisibleLineCount() < target) {
-                first = m_lines.GetCount() - GetVisibleLineCount();
+            if (m_lines.count - GetVisibleLineCount() < target) {
+                first = m_lines.count - GetVisibleLineCount();
             }
             if (first < 0) {
                 first = 0;
-            } else if (m_lines.GetCount() - GetVisibleLineCount() < target) {
-                first = m_lines.GetCount() - GetVisibleLineCount();
+            } else if (m_lines.count - GetVisibleLineCount() < target) {
+                first = m_lines.count - GetVisibleLineCount();
             }
             if (first != m_first_visible_line) {
                 m_first_visible_line = first;
                 m_dirty_flags |= 1;
             }
         }
-    } else if (target < m_lines.GetCount() && m_first_visible_line - 1 + visible < target) {
+    } else if (target < m_lines.count && m_first_visible_line - 1 + visible < target) {
         int first = target - visible + 1;
         if (m_area_button != 0) {
-            if (m_lines.GetCount() - GetVisibleLineCount() < first) {
-                first = m_lines.GetCount() - GetVisibleLineCount();
+            if (m_lines.count - GetVisibleLineCount() < first) {
+                first = m_lines.count - GetVisibleLineCount();
             }
             if (first < 0) {
                 first = 0;
-            } else if (m_lines.GetCount() - GetVisibleLineCount() < first) {
-                first = m_lines.GetCount() - GetVisibleLineCount();
+            } else if (m_lines.count - GetVisibleLineCount() < first) {
+                first = m_lines.count - GetVisibleLineCount();
             }
             if (first != m_first_visible_line) {
                 m_first_visible_line = first;

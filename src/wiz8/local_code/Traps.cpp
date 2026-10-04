@@ -308,8 +308,8 @@ static void DischargeTrapSpell(srVector3T<float> point, int spell_id, unsigned i
         if (num_targets >= eligible) {
             num_targets = eligible;
         }
-        while (targets.GetCount() > num_targets) {
-            index = Random(targets.GetCount());
+        while (targets.count > num_targets) {
+            index = Random(targets.count);
             if (*targets.GetAt(index) != g_status.selected_character) {
                 targets.RemoveAt(index);
             }

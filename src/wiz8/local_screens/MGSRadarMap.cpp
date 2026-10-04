@@ -104,7 +104,7 @@ void EnableRadarMap(bool enable)
     if (enable == 0) {
         for (int sector = 0; sector < 18; ++sector) {
             W8GrowableVector<stModelInstance2D*>* pool = &g_radar_icon_pools[sector];
-            int count = pool->GetCount();
+            int count = pool->count;
 
             g_radar_icon_cursors[sector] = 0;
             for (int index = 0; index < count; ++index) {
@@ -137,7 +137,7 @@ static stModelInstance2D* AcquireRadarBlip(int sector, bool lit)
     stModelInstance2D* icon;
     int cursor = g_radar_icon_cursors[sector];
 
-    if (cursor < pool->GetCount()) {
+    if (cursor < pool->count) {
         g_radar_icon_cursors[sector] = cursor + 1;
         icon = *pool->GetAt(cursor);
     } else {
@@ -191,7 +191,7 @@ void ReleaseRadarMap(void)
     for (int sector = 0; sector < 18; ++sector) {
         W8GrowableVector<stModelInstance2D*>* pool = &g_radar_icon_pools[sector];
 
-        while (pool->GetCount() != 0) {
+        while (pool->count != 0) {
             stModelInstance2D* icon = pool->RemoveAt(0);
             if (icon != 0) {
                 icon->release();
@@ -227,7 +227,7 @@ void RefreshRadarMap(void)
     for (sector = 0; sector < 18; ++sector) {
         W8GrowableVector<stModelInstance2D*>* pool = &g_radar_icon_pools[sector];
 
-        while (pool->GetCount() != 0) {
+        while (pool->count != 0) {
             stModelInstance2D* icon = *pool->GetAt(0);
             pool->RemoveAt(0);
             if (icon != 0) {
@@ -322,7 +322,7 @@ void UpdateRadarBlips(void)
 
     for (int sector = 0; sector < 18; ++sector) {
         W8GrowableVector<stModelInstance2D*>* pool = &g_radar_icon_pools[sector];
-        int count = pool->GetCount();
+        int count = pool->count;
 
         g_radar_icon_cursors[sector] = 0;
         for (int index = 0; index < count; ++index) {

@@ -112,7 +112,7 @@ MGSKeyBinding* MGSKeyboard::GetBinding(int index) const
 {
     if (index >= 0) {
         MGSKeyBinding** binding = m_bindings.data;
-        if (index < m_bindings.GetCount()) {
+        if (index < m_bindings.count) {
             binding += index;
         }
         return *binding;
@@ -156,7 +156,7 @@ void DrainInputEventQueue(void)
 // FUNCTION: WIZ8 0x0055D3F0
 void MGSKeyboard::Clear()
 {
-    for (int index = m_bindings.GetCount() - 1; index >= 0; --index) {
+    for (int index = m_bindings.count - 1; index >= 0; --index) {
         m_bindings.RemoveAtAndDelete(index);
     }
     m_command_index.Clear();

@@ -489,7 +489,7 @@ int ItemInfoMakeGroupList(W8WorldItem* item, W8GrowableVector<W8WorldItem*>* out
     for (next = item->next; next != 0; next = next->next) {
         out->Add(next);
     }
-    return out->GetCount();
+    return out->count;
 }
 
 /* 0x00617D34: the generic 3D model names ActivateItem falls back to when a

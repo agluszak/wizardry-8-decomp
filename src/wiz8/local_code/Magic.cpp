@@ -2312,7 +2312,7 @@ bool ValidateSpellTarget(int party_slot, int spell_id, unsigned int power, bool 
                                &party, 0);
 
     bool valid = true;
-    bool has_targets = spell_id == 0x1e || monsters.GetCount() != 0 || party.GetCount() != 0;
+    bool has_targets = spell_id == 0x1e || monsters.count != 0 || party.count != 0;
     if (!has_targets) {
         W8SpellTargetType target_type = GetSpellTargetType(spell_id, 0);
         has_targets =
@@ -4043,7 +4043,7 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
         }
         CollectConeMonsterTargets(source, &eye, heading, elevation, monster_markers,
                                   static_cast<unsigned char>(side), sight_flag);
-        if (monster_markers->GetCount() == 0 &&
+        if (monster_markers->count == 0 &&
             (g_combat_state == 0 || g_combat_state->enemies_engaged == 0) &&
             TargetSourceIsCharacter(source, 0) && static_cast<char>(side) == 1 &&
             !AnyMonsterEngaged()) {
@@ -4083,7 +4083,7 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
         }
         CollectMonstersWithinRadius(&trace, &target_point, monster_markers, radius,
                                     static_cast<char>(side), static_cast<char>(highlighting));
-        if (monster_markers->GetCount() == 0 &&
+        if (monster_markers->count == 0 &&
             (g_combat_state == 0 || g_combat_state->enemies_engaged == 0) &&
             TargetSourceIsCharacter(source, 0) && static_cast<char>(side) == 1 &&
             !AnyMonsterEngaged()) {
@@ -4113,7 +4113,7 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
         }
         CollectMonstersWithinRadius(&centre, &eye, monster_markers, radius, static_cast<char>(side),
                                     static_cast<char>(highlighting));
-        if (monster_markers->GetCount() == 0 &&
+        if (monster_markers->count == 0 &&
             (g_combat_state == 0 || g_combat_state->enemies_engaged == 0) &&
             TargetSourceIsCharacter(source, 0) && static_cast<char>(side) == 1 &&
             !AnyMonsterEngaged()) {
@@ -4147,7 +4147,7 @@ void PruneSpellTargetMarkers(int spell_id, W8GrowableVector<int>* monster_marker
     W8MonsterRecord* record;
     int index;
 
-    for (index = monster_markers->GetCount() - 1; index >= 0; --index) {
+    for (index = monster_markers->count - 1; index >= 0; --index) {
         monster_info = MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(0x1595, MAGIC_CPP, *monster_markers->GetAt(index), 1));
         record = GetMonsterDataForInfo(monster_info);

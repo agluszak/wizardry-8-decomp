@@ -63,7 +63,7 @@ unsigned char W8Chunk::OpenRead(char* path)
     }
     m_fWriting = 0;
     OpenChunk(0, 0);
-    head = *m_heads.GetAt(m_heads.GetCount() - 1);
+    head = m_heads.data[m_heads.count - 1];
     if (head == 0) {
         srAssertFail("pHead", CHUNK_CPP, 0x1f0, 0);
     }
@@ -111,7 +111,7 @@ unsigned char W8Chunk::OpenAppend(char* path)
     }
     m_fWriting = 0;
     OpenChunk(0, 0);
-    head = *m_heads.GetAt(m_heads.GetCount() - 1);
+    head = m_heads.data[m_heads.count - 1];
     if (head == 0) {
         srAssertFail("pHead", CHUNK_CPP, 0x1f0, 0);
     }
@@ -119,17 +119,17 @@ unsigned char W8Chunk::OpenAppend(char* path)
         return 0;
     }
     OpenGroup();
-    child_count = *m_group_counts.GetAt(m_group_counts.GetCount() - 1);
+    child_count = m_group_counts.data[m_group_counts.count - 1];
     remaining = child_count;
     if (child_count > 0) {
         do {
             OpenChunk(0, 0);
-            head = *m_heads.GetAt(m_heads.GetCount() - 1);
+            head = m_heads.data[m_heads.count - 1];
             if (head == 0) {
                 srAssertFail("pHead", CHUNK_CPP, 0x136, 0);
             }
             position = FileGetPos(m_hFile);
-            distance = *m_offsets.GetAt(m_offsets.GetCount() - 1) + (head->extent - position);
+            distance = m_offsets.data[m_offsets.count - 1] + (head->extent - position);
             if (distance != 0) {
                 FileSeek(m_hFile, distance, FILE_SEEK_FROM_CURRENT);
             }
@@ -156,7 +156,7 @@ unsigned char W8Chunk::OpenReadWrite(char* path)
     }
     m_fWriting = 0;
     OpenChunk(0, 0);
-    head = *m_heads.GetAt(m_heads.GetCount() - 1);
+    head = m_heads.data[m_heads.count - 1];
     if (head == 0) {
         srAssertFail("pHead", CHUNK_CPP, 0x1f0, 0);
     }
@@ -179,11 +179,11 @@ void W8Chunk::Close()
             int count;
 
             RewindCurrentChunk();
-            count = m_group_progress.RemoveAt(m_group_progress.GetCount() - 1);
+            count = m_group_progress.RemoveAt(m_group_progress.count - 1);
             Write(&count, sizeof(count), 0);
             FileSeek(m_hFile, position, FILE_SEEK_FROM_START);
         } else {
-            m_group_counts.RemoveAt(m_group_counts.GetCount() - 1);
+            m_group_counts.RemoveAt(m_group_counts.count - 1);
         }
         ReleaseCurrentChunk();
         if (m_hFile != 0) {
@@ -199,7 +199,7 @@ void W8Chunk::Close()
 // FUNCTION: WIZ8 0x0055c1e0
 unsigned char W8Chunk::CopyCurrentChunkFrom(W8Chunk* source)
 {
-    W8ChunkHead* source_head = *source->m_heads.GetAt(source->m_heads.GetCount() - 1);
+    W8ChunkHead* source_head = source->m_heads.data[source->m_heads.count - 1];
     unsigned int transferred;
     unsigned int extent;
     unsigned char* contents;
@@ -220,7 +220,7 @@ unsigned char W8Chunk::CopyCurrentChunkFrom(W8Chunk* source)
         delete[] contents;
         return 0;
     }
-    source_head = *source->m_heads.GetAt(source->m_heads.GetCount() - 1);
+    source_head = source->m_heads.data[source->m_heads.count - 1];
     if (source_head == 0) {
         srAssertFail("pHead", CHUNK_CPP, 0x166, 0);
     }
@@ -241,7 +241,7 @@ unsigned char W8Chunk::CopyCurrentChunkFrom(W8Chunk* source)
 // FUNCTION: WIZ8 0x0055c390
 unsigned char W8Chunk::SkipCurrentChunk()
 {
-    W8ChunkHead* head = *m_heads.GetAt(m_heads.GetCount() - 1);
+    W8ChunkHead* head = m_heads.data[m_heads.count - 1];
     int position;
     int distance;
 
@@ -249,7 +249,7 @@ unsigned char W8Chunk::SkipCurrentChunk()
         srAssertFail("pHead", CHUNK_CPP, 0x136, 0);
     }
     position = FileGetPos(m_hFile);
-    distance = *m_offsets.GetAt(m_offsets.GetCount() - 1) + (head->extent - position);
+    distance = m_offsets.data[m_offsets.count - 1] + (head->extent - position);
     if (distance != 0) {
         FileSeek(m_hFile, distance, FILE_SEEK_FROM_CURRENT);
     }
@@ -271,7 +271,7 @@ unsigned char W8Chunk::OpenGroup()
         m_group_counts.Add(count);
         return 1;
     } else {
-        W8ChunkHead* head = *m_heads.GetAt(m_heads.GetCount() - 1);
+        W8ChunkHead* head = m_heads.data[m_heads.count - 1];
         int position = FileGetPos(m_hFile);
         int count = 0;
 
@@ -280,7 +280,7 @@ unsigned char W8Chunk::OpenGroup()
         }
         head->grouped = 1;
         m_group_progress.Add(0);
-        FileSeek(m_hFile, *m_offsets.GetAt(m_offsets.GetCount() - 1) - 6, FILE_SEEK_FROM_START);
+        FileSeek(m_hFile, m_offsets.data[m_offsets.count - 1] - 6, FILE_SEEK_FROM_START);
         Write(&head->grouped, 1, &transferred);
         FileSeek(m_hFile, position, FILE_SEEK_FROM_START);
         Write(&count, sizeof(count), &transferred);
@@ -294,7 +294,7 @@ unsigned char W8Chunk::OpenGroup()
 unsigned char W8Chunk::ReleaseGroup()
 {
     if (!m_fWriting) {
-        m_group_counts.RemoveAt(m_group_counts.GetCount() - 1);
+        m_group_counts.RemoveAt(m_group_counts.count - 1);
         return 1;
     } else {
         unsigned int transferred;
@@ -302,7 +302,7 @@ unsigned char W8Chunk::ReleaseGroup()
         int count;
 
         RewindCurrentChunk();
-        count = m_group_progress.RemoveAt(m_group_progress.GetCount() - 1);
+        count = m_group_progress.RemoveAt(m_group_progress.count - 1);
         Write(&count, sizeof(count), &transferred);
         FileSeek(m_hFile, position, FILE_SEEK_FROM_START);
         return 1;
@@ -312,7 +312,7 @@ unsigned char W8Chunk::ReleaseGroup()
 // FUNCTION: WIZ8 0x0055c660
 unsigned int W8Chunk::CurrentChunkId()
 {
-    W8ChunkHead* head = *m_heads.GetAt(m_heads.GetCount() - 1);
+    W8ChunkHead* head = m_heads.data[m_heads.count - 1];
 
     if (head == 0) {
         srAssertFail("pHead", CHUNK_CPP, 0x1f0, 0);
@@ -323,7 +323,7 @@ unsigned int W8Chunk::CurrentChunkId()
 // FUNCTION: WIZ8 0x0055c690
 int W8Chunk::CurrentChunkExtent()
 {
-    W8ChunkHead* head = *m_heads.GetAt(m_heads.GetCount() - 1);
+    W8ChunkHead* head = m_heads.data[m_heads.count - 1];
 
     if (head == 0) {
         srAssertFail("pHead", CHUNK_CPP, 0x204, 0);
@@ -334,7 +334,7 @@ int W8Chunk::CurrentChunkExtent()
 // FUNCTION: WIZ8 0x0055c6c0
 int W8Chunk::ChunkCount()
 {
-    return *m_group_counts.GetAt(m_group_counts.GetCount() - 1);
+    return m_group_counts.data[m_group_counts.count - 1];
 }
 
 /* The on-disk header deliberately writes its four established fields
@@ -383,21 +383,21 @@ unsigned char W8Chunk::OpenChunk(unsigned int chunk_id, unsigned char grouped)
 // FUNCTION: WIZ8 0x0055c930
 unsigned char W8Chunk::ReleaseCurrentChunk()
 {
-    m_heads.RemoveAtAndDelete(m_heads.GetCount() - 1);
+    m_heads.RemoveAtAndDelete(m_heads.count - 1);
     if (m_fWriting) {
         int end = FileGetPos(m_hFile);
-        int payload = m_offsets.RemoveAt(m_offsets.GetCount() - 1);
+        int payload = m_offsets.RemoveAt(m_offsets.count - 1);
         int extent = end - payload;
 
         FileSeek(m_hFile, payload - 4, FILE_SEEK_FROM_START);
         Write(&extent, sizeof(extent), 0);
         FileSeek(m_hFile, end, FILE_SEEK_FROM_START);
     } else {
-        m_offsets.RemoveAt(m_offsets.GetCount() - 1);
+        m_offsets.RemoveAt(m_offsets.count - 1);
     }
-    if (m_group_progress.GetCount() != 0) {
-        *m_group_progress.GetAt(m_group_progress.GetCount() - 1) =
-            *m_group_progress.GetAt(m_group_progress.GetCount() - 1) + 1;
+    if (m_group_progress.count != 0) {
+        m_group_progress.data[m_group_progress.count - 1] =
+            m_group_progress.data[m_group_progress.count - 1] + 1;
     }
     return 1;
 }
@@ -405,7 +405,7 @@ unsigned char W8Chunk::ReleaseCurrentChunk()
 // FUNCTION: WIZ8 0x0055cae0
 void W8Chunk::RewindCurrentChunk()
 {
-    FileSeek(m_hFile, *m_offsets.GetAt(m_offsets.GetCount() - 1), FILE_SEEK_FROM_START);
+    FileSeek(m_hFile, m_offsets.data[m_offsets.count - 1], FILE_SEEK_FROM_START);
 }
 
 /* Mark the active chunk's own at_end byte in the file. This is how the save
@@ -416,7 +416,7 @@ void W8Chunk::SetCurrentChunkAtEnd()
     unsigned char value = 1;
     int position = FileGetPos(m_hFile);
 
-    FileSeek(m_hFile, *m_offsets.GetAt(m_offsets.GetCount() - 1) - 5, FILE_SEEK_FROM_START);
+    FileSeek(m_hFile, m_offsets.data[m_offsets.count - 1] - 5, FILE_SEEK_FROM_START);
     FileWrite(m_hFile, &value, 1, 0);
     FileSeek(m_hFile, position, FILE_SEEK_FROM_START);
 }
@@ -424,7 +424,7 @@ void W8Chunk::SetCurrentChunkAtEnd()
 // FUNCTION: WIZ8 0x0055cb60
 unsigned char W8Chunk::CurrentChunkAtEnd()
 {
-    W8ChunkHead* head = *m_heads.GetAt(m_heads.GetCount() - 1);
+    W8ChunkHead* head = m_heads.data[m_heads.count - 1];
 
     if (head == 0) {
         srAssertFail("pHead", CHUNK_CPP, 0x303, 0);

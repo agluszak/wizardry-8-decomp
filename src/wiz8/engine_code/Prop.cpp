@@ -118,7 +118,7 @@ W8PropRepresentation::~W8PropRepresentation()
 {
     int index;
 
-    for (index = 0; index < slots.GetCount(); ++index) {
+    for (index = 0; index < slots.count; ++index) {
         delete *slots.GetAt(index);
     }
     slots.Clear();
@@ -426,7 +426,7 @@ unsigned char W8PropRepresentation::SelectAnimationSlot(unsigned char tag)
 {
     int index;
 
-    for (index = 0; index < slots.GetCount(); ++index) {
+    for (index = 0; index < slots.count; ++index) {
         W8PropAnimationSegment* slot = *slots.GetAt(index);
 
         if (slot->tag == tag) {
@@ -461,7 +461,7 @@ int W8PropRepresentation::FindCurrentAnimationSlot()
 {
     int index;
 
-    for (index = 0; index < slots.GetCount(); ++index) {
+    for (index = 0; index < slots.count; ++index) {
         if ((*slots.GetAt(index))->frame == first_frame) {
             return index;
         }
@@ -476,7 +476,7 @@ unsigned char W8PropRepresentation::AdvanceAnimationSegment()
     int index;
     int segment;
 
-    count = slots.GetCount();
+    count = slots.count;
     if (count < 3) {
         return 0;
     }

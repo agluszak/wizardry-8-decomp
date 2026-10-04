@@ -529,7 +529,7 @@ int W8Octree::CollectModelsNearPoint(W8GrowableVector<stModelInstance*>* out,
             bit = m_linked_props->NextSetBit(0);
         }
     }
-    return out->GetCount();
+    return out->count;
 }
 
 /* Add every particle and prop linked to one mesh to the live visibility sets.

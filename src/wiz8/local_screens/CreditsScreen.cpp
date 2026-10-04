@@ -133,7 +133,7 @@ unsigned char CreditsScreenEnter(void)
 // FUNCTION: WIZ8 0x005bc420
 unsigned char CreditsScreenLeave(int)
 {
-    for (int index = 0; index < g_credit_lines->GetCount(); ++index) {
+    for (int index = 0; index < g_credit_lines->count; ++index) {
         W8CreditLine* entry = g_credit_lines->GetAt(index);
         if (entry->primary != 0) {
             free(entry->primary);
@@ -173,7 +173,7 @@ void CreditsScreenFrame(void)
         g_credit_y -= steps;
         while (g_credit_y < 0) {
             ++g_credit_line;
-            if (g_credit_line >= g_credit_lines->GetCount()) {
+            if (g_credit_line >= g_credit_lines->count) {
                 RequestScreenTransition();
                 break;
             }
@@ -187,7 +187,7 @@ void CreditsScreenFrame(void)
 
     DrawCatalogImage(-14, 0xe9, 0, 0, 0, 0, 2, 0);
     int y = g_credit_y;
-    for (int index = g_credit_line; index < g_credit_lines->GetCount() && y <= 0x1df; ++index) {
+    for (int index = g_credit_line; index < g_credit_lines->count && y <= 0x1df; ++index) {
         const W8CreditLine* entry = g_credit_lines->GetAt(index);
         if ((entry->flags & 4) == 0) {
             SetFont((entry->flags & 1) ? g_options_title_font : g_options_detail_font);

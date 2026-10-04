@@ -250,7 +250,7 @@ W8NpcState* GetNpcState(int index)
 // FUNCTION: WIZ8 0x0050b830
 W8NpcState* GetNpcStateByKind(int kind)
 {
-    int count = g_npc_states->GetCount();
+    int count = g_npc_states->count;
     W8GrowableVector<W8NpcState*>* npc_states = g_npc_states;
     int index = 0;
 
@@ -286,7 +286,7 @@ bool NpcLeadHasNameStyle(unsigned int kind)
         if (g_npc_states != 0) {
             int index = g_status.buffers.XChar[0].npc_index;
             W8NpcState** slot = g_npc_states->data;
-            if (index < g_npc_states->GetCount()) {
+            if (index < g_npc_states->count) {
                 slot += index;
             }
             npc = *slot;
@@ -303,7 +303,7 @@ bool NpcLeadHasNameStyle(unsigned int kind)
         if (g_npc_states != 0) {
             int index = g_status.buffers.XChar[1].npc_index;
             W8NpcState** slot = g_npc_states->data;
-            if (index < g_npc_states->GetCount()) {
+            if (index < g_npc_states->count) {
                 slot += index;
             }
             npc = *slot;
@@ -910,7 +910,7 @@ W8NpcState* FindNpcStateByName(const char* name)
     int index;
     const char* candidate;
 
-    for (index = 0; index < g_npc_states->GetCount(); ++index) {
+    for (index = 0; index < g_npc_states->count; ++index) {
         W8NpcState* npc = *g_npc_states->GetAt(index);
 
         if (npc->binding_unavailable == 0) {
@@ -935,8 +935,7 @@ W8NpcState* FindNpcStateByName(const char* name)
 // FUNCTION: WIZ8 0x0050C7D0
 void AdvanceNpcTimers(unsigned int elapsed)
 {
-    for (unsigned int index = 0; index < static_cast<unsigned int>(g_npc_states->GetCount());
-         ++index) {
+    for (unsigned int index = 0; index < static_cast<unsigned int>(g_npc_states->count); ++index) {
         W8NpcState* npc = *g_npc_states->GetAt(index);
         if (npc->binding_unavailable == 0) {
             if (npc->dismissed_flag != 0) {
@@ -975,7 +974,7 @@ void ProcessNpcPendingEvents(void)
     if (gXStatus.fCombatMode == 0 && gXStatus.fSurprisePossible == 0) {
         if (g_status.infatuation_pending != 0) {
             bool flagged = false;
-            for (int index = 0; index < g_npc_states->GetCount(); ++index) {
+            for (int index = 0; index < g_npc_states->count; ++index) {
                 W8NpcState* candidate = *g_npc_states->GetAt(index);
                 if (candidate->record->kind == 0x42) {
                     if (candidate != 0 && static_cast<unsigned char>(candidate->spawned) != 0) {
@@ -1233,7 +1232,7 @@ void ResetNpcStates(void)
     unsigned int npc_id;
 
     if (g_npc_states != 0) {
-        for (index = 0; index < g_npc_states->GetCount(); ++index) {
+        for (index = 0; index < g_npc_states->count; ++index) {
             W8NpcState* npc = *g_npc_states->GetAt(index);
 
             ReleaseNpcScriptFile(npc->script_file);
@@ -1261,7 +1260,7 @@ void ReleaseNpcStates(void)
     int index;
 
     if (g_npc_states != 0) {
-        for (index = 0; index < g_npc_states->GetCount(); ++index) {
+        for (index = 0; index < g_npc_states->count; ++index) {
             W8NpcState* npc = *g_npc_states->GetAt(index);
             if (g_npc_states != 0) {
                 ReleaseNpcScriptFile(npc->script_file);
@@ -1294,7 +1293,7 @@ unsigned char SaveNpcStates(W8Chunk* chunks)
     int size;
 
     chunks->Write(&version, 1, 0);
-    count = g_npc_states->GetCount();
+    count = g_npc_states->count;
     chunks->Write(&count, 4, 0);
     for (index = 0; index < count; ++index) {
         npc = *g_npc_states->GetAt(index);
@@ -1326,7 +1325,7 @@ unsigned char SaveNpcItemLists(int file)
     W8NpcState* npc;
     W8NpcItemEntry* entry;
 
-    count = g_npc_states->GetCount();
+    count = g_npc_states->count;
     for (npc_index = 0; npc_index < count; ++npc_index) {
         npc = *g_npc_states->GetAt(npc_index);
         if (npc->items != 0) {
@@ -1384,7 +1383,7 @@ W8NpcState* CreateNpcRuntimeNode(int npc_id)
     npc->greeting_pending = 1;
     npc->trade_pool = g_npc_records[npc_id].trade_pool;
 
-    for (index = 0; index < g_npc_states->GetCount(); ++index) {
+    for (index = 0; index < g_npc_states->count; ++index) {
         released = *g_npc_states->GetAt(index);
         if (released != 0 && released->binding_unavailable != 0) {
             g_npc_states->InsertAt(index, npc);
@@ -1397,7 +1396,7 @@ W8NpcState* CreateNpcRuntimeNode(int npc_id)
         npc->partner_index = 0xff;
         return npc;
     }
-    npc->partner_index = static_cast<unsigned char>(g_npc_states->GetCount() - 1);
+    npc->partner_index = static_cast<unsigned char>(g_npc_states->count - 1);
     return npc;
 }
 
@@ -1425,7 +1424,7 @@ void BindNpcToMonster(unsigned char npc_id, bool has_monster, int location_id)
         }
 
         if (g_npc_records[npc_id].monster_bound == 0) {
-            for (index = 0; index < g_npc_states->GetCount(); ++index) {
+            for (index = 0; index < g_npc_states->count; ++index) {
                 W8NpcState* candidate = *g_npc_states->GetAt(index);
                 if (candidate->record->kind == npc_id) {
                     npc = candidate;
@@ -1434,7 +1433,7 @@ void BindNpcToMonster(unsigned char npc_id, bool has_monster, int location_id)
             }
         } else {
             if (monster_info->bound_npc_index > 0) {
-                for (index = 0; index < g_npc_states->GetCount(); ++index) {
+                for (index = 0; index < g_npc_states->count; ++index) {
                     W8NpcState* candidate = *g_npc_states->GetAt(index);
                     if (candidate->binding_unavailable == 0 &&
                         monster_info->bound_npc_index == index &&
@@ -1452,7 +1451,7 @@ void BindNpcToMonster(unsigned char npc_id, bool has_monster, int location_id)
         }
         monster_info->bound_npc_index = npc->partner_index;
     } else {
-        for (index = 0; index < g_npc_states->GetCount(); ++index) {
+        for (index = 0; index < g_npc_states->count; ++index) {
             W8NpcState* candidate = *g_npc_states->GetAt(index);
             if (candidate->record->kind == npc_id) {
                 npc = candidate;
@@ -1591,13 +1590,13 @@ void ReleaseNpcBinding(int value)
     if (value < 0) {
         return;
     }
-    if (value > g_npc_states->GetCount()) {
+    if (value > g_npc_states->count) {
         return;
     }
-    if (value < g_npc_states->GetCount()) {
+    if (value < g_npc_states->count) {
         npc = g_npc_states->data[value];
     } else {
-        npc = (*g_npc_states->GetAt(0));
+        npc = g_npc_states->data[0];
     }
     file = npc->script_file;
     npc->has_monster = 0;
@@ -1636,7 +1635,7 @@ void LoadNpcStates(W8Chunk* chunks)
 
     InitializeNpcStates();
     if (g_npc_states != 0) {
-        for (index = 0; index < g_npc_states->GetCount(); ++index) {
+        for (index = 0; index < g_npc_states->count; ++index) {
             npc = *g_npc_states->GetAt(index);
 
             ReleaseNpcScriptFile(npc->script_file);
@@ -1719,7 +1718,7 @@ unsigned char LoadNpcItemLists(unsigned int file)
     W8NpcState* npc;
     W8NpcItemEntry* entry;
 
-    count = g_npc_states->GetCount();
+    count = g_npc_states->count;
     for (npc_index = 0; npc_index < count; ++npc_index) {
         npc = *g_npc_states->GetAt(npc_index);
         if (FileRead(file, &item_count, 4, &transferred) == 0 || transferred != 4) {
@@ -2040,12 +2039,12 @@ int AttemptNpcPickpocket(W8Character* character, W8NpcState* npc, W8ItemInstance
         }
     }
     char score;
-    if (candidates.GetCount() == 0 || Random(100) < 0x21) {
+    if (candidates.count == 0 || Random(100) < 0x21) {
         empty_pick = true;
         score = ScoreNpcTheft(character, npc, -1, 0);
     } else {
         W8ItemInstance item;
-        picked = *candidates.GetAt(Random(candidates.GetCount()));
+        picked = *candidates.GetAt(Random(candidates.count));
         ReplaceOrCreateItem(&item, npc->item_ids[picked], 1, 1, 0);
         score = ScoreNpcTheft(character, npc, item.iItemNo, 1);
     }
@@ -2073,7 +2072,7 @@ int AttemptNpcPickpocket(W8Character* character, W8NpcState* npc, W8ItemInstance
             *gold_out = taken;
             return 1;
         }
-        if (candidates.GetCount() == 0) {
+        if (candidates.count == 0) {
             return 4;
         }
         return 2;
@@ -2392,7 +2391,7 @@ void ApplyBoundNpcPenalty(W8Character* character, W8GameplayModifierBlock* targe
 // FUNCTION: WIZ8 0x0050C1C0
 void RestoreNamedNpcAtLevel(int kind, char level, const char* entity_name)
 {
-    int count = g_npc_states->GetCount();
+    int count = g_npc_states->count;
     W8NpcState* npc = 0;
 
     for (int index = 0; index < count; ++index) {
@@ -2425,7 +2424,7 @@ void RestoreNamedNpcAtLevel(int kind, char level, const char* entity_name)
 // FUNCTION: WIZ8 0x0050c270
 void ClearPendingNpcLevelFlags(void)
 {
-    unsigned int count = g_npc_states->GetCount();
+    unsigned int count = g_npc_states->count;
     unsigned int npc_index = 0;
 
     if (count != 0) {
@@ -2442,7 +2441,7 @@ void ClearPendingNpcLevelFlags(void)
                     npc->pending_restore = 0;
                 }
             }
-            count = g_npc_states->GetCount();
+            count = g_npc_states->count;
             ++npc_index;
         } while (npc_index < count);
     }
@@ -2455,7 +2454,7 @@ void ClearPendingNpcLevelFlags(void)
 // FUNCTION: WIZ8 0x0050c2e0
 void ReleaseNpcMonsterBindings(void)
 {
-    unsigned int count = g_npc_states->GetCount();
+    unsigned int count = g_npc_states->count;
     unsigned int npc_index = 0;
 
     if (count == 0) {
@@ -2520,7 +2519,7 @@ void ReleaseNpcMonsterBindings(void)
                 }
             }
         }
-        count = g_npc_states->GetCount();
+        count = g_npc_states->count;
         ++npc_index;
     } while (npc_index < count);
 }
@@ -2532,7 +2531,7 @@ void ReleaseNpcMonsterBindings(void)
 void ReleaseNpcMonsterBinding(W8NpcState* npc, char level)
 {
     if (level == g_status.current_level) {
-        unsigned int count = g_npc_states->GetCount();
+        unsigned int count = g_npc_states->count;
         W8NpcState* companion = 0;
         for (unsigned int index = 0; index < count; ++index) {
             W8NpcState** slot = g_npc_states->data;
@@ -2585,7 +2584,7 @@ void ReleaseNpcMonsterByKind(int kind)
 {
     W8NpcState* npc = 0;
 
-    for (int index = 0; index < g_npc_states->GetCount(); ++index) {
+    for (int index = 0; index < g_npc_states->count; ++index) {
         W8NpcState* candidate = *g_npc_states->GetAt(index);
         if (candidate->record->kind == kind) {
             npc = candidate;
@@ -2603,8 +2602,7 @@ void ReleaseNpcMonsterByKind(int kind)
             }
         }
         unsigned int partner_index = npc->partner_index;
-        if (partner_index != 0xffffffff &&
-            static_cast<int>(partner_index) <= g_npc_states->GetCount()) {
+        if (partner_index != 0xffffffff && static_cast<int>(partner_index) <= g_npc_states->count) {
             W8NpcState* target = *g_npc_states->GetAt(partner_index);
 
             target->has_monster = 0;
@@ -2744,7 +2742,7 @@ void HandleMarkedNpcEvent(W8NpcState* npc, char mode)
         }
     }
     if (mode != 0) {
-        unsigned int count = g_npc_states->GetCount();
+        unsigned int count = g_npc_states->count;
         W8NpcState* companion = 0;
 
         for (unsigned int index = 0; index < count; ++index) {
@@ -2773,8 +2771,7 @@ void HandleMarkedNpcEvent(W8NpcState* npc, char mode)
             }
             int partner_index = companion->partner_index;
 
-            if (partner_index != -1 && partner_index >= 0 &&
-                partner_index <= g_npc_states->GetCount()) {
+            if (partner_index != -1 && partner_index >= 0 && partner_index <= g_npc_states->count) {
                 W8NpcState* target = *g_npc_states->GetAt(partner_index);
 
                 target->has_monster = 0;
@@ -2808,7 +2805,7 @@ void HandleMarkedNpcEvent(W8NpcState* npc, char mode)
 // FUNCTION: WIZ8 0x0050da00
 void ReleaseMarkedNpcBindings(void)
 {
-    unsigned int count = g_npc_states->GetCount();
+    unsigned int count = g_npc_states->count;
     unsigned int npc_index = 0;
 
     if (count == 0) {
@@ -2877,7 +2874,7 @@ void ReleaseMarkedNpcBindings(void)
                 }
             }
         }
-        count = g_npc_states->GetCount();
+        count = g_npc_states->count;
         ++npc_index;
     } while (npc_index < count);
 }
@@ -2909,7 +2906,7 @@ bool NotifyNpcTriggerActivation(Trigger* trigger)
 // FUNCTION: WIZ8 0x0050ac60
 void RebindNpcLevelTriggers(void)
 {
-    unsigned int count = g_npc_states->GetCount();
+    unsigned int count = g_npc_states->count;
     unsigned int npc_index = 0;
 
     if (count != 0) {
@@ -2929,12 +2926,12 @@ void RebindNpcLevelTriggers(void)
                     npc->binding_unavailable = 1;
                 }
             }
-            count = g_npc_states->GetCount();
+            count = g_npc_states->count;
             ++npc_index;
         } while (npc_index < count);
     }
 
-    count = g_npc_states->GetCount();
+    count = g_npc_states->count;
     for (npc_index = 0; npc_index < count; ++npc_index) {
         W8NpcState** slot = g_npc_states->data;
         char trigger_name[40];
@@ -2958,7 +2955,7 @@ void RebindNpcLevelTriggers(void)
                 npc->is_present = 0;
             }
         }
-        count = g_npc_states->GetCount();
+        count = g_npc_states->count;
     }
 }
 

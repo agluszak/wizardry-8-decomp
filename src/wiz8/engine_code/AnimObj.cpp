@@ -179,11 +179,13 @@ unsigned char AnimObjReadFromFile(W8ReadLevelInfo* info, W8AnimObj* animation, i
                     typed->key_frames.Add(frame);
                     typed->key_intensities.Add(value);
                     typed->key_colors.Add(vector);
-                    if (typed->key_frames.GetCount() == 1) {
+                    if (typed->key_frames.count == 1) {
                         typed->frame_sums.Add(frame);
                     } else {
                         typed->frame_sums.Add(
-                            *typed->frame_sums.GetAt(typed->frame_sums.GetCount() - 1) + frame);
+                            *typed->frame_sums.GetAt(typed->frame_sums.count -
+                                                                1) +
+                            frame);
                     }
                 }
                 definition = typed;
@@ -220,7 +222,7 @@ unsigned char AnimObjReadFromFile(W8ReadLevelInfo* info, W8AnimObj* animation, i
             PathAISetAnimated(path, 0);
             PathAISetScale(path, animation->playback_scale);
             animation->path = path;
-            animation->frame_count = static_cast<unsigned char>(path->nodes->GetCount());
+            animation->frame_count = static_cast<unsigned char>(path->nodes->count);
         }
     }
     if (version > 9) {
@@ -282,7 +284,7 @@ unsigned char AnimObjReadFromFile(W8ReadLevelInfo* info, W8AnimObj* animation, i
                 path->discrete_mode = 1;
                 PathAISetAnimated(path, 0);
                 PathAISetScale(path, animation->playback_scale);
-                animation->frame_count = static_cast<unsigned char>(path->nodes->GetCount());
+                animation->frame_count = static_cast<unsigned char>(path->nodes->count);
             }
         }
     }
