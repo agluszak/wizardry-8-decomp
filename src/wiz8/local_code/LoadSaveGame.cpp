@@ -2403,3 +2403,4 @@ void LoadMonsterControlSpellEffect(W8Chunk* chunks)
 
 /* The remove-and-delete emission LoadGame calls while ResetLiveSessionForLoad
    inlines it (0x00516A00) is instantiated explicitly in vector.cpp. */
+// comparison performance probe
