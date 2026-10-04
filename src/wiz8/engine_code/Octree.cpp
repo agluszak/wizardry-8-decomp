@@ -1669,18 +1669,18 @@ unsigned char W8Octree::UpdateWorldTrace()
 // GLOBAL: WIZ8 0x005ebf60
 const double g_double_005ebf60 = 255.0;
 
-/* Pack four filtered colour components into the caller's unsigned long: red
-   lands in the top byte and alpha in the low one. */
+/* Pack normalized alpha/red/green/blue components using the current x87
+   rounding mode, then retain each result's low byte. */
 // FUNCTION: WIZ8 0x00433fb0
-unsigned long* __fastcall PackColourToLong(unsigned long* color, double red, double green,
-                                           double blue, double alpha)
+unsigned long* __fastcall PackColourToLong(unsigned long* color, double alpha, double red,
+                                           double green, double blue)
 {
     unsigned char* bytes =
         reinterpret_cast<unsigned char*>(color); // reinterpret-ok: packed colour storage
-    bytes[3] = static_cast<unsigned char>((red * g_double_005ebf60));
-    bytes[2] = static_cast<unsigned char>((green * g_double_005ebf60));
-    bytes[1] = static_cast<unsigned char>((blue * g_double_005ebf60));
-    bytes[0] = static_cast<unsigned char>((alpha * g_double_005ebf60));
+    bytes[3] = static_cast<unsigned char>(srFloatToInt(alpha * g_double_005ebf60));
+    bytes[2] = static_cast<unsigned char>(srFloatToInt(red * g_double_005ebf60));
+    bytes[1] = static_cast<unsigned char>(srFloatToInt(green * g_double_005ebf60));
+    bytes[0] = static_cast<unsigned char>(srFloatToInt(blue * g_double_005ebf60));
     return color;
 }
 

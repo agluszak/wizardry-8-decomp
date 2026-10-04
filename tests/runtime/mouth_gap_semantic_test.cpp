@@ -17,12 +17,10 @@
 #include <string.h>
 #include <windows.h>
 
-extern "C" {
-/* soundman.c file-scope globals. Stamping the slot timestamp is the only way
+/* soundman.cpp file-scope globals. Stamping the slot timestamp is the only way
    to pin SoundGetPosition; SGP exposes no position setter. */
 extern BOOLEAN fSoundSystemInit;
 extern SOUNDTAG pSoundList[];
-}
 
 /* F_AGGR10_004.GAP is a flat little-endian array of (start_ms, end_ms) int32
    pairs; these are its bytes as shipped in SOUND.SLF. */

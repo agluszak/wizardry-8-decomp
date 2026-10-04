@@ -92,7 +92,7 @@ struct W8GlobalStatus {
     W8ItemInstance item_in_hand_235b;
     /* 0x2367: per-slot flags the character-load path consults at 0x006874D7. */
     unsigned char flags_2367[0x20];
-    int game_time_ms;
+    unsigned int game_time_ms;
     unsigned int aging_accumulator_238b;
     /* 0x238f: search mode toggle. Mirrors the submenu search button, slows
        party movement, and scales the monster-sight threshold while set. */

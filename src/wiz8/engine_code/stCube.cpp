@@ -180,10 +180,10 @@ W8WorldCursorNode* CreateWorldCursorCube(void)
     unsigned long pixel;
     unsigned char* bytes =
         reinterpret_cast<unsigned char*>(&pixel); // reinterpret-ok: packed colour storage
-    bytes[3] = static_cast<unsigned char>(255.0);
-    bytes[2] = static_cast<unsigned char>(0.0);
-    bytes[1] = static_cast<unsigned char>(0.0);
-    bytes[0] = static_cast<unsigned char>(127.5);
+    bytes[3] = static_cast<unsigned char>(srFloatToInt(255.0));
+    bytes[2] = static_cast<unsigned char>(srFloatToInt(0.0));
+    bytes[1] = static_cast<unsigned char>(srFloatToInt(0.0));
+    bytes[0] = static_cast<unsigned char>(srFloatToInt(127.5));
     surface->fill(pixel);
     surface->setFilter(&srBoxFilter);
 

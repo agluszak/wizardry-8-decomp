@@ -27,14 +27,14 @@ struct W8SaveSlot {
     FILETIME local_write_time;
     SYSTEMTIME timestamp;
     int game_time_days;
-    int game_time_ms;
+    unsigned int game_time_ms;
     int level_id;
     unsigned char iron_man;
     unsigned char padding_0a5[3];
     W8SaveScreenshot screenshot;
     int version_major;
-    int version_minor;
-    int version_patch;
+    unsigned int version_minor;
+    unsigned int version_patch;
     bool dev_flagged_263c; /* saved copy of status dev_flagged_49c1 */
     unsigned char padding_263d[3];
 };

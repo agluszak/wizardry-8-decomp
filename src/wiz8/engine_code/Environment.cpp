@@ -146,11 +146,11 @@ void ClearEnvironmentObjects(void)
 // FUNCTION: WIZ8 0x00482a20
 void AdvanceEnvironmentTime(int elapsed)
 {
-    unsigned int time = static_cast<unsigned int>(g_status.game_time_ms + elapsed);
+    unsigned int time = g_status.game_time_ms + elapsed;
     if (time > 86399999U) {
         ++g_status.game_time_days;
     }
-    g_status.game_time_ms = static_cast<int>(time % 86400000U);
+    g_status.game_time_ms = time % 86400000U;
 
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
         UpdateGameClock(elapsed);
@@ -160,10 +160,10 @@ void AdvanceEnvironmentTime(int elapsed)
     const double arc = 3.141592653589793 * (1.0f / 180.0f) * 80.0;
     bool day;
     double angle;
-    if (static_cast<unsigned int>(g_status.game_time_ms) < 18000001U) {
+    if (g_status.game_time_ms < 18000001U) {
         day = false;
         angle = (g_status.game_time_ms + 7200000) * arc * 3.9682539682539686e-08;
-    } else if (static_cast<unsigned int>(g_status.game_time_ms) < 79200001U) {
+    } else if (g_status.game_time_ms < 79200001U) {
         day = true;
         angle = (g_status.game_time_ms - 18000000) * arc * 1.633986928104575e-08;
     } else {
@@ -193,7 +193,7 @@ void AdvanceEnvironmentTime(int elapsed)
         opposite->Rep()->SetLocation(&g_celestial_origin);
     }
 
-    unsigned int phase = ((static_cast<unsigned int>(g_status.game_time_ms) / 1000U) << 8) / 86400U;
+    unsigned int phase = ((g_status.game_time_ms / 1000U) << 8) / 86400U;
     stTextureAnim** animation = g_sky_gradient_animations;
 
     for (int index = 0; index != 3; ++index, ++animation) {
@@ -377,7 +377,7 @@ void UpdateEnvironmentLight(void)
                 static_cast<int>(static_cast<double>(elapsed) * g_view_distance));
         }
     }
-    unsigned int phase = ((static_cast<unsigned int>(g_status.game_time_ms) / 1000U) << 8) / 86400U;
+    unsigned int phase = ((g_status.game_time_ms / 1000U) << 8) / 86400U;
     if (phase != static_cast<unsigned int>(g_last_light_phase)) {
         g_light_direction = g_environment_colours_65ad98[phase];
         PublishLightDirection(&g_environment_colours_65ad98[phase]);
@@ -497,7 +497,7 @@ void RefreshEnvironment(void)
                 static_cast<int>(static_cast<double>(elapsed) * g_view_distance));
         }
     }
-    unsigned int phase = ((static_cast<unsigned int>(g_status.game_time_ms) / 1000U) << 8) / 86400U;
+    unsigned int phase = ((g_status.game_time_ms / 1000U) << 8) / 86400U;
     if (phase != static_cast<unsigned int>(g_last_environment_colour_phase)) {
         EnvironmentColour colour = g_environment_colours_65a178[phase];
         SetWorldEnvironmentColour(g_world, colour);
@@ -1049,8 +1049,7 @@ void InitializeLevelEnvironment(void)
         }
     }
     {
-        unsigned int phase =
-            (static_cast<unsigned int>(g_status.game_time_ms) / 1000U << 8) / 0x15180;
+        unsigned int phase = (g_status.game_time_ms / 1000U << 8) / 0x15180;
         EnvironmentColour colour = g_environment_colours_65a178[phase];
 
         if (g_world == 0) {

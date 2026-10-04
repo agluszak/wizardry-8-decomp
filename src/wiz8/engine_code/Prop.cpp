@@ -124,7 +124,6 @@ W8PropRepresentation::~W8PropRepresentation()
     slots.Clear();
     if (animation != 0) {
         DestroyAnimObj(animation);
-        animation = 0;
     }
 }
 

@@ -98,7 +98,7 @@ bool RunMonGenSemanticTest(void)
     generator.spawn_position_0c.x += 200001.0f;
     range = range && generator.CanGenerateEncounter(0) == 0;
 
-    int saved_time = g_status.game_time_ms;
+    unsigned int saved_time = g_status.game_time_ms;
     g_status.game_time_ms = 36000000;
     W8EncounterTableRuntime table;
     unsigned short species = 11;
