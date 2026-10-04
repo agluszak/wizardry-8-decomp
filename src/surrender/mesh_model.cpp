@@ -1747,9 +1747,9 @@ void srTriMeshPipeline::FlushSlots()
     srGERD::e_winding winding = renderer_88->getWinding();
 
     srTriangleCuller::Input culler_input;
-    if (cull_mode == srGERD::CULL_FRONT) {
+    if (cull_mode == srGERD::CULL_NONE) {
         culler_input.cull_mode_0c = 2;
-    } else if (cull_mode == srGERD::CULL_BACK) {
+    } else if (cull_mode == srGERD::CULL_FRONT) {
         culler_input.cull_mode_0c = winding == srGERD::WINDING_POSITIONAL_0;
     } else {
         culler_input.cull_mode_0c = winding != srGERD::WINDING_POSITIONAL_0;
@@ -1793,7 +1793,7 @@ void srTriMeshPipeline::FlushSlots()
             ratio = 3.0f;
         }
         batch_limit = static_cast<unsigned long>(1300.0f / (slot_count_84 * ratio));
-        if (cull_mode == srGERD::CULL_FRONT) {
+        if (cull_mode == srGERD::CULL_NONE) {
             batch_limit >>= 1;
         }
         if (batch_limit > total) {
@@ -2012,7 +2012,7 @@ void srMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
 
                 material_side = side;
                 if (side == 1) {
-                    renderer.setCullMode(srGERD::CULL_BACK);
+                    renderer.setCullMode(srGERD::CULL_FRONT);
                     if (!renderer.isEnabled(static_cast<srGERD::e_enable>(3))) {
                         renderer.toggle(static_cast<srGERD::e_enable>(3));
                     }
@@ -2021,9 +2021,9 @@ void srMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
                     }
                 } else {
                     if ((mesh.control_flags_0c & 8) == 0) {
-                        renderer.setCullMode(srGERD::CULL_NONE);
+                        renderer.setCullMode(srGERD::CULL_BACK);
                     } else {
-                        renderer.setCullMode(srGERD::CULL_FRONT);
+                        renderer.setCullMode(srGERD::CULL_NONE);
                     }
                     if (renderer.isEnabled(static_cast<srGERD::e_enable>(3))) {
                         renderer.toggle(static_cast<srGERD::e_enable>(3));

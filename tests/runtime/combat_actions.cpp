@@ -54,12 +54,12 @@ static void ProvokeHostileEncounterOnGameThread(void* opaque)
                 "%.0f)\n",
                 (void*)pathing, pathing != 0 ? pathing->size_004 : -1,
                 pathing != 0 ? pathing->grid_scale_01c : 0.0f,
-                pathing != 0 ? pathing->level_bounds[0] : 0.0f,
-                pathing != 0 ? pathing->level_bounds[1] : 0.0f,
-                pathing != 0 ? pathing->level_bounds[2] : 0.0f,
-                pathing != 0 ? pathing->level_bounds[3] : 0.0f,
-                pathing != 0 ? pathing->level_bounds[4] : 0.0f,
-                pathing != 0 ? pathing->level_bounds[5] : 0.0f);
+                pathing != 0 ? pathing->level_bounds.minimum.x : 0.0f,
+                pathing != 0 ? pathing->level_bounds.minimum.y : 0.0f,
+                pathing != 0 ? pathing->level_bounds.minimum.z : 0.0f,
+                pathing != 0 ? pathing->level_bounds.maximum.x : 0.0f,
+                pathing != 0 ? pathing->level_bounds.maximum.y : 0.0f,
+                pathing != 0 ? pathing->level_bounds.maximum.z : 0.0f);
         if (pathing != 0) {
             srVector3T<float> probe = party_position;
             unsigned char snap = pathing->SnapWaypointPosition(&probe, 0);

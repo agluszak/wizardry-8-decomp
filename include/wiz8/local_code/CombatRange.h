@@ -59,9 +59,9 @@ W8RangeCategory GetMonsterBestRangeCategory(W8MonsterInfo* monster_info,
                                             int* out_sight); /* 0x0051A840 */
 /* 0x00519AC0: the range category the weapon in `hand` attacks at; `hand` of 2
    asks for the better of the two. */
-int GetCharAttackRange(const W8Character* character, unsigned int hand);
+W8RangeCategory GetCharAttackRange(const W8Character* character, unsigned int hand);
 /* 0x005199F0: the range category the slot's chosen action works at. */
-int GetCharActionRange(int party_slot, int hand, W8TargetingContext context);
+W8RangeCategory GetCharActionRange(int party_slot, int hand, W8TargetingContext context);
 bool IsSlotInRangeOfGroup(int party_slot, int group_id, W8TargetingContext context,
                           char notify); /* 0x00519920 */
 float MonsterChooseTarget(W8MonsterInfo* monster_info, W8CombatSlot* out, int kind);

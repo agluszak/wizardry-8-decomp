@@ -1277,7 +1277,7 @@ void RecalculateCharacterStamina(W8Character* character)
 // FUNCTION: WIZ8 0x0052a500
 void RecalculateRealmSpellPoints(W8Character* character)
 {
-    int profession = character->iProfession;
+    W8Profession profession = character->iProfession;
     if (profession != 0 && (profession < 7 || profession > 9)) {
         character->skill_unlocks[0x24] = RebuildRealmSpellPointCeilings(character);
         return;
@@ -1304,7 +1304,7 @@ int RebuildRealmSpellPointCeilings(W8Character* character)
     }
     for (index = 0; index < 0x72; ++index) {
         if (character->spell_learned[index] == 1 || character->spell_learned[index] == 2) {
-            int realm = g_spell_records[index].realm;
+            W8SpellRealm realm = g_spell_records[index].realm;
             int cost = g_spell_records[index].spell_point_cost;
             if (max_spell_levels[realm] < cost) {
                 max_spell_levels[realm] = cost;

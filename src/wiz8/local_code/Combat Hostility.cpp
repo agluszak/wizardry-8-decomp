@@ -260,12 +260,12 @@ void MakeTargetGroupHostile(W8TargetSource* source, W8CombatSlot* target)
 /* Whether a party action aims at enemies: the four melee kinds do, as do
    spells (and item-spells) whose target type sits in the enemy band. */
 // FUNCTION: WIZ8 0x00547310
-bool CharacterActionTargetsEnemies(W8Character* character, int action_kind, int action_detail,
+bool CharacterActionTargetsEnemies(W8Character* character, W8ActionKind action_kind, int action_detail,
                                    W8ActionDetailBlock* detail)
 {
     W8ItemInstance* item;
     unsigned char spell_id;
-    int target_type;
+    W8SpellTargetType target_type;
 
     switch (action_kind) {
     case W8_ACTION_ATTACK:
@@ -304,6 +304,8 @@ bool CharacterActionTargetsEnemies(W8Character* character, int action_kind, int 
             }
         }
         break;
+    default:
+        break;
     }
     return false;
 }
@@ -313,7 +315,7 @@ bool CharacterActionTargetsEnemies(W8Character* character, int action_kind, int 
 bool MonsterActionTargetsEnemies(int action_kind, int action_detail,
                                  unsigned int* spell_power_level)
 {
-    int target_type;
+    W8SpellTargetType target_type;
 
     switch (action_kind) {
     case 0:
@@ -347,7 +349,7 @@ bool MonsterCanAimSpell(int spell_id)
                      "C:\\Projects\\Wizardry 8\\Local Code\\Combat Hostility.cpp", 0x1c2, 0);
     }
     if (spell_id != 3 && spell_id != 0x29) {
-        int target_type = GetSpellTargetType(spell_id, 0);
+        W8SpellTargetType target_type = GetSpellTargetType(spell_id, 0);
         if (target_type > W8_TARGET_TYPE_PARTY && target_type < W8_TARGET_TYPE_POINT) {
             return 1;
         }

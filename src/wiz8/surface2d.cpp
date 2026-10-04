@@ -157,7 +157,7 @@ void stSurface2D::DrawTiles(srGERD* renderer)
     renderer->ortho(0.0, 1.0, 1.0, 0.0, 0.0, 1.0);
     renderer->setVertexArrayMask(srFlags<srRendererDefs::e_vertexArray>(state));
     renderer->setClipState(srFlags<srRendererDefs::e_clip>(0x3f)); /* CLIP_LEFT..CLIP_FAR */
-    renderer->setCullMode(srGERD::CULL_FRONT);
+    renderer->setCullMode(srGERD::CULL_NONE);
     srShader shader;
     shader.value = flags;
     renderer->setShader(shader);

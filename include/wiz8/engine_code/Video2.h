@@ -102,6 +102,7 @@ class srModelInstance;
 class srNode;
 class srTextureIFace;
 class stModelInstance2D;
+template <class T> class srVector2T;
 template <class T> class srVector3T;
 template <class T> class srVector4T;
 srNode* MakePosterQuad(srTextureIFace* texture, float width, float height, bool additive);
@@ -264,7 +265,7 @@ void SetWorldScaledViewport(int left, int top, int right, int bottom);
    through it. */
 void SetAutomapScaledViewport(int left, int top, int right, int bottom);
 /* Read the stored pixel viewport back out in normalized 0..1 scale. */
-void GetScaledViewportBounds(float* left_top, float* right_bottom);
+void GetScaledViewportBounds(srVector2T<float>* left_top, srVector2T<float>* right_bottom);
 /* Lock the primary GERD buffer and emit one debug wireframe line. */
 void DrawBufferLine(long x0, long y0, long x1, long y1, unsigned long* pixel);
 unsigned char InitializeRendererSceneObjects(void);

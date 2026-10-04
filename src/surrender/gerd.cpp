@@ -87,7 +87,7 @@ srGERD::srGERD(srDD* device, void* module, const char* device_name)
     if (device_name != 0) {
         strncpy(device_40_.info_10_.text_3c_[0], device_name, 0x3f);
     }
-    polygon_mode_1fe0_ = 2;
+    polygon_mode_1fe0_ = POLYGON_FILL;
     polygon_offset_1fe4_ = 0;
     state_section_18_ = new srCriticalSection;
     pick_176c_.pick_key_284_ = 0;
@@ -1063,13 +1063,13 @@ void srGERD::flushNonBusyRenderers()
 srGERD::e_error srGERD::beginFrame()
 {
     if ((state_flags_28_ & 1) == 0) {
-        return static_cast<e_error>(9);
+        return ERROR_NO_CONTEXT;
     }
     if (isWindowOpen() == 0) {
-        return static_cast<e_error>(4);
+        return ERROR_WINDOW_NOT_OPEN;
     }
     if (srWindow::isWindow(device_40_.window_334_) == 0) {
-        return static_cast<e_error>(6);
+        return ERROR_INVALID_WHANDLE;
     }
     if ((state_flags_28_ & 4) == 0) {
         if ((enable_flags_20_.value & 0x10) != 0 && (state_flags_28_ & 8) == 0) {
@@ -1080,14 +1080,14 @@ srGERD::e_error srGERD::beginFrame()
         state_flags_28_ |= 4;
         state_flags_28_ &= ~8UL;
     }
-    return static_cast<e_error>(0);
+    return ERROR_NONE;
 }
 
 // FUNCTION: SURRENDER 0x1001A810
 void srGERD::endFrame()
 {
     if (isWindowOpen() == 0) {
-        setError(static_cast<e_error>(4));
+        setError(ERROR_WINDOW_NOT_OPEN);
         return;
     }
     if ((state_flags_28_ & 4) != 0) {
@@ -1107,7 +1107,7 @@ void srGERD::flipFrame()
 void srGERD::flipFrame(const Rectangle* first, const Rectangle* second, unsigned long count)
 {
     if (isWindowOpen() == 0) {
-        setError(static_cast<e_error>(4));
+        setError(ERROR_WINDOW_NOT_OPEN);
         return;
     }
     if ((state_flags_28_ & 8) != 0) {
@@ -1155,7 +1155,7 @@ void srGERD::flipFrame(const Rectangle* first, const Rectangle* second, unsigned
 void srGERD::flush()
 {
     if (isWindowOpen() == 0) {
-        setError(static_cast<e_error>(4));
+        setError(ERROR_WINDOW_NOT_OPEN);
         return;
     }
     checkAllStateChanges();
@@ -2130,7 +2130,7 @@ srDD::e_error srGERD::_lockBuffer()
         }
     }
     buffer_lock_count_1b04_ += 1;
-    return static_cast<srDD::e_error>(0);
+    return srDD::ERROR_NONE;
 }
 
 // FUNCTION: SURRENDER 0x10020CF0
@@ -2147,14 +2147,14 @@ srDD::e_error srGERD::_unlockBuffer()
             return getDD()->bufferOp(command);
         }
     }
-    return static_cast<srDD::e_error>(0);
+    return srDD::ERROR_NONE;
 }
 
 // FUNCTION: SURRENDER 0x10020D30
 void srGERD::clear(const srFlags<e_buffer>& buffers)
 {
     if (isWindowOpen() == 0) {
-        setError(static_cast<e_error>(4));
+        setError(ERROR_WINDOW_NOT_OPEN);
         return;
     }
     if (buffers.value != 0) {
@@ -2164,18 +2164,18 @@ void srGERD::clear(const srFlags<e_buffer>& buffers)
         /* GERD buffer bits 0,1,3 map to DD bits 0,1,2; GERD bit 2 is the
            software accumulation buffer serviced by accumClear. */
         srFlags<srDD::e_buffer> device_buffers;
-        device_buffers.value = (buffers.value & 1) != 0;
-        if ((buffers.value & 2) != 0) {
-            device_buffers.value |= 2;
+        device_buffers.value = (buffers.value & BUFFER_COLOR) != 0;
+        if ((buffers.value & BUFFER_DEPTH) != 0) {
+            device_buffers.value |= srDD::BUFFER_DEPTH;
         }
-        if ((buffers.value & 8) != 0) {
-            device_buffers.value |= 4;
+        if ((buffers.value & BUFFER_STENCIL) != 0) {
+            device_buffers.value |= srDD::BUFFER_STENCIL;
         }
         if (device_buffers.value != 0) {
             getDD()->setClearValues(clear_1b08_.clear_values_00_);
             getDD()->clearBuffers(device_buffers);
         }
-        if ((buffers.value & 4) != 0) {
+        if ((buffers.value & BUFFER_ACCUM) != 0) {
             accumClear();
         }
     }
@@ -3169,24 +3169,29 @@ void srGERD::applyDrawStateChanges()
         changeTexture(texture_iface_1ffc_[1], 1, 1);
     }
     if ((dirty_24_ & 0x2000) != 0) {
-        int apply_cull = 1;
-        long cull;
-        if (state_390_.cull_mode_12b8_ == CULL_NONE) {
-            cull = (state_390_.winding_12bc_ != 0) + 1;
-        } else if (state_390_.cull_mode_12b8_ == CULL_BACK) {
-            cull = (state_390_.winding_12bc_ == 0) + 1;
-        } else if (state_390_.cull_mode_12b8_ == CULL_FRONT) {
-            cull = 0;
-        } else {
-            apply_cull = 0;
-        }
-        if (apply_cull != 0) {
-            getDD()->setCullMode(static_cast<srDD::e_cullMode>(cull));
+        switch (state_390_.cull_mode_12b8_) {
+        case CULL_BACK:
+            getDD()->setCullMode(state_390_.winding_12bc_ != 0 ? srDD::CULL_FRONT : srDD::CULL_BACK);
+            break;
+        case CULL_FRONT:
+            getDD()->setCullMode(state_390_.winding_12bc_ == 0 ? srDD::CULL_FRONT : srDD::CULL_BACK);
+            break;
+        case CULL_NONE:
+            getDD()->setCullMode(srDD::CULL_NONE);
+            break;
         }
     }
     if ((dirty_24_ & 0x4000) != 0) {
-        if (polygon_mode_1fe0_ <= 2) {
-            getDD()->setPolygonMode(static_cast<srDD::e_polygonMode>(polygon_mode_1fe0_));
+        switch (polygon_mode_1fe0_) {
+        case POLYGON_POINT:
+            getDD()->setPolygonMode(srDD::POLYGON_POINT);
+            break;
+        case POLYGON_LINE:
+            getDD()->setPolygonMode(srDD::POLYGON_LINE);
+            break;
+        case POLYGON_FILL:
+            getDD()->setPolygonMode(srDD::POLYGON_FILL);
+            break;
         }
     }
     if ((dirty_24_ & 0x8000) != 0) {
@@ -4063,15 +4068,15 @@ srGERD::e_error srGERD::createContext(unsigned long window)
 {
     deleteContext();
     if (srWindow::isWindow(window) == 0) {
-        return static_cast<e_error>(6);
+        return ERROR_INVALID_WHANDLE;
     }
     for (srGERD* gerd = getFirst(); gerd != 0; gerd = gerd->getNext()) {
         if (gerd->isContextCreated() != 0 && gerd->getWindowHandle() == window) {
-            return static_cast<e_error>(7);
+            return ERROR_SHARED_CONTEXT;
         }
     }
     if (getDD()->createContext(window) != 0) {
-        return static_cast<e_error>(8);
+        return ERROR_CONTEXT_CREATION_FAILED;
     }
     device_40_.window_334_ = window;
     initDDInfo();
@@ -4080,7 +4085,7 @@ srGERD::e_error srGERD::createContext(unsigned long window)
     initGlobalPalette();
     resetStatistics();
     state_flags_28_ |= 1;
-    return static_cast<e_error>(0);
+    return ERROR_NONE;
 }
 
 // FUNCTION: SURRENDER 0x100192A0
@@ -4214,7 +4219,7 @@ srGERD::e_backBuffer srGERD::getBackBufferType() const
 srGERD::e_error srGERD::openWindow()
 {
     if ((state_flags_28_ & 1) == 0) {
-        return static_cast<e_error>(9);
+        return ERROR_NO_CONTEXT;
     }
     return openWindow(srWindow::getWidth(device_40_.window_334_),
                       srWindow::getHeight(device_40_.window_334_));
@@ -4224,10 +4229,10 @@ srGERD::e_error srGERD::openWindow()
 srGERD::e_error srGERD::openWindow(long width, long height)
 {
     if ((state_flags_28_ & 1) == 0) {
-        return static_cast<e_error>(9);
+        return ERROR_NO_CONTEXT;
     }
     if (srWindow::isWindow(device_40_.window_334_) == 0) {
-        return static_cast<e_error>(6);
+        return ERROR_INVALID_WHANDLE;
     }
     OpenInfo info;
     info.window_width_00 = srWindow::getWidth(device_40_.window_334_);
@@ -4242,16 +4247,16 @@ srGERD::e_error srGERD::openWindow(long width, long height)
 srGERD::e_error srGERD::openWindow(long mode)
 {
     if ((state_flags_28_ & 1) == 0) {
-        return static_cast<e_error>(9);
+        return ERROR_NO_CONTEXT;
     }
     if (mode < 0) {
         return openWindow();
     }
     if (srWindow::isWindow(device_40_.window_334_) == 0) {
-        return static_cast<e_error>(6);
+        return ERROR_INVALID_WHANDLE;
     }
     if (device_40_.display_mode_count_32c_ <= mode) {
-        return static_cast<e_error>(3);
+        return ERROR_WINDOW_OPEN_FAILED;
     }
     unsigned long* entry = device_40_.display_modes_328_ + mode * 3;
     OpenInfo info;
@@ -4267,22 +4272,22 @@ srGERD::e_error srGERD::openWindowInternal(const OpenInfo& info)
     srCriticalSectionAccess access(state_section_18_);
     if ((unsigned long)info.width_08 > (unsigned long)info.window_width_00 ||
         (unsigned long)info.height_0c > (unsigned long)info.window_height_04) {
-        return static_cast<e_error>(2);
+        return ERROR_INVALID_VALUE;
     }
     if ((state_flags_28_ & 1) == 0) {
-        return static_cast<e_error>(9);
+        return ERROR_NO_CONTEXT;
     }
     closeWindow(static_cast<e_closeHint>(1));
     if (info.width_08 != 0 && info.height_0c != 0 && info.window_width_00 != 0 &&
         info.window_height_04 != 0) {
         if (srWindow::isWindow(device_40_.window_334_) == 0) {
-            return static_cast<e_error>(6);
+            return ERROR_INVALID_WHANDLE;
         }
         if (info.display_mode_10 < -1 ||
             device_40_.display_mode_count_32c_ <= info.display_mode_10 ||
             device_40_.info_10_.unknown_00_ < (unsigned long)info.width_08 ||
             device_40_.info_10_.unknown_04_ < (unsigned long)info.height_0c) {
-            return static_cast<e_error>(2);
+            return ERROR_INVALID_VALUE;
         }
         memset(&device_40_.open_info_338_, 0, sizeof(device_40_.open_info_338_));
         srDD::OpenInfo dd_info;
@@ -4347,15 +4352,15 @@ srGERD::e_error srGERD::openWindowInternal(const OpenInfo& info)
                     count = 1;
                 }
                 for (; count != 0; count--) {
-                    clear(srFlags<e_buffer>(0xfffffffb));
+                    clear(srFlags<e_buffer>(~static_cast<unsigned long>(BUFFER_ACCUM)));
                     flipFrame();
                 }
                 flush();
             }
-            return static_cast<e_error>(0);
+            return ERROR_NONE;
         }
     }
-    return static_cast<e_error>(3);
+    return ERROR_WINDOW_OPEN_FAILED;
 }
 
 // FUNCTION: SURRENDER 0x10028460
@@ -4848,7 +4853,7 @@ long srGERD::getAccumBlueBits() const
 // FUNCTION: SURRENDER 0x1001C870
 void srGERD::setPolygonMode(e_polygonMode mode)
 {
-    if (mode != (e_polygonMode)polygon_mode_1fe0_) {
+    if (mode != polygon_mode_1fe0_) {
         flushImmediateRenderers();
         polygon_mode_1fe0_ = mode;
         dirty_24_ |= 0x4000;
@@ -4858,7 +4863,7 @@ void srGERD::setPolygonMode(e_polygonMode mode)
 // FUNCTION: SURRENDER 0x1001C8E0
 srGERD::e_polygonMode srGERD::getPolygonMode() const
 {
-    return (e_polygonMode)polygon_mode_1fe0_;
+    return polygon_mode_1fe0_;
 }
 
 // FUNCTION: SURRENDER 0x1001C8F0
@@ -5181,7 +5186,7 @@ void srGERD::initView()
     state_390_.clip_plane_count_12ec_ = 0;
     state_390_.clip_mask_12e4_ = 0x3f;
     state_390_.clip_mode1_mask_12e8_ = 0;
-    state_390_.cull_mode_12b8_ = static_cast<e_cullMode>(0);
+    state_390_.cull_mode_12b8_ = CULL_BACK;
     state_390_.winding_12bc_ = static_cast<e_winding>(0);
 }
 

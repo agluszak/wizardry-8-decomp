@@ -207,7 +207,7 @@ void HandleMipeEditPropKey(unsigned short key)
         }
         break;
     case 0xd:
-        trigger = state->prop->GetValue18();
+        trigger = state->prop->GetTrigger();
         if (trigger != 0) {
             CommitMipeEditFields(trigger->m_pActionData, 0);
         }

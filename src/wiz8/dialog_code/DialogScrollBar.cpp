@@ -111,10 +111,11 @@ void W8DialogScrollBar::SetLayout(int x, int y, int entry_count, int first_visib
         SetButtonPosition(m_down_button, static_cast<short>(arrow_x),
                           static_cast<short>(y - GetButtonHeight(m_down_button) +
                                              GetButtonHeight(m_track_button)));
-        m_track_bounds[0] = x;
-        m_track_bounds[1] = y + GetButtonHeight(m_up_button);
-        m_track_bounds[2] = x + GetButtonWidth(m_track_button);
-        m_track_bounds[3] = y - GetButtonHeight(m_down_button) + GetButtonHeight(m_track_button);
+        m_track_bounds.left = x;
+        m_track_bounds.top = y + GetButtonHeight(m_up_button);
+        m_track_bounds.right = x + GetButtonWidth(m_track_button);
+        m_track_bounds.bottom =
+            y - GetButtonHeight(m_down_button) + GetButtonHeight(m_track_button);
         m_entry_count = entry_count;
         m_first_visible_entry = first_visible_entry;
         m_entry_height = entry_height;
@@ -140,16 +141,17 @@ void W8DialogScrollBar::SetLayout(int x, int y, int entry_count, int first_visib
 void W8DialogScrollBar::UpdateThumb()
 {
     if (m_initialized && m_entry_count != -1 && m_first_visible_entry != -1) {
-        int x = m_track_bounds[0] +
-                (m_track_bounds[2] - m_track_bounds[0] - GetButtonWidth(m_thumb_button)) / 2;
+        int x = m_track_bounds.left +
+                (m_track_bounds.right - m_track_bounds.left - GetButtonWidth(m_thumb_button)) / 2;
         int offset = 0;
         if (m_entry_count > m_view_height / m_entry_height) {
-            offset = ((m_track_bounds[3] - m_track_bounds[1] - GetButtonHeight(m_thumb_button)) *
-                      m_first_visible_entry) /
-                     (m_entry_count - m_view_height / m_entry_height);
+            offset =
+                ((m_track_bounds.bottom - m_track_bounds.top - GetButtonHeight(m_thumb_button)) *
+                 m_first_visible_entry) /
+                (m_entry_count - m_view_height / m_entry_height);
         }
         SetButtonPosition(m_thumb_button, static_cast<short>(x),
-                          static_cast<short>(m_track_bounds[1] + offset));
+                          static_cast<short>(m_track_bounds.top + offset));
         m_dirty = true;
     }
 }
@@ -202,12 +204,12 @@ void W8DialogScrollBar::ScrollToMouse()
         m_first_visible_entry != -1) {
         POINT mouse;
         SGPMouseGetPos(&mouse);
-        if (mouse.y < m_track_bounds[1])
-            mouse.y = m_track_bounds[1];
-        if (mouse.y > m_track_bounds[3])
-            mouse.y = m_track_bounds[3];
-        int top = m_track_bounds[1];
-        int range = m_track_bounds[3] - top - GetButtonHeight(m_thumb_button);
+        if (mouse.y < m_track_bounds.top)
+            mouse.y = m_track_bounds.top;
+        if (mouse.y > m_track_bounds.bottom)
+            mouse.y = m_track_bounds.bottom;
+        int top = m_track_bounds.top;
+        int range = m_track_bounds.bottom - top - GetButtonHeight(m_thumb_button);
         m_first_visible_entry =
             (m_entry_count - m_view_height / m_entry_height) * (mouse.y - top) / range;
         if (m_on_scroll) {
@@ -289,10 +291,10 @@ W8DialogScrollBar::W8DialogScrollBar()
     m_entry_height = -1;
     m_view_height = -1;
     m_dirty = false;
-    m_track_bounds[0] = 0;
-    m_track_bounds[1] = 0;
-    m_track_bounds[2] = 0;
-    m_track_bounds[3] = 0;
+    m_track_bounds.left = 0;
+    m_track_bounds.top = 0;
+    m_track_bounds.right = 0;
+    m_track_bounds.bottom = 0;
     m_up_image = -1;
     m_up_button = -1;
     m_down_image = -1;

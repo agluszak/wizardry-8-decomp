@@ -520,7 +520,7 @@ void LoadAwayCampChest(void)
     if (pChest == 0) {
         srAssertFail("pChest", MASTER_FUNCTION_CPP, 0x5a4, 0);
     }
-    pTrigger = pChest->GetValue18();
+    pTrigger = pChest->GetTrigger();
     if (pTrigger == 0) {
         srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x5a6, 0);
     }

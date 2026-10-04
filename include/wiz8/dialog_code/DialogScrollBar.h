@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Button System.h"
+#include "wiz8/local_code/ControlsRect.h"
 
 class W8DialogBase;
 
@@ -40,7 +41,7 @@ private:
     int m_first_visible_entry; /* 0x08 */
     int m_entry_height;        /* 0x0c */
     int m_view_height;         /* 0x10 */
-    int m_track_bounds[4];     /* 0x14: left, top, right, bottom */
+    W8ControlsRect m_track_bounds; /* 0x14: left, top, right, bottom */
 public:
     /* Owning dialog; MonsterInfoDialog stores this so the scroll callback can
        retarget the text area. */

@@ -297,7 +297,7 @@ bool CanHandReachTarget(int party_slot, unsigned int hand)
     if (g_status.buffers.Char[party_slot].Hand[hand].in_play == 0) {
         return false;
     }
-    return GetCharAttackRange(&g_status.buffers.Char[party_slot], hand) != -1;
+    return GetCharAttackRange(&g_status.buffers.Char[party_slot], hand) != W8_RANGE_NONE;
 }
 
 /* Whether either hand can. */
@@ -311,7 +311,7 @@ bool CanAnyHandReachTarget(int party_slot)
             srAssertFail("uiHand < HAND_COUNT", COMBAT_ATTACK_CPP, 102, 0);
         }
         if (g_status.buffers.Char[party_slot].Hand[hand].in_play != 0 &&
-            GetCharAttackRange(&g_status.buffers.Char[party_slot], hand) != -1) {
+            GetCharAttackRange(&g_status.buffers.Char[party_slot], hand) != W8_RANGE_NONE) {
             return true;
         }
     }
@@ -326,7 +326,7 @@ int GetHandAttackValue(int party_slot, unsigned int hand)
         srAssertFail("uiHand < HAND_COUNT", COMBAT_ATTACK_CPP, 102, 0);
     }
     if (g_status.buffers.Char[party_slot].Hand[hand].in_play != 0 &&
-        GetCharAttackRange(&g_status.buffers.Char[party_slot], hand) != -1) {
+        GetCharAttackRange(&g_status.buffers.Char[party_slot], hand) != W8_RANGE_NONE) {
         return g_status.buffers.Char[party_slot].Hand[hand].attacks;
     }
     return 0;
@@ -366,7 +366,7 @@ bool CanCharacterBerserk(int party_slot)
             srAssertFail("uiHand < HAND_COUNT", COMBAT_ATTACK_CPP, 102, 0);
         }
         if (g_status.buffers.Char[party_slot].Hand[hand].in_play != 0 &&
-            GetCharAttackRange(&g_status.buffers.Char[party_slot], hand) != -1) {
+            GetCharAttackRange(&g_status.buffers.Char[party_slot], hand) != W8_RANGE_NONE) {
             return GetCharAttackRange(character, 0) <= W8_RANGE_SHORT;
         }
     }
@@ -1036,7 +1036,7 @@ int ChooseCharacterAttackHand(int party_slot)
                          reinterpret_cast<const char*>(hand));
         }
         if (g_status.buffers.Char[party_slot].Hand[hand].in_play != 0 &&
-            GetCharAttackRange(&g_status.buffers.Char[party_slot], hand) != -1 &&
+            GetCharAttackRange(&g_status.buffers.Char[party_slot], hand) != W8_RANGE_NONE &&
             (best_attacks < g_status.buffers.Char[party_slot].Hand[hand].attacks ||
              (g_status.buffers.Char[party_slot].Hand[hand].attacks == best_attacks &&
               g_status.buffers.Char[party_slot].Hand[hand].damage_bonus > best_damage_bonus))) {
@@ -1067,7 +1067,7 @@ void PrepareCharacterAttacks(int party_slot)
                          reinterpret_cast<const char*>(hand));
         }
         if (g_status.buffers.Char[party_slot].Hand[hand].in_play != 0 &&
-            GetCharAttackRange(&g_status.buffers.Char[party_slot], hand) != -1 &&
+            GetCharAttackRange(&g_status.buffers.Char[party_slot], hand) != W8_RANGE_NONE &&
             (best_attacks < g_status.buffers.Char[party_slot].Hand[hand].attacks ||
              (g_status.buffers.Char[party_slot].Hand[hand].attacks == best_attacks &&
               g_status.buffers.Char[party_slot].Hand[hand].damage_bonus > best_damage_bonus))) {
@@ -1089,7 +1089,7 @@ void PrepareCharacterAttacks(int party_slot)
                          reinterpret_cast<const char*>(hand));
         }
         if (g_status.buffers.Char[party_slot].Hand[hand].in_play == 0 ||
-            GetCharAttackRange(&g_status.buffers.Char[party_slot], hand) == -1) {
+            GetCharAttackRange(&g_status.buffers.Char[party_slot], hand) == W8_RANGE_NONE) {
             value = 0;
         } else {
             value = g_status.buffers.Char[party_slot].Hand[hand].attacks;
@@ -3686,7 +3686,7 @@ char StartCharacterAttack(int party_slot, int attack_mode)
     wchar_t* name;
     unsigned int mode;
     unsigned int hand;
-    int range;
+    W8RangeCategory range;
     bool noticed;
     unsigned int event_ids[3];
 
@@ -3703,7 +3703,7 @@ char StartCharacterAttack(int party_slot, int attack_mode)
     }
     hand = row->current_hand;
     if (character->Hand[hand].in_play == 0) {
-        if (GetCharAttackRange(character, hand) == -1) {
+        if (GetCharAttackRange(character, hand) == W8_RANGE_NONE) {
             row->hand_attack_values_40[hand] = 0;
             return 0;
         }
@@ -4497,7 +4497,8 @@ int ResolveCharacterAttack(int party_slot)
         if (hand >= 2) {
             srAssertFail("uiHand < HAND_COUNT", COMBAT_ATTACK_CPP, 0x66, 0);
         }
-        if (character->Hand[hand].in_play != 0 && GetCharAttackRange(character, hand) != -1 &&
+        if (character->Hand[hand].in_play != 0 &&
+            GetCharAttackRange(character, hand) != W8_RANGE_NONE &&
             memcmp(&target, &party_row->target_out_of_combat, sizeof(W8CombatSlot)) == 0 &&
             TargetIsInPlay(party_slot, hand, W8_TARGETING_CONTEXT_OUT_OF_COMBAT) != 0) {
             if (verbose == 0 && (fumbled != 0 || source.target_diverted != 0)) {

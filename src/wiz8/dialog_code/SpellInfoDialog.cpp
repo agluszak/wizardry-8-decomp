@@ -117,7 +117,7 @@ void W8SpellInfoDialog::DestroyControls()
 void W8SpellInfoDialog::Draw()
 {
     int steps;
-    int realm;
+    W8SpellRealm realm;
     W8SpellRealmAnimation* animation;
 
     if ((m_dirty_flags & 1) != 0) {
@@ -153,7 +153,7 @@ unsigned char W8SpellInfoDialog::PopulateText()
     unsigned int spellbook_mask;
     unsigned int book;
     int count;
-    int target_type;
+    W8SpellTargetType target_type;
     int duration_per_level;
     int duration_base;
     int ui_units;

@@ -1325,7 +1325,7 @@ static void SelectSpellCastingListRow(int index)
     int power_class;
     int previous;
     int spell_id;
-    int target_type;
+    W8SpellTargetType target_type;
     unsigned int levels;
     unsigned char needed;
 

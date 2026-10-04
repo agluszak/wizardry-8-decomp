@@ -26,13 +26,13 @@ const float g_prepath_link_height = 1.1f;
    marker below and PrePathing's teardown ever touch it. */
 class OctPrePathLog {
 public:
-    OctPrePathLog(float scale, const float* bounds); /* 0x004CCE00 */
+    OctPrePathLog(float scale, const W8BoundingBox* bounds); /* 0x004CCE00 */
     void MarkPathNode(W8PrePathNode* node);          /* 0x004CCF50 */
 
     int width_00;
     int rows_04;
     float scale_08;
-    float m_minimum[3];
+    srVector3T<float> m_minimum;
     char** m_pPathStrings;
     char** m_pLinkStrings;
 };
@@ -40,17 +40,17 @@ public:
 static_assert(sizeof(OctPrePathLog) == 0x20, "OctPrePathLog_must_be_0x20");
 
 // FUNCTION: WIZ8 0x004CCE00
-OctPrePathLog::OctPrePathLog(float scale, const float* bounds)
+OctPrePathLog::OctPrePathLog(float scale, const W8BoundingBox* bounds)
 {
     width_00 = 0;
     rows_04 = 0;
     scale_08 = scale;
     if (bounds != 0) {
-        width_00 = static_cast<int>((bounds[3] - bounds[0]) / scale) + 1;
-        rows_04 = static_cast<int>((bounds[5] - bounds[2]) / scale) + 1;
-        m_minimum[0] = bounds[0];
-        m_minimum[1] = bounds[1];
-        m_minimum[2] = bounds[2];
+        width_00 = static_cast<int>((bounds->maximum.x - bounds->minimum.x) / scale) + 1;
+        rows_04 = static_cast<int>((bounds->maximum.z - bounds->minimum.z) / scale) + 1;
+        m_minimum.x = bounds->minimum.x;
+        m_minimum.y = bounds->minimum.y;
+        m_minimum.z = bounds->minimum.z;
         m_pPathStrings = static_cast<char**>(malloc(rows_04 << 2));
         if (m_pPathStrings == 0) {
             ReportBuildStatus(7, "OctPrePathLog: Could not allocate m_pPathStrings.\n");
@@ -187,7 +187,7 @@ unsigned char PrePathing::BuildPathList(W8PrePathNode* nodes,
                                         W8HashTable<unsigned int, int>* cell_map)
 {
     cell_map_254 = cell_map;
-    path_log_244 = new OctPrePathLog(grid_scale_01c, level_bounds);
+    path_log_244 = new OctPrePathLog(grid_scale_01c, &level_bounds);
     path_node_list_240 = static_cast<W8PrePathNode**>(malloc(size_004 << 2));
     if (path_node_list_240 == 0) {
         char message[0x100];
@@ -431,10 +431,10 @@ unsigned int PrePathing::DeleteUnreachableAreas()
                     W8PrePathNode* node = path_node_list_240[pending - 1];
                     unsigned int cell = node->cell;
                     float world_y = node->y;
-                    float world_x =
-                        ((cell & 0xffff) + g_float_005ebc7c) * grid_scale_01c + level_bounds[0];
-                    float world_z =
-                        ((cell >> 0x10) + g_float_005ebc7c) * grid_scale_01c + level_bounds[2];
+                    float world_x = ((cell & 0xffff) + g_float_005ebc7c) * grid_scale_01c +
+                                    level_bounds.minimum.x;
+                    float world_z = ((cell >> 0x10) + g_float_005ebc7c) * grid_scale_01c +
+                                    level_bounds.minimum.z;
                     for (int n = 0; n < named_position_count_24c && clear_of_named; ++n) {
                         float dx = world_x - named_positions_250[n].x;
                         float dy = world_y - named_positions_250[n].y;

@@ -998,9 +998,7 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, unsigned
         unsigned char cycle;
 
         MonsterGetLocation(monster, &location);
-        previous.Set(static_cast<float>(monster_info->movement_watch_position[0]),
-                     static_cast<float>(monster_info->movement_watch_position[1]),
-                     static_cast<float>(monster_info->movement_watch_position[2]));
+        previous = monster_info->movement_watch_position;
         monster_info->position_17.y = location.y;
         cycle = monster_info->movement_stall_ticks_254;
         delta = location - previous;
@@ -1114,9 +1112,7 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, unsigned
         if (monster_info->movement_stall_ticks_254 > 0) {
             ++monster_info->movement_stall_ticks_254;
         }
-        monster_info->movement_watch_position[0] = static_cast<int>(monster_info->position_17.x);
-        monster_info->movement_watch_position[1] = static_cast<int>(monster_info->position_17.y);
-        monster_info->movement_watch_position[2] = static_cast<int>(monster_info->position_17.z);
+        monster_info->movement_watch_position = monster_info->position_17;
     }
 
     /* The monster alternates between a looking spell and a pause; each timer

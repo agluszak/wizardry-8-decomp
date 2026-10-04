@@ -125,7 +125,7 @@ Trigger* FindTriggerByName(const char* name)
 // FUNCTION: WIZ8 0x00443830
 Trigger* FindTriggerForProp(W8World* world, W8Prop* prop)
 {
-    Trigger* trigger = prop->GetValue18();
+    Trigger* trigger = prop->GetTrigger();
 
     if (trigger != 0) {
         W8TriggerActionData* action_data = trigger->m_pActionData;
@@ -2282,9 +2282,9 @@ void Trigger::FinishAction()
                 srAssertFail("m_pActionData", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
                              2822, "Trigger.cpp: Dark Area doesn't have action data");
             }
-            SetWorldEnvironmentValue(g_world,
-                                     static_cast<W8EnvironmentTriggerActionData*>(m_pActionData)
-                                         ->previous_environment_008);
+            SetWorldEnvironmentIntensity(g_world,
+                                         static_cast<W8EnvironmentTriggerActionData*>(m_pActionData)
+                                             ->previous_environment_008);
             delete m_pActionData;
             m_pActionData = 0;
             goto finish_linked_triggers;
@@ -2720,14 +2720,14 @@ void Trigger::Run(int source)
             goto commit_action;
 
         case 0x22: {
-            float previous_value = GetWorldValue24(g_world);
+            float previous_value = GetWorldEnvironmentIntensity(g_world);
 
             delete m_pActionData;
             m_pActionData = new W8EnvironmentTriggerActionData;
             m_pActionData->type_004 = 5;
             static_cast<W8EnvironmentTriggerActionData*>(m_pActionData)->previous_environment_008 =
                 previous_value;
-            SetWorldEnvironmentValue(g_world, 0.0f);
+            SetWorldEnvironmentIntensity(g_world, 0.0f);
             flags_0a0 |= W8_TRIGGER_RUNNING;
             goto commit_action;
         }

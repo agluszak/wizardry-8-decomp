@@ -366,10 +366,11 @@ void DrawWorldBox(W8World* world, srVector3T<float> minimum, srVector3T<float> m
     corners[6].Set(maximum.x, maximum.y, maximum.z);
     corners[7].Set(maximum.x, maximum.y, minimum.z);
 
-    float viewport[4];
-    GetScaledViewportBounds(viewport, viewport + 2);
-    float viewport_width = viewport[2] - viewport[0];
-    float viewport_height = viewport[3] - viewport[1];
+    srVector2T<float> viewport_minimum;
+    srVector2T<float> viewport_maximum;
+    GetScaledViewportBounds(&viewport_minimum, &viewport_maximum);
+    float viewport_width = viewport_maximum.x - viewport_minimum.x;
+    float viewport_height = viewport_maximum.y - viewport_minimum.y;
 
     long screen[8][2];
     int index = 0;
@@ -382,8 +383,10 @@ void DrawWorldBox(W8World* world, srVector3T<float> minimum, srVector3T<float> m
             static_cast<srCamera::e_projectionResult>(-1)) {
             return;
         }
-        (*pixel)[0] = static_cast<long>((projected.x * viewport_width + viewport[0]) * 640.0f);
-        (*pixel)[1] = static_cast<long>((projected.y * viewport_height + viewport[1]) * 480.0f);
+        (*pixel)[0] =
+            static_cast<long>((projected.x * viewport_width + viewport_minimum.x) * 640.0f);
+        (*pixel)[1] =
+            static_cast<long>((projected.y * viewport_height + viewport_minimum.y) * 480.0f);
         if ((*pixel)[0] < 0 || (*pixel)[0] > 640 || (*pixel)[1] < 0 || (*pixel)[1] > 480) {
             return;
         }
@@ -606,9 +609,9 @@ unsigned int LoadWorldCursorNodes(int handle)
 
     for (index = 0; index < count; ++index) {
         W8WorldCursorNode* cube = CreateWorldCursorCube();
-        float minimum[3];
-        float maximum[3];
-        float location[3];
+        srVector3T<float> minimum;
+        srVector3T<float> maximum;
+        srVector3T<float> location;
         int component;
 
         if (version >= 2) {
@@ -627,24 +630,23 @@ unsigned int LoadWorldCursorNodes(int handle)
             }
         }
         for (component = 0; component < 3; ++component) {
-            if (success && FileRead(handle, &minimum[component], 4, 0)) {
+            if (success && FileRead(handle, &(&minimum.x)[component], 4, 0)) {
                 success = true;
             } else {
                 success = false;
             }
         }
         for (component = 0; component < 3; ++component) {
-            if (success && FileRead(handle, &maximum[component], 4, 0)) {
+            if (success && FileRead(handle, &(&maximum.x)[component], 4, 0)) {
                 success = true;
             } else {
                 success = false;
             }
         }
 
-        srVector3T<float> scale(
-            (maximum[0] - minimum[0]) * static_cast<float>(g_world_cursor_scale),
-            (maximum[1] - minimum[1]) * static_cast<float>(g_world_cursor_scale),
-            (maximum[2] - minimum[2]) * static_cast<float>(g_world_cursor_scale));
+        srVector3T<float> scale((maximum.x - minimum.x) * static_cast<float>(g_world_cursor_scale),
+                                (maximum.y - minimum.y) * static_cast<float>(g_world_cursor_scale),
+                                (maximum.z - minimum.z) * static_cast<float>(g_world_cursor_scale));
         if (cube != 0) {
             stModelInstance* instance = static_cast<stModelInstance*>(cube->node_04);
             if (instance != 0) {
@@ -656,7 +658,7 @@ unsigned int LoadWorldCursorNodes(int handle)
         }
 
         for (component = 0; component < 3; ++component) {
-            if (success && FileRead(handle, &location[component], 4, 0)) {
+            if (success && FileRead(handle, &(&location.x)[component], 4, 0)) {
                 success = true;
             } else {
                 success = false;
@@ -666,9 +668,9 @@ unsigned int LoadWorldCursorNodes(int handle)
             srAssertFail("pCube", ST_CUBE_CPP, 0x10b, 0);
         }
         if (cube->node_04 != 0) {
-            srVector3T<double> node_location(static_cast<double>(location[0]),
-                                             static_cast<double>(location[1]),
-                                             static_cast<double>(location[2]));
+            srVector3T<double> node_location(static_cast<double>(location.x),
+                                             static_cast<double>(location.y),
+                                             static_cast<double>(location.z));
             cube->node_04->setLocation(node_location);
         }
         if (success && FileRead(handle, &cube->value_08, 4, 0)) {

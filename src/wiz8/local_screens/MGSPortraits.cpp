@@ -668,7 +668,7 @@ void RedrawPartyPortraitBars(unsigned int party_slot, bool slot_enabled)
 }
 
 // FUNCTION: WIZ8 0x0059AF40
-void StageMonsterCastIcon(unsigned int party_slot, int realm, bool alternate, int spell_id)
+void StageMonsterCastIcon(unsigned int party_slot, W8SpellRealm realm, bool alternate, int spell_id)
 {
     if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME) {
         return;

@@ -291,8 +291,8 @@ public:
        fills `out_distance` with the route length and returns nonzero when a
        route inside `max_range` exists. */
     int FindNavigatorPathDistance(float max_range, float* out_distance);          /* 0x00453480 */
-    void SetValue120(float value);                                                /* 0x00453C50 */
-    float GetValue120();                                                          /* 0x00453C60 */
+    void SetMovementScale(float value);                                           /* 0x00453C50 */
+    float GetMovementScale();                                                     /* 0x00453C60 */
     void SetMonsterTurnSpeed(float speed);                                        /* 0x00453C70 */
     unsigned char ConfigureMovementToPosition(const srVector3T<float>* position); /* 0x00452630 */
     /* Point the movement target at another navigator's position and enter the
@@ -321,7 +321,7 @@ public:
                      float variation); /* 0x00453CC0 */
     /* Stores each non-negative bound as the minimum and maximum height. */
     void SetHeightRange(float minimum, float maximum); /* 0x00453EF0 */
-    void SetFlag25(bool value);                        /* 0x004531F0 */
+    void SetHalted(bool value);                        /* 0x004531F0 */
     void SetMovementStopped();                         /* 0x00453880 */
     /* Save the presence-gated movement state LoadMovementState
        consumes: the flag byte, then for an ungrouped navigator with flag
