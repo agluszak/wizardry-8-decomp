@@ -453,7 +453,6 @@ def synchronize(
                 f"Ghidra program {program_name} is read-only; cannot synchronize ProgramDB"
             )
 
-        from ..callback_typing import apply_callback_typing, collect_callback_typing_plan
         from ..class_structure_projection import (
             apply_structure_projection,
             collect_structure_projection_plan,
@@ -539,9 +538,6 @@ def synchronize(
 
         global_plan = collect_global_typing_plan(settings.repo_dir, program, target=target)
         _record_step(steps, conflicts, "globals", apply_global_typing(program, global_plan))
-
-        callback_plan = collect_callback_typing_plan(program)
-        _record_step(steps, conflicts, "callbacks", apply_callback_typing(program, callback_plan))
 
         if target == "WIZ8":
             cosmic_plan = collect_cosmic_forge_plan(settings.repo_dir, program)

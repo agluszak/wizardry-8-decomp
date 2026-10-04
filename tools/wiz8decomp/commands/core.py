@@ -532,12 +532,16 @@ def scalar_facts_command(
     patch: Annotated[
         bool, typer.Option(help="Emit a reviewable patch; never edit source.")
     ] = False,
+    padding: Annotated[
+        bool,
+        typer.Option(help="Include layout-preserving explicit padding removal in the patch."),
+    ] = False,
 ) -> None:
     """Collect the complete configured corpus and solve shared type constraints."""
     from .. import command_support as cli
     from ..build import scalar_campaign
 
-    cli.emit(scalar_campaign(cli.settings(), evidence=evidence, patch=patch))
+    cli.emit(scalar_campaign(cli.settings(), evidence=evidence, patch=patch, padding=padding))
 
 
 def scalar_evidence_command(

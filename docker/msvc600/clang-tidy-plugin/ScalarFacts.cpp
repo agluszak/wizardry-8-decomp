@@ -54,6 +54,7 @@ public:
     bool TraverseConstructorInitializer(CXXCtorInitializer* initializer)
     {
         if (initializer != nullptr && initializer->isMemberInitializer()) {
+            field_reference(initializer->getMember(), initializer->getSourceLocation());
             transfer(initializer->getMember(), initializer->getInit(), "initializer",
                      initializer->getSourceLocation());
         }
@@ -87,11 +88,19 @@ public:
         if (!records_.insert(key).second)
             return true;
         const auto& layout = context_.getASTRecordLayout(record);
+        // #pragma pack is an explicit authored source control, distinct from
+        // the compiled layout it produces.
+        const auto* packing = record->getAttr<MaxFieldAlignmentAttr>();
         bool simple = !record->isUnion();
         if (const auto* cxx = dyn_cast<CXXRecordDecl>(record))
             simple = simple && cxx->getNumBases() == 0 && !cxx->isPolymorphic();
         unsigned index = 0;
         uint64_t natural = 0, alignment = 1;
+        // `int a, b;` shares one declaration statement; only a sole declarator
+        // owns a removable field-declaration span.
+        std::unordered_map<unsigned, unsigned> declarators;
+        for (const auto* field : record->fields())
+            ++declarators[field->getBeginLoc().getRawEncoding()];
         for (const auto* field : record->fields()) {
             const auto type = field->getType();
             if (field->isBitField() || type->isIncompleteType() || type->isDependentType()) {
@@ -105,16 +114,19 @@ public:
             alignment = std::max<uint64_t>(alignment, align);
             if (field->hasAttrs())
                 simple = false;
-            writer_.fact({"RF", key, field->getNameAsString(),
+            writer_.fact({"RF", key, owner_key(field), field->getNameAsString(),
                           std::to_string(layout.getFieldOffset(index++)), std::to_string(size),
-                          type.getCanonicalType().getAsString()});
+                          std::to_string(align), type.getCanonicalType().getAsString()});
+            if (declarators[field->getBeginLoc().getRawEncoding()] == 1)
+                declaration_span(field);
         }
         natural = ((natural + alignment - 1) / alignment) * alignment;
         writer_.fact({"REC", key, point.file, std::to_string(point.line),
                       record->getQualifiedNameAsString(),
                       std::to_string(layout.getSize().getQuantity() * 8),
                       std::to_string(layout.getAlignment().getQuantity() * 8),
-                      simple ? std::to_string(natural) : "unknown"});
+                      simple ? std::to_string(natural) : "unknown",
+                      std::to_string(packing == nullptr ? 0 : packing->getAlignment())});
         return true;
     }
 
@@ -170,6 +182,45 @@ public:
         return true;
     }
 
+    bool VisitMemberExpr(MemberExpr* member)
+    {
+        if (const auto* field = dyn_cast<FieldDecl>(member->getMemberDecl()))
+            field_reference(field, member->getMemberLoc());
+        return true;
+    }
+
+    bool VisitOffsetOfExpr(OffsetOfExpr* offset)
+    {
+        for (unsigned index = 0; index < offset->getNumComponents(); ++index)
+            if (offset->getComponent(index).getKind() == OffsetOfNode::Field)
+                field_reference(offset->getComponent(index).getField(), offset->getBeginLoc());
+        return true;
+    }
+
+    bool VisitDesignatedInitExpr(DesignatedInitExpr* initializer)
+    {
+        for (const auto& designator : initializer->designators())
+            if (designator.isFieldDesignator() && designator.getFieldDecl() != nullptr)
+                field_reference(designator.getFieldDecl(), initializer->getBeginLoc());
+        return true;
+    }
+
+    bool VisitUnaryExprOrTypeTraitExpr(UnaryExprOrTypeTraitExpr* trait)
+    {
+        if (trait->getKind() != UETT_SizeOf || trait->isArgumentType())
+            return true;
+        const auto* argument = trait->getArgumentExpr()->IgnoreParens();
+        if (const auto* array = array_owner(argument)) {
+            declare(array);
+            // sizeof(array) depends on the extent; sizeof(array[0]) only on the element.
+            array_use(array,
+                      isa<DeclRefExpr>(argument) || isa<MemberExpr>(argument) ? "sizeof"
+                                                                               : "sizeof-element",
+                      trait->getExprLoc());
+        }
+        return true;
+    }
+
     bool VisitReturnStmt(ReturnStmt* statement)
     {
         if (function_ != nullptr)
@@ -212,6 +263,10 @@ public:
         if (const auto* array = array_owner(subscript->getBase())) {
             declare(array);
             array_use(array, "indexed", subscript->getExprLoc());
+            Expr::EvalResult result;
+            if (subscript->getIdx()->EvaluateAsInt(result, context_) && !result.HasSideEffects)
+                array_use(array, "index:" + llvm::toString(result.Val.getInt(), 10),
+                          subscript->getExprLoc());
         }
         return true;
     }
@@ -266,6 +321,12 @@ public:
                     declare(array);
                     event("A", array, "array storage argument", argument->getExprLoc());
                     array_use(array, "call:" + function->getNameAsString(), argument->getExprLoc());
+                    // `names[i]` of a pointer array passes an element value, and
+                    // `rows[i]` of a 2-D array an inner array: neither is this
+                    // array's own character storage.
+                    const auto element = array_type(array)->getElementType();
+                    if (!element->isPointerType() && !element->isArrayType())
+                        storage_consumer(array, function, call, index, argument->getExprLoc());
                 }
             } else if (node_key(parameter).empty()) {
                 escape(argument, "unmodeled ABI parameter", argument->getExprLoc());
@@ -342,6 +403,8 @@ private:
                 return; // Base initializers are not field initializers.
         if (!list->isSemanticForm() && list->getSemanticForm() != nullptr)
             list = list->getSemanticForm();
+        // Positional initialization depends on the complete declared member list.
+        array_use(record->getDecl()->getDefinition(), "aggregate-initializer", list->getBeginLoc());
         unsigned index = 0;
         for (const auto* field : record->getDecl()->getDefinition()->fields()) {
             if (index >= list->getNumInits())
@@ -362,8 +425,14 @@ private:
         if (array == nullptr || value == nullptr)
             return;
         value = value->IgnoreParenImpCasts();
-        if (isa<StringLiteral>(value)) {
+        if (const auto* literal = dyn_cast<StringLiteral>(value)) {
             array_use(owner, "string-initializer", value->getExprLoc());
+            const char* kind = literal->isWide()                         ? "wchar_t"
+                               : literal->isOrdinary() || literal->isUTF8() ? "char"
+                                                                          : "other";
+            character(owner, kind, "literal", value->getExprLoc());
+            character(owner, "units:" + std::to_string(literal->getLength() + 1), "literal",
+                      value->getExprLoc());
             return;
         }
         if (const auto* list = dyn_cast<InitListExpr>(value)) {
@@ -494,6 +563,7 @@ private:
                 }
             }
             callback_signature(declaration, declaration->getLocation());
+            linkage(key, declaration);
             // Keep legacy fixed-byte-array declarations for the unchanged bool client.
             writer_.declaration(declaration);
             return;
@@ -502,6 +572,7 @@ private:
         if (const auto* candidate = canonical_scalar_declaration(declaration)) {
             writer_.declaration(candidate);
             type_fact(node_key(candidate), node_type(candidate));
+            linkage(node_key(candidate), candidate);
         }
         callback_signature(declaration, declaration->getLocation());
     }
@@ -580,18 +651,37 @@ private:
 
     void protected_span(const std::string& key, const std::string& component, SourceRange range)
     {
-        auto& sources = context_.getSourceManager();
         if (range.getBegin().isMacroID() || range.getEnd().isMacroID())
             return;
-        const auto point = source_point(sources, range.getBegin());
-        auto end = Lexer::getLocForEndOfToken(range.getEnd(), 0, sources, context_.getLangOpts());
-        if (!point || end.isInvalid() ||
-            sources.getFileID(range.getBegin()) != sources.getFileID(end))
+        protected_range(key, component, range.getBegin(),
+                        Lexer::getLocForEndOfToken(range.getEnd(), 0, context_.getSourceManager(),
+                                                   context_.getLangOpts()));
+    }
+
+    // A complete `T name[N];` member declaration, through its semicolon.
+    void declaration_span(const FieldDecl* field)
+    {
+        const SourceRange range = field->getSourceRange();
+        if (range.getBegin().isMacroID() || range.getEnd().isMacroID())
             return;
-        const auto buffer = sources.getBufferData(sources.getFileID(range.getBegin()));
-        const auto offset = sources.getFileOffset(range.getBegin());
+        protected_range(owner_key(field), "field-declaration", range.getBegin(),
+                        Lexer::findLocationAfterToken(range.getEnd(), tok::semi,
+                                                      context_.getSourceManager(),
+                                                      context_.getLangOpts(), false));
+    }
+
+    void protected_range(const std::string& key, const std::string& component,
+                         SourceLocation begin, SourceLocation end)
+    {
+        auto& sources = context_.getSourceManager();
+        const auto point = source_point(sources, begin);
+        if (key.empty() || !point || end.isInvalid() ||
+            sources.getFileID(begin) != sources.getFileID(end))
+            return;
+        const auto buffer = sources.getBufferData(sources.getFileID(begin));
+        const auto offset = sources.getFileOffset(begin);
         const auto length = sources.getFileOffset(end) - offset;
-        const auto file_id = sources.getFileID(range.getBegin()).getHashValue();
+        const auto file_id = sources.getFileID(begin).getHashValue();
         auto hash = source_hashes_.find(file_id);
         if (hash == source_hashes_.end()) {
             const auto digest = llvm::SHA256::hash(llvm::ArrayRef<uint8_t>(
@@ -600,6 +690,123 @@ private:
         }
         writer_.fact({"L", key, component, point.file, std::to_string(offset),
                       std::to_string(length), buffer.substr(offset, length).str(), hash->second});
+    }
+
+    void field_reference(const FieldDecl* field, SourceLocation location)
+    {
+        const auto point = source_point(context_.getSourceManager(), location);
+        const auto key = owner_key(field);
+        if (point && !key.empty())
+            writer_.fact({"FR", key, point.file, std::to_string(point.line),
+                          std::to_string(point.column)});
+    }
+
+    // Source-side boundary facts: who outside the collected corpus may name this entity.
+    void linkage(const std::string& key, const NamedDecl* declaration)
+    {
+        const auto* variable = dyn_cast<VarDecl>(declaration);
+        if (key.empty() || (!isa<FunctionDecl>(declaration) &&
+                            (variable == nullptr || !variable->hasGlobalStorage() ||
+                             variable->isStaticLocal())))
+            return;
+        std::string dll = "none";
+        for (const auto* redeclaration : declaration->redecls()) {
+            if (redeclaration->hasAttr<DLLImportAttr>())
+                dll = "import";
+            else if (redeclaration->hasAttr<DLLExportAttr>())
+                dll = "export";
+        }
+        if (const auto* record = dyn_cast<CXXRecordDecl>(declaration->getDeclContext())) {
+            if (record->hasAttr<DLLImportAttr>())
+                dll = "import";
+            else if (record->hasAttr<DLLExportAttr>())
+                dll = "export";
+        }
+        writer_.fact({"LK", key, declaration->isExternallyVisible() ? "external" : "internal", dll});
+    }
+
+    // Character semantics come from a pointee contract; a sugared VC6
+    // `wchar_t`/`WCHAR` typedef of unsigned short still names wide text.
+    std::string character_kind(QualType pointee) const
+    {
+        for (QualType step = pointee;;) {
+            if (const auto* alias = dyn_cast<TypedefType>(step.getTypePtr())) {
+                const auto name = alias->getDecl()->getName();
+                if (name == "wchar_t" || name == "WCHAR")
+                    return "wchar_t";
+            }
+            const QualType next = step.getSingleStepDesugaredType(context_);
+            if (next == step)
+                break;
+            step = next;
+        }
+        const auto canonical = pointee.getCanonicalType().getUnqualifiedType();
+        if (canonical->isVoidType())
+            return "raw-byte";
+        if (const auto* builtin = canonical->getAs<BuiltinType>()) {
+            switch (builtin->getKind()) {
+            case BuiltinType::Char_S:
+            case BuiltinType::Char_U:
+                return "char";
+            case BuiltinType::WChar_S:
+            case BuiltinType::WChar_U:
+                return "wchar_t";
+            case BuiltinType::SChar:
+            case BuiltinType::UChar:
+                return "raw-byte";
+            default:
+                break;
+            }
+        }
+        return "type:" + canonical.getAsString();
+    }
+
+    void character(const NamedDecl* array, const std::string& kind, const std::string& role,
+                   SourceLocation location)
+    {
+        const auto point = source_point(context_.getSourceManager(), location);
+        const auto key = owner_key(array);
+        if (point && !key.empty())
+            writer_.fact({"CH", key, kind, role, point.file, std::to_string(point.line),
+                          std::to_string(point.column)});
+    }
+
+    // Storage passed to a callee: its pointee contract and any constant byte
+    // count. System-header APIs are external contracts; project callees are
+    // reconstruction and only constrain coherent recovery.
+    void storage_consumer(const NamedDecl* array, const FunctionDecl* function,
+                          const CallExpr* call, unsigned index, SourceLocation location)
+    {
+        const auto& sources = context_.getSourceManager();
+        const auto* canonical = function->getCanonicalDecl();
+        const bool external = sources.isInSystemHeader(sources.getExpansionLoc(canonical->getLocation()));
+        const std::string role = std::string(external ? "api:" : "call:") +
+                                 function->getQualifiedNameAsString() + "#" + std::to_string(index);
+        const auto parameter_type = function->getParamDecl(index)->getType();
+        if (parameter_type->isPointerType())
+            character(array, character_kind(parameter_type->getPointeeType()), role, location);
+        for (unsigned other = 0; other < call->getNumArgs() && other < function->getNumParams();
+             ++other) {
+            const auto* parameter = function->getParamDecl(other);
+            const auto name = parameter->getName().lower();
+            bool size_type = false;
+            for (QualType step = parameter->getType();;) {
+                if (const auto* alias = dyn_cast<TypedefType>(step.getTypePtr()))
+                    size_type = size_type || alias->getDecl()->getName() == "size_t";
+                const QualType next = step.getSingleStepDesugaredType(context_);
+                if (next == step)
+                    break;
+                step = next;
+            }
+            if (!parameter->getType()->isUnsignedIntegerType() ||
+                (!size_type && name.find("byte") == std::string::npos &&
+                 name.find("size") == std::string::npos && name.find("len") == std::string::npos))
+                continue;
+            Expr::EvalResult result;
+            if (call->getArg(other)->EvaluateAsInt(result, context_) && !result.HasSideEffects)
+                character(array, "bytes:" + llvm::toString(result.Val.getInt(), 10), role,
+                          location);
+        }
     }
 
     void type_fact(const std::string& key, QualType type)
@@ -914,13 +1121,10 @@ private:
                 event("A", target, "unmodeled value producer", location);
                 return;
             }
+            // Width/domain changes are edge semantics, classified per property
+            // by the solver from both endpoint declarations.
             writer_.fact({"F", to, from, role, point.file, std::to_string(point.line),
                           std::to_string(point.column)});
-            if (context_.getTypeSize(node_type(source)) !=
-                context_.getTypeSize(node_type(target))) {
-                event("A", target, "width-changing conversion", location);
-                event("A", source, "width-changing conversion", location);
-            }
             return;
         }
         if (value->getType()->isBooleanType()) {

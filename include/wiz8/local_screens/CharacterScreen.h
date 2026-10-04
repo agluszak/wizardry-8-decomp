@@ -234,7 +234,6 @@ struct W8CharacterSpellEntry {
     unsigned int spell;
     bool fSelectable;
     bool selected;
-    unsigned char pad_00a[2];
 };
 static_assert(sizeof(W8CharacterSpellEntry) == 0xc, "W8CharacterSpellEntry_size");
 

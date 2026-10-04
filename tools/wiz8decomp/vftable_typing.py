@@ -1088,9 +1088,21 @@ def collect_vftable_typing_plan(
 
 
 def _resolve_slot_type(program: Any, spelling: str) -> Any | None:
-    from .callback_typing import _resolve_type
+    from .global_typing import resolve_data_type
 
-    return _resolve_type(program, spelling)
+    if spelling == "void":
+        from ghidra.program.model.data import VoidDataType  # type: ignore[import-not-found]
+
+        return VoidDataType()
+    if spelling == "bool":
+        from ghidra.program.model.data import BooleanDataType  # type: ignore[import-not-found]
+
+        return BooleanDataType()
+    if spelling == "int":
+        from ghidra.program.model.data import IntegerDataType  # type: ignore[import-not-found]
+
+        return IntegerDataType()
+    return resolve_data_type(program, spelling)
 
 
 def _definition_from_declaration(

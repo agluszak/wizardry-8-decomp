@@ -38,8 +38,9 @@ seed = {
     ],
 }
 report = integer_report(facts, [seed])
-component = next(item for item in report["components"] if field in item["members"])
-property_ = component["properties"]["signedness"]
+property_ = next(
+    item for item in report["integer_components"]["signedness"] if field in item["members"]
+)
 assert property_["status"] == "candidate", property_
 assert set(property_["changes"]) == chain, property_
 assert {facts.declarations[row["key"]].name for row in report["predicate32_inventory"]} == {
@@ -60,8 +61,9 @@ enum_seed = {
     },
 }
 enum_report = integer_report(facts, [enum_seed])
-enum_component = next(item for item in enum_report["components"] if enum_key in item["members"])
-enum_property = enum_component["properties"]["domain"]
+enum_property = next(
+    item for item in enum_report["integer_components"]["domain"] if enum_key in item["members"]
+)
 assert enum_property["status"] == "candidate", enum_property
 assert {facts.declarations[key].name for key in enum_property["changes"]} == {
     "ReadMode",
@@ -135,11 +137,11 @@ assert status["complete_value_domain"]
 
 from scalar_facts import anchored_report, write_recovery_patch
 
-pointer_key = by_name["fixture_owner"]
+pointer_key = by_name["fixture_storage"]
 pointer_seed = {
     "key": pointer_key,
     "property": "pointee",
-    "value": facts.types[pointer_key][2],
+    "value": facts.types[by_name["fixture_owner"]][2],
     "basis": {
         "kind": "source-oracle",
         "reference": "synthetic fixture",
@@ -153,14 +155,14 @@ pointer = next(
 )
 assert pointer["status"] == "candidate", pointer
 assert pointer["changes"] == [by_name["fixture_storage"]]
-mixed_key = by_name["fixture_mixed_owner"]
+mixed_key = by_name["fixture_mixed_storage"]
 mixed_seed = {**pointer_seed, "key": mixed_key}
 mixed = next(
     item for item in anchored_report(facts, [mixed_seed], "pointee") if mixed_key in item["members"]
 )
 assert mixed["status"] == "blocked"
 
-nominal_key = by_name["fixture_monster_id"]
+nominal_key = by_name["fixture_id_copy"]
 nominal_seed = {
     "key": nominal_key,
     "property": "nominal",
@@ -286,3 +288,96 @@ from scalar_facts import flow_components
 
 assert not any(set(data).issubset(component) for component in flow_components(facts))
 print("template specializations retain distinct, cross-TU-stable declaration identities")
+
+# Character storage, extents and padding are recovered from the same facts.
+from scalar_facts import array_report, padding_report
+
+by_name = {declaration.name: key for key, declaration in facts.declarations.items()}
+arrays = {row[4]: row for row in facts.arrays}
+script = arrays["FixtureSaveRecord::script_name"]
+roles = {(kind, role) for owner, kind, role, *_ in facts.character_uses if owner == script[0]}
+assert ("char", "api:strcpy#0") in roles, roles
+assert ("raw-byte", "api:memcpy#0") in roles, roles
+assert ("bytes:64", "api:memcpy#0") in roles, roles
+wide = arrays["fixture_wide_text"]
+assert any(owner == wide[0] and kind == "wchar_t" for owner, kind, *_ in facts.character_uses), (
+    facts.character_uses
+)
+retail = {
+    "kind": "retail",
+    "reference": "synthetic fixture",
+    "reason": "ANSI consumer and 64-byte serialized extent",
+}
+script_claims = [
+    {
+        "key": script[8],
+        "property": "character",
+        "value": "char",
+        "basis": {**retail, "value_width": 8},
+    },
+    {
+        "key": script[8],
+        "property": "extent",
+        "value": 64,
+        "basis": {**retail, "extent_kind": "serialized-extent"},
+        "complete_storage_accesses": True,
+    },
+]
+recovered = array_report(facts, script_claims)
+character = next(item for item in recovered["character_components"] if script[8] in item["members"])
+assert character["status"] == "candidate", character
+assert recovered["extents"][0]["status"] == "candidate", recovered["extents"]
+result = write_recovery_patch(facts, script_claims, root, patch)
+assert "+    char script_name[64];" in patch.read_text(), patch.read_text()
+# Without the extent the 16-bit element cannot become a byte element in place.
+blocked = array_report(facts, script_claims[:1])["character_components"]
+assert next(item for item in blocked if script[8] in item["members"])["status"] == "blocked"
+
+table = arrays["fixture_table"]
+table_uses = [use for use in facts.array_uses if use.key == table[0]]
+assert {use.detail for use in table_uses} >= {"indexed", "index:24"}
+shrink = {
+    "key": table[8],
+    "property": "extent",
+    "value": 25,
+    "basis": {
+        "kind": "source-oracle",
+        "reference": "synthetic fixture",
+        "reason": "released table extent",
+        "extent_kind": "declaration-contract",
+    },
+}
+assert array_report(facts, [shrink])["extents"][0]["status"] == "blocked"
+covered = {
+    **shrink,
+    "covered_uses": [
+        {"file": use.file, "line": use.line, "operation": "indexed"}
+        for use in table_uses
+        if use.detail == "indexed"
+    ],
+}
+assert array_report(facts, [covered])["extents"][0]["status"] == "candidate"
+too_small = {**covered, "value": 24}
+assert array_report(facts, [too_small])["extents"][0]["status"] == "blocked"
+write_recovery_patch(facts, [covered], root, patch)
+assert "+int fixture_table[25];" in patch.read_text(), patch.read_text()
+
+padding = {row["name"]: row for row in padding_report(facts)}
+assert padding["padding_1"]["status"] == "candidate", padding
+assert "layout" in padding["pad_tail"]["reason"], padding
+assert "aggregate" in padding["pad"]["reason"], padding
+assert any(use.key.endswith(":field:padded_value") for use in facts.field_references)
+result = write_recovery_patch(facts, [], root, patch, padding=True)
+assert "-    char padding_1[3];" in patch.read_text(), patch.read_text()
+assert "-    char pad_tail;" not in patch.read_text()
+
+exported = by_name["FixtureExported"]
+assert facts.linkage[exported] == ("external", "export")
+export_seed = {**seed, "key": exported, "covered_uses": []}
+report = integer_report(facts, [export_seed])
+component = next(
+    item for item in report["integer_components"]["signedness"] if exported in item["members"]
+)
+assert any("dll export" in blocker["reason"] for blocker in component["blockers"]), component
+assert report["coverage"]["complete"] is False
+print("character storage, extents, padding removal and DLL boundaries pass")

@@ -236,6 +236,7 @@ RUN --mount=type=bind,source=clang-tidy-plugin,target=/plugin-input \
       /tmp/wiz8-clang-tidy-plugin/scalar_test.cpp \
       /tmp/wiz8-clang-tidy-plugin/scalar_test_second.cpp \
       -- --target=i686-pc-windows-msvc -std=c++17 \
+      -isystem /tmp/wiz8-clang-tidy-plugin/scalar_system \
  && python3 /tmp/wiz8-clang-tidy-plugin/scalar_test.py \
       /tmp/wiz8-clang-tidy-plugin/scalar-facts \
  && rm -rf /tmp/wiz8-clang-tidy-plugin \

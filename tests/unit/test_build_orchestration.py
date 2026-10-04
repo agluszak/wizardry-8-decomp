@@ -479,16 +479,23 @@ def test_scalar_campaign_owns_fresh_complete_corpus_and_rejects_partial_runs(
         else:
             assert f"{evidence}:/scalar-evidence.json:ro" in command
             assert "--patch" in command
+            expected = (kwargs["log_path"].parent / "facts/expected-units.txt").read_text()
+            assert expected.split() == sorted(
+                ["src/wiz8/one.cpp", "src/wiz8/two.cpp", "src/sgp/timer.c"]
+            )
             report = {
                 "declarations": [{}],
                 "translation_units": ["src/wiz8/one.cpp", "src/wiz8/two.cpp", "src/sgp/timer.c"],
+                "coverage": {"complete": True, "source_complete_boundaries": 0},
                 "flows": [],
-                "components": [],
+                "integer_components": {"width": [], "signedness": [], "domain": []},
                 "domain_inventory": [],
                 "callbacks": [],
                 "predicate32_inventory": [],
                 "pointer_components": [],
                 "nominal_components": [],
+                "array_components": {"character_components": [], "extents": []},
+                "structural_inventory": {"padding": [], "records": [], "divergent_layouts": []},
                 "recovery_patch": {"groups": []},
             }
             if failure == "coverage":

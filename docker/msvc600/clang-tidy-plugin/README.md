@@ -31,8 +31,9 @@ errors fail the wrapper before potentially incomplete facts are read.
 integer solver and other clients of the same constraint graph. Width, signedness and semantic domain are separate properties;
 the current C++ spelling is retained as observation metadata. Current AST types
 and arithmetic are not independent retail evidence. Ordinary source copies,
-returns and call arguments connect the graph; arithmetic is an operation to
-review, and explicit/width-changing conversions remain barriers. The collector
+returns and call arguments are directed transfers; arithmetic is an operation to
+review. Each property interprets a transfer by its semantic class (see
+[Property-specific propagation](#property-specific-propagation)). The collector
 also records pointer, enum, character, bool and floating domains, but the integer
 solver preserves those domains. A separate known-enum domain solver accepts
 independent header/symbol/source evidence for an enum already present in the
@@ -64,9 +65,49 @@ graph. Resolved function bindings and indirect invocations connect implementatio
 parameters/returns to callers across TUs. Arity, calling convention and variadic
 mismatches are blockers. This models signature dependencies; it does not claim
 complete callback-table/ABI recovery or remove the bool solver's existing escape
-rules. Array/table elements, unresolved callback producers, external ABI slots,
-complex declarators and width changes remain conservative follow-up work.
-Floating, array/record, packing and class-ownership clients remain future work.
+rules. Unresolved callback producers, external ABI slots and width changes remain
+blockers. Floating and class-ownership clients remain future work.
+
+## Property-specific propagation
+
+The solver classifies every `F` transfer from both endpoint declarations:
+`copy`, `alias-change` (different typedef, same representation), `binding`
+(callback slot ABI), `widening`/`narrowing`, `domain-change`, `erasure`
+(`T*` to `void*`), `pointer-conversion` and explicit `conversion`. Each property
+gives every class one meaning:
+
+| class | signedness | width | enum domain | pointee | nominal | character |
+| --- | --- | --- | --- | --- | --- | --- |
+| copy, binding | equal | equal | equal | equal | equal | equal |
+| alias-change | equal | equal | equal | equal | producer | equal |
+| widening | review producer | review | review | - | barrier | review |
+| narrowing | barrier | review | review | - | barrier | review |
+| domain-change | review producer | review | enum<->int equal, else producer | barrier | barrier | review |
+| erasure | - | - | - | producer | - | - |
+| conversion | barrier unless widening/domain change | barrier | barrier | barrier | barrier | barrier |
+
+`equal` joins one component. `barrier` makes the endpoints independent storage.
+`review` blocks a change at either endpoint and `review producer` blocks changing
+the producer whose representation the conversion consumes (sign- versus
+zero-extension). `producer` is directional: an erased consumer may change only
+when its typed producer already has the recovered value, and a typed producer
+never seeds the erased consumer. `FooId -> int` or `T* -> void*` therefore needs
+evidence on the consumer itself. The collector no longer emits width-change
+escapes; an explicit-conversion escape at the same site as its modeled edge is
+handled by that edge. One questionable transfer now blocks only the property that
+it actually affects instead of merging and blocking a whole component.
+
+## Source-boundary completeness
+
+The campaign writes the configured unit census as `expected-units.txt` before
+collection. `LK` records linkage and DLL import/export for functions and globals.
+The solver itself establishes the source half of a boundary: every configured
+unit was collected, a function or parameter has a collected body, and no DLL
+linkage, address-taking, virtual/function-pointer use, reference binding or
+aggregate/indirect storage argument exposes the entity outside the corpus. Every
+changed width boundary requires this machine-checked completeness in addition to
+its reviewed claim, and any change to a DLL-visible declaration is blocked
+because it changes the decorated ABI.
 
 ## Run a report
 
@@ -148,8 +189,8 @@ function returns additionally require `complete_return_boundary: true` after
 reviewing producer definitions and all caller consumption. Fields require
 `complete_storage_accesses: true` after reviewing receiver identity, widths,
 offsets, stride and layout. Neither narrow constants nor a partial EAX write
-establish these contracts. These flags record reviewed completeness assertions;
-the solver does not independently prove them.
+establish these contracts. These flags now assert only the retail side of the
+boundary; the solver verifies source-side completeness itself.
 Parameter width changes require `complete_argument_boundary: true` for the
 argument producers and callee consumption, including stack-slot promotions.
 Every changed field, parameter or return in a propagated width chain needs its
@@ -192,7 +233,9 @@ clang-tidy --wiz8-scalar-report /out/scalar-facts \
 ```
 
 The patch writer handles existing enum domains, builtin signedness at an unchanged width, known integer
-typedef atoms, and concrete `void` pointees. It preserves int/long spelling and
+typedef atoms, concrete `void` pointees, character element types and literal
+array extents. `--padding` additionally deletes layout-preserving explicit padding
+members (whole lines, including a trailing comment). It preserves int/long spelling and
 qualifiers, updates every observed redeclaration, rejects a component if any
 changed declaration lacks a safe span, and rejects atoms shared with unchanged
 declarations. SHA-256 and original token bytes must match current files before
@@ -209,9 +252,12 @@ bound to the exact declaration, source file, line and operation.
 
 Additional records share the same fact stream: `T` type identity, `O` consumed
 constant/operation, `V` explicit conversion endpoints/types, `J` callback slot,
-`C` implementation binding, and `L` source type atom/snapshot. Legacy bool records
-retain their meanings. The report adds `domain_inventory`, `pointer_components`,
-`nominal_components` and `callbacks`; there is no parallel semantic-debt database.
+`C` implementation binding, `L` source type atom/snapshot, `FR` field reference,
+`CH` storage character/byte-count observation and `LK` linkage. Legacy bool
+records retain their meanings. Report schema `wiz8.scalar-report-v2` keeps one
+component list per property under `integer_components`, plus `pointer_components`,
+`nominal_components`, `array_components`, `domain_inventory` and `callbacks`;
+there is no parallel semantic-debt database.
 
 
 ## Source corrections in this pass
@@ -269,11 +315,47 @@ implementations to shared callback argument/return slots; every table entry must
 agree before signature recovery is possible. Unsupported aggregate bases are
 excluded rather than misidentified as fields.
 
-`REC` and `RF` record compiled source size/alignment and field offset/type/size.
-The structural client inventories arrays, string initializers, duplicate layouts
-and packing that changes source size. These observations do not establish retail
-packing, authored extents or shared original record identity. Inheritance,
-polymorphism, unions, bitfields and attributed fields exclude natural-size replay.
+`REC` and `RF` record compiled source size/alignment, `#pragma pack` and field
+key/offset/size/alignment/type. The structural client inventories arrays, string
+initializers, duplicate layouts, packing that changes source size and packing
+that changes nothing at all (`redundant_packing`, report only). These
+observations do not establish retail packing, authored extents or shared
+original record identity. Inheritance, polymorphism, unions, bitfields and
+attributed fields exclude natural layout replay.
+
+### Character storage
+
+`CH` records what each consumer does with array storage: a system-header API
+parameter's pointee (`char`, `wchar_t` including the VC6 `WCHAR`/`wchar_t`
+typedefs, or `raw-byte` for `void`/byte pointers), a project callee's pointee, a
+string literal's kind and length (`units:N`) and constant byte counts passed to
+size parameters (`bytes:N`). These observations do not establish the historical
+type. `character` evidence (`char`, `wchar_t` or `raw-byte`, retail code-unit
+width or independent declarations) seeds the element node. Every API/literal
+consumer must agree (`raw-byte` agrees with either), every project consumer must
+already take the recovered pointee, and element value flows obey the character
+column above. An element width change also needs `extent` evidence. `raw-byte`
+is report-only: its historical spelling needs nominal recovery.
+
+### Extents
+
+`extent` evidence names its `extent_kind`: retail `indexing-range`,
+`serialized-extent`, `allocation-stride` or `field-boundary` (each with
+`complete_storage_accesses: true`), or an independent `declaration-contract`.
+`sizeof(array)` must be covered, constant indices and literal lengths must fit,
+consumer byte counts must fit, and shrinking needs every dynamic index covered.
+Only a literal extent is rewritten; a symbolic extent belongs to its constant's
+owner. After character/extent proposals are accepted, every affected record is
+replayed: all other member offsets, the record size and alignment must remain
+unchanged or every proposal touching that record is blocked.
+
+### Padding
+
+A member named like `pad`, `padding_N` or `align_N` with byte/short storage is
+removable only when it has no reference (`FR`, array use, flow, operation or
+escape), its record has no positional aggregate initializer, it owns a sole
+declaration, and replaying the record without it reproduces every surviving
+offset, the size and the alignment. Candidates are evaluated greedily per record.
 
 Evidence may select an exact `(file, kind, name)` owner instead of a line-based
 key. Parameter selectors use qualified function name and position (`::#0`),
@@ -301,7 +383,8 @@ pointees, array elements/extents, and callback returns/parameters. Callback type
 uses share the typedef's source atoms: every collected owner must agree before an
 edit is emitted. Arity, calling convention, variadics, unresolved producers and ABI
 escapes remain blockers; bound implementations must have collected bodies. Array
-extent spans are collected separately and do not authorize changing extents.
+extent spans change only through the extent client; `field-declaration` spans
+cover a complete sole member declaration for padding removal.
 
 ## Import independent declaration contracts
 
@@ -319,7 +402,8 @@ revision and records each original path, blob and SHA256. An accepted source
 identity is insufficient by itself: each correspondence explicitly reviews that
 its declaration contract was retained. Clang parses the released declarations;
 the configuration supplies correspondence and reviewed typedef roles, not hand
-copied width/signedness/type facts.
+copied width/signedness/type facts. A paired fixed array also contributes its
+`declaration-contract` extent and, for `char`/`wchar_t` elements, its character kind.
 
 The export importer reads the canonical retail `sr.dll`, verifies its inventory
 SHA256, and uses existing reccmp source-index address pairings. LLVM decodes the

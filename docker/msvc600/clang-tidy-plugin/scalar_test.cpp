@@ -217,3 +217,54 @@ long FixturePatchImplementation(long value)
 {
     return value;
 }
+
+// Character storage: one ANSI API and one raw 64-byte copy consume a buffer
+// that the reconstruction declares with 16-bit elements.
+#include <scalar_system.h>
+struct FixtureSaveRecord {
+    int header;
+    unsigned short script_name[32];
+    int trailer;
+};
+FixtureSaveRecord fixture_save;
+void StoreScriptName(const char* name)
+{
+    strcpy(reinterpret_cast<char*>(fixture_save.script_name), name);
+    memcpy(fixture_save.script_name, name, 64);
+}
+WCHAR fixture_wide_text[8];
+void StoreWideText(const WCHAR* text)
+{
+    lstrcpyW(fixture_wide_text, text);
+}
+
+int fixture_table[30];
+int ReadFixtureTable(int index)
+{
+    return fixture_table[index] + fixture_table[24];
+}
+
+// Explicit padding that natural placement already reproduces is removable;
+// padding that defines the record size or feeds positional initializers is not.
+struct FixturePaddedRecord {
+    char tag;
+    char padding_1[3];
+    int padded_value;
+    char pad_tail;
+};
+FixturePaddedRecord fixture_padded;
+int ReadPadded()
+{
+    return fixture_padded.padded_value + fixture_padded.tag;
+}
+struct FixtureInitPadded {
+    char tag;
+    char pad[3];
+    int initialized_value;
+};
+FixtureInitPadded fixture_init_padded = {1, {0, 0, 0}, 2};
+
+__declspec(dllexport) int FixtureExported(int exported)
+{
+    return exported;
+}
