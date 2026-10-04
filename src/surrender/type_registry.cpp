@@ -1163,19 +1163,7 @@ void srRegistry::ClassNode::initialize(ClassNode* parent, const char* class_name
     inherited_instances_by_id = 0;
     instance_count = 0;
     if (parent != 0) {
-        ChildLink* link = new ChildLink;
-        link->next = parent->children.first;
-        link->node = this;
-        link->previous = parent->children.first->previous;
-        if (link->previous == 0) {
-            parent->children.first = link;
-        } else {
-            link->previous->next = link;
-        }
-        if (link->next != 0) {
-            link->next->previous = link;
-        }
-        ++parent->children.count;
+        parent->children.pushFront(this);
         inherited_named_instances = parent->getNameIndex();
         inherited_instances_by_id = parent->getIDIndex();
     }
