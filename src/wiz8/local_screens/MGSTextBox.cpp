@@ -646,9 +646,9 @@ void ShowNoticef(unsigned int font_palette, const wchar_t* format, ...)
     ShowNotice(font_palette, text, text_box, -1, false);
 }
 
-/* The value the screen keeps beside the text. */
+/* The font the main-game text box measures and draws with. */
 // FUNCTION: WIZ8 0x0058aa10
-int GetTextBoxValue2E8(void)
+int GetTextBoxFont(void)
 {
     return g_level_block->text_box_font;
 }

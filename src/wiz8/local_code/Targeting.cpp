@@ -1728,7 +1728,7 @@ bool IsTargetSourceInRangeOfGroup(const W8TargetSource* source, W8MonsterGroup* 
     W8MonsterInfo* monster_info;
     W8MonsterRecord* record;
     unsigned int index;
-    int range;
+    W8RangeCategory range;
     float distance;
     float max_distance;
 
@@ -1755,7 +1755,7 @@ bool IsTargetSourceInRangeOfGroup(const W8TargetSource* source, W8MonsterGroup* 
         record = GetMonsterDataForInfo(monster_info);
         range = GetMonsterActionRangeCategory(monster_info, record, 0);
     }
-    max_distance = CalcRangeDistance(static_cast<W8RangeCategory>(range));
+    max_distance = CalcRangeDistance(range);
     for (index = 0; index < ILLength(group->monsters); ++index) {
         W8Monster* member = GetMonsterByLocationID(IListGetAt(group->monsters, index));
 
@@ -2184,7 +2184,7 @@ bool RepickActionTarget(int party_slot, W8TargetingContext context, int arg)
     int kind_2;
     int action;
     int action_2;
-    int previous_kind;
+    W8TargetKind previous_kind;
     int group_id;
     unsigned int monster_index;
     int selected;

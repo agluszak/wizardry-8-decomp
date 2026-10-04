@@ -957,7 +957,7 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
         !renderer->isEnabled(srGERD::ENABLE_SORTED_RENDERING)) {
         renderer->toggle(srGERD::ENABLE_SORTED_RENDERING);
     }
-    renderer->setCullMode(srGERD::CULL_FRONT);
+    renderer->setCullMode(srGERD::CULL_NONE);
     renderer->setPickKey(0);
 
     srTriMeshPipeline* pipeline = srTriMeshPipeline::Get(renderer);

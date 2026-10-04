@@ -68,8 +68,11 @@ struct W8ItemDatabaseRecord {
     unsigned char flags_041;                /* 0x041 */
     unsigned char category;                 /* 0x042: three is a spell source */
     unsigned char unknown_043[3];
-    signed char weapon_skill;        /* 0x046: -1 when the item grants none */
-    unsigned char wield_group;       /* 0x047 */
+    signed char weapon_skill; /* 0x046: -1 when the item grants none */
+    /* 0x047: the W8RangeCategory band the weapon attacks at. GetCharAttackRange
+       returns it, the Assay caption names it, and paired weapons/ammunition
+       must share it. */
+    unsigned char range_category;
     signed char attack_damage_bonus; /* 0x048 */
     signed char attack_hit_bonus;    /* 0x049 */
     W8Dice damage_dice;              /* 0x04a */

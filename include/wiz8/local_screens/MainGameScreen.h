@@ -632,7 +632,7 @@ enum W8MGSAction {
     W8_MGS_ACTION_REPEAT = 0x10
 };
 
-void TryMGSActionKey(int command); /* 0x0056B4C0 */
+void TryMGSActionKey(W8MGSAction command); /* 0x0056B4C0 */
 /* The action-key command gate and executor the dispatcher's 0x131..0x141
    cases and TryMGSActionKey share. */
 bool IsMGSActionKeyEnabled(short command);                                /* 0x0056AF80 */

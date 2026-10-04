@@ -116,7 +116,7 @@ int GetPhaseStep(void)
 /* Note what kind of move is pending. Only one value is singled out; everything
    else counts as the other kind. */
 // FUNCTION: WIZ8 0x004f0520
-void SetPendingMoveKind(int kind)
+void SetPendingMoveKind(W8ActionKind kind)
 {
     if (gXStatus.fCombatMode == 0) {
         srAssertFail("gXStatus.fCombatMode", COMBAT_MOVEMENT_CPP, 435, 0);

@@ -508,7 +508,7 @@ void RefreshEnvironment(void)
 /* Set the world's environment intensity, clamped to the unit range, keeping
    its current colour unless the world has no static scene to take it from. */
 // FUNCTION: WIZ8 0x00483AE0
-void SetWorldEnvironmentValue(W8World* world, float value)
+void SetWorldEnvironmentIntensity(W8World* world, float value)
 {
     EnvironmentColour colour;
 
@@ -808,9 +808,9 @@ void AddEnvironmentLight(stLight* light)
     }
 }
 
-/* One value off the world object, guarded by an assertion that names it. */
+/* The world's live environment-light intensity. */
 // FUNCTION: WIZ8 0x00483ab0
-float GetWorldValue24(const W8World* world)
+float GetWorldEnvironmentIntensity(const W8World* world)
 {
     if (world == 0) {
         srAssertFail("pWorld", ENVIRONMENT_CPP, 648, 0);

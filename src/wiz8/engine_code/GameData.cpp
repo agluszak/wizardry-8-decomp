@@ -525,7 +525,7 @@ after_move:
     } else if (g_level_footstep_pending != 0) {
         if (g_level_data->vector_64.y <= g_footstep_fall_threshold) {
             PlayFootstep(g_level_data->sound_environment_0c, g_level_data->sound_environment_alt_0d,
-                         1);
+                         W8_FOOTSTEP_KIND_JUMP);
             g_level_data->footstep_accumulator_10 = 0;
         }
         g_level_footstep_pending = 0;
@@ -1543,8 +1543,9 @@ const float g_float_005ebcb8 = -0.5f;
 // GLOBAL: WIZ8 0x005ebcc0
 const double g_double_005ebcc0 = 0.33333298563957214;
 
-bool SegmentCrossesEdge(const float* seg_start, const float* seg_end, const float* edge_a,
-                                 const float* edge_b, unsigned int axis);
+bool SegmentCrossesEdge(const srVector3T<float>* seg_start, const srVector3T<float>* seg_end,
+                        const srVector3T<float>* edge_a, const srVector3T<float>* edge_b,
+                        unsigned int axis);
 
 /* Clip the motion segment against this surface's plane and triangle. On a hit
    `from` advances to the contact point, `hit_distance` returns the travelled
@@ -1615,41 +1616,34 @@ unsigned char W8GDSurface::TestSegment(srVector3T<float>* from, const srVector3T
     int axis = flags & 3;
     short comp_u = (axis + 1) % 3;
     short comp_v = (axis + 2) % 3;
-    float start_proj[3];
-    start_proj[0] = point.x - normal.x * dist_start;
-    start_proj[1] = point.y - normal.y * dist_start;
-    start_proj[2] = point.z - normal.z * dist_start;
-    float end_proj[3];
-    end_proj[0] = end.x - normal.x * dist_end;
-    end_proj[1] = end.y - normal.y * dist_end;
-    end_proj[2] = end.z - normal.z * dist_end;
-    float verts[9];
-    verts[0] = vertices[vertex_indices_18[0]].x;
-    verts[1] = vertices[vertex_indices_18[0]].y;
-    verts[2] = vertices[vertex_indices_18[0]].z;
-    verts[3] = vertices[vertex_indices_18[1]].x;
-    verts[4] = vertices[vertex_indices_18[1]].y;
-    verts[5] = vertices[vertex_indices_18[1]].z;
-    verts[6] = vertices[vertex_indices_18[2]].x;
-    verts[7] = vertices[vertex_indices_18[2]].y;
-    verts[8] = vertices[vertex_indices_18[2]].z;
+    srVector3T<float> start_proj;
+    start_proj.x = point.x - normal.x * dist_start;
+    start_proj.y = point.y - normal.y * dist_start;
+    start_proj.z = point.z - normal.z * dist_start;
+    srVector3T<float> end_proj;
+    end_proj.x = end.x - normal.x * dist_end;
+    end_proj.y = end.y - normal.y * dist_end;
+    end_proj.z = end.z - normal.z * dist_end;
+    srVector3T<float> verts[3];
+    verts[0] = vertices[vertex_indices_18[0]];
+    verts[1] = vertices[vertex_indices_18[1]];
+    verts[2] = vertices[vertex_indices_18[2]];
     for (short edge = 0; edge < 3; ++edge) {
         if (crossed != 0) {
             break;
         }
         short next = (edge + 1) % 3;
-        if (SegmentCrossesEdge(start_proj, end_proj, verts + edge * 3, verts + next * 3, axis) !=
-            0) {
+        if (SegmentCrossesEdge(&start_proj, &end_proj, &verts[edge], &verts[next], axis) != 0) {
             crossed = 1;
         }
-        float edge_low = verts[edge * 3 + comp_v];
-        float edge_high = verts[next * 3 + comp_v];
-        if ((edge_low <= end_proj[comp_v] && end_proj[comp_v] < edge_high) ||
-            (edge_high <= end_proj[comp_v] && end_proj[comp_v] < edge_low)) {
-            float crossing = (verts[next * 3 + comp_u] - verts[edge * 3 + comp_u]) *
-                                 (end_proj[comp_v] - edge_low) / (edge_high - edge_low) +
-                             verts[edge * 3 + comp_u];
-            if (crossing > end_proj[comp_u]) {
+        float edge_low = (&verts[edge].x)[comp_v];
+        float edge_high = (&verts[next].x)[comp_v];
+        if ((edge_low <= (&end_proj.x)[comp_v] && (&end_proj.x)[comp_v] < edge_high) ||
+            (edge_high <= (&end_proj.x)[comp_v] && (&end_proj.x)[comp_v] < edge_low)) {
+            float crossing = ((&verts[next].x)[comp_u] - (&verts[edge].x)[comp_u]) *
+                                 ((&end_proj.x)[comp_v] - edge_low) / (edge_high - edge_low) +
+                             (&verts[edge].x)[comp_u];
+            if (crossing > (&end_proj.x)[comp_u]) {
                 inside = !inside;
             }
         }
@@ -1718,55 +1712,56 @@ unsigned char W8GDSurface::TestSegment(srVector3T<float>* from, const srVector3T
    motion segment seg_start→seg_end must overlap edge_a→edge_b on both free
    axes and their line-crossing parameters must both fall inside [0,1]. */
 // FUNCTION: WIZ8 0x0041D7A0
-bool SegmentCrossesEdge(const float* seg_start, const float* seg_end, const float* edge_a,
-                                 const float* edge_b, unsigned int axis)
+bool SegmentCrossesEdge(const srVector3T<float>* seg_start, const srVector3T<float>* seg_end,
+                        const srVector3T<float>* edge_a, const srVector3T<float>* edge_b,
+                        unsigned int axis)
 {
     unsigned int comp_u = (axis + 1) % 3;
     unsigned int comp_v = (axis + 2) % 3;
-    float seg_du = seg_end[comp_u] - seg_start[comp_u];
-    float edge_du = edge_a[comp_u] - edge_b[comp_u];
+    float seg_du = (&seg_end->x)[comp_u] - (&seg_start->x)[comp_u];
+    float edge_du = (&edge_a->x)[comp_u] - (&edge_b->x)[comp_u];
     float seg_u_low;
     float seg_u_high;
     if (seg_du <= g_float_zero) {
-        seg_u_low = seg_end[comp_u];
-        seg_u_high = seg_start[comp_u];
+        seg_u_low = (&seg_end->x)[comp_u];
+        seg_u_high = (&seg_start->x)[comp_u];
     } else {
-        seg_u_low = seg_start[comp_u];
-        seg_u_high = seg_end[comp_u];
+        seg_u_low = (&seg_start->x)[comp_u];
+        seg_u_high = (&seg_end->x)[comp_u];
     }
     float edge_u_low;
     float edge_u_high;
     if (edge_du <= g_float_zero) {
-        edge_u_low = edge_a[comp_u];
-        edge_u_high = edge_b[comp_u];
+        edge_u_low = (&edge_a->x)[comp_u];
+        edge_u_high = (&edge_b->x)[comp_u];
     } else {
-        edge_u_low = edge_b[comp_u];
-        edge_u_high = edge_a[comp_u];
+        edge_u_low = (&edge_b->x)[comp_u];
+        edge_u_high = (&edge_a->x)[comp_u];
     }
     if (seg_u_low <= edge_u_high && edge_u_low <= seg_u_high) {
-        float seg_dv = seg_end[comp_v] - seg_start[comp_v];
-        float edge_dv = edge_a[comp_v] - edge_b[comp_v];
+        float seg_dv = (&seg_end->x)[comp_v] - (&seg_start->x)[comp_v];
+        float edge_dv = (&edge_a->x)[comp_v] - (&edge_b->x)[comp_v];
         float seg_v_low;
         float seg_v_high;
         if (seg_dv <= g_float_zero) {
-            seg_v_low = seg_end[comp_v];
-            seg_v_high = seg_start[comp_v];
+            seg_v_low = (&seg_end->x)[comp_v];
+            seg_v_high = (&seg_start->x)[comp_v];
         } else {
-            seg_v_low = seg_start[comp_v];
-            seg_v_high = seg_end[comp_v];
+            seg_v_low = (&seg_start->x)[comp_v];
+            seg_v_high = (&seg_end->x)[comp_v];
         }
         float edge_v_low;
         float edge_v_high;
         if (edge_dv <= g_float_zero) {
-            edge_v_low = edge_a[comp_v];
-            edge_v_high = edge_b[comp_v];
+            edge_v_low = (&edge_a->x)[comp_v];
+            edge_v_high = (&edge_b->x)[comp_v];
         } else {
-            edge_v_low = edge_b[comp_v];
-            edge_v_high = edge_a[comp_v];
+            edge_v_low = (&edge_b->x)[comp_v];
+            edge_v_high = (&edge_a->x)[comp_v];
         }
         if (seg_v_low <= edge_v_high && edge_v_low <= seg_v_high) {
-            float rel_u = seg_start[comp_u] - edge_a[comp_u];
-            float rel_v = seg_start[comp_v] - edge_a[comp_v];
+            float rel_u = (&seg_start->x)[comp_u] - (&edge_a->x)[comp_u];
+            float rel_v = (&seg_start->x)[comp_v] - (&edge_a->x)[comp_v];
             float side_start = rel_u * edge_dv - rel_v * edge_du;
             float denom = seg_dv * edge_du - edge_dv * seg_du;
             if (denom <= g_float_zero) {
@@ -2880,7 +2875,7 @@ unsigned char W8LevelDataRecord::UpdateFootstepFromMotion()
         }
         AlertCombatNoise(large_radius);
         if (sound_environment_0c >= 0 && sound_environment_alt_0d >= 0) {
-            PlayFootstep(sound_environment_0c, sound_environment_alt_0d, 0);
+            PlayFootstep(sound_environment_0c, sound_environment_alt_0d, W8_FOOTSTEP_KIND_STEP);
             while (g_float_005ebcdc < footstep_accumulator_10) {
                 footstep_accumulator_10 -= g_float_005ebcdc;
             }
@@ -3039,7 +3034,8 @@ void UpdateLevelMovementAudio(void)
     if (g_facing_tolerance_005ebcf4 < now - g_level_footstep_time &&
         (g_level_footstep_time = now,
          g_level_footstep_sound == -1 || SoundIsPlaying(g_level_footstep_sound) == 0)) {
-        g_level_footstep_sound = PlayFootstep(g_level_data->sound_environment_0c,
-                                              g_level_data->sound_environment_alt_0d, 2);
+        g_level_footstep_sound =
+            PlayFootstep(g_level_data->sound_environment_0c, g_level_data->sound_environment_alt_0d,
+                         W8_FOOTSTEP_KIND_SCUFF);
     }
 }

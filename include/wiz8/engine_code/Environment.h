@@ -87,7 +87,7 @@ void SetGameTimeMilliseconds(int value);
    hands off to when the bypass value is set. */
 void UpdateEnvironment(void);
 void UpdateEnvironmentLighting(void);
-float GetWorldValue24(const W8World* world);
+float GetWorldEnvironmentIntensity(const W8World* world);
 /* Show or hide the world's camera light: 0x00483E50 loads g_world->camera_light
    (offset 0x54) and clears srNode::FLAG_DISABLE when visible, sets it when not.
    Nothing here is a sky node; the exported name is still the placeholder and one
@@ -152,7 +152,7 @@ extern W8Vector<stLight*> g_environment_lights;
 
 void SetGameTimeDays(int value);
 void AdvanceEnvironmentTime(int elapsed); /* 0x00482A20 */
-void SetWorldEnvironmentValue(W8World* world, float value);
+void SetWorldEnvironmentIntensity(W8World* world, float value);
 /* Arm the lighting transition. Duration is in milliseconds: negative fades the
    world out, positive fades it back in over abs(duration); zero applies the
    current base intensity immediately and returns to day/night mode. */

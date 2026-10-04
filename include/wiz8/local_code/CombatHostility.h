@@ -1,5 +1,7 @@
 #pragma once
 
+#include "wiz8/layouts/targeting.h"
+
 struct W8MonsterInfo;
 struct W8MonsterGroup;
 struct W8TargetSource;
@@ -13,8 +15,8 @@ template <class T> class W8GrowableVector;
 char MonsterHostility(W8MonsterInfo* first, W8MonsterInfo* second);
 /* 0x00547310: whether a party action aims at enemies (melee kinds, or a spell /
    item-spell whose target type is an enemy band). */
-bool CharacterActionTargetsEnemies(W8Character* character, int action_kind, int action_detail,
-                                   W8ActionDetailBlock* detail);
+bool CharacterActionTargetsEnemies(W8Character* character, W8ActionKind action_kind,
+                                   int action_detail, W8ActionDetailBlock* detail);
 /* 0x00547440: the monster-side counterpart; action kinds 0 and 3 always count,
    kind 2 defers to MonsterCanAimSpell. */
 bool MonsterActionTargetsEnemies(int action_kind, int action_detail,

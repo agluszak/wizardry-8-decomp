@@ -1,6 +1,8 @@
 #pragma once
 
-void SetPendingMoveKind(int kind);                         /* 0x004F0520 */
+#include "wiz8/layouts/targeting.h"
+
+void SetPendingMoveKind(W8ActionKind kind);                /* 0x004F0520 */
 unsigned char GetPartyHasteSteps(unsigned int* out_steps); /* 0x004F0010 */
 void CompletePartyMovementTurns(void);                     /* 0x004F06B0 */
 void BeginFreeTurnPhase(void);                             /* 0x004F0630 */

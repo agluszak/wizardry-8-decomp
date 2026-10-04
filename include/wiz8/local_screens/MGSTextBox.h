@@ -52,7 +52,7 @@ extern W8MessageStorageRecord g_message_storage[4][0x15e];
 /* 0x0058AA20: reset one editor status line; -1 selects the current line. */
 void ResetEditorStatusLine(short line);
 /* 0x0058AA10: the font currently bound to the main text box. */
-int GetTextBoxValue2E8(void);
+int GetTextBoxFont(void);
 /* 0x0058C790: repaint dirty dialogue text-input lines and the caret. */
 void RedrawDialogueTextInput(void);
 /* 0x00590D90: clear one text_lines slot on the level block. */

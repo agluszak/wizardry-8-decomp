@@ -1533,7 +1533,7 @@ unsigned char W8Navigator::ConfigureMovementToPosition(const srVector3T<float>* 
 }
 
 // FUNCTION: WIZ8 0x004531f0
-void W8Navigator::SetFlag25(bool value)
+void W8Navigator::SetHalted(bool value)
 {
     halted_025 = value;
     if (value == 0) {
@@ -1878,13 +1878,13 @@ void W8Navigator::SetObject68Flag38(char value)
 }
 
 // FUNCTION: WIZ8 0x00453c50
-void W8Navigator::SetValue120(float value)
+void W8Navigator::SetMovementScale(float value)
 {
     movement_0c0.movement_scale_060 = value;
 }
 
 // FUNCTION: WIZ8 0x00453c60
-float W8Navigator::GetValue120()
+float W8Navigator::GetMovementScale()
 {
     return movement_0c0.movement_scale_060;
 }

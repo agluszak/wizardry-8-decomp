@@ -462,7 +462,7 @@ struct W8MonsterInfo {
     /* 0x304: the condition's own target source, copied in whole by the
        condition setter. */
     W8TargetSource condition_target_304;
-    int movement_watch_position[3]; /* 0x338: creator clears as one unit */
+    srVector3T<float> movement_watch_position; /* 0x338 */
     /* 0x344: location id of the phantom an Insanity effect summoned against
        this monster, -1 while none is bound; a bound monster cannot be picked
        again. */
@@ -521,7 +521,7 @@ bool AnyMonsterDying(void);
 float GetAveragePartyMemberLevel(void); /* 0x004EFB60 */
 /* 0x00554490: the highest `skills[skill_index].level` among live party members;
    `party_slot` receives the best member's slot. */
-unsigned int GetBestPartySkillLevel(int skill_index, int* party_slot);
+unsigned int GetBestPartySkillLevel(W8Skill skill_index, int* party_slot);
 
 void StartMonsterCycle(W8MonsterInfo* monster_info, int cycle, int behavior);
 void MonsterInfoLeaveCombat(W8MonsterInfo* monster_info);

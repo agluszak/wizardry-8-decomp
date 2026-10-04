@@ -236,15 +236,15 @@ void W8Prop::ToggleSetting6E()
 
 /* The prop's own trigger at 0x18. */
 // FUNCTION: WIZ8 0x0044d5a0
-Trigger* W8Prop::GetValue18()
+Trigger* W8Prop::GetTrigger()
 {
     return this->trigger_18;
 }
 
-/* One value out of the owned GDProp, but only once the flag that says it is
-   there is up. */
+/* The trigger that owns this prop's GDProp, once the flag that says the
+   GDProp is attached is up. */
 // FUNCTION: WIZ8 0x0044e0a0
-Trigger* W8Prop::GetGDPropValue24()
+Trigger* W8Prop::GetGDPropOwnerTrigger()
 {
     if ((this->flags_1c & 0x80) != 0 && this->m_gd_prop != 0) {
         return this->m_gd_prop->m_owner_24;

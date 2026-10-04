@@ -978,7 +978,7 @@ void StartCharacterItemUse(int party_slot)
 // FUNCTION: WIZ8 0x004ffbd0
 int GetTotalCasterLevel(const W8Character* character, int spellbook, bool include_all)
 {
-    int profession = character->iProfession;
+    W8Profession profession = character->iProfession;
     int total;
     int other;
     int level;
@@ -3535,7 +3535,7 @@ void PrepareSpellTarget(int spell_id, W8TargetSource* source, W8CombatSlot* targ
     srVector3T<float> saved;
     W8MonsterInfo* monster_info;
     W8Navigator* navigator;
-    int target_type;
+    W8SpellTargetType target_type;
 
     if (source->iType <= W8_TARGET_SOURCE_NONE || source->iType >= W8_TARGET_SOURCE_COUNT) {
         srAssertFail("(pSource->iType > SOURCE_TYPE_NONE) && (pSource->iType < SOURCE_TYPE_COUNT)",
@@ -3745,7 +3745,7 @@ void CheckSpellBackfire(int spell_id, W8TargetSource* source, W8CombatSlot* targ
 {
     W8Character* character;
     W8MonsterInfo* monster_info;
-    int target_type;
+    W8SpellTargetType target_type;
 
     monster_info = 0;
     if (source->iType == W8_TARGET_SOURCE_CHARACTER) {
@@ -3827,7 +3827,7 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
     float heading;
     float elevation;
     float distance;
-    int target_type;
+    W8SpellTargetType target_type;
     int side;
     int sight_flag;
     int slot;
@@ -3887,13 +3887,13 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
     target_point = target->point;
     target_type = GetSpellTargetType(spell_id, 0);
     switch (target_type) {
-    case 0:
-    case 3:
+    case W8_TARGET_TYPE_CASTER:
+    case W8_TARGET_TYPE_ENEMY:
         if (target->iType == W8_TARGET_KIND_CHARACTER) {
             party_markers->Add(target->iChar);
         } else if (target->iType == W8_TARGET_KIND_MONSTER) {
             monster_markers->Add(target->iMonsterID);
-        } else if (target_type == 3) {
+        } else if (target_type == W8_TARGET_TYPE_ENEMY) {
             FormatDebugMessage(1,
                                "InvalidMagicTarget: Spell %d(%ls), Target Type %d(char %d, monster "
                                "ID %d, group ID %d), Source Type %d(char %d,ID %d)",
@@ -3903,7 +3903,7 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
             return;
         }
         break;
-    case 1:
+    case W8_TARGET_TYPE_ALLY:
         if (target->iType == W8_TARGET_KIND_CHARACTER ||
             target->iType == W8_TARGET_KIND_CHARACTER_INDIRECT) {
             party_markers->Add(target->iChar);
@@ -3919,7 +3919,7 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
             return;
         }
         break;
-    case 2:
+    case W8_TARGET_TYPE_PARTY:
         radius = (g_spell_records[spell_id].radius_per_level_127 * power_level +
                   g_spell_records[spell_id].effect_radius) *
                  g_world_scale;
@@ -3962,7 +3962,7 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
         CollectMonstersWithinRadius(&centre, &eye, monster_markers, radius, static_cast<char>(side),
                                     static_cast<char>(highlighting));
         break;
-    case 4:
+    case W8_TARGET_TYPE_ENEMY_GROUP:
         if (target->iType == W8_TARGET_KIND_GROUP) {
             group = GetMonsterGroupByListIndex(
                 GetMonsterGroupIndexByID(0x99f, MAGIC_CPP, target->iGroupID, 1));
@@ -3996,7 +3996,7 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
             return;
         }
         break;
-    case 5:
+    case W8_TARGET_TYPE_CONE:
         heading = GetHeadingAngle(&eye, &target_point);
         elevation = GetElevationAngle(&eye, &target_point);
         if (TargetSourceIsCharacter(source, 0)) {
@@ -4051,7 +4051,7 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
                                       sight_flag);
         }
         break;
-    case 6:
+    case W8_TARGET_TYPE_RADIUS:
         trace.Set(target_point.x, target_point.y - g_float_005ebc64, target_point.z);
         radius = (g_spell_records[spell_id].radius_per_level_127 * power_level +
                   g_spell_records[spell_id].effect_radius) *
@@ -4091,7 +4091,7 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
                                         static_cast<char>(highlighting));
         }
         break;
-    case 7:
+    case W8_TARGET_TYPE_ALL_ENEMIES:
         target->point = eye;
         radius = CalcRangeDistance(g_spell_records[spell_id].range_category, source);
         if (TargetSourceIsCharacter(source, 1) ||
@@ -4120,6 +4120,8 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
             CollectMonstersWithinRadius(&centre, &eye, monster_markers, radius, 3,
                                         static_cast<char>(highlighting));
         }
+        break;
+    default:
         break;
     }
     if (marked && spell_id != 0x16 && spell_id != 0x4d) {

@@ -75,6 +75,9 @@ class ScalarFacts:
     operations: set[Use] = field(default_factory=set)
     escapes: set[Use] = field(default_factory=set)
     bodies: set[str] = field(default_factory=set)
+    function_bodies: set[str] = field(default_factory=set)
+    pure_virtuals: set[str] = field(default_factory=set)
+    overrides: dict[str, set[str]] = field(default_factory=lambda: defaultdict(set))
     source_domains: dict[str, set[str]] = field(default_factory=lambda: defaultdict(set))
     inconsistent: set[str] = field(default_factory=set)
     locations: list[tuple[str, str, int]] = field(default_factory=list)
@@ -158,6 +161,18 @@ def read_scalar_facts(directory: Path) -> ScalarFacts:
                         (facts.records if tag == "REC" else facts.record_fields).add(
                             tuple(parts[1:])
                         )
+                    elif tag == "PV":
+                        if len(parts) != 2:
+                            raise ValueError("pure virtual requires 2 fields")
+                        facts.pure_virtuals.add(parts[1])
+                    elif tag == "OV":
+                        if len(parts) != 3:
+                            raise ValueError("override requires 3 fields")
+                        facts.overrides[parts[1]].add(parts[2])
+                    elif tag == "HB":
+                        if len(parts) != 2:
+                            raise ValueError("function body requires 2 fields")
+                        facts.function_bodies.add(parts[1])
                     elif tag == "FR":
                         if len(parts) != 5:
                             raise ValueError("field reference requires 5 fields")
@@ -314,6 +329,38 @@ def read_scalar_facts(directory: Path) -> ScalarFacts:
     facts.bool_escaped.update(
         key for key, callee in facts.bool_pending if callee not in facts.bool_bodies
     )
+    # Aggregate storage passed to a direct callee whose body was collected stays
+    # inside the graph: that body's own field uses are recorded. Otherwise the
+    # storage escapes to uncollected code.
+    # A virtual call stays inside the graph only when every collected override
+    # in its closure has a body (pure declarations dispatch elsewhere).
+    contained: dict[str, bool] = {}
+
+    def virtual_contained(method: str) -> bool:
+        if method not in contained:
+            contained[method] = False  # cycles are malformed; fail closed
+            pending, seen = [method], set()
+            while pending:
+                key = pending.pop()
+                if key in seen:
+                    continue
+                seen.add(key)
+                if key not in facts.function_bodies and key not in facts.pure_virtuals:
+                    break
+                pending.extend(facts.overrides.get(key, ()))
+            else:
+                contained[method] = True
+        return contained[method]
+
+    resolved = set()
+    for use in facts.escapes:
+        detail, _, callee = use.detail.partition("@")
+        virtual = callee.startswith("virtual:")
+        callee = callee.removeprefix("virtual:")
+        if callee and (virtual_contained(callee) if virtual else callee in facts.function_bodies):
+            continue
+        resolved.add(replace(use, detail=detail))
+    facts.escapes = resolved
     return facts
 
 
@@ -785,6 +832,7 @@ _EDGE_POLICY: dict[str, dict[str, str]] = {
     },
     "width": {
         "copy": "equal",
+        "sign-change": "equal",
         "alias-change": "equal",
         "binding": "equal",
         "widening": "review",
@@ -793,6 +841,7 @@ _EDGE_POLICY: dict[str, dict[str, str]] = {
     },
     "domain": {
         "copy": "equal",
+        "sign-change": "equal",
         "alias-change": "equal",
         "binding": "equal",
         "domain-change": "enum-integer",
@@ -808,6 +857,7 @@ _EDGE_POLICY: dict[str, dict[str, str]] = {
     "nominal": {"copy": "equal", "binding": "equal", "alias-change": "producer"},
     "character": {
         "copy": "equal",
+        "sign-change": "review",
         "alias-change": "equal",
         "binding": "equal",
         "widening": "review",
@@ -838,6 +888,10 @@ def edge_class(facts: ScalarFacts, flow: Flow) -> str:
         return "pointer-conversion"
     if source.width != target.width:
         return "widening" if source.width < target.width else "narrowing"
+    if source.signedness != target.signedness:
+        # `long` storage returned through an `unsigned long` API is an authored
+        # conversion, not evidence that both declarations share signedness.
+        return "sign-change"
     if source_type[1] != target_type[1]:
         return "alias-change"
     return "copy"

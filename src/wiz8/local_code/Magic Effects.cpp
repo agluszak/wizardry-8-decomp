@@ -1421,7 +1421,7 @@ void ApplyDamageToTargets(W8SpellEffectEntry* effect)
     unsigned char verbose;
     unsigned int magnitude;
     int character_index;
-    int realm;
+    W8SpellRealm realm;
     int power_level;
     int index;
 
@@ -1489,7 +1489,7 @@ void DrainTargetsLife(W8SpellEffectEntry* effect)
     unsigned int magnitude;
     unsigned int drained;
     int character_index;
-    int realm;
+    W8SpellRealm realm;
     int power_level;
     int index;
 
@@ -2144,7 +2144,7 @@ void ResolveAfflictionAgainstTargets(W8SpellEffectEntry* effect)
 {
     unsigned int magnitude;
     unsigned int roll;
-    int realm;
+    W8SpellRealm realm;
     int power_level;
     unsigned char verbose;
     W8CombatSlot target;
@@ -2660,7 +2660,7 @@ void ResolveCharmRefusal(W8SpellEffectEntry* effect)
 {
     W8MonsterInfo* monster_info;
     W8MonsterRecord* monster;
-    int realm;
+    W8SpellRealm realm;
 
     realm = g_spell_records[effect->kind].realm;
     if (TargetSourceIsCharacter(&effect->Source, 0) == 0) {
@@ -3208,7 +3208,7 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
     int queued_spell_id;
     int spell_id;
     int condition;
-    int target_type;
+    W8SpellTargetType target_type;
     int index;
     int cost;
     W8Character* character;
