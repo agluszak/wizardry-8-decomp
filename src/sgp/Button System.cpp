@@ -56,7 +56,7 @@
 
 
 // GLOBAL: WIZ8 0x006e1940
-UINT8		str[128];
+CHAR8		str[128];
 
 //Kris:  December 2, 1997
 //Special internal debugging utilities that will ensure that you don't attempt to delete
@@ -231,7 +231,7 @@ INT32 LoadButtonImage(UINT8 *filename, INT32 Grayed, INT32 OffNormal, INT32 OffH
 
 	// Load the image
 	vo_desc.fCreateFlags = VOBJECT_CREATE_FROMFILE;
-	strcpy(vo_desc.ImageFile, filename);
+	strcpy(vo_desc.ImageFile, (char *)filename);
 
 	MemBefore = MemGetFree();
 	if((ButtonPictures[UseSlot].vobj = CreateVideoObject(&vo_desc)) == NULL)
@@ -618,7 +618,7 @@ BOOLEAN InitializeButtonImageManager(INT32 DefaultBuffer, INT32 DefaultPitch, IN
 
 	// Load the default generic button images
 	vo_desc.fCreateFlags = VOBJECT_CREATE_FROMFILE;
-	strcpy(vo_desc.ImageFile, DEFAULT_GENERIC_BUTTON_OFF);
+	strcpy(vo_desc.ImageFile, (char *)DEFAULT_GENERIC_BUTTON_OFF);
 
 	if((GenericButtonOffNormal[0] = CreateVideoObject(&vo_desc)) == NULL)
 	{
@@ -627,7 +627,7 @@ BOOLEAN InitializeButtonImageManager(INT32 DefaultBuffer, INT32 DefaultPitch, IN
 	}
 
 	vo_desc.fCreateFlags = VOBJECT_CREATE_FROMFILE;
-	strcpy(vo_desc.ImageFile, DEFAULT_GENERIC_BUTTON_ON);
+	strcpy(vo_desc.ImageFile, (char *)DEFAULT_GENERIC_BUTTON_ON);
 
 	if((GenericButtonOnNormal[0] = CreateVideoObject(&vo_desc)) == NULL)
 	{
@@ -639,11 +639,11 @@ BOOLEAN InitializeButtonImageManager(INT32 DefaultBuffer, INT32 DefaultPitch, IN
 	// doesn't exists, the system simply ignores that file. These are only here as extra images, they
 	// aren't required for operation (only OFF Normal and ON Normal are required).
 	vo_desc.fCreateFlags = VOBJECT_CREATE_FROMFILE;
-	strcpy(vo_desc.ImageFile, DEFAULT_GENERIC_BUTTON_OFF_HI);
+	strcpy(vo_desc.ImageFile, (char *)DEFAULT_GENERIC_BUTTON_OFF_HI);
 	GenericButtonOffHilite[0] = CreateVideoObject(&vo_desc);
 
 	vo_desc.fCreateFlags = VOBJECT_CREATE_FROMFILE;
-	strcpy(vo_desc.ImageFile, DEFAULT_GENERIC_BUTTON_ON_HI);
+	strcpy(vo_desc.ImageFile, (char *)DEFAULT_GENERIC_BUTTON_ON_HI);
 	GenericButtonOnHilite[0] = CreateVideoObject(&vo_desc);
 
 	Pix=0;
@@ -792,7 +792,7 @@ INT16 LoadGenericButtonImages(UINT8 *GrayName,UINT8 *OffNormName,UINT8 *OffHilit
 
 	// Load the image for the Off-Normal button state (required)
 	vo_desc.fCreateFlags = VOBJECT_CREATE_FROMFILE;
-	strcpy(vo_desc.ImageFile, OffNormName);
+	strcpy(vo_desc.ImageFile, (char *)OffNormName);
 
 	if((GenericButtonOffNormal[ImgSlot] = CreateVideoObject(&vo_desc)) == NULL)
 	{
@@ -802,7 +802,7 @@ INT16 LoadGenericButtonImages(UINT8 *GrayName,UINT8 *OffNormName,UINT8 *OffHilit
 
 	// Load the image for the On-Normal button state (required)
 	vo_desc.fCreateFlags = VOBJECT_CREATE_FROMFILE;
-	strcpy(vo_desc.ImageFile, OnNormName);
+	strcpy(vo_desc.ImageFile, (char *)OnNormName);
 
 	if((GenericButtonOnNormal[ImgSlot] = CreateVideoObject(&vo_desc)) == NULL)
 	{
@@ -816,7 +816,7 @@ INT16 LoadGenericButtonImages(UINT8 *GrayName,UINT8 *OffNormName,UINT8 *OffHilit
 	if(GrayName != BUTTON_NO_FILENAME)
 	{
 		vo_desc.fCreateFlags = VOBJECT_CREATE_FROMFILE;
-		strcpy(vo_desc.ImageFile, GrayName);
+		strcpy(vo_desc.ImageFile, (char *)GrayName);
 
 		if((GenericButtonGrayed[ImgSlot] = CreateVideoObject(&vo_desc)) == NULL)
 		{
@@ -830,7 +830,7 @@ INT16 LoadGenericButtonImages(UINT8 *GrayName,UINT8 *OffNormName,UINT8 *OffHilit
 	if(OffHiliteName != BUTTON_NO_FILENAME)
 	{
 		vo_desc.fCreateFlags = VOBJECT_CREATE_FROMFILE;
-		strcpy(vo_desc.ImageFile, OffHiliteName);
+		strcpy(vo_desc.ImageFile, (char *)OffHiliteName);
 
 		if((GenericButtonOffHilite[ImgSlot] = CreateVideoObject(&vo_desc)) == NULL)
 		{
@@ -844,7 +844,7 @@ INT16 LoadGenericButtonImages(UINT8 *GrayName,UINT8 *OffNormName,UINT8 *OffHilit
 	if(OnHiliteName != BUTTON_NO_FILENAME)
 	{
 		vo_desc.fCreateFlags = VOBJECT_CREATE_FROMFILE;
-		strcpy(vo_desc.ImageFile, OnHiliteName);
+		strcpy(vo_desc.ImageFile, (char *)OnHiliteName);
 
 		if((GenericButtonOnHilite[ImgSlot] = CreateVideoObject(&vo_desc)) == NULL)
 		{
@@ -858,7 +858,7 @@ INT16 LoadGenericButtonImages(UINT8 *GrayName,UINT8 *OffNormName,UINT8 *OffHilit
 	if(BkGrndName != BUTTON_NO_FILENAME)
 	{
 		vo_desc.fCreateFlags = VOBJECT_CREATE_FROMFILE;
-		strcpy(vo_desc.ImageFile, BkGrndName);
+		strcpy(vo_desc.ImageFile, (char *)BkGrndName);
 
 		if((GenericButtonBackground[ImgSlot] = CreateVideoObject(&vo_desc)) == NULL)
 		{
@@ -2137,15 +2137,15 @@ void DrawDefaultOnButton( GUI_BUTTON *b )
 	if( b->bDefaultStatus == DEFAULT_STATUS_DARKBORDER || b->bDefaultStatus == DEFAULT_STATUS_WINDOWS95 )
 	{
 		//left (one thick)
-		LineDraw( TRUE, b->Area.RegionTopLeftX-1, b->Area.RegionTopLeftY-1, b->Area.RegionTopLeftX-1, b->Area.RegionBottomRightY+1, 0, pDestBuf );
+		LineDraw( TRUE, b->Area.RegionTopLeftX-1, b->Area.RegionTopLeftY-1, b->Area.RegionTopLeftX-1, b->Area.RegionBottomRightY+1, 0, (char *)pDestBuf );
 		//top (one thick)
-		LineDraw( TRUE, b->Area.RegionTopLeftX-1, b->Area.RegionTopLeftY-1, b->Area.RegionBottomRightX+1, b->Area.RegionTopLeftY-1, 0, pDestBuf );
+		LineDraw( TRUE, b->Area.RegionTopLeftX-1, b->Area.RegionTopLeftY-1, b->Area.RegionBottomRightX+1, b->Area.RegionTopLeftY-1, 0, (char *)pDestBuf );
 		//right (two thick)
-		LineDraw( TRUE, b->Area.RegionBottomRightX, b->Area.RegionTopLeftY-1, b->Area.RegionBottomRightX, b->Area.RegionBottomRightY+1, 0, pDestBuf );
-		LineDraw( TRUE, b->Area.RegionBottomRightX+1, b->Area.RegionTopLeftY-1, b->Area.RegionBottomRightX+1, b->Area.RegionBottomRightY+1, 0, pDestBuf );
+		LineDraw( TRUE, b->Area.RegionBottomRightX, b->Area.RegionTopLeftY-1, b->Area.RegionBottomRightX, b->Area.RegionBottomRightY+1, 0, (char *)pDestBuf );
+		LineDraw( TRUE, b->Area.RegionBottomRightX+1, b->Area.RegionTopLeftY-1, b->Area.RegionBottomRightX+1, b->Area.RegionBottomRightY+1, 0, (char *)pDestBuf );
 		//bottom (two thick)
-		LineDraw( TRUE, b->Area.RegionTopLeftX-1, b->Area.RegionBottomRightY, b->Area.RegionBottomRightX+1, b->Area.RegionBottomRightY, 0, pDestBuf );
-		LineDraw( TRUE, b->Area.RegionTopLeftX-1, b->Area.RegionBottomRightY+1, b->Area.RegionBottomRightX+1, b->Area.RegionBottomRightY+1, 0, pDestBuf );
+		LineDraw( TRUE, b->Area.RegionTopLeftX-1, b->Area.RegionBottomRightY, b->Area.RegionBottomRightX+1, b->Area.RegionBottomRightY, 0, (char *)pDestBuf );
+		LineDraw( TRUE, b->Area.RegionTopLeftX-1, b->Area.RegionBottomRightY+1, b->Area.RegionBottomRightX+1, b->Area.RegionBottomRightY+1, 0, (char *)pDestBuf );
 	}
 	if( b->bDefaultStatus == DEFAULT_STATUS_DOTTEDINTERIOR || b->bDefaultStatus == DEFAULT_STATUS_WINDOWS95 )
 	{ //Draw an internal dotted rectangle.

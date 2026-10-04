@@ -1,6 +1,7 @@
 /* Modified for the Wizardry 8 reconstruction, 2026-10-03.
    Add matching markers for retained SGP functions and globals.
    Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
+   Include the importer declaration to preserve its C linkage in C++ mode, 2026-10-04.
    Distributed under the accompanying SFI Source Code license agreement. */
 //**************************************************************************
 //
@@ -25,6 +26,7 @@
 #include "memman.h"
 #include "WCheck.h"
 #include "himage.h"
+#include "impTGA.h"
 #include "string.h"
 #include "debug.h"
 #include "video2.h"
@@ -208,7 +210,7 @@ BOOLEAN ReadUncompRGBImage( HIMAGE hImage, HWFILE hFile, UINT8 uiImgID, UINT8 ui
 
 			iNumValues = uiWidth * uiHeight;
 
-			hImage->p16BPPData = MemAlloc( iNumValues * (uiImagePixelSize / 8) );
+			hImage->p16BPPData = (UINT16 *)MemAlloc( iNumValues * (uiImagePixelSize / 8) );
 
 			if ( hImage->p16BPPData == NULL )
 				goto end;
@@ -241,7 +243,7 @@ BOOLEAN ReadUncompRGBImage( HIMAGE hImage, HWFILE hFile, UINT8 uiImgID, UINT8 ui
 
 		if ( uiImagePixelSize == 24 )
 		{
-			hImage->p8BPPData = MemAlloc( uiWidth * uiHeight * (uiImagePixelSize / 8) );
+			hImage->p8BPPData = (UINT8 *)MemAlloc( uiWidth * uiHeight * (uiImagePixelSize / 8) );
 
 			if ( hImage->p8BPPData == NULL )
 				goto end;

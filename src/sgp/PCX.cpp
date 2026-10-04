@@ -28,7 +28,7 @@
 
 BOOLEAN SetPcxPalette( PcxObject *pCurrentPcxObject, HIMAGE hImage );
 BOOLEAN BlitPcxToBuffer( PcxObject *pCurrentPcxObject, UINT8 *pBuffer, UINT16 usBufferWidth, UINT16 usBufferHeight, UINT16 usX, UINT16 usY, BOOLEAN fTransp);
-PcxObject *LoadPcx(UINT8 *pFilename);
+PcxObject *LoadPcx(STR pFilename);
 
 
 // FUNCTION: WIZ8 0x00414700
@@ -54,7 +54,7 @@ BOOLEAN LoadPCXFileToImage( HIMAGE hImage, UINT16 fContents )
 	if ( fContents & IMAGE_BITMAPDATA )
 	{
 		// Allocate memory for buffer
-		hImage->p8BPPData = MemAlloc( hImage->usWidth * hImage->usHeight );
+		hImage->p8BPPData = (UINT8 *)MemAlloc( hImage->usWidth * hImage->usHeight );
 
 		if ( !BlitPcxToBuffer( pPcxObject, hImage->p8BPPData, hImage->usWidth, hImage->usHeight, 0, 0, FALSE ) )
 		{
@@ -81,7 +81,7 @@ BOOLEAN LoadPCXFileToImage( HIMAGE hImage, UINT16 fContents )
 
 
 // FUNCTION: WIZ8 0x00414810
-PcxObject *LoadPcx(UINT8 *pFilename)
+PcxObject *LoadPcx(STR pFilename)
 {
   PcxHeader  Header;
   PcxObject *pCurrentPcxObject;
@@ -102,14 +102,14 @@ PcxObject *LoadPcx(UINT8 *pFilename)
   }
 
 	// Create enw pCX object
-	pCurrentPcxObject = MemAlloc( sizeof( PcxObject ) );
+	pCurrentPcxObject = (PcxObject *)MemAlloc( sizeof( PcxObject ) );
 
 	if ( pCurrentPcxObject == NULL )
 	{
 		return( NULL );
 	}
 
-	pCurrentPcxObject->pPcxBuffer = MemAlloc( uiFileSize - (sizeof(PcxHeader) + 768) );
+	pCurrentPcxObject->pPcxBuffer = (UINT8 *)MemAlloc( uiFileSize - (sizeof(PcxHeader) + 768) );
 
 	if ( pCurrentPcxObject->pPcxBuffer == NULL )
 	{
@@ -363,7 +363,7 @@ BOOLEAN SetPcxPalette( PcxObject *pCurrentPcxObject, HIMAGE hImage )
 	pubPalette = &(pCurrentPcxObject->ubPalette[0]);
 
 	// Allocate memory for palette
-	hImage->pPalette = MemAlloc( sizeof( SGPPaletteEntry ) * 256 );
+	hImage->pPalette = (SGPPaletteEntry *)MemAlloc( sizeof( SGPPaletteEntry ) * 256 );
 
 	if ( hImage->pPalette == NULL )
 	{

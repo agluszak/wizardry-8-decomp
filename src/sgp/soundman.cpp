@@ -1071,13 +1071,13 @@ UINT32 uiSound;
 		{
 			if(pSoundList[uiSound].hMSS!=NULL)
 			{
-				AIL_sample_ms_position(pSoundList[uiSound].hMSS, puiTotalMilliseconds, puiCurrentMilliseconds);
+				AIL_sample_ms_position(pSoundList[uiSound].hMSS, (S32 *)puiTotalMilliseconds, (S32 *)puiCurrentMilliseconds);
 				return TRUE;
 			}
 
 			if(pSoundList[uiSound].hMSSStream!=NULL)
 			{
-				AIL_stream_ms_position(pSoundList[uiSound].hMSSStream, puiTotalMilliseconds, puiCurrentMilliseconds);
+				AIL_stream_ms_position(pSoundList[uiSound].hMSSStream, (S32 *)puiTotalMilliseconds, (S32 *)puiCurrentMilliseconds);
 				return TRUE;
 			}
 		}

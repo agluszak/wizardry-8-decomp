@@ -272,12 +272,12 @@ BYTE *LockVideoSurface( UINT32 uiVSurface, UINT32 *puiPitch )
 
   if ( uiVSurface == FRAME_BUFFER )
   {
-    return LockPrimarySurface( puiPitch );
+    return (BYTE *)LockPrimarySurface( puiPitch );
   }
 
   if ( uiVSurface == MOUSE_BUFFER )
   {
-    return LockMouseBuffer( puiPitch );
+    return (BYTE *)LockMouseBuffer( puiPitch );
   }
 
   //
@@ -883,7 +883,7 @@ HVSURFACE CreateVideoSurface( VSURFACE_DESC *VSurfaceDesc )
 	// Allocate memory for Video Surface data and initialize
   //
 
-	hVSurface = MemAlloc( sizeof( SGPVSurface ) );
+	hVSurface = (HVSURFACE)MemAlloc( sizeof( SGPVSurface ) );
 	memset( hVSurface, 0, sizeof( SGPVSurface ) );
 	CHECKF( hVSurface != NULL );
 
@@ -1089,13 +1089,13 @@ BYTE *LockVideoSurfaceBuffer( HVSURFACE hVSurface, UINT32 *pPitch )
 	Assert( pPitch != NULL );
 
 	if(hVSurface==ghFrameBuffer)
-		return(LockPrimarySurface(pPitch));
+		return((BYTE *)LockPrimarySurface(pPitch));
 
 	DDLockSurface( (LPDIRECTDRAWSURFACE2)hVSurface->pSurfaceData, NULL, &SurfaceDescription, 0, NULL);
 
 	*pPitch = SurfaceDescription.lPitch;
 
-	return SurfaceDescription.lpSurface;
+	return (BYTE *)SurfaceDescription.lpSurface;
 }
 
 void UnLockVideoSurfaceBuffer( HVSURFACE hVSurface )
@@ -1784,7 +1784,7 @@ HVSURFACE CreateVideoSurfaceFromDDSurface( LPDIRECTDRAWSURFACE2 lpDDSurface )
 
 
 	// Allocate Video Surface struct
-	hVSurface = MemAlloc( sizeof( SGPVSurface ) );
+	hVSurface = (HVSURFACE)MemAlloc( sizeof( SGPVSurface ) );
 
 	// Set values based on DD Surface given
 	DDGetSurfaceDescription ( lpDDSurface, &DDSurfaceDesc );

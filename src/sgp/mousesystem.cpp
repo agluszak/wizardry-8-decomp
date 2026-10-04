@@ -1022,7 +1022,7 @@ void MSYS_SetRegionUserData(MOUSE_REGION *region,INT32 index,INT32 userdata)
 {
 	if(index < 0 || index > 3)
 	{
-		UINT8 str[80];
+		CHAR8 str[80];
 #ifdef MOUSESYSTEM_DEBUGGING
 		if( gfIgnoreShutdownAssertions )
 #endif
@@ -1045,7 +1045,7 @@ INT32 MSYS_GetRegionUserData(MOUSE_REGION *region,INT32 index)
 {
 	if(index < 0 || index > 3)
 	{
-		UINT8 str[80];
+		CHAR8 str[80];
 #ifdef MOUSESYSTEM_DEBUGGING
 		if( gfIgnoreShutdownAssertions )
 #endif

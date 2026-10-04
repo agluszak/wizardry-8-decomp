@@ -604,7 +604,7 @@ BOOLEAN FileRead( HWFILE hFile, PTR pDest, UINT32 uiBytesToRead, UINT32 *puiByte
 				if( gFileDataBase.pLibraries[ sLibraryID ].pOpenFiles[ uiFileNum ].uiFileID != 0 )
 				{
 					//read the data from the library
-					fRet = LoadDataFromLibrary( sLibraryID, uiFileNum, pDest, dwNumBytesToRead, &dwNumBytesRead );
+					fRet = LoadDataFromLibrary( sLibraryID, uiFileNum, pDest, dwNumBytesToRead, (UINT32 *)&dwNumBytesRead );
 					if ( puiBytesRead )
 					{
 						*puiBytesRead = (UINT32)dwNumBytesRead;

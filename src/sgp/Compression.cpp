@@ -29,7 +29,7 @@ PTR DecompressInit( BYTE * pCompressedData, UINT32 uiDataSize )
 	int					iZRetCode;
 
 	// allocate memory for the z_stream struct
-	pZStream = MemAlloc( sizeof( z_stream ) );
+	pZStream = (z_stream *)MemAlloc( sizeof( z_stream ) );
 	if( pZStream == NULL )
 	{ // out of memory!
 		return( NULL );

@@ -1,3 +1,6 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-10-03.
+   Use the character filename type required by the C++ SGP build.
+   Distributed under the accompanying SFI Source Code license agreement. */
 #ifndef __PCX_
 #define __PCX_
 
@@ -34,7 +37,7 @@ typedef struct
 } PcxObject;
 
 BOOLEAN LoadPCXFileToImage( HIMAGE hImage, UINT16 fContents );
-PcxObject *LoadPcx(UINT8 *pFilename);
+PcxObject *LoadPcx(STR pFilename);
 BOOLEAN BlitPcxToBuffer( PcxObject *pCurrentPcxObject, UINT8 *pBuffer, UINT16 usBufferWidth, UINT16 usBufferHeight, UINT16 usX, UINT16 usY, BOOLEAN fTransp);
 
 #endif

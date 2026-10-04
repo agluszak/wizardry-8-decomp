@@ -66,6 +66,7 @@ function(wiz8_lint_target target)
         # to errors by default; those stay demoted to warnings here for the same
         # vendor reason instead of rewriting retained C.
         target_compile_options(${target} PRIVATE
+            /UNOMINMAX
             -Wno-cast-function-type-mismatch
             -Wno-char-subscripts
             -Wno-mismatched-tags

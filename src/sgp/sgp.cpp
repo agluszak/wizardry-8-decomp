@@ -22,6 +22,9 @@
 #include "Random.h"
 #include "gameloop.h"
 #include "soundman.h"
+#include "Button System.h"
+#include "mousesystem.h"
+#include "wiz8/engine_code/Octree.h"
 #include "wiz8/sgp_bridge.h"       // for MoveTimer() [Wizardry specific]
 
 #include "input.h"
@@ -68,8 +71,6 @@ RECT				rcWindow;
 // moved from header file: 24mar98:HJH
 // GLOBAL: WIZ8 0x006f0624
 UINT32		giStartMem;
-// GLOBAL: WIZ8 0x005ff450
-UINT8			gbPixelDepth;					// GLOBAL RUN-TIME SETTINGS
 
 // GLOBAL: WIZ8 0x006f0620
 UINT32		guiMouseWheelMsg;			// For mouse wheel messages
@@ -80,7 +81,6 @@ BOOLEAN gfApplicationActive;
 BOOLEAN gfProgramIsRunning;
 // GLOBAL: WIZ8 0x006505a9
 BOOLEAN gfGameInitialized = FALSE;
-UINT32	giStartMem;
 // GLOBAL: WIZ8 0x006505aa
 BOOLEAN	gfDontUseDDBlits	= FALSE;
 
@@ -94,6 +94,7 @@ CHAR8		gzErrorMsg[2048]="";
 BOOLEAN	gfIgnoreMessages=FALSE;
 
 // GLOBAL VARIBLE, SET TO DEFAULT BUT CAN BE CHANGED BY THE GAME IF INIT FILE READ
+// GLOBAL: WIZ8 0x005ff450
 UINT8		gbPixelDepth = PIXEL_DEPTH;
 
 // FUNCTION: WIZ8 0x004011e0

@@ -29,6 +29,7 @@
 #include <windows.h>
 #include <ddeml.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "debug.h"
 #include "WCheck.h"
 #include "TopicIDs.h"
@@ -420,7 +421,7 @@ void			_DebugMessage(UINT8 *pString, UINT32 uiLineNum, UINT8 *pSourceFile)
 	// Build the output string
 	//
 
-	sprintf( ubOutputString, "{ %ld } %s [Line %d in %s]\n", GetTickCount(), pString, uiLineNum, pSourceFile );
+	sprintf( (char *)ubOutputString, "{ %ld } %s [Line %d in %s]\n", GetTickCount(), pString, uiLineNum, pSourceFile );
 
 	//
 	// Output to debugger
@@ -428,7 +429,7 @@ void			_DebugMessage(UINT8 *pString, UINT32 uiLineNum, UINT8 *pSourceFile)
 
 	if (gfRecordToDebugger)
 	{
-		OutputDebugString( ubOutputString );
+		OutputDebugString( (char *)ubOutputString );
 	}
 
 	//
@@ -440,7 +441,7 @@ void			_DebugMessage(UINT8 *pString, UINT32 uiLineNum, UINT8 *pSourceFile)
 	{
 		if ((DebugFile = fopen( gpcDebugLogFileName, "a+t" )) != NULL)
 		{
-			fputs( ubOutputString, DebugFile );
+			fputs( (char *)ubOutputString, DebugFile );
 			fclose( DebugFile );
 		}
 	}
@@ -469,16 +470,16 @@ void _FailMessage(UINT8 *pString, UINT32 uiLineNum, UINT8 *pSourceFile)
 
 
 	// Build the output string
-	sprintf( ubOutputString, "{ %ld } Assertion Failure: %s [Line %d in %s]\n", GetTickCount(), pString, uiLineNum, pSourceFile );
+	sprintf( (char *)ubOutputString, "{ %ld } Assertion Failure: %s [Line %d in %s]\n", GetTickCount(), pString, uiLineNum, pSourceFile );
 	if( pString )
-		sprintf( gubAssertString, pString );
+		sprintf( (char *)gubAssertString, (char *)pString );
 	// Output to debugger
 	if (gfRecordToDebugger)
 	{
-		OutputDebugString( ubOutputString );
+		OutputDebugString( (char *)ubOutputString );
 		if( pString )
 		{ //tag on the assert message
-			OutputDebugString( gubAssertString );
+			OutputDebugString( (char *)gubAssertString );
 		}
 	}
 	// Record to file if required
@@ -487,10 +488,10 @@ void _FailMessage(UINT8 *pString, UINT32 uiLineNum, UINT8 *pSourceFile)
 	{
 		if ((DebugFile = fopen( gpcDebugLogFileName, "a+t" )) != NULL)
 		{
-			fputs( ubOutputString, DebugFile );
+			fputs( (char *)ubOutputString, DebugFile );
 			if( pString )
 			{ //tag on the assert message
-				fputs( gubAssertString, DebugFile );
+				fputs( (char *)gubAssertString, DebugFile );
 			}
 			fclose( DebugFile );
 		}
@@ -520,7 +521,7 @@ UINT8 *String(const char *String, ...)
   }
 
   va_start(ArgPtr, String);
-  vsprintf(gbTmpDebugString[usIndex], String, ArgPtr);
+  vsprintf((char *)gbTmpDebugString[usIndex], String, ArgPtr);
   va_end(ArgPtr);
 
   return gbTmpDebugString[usIndex];

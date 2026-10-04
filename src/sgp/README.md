@@ -63,7 +63,7 @@ source that could plausibly have constituted Wizardry's SGP library is kept:
   `Mutex Manager.c`, `WinFont.c`, `video.c`), their orphaned headers, the
   JA2 Visual Studio project, the `JA2 SGP ALL.H` umbrella and the Smacker/RAD,
   `dsound.h`, `trle.h` and `Bitmap.h` headers were removed; the baseline above
-  retains them. `DbMan.h` stays for the `HDBFILE` handle in `FileMan.c`.
+  retains them. `DbMan.h` stays for the `HDBFILE` handle in `FileMan.cpp`.
   Wizardry's renderer is `Video2.cpp`, not released `video.c`.
 - `Mutex Manager.h` stays although no retained code calls the mutex API:
   removing its declarations from `Video2.h`/`sgp.h` changes VC6 code
@@ -73,7 +73,7 @@ source that could plausibly have constituted Wizardry's SGP library is kept:
 - The released JA2, utility (`UTIL`/`UTILS`) and precompiled-header
   configuration branches are collapsed to the Wizardry build. Their removal
   changes no generated code except `__LINE__` immediates, and every retained
-  `DirectDraw Calls.c` `ATTEMPT` line number moves closer to retail's value.
+  `DirectDraw Calls.cpp` `ATTEMPT` line number moves closer to retail's value.
 
 ## Retained-function audit (2026-10-03)
 
@@ -90,7 +90,7 @@ baseline:
 - not retained and not referenced by any retained or product code (335).
 
 The unreferenced, unretained bodies and their prototypes were removed, except
-in `DirectDraw Calls.c`. There, retail `ATTEMPT` `__LINE__` immediates keep the
+in `DirectDraw Calls.cpp`. There, retail `ATTEMPT` `__LINE__` immediates keep the
 released spacing between retained functions (for example `DDGetSurfaceDescription`
 120 → `DDRestoreSurface` 224 in retail). So the eleven unretained bodies between
 them were present in Wizardry's file, and they stay. Elsewhere, absence from the
@@ -99,7 +99,7 @@ contained it.
 
 SGP comparison findings after the delta recovery are classified:
 
-- `DirectDraw Calls.c` `ATTEMPT` line numbers exceed retail by exactly one per
+- `DirectDraw Calls.cpp` `ATTEMPT` line numbers exceed retail by exactly one per
   `// FUNCTION:` marker above the call (plus the modification notice): the
   drift is our annotation, not authored source. The released macro still uses
   `__LINE__`/`__FILE__`; the unit now compiles from its ordinary checkout path.
@@ -111,7 +111,7 @@ SGP comparison findings after the delta recovery are classified:
   this does not establish their original source names or template arguments.
 - `GetRuntimeSettings` is inlined into `InitializeStandardGamingPlatform` by
   the recomp but called by retail; both standalone bodies match. The remaining
-  `LibraryDataBase.c`, `RedirectToString` and `AddSubdirectoryToPath` residuals
+  `LibraryDataBase.cpp`, `RedirectToString` and `AddSubdirectoryToPath` residuals
   are block-layout, CSE and stack-slot lowering.
 
 Retail list callers reach the folded size/delete bodies through `ListSize` and
@@ -129,14 +129,15 @@ font table, startup and input behavior, sound-cache revision, and SLF mapping
 and patch precedence. The retail English input table is **512 words**, not the
 released 1,024: its two character banks occupy `0x005ffc3c..0x0060003b`.
 Library initialization records are `0x103` bytes and library records are `0x28`
-bytes; the latter include the patch flag and mapping fields. `WizLibs.c` owns the
+bytes; the latter include the patch flag and mapping fields. `WizLibs.cpp` owns the
 product library configuration: 50 records, six initially populated. Retail
 allocates 56 open-library records separately; the two capacities are not the
 same. The patch loop is preserved, including this original capacity discrepancy.
 `UnlockMouseBuffer`, `VideoCaptureToggle` and SGP's two-argument
 `PlayButtonSound` share the retail no-op at `0x004023a0`; `DeleteList`/
 `DeleteStack` and `ListSize`/`StackSize` are folded pairs. The
-`DirectDraw Calls.c` `__FILE__` string fixes the `C:\Projects\SGP` build path.
+The retail `DirectDraw Calls.c` `__FILE__` string records the historical
+`C:\Projects\SGP` build path; our compiler uses the ordinary checkout path.
 
 JA2 Utils `Text_Input` is not an SGP unit. The Wizardry derivative remains
 product code; its released ancestor is `ja2-stracciatella/ja2-stracciatella`
@@ -145,6 +146,50 @@ commit `5ac0a9d56d27e8a7e2c4a7b48ed8932ae7f64033`,
 Miles startup/exit support belongs to the Miles import boundary, not to SGP.
 
 ## Comparison
+
+### Mechanical C++ migration (2026-10-04)
+
+The last-C source checkpoint is commit
+`6410dae65aa6bd910c40bfae39fbb059d7a2c403`, immediately before the first
+C++ migration commit `39d5d8fdc1a170c63bc510561908fe98972f7cfa`.
+Git preserves that implementation; there is one maintained SGP source tree.
+
+All 30 retained translation units now compile as C++. Changes are limited to
+the source extensions/build membership, explicit pointer conversions, character
+buffer types, missing declarations/includes, and removal of duplicate tentative
+definitions. The historical public API keeps its `extern "C"` linkage.
+`CINTERFACE` and `COBJMACROS` preserve the existing DirectDraw call expressions;
+the C++ SDK's `REFIID` parameter takes a GUID reference. No allocator, ownership,
+container, `BOOLEAN`, or class modernization is included.
+
+The initial conversion omitted `impTGA.h` from its own implementation. Its
+`LoadTGAFileToImage` definition acquired C++ linkage while callers retained C
+linkage, leaving an unresolved symbol and preventing archive extraction of both
+marked TGA functions. Including the owning header restores the historical API
+linkage; private importer helpers may use C++ linkage.
+
+Saved pre-migration comparison evidence remains under `build/`: the whole-SGP
+report `run-qmn7a37x` selected 340 functions (282 `no-differences`, 58
+`differences`), before the generic comparison normalization fixes. The later C
+report `run-57v1n5d9` covers 235 SGP functions (208 `no-differences`, 27
+`differences`). These reports have different selections and tool/build inputs;
+their counts alone do not measure the effect of the language switch.
+
+The final whole-SGP C++ comparison (`run-gq0ykkzl`) selects all 340 marked
+functions: 287 `no-differences`, 53 `differences`, zero unpaired and zero analysis
+failures. Both TGA functions are `no-differences`. Its rebuilt PE SHA-256 is
+`1d90b377e9218dbea73c09b88814d22cc0c129728b74e6d17ac90b52f146d311`,
+using reccmp revision `4902aabd3f5d6b9f6b1ac686b686803479207e59`, Ghidra
+12.1.4 and Ghidriff 1.0.0. The VC6 build has no unresolved symbols; `pr-check`
+and merge-preservation pass. Generated reports and build products stay untracked.
+
+The C++ residuals include changed helper inlining (`DequeueEvent`,
+`DeleteVideoObject`), string-copy lowering (`InitializeButtonImageManager`),
+and C++ local-static symbol spelling (`WindowProcedure`, `RenderFastHelp`).
+Keep natural calls and expressions rather than shaping them to reproduce the
+C compiler's output. Build-context and decompiler-label differences are not
+behavioral-equivalence proofs. Removal of the remaining bridge and compatibility
+headers is a subsequent source-ownership cleanup.
 
 Compile and compare whole translation units so `/Ob2` sees the actual helpers,
 globals and headers. reccmp's COFF object view retains functions, static symbols,

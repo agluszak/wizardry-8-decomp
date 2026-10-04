@@ -347,11 +347,11 @@ BOOLEAN Copy8BPPCompressedImageTo8BPPBuffer( HIMAGE hImage, BYTE *pDestBuf, UINT
 	// to blit has been done).
 
 	// initialize the decompression routines
-	pDecompPtr = DecompressInit( hImage->pCompressedImageData, hImage->usWidth * hImage->usHeight );
+	pDecompPtr = DecompressInit( (BYTE *)hImage->pCompressedImageData, hImage->usWidth * hImage->usHeight );
 	CHECKF( pDecompPtr );
 
 	// Allocate memory for one scanline
-	pScanLine = MemAlloc( hImage->usWidth );
+	pScanLine = (UINT8 *)MemAlloc( hImage->usWidth );
 	CHECKF( pScanLine );
 
 	// go past all the scanlines we don't need to process
@@ -436,11 +436,11 @@ BOOLEAN Copy8BPPCompressedImageTo16BPPBuffer( HIMAGE hImage, BYTE *pDestBuf, UIN
 	// to blit has been done).
 
 	// initialize the decompression routines
-	pDecompPtr = DecompressInit( hImage->pCompressedImageData, hImage->usWidth * hImage->usHeight );
+	pDecompPtr = DecompressInit( (BYTE *)hImage->pCompressedImageData, hImage->usWidth * hImage->usHeight );
 	CHECKF( pDecompPtr );
 
 	// Allocate memory for one scanline
-	pScanLine = MemAlloc( hImage->usWidth );
+	pScanLine = (UINT8 *)MemAlloc( hImage->usWidth );
 	CHECKF( pScanLine );
 
 	// go past all the scanlines we don't need to process
@@ -647,7 +647,7 @@ UINT16 *Create16BPPPalette( SGPPaletteEntry *pPalette )
 
 	Assert( pPalette != NULL );
 
-	p16BPPPalette = MemAlloc( sizeof( UINT16 ) * 256 );
+	p16BPPPalette = (UINT16 *)MemAlloc( sizeof( UINT16 ) * 256 );
 
 	for ( cnt = 0; cnt < 256; cnt++ )
 	{
@@ -721,7 +721,7 @@ UINT16 *Create16BPPPaletteShaded( SGPPaletteEntry *pPalette, UINT32 rscale, UINT
 
 	Assert( pPalette != NULL );
 
-	p16BPPPalette = MemAlloc( sizeof( UINT16 ) * 256 );
+	p16BPPPalette = (UINT16 *)MemAlloc( sizeof( UINT16 ) * 256 );
 
 	for ( cnt = 0; cnt < 256; cnt++ )
 	{
@@ -844,7 +844,7 @@ BOOLEAN GetETRLEImageData( HIMAGE hImage, ETRLEData *pBuffer )
 	pBuffer->usNumberOfObjects = hImage->usNumberOfObjects;
 
 	// Create buffer for objects
-	pBuffer->pETRLEObject = MemAlloc( sizeof( ETRLEObject ) * pBuffer->usNumberOfObjects );
+	pBuffer->pETRLEObject = (ETRLEObject *)MemAlloc( sizeof( ETRLEObject ) * pBuffer->usNumberOfObjects );
 	CHECKF( pBuffer->pETRLEObject != NULL );
 
 	// Copy into buffer
