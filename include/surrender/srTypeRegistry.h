@@ -48,7 +48,7 @@ public:
             {
                 ChildLink* link = new ChildLink;
                 link->next = first;
-                link->node_00 = node;
+                link->node = node;
                 link->previous = first->previous;
                 if (link->previous == 0) {
                     first = link;

@@ -79,7 +79,7 @@ srGERD::Texture* srGERD::TexturePool::allocate()
     return texture;
 }
 
-void srGERD::TexturePool::free(Texture* texture)
+void srGERD::TexturePool::release(Texture* texture)
 {
     if (texture == 0) {
         return;
@@ -3230,7 +3230,7 @@ void srGERD::deleteTexture(Texture& texture)
     texture.palette = 0;
     texture.id = 0;
     texture.device.reset();
-    texture_pool.free(&texture);
+    texture_pool.release(&texture);
 }
 
 // FUNCTION: SURRENDER 0x10028910

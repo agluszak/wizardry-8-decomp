@@ -63,5 +63,7 @@ unsigned char CreateSubMenuButtons(void); /* 0x00594AF0 */
 void UpdateSubMenuButton(int index); /* 0x00594D20 */
 /* Drop the combat-end notification, rebuild the panel for the saved one. */
 void ReopenSubMenuPanel(void); /* 0x00595600 */
+/* Descriptive name for panel/row deletion shared with failed construction. */
+void DestroySubMenuPanel();
 /* Drop the combat-end notification and tear down the panel and its rows. */
 void DestroySubMenuControls(void); /* 0x00595570 */

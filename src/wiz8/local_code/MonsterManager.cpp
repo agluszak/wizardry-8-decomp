@@ -1246,27 +1246,13 @@ void DeactivateMonster(W8MonsterInfo* monster_info)
 // FUNCTION: WIZ8 0x004e4390
 void MonsterInfoEnterCombat(W8MonsterInfo* monster_info)
 {
-    int query_state;
-
     if (monster_info == 0) {
         srAssertFail("pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x299, 0);
     }
     if (monster_info->fInCombat != 0) {
         srAssertFail("!pMonsterInfo->fInCombat", MONSTER_MANAGER_CPP, 0x29a, 0);
     }
-    if (monster_info == 0) {
-        srAssertFail("pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x2f7, 0);
-    }
-    MonsterReplacePath(monster_info->p3D, 0);
-    monster_info->p3D->flags &= 0xdfffffff;
-    MonsterClearMovement(monster_info->p3D);
-    if (monster_info->fMotionless == 0) {
-        query_state = MonsterQuery(monster_info->p3D, 6);
-        if (query_state != 1 && query_state != 2 &&
-            monster_info->p3D->m_pRep->pending_cycle == -1) {
-            StartMonsterCycle(monster_info, 1, 3);
-        }
-    }
+    ClearMonsterPathAndResume(monster_info);
     monster_info->pCombat = static_cast<W8MonsterCombatState*>(malloc(0x153));
     if (monster_info->pCombat == 0) {
         srAssertFail("pMonsterInfo->pCombat != NULL", MONSTER_MANAGER_CPP, 0x2a0, 0);

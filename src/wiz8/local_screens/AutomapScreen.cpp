@@ -1919,6 +1919,21 @@ W8AutomapNote* FindAutomapNoteUnderCursor(void)
     return result;
 }
 
+/* Descriptive name for the common marker-texture loading operation. */
+static stTextureFile* LoadAutomapMarkerTexture(const char* path)
+{
+    stTextureFile* texture = new stTextureFile(path, 0);
+    texture->autoRelease();
+    texture->enableHint(srTextureIFace::HINT_ONE_BIT_ALPHA);
+    texture->enableHint(srTextureIFace::HINT_NO_MIPMAPS);
+    texture->setMipmap(srTextureIFace::MIPMAP_NONE);
+    texture->setCorrection(srTextureIFace::CORRECTION_FASTEST);
+    texture->setMagFilter(srTextureIFace::FILTER_BEST);
+    texture->setMinFilter(srTextureIFace::FILTER_BEST);
+    texture->loadSurface();
+    return texture;
+}
+
 /* Load the automap marker textures and build the party, monster and text
    marker sprites over them. */
 // FUNCTION: WIZ8 0x005822C0
@@ -1928,15 +1943,7 @@ void CreateAutomapMarkerSprites(void)
         g_automap_markers = new W8Vector<srClass*>(5);
     }
     if (g_automap_party_marker == 0) {
-        stTextureFile* texture = new stTextureFile("Data\\Automap\\map_partymarker_a.tga", 0);
-        texture->autoRelease();
-        texture->enableHint(srTextureIFace::HINT_ONE_BIT_ALPHA);
-        texture->enableHint(srTextureIFace::HINT_NO_MIPMAPS);
-        texture->setMipmap(srTextureIFace::MIPMAP_NONE);
-        texture->setCorrection(srTextureIFace::CORRECTION_FASTEST);
-        texture->setMagFilter(srTextureIFace::FILTER_BEST);
-        texture->setMinFilter(srTextureIFace::FILTER_BEST);
-        texture->loadSurface();
+        stTextureFile* texture = LoadAutomapMarkerTexture("Data\\Automap\\map_partymarker_a.tga");
         srColorSurface* surface = texture->getSurface();
         if (surface != 0) {
             g_automap_party_marker =
@@ -1956,15 +1963,8 @@ void CreateAutomapMarkerSprites(void)
         }
     }
     if (g_automap_friendly_marker == 0) {
-        stTextureFile* texture = new stTextureFile("Data\\Automap\\map_monsterfriendly_a.tga", 0);
-        texture->autoRelease();
-        texture->enableHint(srTextureIFace::HINT_ONE_BIT_ALPHA);
-        texture->enableHint(srTextureIFace::HINT_NO_MIPMAPS);
-        texture->setMipmap(srTextureIFace::MIPMAP_NONE);
-        texture->setCorrection(srTextureIFace::CORRECTION_FASTEST);
-        texture->setMagFilter(srTextureIFace::FILTER_BEST);
-        texture->setMinFilter(srTextureIFace::FILTER_BEST);
-        texture->loadSurface();
+        stTextureFile* texture =
+            LoadAutomapMarkerTexture("Data\\Automap\\map_monsterfriendly_a.tga");
         srColorSurface* surface = texture->getSurface();
         if (surface != 0) {
             g_automap_friendly_marker =
@@ -1976,15 +1976,8 @@ void CreateAutomapMarkerSprites(void)
         }
     }
     if (g_automap_neutral_marker == 0) {
-        stTextureFile* texture = new stTextureFile("Data\\Automap\\map_monsterneutral_a.tga", 0);
-        texture->autoRelease();
-        texture->enableHint(srTextureIFace::HINT_ONE_BIT_ALPHA);
-        texture->enableHint(srTextureIFace::HINT_NO_MIPMAPS);
-        texture->setMipmap(srTextureIFace::MIPMAP_NONE);
-        texture->setCorrection(srTextureIFace::CORRECTION_FASTEST);
-        texture->setMagFilter(srTextureIFace::FILTER_BEST);
-        texture->setMinFilter(srTextureIFace::FILTER_BEST);
-        texture->loadSurface();
+        stTextureFile* texture =
+            LoadAutomapMarkerTexture("Data\\Automap\\map_monsterneutral_a.tga");
         srColorSurface* surface = texture->getSurface();
         if (surface != 0) {
             g_automap_neutral_marker =
@@ -1996,15 +1989,8 @@ void CreateAutomapMarkerSprites(void)
         }
     }
     if (g_automap_hostile_marker == 0) {
-        stTextureFile* texture = new stTextureFile("Data\\Automap\\map_monsterhostile_a.tga", 0);
-        texture->autoRelease();
-        texture->enableHint(srTextureIFace::HINT_ONE_BIT_ALPHA);
-        texture->enableHint(srTextureIFace::HINT_NO_MIPMAPS);
-        texture->setMipmap(srTextureIFace::MIPMAP_NONE);
-        texture->setCorrection(srTextureIFace::CORRECTION_FASTEST);
-        texture->setMagFilter(srTextureIFace::FILTER_BEST);
-        texture->setMinFilter(srTextureIFace::FILTER_BEST);
-        texture->loadSurface();
+        stTextureFile* texture =
+            LoadAutomapMarkerTexture("Data\\Automap\\map_monsterhostile_a.tga");
         srColorSurface* surface = texture->getSurface();
         if (surface != 0) {
             g_automap_hostile_marker =
@@ -2016,15 +2002,7 @@ void CreateAutomapMarkerSprites(void)
         }
     }
     if (g_automap_text_marker == 0) {
-        stTextureFile* texture = new stTextureFile("Data\\Automap\\map_textmarker_a.tga", 0);
-        texture->autoRelease();
-        texture->enableHint(srTextureIFace::HINT_ONE_BIT_ALPHA);
-        texture->enableHint(srTextureIFace::HINT_NO_MIPMAPS);
-        texture->setMipmap(srTextureIFace::MIPMAP_NONE);
-        texture->setCorrection(srTextureIFace::CORRECTION_FASTEST);
-        texture->setMagFilter(srTextureIFace::FILTER_BEST);
-        texture->setMinFilter(srTextureIFace::FILTER_BEST);
-        texture->loadSurface();
+        stTextureFile* texture = LoadAutomapMarkerTexture("Data\\Automap\\map_textmarker_a.tga");
         srColorSurface* surface = texture->getSurface();
         if (surface != 0) {
             g_automap_text_marker =

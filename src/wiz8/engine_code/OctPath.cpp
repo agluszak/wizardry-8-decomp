@@ -1308,17 +1308,8 @@ unsigned char W8PathingService::BuildAttachmentPath(W8NavigatorAttachment* attac
                 do {
                     unsigned short surface_index = g_path_scratch[remaining - 1];
                     srVector3T<float>* position = &m_pSurfaces[surface_index].position;
-                    if (static_cast<unsigned int>(attachment->capacity) <=
-                        static_cast<unsigned int>(attachment->path_position_index + 1)) {
-                        attachment->GrowPathStorage();
-                    }
-                    srVector3T<float>* slot =
-                        attachment->position7 + attachment->path_position_index;
-                    *slot = *position;
-                    attachment->path_values[attachment->path_position_index] = surface_index;
-                    ++attachment->path_position_index;
+                    attachment->AppendPathPosition(position, surface_index);
                     --remaining;
-                    attachment->flags &= ~W8_NAV_ATTACHMENT_PATH_LENGTH_CACHED;
                 } while (remaining != 0);
             }
             srVector3T<float>* destination = &attachment->position1;
@@ -1407,15 +1398,7 @@ unsigned char W8PathingService::LinkAttachmentTarget(W8NavigatorAttachment* atta
         do {
             unsigned short surface_index = g_path_scratch[count - 1];
             srVector3T<float>* position = &m_pSurfaces[surface_index].position;
-            if (static_cast<unsigned int>(attachment->capacity) <=
-                static_cast<unsigned int>(attachment->path_position_index + 1)) {
-                attachment->GrowPathStorage();
-            }
-            srVector3T<float>* slot = attachment->position7 + attachment->path_position_index;
-            *slot = *position;
-            attachment->path_values[attachment->path_position_index] = surface_index;
-            ++attachment->path_position_index;
-            attachment->flags &= ~W8_NAV_ATTACHMENT_PATH_LENGTH_CACHED;
+            attachment->AppendPathPosition(position, surface_index);
             --count;
         } while (count != 0);
     }
@@ -1596,15 +1579,7 @@ unsigned char W8PathingService::BuildPatrolPath(W8NavigatorAttachment* attachmen
         do {
             unsigned short surface_index = g_path_scratch[remaining - 1];
             srVector3T<float>* position = &m_pSurfaces[surface_index].position;
-            if (static_cast<unsigned int>(attachment->capacity) <=
-                static_cast<unsigned int>(attachment->path_position_index + 1)) {
-                attachment->GrowPathStorage();
-            }
-            srVector3T<float>* slot = attachment->position7 + attachment->path_position_index;
-            *slot = *position;
-            attachment->path_values[attachment->path_position_index] = surface_index;
-            ++attachment->path_position_index;
-            attachment->flags &= ~W8_NAV_ATTACHMENT_PATH_LENGTH_CACHED;
+            attachment->AppendPathPosition(position, surface_index);
             --remaining;
         } while (remaining != 0);
     }
@@ -2513,15 +2488,7 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
         }
 
         if (CanReachSearchNode(&m_search_nodes[anchor_node].position, route_parent, radius) == 0) {
-            if (static_cast<unsigned int>(attachment->path_position_index) + 1 >=
-                attachment->capacity) {
-                attachment->GrowPathStorage();
-            }
-            attachment->position7[attachment->path_position_index] =
-                m_search_nodes[route_node].position;
-            attachment->path_values[attachment->path_position_index] = 0;
-            ++attachment->path_position_index;
-            attachment->flags &= ~W8_NAV_ATTACHMENT_PATH_LENGTH_CACHED;
+            attachment->AppendPathPosition(&m_search_nodes[route_node].position, 0);
             anchor_node = route_node;
         }
 
@@ -2551,15 +2518,7 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
         break;
     }
 
-    if (static_cast<unsigned int>(attachment->path_position_index) + 1 >=
-        attachment->capacity) {
-        attachment->GrowPathStorage();
-    }
-    attachment->position7[attachment->path_position_index] =
-        m_search_nodes[anchor_node].position;
-    attachment->path_values[attachment->path_position_index] = 0;
-    ++attachment->path_position_index;
-    attachment->flags &= ~W8_NAV_ATTACHMENT_PATH_LENGTH_CACHED;
+    attachment->AppendPathPosition(&m_search_nodes[anchor_node].position, 0);
     attachment->path_values[prop_count] = 0;
 
     if (attachment->path_position_index > 1) {
@@ -3255,16 +3214,7 @@ unsigned char W8PathingService::PrepareLinkedNavigator(W8NavigatorMovementState*
             do {
                 unsigned short surface = linked_attachment->path_values[index];
                 srVector3T<float>* source = &linked_attachment->position7[index];
-                if (static_cast<unsigned int>(attachment->capacity) <=
-                    static_cast<unsigned int>(attachment->path_position_index + 1)) {
-                    attachment->GrowPathStorage();
-                }
-                srVector3T<float>* slot =
-                    attachment->position7 + attachment->path_position_index;
-                *slot = *source;
-                attachment->path_values[attachment->path_position_index] = surface;
-                ++attachment->path_position_index;
-                attachment->flags &= ~W8_NAV_ATTACHMENT_PATH_LENGTH_CACHED;
+                attachment->AppendPathPosition(source, surface);
                 linked_attachment = m_linked_attachment;
                 ++index;
             } while (index <= linked_attachment->path_position_index);

@@ -382,29 +382,33 @@ static void SubMenuButtonToggleCombat(W8DialogButton* button)
     DrawSubMenuCharacterAction();
 }
 
+/* Delete the panel and its owned rows, including failed construction. */
+void DestroySubMenuPanel()
+{
+    if (gpSubMenuPanel != 0) {
+        delete gpSubMenuPanel;
+        gpSubMenuPanel = 0;
+    }
+    for (int i = 0; i < 5; ++i) {
+        if (g_submenu_rows[i] != 0) {
+            delete g_submenu_rows[i];
+            g_submenu_rows[i] = 0;
+        }
+    }
+}
+
 /* Drop the combat-end notification and tear down the panel and its rows.
    Retail expands this operation throughout the submenu callbacks; callers
    share this body and leave the inlining decision to the compiler. */
 // FUNCTION: WIZ8 0x00595570
 void DestroySubMenuControls(void)
 {
-    int i;
-
     SetSubMenuButtonTooltips(1);
     g_level_block->combat_end_notification = -1;
     g_submenu_entry_count = 0;
     RegionSetDisable(0x27);
     DisableRegionSetInput(0x27);
-    if (gpSubMenuPanel != 0) {
-        delete gpSubMenuPanel;
-        gpSubMenuPanel = 0;
-    }
-    for (i = 0; i < 5; ++i) {
-        if (g_submenu_rows[i] != 0) {
-            delete g_submenu_rows[i];
-            g_submenu_rows[i] = 0;
-        }
-    }
+    DestroySubMenuPanel();
     RequestRedraw(0x200);
 }
 

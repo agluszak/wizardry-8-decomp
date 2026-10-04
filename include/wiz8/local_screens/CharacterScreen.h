@@ -166,6 +166,9 @@ public:
                     const W8CharacterStatsRecord* table,
                     const W8CharacterStatsRecord* default_record, int help_first, int help_second,
                     int help_value); /* 0x005c9310 */
+    /* Descriptive names for the collapse operations expanded in row/page input. */
+    void Collapse();
+    void CollapseIfNotHovered();
     void BuildSubpanel();            /* 0x005c94e0 */
     void SetValue(int index);        /* 0x005c96c0 */
 

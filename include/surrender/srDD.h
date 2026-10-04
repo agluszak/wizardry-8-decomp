@@ -70,12 +70,12 @@ public:
         void reset()
         {
             flags = 0;
-            size_1c = 0;
+            size = 0;
             last_use = 0;
             priority = 0.5f;
             resident_data = 0;
-            width_20 = 0;
-            height_24 = 0;
+            width = 0;
+            height = 0;
             first_level = 0;
             last_level = 0;
             format_index = 0;

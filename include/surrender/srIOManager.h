@@ -104,8 +104,8 @@ private:
         Importer* find(const char* extension) const
         {
             for (Registration* node = first; node != sentinel; node = node->next) {
-                if (strcmp(node->extension_00, extension) == 0) {
-                    return node->importer_04;
+                if (strcmp(node->extension, extension) == 0) {
+                    return node->importer;
                 }
             }
             return 0;
@@ -114,7 +114,7 @@ private:
         Registration* find(Importer* entry) const
         {
             for (Registration* node = first; node != sentinel; node = node->next) {
-                if (node->importer_04 == entry) {
+                if (node->importer == entry) {
                     return node;
                 }
             }
@@ -163,8 +163,8 @@ private:
         Exporter* find(const char* extension) const
         {
             for (Registration* node = first; node != sentinel; node = node->next) {
-                if (strcmp(node->extension_00, extension) == 0) {
-                    return node->exporter_04;
+                if (strcmp(node->extension, extension) == 0) {
+                    return node->exporter;
                 }
             }
             return 0;
@@ -173,7 +173,7 @@ private:
         Registration* find(Exporter* entry) const
         {
             for (Registration* node = first; node != sentinel; node = node->next) {
-                if (node->exporter_04 == entry) {
+                if (node->exporter == entry) {
                     return node;
                 }
             }

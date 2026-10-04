@@ -1006,7 +1006,7 @@ private:
            growing operator[] the way retail inlines it. */
         void release();
         Texture* allocate();
-        void free(Texture* texture);
+        void release(Texture* texture);
 
         unsigned long count;
         Texture* free;

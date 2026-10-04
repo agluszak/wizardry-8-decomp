@@ -427,6 +427,18 @@ unsigned int CountEquipItemPenalties(int slot)
    the enchantments, then one entry per worn item that has any modifier at all.
    Alternate-hand slots 8 and 9 are skipped, and unidentified items contribute
    nothing. */
+/* Descriptive name for appending an effect and updating both category counts. */
+static void AddCampEffectEntry(W8CampScreenState* screen, W8CampEffectEntry* entry)
+{
+    screen->effect_list = AddtoList(screen->effect_list, entry, ListSize(screen->effect_list));
+    if (entry->beneficial != 0) {
+        ++screen->effect_beneficial_count;
+    }
+    if (entry->detrimental != 0) {
+        ++screen->effect_detrimental_count;
+    }
+}
+
 // FUNCTION: WIZ8 0x005c4ee0
 void RebuildCampEffectList(void)
 {
@@ -464,14 +476,7 @@ void RebuildCampEffectList(void)
                 }
             }
             entry.index = condition;
-            screen->effect_list =
-                AddtoList(screen->effect_list, &entry, ListSize(screen->effect_list));
-            if (entry.beneficial != 0) {
-                ++screen->effect_beneficial_count;
-            }
-            if (entry.detrimental != 0) {
-                ++screen->effect_detrimental_count;
-            }
+            AddCampEffectEntry(screen, &entry);
         }
     }
     for (int index = 7; index >= 0; --index) {
@@ -484,14 +489,7 @@ void RebuildCampEffectList(void)
             entry.turns = character->enchantments[index].turns;
             entry.lines = 2;
             entry.index = index;
-            screen->effect_list =
-                AddtoList(screen->effect_list, &entry, ListSize(screen->effect_list));
-            if (entry.beneficial != 0) {
-                ++screen->effect_beneficial_count;
-            }
-            if (entry.detrimental != 0) {
-                ++screen->effect_detrimental_count;
-            }
+            AddCampEffectEntry(screen, &entry);
         }
     }
     for (int slot = 0; slot < 12; ++slot) {
@@ -509,14 +507,7 @@ void RebuildCampEffectList(void)
                 entry.kind = 2;
                 entry.turns = 9999;
                 entry.index = slot;
-                screen->effect_list =
-                    AddtoList(screen->effect_list, &entry, ListSize(screen->effect_list));
-                if (entry.beneficial != 0) {
-                    ++screen->effect_beneficial_count;
-                }
-                if (entry.detrimental != 0) {
-                    ++screen->effect_detrimental_count;
-                }
+                AddCampEffectEntry(screen, &entry);
             }
         }
     }

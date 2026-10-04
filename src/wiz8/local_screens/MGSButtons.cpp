@@ -1431,7 +1431,6 @@ unsigned char BuildSubMenuPanel(short notification)
     short state;
     int base;
     W8TextControl* row;
-    int i;
 
     if (gpSubMenuPanel != 0) {
         gpSubMenuPanel = 0;
@@ -1569,16 +1568,7 @@ unsigned char BuildSubMenuPanel(short notification)
             gpSubMenuPanel, index + 0xc2, index * 19 + 5, 5, index * 19 + 0x17, 0x17, 0x89, 0,
             message, message, message + icon_delta, message + icon_delta, -1);
         if (g_submenu_rows[index] == 0) {
-            if (gpSubMenuPanel != 0) {
-                delete gpSubMenuPanel;
-                gpSubMenuPanel = 0;
-            }
-            for (i = 0; i < 5; ++i) {
-                if (g_submenu_rows[i] != 0) {
-                    delete g_submenu_rows[i];
-                    g_submenu_rows[i] = 0;
-                }
-            }
+            DestroySubMenuPanel();
             return 0;
         }
         AssignSubMenuCallback(g_submenu_rows[index], menu, entry);
@@ -1589,16 +1579,7 @@ unsigned char BuildSubMenuPanel(short notification)
         new W8TextControl(gpSubMenuPanel, built + 0xc1, built * 19 - 14, 5, built * 19 - 2, 0x17,
                           0x89, 0, 0xbd, 0xbd, 0xbf, 0xbf, -1);
     if (g_submenu_rows[built - 1] == 0) {
-        if (gpSubMenuPanel != 0) {
-            delete gpSubMenuPanel;
-            gpSubMenuPanel = 0;
-        }
-        for (i = 0; i < 5; ++i) {
-            if (g_submenu_rows[i] != 0) {
-                delete g_submenu_rows[i];
-                g_submenu_rows[i] = 0;
-            }
-        }
+        DestroySubMenuPanel();
         return 0;
     }
     g_submenu_rows[built - 1]->m_primaryActivationCallback = DestroySubMenuControls;
