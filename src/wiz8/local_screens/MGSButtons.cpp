@@ -241,26 +241,29 @@ void SubMenuSelectWalk(void)
     DestroySubMenuControls();
 }
 
-// FUNCTION: WIZ8 0x00596CF0
-void ResetSubMenuPanel(void)
+void OpenSubMenuPanel(short notification)
 {
-    short saved_notification;
-    char rebuilt;
-
-    saved_notification = g_level_block->combat_end_notification;
-    DestroySubMenuControls();
     if (g_level_block->combat_end_notification != -1) {
         DestroySubMenuControls();
     }
     UpdateScreenOverlays(0);
-    rebuilt = BuildSubMenuPanel(saved_notification);
-    if (rebuilt == 0) {
+    if (BuildSubMenuPanel(notification) == 0) {
         DestroySubMenuControls();
     }
     SetSubMenuButtonTooltips(0);
     g_submenu_clock = SetCountdownClock(0);
     g_submenu_close_pending = false;
     RequestRedraw(0x200);
+}
+
+// FUNCTION: WIZ8 0x00596CF0
+void ResetSubMenuPanel(void)
+{
+    short saved_notification;
+
+    saved_notification = g_level_block->combat_end_notification;
+    DestroySubMenuControls();
+    OpenSubMenuPanel(saved_notification);
 }
 
 // FUNCTION: WIZ8 0x00596EC0
@@ -297,17 +300,7 @@ unsigned char CreateSubMenuScrollButtons(void)
 // FUNCTION: WIZ8 0x005978D0
 static void SubMenuPanelCloseButton(W8DialogButton* button)
 {
-    if (g_level_block->combat_end_notification != -1) {
-        DestroySubMenuControls();
-    }
-    UpdateScreenOverlays(0);
-    if (BuildSubMenuPanel(9) == 0) {
-        DestroySubMenuControls();
-    }
-    SetSubMenuButtonTooltips(0);
-    g_submenu_clock = SetCountdownClock(0);
-    g_submenu_close_pending = false;
-    RequestRedraw(0x200);
+    OpenSubMenuPanel(9);
 }
 
 // FUNCTION: WIZ8 0x00597A10

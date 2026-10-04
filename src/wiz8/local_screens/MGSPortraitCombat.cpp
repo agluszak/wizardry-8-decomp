@@ -343,17 +343,7 @@ static void SubMenuButtonUseItem(W8DialogButton* button)
         return;
     }
     if (gXStatus.fCombatMode != 0) {
-        if (g_level_block->combat_end_notification != -1) {
-            DestroySubMenuControls();
-        }
-        UpdateScreenOverlays(0);
-        if (BuildSubMenuPanel(3) == 0) {
-            DestroySubMenuControls();
-        }
-        SetSubMenuButtonTooltips(0);
-        g_submenu_clock = SetCountdownClock(0);
-        g_submenu_close_pending = false;
-        RequestRedraw(0x200);
+        OpenSubMenuPanel(3);
         ResetClickedMode();
         return;
     }
@@ -375,33 +365,13 @@ static void SubMenuButtonSpellView(W8DialogButton* button)
 // FUNCTION: WIZ8 0x005952D0
 static void SubMenuButtonOpenMenu0(W8DialogButton* button)
 {
-    if (g_level_block->combat_end_notification != -1) {
-        DestroySubMenuControls();
-    }
-    UpdateScreenOverlays(0);
-    if (BuildSubMenuPanel(6) == 0) {
-        DestroySubMenuControls();
-    }
-    SetSubMenuButtonTooltips(0);
-    g_submenu_clock = SetCountdownClock(0);
-    g_submenu_close_pending = false;
-    RequestRedraw(0x200);
+    OpenSubMenuPanel(6);
 }
 
 // FUNCTION: WIZ8 0x00595410
 static void SubMenuButtonOpenMenu1(W8DialogButton* button)
 {
-    if (g_level_block->combat_end_notification != -1) {
-        DestroySubMenuControls();
-    }
-    UpdateScreenOverlays(0);
-    if (BuildSubMenuPanel(5) == 0) {
-        DestroySubMenuControls();
-    }
-    SetSubMenuButtonTooltips(0);
-    g_submenu_clock = SetCountdownClock(0);
-    g_submenu_close_pending = false;
-    RequestRedraw(0x200);
+    OpenSubMenuPanel(5);
 }
 
 // FUNCTION: WIZ8 0x00595550
@@ -446,13 +416,5 @@ void ReopenSubMenuPanel(void)
     if (notification == -1) {
         return;
     }
-    DestroySubMenuControls();
-    UpdateScreenOverlays(0);
-    if (BuildSubMenuPanel(notification) == 0) {
-        DestroySubMenuControls();
-    }
-    SetSubMenuButtonTooltips(0);
-    g_submenu_clock = SetCountdownClock(0);
-    g_submenu_close_pending = false;
-    RequestRedraw(0x200);
+    OpenSubMenuPanel(notification);
 }

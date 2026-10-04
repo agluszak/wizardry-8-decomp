@@ -137,6 +137,9 @@ unsigned char SubMenuRowRegionEvent(const InputAtom* event, W8Region* region); /
    MGSButtons.cpp hull (anchors 0x0059DD20/0x0059EB10). */
 /* Enable the panel region set and one input region per live row. */
 void EnableSubMenuRegions(void); /* 0x005957E0 */
+/* Descriptive name for the complete submenu opening operation expanded in
+   the button callbacks and reopen/reset paths. */
+void OpenSubMenuPanel(short notification);
 /* Build the panel and one row per available entry of the notification's
    menu. */
 unsigned char BuildSubMenuPanel(short notification); /* 0x00595850 */

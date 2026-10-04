@@ -108,6 +108,8 @@ struct W8CharacterEventQueue {
     ~W8CharacterEventQueue();
     void DestroyAllEvents();
     int QueueEntry(W8CharacterEvent* entry);
+    /* Descriptive name for the successful-dispatch bookkeeping operation. */
+    void RecordDispatchedEvent(unsigned int event_type, unsigned int party_slot);
     void SetEventCharacterMask(unsigned int event_type, unsigned int party_slot, bool enabled);
     bool HasEventCharacter(unsigned int event_type, unsigned int party_slot); /* 0x0052DD90 */
     void ProcessDeferredCharacterEvents();                                    /* 0x0052DDD0 */

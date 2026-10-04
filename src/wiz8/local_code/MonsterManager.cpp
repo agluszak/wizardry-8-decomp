@@ -791,6 +791,30 @@ void ResetLivingMonstersAfterCombat(void)
     }
 }
 
+/* Descriptive name for the complete list-entry teardown expanded in the
+   immediate removal, ungrouped cleanup and per-frame fade paths. */
+static void DestroyMonsterListEntry(unsigned int index)
+{
+    W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
+    DeactivateMonster(monster_info);
+    if (monster_info == 0) {
+        srAssertFail("pMonsterInfo", MONSTER_MANAGER_CPP, 0x282, 0);
+    }
+    if (monster_info->p3D != 0) {
+        DetachMonsterRepresentation(monster_info->p3D, GetWorld());
+        RemoveMonsterFromWorldList(GetWorld(), monster_info->p3D);
+        DeleteMonster(monster_info->p3D);
+        monster_info->p3D = 0;
+    }
+    g_octree->UnregisterLocationObjects(
+        static_cast<unsigned short>(monster_info->location_id));
+    ReleaseNpcBinding(monster_info->bound_npc_index);
+    void* removed = PLRemoveAt(gXStatus.plsMonsterList, index);
+    if (removed != 0) {
+        free(removed);
+    }
+}
+
 // FUNCTION: WIZ8 0x004e5f00
 void DestroyUngroupedMonsters(void)
 {
@@ -808,24 +832,7 @@ void DestroyUngroupedMonsters(void)
                     monster->ApplyRemovalStateEffects();
                 }
             }
-            monster_info = MonsterGetScriptPartByLocationIndex(index);
-            DeactivateMonster(monster_info);
-            if (monster_info == 0) {
-                srAssertFail("pMonsterInfo", MONSTER_MANAGER_CPP, 0x282, 0);
-            }
-            if (monster_info->p3D != 0) {
-                DetachMonsterRepresentation(monster_info->p3D, GetWorld());
-                RemoveMonsterFromWorldList(GetWorld(), monster_info->p3D);
-                DeleteMonster(monster_info->p3D);
-                monster_info->p3D = 0;
-            }
-            g_octree->UnregisterLocationObjects(
-                static_cast<unsigned short>(monster_info->location_id));
-            ReleaseNpcBinding(monster_info->bound_npc_index);
-            void* removed = PLRemoveAt(gXStatus.plsMonsterList, index);
-            if (removed != 0) {
-                free(removed);
-            }
+            DestroyMonsterListEntry(index);
             --index;
         }
     }
@@ -1183,23 +1190,7 @@ bool RemoveMonster(unsigned int monster_list_index, bool destroy_monster)
     }
     DeactivateMonster(monster_info);
     if (destroy_monster != 0) {
-        monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
-        DeactivateMonster(monster_info);
-        if (monster_info == 0) {
-            srAssertFail("pMonsterInfo", MONSTER_MANAGER_CPP, 0x282, 0);
-        }
-        if (monster_info->p3D != 0) {
-            DetachMonsterRepresentation(monster_info->p3D, GetWorld());
-            RemoveMonsterFromWorldList(GetWorld(), monster_info->p3D);
-            DeleteMonster(monster_info->p3D);
-            monster_info->p3D = 0;
-        }
-        g_octree->UnregisterLocationObjects(static_cast<unsigned short>(monster_info->location_id));
-        ReleaseNpcBinding(monster_info->bound_npc_index);
-        void* removed = PLRemoveAt(gXStatus.plsMonsterList, monster_list_index);
-        if (removed != 0) {
-            free(removed);
-        }
+        DestroyMonsterListEntry(monster_list_index);
     }
     return 1;
 }
@@ -1511,24 +1502,7 @@ void ProcessMonsterManagerFrame(void)
                 if (monster->removal_state != 0) {
                     monster->ApplyRemovalStateEffects();
                 }
-                monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
-                DeactivateMonster(monster_info);
-                if (monster_info == 0) {
-                    srAssertFail("pMonsterInfo", MONSTER_MANAGER_CPP, 0x282, 0);
-                }
-                if (monster_info->p3D != 0) {
-                    DetachMonsterRepresentation(monster_info->p3D, GetWorld());
-                    RemoveMonsterFromWorldList(GetWorld(), monster_info->p3D);
-                    DeleteMonster(monster_info->p3D);
-                    monster_info->p3D = 0;
-                }
-                g_octree->UnregisterLocationObjects(
-                    static_cast<unsigned short>(monster_info->location_id));
-                ReleaseNpcBinding(monster_info->bound_npc_index);
-                void* removed = PLRemoveAt(gXStatus.plsMonsterList, monster_list_index);
-                if (removed != 0) {
-                    free(removed);
-                }
+                DestroyMonsterListEntry(monster_list_index);
                 --monster_list_index;
             }
         } else if ((monster->flags1 & W8_MONSTER_REMOVE_NOW) != 0) {

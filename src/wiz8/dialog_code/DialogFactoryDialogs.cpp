@@ -1235,13 +1235,7 @@ void W8TriggerItemPickerDialog::RefreshScrollButtons()
     for (index = 0; index < 4; ++index) {
         int item = m_first_item + index;
         if (item < items.GetCount()) {
-            if (item < 0 || item >= items.GetCount()) {
-                bool flag = false;
-                (*button)->SetPressed(flag);
-            } else {
-                unsigned char flag = *flags.GetAt(item);
-                (*button)->SetPressed(flag);
-            }
+            (*button)->SetPressed(IsItemSelected(item));
         } else if ((*button)->IsPressed() != 0) {
             (*button)->SetPressed(0);
             (*button)->SetVisible(0);
@@ -1261,6 +1255,35 @@ void W8TriggerItemPickerDialog::SetFirstVisible(int index)
     }
     m_first_item = index;
     m_dirty_flags |= 1;
+}
+
+bool W8TriggerItemPickerDialog::IsItemSelected(int index)
+{
+    if (index < 0 || index >= items.GetCount()) {
+        return false;
+    }
+    return *flags.GetAt(index) != 0;
+}
+
+void W8TriggerItemPickerDialog::SetItemSelected(int index, bool selected)
+{
+    if (index >= 0 && index < items.GetCount()) {
+        flags.SetAt(index, selected);
+        if (index >= m_first_item && index <= m_first_item + 3) {
+            m_buttons[5 + index - m_first_item]->SetPressed(selected);
+            m_buttons[5 + index - m_first_item]->m_dirty = true;
+        }
+    }
+}
+
+void W8TriggerItemPickerDialog::ToggleItem(int index, W8DialogButton* button)
+{
+    bool selected = !IsItemSelected(index);
+    if (index < 0 || index >= items.GetCount()) {
+        button->SetPressed(0);
+    } else {
+        SetItemSelected(index, selected);
+    }
 }
 
 /* Move every selected item to the destination: -1 hands a copy to the shared
@@ -1326,14 +1349,7 @@ void W8TriggerItemPickerDialog::ToggleAllItems(W8DialogButton* button)
         }
         bool selected = all_selected == 0;
         for (index = 0; index < dialog->items.GetCount(); ++index) {
-            if (index >= 0 && index < dialog->items.GetCount()) {
-                dialog->flags.SetAt(index, selected);
-                if (index >= dialog->m_first_item && index <= dialog->m_first_item + 3) {
-                    dialog->m_buttons[5 + index - dialog->m_first_item]->SetPressed(
-                        selected);
-                    dialog->m_buttons[5 + index - dialog->m_first_item]->m_dirty = true;
-                }
-            }
+            dialog->SetItemSelected(index, selected);
         }
     }
 }
@@ -1365,25 +1381,7 @@ void W8TriggerItemPickerDialog::ToggleVisibleItem0(W8DialogButton* button)
     if (button != 0) {
         W8TriggerItemPickerDialog* dialog =
             static_cast<W8TriggerItemPickerDialog*>(button->m_owner);
-        int index = dialog->m_first_item;
-        unsigned char flag;
-        bool selected;
-
-        if (index < 0 || index >= dialog->items.GetCount()) {
-            flag = 0;
-        } else {
-            flag = *dialog->flags.GetAt(index);
-        }
-        selected = flag == 0;
-        if (index < 0 || index >= dialog->items.GetCount()) {
-            button->SetPressed(0);
-        } else {
-            dialog->flags.SetAt(index, selected);
-            if (index >= dialog->m_first_item && index <= dialog->m_first_item + 3) {
-                dialog->m_buttons[5 + index - dialog->m_first_item]->SetPressed(selected);
-                dialog->m_buttons[5 + index - dialog->m_first_item]->m_dirty = true;
-            }
-        }
+        dialog->ToggleItem(dialog->m_first_item, button);
     }
 }
 
@@ -1394,26 +1392,7 @@ void W8TriggerItemPickerDialog::ToggleVisibleItem1(W8DialogButton* button)
         W8TriggerItemPickerDialog* dialog =
             static_cast<W8TriggerItemPickerDialog*>(button->m_owner);
         if (dialog->m_first_item < dialog->items.GetCount() + 1) {
-            int index = dialog->m_first_item + 1;
-            unsigned char flag;
-            bool selected;
-
-            if (index < 0 || index >= dialog->items.GetCount()) {
-                flag = 0;
-            } else {
-                flag = *dialog->flags.GetAt(index);
-            }
-            selected = flag == 0;
-            if (index < 0 || index >= dialog->items.GetCount()) {
-                button->SetPressed(0);
-            } else {
-                dialog->flags.SetAt(index, selected);
-                if (index >= dialog->m_first_item && index <= dialog->m_first_item + 3) {
-                    dialog->m_buttons[5 + index - dialog->m_first_item]->SetPressed(
-                        selected);
-                    dialog->m_buttons[5 + index - dialog->m_first_item]->m_dirty = true;
-                }
-            }
+            dialog->ToggleItem(dialog->m_first_item + 1, button);
         }
     }
 }
@@ -1425,26 +1404,7 @@ void W8TriggerItemPickerDialog::ToggleVisibleItem2(W8DialogButton* button)
         W8TriggerItemPickerDialog* dialog =
             static_cast<W8TriggerItemPickerDialog*>(button->m_owner);
         if (dialog->m_first_item < dialog->items.GetCount() + 2) {
-            int index = dialog->m_first_item + 2;
-            unsigned char flag;
-            bool selected;
-
-            if (index < 0 || index >= dialog->items.GetCount()) {
-                flag = 0;
-            } else {
-                flag = *dialog->flags.GetAt(index);
-            }
-            selected = flag == 0;
-            if (index < 0 || index >= dialog->items.GetCount()) {
-                button->SetPressed(0);
-            } else {
-                dialog->flags.SetAt(index, selected);
-                if (index >= dialog->m_first_item && index <= dialog->m_first_item + 3) {
-                    dialog->m_buttons[5 + index - dialog->m_first_item]->SetPressed(
-                        selected);
-                    dialog->m_buttons[5 + index - dialog->m_first_item]->m_dirty = true;
-                }
-            }
+            dialog->ToggleItem(dialog->m_first_item + 2, button);
         }
     }
 }
@@ -1456,26 +1416,7 @@ void W8TriggerItemPickerDialog::ToggleVisibleItem3(W8DialogButton* button)
         W8TriggerItemPickerDialog* dialog =
             static_cast<W8TriggerItemPickerDialog*>(button->m_owner);
         if (dialog->m_first_item < dialog->items.GetCount() + 3) {
-            int index = dialog->m_first_item + 3;
-            unsigned char flag;
-            bool selected;
-
-            if (index < 0 || index >= dialog->items.GetCount()) {
-                flag = 0;
-            } else {
-                flag = *dialog->flags.GetAt(index);
-            }
-            selected = flag == 0;
-            if (index < 0 || index >= dialog->items.GetCount()) {
-                button->SetPressed(0);
-            } else {
-                dialog->flags.SetAt(index, selected);
-                if (index >= dialog->m_first_item && index <= dialog->m_first_item + 3) {
-                    dialog->m_buttons[5 + index - dialog->m_first_item]->SetPressed(
-                        selected);
-                    dialog->m_buttons[5 + index - dialog->m_first_item]->m_dirty = true;
-                }
-            }
+            dialog->ToggleItem(dialog->m_first_item + 3, button);
         }
     }
 }
@@ -1645,20 +1586,7 @@ unsigned char W8TriggerItemPickerDialog::HandleInputEvent(const InputAtom* input
         case '4': {
             int index = m_first_item + input->usParam - '1';
             if (index < items.GetCount()) {
-                unsigned char flag;
-                if (index < 0) {
-                    flag = 0;
-                } else {
-                    flag = *flags.GetAt(index);
-                }
-                if (index >= 0 && index < items.GetCount()) {
-                    flags.SetAt(index, flag == 0);
-                    if (index >= m_first_item && index <= m_first_item + 3) {
-                        m_buttons[5 + index - m_first_item]->SetPressed(flag == 0);
-                        m_buttons[5 + index - m_first_item]->m_dirty = true;
-                        return m_keep_open;
-                    }
-                }
+                SetItemSelected(index, !IsItemSelected(index));
             }
             break;
         }

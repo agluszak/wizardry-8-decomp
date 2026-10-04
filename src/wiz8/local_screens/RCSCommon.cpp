@@ -1456,79 +1456,47 @@ void SetCampItemActionMode(char mode)
     g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ITEM_ACTIONS;
 }
 
+/* Descriptive name for the page-button operation expanded in the callbacks. */
+static void SelectCampPageButton(int button, int page)
+{
+    if (static_cast<unsigned char>(g_camp_page_buttons[button]->m_stateFlags &
+                                   g_W8TextControlStateSecondary) != 0) {
+        for (int index = 0; index < 5; ++index) {
+            if (static_cast<unsigned char>(g_camp_page_buttons[index]->m_stateFlags &
+                                           g_W8TextControlStateSecondary) != 0) {
+                g_camp_page_buttons[index]->DisableSecondaryState(0);
+            }
+        }
+        SwitchCampPage(page);
+    }
+    g_camp_page_buttons[button]->EnableSecondaryState(0);
+}
+
 /* The five page-button callbacks share one shape: while this button's
    secondary state is up, clear it on every page button and switch to the
    button's page; then raise the pressed button's secondary state. */
 // FUNCTION: WIZ8 0x005b5ae0
 static void OnCampPageButton0(void)
 {
-    int index;
-
-    if (static_cast<unsigned char>(g_camp_page_buttons[0]->m_stateFlags &
-                                   g_W8TextControlStateSecondary) != 0) {
-        for (index = 0; index < 5; ++index) {
-            if (static_cast<unsigned char>(g_camp_page_buttons[index]->m_stateFlags &
-                                           g_W8TextControlStateSecondary) != 0) {
-                g_camp_page_buttons[index]->DisableSecondaryState(0);
-            }
-        }
-        SwitchCampPage(0);
-    }
-    g_camp_page_buttons[0]->EnableSecondaryState(0);
+    SelectCampPageButton(0, 0);
 }
 
 // FUNCTION: WIZ8 0x005b5b30
 static void OnCampPageButton1(void)
 {
-    int index;
-
-    if (static_cast<unsigned char>(g_camp_page_buttons[1]->m_stateFlags &
-                                   g_W8TextControlStateSecondary) != 0) {
-        for (index = 0; index < 5; ++index) {
-            if (static_cast<unsigned char>(g_camp_page_buttons[index]->m_stateFlags &
-                                           g_W8TextControlStateSecondary) != 0) {
-                g_camp_page_buttons[index]->DisableSecondaryState(0);
-            }
-        }
-        SwitchCampPage(3);
-    }
-    g_camp_page_buttons[1]->EnableSecondaryState(0);
+    SelectCampPageButton(1, 3);
 }
 
 // FUNCTION: WIZ8 0x005b5b80
 static void OnCampPageButton2(void)
 {
-    int index;
-
-    if (static_cast<unsigned char>(g_camp_page_buttons[2]->m_stateFlags &
-                                   g_W8TextControlStateSecondary) != 0) {
-        for (index = 0; index < 5; ++index) {
-            if (static_cast<unsigned char>(g_camp_page_buttons[index]->m_stateFlags &
-                                           g_W8TextControlStateSecondary) != 0) {
-                g_camp_page_buttons[index]->DisableSecondaryState(0);
-            }
-        }
-        SwitchCampPage(2);
-    }
-    g_camp_page_buttons[2]->EnableSecondaryState(0);
+    SelectCampPageButton(2, 2);
 }
 
 // FUNCTION: WIZ8 0x005b5bd0
 static void OnCampPageButton3(void)
 {
-    int index;
-
-    if (static_cast<unsigned char>(g_camp_page_buttons[3]->m_stateFlags &
-                                   g_W8TextControlStateSecondary) != 0) {
-        for (index = 0; index < 5; ++index) {
-            if (static_cast<unsigned char>(g_camp_page_buttons[index]->m_stateFlags &
-                                           g_W8TextControlStateSecondary) != 0) {
-                g_camp_page_buttons[index]->DisableSecondaryState(0);
-            }
-        }
-        SwitchCampPage(1);
-    }
-    g_camp_page_buttons[3]->EnableSecondaryState(0);
+    SelectCampPageButton(3, 1);
 }
 
 // FUNCTION: WIZ8 0x005b5c20

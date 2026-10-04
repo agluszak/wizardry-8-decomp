@@ -1221,6 +1221,19 @@ void InitializeNpcStates(void)
     }
 }
 
+/* Descriptive name for the complete state teardown expanded in reset,
+   shutdown and load. Stock ownership remains with the database record. */
+static void DestroyNpcState(W8NpcState* npc)
+{
+    ReleaseNpcScriptFile(npc->script_file);
+    npc->script_file = 0;
+    if (npc->record != 0 && npc->record->owns_stock != 0) {
+        ClearNpcItems(npc);
+    }
+    delete npc->character;
+    delete npc;
+}
+
 /* Empty the shared vector: release every state's monster binding and character,
    hand its stock to the item-list teardown, and delete the state itself. Then
    rebuild a runtime node for every database record that is not flagged at
@@ -1235,13 +1248,7 @@ void ResetNpcStates(void)
         for (index = 0; index < g_npc_states->count; ++index) {
             W8NpcState* npc = *g_npc_states->GetAt(index);
 
-            ReleaseNpcScriptFile(npc->script_file);
-            npc->script_file = 0;
-            if (npc->record != 0 && npc->record->owns_stock != 0) {
-                ClearNpcItems(npc);
-            }
-            delete npc->character;
-            delete npc;
+            DestroyNpcState(npc);
         }
         g_npc_states->Clear();
     }
@@ -1263,13 +1270,7 @@ void ReleaseNpcStates(void)
         for (index = 0; index < g_npc_states->count; ++index) {
             W8NpcState* npc = *g_npc_states->GetAt(index);
             if (g_npc_states != 0) {
-                ReleaseNpcScriptFile(npc->script_file);
-                npc->script_file = 0;
-                if (npc->record != 0 && npc->record->owns_stock != 0) {
-                    ClearNpcItems(npc);
-                }
-                delete npc->character;
-                delete npc;
+                DestroyNpcState(npc);
             }
         }
         g_npc_states->Clear();
@@ -1632,13 +1633,7 @@ void LoadNpcStates(W8Chunk* chunks)
         for (index = 0; index < g_npc_states->count; ++index) {
             npc = *g_npc_states->GetAt(index);
 
-            ReleaseNpcScriptFile(npc->script_file);
-            npc->script_file = 0;
-            if (npc->record != 0 && npc->record->owns_stock != 0) {
-                ClearNpcItems(npc);
-            }
-            delete npc->character;
-            delete npc;
+            DestroyNpcState(npc);
         }
         g_npc_states->Clear();
     }

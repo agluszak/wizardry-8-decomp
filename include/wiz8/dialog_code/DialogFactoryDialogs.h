@@ -223,6 +223,11 @@ private:
     /* Sync the four scroll buttons' pressed/visible state with the scroll
        offset and the per-item enable flags. */
     void RefreshScrollButtons();
+    /* Descriptive names for selection operations expanded in the row,
+       select-all and keyboard handlers; original spellings are unknown. */
+    bool IsItemSelected(int index);
+    void SetItemSelected(int index, bool selected);
+    void ToggleItem(int index, W8DialogButton* button);
     /* Move every flagged item to the destination: -1 copies it into the shared
        party pool, any other value gives it to that party slot's character.
        Each successful transfer unlinks the item and its flag; a failure plays
