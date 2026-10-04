@@ -31,9 +31,7 @@ void srIlluminator::process(const ProcessInfo& info, e_processType type)
     if (type == PROCESS_PUSH || type == PROCESS_PUSH_GLOBAL) {
         applyWorldSpaceMatrix(*renderer);
         srVector3T<float> origin;
-        origin.x = 0.0f;
-        origin.y = 0.0f;
-        origin.z = 0.0f;
+        origin.SetZero();
         const srVector4T<float> location = renderer->getEyeSpaceLocation(origin);
         eye_location.x = location.x;
         eye_location.y = location.y;

@@ -465,7 +465,7 @@ void ShowMonsterSpeedStatus(void)
         return;
     }
     path = static_cast<W8PathAI*>(MonsterGetObject0C(g_mipe_state->monster));
-    if (path != 0 && PathAIRecordFlag(path) == 0) {
+    if (path != 0 && GetAIRecordKind(path) == W8_AI_RECORD_PATH) {
         speed = PathAIGetScale(path);
     } else {
         if (g_mipe_state->monster == 0) {
@@ -1282,7 +1282,7 @@ void AdjustMonsterSpeed(unsigned short key)
         factor = 1.0f;
         speed = MonsterGetNavigatorMovementScale(g_mipe_state->monster);
     } else {
-        if (PathAIRecordFlag(path) != 0) {
+        if (GetAIRecordKind(path) != W8_AI_RECORD_PATH) {
             return;
         }
         speed = PathAIGetScale(path);

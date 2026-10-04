@@ -128,9 +128,9 @@ void InitializeWorldCursor(void)
             context.world_00 = g_world;
             LoadMonsterCycle(&context, "3DCursor", &gp3DCursor->monster, -1, 1);
             MonsterSetCycle(gp3DCursor->monster, 0);
-            gp3DCursor->last_published.Set(-100000000.0f, -100000000.0f, -100000000.0f);
-            gp3DCursor->position_28.Set(0.0f, 0.0f, 0.0f);
-            gp3DCursor->cam_rel_offset.Set(0.0f, 0.0f, 0.0f);
+            gp3DCursor->last_published = -100000000.0f;
+            gp3DCursor->position_28.SetZero();
+            gp3DCursor->cam_rel_offset.SetZero();
             gp3DCursor->monster->inactive = 1;
             WarpSystemCursor(0x140, 0xf0);
             gp3DCursor->input_delta.x = 0;
@@ -144,9 +144,9 @@ void InitializeWorldCursor(void)
             gp3DCursor->light = CreateRangedWorldLight(g_world, "3D Cursor Light");
             gp3DCursor->light->intensity_1d0 = 1.0f;
             ConfigureWorldLight(gp3DCursor->light, 2500.0f);
-            gp3DCursor->light->ambient_198.Set(0.0f, 0.0f, 0.0f);
-            gp3DCursor->light->diffuse_1a4.Set(1.0f, 1.0f, 1.0f);
-            gp3DCursor->light->specular_1b0.Set(0.0f, 0.0f, 0.0f);
+            gp3DCursor->light->ambient_198.SetZero();
+            gp3DCursor->light->diffuse_1a4 = 1.0f;
+            gp3DCursor->light->specular_1b0.SetZero();
             gp3DCursor->light->setLocation(1000.0, 0.0, 0.0);
             if (gp3DCursor->particle != 0) {
                 material = SR_NEW(srMaterial);
@@ -164,16 +164,16 @@ void InitializeWorldCursor(void)
                 gp3DCursor->particle->acceleration_1f4.Set(0.0f, -1000.0f, 0.0f);
                 gp3DCursor->particle->has_acceleration = 1;
                 gp3DCursor->particle->initial_speed = 500.0f;
-                gp3DCursor->particle->placement_mode = 2;
-                gp3DCursor->particle->emission_mode = 1;
-                gp3DCursor->particle->bounds_mode = 0;
-                gp3DCursor->particle->expiry_mode = 0;
+                gp3DCursor->particle->speed_mode = W8_PARTICLE_SPEED_RANDOM;
+                gp3DCursor->particle->emission_mode = W8_PARTICLE_EMISSION_SINGLE;
+                gp3DCursor->particle->bounds_mode = W8_PARTICLE_BOUNDS_NONE;
+                gp3DCursor->particle->expiry_mode = W8_PARTICLE_EXPIRY_TIMED;
                 gp3DCursor->particle->lifetime_ms = 6000;
                 gp3DCursor->particle->cone_yaw = 1.5707963f;
                 gp3DCursor->particle->cone_pitch = 1.5707963f;
                 gp3DCursor->particle->speed_min = 500.0f;
                 gp3DCursor->particle->speed_max = 1000.0f;
-                gp3DCursor->particle->SetFlutter(2);
+                gp3DCursor->particle->SetFlutter(W8_PARTICLE_FLUTTER_VELOCITY_SCALED);
                 gp3DCursor->particle->flutter_amplitude = 50.0f;
                 gp3DCursor->particle->flutter_period = 1000;
             }
@@ -405,9 +405,7 @@ void ApplyWorldCursorInput(void)
         gp3DCursor->position_28 = delta;
         gp3DCursor->cam_rel_offset = delta;
     }
-    if (gp3DCursor->last_published.x != gp3DCursor->position_28.x ||
-        gp3DCursor->last_published.y != gp3DCursor->position_28.y ||
-        gp3DCursor->last_published.z != gp3DCursor->position_28.z) {
+    if (!(gp3DCursor->last_published == gp3DCursor->position_28)) {
         lifted = gp3DCursor->position_28;
         MonsterSetAdjustedPosition(gp3DCursor->monster, &lifted);
         if (g_cursor_node_0065ba90 != 0) {
@@ -608,7 +606,7 @@ void UpdateWorldCursor(void)
     if (gp3DCursor != 0) {
         position = gp3DCursor->position_28;
     } else {
-        position.Set(0.0, 0.0, 0.0);
+        position.SetZero();
     }
     if (gfLeftButtonState == 0) {
         if (gp3DCursor->left_held != 0 && gXStatus.iTargetingMode == 3) {
@@ -632,8 +630,7 @@ void UpdateWorldCursor(void)
     } else {
         gp3DCursor->left_held = 1;
     }
-    if (old_position.x != position.x || old_position.y != position.y ||
-        old_position.z != position.z) {
+    if (!(old_position == position)) {
         if (gp3DCursor->detached != 0) {
             position.y += g_float_005ecb08;
             PointCameraAtTarget(&position, 1, 0);

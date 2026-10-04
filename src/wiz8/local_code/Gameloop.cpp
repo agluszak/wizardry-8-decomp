@@ -180,7 +180,7 @@ void GameLoop(void)
             g_screen_return_stack = Push(g_screen_return_stack, &g_current_screen_state);
         }
         state = g_pending_screen_state.id;
-        memcpy(&g_current_screen_state, &g_pending_screen_state, sizeof(W8ScreenStateRuntime));
+        g_current_screen_state = g_pending_screen_state;
         if (!g_screen_handlers[state].enter()) {
             g_current_screen_state.id = -1;
             gfProgramIsRunning = 0;

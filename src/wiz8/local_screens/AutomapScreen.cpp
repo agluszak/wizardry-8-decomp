@@ -169,12 +169,12 @@ int g_automap_button_catalogs[16] = {388, 392, 396, 380, 384, 348, 352, 356,
                                      340, 344, 360, 364, 368, 372, 376, 336};
 /* Screen positions for the sixteen buttons. */
 // GLOBAL: WIZ8 0x0064b864
-int g_automap_button_positions[16][2] = {
+srVector2i g_automap_button_positions[16] = {
     {490, 124}, {541, 124}, {591, 124}, {490, 70},  {541, 70},  {591, 70},  {591, 70},  {591, 70},
     {490, 164}, {591, 164}, {540, 218}, {540, 326}, {486, 272}, {594, 272}, {540, 272}, {588, 441},
 };
 // GLOBAL: WIZ8 0x0064b8e4
-int g_automap_cursor_offsets[5][2] = {{0, 0}, {8, 7}, {1, 24}, {1, 24}, {8, 7}};
+srVector2i g_automap_cursor_offsets[5] = {{0, 0}, {8, 7}, {1, 24}, {1, 24}, {8, 7}};
 // GLOBAL: WIZ8 0x0064b910
 float g_automap_range = 10000.0f;
 // GLOBAL: WIZ8 0x0064b90d
@@ -322,8 +322,8 @@ void ResetAutomapView(void)
         g_automap_range = 10000.0f;
     }
     if (g_octree == 0) {
-        g_automap_grid_min.Set(-250000.0f, -250000.0f, -250000.0f);
-        g_automap_grid_max.Set(250000.0f, 250000.0f, 250000.0f);
+        g_automap_grid_min = -250000.0f;
+        g_automap_grid_max = 250000.0f;
     } else {
         g_octree->m_spatial.GetClippedBounds(&g_automap_grid_min, &g_automap_grid_max);
     }
@@ -345,9 +345,7 @@ void ResetAutomapView(void)
 
     srVector3T<float> camera;
     GetCameraPosition(&camera);
-    srVector3T<float> relative(camera.x - g_automap_grid_origin.x,
-                               camera.y - g_automap_grid_origin.y,
-                               camera.z - g_automap_grid_origin.z);
+    srVector3T<float> relative = camera - g_automap_grid_origin;
     unsigned int key = AutomapNodeKey(&relative);
     int cell = g_automap_cell_index->Lookup(&key);
     if (cell > 1) {
@@ -368,9 +366,7 @@ void ResetAutomapView(void)
 // FUNCTION: WIZ8 0x00581B30
 bool AutomapHasCellAt(const srVector3T<float>* position)
 {
-    srVector3T<float> relative(position->x - g_automap_grid_origin.x,
-                               position->y - g_automap_grid_origin.y,
-                               position->z - g_automap_grid_origin.z);
+    srVector3T<float> relative = *position - g_automap_grid_origin;
     unsigned int key = AutomapNodeKey(&relative);
     int cell = g_automap_cell_index->Lookup(&key);
     if (cell > 1) {
@@ -438,8 +434,8 @@ void CreateAutomapButtons(void)
                     g_automap_button_callbacks[index]); // reinterpret-ok: void() vs button*
                 if (g_automap_buttons[index]->ConfigureVObjButton(object, base_frame, callback,
                                                                   0) != 0) {
-                    g_automap_buttons[index]->SetPosition(g_automap_button_positions[index][0],
-                                                          g_automap_button_positions[index][1]);
+                    g_automap_buttons[index]->SetPosition(g_automap_button_positions[index].x,
+                                                          g_automap_button_positions[index].y);
                     g_automap_buttons[index]->SetTooltipIndex(g_automap_button_tooltips[index]);
                 }
             }
@@ -496,11 +492,10 @@ void AutomapZoomOutButton(void)
                         tool = 1;
                     }
                 }
-                SetMouseCursorFromVideoObject(
-                    GetCatalogVideoObjectHandle(tool + 0x14b, 0),
-                    GetCatalogVideoObjectYOffset(tool + 0x14b),
-                    static_cast<short>(g_automap_cursor_offsets[tool][0]),
-                    static_cast<short>(g_automap_cursor_offsets[tool][1]));
+                SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(tool + 0x14b, 0),
+                                              GetCatalogVideoObjectYOffset(tool + 0x14b),
+                                              static_cast<short>(g_automap_cursor_offsets[tool].x),
+                                              static_cast<short>(g_automap_cursor_offsets[tool].y));
                 gXStatus.iCurrentCursor = 7;
                 RefreshMouseCursorTexture();
             } else {
@@ -527,8 +522,8 @@ void AutomapSelectNoteToolButton(void)
     g_automap_tool = 2;
     SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(0x14d, 0),
                                   GetCatalogVideoObjectYOffset(0x14d),
-                                  static_cast<short>(g_automap_cursor_offsets[2][0]),
-                                  static_cast<short>(g_automap_cursor_offsets[2][1]));
+                                  static_cast<short>(g_automap_cursor_offsets[2].x),
+                                  static_cast<short>(g_automap_cursor_offsets[2].y));
     gXStatus.iCurrentCursor = 7;
     RefreshMouseCursorTexture();
 }
@@ -542,8 +537,8 @@ void AutomapSelectEraseToolButton(void)
     g_automap_tool = 3;
     SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(0x14e, 0),
                                   GetCatalogVideoObjectYOffset(0x14e),
-                                  static_cast<short>(g_automap_cursor_offsets[3][0]),
-                                  static_cast<short>(g_automap_cursor_offsets[3][1]));
+                                  static_cast<short>(g_automap_cursor_offsets[3].x),
+                                  static_cast<short>(g_automap_cursor_offsets[3].y));
     gXStatus.iCurrentCursor = 7;
     RefreshMouseCursorTexture();
 }
@@ -842,8 +837,8 @@ void AutomapScreenFrame(void)
                 SetMouseCursorFromVideoObject(
                     GetCatalogVideoObjectHandle(g_automap_tool + 0x14b, 0),
                     GetCatalogVideoObjectYOffset(g_automap_tool + 0x14b),
-                    g_automap_cursor_offsets[g_automap_tool][0],
-                    g_automap_cursor_offsets[g_automap_tool][1]);
+                    g_automap_cursor_offsets[g_automap_tool].x,
+                    g_automap_cursor_offsets[g_automap_tool].y);
                 gXStatus.iCurrentCursor = 7;
                 RefreshMouseCursorTexture();
             }
@@ -880,8 +875,8 @@ void AutomapScreenFrame(void)
                 cursor = g_automap_zoom > 25000.0f ? 1 : 4;
             SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(cursor + 0x14b, 0),
                                           GetCatalogVideoObjectYOffset(cursor + 0x14b),
-                                          g_automap_cursor_offsets[cursor][0],
-                                          g_automap_cursor_offsets[cursor][1]);
+                                          g_automap_cursor_offsets[cursor].x,
+                                          g_automap_cursor_offsets[cursor].y);
             gXStatus.iCurrentCursor = 7;
             RefreshMouseCursorTexture();
         }
@@ -1163,7 +1158,7 @@ void SetAutomapToolCursor(int tool)
     }
     SetMouseCursorFromVideoObject(
         GetCatalogVideoObjectHandle(tool + 0x14b, 0), GetCatalogVideoObjectYOffset(tool + 0x14b),
-        g_automap_cursor_offsets[tool][0], g_automap_cursor_offsets[tool][1]);
+        g_automap_cursor_offsets[tool].x, g_automap_cursor_offsets[tool].y);
     gXStatus.iCurrentCursor = 7;
     RefreshMouseCursorTexture();
 }
@@ -1272,8 +1267,8 @@ void ResetAutomapZoom(void)
     }
     SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(tool + 0x14b, 0),
                                   GetCatalogVideoObjectYOffset(tool + 0x14b),
-                                  static_cast<short>(g_automap_cursor_offsets[tool][0]),
-                                  static_cast<short>(g_automap_cursor_offsets[tool][1]));
+                                  static_cast<short>(g_automap_cursor_offsets[tool].x),
+                                  static_cast<short>(g_automap_cursor_offsets[tool].y));
     gXStatus.iCurrentCursor = 7;
     RefreshMouseCursorTexture();
     if (g_automap_buttons != 0) {
@@ -1350,8 +1345,8 @@ unsigned char ZoomAutomapIn(const srVector3T<float>* point)
     }
     SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(tool + 0x14b, 0),
                                   GetCatalogVideoObjectYOffset(tool + 0x14b),
-                                  static_cast<short>(g_automap_cursor_offsets[tool][0]),
-                                  static_cast<short>(g_automap_cursor_offsets[tool][1]));
+                                  static_cast<short>(g_automap_cursor_offsets[tool].x),
+                                  static_cast<short>(g_automap_cursor_offsets[tool].y));
     gXStatus.iCurrentCursor = 7;
     RefreshMouseCursorTexture();
     return 1;
@@ -2414,8 +2409,8 @@ unsigned char HandleAutomapNoteInput(const InputAtom* input)
                 g_automap_tool = 0;
                 SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(0x14b, 0),
                                               GetCatalogVideoObjectYOffset(0x14b),
-                                              static_cast<short>(g_automap_cursor_offsets[0][0]),
-                                              static_cast<short>(g_automap_cursor_offsets[0][1]));
+                                              static_cast<short>(g_automap_cursor_offsets[0].x),
+                                              static_cast<short>(g_automap_cursor_offsets[0].y));
                 gXStatus.iCurrentCursor = 7;
                 RefreshMouseCursorTexture();
             }
@@ -2437,8 +2432,8 @@ unsigned char HandleAutomapNoteInput(const InputAtom* input)
                 g_automap_tool = 0;
                 SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(0x14b, 0),
                                               GetCatalogVideoObjectYOffset(0x14b),
-                                              static_cast<short>(g_automap_cursor_offsets[0][0]),
-                                              static_cast<short>(g_automap_cursor_offsets[0][1]));
+                                              static_cast<short>(g_automap_cursor_offsets[0].x),
+                                              static_cast<short>(g_automap_cursor_offsets[0].y));
                 gXStatus.iCurrentCursor = 7;
                 RefreshMouseCursorTexture();
             }
@@ -2452,8 +2447,8 @@ unsigned char HandleAutomapNoteInput(const InputAtom* input)
         g_automap_tool = 0;
         SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(0x14b, 0),
                                       GetCatalogVideoObjectYOffset(0x14b),
-                                      static_cast<short>(g_automap_cursor_offsets[0][0]),
-                                      static_cast<short>(g_automap_cursor_offsets[0][1]));
+                                      static_cast<short>(g_automap_cursor_offsets[0].x),
+                                      static_cast<short>(g_automap_cursor_offsets[0].y));
         gXStatus.iCurrentCursor = 7;
         RefreshMouseCursorTexture();
     }
@@ -2518,8 +2513,8 @@ unsigned char HandleAutomapKey(const InputAtom* input)
         }
         SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(tool + 0x14b, 0),
                                       GetCatalogVideoObjectYOffset(tool + 0x14b),
-                                      static_cast<short>(g_automap_cursor_offsets[tool][0]),
-                                      static_cast<short>(g_automap_cursor_offsets[tool][1]));
+                                      static_cast<short>(g_automap_cursor_offsets[tool].x),
+                                      static_cast<short>(g_automap_cursor_offsets[tool].y));
         gXStatus.iCurrentCursor = 7;
         RefreshMouseCursorTexture();
         return 1;
@@ -2559,8 +2554,8 @@ unsigned char HandleAutomapKey(const InputAtom* input)
     set_tool_cursor:
         SetMouseCursorFromVideoObject(
             GetCatalogVideoObjectHandle(tool, 0), GetCatalogVideoObjectYOffset(tool),
-            static_cast<short>(g_automap_cursor_offsets[g_automap_tool][0]),
-            static_cast<short>(g_automap_cursor_offsets[g_automap_tool][1]));
+            static_cast<short>(g_automap_cursor_offsets[g_automap_tool].x),
+            static_cast<short>(g_automap_cursor_offsets[g_automap_tool].y));
         gXStatus.iCurrentCursor = 7;
         RefreshMouseCursorTexture();
         return 1;

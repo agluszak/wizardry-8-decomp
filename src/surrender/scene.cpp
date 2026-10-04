@@ -25,12 +25,8 @@ srClass* srScene::vInstance()
 srScene::srScene(srNode* parent)
     : srClassSupport<srScene, srNode, 0, 0x1010>(static_cast<srNode*>(0))
 {
-    ambient_light_174.x = 0.2f;
-    ambient_light_174.y = 0.2f;
-    ambient_light_174.z = 0.2f;
-    fog_color_180.x = 0.1f;
-    fog_color_180.y = 0.2f;
-    fog_color_180.z = 0.4f;
+    ambient_light_174 = 0.2f;
+    fog_color_180.Set(0.1f, 0.2f, 0.4f);
     traversal.entry_count = 0;
     traversal.node_count = 0;
     traversal.renderer = 0;

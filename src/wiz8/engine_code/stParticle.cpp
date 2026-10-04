@@ -234,21 +234,21 @@ stParticle::stParticle(srNode* parent, int count)
     memset(particle_active, 0, count);
 
     has_acceleration = 0;
-    expiry_mode = 0;
-    emission_mode = 0;
+    expiry_mode = W8_PARTICLE_EXPIRY_TIMED;
+    emission_mode = W8_PARTICLE_EMISSION_NONE;
     los_check_enabled = 0;
-    direction_mode = 3;
+    direction_mode = W8_PARTICLE_DIRECTION_CONE;
     camera_relative = 0;
     emission_interval = 50;
     lifetime_ms = 1500;
-    bounds_mode = 2;
-    placement_mode = 2;
+    bounds_mode = W8_PARTICLE_BOUNDS_SPHERE;
+    speed_mode = W8_PARTICLE_SPEED_RANDOM;
     minimum_1d0 = -250.0f;
     maximum_1dc = 250.0f;
     direction_1e8.Set(0.0f, -1.0f, 0.0f);
     initial_speed = 500.0f;
     acceleration_1f4.Set(0.0f, -4905.0f, 0.0f);
-    flutter_mode = 0;
+    flutter_mode = W8_PARTICLE_FLUTTER_NONE;
     m_pflFlutterAngle = 0;
     flutter_amplitude = 0.0f;
     flutter_period = 0;
@@ -261,8 +261,8 @@ stParticle::stParticle(srNode* parent, int count)
     bounds_origin.SetZero();
     bounds_radius = 2000.0f;
     update_flags = 0;
-    activated_at = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
-    updated_at = activated_at;
+    last_integration_tick = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
+    last_emission_tick = last_integration_tick;
     emission_gap = 25;
     last_emitted_at = 0;
 }
@@ -373,7 +373,7 @@ stParticle::stParticle(const stParticle& other)
     emission_mode = other.emission_mode;
     los_check_enabled = other.los_check_enabled;
     direction_mode = other.direction_mode;
-    placement_mode = other.placement_mode;
+    speed_mode = other.speed_mode;
     camera_relative = other.camera_relative;
     m_pflFlutterAngle = 0;
     flutter_amplitude = other.flutter_amplitude;
@@ -394,10 +394,10 @@ stParticle::stParticle(const stParticle& other)
     maximum_228 = other.maximum_228;
     bounds_origin = other.bounds_origin;
     bounds_radius = other.bounds_radius;
-    update_flags = 2;
+    update_flags = W8_PARTICLE_ACTIVE_TRIANGLES_DIRTY;
     active_triangles = new unsigned long[texture_frame_count];
-    activated_at = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
-    updated_at = activated_at;
+    last_integration_tick = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
+    last_emission_tick = last_integration_tick;
     attachment_key = other.attachment_key;
     callback = 0;
 
@@ -453,9 +453,9 @@ unsigned char stParticle::ActivateParticle(unsigned int* out_index, bool replace
     birth_ticks[index] = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
 
     float magnitude = 0.0f;
-    if (placement_mode == 1) {
+    if (speed_mode == W8_PARTICLE_SPEED_FIXED) {
         magnitude = initial_speed;
-    } else if (placement_mode == 2) {
+    } else if (speed_mode == W8_PARTICLE_SPEED_RANDOM) {
         magnitude =
             (speed_max - speed_min) * (rand() & 0x7fff) * g_float_005ec438 + speed_min;
     }
@@ -463,17 +463,17 @@ unsigned char stParticle::ActivateParticle(unsigned int* out_index, bool replace
 
     srVector3T<float>& velocity = velocities[index];
     switch (direction_mode) {
-    case 2: {
+    case W8_PARTICLE_DIRECTION_NODE_FORWARD: {
         srVector3T<double> direction = getWorldSpaceDOF();
         velocity = direction * magnitude;
         break;
     }
 
-    case 1:
+    case W8_PARTICLE_DIRECTION_FIXED:
         velocity = direction_1e8 * magnitude;
         break;
 
-    case 3: {
+    case W8_PARTICLE_DIRECTION_CONE: {
         srVector3T<float> direction;
         direction.Set(g_float_zero, g_float_zero, magnitude);
 
@@ -489,7 +489,7 @@ unsigned char stParticle::ActivateParticle(unsigned int* out_index, bool replace
         break;
     }
 
-    case 4: {
+    case W8_PARTICLE_DIRECTION_RANDOM: {
         srVector3T<float> direction;
         direction.x = (rand() & 0x7fff) * g_float_005ec438 - g_float_005ebc7c;
         direction.y = (rand() & 0x7fff) * g_float_005ec438 - g_float_005ebc7c;
@@ -522,7 +522,7 @@ unsigned char stParticle::ActivateParticle(unsigned int* out_index, bool replace
         alphas[vertex] = 1.0f;
     }
 
-    update_flags |= 2;
+    update_flags |= W8_PARTICLE_ACTIVE_TRIANGLES_DIRTY;
     ++emission_count;
     ++active_particle_count;
     return 1;
@@ -534,7 +534,7 @@ void stParticle::DeactivateParticle(unsigned int index)
     bool* active = particle_active + index;
     if (*active != 0) {
         *active = 0;
-        update_flags |= 2;
+        update_flags |= W8_PARTICLE_ACTIVE_TRIANGLES_DIRTY;
         --active_particle_count;
     }
 }
@@ -549,7 +549,7 @@ void stParticle::Update()
 
     last_emitted_at = now;
     if (active_particle_count != 0) {
-        unsigned int elapsed_ticks = now - activated_at;
+        unsigned int elapsed_ticks = now - last_integration_tick;
 
         srMatrix3T<float> rotation;
         getRotation(rotation);
@@ -578,11 +578,11 @@ void stParticle::Update()
             }
 
             unsigned int vertex = index * 4;
-            if (expiry_mode == 0) {
+            if (expiry_mode == W8_PARTICLE_EXPIRY_TIMED) {
                 unsigned int expires_at = birth_ticks[index] + lifetime_ms;
                 if (expires_at < now) {
                     particle_active[index] = 0;
-                    update_flags |= 2;
+                    update_flags |= W8_PARTICLE_ACTIVE_TRIANGLES_DIRTY;
                     --active_particle_count;
                     continue;
                 }
@@ -594,9 +594,9 @@ void stParticle::Update()
                         alphas[alpha_index] = alpha;
                     }
                 }
-            } else if (expiry_mode == 1) {
+            } else if (expiry_mode == W8_PARTICLE_EXPIRY_TEXTURE) {
                 if (texture_frames == 0) {
-                    expiry_mode = 0;
+                    expiry_mode = W8_PARTICLE_EXPIRY_TIMED;
                     if (lifetime_ms == 0) {
                         lifetime_ms = 1000;
                     }
@@ -605,7 +605,7 @@ void stParticle::Update()
                     animation->UpdateFrame();
                     if (animation->IsFinished() != 0) {
                         particle_active[index] = 0;
-                        update_flags |= 2;
+                        update_flags |= W8_PARTICLE_ACTIVE_TRIANGLES_DIRTY;
                         --active_particle_count;
                         continue;
                     }
@@ -621,7 +621,7 @@ void stParticle::Update()
             srVector3T<float> candidate;
             candidate = particle_positions[index] + movement;
 
-            if (bounds_mode == 2) {
+            if (bounds_mode == W8_PARTICLE_BOUNDS_SPHERE) {
                 double distance;
                 if (bounds_origin.x == g_float_zero &&
                     bounds_origin.y == g_float_zero &&
@@ -636,18 +636,18 @@ void stParticle::Update()
 
                 if (size_scale * bounds_radius < distance) {
                     particle_active[index] = 0;
-                    update_flags |= 2;
+                    update_flags |= W8_PARTICLE_ACTIVE_TRIANGLES_DIRTY;
                     --active_particle_count;
                     continue;
                 }
-            } else if (bounds_mode == 1) {
+            } else if (bounds_mode == W8_PARTICLE_BOUNDS_BOX) {
                 srVector3T<float> local = candidate - node_location;
                 srVector4T<float> transformed = transform.Transform(local);
                 srVector3T<float> local_point;
-                local_point.Set(transformed.x, transformed.y, transformed.z);
+                local_point = transformed.xyz();
                 if (PointInsideBounds(&local_point, &minimum_21c, &maximum_228) == 0) {
                     particle_active[index] = 0;
-                    update_flags |= 2;
+                    update_flags |= W8_PARTICLE_ACTIVE_TRIANGLES_DIRTY;
                     --active_particle_count;
                     continue;
                 }
@@ -657,7 +657,7 @@ void stParticle::Update()
                 (g_world->octree == 0 ||
                  !g_world->octree->HasLineOfSight(&particle_positions[index], &candidate, 1))) {
                 particle_active[index] = 0;
-                update_flags |= 2;
+                update_flags |= W8_PARTICLE_ACTIVE_TRIANGLES_DIRTY;
                 --active_particle_count;
                 continue;
             }
@@ -666,32 +666,33 @@ void stParticle::Update()
         }
     }
 
-    activated_at = now;
+    last_integration_tick = now;
 
-    if (emitting == 0 || emission_mode == 0) {
+    if (emitting == 0 || emission_mode == W8_PARTICLE_EMISSION_NONE) {
         return;
     }
 
-    unsigned int emission_elapsed = now - updated_at;
+    unsigned int emission_elapsed = now - last_emission_tick;
     if (emission_elapsed < emission_interval) {
         return;
     }
 
-    if (emission_mode == 1) {
+    if (emission_mode == W8_PARTICLE_EMISSION_SINGLE) {
         unsigned int particle_index;
         ActivateParticle(&particle_index, replace_when_full_191);
-        updated_at = now;
+        last_emission_tick = now;
         return;
     }
-    if (emission_mode != 2 || emission_elapsed <= emission_interval) {
+    if (emission_mode != W8_PARTICLE_EMISSION_CATCH_UP ||
+        emission_elapsed <= emission_interval) {
         return;
     }
 
     for (;;) {
-        unsigned int lag = now - emission_interval - updated_at;
+        unsigned int lag = now - emission_interval - last_emission_tick;
         unsigned int particle_index;
         if (ActivateParticle(&particle_index, replace_when_full_191) == 0) {
-            updated_at = now;
+            last_emission_tick = now;
             return;
         }
 
@@ -706,8 +707,8 @@ void stParticle::Update()
         InitializeParticlePosition(&particle_positions[particle_index]);
         particle_positions[particle_index] += displacement;
 
-        updated_at += emission_interval;
-        if (now - updated_at <= emission_interval) {
+        last_emission_tick += emission_interval;
+        if (now - last_emission_tick <= emission_interval) {
             return;
         }
     }
@@ -768,7 +769,7 @@ void stParticle::traverse(srNode::TraverseInfo& info)
 void stParticle::SetTraversalEnabled(bool enabled)
 {
     if (enabled != 0 && traversal_enabled == 0) {
-        updated_at = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
+        last_emission_tick = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
     }
     traversal_enabled = enabled;
 }
@@ -808,7 +809,7 @@ void stParticle::PrepareRenderer(srMatrix4T<float>& view)
                          static_cast<double>(scale);
     }
 
-    if (flutter_mode == 0) {
+    if (flutter_mode == W8_PARTICLE_FLUTTER_NONE) {
         for (unsigned int direct_index = 0; direct_index < particle_count; ++direct_index) {
             unsigned int vertex = direct_index * 4;
             const srVector3T<float>& position = particle_positions[direct_index];
@@ -836,7 +837,7 @@ void stParticle::PrepareRenderer(srMatrix4T<float>& view)
         } else {
             position.Set(flutter, 0.0f, 0.0f);
 
-            if (flutter_mode == 2) {
+            if (flutter_mode == W8_PARTICLE_FLUTTER_VELOCITY_SCALED) {
                 float scale = g_float_005ecc3c;
                 if (g_float_005ecc3c < velocities[particle_index].y) {
                     scale = velocities[particle_index].y;
@@ -903,7 +904,7 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
 
     srMatrix3T<float> rotation;
 
-    if (bounds_mode == 2) {
+    if (bounds_mode == W8_PARTICLE_BOUNDS_SPHERE) {
         srGERD::e_visibility visibility;
 
         const srVector3T<float>& extent = bounds_origin;
@@ -921,7 +922,7 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
         }
     }
 
-    if (bounds_mode == 1) {
+    if (bounds_mode == W8_PARTICLE_BOUNDS_BOX) {
         getRotation(rotation);
         srVector3T<float> minimum = rotation.Transform(minimum_21c) + position;
         srVector3T<float> maximum = rotation.Transform(maximum_228) + position;
@@ -934,7 +935,7 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
 
     /* Two indices per surviving particle, rebuilt only after a deactivation
        has marked the pairs stale. */
-    if ((update_flags & 2) != 0) {
+    if ((update_flags & W8_PARTICLE_ACTIVE_TRIANGLES_DIRTY) != 0) {
         unsigned int written = 0;
         for (unsigned int index = 0; index < particle_count; ++index) {
             if (particle_active[index] != 0) {
@@ -942,7 +943,7 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
                 active_triangles[written++] = index * 2 + 1;
             }
         }
-        update_flags &= ~2u;
+        update_flags &= ~static_cast<unsigned int>(W8_PARTICLE_ACTIVE_TRIANGLES_DIRTY);
     }
 
     renderer->pushEnable();
@@ -1113,8 +1114,8 @@ void stParticle::SetActive(unsigned char active)
 {
     if (active != 0 && emitting == 0) {
         unsigned int now = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
-        activated_at = now;
-        updated_at = now;
+        last_integration_tick = now;
+        last_emission_tick = now;
     }
     emitting = active;
 }
@@ -1145,12 +1146,12 @@ void stParticle::SetRetainedObject(srMaterialIFace* material)
 }
 
 // FUNCTION: WIZ8 0x0049AD10
-void stParticle::SetFlutter(int enabled)
+void stParticle::SetFlutter(W8ParticleFlutterMode mode)
 {
     unsigned int i;
 
-    flutter_mode = enabled;
-    if (enabled == 0) {
+    flutter_mode = mode;
+    if (mode == W8_PARTICLE_FLUTTER_NONE) {
         if (m_pflFlutterAngle != 0) {
             delete[] m_pflFlutterAngle;
             m_pflFlutterAngle = 0;

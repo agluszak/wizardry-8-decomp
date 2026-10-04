@@ -718,7 +718,7 @@ void W8GrCycle::UpdateLights()
         if (definition == 0) {
             continue;
         }
-        if (definition->type_04 == 1) {
+        if (definition->kind == W8_LIGHT_DEFINITION_PARAMETRIC) {
             stParametricLightDefinition* cycle_definition =
                 static_cast<stParametricLightDefinition*>(definition);
             if ((cycle_definition->flags & 3) == 3 && (cycle_definition->flags & 0x40) != 0) {
@@ -735,7 +735,7 @@ void W8GrCycle::UpdateLights()
                     light->Reset();
                 }
             }
-        } else if (definition->type_04 == 2) {
+        } else if (definition->kind == W8_LIGHT_DEFINITION_KEYFRAMED) {
             if (representation->subcycle == 0 || wrapped != 0) {
                 light->Reset();
             }
@@ -1138,11 +1138,11 @@ void W8GrCycle::UpdateParticleAttachments()
         anchor.SetFromDouble(&location);
         placed += anchor;
 
-        if (aim_set != 0 && particle->direction_mode == 3) {
+        if (aim_set != 0 && particle->direction_mode == W8_PARTICLE_DIRECTION_CONE) {
             target.SetFromFloat(&placed);
             axis.SetFromFloat(&m_axis);
             particle->setRotation(axis, target, 0.0);
-        } else if (particle->direction_mode != 4) {
+        } else if (particle->direction_mode != W8_PARTICLE_DIRECTION_RANDOM) {
             combined = rotation;
             combined.MultiplyBy(attachment->rotation_18);
             world.vectors[0].SetFromFloat(&combined.vectors[0]);

@@ -190,9 +190,7 @@ srVector3T<float>* srMeshModel::getVertexLoc()
     if (vertex_locations.data == 0) {
         vertex_locations.Resize(vertex_location_count, 1);
         for (unsigned long index = 0; index < vertex_locations.count; ++index) {
-            vertex_locations.data[index].x = 0.0f;
-            vertex_locations.data[index].y = 0.0f;
-            vertex_locations.data[index].z = 0.0f;
+            vertex_locations.data[index].SetZero();
         }
     }
     return vertex_locations.data;
@@ -340,9 +338,7 @@ srVector3T<float>* srMeshModel::getVertexDIG(long vertex, int table)
         if (table != 0) {
             slot.Resize(vertex_location_count, 0);
             for (unsigned long index = 0; index < slot.count; ++index) {
-                slot.data[index].x = 0.0f;
-                slot.data[index].y = 0.0f;
-                slot.data[index].z = 0.0f;
+                slot.data[index].SetZero();
             }
         }
     }
@@ -360,8 +356,7 @@ srVector2T<float>* srMeshModel::getVertexTexCoords(long vertex, long layer, int 
         if (table != 0) {
             slot.Resize(uv_count, 1);
             for (unsigned long index = 0; index < slot.count; ++index) {
-                slot.data[index].x = 0.0f;
-                slot.data[index].y = 0.0f;
+                slot.data[index].SetZero();
             }
         }
     }
@@ -398,15 +393,9 @@ void srMeshModel::setDirtyNormals()
 // FUNCTION: SURRENDER 0x1003DEA0
 void srMeshModel::freeAll()
 {
-    bounds_minimum.x = 0.0f;
-    bounds_minimum.y = 0.0f;
-    bounds_minimum.z = 0.0f;
-    bounds_maximum.x = 0.0f;
-    bounds_maximum.y = 0.0f;
-    bounds_maximum.z = 0.0f;
-    bounds_center.x = 0.0f;
-    bounds_center.y = 0.0f;
-    bounds_center.z = 0.0f;
+    bounds_minimum.SetZero();
+    bounds_maximum.SetZero();
+    bounds_center.SetZero();
     bounds_radius = 0.0f;
     uv_count = 0;
     vertex_location_count = 0;
@@ -521,15 +510,9 @@ srMeshModel& srMeshModel::operator=(const srMeshModel& other)
 // FUNCTION: SURRENDER 0x1003E120
 void srMeshModel::calculateBounds()
 {
-    bounds_minimum.x = 0.0f;
-    bounds_minimum.y = 0.0f;
-    bounds_minimum.z = 0.0f;
-    bounds_maximum.x = 0.0f;
-    bounds_maximum.y = 0.0f;
-    bounds_maximum.z = 0.0f;
-    bounds_center.x = 0.0f;
-    bounds_center.y = 0.0f;
-    bounds_center.z = 0.0f;
+    bounds_minimum.SetZero();
+    bounds_maximum.SetZero();
+    bounds_center.SetZero();
     bounds_radius = 0.0f;
     if (vertex_location_count != 0) {
         srVector3T<float>* vertices = getVertexLoc();
@@ -693,16 +676,12 @@ void srMeshModel::centerVertices()
 {
     if (vertex_location_count != 0) {
         srVector3T<float> sum;
-        sum.x = 0.0f;
-        sum.y = 0.0f;
-        sum.z = 0.0f;
+        sum.SetZero();
         srVector3T<float>* vertices = getVertexLoc();
         long count = vertex_location_count;
         if (0 < count) {
             for (long index = 0; index < count; index++) {
-                sum.x = sum.x + vertices[index].x;
-                sum.y = sum.y + vertices[index].y;
-                sum.z = sum.z + vertices[index].z;
+                sum += vertices[index];
             }
         }
         double inverse = 1.0 / count;
@@ -763,9 +742,7 @@ void srMeshModel::scaleToAverageRadius(double radius)
     if (polygon_count != 0) {
         float factor = (float)(radius / getAverageRadius());
         srVector3T<float> scale;
-        scale.x = factor;
-        scale.y = factor;
-        scale.z = factor;
+        scale = factor;
         this->scale(scale);
     }
 }
@@ -776,9 +753,7 @@ void srMeshModel::scaleToMaxRadius(double radius)
     if (polygon_count != 0) {
         float factor = (float)(radius / getMaxRadius());
         srVector3T<float> scale;
-        scale.x = factor;
-        scale.y = factor;
-        scale.z = factor;
+        scale = factor;
         this->scale(scale);
     }
 }
@@ -931,10 +906,7 @@ srVector4T<float>* srMeshModel::getVertexSCG(long vertex, int table)
         if (table != 0) {
             slot.Resize(vertex_location_count, 0);
             for (unsigned long index = 0; index < slot.count; ++index) {
-                slot.data[index].x = 1.0f;
-                slot.data[index].y = 1.0f;
-                slot.data[index].z = 1.0f;
-                slot.data[index].w = 1.0f;
+                slot.data[index] = 1.0f;
             }
         }
         return slot.data;
@@ -953,10 +925,7 @@ srVector4T<float>* srMeshModel::getVertexDCG(long vertex, int table)
         if (table != 0) {
             slot.Resize(vertex_location_count, 0);
             for (unsigned long index = 0; index < slot.count; ++index) {
-                slot.data[index].x = 1.0f;
-                slot.data[index].y = 1.0f;
-                slot.data[index].z = 1.0f;
-                slot.data[index].w = 1.0f;
+                slot.data[index] = 1.0f;
             }
         }
         return slot.data;

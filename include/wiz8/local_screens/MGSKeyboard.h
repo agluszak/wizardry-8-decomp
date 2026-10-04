@@ -1,6 +1,7 @@
 #pragma once
 
 #include "input.h"
+#include "surrender/srMath.h"
 #include "wiz8/vector.h"
 #include "wiz8/engine_code/stHash.hpp"
 
@@ -150,7 +151,7 @@ extern Controls* g_keyboard_menu_panel;
 extern short g_keyboard_menu_pages[12];
 extern W8TextControl* g_keyboard_menu_rows[13];
 /* The (x, y) of the twelve menu rows and the trailing close row. */
-extern int g_keyboard_row_positions[13][2];
+extern srVector2i g_keyboard_row_positions[13];
 
 void ResetMGSKeyboardBindings();
 

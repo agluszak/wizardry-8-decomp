@@ -339,25 +339,16 @@ srModeler::Vertex::Vertex()
 // FUNCTION: SURRENDER 0x100386A0
 void srModeler::Vertex::reset()
 {
-    position_00.x = 0.0f;
-    position_00.y = 0.0f;
-    position_00.z = 0.0f;
+    position_00.SetZero();
     for (int pass = 0; pass < 4; ++pass) {
-        dig_60[pass].x = 0.0f;
-        dig_60[pass].y = 0.0f;
-        dig_60[pass].z = 0.0f;
-        dcg_30[pass].x = 1.0f;
-        dcg_30[pass].y = 1.0f;
-        dcg_30[pass].z = 1.0f;
-        scg_90[pass].x = 1.0f;
-        scg_90[pass].y = 1.0f;
-        scg_90[pass].z = 1.0f;
+        dig_60[pass].SetZero();
+        dcg_30[pass] = 1.0f;
+        scg_90[pass] = 1.0f;
         weights_100[pass] = 1.0f;
         materials_10[pass][0] = 0;
         materials_10[pass][1] = 0;
         for (int layer = 0; layer < 2; ++layer) {
-            uv_c0[pass * 2 + layer].x = 0.0f;
-            uv_c0[pass * 2 + layer].y = 0.0f;
+            uv_c0[pass * 2 + layer].SetZero();
         }
     }
     shade_index_0c = 0;
@@ -1120,8 +1111,7 @@ void srModeler::removeMapping(long pass, long layer)
         Triangle* triangle = &triangles_08[0];
         for (unsigned long index = 0; index < triangle_count_04; ++index) {
             for (int vertex = 0; vertex < 3; ++vertex) {
-                triangle->vertices_30[vertex].uv_c0[pass * 2 + layer].x = 0.0f;
-                triangle->vertices_30[vertex].uv_c0[pass * 2 + layer].y = 0.0f;
+                triangle->vertices_30[vertex].uv_c0[pass * 2 + layer].SetZero();
             }
             ++triangle;
         }

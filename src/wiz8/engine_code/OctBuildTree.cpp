@@ -338,7 +338,7 @@ int W8OctBuildTree::CollectObjectsAlongSegment(W8GDSurface*** results,
                                                float extent, unsigned short kind)
 {
     W8OctSpatialState state(&spatial_00);
-    float bounds[6];
+    srVector3T<float> bounds[2];
     unsigned long saved = 0;
     unsigned int index;
 
@@ -357,11 +357,11 @@ int W8OctBuildTree::CollectObjectsAlongSegment(W8GDSurface*** results,
     }
     for (int axis = 0; axis < 3; ++axis) {
         if ((&delta->x)[axis] > g_float_zero) {
-            bounds[axis] = (&origin->x)[axis] - extent;
-            bounds[axis + 3] = extent + (&origin->x)[axis] + (&delta->x)[axis];
+            (&bounds[0].x)[axis] = (&origin->x)[axis] - extent;
+            (&bounds[1].x)[axis] = extent + (&origin->x)[axis] + (&delta->x)[axis];
         } else {
-            bounds[axis] = (&origin->x)[axis] - extent + (&delta->x)[axis];
-            bounds[axis + 3] = extent + (&origin->x)[axis];
+            (&bounds[0].x)[axis] = (&origin->x)[axis] - extent + (&delta->x)[axis];
+            (&bounds[1].x)[axis] = extent + (&origin->x)[axis];
         }
     }
     state.m_depth = 0;
@@ -390,21 +390,20 @@ int W8OctBuildTree::CollectObjectsAlongSegment(W8GDSurface*** results,
    collect the whole leaf subtree (2), walk the eight octants (1), or skip
    (0). A state already at the bottom level collects as a leaf either way. */
 // FUNCTION: WIZ8 0x00446f20
-int W8OctBuildTree::CollectRecursive(W8OctSpatialState* state, const float* bounds, short kind)
+int W8OctBuildTree::CollectRecursive(W8OctSpatialState* state, const srVector3T<float>* bounds,
+                                     short kind)
 {
     W8OctSpatialState child(state);
     int collected = 0;
     bool leaf;
-    float box[6];
+    srVector3T<float> box[2];
 
     leaf = 0;
     if (state->m_depth == spatial_00.m_depth) {
         leaf = 1;
     }
-    for (int axis = 0; axis < 3; ++axis) {
-        box[axis] = (&state->m_minimum.x)[axis];
-        box[axis + 3] = (&state->m_maximum.x)[axis];
-    }
+    box[0] = state->m_minimum;
+    box[1] = state->m_maximum;
     int verdict = ClassifyBoxBounds(box, bounds, leaf);
     if (verdict == 2 || (verdict == 1 && leaf != 0)) {
         collected = CollectLeaf(state->m_root, state->m_depth, kind);
@@ -556,7 +555,8 @@ int W8OctBuildTree::CollectLeaf(W8OctBuildNode* node, short depth, short kind)
    corner is inside, a bounds corner inside the box), 0 when disjoint. `leaf`
    stops the scan on the first inside corner at the bottom octree level. */
 // FUNCTION: WIZ8 0x00447310
-int W8OctBuildTree::ClassifyBoxBounds(const float* box, const float* bounds, bool leaf)
+int W8OctBuildTree::ClassifyBoxBounds(const srVector3T<float>* box, const srVector3T<float>* bounds,
+                                      bool leaf)
 {
     short x;
     short y;
@@ -567,11 +567,11 @@ int W8OctBuildTree::ClassifyBoxBounds(const float* box, const float* bounds, boo
     for (x = 0; x < 2; ++x) {
         for (y = 0; y < 2; ++y) {
             for (z = 0; z < 2; ++z) {
-                float corner_x = box[x * 3];
-                float corner_y = box[y * 3 + 1];
-                float corner_z = box[z * 3 + 2];
-                if (corner_x < bounds[0] || corner_x >= bounds[3] || corner_y < bounds[1] ||
-                    corner_y >= bounds[4] || corner_z < bounds[2] || corner_z >= bounds[5]) {
+                float corner_x = box[x].x;
+                float corner_y = box[y].y;
+                float corner_z = box[z].z;
+                if (corner_x < bounds[0].x || corner_x >= bounds[1].x || corner_y < bounds[0].y ||
+                    corner_y >= bounds[1].y || corner_z < bounds[0].z || corner_z >= bounds[1].z) {
                     all_inside = 0;
                     if (inside != 0) {
                         x = y = z = 2;
@@ -592,11 +592,11 @@ int W8OctBuildTree::ClassifyBoxBounds(const float* box, const float* bounds, boo
         for (x = 0; x < 2; ++x) {
             for (y = 0; y < 2; ++y) {
                 for (z = 0; z < 2; ++z) {
-                    float corner_x = bounds[x * 3];
-                    float corner_y = bounds[y * 3 + 1];
-                    float corner_z = bounds[z * 3 + 2];
-                    if (corner_x >= box[0] && corner_x <= box[3] && corner_y >= box[1] &&
-                        corner_y <= box[4] && corner_z >= box[2] && corner_z <= box[5]) {
+                    float corner_x = bounds[x].x;
+                    float corner_y = bounds[y].y;
+                    float corner_z = bounds[z].z;
+                    if (corner_x >= box[0].x && corner_x <= box[1].x && corner_y >= box[0].y &&
+                        corner_y <= box[1].y && corner_z >= box[0].z && corner_z <= box[1].z) {
                         inside = 1;
                         x = y = z = 2;
                     }

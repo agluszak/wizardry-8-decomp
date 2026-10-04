@@ -89,7 +89,7 @@ stMeshModel::stMeshModel(long polygons, long vertices)
     previous = 0;
     next = 0;
     flags_3a0 = 2;
-    ambient_color.Set(-1.0f, -1.0f, -1.0f);
+    ambient_color = -1.0f;
     frame_count = 1;
     vertex_light_table = 0;
     compressed_vertex_locations = 0;
@@ -298,9 +298,7 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
             dig = getVertexDIG(0, 1);
             vertex_materials = getVertexMaterial(0, static_cast<e_side>(0), 0);
             if (vertex_materials == 0) {
-                if ((ambient_color.x == g_float_zero && ambient_color.y == g_float_zero &&
-                     ambient_color.z == g_float_zero) ||
-                    vertex_light_table == 1) {
+                if ((IsZeroVector(&ambient_color) != 0) || vertex_light_table == 1) {
                     CopyDwordBuffer(dig, lights, vertex_location_count * 3);
                     if ((g_environment_offset.x != g_float_zero ||
                          g_environment_offset.y != g_float_zero ||
@@ -315,13 +313,10 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
                     /* Retail indexes material ambient at +0x28; that is
                        srMaterial::parms.ambient on the concrete type. */
                     material = static_cast<srMaterial*>(getMaterial(0, static_cast<e_side>(0)));
-                    ambient_rgb.x = material->parms.ambient.x;
-                    ambient_rgb.y = material->parms.ambient.y;
-                    ambient_rgb.z = material->parms.ambient.z;
+                    ambient_rgb = material->parms.ambient.xyz();
                     count = vertex_location_count;
-                    scaled.x = ambient_rgb.x * ambient_color.x;
-                    scaled.y = ambient_rgb.y * ambient_color.y;
-                    scaled.z = ambient_rgb.z * ambient_color.z;
+                    scaled = ambient_color;
+                    scaled *= ambient_rgb;
                     if (count != 0) {
                         if (scaled.x == scaled.y && scaled.x == scaled.z) {
                             unsigned int bits;
@@ -350,9 +345,7 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
                     }
                 }
             } else {
-                if ((ambient_color.x == g_float_zero && ambient_color.y == g_float_zero &&
-                     ambient_color.z == g_float_zero) ||
-                    vertex_light_table == 1) {
+                if ((IsZeroVector(&ambient_color) != 0) || vertex_light_table == 1) {
                     if (vertex_location_count != 0) {
                         FillDwordBuffer(dig, 0, vertex_location_count * 3);
                     }
@@ -392,9 +385,7 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
                     material_iface = vertex_materials[index];
                     if (material_iface != 0) {
                         material = static_cast<srMaterial*>(material_iface);
-                        scaled.x = material->parms.ambient.x;
-                        scaled.y = material->parms.ambient.y;
-                        scaled.z = material->parms.ambient.z;
+                        scaled = material->parms.ambient.xyz();
                         if (run != 0) {
                             if (IsZeroVector(&scaled) == 0) {
                                 srVectorProcessor::mul(dig + index, scaled, dig + index,
@@ -715,7 +706,7 @@ void OffsetVertices(srVector3T<float>* destination, const srVector3T<float>* sou
                     const srVector3T<float>* offset, int count)
 {
     if (count != 0) {
-        if (offset->x == g_float_zero && offset->y == g_float_zero && offset->z == g_float_zero) {
+        if (IsZeroVector(offset) != 0) {
             CopyDwordBuffer(destination, source, count * 3);
         } else {
             srVectorProcessor::add(destination, *offset, source, static_cast<SRDWORD>(count));
@@ -1409,8 +1400,7 @@ srVector3T<float>* stMeshModel::GetPolygonNormals(unsigned int frame, bool load)
 // FUNCTION: WIZ8 0x00472990
 void stMeshModel::SetAmbientColor(const srVector3T<float>& color)
 {
-    if (ambient_color.x != color.x || ambient_color.y != color.y ||
-        ambient_color.z != color.z) {
+    if (!(ambient_color == color)) {
         ambient_color = color;
         flags_3a0 |= 2;
     }
@@ -1480,8 +1470,8 @@ void stMeshModel::ComputeFrameNormals(int frame)
 
     srVectorProcessor::normalize(vnorm, vnorm, 1.0f, vertex_location_count);
     for (int vertex = 0; vertex < vertex_location_count; ++vertex) {
-        if (vnorm[vertex].x == 0.0f && vnorm[vertex].y == 0.0f && vnorm[vertex].z == 0.0f) {
-            vnorm[vertex].Set(1e-6f, 1e-6f, 1e-6f);
+        if (IsZeroVector(vnorm + vertex) != 0) {
+            vnorm[vertex] = 1e-6f;
         }
     }
     srVectorProcessor::mul(&vnorm->x, 127.0f, &vnorm->x, vertex_location_count * 3);

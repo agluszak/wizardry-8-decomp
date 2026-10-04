@@ -165,7 +165,7 @@ void stLight::process(const srNode::ProcessInfo& info, srNode::e_processType typ
 // FUNCTION: WIZ8 0x0049C940
 void stLight::SetDefinitionTime(float time)
 {
-    if (m_definition != 0 && m_definition->type_04 == 2) {
+    if (m_definition != 0 && m_definition->kind == W8_LIGHT_DEFINITION_KEYFRAMED) {
         static_cast<stKeyframedLightDefinition*>(m_definition)->time_4c = time;
     }
 }
@@ -182,7 +182,7 @@ void stLight::SetDefinitionTime(float time)
 // FUNCTION: WIZ8 0x0049C960
 void stLight::Update()
 {
-    if (m_definition != 0 && m_definition->type_04 == 2) {
+    if (m_definition != 0 && m_definition->kind == W8_LIGHT_DEFINITION_KEYFRAMED) {
         stKeyframedLightDefinition* definition =
             static_cast<stKeyframedLightDefinition*>(m_definition);
         float time = definition->time_4c;
@@ -400,7 +400,7 @@ void stLight::Update()
 void stLight::Reset()
 {
     if (m_definition != 0) {
-        if (m_definition->type_04 == 2) {
+        if (m_definition->kind == W8_LIGHT_DEFINITION_KEYFRAMED) {
             stKeyframedLightDefinition* definition =
                 static_cast<stKeyframedLightDefinition*>(m_definition);
             definition->time_4c = 0.0f;

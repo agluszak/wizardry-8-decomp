@@ -92,7 +92,7 @@ W8GameData* ReadGameData(const char* path, bool secondary)
    and a version tag checked before the rest of the record is read. */
 struct W8GDFaceHeader { /* 0x1c */
     int vertex_indices[3];
-    float plane_0c[3];
+    srVector3T<float> plane_0c;
     int version;
 };
 
@@ -137,7 +137,7 @@ unsigned char W8GameData::ReadWGDList(HANDLE file, int poly_type)
     int name_index;
     unsigned char success;
     char message[100];
-    float bounds[6];
+    srVector3T<float> bounds[2];
 
     record_count = 0;
     if (poly_type < 0 || 2 < poly_type) {
@@ -213,12 +213,8 @@ unsigned char W8GameData::ReadWGDList(HANDLE file, int poly_type)
                     m_pVertices[index].Set(vertex.x * g_world_scale, vertex.y * g_world_scale,
                                            vertex.z * g_world_scale);
                     if (index == m_iNumVertices) {
-                        minimum_08.x = vertex.x;
-                        maximum_14.x = vertex.x;
-                        minimum_08.y = vertex.y;
-                        maximum_14.y = vertex.y;
-                        minimum_08.z = vertex.z;
-                        maximum_14.z = vertex.z;
+                        minimum_08 = vertex;
+                        maximum_14 = vertex;
                     } else {
                         if (vertex.x < minimum_08.x) {
                             minimum_08.x = vertex.x;
@@ -274,8 +270,8 @@ unsigned char W8GameData::ReadWGDList(HANDLE file, int poly_type)
                     } else {
                         surface->flags_00 = 0;
                     }
-                    surface->plane_24.normal.Set(header.plane_0c[0], header.plane_0c[1],
-                                                 header.plane_0c[2]);
+                    surface->plane_24.normal.Set(header.plane_0c.x, header.plane_0c.y,
+                                                 header.plane_0c.z);
                     float largest = static_cast<float>(fabs(surface->plane_24.normal.x));
                     unsigned int axis = 0;
                     if (largest < static_cast<float>(fabs(surface->plane_24.normal.y))) {
@@ -325,33 +321,33 @@ unsigned char W8GameData::ReadWGDList(HANDLE file, int poly_type)
                     }
                     ++index;
                 }
-                ReadFile(file, &bounds[3], 4, &bytes_read, 0);
-                ReadFile(file, &bounds[4], 4, &bytes_read, 0);
-                ReadFile(file, &bounds[5], 4, &bytes_read, 0);
-                ReadFile(file, &bounds[0], 4, &bytes_read, 0);
-                ReadFile(file, &bounds[1], 4, &bytes_read, 0);
-                ReadFile(file, &bounds[2], 4, &bytes_read, 0);
+                ReadFile(file, &bounds[1].x, 4, &bytes_read, 0);
+                ReadFile(file, &bounds[1].y, 4, &bytes_read, 0);
+                ReadFile(file, &bounds[1].z, 4, &bytes_read, 0);
+                ReadFile(file, &bounds[0].x, 4, &bytes_read, 0);
+                ReadFile(file, &bounds[0].y, 4, &bytes_read, 0);
+                ReadFile(file, &bounds[0].z, 4, &bytes_read, 0);
                 for (index = 0; index < 3; ++index) {
-                    bounds[index + 3] = bounds[index + 3] * g_world_scale;
-                    bounds[index] *= g_world_scale;
+                    (&bounds[1].x)[index] = (&bounds[1].x)[index] * g_world_scale;
+                    (&bounds[0].x)[index] *= g_world_scale;
                 }
-                if (bounds[3] < minimum_08.x) {
-                    minimum_08.x = bounds[3];
+                if (bounds[1].x < minimum_08.x) {
+                    minimum_08.x = bounds[1].x;
                 }
-                if (bounds[4] < minimum_08.y) {
-                    minimum_08.y = bounds[4];
+                if (bounds[1].y < minimum_08.y) {
+                    minimum_08.y = bounds[1].y;
                 }
-                if (bounds[5] < minimum_08.z) {
-                    minimum_08.z = bounds[5];
+                if (bounds[1].z < minimum_08.z) {
+                    minimum_08.z = bounds[1].z;
                 }
-                if (maximum_14.x < bounds[0]) {
-                    maximum_14.x = bounds[0];
+                if (maximum_14.x < bounds[0].x) {
+                    maximum_14.x = bounds[0].x;
                 }
-                if (maximum_14.y < bounds[1]) {
-                    maximum_14.y = bounds[1];
+                if (maximum_14.y < bounds[0].y) {
+                    maximum_14.y = bounds[0].y;
                 }
-                if (maximum_14.z < bounds[2]) {
-                    maximum_14.z = bounds[2];
+                if (maximum_14.z < bounds[0].z) {
+                    maximum_14.z = bounds[0].z;
                 }
                 if (m_ppNames != 0 && cond_faces != 0) {
                     CompileGDInterfaces(cond_faces, record_count);
@@ -1396,26 +1392,10 @@ void W8GameData::CompileGameData()
                 vertex->position_0c.z * g_float_005ebc60 * g_float_005ec1b4 +
                 vertex->position_0c.y * g_float_005ebc60 * g_float_005ec1b0 +
                 vertex->position_0c.x * g_float_005ebc60 * g_float_005ec1ac);
-            int linked = 0;
-            int slot = weld_table.bucket_heads[W8HashValue(key) & (weld_table.bucket_count - 1)];
-            while (slot != -1) {
-                if (weld_table.entries[slot].key == key) {
-                    linked = weld_table.entries[slot].value;
-                    break;
-                }
-                slot = weld_table.entries[slot].next_index;
-            }
+            int linked = weld_table.Lookup(&key);
             if (linked == 0) {
-                if (weld_table.free_head == -1) {
-                    weld_table.Grow();
-                }
-                slot = weld_table.free_head;
-                weld_table.free_head = weld_table.entries[slot].next_index;
-                unsigned int bucket = W8HashValue(key) & (weld_table.bucket_count - 1);
-                weld_table.entries[slot].key = key;
-                weld_table.entries[slot].value = i + 1;
-                weld_table.entries[slot].next_index = weld_table.bucket_heads[bucket];
-                weld_table.bucket_heads[bucket] = slot;
+                int vertex_id = i + 1;
+                weld_table.Insert(&key, &vertex_id);
             } else {
                 int last = 0;
                 while (linked != 0) {
@@ -1635,43 +1615,24 @@ static void LinkSurfaceEdge(int polygon, int edge, W8HashTable<unsigned int, int
     }
     unsigned int key =
         surface->vertex_indices_18[low] * multiplier + surface->vertex_indices_18[high];
-    unsigned int hash = W8HashValue(key);
-    int slot = table->bucket_heads[hash & (table->bucket_count - 1)];
-    if (slot != -1) {
+    int index = table->Lookup(&key);
+    if (index != 0) {
+        bool linked = false;
         do {
-            if (table->entries[slot].key == key) {
-                int index = table->entries[slot].value;
-                if (index != 0) {
-                    bool linked = false;
-                    do {
-                        if (linked) {
-                            return;
-                        }
-                        if (ShareSurfaceEdge(surfaces + index, surface, vertices) != 0) {
-                            linked = true;
-                        } else {
-                            index = table->FindNextEntry(&key, index);
-                        }
-                    } while (index != 0);
-                    if (linked) {
-                        return;
-                    }
-                }
-                break;
+            if (linked) {
+                return;
             }
-            slot = table->entries[slot].next_index;
-        } while (slot != -1);
+            if (ShareSurfaceEdge(surfaces + index, surface, vertices) != 0) {
+                linked = true;
+            } else {
+                index = table->FindNextEntry(&key, index);
+            }
+        } while (index != 0);
+        if (linked) {
+            return;
+        }
     }
-    if (table->free_head == -1) {
-        table->Grow();
-    }
-    slot = table->free_head;
-    table->free_head = table->entries[slot].next_index;
-    unsigned int bucket = W8HashValue(key) & (table->bucket_count - 1);
-    table->entries[slot].key = key;
-    table->entries[slot].value = polygon;
-    table->entries[slot].next_index = table->bucket_heads[bucket];
-    table->bucket_heads[bucket] = slot;
+    table->Insert(&key, &polygon);
 }
 
 // FUNCTION: WIZ8 0x0044aa40

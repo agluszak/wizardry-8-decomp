@@ -1366,8 +1366,8 @@ void OctBuildPreTree::FinalizeRegionMapping()
     W8BoundingBox* region_bounds =
         static_cast<W8BoundingBox*>(malloc(final_region_count * sizeof(W8BoundingBox)));
     for (unsigned short region = 0; region < final_region_count; ++region) {
-        region_bounds[region].minimum.Set(1000000.0f, 1000000.0f, 1000000.0f);
-        region_bounds[region].maximum.Set(-1000000.0f, -1000000.0f, -1000000.0f);
+        region_bounds[region].minimum = 1000000.0f;
+        region_bounds[region].maximum = -1000000.0f;
     }
 
     for (unsigned long polygon_index = 1; polygon_index < game_data->m_polygon_count;
@@ -1814,8 +1814,8 @@ unsigned char OctBuildPreTree::BuildGeometryRegions(const W8LevelFileProp* recor
         }
 
         srVector3T<float> aggregate[2];
-        aggregate[0].Set(1000000.0f, 1000000.0f, 1000000.0f);
-        aggregate[1].Set(-1000000.0f, -1000000.0f, -1000000.0f);
+        aggregate[0] = 1000000.0f;
+        aggregate[1] = -1000000.0f;
         for (unsigned char bounds_index = 0; bounds_index < record.anim_obj.num_bound_box;
              ++bounds_index) {
             const srVector3T<float>* bounds = &record.anim_obj.pBoundBox[bounds_index].minimum;
@@ -1992,20 +1992,21 @@ OctPreTree* OctBuildPreTree::BuildOctPreTree()
     }
 
     for (int grid_axis = 0; grid_axis != 3; ++grid_axis) {
-        (&tree->m_leaf_grid_dim_x)[grid_axis] =
+        (&tree->m_leaf_grid_dimensions.x)[grid_axis] =
             static_cast<int>(((&tree->m_spatial.m_clipped_maximum.x)[grid_axis] -
                               (&tree->m_spatial.m_clipped_minimum.x)[grid_axis]) /
                              tree->m_spatial.m_node_extent) +
             1;
     }
-    tree->m_leaf_lookup =
-        static_cast<unsigned long*>(malloc(tree->m_leaf_grid_dim_z * tree->m_leaf_grid_dim_x *
-                                           tree->m_leaf_grid_dim_y * sizeof(unsigned long)));
+    tree->m_leaf_lookup = static_cast<unsigned long*>(
+        malloc(tree->m_leaf_grid_dimensions.z * tree->m_leaf_grid_dimensions.x *
+               tree->m_leaf_grid_dimensions.y * sizeof(unsigned long)));
     unsigned long cell_index = 0;
     srVector3T<int> point;
-    for (point.x = 0; point.x < static_cast<int>(tree->m_leaf_grid_dim_x); ++point.x) {
-        for (point.y = 0; point.y < static_cast<int>(tree->m_leaf_grid_dim_y); ++point.y) {
-            for (point.z = 0; point.z < static_cast<int>(tree->m_leaf_grid_dim_z); ++point.z) {
+    for (point.x = 0; point.x < static_cast<int>(tree->m_leaf_grid_dimensions.x); ++point.x) {
+        for (point.y = 0; point.y < static_cast<int>(tree->m_leaf_grid_dimensions.y); ++point.y) {
+            for (point.z = 0; point.z < static_cast<int>(tree->m_leaf_grid_dimensions.z);
+                 ++point.z) {
                 tree->m_leaf_lookup[cell_index] = tree->FindLeaf(&point);
                 if (tree->m_leaf_count < tree->m_leaf_lookup[cell_index]) {
                     tree->m_leaf_lookup[cell_index] = 0;
@@ -2014,8 +2015,9 @@ OctPreTree* OctBuildPreTree::BuildOctPreTree()
             }
         }
     }
-    tree->m_spatial.m_leaf_grid_stride_y = tree->m_leaf_grid_dim_z;
-    tree->m_spatial.m_leaf_grid_stride_x = tree->m_leaf_grid_dim_z * tree->m_leaf_grid_dim_y;
+    tree->m_spatial.m_leaf_grid_stride_y = tree->m_leaf_grid_dimensions.z;
+    tree->m_spatial.m_leaf_grid_stride_x =
+        tree->m_leaf_grid_dimensions.z * tree->m_leaf_grid_dimensions.y;
     return tree;
 }
 

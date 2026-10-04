@@ -565,9 +565,7 @@ void GDProp::TransformMeshGeometry(const W8LevelFileScaledPathNode* node, W8Leve
     } else {
         factor = static_cast<float>(g_double_005ec150);
     }
-    scale.x = node->scale.x * factor;
-    scale.y = node->scale.y * factor;
-    scale.z = node->scale.z * factor;
+    scale = node->scale * factor;
 
     matrix.SetRotation(rotation);
     matrix.SetTranslation(translation);

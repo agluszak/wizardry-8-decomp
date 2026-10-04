@@ -114,6 +114,13 @@ public:
     srVector3T<T>();
     srVector3T<T>(T source_0, T source_1, T source_2) : x(source_0), y(source_1), z(source_2) {}
 
+    /* Horizontal projection used by camera, navigation and pathing callers.
+       Returns a value; it does not alias the non-adjacent source components. */
+    srVector2T<T> xz() const
+    {
+        return srVector2T<T>(x, z);
+    }
+
     void* operator new[](unsigned int size)
     {
         return srHeap.allocate(size);
@@ -444,6 +451,15 @@ public:
        __ehvector_ctor with the emitted body as the element callback;
        scalar construction inlines the empty body away. */
     srVector4T<T>();
+
+    /* XYZ extraction shared by quaternion, plane, transformed-location and
+       colour consumers. Keep the double-argument setter's conversion path. */
+    srVector3T<T> xyz() const
+    {
+        srVector3T<T> result;
+        result.Set(x, y, z);
+        return result;
+    }
 
     void* operator new[](unsigned int size)
     {

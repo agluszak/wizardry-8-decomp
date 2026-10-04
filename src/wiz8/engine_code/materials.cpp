@@ -387,8 +387,8 @@ static unsigned char PreprocessLevel(int handle, char* stem)
             static_cast<W8OctPreTreeVertex*>(malloc(mesh->num_vertices * 2 * sizeof(*vertices)));
         if (vertices != 0) {
             memset(vertices, 0, mesh->num_vertices * 2 * sizeof(*vertices));
-            minimum.Set(1e7f, 1e7f, 1e7f);
-            maximum.Set(-1e7f, -1e7f, -1e7f);
+            minimum = 1e7f;
+            maximum = -1e7f;
             redundant = 0;
             for (i = 1; i < mesh->num_vertices; ++i) {
                 const srVector3T<float>& source = mesh->pstVertices[i - 1];
@@ -482,9 +482,7 @@ static unsigned char PreprocessLevel(int handle, char* stem)
                         sun_count = 1;
                         for (i = 0; i < static_cast<int>(light_total); ++i) {
                             src_light = lights + i;
-                            src_light->position.x = src_light->position.x * g_world_scale;
-                            src_light->position.y = src_light->position.y * g_world_scale;
-                            src_light->position.z = src_light->position.z * g_world_scale;
+                            src_light->position *= g_world_scale;
                             src_light->colour.x = src_light->colour.x * g_world_scale;
                             strcpy(name, src_light->name_28);
                             name[19] = 0;
@@ -1097,27 +1095,25 @@ static int WeldVertex(W8HashTable<unsigned int, int>* table, W8OctPreTreeVertex*
             for (scan_z = start_z; scan_z <= cell_z + 1; ++scan_z) {
                 scan_key =
                     scan_z * g_weld_stride_z + scan_y * g_weld_stride_y + scan_x * g_weld_stride_x;
-                slot = table->bucket_heads[W8HashValue(scan_key) & (table->bucket_count - 1)];
+                slot = table->FindNextEntry(&scan_key, -1);
                 while (slot != -1) {
-                    if (table->entries[slot].key == scan_key) {
-                        match_index = table->entries[slot].value - 1;
-                        if (match_index >= 0 && matched == 0) {
-                            candidate = vertices + match_index;
-                            if (fabs(current->position_0c.x - candidate->position_0c.x) <
-                                    g_float_005ecbb8 &&
-                                fabs(current->position_0c.y - candidate->position_0c.y) <
-                                    g_float_005ecbb8 &&
-                                fabs(current->position_0c.z - candidate->position_0c.z) <
-                                    g_float_005ecbb8) {
-                                if (link == 0xffffffff) {
-                                    vertices[index].m_vertex_index = match_index;
-                                    vertices[index].flags_00 |= 1;
-                                }
-                                found = 1;
+                    match_index = table->entries[slot].value - 1;
+                    if (match_index >= 0 && matched == 0) {
+                        candidate = vertices + match_index;
+                        if (fabs(current->position_0c.x - candidate->position_0c.x) <
+                                g_float_005ecbb8 &&
+                            fabs(current->position_0c.y - candidate->position_0c.y) <
+                                g_float_005ecbb8 &&
+                            fabs(current->position_0c.z - candidate->position_0c.z) <
+                                g_float_005ecbb8) {
+                            if (link == 0xffffffff) {
+                                vertices[index].m_vertex_index = match_index;
+                                vertices[index].flags_00 |= 1;
                             }
+                            found = 1;
                         }
                     }
-                    slot = table->entries[slot].next_index;
+                    slot = table->FindNextEntry(&scan_key, slot);
                 }
             }
         }
@@ -1125,16 +1121,8 @@ static int WeldVertex(W8HashTable<unsigned int, int>* table, W8OctPreTreeVertex*
     if (found != 0) {
         return match_index + 1;
     }
-    if (table->free_head == -1) {
-        table->Grow();
-    }
-    slot = table->free_head;
-    table->free_head = table->entries[slot].next_index;
-    unsigned int bucket = W8HashValue(key) & (table->bucket_count - 1);
-    table->entries[slot].key = key;
-    table->entries[slot].value = index + 1;
-    table->entries[slot].next_index = table->bucket_heads[bucket];
-    table->bucket_heads[bucket] = slot;
+    int vertex_id = index + 1;
+    table->Insert(&key, &vertex_id);
     if (link == 0xffffffff) {
         vertices[index].m_vertex_index = index;
     }
@@ -1218,7 +1206,7 @@ static int BuildRegionPolygons(W8LevelFile* level, W8OctPreTreeGeometry* geometr
                         face->vertices[2]);
                 goto invalid;
             }
-            memcpy(&polygon->face, face, sizeof(W8ReadMeshFace));
+            polygon->face = *face;
             polygon->ordinal = ordinal;
             polygon->material = face->material_index;
             for (corner = 0; corner < 3; ++corner) {
@@ -1316,7 +1304,7 @@ static int BuildRegionPolygons(W8LevelFile* level, W8OctPreTreeGeometry* geometr
                         if (found == mesh->num_vertices + 1) {
                             current = vertices + vertex_index[corner];
                             created = vertices + mesh->num_vertices;
-                            memcpy(created, current, sizeof(*created));
+                            *created = *current;
                             created->m_vertex_index = mesh->num_vertices;
                             current->flags_00 |= 2;
                             vertex_index[corner] = mesh->num_vertices;
@@ -1336,7 +1324,7 @@ static int BuildRegionPolygons(W8LevelFile* level, W8OctPreTreeGeometry* geometr
                     }
                     if ((materials[face->material_index].shader_flags & 1) != 0) {
                         back = polygons + mesh->num_faces;
-                        memcpy(back, polygon, sizeof(W8OctRegionPolygon));
+                        *back = *polygon;
                         back->ordinal = mesh->num_faces;
                         back->vertices[0] = vertices + vertex_index[1];
                         back->vertices[1] = vertices + vertex_index[0];
@@ -1417,7 +1405,7 @@ static unsigned char SplitVerticesByMaterial(W8OctPreTreeGeometry* geometry)
     for (source = 1; source < geometry->vertex_count; ++source, ++next) {
         unsigned int first = next;
         record = split + next;
-        memcpy(record, geometry->m_vertices + source, sizeof(*record));
+        *record = geometry->m_vertices[source];
         record->m_vertex_index = next;
         record->m_visited = 1;
         faces = geometry->m_vertices[source].face_indices;
@@ -1457,7 +1445,7 @@ static unsigned char SplitVerticesByMaterial(W8OctPreTreeGeometry* geometry)
             if (fresh != 0) {
                 ++next;
                 record = split + next;
-                memcpy(record, geometry->m_vertices + source, sizeof(*record));
+                *record = geometry->m_vertices[source];
                 record->m_vertex_index = next;
                 record->m_visited = 1;
                 record->m_material = polygon->material;
@@ -1505,9 +1493,7 @@ static unsigned char SplitVerticesByMaterial(W8OctPreTreeGeometry* geometry)
 static int AccumulateVertexLight(OctPreTree* tree, W8OctPreTreeVertex* vertex, short light_count,
                                  W8LevelFileLight* lights, int* sun_map)
 {
-    float delta_x;
-    float delta_y;
-    float delta_z;
+    srVector3T<float> delta;
     float distance;
     float dot;
     float scale;
@@ -1523,15 +1509,13 @@ static int AccumulateVertexLight(OctPreTree* tree, W8OctPreTreeVertex* vertex, s
     sun = sun_map;
     do {
         if ((light->version < 2) || ((light->create == 0) && (light->visible != 0))) {
-            delta_x = light->position.x - vertex->position_0c.x;
-            delta_y = light->position.y - vertex->position_0c.y;
-            delta_z = light->position.z - vertex->position_0c.z;
-            distance = sqrt(delta_x * delta_x + delta_y * delta_y + delta_z * delta_z);
+            delta = light->position - vertex->position_0c;
+            distance = delta.Length();
             if ((distance < light->range) || ((sun_map != 0) && (*sun != 0))) {
                 ++g_light_candidates;
-                dot = (delta_x / distance) * vertex->m_normal.x +
-                      (delta_y / distance) * vertex->m_normal.y +
-                      (delta_z / distance) * vertex->m_normal.z;
+                dot = (delta.x / distance) * vertex->m_normal.x +
+                      (delta.y / distance) * vertex->m_normal.y +
+                      (delta.z / distance) * vertex->m_normal.z;
                 if (g_float_zero < dot) {
                     ++g_lights_facing;
                     if (g_option_shadow_test != 0) {
@@ -1573,7 +1557,7 @@ static unsigned char PropReceivesLight(OctPreTree* tree, W8LevelFileProp* prop,
     int corner_y;
     int corner_z;
     unsigned char bound;
-    float bounds[6];
+    srVector3T<float> bounds[2];
     srVector3T<float> position;
     srVector3T<float> corner;
 
@@ -1586,13 +1570,14 @@ static unsigned char PropReceivesLight(OctPreTree* tree, W8LevelFileProp* prop,
     if (prop->anim_obj.num_bound_box != 0) {
         const W8LevelFileBounds* boxes = prop->anim_obj.pBoundBox;
         do {
-            memcpy(bounds, boxes + bound, sizeof(bounds));
+            bounds[0] = boxes[bound].minimum;
+            bounds[1] = boxes[bound].maximum;
             for (corner_x = 0; corner_x < 2; ++corner_x) {
-                float x = bounds[corner_x * 3] * g_world_scale;
+                float x = bounds[corner_x].x * g_world_scale;
                 for (corner_y = 0; corner_y < 2; ++corner_y) {
-                    float y = bounds[corner_y * 3 + 1] * g_world_scale;
+                    float y = bounds[corner_y].y * g_world_scale;
                     for (corner_z = 0; corner_z < 2; ++corner_z) {
-                        corner.Set(x, y, bounds[corner_z * 3 + 2] * g_world_scale);
+                        corner.Set(x, y, bounds[corner_z].z * g_world_scale);
                         if (tree->SegmentClear(&light->position, &corner)) {
                             return 1;
                         }
@@ -1805,8 +1790,8 @@ static unsigned char MaterialSort(W8OctPreTreeGeometry* geometry, W8MaterialReco
                 ++texture_count;
             }
             sprintf(name, "Mat:%1.2f %1.2f %1.2f %1.2f %1.2f %1.2f %1.2f %1.2f %1.2f %d %c",
-                    record->diffuse[0], record->diffuse[1], record->diffuse[2],
-                    record->specular[0], record->specular[1], record->specular[2],
+                    record->diffuse.x, record->diffuse.y, record->diffuse.z,
+                    record->specular.x, record->specular.y, record->specular.z,
                     record->shininess, record->opacity, record->emission,
                     static_cast<int>(record->shader_flags), classify[index]);
             for (scan = 0; scan < material_count; ++scan) {
@@ -2190,9 +2175,9 @@ unsigned char LoadMaterial(const char* bitmap_folder, const W8MaterialRecord* so
     sprintf(material_name,
             "Mt%1.2f%1.2f%1.2f%1.2f%1.2f%1.2f%1.2f%1.2f%1.2f"
             "%1.2f%1.2f%1.2f%1.2f%1.2f%d%c",
-            source->ambient[0], source->ambient[1], source->ambient[2],
-            source->diffuse[0], source->diffuse[1], source->diffuse[2],
-            source->specular[0], source->specular[1], source->specular[2],
+            source->ambient.x, source->ambient.y, source->ambient.z,
+            source->diffuse.x, source->diffuse.y, source->diffuse.z,
+            source->specular.x, source->specular.y, source->specular.z,
             source->shininess, source->opacity, source->emission, source->emission,
             source->emission, static_cast<int>(source->shader_flags),
             /* Retail passes the string's address for %c, so the name ends in
@@ -2223,27 +2208,27 @@ unsigned char LoadMaterial(const char* bitmap_folder, const W8MaterialRecord* so
             concrete->setName(material_name);
             concrete->autoRelease();
 
-            concrete->parms.specular.Set(source->specular[0], source->specular[1],
-                                         source->specular[2], 0.0f);
+            concrete->parms.specular.Set(source->specular.x, source->specular.y,
+                                         source->specular.z, 0.0f);
             concrete->dirty = 1;
             concrete->parms.shininess = 1.0f;
             concrete->dirty = 1;
 
-            concrete->parms.diffuse.x = source->diffuse[0];
-            concrete->parms.diffuse.y = source->diffuse[1];
-            concrete->parms.diffuse.z = source->diffuse[2];
+            concrete->parms.diffuse.x = source->diffuse.x;
+            concrete->parms.diffuse.y = source->diffuse.y;
+            concrete->parms.diffuse.z = source->diffuse.z;
             concrete->parms.diffuse.w = source->opacity == 0.0f ? 0.7f : source->opacity;
             concrete->dirty = 1;
             concrete->setOpacity(source->opacity == 0.0f ? 0.7f : source->opacity);
 
             if (texture_path[0] == '\0') {
-                concrete->parms.ambient.Set(source->diffuse[0], source->diffuse[1],
-                                            source->diffuse[2], 1.0f);
+                concrete->parms.ambient.Set(source->diffuse.x, source->diffuse.y,
+                                            source->diffuse.z, 1.0f);
                 concrete->dirty = 1;
                 concrete->parms.emissive = 0.0f;
             } else {
-                concrete->parms.ambient.Set(source->ambient[0], source->ambient[1],
-                                            source->ambient[2], 0.0f);
+                concrete->parms.ambient.Set(source->ambient.x, source->ambient.y,
+                                            source->ambient.z, 0.0f);
                 concrete->dirty = 1;
                 concrete->parms.emissive.Set(source->emission, source->emission,
                                              source->emission, 1.0f);

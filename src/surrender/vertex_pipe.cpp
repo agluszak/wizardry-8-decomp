@@ -495,9 +495,7 @@ void srVertexPipe::setupEyeSpaceNormal()
     Scratch* scratch = scratch_00;
     if (normals == 0) {
         srVector3T<float> constant;
-        constant.x = 0.0f;
-        constant.y = 0.0f;
-        constant.z = -1.0f;
+        constant.Set(0.0f, 0.0f, -1.0f);
         vector_processor->_copy(scratch->normals, constant, batch_count);
     } else if (input_6c->position_is_float3 == 0) {
         vector_processor->_transformIndexed(scratch->normals, normals, avt,

@@ -42,7 +42,7 @@
 /* 0x0064DAF4: on-board (left, top) of each of the fifteen cell markers,
    relative to the board anchor. */
 // GLOBAL: WIZ8 0x0064daf4
-static int g_formation_marker_offsets[15][2] = {
+static srVector2i g_formation_marker_offsets[15] = {
     {0x26, 0x9},  {0x19, 0xd},  {0x33, 0xd},  {0x43, 0x26}, {0x3f, 0x19},
     {0x3f, 0x33}, {0x26, 0x43}, {0x33, 0x3f}, {0x19, 0x3f}, {0x9, 0x26},
     {0xd, 0x33},  {0xd, 0x19},  {0x26, 0x1e}, {0x1e, 0x2a}, {0x2e, 0x2a},
@@ -50,7 +50,7 @@ static int g_formation_marker_offsets[15][2] = {
 
 /* 0x0064DB6C: screen (left, top) of the fifteen cell controls. */
 // GLOBAL: WIZ8 0x0064db6c
-static int g_formation_cell_positions[15][2] = {
+static srVector2i g_formation_cell_positions[15] = {
     {0x5a, 0x1c}, {0x3d, 0x25}, {0x77, 0x25}, {0x98, 0x5a}, {0x8f, 0x3d},
     {0x8f, 0x77}, {0x5a, 0x98}, {0x77, 0x8f}, {0x3d, 0x8f}, {0x1c, 0x5a},
     {0x25, 0x77}, {0x25, 0x3d}, {0x5a, 0x48}, {0x48, 0x61}, {0x6c, 0x61},
@@ -89,8 +89,8 @@ void DrawFormationSlotMarkers(int target)
         if (row->fOccupied == 0 || position->bQuadrant == -1) {
             continue;
         }
-        left = g_formation_marker_offsets[position->bQuadrant * 3 + position->bQuadrantSlot][0];
-        top = g_formation_marker_offsets[position->bQuadrant * 3 + position->bQuadrantSlot][1];
+        left = g_formation_marker_offsets[position->bQuadrant * 3 + position->bQuadrantSlot].x;
+        top = g_formation_marker_offsets[position->bQuadrant * 3 + position->bQuadrantSlot].y;
         image = position->facing * 3;
         order_image = row->party_order_index * 3;
         if (slot == g_level_block->formation_highlight_party_slot) {
@@ -210,10 +210,10 @@ unsigned char FormationBoardRegionEvent(const InputAtom* event, W8Region* region
             continue;
         }
         cell = position->bQuadrant * 3 + position->bQuadrantSlot;
-        if (IsCursorInRectangle(g_formation_marker_offsets[cell][0] + 0x207,
-                                g_formation_marker_offsets[cell][1] + 0x167,
-                                g_formation_marker_offsets[cell][0] + 0x211,
-                                g_formation_marker_offsets[cell][1] + 0x171)) {
+        if (IsCursorInRectangle(g_formation_marker_offsets[cell].x + 0x207,
+                                g_formation_marker_offsets[cell].y + 0x167,
+                                g_formation_marker_offsets[cell].x + 0x211,
+                                g_formation_marker_offsets[cell].y + 0x171)) {
             hit = slot;
             break;
         }
@@ -253,10 +253,10 @@ unsigned char FormationBoardHoverRegionEvent(const InputAtom*, W8Region* region)
             continue;
         }
         cell = position->bQuadrant * 3 + position->bQuadrantSlot;
-        if (IsCursorInRectangle(g_formation_marker_offsets[cell][0] + 0x207,
-                                g_formation_marker_offsets[cell][1] + 0x167,
-                                g_formation_marker_offsets[cell][0] + 0x211,
-                                g_formation_marker_offsets[cell][1] + 0x171)) {
+        if (IsCursorInRectangle(g_formation_marker_offsets[cell].x + 0x207,
+                                g_formation_marker_offsets[cell].y + 0x167,
+                                g_formation_marker_offsets[cell].x + 0x211,
+                                g_formation_marker_offsets[cell].y + 0x171)) {
             hit = slot;
             break;
         }
@@ -294,8 +294,8 @@ static unsigned char CreateFormationPanel(void)
         return 0;
     }
     for (index = 0; index < 15; ++index) {
-        int left = g_formation_cell_positions[index][0];
-        int top = g_formation_cell_positions[index][1];
+        int left = g_formation_cell_positions[index].x;
+        int top = g_formation_cell_positions[index].y;
         W8TextControl* cell;
 
         cell = new W8TextControl(g_formation_panel, index + 0xa1, left, top, left + 0x20,

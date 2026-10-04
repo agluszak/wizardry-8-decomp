@@ -220,7 +220,7 @@ struct W8OctFileHeader {
     srVector3T<float> m_bounds[6];
     /* The uiLeaf grid dimensions: three integer cell counts serialized in the
        vector slot. */
-    unsigned long m_grid_dims[3];
+    srVector3T<unsigned long> m_grid_dims;
     unsigned short m_depth;
     /* Auto-region id bound; the reader sizes the region-indexed
        m_owned_154/m_pfRegsVisited arrays from it. */

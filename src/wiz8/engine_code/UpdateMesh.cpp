@@ -48,8 +48,8 @@ void CollectViewQuadCells(W8World* world, long* x_list, long* y_list, long* coun
     W8Quad* quad = world->quads;
     float cell_size = quad->cell_size;
 
-    long cam_x = static_cast<long>((world->camera->getLocationX() - quad->origin_x) / cell_size);
-    long cam_y = static_cast<long>((world->camera->getLocationZ() - quad->origin_z) / cell_size);
+    long cam_x = static_cast<long>((world->camera->getLocationX() - quad->origin.x) / cell_size);
+    long cam_y = static_cast<long>((world->camera->getLocationZ() - quad->origin.y) / cell_size);
 
     srMatrix3T<float> rotation;
     world->camera->getRotation(rotation);

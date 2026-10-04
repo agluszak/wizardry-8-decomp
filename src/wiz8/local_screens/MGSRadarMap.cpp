@@ -54,7 +54,7 @@ static unsigned char g_radar_disposition_class[4] = {0, 1, 2, 0};
 /* 0x0064CB6C: screen offsets at which the zoomed map image gets each
    occupied formation cell's party-order chip painted. */
 // GLOBAL: WIZ8 0x0064cb6c
-static int g_radar_cell_offsets[15][2] = {
+static srVector2i g_radar_cell_offsets[15] = {
     {45, 37}, {42, 38}, {48, 38}, {53, 45}, {52, 42}, {52, 48}, {45, 53}, {48, 52},
     {42, 52}, {37, 45}, {38, 48}, {38, 42}, {45, 42}, {43, 46}, {47, 46},
 };
@@ -261,8 +261,7 @@ void RefreshRadarMap(void)
             if (row->fOccupied != 0 && position->bQuadrant != -1) {
                 int cell = position->bQuadrant * 3 + position->bQuadrantSlot;
                 DrawCatalogImage(static_cast<int>(map_surface), 0xa5, 0, row->party_order_index,
-                                 g_radar_cell_offsets[cell][0], g_radar_cell_offsets[cell][1], 2,
-                                 0);
+                                 g_radar_cell_offsets[cell].x, g_radar_cell_offsets[cell].y, 2, 0);
             }
         }
     }

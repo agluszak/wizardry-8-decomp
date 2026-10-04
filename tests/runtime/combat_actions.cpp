@@ -52,7 +52,7 @@ static void ProvokeHostileEncounterOnGameThread(void* opaque)
         fprintf(stderr,
                 "runtime-test pathing: svc=%p size=%d grid=%f bounds=(%.0f %.0f %.0f)-(%.0f %.0f "
                 "%.0f)\n",
-                (void*)pathing, pathing != 0 ? pathing->size_004 : -1,
+                (void*)pathing, pathing != 0 ? pathing->path_node_count : -1,
                 pathing != 0 ? pathing->grid_scale_01c : 0.0f,
                 pathing != 0 ? pathing->level_bounds.minimum.x : 0.0f,
                 pathing != 0 ? pathing->level_bounds.minimum.y : 0.0f,

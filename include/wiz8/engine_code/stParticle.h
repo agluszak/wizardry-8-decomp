@@ -1,5 +1,7 @@
 #pragma once
 
+#include "wiz8/engine_code/particle_modes.h"
+
 #include "surrender/srMaterialIFace.h"
 #include "surrender/srScene.h"
 #include "surrender/srShader.h"
@@ -27,7 +29,7 @@ public:
     void SetTexture(srTextureIFace* texture);
     void SetRetainedObject(srMaterialIFace* material);
     void SetRenderFlags(srShader flags);
-    void SetFlutter(int enabled);
+    void SetFlutter(W8ParticleFlutterMode mode);
     void SetParticleScale(float scale);
     void SubmitToRenderer(srGERD* renderer);
     /* The per-particle age/cull/move step and billboard-corner expansion used
@@ -92,14 +94,14 @@ public:
     unsigned char emitting;
     bool traversal_enabled;
     unsigned char padding_1a2[2];
-    int bounds_mode;
+    W8ParticleBoundsMode bounds_mode;
     int has_acceleration;
-    int expiry_mode;
-    int emission_mode;
+    W8ParticleExpiryMode expiry_mode;
+    W8ParticleEmissionMode emission_mode;
     int los_check_enabled;
-    int direction_mode;
-    int placement_mode;
-    int flutter_mode;
+    W8ParticleDirectionMode direction_mode;
+    W8ParticleSpeedMode speed_mode;
+    W8ParticleFlutterMode flutter_mode;
     int camera_relative;
     /* Emission interval; elapsed comparisons use unsigned subtraction. */
     unsigned int emission_interval;
@@ -129,9 +131,9 @@ public:
        update_flags carries bit 1. */
     unsigned long* active_triangles;
     /* Last accepted particle-integration tick. */
-    unsigned int activated_at;
+    unsigned int last_integration_tick;
     /* Emission schedule tick. */
-    unsigned int updated_at;
+    unsigned int last_emission_tick;
     short attachment_key;
     unsigned char padding_262[2];
     int start_frame;

@@ -753,11 +753,7 @@ void ConvertMonsterAttributes(W8MonsterInfo* monster_info)
         }
 
         value += monster_info->modifiers.attribute_adjustments[attribute_index];
-        if (value > 125) {
-            value = 125;
-        } else if (value < 1) {
-            value = 1;
-        }
+        ClampInteger(&value, 1, 125);
         monster_info->attributes[monster_attribute] = static_cast<unsigned char>(value);
         ++monster_attribute;
     } while (monster_attribute < W8_MONSTER_ATTR_COUNT);

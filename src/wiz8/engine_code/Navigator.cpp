@@ -1284,7 +1284,7 @@ unsigned char W8NavigatorAttachment::AdvanceAlongPathPositions(float distance,
     }
     flags_00 &= ~W8_NAV_ATTACHMENT_PATH_LENGTH_CACHED;
     delta = position_4c[path_cursor] - local;
-    segment = srVector2T<float>(delta.x, delta.z).Length();
+    segment = delta.xz().Length();
     if (segment < g_double_005ebc30 && path_cursor == path_position_index) {
         return 0;
     }
@@ -1301,7 +1301,7 @@ unsigned char W8NavigatorAttachment::AdvanceAlongPathPositions(float distance,
                samples one slot past path_position_index, inside the
                ten-entry allocation but never initialized. */
             delta = position_4c[path_cursor] - local;
-            segment = srVector2T<float>(delta.x, delta.z).Length();
+            segment = delta.xz().Length();
         } while (segment < distance);
     }
     if (path_position_index < path_cursor) {
@@ -1349,9 +1349,9 @@ unsigned char W8NavigatorAttachment::CheckPositionHopHeight(const srVector3T<flo
     if (path_position_index < end) {
         return 0;
     }
-    point.Set(position->x, position->z);
-    from.Set(position_4c[base].x, position_4c[base].z);
-    to.Set(position_4c[end].x, position_4c[end].z);
+    point = position->xz();
+    from = position_4c[base].xz();
+    to = position_4c[end].xz();
     distance = PointToSegmentDistance2D(&point, &from, &to, 0, &fraction);
     surfaces = g_octree->pathing->m_pSurfaces;
     from_height = (surfaces[path_values[base]].flags_00 >> 0xc) * g_world_scale;
@@ -1370,25 +1370,25 @@ unsigned char W8NavigatorAttachment::CheckPredictedHopHeight(const srVector3T<fl
     srVector2T<float> to;
     float fraction;
     float distance;
-    float other_fraction[2];
+    float other_fraction;
     float other_distance;
     unsigned int base;
     float from_height;
     float to_height;
     W8PathSurface* surfaces;
 
-    point.Set(position->x, position->z);
-    from.Set(position_4c[path_cursor - 1].x, position_4c[path_cursor - 1].z);
-    to.Set(position_4c[path_cursor].x, position_4c[path_cursor].z);
+    point = position->xz();
+    from = position_4c[path_cursor - 1].xz();
+    to = position_4c[path_cursor].xz();
     distance = PointToSegmentDistance2D(&point, &from, &to, 0, &fraction);
     base = path_cursor - 1;
     if (path_cursor < path_position_index && path_values[path_cursor + 1] != 0) {
         from = to;
-        to.Set(position_4c[path_cursor + 1].x, position_4c[path_cursor + 1].z);
-        other_distance = PointToSegmentDistance2D(&point, &from, &to, 0, other_fraction);
+        to = position_4c[path_cursor + 1].xz();
+        other_distance = PointToSegmentDistance2D(&point, &from, &to, 0, &other_fraction);
         if (other_distance < distance) {
             base = path_cursor;
-            fraction = other_fraction[0];
+            fraction = other_fraction;
             distance = other_distance;
         }
     }
@@ -1408,20 +1408,19 @@ unsigned char W8NavigatorAttachment::AdvancePositionTowardWaypoint(srVector3T<fl
     srVector2T<float> point;
     srVector2T<float> from;
     srVector2T<float> to;
-    float dir_x;
-    float dir_z;
+    srVector2T<float> dir;
     float fraction;
     float remainder;
     float segment;
     bool reached;
 
-    point.Set(position->x, position->z);
-    from.Set(position_4c[path_cursor - 1].x, position_4c[path_cursor - 1].z);
-    to.Set(position_4c[path_cursor].x, position_4c[path_cursor].z);
+    point = position->xz();
+    from = position_4c[path_cursor - 1].xz();
+    to = position_4c[path_cursor].xz();
     PointToSegmentDistance2D(&point, &from, &to, 1, &fraction);
-    dir_x = to.x - from.x;
-    dir_z = to.y - from.y;
-    remainder = (g_float_one - fraction) * srVector2T<float>(dir_x, dir_z).Length();
+    dir.x = to.x - from.x;
+    dir.y = to.y - from.y;
+    remainder = (g_float_one - fraction) * dir.Length();
     if (distance <= remainder) {
         reached = 0;
     } else {
@@ -1429,9 +1428,9 @@ unsigned char W8NavigatorAttachment::AdvancePositionTowardWaypoint(srVector3T<fl
         if (path_cursor < path_position_index && path_values[path_cursor + 1] != 0) {
             distance -= remainder;
             point = to;
-            dir_x = position_4c[path_cursor + 1].x - to.x;
-            dir_z = position_4c[path_cursor + 1].z - to.y;
-            remainder = srVector2T<float>(dir_x, dir_z).Length();
+            dir.x = position_4c[path_cursor + 1].x - to.x;
+            dir.y = position_4c[path_cursor + 1].z - to.y;
+            remainder = dir.Length();
         }
     }
     if (remainder < distance) {
@@ -1442,14 +1441,14 @@ unsigned char W8NavigatorAttachment::AdvancePositionTowardWaypoint(srVector3T<fl
         position->z = point.y;
         return reached;
     }
-    segment = srVector2T<float>(dir_x, dir_z).Length();
+    segment = dir.Length();
     if (segment != g_double_zero) {
         distance /= segment;
-        dir_x *= distance;
-        dir_z *= distance;
+        dir.x *= distance;
+        dir.y *= distance;
     }
-    position->x = dir_x + point.x;
-    position->z = dir_z + point.y;
+    position->x = dir.x + point.x;
+    position->z = dir.y + point.y;
     return reached;
 }
 
@@ -2234,11 +2233,8 @@ void W8Navigator::UpdateNavigation(unsigned char skip_movement, bool slowed)
     case 0x201:
         if (linked_navigator != 0 && g_combat_inactive != 0) {
             if (linked_navigator->movement_stopped != 0) {
-                srVector3T<float> delta(
-                    linked_navigator->movement_0c0.position_040.x - movement_0c0.position_040.x,
-                    linked_navigator->movement_0c0.position_040.y - movement_0c0.position_040.y,
-                    linked_navigator->movement_0c0.position_040.z -
-                        movement_0c0.position_040.z);
+                srVector3T<float> delta =
+                    linked_navigator->movement_0c0.position_040 - movement_0c0.position_040;
                 if (delta.Length() < radius_084 * g_navigator_linked_radius_scale +
                                          linked_navigator->radius_084) {
                     SetMovementStopped();
@@ -2287,9 +2283,7 @@ void W8Navigator::UpdateNavigation(unsigned char skip_movement, bool slowed)
 
     if (was_stopped == 0 || movement_stopped == 0) {
         if (g_combat_inactive == 0 && movement_stopped == 0) {
-            if (movement_0c0.target_position.x != movement_0c0.position_040.x ||
-                movement_0c0.target_position.y != movement_0c0.position_040.y ||
-                movement_0c0.target_position.z != movement_0c0.position_040.z) {
+            if (!(movement_0c0.target_position == movement_0c0.position_040)) {
                 srVector3T<float> target;
                 target = movement_0c0.target_position;
                 AimAtPosition(&target);

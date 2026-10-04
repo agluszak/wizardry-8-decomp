@@ -1107,8 +1107,7 @@ unsigned char AdjustWorldCollisionPosition(float radius, srVector3T<float>* posi
                 float other_radius;
                 owner->GetSearchPosition(&center);
                 owner->GetBoundsRadius(&other_radius);
-                srVector3T<float> delta(center.x - position->x, center.y - position->y,
-                                        center.z - position->z);
+                srVector3T<float> delta = center - *position;
                 if (delta.Length() < other_radius + radius) {
                     return 0;
                 }
@@ -1126,8 +1125,7 @@ unsigned char AdjustWorldCollisionPosition(float radius, srVector3T<float>* posi
                 float other_radius;
                 monster->GetAnimationCenter(&center);
                 monster->GetAnimationRadius(&other_radius);
-                srVector3T<float> delta(center.x - position->x, center.y - position->y,
-                                        center.z - position->z);
+                srVector3T<float> delta = center - *position;
                 if (delta.Length() < other_radius + radius) {
                     return 0;
                 }

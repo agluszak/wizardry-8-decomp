@@ -487,9 +487,7 @@ public:
     W8OctSpatialState m_spatial;
     W8OctPreTreeBranch* m_branches;
     W8OctPreTreeLeaf* m_leaves;
-    unsigned long m_leaf_grid_dim_x;
-    unsigned long m_leaf_grid_dim_y;
-    unsigned long m_leaf_grid_dim_z;
+    srVector3T<unsigned long> m_leaf_grid_dimensions;
     unsigned long* m_leaf_lookup;
     unsigned long m_branch_count;
     unsigned long m_leaf_count;
