@@ -1,4 +1,11 @@
 #pragma once
+template <class T> struct FixtureStorage {
+    T* storage_data;
+    unsigned int storage_count;
+    T Read(unsigned int position) { return storage_data[position]; }
+};
+extern FixtureStorage<int> fixture_int_storage;
+extern FixtureStorage<unsigned long> fixture_unsigned_storage;
 struct ScalarState {
     int duration;
     int stored_duration;

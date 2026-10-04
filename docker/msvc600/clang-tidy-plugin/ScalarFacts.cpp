@@ -7,6 +7,7 @@
 
 #include "clang/AST/ExprCXX.h"
 #include "clang/AST/TypeLoc.h"
+#include "clang/AST/Mangle.h"
 #include "clang/AST/RecordLayout.h"
 #include "clang/AST/Attr.h"
 #include "clang/Lex/Lexer.h"
@@ -25,7 +26,7 @@ namespace {
 // Arithmetic and conversions remain uses/barriers, rather than copy edges.
 class ScalarFactVisitor final : public RecursiveASTVisitor<ScalarFactVisitor> {
 public:
-    ScalarFactVisitor(ASTContext& context, FactWriter& writer) : context_(context), writer_(writer)
+    ScalarFactVisitor(ASTContext& context, FactWriter& writer) : context_(context), names_(context), writer_(writer)
     {
     }
 
@@ -132,6 +133,15 @@ public:
 
     bool VisitFunctionDecl(FunctionDecl* function)
     {
+        const auto* canonical = function->getCanonicalDecl();
+        const auto point = source_point(context_.getSourceManager(), canonical->getLocation());
+        if (const auto* prototype = function->getType()->getAs<FunctionProtoType>();
+            point && prototype != nullptr && !function->isImplicit() &&
+            !function->isDependentContext() && !function->getDescribedFunctionTemplate())
+            writer_.fact({"FN", owner_key(canonical), function->getQualifiedNameAsString(),
+                          std::to_string(prototype->getNumParams()),
+                          std::to_string(static_cast<unsigned>(prototype->getCallConv())),
+                          prototype->isVariadic() ? "1" : "0", names_.getName(canonical)});
         declare(function);
         for (const auto* parameter : function->parameters())
             declare(parameter);
@@ -415,6 +425,8 @@ private:
 
     const NamedDecl* node_declaration(const NamedDecl* declaration) const
     {
+        if (declaration == nullptr || declaration->getDeclContext()->isDependentContext())
+            return nullptr;
         if (const auto* array = array_type(declaration)) {
             if (array->getElementType()->isScalarType() &&
                 !array->getElementType()->isDependentType()) {
@@ -445,7 +457,7 @@ private:
         if (!point)
             return {};
         return point.file + ":" + std::to_string(point.line) + ":" + std::to_string(point.column) +
-               ":" + candidate_kind(declaration) + ":" + declaration->getNameAsString();
+               ":" + candidate_kind(declaration) + ":" + candidate_key_name(declaration);
     }
 
     std::string node_key(const NamedDecl* declaration) const
@@ -459,6 +471,8 @@ private:
 
     void declare(const NamedDecl* declaration)
     {
+        if (declaration == nullptr || declaration->getDeclContext()->isDependentContext())
+            return;
         if (const auto* array = array_type(declaration)) {
             source_span(declaration);
             if (const auto* variable = dyn_cast<VarDecl>(declaration))
@@ -934,6 +948,7 @@ private:
     }
 
     ASTContext& context_;
+    ASTNameGenerator names_;
     FactWriter& writer_;
     FunctionDecl* function_ = nullptr;
     llvm::SmallPtrSet<const DeclRefExpr*, 32> direct_callees_;

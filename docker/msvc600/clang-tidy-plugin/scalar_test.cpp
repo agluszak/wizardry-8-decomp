@@ -206,6 +206,13 @@ struct FixturePackedRecord {
 FixturePackedRecord fixture_packed;
 
 FixturePatchCallback fixture_patch_callback = &FixturePatchImplementation;
+FixtureStorage<int> fixture_int_storage;
+FixtureStorage<unsigned long> fixture_unsigned_storage;
+int ReadIntStorage(unsigned int index) { return fixture_int_storage.Read(index); }
+unsigned long ReadUnsignedStorage(unsigned int index)
+{
+    return fixture_unsigned_storage.Read(index);
+}
 long FixturePatchImplementation(long value)
 {
     return value;

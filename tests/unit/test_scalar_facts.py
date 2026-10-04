@@ -964,3 +964,119 @@ def test_array_extent_component_is_not_rewritten_as_type(scalar, tmp_path):
     )
     scalar.write_recovery_patch(facts, [claim("element")], tmp_path, tmp_path / "recovery.patch")
     assert "+unsigned int values[3];" in (tmp_path / "recovery.patch").read_text()
+
+
+def test_oracle_harvest_pairs_contracts_not_type_similarity(scalar, tmp_path):
+    current_dir, original_dir = tmp_path / "current", tmp_path / "original"
+    current_dir.mkdir()
+    original_dir.mkdir()
+    current_key = "src/current.h:1:1:function:Clock"
+    original_key = "/oracle/source/clock.h:1:1:function:Clock"
+    current = read(
+        scalar,
+        current_dir,
+        declaration(current_key, kind="function"),
+        f"FN\t{current_key}\tClock\t0\t0\t0\t_Clock",
+        f"T\t{current_key}\tint\tTIMER\t",
+    )
+    original = read(
+        scalar,
+        original_dir,
+        declaration(original_key, kind="function", signedness="unsigned", spelling="TIMER"),
+        f"FN\t{original_key}\tClock\t0\t0\t0\t_Clock",
+        f"T\t{original_key}\tunsigned long\tTIMER\t",
+    )
+    mapping = {
+        "original": {"key": original_key},
+        "current": {"semantic_id": "_Clock"},
+        "nominal_roles": {"return": "timer"},
+        "basis": {
+            "kind": "source-oracle",
+            "reference": "git:pinned:clock.h",
+            "reason": "retained API",
+        },
+    }
+    result = scalar.harvest_declaration_evidence(current, original, [mapping])
+    claims = evidence(scalar, tmp_path, current, *result["claims"])
+    assert {(c["property"], c["value"]) for c in claims} == {
+        ("width", 32),
+        ("signedness", "unsigned"),
+        ("nominal", "TIMER"),
+    }
+    assert all(c["basis"]["declaration"]["file"] == "src/wiz8/test.cpp" for c in claims)
+    mapping["basis"]["kind"] = "decorated-export"
+    assert not any(
+        c["property"] == "nominal"
+        for c in scalar.harvest_declaration_evidence(current, original, [mapping])["claims"]
+    )
+    original.signatures[original_key] = ("Clock", 1, 0, False, "_Clock")
+    assert scalar.harvest_declaration_evidence(current, original, [mapping])["claims"] == []
+    original.signatures[original_key] = ("Clock", 0, 0, False, "_Clock")
+    original.types[original_key] = ("char", "", "")
+    assert {
+        c["property"]
+        for c in scalar.harvest_declaration_evidence(current, original, [mapping])["claims"]
+    } == {"width"}
+    mapping["current"] = {"semantic_id": "_Missing"}
+    result = scalar.harvest_declaration_evidence(current, original, [mapping])
+    assert not result["claims"] and "requires one declaration" in result["skipped"][0]["reason"]
+
+
+def test_enum_identity_uses_canonical_owner_not_in_class_spelling(scalar, tmp_path):
+    facts = read(
+        scalar,
+        tmp_path,
+        declaration("parameter", kind="parameter", domain="enum", spelling="e_mode"),
+        declaration("field", kind="field", domain="enum", spelling="const ModeAlias"),
+        "T\tparameter\tenum Owner::e_mode\t\t",
+        "T\tfield\tconst enum Owner::e_mode\tModeAlias\t",
+        "F\tfield\tparameter\tassignment\tsrc/wiz8/test.cpp\t2\t1",
+        "H\tparameter\tbody\tsrc/wiz8/test.cpp\t2\t1",
+    )
+    c = {
+        "key": "parameter",
+        "property": "domain",
+        "value": "enum:Owner::e_mode",
+        "basis": {
+            "kind": "decorated-export",
+            "reference": "independent export",
+            "reason": "existing enum owner",
+        },
+    }
+    claims = evidence(scalar, tmp_path, facts, c)
+    report = property_report(scalar, facts, claims, "domain")
+    assert report["status"] == "candidate" and report["changes"] == []
+    facts.types["field"] = ("enum Other::e_mode", "", "")
+    assert property_report(scalar, facts, claims, "domain")["status"] == "blocked"
+
+
+def test_qualified_void_is_erased_storage_not_a_concrete_pointee_seed(scalar, tmp_path):
+    facts = read(
+        scalar,
+        tmp_path,
+        declaration("pointer", domain="pointer", spelling="const void *"),
+        "T\tpointer\tconst void *\t\tconst void",
+    )
+    mapping = {
+        "original": {"key": "pointer"},
+        "current": {"key": "pointer"},
+        "basis": {
+            "kind": "decorated-export",
+            "reference": "original export",
+            "reason": "opaque API buffer",
+        },
+    }
+    assert scalar.harvest_declaration_evidence(facts, facts, [mapping])["claims"] == []
+    with pytest.raises(ValueError, match="concrete pointee"):
+        evidence(
+            scalar,
+            tmp_path,
+            facts,
+            {
+                **mapping["basis"],
+                "key": "pointer",
+                "property": "pointee",
+                "value": "const void",
+                "basis": mapping["basis"],
+            },
+        )

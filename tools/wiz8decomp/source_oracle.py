@@ -910,3 +910,107 @@ def validate_source_oracle_ownership(
 
 def iter_oracle_families() -> Iterable[OracleFamily]:
     return ORACLE_FAMILIES
+
+
+def extract_declaration_oracle(repository: Path, configuration: dict, destination: Path) -> dict:
+    """Extract immutable source bytes for Clang; no reconstruction supplies types.
+
+    Filename casing is normalized solely to reproduce Windows include lookup on
+    Linux. Every byte stream, including required historical overlays, remains
+    pinned to its Git blob and is recorded in the extraction manifest.
+    """
+    import hashlib
+    import re
+    import subprocess
+
+    revision = configuration["revision"]
+    if not re.fullmatch(r"[0-9a-f]{40}", revision):
+        raise ValueError("source oracle requires a full immutable commit ID")
+    resolved = subprocess.run(
+        ["git", "rev-parse", revision + "^{commit}"],
+        cwd=repository,
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.strip()
+    if resolved != revision:
+        raise ValueError("oracle revision does not identify the exact commit")
+    roots = [configuration["source_root"], *configuration.get("overlay_roots", [])]
+    files = {}
+    for root_index, root in enumerate(roots):
+        names = subprocess.run(
+            ["git", "ls-tree", "-r", "--name-only", revision, root],
+            cwd=repository,
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.splitlines()
+        if not names:
+            raise ValueError("missing immutable oracle root: " + root)
+        for name in names:
+            relative = Path(name).relative_to(root).as_posix().lower()
+            staged = ("source/" if root_index == 0 else f"overlay-{root_index}/") + relative
+            if staged in files:
+                raise ValueError("case-folded source oracle filename collision")
+            data = subprocess.run(
+                ["git", "show", revision + ":" + name],
+                cwd=repository,
+                capture_output=True,
+                check=True,
+            ).stdout
+            blob = subprocess.run(
+                ["git", "rev-parse", revision + ":" + name],
+                cwd=repository,
+                capture_output=True,
+                text=True,
+                check=True,
+            ).stdout.strip()
+            path = destination / staged
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(data)
+            files[staged] = {"path": name, "blob": blob, "sha256": hashlib.sha256(data).hexdigest()}
+    return {"revision": revision, "files": files}
+
+
+def retained_declaration_mappings(
+    repository: Path, configuration: dict, extraction: dict
+) -> list[dict]:
+    """Require explicit retained-contract correspondences, never infer from names."""
+    rows = {row["claim_id"]: row for row in load_claims(repository)}
+    mappings = []
+    for correspondence in configuration["correspondences"]:
+        claim = rows[correspondence["claim_id"]]
+        if (
+            claim["origin"] != "sgp-source"
+            or claim["entity_kind"] != correspondence["current"]["kind"]
+            or correspondence["original"]["kind"] != correspondence["current"]["kind"]
+            or claim["value"] != correspondence["current"]["name"]
+            or claim["authority"] != "source-backed"
+            or claim["confidence"] not in {"strong", "high", "exact"}
+            or claim["predicate"] != "accepted-identity"
+            or correspondence.get("retained_declaration") is not True
+        ):
+            raise ValueError("source identity alone does not prove a retained declaration contract")
+        original = dict(correspondence["original"])
+        relative = (
+            Path(original["file"]).relative_to(configuration["source_root"]).as_posix().lower()
+        )
+        entry = extraction["files"]["source/" + relative]
+        original["file"] = "/oracle/source/" + relative
+        mappings.append(
+            {
+                "original": {"selector": original},
+                "current": {"selector": correspondence["current"]},
+                "nominal_roles": correspondence.get("nominal_roles", {}),
+                "basis": {
+                    "kind": "source-oracle",
+                    "reference": f"git:{extraction['revision']}:{entry['path']}#{claim['claim_id']}",
+                    "reason": correspondence["reason"],
+                    "revision": extraction["revision"],
+                    "source_path": entry["path"],
+                    "source_blob": entry["blob"],
+                    "source_sha256": entry["sha256"],
+                },
+            }
+        )
+    return mappings

@@ -63,6 +63,7 @@ class ScalarFacts:
     types: dict[str, tuple[str, str, str]] = field(default_factory=dict)
     operands: set[tuple[str, str, int, str, int, int]] = field(default_factory=set)
     conversions: set[tuple[str, str, str, str]] = field(default_factory=set)
+    signatures: dict[str, tuple[str, int, int, bool, str]] = field(default_factory=dict)
     callback_slots: dict[str, tuple[int, int, bool]] = field(default_factory=dict)
     callback_bindings: set[tuple[str, str, int, int, bool]] = field(default_factory=set)
     constants: dict[str, set[int]] = field(default_factory=lambda: defaultdict(set))
@@ -120,6 +121,19 @@ def read_scalar_facts(directory: Path) -> ScalarFacts:
                         if len(parts) != 2:
                             raise ValueError("translation unit requires 2 fields")
                         facts.translation_units.add(parts[1])
+                    elif tag == "FN":
+                        if len(parts) != 7:
+                            raise ValueError("function signature requires 7 fields")
+                        signature = (
+                            parts[2],
+                            int(parts[3]),
+                            int(parts[4]),
+                            parts[5] == "1",
+                            parts[6],
+                        )
+                        if parts[1] in facts.signatures and facts.signatures[parts[1]] != signature:
+                            facts.inconsistent.add(parts[1])
+                        facts.signatures[parts[1]] = signature
                     elif tag == "ARR":
                         if len(parts) != 10:
                             raise ValueError("array observation requires 10 fields")
@@ -278,9 +292,14 @@ _UNSIGNED = {"jb", "jbe", "ja", "jae", "jc", "jnc", "div", "movzx"}
 _BASES = {"retail", "external-api", "decorated-export", "source-oracle"}
 
 
-def semantic_domain(declaration: DeclarationFact) -> str:
+def semantic_domain(declaration: DeclarationFact, facts: ScalarFacts) -> str:
     if declaration.domain == "enum":
-        return "enum:" + declaration.spelling.removeprefix("enum ")
+        # In-class spelling may be unqualified or a typedef. Canonical TypeLoc
+        # metadata identifies the same existing enum across every use context.
+        identity = facts.types.get(declaration.key, (declaration.spelling, "", ""))[0]
+        while identity.startswith(("const ", "volatile ")):
+            identity = identity.split(" ", 1)[1]
+        return "enum:" + identity.removeprefix("enum ")
     return declaration.domain
 
 
@@ -346,6 +365,213 @@ def pointer_integer_transports(facts: ScalarFacts) -> list[dict]:
     return rows
 
 
+def concrete_pointee(identity: str) -> bool:
+    # cv qualification does not make erased void storage a concrete object owner.
+    return bool(identity) and identity.replace("const ", "").replace("volatile ", "") != "void"
+
+
+def selector_keys(facts: ScalarFacts, selector: dict) -> list[str]:
+    if set(selector) != {"file", "kind", "name"}:
+        raise ValueError("selector requires exactly file, kind and name")
+    if selector["kind"] == "array-element":
+        return [
+            row[8]
+            for row in facts.arrays
+            if (row[1], row[4]) == (selector["file"], selector["name"])
+        ]
+    if selector["kind"] == "function":
+        # FN includes void/record returns, which are not scalar D nodes.
+        return [
+            key
+            for key, signature in facts.signatures.items()
+            if key.split(":function:", 1)[0].rsplit(":", 2)[0] == selector["file"]
+            and signature[0] == selector["name"]
+        ] or [
+            d.key
+            for d in facts.declarations.values()
+            if (d.file, d.kind, d.name) == (selector["file"], "function", selector["name"])
+        ]
+    return [
+        d.key
+        for d in facts.declarations.values()
+        if (
+            d.file,
+            d.kind,
+            d.key.split(":parameter:", 1)[-1].split("::specialization=", 1)[0]
+            if d.kind == "parameter"
+            else d.name,
+        )
+        == (selector["file"], selector["kind"], selector["name"])
+    ]
+
+
+def harvest_declaration_evidence(
+    current: ScalarFacts, original: ScalarFacts, mappings: list[dict]
+) -> dict:
+    """Harvest properties from independently collected, explicitly paired ASTs.
+
+    The caller verifies immutable source bytes or retail exports and supplies
+    established correspondences. No name/range/type similarity creates a pair.
+    A typedef's semantic role still requires review; mangling never seeds aliases.
+    """
+    claims, skipped = [], []
+    aliases = {metadata[1] for metadata in current.types.values() if metadata[1]}
+    pointees = {metadata[2] for metadata in current.types.values() if concrete_pointee(metadata[2])}
+    enums = {
+        semantic_domain(d, current) for d in current.declarations.values() if d.domain == "enum"
+    }
+
+    def exact(facts, specification):
+        if "key" in specification:
+            key = specification["key"]
+            if key not in facts.declarations and key not in facts.signatures:
+                raise ValueError("unknown paired declaration: " + key)
+            return key
+        if "semantic_id" in specification:
+            keys = [
+                key
+                for key, signature in facts.signatures.items()
+                if signature[4] == specification["semantic_id"]
+            ]
+        else:
+            keys = selector_keys(facts, specification["selector"])
+        if len(keys) != 1:
+            raise ValueError(f"correspondence requires one declaration, found {len(keys)}")
+        return keys[0]
+
+    def parameter(facts, function, index):
+        signature = facts.signatures[function]
+        file = function.split(":function:", 1)[0].rsplit(":", 2)[0]
+        keys = selector_keys(
+            facts, {"file": file, "kind": "parameter", "name": signature[0] + "::#" + str(index)}
+        )
+        return keys[0] if len(keys) == 1 else None
+
+    for mapping in mappings:
+        basis = mapping["basis"]
+        if basis["kind"] not in {"source-oracle", "decorated-export"}:
+            raise ValueError("harvesting requires immutable source or decorated-export provenance")
+        try:
+            source, target = (
+                exact(original, mapping["original"]),
+                exact(current, mapping["current"]),
+            )
+        except ValueError as error:
+            if basis["kind"] != "decorated-export":
+                raise
+            skipped.append({"mapping": mapping, "reason": str(error)})
+            continue
+        pairs = [(source, target, "return" if source in original.signatures else "declaration")]
+        if source in original.signatures:
+            a, b = original.signatures[source], current.signatures.get(target)
+            if b is None or a[1:4] != b[1:4] or a[3]:
+                skipped.append(
+                    {"key": target, "reason": "signature arity/convention/variadic mismatch"}
+                )
+                continue
+            for index in range(a[1]):
+                pairs.append(
+                    (
+                        parameter(original, source, index),
+                        parameter(current, target, index),
+                        "#" + str(index),
+                    )
+                )
+        pending = list(pairs)
+        while pending:
+            old, new, role = pending.pop(0)
+            if old is None or new is None:
+                skipped.append({"key": target, "reason": "unsupported paired parameter"})
+                continue
+            if old in original.callback_slots:
+                if original.callback_slots[old] != current.callback_slots.get(new):
+                    skipped.append({"key": new, "reason": "callback signature mismatch"})
+                    continue
+                pending.append(
+                    (
+                        old + "::callback-return",
+                        new + "::callback-return",
+                        role + ":callback-return",
+                    )
+                )
+                pending.extend(
+                    (
+                        old + "::callback-arg#" + str(i),
+                        new + "::callback-arg#" + str(i),
+                        role + ":callback-arg#" + str(i),
+                    )
+                    for i in range(original.callback_slots[old][0])
+                )
+            declaration = original.declarations.get(old)
+            if declaration is None:
+                # void/record returns are outside the scalar clients.
+                continue
+            if (
+                old in original.inconsistent
+                or new in current.inconsistent
+                or new not in current.declarations
+            ):
+                skipped.append({"key": new, "reason": "missing/inconsistent typed counterpart"})
+                continue
+            observed = original.types.get(old, ("", "", ""))
+            properties = []
+            if declaration.domain == "integer":
+                if declaration.width in {8, 16, 32}:
+                    properties.append(("width", declaration.width))
+                # MSVC's /J changes plain char signedness without changing
+                # its decorated type. Neither a char token nor mangling proves
+                # that compiler option; character semantics are a separate client.
+                if observed[0] not in {
+                    "char",
+                    "const char",
+                    "volatile char",
+                    "const volatile char",
+                }:
+                    properties.append(("signedness", declaration.signedness))
+            elif declaration.domain == "enum" and semantic_domain(declaration, original) in enums:
+                properties.append(("domain", semantic_domain(declaration, original)))
+            elif (
+                declaration.domain == "pointer"
+                and concrete_pointee(observed[2])
+                and observed[2] in pointees
+            ):
+                properties.append(("pointee", observed[2]))
+            nominal_role = mapping.get("nominal_roles", {}).get(role)
+            if basis["kind"] == "source-oracle" and nominal_role and observed[1] in aliases:
+                properties.append(("nominal", observed[1]))
+            for property_, value in properties:
+                claim = {
+                    "key": new,
+                    "property": property_,
+                    "value": value,
+                    "basis": {
+                        **basis,
+                        "declaration": {
+                            "file": declaration.file,
+                            "line": declaration.line,
+                            "column": declaration.column,
+                        },
+                    },
+                }
+                if property_ == "nominal":
+                    claim["role"] = nominal_role
+                if property_ == "width":
+                    # The explicitly retained declaration contract establishes
+                    # this ABI boundary. Retail-only width evidence retains its
+                    # separate producer/caller/storage completeness requirements.
+                    if declaration.kind in {"function", "callback-return"}:
+                        claim["complete_return_boundary"] = True
+                    if declaration.kind in {"parameter", "callback-parameter"}:
+                        claim["complete_argument_boundary"] = True
+                claims.append(claim)
+    unique = {json.dumps(claim, sort_keys=True): claim for claim in claims}
+    return {
+        "schema": "wiz8.scalar-evidence-v1",
+        "claims": [unique[key] for key in sorted(unique)],
+        "skipped": skipped,
+    }
+
+
 def read_evidence(path: Path | None, facts: ScalarFacts) -> list[dict]:
     if path is None:
         return []
@@ -358,16 +584,7 @@ def read_evidence(path: Path | None, facts: ScalarFacts) -> list[dict]:
         if selector is not None:
             if "key" in claim or set(selector) != {"file", "kind", "name"}:
                 raise ValueError("selector requires exactly file, kind and name, without key")
-            matches = [
-                d.key
-                for d in facts.declarations.values()
-                if (
-                    d.file,
-                    d.kind,
-                    d.key.split(":parameter:", 1)[-1] if d.kind == "parameter" else d.name,
-                )
-                == (selector["file"], selector["kind"], selector["name"])
-            ]
+            matches = selector_keys(facts, selector)
             if len(matches) != 1:
                 raise ValueError(
                     f"evidence selector requires one declaration, found {len(matches)}"
@@ -444,7 +661,7 @@ def read_evidence(path: Path | None, facts: ScalarFacts) -> list[dict]:
         elif property_ == "pointee":
             if (
                 not isinstance(value, str)
-                or value in {"", "void"}
+                or not concrete_pointee(value)
                 or value not in {metadata[2] for metadata in facts.types.values() if metadata[2]}
             ):
                 raise ValueError("pointee recovery requires an existing concrete pointee identity")
@@ -471,7 +688,7 @@ def read_evidence(path: Path | None, facts: ScalarFacts) -> list[dict]:
             if not isinstance(value, str) or not value.startswith("enum:"):
                 raise ValueError("domain recovery requires an existing enum identity")
             if value not in {
-                semantic_domain(declaration)
+                semantic_domain(declaration, facts)
                 for declaration in facts.declarations.values()
                 if declaration.domain == "enum"
             }:
@@ -1077,7 +1294,7 @@ def integer_report(facts: ScalarFacts, claims: list[dict]) -> dict:
                     if (
                         declaration is not None
                         and declaration.domain == "enum"
-                        and semantic_domain(declaration) != value
+                        and semantic_domain(declaration, facts) != value
                     ):
                         blockers.append({"key": key, "reason": "different existing enum"})
                     if facts.constants[key] or facts.source_domains[key]:
@@ -1092,7 +1309,7 @@ def integer_report(facts: ScalarFacts, claims: list[dict]) -> dict:
                     for key in sorted(members)
                     if key in facts.declarations
                     and (
-                        semantic_domain(facts.declarations[key])
+                        semantic_domain(facts.declarations[key], facts)
                         if property_ == "domain"
                         else getattr(facts.declarations[key], property_)
                     )

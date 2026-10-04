@@ -693,3 +693,127 @@ def sweep_surrender_abi(settings: Settings, *, update_snapshot: bool = False) ->
         "snapshot_fresh": snapshot_fresh,
         "snapshot_updated": update_snapshot,
     }
+
+
+def paired_export_declarations(settings: Settings, index: dict[str, Any]) -> dict[str, Any]:
+    """Parse only retail exports attached to an existing reccmp source pairing.
+
+    LLVM owns demangling. Clang will parse the resulting declarations; this
+    adapter only replaces the already-paired function name and access prefix.
+    Constructors, thunks, operators and ambiguous folded addresses are skipped.
+    """
+    from collections import defaultdict
+
+    from .binary.pe import inspect_pe
+    from .paths import sha256_file
+
+    modules, _ = _representative_modules(settings)
+    modules = [
+        m for m in modules if m["variant"] == "gog-base" and m["module_name"].casefold() == "sr.dll"
+    ]
+    if len(modules) != 1:
+        raise ValueError("decorated evidence requires one available canonical sr.dll")
+    module = modules[0]
+    path = settings.work_dir / "variants" / module["variant"] / module["relative_path"]
+    digest = sha256_file(path)
+    if digest != module["sha256"]:
+        raise ValueError("retail export inventory is stale")
+    pe = inspect_pe(path, module["variant"], module["relative_path"])
+    image = PeImage(path)
+    by_address: dict[int, list[dict[str, Any]]] = defaultdict(list)
+    for export in pe["exports"]:
+        address = image.image_base + int(export["rva"], 16)
+        section = image.section_at(address)
+        if section is not None and section.executable and export["name"]:
+            by_address[address].append(export)
+    signatures = demangle([e["name"] for exports in by_address.values() for e in exports])
+    declarations: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for declaration in index["declarations"]:
+        if declaration["target"] == "SURRENDER" and declaration["is_definition"]:
+            declarations[declaration["semantic_id"]].append(declaration)
+    sources, mappings, skipped = defaultdict(list), [], []
+    seen = set()
+    for marker in index["markers"]:
+        if (
+            marker["target"] != "SURRENDER"
+            or marker["marker_kind"] != "FUNCTION"
+            or not marker.get("declaration_key")
+        ):
+            continue
+        key = marker["declaration_key"][1]
+        if key in seen:
+            continue
+        seen.add(key)
+        candidates = declarations[key]
+        exports = by_address[marker["address"]]
+        if len(candidates) != 1 or not exports:
+            skipped.append({"key": key, "reason": "missing or ambiguous source/export pairing"})
+            continue
+        exact = [e for e in exports if e["name"] == key]
+        exports = exact or exports
+        if len(exports) != 1:
+            skipped.append({"key": key, "reason": "ambiguous folded export address"})
+            continue
+        export, declaration = exports[0], candidates[0]
+        parsed = parse_decorated_name(export["name"])
+        text, qualified = signatures.get(export["name"], ""), declaration["qualified_name"]
+        if (
+            parsed.adjustor_thunk
+            or parsed.kind in {"constructor", "destructor"}
+            or "operator" in qualified
+            or "(" not in text
+        ):
+            skipped.append({"key": key, "reason": "unsupported special/adjustor signature"})
+            continue
+        anchor = qualified + "("
+        if text.count(anchor) != 1:
+            skipped.append(
+                {
+                    "key": key,
+                    "reason": "paired declaration name is absent/ambiguous in LLVM signature",
+                }
+            )
+            continue
+        prefix, suffix = text.split(anchor, 1)
+        for access in ("public: ", "protected: ", "private: "):
+            prefix = prefix.removeprefix(access)
+        prefix = prefix.removeprefix("virtual ").removeprefix("static ")
+        identifier = "OracleExport" + str(len(mappings))
+        # A synthetic class preserves thiscall and member cv qualifiers. All
+        # parameter/return type tokens still come directly from LLVM's decode.
+        static = "static " if parsed.virtuality in {"static", "free-function"} else ""
+        prototype = f"struct {identifier} {{ {static}{prefix}invoke({suffix}; }};"
+        source_file = declaration["source_file"]
+        if sha256_file(settings.repo_dir / source_file) != index["source_digests"].get(source_file):
+            raise ValueError("retail export source pairing is stale: " + source_file)
+        sources[source_file].append(prototype)
+        generated = "/oracle/exports/" + source_file.replace("/", "_") + ".cpp"
+        mappings.append(
+            {
+                "original": {
+                    "selector": {
+                        "file": generated,
+                        "kind": "function",
+                        "name": identifier + "::invoke",
+                    }
+                },
+                "current": {"semantic_id": key},
+                "basis": {
+                    "kind": "decorated-export",
+                    "reference": f"sha256:{digest}:export:{export['name']}",
+                    "reason": "The retail decorated export establishes this paired function's declaration contract.",
+                    "binary_sha256": digest,
+                    "decorated_name": export["name"],
+                    "ordinal": export["ordinal"],
+                    "address": marker["address"],
+                    "demangler": tool_version(),
+                    "demangled_signature": text,
+                },
+            }
+        )
+    return {
+        "sources": dict(sources),
+        "mappings": mappings,
+        "skipped": skipped,
+        "binary_sha256": digest,
+    }

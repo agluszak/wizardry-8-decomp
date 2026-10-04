@@ -483,7 +483,7 @@ def build_target(
 
             # Provider export validation consumes current compiler-owned declarations.
             # A standalone build and a fresh CI runner must establish them first.
-            write_source_index(settings)
+            write_source_index(settings, jobs=jobs)
             tick = mark("source_index_ms", tick)
             run(
                 build.build_command("wiz8_surrender_objects", jobs or max(1, os.cpu_count() or 1)),
@@ -1292,4 +1292,196 @@ def check(repository: Path) -> dict[str, Any]:
         "source_index_cached": bool(source_index.get("cached")),
         "timings_ms": timings_ms,
         "gates": gates,
+    }
+
+
+def scalar_evidence_campaign(
+    settings: Settings, campaign: Path, *, oracle: Path | None = None, exports: bool = False
+) -> dict[str, Any]:
+    """Harvest declaration contracts into the existing scalar-evidence schema."""
+    from .paths import sha256_file
+    from .source_index import load_source_index
+    from .source_oracle import extract_declaration_oracle, retained_declaration_mappings
+    from .surrender_abi import paired_export_declarations
+
+    repository = settings.repo_dir
+    campaign = campaign.resolve(strict=True)
+    manifest = json.loads((campaign / "manifest.json").read_text())
+    if manifest["status"] != "completed":
+        raise ValueError("evidence harvest requires a completed whole-program campaign")
+    if not oracle and not exports:
+        raise ValueError("select a source oracle or decorated exports")
+    directory = Path(tempfile.mkdtemp(prefix="evidence-", dir=campaign.parent))
+    stage = directory / "oracle"
+    stage.mkdir()
+    mappings, sources, export_sources = [], [], []
+    output, prefix = configure_clang(settings)
+    if manifest["compile_commands_sha256"] != sha256_file(output / "compile_commands.json"):
+        raise ValueError("evidence campaign compilation database is stale")
+    observed = set(json.loads((campaign / "report.json").read_text())["translation_units"])
+    expected = {
+        compile_database_relative(p, repository)
+        for p in manifest["recovered_translation_units"] + manifest["sgp_translation_units"]
+    }
+    if observed != expected:
+        raise ValueError("evidence campaign source coverage is incomplete")
+    commands = json.loads((output / "compile_commands.json").read_text())
+    export_commands = []
+    provenance: dict[str, Any] = {
+        "campaign": str(campaign),
+        "image": _docker_image_id(),
+        "solver_sha256": sha256_file(
+            repository / "docker/msvc600/clang-tidy-plugin/scalar_facts.py"
+        ),
+        "inputs": {},
+    }
+    if oracle:
+        configuration = json.loads(oracle.read_text())
+        if configuration.get("schema") != "wiz8.scalar-source-oracle-v1":
+            raise ValueError("unsupported source oracle configuration")
+        extraction = extract_declaration_oracle(repository, configuration, stage)
+        atomic_json(directory / "source-manifest.json", extraction)
+        mappings.extend(retained_declaration_mappings(repository, configuration, extraction))
+        for index, unit in enumerate(configuration["units"]):
+            name = f"source-unit-{index}.cpp"
+            (stage / name).write_text('#include "/oracle/source/' + unit.lower() + '"\n')
+            sources.append("/oracle/" + name)
+        provenance["inputs"]["source_oracle"] = {
+            "configuration_sha256": sha256_file(oracle),
+            "revision": extraction["revision"],
+        }
+    if exports:
+        index = load_source_index(repository)
+        exported = paired_export_declarations(settings, index)
+        mappings.extend(exported["mappings"])
+        for source, declarations in exported["sources"].items():
+            name = source.replace("/", "_") + ".cpp"
+            path = stage / "exports" / name
+            path.parent.mkdir(exist_ok=True)
+            path.write_text('#include "/repo/' + source + '"\n' + "\n".join(declarations) + "\n")
+            generated = "/oracle/exports/" + name
+            export_sources.append(generated)
+            owners = [c for c in commands if c["file"] == "/repo/" + source]
+            if not owners and Path(source).suffix in _LINT_HEADER_SUFFIXES:
+                # Reuse a TU that the compiler-backed index proves includes this header.
+                includers = {
+                    "/repo/" + tu
+                    for tu, files in index["unit_dependencies"].items()
+                    if tu.startswith("src/surrender/") and source in files
+                }
+                owners = sorted(
+                    (c for c in commands if c["file"] in includers), key=lambda c: c["file"]
+                )[:1]
+            if len(owners) != 1:
+                raise ValueError("export source needs a configured compilation owner: " + source)
+            command = dict(owners[0])
+            provenance["inputs"].setdefault("export_compilation_owners", {})[source] = command[
+                "file"
+            ]
+            arguments = shlex.split(command.pop("command"))
+            arguments[arguments.index(command["file"])] = generated
+            arguments[1:1] = ["-Xclang", "-fno-access-control"]
+            command.update(file=generated, arguments=arguments)
+            export_commands.append(command)
+        provenance["inputs"]["decorated_exports"] = {
+            "binary_sha256": exported["binary_sha256"],
+            "skipped": exported["skipped"],
+        }
+    atomic_json(directory / "mappings.json", mappings)
+    atomic_json(directory / "provenance.json", provenance)
+    atomic_json(stage / "compile_commands.json", export_commands)
+    docker = [
+        *prefix,
+        "-e",
+        "WIZ8_REDUNDANT_CAST_LINES=*",
+        "--volume",
+        f"{stage}:/oracle:ro",
+        "--volume",
+        f"{directory}:/evidence",
+        "--volume",
+        f"{campaign}/facts:/current-facts:ro",
+    ]
+    if export_sources:
+        run(
+            [
+                *docker,
+                "-e",
+                "WIZ8_SCALAR_FACTS_DIR=/evidence/facts",
+                "--entrypoint",
+                "clang-tidy",
+                VC6_IMAGE,
+                "--quiet",
+                "--checks=-*,wiz8-scalar-facts",
+                "-p",
+                "/oracle",
+                *export_sources,
+            ],
+            cwd=repository,
+            log_path=directory / "collect-exports.json",
+        )
+    # Original headers and SDK contracts determine the types. Current project
+    # headers are included only for Clang to resolve named export types; the
+    # scalar clients harvest no record widths or erased typedef aliases from them.
+    if sources:
+        run(
+            [
+                *docker,
+                "-e",
+                "WIZ8_SCALAR_FACTS_DIR=/evidence/facts",
+                "--entrypoint",
+                "clang-tidy",
+                VC6_IMAGE,
+                "--quiet",
+                "--checks=-*,wiz8-scalar-facts",
+                *sources,
+                "--",
+                "--target=i686-pc-windows-msvc",
+                "-std=c++17",
+                "-fms-extensions",
+                "-fno-access-control",
+                "-Xclang",
+                "-fno-wchar",
+                "-DWIN32",
+                "-D_WINDOWS",
+                "-DNDEBUG",
+                "-DNOMINMAX",
+                "-DWIN32_LEAN_AND_MEAN",
+                "-DWIZ8_CLANG_LINT",
+                "-I/oracle/source",
+                "-I/oracle/overlay-1",
+                "-isystem",
+                "/opt/msvc6-vc98-include",
+                "-isystem",
+                "/opt/msvc6-vc98-mfc-include",
+                "-isystem",
+                "/opt/msvc6-vc98-atl-include",
+            ],
+            cwd=repository,
+            log_path=directory / "collect.json",
+        )
+    run(
+        [
+            *docker,
+            "--entrypoint",
+            "clang-tidy",
+            VC6_IMAGE,
+            "--wiz8-scalar-harvest",
+            "/current-facts",
+            "--oracle-facts",
+            "/evidence/facts",
+            "--mappings",
+            "/evidence/mappings.json",
+            "--output",
+            "/evidence/evidence.json",
+        ],
+        cwd=repository,
+        log_path=directory / "harvest.json",
+    )
+    result = json.loads((directory / "evidence.json").read_text())
+    return {
+        "status": "completed",
+        "claims": len(result["claims"]),
+        "skipped": len(result["skipped"]),
+        "artifacts": str(directory),
+        "evidence": str(directory / "evidence.json"),
     }

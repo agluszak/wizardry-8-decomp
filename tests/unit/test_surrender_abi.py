@@ -193,3 +193,70 @@ def test_local_abi_snapshot_publication_round_trips_and_rejects_stale_reports(tm
     with pytest.raises(RuntimeError, match="differs from the tracked snapshot"):
         _publish_snapshot(settings, changed, False)
     assert (snapshot / "exports.csv").read_text() == payload
+
+
+def test_export_contract_uses_address_pairing_and_rejects_stale_source(tmp_path, monkeypatch):
+    import hashlib
+    from types import SimpleNamespace
+
+    import pytest
+    from wiz8decomp import surrender_abi
+    from wiz8decomp.binary import pe
+
+    retail = tmp_path / "variants/gog-base/sr.dll"
+    retail.parent.mkdir(parents=True)
+    retail.write_bytes(b"retail export fixture")
+    source = tmp_path / "src/surrender/reader.cpp"
+    source.parent.mkdir(parents=True)
+    source.write_text("int Read() { return 0; }\n")
+    source_file = source.relative_to(tmp_path).as_posix()
+    name = "?Read@@YAKXZ"
+    key = "?Read@@YAHXZ"
+    module = {
+        "variant": "gog-base",
+        "module_name": "sr.dll",
+        "relative_path": "sr.dll",
+        "sha256": hashlib.sha256(retail.read_bytes()).hexdigest(),
+    }
+    exports = [{"name": name, "rva": "0x1000", "ordinal": 7}]
+    monkeypatch.setattr(surrender_abi, "_representative_modules", lambda _: ([module], []))
+    monkeypatch.setattr(pe, "inspect_pe", lambda *_: {"exports": exports})
+    monkeypatch.setattr(
+        surrender_abi,
+        "PeImage",
+        lambda _: SimpleNamespace(
+            image_base=0x10000000, section_at=lambda _: SimpleNamespace(executable=True)
+        ),
+    )
+    monkeypatch.setattr(
+        surrender_abi, "demangle", lambda _: {name: "unsigned long __cdecl Read(void)"}
+    )
+    monkeypatch.setattr(surrender_abi, "tool_version", lambda: "LLVM fixture")
+    index = {
+        "declarations": [
+            {
+                "target": "SURRENDER",
+                "is_definition": True,
+                "semantic_id": key,
+                "qualified_name": "Read",
+                "source_file": source_file,
+            }
+        ],
+        "markers": [
+            {
+                "target": "SURRENDER",
+                "marker_kind": "FUNCTION",
+                "declaration_key": ["SURRENDER", key],
+                "address": 0x10001000,
+            }
+        ],
+        "source_digests": {source_file: hashlib.sha256(source.read_bytes()).hexdigest()},
+    }
+    settings = SimpleNamespace(repo_dir=tmp_path, work_dir=tmp_path)
+    result = surrender_abi.paired_export_declarations(settings, index)
+    assert "unsigned long __cdecl invoke(void)" in result["sources"][source_file][0]
+    assert result["mappings"][0]["current"] == {"semantic_id": key}
+    assert result["mappings"][0]["basis"]["decorated_name"] == name
+    source.write_text("unsigned Read();\n")
+    with pytest.raises(ValueError, match="pairing is stale"):
+        surrender_abi.paired_export_declarations(settings, index)

@@ -460,3 +460,55 @@ def test_fid_claim_requires_library_ownership_in_csv(tmp_path: Path, row_type: s
         symbols = oracle_symbols(tmp_path)
         assert [(item.name, item.family) for item in symbols] == [("__aulldiv", "msvc-runtime")]
         assert contribution_hulls(symbols) == []
+
+
+def test_retained_contract_requires_reviewed_identity_and_pins_bytes(tmp_path):
+    from wiz8decomp.source_oracle import retained_declaration_mappings
+
+    _write_claims(
+        tmp_path,
+        [
+            {
+                "claim_id": "retained",
+                "entity_key": "00406be0",
+                "predicate": "accepted-identity",
+                "value": "GetClock",
+                "origin": "sgp-source",
+            }
+        ],
+    )
+    config = {
+        "source_root": "released/sgp",
+        "correspondences": [
+            {
+                "claim_id": "retained",
+                "retained_declaration": True,
+                "reason": "reviewed retained contract",
+                "original": {
+                    "file": "released/sgp/TIMER.H",
+                    "kind": "function",
+                    "name": "GetClock",
+                },
+                "current": {"file": "src/sgp/timer.h", "kind": "function", "name": "GetClock"},
+            }
+        ],
+    }
+    extraction = {
+        "revision": "a" * 40,
+        "files": {
+            "source/timer.h": {"path": "released/sgp/TIMER.H", "blob": "b" * 40, "sha256": "c" * 64}
+        },
+    }
+    result = retained_declaration_mappings(tmp_path, config, extraction)
+    assert result[0]["original"]["selector"]["file"] == "/oracle/source/timer.h"
+    assert result[0]["basis"]["source_sha256"] == "c" * 64
+    config["correspondences"][0]["retained_declaration"] = False
+    with pytest.raises(ValueError, match="identity alone"):
+        retained_declaration_mappings(tmp_path, config, extraction)
+
+
+def test_oracle_extraction_rejects_mutable_revision(tmp_path):
+    from wiz8decomp.source_oracle import extract_declaration_oracle
+
+    with pytest.raises(ValueError, match="immutable commit"):
+        extract_declaration_oracle(tmp_path, {"revision": "main"}, tmp_path / "stage")

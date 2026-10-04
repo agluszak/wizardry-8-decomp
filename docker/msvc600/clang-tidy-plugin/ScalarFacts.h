@@ -4,6 +4,8 @@
 #include "clang/AST/DeclCXX.h"
 #include "clang/AST/Type.h"
 #include "clang/Basic/SourceManager.h"
+#include "clang/Index/USRGeneration.h"
+#include "llvm/ADT/SmallString.h"
 #include "llvm/ADT/StringRef.h"
 
 #include <algorithm>
@@ -75,7 +77,8 @@ inline const ConstantArrayType* fixed_byte_array(const NamedDecl* declaration)
 
 inline const NamedDecl* canonical_scalar_declaration(const NamedDecl* declaration)
 {
-    if (declaration == nullptr || declaration->isImplicit())
+    if (declaration == nullptr || declaration->isImplicit() ||
+        declaration->getDeclContext()->isDependentContext())
         return nullptr;
     if (!isa<ValueDecl>(declaration))
         return nullptr;
@@ -173,13 +176,31 @@ inline std::string candidate_name(const NamedDecl* declaration)
 // cross-TU identity of a parameter uses only its function and position.
 inline std::string candidate_key_name(const NamedDecl* declaration)
 {
+    // Instantiations retain the template's physical source location. That
+    // location alone would merge Storage<int>::data with Storage<Foo*>::data.
+    // Use the canonical specialization owner, not a parameter's spelling, so
+    // redeclarations and different translation units still agree.
+    std::string specialization;
+    const Decl* scope = declaration;
+    while (scope != nullptr) {
+        if (isa<ClassTemplateSpecializationDecl>(scope) ||
+            (isa<FunctionDecl>(scope) &&
+             cast<FunctionDecl>(scope)->getTemplateSpecializationInfo() != nullptr)) {
+            llvm::SmallString<128> identity;
+            if (!index::generateUSRForDecl(scope->getCanonicalDecl(), identity))
+                specialization = "::specialization=" + identity.str().str();
+            break;
+        }
+        const DeclContext* context = scope->getDeclContext();
+        scope = context == nullptr ? nullptr : Decl::castFromDeclContext(context);
+    }
     const auto* parameter = dyn_cast<ParmVarDecl>(declaration);
     if (parameter == nullptr) {
-        return declaration->getNameAsString();
+        return declaration->getNameAsString() + specialization;
     }
     const auto* function = cast<FunctionDecl>(parameter->getDeclContext());
     return function->getQualifiedNameAsString() + "::#" +
-           std::to_string(parameter->getFunctionScopeIndex());
+           std::to_string(parameter->getFunctionScopeIndex()) + specialization;
 }
 
 inline std::string observed_domain(QualType type)

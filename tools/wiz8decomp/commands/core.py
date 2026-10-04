@@ -520,6 +520,7 @@ def register(app: typer.Typer) -> None:
     analyze_app.command("source-layouts")(verify_source_layouts_command)
     analyze_app.command("source-index")(source_index_command)
     analyze_app.command("scalar-facts")(scalar_facts_command)
+    analyze_app.command("scalar-evidence")(scalar_evidence_command)
     analyze_app.command("emissions")(emissions_command)
     analyze_app.command("decompiler-quality")(decompiler_quality_command)
 
@@ -537,6 +538,24 @@ def scalar_facts_command(
     from ..build import scalar_campaign
 
     cli.emit(scalar_campaign(cli.settings(), evidence=evidence, patch=patch))
+
+
+def scalar_evidence_command(
+    campaign: Annotated[
+        Path, typer.Option(help="Completed whole-program scalar campaign directory.")
+    ],
+    oracle: Annotated[
+        Path | None, typer.Option(help="Pinned source-oracle correspondences.")
+    ] = None,
+    exports: Annotated[
+        bool, typer.Option(help="Harvest already-paired canonical SurRender exports.")
+    ] = False,
+) -> None:
+    """Parse independent declaration contracts into shared scalar evidence."""
+    from .. import command_support as cli
+    from ..build import scalar_evidence_campaign
+
+    cli.emit(scalar_evidence_campaign(cli.settings(), campaign, oracle=oracle, exports=exports))
 
 
 def emissions_command(
