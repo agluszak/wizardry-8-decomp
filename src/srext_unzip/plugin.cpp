@@ -48,17 +48,7 @@ srInlineString::srInlineString(const srInlineString& source, long begin, long en
     strncpy(temporary, source.data_ + begin, end - begin);
     temporary[end - begin] = '\0';
 
-    if (data_ != inline_) {
-        srHeap.free(data_);
-    }
-    inline_[0] = '\0';
-    data_ = inline_;
-    size_ = 1;
-    if (temporary != 0 && *temporary != '\0') {
-        size_ = strlen(temporary) + 1;
-        data_ = static_cast<char*>(srHeap.allocate(size_));
-        strcpy(data_, temporary);
-    }
+    operator=(temporary);
     srHeap.free(temporary);
 }
 
@@ -201,12 +191,7 @@ srBinIStream* srZipOpener::openArchivePath(srInlineString path)
     const char* separator = strstr(path.data(), separator_text.data());
     if (separator != 0) {
         const unsigned long prefix_length = static_cast<unsigned long>(separator - path.data());
-        srInlineString prefix_text;
-        char* prefix = static_cast<char*>(srHeap.allocate(prefix_length + 2));
-        strncpy(prefix, path.data(), prefix_length);
-        prefix[prefix_length] = '\0';
-        prefix_text = prefix;
-        srHeap.free(prefix);
+        srInlineString prefix_text(path, 0, static_cast<long>(prefix_length));
         adapter_.setArchivePath(prefix_text.data());
         path.erasePrefix(prefix_length + 1);
     }
@@ -220,20 +205,8 @@ srBinIStream* srZipOpener::openArchivePath(srInlineString path)
 
     const long extension_offset = static_cast<long>(extension - path.data());
     const long member_begin = extension_offset + 5;
-    const unsigned long member_length = path.size() - 1 - member_begin;
-    srInlineString member;
-    char* temporary = static_cast<char*>(srHeap.allocate(member_length + 2));
-    strncpy(temporary, path.data() + member_begin, member_length);
-    temporary[member_length] = '\0';
-    member = temporary;
-    srHeap.free(temporary);
-
-    srInlineString archive;
-    temporary = static_cast<char*>(srHeap.allocate(extension_offset + 6));
-    strncpy(temporary, path.data(), extension_offset + 4);
-    temporary[extension_offset + 4] = '\0';
-    archive = temporary;
-    srHeap.free(temporary);
+    srInlineString member(path, member_begin, static_cast<long>(path.size() - 1));
+    srInlineString archive(path, 0, extension_offset + 4);
     return adapter_.openMember(archive.data(), member.data());
 }
 

@@ -135,12 +135,7 @@ void srStringTable::addSeparatedStrings(const char* strings, const char* separat
             has_more = false;
         }
         if (piece_end > 0) {
-            srInlineString piece;
-            char* extracted = static_cast<char*>(srHeap.allocate(piece_end + 2));
-            strncpy(extracted, buffer.data(), piece_end);
-            extracted[piece_end] = '\0';
-            piece = extracted;
-            srHeap.free(extracted);
+            srInlineString piece(buffer, 0, piece_end);
             if (piece.size() - 1 > 0) {
                 if (append_slash && piece.data()[piece.size() - 2] != '/' &&
                     piece.data()[piece.size() - 2] != '\\') {

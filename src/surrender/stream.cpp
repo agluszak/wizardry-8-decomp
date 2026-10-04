@@ -852,21 +852,10 @@ void srInlineString::insert(const srInlineString& text, unsigned long position)
     } else if (position == size_ - 1) {
         result = (*this + text).data();
     } else {
-        srInlineString left;
-        char* buffer = static_cast<char*>(srHeap.allocate(position + 2));
-        strncpy(buffer, data_, position);
-        buffer[position] = '\0';
-        left = buffer;
-        srHeap.free(buffer);
+        srInlineString left(*this, 0, static_cast<long>(position));
         result = left.data();
         result += text.data();
-        long count = size_ - 1 - position;
-        srInlineString right;
-        buffer = static_cast<char*>(srHeap.allocate(count + 2));
-        strncpy(buffer, data_ + position, count);
-        buffer[count] = '\0';
-        right = buffer;
-        srHeap.free(buffer);
+        srInlineString right(*this, static_cast<long>(position), static_cast<long>(size_ - 1));
         result += right.data();
     }
     *this = result;

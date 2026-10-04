@@ -106,6 +106,18 @@ inline srInlineString::srInlineString(const srInlineString& source)
     }
 }
 
+/* The same range constructor survives in Wiz8 and the unzip provider;
+   SurRender expands its temporary-buffer copy in insert and string splitting. */
+inline srInlineString::srInlineString(const srInlineString& source, long begin, long end)
+{
+    init();
+    char* temporary = static_cast<char*>(srHeap.allocate(end - begin + 2));
+    strncpy(temporary, source.data_ + begin, end - begin);
+    temporary[end - begin] = '\0';
+    operator=(temporary);
+    srHeap.free(temporary);
+}
+
 // FUNCTION: SURRENDER 0x100040A0
 inline srInlineString::~srInlineString()
 {
