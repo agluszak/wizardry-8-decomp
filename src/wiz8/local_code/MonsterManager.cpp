@@ -131,7 +131,7 @@ W8MonsterInfo* CreateMonsterInfo(W8MonsterGroup* group, W8MonsterRecord* record,
     monster_info->ai_mode_255 = 0;
     monster_info->summoned_2da = 0;
     monster_info->insanity_summon_344 = -1;
-    memset(monster_info->movement_watch_position, 0, sizeof(monster_info->movement_watch_position));
+    monster_info->movement_watch_position.SetZero();
 
     if (PLAdoptAppend(record->unborn_26a != 0 ? gXStatus.plsUnbornMonsterList
                                               : gXStatus.plsMonsterList,
@@ -1646,7 +1646,7 @@ float GetAveragePartyMemberLevel(void)
 }
 
 // FUNCTION: WIZ8 0x00554490
-unsigned int GetBestPartySkillLevel(int skill_index, int* party_slot)
+unsigned int GetBestPartySkillLevel(W8Skill skill_index, int* party_slot)
 {
     unsigned int best_level = 0;
     int best_slot = -1;

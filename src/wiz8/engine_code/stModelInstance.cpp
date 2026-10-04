@@ -910,7 +910,7 @@ void stModelInstance::RenderShadow(srGERD& renderer, srMeshModel::TriMesh& mesh)
     }
     float height = mesh.bounds_maximum_12c.y - mesh.bounds_minimum_120.y;
     renderer.pushEnable();
-    renderer.setCullMode(srGERD::CULL_FRONT);
+    renderer.setCullMode(srGERD::CULL_NONE);
     if (!renderer.isEnabled(srGERD::ENABLE_SORTED_RENDERING)) {
         renderer.toggle(srGERD::ENABLE_SORTED_RENDERING);
     }

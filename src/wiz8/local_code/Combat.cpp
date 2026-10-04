@@ -982,7 +982,7 @@ void EndMonsterAttack(W8MonsterInfo* monster_info)
 
     GetMonsterDataForInfo(monster_info);
     FatigueMonster(monster_info, MonsterActionFatigueCost(monster_info), 0);
-    MonsterSetNavigatorFlag25(monster_info->p3D, 1);
+    MonsterSetNavigatorHalted(monster_info->p3D, 1);
     g_combat_state->eCombatActionStatus = 0;
     g_combat_state->pActionMonsterInfo = 0;
 
@@ -1715,7 +1715,7 @@ void AssignCombatPhases(void)
             row->dead_34 = 1;
         } else {
             int value = Random(4) + character->initiative;
-            int action = party_row->action_03d;
+            W8ActionKind action = party_row->action_03d;
             if (action == W8_ACTION_ATTACK || action == W8_ACTION_BERSERK) {
                 int hand = ChooseCharacterAttackHand(party_slot);
                 if (hand != -1) {
@@ -2316,7 +2316,7 @@ void ExecuteCharacterAction(int party_slot)
 void ComputeCharacterActionPhase(int party_slot)
 {
     W8CombatCharacterRow* row = &g_combat_state->characters[party_slot];
-    int action = g_status.buffers.XChar[party_slot].pending_action;
+    W8ActionKind action = g_status.buffers.XChar[party_slot].pending_action;
     if ((action == 0 || action == 1) && CanAnyHandReachTarget(party_slot) != 0 &&
         TargetIsInPlay(party_slot, 2, W8_TARGETING_CONTEXT_OUT_OF_COMBAT) != 0) {
         W8Character* character = &g_status.buffers.Char[party_slot];
@@ -2571,7 +2571,7 @@ void ExecuteMonsterAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
         }
         if (result != 0) {
             if (monster_info->action_kind != 1 && monster_info->action_kind != 8) {
-                MonsterSetNavigatorFlag25(monster_info->p3D, 0);
+                MonsterSetNavigatorHalted(monster_info->p3D, 0);
             }
             break;
         }
@@ -3187,7 +3187,7 @@ void UpdateCombat(void)
             srAssertFail("FALSE", "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp", 0x816, 0);
             return;
         }
-        int pending_action = g_status.buffers.XChar[slot].pending_action;
+        W8ActionKind pending_action = g_status.buffers.XChar[slot].pending_action;
         int result;
         if (pending_action < 0) {
             result = 3;
@@ -3239,7 +3239,7 @@ void UpdateCombat(void)
         }
         GetMonsterDataForInfo(monster_info);
         FatigueMonster(monster_info, MonsterActionFatigueCost(monster_info), 0);
-        MonsterSetNavigatorFlag25(monster_info->p3D, 1);
+        MonsterSetNavigatorHalted(monster_info->p3D, 1);
         g_combat_state->eCombatActionStatus = 0;
         g_combat_state->pActionMonsterInfo = 0;
         W8MonsterCombatState* combat = monster_info->pCombat;
@@ -3349,7 +3349,7 @@ void ScheduleCombatActor(void)
                     apply_delay = true;
                 } else {
                     W8TargetingContext context;
-                    int action;
+                    W8ActionKind action;
                     if (g_combat_state->characters[slot].dead_34 == 0) {
                         action = g_status.buffers.XChar[slot].action_03d;
                         context = W8_TARGETING_CONTEXT_IN_COMBAT;

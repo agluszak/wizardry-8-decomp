@@ -75,7 +75,7 @@ void EmptyItemRecord(W8ItemInstance* item, W8Character* character, bool refresh)
 void EmptyAllCarriedItems(W8Character* character);
 bool TryIdentifyItemFor(W8Character* character, W8ItemInstance* item);
 int GetItemSpell(const W8ItemInstance* item);
-int GetItemSpellRange(const W8ItemInstance* item); /* 0x005207E0 */
+W8RangeCategory GetItemSpellRange(const W8ItemInstance* item); /* 0x005207E0 */
 void ApplyIdentifyAttempt(W8ItemInstance* item, unsigned int strength,
                           unsigned int percent); /* 0x00520B40 */
 /* 0x00520BC0: reveal one character's worn bindings; 0 none bound, 1 some

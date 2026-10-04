@@ -88,15 +88,16 @@ extern wchar_t g_dialogue_empty_text[4];
 /* W8NpcInteractionState::dialogue_layout - which NPC dialogue layout is up. The
    layout-1 caption is "MAGIC" (Charm/Mindread/Use Item services) and the
    layout-5 caption "TRADE"; both spellings come from the StringData.DAT
-   captions each open routine loads. A mode 6 is closed everywhere but no
-   open path is recovered. */
+   captions each open routine loads. Layout 6 owns no panels: every close path
+   only parks it back on NONE, and no open path is recovered. */
 enum W8NpcDialogueLayout {
     W8_DIALOGUE_LAYOUT_NONE = 0,
     W8_DIALOGUE_LAYOUT_SERVICES = 1,
     W8_DIALOGUE_LAYOUT_TOPIC_MENU = 2,
     W8_DIALOGUE_LAYOUT_TRANSCRIPT = 3,
     W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX = 4,
-    W8_DIALOGUE_LAYOUT_TRADE = 5
+    W8_DIALOGUE_LAYOUT_TRADE = 5,
+    W8_DIALOGUE_LAYOUT_BARE = 6
 };
 
 /* W8NpcInteractionState::trade_mode - the active tab of the option/trade
@@ -183,10 +184,10 @@ struct W8NpcInteractionState {
     int target_location_id_f8;
     /* 0x0fc: the layout currently up, a W8NpcDialogueLayout value. 0x104: the
        layout the current one replaced; back-out paths reopen it. */
-    int dialogue_layout;
+    W8NpcDialogueLayout dialogue_layout;
     /* 0x100: the active trade tab, a W8NpcTradeMode value. */
-    int trade_mode;
-    int previous_dialogue_layout;
+    W8NpcTradeMode trade_mode;
+    W8NpcDialogueLayout previous_dialogue_layout;
     W8ItemInstance* trade_item;
     /* Indexed by the region callback id and deleted as 39 widget pointers
        by the dialogue teardown. The creators establish each occupied slot's
@@ -421,7 +422,7 @@ unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item,
 void SelectNpcDialogueSpeaker(W8NpcState* npc, int flags);          /* 0x0056D030 */
 void CreateNpcDialogueControls(void);                               /* 0x0056D1D0 */
 void InvalidateMainGameActionPanelRect(const W8ControlsRect* rect); /* 0x0056ECD0 */
-void SetNpcDialogueLayoutMode(int value);                           /* 0x0056EDD0 */
+void SetNpcDialogueLayoutMode(W8NpcDialogueLayout value);           /* 0x0056EDD0 */
 void CloseNpcDialogueMode1Layout(void);                             /* 0x00573DD0 */
 void CloseNpcDialogueTranscriptLayout(void);                        /* 0x00571370 */
 void CloseNpcDialogueOptionLayout(void);                            /* 0x00572320 */

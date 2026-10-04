@@ -472,7 +472,7 @@ void ShowMonsterSpeedStatus(void)
             ShowNoticef(8, L"Monster has no path AI.");
             return;
         }
-        speed = MonsterGetNavigatorValue120(g_mipe_state->monster);
+        speed = MonsterGetNavigatorMovementScale(g_mipe_state->monster);
     }
     ShowNoticef(0xf, L"Current speed: %g", speed);
 }
@@ -1280,7 +1280,7 @@ void AdjustMonsterSpeed(unsigned short key)
     path = static_cast<W8PathAI*>(MonsterGetObject0C(g_mipe_state->monster));
     if (path == 0) {
         factor = 1.0f;
-        speed = MonsterGetNavigatorValue120(g_mipe_state->monster);
+        speed = MonsterGetNavigatorMovementScale(g_mipe_state->monster);
     } else {
         if (PathAIRecordFlag(path) != 0) {
             return;
@@ -1294,14 +1294,14 @@ void AdjustMonsterSpeed(unsigned short key)
         if (path != 0) {
             PathAISetScale(path, speed);
         }
-        MonsterSetNavigatorValue120(g_mipe_state->monster, speed);
+        MonsterSetNavigatorMovementScale(g_mipe_state->monster, speed);
         break;
     case 0xbe:
         speed = factor * g_mipe_state->speed_step + speed;
         if (path != 0) {
             PathAISetScale(path, speed);
         }
-        MonsterSetNavigatorValue120(g_mipe_state->monster, speed);
+        MonsterSetNavigatorMovementScale(g_mipe_state->monster, speed);
         break;
     case 0x4c:
         g_mipe_state->speed_step = g_mipe_state->speed_step + g_camera_transition_epsilon;
@@ -1405,7 +1405,7 @@ void HandleMipePropEditKey(unsigned short key)
         while (true) {
             world = GetWorld();
             prop = WorldGetPropAt(world, index);
-            trigger = prop->GetValue18();
+            trigger = prop->GetTrigger();
             if (trigger != 0 && prop->IsPickedProp(g_world)) {
                 break;
             }
@@ -1418,7 +1418,7 @@ void HandleMipePropEditKey(unsigned short key)
             g_mipe_state->prop = prop;
             if (key == 0x31) {
                 g_mipe_mode = 0x1b;
-                trigger = g_mipe_state->prop->GetValue18();
+                trigger = g_mipe_state->prop->GetTrigger();
                 ResetEditorStatusLine(-1);
                 ShowNoticef(6, L"Edit Locks & Traps");
                 ShowNoticef(0xf, L"1) Type: %s", g_lock_type_names[trigger->lock_state.lock_type]);
@@ -1431,7 +1431,7 @@ void HandleMipePropEditKey(unsigned short key)
                 ShowNoticef(0xf, L"2) Key Id: (%d) %s", index, key_name);
                 ShowNoticef(0xf, L" Difficulty (3+/4-): %d", trigger->lock_state.difficulty);
             } else if (key == 0x32) {
-                trigger = prop->GetValue18();
+                trigger = prop->GetTrigger();
                 table_index = FindItemTableByName(trigger->inline_action_data_24c);
                 if (g_mipe_category_list == 0) {
                     g_mipe_category_list = PLCreate();
@@ -2274,9 +2274,9 @@ void HandleMipeLockTrapKey(unsigned short key)
     int key_id;
     bool pending;
 
-    trigger = g_mipe_state->prop->GetValue18();
+    trigger = g_mipe_state->prop->GetTrigger();
     lock_state = &trigger->lock_state;
-    action_trigger = g_mipe_state->prop->GetValue18();
+    action_trigger = g_mipe_state->prop->GetTrigger();
     action = action_trigger->m_pActionData;
     if (action == 0 || action->type_004 != '\n') {
         action = 0;
@@ -2291,9 +2291,9 @@ void HandleMipeLockTrapKey(unsigned short key)
         if (action == 0) {
             if (lock_state->lock_type == 3) {
                 key_id = trigger->lock_state.key_id;
-                g_mipe_state->prop->GetValue18()->required_item_id = key_id;
+                g_mipe_state->prop->GetTrigger()->required_item_id = key_id;
             } else {
-                g_mipe_state->prop->GetValue18()->required_item_id = 0xffffffff;
+                g_mipe_state->prop->GetTrigger()->required_item_id = 0xffffffff;
             }
         } else {
             if (lock_state->lock_type == 0 || trigger->lock_state.device_state.completed != 0) {
@@ -2309,7 +2309,7 @@ void HandleMipeLockTrapKey(unsigned short key)
         break;
     case 0x32:
         g_mipe_mode = 0x1c;
-        trigger = g_mipe_state->prop->GetValue18();
+        trigger = g_mipe_state->prop->GetTrigger();
         ResetEditorStatusLine(-1);
         ShowNoticef(6, L"Enter Key ID:");
         ShowNoticef(0xf, g_format_d, trigger->lock_state.key_id);
@@ -2326,7 +2326,7 @@ void HandleMipeLockTrapKey(unsigned short key)
             trigger->lock_state.difficulty = 0;
         }
     }
-    trigger = g_mipe_state->prop->GetValue18();
+    trigger = g_mipe_state->prop->GetTrigger();
     ResetEditorStatusLine(-1);
     ShowNoticef(6, L"Edit Locks & Traps");
     ShowNoticef(0xf, L"1) Type: %s", g_lock_type_names[trigger->lock_state.lock_type]);
@@ -2349,8 +2349,8 @@ void EditTriggerKeyID(unsigned int key)
     int key_id;
     bool pending;
 
-    trigger = g_mipe_state->prop->GetValue18();
-    action = g_mipe_state->prop->GetValue18()->m_pActionData;
+    trigger = g_mipe_state->prop->GetTrigger();
+    action = g_mipe_state->prop->GetTrigger()->m_pActionData;
     if (action == 0 || action->type_004 != '\n') {
         action = 0;
     }
@@ -2378,9 +2378,9 @@ void EditTriggerKeyID(unsigned int key)
     trigger->lock_state.key_id = key_id;
     if (action == 0) {
         if (trigger->lock_state.lock_type == 3) {
-            g_mipe_state->prop->GetValue18()->required_item_id = key_id;
+            g_mipe_state->prop->GetTrigger()->required_item_id = key_id;
         } else {
-            g_mipe_state->prop->GetValue18()->required_item_id = 0xffffffff;
+            g_mipe_state->prop->GetTrigger()->required_item_id = 0xffffffff;
         }
     } else {
         if (trigger->lock_state.lock_type == 0 || trigger->lock_state.device_state.completed != 0) {
@@ -2393,7 +2393,7 @@ void EditTriggerKeyID(unsigned int key)
         static_cast<W8DoorTriggerActionData*>(action)->item_00a =
             static_cast<short>(trigger->lock_state.key_id);
     }
-    trigger = g_mipe_state->prop->GetValue18();
+    trigger = g_mipe_state->prop->GetTrigger();
     ResetEditorStatusLine(-1);
     ShowNoticef(6, L"Enter Key ID:");
     ShowNoticef(0xf, g_format_d, trigger->lock_state.key_id);
@@ -2421,7 +2421,7 @@ void HandleMipeItemTableKey(unsigned short key)
             table_index =
                 FindCategoryItemTable(g_mipe_category & 0xff, g_mipe_table_base + g_mipe_table_row);
             table = g_item_tables[table_index & 0xffff];
-            trigger = g_mipe_state->prop->GetValue18();
+            trigger = g_mipe_state->prop->GetTrigger();
             strcpy(trigger->inline_action_data_24c, table->name);
             trigger->items_generated = 0;
         }
@@ -2799,7 +2799,7 @@ unsigned char HandleMipeKey(const InputAtom* event)
                                         ShowMipePropMenu();
                                     } else if (g_mipe_mode == 0x1c) {
                                         g_mipe_mode = 0x1b;
-                                        trigger = g_mipe_state->prop->GetValue18();
+                                        trigger = g_mipe_state->prop->GetTrigger();
                                         ResetEditorStatusLine(-1);
                                         ShowNoticef(6, L"Edit Locks & Traps");
                                         ShowNoticef(

@@ -245,7 +245,7 @@ static float ScaleValueByLevel(unsigned int level, float base)
    percent per level in between. The trait id is carried by the call but the
    body never reads it. */
 // FUNCTION: WIZ8 0x005479b0
-float ScaleValueByProfessionLevel(W8Character* character, int, float base)
+float ScaleValueByProfessionLevel(W8Character* character, W8Trait, float base)
 {
     return ScaleValueByLevel(character->profession_levels[character->iProfession], base);
 }
@@ -363,7 +363,7 @@ void BrewAlchemistPotion(W8Character* character)
 bool IsCharacterSkillAvailable(W8Character* character, unsigned int skill_id,
                                const bool* expert_realm_flags)
 {
-    int profession;
+    W8Profession profession;
     unsigned int index;
     int magic_offset;
 

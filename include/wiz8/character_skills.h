@@ -132,7 +132,7 @@ bool CanPartySlotTurnUndead(int party_slot);
 /* 0x00547F40: whether the slot has the priest's pray trait, its combat-state
    use flag is clear, and a live hostile monster is in play. */
 bool CanPartySlotPray(int party_slot);
-float ScaleValueByProfessionLevel(W8Character* character, int trait, float base);
+float ScaleValueByProfessionLevel(W8Character* character, W8Trait trait, float base);
 float ScaleValueByMonsterLevel(W8MonsterRecord* record, int trait, float base);
 /* 0x005539E0: rebuild the effective attributes from the modifier block's
    seven adjustment bytes and every skill's base level from the attribute

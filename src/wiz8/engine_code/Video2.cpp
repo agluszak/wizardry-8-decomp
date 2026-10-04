@@ -77,12 +77,13 @@
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/Octree.h"
 
-srModelInstance* Video2DRectToSquarePolygon(int* rect, void* source, int source_pitch,
-                                            srNode* parent, unsigned char overlay);
-srModelInstance* Video2DRectToPolygon(int* rect, void* source, int source_pitch, srNode* parent,
-                                      unsigned char overlay);
-unsigned char CopySurfaceWithBorder(srColorSurface* surface, int* rect, void* source,
-                                    int source_pitch, float* scale_x, float* scale_y,
+srModelInstance* Video2DRectToSquarePolygon(const W8ControlsRect* rect, void* source,
+                                            int source_pitch, srNode* parent,
+                                            unsigned char overlay);
+srModelInstance* Video2DRectToPolygon(const W8ControlsRect* rect, void* source, int source_pitch,
+                                      srNode* parent, unsigned char overlay);
+unsigned char CopySurfaceWithBorder(srColorSurface* surface, const W8ControlsRect* rect,
+                                    void* source, int source_pitch, float* scale_x, float* scale_y,
                                     float* mapping_x, float* mapping_y);
 void SaveJpegScreenshot(void);
 void FlushDirtyTiles(void);
@@ -889,7 +890,7 @@ unsigned char VideoResizeWindow(void)
     }
     g_flush_pending = false;
     g_gerd->closeWindow(static_cast<srGERD::e_closeHint>(1));
-    if (g_gerd->openWindow() == static_cast<srGERD::e_error>(3)) {
+    if (g_gerd->openWindow() == srGERD::ERROR_WINDOW_OPEN_FAILED) {
         return 0;
     }
     SetRendererModePair();
@@ -1201,7 +1202,7 @@ void RenderFrame(void)
             g_gerd->setScissor(g_viewport.left * width / 640, g_viewport.top * height / 480,
                                (g_viewport.right - g_viewport.left) * width / 640,
                                (g_viewport.bottom - g_viewport.top) * height / 480);
-            g_gerd->clear(srFlags<srGERD::e_buffer>(3));
+            g_gerd->clear(srFlags<srGERD::e_buffer>(srGERD::BUFFER_COLOR | srGERD::BUFFER_DEPTH));
             g_gerd->setScissor(0, 0, width, height);
         }
     }
@@ -1349,7 +1350,7 @@ unsigned char RenderWorldToSurface(srColorSurface* target, W8ScreenRect* rect,
     if (g_inverted_depth_render != 0) {
         gerd->setClearDepth(0.0);
     }
-    gerd->clear(srFlags<srGERD::e_buffer>(3));
+    gerd->clear(srFlags<srGERD::e_buffer>(srGERD::BUFFER_COLOR | srGERD::BUFFER_DEPTH));
     if (render_secondary != 0 && g_render_mesh_sky != 0 && g_secondary_world != 0) {
         g_secondary_world->static_scene->render(*gerd, g_secondary_world->camera);
     }
@@ -2978,12 +2979,12 @@ void PositionToolTipNode(srNode* node, int x, int y, bool positional)
    then CopySurfaceWithBorder / MakePolygonBrush install it on the square
    overlay scene. */
 // FUNCTION: WIZ8 0x00424560
-srModelInstance* Video2DRectToSquarePolygon(int* rect, void* source, int source_pitch,
-                                            srNode* parent, unsigned char overlay)
+srModelInstance* Video2DRectToSquarePolygon(const W8ControlsRect* rect, void* source,
+                                            int source_pitch, srNode* parent, unsigned char overlay)
 {
-    int extent = (rect[3] - rect[1]) + 2;
-    int width_extent = (rect[2] - rect[0]) + 2;
-    double width = rect[2] * g_double_005ebe90 - rect[0] * g_double_005ebe90;
+    int extent = (rect->bottom - rect->top) + 2;
+    int width_extent = (rect->right - rect->left) + 2;
+    double width = rect->right * g_double_005ebe90 - rect->left * g_double_005ebe90;
     if (extent < width_extent) {
         extent = width_extent;
     }
@@ -3019,7 +3020,7 @@ srModelInstance* Video2DRectToSquarePolygon(int* rect, void* source, int source_
             instance->overlay_scene_flag_160 |= 1;
             instance->render_state_164.width = static_cast<unsigned short>(size);
             instance->render_state_164.height = static_cast<unsigned short>(size);
-            PositionToolTipNode(node, rect[0], rect[1], 0);
+            PositionToolTipNode(node, rect->left, rect->top, 0);
             return node;
         }
         surface->release();
@@ -3037,7 +3038,7 @@ stModelInstance2D* CreateSpriteFromVideoSurface(int target, const W8ControlsRect
     HVSURFACE surface;
     unsigned short width;
     unsigned short height;
-    int source_rect[4];
+    W8ControlsRect source_rect;
     UINT32 pitch;
     BYTE* pixels;
     srModelInstance* node;
@@ -3048,10 +3049,10 @@ stModelInstance2D* CreateSpriteFromVideoSurface(int target, const W8ControlsRect
         return 0;
     }
     if (bounds == 0) {
-        source_rect[0] = 0;
-        source_rect[1] = 0;
-        source_rect[2] = surface->usWidth;
-        source_rect[3] = surface->usHeight;
+        source_rect.left = 0;
+        source_rect.top = 0;
+        source_rect.right = surface->usWidth;
+        source_rect.bottom = surface->usHeight;
         width = surface->usWidth;
         height = surface->usHeight;
     } else {
@@ -3059,10 +3060,10 @@ stModelInstance2D* CreateSpriteFromVideoSurface(int target, const W8ControlsRect
                                             static_cast<short>(bounds->left));
         height = static_cast<unsigned short>(static_cast<short>(bounds->bottom) -
                                              static_cast<short>(bounds->top));
-        source_rect[0] = bounds->left;
-        source_rect[1] = bounds->top;
-        source_rect[2] = bounds->right;
-        source_rect[3] = bounds->bottom;
+        source_rect.left = bounds->left;
+        source_rect.top = bounds->top;
+        source_rect.right = bounds->right;
+        source_rect.bottom = bounds->bottom;
         if (width > surface->usWidth) {
             return 0;
         }
@@ -3078,10 +3079,11 @@ stModelInstance2D* CreateSpriteFromVideoSurface(int target, const W8ControlsRect
         return 0;
     }
     if (mode != 0) {
-        node = Video2DRectToSquarePolygon(source_rect, pixels, static_cast<int>(pitch),
+        node = Video2DRectToSquarePolygon(&source_rect, pixels, static_cast<int>(pitch),
                                           g_scene_square, a5);
     } else {
-        node = Video2DRectToPolygon(source_rect, pixels, static_cast<int>(pitch), g_scene_user, a5);
+        node =
+            Video2DRectToPolygon(&source_rect, pixels, static_cast<int>(pitch), g_scene_user, a5);
         g_paired_render_mode = 2;
     }
     SetOverlayRenderMode();
@@ -3199,16 +3201,16 @@ void VideoPositionToolTip(INT32 x, INT32 y)
    repeating its border one pixel outward, and reports the texture mapping
    scales for the resulting polygon brush. */
 // FUNCTION: WIZ8 0x00428B90
-unsigned char CopySurfaceWithBorder(srColorSurface* surface, int* rect, void* source,
-                                    int source_pitch, float* scale_x, float* scale_y,
+unsigned char CopySurfaceWithBorder(srColorSurface* surface, const W8ControlsRect* rect,
+                                    void* source, int source_pitch, float* scale_x, float* scale_y,
                                     float* mapping_x, float* mapping_y)
 {
     if (surface == 0 || rect == 0 || source == 0 || source_pitch == 0 || scale_x == 0 ||
         scale_y == 0 || mapping_x == 0 || mapping_y == 0) {
         return 0;
     }
-    int width = (rect[2] > 0x27f ? 0x280 : rect[2]) - rect[0];
-    int height = (rect[3] > 0x1df ? 0x1e0 : rect[3]) - rect[1];
+    int width = (rect->right > 0x27f ? 0x280 : rect->right) - rect->left;
+    int height = (rect->bottom > 0x1df ? 0x1e0 : rect->bottom) - rect->top;
     UINT16* dest = (UINT16*)surface->getDataPtr();
     UINT32 dest_pitch = static_cast<UINT32>(surface->getPitch());
     UINT16* src = (UINT16*)source;
@@ -3216,19 +3218,20 @@ unsigned char CopySurfaceWithBorder(srColorSurface* surface, int* rect, void* so
     int right = width + 1;
     int bottom = height + 1;
 
-    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, 1, 1, rect[0], rect[1], width, height);
-    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, 1, 0, rect[0], rect[1], width, 1);
-    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, 1, bottom, rect[0], rect[1] - 1 + height,
+    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, 1, 1, rect->left, rect->top, width, height);
+    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, 1, 0, rect->left, rect->top, width, 1);
+    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, 1, bottom, rect->left, rect->top - 1 + height,
                     width, 1);
-    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, 0, 1, rect[0], rect[1], 1, height);
-    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, right, 1, rect[0] - 1 + width, rect[1], 1,
-                    height);
-    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, 0, 0, rect[0], rect[1], 1, 1);
-    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, right, 0, rect[0] - 1 + width, rect[1], 1, 1);
-    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, 0, bottom, rect[0], rect[1] - 1 + height, 1,
-                    1);
-    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, right, bottom, rect[0] - 1 + width,
-                    rect[1] - 1 + height, 1, 1);
+    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, 0, 1, rect->left, rect->top, 1, height);
+    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, right, 1, rect->left - 1 + width, rect->top,
+                    1, height);
+    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, 0, 0, rect->left, rect->top, 1, 1);
+    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, right, 0, rect->left - 1 + width, rect->top,
+                    1, 1);
+    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, 0, bottom, rect->left, rect->top - 1 + height,
+                    1, 1);
+    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, right, bottom, rect->left - 1 + width,
+                    rect->top - 1 + height, 1, 1);
 
     float scale = 1.0f / surface->getWidth();
     *scale_x = scale;
@@ -3236,8 +3239,8 @@ unsigned char CopySurfaceWithBorder(srColorSurface* surface, int* rect, void* so
     scale = 1.0f / surface->getHeight();
     *scale_y = scale;
     *scale_y = scale * g_surface_scale + scale;
-    *mapping_x = (rect[2] - rect[0]) / static_cast<float>(surface->getWidth());
-    *mapping_y = (rect[3] - rect[1]) / static_cast<float>(surface->getHeight());
+    *mapping_x = (rect->right - rect->left) / static_cast<float>(surface->getWidth());
+    *mapping_y = (rect->bottom - rect->top) / static_cast<float>(surface->getHeight());
     return 1;
 }
 
@@ -3245,15 +3248,15 @@ unsigned char CopySurfaceWithBorder(srColorSurface* surface, int* rect, void* so
    extent is rounded up to the next power of two between 16 and 256, the copy
    repeats its border, and the node records the rectangle extents. */
 // FUNCTION: WIZ8 0x00424280
-srModelInstance* Video2DRectToPolygon(int* rect, void* source, int source_pitch, srNode* parent,
-                                      unsigned char overlay)
+srModelInstance* Video2DRectToPolygon(const W8ControlsRect* rect, void* source, int source_pitch,
+                                      srNode* parent, unsigned char overlay)
 {
-    double left = rect[0] * g_double_005ebe90;
-    int extent = rect[2] - rect[0];
-    double top = rect[1] * g_double_005ebe88;
-    int rect_height = rect[3] - rect[1];
-    double width = rect[2] * g_double_005ebe90 - left;
-    double height = rect[3] * g_double_005ebe88 - top;
+    double left = rect->left * g_double_005ebe90;
+    int extent = rect->right - rect->left;
+    double top = rect->top * g_double_005ebe88;
+    int rect_height = rect->bottom - rect->top;
+    double width = rect->right * g_double_005ebe90 - left;
+    double height = rect->bottom * g_double_005ebe88 - top;
 
     if (extent <= rect_height) {
         extent = rect_height;
@@ -3303,10 +3306,10 @@ srModelInstance* Video2DRectToPolygon(int* rect, void* source, int source_pitch,
     if (node != 0) {
         stModelInstance2D* instance = static_cast<stModelInstance2D*>(node);
         instance->render_state_164.display_state = static_cast<unsigned char>(g_active_page);
-        instance->render_state_164.width = static_cast<unsigned short>(rect[2] - rect[0]);
-        instance->render_state_164.height = static_cast<unsigned short>(rect[3] - rect[1]);
-        instance->render_state_164.position_x = static_cast<short>(rect[0]);
-        instance->render_state_164.position_y = static_cast<short>(rect[1]);
+        instance->render_state_164.width = static_cast<unsigned short>(rect->right - rect->left);
+        instance->render_state_164.height = static_cast<unsigned short>(rect->bottom - rect->top);
+        instance->render_state_164.position_x = static_cast<short>(rect->left);
+        instance->render_state_164.position_y = static_cast<short>(rect->top);
         srVector3T<double> location;
         location.Set(width * g_double_005ebe80 + left,
                      g_double_005ebc30 - (height * g_double_005ebe80 + top), -0.0001);
@@ -3362,13 +3365,13 @@ void VideoToolTip(UINT16* text)
     PackColourToLong(&border_colour, 1.0, 0.93, 0.6, 0.33);
     surface->setVLine(g_help_box_width - 1, 0, g_help_box_height, border_colour);
 
-    int rect[4];
-    rect[0] = 0;
-    rect[1] = 0;
-    rect[2] = 0xfe;
-    rect[3] = 0xfe;
+    W8ControlsRect rect;
+    rect.left = 0;
+    rect.top = 0;
+    rect.right = 0xfe;
+    rect.bottom = 0xfe;
     srModelInstance* node =
-        Video2DRectToPolygon(rect, data, static_cast<int>(surface->getPitch()), g_cursor_scene, 1);
+        Video2DRectToPolygon(&rect, data, static_cast<int>(surface->getPitch()), g_cursor_scene, 1);
     if (node != 0) {
         int count = g_screen_transition_object_count;
         bool append = true;
@@ -3599,7 +3602,7 @@ void BeginRenderProbe(void)
     g_gerd->setAmbientLight(1.0f, 1.0f, 1.0f, 1.0f);
     g_gerd->beginFrame();
     g_gerd->setScissor(0, 0, g_gerd->getWidth(), g_gerd->getHeight());
-    g_gerd->clear(srFlags<srGERD::e_buffer>(3));
+    g_gerd->clear(srFlags<srGERD::e_buffer>(srGERD::BUFFER_COLOR | srGERD::BUFFER_DEPTH));
     g_gerd->endFrame();
 }
 
@@ -3797,12 +3800,12 @@ void DrawBufferLine(long x0, long y0, long x1, long y1, unsigned long* pixel)
 }
 
 // FUNCTION: WIZ8 0x004273F0
-void GetScaledViewportBounds(float* left_top, float* right_bottom)
+void GetScaledViewportBounds(srVector2T<float>* left_top, srVector2T<float>* right_bottom)
 {
-    left_top[0] = g_viewport.left * g_viewport_x_scale;
-    left_top[1] = g_viewport.top * g_viewport_y_scale;
-    right_bottom[0] = g_viewport.right * g_viewport_x_scale;
-    right_bottom[1] = g_viewport.bottom * g_viewport_y_scale;
+    left_top->x = g_viewport.left * g_viewport_x_scale;
+    left_top->y = g_viewport.top * g_viewport_y_scale;
+    right_bottom->x = g_viewport.right * g_viewport_x_scale;
+    right_bottom->y = g_viewport.bottom * g_viewport_y_scale;
 }
 
 // FUNCTION: WIZ8 0x004277F0

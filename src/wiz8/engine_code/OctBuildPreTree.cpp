@@ -2002,11 +2002,11 @@ OctPreTree* OctBuildPreTree::BuildOctPreTree()
         static_cast<unsigned long*>(malloc(tree->m_leaf_grid_dim_z * tree->m_leaf_grid_dim_x *
                                            tree->m_leaf_grid_dim_y * sizeof(unsigned long)));
     unsigned long cell_index = 0;
-    int point[3];
-    for (point[0] = 0; point[0] < static_cast<int>(tree->m_leaf_grid_dim_x); ++point[0]) {
-        for (point[1] = 0; point[1] < static_cast<int>(tree->m_leaf_grid_dim_y); ++point[1]) {
-            for (point[2] = 0; point[2] < static_cast<int>(tree->m_leaf_grid_dim_z); ++point[2]) {
-                tree->m_leaf_lookup[cell_index] = tree->FindLeaf(point);
+    srVector3T<int> point;
+    for (point.x = 0; point.x < static_cast<int>(tree->m_leaf_grid_dim_x); ++point.x) {
+        for (point.y = 0; point.y < static_cast<int>(tree->m_leaf_grid_dim_y); ++point.y) {
+            for (point.z = 0; point.z < static_cast<int>(tree->m_leaf_grid_dim_z); ++point.z) {
+                tree->m_leaf_lookup[cell_index] = tree->FindLeaf(&point);
                 if (tree->m_leaf_count < tree->m_leaf_lookup[cell_index]) {
                     tree->m_leaf_lookup[cell_index] = 0;
                 }

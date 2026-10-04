@@ -306,10 +306,13 @@ public:
         ERROR_NO_CONTEXT = 9
     };
     enum e_closeHint {};
-    enum e_buffer {};
+    /* clear() maps COLOR/DEPTH/STENCIL onto srDD::e_buffer and services
+       ACCUM itself through accumClear. */
+    enum e_buffer { BUFFER_COLOR = 1, BUFFER_DEPTH = 2, BUFFER_ACCUM = 4, BUFFER_STENCIL = 8 };
     /* dump prints none (blit)/one (double)/two (triple) for values 1/2/3. */
     enum e_backBuffer { BACKBUFFER_NONE = 1, BACKBUFFER_ONE = 2, BACKBUFFER_TWO = 3 };
-    enum e_polygonMode {};
+    /* applyRenderState translates each value to the same srDD mode. */
+    enum e_polygonMode { POLYGON_POINT = 0, POLYGON_LINE = 1, POLYGON_FILL = 2 };
     /* Wizardry uses 0 immediately before model-view loads and 1 immediately
        before identity+ortho. OpenGL srDD talks GL_MODELVIEW (0x1700) and
        GL_PROJECTION (0x1701) for those two stacks. */
@@ -318,9 +321,10 @@ public:
     /* srClipPlane::process passes its clip_type_ through unchanged; Wizardry
        always writes 0. */
     enum e_clipMode { CLIPMODE_POSITIONAL_0 = 0 };
-    /* OpenGL: 0 disables GL_CULL_FACE, 1 enables + GL_BACK, 2 enables + GL_FRONT.
-       DirectX7: D3DCULL_NONE / D3DCULL_CCW / D3DCULL_CW. */
-    enum e_cullMode { CULL_NONE = 0, CULL_BACK = 1, CULL_FRONT = 2 };
+    /* applyDrawStateChanges hands 0 to srDD as back-face culling and 1 as
+       front-face culling (each flipped by the winding) and 2 as srDD::CULL_NONE;
+       the constructor defaults to 0. */
+    enum e_cullMode { CULL_BACK = 0, CULL_FRONT = 1, CULL_NONE = 2 };
     /* toggle XORs 1<<option into +0x20. Option 0 also dirties dirty_24 bit 0
        (Wizardry render-option 5). Option 1 selects sorted rendering. Option 4 is
        SetRendererAutoFlipEnabled. Option 5 wraps/unwraps srDebugDD. GERD dump
@@ -1247,8 +1251,7 @@ private:
        texture_iface_; the assigning sites inline operator='s addref/release
        handoff. */
     srPtr<srPalette> palette_1fdc_;
-    /* srDD::e_polygonMode value; the empty enum cannot be a field type. */
-    unsigned long polygon_mode_1fe0_;
+    e_polygonMode polygon_mode_1fe0_;
     long polygon_offset_1fe4_;
     srVector4T<float> fog_color_1fe8_;
     srShader shader_1ff8_;

@@ -457,8 +457,8 @@ unsigned char CreateSubMenuScrollButtons(void)
                                                   4, 5, 6, 6, SubMenuScrollArrowDown, 0, 0, 0x7f,
                                                   0x4c, 0, 0);
     for (i = 0; i < 2; ++i) {
-        g_submenu_scroll_buttons[i]->SetPosition(g_scroll_button_positions[i][0],
-                                                        g_scroll_button_positions[i][1]);
+        g_submenu_scroll_buttons[i]->SetPosition(g_scroll_button_positions[i].x,
+                                                 g_scroll_button_positions[i].y);
         g_submenu_scroll_buttons[i]->m_owner_040 = 0;
     }
     return 1;
@@ -545,8 +545,8 @@ unsigned char CreateSubMenuPanelButtons(void)
                                                  SubMenuPanelFormationButton, 0, 1, 0x7f, 0x4e, 0,
                                                  0);
     for (index = 0; index < 2; ++index) {
-        g_submenu_panel_buttons[index]->SetPosition(
-            g_submenu_panel_button_positions[index][0], g_submenu_panel_button_positions[index][1]);
+        g_submenu_panel_buttons[index]->SetPosition(g_submenu_panel_button_positions[index].x,
+                                                    g_submenu_panel_button_positions[index].y);
         g_submenu_panel_buttons[index]->m_owner_040 = 0;
     }
     return 1;
@@ -570,8 +570,7 @@ unsigned char CreateOptionsDiskButton(void)
     }
     g_options_disk_button->Configure(g_options_disk_path, 3, 0, 1, 2, 2,
                                             MainGameOptionsDiskButton, 0, 0, 0x7f, 0x41, 0, 0);
-    g_options_disk_button->SetPosition(g_options_disk_position[0],
-                                              g_options_disk_position[1]);
+    g_options_disk_button->SetPosition(g_options_disk_position.x, g_options_disk_position.y);
     g_options_disk_button->m_owner_040 = 0;
     return 1;
 }
@@ -709,8 +708,8 @@ unsigned char CreateCombatStanceButtons(void)
                                                  MainGameCombatConfirmButton, 0, 0, 0x7f, 0x50,
                                                  MainGameCombatStanceSecondary, 0);
     for (index = 0; index < 5; ++index) {
-        g_combat_stance_buttons[index]->SetPosition(g_combat_stance_positions[index][0],
-                                                           g_combat_stance_positions[index][1]);
+        g_combat_stance_buttons[index]->SetPosition(g_combat_stance_positions[index].x,
+                                                    g_combat_stance_positions[index].y);
         g_combat_stance_buttons[index]->m_owner_040 = 0;
     }
     return 1;
@@ -768,8 +767,8 @@ unsigned char CreateRoofButtons(void)
         g_roof_buttons[2]->SetPressed(1);
     }
     for (index = 0; index < 3; ++index) {
-        g_roof_buttons[index]->SetPosition(g_roof_button_positions[index][0],
-                                                  g_roof_button_positions[index][1]);
+        g_roof_buttons[index]->SetPosition(g_roof_button_positions[index].x,
+                                           g_roof_button_positions[index].y);
         g_roof_buttons[index]->m_owner_040 = 0;
     }
     return 1;
@@ -1038,8 +1037,8 @@ unsigned char CreateLayoutArrowButtons(void)
                                                 MainGameLayoutFormationButton, 0, 0, 0x7f, 0x3d, 0,
                                                 0);
     for (index = 0; index < 6; ++index) {
-        g_layout_arrow_buttons[index]->SetPosition(g_layout_arrow_positions[index][0],
-                                                          g_layout_arrow_positions[index][1]);
+        g_layout_arrow_buttons[index]->SetPosition(g_layout_arrow_positions[index].x,
+                                                   g_layout_arrow_positions[index].y);
         g_layout_arrow_buttons[index]->m_owner_040 = 0;
     }
     return 1;
@@ -1255,7 +1254,7 @@ void DrawSubMenuCharacterAction(void)
     unsigned short slot;
     W8Character* character;
     W8PartySlotRow* row;
-    int action;
+    W8ActionKind action;
     unsigned int monster_index;
     W8MonsterInfo* monster_info;
     wchar_t* name;
@@ -1691,27 +1690,27 @@ unsigned char BuildSubMenuPanel(short notification)
     case 6:
         menu = W8_SUBMENU_ATTACK;
         count = 5;
-        left = g_submenu_button_positions[notification][0] - 1;
+        left = g_submenu_button_positions[notification].x - 1;
         break;
     case 5:
         menu = W8_SUBMENU_DEFEND;
         count = 2;
-        left = g_submenu_button_positions[notification][0] - 1;
+        left = g_submenu_button_positions[notification].x - 1;
         break;
     case 3:
         menu = W8_SUBMENU_ITEMS;
         count = 3;
-        left = g_submenu_button_positions[notification][0] - 1;
+        left = g_submenu_button_positions[notification].x - 1;
         break;
     case 4:
         menu = W8_SUBMENU_SPELLS;
         count = 2;
-        left = g_submenu_button_positions[notification][0] - 1;
+        left = g_submenu_button_positions[notification].x - 1;
         break;
     case 9:
         menu = W8_SUBMENU_MOVE;
         count = 2;
-        left = g_submenu_panel_button_positions[0][0] - 1;
+        left = g_submenu_panel_button_positions[0].x - 1;
         break;
     default:
         left = notification;

@@ -375,7 +375,7 @@ int OpenLockInteraction(Trigger* trigger)
     W8LockTumblerPanel* panel;
     W8CharacterEvent* event;
     int count;
-    int mode;
+    W8MainUiMode mode;
     int skill;
     int i;
     unsigned int force;
@@ -499,7 +499,7 @@ void EndLockInteractMode(char suspend)
         ClearLevelDataFlag6();
     }
     SelectTextBox(0);
-    ApplyMainGameModeFlag(static_cast<W8MainUiMode>(g_ui_mode_current), 1);
+    ApplyMainGameModeFlag(g_ui_mode_current, 1);
     RequestRedraw(0x200);
     RequestRedrawCombatBar();
     RequestRedraw(0x1000);
@@ -1009,7 +1009,7 @@ void W8LockInteraction::Process()
         g_lock_interaction = 0;
         ClearLevelDataFlag6();
         SelectTextBox(0);
-        ApplyMainGameModeFlag(static_cast<W8MainUiMode>(g_ui_mode_current), 1);
+        ApplyMainGameModeFlag(g_ui_mode_current, 1);
         RequestRedraw(0x200);
         RequestRedrawCombatBar();
         RequestRedraw(0x1000);
@@ -1085,7 +1085,7 @@ void W8LockInteraction::Process()
         EnablePanels(0);
         gXStatus.fLockInteract = true;
         SelectTextBox(0);
-        ApplyMainGameModeFlag(static_cast<W8MainUiMode>(g_ui_mode_current), 1);
+        ApplyMainGameModeFlag(g_ui_mode_current, 1);
         RequestRedraw(0x200);
         RequestRedrawCombatBar();
         RequestRedraw(0x1000);
@@ -2206,7 +2206,7 @@ void W8MainGameScreen::Update()
         g_main_game_screen = 0;
         ClearLevelDataFlag6();
         SelectTextBox(0);
-        ApplyMainGameModeFlag(static_cast<W8MainUiMode>(g_ui_mode_saved), 1);
+        ApplyMainGameModeFlag(g_ui_mode_saved, 1);
         RequestRedraw(0x200);
         RequestRedrawCombatBar();
         RequestRedraw(0x1000);
@@ -2270,7 +2270,7 @@ void W8MainGameScreen::Update()
         g_main_game_screen = 0;
         ClearLevelDataFlag6();
         SelectTextBox(0);
-        ApplyMainGameModeFlag(static_cast<W8MainUiMode>(g_ui_mode_saved), 1);
+        ApplyMainGameModeFlag(g_ui_mode_saved, 1);
         RequestRedraw(0x200);
         RequestRedrawCombatBar();
         RequestRedraw(0x1000);
@@ -2479,7 +2479,7 @@ void W8MainGameScreen::CastTrapSpell()
     screen->m_action_panel_014->EnableRegionSet(0);
     gXStatus.fTrapInteract = true;
     SelectTextBox(0);
-    ApplyMainGameModeFlag(static_cast<W8MainUiMode>(g_ui_mode_saved), 1);
+    ApplyMainGameModeFlag(g_ui_mode_saved, 1);
     RequestRedraw(0x200);
     RequestRedrawCombatBar();
     RequestRedraw(0x1000);
@@ -2501,7 +2501,7 @@ void W8MainGameScreen::UseTrapItem()
     screen->m_action_panel_014->EnableRegionSet(0);
     gXStatus.fTrapInteract = true;
     SelectTextBox(0);
-    ApplyMainGameModeFlag(static_cast<W8MainUiMode>(g_ui_mode_saved), 1);
+    ApplyMainGameModeFlag(g_ui_mode_saved, 1);
     RequestRedraw(0x200);
     RequestRedrawCombatBar();
     RequestRedraw(0x1000);
@@ -2517,7 +2517,7 @@ int OpenTrapInteraction(Trigger* trigger)
     W8CharacterEvent* event;
     W8MainGameScreen* screen;
     W8MainGameTextPanel* panel;
-    int mode;
+    W8MainUiMode mode;
     unsigned int event_type;
 
     if (gXStatus.fLockInteractMode != 0 || gXStatus.fLockInteract != 0) {
@@ -2638,7 +2638,7 @@ void EndTrapInteractMode(char suspend)
         ClearLevelDataFlag6();
     }
     SelectTextBox(0);
-    ApplyMainGameModeFlag(static_cast<W8MainUiMode>(g_ui_mode_saved), 1);
+    ApplyMainGameModeFlag(g_ui_mode_saved, 1);
     RequestRedraw(0x200);
     RequestRedrawCombatBar();
     RequestRedraw(0x1000);
@@ -6620,8 +6620,8 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
         if (IsWorldCursorVisible() == 0) {
             InitializeWorldCursor();
         }
-        SetWorldCursorRange(CalcRangeDistanceFromParty(static_cast<W8RangeCategory>(
-            GetCharActionRange(g_status.selected_character, 0, W8_TARGETING_CONTEXT_CURRENT))));
+        SetWorldCursorRange(CalcRangeDistanceFromParty(
+            GetCharActionRange(g_status.selected_character, 0, W8_TARGETING_CONTEXT_CURRENT)));
         if (gpSCSV != 0 && GetActionSpellLikeId(g_status.selected_character,
                                                 W8_TARGETING_CONTEXT_CURRENT) == 0x3c) {
             signed char extent_index;
@@ -7763,7 +7763,7 @@ void RunMGSActionKey(short command)
 
 /* Fire the numbered action-key command when the current UI mode allows it. */
 // FUNCTION: WIZ8 0x0056b4c0
-void TryMGSActionKey(int command)
+void TryMGSActionKey(W8MGSAction command)
 {
     if (IsMGSActionKeyEnabled(command)) {
         RunMGSActionKey(command);
@@ -8339,6 +8339,8 @@ void ConfirmNpcTradeItem(void)
                                 index);
         }
         break;
+    default:
+        break;
     }
     RefreshNpcTradePartyGold();
     RefreshNpcTradePrice();
@@ -8379,7 +8381,7 @@ void ShowNpcTradeItemNotice(W8ItemInstance* item)
     swprintf(g_level_block->text_paint_scratch_000, L"%d%s", price, gppStringList[0x797]);
     ShowNotice(font_palette, FormatItemDisplayName(item, 1), 2,
                GetTextBoxScrollRange() -
-                   StringPixLength(g_level_block->text_paint_scratch_000, GetTextBoxValue2E8()),
+                   StringPixLength(g_level_block->text_paint_scratch_000, GetTextBoxFont()),
                false);
     AppendTextBoxLine(g_level_block->text_paint_scratch_000, 2);
 }
@@ -8447,7 +8449,7 @@ void PopulateNpcTradeList(void)
                  gppStringList[0x797]);
         ShowNotice(0xf, gppStringList[0x72d], 2,
                    GetTextBoxScrollRange() -
-                       StringPixLength(g_level_block->text_paint_scratch_000, GetTextBoxValue2E8()),
+                       StringPixLength(g_level_block->text_paint_scratch_000, GetTextBoxFont()),
                    false);
         AppendTextBoxLine(g_level_block->text_paint_scratch_000, 2);
     }
@@ -8495,7 +8497,7 @@ void PopulateNpcTradeList(void)
                     ShowNotice(font_palette, FormatItemDisplayName(item, 1), 2,
                                GetTextBoxScrollRange() -
                                    StringPixLength(g_level_block->text_paint_scratch_000,
-                                                   GetTextBoxValue2E8()),
+                                                   GetTextBoxFont()),
                                false);
                     AppendTextBoxLine(g_level_block->text_paint_scratch_000, 2);
                 } else {
@@ -8541,11 +8543,11 @@ void PopulateNpcTradeList(void)
                 } else {
                     swprintf(g_level_block->text_paint_scratch_000, L"---");
                 }
-                ShowNotice(font_palette, FormatItemDisplayName(item, 1), 2,
-                           GetTextBoxScrollRange() -
-                               StringPixLength(g_level_block->text_paint_scratch_000,
-                                               GetTextBoxValue2E8()),
-                           false);
+                ShowNotice(
+                    font_palette, FormatItemDisplayName(item, 1), 2,
+                    GetTextBoxScrollRange() -
+                        StringPixLength(g_level_block->text_paint_scratch_000, GetTextBoxFont()),
+                    false);
                 AppendTextBoxLine(g_level_block->text_paint_scratch_000, 2);
             } else {
                 ShowNotice(font_palette, FormatItemDisplayName(item, 1), 2, 0xffffffff, false);

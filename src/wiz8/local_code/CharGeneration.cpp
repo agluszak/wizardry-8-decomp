@@ -743,7 +743,7 @@ void RebuildSkillAllocations(W8Character* character, W8CharacterCreationState* c
     }
     InitializeSkillBaseLevels(character);
 
-    int profession = character->iProfession;
+    W8Profession profession = character->iProfession;
     int count = 1;
     for (index = 0; index < 4; ++index) {
         if (g_profession_skills[profession][index] != -1) {

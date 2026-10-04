@@ -761,8 +761,8 @@ unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item, bool f
                 static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_38])->m_textBuffer.SetText(
                     &g_empty_wide_string, g_wiz_text_bold_font);
             /* fall through */
-            case 6:
-                SetNpcDialogueLayoutMode(0);
+            case W8_DIALOGUE_LAYOUT_BARE:
+                SetNpcDialogueLayoutMode(W8_DIALOGUE_LAYOUT_NONE);
                 break;
             case W8_DIALOGUE_LAYOUT_TRANSCRIPT:
                 CloseNpcDialogueTranscriptLayout();
@@ -772,6 +772,8 @@ unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item, bool f
                 break;
             case W8_DIALOGUE_LAYOUT_TRADE:
                 CloseNpcDialogueMode5Layout();
+                break;
+            default:
                 break;
             }
             if (GetNpcDispositionBand(g_npc_interaction_state->dialogue_npc) == 0) {
@@ -1208,8 +1210,10 @@ void EndNpcDialogueSession(bool param_1)
         g_npc_interaction_state->dialogue_panels[5]->SetEnabled(0);
         static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1])->SetEnabled(1);
         static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2])->SetEnabled(1);
-    case 6:
-        SetNpcDialogueLayoutMode(0);
+    case W8_DIALOGUE_LAYOUT_BARE:
+        SetNpcDialogueLayoutMode(W8_DIALOGUE_LAYOUT_NONE);
+        break;
+    default:
         break;
     }
     RegionSetDisable(0x18);
@@ -1345,9 +1349,9 @@ bool HasNpcDialogueDirtyPanels(void)
    install `value` as the new one; either way the dialogue cursor helper gets
    re-run while the flag is set. */
 // FUNCTION: WIZ8 0x0056EDD0
-void SetNpcDialogueLayoutMode(int value)
+void SetNpcDialogueLayoutMode(W8NpcDialogueLayout value)
 {
-    if (value == 0) {
+    if (value == W8_DIALOGUE_LAYOUT_NONE) {
         g_npc_interaction_state->previous_dialogue_layout =
             g_npc_interaction_state->dialogue_layout;
         g_npc_interaction_state->dialogue_layout = W8_DIALOGUE_LAYOUT_NONE;
@@ -1660,6 +1664,8 @@ void NpcDialogueTextBoxLeftUp(int x, int y)
         }
         UpdateNpcTradeSelection(slot, gfKeyState[0x10] != 0 ? 1 : 0, 1);
         return;
+    default:
+        break;
     }
 }
 
@@ -1701,6 +1707,8 @@ void NpcDialogueTextBoxRightUp(int x, int y)
         CopyNoticeWordText(word, word_text, 0xc8, 3, line);
         AddNpcDialogueKeyword(word_text, -1, 0);
         return;
+    default:
+        break;
     }
 }
 
@@ -1925,6 +1933,8 @@ void BackOutNpcDialogue(void)
         case W8_DIALOGUE_LAYOUT_TRANSCRIPT:
             OpenNpcDialogueTranscriptLayout();
             break;
+        default:
+            break;
         }
         break;
     case W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX: {
@@ -1940,6 +1950,8 @@ void BackOutNpcDialogue(void)
     case W8_DIALOGUE_LAYOUT_TRADE:
         CloseNpcDialogueMode5Layout();
         OpenNpcDialogueTranscriptLayout();
+        break;
+    default:
         break;
     }
 }
@@ -1963,8 +1975,10 @@ void SwitchNpcDialogueLayout(int interact_id)
     case W8_DIALOGUE_LAYOUT_TRADE:
         CloseNpcDialogueMode5Layout();
         break;
-    case 6:
-        SetNpcDialogueLayoutMode(0);
+    case W8_DIALOGUE_LAYOUT_BARE:
+        SetNpcDialogueLayoutMode(W8_DIALOGUE_LAYOUT_NONE);
+        break;
+    default:
         break;
     }
     switch (interact_id) {
@@ -2097,7 +2111,7 @@ void CloseNpcDialogueLayout(void)
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_38])->SetActive(0);
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_38])->m_textBuffer.SetText(&g_empty_wide_string,
                                                                      g_wiz_text_bold_font);
-    SetNpcDialogueLayoutMode(0);
+    SetNpcDialogueLayoutMode(W8_DIALOGUE_LAYOUT_NONE);
 }
 
 /* The "Trade" option button: hand the NPC's trade answer to ApplyNpcInteraction,
@@ -2314,7 +2328,7 @@ void CloseNpcDialogueTranscriptLayout(void)
     static_cast<W8NpcDialogueTextController*>(g_npc_interaction_state->dialogue_panels[2])->SetEnabled(0);
     g_npc_interaction_state->dialogue_panels[3]->SetEnabled(0);
     static_cast<W8NpcTypedDialoguePanel*>(g_npc_interaction_state->dialogue_panels[6])->SetEnabled(0);
-    SetNpcDialogueLayoutMode(0);
+    SetNpcDialogueLayoutMode(W8_DIALOGUE_LAYOUT_NONE);
     static_cast<W8NpcDialogueTextController*>(g_npc_interaction_state->dialogue_panels[2])->ClearBackground();
     ClearSurfaceRect(0x1dc, 0x11b, 0x269, 0x1c2);
     InvalidateRegion(0x1dc, 0x11b, 0x269, 0x1c2, 0);
@@ -2690,6 +2704,8 @@ void UpdateNpcDialogueSubMode(void)
         static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_5])->SetEnabled(0);
         static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_6])->SetEnabled(0);
         break;
+    default:
+        break;
     }
     if (g_npc_interaction_state->pending_trade_toggle != 0 &&
         (g_npc_interaction_state->trade_mode == W8_NPC_TRADE_SELL ||
@@ -2755,7 +2771,7 @@ void CloseNpcDialogueOptionLayout(void)
     static_cast<W8NpcDialogueOptionsPanel*>(g_npc_interaction_state->dialogue_panels[0])->SetEnabled(0);
     g_npc_interaction_state->dialogue_panels[1]->SetEnabled(0);
     g_npc_interaction_state->dialogue_panels[5]->SetEnabled(0);
-    SetNpcDialogueLayoutMode(0);
+    SetNpcDialogueLayoutMode(W8_DIALOGUE_LAYOUT_NONE);
     g_npc_interaction_state->reopen_topics = 0;
     SelectTextBox(3);
     ScrollDialogueTextBoxToLine();
@@ -3242,7 +3258,7 @@ void CloseNpcDialogueMode5Layout(void)
     g_npc_interaction_state->dialogue_panels[5]->SetEnabled(0);
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1])->SetEnabled(1);
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2])->SetEnabled(1);
-    SetNpcDialogueLayoutMode(0);
+    SetNpcDialogueLayoutMode(W8_DIALOGUE_LAYOUT_NONE);
 }
 
 /* Re-arm the six trade-filter option buttons after the list contents were
@@ -3493,7 +3509,7 @@ void CloseNpcDialogueMode1Layout(void)
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_3])->SetEnabled(1);
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_4])->SetEnabled(1);
     if (gXStatus.fCampMode == 0) {
-        SetNpcDialogueLayoutMode(0);
+        SetNpcDialogueLayoutMode(W8_DIALOGUE_LAYOUT_NONE);
     }
 }
 
@@ -4199,8 +4215,10 @@ void OnNpcTradeDialogClosed(W8DialogBase* dialog)
         g_npc_interaction_state->dialogue_panels[5]->SetEnabled(0);
         static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1])->SetEnabled(1);
         static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2])->SetEnabled(1);
-    case 6:
-        SetNpcDialogueLayoutMode(0);
+    case W8_DIALOGUE_LAYOUT_BARE:
+        SetNpcDialogueLayoutMode(W8_DIALOGUE_LAYOUT_NONE);
+        break;
+    default:
         break;
     }
     if (GetNpcDispositionBand(g_npc_interaction_state->dialogue_npc) == 0) {
@@ -4220,7 +4238,7 @@ void ConfirmNpcTradePurchase(void)
         RebuildNpcTradeItemList(0);
         return;
     }
-    if (NpcRecordHasValue002(g_npc_interaction_state->dialogue_npc) != 0) {
+    if (NpcRecordHasTradePool(g_npc_interaction_state->dialogue_npc) != 0) {
         ApplyNpcInteraction(g_npc_interaction_state->dialogue_npc, 2,
                             g_npc_interaction_state->dialogue_speaker, 0,
                             g_npc_interaction_state->trade_gold);
@@ -4422,6 +4440,8 @@ void DrainNpcDialogueDeferralInput(void)
                         case W8_DIALOGUE_LAYOUT_TRADE:
                             CloseNpcDialogueMode5Layout();
                             OpenNpcDialogueTranscriptLayout();
+                            break;
+                        default:
                             break;
                         }
                     } else {

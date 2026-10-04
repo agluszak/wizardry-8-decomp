@@ -92,7 +92,7 @@ void W8OctSpatialState::SetWorkingBounds(const srVector3T<float>* minimum,
 /* Resets the collected-id run and appends every not-yet-seen polygon id the
    leaf under `cell` lists.  The trace walk inlines this sequence at each of
    the six cells it probes. */
-void OctPreTree::CollectLeafPolygons(const int* cell)
+void OctPreTree::CollectLeafPolygons(const srVector3T<int>* cell)
 {
     m_gd_result_count = 0;
     unsigned int leaf_index = LeafIndexForCell(cell);
@@ -118,8 +118,8 @@ bool OctPreTree::SegmentClear(const srVector3T<float>* from, const srVector3T<fl
 {
     W8OctreeTrace trace;
     W8OctreeWalk walk;
-    int cell[3];
-    int end_cell[3];
+    srVector3T<int> cell;
+    srVector3T<int> end_cell;
     int span = 0;
     bool blocked = false;
 
@@ -127,11 +127,11 @@ bool OctPreTree::SegmentClear(const srVector3T<float>* from, const srVector3T<fl
     m_gd_result_count = 0;
     m_visited_polygon_bits->ClearAll();
     for (int axis = 0; axis < 3; ++axis) {
-        cell[axis] = static_cast<int>(((&from->x)[axis] - (&m_spatial.m_minimum.x)[axis]) /
-                                      m_spatial.m_node_extent);
-        end_cell[axis] = static_cast<int>(((&to->x)[axis] - (&m_spatial.m_minimum.x)[axis]) /
-                                          m_spatial.m_node_extent);
-        int difference = cell[axis] - end_cell[axis];
+        (&cell.x)[axis] = static_cast<int>(((&from->x)[axis] - (&m_spatial.m_minimum.x)[axis]) /
+                                           m_spatial.m_node_extent);
+        (&end_cell.x)[axis] = static_cast<int>(((&to->x)[axis] - (&m_spatial.m_minimum.x)[axis]) /
+                                               m_spatial.m_node_extent);
+        int difference = (&cell.x)[axis] - (&end_cell.x)[axis];
         if (difference < 0) {
             span -= difference;
         } else {
@@ -139,10 +139,10 @@ bool OctPreTree::SegmentClear(const srVector3T<float>* from, const srVector3T<fl
         }
     }
     if (span < 2) {
-        CollectLeafPolygons(cell);
+        CollectLeafPolygons(&cell);
         blocked = TestCollectedPolygons(&trace);
         if (!blocked && span != 0) {
-            CollectLeafPolygons(end_cell);
+            CollectLeafPolygons(&end_cell);
             blocked = TestCollectedPolygons(&trace);
         }
     } else {
@@ -153,22 +153,22 @@ bool OctPreTree::SegmentClear(const srVector3T<float>* from, const srVector3T<fl
             if (blocked != 0) {
                 break;
             }
-            CollectLeafPolygons(cell);
+            CollectLeafPolygons(&cell);
             if (m_gd_result_count != 0) {
                 blocked = TestCollectedPolygons(&trace);
             }
             if (error_a < error_b) {
                 if (error_a < 0 && !blocked) {
-                    cell[walk.minor_axis_1c] += walk.step_0c[walk.minor_axis_1c];
+                    (&cell.x)[walk.minor_axis_1c] += (&walk.step_0c.x)[walk.minor_axis_1c];
                     error_a += walk.error_reset_30;
-                    CollectLeafPolygons(cell);
+                    CollectLeafPolygons(&cell);
                     if (m_gd_result_count != 0) {
                         blocked = TestCollectedPolygons(&trace);
                     }
                     if (error_b < 0 && !blocked) {
-                        cell[walk.minor_axis_20] += walk.step_0c[walk.minor_axis_20];
+                        (&cell.x)[walk.minor_axis_20] += (&walk.step_0c.x)[walk.minor_axis_20];
                         error_b += walk.error_reset_3c;
-                        CollectLeafPolygons(cell);
+                        CollectLeafPolygons(&cell);
                         if (m_gd_result_count != 0) {
                             blocked = TestCollectedPolygons(&trace);
                         }
@@ -176,23 +176,23 @@ bool OctPreTree::SegmentClear(const srVector3T<float>* from, const srVector3T<fl
                 }
             } else {
                 if (error_b < 0 && !blocked) {
-                    cell[walk.minor_axis_20] += walk.step_0c[walk.minor_axis_20];
+                    (&cell.x)[walk.minor_axis_20] += (&walk.step_0c.x)[walk.minor_axis_20];
                     error_b += walk.error_reset_3c;
-                    CollectLeafPolygons(cell);
+                    CollectLeafPolygons(&cell);
                     if (m_gd_result_count != 0) {
                         blocked = TestCollectedPolygons(&trace);
                     }
                     if (error_a < 0 && !blocked) {
-                        cell[walk.minor_axis_1c] += walk.step_0c[walk.minor_axis_1c];
+                        (&cell.x)[walk.minor_axis_1c] += (&walk.step_0c.x)[walk.minor_axis_1c];
                         error_a += walk.error_reset_30;
-                        CollectLeafPolygons(cell);
+                        CollectLeafPolygons(&cell);
                         if (m_gd_result_count != 0) {
                             blocked = TestCollectedPolygons(&trace);
                         }
                     }
                 }
             }
-            cell[walk.major_axis_18] += walk.step_0c[walk.major_axis_18];
+            (&cell.x)[walk.major_axis_18] += (&walk.step_0c.x)[walk.major_axis_18];
             error_a -= walk.error_delta_28;
             error_b -= walk.error_delta_34;
         }
@@ -1763,15 +1763,14 @@ unsigned char TestSpatialTriangle(const srVector3T<float>* bounds,
                                   const srVector3T<float>* vertices,
                                   const srVector3T<float>* plane_normal)
 {
-    const float* minimum = &bounds[0].x;
-    const float* maximum = &bounds[1].x;
-    const float* vertex_values[3] = {&vertices[0].x, &vertices[1].x, &vertices[2].x};
+    const srVector3T<float>& minimum = bounds[0];
+    const srVector3T<float>& maximum = bounds[1];
 
     short vertex_index;
     for (vertex_index = 0; vertex_index < 3; ++vertex_index) {
-        const float* vertex = &vertices[vertex_index].x;
-        if (minimum[0] <= vertex[0] && vertex[0] <= maximum[0] && minimum[1] <= vertex[1] &&
-            vertex[1] <= maximum[1] && minimum[2] <= vertex[2] && vertex[2] <= maximum[2]) {
+        const srVector3T<float>& vertex = vertices[vertex_index];
+        if (minimum.x <= vertex.x && vertex.x <= maximum.x && minimum.y <= vertex.y &&
+            vertex.y <= maximum.y && minimum.z <= vertex.z && vertex.z <= maximum.z) {
             return 1;
         }
     }
@@ -1779,25 +1778,27 @@ unsigned char TestSpatialTriangle(const srVector3T<float>* bounds,
     if (plane_normal == 0) {
         return 0;
     }
-    const float* normal = &plane_normal->x;
 
     bool near_axis = 0;
-    float plane_point[3];
+    srVector3T<float> plane_point;
     for (short axis = 0; axis < 3; ++axis) {
-        if (vertex_values[0][axis] < minimum[axis] && vertex_values[1][axis] < minimum[axis] &&
-            vertex_values[2][axis] < minimum[axis]) {
+        if ((&vertices[0].x)[axis] < (&minimum.x)[axis] &&
+            (&vertices[1].x)[axis] < (&minimum.x)[axis] &&
+            (&vertices[2].x)[axis] < (&minimum.x)[axis]) {
             return 0;
         }
-        if (maximum[axis] < vertex_values[0][axis] && maximum[axis] < vertex_values[1][axis] &&
-            maximum[axis] < vertex_values[2][axis]) {
+        if ((&maximum.x)[axis] < (&vertices[0].x)[axis] &&
+            (&maximum.x)[axis] < (&vertices[1].x)[axis] &&
+            (&maximum.x)[axis] < (&vertices[2].x)[axis]) {
             return 0;
         }
-        if (g_float_005ec414 < static_cast<float>(fabs(normal[axis])) &&
-            minimum[axis] <= vertex_values[0][axis] && vertex_values[0][axis] <= maximum[axis]) {
+        if (g_float_005ec414 < static_cast<float>(fabs((&plane_normal->x)[axis])) &&
+            (&minimum.x)[axis] <= (&vertices[0].x)[axis] &&
+            (&vertices[0].x)[axis] <= (&maximum.x)[axis]) {
             near_axis = 1;
         }
-        plane_point[axis] =
-            (vertex_values[0][axis] + vertex_values[1][axis] + vertex_values[2][axis]) *
+        (&plane_point.x)[axis] =
+            ((&vertices[0].x)[axis] + (&vertices[1].x)[axis] + (&vertices[2].x)[axis]) *
             g_float_005ec410;
     }
 
@@ -1808,9 +1809,9 @@ unsigned char TestSpatialTriangle(const srVector3T<float>* bounds,
             for (int y = 0; y != 2; ++y) {
                 for (int z = 0; z != 2; ++z) {
                     float distance =
-                        ((x == 0 ? minimum[0] : maximum[0]) - plane_point[0]) * plane_normal->x +
-                        ((y == 0 ? minimum[1] : maximum[1]) - plane_point[1]) * plane_normal->y +
-                        ((z == 0 ? minimum[2] : maximum[2]) - plane_point[2]) * plane_normal->z;
+                        ((x == 0 ? minimum.x : maximum.x) - plane_point.x) * plane_normal->x +
+                        ((y == 0 ? minimum.y : maximum.y) - plane_point.y) * plane_normal->y +
+                        ((z == 0 ? minimum.z : maximum.z) - plane_point.z) * plane_normal->z;
                     if (distance <= g_float_zero) {
                         negative = 1;
                     }
@@ -1825,13 +1826,13 @@ unsigned char TestSpatialTriangle(const srVector3T<float>* bounds,
         }
     }
 
-    float edge_start[3][3];
-    float edge_delta[3][3];
+    srVector3T<float> edge_start[3];
+    srVector3T<float> edge_delta[3];
     for (int edge = 0; edge != 3; ++edge) {
         int next = edge == 2 ? 0 : edge + 1;
         for (int axis = 0; axis != 3; ++axis) {
-            edge_start[edge][axis] = vertex_values[edge][axis];
-            edge_delta[edge][axis] = vertex_values[next][axis] - vertex_values[edge][axis];
+            (&edge_start[edge].x)[axis] = (&vertices[edge].x)[axis];
+            (&edge_delta[edge].x)[axis] = (&vertices[next].x)[axis] - (&vertices[edge].x)[axis];
         }
     }
 
@@ -1839,27 +1840,29 @@ unsigned char TestSpatialTriangle(const srVector3T<float>* bounds,
         short first_axis = face_axis == 2 ? 0 : face_axis + 1;
         short second_axis = face_axis == 0 ? 2 : face_axis - 1;
         for (short side = 0; side < 2; ++side) {
-            float intersection[2][2];
+            srVector2T<float> intersection[2];
             short intersection_count = 0;
-            float face = side == 0 ? minimum[face_axis] : maximum[face_axis];
+            float face = side == 0 ? (&minimum.x)[face_axis] : (&maximum.x)[face_axis];
 
             for (short edge = 0; edge < 3; ++edge) {
                 if (static_cast<float>(g_double_005ebc70) <
-                    static_cast<float>(fabs(edge_delta[edge][face_axis]))) {
-                    float amount =
-                        (face - edge_start[edge][face_axis]) / edge_delta[edge][face_axis];
+                    static_cast<float>(fabs((&edge_delta[edge].x)[face_axis]))) {
+                    float amount = (face - (&edge_start[edge].x)[face_axis]) /
+                                   (&edge_delta[edge].x)[face_axis];
                     if (g_float_zero <= amount && amount <= g_float_one) {
-                        float first =
-                            edge_start[edge][first_axis] + amount * edge_delta[edge][first_axis];
-                        float second =
-                            edge_start[edge][second_axis] + amount * edge_delta[edge][second_axis];
-                        if (minimum[first_axis] <= first && first <= maximum[first_axis] &&
-                            minimum[second_axis] <= second && second <= maximum[second_axis]) {
+                        float first = (&edge_start[edge].x)[first_axis] +
+                                      amount * (&edge_delta[edge].x)[first_axis];
+                        float second = (&edge_start[edge].x)[second_axis] +
+                                       amount * (&edge_delta[edge].x)[second_axis];
+                        if ((&minimum.x)[first_axis] <= first &&
+                            first <= (&maximum.x)[first_axis] &&
+                            (&minimum.x)[second_axis] <= second &&
+                            second <= (&maximum.x)[second_axis]) {
                             return 1;
                         }
                         if (intersection_count < 2) {
-                            intersection[intersection_count][0] = first;
-                            intersection[intersection_count][1] = second;
+                            intersection[intersection_count].x = first;
+                            intersection[intersection_count].y = second;
                         }
                         ++intersection_count;
                     }
@@ -1867,21 +1870,23 @@ unsigned char TestSpatialTriangle(const srVector3T<float>* bounds,
             }
 
             if (intersection_count == 2) {
-                float delta[2] = {intersection[1][0] - intersection[0][0],
-                                  intersection[1][1] - intersection[0][1]};
+                srVector2T<float> delta(intersection[1].x - intersection[0].x,
+                                        intersection[1].y - intersection[0].y);
                 short rectangle_axes[2] = {first_axis, second_axis};
                 for (short coordinate = 0; coordinate < 2; ++coordinate) {
-                    if (g_float_005ebc90 < static_cast<float>(fabs(delta[coordinate]))) {
+                    if (g_float_005ebc90 < static_cast<float>(fabs((&delta.x)[coordinate]))) {
                         short other = coordinate == 0 ? 1 : 0;
                         for (short edge_side = 0; edge_side < 2; ++edge_side) {
-                            float boundary = edge_side == 0 ? minimum[rectangle_axes[coordinate]]
-                                                            : maximum[rectangle_axes[coordinate]];
-                            float amount =
-                                (boundary - intersection[0][coordinate]) / delta[coordinate];
+                            float boundary = edge_side == 0
+                                                 ? (&minimum.x)[rectangle_axes[coordinate]]
+                                                 : (&maximum.x)[rectangle_axes[coordinate]];
+                            float amount = (boundary - (&intersection[0].x)[coordinate]) /
+                                           (&delta.x)[coordinate];
                             if (g_float_zero <= amount && amount <= g_float_one) {
-                                float crossing = intersection[0][other] + amount * delta[other];
-                                if (minimum[rectangle_axes[other]] <= crossing &&
-                                    crossing <= maximum[rectangle_axes[other]]) {
+                                float crossing =
+                                    (&intersection[0].x)[other] + amount * (&delta.x)[other];
+                                if ((&minimum.x)[rectangle_axes[other]] <= crossing &&
+                                    crossing <= (&maximum.x)[rectangle_axes[other]]) {
                                     return 1;
                                 }
                             }

@@ -199,7 +199,7 @@ def test_known_external_api_can_anchor_without_body(scalar, tmp_path):
     facts = read(
         scalar,
         tmp_path,
-        declaration("API", kind="function", signedness="unsigned"),
+        declaration("API", kind="function"),
         declaration("local"),
         "F\tlocal\tAPI\tinitializer\tsrc/wiz8/test.cpp\t2\t1",
     )
@@ -211,7 +211,7 @@ def test_known_external_api_can_anchor_without_body(scalar, tmp_path):
     }
     result = property_report(scalar, facts, evidence(scalar, tmp_path, facts, seed))
     assert result["status"] == "candidate"
-    assert result["changes"] == ["local"]
+    assert result["changes"] == ["API", "local"]
 
 
 def test_width_and_signedness_are_independent(scalar, tmp_path):
@@ -1300,3 +1300,54 @@ def test_character_recovery_follows_every_storage_consumer(scalar, tmp_path, kin
     seed = independent_claim("a::element", "character", "char")
     result = scalar.array_report(facts, [seed])["character_components"][0]
     assert result["status"] == ("blocked" if blocked else "candidate"), result
+
+
+@pytest.mark.parametrize("body,blocked", [(True, False), (False, True)])
+def test_receiver_passed_to_collected_body_does_not_escape(scalar, tmp_path, body, blocked):
+    rows = [
+        declaration("field", kind="field"),
+        "A\tfield\taggregate storage argument@x.cpp:1:1:function:Owner::Update\tx.cpp\t2\t1",
+    ]
+    if body:
+        rows.append("HB\tx.cpp:1:1:function:Owner::Update")
+    facts = read(scalar, tmp_path, *rows)
+    assert [use.detail for use in facts.escapes] == ([] if body else ["aggregate storage argument"])
+    result = property_report(scalar, facts, [claim("field")])
+    assert result["status"] == ("blocked" if blocked else "candidate")
+
+
+@pytest.mark.parametrize(
+    "rows,escapes",
+    [
+        (["HB\tBase::Draw", "OV\tBase::Draw\tDerived::Draw", "HB\tDerived::Draw"], False),
+        (["PV\tBase::Draw", "OV\tBase::Draw\tDerived::Draw", "HB\tDerived::Draw"], False),
+        (["HB\tBase::Draw", "OV\tBase::Draw\tDerived::Draw"], True),
+        ([], True),
+    ],
+)
+def test_virtual_receiver_escape_requires_every_override_body(scalar, tmp_path, rows, escapes):
+    facts = read(
+        scalar,
+        tmp_path,
+        declaration("field", kind="field"),
+        "A\tfield\taggregate storage argument@virtual:Base::Draw\tx.cpp\t2\t1",
+        *rows,
+    )
+    assert bool(facts.escapes) == escapes
+
+
+def test_signedness_conversion_is_not_signedness_equality(scalar, tmp_path):
+    facts = read(
+        scalar,
+        tmp_path,
+        declaration("count", kind="field"),
+        declaration("Count", kind="function", signedness="unsigned", spelling="unsigned long"),
+        "H\tCount\tbody\tx.cpp\t1\t1",
+        "F\tCount\tcount\treturn\tx.cpp\t2\t1",
+    )
+    getter = independent_claim("Count", "signedness", "unsigned")
+    rows = scalar.component_report(facts, [getter], "signedness")
+    assert not any(row["changes"] for row in rows)
+    assert {"count", "Count"} <= next(
+        set(row["members"]) for row in scalar.component_report(facts, [], "width")
+    )

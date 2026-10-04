@@ -196,8 +196,8 @@ static_assert(sizeof(GDPropCondPaths) == 0x44, "GDPropCondPaths_must_be_0x44");
    participate and the third slots are zeroed. Retail does not distinguish
    this grouping from adjacent scalar storage in the original declaration. */
 struct W8PathGridWalk {
-    int cell_00[3];     /* 0x00: destination X/Z cells; third component zero */
-    int step_0c[3];     /* 0x0c: +1 or -1 per active axis; third component zero */
+    srVector3T<int> cell_00; /* 0x00: destination X/Z cells; third component zero */
+    srVector3T<int> step_0c; /* 0x0c: +1 or -1 per active axis; third component zero */
     int major_axis_18;  /* 0x18: 0 for X, 1 for Z */
     int minor_axis_1c;  /* 0x1c: (major + 1) % 2 */
     int minor_axis_20;  /* 0x20: unused second secondary axis, zero */
@@ -360,7 +360,7 @@ public:
                                         bool snap_to_cell);
     unsigned char SnapToLowerPathCell(srVector3T<float>* position, bool allow_directional);
     unsigned char ProbeAttachmentPath(W8NavigatorAttachment* attachment);
-    unsigned int FindPathCell(srVector3T<float>* position, unsigned int* cell,
+    unsigned int FindPathCell(srVector3T<float>* position, srVector2T<unsigned int>* cell,
                               bool adjust);
     unsigned char BuildAttachmentPath(W8NavigatorAttachment* attachment, unsigned int flags);
     unsigned char PrepareLinkedNavigator(W8NavigatorMovementState* movement);
@@ -374,7 +374,7 @@ public:
     void BuildPathGridWalk(const srVector2T<float>* from, const srVector2T<float>* to,
                            const srVector2T<float>* origin, W8PathGridWalk* walk);
     unsigned char ProbeWaypointSegment(const srVector3T<float>* from, const srVector3T<float>* to);
-    unsigned int ComputeWaypointNeighborMask(const int* cell, unsigned int path_value);
+    unsigned int ComputeWaypointNeighborMask(const srVector2i* cell, unsigned int path_value);
     /* Sums the blocked-direction unit vectors among the directions `delta`
        points toward and normalizes the result into `direction`; zero when
        `mask` is fully open or nothing wanted is blocked. */
@@ -405,7 +405,7 @@ public:
        recursive result. m_probe_cell_key tracks the farthest candidate. */
     unsigned short RecurseTargetLinks(unsigned short waypoint); /* 0x004615D0 */
     unsigned short RecursePatrolLinks(unsigned short waypoint);
-    float MeasureDirectionalPath(const int* cell, int direction, unsigned int height,
+    float MeasureDirectionalPath(const srVector2i* cell, int direction, unsigned int height,
                                  float distance);
     float CompareDirectionalClearance(const srVector3T<float>* position,
                                       const srVector3T<float>* direction, float distance);
@@ -465,8 +465,7 @@ public:
     /* Path probe-clearance height, raw float bits from the octree
        header word; only ConfigureForLevel writes it. */
     int path_clearance_028; /* 0x28 */
-    float level_bounds[6];  /* 0x2c: serialized minimum/maximum pair; the ctor's
-                             counted six-store loop proves the authored array */
+    W8BoundingBox level_bounds; /* 0x2c: minimum/maximum pair */
     /* Four malloc'd tables and one polymorphic object, all released by
        0x00457B10 - the first four with free, the last through its own
        deleting slot. */

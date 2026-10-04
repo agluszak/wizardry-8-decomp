@@ -945,7 +945,7 @@ void UseItemSelectTextBoxWheelAt(short x, unsigned short y, bool flag)
 // FUNCTION: WIZ8 0x0059DDC0
 void SelectUseItemLine(int iTextLine)
 {
-    int target_type;
+    W8SpellTargetType target_type;
 
     if (iTextLine < 0) {
         srAssertFail("iTextLine >= 0", MGSUSEITEMSELECT_CPP, 0x61d, 0);

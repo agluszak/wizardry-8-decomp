@@ -180,7 +180,7 @@ bool RunNpcDialogueSemanticTest(NpcDialogueSemanticResult* result)
        while a nonzero value installs directly. The fake screen is freed below,
        so the layout fields need no restore. */
     fake_screen->dialogue_layout = W8_DIALOGUE_LAYOUT_TOPIC_MENU;
-    SetNpcDialogueLayoutMode(0);
+    SetNpcDialogueLayoutMode(W8_DIALOGUE_LAYOUT_NONE);
     result->layout_retired =
         fake_screen->previous_dialogue_layout == W8_DIALOGUE_LAYOUT_TOPIC_MENU &&
         fake_screen->dialogue_layout == W8_DIALOGUE_LAYOUT_NONE;

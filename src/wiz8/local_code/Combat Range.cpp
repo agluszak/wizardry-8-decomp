@@ -128,7 +128,7 @@ bool CanPartySlotAttackAnyTarget(int party_slot, int category, int flag, bool ha
                     int action;
                     W8ActionDetailBlock* detail;
                     ChooseCombatAction(first, category, &kind, &action, 0, &detail);
-                    int range;
+                    W8RangeCategory range;
                     switch (kind) {
                     case W8_ACTION_ATTACK:
                     case W8_ACTION_BERSERK:
@@ -153,10 +153,10 @@ bool CanPartySlotAttackAnyTarget(int party_slot, int category, int flag, bool ha
                     default:
                         continue;
                     }
-                    if (range == -1) {
+                    if (range == W8_RANGE_NONE) {
                         continue;
                     }
-                    if (range != 0) {
+                    if (range != W8_RANGE_TOUCH) {
                         return 1;
                     }
                     if (FrontRankScreens(first, slot) == 0) {
@@ -193,11 +193,11 @@ bool CharacterActionReachesTarget(int party_slot, int hand, W8TargetingContext c
     if (target->iType == W8_TARGET_KIND_CHARACTER) {
         int target_slot = target->iChar;
         if (static_cast<char>(party_slot) != target_slot) {
-            int range = GetCharActionRange(party_slot, hand, context);
-            if (range == -1) {
+            W8RangeCategory range = GetCharActionRange(party_slot, hand, context);
+            if (range == W8_RANGE_NONE) {
                 return false;
             }
-            if (range == 0 && FrontRankScreens(party_slot, target_slot) != 0) {
+            if (range == W8_RANGE_TOUCH && FrontRankScreens(party_slot, target_slot) != 0) {
                 return false;
             }
         }
@@ -216,7 +216,7 @@ bool CharacterActionReachesTarget(int party_slot, int hand, W8TargetingContext c
         if (spell_id == 0) {
             srAssertFail("uiSpell != SPELL_NONE", COMBAT_RANGE_CPP, 0xee, 0);
         }
-        int target_type = GetSpellTargetType(spell_id, 0);
+        W8SpellTargetType target_type = GetSpellTargetType(spell_id, 0);
         if (target_type == 5) {
             trace = false;
             distance = g_float_005ec35c;
@@ -368,7 +368,7 @@ bool CharacterActionReachesSlot(int party_slot, int hand, int target_slot, int c
     int action;
     W8ActionDetailBlock* detail;
     ChooseCombatAction(party_slot, context, &kind, &action, 0, &detail);
-    int range;
+    W8RangeCategory range;
     switch (kind) {
     case W8_ACTION_ATTACK:
     case W8_ACTION_BERSERK:
@@ -436,7 +436,7 @@ bool IsSlotInRangeOfGroup(int party_slot, int group_id, W8TargetingContext conte
    weapon's reach for the asked hand, a move acts at long range, spells and
    item uses ask their spell record, and anything unknown has no range. */
 // FUNCTION: WIZ8 0x005199f0
-int GetCharActionRange(int party_slot, int hand, W8TargetingContext context)
+W8RangeCategory GetCharActionRange(int party_slot, int hand, W8TargetingContext context)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
     W8ActionDetailBlock* detail_block;
@@ -468,17 +468,17 @@ int GetCharActionRange(int party_slot, int hand, W8TargetingContext context)
    hand actually in play carrying a melee or thrown wield kind has a range to
    report at all. */
 // FUNCTION: WIZ8 0x00519ac0
-int GetCharAttackRange(const W8Character* character, unsigned int hand)
+W8RangeCategory GetCharAttackRange(const W8Character* character, unsigned int hand)
 {
     unsigned int index;
-    int best;
-    int range;
+    W8RangeCategory best;
+    W8RangeCategory range;
 
     if (hand >= 2) {
         if (hand != 2) {
             srAssertFail("uiHand == HAND_ANY", COMBAT_RANGE_CPP, 0x1f2, 0);
         }
-        best = -1;
+        best = W8_RANGE_NONE;
         for (index = 0; index < 2; ++index) {
             if (character->Hand[index].in_play != 0) {
                 range = GetCharAttackRange(character, index);
@@ -493,12 +493,13 @@ int GetCharAttackRange(const W8Character* character, unsigned int hand)
         FormatDebugMessage(1,
                            "ERROR: GetCharAttackRange for hand %d which can't attack, uiChar = %d",
                            hand, CharacterPointerToPartySlot(character));
-        return -1;
+        return W8_RANGE_NONE;
     }
     if (character->Hand[hand].uiHolds != 1 && character->Hand[hand].uiHolds != 3) {
-        return 0;
+        return W8_RANGE_TOUCH;
     }
-    return g_item_records[character->EquippedItem[6 + (hand != 0)].iItemNo].wield_group;
+    return static_cast<W8RangeCategory>(
+        g_item_records[character->EquippedItem[6 + (hand != 0)].iItemNo].range_category);
 }
 
 /* The furthest range category any of this character's hands can reach at. */
@@ -511,7 +512,7 @@ W8RangeCategory GetBestHandRangeCategory(const W8Character* character)
 
     for (hand = 0; hand < 2; ++hand) {
         if (character->Hand[hand].in_play != 0) {
-            category = static_cast<W8RangeCategory>(GetCharAttackRange(character, hand));
+            category = GetCharAttackRange(character, hand);
             if (category > best) {
                 best = category;
             }
