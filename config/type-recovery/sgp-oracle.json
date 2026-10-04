@@ -1,0 +1,33 @@
+{
+  "schema": "wiz8.scalar-source-oracle-v1",
+  "revision": "72697ddaac1c9c9f0715a01dc74e29b27f569709",
+  "source_root": "third_party/sfi-sgp/sgp",
+  "overlay_roots": ["config/sgp-overlays/common"],
+  "units": ["timer.h"],
+  "correspondences": [
+    {
+      "claim_id": "function-source:wiz8:00406be0:GetClock",
+      "retained_declaration": true,
+      "reason": "The retained clock API returns TIMER timestamps; the released header establishes its exact declaration.",
+      "original": {"file": "third_party/sfi-sgp/sgp/timer.h", "kind": "function", "name": "GetClock"},
+      "current": {"file": "src/sgp/timer.h", "kind": "function", "name": "GetClock"},
+      "nominal_roles": {"return": "timer"}
+    },
+    {
+      "claim_id": "function-source:wiz8:00406bf0:SetCountdownClock",
+      "retained_declaration": true,
+      "reason": "The retained clock API takes a UINT32 millisecond duration and returns a TIMER deadline.",
+      "original": {"file": "third_party/sfi-sgp/sgp/timer.h", "kind": "function", "name": "SetCountdownClock"},
+      "current": {"file": "src/sgp/timer.h", "kind": "function", "name": "SetCountdownClock"},
+      "nominal_roles": {"return": "timer"}
+    },
+    {
+      "claim_id": "function-source:wiz8:00406c00:ClockIsTicking",
+      "retained_declaration": true,
+      "reason": "The retained clock API consumes a TIMER deadline and returns UINT32 remaining milliseconds.",
+      "original": {"file": "third_party/sfi-sgp/sgp/timer.h", "kind": "function", "name": "ClockIsTicking"},
+      "current": {"file": "src/sgp/timer.h", "kind": "function", "name": "ClockIsTicking"},
+      "nominal_roles": {"#0": "timer"}
+    }
+  ]
+}

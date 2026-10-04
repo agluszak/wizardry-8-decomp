@@ -267,3 +267,22 @@ assert len(result["changed_declarations"]) == 4, result
 assert "typedef unsigned long (*FixturePatchCallback)(unsigned long);" in patch.read_text()
 assert "unsigned long FixturePatchImplementation(unsigned long value)" in patch.read_text()
 print("callback signatures and all implementation redeclarations patch together")
+
+# Export/source importers use the same native declaration identity as reccmp,
+# including void-return functions which have no scalar return D node.
+signatures = {row[0]: row for row in facts.signatures.values()}
+assert signatures["ReadDuration"][1:4] == (0, 0, False)
+assert signatures["StoreDuration"][1:4] == (1, 0, False)
+assert signatures["StoreDuration"][4]
+
+# Same physical template member location is not the same typed entity.
+for member in ("storage_data", "storage_count"):
+    keys = [key for key, row in facts.declarations.items() if row.name == member]
+    assert len(keys) == 2, (member, keys)
+    assert not set(keys).intersection(facts.inconsistent), (member, facts.inconsistent)
+data = [key for key, row in facts.declarations.items() if row.name == "storage_data"]
+assert {facts.types[key][0] for key in data} == {"int *", "unsigned long *"}
+from scalar_facts import flow_components
+
+assert not any(set(data).issubset(component) for component in flow_components(facts))
+print("template specializations retain distinct, cross-TU-stable declaration identities")

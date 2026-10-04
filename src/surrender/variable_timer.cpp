@@ -185,7 +185,7 @@ unsigned long srVariableTimer::stepEnd()
     m_scaled_base += delta;
     m_pause.lo = 0;
     m_pause.hi = 0;
-    result = ((delta * static_cast<unsigned int>(m_units_per_interval)) / m_frequency).lo;
+    result = ((delta * m_units_per_interval) / m_frequency).lo;
     return result;
 }
 
@@ -288,9 +288,7 @@ unsigned long srVariableTimer::getUTime(srQuadWord& out, e_timerReadControl cont
 char* srVariableTimer::getAscTime(char* buffer, e_timerReadControl control)
 {
     getUTime(control);
-    srQuadWord ticks =
-        ((m_scaled_tick - m_scaled_base) * static_cast<unsigned int>(m_units_per_interval)) /
-        m_frequency;
+    srQuadWord ticks = ((m_scaled_tick - m_scaled_base) * m_units_per_interval) / m_frequency;
     return srTimer::getAscTime(buffer, ticks);
 }
 

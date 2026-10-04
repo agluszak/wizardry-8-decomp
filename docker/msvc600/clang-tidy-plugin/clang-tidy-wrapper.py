@@ -512,6 +512,26 @@ def _run_clang_tidy(arguments: list[str], environment: dict[str, str]) -> int:
 
 
 def main() -> None:
+    if sys.argv[1:2] == ["--wiz8-scalar-harvest"]:
+        import json
+
+        from scalar_facts import harvest_declaration_evidence
+
+        parser = argparse.ArgumentParser(
+            description="Harvest explicitly paired declaration contracts"
+        )
+        parser.add_argument("facts", type=Path)
+        parser.add_argument("--oracle-facts", type=Path, required=True)
+        parser.add_argument("--mappings", type=Path, required=True)
+        parser.add_argument("--output", type=Path, required=True)
+        options = parser.parse_args(sys.argv[2:])
+        evidence = harvest_declaration_evidence(
+            read_scalar_facts(options.facts),
+            read_scalar_facts(options.oracle_facts),
+            json.loads(options.mappings.read_text(encoding="utf-8")),
+        )
+        options.output.write_text(json.dumps(evidence, indent=2) + "\n", encoding="utf-8")
+        return
     if sys.argv[1:2] == ["--wiz8-scalar-report"]:
         parser = argparse.ArgumentParser(
             description="Report integer recovery from shared scalar facts"

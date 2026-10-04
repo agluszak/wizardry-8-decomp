@@ -1,4 +1,9 @@
 #include "scalar_test.h"
+void ObserveStorageSpecializations()
+{
+    fixture_int_storage.storage_count = 1;
+    fixture_unsigned_storage.storage_count = 2;
+}
 void StoreDuration(int milliseconds)
 {
     g_scalar_state.stored_duration = milliseconds;

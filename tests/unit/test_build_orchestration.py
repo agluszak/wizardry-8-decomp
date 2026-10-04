@@ -396,11 +396,12 @@ def test_surrender_build_indexes_before_provider_validation_on_a_fresh_runner(
     monkeypatch.setattr(build, "_product_cache_ready", lambda _: True)
     monkeypatch.setattr(build, "run", lambda *_args, **_kwargs: None)
     monkeypatch.setattr(
-        "wiz8decomp.source_index.write_source_index", lambda _: events.append("index")
+        "wiz8decomp.source_index.write_source_index",
+        lambda _, *, jobs: events.append(("index", jobs)),
     )
 
     def validate(*_args):
-        assert events == ["index"]
+        assert events == [("index", 1)]
         events.append("provider")
         return {"ok": True, "compiler_exports_absent_from_retail": ["implicit"]}
 
@@ -409,8 +410,8 @@ def test_surrender_build_indexes_before_provider_validation_on_a_fresh_runner(
         "wiz8decomp.surrender_exports.validate_built_surrender_exports",
         lambda *_: events.append("exports") or {"ok": True},
     )
-    result = build.build_target(settings, "SURRENDER")
-    assert events == ["index", "provider", "exports"]
+    result = build.build_target(settings, "SURRENDER", jobs=1)
+    assert events == [("index", 1), "provider", "exports"]
     assert result["provider_objects"]["compiler_exports_absent_from_retail"] == ["implicit"]
 
 
@@ -454,6 +455,9 @@ def test_scalar_campaign_owns_fresh_complete_corpus_and_rejects_partial_runs(
     (output / "compile_commands.json").write_text("[]")
     monkeypatch.setattr("wiz8decomp.emissions.generate_emissions", lambda *_: None)
     monkeypatch.setattr(build, "configure_clang", lambda *_: (output, ["docker", "run"]))
+    monkeypatch.setattr(build, "_docker_image_id", lambda: "sha256:fixture")
+    (tmp_path / "docker/msvc600/clang-tidy-plugin").mkdir(parents=True)
+    (tmp_path / "docker/msvc600/clang-tidy-plugin/scalar_facts.py").write_text("fixture")
     monkeypatch.setattr(build, "_docker_image_id", lambda: "sha256:fixture")
     recovered = ["/repo/src/wiz8/one.cpp", "/repo/src/wiz8/two.cpp"]
     oracle = ["/repo/src/sgp/timer.c"]
@@ -511,3 +515,76 @@ def test_scalar_campaign_owns_fresh_complete_corpus_and_rejects_partial_runs(
         assert manifest["status"] == "completed"
         assert manifest["evidence_sha256"]
         assert manifest["image"] == "sha256:fixture"
+
+
+def test_scalar_export_evidence_reuses_compile_owner_and_orders_driver_flags(tmp_path, monkeypatch):
+    import json
+    from types import SimpleNamespace
+
+    from wiz8decomp import source_index, surrender_abi
+    from wiz8decomp.paths import sha256_file
+
+    settings = SimpleNamespace(repo_dir=tmp_path)
+    output = tmp_path / "build/clang"
+    output.mkdir(parents=True)
+    database = output / "compile_commands.json"
+    database.write_text(
+        json.dumps(
+            [
+                {
+                    "file": "/repo/src/surrender/unit.cpp",
+                    "directory": "/out",
+                    "command": "clang-cl -c -- /repo/src/surrender/unit.cpp",
+                }
+            ]
+        )
+    )
+    campaign = output / "scalar-campaigns/run-test"
+    campaign.mkdir(parents=True)
+    (campaign / "manifest.json").write_text(
+        json.dumps(
+            {
+                "status": "completed",
+                "compile_commands_sha256": sha256_file(database),
+                "recovered_translation_units": ["/repo/src/surrender/unit.cpp"],
+                "sgp_translation_units": [],
+            }
+        )
+    )
+    (campaign / "report.json").write_text(
+        json.dumps({"translation_units": ["src/surrender/unit.cpp"]})
+    )
+    monkeypatch.setattr(build, "configure_clang", lambda *_: (output, ["docker", "run"]))
+    monkeypatch.setattr(build, "_docker_image_id", lambda: "sha256:fixture")
+    (tmp_path / "docker/msvc600/clang-tidy-plugin").mkdir(parents=True)
+    (tmp_path / "docker/msvc600/clang-tidy-plugin/scalar_facts.py").write_text("fixture")
+    monkeypatch.setattr(source_index, "load_source_index", lambda _: {})
+    monkeypatch.setattr(
+        surrender_abi,
+        "paired_export_declarations",
+        lambda *_: {
+            "sources": {
+                "src/surrender/unit.cpp": ["struct OracleExport0 { static int invoke(); };"]
+            },
+            "mappings": [],
+            "binary_sha256": "a" * 64,
+            "skipped": [],
+        },
+    )
+    calls = []
+
+    def run(argv, **_):
+        calls.append(argv)
+        directory = next(campaign.parent.glob("evidence-*"))
+        if "--wiz8-scalar-harvest" in argv:
+            (directory / "evidence.json").write_text(json.dumps({"claims": [], "skipped": []}))
+        else:
+            commands = json.loads((directory / "oracle/compile_commands.json").read_text())
+            args = commands[0]["arguments"]
+            assert args.index("-fno-access-control") < args.index("--")
+            assert args[-1].startswith("/oracle/exports/")
+            assert "WIZ8_REDUNDANT_CAST_LINES=*" in argv
+
+    monkeypatch.setattr(build, "run", run)
+    assert build.scalar_evidence_campaign(settings, campaign, exports=True)["status"] == "completed"
+    assert len(calls) == 2

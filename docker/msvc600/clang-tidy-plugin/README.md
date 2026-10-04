@@ -1,6 +1,11 @@
 # Whole-program scalar facts
 
 `ScalarFacts.h` owns canonical declaration/parameter identity and the fact writer.
+Concrete template specializations carry their canonical Clang owner identity:
+members of different `Array<T>` instantiations never share a node merely because
+they occupy the same template source location. Uninstantiated dependent owners
+do not provide concrete storage nodes. Shared editable source atoms still require
+agreement across every specialization before a patch can change them.
 `ScalarFacts.cpp` collects source declarations, transfers, constants, operations,
 body coverage, type atoms and source hashes, comparison/mask operands,
 typedef/pointee identities, callback slots, and escapes across the supplied translation units. Parameters use
@@ -297,3 +302,35 @@ uses share the typedef's source atoms: every collected owner must agree before a
 edit is emitted. Arity, calling convention, variadics, unresolved producers and ABI
 escapes remain blockers; bound implementations must have collected bodies. Array
 extent spans are collected separately and do not authorize changing extents.
+
+## Import independent declaration contracts
+
+After collecting a complete campaign, generate ordinary scalar evidence from
+explicit retained-source correspondences and already-paired retail exports:
+
+```sh
+uv run wiz8 analyze scalar-evidence \
+  --campaign build/clang/scalar-campaigns/run-... \
+  --oracle config/type-recovery/sgp-oracle.json --exports
+```
+
+The source importer extracts byte-preserved headers from a full immutable Git
+revision and records each original path, blob and SHA256. An accepted source
+identity is insufficient by itself: each correspondence explicitly reviews that
+its declaration contract was retained. Clang parses the released declarations;
+the configuration supplies correspondence and reviewed typedef roles, not hand
+copied width/signedness/type facts.
+
+The export importer reads the canonical retail `sr.dll`, verifies its inventory
+SHA256, and uses existing reccmp source-index address pairings. LLVM decodes the
+export signatures; Clang collects their scalar properties using each paired
+source TU's configured include environment. Constructors, operators, thunks,
+ambiguous folded addresses and unmatched names are skipped. Function arity,
+calling convention and variadic shape must agree before a contract seeds the
+current graph. This does not infer erased typedef aliases, record layouts or
+historical plain-char signedness from exports.
+
+Artifacts under the campaign parent include original facts, extraction manifest,
+exact mappings, provenance, collection logs and `evidence.json`. Replay the normal
+`--wiz8-scalar-report` / patch writer with that evidence; importing a declaration
+contract does not remove operation, escape or component-consistency blockers.

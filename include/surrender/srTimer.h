@@ -133,11 +133,11 @@ public:
     char m_ident[0x400];     /* 0x008: module/OS identity text */
     char m_cpu_ident[0x400]; /* 0x408: processor identity text */
     /* Ticks per second, measured by reset(). */
-    srQuadWord m_frequency;   /* 0x808 */
-    srQuadWord m_base;        /* 0x810: tick offset subtracted from reads */
-    srQuadWord m_tick;        /* 0x818: last-read tick snapshot */
-    srQuadWord m_pause;       /* 0x820: tick at pause(), zero while running */
-    int m_units_per_interval; /* 0x828: the game-timer unit writes 10000 */
+    srQuadWord m_frequency;            /* 0x808 */
+    srQuadWord m_base;                 /* 0x810: tick offset subtracted from reads */
+    srQuadWord m_tick;                 /* 0x818: last-read tick snapshot */
+    srQuadWord m_pause;                /* 0x820: tick at pause(), zero while running */
+    unsigned int m_units_per_interval; /* 0x828: timer units per second */
     unsigned char unknown_82c_[0x4];
     double m_seconds_per_tick;     /* 0x830: 1.0 / frequency */
     double m_units_per_tick;       /* 0x838: units / frequency */

@@ -806,7 +806,7 @@ unsigned long srTimer::resume()
         m_pause.lo = 0;
         m_pause.hi = 0;
     }
-    return ((delta * static_cast<unsigned int>(m_units_per_interval)) / m_frequency).lo;
+    return ((delta * m_units_per_interval) / m_frequency).lo;
 }
 
 // FUNCTION: SURRENDER 0x10062DF0
@@ -850,8 +850,7 @@ unsigned long srTimer::getUTime(srQuadWord& out, e_timerReadControl control)
 char* srTimer::getAscTime(char* buffer, e_timerReadControl control)
 {
     getUTime(control);
-    srQuadWord ticks =
-        ((m_tick - m_base) * static_cast<unsigned int>(m_units_per_interval)) / m_frequency;
+    srQuadWord ticks = ((m_tick - m_base) * m_units_per_interval) / m_frequency;
     return getAscTime(buffer, ticks);
 }
 
