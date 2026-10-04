@@ -470,15 +470,7 @@ void srInlineString::reset()
 srInlineString operator+(const srInlineString& left, const srInlineString& right)
 {
     srInlineString result(left);
-    if (right.data_ != 0 && *right.data_ != '\0') {
-        unsigned long combined_size = result.size_ + strlen(right.data_);
-        char* combined = static_cast<char*>(srHeap.allocate(combined_size));
-        strcpy(combined, result.data_);
-        strcpy(combined + result.size_ - 1, right.data_);
-        result.reset();
-        result.size_ = combined_size;
-        result.data_ = combined;
-    }
+    result += right.data_;
     return result;
 }
 
