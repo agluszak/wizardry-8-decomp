@@ -33,7 +33,7 @@ public:
     private:
         friend class srModel;
         srPtr<srModel> model_04;
-        Client* previous_08;
+        Client* previous;
         Client* next_0c;
     };
 
@@ -62,7 +62,7 @@ public:
     Client* getFirstClient() const;
 
 protected:
-    Client* first_client_18;
+    Client* first_client;
 };
 
 static_assert((sizeof(srModel::Client) == 0x10), "srModelClient_must_be_0x10");

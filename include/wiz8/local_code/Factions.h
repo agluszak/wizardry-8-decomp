@@ -38,13 +38,13 @@ struct W8FactionRuntimeRecord {
     signed char disposition_score;
     /* 0x01: witnessed offenses against the faction; RecordFactionOffense
        increments it (cap 0xfa) and reads it for the penalty tiers. */
-    int offense_count_01;
+    int offense_count;
     unsigned char unknown_05;
     /* 0x06: g_status.world_clock at the last band change. */
-    int band_changed_clock_06;
+    int band_changed_clock;
     /* 0x0a: raised by the sight pass the first time the party sees one of
        this faction's monsters; the journal lists encountered factions. */
-    bool encountered_0a;
+    bool encountered;
     unsigned char unknown_0b[3];
 };
 

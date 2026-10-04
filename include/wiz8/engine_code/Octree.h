@@ -30,7 +30,7 @@ struct W8OctPreTreeGeometry;
 struct W8BoundingBox;
 
 /* The 0x30-byte ray state the octree line/probe walks share: a segment
-   (start_00, end_0c), a fixed-length march step_18 (end-start scaled by
+   (start, end_0c), a fixed-length march step_18 (end-start scaled by
    g_double_005ebc30 / length), the closest accepted hit distance at +0x24,
    the segment length at +0x28 and a per-probe flag word at +0x2c.
    The default constructor at 0x004577C0 seeds +0x24 with the 0x60AD78EC
@@ -41,17 +41,17 @@ struct W8BoundingBox;
    Their call sites distinguish construction from mutation; they are not
    duplicate header emissions of one constructor. */
 struct W8OctreeTrace {
-    srVector3T<float> start_00;
+    srVector3T<float> start;
     srVector3T<float> end_0c;
     srVector3T<float> step_18;
-    float hit_limit_24;
+    float hit_limit;
     float length_28;
-    unsigned short state_2c;
+    unsigned short state;
     unsigned short pad_2e;
 
     W8OctreeTrace(); /* 0x004577C0 */
     /* Copies the endpoints, stores the normalized direction, seeds
-       hit_limit_24/length_28 and clears state_2c. */
+       hit_limit/length_28 and clears state. */
     W8OctreeTrace(const srVector3T<float>* from, const srVector3T<float>* to); /* 0x00457640 */
     /* Identical body to the (from, to) constructor; the only retail caller is
        the OctPreTree segment-occlusion walk at 0x00467BB0. */
@@ -132,9 +132,9 @@ struct W8OctSubmesh {
     int mesh_04;
     /* The same-chain successor's record index (the build record's
        m_next_link). */
-    unsigned long next_link_08;
+    unsigned long next_link;
     /* Reader max-scans this to size the g_octree_storage identity table. */
-    unsigned int polygon_count_0c;
+    unsigned int polygon_count;
 };
 
 static_assert(sizeof(W8OctSubmesh) == 0x10, "W8OctSubmesh_must_be_0x10");
@@ -229,19 +229,19 @@ static_assert(sizeof(W8OctreeWalk) == 0x40, "W8OctreeWalk_must_be_0x40");
    followed by eight child indices; a leaf retains offsets into the region and
    two polygon-index streams.  The rest of the leaf is still positional. */
 struct W8OctPreTreeBranch {
-    unsigned short provisional_region_00;
+    unsigned short provisional_region;
     /* The region/owner id VerifyPolygonRegions and the runtime region reads
-       compare against a polygon's region_32. */
-    unsigned short region_02;
-    unsigned long children_04[8];
+       compare against a polygon's region. */
+    unsigned short region;
+    unsigned long children[8];
 };
 
 struct W8OctPreTreeLeaf {
     /* Bit 0 is a runtime flag WriteOctFile clears before serialization. */
     unsigned long flags_00;
-    unsigned long region_offset_04;
-    unsigned long polygon_offset_08;
-    unsigned long gd_polygon_offset_0c;
+    unsigned long region_offset;
+    unsigned long polygon_offset;
+    unsigned long gd_polygon_offset;
     /* Stream offsets for object kinds 4-9: QueryKinds indexes the leaf as a
        flat ten-dword table (kind + leaf_index * 10). */
     unsigned long kind_offsets_10[6];
@@ -374,7 +374,7 @@ public:
        box, then against the camera sphere; writes the hit position into `to`
        and the hit location id into `hit_location` (or -1/0). `excluded`
        skips one location id, `location` carries the in/out location id used
-       for the pathing-probe set, `flags` masks navigator trace_mask_090, and
+       for the pathing-probe set, `flags` masks navigator trace_mask, and
        `noise_adjust` applies the g_float_005ebc3c/noise penalty. */
     char ResolveTraceHit(const srVector3T<float>* from, srVector3T<float>* to, int excluded,
                          int* hit_location, int location, unsigned int flags,
@@ -476,7 +476,7 @@ public:
     }
     unsigned long GetMeshCount() const
     {
-        return m_spatial.submesh_count_74;
+        return m_spatial.submesh_count;
     }
 
 public:
@@ -568,7 +568,7 @@ public:
        builder strides the x/z grid by it (times three for a sparse pass). */
     float m_region_cell;
     unsigned long m_path_clearance;
-    W8PathingService* pathing_180;
+    W8PathingService* pathing;
     int prop_sun_base_184; /* 0x184: this octree's base index into the shared
                               prop-sunlight bit stream */
     unsigned long m_ulNumProps;
@@ -593,7 +593,7 @@ public:
     bool m_visibility_suspended;
     unsigned char m_padding_295;
     /* The build's directional-sun count: the driver stores the light total
-       and CreateSubMeshes emits it as each OctMeshModel's version_00 and
+       and CreateSubMeshes emits it as each OctMeshModel's version and
        sizes the per-sun vertex light arrays from it. */
     unsigned short m_sun_count;
     unsigned char m_padding_298;
@@ -618,7 +618,7 @@ public:
 
     /* Automesh index -> packed cell (z | y<<8 | x<<16 | mask<<24) map the
        verify passes walk to bound-check each automesh's vertices. */
-    W8HashTable<unsigned short, unsigned long>* automesh_cells_29c;
+    W8HashTable<unsigned short, unsigned long>* automesh_cells;
     PrePathing* pre_pathing_2a0;
     /* The path-node scratch block BuildPathLists/PathNodeObstructed fill:
        created-node count, then the runs of registered prop ids the node
@@ -632,15 +632,15 @@ public:
     int m_lNumBlocks;
     int m_lSupports[30];
     int m_lBlocks[30];
-    unsigned long polygon_cursor_3a0;
+    unsigned long polygon_cursor;
     W8OctPreTreeGeometry* game_data_3a4;
     unsigned long unknown_3a8;
     unsigned long unknown_3ac;
-    unsigned long deepest_link_list_3b0;
+    unsigned long deepest_link_list;
     /* Path-node grid pitch: BuildPathLists sets it to m_region_cell * 2. */
     float path_node_extent_3b4;
     /* The registered prop objects the path-bounds test collides against;
-       0x0046BEC0 reads m_surface_count_14 and the collidable flag on each. */
+       0x0046BEC0 reads m_surface_count and the collidable flag on each. */
     W8GrowableVector<GDProp*>* props_3b8;
 
     /* Walks the `from`-`to` segment through the leaf grid, collecting each

@@ -93,6 +93,99 @@ def test_moved_cast_is_not_a_new_cast() -> None:
     assert _added_casts(diff) == []
 
 
+def test_renamed_operand_cast_is_not_a_new_cast() -> None:
+    diff = _diff(
+        "src/wiz8/example.cpp",
+        "@@ -1,1 +1,1 @@",
+        "-    return (float)fog_start_150;",
+        "+    return (float)fog_start;",
+    )
+
+    assert _added_c_style_casts(diff) == []
+
+
+def test_renamed_operand_reinterpret_cast_is_not_a_new_cast() -> None:
+    diff = _diff(
+        "src/surrender/example.cpp",
+        "@@ -1,1 +1,1 @@",
+        "-    key.texture0 = reinterpret_cast<srTextureIFace* const*>(scratch->dir_90 + pipe.sub_batch_offset_88);",
+        "+    key.texture0 = reinterpret_cast<srTextureIFace* const*>(scratch->dir + pipe.sub_batch_offset);",
+    )
+
+    assert _added_casts(diff) == []
+
+
+def test_retyped_cast_on_renamed_line_is_still_reported() -> None:
+    diff = _diff(
+        "src/wiz8/example.cpp",
+        "@@ -1,1 +1,1 @@",
+        "-    return (float)fog_start_150;",
+        "+    return (double)fog_start;",
+    )
+
+    assert _added_c_style_casts(diff) == [
+        {"file": "src/wiz8/example.cpp", "line": 1, "text": "return (double)fog_start;"}
+    ]
+
+
+def test_same_hunk_operand_rename_is_not_a_new_cast() -> None:
+    # Same-hunk, same-shape operand changes are treated as renames, not new
+    # casts: cast hygiene watches the cast, while operand choice is covered
+    # by comparison review. A differently-shaped change is still reported
+    # (see test_retyped_cast_on_renamed_line_is_still_reported).
+    diff = _diff(
+        "src/wiz8/example.cpp",
+        "@@ -1,1 +1,1 @@",
+        "-    return (float)fog_density;",
+        "+    return (float)mist_density;",
+    )
+
+    assert _added_c_style_casts(diff) == []
+
+
+def test_descriptive_rename_on_cast_line_is_not_a_new_cast() -> None:
+    diff = _diff(
+        "src/surrender/example.cpp",
+        "@@ -4,1 +4,1 @@",
+        "-                            reinterpret_cast<const unsigned long*>(pass->texture_array_0c), 1,",
+        "+                            reinterpret_cast<const unsigned long*>(pass->tex_table_0), 1,",
+    )
+
+    assert _added_casts(diff) == []
+
+
+def test_retyped_cast_with_new_operand_is_still_reported() -> None:
+    diff = _diff(
+        "src/surrender/example.cpp",
+        "@@ -4,1 +4,1 @@",
+        "-                            reinterpret_cast<const unsigned long*>(pass->texture_array_0c), 1,",
+        "+                            reinterpret_cast<const double*>(pass->tex_table_0), 1,",
+    )
+
+    assert _added_casts(diff) == [
+        {
+            "file": "src/surrender/example.cpp",
+            "line": 4,
+            "text": "reinterpret_cast<const double*>(pass->tex_table_0), 1,",
+        }
+    ]
+
+
+def test_new_cast_shaped_like_a_removed_one_is_still_reported() -> None:
+    diff = _diff(
+        "src/wiz8/example.cpp",
+        "@@ -1,2 +1,2 @@",
+        "-    old = (float)previous;",
+        "+    old = (float)previous;",
+        "-    return 0;",
+        "+    return (float)unrelated;",
+    )
+
+    assert _added_c_style_casts(diff) == [
+        {"file": "src/wiz8/example.cpp", "line": 2, "text": "return (float)unrelated;"}
+    ]
+
+
 def test_renamed_file_reports_the_new_path() -> None:
     diff = (
         "diff --git a/src/wiz8/old.cpp b/src/wiz8/new.cpp\n"
@@ -497,3 +590,54 @@ def test_formatter_wrapped_cast_markers(
     else:
         with pytest.raises(CastGateError):
             validate_cast_markers(tmp_path)
+
+
+@pytest.mark.parametrize(
+    ("old_target", "new_target"),
+    [
+        ("CustomType", "OtherType"),
+        ("W8Type::First", "W8Type::Second"),
+        ("srPtr<CustomType>", "srPtr<OtherType>"),
+    ],
+)
+def test_descriptive_rename_preserves_entire_cast_target(old_target: str, new_target: str) -> None:
+    diff = _diff(
+        "src/surrender/example.cpp",
+        "@@ -1,1 +1,1 @@",
+        f"-    return reinterpret_cast<{old_target}*>(old_name);",
+        f"+    return reinterpret_cast<{new_target}*>(new_name);",
+    )
+    assert len(_added_casts(diff)) == 1
+
+
+@pytest.mark.parametrize("removed_operand, added_operand", [("old", "old"), ("fog_150", "fog")])
+def test_removed_cast_can_only_be_consumed_once(removed_operand: str, added_operand: str) -> None:
+    diff = _diff(
+        "src/wiz8/example.cpp",
+        "@@ -1,1 +1,2 @@",
+        f"-    return (float){removed_operand};",
+        f"+    return (float){added_operand};",
+        "+    return (float)new_operand;",
+    )
+    assert len(_added_c_style_casts(diff)) == 1
+
+
+def test_cast_matching_uses_full_line_before_truncating_diagnostic() -> None:
+    prefix = "    result = " + "padding + " * 25
+    diff = _diff(
+        "src/wiz8/example.cpp",
+        "@@ -1,1 +1,1 @@",
+        f"-{prefix}reinterpret_cast<First*>(old);",
+        f"+{prefix}reinterpret_cast<Second*>(new);",
+    )
+    assert len(_added_casts(diff)) == 1
+
+
+def test_descriptive_rename_does_not_erase_string_literal_changes() -> None:
+    diff = _diff(
+        "src/wiz8/example.cpp",
+        "@@ -1,1 +1,1 @@",
+        '-    call("old", reinterpret_cast<int*>(old));',
+        '+    call("new", reinterpret_cast<int*>(new));',
+    )
+    assert len(_added_casts(diff)) == 1

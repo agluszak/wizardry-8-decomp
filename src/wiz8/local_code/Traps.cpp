@@ -47,17 +47,17 @@ static int g_record_mode_length;
 // GLOBAL: WIZ8 0x00650384
 static char s_record_mode_prompt[] = "Type in your text, then ENTER or ESC.";
 // GLOBAL: WIZ8 0x006503ac
-static char s_record_mode_default_location_006503ac[] = "tst";
+static char s_record_mode_default_location[] = "tst";
 // GLOBAL: WIZ8 0x006503b0
-static char s_record_mode_orientation_format_006503b0[] = "%f %f %f %f %f %d\n";
+static char s_record_mode_orientation_format[] = "%f %f %f %f %f %d\n";
 // GLOBAL: WIZ8 0x006503c4
-static char s_record_mode_position_format_006503c4[] = "%f %f %f\n";
+static char s_record_mode_position_format[] = "%f %f %f\n";
 // GLOBAL: WIZ8 0x006503d0
-static char s_data_notes_txt_006503d0[] = "data\\notes.txt";
+static char s_data_notes_txt[] = "data\\notes.txt";
 // GLOBAL: WIZ8 0x006503e0
-static char s_exiting_record_mode_006503e0[] = "Exiting record mode.";
+static char s_exiting_record_mode[] = "Exiting record mode.";
 // GLOBAL: WIZ8 0x006503f8
-static char s_error_deleting_log_file_006503f8[] = "Error deleting log file.";
+static char s_error_deleting_log_file[] = "Error deleting log file.";
 // GLOBAL: WIZ8 0x00650414
 static char s_log_file_deleted[] = "Log file deleted.";
 // GLOBAL: WIZ8 0x00650428
@@ -87,25 +87,25 @@ void WriteRecordModeEntry(void)
     HWFILE file;
     unsigned int length;
 
-    file = FileOpen(s_data_notes_txt_006503d0, FILE_ACCESS_WRITE | FILE_CREATE_ALWAYS, FALSE);
+    file = FileOpen(s_data_notes_txt, FILE_ACCESS_WRITE | FILE_CREATE_ALWAYS, FALSE);
     if (file != 0) {
         FileSeek(file, 0, FILE_SEEK_FROM_END);
         GetWorldCameraState(GetWorld(), &state);
-        sprintf(line, s_record_mode_position_format_006503c4, state.position.x, state.position.y,
+        sprintf(line, s_record_mode_position_format, state.position.x, state.position.y,
                 state.position.z);
         FileWrite(file, line, strlen(line), 0);
-        sprintf(line, s_record_mode_orientation_format_006503b0, state.pitch[0], state.pitch[1],
+        sprintf(line, s_record_mode_orientation_format, state.pitch[0], state.pitch[1],
                 state.pitch[2], state.pitch[3], state.pitch[4],
                 // reinterpret-ok: raw low byte of the angle record's trailing slot
                 *reinterpret_cast<unsigned int*>(&state.pitch[5]) & 0xff);
         FileWrite(file, line, strlen(line), 0);
-        sprintf(line, s_record_mode_orientation_format_006503b0, state.yaw[0], state.yaw[1],
+        sprintf(line, s_record_mode_orientation_format, state.yaw[0], state.yaw[1],
                 state.yaw[2], state.yaw[3], state.yaw[4],
                 // reinterpret-ok: raw low byte of the angle record's trailing slot
                 *reinterpret_cast<unsigned int*>(&state.yaw[5]) & 0xff);
         FileWrite(file, line, strlen(line), 0);
         if (GetLevelLocationCode(g_status.current_level, location_code) == 0) {
-            strcpy(location_code, s_record_mode_default_location_006503ac);
+            strcpy(location_code, s_record_mode_default_location);
         }
         length = strlen(location_code);
         location_code[length] = '\n';
@@ -129,9 +129,9 @@ void ApplyRecordModeLine(void)
         WriteRecordModeEntry();
         return;
     }
-    if (FileDelete(s_data_notes_txt_006503d0) == 0) {
+    if (FileDelete(s_data_notes_txt) == 0) {
         ResetEditorStatusLine(-1);
-        strcpy(message, s_error_deleting_log_file_006503f8);
+        strcpy(message, s_error_deleting_log_file);
     } else {
         ResetEditorStatusLine(-1);
         strcpy(message, s_log_file_deleted);
@@ -140,7 +140,7 @@ void ApplyRecordModeLine(void)
     g_record_mode_line[g_record_mode_length] = 0;
     g_record_mode_length = 0;
     g_record_mode_active = false;
-    strcpy(message, s_exiting_record_mode_006503e0);
+    strcpy(message, s_exiting_record_mode);
     ShowNoticef(6, ConvertStringToWide(message));
 }
 

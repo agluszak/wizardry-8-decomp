@@ -18,7 +18,7 @@ inline unsigned int srHashValue(unsigned short key)
     return srHashValue(static_cast<unsigned long>(key));
 }
 
-/* srRegistry's by_instance_00 index hashes srRuntimeClass* keys with the same
+/* srRegistry's by_instance index hashes srRuntimeClass* keys with the same
    mixing as the integer-keyed tables (retail srTypeRegistry unregisterInstance
    at 0x1000FCD0 applies the (k>>10 ^ k)>>10 ^ k sequence to the pointer). */
 inline unsigned int srHashValue(const void* key)

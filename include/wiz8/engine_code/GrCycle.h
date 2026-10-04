@@ -63,7 +63,7 @@ public:
     float intensity_04;            /* 0x04 */
     float distance_cap_08;         /* 0x08: distance cap for bit-2 effects */
     srVector3T<float> position_0c; /* 0x0c */
-    W8GameTimer timer_18;          /* 0x18 */
+    W8GameTimer timer;          /* 0x18 */
     /* The key 0x004AE170 matches an animation event against. */
     int cycle_3c;                         /* 0x3c */
     int frame_40;                         /* 0x40 */
@@ -163,29 +163,29 @@ public:
     void SubmitTargetValue();
 
 public:
-    srModelInstance* current_model_instance_1a8;
+    srModelInstance* current_model_instance;
     W8GrowableVector<stLight*>* m_plsLights;          /* 0x1ac */
     W8Vector<W8CameraShakeEffect*>* m_plsShakeEvents; /* 0x1b0 */
     bool m_fDeleteLights;                             /* 0x1b4: named by GrCycle.cpp:1656 */
     /* 0x1b5: the subcycle the last update pass left on the representation. */
-    unsigned char last_subcycle_1b5;
+    unsigned char last_subcycle;
     unsigned char padding_1b6[2];
     W8Vector<W8GrCycleParticleAttachment*>* m_plsParticles; /* 0x1b8 */
     /* 0x1bc: set when the frame walk wrapped to first_frame; suppresses the
        per-subcycle light reset. */
-    bool wrapped_1bc;
-    bool enabled_1bd;
+    bool wrapped;
+    bool enabled;
     /* 0x1be: mirror the model on X (the left-handed strike pick). */
-    unsigned char mirror_x_1be;
-    /* 0x1bf: m_axis_1c0 holds an aim point; mode-3 particles orient along it. */
-    bool aim_set_1bf;
+    unsigned char mirror_x;
+    /* 0x1bf: m_axis holds an aim point; mode-3 particles orient along it. */
+    bool aim_set;
     /* The axis 0x004A7E50 aims a mode-three particle along. */
-    srVector3T<float> m_axis_1c0;
+    srVector3T<float> m_axis;
     float scale_1cc;
     stGroundShadow* m_ground_shadow; /* 0x1d0: typed runtime class stGroundShadow */
     /* Fractional frame progress after TickAnimation consumes whole frames.
        Monster interpolation and light definition time use the same fraction. */
-    float frame_fraction_1d4;
+    float frame_fraction;
 }; /* 0x1d8 */
 
 static_assert(sizeof(W8GrCycle) == 0x1d8, "W8GrCycle_size_must_be_0x1d8");

@@ -78,23 +78,23 @@
 // FUNCTION: WIZ8 0x00502010
 void UpdateGameClock(int elapsed)
 {
-    g_status.world_clock += static_cast<int>((g_status.world_clock_ms_18dc + elapsed) / 1000);
-    g_status.world_clock_ms_18dc = (g_status.world_clock_ms_18dc + elapsed) % 1000;
+    g_status.world_clock += static_cast<int>((g_status.world_clock_ms + elapsed) / 1000);
+    g_status.world_clock_ms = (g_status.world_clock_ms + elapsed) % 1000;
 
-    g_status.aging_accumulator_238b += elapsed;
+    g_status.aging_accumulator += elapsed;
     unsigned int aging_ticks;
     if (gXStatus.item_drag_active == 0) {
-        aging_ticks = g_status.aging_accumulator_238b / 120000;
+        aging_ticks = g_status.aging_accumulator / 120000;
         if (aging_ticks != 0) {
-            g_status.aging_accumulator_238b %= 120000;
+            g_status.aging_accumulator %= 120000;
             AdvanceTimedEffects(aging_ticks);
         }
     }
 
-    g_status.item_recharge_ms_239d += elapsed;
-    unsigned int hours = g_status.item_recharge_ms_239d / 3600000;
+    g_status.item_recharge_ms += elapsed;
+    unsigned int hours = g_status.item_recharge_ms / 3600000;
     if (hours != 0) {
-        g_status.item_recharge_ms_239d %= 3600000;
+        g_status.item_recharge_ms %= 3600000;
         for (unsigned int slot = 0; slot < 8; ++slot) {
             char uses = static_cast<char>(hours);
             if (g_status.buffers.XChar[slot].fOccupied == 0) {
@@ -117,8 +117,8 @@ void UpdateGameClock(int elapsed)
                 ++item;
             }
         }
-        for (unsigned int index = 0; index < g_status.party_item_count_1791; ++index) {
-            W8ItemInstance* item = &g_status.party_item_pool_0021[index];
+        for (unsigned int index = 0; index < g_status.party_item_count; ++index) {
+            W8ItemInstance* item = &g_status.party_item_pool[index];
             if (item->iItemNo == 0x266) {
                 AddItemUses(item, static_cast<char>(hours));
             }
@@ -130,34 +130,34 @@ void UpdateGameClock(int elapsed)
             if (aging_ticks == 0) {
                 srAssertFail("uiTurnsElapsed > 0", GAMEPLAYTIME_CPP, 0x6d, 0);
             }
-            g_status.camp_tick_ms_2436 -= 4 * 0x9c4;
+            g_status.camp_tick_ms -= 4 * 0x9c4;
             UpdateCampFatigue(4);
         } else {
-            g_status.camp_tick_ms_2436 += elapsed;
-            unsigned int camp_ticks = g_status.camp_tick_ms_2436 / 0x9c4;
+            g_status.camp_tick_ms += elapsed;
+            unsigned int camp_ticks = g_status.camp_tick_ms / 0x9c4;
             if (camp_ticks != 0) {
-                g_status.camp_tick_ms_2436 -= camp_ticks * 0x9c4;
+                g_status.camp_tick_ms -= camp_ticks * 0x9c4;
                 UpdateCampFatigue(static_cast<int>(camp_ticks));
             }
         }
     } else {
-        g_status.camp_tick_ms_2436 = 0;
-        g_status.party_fatigued_2433 = false;
-        g_status.camp_fatigue_count_2498 = 0;
+        g_status.camp_tick_ms = 0;
+        g_status.party_fatigued = false;
+        g_status.camp_fatigue_count = 0;
     }
 
     if (gXStatus.fCombatMode != 0) {
-        g_status.stamina_tick_ms_2483 = 0;
+        g_status.stamina_tick_ms = 0;
     } else {
-        g_status.stamina_tick_ms_2483 += elapsed;
-        unsigned int stamina_ticks = g_status.stamina_tick_ms_2483 / 0x578;
+        g_status.stamina_tick_ms += elapsed;
+        unsigned int stamina_ticks = g_status.stamina_tick_ms / 0x578;
         if (stamina_ticks != 0) {
-            g_status.stamina_tick_ms_2483 %= 0x578;
+            g_status.stamina_tick_ms %= 0x578;
             UpdatePartyStamina(static_cast<int>(stamina_ticks));
         }
 
         if (gXStatus.fSurprisePossible == 0 && !AnyCharacterEngaged() && AnyCharacterActive() &&
-            g_status.party_fatigued_2433 == 0 && HasLevelDataVector() == 0 &&
+            g_status.party_fatigued == 0 && HasLevelDataVector() == 0 &&
             static_cast<char>(GetLevelDataFlag4()) != 0 && static_cast<char>(IsScreenIdle()) != 0) {
             if (gXStatus.world_update_blocked != 0) {
                 ResumeMainGameWorld();
@@ -280,7 +280,7 @@ void UpdateSurpriseMode(void)
             DestroyUngroupedMonsters();
             SetViewDistance(2880.0f);
             SetNavigatorLinkMode(1);
-            level_scale = g_level_records[g_status.current_level].gameplay_time_scale_054;
+            level_scale = g_level_records[g_status.current_level].gameplay_time_scale;
             scale = g_float_one / level_scale;
             g_game_time_accumulator->SetDurationScale(scale);
             SetMonsterGeneratorDurationScale(scale);
@@ -341,7 +341,7 @@ void ResolveSurpriseHold(void)
 }
 
 /* End the surprise sequence: post the outcome notice and, if the condition-13
-   rest event armed condition13_clock_2487 more than a world-clock day ago, clear the
+   rest event armed condition13_clock more than a world-clock day ago, clear the
    condition and queue the rest-benefit event for that character. */
 // FUNCTION: WIZ8 0x00502860
 void EndSurprise(void)
@@ -367,12 +367,12 @@ void EndSurprise(void)
     }
     ShowNotice(0xc, text, -1, 0xffffffff, 0);
 
-    if (g_status.condition13_clock_2487 != 0 &&
+    if (g_status.condition13_clock != 0 &&
         0x15180 <
-            static_cast<unsigned int>(g_status.world_clock) - g_status.condition13_clock_2487) {
-        g_status.condition13_clock_2487 = 0;
+            static_cast<unsigned int>(g_status.world_clock) - g_status.condition13_clock) {
+        g_status.condition13_clock = 0;
         g_status.skip_next_condition_reaction = 1;
-        int party_slot = g_status.pending_condition_party_slot_248f;
+        int party_slot = g_status.pending_condition_party_slot;
         RemoveCharacterCondition(party_slot, 0x13, 0);
         QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_effect_005ee658, 0,
                             g_character_event_no_flags, g_character_event_full_volume);
@@ -399,7 +399,7 @@ void RestoreSurpriseView(void)
 // FUNCTION: WIZ8 0x005029e0
 void ResolveSurpriseWake(void)
 {
-    if (g_combat_state != 0 && g_combat_state->party_surprised_a52 != 0) {
+    if (g_combat_state != 0 && g_combat_state->party_surprised != 0) {
         for (unsigned int slot = 0; slot < 8; ++slot) {
             W8Character* character = &g_status.buffers.Char[slot];
             if (g_status.buffers.XChar[slot].fOccupied == 0 ||
@@ -407,7 +407,7 @@ void ResolveSurpriseWake(void)
                 continue;
             }
             int roll = static_cast<int>(Random(100)) - 0x14 -
-                       static_cast<int>(character->attributes[6].effective * 0x46 / 100);
+                       static_cast<int>(character->attributes[W8_ATTRIBUTE_SENSES].effective * 0x46 / 100);
             if (roll < 1) {
                 PostCharacterNotice(slot, gppStringList[0x243],
                                     gppStringList[g_condition_notices[60]]);
@@ -443,27 +443,27 @@ void RebuildCharacterRegenRates(W8Character* character)
     int realm;
 
     rate = (static_cast<unsigned int>(character->uiHPMax) * 0.4f + 20.0f) * 0.0041666669f;
-    character->health_regen_rate_0b69 = rate;
-    if (character->bonus_1770.boost_health_regen != 0) {
-        character->health_regen_rate_0b69 = rate * 1.5f;
+    character->health_regen_rate = rate;
+    if (character->bonus.boost_health_regen != 0) {
+        character->health_regen_rate = rate * 1.5f;
     }
 
     rate = (static_cast<unsigned int>(character->uiStaminaMax) * 0.9f + 20.0f) * 0.0041666669f;
-    character->stamina_regen_rate_0b71 = rate;
-    if (character->bonus_1770.boost_stamina_regen != 0) {
-        character->stamina_regen_rate_0b71 = rate * 1.5f;
+    character->stamina_regen_rate = rate;
+    if (character->bonus.boost_stamina_regen != 0) {
+        character->stamina_regen_rate = rate * 1.5f;
     }
 
     for (realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
         if (character->sp_max[realm] == 0) {
-            character->spell_regen_rates_0b79[realm * 2] = 0.0f;
+            character->spell_regen_rates[realm * 2] = 0.0f;
             continue;
         }
         rate =
             (static_cast<unsigned int>(character->sp_max[realm]) * 0.65f + 20.0f) * 0.0041666669f;
-        character->spell_regen_rates_0b79[realm * 2] = rate;
-        if (character->bonus_1770.boost_spell_regen != 0) {
-            character->spell_regen_rates_0b79[realm * 2] = rate * 1.5f;
+        character->spell_regen_rates[realm * 2] = rate;
+        if (character->bonus.boost_spell_regen != 0) {
+            character->spell_regen_rates[realm * 2] = rate * 1.5f;
         }
     }
 }
@@ -479,19 +479,19 @@ void RebuildMonsterRegenRates(W8MonsterInfo* monster_info)
     rate = (static_cast<unsigned int>(monster_info->uiHPMax) * g_navigator_mode3_scale +
             g_monster_record_float_scale) *
                0.0041666669f +
-           monster_info->modifiers_1db.health_regen_adjustment;
-    monster_info->hp_regen_rate_47 = rate;
-    if (monster_info->modifiers_1db.boost_health_regen != 0) {
-        monster_info->hp_regen_rate_47 = rate * g_float_005ec3b8;
+           monster_info->modifiers.health_regen_adjustment;
+    monster_info->hp_regen_rate = rate;
+    if (monster_info->modifiers.boost_health_regen != 0) {
+        monster_info->hp_regen_rate = rate * g_float_005ec3b8;
     }
 
     rate = ((static_cast<unsigned int>(monster_info->stamina_max)) * g_float_005ec390 +
             g_monster_record_float_scale) *
                0.0041666669f +
-           monster_info->modifiers_1db.stamina_regen_adjustment;
-    monster_info->stamina_regen_rate_4f = rate;
-    if (monster_info->modifiers_1db.boost_stamina_regen != 0) {
-        monster_info->stamina_regen_rate_4f = rate * g_float_005ec3b8;
+           monster_info->modifiers.stamina_regen_adjustment;
+    monster_info->stamina_regen_rate = rate;
+    if (monster_info->modifiers.boost_stamina_regen != 0) {
+        monster_info->stamina_regen_rate = rate * g_float_005ec3b8;
     }
 }
 
@@ -502,19 +502,19 @@ void RebuildMonsterRegenRates(W8MonsterInfo* monster_info)
 // FUNCTION: WIZ8 0x00502d00
 void AdvanceTimedEffects(unsigned int minutes)
 {
-    if (g_status.real_elapsed_2391 + g_status.frame_elapsed_2395 == g_float_zero) {
-        if (g_status.wait_state_2399 == 1 || g_status.wait_state_2399 == 0) {
-            g_status.wait_state_2399 = 2;
+    if (g_status.real_elapsed + g_status.frame_elapsed == g_float_zero) {
+        if (g_status.wait_state == 1 || g_status.wait_state == 0) {
+            g_status.wait_state = 2;
             for (unsigned int slot = 0; slot < 8; ++slot) {
                 g_status.buffers.XChar[slot].movement_fatigue = 0;
             }
-        } else if (g_status.wait_state_2399 == 2) {
-            g_status.wait_state_2399 = 3;
+        } else if (g_status.wait_state == 2) {
+            g_status.wait_state = 3;
         }
     } else {
-        g_status.wait_state_2399 = g_status.frame_elapsed_2395 != g_float_zero ? 1 : 0;
-        g_status.real_elapsed_2391 = g_float_zero;
-        g_status.frame_elapsed_2395 = g_float_zero;
+        g_status.wait_state = g_status.frame_elapsed != g_float_zero ? 1 : 0;
+        g_status.real_elapsed = g_float_zero;
+        g_status.frame_elapsed = g_float_zero;
     }
 
     for (unsigned int slot = 0; slot < 8; ++slot) {
@@ -545,12 +545,12 @@ void AdvanceTimedEffects(unsigned int minutes)
     bool combat_changed = false;
     unsigned int i;
     for (i = 0; i < 12; ++i) {
-        W8EffectSlot* slot = &g_status.effect_slots_17af[i];
+        W8EffectSlot* slot = &g_status.effect_slots[i];
         if (slot->active == 0) {
             continue;
         }
-        if (minutes < slot->duration_0d) {
-            slot->duration_0d -= minutes;
+        if (minutes < slot->duration) {
+            slot->duration -= minutes;
             continue;
         }
         ShowNoticef(0xc, gppStringList[0x1b4], g_spell_records[slot->effect_id].display_name);
@@ -567,8 +567,8 @@ void AdvanceTimedEffects(unsigned int minutes)
             if (slot->active == 0) {
                 continue;
             }
-            if (minutes < slot->duration_0d) {
-                slot->duration_0d -= minutes;
+            if (minutes < slot->duration) {
+                slot->duration -= minutes;
                 continue;
             }
             ShowNoticef(0xc, gppStringList[0x1b4], g_spell_records[slot->effect_id].display_name);
@@ -583,8 +583,8 @@ void AdvanceTimedEffects(unsigned int minutes)
             if (slot->active == 0) {
                 continue;
             }
-            if (minutes < slot->duration_0d) {
-                slot->duration_0d -= minutes;
+            if (minutes < slot->duration) {
+                slot->duration -= minutes;
                 continue;
             }
             ShowNoticef(0xc, gppStringList[0x1b4], g_spell_records[slot->effect_id].display_name);
@@ -631,10 +631,10 @@ void GameTurnsPassedChar(int party_slot, unsigned int minutes)
     bool diseased = false;
     unsigned int realm;
 
-    unsigned int damage = character->bonus_1770.damage_per_minute;
+    unsigned int damage = character->bonus.damage_per_minute;
     if (damage != 0) {
         damage *= minutes;
-        if (g_status.wait_state_2399 != 3 || gXStatus.fCombatMode != 0) {
+        if (g_status.wait_state != 3 || gXStatus.fCombatMode != 0) {
             damage += damage >> 1;
         }
         ApplyDamageToCharacter(party_slot, damage, 1, 1, 0, static_cast<W8SpellEffectResult*>(0),
@@ -680,7 +680,7 @@ void GameTurnsPassedChar(int party_slot, unsigned int minutes)
                 if (1 < character->attributes[attribute].value) {
                     character->attributes[attribute].value =
                         character->attributes[attribute].value - 1;
-                    ++character->attributes[attribute].change_counter_08;
+                    ++character->attributes[attribute].change_counter;
                     ApplyAttributeChange(character, attribute);
                     PostCharacterNotice(
                         party_slot, gppStringList[0x270],
@@ -718,7 +718,7 @@ void GameTurnsPassedChar(int party_slot, unsigned int minutes)
                 {
                     unsigned int loss = Random(4) + 1;
                     character->uiStaminaMax -= loss;
-                    character->fatigue_penalty_0b21 += loss;
+                    character->fatigue_penalty += loss;
                     PostCharacterNotice(party_slot, gppStringList[0x271], loss);
                     int stamina = character->stamina;
                     if (1 < stamina) {
@@ -761,7 +761,7 @@ void GameTurnsPassedChar(int party_slot, unsigned int minutes)
     W8ItemInstance* found;
     W8Character* holder;
     if (FindItemOnParty(0x243, &found, &holder, 2, static_cast<W8ItemInstance*>(0)) != 0 &&
-        found != &g_status.item_in_hand_235b) {
+        found != &g_status.item_in_hand) {
         if (holder == static_cast<W8Character*>(0) ||
             FindItemOnCharacter(holder, 0x239, static_cast<W8ItemInstance**>(0), 0,
                                 static_cast<W8ItemInstance*>(0)) == 0) {
@@ -774,7 +774,7 @@ void GameTurnsPassedChar(int party_slot, unsigned int minutes)
         }
     }
 
-    signed char health_mod = character->bonus_1770.health_regen_adjustment;
+    signed char health_mod = character->bonus.health_regen_adjustment;
     if (health_mod > 0) {
         if (character->hp_current < static_cast<unsigned int>(character->uiHPMax)) {
             HealCharacter(party_slot, static_cast<int>(health_mod) * static_cast<int>(minutes), 0);
@@ -785,7 +785,7 @@ void GameTurnsPassedChar(int party_slot, unsigned int minutes)
                                static_cast<W8SpellEffectResult*>(0), 0);
     }
 
-    signed char stamina_mod = character->bonus_1770.stamina_regen_adjustment;
+    signed char stamina_mod = character->bonus.stamina_regen_adjustment;
     if (stamina_mod > 0) {
         if (character->stamina < character->uiStaminaMax) {
             RestoreCharacterStamina(party_slot, stamina_mod * static_cast<int>(minutes), 0);
@@ -796,7 +796,7 @@ void GameTurnsPassedChar(int party_slot, unsigned int minutes)
     }
 
     for (realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
-        signed char spell_mod = character->bonus_1770.spell_regen_adjustment;
+        signed char spell_mod = character->bonus.spell_regen_adjustment;
         if (spell_mod > 0) {
             if (character->iSPLeft[realm] < character->sp_max[realm]) {
                 RestoreCharacterRealmSpellPoints(
@@ -810,7 +810,7 @@ void GameTurnsPassedChar(int party_slot, unsigned int minutes)
     float health_scale;
     if (gXStatus.fSurprisePossible != 0) {
         health_scale = g_float_one;
-    } else if (g_status.wait_state_2399 == 3 && gXStatus.fCombatMode == 0) {
+    } else if (g_status.wait_state == 3 && gXStatus.fCombatMode == 0) {
         health_scale = g_float_005ebc7c;
     } else {
         health_scale = g_float_zero;
@@ -849,49 +849,49 @@ void GameTurnsPassedChar(int party_slot, unsigned int minutes)
 
     if (health_scale > g_float_zero &&
         character->hp_current < static_cast<unsigned int>(character->uiHPMax)) {
-        character->health_regen_accumulator_0b6d =
-            minutes * character->health_regen_rate_0b69 * health_scale +
-            character->health_regen_accumulator_0b6d;
-        HealCharacter(party_slot, static_cast<int>(character->health_regen_accumulator_0b6d), 0);
-        character->health_regen_accumulator_0b6d =
-            character->health_regen_accumulator_0b6d -
-            static_cast<unsigned int>(character->health_regen_accumulator_0b6d);
+        character->health_regen_accumulator =
+            minutes * character->health_regen_rate * health_scale +
+            character->health_regen_accumulator;
+        HealCharacter(party_slot, static_cast<int>(character->health_regen_accumulator), 0);
+        character->health_regen_accumulator =
+            character->health_regen_accumulator -
+            static_cast<unsigned int>(character->health_regen_accumulator);
     }
     if (stamina_scale > g_float_zero && character->stamina < character->uiStaminaMax) {
-        character->stamina_regen_accumulator_0b75 =
-            minutes * character->stamina_regen_rate_0b71 * stamina_scale +
-            character->stamina_regen_accumulator_0b75;
+        character->stamina_regen_accumulator =
+            minutes * character->stamina_regen_rate * stamina_scale +
+            character->stamina_regen_accumulator;
         RestoreCharacterStamina(party_slot,
-                                static_cast<int>(character->stamina_regen_accumulator_0b75), 0);
-        character->stamina_regen_accumulator_0b75 =
-            character->stamina_regen_accumulator_0b75 -
-            static_cast<unsigned int>(character->stamina_regen_accumulator_0b75);
+                                static_cast<int>(character->stamina_regen_accumulator), 0);
+        character->stamina_regen_accumulator =
+            character->stamina_regen_accumulator -
+            static_cast<unsigned int>(character->stamina_regen_accumulator);
     }
     if (spell_scale > g_float_zero) {
         for (realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
             if (character->iSPLeft[realm] < character->sp_max[realm]) {
-                character->spell_regen_rates_0b79[realm * 2 + 1] =
-                    minutes * character->spell_regen_rates_0b79[realm * 2] * spell_scale +
-                    character->spell_regen_rates_0b79[realm * 2 + 1];
+                character->spell_regen_rates[realm * 2 + 1] =
+                    minutes * character->spell_regen_rates[realm * 2] * spell_scale +
+                    character->spell_regen_rates[realm * 2 + 1];
                 RestoreCharacterRealmSpellPoints(
                     party_slot, realm,
-                    static_cast<int>(character->spell_regen_rates_0b79[realm * 2 + 1]));
-                character->spell_regen_rates_0b79[realm * 2 + 1] =
-                    character->spell_regen_rates_0b79[realm * 2 + 1] -
-                    static_cast<unsigned int>(character->spell_regen_rates_0b79[realm * 2 + 1]);
+                    static_cast<int>(character->spell_regen_rates[realm * 2 + 1]));
+                character->spell_regen_rates[realm * 2 + 1] =
+                    character->spell_regen_rates[realm * 2 + 1] -
+                    static_cast<unsigned int>(character->spell_regen_rates[realm * 2 + 1]);
             }
         }
     }
 
     if (character->hp_current >= static_cast<unsigned int>(character->uiHPMax)) {
-        character->health_regen_accumulator_0b6d = 0.0f;
+        character->health_regen_accumulator = 0.0f;
     }
     if (character->stamina >= character->uiStaminaMax) {
-        character->stamina_regen_accumulator_0b75 = 0.0f;
+        character->stamina_regen_accumulator = 0.0f;
     }
     for (realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
         if (character->iSPLeft[realm] >= character->sp_max[realm]) {
-            character->spell_regen_rates_0b79[realm * 2 + 1] = 0.0f;
+            character->spell_regen_rates[realm * 2 + 1] = 0.0f;
         }
     }
 
@@ -902,10 +902,10 @@ void GameTurnsPassedChar(int party_slot, unsigned int minutes)
         }
     }
     for (unsigned int slot = 0; slot < 8; ++slot) {
-        unsigned int turns = character->enchantments[slot].turns_08;
+        unsigned int turns = character->enchantments[slot].turns;
         if (turns != 0 && turns < W8_CONDITION_INDEFINITE) {
             if (turns > minutes) {
-                character->enchantments[slot].turns_08 = turns - minutes;
+                character->enchantments[slot].turns = turns - minutes;
             } else {
                 ClearCharacterEnchantmentSlot(party_slot, slot);
             }
@@ -914,15 +914,15 @@ void GameTurnsPassedChar(int party_slot, unsigned int minutes)
 
     if (CharacterHasTrait(character, W8_TRAIT_MAKE_POTIONS) != 0) {
         if (gXStatus.fSurprisePossible != 0) {
-            if (character->potion_brew_cooldown_0b65 == 0) {
+            if (character->potion_brew_cooldown == 0) {
                 BrewAlchemistPotion(character);
             }
-        } else if (character->potion_brew_cooldown_0b65 != 0) {
-            if (minutes >= character->potion_brew_cooldown_0b65) {
-                character->potion_brew_cooldown_0b65 = 0;
+        } else if (character->potion_brew_cooldown != 0) {
+            if (minutes >= character->potion_brew_cooldown) {
+                character->potion_brew_cooldown = 0;
             } else {
-                character->potion_brew_cooldown_0b65 =
-                    character->potion_brew_cooldown_0b65 - minutes;
+                character->potion_brew_cooldown =
+                    character->potion_brew_cooldown - minutes;
             }
         }
     }
@@ -944,11 +944,11 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, unsigned
         W8CombatSlot target;
         target.iType = static_cast<W8TargetKind>(3);
         target.iMonsterID = monster_info->location_id;
-        TickCombatEffectSlots(monster_info->pCombat->effect_slots_3e, &target);
+        TickCombatEffectSlots(monster_info->pCombat->combat_effects, &target);
         goto after_early;
     }
     monster = monster_info->p3D;
-    if (monster->stay_home_291 != 0) {
+    if (monster->stay_home != 0) {
         srVector3T<float> location;
         srVector3T<float> last_seen;
         srVector3T<float> delta;
@@ -990,8 +990,8 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, unsigned
     if (GetViewDistance() != g_sight_default) {
         goto after_early;
     }
-    if ((monster->linked_navigator_05c == 0 && monster->halted_025 == 0) &&
-        (monster_info->movement_stall_ticks_254 > 1 || monster->movement_stopped_024 == 0)) {
+    if ((monster->linked_navigator == 0 && monster->halted == 0) &&
+        (monster_info->movement_stall_ticks > 1 || monster->movement_stopped == 0)) {
         srVector3T<float> location;
         srVector3T<float> previous;
         srVector3T<float> delta;
@@ -1000,7 +1000,7 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, unsigned
         MonsterGetLocation(monster, &location);
         previous = monster_info->movement_watch_position;
         monster_info->position_17.y = location.y;
-        cycle = monster_info->movement_stall_ticks_254;
+        cycle = monster_info->movement_stall_ticks;
         delta = location - previous;
         monster_info->position_17.x = location.x;
         monster_info->position_17.z = location.z;
@@ -1015,7 +1015,7 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, unsigned
                     srVector3T<float> navigator_position = monster->GetPosition();
 
                     if (g_pathing->SnapWaypointPosition(&navigator_position, 0) == 0 &&
-                        monster_info->party_threat.visible_to_player_25 == 0) {
+                        monster_info->party_threat.visible_to_player == 0) {
                         srVector3T<float> next_position;
 
                         monster->movement_0c0.attachment_0ac->GetNextPosition(&next_position);
@@ -1102,15 +1102,15 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, unsigned
                 }
             }
             if (cycle_cleared) {
-                monster_info->movement_stall_ticks_254 = 0;
+                monster_info->movement_stall_ticks = 0;
             }
             if (flags_cleared) {
-                monster_info->ai_mode_255 = 0;
-                monster_info->pathing_cooldown_246 = 0;
+                monster_info->ai_mode = 0;
+                monster_info->pathing_cooldown = 0;
             }
         }
-        if (monster_info->movement_stall_ticks_254 > 0) {
-            ++monster_info->movement_stall_ticks_254;
+        if (monster_info->movement_stall_ticks > 0) {
+            ++monster_info->movement_stall_ticks;
         }
         monster_info->movement_watch_position = monster_info->position_17;
     }
@@ -1118,36 +1118,36 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, unsigned
     /* The monster alternates between a looking spell and a pause; each timer
        counts down in minutes and, on expiry, rolls the other around half the
        monster's configured duration or frequency (never 0). */
-    if (monster_info->look_timer_302 != 0) {
-        if (minutes < monster_info->look_timer_302) {
-            monster_info->look_timer_302 -= static_cast<unsigned char>(minutes);
+    if (monster_info->look_time != 0) {
+        if (minutes < monster_info->look_time) {
+            monster_info->look_time -= static_cast<unsigned char>(minutes);
         } else {
-            int duration = monster_info->p3D->look_duration_2cc;
+            int duration = monster_info->p3D->look_duration;
 
-            monster_info->look_timer_302 = 0;
-            monster_info->look_timer_303 = static_cast<unsigned char>(
+            monster_info->look_time = 0;
+            monster_info->pause_time = static_cast<unsigned char>(
                 Random(static_cast<unsigned int>(duration)) + duration / 2);
-            if (monster_info->look_timer_303 == 0) {
-                monster_info->look_timer_303 = 1;
+            if (monster_info->pause_time == 0) {
+                monster_info->pause_time = 1;
             }
         }
-    } else if (monster_info->look_timer_303 != 0) {
-        if (minutes < monster_info->look_timer_303) {
-            monster_info->look_timer_303 -= static_cast<unsigned char>(minutes);
+    } else if (monster_info->pause_time != 0) {
+        if (minutes < monster_info->pause_time) {
+            monster_info->pause_time -= static_cast<unsigned char>(minutes);
         } else {
-            int frequency = monster_info->p3D->look_frequency_2c8;
+            int frequency = monster_info->p3D->look_frequency;
 
-            monster_info->look_timer_303 = 0;
-            monster_info->look_timer_302 = static_cast<unsigned char>(
+            monster_info->pause_time = 0;
+            monster_info->look_time = static_cast<unsigned char>(
                 Random(static_cast<unsigned int>(frequency)) + frequency / 2);
-            if (monster_info->look_timer_302 == 0) {
-                monster_info->look_timer_302 = 1;
+            if (monster_info->look_time == 0) {
+                monster_info->look_time = 1;
             }
         }
     }
 
 after_early: {
-    unsigned int amount = monster_info->modifiers_1db.damage_per_minute;
+    unsigned int amount = monster_info->modifiers.damage_per_minute;
 
     if (amount != 0) {
         W8TargetSource source;
@@ -1165,8 +1165,8 @@ after_early: {
     }
     {
         W8MonsterRecord* data = GetMonsterDataForInfo(monster_info);
-        int amount = (static_cast<int>(data->hp_regeneration_17c) +
-                      monster_info->modifiers_1db.health_regen_adjustment) *
+        int amount = (static_cast<int>(data->hp_regeneration) +
+                      monster_info->modifiers.health_regen_adjustment) *
                      static_cast<int>(minutes);
 
         if (amount < 1) {
@@ -1181,8 +1181,8 @@ after_early: {
         }
     }
     {
-        int amount = (monster_info->modifiers_1db.stamina_regen_adjustment +
-                      static_cast<int>(record->stamina_regeneration_0ce)) *
+        int amount = (monster_info->modifiers.stamina_regen_adjustment +
+                      static_cast<int>(record->stamina_regeneration)) *
                      static_cast<int>(minutes);
 
         if (amount < 1) {
@@ -1210,22 +1210,22 @@ after_early: {
         }
         if (heal_scale > g_float_zero) {
             if (monster_info->hp_current < static_cast<unsigned int>(monster_info->uiHPMax)) {
-                monster_info->hp_regen_accumulator_4b =
-                    minutes * monster_info->hp_regen_rate_47 * heal_scale +
-                    monster_info->hp_regen_accumulator_4b;
-                int healed = static_cast<int>(monster_info->hp_regen_accumulator_4b);
+                monster_info->hp_regen_accumulator =
+                    minutes * monster_info->hp_regen_rate * heal_scale +
+                    monster_info->hp_regen_accumulator;
+                int healed = static_cast<int>(monster_info->hp_regen_accumulator);
 
                 HealMonster(monster_info, healed, 0);
-                monster_info->hp_regen_accumulator_4b -= static_cast<float>(healed);
+                monster_info->hp_regen_accumulator -= static_cast<float>(healed);
             }
             if (monster_info->stamina < monster_info->stamina_max) {
-                monster_info->stamina_regen_accumulator_53 =
-                    minutes * monster_info->stamina_regen_rate_4f * heal_scale +
-                    monster_info->stamina_regen_accumulator_53;
-                int restored = static_cast<int>(monster_info->stamina_regen_accumulator_53);
+                monster_info->stamina_regen_accumulator =
+                    minutes * monster_info->stamina_regen_rate * heal_scale +
+                    monster_info->stamina_regen_accumulator;
+                int restored = static_cast<int>(monster_info->stamina_regen_accumulator);
 
                 RestoreMonsterStamina(monster_info, restored, 0);
-                monster_info->stamina_regen_accumulator_53 -= static_cast<float>(restored);
+                monster_info->stamina_regen_accumulator -= static_cast<float>(restored);
             }
         }
     }
@@ -1236,11 +1236,11 @@ after_early: {
         }
     }
     for (int enchant = 0; enchant < 8; ++enchant) {
-        float remaining = static_cast<float>(monster_info->enchantments[enchant].turns_08);
+        float remaining = static_cast<float>(monster_info->enchantments[enchant].turns);
 
         if (remaining != 0.0f && static_cast<unsigned int>(remaining) < 9999) {
             if (minutes < static_cast<unsigned int>(remaining)) {
-                monster_info->enchantments[enchant].turns_08 =
+                monster_info->enchantments[enchant].turns =
                     static_cast<int>(remaining) - static_cast<int>(minutes);
             } else {
                 ClearMonsterEnchantmentSlot(monster_info->location_id, enchant);
@@ -1248,18 +1248,18 @@ after_early: {
         }
     }
     if (static_cast<unsigned int>(monster_info->uiHPMax) <= monster_info->hp_current) {
-        monster_info->hp_regen_accumulator_4b = 0.0f;
+        monster_info->hp_regen_accumulator = 0.0f;
     }
     if (monster_info->stamina_max <= monster_info->stamina) {
-        monster_info->stamina_regen_accumulator_53 = 0.0f;
+        monster_info->stamina_regen_accumulator = 0.0f;
     }
     {
-        W8EffectSlot* slot = monster_info->effect_slots_10f;
+        W8EffectSlot* slot = monster_info->effect_slots;
 
         for (int owned_index = 0; owned_index < 0xc; ++owned_index) {
             if (slot->active != 0) {
-                if (minutes < slot->duration_0d) {
-                    slot->duration_0d -= minutes;
+                if (minutes < slot->duration) {
+                    slot->duration -= minutes;
                 } else if (monster_info == 0) {
                     ResetPartyEffectBlock(slot);
                 } else {
@@ -1271,11 +1271,11 @@ after_early: {
     }
     if (monster_info->fInCombat != 0) {
         for (int combat_index = 0; combat_index < 9; ++combat_index) {
-            W8EffectSlot* slot = &monster_info->pCombat->effect_slots_3e[combat_index];
+            W8EffectSlot* slot = &monster_info->pCombat->combat_effects[combat_index];
 
             if (slot->active != 0) {
-                if (minutes < slot->duration_0d) {
-                    slot->duration_0d -= minutes;
+                if (minutes < slot->duration) {
+                    slot->duration -= minutes;
                 } else if (monster_info == 0) {
                     ResetPartyEffectBlock(slot);
                 } else {
@@ -1284,11 +1284,11 @@ after_early: {
             }
         }
         for (int d7_index = 0; d7_index < 6; ++d7_index) {
-            W8EffectSlot* slot = &monster_info->pCombat->effect_slots_d7[d7_index];
+            W8EffectSlot* slot = &monster_info->pCombat->combat_effects_2[d7_index];
 
             if (slot->active != 0) {
-                if (minutes < slot->duration_0d) {
-                    slot->duration_0d -= minutes;
+                if (minutes < slot->duration) {
+                    slot->duration -= minutes;
                 } else if (monster_info == 0) {
                     ResetPartyEffectBlock(slot);
                 } else {
@@ -1306,7 +1306,7 @@ after_early: {
 // FUNCTION: WIZ8 0x005044d0
 void UpdateCampFatigue(int ticks)
 {
-    if (g_status.world_suspended_2390 != 0) {
+    if (g_status.world_suspended != 0) {
         return;
     }
     bool any_rolled = false;
@@ -1318,7 +1318,7 @@ void UpdateCampFatigue(int ticks)
                                 static_cast<W8ItemInstance*>(0)) == 0) {
             W8Dice dice;
             dice.count = static_cast<unsigned char>(ticks);
-            dice.sides = static_cast<unsigned char>(g_status.camp_fatigue_count_2498 / 6) + 2;
+            dice.sides = static_cast<unsigned char>(g_status.camp_fatigue_count / 6) + 2;
             any_rolled = true;
             dice.base = 0;
             unsigned int amount = static_cast<unsigned int>(RollDice(&dice));
@@ -1339,19 +1339,19 @@ void UpdateCampFatigue(int ticks)
                                      static_cast<W8SpellEffectResult*>(0));
                 }
             }
-            if (g_status.party_fatigued_2433 == 0) {
-                g_status.party_fatigued_2433 = true;
+            if (g_status.party_fatigued == 0) {
+                g_status.party_fatigued = true;
                 ShowNotice(8, gppStringList[0x1da], -1, 0xffffffff, 0);
             }
         }
     }
     if (any_rolled) {
-        g_status.camp_fatigue_count_2498 += ticks;
+        g_status.camp_fatigue_count += ticks;
         return;
     }
-    g_status.camp_fatigue_count_2498 = 0;
-    g_status.party_fatigued_2433 = false;
-    g_status.camp_tick_ms_2436 = 0;
+    g_status.camp_fatigue_count = 0;
+    g_status.party_fatigued = false;
+    g_status.camp_tick_ms = 0;
 }
 
 /* The stamina-tick driver: refreshes the wait state from the level's
@@ -1361,9 +1361,9 @@ void UpdateCampFatigue(int ticks)
 void UpdatePartyStamina(int ticks)
 {
     if (static_cast<char>(GetLevelDataFlag8()) != 0) {
-        g_status.wait_state_2399 = 1;
+        g_status.wait_state = 1;
     } else {
-        g_status.wait_state_2399 = static_cast<char>(GetLevelDataFlag9()) != 0 ? 0 : 3;
+        g_status.wait_state = static_cast<char>(GetLevelDataFlag9()) != 0 ? 0 : 3;
     }
 
     for (unsigned int slot = 0; slot < 8; ++slot) {
@@ -1375,7 +1375,7 @@ void UpdatePartyStamina(int ticks)
             (character->uiCondition[0x12] != 0 || GetConditionRecordFlag(slot, 1) == 0)) {
             continue;
         }
-        if (g_status.party_fatigued_2433 != 0 &&
+        if (g_status.party_fatigued != 0 &&
             FindItemOnCharacter(character, 0x1e5, static_cast<W8ItemInstance**>(0), 0,
                                 static_cast<W8ItemInstance*>(0)) == 0) {
             continue;
@@ -1393,7 +1393,7 @@ void RegenCharacterStamina(int party_slot, unsigned int elapsed)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
     unsigned int frost = character->uiCondition[2];
-    signed char stamina_mod = character->bonus_1770.stamina_regen_adjustment;
+    signed char stamina_mod = character->bonus.stamina_regen_adjustment;
     if (stamina_mod < 1) {
         if (stamina_mod < 0) {
             FatigueCharacter(party_slot, -static_cast<int>(stamina_mod * elapsed), 0,
@@ -1406,9 +1406,9 @@ void RegenCharacterStamina(int party_slot, unsigned int elapsed)
     float scale = g_float_one;
     if (gXStatus.fSurprisePossible == 0) {
         scale = g_float_005ebc7c;
-        if (g_status.wait_state_2399 != 3) {
+        if (g_status.wait_state != 3) {
             scale = g_float_005ebc3c;
-            if (g_status.wait_state_2399 != 0 && g_status.wait_state_2399 != 2) {
+            if (g_status.wait_state != 0 && g_status.wait_state != 2) {
                 scale = g_float_zero;
             }
         }
@@ -1426,14 +1426,14 @@ void RegenCharacterStamina(int party_slot, unsigned int elapsed)
         }
     }
     if (scale > g_float_zero && character->stamina < character->uiStaminaMax) {
-        character->stamina_regen_accumulator_0b75 +=
-            elapsed * character->stamina_regen_rate_0b71 * scale;
-        int amount = static_cast<int>(character->stamina_regen_accumulator_0b75);
+        character->stamina_regen_accumulator +=
+            elapsed * character->stamina_regen_rate * scale;
+        int amount = static_cast<int>(character->stamina_regen_accumulator);
         RestoreCharacterStamina(party_slot, amount, 0);
-        character->stamina_regen_accumulator_0b75 -=
-            static_cast<float>(static_cast<int>(character->stamina_regen_accumulator_0b75));
+        character->stamina_regen_accumulator -=
+            static_cast<float>(static_cast<int>(character->stamina_regen_accumulator));
     }
     if (character->stamina >= character->uiStaminaMax) {
-        character->stamina_regen_accumulator_0b75 = g_float_zero;
+        character->stamina_regen_accumulator = g_float_zero;
     }
 }

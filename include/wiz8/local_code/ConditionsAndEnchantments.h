@@ -40,7 +40,7 @@ struct W8ConditionImmunity {
     unsigned char kind;
     /* 0x01: the catch-all flag the monster-info immunity list prints as its
        final "all" entry. */
-    unsigned char immune_all_01;
+    unsigned char immune_all;
     int conditions[20];
 };
 #pragma pack(pop)

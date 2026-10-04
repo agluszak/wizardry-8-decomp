@@ -149,7 +149,7 @@ static stModelInstance2D* AcquireRadarBlip(int sector, bool lit)
         icon->clearFlag(srNode::FLAG_DISABLE);
         icon->setParent(0, 1);
         icon->setParent(g_scene_square, 1);
-        icon->overlay_scene_flag_160 |= 1;
+        icon->overlay_scene_flag |= 1;
         if (lit == 0) {
             icon->SetGlowEnabled(0);
         } else {
@@ -167,7 +167,7 @@ static stModelInstance2D* AcquireRadarBlip(int sector, bool lit)
             first.y = g_radar_blip_colors[group][1];
             first.z = g_radar_blip_colors[group][2];
             icon->SetGlowColors(&first, &second);
-            icon->render_state_164.render_depth = 1000;
+            icon->render_state.render_depth = 1000;
         }
     }
     return icon;
@@ -304,7 +304,7 @@ void RefreshRadarMap(void)
         color.w = 1.0f;
         icon = CreateColoredPolygonSprite(2, 2, &color, 0);
         g_radar_icon_pools[sector].Add(icon);
-        icon->overlay_scene_flag_160 |= 1;
+        icon->overlay_scene_flag |= 1;
     }
     UpdateRadarBlips();
 }
@@ -385,12 +385,12 @@ void UpdateRadarBlips(void)
                 hostile = 1;
             }
             if (monster->IsRenderable(1) == 0 && detect_all == 0) {
-                if (info->party_threat.sight_state_04 == W8_SIGHT_RECENT) {
+                if (info->party_threat.sight_state == W8_SIGHT_RECENT) {
                     monster->GetAnimationBounds(&bounds_min, &bounds_max);
                     center.Set((bounds_min.x + bounds_max.x) * g_double_005ebe80,
                                (bounds_min.y + bounds_max.y) * g_double_005ebe80,
                                (bounds_min.z + bounds_max.z) * g_double_005ebe80);
-                    position = center + info->party_threat.camera_position_0c;
+                    position = center + info->party_threat.camera_position;
                     party = g_startup_world->GetPosition();
                     delta = position - party;
                     float distance = delta.Length();
@@ -443,7 +443,7 @@ void UpdateRadarBlips(void)
 
     W8Missile* missile = NextMissile(1);
     while (missile != 0) {
-        if (missile->impacting_1e1 == 0) {
+        if (missile->impacting == 0) {
             missile->GetAnimationBounds(&bounds_min, &bounds_max);
             center.Set((bounds_min.x + bounds_max.x) * g_double_005ebe80,
                        (bounds_min.y + bounds_max.y) * g_double_005ebe80,

@@ -20,7 +20,7 @@ long srNode::sceneGraphLockCount;
 static const char* s_flag_names_100a4a00;
 
 // GLOBAL: SURRENDER 0x100A4A04
-static const char* s_notify_names_100a4a04;
+static const char* s_notify_names;
 
 // FUNCTION: SURRENDER 0x10050340
 void srNode::lockSceneGraph()
@@ -122,10 +122,10 @@ void srNode::getLocalBounds(BoundInfo& bounds)
     bounds.center.SetZero();
     bounds.radius = 0.0f;
     if (testFlag(FLAG_GLOBAL) != 0) {
-        bounds.state_28 = 2;
+        bounds.state = 2;
         return;
     }
-    bounds.state_28 = 0;
+    bounds.state = 0;
 }
 
 // FUNCTION: SURRENDER 0x100505E0
@@ -437,7 +437,7 @@ void srNode::dump(std::ostream& stream)
     stream << '\n';
     stream.width(0x20);
     stream << "  Notify: ";
-    dumpFlags(stream, notifications_120.value, s_notify_names_100a4a04);
+    dumpFlags(stream, notifications_120.value, s_notify_names);
     stream << '\n';
     stream.flags(flags & 0x7fff);
     delete[] path;

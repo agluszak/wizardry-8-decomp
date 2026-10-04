@@ -13,7 +13,7 @@
  * unresolved. A W8GameplayModifierBlock is the 0x67-byte
  * accumulator those slots and the worn equipment fold into, one block per
  * character plus the party-wide block in the status record. Monsters keep
- * the same record at W8MonsterInfo::modifiers_1db.
+ * the same record at W8MonsterInfo::modifiers.
  */
 
 #pragma pack(push, 1)
@@ -28,7 +28,7 @@ struct W8EffectSlot {
     int amount;               /* 0x05: dword magnitude - ApplyCombatEffectSlot and the
                              0x3e detonation pass read and write it as one dword */
     unsigned int percent;     /* 0x09 */
-    unsigned int duration_0d; /* 0x0d: remaining lifetime, aged down in whole
+    unsigned int duration; /* 0x0d: remaining lifetime, aged down in whole
                                   minutes by AgeMonsterSight */
 }; /* 0x11 */
 #pragma pack(pop)
@@ -38,7 +38,7 @@ static_assert(offsetof(W8EffectSlot, active) == 0x00, "W8EffectSlot_active");
 static_assert(offsetof(W8EffectSlot, effect_id) == 0x01, "W8EffectSlot_effect_id");
 static_assert(offsetof(W8EffectSlot, amount) == 0x05, "W8EffectSlot_amount");
 static_assert(offsetof(W8EffectSlot, percent) == 0x09, "W8EffectSlot_percent");
-static_assert(offsetof(W8EffectSlot, duration_0d) == 0x0d, "W8EffectSlot_duration_0d");
+static_assert(offsetof(W8EffectSlot, duration) == 0x0d, "W8EffectSlot_duration");
 
 /* The 0x67-byte modifier accumulator. Its byte runs are fixed by the fold at
    0x0050F090: bytes 0x00..0x0b, 0x0c..0x12, 0x13..0x3b and 0x3c..0x41 are
@@ -46,12 +46,12 @@ static_assert(offsetof(W8EffectSlot, duration_0d) == 0x0d, "W8EffectSlot_duratio
    keep the larger value. Only the offsets another recovered pass names are
    labelled; the rest stay runs. */
 struct W8GameplayModifierBlock {
-    signed char damage_bonus_00;   /* 0x00: added to initiative and to displayed hand damage */
-    signed char hit_bonus_01;      /* 0x01: added to the hand attack hit bonus */
-    signed char attack_bonus_02;   /* 0x02: added to the hand attack score term */
-    signed char damage_percent_03; /* 0x03: added to the hand attack damage bonus */
-    signed char armor_bonus_04;    /* 0x04 */
-    signed char armor_bonus_05;    /* 0x05 */
+    signed char damage_bonus;   /* 0x00: added to initiative and to displayed hand damage */
+    signed char hit_bonus;      /* 0x01: added to the hand attack hit bonus */
+    signed char attack_bonus;   /* 0x02: added to the hand attack score term */
+    signed char damage_percent; /* 0x03: added to the hand attack damage bonus */
+    signed char armor_flat;    /* 0x04 */
+    signed char armor_matchup;    /* 0x05 */
     signed char damage_reduction_adjustment; /* 0x06: added to damage reduction */
     signed char resistance_bonus_all;        /* 0x07: added to every resistance */
     /* 0x08: flat damage applied once per elapsed minute. The character and
@@ -64,7 +64,7 @@ struct W8GameplayModifierBlock {
     signed char stamina_regen_adjustment;
     signed char spell_regen_adjustment;
     signed char attribute_adjustments[7]; /* 0x0c .. 0x12 */
-    signed char skill_bonus_13[0x29];     /* 0x13 .. 0x3b: one per skill id */
+    signed char skill_bonus[0x29];     /* 0x13 .. 0x3b: one per skill id */
     signed char resistance_bonus[6];      /* 0x3c .. 0x41 */
     /* 0x42..0x44: independent +50% regeneration-rate latches. */
     unsigned char boost_health_regen;
@@ -73,18 +73,18 @@ struct W8GameplayModifierBlock {
     unsigned char out_of_formation; /* 0x45 */
     /* 0x46: set by effect id 0x11; the secret-search pass treats every
        slot as a finder while it holds. */
-    unsigned char detect_secrets_46;
-    unsigned char light_47; /* 0x47: the doubled light value the sky node reads */
-    unsigned char value_48; /* 0x48: max-combined, effect id 0x21 */
+    unsigned char detect_secrets;
+    unsigned char light; /* 0x47: the doubled light value the sky node reads */
+    unsigned char value; /* 0x48: max-combined, effect id 0x21 */
     /* 0x49: missile deflection chance in percent; Missile.cpp compares it
        against Random(100)+1. Max-combined, effect id 0x1a. */
-    unsigned char missile_deflect_chance_49;
+    unsigned char missile_deflect_chance;
     /* 0x4a: set by effect id 0x2d; feeds ComputeSightThreshold's
        sight_override and gates the party-surprise pass. */
-    unsigned char sight_override_4a;
+    unsigned char sight_override;
     /* 0x4b: armor-class adjustment; added to character component 8 and the
        monster target-armor modifier, reduced by conditions. */
-    signed char armor_class_adjustment_4b;
+    signed char armor_class_adjustment;
     unsigned char unknown_4c[0x1b]; /* 0x4c .. 0x66 */
 }; /* 0x67 */
 
@@ -95,14 +95,14 @@ static_assert(offsetof(W8GameplayModifierBlock, attribute_adjustments) == 0x0c,
 static_assert(sizeof(W8GameplayModifierBlock) == 0x67, "W8GameplayModifierBlock_must_be_0x67");
 
 /* The spell that fills each being effect slot; the monster side indexes
-   W8MonsterInfo::effect_slots_10f, the party side
-   W8GameStatus::effect_slots_17af. */
+   W8MonsterInfo::effect_slots, the party side
+   W8GameStatus::effect_slots. */
 extern int g_being_effect_slot_spells[12];
 /* The combat-state spell per effect slot, walked against
-   W8CombatState::effect_slots and the monster's effect_slots_3e. */
+   W8CombatState::effect_slots and the monster's combat_effects. */
 extern int g_combat_effect_slot_spells[9];
 /* The same mapping for the second combat effect block, indexed against
-   W8CombatState::effect_slots_85a and the monster's effect_slots_d7. */
+   W8CombatState::effect_slots_85a and the monster's combat_effects_2. */
 extern int g_combat_effect_slot_spells_and_cast_success[23];
 
 #endif

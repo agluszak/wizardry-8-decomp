@@ -76,7 +76,7 @@ void UpdateCameraPathState(W8World* world, W8CameraPath* path, int active)
         PathAISetValue(path->path_18, 0.0f);
         PathAIResetTick(path->path_18);
         path->path_18->distance_travelled = 0.0f;
-        path->path_18->upright_3b = 1;
+        path->path_18->upright = 1;
         g_saved_environment_flag = SetEnvironmentLoadFlag(0);
         return;
     }
@@ -184,15 +184,15 @@ void PointCameraAtMonster(W8MonsterInfo* monster_info, bool force, bool animate)
     if (monster->IsRenderable(1) == 0) {
         return;
     }
-    if (monster->movement_0c0.height_offset_0b8 -
-                monster->movement_0c0.secondary_height_offset_0bc <
+    if (monster->movement_0c0.height_offset -
+                monster->movement_0c0.secondary_height_offset <
             g_float_005ebc64 ||
         monster->GetDistanceToPlayer() > g_float_005ebcdc) {
         position = monster->movement_0c0.position_040;
-        position.y += monster->movement_0c0.secondary_height_offset_0bc;
+        position.y += monster->movement_0c0.secondary_height_offset;
     } else {
         position = monster->movement_0c0.position_040;
-        position.y += monster->movement_0c0.height_offset_0b8;
+        position.y += monster->movement_0c0.height_offset;
     }
     if (track != 0) {
         if (animate == 0) {

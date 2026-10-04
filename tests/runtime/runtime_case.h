@@ -56,7 +56,7 @@ struct GameplayReadyCheck {
     int pending;
     int keyboard_present;
     int level_block_present;
-    int review_transition_done_328;
+    int review_transition_done;
     int review_transition_active;
     int level_data_present;
     unsigned int flags;

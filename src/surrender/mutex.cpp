@@ -3,7 +3,7 @@
 // FUNCTION: SURRENDER 0x10045A40
 srMutex::srMutex()
 {
-    access_count_08 = 0;
+    access_count = 0;
     handle_04 = CreateMutexA(0, 0, 0);
 }
 
@@ -28,12 +28,12 @@ int srMutex::accessAvailable()
 void srMutex::getAccess()
 {
     WaitForSingleObject(handle_04, INFINITE);
-    access_count_08++;
+    access_count++;
 }
 
 // FUNCTION: SURRENDER 0x10045AF0
 void srMutex::releaseAccess()
 {
     ReleaseMutex(handle_04);
-    access_count_08--;
+    access_count--;
 }

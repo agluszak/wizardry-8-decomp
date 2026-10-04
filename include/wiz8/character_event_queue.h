@@ -51,8 +51,8 @@ struct W8CharacterEvent {
     /* 0x18/0x1c: thresholds sampled at queue time (hp_current or
        highest_condition, by event type); the consumer fires once the live
        value crosses them. */
-    int threshold_18;
-    int threshold_1c;
+    int trigger_value;
+    int trigger_value_2;
     /* 0x20: the original event type TryAdjustQueuedEvent stores before
        rewriting event_type to the shared follow-up id 10. */
     unsigned int original_event_type;

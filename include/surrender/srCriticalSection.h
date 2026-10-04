@@ -6,26 +6,26 @@ class srCriticalSection {
 public:
     srCriticalSection()
     {
-        InitializeCriticalSection(&critical_section_00);
+        InitializeCriticalSection(&critical_section);
     }
 
     ~srCriticalSection()
     {
-        DeleteCriticalSection(&critical_section_00);
+        DeleteCriticalSection(&critical_section);
     }
 
     void getAccess()
     {
-        EnterCriticalSection(&critical_section_00);
+        EnterCriticalSection(&critical_section);
     }
 
     void releaseAccess()
     {
-        LeaveCriticalSection(&critical_section_00);
+        LeaveCriticalSection(&critical_section);
     }
 
 private:
-    CRITICAL_SECTION critical_section_00;
+    CRITICAL_SECTION critical_section;
 };
 
 static_assert(sizeof(srCriticalSection) == 0x18, "srCriticalSection_must_be_0x18");

@@ -264,7 +264,7 @@ void OpenSplitStackDialog(W8ItemInstance* item)
 
     g_split_item_source = 0;
     if (item->iItemNo != -1 && item->stack_count > 1 &&
-        (g_item_records[item->iItemNo].flags_041 & 2) == 0 &&
+        (g_item_records[item->iItemNo].flags & 2) == 0 &&
         g_item_records[item->iItemNo].quantity_kind == 1) {
         g_split_item_source = item;
         dialog = new W8SplitItemDialog(g_split_dialog_kind, item, -1);
@@ -296,7 +296,7 @@ void UseCampItem(W8ItemInstance* item)
         } else {
             if (g_status.item_in_cursor == 0) {
                 MarkCampCharacterPending(item);
-                CopyItemInstance(&g_status.item_in_hand_235b, item, g_review_character, 1);
+                CopyItemInstance(&g_status.item_in_hand, item, g_review_character, 1);
             }
         }
         DismissSelectedPartyCharacter();
@@ -435,7 +435,7 @@ int CanCharacterUseItemEntry(W8Character* character, W8ItemInstance* item)
 bool CanSplitItemStack(const W8ItemInstance* item)
 {
     const W8ItemDatabaseRecord* record = g_item_records + item->iItemNo;
-    if ((record->flags_041 & 2) != 0) {
+    if ((record->flags & 2) != 0) {
         return 0;
     }
     return record->quantity_kind == 1;
@@ -451,10 +451,10 @@ void SplitStackDialogResult(W8DialogBase* dialog)
     unsigned char remaining;
     unsigned char carried;
 
-    if (static_cast<W8SplitItemDialog*>(dialog)->split_result_0c8 != g_split_result_kind) {
+    if (static_cast<W8SplitItemDialog*>(dialog)->split_result != g_split_result_kind) {
         return;
     }
-    count = static_cast<W8SplitItemDialog*>(dialog)->split_count_0c0;
+    count = static_cast<W8SplitItemDialog*>(dialog)->split_count;
     remaining = g_split_item_source->stack_count - static_cast<unsigned char>(count);
     carried = static_cast<unsigned char>(count);
     if (count == 0) {
@@ -477,10 +477,10 @@ void SplitStackDialogResult(W8DialogBase* dialog)
             if (gXStatus.held_item_origin == 1) {
                 if (character->EquippedItem[static_cast<short>(gXStatus.held_item_slot)].iItemNo ==
                         -1 &&
-                    CanEquipItemInSlot(character, g_status.item_in_hand_235b.iItemNo,
+                    CanEquipItemInSlot(character, g_status.item_in_hand.iItemNo,
                                        static_cast<unsigned char>(gXStatus.held_item_slot),
                                        0) != 0 &&
-                    CanCharacterUseItem(character, g_status.item_in_hand_235b.iItemNo) != 0) {
+                    CanCharacterUseItem(character, g_status.item_in_hand.iItemNo) != 0) {
                     destination =
                         character->EquippedItem + static_cast<short>(gXStatus.held_item_slot);
                 }
@@ -493,32 +493,32 @@ void SplitStackDialogResult(W8DialogBase* dialog)
             (character == 0 || AddItemToCharacter(character, &split, 0, 0, 0) == 0) &&
             AddItemToParty(&split, 0, 0) == 0) {
             ShowCampNoticeLine(gppStringList[0x915], 0, 1, 0);
-            g_status.item_in_hand_235b.stack_count = remaining;
+            g_status.item_in_hand.stack_count = remaining;
             if (ResolvePendingCampCharacter(1) != 0 && DropItemInHand(0) != 0) {
                 SetCampItemActionMode(0);
             }
-            destination = &g_status.item_in_hand_235b;
+            destination = &g_status.item_in_hand;
         }
         if (destination != 0) {
             CopyItemInstance(destination, &split, 0, 1);
         }
     } else {
         if (count == g_split_item_source->stack_count) {
-            CopyItemInstance(&g_status.item_in_hand_235b, g_split_item_source, g_review_character,
+            CopyItemInstance(&g_status.item_in_hand, g_split_item_source, g_review_character,
                              1);
-            carried = g_status.item_in_hand_235b.stack_count;
+            carried = g_status.item_in_hand.stack_count;
         } else {
             split = *g_split_item_source;
             split.stack_count = static_cast<unsigned char>(count);
             g_split_item_source->stack_count = remaining;
-            CopyItemInstance(&g_status.item_in_hand_235b, &split, 0, 1);
+            CopyItemInstance(&g_status.item_in_hand, &split, 0, 1);
             gXStatus.held_item_source = giReviewCharSlot;
             GetOriginOfCharacterItem(giReviewCharSlot, g_split_item_source,
                                      &gXStatus.held_item_origin, &gXStatus.held_item_slot);
-            carried = g_status.item_in_hand_235b.stack_count;
+            carried = g_status.item_in_hand.stack_count;
         }
     }
-    g_status.item_in_hand_235b.stack_count = carried;
+    g_status.item_in_hand.stack_count = carried;
     RebuildEquipmentAndDerivedStatsForSlot(giReviewCharSlot);
     RebuildCampItemList();
     RecalculateCharacterDerivedStats(g_status.buffers.Char + giReviewCharSlot);
@@ -568,11 +568,11 @@ void UpdateItemCursorForState(int flag, W8ItemInstance* item, int slot)
         }
         if (g_camp_screen->entry_mode == 4) {
             const W8ItemDatabaseRecord* record = g_item_records + item->iItemNo;
-            if ((record->flags_041 & 2) != 0 || record->quantity_kind != 1) {
+            if ((record->flags & 2) != 0 || record->quantity_kind != 1) {
                 return;
             }
             if (gXStatus.fCombatMode != 0 && IsEquippableItemClass(item) == 0 &&
-                (g_combat_state->equip_phase_a50 == 0 ||
+                (g_combat_state->equip_phase == 0 ||
                  g_status.buffers.XChar[giReviewCharSlot].pending_action != W8_ACTION_EQUIP)) {
                 return;
             }
@@ -643,8 +643,8 @@ void UnequipBothHands(void)
 {
     W8Character* character;
 
-    if (gXStatus.fCombatMode != 0 && g_combat_state->round_active_001 == 0 &&
-        gXStatus.fPartyMovementMode == 0 && g_combat_state->equip_phase_a50 == 0) {
+    if (gXStatus.fCombatMode != 0 && g_combat_state->round_active == 0 &&
+        gXStatus.fPartyMovementMode == 0 && g_combat_state->equip_phase == 0) {
         ShowCampNoticeLine(gppStringList[0x903], 0, 1, 0);
         return;
     }
@@ -669,12 +669,12 @@ void UnequipBothHands(void)
 void TogglePartyRowFlag(void)
 {
     if ((g_camp_action_buttons[1]->m_stateFlags & g_W8TextControlStateSecondary) != 0) {
-        g_status.buffers.XChar[giReviewCharSlot].item_action_pending_0f5 = 1;
+        g_status.buffers.XChar[giReviewCharSlot].item_action_pending = 1;
         g_camp_action_buttons[0]->SetEnabled(0);
         g_camp_action_buttons[0]->Invalidate(0);
         return;
     }
-    g_status.buffers.XChar[giReviewCharSlot].item_action_pending_0f5 = 0;
+    g_status.buffers.XChar[giReviewCharSlot].item_action_pending = 0;
     g_camp_action_buttons[0]->SetEnabled(1);
     g_camp_action_buttons[0]->Invalidate(0);
 }
@@ -865,9 +865,9 @@ unsigned char EquipSlotRegionHandler(const InputAtom* event, W8Region* region)
     item = g_review_character->EquippedItem + slot;
     if (item->iItemNo == -1 &&
         (g_status.item_in_cursor == 0 || g_camp_screen->entry_mode == 1 ||
-         CanEquipItemInSlot(g_review_character, g_status.item_in_hand_235b.iItemNo,
+         CanEquipItemInSlot(g_review_character, g_status.item_in_hand.iItemNo,
                             static_cast<unsigned char>(slot), 1) == 0 ||
-         CanCharacterUseItem(g_review_character, g_status.item_in_hand_235b.iItemNo) == 0)) {
+         CanCharacterUseItem(g_review_character, g_status.item_in_hand.iItemNo) == 0)) {
         PushButtonSoundScheme(0, 1);
     }
     if (event->usEvent < 0x81) {
@@ -969,19 +969,19 @@ unsigned char ItemPoolRegionHandler(const InputAtom* event, W8Region* region)
     slot = region->callback_id;
     pool_index = g_camp_screen->item_scroll + slot;
     if (g_camp_screen->item_list_count <= pool_index ||
-        g_status.party_item_pool_0021[g_camp_screen->item_list_4ec[pool_index]].iItemNo == -1) {
-        pool_index = g_status.party_item_count_1791;
+        g_status.party_item_pool[g_camp_screen->item_list[pool_index]].iItemNo == -1) {
+        pool_index = g_status.party_item_count;
     } else {
-        pool_index = g_camp_screen->item_list_4ec[pool_index];
+        pool_index = g_camp_screen->item_list[pool_index];
     }
-    item = g_status.party_item_pool_0021 + pool_index;
+    item = g_status.party_item_pool + pool_index;
     if (item->iItemNo == -1 && g_status.item_in_cursor == 0) {
         PushButtonSoundScheme(0, 1);
     }
     if (event->usEvent < 0x101) {
         if (event->usEvent == 0x100) {
             if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0 &&
-                pool_index < g_status.party_item_count_1791 && g_camp_screen->entry_mode != 3) {
+                pool_index < g_status.party_item_count && g_camp_screen->entry_mode != 3) {
                 g_camp_entry_parameter = g_review_character;
                 if (CanItemLeaveItsSlot(item) != 0 && PartyAttemptsToIdentifyItem(item, 0) != 0 &&
                     g_camp_screen->realm_flags[1] != 0) {
@@ -1054,12 +1054,12 @@ unsigned char ItemPoolRegionHandler(const InputAtom* event, W8Region* region)
         }
         pool_index = g_camp_screen->item_scroll + slot;
         if (g_camp_screen->item_list_count <= pool_index) {
-            pool_index = g_status.party_item_count_1791;
+            pool_index = g_status.party_item_count;
         } else {
-            pool_index = g_camp_screen->item_list_4ec[pool_index];
+            pool_index = g_camp_screen->item_list[pool_index];
         }
-        if (g_status.party_item_pool_0021[pool_index].iItemNo != -1) {
-            SetItemTooltip(g_status.party_item_pool_0021 + pool_index, region);
+        if (g_status.party_item_pool[pool_index].iItemNo != -1) {
+            SetItemTooltip(g_status.party_item_pool + pool_index, region);
             return 1;
         }
     }
@@ -1150,7 +1150,7 @@ void SetItemTooltip(W8ItemInstance* item, W8Region* region)
                          "C:\\Projects\\Wizardry 8\\Local Screens\\RCSItemsPage.cpp", 0xa7a, 0);
         }
         if (g_review_character->spell_learned[record->spell_id] == 1 &&
-            (item->identified != 0 || item->spell_hint_07 != 0)) {
+            (item->identified != 0 || item->spell_hint != 0)) {
             wcscat(g_camp_screen->caption, L" (");
             wcscat(g_camp_screen->caption, gppStringList[0x930]);
             wcscat(g_camp_screen->caption, L")");
@@ -1196,7 +1196,7 @@ void DrawCampItemIcons(void)
             y = (index >> 1) * 0x39 + 0xd2;
         }
         DrawCampItemLabel(
-            &g_status.party_item_pool_0021[state->item_list_4ec[state->item_scroll + index]],
+            &g_status.party_item_pool[state->item_list[state->item_scroll + index]],
             (index & 1) * 0x31 + 0x22c, y, 1);
         ++index;
     }
@@ -1204,8 +1204,8 @@ void DrawCampItemIcons(void)
     for (index = 0; index < 12; ++index) {
         item = &character->EquippedItem[index];
         if (item->iItemNo != -1) {
-            DrawCampItemLabel(item, region->label_x_18, region->label_y_1c,
-                              static_cast<char>(region->label_flag_20));
+            DrawCampItemLabel(item, region->label_x, region->label_y,
+                              static_cast<char>(region->label_flag));
         }
         ++region;
     }
@@ -1374,7 +1374,7 @@ void EnableCampActionButtons(void)
     g_camp_action_buttons[1]->SetActive(1);
     if (g_status.game_started != 0) {
         g_camp_action_buttons[1]->SetEnabled(1);
-        if (g_status.buffers.XChar[giReviewCharSlot].item_action_pending_0f5 != 0) {
+        if (g_status.buffers.XChar[giReviewCharSlot].item_action_pending != 0) {
             g_camp_action_buttons[1]->EnableSecondaryState(0);
             g_camp_action_buttons[0]->SetEnabled(0);
         } else {

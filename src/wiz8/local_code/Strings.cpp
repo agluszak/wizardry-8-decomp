@@ -19,7 +19,7 @@ wchar_t** gppStringList;
    shared quote buffer's proven extent. */
 // FUNCTION: WIZ8 0x0052FF80
 unsigned char GetStringFromStringDatabase(const char* path, int index, wchar_t* output,
-                                          unsigned int* metadata_04, unsigned int* metadata_00)
+                                          unsigned int* metadata_00, unsigned int* metadata_04)
 {
     HWFILE handle;
     unsigned char header[5];

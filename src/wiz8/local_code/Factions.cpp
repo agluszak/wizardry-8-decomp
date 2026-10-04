@@ -178,7 +178,7 @@ void SetFactionDispositionBand(signed char faction, signed char band)
         break;
     }
     if (band != old_band) {
-        g_factions[faction].band_changed_clock_06 = g_status.world_clock;
+        g_factions[faction].band_changed_clock = g_status.world_clock;
         if (band < old_band) {
             swprintf(notice, gppStringList[0x245]);
             palette = 0;
@@ -242,8 +242,8 @@ void RecordFactionOffense(signed char faction, unsigned int victim_location_inde
     W8MonsterInfo* monster_info;
     W8MonsterRecord* record;
 
-    if (g_factions[faction].offense_count_01 < 0xfa) {
-        g_factions[faction].offense_count_01++;
+    if (g_factions[faction].offense_count < 0xfa) {
+        g_factions[faction].offense_count++;
     }
     monster_info = MonsterGetScriptPartByLocationIndex(victim_location_index);
     record = GetMonsterDataForInfo(monster_info);
@@ -266,7 +266,7 @@ void RecordFactionOffense(signed char faction, unsigned int victim_location_inde
             return;
         }
     }
-    if (record->record_id_187 == 0x146) {
+    if (record->record_id == 0x146) {
         AdjustFactionDisposition(faction, -0x28);
         return;
     }
@@ -274,11 +274,11 @@ void RecordFactionOffense(signed char faction, unsigned int victim_location_inde
         AdjustFactionDisposition(faction, -0x14);
         return;
     }
-    if (g_factions[faction].offense_count_01 < 0x15) {
+    if (g_factions[faction].offense_count < 0x15) {
         AdjustFactionDisposition(faction, -2);
         return;
     }
-    AdjustFactionDisposition(faction, g_factions[faction].offense_count_01 > 0x28 ? -10 : -6);
+    AdjustFactionDisposition(faction, g_factions[faction].offense_count > 0x28 ? -10 : -6);
 }
 
 /* Shift a faction's disposition by delta, clamped to 0..99. A band crossing
@@ -332,7 +332,7 @@ void AdjustFactionDisposition(signed char faction, char delta)
         new_band = (g_factions[faction].disposition_score >= 67) + 1;
     }
     if (new_band != old_band) {
-        g_factions[faction].band_changed_clock_06 = g_status.world_clock;
+        g_factions[faction].band_changed_clock = g_status.world_clock;
     }
     if (g_factions[faction].disposition_score < old_score) {
         swprintf(notice, gppStringList[0x245]);

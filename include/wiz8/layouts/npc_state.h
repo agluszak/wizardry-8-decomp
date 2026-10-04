@@ -34,7 +34,7 @@ struct W8NpcState {
     /* 0x04: spawned flag; FindNpcOfKind returns it as the "in the world"
        answer, facts/combat paths set it, and 0xffff is the never-set
        sentinel normalized to zero on load. */
-    unsigned short spawned_04;
+    unsigned short spawned;
     W8NpcDatabaseRecord* record; /* 0x06 */
     W8PList* items;              /* 0x0a: W8NpcItemEntry* elements */
     /* 0x0e and 0x12: two world-clock stamps, both set when the stock is first
@@ -55,7 +55,7 @@ struct W8NpcState {
     unsigned int dismissed_timer;
     /* 0x22/0x23: two bytes 0x0056D030 clears when the dialogue NPC is
        staged. */
-    bool flag_22;
+    bool flag;
     bool flag_23;
     /* 0x24: the level-band byte GetLevelBand returns for the bound level. */
     unsigned char level_band;
@@ -69,10 +69,10 @@ struct W8NpcState {
     /* 0x2c: this node's own slot in g_npc_states, written by
        CreateNpcRuntimeNode; the release pass follows the index a partner
        names. */
-    unsigned char partner_index_2c;
+    unsigned char partner_index;
     /* 0x2d: the NPC's monster has noticed the party once; the sight path
        raises it to fire the one-shot surprise/bark event. */
-    bool party_noticed_2d;
+    bool party_noticed;
     /* 0x2e: the naming-style id a fact can substitute; values run to 0x85,
        past the signed-char range. */
     unsigned char name_style;
@@ -80,18 +80,18 @@ struct W8NpcState {
     unsigned char bound_level;
     /* 0x30: the forty item ids 0x0050B9E0 copies out of the record's item
        table, -1 for an unused slot; every retail reader sign-extends. */
-    short item_ids_30[40];
+    short item_ids[40];
     /* 0x80: the purse 0x004F8CB0 hands to AddPartyGold, from the record's
        gold field. */
-    int gold_80;
+    int gold;
     /* 0x84: cleared by 0x0056D030 when the runtime-node flag at 0x1d is
        set. */
     /* 0x84: theft suspicion; each theft attempt raises it toward 0x64 and it
        scales the theft score down. */
-    unsigned char suspicion_84;
+    unsigned char suspicion;
     /* 0x85: bitmask the refusal callback reads and sets one bit per queued
        refusal quote (0x67, 0x68, 0x69); retail accesses it as one dword. */
-    unsigned int refusal_flags_85;
+    unsigned int refusal_flags;
     /* 0x089: five topics stored one more than their id so zero means empty. */
     int topics[5];
     char restore_entity_name[0x28]; /* 0x9d: FindEntityByName key for restore */
@@ -111,9 +111,9 @@ struct W8NpcState {
     /* 0x0e8: cleared by the level-entry NPC-binding reset. */
     /* 0xe8: the bound character's highest condition reached a serious
        band; cleared when the character recovers. */
-    unsigned char incapacitated_e8;
+    unsigned char incapacitated;
     /* 0x0e9 and 0x114: two flags raised together when the NPC is marked. */
-    unsigned char marked_e9;
+    unsigned char event_pending;
     /* 0x0ea: this NPC is a candidate for the scripted event pass. */
     /* 0xea: the NPC is restored into the current level and available for
        binding; cleared while a restore is pending. */
@@ -123,20 +123,20 @@ struct W8NpcState {
     /* 0x0ef: disposition band snapshot taken when dialogue opens. */
     unsigned char disposition_at_open_ef;
     /* 0x0f0/0x0f1: death-save assist offer, selected by name style. */
-    unsigned char healer_assist_f0;
-    unsigned char item_assist_f1;
+    unsigned char healer_assist;
+    unsigned char item_assist;
     /* 0x0f2: fourteen facts, appended in order and terminated by zero. */
     short known_facts[14];
     /* 0x10e: the item-count dice of the item table 0x0050B9E0 copied. */
-    W8Dice item_count_dice_10e;
+    W8Dice item_count_dice;
     /* 0x112/0x113: the monster-binding release flag and the level it is
        stamped for. */
     bool pending_release;
     unsigned char pending_release_level;
-    unsigned char marked_114;
-    /* 0x115: the forty entry weights matching item_ids_30; only the slots
+    unsigned char restore_done;
+    /* 0x115: the forty entry weights matching item_ids; only the slots
        whose table selector was set carry a weight. */
-    unsigned char item_weights_115[40];
+    unsigned char item_weights[40];
 }; /* 0x13d by allocation */
 
 #pragma pack(pop)

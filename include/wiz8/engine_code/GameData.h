@@ -27,42 +27,42 @@ struct W8LevelDataRecord {
        flips setting-6e props referenced here. */
     int primary_contact_prop_id;   /* 0x04 */
     int secondary_contact_prop_id; /* 0x08 */
-    signed char sound_environment_0c;
-    signed char sound_environment_alt_0d;
+    signed char sound_environment;
+    signed char sound_environment_alt;
     unsigned char pad_0e[2];
-    float footstep_accumulator_10; /* 0x10 */
-    float camera_scale_14;         /* 0x14 */
+    float footstep_accumulator; /* 0x10 */
+    float camera_scale;         /* 0x14 */
     /* 0x18/0x1c: residual segment length and facing metric from the nearest
        contact during UpdateWorldCameraAndPaths. */
-    float residual_contact_length_18; /* 0x18 */
-    float contact_facing_1c;          /* 0x1c */
-    float speed_20;                   /* 0x20 */
+    float residual_contact_length; /* 0x18 */
+    float contact_facing;          /* 0x1c */
+    float speed;                   /* 0x20 */
     /* 0x24/0x28: pending elapsed times ConsumeLevelElapsedTime hands
        to the movement/fatigue pass, then clears. */
     float real_elapsed_24;
     float frame_elapsed_28;
     float movement_limit_2c;
-    float movement_progress_30;
+    float movement_progress;
     srVector3T<float> camera_position_34;       /* 0x34 */
     srVector3T<float> vector_40;                /* 0x40 */
-    srVector3T<float> camera_forward_4c;        /* 0x4c */
+    srVector3T<float> camera_forward;        /* 0x4c */
     srVector3T<float> vector_58;                /* 0x58 */
     srVector3T<float> vector_64;                /* 0x64 */
     srVector3T<float> vector_70;                /* 0x70 */
-    srVector3T<float> scaled_camera_forward_7c; /* 0x7c */
+    srVector3T<float> scaled_camera_forward; /* 0x7c */
     srVector3T<float> vector_88;                /* 0x88 */
     srVector3T<float> vector_94;                /* 0x94 */
     srVector3T<float> vector_a0;                /* 0xa0 */
     /* 0xac: contact surface normal; 0xb8: scalar stored beside it (retail
        constructor writes 1.0f). Remaining 8 bytes stay unresolved. */
     srVector3T<float> contact_normal_ac; /* 0xac */
-    float contact_normal_scale_b8;       /* 0xb8 */
+    float contact_normal_scale;       /* 0xb8 */
     unsigned char unknown_bc[8];         /* 0xbc */
-    W8IntervalGate interval_gate_c4;     /* 0xc4 */
+    W8IntervalGate interval_gate;     /* 0xc4 */
     bool flag_ec;                        /* 0xec */
     bool flag_ed;                        /* 0xed */
     unsigned char pad_ee[2];
-    float vertical_motion_f0; /* 0xf0 */
+    float vertical_motion; /* 0xf0 */
 
     W8LevelDataRecord(); /* 0x0041FD10 */
     /* 0x0041FE20: when the camera sits outside the game-data AABB, push
@@ -99,23 +99,23 @@ class BitArray;
 /* One environment record: seventeen dwords mixing counters and factors. */
 struct W8EnvironRecord {
     int value_00;
-    bool ground_latch_04;
-    unsigned char airborne_05;
+    bool ground_latch;
+    unsigned char airborne;
     unsigned char pad_06[2];
     int value_08;
     /* Per-frame scale copied from the level camera_scale; 0x00421850 multiplies
        vector_24 by it when advancing the camera under environment load. */
     float scale_0c;
-    float gravity_x_10;
-    float gravity_y_14;
-    float gravity_z_18;
-    float motion_step_1c;
-    float motion_factor_20;
+    float gravity_x;
+    float gravity_y;
+    float gravity_z;
+    float motion_step;
+    float motion_factor;
     srVector3T<float> vector_24;
-    float world_height_30;
-    float forward_scale_34;
-    float motion_limit_38;
-    float momentum_scale_3c;
+    float world_height;
+    float forward_scale;
+    float motion_limit;
+    float momentum_scale;
     float value_40;
 
     unsigned char RescaleToReference(const W8EnvironRecord* reference);
@@ -134,8 +134,8 @@ class BitArray;
    Field +0 is the interface's own id. Retail's SetInterfaceState assertion
    names the first-index member iStates. */
 struct W8GDInterface {
-    int id_00;
-    int state_count_04;
+    int id;
+    int state_count;
     int iStates;
 };
 
@@ -144,8 +144,8 @@ struct W8GDInterface {
    surface indexes in W8GameData::m_piCondPolys. */
 struct W8GDInterfaceState {
     int group_00;
-    int poly_count_04;
-    int poly_first_08;
+    int poly_count;
+    int poly_first;
 };
 
 /* The processed game-data record the octree and world own. The proven prefix
@@ -201,10 +201,10 @@ struct W8GameData {
     W8GDSurface* ProbePropsAlongMotion(srVector3T<float>* direction, srVector3T<float>* position,
                                        srVector3T<float>* scratch, float* nearest_distance);
 
-    W8OctBuildTree* geometry_index_00;
+    W8OctBuildTree* geometry_index;
     /* +0x04: the loading octree's back-pointer, stored by W8Octree's file-load
        finish path (retail writes [ESI+4], not +0) and tested by trigger
-       integration. geometry_index_00 above is untouched by that store. */
+       integration. geometry_index above is untouched by that store. */
     W8Octree* octree_04;
     srVector3T<float> minimum_08;
     srVector3T<float> maximum_14;
@@ -214,9 +214,9 @@ struct W8GameData {
     int m_iNumVertices;
     srVector3T<float>* m_pVertices;
     int m_iNumSurfaces;
-    int trigger_surface_base_2c_00;
-    int trigger_surface_count_2c_04;
-    int integrated_surface_count_34;
+    int trigger_surface_base_2c;
+    int trigger_surface_count_2c;
+    int integrated_surface_count;
     W8GDSurface* m_pSurfaces;
     int m_iNumTrigSurfaces;
     int m_iNumTrigVertices;
@@ -224,9 +224,9 @@ struct W8GameData {
     W8GDSurface* m_pTrigSurfaces;
     srVector3T<float>* m_pTrigVertices;
     Trigger** m_ppTriggers;
-    int last_hit_surface_54;
-    BitArray* bits_58;
-    BitArray* bits_5c;
+    int last_hit_surface;
+    BitArray* pending_trigger_bits;
+    BitArray* active_trigger_bits;
     int m_iNumInterfaces;
     W8GDInterface* m_pInterfaces;
     int m_iNumStates;
@@ -239,7 +239,7 @@ struct W8GameData {
     W8EnvironRecord** m_ppEnvirons;
     /* Set by W8Octree::SettleToGround around its TestTraceResult calls: while
        set, only flag-4 surfaces are admitted by the surface trace. */
-    bool trace_flag4_gate_88;
+    bool trace_flag4_gate;
     unsigned char pad_89[3];
 
     void IntegrateTriggers();
@@ -280,9 +280,9 @@ struct W8GameData {
     bool TestProp(int prop_id, W8OctreeTrace* trace, char skip_flag, char gate); /* 0x0041C140 */
     /* Ray-test `count` surfaces - all of m_pSurfaces when `surface_ids` is
        null, else the listed surface indexes - against the trace record.
-       trace_flag4_gate_88, flag and mode filters apply; a closer hit stores index_04
-       into last_hit_surface_54, the contact into the record's end_0c and the distance
-       into hit_limit_24. */
+       trace_flag4_gate, flag and mode filters apply; a closer hit stores index_04
+       into last_hit_surface, the contact into the record's end_0c and the distance
+       into hit_limit. */
     bool TestTraceResult(int count, unsigned long* surface_ids, W8OctreeTrace* trace,
                          char skip_flag, int mode); /* 0x0041C330 */
 };
@@ -291,12 +291,12 @@ static_assert(sizeof(W8GameData) == 0x8c, "W8GameData_must_be_0x8c");
 
 static_assert(offsetof(W8LevelDataRecord, primary_contact_prop_id) == 0x04,
               "W8LevelDataRecord_primary_contact_prop_id");
-static_assert(offsetof(W8LevelDataRecord, residual_contact_length_18) == 0x18,
-              "W8LevelDataRecord_residual_contact_length_18");
+static_assert(offsetof(W8LevelDataRecord, residual_contact_length) == 0x18,
+              "W8LevelDataRecord_residual_contact_length");
 static_assert(offsetof(W8LevelDataRecord, contact_normal_ac) == 0xac,
               "W8LevelDataRecord_contact_normal_ac");
-static_assert(offsetof(W8LevelDataRecord, contact_normal_scale_b8) == 0xb8,
-              "W8LevelDataRecord_contact_normal_scale_b8");
+static_assert(offsetof(W8LevelDataRecord, contact_normal_scale) == 0xb8,
+              "W8LevelDataRecord_contact_normal_scale");
 static_assert(sizeof(W8LevelDataRecord) == 0xf4, "W8LevelDataRecord_must_be_0xf4");
 
 extern W8LevelDataRecord* g_level_data;

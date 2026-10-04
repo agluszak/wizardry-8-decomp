@@ -124,11 +124,11 @@ void RecordFactChangeForJournal(int fact_id)
         }
     }
     const W8FactDatabaseRecord* record = &g_fact_records[fact_id];
-    if (record->visibility_037 > visibility) {
+    if (record->visibility > visibility) {
         return;
     }
     const wchar_t* description =
-        GetFact(fact_id) ? record->alternate_description_038 : record->description_100;
+        GetFact(fact_id) ? record->alternate_description : record->description;
     if (*description == 0 || g_level_block == 0) {
         return;
     }
@@ -218,7 +218,7 @@ void DrawJournalLine(const wchar_t* text, int column, int y, int palette, bool c
 // FUNCTION: WIZ8 0x005bd860
 void W8JournalPanel::Refresh()
 {
-    if (!m_alternate_mode_064) {
+    if (!m_alternate_mode) {
         int last_page = (g_journal_entries->count - 1) / 12;
         int page_count = last_page + 1;
         if (page_count != g_journal_page_count || g_journal_page < 0 ||
@@ -246,9 +246,9 @@ void W8JournalPanel::Refresh()
         for (int index = first; index <= last; ++index, y += 0x1e) {
             const W8JournalEntry* entry = g_journal_entries->GetAt(index);
             const W8FactDatabaseRecord* fact = &g_fact_records[entry->fact];
-            int active = fact->highlight_when_true_036 && GetFact(entry->fact);
+            int active = fact->highlight_when_true && GetFact(entry->fact);
             const wchar_t* description =
-                entry->alternate_text ? fact->alternate_description_038 : fact->description_100;
+                entry->alternate_text ? fact->alternate_description : fact->description;
             const wchar_t* level_name;
             if (entry->level == 0x38) {
                 level_name = g_default_level;
@@ -305,8 +305,8 @@ void W8JournalPanel::Refresh()
 
 // FUNCTION: WIZ8 0x005bd530
 W8JournalPanel::W8JournalPanel(unsigned int* region_set)
-    : Controls(0x66, 0x1bb, 0, 0, 0xf3, 0, 0), m_next_050(0), m_previous_054(0), m_close_058(0),
-      m_mode_05c(0), m_page_text_060(0), m_alternate_mode_064(0)
+    : Controls(0x66, 0x1bb, 0, 0, 0xf3, 0, 0), m_next_050(0), m_previous_054(0), m_close(0),
+      m_mode(0), m_page_text_060(0), m_alternate_mode(0)
 {
     short width;
     short height;
@@ -326,20 +326,20 @@ W8JournalPanel::W8JournalPanel(unsigned int* region_set)
     m_page_text_060 = new W8TextBuffer(&bounds, &g_empty_wide_string, g_options_detail_font,
                                        g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter, 4);
 
-    m_mode_05c = new W8TextControl(this, 0xffffffff, 0x1b0, -2, 0, 0, 0x1bb, 0, 0, 2, 1, 2, 3);
-    m_mode_05c->AddLayoutFlags(g_W8TextControlLayoutToggle);
-    m_mode_05c->m_listener = this;
+    m_mode = new W8TextControl(this, 0xffffffff, 0x1b0, -2, 0, 0, 0x1bb, 0, 0, 2, 1, 2, 3);
+    m_mode->AddLayoutFlags(g_W8TextControlLayoutToggle);
+    m_mode->m_listener = this;
 
-    m_close_058 =
+    m_close =
         new W8TextControl(this, 0xffffffff, 0x1ea, -2, 0, 0, 0x106, 0, 0x10, -1, 0x11, 0x12, 0x13);
-    m_close_058->m_listener = this;
-    m_close_058->EnableRegionHelp(0x6ed);
+    m_close->m_listener = this;
+    m_close->EnableRegionHelp(0x6ed);
     SetEnabled(1);
     EnableRegionSet(1);
-    m_alternate_mode_064 = 0;
-    m_mode_05c->EnableRegionHelp(0x6eb);
-    if ((m_mode_05c->m_stateFlags & g_W8TextControlStateSecondary) != 0) {
-        m_mode_05c->DisableSecondaryState(1);
+    m_alternate_mode = 0;
+    m_mode->EnableRegionHelp(0x6eb);
+    if ((m_mode->m_stateFlags & g_W8TextControlStateSecondary) != 0) {
+        m_mode->DisableSecondaryState(1);
     }
 }
 
@@ -372,20 +372,20 @@ void W8JournalPanel::OnPrimary(W8TextControl* control)
             ++g_journal_page;
             Refresh();
         }
-    } else if (control == m_close_058) {
+    } else if (control == m_close) {
         RequestScreenTransition();
     } else {
-        m_alternate_mode_064 =
-            static_cast<unsigned char>(m_mode_05c->m_stateFlags & g_W8TextControlStateSecondary);
-        if (m_alternate_mode_064) {
-            m_mode_05c->EnableRegionHelp(0x6ec);
-            if ((m_mode_05c->m_stateFlags & g_W8TextControlStateSecondary) == 0) {
-                m_mode_05c->EnableSecondaryState(1);
+        m_alternate_mode =
+            static_cast<unsigned char>(m_mode->m_stateFlags & g_W8TextControlStateSecondary);
+        if (m_alternate_mode) {
+            m_mode->EnableRegionHelp(0x6ec);
+            if ((m_mode->m_stateFlags & g_W8TextControlStateSecondary) == 0) {
+                m_mode->EnableSecondaryState(1);
             }
         } else {
-            m_mode_05c->EnableRegionHelp(0x6eb);
-            if ((m_mode_05c->m_stateFlags & g_W8TextControlStateSecondary) != 0) {
-                m_mode_05c->DisableSecondaryState(1);
+            m_mode->EnableRegionHelp(0x6eb);
+            if ((m_mode->m_stateFlags & g_W8TextControlStateSecondary) != 0) {
+                m_mode->DisableSecondaryState(1);
             }
         }
         Refresh();
@@ -447,8 +447,8 @@ unsigned char JournalScreenEnter(void)
         W8JournalEntry entry = *g_fact_journal_entries->GetAt(index);
         const W8FactDatabaseRecord* fact = &g_fact_records[entry.fact];
         const wchar_t* description =
-            entry.alternate_text ? fact->alternate_description_038 : fact->description_100;
-        if ((g_journal_show_all || fact->visibility_037 <= maximum_visibility) &&
+            entry.alternate_text ? fact->alternate_description : fact->description;
+        if ((g_journal_show_all || fact->visibility <= maximum_visibility) &&
             *description != 0) {
             g_journal_entries->Add(entry);
         }

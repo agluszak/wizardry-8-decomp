@@ -66,10 +66,10 @@ void RecalculateCharacterDerivedStats(W8Character* character)
         character->damage_reduction += static_cast<int>(
             ScaleValueByProfessionLevel(character, W8_TRAIT_MONK_DAMAGE_RESISTANCE, 15.0f));
     }
-    if (character->skills[W8_SKILL_IRON_SKIN].active_00 != 0) {
+    if (character->skills[W8_SKILL_IRON_SKIN].active != 0) {
         character->damage_reduction += (character->skills[W8_SKILL_IRON_SKIN].level >> 2) + 5;
     }
-    character->damage_reduction += character->bonus_1770.damage_reduction_adjustment;
+    character->damage_reduction += character->bonus.damage_reduction_adjustment;
     RecalculateCharacterResistances(character);
 
     int base = character->attributes[W8_ATTRIBUTE_VITALITY].effective +
@@ -186,8 +186,8 @@ void RedistributePartyEncumbrance(void)
     }
 
     unsigned int party_weight = 0;
-    for (slot = 0; slot < g_status.party_item_count_1791; ++slot) {
-        party_weight += GetItemStackWeight(&g_status.party_item_pool_0021[slot]);
+    for (slot = 0; slot < g_status.party_item_count; ++slot) {
+        party_weight += GetItemStackWeight(&g_status.party_item_pool[slot]);
     }
 
     for (party_weight >>= 1; party_weight != 0; --party_weight) {

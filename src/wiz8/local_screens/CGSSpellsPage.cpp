@@ -243,10 +243,10 @@ void W8CharacterSpellsPage::SetCharacter(W8Character* character,
     W8CharacterPage::SetCharacter(character, creation_state, mode);
     AcquireRegionSet(&g_character_spells_region_set);
     for (int realm = 0; realm < 6; ++realm) {
-        m_realms_074[realm] =
+        m_realms[realm] =
             new W8CharacterSpellList(this, (realm % 2) * 215 + 13, (realm / 2) * 130 + 8,
                                      m_SpellData, &g_character_spell_list_region_sets[realm]);
-        m_realms_074[realm]->m_listener = this;
+        m_realms[realm]->m_listener = this;
     }
 }
 
@@ -256,10 +256,10 @@ void W8CharacterSpellsPage::Activate()
     EnableRegionSet(1);
     UpdateSpellLists();
     for (int realm = 0; realm < 6; ++realm) {
-        m_realms_074[realm]->m_range->EnableRegionSet(1);
+        m_realms[realm]->m_range->EnableRegionSet(1);
     }
     m_dirty_06d = 1;
-    m_prepared_06c = 1;
+    m_prepared = 1;
 }
 
 // FUNCTION: WIZ8 0x005c8570
@@ -267,7 +267,7 @@ void W8CharacterSpellsPage::Deactivate()
 {
     EnableRegionSet(0);
     for (int realm = 0; realm < 6; ++realm) {
-        m_realms_074[realm]->m_range->EnableRegionSet(0);
+        m_realms[realm]->m_range->EnableRegionSet(0);
     }
 }
 
@@ -279,7 +279,7 @@ void W8CharacterSpellsPage::Accept()
     for (int index = 0; index < 0x72; ++index) {
         m_SpellData[index].selected = 0;
     }
-    ResetSpellSelections(m_character_060, m_creation_state_064);
+    ResetSpellSelections(m_character, m_creation_state);
     Invalidate(0);
     m_dirty_06d = 1;
     m_screen_05c->UpdateNavigation(this);
@@ -299,13 +299,13 @@ void W8CharacterSpellsPage::Redraw()
 
     W8CharacterPage::Redraw();
     text.SetLayoutMode(g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
-    if (m_prepared_06c) {
+    if (m_prepared) {
         bounds.left = 4;
         bounds.top = 0xec;
         bounds.right = 0xc2;
         bounds.bottom = 0x173;
         text.SetLayoutBounds(&bounds, 1, 1);
-        text.SetText(gppStringList[m_creation_state_064->spell_points_total == 0 ? 0xeb : 0xea],
+        text.SetText(gppStringList[m_creation_state->spell_points_total == 0 ? 0xeb : 0xea],
                      g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
 
@@ -315,7 +315,7 @@ void W8CharacterSpellsPage::Redraw()
         text.SetLayoutBounds(&bounds, 1, 1);
         text.SetText(gppStringList[0xf4], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
-        m_prepared_06c = 0;
+        m_prepared = 0;
     }
 
     if (m_dirty_06d) {
@@ -326,8 +326,8 @@ void W8CharacterSpellsPage::Redraw()
         DrawCatalogImage(-14, 0x107, 0, 5, 0x8f, 0x173, 2, 0);
         text.SetLayoutBounds(&bounds, 1, 1);
         text.SetText(FormatWideString(g_format_d_slash_d,
-                                      m_creation_state_064->spell_points_remaining,
-                                      m_creation_state_064->spell_points_total),
+                                      m_creation_state->spell_points_remaining,
+                                      m_creation_state->spell_points_total),
                      g_options_detail_font);
         text.RenderToTarget(0, 1, -14);
         m_dirty_06d = 0;
@@ -335,7 +335,7 @@ void W8CharacterSpellsPage::Redraw()
 
     if (redraw) {
         for (int realm = 0; realm < 6; ++realm) {
-            if (m_realms_074[realm]->m_entry_count == 0) {
+            if (m_realms[realm]->m_entry_count == 0) {
                 continue;
             }
             text.SetLayoutMode(g_W8TextBufferAlignLeft | g_W8TextBufferAlignMiddle);
@@ -351,7 +351,7 @@ void W8CharacterSpellsPage::Redraw()
             text.SetFontStateIndex(-1);
             text.SetLayoutMode(g_W8TextBufferAlignRight | g_W8TextBufferAlignMiddle);
             text.SetText(
-                FormatWideString(g_format_d, m_character_060->skills[0x1c + realm].points_02),
+                FormatWideString(g_format_d, m_character->skills[0x1c + realm].points),
                 g_wiz_text_font_secondary);
             text.RenderToTarget(0, 0, -14);
 
@@ -366,31 +366,31 @@ void W8CharacterSpellsPage::Redraw()
             text.SetFontStateIndex(-1);
             text.SetLayoutMode(g_W8TextBufferAlignRight | g_W8TextBufferAlignMiddle);
             text.SetText(FormatWideString(g_format_d_slash_d,
-                                          GetCharacterRealmSpellPoints(m_character_060, realm),
-                                          m_character_060->sp_max[realm]),
+                                          GetCharacterRealmSpellPoints(m_character, realm),
+                                          m_character->sp_max[realm]),
                          g_wiz_text_font_secondary);
             text.RenderToTarget(0, 0, -14);
         }
     }
 
-    int elapsed = static_cast<int>(m_animation_timer_5e4.GetProgress());
+    int elapsed = static_cast<int>(anim_timer.GetProgress());
     if (elapsed > 0 || redraw) {
         for (int realm = 0; realm < 6; ++realm) {
             const W8SpellRealmAnimation& animation = g_spell_realm_animations[realm];
-            if (m_realms_074[realm]->m_entry_count != 0 && elapsed != 0) {
-                m_animation_frames_608[realm] =
-                    (m_animation_frames_608[realm] + elapsed) % animation.frame_count;
+            if (m_realms[realm]->m_entry_count != 0 && elapsed != 0) {
+                m_animation_frames[realm] =
+                    (m_animation_frames[realm] + elapsed) % animation.frame_count;
             }
             if (!m_screen_05c->HasDialog() || realm < 2) {
                 DrawCatalogImageAndInvalidate(-14, animation.image, 0,
-                                              m_animation_frames_608[realm],
+                                              m_animation_frames[realm],
                                               m_bounds.left + 0x0f + (realm % 2) * 0xd7,
                                               m_bounds.top + 0x0a + (realm / 2) * 0x82, 2, 0);
             }
         }
     }
     for (int realm = 0; realm < 6; ++realm) {
-        m_realms_074[realm]->m_range->Redraw();
+        m_realms[realm]->m_range->Redraw();
     }
 }
 
@@ -405,12 +405,12 @@ void W8CharacterSpellsPage::UpdateSpellLists()
 {
     int entry = 0;
     for (int realm = 0; realm < 6; ++realm) {
-        m_animation_frames_608[realm] = g_spell_realm_animations[realm].initial_frame;
+        m_animation_frames[realm] = g_spell_realm_animations[realm].initial_frame;
         int first = entry;
         for (char pass = 0; pass < 2; ++pass) {
             for (unsigned int spell = 0; spell < 0x72; ++spell) {
                 if (g_spell_records[spell].realm == realm) {
-                    switch (m_character_060->spell_learned[spell]) {
+                    switch (m_character->spell_learned[spell]) {
                     case -1:
                     case 2:
                         if (pass == 0) {
@@ -418,7 +418,7 @@ void W8CharacterSpellsPage::UpdateSpellLists()
                             m_SpellData[entry].spell = spell;
                             m_SpellData[entry].fSelectable = 1;
                             m_SpellData[entry].selected =
-                                m_character_060->spell_learned[spell] == 2;
+                                m_character->spell_learned[spell] == 2;
                             ++entry;
                         }
                         break;
@@ -435,8 +435,8 @@ void W8CharacterSpellsPage::UpdateSpellLists()
                 }
             }
         }
-        m_realms_074[realm]->m_first_entry = first;
-        m_realms_074[realm]->SetEntryCount(entry - first);
+        m_realms[realm]->m_first_entry = first;
+        m_realms[realm]->SetEntryCount(entry - first);
     }
 }
 
@@ -445,7 +445,7 @@ void W8CharacterSpellsPage::GetNavigationState(bool* next_enabled, bool* exit_en
 {
     *next_enabled = 1;
     *exit_enabled =
-        m_creation_state_064->spell_points_remaining < m_creation_state_064->spell_points_total;
+        m_creation_state->spell_points_remaining < m_creation_state->spell_points_total;
 }
 
 /* Retail emits this with the W8CharacterSpellListListener-adjusted `this`
@@ -459,23 +459,23 @@ void W8CharacterSpellsPage::SelectSpell(unsigned int uiSelected)
     }
     if (m_SpellData[uiSelected].selected != 0) {
         m_SpellData[uiSelected].selected = 0;
-        DeselectCreationSpell(m_character_060, m_creation_state_064, m_SpellData[uiSelected].spell);
+        DeselectCreationSpell(m_character, m_creation_state, m_SpellData[uiSelected].spell);
     } else {
-        if (m_creation_state_064->spell_points_remaining == 0) {
+        if (m_creation_state->spell_points_remaining == 0) {
             for (unsigned int index = 0; index < 0x72; ++index) {
                 if (m_SpellData[index].selected != 0 &&
-                    (index != m_last_selected_620 ||
-                     m_creation_state_064->spell_points_total == 1)) {
+                    (index != m_last_selected ||
+                     m_creation_state->spell_points_total == 1)) {
                     m_SpellData[index].selected = 0;
-                    DeselectCreationSpell(m_character_060, m_creation_state_064,
+                    DeselectCreationSpell(m_character, m_creation_state,
                                           m_SpellData[index].spell);
                     break;
                 }
             }
         }
         m_SpellData[uiSelected].selected = 1;
-        SelectCreationSpell(m_character_060, m_creation_state_064, m_SpellData[uiSelected].spell);
-        m_last_selected_620 = uiSelected;
+        SelectCreationSpell(m_character, m_creation_state, m_SpellData[uiSelected].spell);
+        m_last_selected = uiSelected;
     }
     UpdateSpellLists();
     m_dirty_06d = 1;

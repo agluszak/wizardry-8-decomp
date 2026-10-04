@@ -126,13 +126,13 @@ struct srConfig::Index {
 
     Index()
     {
-        case_sensitive_24 = 1;
+        case_sensitive = 1;
         entries_10 = 0;
         buckets_18 = 0;
         count_1c = 0;
         bucket_count_20 = 4;
         free_14 = 0;
-        by_entry_00.clear();
+        by_entry.clear();
 
         NameEntry* entries = new NameEntry[4];
         NameEntry** buckets = new NameEntry*[4];
@@ -160,7 +160,7 @@ struct srConfig::Index {
 
     int namesEqual(const char* first, const char* second) const
     {
-        return case_sensitive_24 != 0 ? strcmp(first, second) == 0 : _stricmp(first, second) == 0;
+        return case_sensitive != 0 ? strcmp(first, second) == 0 : _stricmp(first, second) == 0;
     }
 
     NameEntry* find(const char* name) const
@@ -192,19 +192,19 @@ struct srConfig::Index {
             node->next_00->previous_04 = node;
         }
         buckets_18[bucket] = node;
-        by_entry_00.insert(entry, node);
+        by_entry.insert(entry, node);
         ++count_1c;
     }
 
     void resize(long bucket_count);
 
-    EntryMap by_entry_00;
+    EntryMap by_entry;
     NameEntry* entries_10;
     NameEntry* free_14;
     NameEntry** buckets_18;
     long count_1c;
     long bucket_count_20;
-    int case_sensitive_24;
+    int case_sensitive;
 };
 
 static_assert(sizeof(srConfig::Index) == 0x28, "srConfig_Index_must_be_0x28");
@@ -222,13 +222,13 @@ srConfig::Index* srConfig::getIndex() const
 // FUNCTION: SURRENDER 0x10011F10
 void srConfig::dump(std::ostream& stream)
 {
-    for (Entry* entry = first_entry_00; entry != 0; entry = entry->next) {
+    for (Entry* entry = first_entry; entry != 0; entry = entry->next) {
         srStreamPrintf(stream, "%s = %s\n", entry->name, entry->value);
     }
 }
 
 // FUNCTION: SURRENDER 0x10011F40
-srConfig::srConfig() : first_entry_00(0), entry_pool_04(), index_18(0) {}
+srConfig::srConfig() : first_entry(0), entry_pool(), index_18(0) {}
 
 // FUNCTION: SURRENDER 0x10011F60
 srConfig::~srConfig()
@@ -239,14 +239,14 @@ srConfig::~srConfig()
 // FUNCTION: SURRENDER 0x10012010
 void srConfig::removeAll()
 {
-    while (first_entry_00 != 0) {
-        removeEntry(first_entry_00);
+    while (first_entry != 0) {
+        removeEntry(first_entry);
     }
     if (index_18 != 0) {
         delete index_18;
     }
     index_18 = 0;
-    entry_pool_04.release();
+    entry_pool.release();
 }
 
 // FUNCTION: SURRENDER 0x100120F0
@@ -288,16 +288,16 @@ void srConfig::set(const char* name, const char* value)
         removeEntry(node->entry_10);
     }
 
-    if (entry_pool_04.free_entries == 0) {
-        long count = entry_pool_04.entry_count < 2 ? 1 : entry_pool_04.entry_count;
+    if (entry_pool.free_entries == 0) {
+        long count = entry_pool.entry_count < 2 ? 1 : entry_pool.entry_count;
         if (count > 0xff) {
             count = 0x100;
         }
         Entry* block = static_cast<Entry*>(srHeap.allocate(count * sizeof(Entry)));
-        unsigned long block_index = entry_pool_04.entry_block_count;
-        entry_pool_04.free_entries = block;
-        entry_pool_04.entry_block_count = block_index + 1;
-        entry_pool_04.entry_blocks[block_index] = block;
+        unsigned long block_index = entry_pool.entry_block_count;
+        entry_pool.free_entries = block;
+        entry_pool.entry_block_count = block_index + 1;
+        entry_pool.entry_blocks[block_index] = block;
         Entry* free_entry = block;
         for (unsigned long index_ = count; index_ != 0; --index_) {
             // reinterpret-ok: free pool entries thread the next-free pointer
@@ -308,16 +308,16 @@ void srConfig::set(const char* name, const char* value)
         block[count - 1].name = 0;
     }
 
-    Entry* entry = entry_pool_04.free_entries;
+    Entry* entry = entry_pool.free_entries;
     // reinterpret-ok: the free list link lives in the name pointer.
-    entry_pool_04.free_entries = reinterpret_cast<Entry*>(entry->name);
-    ++entry_pool_04.entry_count;
+    entry_pool.free_entries = reinterpret_cast<Entry*>(entry->name);
+    ++entry_pool.entry_count;
     entry->previous = 0;
-    entry->next = first_entry_00;
-    if (first_entry_00 != 0) {
-        first_entry_00->previous = entry;
+    entry->next = first_entry;
+    if (first_entry != 0) {
+        first_entry->previous = entry;
     }
-    first_entry_00 = entry;
+    first_entry = entry;
 
     entry->name = new char[strlen(name) + 1];
     entry->value = new char[strlen(value) + 1];
@@ -356,8 +356,8 @@ void srConfig::removeEntry(Entry* entry)
     if (entry->next != 0) {
         entry->next->previous = entry->previous;
     }
-    if (entry == first_entry_00) {
-        first_entry_00 = entry->next;
+    if (entry == first_entry) {
+        first_entry = entry->next;
     }
     char* name = entry->name;
     Index* index = getIndex();
@@ -367,7 +367,7 @@ void srConfig::removeEntry(Entry* entry)
         while (node != 0) {
             Index::NameEntry* next = node->next_00;
             if (index->namesEqual(name, node->name_0c) && node != 0) {
-                index->by_entry_00.erase(node->entry_10);
+                index->by_entry.erase(node->entry_10);
                 if (node->previous_04 == 0) {
                     index->buckets_18[node->bucket_08] = node->next_00;
                 } else {
@@ -391,12 +391,12 @@ void srConfig::removeEntry(Entry* entry)
     }
     delete[] entry->name;
     delete[] entry->value;
-    --entry_pool_04.entry_count;
+    --entry_pool.entry_count;
     // reinterpret-ok: the free list link lives in the name pointer.
-    entry->name = reinterpret_cast<char*>(entry_pool_04.free_entries);
-    entry_pool_04.free_entries = entry;
-    if (entry_pool_04.entry_count == 0) {
-        entry_pool_04.release();
+    entry->name = reinterpret_cast<char*>(entry_pool.free_entries);
+    entry_pool.free_entries = entry;
+    if (entry_pool.entry_count == 0) {
+        entry_pool.release();
     }
 }
 
@@ -511,7 +511,7 @@ srConfig::Index::~Index()
     free_14 = 0;
     count_1c = 0;
     bucket_count_20 = 0;
-    by_entry_00.clear();
+    by_entry.clear();
 }
 
 // FUNCTION: SURRENDER 0x100136D0
@@ -573,7 +573,7 @@ void srConfig::Index::resize(long bucket_count)
     NameEntry** buckets = 0;
     bucket_count_20 = bucket_count;
     free_14 = 0;
-    by_entry_00.clear();
+    by_entry.clear();
 
     if (bucket_count != 0) {
         entries = new NameEntry[bucket_count];
@@ -611,13 +611,13 @@ void srConfig::Index::resize(long bucket_count)
                     }
                     buckets[bucket] = node;
 
-                    int record = by_entry_00.allocRecord();
+                    int record = by_entry.allocRecord();
                     unsigned long sub_bucket =
-                        srHashValue(old_node->entry_10) & (by_entry_00.count_0c - 1);
-                    by_entry_00.records_04[record].key_04 = old_node->entry_10;
-                    by_entry_00.records_04[record].value_08 = node;
-                    by_entry_00.records_04[record].next_00 = by_entry_00.heads_00[sub_bucket];
-                    by_entry_00.heads_00[sub_bucket] = record;
+                        srHashValue(old_node->entry_10) & (by_entry.count_0c - 1);
+                    by_entry.records_04[record].key_04 = old_node->entry_10;
+                    by_entry.records_04[record].value_08 = node;
+                    by_entry.records_04[record].next_00 = by_entry.heads_00[sub_bucket];
+                    by_entry.heads_00[sub_bucket] = record;
                 }
             }
         }

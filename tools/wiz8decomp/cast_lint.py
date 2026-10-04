@@ -63,7 +63,6 @@ from __future__ import annotations
 
 import os
 import re
-from collections import Counter
 from pathlib import Path
 from typing import Any
 
@@ -125,6 +124,44 @@ _C_STYLE_CAST = re.compile(
     r"\s*(?:\*+\s*)?(?:const\s*)?\)\s*(?=[A-Za-z_(&*+\-!~])"
 )
 _CPP_STRING_LITERAL = re.compile(r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'')
+# Renaming operands must preserve every cast target and literal. In particular,
+# nested template arguments and typedefs outside the project naming convention
+# are types too; a keyword allowlist cannot establish that a cast is unchanged.
+_OFFSET_SUFFIX = re.compile(r"\b([A-Za-z_][A-Za-z0-9_]*)_[0-9a-fA-F]*[0-9][0-9a-fA-F]*\b")
+_IDENTIFIER = re.compile(r"\b[A-Za-z_][A-Za-z0-9_]*\b")
+_CPP_CAST_TARGET = re.compile(r"\b(?:reinterpret|static|const|dynamic)_cast\s*<")
+_PINNED_WORD = re.compile(
+    r"^(?:if|else|for|while|do|switch|case|return|sizeof|new|delete|const|"
+    r"volatile|static|unsigned|signed|char|short|int|long|float|double|void|"
+    r"bool|wchar_t|true|false|class|struct|reinterpret_cast|static_cast|const_cast|"
+    r"dynamic_cast)$"
+)
+
+
+def _rename_key(text: str, *, descriptive: bool = False) -> str:
+    """Normalize operand spelling while retaining literal and cast-target text."""
+    protected = [(match.start(), match.end()) for match in _CPP_STRING_LITERAL.finditer(text)]
+    protected.extend((match.start(), match.end()) for match in _C_STYLE_CAST.finditer(text))
+    for match in _CPP_CAST_TARGET.finditer(text):
+        depth = 1
+        end = match.end()
+        while end < len(text) and depth:
+            if text[end] == "<":
+                depth += 1
+            elif text[end] == ">":
+                depth -= 1
+            end += 1
+        # A multiline target is protected through the end of this line.
+        protected.append((match.start(), end))
+
+    def replace(match: re.Match[str]) -> str:
+        if any(start <= match.start() < end for start, end in protected):
+            return match.group(0)
+        if descriptive:
+            return match.group(0) if _PINNED_WORD.fullmatch(match.group(0)) else "_"
+        return match.group(1)
+
+    return (_IDENTIFIER if descriptive else _OFFSET_SUFFIX).sub(replace, text)
 
 
 class CastGateError(RuntimeError):
@@ -203,12 +240,21 @@ def added_lines_without_marker(
     recognized by its removed counterpart so relocation does not read as a new
     occurrence. Suppressions can opt out because moving one changes which code
     escapes the tool.
+
+    Matching proceeds from strict to lenient: exact text first, then
+    offset-suffix-normalized text (covers mechanical renames), then
+    identifier-blanked text restricted to the SAME hunk (covers descriptive
+    renames while keeping genuinely new casts reportable — a new cast has no
+    same-shape removed partner). Cast targets and literals are retained in full.
+    Other escape-hatch checks retain exact moved-line matching.
     """
     added: list[dict[str, Any]] = []
-    removed: Counter[str] = Counter()
+    removed: list[tuple[int, str]] = []
+    rename_casts = needle in (_CAST, _C_STYLE_CAST)
     current: str | None = None
     line_number = 0
     old_remaining = new_remaining = 0
+    hunk_index = -1
     for raw in diff.splitlines():
         if old_remaining or new_remaining:
             # Hunk body: line counts are the only reliable way to tell an added
@@ -223,14 +269,21 @@ def added_lines_without_marker(
                     and needle.search(scanned if code_only else content)
                     and not marker.search(content)
                 ):
-                    added.append({"file": current, "line": line_number, "text": stripped[:200]})
+                    added.append(
+                        {
+                            "file": current,
+                            "line": line_number,
+                            "text": stripped,
+                            "hunk": hunk_index,
+                        }
+                    )
                 new_remaining -= 1
                 line_number += 1
             elif raw.startswith("-"):
                 content = raw[1:]
                 scanned = _CPP_STRING_LITERAL.sub(lambda match: " " * len(match.group()), content)
                 if needle.search(scanned if code_only else content):
-                    removed[content.strip()] += 1
+                    removed.append((hunk_index, content.strip()))
                 old_remaining -= 1
             elif raw.startswith(" "):
                 old_remaining -= 1
@@ -252,15 +305,37 @@ def added_lines_without_marker(
                 old_remaining = int(hunk.group(2) or 1)
                 new_remaining = int(hunk.group(4) or 1)
                 line_number = int(hunk.group(3))
-    if not ignore_moved:
-        return added
-    violations = []
-    for item in added:
-        if removed[item["text"]]:
-            removed[item["text"]] -= 1
-            continue
-        violations.append(item)
-    return violations
+                hunk_index += 1
+    if ignore_moved:
+        # All matching modes consume the same occurrence inventory. Match exact
+        # lines first so a renamed addition cannot steal an unchanged cast's
+        # counterpart and then reuse it through a different normalization mode.
+        modes = [lambda hunk, text: text]
+        if rename_casts:
+            modes.extend(
+                [
+                    lambda hunk, text: _rename_key(text),
+                    lambda hunk, text: (hunk, _rename_key(text, descriptive=True)),
+                ]
+            )
+        matched: set[int] = set()
+        consumed: set[int] = set()
+        for key in modes:
+            buckets: dict[object, list[int]] = {}
+            for index, (hunk, text) in enumerate(removed):
+                if index not in consumed:
+                    buckets.setdefault(key(hunk, text), []).append(index)
+            for index, item in enumerate(added):
+                if index in matched:
+                    continue
+                bucket = buckets.get(key(item["hunk"], item["text"]))
+                if bucket:
+                    consumed.add(bucket.pop())
+                    matched.add(index)
+        added = [item for index, item in enumerate(added) if index not in matched]
+    return [
+        {"file": item["file"], "line": item["line"], "text": item["text"][:200]} for item in added
+    ]
 
 
 def _changed_files(diff: str) -> set[str]:

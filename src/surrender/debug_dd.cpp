@@ -56,8 +56,8 @@ void srDebugDD::resetInternalStatistics()
     int command;
 
     for (command = 0; command < 0x2b; ++command) {
-        call_times_18[command] = 0.0;
-        call_counts_170[command] = 0;
+        call_times[command] = 0.0;
+        call_counts[command] = 0;
     }
 }
 
@@ -68,11 +68,11 @@ srDebugDD::srDebugDD(srDD* device)
 
     device_04 = device;
     unknown_08 = 1;
-    call_times_18[0] = 0.0;
+    call_times[0] = 0.0;
     for (iteration = 0; iteration < 0x2710; ++iteration) {
         ScopeTimer timer(this, COMMAND_DUMMY);
     }
-    time_scale_10 = call_times_18[0] * 0.0001;
+    time_scale_10 = call_times[0] * 0.0001;
     resetInternalStatistics();
 }
 
@@ -81,15 +81,15 @@ srDebugDD::ScopeTimer::ScopeTimer(srDebugDD* owner, e_command command)
 {
     owner_00 = owner;
     command_04 = command;
-    start_08 = srCore.getTimer()->getTime(srTimer::TIMER_READ_DEFAULT);
+    start_time = srCore.getTimer()->getTime(srTimer::TIMER_READ_DEFAULT);
 }
 
 // FUNCTION: SURRENDER 0x10016DA0
 srDebugDD::ScopeTimer::~ScopeTimer()
 {
-    double elapsed = srCore.getTimer()->getTime(srTimer::TIMER_READ_DEFAULT) - start_08;
-    owner_00->call_times_18[command_04] += elapsed;
-    ++owner_00->call_counts_170[command_04];
+    double elapsed = srCore.getTimer()->getTime(srTimer::TIMER_READ_DEFAULT) - start_time;
+    owner_00->call_times[command_04] += elapsed;
+    ++owner_00->call_counts[command_04];
 }
 
 // FUNCTION: SURRENDER 0x10016DD0
@@ -395,7 +395,7 @@ void srDebugDD::setPolygonOffset(long offset)
 // FUNCTION: SURRENDER 0x10017740
 unsigned long srDebugDD::getFunctionCallCount(e_command command) const
 {
-    return call_counts_170[command];
+    return call_counts[command];
 }
 
 // FUNCTION: SURRENDER 0x10017750
@@ -407,7 +407,7 @@ const char* srDebugDD::getFunctionName(e_command command) const
 // FUNCTION: SURRENDER 0x10017760
 double srDebugDD::getFunctionCallTime(e_command command) const
 {
-    double time = call_times_18[command] - call_counts_170[command] * time_scale_10;
+    double time = call_times[command] - call_counts[command] * time_scale_10;
     if (time <= 0.0) {
         time = 0.0;
     }
@@ -417,11 +417,11 @@ double srDebugDD::getFunctionCallTime(e_command command) const
 // FUNCTION: SURRENDER 0x100177A0
 void srDebugDD::increaseCallCount(e_command command)
 {
-    ++call_counts_170[command];
+    ++call_counts[command];
 }
 
 // FUNCTION: SURRENDER 0x100177B0
 void srDebugDD::increaseCallTime(e_command command, double time)
 {
-    call_times_18[command] += time;
+    call_times[command] += time;
 }

@@ -110,7 +110,7 @@ bool OnCrankTriggerActivated(Trigger* trigger)
         position.y = LIFT_PARKED_Y;
         prop->SetPosition(&position);
         SetTriggerVariableByName("FlagPosition", 1000);
-        ReplaceOrCreateItem(&g_status.item_in_hand_235b, 0x290, 0, 0, 0);
+        ReplaceOrCreateItem(&g_status.item_in_hand, 0x290, 0, 0, 0);
         SetItemCursor(0);
         npc = GetNpcStateByKind(0x2a);
         QueueNpcScriptNotice(npc, 0, 0x18, 1, 0);
@@ -293,7 +293,7 @@ bool OnSentryTriggerActivated(Trigger* trigger)
     W8ItemInstance* item = 0;
 
     if (g_status.item_in_cursor != 0) {
-        item = &g_status.item_in_hand_235b;
+        item = &g_status.item_in_hand;
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);
     g_trigger_feedback = 1;

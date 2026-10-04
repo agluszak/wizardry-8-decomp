@@ -163,7 +163,7 @@ W8WorldCursorNode* CreateWorldCursorCube(void)
     material->setSpecular(colour);
     material->parms.diffuse.w = 0.35f;
     material->parms.shininess = 1.0f;
-    material->dirty_74 = 1;
+    material->dirty = 1;
     modeller.setMaterial(material, 0, static_cast<srMeshModel::e_side>(0));
 
     srShader shader;
@@ -297,7 +297,7 @@ void DrawWorldCursorNodeLabel(W8WorldCursorNode* entry)
         SetFontObjectPalette16BPP(g_smfnt_font, g_font_palette_smfnt);
         for (int index = 0; index < 3; ++index) {
             wchar_t text[20];
-            swprintf(text, g_format_d, entry->numbers_0c[index]);
+            swprintf(text, g_format_d, entry->numbers[index]);
             gprintf_buffer(data, surface->getPitch(), g_smfnt_font, 0,
                            GetFontHeight(g_smfnt_font) * index, text);
         }
@@ -415,7 +415,7 @@ void DrawWorldBox(W8World* world, srVector3T<float> minimum, srVector3T<float> m
 int GetWorldCursorNodeParameter(W8WorldCursorNode* entry, int index)
 {
     if (entry != 0) {
-        return entry->numbers_0c[index];
+        return entry->numbers[index];
     }
     return -1;
 }
@@ -426,7 +426,7 @@ int GetWorldCursorNodeParameter(W8WorldCursorNode* entry, int index)
 void SetWorldCursorNodeParameter(W8WorldCursorNode* entry, int index, int value)
 {
     if (entry != 0) {
-        entry->numbers_0c[index] = value;
+        entry->numbers[index] = value;
         if (entry->pUserdata != 0) {
             free(entry->pUserdata);
             entry->pUserdata = 0;
@@ -623,7 +623,7 @@ unsigned int LoadWorldCursorNodes(int handle)
             sprintf(cube->name_24, "Cube%d", index);
         }
         for (component = 0; component < 3; ++component) {
-            if (success && FileRead(handle, &cube->numbers_0c[component], 4, 0)) {
+            if (success && FileRead(handle, &cube->numbers[component], 4, 0)) {
                 success = true;
             } else {
                 success = false;
@@ -707,7 +707,7 @@ unsigned char SaveWorldCursorNodes(int handle)
         node = *g_world_cursor_nodes.GetAt(index);
         FileWrite(handle, node->name_24, sizeof(node->name_24), 0);
         for (component = 0; component < 3 && ok; ++component) {
-            ok = FileWrite(handle, &node->numbers_0c[component], 4, 0);
+            ok = FileWrite(handle, &node->numbers[component], 4, 0);
         }
         node->node_04->getLocalBounds(bounds);
         location = node->node_04->getLocation();

@@ -56,5 +56,5 @@ int TurnUndead(int party_slot, int* out_cost, bool check);
 int CharacterPrayAction(int party_slot);
 
 /* 0x0061EC14: gppStringList indices naming each monster special-attack kind,
-   indexed by W8MonsterRecord::special_attack_kind_0e3; slot zero is unused. */
+   indexed by W8MonsterRecord::special_attack_kind; slot zero is unused. */
 extern int g_monster_special_attack_name_ids[12];

@@ -9,8 +9,8 @@
 
 struct W8Region;
 
-extern char s_spell_sound_format_0061aa9c[];
-extern char s_general_magic_sound_0064c664[];
+extern char s_spell_sound_format[];
+extern char s_general_magic_sound[];
 
 /* The eight party-condition buttons beside the portraits, created by
    CreateConditionButtons; its asserts name gpConditionButtonsPanel and
@@ -27,7 +27,7 @@ public:
                       int text_50, int text_58, int ui_slot)
         : W8TextControl(panel, region, left, top, right, bottom, text_40, text_44, text_48, text_4c,
                         text_54, text_50, text_58),
-          m_condition_b8(0xff), m_ui_slot_c0(ui_slot)
+          m_condition(0xff), m_ui_slot(ui_slot)
     {
     }
     virtual void Redraw(unsigned char full_redraw) override;
@@ -37,19 +37,19 @@ public:
 
     /* 0xb8: 0xff while the slot has no shown condition, else which of the two
        condition icon groups Redraw draws. */
-    unsigned char m_condition_b8;
+    unsigned char m_condition;
     unsigned char m_pad_b9[3];
     /* 0xbc: catalog image base copied whole from the status row; Redraw adds
        the per-condition offset (0xb6 or 0xc9). */
     int m_image_object_bc;
-    int m_ui_slot_c0; /* 0xc0: party slot the button tracks */
+    int m_ui_slot; /* 0xc0: party slot the button tracks */
 };
 static_assert(sizeof(W8ConditionButton) == 0xc4, "W8ConditionButton_size");
-static_assert(offsetof(W8ConditionButton, m_condition_b8) == 0xb8,
+static_assert(offsetof(W8ConditionButton, m_condition) == 0xb8,
               "W8ConditionButton_condition_b8");
 static_assert(offsetof(W8ConditionButton, m_image_object_bc) == 0xbc,
               "W8ConditionButton_image_object_bc");
-static_assert(offsetof(W8ConditionButton, m_ui_slot_c0) == 0xc0, "W8ConditionButton_ui_slot_c0");
+static_assert(offsetof(W8ConditionButton, m_ui_slot) == 0xc0, "W8ConditionButton_ui_slot_c0");
 
 void ReleasePortraitControls(void);
 void ReleaseConditionButtons(void);

@@ -33,15 +33,15 @@ struct W8OctBuildNode {
     union {
         W8OctBuildNode* children_00[8];
         W8OctBuildLink* links_00[8];
-        void** surface_arrays_00[8]; /* elements follow the insert mode */
-        unsigned short* region_arrays_00[8];
+        void** surface_arrays[8]; /* elements follow the insert mode */
+        unsigned short* region_arrays[8];
     };
     unsigned long padding_20;
     unsigned long padding_24;
     unsigned short region_28;
-    unsigned short leaf_kind_2a;
-    unsigned short provisional_region_2c;
-    unsigned short positional_2e;
+    unsigned short leaf_kind;
+    unsigned short provisional_region;
+    unsigned short positional;
 };
 
 /* A zero-storage node variant with independently evidenced behavior: its
@@ -86,16 +86,16 @@ struct W8OctBuildTree {
     int ClassifyBoxBounds(const float* box, const float* bounds, bool leaf);
 
     W8OctSpatialState spatial_00;
-    W8OctBuildLinkLists* link_lists_9c;
-    unsigned long leaf_polygon_count_a0;
-    unsigned long gd_surface_count_a4;
-    unsigned long leaf_count_a8;
+    W8OctBuildLinkLists* link_lists;
+    unsigned long leaf_polygon_count;
+    unsigned long gd_surface_count;
+    unsigned long leaf_count;
     unsigned short max_leaf_regions_ac;
     unsigned short unknown_ae;
-    unsigned long region_assignments_b0;
-    bool use_owned_nodes_b4;
+    unsigned long region_assignments;
+    bool use_owned_nodes;
     unsigned char unknown_b5[3];
-    unsigned long deepest_link_list_b8;
+    unsigned long deepest_link_list;
 };
 
 static_assert(sizeof(W8OctBuildLink) == 8, "W8OctBuildLink_must_be_8");

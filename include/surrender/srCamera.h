@@ -76,14 +76,14 @@ public:
 
     srFlags<e_flag> flags_138; /* 0x138 */
 private:
-    Rect view_plane_140;              /* 0x140 */
-    double view_plane_distance_160;   /* 0x160 */
+    Rect view_plane;              /* 0x140 */
+    double view_plane_distance;   /* 0x160 */
     double near_clip_168;             /* 0x168 */
     double far_clip_170;              /* 0x170 */
-    float environment_near_178;       /* 0x178 */
-    float environment_far_17c;        /* 0x17c */
-    float environment_near_scale_180; /* 0x180 */
-    float environment_far_scale_184;  /* 0x184 */
+    float environment_near;       /* 0x178 */
+    float environment_far;        /* 0x17c */
+    float environment_near_scale; /* 0x180 */
+    float environment_far_scale;  /* 0x184 */
 };
 
 static_assert((sizeof(srCamera) == 0x188), "srCamera_must_be_0x188");

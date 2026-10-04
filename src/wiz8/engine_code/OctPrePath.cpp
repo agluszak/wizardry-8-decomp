@@ -103,11 +103,11 @@ PrePathing::PrePathing()
     owned_248 = 0;
     cell_map_254 = 0;
     named_positions_250 = 0;
-    node_chunks_258[0] =
+    node_chunks[0] =
         static_cast<W8PrePathNode*>(malloc(W8_PREPATH_NODES_PER_CHUNK * sizeof(W8PrePathNode)));
-    memset(node_chunks_258[0], 0, W8_PREPATH_NODES_PER_CHUNK * sizeof(W8PrePathNode));
-    chunk_index_11f8 = 0;
-    chunk_node_count_11fc = 0;
+    memset(node_chunks[0], 0, W8_PREPATH_NODES_PER_CHUNK * sizeof(W8PrePathNode));
+    chunk_index = 0;
+    chunk_node_count = 0;
 }
 
 // FUNCTION: WIZ8 0x004CD030
@@ -137,8 +137,8 @@ PrePathing::~PrePathing()
     if (named_positions_250 != 0) {
         delete[] named_positions_250;
     }
-    for (int i = 0; i <= chunk_index_11f8; ++i) {
-        free(node_chunks_258[i]);
+    for (int i = 0; i <= chunk_index; ++i) {
+        free(node_chunks[i]);
     }
 }
 
@@ -163,22 +163,22 @@ int PrePathing::SnapNamedPositions(W8LevelFileNamedPosition* positions, int coun
 // FUNCTION: WIZ8 0x004CD210
 W8PrePathNode* PrePathing::GetPathNode()
 {
-    if (1000 <= static_cast<unsigned int>(chunk_node_count_11fc)) {
-        ++chunk_index_11f8;
-        if (1000 <= static_cast<unsigned int>(chunk_index_11f8)) {
+    if (1000 <= static_cast<unsigned int>(chunk_node_count)) {
+        ++chunk_index;
+        if (1000 <= static_cast<unsigned int>(chunk_index)) {
             ReportBuildStatus(7, "There are over one million path nodes required for this level!");
         }
-        node_chunks_258[chunk_index_11f8] =
+        node_chunks[chunk_index] =
             static_cast<W8PrePathNode*>(malloc(W8_PREPATH_NODES_PER_CHUNK * sizeof(W8PrePathNode)));
-        if (node_chunks_258[chunk_index_11f8] == 0) {
+        if (node_chunks[chunk_index] == 0) {
             ReportBuildStatus(7, "PrePathing::GetPathNode -- Could not allocate path nodes.");
         }
-        memset(node_chunks_258[chunk_index_11f8], 0,
+        memset(node_chunks[chunk_index], 0,
                W8_PREPATH_NODES_PER_CHUNK * sizeof(W8PrePathNode));
-        chunk_node_count_11fc = 0;
+        chunk_node_count = 0;
     }
-    W8PrePathNode* node = node_chunks_258[chunk_index_11f8] + chunk_node_count_11fc;
-    ++chunk_node_count_11fc;
+    W8PrePathNode* node = node_chunks[chunk_index] + chunk_node_count;
+    ++chunk_node_count;
     return node;
 }
 
@@ -611,11 +611,11 @@ void W8PathingService::LinkCollideableProps(int lNumProps, W8PreProp* pPreProps,
     for (i = 0; i < lNumProps; ++i) {
         ++ulOriginalCount;
         W8PreProp* pProp = pPreProps + i;
-        if (pProp->num_stop_meshes_40 != 0) {
-            for (unsigned short j = 0; j < pProp->num_stop_meshes_40; ++j) {
+        if (pProp->num_stop_meshes != 0) {
+            for (unsigned short j = 0; j < pProp->num_stop_meshes; ++j) {
                 bool bWroteFrame = false;
                 unsigned int key =
-                    (static_cast<unsigned int>(pProp->pStopMeshes[j].m_prop_number_02) << 16) |
+                    (static_cast<unsigned int>(pProp->pStopMeshes[j].m_prop_number) << 16) |
                     (i + 1);
                 int slot = pCondValues->FindNextEntry(&key, -1);
                 if (slot != -1) {
@@ -642,7 +642,7 @@ void W8PathingService::LinkCollideableProps(int lNumProps, W8PreProp* pPreProps,
                             if (!bWroteFrame) {
                                 aiLookup[m_ulNumCondFrames + 1] = m_ulNumCondNodes;
                                 ausFrames[m_ulNumCondFrames] =
-                                    pProp->pStopMeshes[j].m_prop_number_02;
+                                    pProp->pStopMeshes[j].m_prop_number;
                                 ++m_ulNumCondFrames;
                                 if (m_ulNumCondFrames >= 10000) {
                                     srAssertFail("m_ulNumCondFrames < 10000", OCTPREPATH_CPP, 1077,
@@ -672,9 +672,9 @@ void W8PathingService::LinkCollideableProps(int lNumProps, W8PreProp* pPreProps,
             }
         }
         if (ppCondPaths[i] != 0) {
-            if ((pProp->num_stop_meshes_40 == 1) && ((pProp->pStopMeshes[0].m_flags_00 & 1) != 0)) {
+            if ((pProp->num_stop_meshes == 1) && ((pProp->pStopMeshes[0].m_flags & 1) != 0)) {
                 aiLookup[m_ulNumCondFrames + 1] = aiLookup[m_ulNumCondFrames];
-                ausFrames[m_ulNumCondFrames] = pProp->pStopMeshes[0].last_frame_58;
+                ausFrames[m_ulNumCondFrames] = pProp->pStopMeshes[0].last_frame;
                 ++m_ulNumCondFrames;
             }
             aiLookup[m_ulNumCondFrames + 1] = 0;

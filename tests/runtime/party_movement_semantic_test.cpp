@@ -40,7 +40,7 @@ bool RunPartyMovementSemanticTest(PartyMovementSemanticResult* result)
 
     combat.uiCurrentPartyAction = 1;
     combat.uiCurrentPartyActionStatus = 0;
-    level.move_budget_2dc = 0;
+    level.move_percent = 0;
     BeginFreeTurnPhase();
     result->completion_marks_finished = combat.uiCurrentPartyActionStatus == 3;
     result->completion_clears_mode = gXStatus.fPartyMovementMode == 0;

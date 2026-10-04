@@ -66,7 +66,7 @@ protected:
     unsigned int m_uiDetailId;                 /* 0x064: gppStringList index */
     int m_minimums[W8_DIALOG_ATTRIBUTE_COUNT]; /* 0x068 */
     W8DialogScrollBar m_scroll_bar_084;
-    W8DialogButton m_button_0d0;
+    W8DialogButton m_button;
     W8DialogTextArea m_text_area_118;
 };
 

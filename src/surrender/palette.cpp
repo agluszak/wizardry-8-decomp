@@ -389,24 +389,24 @@ srPalette* srPalette::findMatchingPalette(const srARGB* const colors, long color
 // FUNCTION: SURRENDER 0x10004210
 void srPalette::releaseQuantizer()
 {
-    if (quantizer_24 != 0) {
-        srHeap.free(quantizer_24);
+    if (quantizer != 0) {
+        srHeap.free(quantizer);
     }
-    quantizer_24 = 0;
+    quantizer = 0;
     flags_18 = flags_18 | 1;
 }
 
 // FUNCTION: SURRENDER 0x10004240
 void srPalette::updateQuantizer()
 {
-    if (quantizer_24 != 0) {
-        srHeap.free(quantizer_24);
+    if (quantizer != 0) {
+        srHeap.free(quantizer);
     }
     /* Retail (0x10004240) takes the storage straight from srHeap::allocate
        and runs the inlined constructor under an unwind state. Quantizer is
        exported without any operator new/delete, so the heap routing is at
        the new-expression, not a class allocator. */
-    quantizer_24 = new (srHeap.allocate(sizeof(Quantizer)))
+    quantizer = new (srHeap.allocate(sizeof(Quantizer)))
         Quantizer(colors_1c, color_count_20, 0, '\b', '\b', '\b');
 }
 
@@ -426,7 +426,7 @@ srPalette::srPalette(srARGB* colors, long color_count)
 {
     colors_1c = new srARGB[color_count];
     color_count_20 = color_count;
-    quantizer_24 = 0;
+    quantizer = 0;
     if (colors == 0) {
         if (color_count == 0x100) {
             long index = 0;
@@ -481,9 +481,9 @@ srPalette::~srPalette()
         delete[] colors_1c;
         colors_1c = 0;
     }
-    if (quantizer_24 != 0) {
-        srHeap.free(quantizer_24);
-        quantizer_24 = 0;
+    if (quantizer != 0) {
+        srHeap.free(quantizer);
+        quantizer = 0;
     }
 }
 
@@ -497,9 +497,9 @@ srPalette& srPalette::operator=(const srPalette& other)
         delete[] colors_1c;
         colors_1c = 0;
     }
-    if (quantizer_24 != 0) {
-        srHeap.free(quantizer_24);
-        quantizer_24 = 0;
+    if (quantizer != 0) {
+        srHeap.free(quantizer);
+        quantizer = 0;
     }
     srClass::operator=(other);
     flags_18 = other.flags_18;
@@ -511,7 +511,7 @@ srPalette& srPalette::operator=(const srPalette& other)
             colors_1c[index] = other.colors_1c[index];
         }
     }
-    quantizer_24 = 0;
+    quantizer = 0;
     flags_18 = flags_18 | 1;
     return *this;
 }
@@ -567,7 +567,7 @@ unsigned char srPalette::quantize(const srARGB& color)
     if ((flags_18 & 1) != 0) {
         update();
     }
-    return quantizer_24->quantize(color);
+    return quantizer->quantize(color);
 }
 
 // FUNCTION: SURRENDER 0x10004920
@@ -576,7 +576,7 @@ void srPalette::quantize(unsigned char* const indices, const srARGB* const color
     if ((flags_18 & 1) != 0) {
         update();
     }
-    quantizer_24->quantize(indices, colors, color_count);
+    quantizer->quantize(indices, colors, color_count);
 }
 
 // FUNCTION: SURRENDER 0x10004950

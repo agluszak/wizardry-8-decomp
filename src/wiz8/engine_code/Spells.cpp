@@ -127,7 +127,7 @@ W8AnimObj* W8SpellVisual::GetCurrentAnimation()
 // FUNCTION: WIZ8 0x004ac870
 float W8SpellVisual::GetCurrentAnimationScale()
 {
-    return this->host->emitters[this->host->current_cycle]->playback_scale_08;
+    return this->host->emitters[this->host->current_cycle]->playback_scale;
 }
 
 // FUNCTION: WIZ8 0x004ac8a0
@@ -138,7 +138,7 @@ W8AniMesh* W8SpellVisual::GetCurrentAniMesh()
     if (emitter == 0) {
         srAssertFail("pao", "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp", 0x653, 0);
     }
-    return emitter->entries_18[this->host->m_bLOD];
+    return emitter->entries[this->host->m_bLOD];
 }
 
 /* How many emitters the host has, counted by testing each for null. */
@@ -182,9 +182,9 @@ void W8SpellVisual::AdvanceAnimationFrame(int value, int flags)
 {
     W8SpellEmitterHost* representation_before;
 
-    host->first_frame_094 = 0;
+    host->first_frame = 0;
     representation_before = host;
-    representation_before->last_frame_095 = GetNumSubCycles() - 1;
+    representation_before->last_frame = GetNumSubCycles() - 1;
     W8GrCycle::AdvanceAnimationFrame(value, flags);
 }
 
@@ -220,7 +220,7 @@ void W8SpellVisual::SetCycle(signed char cycle)
     host->current_cycle = cycle;
     animation = host->emitters[cycle];
     host->active = 1;
-    host->frame_direction_06e = 1;
+    host->frame_direction = 1;
     if (host->SetCycleFrameLod(cycle, 0, 2) != 0) {
         host->m_bLOD = 2;
     } else if (host->SetCycleFrameLod(cycle, 0, 1) != 0) {
@@ -228,10 +228,10 @@ void W8SpellVisual::SetCycle(signed char cycle)
     } else {
         host->m_bLOD = 0;
     }
-    host->timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
-    host->frame_method_06f = animation->frame_method_02;
-    host->animation_playing_06d = animation->animation_playing_01;
-    host->subcycle_064 = 0;
+    host->timer = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
+    host->frame_method = animation->frame_method;
+    host->animation_playing = animation->animation_playing;
+    host->subcycle = 0;
 
     lights = *host->light_lists[cycle].GetAt(0);
     SetLights(lights);
@@ -252,7 +252,7 @@ void W8SpellVisual::SetCycle(signed char cycle)
 
             if (event->cycle_00 == cycle) {
                 event->m_pstParticles->SetActive(1);
-                event->m_pstParticles->emission_count_188 = 0;
+                event->m_pstParticles->emission_count = 0;
             } else {
                 event->m_pstParticles->SetActive(0);
             }
@@ -270,7 +270,7 @@ void W8SpellVisual::UpdateRepresentation(W8World* world)
     srVector3T<float> position;
     bool apply_rotation = false;
 
-    if (mode_1d8 == W8_SPELL_VISUAL_FLASH) {
+    if (mode == W8_SPELL_VISUAL_FLASH) {
         float angle;
         float pitch;
 
@@ -286,8 +286,8 @@ void W8SpellVisual::UpdateRepresentation(W8World* world)
             rotation.RotateAboutX(sin(pitch), cos(pitch));
         }
         apply_rotation = true;
-    } else if (mode_1d8 == W8_SPELL_VISUAL_TARGET) {
-        W8Monster* monster = GetMonsterByLocationID(location_id_1ec);
+    } else if (mode == W8_SPELL_VISUAL_TARGET) {
+        W8Monster* monster = GetMonsterByLocationID(location_id);
 
         if (monster != 0) {
             srModelInstance* instance = GetCurrentModelInstance();
@@ -308,16 +308,16 @@ void W8SpellVisual::UpdateRepresentation(W8World* world)
             position.z = monster_position.z;
             SetCyclePosition(&position);
         }
-    } else if (mode_1d8 == W8_SPELL_VISUAL_CONE) {
+    } else if (mode == W8_SPELL_VISUAL_CONE) {
         GetCurrentModelInstance();
         if (fixed_transform == 0) {
             GetCameraPosition(&camera_position);
-            if (location_id_1ec == 0) {
+            if (location_id == 0) {
                 SetCyclePosition(&camera_position);
                 g_gd_camera->GetRotationMatrix(&rotation);
                 apply_rotation = true;
             } else {
-                W8Monster* monster = GetMonsterByLocationID(location_id_1ec);
+                W8Monster* monster = GetMonsterByLocationID(location_id);
 
                 if (monster != 0) {
                     if (monster->Query(6) == 0x19 && monster->GetSpellPosition(&position) != 0) {
@@ -349,7 +349,7 @@ void W8SpellVisual::UpdateRepresentation(W8World* world)
         float angle;
 
         billboard.SetIdentity();
-        camera_position = g_gd_camera->m_position_08c;
+        camera_position = g_gd_camera->m_position;
         angle =
             GetHeadingAngle(&visual_position, &camera_position) + static_cast<float>(g_camera_pi);
         if (angle != g_double_zero) {
@@ -360,7 +360,7 @@ void W8SpellVisual::UpdateRepresentation(W8World* world)
 
     srModelInstance* instance = GetCurrentModelInstance();
     if (instance != 0) {
-        static_cast<stModelInstance*>(instance)->render_flags_178 |= 0x10;
+        static_cast<stModelInstance*>(instance)->render_flags |= 0x10;
     }
     W8GrCycle::UpdateRepresentation(world);
 }
@@ -517,13 +517,13 @@ unsigned char W8SpellEmitterHost::ReadCycleData(W8ReadLevelInfo* info, W8SpellVi
         emitter = static_cast<signed char>(emitter_index);
         current_cycle = emitter;
     }
-    emitter_values[emitter] = animation->playback_scale_08;
+    emitter_values[emitter] = animation->playback_scale;
     active = 1;
-    frame_direction_06e = 1;
-    timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
-    animation_behaviour_070 = animation->behaviour_03;
-    frame_method_06f = animation->frame_method_02;
-    animation_playing_06d = animation->animation_playing_01;
+    frame_direction = 1;
+    timer = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
+    animation_behaviour = animation->behaviour;
+    frame_method = animation->frame_method;
+    animation_playing = animation->animation_playing;
     emitters[emitter] = animation;
 
     if (visual != 0) {
@@ -548,7 +548,7 @@ bool LoadSpellVisualResource(const W8GrCycleLoadContext* context, const char* na
                              W8SpellVisualMode group, W8SpellVisual** visual, int unused)
 {
     W8SpellVisual* shared = static_cast<W8SpellVisual*>(FindFirstGrCycleByName(name));
-    if (shared != 0 && shared->mode_1d8 == group) {
+    if (shared != 0 && shared->mode == group) {
         W8SpellVisual* spell = new W8SpellVisual(*shared);
         if (spell == 0) {
             srAssertFail("pSpell", "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp", 0x406, 0);
@@ -698,7 +698,7 @@ bool LoadSpellVisualResource(const W8GrCycleLoadContext* context, const char* na
                          FormatString("Spell %s missing cycle of type %d", name, group));
         }
         (*visual)->host->billboard_378 = 0;
-        (*visual)->host->pending_behaviour_071 = 1;
+        (*visual)->host->pending_behaviour = 1;
     }
 
     ResumeSharedGameTimers();
@@ -707,11 +707,11 @@ bool LoadSpellVisualResource(const W8GrCycleLoadContext* context, const char* na
 
 // FUNCTION: WIZ8 0x004ABBB0
 W8SpellVisual::W8SpellVisual()
-    : mode_1d8(W8_SPELL_VISUAL_NONE), finished(0), flag_1e5(0), auto_release(1), fixed_transform(0),
-      scale_1e8(1.0f), location_id_1ec(0)
+    : mode(W8_SPELL_VISUAL_NONE), finished(0), flag(0), auto_release(1), fixed_transform(0),
+      scale_1e8(1.0f), location_id(0)
 {
     W8GrObject::kind_004 = 1;
-    id_008 = AllocateGrObjectId();
+    id = AllocateGrObjectId();
     host = new W8SpellEmitterHost;
     if (host == 0) {
         srAssertFail("m_pRep", "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp", 0x3c0, 0);
@@ -802,17 +802,17 @@ int W8SpellVisual::QueryHostStateByKind(int kind)
     case 1:
         return GetTotalAnimationCount();
     case 2:
-        return host->subcycle_064 == host->ApplyEmitterSetting(host->current_cycle) - 1;
+        return host->subcycle == host->ApplyEmitterSetting(host->current_cycle) - 1;
     case 3:
-        return host->subcycle_064 == 0;
+        return host->subcycle == 0;
     case 4:
-        return host->subcycle_064;
+        return host->subcycle;
     case 5:
         return host->ApplyEmitterSetting(host->current_cycle) != 0xffffffff;
     case 6:
         return host->current_cycle;
     case 7:
-        return host->animation_playing_06d == 0;
+        return host->animation_playing == 0;
     default:
         return -1;
     }
@@ -864,10 +864,10 @@ W8SpellVisual* SpawnSpellEffect(const srVector3T<float>* position, const char* r
         }
     }
     if (visual != 0) {
-        visual->mode_1d8 = W8_SPELL_VISUAL_EXPLOSION;
+        visual->mode = W8_SPELL_VISUAL_EXPLOSION;
         visual->host->pending_cycle = static_cast<signed char>(cycle);
         visual->host->billboard_378 = 1;
-        visual->effect_value_1f0 = value;
+        visual->effect_value = value;
         visual->flags_1f4 = flags;
         visual->SetPositionInternal(position);
     }
@@ -925,9 +925,9 @@ placed:
         float angle;
         float pitch;
 
-        visual->mode_1d8 = W8_SPELL_VISUAL_FLASH;
+        visual->mode = W8_SPELL_VISUAL_FLASH;
         visual->host->pending_cycle = static_cast<signed char>(cycle);
-        visual->effect_value_1f0 = value;
+        visual->effect_value = value;
         visual->flags_1f4 = flags;
         GetCameraPosition(&position);
         visual->SetCyclePosition(&position);
@@ -1001,12 +1001,12 @@ placed:
         float height;
         float width;
 
-        visual->mode_1d8 = W8_SPELL_VISUAL_TARGET;
+        visual->mode = W8_SPELL_VISUAL_TARGET;
         visual->host->pending_cycle = static_cast<signed char>(cycle);
         visual->host->billboard_378 = 1;
-        visual->effect_value_1f0 = value;
+        visual->effect_value = value;
         visual->flags_1f4 = flags;
-        visual->location_id_1ec = monster->location_id_1e4;
+        visual->location_id = monster->location_id_1e4;
         monster->GetAnimationBounds(&minimum, &maximum);
         position = monster->GetPosition();
         position.y += (maximum.y - minimum.y) * g_float_005ebc7c;
@@ -1071,9 +1071,9 @@ placed:
     if (visual != 0) {
         srVector3T<float> position;
 
-        visual->mode_1d8 = W8_SPELL_VISUAL_CONE;
+        visual->mode = W8_SPELL_VISUAL_CONE;
         visual->host->pending_cycle = static_cast<signed char>(cycle);
-        visual->effect_value_1f0 = value;
+        visual->effect_value = value;
         visual->flags_1f4 = flags;
         if (parent != 0) {
             srVector3T<float> minimum;
@@ -1081,7 +1081,7 @@ placed:
             float height;
             float width;
 
-            visual->location_id_1ec = parent->location_id_1e4;
+            visual->location_id = parent->location_id_1e4;
             parent->GetAnimationBounds(&minimum, &maximum);
             height = maximum.y - minimum.y;
             width = maximum.x - minimum.x;
@@ -1153,9 +1153,9 @@ W8SpellVisual* CreateAimedSpellEffect(const char* mls_name, int power_level,
     cycle = visual->FindSupportedCycle(W8_SPELL_VISUAL_CONE, power_level - 1);
 placed:
     if (visual != 0) {
-        visual->mode_1d8 = W8_SPELL_VISUAL_CONE;
+        visual->mode = W8_SPELL_VISUAL_CONE;
         visual->host->pending_cycle = static_cast<signed char>(cycle);
-        visual->effect_value_1f0 = value;
+        visual->effect_value = value;
         visual->flags_1f4 = flags;
         visual->SetCyclePosition(position);
         visual->host->SetRotation(rotation);
@@ -1174,7 +1174,7 @@ void SetTargetConeEnabled(bool enabled)
         if (g_target_cone_visual == 0) {
             g_target_cone_visual = CreateAttachedSpellEffect("TargetCone", 1, 0, 0, 0);
             if (g_target_cone_visual != 0) {
-                g_target_cone_visual->host->pending_behaviour_071 = 3;
+                g_target_cone_visual->host->pending_behaviour = 3;
             }
         }
         return;
@@ -1595,7 +1595,7 @@ void ClearMonsterSpellIcons(W8Monster* monster)
     if (rep == 0) {
         srAssertFail("pMonRep", "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp", 0x854, 0);
     }
-    W8PList* list = rep->spell_icons_5e8;
+    W8PList* list = rep->spell_icons;
     if (list != 0) {
         unsigned int count = PLLength(list);
         for (int index = 0; index < static_cast<int>(count); ++index) {

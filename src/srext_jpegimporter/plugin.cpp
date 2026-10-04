@@ -35,10 +35,10 @@ srJPEGImporter::~srJPEGImporter()
 // FUNCTION: SREXT_JPEGIMPORTER 0x10014E10
 void srJPEGImporter::initializeCodecOptions()
 {
-    export_options_.limit_200 = 200;
+    export_options_.limit = 200;
     export_options_.quality = 75;
     export_options_.smoothing_factor = 0;
-    export_options_.pointer_08 = 0;
+    export_options_.pointer = 0;
 }
 
 // FUNCTION: SREXT_JPEGIMPORTER 0x10015420

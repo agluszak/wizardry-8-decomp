@@ -51,10 +51,10 @@ OctPreTree::OctPreTree() : W8Octree(0, 0)
     game_data_3a4 = 0;
     unknown_3a8 = 0;
     unknown_3ac = 0;
-    deepest_link_list_3b0 = 0;
+    deepest_link_list = 0;
     m_region_cell = 0.0f;
     path_node_extent_3b4 = 0;
-    automesh_cells_29c = 0;
+    automesh_cells = 0;
     pre_pathing_2a0 = 0;
     props_3b8 = new W8GrowableVector<GDProp*>;
     g_oct_pre_tree = this;
@@ -65,9 +65,9 @@ OctPreTree::OctPreTree() : W8Octree(0, 0)
 // FUNCTION: WIZ8 0x00467ab0
 OctPreTree::~OctPreTree()
 {
-    if (automesh_cells_29c != 0) {
-        delete automesh_cells_29c;
-        automesh_cells_29c = 0;
+    if (automesh_cells != 0) {
+        delete automesh_cells;
+        automesh_cells = 0;
     }
     if (pre_pathing_2a0 != 0) {
         delete pre_pathing_2a0;
@@ -96,9 +96,9 @@ void OctPreTree::CollectLeafPolygons(const srVector3T<int>* cell)
 {
     m_gd_result_count = 0;
     unsigned int leaf_index = LeafIndexForCell(cell);
-    if (leaf_index != 0 && m_leaves[leaf_index].polygon_offset_08 != 0) {
+    if (leaf_index != 0 && m_leaves[leaf_index].polygon_offset != 0) {
         const unsigned long* stream =
-            m_polygon_index_stream + m_leaves[leaf_index].polygon_offset_08;
+            m_polygon_index_stream + m_leaves[leaf_index].polygon_offset;
         for (int remaining = *stream; remaining != 0; --remaining) {
             ++stream;
             if (m_visited_polygon_bits->Set(*stream) == 0) {
@@ -216,12 +216,12 @@ bool OctPreTree::TestCollectedPolygons(W8OctreeTrace* trace)
             break;
         }
         W8OctRegionPolygon* polygon = &game_data_3a4->m_polygons[m_aulGDObjs[index]];
-        const float* plane = &polygon->plane_08.normal.x;
+        const float* plane = &polygon->plane.normal.x;
         if (plane[0] * trace->step_18.x + trace->step_18.y * plane[1] +
                 trace->step_18.z * plane[2] <=
             g_float_zero) {
-            float front = trace->start_00.x * plane[0] + trace->start_00.y * plane[1] +
-                          trace->start_00.z * plane[2] + plane[3];
+            float front = trace->start.x * plane[0] + trace->start.y * plane[1] +
+                          trace->start.z * plane[2] + plane[3];
             if (front <= limit && g_float_zero < front) {
                 srVector3T<float> contact;
                 if (g_float_one <= front) {
@@ -235,16 +235,16 @@ bool OctPreTree::TestCollectedPolygons(W8OctreeTrace* trace)
                         continue;
                     }
                     front = front / (back + front) * trace->length_28;
-                    contact.Set(trace->step_18.x * front + trace->start_00.x,
-                                trace->step_18.y * front + trace->start_00.y,
-                                trace->step_18.z * front + trace->start_00.z);
+                    contact.Set(trace->step_18.x * front + trace->start.x,
+                                trace->step_18.y * front + trace->start.y,
+                                trace->step_18.z * front + trace->start.z);
                 } else {
-                    contact = trace->start_00;
+                    contact = trace->start;
                 }
                 srVector3T<float> vertices[3];
-                vertices[0] = polygon->vertices_34[0]->position_0c;
-                vertices[1] = polygon->vertices_34[1]->position_0c;
-                vertices[2] = polygon->vertices_34[2]->position_0c;
+                vertices[0] = polygon->vertices[0]->position_0c;
+                vertices[1] = polygon->vertices[1]->position_0c;
+                vertices[2] = polygon->vertices[2]->position_0c;
                 if (PointInsideTriangle(vertices, polygon->flags_00 & 3, &contact) != 0) {
                     blocked = 1;
                 }
@@ -276,7 +276,7 @@ unsigned char OctPreTree::WriteOctFile(W8OctPreTreeGeometry* geometry, W8GameDat
     header.m_extent = m_spatial.m_extent;
     header.m_cell_size = m_spatial.m_cell_size;
     header.m_node_extent = m_spatial.m_node_extent;
-    header.version_00 = W8OctFileHeader::VERSION;
+    header.version = W8OctFileHeader::VERSION;
     for (int axis = 0; axis < 3; ++axis) {
         (&header.m_bounds[0].x)[axis] = (&m_spatial.m_minimum.x)[axis];
         (&header.m_bounds[1].x)[axis] = (&m_spatial.m_maximum.x)[axis];
@@ -289,17 +289,17 @@ unsigned char OctPreTree::WriteOctFile(W8OctPreTreeGeometry* geometry, W8GameDat
     header.m_depth = m_spatial.m_depth;
     header.m_region_id_bound = m_spatial.m_region_id_bound;
     header.m_root_mesh_count = m_root_mesh_count;
-    header.m_submesh_count = m_spatial.submesh_count_74;
+    header.m_submesh_count = m_spatial.submesh_count;
     header.m_branch_count = m_branch_count;
     header.m_region_count = m_spatial.m_region_count;
     header.m_leaf_level = m_spatial.m_leaf_level;
     header.m_mesh_total = m_meshCount;
     header.m_leaf_count = m_leaf_count;
     header.m_polygon_count = geometry->m_polygon_count;
-    header.m_vertex_count = geometry->vertex_count_00;
+    header.m_vertex_count = geometry->vertex_count;
     header.m_surface_count = game_data->m_iNumSurfaces;
     header.m_gd_surface_stream_len = m_gd_surface_stream_len;
-    header.m_leaf_polygon_stream_len = polygon_cursor_3a0;
+    header.m_leaf_polygon_stream_len = polygon_cursor;
     header.m_trigger_count = m_trigger_count;
     header.m_region_list_len = m_region_list_len;
     header.m_region_cell = m_region_cell;
@@ -476,33 +476,33 @@ OctMeshModel* OctPreTree::CreateSubMeshes(W8OctPreTreeGeometry* geometry)
     unsigned int record_index;
     unsigned int model_index;
 
-    if (m_spatial.submesh_count_74 == 0) {
+    if (m_spatial.submesh_count == 0) {
         return 0;
     }
-    m_vertex_count = geometry->vertex_count_00;
+    m_vertex_count = geometry->vertex_count;
     VerifyPolygonRegions();
     /* Three build records per original unit.  SplitMeshes
        appends at most one record per source on each of its three kind
        passes while an emptied source keeps its slot, so the true slot
        bound is count + 3*(count-1) - covered only while count <= 6. */
     records = static_cast<W8OctSubmeshBuild*>(
-        malloc((m_spatial.submesh_count_74 + 1) * 3 * sizeof(W8OctSubmeshBuild)));
+        malloc((m_spatial.submesh_count + 1) * 3 * sizeof(W8OctSubmeshBuild)));
     if (records == 0) {
         ReportBuildStatus(7, "\nCreateSubMeshes: Could not allocate submeshes.\n");
     } else {
-        memset(records, 0, (m_spatial.submesh_count_74 + 1) * 3 * sizeof(W8OctSubmeshBuild));
+        memset(records, 0, (m_spatial.submesh_count + 1) * 3 * sizeof(W8OctSubmeshBuild));
         AllocateSubMesh(records);
         SplitMeshes(geometry, records);
         m_aulPolyLookup = static_cast<unsigned long*>(malloc(geometry->m_polygon_count * 4 + 4));
         if (m_aulPolyLookup == 0) {
             ReportBuildStatus(7, "\nCreateSubMeshes: Could not allocate m_aulPolyLookup.\n");
-            FreeSubmeshBuildArrays(records, m_spatial.submesh_count_74);
+            FreeSubmeshBuildArrays(records, m_spatial.submesh_count);
         } else {
             m_pSubmeshes = static_cast<W8OctSubmesh*>(
-                malloc((m_spatial.submesh_count_74 + 1) * sizeof(W8OctSubmesh)));
-            models = new OctMeshModel[m_spatial.submesh_count_74 + 1];
+                malloc((m_spatial.submesh_count + 1) * sizeof(W8OctSubmesh)));
+            models = new OctMeshModel[m_spatial.submesh_count + 1];
             if (m_pSubmeshes != 0 && models != 0) {
-                memset(m_pSubmeshes, 0, (m_spatial.submesh_count_74 + 1) * sizeof(W8OctSubmesh));
+                memset(m_pSubmeshes, 0, (m_spatial.submesh_count + 1) * sizeof(W8OctSubmesh));
                 root_count = 0;
                 kind_counts[3] = 0;
                 kind_counts[2] = 0;
@@ -510,7 +510,7 @@ OctMeshModel* OctPreTree::CreateSubMeshes(W8OctPreTreeGeometry* geometry)
                 kind_counts[0] = 0;
                 record_index = 1;
                 model_index = 0;
-                if (m_spatial.submesh_count_74 > 1) {
+                if (m_spatial.submesh_count > 1) {
                     W8OctSubmeshBuild* record = records + 1;
                     W8OctSubmesh* submesh = m_pSubmeshes + 1;
                     /* Retail writes models from index 0: records[1..] and
@@ -520,36 +520,36 @@ OctMeshModel* OctPreTree::CreateSubMeshes(W8OctPreTreeGeometry* geometry)
                     do {
                         if (record->m_polygon_count == 0) {
                             ReportBuildStatus(7, "CreateSubMeshes: Found mesh with no polys.\n");
-                            FreeSubmeshBuildArrays(records, m_spatial.submesh_count_74);
+                            FreeSubmeshBuildArrays(records, m_spatial.submesh_count);
                             goto cleanup;
                         }
                         submesh->mesh_04 = model_index;
-                        submesh->polygon_count_0c = record->m_polygon_count;
-                        submesh->next_link_08 = record->m_next_link;
+                        submesh->polygon_count = record->m_polygon_count;
+                        submesh->next_link = record->m_next_link;
                         model->m_packed_header = record->m_kind;
-                        model->version_00 = m_sun_count;
+                        model->version = m_sun_count;
                         kind_counts[record->m_kind] += 1;
-                        model->m_vertex_count = record->vertex_count_14;
+                        model->m_vertex_count = record->vertex_count;
                         model->m_map_count = record->m_map_count;
                         model->m_polygon_count = record->m_polygon_count;
                         model->m_link_index = record->m_prev_link - 1;
                         if (record->m_prev_link == 0) {
                             ++root_count;
                         }
-                        model->next_link_08 = record->m_next_link - 1;
+                        model->next_link = record->m_next_link - 1;
                         model->m_vertex_locations = static_cast<srVector3T<float>*>(
-                            srHeap.allocate(record->vertex_count_14 * 0xc));
+                            srHeap.allocate(record->vertex_count * 0xc));
                         model->m_vertex_map = record->m_uv_map;
                         model->m_poly_vertices = record->m_poly_vertices;
                         model->m_poly_uv_index = record->m_poly_uv_index;
                         model->m_poly_equations = static_cast<srVector4T<float>*>(
                             srHeap.allocate(record->m_polygon_count << 4));
                         model->m_vertex_normals = static_cast<srVector3T<float>*>(
-                            srHeap.allocate(record->vertex_count_14 * 0xc));
+                            srHeap.allocate(record->vertex_count * 0xc));
                         model->m_vertex_lights = static_cast<srVector3T<float>*>(
-                            srHeap.allocate(record->vertex_count_14 * 0xc));
+                            srHeap.allocate(record->vertex_count * 0xc));
                         model->m_vertex_materials =
-                            static_cast<int*>(malloc(record->vertex_count_14 << 2));
+                            static_cast<int*>(malloc(record->vertex_count << 2));
                         model->m_poly_textures =
                             static_cast<int*>(malloc(record->m_polygon_count << 2));
                         if (m_sun_count != 0) {
@@ -558,16 +558,16 @@ OctMeshModel* OctPreTree::CreateSubMeshes(W8OctPreTreeGeometry* geometry)
                             if (model->m_sun_lights == 0) {
                                 ReportBuildStatus(7, "\nCreateSubMeshes: Could not allocate "
                                                      "ppsrSunLights.\n");
-                                FreeSubmeshBuildArrays(records, m_spatial.submesh_count_74);
+                                FreeSubmeshBuildArrays(records, m_spatial.submesh_count);
                                 goto cleanup;
                             }
                             for (short sun = 0; sun < static_cast<short>(m_sun_count); ++sun) {
                                 model->m_sun_lights[sun] =
-                                    static_cast<float*>(malloc(record->vertex_count_14 << 2));
+                                    static_cast<float*>(malloc(record->vertex_count << 2));
                                 if (model->m_sun_lights[sun] == 0) {
                                     ReportBuildStatus(7, "\nCreateSubMeshes: Could not allocate "
                                                          "ppsrSunLights array.\n");
-                                    FreeSubmeshBuildArrays(records, m_spatial.submesh_count_74);
+                                    FreeSubmeshBuildArrays(records, m_spatial.submesh_count);
                                     goto cleanup;
                                 }
                             }
@@ -578,26 +578,26 @@ OctMeshModel* OctPreTree::CreateSubMeshes(W8OctPreTreeGeometry* geometry)
                             model->m_vertex_materials == 0 || model->m_poly_textures == 0) {
                             ReportBuildStatus(7, "\nCreateSubMeshes: Could not allocate mesh "
                                                  "model arrays.\n");
-                            FreeSubmeshBuildArrays(records, m_spatial.submesh_count_74);
+                            FreeSubmeshBuildArrays(records, m_spatial.submesh_count);
                             goto cleanup;
                         }
                         for (unsigned long polygon = 0; polygon < record->m_polygon_count;
                              ++polygon) {
                             unsigned long id = record->m_polygon_ids[polygon];
                             m_aulPolyLookup[id] = model_index * 0x10000 + polygon;
-                            model->m_poly_textures[polygon] = geometry->m_polygons[id].texture_28;
+                            model->m_poly_textures[polygon] = geometry->m_polygons[id].texture;
                             model->m_poly_equations[polygon].x =
-                                geometry->m_polygons[id].plane_08.normal.x;
+                                geometry->m_polygons[id].plane.normal.x;
                             model->m_poly_equations[polygon].y =
-                                geometry->m_polygons[id].plane_08.normal.y;
+                                geometry->m_polygons[id].plane.normal.y;
                             model->m_poly_equations[polygon].z =
-                                geometry->m_polygons[id].plane_08.normal.z;
+                                geometry->m_polygons[id].plane.normal.z;
                             model->m_poly_equations[polygon].w =
-                                geometry->m_polygons[id].plane_08.w;
+                                geometry->m_polygons[id].plane.w;
                         }
                         model->m_material_index =
                             geometry->m_vertices[record->m_vertex_ids[0]].m_material;
-                        for (unsigned long vertex = 0; vertex < record->vertex_count_14; ++vertex) {
+                        for (unsigned long vertex = 0; vertex < record->vertex_count; ++vertex) {
                             W8OctPreTreeVertex* source =
                                 &geometry->m_vertices[record->m_vertex_ids[vertex]];
                             model->m_vertex_locations[vertex] = source->position_0c;
@@ -616,9 +616,9 @@ OctMeshModel* OctPreTree::CreateSubMeshes(W8OctPreTreeGeometry* geometry)
                         ++model;
                         ++model_index;
                         ++record_index;
-                    } while (record_index < m_spatial.submesh_count_74);
+                    } while (record_index < m_spatial.submesh_count);
                 }
-                m_spatial.submesh_count_74 = model_index;
+                m_spatial.submesh_count = model_index;
                 m_meshCount = root_count;
                 m_root_mesh_count = kind_counts[0];
                 m_kind1_submesh_count = kind_counts[1];
@@ -630,15 +630,15 @@ OctMeshModel* OctPreTree::CreateSubMeshes(W8OctPreTreeGeometry* geometry)
                         }
                     }
                 }
-                /* Verified retail behavior: submesh_count_74 was just overwritten
+                /* Verified retail behavior: submesh_count was just overwritten
                    with model_index, so the cleanup frees records[0..model_index)
                    and leaks the final record's vertex/polygon id arrays. */
-                FreeSubmeshBuildArrays(records, m_spatial.submesh_count_74);
+                FreeSubmeshBuildArrays(records, m_spatial.submesh_count);
                 free(records);
                 return models;
             }
             ReportBuildStatus(7, "\nCreateSubMeshes: Could not allocate mesh arrays.\n");
-            FreeSubmeshBuildArrays(records, m_spatial.submesh_count_74);
+            FreeSubmeshBuildArrays(records, m_spatial.submesh_count);
         }
     cleanup:
         free(records);
@@ -656,7 +656,7 @@ OctMeshModel* OctPreTree::CreateSubMeshes(W8OctPreTreeGeometry* geometry)
 // FUNCTION: WIZ8 0x00469670
 unsigned long OctPreTree::SplitMeshes(W8OctPreTreeGeometry* geometry, W8OctSubmeshBuild* records)
 {
-    unsigned long count = m_spatial.submesh_count_74;
+    unsigned long count = m_spatial.submesh_count;
     if (count == 0) {
         return 0;
     }
@@ -679,8 +679,8 @@ unsigned long OctPreTree::SplitMeshes(W8OctPreTreeGeometry* geometry, W8OctSubme
         return 0;
     }
 
-    m_vertex_count = geometry->vertex_count_00;
-    count = m_spatial.submesh_count_74;
+    m_vertex_count = geometry->vertex_count;
+    count = m_spatial.submesh_count;
     m_meshCount = count;
     m_root_mesh_count = count;
     unsigned long kind_counts[4];
@@ -707,7 +707,7 @@ unsigned long OctPreTree::SplitMeshes(W8OctPreTreeGeometry* geometry, W8OctSubme
             record->m_prev_link = 0;
             for (unsigned long face = 0; face < record->m_polygon_count; ++face) {
                 unsigned long id = record->m_polygon_ids[face];
-                if (geometry->m_polygons[id].kind_2c == kind) {
+                if (geometry->m_polygons[id].kind == kind) {
                     staging[target->m_polygon_count] = id;
                     ++target->m_polygon_count;
                     record->m_polygon_ids[face] = 0;
@@ -751,10 +751,10 @@ unsigned long OctPreTree::SplitMeshes(W8OctPreTreeGeometry* geometry, W8OctSubme
         }
     }
 
-    if (m_spatial.submesh_count_74 == m_root_mesh_count) {
-        m_spatial.submesh_count_74 = next_free;
+    if (m_spatial.submesh_count == m_root_mesh_count) {
+        m_spatial.submesh_count = next_free;
     } else {
-        m_spatial.submesh_count_74 = next_free;
+        m_spatial.submesh_count = next_free;
         unsigned long new_index = 1;
         if (next_free > 1) {
             for (unsigned long index = 1; index < next_free; ++index) {
@@ -763,7 +763,7 @@ unsigned long OctPreTree::SplitMeshes(W8OctPreTreeGeometry* geometry, W8OctSubme
                     W8OctSubmeshBuild* candidate = records + slot;
                     if (candidate->m_polygon_count == 0) {
                         --kind_counts[candidate->m_kind];
-                        --m_spatial.submesh_count_74;
+                        --m_spatial.submesh_count;
                         slot = candidate->m_next_link;
                         candidate = records + slot;
                         candidate->flags_00 |= 1;
@@ -802,8 +802,8 @@ unsigned long OctPreTree::SplitMeshes(W8OctPreTreeGeometry* geometry, W8OctSubme
 
     unsigned long total_maps = 0;
     unsigned long total_vertices = 0;
-    if (m_spatial.submesh_count_74 > 1) {
-        for (unsigned long index = 1; index < m_spatial.submesh_count_74; ++index) {
+    if (m_spatial.submesh_count > 1) {
+        for (unsigned long index = 1; index < m_spatial.submesh_count; ++index) {
             W8OctSubmeshBuild* record = records + index;
             record->m_poly_vertices =
                 static_cast<srVector3i*>(srHeap.allocate(record->m_polygon_count * 0xc));
@@ -814,12 +814,12 @@ unsigned long OctPreTree::SplitMeshes(W8OctPreTreeGeometry* geometry, W8OctSubme
             unsigned long vertex_count = 0;
             for (unsigned long poly = 0; poly < record->m_polygon_count; ++poly) {
                 unsigned long id = record->m_polygon_ids[poly];
-                unsigned long texture = geometry->m_polygons[id].texture_28;
+                unsigned long texture = geometry->m_polygons[id].texture;
                 scratch[poly] = texture;
                 keys[poly] = texture;
                 for (unsigned long corner = 0; corner < 3; ++corner) {
                     unsigned long vertex_id =
-                        geometry->m_polygons[id].vertices_34[corner]->m_vertex_index;
+                        geometry->m_polygons[id].vertices[corner]->m_vertex_index;
                     unsigned long slot = 0;
                     while (slot < vertex_count && vertex_ids[slot] != static_cast<int>(vertex_id)) {
                         ++slot;
@@ -833,7 +833,7 @@ unsigned long OctPreTree::SplitMeshes(W8OctPreTreeGeometry* geometry, W8OctSubme
                     }
                 }
             }
-            record->vertex_count_14 = vertex_count;
+            record->vertex_count = vertex_count;
 
             QuickSortByKey(record->m_polygon_ids, keys, 0,
                            static_cast<int>(record->m_polygon_count) - 1);
@@ -884,7 +884,7 @@ unsigned long OctPreTree::SplitMeshes(W8OctPreTreeGeometry* geometry, W8OctSubme
     free(scratch);
     free(order);
     VerifyAutoMeshes(geometry, records);
-    return m_spatial.submesh_count_74;
+    return m_spatial.submesh_count;
 }
 
 /* UV dedup pool for SplitUVMaps: slots 0..vertex_count-1 are per-vertex
@@ -917,13 +917,13 @@ unsigned long OctPreTree::SplitUVMaps(W8OctSubmeshBuild* record, W8OctPreTreeGeo
         ReportBuildStatus(7, "SplitUVMaps: Could not allocate psrPolyUVIndex.\n");
         return 0;
     }
-    for (unsigned long i = 0; i < record->vertex_count_14; ++i) {
+    for (unsigned long i = 0; i < record->vertex_count; ++i) {
         table[i].link = -1;
     }
-    unsigned long uv_count = record->vertex_count_14;
+    unsigned long uv_count = record->vertex_count;
     for (unsigned long poly = 0; poly < record->m_polygon_count; ++poly) {
         const srVector2T<float>* uvs =
-            geometry->m_polygons[record->m_polygon_ids[poly]].face_48.texture_coordinates;
+            geometry->m_polygons[record->m_polygon_ids[poly]].face.texture_coordinates;
         for (unsigned long corner = 0; corner < 3; ++corner) {
             int vertex = (&record->m_poly_vertices[poly].x)[corner];
             int chain = vertex + 1;
@@ -997,8 +997,8 @@ unsigned long OctPreTree::AllocateSubMesh(W8OctSubmeshBuild* records)
 {
     if (m_spatial.m_polygon_count > 1) {
         for (unsigned long poly = 1; poly < m_spatial.m_polygon_count; ++poly) {
-            unsigned short region = game_data_3a4->m_polygons[poly].region_32;
-            if (region == 0 || region >= m_spatial.submesh_count_74) {
+            unsigned short region = game_data_3a4->m_polygons[poly].region;
+            if (region == 0 || region >= m_spatial.submesh_count) {
                 char text[1024];
                 sprintf(text, "Polygon %d in invalid submesh %d\n", static_cast<int>(poly),
                         static_cast<unsigned int>(region));
@@ -1008,7 +1008,7 @@ unsigned long OctPreTree::AllocateSubMesh(W8OctSubmeshBuild* records)
             }
         }
     }
-    for (unsigned long index = 1; index < m_spatial.submesh_count_74; ++index) {
+    for (unsigned long index = 1; index < m_spatial.submesh_count; ++index) {
         W8OctSubmeshBuild* record = records + index;
         /* Retail initialises the bounds only on this path; for empty records
            the cell check below reads whatever the stack held. */
@@ -1029,7 +1029,7 @@ unsigned long OctPreTree::AllocateSubMesh(W8OctSubmeshBuild* records)
             unsigned short found = 0;
             if (m_spatial.m_polygon_count > 1) {
                 for (unsigned long poly = 1; poly < m_spatial.m_polygon_count; ++poly) {
-                    if (game_data_3a4->m_polygons[poly].region_32 == index) {
+                    if (game_data_3a4->m_polygons[poly].region == index) {
                         record->m_polygon_ids[found] = poly;
                         ++found;
                         if (found == 5000) {
@@ -1038,7 +1038,7 @@ unsigned long OctPreTree::AllocateSubMesh(W8OctSubmeshBuild* records)
                         }
                         for (int corner = 0; corner < 3; ++corner) {
                             float* position =
-                                &game_data_3a4->m_polygons[poly].vertices_34[corner]->position_0c.x;
+                                &game_data_3a4->m_polygons[poly].vertices[corner]->position_0c.x;
                             if (max_x < position[0]) {
                                 max_x = position[0];
                             }
@@ -1068,7 +1068,7 @@ unsigned long OctPreTree::AllocateSubMesh(W8OctSubmeshBuild* records)
             record->m_polygon_count = found;
         }
         unsigned short key = static_cast<unsigned short>(index);
-        W8HashTable<unsigned short, unsigned long>* cells = automesh_cells_29c;
+        W8HashTable<unsigned short, unsigned long>* cells = automesh_cells;
         int slot = cells->FindNextEntry(&key, -1);
         while (slot != -1) {
             unsigned long cell = cells->entries[slot].value;
@@ -1085,11 +1085,11 @@ unsigned long OctPreTree::AllocateSubMesh(W8OctSubmeshBuild* records)
             slot = cells->FindNextEntry(&key, slot);
         }
     }
-    return m_spatial.submesh_count_74;
+    return m_spatial.submesh_count;
 }
 
 /* Rebuilds the leaf-level mask, then for every polygon assigned to an
-   auto-region (region_32 >= region_count) descends to its position's leaf and
+   auto-region (region >= region_count) descends to its position's leaf and
    reports when the leaf's region differs from the polygon's. */
 // FUNCTION: WIZ8 0x0046abf0
 void OctPreTree::VerifyPolygonRegions()
@@ -1100,7 +1100,7 @@ void OctPreTree::VerifyPolygonRegions()
     }
     for (unsigned long poly = 1; poly < game_data_3a4->m_polygon_count; ++poly) {
         W8OctRegionPolygon* polygon = &game_data_3a4->m_polygons[poly];
-        if (polygon->region_32 >= m_spatial.m_region_count) {
+        if (polygon->region >= m_spatial.m_region_count) {
             unsigned int cell[4];
             cell[0] = m_region_mask;
             cell[1] = static_cast<unsigned int>((polygon->position_18.x - m_spatial.m_minimum.x) /
@@ -1110,7 +1110,7 @@ void OctPreTree::VerifyPolygonRegions()
             cell[3] = static_cast<unsigned int>((polygon->position_18.z - m_spatial.m_minimum.z) /
                                                 m_spatial.m_region_grid_cell);
             int node = DescendByMask(cell);
-            if (m_branches[node].region_02 != polygon->region_32) {
+            if (m_branches[node].region != polygon->region) {
                 char text[256];
                 sprintf(text, "Poly %d not found in correct region.\n", static_cast<int>(poly));
                 ReportBuildStatus(6, text);
@@ -1127,10 +1127,10 @@ void OctPreTree::VerifyAutoMeshes(W8OctPreTreeGeometry* geometry, W8OctSubmeshBu
 {
     for (unsigned long mesh = 1; mesh < m_meshCount; ++mesh) {
         unsigned short key = static_cast<unsigned short>(mesh);
-        int slot = automesh_cells_29c->FindNextEntry(&key, -1);
+        int slot = automesh_cells->FindNextEntry(&key, -1);
         while (slot != -1) {
             unsigned int cell[4];
-            unsigned long packed = automesh_cells_29c->entries[slot].value;
+            unsigned long packed = automesh_cells->entries[slot].value;
             cell[0] = packed >> 0x18;
             cell[1] = packed >> 0x10 & 0xff;
             cell[2] = packed >> 8 & 0xff;
@@ -1140,7 +1140,7 @@ void OctPreTree::VerifyAutoMeshes(W8OctPreTreeGeometry* geometry, W8OctSubmeshBu
             float cell_z = cell[3] * m_spatial.m_region_grid_cell + m_spatial.m_minimum.z;
             int node = DescendByMask(cell);
             if (node != 0) {
-                if (m_branches[node].region_02 != key) {
+                if (m_branches[node].region != key) {
                     ReportBuildStatus(7, "Region has wrong automesh.");
                 }
                 float min_x = g_float_005ec3c0;
@@ -1151,7 +1151,7 @@ void OctPreTree::VerifyAutoMeshes(W8OctPreTreeGeometry* geometry, W8OctSubmeshBu
                 float max_z = -1e+06f;
                 for (unsigned long link = mesh; link != 0; link = records[link].m_next_link) {
                     W8OctSubmeshBuild* record = records + link;
-                    for (unsigned long i = 0; i < record->vertex_count_14; ++i) {
+                    for (unsigned long i = 0; i < record->vertex_count; ++i) {
                         float* position =
                             &geometry->m_vertices[record->m_vertex_ids[i]].position_0c.x;
                         if (max_x < position[0]) {
@@ -1180,7 +1180,7 @@ void OctPreTree::VerifyAutoMeshes(W8OctPreTreeGeometry* geometry, W8OctSubmeshBu
                     ReportBuildStatus(7, "AutoMesh has no vertices inside region.");
                 }
             }
-            slot = automesh_cells_29c->FindNextEntry(&key, slot);
+            slot = automesh_cells->FindNextEntry(&key, slot);
         }
     }
 }
@@ -1296,7 +1296,7 @@ unsigned char OctPreTree::BuildPathLists(W8GameData* game_data, W8LevelFile* lev
     for (int i = 0; i < prop_count; ++i) {
         /* Verified retail oddity: the binary tests pStopMeshes twice around
            the count check. */
-        if (preprops[i].pStopMeshes != 0 && preprops[i].num_stop_meshes_40 != 0 &&
+        if (preprops[i].pStopMeshes != 0 && preprops[i].num_stop_meshes != 0 &&
             preprops[i].pStopMeshes != 0) {
             delete[] preprops[i].pStopMeshes;
         }
@@ -1421,12 +1421,12 @@ unsigned char OctPreTree::InsertConditionalNodes(W8HashTable<unsigned int, CondP
         bool found = false;
         for (int p = 0; p < preprop_count && !found; ++p) {
             W8PreProp* pp = preprops + p;
-            if (pp->num_stop_meshes_40 != 0 &&
-                static_cast<int>(pp->first_prop_number_42) <= prop_id &&
-                prop_id < static_cast<int>(pp->first_prop_number_42 + pp->num_stop_meshes_40)) {
+            if (pp->num_stop_meshes != 0 &&
+                static_cast<int>(pp->first_prop_number) <= prop_id &&
+                prop_id < static_cast<int>(pp->first_prop_number + pp->num_stop_meshes)) {
                 unsigned int key =
                     (static_cast<unsigned int>(
-                         pp->pStopMeshes[prop_id - pp->first_prop_number_42].m_prop_number_02)
+                         pp->pStopMeshes[prop_id - pp->first_prop_number].m_prop_number)
                      << 16) |
                     static_cast<unsigned int>(p + 1);
                 CondPathNode* cond_node = static_cast<CondPathNode*>(malloc(sizeof(CondPathNode)));
@@ -1451,12 +1451,12 @@ unsigned char OctPreTree::InsertConditionalNodes(W8HashTable<unsigned int, CondP
         bool found = false;
         for (int p2 = 0; p2 < preprop_count && !found; ++p2) {
             W8PreProp* pp = preprops + p2;
-            if (pp->num_stop_meshes_40 != 0 &&
-                static_cast<int>(pp->first_prop_number_42) <= prop_id &&
-                prop_id < static_cast<int>(pp->first_prop_number_42 + pp->num_stop_meshes_40)) {
+            if (pp->num_stop_meshes != 0 &&
+                static_cast<int>(pp->first_prop_number) <= prop_id &&
+                prop_id < static_cast<int>(pp->first_prop_number + pp->num_stop_meshes)) {
                 unsigned int key =
                     (static_cast<unsigned int>(
-                         pp->pStopMeshes[prop_id - pp->first_prop_number_42].m_prop_number_02)
+                         pp->pStopMeshes[prop_id - pp->first_prop_number].m_prop_number)
                      << 16) |
                     static_cast<unsigned int>(p2 + 1);
                 CondPathNode* cond_node = static_cast<CondPathNode*>(malloc(sizeof(CondPathNode)));
@@ -1511,7 +1511,7 @@ char OctPreTree::TestPathPropBounds(const srVector3T<float>* minimum,
         GDProp* prop = *props_3b8->GetAt(id);
         if (prop->BoundsOverlap(minimum, maximum) != 0) {
             prop_hit = true;
-            if ((prop->m_flags_00 & 1) != 0)
+            if ((prop->m_flags & 1) != 0)
                 return 1;
             /* Dead in retail: current_prop was just set to -1 above and
                QueryObjects never republishes it, while support entries are
@@ -1548,9 +1548,9 @@ int OctPreTree::CreatePathProps(W8LevelFile* level, W8PreProp** preprops)
             if ((prop->flags & 1) == 0)
                 continue;
             if (prop->num_frame_pos == 0) {
-                record->num_stop_meshes_40 = PropFramesDiffer(&prop->anim_obj, 0, 0xffff) ? 2 : 1;
-                record->first_prop_number_42 = prop_number;
-                record->pStopMeshes = new GDPreProp[record->num_stop_meshes_40];
+                record->num_stop_meshes = PropFramesDiffer(&prop->anim_obj, 0, 0xffff) ? 2 : 1;
+                record->first_prop_number = prop_number;
+                record->pStopMeshes = new GDPreProp[record->num_stop_meshes];
                 if (record->pStopMeshes == 0) {
                     srAssertFail("pPreProps[i].pStopMeshes", OCTPRETREE_CPP, 0x88e,
                                  "CreatePathProps: Couldn't allocate GDPreProp objects.");
@@ -1560,14 +1560,14 @@ int OctPreTree::CreatePathProps(W8LevelFile* level, W8PreProp** preprops)
                 record->pStopMeshes[0].ComputeBounds(&bounds.minimum, &bounds.maximum);
                 AddCollidablePropBounds(prop_number, &bounds);
                 props_3b8->Add(record->pStopMeshes);
-                if (record->num_stop_meshes_40 == 2) {
+                if (record->num_stop_meshes == 2) {
                     record->pStopMeshes[1].ApplyAnimFrame(0xffff, &prop->anim_obj);
                     record->pStopMeshes[1].ComputeBounds(&bounds.minimum, &bounds.maximum);
                     AddCollidablePropBounds(static_cast<unsigned short>(prop_number + 1), &bounds);
                     props_3b8->Add(record->pStopMeshes + 1);
                     prop_number += 2;
                 } else {
-                    record->pStopMeshes[0].m_flags_00 |= 1;
+                    record->pStopMeshes[0].m_flags |= 1;
                     unsigned short last = 0xffff;
                     if (prop->anim_obj.num_transforms > 0) {
                         W8LevelFileTransform* t = prop->anim_obj.pTransforms;
@@ -1577,19 +1577,19 @@ int OctPreTree::CreatePathProps(W8LevelFile* level, W8PreProp** preprops)
                             }
                         }
                     }
-                    record->pStopMeshes[0].last_frame_58 = last;
+                    record->pStopMeshes[0].last_frame = last;
                     ++prop_number;
                 }
             } else {
-                record->num_stop_meshes_40 = static_cast<unsigned short>(prop->num_frame_pos);
-                record->first_prop_number_42 = prop_number;
+                record->num_stop_meshes = static_cast<unsigned short>(prop->num_frame_pos);
+                record->first_prop_number = prop_number;
                 strcpy(record->name, prop->name);
-                record->pStopMeshes = new GDPreProp[record->num_stop_meshes_40];
+                record->pStopMeshes = new GDPreProp[record->num_stop_meshes];
                 if (record->pStopMeshes == 0) {
                     srAssertFail("pPreProps[i].pStopMeshes", OCTPRETREE_CPP, 0x8ad,
                                  "CreatePathProps: Couldn't allocate GDPreProp objects.");
                 }
-                for (unsigned short j = 0; j < record->num_stop_meshes_40; ++j) {
+                for (unsigned short j = 0; j < record->num_stop_meshes; ++j) {
                     unsigned short frame = prop->usFrame_Pos[j].frame;
                     if (static_cast<unsigned short>(prop->bNumFrames) <= frame) {
                         srAssertFail(
@@ -1702,7 +1702,7 @@ W8OctSpatialState::W8OctSpatialState(const W8OctSpatialState* source)
         m_triangle_vertices = source->m_triangle_vertices;
         flags_00 = source->flags_00;
         m_item_count = source->m_item_count;
-        submesh_count_74 = source->submesh_count_74;
+        submesh_count = source->submesh_count;
         m_region_count = source->m_region_count;
         m_leaf_level = source->m_leaf_level;
         m_region_volumes = source->m_region_volumes;

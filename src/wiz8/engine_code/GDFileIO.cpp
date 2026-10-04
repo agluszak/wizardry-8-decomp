@@ -49,7 +49,7 @@ const float g_float_005ec1b0 = 60000.0f;
 // GLOBAL: WIZ8 0x005ec1b4
 const float g_float_005ec1b4 = 900000.0f;
 // GLOBAL: WIZ8 0x005ff56c
-static char g_string_005ff56c[] = "\n";
+static char g_string[] = "\n";
 
 // GLOBAL: WIZ8 0x00659a58
 static int g_integrated_trigger_count;
@@ -93,7 +93,7 @@ W8GameData* ReadGameData(const char* path, bool secondary)
 struct W8GDFaceHeader { /* 0x1c */
     int vertex_indices[3];
     float plane_0c[3];
-    int version_18;
+    int version;
 };
 
 static_assert(sizeof(W8GDFaceHeader) == 0x1c, "W8GDFaceHeader_must_be_0x1c");
@@ -101,13 +101,13 @@ static_assert(sizeof(W8GDFaceHeader) == 0x1c, "W8GDFaceHeader_must_be_0x1c");
 /* The WGD face record's tail: classification flag, slope/value pair, footstep
    selectors, an unused dword, and the trigger index the writer overrode. */
 struct W8GDFaceData { /* 0x18 */
-    int type_00;
-    float slope_04;
-    float contact_margin_08;
-    unsigned char material_0c;
+    int type;
+    float slope;
+    float contact_margin;
+    unsigned char material;
     unsigned char surface_0d;
     unsigned char pad_0e[2];
-    int chance_10;
+    int chance;
     int trigger_index_14;
 };
 
@@ -248,7 +248,7 @@ unsigned char W8GameData::ReadWGDList(HANDLE file, int poly_type)
                     W8GDFaceData data;
                     W8GDExtendedFace extended;
                     success = ReadFile(file, &header, 0x1c, &bytes_read, 0);
-                    if (header.version_18 != 2) {
+                    if (header.version != 2) {
                         srAssertFail("(tfFace.iVersion == 2 )",
                                      "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x142,
                                      "Wrong version of WGD data--Get new plugin.");
@@ -263,13 +263,13 @@ unsigned char W8GameData::ReadWGDList(HANDLE file, int poly_type)
                                      "Error reading face from WGD file.");
                     }
                     W8GDSurface* surface = &m_pSurfaces[index];
-                    surface->contact_margin_40 = data.contact_margin_08;
-                    surface->slope_48 = data.slope_04;
-                    surface->chance_44 = data.chance_10;
-                    surface->trigger_index_08 = data.trigger_index_14;
-                    surface->footstep_material_3d = data.material_0c;
-                    surface->footstep_surface_3c = data.surface_0d;
-                    if (data.type_00 == 1) {
+                    surface->contact_margin = data.contact_margin;
+                    surface->slope_48 = data.slope;
+                    surface->chance = data.chance;
+                    surface->trigger_index = data.trigger_index_14;
+                    surface->footstep_material = data.material;
+                    surface->footstep_surface = data.surface_0d;
+                    if (data.type == 1) {
                         surface->flags_00 = 0x44;
                     } else {
                         surface->flags_00 = 0;
@@ -290,11 +290,11 @@ unsigned char W8GameData::ReadWGDList(HANDLE file, int poly_type)
                     surface->vertex_indices_18[1] = header.vertex_indices[1] + m_iNumVertices;
                     surface->vertex_indices_18[2] = header.vertex_indices[2] + m_iNumVertices;
                     surface->index_04 = index;
-                    surface->trigger_index_08 = 0;
-                    surface->edge_link_0c[2] = -1;
-                    surface->edge_link_0c[1] = -1;
-                    surface->edge_link_0c[0] = -1;
-                    surface->hit_plane_38 = 0;
+                    surface->trigger_index = 0;
+                    surface->edge_link[2] = -1;
+                    surface->edge_link[1] = -1;
+                    surface->edge_link[0] = -1;
+                    surface->hit_plane = 0;
                     ClassifySurfacePlane(m_pVertices, surface);
                     if (poly_type != 0) {
                         record[1] = index;
@@ -319,7 +319,7 @@ unsigned char W8GameData::ReadWGDList(HANDLE file, int poly_type)
                             ++m_iNumInterfaces;
                             ++m_iNumNames;
                         }
-                        surface->trigger_index_08 = record[0];
+                        surface->trigger_index = record[0];
                         ++record_count;
                         record += 3;
                     }
@@ -398,7 +398,7 @@ void W8GameData::CompileGDInterfaces(const int* records, int count)
     int interface_id;
     for (interface_id = 1; interface_id < m_iNumInterfaces; ++interface_id) {
         W8GDInterface* gd_interface = &m_pInterfaces[interface_id];
-        gd_interface->id_00 = interface_id;
+        gd_interface->id = interface_id;
         gd_interface->iStates = m_iNumStates;
         memset(group_counts, 0, sizeof(group_counts));
         int group_count = 1;
@@ -422,7 +422,7 @@ void W8GameData::CompileGDInterfaces(const int* records, int count)
                 }
             }
         }
-        gd_interface->state_count_04 = group_count;
+        gd_interface->state_count = group_count;
         for (group = 0; group < group_count; ++group) {
             states[m_iNumStates * 3] = group_ids[group];
             states[m_iNumStates * 3 + 1] = group_counts[group];
@@ -533,8 +533,8 @@ void W8GameData::AddTriggerPlane(const srVector3T<float>* trigger_vertices, Trig
     W8GDSurface* surface = &m_pTrigSurfaces[m_iNumTrigSurfaces];
     surface->flags_00 = 0x80;
     surface->index_04 = m_iNumSurfaces + m_iNumTrigSurfaces;
-    surface->trigger_index_08 = trigger_index;
-    surface->contact_margin_40 = 1.1f;
+    surface->trigger_index = trigger_index;
+    surface->contact_margin = 1.1f;
     surface->vertex_indices_18[0] = m_iNumTrigVertices - 4;
     surface->vertex_indices_18[1] = m_iNumTrigVertices - 3;
     surface->vertex_indices_18[2] = m_iNumTrigVertices - 2;
@@ -542,17 +542,17 @@ void W8GameData::AddTriggerPlane(const srVector3T<float>* trigger_vertices, Trig
     for (index = 0; index < 3; ++index) {
         surface->vertex_indices_18[index] += m_iNumVertices;
     }
-    surface->edge_link_0c[0] = -1;
-    surface->edge_link_0c[1] = -1;
-    surface->edge_link_0c[2] = -1;
-    surface->hit_plane_38 = 0;
+    surface->edge_link[0] = -1;
+    surface->edge_link[1] = -1;
+    surface->edge_link[2] = -1;
+    surface->hit_plane = 0;
     ++m_iNumTrigSurfaces;
 
     surface = &m_pTrigSurfaces[m_iNumTrigSurfaces];
     surface->flags_00 = 0x80;
     surface->index_04 = m_iNumSurfaces + m_iNumTrigSurfaces;
-    surface->trigger_index_08 = trigger_index;
-    surface->contact_margin_40 = 1.1f;
+    surface->trigger_index = trigger_index;
+    surface->contact_margin = 1.1f;
     surface->vertex_indices_18[0] = m_iNumTrigVertices - 2;
     surface->vertex_indices_18[1] = m_iNumTrigVertices - 1;
     surface->vertex_indices_18[2] = m_iNumTrigVertices - 4;
@@ -560,10 +560,10 @@ void W8GameData::AddTriggerPlane(const srVector3T<float>* trigger_vertices, Trig
     for (index = 0; index < 3; ++index) {
         surface->vertex_indices_18[index] += m_iNumVertices;
     }
-    surface->edge_link_0c[0] = -1;
-    surface->edge_link_0c[1] = -1;
-    surface->edge_link_0c[2] = -1;
-    surface->hit_plane_38 = 0;
+    surface->edge_link[0] = -1;
+    surface->edge_link[1] = -1;
+    surface->edge_link[2] = -1;
+    surface->hit_plane = 0;
     ++m_iNumTrigSurfaces;
 }
 
@@ -609,8 +609,8 @@ void W8GameData::AddLevelPlane(W8LevelFilePlane* plane)
     W8GDSurface* surface = &m_pTrigSurfaces[m_iNumTrigSurfaces];
     surface->flags_00 = 0x80;
     surface->index_04 = m_iNumSurfaces + m_iNumTrigSurfaces;
-    surface->trigger_index_08 = m_iNumTriggers;
-    surface->contact_margin_40 = 1.1f;
+    surface->trigger_index = m_iNumTriggers;
+    surface->contact_margin = 1.1f;
     surface->vertex_indices_18[0] = m_iNumTrigVertices - 4;
     surface->vertex_indices_18[1] = m_iNumTrigVertices - 3;
     surface->vertex_indices_18[2] = m_iNumTrigVertices - 2;
@@ -618,17 +618,17 @@ void W8GameData::AddLevelPlane(W8LevelFilePlane* plane)
     for (index = 0; index < 3; ++index) {
         surface->vertex_indices_18[index] += m_iNumVertices;
     }
-    surface->edge_link_0c[0] = -1;
-    surface->edge_link_0c[1] = -1;
-    surface->edge_link_0c[2] = -1;
-    surface->hit_plane_38 = 0;
+    surface->edge_link[0] = -1;
+    surface->edge_link[1] = -1;
+    surface->edge_link[2] = -1;
+    surface->hit_plane = 0;
     ++m_iNumTrigSurfaces;
 
     surface = &m_pTrigSurfaces[m_iNumTrigSurfaces];
     surface->flags_00 = 0x80;
     surface->index_04 = m_iNumSurfaces + m_iNumTrigSurfaces;
-    surface->trigger_index_08 = m_iNumTriggers;
-    surface->contact_margin_40 = 1.1f;
+    surface->trigger_index = m_iNumTriggers;
+    surface->contact_margin = 1.1f;
     surface->vertex_indices_18[0] = m_iNumTrigVertices - 2;
     surface->vertex_indices_18[1] = m_iNumTrigVertices - 1;
     surface->vertex_indices_18[2] = m_iNumTrigVertices - 4;
@@ -636,10 +636,10 @@ void W8GameData::AddLevelPlane(W8LevelFilePlane* plane)
     for (index = 0; index < 3; ++index) {
         surface->vertex_indices_18[index] += m_iNumVertices;
     }
-    surface->edge_link_0c[0] = -1;
-    surface->edge_link_0c[1] = -1;
-    surface->edge_link_0c[2] = -1;
-    surface->hit_plane_38 = 0;
+    surface->edge_link[0] = -1;
+    surface->edge_link[1] = -1;
+    surface->edge_link[2] = -1;
+    surface->hit_plane = 0;
     ++m_iNumTrigSurfaces;
     ++m_iNumTriggers;
 }
@@ -663,7 +663,7 @@ void W8GameData::IntegrateTriggers()
     m_iNumVertices = combined_vertex_count;
     delete[] m_pVertices;
     delete[] m_pTrigVertices;
-    integrated_surface_count_34 = m_iNumTrigSurfaces;
+    integrated_surface_count = m_iNumTrigSurfaces;
     m_pVertices = combined_vertices;
     m_pTrigVertices = 0;
     m_iNumTrigVertices = 0;
@@ -682,10 +682,10 @@ void W8GameData::IntegrateTriggers()
     for (int index = m_iNumSurfaces; index < end; ++index) {
         W8GDSurface* surface =
             index < m_iNumSurfaces ? &m_pSurfaces[index] : &m_pTrigSurfaces[index - m_iNumSurfaces];
-        geometry_index_00->InsertSurface(surface, 3);
+        geometry_index->InsertSurface(surface, 3);
     }
-    bits_58 = new BitArray(m_iNumTriggers);
-    bits_5c = new BitArray(m_iNumTriggers);
+    pending_trigger_bits = new BitArray(m_iNumTriggers);
+    active_trigger_bits = new BitArray(m_iNumTriggers);
 }
 
 /* The CompileGameData counterpart of IntegrateTriggers: folds the
@@ -709,7 +709,7 @@ void W8GameData::IntegrateTriggerGeometry()
         delete[] m_pTrigVertices;
         m_pTrigVertices = 0;
         m_iNumTrigVertices = 0;
-        integrated_surface_count_34 = m_iNumTrigSurfaces;
+        integrated_surface_count = m_iNumTrigSurfaces;
         m_pVertices = new_vertices;
         W8GDSurface* new_surfaces = static_cast<W8GDSurface*>(
             malloc((m_iNumSurfaces + 1 + m_iNumTrigSurfaces) * sizeof(W8GDSurface)));
@@ -791,19 +791,19 @@ void W8GameData::AddTriggerPlane(const srVector3T<float>* vertices, float value,
         W8GDSurface* surface = &m_pTrigSurfaces[m_iNumTrigSurfaces];
         surface->flags_00 = 0x1080;
         surface->index_04 = m_iNumTrigSurfaces + m_iNumSurfaces;
-        surface->trigger_index_08 = m_iNumEnvirons;
+        surface->trigger_index = m_iNumEnvirons;
         surface->vertex_indices_18[0] = vertex_base;
         surface->vertex_indices_18[1] = vertex_base + 1;
         surface->vertex_indices_18[2] = vertex_base + 2;
-        surface->contact_margin_40 = 0.0f;
+        surface->contact_margin = 0.0f;
         vertex_base += 3;
         ClassifySurfacePlane(m_pTrigVertices, surface);
         if (index == *face) {
             CreateGDEnviron(surface, value);
             W8EnvironRecord* environ_record = m_ppEnvirons[m_iNumEnvirons];
-            environ_record->forward_scale_34 *= scalar;
-            environ_record->motion_limit_38 =
-                environ_record->forward_scale_34 * environ_record->momentum_scale_3c * 2.0f;
+            environ_record->forward_scale *= scalar;
+            environ_record->motion_limit =
+                environ_record->forward_scale * environ_record->momentum_scale * 2.0f;
         }
         surface->vertex_indices_18[0] += m_iNumVertices;
         surface->vertex_indices_18[1] += m_iNumVertices;
@@ -837,48 +837,48 @@ void W8GameData::CreateGDEnviron(const W8GDSurface* surface, float scale)
     if (environ_record == 0) {
         environ_record = 0;
     } else {
-        environ_record->ground_latch_04 = false;
+        environ_record->ground_latch = false;
         environ_record->value_00 = 0;
         environ_record->value_08 = 0;
-        environ_record->gravity_x_10 = 0;
-        environ_record->gravity_y_14 = -g_navigator_gravity;
-        environ_record->gravity_z_18 = 0;
-        environ_record->motion_factor_20 = 1.0f;
+        environ_record->gravity_x = 0;
+        environ_record->gravity_y = -g_navigator_gravity;
+        environ_record->gravity_z = 0;
+        environ_record->motion_factor = 1.0f;
         environ_record->vector_24.SetZero();
-        environ_record->motion_step_1c = 0.05f;
-        environ_record->world_height_30 = g_default_world_height;
-        environ_record->forward_scale_34 =
+        environ_record->motion_step = 0.05f;
+        environ_record->world_height = g_default_world_height;
+        environ_record->forward_scale =
             g_camera_level_forward_scale * g_navigator_linked_radius_scale;
         environ_record->value_40 = 1.0f;
-        environ_record->momentum_scale_3c = g_default_momentum_scale;
-        environ_record->motion_limit_38 = g_default_motion_limit;
+        environ_record->momentum_scale = g_default_momentum_scale;
+        environ_record->motion_limit = g_default_motion_limit;
     }
     m_ppEnvirons[m_iNumEnvirons] = environ_record;
     if (m_ppEnvirons[m_iNumEnvirons] == 0) {
         ReportBuildStatus(7, "CreateGDEnviron: Could not allocate GD_Environ.");
     }
-    m_ppEnvirons[m_iNumEnvirons]->gravity_x_10 =
+    m_ppEnvirons[m_iNumEnvirons]->gravity_x =
         g_navigator_gravity * surface->plane_24.normal.x * scale;
-    m_ppEnvirons[m_iNumEnvirons]->gravity_y_14 =
+    m_ppEnvirons[m_iNumEnvirons]->gravity_y =
         (scale * surface->plane_24.normal.y - g_float_one) * g_navigator_gravity;
-    m_ppEnvirons[m_iNumEnvirons]->gravity_z_18 =
+    m_ppEnvirons[m_iNumEnvirons]->gravity_z =
         g_navigator_gravity * surface->plane_24.normal.z * scale;
 }
 
 struct W8ProcessedGameDataHeader {
-    unsigned int version_00;
+    unsigned int version;
     srVector3T<float> minimum_04;
     srVector3T<float> maximum_10;
     int vertex_count_1c;
-    int surface_count_20;
-    int trigger_surface_base_24;
-    int trigger_surface_count_28;
-    int integrated_surface_count_2c;
-    int interface_count_30;
-    int state_count_34;
-    int trigger_count_38;
-    int cond_poly_count_3c;
-    int environ_count_40;
+    int surface_count;
+    int trigger_surface_base;
+    int trigger_surface_count;
+    int integrated_surface_count;
+    int interface_count;
+    int state_count;
+    int trigger_count;
+    int cond_poly_count;
+    int environ_count;
     unsigned char reserved_44[0x24];
 };
 
@@ -892,28 +892,28 @@ unsigned char W8EnvironRecord::RescaleToReference(const W8EnvironRecord* referen
         if (g_navigator_gravity * g_camera_snap_epsilon < difference) {
             return 1;
         }
-        difference = static_cast<float>(fabs(forward_scale_34 - g_camera_level_forward_scale));
+        difference = static_cast<float>(fabs(forward_scale - g_camera_level_forward_scale));
         if (g_camera_level_forward_scale * g_camera_snap_epsilon < difference) {
             return 1;
         }
-        difference = static_cast<float>(fabs(motion_limit_38 - g_default_motion_limit));
+        difference = static_cast<float>(fabs(motion_limit - g_default_motion_limit));
         if (g_default_motion_limit * g_camera_snap_epsilon < difference) {
             return 1;
         }
-        difference = static_cast<float>(fabs(momentum_scale_3c - g_default_momentum_scale));
+        difference = static_cast<float>(fabs(momentum_scale - g_default_momentum_scale));
         if (g_default_momentum_scale * g_camera_snap_epsilon < difference) {
             return 1;
         }
         return 0;
     }
 
-    float scale = g_navigator_gravity / -reference->gravity_y_14;
-    gravity_x_10 *= scale;
-    gravity_y_14 *= scale;
-    gravity_z_18 *= scale;
-    forward_scale_34 *= g_camera_level_forward_scale / reference->forward_scale_34;
-    motion_limit_38 *= g_default_motion_limit / reference->motion_limit_38;
-    momentum_scale_3c *= g_default_momentum_scale / reference->momentum_scale_3c;
+    float scale = g_navigator_gravity / -reference->gravity_y;
+    gravity_x *= scale;
+    gravity_y *= scale;
+    gravity_z *= scale;
+    forward_scale *= g_camera_level_forward_scale / reference->forward_scale;
+    motion_limit *= g_default_motion_limit / reference->motion_limit;
+    momentum_scale *= g_default_momentum_scale / reference->momentum_scale;
     return 0;
 }
 
@@ -929,30 +929,30 @@ void W8GameData::ReadProcessedGameData(int handle)
         srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x465,
                      "ReadProcessedGameData: Couldn't read GameData info.");
     }
-    if (header.version_00 != 1) {
+    if (header.version != 1) {
         srAssertFail("(FileGD.iVersion == GAMEDATA_VERSION)",
                      "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x46c,
                      reinterpret_cast<const char*>( // reinterpret-ok: String returns UINT8*
                          String("ReadProcessedGameData: File version %d does not match program "
                                 "version %d.",
-                                header.version_00, 1)));
+                                header.version, 1)));
     }
 
     minimum_08 = header.minimum_04;
     maximum_14 = header.maximum_10;
-    m_iNumSurfaces = header.surface_count_20;
-    trigger_surface_base_2c_00 = header.trigger_surface_base_24;
-    trigger_surface_count_2c_04 = header.trigger_surface_count_28;
-    integrated_surface_count_34 = header.integrated_surface_count_2c;
+    m_iNumSurfaces = header.surface_count;
+    trigger_surface_base_2c = header.trigger_surface_base;
+    trigger_surface_count_2c = header.trigger_surface_count;
+    integrated_surface_count = header.integrated_surface_count;
     m_iNumVertices = header.vertex_count_1c;
-    m_iNumInterfaces = header.interface_count_30;
-    m_iNumStates = header.state_count_34;
-    m_iNumTriggers = header.trigger_count_38;
-    m_iNumCondPolys = header.cond_poly_count_3c;
-    m_iNumEnvirons = header.environ_count_40;
+    m_iNumInterfaces = header.interface_count;
+    m_iNumStates = header.state_count;
+    m_iNumTriggers = header.trigger_count;
+    m_iNumCondPolys = header.cond_poly_count;
+    m_iNumEnvirons = header.environ_count;
 
-    bits_58 = new BitArray(m_iNumTriggers);
-    bits_5c = new BitArray(m_iNumTriggers);
+    pending_trigger_bits = new BitArray(m_iNumTriggers);
+    active_trigger_bits = new BitArray(m_iNumTriggers);
 
     m_pVertices = new srVector3T<float>[m_iNumVertices + 2];
     if (m_pVertices == 0) {
@@ -1032,19 +1032,19 @@ void W8GameData::ReadProcessedGameData(int handle)
                              "ReadProcessedGameData: Couldn't allocate environment.");
             }
             environ_record->value_00 = 0;
-            environ_record->ground_latch_04 = false;
+            environ_record->ground_latch = false;
             environ_record->value_08 = 0;
-            environ_record->gravity_x_10 = 0;
-            environ_record->gravity_y_14 = -g_navigator_gravity;
-            environ_record->gravity_z_18 = 0;
-            environ_record->motion_step_1c = 0.05f;
-            environ_record->motion_factor_20 = 1.0f;
+            environ_record->gravity_x = 0;
+            environ_record->gravity_y = -g_navigator_gravity;
+            environ_record->gravity_z = 0;
+            environ_record->motion_step = 0.05f;
+            environ_record->motion_factor = 1.0f;
             environ_record->vector_24.SetZero();
-            environ_record->world_height_30 = g_default_world_height;
-            environ_record->forward_scale_34 =
+            environ_record->world_height = g_default_world_height;
+            environ_record->forward_scale =
                 g_camera_level_forward_scale * g_navigator_linked_radius_scale;
-            environ_record->motion_limit_38 = g_default_momentum_scale;
-            environ_record->momentum_scale_3c = g_default_motion_limit;
+            environ_record->motion_limit = g_default_momentum_scale;
+            environ_record->momentum_scale = g_default_motion_limit;
             environ_record->value_40 = 1.0f;
             m_ppEnvirons[index] = environ_record;
             if (FileRead(handle, environ_record, sizeof(*environ_record), &bytes_read) == 0) {
@@ -1071,13 +1071,13 @@ void W8GameData::ReadProcessedGameData(int handle)
 // FUNCTION: WIZ8 0x00449010
 W8GameData::W8GameData(int handle, bool secondary)
 {
-    geometry_index_00 = 0;
+    geometry_index = 0;
     octree_04 = 0;
     m_iNumVertices = 0;
     m_pVertices = 0;
-    integrated_surface_count_34 = 0;
-    trigger_surface_count_2c_04 = 0;
-    trigger_surface_base_2c_00 = 0;
+    integrated_surface_count = 0;
+    trigger_surface_count_2c = 0;
+    trigger_surface_base_2c = 0;
     m_iNumSurfaces = 0;
     m_pSurfaces = 0;
     m_pTrigSurfaces = 0;
@@ -1086,9 +1086,9 @@ W8GameData::W8GameData(int handle, bool secondary)
     m_iNumTrigSurfaces = 0;
     m_iNumTrigVertices = 0;
     m_iNumTriggers = 0;
-    bits_58 = 0;
-    bits_5c = 0;
-    last_hit_surface_54 = 0;
+    pending_trigger_bits = 0;
+    active_trigger_bits = 0;
+    last_hit_surface = 0;
     m_iNumInterfaces = 0;
     m_pInterfaces = 0;
     m_iNumStates = 0;
@@ -1099,7 +1099,7 @@ W8GameData::W8GameData(int handle, bool secondary)
     m_ppNames = 0;
     m_iNumEnvirons = 0;
     m_ppEnvirons = 0;
-    trace_flag4_gate_88 = 0;
+    trace_flag4_gate = 0;
     minimum_08 = 1.0e8f;
     maximum_14 = -1.0e8f;
     if (!secondary) {
@@ -1129,19 +1129,19 @@ W8GameData::W8GameData(int handle, bool secondary)
             environ_record = 0;
         } else {
             environ_record->value_00 = 0;
-            environ_record->ground_latch_04 = false;
+            environ_record->ground_latch = false;
             environ_record->value_08 = 0;
-            environ_record->gravity_x_10 = 0;
-            environ_record->gravity_y_14 = -g_navigator_gravity;
-            environ_record->gravity_z_18 = 0;
-            environ_record->motion_step_1c = 0.05f;
-            environ_record->motion_factor_20 = 1.0f;
+            environ_record->gravity_x = 0;
+            environ_record->gravity_y = -g_navigator_gravity;
+            environ_record->gravity_z = 0;
+            environ_record->motion_step = 0.05f;
+            environ_record->motion_factor = 1.0f;
             environ_record->vector_24.SetZero();
-            environ_record->world_height_30 = g_default_world_height;
-            environ_record->forward_scale_34 =
+            environ_record->world_height = g_default_world_height;
+            environ_record->forward_scale =
                 g_camera_level_forward_scale * g_navigator_linked_radius_scale;
-            environ_record->motion_limit_38 = g_default_momentum_scale;
-            environ_record->momentum_scale_3c = g_default_motion_limit;
+            environ_record->motion_limit = g_default_momentum_scale;
+            environ_record->momentum_scale = g_default_motion_limit;
             environ_record->value_40 = 1.0f;
         }
         m_ppEnvirons[0] = environ_record;
@@ -1167,12 +1167,12 @@ unsigned char InitializeGameData(W8GameData* game_data)
 
     srVector3T<float> minimum = game_data->minimum_08;
     srVector3T<float> maximum = game_data->maximum_14;
-    if (game_data->geometry_index_00 == 0) {
-        game_data->geometry_index_00 = new W8OctBuildTree(2000.0f, &minimum, &maximum, 0x40, 0);
+    if (game_data->geometry_index == 0) {
+        game_data->geometry_index = new W8OctBuildTree(2000.0f, &minimum, &maximum, 0x40, 0);
     }
 
     for (int index = 0; index < game_data->m_iNumSurfaces; ++index) {
-        if (game_data->geometry_index_00->InsertSurface(&game_data->m_pSurfaces[index], 3) == 0) {
+        if (game_data->geometry_index->InsertSurface(&game_data->m_pSurfaces[index], 3) == 0) {
             return 0;
         }
     }
@@ -1218,13 +1218,13 @@ void ClassifySurfacePlane(const srVector3T<float>* vertices, W8GDSurface* surfac
             surface->flags_00 |= 0x20;
             surface->slope_48 = g_float_zero;
         }
-    } else if (surface->contact_margin_40 < g_float_005ec028 &&
-               g_path_endpoint_scale < surface->contact_margin_40 && (surface->flags_00 & 4) != 0) {
-        surface->contact_margin_40 = 0.1f;
+    } else if (surface->contact_margin < g_float_005ec028 &&
+               g_path_endpoint_scale < surface->contact_margin && (surface->flags_00 & 4) != 0) {
+        surface->contact_margin = 0.1f;
     }
 
     flags = surface->flags_00;
-    surface->contact_margin_40 *= g_world_scale;
+    surface->contact_margin *= g_world_scale;
     if ((flags & 4) == 0) {
         surface->slope_48 = g_float_zero;
     } else if (surface->slope_48 < g_float_005ebc58 && (flags & 0x20) == 0) {
@@ -1253,8 +1253,8 @@ W8GameData::~W8GameData()
     int index;
 
     ReleaseLevelData();
-    if (geometry_index_00 != 0) {
-        delete geometry_index_00;
+    if (geometry_index != 0) {
+        delete geometry_index;
     }
     if (m_pVertices != 0) {
         delete[] m_pVertices;
@@ -1262,11 +1262,11 @@ W8GameData::~W8GameData()
     if (m_pSurfaces != 0) {
         free(m_pSurfaces);
     }
-    if (bits_58 != 0) {
-        delete bits_58;
+    if (pending_trigger_bits != 0) {
+        delete pending_trigger_bits;
     }
-    if (bits_5c != 0) {
-        delete bits_5c;
+    if (active_trigger_bits != 0) {
+        delete active_trigger_bits;
     }
     if (m_ppNames != 0) {
         if (m_iNumNames > 0) {
@@ -1340,7 +1340,7 @@ void W8GameData::CompileGameData()
     bool announce = false;
     bool found;
 
-    ReportStartupMessage(g_string_005ff56c);
+    ReportStartupMessage(g_string);
     ReportStartupMessage("Processing GameData geometry...\n");
     IntegrateTriggerGeometry();
     if (m_iNumVertices == 0 || m_iNumSurfaces == 0) {
@@ -1499,18 +1499,18 @@ void W8GameData::CompileGameData()
             surface->index_04 = polygon_count;
             W8GDSurface* compiled = new_surfaces + polygon_count;
             *compiled = *surface;
-            compiled->edge_link_0c[2] = -1;
-            compiled->edge_link_0c[1] = -1;
-            compiled->edge_link_0c[0] = -1;
-            compiled->hit_plane_38 = 0;
+            compiled->edge_link[2] = -1;
+            compiled->edge_link[1] = -1;
+            compiled->edge_link[0] = -1;
+            compiled->hit_plane = 0;
             W8OctRegionPolygon* polygon = g_gd_polygons + polygon_count;
-            polygon->ordinal_04 = polygon_count;
-            polygon->plane_08 = compiled->plane_24;
-            polygon->degenerate_30 = 0;
-            polygon->visited_31 = false;
-            polygon->vertices_34[0] = g_gd_vertices + compiled->vertex_indices_18[0];
-            polygon->vertices_34[1] = g_gd_vertices + compiled->vertex_indices_18[1];
-            polygon->vertices_34[2] = g_gd_vertices + compiled->vertex_indices_18[2];
+            polygon->ordinal = polygon_count;
+            polygon->plane = compiled->plane_24;
+            polygon->degenerate = 0;
+            polygon->visited = false;
+            polygon->vertices[0] = g_gd_vertices + compiled->vertex_indices_18[0];
+            polygon->vertices[1] = g_gd_vertices + compiled->vertex_indices_18[1];
+            polygon->vertices[2] = g_gd_vertices + compiled->vertex_indices_18[2];
             for (j = 0; j < 3; ++j) {
                 LinkSurfaceEdge(polygon_count, j, &edge_table, new_surfaces, multiplier,
                                 new_vertices);
@@ -1535,18 +1535,18 @@ void W8GameData::CompileGameData()
             surface->slope_48 = 0;
             W8GDSurface* compiled = new_surfaces + polygon_count;
             *compiled = *surface;
-            compiled->edge_link_0c[2] = -1;
-            compiled->edge_link_0c[1] = -1;
-            compiled->edge_link_0c[0] = -1;
-            compiled->hit_plane_38 = 0;
+            compiled->edge_link[2] = -1;
+            compiled->edge_link[1] = -1;
+            compiled->edge_link[0] = -1;
+            compiled->hit_plane = 0;
             W8OctRegionPolygon* polygon = g_gd_polygons + polygon_count;
-            polygon->ordinal_04 = polygon_count;
-            polygon->plane_08 = compiled->plane_24;
-            polygon->degenerate_30 = 0;
-            polygon->visited_31 = false;
-            polygon->vertices_34[0] = g_gd_vertices + compiled->vertex_indices_18[0];
-            polygon->vertices_34[1] = g_gd_vertices + compiled->vertex_indices_18[1];
-            polygon->vertices_34[2] = g_gd_vertices + compiled->vertex_indices_18[2];
+            polygon->ordinal = polygon_count;
+            polygon->plane = compiled->plane_24;
+            polygon->degenerate = 0;
+            polygon->visited = false;
+            polygon->vertices[0] = g_gd_vertices + compiled->vertex_indices_18[0];
+            polygon->vertices[1] = g_gd_vertices + compiled->vertex_indices_18[1];
+            polygon->vertices[2] = g_gd_vertices + compiled->vertex_indices_18[2];
             for (j = 0; j < 3; ++j) {
                 LinkSurfaceEdge(polygon_count, j, &edge_table, new_surfaces, multiplier,
                                 new_vertices);
@@ -1559,8 +1559,8 @@ void W8GameData::CompileGameData()
             ++polygon_count;
         }
     }
-    trigger_surface_count_2c_04 = polygon_count - m_iNumSurfaces;
-    trigger_surface_base_2c_00 = m_iNumSurfaces;
+    trigger_surface_count_2c = polygon_count - m_iNumSurfaces;
+    trigger_surface_base_2c = m_iNumSurfaces;
     m_iNumSurfaces = polygon_count;
     free(weld_records);
     delete[] m_pVertices;
@@ -1612,8 +1612,8 @@ bool ShareSurfaceEdge(W8GDSurface* first, W8GDSurface* second, srVector3T<float>
         (second_slot < last_second && 1 < last_second - second_slot)) {
         second_slot = last_second;
     }
-    first->edge_link_0c[first_slot] = second->index_04;
-    second->edge_link_0c[second_slot] = first->index_04;
+    first->edge_link[first_slot] = second->index_04;
+    second->edge_link[second_slot] = first->index_04;
     return 1;
 }
 
@@ -1680,19 +1680,19 @@ unsigned char W8GameData::WriteGameData(int handle)
     W8ProcessedGameDataHeader header;
     int index;
 
-    header.version_00 = 1;
+    header.version = 1;
     header.minimum_04 = minimum_08;
     header.maximum_10 = maximum_14;
     header.vertex_count_1c = m_iNumVertices;
-    header.surface_count_20 = m_iNumSurfaces;
-    header.trigger_surface_base_24 = trigger_surface_base_2c_00;
-    header.trigger_surface_count_28 = trigger_surface_count_2c_04;
-    header.integrated_surface_count_2c = integrated_surface_count_34;
-    header.interface_count_30 = m_iNumInterfaces;
-    header.state_count_34 = m_iNumStates;
-    header.trigger_count_38 = m_iNumTriggers;
-    header.cond_poly_count_3c = m_iNumCondPolys;
-    header.environ_count_40 = m_iNumEnvirons;
+    header.surface_count = m_iNumSurfaces;
+    header.trigger_surface_base = trigger_surface_base_2c;
+    header.trigger_surface_count = trigger_surface_count_2c;
+    header.integrated_surface_count = integrated_surface_count;
+    header.interface_count = m_iNumInterfaces;
+    header.state_count = m_iNumStates;
+    header.trigger_count = m_iNumTriggers;
+    header.cond_poly_count = m_iNumCondPolys;
+    header.environ_count = m_iNumEnvirons;
     memset(header.reserved_44, 0, sizeof(header.reserved_44));
 
     if (handle == 0) {

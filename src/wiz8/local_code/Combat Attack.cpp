@@ -106,7 +106,7 @@ void GetCharacterHandDamageDice(const W8Character* character, int hand, W8Dice* 
 // FUNCTION: WIZ8 0x00546b10
 int GetCharacterHandDamageBonus(const W8Character* character, int hand)
 {
-    return character->Hand[hand].damage_percent_29 + character->bonus_1770.damage_percent_03;
+    return character->Hand[hand].damage_percent + character->bonus.damage_percent;
 }
 
 /* Nine attack modes, one bit each, held in the low half of a word. */
@@ -205,7 +205,7 @@ int ApplyDamageReduction(const W8MonsterInfo* monster_info, const W8MonsterRecor
                          int damage)
 {
     int reduction =
-        monster_info->modifiers_1db.damage_reduction_adjustment + record->damage_reduction;
+        monster_info->modifiers.damage_reduction_adjustment + record->damage_reduction;
 
     if (reduction != 0) {
         damage = ((100 - reduction) * damage + 50) / 100;
@@ -237,11 +237,11 @@ unsigned char RateMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* re
         FormatDebugMessage(0, "DATA ERROR: %ls has 0 attack modes for attack %d", record, attack);
         return W8_MONSTER_ATTACK_NOT_USABLE;
     }
-    if (record->attacks_per_round_0e5 == 0) {
+    if (record->attacks_per_round == 0) {
         FormatDebugMessage(0, "DATA ERROR: %ls has 0 ATTACKS/round", record);
         return W8_MONSTER_ATTACK_NOT_USABLE;
     }
-    if (record->swings_per_round_0e6 == 0) {
+    if (record->swings_per_round == 0) {
         FormatDebugMessage(0, "DATA ERROR: %ls has 0 SWINGS/round", record);
         return W8_MONSTER_ATTACK_NOT_USABLE;
     }
@@ -344,7 +344,7 @@ int ApplyCharacterDamageReduction(W8Character* character, int damage)
     if (damage < 0) {
         damage = 0;
     }
-    if (character->skills[W8_SKILL_DAMAGE_REDUCTION].active_00 != 0) {
+    if (character->skills[W8_SKILL_DAMAGE_REDUCTION].active != 0) {
         PracticeCharacterSkill(character, W8_SKILL_DAMAGE_REDUCTION, 1, 0);
     }
     return damage;
@@ -397,11 +397,11 @@ bool CharacterHasAttackOn(int party_slot, W8CombatSlot* target)
             monster_info->fInCombat == 0) {
             return 0;
         }
-        if (GetMonsterDataForInfo(monster_info)->untargetable_24a != 0) {
+        if (GetMonsterDataForInfo(monster_info)->untargetable != 0) {
             return 0;
         }
         if (CanPartyMemberAimAtMonster(party_slot, 0, monster_info,
-                                       g_combat_state->characters[party_slot].dead_34 == 0,
+                                       g_combat_state->characters[party_slot].dead == 0,
                                        0) == 0) {
             return 0;
         }
@@ -440,7 +440,7 @@ bool CanMonsterProtectCombatant(W8MonsterInfo* monster_info, W8CombatSlot* targe
         character = &g_status.buffers.Char[target_slot];
         hp_percent = character->hp_current * 100 / character->uiHPMax;
         target_level = character->uiExpLevel;
-        out_of_formation = character->bonus_1770.out_of_formation;
+        out_of_formation = character->bonus.out_of_formation;
     } else if (target->iType == W8_TARGET_KIND_MONSTER) {
         target_info = MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(5997, COMBAT_ATTACK_CPP, target->iMonsterID, 1));
@@ -448,7 +448,7 @@ bool CanMonsterProtectCombatant(W8MonsterInfo* monster_info, W8CombatSlot* targe
             target_info->fInCombat == 0) {
             return 0;
         }
-        if (GetMonsterDataForInfo(target_info)->untargetable_24a != 0) {
+        if (GetMonsterDataForInfo(target_info)->untargetable != 0) {
             return 0;
         }
         if (MonsterHostility(monster_info, target_info) != DISP_FRIENDLY) {
@@ -457,13 +457,13 @@ bool CanMonsterProtectCombatant(W8MonsterInfo* monster_info, W8CombatSlot* targe
         if (MonsterAttackReachesMonster(monster_info, record, 0, target_info) == 0) {
             return 0;
         }
-        target_level = GetMonsterDataForInfo(target_info)->effective_level_24f;
+        target_level = GetMonsterDataForInfo(target_info)->effective_level;
         hp_percent = target_info->hp_current * 100 / target_info->uiHPMax;
-        out_of_formation = monster_info->modifiers_1db.out_of_formation;
+        out_of_formation = monster_info->modifiers.out_of_formation;
     } else {
         return 0;
     }
-    if (target_level > record->effective_level_24f && (hp_percent < 40 || out_of_formation != 0)) {
+    if (target_level > record->effective_level && (hp_percent < 40 || out_of_formation != 0)) {
         return 1;
     }
     return 0;
@@ -517,12 +517,12 @@ int ResolveGuardianInterception(W8TargetSource* source, W8CombatSlot* target)
             TryCharacterAction(slot, W8_ACTION_PROTECT, 0) != 0 &&
             row->interception_count < character->Hand[0].attacks) {
             W8CombatSlot* guarded =
-                row->dead_34 == 0 ? &party_row->target_in_combat : &party_row->target_out_of_combat;
+                row->dead == 0 ? &party_row->target_in_combat : &party_row->target_out_of_combat;
             if (memcmp(target, guarded, sizeof(W8CombatSlot)) == 0 &&
                 CharacterHasAttackOn(slot, target) != 0) {
                 SetTargetSourceToCharacter(slot, &guardian);
                 candidates.Add(guardian);
-                if (row->dead_34 == 0) {
+                if (row->dead == 0) {
                     SwitchCharacterTo(slot, W8_ACTION_PROTECT);
                 }
             }
@@ -536,7 +536,7 @@ int ResolveGuardianInterception(W8TargetSource* source, W8CombatSlot* target)
             monster_info->hp_current != 0 && monster_info->highest_condition < 0xc &&
             (record->flags & W8_MONSTER_FLAG_BODYGUARD) != 0 &&
             record->attacks[0].fHasAttack != 0 && monster_info->action_kind == 8 &&
-            monster_info->pCombat->interception_count < record->attacks_per_round_0e5 &&
+            monster_info->pCombat->interception_count < record->attacks_per_round &&
             memcmp(target, &monster_info->Target, sizeof(W8CombatSlot)) == 0 &&
             CanMonsterProtectCombatant(monster_info, target) != 0) {
             SetTargetSourceToMonster(monster_info, &guardian);
@@ -568,14 +568,14 @@ int ResolveGuardianInterception(W8TargetSource* source, W8CombatSlot* target)
                 penalty >>= 1;
             }
             guardian_score = defender->attributes[W8_ATTRIBUTE_SPEED].effective - penalty + armed +
-                             defender->bonus_1770.hit_bonus_01 * 5;
+                             defender->bonus.hit_bonus * 5;
         } else if (candidate->iType == W8_TARGET_SOURCE_MONSTER) {
             W8MonsterInfo* defender = MonsterGetScriptPartByLocationIndex(
                 MonsterGetIndexByLocationID(0x182b, COMBAT_ATTACK_CPP, candidate->iMonsterID, 1));
             W8MonsterRecord* record = GetMonsterDataForInfo(defender);
             int armed = 0;
             if (record->attacks[0].fHasAttack != 0) {
-                armed = record->attacks[0].attack_score_04;
+                armed = record->attacks[0].attack_score;
             }
             unsigned int penalty = FatigueArmorPenalty(defender->fatigue_band);
             for (int j = 0; j < 0x12; ++j) {
@@ -584,8 +584,8 @@ int ResolveGuardianInterception(W8TargetSource* source, W8CombatSlot* target)
                     break;
                 }
             }
-            guardian_score = defender->attributes[3] - penalty + armed +
-                             defender->modifiers_1db.hit_bonus_01 * 5;
+            guardian_score = defender->attributes[W8_MONSTER_ATTRIBUTE_SPEED] - penalty + armed +
+                             defender->modifiers.hit_bonus * 5;
         } else {
             srAssertFail("FALSE", COMBAT_ATTACK_CPP, 0x182f, 0);
         }
@@ -600,14 +600,14 @@ int ResolveGuardianInterception(W8TargetSource* source, W8CombatSlot* target)
                 penalty >>= 1;
             }
             attacker_score = attacker->attributes[W8_ATTRIBUTE_SPEED].effective - penalty + armed +
-                             attacker->bonus_1770.hit_bonus_01 * 5;
+                             attacker->bonus.hit_bonus * 5;
         } else if (source->iType == W8_TARGET_SOURCE_MONSTER) {
             W8MonsterInfo* attacker = MonsterGetScriptPartByLocationIndex(
                 MonsterGetIndexByLocationID(0x1839, COMBAT_ATTACK_CPP, source->iMonsterID, 1));
             W8MonsterRecord* record = GetMonsterDataForInfo(attacker);
             int armed = 0;
             if (record->attacks[0].fHasAttack != 0) {
-                armed = record->attacks[0].attack_score_04;
+                armed = record->attacks[0].attack_score;
             }
             unsigned int penalty = FatigueArmorPenalty(attacker->fatigue_band);
             for (int j = 0; j < 0x12; ++j) {
@@ -616,15 +616,15 @@ int ResolveGuardianInterception(W8TargetSource* source, W8CombatSlot* target)
                     break;
                 }
             }
-            attacker_score = attacker->attributes[3] - penalty + armed +
-                             attacker->modifiers_1db.hit_bonus_01 * 5;
+            attacker_score = attacker->attributes[W8_ATTRIBUTE_VITALITY] - penalty + armed +
+                             attacker->modifiers.hit_bonus * 5;
         } else {
             srAssertFail("FALSE", COMBAT_ATTACK_CPP, 0x183d, 0);
         }
-        if (g_combat_state->unaware_9a4 != 0) {
+        if (g_combat_state->unaware != 0) {
             attacker_score += 10;
         }
-        if (g_combat_state->natural_attack_9a5 != 0) {
+        if (g_combat_state->natural_attack != 0) {
             attacker_score += 10;
         }
         int chance = guardian_score - attacker_score + 50;
@@ -643,14 +643,14 @@ int ResolveGuardianInterception(W8TargetSource* source, W8CombatSlot* target)
         if (g_settings.verbose_combat_messages != 0 && candidates.GetCount() != 0) {
             for (i = 0; i < candidates.GetCount(); ++i) {
                 W8TargetSource* candidate = candidates.GetAt(i);
-                swprintf(g_combat_state->attack_message_6b8, gppStringList[0x219], target_name);
+                swprintf(g_combat_state->attack_message, gppStringList[0x219], target_name);
                 if (candidate->iType == W8_TARGET_SOURCE_CHARACTER) {
-                    PostCharacterNotice(candidate->iChar, g_combat_state->attack_message_6b8);
+                    PostCharacterNotice(candidate->iChar, g_combat_state->attack_message);
                 } else if (candidate->iType == W8_TARGET_SOURCE_MONSTER) {
                     W8MonsterInfo* defender =
                         MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
                             0x186f, COMBAT_ATTACK_CPP, candidate->iMonsterID, 1));
-                    PostMonsterNotice(defender, g_combat_state->attack_message_6b8);
+                    PostMonsterNotice(defender, g_combat_state->attack_message);
                 }
             }
         }
@@ -661,10 +661,10 @@ int ResolveGuardianInterception(W8TargetSource* source, W8CombatSlot* target)
         srAssertFail("uiSuccessfulCnt > 0", COMBAT_ATTACK_CPP, 0x187c, 0);
     }
     W8TargetSource* interposer = interposers.GetAt(Random(uiSuccessfulCnt));
-    swprintf(g_combat_state->attack_message_6b8, gppStringList[0x21a], target_name);
+    swprintf(g_combat_state->attack_message, gppStringList[0x21a], target_name);
     if (interposer->iType == W8_TARGET_SOURCE_CHARACTER) {
         int slot = interposer->iChar;
-        PostCharacterNotice(slot, g_combat_state->attack_message_6b8);
+        PostCharacterNotice(slot, g_combat_state->attack_message);
         ResetCombatSlot(target);
         target->iType = W8_TARGET_KIND_CHARACTER;
         target->iChar = slot;
@@ -679,15 +679,15 @@ int ResolveGuardianInterception(W8TargetSource* source, W8CombatSlot* target)
     } else if (interposer->iType == W8_TARGET_SOURCE_MONSTER) {
         W8MonsterInfo* defender = MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(0x18a2, COMBAT_ATTACK_CPP, interposer->iMonsterID, 1));
-        PostMonsterNotice(defender, g_combat_state->attack_message_6b8);
+        PostMonsterNotice(defender, g_combat_state->attack_message);
         ResetCombatSlot(target);
         target->iType = W8_TARGET_KIND_MONSTER;
         target->iMonsterID = interposer->iMonsterID;
         ++defender->pCombat->interception_count;
         FatigueMonster(defender, Random(3) + 2, NULL);
     }
-    g_combat_state->unaware_9a4 = 0;
-    g_combat_state->natural_attack_9a5 = 0;
+    g_combat_state->unaware = 0;
+    g_combat_state->natural_attack = 0;
     return 1;
 }
 
@@ -808,7 +808,7 @@ unsigned short g_special_category_name_ids[42] = {
 void ResolveSpellMissileHit(W8Missile* missile)
 {
     W8TargetSource* source = &missile->m_Source;
-    W8CombatSlot* target = &missile->combat_slot_260;
+    W8CombatSlot* target = &missile->combat_slot;
     W8SpellEffectDefinition* definition = &missile->definition_1fc;
     W8SpellRuntimeRecord* spell;
     W8CombatSlot struck;
@@ -832,7 +832,7 @@ void ResolveSpellMissileHit(W8Missile* missile)
                 MonsterGetIndexByLocationID(0x1460, COMBAT_ATTACK_CPP, target->iMonsterID, 1);
             monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
             DamageMonstersInRadius(monster_info->p3D->GetPosition(), definition->radius,
-                                   &definition->magnitude, source, &missile->result_280);
+                                   &definition->magnitude, source, &missile->result);
             announce = g_settings.verbose_combat_messages;
             verbose = g_settings.verbose_combat_messages;
             srVector3T<float> center = monster_info->p3D->GetPosition();
@@ -850,7 +850,7 @@ void ResolveSpellMissileHit(W8Missile* missile)
                 }
             }
         } else {
-            ApplyRolledHealthChangeToParty(&definition->magnitude, &missile->result_280, 1);
+            ApplyRolledHealthChangeToParty(&definition->magnitude, &missile->result, 1);
             announce = g_settings.verbose_combat_messages;
             verbose = g_settings.verbose_combat_messages;
             ResetCombatSlot(&struck);
@@ -874,17 +874,17 @@ void ResolveSpellMissileHit(W8Missile* missile)
                     MonsterGetIndexByLocationID(0x147f, COMBAT_ATTACK_CPP, target->iMonsterID, 1);
                 monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
                 ApplyDamageToMonster(monster_info, magnitude, source, 0,
-                                     g_settings.verbose_combat_messages, 0, &missile->result_280,
+                                     g_settings.verbose_combat_messages, 0, &missile->result,
                                      0);
             } else {
                 ApplyDamageToCharacter(target->iChar, magnitude, 0,
-                                       g_settings.verbose_combat_messages, 0, &missile->result_280,
+                                       g_settings.verbose_combat_messages, 0, &missile->result,
                                        0);
             }
         }
     }
     ApplyEffectConditions(source, target, definition, g_settings.verbose_combat_messages,
-                          g_settings.verbose_combat_messages, &missile->result_280);
+                          g_settings.verbose_combat_messages, &missile->result);
 }
 
 /* Land a physical missile on its target. The notice names the target, with
@@ -900,7 +900,7 @@ void ResolveSpellMissileHit(W8Missile* missile)
 void ResolveMissileHit(W8Missile* missile, bool deflected)
 {
     W8TargetSource* source = &missile->m_Source;
-    W8CombatSlot* target = &missile->combat_slot_260;
+    W8CombatSlot* target = &missile->combat_slot;
     W8MonsterInfo* monster_info;
     W8MonsterRecord* record;
     wchar_t text[120];
@@ -932,7 +932,7 @@ void ResolveMissileHit(W8Missile* missile, bool deflected)
     } else {
         wcscat(text, g_status.buffers.Char[target->iChar].name);
     }
-    if (missile->retargeted_322) {
+    if (missile->retargeted) {
         wcscat(text, L" ");
         wcscat(text, gppStringList[0x1c0]);
     }
@@ -962,15 +962,15 @@ void ResolveMissileHit(W8Missile* missile, bool deflected)
                 hit_location = 3;
                 break;
             }
-            total += record->hit_location_chances_15f[hit_location];
+            total += record->hit_location_chances[hit_location];
             if (roll < total) {
                 break;
             }
         }
-        if (record->hit_location_chances_15f[hit_location] < 100) {
+        if (record->hit_location_chances[hit_location] < 100) {
             wcscpy(location_name,
                    gppStringList[g_monster_hit_location_labels[hit_location]
-                                                              [record->constitution_15e]]);
+                                                              [record->constitution]]);
         } else {
             wcscpy(location_name, &g_empty_wide_string);
         }
@@ -994,7 +994,7 @@ void ResolveMissileHit(W8Missile* missile, bool deflected)
         ShowNoticef(source_color, gppStringList[0x20c], location_name);
     }
 
-    attack_mode = g_missile_table[missile->missile_table_index_1d8].attack_mode_144;
+    attack_mode = g_missile_table[missile->missile_table_index_1d8].attack_mode;
     chance = AttackModeMod(1, attack_mode) + 50 +
              (10 - TargetArmorClassAtLocation(target, attack_mode, hit_location)) * 5;
     penetration_roll = Random(100) + 1;
@@ -1095,7 +1095,7 @@ void PrepareCharacterAttacks(int party_slot)
             value = g_status.buffers.Char[party_slot].Hand[hand].attacks;
         }
         g_combat_state->characters[party_slot].saved_attack_value[hand] = value;
-        g_combat_state->characters[party_slot].hand_attack_values_40[hand] = value;
+        g_combat_state->characters[party_slot].hand_attack_values[hand] = value;
     }
 }
 
@@ -1118,11 +1118,11 @@ int GetTargetArmorClassModifier(W8CombatSlot* target, unsigned int attack_mode)
             MonsterGetIndexByLocationID(0x1937, COMBAT_ATTACK_CPP, target->iMonsterID, 1);
         monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
         record = GetMonsterDataForInfo(monster_info);
-        modifier = monster_info->modifiers_1db.armor_class_adjustment_4b +
-                   monster_info->modifiers_1db.armor_bonus_04 +
+        modifier = monster_info->modifiers.armor_class_adjustment +
+                   monster_info->modifiers.armor_flat +
                    static_cast<int>(FatigueArmorPenalty(monster_info->fatigue_band) / 10);
         if (gXStatus.fCombatMode != 0) {
-            if ((g_combat_state->unaware_9a4 != 0 || g_combat_state->natural_attack_9a5 != 0) &&
+            if ((g_combat_state->unaware != 0 || g_combat_state->natural_attack != 0) &&
                 (record->flags & W8_MONSTER_FLAG_VULNERABLE_FROM_BEHIND) != 0) {
                 modifier -= 2;
             }
@@ -1131,14 +1131,14 @@ int GetTargetArmorClassModifier(W8CombatSlot* target, unsigned int attack_mode)
             }
             distracted = monster_info->action_kind == 4;
         }
-        out_of_formation = monster_info->modifiers_1db.out_of_formation;
+        out_of_formation = monster_info->modifiers.out_of_formation;
     } else if (target->iType == W8_TARGET_KIND_CHARACTER) {
         W8Character* character = &g_status.buffers.Char[target->iChar];
         if (gXStatus.fCombatMode == 0) {
             distracted = GetLevelDataFlag8();
         } else {
             int component;
-            if (g_combat_state->unaware_9a4 != 0 || g_combat_state->natural_attack_9a5 != 0) {
+            if (g_combat_state->unaware != 0 || g_combat_state->natural_attack != 0) {
                 component = character->armor_class_components[1];
                 if (component > 0) {
                     modifier = -component;
@@ -1154,7 +1154,7 @@ int GetTargetArmorClassModifier(W8CombatSlot* target, unsigned int attack_mode)
             }
             distracted = GetEngagementCount() == 2;
         }
-        out_of_formation = character->bonus_1770.out_of_formation;
+        out_of_formation = character->bonus.out_of_formation;
     } else {
         srAssertFail("FALSE", COMBAT_ATTACK_CPP, 0x1992, 0);
         return 0;
@@ -1187,7 +1187,7 @@ unsigned int CharChooseHandAttackMode(W8Character* character, int hand)
                              "item in it, but holds %d",
                              character->name, slot, character->Hand[hand].uiHolds));
         }
-        modes = g_item_records[item->iItemNo].attack_flags_04e;
+        modes = g_item_records[item->iItemNo].attack_flags;
     }
     if (modes == 0) {
         srAssertFail("fsAttackModes > 0", COMBAT_ATTACK_CPP, 0xdb6,
@@ -1230,7 +1230,7 @@ wchar_t* SpellTargetString(W8TargetSource* source, W8CombatSlot* target)
         record = GetMonsterDataForInfo(monster_info);
         if (TargetSourceIsMonster(source, 0) != 0 && source->iMonsterID == target->iMonsterID) {
             return FormatWideString(
-                gppStringList[g_gender_name_message_rows[record->name_group_0cc][3]]);
+                gppStringList[g_gender_name_message_rows[record->name_group][3]]);
         }
         return FormatWideString(GetMonsterName(monster_info, record, 0));
     case W8_TARGET_KIND_GROUP:
@@ -1252,7 +1252,7 @@ wchar_t* SpellTargetString(W8TargetSource* source, W8CombatSlot* target)
     if (target->iChar == -1) {
         srAssertFail("pTarget->iChar != BAD_INDEX", COMBAT_ATTACK_CPP, 0x19f6, 0);
     }
-    if (TargetSourceIsCharacter(source, 0) != 0 && source->name_known_19 == 0 &&
+    if (TargetSourceIsCharacter(source, 0) != 0 && source->name_known == 0 &&
         source->iChar == target->iChar) {
         return FormatWideString(
             gppStringList[g_gender_name_message_rows[g_status.buffers.Char[source->iChar].gender]
@@ -1279,8 +1279,8 @@ int GetTargetArmorClass(W8CombatSlot* target, int attack_mode)
             MonsterGetIndexByLocationID(0xeb0, COMBAT_ATTACK_CPP, target->iMonsterID, 1);
         monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
         record = GetMonsterDataForInfo(monster_info);
-        base = 10 - record->evasion_ac_15d;
-        if (monster_info->modifiers_1db.out_of_formation != 0 && base > -5) {
+        base = 10 - record->evasion_ac;
+        if (monster_info->modifiers.out_of_formation != 0 && base > -5) {
             return GetTargetArmorClassModifier(target, attack_mode) - 5;
         }
     } else if (target->iType == W8_TARGET_KIND_CHARACTER) {
@@ -1309,10 +1309,10 @@ int TargetArmorClassAtLocation(W8CombatSlot* target, int attack_mode, int hit_lo
         monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
         record = GetMonsterDataForInfo(monster_info);
         return GetTargetArmorClassModifier(target, attack_mode) +
-               (monster_info->modifiers_1db.armor_bonus_05 -
+               (monster_info->modifiers.armor_matchup -
                 record->armor_class_by_attack_mode[attack_mode] -
                 record->armor_class_by_location[hit_location]) +
-               record->evasion_ac_15d + base;
+               record->evasion_ac + base;
     }
     if (target->iType == W8_TARGET_KIND_CHARACTER) {
         character = &g_status.buffers.Char[target->iChar];
@@ -1341,14 +1341,14 @@ bool BlockedForSpecialReason(int weapon_class, W8CombatSlot* target, int attack_
     if (target->iType == W8_TARGET_KIND_CHARACTER) {
         W8Character* character = &g_status.buffers.Char[target->iChar];
         int shield = 0;
-        if (g_combat_state->unaware_9a4 == 0 && g_combat_state->natural_attack_9a5 == 0) {
+        if (g_combat_state->unaware == 0 && g_combat_state->natural_attack == 0) {
             shield = character->armor_class_components[3] * 5;
         }
         if (difference > shield) {
             return 0;
         }
         if (character->EquippedItem[7].iItemNo != -1) {
-            material = g_item_records[character->EquippedItem[7].iItemNo].material_0c1;
+            material = g_item_records[character->EquippedItem[7].iItemNo].material;
         } else {
             material = 2;
         }
@@ -1633,15 +1633,15 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
     entry_target = monster_info->Target;
     if (entry_target.iType == W8_TARGET_KIND_CHARACTER) {
         W8Character* defender = &g_status.buffers.Char[entry_target.iChar];
-        if (defender->skills[W8_SKILL_LOCKS_TRAPS].active_00 != 0) {
+        if (defender->skills[W8_SKILL_LOCKS_TRAPS].active != 0) {
             g_combat_state->characters[entry_target.iChar].skill_use_flags[W8_SKILL_LOCKS_TRAPS] =
                 1;
         }
-        if (defender->skills[W8_SKILL_SHIELD].active_00 != 0 && g_combat_state->unaware_9a4 == 0 &&
-            g_combat_state->natural_attack_9a5 == 0 && defender->armor_class_components[3] > 0) {
+        if (defender->skills[W8_SKILL_SHIELD].active != 0 && g_combat_state->unaware == 0 &&
+            g_combat_state->natural_attack == 0 && defender->armor_class_components[3] > 0) {
             g_combat_state->characters[entry_target.iChar].skill_use_flags[W8_SKILL_SHIELD] = 1;
         }
-        if (defender->skills[W8_SKILL_REFLEXTION].active_00 != 0) {
+        if (defender->skills[W8_SKILL_REFLEXTION].active != 0) {
             g_combat_state->characters[entry_target.iChar].skill_use_flags[W8_SKILL_REFLEXTION] = 1;
         }
     }
@@ -1690,8 +1690,8 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
             guaranteed_penetration = 0;
             swing_missed = false;
             roll = Random(100) + 1;
-            g_combat_state->unaware_9a4 = 0;
-            g_combat_state->natural_attack_9a5 = 0;
+            g_combat_state->unaware = 0;
+            g_combat_state->natural_attack = 0;
         } else {
             g_combat_state->TargetHit = monster_info->Target;
             guaranteed_penetration = guaranteed_hit;
@@ -1718,7 +1718,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
         }
     }
     if (verbose == 0) {
-        report->deferred_80 = 1;
+        report->deferred = 1;
     }
     if (swing_missed != 0) {
         if (g_settings.verbose_combat_messages != 0) {
@@ -1759,7 +1759,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                     hit_location = 1;
                     break;
                 }
-                total += record->attack_body_part_chances_157[hit_location];
+                total += record->attack_body_part_chances[hit_location];
                 if (location_roll < total) {
                     break;
                 }
@@ -1782,15 +1782,15 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                     hit_location = 3;
                     break;
                 }
-                total += target_record->hit_location_chances_15f[hit_location];
+                total += target_record->hit_location_chances[hit_location];
                 if (location_roll < total) {
                     break;
                 }
             }
-            if (target_record->hit_location_chances_15f[hit_location] < 100) {
+            if (target_record->hit_location_chances[hit_location] < 100) {
                 location_text =
                     gppStringList[g_monster_hit_location_labels[hit_location]
-                                                               [target_record->constitution_15e]];
+                                                               [target_record->constitution]];
             } else {
                 location_text = &g_empty_wide_string;
             }
@@ -1798,7 +1798,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
         wcscpy(location_name, location_text);
         queued_fatigue = 1;
         if (guaranteed_hit == 0 && to_hit < roll) {
-            if (BlockedForSpecialReason(attack->weapon_class_1c, &g_combat_state->TargetHit, roll,
+            if (BlockedForSpecialReason(attack->weapon_class, &g_combat_state->TargetHit, roll,
                                         to_hit, 9) == 0) {
                 if (verbose != 0) {
                     ShowNoticef(9, gppStringList[0x209]);
@@ -1826,10 +1826,10 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                 ShowNoticef(9, gppStringList[0x20c], location_name);
             }
             queued_fatigue = 2;
-            int penetration = (monster_info->modifiers_1db.attack_bonus_02 +
-                               monster_info->modifiers_1db.hit_bonus_01) *
+            int penetration = (monster_info->modifiers.attack_bonus +
+                               monster_info->modifiers.hit_bonus) *
                                   5 +
-                              attack->attack_score_04;
+                              attack->attack_score;
             penetration += AttackModeMod(1, action_detail);
             for (int i = 0; i < 0x12; ++i) {
                 if (attack->ubWeaponNameIndex == g_low_fatigue_attack_verbs[i]) {
@@ -1845,8 +1845,8 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                 unsigned int target_index = MonsterGetIndexByLocationID(
                     0xf2b, COMBAT_ATTACK_CPP, g_combat_state->TargetHit.iMonsterID, 1);
                 W8MonsterInfo* target = MonsterGetScriptPartByLocationIndex(target_index);
-                target_sum = target->attributes[4] + target->attributes[3] + target->attributes[2] +
-                             target->attributes[1];
+                target_sum = target->attributes[W8_MONSTER_ATTRIBUTE_SENSES] + target->attributes[W8_MONSTER_ATTRIBUTE_SPEED] + target->attributes[W8_MONSTER_ATTRIBUTE_DEXTERITY] +
+                             target->attributes[W8_MONSTER_ATTRIBUTE_INTELLIGENCE];
             } else if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_CHARACTER) {
                 int target_char = g_combat_state->TargetHit.iChar;
                 target_sum =
@@ -1866,8 +1866,8 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                 target_sum = 0;
             }
             penetration +=
-                (monster_info->attributes[4] + monster_info->attributes[3] +
-                 monster_info->attributes[2] + monster_info->attributes[1] - target_sum) /
+                (monster_info->attributes[W8_MONSTER_ATTRIBUTE_SENSES] + monster_info->attributes[W8_MONSTER_ATTRIBUTE_SPEED] +
+                 monster_info->attributes[W8_MONSTER_ATTRIBUTE_DEXTERITY] + monster_info->attributes[W8_MONSTER_ATTRIBUTE_INTELLIGENCE] - target_sum) /
                 10;
             ScaleValueForMonsterDifficulty(monster_info, &penetration);
             CombatLog("TO PENETRATE: Chance %d, Rolled was %d", penetration, roll);
@@ -1898,9 +1898,9 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                         memset(&effect, 0, sizeof(effect));
                         memcpy(effect.condition_chances, attack->missile_values_05, 0x10);
                         effect.power_level =
-                            record->effective_level_24f +
-                            (record->effective_level_24f > 0xe ? 0xf : record->effective_level_24f);
-                        effect.magnitude_base_1c = attack->missile_magnitude_1b;
+                            record->effective_level +
+                            (record->effective_level > 0xe ? 0xf : record->effective_level);
+                        effect.magnitude_base = attack->missile_magnitude;
                         ApplyEffectConditions(&source, &g_combat_state->TargetHit, &effect, verbose,
                                               0, report);
                         if (range < W8_RANGE_LONG &&
@@ -1930,20 +1930,20 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
             if (range < W8_RANGE_LONG) {
                 if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER) {
                     W8Enchantment* enchantment = &target_info->enchantments[3];
-                    if (enchantment->turns_08 != 0) {
+                    if (enchantment->turns != 0) {
                         SetTargetSourceToMonster(target_info, &victim_source);
                         ApplyDiceDamageToMonster(monster_info, &victim_source, enchantment);
-                        if (--enchantment->power_00 == 0) {
+                        if (--enchantment->power == 0) {
                             ClearMonsterEnchantmentSlot(target_info->location_id, 3);
                         }
                     }
                 } else {
                     W8Enchantment* enchantment =
                         &g_status.buffers.Char[g_combat_state->TargetHit.iChar].enchantments[3];
-                    if (enchantment->turns_08 != 0) {
+                    if (enchantment->turns != 0) {
                         SetTargetSourceToCharacter(g_combat_state->TargetHit.iChar, &victim_source);
                         ApplyDiceDamageToMonster(monster_info, &victim_source, enchantment);
-                        if (--enchantment->power_00 == 0) {
+                        if (--enchantment->power == 0) {
                             ClearCharacterEnchantmentSlot(g_combat_state->TargetHit.iChar, 3);
                         }
                     }
@@ -1960,7 +1960,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
         combat->uiSwingsRemaining = 0;
     }
     if (combat->uiSwingsRemaining != 0) {
-        if (record->attack_multiple_targets_247 != 0 && range < W8_RANGE_LONG) {
+        if (record->attack_multiple_targets != 0 && range < W8_RANGE_LONG) {
             repick_target = monster_info->Target;
             if (ChooseRandomMonsterAction(monster_info, 0, 1, 0) == 0 ||
                 monster_info->action_kind != 0) {
@@ -1969,10 +1969,10 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                 repicked = 1;
                 if (memcmp(&repick_target, &monster_info->Target, sizeof(W8CombatSlot)) != 0) {
                     ReportMonsterAttackResult(monster_info, report);
-                    if (fumbled != 0 && g_combat_state->attack_report.deferred_80 != 0) {
+                    if (fumbled != 0 && g_combat_state->attack_report.deferred != 0) {
                         ReportMonsterAttackResult(monster_info, &g_combat_state->attack_report);
                     }
-                    wcscpy(g_combat_state->attack_message_6b8, gppStringList[0x210]);
+                    wcscpy(g_combat_state->attack_message, gppStringList[0x210]);
                     AnnounceMonsterAttack(monster_info, record, 1);
                 }
             }
@@ -1998,7 +1998,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
         if (fumbled != 0 || source.target_diverted != 0) {
             PostMonsterNotice(monster_info, gppStringList[0x269],
                               SpellTargetString(&source, &monster_info->Target));
-            if (g_combat_state->attack_report.deferred_80 != 0) {
+            if (g_combat_state->attack_report.deferred != 0) {
                 ReportMonsterAttackResult(monster_info, &g_combat_state->attack_report);
             }
         }
@@ -2142,7 +2142,7 @@ char StartMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
             return 0;
         }
     }
-    combat->uiSwingsRemaining = Random(record->swings_per_round_0e6) + 1;
+    combat->uiSwingsRemaining = Random(record->swings_per_round) + 1;
     AnnounceMonsterAttack(monster_info, record, 0);
     StartMonsterAttackCycle(monster_info, action_detail);
     return 1;
@@ -2190,14 +2190,14 @@ bool CharacterNoticesAttacker(int party_slot)
         TryCharacterAction(party_slot, W8_ACTION_PROTECT, 1) == 0) {
         return 0;
     }
-    if (row->spot_attempts_90 == 0) {
-        row->spot_attempts_90 = 1;
+    if (row->spot_attempts == 0) {
+        row->spot_attempts = 1;
         return 1;
     }
     int senses = g_status.buffers.Char[party_slot].attributes[W8_ATTRIBUTE_SENSES].effective -
-                 row->spot_attempts_90 * 0x19;
+                 row->spot_attempts * 0x19;
     noticed = Random(100) < static_cast<unsigned int>(senses);
-    ++row->spot_attempts_90;
+    ++row->spot_attempts;
     return noticed;
 }
 
@@ -2222,71 +2222,71 @@ void AnnounceMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record,
     int attempts;
     bool notices;
 
-    g_combat_state->unaware_9a4 = 0;
+    g_combat_state->unaware = 0;
     if (record->kind_0cb == 3 && range <= W8_RANGE_TOUCH) {
-        g_combat_state->natural_attack_9a5 = 1;
+        g_combat_state->natural_attack = 1;
     } else {
-        g_combat_state->natural_attack_9a5 = 0;
+        g_combat_state->natural_attack = 0;
     }
-    swprintf(g_combat_state->attack_message_6b8, L"%s ", GetMonsterName(monster_info, record, 0));
+    swprintf(g_combat_state->attack_message, L"%s ", GetMonsterName(monster_info, record, 0));
     if (arg_3 != 0) {
-        wcscat(g_combat_state->attack_message_6b8, gppStringList[0x211]);
-        wcscat(g_combat_state->attack_message_6b8, L" ");
+        wcscat(g_combat_state->attack_message, gppStringList[0x211]);
+        wcscat(g_combat_state->attack_message, L" ");
     }
-    if (g_combat_state->natural_attack_9a5 == 0) {
-        if (pAttack->weapon_type_02 == 1) {
+    if (g_combat_state->natural_attack == 0) {
+        if (pAttack->weapon_type == 1) {
             name_id = g_attack_flag_name_ids[action_detail][1];
         } else {
-            if (pAttack->weapon_type_02 == 0) {
+            if (pAttack->weapon_type == 0) {
                 FormatDebugMessage(
                     0, "DATA ERROR: Attack %d weapon type is NONE for monster %ls -> Charles",
                     attack, GetMonsterName(monster_info, 0, 0));
             }
-            name_id = g_monster_attack_name_ids[pAttack->weapon_type_02 * 2];
+            name_id = g_monster_attack_name_ids[pAttack->weapon_type * 2];
         }
-        wcscat(g_combat_state->attack_message_6b8, gppStringList[name_id]);
-        wcscat(g_combat_state->attack_message_6b8, L" ");
+        wcscat(g_combat_state->attack_message, gppStringList[name_id]);
+        wcscat(g_combat_state->attack_message, L" ");
         if (pAttack->ubWeaponNameIndex != 0) {
             text = gppStringList[g_monster_attack_verb_ids[pAttack->ubWeaponNameIndex]];
             if (g_settings.verbose_combat_messages != 0) {
-                if (g_combat_state->natural_attack_9a5 != 0) {
-                    wcscat(g_combat_state->attack_message_6b8, L" ");
-                    wcscat(g_combat_state->attack_message_6b8, gppStringList[0x215]);
+                if (g_combat_state->natural_attack != 0) {
+                    wcscat(g_combat_state->attack_message, L" ");
+                    wcscat(g_combat_state->attack_message, gppStringList[0x215]);
                 } else if (action_detail == 3) {
-                    wcscat(g_combat_state->attack_message_6b8, gppStringList[0x215]);
+                    wcscat(g_combat_state->attack_message, gppStringList[0x215]);
                 }
-                wcscat(g_combat_state->attack_message_6b8, text);
+                wcscat(g_combat_state->attack_message, text);
             }
         }
     } else {
-        wcscat(g_combat_state->attack_message_6b8, gppStringList[0x204]);
-        wcscat(g_combat_state->attack_message_6b8, L" ");
+        wcscat(g_combat_state->attack_message, gppStringList[0x204]);
+        wcscat(g_combat_state->attack_message, L" ");
     }
-    if (g_combat_state->natural_attack_9a5 == 0 && pAttack->ubWeaponNameIndex != 0) {
+    if (g_combat_state->natural_attack == 0 && pAttack->ubWeaponNameIndex != 0) {
         if (g_settings.verbose_combat_messages == 0) {
             switch (action_detail) {
             case 0:
             case 1:
             case 4:
-                wcscat(g_combat_state->attack_message_6b8, gppStringList[0x217]);
+                wcscat(g_combat_state->attack_message, gppStringList[0x217]);
                 break;
             case 3:
-                wcscat(g_combat_state->attack_message_6b8, gppStringList[0x218]);
+                wcscat(g_combat_state->attack_message, gppStringList[0x218]);
                 break;
             }
         } else {
-            wcscat(g_combat_state->attack_message_6b8, gppStringList[0x216]);
+            wcscat(g_combat_state->attack_message, gppStringList[0x216]);
         }
     }
-    highlight_start = wcslen(g_combat_state->attack_message_6b8);
+    highlight_start = wcslen(g_combat_state->attack_message);
     if (monster_info->Target.iType == W8_TARGET_KIND_CHARACTER) {
         int party_slot = monster_info->Target.iChar;
         MonsterVsCharDisposition(party_slot, monster_info);
-        wcscat(g_combat_state->attack_message_6b8, g_status.buffers.Char[party_slot].name);
+        wcscat(g_combat_state->attack_message, g_status.buffers.Char[party_slot].name);
         palette = g_status.buffers.XChar[party_slot].party_order_index;
         if (range <= W8_RANGE_SHORT && IsCharacterFacingMonster(party_slot, monster_info) == 0) {
             if (CharacterNoticesAttacker(party_slot) == 0) {
-                g_combat_state->unaware_9a4 = IsMonsterBehindCharacter(monster_info, party_slot);
+                g_combat_state->unaware = IsMonsterBehindCharacter(monster_info, party_slot);
             } else {
                 TurnCharacterTowardMonster(party_slot, monster_info);
             }
@@ -2300,7 +2300,7 @@ void AnnounceMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record,
                                                          monster_info->Target.iMonsterID, 1);
         second = MonsterGetScriptPartByLocationIndex(index);
         MonsterHostility(monster_info, second);
-        wcscat(g_combat_state->attack_message_6b8, GetMonsterName(second, 0, 0));
+        wcscat(g_combat_state->attack_message, GetMonsterName(second, 0, 0));
         palette = 9;
         if (range <= W8_RANGE_SHORT && IsMonsterFacingMonster(second, monster_info) == 0) {
             second_combat = second->pCombat;
@@ -2308,46 +2308,46 @@ void AnnounceMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record,
             if (second->hp_current != 0 && second->stamina != 0 &&
                 second->highest_condition < 0xe && second->uiCondition[0xc] == 0 &&
                 second->action_kind == 1) {
-                attempts = second_combat->spot_attempts_13d;
+                attempts = second_combat->spot_attempts;
                 if (attempts == 0) {
                     notices = true;
                 } else {
                     notices = Random(100) <
-                              static_cast<unsigned int>(second->attributes[4] + attempts * -0x19);
+                              static_cast<unsigned int>(second->attributes[W8_MONSTER_ATTRIBUTE_SENSES] + attempts * -0x19);
                 }
-                ++second_combat->spot_attempts_13d;
+                ++second_combat->spot_attempts;
                 if (notices) {
                     MonsterAimAtMonster(second->p3D, monster_info->p3D, 0);
                 }
             }
             if (!notices) {
-                g_combat_state->unaware_9a4 = IsMonsterLookingAwayFrom(monster_info, second);
+                g_combat_state->unaware = IsMonsterLookingAwayFrom(monster_info, second);
             }
         }
     }
-    highlight_end = wcslen(g_combat_state->attack_message_6b8);
-    if (g_combat_state->natural_attack_9a5 == 0) {
-        if (g_combat_state->unaware_9a4 != 0) {
+    highlight_end = wcslen(g_combat_state->attack_message);
+    if (g_combat_state->natural_attack == 0) {
+        if (g_combat_state->unaware != 0) {
             text = gppStringList[0x207];
-            wcscat(g_combat_state->attack_message_6b8, text);
+            wcscat(g_combat_state->attack_message, text);
         }
     } else {
-        wcscat(g_combat_state->attack_message_6b8, gppStringList[0x212]);
+        wcscat(g_combat_state->attack_message, gppStringList[0x212]);
         if (pAttack->ubWeaponNameIndex == 0) {
             srAssertFail("pAttack->ubWeaponNameIndex != MON_WEAPON_NAME_UNARMED", COMBAT_ATTACK_CPP,
                          0xafd, 0);
         }
         if (pAttack->ubWeaponNameIndex != 0) {
             text = gppStringList[g_monster_attack_verb_ids[pAttack->ubWeaponNameIndex]];
-            wcscat(g_combat_state->attack_message_6b8, text);
+            wcscat(g_combat_state->attack_message, text);
         }
     }
     if (combat->uiSwingsRemaining > 1 &&
-        (record->attack_multiple_targets_247 == 0 || range > W8_RANGE_SHORT)) {
-        wcscat(g_combat_state->attack_message_6b8,
+        (record->attack_multiple_targets == 0 || range > W8_RANGE_SHORT)) {
+        wcscat(g_combat_state->attack_message,
                FormatWideString(L" %dx", combat->uiSwingsRemaining));
     }
-    ShowNotice(9, g_combat_state->attack_message_6b8, -1, 0xffffffff, 0);
+    ShowNotice(9, g_combat_state->attack_message, -1, 0xffffffff, 0);
     if (palette != 9) {
         HighlightTextBoxRange(palette, highlight_start, highlight_end, -1);
     }
@@ -2377,12 +2377,12 @@ static int GetTargetAttackAttributes(int party_slot, int hand, int attack_mode, 
     W8MonsterInfo* monster_info;
 
     score = attack->attack_score + attack->hit_bonus * 5;
-    score += character->bonus_1770.hit_bonus_01 * 5;
+    score += character->bonus.hit_bonus * 5;
     score += AttackModeMod(0, attack_mode);
-    if (g_combat_state->unaware_9a4 != 0) {
+    if (g_combat_state->unaware != 0) {
         score += 10;
     }
-    if (g_combat_state->natural_attack_9a5 != 0) {
+    if (g_combat_state->natural_attack != 0) {
         score += 10;
     }
     fatigue = FatigueArmorPenalty(character->fatigue_band);
@@ -2410,8 +2410,8 @@ static int GetTargetAttackAttributes(int party_slot, int hand, int attack_mode, 
             monster_list_index =
                 MonsterGetIndexByLocationID(0xf2b, COMBAT_ATTACK_CPP, target->iMonsterID, 1);
             monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
-            target_sum = monster_info->attributes[4] + monster_info->attributes[3] +
-                         monster_info->attributes[2] + monster_info->attributes[1];
+            target_sum = monster_info->attributes[W8_MONSTER_ATTRIBUTE_SENSES] + monster_info->attributes[W8_MONSTER_ATTRIBUTE_SPEED] +
+                         monster_info->attributes[W8_MONSTER_ATTRIBUTE_DEXTERITY] + monster_info->attributes[W8_MONSTER_ATTRIBUTE_INTELLIGENCE];
         } else if (target->iType == W8_TARGET_KIND_CHARACTER) {
             target_sum =
                 g_status.buffers.Char[target->iChar].attributes[W8_ATTRIBUTE_SENSES].effective +
@@ -2464,9 +2464,9 @@ int GetTargetHitAttackAttributes(int party_slot, int hand, int attack_mode, int 
     W8CombatSlot* target = &g_combat_state->TargetHit;
 
     score = attack->attack_score + attack->hit_bonus * 5;
-    score += attack->attack_bonus_25 * 5;
-    score += character->bonus_1770.hit_bonus_01 * 5;
-    score += character->bonus_1770.attack_bonus_02 * 5;
+    score += attack->attack_bonus * 5;
+    score += character->bonus.hit_bonus * 5;
+    score += character->bonus.attack_bonus * 5;
     score += AttackModeMod(1, attack_mode);
     if (attack->weapon_skill != W8_SKILL_MODERN_WEAPONS) {
         score -= FatigueArmorPenalty(character->fatigue_band);
@@ -2476,8 +2476,8 @@ int GetTargetHitAttackAttributes(int party_slot, int hand, int attack_mode, int 
         monster_list_index =
             MonsterGetIndexByLocationID(0xf2b, COMBAT_ATTACK_CPP, target->iMonsterID, 1);
         monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
-        target_sum = monster_info->attributes[3] + monster_info->attributes[4] +
-                     monster_info->attributes[2] + monster_info->attributes[1];
+        target_sum = monster_info->attributes[W8_MONSTER_ATTRIBUTE_SPEED] + monster_info->attributes[W8_MONSTER_ATTRIBUTE_SENSES] +
+                     monster_info->attributes[W8_MONSTER_ATTRIBUTE_DEXTERITY] + monster_info->attributes[W8_MONSTER_ATTRIBUTE_INTELLIGENCE];
     } else if (target->iType == W8_TARGET_KIND_CHARACTER) {
         target_sum =
             g_status.buffers.Char[target->iChar].attributes[W8_ATTRIBUTE_SENSES].effective +
@@ -2524,7 +2524,7 @@ int ResolveCharacterAttackDamage(int party_slot, int hand, unsigned int attack_m
             0xbf2, COMBAT_ATTACK_CPP, g_combat_state->TargetHit.iMonsterID, 1);
         monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
         record = GetMonsterDataForInfo(monster_info);
-        out_of_formation = monster_info->modifiers_1db.out_of_formation;
+        out_of_formation = monster_info->modifiers.out_of_formation;
         int action_kind = monster_info->action_kind;
         bVar10 = action_kind == 4;
         target_exposed = action_kind == 1 || action_kind == 8;
@@ -2534,7 +2534,7 @@ int ResolveCharacterAttackDamage(int party_slot, int hand, unsigned int attack_m
         }
         target = &g_status.buffers.Char[g_combat_state->TargetHit.iChar];
         int engaged = GetEngagementCount();
-        out_of_formation = target->bonus_1770.out_of_formation;
+        out_of_formation = target->bonus.out_of_formation;
         bVar10 = engaged == 2;
         target_exposed =
             TryCharacterAction(g_combat_state->TargetHit.iChar, W8_ACTION_DEFEND, 1) != 0 ||
@@ -2543,10 +2543,10 @@ int ResolveCharacterAttackDamage(int party_slot, int hand, unsigned int attack_m
 
     unsigned int dice_count = 1;
     if (attack_mode != 4 && (attack_mode < 7 || attack_mode > 8)) {
-        if (bVar10 || out_of_formation != 0 || g_combat_state->unaware_9a4 != 0) {
+        if (bVar10 || out_of_formation != 0 || g_combat_state->unaware != 0) {
             dice_count = 2;
         }
-        if (g_combat_state->natural_attack_9a5 != 0) {
+        if (g_combat_state->natural_attack != 0) {
             int chance =
                 static_cast<int>(ScaleValueByProfessionLevel(pPC, W8_TRAIT_BACKSTAB, 100.0f));
             unsigned int roll = Random(100);
@@ -2566,21 +2566,21 @@ int ResolveCharacterAttackDamage(int party_slot, int hand, unsigned int attack_m
     if (attack_mode == 3) {
         dice_count += 1;
     }
-    if (dice_count > 1 && target_exposed != 0 && g_combat_state->unaware_9a4 == 0) {
+    if (dice_count > 1 && target_exposed != 0 && g_combat_state->unaware == 0) {
         dice_count -= 1;
     }
     if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER &&
         pPC->Hand[hand].uiHolds != HOLDS_NOTHING) {
-        if (g_item_records[pPC->EquippedItem[row->current_equip_slot].iItemNo].slays_kind_061 !=
+        if (g_item_records[pPC->EquippedItem[row->current_equip_slot].iItemNo].slays_kind !=
                 0xff &&
-            g_item_records[pPC->EquippedItem[row->current_equip_slot].iItemNo].slays_kind_061 ==
+            g_item_records[pPC->EquippedItem[row->current_equip_slot].iItemNo].slays_kind ==
                 record->kind_0cb) {
             dice_count += 1;
         }
         if (row->paired_equip_slot != -1 &&
-            g_item_records[pPC->EquippedItem[row->paired_equip_slot].iItemNo].slays_kind_061 !=
+            g_item_records[pPC->EquippedItem[row->paired_equip_slot].iItemNo].slays_kind !=
                 0xff &&
-            g_item_records[pPC->EquippedItem[row->paired_equip_slot].iItemNo].slays_kind_061 ==
+            g_item_records[pPC->EquippedItem[row->paired_equip_slot].iItemNo].slays_kind ==
                 record->kind_0cb) {
             dice_count += 1;
         }
@@ -2655,13 +2655,13 @@ int ResolveCharacterAttackDamage(int party_slot, int hand, unsigned int attack_m
     }
 
     int damage =
-        (pPC->bonus_1770.damage_percent_03 + 100 + pPC->Hand[hand].damage_percent_29) * rolled + 50;
+        (pPC->bonus.damage_percent + 100 + pPC->Hand[hand].damage_percent) * rolled + 50;
     damage /= 100;
     if (damage < 1) {
         damage = 1;
     }
     if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER) {
-        int reduction = static_cast<int>(monster_info->modifiers_1db.damage_reduction_adjustment) +
+        int reduction = static_cast<int>(monster_info->modifiers.damage_reduction_adjustment) +
                         record->damage_reduction;
         if (reduction != 0) {
             damage = ((100 - reduction) * damage + 50) / 100;
@@ -2676,7 +2676,7 @@ int ResolveCharacterAttackDamage(int party_slot, int hand, unsigned int attack_m
         if (damage < 0) {
             damage = 0;
         }
-        if (target->skills[W8_SKILL_IRON_SKIN].active_00 != 0) {
+        if (target->skills[W8_SKILL_IRON_SKIN].active != 0) {
             PracticeCharacterSkill(target, W8_SKILL_IRON_SKIN, 1, 0);
         }
     }
@@ -2697,13 +2697,13 @@ int GetMonsterAttackScore(W8MonsterInfo* monster_info, W8MonsterAttack* attack, 
                           char arg_4)
 {
     W8MonsterCombatState* combat = monster_info->pCombat;
-    int score = monster_info->modifiers_1db.hit_bonus_01 * 5 + attack->attack_score_04;
+    int score = monster_info->modifiers.hit_bonus * 5 + attack->attack_score;
     score += AttackModeMod(0, attack_mode);
     if (g_combat_state != NULL) {
-        if (g_combat_state->unaware_9a4 != 0) {
+        if (g_combat_state->unaware != 0) {
             score += 10;
         }
-        if (g_combat_state->natural_attack_9a5 != 0) {
+        if (g_combat_state->natural_attack != 0) {
             score += 10;
         }
     }
@@ -2716,8 +2716,8 @@ int GetMonsterAttackScore(W8MonsterInfo* monster_info, W8MonsterAttack* attack, 
     }
     score -= penalty;
     if (combat->pending_action_repick_count > 0) {
-        int surprise = monster_info->attributes[3] -
-                       (combat->pending_action_repick_count * 5 + 10) * 5 + attack->attack_score_04;
+        int surprise = monster_info->attributes[W8_MONSTER_ATTRIBUTE_SPEED] -
+                       (combat->pending_action_repick_count * 5 + 10) * 5 + attack->attack_score;
         if (surprise < 0) {
             surprise = 0;
         }
@@ -2735,8 +2735,8 @@ int GetMonsterAttackScore(W8MonsterInfo* monster_info, W8MonsterAttack* attack, 
             unsigned int target_index = MonsterGetIndexByLocationID(
                 0xf2b, COMBAT_ATTACK_CPP, monster_info->Target.iMonsterID, 1);
             W8MonsterInfo* target_info = MonsterGetScriptPartByLocationIndex(target_index);
-            target_sum = target_info->attributes[4] + target_info->attributes[3] +
-                         target_info->attributes[2] + target_info->attributes[1];
+            target_sum = target_info->attributes[W8_MONSTER_ATTRIBUTE_SENSES] + target_info->attributes[W8_MONSTER_ATTRIBUTE_SPEED] +
+                         target_info->attributes[W8_MONSTER_ATTRIBUTE_DEXTERITY] + target_info->attributes[W8_MONSTER_ATTRIBUTE_INTELLIGENCE];
         } else if (monster_info->Target.iType == W8_TARGET_KIND_CHARACTER) {
             int target_char = monster_info->Target.iChar;
             target_sum =
@@ -2751,8 +2751,8 @@ int GetMonsterAttackScore(W8MonsterInfo* monster_info, W8MonsterAttack* attack, 
                                monster_info->Target.iMonsterID);
             target_sum = 0;
         }
-        score += (monster_info->attributes[4] + monster_info->attributes[3] +
-                  monster_info->attributes[2] + monster_info->attributes[1] - target_sum) /
+        score += (monster_info->attributes[W8_MONSTER_ATTRIBUTE_SENSES] + monster_info->attributes[W8_MONSTER_ATTRIBUTE_SPEED] +
+                  monster_info->attributes[W8_MONSTER_ATTRIBUTE_DEXTERITY] + monster_info->attributes[W8_MONSTER_ATTRIBUTE_INTELLIGENCE] - target_sum) /
                  10;
     }
     if (monster_info->uiCondition[W8_CONDITION_BLIND] != 0 && 10 < score) {
@@ -2786,7 +2786,7 @@ int ResolveMonsterAttackDamage(W8MonsterInfo* monster_info, W8MonsterAttack* att
         target_info = NULL;
         record = NULL;
         int engaged = GetEngagementCount();
-        out_of_formation = target->bonus_1770.out_of_formation;
+        out_of_formation = target->bonus.out_of_formation;
         bVar10 = engaged == 2;
         target_exposed =
             TryCharacterAction(g_combat_state->TargetHit.iChar, W8_ACTION_DEFEND, 1) != 0 ||
@@ -2803,7 +2803,7 @@ int ResolveMonsterAttackDamage(W8MonsterInfo* monster_info, W8MonsterAttack* att
         GetMonsterGroupByListIndex(
             GetMonsterGroupIndexByID(0xd4c, COMBAT_ATTACK_CPP, target_info->monster_group_id, 1));
         int action_kind = target_info->action_kind;
-        out_of_formation = target_info->modifiers_1db.out_of_formation;
+        out_of_formation = target_info->modifiers.out_of_formation;
         bVar10 = action_kind == 4;
         target_exposed = action_kind == 1 || action_kind == 8;
         target = NULL;
@@ -2811,10 +2811,10 @@ int ResolveMonsterAttackDamage(W8MonsterInfo* monster_info, W8MonsterAttack* att
 
     unsigned int dice_count = 1;
     if (attack_mode != 4 && (attack_mode < 7 || attack_mode > 8)) {
-        if (bVar10 || out_of_formation != 0 || g_combat_state->unaware_9a4 != 0) {
+        if (bVar10 || out_of_formation != 0 || g_combat_state->unaware != 0) {
             dice_count = 2;
         }
-        if (g_combat_state->natural_attack_9a5 != 0) {
+        if (g_combat_state->natural_attack != 0) {
             int chance = static_cast<int>(
                 ScaleValueByMonsterLevel(GetMonsterDataForInfo(monster_info), 9, 100.0f));
             unsigned int roll = Random(100);
@@ -2834,7 +2834,7 @@ int ResolveMonsterAttackDamage(W8MonsterInfo* monster_info, W8MonsterAttack* att
     if (attack_mode == 3) {
         dice_count += 1;
     }
-    if (dice_count > 1 && target_exposed != 0 && g_combat_state->unaware_9a4 == 0) {
+    if (dice_count > 1 && target_exposed != 0 && g_combat_state->unaware == 0) {
         dice_count -= 1;
     }
 
@@ -2846,7 +2846,7 @@ int ResolveMonsterAttackDamage(W8MonsterInfo* monster_info, W8MonsterAttack* att
         rolled = 1;
     }
     if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER) {
-        int reduction = static_cast<int>(target_info->modifiers_1db.damage_reduction_adjustment) +
+        int reduction = static_cast<int>(target_info->modifiers.damage_reduction_adjustment) +
                         record->damage_reduction;
         if (reduction != 0) {
             rolled = ((100 - reduction) * rolled + 50) / 100;
@@ -2861,7 +2861,7 @@ int ResolveMonsterAttackDamage(W8MonsterInfo* monster_info, W8MonsterAttack* att
         if (rolled < 0) {
             rolled = 0;
         }
-        if (target->skills[W8_SKILL_IRON_SKIN].active_00 != 0) {
+        if (target->skills[W8_SKILL_IRON_SKIN].active != 0) {
             PracticeCharacterSkill(target, W8_SKILL_IRON_SKIN, 1, 0);
         }
     }
@@ -2959,12 +2959,12 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                     magnitude = RollEffectDuration(definition);
                     if (magnitude < 2) {
                         SetDice(&definition->magnitude, count_base * 3, 2,
-                                definition->magnitude_base_1c);
+                                definition->magnitude_base);
                         magnitude = RollEffectMagnitude(definition) + 1;
                     }
                     resisted = ResolveAttackOnTarget(
                         source, target, W8_CONDITION_POISONED, 1, definition->power_level,
-                        definition->magnitude_base_1c, magnitude, verbose, announce, 0);
+                        definition->magnitude_base, magnitude, verbose, announce, 0);
                     if (accumulator != NULL) {
                         accumulator->condition_counts[W8_CONDITION_POISONED] += (resisted == 0);
                     }
@@ -3298,7 +3298,7 @@ void BuildMonsterTargetList(W8MonsterInfo* monster_info, W8MonsterRecord* record
 void AnnounceAccidentalStrike(W8TargetSource* source, W8CombatSlot* target)
 {
     char source_color = GetSourceNoticeColor(source);
-    wchar_t* message = g_combat_state->attack_message_6b8;
+    wchar_t* message = g_combat_state->attack_message;
     unsigned char color;
     unsigned char highlight_start;
     unsigned char highlight_stop;
@@ -3332,7 +3332,7 @@ void AnnounceAccidentalStrike(W8TargetSource* source, W8CombatSlot* target)
         color = GetTargetNoticeColor(source, target);
         highlight_start = static_cast<unsigned char>(wcslen(message));
         if (target->iType == W8_TARGET_KIND_MONSTER && source->iMonsterID == target->iMonsterID) {
-            wcscat(message, gppStringList[g_gender_name_message_rows[record->name_group_0cc][3]]);
+            wcscat(message, gppStringList[g_gender_name_message_rows[record->name_group][3]]);
         } else if (target->iType == W8_TARGET_KIND_CHARACTER) {
             wcscat(message, g_status.buffers.Char[target->iChar].name);
         } else {
@@ -3409,7 +3409,7 @@ W8Missile* FireMissileSourceToTarget(int missile_type, W8TargetSource* source, W
         return NULL;
     }
     if (TargetSourceIsCharacter(source, 0) && target->iType == W8_TARGET_KIND_CHARACTER &&
-        g_missile_table[missile_type].spell_missile_154 == 0) {
+        g_missile_table[missile_type].spell_missile == 0) {
         if (use_default_accuracy) {
             return NULL;
         }
@@ -3424,7 +3424,7 @@ W8Missile* FireMissileSourceToTarget(int missile_type, W8TargetSource* source, W
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         monster = monster_info->p3D;
         target_position = monster->movement_0c0.position_040;
-        target_position.y += monster->movement_0c0.height_offset_0b8;
+        target_position.y += monster->movement_0c0.height_offset;
     } else if (target->iType == W8_TARGET_KIND_PLACE) {
         target_position = target->point;
     } else {
@@ -3444,7 +3444,7 @@ W8Missile* FireMissileSourceToTarget(int missile_type, W8TargetSource* source, W
                 monster->GetPlayerToMonsterSightFlags(&primary, &secondary, &source_position);
             }
             if (secondary == 0 ||
-                (g_missile_table[missile_type].spell_missile_154 == 0 && primary == 0)) {
+                (g_missile_table[missile_type].spell_missile == 0 && primary == 0)) {
                 GetCameraPosition(&source_position);
             }
         }
@@ -3461,9 +3461,9 @@ W8Missile* FireMissileSourceToTarget(int missile_type, W8TargetSource* source, W
         index = MonsterGetIndexByLocationID(0x1387, COMBAT_ATTACK_CPP, source->iMonsterID, 1);
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         monster = monster_info->p3D;
-        if (g_missile_table[missile_type].spell_missile_154 == 0) {
+        if (g_missile_table[missile_type].spell_missile == 0) {
             position_ok = monster->GetProjectilePosition(&source_position);
-        } else if (source->point_source_1d == 0) {
+        } else if (source->point_source == 0) {
             position_ok = monster->GetSpellPosition(&source_position);
         } else {
             position_ok = missile_type;
@@ -3471,7 +3471,7 @@ W8Missile* FireMissileSourceToTarget(int missile_type, W8TargetSource* source, W
         if (position_ok == 0) {
             source_position.Set(monster->movement_0c0.position_040.x,
                                 monster->movement_0c0.position_040.y +
-                                    monster->movement_0c0.height_offset_0b8,
+                                    monster->movement_0c0.height_offset,
                                 monster->movement_0c0.position_040.z);
             MonsterGetAnimationRadius(monster, &radius);
             pitch = GetElevationAngle(&source_position, &target_position);
@@ -3510,7 +3510,7 @@ W8Missile* FireMissileSourceToTarget(int missile_type, W8TargetSource* source, W
                           use_default_accuracy, speed);
     if (missile != NULL) {
         missile->m_Source = *source;
-        missile->combat_slot_260 = *target;
+        missile->combat_slot = *target;
         missile->SetEffectDefinition(attack);
         if (!use_default_accuracy) {
             g_combat_state->engaged_missile = missile;
@@ -3541,10 +3541,10 @@ void FireCharacterItemMissile(int party_slot, W8Character* pc, W8CombatCharacter
     unsigned int missile_value;
     int accuracy;
     int i;
-    int missile_type = g_item_records[row->paired_item_id_7c].missile_type;
+    int missile_type = g_item_records[row->paired_item_id].missile_type;
     if (g_missile_table_count <= static_cast<unsigned int>(missile_type)) {
         FormatDebugMessage(0, "DATA ERROR: Item %ls has an invalid missile type (%d)",
-                           &g_item_records[row->paired_item_id_7c], missile_type);
+                           &g_item_records[row->paired_item_id], missile_type);
         missile_type = 0;
     }
     SetTargetSourceToCharacter(party_slot, &source);
@@ -3555,9 +3555,9 @@ void FireCharacterItemMissile(int party_slot, W8Character* pc, W8CombatCharacter
         capped_level = 0xf;
     }
     attack_block.power_level = level + capped_level;
-    attack_block.magnitude = g_item_records[row->paired_item_id_7c].damage_dice;
+    attack_block.magnitude = g_item_records[row->paired_item_id].damage_dice;
     weapon = &g_item_records[pc->EquippedItem[row->current_equip_slot].iItemNo];
-    missile_value = weapon->missile_magnitude_060;
+    missile_value = weapon->missile_magnitude;
     modifiers = weapon->missile_values_050;
     if (row->paired_equip_slot != -1) {
         paired = &g_item_records[pc->EquippedItem[row->paired_equip_slot].iItemNo];
@@ -3566,10 +3566,10 @@ void FireCharacterItemMissile(int party_slot, W8Character* pc, W8CombatCharacter
                 weapon->missile_values_050[0x10 - i] + paired->missile_values_050[0x10 - i];
         }
         modifiers = item_modifiers;
-        missile_value += paired->missile_magnitude_060;
+        missile_value += paired->missile_magnitude;
     }
     memcpy(attack_block.condition_chances, modifiers, 0x10);
-    attack_block.magnitude_base_1c = missile_value;
+    attack_block.magnitude_base = missile_value;
     accuracy = GetTargetAttackAttributes(
         party_slot, row->current_hand,
         g_status.buffers.XChar[party_slot].attack_mode[row->current_hand], 0);
@@ -3704,7 +3704,7 @@ char StartCharacterAttack(int party_slot, int attack_mode)
     hand = row->current_hand;
     if (character->Hand[hand].in_play == 0) {
         if (GetCharAttackRange(character, hand) == W8_RANGE_NONE) {
-            row->hand_attack_values_40[hand] = 0;
+            row->hand_attack_values[hand] = 0;
             return 0;
         }
     }
@@ -3714,15 +3714,15 @@ char StartCharacterAttack(int party_slot, int attack_mode)
         mode = attack_mode;
     }
     party_row->attack_mode[hand] = mode;
-    if (row->hand_attack_values_40[hand] == 0) {
+    if (row->hand_attack_values[hand] == 0) {
         FormatDebugMessage(
             1, "ERROR: %ls is starting attack with 0 of %d attacks remaining (hand %d)!",
             character->name, row->saved_attack_value[hand], hand);
         return 0;
     }
-    row->hand_attack_values_40[hand]--;
-    g_combat_state->unaware_9a4 = 0;
-    g_combat_state->natural_attack_9a5 = 0;
+    row->hand_attack_values[hand]--;
+    g_combat_state->unaware = 0;
+    g_combat_state->natural_attack = 0;
     if (!TargetIsInPlay(party_slot, hand, W8_TARGETING_CONTEXT_OUT_OF_COMBAT)) {
         FormatDebugMessage(1, "ERROR: %ls is starting attack with invalid target!",
                            character->name);
@@ -3743,14 +3743,14 @@ char StartCharacterAttack(int party_slot, int attack_mode)
     range = GetCharAttackRange(character, hand);
     if (CharacterHasTrait(character, W8_TRAIT_BACKSTAB) != 0 && range <= W8_RANGE_TOUCH &&
         (character->Hand[hand].weapon_skill == 0 || character->Hand[hand].weapon_skill == 4)) {
-        g_combat_state->natural_attack_9a5 = 1;
+        g_combat_state->natural_attack = 1;
     }
     if (character->EquippedItem[row->current_equip_slot].iItemNo != -1) {
         row->uiSwingsRemaining +=
             g_item_records[character->EquippedItem[row->current_equip_slot].iItemNo]
-                .swings_bonus_0ad;
+                .swings_bonus;
     }
-    if (row->extra_swings_82[0] != 0 && hand == 0) {
+    if (row->extra_swings[0] != 0 && hand == 0) {
         if (character->Hand[0].weapon_skill == 0 &&
             character->uiCondition[W8_CONDITION_SLOWED] == 0) {
             PostCharacterNotice(party_slot, gppStringList[0x203]);
@@ -3760,23 +3760,23 @@ char StartCharacterAttack(int party_slot, int attack_mode)
                 row->uiSwingsRemaining += 4;
             }
         }
-        row->extra_swings_82[0] = 0;
+        row->extra_swings[0] = 0;
     }
-    row->weapon_item_id_78 = character->EquippedItem[row->current_equip_slot].iItemNo;
+    row->weapon_item_id = character->EquippedItem[row->current_equip_slot].iItemNo;
     if (row->paired_equip_slot == -1) {
-        row->paired_item_id_7c = row->weapon_item_id_78;
+        row->paired_item_id = row->weapon_item_id;
     } else {
-        row->paired_item_id_7c = character->EquippedItem[row->paired_equip_slot].iItemNo;
+        row->paired_item_id = character->EquippedItem[row->paired_equip_slot].iItemNo;
     }
-    FindItemOnCharacter(character, row->weapon_item_id_78, &found, 0, NULL);
+    FindItemOnCharacter(character, row->weapon_item_id, &found, 0, NULL);
     if (found == NULL) {
         FormatDebugMessage(1, "ERROR: %ls does not have a %ls!", character->name,
-                           g_item_records[row->weapon_item_id_78].display_name);
+                           g_item_records[row->weapon_item_id].display_name);
         return 0;
     }
-    if (g_combat_state->natural_attack_9a5 != 0) {
-        wcscpy(g_combat_state->attack_message_6b8, gppStringList[0x204]);
-        wcscat(g_combat_state->attack_message_6b8, L" ");
+    if (g_combat_state->natural_attack != 0) {
+        wcscpy(g_combat_state->attack_message, gppStringList[0x204]);
+        wcscat(g_combat_state->attack_message, L" ");
     } else {
         if (hand == 1 && character->EquippedItem[6].iItemNo != -1 &&
             g_item_records[character->EquippedItem[6].iItemNo].equip_class == 3) {
@@ -3784,66 +3784,66 @@ char StartCharacterAttack(int party_slot, int attack_mode)
         } else {
             verb = gppStringList[g_attack_flag_name_ids[mode][1]];
         }
-        wcscpy(g_combat_state->attack_message_6b8, verb);
-        wcscat(g_combat_state->attack_message_6b8, L" ");
+        wcscpy(g_combat_state->attack_message, verb);
+        wcscat(g_combat_state->attack_message, L" ");
         if (character->Hand[hand].uiHolds != HOLDS_NOTHING) {
             name = GetItemDisplayName(found);
             if (g_settings.verbose_combat_messages != 0) {
-                if (g_combat_state->natural_attack_9a5 != 0) {
-                    wcscat(g_combat_state->attack_message_6b8, L" ");
-                    wcscat(g_combat_state->attack_message_6b8, gppStringList[0x215]);
+                if (g_combat_state->natural_attack != 0) {
+                    wcscat(g_combat_state->attack_message, L" ");
+                    wcscat(g_combat_state->attack_message, gppStringList[0x215]);
                 } else if (mode == 3) {
-                    wcscat(g_combat_state->attack_message_6b8, gppStringList[0x215]);
+                    wcscat(g_combat_state->attack_message, gppStringList[0x215]);
                 }
-                wcscat(g_combat_state->attack_message_6b8, name);
+                wcscat(g_combat_state->attack_message, name);
             }
             if (g_settings.verbose_combat_messages != 0 &&
-                g_combat_state->natural_attack_9a5 == 0) {
-                wcscat(g_combat_state->attack_message_6b8, gppStringList[0x216]);
-            } else if (g_combat_state->natural_attack_9a5 == 0) {
+                g_combat_state->natural_attack == 0) {
+                wcscat(g_combat_state->attack_message, gppStringList[0x216]);
+            } else if (g_combat_state->natural_attack == 0) {
                 switch (mode) {
                 case 0:
                 case 1:
                 case 4:
-                    wcscat(g_combat_state->attack_message_6b8, gppStringList[0x217]);
+                    wcscat(g_combat_state->attack_message, gppStringList[0x217]);
                     break;
                 case 3:
-                    wcscat(g_combat_state->attack_message_6b8, gppStringList[0x218]);
+                    wcscat(g_combat_state->attack_message, gppStringList[0x218]);
                     break;
                 }
             }
         } else {
             if (mode == 3) {
-                wcscat(g_combat_state->attack_message_6b8, gppStringList[0x205]);
-                wcscat(g_combat_state->attack_message_6b8, L" ");
+                wcscat(g_combat_state->attack_message, gppStringList[0x205]);
+                wcscat(g_combat_state->attack_message, L" ");
             }
         }
     }
     if (party_row->target_out_of_combat.iType == W8_TARGET_KIND_MONSTER) {
         monster_info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
             0x260, COMBAT_ATTACK_CPP, party_row->target_out_of_combat.iMonsterID, 1));
-        wcscat(g_combat_state->attack_message_6b8, GetMonsterName(monster_info, 0, 0));
+        wcscat(g_combat_state->attack_message, GetMonsterName(monster_info, 0, 0));
         PointCameraAtMonster(monster_info, 0, 1);
         if (range <= W8_RANGE_SHORT && !IsMonsterFacingParty(monster_info)) {
             if (monster_info->hp_current != 0 && monster_info->stamina != 0 &&
                 monster_info->highest_condition < 0xe &&
                 monster_info->uiCondition[W8_CONDITION_BLIND] == 0 &&
                 monster_info->action_kind == 1) {
-                if (monster_info->pCombat->spot_attempts_13d == 0) {
+                if (monster_info->pCombat->spot_attempts == 0) {
                     noticed = true;
                 } else {
                     noticed = Random(100) < static_cast<unsigned int>(
-                                                monster_info->attributes[4] -
-                                                monster_info->pCombat->spot_attempts_13d * 25);
+                                                monster_info->attributes[W8_MONSTER_ATTRIBUTE_SENSES] -
+                                                monster_info->pCombat->spot_attempts * 25);
                 }
-                monster_info->pCombat->spot_attempts_13d++;
+                monster_info->pCombat->spot_attempts++;
                 if (noticed != 0) {
                     MonsterForwardReferencePosition(monster_info->p3D, 0);
                 } else {
-                    g_combat_state->unaware_9a4 = IsPartyLookingAwayFrom(party_slot, monster_info);
+                    g_combat_state->unaware = IsPartyLookingAwayFrom(party_slot, monster_info);
                 }
             } else {
-                g_combat_state->unaware_9a4 = IsPartyLookingAwayFrom(party_slot, monster_info);
+                g_combat_state->unaware = IsPartyLookingAwayFrom(party_slot, monster_info);
             }
         }
     } else {
@@ -3855,65 +3855,65 @@ char StartCharacterAttack(int party_slot, int attack_mode)
             srAssertFail("CHAR_CURRENT_TARGET(uiChar).iChar != BAD_INDEX", COMBAT_ATTACK_CPP, 0x281,
                          0);
         }
-        wcscat(g_combat_state->attack_message_6b8,
+        wcscat(g_combat_state->attack_message,
                g_status.buffers.Char[party_row->target_out_of_combat.iChar].name);
         if (range <= W8_RANGE_SHORT &&
             !PositionFacesAsDecided(party_row->target_out_of_combat.iChar, party_slot)) {
             if (CharacterNoticesAttacker(party_row->target_out_of_combat.iChar) != 0) {
                 FacePositionAsDecided(party_row->target_out_of_combat.iChar, party_slot);
             } else {
-                g_combat_state->unaware_9a4 = PositionFacesOppositeToDecided(
+                g_combat_state->unaware = PositionFacesOppositeToDecided(
                     party_slot, party_row->target_out_of_combat.iChar);
             }
         }
     }
-    if (g_combat_state->natural_attack_9a5 != 0) {
+    if (g_combat_state->natural_attack != 0) {
         if (character->Hand[hand].uiHolds == HOLDS_NOTHING) {
             srAssertFail("pPC->Hand[uiHand].uiHolds != HOLDS_NOTHING", COMBAT_ATTACK_CPP, 0x29f, 0);
         }
         if (character->Hand[hand].uiHolds != HOLDS_NOTHING) {
             name = GetItemDisplayName(found);
             if (g_settings.verbose_combat_messages != 0) {
-                if (g_combat_state->natural_attack_9a5 != 0) {
-                    wcscat(g_combat_state->attack_message_6b8, L" ");
-                    wcscat(g_combat_state->attack_message_6b8, gppStringList[0x215]);
+                if (g_combat_state->natural_attack != 0) {
+                    wcscat(g_combat_state->attack_message, L" ");
+                    wcscat(g_combat_state->attack_message, gppStringList[0x215]);
                 } else if (mode == 3) {
-                    wcscat(g_combat_state->attack_message_6b8, gppStringList[0x215]);
+                    wcscat(g_combat_state->attack_message, gppStringList[0x215]);
                 }
-                wcscat(g_combat_state->attack_message_6b8, name);
+                wcscat(g_combat_state->attack_message, name);
             }
             if (g_settings.verbose_combat_messages != 0 &&
-                g_combat_state->natural_attack_9a5 == 0) {
-                wcscat(g_combat_state->attack_message_6b8, gppStringList[0x216]);
-            } else if (g_combat_state->natural_attack_9a5 == 0) {
+                g_combat_state->natural_attack == 0) {
+                wcscat(g_combat_state->attack_message, gppStringList[0x216]);
+            } else if (g_combat_state->natural_attack == 0) {
                 switch (mode) {
                 case 0:
                 case 1:
                 case 4:
-                    wcscat(g_combat_state->attack_message_6b8, gppStringList[0x217]);
+                    wcscat(g_combat_state->attack_message, gppStringList[0x217]);
                     break;
                 case 3:
-                    wcscat(g_combat_state->attack_message_6b8, gppStringList[0x218]);
+                    wcscat(g_combat_state->attack_message, gppStringList[0x218]);
                     break;
                 }
             }
         }
     } else {
-        if (g_combat_state->unaware_9a4 != 0) {
-            wcscat(g_combat_state->attack_message_6b8, gppStringList[0x207]);
+        if (g_combat_state->unaware != 0) {
+            wcscat(g_combat_state->attack_message, gppStringList[0x207]);
         }
     }
     if (row->uiSwingsRemaining > 1) {
-        wcscat(g_combat_state->attack_message_6b8,
+        wcscat(g_combat_state->attack_message,
                FormatWideString(L" %dx", row->uiSwingsRemaining));
     }
-    PostCharacterNotice(party_slot, g_combat_state->attack_message_6b8);
+    PostCharacterNotice(party_slot, g_combat_state->attack_message);
     ResetCombatSlot(&g_combat_state->TargetHit);
-    row->attack_sound_played_a5 = false;
+    row->attack_sound_played = false;
     if (range >= W8_RANGE_LONG) {
         FireCharacterItemMissile(party_slot, character, row, range);
         MakePCAttackSound(row, &character->Hand[hand], mode, 0, -1);
-        row->attack_sound_played_a5 = true;
+        row->attack_sound_played = true;
     } else {
         event_ids[0] = g_event_range_min;
         event_ids[1] = g_special_event_0068c56c;
@@ -3987,24 +3987,24 @@ int ResolveCharacterAttack(int party_slot)
         return 3;
     } else {
         attack_mode = party_row->attack_mode[hand];
-        if (row->attack_sound_played_a5 == 0) {
+        if (row->attack_sound_played == 0) {
             MakePCAttackSound(row, &character->Hand[hand], attack_mode, 1, -1);
-            row->attack_sound_played_a5 = true;
+            row->attack_sound_played = true;
             return 2;
         }
         target = party_row->target_out_of_combat;
         range = GetCharAttackRange(character, hand);
         if (target.iType == W8_TARGET_KIND_CHARACTER) {
             W8Character* defender = &g_status.buffers.Char[target.iChar];
-            if (defender->skills[W8_SKILL_LOCKS_TRAPS].active_00 != 0) {
+            if (defender->skills[W8_SKILL_LOCKS_TRAPS].active != 0) {
                 g_combat_state->characters[target.iChar].skill_use_flags[W8_SKILL_LOCKS_TRAPS] = 1;
             }
-            if (defender->skills[W8_SKILL_SHIELD].active_00 != 0 &&
-                g_combat_state->unaware_9a4 == 0 && g_combat_state->natural_attack_9a5 == 0 &&
+            if (defender->skills[W8_SKILL_SHIELD].active != 0 &&
+                g_combat_state->unaware == 0 && g_combat_state->natural_attack == 0 &&
                 defender->armor_class_components[3] > 0) {
                 g_combat_state->characters[target.iChar].skill_use_flags[W8_SKILL_SHIELD] = 1;
             }
-            if (defender->skills[W8_SKILL_REFLEXTION].active_00 != 0) {
+            if (defender->skills[W8_SKILL_REFLEXTION].active != 0) {
                 g_combat_state->characters[target.iChar].skill_use_flags[W8_SKILL_REFLEXTION] = 1;
             }
         }
@@ -4060,8 +4060,8 @@ int ResolveCharacterAttack(int party_slot)
                 guaranteed_penetration = 0;
                 swing_missed = false;
                 roll = Random(100) + 1;
-                g_combat_state->unaware_9a4 = 0;
-                g_combat_state->natural_attack_9a5 = 0;
+                g_combat_state->unaware = 0;
+                g_combat_state->natural_attack = 0;
                 PLDestroy(fumble_list);
             } else {
                 g_combat_state->TargetHit = party_row->target_out_of_combat;
@@ -4089,7 +4089,7 @@ int ResolveCharacterAttack(int party_slot)
             }
         }
         if (verbose == 0) {
-            report->deferred_80 = 1;
+            report->deferred = 1;
         }
         if (swing_missed != 0) {
             if (g_settings.verbose_combat_messages != 0) {
@@ -4129,15 +4129,15 @@ int ResolveCharacterAttack(int party_slot)
                         hit_location = 3;
                         break;
                     }
-                    total += record->hit_location_chances_15f[hit_location];
+                    total += record->hit_location_chances[hit_location];
                     if (location_roll < total) {
                         break;
                     }
                 }
-                if (record->hit_location_chances_15f[hit_location] < 100) {
+                if (record->hit_location_chances[hit_location] < 100) {
                     wcscpy(location_name,
                            gppStringList[g_monster_hit_location_labels[hit_location]
-                                                                      [record->constitution_15e]]);
+                                                                      [record->constitution]]);
                 } else {
                     wcscpy(location_name, &g_empty_wide_string);
                 }
@@ -4175,7 +4175,7 @@ int ResolveCharacterAttack(int party_slot)
                     weapon_class =
                         g_item_records[character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON]
                                            .iItemNo]
-                            .weapon_sound_class_0c5;
+                            .weapon_sound_class;
                 }
                 if (BlockedForSpecialReason(weapon_class, &g_combat_state->TargetHit, roll, to_hit,
                                             8) == 0) {
@@ -4269,7 +4269,7 @@ int ResolveCharacterAttack(int party_slot)
                             if (hand_attack->uiHolds == HOLDS_NOTHING) {
                                 memcpy(effect.condition_chances, hand_attack->condition_chances,
                                        0x10);
-                                effect.magnitude_base_1c = 0;
+                                effect.magnitude_base = 0;
                             } else {
                                 memcpy(
                                     effect.condition_chances,
@@ -4277,10 +4277,10 @@ int ResolveCharacterAttack(int party_slot)
                                                        .iItemNo]
                                         .missile_values_050,
                                     0x10);
-                                effect.magnitude_base_1c =
+                                effect.magnitude_base =
                                     g_item_records[character->EquippedItem[row->current_equip_slot]
                                                        .iItemNo]
-                                        .missile_magnitude_060;
+                                        .missile_magnitude;
                                 if (row->paired_equip_slot != -1) {
                                     const unsigned char* paired_values =
                                         g_item_records[character
@@ -4290,11 +4290,11 @@ int ResolveCharacterAttack(int party_slot)
                                     for (int i = 0; i < 0x10; ++i) {
                                         effect.condition_chances[i] += paired_values[i];
                                     }
-                                    effect.magnitude_base_1c +=
+                                    effect.magnitude_base +=
                                         g_item_records[character
                                                            ->EquippedItem[row->paired_equip_slot]
                                                            .iItemNo]
-                                            .missile_magnitude_060;
+                                            .missile_magnitude;
                                 }
                             }
                             if (fumbled == 0) {
@@ -4385,20 +4385,20 @@ int ResolveCharacterAttack(int party_slot)
             if (range < W8_RANGE_LONG) {
                 if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER) {
                     W8Enchantment* enchantment = &monster_info->enchantments[3];
-                    if (enchantment->turns_08 != 0) {
+                    if (enchantment->turns != 0) {
                         SetTargetSourceToMonster(monster_info, &target_source);
                         ApplyDiceDamageToCharacter(party_slot, &target_source, enchantment);
-                        if (--enchantment->power_00 == 0) {
+                        if (--enchantment->power == 0) {
                             ClearMonsterEnchantmentSlot(monster_info->location_id, 3);
                         }
                     }
                 } else {
                     W8Enchantment* enchantment =
                         &g_status.buffers.Char[g_combat_state->TargetHit.iChar].enchantments[3];
-                    if (enchantment->turns_08 != 0) {
+                    if (enchantment->turns != 0) {
                         SetTargetSourceToCharacter(g_combat_state->TargetHit.iChar, &target_source);
                         ApplyDiceDamageToCharacter(party_slot, &target_source, enchantment);
-                        if (--enchantment->power_00 == 0) {
+                        if (--enchantment->power == 0) {
                             ClearCharacterEnchantmentSlot(g_combat_state->TargetHit.iChar, 3);
                         }
                     }
@@ -4417,18 +4417,18 @@ int ResolveCharacterAttack(int party_slot)
             outcome = 1;
         } else if (outcome > 3) {
             if (character->Hand[hand].combat_skill == W8_SKILL_CLOSE_COMBAT) {
-                if (character->skills[W8_SKILL_CRITICAL_STRIKE].active_00 != 0) {
+                if (character->skills[W8_SKILL_CRITICAL_STRIKE].active != 0) {
                     PracticeCharacterSkill(character, W8_SKILL_CRITICAL_STRIKE, 1, 0);
                 }
-                if (character->skills[W8_SKILL_POWER_STRIKE].active_00 != 0) {
+                if (character->skills[W8_SKILL_POWER_STRIKE].active != 0) {
                     PracticeCharacterSkill(character, W8_SKILL_POWER_STRIKE, 1, 0);
                 }
             } else if (character->Hand[hand].combat_skill == W8_SKILL_RANGED_COMBAT) {
-                if (character->skills[W8_SKILL_EAGLE_EYE].active_00 != 0) {
+                if (character->skills[W8_SKILL_EAGLE_EYE].active != 0) {
                     PracticeCharacterSkill(character, W8_SKILL_EAGLE_EYE, 1, 0);
                 }
                 if (CharacterHasTrait(character, W8_TRAIT_THROWN_CRITICALS) != 0 &&
-                    character->skills[W8_SKILL_CRITICAL_STRIKE].active_00 != 0) {
+                    character->skills[W8_SKILL_CRITICAL_STRIKE].active != 0) {
                     PracticeCharacterSkill(character, W8_SKILL_CRITICAL_STRIKE, 1, 0);
                 }
             }
@@ -4454,7 +4454,7 @@ int ResolveCharacterAttack(int party_slot)
         if (character->Hand[hand].combat_skill == W8_SKILL_RANGED_COMBAT &&
             g_item_records[item->iItemNo].spell_id == 0) {
             if (g_item_records[item->iItemNo].equip_class == 2) {
-                if ((g_item_records[item->iItemNo].flags_041 & 0x80) == 0) {
+                if ((g_item_records[item->iItemNo].flags & 0x80) == 0) {
                     if (g_item_records[item->iItemNo].quantity_kind == 1) {
                         --item->stack_count;
                         if (character->EquippedItem[row->current_equip_slot].stack_count == 0) {
@@ -4507,11 +4507,11 @@ int ResolveCharacterAttack(int party_slot)
                                     SpellTargetString(&source, &party_row->target_out_of_combat));
             }
             ResetCombatSlot(&g_combat_state->TargetHit);
-            row->attack_sound_played_a5 = false;
+            row->attack_sound_played = false;
             if (range >= W8_RANGE_LONG) {
                 FireCharacterItemMissile(party_slot, character, row, range);
                 MakePCAttackSound(row, &character->Hand[hand], attack_mode, 0, -1);
-                row->attack_sound_played_a5 = true;
+                row->attack_sound_played = true;
             }
             return 2;
         }
@@ -4521,7 +4521,7 @@ int ResolveCharacterAttack(int party_slot)
         if (fumbled != 0 || source.target_diverted != 0) {
             PostCharacterNotice(party_slot, gppStringList[0x269],
                                 SpellTargetString(&source, &party_row->target_out_of_combat));
-            if (g_combat_state->attack_report.deferred_80 != 0) {
+            if (g_combat_state->attack_report.deferred != 0) {
                 ReportCharacterAttackResult(party_slot, &g_combat_state->attack_report);
             }
         }

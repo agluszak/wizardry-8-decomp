@@ -138,7 +138,7 @@ struct W8MonsterManagerEntry {
     /* 0x113: set around SwapItemInstances so the autoswap-weapons check does
        not fire on the intermediate item states. */
     bool item_swap_in_progress;
-    unsigned int pending_event_type_114; /* 0x114: last queued portrait event type */
+    unsigned int pending_event_type; /* 0x114: last queued portrait event type */
 }; /* 0x118 */
 #pragma pack(pop)
 
@@ -183,7 +183,7 @@ static_assert(offsetof(W8MonsterManagerEntry, skill_notice_pending) == 0xea,
               "W8MonsterManagerEntry_skill_notice_pending_offset");
 static_assert(offsetof(W8MonsterManagerEntry, item_swap_in_progress) == 0x113,
               "W8MonsterManagerEntry_item_swap_in_progress_offset");
-static_assert(offsetof(W8MonsterManagerEntry, pending_event_type_114) == 0x114,
+static_assert(offsetof(W8MonsterManagerEntry, pending_event_type) == 0x114,
               "W8MonsterManagerEntry_pending_event_type_offset");
 static_assert(sizeof(W8MonsterManagerEntry) == 0x118, "W8MonsterManagerEntry_size_must_be_0x118");
 
@@ -205,6 +205,17 @@ struct W8MonsterAction {
 
 enum { W8_MONSTER_ATTR_COUNT = 5 };
 
+/* Monster attribute indices into W8MonsterInfo::attributes. ConvertMonsterAttributes
+   builds the five slots from character-domain attributes, skipping Piety (2) and
+   Vitality (3): slot 0 is Strength, 1 Intelligence, 2 Dexterity, 3 Speed, 4 Senses. */
+enum {
+    W8_MONSTER_ATTRIBUTE_STRENGTH = 0,
+    W8_MONSTER_ATTRIBUTE_INTELLIGENCE = 1,
+    W8_MONSTER_ATTRIBUTE_DEXTERITY = 2,
+    W8_MONSTER_ATTRIBUTE_SPEED = 3,
+    W8_MONSTER_ATTRIBUTE_SENSES = 4
+};
+
 /* The 0x153-byte combat allocation has two adjacent runs of 0x11-byte records.
    ClearEffectSlot consumes a record whenever its leading active byte is set. */
 #pragma pack(push, 1)
@@ -221,7 +232,7 @@ struct W8MonsterCombatState {
        remaining phases between them. */
     int attacks_per_round;
     /* 0x00d: swings left in the current attack, rolled from the record's
-       swings_per_round_0e6 when the attack starts and read back for the
+       swings_per_round when the attack starts and read back for the
        announcement message. A four-byte store; the attack-resolution
        assertion spells it uiSwingsRemaining. */
     unsigned int uiSwingsRemaining;
@@ -237,20 +248,20 @@ struct W8MonsterCombatState {
        W8MonsterAction each. The AI owns the list and destroys it outright. */
     W8PList* plsCombatActionList;
     int character_hate[9];
-    W8EffectSlot effect_slots_3e[9]; /* 0x03e .. 0x0d7 */
-    W8EffectSlot effect_slots_d7[6]; /* 0x0d7 .. 0x13d */
+    W8EffectSlot combat_effects[9]; /* 0x03e .. 0x0d7 */
+    W8EffectSlot combat_effects_2[6]; /* 0x0d7 .. 0x13d */
     /* 0x13d: how many times the monster already rolled to notice an attacker
-       this round, the same scheme as the character row's spot_attempts_90. */
-    int spot_attempts_13d;
+       this round, the same scheme as the character row's spot_attempts. */
+    int spot_attempts;
     /* 0x141: the monster's pending-action repick count, the same scheme as
        the character row's pending_action_repick_count; the attack-score
        surprise penalty scales with it. */
     unsigned int pending_action_repick_count;
     /* 0x145: the special/breath attack is available this round. */
-    bool special_ready_145;
+    bool special_ready;
     /* 0x146: rounds until the special attack can fire again, loaded from the
-       record's special_attack_cooldown_15c after each use. */
-    unsigned char special_cooldown_146;
+       record's special_attack_cooldown after each use. */
+    unsigned char special_cooldown;
     /* 0x147: the round's interception count, checked against the record's
        attacks_per_round before another intercept is allowed and bumped on
        each successful one. */
@@ -258,19 +269,19 @@ struct W8MonsterCombatState {
     /* 0x14b: the monster is committed to advancing on the party. Set when the
        action executor starts the advance and cleared when an enemy is inside
        short range or when the forcing condition is removed. */
-    unsigned char advancing_14b;
+    unsigned char advancing;
     /* 0x14c: combat ticks since the member last acted; the AI treats a value
        under three as still settling. */
-    int settle_ticks_14c;
+    int settle_ticks;
     /* 0x150: the monster's turn has been set up already, so the setup runs
        once per turn however often it is asked for. */
     bool turn_started;
     /* 0x151: set when a navigator completes movement while this monster is in
        combat; the combat tick then refreshes its sight and clears it. */
-    bool sight_refresh_pending_151;
+    bool sight_refresh_pending;
     /* 0x152: per-turn ~75% roll made during turn setup; while set the monster
        skips friendly targets and gets one extra action repick. */
-    bool reconsider_action_152;
+    bool reconsider_action;
 }; /* 0x153 */
 #pragma pack(pop)
 
@@ -290,23 +301,23 @@ struct W8PartyThreatRecord {
     int about_location_id; /* 0x286: zero in the party-side visibility record */
     /* 0x28a: W8SightState - live-threat gate for the group sight query;
        combat, radar, automap and AI read it. */
-    unsigned char sight_state_04;
+    unsigned char sight_state;
     /* 0x28b: the sight-flag pair GetPlayerToMonsterSightFlags writes;
        CanPartyMemberAimAtMonster indexes it by the resolved action's
        ranged flag. */
-    bool los_flags_05[2];
+    bool los_flags[2];
     /* 0x28d: the party-detection result after the per-observer threshold and
        camouflage checks run. */
-    unsigned char party_detected_07;
+    unsigned char party_detected;
     int last_seen_clock_08;               /* 0x28e: cleared by the per-turn reset */
-    srVector3T<float> camera_position_0c; /* 0x292 */
-    srVector3T<float> own_position_18;    /* 0x29e */
+    srVector3T<float> camera_position; /* 0x292 */
+    srVector3T<float> own_position;    /* 0x29e */
     /* 0x2aa: the use-bounds mode the last UpdateMonsterSight pass handed to
        IsVisibleToPlayer. */
-    unsigned char use_bounds_24;
+    unsigned char use_bounds;
     /* 0x2ab: the immediate IsVisibleToPlayer result; gates notices, camera
        and path behavior. */
-    bool visible_to_player_25;
+    bool visible_to_player;
     unsigned char unknown_26[0x0a];
 }; /* 0x30 */
 static_assert(sizeof(W8PartyThreatRecord) == 0x30, "W8PartyThreatRecord_size");
@@ -318,18 +329,18 @@ static_assert(sizeof(W8PartyThreatRecord) == 0x30, "W8PartyThreatRecord_size");
    ordinary floats. The reset zeroes exactly its 0x31 bytes. */
 struct W8VisibilityRecord {
     int about_location_id;        /* 0x00; always zero in the party record */
-    unsigned char sight_state_04; /* 0x04: W8SightState */
+    unsigned char sight_state; /* 0x04: W8SightState */
     /* 0x05: two sight-flag pairs - GetMonsterSightFlags writes [0]/[2], and
        the missile/spell vertex traces overwrite [1]/[3]. */
-    bool los_flags_05[4];
+    bool los_flags[4];
     unsigned char unknown_09[2];
     /* 0x0b: the CanMonsterSeeMonster result for mon-to-mon records; the
        party-facing record stores its visible_to_player result here. */
-    bool can_see_0b;
+    bool can_see;
     int last_seen_clock_0c;                /* 0x0c */
-    srVector3T<float> subject_position_10; /* 0x10: the observer */
-    srVector3T<float> target_position_1c;  /* 0x1c: the observed */
-    bool line_of_sight_28;                 /* 0x28 */
+    srVector3T<float> subject_position; /* 0x10: the observer */
+    srVector3T<float> target_position;  /* 0x1c: the observed */
+    bool line_of_sight;                 /* 0x28 */
     unsigned char unknown_29[8];           /* 0x29 */
 }; /* 0x31 */
 static_assert(sizeof(W8VisibilityRecord) == 0x31, "W8VisibilityRecord_size");
@@ -357,7 +368,7 @@ struct W8MonsterInfo {
        floats here and hands the same triple to GetCameraFacingYaw,
        whose result it stores next, and to 0x0042e620 with the new entry's id. */
     srVector3T<float> position_17;
-    float derived_23; /* 0x23: camera-facing yaw over position_17 */
+    float derived; /* 0x23: camera-facing yaw over position_17 */
     /* 0x27: uiHPMax, named by the Targeting.cpp:0xeac assertion
        "pMonsterInfo->uiHPMax > 0"; signed divisor at 00531657 and 004E5A7A. */
     int uiHPMax;
@@ -366,14 +377,14 @@ struct W8MonsterInfo {
     int stamina;             /* 0x033: initialized to the same roll */
     /* 0x37: the position and radius of the last noise this monster heard;
        Noise.cpp writes the heard position and the radius that carried. */
-    srVector3T<float> heard_noise_position_37;
-    int heard_noise_radius_43;
+    srVector3T<float> heard_noise_position;
+    int heard_noise_radius;
     /* 0x47/0x4b: the hit-point regeneration rate and its fractional
        accumulator, styled on 0x0048c120's stamina pair below. */
-    float hp_regen_rate_47;
-    float hp_regen_accumulator_4b;
-    float stamina_regen_rate_4f;
-    float stamina_regen_accumulator_53;
+    float hp_regen_rate;
+    float hp_regen_accumulator;
+    float stamina_regen_rate;
+    float stamina_regen_accumulator;
     /* 0x057: the monster's copy of the character condition array, entry for
        entry - condition two doubles its action fatigue at 0x05f, eight blocks
        its spellcasting at 0x077, thirteen makes it hostile at 0x08b, fifteen
@@ -388,30 +399,30 @@ struct W8MonsterInfo {
     /* 0x10b: the argument a condition carries when a monster's conditions are
        copied onto a character. */
     int condition_argument;
-    W8EffectSlot effect_slots_10f[12];
-    W8GameplayModifierBlock modifiers_1db; /* 0x1db */
+    W8EffectSlot effect_slots[12];
+    W8GameplayModifierBlock modifiers; /* 0x1db */
     int fatigue_band;                      /* 0x242: derived from stamina */
     /* 0x246: countdown set on pathing failure (0x14) or after a long stall
        (0x1e); each AI tick decrements it, and reaching zero clears
-       heard_noise_margin_2f5. Also gates the face-party proximity check. */
-    unsigned char pathing_cooldown_246;
+       heard_noise_margin. Also gates the face-party proximity check. */
+    unsigned char pathing_cooldown;
     unsigned char attributes[W8_MONSTER_ATTR_COUNT]; /* 0x247: values clamped to 1..125 */
-    unsigned char condition_binding_mask_24c;
+    unsigned char condition_binding_mask;
     unsigned char within_viewing_distance; /* 0x24d: cycle-2 eligibility gate */
     unsigned char fMotionless;             /* 0x24e: fMotionless in the demo diagnostic */
-    float scale_24f;                       /* 0x24f: HP-dependent live Monster scale */
+    float scale;                       /* 0x24f: HP-dependent live Monster scale */
     /* 0x253: set once the non-forced death path has run MonsterDies; gates
        the death notice and skips repeat processing. */
-    bool death_processed_253;
+    bool death_processed;
     /* 0x254: movement-stall tick counter - incremented each watch tick while
        the monster is unlinked, floored at 2 on pathing failure, reset when
        the watch cycle clears. Signed: 0x005312B4 loads the byte next to the
        constant 2 and jumps with JGE, so the floor test is a signed one and the
        declaration has to be signed for the compiler to emit it. */
-    signed char movement_stall_ticks_254;
+    signed char movement_stall_ticks;
     /* 0x255: monster AI mode in the low nibble (0..8), bit 0x80 marks a
        pending decision write, bit 0x10 set on load. */
-    unsigned char ai_mode_255;
+    unsigned char ai_mode;
     unsigned char unknown_256[0x30];
     W8PartyThreatRecord party_threat; /* 0x286 */
     /* 0x2b6: what this monster can see of other monsters, one heap record per
@@ -425,12 +436,12 @@ struct W8MonsterInfo {
     W8CombatSlot Target;
     /* 0x2da: summon marker - 0 ordinary, 1 friendly summon, 2 hostile summon;
        nonzero raises the summoned spell icon and feeds the slain cleanup. */
-    int summoned_2da;
+    int summoned;
     /* 0x2de: the monster is under the effect the magic code clears by name;
        clearing it posts a notice and drops the visual. The NPC price-check
        dispatch reads it signed (MOVSX) as a percentage discount on the quoted
        price. */
-    signed char effect_2de;
+    signed char effect;
     /* 0x2df: the committed attack already launched its missile; asserted by
        ContinueMonsterAttack when an out-of-range attack reports no release. */
     bool fMissileReleased;
@@ -449,40 +460,40 @@ struct W8MonsterInfo {
     int bound_npc_index;
     /* 0x2f5: remaining noise-hearing margin, refreshed by nearby sounds and
        cleared when pathing cooldown expires. */
-    int heard_noise_margin_2f5;
+    int heard_noise_margin;
     /* 0x2f9: live spell-point pool; spell-budget calculations add it to the
        database base, and group attacks drain it. */
-    unsigned int spell_points_2f9;
+    unsigned int spell_points;
     int control_state; /* 0x2fd: group-recomputed control state */
     unsigned char cycle17_state;
     /* 0x302/0x303: the two alternating look-around timers the aging pass
        counts down and rearms from the monster's look frequency/duration. */
-    unsigned char look_timer_302;
-    unsigned char look_timer_303;
+    unsigned char look_time;
+    unsigned char pause_time;
     /* 0x304: the condition's own target source, copied in whole by the
        condition setter. */
-    W8TargetSource condition_target_304;
+    W8TargetSource condition_target;
     srVector3T<float> movement_watch_position; /* 0x338 */
     /* 0x344: location id of the phantom an Insanity effect summoned against
        this monster, -1 while none is bound; a bound monster cannot be picked
        again. */
-    int insanity_summon_344;
+    int insanity_summon;
     W8VisibilityRecord player_visibility; /* 0x348 */
     unsigned char unknown_379;
-    bool has_missile_37a;
+    bool has_missile;
     unsigned char unknown_37b;
-    bool has_spell_37c;
+    bool has_spell;
     unsigned char unknown_37d[0xa8];
 }; /* 0x425 */
 #pragma pack(pop)
 
 static_assert(sizeof(W8MonsterInfo) == 0x425, "W8MonsterInfo_size_must_be_0x425");
-static_assert(offsetof(W8MonsterInfo, modifiers_1db) == 0x1db,
-              "W8MonsterInfo_modifiers_1db_offset");
-static_assert(offsetof(W8MonsterInfo, heard_noise_margin_2f5) == 0x2f5,
-              "W8MonsterInfo_heard_noise_margin_2f5_offset");
-static_assert(offsetof(W8MonsterInfo, spell_points_2f9) == 0x2f9,
-              "W8MonsterInfo_spell_points_2f9_offset");
+static_assert(offsetof(W8MonsterInfo, modifiers) == 0x1db,
+              "W8MonsterInfo_modifiers_offset");
+static_assert(offsetof(W8MonsterInfo, heard_noise_margin) == 0x2f5,
+              "W8MonsterInfo_heard_noise_margin_offset");
+static_assert(offsetof(W8MonsterInfo, spell_points) == 0x2f9,
+              "W8MonsterInfo_spell_points_offset");
 
 W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_index);
 bool InitializeMonsterManagerState(void);

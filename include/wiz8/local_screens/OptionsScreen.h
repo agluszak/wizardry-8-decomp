@@ -110,14 +110,14 @@ public:
     void Advance();
     void Retreat();
 
-    int m_page_count_000;
+    int m_page_count;
     int unknown_004;
     unsigned char m_compact_layout;
     unsigned char m_hide_navigation;
     bool m_active; /* set once the set's panels are built */
     unsigned char pad_00b;
     int m_current_00c;
-    W8Vector<W8OptionsPanel*> m_panels_010;
+    W8Vector<W8OptionsPanel*> m_panels;
 };
 
 static_assert(sizeof(W8OptionsPanelSet) == 0x20, "W8OptionsPanelSet_must_be_0x20");
@@ -177,9 +177,9 @@ public:
     void AddChoices(int label, int count, const int* choices, int* value);
 
     int m_current_04c;
-    int m_content_top_050;
+    int m_content_top;
     int unknown_054;
-    W8Vector<W8TextBuffer*> m_text_buffers_058;
+    W8Vector<W8TextBuffer*> m_text_buffers;
     W8Vector<W8OptionsSelection*> m_option_selections;
 };
 
@@ -393,12 +393,12 @@ public:
     virtual void EnableSecondaryState(unsigned char immediate) override;
     virtual void OnPrimary(W8TextControl* control) override;
 
-    int m_item_id_0bc;
+    int m_item_id;
 };
 
 static_assert(sizeof(W8OptionsMenuButton) == 0xc0, "W8OptionsMenuButton_must_be_0xc0");
 /* Retail secondary vftable 0x005eed34 places W8TextControl::Listener at +0xb8. */
-W8_ASSERT_BASE_END(W8OptionsMenuButton, W8TextControl::Listener, m_item_id_0bc, 0xb8);
+W8_ASSERT_BASE_END(W8OptionsMenuButton, W8TextControl::Listener, m_item_id, 0xb8);
 
 /* The 0x60-byte controls-derived menu-set object constructed at 0x005A8C90.
    Its independent allocation, constructor, secondary listener vptr, and the
@@ -454,11 +454,11 @@ public:
 
     W8Vector<W8SaveSlot*> m_save_slots;
     bool m_redraw_pending;
-    bool m_modal_closing_01d;
+    bool m_modal_closing;
     unsigned char padding_01e[2];
-    int m_selected_panel_020;
+    int m_selected_panel;
     Controls* m_controls_024;
-    W8OptionsMenuSet* m_menu_set_028;
+    W8OptionsMenuSet* m_menu_set;
     W8ControlSelection* m_menu_selection;
     unsigned char unknown_030[8];
     W8OptionsPanelSet* m_panel_038[8];

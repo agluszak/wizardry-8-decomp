@@ -113,7 +113,7 @@ static void ProvokeHostileEncounterOnGameThread(void* opaque)
            path instead of reproducing that empty-drop bug. */
         W8MonsterRecord* provoked_record = GetMonsterDataForInfo(provoked_info);
         if (provoked_record != 0) {
-            W8MonsterTreasureEntry* treasure = &provoked_record->treasure_1f3.slots[0];
+            W8MonsterTreasureEntry* treasure = &provoked_record->treasure.slots[0];
             treasure->type = 0;
             treasure->count = 1;
             treasure->item_id = 0x23c; /* the container item SpawnItem drops */
@@ -252,7 +252,7 @@ static void ReadHostileEngagementOnGameThread(void* opaque)
     GetCameraPosition(&party_position);
     /* The camera rides the environ's world_height above the party's feet;
        monster distances are ground distances, so measure from the feet. */
-    party_position.y -= g_environ != 0 ? g_environ->world_height_30 : g_default_world_height;
+    party_position.y -= g_environ != 0 ? g_environ->world_height : g_default_world_height;
     s->screen = g_current_screen_state.id;
     s->pending = g_pending_screen_state.id;
     s->combat_mode = gXStatus.fCombatMode != 0;
@@ -292,7 +292,7 @@ static void ReadHostileEngagementOnGameThread(void* opaque)
                 s->provoked_in_combat = info->fInCombat;
                 s->provoked_distance = distance;
                 s->provoked_dead = info->uiCondition[W8_CONDITION_DEAD] != 0;
-                s->provoked_threat_state = info->party_threat.sight_state_04;
+                s->provoked_threat_state = info->party_threat.sight_state;
             }
             if (info->location_id == query->aim_location_id) {
                 s->aim_active = 1;
@@ -317,7 +317,7 @@ static void ReadHostileEngagementOnGameThread(void* opaque)
         s->first_target_monster = -1;
         for (int slot = 0; slot < 8; ++slot) {
             const W8PartySlotRow* row = &g_status.buffers.XChar[slot];
-            if (row->fOccupied != 0 && row->action_03d == W8_ACTION_ATTACK) {
+            if (row->fOccupied != 0 && row->action == W8_ACTION_ATTACK) {
                 ++s->queued_attacks;
                 if (s->first_target_type < 0) {
                     s->first_target_type = row->target_in_combat.iType;
@@ -326,7 +326,7 @@ static void ReadHostileEngagementOnGameThread(void* opaque)
             }
         }
     }
-    s->round_active = g_combat_state != 0 ? g_combat_state->execution_active_000 : 0;
+    s->round_active = g_combat_state != 0 ? g_combat_state->execution_active : 0;
     s->action_status = g_combat_state != 0 ? g_combat_state->eCombatActionStatus : 0;
     s->action_monster = g_combat_state != 0 && g_combat_state->pActionMonsterInfo != 0
                             ? g_combat_state->pActionMonsterInfo->location_id
@@ -397,14 +397,14 @@ static void QueuePartyAttacksOnGameThread(void* opaque)
            CanAnyHandReachTarget refuses every swing. Recompute through the
            product's own entry point. */
         CalcAttacks(character);
-        if (row->action_03d != W8_ACTION_ATTACK) {
+        if (row->action != W8_ACTION_ATTACK) {
             ChooseAction(slot, W8_ACTION_ATTACK, -1, 0, 0, 1);
         }
         /* ChooseAction only records the action; the swing resolves against
            target_in_combat, which the player path fills through AimAtTarget.
            Without it the queued attack swings at nothing and can never
            land. */
-        if (aim_location_id >= 0 && row->action_03d == W8_ACTION_ATTACK) {
+        if (aim_location_id >= 0 && row->action == W8_ACTION_ATTACK) {
             if (row->target_in_combat.iType != W8_TARGET_KIND_MONSTER ||
                 row->target_in_combat.iMonsterID != aim_location_id) {
                 W8CombatSlot target;
@@ -434,7 +434,7 @@ static void QueuePartyAttacksOnGameThread(void* opaque)
                 ++query->aimed;
             }
         }
-        if (row->action_03d == W8_ACTION_ATTACK) {
+        if (row->action == W8_ACTION_ATTACK) {
             ++query->queued;
         }
     }
@@ -538,7 +538,7 @@ static void QueuePartySpellsOnGameThread(void* opaque)
             if (gpSCSV == 0) {
                 gpSCSV = static_cast<W8SpellCastingView*>(calloc(1, sizeof(W8SpellCastingView)));
             }
-            gpSCSV->override_spell_104 = query->spell_id;
+            gpSCSV->override_spell = query->spell_id;
             gpSCSV->caster = character;
             gXStatus.fSpellCastMode = 1;
             AimAtTarget(slot, &target, W8_TARGETING_CONTEXT_SPELL);
@@ -552,7 +552,7 @@ static void QueuePartySpellsOnGameThread(void* opaque)
         } else {
             SetCharacterSpell(character, query->spell_id, 1);
         }
-        if (row->action_03d == W8_ACTION_CAST_SPELL) {
+        if (row->action == W8_ACTION_CAST_SPELL) {
             ++query->queued;
             if (row->spell_target.iType == W8_TARGET_KIND_MONSTER) {
                 ++query->aimed;
@@ -580,10 +580,10 @@ static void QueuePartyDefendOnGameThread(void* opaque)
             continue;
         }
         ++query->eligible;
-        if (row->action_03d != W8_ACTION_DEFEND) {
+        if (row->action != W8_ACTION_DEFEND) {
             ChooseAction(slot, W8_ACTION_DEFEND, -1, 0, 0, 1);
         }
-        if (row->action_03d == W8_ACTION_DEFEND) {
+        if (row->action == W8_ACTION_DEFEND) {
             ++query->queued;
         }
     }
@@ -695,7 +695,7 @@ static void TeleportPartyNearEngagedOnGameThread(void* opaque)
         }
     }
     if (*moved) {
-        /* Aim requires party_threat.sight_state_04 == 1 - currently seen - and a
+        /* Aim requires party_threat.sight_state == 1 - currently seen - and a
            teleport leaves the sight bookkeeping stale. */
         RefreshAllSight();
         srVector3T<float> after;
@@ -879,7 +879,7 @@ static void StartCombatRoundOnGameThread(void* opaque)
 {
     bool* active = static_cast<bool*>(opaque);
     DispatchMGSCommand(W8_MGS_COMMAND_START_COMBAT_ROUND);
-    *active = g_combat_state != 0 && g_combat_state->execution_active_000 != 0;
+    *active = g_combat_state != 0 && g_combat_state->execution_active != 0;
 }
 
 bool StartCombatRound(RuntimeCase& test, const char* step)

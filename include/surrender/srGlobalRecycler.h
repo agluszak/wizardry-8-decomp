@@ -30,17 +30,17 @@ private:
     public:
         ~CriticalSection()
         {
-            EnterCriticalSection(&critical_section_00);
-            LeaveCriticalSection(&critical_section_00);
-            DeleteCriticalSection(&critical_section_00);
+            EnterCriticalSection(&critical_section);
+            LeaveCriticalSection(&critical_section);
+            DeleteCriticalSection(&critical_section);
         }
 
-        CRITICAL_SECTION critical_section_00;
+        CRITICAL_SECTION critical_section;
     };
 
     CacheEntry entries_00[16];
-    unsigned long used_mask_80;
-    unsigned long cached_bytes_84;
+    unsigned long used_mask;
+    unsigned long cached_bytes;
     unsigned long limit_88;
     CriticalSection critical_section_8c;
 };

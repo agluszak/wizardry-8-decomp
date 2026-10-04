@@ -48,7 +48,7 @@ protected:
     srCachedExponentTable(float exponent = 1.0f);
     ~srCachedExponentTable();
 
-    long ref_count_1004;
+    long ref_count;
     srCachedExponentTable* previous_1008;
     srCachedExponentTable* next_100c;
 

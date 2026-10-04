@@ -18,7 +18,7 @@ public:
 
 private:
     HANDLE handle_04;
-    long access_count_08;
+    long access_count;
 };
 
 static_assert(sizeof(srMutex) == 0x0c, "srMutex_must_be_0x0c");

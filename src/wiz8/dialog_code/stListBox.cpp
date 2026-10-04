@@ -28,14 +28,14 @@ void W8ListBoxDialog::TextAreaButtonCallback(GUI_BUTTON* button, INT32 reason)
         /* Retail read this top edge uninitialized when the area button is
            absent (the leftover argument slot); the recovery keeps that read. */
         int top;
-        if (dialog->m_area_button_098 != -1) {
+        if (dialog->m_area_button != -1) {
             SGPRect area;
-            GetButtonArea(dialog->m_area_button_098, &area);
+            GetButtonArea(dialog->m_area_button, &area);
             top = area.iTop;
         }
         int line = (cursor.y - top) / static_cast<int>(static_cast<unsigned int>(GetFontHeight(g_dialog_interface_font))) +
-                   dialog->m_first_visible_line_0f0;
-        if (line == dialog->m_selected_line_0f4) {
+                   dialog->m_first_visible_line;
+        if (line == dialog->m_selected_line) {
             dialog->m_keep_open = false;
             return;
         }
@@ -51,7 +51,7 @@ void W8ListBoxDialog::UpButtonCallback(GUI_BUTTON* button, INT32 reason)
         srAssertFail("pDialog", "C:\\Projects\\Wizardry 8\\Dialog Code\\stListBox.cpp", 0x305, 0);
     }
     if (reason & MSYS_CALLBACK_REASON_LBUTTON_DWN) {
-        dialog->SetCurrentLine(dialog->m_selected_line_0f4 - 1);
+        dialog->SetCurrentLine(dialog->m_selected_line - 1);
         if (!(button->uiFlags & BUTTON_CLICKED_ON)) {
             button->uiFlags |= BUTTON_CLICKED_ON;
             dialog->m_dirty_flags |= 1;
@@ -78,7 +78,7 @@ void W8ListBoxDialog::DownButtonCallback(GUI_BUTTON* button, INT32 reason)
         srAssertFail("pDialog", "C:\\Projects\\Wizardry 8\\Dialog Code\\stListBox.cpp", 0x32a, 0);
     }
     if (reason & MSYS_CALLBACK_REASON_LBUTTON_DWN) {
-        dialog->SetCurrentLine(dialog->m_selected_line_0f4 + 1);
+        dialog->SetCurrentLine(dialog->m_selected_line + 1);
         if (!(button->uiFlags & BUTTON_CLICKED_ON)) {
             button->uiFlags |= BUTTON_CLICKED_ON;
             dialog->m_dirty_flags |= 1;
@@ -167,11 +167,11 @@ void W8ListBoxDialog::SliderTrackButtonCallback(GUI_BUTTON* button, INT32 reason
            button is absent (the leftover argument slots); the recovery keeps that read. */
         int top;
         int bottom;
-        if (dialog->m_third_text_button_0b8 != -1) {
+        if (dialog->m_third_text_button != -1) {
             SGPRect area;
-            GetButtonArea(dialog->m_third_text_button_0b8, &area);
-            top = area.iTop + GetButtonHeight(dialog->m_up_button_09c);
-            bottom = area.iBottom - GetButtonHeight(dialog->m_down_button_0a4);
+            GetButtonArea(dialog->m_third_text_button, &area);
+            top = area.iTop + GetButtonHeight(dialog->m_up_button);
+            bottom = area.iBottom - GetButtonHeight(dialog->m_down_button);
         }
         if (cursor.y < top) {
             cursor.y = top;

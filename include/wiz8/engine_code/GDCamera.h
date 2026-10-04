@@ -54,21 +54,21 @@ public:
     srMatrix3T<float> m_pitch_rotation; /* 0x00c */
     srMatrix3T<float> m_yaw_rotation;   /* 0x030 */
     srMatrix3T<float> m_rotation;       /* 0x054 */
-    srVector3T<float> m_direction_078;  /* 0x078 */
+    srVector3T<float> m_direction;  /* 0x078 */
     float m_frame_elapsed;              /* 0x084 */
     bool m_transition_active;           /* 0x088 */
     bool m_forced_transition;  /* 0x089 */
     unsigned char m_padding_08a[2];
-    srVector3T<float> m_position_08c;     /* 0x08c */
-    float m_target_angle_098;             /* 0x098 */
-    float m_target_pitch_09c;             /* 0x09c */
-    float m_start_angle_0a0;              /* 0x0a0 */
-    float m_start_pitch_0a4;              /* 0x0a4 */
-    float m_angle_velocity_0a8;           /* 0x0a8 */
-    float m_pitch_velocity_0ac;           /* 0x0ac */
-    float m_angle_distance_0b0;           /* 0x0b0 */
-    float m_pitch_distance_0b4;           /* 0x0b4 */
-    float m_transition_duration_0b8;      /* 0x0b8 */
+    srVector3T<float> m_position;     /* 0x08c */
+    float m_target_angle;             /* 0x098 */
+    float m_target_pitch;             /* 0x09c */
+    float m_start_angle;              /* 0x0a0 */
+    float m_start_pitch;              /* 0x0a4 */
+    float m_angle_velocity;           /* 0x0a8 */
+    float m_pitch_velocity;           /* 0x0ac */
+    float m_angle_distance;           /* 0x0b0 */
+    float m_pitch_distance;           /* 0x0b4 */
+    float m_transition_duration;      /* 0x0b8 */
     W8IntervalGate* m_manual_input_timer; /* 0x0bc */
 };
 

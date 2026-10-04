@@ -48,7 +48,7 @@ bool g_fog_enabled;
 // GLOBAL: WIZ8 0x0065b9ae
 bool g_sky_enabled;
 // GLOBAL: WIZ8 0x0065B9A8
-static unsigned long g_tick_65b9a8;
+static unsigned long g_tick;
 /* 0x00659AB4: the world being rendered. Its sky node is the one field these
    two bodies reach, and it is the same W8World the 3d code walks. */
 
@@ -83,8 +83,8 @@ bool g_environment_colour_refresh = 1;
 // FUNCTION: WIZ8 0x00482010
 W8MaterialMapper::W8MaterialMapper()
 {
-    scroll_rate_u_04 = 0.002f;
-    scroll_rate_v_08 = 0.0f;
+    scroll_rate_u = 0.002f;
+    scroll_rate_v = 0.0f;
     g_frame_tick = GetTickCount();
 }
 
@@ -108,14 +108,14 @@ void W8MaterialMapper::process(srVertexPipe& pipe)
     unsigned long count = pipe.getVertexCount();
     srVector2T<float>* coordinates = pipe.getST(0, 0);
 
-    offset_x = scroll_rate_u_04 * g_frame_elapsed + offset_14;
-    offset_14 = offset_x - static_cast<float>(floor(offset_x));
-    offset_y = scroll_rate_v_08 * g_frame_elapsed + offset_18;
-    offset_18 = offset_y - static_cast<float>(floor(offset_y));
+    offset_x = scroll_rate_u * g_frame_elapsed + scroll_u;
+    scroll_u = offset_x - static_cast<float>(floor(offset_x));
+    offset_y = scroll_rate_v * g_frame_elapsed + scroll_v;
+    scroll_v = offset_y - static_cast<float>(floor(offset_y));
 
     for (unsigned long index = 0; index < count; ++index) {
-        coordinates[index].x += offset_14;
-        coordinates[index].y += offset_18;
+        coordinates[index].x += scroll_u;
+        coordinates[index].y += scroll_v;
     }
 }
 
@@ -155,7 +155,7 @@ void AdvanceEnvironmentTime(int elapsed)
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
         UpdateGameClock(elapsed);
     }
-    g_tick_65b9a8 = GetTickCount();
+    g_tick = GetTickCount();
 
     const double arc = 3.141592653589793 * (1.0f / 180.0f) * 80.0;
     bool day;
@@ -215,10 +215,10 @@ void SetEnvironmentTimeEnabled(bool enabled)
     }
 
     g_environment_time_enabled = 1;
-    g_tick_65b9a8 = GetTickCount();
+    g_tick = GetTickCount();
     if (g_environment_time_enabled != 0) {
         unsigned long now = GetTickCount();
-        unsigned long elapsed = now < g_tick_65b9a8 ? now - g_tick_65b9a8 - 1 : now - g_tick_65b9a8;
+        unsigned long elapsed = now < g_tick ? now - g_tick - 1 : now - g_tick;
         if (elapsed != 0) {
             AdvanceEnvironmentTime(
                 static_cast<int>(static_cast<double>(elapsed) * g_view_distance));
@@ -251,7 +251,7 @@ void UpdateEnvironment(void)
         }
     } else {
         unsigned long now = GetTickCount();
-        unsigned long elapsed = now < g_tick_65b9a8 ? now - g_tick_65b9a8 - 1 : now - g_tick_65b9a8;
+        unsigned long elapsed = now < g_tick ? now - g_tick - 1 : now - g_tick;
         if (elapsed != 0) {
             AdvanceEnvironmentTime(
                 static_cast<int>(static_cast<double>(elapsed) * g_view_distance));
@@ -371,7 +371,7 @@ void UpdateEnvironmentLight(void)
 {
     if (g_environment_time_enabled != 0) {
         unsigned long now = GetTickCount();
-        unsigned long elapsed = now < g_tick_65b9a8 ? now - g_tick_65b9a8 - 1 : now - g_tick_65b9a8;
+        unsigned long elapsed = now < g_tick ? now - g_tick - 1 : now - g_tick;
         if (elapsed != 0) {
             AdvanceEnvironmentTime(
                 static_cast<int>(static_cast<double>(elapsed) * g_view_distance));
@@ -408,8 +408,8 @@ void SetSkyEnabled(bool enabled)
             return;
         }
         g_world->camera->setEnvironmentRange(
-            static_cast<float>(WorldGetFarClip(g_world)) * g_world->environment_range_start_014,
-            static_cast<float>(WorldGetFarClip(g_world)) * g_world->environment_range_end_018);
+            static_cast<float>(WorldGetFarClip(g_world)) * g_world->environment_range_start,
+            static_cast<float>(WorldGetFarClip(g_world)) * g_world->environment_range_end);
         return;
     }
 
@@ -491,7 +491,7 @@ void RefreshEnvironment(void)
 {
     if (g_environment_time_enabled != 0) {
         unsigned long now = GetTickCount();
-        unsigned long elapsed = now < g_tick_65b9a8 ? now - g_tick_65b9a8 - 1 : now - g_tick_65b9a8;
+        unsigned long elapsed = now < g_tick ? now - g_tick - 1 : now - g_tick;
         if (elapsed != 0) {
             AdvanceEnvironmentTime(
                 static_cast<int>(static_cast<double>(elapsed) * g_view_distance));
@@ -527,7 +527,7 @@ void SetWorldEnvironmentIntensity(W8World* world, float value)
         ApplyEnvironmentColour(world, value, &colour);
         return;
     }
-    ApplyEnvironmentColour(world, value, &world->environment_colour_02c);
+    ApplyEnvironmentColour(world, value, &world->environment_colour);
 }
 
 /* Arm or complete a lighting fade. A zero duration snaps back to day/night
@@ -551,7 +551,7 @@ void BeginWorldLightingFade(float duration)
         g_monster_light_scale = 1.0f;
 
         world = g_world;
-        intensity = world->environment_base_intensity_028;
+        intensity = world->environment_base_intensity;
         if (world == 0) {
             srAssertFail("pWorld", ENVIRONMENT_CPP, 0x298, 0);
         }
@@ -567,12 +567,12 @@ void BeginWorldLightingFade(float duration)
             SaturateColor(&colour);
             ApplyEnvironmentColour(world, intensity, &colour);
         } else {
-            ApplyEnvironmentColour(world, intensity, &world->environment_colour_02c);
+            ApplyEnvironmentColour(world, intensity, &world->environment_colour);
         }
 
         world = g_secondary_world;
         if (world != 0) {
-            intensity = world->environment_base_intensity_028;
+            intensity = world->environment_base_intensity;
             if (g_double_005ebc30 <= intensity || g_double_zero < intensity) {
                 if (g_double_005ebc30 <= intensity) {
                     intensity = static_cast<float>(g_double_005ebc30);
@@ -585,7 +585,7 @@ void BeginWorldLightingFade(float duration)
                 SaturateColor(&colour);
                 ApplyEnvironmentColour(world, intensity, &colour);
             } else {
-                ApplyEnvironmentColour(world, intensity, &world->environment_colour_02c);
+                ApplyEnvironmentColour(world, intensity, &world->environment_colour);
             }
         }
 
@@ -599,10 +599,10 @@ void BeginWorldLightingFade(float duration)
     g_environment_transition_tick = GetTickCount();
     g_environment_lighting_mode = 1;
     if (duration < g_float_zero) {
-        g_world->environment_base_intensity_028 = g_world->environment_intensity_024;
+        g_world->environment_base_intensity = g_world->environment_intensity;
         if (g_secondary_world != 0) {
-            g_secondary_world->environment_base_intensity_028 =
-                g_secondary_world->environment_intensity_024;
+            g_secondary_world->environment_base_intensity =
+                g_secondary_world->environment_intensity;
         }
     }
 }
@@ -636,7 +636,7 @@ void UpdateEnvironmentLighting(void)
     g_monster_light_scale = scale;
 
     world = g_world;
-    intensity = scale * world->environment_base_intensity_028;
+    intensity = scale * world->environment_base_intensity;
     if (world == 0) {
         srAssertFail("pWorld", ENVIRONMENT_CPP, 0x298, 0);
     }
@@ -652,12 +652,12 @@ void UpdateEnvironmentLighting(void)
         SaturateColor(&colour);
         ApplyEnvironmentColour(world, intensity, &colour);
     } else {
-        ApplyEnvironmentColour(world, intensity, &world->environment_colour_02c);
+        ApplyEnvironmentColour(world, intensity, &world->environment_colour);
     }
 
     world = g_secondary_world;
     if (world != 0) {
-        float secondary = scale * world->environment_base_intensity_028;
+        float secondary = scale * world->environment_base_intensity;
         if (g_double_005ebc30 <= secondary || g_double_zero < secondary) {
             if (g_double_005ebc30 <= secondary) {
                 secondary = static_cast<float>(g_double_005ebc30);
@@ -670,7 +670,7 @@ void UpdateEnvironmentLighting(void)
             SaturateColor(&colour);
             ApplyEnvironmentColour(world, secondary, &colour);
         } else {
-            ApplyEnvironmentColour(world, secondary, &world->environment_colour_02c);
+            ApplyEnvironmentColour(world, secondary, &world->environment_colour);
         }
     }
 
@@ -724,14 +724,14 @@ bool IsSkyEnabled(void)
 void RefreshFogRanges(void)
 {
     if (g_environment_object_0065b9b0 != 0 && g_world != 0) {
-        g_environment_object_0065b9b0->fog_end_158 =
-            WorldGetFarClip(g_world) * g_world->environment_range_end_018;
-        g_environment_object_0065b9b0->fog_start_150 =
-            WorldGetFarClip(g_world) * g_world->environment_range_start_014;
-        g_environment_object_0065b9b4->fog_start_150 =
-            WorldGetFarClip(g_world) * g_world->environment_range_start_014;
-        g_environment_object_0065b9b4->fog_end_158 =
-            WorldGetFarClip(g_world) * g_world->environment_range_end_018;
+        g_environment_object_0065b9b0->fog_end =
+            WorldGetFarClip(g_world) * g_world->environment_range_end;
+        g_environment_object_0065b9b0->fog_start =
+            WorldGetFarClip(g_world) * g_world->environment_range_start;
+        g_environment_object_0065b9b4->fog_start =
+            WorldGetFarClip(g_world) * g_world->environment_range_start;
+        g_environment_object_0065b9b4->fog_end =
+            WorldGetFarClip(g_world) * g_world->environment_range_end;
     }
 }
 
@@ -777,7 +777,7 @@ void GetWorldLightValue(const W8World* world, EnvironmentColour* pLightValue)
         srAssertFail("pLightValue", ENVIRONMENT_CPP, 617, 0);
     }
     if (world->static_scene != 0) {
-        *pLightValue = world->environment_colour_02c;
+        *pLightValue = world->environment_colour;
     } else {
         *pLightValue = 0.0;
     }
@@ -815,7 +815,7 @@ float GetWorldEnvironmentIntensity(const W8World* world)
     if (world == 0) {
         srAssertFail("pWorld", ENVIRONMENT_CPP, 648, 0);
     }
-    return world->environment_intensity_024;
+    return world->environment_intensity;
 }
 
 /* Retain the world's current intensity while replacing its environment
@@ -828,7 +828,7 @@ void SetWorldEnvironmentColour(W8World* world, EnvironmentColour colour)
         srAssertFail("pWorld", ENVIRONMENT_CPP, 634, 0);
         srAssertFail("pWorld", ENVIRONMENT_CPP, 648, 0);
     }
-    ApplyEnvironmentColour(world, world->environment_intensity_024, &colour);
+    ApplyEnvironmentColour(world, world->environment_intensity, &colour);
 }
 
 // GLOBAL: WIZ8 0x005ec980
@@ -866,8 +866,8 @@ void ApplyEnvironmentColour(W8World* world, float intensity, const EnvironmentCo
 
         ScaleColourAndSaturate(&ambient, intensity);
         world->static_scene->setAmbientLight(ambient.x, ambient.y, ambient.z);
-        world->environment_colour_02c = *colour;
-        world->environment_intensity_024 = intensity;
+        world->environment_colour = *colour;
+        world->environment_intensity = intensity;
     }
     for (int index = 0; index < g_environment_lights.count; ++index) {
         stLight* light = *g_environment_lights.GetAt(index);
@@ -898,7 +898,7 @@ void ApplyEnvironmentColour(W8World* world, float intensity, const EnvironmentCo
             material->parms.diffuse.w =
                 static_cast<float>(brightness * g_double_005ebf40 + g_double_005ec980);
 
-            material->dirty_74 = 1;
+            material->dirty = 1;
         }
     }
 }
@@ -978,7 +978,7 @@ void SetCameraLightMode(int mode)
 void SetGameTimeMilliseconds(int value)
 {
     g_status.game_time_ms = value;
-    g_tick_65b9a8 = GetTickCount();
+    g_tick = GetTickCount();
 }
 
 // FUNCTION: WIZ8 0x00482740
@@ -1029,7 +1029,7 @@ void InitializeLevelEnvironment(void)
 
                 g_sky_gradient_animations[index] = animation;
                 if (animation != 0) {
-                    animation->animation_mode_60 = 3;
+                    animation->animation_mode = 3;
                 }
             }
         }
@@ -1038,10 +1038,10 @@ void InitializeLevelEnvironment(void)
         unsigned int now = GetTickCount();
         unsigned int elapsed;
 
-        if (now < g_tick_65b9a8) {
-            elapsed = now - g_tick_65b9a8 - 1;
+        if (now < g_tick) {
+            elapsed = now - g_tick - 1;
         } else {
-            elapsed = now - g_tick_65b9a8;
+            elapsed = now - g_tick;
         }
         if (elapsed != 0) {
             AdvanceEnvironmentTime(
@@ -1056,7 +1056,7 @@ void InitializeLevelEnvironment(void)
             srAssertFail("pWorld", ENVIRONMENT_CPP, 0x27a, 0);
             srAssertFail("pWorld", ENVIRONMENT_CPP, 0x288, 0);
         }
-        ApplyEnvironmentColour(g_world, g_world->environment_intensity_024, &colour);
+        ApplyEnvironmentColour(g_world, g_world->environment_intensity, &colour);
         {
             g_light_direction = g_environment_colours_65ad98[phase];
             PublishLightDirection(&g_environment_colours_65ad98[phase]);

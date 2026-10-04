@@ -34,8 +34,8 @@ public:
     static_assert(sizeof(Dimensions) == 0x2c, "srTextureIFace_Dimensions_must_be_0x2c");
     struct MultiRequest {
         long mipmap_level;
-        /* Last mipmap level filled; iterated level <= last_level_04. */
-        unsigned long last_level_04;
+        /* Last mipmap level filled; iterated level <= last_level. */
+        unsigned long last_level;
         srColorSurfaceIFace* destinations[1];
     };
     /* srGERD::setTextureSubImage packs the level-0 dimensions and the target
@@ -53,8 +53,8 @@ public:
     /* getTextureParms copies eight bytes: packed filter/wrap/mipmap state
        from srTexture+0x18 and mipmap bias from +0x1c. */
     struct Parameters {
-        unsigned long packed_state_00;
-        float mipmap_bias_04;
+        unsigned long packed_state;
+        float mipmap_bias;
     };
     static_assert(sizeof(Parameters) == 0x08, "srTextureIFace_Parameters_must_be_0x08");
     /* srTexture::dump: NONE / FASTEST / GOOD / BEST, else DEFAULT.

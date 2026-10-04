@@ -317,9 +317,9 @@ W8World* CreateWorld()
     world->dynamic_scene->setName("Sir-Tech Dynamic Scene");
     SetSceneAmbientLightWhite(world->static_scene);
     ConstructWorldCollections(world);
-    world->environment_range_end_018 = 1.0f;
-    world->environment_range_blue_01c = 1.0f;
-    world->environment_range_start_014 = 0.75f;
+    world->environment_range_end = 1.0f;
+    world->environment_range_blue = 1.0f;
+    world->environment_range_start = 0.75f;
     return world;
 }
 
@@ -328,7 +328,7 @@ void UpdateWorlds(void)
 {
     g_navigator_vertical_enabled =
         !(gfKeyState[0x11] != 0 && g_combat_state != 0 &&
-          (g_combat_state->round_active_001 != 0 || gXStatus.fPartyMovementMode != 0));
+          (g_combat_state->round_active != 0 || gXStatus.fPartyMovementMode != 0));
 
     {
         int count = g_worlds.GetCount();
@@ -707,8 +707,8 @@ void UpdateWorldCameraAndPaths(W8World* world, unsigned int flags)
                     g_secondary_world->camera->setRotation(path_rotation);
                 }
                 ApplyCameraRotation(&path_rotation);
-                if (path->discrete_mode_1c != 0) {
-                    if (path->position >= path->nodes_0c->GetCount() - g_float_one) {
+                if (path->discrete_mode != 0) {
+                    if (path->position >= path->nodes->GetCount() - g_float_one) {
                         UpdateCameraPathState(world, camera_path, 0);
                     }
                 } else if (path->position >= g_double_005ebc30) {
@@ -1052,7 +1052,7 @@ bool FindEntityByName(const char* name, srVector3T<float>* position, float* angl
                 *angle = entry->angle;
             }
             if (direction != 0) {
-                *direction = entry->direction_090;
+                *direction = entry->direction;
             }
             return true;
         }

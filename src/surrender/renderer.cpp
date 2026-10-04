@@ -231,24 +231,24 @@ unsigned long srGERD::Renderer::TextureSetCache::intern(const TextureSetKey& key
     unsigned long index = count_0c;
     map->Insert(&key, &index);
 
-    TextureSet& set = sets_04[index];
-    set.texture0_00 = key.texture0_00;
-    set.texture1_04 = key.texture1_04;
+    TextureSet& set = sets[index];
+    set.texture0 = key.texture0;
+    set.texture1 = key.texture1;
     set.shader_08 = key.shader_08;
     switch ((key.shader_08.value >> srShader::DSTBLEND_SHIFT) & 7) {
     case srShader::DSTBLEND_ONE:
-        set.blend_0c = 2;
+        set.blend = 2;
         break;
     case srShader::DSTBLEND_SRC_COLOR:
     case srShader::DSTBLEND_ONE_MINUS_SRC_COLOR:
-        set.blend_0c = 3;
+        set.blend = 3;
         break;
     case srShader::DSTBLEND_SRC_ALPHA:
     case srShader::DSTBLEND_ONE_MINUS_SRC_ALPHA:
-        set.blend_0c = 1;
+        set.blend = 1;
         break;
     default:
-        set.blend_0c = 0;
+        set.blend = 0;
         break;
     }
     count_0c += 1;
@@ -268,13 +268,13 @@ void srGERD::Renderer::IndexBatch::alloc(IndexWrite& write, unsigned long count)
     if (sort_key_10.capacity <= needed) {
         sort_key_10.setCapacity(sort_key_10.capacity + 8 + needed);
     }
-    if (aux_18.capacity <= needed) {
-        aux_18.setCapacity(aux_18.capacity + 8 + needed);
+    if (aux.capacity <= needed) {
+        aux.setCapacity(aux.capacity + 8 + needed);
     }
     write.triangles_00 = &triangles_00[count_20];
     write.texture_set_04 = &texture_set_08[count_20];
-    write.sort_key_08 = &sort_key_10[count_20];
-    write.aux_0c = &aux_18[count_20];
+    write.sort_key = &sort_key_10[count_20];
+    write.aux = &aux[count_20];
     count_20 += count;
 }
 
@@ -285,7 +285,7 @@ void srGERD::Renderer::IndexBatch::reset(int release)
         triangles_00.release();
         texture_set_08.release();
         sort_key_10.release();
-        aux_18.release();
+        aux.release();
     }
     count_20 = 0;
 }
@@ -296,8 +296,8 @@ void srGERD::Renderer::VertexArrays::alloc(srVertexArray& arrays, unsigned long 
     unsigned long needed = count + count_40;
     if (capacity_44 < needed) {
         needed += 0x40;
-        if (diffuse_00.capacity <= needed) {
-            diffuse_00.setCapacity(diffuse_00.capacity + 8 + needed);
+        if (diffuse.capacity <= needed) {
+            diffuse.setCapacity(diffuse.capacity + 8 + needed);
         }
         if (specular_08.capacity <= needed) {
             specular_08.setCapacity(specular_08.capacity + 8 + needed);
@@ -305,17 +305,17 @@ void srGERD::Renderer::VertexArrays::alloc(srVertexArray& arrays, unsigned long 
         if (positions_10.capacity <= needed) {
             positions_10.setCapacity(positions_10.capacity + 8 + needed);
         }
-        if (st_18[0].capacity <= needed) {
-            st_18[0].setCapacity(st_18[0].capacity + 8 + needed);
+        if (st[0].capacity <= needed) {
+            st[0].setCapacity(st[0].capacity + 8 + needed);
         }
-        if (st_18[1].capacity <= needed) {
-            st_18[1].setCapacity(st_18[1].capacity + 8 + needed);
+        if (st[1].capacity <= needed) {
+            st[1].setCapacity(st[1].capacity + 8 + needed);
         }
-        if (q_28[0].capacity <= needed) {
-            q_28[0].setCapacity(q_28[0].capacity + 8 + needed);
+        if (q[0].capacity <= needed) {
+            q[0].setCapacity(q[0].capacity + 8 + needed);
         }
-        if (q_28[1].capacity <= needed) {
-            q_28[1].setCapacity(q_28[1].capacity + 8 + needed);
+        if (q[1].capacity <= needed) {
+            q[1].setCapacity(q[1].capacity + 8 + needed);
         }
         if (packed_38.capacity <= needed) {
             packed_38.setCapacity(packed_38.capacity + 8 + needed);
@@ -324,7 +324,7 @@ void srGERD::Renderer::VertexArrays::alloc(srVertexArray& arrays, unsigned long 
         unsigned long added = needed - capacity_44;
         /* reinterpret-ok: the dword fill is the shader-agnostic byte fill the
            vector processor exposes for 0x10-stride records. */
-        fillConstant(reinterpret_cast<unsigned long*>(&diffuse_00[capacity_44]), 0, added * 4);
+        fillConstant(reinterpret_cast<unsigned long*>(&diffuse[capacity_44]), 0, added * 4);
         /* reinterpret-ok: as above. */
         fillConstant(reinterpret_cast<unsigned long*>(&specular_08[capacity_44]), 0, added * 4);
         srVector4T<float> eye_default;
@@ -334,13 +334,13 @@ void srGERD::Renderer::VertexArrays::alloc(srVertexArray& arrays, unsigned long 
         }
         /* reinterpret-ok: 1.0f's bit pattern goes in through the dword
            fill. */
-        srVectorProcessor::copy(reinterpret_cast<unsigned long*>(&q_28[0][capacity_44]), 0x3f800000,
+        srVectorProcessor::copy(reinterpret_cast<unsigned long*>(&q[0][capacity_44]), 0x3f800000,
                                 added);
         /* reinterpret-ok: as above. */
-        srVectorProcessor::copy(reinterpret_cast<unsigned long*>(&q_28[1][capacity_44]), 0x3f800000,
+        srVectorProcessor::copy(reinterpret_cast<unsigned long*>(&q[1][capacity_44]), 0x3f800000,
                                 added);
-        srVectorProcessor::copy(&st_18[0][capacity_44], srVector2T<float>(0.0f, 0.0f), added);
-        srVectorProcessor::copy(&st_18[1][capacity_44], srVector2T<float>(0.0f, 0.0f), added);
+        srVectorProcessor::copy(&st[0][capacity_44], srVector2T<float>(0.0f, 0.0f), added);
+        srVectorProcessor::copy(&st[1][capacity_44], srVector2T<float>(0.0f, 0.0f), added);
         capacity_44 = needed;
     }
     bind(arrays, count_40);
@@ -389,11 +389,11 @@ void srGERD::Renderer::assignTextureSets(unsigned long* texture_set, const unsig
                                          unsigned long count, const srTriMeshPipeline::Pass* pass)
 {
     TextureSetKey key;
-    key.texture0_00 = pass->texture_00;
-    key.texture1_04 = pass->texture_04;
-    key.shader_08 = pass->flags_08;
-    unsigned char mask = pass->texture_array_0c != 0;
-    if (pass->texture_array_10 != 0) {
+    key.texture0 = pass->texture_00;
+    key.texture1 = pass->texture;
+    key.shader_08 = pass->flags;
+    unsigned char mask = pass->tex_table_0 != 0;
+    if (pass->tex_table_1 != 0) {
         mask |= 2;
     }
     if (pass->shader_14 != 0) {
@@ -420,13 +420,13 @@ void srGERD::Renderer::assignTextureSets(unsigned long* texture_set, const unsig
             /* reinterpret-ok: the texture table is a dword stream to the
                transition marker. */
             markTransitions(out, chunk_indices,
-                            reinterpret_cast<const unsigned long*>(pass->texture_array_0c), 1,
+                            reinterpret_cast<const unsigned long*>(pass->tex_table_0), 1,
                             chunk, initialized);
             initialized = 1;
         }
         if ((mask & 2) != 0) {
             markTransitions(out, chunk_indices,
-                            reinterpret_cast<const unsigned long*>(pass->texture_array_10), 2,
+                            reinterpret_cast<const unsigned long*>(pass->tex_table_1), 2,
                             chunk, initialized);
             initialized += 1;
         }
@@ -443,13 +443,13 @@ void srGERD::Renderer::assignTextureSets(unsigned long* texture_set, const unsig
                     if ((changed & 1) != 0) {
                         /* reinterpret-ok: the stage-0 table entries are the
                            texture interface pointers the key stores. */
-                        key.texture0_00 = reinterpret_cast<srTextureIFace* const*>(
-                            pass->texture_array_0c)[vertex];
+                        key.texture0 = reinterpret_cast<srTextureIFace* const*>(
+                            pass->tex_table_0)[vertex];
                     }
                     if ((changed & 2) != 0) {
                         /* reinterpret-ok: same table form for stage 1. */
-                        key.texture1_04 = reinterpret_cast<srTextureIFace* const*>(
-                            pass->texture_array_10)[vertex];
+                        key.texture1 = reinterpret_cast<srTextureIFace* const*>(
+                            pass->tex_table_1)[vertex];
                     }
                     if ((changed & 4) != 0) {
                         key.shader_08 = pass->shader_14[vertex];
@@ -495,13 +495,13 @@ static void sortKeys(unsigned long* keys, const srVector3i* triangles,
 void srGERD::Renderer::expandTriangles(const TriInput& input, int sorted)
 {
     IndexWrite write;
-    indices_54_.alloc(write, input.triangle_count_00 * input.record_count_04);
-    const srTriMeshPipeline::Pass* passes = input.passes_18;
+    indices_54_.alloc(write, input.triangle_count_00 * input.record_count);
+    const srTriMeshPipeline::Pass* passes = input.passes;
     unsigned long record = 0;
-    while (record < input.record_count_04 && passes[record].poly_uv_1c == 0) {
+    while (record < input.record_count && passes[record].poly_uv == 0) {
         record++;
     }
-    if (record == input.record_count_04) {
+    if (record == input.record_count) {
         /* Flat path: gather the chunk once, then replicate it per record
        with the record's vertex offset. */
         for (unsigned long done = 0; done < input.triangle_count_00; done += 0x100) {
@@ -509,26 +509,26 @@ void srGERD::Renderer::expandTriangles(const TriInput& input, int sorted)
             if (chunk > 0x100) {
                 chunk = 0x100;
             }
-            if (input.position_is_float3_1c == 0) {
-                gatherIndexedTriangles(write.triangles_00 + done, input.triangles_10,
+            if (input.position_is_float3 == 0) {
+                gatherIndexedTriangles(write.triangles_00 + done, input.triangles,
                                        input.indices_0c + done, input.vertices_14, first_vertex_c0_,
                                        chunk);
             } else {
-                gatherTriangles(write.triangles_00 + done, input.triangles_10,
+                gatherTriangles(write.triangles_00 + done, input.triangles,
                                 input.indices_0c + done, first_vertex_c0_, chunk);
             }
             if (sorted != 0) {
                 const srVector4T<float>* positions = &vertices_78_.positions_10[0];
-                sortKeys(write.sort_key_08 + done, write.triangles_00 + done, positions,
-                         input.sort_bias_24, chunk);
-                for (unsigned long replica = 1; replica < input.record_count_04; replica++) {
-                    offsetIndices(write.sort_key_08 + input.triangle_count_00 * replica + done,
-                                  write.sort_key_08 + done, replica, chunk);
+                sortKeys(write.sort_key + done, write.triangles_00 + done, positions,
+                         input.sort_bias, chunk);
+                for (unsigned long replica = 1; replica < input.record_count; replica++) {
+                    offsetIndices(write.sort_key + input.triangle_count_00 * replica + done,
+                                  write.sort_key + done, replica, chunk);
                 }
             }
-            for (unsigned long replica = 1; replica < input.record_count_04; replica++) {
+            for (unsigned long replica = 1; replica < input.record_count; replica++) {
                 offsetTriangles(write.triangles_00 + input.triangle_count_00 * replica + done,
-                                write.triangles_00 + done, replica * input.vertex_count_08, chunk);
+                                write.triangles_00 + done, replica * input.vertex_count, chunk);
             }
         }
     } else {
@@ -537,22 +537,22 @@ void srGERD::Renderer::expandTriangles(const TriInput& input, int sorted)
            the others; remap_10_ carries six dwords per triangle — the new
            vertices' batch positions, then their corner-source indices. */
         unsigned long free_vertex =
-            input.record_count_04 * input.vertex_count_08 + first_vertex_c0_;
+            input.record_count * input.vertex_count + first_vertex_c0_;
         unsigned long* remap = remap_10_.ensure(input.triangle_count_00 * 6);
         unsigned long* corner_remap = remap + input.triangle_count_00 * 3;
         unsigned long written = 0;
-        for (record = 0; record < input.record_count_04; record++) {
+        for (record = 0; record < input.record_count; record++) {
             const srTriMeshPipeline::Pass& pass = passes[record];
-            unsigned long vertex_base = record * input.vertex_count_08 + first_vertex_c0_;
-            if (pass.poly_uv_1c != 0) {
-                const srVector3i* poly_uv = pass.poly_uv_1c;
+            unsigned long vertex_base = record * input.vertex_count + first_vertex_c0_;
+            if (pass.poly_uv != 0) {
+                const srVector3i* poly_uv = pass.poly_uv;
                 unsigned long new_count = 0;
                 unsigned long next = free_vertex;
                 unsigned long base = free_vertex;
                 unsigned long* remap_out = remap;
                 unsigned long* corner_out = corner_remap;
                 for (unsigned long index = 0; index < input.triangle_count_00; index++) {
-                    const srVector3i& triangle = input.triangles_10[input.indices_0c[index]];
+                    const srVector3i& triangle = input.triangles[input.indices_0c[index]];
                     const srVector3i& uv = poly_uv[input.indices_0c[index]];
                     srVector3i& out = write.triangles_00[written + index];
                     unsigned long mapped = input.vertices_14[triangle.x] + vertex_base;
@@ -586,16 +586,16 @@ void srGERD::Renderer::expandTriangles(const TriInput& input, int sorted)
                 if (new_count != 0) {
                     srVertexArray arrays;
                     vertices_78_.alloc(arrays, new_count);
-                    arrays.diffuse_04 = &vertices_78_.diffuse_00[0];
+                    arrays.diffuse_04 = &vertices_78_.diffuse[0];
                     arrays.specular_08 = &vertices_78_.specular_08[0];
-                    arrays.eye_locations_00 = &vertices_78_.positions_10[0];
-                    arrays.st0_0c = &vertices_78_.st_18[0][0];
-                    arrays.st1_10 = &vertices_78_.st_18[1][0];
-                    arrays.q0_14 = &vertices_78_.q_28[0][0];
-                    arrays.q1_18 = &vertices_78_.q_28[1][0];
-                    arrays.packed_1c = &vertices_78_.packed_38[0];
-                    srVectorProcessor::copyIndexed(arrays.eye_locations_00 + base,
-                                                   arrays.eye_locations_00, remap, new_count);
+                    arrays.eye_locations = &vertices_78_.positions_10[0];
+                    arrays.st0 = &vertices_78_.st[0][0];
+                    arrays.st1_10 = &vertices_78_.st[1][0];
+                    arrays.q0 = &vertices_78_.q[0][0];
+                    arrays.q1 = &vertices_78_.q[1][0];
+                    arrays.packed = &vertices_78_.packed_38[0];
+                    srVectorProcessor::copyIndexed(arrays.eye_locations + base,
+                                                   arrays.eye_locations, remap, new_count);
                     srVectorProcessor::copyIndexed(arrays.diffuse_04 + base, arrays.diffuse_04,
                                                    remap, new_count);
                     srVectorProcessor::copyIndexed(arrays.specular_08 + base, arrays.specular_08,
@@ -605,39 +605,39 @@ void srGERD::Renderer::expandTriangles(const TriInput& input, int sorted)
                     /* reinterpret-ok: the q stream is a dword stream to the
                        indexed copy. */
                     srVectorProcessor::copyIndexed(
-                        reinterpret_cast<unsigned long*>(arrays.q1_18 + base),
-                        reinterpret_cast<const unsigned long*>(arrays.q1_18), remap, new_count);
+                        reinterpret_cast<unsigned long*>(arrays.q1 + base),
+                        reinterpret_cast<const unsigned long*>(arrays.q1), remap, new_count);
                     for (unsigned long index = 0; index < new_count; index++) {
-                        arrays.packed_1c[base + index] = arrays.packed_1c[remap[index]];
+                        arrays.packed[base + index] = arrays.packed[remap[index]];
                     }
-                    srVectorProcessor::copyIndexed(arrays.st0_0c + base, pass.st_18, corner_remap,
+                    srVectorProcessor::copyIndexed(arrays.st0 + base, pass.st, corner_remap,
                                                    new_count);
                     /* reinterpret-ok: 1.0f's bit pattern fills the q0
                        stream. */
-                    srVectorProcessor::copy(reinterpret_cast<unsigned long*>(arrays.q0_14 + base),
+                    srVectorProcessor::copy(reinterpret_cast<unsigned long*>(arrays.q0 + base),
                                             0x3f800000, new_count);
                 }
                 if (sorted != 0) {
                     const srVector4T<float>* positions = &vertices_78_.positions_10[0];
-                    sortKeys(write.sort_key_08 + written, write.triangles_00 + written, positions,
-                             input.sort_bias_24, input.triangle_count_00);
+                    sortKeys(write.sort_key + written, write.triangles_00 + written, positions,
+                             input.sort_bias, input.triangle_count_00);
                 }
                 free_vertex = base + new_count;
             } else {
-                gatherIndexedTriangles(write.triangles_00 + written, input.triangles_10,
+                gatherIndexedTriangles(write.triangles_00 + written, input.triangles,
                                        input.indices_0c, input.vertices_14, vertex_base,
                                        input.triangle_count_00);
                 if (sorted != 0) {
                     const srVector4T<float>* positions = &vertices_78_.positions_10[0];
-                    sortKeys(write.sort_key_08 + written, write.triangles_00 + written, positions,
-                             input.sort_bias_24, input.triangle_count_00);
+                    sortKeys(write.sort_key + written, write.triangles_00 + written, positions,
+                             input.sort_bias, input.triangle_count_00);
                 }
             }
             written += input.triangle_count_00;
         }
     }
     unsigned long texture_set_offset = 0;
-    for (record = 0; record < input.record_count_04; record++) {
+    for (record = 0; record < input.record_count; record++) {
         assignTextureSets(write.texture_set_04 + texture_set_offset, input.indices_0c,
                           input.triangle_count_00, passes + record);
         texture_set_offset += input.triangle_count_00;
@@ -648,7 +648,7 @@ void srGERD::Renderer::expandTriangles(const TriInput& input, int sorted)
 void srGERD::Renderer::transformVertices(const TriInput& input, unsigned char* clip_flags)
 {
     srVector4T<float>* write = &vertices_78_.positions_10[first_vertex_c0_];
-    const srMatrix4T<float>& matrix = *input.project_clip_near_20;
+    const srMatrix4T<float>& matrix = *input.project_clip_near;
     unsigned long zero_mask = 0;
     unsigned long bit = 1;
     for (long row = 0; row < 4; row++) {
@@ -682,24 +682,24 @@ void srGERD::Renderer::transformVertices(const TriInput& input, unsigned char* c
             mode = 0;
         }
     }
-    for (unsigned long done = 0; done < input.vertex_count_08; done += 0x80) {
-        unsigned long chunk = input.vertex_count_08 - done;
+    for (unsigned long done = 0; done < input.vertex_count; done += 0x80) {
+        unsigned long chunk = input.vertex_count - done;
         if (chunk > 0x80) {
             chunk = 0x80;
         }
         if (chunk != 0 && mode != 4) {
             if (mode == 5) {
-                srVectorProcessor::transformOrtho(write, write, *input.project_clip_near_20, chunk);
+                srVectorProcessor::transformOrtho(write, write, *input.project_clip_near, chunk);
             } else if (mode == 6) {
-                srVectorProcessor::transformPerspective(write, write, *input.project_clip_near_20,
+                srVectorProcessor::transformPerspective(write, write, *input.project_clip_near,
                                                         chunk);
             } else {
-                srVectorProcessor::transform(write, write, *input.project_clip_near_20, chunk);
+                srVectorProcessor::transform(write, write, *input.project_clip_near, chunk);
             }
         }
         srVectorProcessor::srGetClipFlags(clip_flags + done, write, chunk);
-        for (unsigned long replica = 1; replica < input.record_count_04; replica++) {
-            srVector4T<float>* destination = write + replica * input.vertex_count_08;
+        for (unsigned long replica = 1; replica < input.record_count; replica++) {
+            srVector4T<float>* destination = write + replica * input.vertex_count;
             if (chunk != 0 && destination != write) {
                 srVectorProcessor::memcopy(destination, write, chunk * 0x10);
             }
@@ -759,10 +759,10 @@ void srGERD::Renderer::drawImmediate()
         const srVector3i* indices = &indices_54_.triangles_00[0];
         const unsigned long* texture_set = &indices_54_.texture_set_08[0];
         indices_54_.sort_key_10[0];
-        indices_54_.aux_18[0];
-        const TextureSet& first = texture_sets_44_.sets_04.data[texture_set[0]];
-        texture0_c4_ = first.texture0_00;
-        texture1_c8_ = first.texture1_04;
+        indices_54_.aux[0];
+        const TextureSet& first = texture_sets_44_.sets.data[texture_set[0]];
+        texture0_c4_ = first.texture0;
+        texture1_c8_ = first.texture1;
         shader_cc_ = first.shader_08;
         gerd_d4_->setTexture(texture0_c4_, 0);
         gerd_d4_->setTexture(texture1_c8_, 1);
@@ -793,7 +793,7 @@ void srGERD::Renderer::drawSorted()
         const srVector3i* triangles = &indices_54_.triangles_00[0];
         unsigned long* texture_set = &indices_54_.texture_set_08[0];
         unsigned long* sort_key = &indices_54_.sort_key_10[0];
-        indices_54_.aux_18[0];
+        indices_54_.aux[0];
         unsigned long* order =
             static_cast<unsigned long*>(::operator new(count * sizeof(unsigned long)));
         unsigned long index = 0;
@@ -813,9 +813,9 @@ void srGERD::Renderer::drawSorted()
             }
             srHeap.free(pairs);
         }
-        const TextureSet& first = texture_sets_44_.sets_04.data[texture_set[order[0]]];
-        texture0_c4_ = first.texture0_00;
-        texture1_c8_ = first.texture1_04;
+        const TextureSet& first = texture_sets_44_.sets.data[texture_set[order[0]]];
+        texture0_c4_ = first.texture0;
+        texture1_c8_ = first.texture1;
         shader_cc_ = first.shader_08;
         gerd_d4_->setTexture(texture0_c4_, 0);
         gerd_d4_->setTexture(texture1_c8_, 1);
@@ -862,14 +862,14 @@ void srGERD::Renderer::drawSorted()
 // FUNCTION: SURRENDER 0x10026360
 void srGERD::Renderer::programVertexArrays(srVertexArray* arrays, unsigned long count)
 {
-    unsigned long attributes = attributeMask(arrays->packed_1c, count);
+    unsigned long attributes = attributeMask(arrays->packed, count);
     if (texture_stages_e0_ < 2) {
         /* Single-stage devices cannot take stage-1 st/q streams. */
         attributes &= ~0x50UL;
     }
     srFlags<srRendererDefs::e_vertexArray> mask(1 << srRendererDefs::VERTEX_ARRAY_POSITIONS);
     gerd_d4_->setClipState(srFlags<srRendererDefs::e_clip>(clip_state_d0_));
-    gerd_d4_->setVertexPointer(4, srRendererDefs::TYPE_FLOAT, 0x10, arrays->eye_locations_00,
+    gerd_d4_->setVertexPointer(4, srRendererDefs::TYPE_FLOAT, 0x10, arrays->eye_locations,
                                static_cast<long>(count));
     if ((attributes & 1) != 0) {
         gerd_d4_->setDataPtr(srRendererDefs::VERTEX_ARRAY_DIFFUSE, 4, srRendererDefs::TYPE_FLOAT,
@@ -889,12 +889,12 @@ void srGERD::Renderer::programVertexArrays(srVertexArray* arrays, unsigned long 
         mask.set(srRendererDefs::VERTEX_ARRAY_TEXCOORD0, 1);
         if ((attributes & 0x20) == 0) {
             gerd_d4_->setDataPtr(srRendererDefs::VERTEX_ARRAY_TEXCOORD0, 2,
-                                 srRendererDefs::TYPE_FLOAT, 8, arrays->st0_0c);
+                                 srRendererDefs::TYPE_FLOAT, 8, arrays->st0);
         } else {
             TexCoordQ* stq = stq_18_[0].ensure(count);
             for (unsigned long i = 0; i < count; i++) {
-                stq[i].st_00 = arrays->st0_0c[i];
-                stq[i].q_08 = arrays->q0_14[i];
+                stq[i].st = arrays->st0[i];
+                stq[i].q = arrays->q0[i];
             }
             gerd_d4_->setDataPtr(srRendererDefs::VERTEX_ARRAY_TEXCOORD0, 3,
                                  srRendererDefs::TYPE_FLOAT, 0xc, stq);
@@ -908,8 +908,8 @@ void srGERD::Renderer::programVertexArrays(srVertexArray* arrays, unsigned long 
         } else {
             TexCoordQ* stq = stq_18_[1].ensure(count);
             for (unsigned long i = 0; i < count; i++) {
-                stq[i].st_00 = arrays->st1_10[i];
-                stq[i].q_08 = arrays->q1_18[i];
+                stq[i].st = arrays->st1_10[i];
+                stq[i].q = arrays->q1[i];
             }
             gerd_d4_->setDataPtr(srRendererDefs::VERTEX_ARRAY_TEXCOORD1, 3,
                                  srRendererDefs::TYPE_FLOAT, 0xc, stq);
@@ -955,13 +955,13 @@ void srGERD::Renderer::reset(int release_buffers)
 {
     indices_54_.reset(release_buffers);
     if (release_buffers != 0) {
-        vertices_78_.diffuse_00.release();
+        vertices_78_.diffuse.release();
         vertices_78_.specular_08.release();
         vertices_78_.positions_10.release();
-        vertices_78_.st_18[0].release();
-        vertices_78_.st_18[1].release();
-        vertices_78_.q_28[0].release();
-        vertices_78_.q_28[1].release();
+        vertices_78_.st[0].release();
+        vertices_78_.st[1].release();
+        vertices_78_.q[0].release();
+        vertices_78_.q[1].release();
         vertices_78_.packed_38.release();
         vertices_78_.capacity_44 = 0;
     }
@@ -978,16 +978,16 @@ void srGERD::Renderer::reset(int release_buffers)
 
 /* Retail 0x10026A00: copy the indices of the not-fully-clipped triangles —
    a triangle drops out only when all three corners share a clip flag. With
-   position_is_float3_1c clear the corners index the flag array through the
+   position_is_float3 clear the corners index the flag array through the
    vertices remap. */
 // FUNCTION: SURRENDER 0x10026A00
 static unsigned long filterTriangles(unsigned long* destination, const unsigned char* flags,
                                      const srGERD::Renderer::TriInput& input)
 {
     unsigned long kept = 0;
-    if (input.position_is_float3_1c == 0) {
+    if (input.position_is_float3 == 0) {
         for (unsigned long index = 0; index < input.triangle_count_00; index++) {
-            const srVector3i& triangle = input.triangles_10[input.indices_0c[index]];
+            const srVector3i& triangle = input.triangles[input.indices_0c[index]];
             unsigned char flag = flags[input.vertices_14[triangle.x]];
             if (flag == 0 || (flag & flags[input.vertices_14[triangle.z]] &
                               flags[input.vertices_14[triangle.y]]) == 0) {
@@ -997,7 +997,7 @@ static unsigned long filterTriangles(unsigned long* destination, const unsigned 
         }
     } else {
         for (unsigned long index = 0; index < input.triangle_count_00; index++) {
-            const srVector3i& triangle = input.triangles_10[input.indices_0c[index]];
+            const srVector3i& triangle = input.triangles[input.indices_0c[index]];
             unsigned char flag = flags[triangle.x];
             if (flag == 0 || (flag & flags[triangle.z] & flags[triangle.y]) == 0) {
                 destination[kept] = input.indices_0c[index];
@@ -1020,18 +1020,18 @@ void srGERD::Renderer::render(const TriInput& input)
         return;
     }
     statistics_28_[0] += 1;
-    statistics_28_[1] += input.triangle_count_00 * input.record_count_04;
-    statistics_28_[3] += input.vertex_count_08 * input.record_count_04;
-    unsigned char* flags = bytes_00_.ensure(input.vertex_count_08);
+    statistics_28_[1] += input.triangle_count_00 * input.record_count;
+    statistics_28_[3] += input.vertex_count * input.record_count;
+    unsigned char* flags = bytes_00_.ensure(input.vertex_count);
     transformVertices(input, flags);
-    if (fullyClipped(flags, input.vertex_count_08) != 0) {
+    if (fullyClipped(flags, input.vertex_count) != 0) {
         vertices_78_.count_40 += first_vertex_c0_ - vertices_78_.count_40;
         first_vertex_c0_ = -1;
         return;
     }
     const TriInput* batch = &input;
     TriInput filtered;
-    unsigned long mask = attributeMask(flags, input.vertex_count_08);
+    unsigned long mask = attributeMask(flags, input.vertex_count);
     if (mask != 0) {
         filtered = input;
         /* const_cast-ok: the filtered list buffer was just reserved. */
@@ -1050,11 +1050,11 @@ void srGERD::Renderer::render(const TriInput& input)
     if (gerd_d4_->pick_176c_.pick_depth_280_ != 0) {
         PickInput pick;
         pick.indices_00 = batch->indices_0c;
-        pick.triangles_04 = batch->triangles_10;
-        pick.triangle_count_08 = batch->triangle_count_00;
-        pick.vertices_0c = batch->vertices_14;
+        pick.triangles = batch->triangles;
+        pick.triangle_count = batch->triangle_count_00;
+        pick.vertices = batch->vertices_14;
         pick.positions_10 = &vertices_78_.positions_10[first_vertex_c0_];
-        pick.vertex_count_14 = batch->vertex_count_08;
+        pick.vertex_count = batch->vertex_count;
         gerd_d4_->performPickTest(pick);
     }
     expandTriangles(*batch, sorted_d8_ != 0);
@@ -1119,26 +1119,26 @@ static void fillConstant(unsigned long* destination, unsigned long value, unsign
 // FUNCTION: SURRENDER 0x10027CF0
 void srGERD::Renderer::VertexArrays::bind(srVertexArray& arrays, unsigned long base)
 {
-    arrays.diffuse_04 = &diffuse_00[base];
+    arrays.diffuse_04 = &diffuse[base];
     arrays.specular_08 = &specular_08[base];
-    arrays.eye_locations_00 = &positions_10[base];
-    arrays.st0_0c = &st_18[0][base];
-    arrays.st1_10 = &st_18[1][base];
-    arrays.q0_14 = &q_28[0][base];
-    arrays.q1_18 = &q_28[1][base];
-    arrays.packed_1c = &packed_38[base];
+    arrays.eye_locations = &positions_10[base];
+    arrays.st0 = &st[0][base];
+    arrays.st1_10 = &st[1][base];
+    arrays.q0 = &q[0][base];
+    arrays.q1 = &q[1][base];
+    arrays.packed = &packed_38[base];
 }
 
 // FUNCTION: SURRENDER 0x10027ED0
 void srGERD::Renderer::bindTextureSet(unsigned long index)
 {
-    const TextureSet& set = texture_sets_44_.sets_04.data[index];
-    if (set.texture0_00 != texture0_c4_) {
-        texture0_c4_ = set.texture0_00;
+    const TextureSet& set = texture_sets_44_.sets.data[index];
+    if (set.texture0 != texture0_c4_) {
+        texture0_c4_ = set.texture0;
         gerd_d4_->setTexture(texture0_c4_, 0);
     }
-    if (set.texture1_04 != texture1_c8_) {
-        texture1_c8_ = set.texture1_04;
+    if (set.texture1 != texture1_c8_) {
+        texture1_c8_ = set.texture1;
         gerd_d4_->setTexture(texture1_c8_, 1);
     }
     if (set.shader_08.value != shader_cc_.value) {

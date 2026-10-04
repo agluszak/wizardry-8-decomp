@@ -359,30 +359,30 @@ int srTriangleCuller::cull(Output& output, const Input& input)
     if (input.triangle_count_00 == 0) {
         return 0;
     }
-    unsigned long clip_mask = input.clip_mask_30;
-    const srMatrix4& inverse_model_view = *input.inverse_model_view_28;
+    unsigned long clip_mask = input.clip_mask;
+    const srMatrix4& inverse_model_view = *input.inverse_model_view;
     unsigned long* clip_flags = output.clip_flags_08;
-    output.linear_14 = 1;
+    output.linear = 1;
     output.triangle_count_0c = 0;
     output.vertex_count_10 = 0;
     srVector4 constant;
-    if (input.cull_mode_0c == 0) {
+    if (input.cull_mode == 0) {
         constant.Set(-inverse_model_view.vectors[0].w, -inverse_model_view.vectors[1].w,
                      -inverse_model_view.vectors[2].w, -inverse_model_view.vectors[3].w);
-    } else if (input.cull_mode_0c == 1) {
+    } else if (input.cull_mode == 1) {
         constant.Set(inverse_model_view.vectors[0].w, inverse_model_view.vectors[1].w,
                      inverse_model_view.vectors[2].w, inverse_model_view.vectors[3].w);
     } else {
         constant = 0.0f;
     }
     int clipped = clip_mask != 0;
-    if (input.active_triangles_10 == 0) {
+    if (input.active_triangles == 0) {
         if (clipped != 0) {
             unsigned long plane_bits[32];
             srVector4 planes[32];
             unsigned long plane_count = 0;
             unsigned long remaining = clip_mask;
-            const srVector4* plane = input.clip_planes_20;
+            const srVector4* plane = input.clip_planes;
             for (unsigned long bit = 0; remaining != 0; ++bit, ++plane) {
                 unsigned long plane_bit = 1 << bit;
                 if ((remaining & plane_bit) != 0) {
@@ -404,41 +404,41 @@ int srTriangleCuller::cull(Output& output, const Input& input)
     } else {
         clipped = 0;
     }
-    if (input.active_triangles_10 == 0) {
+    if (input.active_triangles == 0) {
         if (clipped != 0) {
-            if (input.cull_mode_0c == 2) {
+            if (input.cull_mode == 2) {
                 output.triangle_count_0c = clip(output.indices_00, clip_flags, input.triangles_18,
                                                 input.triangle_count_00);
             } else {
                 output.triangle_count_0c =
-                    cullClip(output.indices_00, clip_flags, input.projected_vertices_14,
+                    cullClip(output.indices_00, clip_flags, input.projected_vertices,
                              input.triangles_18, constant, input.triangle_count_00);
             }
         } else {
-            if (input.cull_mode_0c == 2) {
+            if (input.cull_mode == 2) {
                 setupLinearArray(output.indices_00, input.triangle_count_00);
                 output.triangle_count_0c = input.triangle_count_00;
             } else {
                 output.triangle_count_0c =
-                    cullNoClip(output.indices_00, input.projected_vertices_14, constant,
+                    cullNoClip(output.indices_00, input.projected_vertices, constant,
                                input.triangle_count_00);
             }
         }
     } else {
-        unsigned long active_count = input.active_triangle_count_08;
+        unsigned long active_count = input.active_triangle_count;
         if (active_count == 0) {
             return 0;
         }
-        if (input.cull_mode_0c == 2) {
-            if (active_count != 0 && output.indices_00 != input.active_triangles_10) {
-                srVectorProcessor::vp->_memcopy(output.indices_00, input.active_triangles_10,
+        if (input.cull_mode == 2) {
+            if (active_count != 0 && output.indices_00 != input.active_triangles) {
+                srVectorProcessor::vp->_memcopy(output.indices_00, input.active_triangles,
                                                 active_count * 4);
             }
             output.triangle_count_0c = active_count;
         } else {
             output.triangle_count_0c =
-                cullNoClipAPT(output.indices_00, input.active_triangles_10,
-                              input.projected_vertices_14, constant, active_count);
+                cullNoClipAPT(output.indices_00, input.active_triangles,
+                              input.projected_vertices, constant, active_count);
         }
     }
     if (output.triangle_count_0c != 0) {

@@ -92,10 +92,10 @@ int W8ProfRaceInfoDialogBase::CreateControls()
                                m_text_area_118.GetLineHeight(), 0xb8);
     m_scroll_bar_084.m_owner = this;
 
-    m_button_0d0.Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 0, 1, 4, 2,
+    m_button.Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 0, 1, 4, 2,
                            DialogCloseButtonCallback, 0, 0, 0x7f, -1, 0, 0);
-    m_button_0d0.SetPosition(m_x + 0x14f, m_y + 0xe8);
-    m_button_0d0.m_owner_040 = this;
+    m_button.SetPosition(m_x + 0x14f, m_y + 0xe8);
+    m_button.m_owner = this;
     return 0;
 }
 
@@ -115,7 +115,7 @@ void W8ProfRaceInfoDialogBase::Draw()
         }
         m_text_area_118.m_dirty = true;
         m_scroll_bar_084.m_dirty = true;
-        m_button_0d0.m_dirty = true;
+        m_button.m_dirty = true;
         W8DialogBase::Draw();
         DrawCatalogImageAndInvalidate(-0xe, m_uiTitleId, 0, m_uiSummaryId, m_x + 0xd, m_y + 0xd, 2,
                                       0);
@@ -142,7 +142,7 @@ void W8ProfRaceInfoDialogBase::Draw()
     }
     m_text_area_118.Draw(0);
     m_scroll_bar_084.Draw(0);
-    m_button_0d0.Draw();
+    m_button.Draw();
 }
 
 // FUNCTION: WIZ8 0x005DEEE0

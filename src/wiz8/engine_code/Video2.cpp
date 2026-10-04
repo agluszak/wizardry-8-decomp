@@ -1239,13 +1239,13 @@ void RenderFrame(void)
                                                      g_viewport.top + g_cursor_height) /
                                  half_height;
             pick.position_00.z = 1.0f;
-            pick.selected_model_0c = 0;
+            pick.selected_model = 0;
             pick.value_10 = 0;
             g_gerd->setPickKey(0);
             g_gerd->pushPick(pick);
             RenderScene(g_world->static_scene, g_world->camera, &g_viewport.left, 1);
             g_gerd->popPick(pick);
-            SetPickedModelInstance(pick.selected_model_0c);
+            SetPickedModelInstance(pick.selected_model);
             ResolvePickedProp(g_world);
         }
 #ifdef WIZ8_RUNTIME_TESTS
@@ -1567,12 +1567,12 @@ stModelInstance2D* CreateSpriteFromTexture(srTextureIFace* texture, double width
 
     stModelInstance2D* instance = new stModelInstance2D(0);
     if (instance) {
-        instance->render_state_164.width = static_cast<unsigned short>(w);
-        instance->render_state_164.height = static_cast<unsigned short>(h);
+        instance->render_state.width = static_cast<unsigned short>(w);
+        instance->render_state.height = static_cast<unsigned short>(h);
         instance->setName("Video2DMakePolygonBrush");
         instance->SetModel(model);
         if (a5) {
-            instance->overlay_scene_flag_160 |= 1;
+            instance->overlay_scene_flag |= 1;
         }
     }
     return instance;
@@ -2029,8 +2029,8 @@ static void InvalidateDirtyTile(int cell, unsigned int flags)
     stModelInstance2D* node = static_cast<stModelInstance2D*>(g_surface_nodes[cell]);
 
     if (node != 0) {
-        short position_x = node->render_state_164.position_x;
-        short position_y = node->render_state_164.position_y;
+        short position_x = node->render_state.position_x;
+        short position_y = node->render_state.position_y;
         int columns = node->GetScaledWidth() >> 3;
         int rows = node->GetScaledHeight() >> 3;
 
@@ -2319,13 +2319,13 @@ void DrawVideoInspector(int left, unsigned int top)
         SetFontObjectPalette16BPP(g_smfnt_font, g_font_state_palettes[5]);
         gprintfDirty(left, top, L"FR: %4.1f", g_frames_per_second);
         if (g_video_inspector_mode == 2) {
-            gprintfDirty(left, top + 0xa, L"OC: %d", g_world->level->m_positional_13c);
+            gprintfDirty(left, top + 0xa, L"OC: %d", g_world->level->m_positional);
             gprintfDirty(left, top + 0x14, L"PI: %d", statistics.value_34);
             gprintfDirty(left, top + 0x1e, L"PO: %d", statistics.value_20);
             gprintfDirty(left, top + 0x28, L"VI: %d", statistics.value_3c);
             gprintfDirty(left, top + 0x32, L"VO: %d", statistics.value_24);
             gprintfDirty(left, top + 0x3c, L"DD: %d", statistics.value_68);
-            gprintfDirty(left, top + 0x46, L"TC: %d", statistics.texture_binds_4c);
+            gprintfDirty(left, top + 0x46, L"TC: %d", statistics.texture_binds);
             gprintfDirty(left, top + 0x50, L"TT: %d", statistics.value_08, statistics.value_0c);
             gprintfDirty(left, top + 0x5a, L"RM: %dK", g_gerd->getResidentTextureMemUsed() >> 10);
             gprintfDirty(left, top + 0x64, L"TM: %dK", g_gerd->getTextureCacheUsed());
@@ -2623,7 +2623,7 @@ void PurgeInactiveSceneInstances(srScene* scene)
         if (class_id == 0x10004) {
             /* Retail also applies the 2D byte test to 3D highlight alpha.
                This representation read does not establish a 3D state member. */
-            memcpy(&display_state, &static_cast<stModelInstance*>(node)->highlight_colour_164.w,
+            memcpy(&display_state, &static_cast<stModelInstance*>(node)->highlight_colour.w,
                    sizeof(display_state));
         } else if (class_id == 0x10005) {
             display_state = static_cast<stModelInstance2D*>(node)->displayState();
@@ -2670,12 +2670,12 @@ unsigned char EnableCursorScene(void)
 }
 
 /* Release an srClass, leaving the renderer in 2D mode, or in the paired
-   mode when overlay_scene_flag_160 bit 0 says otherwise. Recovered callers pass
+   mode when overlay_scene_flag bit 0 says otherwise. Recovered callers pass
    stModelInstance2D sprites (highlight / formation board). */
 // FUNCTION: WIZ8 0x004257F0
 void ReleaseObject(srClass* object)
 {
-    if ((static_cast<stModelInstance2D*>(object)->overlay_scene_flag_160 & 1) != 0) {
+    if ((static_cast<stModelInstance2D*>(object)->overlay_scene_flag & 1) != 0) {
         SetOverlayRenderMode();
     } else {
         SetRendererModePair();
@@ -2684,12 +2684,12 @@ void ReleaseObject(srClass* object)
 }
 
 /* Rotate a 2D sprite node by `degrees` about z and dirty the renderer mode
-   word its overlay_scene_flag_160 bit 0 selects. */
+   word its overlay_scene_flag bit 0 selects. */
 // FUNCTION: WIZ8 0x00425840
 void RotateNodeInDegrees(srNode* node, int degrees)
 {
     node->setRotation(0.0, 0.0, 3.141592653589793 * g_float_005ebcf8 * degrees);
-    if ((static_cast<stModelInstance2D*>(node)->overlay_scene_flag_160 & 1) != 0) {
+    if ((static_cast<stModelInstance2D*>(node)->overlay_scene_flag & 1) != 0) {
         SetOverlayRenderMode();
     } else {
         SetRendererModePair();
@@ -2962,7 +2962,7 @@ void PositionToolTipNode(srNode* node, int x, int y, bool positional)
     srVector3T<double> location;
     location.x = half_width + position_x;
     location.z = -0.0001;
-    if ((instance->overlay_scene_flag_160 & 1U) == 0) {
+    if ((instance->overlay_scene_flag & 1U) == 0) {
         location.y = g_double_005ebc30 - (half_height + position_y);
         g_paired_render_mode = 2;
     } else {
@@ -2970,8 +2970,8 @@ void PositionToolTipNode(srNode* node, int x, int y, bool positional)
     }
     node->setLocation(location);
     SetOverlayRenderMode();
-    instance->render_state_164.position_x = static_cast<short>(x);
-    instance->render_state_164.position_y = static_cast<short>(y);
+    instance->render_state.position_x = static_cast<short>(x);
+    instance->render_state.position_y = static_cast<short>(y);
 }
 
 /* Builds a square power-of-two polygon brush from a surface rectangle. The
@@ -3016,10 +3016,10 @@ srModelInstance* Video2DRectToSquarePolygon(const W8ControlsRect* rect, void* so
                                                      scale_y, mapping_x, mapping_y, overlay);
             node->setName("Video2DRectToSquarePolygon");
             stModelInstance2D* instance = static_cast<stModelInstance2D*>(node);
-            instance->render_state_164.display_state = static_cast<unsigned char>(g_active_page);
-            instance->overlay_scene_flag_160 |= 1;
-            instance->render_state_164.width = static_cast<unsigned short>(size);
-            instance->render_state_164.height = static_cast<unsigned short>(size);
+            instance->render_state.display_state = static_cast<unsigned char>(g_active_page);
+            instance->overlay_scene_flag |= 1;
+            instance->render_state.width = static_cast<unsigned short>(size);
+            instance->render_state.height = static_cast<unsigned short>(size);
             PositionToolTipNode(node, rect->left, rect->top, 0);
             return node;
         }
@@ -3095,14 +3095,14 @@ stModelInstance2D* CreateSpriteFromVideoSurface(int target, const W8ControlsRect
             if (width <= height) {
                 extent = height;
             }
-            instance->render_state_164.height = extent;
+            instance->render_state.height = extent;
             if (width <= height) {
                 width = height;
             }
         } else {
-            instance->render_state_164.height = height;
+            instance->render_state.height = height;
         }
-        instance->render_state_164.width = width;
+        instance->render_state.width = width;
     }
     /* Retail writes display_state even when the node factory returned null. */
     SetModelInstance2DDisplayState(instance, 3);
@@ -3136,7 +3136,7 @@ stModelInstance2D* CreateColoredPolygonSprite(int width, int height, const srVec
     material->setSpecular(zero);
     material->parms.shininess = 1.0f;
     material->parms.diffuse.w = 1.0f;
-    material->dirty_74 = 1;
+    material->dirty = 1;
     model->setMaterial(material, 0, static_cast<srMeshModel::e_side>(0));
 
     stModelInstance2D* instance = new stModelInstance2D(g_scene_user);
@@ -3148,8 +3148,8 @@ stModelInstance2D* CreateColoredPolygonSprite(int width, int height, const srVec
     shader.value = 0x2417;
     model->setShader(shader, 0);
 
-    instance->render_state_164.width = static_cast<unsigned short>(width);
-    instance->render_state_164.height = static_cast<unsigned short>(height);
+    instance->render_state.width = static_cast<unsigned short>(width);
+    instance->render_state.height = static_cast<unsigned short>(height);
     SetModelInstance2DDisplayState(instance, 3);
     if (a4 != 0) {
         instance->setParent(g_scene_fullscreen, 1);
@@ -3173,7 +3173,7 @@ void Position2DNodeUnsnapped(srNode* node, int x, int y)
 // FUNCTION: WIZ8 0x004264F0
 void SetModelInstance2DDisplayState(stModelInstance2D* object, unsigned char state)
 {
-    object->render_state_164.display_state = state;
+    object->render_state.display_state = state;
 }
 
 /* Positions every live tooltip object left to right starting at x, advancing
@@ -3305,11 +3305,11 @@ srModelInstance* Video2DRectToPolygon(const W8ControlsRect* rect, void* source, 
                                              mapping_x, mapping_y, overlay);
     if (node != 0) {
         stModelInstance2D* instance = static_cast<stModelInstance2D*>(node);
-        instance->render_state_164.display_state = static_cast<unsigned char>(g_active_page);
-        instance->render_state_164.width = static_cast<unsigned short>(rect->right - rect->left);
-        instance->render_state_164.height = static_cast<unsigned short>(rect->bottom - rect->top);
-        instance->render_state_164.position_x = static_cast<short>(rect->left);
-        instance->render_state_164.position_y = static_cast<short>(rect->top);
+        instance->render_state.display_state = static_cast<unsigned char>(g_active_page);
+        instance->render_state.width = static_cast<unsigned short>(rect->right - rect->left);
+        instance->render_state.height = static_cast<unsigned short>(rect->bottom - rect->top);
+        instance->render_state.position_x = static_cast<short>(rect->left);
+        instance->render_state.position_y = static_cast<short>(rect->top);
         srVector3T<double> location;
         location.Set(width * g_double_005ebe80 + left,
                      g_double_005ebc30 - (height * g_double_005ebe80 + top), -0.0001);
@@ -3739,7 +3739,7 @@ srNode* MakePosterQuad(srTextureIFace* texture, float width, float height, bool 
     if (instance != 0) {
         instance->setModel(model);
     }
-    instance->render_flags_178 |= 0x10;
+    instance->render_flags |= 0x10;
     return instance;
 }
 

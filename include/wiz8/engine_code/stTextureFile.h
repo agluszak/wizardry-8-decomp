@@ -43,7 +43,7 @@ void __stdcall LoadSurfacePixels(int handle, srColorSurface* surface, const W8Tg
    stTextureFile overrides the same slots SR overrides (3, 5-8, 11-12, 15-16).
    Slots 9/10/13 are inherited from srTexture; slot 14 from srTextureIFace.
    Do not invent stTextureFile overrides for those four. Fields at
-   +0x54..+0x60 match SR; has_alpha_64 is Wizardry-only (SR sizeof 0x64). */
+   +0x54..+0x60 match SR; has_alpha is Wizardry-only (SR sizeof 0x64). */
 class stTextureFile : public srClassSupport<stTextureFile, srTexture, 0, 0x10001> {
 public:
     static const char* sGetClassName()
@@ -73,7 +73,7 @@ public:
     }
     unsigned char hasAlpha() const
     {
-        return has_alpha_64;
+        return has_alpha;
     }
     void loadSurface(); /* 0x0047BBF0 */
     /* Emitted at 0x47BBD0 for the materials.cpp probe caller and inlined at
@@ -103,7 +103,7 @@ private:
     char* file_name_58;
     srColorSurface* surface_5c;
     unsigned long frame_handle_60;
-    bool has_alpha_64;
+    bool has_alpha;
     unsigned char padding_65[3];
 };
 

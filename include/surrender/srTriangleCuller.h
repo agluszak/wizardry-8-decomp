@@ -15,23 +15,23 @@ public:
         unsigned long* clip_flags_08;
         unsigned long triangle_count_0c;
         unsigned long vertex_count_10;
-        int linear_14;
+        int linear;
     };
 
     struct Input {
         unsigned long triangle_count_00;
         unsigned long vertex_count_04;
-        unsigned long active_triangle_count_08;
-        int cull_mode_0c;
-        const unsigned long* active_triangles_10;
-        const srVector4T<float>* projected_vertices_14;
+        unsigned long active_triangle_count;
+        int cull_mode;
+        const unsigned long* active_triangles;
+        const srVector4T<float>* projected_vertices;
         const srVector3i* triangles_18;
         const srVector3T<float>* vertices_1c;
-        const srVector4T<float>* clip_planes_20;
-        const srMatrix4T<float>* model_view_24;
-        const srMatrix4T<float>* inverse_model_view_28;
+        const srVector4T<float>* clip_planes;
+        const srMatrix4T<float>* model_view;
+        const srMatrix4T<float>* inverse_model_view;
         srMatrix4T<float>::e_scaleType scale_type_2c;
-        unsigned long clip_mask_30;
+        unsigned long clip_mask;
     };
 
     /* Transforms one view-space clip plane back into object space with the

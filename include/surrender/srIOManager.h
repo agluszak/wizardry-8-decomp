@@ -57,8 +57,8 @@ private:
             Importer* importer_04;
             Exporter* exporter_04;
         };
-        Registration* next_08;
-        Registration* previous_0c;
+        Registration* next;
+        Registration* previous;
     };
 
     static_assert(sizeof(Registration) == 0x10, "srIOManager_Registration_must_be_0x10");
@@ -69,14 +69,14 @@ private:
     struct ImporterList {
         unsigned long count_00;
         Registration* first_04;
-        Registration* sentinel_08;
+        Registration* sentinel;
         void insert(Registration* position, char* extension, Importer* importer);
     };
 
     struct ExporterList {
         unsigned long count_00;
         Registration* first_04;
-        Registration* sentinel_08;
+        Registration* sentinel;
         void insert(Registration* position, char* extension, Exporter* exporter);
     };
 

@@ -291,7 +291,7 @@ unsigned char OpenSpellCastingView(int party_slot)
     if (g_level_block->combat_end_notification != -1) {
         DestroySubMenuControls();
     }
-    gpSCSV->input_blocked_570 = 0;
+    gpSCSV->input_blocked = 0;
     gpSCSV->field_574 = 1;
     gpSCSV->location_id = -1;
     gpSCSV->interact_id = -1;
@@ -308,7 +308,7 @@ unsigned char OpenSpellCastingView(int party_slot)
     RegionSetEnable(0x19);
     SelectTextBox(2);
     ResetEditorStatusLine(-1);
-    g_level_block->text_box_visible_271 = 0;
+    g_level_block->text_box_visible = 0;
     SetTextBoxRegionBounds(0xea, 0x16e, 0x18c, 0x1ba);
     gpSCSV->iSpellRealm = -1;
     SelectSpellCastingPartySlot(party_slot);
@@ -318,7 +318,7 @@ unsigned char OpenSpellCastingView(int party_slot)
     RequestRedrawCombatBar();
     RequestRedraw(0x1000);
     PauseMainGameWorld();
-    gpSCSV->override_spell_104 = 0;
+    gpSCSV->override_spell = 0;
     return 1;
 }
 
@@ -344,7 +344,7 @@ void CloseSpellCastingView(void)
         if (gXStatus.fCampMode == 0) {
             ResetEditorStatusLine(-1);
         }
-        g_level_block->text_box_visible_271 = 1;
+        g_level_block->text_box_visible = 1;
         SelectTextBox(gXStatus.fCombatMode != 0);
         ReleaseSpellCastingViewControls();
         SetTextBoxRegionBounds(0xa8, 0x16e, 0x1c4, 0x1ba);
@@ -597,7 +597,7 @@ static void RebuildSpellCastingList(int spell_id)
             while (index <
                    static_cast<int>(gpSCSV->caster->skill_unlocks[W8_SKILL_FIRST_REALM + realm])) {
                 int id = gpSCSV->learned.spell_ids_by_realm[realm][index];
-                gpSCSV->override_spell_104 = id;
+                gpSCSV->override_spell = id;
                 spell = &g_spell_records[id];
                 if (spell->spell_point_cost <= gpSCSV->caster->iSPLeft[realm] &&
                     SpellUsableNow(id, 0) != 0 &&
@@ -657,7 +657,7 @@ static void RebuildSpellCastingList(int spell_id)
                 }
                 ++index;
             }
-            gpSCSV->override_spell_104 = 0;
+            gpSCSV->override_spell = 0;
             ++pass;
         } while (pass < 2);
     }
@@ -1199,14 +1199,14 @@ unsigned char SpellRealmButtonRegionEvent(const InputAtom* event, W8Region* regi
 }
 
 /* Power-pip / cancel-button region callback (ids 0..8 and 10). While
-   input_blocked_570 is set the handler swallows input. */
+   input_blocked is set the handler swallows input. */
 // FUNCTION: WIZ8 0x005A0E50
 unsigned char SpellPowerPipRegionEvent(const InputAtom* event, W8Region* region)
 {
     int us_event;
     unsigned int callback_id;
 
-    if (gpSCSV->input_blocked_570 != 0) {
+    if (gpSCSV->input_blocked != 0) {
         return 1;
     }
 
@@ -1262,7 +1262,7 @@ unsigned char SpellCastTextBoxRegionEvent(const InputAtom* event, W8Region* regi
     if (gpSCSV->iSpellRealm == -1) {
         return 0;
     }
-    line = g_level_block->text_lines[g_status.text_line_cursor_1795] +
+    line = g_level_block->text_lines[g_status.text_line_cursor] +
            (GetAtomCursorY(event) - region->y1) / 0xb;
     if (line >= static_cast<int>(gpSCSV->uiSpellsInList) || line < -1) {
         line = -1;
@@ -1388,7 +1388,7 @@ int GetSpellCastingSelection(void)
 {
     int result;
 
-    result = gpSCSV->override_spell_104;
+    result = gpSCSV->override_spell;
     if (result == 0) {
         result = gpSCSV->uiSpellToCast;
     }
@@ -1437,7 +1437,7 @@ void TryCommitSpellCast(void)
 // FUNCTION: WIZ8 0x005A14D0
 void ShowSpellCastingError(int spell_id)
 {
-    gpSCSV->override_spell_104 = spell_id;
+    gpSCSV->override_spell = spell_id;
     if (SpellUsableNow(spell_id, 0) == 0) {
         ShowMainGameNoticeLine(gppStringList[0x79e], SpellCastingNoticeClosed, 1, 0);
     } else if (GetCharacterRealmSpellPoints(gpSCSV->caster, gpSCSV->iSpellRealm) <
@@ -1451,5 +1451,5 @@ void ShowSpellCastingError(int spell_id)
     } else if (IsSpellBlockedForCharacter(gpSCSV->caster, spell_id) != 0) {
         ShowMainGameNoticeLine(gppStringList[0x79f], SpellCastingNoticeClosed, 1, 0);
     }
-    gpSCSV->override_spell_104 = 0;
+    gpSCSV->override_spell = 0;
 }

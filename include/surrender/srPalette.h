@@ -227,7 +227,7 @@ private:
     unsigned long flags_18;
     srARGB* colors_1c;
     long color_count_20;
-    Quantizer* quantizer_24;
+    Quantizer* quantizer;
 };
 
 static_assert(sizeof(srPalette::Quantizer) == 0x21918, "Quantizer_must_be_0x21918");

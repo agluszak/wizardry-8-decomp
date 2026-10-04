@@ -8,14 +8,14 @@ template <class T> class stHeap {
 public:
     ~stHeap()
     {
-        if (external_storage_04 == 0) {
+        if (external_storage == 0) {
             delete[] entries_00;
         }
     }
 
     T* entries_00;
-    unsigned int external_storage_04;
-    int capacity_08;
+    unsigned int external_storage;
+    int capacity;
     int size_0c;
 
     void Insert(const T* entry);
@@ -26,7 +26,7 @@ public:
 
 template <class T> void stHeap<T>::Insert(const T* entry)
 {
-    if (size_0c >= capacity_08) {
+    if (size_0c >= capacity) {
         srAssertFail("heapsize < maxheapsize", "..\\Engine Code\\Include\\stHeap.hpp", 0xe1,
                      "stHeap overflow");
     }

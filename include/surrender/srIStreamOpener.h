@@ -31,9 +31,9 @@ public:
     srIStreamOpener()
     {
         first_04 = new StreamType;
-        end_08 = first_04;
-        first_04->next_08 = 0;
-        first_04->previous_0c = 0;
+        end = first_04;
+        first_04->next = 0;
+        first_04->previous = 0;
         count_00 = 0;
     }
     SR_DLL_IMPORT ~srIStreamOpener();
@@ -48,8 +48,8 @@ private:
     struct StreamType {
         Opener* opener_00;
         char* extension_04;
-        StreamType* next_08;
-        StreamType* previous_0c;
+        StreamType* next;
+        StreamType* previous;
     };
 
     static_assert(sizeof(StreamType) == 0x10, "srIStreamOpener_StreamType_must_be_0x10");
@@ -60,7 +60,7 @@ private:
 
     long count_00;
     StreamType* first_04;
-    StreamType* end_08;
+    StreamType* end;
 };
 
 static_assert(sizeof(srIStreamOpener::Opener) == 0x04, "srIStreamOpener_Opener_must_be_0x04");

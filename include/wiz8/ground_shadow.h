@@ -21,8 +21,8 @@ public:
 
     /* GrCycle's 0x004A7470 stores the navigator's facing angle here with
        fstp, which is what types it. */
-    float angle_138;
-    float depth_13c;
+    float angle;
+    float depth;
     float width_140;
     unsigned char padding_144[4];
 

@@ -38,7 +38,7 @@ private:
         Entry* next_04;
         long offset_08;
         long size_0c;
-        int locked_10;
+        int locked;
     };
 
     static_assert(sizeof(Entry) == 0x14, "srMemoryPool_Entry_must_be_0x14");
@@ -71,11 +71,11 @@ private:
     long size_04;
     void* memory_08;
     long used_0c;
-    long largest_free_10;
+    long largest_free;
     unsigned long alignment_14;
-    Entry* first_free_18;
-    Entry* allocations_1c[256];
-    int largest_free_dirty_41c;
+    Entry* first_free;
+    Entry* allocations[256];
+    int largest_free_dirty;
 };
 
 static_assert(sizeof(srMemoryPool) == 0x420, "srMemoryPool_must_be_0x420");

@@ -88,19 +88,19 @@ void UpdateActivePartyMovement(void)
     if (gXStatus.flPartyMoveDistLimit <= g_float_zero) {
         srAssertFail("gXStatus.flPartyMoveDistLimit > 0.0f", COMBAT_MOVEMENT_CPP, 359, 0);
     }
-    g_level_block->move_budget_2dc = static_cast<int>(
+    g_level_block->move_percent = static_cast<int>(
         100.0f - gXStatus.party_move_distance * 100.0f / gXStatus.flPartyMoveDistLimit);
-    ClampInteger(&g_level_block->move_budget_2dc, 0, 100);
-    if (g_level_block->move_budget_2dc != g_level_block->move_budget_2e0) {
+    ClampInteger(&g_level_block->move_percent, 0, 100);
+    if (g_level_block->move_percent != g_level_block->move_percent_shown) {
         InvalidatePartyMovementPanel();
-        g_level_block->move_budget_2e0 = g_level_block->move_budget_2dc;
+        g_level_block->move_percent_shown = g_level_block->move_percent;
     }
     if (g_settings.continuous_combat != 0) {
         g_combat_state->party_movement_clock = SetCountdownClock(1000);
     }
 
 check_completion:
-    if (g_level_block->move_budget_2dc < 1) {
+    if (g_level_block->move_percent < 1) {
         BeginFreeTurnPhase();
     }
 }
@@ -156,8 +156,8 @@ void UpdatePartyMovementControl(void)
         ReleasePartyMovement();
         return;
     }
-    g_level_block->move_budget_2dc = 100;
-    g_level_block->move_budget_2e0 = 100;
+    g_level_block->move_percent = 100;
+    g_level_block->move_percent_shown = 100;
     InvalidatePartyMovementPanel();
 }
 
@@ -207,11 +207,11 @@ unsigned char GetPartyHasteSteps(unsigned int* out_steps)
         if (character->uiCondition[19] != 0) {
             continue;
         }
-        if (character->enchantments[5].turns_08 == 0) {
+        if (character->enchantments[5].turns == 0) {
             return 0;
         }
-        steps = static_cast<unsigned char>(character->enchantments[5].power_00 * 10);
-        AdjustIntegerByPercent(&steps, character->enchantments[5].percent_04);
+        steps = static_cast<unsigned char>(character->enchantments[5].power * 10);
+        AdjustIntegerByPercent(&steps, character->enchantments[5].percent);
         total += steps;
         ++count;
     }
@@ -244,14 +244,14 @@ float GetPartyMovementSpeed(void)
 // FUNCTION: WIZ8 0x004f06b0
 void CompletePartyMovementTurns(void)
 {
-    if (g_level_block->move_budget_2dc < 0) {
+    if (g_level_block->move_percent < 0) {
         srAssertFail("gpMGSV->iPartyMovementPercent >= 0", COMBAT_MOVEMENT_CPP, 547, 0);
     }
-    if (g_level_block->move_budget_2dc > 100) {
+    if (g_level_block->move_percent > 100) {
         srAssertFail("gpMGSV->iPartyMovementPercent <= 100", COMBAT_MOVEMENT_CPP, 548, 0);
     }
 
-    unsigned int remaining = 100 - g_level_block->move_budget_2dc;
+    unsigned int remaining = 100 - g_level_block->move_percent;
     if (g_combat_state->uiCurrentPartyAction == 2) {
         remaining = static_cast<unsigned int>(remaining * g_float_005ec3b8);
     }
@@ -265,11 +265,11 @@ void CompletePartyMovementTurns(void)
             continue;
         }
         W8CombatCharacterRow* combat_row = &g_combat_state->characters[party_slot];
-        if (combat_row->dead_34 == 0 && Random(100) < remaining) {
+        if (combat_row->dead == 0 && Random(100) < remaining) {
             CatchUpCombatActor(combat_row);
             continue;
         }
-        combat_row->dead_34 = 1;
+        combat_row->dead = 1;
         combat_row->phase = 0;
         party_row->pending_event_type_ff = static_cast<unsigned int>(-1);
     }
@@ -315,7 +315,7 @@ void AlignCombatantsToPartyMovementPhase(void)
     RoundPhaseToStep(&g_combat_state->uiPartyActionPhase, g_combat_state->round_counter);
     for (int party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
         W8CombatCharacterRow* row = &g_combat_state->characters[party_slot];
-        if (row->phase >= g_combat_state->round_counter && row->dead_34 == 0) {
+        if (row->phase >= g_combat_state->round_counter && row->dead == 0) {
             RoundPhaseToStep(&row->phase, g_combat_state->round_counter);
         }
     }
@@ -429,12 +429,12 @@ void InterruptActivePartyMovement(void)
             continue;
         }
         W8CombatCharacterRow* row = &g_combat_state->characters[party_slot];
-        if (row->phase < g_combat_state->round_counter && row->dead_34 == 0) {
+        if (row->phase < g_combat_state->round_counter && row->dead == 0) {
             row->phase = g_combat_state->round_counter;
         }
         row->phase_clock_stamp = g_combat_state->round_counter;
         if (row->phase > W8_PHASES_PER_ROUND) {
-            row->dead_34 = 1;
+            row->dead = 1;
             row->phase = 0;
             party_row->pending_event_type_ff = static_cast<unsigned int>(-1);
             RequestRedraw((1 << party_slot) | 0x100000);
@@ -476,7 +476,7 @@ void BeginPartyMovementPhase(void)
         gXStatus.party_move_distance = 0.0f;
     }
     FinishPartyMovementAction();
-    g_combat_state->passive_round_a55 = 0;
+    g_combat_state->passive_round = 0;
 }
 
 // FUNCTION: WIZ8 0x004f00c0

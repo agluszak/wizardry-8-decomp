@@ -21,15 +21,15 @@ srIOManager::srIOManager()
 {
     Registration* importers = new Registration();
     importers_04_.first_04 = importers;
-    importers_04_.sentinel_08 = importers;
-    importers->next_08 = 0;
-    importers->previous_0c = 0;
+    importers_04_.sentinel = importers;
+    importers->next = 0;
+    importers->previous = 0;
     importers_04_.count_00 = 0;
     Registration* exporters = new Registration();
     exporters_10_.first_04 = exporters;
-    exporters_10_.sentinel_08 = exporters;
-    exporters->next_08 = 0;
-    exporters->previous_0c = 0;
+    exporters_10_.sentinel = exporters;
+    exporters->next = 0;
+    exporters->previous = 0;
     exporters_10_.count_00 = 0;
 }
 
@@ -37,13 +37,13 @@ srIOManager::srIOManager()
 srIOManager::~srIOManager()
 {
     Registration* node = exporters_10_.first_04;
-    while (node != exporters_10_.sentinel_08) {
-        exporters_10_.first_04 = node->next_08;
-        if (node->previous_0c != 0) {
-            node->previous_0c->next_08 = node->next_08;
+    while (node != exporters_10_.sentinel) {
+        exporters_10_.first_04 = node->next;
+        if (node->previous != 0) {
+            node->previous->next = node->next;
         }
-        if (node->next_08 != 0) {
-            node->next_08->previous_0c = node->previous_0c;
+        if (node->next != 0) {
+            node->next->previous = node->previous;
         }
         delete node;
         node = exporters_10_.first_04;
@@ -51,13 +51,13 @@ srIOManager::~srIOManager()
     }
     delete exporters_10_.first_04;
     node = importers_04_.first_04;
-    while (node != importers_04_.sentinel_08) {
-        importers_04_.first_04 = node->next_08;
-        if (node->previous_0c != 0) {
-            node->previous_0c->next_08 = node->next_08;
+    while (node != importers_04_.sentinel) {
+        importers_04_.first_04 = node->next;
+        if (node->previous != 0) {
+            node->previous->next = node->next;
         }
-        if (node->next_08 != 0) {
-            node->next_08->previous_0c = node->previous_0c;
+        if (node->next != 0) {
+            node->next->previous = node->previous;
         }
         delete node;
         node = importers_04_.first_04;
@@ -92,8 +92,8 @@ srIOManager::Importer* srIOManager::findImporter(const char* extension)
         }
     }
     Importer* result = 0;
-    for (Registration* node = importers_04_.first_04; node != importers_04_.sentinel_08;
-         node = node->next_08) {
+    for (Registration* node = importers_04_.first_04; node != importers_04_.sentinel;
+         node = node->next) {
         if (strcmp(node->extension_00, upper) == 0) {
             result = node->importer_04;
             break;
@@ -117,8 +117,8 @@ srIOManager::Exporter* srIOManager::findExporter(const char* extension)
         }
     }
     Exporter* result = 0;
-    for (Registration* node = exporters_10_.first_04; node != exporters_10_.sentinel_08;
-         node = node->next_08) {
+    for (Registration* node = exporters_10_.first_04; node != exporters_10_.sentinel;
+         node = node->next) {
         if (strcmp(node->extension_00, upper) == 0) {
             result = node->exporter_04;
             break;
@@ -138,7 +138,7 @@ void srIOManager::addImporter(Importer* importer, const char* extension)
         for (long index = 0; index < length; ++index) {
             upper[index] = (char)toupper(upper[index]);
         }
-        importers_04_.insert(importers_04_.sentinel_08, upper, importer);
+        importers_04_.insert(importers_04_.sentinel, upper, importer);
     }
 }
 
@@ -152,7 +152,7 @@ void srIOManager::addExporter(Exporter* exporter, const char* extension)
         for (long index = 0; index < length; ++index) {
             upper[index] = (char)toupper(upper[index]);
         }
-        exporters_10_.insert(exporters_10_.sentinel_08, upper, exporter);
+        exporters_10_.insert(exporters_10_.sentinel, upper, exporter);
     }
 }
 
@@ -166,23 +166,23 @@ void srIOManager::removeImporter(Importer* importer)
     do {
         node = importers_04_.first_04;
         while (true) {
-            if (node == importers_04_.sentinel_08) {
+            if (node == importers_04_.sentinel) {
                 return;
             }
             if (node->importer_04 == importer) {
                 break;
             }
-            node = node->next_08;
+            node = node->next;
         }
         delete[] node->extension_00;
         if (node == importers_04_.first_04) {
-            importers_04_.first_04 = node->next_08;
+            importers_04_.first_04 = node->next;
         }
-        if (node->previous_0c != 0) {
-            node->previous_0c->next_08 = node->next_08;
+        if (node->previous != 0) {
+            node->previous->next = node->next;
         }
-        if (node->next_08 != 0) {
-            node->next_08->previous_0c = node->previous_0c;
+        if (node->next != 0) {
+            node->next->previous = node->previous;
         }
         delete node;
         --importers_04_.count_00;
@@ -199,23 +199,23 @@ void srIOManager::removeExporter(Exporter* exporter)
     do {
         node = exporters_10_.first_04;
         while (true) {
-            if (node == exporters_10_.sentinel_08) {
+            if (node == exporters_10_.sentinel) {
                 return;
             }
             if (node->exporter_04 == exporter) {
                 break;
             }
-            node = node->next_08;
+            node = node->next;
         }
         delete[] node->extension_00;
         if (node == exporters_10_.first_04) {
-            exporters_10_.first_04 = node->next_08;
+            exporters_10_.first_04 = node->next;
         }
-        if (node->previous_0c != 0) {
-            node->previous_0c->next_08 = node->next_08;
+        if (node->previous != 0) {
+            node->previous->next = node->next;
         }
-        if (node->next_08 != 0) {
-            node->next_08->previous_0c = node->previous_0c;
+        if (node->next != 0) {
+            node->next->previous = node->previous;
         }
         delete node;
         --exporters_10_.count_00;
@@ -228,18 +228,18 @@ void srIOManager::dump()
     srPrintf("extension   importer\n");
     srPrintf("-----------------------------------------------------------------\n");
     Registration* node = importers_04_.first_04;
-    while (node != importers_04_.sentinel_08) {
+    while (node != importers_04_.sentinel) {
         srPrintf("%-8s    '%s'\n", node->extension_00, node->importer_04->getTypeName());
-        node = node->next_08;
+        node = node->next;
     }
     srPrintf("-----------------------------------------------------------------\n");
     srPrintf("total %d instances\n", importers_04_.count_00);
     srPrintf("extension   exporter\n");
     srPrintf("-----------------------------------------------------------------\n");
     node = exporters_10_.first_04;
-    while (node != exporters_10_.sentinel_08) {
+    while (node != exporters_10_.sentinel) {
         srPrintf("%-8s    '%s'\n", node->extension_00, node->exporter_04->getTypeName());
-        node = node->next_08;
+        node = node->next;
     }
     srPrintf("-----------------------------------------------------------------\n");
     srPrintf("total %d instances\n", exporters_10_.count_00);
@@ -289,15 +289,15 @@ void srIOManager::ImporterList::insert(Registration* position, char* extension, 
     Registration* node = new Registration();
     node->extension_00 = extension;
     node->importer_04 = importer;
-    node->next_08 = position;
-    node->previous_0c = position->previous_0c;
-    if (node->previous_0c != 0) {
-        node->previous_0c->next_08 = node;
+    node->next = position;
+    node->previous = position->previous;
+    if (node->previous != 0) {
+        node->previous->next = node;
     } else {
         first_04 = node;
     }
-    if (node->next_08 != 0) {
-        node->next_08->previous_0c = node;
+    if (node->next != 0) {
+        node->next->previous = node;
     }
     ++count_00;
 }
@@ -308,15 +308,15 @@ void srIOManager::ExporterList::insert(Registration* position, char* extension, 
     Registration* node = new Registration();
     node->extension_00 = extension;
     node->exporter_04 = exporter;
-    node->next_08 = position;
-    node->previous_0c = position->previous_0c;
-    if (node->previous_0c != 0) {
-        node->previous_0c->next_08 = node;
+    node->next = position;
+    node->previous = position->previous;
+    if (node->previous != 0) {
+        node->previous->next = node;
     } else {
         first_04 = node;
     }
-    if (node->next_08 != 0) {
-        node->next_08->previous_0c = node;
+    if (node->next != 0) {
+        node->next->previous = node;
     }
     ++count_00;
 }

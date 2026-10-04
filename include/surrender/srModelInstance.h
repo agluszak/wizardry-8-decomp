@@ -37,7 +37,7 @@ public:
 #else
     srVector3T<float> getAlignAxis() const
     {
-        return align_axis_14c;
+        return align_axis;
     }
 #endif
     unsigned long getExclusionMask() const;
@@ -46,7 +46,7 @@ public:
 #else
     int isAligned() const
     {
-        return (int)(alignment_flags_148.value & 1);
+        return (int)(alignment_flags.value & 1);
     }
 #endif
     void setAlignAngle(double angle);
@@ -64,22 +64,22 @@ public:
         float length_squared;
         float scale;
 
-        align_axis_14c = axis;
-        length_squared = align_axis_14c.z * align_axis_14c.z + align_axis_14c.y * align_axis_14c.y +
-                         align_axis_14c.x * align_axis_14c.x;
+        align_axis = axis;
+        length_squared = align_axis.z * align_axis.z + align_axis.y * align_axis.y +
+                         align_axis.x * align_axis.x;
         if (length_squared != 0.0) {
             scale = static_cast<float>(1.0 / sqrt(length_squared));
-            align_axis_14c *= scale;
+            align_axis *= scale;
         }
-        alignment_flags_148.value |= 1;
+        alignment_flags.value |= 1;
     }
     void setAlignment(int enabled)
     {
         if (enabled != 0) {
-            alignment_flags_148.value |= 1;
+            alignment_flags.value |= 1;
             return;
         }
-        alignment_flags_148.value &= ~1u;
+        alignment_flags.value &= ~1u;
     }
 #endif
     /* Wiz8 inlines this store; SR.DLL also exports an out-of-line copy. */
@@ -88,24 +88,24 @@ public:
 #else
     SR_DLL_IMPORT void setExclusionMask(unsigned long mask)
     {
-        exclusion_mask_15c = mask;
+        exclusion_mask = mask;
     }
 #endif
 
     /* Monster.cpp 0x004c6c30 calls `set` on this member - the receiver of
        0x004ca880 is the flag word itself - so the original member was a flag
        object reachable outside the class. */
-    srFlags<int> alignment_flags_148;
+    srFlags<int> alignment_flags;
 
 protected:
     SR_DLL_IMPORT virtual ~srModelInstance() override;
 
-    srVector3T<float> align_axis_14c;
-    float align_angle_158;
-    unsigned long exclusion_mask_15c;
+    srVector3T<float> align_axis;
+    float align_angle;
+    unsigned long exclusion_mask;
 };
 
 static_assert((sizeof(srModelInstance) == 0x160), "srModelInstance_must_be_0x160");
 /* Retail places the srModel::Client subobject at +0x138; the model instance's
    own members begin at +0x148. */
-W8_ASSERT_BASE_END(srModelInstance, srModel::Client, alignment_flags_148, 0x138);
+W8_ASSERT_BASE_END(srModelInstance, srModel::Client, alignment_flags, 0x138);

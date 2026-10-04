@@ -25,34 +25,34 @@ const float g_float_005ebccc = 0.75f;
 GDProp::GDProp(srModelInstance* instance, const char* path_name, unsigned short prop_number,
                unsigned char footstep_surface, unsigned char footstep_material)
 {
-    m_flags_00 = 0;
-    m_path_handle_04 = 0;
-    m_prop_number_02 = 0;
-    m_vertex_count_18 = 0;
-    m_surface_count_14 = 0;
+    m_flags = 0;
+    m_path_handle = 0;
+    m_prop_number = 0;
+    m_vertex_count = 0;
+    m_surface_count = 0;
     m_pGDSurfaces = 0;
     m_pVertices = 0;
-    m_owner_24 = 0;
-    m_link_count_08 = 0;
-    m_waypoint_count_0a = 0;
-    m_links_0c = 0;
-    m_waypoints_10 = 0;
-    m_list_54 = 0;
-    m_path_range_28.sentinel = -10000000.0f;
-    m_path_bounds_4c.max_z = 0;
-    m_path_bounds_4c.min_z = 0;
-    m_path_bounds_4c.max_x = 0;
-    m_path_bounds_4c.min_x = 0;
+    m_owner = 0;
+    m_link_count = 0;
+    m_waypoint_count = 0;
+    m_links = 0;
+    m_waypoints = 0;
+    m_list = 0;
+    m_path_range.sentinel = -10000000.0f;
+    m_path_bounds.max_z = 0;
+    m_path_bounds.min_z = 0;
+    m_path_bounds.max_x = 0;
+    m_path_bounds.min_x = 0;
 
-    if (g_octree != 0 && g_octree->pathing_180 != 0) {
-        m_path_handle_04 =
-            g_octree->pathing_180->FindPathHandle(path_name, &m_path_bounds_4c, &m_path_range_28);
+    if (g_octree != 0 && g_octree->pathing != 0) {
+        m_path_handle =
+            g_octree->pathing->FindPathHandle(path_name, &m_path_bounds, &m_path_range);
     }
 
     if (instance != 0) {
-        if (m_path_handle_04 != 0 && g_octree->pathing_180 != 0) {
-            g_octree->pathing_180->LinkSurfaces(this);
-            g_octree->pathing_180->LinkEdges(this);
+        if (m_path_handle != 0 && g_octree->pathing != 0) {
+            g_octree->pathing->LinkSurfaces(this);
+            g_octree->pathing->LinkEdges(this);
         }
         Initialize(instance, 1, prop_number, footstep_surface, footstep_material);
     }
@@ -67,14 +67,14 @@ GDProp::~GDProp()
     if (m_pVertices != 0) {
         delete[] m_pVertices;
     }
-    if (m_links_0c != 0) {
-        free(m_links_0c);
+    if (m_links != 0) {
+        free(m_links);
     }
-    if (m_waypoints_10 != 0) {
-        free(m_waypoints_10);
+    if (m_waypoints != 0) {
+        free(m_waypoints);
     }
-    if (m_list_54 != 0) {
-        PLDestroy(m_list_54);
+    if (m_list != 0) {
+        PLDestroy(m_list);
     }
 }
 
@@ -87,35 +87,35 @@ void GDProp::PrepareGeometry(srModelInstance* instance)
     int vertex_count = 0;
     stMeshModel* mesh = static_cast<stMeshModel*>(instance->getModel());
     while (mesh != 0) {
-        surface_count += mesh->polygon_count_230;
-        vertex_count += mesh->vertex_location_count_22c;
+        surface_count += mesh->polygon_count;
+        vertex_count += mesh->vertex_location_count;
         mesh = mesh->next;
     }
 
-    if (m_surface_count_14 != surface_count) {
-        m_surface_count_14 = surface_count;
+    if (m_surface_count != surface_count) {
+        m_surface_count = surface_count;
         if (m_pGDSurfaces != 0) {
             free(m_pGDSurfaces);
         }
-        m_pGDSurfaces = static_cast<W8GDSurface*>(malloc(m_surface_count_14 * sizeof(W8GDSurface)));
+        m_pGDSurfaces = static_cast<W8GDSurface*>(malloc(m_surface_count * sizeof(W8GDSurface)));
         if (m_pGDSurfaces == 0) {
             srAssertFail("m_pGDSurfaces", "C:\\Projects\\Wizardry 8\\Engine Code\\GDProp.cpp", 0xa0,
                          0);
         }
-        memset(m_pGDSurfaces, 0, m_surface_count_14 * sizeof(W8GDSurface));
+        memset(m_pGDSurfaces, 0, m_surface_count * sizeof(W8GDSurface));
     }
 
-    if (m_vertex_count_18 != vertex_count) {
-        m_vertex_count_18 = vertex_count;
+    if (m_vertex_count != vertex_count) {
+        m_vertex_count = vertex_count;
         if (m_pVertices != 0) {
             delete[] m_pVertices;
         }
-        m_pVertices = new srVector3T<float>[m_vertex_count_18];
+        m_pVertices = new srVector3T<float>[m_vertex_count];
         if (m_pVertices == 0) {
             srAssertFail("m_pVertices", "C:\\Projects\\Wizardry 8\\Engine Code\\GDProp.cpp", 0xae,
                          0);
         }
-        memset(m_pVertices, 0, m_vertex_count_18 * sizeof(srVector3T<float>));
+        memset(m_pVertices, 0, m_vertex_count * sizeof(srVector3T<float>));
     }
 }
 
@@ -128,10 +128,10 @@ void GDProp::Initialize(srModelInstance* instance, bool attach, unsigned short p
                         unsigned char footstep_surface, unsigned char footstep_material)
 {
     if (attach == 0) {
-        m_flags_00 |= 4;
+        m_flags |= 4;
     } else {
-        m_flags_00 &= 0xfffb;
-        m_prop_number_02 = prop_number;
+        m_flags &= 0xfffb;
+        m_prop_number = prop_number;
     }
 
     PrepareGeometry(instance);
@@ -144,20 +144,20 @@ void GDProp::Initialize(srModelInstance* instance, bool attach, unsigned short p
     while (mesh != 0) {
         unsigned int mesh_flags = mesh->flags_3a0;
         srVector3i* polygon_vertices = mesh->getPolyVertex();
-        for (int polygon = 0; polygon < mesh->polygon_count_230; ++polygon) {
+        for (int polygon = 0; polygon < mesh->polygon_count; ++polygon) {
             W8GDSurface* surface = &m_pGDSurfaces[surface_total + polygon];
             surface->vertex_indices_18[0] = polygon_vertices[polygon].x + vertex_base;
             surface->vertex_indices_18[1] = polygon_vertices[polygon].y + vertex_base;
             surface->vertex_indices_18[2] = polygon_vertices[polygon].z + vertex_base;
         }
-        surface_total += mesh->polygon_count_230;
+        surface_total += mesh->polygon_count;
 
         srVector3T<float>* source_vertices = mesh->getVertexLoc();
-        for (int vertex = 0; vertex < mesh->vertex_location_count_22c; ++vertex) {
+        for (int vertex = 0; vertex < mesh->vertex_location_count; ++vertex) {
             m_pVertices[vertex_base + vertex] =
                 world_matrix.TransformPoint(source_vertices[vertex]);
         }
-        vertex_base += mesh->vertex_location_count_22c;
+        vertex_base += mesh->vertex_location_count;
 
         for (int surface_index = 0; surface_index < surface_total; ++surface_index) {
             W8GDSurface* surface = &m_pGDSurfaces[surface_index];
@@ -175,15 +175,15 @@ void GDProp::Initialize(srModelInstance* instance, bool attach, unsigned short p
                 }
             }
             surface->flags_00 = dominant_axis + 0x800;
-            surface->footstep_surface_3c = footstep_surface;
-            surface->footstep_material_3d = footstep_material;
-            surface->hit_plane_38 = 0;
+            surface->footstep_surface = footstep_surface;
+            surface->footstep_material = footstep_material;
+            surface->hit_plane = 0;
             if ((mesh_flags & 1) != 0) {
                 surface->flags_00 |= 0x8000;
             }
 
             if (g_float_005ebc7c <= surface->plane_24.normal.y) {
-                surface->contact_margin_40 = 500.0f;
+                surface->contact_margin = 500.0f;
                 surface->flags_00 |= 4;
                 if (g_float_005ebccc < surface->plane_24.normal.y) {
                     surface->slope_48 = 1.0f;
@@ -192,52 +192,52 @@ void GDProp::Initialize(srModelInstance* instance, bool attach, unsigned short p
                 }
             } else {
                 surface->slope_48 = 0.0f;
-                surface->contact_margin_40 = 500.0f;
+                surface->contact_margin = 500.0f;
             }
         }
         mesh = mesh->next;
     }
 
-    W8PathingService* pathing = g_octree->pathing_180;
-    if (m_path_handle_04 != 0 && pathing != 0) {
+    W8PathingService* pathing = g_octree->pathing;
+    if (m_path_handle != 0 && pathing != 0) {
         if (attach == 0) {
-            if (m_prop_number_02 != 0xffff) {
-                m_prop_number_02 = 0xffff;
-                pathing->SetConditionalPathFrame(m_path_handle_04, 0xffff);
+            if (m_prop_number != 0xffff) {
+                m_prop_number = 0xffff;
+                pathing->SetConditionalPathFrame(m_path_handle, 0xffff);
             }
         } else {
-            pathing->SetConditionalPathFrame(m_path_handle_04, m_prop_number_02);
-            if (m_waypoint_count_0a != 0) {
-                pathing->CheckConditionalWayPtStatus(m_waypoint_count_0a, m_waypoints_10);
+            pathing->SetConditionalPathFrame(m_path_handle, m_prop_number);
+            if (m_waypoint_count != 0) {
+                pathing->CheckConditionalWayPtStatus(m_waypoint_count, m_waypoints);
             }
-            if (m_link_count_08 != 0) {
-                pathing->CheckConditionalLinkStatus(m_link_count_08, m_links_0c);
+            if (m_link_count != 0) {
+                pathing->CheckConditionalLinkStatus(m_link_count, m_links);
             }
         }
     }
 
-    Trigger* owner = m_owner_24;
+    Trigger* owner = m_owner;
     if (owner != 0 && attach != 0) {
         W8TriggerActionData* action = owner->m_pActionData;
-        if (action != 0 && action->type_004 == 10) {
+        if (action != 0 && action->type == 10) {
             unsigned int flags = 0x08000000;
             if ((owner->lock_state.lock_type != 0 &&
                  owner->lock_state.device_state.completed == 0) ||
                 ((owner->flags_0a0 & W8_TRIGGER_ENABLED) == 0 ||
-                 (static_cast<W8DoorTriggerActionData*>(action)->flags_008 & 5) != 0)) {
+                 (static_cast<W8DoorTriggerActionData*>(action)->door_flags & 5) != 0)) {
                 flags = 0x28000000;
             }
             if (pathing != 0) {
-                pathing->UpdateConditionalPathFlags(m_path_handle_04, m_prop_number_02, flags);
+                pathing->UpdateConditionalPathFlags(m_path_handle, m_prop_number, flags);
             }
         }
     }
 
-    if (m_list_54 != 0) {
-        unsigned int count = PLLength(m_list_54);
+    if (m_list != 0) {
+        unsigned int count = PLLength(m_list);
         for (unsigned int index = 0; index < count; ++index) {
             W8WorldItem* item =
-                static_cast<W8WorldItem*>(PLGet(m_list_54, static_cast<int>(index)));
+                static_cast<W8WorldItem*>(PLGet(m_list, static_cast<int>(index)));
             if (item != 0) {
                 SetWorldItemFlag02(item, 1);
             }
@@ -250,25 +250,25 @@ void GDProp::Initialize(srModelInstance* instance, bool attach, unsigned short p
 // FUNCTION: WIZ8 0x004b7470
 void GDProp::BindTrigger(Trigger* owner)
 {
-    m_owner_24 = owner;
+    m_owner = owner;
     W8TriggerActionData* action = owner->m_pActionData;
-    if (action != 0 && action->type_004 == 10) {
+    if (action != 0 && action->type == 10) {
         if (action != 0) {
-            m_flags_00 |= 2;
+            m_flags |= 2;
             unsigned int path_flags = 0x08000000;
             if ((owner->lock_state.lock_type == 0 ||
                  owner->lock_state.device_state.completed != 0) &&
                 (owner->flags_0a0 & W8_TRIGGER_ENABLED) != 0 &&
-                (static_cast<W8DoorTriggerActionData*>(action)->flags_008 & 5) == 0) {
-                m_flags_00 |= 8;
+                (static_cast<W8DoorTriggerActionData*>(action)->door_flags & 5) == 0) {
+                m_flags |= 8;
             } else {
                 path_flags = 0x28000000;
-                m_flags_00 &= 0xfff7;
+                m_flags &= 0xfff7;
             }
 
-            W8PathingService* pathing = g_octree->pathing_180;
+            W8PathingService* pathing = g_octree->pathing;
             if (pathing != 0) {
-                pathing->UpdateConditionalPathFlags(m_path_handle_04, m_prop_number_02, path_flags);
+                pathing->UpdateConditionalPathFlags(m_path_handle, m_prop_number, path_flags);
             }
         }
     }
@@ -280,25 +280,25 @@ void GDProp::BindTrigger(Trigger* owner)
 // FUNCTION: WIZ8 0x004b7500
 void GDProp::ComputeBounds(srVector3T<float>* minimum, srVector3T<float>* maximum)
 {
-    m_bound_max_40 = m_pVertices[0];
-    m_bound_min_34 = m_pVertices[0];
-    for (int vertex = 1; vertex < m_vertex_count_18; ++vertex) {
+    m_bound_max = m_pVertices[0];
+    m_bound_min = m_pVertices[0];
+    for (int vertex = 1; vertex < m_vertex_count; ++vertex) {
         for (int axis = 0; axis < 3; ++axis) {
-            if ((&m_bound_min_34.x)[axis] > (&m_pVertices[vertex].x)[axis]) {
-                (&m_bound_min_34.x)[axis] = (&m_pVertices[vertex].x)[axis];
+            if ((&m_bound_min.x)[axis] > (&m_pVertices[vertex].x)[axis]) {
+                (&m_bound_min.x)[axis] = (&m_pVertices[vertex].x)[axis];
             }
-            if ((&m_bound_max_40.x)[axis] < (&m_pVertices[vertex].x)[axis]) {
-                (&m_bound_max_40.x)[axis] = (&m_pVertices[vertex].x)[axis];
+            if ((&m_bound_max.x)[axis] < (&m_pVertices[vertex].x)[axis]) {
+                (&m_bound_max.x)[axis] = (&m_pVertices[vertex].x)[axis];
             }
         }
     }
 
-    m_path_range_28.minimum = m_bound_min_34.y;
-    m_path_range_28.maximum = m_bound_max_40.y;
-    m_path_range_28.sentinel = (m_bound_min_34.y + m_bound_max_40.y) * g_float_005ebc7c;
+    m_path_range.minimum = m_bound_min.y;
+    m_path_range.maximum = m_bound_max.y;
+    m_path_range.sentinel = (m_bound_min.y + m_bound_max.y) * g_float_005ebc7c;
 
-    *minimum = m_bound_min_34;
-    *maximum = m_bound_max_40;
+    *minimum = m_bound_min;
+    *maximum = m_bound_max;
 }
 
 /* The pathing record supplies inclusive unsigned coordinate bounds at
@@ -306,8 +306,8 @@ void GDProp::ComputeBounds(srVector3T<float>* minimum, srVector3T<float>* maximu
 // FUNCTION: WIZ8 0x004B75F0
 unsigned char GDProp::ContainsPathCoordinate(unsigned short x, unsigned short y) const
 {
-    if (x >= m_path_bounds_4c.min_x && x <= m_path_bounds_4c.max_x && y >= m_path_bounds_4c.min_z &&
-        y <= m_path_bounds_4c.max_z) {
+    if (x >= m_path_bounds.min_x && x <= m_path_bounds.max_x && y >= m_path_bounds.min_z &&
+        y <= m_path_bounds.max_z) {
         return 1;
     }
     return 0;
@@ -325,7 +325,7 @@ char GDProp::BoundsOverlap(const srVector3T<float>* minimum, const srVector3T<fl
 
     bounds[0] = *minimum;
     bounds[1] = *maximum;
-    for (int index = 0; index < m_surface_count_14 && hit == 0; ++index) {
+    for (int index = 0; index < m_surface_count && hit == 0; ++index) {
         W8GDSurface* surface = &m_pGDSurfaces[index];
         triangle[0] = m_pVertices[surface->vertex_indices_18[0]];
         triangle[1] = m_pVertices[surface->vertex_indices_18[1]];
@@ -342,29 +342,29 @@ char GDProp::BoundsOverlap(const srVector3T<float>* minimum, const srVector3T<fl
 // FUNCTION: WIZ8 0x004b7730
 unsigned char GDProp::RegisterPathSurface(unsigned int index, const srVector2i* point)
 {
-    if (static_cast<unsigned short>(point->x) < m_path_bounds_4c.min_x ||
-        static_cast<unsigned short>(point->x) > m_path_bounds_4c.max_x ||
-        static_cast<unsigned short>(point->y) < m_path_bounds_4c.min_z ||
-        static_cast<unsigned short>(point->y) > m_path_bounds_4c.max_z) {
+    if (static_cast<unsigned short>(point->x) < m_path_bounds.min_x ||
+        static_cast<unsigned short>(point->x) > m_path_bounds.max_x ||
+        static_cast<unsigned short>(point->y) < m_path_bounds.min_z ||
+        static_cast<unsigned short>(point->y) > m_path_bounds.max_z) {
         return 0;
     }
 
-    if (m_waypoint_count_0a % 10 == 0) {
+    if (m_waypoint_count % 10 == 0) {
         unsigned short* pusNewList = static_cast<unsigned short*>(
-            malloc((m_waypoint_count_0a + 10) * sizeof(unsigned short)));
+            malloc((m_waypoint_count + 10) * sizeof(unsigned short)));
         if (pusNewList == 0) {
             srAssertFail("pusNewList", "C:\\Projects\\Wizardry 8\\Engine Code\\GDProp.cpp", 0x242,
                          "CheckConditionalWayPt: Couldn't allocate new waypt list.");
         }
-        memset(pusNewList, 0, (m_waypoint_count_0a + 10) * sizeof(unsigned short));
-        if (m_waypoints_10 != 0) {
-            memcpy(pusNewList, m_waypoints_10, m_waypoint_count_0a * sizeof(unsigned short));
-            free(m_waypoints_10);
+        memset(pusNewList, 0, (m_waypoint_count + 10) * sizeof(unsigned short));
+        if (m_waypoints != 0) {
+            memcpy(pusNewList, m_waypoints, m_waypoint_count * sizeof(unsigned short));
+            free(m_waypoints);
         }
-        m_waypoints_10 = pusNewList;
+        m_waypoints = pusNewList;
     }
-    m_waypoints_10[m_waypoint_count_0a] = static_cast<unsigned short>(index);
-    ++m_waypoint_count_0a;
+    m_waypoints[m_waypoint_count] = static_cast<unsigned short>(index);
+    ++m_waypoint_count;
     return 1;
 }
 
@@ -387,21 +387,21 @@ unsigned char GDProp::RegisterPathVertex(unsigned int index, const srVector2i* p
 
     if (fabs(dx) > fabs(dy)) {
         float slope = dy / dx;
-        float cross = (m_path_bounds_4c.min_x - x0) * slope + y0;
-        if (cross > m_path_bounds_4c.min_z - 1 && cross < m_path_bounds_4c.max_z + 1) {
+        float cross = (m_path_bounds.min_x - x0) * slope + y0;
+        if (cross > m_path_bounds.min_z - 1 && cross < m_path_bounds.max_z + 1) {
             found = true;
         }
-        cross = (m_path_bounds_4c.max_x - x0) * slope + y0;
-        if (cross > m_path_bounds_4c.min_z - 1 && cross < m_path_bounds_4c.max_z + 1) {
+        cross = (m_path_bounds.max_x - x0) * slope + y0;
+        if (cross > m_path_bounds.min_z - 1 && cross < m_path_bounds.max_z + 1) {
             found = true;
         }
     } else {
         float slope = dx / dy;
-        float cross = (m_path_bounds_4c.min_z - y0) * slope + x0;
-        if (cross > m_path_bounds_4c.min_x - 1 && cross < m_path_bounds_4c.max_x + 1) {
+        float cross = (m_path_bounds.min_z - y0) * slope + x0;
+        if (cross > m_path_bounds.min_x - 1 && cross < m_path_bounds.max_x + 1) {
             found = true;
         }
-        if (cross > m_path_bounds_4c.min_x - 1 && cross < m_path_bounds_4c.max_x + 1) {
+        if (cross > m_path_bounds.min_x - 1 && cross < m_path_bounds.max_x + 1) {
             found = true;
         }
     }
@@ -409,22 +409,22 @@ unsigned char GDProp::RegisterPathVertex(unsigned int index, const srVector2i* p
         return 0;
     }
 
-    if (m_link_count_08 % 10 == 0) {
+    if (m_link_count % 10 == 0) {
         unsigned short* pusNewList =
-            static_cast<unsigned short*>(malloc((m_link_count_08 + 10) * sizeof(unsigned short)));
+            static_cast<unsigned short*>(malloc((m_link_count + 10) * sizeof(unsigned short)));
         if (pusNewList == 0) {
             srAssertFail("pusNewList", "C:\\Projects\\Wizardry 8\\Engine Code\\GDProp.cpp", 0x28d,
                          "CheckConditionalWayPt: Couldn't allocate new waypt list.");
         }
-        memset(pusNewList, 0, (m_link_count_08 + 10) * sizeof(unsigned short));
-        if (m_links_0c != 0) {
-            memcpy(pusNewList, m_links_0c, m_link_count_08 * sizeof(unsigned short));
-            free(m_links_0c);
+        memset(pusNewList, 0, (m_link_count + 10) * sizeof(unsigned short));
+        if (m_links != 0) {
+            memcpy(pusNewList, m_links, m_link_count * sizeof(unsigned short));
+            free(m_links);
         }
-        m_links_0c = pusNewList;
+        m_links = pusNewList;
     }
-    m_links_0c[m_link_count_08] = static_cast<unsigned short>(index);
-    ++m_link_count_08;
+    m_links[m_link_count] = static_cast<unsigned short>(index);
+    ++m_link_count;
     return 1;
 }
 
@@ -443,11 +443,11 @@ void AddItemToSector(int sector, W8WorldItem* item)
                 return;
             }
         }
-        if (gd->m_list_54 == 0) {
-            gd->m_list_54 = PLCreate();
+        if (gd->m_list == 0) {
+            gd->m_list = PLCreate();
         }
-        if (gd->m_list_54 != 0 && PListIndexOf(gd->m_list_54, item) < 0) {
-            PLAdoptAppend(gd->m_list_54, item);
+        if (gd->m_list != 0 && PListIndexOf(gd->m_list, item) < 0) {
+            PLAdoptAppend(gd->m_list, item);
         }
     }
 }
@@ -458,8 +458,8 @@ void RemoveItemFromSector(int sector, W8WorldItem* item)
 {
     if (item != 0 && sector >= 0) {
         W8Prop* prop = *g_world->collidable_props->GetAt(sector);
-        if (prop != 0 && prop->m_gd_prop != 0 && prop->m_gd_prop->m_list_54 != 0) {
-            PListRemove(prop->m_gd_prop->m_list_54, item);
+        if (prop != 0 && prop->m_gd_prop != 0 && prop->m_gd_prop->m_list != 0) {
+            PListRemove(prop->m_gd_prop->m_list, item);
         }
     }
 }
@@ -468,7 +468,7 @@ void RemoveItemFromSector(int sector, W8WorldItem* item)
 // FUNCTION: WIZ8 0x004B7BA0
 unsigned char GDProp::HasListEntries()
 {
-    if (m_list_54 != 0 && static_cast<int>(PLLength(m_list_54)) > 0) {
+    if (m_list != 0 && static_cast<int>(PLLength(m_list)) > 0) {
         return 1;
     }
     return 0;
@@ -479,7 +479,7 @@ unsigned char GDProp::HasListEntries()
 // FUNCTION: WIZ8 0x004b7bc0
 GDPreProp::GDPreProp()
 {
-    last_frame_58 = 0;
+    last_frame = 0;
 }
 
 /* Rebuild the collision geometry for one animation frame. The frame index is
@@ -497,30 +497,30 @@ void GDProp::ApplyAnimFrame(unsigned short frame, W8LevelFileAnimObj* anim)
             frame = transform->pathAI.path_count - 1;
         }
     }
-    m_prop_number_02 = frame;
+    m_prop_number = frame;
 
     for (index = 0; index < anim->num_transforms; ++index) {
         W8LevelFileMesh* mesh = &anim->pTransforms[index].LODMesh.pFrames->mesh;
         if ((mesh->flags & 1) != 0) {
             srAssertFail("FALSE", "C:\\Projects\\Wizardry 8\\Engine Code\\GDProp.cpp", 0x355,
                          "Transform prop made collideable!!!");
-            m_surface_count_14 += mesh->num_lods * mesh->num_faces;
-            m_vertex_count_18 += mesh->num_lods * mesh->num_vertices;
+            m_surface_count += mesh->num_lods * mesh->num_faces;
+            m_vertex_count += mesh->num_lods * mesh->num_vertices;
         } else {
-            m_surface_count_14 += mesh->num_faces;
-            m_vertex_count_18 += mesh->num_vertices;
+            m_surface_count += mesh->num_faces;
+            m_vertex_count += mesh->num_vertices;
         }
     }
 
-    m_pVertices = new srVector3T<float>[m_vertex_count_18];
-    m_pGDSurfaces = static_cast<W8GDSurface*>(malloc(m_surface_count_14 * sizeof(W8GDSurface)));
+    m_pVertices = new srVector3T<float>[m_vertex_count];
+    m_pGDSurfaces = static_cast<W8GDSurface*>(malloc(m_surface_count * sizeof(W8GDSurface)));
     if (m_pGDSurfaces == 0) {
         srAssertFail("m_pGDSurfaces", "C:\\Projects\\Wizardry 8\\Engine Code\\GDProp.cpp", 0x364,
                      0);
     }
-    memset(m_pGDSurfaces, 0, m_surface_count_14 * sizeof(W8GDSurface));
-    m_vertex_count_18 = 0;
-    m_surface_count_14 = 0;
+    memset(m_pGDSurfaces, 0, m_surface_count * sizeof(W8GDSurface));
+    m_vertex_count = 0;
+    m_surface_count = 0;
 
     for (index = 0; index < anim->num_transforms; ++index) {
         W8LevelFileTransform* transform = &anim->pTransforms[index];
@@ -543,7 +543,7 @@ void GDProp::ApplyAnimFrame(unsigned short frame, W8LevelFileAnimObj* anim)
 // FUNCTION: WIZ8 0x004b7e50
 void GDProp::TransformMeshGeometry(const W8LevelFileScaledPathNode* node, W8LevelFileMesh* mesh)
 {
-    int surface_base = m_surface_count_14;
+    int surface_base = m_surface_count;
 
     srVector3T<float> axis = node->path.axis;
     srMatrix3T<float> rotation;
@@ -575,28 +575,28 @@ void GDProp::TransformMeshGeometry(const W8LevelFileScaledPathNode* node, W8Leve
 
     if ((mesh->flags & 1) != 0) {
         for (int lod = 0; lod < mesh->num_lods; ++lod) {
-            int vertex_base = m_vertex_count_18;
+            int vertex_base = m_vertex_count;
             if ((mesh->flags & 2) != 0) {
                 short* vertices = mesh->lod_shorts[lod];
                 for (int vertex = 0; vertex < mesh->num_vertices; ++vertex) {
-                    m_pVertices[m_vertex_count_18] = matrix.TransformPoint(
+                    m_pVertices[m_vertex_count] = matrix.TransformPoint(
                         srVector3T<float>(static_cast<float>(vertices[vertex * 3]),
                                           static_cast<float>(vertices[vertex * 3 + 1]),
                                           static_cast<float>(vertices[vertex * 3 + 2])));
-                    ++m_vertex_count_18;
+                    ++m_vertex_count;
                 }
             } else {
                 const srVector3T<float>* vertices = mesh->lods[lod];
                 for (int vertex = 0; vertex < mesh->num_vertices; ++vertex) {
-                    m_pVertices[m_vertex_count_18] = matrix.TransformPoint(vertices[vertex]);
-                    ++m_vertex_count_18;
+                    m_pVertices[m_vertex_count] = matrix.TransformPoint(vertices[vertex]);
+                    ++m_vertex_count;
                 }
             }
             if ((mesh->flags & 2) != 0) {
                 W8LevelFileCompressedFace* faces = mesh->pstCompFaces;
                 for (int face = 0; face < mesh->num_faces; ++face) {
-                    W8GDSurface* surface = &m_pGDSurfaces[m_surface_count_14];
-                    ++m_surface_count_14;
+                    W8GDSurface* surface = &m_pGDSurfaces[m_surface_count];
+                    ++m_surface_count;
                     surface->vertex_indices_18[0] = faces[face].vertex_indices[0] + vertex_base;
                     surface->vertex_indices_18[1] = faces[face].vertex_indices[1] + vertex_base;
                     surface->vertex_indices_18[2] = faces[face].vertex_indices[2] + vertex_base;
@@ -604,8 +604,8 @@ void GDProp::TransformMeshGeometry(const W8LevelFileScaledPathNode* node, W8Leve
             } else {
                 W8ReadMeshFace* faces = mesh->pstFaces;
                 for (int face = 0; face < mesh->num_faces; ++face) {
-                    W8GDSurface* surface = &m_pGDSurfaces[m_surface_count_14];
-                    ++m_surface_count_14;
+                    W8GDSurface* surface = &m_pGDSurfaces[m_surface_count];
+                    ++m_surface_count;
                     surface->vertex_indices_18[0] = faces[face].vertices[0] + vertex_base;
                     surface->vertex_indices_18[1] = faces[face].vertices[1] + vertex_base;
                     surface->vertex_indices_18[2] = faces[face].vertices[2] + vertex_base;
@@ -613,17 +613,17 @@ void GDProp::TransformMeshGeometry(const W8LevelFileScaledPathNode* node, W8Leve
             }
         }
     } else {
-        int vertex_base = m_vertex_count_18;
+        int vertex_base = m_vertex_count;
         const srVector3T<float>* vertices = mesh->pstVertices;
         for (int vertex = 0; vertex < mesh->num_vertices; ++vertex) {
-            m_pVertices[m_vertex_count_18] = matrix.TransformPoint(vertices[vertex]);
-            ++m_vertex_count_18;
+            m_pVertices[m_vertex_count] = matrix.TransformPoint(vertices[vertex]);
+            ++m_vertex_count;
         }
         if ((mesh->flags & 2) != 0) {
             W8LevelFileCompressedFace* faces = mesh->pstCompFaces;
             for (int face = 0; face < mesh->num_faces; ++face) {
-                W8GDSurface* surface = &m_pGDSurfaces[m_surface_count_14];
-                ++m_surface_count_14;
+                W8GDSurface* surface = &m_pGDSurfaces[m_surface_count];
+                ++m_surface_count;
                 surface->vertex_indices_18[0] = faces[face].vertex_indices[0] + vertex_base;
                 surface->vertex_indices_18[1] = faces[face].vertex_indices[1] + vertex_base;
                 surface->vertex_indices_18[2] = faces[face].vertex_indices[2] + vertex_base;
@@ -631,8 +631,8 @@ void GDProp::TransformMeshGeometry(const W8LevelFileScaledPathNode* node, W8Leve
         } else {
             W8ReadMeshFace* faces = mesh->pstFaces;
             for (int face = 0; face < mesh->num_faces; ++face) {
-                W8GDSurface* surface = &m_pGDSurfaces[m_surface_count_14];
-                ++m_surface_count_14;
+                W8GDSurface* surface = &m_pGDSurfaces[m_surface_count];
+                ++m_surface_count;
                 surface->vertex_indices_18[0] = faces[face].vertices[0] + vertex_base;
                 surface->vertex_indices_18[1] = faces[face].vertices[1] + vertex_base;
                 surface->vertex_indices_18[2] = faces[face].vertices[2] + vertex_base;
@@ -640,7 +640,7 @@ void GDProp::TransformMeshGeometry(const W8LevelFileScaledPathNode* node, W8Leve
         }
     }
 
-    for (int index = surface_base; index < m_surface_count_14; ++index) {
+    for (int index = surface_base; index < m_surface_count; ++index) {
         W8GDSurface* surface = &m_pGDSurfaces[index];
         BuildTrianglePlane(&surface->plane_24, &m_pVertices[surface->vertex_indices_18[0]],
                            &m_pVertices[surface->vertex_indices_18[1]],
@@ -656,13 +656,13 @@ void GDProp::TransformMeshGeometry(const W8LevelFileScaledPathNode* node, W8Leve
             }
         }
         surface->flags_00 = dominant_axis + 0x800;
-        surface->hit_plane_38 = 0;
+        surface->hit_plane = 0;
         if (g_float_005ebc7c <= surface->plane_24.normal.y) {
-            surface->contact_margin_40 = 500.0f;
+            surface->contact_margin = 500.0f;
             surface->flags_00 |= 4;
         } else {
             surface->slope_48 = 0.0f;
-            surface->contact_margin_40 = 500.0f;
+            surface->contact_margin = 500.0f;
         }
     }
 }

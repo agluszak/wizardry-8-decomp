@@ -52,9 +52,9 @@ struct W8XStatus {
     bool fLockInteract;                               /* 0x8e4: lock session; admits lock spells */
     bool fTrapInteract;                               /* 0x8e5: trap session; admits trap spells */
     /* 0x026: dialogue NPC state needs re-syncing once the frame settles. */
-    bool dialogue_sync_pending_026;
+    bool dialogue_sync_pending;
     /* 0x027: re-check level-up notices when the UI is idle again. */
-    bool level_up_notice_027;
+    bool level_up_notice;
     bool fEncumbranceDirty;   /* 0x8e8: pending party-weight recalc */
     int active_monster_count; /* 0x8e9 */
     /* 0x8ed: active in-combat monsters with DISP_HOSTILE, recomputed by
@@ -101,11 +101,11 @@ struct W8XStatus {
     int picked_group;                         /* 0x9ff: 0x006840B7 */
     /* 0xa03: one-shot latch set when the combat/party panels refresh; the next
        UpdateMonsterSight pass consumes and clears it. */
-    bool sight_refresh_pending_a03;
+    bool sight_refresh_pending;
     bool world_update_blocked; /* 0xa04: 0x006840BC */
     /* 0xa05: user-pause latch set by ToggleMainGamePause alongside
        PauseMainGameWorld; cleared by the resume paths. */
-    bool world_paused_a05;
+    bool world_paused;
     unsigned short review_character_slot;        /* 0xa06: 0x006840BE */
     int held_item_source;                        /* 0xa08: 0x006840C0 */
     unsigned char held_item_origin;              /* 0xa0c: 0x006840C4 */
@@ -117,13 +117,13 @@ struct W8XStatus {
     bool deferred_skill_notices;                 /* 0x19b5: 0x0068506D */
     /* 0x19b6: a container offered more than one item, so the item-choice
        dialog is pending; blocks the magic-effects tick until it opens. */
-    bool item_pick_pending_19b6;
+    bool item_pick_pending;
     /* 0x19b7: raised by BeginNpcScriptedScene until EndScriptedPortraitPick;
        gates the dialogue-cursor and NPC-script input paths. */
-    bool scripted_scene_19b7;
+    bool scripted_scene;
     /* 0x19b8: which Assay dialog tab is shown - set selects the profession
        icons/button, clear selects the race side. */
-    bool assay_professions_tab_19b8;
+    bool assay_professions_tab;
     bool item_drag_active;              /* 0x19b9: 0x00685071 */
     W8ItemInstance* dragged_item;       /* 0x19ba: 0x00685072 */
     unsigned char dragged_item_origin;  /* 0x19be: 0x00685076 */

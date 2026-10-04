@@ -760,7 +760,7 @@ void W8TextControl::InvalidateCore(unsigned char immediate)
 W8TextControl::W8TextControl()
 {
     m_stateFlags = 0;
-    m_flags_38 = 0;
+    m_flags = 0;
     m_alternateTextEnabled = 0;
     m_imageObject = -1;
     m_imageFrame = -1;
@@ -794,7 +794,7 @@ W8TextControl::W8TextControl(Controls* panel, unsigned int region, int left, int
     m_imageFrame = text_44;
     m_normalSprite = text_48;
     m_disabledSprite = text_58;
-    m_flags_38 = 0;
+    m_flags = 0;
     m_listener = 0;
     m_pressedTextOffset = 1;
 
@@ -874,23 +874,23 @@ void W8TextControl::GetTextOrigin(int* px, int* py)
             goto plain;
         }
         GetCatalogImageSize(m_imageObject, m_imageFrame, handle, measured, &m_measured_h);
-        if ((m_flags_38 & 0x80) != 0) {
+        if ((m_flags & 0x80) != 0) {
             *px = *px + m_left;
             *py = *py + m_top;
             return;
         }
-        if ((m_flags_38 & 4) != 0) {
+        if ((m_flags & 4) != 0) {
             x = m_left;
             goto aligned;
         }
         width = *measured;
     } else {
-        if ((m_flags_38 & 0x80) != 0) {
+        if ((m_flags & 0x80) != 0) {
             *px = *px + m_left;
             *py = *py + m_top;
             return;
         }
-        if ((m_flags_38 & 4) != 0) {
+        if ((m_flags & 4) != 0) {
             x = m_left;
             goto aligned;
         }
@@ -915,7 +915,7 @@ void W8TextControl::Redraw(unsigned char full_redraw)
     }
 
     int text_state = 0;
-    if ((m_stateFlags & 1) != 0 && (m_flags_38 & 2) == 0) {
+    if ((m_stateFlags & 1) != 0 && (m_flags & 2) == 0) {
         text_state = m_pressedTextOffset;
     }
 
@@ -1019,7 +1019,7 @@ void W8TextControl::SetBounds(int left, int top, int right, int bottom)
                 static_cast<unsigned short>(static_cast<short>(bottom) +
                                             static_cast<short>(m_pPanel->m_bounds.top)));
         }
-        if ((m_flags_38 & 2) != 0) {
+        if ((m_flags & 2) != 0) {
             int absolute_left = m_pPanel->m_bounds.left + left;
             int absolute_top = m_pPanel->m_bounds.top + top;
             int absolute_right = m_pPanel->m_bounds.left + right;
@@ -1027,7 +1027,7 @@ void W8TextControl::SetBounds(int left, int top, int right, int bottom)
             if (m_imageObject != -1 && m_imageFrame != -1) {
                 GetCatalogImageSize(m_imageObject, m_imageFrame, m_normalSprite, &measured_width,
                                     &measured_height);
-                if ((m_flags_38 & 4) != 0) {
+                if ((m_flags & 4) != 0) {
                     absolute_left += 2 + static_cast<unsigned short>(measured_width);
                 } else {
                     absolute_right -= 2 + static_cast<unsigned short>(measured_width);
@@ -1064,8 +1064,8 @@ void W8TextControl::AddLayoutFlags(unsigned int flags)
     short measured_width;
     short measured_height;
 
-    m_flags_38 |= flags;
-    if (m_pPanel != 0 && (m_flags_38 & 2) != 0) {
+    m_flags |= flags;
+    if (m_pPanel != 0 && (m_flags & 2) != 0) {
         int absolute_left = m_pPanel->m_bounds.left + m_left;
         int absolute_top = m_pPanel->m_bounds.top + m_top;
         int absolute_right = m_pPanel->m_bounds.left + m_right;
@@ -1073,7 +1073,7 @@ void W8TextControl::AddLayoutFlags(unsigned int flags)
         if (m_imageObject != -1 && m_imageFrame != -1) {
             GetCatalogImageSize(m_imageObject, m_imageFrame, m_normalSprite, &measured_width,
                                 &measured_height);
-            if ((m_flags_38 & 4) != 0) {
+            if ((m_flags & 4) != 0) {
                 absolute_left += 2 + static_cast<unsigned short>(measured_width);
             } else {
                 absolute_right -= 2 + static_cast<unsigned short>(measured_width);
@@ -1099,13 +1099,13 @@ void W8TextControl::RemoveLayoutFlags(unsigned int flags)
         }
         m_textBuffer.MarkGeometryDirty(10);
     }
-    m_flags_38 &= ~flags;
+    m_flags &= ~flags;
 }
 
 // FUNCTION: WIZ8 0x004f4c40
 void W8TextControl::EnableSecondaryState(unsigned char immediate)
 {
-    if ((m_flags_38 & 1) != 0 && (m_stateFlags & 2) == 0) {
+    if ((m_flags & 1) != 0 && (m_stateFlags & 2) == 0) {
         m_stateFlags |= g_W8TextControlStatePressed;
         m_stateFlags |= g_W8TextControlStateSecondary;
         InvalidateCore(immediate);
@@ -1115,7 +1115,7 @@ void W8TextControl::EnableSecondaryState(unsigned char immediate)
 // FUNCTION: WIZ8 0x004f4cb0
 void W8TextControl::DisableSecondaryState(unsigned char immediate)
 {
-    if ((m_flags_38 & 1) != 0 && (m_stateFlags & 2) != 0) {
+    if ((m_flags & 1) != 0 && (m_stateFlags & 2) != 0) {
         m_stateFlags &= ~g_W8TextControlStatePressed;
         m_stateFlags &= ~g_W8TextControlStateSecondary;
         InvalidateCore(immediate);
@@ -1133,7 +1133,7 @@ void W8TextControl::OnMouseEnter(int event)
         SetAlternateTextEnabled(1);
         return;
     }
-    if ((m_flags_38 & 0x60) != 0) {
+    if ((m_flags & 0x60) != 0) {
         PushButtonSoundScheme(0, 1);
     }
 
@@ -1157,16 +1157,16 @@ void W8TextControl::OnMouseLeave(int event)
     }
     if (!m_enabled) {
         PushButtonSoundScheme(0, 1);
-        if ((m_flags_38 & 1) == 0) {
+        if ((m_flags & 1) == 0) {
             m_stateFlags &= ~g_W8TextControlStatePressed;
         }
         SetAlternateTextEnabled(0);
         return;
     }
-    if ((m_flags_38 & 0x60) != 0) {
+    if ((m_flags & 0x60) != 0) {
         PushButtonSoundScheme(0, 1);
     }
-    if ((m_flags_38 & 0x100) != 0 && (m_stateFlags & 4) != 0) {
+    if ((m_flags & 0x100) != 0 && (m_stateFlags & 4) != 0) {
         PushButtonSoundScheme(0, 1);
         m_stateFlags &= ~4u;
     }
@@ -1181,7 +1181,7 @@ void W8TextControl::OnMouseLeave(int event)
     }
 
     if (m_alternatePressedSprite != -1 ||
-        (m_alternateNormalSprite != -1 && (m_flags_38 & 0x10) != 0)) {
+        (m_alternateNormalSprite != -1 && (m_flags & 0x10) != 0)) {
         SetAlternateTextEnabled(0);
         InvalidateCore(static_cast<unsigned char>(event));
     }
@@ -1206,18 +1206,18 @@ void W8TextControl::OnLeftButtonDown(int event)
         PushButtonSoundScheme(0, 1);
         return;
     }
-    if ((m_flags_38 & 0x20) != 0) {
+    if ((m_flags & 0x20) != 0) {
         PushButtonSoundScheme(0, 1);
     }
 
-    if ((m_flags_38 & 1) == 0) {
+    if ((m_flags & 1) == 0) {
         m_stateFlags |= g_W8TextControlStatePressed;
         if (m_imageObject != -1 && m_imageFrame != -1) {
             InvalidateCore(static_cast<unsigned char>(event));
         }
     } else if ((m_stateFlags & 1) == 0) {
         m_stateFlags |= g_W8TextControlStatePressed;
-        if ((m_flags_38 & 0x10) == 0) {
+        if ((m_flags & 0x10) == 0) {
             InvalidateCore(static_cast<unsigned char>(event));
         }
     }
@@ -1232,7 +1232,7 @@ void W8TextControl::OnLeftButtonDown(int event)
 void W8TextControl::OnRightButtonDown(int)
 {
     if ((m_active && m_enabled)) {
-        if ((m_flags_38 & 0x20) != 0) {
+        if ((m_flags & 0x20) != 0) {
             PushButtonSoundScheme(0, 1);
         }
         if (m_rightButtonDownCallback != 0) {
@@ -1254,7 +1254,7 @@ void W8TextControl::OnLeftButtonUp(int event)
     }
     if (!m_enabled) {
         PushButtonSoundScheme(0, 1);
-        if ((m_flags_38 & 1) == 0) {
+        if ((m_flags & 1) == 0) {
             m_stateFlags &= ~g_W8TextControlStatePressed;
         }
         return;
@@ -1262,27 +1262,27 @@ void W8TextControl::OnLeftButtonUp(int event)
     if ((m_stateFlags & 1) == 0) {
         return;
     }
-    if ((m_flags_38 & 0x20) != 0) {
+    if ((m_flags & 0x20) != 0) {
         PushButtonSoundScheme(0, 1);
     }
 
-    if ((m_flags_38 & 1) == 0) {
+    if ((m_flags & 1) == 0) {
         m_stateFlags &= ~g_W8TextControlStatePressed;
         InvalidateCore(static_cast<unsigned char>(event));
     } else if ((m_stateFlags & 2) == 0) {
         m_stateFlags |= g_W8TextControlStatePressed;
         m_stateFlags |= g_W8TextControlStateSecondary;
-        if ((m_flags_38 & 0x10) != 0) {
+        if ((m_flags & 0x10) != 0) {
             InvalidateCore(static_cast<unsigned char>(event));
         }
-    } else if ((m_flags_38 & 8) == 0) {
+    } else if ((m_flags & 8) == 0) {
         m_stateFlags &= ~g_W8TextControlStatePressed;
         m_stateFlags &= ~g_W8TextControlStateSecondary;
         InvalidateCore(static_cast<unsigned char>(event));
     }
 
     m_textBuffer.SetGeometryDirty();
-    if ((m_flags_38 & 0x100) != 0 && (m_stateFlags & 4) != 0) {
+    if ((m_flags & 0x100) != 0 && (m_stateFlags & 4) != 0) {
         m_stateFlags &= ~4u;
         PushButtonSoundScheme(0, 1);
         return;
@@ -1309,10 +1309,10 @@ void W8TextControl::OnRightButtonUp(int)
         PushButtonSoundScheme(0, 1);
         return;
     }
-    if ((m_flags_38 & 0x20) != 0) {
+    if ((m_flags & 0x20) != 0) {
         PushButtonSoundScheme(0, 1);
     }
-    if ((m_flags_38 & 0x100) != 0 && (m_stateFlags & 4) != 0) {
+    if ((m_flags & 0x100) != 0 && (m_stateFlags & 4) != 0) {
         m_stateFlags &= ~4u;
         PushButtonSoundScheme(0, 1);
         return;
@@ -1328,9 +1328,9 @@ void W8TextControl::OnRightButtonUp(int)
 // FUNCTION: WIZ8 0x004f5230
 void W8TextControl::ActivatePrimary(int)
 {
-    if ((m_flags_38 & 0x100) != 0 && m_active && m_enabled && (m_stateFlags & 1) != 0) {
+    if ((m_flags & 0x100) != 0 && m_active && m_enabled && (m_stateFlags & 1) != 0) {
         m_stateFlags |= 4;
-        if ((m_flags_38 & 0x20) == 0) {
+        if ((m_flags & 0x20) == 0) {
             PlayButtonSound(3);
         }
         if (m_listener != 0) {
@@ -1346,10 +1346,10 @@ void W8TextControl::ActivatePrimary(int)
 void W8TextControl::OnLeftButtonDoubleClick(int)
 {
     if (m_active && m_enabled) {
-        if ((m_flags_38 & 0x20) != 0) {
+        if ((m_flags & 0x20) != 0) {
             PushButtonSoundScheme(0, 1);
         }
-        if ((m_flags_38 & 1) != 0 && (m_stateFlags & 2) == 0) {
+        if ((m_flags & 1) != 0 && (m_stateFlags & 2) == 0) {
             return;
         }
         if (m_leftDoubleClickCallback != 0) {
@@ -1366,9 +1366,9 @@ void W8TextControl::OnLeftButtonDoubleClick(int)
 // FUNCTION: WIZ8 0x004f5360
 void W8TextControl::ActivateSecondary(int)
 {
-    if ((m_flags_38 & 0x100) != 0 && m_active && m_enabled) {
+    if ((m_flags & 0x100) != 0 && m_active && m_enabled) {
         m_stateFlags |= 4;
-        if ((m_flags_38 & 0x20) == 0) {
+        if ((m_flags & 0x20) == 0) {
             PlayButtonSound(3);
         }
         if (m_listener != 0) {
@@ -1856,10 +1856,10 @@ void W8HelpTextControl::OnRightButtonUp(int)
         PushButtonSoundScheme(0, 1);
     }
     if (m_active && m_enabled) {
-        if ((m_flags_38 & 0x20) != 0) {
+        if ((m_flags & 0x20) != 0) {
             PushButtonSoundScheme(0, 1);
         }
-        if ((m_flags_38 & 0x100) != 0 && (m_stateFlags & 4) != 0) {
+        if ((m_flags & 0x100) != 0 && (m_stateFlags & 4) != 0) {
             m_stateFlags &= ~4u;
             PushButtonSoundScheme(0, 1);
             return;

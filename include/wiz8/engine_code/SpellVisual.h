@@ -62,14 +62,14 @@ public:
 
     /* Selects the update mode and the cycle group the resource loader
        matches shared visuals by. */
-    W8SpellVisualMode mode_1d8;
+    W8SpellVisualMode mode;
     int value_1dc;
     W8SpellEmitterHost* host; /* 0x1e0 */
     /* Set once the host's animation no longer needs ticking, or forced when
        the owning effect releases it; the world updater deletes a finished
        visual as soon as auto_release also permits it. */
     bool finished; /* 0x1e4 */
-    bool flag_1e5;
+    bool flag;
     /* Held at 0 while a spell effect owns the visual; the releasing pass in
        Local Code\Magic.cpp sets it back to 1, which lets
        UpdateWorldSpellVisuals delete a finished visual. */
@@ -78,8 +78,8 @@ public:
        mode-3 updates then skip the monster/camera follow logic. */
     bool fixed_transform;
     float scale_1e8;
-    int location_id_1ec;
-    int effect_value_1f0; /* 0x1f0: spawn `value` payload */
+    int location_id;
+    int effect_value; /* 0x1f0: spawn `value` payload */
     int flags_1f4;        /* 0x1f4 */
 };
 
@@ -89,15 +89,15 @@ W8_ASSERT_BASE_OFFSET(W8SpellVisual, W8Navigator, navigation_mode_008, 0x18);
 
 inline W8SpellVisual::W8SpellVisual(const W8SpellVisual& other) : W8GrCycle(other)
 {
-    mode_1d8 = other.mode_1d8;
+    mode = other.mode;
     finished = 0;
-    flag_1e5 = false;
+    flag = false;
     auto_release = other.auto_release;
     fixed_transform = other.fixed_transform;
     scale_1e8 = other.scale_1e8;
-    location_id_1ec = 0;
+    location_id = 0;
     host = static_cast<W8SpellEmitterHost*>(other.host->Clone());
-    id_008 = AllocateGrObjectId();
+    id = AllocateGrObjectId();
 }
 
 void DestroyAllSpellVisuals(W8World* world); /* 0x004AC3D0 */

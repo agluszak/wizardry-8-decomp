@@ -149,7 +149,7 @@ bool ArnikaLazerScanner(Trigger* pTrigger)
                      0x3ed, 0);
     }
     g_lazer_prop = pTrigger->m_pProp;
-    if (g_lazer_prop->Rep()->animation_playing_06d != 0) {
+    if (g_lazer_prop->Rep()->animation_playing != 0) {
         return 0;
     }
     if (GetLocationVarIDByName("HLLDoorOpen") != -1) {
@@ -186,7 +186,7 @@ void ArnikaLaserScanMaster(int command)
         g_remove_current_master_function = true;
         return;
     }
-    if (g_lazer_prop->Rep()->animation_playing_06d != 0) {
+    if (g_lazer_prop->Rep()->animation_playing != 0) {
         return;
     }
     g_remove_current_master_function = true;
@@ -433,7 +433,7 @@ bool ArnikaExitButton(Trigger* pTrigger)
 void ArnikaTeleportWatch(int command)
 {
     g_remove_current_master_function = false;
-    if (g_exit_door_prop->Rep()->animation_playing_06d != 0) {
+    if (g_exit_door_prop->Rep()->animation_playing != 0) {
         return;
     }
     g_remove_current_master_function = true;
@@ -622,7 +622,7 @@ void ArnikaEl1Button(int command)
         g_remove_current_master_function = true;
         return;
     }
-    if (g_el01_button_prop->Rep()->animation_playing_06d != 0) {
+    if (g_el01_button_prop->Rep()->animation_playing != 0) {
         return;
     }
     if (gEl01.button_down == 1) {
@@ -676,7 +676,7 @@ void ArnikaEl1Moving(int command)
         g_remove_current_master_function = true;
         return;
     }
-    if (gEl01.pProp->Rep()->animation_playing_06d != 0) {
+    if (gEl01.pProp->Rep()->animation_playing != 0) {
         return;
     }
     g_remove_current_master_function = true;
@@ -832,7 +832,7 @@ void ArnikaEl2Button(int command)
         g_remove_current_master_function = true;
         return;
     }
-    if (g_el02_button_prop->Rep()->animation_playing_06d != 0) {
+    if (g_el02_button_prop->Rep()->animation_playing != 0) {
         return;
     }
     if (gEl02.button_down == 1) {
@@ -876,7 +876,7 @@ void ArnikaEl2Moving(int command)
         g_remove_current_master_function = true;
         return;
     }
-    if (gEl02.pProp->Rep()->animation_playing_06d != 0) {
+    if (gEl02.pProp->Rep()->animation_playing != 0) {
         return;
     }
     g_remove_current_master_function = true;
@@ -1113,7 +1113,7 @@ int ArnikaPedestalItem(int* previous_item)
         CreateLocationVar("PedestalItem", -1);
         previous = 0x244;
         if (item == -1) {
-            ReplaceOrCreateItem(&g_status.item_in_hand_235b, previous, 0, 0, 0);
+            ReplaceOrCreateItem(&g_status.item_in_hand, previous, 0, 0, 0);
         }
     } else {
         previous = GetLocationVarValueByName("PedestalItem");
@@ -1122,7 +1122,7 @@ int ArnikaPedestalItem(int* previous_item)
                 return -2;
             }
         } else if (item == -1) {
-            ReplaceOrCreateItem(&g_status.item_in_hand_235b, previous, 0, 0, 0);
+            ReplaceOrCreateItem(&g_status.item_in_hand, previous, 0, 0, 0);
         }
     }
     SetItemCursor(0);
@@ -1131,7 +1131,7 @@ int ArnikaPedestalItem(int* previous_item)
         info = GetNpcMonsterInfo(npc);
         if (info != 0) {
             position = info->p3D->movement_0c0.position_040;
-            position.y += info->p3D->movement_0c0.height_offset_0b8;
+            position.y += info->p3D->movement_0c0.height_offset;
             g_gd_camera->LookAt(&position, 0);
         }
         QueueNpcScriptNotice(npc, 0, 8, 0, 0);
@@ -1179,7 +1179,7 @@ bool ArnikaFlightRecorder(Trigger* pTrigger)
     npc = GetNpcStateByKind(0x14);
     item = 0;
     if (g_status.item_in_cursor != 0) {
-        item = &g_status.item_in_hand_235b;
+        item = &g_status.item_in_hand;
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);
     return false;

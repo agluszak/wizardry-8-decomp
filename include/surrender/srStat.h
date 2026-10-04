@@ -14,11 +14,11 @@ class srStat {
 public:
     long count_00;                /* 0x00 */
     unsigned char unknown_04_[4]; /* 0x04: alignment hole, never written */
-    double mean_08;               /* 0x08 */
-    double deviation_10;          /* 0x10 */
-    long median_18;               /* 0x18 */
-    long min_1c;                  /* 0x1c */
-    long max_20;                  /* 0x20 */
+    double mean;               /* 0x08 */
+    double deviation;          /* 0x10 */
+    long median;               /* 0x18 */
+    long min;                  /* 0x1c */
+    long max;                  /* 0x20 */
 };
 #pragma pack(pop)
 

@@ -35,7 +35,7 @@ struct W8SaveSlot {
     int version_major;
     unsigned int version_minor;
     unsigned int version_patch;
-    bool dev_flagged_263c; /* saved copy of status dev_flagged_49c1 */
+    bool dev_flagged; /* saved copy of status dev_flagged */
     unsigned char padding_263d[3];
 };
 

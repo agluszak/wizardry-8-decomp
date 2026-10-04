@@ -6,7 +6,7 @@
 #pragma pack(push, 1)
 
 struct W8ItemTableEntry {
-    short selector_00;      /* 0x00: zero disables the slot */
+    short selector;      /* 0x00: zero disables the slot */
     unsigned short item_id; /* 0x02: index into Items.dbs */
     unsigned char weight;   /* 0x04 */
 }; /* 0x05 */
@@ -61,11 +61,11 @@ struct W8ItemDatabaseRecord {
     wchar_t display_name[30]; /* 0x000 */
     /* 0x03c: the item number the Wizardry 7 import matches imported item ids
        against (Party Import.cpp). */
-    short legacy_item_number_03c;
+    short legacy_item_number;
     unsigned char equip_class;              /* 0x03e: open byte domain; named W8ItemEquipClass
                                   values are the proven subset, not the bound */
     unsigned short unidentified_name_index; /* 0x03f */
-    unsigned char flags_041;                /* 0x041 */
+    unsigned char flags;                /* 0x041 */
     unsigned char category;                 /* 0x042: three is a spell source */
     unsigned char unknown_043[3];
     signed char weapon_skill; /* 0x046: -1 when the item grants none */
@@ -76,23 +76,23 @@ struct W8ItemDatabaseRecord {
     signed char attack_damage_bonus; /* 0x048 */
     signed char attack_hit_bonus;    /* 0x049 */
     W8Dice damage_dice;              /* 0x04a */
-    unsigned short attack_flags_04e;
+    unsigned short attack_flags;
     /* 0x050..0x05f: the item's missile-attack modifier block; the missile
        resolver sums it byte-wise across the wielded and paired weapons into
        the fired effect definition's condition_chances. */
     unsigned char missile_values_050[0x10];
     /* 0x060: the item's missile bonus, summed across both weapons into the
        effect definition's value_1c. */
-    unsigned char missile_magnitude_060;
+    unsigned char missile_magnitude;
     /* 0x061: the monster kind the weapon slays for an extra damage die,
        compared against W8MonsterRecord::kind_0cb by the character damage
        resolver; 0xff means the weapon slays nothing. */
-    unsigned char slays_kind_061;
+    unsigned char slays_kind;
     signed char armor_class_bonus; /* 0x062 */
     unsigned char spell_id;        /* 0x063 */
     /* 0x064: the cast spell's power level - Assay prints "(Pwr %d)" and the
        use path consumes it as the casting power. */
-    unsigned char spell_power_064;
+    unsigned char spell_power;
     unsigned char unknown_065;
     unsigned char quantity_kind; /* 0x066 */
     W8Dice initial_quantity;     /* 0x067 */
@@ -101,11 +101,11 @@ struct W8ItemDatabaseRecord {
     /* 0x06c..0x06e: three per-item modifier bytes the equipment fold adds to
        the derived block's own unknowns; 0x06f..0x074 are the six resistance
        bonuses it sums and clamps. */
-    signed char modifier_06c;
-    signed char modifier_06d;
-    signed char modifier_06e;
-    signed char resistance_bonus_06f[6]; /* 0x06f .. 0x074 */
-    unsigned char property_075;          /* assay special-property label index */
+    signed char health_regen_bonus;
+    signed char stamina_regen_bonus;
+    signed char spell_regen_bonus;
+    signed char resistance_bonus[6]; /* 0x06f .. 0x074 */
+    unsigned char property;          /* assay special-property label index */
     unsigned short profession_mask;      /* 0x076 */
     unsigned int race_mask;              /* 0x078 */
     /* 0x07c: one bit per sex; three admits either, and
@@ -122,7 +122,7 @@ struct W8ItemDatabaseRecord {
        attack; StartCharacterAttack adds it to the rolled uiSwingsRemaining.
        It sits inside the retail name region's tail dword, so the name buffer
        is really 0x20 characters. */
-    int swings_bonus_0ad;
+    int swings_bonus;
     /* 0x0b1/0x0b3: the item's (index, value) modifier pairs the equipment
        fold adds to the derived block's two byte tables. 0xff is no pair. */
     signed char modifier_0b1_index;
@@ -134,13 +134,13 @@ struct W8ItemDatabaseRecord {
     int merge_component_b;        /* 0x0bd: the other kind; either order is accepted */
     /* 0x0c1: the item's material index; combat sound reads it on the struck
        item to pick the impact table's material column (0..11). */
-    int material_0c1;
+    int material;
     /* 0x0c5: the weapon's attack sound class; combat sound bounds it against
        the 38-entry swing table and the 28 impact rows. */
-    int weapon_sound_class_0c5;
+    int weapon_sound_class;
     signed char merge_skill;           /* 0x0c9: skill required to create this item, -1 for none */
     unsigned char merge_skill_level;   /* 0x0ca: level of merge_skill required */
-    unsigned char editor_excluded_0cb; /* hidden from the MIPE item list */
+    unsigned char editor_excluded; /* hidden from the MIPE item list */
     /* 0x0cc: the missile table entry the item fires; the missile resolver
        bounds it against g_missile_table_count. */
     signed char missile_type;

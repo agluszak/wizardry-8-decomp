@@ -7,7 +7,7 @@ struct W8ChunkHead {
     unsigned char grouped; /* 0x04 */
     unsigned char at_end;  /* 0x05 */
     unsigned char unknown_06[2];
-    int extent_08; /* 0x08 */
+    int extent; /* 0x08 */
 };
 
 static_assert(sizeof(W8ChunkHead) == 0x0c, "W8ChunkHead_size_must_be_0x0c");

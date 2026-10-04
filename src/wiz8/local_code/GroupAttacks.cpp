@@ -122,19 +122,19 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
 
         monster_info = MonsterInfoFromID(0xb0, GROUP_ATTACKS_CPP, pSource->iMonsterID, 1);
         record = GetMonsterDataForInfo(monster_info);
-        if (record->effective_level_24f < 0x10) {
-            value = record->effective_level_24f;
+        if (record->effective_level < 0x10) {
+            value = record->effective_level;
         } else {
             value = 0xf;
         }
         uiMinRoll = (static_cast<unsigned int>(monster_info->stamina) *
-                     (record->effective_level_24f + value)) /
+                     (record->effective_level + value)) /
                     static_cast<unsigned int>(monster_info->stamina_max);
         if (uiMinRoll == 0) {
             uiMinRoll = 1;
         }
         uiBounds[0] = (static_cast<unsigned int>(monster_info->stamina) *
-                       (record->effective_level_24f + value + 5)) /
+                       (record->effective_level + value + 5)) /
                       static_cast<unsigned int>(monster_info->stamina_max);
         if (uiBounds[0] == 0) {
             uiBounds[0] = 1;
@@ -337,8 +337,8 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                                            g_special_attack_realm_table[special_attack_kind],
                                            uiMinRoll);
                     if (uiDamage != 0) {
-                        monster_info->spell_points_2f9 =
-                            monster_info->spell_points_2f9 - (uiDamage >> 1);
+                        monster_info->spell_points =
+                            monster_info->spell_points - (uiDamage >> 1);
                         if (announce == 0) {
                             uiTotals[i] += uiDamage;
                             ++uiHits[i];
@@ -485,7 +485,7 @@ void SpawnSummonedMonsterGroup(int special_attack_kind, W8TargetSource* pSource,
     }
 
     record = MonsterDBFromSpecies(special_attack_kind);
-    count = RollDice(&record->group_size_dice_0c1);
+    count = RollDice(&record->group_size_dice);
     position = &pAttackerSlot->point;
     group = CreateGroup(special_attack_kind, count, position, 0, 0, 1);
     if (group == 0) {
@@ -499,7 +499,7 @@ void SpawnSummonedMonsterGroup(int special_attack_kind, W8TargetSource* pSource,
         disposition = 1;
     }
     SetMonsterGroupHostility(group, disposition, 0);
-    if (monster_info->player_visibility.sight_state_04 == W8_SIGHT_SEEN) {
+    if (monster_info->player_visibility.sight_state == W8_SIGHT_SEEN) {
         placed = PositionMonsterGroupNearCamera(group, 0.0f, 0.0f, 1);
         if (placed == 0) {
             placed = PositionMonsterGroupNearCamera(group, 1500.0f, 0.0f, 1);

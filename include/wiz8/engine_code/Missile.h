@@ -23,19 +23,19 @@ class W8Missile;
 struct W8AIMissile : W8AIRecord {
     /* Gravity latch copied from the missile's gravity_1e3: when set, the
        vertical fall rate decays each step. */
-    bool gravity_01;
+    bool gravity;
     unsigned char padding_02[2];
     /* Per-step advance scale (speed units per step tick). */
-    float speed_per_step_04;
+    float speed_per_step;
     /* Current vertical fall rate, seeded from launch pitch and decayed by
-       gravity_01. */
-    float fall_speed_08;
+       gravity. */
+    float fall_speed;
     W8Missile* missile_0c;
     /* Half-tick baseline (getMsTime()>>1) the delta against the current
        half-tick is clamped to 0xfa. */
-    int last_half_tick_10;
-    float elapsed_14;
-    float limit_18;
+    int last_half_tick;
+    float elapsed;
+    float limit;
     bool unknown_1c;
     unsigned char padding_1d[3];
 };
@@ -92,7 +92,7 @@ public:
     virtual W8AniMesh* GetCurrentAniMesh() override;
     virtual void StartIfHostActive(); /* 0x004A4050 */
     /* Decide what the missile struck - the party or a live monster - record it
-       in combat_slot_260, roll the target's missile deflection and either hand
+       in combat_slot, roll the target's missile deflection and either hand
        the hit to Combat Attack.cpp or leave it for the combat engine. */
     virtual bool OnCollision(W8Navigator* other) override; /* 0x004A4720 */
 
@@ -122,9 +122,9 @@ public:
 #endif
     /* Flight exhausted its duration; the world updater destroys the missile
        once block_released_1e2 is also set. */
-    bool flight_done_1e0;
+    bool flight_done;
     /* Set by EnterImpactCycle while the impact animation plays. */
-    bool impacting_1e1;
+    bool impacting;
     /* Set once the missile no longer blocks combat end (BlocksEndingCombat
        returned 0 or combat already resolved). */
     unsigned char block_released_1e2;
@@ -132,19 +132,19 @@ public:
     bool align_camera_1e4;
     bool explode_ground_1e5;
     bool align_explosion_1e6;
-    bool flag_1e7;
+    bool flag;
     void* value_1e8;
     void* value_1ec;
-    float lifetime_1f0;
+    float lifetime;
     int flags_1f4;
     float duration_1f8;
     W8SpellEffectDefinition definition_1fc;
     W8TargetSource m_Source;
-    W8CombatSlot combat_slot_260;
+    W8CombatSlot combat_slot;
     /* 0x280: the damage and condition results this missile has accumulated,
        folded into the owning spell effect by 0x00500460. */
-    W8SpellEffectResult result_280;
-    bool retargeted_322; /* the missile struck something other than its intended target */
+    W8SpellEffectResult result;
+    bool retargeted; /* the missile struck something other than its intended target */
     unsigned char padding_323[5];
 };
 
@@ -171,26 +171,26 @@ struct W8MissileTableRecord {
     wchar_t display_name[128];
     /* 0x100: the GrCycle resource name the launcher loads through the
        "Data\\Missiles" script path. */
-    char cycle_name_100[0x40];
-    float radius_140;    /* 0x140: replaces the launched effect's radius */
-    int attack_mode_144; /* 0x144: the attack mode the hit is resolved with */
+    char cycle_name[0x40];
+    float radius;    /* 0x140: replaces the launched effect's radius */
+    int attack_mode; /* 0x144: the attack mode the hit is resolved with */
     unsigned char unknown_148[8];
-    /* 0x150: copied into the launched effect block's magnitude_base_1c. */
-    int magnitude_base_150;
+    /* 0x150: copied into the launched effect block's magnitude_base. */
+    int magnitude_base;
     /* 0x154: nonzero marks a spell missile - its hits resolve through
        ResolveSpellMissileHit instead of the physical hit/deflect path. */
-    bool spell_missile_154;
+    bool spell_missile;
     /* 0x155: the percentage chances the missile's hit effect assigns each
        condition; CastSpellFromSource copies them into its effect block. */
-    unsigned char condition_chances_155[0x10];
+    unsigned char condition_chances[0x10];
     /* 0x165: the missile weapon's impact sound class; MakePCHitSound bounds it
        against the 28 material-impact rows. */
-    int weapon_sound_class_165;
+    int weapon_sound_class;
     unsigned char unknown_169[0x7c];
 };
 #pragma pack(pop)
 
-static_assert(offsetof(W8MissileTableRecord, cycle_name_100) == 0x100,
+static_assert(offsetof(W8MissileTableRecord, cycle_name) == 0x100,
               "W8MissileTableRecord_cycle_name_offset");
 static_assert(sizeof(W8MissileTableRecord) == 0x1e5, "W8MissileTableRecord_must_be_0x1e5");
 

@@ -23,7 +23,7 @@ public:
         struct ChildLink {
             ClassNode* node_00;
             ChildLink* next_04;
-            ChildLink* previous_08;
+            ChildLink* previous;
         };
 
         /* The child list is a single member object at offset 0: the
@@ -33,26 +33,26 @@ public:
         struct ChildList {
             unsigned long count_00;
             ChildLink* first_04;
-            ChildLink* last_08;
+            ChildLink* last;
 
-            ChildList() : first_04(new ChildLink), last_08(first_04)
+            ChildList() : first_04(new ChildLink), last(first_04)
             {
                 first_04->next_04 = 0;
-                first_04->previous_08 = 0;
+                first_04->previous = 0;
                 count_00 = 0;
             }
 
             // FUNCTION: SURRENDER 0x10010780
             ~ChildList()
             {
-                while (first_04 != last_08) {
+                while (first_04 != last) {
                     ChildLink* link = first_04;
                     first_04 = link->next_04;
-                    if (link->previous_08 != 0) {
-                        link->previous_08->next_04 = link->next_04;
+                    if (link->previous != 0) {
+                        link->previous->next_04 = link->next_04;
                     }
                     if (link->next_04 != 0) {
-                        link->next_04->previous_08 = link->previous_08;
+                        link->next_04->previous = link->previous;
                     }
                     delete link;
                     --count_00;
@@ -102,11 +102,11 @@ public:
         ClassNode* parent_0c;
         unsigned long class_id_10;
         const char* class_name_14;
-        NameIndex* named_instances_18;
-        NameIndex* inherited_named_instances_1c;
-        IDIndex* instances_by_id_20;
-        IDIndex* inherited_instances_by_id_24;
-        long instance_count_28;
+        NameIndex* named_instances;
+        NameIndex* inherited_named_instances;
+        IDIndex* instances_by_id;
+        IDIndex* inherited_instances_by_id;
+        long instance_count;
     };
 
     SR_DLL_IMPORT srRegistry();
@@ -126,8 +126,8 @@ public:
     SR_DLL_IMPORT int isDerivedOrSame(ClassNode* base, ClassNode* derived);
     /* SR.DLL's registerClass at 0x1000EC60 adds the node, then calls
        0x1000F7E0 only when the last argument is non-zero. That routine
-       allocates this node's own instance indices, named_instances_18 and
-       instances_by_id_20, when they are still null. So the argument selects
+       allocates this node's own instance indices, named_instances and
+       instances_by_id, when they are still null. So the argument selects
        whether the node carries its own instance lookup tables; it is not C++
        abstractness. stTexture2D and stSurface2D are constructed directly and
        still pass 0, which independently rules that reading out. */
@@ -151,10 +151,10 @@ private:
     SR_DLL_IMPORT ClassNode* addToTree(ClassNode* parent, const char* class_name,
                                        unsigned long class_id);
 
-    ClassNode* root_00;
-    ClassIndex* class_index_04;
-    int valid_08;
-    srCriticalSection* critical_section_0c;
+    ClassNode* root;
+    ClassIndex* class_index;
+    int valid;
+    srCriticalSection* critical_section;
 };
 
 static_assert(sizeof(srRegistry::ClassNode) == 0x2c, "srRegistry_ClassNode_must_be_0x2c");
@@ -303,12 +303,12 @@ protected:
 
 private:
     struct Update {
-        double last_update_time_00;
+        double last_update_time;
         double interval_08;
         UpdateCallBack callback_10;
         srClass* instance_14;
-        Update* previous_18;
-        Update* next_1c;
+        Update* previous;
+        Update* next;
     };
 
     static_assert(sizeof(Update) == 0x20, "srClass_Update_must_be_0x20");
@@ -317,7 +317,7 @@ private:
     static SR_DLL_IMPORT double _lastUpdateTime;
     static SR_DLL_IMPORT unsigned long _timestampCtr;
 
-    mutable long reference_count_0c;
+    mutable long reference_count;
     unsigned long timestamp_10;
     Update* update_14;
 };

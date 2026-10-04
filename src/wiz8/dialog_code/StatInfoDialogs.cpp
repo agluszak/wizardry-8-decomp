@@ -69,22 +69,22 @@ int W8StatInfoDialogBase::CreateControls()
     resources.track_path = g_info_dialog_background;
     resources.track_frame = 1;
     resources.on_scroll = ScrollCallback;
-    scrollbar_054.CreateControls(&resources);
-    scrollbar_054.SetLayout(m_x + 299, m_y + 0x26, textarea_0e8.GetTotalLineCount(), 0,
-                            textarea_0e8.GetLineHeight(), 0xb9);
-    scrollbar_054.m_owner = this;
+    scrollbar.CreateControls(&resources);
+    scrollbar.SetLayout(m_x + 299, m_y + 0x26, textarea.GetTotalLineCount(), 0,
+                            textarea.GetLineHeight(), 0xb9);
+    scrollbar.m_owner = this;
 
-    button_0a0.Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 0, 1, 4, 2,
+    button.Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 0, 1, 4, 2,
                          DialogCloseButtonCallback, 0, 0, 0x7f, -1, 0, 0);
-    button_0a0.SetPosition(m_x + 0x11a, m_y + 0xe6);
-    button_0a0.m_owner_040 = this;
+    button.SetPosition(m_x + 0x11a, m_y + 0xe6);
+    button.m_owner = this;
     return 0;
 }
 
 // FUNCTION: WIZ8 0x005dfac0
 void W8StatInfoDialogBase::DestroyControls()
 {
-    scrollbar_054.DestroyControls();
+    scrollbar.DestroyControls();
     W8DialogBase::DestroyControls();
 }
 
@@ -95,15 +95,15 @@ void W8StatInfoDialogBase::Draw()
         if (m_initialized == 0) {
             CreateControls();
         }
-        textarea_0e8.m_dirty = true;
-        scrollbar_054.m_dirty = true;
-        button_0a0.m_dirty = true;
+        textarea.m_dirty = true;
+        scrollbar.m_dirty = true;
+        button.m_dirty = true;
         W8DialogBase::Draw();
         DrawTitle();
     }
-    textarea_0e8.Draw(0);
-    scrollbar_054.Draw(0);
-    button_0a0.Draw();
+    textarea.Draw(0);
+    scrollbar.Draw(0);
+    button.Draw();
 }
 
 // FUNCTION: WIZ8 0x005dfb40
@@ -111,7 +111,7 @@ void W8StatInfoDialogBase::DrawTitle()
 {
     SetFont(g_wiz_text_font_secondary);
     SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_wiz_text_font_secondary_palette);
-    wchar_t* title = gppStringList[m_title_id_140];
+    wchar_t* title = gppStringList[m_title_id];
     INT16 width = StringPixLength(title, g_wiz_text_font_secondary);
     gprintf(m_x + 0xe + (0x112 - width) / 2, m_y + 0x11, g_format_s, title);
 }
@@ -128,11 +128,11 @@ void W8StatInfoDialogBase::OnMouseWheel(int delta)
 {
     if (delta > 0) {
         for (int step = 0; step < delta; ++step) {
-            scrollbar_054.ScrollUp();
+            scrollbar.ScrollUp();
         }
     } else if (delta < 0) {
         for (int step = 0; step < -delta; ++step) {
-            scrollbar_054.ScrollDown();
+            scrollbar.ScrollDown();
         }
     }
 }
@@ -146,14 +146,14 @@ void W8StatInfoDialogBase::ScrollCallback(W8DialogScrollBar* scroll_bar, int fir
     int bottom;
     W8StatInfoDialogBase* dialog = static_cast<W8StatInfoDialogBase*>(scroll_bar->m_owner);
     if (dialog != 0) {
-        dialog->textarea_0e8.SetFirstVisibleLine(first_visible_entry);
+        dialog->textarea.SetFirstVisibleLine(first_visible_entry);
         left = dialog->m_x + 0x11;
         top = dialog->m_y + 0x26;
         right = left + 0x10e;
         bottom = top + 0xb9;
         InvalidateRegion(left, top, right, bottom, 0);
         BlitCatalogSurfaceRectTo16BPP(-0xe, left, top, right, bottom, 0x1b6, 0, 0);
-        dialog->textarea_0e8.m_dirty = true;
+        dialog->textarea.m_dirty = true;
     }
 }
 
@@ -165,10 +165,10 @@ unsigned char W8StatInfoDialogBase::PopulateText()
     bounds.top = m_y + 0x26;
     bounds.right = m_x + 0x11f;
     bounds.bottom = m_y + 0xdf;
-    textarea_0e8.Configure(&bounds, g_wiz_text_font_secondary, 0);
-    textarea_0e8.SetEntrySpacing(0);
-    textarea_0e8.AddEntry(gppStringList[0x155], gppStringList[m_detail_id_144], 10, 0xf, 0);
-    textarea_0e8.AddEntry(0, &g_empty_wide_string, 10, 0xf, 0);
+    textarea.Configure(&bounds, g_wiz_text_font_secondary, 0);
+    textarea.SetEntrySpacing(0);
+    textarea.AddEntry(gppStringList[0x155], gppStringList[m_detail_id], 10, 0xf, 0);
+    textarea.AddEntry(0, &g_empty_wide_string, 10, 0xf, 0);
     return 1;
 }
 
@@ -179,8 +179,8 @@ W8AttributeInfoDialog::W8AttributeInfoDialog(unsigned int uiIndex)
         srAssertFail("uiIndex < ATTR_COUNT", STAT_INFO_DIALOGS_CPP, 204, 0);
     }
     m_uiIndex = uiIndex;
-    m_title_id_140 = g_character_description_first_ids[uiIndex];
-    m_detail_id_144 = g_attr_table_61E4FC[uiIndex];
+    m_title_id = g_character_description_first_ids[uiIndex];
+    m_detail_id = g_attr_table_61E4FC[uiIndex];
 }
 
 // FUNCTION: WIZ8 0x005dfd20
@@ -196,12 +196,12 @@ W8SkillInfoDialog::W8SkillInfoDialog(unsigned int skill, bool first, bool second
     if (skill >= SKILL_COUNT) {
         srAssertFail("uiIndex < SKILL_COUNT", STAT_INFO_DIALOGS_CPP, 227, 0);
     }
-    m_skill_148 = skill;
-    m_title_id_140 = g_character_skill_name_ids[skill];
-    m_detail_id_144 = g_character_skill_name_ids[skill + 0x2a];
-    m_first_14c = first;
-    m_second_14d = second;
-    m_bonus_14e = bonus;
+    m_skill = skill;
+    m_title_id = g_character_skill_name_ids[skill];
+    m_detail_id = g_character_skill_name_ids[skill + 0x2a];
+    m_first = first;
+    m_second = second;
+    m_bonus = bonus;
 }
 
 // FUNCTION: WIZ8 0x005dff10
@@ -214,25 +214,25 @@ W8SkillInfoDialog::~W8SkillInfoDialog()
 unsigned char W8SkillInfoDialog::PopulateText()
 {
     W8StatInfoDialogBase::PopulateText();
-    textarea_0e8.AddEntry(gppStringList[0x156], &g_empty_wide_string, 10, 0xf, 0);
-    W8SkillAttributes* skill = &g_skill_attributes[m_skill_148];
-    textarea_0e8.AddEntry(
-        0, gppStringList[g_character_description_first_ids[skill->attribute_1_08]], 10, 0xf, 0);
-    if (skill->attribute_1_08 != skill->attribute_2_0c) {
-        textarea_0e8.AddEntry(
-            0, gppStringList[g_character_description_first_ids[skill->attribute_2_0c]], 10, 0xf, 0);
+    textarea.AddEntry(gppStringList[0x156], &g_empty_wide_string, 10, 0xf, 0);
+    W8SkillAttributes* skill = &g_skill_attributes[m_skill];
+    textarea.AddEntry(
+        0, gppStringList[g_character_description_first_ids[skill->attribute_1]], 10, 0xf, 0);
+    if (skill->attribute_1 != skill->attribute_2) {
+        textarea.AddEntry(
+            0, gppStringList[g_character_description_first_ids[skill->attribute_2]], 10, 0xf, 0);
     }
-    if (m_first_14c != 0) {
-        textarea_0e8.AddEntry(0, &g_empty_wide_string, 10, 0xf, 0);
-        textarea_0e8.AddEntry(0, gppStringList[0x157], 10, 5, 0);
+    if (m_first != 0) {
+        textarea.AddEntry(0, &g_empty_wide_string, 10, 0xf, 0);
+        textarea.AddEntry(0, gppStringList[0x157], 10, 5, 0);
     }
-    if (m_second_14d != 0) {
-        textarea_0e8.AddEntry(0, &g_empty_wide_string, 10, 0xf, 0);
-        textarea_0e8.AddEntry(0, gppStringList[0x158], 10, 0xb, 0);
+    if (m_second != 0) {
+        textarea.AddEntry(0, &g_empty_wide_string, 10, 0xf, 0);
+        textarea.AddEntry(0, gppStringList[0x158], 10, 0xb, 0);
     }
-    if (m_bonus_14e != 0) {
-        textarea_0e8.AddEntry(0, &g_empty_wide_string, 10, 0xf, 0);
-        textarea_0e8.AddEntry(0, FormatWideString(gppStringList[0x159], 0x19), 10, 3, 0);
+    if (m_bonus != 0) {
+        textarea.AddEntry(0, &g_empty_wide_string, 10, 0xf, 0);
+        textarea.AddEntry(0, FormatWideString(gppStringList[0x159], 0x19), 10, 3, 0);
     }
     return 1;
 }
@@ -244,8 +244,8 @@ W8SecondaryAttributeInfoDialog::W8SecondaryAttributeInfoDialog(unsigned int uiIn
         srAssertFail("uiIndex < ATTR_COUNT", STAT_INFO_DIALOGS_CPP, 278, 0);
     }
     m_uiIndex = uiIndex;
-    m_title_id_140 = g_character_description_first_ids[16 + uiIndex];
-    m_detail_id_144 = g_attr_table_61E50C[uiIndex];
+    m_title_id = g_character_description_first_ids[16 + uiIndex];
+    m_detail_id = g_attr_table_61E50C[uiIndex];
 }
 
 // FUNCTION: WIZ8 0x005e0230

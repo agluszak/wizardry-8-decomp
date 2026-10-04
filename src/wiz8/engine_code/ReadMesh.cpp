@@ -116,7 +116,7 @@ namespace {
 bool ReadMeshFaceNeedsSplit(const W8ReadMeshFace& face, srMaterialIFace** materials)
 {
     return (face.flags & 4) != 0 ||
-           (static_cast<stMaterial*>(materials[face.material_index])->m_shader_flags_78 & 1) != 0;
+           (static_cast<stMaterial*>(materials[face.material_index])->m_shader_flags & 1) != 0;
 }
 
 } // namespace
@@ -454,12 +454,12 @@ void OptimizeMeshOrder(srMeshModel* model, unsigned long flags)
         info.polygon_keys[index] = 0;
         info.vertex_keys[index] = 0;
     }
-    info.vertex_count = model->vertex_location_count_22c;
-    info.polygon_count = model->polygon_count_230;
+    info.vertex_count = model->vertex_location_count;
+    info.polygon_count = model->polygon_count;
     info.polygon_vertices = model->getPolyVertex();
     info.vertex_locations = model->getVertexLoc();
 
-    for (unsigned int pass = 0; pass < static_cast<unsigned long>(model->pass_count_228); ++pass) {
+    for (unsigned int pass = 0; pass < static_cast<unsigned long>(model->pass_count); ++pass) {
         if (model->getPolyShader(pass, 0) != 0 && info.polygon_key_count < 4) {
             info.polygon_keys[info.polygon_key_count++] = model->getPolyShader(pass, 1);
         }
@@ -768,12 +768,12 @@ static int ReadMeshMaterials(W8ReadLevelInfo* info, srMaterialIFace*** materials
         static_cast<W8MaterialRecord*>(malloc(count * sizeof(W8MaterialRecord)));
     memset(records, 0, count * sizeof(W8MaterialRecord));
     FileRead(info->hFile, records, 0x11a, 0);
-    if (records[0].version_00 < 4) {
+    if (records[0].version < 4) {
         for (index = 1; index < count; ++index) {
             FileRead(info->hFile, records + index, 0x11a, 0);
         }
     } else {
-        FileRead(info->hFile, records[0].texture_modes_11a, sizeof(records[0].texture_modes_11a),
+        FileRead(info->hFile, records[0].texture_modes, sizeof(records[0].texture_modes),
                  0);
         if (count > 1) {
             FileRead(info->hFile, records + 1, (count - 1) * sizeof(W8MaterialRecord), 0);
@@ -831,7 +831,7 @@ unsigned char ReadSingleLevelMesh(W8ReadLevelInfo* info, srModelInstance** insta
         }
 
         stMeshModel* model = static_cast<stMeshModel*>(registry->find(node, name, 0));
-        if (model != 0 && model->duplicate_on_reuse_3cc != 0) {
+        if (model != 0 && model->duplicate_on_reuse != 0) {
             stModelInstance* duplicate = CreateModelInstance(model);
             duplicate->setName("Read Mesh Duplicate Instance");
             *instance = duplicate;
@@ -1028,14 +1028,14 @@ unsigned char ReadSingleLevelMeshBody(W8ReadLevelInfo* info, srModelInstance** i
             loaded_instance->setRotation(rotation);
         }
         *instance = loaded_instance;
-        first_model->duplicate_on_reuse_3cc = MeshHasAnimatedTexture(first_model) ? 0 : 1;
+        first_model->duplicate_on_reuse = MeshHasAnimatedTexture(first_model) ? 0 : 1;
     }
 
     if ((flags & 1) == 0) {
         int mesh_index = 0;
         for (stMeshModel* model = first_model; model != 0; model = model->next, ++mesh_index) {
             srVector3T<float>* model_vertices = model->getVertexLoc();
-            for (int index = 0; index < model->vertex_location_count_22c; ++index) {
+            for (int index = 0; index < model->vertex_location_count; ++index) {
                 model_vertices[index] = vertices[vertex_maps[mesh_index][index]];
             }
             OptimizeMeshOrder(model, ~0UL);
@@ -1045,9 +1045,9 @@ unsigned char ReadSingleLevelMeshBody(W8ReadLevelInfo* info, srModelInstance** i
             int mesh_index = 0;
             for (stMeshModel* model = first_model; model != 0; model = model->next, ++mesh_index) {
                 model->InitializeVertexFrames(frame_count);
-                model->vertex_compression_scale_444 = 500.0f / compression_scale;
+                model->vertex_compression_scale = 500.0f / compression_scale;
                 short* model_vertices = model->GetVertex(frame);
-                for (int index = 0; index < model->vertex_location_count_22c; ++index) {
+                for (int index = 0; index < model->vertex_location_count; ++index) {
                     int source = vertex_maps[mesh_index][index];
                     model_vertices[index * 3] = compressed_vertices[frame][source * 3];
                     model_vertices[index * 3 + 1] = compressed_vertices[frame][source * 3 + 1];
@@ -1152,8 +1152,8 @@ unsigned char ReadMultipleLevelMeshes(W8ReadLevelInfo* info, srModelInstance** i
         if (model->previous == 0) {
             stModelInstance* instance = CreateModelInstance(model);
             instance->setName("Multi Mesh Instance");
-            instance->mesh_index_17c = g_read_mesh_index;
-            model->duplicate_on_reuse_3cc = MeshHasAnimatedTexture(model);
+            instance->mesh_index = g_read_mesh_index;
+            model->duplicate_on_reuse = MeshHasAnimatedTexture(model);
             instances[g_read_mesh_index] = instance;
         }
     }
@@ -1192,7 +1192,7 @@ void ClearMaterialRecordPadding(W8MaterialRecord* material)
     if (material == 0) {
         return;
     }
-    memset(material->texture_name_001, 0, sizeof(material->texture_name_001));
+    memset(material->texture_name, 0, sizeof(material->texture_name));
     for (int index = 0; index < 4; ++index) {
         char* name = material->texture_names_029[index];
         memset(name + strlen(name), 0, sizeof(material->texture_names_029[index]) - strlen(name));

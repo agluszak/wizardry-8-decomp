@@ -12,11 +12,11 @@ static_assert(offsetof(W8MainGameResourceSlot, hotspot_x) == 0x10,
 static_assert(sizeof(W8DialogueTextState) == 0x34, "W8DialogueTextState_size");
 static_assert(offsetof(W8DialogueTextState, saved_scroll_line) == 0x30,
               "W8DialogueTextState_saved_scroll_line");
-static_assert(offsetof(W8LevelRuntimeBlock, text_paint_scratch_000) == 0x0,
-              "W8LevelRuntimeBlock_text_paint_scratch_000");
+static_assert(offsetof(W8LevelRuntimeBlock, text_paint_scratch) == 0x0,
+              "W8LevelRuntimeBlock_text_paint_scratch");
 static_assert(sizeof(W8LevelRuntimeBlock) == 0x330, "W8LevelRuntimeBlock_must_be_0x330");
-static_assert(offsetof(W8LevelRuntimeBlock, message_box_pending_0f0) == 0x0f0,
-              "W8LevelRuntimeBlock_message_box_pending_0f0");
+static_assert(offsetof(W8LevelRuntimeBlock, message_box_pending) == 0x0f0,
+              "W8LevelRuntimeBlock_message_box_pending");
 static_assert(offsetof(W8LevelRuntimeBlock, saved_redraw_flags) == 0x0f8,
               "W8LevelRuntimeBlock_saved_redraw_flags");
 static_assert(offsetof(W8LevelRuntimeBlock, main_ui_mode) == 0x0fc,
@@ -60,12 +60,12 @@ static_assert(offsetof(W8LevelRuntimeBlock, enchantment_orb_party_slot) == 0x208
 static_assert(offsetof(W8LevelRuntimeBlock, condition_highlight_party_slot) == 0x20c,
               "W8LevelRuntimeBlock_condition_highlight_party_slot");
 static_assert(offsetof(W8LevelRuntimeBlock, flag_210) == 0x210, "W8LevelRuntimeBlock_flag_210");
-static_assert(offsetof(W8LevelRuntimeBlock, clock_214) == 0x214, "W8LevelRuntimeBlock_clock_214");
+static_assert(offsetof(W8LevelRuntimeBlock, clock) == 0x214, "W8LevelRuntimeBlock_clock");
 static_assert(offsetof(W8LevelRuntimeBlock, countdown_258) == 0x258,
               "W8LevelRuntimeBlock_countdown_258");
 static_assert(offsetof(W8LevelRuntimeBlock, countdown_26c) == 0x26c,
               "W8LevelRuntimeBlock_countdown_26c");
-static_assert(offsetof(W8LevelRuntimeBlock, palette_2ec) == 0x2ec,
-              "W8LevelRuntimeBlock_palette_2ec");
+static_assert(offsetof(W8LevelRuntimeBlock, palette) == 0x2ec,
+              "W8LevelRuntimeBlock_palette");
 static_assert(offsetof(W8LevelRuntimeBlock, countdown_32c) == 0x32c,
               "W8LevelRuntimeBlock_countdown_32c");

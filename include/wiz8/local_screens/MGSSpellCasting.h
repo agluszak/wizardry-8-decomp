@@ -24,7 +24,7 @@ struct W8SpellCastingView {
     W8Character* caster;             /* 0x0f8 */
     int iSpellRealm;                 /* 0x0fc: selected realm, -1 when none */
     int uiSpellToCast;               /* 0x100 */
-    int override_spell_104;          /* 0x104: detail/commit override spell */
+    int override_spell;          /* 0x104: detail/commit override spell */
     int iSpellPower;                 /* 0x108: chosen power index, -1 when unset */
     int iSpellPowerClass;            /* 0x10c: the spell record's power class */
     unsigned int uiPowerLevels;      /* 0x110: affordable power-level count */
@@ -40,7 +40,7 @@ struct W8SpellCastingView {
     /* 0x540: indexed by region callback id. */
     W8TextControl* power_controls[W8_SPELL_POWER_CONTROL_COUNT];
     W8MainUiMode saved_game_mode;    /* 0x56c */
-    bool input_blocked_570;          /* 0x570 */
+    bool input_blocked;          /* 0x570 */
     unsigned char pad_571[3];
     int field_574;                 /* 0x574 */
     int interact_id;               /* 0x578 */

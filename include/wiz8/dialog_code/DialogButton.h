@@ -62,15 +62,15 @@ private:
     int m_off_hover_frame;  /* 0x0c */
     int m_on_normal_frame;  /* 0x10 */
     int m_on_hover_frame;   /* 0x14 */
-    int m_image_018;        /* loaded button-image handle */
-    int m_button_01c;       /* SGP button handle */
+    int m_image;        /* loaded button-image handle */
+    int m_button;       /* SGP button handle */
     int m_tooltip_index;    /* 0x20: gppStringList index, or -1 */
     W8DialogButtonCallback m_left_callback;
     W8DialogButtonCallback m_right_callback;
     W8DialogButtonCallback m_move_callback;
     W8DialogButtonCallback m_double_click_callback;
     unsigned char m_clicked; /* 0x34: latched BUTTON_CLICKED_ON bit */
-    bool m_enabled_035;
+    bool m_enabled;
     unsigned char m_left_toggles; /* 0x36: left down xors CLICKED_ON */
 
 public:
@@ -79,8 +79,8 @@ public:
     unsigned char m_right_toggles;
     bool m_dirty; /* 0x38: set by owning screens before Draw */
 private:
-    bool silent_039;       /* suppresses all button sounds */
-    bool hover_silent_03a; /* suppresses hover/exit sounds only */
+    bool silent;       /* suppresses all button sounds */
+    bool hover_silent; /* suppresses hover/exit sounds only */
 
 public:
     /* 0x3b: raised on spinner-style buttons (the split dialog's arrows); the
@@ -89,12 +89,12 @@ public:
     unsigned char m_fires_on_press;
 
 private:
-    bool press_armed_03c; /* clicked-on and fires_on_press: release completes */
+    bool press_armed; /* clicked-on and fires_on_press: release completes */
 
 public:
     /* 0x40: set by the dialog factories to the owning dialog; the per-button
        dispatch callback reads it back when a stored callback needs it. */
-    W8DialogBase* m_owner_040;
+    W8DialogBase* m_owner;
 
 private:
     /* 0x44: snapshot of the live-dialog count; dispatch ignores events when a

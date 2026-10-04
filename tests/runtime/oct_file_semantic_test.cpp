@@ -293,12 +293,12 @@ static unsigned char CheckFileLayout(const OctPreTree* tree, const W8OctPreTreeG
         LoadDword(bytes, 0x5e) != tree->m_leaf_grid_dim_z ||
         LoadWord(bytes, 0x62) != spatial->m_depth ||
         LoadWord(bytes, 0x64) != spatial->m_region_id_bound ||
-        LoadDword(bytes, 0x66) != spatial->submesh_count_74 ||
+        LoadDword(bytes, 0x66) != spatial->submesh_count ||
         LoadDword(bytes, 0x6a) != tree->m_branch_count ||
         LoadDword(bytes, 0x6e) != tree->m_leaf_count ||
         LoadDword(bytes, 0x72) != geometry->m_polygon_count ||
-        LoadDword(bytes, 0x76) != geometry->vertex_count_00 || LoadDword(bytes, 0x7a) != 0 ||
-        LoadDword(bytes, 0x7e) != 0 || LoadDword(bytes, 0x82) != tree->polygon_cursor_3a0 ||
+        LoadDword(bytes, 0x76) != geometry->vertex_count || LoadDword(bytes, 0x7a) != 0 ||
+        LoadDword(bytes, 0x7e) != 0 || LoadDword(bytes, 0x82) != tree->polygon_cursor ||
         LoadDword(bytes, 0x86) != tree->m_gd_surface_stream_len || LoadDword(bytes, 0x8a) != 0 ||
         LoadDword(bytes, 0x8e) != 0 || LoadDword(bytes, 0x92) != tree->m_region_list_len ||
         LoadWord(bytes, 0x96) != spatial->m_region_count ||
@@ -322,7 +322,7 @@ static unsigned char CheckFileLayout(const OctPreTree* tree, const W8OctPreTreeG
     cursor += 4;
     cursor += tree->m_branch_count * 0x24;
     cursor += tree->m_leaf_count * 0x28;
-    cursor += tree->polygon_cursor_3a0 * 4;
+    cursor += tree->polygon_cursor * 4;
     cursor += tree->m_leaf_grid_dim_x * tree->m_leaf_grid_dim_y * tree->m_leaf_grid_dim_z * 4;
     cursor += geometry->m_polygon_count * 4;
     cursor += tree->m_region_list_len * 2;
@@ -332,7 +332,7 @@ static unsigned char CheckFileLayout(const OctPreTree* tree, const W8OctPreTreeG
         ok = 0;
     }
     cursor += 4;
-    cursor += (spatial->submesh_count_74 + 1) * 0x10;
+    cursor += (spatial->submesh_count + 1) * 0x10;
     /* Alpha bits, particle and prop lookup tables skipped (counts 0). */
     if (LoadDword(bytes, cursor) != 0xffffffff) {
         ok = 0;
@@ -379,7 +379,7 @@ static unsigned char CheckLoadedSpatial(const OctPreTree* written, const W8Octre
            loaded->m_leaf_grid_dim_x == written->m_leaf_grid_dim_x &&
            loaded->m_leaf_grid_dim_y == written->m_leaf_grid_dim_y &&
            loaded->m_leaf_grid_dim_z == written->m_leaf_grid_dim_z &&
-           loaded->m_leaf_polygon_stream_len == written->polygon_cursor_3a0 &&
+           loaded->m_leaf_polygon_stream_len == written->polygon_cursor &&
            loaded->m_gd_surface_stream_len == written->m_gd_surface_stream_len &&
            loaded->m_region_cell == written->m_region_cell;
 }
@@ -400,7 +400,7 @@ static unsigned char CheckUvSeam(OctPreTree* tree)
 
     memset(&record, 0, sizeof(record));
     memset(polygons, 0, sizeof(polygons));
-    record.vertex_count_14 = 4;
+    record.vertex_count = 4;
     record.m_polygon_count = 2;
     poly_vertices[0].x = 0;
     poly_vertices[0].y = 1;
@@ -412,12 +412,12 @@ static unsigned char CheckUvSeam(OctPreTree* tree)
     polygon_ids[0] = 0;
     polygon_ids[1] = 1;
     record.m_polygon_ids = polygon_ids;
-    polygons[0].face_48.texture_coordinates[0].Set(0.1f, 0.2f);
-    polygons[0].face_48.texture_coordinates[1].Set(0.3f, 0.4f);
-    polygons[0].face_48.texture_coordinates[2].Set(0.5f, 0.6f);
-    polygons[1].face_48.texture_coordinates[0].Set(0.7f, 0.8f);
-    polygons[1].face_48.texture_coordinates[1].Set(0.5f, 0.6f);
-    polygons[1].face_48.texture_coordinates[2].Set(0.9f, 1.0f);
+    polygons[0].face.texture_coordinates[0].Set(0.1f, 0.2f);
+    polygons[0].face.texture_coordinates[1].Set(0.3f, 0.4f);
+    polygons[0].face.texture_coordinates[2].Set(0.5f, 0.6f);
+    polygons[1].face.texture_coordinates[0].Set(0.7f, 0.8f);
+    polygons[1].face.texture_coordinates[1].Set(0.5f, 0.6f);
+    polygons[1].face.texture_coordinates[2].Set(0.9f, 1.0f);
     memset(&geometry, 0, sizeof(geometry));
     geometry.m_polygons = polygons;
 
@@ -442,13 +442,13 @@ static unsigned char CheckCondNodes(OctPreTree* tree)
     W8HashTable<unsigned int, CondPathNode*> nodes;
 
     memset(preprops, 0, sizeof(preprops));
-    preprops[0].num_stop_meshes_40 = 10;
-    preprops[0].first_prop_number_42 = 0;
+    preprops[0].num_stop_meshes = 10;
+    preprops[0].first_prop_number = 0;
     /* GDPreProp's zeroing ctor is unrecovered in this image; zeroed storage
        reproduces it for the one field the body reads. */
     preprops[0].pStopMeshes = static_cast<GDPreProp*>(calloc(10, sizeof(GDPreProp)));
-    preprops[1].num_stop_meshes_40 = 8;
-    preprops[1].first_prop_number_42 = 10;
+    preprops[1].num_stop_meshes = 8;
+    preprops[1].first_prop_number = 10;
     preprops[1].pStopMeshes = static_cast<GDPreProp*>(calloc(8, sizeof(GDPreProp)));
     if (preprops[0].pStopMeshes == 0 || preprops[1].pStopMeshes == 0) {
         return 0;
@@ -457,7 +457,7 @@ static unsigned char CheckCondNodes(OctPreTree* tree)
        declared friend, the harness is not. */
     *reinterpret_cast<unsigned short*>(reinterpret_cast<char*>(preprops[0].pStopMeshes + 5) +
                                        0x02) = 0x40; /* reinterpret-ok: pokes the private
-        m_prop_number_02 field at its retail offset for the friend reader */
+        m_prop_number field at its retail offset for the friend reader */
     *reinterpret_cast<unsigned short*>(reinterpret_cast<char*>(preprops[1].pStopMeshes + 2) +
                                        0x02) = 0x80; /* reinterpret-ok: same private-field
         poke at +0x02 */
@@ -481,7 +481,7 @@ static unsigned char CheckCondNodes(OctPreTree* tree)
 
 /* The PrePathing chunk allocator hands out consecutive 0x10-byte records
    from its 0x3e80-byte (1000-record) chunks, zero-initialised, counting
-   chunk_node_count_11fc per chunk. */
+   chunk_node_count per chunk. */
 static unsigned char CheckPathNodeChunking()
 {
     PrePathing* prepath = new PrePathing();
@@ -492,9 +492,9 @@ static unsigned char CheckPathNodeChunking()
     W8PrePathNode* second = prepath->GetPathNode();
     /* Deliberately leaked: ~W8PathingService frees g_path_scratch and
        clears g_pathing - globals this object does not own. */
-    return first == prepath->node_chunks_258[0] && second == first + 1 && first->level_flags == 0 &&
-           first->cell == 0 && prepath->chunk_index_11f8 == 0 &&
-           prepath->chunk_node_count_11fc == 2;
+    return first == prepath->node_chunks[0] && second == first + 1 && first->level_flags == 0 &&
+           first->cell == 0 && prepath->chunk_index == 0 &&
+           prepath->chunk_node_count == 2;
 }
 
 /* Regression coverage for the BuildPathLists node store `record->y = node.y`:
@@ -563,13 +563,13 @@ static void RunOctFileRoundTrip(OctFileSemanticResult* result)
     tree->m_spatial.m_max_region_radius = 2.5f;
     /* One submesh entry exercises the mesh block and the reader's
        max-scan/allocation of the region-index store. */
-    tree->m_spatial.submesh_count_74 = 1;
+    tree->m_spatial.submesh_count = 1;
     tree->m_leaf_grid_dim_x = 2;
     tree->m_leaf_grid_dim_y = 2;
     tree->m_leaf_grid_dim_z = 2;
     tree->m_branch_count = 1;
     tree->m_leaf_count = 1;
-    tree->polygon_cursor_3a0 = 1;
+    tree->polygon_cursor = 1;
     tree->m_gd_surface_stream_len = 1;
     tree->m_region_list_len = 1;
     tree->m_root_mesh_count = 4;
@@ -603,10 +603,10 @@ static void RunOctFileRoundTrip(OctFileSemanticResult* result)
     tree->m_gd_surface_index_stream[0] = 0xdeadbeef;
     tree->m_region_index_stream[0] = 0x5a5a;
     memset(tree->m_pSubmeshes, 0, 2 * 0x10);
-    tree->m_pSubmeshes[1].polygon_count_0c = 5;
+    tree->m_pSubmeshes[1].polygon_count = 5;
 
     memset(&geometry, 0, sizeof(geometry));
-    geometry.vertex_count_00 = 3;
+    geometry.vertex_count = 3;
     geometry.m_polygon_count = 1;
 
     result->write_ok = tree->WriteOctFile(&geometry, game_data);
@@ -628,12 +628,12 @@ static void RunOctFileRoundTrip(OctFileSemanticResult* result)
                                    loaded->m_aulPolyLookup[0] == 0xaabbccdd &&
                                    loaded->m_gd_surface_index_stream[0] == 0xdeadbeef &&
                                    loaded->m_region_index_stream[0] == 0x5a5a &&
-                                   loaded->m_pSubmeshes[1].polygon_count_0c == 5 &&
+                                   loaded->m_pSubmeshes[1].polygon_count == 5 &&
                                    memcmp(loaded->m_leaf_lookup, tree->m_leaf_lookup, 8 * 4) == 0;
         result->gamedata_roundtrip = loaded_data->m_iNumEnvirons == 1 &&
                                      loaded_data->m_ppEnvirons != 0 &&
                                      loaded_data->m_ppEnvirons[0] != 0 &&
-                                     loaded_data->m_ppEnvirons[0]->motion_step_1c == 0.05f;
+                                     loaded_data->m_ppEnvirons[0]->motion_step == 0.05f;
     }
 
 restore:

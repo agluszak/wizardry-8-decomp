@@ -459,7 +459,7 @@ unsigned char CreateSubMenuScrollButtons(void)
     for (i = 0; i < 2; ++i) {
         g_submenu_scroll_buttons[i]->SetPosition(g_scroll_button_positions[i].x,
                                                  g_scroll_button_positions[i].y);
-        g_submenu_scroll_buttons[i]->m_owner_040 = 0;
+        g_submenu_scroll_buttons[i]->m_owner = 0;
     }
     return 1;
 }
@@ -547,7 +547,7 @@ unsigned char CreateSubMenuPanelButtons(void)
     for (index = 0; index < 2; ++index) {
         g_submenu_panel_buttons[index]->SetPosition(g_submenu_panel_button_positions[index].x,
                                                     g_submenu_panel_button_positions[index].y);
-        g_submenu_panel_buttons[index]->m_owner_040 = 0;
+        g_submenu_panel_buttons[index]->m_owner = 0;
     }
     return 1;
 }
@@ -571,7 +571,7 @@ unsigned char CreateOptionsDiskButton(void)
     g_options_disk_button->Configure(g_options_disk_path, 3, 0, 1, 2, 2,
                                             MainGameOptionsDiskButton, 0, 0, 0x7f, 0x41, 0, 0);
     g_options_disk_button->SetPosition(g_options_disk_position.x, g_options_disk_position.y);
-    g_options_disk_button->m_owner_040 = 0;
+    g_options_disk_button->m_owner = 0;
     return 1;
 }
 
@@ -614,11 +614,11 @@ void UpdateCombatStanceButtons(void)
     }
 
     if (g_settings.continuous_combat == 0) {
-        stance = g_combat_state->execution_active_000 != 0 ? 3U : 0U;
-    } else if ((ClockIsTicking(g_combat_state->combat_ui_timer_7a8) == 0 &&
+        stance = g_combat_state->execution_active != 0 ? 3U : 0U;
+    } else if ((ClockIsTicking(g_combat_state->combat_ui_timer) == 0 &&
                 CombatMayAdvanceContinuously() != 0) ||
-               g_combat_state->party_surprised_a52 != 0) {
-        stance = g_combat_state->round_active_001 != 0 ? 1U : 4U;
+               g_combat_state->party_surprised != 0) {
+        stance = g_combat_state->round_active != 0 ? 1U : 4U;
     } else {
         stance = 2;
     }
@@ -653,7 +653,7 @@ static void MainGameCombatConfirmButton(W8DialogButton* button)
     if (gXStatus.fCombatMode == 0) {
         return;
     }
-    if (g_combat_state->execution_active_000 != 0) {
+    if (g_combat_state->execution_active != 0) {
         TogglePartyCombatStance();
         return;
     }
@@ -661,10 +661,10 @@ static void MainGameCombatConfirmButton(W8DialogButton* button)
     if (g_settings.continuous_combat == 0) {
         return;
     }
-    if (ClockIsTicking(g_combat_state->combat_ui_timer_7a8) == 0) {
+    if (ClockIsTicking(g_combat_state->combat_ui_timer) == 0) {
         return;
     }
-    g_combat_state->combat_ui_timer_7a8 = SetCountdownClock(0);
+    g_combat_state->combat_ui_timer = SetCountdownClock(0);
 }
 
 // FUNCTION: WIZ8 0x00597ED0
@@ -710,7 +710,7 @@ unsigned char CreateCombatStanceButtons(void)
     for (index = 0; index < 5; ++index) {
         g_combat_stance_buttons[index]->SetPosition(g_combat_stance_positions[index].x,
                                                     g_combat_stance_positions[index].y);
-        g_combat_stance_buttons[index]->m_owner_040 = 0;
+        g_combat_stance_buttons[index]->m_owner = 0;
     }
     return 1;
 }
@@ -769,7 +769,7 @@ unsigned char CreateRoofButtons(void)
     for (index = 0; index < 3; ++index) {
         g_roof_buttons[index]->SetPosition(g_roof_button_positions[index].x,
                                            g_roof_button_positions[index].y);
-        g_roof_buttons[index]->m_owner_040 = 0;
+        g_roof_buttons[index]->m_owner = 0;
     }
     return 1;
 }
@@ -1039,7 +1039,7 @@ unsigned char CreateLayoutArrowButtons(void)
     for (index = 0; index < 6; ++index) {
         g_layout_arrow_buttons[index]->SetPosition(g_layout_arrow_positions[index].x,
                                                    g_layout_arrow_positions[index].y);
-        g_layout_arrow_buttons[index]->m_owner_040 = 0;
+        g_layout_arrow_buttons[index]->m_owner = 0;
     }
     return 1;
 }
@@ -1283,7 +1283,7 @@ void DrawSubMenuCharacterAction(void)
         }
         swprintf(text, L"%s", gppStringList[g_condition_notices[character->highest_condition * 4]]);
     } else {
-        action = row->action_03d;
+        action = row->action;
         switch (action) {
         case 7:
             swprintf(text, L"%s - %s (%d)", gppStringList[g_action_kind_message_ids[7]],
@@ -1366,7 +1366,7 @@ void UpdateSubMenuPanelButtons(void)
     bool enabled;
     W8DialogButton** button;
 
-    if (gXStatus.fCombatMode == 0 || g_combat_state->round_active_001 == 0 ||
+    if (gXStatus.fCombatMode == 0 || g_combat_state->round_active == 0 ||
         gXStatus.fSurprisePossible != 0 || gXStatus.fLockInteractMode != 0 ||
         gXStatus.fTrapInteractMode != 0 || gXStatus.fNpcDialogueMode != 0 ||
         gXStatus.fSpellCastMode != 0 || gXStatus.fItemSelectMode != 0 ||
@@ -1927,7 +1927,7 @@ W8SubMenuEntryState CheckSubMenuActionUsable(int party_slot)
     unsigned char matches;
 
     matches = 0;
-    if (g_level_block->selection_kind == g_status.buffers.XChar[party_slot].action_03d &&
+    if (g_level_block->selection_kind == g_status.buffers.XChar[party_slot].action &&
         g_level_block->selection_settled == 0) {
         matches = 1;
     }
@@ -2016,7 +2016,7 @@ W8SubMenuEntryState GetSubMenuEntryState(short menu, short item, int party_slot)
         break;
     }
     g_level_block->selection_kind = -1;
-    g_level_block->value_2f4 = -1;
+    g_level_block->pending_action = -1;
     g_level_block->selection_settled = 0;
     return state;
 }
@@ -2083,6 +2083,6 @@ void MapSubMenuSelection(short menu, short item)
         break;
     }
     g_level_block->selection_kind = action;
-    g_level_block->value_2f4 = -1;
+    g_level_block->pending_action = -1;
     g_level_block->selection_settled = settled;
 }

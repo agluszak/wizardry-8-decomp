@@ -26,11 +26,11 @@ public:
 
         char* name_00;
         Path* next_04;
-        Path* previous_08;
+        Path* previous;
     };
 
     SR_DLL_IMPORT srFileManager();
-    /* Provider copy/assignment perform a shallow first_path_04 pointer copy.
+    /* Provider copy/assignment perform a shallow first_path pointer copy.
        Consumers retain the imported standalone declarations. */
 
 #if !defined(SURRENDER_BUILD)
@@ -52,7 +52,7 @@ public:
     virtual SR_DLL_IMPORT long getSize(const char* path);
 
 private:
-    Path* first_path_04;
+    Path* first_path;
 };
 
 static_assert(sizeof(srFileManager::Path) == 0x0c, "srFileManager_Path_must_be_0x0c");

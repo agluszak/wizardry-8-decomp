@@ -22,18 +22,18 @@ enum W8AniMeshFlags {
    the remaining storage roles. */
 struct W8AniMesh {
     unsigned char flags_00;              /* 0x00 */
-    unsigned char frame_count_01;        /* 0x01 */
-    stModelInstance** meshes_04;         /* 0x04: ppsrMeshes */
-    srVector3T<float> bounds_minimum_08; /* 0x08 */
-    srVector3T<float> bounds_maximum_14; /* 0x14 */
+    unsigned char frame_count;        /* 0x01 */
+    stModelInstance** meshes;         /* 0x04: ppsrMeshes */
+    srVector3T<float> bounds_minimum; /* 0x08 */
+    srVector3T<float> bounds_maximum; /* 0x14 */
     float radius_20;                     /* 0x20 */
-    unsigned int loaded_bytes_24;        /* 0x24 */
-    signed char list_index_28;           /* 0x28 */
-    char* bitmap_directory_2c;           /* 0x2c: strBitmapDir */
-    char* filename_30;                   /* 0x30: strFilename */
-    int file_offset_34;                  /* 0x34 */
-    W8World* world_38;                   /* 0x38 */
-    int last_used_3c;                    /* 0x3c */
+    unsigned int loaded_bytes;        /* 0x24 */
+    signed char list_index;           /* 0x28 */
+    char* bitmap_directory;           /* 0x2c: strBitmapDir */
+    char* filename;                   /* 0x30: strFilename */
+    int file_offset;                  /* 0x34 */
+    W8World* world;                   /* 0x38 */
+    int last_used;                    /* 0x3c */
 }; /* 0x40 */
 
 static_assert(sizeof(W8AniMesh) == 0x40, "W8AniMesh_minimum_size_must_be_0x40");

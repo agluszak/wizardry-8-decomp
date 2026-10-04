@@ -19,10 +19,10 @@
 class SR_DLL_EXPORT srMeshModel : public srClassSupport<srMeshModel, srModel, 0, 0x2010> {
 public:
     enum e_side {};
-    /* Bit indices into control_state_390; setDirty(0..3) marks per-pass dirty
+    /* Bit indices into dirty_flags; setDirty(0..3) marks per-pass dirty
        flags and updateAllClients(0) runs when flag 0 is newly raised. */
     enum e_flags {};
-    /* Bit indices into control_state_394. renderTriMesh tests bits 0/1 as
+    /* Bit indices into render_control. renderTriMesh tests bits 0/1 as
        front/back sides. updateTriMesh skips auto box when bit 4 is set and
        auto sphere when bit 5 is set. */
     enum e_control {
@@ -42,32 +42,32 @@ public:
            getTriMesh fill. */
         TriMesh() : poly_vertices_10(0) {}
 
-        long vertex_count_00;
-        long polygon_count_04;
-        long pass_count_08;
-        unsigned long control_flags_0c;
+        long vertex_count;
+        long polygon_count;
+        long pass_count;
+        unsigned long control_flags;
         srVector3i* poly_vertices_10;
         srVector4T<float>* poly_equations_14;
         srVector2T<float>* texcoords_18[4][2];
-        srVector3T<float>* positions_38;
-        srVector3T<float>* normals_3c;
-        srVector3T<float>* dig_40[4];
-        srVector4T<float>* dcg_50[4];
-        srVector4T<float>* scg_60[4];
+        srVector3T<float>* positions;
+        srVector3T<float>* normals;
+        srVector3T<float>* dig[4];
+        srVector4T<float>* dcg[4];
+        srVector4T<float>* scg[4];
         srMaterial* materials_70[4][2];
         srTextureIFace* textures_90[4][2];
-        srShader shaders_b0[4];
+        srShader shaders[4];
         srPtr<srMaterialIFace>* vertex_materials_c0[4][2];
         srPtr<srTextureIFace>* poly_textures_e0[4][2];
-        srShader* poly_shaders_100[4];
-        srVector3i* poly_uv_110[4];
-        srVector3T<float> bounds_minimum_120;
-        srVector3T<float> bounds_maximum_12c;
-        srVector3T<float> bounds_center_138;
-        float bounds_radius_144;
-        float sort_bias_148;
-        unsigned long* active_polygons_14c;
-        long active_polygon_count_150;
+        srShader* poly_shaders[4];
+        srVector3i* poly_uv[4];
+        srVector3T<float> bounds_minimum;
+        srVector3T<float> bounds_maximum;
+        srVector3T<float> bounds_center;
+        float bounds_radius;
+        float sort_bias;
+        unsigned long* active_polygons;
+        long active_polygon_count;
     };
 
     /* The default-constructor closure 0x100425A0 proves both arguments
@@ -127,9 +127,9 @@ public:
     void setDirty(e_flags flag)
     {
         unsigned long mask = 1 << flag;
-        if ((control_state_390.value & mask) == 0) {
-            control_state_390.set(flag, 1);
-            control_state_390.set(3, 1);
+        if ((dirty_flags.value & mask) == 0) {
+            dirty_flags.set(flag, 1);
+            dirty_flags.set(3, 1);
             if (flag == 0) {
                 updateAllClients(static_cast<Client::e_update>(0));
             }
@@ -139,13 +139,13 @@ public:
     // ?clearDirty@srMeshModel@@QAEXW4e_flags@1@@Z
     void clearDirty(e_flags flag)
     {
-        control_state_390.set(flag, 0);
+        dirty_flags.set(flag, 0);
     }
     // FUNCTION: SURRENDER 0x10041770 SYMBOL
     // ?testDirty@srMeshModel@@QBEHW4e_flags@1@@Z
     int testDirty(e_flags flag) const
     {
-        return (control_state_390.value & (1 << flag)) != 0;
+        return (dirty_flags.value & (1 << flag)) != 0;
     }
     SR_DLL_IMPORT srShader* getPolyShader(long polygon, int layer);
     SR_DLL_IMPORT srShader getShader(long polygon) const;
@@ -161,7 +161,7 @@ public:
     // FUNCTION: SURRENDER 0x10041790
     void setSortBias(float bias)
     {
-        sort_bias_238 = bias;
+        sort_bias = bias;
         setDirty(static_cast<e_flags>(3));
     }
     float getSortBias() const;
@@ -169,7 +169,7 @@ public:
     // FUNCTION: SURRENDER 0x10041830
     void enable(e_control control)
     {
-        control_state_394.set(control, 1);
+        render_control.set(control, 1);
         setDirty(static_cast<e_flags>(3));
     }
     int isEnabled(e_control control) const;
@@ -185,7 +185,7 @@ public:
     void setDirtyNormals();
     SR_DLL_IMPORT unsigned long* getActivePolygonTable(int table);
     SR_DLL_IMPORT srVector3T<float>* getVertexLoc();
-    /* Fills the cached AABB/sphere (bounds_minimum_200..bounds_radius_224)
+    /* Fills the cached AABB/sphere (bounds_minimum..bounds_radius)
        from the supplied box and center/radius. */
     SR_DLL_IMPORT void setBounds(const srVector3T<float>& minimum, const srVector3T<float>& maximum,
                                  const srVector3T<float>& center, float radius);
@@ -306,33 +306,33 @@ public:
     MeshTable<srPtr<srTextureIFace> > poly_textures_6c[4][2];
     MeshTable<srShader> poly_shaders_ac[4];
     MeshTable<srPtr<srMaterialIFace> > vertex_materials_cc[4][2];
-    MeshTable<srVector3i> poly_vertices_10c;
-    MeshTable<srVector3i> poly_uv_indices_114[4];
+    MeshTable<srVector3i> poly_vertices;
+    MeshTable<srVector3i> poly_uv_indices[4];
     MeshTable<srVector4T<float> > poly_equations_134;
     MeshTable<srVector2T<float> > texcoords_13c[4][2];
     MeshTable<srVector3T<float> > dig_17c[4];
     MeshTable<srVector4T<float> > dcg_19c[4];
     MeshTable<srVector4T<float> > scg_1bc[4];
-    MeshTable<srVector3T<float> > vertex_locations_1dc;
-    MeshTable<srVector3T<float> > vertex_normals_1e4;
-    MeshTable<unsigned long> vertex_shade_indices_1ec;
-    MeshTable<unsigned long> active_polygons_1f4;
-    long active_polygon_count_1fc;
-    srVector3T<float> bounds_minimum_200;
-    srVector3T<float> bounds_maximum_20c;
-    srVector3T<float> bounds_center_218;
-    float bounds_radius_224;
-    long pass_count_228;
+    MeshTable<srVector3T<float> > vertex_locations;
+    MeshTable<srVector3T<float> > vertex_normals;
+    MeshTable<unsigned long> vertex_shade_indices;
+    MeshTable<unsigned long> active_polygons;
+    long active_polygon_count;
+    srVector3T<float> bounds_minimum;
+    srVector3T<float> bounds_maximum;
+    srVector3T<float> bounds_center;
+    float bounds_radius;
+    long pass_count;
     /* GrCycle.cpp's 0x004A7E50 clamps a vertex index against this before
        indexing the location array, which is what makes it that array's
        length rather than one more opaque dword. */
-    long vertex_location_count_22c;
-    long polygon_count_230;
-    long uv_count_234;
-    float sort_bias_238;
-    TriMesh tri_mesh_23c;
-    srFlags<e_flags> control_state_390;
-    srFlags<e_control> control_state_394;
+    long vertex_location_count;
+    long polygon_count;
+    long uv_count;
+    float sort_bias;
+    TriMesh tri_mesh;
+    srFlags<e_flags> dirty_flags;
+    srFlags<e_control> render_control;
 };
 
 static_assert((sizeof(srMeshModel::TriMesh) == 0x154), "srMeshModel_TriMesh_must_be_0x154");

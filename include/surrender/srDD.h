@@ -41,7 +41,7 @@ public:
     struct Palette {
         const srARGB* data_00;
         unsigned long size_04;
-        unsigned long flags_08;
+        unsigned long flags;
     };
     /* Device pixel format written by srGERD::convertPixelFormat: the channel
        bit/shift bytes, surface type and bytes-per-pixel-minus-one of
@@ -63,29 +63,29 @@ public:
     /* Device texture record embedded at +0x2c of srGERD::Texture and handed
        to bindTexture/deleteTexture. evaluateTextureDimensions and
        evaluateTexturePixelFormat fill it from the interface's Dimensions;
-       allocTextureData lays out per-level data pointers in levels_38. */
+       allocTextureData lays out per-level data pointers in levels. */
     struct Texture {
         unsigned long flags_00;
         PixelFormat format_04;
-        float priority_14;
-        unsigned long last_use_18;
+        float priority;
+        unsigned long last_use;
         unsigned long size_1c;
         unsigned long width_20;
         unsigned long height_24;
-        unsigned long first_level_28;
-        unsigned long last_level_2c;
-        unsigned long format_index_30;
-        unsigned long parameter_34;
-        void* levels_38[12];
+        unsigned long first_level;
+        unsigned long last_level;
+        unsigned long format_index;
+        unsigned long parameter;
+        void* levels[12];
         /* Resident device-surface record and its byte size: written by the
            device texture-upload path, cleared on invalidate, summed by
            srGERD::getResidentTextureMemUsed. */
-        unsigned long resident_data_68;
-        unsigned long resident_size_6c;
+        unsigned long resident_data;
+        unsigned long resident_size;
         /* markTextureAsDeleted sets this once the texture is on the
            GERD-side deleted list. */
-        unsigned long deleted_70;
-        unsigned long resident_74;
+        unsigned long deleted;
+        unsigned long resident;
     };
     /* Six-dword buffer command handed to bufferOp. The lock/unlock
        commands write only the leading dwords and leave the rest
@@ -95,7 +95,7 @@ public:
        7 write column. */
     struct BufferCommand {
         unsigned long flags_00;
-        unsigned long opcode_04;
+        unsigned long opcode;
         void* data_08;
         long x_0c;
         long y_10;
@@ -110,13 +110,13 @@ public:
            record's member init (0x2d0 inside the +0x2cc embedding). */
         DriverInfo() : flags_04(0) {}
 
-        unsigned long api_version_00;
+        unsigned long api_version;
         unsigned long flags_04;
-        void (*debug_write_08)(const char* text);
-        unsigned long dd_api_version_0c;
-        unsigned long driver_id_10;
-        char name_14[64];
-        char api_name_54[64];
+        void (*debug_write)(const char* text);
+        unsigned long dd_api_version;
+        unsigned long driver_id;
+        char name[64];
+        char api_name[64];
     };
     static_assert(sizeof(DriverInfo) == 0x94, "srDD_DriverInfo_must_be_0x94");
     /* getInfo output record, 0x27c bytes. srGERD embeds it verbatim at +0x50
@@ -209,17 +209,17 @@ public:
         unsigned long back_buffer_type;
     };
     /* GERD embeds this verbatim at +0x1b08: setClearColor clamps into
-       color_00, the accumulation-buffer clear color occupies accum_10
+       color_00, the accumulation-buffer clear color occupies accum
        (accumClear clamps it to [-1,1] per channel), setClearDepth clamps
-       depth_20 to [0,1] and setClearStencil writes stencil_28. */
+       depth_20 to [0,1] and setClearStencil writes stencil. */
 #pragma pack(push, 4)
     /* Retail packs the double at 4-byte alignment: the record occupies
        exactly 0x2c bytes in front of GERD's palette block. */
     struct ClearValues {
         srVector4T<float> color_00;
-        srVector4T<float> accum_10;
+        srVector4T<float> accum;
         double depth_20;
-        unsigned long stencil_28;
+        unsigned long stencil;
     };
 #pragma pack(pop)
     static_assert(sizeof(ClearValues) == 0x2c, "srDD_ClearValues_must_be_0x2c");
@@ -241,17 +241,17 @@ public:
        this 0x20-byte block and passes it to update(). */
     struct Update {
         unsigned long flags_00;
-        srVector3T<float> gamma_04;
+        srVector3T<float> gamma;
         float value_10;
-        unsigned long swap_interval_14;
-        unsigned long antialias_18;
-        unsigned long enabled_1c;
+        unsigned long swap_interval;
+        unsigned long antialias;
+        unsigned long enabled;
     };
     /* srGERD::setTextureParameters repacks the texture's Parameters into
        this per-stage record and passes it to the device. */
     struct TexParms {
-        unsigned long packed_00;
-        float mipmap_bias_04;
+        unsigned long packed;
+        float mipmap_bias;
     };
 
     enum e_error { ERROR_NONE = 0 };

@@ -62,28 +62,28 @@ enum { W8_REDRAW_TEXT_BOX = 0x800 };
    its first word is a wide-character count, and its entries word preserves
    the original 32-bit list-pointer bits. */
 struct W8MessageStorageDiskRecord {
-    unsigned long character_count_00;
+    unsigned long character_count;
     unsigned char font_palette_04;
     unsigned char highlight_color_05;
     unsigned char highlight_start_06;
     unsigned char highlight_stop_07;
-    TIMER clock_08;
+    TIMER clock;
     UINT32 saved_remaining_ms;
     int link_10;
     int length_14;
     unsigned long serialized_entries_18_bits;
-    unsigned char trailing_bytes_1c[8];
+    unsigned char trailing_bytes[8];
 };
 
 static_assert(sizeof(W8MessageStorageDiskRecord) == 0x24,
               "W8MessageStorageDiskRecord_must_be_0x24");
-static_assert(offsetof(W8MessageStorageDiskRecord, character_count_00) == 0x00,
+static_assert(offsetof(W8MessageStorageDiskRecord, character_count) == 0x00,
               "W8MessageStorageDiskRecord_count_offset");
 static_assert(offsetof(W8MessageStorageDiskRecord, font_palette_04) == 0x04,
               "W8MessageStorageDiskRecord_byte_fields_offset");
 static_assert(offsetof(W8MessageStorageDiskRecord, highlight_stop_07) == 0x07,
               "W8MessageStorageDiskRecord_last_byte_field_offset");
-static_assert(offsetof(W8MessageStorageDiskRecord, clock_08) == 0x08,
+static_assert(offsetof(W8MessageStorageDiskRecord, clock) == 0x08,
               "W8MessageStorageDiskRecord_scalar_fields_offset");
 static_assert(offsetof(W8MessageStorageDiskRecord, saved_remaining_ms) == 0x0c,
               "W8MessageStorageDiskRecord_saved_remaining_ms_offset");
@@ -93,7 +93,7 @@ static_assert(offsetof(W8MessageStorageDiskRecord, length_14) == 0x14,
               "W8MessageStorageDiskRecord_length_offset");
 static_assert(offsetof(W8MessageStorageDiskRecord, serialized_entries_18_bits) == 0x18,
               "W8MessageStorageDiskRecord_entries_bits_offset");
-static_assert(offsetof(W8MessageStorageDiskRecord, trailing_bytes_1c) == 0x1c,
+static_assert(offsetof(W8MessageStorageDiskRecord, trailing_bytes) == 0x1c,
               "W8MessageStorageDiskRecord_trailing_offset");
 static_assert(sizeof(unsigned long) == 4, "W8MessageStorageDiskRecord_requires_32_bit_words");
 static_assert(sizeof(W8PList*) == sizeof(unsigned long),
@@ -161,10 +161,10 @@ void ResetMessageStorage(void)
             if (record->wString == 0) {
                 continue;
             }
-            if (record->entries_18 == 0) {
-                record->entries_18 = PLCreate();
+            if (record->entries == 0) {
+                record->entries = PLCreate();
             } else {
-                W8PList* entries = record->entries_18;
+                W8PList* entries = record->entries;
                 /* 0x0058FF14 tests the entry count signed and 0x0058FF2A
                    compares the index signed. */
                 int count = PLLength(entries);
@@ -180,9 +180,9 @@ void ResetMessageStorage(void)
                 while ((cursor = GetNextNoticeWord(cursor, record->wString, &word)) != -1) {
                     W8NoticeWord* stored = static_cast<W8NoticeWord*>(malloc(sizeof(W8NoticeWord)));
                     *stored = word;
-                    stored->keyword_08 = 0;
+                    stored->keyword = 0;
                     stored->redraw_09 = false;
-                    PLAdoptAppend(record->entries_18, stored);
+                    PLAdoptAppend(record->entries, stored);
                 }
             }
         }
@@ -193,10 +193,10 @@ void ResetMessageStorage(void)
 void ResetEditorStatusLine(short line)
 {
     if (line == -1) {
-        line = g_status.text_line_cursor_1795;
+        line = g_status.text_line_cursor;
     }
-    g_status.text_box_lines_used_4997[line] = 0;
-    g_status.text_box_lines_shown_49a7[line] = 0;
+    g_status.text_box_lines_used[line] = 0;
+    g_status.text_box_lines_shown[line] = 0;
     if (!IsNpcDialogueTextInputActive()) {
         g_level_block->text_lines[line] = 0;
     }
@@ -228,43 +228,43 @@ static void AppendNoticeLine(unsigned char font_palette, const wchar_t* text, sh
         g_current_screen_state.id != W8_SCREEN_CHARACTER) {
         return;
     }
-    if (g_status.text_box_lines_used_4997[text_box] == 350) {
+    if (g_status.text_box_lines_used[text_box] == 350) {
         W8MessageStorageRecord* first = &g_message_storage[text_box][0];
         if (first->wString) {
             free(first->wString);
             first->wString = 0;
         }
-        if (first->entries_18) {
-            W8PList* entries = first->entries_18;
+        if (first->entries) {
+            W8PList* entries = first->entries;
             int count = PLLength(entries);
             for (int index = 0; index < count; ++index) {
                 free(PLGet(entries, index));
             }
             PListClear(entries);
-            PLDestroy(first->entries_18);
-            first->entries_18 = 0;
+            PLDestroy(first->entries);
+            first->entries = 0;
         }
         memmove(first, first + 1, 349 * sizeof(*first));
         memset(first + 349, 0, sizeof(*first));
-        --g_status.text_box_lines_used_4997[text_box];
-        if (g_status.text_box_lines_shown_49a7[text_box] != 0) {
-            --g_status.text_box_lines_shown_49a7[text_box];
-            if (g_status.text_box_lines_shown_49a7[text_box] <
+        --g_status.text_box_lines_used[text_box];
+        if (g_status.text_box_lines_shown[text_box] != 0) {
+            --g_status.text_box_lines_shown[text_box];
+            if (g_status.text_box_lines_shown[text_box] <
                 g_level_block->text_lines[text_box]) {
-                g_level_block->text_lines[text_box] = g_status.text_box_lines_shown_49a7[text_box];
+                g_level_block->text_lines[text_box] = g_status.text_box_lines_shown[text_box];
             }
         }
     }
-    unsigned int index = g_status.text_box_lines_used_4997[text_box]++;
+    unsigned int index = g_status.text_box_lines_used[text_box]++;
     W8MessageStorageRecord* record = &g_message_storage[text_box][index];
     record->wString = static_cast<wchar_t*>(malloc((wcslen(text) + 1) * sizeof(wchar_t)));
     if (record->wString) {
         wcscpy(record->wString, text);
-        record->entries_18 = 0;
-        if (!record->entries_18) {
-            record->entries_18 = PLCreate();
+        record->entries = 0;
+        if (!record->entries) {
+            record->entries = PLCreate();
         } else {
-            W8PList* entries = record->entries_18;
+            W8PList* entries = record->entries;
             int count = PLLength(entries);
             for (int entry = 0; entry < count; ++entry) {
                 free(PLGet(entries, entry));
@@ -276,9 +276,9 @@ static void AppendNoticeLine(unsigned char font_palette, const wchar_t* text, sh
         while ((cursor = GetNextNoticeWord(cursor, record->wString, &word)) != -1) {
             W8NoticeWord* stored = static_cast<W8NoticeWord*>(malloc(sizeof(W8NoticeWord)));
             *stored = word;
-            stored->keyword_08 = 0;
+            stored->keyword = 0;
             stored->redraw_09 = false;
-            PLAdoptAppend(record->entries_18, stored);
+            PLAdoptAppend(record->entries, stored);
         }
     }
     record->font_palette = font_palette;
@@ -287,21 +287,21 @@ static void AppendNoticeLine(unsigned char font_palette, const wchar_t* text, sh
     record->length_14 = -1;
     ++g_notice_line_count;
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
-        g_status.text_line_cursor_1795 == text_box) {
+        g_status.text_line_cursor == text_box) {
         if (ScreenLifecycleSuccess()) {
             AdvanceNoticeLine(text_box);
         }
     } else if (text_box == 3) {
-        g_status.text_box_lines_shown_49a7[3] = g_status.text_box_lines_used_4997[3];
-        g_level_block->text_lines[3] = g_status.text_box_lines_used_4997[3];
+        g_status.text_box_lines_shown[3] = g_status.text_box_lines_used[3];
+        g_level_block->text_lines[3] = g_status.text_box_lines_used[3];
         W8MessageStorageRecord* last =
-            &g_message_storage[3][g_status.text_box_lines_shown_49a7[3] - 1];
+            &g_message_storage[3][g_status.text_box_lines_shown[3] - 1];
         unsigned int delay =
             g_settings.text_display_delay_ms * (wcslen(last->wString) * 100 / 20 + 100) / 100;
         if (delay > 60000) {
             delay = 60000;
         }
-        last->clock_08 = SetCountdownClock(delay);
+        last->clock = SetCountdownClock(delay);
     }
 }
 
@@ -360,9 +360,9 @@ void ShowNotice(unsigned int font_palette, const wchar_t* text, short text_box,
                 text_box = gXStatus.fCombatMode != 0 ? 1 : 0;
             }
         }
-        if (g_status.quote_audit_2431) {
+        if (g_status.quote_audit) {
             g_notice_line_count = 0;
-            g_status.long_quote_2432 = 0;
+            g_status.long_quote = 0;
         }
         g_level_block->text_lines[8 + text_box] = 0;
         if (static_cast<unsigned int>(StringPixLength(const_cast<wchar_t*>(text),
@@ -437,8 +437,8 @@ void ShowNotice(unsigned int font_palette, const wchar_t* text, short text_box,
                 line[0] = 0;
             }
         }
-        if (g_status.quote_audit_2431 && g_notice_line_count > 7) {
-            g_status.long_quote_2432 = 1;
+        if (g_status.quote_audit && g_notice_line_count > 7) {
+            g_status.long_quote = 1;
         }
         g_text_box_mode = 0;
     } else if (force_dialog) {
@@ -459,7 +459,7 @@ void ReleaseMessageStorage(void)
             if (record->wString) {
                 free(record->wString);
             }
-            W8PList* entries = record->entries_18;
+            W8PList* entries = record->entries;
             if (entries) {
                 unsigned int count = PLLength(entries);
                 for (unsigned int entry = 0; entry < count; ++entry) {
@@ -467,7 +467,7 @@ void ReleaseMessageStorage(void)
                 }
                 PListClear(entries);
                 PLDestroy(entries);
-                record->entries_18 = 0;
+                record->entries = 0;
             }
             memset(record, 0, sizeof(*record));
         }
@@ -496,10 +496,10 @@ unsigned char SaveMessageStorage(int file)
 
     FileWrite(file, &format, 4, 0);
     for (region = 0; region < 4; ++region) {
-        FileWrite(file, &g_status.text_box_lines_used_4997[region], 4, 0);
-        for (index = 0; index < g_status.text_box_lines_used_4997[region]; ++index) {
+        FileWrite(file, &g_status.text_box_lines_used[region], 4, 0);
+        for (index = 0; index < g_status.text_box_lines_used[region]; ++index) {
             live_record = &g_message_storage[region][index];
-            disk_record.character_count_00 =
+            disk_record.character_count =
                 live_record->wString != 0
                     ? static_cast<unsigned long>(wcslen(live_record->wString) + 1)
                     : 0;
@@ -507,16 +507,16 @@ unsigned char SaveMessageStorage(int file)
             disk_record.highlight_color_05 = live_record->highlight_color;
             disk_record.highlight_start_06 = live_record->highlight_start;
             disk_record.highlight_stop_07 = live_record->highlight_stop;
-            disk_record.clock_08 = live_record->clock_08;
+            disk_record.clock = live_record->clock;
             disk_record.saved_remaining_ms = live_record->saved_remaining_ms;
             disk_record.link_10 = live_record->link_10;
             disk_record.length_14 = live_record->length_14;
-            memcpy(&disk_record.serialized_entries_18_bits, &live_record->entries_18,
+            memcpy(&disk_record.serialized_entries_18_bits, &live_record->entries,
                    sizeof(disk_record.serialized_entries_18_bits));
-            memcpy(disk_record.trailing_bytes_1c, live_record->unknown_1c,
-                   sizeof(disk_record.trailing_bytes_1c));
+            memcpy(disk_record.trailing_bytes, live_record->unknown_1c,
+                   sizeof(disk_record.trailing_bytes));
             FileWrite(file, &disk_record, sizeof(disk_record), 0);
-            FileWrite(file, live_record->wString, disk_record.character_count_00 * 2, 0);
+            FileWrite(file, live_record->wString, disk_record.character_count * 2, 0);
         }
     }
     return 1;
@@ -543,25 +543,25 @@ unsigned char LoadMessageStorage(int file)
     FileRead(file, &format, 4, 0);
     for (region = 0; region < 4; ++region) {
         if (g_status.buffers.save_version < g_prepath_link_height && region == 3) {
-            g_status.text_box_lines_used_4997[3] = 0;
+            g_status.text_box_lines_used[3] = 0;
         } else {
-            FileRead(file, &g_status.text_box_lines_used_4997[region], 4, 0);
+            FileRead(file, &g_status.text_box_lines_used[region], 4, 0);
         }
-        for (index = 0; index < g_status.text_box_lines_used_4997[region]; ++index) {
+        for (index = 0; index < g_status.text_box_lines_used[region]; ++index) {
             FileRead(file, &disk_record, sizeof(disk_record), 0);
             live_record = &g_message_storage[region][index];
             live_record->font_palette = disk_record.font_palette_04;
             live_record->highlight_color = disk_record.highlight_color_05;
             live_record->highlight_start = disk_record.highlight_start_06;
             live_record->highlight_stop = disk_record.highlight_stop_07;
-            live_record->clock_08 = disk_record.clock_08;
+            live_record->clock = disk_record.clock;
             live_record->saved_remaining_ms = disk_record.saved_remaining_ms;
             live_record->link_10 = disk_record.link_10;
             live_record->length_14 = disk_record.length_14;
-            live_record->entries_18 = 0;
-            memcpy(live_record->unknown_1c, disk_record.trailing_bytes_1c,
+            live_record->entries = 0;
+            memcpy(live_record->unknown_1c, disk_record.trailing_bytes,
                    sizeof(live_record->unknown_1c));
-            size = disk_record.character_count_00 * 2;
+            size = disk_record.character_count * 2;
             text = static_cast<wchar_t*>(malloc(size));
             live_record->wString = text;
             if (text != 0) {
@@ -657,7 +657,7 @@ int GetTextBoxFont(void)
 // FUNCTION: WIZ8 0x0058b940
 bool CurrentTextLineHasContent(void)
 {
-    return g_level_block->text_lines[g_status.text_line_cursor_1795] != 0;
+    return g_level_block->text_lines[g_status.text_line_cursor] != 0;
 }
 
 /* Scroll so the line the cursor is on is the last of eight showing, or to the
@@ -665,8 +665,8 @@ bool CurrentTextLineHasContent(void)
 // FUNCTION: WIZ8 0x0058b910
 void ScrollTextBoxToCursor(void)
 {
-    if (g_status.text_box_lines_shown_49a7[g_status.text_line_cursor_1795] > 7) {
-        ScrollTextBoxTo(g_status.text_box_lines_shown_49a7[g_status.text_line_cursor_1795] - 7);
+    if (g_status.text_box_lines_shown[g_status.text_line_cursor] > 7) {
+        ScrollTextBoxTo(g_status.text_box_lines_shown[g_status.text_line_cursor] - 7);
         return;
     }
     ScrollTextBoxTo(0);
@@ -693,7 +693,7 @@ void AppendTextBoxLine(const wchar_t* text, ...)
         }
     }
     W8MessageStorageRecord* line =
-        &g_message_storage[text_box][g_status.text_box_lines_used_4997[text_box] - 1];
+        &g_message_storage[text_box][g_status.text_box_lines_used[text_box] - 1];
     if (line->wString == 0) {
         srAssertFail("pTextLine->wString != NULL", MGS_TEXT_BOX_CPP, 0x223, 0);
     }
@@ -724,7 +724,7 @@ void ScrollDialogueTextBoxToLine(void)
     }
     if (g_level_block->dialogue_text_input_open &&
         (input = g_level_block->dialogue_text_input) != 0 &&
-        g_status.text_line_cursor_1795 == input->text_box) {
+        g_status.text_line_cursor == input->text_box) {
         if (gXStatus.fNpcDialogueMode != 0) {
             offset = g_npc_interaction_state->text_box_collapsed != 0 ? 1 : 7;
         } else {
@@ -733,7 +733,7 @@ void ScrollDialogueTextBoxToLine(void)
                          ? 1
                          : 7;
         }
-        ScrollTextBoxTo(g_status.text_box_lines_shown_49a7[g_status.text_line_cursor_1795] +
+        ScrollTextBoxTo(g_status.text_box_lines_shown[g_status.text_line_cursor] +
                         input->line_count - offset);
         return;
     }
@@ -745,7 +745,7 @@ void ScrollDialogueTextBoxToLine(void)
                 ? 1
                 : 7;
     }
-    ScrollTextBoxTo(g_status.text_box_lines_shown_49a7[g_status.text_line_cursor_1795] - offset);
+    ScrollTextBoxTo(g_status.text_box_lines_shown[g_status.text_line_cursor] - offset);
 }
 
 /* Recolour the character span [start, stop) of the most recent line of one
@@ -775,10 +775,10 @@ void HighlightTextBoxRange(unsigned char color, unsigned char start, unsigned ch
             text_box = gXStatus.fCombatMode != 0;
         }
     }
-    if (!(g_status.text_box_lines_used_4997[text_box] > 0)) {
+    if (!(g_status.text_box_lines_used[text_box] > 0)) {
         srAssertFail("gStatus.uiTextBoxLinesUsed[iTextBuffer] > 0", MGS_TEXT_BOX_CPP, 0x261, 0);
     }
-    line = &g_message_storage[text_box][g_status.text_box_lines_used_4997[text_box] - 1];
+    line = &g_message_storage[text_box][g_status.text_box_lines_used[text_box] - 1];
     if (!(line->wString != 0)) {
         srAssertFail("pTextLine->wString != NULL", MGS_TEXT_BOX_CPP, 0x263, 0);
     }
@@ -791,10 +791,10 @@ void HighlightTextBoxRange(unsigned char color, unsigned char start, unsigned ch
         line->highlight_color = color;
         return;
     }
-    if (!(g_status.text_box_lines_used_4997[text_box] >= 2)) {
+    if (!(g_status.text_box_lines_used[text_box] >= 2)) {
         srAssertFail("gStatus.uiTextBoxLinesUsed[iTextBuffer] >= 2", MGS_TEXT_BOX_CPP, 0x277, 0);
     }
-    previous = &g_message_storage[text_box][g_status.text_box_lines_used_4997[text_box] - 2];
+    previous = &g_message_storage[text_box][g_status.text_box_lines_used[text_box] - 2];
     if (start >= g_level_block->text_lines[8 + text_box]) {
         line->highlight_start = start - g_level_block->text_lines[8 + text_box];
     } else {
@@ -837,7 +837,7 @@ void AppendToLastTextLine(const wchar_t* text, short text_box)
             text_box = gXStatus.fCombatMode != 0;
         }
     }
-    unsigned int* lines_used = &g_status.text_box_lines_used_4997[text_box];
+    unsigned int* lines_used = &g_status.text_box_lines_used[text_box];
     if (!(*lines_used > 0)) {
         srAssertFail("gStatus.uiTextBoxLinesUsed[iTextBuffer] > 0", MGS_TEXT_BOX_CPP, 0xf92, 0);
     }
@@ -857,7 +857,7 @@ void AppendToLastTextLine(const wchar_t* text, short text_box)
         free(line->wString);
         line->wString = 0;
     }
-    W8PList* entries = line->entries_18;
+    W8PList* entries = line->entries;
     if (entries) {
         unsigned int count = PLLength(entries);
         for (unsigned int entry = 0; entry < count; ++entry) {
@@ -865,14 +865,14 @@ void AppendToLastTextLine(const wchar_t* text, short text_box)
         }
         PListClear(entries);
         PLDestroy(entries);
-        line->entries_18 = 0;
+        line->entries = 0;
     }
-    if (g_status.text_box_lines_shown_49a7[text_box] == *lines_used) {
-        if (!(g_status.text_box_lines_shown_49a7[text_box] > 0)) {
+    if (g_status.text_box_lines_shown[text_box] == *lines_used) {
+        if (!(g_status.text_box_lines_shown[text_box] > 0)) {
             srAssertFail("gStatus.uiTextBoxLinesShown[iTextBuffer] > 0", MGS_TEXT_BOX_CPP, 0xfa9,
                          0);
         }
-        --g_status.text_box_lines_shown_49a7[text_box];
+        --g_status.text_box_lines_shown[text_box];
     }
     --*lines_used;
     ShowNotice(channel, merged, text_box, -1, 0);
@@ -991,7 +991,7 @@ void PostCharacterNoticeInContext(int party_slot, int context, const wchar_t* fo
 /* Retail expands this calculation at its callers and has no separate emission. */
 static unsigned int GetTextBoxLineCount(short text_box)
 {
-    unsigned int count = g_status.text_box_lines_shown_49a7[text_box];
+    unsigned int count = g_status.text_box_lines_shown[text_box];
     if (g_level_block->dialogue_text_input_open != 0 && g_level_block->dialogue_text_input != 0 &&
         g_level_block->dialogue_text_input->text_box == text_box) {
         count += g_level_block->dialogue_text_input->line_count;
@@ -1005,7 +1005,7 @@ static unsigned int GetTextBoxLineCount(short text_box)
 // FUNCTION: WIZ8 0x0058b960
 bool CurrentDialogueLineHasContent(void)
 {
-    short text_box = g_status.text_line_cursor_1795;
+    short text_box = g_status.text_line_cursor;
 
     return g_level_block->text_lines[text_box] + GetTextBoxVisibleLineCount() <
            GetTextBoxLineCount(text_box);
@@ -1015,30 +1015,30 @@ bool CurrentDialogueLineHasContent(void)
 void AdvanceNoticeLine(short text_box)
 {
     if (text_box == -1) {
-        text_box = g_status.text_line_cursor_1795;
+        text_box = g_status.text_line_cursor;
     }
-    if (g_status.text_box_lines_shown_49a7[text_box] >= 350) {
+    if (g_status.text_box_lines_shown[text_box] >= 350) {
         srAssertFail("gStatus.uiTextBoxLinesShown[iTextBuffer] < MAX_TEXT_BOX_LINES",
                      MGS_TEXT_BOX_CPP, 0x2a5, 0);
     }
     W8MessageStorageRecord* record =
-        &g_message_storage[text_box][g_status.text_box_lines_shown_49a7[text_box]];
+        &g_message_storage[text_box][g_status.text_box_lines_shown[text_box]];
     unsigned int delay =
         g_settings.text_display_delay_ms * (wcslen(record->wString) * 100 / 20 + 100) / 100;
     if (delay > 60000) {
         delay = 60000;
     }
-    record->clock_08 = SetCountdownClock(delay);
-    unsigned int shown = ++g_status.text_box_lines_shown_49a7[text_box];
+    record->clock = SetCountdownClock(delay);
+    unsigned int shown = ++g_status.text_box_lines_shown[text_box];
     if (g_level_block->text_scroll_drag_idle) {
         if (gXStatus.fNpcDialogueMode && g_npc_interaction_state->text_box_collapsed) {
             ScrollTextBoxTo(shown);
             g_npc_interaction_state->text_box_collapsed = false;
         } else if (!gXStatus.fSpellCastMode && !gXStatus.fNpcDialogueMode &&
                    !gXStatus.fItemSelectMode && !gXStatus.fCampMode) {
-            if (gXStatus.fCombatMode && g_combat_state->notice_scroll_pending_a57) {
+            if (gXStatus.fCombatMode && g_combat_state->notice_scroll_pending) {
                 ScrollTextBoxTo(shown);
-                g_combat_state->notice_scroll_pending_a57 = 0;
+                g_combat_state->notice_scroll_pending = 0;
             } else if (shown == 350) {
                 unsigned int scroll = g_level_block->text_lines[text_box];
                 if (scroll >= 344) {
@@ -1050,7 +1050,7 @@ void AdvanceNoticeLine(short text_box)
                 ScrollTextBoxTo(shown - 7);
             }
         } else if (!IsNpcDialogueTextInputActive()) {
-            ScrollTextBoxTo(GetTextBoxLineCount(g_status.text_line_cursor_1795) -
+            ScrollTextBoxTo(GetTextBoxLineCount(g_status.text_line_cursor) -
                             GetTextBoxVisibleLineCount());
         }
     }
@@ -1060,7 +1060,7 @@ void AdvanceNoticeLine(short text_box)
 // FUNCTION: WIZ8 0x0058bbc0
 void ScrollTextBoxTo(int line)
 {
-    short text_box = g_status.text_line_cursor_1795;
+    short text_box = g_status.text_line_cursor;
     unsigned int input_lines;
     if (g_level_block->dialogue_text_input_open == 0 || g_level_block->dialogue_text_input == 0 ||
         g_level_block->dialogue_text_input->text_box != text_box) {
@@ -1068,7 +1068,7 @@ void ScrollTextBoxTo(int line)
     } else {
         input_lines = g_level_block->dialogue_text_input->line_count;
     }
-    unsigned int count = g_status.text_box_lines_shown_49a7[text_box];
+    unsigned int count = g_status.text_box_lines_shown[text_box];
     unsigned int visible = GetTextBoxVisibleLineCount();
     if (input_lines + count <= visible) {
         return;
@@ -1096,7 +1096,7 @@ void ScrollTextBoxTo(int line)
 // FUNCTION: WIZ8 0x0058BF00
 void ScrollTextBoxUp(int lines)
 {
-    short text_box = g_status.text_line_cursor_1795;
+    short text_box = g_status.text_line_cursor;
     unsigned int previous = g_level_block->text_lines[text_box];
     if (previous == 0) {
         return;
@@ -1125,7 +1125,7 @@ void ScrollTextBoxUp(int lines)
 // FUNCTION: WIZ8 0x0058C060
 void ScrollTextBoxDown(int lines)
 {
-    short text_box = g_status.text_line_cursor_1795;
+    short text_box = g_status.text_line_cursor;
     unsigned int count = GetTextBoxLineCount(text_box);
     unsigned int visible = GetTextBoxVisibleLineCount();
     unsigned int previous = g_level_block->text_lines[text_box];
@@ -1173,9 +1173,9 @@ static void DrawDialogueTextCursor(int x, int y)
             }
         }
     }
-    short text_box = g_status.text_line_cursor_1795;
-    if (g_status.text_box_lines_shown_49a7[text_box] < g_level_block->text_lines[text_box]) {
-        hidden = g_level_block->text_lines[text_box] - g_status.text_box_lines_shown_49a7[text_box];
+    short text_box = g_status.text_line_cursor;
+    if (g_status.text_box_lines_shown[text_box] < g_level_block->text_lines[text_box]) {
+        hidden = g_level_block->text_lines[text_box] - g_status.text_box_lines_shown[text_box];
     }
     if (line <= hidden) {
         return;
@@ -1261,15 +1261,15 @@ void DrawDialogueTextInputLines(int x, int y, unsigned int first_line)
 void RedrawDialogueTextInput(void)
 {
     W8DialogueTextState* input = g_level_block->dialogue_text_input;
-    if ((input->dirty != 0 || input->cursor_dirty_2c != 0)) {
-        short text_box = g_status.text_line_cursor_1795;
+    if ((input->dirty != 0 || input->cursor_dirty != 0)) {
+        short text_box = g_status.text_line_cursor;
         int offset =
-            g_status.text_box_lines_shown_49a7[text_box] - g_level_block->text_lines[text_box];
+            g_status.text_box_lines_shown[text_box] - g_level_block->text_lines[text_box];
         if (offset < 7) {
             SaveFontSettings();
             SetFontDestBuffer(0xfffffff2, g_level_block->text_box_left, g_level_block->text_box_top,
                               g_level_block->text_box_right, g_level_block->text_box_bottom, 0);
-            SetFontObjectPalette16BPP(g_level_block->text_box_font, g_level_block->palette_2ec);
+            SetFontObjectPalette16BPP(g_level_block->text_box_font, g_level_block->palette);
             SetFont(g_level_block->text_box_font);
 
             int y = g_level_block->text_box_top + offset * 0xb;
@@ -1277,21 +1277,21 @@ void RedrawDialogueTextInput(void)
                 y = g_level_block->text_box_top;
             }
             if (input->dirty == 0) {
-                if (input->cursor_dirty_2c != 0) {
+                if (input->cursor_dirty != 0) {
                     DrawDialogueTextCursor(g_level_block->text_box_left, y);
                 }
             } else {
                 unsigned int first_line = 0;
                 if (offset < 0) {
                     first_line = g_level_block->text_lines[text_box] -
-                                 g_status.text_box_lines_shown_49a7[text_box];
+                                 g_status.text_box_lines_shown[text_box];
                 }
                 DrawDialogueTextInputLines(g_level_block->text_box_left, y, first_line);
                 input->dirty = 0;
                 DrawDialogueTextCursor(g_level_block->text_box_left, y);
             }
 
-            SetFontObjectPalette16BPP(g_level_block->text_box_font, g_level_block->palette_2ec);
+            SetFontObjectPalette16BPP(g_level_block->text_box_font, g_level_block->palette);
             RestoreFontSettings();
         }
     }
@@ -1369,8 +1369,8 @@ void InvalidateDialogueTextCursor(void)
 
     W8ControlsRect bounds;
     bounds.left = g_level_block->text_box_left;
-    bounds.top = g_status.text_box_lines_shown_49a7[g_status.text_line_cursor_1795] -
-                 g_level_block->text_lines[g_status.text_line_cursor_1795] +
+    bounds.top = g_status.text_box_lines_shown[g_status.text_line_cursor] -
+                 g_level_block->text_lines[g_status.text_line_cursor] +
                  g_level_block->text_box_top;
     bounds.right =
         StringPixLength(g_level_block->dialogue_text_input->text, g_level_block->text_box_font) +
@@ -1423,7 +1423,7 @@ static void RewrapDialogueTextFromLine(unsigned int line)
         if (g_level_block->dialogue_text_input->cursor >
                 g_level_block->dialogue_text_input->line_offsets[line] &&
             !IsNpcDialogueTextInputActive()) {
-            ScrollTextBoxTo(GetTextBoxLineCount(g_status.text_line_cursor_1795) -
+            ScrollTextBoxTo(GetTextBoxLineCount(g_status.text_line_cursor) -
                             GetTextBoxVisibleLineCount());
         }
         ++line;
@@ -1447,8 +1447,8 @@ static void InsertDialogueTextCharacter(wchar_t character)
     }
 
     unsigned int line = FindDialogueTextLine(g_level_block->dialogue_text_input);
-    unsigned int shown = g_status.text_box_lines_shown_49a7[g_status.text_line_cursor_1795];
-    unsigned int scroll = g_level_block->text_lines[g_status.text_line_cursor_1795];
+    unsigned int shown = g_status.text_box_lines_shown[g_status.text_line_cursor];
+    unsigned int scroll = g_level_block->text_lines[g_status.text_line_cursor];
     if (shown < scroll && shown + line < scroll) {
         ScrollTextBoxTo(shown + line - 1);
     } else if (shown - scroll + line > 7) {
@@ -1563,7 +1563,7 @@ unsigned char TextBoxScrollThumbRegionEvent(const InputAtom* input_event, W8Regi
         return 0;
     }
 
-    short text_box = g_status.text_line_cursor_1795;
+    short text_box = g_status.text_line_cursor;
     unsigned int visible_lines = GetTextBoxVisibleLineCount();
     unsigned int line_count = GetTextBoxLineCount(text_box);
     if (line_count <= visible_lines) {
@@ -1606,7 +1606,7 @@ unsigned char TextBoxScrollThumbRegionEvent(const InputAtom* input_event, W8Regi
 // FUNCTION: WIZ8 0x0058E2A0
 unsigned char TextBoxScrollUpRegionEvent(const InputAtom* event, W8Region* region)
 {
-    short text_box = g_status.text_line_cursor_1795;
+    short text_box = g_status.text_line_cursor;
     if (g_level_block->text_lines[text_box] == 0) {
         PushButtonSoundScheme(0, 1);
     }
@@ -1694,7 +1694,7 @@ unsigned char TextBoxScrollUpRegionEvent(const InputAtom* event, W8Region* regio
 // FUNCTION: WIZ8 0x0058E650
 unsigned char TextBoxScrollDownRegionEvent(const InputAtom* event, W8Region* region)
 {
-    short text_box = g_status.text_line_cursor_1795;
+    short text_box = g_status.text_line_cursor;
     unsigned int visible = GetTextBoxVisibleLineCount();
     unsigned int count = GetTextBoxLineCount(text_box);
     if (g_level_block->text_lines[text_box] + visible >= count) {
@@ -1755,7 +1755,7 @@ unsigned char TextBoxBodyRegionEvent(const InputAtom* event, W8Region* region)
         if (delta < 0) {
             ScrollTextBoxDown(-delta);
         } else {
-            short text_box = g_status.text_line_cursor_1795;
+            short text_box = g_status.text_line_cursor;
             unsigned int previous = g_level_block->text_lines[text_box];
             if (previous != 0) {
                 unsigned int amount = static_cast<unsigned int>(delta);
@@ -1810,11 +1810,11 @@ unsigned char TextBoxChannelTabRegionEvent(const InputAtom* event, W8Region* reg
         return 0;
     }
 
-    g_status.text_line_cursor_1795 = static_cast<short>(region->callback_id);
+    g_status.text_line_cursor = static_cast<short>(region->callback_id);
     region->flags |= W8_REGION_LEFT_BUTTON_HELD;
     RedrawTextBox();
 
-    short text_box = g_status.text_line_cursor_1795;
+    short text_box = g_status.text_line_cursor;
     if (g_level_block->text_lines[text_box] == 0) {
         g_level_block->text_content_region = 0x56;
     } else {
@@ -1833,8 +1833,8 @@ unsigned char TextBoxChannelTabRegionEvent(const InputAtom* event, W8Region* reg
     }
 
     if (region->callback_id == 3) {
-        if (g_status.text_box_lines_shown_49a7[text_box] > 7) {
-            ScrollTextBoxTo(g_status.text_box_lines_shown_49a7[text_box] - 7);
+        if (g_status.text_box_lines_shown[text_box] > 7) {
+            ScrollTextBoxTo(g_status.text_box_lines_shown[text_box] - 7);
             return 1;
         }
         ScrollTextBoxTo(0);
@@ -1959,7 +1959,7 @@ static void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, bool slo
     int draw_x;
     int length;
     int width;
-    wchar_t* scratch = g_level_block->text_paint_scratch_000;
+    wchar_t* scratch = g_level_block->text_paint_scratch;
 
     if (line->wString == 0) {
         srAssertFail("pTextLine->wString != NULL", MGS_TEXT_BOX_CPP, 0x584, 0);
@@ -1988,7 +1988,7 @@ static void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, bool slo
             if (line->font_palette < 0xf) {
                 palette = g_font_state_palettes[line->font_palette];
             } else {
-                palette = g_level_block->palette_2ec;
+                palette = g_level_block->palette;
             }
             SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
             if (line->length_14 == -1) {
@@ -2004,7 +2004,7 @@ static void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, bool slo
                 if (line->font_palette < 0xf) {
                     palette = g_font_state_palettes[line->font_palette];
                 } else {
-                    palette = g_level_block->palette_2ec;
+                    palette = g_level_block->palette;
                 }
                 SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
                 wcsncpy(scratch, line->wString, line->highlight_start);
@@ -2026,7 +2026,7 @@ static void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, bool slo
                 if (line->highlight_color < 0xf) {
                     palette = g_font_state_palettes[line->highlight_color];
                 } else {
-                    palette = g_level_block->palette_2ec;
+                    palette = g_level_block->palette;
                 }
                 SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
                 wcsncpy(scratch, line->wString + line->highlight_start, length);
@@ -2056,7 +2056,7 @@ static void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, bool slo
                 if (palette_index < 0xf) {
                     palette = g_font_state_palettes[palette_index];
                 } else {
-                    palette = g_level_block->palette_2ec;
+                    palette = g_level_block->palette;
                 }
                 SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
                 wcsncpy(scratch, line->wString + line->highlight_stop, length);
@@ -2108,8 +2108,8 @@ void RedrawTextBoxBody(bool skip_invalidate)
                          g_level_block->text_box_right, g_level_block->text_box_bottom, 0);
     }
 
-    text_box = g_status.text_line_cursor_1795;
-    shown = g_status.text_box_lines_shown_49a7[text_box];
+    text_box = g_status.text_line_cursor;
+    shown = g_status.text_box_lines_shown[text_box];
     if (shown == 0) {
         return;
     }
@@ -2133,11 +2133,11 @@ void RedrawTextBoxBody(bool skip_invalidate)
         rows = 7;
     }
 
-    if (g_level_block->action_panel_visible == 0 && g_level_block->mipe_editing_272 == 0) {
+    if (g_level_block->action_panel_visible == 0 && g_level_block->mipe_editing == 0) {
         can_scroll_down = scroll + static_cast<unsigned int>(GetTextBoxVisibleLineCount()) <
                           GetTextBoxLineCount(text_box);
         if (!can_scroll_down &&
-            ClockIsTicking(g_message_storage[text_box][scroll + rows - 1].clock_08) == 0) {
+            ClockIsTicking(g_message_storage[text_box][scroll + rows - 1].clock) == 0) {
             return;
         }
     }
@@ -2145,7 +2145,7 @@ void RedrawTextBoxBody(bool skip_invalidate)
     SaveFontSettings();
     SetFontDestBuffer(0xfffffff2, g_level_block->text_box_left, g_level_block->text_box_top,
                       g_level_block->text_box_right, g_level_block->text_box_bottom, 0);
-    SetFontObjectPalette16BPP(g_level_block->text_box_font, g_level_block->palette_2ec);
+    SetFontObjectPalette16BPP(g_level_block->text_box_font, g_level_block->palette);
     SetFont(g_level_block->text_box_font);
 
     y_offset = 0;
@@ -2157,7 +2157,7 @@ void RedrawTextBoxBody(bool skip_invalidate)
                 srAssertFail("pTextLine->wString != NULL", MGS_TEXT_BOX_CPP, 0x43d, 0);
             }
             if (line->wString != 0) {
-                if (text_box == 3 || g_level_block->text_box_visible_271 == 0) {
+                if (text_box == 3 || g_level_block->text_box_visible == 0) {
                     x = g_level_block->text_box_left;
                 } else {
                     x = g_level_block->text_box_left +
@@ -2176,7 +2176,7 @@ void RedrawTextBoxBody(bool skip_invalidate)
         y_offset += 0xb;
     }
 
-    SetFontObjectPalette16BPP(g_level_block->text_box_font, g_level_block->palette_2ec);
+    SetFontObjectPalette16BPP(g_level_block->text_box_font, g_level_block->palette);
     RestoreFontSettings();
 }
 
@@ -2199,7 +2199,7 @@ void RedrawTextBoxScrollChrome(void)
     SetClippingRect(&clip);
 
     if (g_level_block->action_panel_visible != 0) {
-        text_box = g_status.text_line_cursor_1795;
+        text_box = g_status.text_line_cursor;
         scroll = g_level_block->text_lines[text_box];
         if (scroll == 0) {
             g_level_block->text_content_region = 0x56;
@@ -2266,9 +2266,9 @@ void RedrawTextBoxComplete(void)
 {
     W8MainGameScreen* screen = g_main_game_screen;
 
-    screen->m_text_panel_00c->Invalidate(0);
-    screen->m_status_panel_010->RefreshStatusTexts();
-    screen->m_action_panel_014->Invalidate(0);
+    screen->m_text_panel->Invalidate(0);
+    screen->m_status_panel->RefreshStatusTexts();
+    screen->m_action_panel->Invalidate(0);
 }
 
 /* The last message on the current line whose clock has stopped, searched from
@@ -2277,13 +2277,13 @@ void RedrawTextBoxComplete(void)
 // FUNCTION: WIZ8 0x0058d760
 int FindStoppedTextLine(void)
 {
-    int index = g_status.text_box_lines_shown_49a7[g_status.text_line_cursor_1795];
+    int index = g_status.text_box_lines_shown[g_status.text_line_cursor];
 
     if (index == 0) {
         return -1;
     }
     while (--index >= 0) {
-        if (ClockIsTicking(g_message_storage[g_status.text_line_cursor_1795][index].clock_08) ==
+        if (ClockIsTicking(g_message_storage[g_status.text_line_cursor][index].clock) ==
             0) {
             return index;
         }
@@ -2296,11 +2296,11 @@ int FindStoppedTextLine(void)
 // FUNCTION: WIZ8 0x0058a8f0
 char TextBoxHandleKey(const InputAtom* event)
 {
-    W8MainGameTextPanel* panel = g_main_game_screen->m_text_panel_00c;
+    W8MainGameTextPanel* panel = g_main_game_screen->m_text_panel;
     int before = panel->m_selection_078;
     char handled;
 
-    handled = panel->m_key_handler_074->HandleKey(event->usParam);
+    handled = panel->m_key_handler->HandleKey(event->usParam);
 
     if (handled != 0 && panel->m_selection_078 != before) {
         ResetButtonSoundScheme();
@@ -2315,7 +2315,7 @@ char TextBoxHandleKey(const InputAtom* event)
    (level, flag, backfire) triple CastSpellAtLockInteraction takes;
    only the target is read here. */
 /* The trap-mode half of CastSpellAtLockInteraction: without a
-   backfire the disarm chance is `level * 5 + 0x32 - m_difficulty_038 * 6`, a
+   backfire the disarm chance is `level * 5 + 0x32 - m_difficulty * 6`, a
    success parks the screen in state 7 (8 on a miss), and either way the text
    and action panels go quiet for a 1.5 second timer. */
 // FUNCTION: WIZ8 0x0058A930
@@ -2327,16 +2327,16 @@ void AttemptTrapDisarm(int level, int /*flag*/, char backfire)
     if (backfire != 0) {
         chance = 0;
     } else {
-        chance = level * 5 + 0x32 + screen->m_difficulty_038 * -6;
+        chance = level * 5 + 0x32 + screen->m_difficulty * -6;
     }
     if (static_cast<int>(Random(100)) < chance) {
-        screen->m_disarm_state_018 = 7;
+        screen->m_disarm_state = 7;
     } else {
-        screen->m_disarm_state_018 = 8;
+        screen->m_disarm_state = 8;
     }
-    screen->m_text_panel_00c->EnableRegionSet(0);
-    screen->m_text_panel_00c->m_key_handler_074->m_range_038.EnableRegionSet(0);
-    screen->m_action_panel_014->EnableRegionSet(0);
+    screen->m_text_panel->EnableRegionSet(0);
+    screen->m_text_panel->m_key_handler->m_range_038.EnableRegionSet(0);
+    screen->m_action_panel->EnableRegionSet(0);
     screen->m_timer_154.SetDuration(1.5f);
     screen->m_timer_154.Restart();
 }
@@ -2350,15 +2350,15 @@ void SetKnockKnockTarget(int target, int /*flag*/, int /*backfire*/)
         ShowNotice(0xc, L"You can't cast Knock Knock here!", -1, -1, 0);
         return;
     }
-    screen->m_target_difficulty_14c = target;
-    screen->m_status_panel_010->m_target_068 = target;
-    screen->m_text_panel_00c->m_target_changed_140 = 1;
+    screen->m_target_difficulty = target;
+    screen->m_status_panel->m_target = target;
+    screen->m_text_panel->m_target_changed = 1;
 }
 
 // FUNCTION: WIZ8 0x0058F6B0
 void SelectTextBox(short text_box)
 {
-    g_status.text_line_cursor_1795 = text_box;
+    g_status.text_line_cursor = text_box;
     RedrawTextBox();
     if (g_level_block->text_lines[text_box] != 0) {
         g_level_block->text_content_region = 0x57;
@@ -2370,11 +2370,11 @@ void SelectTextBox(short text_box)
     if (g_level_block->dialogue_text_input_open == 0 || g_level_block->dialogue_text_input == 0 ||
         g_level_block->dialogue_text_input->text_box != text_box) {
         can_scroll = g_level_block->text_lines[text_box] + GetTextBoxVisibleLineCount() <
-                     g_status.text_box_lines_shown_49a7[text_box];
+                     g_status.text_box_lines_shown[text_box];
     } else {
         can_scroll = g_level_block->text_lines[text_box] + GetTextBoxVisibleLineCount() <
                      g_level_block->dialogue_text_input->line_count +
-                         g_status.text_box_lines_shown_49a7[text_box];
+                         g_status.text_box_lines_shown[text_box];
     }
     if (can_scroll) {
         g_level_block->dialogue_content_region = 0x5a;
@@ -2383,11 +2383,11 @@ void SelectTextBox(short text_box)
     if (g_level_block->dialogue_text_input_open == 0 || g_level_block->dialogue_text_input == 0 ||
         g_level_block->dialogue_text_input->text_box != text_box) {
         can_scroll = g_level_block->text_lines[text_box] + GetTextBoxVisibleLineCount() <
-                     g_status.text_box_lines_shown_49a7[text_box];
+                     g_status.text_box_lines_shown[text_box];
     } else {
         can_scroll = g_level_block->text_lines[text_box] + GetTextBoxVisibleLineCount() <
                      g_level_block->dialogue_text_input->line_count +
-                         g_status.text_box_lines_shown_49a7[text_box];
+                         g_status.text_box_lines_shown[text_box];
     }
     if (!can_scroll) {
         g_level_block->dialogue_content_region = 0x59;
@@ -2401,7 +2401,7 @@ void SelectTextSlot1D8(int line, int index)
     unsigned int first;
 
     if (line < 0x15e) {
-        first = g_level_block->text_lines[g_status.text_line_cursor_1795];
+        first = g_level_block->text_lines[g_status.text_line_cursor];
         if (first <= static_cast<unsigned int>(line) &&
             static_cast<unsigned int>(line) < first + 7) {
             record = &g_message_storage[index][line];
@@ -2434,7 +2434,7 @@ void SelectTextSlot1E8(int line, int index)
     unsigned int first;
 
     if (line < 0x15e) {
-        first = g_level_block->text_lines[g_status.text_line_cursor_1795];
+        first = g_level_block->text_lines[g_status.text_line_cursor];
         if (first <= static_cast<unsigned int>(line) &&
             static_cast<unsigned int>(line) < first + 7) {
             record = &g_message_storage[index][line];
@@ -2453,15 +2453,15 @@ static void DrawNoticeWordOverlays(W8MessageStorageRecord* line, int x, int y)
 {
     wchar_t word_text[100];
 
-    if (line->entries_18 == 0) {
+    if (line->entries == 0) {
         return;
     }
-    unsigned int count = PLLength(line->entries_18);
+    unsigned int count = PLLength(line->entries);
     for (int i = 0; i < static_cast<int>(count); ++i) {
-        W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(line->entries_18, i));
-        if (word->keyword_08 != 0) {
+        W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(line->entries, i));
+        if (word->keyword != 0) {
             unsigned short* palette =
-                word->keyword_08 == 2 ? g_font_state_palettes[3] : g_font_state_palettes[5];
+                word->keyword == 2 ? g_font_state_palettes[3] : g_font_state_palettes[5];
             SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
             memset(word_text, 0, sizeof(word_text));
             wcsncpy(word_text, line->wString + word->start, word->end - word->start + 1);
@@ -2474,7 +2474,7 @@ static void DrawNoticeWordOverlays(W8MessageStorageRecord* line, int x, int y)
             if (line->font_palette < 0xf) {
                 palette = g_font_state_palettes[line->font_palette];
             } else {
-                palette = g_level_block->palette_2ec;
+                palette = g_level_block->palette;
             }
             SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
             memset(word_text, 0, sizeof(word_text));
@@ -2490,13 +2490,13 @@ static void DrawNoticeWordOverlays(W8MessageStorageRecord* line, int x, int y)
 void ResetUsedNoticeWords(int text_box, bool redraw)
 {
     for (int i = 0; i < 0x15e; ++i) {
-        W8PList* list = g_message_storage[text_box][i].entries_18;
+        W8PList* list = g_message_storage[text_box][i].entries;
         if (list != 0) {
             unsigned int count = PLLength(list);
             for (int j = 0; j < static_cast<int>(count); ++j) {
                 W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(list, j));
-                if (word->keyword_08 == 2) {
-                    word->keyword_08 = 0;
+                if (word->keyword == 2) {
+                    word->keyword = 0;
                     word->redraw_09 = true;
                 }
             }
@@ -2511,13 +2511,13 @@ void ResetUsedNoticeWords(int text_box, bool redraw)
 void ClearNoticeWordHover(int text_box, bool redraw)
 {
     for (int i = 0; i < 0x15e; ++i) {
-        W8PList* list = g_message_storage[text_box][i].entries_18;
+        W8PList* list = g_message_storage[text_box][i].entries;
         if (list != 0) {
             unsigned int count = PLLength(list);
             for (int j = 0; j < static_cast<int>(count); ++j) {
                 W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(list, j));
-                if (word->keyword_08 != 2) {
-                    word->keyword_08 = 0;
+                if (word->keyword != 2) {
+                    word->keyword = 0;
                     word->redraw_09 = true;
                 }
             }
@@ -2538,13 +2538,13 @@ void HighlightNoticeWordAt(int text_box, unsigned short x, unsigned short y)
     unsigned int count;
 
     for (int i = 0; i < 0x15e; ++i) {
-        list = g_message_storage[text_box][i].entries_18;
+        list = g_message_storage[text_box][i].entries;
         if (list != 0) {
             count = PLLength(list);
             for (int j = 0; j < static_cast<int>(count); ++j) {
                 W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(list, j));
-                if (word->keyword_08 != 2) {
-                    word->keyword_08 = 0;
+                if (word->keyword != 2) {
+                    word->keyword = 0;
                     word->redraw_09 = true;
                 }
             }
@@ -2552,8 +2552,8 @@ void HighlightNoticeWordAt(int text_box, unsigned short x, unsigned short y)
     }
     if (g_level_block->text_box_top <= y && y <= g_level_block->text_box_bottom) {
         line = g_level_block->text_lines[text_box] + (y - g_level_block->text_box_top) / 0xb;
-        if (line < static_cast<int>(g_status.text_box_lines_shown_49a7[text_box])) {
-            if (g_status.text_line_cursor_1795 == 3 || g_level_block->text_box_visible_271 == 0) {
+        if (line < static_cast<int>(g_status.text_box_lines_shown[text_box])) {
+            if (g_status.text_line_cursor == 3 || g_level_block->text_box_visible == 0) {
                 x_base = g_level_block->text_box_left;
             } else {
                 x_base =
@@ -2563,13 +2563,13 @@ void HighlightNoticeWordAt(int text_box, unsigned short x, unsigned short y)
                                      g_level_block->text_box_font) /
                          2);
             }
-            list = g_message_storage[text_box][line].entries_18;
+            list = g_message_storage[text_box][line].entries;
             count = PLLength(list);
             offset = x - x_base;
             for (int i = 0; i < static_cast<int>(count); ++i) {
                 W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(list, i));
-                if (word->x_start <= offset && offset <= word->x_end && word->keyword_08 != 2) {
-                    word->keyword_08 = 1;
+                if (word->x_start <= offset && offset <= word->x_end && word->keyword != 2) {
+                    word->keyword = 1;
                 }
             }
         }
@@ -2589,8 +2589,8 @@ W8NoticeWord* HitTestNoticeWord(int text_box, unsigned short x, unsigned short y
 
     if (g_level_block->text_box_top <= y && y <= g_level_block->text_box_bottom) {
         line = g_level_block->text_lines[text_box] + (y - g_level_block->text_box_top) / 0xb;
-        if (line < static_cast<int>(g_status.text_box_lines_shown_49a7[text_box])) {
-            if (g_status.text_line_cursor_1795 == 3 || g_level_block->text_box_visible_271 == 0) {
+        if (line < static_cast<int>(g_status.text_box_lines_shown[text_box])) {
+            if (g_status.text_line_cursor == 3 || g_level_block->text_box_visible == 0) {
                 x_base = g_level_block->text_box_left;
             } else {
                 x_base =
@@ -2600,7 +2600,7 @@ W8NoticeWord* HitTestNoticeWord(int text_box, unsigned short x, unsigned short y
                                      g_level_block->text_box_font) /
                          2);
             }
-            list = g_message_storage[text_box][line].entries_18;
+            list = g_message_storage[text_box][line].entries;
             count = PLLength(list);
             offset = x - x_base;
             for (int i = 0; i < static_cast<int>(count); ++i) {
@@ -2671,10 +2671,10 @@ void RefreshTextBoxMode(unsigned short mode)
         }
     }
     int text_box = static_cast<short>(mode);
-    if (g_status.text_box_lines_used_4997[text_box] == 0) {
+    if (g_status.text_box_lines_used[text_box] == 0) {
         srAssertFail("gStatus.uiTextBoxLinesUsed[iTextBuffer] > 0", MGS_TEXT_BOX_CPP, 0x109e, 0);
     }
-    last_line = g_status.text_box_lines_used_4997[text_box] - 1;
+    last_line = g_status.text_box_lines_used[text_box] - 1;
     group_lines = g_message_storage[text_box][last_line].link_10;
     if (last_line < group_lines) {
         srAssertFail("uiLastLineIndex >= uiGroupLine", MGS_TEXT_BOX_CPP, 0x10a6, 0);

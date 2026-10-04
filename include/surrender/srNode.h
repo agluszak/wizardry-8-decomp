@@ -48,7 +48,7 @@ public:
         srVector3T<float> maximum;
         srVector3T<float> center;
         float radius;
-        int state_28;
+        int state;
     };
 
     enum e_processType {

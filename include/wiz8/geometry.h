@@ -38,20 +38,20 @@ static_assert(sizeof(W8Plane) == 0x10, "W8Plane_must_be_0x10");
 struct W8GDSurface {
     unsigned int flags_00;
     unsigned int index_04;
-    int trigger_index_08;
-    int edge_link_0c[3];
+    int trigger_index;
+    int edge_link[3];
     int vertex_indices_18[3];
     /* The region word at +0x32 belongs to W8OctRegionPolygon, not this
        surface. */
     W8Plane plane_24;
     float distance_34;
     /* Hit plane ProbePropsAlongMotion fills for ResolveCollision. */
-    W8Plane* hit_plane_38;
-    unsigned char footstep_surface_3c;  /* W8FootstepSurface selector */
-    unsigned char footstep_material_3d; /* W8FootstepMaterial selector */
-    unsigned char positional_3e[2];
-    float contact_margin_40;
-    unsigned int chance_44;
+    W8Plane* hit_plane;
+    unsigned char footstep_surface;  /* W8FootstepSurface selector */
+    unsigned char footstep_material; /* W8FootstepMaterial selector */
+    unsigned char positional[2];
+    float contact_margin;
+    unsigned int chance;
     float slope_48; /* face slope; generated surfaces derive it from plane_24.normal.y */
 
     /* The plane's unit normal. */

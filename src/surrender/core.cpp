@@ -55,37 +55,37 @@ int __cdecl srInit()
         const char* dll_path = srConfig.get("DLL_PATH");
         srCore.reset();
         if (srConfig.exists("DEBUG_LEVEL") != 0) {
-            srCore.debug_level_15c = atoi(srConfig.get("DEBUG_LEVEL"));
+            srCore.debug_level = atoi(srConfig.get("DEBUG_LEVEL"));
         }
         srDebugPrintf(0xfe, "srInit() -- initializing SurRender\n");
         srCore.global_recycler_04 = new srGlobalRecycler;
         srCore.registry_ = new srRegistry;
         srCore.timer_08 = new srVariableTimer;
-        srCore.multi_thread_160 = srCore.timer_08->fastThreads();
+        srCore.multi_thread = srCore.timer_08->fastThreads();
         if (srVectorProcessor::loadBest(dll_path) == 0) {
             srVectorProcessor::initBaseVP();
             srDebugPrintf(0, "srInit() -- no Vector Processor DLLs found (using base VP)\n");
         }
-        srCore.memory_allocator_20 = new srMemoryAllocator;
-        srCore.file_manager_24 = srCore.default_file_manager_30 = new srFileManager;
+        srCore.memory_allocator = new srMemoryAllocator;
+        srCore.file_manager = srCore.default_file_manager = new srFileManager;
         srCore.statistics_manager_28 = new srStatisticsManager;
         srCore.statistics_manager_28->reset();
         srCore.setFilter(0);
         srCore.palette_34 = new srPalette(0, 0x100);
         srCore.palette_34->setName("SurRender default palette");
-        srCore.root_node_164 = new srScene(0);
-        srCore.root_node_164->setName("SurRender root node");
+        srCore.root_node = new srScene(0);
+        srCore.root_node->setName("SurRender root node");
         srCore.material_170 = new srMaterial;
         srCore.material_170->setName("SurRender default material");
         srDebugPrintf(0xfe, "srInit() -- initializing IO managers\n");
         srCore.surface_io_manager_10 = new srSurfaceIOManager;
-        srCore.model_io_manager_168 = new srModelIOManager;
-        srCore.hierarchy_io_manager_16c = new srHierarchyIOManager;
+        srCore.model_io_manager = new srModelIOManager;
+        srCore.hierarchy_io_manager = new srHierarchyIOManager;
         srCore.video_manager_178 = new srVideoManager;
         srDebugPrintf(0xfe, "srInit() -- initializing stream openers\n");
         srCore.stream_opener_14 = new srIStreamOpener;
-        srCore.file_stream_opener_18 = new srFStreamOpener;
-        srCore.stream_opener_14->addStreamType(srCore.file_stream_opener_18, "file");
+        srCore.file_stream_opener = new srFStreamOpener;
+        srCore.stream_opener_14->addStreamType(srCore.file_stream_opener, "file");
         srDebugPrintf(0xfe, "srInit() -- loading default extension\n");
         srExtension::load("Default", dll_path);
         srDebugPrintf(0xfe, "srInit() -- setting up default texture/surface\n");
@@ -107,7 +107,7 @@ int __cdecl srInit()
 // FUNCTION: SURRENDER 0x10015680
 unsigned char srCore::getDebugLevel() const
 {
-    return debug_level_15c;
+    return debug_level;
 }
 
 // FUNCTION: SURRENDER 0x10015690
@@ -119,7 +119,7 @@ srGlobalRecycler* srCore::getGlobalRecycler() const
 // FUNCTION: SURRENDER 0x100156D0
 unsigned long srCore::getUniqueID()
 {
-    return next_unique_id_38++;
+    return next_unique_id++;
 }
 
 // FUNCTION: SURRENDER 0x100156E0
@@ -131,19 +131,19 @@ int srCore::isInitialized() const
 // FUNCTION: SURRENDER 0x100156F0
 void srCore::setDebugLevel(unsigned char level)
 {
-    debug_level_15c = level;
+    debug_level = level;
 }
 
 // FUNCTION: SURRENDER 0x10015710
 int srCore::supportMultiThread()
 {
-    return multi_thread_160;
+    return multi_thread;
 }
 
 // FUNCTION: SURRENDER 0x10015720
 void srCore::supportMultiThread(int enabled)
 {
-    multi_thread_160 = enabled;
+    multi_thread = enabled;
 }
 
 // FUNCTION: SURRENDER 0x100157A0
@@ -155,8 +155,8 @@ int __cdecl srExit()
         srCore.scheduler_00 = 0;
         srGERD::releaseAll();
         srCachedExponentTable::freeAll();
-        srCore.root_node_164->release();
-        srCore.root_node_164 = 0;
+        srCore.root_node->release();
+        srCore.root_node = 0;
         srCore.texture_174->release();
         srCore.texture_174 = 0;
         srCore.surface_0c->release();
@@ -170,22 +170,22 @@ int __cdecl srExit()
         srCore.registry_ = 0;
         srExtension::releaseAll();
         srCore.initialized = 0;
-        delete srCore.default_file_manager_30;
-        srCore.default_file_manager_30 = 0;
-        delete srCore.memory_allocator_20;
-        srCore.memory_allocator_20 = 0;
+        delete srCore.default_file_manager;
+        srCore.default_file_manager = 0;
+        delete srCore.memory_allocator;
+        srCore.memory_allocator = 0;
         delete srCore.surface_io_manager_10;
         srCore.surface_io_manager_10 = 0;
         delete srCore.video_manager_178;
         srCore.video_manager_178 = 0;
-        delete srCore.model_io_manager_168;
-        srCore.model_io_manager_168 = 0;
-        delete srCore.hierarchy_io_manager_16c;
-        srCore.hierarchy_io_manager_16c = 0;
+        delete srCore.model_io_manager;
+        srCore.model_io_manager = 0;
+        delete srCore.hierarchy_io_manager;
+        srCore.hierarchy_io_manager = 0;
         delete srCore.stream_opener_14;
         srCore.stream_opener_14 = 0;
-        delete srCore.file_stream_opener_18;
-        srCore.file_stream_opener_18 = 0;
+        delete srCore.file_stream_opener;
+        srCore.file_stream_opener = 0;
         delete srCore.statistics_manager_28;
         srCore.statistics_manager_28 = 0;
         delete srCore.timer_08;
@@ -229,9 +229,9 @@ void srCore::setFilter(srFilter* filter)
 void srCore::setFileManager(srFileManager* manager)
 {
     if (manager == 0) {
-        manager = default_file_manager_30;
+        manager = default_file_manager;
     }
-    file_manager_24 = manager;
+    file_manager = manager;
 }
 
 // FUNCTION: SURRENDER 0x10015B50
@@ -255,19 +255,19 @@ srVideoManager* srCore::getVideoManager() const
 // FUNCTION: SURRENDER 0x10015aa0
 srModelIOManager* srCore::getModelIOManager() const
 {
-    return model_io_manager_168;
+    return model_io_manager;
 }
 
 // FUNCTION: SURRENDER 0x10015ab0
 srHierarchyIOManager* srCore::getHierarchyIOManager() const
 {
-    return hierarchy_io_manager_16c;
+    return hierarchy_io_manager;
 }
 
 // FUNCTION: SURRENDER 0x10015B10
 srMemoryAllocator* srCore::getMemoryAllocator() const
 {
-    return memory_allocator_20;
+    return memory_allocator;
 }
 
 // FUNCTION: SURRENDER 0x10015AC0
@@ -279,13 +279,13 @@ srIStreamOpener* srCore::getIStreamOpener() const
 // FUNCTION: SURRENDER 0x10015B00
 srNode* srCore::getRootNode() const
 {
-    return root_node_164;
+    return root_node;
 }
 
 // FUNCTION: SURRENDER 0x10015B20
 srFileManager* srCore::getFileManager() const
 {
-    return file_manager_24;
+    return file_manager;
 }
 
 // FUNCTION: SURRENDER 0x10015A60
@@ -309,49 +309,49 @@ srCore::srCore()
     strcat(copyright_, " Build (");
     strcat(copyright_, "MSVC 6.0");
     strcat(copyright_, ") (c) Hybrid Holding Ltd. 1994-1999");
-    multi_thread_160 = 0;
+    multi_thread = 0;
     global_recycler_04 = 0;
     scheduler_00 = 0;
     texture_174 = 0;
     surface_0c = 0;
     surface_io_manager_10 = 0;
     video_manager_178 = 0;
-    model_io_manager_168 = 0;
-    hierarchy_io_manager_16c = 0;
+    model_io_manager = 0;
+    hierarchy_io_manager = 0;
     filter_1c = 0;
-    root_node_164 = 0;
-    memory_allocator_20 = 0;
-    default_file_manager_30 = 0;
-    file_manager_24 = 0;
+    root_node = 0;
+    memory_allocator = 0;
+    default_file_manager = 0;
+    file_manager = 0;
     palette_34 = 0;
     timer_08 = 0;
     registry_ = 0;
-    next_unique_id_38 = 0;
-    debug_level_15c = 1;
+    next_unique_id = 0;
+    debug_level = 1;
 }
 
 // FUNCTION: SURRENDER 0x10015C90
 void srCore::reset()
 {
-    multi_thread_160 = 0;
+    multi_thread = 0;
     global_recycler_04 = 0;
     scheduler_00 = 0;
     texture_174 = 0;
     surface_0c = 0;
     surface_io_manager_10 = 0;
     video_manager_178 = 0;
-    model_io_manager_168 = 0;
-    hierarchy_io_manager_16c = 0;
+    model_io_manager = 0;
+    hierarchy_io_manager = 0;
     filter_1c = 0;
-    root_node_164 = 0;
-    memory_allocator_20 = 0;
-    default_file_manager_30 = 0;
-    file_manager_24 = 0;
+    root_node = 0;
+    memory_allocator = 0;
+    default_file_manager = 0;
+    file_manager = 0;
     palette_34 = 0;
     timer_08 = 0;
     registry_ = 0;
-    debug_level_15c = 1;
-    next_unique_id_38 = 0;
+    debug_level = 1;
+    next_unique_id = 0;
 }
 
 // FUNCTION: SURRENDER 0x10015CF0
@@ -363,7 +363,7 @@ void srCore::dump(std::ostream& stream)
     stream.width(0x18);
     stream << "Build time: " << getBuildTime() << '\n';
     stream.width(0x18);
-    stream << "Debug Level: " << debug_level_15c << '\n';
+    stream << "Debug Level: " << debug_level << '\n';
     stream.width(0x18);
     stream << "Seconds since reset: " << timer_08->getTime(srTimer::TIMER_READ_DEFAULT) << '\n';
     stream.width(0x18);
@@ -380,7 +380,7 @@ void srCore::dump(std::ostream& stream)
     stream.width(0x18);
     stream << "  RDTSC support: " << srBoolToString(timer_08->getRDTSCSupport()) << '\n';
     stream.width(0x18);
-    stream << "  Multi-thread:  " << srBoolToString(multi_thread_160) << '\n';
+    stream << "  Multi-thread:  " << srBoolToString(multi_thread) << '\n';
     if (srVectorProcessor::vp != 0) {
         stream.width(0x18);
         stream << "Vector Processor: " << srVectorProcessor::vp->getName();

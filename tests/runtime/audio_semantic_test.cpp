@@ -40,7 +40,7 @@ static void EnsureTestCamera()
     if (g_gd_camera == 0) {
         g_gd_camera = new GDCamera();
     }
-    g_gd_camera->m_position_08c.Set(0.0f, 0.0f, 0.0f);
+    g_gd_camera->m_position.Set(0.0f, 0.0f, 0.0f);
     g_gd_camera->m_yaw = 0.0f;
 }
 

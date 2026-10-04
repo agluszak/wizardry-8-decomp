@@ -94,11 +94,11 @@ private:
     SR_DLL_IMPORT void reversePixels(void* pixels, unsigned long count);
     SR_DLL_IMPORT int isCompatible(srColorSurfaceIFace& source);
 
-    srPixelConvert::ConversionFunc pixel_write_44;
-    srPixelConvert::ConversionFunc pixel_read_48;
+    srPixelConvert::ConversionFunc pixel_write;
+    srPixelConvert::ConversionFunc pixel_read;
     srPtr<srPalette> palette_4c;
-    unsigned long surface_flags_50;
-    long data_size_54;
+    unsigned long surface_flags;
+    long data_size;
     void* data_58;
 };
 

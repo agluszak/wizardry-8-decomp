@@ -25,7 +25,7 @@ class srMaterialIFace;
 class srTriMeshPipeline {
 public:
     struct Record {
-        inline Record() : flags_00(0), disable_mask_04(0), colors_0c(0), color_format_10(2) {}
+        inline Record() : flags_00(0), disable_mask_04(0), colors_0c(0), color_format(2) {}
 
         unsigned long flags_00;
         unsigned long disable_mask_04;
@@ -33,37 +33,37 @@ public:
         /* Bit 0: DIG or particle colors (+0x0c) with format at +0x10.
            Bit 1: DCG at +0x14. Bit 2: SCG at +0x18. */
         void* colors_0c;
-        unsigned long color_format_10;
-        srVector4T<float>* dcg_14;
-        srVector4T<float>* scg_18;
+        unsigned long color_format;
+        srVector4T<float>* dcg;
+        srVector4T<float>* scg;
         /* Optional per-vertex arrays, each gated by its own flags_00 bit:
            0x004994D0 sets +0x1c under bit 3 and +0x20 under bit 4. */
-        float* alphas_1c;
-        srVector2T<float>* st0_20;
+        float* alphas;
+        srVector2T<float>* st0;
         srVector2T<float>* st1_24;
-        srPtr<srMaterialIFace>* vertex_materials_28;
+        srPtr<srMaterialIFace>* vertex_materials;
         unsigned char unknown_2c_[0x30];
     };
 
     struct Pass {
         inline Pass()
         {
-            flags_08.value = 0x0100241b; /* default packed srShader */
+            flags.value = 0x0100241b; /* default packed srShader */
         }
 
         srTextureIFace* texture_00;
-        srTextureIFace* texture_04;
-        srShader flags_08;
+        srTextureIFace* texture;
+        srShader flags;
         /* Per-stage per-vertex texture tables; the mesh fills both slots of
-           the {0x0c,0x10} pair through (&texture_array_0c)[layer]. Writers
+           the {0x0c,0x10} pair through (&tex_table_0)[layer]. Writers
            store srPtr<srTextureIFace> or stTextureAnim frame tables; the
            renderer only copies each dword entry into the texture-set key. */
-        void* texture_array_0c;
-        void* texture_array_10;
+        void* tex_table_0;
+        void* tex_table_1;
         const srShader* shader_14;
-        srVector2T<float>* st_18;
+        srVector2T<float>* st;
         /* The mesh's per-triangle poly-UV corner source table. */
-        const srVector3i* poly_uv_1c;
+        const srVector3i* poly_uv;
     };
 
     static_assert(sizeof(Record) == 0x5c, "srTriMeshPipeline_Record_must_be_0x5c");
@@ -84,11 +84,11 @@ public:
         srTriMeshPipeline* current = pipe;
 
         if (this == current) {
-            current->flushing_8c = 1;
-            if (current->slot_count_84 > 0) {
+            current->flushing = 1;
+            if (current->slot_count > 0) {
                 current->FlushSlots();
             }
-            current->flushing_8c = 0;
+            current->flushing = 0;
         }
     }
 
@@ -97,43 +97,43 @@ public:
     /* Slot 1 / complete destructor at 0x004752F0. */
     virtual ~srTriMeshPipeline();
 
-    srHeapBuffer<srVertexProcessor*> vertex_processors_04;
-    srHeapBuffer<unsigned long> culler_scratch_0c;
-    Record* current_record_14;
-    Pass* current_pass_18;
-    unsigned long triangle_count_1c;
-    unsigned long vertex_count_20;
-    unsigned long active_triangle_count_24;
+    srHeapBuffer<srVertexProcessor*> vertex_processors;
+    srHeapBuffer<unsigned long> culler_scratch;
+    Record* current_record;
+    Pass* current_pass;
+    unsigned long triangle_count;
+    unsigned long vertex_count;
+    unsigned long active_triangle_count;
     /* Bit 0: run getClipMask (frustum 0x3f plus user planes in bits 6+).
        Bit 1: vertex/triangle batch-limit path. Reset/Get always set both. */
     unsigned long flags_28;
-    const unsigned long* active_triangles_2c;
-    const srVector4T<float>* projected_vertices_30;
-    const srVector3i* triangles_34;
+    const unsigned long* active_triangles;
+    const srVector4T<float>* projected_vertices;
+    const srVector3i* triangles;
     /* stParticle stores allocation_160 (vec3*) here; Reset/Get null it.
        FlushSlots then CALLINDs vp+0x18c (_minMax vec4) with this
        pointer and the packed vec3 min/max at +0x44/+0x50. Stores and the
        xyz-only center math keep these as vec3; the vec4 slot is recorded,
        not a reason to widen the fields. */
-    const srVector3T<float>* positions_38;
-    const srVector3T<float>* vertex_extras_3c;
-    float sort_bias_40;
-    srVector3T<float> bounds_minimum_44;
-    srVector3T<float> bounds_maximum_50;
-    srVector3T<float> bounds_center_5c;
-    float bounds_radius_68;
-    unsigned long bounds_state_6c;
+    const srVector3T<float>* positions;
+    const srVector3T<float>* vertex_extras;
+    float sort_bias;
+    srVector3T<float> bounds_minimum;
+    srVector3T<float> bounds_maximum;
+    srVector3T<float> bounds_center;
+    float bounds_radius;
+    unsigned long bounds_state;
     unsigned long unknown_70;
     srShader shader_74;
     srTextureIFace* texture_78;
     srTextureIFace* texture_7c;
     srMaterialIFace* material_80;
-    unsigned long slot_count_84;
+    unsigned long slot_count;
     srGERD* renderer_88;
-    volatile unsigned long flushing_8c;
-    srVertexPipe* vertex_pipe_90;
-    srArray<Record> records_94;
-    srArray<Pass> passes_9c;
+    volatile unsigned long flushing;
+    srVertexPipe* vertex_pipe;
+    srArray<Record> records;
+    srArray<Pass> passes;
     srArray<srVertexArray> vertex_arrays_a4;
 
 protected:

@@ -129,7 +129,7 @@ void AddNpcTopic(W8NpcState* npc, int topic);
    0x00576D80 dispatch. */
 int AttemptNpcPickpocket(W8Character* character, W8NpcState* npc, W8ItemInstance* item_out,
                          unsigned int* gold_out);
-/* 0x0050E4B0: clear the npc's item_ids_30 slots matching the item the quote
+/* 0x0050E4B0: clear the npc's item_ids slots matching the item the quote
    entry just handed out. */
 void ClearNpcItemId(W8NpcState* npc, int item_id);
 /* 0x0050ADA0: the live NPC state whose display (or fact-substituted) name

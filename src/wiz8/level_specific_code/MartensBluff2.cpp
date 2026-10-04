@@ -421,18 +421,18 @@ bool MartensBluff2DoorControls(Trigger* pTrigger)
     if (pTrigger->state_index == 0) {
         Trigger* pDoor = FindTriggerByName("SquisherDoor");
         W8TriggerActionData* action = pDoor->m_pActionData;
-        if (action == 0 || action->type_004 != '\n') {
+        if (action == 0 || action->type != '\n') {
             action = 0;
         }
-        if ((static_cast<W8DoorTriggerActionData*>(action)->flags_008 & 1) != 0) {
+        if ((static_cast<W8DoorTriggerActionData*>(action)->door_flags & 1) != 0) {
             pDoor->Run(-1);
         }
         pDoor = FindTriggerByName("SquisherDoor1");
         action = pDoor->m_pActionData;
-        if (action == 0 || action->type_004 != '\n') {
+        if (action == 0 || action->type != '\n') {
             action = 0;
         }
-        if ((static_cast<W8DoorTriggerActionData*>(action)->flags_008 & 1) != 0) {
+        if ((static_cast<W8DoorTriggerActionData*>(action)->door_flags & 1) != 0) {
             pDoor->Run(-1);
         }
     }
@@ -548,10 +548,10 @@ void MartensBluff2MonsterCrusher(int command)
         return;
     }
     if (g_dummy_prop != 0) {
-        if (g_dummy_prop->Rep()->animation_playing_06d != 0) {
+        if (g_dummy_prop->Rep()->animation_playing != 0) {
             return;
         }
-        if (g_dummy_rope_prop->Rep()->animation_playing_06d != 0) {
+        if (g_dummy_rope_prop->Rep()->animation_playing != 0) {
             return;
         }
         g_remove_current_master_function = true;
@@ -559,7 +559,7 @@ void MartensBluff2MonsterCrusher(int command)
         g_crusher_state = 0;
         return;
     }
-    if (g_squisher3_prop->Rep()->animation_playing_06d == 0) {
+    if (g_squisher3_prop->Rep()->animation_playing == 0) {
         if (g_crusher_sound != 0) {
             g_crusher_sound->Stop();
         }
@@ -606,7 +606,7 @@ void MartensBluff2MonsterCrusher(int command)
             info->p3D->flags_00c != 0x200000) {
             monster = info->p3D;
             position = monster->GetPosition();
-            radius = monster->movement_0c0.alternate_radius_0b4;
+            radius = monster->movement_0c0.alternate_radius;
             if (left <= position.x - radius) {
                 if (right < position.x + radius) {
                     position.x = right - radius;
@@ -635,7 +635,7 @@ bool MartensBluff2StoneIdol(Trigger* pTrigger)
     if (g_status.item_in_cursor != 0) {
         return false;
     }
-    ReplaceOrCreateItem(&g_status.item_in_hand_235b, 0x291, 0, 0, 0);
+    ReplaceOrCreateItem(&g_status.item_in_hand, 0x291, 0, 0, 0);
     SetItemCursor(0);
     ShowString(gppStringList[0x71d]);
     particle = FindRegisteredParticle("IdolGas");
@@ -660,7 +660,7 @@ bool MartensBluff2BlueFlowers(Trigger* pTrigger)
         if (g_status.item_in_cursor != 0) {
             return false;
         }
-        ReplaceOrCreateItem(&g_status.item_in_hand_235b, 0x2eb, 0, 0, 0);
+        ReplaceOrCreateItem(&g_status.item_in_hand, 0x2eb, 0, 0, 0);
         SetItemCursor(0);
     }
     g_running_trigger_from_script = false;
@@ -786,7 +786,7 @@ void MartensBluff2IdolGasVictim(void)
                 }
             }
         }
-        g_status.party_slot_249c = slot;
+        g_status.party_slot = slot;
         SetCharacterCondition(slot, 0x13, W8_CONDITION_INDEFINITE, 0, 0, 1);
         SetFact(0x33, 1, 0);
     }

@@ -124,74 +124,74 @@ W8CharacterScreen* g_character_screen;
 
 // FUNCTION: WIZ8 0x005b0040
 W8CharacterScreen::W8CharacterScreen(int mode, W8Character* character)
-    : m_mode_008(mode), m_original_014(character), m_block_advance_1aec(0),
-      m_confirm_profession_1aed(0), m_force_transition_1aee(0), m_dialog_1b1c(0),
-      m_capture_dialog_result_1b24(0)
+    : m_mode(mode), m_original(character), m_block_advance(0),
+      m_confirm_profession(0), m_force_transition(0), m_dialog(0),
+      m_capture_dialog_result(0)
 {
     if (character != 0) {
-        memcpy(&m_character_018, character, sizeof(m_character_018));
-        m_character_018.fInParty = false;
+        memcpy(&m_character, character, sizeof(m_character));
+        m_character.fInParty = false;
     }
     for (int index = 0; index < 4; ++index) {
-        m_pages_1b0c[index] = 0;
+        m_pages[index] = 0;
     }
-    if (m_mode_008 == 3) {
-        m_mode_008 = 2;
+    if (m_mode == 3) {
+        m_mode = 2;
         SoundPlay("Data\\Sound\\Misc\\GainLevel.wav", 0);
-        ShowMessage(FormatWideString(gppStringList[0xd9], m_character_018.name, 0, 0), 0, 0);
+        ShowMessage(FormatWideString(gppStringList[0xd9], m_character.name, 0, 0), 0, 0);
     }
-    m_page_enabled_1b08[0] = m_mode_008 != 1;
-    m_page_enabled_1b08[1] = m_mode_008 != 1;
-    m_page_enabled_1b08[2] = m_mode_008 != 1;
-    m_page_enabled_1b08[3] = m_mode_008 != 2;
+    m_page_enabled[0] = m_mode != 1;
+    m_page_enabled[1] = m_mode != 1;
+    m_page_enabled[2] = m_mode != 1;
+    m_page_enabled[3] = m_mode != 2;
 }
 
 // FUNCTION: WIZ8 0x005b0140
 void W8CharacterScreen::BuildControls()
 {
-    m_controls_1af0 = new Controls(0, 0x1c2, 0, 0, 0x107, 0, 4);
-    m_controls_1af0->AcquireRegionSet(&g_character_screen_region_set);
+    m_controls = new Controls(0, 0x1c2, 0, 0, 0x107, 0, 4);
+    m_controls->AcquireRegionSet(&g_character_screen_region_set);
 
     m_next_1af8 =
-        new W8TextControl(m_controls_1af0, 0xffffffff, 0x254, 0, 0, 0, 0x106, 0, 8, 10, 9, 10, 0xb);
+        new W8TextControl(m_controls, 0xffffffff, 0x254, 0, 0, 0, 0x106, 0, 8, 10, 9, 10, 0xb);
     m_next_1af8->EnableRegionHelp(0xdc);
     m_next_1af8->m_listener = this;
 
-    m_previous_1af4 = new W8TextControl(m_controls_1af0, 0xffffffff, 0x228, 0, 0, 0, 0x106, 0, 0xc,
+    m_previous_1af4 = new W8TextControl(m_controls, 0xffffffff, 0x228, 0, 0, 0, 0x106, 0, 0xc,
                                         0xe, 0xd, 0xe, 0xf);
     m_previous_1af4->EnableRegionHelp(0xdd);
     m_previous_1af4->m_listener = this;
 
-    m_exit_1afc = new W8TextControl(m_controls_1af0, 0xffffffff, 0x1fc, 0, 0, 0, 0x106, 0, 0x14,
+    m_exit = new W8TextControl(m_controls, 0xffffffff, 0x1fc, 0, 0, 0, 0x106, 0, 0x14,
                                     0x16, 0x15, 0x16, 0x17);
-    m_exit_1afc->EnableRegionHelp(0xde);
-    m_exit_1afc->m_listener = this;
+    m_exit->EnableRegionHelp(0xde);
+    m_exit->m_listener = this;
 
-    m_accept_1b00 =
-        new W8TextControl(m_controls_1af0, 0xffffffff, 0x1d0, 0, 0, 0, 0x106, 0, 4, 6, 5, 6, 7);
-    m_accept_1b00->EnableRegionHelp(0xdf);
-    m_accept_1b00->m_listener = this;
+    m_accept =
+        new W8TextControl(m_controls, 0xffffffff, 0x1d0, 0, 0, 0, 0x106, 0, 4, 6, 5, 6, 7);
+    m_accept->EnableRegionHelp(0xdf);
+    m_accept->m_listener = this;
 
-    m_reset_1b04 = new W8TextControl(m_controls_1af0, 0xffffffff, 0, 0, 0, 0, 0x106, 0, 0x1d, 0x1f,
+    m_reset = new W8TextControl(m_controls, 0xffffffff, 0, 0, 0, 0, 0x106, 0, 0x1d, 0x1f,
                                      0x1e, 0x1f, 0x20);
-    m_reset_1b04->EnableRegionHelp(0xe1);
-    m_reset_1b04->m_listener = this;
+    m_reset->EnableRegionHelp(0xe1);
+    m_reset->m_listener = this;
 
-    m_controls_1af0->SetEnabled(1);
-    m_controls_1af0->EnableRegionSet(1);
-    m_controls_1af0->Invalidate(0);
-    m_reset_1b04->SetActive(0);
-    if (m_mode_008 == 1 && g_status.game_started != 0 &&
-        CharacterPointerToPartySlot(m_original_014) > 1) {
-        m_reset_1b04->SetActive(1);
+    m_controls->SetEnabled(1);
+    m_controls->EnableRegionSet(1);
+    m_controls->Invalidate(0);
+    m_reset->SetActive(0);
+    if (m_mode == 1 && g_status.game_started != 0 &&
+        CharacterPointerToPartySlot(m_original) > 1) {
+        m_reset->SetActive(1);
         if (gXStatus.fCombatMode != 0) {
-            m_reset_1b04->SetEnabled(0);
+            m_reset->SetEnabled(0);
         }
     }
 
-    m_page_index_00c = -1;
+    m_page_index = -1;
     int index = 0;
-    while (index < 4 && !m_page_enabled_1b08[index]) {
+    while (index < 4 && !m_page_enabled[index]) {
         ++index;
     }
     SelectPage(index < 4 ? index : -1);
@@ -200,30 +200,30 @@ void W8CharacterScreen::BuildControls()
 // FUNCTION: WIZ8 0x005b04b0
 void W8CharacterScreen::UpdateDialog()
 {
-    if (m_dialog_1b1c != 0) {
-        if (m_dialog_response_1b20 == 1) {
+    if (m_dialog != 0) {
+        if (m_dialog_response == 1) {
             gXStatus.character_event_queue->ProcessDeferredCharacterEvents();
             if (UpdateCharacterEventState() == 0 &&
-                static_cast<W8MessageDialogBase*>(m_dialog_1b1c)->close_result) {
-                m_dialog_1b1c->m_keep_open = false;
+                static_cast<W8MessageDialogBase*>(m_dialog)->close_result) {
+                m_dialog->m_keep_open = false;
             }
         }
-        if (m_dialog_1b1c->ProcessInput() == 0) {
+        if (m_dialog->ProcessInput() == 0) {
             ClearActiveRegionIfMatches(0x138);
-            m_controls_1af0->Invalidate(0);
-            m_pages_1b0c[m_page_index_00c]->Prepare();
-            m_header_dirty_010 = true;
+            m_controls->Invalidate(0);
+            m_pages[m_page_index]->Prepare();
+            m_header_dirty = true;
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored                                                                   \
     "-Wsometimes-uninitialized" // uninit-ok: uncaptured response can use a stale stack byte as acceptance
             unsigned char accepted;
-            if (m_capture_dialog_result_1b24) {
-                accepted = static_cast<W8MessageDialogBase*>(m_dialog_1b1c)->close_result;
-                m_capture_dialog_result_1b24 = 0;
+            if (m_capture_dialog_result) {
+                accepted = static_cast<W8MessageDialogBase*>(m_dialog)->close_result;
+                m_capture_dialog_result = 0;
             }
-            delete m_dialog_1b1c;
-            m_dialog_1b1c = 0;
-            HandleDialogResult(m_dialog_response_1b20, accepted);
+            delete m_dialog;
+            m_dialog = 0;
+            HandleDialogResult(m_dialog_response, accepted);
 #pragma clang diagnostic pop
         }
     }
@@ -242,84 +242,84 @@ void W8CharacterScreen::UpdateNavigation(W8CharacterPage* page)
         m_next_1af8->SetEnabled(next_enabled);
         m_next_1af8->Invalidate(0);
     }
-    if (m_exit_1afc->m_enabled != exit_enabled) {
-        m_exit_1afc->SetEnabled(exit_enabled);
-        m_exit_1afc->Invalidate(0);
+    if (m_exit->m_enabled != exit_enabled) {
+        m_exit->SetEnabled(exit_enabled);
+        m_exit->Invalidate(0);
     }
 }
 
 // FUNCTION: WIZ8 0x005b0610
 void W8CharacterScreen::ShowSpellInfo(int value)
 {
-    m_dialog_response_1b20 = 0;
-    m_dialog_1b1c = new W8SpellInfoDialog(value);
-    m_dialog_1b1c->SetText(&g_empty_wide_string);
+    m_dialog_response = 0;
+    m_dialog = new W8SpellInfoDialog(value);
+    m_dialog->SetText(&g_empty_wide_string);
     ActivateDialogRegion(0x138);
 }
 
 // FUNCTION: WIZ8 0x005b06a0
 void W8CharacterScreen::ShowProfessionInfo(unsigned int profession)
 {
-    m_dialog_response_1b20 = 0;
-    m_dialog_1b1c = new W8ProfessionInfoDialog(profession);
-    m_dialog_1b1c->SetText(&g_empty_wide_string);
+    m_dialog_response = 0;
+    m_dialog = new W8ProfessionInfoDialog(profession);
+    m_dialog->SetText(&g_empty_wide_string);
     ActivateDialogRegion(0x138);
 }
 
 // FUNCTION: WIZ8 0x005b0730
 void W8CharacterScreen::ShowRaceInfo(unsigned int race)
 {
-    m_dialog_response_1b20 = 0;
-    m_dialog_1b1c = new W8RaceInfoDialog(race);
-    m_dialog_1b1c->SetText(&g_empty_wide_string);
+    m_dialog_response = 0;
+    m_dialog = new W8RaceInfoDialog(race);
+    m_dialog->SetText(&g_empty_wide_string);
     ActivateDialogRegion(0x138);
 }
 
 // FUNCTION: WIZ8 0x005b07c0
 void W8CharacterScreen::ShowPrimaryAttributeInfo(unsigned int attribute)
 {
-    m_dialog_response_1b20 = 0;
-    m_dialog_1b1c = new W8AttributeInfoDialog(attribute);
-    m_dialog_1b1c->SetText(&g_empty_wide_string);
+    m_dialog_response = 0;
+    m_dialog = new W8AttributeInfoDialog(attribute);
+    m_dialog->SetText(&g_empty_wide_string);
     ActivateDialogRegion(0x138);
 }
 
 // FUNCTION: WIZ8 0x005b0850
 void W8CharacterScreen::ShowSecondaryAttributeInfo(unsigned int attribute)
 {
-    m_dialog_response_1b20 = 0;
-    m_dialog_1b1c = new W8SecondaryAttributeInfoDialog(attribute);
-    m_dialog_1b1c->SetText(&g_empty_wide_string);
+    m_dialog_response = 0;
+    m_dialog = new W8SecondaryAttributeInfoDialog(attribute);
+    m_dialog->SetText(&g_empty_wide_string);
     ActivateDialogRegion(0x138);
 }
 
 // FUNCTION: WIZ8 0x005b08e0
 void W8CharacterScreen::ShowSkillInfo(int value)
 {
-    m_dialog_response_1b20 = 0;
-    if (value == g_profession_bonus_skills[m_character_018.iProfession]) {
-        m_dialog_1b1c = new W8SkillInfoDialog(value, 0, 0, 1);
+    m_dialog_response = 0;
+    if (value == g_profession_bonus_skills[m_character.iProfession]) {
+        m_dialog = new W8SkillInfoDialog(value, 0, 0, 1);
     } else {
-        m_dialog_1b1c = new W8SkillInfoDialog(value, 0, 0, 0);
+        m_dialog = new W8SkillInfoDialog(value, 0, 0, 0);
     }
-    m_dialog_1b1c->SetText(&g_empty_wide_string);
+    m_dialog->SetText(&g_empty_wide_string);
     ActivateDialogRegion(0x138);
 }
 
 // FUNCTION: WIZ8 0x005b0a40
 void W8CharacterScreen::OnPrimary(W8TextControl* control)
 {
-    if (control == m_accept_1b00) {
-        if (m_mode_008 == 1 && !m_exit_1afc->m_enabled) {
+    if (control == m_accept) {
+        if (m_mode == 1 && !m_exit->m_enabled) {
             RequestScreenTransition();
         } else {
             ShowMessage(gppStringList[0xd3], 1, 2);
         }
-    } else if (control == m_exit_1afc) {
-        m_pages_1b0c[m_page_index_00c]->Accept();
+    } else if (control == m_exit) {
+        m_pages[m_page_index]->Accept();
     } else if (control == m_previous_1af4) {
-        int index = m_page_index_00c - 1;
-        while (index >= 0 && !m_page_enabled_1b08[index]) {
+        int index = m_page_index - 1;
+        while (index >= 0 && !m_page_enabled[index]) {
             --index;
         }
         if (index != -1) {
@@ -327,13 +327,13 @@ void W8CharacterScreen::OnPrimary(W8TextControl* control)
         }
     } else if (control == m_next_1af8) {
         AdvancePage(0);
-    } else if (control == m_reset_1b04) {
-        memset(m_page_enabled_1b08, 1, sizeof(m_page_enabled_1b08));
-        m_force_transition_1aee = 1;
-        InitializeCharacterCreation(&m_character_018, &m_creation_state_187c);
-        m_mode_008 = 0;
-        m_pages_1b0c[3]->m_mode_068 = 0;
-        m_reset_1b04->SetActive(0);
+    } else if (control == m_reset) {
+        memset(m_page_enabled, 1, sizeof(m_page_enabled));
+        m_force_transition = 1;
+        InitializeCharacterCreation(&m_character, &m_creation_state);
+        m_mode = 0;
+        m_pages[3]->m_mode = 0;
+        m_reset->SetActive(0);
         SelectPage(0);
     }
 }
@@ -345,40 +345,40 @@ void W8CharacterScreen::ShowDescription(int first, int second)
 {
     ShowMessage(FormatWideString(
                     gppStringList[0x1d6], gppStringList[g_character_description_first_ids[first]],
-                    m_character_018.name, gppStringList[g_character_skill_name_ids[second]]),
+                    m_character.name, gppStringList[g_character_skill_name_ids[second]]),
                 0, 0);
 }
 
 // FUNCTION: WIZ8 0x005b0a10
 void W8CharacterScreen::ShowCharacterSummary()
 {
-    m_dialog_response_1b20 = 1;
-    m_dialog_1b1c = CreateCharacterSummaryDialog(&m_character_018);
+    m_dialog_response = 1;
+    m_dialog = CreateCharacterSummaryDialog(&m_character);
     ActivateDialogRegion(0x138);
 }
 
 // FUNCTION: WIZ8 0x005b0b50
 void W8CharacterScreen::AdvancePage(bool forward)
 {
-    if (!forward || (m_page_index_00c != 3 && m_next_1af8->m_enabled)) {
-        int index = m_page_index_00c;
-        if (index == 1 && m_creation_state_187c.spell_points_remaining > 0 &&
-            !m_block_advance_1aec) {
+    if (!forward || (m_page_index != 3 && m_next_1af8->m_enabled)) {
+        int index = m_page_index;
+        if (index == 1 && m_creation_state.spell_points_remaining > 0 &&
+            !m_block_advance) {
             ShowMessage(gppStringList[0xc4], 1, 3);
             return;
         }
         if (index == 0) {
-            if (m_mode_008 == 2 && m_character_018.iProfession != m_original_014->iProfession &&
-                !m_confirm_profession_1aed) {
-                int value = ComputeRealmSkillDebt(m_original_014, &m_character_018);
+            if (m_mode == 2 && m_character.iProfession != m_original->iProfession &&
+                !m_confirm_profession) {
+                int value = ComputeRealmSkillDebt(m_original, &m_character);
                 if (value > 0) {
                     ShowMessage(
                         FormatWideString(
                             gppStringList[0xdb],
                             gppStringList
-                                [g_profession_name_message_ids[m_original_014->iProfession]],
+                                [g_profession_name_message_ids[m_original->iProfession]],
                             gppStringList
-                                [g_profession_name_message_ids[m_character_018.iProfession]],
+                                [g_profession_name_message_ids[m_character.iProfession]],
                             value),
                         1, 4);
                 } else {
@@ -386,29 +386,29 @@ void W8CharacterScreen::AdvancePage(bool forward)
                         FormatWideString(
                             gppStringList[0xda],
                             gppStringList
-                                [g_profession_name_message_ids[m_original_014->iProfession]],
+                                [g_profession_name_message_ids[m_original->iProfession]],
                             gppStringList
-                                [g_profession_name_message_ids[m_character_018.iProfession]]),
+                                [g_profession_name_message_ids[m_character.iProfession]]),
                         1, 4);
                 }
                 return;
             }
-            m_page_enabled_1b08[1] = m_creation_state_187c.spell_points_total > 0;
+            m_page_enabled[1] = m_creation_state.spell_points_total > 0;
         }
-        m_block_advance_1aec = 0;
-        m_confirm_profession_1aed = 0;
+        m_block_advance = 0;
+        m_confirm_profession = 0;
         do {
             ++index;
-        } while (index < 4 && !m_page_enabled_1b08[index]);
+        } while (index < 4 && !m_page_enabled[index]);
         if (index < 4) {
             SelectPage(index);
-        } else if (!m_force_transition_1aee) {
+        } else if (!m_force_transition) {
             if (CommitCharacter()) {
                 RequestScreenTransition();
-                if (m_mode_008 == 2 &&
-                    m_character_018.experience_goal <= m_character_018.experience) {
+                if (m_mode == 2 &&
+                    m_character.experience_goal <= m_character.experience) {
                     g_pending_screen_state.mode = 3;
-                    g_pending_screen_state.parameter_3 = m_original_014;
+                    g_pending_screen_state.parameter_3 = m_original;
                     SetPendingScreenState(W8_SCREEN_CHARACTER);
                 }
             }
@@ -421,12 +421,12 @@ void W8CharacterScreen::AdvancePage(bool forward)
 // FUNCTION: WIZ8 0x005b0d50
 void W8CharacterScreen::SelectPage(int index)
 {
-    if (m_page_index_00c >= 0) {
-        m_pages_1b0c[m_page_index_00c]->SetEnabled(0);
-        m_pages_1b0c[m_page_index_00c]->Deactivate();
+    if (m_page_index >= 0) {
+        m_pages[m_page_index]->SetEnabled(0);
+        m_pages[m_page_index]->Deactivate();
     }
     SyncCharacterForPage(index);
-    if (m_pages_1b0c[index] == 0) {
+    if (m_pages[index] == 0) {
         W8CharacterPage* page = 0;
         switch (index) {
         case 0:
@@ -443,20 +443,20 @@ void W8CharacterScreen::SelectPage(int index)
             break;
         }
         page->m_screen_05c = this;
-        page->SetCharacter(&m_character_018, &m_creation_state_187c, m_mode_008);
-        m_pages_1b0c[index] = page;
+        page->SetCharacter(&m_character, &m_creation_state, m_mode);
+        m_pages[index] = page;
     }
-    m_page_index_00c = index;
-    W8CharacterPage* page = m_pages_1b0c[index];
+    m_page_index = index;
+    W8CharacterPage* page = m_pages[index];
     page->Activate();
     page->SetEnabled(1);
 
     int previous = index - 1;
-    while (previous >= 0 && !m_page_enabled_1b08[previous])
+    while (previous >= 0 && !m_page_enabled[previous])
         --previous;
     m_previous_1af4->SetActive(previous != -1);
     int next = index + 1;
-    while (next < 4 && !m_page_enabled_1b08[next])
+    while (next < 4 && !m_page_enabled[next])
         ++next;
     if (next == 4) {
         m_next_1af8->m_normalSprite = 0x10;
@@ -473,29 +473,29 @@ void W8CharacterScreen::SelectPage(int index)
         m_next_1af8->m_disabledSprite = 0xb;
         m_next_1af8->EnableRegionHelp(0xdc);
     }
-    m_controls_1af0->Invalidate(0);
+    m_controls->Invalidate(0);
     page->Prepare();
-    m_header_dirty_010 = true;
+    m_header_dirty = true;
     UpdateNavigation(page);
 }
 
 // FUNCTION: WIZ8 0x005b0f30
 void W8CharacterScreen::SyncCharacterForPage(int index)
 {
-    if (m_page_index_00c > index)
+    if (m_page_index > index)
         return;
     if (index == 0) {
-        if (m_mode_008 == 0)
-            InitializeCharacterCreation(&m_character_018, &m_creation_state_187c);
-        else if (m_mode_008 == 2)
-            InitializeCharacterLevelUp(&m_character_018, &m_creation_state_187c);
+        if (m_mode == 0)
+            InitializeCharacterCreation(&m_character, &m_creation_state);
+        else if (m_mode == 2)
+            InitializeCharacterLevelUp(&m_character, &m_creation_state);
     } else if (index == 1) {
-        CountRemainingSpellPoints(&m_character_018, &m_creation_state_187c);
+        CountRemainingSpellPoints(&m_character, &m_creation_state);
     } else if (index == 3) {
-        if (m_character_018.personality_0081 < 0)
-            DeriveCharacterPersonality(&m_character_018);
-        if (m_character_018.portrait_index < 0)
-            CalcCharacterTableValue(&m_character_018);
+        if (m_character.personality < 0)
+            DeriveCharacterPersonality(&m_character);
+        if (m_character.portrait_index < 0)
+            CalcCharacterTableValue(&m_character);
     }
 }
 
@@ -506,20 +506,20 @@ void W8CharacterScreen::DrawHeader()
     DrawCatalogImageAndInvalidate(-14, 0x107, 0, 0, 0xc3, 0, 2, 0);
     W8ControlsRect bounds = {0xc3, 0, 0x285, 0x2c};
     text.SetLayoutBounds(&bounds, 1, 1);
-    text.SetText(gppStringList[g_character_page_title_ids[m_page_index_00c]],
+    text.SetText(gppStringList[g_character_page_title_ids[m_page_index]],
                  g_options_detail_font);
     text.RenderToTarget(0, 1, -14);
     DrawCatalogImageAndInvalidate(-14, 0x107, 0, 1, 0, 0, 2, 0);
 
-    if (m_mode_008 == 0) {
+    if (m_mode == 0) {
         DrawCatalogImage(-14, 0x107, 0, 2, 10, 0xc, 2, 0);
     } else {
         int frame =
-            m_original_014 == 0 ? m_character_018.portrait_index : m_original_014->portrait_index;
+            m_original == 0 ? m_character.portrait_index : m_original->portrait_index;
         DrawCatalogImage(-14, 0x11, frame, 0, 10, 0xc, 2, 0);
     }
 
-    if (m_mode_008 == 0 && m_page_index_00c == 0) {
+    if (m_mode == 0 && m_page_index == 0) {
         DrawCatalogImage(-14, 0x107, 0, 3, 5, 0xa5, 2, 0);
     } else {
         bounds.left = 5;
@@ -527,35 +527,35 @@ void W8CharacterScreen::DrawHeader()
         bounds.right = 0xc1;
         bounds.bottom = 0xdf;
         text.SetLayoutMode(g_W8TextBufferAlignTop | g_W8TextBufferAlignCenter);
-        if (m_mode_008 != 0) {
+        if (m_mode != 0) {
             text.SetLayoutBounds(&bounds, 1, 1);
-            text.SetText(m_character_018.name, g_wiz_text_font_secondary);
+            text.SetText(m_character.name, g_wiz_text_font_secondary);
             text.RenderToTarget(0, 1, -14);
         }
         bounds.top += 0xe;
         text.SetLayoutBounds(&bounds, 1, 1);
         text.SetText(
             FormatWideString(L"%s %s",
-                             gppStringList[g_gender_name_message_rows[m_character_018.gender][0]],
-                             gppStringList[g_race_name_message_ids[m_character_018.iRace]]),
+                             gppStringList[g_gender_name_message_rows[m_character.gender][0]],
+                             gppStringList[g_race_name_message_ids[m_character.iRace]]),
             g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
         bounds.top += 0xe;
         text.SetLayoutBounds(&bounds, 1, 1);
-        text.SetText(gppStringList[g_profession_name_message_ids[m_character_018.iProfession]],
+        text.SetText(gppStringList[g_profession_name_message_ids[m_character.iProfession]],
                      g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
         bounds.top += 0xe;
         text.SetLayoutBounds(&bounds, 1, 1);
         text.SetText(
             FormatWideString(
-                L"%s %d (%s)", gppStringList[0x6b9], m_character_018.uiExpLevel,
-                gppStringList[g_profession_level_name_message_ids[m_character_018.iProfession]
-                                                                 [m_character_018.level_band]]),
+                L"%s %d (%s)", gppStringList[0x6b9], m_character.uiExpLevel,
+                gppStringList[g_profession_level_name_message_ids[m_character.iProfession]
+                                                                 [m_character.level_band]]),
             g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
     }
-    m_header_dirty_010 = false;
+    m_header_dirty = false;
 }
 
 // FUNCTION: WIZ8 0x005b0fd0
@@ -564,34 +564,34 @@ bool W8CharacterScreen::CommitCharacter()
     if (!ValidateName())
         return false;
 
-    int mode = m_mode_008;
+    int mode = m_mode;
     W8Character backup;
-    memcpy(&backup, &m_character_018, sizeof(backup));
+    memcpy(&backup, &m_character, sizeof(backup));
     if (mode != 1) {
-        FinalizeCreatedCharacter(&m_character_018, &m_creation_state_187c, mode == 0);
+        FinalizeCreatedCharacter(&m_character, &m_creation_state, mode == 0);
     }
-    if (!g_status.game_started && !g_status.skip_loose_character_check_2444) {
-        if (m_original_014 != 0) {
+    if (!g_status.game_started && !g_status.skip_loose_character_check) {
+        if (m_original != 0) {
             char path[260];
-            BuildCharacterPath(path, m_original_014->name, -1);
+            BuildCharacterPath(path, m_original->name, -1);
             DeleteFileA(path);
         }
-        m_character_018.fInParty = false;
-        if (!SaveCharacter(&m_character_018, -1, 0, 0)) {
-            memcpy(&m_character_018, &backup, sizeof(m_character_018));
+        m_character.fInParty = false;
+        if (!SaveCharacter(&m_character, -1, 0, 0)) {
+            memcpy(&m_character, &backup, sizeof(m_character));
             ShowMessage(gppStringList[0xd4], 0, 0);
             return false;
         }
-        m_character_018.fInParty = backup.fInParty;
+        m_character.fInParty = backup.fInParty;
     }
-    if (m_original_014 != 0) {
-        bool was_in_party = m_original_014->fInParty;
-        memcpy(m_original_014, &m_character_018, sizeof(*m_original_014));
+    if (m_original != 0) {
+        bool was_in_party = m_original->fInParty;
+        memcpy(m_original, &m_character, sizeof(*m_original));
         if (was_in_party)
-            m_original_014->fInParty = true;
-        if (m_original_014->iProfession == W8_PROFESSION_GADGETEER)
-            UpgradeProfessionClassItem(m_original_014);
-        UnequipUnusableItems(m_original_014);
+            m_original->fInParty = true;
+        if (m_original->iProfession == W8_PROFESSION_GADGETEER)
+            UpgradeProfessionClassItem(m_original);
+        UnequipUnusableItems(m_original);
     }
     return true;
 }
@@ -603,9 +603,9 @@ bool W8CharacterScreen::CommitCharacter()
 void ResetCharacterScreenSkill(int skill_id)
 {
     W8CharacterScreen* screen = g_character_screen;
-    ResetSkillContribution(&screen->m_character_018, &screen->m_creation_state_187c, skill_id);
-    if (screen->m_pages_1b0c[2] != 0) {
-        screen->m_pages_1b0c[2]->Refresh();
+    ResetSkillContribution(&screen->m_character, &screen->m_creation_state, skill_id);
+    if (screen->m_pages[2] != 0) {
+        screen->m_pages[2]->Refresh();
     }
 }
 
@@ -613,26 +613,26 @@ void ResetCharacterScreenSkill(int skill_id)
 void RefundCharacterScreenSkill(int skill_id)
 {
     W8CharacterScreen* screen = g_character_screen;
-    RefundSkillAllocation(&screen->m_character_018, &screen->m_creation_state_187c, skill_id);
-    if (screen->m_pages_1b0c[2] != 0) {
-        screen->m_pages_1b0c[2]->Refresh();
+    RefundSkillAllocation(&screen->m_character, &screen->m_creation_state, skill_id);
+    if (screen->m_pages[2] != 0) {
+        screen->m_pages[2]->Refresh();
     }
 }
 
 // FUNCTION: WIZ8 0x005b1430
 void W8CharacterScreen::ShowMessage(wchar_t* text, int confirmation, int response)
 {
-    m_dialog_response_1b20 = response;
-    m_dialog_1b1c = new W8MessageDialogBase;
-    if (m_dialog_1b1c != 0) {
-        m_dialog_1b1c->SetExtent(0xf0, 0xbe);
-        m_dialog_1b1c->SetOrigin(0xa0, 100);
-        m_dialog_1b1c->SetBackground("Data\\Dialogs\\DialogBackground.sti", 0);
-        static_cast<W8MessageDialogBase*>(m_dialog_1b1c)->SetClientExtent(0xfa, 200);
-        static_cast<W8MessageDialogBase*>(m_dialog_1b1c)
+    m_dialog_response = response;
+    m_dialog = new W8MessageDialogBase;
+    if (m_dialog != 0) {
+        m_dialog->SetExtent(0xf0, 0xbe);
+        m_dialog->SetOrigin(0xa0, 100);
+        m_dialog->SetBackground("Data\\Dialogs\\DialogBackground.sti", 0);
+        static_cast<W8MessageDialogBase*>(m_dialog)->SetClientExtent(0xfa, 200);
+        static_cast<W8MessageDialogBase*>(m_dialog)
             ->SetMessage(text, 1, 0x32, 1, confirmation, 1, 1, 0, 0x15e);
         ActivateDialogRegion(0x138);
-        m_capture_dialog_result_1b24 = 1;
+        m_capture_dialog_result = 1;
     }
 }
 
@@ -645,18 +645,18 @@ void W8CharacterScreen::HandleDialogResult(int response, unsigned char accepted)
             RequestScreenTransition();
             break;
         case 3:
-            m_block_advance_1aec = 1;
+            m_block_advance = 1;
             AdvancePage(0);
             break;
         case 4:
-            m_confirm_profession_1aed = 1;
+            m_confirm_profession = 1;
             AdvancePage(0);
             break;
         case 5: {
-            int value = ComputeStartingEquipmentCost(&m_character_018);
+            int value = ComputeStartingEquipmentCost(&m_character);
             int next_response;
             wchar_t* format;
-            if (CanAffordStartingEquipment(&m_character_018)) {
+            if (CanAffordStartingEquipment(&m_character)) {
                 format = gppStringList[0xd7];
                 next_response = 6;
             } else {
@@ -667,19 +667,19 @@ void W8CharacterScreen::HandleDialogResult(int response, unsigned char accepted)
             break;
         }
         case 6:
-            FinalizeCreatedCharacter(&m_character_018, &m_creation_state_187c, 0);
-            RecruitCharacterIntoParty(m_original_014, &m_character_018, 1);
+            FinalizeCreatedCharacter(&m_character, &m_creation_state, 0);
+            RecruitCharacterIntoParty(m_original, &m_character, 1);
             RequestScreenTransition();
             break;
         case 7:
-            FinalizeCreatedCharacter(&m_character_018, &m_creation_state_187c, 0);
-            RecruitCharacterIntoParty(m_original_014, &m_character_018, 0);
+            FinalizeCreatedCharacter(&m_character, &m_creation_state, 0);
+            RecruitCharacterIntoParty(m_original, &m_character, 0);
             RequestScreenTransition();
             break;
         }
     } else if (response == 6) {
-        FinalizeCreatedCharacter(&m_character_018, &m_creation_state_187c, 0);
-        RecruitCharacterIntoParty(m_original_014, &m_character_018, 0);
+        FinalizeCreatedCharacter(&m_character, &m_creation_state, 0);
+        RecruitCharacterIntoParty(m_original, &m_character, 0);
         RequestScreenTransition();
     }
 }
@@ -687,12 +687,12 @@ void W8CharacterScreen::HandleDialogResult(int response, unsigned char accepted)
 // FUNCTION: WIZ8 0x005b1670
 bool W8CharacterScreen::ValidateName()
 {
-    if (m_original_014 != 0 && wcscmp(m_original_014->name, m_character_018.name) == 0) {
+    if (m_original != 0 && wcscmp(m_original->name, m_character.name) == 0) {
         return true;
     }
-    if (!g_status.game_started && !g_status.skip_loose_character_check_2444) {
+    if (!g_status.game_started && !g_status.skip_loose_character_check) {
         char path[260];
-        BuildCharacterPath(path, m_character_018.name, -1);
+        BuildCharacterPath(path, m_character.name, -1);
         if (FileExists(path)) {
             ShowMessage(gppStringList[0xd5], 0, 0);
             return false;
@@ -700,7 +700,7 @@ bool W8CharacterScreen::ValidateName()
     }
     for (int index = 0; index < W8_PARTY_SLOT_COUNT; ++index) {
         if (g_status.buffers.XChar[index].fOccupied &&
-            wcscmp(g_status.buffers.Char[index].name, m_character_018.name) == 0) {
+            wcscmp(g_status.buffers.Char[index].name, m_character.name) == 0) {
             ShowMessage(gppStringList[0xd5], 0, 0);
             return false;
         }
@@ -711,13 +711,13 @@ bool W8CharacterScreen::ValidateName()
 // FUNCTION: WIZ8 0x005b0120
 unsigned char W8CharacterScreen::HasDialog()
 {
-    return m_dialog_1b1c != 0;
+    return m_dialog != 0;
 }
 
 // FUNCTION: WIZ8 0x005b0130
 W8Character* W8CharacterScreen::GetOriginalCharacter()
 {
-    return m_original_014;
+    return m_original;
 }
 
 /* Retail's shared success return, also used by the screen lifecycle table. */
@@ -753,12 +753,12 @@ unsigned char CharacterScreenLeave(int leaving)
     if (leaving) {
         W8CharacterScreen* screen = g_character_screen;
         if (screen != 0) {
-            screen->m_pages_1b0c[screen->m_page_index_00c]->Deactivate();
+            screen->m_pages[screen->m_page_index]->Deactivate();
             for (int index = 0; index < 4; ++index) {
-                delete screen->m_pages_1b0c[index];
+                delete screen->m_pages[index];
             }
-            screen->m_controls_1af0->DestroyAllControls();
-            delete screen->m_controls_1af0;
+            screen->m_controls->DestroyAllControls();
+            delete screen->m_controls;
             delete screen;
         }
         g_character_screen = 0;
@@ -782,20 +782,20 @@ void CharacterScreenFrame(void)
     UpdateRegionMousePosition(point.x, point.y);
     while (DequeueEvent(&input) == 1) {
         W8CharacterScreen* screen = g_character_screen;
-        screen->m_pages_1b0c[screen->m_page_index_00c]->HandleInput(&input);
+        screen->m_pages[screen->m_page_index]->HandleInput(&input);
         if (!DispatchRegionInput(&input) && input.usEvent == KEY_DOWN) {
             if (input.usParam == 0xd || input.usParam == 0x27 || input.usParam == 0x4e) {
                 screen->AdvancePage(1);
             } else if (input.usParam == 0x1b) {
-                if (screen->m_mode_008 == 1 && !screen->m_exit_1afc->m_enabled) {
+                if (screen->m_mode == 1 && !screen->m_exit->m_enabled) {
                     RequestScreenTransition();
                 } else {
                     screen->ShowMessage(gppStringList[0xd3], 1, 2);
                 }
             } else if ((input.usParam == 0x25 || input.usParam == 0x42) &&
-                       screen->m_page_index_00c != 3) {
-                int index = screen->m_page_index_00c - 1;
-                while (index >= 0 && !screen->m_page_enabled_1b08[index])
+                       screen->m_page_index != 3) {
+                int index = screen->m_page_index - 1;
+                while (index >= 0 && !screen->m_page_enabled[index])
                     --index;
                 if (index != -1)
                     screen->SelectPage(index);
@@ -803,20 +803,20 @@ void CharacterScreenFrame(void)
         }
     }
     W8CharacterScreen* screen = g_character_screen;
-    if (screen->m_header_dirty_010)
+    if (screen->m_header_dirty)
         screen->DrawHeader();
-    screen->m_pages_1b0c[screen->m_page_index_00c]->Redraw();
-    screen->m_controls_1af0->Redraw();
-    if (screen->m_dialog_1b1c != 0)
-        screen->m_dialog_1b1c->Draw();
+    screen->m_pages[screen->m_page_index]->Redraw();
+    screen->m_controls->Redraw();
+    if (screen->m_dialog != 0)
+        screen->m_dialog->Draw();
     RenderFrame();
 }
 
 // FUNCTION: WIZ8 0x005b1ad0
 void RefreshCharacterScreenPartySlot(unsigned int)
 {
-    if (g_character_screen->m_dialog_1b1c != 0 && g_character_screen->m_dialog_response_1b20 == 1) {
-        static_cast<W8CharacterSummaryDialog*>(g_character_screen->m_dialog_1b1c)
+    if (g_character_screen->m_dialog != 0 && g_character_screen->m_dialog_response == 1) {
+        static_cast<W8CharacterSummaryDialog*>(g_character_screen->m_dialog)
             ->DrawPortraitAnimationFrame();
     }
 }

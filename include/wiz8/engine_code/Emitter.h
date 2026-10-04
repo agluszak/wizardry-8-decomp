@@ -40,8 +40,8 @@ public:
     unsigned char padding_099[3];
     /* Two LOD switch distances, scaled by the detail slider before they
        are compared. 0x004A7BE0 reads both with fmul, which types them. */
-    float lod_range_09c;
-    float lod_range_0a0;
+    float lod_near;
+    float lod_far;
     /* W8GrCycle itself reads these inherited bytes as the common selected
        cycle/subcycle and pending cycle. Missile and Spell use current_cycle
        for the same role; there is no separate Monster view. Only +0xa6 stays
@@ -50,9 +50,9 @@ public:
     signed char current_subcycle; /* 0xa5 */
     /* 0xa6: a forced subcycle pick; -1 means none, consumed once
        by the cycle-selection path then reset. */
-    signed char forced_subcycle_0a6;
+    signed char forced_subcycle;
     signed char pending_cycle;  /* 0xa7 */
-    float animation_radius_0a8; /* 0xa8: filled by GetAnimationRadius */
+    float animation_radius; /* 0xa8: filled by GetAnimationRadius */
 }; /* 0xac */
 
 static_assert(sizeof(W8EmitterHost) == 0xac, "W8EmitterHost_size_must_be_0xac");

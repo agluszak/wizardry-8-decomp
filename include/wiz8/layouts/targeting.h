@@ -34,26 +34,26 @@ struct W8TargetSource {
     srVector3T<float> point;
     /* 0x18: system-driven cast (retaliation/AI/trap): skips the backfire
        check and counts as already reported. */
-    unsigned char auto_cast_18;
+    unsigned char auto_cast;
     /* 0x19: the name-known flag SpellTargetString reads. */
-    unsigned char name_known_19;
+    unsigned char name_known;
     /* 0x1a: the cast's aim was already resolved; MonsterCanAimSpell retargeting
        is skipped. */
-    bool aim_resolved_1a;
+    bool aim_resolved;
     bool fReflection; /* 0x1b */
     bool fBackfire;   /* 0x1c */
     /* 0x1d: the cast's source was resolved to a point, not a creature;
        missile/spell paths then skip the monster's spell vertex. */
-    unsigned char point_source_1d;
+    unsigned char point_source;
     /* 0x1e: the attack's target ended up different from the one the slot row
        aimed at - a fumble reroll or a guardian interception replaced it. */
     unsigned char target_diverted;
     /* 0x1f: the precomputed cast difficulty item/tracked sources carry; the
-       spell engine reads it back when name_known_19 skips recomputation. */
-    unsigned char spell_difficulty_1f;
+       spell engine reads it back when name_known skips recomputation. */
+    unsigned char spell_difficulty;
     unsigned char unknown_20;
     /* 0x21: set on sources the item-spell path builds. */
-    unsigned char item_cast_21;
+    unsigned char item_cast;
     unsigned char unknown_22[0x12];
 }; /* 0x34 */
 
@@ -110,7 +110,7 @@ union W8ActionDetailBlock {
 }; /* 0x08 */
 static_assert(sizeof(W8ActionDetailBlock) == 0x08, "W8ActionDetailBlock_size");
 
-/* The combat actions a party slot row's action_03d and the level block's
+/* The combat actions a party slot row's action and the level block's
    selection_kind carry; ChooseCombatAction picks one and ChooseAction applies
    it. The names are the submenu help captions (string ids 0x52-0x5f): a menu-0
    entry's caption is the action its row selects. 10 and 11 are the two party

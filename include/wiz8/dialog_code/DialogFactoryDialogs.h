@@ -106,41 +106,41 @@ public:
     float m_field_07c;            /* 0x07c: 0.2 */
     float m_field_080;            /* 0x080: 0.9 */
     float m_field_084;            /* 0x084: 0.75 */
-    int m_fill_colour_088;        /* 0x088: highlight fill colour */
-    int m_text_button_08c;        /* 0x08c */
-    int m_second_text_button_090; /* 0x090 */
-    short m_inlay_image_094;      /* 0x094: DialogInlay inlay for 0x098 */
+    int m_fill_colour;        /* 0x088: highlight fill colour */
+    int m_text_button;        /* 0x08c */
+    int m_second_text_button; /* 0x090 */
+    short area_inlay;      /* 0x094: DialogInlay inlay for 0x098 */
     short padding_096;
-    int m_area_button_098;   /* 0x098: scrolling text area */
-    int m_up_button_09c;     /* 0x09c */
-    int m_up_image_0a0;      /* 0x0a0 */
-    int m_down_button_0a4;   /* 0x0a4 */
-    int m_down_image_0a8;    /* 0x0a8 */
-    int m_slider_button_0ac; /* 0x0ac */
-    int m_slider_image_0b0;  /* 0x0b0 */
-    short m_inlay_image_0b4; /* 0x0b4: DialogInlay inlay for 0x0b8 */
+    int m_area_button;   /* 0x098: scrolling text area */
+    int m_up_button;     /* 0x09c */
+    int m_up_image;      /* 0x0a0 */
+    int m_down_button;   /* 0x0a4 */
+    int m_down_image;    /* 0x0a8 */
+    int m_slider_button; /* 0x0ac */
+    int m_slider_image;  /* 0x0b0 */
+    short third_btn_inlay; /* 0x0b4: DialogInlay inlay for 0x0b8 */
     short padding_0b6;
-    int m_third_text_button_0b8; /* 0x0b8 */
-    int m_ok_button_0bc;         /* 0x0bc */
-    int m_ok_image_0c0;          /* 0x0c0 */
+    int m_third_text_button; /* 0x0b8 */
+    int m_ok_button;         /* 0x0bc */
+    int m_ok_image;          /* 0x0c0 */
     /* 0x0c4 and 0x0dc are click rectangles read by ProcessInput. The audited
        ctor/lifecycle/callback bodies contain no writes to either range. */
-    W8ControlsRect m_ok_rect_0c4;
+    W8ControlsRect m_ok_rect;
     int m_cancel_button_0d4; /* 0x0d4 */
     int m_cancel_image_0d8;  /* 0x0d8 */
-    W8ControlsRect m_cancel_rect_0dc;
+    W8ControlsRect m_cancel_rect;
     bool m_scrollable; /* 0x0ec: scrolling area is scrollable */
     unsigned char padding_0ed[3];
-    int m_first_visible_line_0f0; /* 0x0f0 */
-    int m_selected_line_0f4;      /* 0x0f4 */
-    short m_inlay_image_0f8;      /* 0x0f8: DialogEdge inlay for the text buttons */
-    short flags_0fa;
+    int m_first_visible_line; /* 0x0f0 */
+    int m_selected_line;      /* 0x0f4 */
+    short edge_inlay;      /* 0x0f8: DialogEdge inlay for the text buttons */
+    short flags;
 }; /* 0xfc */
 
 // VTABLE: WIZ8 0x005ef9f0
 class W8SplitAmountDialog : public W8DialogBase {
     /* NPCInteractionSubscreen's destroy callback reads m_taken_084 and
-       m_result_08c back out of the closing dialog. */
+       m_result back out of the closing dialog. */
     friend void OnNpcTradeSplitDialogDestroy(W8DialogBase* dialog);
 
 public:
@@ -183,13 +183,13 @@ private:
     /* 0x06c: the labels named by g_split_amount_string_ids; [2] shows the
        amount still remaining. */
     W8TextBuffer* m_text_buffers_06c[3];
-    W8DialogNumericInput* m_split_input_078;
+    W8DialogNumericInput* m_split_input;
     /* 0x07c: the numeric field while the cursor or keyboard owns it. */
-    W8DialogNumericInput* m_active_field_7c;
+    W8DialogNumericInput* m_active_field;
     int m_remaining_080; /* 0x080: total minus the field value */
     int m_taken_084;     /* 0x084: the field value */
     int m_total_088;     /* 0x088 */
-    int m_result_08c;    /* 0x08c: 1 confirms, 2 cancels */
+    int m_result;    /* 0x08c: 1 confirms, 2 cancels */
 }; /* 0x90 */
 
 static_assert(sizeof(W8ListBoxDialog) == 0xfc, "W8ListBoxDialog005CBB40_must_be_0xfc");
@@ -255,11 +255,11 @@ private:
     static void ScrollItemsToMouse(W8DialogButton* button);   /* 0x005CEAF0 */
 
 public:
-    W8Vector<W8WorldItem*> items_54;
-    W8GrowableVector<unsigned char> flags_64;
+    W8Vector<W8WorldItem*> items;
+    W8GrowableVector<unsigned char> flags;
     W8DialogButton* m_buttons_74[13];
-    int m_first_item_0a8;
-    W8WorldItem* m_item_group_0ac;
+    int m_first_item;
+    W8WorldItem* m_item_group;
 };
 
 static_assert(sizeof(W8TriggerItemPickerDialog) == 0xb0, "W8TriggerItemPickerDialog_must_be_0xb0");
@@ -269,9 +269,9 @@ static_assert(sizeof(W8TriggerItemPickerDialog) == 0xb0, "W8TriggerItemPickerDia
    OpenSplitStackDialog call site, the virtual SetText/SetOrigin calls
    on the result and DisplayCampDialog(W8DialogBase*). The constructor stores
    this vtable at +0; the listed slots are the ones that differ from
-   W8DialogBase (the rest reuse the base implementations). split_count_0c0 is
+   W8DialogBase (the rest reuse the base implementations). split_count is
    the count the destroy callback SplitStackDialogResult reads back
-   and split_result_0c8 is the dialog result kind it tests. */
+   and split_result is the dialog result kind it tests. */
 // VTABLE: WIZ8 0x005efb78
 class W8SplitItemDialog : public W8DialogBase {
 public:
@@ -313,19 +313,19 @@ private:
 
 public:
     W8DialogButton* m_buttons_054[10];       /* 0x054: minus/plus, frames, accept/cancel */
-    W8TextBuffer* m_texts_07c[14];           /* 0x07c */
-    W8DialogNumericInput* m_count_input_0b4; /* 0x0b4 */
+    W8TextBuffer* m_texts[14];           /* 0x07c */
+    W8DialogNumericInput* m_count_input; /* 0x0b4 */
     /* 0x0b8: the numeric field while a click or keypress owns it. */
-    W8DialogNumericInput* m_active_input_0b8;
+    W8DialogNumericInput* m_active_input;
     int m_remaining_0bc; /* 0x0bc: the count left in the source stack */
-    int split_count_0c0;
-    int m_stack_total_0c4; /* 0x0c4: stack_count when the dialog opened */
-    int split_result_0c8;
+    int split_count;
+    int m_stack_total; /* 0x0c4: stack_count when the dialog opened */
+    int split_result;
 
 private:
-    unsigned int m_kind_0cc;        /* 0x0cc: 0 inventory, 1 and 2 trade modes */
+    unsigned int m_kind;        /* 0x0cc: 0 inventory, 1 and 2 trade modes */
     W8ItemInstance* m_item_0d0;     /* 0x0d0 */
-    bool m_first_draw_0d4; /* 0x0d4: draw the item icon once */
+    bool m_first_draw; /* 0x0d4: draw the item icon once */
     unsigned char padding_0d5[3];
 };
 

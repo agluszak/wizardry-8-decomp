@@ -111,7 +111,7 @@ unsigned char InitializeNpcDatabase(void)
             return 0;
         }
         g_npc_records[index].item_stock_rules = 0;
-        if (g_npc_records[index].no_item_stock_9d == 0 && g_npc_records[index].version > 1) {
+        if (g_npc_records[index].no_item_stock == 0 && g_npc_records[index].version > 1) {
             entry_count = 0;
             if (!FileRead(handle, &entry_count, 4, &transferred)) {
                 FileClose(handle);
@@ -315,12 +315,12 @@ void ResetForNewGame(void)
 
     ResetGameStatus(1);
     ReleaseMessageStorage();
-    EmptyItemRecord(&g_status.item_in_hand_235b, 0, 1);
-    slot = g_status.party_item_pool_0021;
+    EmptyItemRecord(&g_status.item_in_hand, 0, 1);
+    slot = g_status.party_item_pool;
     do {
         EmptyItemRecord(slot, 0, 1);
         ++slot;
-    } while (slot < g_status.party_item_pool_0021 + 500);
+    } while (slot < g_status.party_item_pool + 500);
     id = g_starting_item_ids;
     do {
         if (*id != 0xffffffff) {

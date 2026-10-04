@@ -185,7 +185,7 @@ unsigned char OpenUseItemSelectView(int slot)
     RegionSetEnable(0x1a);
     SelectTextBox(2);
     ResetEditorStatusLine(-1);
-    g_level_block->text_box_visible_271 = 0;
+    g_level_block->text_box_visible = 0;
     CreateUseItemSelectControls();
     g_use_item_select_mode = -1;
     g_use_item_select_flags = 0;
@@ -227,7 +227,7 @@ void CloseUseItemSelectView(void)
         g_level_block->action_panel_visible = 0;
         SetTargetingMode(0);
         ResetEditorStatusLine(-1);
-        g_level_block->text_box_visible_271 = 1;
+        g_level_block->text_box_visible = 1;
         SelectTextBox(gXStatus.fCombatMode != 0);
         for (control = g_use_item_select_scroll_buttons;
              control < g_use_item_select_scroll_buttons + 3; control++) {
@@ -306,8 +306,8 @@ void RefreshUseItemSelectionForSlot(int party_slot)
             UseItemSelectFilterToggle();
             g_use_item_list_count = 0;
             g_selected_use_item_line = -1;
-            AppendUseItemListEntry(&g_status.item_in_hand_235b, &g_status.item_in_hand_235b, 0);
-            AppendUseItemListEntry(&g_status.item_in_hand_235b, &g_status.item_in_hand_235b, 1);
+            AppendUseItemListEntry(&g_status.item_in_hand, &g_status.item_in_hand, 0);
+            AppendUseItemListEntry(&g_status.item_in_hand, &g_status.item_in_hand, 1);
         }
         if (g_selected_use_item_line == -1) {
             srAssertFail("giReuseItemLineNumber != -1", MGSUSEITEMSELECT_CPP, 0x1fe, 0);
@@ -556,8 +556,8 @@ static void RebuildUseItemSelectList(int mode, W8ItemInstance* select)
     pass = 0;
     if (mode != 0) {
         do {
-            for (i = 0; i < g_status.party_item_count_1791; i++) {
-                if (!AppendUseItemListEntry(&g_status.party_item_pool_0021[i], select, pass)) {
+            for (i = 0; i < g_status.party_item_count; i++) {
+                if (!AppendUseItemListEntry(&g_status.party_item_pool[i], select, pass)) {
                     return;
                 }
             }
@@ -891,7 +891,7 @@ unsigned char UseItemSelectTextBoxRegionEvent(const InputAtom* event, W8Region* 
             row = (y - g_level_block->text_box_top) / 0xb;
             if (row != g_use_item_hover_row) {
                 ClearTextSlot1D8(2);
-                if (row < static_cast<int>(g_status.text_box_lines_shown_49a7[2])) {
+                if (row < static_cast<int>(g_status.text_box_lines_shown[2])) {
                     SelectTextSlot1D8(g_level_block->text_lines[2] + row, 2);
                 }
                 RedrawTextBox();
@@ -909,7 +909,7 @@ unsigned char UseItemSelectTextBoxRegionEvent(const InputAtom* event, W8Region* 
             return 1;
         }
         row = (y - g_level_block->text_box_top) / 0xb;
-        if (row < static_cast<int>(g_status.text_box_lines_shown_49a7[2]) &&
+        if (row < static_cast<int>(g_status.text_box_lines_shown[2]) &&
             g_use_item_list[g_level_block->text_lines[2] + row] != 0) {
             OpenUseItemAssayDialog(g_use_item_list[g_level_block->text_lines[2] + row]);
         }
@@ -931,7 +931,7 @@ void UseItemSelectTextBoxWheelAt(short x, unsigned short y, bool flag)
     row = (y - g_level_block->text_box_top) / 0xb;
     if (row != g_use_item_hover_row || flag != 0) {
         ClearTextSlot1D8(2);
-        if (row < static_cast<int>(g_status.text_box_lines_shown_49a7[2])) {
+        if (row < static_cast<int>(g_status.text_box_lines_shown[2])) {
             SelectTextSlot1D8(g_level_block->text_lines[2] + row, 2);
         }
         RedrawTextBox();
@@ -1065,25 +1065,25 @@ void TakeUseItemIntoHand(void)
     unsigned int old_count;
 
     if (g_status.item_in_cursor == 0) {
-        CopyItemInstance(&g_status.item_in_hand_235b, g_use_item_selected, 0, 1);
+        CopyItemInstance(&g_status.item_in_hand, g_use_item_selected, 0, 1);
         return;
     }
     if (g_use_item_owner_index == -1) {
         srAssertFail("giUseItemChar != BAD_INDEX", MGSUSEITEMSELECT_CPP, 0x6c1, 0);
     }
-    old_count = g_status.party_item_count_1791;
-    GiveItemToCharacterOrParty(g_use_item_owner_index, &g_status.item_in_hand_235b, 1);
-    if (g_use_item_select_mode == 1 && old_count != g_status.party_item_count_1791 &&
-        g_status.party_item_count_1791 != 0) {
-        for (i = 0; i < g_status.party_item_count_1791; i++) {
-            if (g_use_item_selected == &g_status.party_item_pool_0021[i]) {
-                g_use_item_selected = &g_status.party_item_pool_0021[i + 1];
-                CopyItemInstance(&g_status.item_in_hand_235b, g_use_item_selected, 0, 1);
+    old_count = g_status.party_item_count;
+    GiveItemToCharacterOrParty(g_use_item_owner_index, &g_status.item_in_hand, 1);
+    if (g_use_item_select_mode == 1 && old_count != g_status.party_item_count &&
+        g_status.party_item_count != 0) {
+        for (i = 0; i < g_status.party_item_count; i++) {
+            if (g_use_item_selected == &g_status.party_item_pool[i]) {
+                g_use_item_selected = &g_status.party_item_pool[i + 1];
+                CopyItemInstance(&g_status.item_in_hand, g_use_item_selected, 0, 1);
                 return;
             }
         }
     }
-    CopyItemInstance(&g_status.item_in_hand_235b, g_use_item_selected, 0, 1);
+    CopyItemInstance(&g_status.item_in_hand, g_use_item_selected, 0, 1);
 }
 
 // FUNCTION: WIZ8 0x0059E1E0

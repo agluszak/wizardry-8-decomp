@@ -20,29 +20,29 @@ struct W8OctRegionPolygon {
        across regions (cleared with bit3 after the duplicate pass). */
     unsigned long flags_00;
     /* 1-based ordinal into the geometry polygon array. */
-    unsigned long ordinal_04;
-    W8Plane plane_08; /* unit normal plus signed distance */
+    unsigned long ordinal;
+    W8Plane plane; /* unit normal plus signed distance */
     srVector3T<float> position_18;
     /* Canonical material-group index assigned by the material sort. */
-    unsigned long material_24;
+    unsigned long material;
     /* The per-polygon texture/material index CreateSubMeshes copies into
        OctMeshModel's m_plPolyTextures row. */
-    unsigned long texture_28;
+    unsigned long texture;
     /* The automesh kind (1..3) SplitMeshes partitions polygon lists on. */
-    unsigned long kind_2c;
+    unsigned long kind;
     /* Set by the polygon builder when the face collapses. */
-    unsigned char degenerate_30;
-    bool visited_31;
-    unsigned short region_32;
+    unsigned char degenerate;
+    bool visited;
+    unsigned short region;
     /* Corner vertices of the shared build-vertex array; the material sort
        and SplitVertices repoint these at split copies. */
-    W8OctPreTreeVertex* vertices_34[3];
-    unsigned short face_count_40;
+    W8OctPreTreeVertex* vertices[3];
+    unsigned short face_count;
     unsigned char padding_42[2];
     /* Growable per-polygon run the cleanup releases. */
-    int* face_indices_44;
+    int* face_indices;
     /* Whole source mesh face copied by the polygon builder. */
-    W8ReadMeshFace face_48;
+    W8ReadMeshFace face;
     unsigned char padding_71[3];
 
     /* Tests the polygon's representative point against six frustum planes;
@@ -103,9 +103,9 @@ struct OctBuildPreTree : W8OctBuildTree {
        the build. */
     unsigned short LoadRegionFile(const char* stem, srVector3T<float>* minimum,
                                   srVector3T<float>* maximum);
-    /* Walks the node tree remapping leaf region ids through region_remap_100. */
+    /* Walks the node tree remapping leaf region ids through region_remap. */
     void RemapNodeRegions(W8OctBuildNode* node, int depth);
-    /* Assigns a polygon's region_32 from the region volume containing its
+    /* Assigns a polygon's region from the region volume containing its
        representative point, falling back to the corner vertices' regions;
        marks multi-region polygons with flags bit2 and counts the assignment
        on the volume. */
@@ -117,39 +117,39 @@ struct OctBuildPreTree : W8OctBuildTree {
     /* Resolves a shared polygon (flags bit2): histograms the neighboring
        polygons' regions collected through the corner vertices' face runs,
        picks the most frequent region the polygon actually touches, assigns it
-       and counts it on the volume. Answers the polygon's region_32. */
+       and counts it on the volume. Answers the polygon's region. */
     unsigned short SplitSharedPolygon(W8OctPreTreeGeometry* geometry, int index);
 
     unsigned long path_capacity_bc;
-    unsigned short selected_depth_c0;
+    unsigned short selected_depth;
     unsigned short padding_c2;
-    unsigned long level_counts_c4[10];
+    unsigned long level_counts[10];
     unsigned long* m_pulRegPaths;
-    unsigned long region_path_count_f0;
-    bool mesh_linking_f4;
+    unsigned long region_path_count;
+    bool mesh_linking;
     unsigned char padding_f5[3];
-    BitArray* region_bits_f8;
+    BitArray* region_bits;
     srVector3T<float>* m_psrvRegCenters;
     /* Region remap table indexed by old region id; RemapNodeRegions frees it
        after rewriting every leaf's region list through it. */
-    unsigned short* region_remap_100;
-    unsigned short* mesh_particle_lookup_104;
-    unsigned short* mesh_particles_108;
-    unsigned short mesh_particle_count_10c;
+    unsigned short* region_remap;
+    unsigned short* mesh_particle_lookup;
+    unsigned short* mesh_particles;
+    unsigned short mesh_particle_count;
     unsigned short padding_10e;
-    unsigned short* mesh_prop_lookup_110;
-    unsigned short* mesh_props_114;
-    unsigned short mesh_prop_count_118;
+    unsigned short* mesh_prop_lookup;
+    unsigned short* mesh_props;
+    unsigned short mesh_prop_count;
     unsigned short padding_11a;
     unsigned long particle_count_11c;
-    unsigned long prop_count_120;
-    W8HashTable<unsigned short, unsigned long>* region_path_map_124;
-    /* Allocated next to region_path_map_124 but never read, inserted into, or
+    unsigned long prop_count;
+    W8HashTable<unsigned short, unsigned long>* region_path_map;
+    /* Allocated next to region_path_map but never read, inserted into, or
        freed in recovered code - dead table kept for layout fidelity. */
-    W8HashTable<unsigned int, short>* positional_128;
-    W8HashTable<unsigned short, short>* inside_region_map_12c;
-    W8HashTable<unsigned short, short>* overlap_region_map_130;
-    W8OctPreTreeGeometry* game_data_134;
+    W8HashTable<unsigned int, short>* positional;
+    W8HashTable<unsigned short, short>* inside_region_map;
+    W8HashTable<unsigned short, short>* overlap_region_map;
+    W8OctPreTreeGeometry* game_data;
     unsigned long unknown_138;
     unsigned long unknown_13c;
 };

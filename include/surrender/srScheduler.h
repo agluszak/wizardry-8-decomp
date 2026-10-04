@@ -29,15 +29,15 @@ public:
 
 private:
     struct WorkerSlot {
-        long thread_handle_00;
-        srScheduler* scheduler_04;
+        long thread_handle;
+        srScheduler* scheduler;
     };
 
     struct QueueEntry {
         Job* job_00;
         QueueEntry* next_04;
-        QueueEntry* previous_08;
-        long state_0c;
+        QueueEntry* previous;
+        long state;
     };
 
     static_assert(sizeof(WorkerSlot) == 0x08, "srScheduler_WorkerSlot_must_be_0x08");
@@ -56,13 +56,13 @@ private:
        slot's handle. Takes the WorkerSlot as the raw void* thread argument. */
     static void __cdecl workerEntry(void* argument);
 
-    WorkerSlot workers_00[4];
+    WorkerSlot workers[4];
     srHashTable<Job*, QueueEntry*> lookup_20;
-    QueueEntry* first_job_30;
-    QueueEntry* last_job_34;
-    long job_count_38;
-    long worker_count_3c;
-    srCriticalSection* critical_section_40;
+    QueueEntry* first_job;
+    QueueEntry* last_job;
+    long job_count;
+    long worker_count;
+    srCriticalSection* critical_section;
 };
 
 static_assert(sizeof(srScheduler) == 0x44, "srScheduler_must_be_0x44");

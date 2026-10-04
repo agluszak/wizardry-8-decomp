@@ -31,11 +31,11 @@ public:
     virtual const TriMesh& getTriMesh() override; /* 0x00472270 */
     virtual void renderTriMesh(class srGERD& renderer,
                                const TriMesh& mesh) override; /* 0x00470360 */
-    /* Shared Wizardry-extended tri-mesh submit. `poly_equations` null skips
+    /* Shared Wizardry-extended tri-mesh submit. `poly_normals` null skips
        the software backface pass; non-null callers supply polygon normals used
        to build the active-polygon scratch at 0x00659ce0. */
     void RenderTriMeshWithEquations(class srGERD& renderer, const TriMesh& mesh,
-                                    const srVector3T<float>* poly_equations); /* 0x00470380 */
+                                    const srVector3T<float>* poly_normals); /* 0x00470380 */
 
     int FindMappedIndex(short key); /* 0x004712D0 */
     void SetMappedVertex(short vertex, short key);
@@ -74,16 +74,16 @@ public:
     stMeshModel* next;     /* 0x398 */
     stMeshModel* previous; /* 0x39c */
     unsigned int flags_3a0;
-    srVector3T<float> ambient_color_3a4;
-    int vertex_light_table_3b0;
+    srVector3T<float> ambient_color;
+    int vertex_light_table;
     /* m_pVertLights: per-vertex static lighting, zero-filled on demand; table
-       -1 selects vertex_light_table_3b0. */
-    srHeapBuffer<srVector3T<float> > vertex_lights_3b4[2];
+       -1 selects vertex_light_table. */
+    srHeapBuffer<srVector3T<float> > vertex_lights[2];
     /* Per-vertex sunlight intensity, filled with 1.0f on demand. */
-    srHeapBuffer<float> vertex_sunlight_3c4;
-    unsigned char duplicate_on_reuse_3cc;
+    srHeapBuffer<float> vertex_sunlight;
+    unsigned char duplicate_on_reuse;
     /* Set once both vertex lights and sunlight exist. */
-    bool vertex_lighting_ready_3cd;
+    bool vertex_lighting_ready;
     unsigned char padding_3ce[2];
     /* uiFrames: per-frame tables below hold one pointer per frame. The
        decompressed float caches are srHeap allocations and are counted in
@@ -101,18 +101,18 @@ public:
     W8GrowableVector<char*> skin_table_names;                     /* 0x410 */
     W8GrowableVector<short> mapped_values;                        /* 0x420 */
     W8GrowableVector<short> mapped_keys;                          /* 0x430 */
-    unsigned long last_decompress_release_tick_440;
-    float vertex_compression_scale_444;
+    unsigned long last_decompress_release_tick;
+    float vertex_compression_scale;
     /* m_pLerpBuffer: interpolation scratch for GetVertexLocations; an srHeap
        allocation that is not counted in g_decompressed_mesh_bytes. */
-    srVector3T<float>* lerp_buffer_448;
+    srVector3T<float>* lerp_buffer;
     unsigned long* automap_polygons;    /* 0x44c */
     unsigned int automap_polygon_count; /* 0x450 */
     bool automap_filter_active;         /* 0x454 */
     unsigned char padding_455[3];
-    W8GrowableVector<unsigned long*>* skin_blanking_apt_458;
-    W8GrowableVector<int>* skin_blanking_apt_number_45c;
-    W8GrowableVector<unsigned char>* skin_blanking_checked_460;
+    W8GrowableVector<unsigned long*>* skin_blanking_apt;
+    W8GrowableVector<int>* skin_blanking_apt_number;
+    W8GrowableVector<unsigned char>* skin_blanking_checked;
 };
 
 static_assert(sizeof(stMeshModel) == 0x464, "stMeshModel_size_must_be_0x464");

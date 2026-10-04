@@ -49,9 +49,9 @@ struct W8SpellEffectDefinition {
     unsigned char condition_chances[0x10];
     int power_level; /* 0x18 */
     /* 0x1c: flat base added to the effect dice (SetDice's `base`); sourced
-       from the attack's missile_magnitude_1b, the item's missile_magnitude_060, or
-       the missile table's magnitude_base_150. */
-    int magnitude_base_1c;
+       from the attack's missile_magnitude, the item's missile_magnitude, or
+       the missile table's magnitude_base. */
+    int magnitude_base;
     int duration_scale;     /* 0x20 */
     unsigned int percent;   /* 0x24 */
     int duration_base;      /* 0x28 */
@@ -79,7 +79,7 @@ struct W8SpellEffectResult {
     unsigned int notice_values[6];
     /* 0x80: the report came from a non-verbose resolution pass and still
        needs to be folded into the shared attack report. */
-    bool deferred_80;
+    bool deferred;
     /* 0x81: raised when the swing missed entirely, which is what lets the
        notice pass distinguish "missed" from "no effect". */
     bool missed;
@@ -103,15 +103,15 @@ struct W8SpellEffectEntry {
         memset(&Source, 0, sizeof(Source));
         memset(&target, 0, sizeof(target));
         memset(&definition, 0, sizeof(definition));
-        recast_120 = 0;
-        sustained_121 = 0;
-        missiles_pending_122 = 0;
-        targets_resolved_123 = 0;
-        reported_124 = false;
-        applied_125 = false;
+        recast = 0;
+        sustained = 0;
+        missiles_pending = 0;
+        targets_resolved = 0;
+        reported = false;
+        applied = false;
         /* The retail rep-stosd zeroes the whole result block, including the
            reports vector's freshly assigned vftable at 0x17e. */
-        memset(&result_126, 0, sizeof(result_126));
+        memset(&result, 0, sizeof(result));
     }
 
     int kind;            /* 0x000 */
@@ -134,30 +134,30 @@ struct W8SpellEffectEntry {
        indices depending on the effect path. */
     /* The two integer lists are base-class vectors: their retail member
        constructors write only the W8GrowableVector<int> vftable. */
-    W8GrowableVector<int> monster_ids_0e0;    /* 0x0e0 */
-    W8GrowableVector<int> target_indices_0f0; /* 0x0f0 */
+    W8GrowableVector<int> monster_ids;    /* 0x0e0 */
+    W8GrowableVector<int> target_indices; /* 0x0f0 */
     /* 0x100/0x110: spawned visuals and owned missiles. Their constructors
        install a base vector table followed by the derived table. */
     W8Vector<W8SpellVisual*> spell_visuals; /* 0x100 */
     W8Vector<W8Missile*> missiles;          /* 0x110 */
     /* 0x120: when the effect ends without having applied, the tick re-casts
        the spell from the stored source. CastSpellFromSource's `c` argument. */
-    bool recast_120;
+    bool recast;
     /* 0x121: sustained effect - ticks once per turn while turns_remaining
        counts down (set for the monster-control spell 0x26). */
-    bool sustained_121;
+    bool sustained;
     /* 0x122: missiles carrying the effect are still in flight; the tick
        releases them and spawns the impact visual before resolving. */
-    bool missiles_pending_122;
+    bool missiles_pending;
     /* 0x123: the non-missile path has already run ProcessSpellEffectTargets;
        skips re-resolution and gates the post-resolution bookkeeping. */
-    bool targets_resolved_123;
+    bool targets_resolved;
     /* 0x124: set once this effect's result has been reported. */
-    bool reported_124;
+    bool reported;
     /* 0x125: set by a handler that actually landed its effect; the result
        report picks its message from this flag. */
-    bool applied_125;
-    W8SpellEffectResult result_126; /* 0x126 */
+    bool applied;
+    W8SpellEffectResult result; /* 0x126 */
 };
 
 static_assert(sizeof(W8SpellEffectEntry) == 0x1c8, "W8SpellEffectEntry_must_be_0x1c8");
@@ -165,15 +165,15 @@ static_assert(offsetof(W8SpellEffectEntry, OrigSource) == 0x008, "W8SpellEffectE
 static_assert(offsetof(W8SpellEffectEntry, Source) == 0x05c, "W8SpellEffectEntry_Source");
 static_assert(offsetof(W8SpellEffectEntry, target) == 0x090, "W8SpellEffectEntry_target");
 static_assert(offsetof(W8SpellEffectEntry, definition) == 0x0b0, "W8SpellEffectEntry_definition");
-static_assert(offsetof(W8SpellEffectEntry, monster_ids_0e0) == 0x0e0,
+static_assert(offsetof(W8SpellEffectEntry, monster_ids) == 0x0e0,
               "W8SpellEffectEntry_monster_ids");
-static_assert(offsetof(W8SpellEffectEntry, target_indices_0f0) == 0x0f0,
+static_assert(offsetof(W8SpellEffectEntry, target_indices) == 0x0f0,
               "W8SpellEffectEntry_target_indices");
 static_assert(offsetof(W8SpellEffectEntry, spell_visuals) == 0x100,
               "W8SpellEffectEntry_spell_visuals");
 static_assert(offsetof(W8SpellEffectEntry, missiles) == 0x110, "W8SpellEffectEntry_missiles");
-static_assert(offsetof(W8SpellEffectEntry, reported_124) == 0x124, "W8SpellEffectEntry_reported");
-static_assert(offsetof(W8SpellEffectEntry, result_126) == 0x126, "W8SpellEffectEntry_result");
+static_assert(offsetof(W8SpellEffectEntry, reported) == 0x124, "W8SpellEffectEntry_reported");
+static_assert(offsetof(W8SpellEffectEntry, result) == 0x126, "W8SpellEffectEntry_result");
 
 extern W8GrowableVector<W8SpellEffectEntry*> g_spell_effects;
 

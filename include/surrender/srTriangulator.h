@@ -15,13 +15,13 @@ public:
         public:
             long index_00;
             Node* next_04;
-            Node* prev_08;
+            Node* prev;
         };
 
         static_assert(sizeof(Node) == 0xc, "CircularList_Node_must_be_0xc");
 
         /* Value-type iterator; operator+ walks next_04 and operator- walks
-           prev_08 the requested number of links. */
+           prev the requested number of links. */
         class ListIterator {
         public:
             ListIterator operator+(int distance) const;
@@ -38,7 +38,7 @@ public:
         void erase(ListIterator position);
 
         long count_00;
-        Node* nodes_04;
+        Node* nodes;
     };
 
     static_assert(sizeof(CircularList) == 0x8, "CircularList_must_be_0x8");
@@ -54,8 +54,8 @@ private:
                          const srVector2T<float>& b, const srVector2T<float>& c);
     int satisfyConstraints(CircularList::ListIterator iterator);
 
-    CircularList::ListIterator current_00;
-    CircularList list_04;
+    CircularList::ListIterator current;
+    CircularList list;
     srVector2T<float>* points_0c;
 };
 

@@ -94,7 +94,7 @@ static long __cdecl srVsnprintf(char* buffer, unsigned long size, const char* fo
 // FUNCTION: SURRENDER 0x10033330
 long __cdecl srDebugPrintf(unsigned long level, const char* format, ...)
 {
-    if (level >= (srCore.debug_level_15c & 0xff)) {
+    if (level >= (srCore.debug_level & 0xff)) {
         return 0;
     }
     if (format == 0) {

@@ -29,7 +29,7 @@ struct W8WorldItem {
     W8WorldItem* next; /* 0x31 */
     /* 0x35: vertical velocity while flag bit 1 (falling) is set; cleared on
        ground settle. */
-    float vertical_velocity_35;
+    float vertical_velocity;
     int sector_id; /* 0x39 */
     unsigned char unknown_3d[0x70];
 }; /* 0xad */

@@ -49,8 +49,8 @@ public:
 
         srBinIStream* stream_00;
         unsigned char cache_04[0x80];
-        long cache_base_84;
-        long bit_pos_88;
+        long cache_base;
+        long bit_pos;
     };
 
     class
@@ -90,7 +90,7 @@ public:
     public:
         struct Symbol {
             unsigned long symbol_00;
-            unsigned long frequency_04;
+            unsigned long frequency;
         };
 
         SR_DLL_IMPORT Sampler();
@@ -119,7 +119,7 @@ public:
     public:
         struct Node {
             unsigned long symbol_00;
-            unsigned long frequency_04;
+            unsigned long frequency;
             unsigned long code_08;
             unsigned long bits_0c;
             Node* next_10;
@@ -147,10 +147,10 @@ public:
 
         srHashTable<unsigned long, Node*> table_00;
         Node* nodes_10;
-        Node* free_list_14;
+        Node* free_list;
         Node* root_18;
-        unsigned long num_symbols_1c;
-        unsigned long code_width_20;
+        unsigned long num_symbols;
+        unsigned long code_width;
         unsigned long total_24;
 
     private:
@@ -176,7 +176,7 @@ public:
     private:
         struct Symbol {
             unsigned long value_00;
-            Symbol* children_04[2];
+            Symbol* children[2];
         };
 
         Decompressor(const Decompressor& other);
@@ -187,10 +187,10 @@ public:
         BitIStream* stream_00;
         Symbol* symbols_04;
         unsigned long next_node_08;
-        unsigned long code_width_0c;
+        unsigned long code_width;
         unsigned long unknown_10;
-        unsigned long num_symbols_14;
-        unsigned long data_count_18;
+        unsigned long num_symbols;
+        unsigned long data_count;
         Symbol* lookup_1c[0x100];
         unsigned char depth_41c[0x100];
     };

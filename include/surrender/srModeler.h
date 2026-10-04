@@ -211,7 +211,7 @@ public:
             unsigned long flags_00;
             /* Signed: the AutoSmoother worker's max scan in modeler.cpp
                compares it against its long vertex count with a signed JGE. */
-            long shade_index_04;
+            long shade_index;
             Vertex* vertex_08;
             Entry* next_0c;
             unsigned long index_10;
@@ -223,9 +223,9 @@ public:
         static unsigned long hash(double x, double y, double z);
 
         Entry* entries_00;
-        Entry* buckets_04[1024];
+        Entry* buckets[1024];
         Entry** table_1004;
-        unsigned long unique_count_1008;
+        unsigned long unique_count;
     };
 
 private:
@@ -234,7 +234,7 @@ private:
 
     unsigned long triangle_count_04;
     srArray<Triangle> triangles_08;
-    long pass_count_10;
+    long pass_count;
 };
 
 static_assert((sizeof(srModeler) == 0x14), "srModeler_must_be_0x14");

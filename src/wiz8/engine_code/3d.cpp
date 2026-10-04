@@ -172,7 +172,7 @@ unsigned char BakeInstanceVertexLighting(stModelInstance* instance, srNode* ligh
             vertices = mesh->getVertexLoc();
             normals = mesh->getVertexNormal();
         }
-        unsigned long count = mesh->vertex_location_count_22c;
+        unsigned long count = mesh->vertex_location_count;
 
         srVector3T<float>* world_vertices = vertices;
         if (rotation.vectors[0].x != g_float_one || rotation.vectors[1].y != g_float_one ||
@@ -236,7 +236,7 @@ unsigned char BakeInstanceVertexLighting(stModelInstance* instance, srNode* ligh
             if (light_node->getClassID() == stLight::CLASS_ID &&
                 _strnicmp(light_node->getName(), "Sun", 3) != 0) {
                 stLight* light = static_cast<stLight*>(light_node);
-                srVector3T<float> attenuation = light->opengl_attenuation_188;
+                srVector3T<float> attenuation = light->opengl_attenuation;
                 float range =
                     static_cast<float>(g_double_005ec428 / (attenuation.y * g_double_005ec430));
                 srVector3T<float> light_position;
@@ -329,7 +329,7 @@ unsigned char BakeInstanceVertexLighting(stModelInstance* instance, srNode* ligh
 }
 
 /* Bake the dynamic scene's light children into every not-yet-lit model
-   instance under one static-scene subtree. render_flags_178 bit 1 is the instance's
+   instance under one static-scene subtree. render_flags bit 1 is the instance's
    own lit marker; the child-chain exclusion update uses the shared helper. */
 // FUNCTION: WIZ8 0x0046F410
 unsigned char FinalizeWorldScenes(srNode* node, srNode* dynamic_scene)
@@ -346,15 +346,15 @@ unsigned char FinalizeWorldScenes(srNode* node, srNode* dynamic_scene)
     return 1;
 }
 
-/* Bake dynamic-scene lights into one not-yet-lit model instance. render_flags_178
+/* Bake dynamic-scene lights into one not-yet-lit model instance. render_flags
    bit 1 is the lit marker. */
 // FUNCTION: WIZ8 0x0046F4A0
 unsigned char BakeInstanceVertexLightingIfNeeded(stModelInstance* instance, srNode* dynamic_scene)
 {
     srNode* lights = dynamic_scene->first_child_;
 
-    if ((instance->render_flags_178 & 2) == 0) {
-        instance->render_flags_178 |= 2;
+    if ((instance->render_flags & 2) == 0) {
+        instance->render_flags |= 2;
         SetModelInstanceChainExclusionMask(instance, 1);
         BakeInstanceVertexLighting(instance, lights, 1);
     }
@@ -370,7 +370,7 @@ void SetWorldMeshVertexLightTable(W8World* world, int table)
     if (world->octree == 0) {
         for (stMeshModel* model = static_cast<stMeshModel*>(world->update_mesh_source->getModel());
              model != 0; model = model->next) {
-            model->vertex_light_table_3b0 = table;
+            model->vertex_light_table = table;
             model->flags_3a0 |= 2;
         }
     } else {
@@ -379,7 +379,7 @@ void SetWorldMeshVertexLightTable(W8World* world, int table)
             if (instance != 0) {
                 for (stMeshModel* model = static_cast<stMeshModel*>(instance->getModel());
                      model != 0; model = model->next) {
-                    model->vertex_light_table_3b0 = table;
+                    model->vertex_light_table = table;
                     model->flags_3a0 |= 2;
                 }
             }
@@ -597,9 +597,9 @@ stLight* CreateLight(srNode* parent, const char* name)
 
     if (light != 0) {
         light->setName(name);
-        light->attenuation_model_150 = srLight::ATTENUATION_3DSTUDIO_MAX;
-        light->enable_flags_194 |= 0x10; /* ENABLE_RANGE_FAR */
-        light->enable_flags_194 |= 4;    /* ENABLE_BOUNDING_SPHERE */
+        light->attenuation_model = srLight::ATTENUATION_3DSTUDIO_MAX;
+        light->enable_flags |= 0x10; /* ENABLE_RANGE_FAR */
+        light->enable_flags |= 4;    /* ENABLE_BOUNDING_SPHERE */
     }
     return light;
 }
@@ -623,9 +623,9 @@ stLight* CreateWorldLight(W8World* world, const char* name)
         srAssertFail("pLight", THREE_D_CPP, 579, 0);
     }
     light->setName(name);
-    light->attenuation_model_150 = srLight::ATTENUATION_3DSTUDIO_MAX;
-    light->enable_flags_194 |= 0x10; /* ENABLE_RANGE_FAR */
-    light->enable_flags_194 |= 4;    /* ENABLE_BOUNDING_SPHERE */
+    light->attenuation_model = srLight::ATTENUATION_3DSTUDIO_MAX;
+    light->enable_flags |= 0x10; /* ENABLE_RANGE_FAR */
+    light->enable_flags |= 4;    /* ENABLE_BOUNDING_SPHERE */
 
     if (world != 0) {
         PLAdoptAppend(&world->transient_lights, light);
@@ -650,15 +650,15 @@ stLight* CreateRangedWorldLight(W8World* world, const char* name)
         srAssertFail("pLight", THREE_D_CPP, 608, 0);
     }
 
-    light->attenuation_model_150 = srLight::ATTENUATION_3DSTUDIO_MAX;
-    light->enable_flags_194 |= 0x10; /* ENABLE_RANGE_FAR */
-    light->enable_flags_194 |= 4;    /* ENABLE_BOUNDING_SPHERE */
+    light->attenuation_model = srLight::ATTENUATION_3DSTUDIO_MAX;
+    light->enable_flags |= 0x10; /* ENABLE_RANGE_FAR */
+    light->enable_flags |= 4;    /* ENABLE_BOUNDING_SPHERE */
     light->setName(name);
-    light->near_start_158 = 0.0;
-    light->near_end_160 = 0.0;
-    light->far_start_168 = 0.0;
-    light->far_end_170 = 1500.0;
-    light->safe_range_1d4 = 5000.0f;
+    light->near_start = 0.0;
+    light->near_end = 0.0;
+    light->far_start = 0.0;
+    light->far_end = 1500.0;
+    light->safe_range = 5000.0f;
     light->setLinearAttenuation(1500.0f, 0.0019569471f);
     PLAdoptAppend(&world->transient_lights, light);
     return light;
@@ -685,11 +685,11 @@ void WorldRemoveLight(W8World* world, stLight* light)
 // FUNCTION: WIZ8 0x0046E300
 void ConfigureWorldLight(srLight* light, float range)
 {
-    light->far_end_170 = static_cast<double>(range);
-    light->near_start_158 = 0.0;
-    light->near_end_160 = 0.0;
-    light->far_start_168 = 0.0;
-    light->safe_range_1d4 = 5000.0f;
+    light->far_end = static_cast<double>(range);
+    light->near_start = 0.0;
+    light->near_end = 0.0;
+    light->far_start = 0.0;
+    light->safe_range = 5000.0f;
     light->setLinearAttenuation(range, 0.0019569471f);
 }
 
@@ -801,11 +801,11 @@ void SetSceneMeshShaderBit3(srNode* node, int argument)
                     }
                     mesh->setShader(shader, 0);
                 } else if (clear) {
-                    for (long index = 0; index < mesh->polygon_count_230; ++index) {
+                    for (long index = 0; index < mesh->polygon_count; ++index) {
                         polygon_shader[index].value &= ~srShader::MASK_DEPTH_WRITE;
                     }
                 } else {
-                    for (long index = 0; index < mesh->polygon_count_230; ++index) {
+                    for (long index = 0; index < mesh->polygon_count; ++index) {
                         polygon_shader[index].value |= srShader::MASK_DEPTH_WRITE;
                     }
                 }
@@ -841,11 +841,11 @@ void SetSceneMeshShaderLowBits(srNode* node, int argument)
                     }
                     mesh->setShader(shader, 0);
                 } else if (argument == 0) {
-                    for (long index = 0; index < mesh->polygon_count_230; ++index) {
+                    for (long index = 0; index < mesh->polygon_count; ++index) {
                         polygon_shader[index].value |= srShader::PASS_ALWAYS;
                     }
                 } else {
-                    for (long index = 0; index < mesh->polygon_count_230; ++index) {
+                    for (long index = 0; index < mesh->polygon_count; ++index) {
                         polygon_shader[index].value =
                             (polygon_shader[index].value & 0xfffffffb) | srShader::PASS_LEQUAL;
                     }
@@ -884,7 +884,7 @@ void WorldSetRenderRange(W8World* world, float value)
     }
     if (value != 0.0f) {
         world->render_range_74 = value;
-        world->render_range_78 = value;
+        world->render_range = value;
         MarkRendererReady();
     }
 }
@@ -897,7 +897,7 @@ float WorldGetRenderRange(W8World* world)
     if (!world) {
         srAssertFail("pWorld", THREE_D_CPP, 0x297, 0);
     }
-    return world->render_range_78;
+    return world->render_range;
 }
 
 /* Pushes the world's view distance into the camera as the far clip plane; the

@@ -51,8 +51,8 @@ public:
     virtual SR_DLL_IMPORT int isActive(srVertexPipe& pipe) override;
     virtual SR_DLL_IMPORT void process(srVertexPipe& pipe) override;
 
-    double fog_start_150; /* 0x150 */
-    double fog_end_158;   /* 0x158 */
+    double fog_start; /* 0x150 */
+    double fog_end;   /* 0x158 */
     float density_160;    /* 0x160 */
 };
 

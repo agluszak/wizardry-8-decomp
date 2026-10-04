@@ -78,10 +78,10 @@ unsigned short g_equip_class_name_ids[32] = {
     1087, 1088, 1089, 1090, 1091, 1092, 1093, 1094, 1095, 1096, 1097, 1098, 1099, 1100, 1101, 1102,
     1103, 1104, 1105, 1106, 1107, 1108, 1109, 1110, 1111, 1112, 1114, 1115, 1116, 1117, 1118, 1119};
 // GLOBAL: WIZ8 0x0064fbb4
-wchar_t g_assay_format_1f[] = L"%.1f";
+wchar_t g_assay_format[] = L"%.1f";
 // GLOBAL: WIZ8 0x0064fbc0
 static wchar_t g_assay_format_1f_1f_s[] = L"%.1f (%.1f %s)";
-/* String-list label ids indexed by W8ItemDatabaseRecord::flags_041 bit. */
+/* String-list label ids indexed by W8ItemDatabaseRecord::flags bit. */
 // GLOBAL: WIZ8 0x0061e938
 static unsigned short g_item_flag_name_ids[8] = {
     1255, 1256, 1257, 1258, 1259, 1260, 1261, 1262,
@@ -145,11 +145,11 @@ int W8AssayDialog::CreateControls()
             return 7;
         }
         if (CreateTextBuffers() != 0) {
-            m_buttons[0]->SetVisible(gXStatus.assay_professions_tab_19b8 != 0);
-            SetProfessionIconsVisible(gXStatus.assay_professions_tab_19b8);
-            m_buttons[1]->SetVisible(gXStatus.assay_professions_tab_19b8 == 0);
-            SetRaceIconsVisible(gXStatus.assay_professions_tab_19b8 == 0);
-            if (gXStatus.assay_professions_tab_19b8 != 0) {
+            m_buttons[0]->SetVisible(gXStatus.assay_professions_tab != 0);
+            SetProfessionIconsVisible(gXStatus.assay_professions_tab);
+            m_buttons[1]->SetVisible(gXStatus.assay_professions_tab == 0);
+            SetRaceIconsVisible(gXStatus.assay_professions_tab == 0);
+            if (gXStatus.assay_professions_tab != 0) {
                 m_buttons[2]->SetPressed(true);
                 return 0;
             }
@@ -273,7 +273,7 @@ unsigned char W8AssayDialog::PopulateText()
     bit = 0;
     label = g_item_flag_name_ids;
     do {
-        if ((1 << bit) == 4 && (record->flags_041 & 4) != 0) {
+        if ((1 << bit) == 4 && (record->flags & 4) != 0) {
             if (count == 0) {
                 wcscpy(g_assay_entry_text, &g_empty_wide_string);
             } else if (wcslen(g_assay_entry_text) + 1 + wcslen(g_comma_space) < 0x101) {
@@ -320,7 +320,7 @@ unsigned char W8AssayDialog::PopulateText()
                     if (wcslen(text) + 1 + wcslen(g_assay_entry_text) < 0x101) {
                         wcscat(g_assay_entry_text, text);
                     }
-                    text = FormatWideString(L" %d)", record->missile_magnitude_060);
+                    text = FormatWideString(L" %d)", record->missile_magnitude);
                     if (wcslen(text) + 1 + wcslen(g_assay_entry_text) < 0x101) {
                         wcscat(g_assay_entry_text, text);
                     }
@@ -330,9 +330,9 @@ unsigned char W8AssayDialog::PopulateText()
         if (count != 0) {
             m_text_area.AddEntry(gppStringList[0x8d6], g_assay_entry_text, 10, 0xf, 0);
         }
-        if (record->slays_kind_061 != 0xff) {
+        if (record->slays_kind != 0xff) {
             m_text_area.AddEntry(gppStringList[0x8d8],
-                                 gppStringList[g_special_category_name_ids[record->slays_kind_061]],
+                                 gppStringList[g_special_category_name_ids[record->slays_kind]],
                                  10, 0xf, 0);
         }
         if (record->equip_class == 5 && m_character != 0 &&
@@ -349,10 +349,10 @@ unsigned char W8AssayDialog::PopulateText()
                                  0xf, 0);
         }
     }
-    if (record->property_075 != 0) {
+    if (record->property != 0) {
         m_text_area.AddEntry(gppStringList[0x8e9],
                              gppStringList[g_item_use_messages[W8_ITEM_PROPERTY_MESSAGE_FIRST +
-                                                               record->property_075]],
+                                                               record->property]],
                              10, 0xf, 0);
     }
     switch (record->equip_class) {
@@ -387,7 +387,7 @@ unsigned char W8AssayDialog::PopulateText()
     bit = 0;
     flag_names = g_attack_flag_name_ids;
     do {
-        if ((record->attack_flags_04e & (1 << bit)) != 0) {
+        if ((record->attack_flags & (1 << bit)) != 0) {
             if (count == 0) {
                 wcscpy(g_assay_entry_text, &g_empty_wide_string);
             } else if (wcslen(g_assay_entry_text) + 1 + wcslen(g_comma_space) < 0x101) {
@@ -405,13 +405,13 @@ unsigned char W8AssayDialog::PopulateText()
     if (count != 0) {
         m_text_area.AddEntry(gppStringList[0x8d7], g_assay_entry_text, 10, 0xf, 0);
     }
-    if ((m_item->identified != 0 || m_item->spell_hint_07 != 0) && record->spell_id != 0) {
+    if ((m_item->identified != 0 || m_item->spell_hint != 0) && record->spell_id != 0) {
         if (record->equip_class == 0xd || record->equip_class == 0xe ||
             record->equip_class == 0x13) {
             text = FormatWideString(g_format_s, g_spell_records[record->spell_id].display_name);
         } else {
             text = FormatWideString(L"%s (Pwr %d)", g_spell_records[record->spell_id].display_name,
-                                    record->spell_power_064);
+                                    record->spell_power);
         }
         m_text_area.AddEntry(gppStringList[0x8ea], text, 10, 0xf, 0);
         if (record->equip_class == 0x13) {
@@ -434,32 +434,32 @@ unsigned char W8AssayDialog::PopulateText()
                                      record->initial_quantity.base),
                 10, 0xf, 0);
         }
-        if (record->modifier_06c > 0) {
+        if (record->health_regen_bonus > 0) {
             m_text_area.AddEntry(gppStringList[0x8d9],
-                                 FormatWideString(g_format_plus_d, record->modifier_06c), 10, 0xf,
+                                 FormatWideString(g_format_plus_d, record->health_regen_bonus), 10, 0xf,
                                  0);
         }
-        if (record->modifier_06c < 0) {
+        if (record->health_regen_bonus < 0) {
             m_text_area.AddEntry(gppStringList[0x8da],
-                                 FormatWideString(g_format_d, record->modifier_06c), 10, 0xf, 0);
+                                 FormatWideString(g_format_d, record->health_regen_bonus), 10, 0xf, 0);
         }
-        if (record->modifier_06d > 0) {
+        if (record->stamina_regen_bonus > 0) {
             m_text_area.AddEntry(gppStringList[0x8db],
-                                 FormatWideString(g_format_plus_d, record->modifier_06d), 10, 0xf,
+                                 FormatWideString(g_format_plus_d, record->stamina_regen_bonus), 10, 0xf,
                                  0);
         }
-        if (record->modifier_06d < 0) {
+        if (record->stamina_regen_bonus < 0) {
             m_text_area.AddEntry(gppStringList[0x8dc],
-                                 FormatWideString(g_format_d, record->modifier_06d), 10, 0xf, 0);
+                                 FormatWideString(g_format_d, record->stamina_regen_bonus), 10, 0xf, 0);
         }
-        if (record->modifier_06e > 0) {
+        if (record->spell_regen_bonus > 0) {
             m_text_area.AddEntry(gppStringList[0x8dd],
-                                 FormatWideString(g_format_plus_d, record->modifier_06e), 10, 0xf,
+                                 FormatWideString(g_format_plus_d, record->spell_regen_bonus), 10, 0xf,
                                  0);
         }
-        if (record->modifier_06e < 0) {
+        if (record->spell_regen_bonus < 0) {
             m_text_area.AddEntry(gppStringList[0x8de],
-                                 FormatWideString(g_format_d, record->modifier_06e), 10, 0xf, 0);
+                                 FormatWideString(g_format_d, record->spell_regen_bonus), 10, 0xf, 0);
         }
         if (record->modifier_0b3_index != -1 && record->modifier_0b3_value > 0) {
             swprintf(modifier_text, L"%s %+d",
@@ -487,13 +487,13 @@ unsigned char W8AssayDialog::PopulateText()
         }
         count = 0;
         for (index = 0; index < 6; ++index) {
-            if (record->resistance_bonus_06f[index] > 0) {
+            if (record->resistance_bonus[index] > 0) {
                 if (count == 0) {
                     wcscpy(g_assay_entry_text, &g_empty_wide_string);
                 } else if (wcslen(g_assay_entry_text) + 1 + wcslen(g_comma_space) < 0x101) {
                     wcscat(g_assay_entry_text, g_comma_space);
                 }
-                text = FormatWideString(g_format_d_percent, record->resistance_bonus_06f[index]);
+                text = FormatWideString(g_format_d_percent, record->resistance_bonus[index]);
                 if (wcslen(text) + 1 + wcslen(g_assay_entry_text) < 0x101) {
                     wcscat(g_assay_entry_text, text);
                 }
@@ -584,7 +584,7 @@ unsigned char W8AssayDialog::PopulateText()
     if (count != 0) {
         m_text_area.AddEntry(gppStringList[0x8f4], g_assay_entry_text, 10, 0xf, 0);
     }
-    if (record->equip_class == 0x13 && (m_item->identified != 0 || m_item->spell_hint_07 != 0) &&
+    if (record->equip_class == 0x13 && (m_item->identified != 0 || m_item->spell_hint != 0) &&
         m_character != 0) {
         if (m_character->spell_learned[record->spell_id] == 1) {
             m_text_area.AddEntry(0, gppStringList[0x8ed], 10, 1, 0);
@@ -688,7 +688,7 @@ void W8AssayDialog::ShowPrimaryTab()
         m_buttons[3]->SetPressed(false);
         m_buttons[3]->m_dirty = true;
     }
-    gXStatus.assay_professions_tab_19b8 = 1;
+    gXStatus.assay_professions_tab = 1;
     m_buttons[0]->SetVisible(true);
     SetProfessionIconsVisible(1);
     m_buttons[1]->SetVisible(false);
@@ -709,7 +709,7 @@ void W8AssayDialog::ShowSecondaryTab()
         m_buttons[2]->SetPressed(false);
         m_buttons[2]->m_dirty = true;
     }
-    gXStatus.assay_professions_tab_19b8 = 0;
+    gXStatus.assay_professions_tab = 0;
     m_buttons[0]->SetVisible(false);
     SetProfessionIconsVisible(0);
     m_buttons[1]->SetVisible(true);
@@ -723,7 +723,7 @@ void W8AssayDialog::ShowSecondaryTab()
 void W8AssayDialog::PrimaryTabCallback(W8DialogButton* button)
 {
     if (button != 0) {
-        static_cast<W8AssayDialog*>(button->m_owner_040)->ShowPrimaryTab();
+        static_cast<W8AssayDialog*>(button->m_owner)->ShowPrimaryTab();
     }
 }
 
@@ -731,7 +731,7 @@ void W8AssayDialog::PrimaryTabCallback(W8DialogButton* button)
 void W8AssayDialog::SecondaryTabCallback(W8DialogButton* button)
 {
     if (button != 0) {
-        static_cast<W8AssayDialog*>(button->m_owner_040)->ShowSecondaryTab();
+        static_cast<W8AssayDialog*>(button->m_owner)->ShowSecondaryTab();
     }
 }
 
@@ -859,7 +859,7 @@ unsigned char W8AssayDialog::PopulateRequirements()
             srAssertFail("iUnknownButtonIndex != MAXDWORD", ASSAY_DIALOG_CPP, 0x43f, 0);
             break;
         }
-        switch (g_status.rpc_races_243a[us_index]) {
+        switch (g_status.rpc_races[us_index]) {
         case 0xd:
             frame = 0x16;
             tooltip_index = 0x291;
@@ -893,7 +893,7 @@ unsigned char W8AssayDialog::PopulateRequirements()
     for (index = 0; index < W8_ASSAY_BUTTON_COUNT; ++index) {
         m_buttons[index]->SetPosition(m_x + g_assay_button_offsets[index].x,
                                       m_y + g_assay_button_offsets[index].y);
-        m_buttons[index]->m_owner_040 = this;
+        m_buttons[index]->m_owner = this;
     }
     return 1;
 }
@@ -937,7 +937,7 @@ unsigned char W8AssayDialog::CreateTextBuffers()
             FormatWideString(g_assay_format_1f_1f_s, GetItemStackWeight(m_item) * g_float_005ed8b8,
                              unit_weight * g_float_005ed8b8, gppStringList[0x117]);
     } else {
-        text = FormatWideString(g_assay_format_1f, GetItemUnitWeight(item) * g_float_005ed8b8);
+        text = FormatWideString(g_assay_format, GetItemUnitWeight(item) * g_float_005ed8b8);
     }
     m_text_buffers[4]->SetText(text, g_wiz_text_font_secondary);
     return 1;
@@ -1059,7 +1059,7 @@ void W8AssayDialog::SetRaceIconsVisible(int show)
         case 15:
             button_index = -1;
             for (us_index = 0; us_index < NUM_RPC_RACES; ++us_index) {
-                if (race == g_status.rpc_races_243a[us_index]) {
+                if (race == g_status.rpc_races[us_index]) {
                     if (us_index >= NUM_RPC_RACES) {
                         srAssertFail("usIndex < NUM_RPC_RACES", ASSAY_DIALOG_CPP, 0x691, 0);
                     }

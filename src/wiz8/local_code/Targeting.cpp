@@ -257,19 +257,19 @@ signed char FindFactionByName(const char* name)
 // FUNCTION: WIZ8 0x005360f0
 int GetFactionValue(signed char faction)
 {
-    return g_factions[faction].band_changed_clock_06;
+    return g_factions[faction].band_changed_clock;
 }
 
 // FUNCTION: WIZ8 0x00536110
 void SetFactionFlag(signed char faction, bool flag)
 {
-    g_factions[faction].encountered_0a = flag;
+    g_factions[faction].encountered = flag;
 }
 
 // FUNCTION: WIZ8 0x00536130
 unsigned char GetFactionFlag(signed char faction)
 {
-    return g_factions[faction].encountered_0a;
+    return g_factions[faction].encountered;
 }
 
 /* Build an empty target block: everything zeroed, then the two ids set to
@@ -542,10 +542,10 @@ void ApplyTarget(W8CombatSlot* target, bool in_combat)
         if (gXStatus.fCombatMode != 0) {
             if (memcmp(&row->target_in_combat, target, sizeof(W8CombatSlot)) == 0) {
                 action_targets_enemies = CharacterActionTargetsEnemies(
-                    character, row->action_03d, row->action_detail_041, &row->action_detail_045);
+                    character, row->action, row->action_detail_041, &row->action_detail_045);
                 if (ShouldClearAimForAppliedTarget(&source, target, in_combat,
                                                    action_targets_enemies) != 0) {
-                    if (row->action_03d == W8_ACTION_PROTECT) {
+                    if (row->action == W8_ACTION_PROTECT) {
                         DropCharacterFromRound(party_slot);
                     } else {
                         RepickActionTarget(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0);
@@ -556,7 +556,7 @@ void ApplyTarget(W8CombatSlot* target, bool in_combat)
         if (memcmp(&row->target_out_of_combat, target, sizeof(W8CombatSlot)) == 0) {
             action_targets_enemies =
                 CharacterActionTargetsEnemies(character, row->pending_action, row->attack_mode[0],
-                                              &row->pending_action_detail_015);
+                                              &row->pending_action_detail);
             if (ShouldClearAimForAppliedTarget(&source, target, in_combat,
                                                action_targets_enemies) != 0) {
                 RepickActionTarget(party_slot, W8_TARGETING_CONTEXT_OUT_OF_COMBAT, 0);
@@ -853,13 +853,13 @@ int PickNearestMonsterUnderCursor(int cursor_x, int cursor_y)
         if (monster_info->p3D->IsDying() != 0) {
             continue;
         }
-        if (monster_info->p3D->hostility_preserved_332 != 0) {
+        if (monster_info->p3D->hostility_preserved != 0) {
             continue;
         }
         if (!MonsterUsesCurrentModelInstance(monster_info->p3D)) {
             continue;
         }
-        if (monster_info->party_threat.use_bounds_24 == 0) {
+        if (monster_info->party_threat.use_bounds == 0) {
             UpdateMonsterSight(monster_info, 1, 1);
         }
         if (monster_info->p3D->IsRenderable(1) == 0) {
@@ -882,13 +882,13 @@ int PickNearestMonsterUnderCursor(int cursor_x, int cursor_y)
             if (monster_info->p3D->IsDying() != 0) {
                 continue;
             }
-            if (monster_info->p3D->hostility_preserved_332 != 0) {
+            if (monster_info->p3D->hostility_preserved != 0) {
                 continue;
             }
             if (!MonsterUsesCurrentModelInstance(monster_info->p3D)) {
                 continue;
             }
-            if (monster_info->party_threat.use_bounds_24 == 0) {
+            if (monster_info->party_threat.use_bounds == 0) {
                 UpdateMonsterSight(monster_info, 1, 1);
             }
             if (monster_info->p3D->IsRenderable(1) == 0) {
@@ -1048,7 +1048,7 @@ bool ResolveTargetPoint(W8CombatSlot* target, bool sight_probe)
             point = monster->GetPosition();
         } else {
             point = monster->movement_0c0.position_040;
-            point.y += monster->movement_0c0.height_offset_0b8;
+            point.y += monster->movement_0c0.height_offset;
         }
     } else {
         return 0;
@@ -1404,7 +1404,7 @@ void CollectMonstersWithinRadius(const srVector3T<float>* centre, const srVector
             continue;
         }
         record = GetMonsterDataForInfo(monster_info);
-        if (record->untargetable_24a != 0) {
+        if (record->untargetable != 0) {
             continue;
         }
         if (monster_info->ubDisposition != side && side != W8_SIDE_ANY) {
@@ -1926,7 +1926,7 @@ void RefreshSpellTargetHighlightsAtRange(void)
             W8Monster* monster = monster_info->p3D;
             float channels[4];
 
-            memcpy(channels, &monster->m_pRep->highlight_colour_04c, sizeof(channels));
+            memcpy(channels, &monster->m_pRep->highlight_colour, sizeof(channels));
             if (channels[0] != g_float_zero || channels[1] != g_float_zero ||
                 channels[2] != g_float_zero || channels[3] != g_float_zero) {
                 srVector4T<float> block;
@@ -2123,7 +2123,7 @@ bool CanTargetMonsterGroup(int party_slot, W8MonsterGroup* group)
     unsigned int index;
     int reachable;
 
-    if (MonsterGroupGetRecord(group)->untargetable_24a != 0) {
+    if (MonsterGroupGetRecord(group)->untargetable != 0) {
         return 0;
     }
 
@@ -2372,7 +2372,7 @@ bool CanTargetMonster(int party_slot, int location_id, int allow_single_target, 
     if (monster_info->uiCondition[W8_CONDITION_REACHABLE_WHEN_DOWN] != 0) {
         return 0;
     }
-    if (gXStatus.fCampMode != 0 && g_npc_interaction_state->target_location_id_f8 != location_id) {
+    if (gXStatus.fCampMode != 0 && g_npc_interaction_state->target_location_id != location_id) {
         return 0;
     }
 
@@ -2403,7 +2403,7 @@ bool CanTargetMonster(int party_slot, int location_id, int allow_single_target, 
     }
 
     record = GetMonsterDataForInfo(monster_info);
-    if (record->untargetable_24a != 0 && needed != 0) {
+    if (record->untargetable != 0 && needed != 0) {
         return 0;
     }
     if (needed == 5) {
@@ -2722,7 +2722,7 @@ void AimAtMonsterGroupMember(int party_slot, W8MonsterGroup* group)
         block.Set(1.0f, 1.0f, 1.0f, 1.0f);
         MonsterSetHighlightColour(GetMonsterByLocationID(picked), block);
     }
-    g_level_block->pick_changed_154 = 1;
+    g_level_block->pick_changed = 1;
 
     StartBreathCycle(party_slot, 0);
     SetTargetSourceToCharacter(party_slot, &source);
@@ -2840,7 +2840,7 @@ void CycleToNextTarget(int party_slot)
     SetTargetSourceToCharacter(party_slot, &source);
     PointCameraAtCombatTarget(&source,
                               GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_CURRENT));
-    g_level_block->pick_changed_154 = 1;
+    g_level_block->pick_changed = 1;
 }
 
 /* Re-evaluate every party slot's combat target after a sight or range change:
@@ -2877,8 +2877,8 @@ void RefreshAllPartyTargets(void)
             }
 
             if (IsPartySlotEligible(party_slot) != 0 &&
-                (row->action_03d == W8_ACTION_ATTACK || row->action_03d == W8_ACTION_BERSERK) &&
-                (row->weapon_swap_pending_105 != 0 ||
+                (row->action == W8_ACTION_ATTACK || row->action == W8_ACTION_BERSERK) &&
+                (row->weapon_swap_pending != 0 ||
                  CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0, 0) != 0)) {
                 int group_id = -1;
 
@@ -2979,7 +2979,7 @@ bool IsMonsterVisibleWithinDistance(W8Monster* monster, const srVector3T<float>*
     if (monster->GetDistanceToPlayer() < max_distance) {
         monster->GetAnimationBounds(&minimum, &maximum);
         center = monster->movement_0c0.position_040;
-        center.y += monster->movement_0c0.height_offset_0b8;
+        center.y += monster->movement_0c0.height_offset;
         projected = monster->GetPosition();
         minimum += projected;
         maximum += projected;
@@ -3119,7 +3119,7 @@ void AimAtTarget(int actor, W8CombatSlot* target, W8TargetingContext context)
                 RequestRedrawParty();
                 RequestRedraw(0x200000);
             }
-            g_level_block->pick_changed_154 = 0;
+            g_level_block->pick_changed = 0;
         }
         if (resolved == W8_TARGETING_CONTEXT_IN_COMBAT && gXStatus.fCombatMode != 0 &&
             target->iType != W8_TARGET_KIND_NONE) {
@@ -3210,7 +3210,7 @@ unsigned char SourceCanSeeMonster(const W8TargetSource* source, W8MonsterInfo* m
         if (source->iChar == -1) {
             srAssertFail("pSource->iChar != BAD_INDEX", TARGETING_CPP, 0xce3, 0);
         }
-        return monster_info->party_threat.los_flags_05[flag_index];
+        return monster_info->party_threat.los_flags[flag_index];
     }
     if (source->iType == W8_TARGET_SOURCE_MONSTER) {
         if (source->iMonsterID == -1) {
@@ -3223,7 +3223,7 @@ unsigned char SourceCanSeeMonster(const W8TargetSource* source, W8MonsterInfo* m
             MonsterGetIndexByLocationID(0x84d, TARGETING_CPP, source->iMonsterID, 1);
         W8MonsterInfo* source_info = MonsterGetScriptPartByLocationIndex(monster_index);
         W8VisibilityRecord* visibility = FindMonToMonVisibility(source_info, monster_info);
-        if (visibility != 0 && visibility->los_flags_05[sight_flag] != 0) {
+        if (visibility != 0 && visibility->los_flags[sight_flag] != 0) {
             return 1;
         }
         return 0;
@@ -3283,13 +3283,13 @@ int CollectConeMonsterTargets(const W8TargetSource* source, const srVector3T<flo
         if (monster_info->fActive != 0 && monster_info->hp_current != 0 &&
             monster_info->uiCondition[0x12] == 0) {
             W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
-            if (record->untargetable_24a == 0 &&
+            if (record->untargetable == 0 &&
                 (monster_info->ubDisposition == disposition || disposition == 3)) {
                 W8Monster* monster = monster_info->p3D;
                 srVector3T<float> point;
                 point.Set(monster->movement_0c0.position_040.x,
                           monster->movement_0c0.position_040.y +
-                              monster->movement_0c0.height_offset_0b8,
+                              monster->movement_0c0.height_offset,
                           monster->movement_0c0.position_040.z);
                 if (TargetInRangeAndArcs(&point, monster->radius_084, eye, radius, heading,
                                          elevation) != 0 &&
@@ -3327,7 +3327,7 @@ void ConfigureSpellTargetFilter(int target_type, unsigned int needed_kind)
         if (gXStatus.fCampMode != 0) {
             ResetCombatSlot(&target);
             target.iType = W8_TARGET_KIND_MONSTER;
-            target.iMonsterID = g_npc_interaction_state->target_location_id_f8;
+            target.iMonsterID = g_npc_interaction_state->target_location_id;
             AimAtTarget(selected, &target, W8_TARGETING_CONTEXT_CURRENT);
             needed_kind = 0;
         } else if (g_settings.autotarget_spells != 0 &&
@@ -3483,9 +3483,9 @@ int ChooseFallbackMonsterTarget(int party_slot, int group_id, W8TargetingContext
 
     if (g_settings.autoswap_weapons != 0 &&
         gXStatus.monster_manager_entries[party_slot].item_swap_in_progress == 0 &&
-        row->item_action_pending_0f5 == 0 &&
-        (g_combat_state->execution_active_000 == 0 ||
-         g_combat_state->characters[party_slot].dead_34 == 0 ||
+        row->item_action_pending == 0 &&
+        (g_combat_state->execution_active == 0 ||
+         g_combat_state->characters[party_slot].dead == 0 ||
          g_combat_state->characters[party_slot].phase == 0) &&
         !IsItemBoundToWearer(&character->EquippedItem[8]) &&
         !IsItemBoundToWearer(&character->EquippedItem[9]) &&
@@ -3512,7 +3512,7 @@ int ChooseFallbackMonsterTarget(int party_slot, int group_id, W8TargetingContext
                 }
             }
         }
-        row->weapon_swap_pending_105 ^= 1;
+        row->weapon_swap_pending ^= 1;
         RefreshAfterItemRecordChange(&character->EquippedItem[6], character, 1);
         RefreshAfterItemRecordChange(&character->EquippedItem[7], character, 1);
     }
@@ -3530,10 +3530,10 @@ void ReconcilePartyEquipmentAfterCombat(void)
         W8Character* character = &g_status.buffers.Char[party_slot];
         if (row->fOccupied != 0 &&
             (character->hp_current != 0 || character->highest_condition < 0xd) &&
-            row->weapon_swap_pending_105 != 0 && g_settings.autoswap_weapons != 0 &&
-            row->item_action_pending_0f5 == 0) {
+            row->weapon_swap_pending != 0 && g_settings.autoswap_weapons != 0 &&
+            row->item_action_pending == 0) {
             SwapWeaponSetSlots(party_slot, 0, 1);
-            row->weapon_swap_pending_105 = 0;
+            row->weapon_swap_pending = 0;
         }
     }
 }

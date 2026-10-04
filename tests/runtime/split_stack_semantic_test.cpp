@@ -28,7 +28,7 @@ static int FindStackableItemId(void)
 
     for (index = 0; index < gXStatus.uiItemsInDatabase; ++index) {
         W8ItemDatabaseRecord* record = g_item_records + index;
-        if (record->quantity_kind == 1 && (record->flags_041 & 2) == 0 &&
+        if (record->quantity_kind == 1 && (record->flags & 2) == 0 &&
             record->maximum_quantity >= 8) {
             return (int)index;
         }
@@ -46,14 +46,14 @@ struct SplitStackStateScope {
     SplitStackStateScope()
     {
         cursor = g_status.item_in_cursor;
-        hand = g_status.item_in_hand_235b;
+        hand = g_status.item_in_hand;
         source = g_split_item_source;
     }
 
     ~SplitStackStateScope()
     {
         g_status.item_in_cursor = cursor;
-        g_status.item_in_hand_235b = hand;
+        g_status.item_in_hand = hand;
         g_split_item_source = source;
     }
 };
@@ -77,7 +77,7 @@ static bool RunSplitStackBody(SplitStackSemanticResult* result, bool fail_early)
     source.iItemNo = item_id;
     source.stack_count = 6;
     g_status.item_in_cursor = 0;
-    g_status.item_in_hand_235b.iItemNo = -1;
+    g_status.item_in_hand.iItemNo = -1;
 
     /* The constructor picks the split count: half the stack for stacks whose
        record allows more than ten, one for small-capacity stacks. */
@@ -92,16 +92,16 @@ static bool RunSplitStackBody(SplitStackSemanticResult* result, bool fail_early)
         delete dialog;
         return false;
     }
-    result->ctor_split_in_range = dialog->split_count_0c0 == expected_split;
+    result->ctor_split_in_range = dialog->split_count == expected_split;
     result->ctor_counts_sum_to_stack =
-        dialog->split_count_0c0 + dialog->m_remaining_0bc == 6 && dialog->m_stack_total_0c4 == 6;
+        dialog->split_count + dialog->m_remaining_0bc == 6 && dialog->m_stack_total == 6;
     delete dialog;
 
     /* An explicit count splits exactly that many off the stack. */
     dialog = new W8SplitItemDialog(0, &source, 2);
     if (dialog != 0) {
         result->explicit_count_applied =
-            dialog->split_count_0c0 == 2 && dialog->m_remaining_0bc == 4;
+            dialog->split_count == 2 && dialog->m_remaining_0bc == 4;
         delete dialog;
     }
 
@@ -110,10 +110,10 @@ static bool RunSplitStackBody(SplitStackSemanticResult* result, bool fail_early)
     g_split_item_source = &source;
     cancel_dialog = new W8SplitItemDialog(0, &source, -1);
     if (cancel_dialog != 0) {
-        cancel_dialog->split_result_0c8 = g_split_result_kind + 1;
+        cancel_dialog->split_result = g_split_result_kind + 1;
         SplitStackDialogResult(cancel_dialog);
         result->cancel_leaves_stack =
-            source.stack_count == 6 && g_status.item_in_hand_235b.iItemNo == -1;
+            source.stack_count == 6 && g_status.item_in_hand.iItemNo == -1;
         delete cancel_dialog;
     }
     return true;
@@ -132,11 +132,11 @@ bool RunSplitStackSemanticTest(SplitStackSemanticResult* result)
         memset(&sentinel_source, 0, sizeof(sentinel_source));
         g_split_item_source = &sentinel_source;
         g_status.item_in_cursor = 0x5a;
-        g_status.item_in_hand_235b.iItemNo = 0x1234;
+        g_status.item_in_hand.iItemNo = 0x1234;
         RunSplitStackBody(result, true);
         result->state_restored_after_failure = g_split_item_source == &sentinel_source &&
                                                g_status.item_in_cursor == 0x5a &&
-                                               g_status.item_in_hand_235b.iItemNo == 0x1234;
+                                               g_status.item_in_hand.iItemNo == 0x1234;
     }
 
     RunSplitStackBody(result, false);

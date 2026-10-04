@@ -134,7 +134,7 @@ unsigned char EvaluateFact(int fact_id)
             if (npc == 0) {
                 return 0;
             }
-            return static_cast<unsigned char>(npc->spawned_04);
+            return static_cast<unsigned char>(npc->spawned);
         }
         case 0x81:
             value = GetFact(0x86);
@@ -147,11 +147,11 @@ unsigned char EvaluateFact(int fact_id)
             }
             return 0;
         case 0x88:
-            if (g_status.fact_88_latch_40c1 == 0) {
+            if (g_status.fact_88_latch == 0) {
                 if (CountItemOnParty(0x1c4, 0, 0, 2) < 5) {
                     return 0;
                 }
-                g_status.fact_88_latch_40c1 = true;
+                g_status.fact_88_latch = true;
                 return 1;
             }
             break;
@@ -205,11 +205,11 @@ unsigned char EvaluateFact(int fact_id)
         case 0xd1:
             return NpcLeadHasNameStyle(7) != 0;
         case 0x14c:
-            if (g_status.rpc_active_2489 != 0) {
+            if (g_status.rpc_active != 0) {
                 unsigned int slot = 0;
                 do {
                     if (g_status.buffers.XChar[slot].fOccupied != 0 &&
-                        slot == static_cast<unsigned int>(g_status.sedexus_party_slot_247f)) {
+                        slot == static_cast<unsigned int>(g_status.sedexus_party_slot)) {
                         return 1;
                     }
                     ++slot;

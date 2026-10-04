@@ -22,16 +22,16 @@ struct W8LevelFileNamedPosition;
    name plus the GDPreProp array OctPreTree.cpp builds for it (stride 0x48). */
 struct W8PreProp {
     char name[0x40];
-    unsigned short num_stop_meshes_40;
+    unsigned short num_stop_meshes;
     /* The running base prop number this record's pStopMeshes indices are
-       relative to; InsertConditionalNodes matches a GDProp m_prop_number_02
+       relative to; InsertConditionalNodes matches a GDProp m_prop_number
        into [first_prop_number, first_prop_number + num_stop_meshes). */
-    unsigned short first_prop_number_42;
+    unsigned short first_prop_number;
     GDPreProp* pStopMeshes;
 };
 
 static_assert(sizeof(W8PreProp) == 0x48, "W8PreProp_must_be_0x48");
-static_assert(offsetof(W8PreProp, num_stop_meshes_40) == 0x40, "W8PreProp_num_stop_meshes_40");
+static_assert(offsetof(W8PreProp, num_stop_meshes) == 0x40, "W8PreProp_num_stop_meshes_40");
 static_assert(offsetof(W8PreProp, pStopMeshes) == 0x44, "W8PreProp_pStopMeshes");
 
 struct W8NavigatorMovementState;
@@ -64,7 +64,7 @@ public:
     void IntegrateSteering(); /* 0x004CB090 */
     /* Advances movement_00->target_yaw toward movement_00->yaw by the shorter
        arc, accelerating or decelerating the angular velocity in
-       movement_00->yaw_velocity_01c. */
+       movement_00->yaw_velocity. */
     void UpdateYawSteering(float time_step, bool use_turn_rate); /* 0x004CB520 */
     /* Predicts a collision with another navigator or the party inside the
        prediction window; returns nonzero when one is found ahead. */
@@ -617,10 +617,10 @@ public:
     W8HashTable<unsigned int, int>* cell_map_254;
     /* Embedded chunk table: each slot is a malloc'd run of
        W8_PREPATH_NODES_PER_CHUNK path-node records. The constructor fills slot 0, and the
-       destructor frees every slot through chunk_index_11f8 inclusive. */
-    W8PrePathNode* node_chunks_258[0x3e8];
-    int chunk_index_11f8;
-    int chunk_node_count_11fc;
+       destructor frees every slot through chunk_index inclusive. */
+    W8PrePathNode* node_chunks[0x3e8];
+    int chunk_index;
+    int chunk_node_count;
     /* Components smaller than this percent of the node count get deleted
        while linking; capped at 50. */
     unsigned int min_component_percent_1200;
@@ -628,8 +628,8 @@ public:
 
 static_assert(sizeof(PrePathing) == 0x1204, "PrePathing_must_be_0x1204");
 static_assert(offsetof(PrePathing, path_node_list_240) == 0x240, "PrePathing_path_node_list_240");
-static_assert(offsetof(PrePathing, node_chunks_258) == 0x258, "PrePathing_node_chunks_258");
-static_assert(offsetof(PrePathing, chunk_index_11f8) == 0x11f8, "PrePathing_chunk_index_11f8");
+static_assert(offsetof(PrePathing, node_chunks) == 0x258, "PrePathing_node_chunks_258");
+static_assert(offsetof(PrePathing, chunk_index) == 0x11f8, "PrePathing_chunk_index_11f8");
 static_assert(offsetof(PrePathing, min_component_percent_1200) == 0x1200,
               "PrePathing_min_component_percent_1200");
 

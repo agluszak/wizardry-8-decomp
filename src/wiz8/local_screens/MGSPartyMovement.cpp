@@ -82,8 +82,8 @@ unsigned char CreatePartyMovementPanel(void)
         g_party_movement_panel->SetEnabled(1);
         g_party_movement_buttons[0]->SetActive(0);
         gXStatus.fPartyMovementUi = true;
-        g_level_block->move_budget_2dc = 100;
-        g_level_block->move_budget_2e0 = 100;
+        g_level_block->move_percent = 100;
+        g_level_block->move_percent_shown = 100;
         g_party_movement_panel->Invalidate(0);
         return 1;
     }
@@ -171,25 +171,25 @@ void DrawPartyMovementPanel(void)
         if (g_party_movement_buttons[0]->m_active != 0) {
             g_party_movement_buttons[0]->SetActive(0);
         }
-        if (g_combat_state->round_active_001 == 0) {
+        if (g_combat_state->round_active == 0) {
             g_party_movement_buttons[1]->SetEnabled(0);
         } else {
             g_party_movement_buttons[1]->SetEnabled(1);
         }
     }
     g_party_movement_panel->Redraw();
-    right = 0x1b9 - g_level_block->move_budget_2dc * 0xf6 / 100;
+    right = 0x1b9 - g_level_block->move_percent * 0xf6 / 100;
     if (CanPartyMove() == 0) {
         if (GetLevelDataFlag6() == 0) {
             image = 1;
-            caption = ((g_level_block->move_budget_2dc != 100) - 1 & 0x77f) - 1;
+            caption = ((g_level_block->move_percent != 100) - 1 & 0x77f) - 1;
         } else {
             image = 2;
             caption = 0x77d;
         }
     } else {
         image = 0;
-        if (g_combat_state->execution_active_000 != 0 && IsPartyEngaged() == 0) {
+        if (g_combat_state->execution_active != 0 && IsPartyEngaged() == 0) {
             caption = (g_combat_state->uiCurrentPartyAction != 2) + 0x77b;
         } else {
             caption = (g_combat_state->uiNextPartyAction != 2) + 0x77b;
@@ -244,7 +244,7 @@ void DrawPartyMovementGauge(short right, short image, bool panel_live, int capti
     }
     unsigned int action;
     if (CanPartyMove() == 0 ||
-        (g_combat_state->execution_active_000 != 0 && IsPartyEngaged() == 0)) {
+        (g_combat_state->execution_active != 0 && IsPartyEngaged() == 0)) {
         action = g_combat_state->uiCurrentPartyAction;
     } else {
         action = g_combat_state->uiNextPartyAction;

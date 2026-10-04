@@ -5,11 +5,11 @@
 // FUNCTION: SURRENDER 0x1002DDD0
 srVideoManager::Stream::Stream(const char* path)
 {
-    loaded_04 = 0;
+    loaded = 0;
     parameter_08 = 0;
-    reset_pending_10 = 1;
+    reset_pending = 1;
     clamp_14 = 0;
-    index_0c = 0;
+    index = 0;
     position_18 = 0;
 }
 
@@ -34,14 +34,14 @@ void srVideoManager::VStream::init(Stream* stream)
 {
     info_04.width_14 = 1;
     info_04.height_18 = 1;
-    info_04.frame_count_1c = 0;
+    info_04.frame_count = 0;
     info_04.field_64 = 0;
     info_04.field_68 = 0;
     info_04.field_6c = 0;
     info_04.field_70 = 0;
     info_04.field_74 = 0;
     info_04.field_78 = 0;
-    info_04.frames_per_second_20 = 15.0f;
+    info_04.frames_per_second = 15.0f;
     stream_00 = stream;
     stream_00->getInfo(&info_04);
 }
