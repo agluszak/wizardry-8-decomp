@@ -251,14 +251,14 @@
       "source_file": "include/wiz8/engine_code/LevelFile.h",
       "classification": "mixed",
       "reference": "src/wiz8/engine_code/LevelFile.cpp",
-      "reason": "Versioned switch payload excludes workspace padding and owns an optional door allocation through door_264."
+      "reason": "Versioned switch payload excludes workspace padding and owns an optional door allocation through door."
     },
     {
       "record": "W8LevelFileInvisible",
       "source_file": "include/wiz8/engine_code/LevelFile.h",
       "classification": "mixed",
       "reference": "src/wiz8/engine_code/LevelFile.cpp",
-      "reason": "Versioned trigger fields coexist with live plane and linked-record pointers; field_237 and geometry_kind_238 are distinct retail bytes."
+      "reason": "Versioned trigger fields coexist with live plane and linked-record pointers; field_237 and geometry_kind are distinct retail bytes."
     },
     {
       "record": "W8LevelFileSuperTrigger",
@@ -280,6 +280,181 @@
       "classification": "mixed",
       "reference": "src/wiz8/engine_code/LevelFile.cpp",
       "reason": "Versioned animation fields coexist with owned channel, bounds, light, path, morph and transform arrays; byte-count signedness follows retail extension instructions."
+    },
+    {
+      "record": "W8LevelFileTriggerPosition",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "disk-format",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "The type-4 trigger placement payload is position (12 bytes), angle (4), then direction (12); the runtime reader scales only position."
+    },
+    {
+      "record": "W8LevelFileTriggerHotSpot",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "disk-format",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Fixed 133-byte legacy action payload. Its unknown bytes remain opaque; classification does not establish scalar domains."
+    },
+    {
+      "record": "W8LevelFileCamera",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "mixed",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Versioned camera header includes a 20-byte name and embeds a PathAI workspace with live path-array pointers."
+    },
+    {
+      "record": "W8LevelFileSound",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "disk-format",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Pointer-free ambient-sound payload is transferred fieldwise under version gates; no workspace addresses are serialized."
+    },
+    {
+      "record": "W8LevelFileLinkedRecord",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "disk-format",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Serialized kind, 36 position triples, two byte flags and two float factors; linked_face keeps its established signed-byte representation."
+    },
+    {
+      "record": "W8LevelFileDoor",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "disk-format",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Pointer-free door action payload is transferred fieldwise under version and position gates."
+    },
+    {
+      "record": "W8LevelFileClippingPlaneRecord",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "disk-format",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "ReadLevelFile and WriteLevelFile transfer complete packed clipping-plane records."
+    },
+    {
+      "record": "W8LevelFileFramePosition",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "disk-format",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Prop frame/tag arrays use the complete four-byte frame-position representation."
+    },
+    {
+      "record": "W8LevelFileNamedPosition",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "disk-format",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "ReadLevelFile and WriteLevelFile transfer complete packed named-position records."
+    },
+    {
+      "record": "W8LevelParticleRecord",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "disk-format",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Version-sized particle payload embeds a pointer-free material representation; the runtime reader interprets each versioned prefix."
+    },
+    {
+      "record": "W8LevelFileParticleSystem",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "disk-format",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "A version byte followed by the pointer-free particle payload; the serialized prefix length depends on version."
+    },
+    {
+      "record": "W8LevelFileMonster",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "mixed",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Serialized monster header is followed by path records; MonPath is an allocated workspace pointer excluded from the header transfer."
+    },
+    {
+      "record": "W8LevelFileMorph",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "mixed",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Morph channel/count fields accompany a LODMesh workspace holding a live frame pointer."
+    },
+    {
+      "record": "W8LevelFileTransform",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "mixed",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Transform fields embed LODMesh and PathAI workspaces with live frame/path pointers."
+    },
+    {
+      "record": "W8LevelFileProp",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "mixed",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Versioned prop fields embed an animation workspace and live trigger/frame-position pointers."
+    },
+    {
+      "record": "W8LevelFileTrigger",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "mixed",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Version/type bytes select a separately allocated payload; pData is intentional discriminator-selected storage and is not written as an address."
+    },
+    {
+      "record": "W8LevelFileAnimLight",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "mixed",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Versioned animation-light fields coexist with an optional allocated light-definition pointer."
+    },
+    {
+      "record": "W8LevelFileBlock",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "disk-format",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Pointer-free version/gate-dependent environment and camera values plus two 256-entry RGB ramps."
+    },
+    {
+      "record": "W8LevelFile",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "mixed",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "The level-editor workspace combines versioned payloads, tables, embedded records and allocated subrecord pointers; it is not serialized as one memory image."
+    },
+    {
+      "record": "OctMeshModel",
+      "source_file": "include/wiz8/engine_code/OctMeshModel.h",
+      "classification": "mixed",
+      "reference": "src/wiz8/engine_code/OctSubMesh.cpp",
+      "reason": "Serialized mesh header and independent vector/index streams coexist with live array pointers; allocator families are preserved."
+    },
+    {
+      "record": "W8OctFileHeader",
+      "source_file": "include/wiz8/engine_code/OctPreTree.h",
+      "classification": "disk-format",
+      "reference": "src/wiz8/engine_code/OctPreTree.cpp",
+      "reason": "The packed octree header is transferred as a complete fixed record, followed by counted streams."
+    },
+    {
+      "record": "W8OctRegionVolume",
+      "source_file": "include/wiz8/engine_code/OctPreTree.h",
+      "classification": "disk-format",
+      "reference": "src/wiz8/engine_code/OctPreTree.cpp",
+      "reason": "Octree region arrays transfer complete 232-byte region-volume records."
+    },
+    {
+      "record": "W8OctPreTreeGeometry",
+      "source_file": "include/wiz8/engine_code/OctPreTree.h",
+      "classification": "runtime-only",
+      "reference": "src/wiz8/engine_code/materials.cpp",
+      "reason": "Build context owns live vertex/polygon runs; output serializes derived streams rather than this pointer-bearing context."
+    },
+    {
+      "record": "W8OctPreTreeVertex",
+      "source_file": "include/wiz8/engine_code/OctPreTree.h",
+      "classification": "runtime-only",
+      "reference": "src/wiz8/engine_code/materials.cpp",
+      "reason": "A 96-byte build vertex holds traversal state and shared face/light runs; emitted mesh streams are separate representations."
+    },
+    {
+      "record": "W8OctSpatialState",
+      "source_file": "include/wiz8/engine_code/OctPreTree.h",
+      "classification": "runtime-only",
+      "reference": "src/wiz8/engine_code/OctPreTree.cpp",
+      "reason": "Recursive spatial state is a borrowed working view; the file header is a separate packed representation."
     }
   ],
   "lifetimes": [
@@ -342,6 +517,16 @@
       "owner": "W8LevelFileMesh",
       "source_file": "include/wiz8/engine_code/LevelFile.h",
       "contract": "ReadMeshFile allocates position/LOD/face buffers with malloc. WriteMeshFile consumes the mesh and frees vertex/face buffers and each LOD frame after writing; existing error paths and pointer-table release behavior are preserved."
+    },
+    {
+      "owner": "W8OctPreTreeGeometry",
+      "source_file": "include/wiz8/engine_code/OctPreTree.h",
+      "contract": "Release frees distinct consecutive per-vertex face/owned runs once, then vertex/polygon arrays and owned_14 with free. Shared adjacent run pointers do not imply individually owning vertices."
+    },
+    {
+      "owner": "OctMeshModel",
+      "source_file": "include/wiz8/engine_code/OctMeshModel.h",
+      "contract": "Vector buffers use srHeap.free; vertex-material and sun-light allocations use free. Write consumes and clears the buffers it writes; destructor cleans remaining buffers. Preserve the existing asymmetric serialized index and sun-light transfers."
     }
   ],
   "components": [

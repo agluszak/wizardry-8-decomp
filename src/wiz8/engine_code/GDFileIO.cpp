@@ -91,7 +91,7 @@ W8GameData* ReadGameData(const char* path, bool secondary)
 /* The WGD face record's fixed head: three vertex indexes, the source plane,
    and a version tag checked before the rest of the record is read. */
 struct W8GDFaceHeader { /* 0x1c */
-    int vertex_indices_00[3];
+    int vertex_indices[3];
     float plane_0c[3];
     int version_18;
 };
@@ -286,9 +286,9 @@ unsigned char W8GameData::ReadWGDList(HANDLE file, int poly_type)
                         axis = 2;
                     }
                     surface->flags_00 |= axis;
-                    surface->vertex_indices_18[0] = header.vertex_indices_00[0] + m_iNumVertices;
-                    surface->vertex_indices_18[1] = header.vertex_indices_00[1] + m_iNumVertices;
-                    surface->vertex_indices_18[2] = header.vertex_indices_00[2] + m_iNumVertices;
+                    surface->vertex_indices_18[0] = header.vertex_indices[0] + m_iNumVertices;
+                    surface->vertex_indices_18[1] = header.vertex_indices[1] + m_iNumVertices;
+                    surface->vertex_indices_18[2] = header.vertex_indices[2] + m_iNumVertices;
                     surface->index_04 = index;
                     surface->trigger_index_08 = 0;
                     surface->edge_link_0c[2] = -1;
@@ -573,7 +573,7 @@ void W8GameData::AddTriggerPlane(const srVector3T<float>* trigger_vertices, Trig
 void W8GameData::AddLevelPlane(W8LevelFilePlane* plane)
 {
     int index;
-    const srVector3T<float>* vertices = plane->vertices_00;
+    const srVector3T<float>* vertices = plane->vertices;
 
     if (m_pTrigSurfaces == 0) {
         m_pTrigSurfaces = static_cast<W8GDSurface*>(malloc(500 * sizeof(W8GDSurface)));
@@ -1431,21 +1431,21 @@ void W8GameData::CompileGameData()
                         fabs(vertex->position_0c.z - candidate->position_0c.z) >=
                             g_camera_snap_epsilon) {
                         last = candidate_index;
-                        linked = candidate->kind_20;
+                        linked = candidate->m_kind;
                     } else {
-                        vertex->vertex_index_04 = candidate->vertex_index_04;
+                        vertex->m_vertex_index = candidate->m_vertex_index;
                         ++redundant;
                         found = true;
                         linked = candidate_index;
                     }
                 }
                 if (!found) {
-                    weld_records[last].kind_20 = weld_count + 1;
+                    weld_records[last].m_kind = weld_count + 1;
                 }
             }
             if (!found) {
                 *new_vertex = *source;
-                vertex->vertex_index_04 = weld_count;
+                vertex->m_vertex_index = weld_count;
                 *gd_vertex = *vertex;
                 ++weld_count;
                 ++gd_vertex;
@@ -1456,7 +1456,7 @@ void W8GameData::CompileGameData()
                         redundant);
                 ReportStartupMessage(message);
             }
-            vertex->visited_0a = 0;
+            vertex->m_visited = 0;
             ++vertex;
             ++source;
             announce = false;
@@ -1467,7 +1467,7 @@ void W8GameData::CompileGameData()
         W8GDSurface* surface = m_pSurfaces + i;
         for (j = 0; j < 3; ++j) {
             surface->vertex_indices_18[j] =
-                weld_records[surface->vertex_indices_18[j]].vertex_index_04;
+                weld_records[surface->vertex_indices_18[j]].m_vertex_index;
         }
     }
     m_iNumVertices = weld_count;

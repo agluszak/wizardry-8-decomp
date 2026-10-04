@@ -18,9 +18,8 @@ static_assert(sizeof(W8LevelFilePlane) == 0x30, "W8LevelFilePlane_must_be_0x30")
 static_assert(sizeof(W8LevelFileInvisible) == 0x241, "W8LevelFileInvisible_must_be_0x241");
 static_assert(sizeof(W8LevelFileSound) == 0x170, "W8LevelFileSound_must_be_0x170");
 static_assert(sizeof(W8LevelFileSuperTrigger) == 0x867, "W8LevelFileSuperTrigger_must_be_0x867");
-static_assert(offsetof(W8LevelFileSwitch, door_264) == 0x264, "W8LevelFileSwitch_door_264");
-static_assert(offsetof(W8LevelFileSuperTrigger, door_85e) == 0x85e,
-              "W8LevelFileSuperTrigger_door_85e");
+static_assert(offsetof(W8LevelFileSwitch, door) == 0x264, "W8LevelFileSwitch_door_264");
+static_assert(offsetof(W8LevelFileSuperTrigger, door) == 0x85e, "W8LevelFileSuperTrigger_door_85e");
 static_assert(sizeof(W8LevelFileLightExtra) == 0x3c, "W8LevelFileLightExtra_must_be_0x3c");
 static_assert(sizeof(W8LevelFileItemRecord) == 0x44, "W8LevelFileItemRecord_must_be_0x44");
 static_assert(sizeof(W8LevelFileClippingPlaneRecord) == 0x50,
@@ -28,6 +27,11 @@ static_assert(sizeof(W8LevelFileClippingPlaneRecord) == 0x50,
 static_assert(sizeof(W8LevelFileFramePosition) == 4, "W8LevelFileFramePosition_must_be_4");
 static_assert(sizeof(W8LevelFileTriggerPosition) == 0x1c,
               "W8LevelFileTriggerPosition_must_be_0x1c");
+static_assert(offsetof(W8LevelFileTriggerPosition, angle) == 0x0c,
+              "Level trigger placement angle offset");
+static_assert(offsetof(W8LevelFileTriggerPosition, direction) == 0x10,
+              "Level trigger placement direction offset");
+static_assert(offsetof(W8LevelFileCamera, name) == 0x09, "Level camera name offset");
 static_assert(sizeof(W8LevelFileTriggerHotSpot) == 0x85, "W8LevelFileTriggerHotSpot_must_be_0x85");
 static_assert(sizeof(W8LevelFileTrigger) == 6, "W8LevelFileTrigger_must_be_6");
 static_assert(sizeof(W8LevelFileFrame) == 0x63, "W8LevelFileFrame_must_be_0x63");
@@ -38,30 +42,28 @@ static_assert(sizeof(W8LevelFileProp) == 0xbf, "W8LevelFileProp_must_be_0xbf");
 static_assert(offsetof(W8LevelFileProp, version_00) == 0x00, "W8LevelFileProp_version_00");
 static_assert(offsetof(W8LevelFileProp, bNumFrames) == 0x01, "W8LevelFileProp_bNumFrames");
 static_assert(offsetof(W8LevelFileProp, option_02) == 0x02, "W8LevelFileProp_option_02");
-static_assert(offsetof(W8LevelFileProp, position_03) == 0x03, "W8LevelFileProp_position_03");
-static_assert(offsetof(W8LevelFileProp, flags_0f) == 0x0f, "W8LevelFileProp_flags_0f");
-static_assert(offsetof(W8LevelFileProp, name_13) == 0x13, "W8LevelFileProp_name_13");
-static_assert(offsetof(W8LevelFileProp, anim_obj_53) == 0x53, "W8LevelFileProp_anim_obj_53");
-static_assert(offsetof(W8LevelFileProp, has_trigger_b2) == 0xb2, "W8LevelFileProp_has_trigger_b2");
+static_assert(offsetof(W8LevelFileProp, position) == 0x03, "W8LevelFileProp_position_03");
+static_assert(offsetof(W8LevelFileProp, flags) == 0x0f, "W8LevelFileProp_flags_0f");
+static_assert(offsetof(W8LevelFileProp, name) == 0x13, "W8LevelFileProp_name_13");
+static_assert(offsetof(W8LevelFileProp, anim_obj) == 0x53, "W8LevelFileProp_anim_obj_53");
+static_assert(offsetof(W8LevelFileProp, has_trigger) == 0xb2, "W8LevelFileProp_has_trigger_b2");
 static_assert(offsetof(W8LevelFileProp, pTrigger) == 0xb3, "W8LevelFileProp_pTrigger");
-static_assert(offsetof(W8LevelFileProp, num_frame_pos_b7) == 0xb7,
-              "W8LevelFileProp_num_frame_pos_b7");
+static_assert(offsetof(W8LevelFileProp, num_frame_pos) == 0xb7, "W8LevelFileProp_num_frame_pos_b7");
 static_assert(offsetof(W8LevelFileProp, usFrame_Pos) == 0xb8, "W8LevelFileProp_usFrame_Pos");
-static_assert(offsetof(W8LevelFileProp, has_footsteps_bc) == 0xbc,
-              "W8LevelFileProp_has_footsteps_bc");
-static_assert(offsetof(W8LevelFileProp, footstep_surface_bd) == 0xbd,
+static_assert(offsetof(W8LevelFileProp, has_footsteps) == 0xbc, "W8LevelFileProp_has_footsteps_bc");
+static_assert(offsetof(W8LevelFileProp, footstep_surface) == 0xbd,
               "W8LevelFileProp_footstep_surface_bd");
-static_assert(offsetof(W8LevelFileProp, footstep_material_be) == 0xbe,
+static_assert(offsetof(W8LevelFileProp, footstep_material) == 0xbe,
               "W8LevelFileProp_footstep_material_be");
 static_assert(sizeof(W8LevelParticleRecord) == 0x225, "W8LevelParticleRecord_must_be_0x225");
 static_assert(sizeof(W8LevelFileParticleSystem) == 0x226,
               "W8LevelFileParticleSystem_must_be_0x226");
-static_assert(offsetof(W8LevelFileParticleSystem, particle_01.location) == 0x41,
+static_assert(offsetof(W8LevelFileParticleSystem, particle.location) == 0x41,
               "W8LevelFileParticleSystem_position_41");
-static_assert(offsetof(W8LevelFileParticleSystem, particle_01.attachment_key_216) == 0x217,
+static_assert(offsetof(W8LevelFileParticleSystem, particle.attachment_key) == 0x217,
               "W8LevelFileParticleSystem_attachment_key_217");
 static_assert(sizeof(W8LevelFileNamedPosition) == 0x9d, "W8LevelFileNamedPosition_must_be_0x9d");
-static_assert(offsetof(W8LevelFileNamedPosition, position_81) == 0x81,
+static_assert(offsetof(W8LevelFileNamedPosition, position) == 0x81,
               "W8LevelFileNamedPosition_position_81");
 static_assert(sizeof(W8LevelFileBlock) == 0x634, "W8LevelFileBlock_must_be_0x634");
 static_assert(sizeof(W8LevelFile) == 0x279d, "W8LevelFile_must_be_0x279d");

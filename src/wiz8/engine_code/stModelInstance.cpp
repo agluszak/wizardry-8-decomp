@@ -663,8 +663,7 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
             }
         }
 
-        if (((highlight_colour_164.x == g_float_zero) &&
-             (highlight_colour_164.y == g_float_zero) &&
+        if (((highlight_colour_164.x == g_float_zero) && (highlight_colour_164.y == g_float_zero) &&
              (highlight_colour_164.z == g_float_zero) &&
              (highlight_colour_164.w == g_float_zero)) ||
             (highlight_pass_mode_190 != 1)) {

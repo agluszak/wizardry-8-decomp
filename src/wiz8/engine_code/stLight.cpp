@@ -502,5 +502,5 @@ srClass* stLight::vInstance()
 // FUNCTION: WIZ8 0x0049e460
 unsigned char W8OctRegionVolume::ContainsPoint(const srVector3T<float>* point) const
 {
-    return PointInsideFrustum(point, planes_88);
+    return PointInsideFrustum(point, m_planes);
 }

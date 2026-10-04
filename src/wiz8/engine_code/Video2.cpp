@@ -1546,8 +1546,8 @@ stModelInstance2D* CreateSpriteFromTexture(srTextureIFace* texture, double width
     float step = g_surface_scale * (g_float_one / w);
     g_modeler->createGrid(1, 1);
     srModeler::MappingInfo mapping(srModeler::AXIS_X, srModeler::AXIS_Y,
-                                   g_float_one - (step + step),
-                                   g_float_one - (step + step), step, step);
+                                   g_float_one - (step + step), g_float_one - (step + step), step,
+                                   step);
     g_modeler->planarMap(0, 0, mapping);
     scale.Set(static_cast<float>(width), static_cast<float>(height), 1.0f);
     g_modeler->scale(scale);
@@ -3707,9 +3707,8 @@ srNode* MakePosterQuad(srTextureIFace* texture, float width, float height, bool 
     model->setName("VideoMakePoster");
     texture->getDimensions(dimensions);
     g_modeler->createGrid(1, 1);
-    srModeler::MappingInfo mapping(srModeler::AXIS_X, srModeler::AXIS_Y,
-                                   g_float_one - extent_w, g_float_one - extent_h,
-                                   extent_w, extent_h);
+    srModeler::MappingInfo mapping(srModeler::AXIS_X, srModeler::AXIS_Y, g_float_one - extent_w,
+                                   g_float_one - extent_h, extent_w, extent_h);
     g_modeler->planarMap(0, 0, mapping);
     srVector3T<float> scale;
     scale.Set(width, height, 1.0f);

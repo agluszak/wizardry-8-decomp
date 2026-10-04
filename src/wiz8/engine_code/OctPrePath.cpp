@@ -32,7 +32,7 @@ public:
     int width_00;
     int rows_04;
     float scale_08;
-    float minimum_0c[3];
+    float m_minimum[3];
     char** m_pPathStrings;
     char** m_pLinkStrings;
 };
@@ -48,9 +48,9 @@ OctPrePathLog::OctPrePathLog(float scale, const float* bounds)
     if (bounds != 0) {
         width_00 = static_cast<int>((bounds[3] - bounds[0]) / scale) + 1;
         rows_04 = static_cast<int>((bounds[5] - bounds[2]) / scale) + 1;
-        minimum_0c[0] = bounds[0];
-        minimum_0c[1] = bounds[1];
-        minimum_0c[2] = bounds[2];
+        m_minimum[0] = bounds[0];
+        m_minimum[1] = bounds[1];
+        m_minimum[2] = bounds[2];
         m_pPathStrings = static_cast<char**>(malloc(rows_04 << 2));
         if (m_pPathStrings == 0) {
             ReportBuildStatus(7, "OctPrePathLog: Could not allocate m_pPathStrings.\n");
@@ -151,9 +151,9 @@ int PrePathing::SnapNamedPositions(W8LevelFileNamedPosition* positions, int coun
     if (count != 0) {
         named_positions_250 = new srVector3T<float>[count];
         for (int i = 0; i < named_position_count_24c; ++i) {
-            named_positions_250[i].Set(positions[i].position_81.x * g_world_scale,
-                                       positions[i].position_81.y * g_world_scale,
-                                       positions[i].position_81.z * g_world_scale);
+            named_positions_250[i].Set(positions[i].position.x * g_world_scale,
+                                       positions[i].position.y * g_world_scale,
+                                       positions[i].position.z * g_world_scale);
             octree->SnapToGround(&named_positions_250[i], 0);
         }
     }
@@ -559,21 +559,20 @@ unsigned char PrePathing::CreateAutomapNodes(W8LevelFile* level)
         } while (i < static_cast<unsigned int>(size_004));
     }
     used_keys.Clear();
-    level->num_automap_nodes_6b1 = node_keys.GetCount();
+    level->num_automap_nodes = node_keys.GetCount();
     sprintf(message, "Creating Automap Nodes:  100%% Complete:  %d Automap Nodes created  \n",
             node_keys.GetCount());
     ReportStartupMessage(message);
-    sprintf(message, "  %d Total Automap Nodes.\n", level->num_automap_nodes_6b1);
+    sprintf(message, "  %d Total Automap Nodes.\n", level->num_automap_nodes);
     ReportBuildStatus(6, message);
-    level->automap_nodes_6b5 =
-        static_cast<unsigned long*>(malloc(level->num_automap_nodes_6b1 << 2));
-    if (level->automap_nodes_6b5 == 0) {
-        level->num_automap_nodes_6b1 = 0;
+    level->automap_nodes = static_cast<unsigned long*>(malloc(level->num_automap_nodes << 2));
+    if (level->automap_nodes == 0) {
+        level->num_automap_nodes = 0;
     } else {
-        for (i = 0; i < static_cast<unsigned int>(level->num_automap_nodes_6b1); ++i) {
-            level->automap_nodes_6b5[i] = *node_keys.GetAt(i);
+        for (i = 0; i < static_cast<unsigned int>(level->num_automap_nodes); ++i) {
+            level->automap_nodes[i] = *node_keys.GetAt(i);
         }
-        QuickSort(level->automap_nodes_6b5, 0, level->num_automap_nodes_6b1 - 1);
+        QuickSort(level->automap_nodes, 0, level->num_automap_nodes - 1);
     }
     for (i = 1; i < static_cast<unsigned int>(size_004); ++i) {
         path_node_list_240[i] = 0;

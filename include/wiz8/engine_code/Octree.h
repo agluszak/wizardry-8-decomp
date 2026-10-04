@@ -131,7 +131,7 @@ struct W8OctSubmesh {
     unsigned long flags_00;
     int mesh_04;
     /* The same-chain successor's record index (the build record's
-       next_link_10). */
+       m_next_link). */
     unsigned long next_link_08;
     /* Reader max-scans this to size the g_octree_storage identity table. */
     unsigned int polygon_count_0c;

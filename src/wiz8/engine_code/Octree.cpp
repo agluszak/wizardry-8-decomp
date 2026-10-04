@@ -81,8 +81,7 @@ void W8Octree::UpdatePathVisualization()
         GetWorldCursorPosition(&cursor);
         /* Retail reads the y component twice (proven in disassembly: both
            fcomp loads use the y slot) and never tests x. */
-        if (cursor.y != g_float_zero || cursor.y != g_float_zero ||
-            cursor.z != g_float_zero) {
+        if (cursor.y != g_float_zero || cursor.y != g_float_zero || cursor.z != g_float_zero) {
             srVector3T<float> point = cursor;
             pathing_180->UpdatePathVisualization(&point, &view_1c0.camera_dof_0c);
             return;
@@ -422,14 +421,14 @@ int W8Octree::CollectModelsNearPoint(W8GrowableVector<stModelInstance*>* out,
     int axis;
     for (axis = 0; axis < 3; ++axis) {
         first[axis] =
-            static_cast<int>(((&point->x)[axis] - radius - (&m_spatial.minimum_0c.x)[axis]) /
+            static_cast<int>(((&point->x)[axis] - radius - (&m_spatial.m_minimum.x)[axis]) /
                              m_spatial.m_region_grid_cell) -
             1;
         if (first[axis] < 0) {
             first[axis] = 0;
         }
         last[axis] = static_cast<unsigned int>(
-                         ((&point->x)[axis] + radius - (&m_spatial.minimum_0c.x)[axis]) /
+                         ((&point->x)[axis] + radius - (&m_spatial.m_minimum.x)[axis]) /
                          m_spatial.m_region_grid_cell) +
                      1;
         if (limit < last[axis]) {
@@ -462,14 +461,15 @@ int W8Octree::CollectModelsNearPoint(W8GrowableVector<stModelInstance*>* out,
     }
 
     unsigned int region = 1;
-    if (1 < m_spatial.region_count_46) {
+    if (1 < m_spatial.m_region_count) {
         do {
-            if (SphereInsideFrustum(point, radius, m_spatial.m_region_volumes[region].planes_88) != 0 &&
-                m_spatial.m_region_volumes[region].region_bit_0c != 0) {
-                m_current_regions->Set(m_spatial.m_region_volumes[region].region_bit_0c);
+            if (SphereInsideFrustum(point, radius, m_spatial.m_region_volumes[region].m_planes) !=
+                    0 &&
+                m_spatial.m_region_volumes[region].m_region_bit != 0) {
+                m_current_regions->Set(m_spatial.m_region_volumes[region].m_region_bit);
             }
             ++region;
-        } while (region < m_spatial.region_count_46);
+        } while (region < m_spatial.m_region_count);
     }
 
     if (m_ulNumProps == 0) {
@@ -605,7 +605,7 @@ short W8Octree::ProjectLinkedRegionsForLocation(srVector3T<float>* location,
             strcat(expected_regions, region_label);
 
             W8OctRegionVolume* volume = &m_spatial.m_region_volumes[region_index];
-            if (PointInsideFrustum(location, volume->planes_88) == 0) {
+            if (PointInsideFrustum(location, volume->m_planes) == 0) {
                 continue;
             }
             if (match_count == 0) {
@@ -629,18 +629,17 @@ short W8Octree::ProjectLinkedRegionsForLocation(srVector3T<float>* location,
     char point_region_label[128];
     strcpy(point_region_label, expected_regions);
 
-    if (m_spatial.region_count_46 < 2) {
+    if (m_spatial.m_region_count < 2) {
         return 0;
     }
 
     unsigned short reported_region = 0;
-    for (unsigned short region_index = 1; region_index < m_spatial.region_count_46;
-         ++region_index) {
+    for (unsigned short region_index = 1; region_index < m_spatial.m_region_count; ++region_index) {
         if (match_count != 0) {
             break;
         }
         W8OctRegionVolume* volume = &m_spatial.m_region_volumes[region_index];
-        if (PointInsideFrustum(location, volume->planes_88) == 0) {
+        if (PointInsideFrustum(location, volume->m_planes) == 0) {
             continue;
         }
         if (reported_region == 0 && region_index != g_octree_region_debug_last) {
@@ -672,18 +671,17 @@ short W8Octree::ProjectLinkedRegionsForLocation(srVector3T<float>* location,
 unsigned int W8Octree::GetSectorForPosition(const srVector3T<float>* position)
 {
     srVector3T<float> point = *position;
-    for (unsigned int region = 1; region < m_spatial.region_count_46; ++region) {
-        if (PointInsideFrustum(&point, m_spatial.m_region_volumes[region].planes_88) != 0) {
-            return m_spatial.m_region_volumes[region].region_bit_0c;
+    for (unsigned int region = 1; region < m_spatial.m_region_count; ++region) {
+        if (PointInsideFrustum(&point, m_spatial.m_region_volumes[region].m_planes) != 0) {
+            return m_spatial.m_region_volumes[region].m_region_bit;
         }
     }
 
     unsigned int cell[4];
     cell[0] = m_region_mask;
     for (int axis = 0; axis < 3; ++axis) {
-        int coordinate =
-            static_cast<int>(((&position->x)[axis] - (&m_spatial.minimum_0c.x)[axis]) /
-                             m_spatial.m_region_grid_cell);
+        int coordinate = static_cast<int>(((&position->x)[axis] - (&m_spatial.m_minimum.x)[axis]) /
+                                          m_spatial.m_region_grid_cell);
         if (coordinate < 0 || coordinate >= m_spatial.m_region_cells_per_axis) {
             return 0;
         }
@@ -707,8 +705,8 @@ unsigned char W8Octree::CollectVisibleRegions(srVector3T<float>* location, int* 
     bool inside = true;
 
     for (int axis = 0; axis < 3; ++axis) {
-        box_min[axis] = (&m_spatial.minimum_0c.x)[axis];
-        box_max[axis] = (&m_spatial.maximum_18.x)[axis];
+        box_min[axis] = (&m_spatial.m_minimum.x)[axis];
+        box_max[axis] = (&m_spatial.m_maximum.x)[axis];
         cells[axis] =
             static_cast<int>((((&location->x)[axis] - box_min[axis]) / m_spatial.m_node_extent));
         link_cell[axis] = static_cast<int>(
@@ -721,10 +719,10 @@ unsigned char W8Octree::CollectVisibleRegions(srVector3T<float>* location, int* 
             inside = 0;
         }
         if (depth != 0) {
-            depth[axis] = ((&location->x)[axis] -
-                           (cells[axis] * m_spatial.m_node_extent + box_min[axis])) /
-                              m_spatial.m_node_extent -
-                          g_float_005ebc7c;
+            depth[axis] =
+                ((&location->x)[axis] - (cells[axis] * m_spatial.m_node_extent + box_min[axis])) /
+                    m_spatial.m_node_extent -
+                g_float_005ebc7c;
         }
     }
     if (!inside) {
@@ -733,9 +731,9 @@ unsigned char W8Octree::CollectVisibleRegions(srVector3T<float>* location, int* 
     if (mode == 0) {
         return 1;
     }
-    float span = m_spatial.extent_04 * g_float_005ebc7c;
+    float span = m_spatial.m_extent * g_float_005ebc7c;
     int node = 1;
-    for (short level = 0; level < m_spatial.depth_44; ++level) {
+    for (short level = 0; level < m_spatial.m_depth; ++level) {
         unsigned int child_index = 0;
         for (int axis = 0; axis < 3; ++axis) {
             float edge = span + box_min[axis];
@@ -782,25 +780,24 @@ void W8Octree::MarkVisibleRegions()
     float radius = view_1c0.far_clip_40;
     float radius_squared = radius * radius;
 
-    for (int index = 1; index < m_spatial.region_count_46; ++index) {
+    for (int index = 1; index < m_spatial.m_region_count; ++index) {
         W8OctRegionVolume* volume = &m_spatial.m_region_volumes[index];
 
-        if (m_projected_regions_valid != 0 &&
-            !m_projected_regions->Test(volume->region_bit_0c)) {
+        if (m_projected_regions_valid != 0 && !m_projected_regions->Test(volume->m_region_bit)) {
             continue;
         }
-        srVector3T<float> delta = view_1c0.camera_location_00 - volume->points_1c[0];
+        srVector3T<float> delta = view_1c0.camera_location_00 - volume->m_points[0];
 
         if (delta.LengthSquared() >= radius_squared) {
             continue;
         }
-        bool visible = PointInsideFrustum(&volume->points_1c[0], view_1c0.frustum_planes_5c);
+        bool visible = PointInsideFrustum(&volume->m_points[0], view_1c0.frustum_planes_5c);
 
         for (int point = 1; !visible && point < 9; ++point) {
-            visible = PointInsideFrustum(&volume->points_1c[point], view_1c0.frustum_planes_5c);
+            visible = PointInsideFrustum(&volume->m_points[point], view_1c0.frustum_planes_5c);
         }
-        if (visible != 0 && volume->region_bit_0c != 0) {
-            m_current_regions->Set(volume->region_bit_0c);
+        if (visible != 0 && volume->m_region_bit != 0) {
+            m_current_regions->Set(volume->m_region_bit);
         }
     }
 }
@@ -875,7 +872,7 @@ void W8Octree::CollectVisibleCells()
 
     for (int axis = 0; axis < 3; ++axis) {
         center[axis] = static_cast<short>(static_cast<int>(
-            (((&view_1c0.camera_location_00.x)[axis] - (&m_spatial.minimum_0c.x)[axis]) /
+            (((&view_1c0.camera_location_00.x)[axis] - (&m_spatial.m_minimum.x)[axis]) /
              m_spatial.m_region_grid_cell)));
     }
     unsigned int region_base = m_region_mask;
@@ -897,12 +894,12 @@ void W8Octree::CollectVisibleCells()
                 if (abs(x) >= 2 || abs(y) >= 2 || abs(z) >= 2) {
                     float offset = m_spatial.m_region_grid_cell * g_float_005ebc7c;
                     srVector3T<float> point;
-                    point.x = cell_x * m_spatial.m_region_grid_cell + offset +
-                              m_spatial.minimum_0c.x;
-                    point.y = cell_y * m_spatial.m_region_grid_cell + m_spatial.minimum_0c.y +
-                              offset;
-                    point.z = cell_z * m_spatial.m_region_grid_cell + m_spatial.minimum_0c.z +
-                              offset;
+                    point.x =
+                        cell_x * m_spatial.m_region_grid_cell + offset + m_spatial.m_minimum.x;
+                    point.y =
+                        cell_y * m_spatial.m_region_grid_cell + m_spatial.m_minimum.y + offset;
+                    point.z =
+                        cell_z * m_spatial.m_region_grid_cell + m_spatial.m_minimum.z + offset;
                     if (PointInsideFrustum(&point, view_1c0.frustum_planes_5c) == 0) {
                         continue;
                     }
@@ -995,8 +992,7 @@ bool W8Octree::LoadPointFiles(const char* level_name)
             FileClose(file);
             return 0;
         }
-        read_ok =
-            FileRead(file, m_sample_points, m_point_count * sizeof(srVector3T<float>), 0);
+        read_ok = FileRead(file, m_sample_points, m_point_count * sizeof(srVector3T<float>), 0);
         FileClose(file);
     }
     if (read_ok != 0) {
@@ -1034,8 +1030,8 @@ BOOLEAN W8Octree::SavePoints(char* path)
     if (file != 0) {
         if (m_point_count != 0 && m_sample_points != 0) {
             unsigned char wrote_count = FileWrite(file, &m_point_count, 4, 0);
-            unsigned char wrote_points = FileWrite(
-                file, m_sample_points, m_point_count * sizeof(srVector3T<float>), 0);
+            unsigned char wrote_points =
+                FileWrite(file, m_sample_points, m_point_count * sizeof(srVector3T<float>), 0);
             result = wrote_count | wrote_points;
             FileClose(file);
         }
@@ -1109,7 +1105,7 @@ bool W8Octree::ReadRegionLinkFile(const char* level_name)
 unsigned int W8Octree::RegionKeyForPoint(const srVector3T<float>* point)
 {
     unsigned int region = 0;
-    if (1 < m_spatial.region_count_46) {
+    if (1 < m_spatial.m_region_count) {
         unsigned int index = 1;
         do {
             if (region != 0) {
@@ -1119,14 +1115,14 @@ unsigned int W8Octree::RegionKeyForPoint(const srVector3T<float>* point)
                 region = index;
             }
             ++index;
-        } while (index < m_spatial.region_count_46);
+        } while (index < m_spatial.m_region_count);
         if (region != 0) {
             return region;
         }
     }
     int cell[3];
     for (int axis = 0; axis < 3; ++axis) {
-        cell[axis] = static_cast<int>(((&point->x)[axis] - (&m_spatial.minimum_0c.x)[axis]) /
+        cell[axis] = static_cast<int>(((&point->x)[axis] - (&m_spatial.m_minimum.x)[axis]) /
                                       m_spatial.m_region_grid_cell);
     }
     return (cell[0] * 0x100 + cell[1]) * 0x100 + cell[2] + m_region_mask * 0x1000000;
@@ -1155,7 +1151,7 @@ void W8Octree::RecordRegionMeshLinks(unsigned int region_key)
         }
         if (slot == -1) {
             if (!reported) {
-                if (region_key < m_spatial.region_count_46) {
+                if (region_key < m_spatial.m_region_count) {
                     sprintf(text, "Pre-generated Region %d linked to meshes: ", region_key);
                 } else {
                     sprintf(text, "Auto Region (%d, %d, %d) linked to meshes: ",
@@ -1193,7 +1189,7 @@ unsigned int W8Octree::SampleRegionLinks(const srVector3T<float>* point, bool de
     W8Vector<stModelInstance*> meshes(5);
     W8GrowableVector<int> cells;
     view_1c0.camera_location_00 = *point;
-    view_1c0.far_clip_40 = m_spatial.extent_04;
+    view_1c0.far_clip_40 = m_spatial.m_extent;
     char text[104];
     sprintf(text, "Sample point: %f, %f, %f, Links Found: ", point->x, point->y, point->z);
     NoOp();
@@ -1377,7 +1373,7 @@ void W8Octree::BuildRegionLinks(bool rebuild_all)
     unsigned short z_step = rebuild_all != 0 ? 1 : 3;
     float stride = z_step * m_region_cell;
     unsigned short rows =
-        static_cast<unsigned short>(static_cast<int>(m_spatial.extent_04 / stride));
+        static_cast<unsigned short>(static_cast<int>(m_spatial.m_extent / stride));
     for (unsigned int prop = 0; prop < m_usNumPropsLoaded; ++prop) {
         m_papProps[prop]->SetSetting6C(0);
     }
@@ -1415,8 +1411,7 @@ void W8Octree::BuildRegionLinks(bool rebuild_all)
                 break;
             }
             srVector3T<float> point;
-            point.x =
-                m_region_cell * g_float_005ebc7c + x_index * stride + m_spatial.minimum_0c.x;
+            point.x = m_region_cell * g_float_005ebc7c + x_index * stride + m_spatial.m_minimum.x;
             unsigned short z_index = rebuild_all == 0 && (x_index & 1) != 0 ? z_step : 0;
             if (!(m_spatial.m_working_minimum.x < point.x &&
                   point.x < m_spatial.m_working_maximum.x)) {
@@ -1426,8 +1421,8 @@ void W8Octree::BuildRegionLinks(bool rebuild_all)
                 if (aborted) {
                     break;
                 }
-                point.z = m_region_cell * g_float_005ebc7c + z_index * stride +
-                          m_spatial.minimum_0c.z;
+                point.z =
+                    m_region_cell * g_float_005ebc7c + z_index * stride + m_spatial.m_minimum.z;
                 if (!(m_spatial.m_working_minimum.z < point.z &&
                       point.z < m_spatial.m_working_maximum.z)) {
                     continue;
@@ -1451,7 +1446,7 @@ void W8Octree::BuildRegionLinks(bool rebuild_all)
                         }
                     }
                 }
-                point.y = m_spatial.minimum_0c.y + m_spatial.extent_04;
+                point.y = m_spatial.m_minimum.y + m_spatial.m_extent;
                 while (pathing_180->SnapToLowerPathCell(&point, 1) != 0) {
                     point.y += g_default_world_height;
                     unsigned int key = RegionKeyForPoint(&point);
@@ -1600,7 +1595,7 @@ BOOLEAN W8Octree::SaveRegionLinks(char* path)
     }
     {
         unsigned int count = 0;
-        for (unsigned int key = 1; key < m_spatial.region_count_46; ++key) {
+        for (unsigned int key = 1; key < m_spatial.m_region_count; ++key) {
             for (int slot = m_pRegionLinks->FindNextEntry(&key, -1); slot != -1;
                  slot = m_pRegionLinks->FindNextEntry(&key, slot)) {
                 keys[count] = key;
@@ -1659,11 +1654,11 @@ unsigned char W8Octree::UpdateWorldTrace()
     GetCameraPosition(&camera);
     for (int axis = 0; axis < 3; ++axis) {
         cell[axis] = static_cast<int>(
-            (((&camera.x)[axis] - (&m_spatial.minimum_0c.x)[axis]) / m_spatial.m_node_extent));
+            (((&camera.x)[axis] - (&m_spatial.m_minimum.x)[axis]) / m_spatial.m_node_extent));
     }
-    minimum.Set(cell[0] * m_spatial.m_node_extent + m_spatial.minimum_0c.x,
-                cell[1] * m_spatial.m_node_extent + m_spatial.minimum_0c.y,
-                cell[2] * m_spatial.m_node_extent + m_spatial.minimum_0c.z);
+    minimum.Set(cell[0] * m_spatial.m_node_extent + m_spatial.m_minimum.x,
+                cell[1] * m_spatial.m_node_extent + m_spatial.m_minimum.y,
+                cell[2] * m_spatial.m_node_extent + m_spatial.m_minimum.z);
     maximum.Set(minimum.x + m_spatial.m_node_extent, minimum.y + m_spatial.m_node_extent,
                 minimum.z + m_spatial.m_node_extent);
     unsigned long* packed = PackColourToLong(&color, 0.0, 1.0, 0.0, 0.0);
@@ -1697,9 +1692,9 @@ unsigned long* __fastcall PackColourToLong(unsigned long* color, double red, dou
 unsigned char W8Octree::ValidateRegionMeshLinks()
 {
     W8OctSpatialState spatial(&m_spatial);
-    spatial.depth_44 = 0;
-    spatial.node_index_94 = 1;
-    spatial.level_kind_6c = 1;
+    spatial.m_depth = 0;
+    spatial.m_node_index = 1;
+    spatial.m_level_kind = 1;
     int bad_links = CountBadRegionMeshLinks(&spatial);
     if (bad_links != 0) {
         CreateMessageBox(FormatWideString(L" %d Bad Region-Mesh Links!", bad_links), g_small_font,
@@ -1719,9 +1714,9 @@ int W8Octree::CountBadRegionMeshLinks(W8OctSpatialState* spatial)
 {
     W8OctSpatialState local(spatial);
     int bad_links = 0;
-    if (spatial->depth_44 < 0x10) {
-        if (spatial->depth_44 == m_spatial.m_leaf_level) {
-            unsigned short link = m_branches[spatial->node_index_94].region_02;
+    if (spatial->m_depth < 0x10) {
+        if (spatial->m_depth == m_spatial.m_leaf_level) {
+            unsigned short link = m_branches[spatial->m_node_index].region_02;
             if (link != 0) {
                 stModelInstance* mesh =
                     static_cast<stModelInstance*>(g_world->psrMeshes[m_pSubmeshes[link].mesh_04]);
@@ -1754,9 +1749,9 @@ int W8Octree::CountBadRegionMeshLinks(W8OctSpatialState* spatial)
                             maximum.z = box_maximum.z;
                         }
                     }
-                    if (maximum.x < spatial->minimum_0c.x || spatial->maximum_18.x < minimum.x ||
-                        maximum.y < spatial->minimum_0c.y || spatial->maximum_18.y < minimum.y ||
-                        maximum.z < spatial->minimum_0c.z || spatial->maximum_18.z < minimum.z) {
+                    if (maximum.x < spatial->m_minimum.x || spatial->m_maximum.x < minimum.x ||
+                        maximum.y < spatial->m_minimum.y || spatial->m_maximum.y < minimum.y ||
+                        maximum.z < spatial->m_minimum.z || spatial->m_maximum.z < minimum.z) {
                         bad_links = 1;
                     }
                 }
@@ -1767,15 +1762,14 @@ int W8Octree::CountBadRegionMeshLinks(W8OctSpatialState* spatial)
             do {
                 for (int y = 0; y < 2; ++y) {
                     for (int z = 0; z < 2; ++z) {
-                        local.node_index_94 =
-                            m_branches[spatial->node_index_94].children_04[child];
-                        if (local.node_index_94 != 0) {
-                            local.minimum_0c.x = x * local.extent_04 + spatial->minimum_0c.x;
-                            local.maximum_18.x = local.minimum_0c.x + local.extent_04;
-                            local.minimum_0c.y = y * local.extent_04 + spatial->minimum_0c.y;
-                            local.maximum_18.y = local.minimum_0c.y + local.extent_04;
-                            local.minimum_0c.z = z * local.extent_04 + spatial->minimum_0c.z;
-                            local.maximum_18.z = local.minimum_0c.z + local.extent_04;
+                        local.m_node_index = m_branches[spatial->m_node_index].children_04[child];
+                        if (local.m_node_index != 0) {
+                            local.m_minimum.x = x * local.m_extent + spatial->m_minimum.x;
+                            local.m_maximum.x = local.m_minimum.x + local.m_extent;
+                            local.m_minimum.y = y * local.m_extent + spatial->m_minimum.y;
+                            local.m_maximum.y = local.m_minimum.y + local.m_extent;
+                            local.m_minimum.z = z * local.m_extent + spatial->m_minimum.z;
+                            local.m_maximum.z = local.m_minimum.z + local.m_extent;
                             bad_links += CountBadRegionMeshLinks(&local);
                         }
                         ++child;
@@ -1989,8 +1983,8 @@ unsigned long g_octree_bytes_read;
 // FUNCTION: WIZ8 0x00433660
 unsigned long W8Octree::FindLeaf(const int* point)
 {
-    int level = m_spatial.depth_44;
-    int mask = 1 << m_spatial.depth_44;
+    int level = m_spatial.m_depth;
+    int mask = 1 << m_spatial.m_depth;
     unsigned long node = 1;
 
     do {
@@ -2024,7 +2018,7 @@ unsigned long W8Octree::FindLeaf(const int* point)
 int W8Octree::DescendByMask(const unsigned int* masked_cell)
 {
     int node = 1;
-    int bit = 1 << m_spatial.depth_44;
+    int bit = 1 << m_spatial.m_depth;
     while (bit != 0 && node != 0) {
         if ((masked_cell[0] & bit) != 0) {
             int octant = 0;
@@ -2056,7 +2050,7 @@ unsigned int W8Octree::LeafIndexForCell(const int* cell)
     }
     if (m_leaf_lookup != 0) {
         return m_leaf_lookup[m_spatial.m_leaf_grid_stride_x * cell[0] + cell[2] +
-                           m_spatial.m_leaf_grid_stride_y * cell[1]];
+                             m_spatial.m_leaf_grid_stride_y * cell[1]];
     }
     return FindLeaf(cell);
 }
@@ -2089,10 +2083,10 @@ float W8Octree::SettleToGround(srVector3T<float>* position, bool* out_hit, char 
     end = *position;
     start = *position;
     start.y = position->y + limit;
-    cell[0] = static_cast<int>(((start.x - m_spatial.minimum_0c.x) / m_spatial.m_node_extent));
-    cell[1] = static_cast<int>(((start.y - m_spatial.minimum_0c.y) / m_spatial.m_node_extent));
-    cell[2] = static_cast<int>(((start.z - m_spatial.minimum_0c.z) / m_spatial.m_node_extent));
-    end.y = ((cell[1] - 1)) * m_spatial.m_node_extent + m_spatial.minimum_0c.y;
+    cell[0] = static_cast<int>(((start.x - m_spatial.m_minimum.x) / m_spatial.m_node_extent));
+    cell[1] = static_cast<int>(((start.y - m_spatial.m_minimum.y) / m_spatial.m_node_extent));
+    cell[2] = static_cast<int>(((start.z - m_spatial.m_minimum.z) / m_spatial.m_node_extent));
+    end.y = ((cell[1] - 1)) * m_spatial.m_node_extent + m_spatial.m_minimum.y;
     trace.Reseed(&start, &end);
     if (-1 < cell[1]) {
         do {
@@ -2105,8 +2099,8 @@ float W8Octree::SettleToGround(srVector3T<float>* position, bool* out_hit, char 
                 unsigned long before = m_gd_result_count;
                 CollectObjectsInCell(cell, W8_OCTREE_KIND_PROP);
                 if (m_gd_result_count != before) {
-                    int prop = g_octree_game_data->TestPropSurfaces(m_gd_result_count,
-                                                                    m_aulGDObjs, &trace, 0, 0);
+                    int prop = g_octree_game_data->TestPropSurfaces(m_gd_result_count, m_aulGDObjs,
+                                                                    &trace, 0, 0);
                     current_prop = prop;
                     if (prop >= 0) {
                         prop_hit = true;
@@ -2117,8 +2111,7 @@ float W8Octree::SettleToGround(srVector3T<float>* position, bool* out_hit, char 
             if (ProbeCellForTrace(cell) == 0) {
                 goto descend;
             }
-            hit = g_octree_game_data->TestTraceResult(m_gd_result_count, m_aulGDObjs, &trace, 0,
-                                                      0);
+            hit = g_octree_game_data->TestTraceResult(m_gd_result_count, m_aulGDObjs, &trace, 0, 0);
             if (hit == 0) {
             descend:
                 if (prop_hit) {
@@ -2126,7 +2119,7 @@ float W8Octree::SettleToGround(srVector3T<float>* position, bool* out_hit, char 
                 } else {
                     float level = static_cast<float>(cell[1]);
                     --cell[1];
-                    start.y = level * m_spatial.m_node_extent + m_spatial.minimum_0c.y;
+                    start.y = level * m_spatial.m_node_extent + m_spatial.m_minimum.y;
                     end.y -= m_spatial.m_node_extent;
                     trace.Reseed(&start, &end);
                 }
@@ -2202,15 +2195,12 @@ bool W8Octree::HasLineOfSight(const srVector3T<float>* from, srVector3T<float>* 
     m_gd_result_count = 0;
     m_visited_polygon_bits->ClearAll();
     m_current_regions->ClearAll();
-    cell[0] = static_cast<int>(((from->x - m_spatial.minimum_0c.x) / m_spatial.m_node_extent));
-    end_cell[0] =
-        static_cast<int>(((to->x - m_spatial.minimum_0c.x) / m_spatial.m_node_extent));
-    cell[1] = static_cast<int>(((from->y - m_spatial.minimum_0c.y) / m_spatial.m_node_extent));
-    end_cell[1] =
-        static_cast<int>(((to->y - m_spatial.minimum_0c.y) / m_spatial.m_node_extent));
-    cell[2] = static_cast<int>(((from->z - m_spatial.minimum_0c.z) / m_spatial.m_node_extent));
-    end_cell[2] =
-        static_cast<int>(((to->z - m_spatial.minimum_0c.z) / m_spatial.m_node_extent));
+    cell[0] = static_cast<int>(((from->x - m_spatial.m_minimum.x) / m_spatial.m_node_extent));
+    end_cell[0] = static_cast<int>(((to->x - m_spatial.m_minimum.x) / m_spatial.m_node_extent));
+    cell[1] = static_cast<int>(((from->y - m_spatial.m_minimum.y) / m_spatial.m_node_extent));
+    end_cell[1] = static_cast<int>(((to->y - m_spatial.m_minimum.y) / m_spatial.m_node_extent));
+    cell[2] = static_cast<int>(((from->z - m_spatial.m_minimum.z) / m_spatial.m_node_extent));
+    end_cell[2] = static_cast<int>(((to->z - m_spatial.m_minimum.z) / m_spatial.m_node_extent));
     span = abs(cell[2] - end_cell[2]) + abs(cell[1] - end_cell[1]) + abs(cell[0] - end_cell[0]);
 
     if (span < 2) {
@@ -2314,24 +2304,18 @@ short W8Octree::TraceLineOfSight(const srVector3T<float>* from, srVector3T<float
     if (visit_octree != 0) {
         m_gd_result_count = 0;
         m_visited_object_bits->ClearAll();
-        cell[0] =
-            static_cast<int>(((from->x - m_spatial.minimum_0c.x) / m_spatial.m_node_extent));
-        end_cell[0] =
-            static_cast<int>(((to->x - m_spatial.minimum_0c.x) / m_spatial.m_node_extent));
-        cell[1] =
-            static_cast<int>(((from->y - m_spatial.minimum_0c.y) / m_spatial.m_node_extent));
-        end_cell[1] =
-            static_cast<int>(((to->y - m_spatial.minimum_0c.y) / m_spatial.m_node_extent));
-        cell[2] =
-            static_cast<int>(((from->z - m_spatial.minimum_0c.z) / m_spatial.m_node_extent));
-        end_cell[2] =
-            static_cast<int>(((to->z - m_spatial.minimum_0c.z) / m_spatial.m_node_extent));
+        cell[0] = static_cast<int>(((from->x - m_spatial.m_minimum.x) / m_spatial.m_node_extent));
+        end_cell[0] = static_cast<int>(((to->x - m_spatial.m_minimum.x) / m_spatial.m_node_extent));
+        cell[1] = static_cast<int>(((from->y - m_spatial.m_minimum.y) / m_spatial.m_node_extent));
+        end_cell[1] = static_cast<int>(((to->y - m_spatial.m_minimum.y) / m_spatial.m_node_extent));
+        cell[2] = static_cast<int>(((from->z - m_spatial.m_minimum.z) / m_spatial.m_node_extent));
+        end_cell[2] = static_cast<int>(((to->z - m_spatial.m_minimum.z) / m_spatial.m_node_extent));
         span = abs(cell[2] - end_cell[2]) + abs(cell[1] - end_cell[1]) + abs(cell[0] - end_cell[0]);
 
         if (span < 2) {
             ProbeCellForTrace(cell);
-            blocked = g_octree_game_data->TestTraceResult(m_gd_result_count, m_aulGDObjs,
-                                                          &trace, m_trace_skip_flag_134, 0);
+            blocked = g_octree_game_data->TestTraceResult(m_gd_result_count, m_aulGDObjs, &trace,
+                                                          m_trace_skip_flag_134, 0);
 
             if (blocked == 0 && span != 0) {
                 ProbeCellForTrace(end_cell);
@@ -2370,8 +2354,8 @@ short W8Octree::TraceLineOfSight(const srVector3T<float>* from, srVector3T<float
                             error_0 += walk.error_reset_30;
                             if (ProbeCellForTrace(cell) != 0) {
                                 blocked = g_octree_game_data->TestTraceResult(
-                                    m_gd_result_count, m_aulGDObjs, &trace,
-                                    m_trace_skip_flag_134, 0);
+                                    m_gd_result_count, m_aulGDObjs, &trace, m_trace_skip_flag_134,
+                                    0);
                             }
                             if (error_1 < 0 && blocked == 0) {
                                 cell[minor_1] += step[minor_1];
@@ -2387,17 +2371,16 @@ short W8Octree::TraceLineOfSight(const srVector3T<float>* from, srVector3T<float
                         cell[minor_1] += step[minor_1];
                         error_1 += walk.error_reset_3c;
                         if (ProbeCellForTrace(cell) != 0) {
-                            blocked = g_octree_game_data->TestTraceResult(m_gd_result_count,
-                                                                          m_aulGDObjs, &trace,
-                                                                          m_trace_skip_flag_134, 0);
+                            blocked = g_octree_game_data->TestTraceResult(
+                                m_gd_result_count, m_aulGDObjs, &trace, m_trace_skip_flag_134, 0);
                         }
                         if (error_0 < 0 && blocked == 0) {
                             cell[minor_0] += step[minor_0];
                             error_0 += walk.error_reset_30;
                             if (ProbeCellForTrace(cell) != 0) {
                                 blocked = g_octree_game_data->TestTraceResult(
-                                    m_gd_result_count, m_aulGDObjs, &trace,
-                                    m_trace_skip_flag_134, 0);
+                                    m_gd_result_count, m_aulGDObjs, &trace, m_trace_skip_flag_134,
+                                    0);
                             }
                         }
                     }
@@ -2753,12 +2736,12 @@ void W8Octree::AddCollidablePropBounds(int index, const W8BoundingBox* bounds)
 
     for (axis = 0; axis < 3; ++axis) {
         minimum[axis] =
-            static_cast<int>(((&bounds->minimum.x)[axis] - (&m_spatial.minimum_0c.x)[axis]) /
+            static_cast<int>(((&bounds->minimum.x)[axis] - (&m_spatial.m_minimum.x)[axis]) /
                              m_spatial.m_node_extent);
     }
     for (axis = 0; axis < 3; ++axis) {
         maximum[axis] =
-            static_cast<int>(((&bounds->maximum.x)[axis] - (&m_spatial.minimum_0c.x)[axis]) /
+            static_cast<int>(((&bounds->maximum.x)[axis] - (&m_spatial.m_minimum.x)[axis]) /
                              m_spatial.m_node_extent);
     }
 
@@ -2807,12 +2790,12 @@ void W8Octree::BuildCellWalk(const srVector3T<float>* from, const srVector3T<flo
 
     cell_size = m_spatial.m_node_extent * g_octree_cell_scale;
     cell = static_cast<int>(cell_size);
-    from_cell[0] = static_cast<int>(((from->x - m_spatial.minimum_0c.x) * g_octree_cell_scale));
-    to_cell[0] = static_cast<int>(((to->x - m_spatial.minimum_0c.x) * g_octree_cell_scale));
-    from_cell[1] = static_cast<int>(((from->y - m_spatial.minimum_0c.y) * g_octree_cell_scale));
-    to_cell[1] = static_cast<int>(((to->y - m_spatial.minimum_0c.y) * g_octree_cell_scale));
-    from_cell[2] = static_cast<int>(((from->z - m_spatial.minimum_0c.z) * g_octree_cell_scale));
-    to_cell[2] = static_cast<int>(((to->z - m_spatial.minimum_0c.z) * g_octree_cell_scale));
+    from_cell[0] = static_cast<int>(((from->x - m_spatial.m_minimum.x) * g_octree_cell_scale));
+    to_cell[0] = static_cast<int>(((to->x - m_spatial.m_minimum.x) * g_octree_cell_scale));
+    from_cell[1] = static_cast<int>(((from->y - m_spatial.m_minimum.y) * g_octree_cell_scale));
+    to_cell[1] = static_cast<int>(((to->y - m_spatial.m_minimum.y) * g_octree_cell_scale));
+    from_cell[2] = static_cast<int>(((from->z - m_spatial.m_minimum.z) * g_octree_cell_scale));
+    to_cell[2] = static_cast<int>(((to->z - m_spatial.m_minimum.z) * g_octree_cell_scale));
 
     for (axis = 0; axis < 3; ++axis) {
         span = to_cell[axis] - from_cell[axis];
@@ -2884,12 +2867,12 @@ int W8Octree::TraceAgainstProps(const srVector3T<float>* from, srVector3T<float>
     g_octree_state = m_aulGDObjs;
     m_gd_result_count = 0;
     m_visited_object_bits->ClearAll();
-    cell[0] = static_cast<int>((from->x - m_spatial.minimum_0c.x) / m_spatial.m_node_extent);
-    end_cell[0] = static_cast<int>((to->x - m_spatial.minimum_0c.x) / m_spatial.m_node_extent);
-    cell[1] = static_cast<int>((from->y - m_spatial.minimum_0c.y) / m_spatial.m_node_extent);
-    end_cell[1] = static_cast<int>((to->y - m_spatial.minimum_0c.y) / m_spatial.m_node_extent);
-    cell[2] = static_cast<int>((from->z - m_spatial.minimum_0c.z) / m_spatial.m_node_extent);
-    end_cell[2] = static_cast<int>((to->z - m_spatial.minimum_0c.z) / m_spatial.m_node_extent);
+    cell[0] = static_cast<int>((from->x - m_spatial.m_minimum.x) / m_spatial.m_node_extent);
+    end_cell[0] = static_cast<int>((to->x - m_spatial.m_minimum.x) / m_spatial.m_node_extent);
+    cell[1] = static_cast<int>((from->y - m_spatial.m_minimum.y) / m_spatial.m_node_extent);
+    end_cell[1] = static_cast<int>((to->y - m_spatial.m_minimum.y) / m_spatial.m_node_extent);
+    cell[2] = static_cast<int>((from->z - m_spatial.m_minimum.z) / m_spatial.m_node_extent);
+    end_cell[2] = static_cast<int>((to->z - m_spatial.m_minimum.z) / m_spatial.m_node_extent);
     span = abs(cell[2] - end_cell[2]) + abs(cell[1] - end_cell[1]) + abs(cell[0] - end_cell[0]);
     if (span < 2) {
         g_octree_state = m_aulGDObjs;
@@ -2973,7 +2956,8 @@ int W8Octree::ProbeCellForTrace(const int* cell)
     unsigned int leaf_index = LeafIndexForCell(cell);
     m_gd_result_count = 0;
     if (leaf_index != 0 && m_leaves[leaf_index].gd_polygon_offset_0c != 0) {
-        const unsigned long* stream = m_gd_surface_index_stream + m_leaves[leaf_index].gd_polygon_offset_0c;
+        const unsigned long* stream =
+            m_gd_surface_index_stream + m_leaves[leaf_index].gd_polygon_offset_0c;
         int remaining = *stream;
         while (remaining != 0) {
             ++stream;
@@ -2996,7 +2980,8 @@ int W8Octree::ProbeCellForBlockers(const int* cell)
     unsigned int leaf_index = LeafIndexForCell(cell);
     m_gd_result_count = 0;
     if (leaf_index != 0 && m_leaves[leaf_index].polygon_offset_08 != 0) {
-        const unsigned long* stream = m_polygon_index_stream + m_leaves[leaf_index].polygon_offset_08;
+        const unsigned long* stream =
+            m_polygon_index_stream + m_leaves[leaf_index].polygon_offset_08;
         for (int remaining = *stream; remaining != 0; --remaining) {
             ++stream;
             if (m_visited_polygon_bits->Set(*stream) == 0) {
@@ -3018,7 +3003,8 @@ int W8Octree::ProbeCellForBlockersAppend(const int* cell)
 {
     unsigned int leaf_index = LeafIndexForCell(cell);
     if (leaf_index != 0 && m_leaves[leaf_index].polygon_offset_08 != 0) {
-        const unsigned long* stream = m_polygon_index_stream + m_leaves[leaf_index].polygon_offset_08;
+        const unsigned long* stream =
+            m_polygon_index_stream + m_leaves[leaf_index].polygon_offset_08;
         for (int remaining = *stream; remaining != 0; --remaining) {
             ++stream;
             if (m_visited_polygon_bits->Set(*stream) == 0) {
@@ -3142,9 +3128,9 @@ unsigned long* W8Octree::CollectPolygonsNearPoint(srVector3T<float>* center, flo
     int end[3];
     int axis;
     for (axis = 0; axis < 3; ++axis) {
-        start[axis] = static_cast<int>(((&bounds[0].x)[axis] - (&m_spatial.minimum_0c.x)[axis]) /
+        start[axis] = static_cast<int>(((&bounds[0].x)[axis] - (&m_spatial.m_minimum.x)[axis]) /
                                        m_spatial.m_node_extent);
-        end[axis] = static_cast<int>(((&bounds[1].x)[axis] - (&m_spatial.minimum_0c.x)[axis]) /
+        end[axis] = static_cast<int>(((&bounds[1].x)[axis] - (&m_spatial.m_minimum.x)[axis]) /
                                      m_spatial.m_node_extent);
     }
     int cell[3];
@@ -3229,12 +3215,9 @@ void W8Octree::UpdateMonsterLocation(unsigned short location_id, const srVector3
             monster->node_308 = mesh;
         }
     }
-    point[0] =
-        static_cast<int>(((position->x - m_spatial.minimum_0c.x) / m_spatial.m_node_extent));
-    point[1] =
-        static_cast<int>(((position->y - m_spatial.minimum_0c.y) / m_spatial.m_node_extent));
-    point[2] =
-        static_cast<int>(((position->z - m_spatial.minimum_0c.z) / m_spatial.m_node_extent));
+    point[0] = static_cast<int>(((position->x - m_spatial.m_minimum.x) / m_spatial.m_node_extent));
+    point[1] = static_cast<int>(((position->y - m_spatial.m_minimum.y) / m_spatial.m_node_extent));
+    point[2] = static_cast<int>(((position->z - m_spatial.m_minimum.z) / m_spatial.m_node_extent));
     object_registry->RegisterObjectCell(W8_OCTREE_KIND_LOCATION, queue_id, point);
 }
 
@@ -3326,13 +3309,13 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
             SetPathStem(path);
 
             m_branches = static_cast<W8OctPreTreeBranch*>(
-                malloc((header.branch_count_6a + 2) * sizeof(W8OctPreTreeBranch)));
+                malloc((header.m_branch_count + 2) * sizeof(W8OctPreTreeBranch)));
             if (m_branches == 0) {
                 fSuccess = 0;
                 strcpy(acMessage, "ReadOctFile: Couldn't allocate octree nodes.");
             } else {
                 fSuccess = FileRead(hOctFile, m_branches,
-                                    header.branch_count_6a * sizeof(W8OctPreTreeBranch), &uiRead);
+                                    header.m_branch_count * sizeof(W8OctPreTreeBranch), &uiRead);
                 if (fSuccess == 0) {
                     strcpy(acMessage, "ReadOctFile: Couldn't read octree nodes.");
                 }
@@ -3341,13 +3324,13 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
             fLoaded = 0;
             if (fSuccess != 0) {
                 m_leaves = static_cast<W8OctPreTreeLeaf*>(
-                    malloc((header.leaf_count_6e + 2) * sizeof(W8OctPreTreeLeaf)));
+                    malloc((header.m_leaf_count + 2) * sizeof(W8OctPreTreeLeaf)));
                 if (m_leaves == 0) {
                     fSuccess = 0;
                     strcpy(acMessage, "ReadOctFile: Couldn't allocate octree leaves.");
                 } else {
                     fSuccess = FileRead(hOctFile, m_leaves,
-                                        header.leaf_count_6e * sizeof(W8OctPreTreeLeaf), &uiRead);
+                                        header.m_leaf_count * sizeof(W8OctPreTreeLeaf), &uiRead);
                     if (fSuccess == 0) {
                         strcpy(acMessage, "ReadOctFile: Couldn't read octree leaves.");
                     }
@@ -3356,14 +3339,14 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                 fLoaded = 0;
                 if (fSuccess != 0) {
                     m_polygon_index_stream = static_cast<unsigned long*>(
-                        malloc(header.leaf_polygon_stream_len_82 * 4 + 8));
+                        malloc(header.m_leaf_polygon_stream_len * 4 + 8));
                     if (m_polygon_index_stream == 0) {
                         fLoaded = 0;
                         strcpy(acMessage,
                                "ReadOctFile: Couldn't allocate polygon index list for leaves.");
                     } else {
                         fLoaded = FileRead(hOctFile, m_polygon_index_stream,
-                                           header.leaf_polygon_stream_len_82 * 4, &uiRead);
+                                           header.m_leaf_polygon_stream_len * 4, &uiRead);
                         if (fLoaded == 0) {
                             strcpy(acMessage,
                                    "ReadOctFile: Couldn't read polygon index list for leaves.");
@@ -3382,9 +3365,8 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
             strcpy(acMessage, "ReadOctFile: Couldn't allocate Leaf grid.");
             goto finish;
         }
-        fLoaded = FileRead(
-            hOctFile, m_leaf_lookup,
-            m_leaf_grid_dim_x * m_leaf_grid_dim_y * m_leaf_grid_dim_z * 4, &uiRead);
+        fLoaded = FileRead(hOctFile, m_leaf_lookup,
+                           m_leaf_grid_dim_x * m_leaf_grid_dim_y * m_leaf_grid_dim_z * 4, &uiRead);
         if (fLoaded == 0) {
             strcpy(acMessage, "ReadOctFile: Couldn't read leaf grid.");
         }
@@ -3395,28 +3377,28 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
 
     fSuccess = 0;
     if (fLoaded != 0) {
-        m_aulPolyLookup = static_cast<unsigned long*>(malloc(header.polygon_count_72 * 4 + 8));
+        m_aulPolyLookup = static_cast<unsigned long*>(malloc(header.m_polygon_count * 4 + 8));
         if (m_aulPolyLookup == 0) {
             fSuccess = 0;
             strcpy(acMessage, "ReadOctFile: Couldn't allocate Poly Lookup table.");
         } else {
-            fLoaded = FileRead(hOctFile, m_aulPolyLookup, header.polygon_count_72 * 4, &uiRead);
+            fLoaded = FileRead(hOctFile, m_aulPolyLookup, header.m_polygon_count * 4, &uiRead);
             if (fLoaded == 0) {
                 strcpy(acMessage, "ReadOctFile: Couldn't read Poly Lookup table.");
             }
             g_octree_bytes_read += uiRead;
             fSuccess = 0;
             if (fLoaded != 0) {
-                if (header.region_list_len_92 != 0) {
+                if (header.m_region_list_len != 0) {
                     m_region_index_stream =
-                        static_cast<unsigned short*>(malloc(header.region_list_len_92 * 2 + 4));
+                        static_cast<unsigned short*>(malloc(header.m_region_list_len * 2 + 4));
                     if (m_region_index_stream == 0) {
                         fSuccess = 0;
                         strcpy(acMessage, "ReadOctFile: Couldn't allocate region list.");
                         goto finish;
                     }
-                    fLoaded =
-                        FileRead(hOctFile, m_region_index_stream, header.region_list_len_92 * 2, &uiRead);
+                    fLoaded = FileRead(hOctFile, m_region_index_stream,
+                                       header.m_region_list_len * 2, &uiRead);
                     if (fLoaded == 0) {
                         strcpy(acMessage, "ReadOctFile: Couldn't read region list.");
                     }
@@ -3424,16 +3406,16 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                 }
                 fSuccess = 0;
                 if (fLoaded != 0) {
-                    if (header.gd_surface_stream_len_86 != 0) {
+                    if (header.m_gd_surface_stream_len != 0) {
                         m_gd_surface_index_stream = static_cast<unsigned long*>(
-                            malloc(header.gd_surface_stream_len_86 * 4 + 8));
+                            malloc(header.m_gd_surface_stream_len * 4 + 8));
                         if (m_gd_surface_index_stream == 0) {
                             fSuccess = 0;
                             strcpy(acMessage, "ReadOctFile: Couldn't allocate GD Poly list.");
                             goto finish;
                         }
                         fLoaded = FileRead(hOctFile, m_gd_surface_index_stream,
-                                           header.gd_surface_stream_len_86 * 4, &uiRead);
+                                           header.m_gd_surface_stream_len * 4, &uiRead);
                         if (fLoaded == 0) {
                             strcpy(acMessage, "ReadOctFile: Couldn't read GD Poly list.");
                         }
@@ -3441,16 +3423,16 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                     }
                     fSuccess = 0;
                     if (fLoaded != 0) {
-                        if (header.trigger_count_8a != 0) {
+                        if (header.m_trigger_count != 0) {
                             m_trigger_indices = static_cast<unsigned short*>(
-                                malloc(header.trigger_count_8a * 2 + 4));
+                                malloc(header.m_trigger_count * 2 + 4));
                             if (m_trigger_indices == 0) {
                                 fSuccess = 0;
                                 strcpy(acMessage, "ReadOctFile: Couldn't allocate Trigger list.");
                                 goto finish;
                             }
-                            fLoaded = FileRead(hOctFile, m_trigger_indices, header.trigger_count_8a * 2,
-                                               &uiRead);
+                            fLoaded = FileRead(hOctFile, m_trigger_indices,
+                                               header.m_trigger_count * 2, &uiRead);
                             if (fLoaded == 0) {
                                 strcpy(acMessage, "ReadOctFile: Couldn't read Trigger list.");
                             }
@@ -3458,9 +3440,9 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                         }
                         fSuccess = 0;
                         if (fLoaded != 0) {
-                            if (header.region_count_96 > 1) {
+                            if (header.m_region_count > 1) {
                                 m_spatial.m_region_volumes = static_cast<W8OctRegionVolume*>(malloc(
-                                    (header.region_count_96 + 2) * sizeof(W8OctRegionVolume)));
+                                    (header.m_region_count + 2) * sizeof(W8OctRegionVolume)));
                                 if (m_spatial.m_region_volumes == 0) {
                                     fSuccess = 0;
                                     strcpy(acMessage,
@@ -3469,7 +3451,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                                 }
                                 fLoaded = FileRead(
                                     hOctFile, m_spatial.m_region_volumes,
-                                    header.region_count_96 * sizeof(W8OctRegionVolume), &uiRead);
+                                    header.m_region_count * sizeof(W8OctRegionVolume), &uiRead);
                                 if (fLoaded == 0) {
                                     strcpy(acMessage, "ReadOctFile: Couldn't read region array.");
                                 }
@@ -3485,16 +3467,16 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                                 }
                                 fSuccess = 0;
                                 if (fLoaded != 0) {
-                                    if (header.submesh_count_66 != 0) {
+                                    if (header.m_submesh_count != 0) {
                                         m_pSubmeshes = static_cast<W8OctSubmesh*>(malloc(
-                                            (header.submesh_count_66 + 1) * sizeof(W8OctSubmesh)));
+                                            (header.m_submesh_count + 1) * sizeof(W8OctSubmesh)));
                                         if (m_pSubmeshes == 0) {
                                             fLoaded = 0;
                                             strcpy(acMessage,
                                                    "ReadOctFile: Couldn't allocate submesh array.");
                                         } else {
                                             fLoaded = FileRead(hOctFile, m_pSubmeshes,
-                                                               (header.submesh_count_66 + 1) *
+                                                               (header.m_submesh_count + 1) *
                                                                    sizeof(W8OctSubmesh),
                                                                &uiRead);
                                             if (fLoaded == 0) {
@@ -3508,7 +3490,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
 
                                                 limit = 0;
                                                 scan = &m_pSubmeshes[0].polygon_count_0c;
-                                                remaining = header.submesh_count_66 + 1;
+                                                remaining = header.m_submesh_count + 1;
                                                 do {
                                                     if (limit < *scan) {
                                                         limit = *scan;
@@ -3573,9 +3555,8 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                                                     "ReadOctFile: Couldn't allocate Mesh Particle "
                                                     "Link Table.");
                                             }
-                                            fLoaded =
-                                                FileRead(hOctFile, m_pusMeshParticles,
-                                                         m_usMeshParticlesLen * 2, &uiRead);
+                                            fLoaded = FileRead(hOctFile, m_pusMeshParticles,
+                                                               m_usMeshParticlesLen * 2, &uiRead);
                                             if (fLoaded == 0) {
                                                 strcpy(acMessage, "ReadOctFile: Couldn't read Mesh "
                                                                   "Particle Link Table.");
@@ -3625,21 +3606,21 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                                         }
                                         fSuccess = 0;
                                         if (fLoaded != 0) {
-                                            if (header.path_nodes_7e != 0) {
+                                            if (header.m_path_nodes != 0) {
                                                 pathing_180 = new W8PathingService();
                                                 if (pathing_180 == 0) {
                                                     goto finish;
                                                 }
                                                 pathing_180->ConfigureForLevel(
-                                                    header.path_nodes_7e, header.region_cell_ac,
-                                                    header.path_clearance_b4, header.bounds_0e,
+                                                    header.m_path_nodes, header.m_region_cell,
+                                                    header.m_path_clearance, header.m_bounds,
                                                     m_owned_0c0);
                                                 fLoaded = pathing_180->ReadPathNodes(hOctFile);
                                             }
                                             fSuccess = 0;
                                             if (fLoaded != 0) {
                                                 if (m_ulNumProps != 0 &&
-                                                    header.prop_sun_bits_b8 != 0) {
+                                                    header.m_prop_sun_bits != 0) {
                                                     m_pPropSunBits = new BitArray(m_ulNumProps);
                                                     if (m_pPropSunBits == 0) {
                                                         srAssertFail(
@@ -3683,7 +3664,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
 finish:
     SetOctreeGameData(0);
     *game_data = 0;
-    if (fSuccess != 0 && header.gd_surface_stream_len_86 != 0) {
+    if (fSuccess != 0 && header.m_gd_surface_stream_len != 0) {
         pGameData = new W8GameData(hOctFile, false);
         if (pGameData == 0) {
             strcpy(acMessage, "ReadOctFile: Octree file longer than expected.");
@@ -3907,8 +3888,8 @@ void W8Octree::Initialize(const W8OctFileHeader* header)
     unsigned short level;
 
     if (header != 0) {
-        m_spatial.extent_04 = header->extent_02;
-        m_spatial.cell_size_08 = header->cell_size_06;
+        m_spatial.m_extent = header->m_extent;
+        m_spatial.m_cell_size = header->m_cell_size;
         m_spatial.m_node_extent = header->m_node_extent;
 
         m_unknown_27c[0] = 0;
@@ -3918,25 +3899,25 @@ void W8Octree::Initialize(const W8OctFileHeader* header)
         m_unknown_27c[4] = 0;
         m_unknown_27c[5] = 0;
         for (axis = 0; axis < 3; ++axis) {
-            (&m_spatial.minimum_0c.x)[axis] = (&header->bounds_0e[0].x)[axis];
-            (&m_spatial.maximum_18.x)[axis] = (&header->bounds_0e[1].x)[axis];
-            (&m_spatial.m_clipped_minimum.x)[axis] = (&header->bounds_0e[2].x)[axis];
-            (&m_spatial.m_clipped_maximum.x)[axis] = (&header->bounds_0e[3].x)[axis];
-            (&m_spatial.m_working_minimum.x)[axis] = (&header->bounds_0e[4].x)[axis];
-            (&m_spatial.m_working_maximum.x)[axis] = (&header->bounds_0e[5].x)[axis];
-            (&m_leaf_grid_dim_x)[axis] = header->grid_dims_56[axis];
+            (&m_spatial.m_minimum.x)[axis] = (&header->m_bounds[0].x)[axis];
+            (&m_spatial.m_maximum.x)[axis] = (&header->m_bounds[1].x)[axis];
+            (&m_spatial.m_clipped_minimum.x)[axis] = (&header->m_bounds[2].x)[axis];
+            (&m_spatial.m_clipped_maximum.x)[axis] = (&header->m_bounds[3].x)[axis];
+            (&m_spatial.m_working_minimum.x)[axis] = (&header->m_bounds[4].x)[axis];
+            (&m_spatial.m_working_maximum.x)[axis] = (&header->m_bounds[5].x)[axis];
+            (&m_leaf_grid_dim_x)[axis] = header->m_grid_dims[axis];
         }
 
         m_spatial.m_leaf_grid_stride_x = m_leaf_grid_dim_y * m_leaf_grid_dim_z;
         m_spatial.m_leaf_grid_stride_y = m_leaf_grid_dim_z;
-        m_spatial.depth_44 = header->depth_62;
+        m_spatial.m_depth = header->m_depth;
         m_spatial.m_region_id_bound = header->m_region_id_bound;
-        m_spatial.region_count_46 = header->region_count_96;
+        m_spatial.m_region_count = header->m_region_count;
         m_spatial.m_leaf_level = header->m_leaf_level;
-        m_spatial.submesh_count_74 = header->submesh_count_66;
-        m_root_mesh_count = header->root_mesh_count_9a;
-        m_kind1_submesh_count = header->kind1_submesh_count_a2;
-        m_meshCount = header->mesh_total_9e;
+        m_spatial.submesh_count_74 = header->m_submesh_count;
+        m_root_mesh_count = header->m_root_mesh_count;
+        m_kind1_submesh_count = header->m_kind1_submesh_count;
+        m_meshCount = header->m_mesh_total;
         m_region_mask = 0;
         m_spatial.m_region_cells_per_axis = 1;
         for (level = 0; level < m_spatial.m_leaf_level; ++level) {
@@ -3944,26 +3925,26 @@ void W8Octree::Initialize(const W8OctFileHeader* header)
             m_spatial.m_region_cells_per_axis <<= 1;
         }
         m_depth_mask = 0;
-        for (level = 0; level < m_spatial.depth_44; ++level) {
+        for (level = 0; level < m_spatial.m_depth; ++level) {
             m_depth_mask = m_depth_mask * 2 + 1;
         }
-        m_branch_count = header->branch_count_6a;
-        m_leaf_count = header->leaf_count_6e;
-        m_spatial.polygon_count_3c = header->polygon_count_72;
-        m_vertex_count = header->vertex_count_76;
-        m_spatial.item_count_40 = header->surface_count_7a;
-        m_leaf_polygon_stream_len = header->leaf_polygon_stream_len_82;
-        m_gd_surface_stream_len = header->gd_surface_stream_len_86;
-        m_trigger_count = header->trigger_count_8a;
-        m_region_list_len = header->region_list_len_92;
+        m_branch_count = header->m_branch_count;
+        m_leaf_count = header->m_leaf_count;
+        m_spatial.m_polygon_count = header->m_polygon_count;
+        m_vertex_count = header->m_vertex_count;
+        m_spatial.m_item_count = header->m_surface_count;
+        m_leaf_polygon_stream_len = header->m_leaf_polygon_stream_len;
+        m_gd_surface_stream_len = header->m_gd_surface_stream_len;
+        m_trigger_count = header->m_trigger_count;
+        m_region_list_len = header->m_region_list_len;
         m_spatial.m_region_grid_cell = header->m_region_grid_cell;
-        m_region_cell = header->region_cell_ac;
-        m_path_clearance = header->path_clearance_b4;
+        m_region_cell = header->m_region_cell;
+        m_path_clearance = header->m_path_clearance;
         m_spatial.m_max_region_radius = header->m_max_region_radius;
-        m_ulNumProps = header->prop_count_bd;
-        m_usMeshParticlesLen = header->particle_len_c5;
-        m_usMeshPropsLen = header->prop_len_c7;
-        m_ulNumParticles = header->particle_count_c1;
+        m_ulNumProps = header->m_prop_count;
+        m_usMeshParticlesLen = header->m_particle_len;
+        m_usMeshPropsLen = header->m_prop_len;
+        m_ulNumParticles = header->m_particle_count;
 
         if (m_ulNumParticles != 0) {
             m_linked_particles = new BitArray(m_ulNumParticles);
@@ -3978,15 +3959,15 @@ void W8Octree::Initialize(const W8OctFileHeader* header)
             m_papProps = static_cast<W8Prop**>(malloc(m_ulNumProps * 4 + 8));
         }
 
-        m_visited_polygon_bits = new BitArray(header->polygon_count_72);
+        m_visited_polygon_bits = new BitArray(header->m_polygon_count);
         m_owned_154 = new BitArray(header->m_region_id_bound + 1);
-        m_projected_regions = new BitArray(header->submesh_count_66 + 1);
-        m_current_regions = new BitArray(header->submesh_count_66 + 1);
-        m_previous_regions = new BitArray(header->submesh_count_66 + 1);
+        m_projected_regions = new BitArray(header->m_submesh_count + 1);
+        m_current_regions = new BitArray(header->m_submesh_count + 1);
+        m_previous_regions = new BitArray(header->m_submesh_count + 1);
         m_visited_object_bits =
-            new BitArray(header->surface_count_7a < 5000 ? 5000 : header->surface_count_7a);
-        m_accumulated_regions = new BitArray(header->submesh_count_66 + 1);
-        m_owned_19c = new BitArray(header->polygon_count_72);
+            new BitArray(header->m_surface_count < 5000 ? 5000 : header->m_surface_count);
+        m_accumulated_regions = new BitArray(header->m_submesh_count + 1);
+        m_owned_19c = new BitArray(header->m_polygon_count);
 
         object_registry = new W8OctreeObjectRegistry;
         m_pRegionLinks = new W8HashTable<unsigned int, unsigned short>;
@@ -4007,7 +3988,7 @@ void W8Octree::Initialize(const W8OctFileHeader* header)
         srAssertFail("m_aulGDObjs", "C:\\Projects\\Wizardry 8\\Engine Code\\Octree.cpp", 0x372,
                      "InitOctree: Couldn't allocate m_aulGDObjs.");
     }
-    m_spatial.level_kind_6c = 3;
+    m_spatial.m_level_kind = 3;
     m_fAccumulating = true;
     ToggleUpdateSuspension(0);
 }
@@ -4449,15 +4430,12 @@ int W8Octree::QueryObjects(unsigned long** objects, const srVector3T<float>* low
     if (excluded >= 0) {
         m_visited_object_bits->Set(excluded);
     }
-    start[0] =
-        static_cast<int>(((lower->x - m_spatial.minimum_0c.x) / m_spatial.m_node_extent));
-    start[1] =
-        static_cast<int>(((lower->y - m_spatial.minimum_0c.y) / m_spatial.m_node_extent));
-    start[2] =
-        static_cast<int>(((lower->z - m_spatial.minimum_0c.z) / m_spatial.m_node_extent));
-    end[0] = static_cast<int>(((upper->x - m_spatial.minimum_0c.x) / m_spatial.m_node_extent));
-    end[1] = static_cast<int>(((upper->y - m_spatial.minimum_0c.y) / m_spatial.m_node_extent));
-    end[2] = static_cast<int>(((upper->z - m_spatial.minimum_0c.z) / m_spatial.m_node_extent));
+    start[0] = static_cast<int>(((lower->x - m_spatial.m_minimum.x) / m_spatial.m_node_extent));
+    start[1] = static_cast<int>(((lower->y - m_spatial.m_minimum.y) / m_spatial.m_node_extent));
+    start[2] = static_cast<int>(((lower->z - m_spatial.m_minimum.z) / m_spatial.m_node_extent));
+    end[0] = static_cast<int>(((upper->x - m_spatial.m_minimum.x) / m_spatial.m_node_extent));
+    end[1] = static_cast<int>(((upper->y - m_spatial.m_minimum.y) / m_spatial.m_node_extent));
+    end[2] = static_cast<int>(((upper->z - m_spatial.m_minimum.z) / m_spatial.m_node_extent));
     for (cell[0] = start[0]; cell[0] <= end[0]; ++cell[0]) {
         if (cell[0] < 0 || static_cast<int>(m_leaf_grid_dim_x) <= cell[0] /* c-style-cast-ok:
                 cell coordinate vs grid dimension */) {
@@ -4499,7 +4477,7 @@ unsigned int W8Octree::CollectObjectsInCell(const int* cell, unsigned short kind
             leaf_index = FindLeaf(cell);
         } else {
             leaf_index = m_leaf_lookup[m_spatial.m_leaf_grid_stride_y * cell[1] +
-                                     m_spatial.m_leaf_grid_stride_x * cell[0] + cell[2]];
+                                       m_spatial.m_leaf_grid_stride_x * cell[0] + cell[2]];
         }
         if (leaf_index != 0 && m_leaves[leaf_index].gd_polygon_offset_0c != 0) {
             const unsigned long* stream =
@@ -4602,7 +4580,7 @@ void W8Octree::QueueOctreeKind13(int id, const srVector3T<float>* position)
     int point[3];
 
     for (int axis = 0; axis < 3; ++axis) {
-        point[axis] = static_cast<int>(((&position->x)[axis] - (&m_spatial.minimum_0c.x)[axis]) /
+        point[axis] = static_cast<int>(((&position->x)[axis] - (&m_spatial.m_minimum.x)[axis]) /
                                        m_spatial.m_node_extent);
     }
     object_registry->RegisterObjectCell(W8_OCTREE_KIND_NAVIGATOR, id + 1, point);
@@ -4617,11 +4595,11 @@ int* W8Octree::WorldPositionToCell(const srVector3T<float>* position, int* point
     bool inside = true;
 
     for (int axis = 0; axis < 3; ++axis) {
-        point[axis] = static_cast<int>((((&position->x)[axis] - (&m_spatial.minimum_0c.x)[axis]) /
-                                        m_spatial.m_node_extent));
+        point[axis] = static_cast<int>(
+            (((&position->x)[axis] - (&m_spatial.m_minimum.x)[axis]) / m_spatial.m_node_extent));
 
-        if ((&position->x)[axis] < (&m_spatial.minimum_0c.x)[axis] ||
-            (&position->x)[axis] > (&m_spatial.maximum_18.x)[axis]) {
+        if ((&position->x)[axis] < (&m_spatial.m_minimum.x)[axis] ||
+            (&position->x)[axis] > (&m_spatial.m_maximum.x)[axis]) {
             inside = 0;
         }
     }
@@ -5073,7 +5051,8 @@ unsigned int W8Octree::FindScatterPositions(const srVector3T<float>* position, f
                               (jitter_column + *column_offset) * sin_step;
                 float ground = SettlePositionToGround(&candidate, 0);
                 float height = candidate.y - ground;
-                if (g_double_005ebc30 <= fabsf(height) && fabsf(height) <= g_navigator_vertical_snap_limit &&
+                if (g_double_005ebc30 <= fabsf(height) &&
+                    fabsf(height) <= g_navigator_vertical_snap_limit &&
                     (flatten_y != 0 || fabsf(height) <= g_double_005ec030)) {
                     candidate.y = ground;
                     if (proximity_check == 0) {

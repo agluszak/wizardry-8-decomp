@@ -298,8 +298,7 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
             dig = getVertexDIG(0, 1);
             vertex_materials = getVertexMaterial(0, static_cast<e_side>(0), 0);
             if (vertex_materials == 0) {
-                if ((ambient_color_3a4.x == g_float_zero &&
-                     ambient_color_3a4.y == g_float_zero &&
+                if ((ambient_color_3a4.x == g_float_zero && ambient_color_3a4.y == g_float_zero &&
                      ambient_color_3a4.z == g_float_zero) ||
                     vertex_light_table_3b0 == 1) {
                     CopyDwordBuffer(dig, lights, vertex_location_count_22c * 3);
@@ -351,8 +350,7 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
                     }
                 }
             } else {
-                if ((ambient_color_3a4.x == g_float_zero &&
-                     ambient_color_3a4.y == g_float_zero &&
+                if ((ambient_color_3a4.x == g_float_zero && ambient_color_3a4.y == g_float_zero &&
                      ambient_color_3a4.z == g_float_zero) ||
                     vertex_light_table_3b0 == 1) {
                     if (vertex_location_count_22c != 0) {
@@ -422,8 +420,7 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
                                            static_cast<SRDWORD>(count));
                 }
             }
-            if (light_scale != g_float_one &&
-                (count = vertex_location_count_22c, count != 0)) {
+            if (light_scale != g_float_one && (count = vertex_location_count_22c, count != 0)) {
                 if (light_scale == g_float_zero) {
                     FillDwordBuffer(dig, 0, count * 3);
                 } else {
@@ -686,8 +683,7 @@ void CopyDwordBuffer(void* destination, const void* source, int count)
 // FUNCTION: WIZ8 0x0046ffa0
 int __fastcall IsZeroVector(const srVector3T<float>* vector)
 {
-    if (vector->x == g_float_zero && vector->y == g_float_zero &&
-        vector->z == g_float_zero) {
+    if (vector->x == g_float_zero && vector->y == g_float_zero && vector->z == g_float_zero) {
         return 1;
     }
     return 0;
@@ -719,8 +715,7 @@ void OffsetVertices(srVector3T<float>* destination, const srVector3T<float>* sou
                     const srVector3T<float>* offset, int count)
 {
     if (count != 0) {
-        if (offset->x == g_float_zero && offset->y == g_float_zero &&
-            offset->z == g_float_zero) {
+        if (offset->x == g_float_zero && offset->y == g_float_zero && offset->z == g_float_zero) {
             CopyDwordBuffer(destination, source, count * 3);
         } else {
             srVectorProcessor::add(destination, *offset, source, static_cast<SRDWORD>(count));

@@ -110,10 +110,10 @@ assert arrays["numeric_pending"] in facts.bool_invalid
 callback_keys = {
     row.name: key
     for key, row in facts.declarations.items()
-    if row.name in {"ReadCallbackValue", "callback_pointer", "callback_result"}
+    if row.name in {"ReadCallbackValue", "decay_callback_pointer", "decay_callback_result"}
 }
-callback = callback_keys["callback_pointer"]
-result = callback_keys["callback_result"]
+callback = callback_keys["decay_callback_pointer"]
+result = callback_keys["decay_callback_result"]
 reader = callback_keys["ReadCallbackValue"]
 assert not any(flow.target == callback or flow.source == callback for flow in facts.flows)
 assert any(flow.target == result and flow.source == reader for flow in facts.flows)
@@ -176,7 +176,11 @@ nominal = next(
 assert nominal["status"] == "candidate", nominal
 assert nominal["changes"] == [by_name["fixture_id_copy"]]
 
-callback = integer_report(facts, [])["callbacks"][0]
+callback = next(
+    row
+    for row in integer_report(facts, [])["callbacks"]
+    if row["slot"] == by_name["fixture_callback"]
+)
 assert callback["status"] == "modeled", callback
 assert len(callback["nodes"]) == 2
 assert any(

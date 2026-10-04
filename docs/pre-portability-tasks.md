@@ -85,3 +85,11 @@ the existing vector type; allocation and transfer sizes retain retail's doubled
 non-LOD reservation. Sixteen level-file records have reviewed disk/mixed layout
 classifications, and eight additional allocator/lifetime contracts identify their
 canonical owners. Unresolved payload types and unused bitset roles remain open.
+
+After integration with the record/scalar campaigns on main, the next batch names
+321 level/geometry fields across 121 marked function regions. Trigger placement
+uses typed position/angle/direction storage and camera labels use character arrays.
+Forty-two level-file transfers now use their array extents, and geometry allocation
+uses the established vertex size while preserving reservation counts. Twenty-five
+more layouts and two geometry allocator contracts are reviewed. Scalar fixtures
+exercise both function decay and callback signatures without colliding test names.
