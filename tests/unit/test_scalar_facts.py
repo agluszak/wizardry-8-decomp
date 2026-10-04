@@ -633,10 +633,10 @@ def test_callback_abi_mismatch_blocks_component(scalar, tmp_path, binding):
     assert scalar.callback_report(facts)[0]["status"] == "blocked"
 
 
-def span(key, file, offset, text, original):
+def span(key, file, offset, text, original, component="type"):
     import hashlib
 
-    return f"L\t{key}\t{file}\t{offset}\t{len(text.encode())}\t{text}\t{hashlib.sha256(original.encode()).hexdigest()}"
+    return f"L\t{key}\t{component}\t{file}\t{offset}\t{len(text.encode())}\t{text}\t{hashlib.sha256(original.encode()).hexdigest()}"
 
 
 def test_reviewable_patch_changes_entire_chain_and_all_redeclarations(scalar, tmp_path):
@@ -825,3 +825,86 @@ def test_evidence_selector_survives_line_changes_and_rejects_ambiguity(scalar, t
     facts.declarations["other"] = scalar.replace(facts.declarations["owner"], key="other", line=30)
     with pytest.raises(ValueError, match="one declaration"):
         scalar.read_evidence(evidence, facts)
+
+
+def test_existing_enum_domain_generates_whole_chain_patch(scalar, tmp_path):
+    source = "int mode;\nint Read() { return mode; }\n"
+    (tmp_path / "test.cpp").write_text(source)
+    facts = read(
+        scalar,
+        tmp_path,
+        declaration("owner", domain="enum", spelling="W8Mode"),
+        declaration("mode"),
+        declaration("read", kind="function"),
+        "H\tread\tbody\ttest.cpp\t2\t1",
+        "F\tmode\towner\tassignment\ttest.cpp\t1\t1",
+        "F\tread\tmode\treturn\ttest.cpp\t2\t1",
+        span("mode", "test.cpp", 0, "int", source),
+        span("read", "test.cpp", source.index("int Read"), "int", source, "return-type"),
+    )
+    seeds = evidence(scalar, tmp_path, facts, independent_claim("owner", "domain", "enum:W8Mode"))
+    result = scalar.write_recovery_patch(facts, seeds, tmp_path, tmp_path / "recovery.patch")
+    assert result["changed_declarations"] == ["mode", "read"]
+    assert "+W8Mode mode;" in (tmp_path / "recovery.patch").read_text()
+    assert "+W8Mode Read()" in (tmp_path / "recovery.patch").read_text()
+
+
+def test_callback_typedef_parameter_and_implementation_patch_together(scalar, tmp_path):
+    source = "typedef int (*Callback)(int);\nint Impl(int value);\n"
+    (tmp_path / "test.cpp").write_text(source)
+    slot = "slot::callback-arg#0"
+    facts = read(
+        scalar,
+        tmp_path,
+        declaration("slot", domain="pointer"),
+        declaration(slot, kind="callback-parameter"),
+        declaration("impl", kind="parameter"),
+        "J\tslot\t1\t0\t0",
+        "C\tslot\timplementation\t1\t0\t0",
+        "H\timpl\tbody\ttest.cpp\t2\t1",
+        f"F\timpl\t{slot}\tcallback-parameter\ttest.cpp\t2\t1",
+        span(slot, "test.cpp", source.index("int);"), "int", source, "callback-param#0"),
+        span("impl", "test.cpp", source.index("int value"), "int", source, "parameter-type"),
+    )
+    seeds = evidence(scalar, tmp_path, facts, claim("impl"))
+    result = scalar.write_recovery_patch(facts, seeds, tmp_path, tmp_path / "recovery.patch")
+    assert result["changed_declarations"] == ["impl", slot]
+    assert "+typedef int (*Callback)(unsigned int);" in (tmp_path / "recovery.patch").read_text()
+    assert "+int Impl(unsigned int value);" in (tmp_path / "recovery.patch").read_text()
+    facts.escapes.add(scalar.Use("slot", "external ABI", "test.cpp", 1, 1))
+    result = scalar.write_recovery_patch(facts, seeds, tmp_path, tmp_path / "blocked.patch")
+    assert not result["changed_declarations"]
+
+
+def test_shared_callback_typedef_requires_every_collected_slot(scalar, tmp_path):
+    source = "typedef int (*Callback)(int);\n"
+    (tmp_path / "test.cpp").write_text(source)
+    changed, unbound = "a::callback-arg#0", "b::callback-arg#0"
+    offset = source.index("int);")
+    facts = read(
+        scalar,
+        tmp_path,
+        declaration(changed),
+        declaration(unbound),
+        span(changed, "test.cpp", offset, "int", source, "callback-param#0"),
+        span(unbound, "test.cpp", offset, "int", source, "callback-param#0"),
+    )
+    result = scalar.write_recovery_patch(
+        facts, [claim(changed)], tmp_path, tmp_path / "recovery.patch"
+    )
+    assert not result["changed_declarations"]
+    assert "shared" in result["rejected"][0]["reason"]
+
+
+def test_array_extent_component_is_not_rewritten_as_type(scalar, tmp_path):
+    source = "int values[3];\n"
+    (tmp_path / "test.cpp").write_text(source)
+    facts = read(
+        scalar,
+        tmp_path,
+        declaration("element", kind="array-element"),
+        span("element", "test.cpp", 0, "int", source, "array-element"),
+        span("element", "test.cpp", source.index("3"), "3", source, "array-extent"),
+    )
+    scalar.write_recovery_patch(facts, [claim("element")], tmp_path, tmp_path / "recovery.patch")
+    assert "+unsigned int values[3];" in (tmp_path / "recovery.patch").read_text()

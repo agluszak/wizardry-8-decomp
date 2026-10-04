@@ -49,13 +49,13 @@ void TouchConversions(const ScalarConversions& converted)
 // No concrete width exists before the owner template is instantiated.
 // Querying MSVC member-pointer layout here crashes ASTContext.
 template <class Owner> struct ScalarMemberPointers {
-    int Owner::*member;
+    int Owner::* member;
 };
 
 struct ScalarOwner {
     int owner_data;
 };
-int ScalarOwner::*known_member;
+int ScalarOwner::* known_member;
 
 struct ScalarMethodOwner {
     int method_duration;
@@ -193,3 +193,9 @@ struct FixturePackedRecord {
 };
 #pragma pack(pop)
 FixturePackedRecord fixture_packed;
+
+FixturePatchCallback fixture_patch_callback = &FixturePatchImplementation;
+long FixturePatchImplementation(long value)
+{
+    return value;
+}

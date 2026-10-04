@@ -221,3 +221,29 @@ assert not any(
     flow.source.startswith("::callback-") or flow.target.startswith("::callback-")
     for flow in facts.flows
 )
+
+# Declarator components protect exact callback typedef atoms and array extents.
+assert any(component == "callback-return" for _, component, *_ in facts.spans)
+assert any(component == "callback-param#0" for _, component, *_ in facts.spans)
+assert any(component == "array-extent" for _, component, *_ in facts.spans)
+result = write_recovery_patch(facts, [enum_seed], root, patch)
+assert {facts.declarations[key].name for key in result["changed_declarations"]} == {
+    "ReadMode",
+    "mode",
+    "g_fixture_mode",
+}, result
+assert "W8FixtureMode ReadMode" in patch.read_text()
+print("existing enum domains generate source patches; callback and extent components collected")
+
+# A callback implementation, typedef return and typedef parameter form one
+# source-complete constraint chain; signedness edits preserve long spelling.
+callback_seed = {
+    **seed,
+    "key": by_name["FixturePatchImplementation"],
+    "covered_uses": [],
+}
+result = write_recovery_patch(facts, [callback_seed], root, patch)
+assert len(result["changed_declarations"]) == 4, result
+assert "typedef unsigned long (*FixturePatchCallback)(unsigned long);" in patch.read_text()
+assert "unsigned long FixturePatchImplementation(unsigned long value)" in patch.read_text()
+print("callback signatures and all implementation redeclarations patch together")

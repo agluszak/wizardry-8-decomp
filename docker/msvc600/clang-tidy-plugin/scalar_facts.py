@@ -58,7 +58,7 @@ class ScalarFacts:
     translation_units: set[str] = field(default_factory=set)
     declarations: dict[str, DeclarationFact] = field(default_factory=dict)
     flows: set[Flow] = field(default_factory=set)
-    spans: set[tuple[str, str, int, int, str, str]] = field(default_factory=set)
+    spans: set[tuple[str, str, str, int, int, str, str]] = field(default_factory=set)
     types: dict[str, tuple[str, str, str]] = field(default_factory=dict)
     operands: set[tuple[str, str, int, str, int, int]] = field(default_factory=set)
     conversions: set[tuple[str, str, str, str]] = field(default_factory=set)
@@ -170,10 +170,18 @@ def read_scalar_facts(directory: Path) -> ScalarFacts:
                             (declaration.key, declaration.file, declaration.line)
                         )
                     elif tag == "L":
-                        if len(parts) != 7:
-                            raise ValueError("source span requires 7 fields")
+                        if len(parts) != 8:
+                            raise ValueError("declarator component span requires 8 fields")
                         facts.spans.add(
-                            (parts[1], parts[2], int(parts[3]), int(parts[4]), parts[5], parts[6])
+                            (
+                                parts[1],
+                                parts[2],
+                                parts[3],
+                                int(parts[4]),
+                                int(parts[5]),
+                                parts[6],
+                                parts[7],
+                            )
                         )
                     elif tag == "T":
                         if len(parts) != 5:
@@ -595,8 +603,36 @@ def nominal_representation(declaration: DeclarationFact, metadata: tuple) -> tup
     return declaration.width, declaration.signedness, declaration.domain, identity
 
 
+def callback_boundaries(facts: ScalarFacts) -> tuple[set[str], dict[str, list[str]]]:
+    """A modeled slot is complete only when every bound implementation has a body.
+
+    Synthetic signature nodes have no body of their own. Their implementation
+    edges establish source-side coverage, while escapes/ABI mismatches remain
+    blockers even when independent evidence seeds the slot directly.
+    """
+    complete = set()
+    blocked = {}
+    implementations = defaultdict(set)
+    for flow in facts.flows:
+        if flow.role == "callback-return":
+            implementations[flow.target].add(flow.source)
+        elif flow.role == "callback-parameter":
+            implementations[flow.source].add(flow.target)
+    for slot in callback_report(facts):
+        for key in slot["nodes"]:
+            reasons = list(slot["blockers"])
+            if not implementations[key] or not implementations[key] <= facts.bodies:
+                reasons.append("unavailable callback implementation boundary")
+            if reasons:
+                blocked[key] = reasons
+            else:
+                complete.add(key)
+    return complete, blocked
+
+
 def anchored_report(facts: ScalarFacts, claims: list[dict], property_: str) -> list[dict]:
     """Existing pointer/typedef identities require independent owner evidence."""
+    callback_complete, callback_blocked = callback_boundaries(facts)
     sentinels = sentinel_index(facts)
     uses: dict[str, list[Use]] = defaultdict(list)
     escapes: dict[str, list[Use]] = defaultdict(list)
@@ -634,6 +670,9 @@ def anchored_report(facts: ScalarFacts, claims: list[dict], property_: str) -> l
         value = next(iter(values)) if len(values) == 1 else None
         blockers = []
         for key in sorted(members):
+            blockers.extend(
+                {"key": key, "reason": reason} for reason in callback_blocked.get(key, [])
+            )
             declaration = facts.declarations.get(key)
             metadata = facts.types.get(key)
             if declaration is None or metadata is None:
@@ -644,7 +683,7 @@ def anchored_report(facts: ScalarFacts, claims: list[dict], property_: str) -> l
             if (
                 declaration.kind
                 in {"function", "parameter", "callback-return", "callback-parameter"}
-                and key not in facts.bodies
+                and key not in facts.bodies | callback_complete
                 and not any(
                     claim["key"] == key and claim["basis"]["kind"] != "retail" for claim in relevant
                 )
@@ -739,9 +778,19 @@ def anchored_report(facts: ScalarFacts, claims: list[dict], property_: str) -> l
 
 
 def callback_report(facts: ScalarFacts) -> list[dict]:
+    # Index once: scanning/sorting the entire declaration graph per callback
+    # turns a whole-program campaign into a quadratic inventory operation.
+    slot_nodes = defaultdict(list)
+    for key in sorted(facts.declarations):
+        if "::callback-" in key:
+            slot_nodes[key.rsplit("::callback-", 1)[0]].append(key)
+    slot_bindings = defaultdict(list)
+    for binding in sorted(facts.callback_bindings):
+        slot_bindings[binding[0]].append(binding)
+    escaped = {use.key for use in facts.escapes}
     result = []
     for slot, signature in sorted(facts.callback_slots.items()):
-        bindings = [binding for binding in sorted(facts.callback_bindings) if binding[0] == slot]
+        bindings = slot_bindings[slot]
         blockers = []
         if not bindings:
             blockers.append("no resolved implementation")
@@ -756,7 +805,7 @@ def callback_report(facts: ScalarFacts) -> list[dict]:
             blockers.append("unmodeled callback parameter")
         if slot in facts.inconsistent:
             blockers.append("inconsistent callback slot")
-        if any(use.key == slot for use in facts.escapes):
+        if slot in escaped:
             blockers.append("callback slot escapes or has an unmodeled producer")
         result.append(
             {
@@ -764,11 +813,7 @@ def callback_report(facts: ScalarFacts) -> list[dict]:
                 "arity": signature[0],
                 "calling_convention": signature[1],
                 "implementations": [binding[1] for binding in bindings],
-                "nodes": [
-                    key
-                    for key in sorted(facts.declarations)
-                    if key.startswith(slot + "::callback-")
-                ],
+                "nodes": slot_nodes[slot],
                 "status": "blocked" if blockers else "modeled",
                 "blockers": blockers,
                 "requires": "independent signature evidence and complete implementation/table/invocation coverage before edits",
@@ -832,6 +877,7 @@ def structural_report(facts: ScalarFacts) -> dict:
 
 def integer_report(facts: ScalarFacts, claims: list[dict]) -> dict:
     """Report connected copy chains; never emit edits or infer int/long spelling."""
+    callback_complete, callback_blocked = callback_boundaries(facts)
     sentinels_by_key = sentinel_index(facts)
     evidence: dict[str, list[dict]] = defaultdict(list)
     for claim in claims:
@@ -860,6 +906,9 @@ def integer_report(facts: ScalarFacts, claims: list[dict]) -> dict:
                 continue
             blockers = []
             for key in sorted(members):
+                blockers.extend(
+                    {"key": key, "reason": reason} for reason in callback_blocked.get(key, [])
+                )
                 declaration = facts.declarations.get(key)
                 if declaration is None:
                     blockers.append({"key": key, "reason": "missing declaration"})
@@ -879,7 +928,7 @@ def integer_report(facts: ScalarFacts, claims: list[dict]) -> dict:
                 if (
                     declaration.kind
                     in {"function", "parameter", "callback-return", "callback-parameter"}
-                    and key not in facts.bodies
+                    and key not in facts.bodies | callback_complete
                     and not any(c["basis"]["kind"] != "retail" for c in local_evidence)
                 ):
                     blockers.append(
@@ -1049,9 +1098,9 @@ def write_recovery_patch(
 ) -> dict:
     """Emit reviewable whole-component patches, never mutate source files.
 
-    Only signedness at an unchanged width, independently named typedefs and
-    void object pointees have an unambiguous type-atom edit. Width changes and
-    complex signatures require further ABI/declarator recovery. All observed
+    Signedness at an unchanged width, existing enums/typedefs and void object
+    pointees edit protected declarator components, including callback signatures.
+    Width changes require further ABI recovery. All observed
     redeclarations and shared declaration atoms must agree, and every source
     snapshot is validated before writing any artifact.
     """
@@ -1074,6 +1123,17 @@ def write_recovery_patch(
             groups.append(
                 (component["members"], proposal["changes"], "signedness", proposal["value"])
             )
+    for component in report["components"]:
+        proposal = component["properties"]["domain"]
+        if proposal["status"] == "candidate" and proposal["changes"]:
+            groups.append(
+                (
+                    component["members"],
+                    proposal["changes"],
+                    "domain",
+                    proposal["value"].removeprefix("enum:"),
+                )
+            )
     for property_, rows in (
         ("nominal", report["nominal_components"]),
         ("pointee", report["pointer_components"]),
@@ -1085,7 +1145,9 @@ def write_recovery_patch(
                 )
     spans: dict[str, list[tuple]] = defaultdict(list)
     owners: dict[tuple[str, int, int], set[str]] = defaultdict(set)
-    for key, file, offset, length, text, digest in sorted(facts.spans):
+    for key, component, file, offset, length, text, digest in sorted(facts.spans):
+        if component == "array-extent":
+            continue
         spans[key].append((file, offset, length, text, digest))
         owners[file, offset, length].add(key)
     proposed: dict[str, str] = {}
@@ -1124,7 +1186,7 @@ def write_recovery_patch(
                     replacement = value
                 else:
                     if declaration.domain not in {"integer", "enum"}:
-                        reason = "nominal edit requires an integer-domain atom"
+                        reason = "enum/nominal edit requires an integer-domain atom"
                         break
                     replacement = value
                 replacements.add(replacement)

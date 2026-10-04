@@ -186,14 +186,14 @@ clang-tidy --wiz8-scalar-report /out/scalar-facts \
   --patch /out/recovery.patch
 ```
 
-The patch writer handles builtin signedness at an unchanged width, known integer
+The patch writer handles existing enum domains, builtin signedness at an unchanged width, known integer
 typedef atoms, and concrete `void` pointees. It preserves int/long spelling and
 qualifiers, updates every observed redeclaration, rejects a component if any
 changed declaration lacks a safe span, and rejects atoms shared with unchanged
 declarations. SHA-256 and original token bytes must match current files before
 any patch is written. It never mutates source; review full project/API coverage,
 apply the patch, then recollect and compile affected consumers. Width changes,
-callback declarator surgery, aliases lacking independent owners and redundant
+aliases lacking independent owners and redundant
 cast removal require further recovery.
 
 `pointee` evidence uses the exact canonical pointee identity from `T` metadata
@@ -289,3 +289,11 @@ sentinel. The SDK module-handle flow at `srTimer +0x848` is now `HMODULE`; retai
 `0x100610f0`, `0x10060b90`, `0x10062480` and `0x10063600` establish the Win32
 producer/consumer family. Five pointer-erasure casts are removed. Layouts and
 serialization widths are preserved.
+
+Protected `L` records identify a node and declarator component before the file, byte
+offset/length, source tokens and SHA256. Components include return/parameter types,
+pointees, array elements/extents, and callback returns/parameters. Callback typedef
+uses share the typedef's source atoms: every collected owner must agree before an
+edit is emitted. Arity, calling convention, variadics, unresolved producers and ABI
+escapes remain blockers; bound implementations must have collected bodies. Array
+extent spans are collected separately and do not authorize changing extents.
