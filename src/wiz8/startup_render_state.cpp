@@ -26,9 +26,9 @@ void UpdateRenderElapsedTime(void)
 }
 
 // GLOBAL: WIZ8 0x0065A178
-EnvironmentColour g_environment_colours_65a178[256];
+EnvironmentColour g_environment_colours0[256];
 // GLOBAL: WIZ8 0x0065AD98
-EnvironmentColour g_environment_colours_65ad98[256];
+EnvironmentColour g_environment_colours1[256];
 // GLOBAL: WIZ8 0x0065A168
 stTextureAnim* g_sky_gradient_animations[3];
 // GLOBAL: WIZ8 0x0060A394
@@ -59,13 +59,13 @@ unsigned char InitializeEnvironmentColours(void)
 
     for (index = 0; index != 128; ++index) {
         value = normalized_colour(index);
-        g_environment_colours_65a178[index] = value;
-        g_environment_colours_65ad98[index] = value;
+        g_environment_colours0[index] = value;
+        g_environment_colours1[index] = value;
     }
     for (index = 128; index != 256; ++index) {
         value = normalized_colour(255 - index);
-        g_environment_colours_65a178[index] = value;
-        g_environment_colours_65ad98[index] = value;
+        g_environment_colours0[index] = value;
+        g_environment_colours1[index] = value;
     }
     g_sky_gradient_animations[0] = 0;
     g_sky_gradient_animations[1] = 0;

@@ -109,12 +109,12 @@ struct W8LevelRuntimeBlock {
     int dialogue_content_region;
     unsigned int text_lines[12]; /* 0x1a8 */
     /* 0x1d8/0x1e8: paired four-entry slot tables cleared to -1 on level-block
-       init. Entry [2] of text_slots_1e8 is the secondary NPC-dialogue item
+       init. Entry [2] of text_slots1 is the secondary NPC-dialogue item
        editor slot (ResetNpcDialogueItemEditor / ConfirmNpcTradeSlot);
        the other indices and the whole 0x1d8 table still lack agreeing
        producers beyond ClearTextSlot*. */
-    int text_slots_1d8[4];
-    int text_slots_1e8[4];
+    int text_slots0[4];
+    int text_slots1[4];
     bool dialogue_text_input_open;
     unsigned char padding_1f9[3];
     /* GOG retail retains the complete editor consumer path, but has no writer
@@ -129,7 +129,7 @@ struct W8LevelRuntimeBlock {
     int condition_orb_party_slot;
     int enchantment_orb_party_slot;
     int condition_highlight_party_slot; /* 0x20c: -1 while untracked */
-    bool flag_210;                      /* 0x210 */
+    bool flag3;                      /* 0x210 */
     unsigned char padding_211[3];
     TIMER clock;                  /* 0x214 */
     unsigned char portrait_flash; /* 0x218: 500ms highlight pulse on clock */
@@ -160,15 +160,15 @@ struct W8LevelRuntimeBlock {
     unsigned char padding_24e[2];
     TIMER character_update_timer; /* 0x250 */
     TIMER world_update_timer;     /* 0x254 */
-    TIMER countdown_258;          /* 0x258 */
-    TIMER countdown_25c;          /* 0x25c */
+    TIMER countdown0;          /* 0x258 */
+    TIMER countdown1;          /* 0x25c */
     bool transition_active;       /* 0x260 */
     bool transition_pending;      /* 0x261 */
     unsigned char padding_262[2];
     int highlighted_item;
     int selected_item;
-    TIMER countdown_26c; /* 0x26c */
-    bool flag_270;
+    TIMER countdown2; /* 0x26c */
+    bool flag4;
     /* 0x271: text box visible; toggled by the keyboard shortcut and raised
        by spell/item/dialogue screens that need it. */
     bool text_box_visible;
@@ -220,7 +220,7 @@ struct W8LevelRuntimeBlock {
     unsigned char padding_301[3];
     int tooltip_subject;
     int tooltip_kind;
-    TIMER countdown_30c; /* 0x30c */
+    TIMER countdown3; /* 0x30c */
     int combat_slot;     /* 0x310 */
     /* 0x314: the keyboard-action menu is open; set before BuildKeyboardMenu,
        cleared by CloseKeyboardMenu. */
@@ -231,7 +231,7 @@ struct W8LevelRuntimeBlock {
        CloseKeyboardMenu. */
     unsigned char cursor_grace;
     unsigned char padding_31d[3];
-    TIMER countdown_320; /* 0x320: portrait right-hold arm clock */
+    TIMER countdown4; /* 0x320: portrait right-hold arm clock */
     /* 0x324: PortraitSelectRegionEvent right-button hold armed for camp. */
     bool portrait_right_hold_armed;
     unsigned char formation_board_alternate; /* 0x325: highlighted board art while hovered */
@@ -240,7 +240,7 @@ struct W8LevelRuntimeBlock {
     /* 0x328: the review-screen transition finished; gates its early-out. */
     bool review_transition_done;
     unsigned char padding_329[3];
-    TIMER countdown_32c;
+    TIMER countdown5;
 };
 #pragma pack(pop)
 

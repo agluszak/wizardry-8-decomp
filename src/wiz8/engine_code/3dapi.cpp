@@ -232,10 +232,10 @@ unsigned char LoadWorld(W8World* world, char* level_file_name, const char* level
     SetSceneAmbientLightWhite(world->static_scene);
     world->camera = CreateOrSetGameCamera(world->static_scene, 0);
     world->camera_light = CreateRangedWorldLight(world, "CameraLight");
-    world->camera_light->ambient_198.SetZero();
-    world->camera_light->diffuse_1a4.Set(1.0f, 0.85f, 0.39f);
-    world->camera_light->specular_1b0.SetZero();
-    world->camera_light->intensity_1d0 = 1.0f;
+    world->camera_light->ambient.SetZero();
+    world->camera_light->diffuse.Set(1.0f, 0.85f, 0.39f);
+    world->camera_light->specular.SetZero();
+    world->camera_light->intensity = 1.0f;
     world->camera_light->setGroupMask(2);
     ConfigureWorldLight(world->camera_light, 4000.0f);
 
@@ -508,7 +508,7 @@ void DestroyWorldCollections(W8World* world)
             W8CameraPath* entry =
                 GetWorldCameraPath(world, 0);
             PLRemoveAt(world->plsCameras, 0);
-            DestroyPathAI(entry->path_18);
+            DestroyPathAI(entry->path);
             free(entry);
         }
         PLDestroy(world->plsCameras);
@@ -692,8 +692,8 @@ void UpdateWorldCameraAndPaths(W8World* world, unsigned int flags)
     if (world->plsCameras != 0 && camera_count != 0) {
         for (index = 0; index < camera_count; ++index) {
             camera_path = GetWorldCameraPath(world, index);
-            if (camera_path != 0 && camera_path->active_14 != 0) {
-                path = camera_path->path_18;
+            if (camera_path != 0 && camera_path->active != 0) {
+                path = camera_path->path;
                 PathAITick(path, 1);
                 PathAIApply(path, world->camera);
                 {

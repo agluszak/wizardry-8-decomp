@@ -370,7 +370,7 @@ void UseHeldItemOnItem(W8ItemInstance* item)
                 OpenItemInfoDialog(item, 0);
                 if (item->identified == 0) {
                     QueueCharacterEvent(g_status.buffers.Char + giCasterCharSlot,
-                                        g_character_event_kind_005ee65c, 0,
+                                        g_character_event_kind2, 0,
                                         g_character_event_no_flags, g_character_event_full_volume);
                 }
             }
@@ -381,7 +381,7 @@ void UseHeldItemOnItem(W8ItemInstance* item)
             return;
         }
         QueueCharacterEvent(g_status.buffers.Char + giCasterCharSlot,
-                            g_character_event_kind_005ee65c, 0, g_character_event_no_flags,
+                            g_character_event_kind2, 0, g_character_event_no_flags,
                             g_character_event_full_volume);
     }
 }

@@ -84,7 +84,7 @@ void srModelInstance::updateClient(srModel::Client::e_update update)
 void srModelInstance::process(const ProcessInfo& info, e_processType type)
 {
     srGERD* renderer = info.renderer;
-    ++srCore.getStatisticsManager()->statistics_00.meshes_traversed;
+    ++srCore.getStatisticsManager()->statistics.meshes_traversed;
     if ((alignment_flags.value & 1) == 0) {
         applyWorldSpaceMatrix(*renderer);
     } else {

@@ -49,8 +49,8 @@ protected:
     ~srCachedExponentTable();
 
     long ref_count;
-    srCachedExponentTable* previous_1008;
-    srCachedExponentTable* next_100c;
+    srCachedExponentTable* previous;
+    srCachedExponentTable* next;
 
     static srCachedExponentTable* first;
     static srCachedExponentTable* lastResult;

@@ -102,12 +102,12 @@ void MartensBluff2Setup(void)
         } else {
             quest_state = GetLocationVarValueByName("RavenQuest");
         }
-        pTrigger->flags_0a0 &= ~W8_TRIGGER_ENABLED;
+        pTrigger->flags &= ~W8_TRIGGER_ENABLED;
         if (quest_state != 0) {
             if (quest_state == 1) {
-                pTrigger->flags_0a0 |= W8_TRIGGER_ENABLED;
+                pTrigger->flags |= W8_TRIGGER_ENABLED;
             }
-            FindTriggerByName("DummyLever")->flags_0a0 &= ~W8_TRIGGER_ENABLED;
+            FindTriggerByName("DummyLever")->flags &= ~W8_TRIGGER_ENABLED;
             if (quest_state == 2) {
                 if (FindEntityByName("Ravenz", &position, 0, 0)) {
                     group = SpawnMonsters(0x183, 1, &position, 0, 1, 0, 0);
@@ -128,7 +128,7 @@ void MartensBluff2Setup(void)
     if (pTrigger != 0 && pTrigger->state_index == 1) {
         pTrigger = FindTriggerByName("SideGateText");
         if (pTrigger != 0) {
-            pTrigger->flags_0a0 &= ~W8_TRIGGER_ENABLED;
+            pTrigger->flags &= ~W8_TRIGGER_ENABLED;
         }
     }
     if (GetLocationVarIDByName("SpikedBallLauncher") != -1) {
@@ -342,7 +342,7 @@ bool MartensBluff2DoorBolt(Trigger* pTrigger)
 {
     Trigger* pText = FindTriggerByName("SideGateText");
     if (pText != 0) {
-        pText->flags_0a0 &= ~W8_TRIGGER_ENABLED;
+        pText->flags &= ~W8_TRIGGER_ENABLED;
     }
     return true;
 }
@@ -352,7 +352,7 @@ bool MartensBluff2DoorBolt(Trigger* pTrigger)
 // FUNCTION: WIZ8 0x004DDD50
 bool MartensBluff2DummyLever(Trigger* pTrigger)
 {
-    pTrigger->flags_0a0 &= ~W8_TRIGGER_ENABLED;
+    pTrigger->flags &= ~W8_TRIGGER_ENABLED;
     return !GetLocationVarValueByName("RavenQuest");
 }
 
@@ -365,7 +365,7 @@ bool MartensBluff2Dummy(Trigger* pTrigger)
     if (g_running_trigger_from_script == 0) {
         Trigger* pPerfumeBox = FindTriggerByName("PerfumeBox");
         if (pPerfumeBox != 0) {
-            pPerfumeBox->flags_0a0 |= W8_TRIGGER_ENABLED;
+            pPerfumeBox->flags |= W8_TRIGGER_ENABLED;
             SetTriggerVariableByName("RavenQuest", 1);
         }
     }
@@ -393,7 +393,7 @@ bool MartensBluff2PerfumeBox(Trigger* pTrigger)
     }
     g_trigger_feedback = 1;
     ClearHeldItemDisplay();
-    pTrigger->flags_0a0 &= ~W8_TRIGGER_ENABLED;
+    pTrigger->flags &= ~W8_TRIGGER_ENABLED;
     quest_state = 2;
     if (FindEntityByName("Ravenz", &position, 0, 0)) {
         group = SpawnMonsters(0x183, 1, &position, 0, 1, 0, 0);
@@ -603,10 +603,10 @@ void MartensBluff2MonsterCrusher(int command)
         info = MonsterGetScriptPartByLocationIndex(index);
         if (info != 0 && info->p3D != 0 &&
             (g_crusher_excluded_flag == 0 || info->p3D != g_crusher_excluded) &&
-            info->p3D->flags_00c != 0x200000) {
+            info->p3D->flags != 0x200000) {
             monster = info->p3D;
             position = monster->GetPosition();
-            radius = monster->movement_0c0.alternate_radius;
+            radius = monster->movement.alternate_radius;
             if (left <= position.x - radius) {
                 if (right < position.x + radius) {
                     position.x = right - radius;
@@ -645,7 +645,7 @@ bool MartensBluff2StoneIdol(Trigger* pTrigger)
     BeginSurprise();
     MartensBluff2IdolGas(1);
     g_master_functions->Add(MartensBluff2IdolGas);
-    pTrigger->flags_0a0 &= ~W8_TRIGGER_ENABLED;
+    pTrigger->flags &= ~W8_TRIGGER_ENABLED;
     g_running_trigger_from_script = true;
     SetFact(0x323, 1, 0);
     return true;

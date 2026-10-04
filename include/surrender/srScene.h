@@ -47,7 +47,7 @@ public:
 #else
     srVector3T<float> getFogColor() const
     {
-        return fog_color_180;
+        return fog_color;
     }
 #endif
     void getStatistics(Statistics& statistics);
@@ -68,9 +68,9 @@ public:
 #else
     inline void setAmbientLight(float red, float green, float blue)
     {
-        ambient_light_174.x = red;
-        ambient_light_174.y = green;
-        ambient_light_174.z = blue;
+        ambient_light.x = red;
+        ambient_light.y = green;
+        ambient_light.z = blue;
     }
 #endif
     void setAmbientLight(const srVector3T<float>& color);
@@ -79,19 +79,19 @@ public:
 #else
     inline void setFogColor(float red, float green, float blue)
     {
-        fog_color_180.x = red;
-        fog_color_180.y = green;
-        fog_color_180.z = blue;
+        fog_color.x = red;
+        fog_color.y = green;
+        fog_color.z = blue;
     }
 #endif
     void setFogColor(const srVector3T<float>& color);
 
 protected:
     srFlags<e_enable> enabled;       /* 0x138 */
-    Statistics statistics_140;           /* 0x140 */
+    Statistics statistics;           /* 0x140 */
     TraverseInfo traversal;          /* 0x158 (renderer at 0x170) */
-    srVector3T<float> ambient_light_174; /* 0x174 */
-    srVector3T<float> fog_color_180;     /* 0x180 */
+    srVector3T<float> ambient_light; /* 0x174 */
+    srVector3T<float> fog_color;     /* 0x180 */
 };
 
 static_assert((sizeof(srScene) == 0x190), "srScene_must_be_0x190");

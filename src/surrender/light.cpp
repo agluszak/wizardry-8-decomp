@@ -25,12 +25,12 @@ srLight::srLight(srNode* parent, e_preset preset)
     channel_mask = 0;
     setFlag(FLAG_GLOBAL);
     enable_flags = 0;
-    ambient_198.SetZero();
-    diffuse_1a4 = 1.0f;
-    specular_1b0 = 1.0f;
+    ambient.SetZero();
+    diffuse = 1.0f;
+    specular = 1.0f;
     spot_direction.Set(0.0f, 0.0f, 1.0f);
     spot_exponent = 1.0f;
-    intensity_1d0 = 1.0f;
+    intensity = 1.0f;
     spot_angle = (float)(3.141592653589793 * 0.5);
     safe_range = 0.0f;
     attenuation_model = ATTENUATION_OPENGL;
@@ -59,14 +59,14 @@ srLight& srLight::operator=(const srLight& other)
         srIlluminator::operator=(other);
         attenuation_model = other.attenuation_model;
         enable_flags = other.enable_flags;
-        ambient_198 = other.ambient_198;
-        diffuse_1a4 = other.diffuse_1a4;
-        specular_1b0 = other.specular_1b0;
+        ambient = other.ambient;
+        diffuse = other.diffuse;
+        specular = other.specular;
         opengl_attenuation = other.opengl_attenuation;
         spot_direction = other.spot_direction;
         spot_angle = other.spot_angle;
         spot_exponent = other.spot_exponent;
-        intensity_1d0 = other.intensity_1d0;
+        intensity = other.intensity;
         near_start = other.near_start;
         near_end = other.near_end;
         far_start = other.far_start;
@@ -125,16 +125,16 @@ void srLight::dump(std::ostream& stream)
     }
     stream << '\n';
     stream.width(0x20);
-    stream << "  Intensity: " << intensity_1d0 << '\n';
+    stream << "  Intensity: " << intensity << '\n';
     stream.width(0x20);
-    stream << "  Ambient coeff.: {" << ambient_198.x << ',' << ambient_198.y << ',' << ambient_198.z
+    stream << "  Ambient coeff.: {" << ambient.x << ',' << ambient.y << ',' << ambient.z
            << '}' << '\n';
     stream.width(0x20);
-    stream << "  Diffuse coeff.: {" << diffuse_1a4.x << ',' << diffuse_1a4.y << ',' << diffuse_1a4.z
+    stream << "  Diffuse coeff.: {" << diffuse.x << ',' << diffuse.y << ',' << diffuse.z
            << '}' << '\n';
     stream.width(0x20);
-    stream << "  Specular coeff.: {" << specular_1b0.x << ',' << specular_1b0.y << ','
-           << specular_1b0.z << '}' << '\n';
+    stream << "  Specular coeff.: {" << specular.x << ',' << specular.y << ','
+           << specular.z << '}' << '\n';
     stream.width(0x20);
     stream << "  Spot direction: {" << spot_direction.x << ',' << spot_direction.y << ','
            << spot_direction.z << '}' << '\n';
@@ -183,25 +183,25 @@ void srLight::process(const ProcessInfo& info, e_processType type)
     derived_flags = 0;
     derived_flags = 1;
     channel_mask = 0;
-    if (ambient_198.x != 0.0f || ambient_198.y != 0.0f || ambient_198.z != 0.0f) {
+    if (ambient.x != 0.0f || ambient.y != 0.0f || ambient.z != 0.0f) {
         channel_mask |= 0x200;
-        scaled_ambient.x = ambient_198.x * intensity_1d0;
-        scaled_ambient.y = ambient_198.y * intensity_1d0;
-        scaled_ambient.z = ambient_198.z * intensity_1d0;
+        scaled_ambient.x = ambient.x * intensity;
+        scaled_ambient.y = ambient.y * intensity;
+        scaled_ambient.z = ambient.z * intensity;
         scaled_ambient.w = 0.0f;
     }
-    if (diffuse_1a4.x != 0.0f || diffuse_1a4.y != 0.0f || diffuse_1a4.z != 0.0f) {
+    if (diffuse.x != 0.0f || diffuse.y != 0.0f || diffuse.z != 0.0f) {
         channel_mask |= 0x400;
-        scaled_diffuse.x = diffuse_1a4.x * intensity_1d0;
-        scaled_diffuse.y = diffuse_1a4.y * intensity_1d0;
-        scaled_diffuse.z = diffuse_1a4.z * intensity_1d0;
+        scaled_diffuse.x = diffuse.x * intensity;
+        scaled_diffuse.y = diffuse.y * intensity;
+        scaled_diffuse.z = diffuse.z * intensity;
         scaled_diffuse.w = 0.0f;
     }
-    if (specular_1b0.x != 0.0f || specular_1b0.y != 0.0f || specular_1b0.z != 0.0f) {
+    if (specular.x != 0.0f || specular.y != 0.0f || specular.z != 0.0f) {
         channel_mask |= 0x4;
-        scaled_specular.x = specular_1b0.x * intensity_1d0;
-        scaled_specular.y = specular_1b0.y * intensity_1d0;
-        scaled_specular.z = specular_1b0.z * intensity_1d0;
+        scaled_specular.x = specular.x * intensity;
+        scaled_specular.y = specular.y * intensity;
+        scaled_specular.z = specular.z * intensity;
         scaled_specular.w = 0.0f;
     }
     if (channel_mask == 0) {
@@ -289,7 +289,7 @@ void srLight::process(const ProcessInfo& info, e_processType type)
 // FUNCTION: SURRENDER 0x1004CCC0
 int srLight::isActive(srVertexPipe& pipe)
 {
-    const srVertexPipe::Input* input = pipe.input_6c;
+    const srVertexPipe::Input* input = pipe.input;
     if ((group_mask & input->exclusion_mask) != 0) {
         return 0;
     }
@@ -333,7 +333,7 @@ void srLight::process(srVertexPipe& pipe)
     if ((channels & 0x400) != 0 || (channels & 0x4) != 0) {
         need_normals = 1;
     }
-    SRDWORD count = pipe.vertex_count_88;
+    SRDWORD count = pipe.vertex_count;
     /* Retail's stack frame aligns a 0x700-byte work area to 32 bytes: five
        64-entry banks (spot factors, attenuation, dot products, distances,
        eye-space directions). */
@@ -346,7 +346,7 @@ void srLight::process(srVertexPipe& pipe)
     float* distances = work + 0xc0;
     // reinterpret-ok: raw aligned scratch reinterpreted as the direction array.
     srVector3T<float>* directions = reinterpret_cast<srVector3T<float>*>(work + 0x100);
-    srVertexPipe::Scratch* scratch = pipe.scratch_00;
+    srVertexPipe::Scratch* scratch = pipe.scratch;
     float* attenuation = 0;
 
     if ((derived_flags & 0x4) == 0) {
@@ -455,12 +455,12 @@ void srLight::process(srVertexPipe& pipe)
         diffuse.y = scaled_diffuse.y * pipe.material_info.diffuse.y;
         diffuse.z = scaled_diffuse.z * pipe.material_info.diffuse.z;
         diffuse.w = scaled_diffuse.w * pipe.material_info.diffuse.w;
-        srCore.getStatisticsManager()->statistics_00.diffuse_operations += count;
+        srCore.getStatisticsManager()->statistics.diffuse_operations += count;
         if ((pipe.lazy_setup_mask & 0x2) == 0) {
             pipe.setupDiffuse();
         }
         srVector4T<float>* out =
-            pipe.vertex_array->diffuse_04 + pipe.batch_base + pipe.sub_batch_offset;
+            pipe.vertex_array->diffuse + pipe.batch_base + pipe.sub_batch_offset;
         if (attenuation != 0) {
             srVectorProcessor::axpy(out, out, diffuse, attenuation, dots, count);
         } else {
@@ -510,12 +510,12 @@ void srLight::process(srVertexPipe& pipe)
     specular.y = scaled_specular.y * pipe.material_info.specular.y;
     specular.z = scaled_specular.z * pipe.material_info.specular.z;
     specular.w = scaled_specular.w * pipe.material_info.specular.w;
-    srCore.getStatisticsManager()->statistics_00.specular_operations += count;
+    srCore.getStatisticsManager()->statistics.specular_operations += count;
     if ((pipe.lazy_setup_mask & 0x4) == 0) {
         pipe.setupSpecular();
     }
     srVector4T<float>* out =
-        pipe.vertex_array->specular_08 + pipe.batch_base + pipe.sub_batch_offset;
+        pipe.vertex_array->specular + pipe.batch_base + pipe.sub_batch_offset;
     if (attenuation != 0) {
         srVectorProcessor::axpy(out, out, specular, attenuation, distances, count);
     } else {
@@ -532,7 +532,7 @@ void srLight::traverse(TraverseInfo& info)
     if (testFlag(FLAG_TERMINATE)) {
         return;
     }
-    if (testFlag(FLAG_DISABLE) || fabs(intensity_1d0) <= 0.0001) {
+    if (testFlag(FLAG_DISABLE) || fabs(intensity) <= 0.0001) {
         if (first_child_ != 0) {
             first_child_->traverse(info);
         }
@@ -593,37 +593,37 @@ int srLight::isEnabled(e_enable flag) const
 // FUNCTION: SURRENDER 0x1004E760
 void srLight::setAmbient(const srVector3T<float>& ambient)
 {
-    ambient_198 = ambient;
+    this->ambient = ambient;
 }
 
 // FUNCTION: SURRENDER 0x1004E670
 srVector3T<float> srLight::getAmbient() const
 {
-    return ambient_198;
+    return ambient;
 }
 
 // FUNCTION: SURRENDER 0x1004E780
 void srLight::setDiffuse(const srVector3T<float>& diffuse)
 {
-    diffuse_1a4 = diffuse;
+    this->diffuse = diffuse;
 }
 
 // FUNCTION: SURRENDER 0x1004E6A0
 srVector3T<float> srLight::getDiffuse() const
 {
-    return diffuse_1a4;
+    return diffuse;
 }
 
 // FUNCTION: SURRENDER 0x1004E7B0
 void srLight::setSpecular(const srVector3T<float>& specular)
 {
-    specular_1b0 = specular;
+    this->specular = specular;
 }
 
 // FUNCTION: SURRENDER 0x1004E6E0
 srVector3T<float> srLight::getSpecular() const
 {
-    return specular_1b0;
+    return specular;
 }
 
 // FUNCTION: SURRENDER 0x1004E830
@@ -682,13 +682,13 @@ float srLight::getSpotExponent() const
 // FUNCTION: SURRENDER 0x1004E7A0
 void srLight::setIntensity(float intensity)
 {
-    intensity_1d0 = intensity;
+    this->intensity = intensity;
 }
 
 // FUNCTION: SURRENDER 0x1004E6D0
 float srLight::getIntensity() const
 {
-    return intensity_1d0;
+    return intensity;
 }
 
 // FUNCTION: SURRENDER 0x1004E900

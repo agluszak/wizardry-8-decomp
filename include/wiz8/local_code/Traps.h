@@ -15,7 +15,7 @@ enum { W8_TRAP_TYPE_COUNT = 15, W8_TRAP_DEVICE_COUNT = 8 };
 
 /* Spell-id-per-trap-type at index 11+; the opening entries are unrelated
    chance values used by the lock interaction. */
-extern int g_table_6504e8[];
+extern int g_table2[];
 void ClearRecordModeValue(void);
 bool IsRecordModeActive(void);
 /* Record-mode console line input and its per-key prompt/apply callbacks. */

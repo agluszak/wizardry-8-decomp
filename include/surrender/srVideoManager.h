@@ -16,9 +16,9 @@ public:
            pairs with the destination surface extent behind a leading dword
            that sr.dll always writes 0. */
         struct Target {
-            long flags_00;
-            srColorSurfaceIFace::Rectangle source_04;
-            srColorSurfaceIFace::Rectangle surface_14;
+            long flags;
+            srColorSurfaceIFace::Rectangle source;
+            srColorSurfaceIFace::Rectangle surface;
         };
 
         /* Stream description the importer fills through getInfo. The video
@@ -26,8 +26,8 @@ public:
            then write the extent/count/rate fields and a description string. */
         struct Info {
             srPixelConvert::PixelFormat pixel_format;
-            unsigned long width_14;
-            unsigned long height_18;
+            unsigned long width;
+            unsigned long height;
             unsigned long frame_count;
             float frames_per_second;
             char description[0x40];
@@ -69,19 +69,19 @@ public:
         // FUNCTION: SURRENDER 0x1002DFC0
         virtual void setParameter(long parameter)
         {
-            parameter_08 = parameter;
+            this->parameter = parameter;
         }
         /* Nonzero clamps an out-of-range frame request; zero wraps it and
            rewinds (srEXT_FLIC). */
         // FUNCTION: SURRENDER 0x1002DFD0
         virtual void setClamp(long clamp)
         {
-            clamp_14 = clamp;
+            this->clamp = clamp;
         }
         // FUNCTION: SURRENDER 0x1002DFE0
         virtual void setPosition(long position)
         {
-            position_18 = position;
+            this->position = position;
         }
         virtual void getInfo(Info* info) = 0;
         virtual void decompress(srColorSurfaceIFace& surface, const Target& target, long frame) = 0;
@@ -90,11 +90,11 @@ public:
         SR_DLL_EXPORT Stream(const char* path = 0);
 
         long loaded;
-        long parameter_08;
+        long parameter;
         long index;
         long reset_pending;
-        long clamp_14;
-        long position_18;
+        long clamp;
+        long position;
     };
 
     /* Importer-side video entry: the video extensions register a subclass
@@ -114,8 +114,8 @@ public:
 
         void init(Stream* stream);
 
-        Stream* stream_00;
-        Stream::Info info_04;
+        Stream* stream;
+        Stream::Info info;
     };
 
     VStream* openVStream(const char* path);

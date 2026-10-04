@@ -28,7 +28,7 @@ struct W8NpcDialogueStagingRestore {
     /* 0x08: which subquote of the staged quote is next; reset when a new quote
        is staged or the cursor runs past subquote_count. */
     unsigned char subquote_index;
-    unsigned char unused_49d;
+    unsigned char unused;
     short staged_short;
 };
 

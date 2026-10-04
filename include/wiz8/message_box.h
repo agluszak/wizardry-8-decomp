@@ -23,7 +23,7 @@ struct W8SkillNoticePayload {
 static_assert(sizeof(W8ExperienceNoticePayload) == 8, "W8ExperienceNoticePayload_size");
 static_assert(sizeof(W8SkillNoticePayload) == 0x11, "W8SkillNoticePayload_size");
 
-/* The tagged dword payloads carried at W8MessageBoxLine::payload_10 and
+/* The tagged dword payloads carried at W8MessageBoxLine::payload and
    ::extra. Which member is live is selected by the line's `type` (or by the
    quote-bubble notice kind the payload is handed to). Empty payloads carry
    a null text pointer. */
@@ -33,8 +33,8 @@ union W8MessageBoxPayload {
        LEVEL_UP kinds. FINISH_ACTION and RESET_LEVEL_STATE use argument
        as their zero/nonzero flag. */
     wchar_t* text;
-    W8ItemInstance* item;                  /* payload_10: REMOVE_SCRIPT_ITEM */
-    int argument;                          /* payload_10: QueueNpcMessageLine tag */
+    W8ItemInstance* item;                  /* payload: REMOVE_SCRIPT_ITEM */
+    int argument;                          /* payload: QueueNpcMessageLine tag */
     W8SkillNoticePayload* skill_notices;   /* extra: SKILL_NOTICES; delete */
     W8ExperienceNoticePayload* experience; /* extra: PORTRAIT_EXTRA; delete */
     int* level_up_slot;                    /* extra: LEVEL_UP party slot; delete */
@@ -86,7 +86,7 @@ enum W8NpcMessageKind {
     W8_NPC_MSG_MILANO_RAT_DOOR = 0x25,     /* RatDoor02 + Milano.msf on group 0xcf */
     W8_NPC_MSG_REMOVE_SHAMAN = 0x26,       /* npc kind 0x4d */
     W8_NPC_MSG_PARTY_SPEAKER_EVENT = 0x27, /* argument: event type for a random speaker */
-    W8_NPC_MSG_PARTY_MEMBER_EVENT = 0x28,  /* argument: party slot; event g_effect_005ee58c */
+    W8_NPC_MSG_PARTY_MEMBER_EVENT = 0x28,  /* argument: party slot; event g_effect1 */
     W8_NPC_MSG_MOVE_RUBBLE = 0x29,         /* MoveRubble.msf on monster group 0x83 */
     W8_NPC_MSG_SEDEXUS_LEAVES = 0x2a,      /* LezboDemonAppeared + fade npc 0x40 */
     W8_NPC_MSG_TRIGGER_FIX = 0x2b,         /* run trigger "triggerFix" */
@@ -129,7 +129,7 @@ struct W8MessageBoxLine {
     W8NpcMessageKind type; /* 0x0c */
     /* 0x10: per-kind payload sharing one dword; `text`, `item` and `argument`
        are the proven members. */
-    W8MessageBoxPayload payload_10;
+    W8MessageBoxPayload payload;
     int continuation_quote;         /* 0x14: QUOTE_ENTRY's owning quote index */
     bool suppress_entries; /* 0x18: QUOTE skips the quote-entry scan */
     /* 0x1c: ownership is selected by `type`. SKILL_NOTICES hands a
@@ -145,7 +145,7 @@ struct W8MessageBoxLine {
 static_assert(sizeof(W8MessageBoxLine) == 0x24, "W8MessageBoxLine_must_be_0x24");
 static_assert(offsetof(W8MessageBoxLine, quote_entry) == 0x08, "W8MessageBoxLine_quote_entry");
 static_assert(offsetof(W8MessageBoxLine, type) == 0x0c, "W8MessageBoxLine_type");
-static_assert(offsetof(W8MessageBoxLine, payload_10) == 0x10, "W8MessageBoxLine_payload");
+static_assert(offsetof(W8MessageBoxLine, payload) == 0x10, "W8MessageBoxLine_payload");
 static_assert(offsetof(W8MessageBoxLine, continuation_quote) == 0x14,
               "W8MessageBoxLine_continuation_quote");
 static_assert(offsetof(W8MessageBoxLine, suppress_entries) == 0x18,

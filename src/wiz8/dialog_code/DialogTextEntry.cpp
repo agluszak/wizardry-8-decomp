@@ -26,8 +26,8 @@ W8DialogTextEntry::W8DialogTextEntry(const wchar_t* prefix, const wchar_t* text,
     m_geometryDirty = 1;
     m_text_palette = text_palette;
     m_selected = 0;
-    m_state_5d = 0;
-    m_state_60 = 0;
+    m_state0 = 0;
+    m_state1 = 0;
     m_category = category;
     SetLayoutBounds(bounds, 1, 1);
     SetLayoutMode(layout_mode);
@@ -59,8 +59,8 @@ void W8DialogTextEntry::Draw(bool force)
     }
     SetFont(m_font);
     unsigned short* palette = g_font_state_palettes[5];
-    if (!m_state_5d) {
-        if (m_state_60) {
+    if (!m_state0) {
+        if (m_state1) {
             palette = g_font_state_palettes[1];
         } else if (m_selected) {
             palette = g_font_state_palettes[8];

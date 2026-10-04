@@ -356,15 +356,15 @@ unsigned long srTriangleCuller::buildAVT(unsigned long* avt, unsigned long* clip
 // FUNCTION: SURRENDER 0x1002A720
 int srTriangleCuller::cull(Output& output, const Input& input)
 {
-    if (input.triangle_count_00 == 0) {
+    if (input.triangle_count == 0) {
         return 0;
     }
     unsigned long clip_mask = input.clip_mask;
     const srMatrix4& inverse_model_view = *input.inverse_model_view;
-    unsigned long* clip_flags = output.clip_flags_08;
+    unsigned long* clip_flags = output.clip_flags;
     output.linear = 1;
-    output.triangle_count_0c = 0;
-    output.vertex_count_10 = 0;
+    output.triangle_count = 0;
+    output.vertex_count = 0;
     srVector4 constant;
     if (input.cull_mode == 0) {
         constant.Set(-inverse_model_view.vectors[0].w, -inverse_model_view.vectors[1].w,
@@ -388,15 +388,15 @@ int srTriangleCuller::cull(Output& output, const Input& input)
                 if ((remaining & plane_bit) != 0) {
                     srVector4 source = *plane;
                     planes[plane_count] =
-                        transformClipPlane(source, inverse_model_view, input.scale_type_2c);
+                        transformClipPlane(source, inverse_model_view, input.scale_type);
                     plane_bits[plane_count] = bit;
                     ++plane_count;
                     remaining &= ~plane_bit;
                 }
             }
             unsigned long shared = 0;
-            if (setClipFlagsObjectSpace(clip_flags, input.vertices_1c, planes, plane_bits,
-                                        plane_count, input.vertex_count_04, shared) == 0) {
+            if (setClipFlagsObjectSpace(clip_flags, input.vertices, planes, plane_bits,
+                                        plane_count, input.vertex_count, shared) == 0) {
                 return 0;
             }
             clipped = shared != 0;
@@ -407,21 +407,21 @@ int srTriangleCuller::cull(Output& output, const Input& input)
     if (input.active_triangles == 0) {
         if (clipped != 0) {
             if (input.cull_mode == 2) {
-                output.triangle_count_0c = clip(output.indices_00, clip_flags, input.triangles_18,
-                                                input.triangle_count_00);
+                output.triangle_count = clip(output.indices, clip_flags, input.triangles,
+                                                input.triangle_count);
             } else {
-                output.triangle_count_0c =
-                    cullClip(output.indices_00, clip_flags, input.projected_vertices,
-                             input.triangles_18, constant, input.triangle_count_00);
+                output.triangle_count =
+                    cullClip(output.indices, clip_flags, input.projected_vertices,
+                             input.triangles, constant, input.triangle_count);
             }
         } else {
             if (input.cull_mode == 2) {
-                setupLinearArray(output.indices_00, input.triangle_count_00);
-                output.triangle_count_0c = input.triangle_count_00;
+                setupLinearArray(output.indices, input.triangle_count);
+                output.triangle_count = input.triangle_count;
             } else {
-                output.triangle_count_0c =
-                    cullNoClip(output.indices_00, input.projected_vertices, constant,
-                               input.triangle_count_00);
+                output.triangle_count =
+                    cullNoClip(output.indices, input.projected_vertices, constant,
+                               input.triangle_count);
             }
         }
     } else {
@@ -430,21 +430,21 @@ int srTriangleCuller::cull(Output& output, const Input& input)
             return 0;
         }
         if (input.cull_mode == 2) {
-            if (active_count != 0 && output.indices_00 != input.active_triangles) {
-                srVectorProcessor::vp->_memcopy(output.indices_00, input.active_triangles,
+            if (active_count != 0 && output.indices != input.active_triangles) {
+                srVectorProcessor::vp->_memcopy(output.indices, input.active_triangles,
                                                 active_count * 4);
             }
-            output.triangle_count_0c = active_count;
+            output.triangle_count = active_count;
         } else {
-            output.triangle_count_0c =
-                cullNoClipAPT(output.indices_00, input.active_triangles,
+            output.triangle_count =
+                cullNoClipAPT(output.indices, input.active_triangles,
                               input.projected_vertices, constant, active_count);
         }
     }
-    if (output.triangle_count_0c != 0) {
-        output.vertex_count_10 =
-            buildAVT(output.avt_04, clip_flags, output.indices_00, input.triangles_18,
-                     output.triangle_count_0c, input.vertex_count_04);
+    if (output.triangle_count != 0) {
+        output.vertex_count =
+            buildAVT(output.avt, clip_flags, output.indices, input.triangles,
+                     output.triangle_count, input.vertex_count);
         return 1;
     }
     return 0;

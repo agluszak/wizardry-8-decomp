@@ -576,7 +576,7 @@ unsigned char LoadLevel(int requested_level, int entrance, bool restoring_game)
             sprintf(trigger_name, "%3s%02d", g_level_folders[level].location_code, entrance);
             trigger = FindTriggerByName(trigger_name);
         }
-        if (trigger != 0 && ((trigger->flags_0a0 & W8_TRIGGER_POSITIONED) != 0)) {
+        if (trigger != 0 && ((trigger->flags & W8_TRIGGER_POSITIONED) != 0)) {
             srVector3T<float> trigger_position;
             srVector3T<float> position;
 
@@ -594,8 +594,8 @@ unsigned char LoadLevel(int requested_level, int entrance, bool restoring_game)
 
                 axis = trigger->direction;
                 rotation.SetIdentity();
-                if (trigger->angle_0fc != 0.0f) {
-                    rotation.RotateAroundAxis(sin(trigger->angle_0fc), cos(trigger->angle_0fc),
+                if (trigger->angle != 0.0f) {
+                    rotation.RotateAroundAxis(sin(trigger->angle), cos(trigger->angle),
                                               axis);
                 }
                 ApplyCameraRotation(&rotation);

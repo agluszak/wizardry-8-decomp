@@ -33,8 +33,8 @@ struct W8PartySlotRow {
        the action's own two-word block. A use-item action holds the aimed item
        in the block's item member. */
     W8ActionKind action;
-    int action_detail_041;
-    W8ActionDetailBlock action_detail_045;
+    int action_detail0;
+    W8ActionDetailBlock action_detail1;
     W8CombatSlot target_in_combat;
     W8ActionKind action_kind;
     int action_detail;
@@ -71,8 +71,8 @@ struct W8PartySlotRow {
     /* 0xfe: an NPC is bound to this party slot; set when the binding
        restores, cleared by the level-entry reset. Gates the RPC banter
        event clock and the bonded-attribute penalty. */
-    bool npc_bound_fe;
-    unsigned int pending_event_type_ff; /* 0xff: last queued portrait event type */
+    bool npc_bound;
+    unsigned int pending_event_type; /* 0xff: last queued portrait event type */
     /* 0x103: portrait advance is only allowed while this is set. */
     unsigned char portrait_advance;
     bool action_is_berserk;
@@ -137,8 +137,8 @@ struct W8CombatCharacterRow {
     int paired_item_id;
     /* 0x80: berserk latch - interrupt case 8 sets it; while set the slot
        retargets onto friends and skips the enemy-hostility bookkeeping.
-       Same interrupt sets berserk_015 on monsters. */
-    bool berserk_80;
+       Same interrupt sets berserk on monsters. */
+    bool berserk;
     /* 0x81: toggled when the slot swaps to its alternate hand in PC Item;
        while set the pending hand-attack values are rebuilt. */
     bool alternate_hand;
@@ -241,7 +241,7 @@ struct W8CombatState {
     unsigned int hit_sound;
     bool hit_sound_active;
     W8EffectSlot effect_slots[9];     /* 0x7c1, 0x11 stride */
-    W8EffectSlot effect_slots_85a[6]; /* 0x85a..0x8bf */
+    W8EffectSlot effect_slots0[6]; /* 0x85a..0x8bf */
     W8Missile* engaged_missile;       /* 0x8c0: live missile that blocks ending combat */
     /* 0x8c4: staged hit result of the in-flight missile (0 = pending, 1 = hit, 2 = deflected) */
     char missile_hit_result;

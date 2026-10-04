@@ -326,7 +326,7 @@ unsigned char CampPortraitSlotRegionEvent(const InputAtom* event, W8Region* regi
                     (g_camp_screen->entry_mode != 7 && g_camp_screen->entry_mode != 9)) {
                     if (!CanPartySlotParticipate(static_cast<int>(target_slot))) {
                         QueueCharacterEvent(&g_status.buffers.Char[giReviewCharSlot],
-                                            g_character_event_kind_005ee65c, 0,
+                                            g_character_event_kind2, 0,
                                             g_character_event_no_flags,
                                             g_character_event_full_volume);
                         return 1;
@@ -348,7 +348,7 @@ unsigned char CampPortraitSlotRegionEvent(const InputAtom* event, W8Region* regi
                 if (gXStatus.iTargetingMode == 7) {
                     if (IsDeadCharacterTargetable(static_cast<int>(target_slot)) == 0) {
                         QueueCharacterEvent(&g_status.buffers.Char[giReviewCharSlot],
-                                            g_character_event_kind_005ee65c, 0,
+                                            g_character_event_kind2, 0,
                                             g_character_event_no_flags,
                                             g_character_event_full_volume);
                         return 1;

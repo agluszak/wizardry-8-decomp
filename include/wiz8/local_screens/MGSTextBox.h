@@ -18,7 +18,7 @@ struct W8NoticeWord {
     short x_start;
     short x_end;
     unsigned char keyword; /* 0x08: 0 none, 1 keyword, 2 selected */
-    bool redraw_09;           /* 0x09: repaint once after deselection */
+    bool redraw;           /* 0x09: repaint once after deselection */
 };
 static_assert(sizeof(W8NoticeWord) == 10, "W8NoticeWord_must_be_10");
 
@@ -37,8 +37,8 @@ struct W8MessageStorageRecord {
        ClockIsTicking; load rearms the countdown with this duration. */
     UINT32 saved_remaining_ms;
     /* 0x10: continuation link count of a wrapped entry; -1 when unlinked. */
-    int link_10;
-    int length_14; /* 0x14: wString length, -1 when unset */
+    int link;
+    int length; /* 0x14: wString length, -1 when unset */
     /* 0x18: live list pointer; save preserves its 32-bit representation and
        load discards the serialized word instead of reconstructing a pointer. */
     W8PList* entries;

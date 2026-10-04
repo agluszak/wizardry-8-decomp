@@ -26,11 +26,11 @@ unsigned long hashName(const char* name)
    map, the same dense-record machinery as the provider's registry indices. */
 struct srConfig::Index {
     struct NameEntry {
-        NameEntry* next_00;
-        NameEntry* previous_04;
-        unsigned long bucket_08;
-        char* name_0c;
-        Entry* entry_10;
+        NameEntry* next;
+        NameEntry* previous;
+        unsigned long bucket;
+        char* name;
+        Entry* entry;
     };
 
     /* Entry*-keyed side map (0x10 bytes): dense records with a free list,
@@ -38,36 +38,36 @@ struct srConfig::Index {
     class EntryMap {
     public:
         struct Record {
-            int next_00;
-            Entry* key_04;
+            int next;
+            Entry* key;
             NameEntry* value_08;
         };
 
-        EntryMap() : heads_00(0), records_04(0), free_08(-1), count_0c(0)
+        EntryMap() : heads(0), records(0), free(-1), count(0)
         {
             resize();
         }
 
         ~EntryMap()
         {
-            if (heads_00 != 0) {
-                delete[] heads_00;
+            if (heads != 0) {
+                delete[] heads;
             }
-            if (records_04 != 0) {
-                delete[] records_04;
+            if (records != 0) {
+                delete[] records;
             }
         }
 
         void clear()
         {
-            if (count_0c != 0) {
-                delete[] heads_00;
-                delete[] records_04;
+            if (count != 0) {
+                delete[] heads;
+                delete[] records;
             }
-            count_0c = 0;
-            heads_00 = 0;
-            records_04 = 0;
-            free_08 = -1;
+            count = 0;
+            heads = 0;
+            records = 0;
+            free = -1;
             resize();
         }
 
@@ -82,78 +82,78 @@ struct srConfig::Index {
         // FUNCTION: SURRENDER 0x10013580
         void resize()
         {
-            long count = count_0c * 2;
+            long count = this->count * 2;
             if (static_cast<unsigned long>(count) < 4) {
                 count = 4;
             }
             Record* records = new Record[count];
             int* heads = new int[count];
             for (long index = 0; index < count; ++index) {
-                records[index].next_00 = -1;
+                records[index].next = -1;
                 heads[index] = -1;
             }
 
             int used = 0;
-            if (count_0c != 0) {
-                for (long bucket = 0; bucket < count_0c; ++bucket) {
-                    for (int old = heads_00[bucket]; old != -1; old = records_04[old].next_00) {
-                        records[used].key_04 = records_04[old].key_04;
-                        int next_bucket = srHashValue(records[used].key_04) & (count - 1);
-                        records[used].value_08 = records_04[old].value_08;
-                        records[used].next_00 = heads[next_bucket];
+            if (this->count != 0) {
+                for (long bucket = 0; bucket < this->count; ++bucket) {
+                    for (int old = this->heads[bucket]; old != -1; old = this->records[old].next) {
+                        records[used].key = this->records[old].key;
+                        int next_bucket = srHashValue(records[used].key) & (count - 1);
+                        records[used].value_08 = this->records[old].value_08;
+                        records[used].next = heads[next_bucket];
                         heads[next_bucket] = used++;
                     }
                 }
-                delete[] heads_00;
-                delete[] records_04;
+                delete[] this->heads;
+                delete[] this->records;
             }
 
             for (long free_index = used; free_index < count; ++free_index) {
-                records[free_index].next_00 = free_index + 1;
+                records[free_index].next = free_index + 1;
             }
-            records[count - 1].next_00 = -1;
-            free_08 = used;
-            heads_00 = heads;
-            count_0c = count;
-            records_04 = records;
+            records[count - 1].next = -1;
+            free = used;
+            this->heads = heads;
+            this->count = count;
+            this->records = records;
         }
 
-        int* heads_00;
-        Record* records_04;
-        int free_08;
-        int count_0c;
+        int* heads;
+        Record* records;
+        int free;
+        int count;
     };
 
     Index()
     {
         case_sensitive = 1;
-        entries_10 = 0;
-        buckets_18 = 0;
-        count_1c = 0;
-        bucket_count_20 = 4;
-        free_14 = 0;
+        this->entries = 0;
+        this->buckets = 0;
+        count = 0;
+        bucket_count = 4;
+        free = 0;
         by_entry.clear();
 
         NameEntry* entries = new NameEntry[4];
         NameEntry** buckets = new NameEntry*[4];
         for (int index = 0; index < 4; ++index) {
             buckets[index] = 0;
-            entries[index].bucket_08 = 0;
-            entries[index].previous_04 = 0;
-            entries[index].next_00 = &entries[index + 1];
-            entries[index].name_0c = 0;
-            entries[index].entry_10 = 0;
+            entries[index].bucket = 0;
+            entries[index].previous = 0;
+            entries[index].next = &entries[index + 1];
+            entries[index].name = 0;
+            entries[index].entry = 0;
         }
-        entries[3].next_00 = 0;
-        free_14 = entries;
-        if (buckets_18 != 0) {
-            delete[] buckets_18;
+        entries[3].next = 0;
+        free = entries;
+        if (this->buckets != 0) {
+            delete[] this->buckets;
         }
-        if (entries_10 != 0) {
-            delete[] entries_10;
+        if (this->entries != 0) {
+            delete[] this->entries;
         }
-        entries_10 = entries;
-        buckets_18 = buckets;
+        this->entries = entries;
+        this->buckets = buckets;
     }
 
     ~Index();
@@ -165,9 +165,9 @@ struct srConfig::Index {
 
     NameEntry* find(const char* name) const
     {
-        unsigned long bucket = hashName(name) & (bucket_count_20 - 1);
-        for (NameEntry* node = buckets_18[bucket]; node != 0; node = node->next_00) {
-            if (namesEqual(name, node->name_0c)) {
+        unsigned long bucket = hashName(name) & (bucket_count - 1);
+        for (NameEntry* node = buckets[bucket]; node != 0; node = node->next) {
+            if (namesEqual(name, node->name)) {
                 return node;
             }
         }
@@ -176,34 +176,34 @@ struct srConfig::Index {
 
     void add(Entry* entry)
     {
-        if (free_14 == 0) {
-            resize(bucket_count_20 * 2);
+        if (free == 0) {
+            resize(bucket_count * 2);
         }
-        NameEntry* node = free_14;
-        free_14 = node->next_00;
-        node->next_00 = 0;
-        unsigned long bucket = hashName(entry->name) & (bucket_count_20 - 1);
-        node->bucket_08 = bucket;
-        node->name_0c = entry->name;
-        node->entry_10 = entry;
-        node->previous_04 = 0;
-        node->next_00 = buckets_18[bucket];
-        if (node->next_00 != 0) {
-            node->next_00->previous_04 = node;
+        NameEntry* node = free;
+        free = node->next;
+        node->next = 0;
+        unsigned long bucket = hashName(entry->name) & (bucket_count - 1);
+        node->bucket = bucket;
+        node->name = entry->name;
+        node->entry = entry;
+        node->previous = 0;
+        node->next = buckets[bucket];
+        if (node->next != 0) {
+            node->next->previous = node;
         }
-        buckets_18[bucket] = node;
+        buckets[bucket] = node;
         by_entry.insert(entry, node);
-        ++count_1c;
+        ++count;
     }
 
     void resize(long bucket_count);
 
     EntryMap by_entry;
-    NameEntry* entries_10;
-    NameEntry* free_14;
-    NameEntry** buckets_18;
-    long count_1c;
-    long bucket_count_20;
+    NameEntry* entries;
+    NameEntry* free;
+    NameEntry** buckets;
+    long count;
+    long bucket_count;
     int case_sensitive;
 };
 
@@ -212,11 +212,11 @@ static_assert(sizeof(srConfig::Index) == 0x28, "srConfig_Index_must_be_0x28");
 // FUNCTION: SURRENDER 0x10011DB0
 srConfig::Index* srConfig::getIndex() const
 {
-    if (index_18 != 0) {
-        return index_18;
+    if (index != 0) {
+        return index;
     }
-    index_18 = new Index;
-    return index_18;
+    index = new Index;
+    return index;
 }
 
 // FUNCTION: SURRENDER 0x10011F10
@@ -228,7 +228,7 @@ void srConfig::dump(std::ostream& stream)
 }
 
 // FUNCTION: SURRENDER 0x10011F40
-srConfig::srConfig() : first_entry(0), entry_pool(), index_18(0) {}
+srConfig::srConfig() : first_entry(0), entry_pool(), index(0) {}
 
 // FUNCTION: SURRENDER 0x10011F60
 srConfig::~srConfig()
@@ -242,10 +242,10 @@ void srConfig::removeAll()
     while (first_entry != 0) {
         removeEntry(first_entry);
     }
-    if (index_18 != 0) {
-        delete index_18;
+    if (index != 0) {
+        delete index;
     }
-    index_18 = 0;
+    index = 0;
     entry_pool.release();
 }
 
@@ -284,8 +284,8 @@ void srConfig::set(const char* name, const char* value)
 
     Index* index = getIndex();
     Index::NameEntry* node = index->find(name);
-    if (node != 0 && node->entry_10 != 0) {
-        removeEntry(node->entry_10);
+    if (node != 0 && node->entry != 0) {
+        removeEntry(node->entry);
     }
 
     if (entry_pool.free_entries == 0) {
@@ -362,31 +362,31 @@ void srConfig::removeEntry(Entry* entry)
     char* name = entry->name;
     Index* index = getIndex();
     if (name != 0) {
-        unsigned long bucket = hashName(name) & (index->bucket_count_20 - 1);
-        Index::NameEntry* node = index->buckets_18[bucket];
+        unsigned long bucket = hashName(name) & (index->bucket_count - 1);
+        Index::NameEntry* node = index->buckets[bucket];
         while (node != 0) {
-            Index::NameEntry* next = node->next_00;
-            if (index->namesEqual(name, node->name_0c) && node != 0) {
-                index->by_entry.erase(node->entry_10);
-                if (node->previous_04 == 0) {
-                    index->buckets_18[node->bucket_08] = node->next_00;
+            Index::NameEntry* next = node->next;
+            if (index->namesEqual(name, node->name) && node != 0) {
+                index->by_entry.erase(node->entry);
+                if (node->previous == 0) {
+                    index->buckets[node->bucket] = node->next;
                 } else {
-                    node->previous_04->next_00 = node->next_00;
+                    node->previous->next = node->next;
                 }
-                if (node->next_00 != 0) {
-                    node->next_00->previous_04 = node->previous_04;
+                if (node->next != 0) {
+                    node->next->previous = node->previous;
                 }
-                node->next_00 = index->free_14;
-                node->previous_04 = 0;
-                node->name_0c = 0;
-                node->entry_10 = 0;
-                index->free_14 = node;
-                --index->count_1c;
+                node->next = index->free;
+                node->previous = 0;
+                node->name = 0;
+                node->entry = 0;
+                index->free = node;
+                --index->count;
             }
             node = next;
         }
-        if (index->bucket_count_20 > 7 && index->count_1c <= index->bucket_count_20 / 4) {
-            index->resize(index->bucket_count_20 / 2);
+        if (index->bucket_count > 7 && index->count <= index->bucket_count / 4) {
+            index->resize(index->bucket_count / 2);
         }
     }
     delete[] entry->name;
@@ -407,8 +407,8 @@ void srConfig::remove(const char* name)
         return;
     }
     Index::NameEntry* node = getIndex()->find(name);
-    if (node != 0 && node->entry_10 != 0) {
-        removeEntry(node->entry_10);
+    if (node != 0 && node->entry != 0) {
+        removeEntry(node->entry);
     }
 }
 
@@ -419,10 +419,10 @@ const char* srConfig::get(const char* name) const
         return 0;
     }
     Index::NameEntry* node = getIndex()->find(name);
-    if (node == 0 || node->entry_10 == 0) {
+    if (node == 0 || node->entry == 0) {
         return 0;
     }
-    return node->entry_10->value;
+    return node->entry->value;
 }
 
 // FUNCTION: SURRENDER 0x10012A00
@@ -458,7 +458,7 @@ int srConfig::exists(const char* name) const
         return 0;
     }
     Index::NameEntry* node = getIndex()->find(name);
-    return node != 0 && node->entry_10 != 0;
+    return node != 0 && node->entry != 0;
 }
 
 /* Provider empty-state initialization, shared by the header-defined methods. */
@@ -500,79 +500,79 @@ srInlineString operator+(const srInlineString& left, const srInlineString& right
 // FUNCTION: SURRENDER 0x10012F10
 srConfig::Index::~Index()
 {
-    if (buckets_18 != 0) {
-        delete[] buckets_18;
+    if (buckets != 0) {
+        delete[] buckets;
     }
-    if (entries_10 != 0) {
-        delete[] entries_10;
+    if (entries != 0) {
+        delete[] entries;
     }
-    buckets_18 = 0;
-    entries_10 = 0;
-    free_14 = 0;
-    count_1c = 0;
-    bucket_count_20 = 0;
+    buckets = 0;
+    entries = 0;
+    free = 0;
+    count = 0;
+    bucket_count = 0;
     by_entry.clear();
 }
 
 // FUNCTION: SURRENDER 0x100136D0
 int srConfig::Index::EntryMap::allocRecord()
 {
-    if (free_08 == -1) {
+    if (free == -1) {
         resize();
     }
-    int record = free_08;
-    free_08 = records_04[record].next_00;
+    int record = free;
+    free = records[record].next;
     return record;
 }
 
 // FUNCTION: SURRENDER 0x10013340
 void srConfig::Index::EntryMap::insert(Entry*& key, NameEntry*& value)
 {
-    if (free_08 == -1) {
+    if (free == -1) {
         resize();
     }
-    int record = free_08;
-    free_08 = records_04[record].next_00;
-    records_04[record].key_04 = key;
-    records_04[record].value_08 = value;
-    unsigned long bucket = srHashValue(key) & (count_0c - 1);
-    records_04[record].next_00 = heads_00[bucket];
-    heads_00[bucket] = record;
+    int record = free;
+    free = records[record].next;
+    records[record].key = key;
+    records[record].value_08 = value;
+    unsigned long bucket = srHashValue(key) & (count - 1);
+    records[record].next = heads[bucket];
+    heads[bucket] = record;
 }
 
 // FUNCTION: SURRENDER 0x100134F0
 void srConfig::Index::EntryMap::erase(Entry*& key)
 {
-    unsigned long bucket = srHashValue(key) & (count_0c - 1);
-    int* link = &heads_00[bucket];
+    unsigned long bucket = srHashValue(key) & (count - 1);
+    int* link = &heads[bucket];
     int record = *link;
     if (record != -1) {
         int previous = -1;
-        while (records_04[record].key_04 != key) {
+        while (records[record].key != key) {
             previous = record;
-            record = records_04[record].next_00;
+            record = records[record].next;
             if (record == -1) {
                 return;
             }
         }
         if (previous != -1) {
-            records_04[previous].next_00 = records_04[record].next_00;
+            records[previous].next = records[record].next;
         } else {
-            *link = records_04[record].next_00;
+            *link = records[record].next;
         }
-        records_04[record].next_00 = free_08;
-        free_08 = record;
+        records[record].next = free;
+        free = record;
     }
 }
 
 // FUNCTION: SURRENDER 0x10012FD0
 void srConfig::Index::resize(long bucket_count)
 {
-    long old_bucket_count = bucket_count_20;
+    long old_bucket_count = this->bucket_count;
     NameEntry* entries = 0;
     NameEntry** buckets = 0;
-    bucket_count_20 = bucket_count;
-    free_14 = 0;
+    this->bucket_count = bucket_count;
+    free = 0;
     by_entry.clear();
 
     if (bucket_count != 0) {
@@ -580,60 +580,60 @@ void srConfig::Index::resize(long bucket_count)
         buckets = new NameEntry*[bucket_count];
         for (long entry_index = 0; entry_index < bucket_count; ++entry_index) {
             buckets[entry_index] = 0;
-            entries[entry_index].bucket_08 = 0;
-            entries[entry_index].previous_04 = 0;
-            entries[entry_index].next_00 = &entries[entry_index + 1];
-            entries[entry_index].name_0c = 0;
-            entries[entry_index].entry_10 = 0;
+            entries[entry_index].bucket = 0;
+            entries[entry_index].previous = 0;
+            entries[entry_index].next = &entries[entry_index + 1];
+            entries[entry_index].name = 0;
+            entries[entry_index].entry = 0;
         }
-        entries[bucket_count - 1].next_00 = 0;
-        free_14 = entries;
+        entries[bucket_count - 1].next = 0;
+        free = entries;
 
-        if (buckets_18 != 0 && old_bucket_count != 0) {
+        if (this->buckets != 0 && old_bucket_count != 0) {
             for (long index = 0; index < old_bucket_count; ++index) {
-                for (NameEntry* old_node = buckets_18[index]; old_node != 0;
-                     old_node = old_node->next_00) {
-                    char* name = old_node->name_0c;
-                    if (free_14 == 0) {
-                        resize(bucket_count_20 * 2);
+                for (NameEntry* old_node = this->buckets[index]; old_node != 0;
+                     old_node = old_node->next) {
+                    char* name = old_node->name;
+                    if (free == 0) {
+                        resize(this->bucket_count * 2);
                     }
-                    NameEntry* node = free_14;
-                    free_14 = node->next_00;
-                    node->next_00 = 0;
-                    unsigned long bucket = hashName(name) & (bucket_count_20 - 1);
-                    node->bucket_08 = bucket;
-                    node->name_0c = name;
-                    node->entry_10 = old_node->entry_10;
-                    node->previous_04 = 0;
-                    node->next_00 = buckets[bucket];
-                    if (node->next_00 != 0) {
-                        node->next_00->previous_04 = node;
+                    NameEntry* node = free;
+                    free = node->next;
+                    node->next = 0;
+                    unsigned long bucket = hashName(name) & (this->bucket_count - 1);
+                    node->bucket = bucket;
+                    node->name = name;
+                    node->entry = old_node->entry;
+                    node->previous = 0;
+                    node->next = buckets[bucket];
+                    if (node->next != 0) {
+                        node->next->previous = node;
                     }
                     buckets[bucket] = node;
 
                     int record = by_entry.allocRecord();
                     unsigned long sub_bucket =
-                        srHashValue(old_node->entry_10) & (by_entry.count_0c - 1);
-                    by_entry.records_04[record].key_04 = old_node->entry_10;
-                    by_entry.records_04[record].value_08 = node;
-                    by_entry.records_04[record].next_00 = by_entry.heads_00[sub_bucket];
-                    by_entry.heads_00[sub_bucket] = record;
+                        srHashValue(old_node->entry) & (by_entry.count - 1);
+                    by_entry.records[record].key = old_node->entry;
+                    by_entry.records[record].value_08 = node;
+                    by_entry.records[record].next = by_entry.heads[sub_bucket];
+                    by_entry.heads[sub_bucket] = record;
                 }
             }
         }
     }
 
-    if (buckets_18 != 0) {
-        delete[] buckets_18;
+    if (this->buckets != 0) {
+        delete[] this->buckets;
     }
-    if (entries_10 != 0) {
-        delete[] entries_10;
+    if (this->entries != 0) {
+        delete[] this->entries;
     }
-    buckets_18 = 0;
-    entries_10 = 0;
+    this->buckets = 0;
+    this->entries = 0;
     if (bucket_count != 0) {
-        buckets_18 = buckets;
-        entries_10 = entries;
+        this->buckets = buckets;
+        this->entries = entries;
     }
 }
 

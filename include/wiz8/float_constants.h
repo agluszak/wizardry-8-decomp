@@ -198,7 +198,7 @@ extern const float g_float_005ebcf8;
 extern const double g_double_005ec150;
 /* 0x005EC300: 1/180, the degrees-to-radians conversion shared by the camera
    view math and the missile aim scatter. Defined in GDCamera.cpp. */
-extern const double g_camera_view_factor_005ec300;
+extern const double g_camera_view_factor0;
 /* 0x005EC240: 250000.0, squared camera-travel distance that triggers an
    automap cell refresh in UpdateWorldCameraAndPaths. */
 extern const double g_automap_refresh_distance_squared;

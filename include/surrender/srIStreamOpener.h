@@ -30,11 +30,11 @@ public:
     // ??0srIStreamOpener@@QAE@XZ
     srIStreamOpener()
     {
-        first_04 = new StreamType;
-        end = first_04;
-        first_04->next = 0;
-        first_04->previous = 0;
-        count_00 = 0;
+        first = new StreamType;
+        end = first;
+        first->next = 0;
+        first->previous = 0;
+        count = 0;
     }
     SR_DLL_IMPORT ~srIStreamOpener();
 #if !defined(SURRENDER_BUILD)
@@ -46,8 +46,8 @@ public:
 
 private:
     struct StreamType {
-        Opener* opener_00;
-        char* extension_04;
+        Opener* opener;
+        char* extension;
         StreamType* next;
         StreamType* previous;
     };
@@ -58,8 +58,8 @@ private:
     SR_DLL_IMPORT srBinIStream* open(const char* path, const char* extension);
     SR_DLL_IMPORT void parsePrefix(char** prefix, char** path, const char* input);
 
-    long count_00;
-    StreamType* first_04;
+    long count;
+    StreamType* first;
     StreamType* end;
 };
 

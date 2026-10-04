@@ -39,8 +39,8 @@ protected:
     virtual void setupDefaultValues() override;
     /* 0x54: setSurfacePtr/getSurfacePtr; the copy-assignment emission proves
        srPtr refcounting (field-address guard + release/addref handoff). */
-    srPtr<srColorSurfaceIFace> surface_54_;
-    unsigned long frame_handle_58_; /* 0x58: ctor stores getNewFrameHandle() */
+    srPtr<srColorSurfaceIFace> surface;
+    unsigned long frame_handle; /* 0x58: ctor stores getNewFrameHandle() */
 };
 
 static_assert((sizeof(srTextureMap) == 0x5c), "srTextureMap_must_be_0x5c");

@@ -82,8 +82,8 @@ public:
         ~ScopeTimer();
 
     private:
-        srDebugDD* owner_00;
-        e_command command_04;
+        srDebugDD* owner;
+        e_command command;
         double start_time;
     };
     /* VC6 does not grant a nested class access to the enclosing class's
@@ -102,11 +102,11 @@ private:
        Mangles private static (@@0PAPBDA). */
     static const char* funcName[0x2c];
 
-    srDD* device_04;
+    srDD* device;
     unsigned long unknown_08;
-    /* +0x0c..+0x0f is alignment padding before time_scale_10, not a member:
+    /* +0x0c..+0x0f is alignment padding before time_scale, not a member:
        the copy bodies skip it. */
-    double time_scale_10;
+    double time_scale;
     double call_times[0x2b];
     unsigned long call_counts[0x2b];
 };

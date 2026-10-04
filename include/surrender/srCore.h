@@ -51,7 +51,7 @@ public:
     // ?getMaterial@srCore@@QBEPAVsrMaterial@@XZ
     srMaterial* getMaterial() const
     {
-        return material_170;
+        return material;
     }
     SR_DLL_IMPORT srMemoryAllocator* getMemoryAllocator() const;
     SR_DLL_IMPORT srModelIOManager* getModelIOManager() const;
@@ -65,7 +65,7 @@ public:
     // ?getScheduler@srCore@@QBEPAVsrScheduler@@XZ
     srScheduler* getScheduler() const
     {
-        return scheduler_00;
+        return scheduler;
     }
     /* Header-visible in the triangle pipeline: its statistics updates load
        the manager directly from srCore +0x28. The class dllexport still
@@ -74,7 +74,7 @@ public:
     // ?getStatisticsManager@srCore@@QBEPAVsrStatisticsManager@@XZ
     srStatisticsManager* getStatisticsManager() const
     {
-        return statistics_manager_28;
+        return statistics_manager;
     }
     SR_DLL_IMPORT srColorSurfaceIFace* getSurface() const;
     SR_DLL_IMPORT srTexture* getTexture() const;
@@ -85,7 +85,7 @@ public:
     // ?getTimer@srCore@@QBEPAVsrVariableTimer@@XZ
     srVariableTimer* getTimer() const
     {
-        return timer_08;
+        return timer;
     }
     SR_DLL_IMPORT unsigned long getUniqueID();
     SR_DLL_IMPORT srVideoManager* getVideoManager() const;
@@ -119,20 +119,20 @@ private:
 
     static SR_DLL_IMPORT int initialized;
 
-    srScheduler* scheduler_00;
-    srGlobalRecycler* global_recycler_04;
-    srVariableTimer* timer_08;
-    srColorSurfaceIFace* surface_0c;
-    srSurfaceIOManager* surface_io_manager_10;
-    srIStreamOpener* stream_opener_14;
+    srScheduler* scheduler;
+    srGlobalRecycler* global_recycler;
+    srVariableTimer* timer;
+    srColorSurfaceIFace* surface;
+    srSurfaceIOManager* surface_io_manager;
+    srIStreamOpener* stream_opener;
     srFStreamOpener* file_stream_opener;
-    srFilter* filter_1c;
+    srFilter* filter;
     srMemoryAllocator* memory_allocator;
     srFileManager* file_manager;
-    srStatisticsManager* statistics_manager_28;
+    srStatisticsManager* statistics_manager;
     srRegistry* registry_;
     srFileManager* default_file_manager;
-    srPalette* palette_34;
+    srPalette* palette;
     unsigned long next_unique_id;
     char version_[0x20];
     char copyright_[0x100];
@@ -143,9 +143,9 @@ private:
     srNode* root_node;
     srModelIOManager* model_io_manager;
     srHierarchyIOManager* hierarchy_io_manager;
-    srMaterial* material_170;
-    srTexture* texture_174;
-    srVideoManager* video_manager_178;
+    srMaterial* material;
+    srTexture* texture;
+    srVideoManager* video_manager;
 };
 
 static_assert(sizeof(srCore) == 0x17c, "srCore_must_be_0x17c");

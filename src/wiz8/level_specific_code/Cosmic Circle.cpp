@@ -106,11 +106,11 @@ void CosmicCircleSetup(void)
         pMonsterInfoAltheides->p3D->AimAtPosition(&positionDs);
         pTrigger = FindTriggerByName("CC_TRIGGERPLANE2");
         if (pTrigger != 0) {
-            pTrigger->flags_0a0 &= ~W8_TRIGGER_ON;
+            pTrigger->flags &= ~W8_TRIGGER_ON;
         }
         pTrigger = FindTriggerByName("CC_TRIGGERPLANE4");
         if (pTrigger != 0) {
-            pTrigger->flags_0a0 &= ~W8_TRIGGER_ON;
+            pTrigger->flags &= ~W8_TRIGGER_ON;
         }
     }
 }

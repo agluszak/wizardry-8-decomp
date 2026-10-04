@@ -53,7 +53,7 @@ public:
 
     double fog_start; /* 0x150 */
     double fog_end;   /* 0x158 */
-    float density_160;    /* 0x160 */
+    float density;    /* 0x160 */
 };
 
 static_assert(sizeof(srFog) == 0x168, "srFog_must_be_0x168");

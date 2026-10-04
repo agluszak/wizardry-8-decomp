@@ -542,7 +542,7 @@ void ApplyTarget(W8CombatSlot* target, bool in_combat)
         if (gXStatus.fCombatMode != 0) {
             if (memcmp(&row->target_in_combat, target, sizeof(W8CombatSlot)) == 0) {
                 action_targets_enemies = CharacterActionTargetsEnemies(
-                    character, row->action, row->action_detail_041, &row->action_detail_045);
+                    character, row->action, row->action_detail0, &row->action_detail1);
                 if (ShouldClearAimForAppliedTarget(&source, target, in_combat,
                                                    action_targets_enemies) != 0) {
                     if (row->action == W8_ACTION_PROTECT) {
@@ -984,7 +984,7 @@ void UpdateAllMonsterHighlights(int party_slot, int location_id)
    does not compare. */
 struct W8MonsterTargetCandidate {
     int location_id;        /* 0x00 */
-    int state_04;           /* 0x04: the monster's own 0x107 */
+    int state;           /* 0x04: the monster's own 0x107 */
     unsigned char in_reach; /* 0x08: reachable with a real attack */
     unsigned char pad_09[3];
     unsigned int range_band;  /* 0x0c: the first band that covers it */
@@ -1004,10 +1004,10 @@ static int CompareMonsterTargetCandidates(const void* left, const void* right)
     const W8MonsterTargetCandidate* a = (const W8MonsterTargetCandidate*)left;
     const W8MonsterTargetCandidate* b = (const W8MonsterTargetCandidate*)right;
 
-    if (static_cast<unsigned int>(a->state_04) < static_cast<unsigned int>(b->state_04)) {
+    if (static_cast<unsigned int>(a->state) < static_cast<unsigned int>(b->state)) {
         return -1;
     }
-    if (static_cast<unsigned int>(a->state_04) > static_cast<unsigned int>(b->state_04)) {
+    if (static_cast<unsigned int>(a->state) > static_cast<unsigned int>(b->state)) {
         return 1;
     }
     if (a->in_reach != 0 && b->in_reach == 0) {
@@ -1047,8 +1047,8 @@ bool ResolveTargetPoint(W8CombatSlot* target, bool sight_probe)
         if (sight_probe) {
             point = monster->GetPosition();
         } else {
-            point = monster->movement_0c0.position_040;
-            point.y += monster->movement_0c0.height_offset;
+            point = monster->movement.position;
+            point.y += monster->movement.height_offset;
         }
     } else {
         return 0;
@@ -1102,7 +1102,7 @@ static int ChooseMonsterTarget(int party_slot, int group_id, W8TargetingContext 
         }
 
         next->location_id = monster_info->location_id;
-        next->state_04 = monster_info->highest_condition;
+        next->state = monster_info->highest_condition;
         next->in_reach = 0;
 
         record = GetMonsterDataForInfo(monster_info);
@@ -1412,7 +1412,7 @@ void CollectMonstersWithinRadius(const srVector3T<float>* centre, const srVector
         }
 
         position = monster->GetPosition();
-        if (radius < (*centre - position).Length() - monster->radius_084) {
+        if (radius < (*centre - position).Length() - monster->radius) {
             if (highlighting != 0) {
                 srVector4T<float> block;
                 block.Set(0.0f, 0.0f, 0.0f, 0.0f);
@@ -2977,8 +2977,8 @@ bool IsMonsterVisibleWithinDistance(W8Monster* monster, const srVector3T<float>*
 
     if (monster->GetDistanceToPlayer() < max_distance) {
         monster->GetAnimationBounds(&minimum, &maximum);
-        center = monster->movement_0c0.position_040;
-        center.y += monster->movement_0c0.height_offset;
+        center = monster->movement.position;
+        center.y += monster->movement.height_offset;
         projected = monster->GetPosition();
         minimum += projected;
         maximum += projected;
@@ -3270,10 +3270,10 @@ int CollectConeMonsterTargets(const W8TargetSource* source, const srVector3T<flo
     int start_count = found->GetCount();
     float radius;
     if (source->iType == W8_TARGET_SOURCE_CHARACTER) {
-        radius = g_startup_world->radius_084;
+        radius = g_startup_world->radius;
     } else if (source->iType == W8_TARGET_SOURCE_MONSTER) {
         W8MonsterInfo* source_info = MonsterInfoFromID(0x8bc, TARGETING_CPP, source->iMonsterID, 1);
-        radius = source_info->p3D->radius_084;
+        radius = source_info->p3D->radius;
     } else {
         radius = 0.0f;
     }
@@ -3286,11 +3286,11 @@ int CollectConeMonsterTargets(const W8TargetSource* source, const srVector3T<flo
                 (monster_info->ubDisposition == disposition || disposition == 3)) {
                 W8Monster* monster = monster_info->p3D;
                 srVector3T<float> point;
-                point.Set(monster->movement_0c0.position_040.x,
-                          monster->movement_0c0.position_040.y +
-                              monster->movement_0c0.height_offset,
-                          monster->movement_0c0.position_040.z);
-                if (TargetInRangeAndArcs(&point, monster->radius_084, eye, radius, heading,
+                point.Set(monster->movement.position.x,
+                          monster->movement.position.y +
+                              monster->movement.height_offset,
+                          monster->movement.position.z);
+                if (TargetInRangeAndArcs(&point, monster->radius, eye, radius, heading,
                                          elevation) != 0 &&
                     SourceCanSeeMonster(source, monster_info, 1, sight_flag) != 0) {
                     found->Add(monster_info->location_id);

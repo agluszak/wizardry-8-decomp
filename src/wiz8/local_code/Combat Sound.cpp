@@ -262,7 +262,7 @@ void MakePCMeleeHitSound(int iChar, const W8HandAttack* hand_attack, W8CombatSlo
 // FUNCTION: WIZ8 0x0054A0E0
 void MakePCHitSound(W8Missile* missile, W8CombatSlot* target, int hit_location, int volume)
 {
-    int weapon_class = g_missile_table[missile->missile_table_index_1d8].weapon_sound_class;
+    int weapon_class = g_missile_table[missile->missile_table_index].weapon_sound_class;
     /* Defined so the assert-failure path still reaches the material lookup;
        -1 is out of range and yields the retail "HIT" fallback. */
     int target_material = -1;

@@ -29,7 +29,7 @@ static unsigned long g_ground_shadow_shader;
    indexed vertex's world x/z through a rotated scale matrix into the first
    texture-coordinate set. transform starts as the 1/width,1/depth scale
    and is rotated by the shadow's facing each render; center_14/center_18 are
-   the shadow's world z/x origins and polygons_20 carries the selected
+   the shadow's world z/x origins and polygons carries the selected
    triangle indices for the active mesh. No source name survives, so the
    mapper keeps a descriptive name anchored at its constructor. */
 // VTABLE: WIZ8 0x005ED3B8
@@ -47,8 +47,8 @@ public:
     srMatrix2T<float> transform;
     float center_z;
     float center_x;
-    srVector3T<float>* vertices_1c;
-    unsigned long polygons_20[0x1e];
+    srVector3T<float>* vertices;
+    unsigned long polygons[0x1e];
 };
 
 static_assert(sizeof(W8GroundShadowMapper) == 0x98, "W8GroundShadowMapper004D6180_must_be_0x98");
@@ -62,19 +62,19 @@ static W8GroundShadowMapper g_ground_shadow_material_parameters;
 // FUNCTION: WIZ8 0x004D6090
 void W8GroundShadowMapper::process(srVertexPipe& pipe)
 {
-    srCore.getStatisticsManager()->statistics_00.texture_coordinate_operations +=
-        pipe.vertex_count_88;
+    srCore.getStatisticsManager()->statistics.texture_coordinate_operations +=
+        pipe.vertex_count;
     pipe.lazy_setup_mask |= 1 << CHANNEL_ST0;
 
     const unsigned long* index = pipe.avt + pipe.sub_batch_offset;
     srVector2T<float>* output =
         pipe.vertex_array->st0 + pipe.batch_base + pipe.sub_batch_offset;
-    unsigned long count = pipe.vertex_count_88;
+    unsigned long count = pipe.vertex_count;
     if (count == 0) {
         return;
     }
     do {
-        const srVector3T<float>* vertex = vertices_1c + *index;
+        const srVector3T<float>* vertex = vertices + *index;
         float dz = vertex->z - center_z;
         float dx = vertex->x - center_x;
         srVector2T<float> coordinate;
@@ -95,7 +95,7 @@ stGroundShadow::stGroundShadow(srNode* parent)
 {
     angle = 0;
     depth = 500.0f;
-    width_140 = 500.0f;
+    width = 500.0f;
     setParent(parent, 1);
 
     if (g_ground_shadow_texture == 0) {
@@ -121,7 +121,7 @@ stGroundShadow::stGroundShadow(const stGroundShadow& other)
     setName(other.getName());
     angle = other.angle;
     depth = other.depth;
-    width_140 = other.width_140;
+    width = other.width;
 }
 
 /* Retail ICF folds this onto stSurface2D::traverse at 0x004D6540. No separate
@@ -177,8 +177,8 @@ void stGroundShadow::renderGroundShadow(srGERD* renderer)
 
     getLocation(position);
     position.y += g_world_scale;
-    if (depth <= width_140) {
-        radius = width_140;
+    if (depth <= width) {
+        radius = width;
     } else {
         radius = depth;
     }
@@ -191,7 +191,7 @@ void stGroundShadow::renderGroundShadow(srGERD* renderer)
     saved_offset = renderer->getPolygonOffset();
     renderer->setPolygonOffset(2);
 
-    g_ground_shadow_material_parameters.transform.vectors[0].Set(g_float_005ebc7c / width_140,
+    g_ground_shadow_material_parameters.transform.vectors[0].Set(g_float_005ebc7c / width,
                                                                     0);
     g_ground_shadow_material_parameters.transform.vectors[1].Set(0,
                                                                     g_float_005ebc7c / depth);
@@ -210,19 +210,19 @@ void stGroundShadow::renderGroundShadow(srGERD* renderer)
         count = 0;
         while (*polygons != 0 && (*polygons >> 0x10) == mesh_index) {
             if (count < 0x1e) {
-                g_ground_shadow_material_parameters.polygons_20[count] = *polygons & 0xffff;
+                g_ground_shadow_material_parameters.polygons[count] = *polygons & 0xffff;
                 ++count;
             }
             ++polygons;
         }
-        mesh.materials_70[0][0] = g_ground_shadow_material;
-        mesh.poly_textures_e0[0][0] = 0;
-        mesh.textures_90[0][0] = g_ground_shadow_texture;
-        mesh.vertex_materials_c0[0][0] = 0;
+        mesh.materials[0][0] = g_ground_shadow_material;
+        mesh.poly_textures[0][0] = 0;
+        mesh.textures[0][0] = g_ground_shadow_texture;
+        mesh.vertex_materials[0][0] = 0;
         mesh.poly_shaders[0] = 0;
         mesh.shaders[0].value = g_ground_shadow_shader;
         mesh.poly_uv[0] = 0;
-        g_ground_shadow_material_parameters.vertices_1c = model->getVertexLoc();
+        g_ground_shadow_material_parameters.vertices = model->getVertexLoc();
         model->RenderTriMeshWithEquations(*renderer, mesh, 0);
     }
     renderer->setPolygonOffset(saved_offset);

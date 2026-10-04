@@ -56,20 +56,20 @@ public:
 
     const char* getFileName() const
     {
-        return file_name_58;
+        return file_name;
     }
     void setFileName(const char* file_name); /* 0x0047C830 */
     void setCached(int cached)
     {
-        cached_54 = cached;
+        this->cached = cached;
     }
     int isSurfaceLoaded() const
     {
-        return surface_5c != 0;
+        return surface != 0;
     }
     srColorSurface* getSurface() const
     {
-        return surface_5c;
+        return surface;
     }
     unsigned char hasAlpha() const
     {
@@ -99,10 +99,10 @@ private:
         DEFAULTS_PENDING = 1UL << FLAG_DIRTY_DEFAULTS
     };
 
-    int cached_54;
-    char* file_name_58;
-    srColorSurface* surface_5c;
-    unsigned long frame_handle_60;
+    int cached;
+    char* file_name;
+    srColorSurface* surface;
+    unsigned long frame_handle;
     bool has_alpha;
     unsigned char padding_65[3];
 };

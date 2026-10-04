@@ -809,7 +809,7 @@ void ResolveSpellMissileHit(W8Missile* missile)
 {
     W8TargetSource* source = &missile->m_Source;
     W8CombatSlot* target = &missile->combat_slot;
-    W8SpellEffectDefinition* definition = &missile->definition_1fc;
+    W8SpellEffectDefinition* definition = &missile->definition;
     W8SpellRuntimeRecord* spell;
     W8CombatSlot struck;
     unsigned int magnitude;
@@ -821,7 +821,7 @@ void ResolveSpellMissileHit(W8Missile* missile)
     unsigned int index;
 
     TargetSourceIsCharacter(source, 0);
-    spell = &g_spell_records[MissileSpellId(missile->missile_table_index_1d8)];
+    spell = &g_spell_records[MissileSpellId(missile->missile_table_index)];
     if (strlen(spell->sound_name) != 0) {
         SoundPlay((STR)FormatString("Data\\Missiles\\Sounds\\%s.wav", spell->sound_name), 0);
     }
@@ -958,7 +958,7 @@ void ResolveMissileHit(W8Missile* missile, bool deflected)
         for (hit_location = 0;; ++hit_location) {
             if (hit_location >= W8_MONSTER_HIT_LOCATIONS) {
                 FormatDebugMessage(0, "ERROR: DBS Hit Locations total only %d%% for monster %ls",
-                                   total, record->name_00);
+                                   total, record->name0);
                 hit_location = 3;
                 break;
             }
@@ -994,13 +994,13 @@ void ResolveMissileHit(W8Missile* missile, bool deflected)
         ShowNoticef(source_color, gppStringList[0x20c], location_name);
     }
 
-    attack_mode = g_missile_table[missile->missile_table_index_1d8].attack_mode;
+    attack_mode = g_missile_table[missile->missile_table_index].attack_mode;
     chance = AttackModeMod(1, attack_mode) + 50 +
              (10 - TargetArmorClassAtLocation(target, attack_mode, hit_location)) * 5;
     penetration_roll = Random(100) + 1;
     CombatLog("TO PENETRATE: Chance %d, Rolled %d", chance, penetration_roll);
     if (penetration_roll <= chance) {
-        magnitude = RollEffectMagnitude(&missile->definition_1fc);
+        magnitude = RollEffectMagnitude(&missile->definition);
         if (magnitude > 0) {
             MakePCHitSound(missile, target, hit_location, -1);
             if (target->iType == W8_TARGET_KIND_MONSTER) {
@@ -1008,7 +1008,7 @@ void ResolveMissileHit(W8Missile* missile, bool deflected)
             } else {
                 ApplyDamageToCharacter(target->iChar, magnitude, 0, 1, 1, 0, 0);
             }
-            ApplyEffectConditions(source, target, &missile->definition_1fc, 1, 0, 0);
+            ApplyEffectConditions(source, target, &missile->definition, 1, 0, 0);
         } else if (g_settings.verbose_combat_messages != 0) {
             ShowNoticef(source_color, gppStringList[0x20e]);
         }
@@ -1279,7 +1279,7 @@ int GetTargetArmorClass(W8CombatSlot* target, int attack_mode)
             MonsterGetIndexByLocationID(0xeb0, COMBAT_ATTACK_CPP, target->iMonsterID, 1);
         monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
         record = GetMonsterDataForInfo(monster_info);
-        base = 10 - record->evasion_ac;
+        base = 10 - record->evasion;
         if (monster_info->modifiers.out_of_formation != 0 && base > -5) {
             return GetTargetArmorClassModifier(target, attack_mode) - 5;
         }
@@ -1312,7 +1312,7 @@ int TargetArmorClassAtLocation(W8CombatSlot* target, int attack_mode, int hit_lo
                (monster_info->modifiers.armor_matchup -
                 record->armor_class_by_attack_mode[attack_mode] -
                 record->armor_class_by_location[hit_location]) +
-               record->evasion_ac + base;
+               record->evasion + base;
     }
     if (target->iType == W8_TARGET_KIND_CHARACTER) {
         character = &g_status.buffers.Char[target->iChar];
@@ -1417,7 +1417,7 @@ unsigned int CapAttackDamageByTargetHealth(unsigned int damage)
 void StartMonsterAttackCycle(W8MonsterInfo* monster_info, int action_detail)
 {
     W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
-    unsigned int attack = monster_info->pCombat->attack_index_11;
+    unsigned int attack = monster_info->pCombat->attack_index;
     W8RangeCategory range;
     signed char cycle;
 
@@ -1476,12 +1476,12 @@ void StartMonsterAttackCycle(W8MonsterInfo* monster_info, int action_detail)
         if (record->attacks[attack].range_category <= W8_RANGE_SHORT) {
             record->attacks[attack].range_category = W8_RANGE_EXTREME;
             FormatDebugMessage(0, "DATA ERROR: %ls has mismatched range/attack modes for attack %d",
-                               record->name_00, attack);
+                               record->name0, attack);
         }
     } else if (record->attacks[attack].range_category >= W8_RANGE_LONG) {
         record->attacks[attack].range_category = W8_RANGE_TOUCH;
         FormatDebugMessage(0, "DATA ERROR: %ls has mismatched range/attack modes for attack %d",
-                           record->name_00, attack);
+                           record->name0, attack);
     }
     range = GetMonsterActionRangeCategory(monster_info, record, attack);
     if (range >= W8_RANGE_LONG) {
@@ -1598,7 +1598,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
     W8SpellEffectResult* report = &g_combat_state->attack_report;
     W8SpellEffectResult local_report;
     W8MonsterCombatState* combat = monster_info->pCombat;
-    unsigned int attack_index = combat->attack_index_11;
+    unsigned int attack_index = combat->attack_index;
     int action_detail = monster_info->action_detail;
     W8MonsterAttack* attack = &record->attacks[attack_index];
     W8MonsterInfo* target_info = NULL;
@@ -1778,7 +1778,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                 if (hit_location >= W8_MONSTER_HIT_LOCATIONS) {
                     FormatDebugMessage(0,
                                        "ERROR: DBS Hit Locations total only %d%% for monster %ls",
-                                       total, target_record->name_00);
+                                       total, target_record->name0);
                     hit_location = 3;
                     break;
                 }
@@ -1806,9 +1806,9 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                 if (TryPanicWoundedCharacter(&g_combat_state->TargetHit) == 0 &&
                     g_combat_state->TargetHit.iType == W8_TARGET_KIND_CHARACTER &&
                     Random(100) < 0x32) {
-                    event_ids[0] = g_special_event_0068c570;
-                    event_ids[1] = g_special_event_0068c560;
-                    event_ids[2] = g_special_event_0068c574;
+                    event_ids[0] = g_special_event19;
+                    event_ids[1] = g_special_event15;
+                    event_ids[2] = g_special_event20;
                     QueueCharacterEvent(&g_status.buffers.Char[g_combat_state->TargetHit.iChar],
                                         event_ids[Random(3)], 0, g_character_event_no_flags,
                                         g_character_event_full_volume);
@@ -1896,7 +1896,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                     }
                     if (applied != 0) {
                         memset(&effect, 0, sizeof(effect));
-                        memcpy(effect.condition_chances, attack->missile_values_05, 0x10);
+                        memcpy(effect.condition_chances, attack->missile_values, 0x10);
                         effect.power_level =
                             record->effective_level +
                             (record->effective_level > 0xe ? 0xf : record->effective_level);
@@ -2127,10 +2127,10 @@ char StartMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
     if (combat->attacks_per_round == 0) {
         FormatDebugMessage(
             1, "ERROR: Monster ID %d is starting attack with 0 of %d attacks remaining!",
-            monster_info->location_id, combat->attacks_per_round_005);
+            monster_info->location_id, combat->attacks_per_round0);
         return 0;
     }
-    attack = combat->attack_index_11;
+    attack = combat->attack_index;
     --combat->attacks_per_round;
     int action_detail = monster_info->action_detail;
     if (RateMonsterAttack(monster_info, record, attack, 0, 0) != 0) {
@@ -2209,7 +2209,7 @@ void AnnounceMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record,
 {
     W8MonsterCombatState* combat = monster_info->pCombat;
     int action_detail = monster_info->action_detail;
-    unsigned int attack = combat->attack_index_11;
+    unsigned int attack = combat->attack_index;
     W8MonsterAttack* pAttack = &record->attacks[attack];
     W8RangeCategory range = GetMonsterActionRangeCategory(monster_info, record, attack);
     W8MonsterCombatState* second_combat;
@@ -2223,7 +2223,7 @@ void AnnounceMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record,
     bool notices;
 
     g_combat_state->unaware = 0;
-    if (record->kind_0cb == 3 && range <= W8_RANGE_TOUCH) {
+    if (record->kind == 3 && range <= W8_RANGE_TOUCH) {
         g_combat_state->natural_attack = 1;
     } else {
         g_combat_state->natural_attack = 0;
@@ -2574,14 +2574,14 @@ int ResolveCharacterAttackDamage(int party_slot, int hand, unsigned int attack_m
         if (g_item_records[pPC->EquippedItem[row->current_equip_slot].iItemNo].slays_kind !=
                 0xff &&
             g_item_records[pPC->EquippedItem[row->current_equip_slot].iItemNo].slays_kind ==
-                record->kind_0cb) {
+                record->kind) {
             dice_count += 1;
         }
         if (row->paired_equip_slot != -1 &&
             g_item_records[pPC->EquippedItem[row->paired_equip_slot].iItemNo].slays_kind !=
                 0xff &&
             g_item_records[pPC->EquippedItem[row->paired_equip_slot].iItemNo].slays_kind ==
-                record->kind_0cb) {
+                record->kind) {
             dice_count += 1;
         }
     }
@@ -2643,7 +2643,7 @@ int ResolveCharacterAttackDamage(int party_slot, int hand, unsigned int attack_m
     }
     if (dice.count == 0) {
         *out_hit = 0;
-    } else if (rolled < (g_float_one - dice.count * g_facing_tolerance_005ebcf4) *
+    } else if (rolled < (g_float_one - dice.count * g_facing_tolerance0) *
                             (dice.sides * dice.count + dice.base) * dice_count) {
         *out_hit = 0;
     } else {
@@ -2999,7 +2999,7 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                             } else if (gXStatus.hostile_monster_count > 1 &&
                                        (event = QueueCharacterEvent(
                                             &g_status.buffers.Char[source->iChar],
-                                            g_item_message_005ee668, 0, g_character_event_no_flags,
+                                            g_item_message7, 0, g_character_event_no_flags,
                                             g_character_event_full_volume)) != NULL) {
                                 event->dispatch_delay_ms = 800;
                                 event->dispatch_delay_start = GetTickCount();
@@ -3358,8 +3358,8 @@ void QueueFumbleReaction(int party_slot)
 {
     int slot;
     if (Random(2) != 0) {
-        QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_item_message_005ee5c8, 0,
-                            g_effect_argument_005ed8cc, g_character_event_full_volume);
+        QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_item_message0, 0,
+                            g_effect_argument0, g_character_event_full_volume);
         return;
     }
     if (g_combat_state->TargetHit.iType != W8_TARGET_KIND_CHARACTER ||
@@ -3372,8 +3372,8 @@ void QueueFumbleReaction(int party_slot)
     if (slot == -1) {
         return;
     }
-    QueueCharacterEvent(&g_status.buffers.Char[slot], g_item_message_005ee5cc, 0,
-                        g_effect_argument_005ed8cc, g_character_event_full_volume);
+    QueueCharacterEvent(&g_status.buffers.Char[slot], g_item_message1, 0,
+                        g_effect_argument0, g_character_event_full_volume);
 }
 
 /* When GetMonsterByLocationID returns NULL the sight-flag call is skipped and
@@ -3423,8 +3423,8 @@ W8Missile* FireMissileSourceToTarget(int missile_type, W8TargetSource* source, W
         index = MonsterGetIndexByLocationID(0x134f, COMBAT_ATTACK_CPP, target->iMonsterID, 1);
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         monster = monster_info->p3D;
-        target_position = monster->movement_0c0.position_040;
-        target_position.y += monster->movement_0c0.height_offset;
+        target_position = monster->movement.position;
+        target_position.y += monster->movement.height_offset;
     } else if (target->iType == W8_TARGET_KIND_PLACE) {
         target_position = target->point;
     } else {
@@ -3469,10 +3469,10 @@ W8Missile* FireMissileSourceToTarget(int missile_type, W8TargetSource* source, W
             position_ok = missile_type;
         }
         if (position_ok == 0) {
-            source_position.Set(monster->movement_0c0.position_040.x,
-                                monster->movement_0c0.position_040.y +
-                                    monster->movement_0c0.height_offset,
-                                monster->movement_0c0.position_040.z);
+            source_position.Set(monster->movement.position.x,
+                                monster->movement.position.y +
+                                    monster->movement.height_offset,
+                                monster->movement.position.z);
             MonsterGetAnimationRadius(monster, &radius);
             pitch = GetElevationAngle(&source_position, &target_position);
             yaw = GetHeadingAngle(&source_position, &target_position);
@@ -3558,12 +3558,12 @@ void FireCharacterItemMissile(int party_slot, W8Character* pc, W8CombatCharacter
     attack_block.magnitude = g_item_records[row->paired_item_id].damage_dice;
     weapon = &g_item_records[pc->EquippedItem[row->current_equip_slot].iItemNo];
     missile_value = weapon->missile_magnitude;
-    modifiers = weapon->missile_values_050;
+    modifiers = weapon->missile_values;
     if (row->paired_equip_slot != -1) {
         paired = &g_item_records[pc->EquippedItem[row->paired_equip_slot].iItemNo];
         for (i = 0x10; i != 0; i = i - 1) {
             item_modifiers[0x10 - i] =
-                weapon->missile_values_050[0x10 - i] + paired->missile_values_050[0x10 - i];
+                weapon->missile_values[0x10 - i] + paired->missile_values[0x10 - i];
         }
         modifiers = item_modifiers;
         missile_value += paired->missile_magnitude;
@@ -3596,7 +3596,7 @@ void ScatterMissileAimPoint(const srVector3T<float>* from, srVector3T<float>* to
     float sy = pz * dx - dz * px;
     float sz = px * dy - py * dx;
     double angle = static_cast<double>(Random(0x168));
-    float radians = static_cast<float>(3.141592653589793 * g_camera_view_factor_005ec300 * angle);
+    float radians = static_cast<float>(3.141592653589793 * g_camera_view_factor0 * angle);
     float mag = sx * sx + sz * sz + sy * sy;
     if (mag != 0.0f) {
         float scale = static_cast<float>(sin(radians));
@@ -3916,7 +3916,7 @@ char StartCharacterAttack(int party_slot, int attack_mode)
         row->attack_sound_played = true;
     } else {
         event_ids[0] = g_event_range_min;
-        event_ids[1] = g_special_event_0068c56c;
+        event_ids[1] = g_special_event18;
         event_ids[2] = g_event_range_max;
         QueueCharacterEvent(character, event_ids[Random(3)], 0, g_character_event_no_flags,
                             g_character_event_full_volume);
@@ -4125,7 +4125,7 @@ int ResolveCharacterAttack(int party_slot)
                     if (hit_location >= W8_MONSTER_HIT_LOCATIONS) {
                         FormatDebugMessage(
                             0, "ERROR: DBS Hit Locations total only %d%% for monster %ls", total,
-                            record->name_00);
+                            record->name0);
                         hit_location = 3;
                         break;
                     }
@@ -4185,12 +4185,12 @@ int ResolveCharacterAttack(int party_slot)
                     if (character->hp_current / static_cast<float>(character->uiHPMax) <
                         g_navigator_mode3_scale) {
                         if (Random(100) < 0x1e) {
-                            QueueCharacterEvent(character, g_special_event_0068c558, 0,
+                            QueueCharacterEvent(character, g_special_event13, 0,
                                                 g_character_event_no_flags,
                                                 g_character_event_full_volume);
                         }
                     } else if (Random(100) < 0x19) {
-                        QueueCharacterEvent(character, g_special_event_0068c558, 0,
+                        QueueCharacterEvent(character, g_special_event13, 0,
                                             g_character_event_no_flags,
                                             g_character_event_full_volume);
                     }
@@ -4246,7 +4246,7 @@ int ResolveCharacterAttack(int party_slot)
                             if (monster_info->hp_current == 0 && hit_flag != 0 && Random(2) == 0 &&
                                 gXStatus.hostile_monster_count > 1) {
                                 W8CharacterEvent* event = QueueCharacterEvent(
-                                    character, g_item_message_005ee668, 0,
+                                    character, g_item_message7, 0,
                                     g_character_event_no_flags, g_character_event_full_volume);
                                 if (event != NULL) {
                                     event->dispatch_delay_ms = 800;
@@ -4275,7 +4275,7 @@ int ResolveCharacterAttack(int party_slot)
                                     effect.condition_chances,
                                     g_item_records[character->EquippedItem[row->current_equip_slot]
                                                        .iItemNo]
-                                        .missile_values_050,
+                                        .missile_values,
                                     0x10);
                                 effect.magnitude_base =
                                     g_item_records[character->EquippedItem[row->current_equip_slot]
@@ -4286,7 +4286,7 @@ int ResolveCharacterAttack(int party_slot)
                                         g_item_records[character
                                                            ->EquippedItem[row->paired_equip_slot]
                                                            .iItemNo]
-                                            .missile_values_050;
+                                            .missile_values;
                                     for (int i = 0; i < 0x10; ++i) {
                                         effect.condition_chances[i] += paired_values[i];
                                     }

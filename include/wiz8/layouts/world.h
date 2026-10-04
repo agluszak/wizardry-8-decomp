@@ -77,7 +77,7 @@ struct W8World {
     unsigned char m_padding_06a[2];
     W8Quad* quads;
     srModelInstance* update_mesh_source;
-    float render_range_74;
+    float render_range0;
     float render_range;
     unsigned char m_unknown_07c[0x20];
     W8PList nodes_to_disable;

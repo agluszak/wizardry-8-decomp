@@ -18,7 +18,7 @@
 stTextureAnim::stTextureAnim()
 {
     textures = 0;
-    frame_58 = 0;
+    frame = 0;
     direction = 1;
     animation_mode = 0;
     initial_frame = 0;
@@ -26,7 +26,7 @@ stTextureAnim::stTextureAnim()
     frame_tick = GetTickCount();
     trigger_mode = 0;
     probability = -1.0f;
-    running_78 = 0;
+    running = 0;
     textures = new W8Vector<srTextureIFace*>;
 }
 
@@ -42,7 +42,7 @@ stTextureAnim::stTextureAnim(const stTextureAnim& other)
     int i;
 
     textures = 0;
-    frame_58 = 0;
+    frame = 0;
     direction = 1;
     animation_mode = other.animation_mode;
     initial_frame = other.initial_frame;
@@ -50,7 +50,7 @@ stTextureAnim::stTextureAnim(const stTextureAnim& other)
     frame_tick = GetTickCount();
     trigger_mode = other.trigger_mode;
     probability = other.probability;
-    running_78 = other.running_78;
+    running = other.running;
     textures = new W8Vector<srTextureIFace*>;
 
     for (i = 0; i < other.textures->GetCount(); ++i) {
@@ -77,7 +77,7 @@ stTextureAnim::~stTextureAnim()
 // FUNCTION: WIZ8 0x00485400
 void stTextureAnim::SetFrame(int frame)
 {
-    frame_58 = frame;
+    this->frame = frame;
     frame_tick = GetTickCount();
 }
 
@@ -99,20 +99,20 @@ void stTextureAnim::UpdateFrame()
 
     if (trigger_mode == 1) {
         if (rand() / static_cast<float>(RAND_MAX) < probability) {
-            frame_58 =
+            this->frame =
                 static_cast<int>(rand() / static_cast<float>(RAND_MAX) * textures->GetCount());
         }
         return;
     }
 
     if (trigger_mode == 2) {
-        if (running_78 == 0 && rand() / static_cast<float>(RAND_MAX) < probability) {
-            running_78 = 1;
+        if (running == 0 && rand() / static_cast<float>(RAND_MAX) < probability) {
+            running = 1;
             direction = 0;
-            frame_58 = 0;
+            this->frame = 0;
             frame_tick = GetTickCount();
         }
-        if (running_78 == 0 || textures->GetCount() == 0) {
+        if (running == 0 || textures->GetCount() == 0) {
             return;
         }
     } else if (textures->GetCount() == 0) {
@@ -123,30 +123,30 @@ void stTextureAnim::UpdateFrame()
         static_cast<int>((GetTickCount() - frame_tick) * frame_rate * g_float_005ec128);
     if (animation_mode == 0) {
         int frame = (direction * elapsed_frames) % textures->GetCount();
-        if (frame < frame_58) {
-            frame_58 = 0;
-            running_78 = 0;
+        if (frame < this->frame) {
+            this->frame = 0;
+            running = 0;
             return;
         }
-        frame_58 = frame;
+        this->frame = frame;
     } else if (animation_mode == 1) {
         if ((elapsed_frames / textures->GetCount() & 1) != 0) {
             direction = -1;
-            frame_58 = textures->GetCount() - elapsed_frames % textures->GetCount() - 1;
+            this->frame = textures->GetCount() - elapsed_frames % textures->GetCount() - 1;
         } else {
             if (direction == -1) {
-                running_78 = 0;
+                running = 0;
                 return;
             }
             direction = 1;
-            frame_58 = elapsed_frames % textures->GetCount();
+            this->frame = elapsed_frames % textures->GetCount();
         }
     } else if (animation_mode == 2) {
         if (elapsed_frames >= textures->GetCount()) {
-            running_78 = 0;
-            frame_58 = textures->GetCount() - 1 < 0 ? 0 : textures->GetCount() - 1;
+            running = 0;
+            this->frame = textures->GetCount() - 1 < 0 ? 0 : textures->GetCount() - 1;
         } else {
-            frame_58 = elapsed_frames;
+            this->frame = elapsed_frames;
         }
     }
 }
@@ -160,7 +160,7 @@ int stTextureAnim::IsFinished() const
 
     int final_frame = textures->GetCount() - 1;
     final_frame = final_frame < 0 ? 0 : final_frame;
-    if (frame_58 != final_frame) {
+    if (frame != final_frame) {
         return 0;
     }
     return 1;
@@ -173,43 +173,43 @@ unsigned long stTextureAnim::getTextureFrameHandle()
     if ((texture_flags_ & (1UL << FLAG_DIRTY_DEFAULTS)) != 0) {
         setupDefaultValues();
     }
-    return (*textures->GetAt(frame_58))->getTextureFrameHandle();
+    return (*textures->GetAt(frame))->getTextureFrameHandle();
 }
 
 // FUNCTION: WIZ8 0x00484D60
 float stTextureAnim::getPriority()
 {
-    return (*textures->GetAt(frame_58))->getPriority();
+    return (*textures->GetAt(frame))->getPriority();
 }
 
 // FUNCTION: WIZ8 0x00484D80
 void stTextureAnim::getDimensions(Dimensions& dimensions)
 {
-    (*textures->GetAt(frame_58))->getDimensions(dimensions);
+    (*textures->GetAt(frame))->getDimensions(dimensions);
 }
 
 // FUNCTION: WIZ8 0x00484DB0
 void stTextureAnim::getMipmapData(MultiRequest& request)
 {
-    (*textures->GetAt(frame_58))->getMipmapData(request);
+    (*textures->GetAt(frame))->getMipmapData(request);
 }
 
 // FUNCTION: WIZ8 0x00484DE0
 void stTextureAnim::getMipmapLevelPartial(PartialRequest& request)
 {
-    (*textures->GetAt(frame_58))->getMipmapLevelPartial(request);
+    (*textures->GetAt(frame))->getMipmapLevelPartial(request);
 }
 
 // FUNCTION: WIZ8 0x00484E10
 void stTextureAnim::getTextureParms(Parameters& parameters)
 {
-    (*textures->GetAt(frame_58))->getTextureParms(parameters);
+    (*textures->GetAt(frame))->getTextureParms(parameters);
 }
 
 // FUNCTION: WIZ8 0x00484E40
 const char* stTextureAnim::getTextureName()
 {
-    return (*textures->GetAt(frame_58))->getTextureName();
+    return (*textures->GetAt(frame))->getTextureName();
 }
 
 void stTextureAnim::invalidate() {}

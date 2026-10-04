@@ -473,8 +473,8 @@ public:
     virtual void AdjustPartyMemberRange(int amount) override;
     void SetSelectedRow(int selection);
 
-    W8ControlSelection m_control_58;
-    W8RangeControl* m_range_7c;
+    W8ControlSelection m_control;
+    W8RangeControl* m_range;
     int m_selected_row;
 };
 static_assert(sizeof(W8PartySelectionCharacterPanel) == 0x84,
@@ -483,7 +483,7 @@ static_assert(sizeof(W8PartySelectionCharacterPanel) == 0x84,
    W8PartySelectionPanelSelectionListener at +0x54 after the
    W8ControlSelectionListener (+0x4c) and W8RangeListener (+0x50) bases. */
 W8_ASSERT_BASE_END(W8PartySelectionCharacterPanel, W8PartySelectionPanelSelectionListener,
-                   m_control_58, 0x54);
+                   m_control, 0x54);
 
 // VTABLE: WIZ8 0x005ef448 W8TextControl::Listener
 class W8PartySelectionCharacterGridPanel : public Controls, public W8TextControl::Listener {
@@ -519,12 +519,12 @@ public:
     virtual ~W8PartySelectionPartySlotPanel();
     virtual void OnSelectionChanged(W8ControlSelection* control, int selected) override;
 
-    W8ControlSelection m_control_50;
+    W8ControlSelection m_control;
 };
 static_assert(sizeof(W8PartySelectionPartySlotPanel) == 0x74,
               "W8PartySelectionPartySlotPanel_size");
 /* The secondary W8ControlSelectionListener subobject sits at +0x4c. */
-W8_ASSERT_BASE_END(W8PartySelectionPartySlotPanel, W8ControlSelectionListener, m_control_50, 0x4c);
+W8_ASSERT_BASE_END(W8PartySelectionPartySlotPanel, W8ControlSelectionListener, m_control, 0x4c);
 
 class W8PartySelectionCharacterSummaryPanel : public Controls {
 public:
@@ -547,9 +547,9 @@ public:
     virtual void Redraw() override;
     void SetOptionPanelMode(int mode);
 
-    int m_mode_4c;
+    int m_mode;
     W8ControlSelection m_options;
-    W8TextControl* m_toggle_74;
+    W8TextControl* m_toggle;
     W8TextControl* npc_interact_toggle;
     W8GrowableVector<W8TextBuffer*> m_entries;
     int m_render_left;
@@ -594,10 +594,10 @@ public:
     W8Character* m_character;
     W8RangeControl* m_range; /* 0x1c */
     W8PartySelectionCharacterPanel* m_character_panel;
-    W8PartySelectionCharacterGridPanel* m_control_24;
-    W8PartySelectionPartySlotPanel* m_control_28;
-    W8PartySelectionCharacterSummaryPanel* m_control_2c;
-    W8PartySelectionOptionPanel* m_control_30;
+    W8PartySelectionCharacterGridPanel* m_control0;
+    W8PartySelectionPartySlotPanel* m_control1;
+    W8PartySelectionCharacterSummaryPanel* m_control2;
+    W8PartySelectionOptionPanel* m_control3;
     Controls* m_left_panel;
     Controls* m_import_panel;
     Controls* m_bottom_panel;
@@ -626,9 +626,9 @@ W8PartySelectionController* g_party_selection_controller;
 void RefreshPartySelectionPortrait(unsigned int party_slot)
 {
     W8TextControl** buttons =
-        g_party_selection_controller->m_control_28->m_control_50.m_lsButtons.data;
+        g_party_selection_controller->m_control1->m_control.m_lsButtons.data;
     if (static_cast<int>(party_slot - 2) <
-        g_party_selection_controller->m_control_28->m_control_50.m_lsButtons.count) {
+        g_party_selection_controller->m_control1->m_control.m_lsButtons.count) {
         buttons += party_slot - 2;
     }
     W8PartySelectionPartySlotRow* row = static_cast<W8PartySelectionPartySlotRow*>(*buttons);
@@ -721,7 +721,7 @@ void W8PartySelectionCharacterRow::OnLeftButtonDoubleClick(int event)
 
 // FUNCTION: WIZ8 0x005bebc0
 W8PartySelectionCharacterPanel::W8PartySelectionCharacterPanel()
-    : Controls(), m_range_7c(0), m_selected_row(0)
+    : Controls(), m_range(0), m_selected_row(0)
 {
     AcquireRegionSet(&g_party_selection_character_region_set);
     m_bounds.left = 0x148;
@@ -731,7 +731,7 @@ W8PartySelectionCharacterPanel::W8PartySelectionCharacterPanel()
     for (int row = 0; row < 6; ++row) {
         W8PartySelectionCharacterRow* control = new W8PartySelectionCharacterRow(this, top, row);
         control->m_selection_listener = this;
-        m_control_58.AddEntry(control);
+        m_control.AddEntry(control);
         top += 0x2a;
     }
 
@@ -739,8 +739,8 @@ W8PartySelectionCharacterPanel::W8PartySelectionCharacterPanel()
     if (selection < 0 || selection > 5) {
         selection = -1;
     }
-    m_control_58.SetSelected(selection);
-    m_control_58.m_selectionListener = this;
+    m_control.SetSelected(selection);
+    m_control.m_selectionListener = this;
     for (int index = 0; index < m_controls.count; ++index) {
         W8PartySelectionCharacterRow* row =
             static_cast<W8PartySelectionCharacterRow*>(ControlAt(index));
@@ -771,13 +771,13 @@ void W8PartySelectionCharacterPanel::OnRangeChanged(W8RangeControl* control)
         return;
     }
     g_party_selection_character_collection->first_visible = control->m_value;
-    m_control_58.m_selectionListener = 0;
+    m_control.m_selectionListener = 0;
     int selection = m_selected_row - g_party_selection_character_collection->first_visible;
     if (selection < 0 || selection > 5) {
         selection = -1;
     }
-    m_control_58.SetSelected(selection);
-    m_control_58.m_selectionListener = this;
+    m_control.SetSelected(selection);
+    m_control.m_selectionListener = this;
     for (int index = 0; index < m_controls.count; ++index) {
         W8PartySelectionCharacterRow* row =
             static_cast<W8PartySelectionCharacterRow*>(ControlAt(index));
@@ -802,16 +802,16 @@ void W8PartySelectionCharacterPanel::SetSelectedRow(int selection)
             first = 0;
         }
         g_party_selection_character_collection->first_visible = first;
-        m_range_7c->SetValue(first);
+        m_range->SetValue(first);
     }
 
-    m_control_58.m_selectionListener = 0;
+    m_control.m_selectionListener = 0;
     visible = m_selected_row - g_party_selection_character_collection->first_visible;
     if (visible < 0 || visible > 5) {
         visible = -1;
     }
-    m_control_58.SetSelected(visible);
-    m_control_58.m_selectionListener = this;
+    m_control.SetSelected(visible);
+    m_control.m_selectionListener = this;
     for (int index = 0; index < m_controls.count; ++index) {
         W8PartySelectionCharacterRow* row =
             static_cast<W8PartySelectionCharacterRow*>(ControlAt(index));
@@ -825,14 +825,14 @@ void W8PartySelectionCharacterPanel::SetSelectedRow(int selection)
 // FUNCTION: WIZ8 0x005bf0c0
 void W8PartySelectionCharacterPanel::SelectPartyMemberRow(int row)
 {
-    m_control_58.SetSelected(row);
+    m_control.SetSelected(row);
     g_party_selection_controller->TogglePartyMemberSelection();
 }
 
 // FUNCTION: WIZ8 0x005bf050
 void W8PartySelectionCharacterPanel::OpenCampForSelectedMember(int row)
 {
-    m_control_58.SetSelected(row);
+    m_control.SetSelected(row);
     int slot;
     for (slot = 0; slot < 6; ++slot) {
         if (g_status.buffers.XChar[slot + 2].fOccupied &&
@@ -849,11 +849,11 @@ void W8PartySelectionCharacterPanel::OpenCampForSelectedMember(int row)
 void W8PartySelectionCharacterPanel::AdjustPartyMemberRange(int amount)
 {
     while (amount > 0) {
-        m_range_7c->Decrement();
+        m_range->Decrement();
         --amount;
     }
     while (amount < 0) {
-        m_range_7c->Increment();
+        m_range->Increment();
         ++amount;
     }
 }
@@ -937,7 +937,7 @@ void W8PartySelectionPartySlotRow::OnLeftButtonDoubleClick(int event)
 // FUNCTION: WIZ8 0x005bf6b0
 void W8PartySelectionPartySlotPanel::OnSelectionChanged(W8ControlSelection*, int)
 {
-    g_party_selection_controller->SetSelection(m_control_50.m_selectedIndex, 1, 0);
+    g_party_selection_controller->SetSelection(m_control.m_selectedIndex, 1, 0);
 }
 
 // FUNCTION: WIZ8 0x005bf520
@@ -945,11 +945,11 @@ W8PartySelectionPartySlotPanel::W8PartySelectionPartySlotPanel() : Controls()
 {
     AcquireRegionSet(&g_party_selection_party_slot_region_set);
     for (int row = 0; row < 6; ++row) {
-        m_control_50.AddEntry(new W8PartySelectionPartySlotRow(this, row));
+        m_control.AddEntry(new W8PartySelectionPartySlotRow(this, row));
     }
-    m_control_50.m_selectionListener = this;
+    m_control.m_selectionListener = this;
     for (int slot = 0; slot < 6; ++slot) {
-        W8TextControl* control = m_control_50.m_lsButtons.data[slot];
+        W8TextControl* control = m_control.m_lsButtons.data[slot];
         control->SetEnabled(g_status.buffers.XChar[slot + 2].fOccupied);
     }
     Invalidate(0);
@@ -1120,8 +1120,8 @@ W8PartySelectionOptionPanel::W8PartySelectionOptionPanel()
         npc_interact_toggle->EnableSecondaryState(0);
     }
 
-    m_toggle_74 = new W8TextControl(this, 0xffffffff, 0x15b, 0xd6, 0, 0, 0xf1, 0, 2, 0, 3, 1, -1);
-    m_toggle_74->AddLayoutFlags(g_W8TextControlMask | g_W8TextControlLayoutToggle);
+    m_toggle = new W8TextControl(this, 0xffffffff, 0x15b, 0xd6, 0, 0, 0xf1, 0, 2, 0, 3, 1, -1);
+    m_toggle->AddLayoutFlags(g_W8TextControlMask | g_W8TextControlLayoutToggle);
 
     GetCatalogImageSize(0x102, 0, 1, &m_image_width, &m_image_height);
     m_render_left =
@@ -1141,7 +1141,7 @@ void W8PartySelectionOptionPanel::Redraw()
     for (int index = 0; index < m_entries.count; ++index) {
         m_entries.data[index]->RenderToTarget(0, 1, -14);
     }
-    if (m_mode_4c == 2) {
+    if (m_mode == 2) {
         DrawCatalogImage(-14, 0x102, 0, 1, m_render_left, m_render_top, 2, 0);
     }
 }
@@ -1190,7 +1190,7 @@ unsigned char W8PartySelectionInputHandler::HandleInput(const InputAtom* input)
 // FUNCTION: WIZ8 0x005c05f0
 void W8PartySelectionOptionPanel::SetOptionPanelMode(int mode)
 {
-    m_mode_4c = mode;
+    m_mode = mode;
     while (m_entries.count > 0) {
         m_entries.RemoveAtAndDelete(m_entries.count - 1);
     }
@@ -1284,15 +1284,15 @@ void W8PartySelectionController::Setup()
 {
     m_range = new W8RangeControl(0x1e9, 0x31, 0x1fb, 0x12b, &g_party_selection_range_region_set);
     m_character_panel = new W8PartySelectionCharacterPanel;
-    m_control_24 = new W8PartySelectionCharacterGridPanel;
-    m_control_28 = new W8PartySelectionPartySlotPanel;
-    m_control_2c = new W8PartySelectionCharacterSummaryPanel;
-    m_control_30 = new W8PartySelectionOptionPanel;
+    m_control0 = new W8PartySelectionCharacterGridPanel;
+    m_control1 = new W8PartySelectionPartySlotPanel;
+    m_control2 = new W8PartySelectionCharacterSummaryPanel;
+    m_control3 = new W8PartySelectionOptionPanel;
 
     for (int slot = 0; slot < 6; ++slot) {
         W8PartySelectionPartySlotRow* row = static_cast<W8PartySelectionPartySlotRow*>(
-            m_control_28->m_control_50.m_lsButtons.data[slot]);
-        row->m_redraw_partner = m_control_24->ControlAt(slot);
+            m_control1->m_control.m_lsButtons.data[slot]);
+        row->m_redraw_partner = m_control0->ControlAt(slot);
     }
 
     m_left_panel = new Controls(0x145, 0x137, 0, 0, -1, -1, -1);
@@ -1368,12 +1368,12 @@ W8PartySelectionController::~W8PartySelectionController()
         delete m_import_panel;
     }
 
-    delete m_control_24;
-    delete m_control_28;
+    delete m_control0;
+    delete m_control1;
     delete m_character_panel;
     delete m_range;
-    delete m_control_2c;
-    delete m_control_30;
+    delete m_control2;
+    delete m_control3;
 }
 
 /* Switch the party-builder as a complete screen mode.  Mode zero presents the
@@ -1388,7 +1388,7 @@ void W8PartySelectionController::SetMode(int mode)
     InvalidatePartySelectionComposition();
     m_bottom_panel->SetEnabled(1);
     m_bottom_panel->EnableRegionSet(1);
-    m_control_28->SetEnabled(1);
+    m_control1->SetEnabled(1);
 
     const wchar_t* label = 0;
     switch (m_mode) {
@@ -1400,7 +1400,7 @@ void W8PartySelectionController::SetMode(int mode)
         m_character_panel->SetEnabled(1);
         m_character_panel->EnableRegionSet(1);
 
-        m_character_panel->m_range_7c = m_range;
+        m_character_panel->m_range = m_range;
         m_range->m_listener = m_character_panel;
         int maximum = g_party_selection_character_collection->characters.count - 6;
         if (maximum < 0) {
@@ -1410,14 +1410,14 @@ void W8PartySelectionController::SetMode(int mode)
         m_range->SetRangeEnabled(maximum > 0);
         m_range->Invalidate(0);
 
-        m_character_panel->m_control_58.m_selectionListener = 0;
+        m_character_panel->m_control.m_selectionListener = 0;
         int selected = m_character_panel->m_selected_row -
                        g_party_selection_character_collection->first_visible;
         if (selected < 0 || selected > 5) {
             selected = -1;
         }
-        m_character_panel->m_control_58.SetSelected(selected);
-        m_character_panel->m_control_58.m_selectionListener = m_character_panel;
+        m_character_panel->m_control.SetSelected(selected);
+        m_character_panel->m_control.m_selectionListener = m_character_panel;
         for (int index = 0; index < m_character_panel->m_controls.count; ++index) {
             W8PartySelectionCharacterRow* row =
                 static_cast<W8PartySelectionCharacterRow*>(m_character_panel->ControlAt(index));
@@ -1428,14 +1428,14 @@ void W8PartySelectionController::SetMode(int mode)
             row->Invalidate(0);
         }
 
-        m_control_24->SetEnabled(0);
-        m_control_24->EnableRegionSet(0);
-        m_control_28->EnableRegionSet(1);
+        m_control0->SetEnabled(0);
+        m_control0->EnableRegionSet(0);
+        m_control1->EnableRegionSet(1);
         m_import_panel->SetEnabled(0);
         m_import_panel->EnableRegionSet(0);
-        m_control_2c->SetEnabled(1);
-        m_control_30->SetEnabled(0);
-        m_control_30->EnableRegionSet(0);
+        m_control2->SetEnabled(1);
+        m_control3->SetEnabled(0);
+        m_control3->EnableRegionSet(0);
         m_confirm_button->SetEnabled(CountActiveCharacters() != 0);
         label = gppStringList[0x6b4];
         break;
@@ -1466,15 +1466,15 @@ void W8PartySelectionController::SetMode(int mode)
         m_delete_button->SetActive(0);
         m_character_panel->SetEnabled(0);
         m_character_panel->EnableRegionSet(0);
-        m_control_24->EnableRegionSet(1);
-        m_control_24->SetEnabled(1);
+        m_control0->EnableRegionSet(1);
+        m_control0->SetEnabled(1);
         for (int slot = 0; slot < 6; ++slot) {
             bool occupied = g_status.buffers.XChar[slot + 2].fOccupied;
-            m_control_24->ControlAt(slot)->SetActive(m_mode == 1 && occupied &&
+            m_control0->ControlAt(slot)->SetActive(m_mode == 1 && occupied &&
                                                      IsCharacterReadyToAdvance(slot + 2));
         }
-        m_control_24->Invalidate(0);
-        m_control_28->EnableRegionSet(1);
+        m_control0->Invalidate(0);
+        m_control1->EnableRegionSet(1);
         m_import_panel->SetEnabled(1);
         m_import_panel->EnableRegionSet(1);
 
@@ -1489,9 +1489,9 @@ void W8PartySelectionController::SetMode(int mode)
         m_range->SetRangeEnabled(maximum > 0);
         m_range->Invalidate(0);
 
-        m_control_2c->SetEnabled(1);
-        m_control_30->SetEnabled(0);
-        m_control_30->EnableRegionSet(0);
+        m_control2->SetEnabled(1);
+        m_control3->SetEnabled(0);
+        m_control3->EnableRegionSet(0);
         label = gppStringList[0x6b5];
         break;
     }
@@ -1500,28 +1500,28 @@ void W8PartySelectionController::SetMode(int mode)
         m_range->EnableRegionSet(0);
         m_left_panel->SetEnabled(0);
         m_left_panel->EnableRegionSet(0);
-        m_control_24->SetEnabled(0);
-        m_control_24->EnableRegionSet(0);
-        m_control_28->EnableRegionSet(0);
+        m_control0->SetEnabled(0);
+        m_control0->EnableRegionSet(0);
+        m_control1->EnableRegionSet(0);
         m_character_panel->SetEnabled(0);
         m_character_panel->EnableRegionSet(0);
         m_import_panel->SetEnabled(0);
         m_import_panel->EnableRegionSet(0);
-        m_control_2c->SetEnabled(0);
+        m_control2->SetEnabled(0);
         m_reset_button->SetActive(0);
-        m_control_30->SetEnabled(1);
-        m_control_30->EnableRegionSet(1);
-        m_control_30->SetOptionPanelMode(0);
+        m_control3->SetEnabled(1);
+        m_control3->EnableRegionSet(1);
+        m_control3->SetOptionPanelMode(0);
         label = gppStringList[0x6b6];
         break;
     case 3:
         m_reset_button->SetActive(0);
-        m_control_30->SetOptionPanelMode(1);
+        m_control3->SetOptionPanelMode(1);
         label = gppStringList[0x6b7];
         break;
     case 4:
         m_reset_button->SetActive(0);
-        m_control_30->SetOptionPanelMode(2);
+        m_control3->SetOptionPanelMode(2);
         label = gppStringList[0x6b7];
         break;
     default:
@@ -1547,9 +1547,9 @@ void W8PartySelectionController::SetSelection(int selection, bool party_slot,
                     }
                 }
             }
-            m_control_28->m_control_50.m_selectionListener = 0;
-            m_control_28->m_control_50.SetSelected(selected_slot);
-            m_control_28->m_control_50.m_selectionListener = m_control_28;
+            m_control1->m_control.m_selectionListener = 0;
+            m_control1->m_control.SetSelected(selected_slot);
+            m_control1->m_control.m_selectionListener = m_control1;
             if (refresh_other) {
                 m_character_panel->SetSelectedRow(selection);
             }
@@ -1575,14 +1575,14 @@ void W8PartySelectionController::SetSelection(int selection, bool party_slot,
             m_character_panel->SetSelectedRow(character_index);
         }
         if (refresh_other) {
-            m_control_28->m_control_50.m_selectionListener = 0;
-            m_control_28->m_control_50.SetSelected(selection);
-            m_control_28->m_control_50.m_selectionListener = m_control_28;
+            m_control1->m_control.m_selectionListener = 0;
+            m_control1->m_control.SetSelected(selection);
+            m_control1->m_control.m_selectionListener = m_control1;
         }
     }
 
-    m_control_2c->m_character = m_character;
-    m_control_2c->Invalidate(0);
+    m_control2->m_character = m_character;
+    m_control2->Invalidate(0);
     wchar_t* text =
         gppStringList[((!m_character || !m_character->fInParty) ? 0x1b18 : 0x1b1c) / 4];
     m_add_remove_button->m_textBuffer.SetText(text, g_wiz_text_font_secondary);
@@ -1675,10 +1675,10 @@ void W8PartySelectionController::OnPrimary(W8TextControl* control)
             SetMode(2);
             return;
         case 2:
-            g_settings.difficulty = m_control_30->m_options.m_selectedIndex;
+            g_settings.difficulty = m_control3->m_options.m_selectedIndex;
             g_settings.simplified_npc_interaction = static_cast<unsigned char>(
-                m_control_30->npc_interact_toggle->m_stateFlags & g_W8TextControlStateSecondary);
-            if ((m_control_30->m_toggle_74->m_stateFlags & g_W8TextControlStateSecondary) != 0) {
+                m_control3->npc_interact_toggle->m_stateFlags & g_W8TextControlStateSecondary);
+            if ((m_control3->m_toggle->m_stateFlags & g_W8TextControlStateSecondary) != 0) {
                 SetMode(3);
             } else {
                 RunNewGameOpeningSequence(1, 0);
@@ -1790,12 +1790,12 @@ void W8PartySelectionController::InvalidatePartySelectionComposition()
 {
     m_redraw_backdrop = true;
     m_range->Invalidate(0);
-    m_control_2c->Invalidate(0);
-    m_control_30->Invalidate(0);
+    m_control2->Invalidate(0);
+    m_control3->Invalidate(0);
     m_character_panel->Invalidate(0);
     m_left_panel->Invalidate(0);
-    m_control_24->Invalidate(0);
-    m_control_28->Invalidate(0);
+    m_control0->Invalidate(0);
+    m_control1->Invalidate(0);
     m_import_panel->Invalidate(0);
     m_bottom_panel->Invalidate(0);
     m_text_buffer->m_geometryDirty = true;
@@ -1816,12 +1816,12 @@ void W8PartySelectionController::DrawPartySelectionComposition()
     }
 
     m_range->Redraw();
-    m_control_2c->Redraw();
-    m_control_30->Redraw();
+    m_control2->Redraw();
+    m_control3->Redraw();
     m_character_panel->Redraw();
     m_left_panel->Redraw();
-    m_control_28->Redraw();
-    m_control_24->Redraw();
+    m_control1->Redraw();
+    m_control0->Redraw();
     m_import_panel->Redraw();
     m_bottom_panel->Redraw();
     m_text_buffer->RenderToTarget(0, 0, -14);
@@ -1878,7 +1878,7 @@ void W8PartySelectionController::ApplyPartySelectionConfirmation(int, unsigned c
         FileDelete(path);
         collection->DeleteAt(selected);
 
-        m_character_panel->m_range_7c = m_range;
+        m_character_panel->m_range = m_range;
         m_range->m_listener = m_character_panel;
         int maximum = collection->characters.count - 6;
         if (maximum < 0) {
@@ -1957,15 +1957,15 @@ void W8PartySelectionController::LoadImportedPartyFile(int selection)
     int slot;
     for (slot = 0; slot < 6; ++slot) {
         bool occupied = g_status.buffers.XChar[slot + 2].fOccupied;
-        m_control_28->m_control_50.m_lsButtons.data[slot]->SetEnabled(occupied);
+        m_control1->m_control.m_lsButtons.data[slot]->SetEnabled(occupied);
     }
-    m_control_28->Invalidate(0);
+    m_control1->Invalidate(0);
     for (slot = 0; slot < 6; ++slot) {
         bool occupied = g_status.buffers.XChar[slot + 2].fOccupied;
-        m_control_24->ControlAt(slot)->SetActive(m_mode == 1 && occupied &&
+        m_control0->ControlAt(slot)->SetActive(m_mode == 1 && occupied &&
                                                  IsCharacterReadyToAdvance(slot + 2));
     }
-    m_control_24->Invalidate(0);
+    m_control0->Invalidate(0);
     SetSelection(0, 1, 1);
 }
 
@@ -2020,9 +2020,9 @@ void W8PartySelectionController::TogglePartyMemberSelection()
 
     for (int slot = 0; slot < 6; ++slot) {
         bool occupied = g_status.buffers.XChar[slot + 2].fOccupied;
-        m_control_28->m_control_50.m_lsButtons.data[slot]->SetEnabled(occupied);
+        m_control1->m_control.m_lsButtons.data[slot]->SetEnabled(occupied);
     }
-    m_control_28->Invalidate(0);
+    m_control1->Invalidate(0);
     m_character_panel->Invalidate(0);
     m_confirm_button->SetEnabled(CountActiveCharacters() != 0);
     m_confirm_button->Invalidate(0);

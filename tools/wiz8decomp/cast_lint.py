@@ -63,6 +63,7 @@ from __future__ import annotations
 
 import os
 import re
+from collections import Counter
 from pathlib import Path
 from typing import Any
 
@@ -158,10 +159,15 @@ def _rename_key(text: str, *, descriptive: bool = False) -> str:
         if any(start <= match.start() < end for start, end in protected):
             return match.group(0)
         if descriptive:
+            if re.fullmatch(r"this\s*->\s*", match.group(0)):
+                return ""
             return match.group(0) if _PINNED_WORD.fullmatch(match.group(0)) else "_"
         return match.group(1)
 
-    return (_IDENTIFIER if descriptive else _OFFSET_SUFFIX).sub(replace, text)
+    operands = (
+        re.compile(r"\bthis\s*->\s*|" + _IDENTIFIER.pattern) if descriptive else _OFFSET_SUFFIX
+    )
+    return operands.sub(replace, text)
 
 
 class CastGateError(RuntimeError):
@@ -433,6 +439,14 @@ def _statement_has_marker(text: str, start: int, marker: re.Pattern[str]) -> boo
 def _raw_offset_violations(repository: Path, diff: str) -> list[dict[str, Any]]:
     """Find new literal byte offsets applied to typed-object byte casts."""
     added = _added_source_lines(diff)
+    removed_text = "\n".join(
+        line[1:]
+        for line in diff.splitlines()
+        if line.startswith("-") and not line.startswith("---")
+    )
+    existing_offsets = Counter(
+        _rename_key(match.group()) for match in _RAW_BYTE_OFFSET.finditer(removed_text)
+    )
     violations: list[dict[str, Any]] = []
     for relative, line_numbers in sorted(added.items()):
         if not relative.lower().endswith(_CPP_SUFFIXES):
@@ -445,6 +459,10 @@ def _raw_offset_violations(repository: Path, diff: str) -> list[dict[str, Any]]:
             start_line = text.count("\n", 0, match.start()) + 1
             end_line = text.count("\n", 0, match.end()) + 1
             if not any(line in line_numbers for line in range(start_line, end_line + 1)):
+                continue
+            key = _rename_key(match.group())
+            if existing_offsets[key]:
+                existing_offsets[key] -= 1
                 continue
             if _statement_has_marker(text, match.start(), _RAW_OFFSET_MARKER):
                 continue

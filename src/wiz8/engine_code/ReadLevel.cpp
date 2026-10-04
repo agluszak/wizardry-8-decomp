@@ -135,7 +135,7 @@ void stLevel::process(const ProcessInfo& info, e_processType)
                 mesh.shaders[0].value &= 0xffff7fff;
                 mesh.poly_shaders[0] = 0;
             }
-            srPtr<srTextureIFace>*(*poly_textures)[2] = mesh.poly_textures_e0;
+            srPtr<srTextureIFace>*(*poly_textures)[2] = mesh.poly_textures;
             if (poly_textures != 0 && mesh.active_polygons == 0) {
                 long active_count;
                 unsigned long* active = model->GetActivePolygons(&active_count, -1, 0);
@@ -145,7 +145,7 @@ void stLevel::process(const ProcessInfo& info, e_processType)
                 }
             }
 
-            if ((model->flags_3a0 & 1) != 0 && !renderer.isPickStackEmpty()) {
+            if ((model->flags & 1) != 0 && !renderer.isPickStackEmpty()) {
                 srGERD::Pick pick;
                 renderer.popPick(pick);
                 model->renderTriMesh(renderer, mesh);
@@ -176,11 +176,11 @@ void stLevel::process(const ProcessInfo& info, e_processType)
 namespace {
 
 struct W8LevelItemRecord {
-    int positional_00;
-    srVector3T<float> position_04;
-    int positional_10;
-    int positional_14;
-    int positional_18;
+    int positional0;
+    srVector3T<float> position;
+    int positional2;
+    int positional3;
+    int positional4;
     char item_name[20];
 };
 
@@ -325,18 +325,18 @@ static unsigned char ReadWorldLights(W8World* world, int hFile)
 
         if (light != 0) {
             if (_strnicmp(light->getName(), "Sun", 3) == 0) {
-                light->diffuse_1a4.SetZero();
-                light->ambient_198 = record.colour;
+                light->diffuse.SetZero();
+                light->ambient = record.colour;
                 light->setGroupMask(light->getGroupMask() | 4);
                 AddEnvironmentLight(light);
             } else {
-                light->diffuse_1a4 = record.colour;
-                light->ambient_198.SetZero();
+                light->diffuse = record.colour;
+                light->ambient.SetZero();
             }
 
-            light->specular_1b0.SetZero();
+            light->specular.SetZero();
             ConfigureWorldLight(light, record.range * g_world_scale);
-            light->intensity_1d0 = record.intensity;
+            light->intensity = record.intensity;
             light->setLocation(record.location.x * g_world_scale, record.location.y * g_world_scale,
                                record.location.z * g_world_scale);
         }
@@ -583,12 +583,12 @@ unsigned char ReadWorldItems(W8ReadLevelInfo* pInfo, W8World* pWorld)
         trigger = 0;
         success = FileRead(pInfo->hFile, record.item_name, sizeof(record.item_name), 0);
         if (success) {
-            FileRead(pInfo->hFile, &record.position_04, sizeof(record.position_04), 0);
-            record.position_04 *= g_world_scale;
-            FileRead(pInfo->hFile, &record.positional_00, sizeof(int), 0);
-            FileRead(pInfo->hFile, &record.positional_10, sizeof(int), 0);
-            FileRead(pInfo->hFile, &record.positional_14, sizeof(int), 0);
-            FileRead(pInfo->hFile, &record.positional_18, sizeof(int), 0);
+            FileRead(pInfo->hFile, &record.position, sizeof(record.position), 0);
+            record.position *= g_world_scale;
+            FileRead(pInfo->hFile, &record.positional0, sizeof(int), 0);
+            FileRead(pInfo->hFile, &record.positional2, sizeof(int), 0);
+            FileRead(pInfo->hFile, &record.positional3, sizeof(int), 0);
+            FileRead(pInfo->hFile, &record.positional4, sizeof(int), 0);
             FileRead(pInfo->hFile, &has_trigger, sizeof(has_trigger), 0);
             if (has_trigger != 0) {
                 trigger = Trigger::CreateAndLoadLevelTrigger(pInfo->hFile, pInfo->world);
@@ -607,7 +607,7 @@ unsigned char ReadWorldItems(W8ReadLevelInfo* pInfo, W8World* pWorld)
                 item_id = FindItemRecordByName(record.item_name);
             }
             if (item_id >= 0) {
-                world_item = SpawnItem(item_id, &record.position_04, 3, 1);
+                world_item = SpawnItem(item_id, &record.position, 3, 1);
                 if (world_item != 0) {
                     success = 1;
                     ActivateItem(world_item);
@@ -617,7 +617,7 @@ unsigned char ReadWorldItems(W8ReadLevelInfo* pInfo, W8World* pWorld)
             if (trigger != 0 && item != 0) {
                 trigger->m_bRepType = 1;
                 trigger->rep_item = item;
-                item->trigger_018 = trigger;
+                item->trigger = trigger;
             }
         }
     }
@@ -753,19 +753,19 @@ unsigned char ReadWorldCameras(W8ReadLevelInfo* pInfo, W8World* pWorld)
         FileRead(pInfo->hFile, &positional_0, sizeof(positional_0), 0);
         FileRead(pInfo->hFile, &positional_1, sizeof(positional_1), 0);
         FileRead(pInfo->hFile, &has_scale, sizeof(has_scale), 0);
-        FileRead(pInfo->hFile, entry->name_00, sizeof(entry->name_00), 0);
+        FileRead(pInfo->hFile, entry->name0, sizeof(entry->name0), 0);
         if (has_scale > 0) {
             FileRead(pInfo->hFile, &scale, sizeof(scale), 0);
         } else {
             scale = 15.0f;
         }
 
-        entry->path_18 = 0;
-        success = success && LoadPathAI(&entry->path_18, pInfo->hFile);
-        PathAIEnableTimedMode(entry->path_18);
+        entry->path = 0;
+        success = success && LoadPathAI(&entry->path, pInfo->hFile);
+        PathAIEnableTimedMode(entry->path);
         PLAdoptAppend(pWorld->plsCameras, entry);
-        entry->path_18->entry_index = index;
-        PathAISetScale(entry->path_18, scale);
+        entry->path->entry_index = index;
+        PathAISetScale(entry->path, scale);
     }
     return 1;
 }
@@ -830,7 +830,7 @@ unsigned char ReadWorldParticles(W8ReadLevelInfo* pInfo, srNode* pScene,
         particle->rotateX(1.5707963);
 
         if (record.bounds_origin.x != 0.0f) {
-            particle->replace_when_full_191 = 1;
+            particle->replace_when_full = 1;
             record.bounds_origin.x = 0.0f;
         }
         if (record.bounds_mode == W8_PARTICLE_BOUNDS_BOX) {
@@ -840,8 +840,8 @@ unsigned char ReadWorldParticles(W8ReadLevelInfo* pInfo, srNode* pScene,
             center = record.bounds_origin * g_world_scale;
             extent = record.bounds_extent * 250.0f;
             particle->bounds_mode = W8_PARTICLE_BOUNDS_BOX;
-            particle->minimum_21c = center - extent;
-            particle->maximum_228 = center + extent;
+            particle->minimum1 = center - extent;
+            particle->maximum1 = center + extent;
         } else if (record.bounds_mode == W8_PARTICLE_BOUNDS_SPHERE && record.bounds_radius > 0.0f) {
             particle->bounds_mode = W8_PARTICLE_BOUNDS_SPHERE;
             particle->bounds_origin = record.bounds_origin * g_world_scale;
@@ -865,7 +865,7 @@ unsigned char ReadWorldParticles(W8ReadLevelInfo* pInfo, srNode* pScene,
 
         if (record.has_acceleration != 0) {
             particle->has_acceleration = 1;
-            particle->acceleration_1f4 = record.acceleration * g_world_scale;
+            particle->acceleration = record.acceleration * g_world_scale;
         }
 
         if (record.emission_mode == W8_PARTICLE_EMISSION_NONE) {
@@ -874,8 +874,8 @@ unsigned char ReadWorldParticles(W8ReadLevelInfo* pInfo, srNode* pScene,
             particle->emission_mode = W8_PARTICLE_EMISSION_SINGLE;
         } else {
             particle->emission_mode = W8_PARTICLE_EMISSION_CATCH_UP;
-            particle->minimum_1d0.Set(-record.spread.x * 250.0f, -record.spread.y * 250.0f, 0.0f);
-            particle->maximum_1dc.Set(record.spread.x * 250.0f, record.spread.y * 250.0f,
+            particle->minimum0.Set(-record.spread.x * 250.0f, -record.spread.y * 250.0f, 0.0f);
+            particle->maximum0.Set(record.spread.x * 250.0f, record.spread.y * 250.0f,
                                       record.spread.z * g_world_scale);
         }
 
@@ -897,13 +897,13 @@ unsigned char ReadWorldParticles(W8ReadLevelInfo* pInfo, srNode* pScene,
             transformed = rotation.Transform(direction);
             transformed.Unitize();
             particle->direction_mode = W8_PARTICLE_DIRECTION_FIXED;
-            particle->direction_1e8 = transformed;
+            particle->direction = transformed;
         } else if (record.direction_mode == W8_PARTICLE_DIRECTION_NODE_FORWARD) {
             particle->direction_mode = W8_PARTICLE_DIRECTION_NODE_FORWARD;
         } else if (record.direction_mode == W8_PARTICLE_DIRECTION_CONE) {
             particle->direction_mode = W8_PARTICLE_DIRECTION_CONE;
-            particle->cone_yaw = record.direction_0e0 * 0.017453292519943295f;
-            particle->cone_pitch = record.direction_0e4 * 0.017453292519943295f;
+            particle->cone_yaw = record.direction0 * 0.017453292519943295f;
+            particle->cone_pitch = record.direction1 * 0.017453292519943295f;
         } else {
             particle->direction_mode = W8_PARTICLE_DIRECTION_RANDOM;
         }

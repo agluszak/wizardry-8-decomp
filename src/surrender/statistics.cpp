@@ -11,15 +11,15 @@
 // FUNCTION: SURRENDER 0x100148A0
 void srStatisticsManager::reset()
 {
-    memset(&statistics_00, 0, sizeof(Statistics));
-    statistics_00.elapsed_time = srCore.getTimer()->getTime(srTimer::TIMER_READ_DEFAULT);
+    memset(&statistics, 0, sizeof(Statistics));
+    statistics.elapsed_time = srCore.getTimer()->getTime(srTimer::TIMER_READ_DEFAULT);
 }
 
 // FUNCTION: SURRENDER 0x10014920
 void srStatisticsManager::getStatistics(Statistics& statistics) const
 {
     double now = srCore.getTimer()->getTime(srTimer::TIMER_READ_DEFAULT);
-    statistics = statistics_00;
+    statistics = this->statistics;
     statistics.elapsed_time = now - statistics.elapsed_time;
 }
 

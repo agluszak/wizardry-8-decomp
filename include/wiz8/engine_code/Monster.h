@@ -28,12 +28,12 @@ struct W8MonsterRep;
 
 enum { W8_MONSTER_CYCLE_COUNT = 27 };
 
-/* W8Monster::flags_1dc bits, named from their recovered readers and writers:
+/* W8Monster::flags1 bits, named from their recovered readers and writers:
    - KEEP_FRAME_DIRECTION: the next SetCycle keeps the queued frame direction
      (a reversed cycle) instead of resetting it to forward.
    - TEXTURE_CHECKED / ANIMATED_TEXTURE: the cached result of probing the
      current cycle's model for an animated texture; SetCycle drops the cache.
-   - SCALING_Y: UpdateRepresentation applies and decays scale_y_1ec.
+   - SCALING_Y: UpdateRepresentation applies and decays scale_y.
    - KEEP_SUBCYCLE: the next SetCycle keeps the current subcycle rather than
      picking a random one; a script CYCLE command sets it.
    - SCRIPT_WAIT: a blocking script CYCLE is playing; pending-cycle requests
@@ -114,18 +114,18 @@ struct W8MonsterRep : public W8EmitterHost {
        member N has the monster highlighted/targeted. */
     unsigned char highlight_mask;
     unsigned char padding_5bd[3];
-    char* name_5c0; /* 0x5c0: owned copy */
+    char* name; /* 0x5c0: owned copy */
     /* 0x5c4: number of populated party-icon entries in objects; the
        attachment layout read by UpdateAttachedObjects. */
     int icon_count;
     W8Item* objects[8];   /* 0x5c8 */
     W8PList* spell_icons; /* 0x5e8: W8MonsterSpellIcon records */
     float standing_height;
-    float scale_5f0;
+    float scale;
     float minimum_scale;
     float maximum_scale;
-    /* 0x5fc: death shrink factor multiplying scale_5f0 on the death path. */
-    float death_scale_5fc;
+    /* 0x5fc: death shrink factor multiplying scale on the death path. */
+    float death_scale;
     /* 0x600: the rep carries a random idle cycle - animations[1] gets a
        per-update random playback scale. */
     bool random_idle;
@@ -140,7 +140,7 @@ struct W8MonsterRep : public W8EmitterHost {
     float random_idle_fps_max;
     /* 0x610: left-handed strike chance percent; Random(100) is rolled
        against it for the mirrored attack anim. */
-    int left_handed_610;
+    int left_handed;
     W8Vector<stModelInstance*> linked_runtime_objects;
     class MonsterLight* monster_light;
 
@@ -262,18 +262,18 @@ public:
 #if defined(__clang__)
 #pragma clang diagnostic pop
 #endif
-    unsigned int flags_1dc;
+    unsigned int flags1;
     int value_1e0;
     /* 0x1e4: the monster's location id, stored by MonsterSetLocationId and
        used throughout for MonsterInfo lookups. */
-    int location_id_1e4;
-    /* 0x1e8/0x1f0: the X/Z siblings of scale_y_1ec; mirror_x flips the
+    int location_id;
+    /* 0x1e8/0x1f0: the X/Z siblings of scale_y; mirror_x flips the
        X term for left-handed strikes. */
     float scale_x;
     /* Y-axis scale applied while W8_MONSTER_SCALING_Y is set (decayed per
        frame by g_float_005ebc3c). */
-    float scale_y_1ec;
-    float scale_z_1f0;
+    float scale_y;
+    float scale_z;
     /* Attack-animation frame that triggers the missile launch. */
     int missile_frame;
     /* Cycle-25 animation frame that triggers the attached spell effect. */
@@ -294,21 +294,21 @@ public:
     /* 0x214: the current mouth state the dialogue update copies out of the
        active W8MouthGapTrack; forces mouth frame 0 while open. */
     unsigned char mouth_open; // bool-byte-ok: copied raw from the C gap track byte
-    /* 0x215: set while the monster is deactivated (active_088 cleared). */
+    /* 0x215: set while the monster is deactivated (active cleared). */
     unsigned char inactive;
     /* 0x216: raised at construction; cleared once AddMonsterToWorld and the
        spawn bookkeeping finish - iteration skips monsters still pending. */
     bool pending_finalize;
     /* 0x217: suppresses rendering and radar/automap display. */
-    bool disabled_217;
+    bool disabled;
     unsigned char nearest_to_party;
     unsigned char padding_219[3];
     /* 0x21c/0x220: hover base-height random range (scaled by
-       g_world_scale into movement_0c0.vertical_base). */
+       g_world_scale into movement.vertical_base). */
     int hover_base_min;
     int hover_base_max;
     /* 0x224/0x228: bob-amplitude random range (scaled into
-       movement_0c0.vertical_amplitude). */
+       movement.vertical_amplitude). */
     int bob_amplitude_min;
     int bob_amplitude_max;
     /* 0x22c: the missing spell-launch-vertex warning already fired once. */
@@ -324,7 +324,7 @@ public:
     int script_wait;
     W8GrowableVector<unsigned char> script_conditions;
     W8GameTimer script_delay_timer;
-    Trigger* trigger_278;
+    Trigger* trigger;
     int registry_weight;
     srVector3T<float> formation;
     unsigned char defining_orders;
@@ -426,7 +426,7 @@ void ApplyMonsterRepresentationScale(W8Monster* monster);
 
 static_assert(sizeof(W8Monster) == 0x348, "W8Monster_size_must_be_0x348");
 /* Secondary vftable 0x005ed218 keeps the W8Navigator subobject at +0x18. */
-W8_ASSERT_BASE_OFFSET(W8Monster, W8Navigator, navigation_mode_008, 0x18);
+W8_ASSERT_BASE_OFFSET(W8Monster, W8Navigator, navigation_mode, 0x18);
 
 /* A particle temporarily takes over a monster animation while its shake event
    runs. The derived callback restores the saved representation state when the

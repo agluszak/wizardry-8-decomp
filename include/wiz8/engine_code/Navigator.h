@@ -14,7 +14,7 @@ struct W8MonsterInfo;
 class srNode;
 struct W8PathAI;
 
-/* W8NavigatorAttachment::flags_00 bits with established meaning.
+/* W8NavigatorAttachment::flags bits with established meaning.
    - RESULT_MASK holds the last path-search result; the planners clear it before
      a search and store the result code there.
    - FOLLOW_PATH makes the mover advance along the recorded waypoint positions
@@ -23,7 +23,7 @@ struct W8PathAI;
      waypoint edit clears it.
    - START_WAYPOINT marks start_waypoint as the next position to steer to;
      the planner sets both together and the mover clears the bit on arrival.
-   - POSITION_RECORDED is raised whenever position_40 is recorded. */
+   - POSITION_RECORDED is raised whenever position6 is recorded. */
 enum W8NavigatorAttachmentFlag {
     W8_NAV_ATTACHMENT_RESULT_MASK = 0x0000000f,
     W8_NAV_ATTACHMENT_FOLLOW_PATH = 0x00010000,
@@ -33,30 +33,30 @@ enum W8NavigatorAttachmentFlag {
 };
 
 struct W8NavigatorAttachment {
-    unsigned int flags_00;
+    unsigned int flags;
     /* Live waypoint cursor. AdvanceAlongPathPositions compacts consumed
        waypoints and returns this cursor to one. */
     unsigned short path_cursor;
     unsigned short position_cursor;
     unsigned short path_position_index;
-    /* 0x00456210 sets this to ten and allocates position_4c as ten
+    /* 0x00456210 sets this to ten and allocates position7 as ten
        srVector3T<float>, so it is that array's capacity. */
-    unsigned short capacity_0a;
+    unsigned short capacity;
     unsigned short follow_offset;
     unsigned short padding_0e;
-    srVector3T<float> position_10;
-    srVector3T<float> position_1c;
+    srVector3T<float> position0;
+    srVector3T<float> position1;
     srVector3T<float> start_waypoint; /* valid while W8_NAV_ATTACHMENT_START_WAYPOINT */
-    srVector3T<float> position_34;
-    srVector3T<float> position_40;
+    srVector3T<float> position4;
+    srVector3T<float> position6;
     /* The owned vector array uses the vector type's new[]/delete[] overloads,
        which route allocation and release to srHeap. Growth retains the promoted
        allocation count until the final 16-bit capacity store. */
-    srVector3T<float>* position_4c;
+    srVector3T<float>* position7;
     /* 0x00457530 releases this one with free while +0x4c goes back to srHeap,
        so the two allocations do not share an owner. */
     unsigned short* path_values;
-    float separation_54;
+    float separation;
     /* Direct segment length after initialization; MeasurePathLength later
        replaces it with the eligible route length and latches flag 0x00400000. */
     float path_length;
@@ -74,9 +74,9 @@ struct W8NavigatorAttachment {
     // FUNCTION: WIZ8 0x004563A0
     ~W8NavigatorAttachment()
     {
-        srVector3T<float>* positions = position_4c;
+        srVector3T<float>* positions = position7;
         if (positions != 0) {
-            position_4c = 0;
+            position7 = 0;
             delete[] positions;
         }
         unsigned short* values = path_values;
@@ -113,7 +113,7 @@ struct W8NavigatorAttachment {
                                                 float distance); /* 0x00456F60 */
     /* Trims the recorded route to end at the sphere of `radius` around
        `target`: walks stored positions while they stay inside, interpolates
-       the boundary point into position_1c and the route slot, moves the end
+       the boundary point into position1 and the route slot, moves the end
        index there, and clears flag 0x400000. One when a boundary point was
        installed. */
     unsigned char TruncatePathAtRadius(const srVector3T<float>* target,
@@ -142,7 +142,7 @@ public:
    surrounding Navigator owns the path and group-following state. */
 struct W8NavigatorMovementState {
     unsigned int movement_flags;
-    unsigned short location_id_004;
+    unsigned short location_id;
     unsigned short padding_006;
     int leadership_rank;
     int active_rank;
@@ -155,20 +155,20 @@ struct W8NavigatorMovementState {
     float target_yaw;
     /* UpdateYawSteering accelerates/decelerates this signed angular rate. */
     float yaw_velocity;
-    float pitch_020;
+    float pitch;
     float target_pitch;
-    float roll_028;
+    float roll;
     float target_roll;
     float unknown_030;
-    srVector3T<float> velocity_034;
-    srVector3T<float> position_040;
+    srVector3T<float> velocity;
+    srVector3T<float> position;
     srVector3T<float> target_position;
     float callback_threshold;
     float callback_progress;
     float movement_scale;
     float movement_speed;
-    float turn_rate_068;
-    unsigned short flags_06c;
+    float turn_rate;
+    unsigned short flags;
     unsigned char padding_06e[6];
     bool pitch_enabled;
     bool roll_enabled;
@@ -182,7 +182,7 @@ struct W8NavigatorMovementState {
        zero before the owner calls Reset. MeasurePathDistance copies it as
        one 36-byte object (0x0045333F). */
     srMatrix3T<float> basis;
-    W8NavigatorAttachment* attachment_0ac;
+    W8NavigatorAttachment* attachment;
     /* Collision/path radius, initialized to 500 by the outer navigator and
        scaled with the navigator in SetScale. */
     float collision_radius;
@@ -190,7 +190,7 @@ struct W8NavigatorMovementState {
     float height_offset;
     float secondary_height_offset;
     float vertical_offset;
-    float scale_0c4;
+    float scale;
     bool position_adjusted;
     unsigned char padding_0c9[3];
 
@@ -241,14 +241,14 @@ public:
     }
     virtual void SetPosition(const srVector3T<float>* position); /* 0x00456020 */
 
-    /* Copy movement_0c0.velocity_034 out - the missile homing step scales this
+    /* Copy movement.velocity out - the missile homing step scales this
        by its step count to predict the next position. */
     void GetVelocity(srVector3T<float>* velocity); /* 0x004534F0 */
-    /* movement_0c0.velocity_034 = *velocity - the launch direction step. */
+    /* movement.velocity = *velocity - the launch direction step. */
     void SetVelocity(const srVector3T<float>* velocity); /* 0x00453520 */
-    /* movement_0c0.target_yaw = NormalizeAngle(angle). */
+    /* movement.target_yaw = NormalizeAngle(angle). */
     void SetTargetYaw(float angle); /* 0x004538D0 */
-    /* movement_0c0.target_pitch = NormalizeAngle(angle). */
+    /* movement.target_pitch = NormalizeAngle(angle). */
     void SetTargetPitch(float angle); /* 0x00453920 */
     /* The navigator a from->to trace runs into: the startup world, a monster's
        navigator, or null. `include_target` lets the trace report the tracked
@@ -269,15 +269,15 @@ public:
        both setters in place. */
     void configureStartupRange(float range)
     {
-        radius_084 = range;
+        radius = range;
         trace_mask = 1;
-        movement_0c0.collision_radius = range;
-        movement_0c0.alternate_radius = range;
+        movement.collision_radius = range;
+        movement.alternate_radius = range;
     }
     void configureStartupDepth(float near_depth, float far_depth)
     {
-        movement_0c0.height_offset = near_depth;
-        movement_0c0.secondary_height_offset = far_depth;
+        movement.height_offset = near_depth;
+        movement.secondary_height_offset = far_depth;
     }
 
     srVector3T<float> GetPosition();
@@ -350,8 +350,8 @@ public:
     void SetTurnRate(float turn_rate);                /* 0x00453C90 */
 
 public:
-    int navigation_mode_008;
-    unsigned int flags_00c;
+    int navigation_mode;
+    unsigned int flags;
     double collision_margin;
     /* Current 3D movement target. */
     srVector3T<float> movement_target;
@@ -368,25 +368,25 @@ public:
     bool halted;
     bool movement_complete;
     bool unknown_027;
-    srVector3T<float> position_028;
+    srVector3T<float> position2;
     float minimum_height;
     float maximum_height;
-    srVector3T<float> position_03c;
+    srVector3T<float> position5;
     unsigned int unknown_048;
     W8Navigator* target_navigator;
     srVector3T<float> target_last_position;
     W8Navigator* linked_navigator;
     unsigned int unknown_060;
     unsigned int unknown_064;
-    W8PathAI* path_ai_068;
+    W8PathAI* path_ai;
     /* 0x00451EC0 fills these as -500 and +500 triples. */
-    srVector3T<float> minimum_06c;
-    srVector3T<float> maximum_078;
-    float radius_084;
+    srVector3T<float> minimum;
+    srVector3T<float> maximum;
+    float radius;
     /* Whether the navigator participates in world queries: cleared when the
        owner deactivates (monster despawn, cursor teardown), restored on
        activation; ResolveTraceHit and GameData skip navigators with it zero. */
-    bool active_088;
+    bool active;
     unsigned char padding_089[3];
     void(__cdecl* movement_callback)(W8Navigator* navigator);
     /* Trace-hit exclusion mask: ResolveTraceHit skips monsters whose
@@ -416,7 +416,7 @@ public:
     /* Constructed first as its own 0xcc-byte subobject, then Reset by this
        owner. Copy construction constructs a fresh attachment and transfers
        selected settings; it never shares the source's path allocation. */
-    W8NavigatorMovementState movement_0c0;
+    W8NavigatorMovementState movement;
     srNode* node; /* 0x18c: constructed srNode */
 }; /* 0x190 */
 
@@ -432,7 +432,7 @@ extern unsigned char g_combat_inactive;
 extern unsigned char g_navigator_link_mode;
 extern const float g_navigator_linked_radius_scale;
 extern W8GrowableVector<W8Navigator*> g_navigator_group;
-/* Runtime scale applied to the startup navigator's radius_084 when the trace
+/* Runtime scale applied to the startup navigator's radius when the trace
    resolver tests the camera sphere; written during startup, not a constant. */
 extern float g_camera_sphere_radius_scale;
 extern float g_navigator_minimum_speed;

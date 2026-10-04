@@ -1008,7 +1008,7 @@ void RestoreAutomapWorldSettings(void)
     g_monster_shadow_updates_enabled = g_automap_saved_render_flags[2];
     g_world_render_enabled = g_automap_saved_render_flags[3];
     g_world->camera->setRotation(0.0, 0.0, 0.0);
-    g_world->camera->flags_138.value &= ~1ul;
+    g_world->camera->flags.value &= ~1ul;
     SetWorldMeshVertexLightTable(g_world, 0);
     g_light_update_flags |= 1u;
     SetResidentTexturePolicy(g_resident_texture_policy);
@@ -1302,7 +1302,7 @@ unsigned char ZoomAutomapIn(const srVector3T<float>* point)
     to.z = position.z;
 
     float ground;
-    if (g_octree_game_data->octree_04->TraceLineOfSight(&from, &to, 1, -3, -3, 1, 0) == 0) {
+    if (g_octree_game_data->octree->TraceLineOfSight(&from, &to, 1, -3, -3, 1, 0) == 0) {
         ground = g_automap_grid_min.y;
         if (g_automap_layers.count != 0 && 1 < g_automap_layers.count &&
             *g_automap_layers.GetAt(1) != 0) {
@@ -1371,7 +1371,7 @@ void ResetAutomapLighting(void)
                         srVectorProcessor::copy(reinterpret_cast<SRDWORD*>(lights), 0,
                                                 static_cast<SRDWORD>(count));
                     }
-                    model->flags_3a0 |= 2;
+                    model->flags |= 2;
                 }
             }
         }
@@ -1386,7 +1386,7 @@ void ResetAutomapLighting(void)
                 srVectorProcessor::copy(reinterpret_cast<SRDWORD*>(lights), 0,
                                         static_cast<SRDWORD>(count));
             }
-            model->flags_3a0 |= 2;
+            model->flags |= 2;
         }
     }
     g_automap_lit_cells->ClearAll();
@@ -2096,7 +2096,7 @@ void RenderAutomapMarkers(void)
             }
         }
         if (g_automap_show_all_monsters != 0 || detect_all != 0 ||
-            (monster->disabled_217 == 0 && info->party_threat.sight_state == W8_SIGHT_SEEN)) {
+            (monster->disabled == 0 && info->party_threat.sight_state == W8_SIGHT_SEEN)) {
             left = g_automap_position.x - g_automap_zoom * g_float_005ebc7c;
             top = g_automap_position.z - g_automap_zoom * g_float_005ebc7c;
             if (location.x < left || left + g_automap_zoom < location.x || location.z < top ||

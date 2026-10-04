@@ -78,12 +78,12 @@ void stParticle::SetParticleScale(float scale)
 {
     float inverse_scale = 1.0f / size_scale;
     // Retail uses the extent as its offset, not the midpoint of the bounds.
-    srVector3T<float> offset = maximum_228 - minimum_21c;
-    minimum_21c = (minimum_21c - offset) * inverse_scale + offset;
-    maximum_228 = (maximum_228 - offset) * inverse_scale + offset;
+    srVector3T<float> offset = maximum1 - minimum1;
+    minimum1 = (minimum1 - offset) * inverse_scale + offset;
+    maximum1 = (maximum1 - offset) * inverse_scale + offset;
     size_scale = scale;
-    minimum_21c = (minimum_21c - offset) * scale + offset;
-    maximum_228 = (maximum_228 - offset) * scale + offset;
+    minimum1 = (minimum1 - offset) * scale + offset;
+    maximum1 = (maximum1 - offset) * scale + offset;
 }
 
 // FUNCTION: WIZ8 0x0049B150
@@ -164,7 +164,7 @@ stParticle::stParticle(srNode* parent, int count)
     vertex_extras = 0;
     triangles = 0;
     colors = 0;
-    texture_154 = 0;
+    texture = 0;
     requires_sorted_renderer = 0;
     particle_size = 1.0;
 
@@ -223,7 +223,7 @@ stParticle::stParticle(srNode* parent, int count)
     retained = 0;
     emission_limit = 0;
     release_when_done = false;
-    replace_when_full_191 = 0;
+    replace_when_full = 0;
     emission_count = 0;
     active_triangles = new unsigned long[texture_frame_count];
     active_particle_count = 0;
@@ -243,11 +243,11 @@ stParticle::stParticle(srNode* parent, int count)
     lifetime_ms = 1500;
     bounds_mode = W8_PARTICLE_BOUNDS_SPHERE;
     speed_mode = W8_PARTICLE_SPEED_RANDOM;
-    minimum_1d0 = -250.0f;
-    maximum_1dc = 250.0f;
-    direction_1e8.Set(0.0f, -1.0f, 0.0f);
+    minimum0 = -250.0f;
+    maximum0 = 250.0f;
+    direction.Set(0.0f, -1.0f, 0.0f);
     initial_speed = 500.0f;
-    acceleration_1f4.Set(0.0f, -4905.0f, 0.0f);
+    acceleration.Set(0.0f, -4905.0f, 0.0f);
     flutter_mode = W8_PARTICLE_FLUTTER_NONE;
     m_pflFlutterAngle = 0;
     flutter_amplitude = 0.0f;
@@ -256,8 +256,8 @@ stParticle::stParticle(srNode* parent, int count)
     cone_yaw = 0.39269906f;
     cone_pitch = 0.39269906f;
     speed_min = 1000.0f;
-    minimum_21c = -1000.0f;
-    maximum_228 = 1000.0f;
+    minimum1 = -1000.0f;
+    maximum1 = 1000.0f;
     bounds_origin.SetZero();
     bounds_radius = 2000.0f;
     update_flags = 0;
@@ -294,7 +294,7 @@ stParticle::stParticle(const stParticle& other)
     vertex_extras = 0;
     triangles = 0;
     colors = 0;
-    texture_154 = 0;
+    texture = 0;
     requires_sorted_renderer = other.requires_sorted_renderer;
     particle_size = other.particle_size;
     texture_frames = 0;
@@ -317,7 +317,7 @@ stParticle::stParticle(const stParticle& other)
 
     vertex_count = count * 4;
     texture_frame_count = count * 2;
-    SetTexture(other.texture_154);
+    SetTexture(other.texture);
     texcoords = static_cast<srVector2T<float>*>(
         srHeap.allocate(vertex_count * sizeof(srVector2T<float>)));
     if (texcoords == 0) {
@@ -359,7 +359,7 @@ stParticle::stParticle(const stParticle& other)
     emission_count = 0;
     active_particle_count = 0;
     release_when_done = other.release_when_done;
-    replace_when_full_191 = other.replace_when_full_191;
+    replace_when_full = other.replace_when_full;
     particle_active = new bool[count];
     memset(particle_active, 0, count);
     velocities =
@@ -381,17 +381,17 @@ stParticle::stParticle(const stParticle& other)
     SetFlutter(other.flutter_mode);
     emission_interval = other.emission_interval;
     lifetime_ms = other.lifetime_ms;
-    minimum_1d0 = other.minimum_1d0;
-    maximum_1dc = other.maximum_1dc;
-    direction_1e8 = other.direction_1e8;
-    acceleration_1f4 = other.acceleration_1f4;
+    minimum0 = other.minimum0;
+    maximum0 = other.maximum0;
+    direction = other.direction;
+    acceleration = other.acceleration;
     cone_yaw = other.cone_yaw;
     cone_pitch = other.cone_pitch;
     initial_speed = other.initial_speed;
     speed_min = other.speed_min;
     speed_max = other.speed_max;
-    minimum_21c = other.minimum_21c;
-    maximum_228 = other.maximum_228;
+    minimum1 = other.minimum1;
+    maximum1 = other.maximum1;
     bounds_origin = other.bounds_origin;
     bounds_radius = other.bounds_radius;
     update_flags = W8_PARTICLE_ACTIVE_TRIANGLES_DIRTY;
@@ -470,7 +470,7 @@ unsigned char stParticle::ActivateParticle(unsigned int* out_index, bool replace
     }
 
     case W8_PARTICLE_DIRECTION_FIXED:
-        velocity = direction_1e8 * magnitude;
+        velocity = this->direction * magnitude;
         break;
 
     case W8_PARTICLE_DIRECTION_CONE: {
@@ -569,7 +569,7 @@ void stParticle::Update()
         getLocation(node_location);
 
         double elapsed = static_cast<double>(elapsed_ticks);
-        srVector3T<float> acceleration_step = acceleration_1f4 * (elapsed * g_double_005ec8d0);
+        srVector3T<float> acceleration_step = this->acceleration * (elapsed * g_double_005ec8d0);
 
         unsigned int index;
         for (index = 0; index < particle_count; ++index) {
@@ -645,7 +645,7 @@ void stParticle::Update()
                 srVector4T<float> transformed = transform.Transform(local);
                 srVector3T<float> local_point;
                 local_point = transformed.xyz();
-                if (PointInsideBounds(&local_point, &minimum_21c, &maximum_228) == 0) {
+                if (PointInsideBounds(&local_point, &minimum1, &maximum1) == 0) {
                     particle_active[index] = 0;
                     update_flags |= W8_PARTICLE_ACTIVE_TRIANGLES_DIRTY;
                     --active_particle_count;
@@ -679,7 +679,7 @@ void stParticle::Update()
 
     if (emission_mode == W8_PARTICLE_EMISSION_SINGLE) {
         unsigned int particle_index;
-        ActivateParticle(&particle_index, replace_when_full_191);
+        ActivateParticle(&particle_index, replace_when_full);
         last_emission_tick = now;
         return;
     }
@@ -691,13 +691,13 @@ void stParticle::Update()
     for (;;) {
         unsigned int lag = now - emission_interval - last_emission_tick;
         unsigned int particle_index;
-        if (ActivateParticle(&particle_index, replace_when_full_191) == 0) {
+        if (ActivateParticle(&particle_index, replace_when_full) == 0) {
             last_emission_tick = now;
             return;
         }
 
         if (has_acceleration == 1) {
-            srVector3T<float> acceleration = (acceleration_1f4 * static_cast<double>(lag)) / 1000.0;
+            srVector3T<float> acceleration = (this->acceleration * static_cast<double>(lag)) / 1000.0;
             velocities[particle_index] += acceleration;
         }
 
@@ -718,11 +718,11 @@ void stParticle::Update()
 void stParticle::InitializeParticlePosition(srVector3T<float>* output)
 {
     output->x =
-        (maximum_1dc.x - minimum_1d0.x) * (rand() & 0x7fff) * g_float_005ec438 + minimum_1d0.x;
+        (maximum0.x - minimum0.x) * (rand() & 0x7fff) * g_float_005ec438 + minimum0.x;
     output->y =
-        (maximum_1dc.y - minimum_1d0.y) * (rand() & 0x7fff) * g_float_005ec438 + minimum_1d0.y;
+        (maximum0.y - minimum0.y) * (rand() & 0x7fff) * g_float_005ec438 + minimum0.y;
     output->z =
-        (maximum_1dc.z - minimum_1d0.z) * (rand() & 0x7fff) * g_float_005ec438 + minimum_1d0.z;
+        (maximum0.z - minimum0.z) * (rand() & 0x7fff) * g_float_005ec438 + minimum0.z;
 
     *output *= size_scale;
 
@@ -924,8 +924,8 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
 
     if (bounds_mode == W8_PARTICLE_BOUNDS_BOX) {
         getRotation(rotation);
-        srVector3T<float> minimum = rotation.Transform(minimum_21c) + position;
-        srVector3T<float> maximum = rotation.Transform(maximum_228) + position;
+        srVector3T<float> minimum = rotation.Transform(minimum1) + position;
+        srVector3T<float> maximum = rotation.Transform(maximum1) + position;
 
         srGERD::e_visibility visibility = renderer->testBoundingBox(minimum, maximum);
         if (visibility == srGERD::VISIBILITY_OUTSIDE) {
@@ -975,41 +975,41 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
         pipeline->vertex_extras = vertex_extras;
     }
 
-    pipeline->current_record->flags_00 = 0;
-    pipeline->current_pass->shader_14 = 0;
+    pipeline->current_record->flags = 0;
+    pipeline->current_pass->shaders = 0;
     pipeline->current_pass->tex_table_0 = 0;
     pipeline->current_pass->tex_table_1 = 0;
 
     if (colors != 0) {
-        pipeline->current_record->colors_0c = colors;
+        pipeline->current_record->colors = colors;
         pipeline->current_record->color_format = 1;
-        pipeline->current_record->flags_00 |= 1;
+        pipeline->current_record->flags |= 1;
     }
     if (alphas != 0) {
         pipeline->current_record->alphas = alphas;
-        pipeline->current_record->flags_00 |= 8;
+        pipeline->current_record->flags |= 8;
     }
 
     /* The retained object is the batch's material: the same pointer reaches
        both the pipeline and the record it is about to submit. */
-    pipeline->material_80 = retained;
-    pipeline->current_record->material_08 = retained;
+    pipeline->material = retained;
+    pipeline->current_record->material = retained;
 
     pipeline->SetFlags(render_flags);
 
     if (texcoords != 0) {
         pipeline->current_record->st0 = texcoords;
-        pipeline->current_record->flags_00 |= 0x10;
+        pipeline->current_record->flags |= 0x10;
     }
 
     if (texture_frames != 0) {
         pipeline->current_pass->tex_table_0 = texture_frames;
     } else {
-        srTextureIFace* texture = texture_154;
+        srTextureIFace* texture = this->texture;
 
         if (texture != 0) {
-            pipeline->texture_78 = texture;
-            pipeline->current_pass->texture_00 = texture;
+            pipeline->texture0 = texture;
+            pipeline->current_pass->texture0 = texture;
         }
     }
 
@@ -1076,7 +1076,7 @@ stParticle::~stParticle()
     if (m_pflFlutterAngle != 0) {
         delete[] m_pflFlutterAngle;
     }
-    texture_154->release();
+    texture->release();
     setParent(0, 1);
 }
 
@@ -1085,7 +1085,7 @@ void stParticle::SetTexture(srTextureIFace* texture)
 {
     unsigned int i;
 
-    if (texture_154 != 0) {
+    if (this->texture != 0) {
         if (texture_frames != 0) {
             for (i = 0; i < texture_frame_count; i += 2) {
                 texture_frames[i]->release();
@@ -1093,7 +1093,7 @@ void stParticle::SetTexture(srTextureIFace* texture)
             delete[] texture_frames;
             texture_frames = 0;
         }
-        texture_154->release();
+        this->texture->release();
     }
 
     if (texture != 0 && texture->getClassID() == stTextureAnim::CLASS_ID) {
@@ -1105,7 +1105,7 @@ void stParticle::SetTexture(srTextureIFace* texture)
         }
     }
 
-    texture_154 = texture;
+    this->texture = texture;
     texture->addReference();
 }
 
@@ -1123,10 +1123,10 @@ void stParticle::SetActive(unsigned char active)
 // FUNCTION: WIZ8 0x0049ac30
 unsigned char stParticle::ReplaceTexture(const char* old_name, srTextureIFace* replacement)
 {
-    if (texture_154 != 0 &&
-        (texture_154->getClassID() == stTextureFile::CLASS_ID ||
-         texture_154->getClassID() == stTextureAnim::CLASS_ID) &&
-        _stricmp(texture_154->getName(), old_name) == 0) {
+    if (texture != 0 &&
+        (texture->getClassID() == stTextureFile::CLASS_ID ||
+         texture->getClassID() == stTextureAnim::CLASS_ID) &&
+        _stricmp(texture->getName(), old_name) == 0) {
         SetTexture(replacement);
         return 1;
     }

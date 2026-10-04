@@ -78,18 +78,18 @@ bool g_animated_prop_present;
 // FUNCTION: WIZ8 0x0044bc00
 W8Prop::W8Prop()
 {
-    trigger_18 = 0;
+    trigger = 0;
     flags = 0;
     m_name = 0;
     anim_frame_fraction = 0;
-    kind_004 = 4;
+    kind = 4;
     id = AllocateGrObjectId();
     m_pRep = new W8PropRepresentation();
     m_pTimer = new W8GameTimer();
-    position_02c.SetZero();
-    position_03c.SetZero();
-    rotation_048.SetIdentity();
-    rotation_06c.SetIdentity();
+    position3.SetZero();
+    position5.SetZero();
+    rotation0.SetIdentity();
+    rotation1.SetIdentity();
     m_gd_prop = 0;
     if (m_pRep == 0) {
         srAssertFail("m_pRep", PROP_CPP, 0x30e, "Prop::Prop() out of memory allocating m_pRep");
@@ -190,7 +190,7 @@ W8Prop* FindPropByName(W8World* world, const char* name)
 void W8Prop::GetPosition(srVector3T<float>* out)
 {
     if (AnimationIsRunning(Rep()->animation) == 1) {
-        *out = position_02c;
+        *out = position3;
         return;
     }
     m_pRep->GetLocation(out);
@@ -238,7 +238,7 @@ void W8Prop::ToggleSetting6E()
 // FUNCTION: WIZ8 0x0044d5a0
 Trigger* W8Prop::GetTrigger()
 {
-    return this->trigger_18;
+    return this->trigger;
 }
 
 /* The trigger that owns this prop's GDProp, once the flag that says the
@@ -375,11 +375,11 @@ bool ResolvePickedProp(W8World* world)
         }
 
         {
-            Trigger* trigger = prop->trigger_18;
+            Trigger* trigger = prop->trigger;
             g_selected_prop_trigger = trigger;
-            if (trigger != 0 && (trigger->flags_0a0 & W8_TRIGGER_ENABLED) != 0 &&
-                ((trigger->flags_0a0 & W8_TRIGGER_ONCE) == 0 ||
-                 (trigger->flags_0a0 & W8_TRIGGER_FIRED) == 0) &&
+            if (trigger != 0 && (trigger->flags & W8_TRIGGER_ENABLED) != 0 &&
+                ((trigger->flags & W8_TRIGGER_ONCE) == 0 ||
+                 (trigger->flags & W8_TRIGGER_FIRED) == 0) &&
                 (g_combat_inactive ||
                  (trigger->m_pActionData != 0 && trigger->m_pActionData->type == 10 &&
                   (static_cast<W8DoorTriggerActionData*>(trigger->m_pActionData)->door_flags & 1) ==
@@ -692,8 +692,8 @@ void W8Prop::ApplyAnimationPaths(W8World* world)
 
                 PathAIApply(path, mesh);
                 static_cast<srNode*>(mesh)->getLocation(location);
-                position_03c = position_02c;
-                position_02c = location;
+                position5 = position3;
+                position3 = location;
             }
         }
     }
@@ -726,8 +726,8 @@ void W8Prop::AdvanceAnimationValue(int frames, char total)
                 rep->subcycle = rep->last_frame;
                 rep->animation_playing = 0;
                 rep->frame_direction = 2;
-                if (trigger_18 != 0) {
-                    trigger_18->RunLinkedTriggers();
+                if (trigger != 0) {
+                    trigger->RunLinkedTriggers();
                 }
                 gXStatus.sight_refresh_pending = 1;
             }
@@ -738,8 +738,8 @@ void W8Prop::AdvanceAnimationValue(int frames, char total)
                 rep->subcycle = rep->first_frame;
                 rep->animation_playing = 0;
                 rep->frame_direction = 4;
-                if (trigger_18 != 0) {
-                    trigger_18->RunLinkedTriggers();
+                if (trigger != 0) {
+                    trigger->RunLinkedTriggers();
                 }
                 gXStatus.sight_refresh_pending = 1;
             }
@@ -880,7 +880,7 @@ char W8Prop::GetDelta(srVector3T<float>* out, const srVector3T<float>* point)
     unsigned char next = static_cast<unsigned char>(NextAnimationValue());
 
     if (abs(next - Rep()->subcycle) == 1) {
-        *out = position_02c - position_03c;
+        *out = position3 - position5;
         return Rep()->frame_steps;
     }
     out->SetZero();
@@ -973,8 +973,8 @@ void W8Prop::ApplyAnimationFrame()
                 path, static_cast<float>(static_cast<W8PropRepresentation*>(m_pRep)->subcycle));
             PathAIApply(path, mesh);
             static_cast<srNode*>(mesh)->getLocation(location);
-            position_02c = location;
-            position_03c = location;
+            position3 = location;
+            position5 = location;
         }
     }
     flags |= 0x20;
@@ -1039,7 +1039,7 @@ void W8Prop::AttachAnimationInstances(W8World* world)
                 instance->frame_interpolation = 0.0f;
             }
             mesh = static_cast<stMeshModel*>(instance->getModel());
-            if (mesh != 0 && (mesh->flags_3a0 & 1) != 0 && trigger_18 == 0) {
+            if (mesh != 0 && (mesh->flags & 1) != 0 && trigger == 0) {
                 instance->render_flags |= 0x10;
             }
             path = AnimObjListEntry(Rep()->animation, 2, static_cast<signed char>(index));
@@ -1052,12 +1052,12 @@ void W8Prop::AttachAnimationInstances(W8World* world)
             }
             rotation = path->rotations[Rep()->subcycle];
             next = path->rotations[next_frame];
-            instance->getRotation(rotation_048);
+            instance->getRotation(rotation0);
             if (!(rotation == next)) {
                 W8Quaternion::InterpolateRotation(rotation, next, anim_frame_fraction,
                                                   &rotation);
             }
-            rotation_06c = rotation;
+            rotation1 = rotation;
             current = **path->nodes->GetAt(Rep()->subcycle);
             next_pos = **path->nodes->GetAt(next_frame);
             inv = g_float_one - anim_frame_fraction;
@@ -1089,8 +1089,8 @@ void W8Prop::AttachAnimationInstances(W8World* world)
                     node = node->next_sibling_;
                 } while (node != 0);
             }
-            position_03c = position_02c;
-            position_02c = position;
+            position5 = position3;
+            position3 = position;
         }
     } else {
         instance = static_cast<stModelInstance*>(Rep()->ToggleAnimation(Rep()->subcycle));
@@ -1106,7 +1106,7 @@ void W8Prop::AttachAnimationInstances(W8World* world)
             instance->frame_interpolation = 0.0f;
         }
         mesh = static_cast<stMeshModel*>(instance->getModel());
-        if (mesh != 0 && (mesh->flags_3a0 & 1) != 0 && trigger_18 == 0) {
+        if (mesh != 0 && (mesh->flags & 1) != 0 && trigger == 0) {
             instance->render_flags |= 0x10;
         }
         if (Rep()->animation->path != 0) {
@@ -1312,21 +1312,21 @@ int W8Prop::BuildOrRefreshPathingRepresentation()
 // FUNCTION: WIZ8 0x0044e230
 void W8Prop::RunMissileTrigger(W8AIMissile* record)
 {
-    if (record != 0 && record->missile_0c != 0 && trigger_18 != 0 &&
-        (trigger_18->initial_action_22a == 0x3a || trigger_18->initial_action_22a == 0x3b ||
-         trigger_18->initial_action_22a == 0x3c)) {
-        trigger_18->Run(record->missile_0c->missile_table_index_1d8);
+    if (record != 0 && record->missile != 0 && trigger != 0 &&
+        (trigger->initial_action == 0x3a || trigger->initial_action == 0x3b ||
+         trigger->initial_action == 0x3c)) {
+        trigger->Run(record->missile->missile_table_index);
     }
 }
 
 /* Mirror of GetPosition: while the rep node reports itself current
-   the position is stored in position_02c, otherwise it goes through the rep
+   the position is stored in position3, otherwise it goes through the rep
    node's own location. */
 // FUNCTION: WIZ8 0x0044e310
 void W8Prop::SetPosition(srVector3T<float>* position)
 {
     if (AnimationIsRunning(Rep()->animation) == 1) {
-        position_02c = *position;
+        position3 = *position;
         return;
     }
     m_pRep->SetLocation(position);
@@ -1335,13 +1335,13 @@ void W8Prop::SetPosition(srVector3T<float>* position)
 // FUNCTION: WIZ8 0x0044e360
 bool W8Prop::TriggerHasActionMessage()
 {
-    return trigger_18 != 0 && trigger_18->HasActionMessage() != 0;
+    return trigger != 0 && trigger->HasActionMessage() != 0;
 }
 
 // FUNCTION: WIZ8 0x0044e380
 bool W8Prop::TriggerRequiresItem()
 {
-    return trigger_18 != 0 && trigger_18->RequiresItem() != 0;
+    return trigger != 0 && trigger->RequiresItem() != 0;
 }
 
 /* Whether a prop with a selectable trigger is visible from `position`: the
@@ -1351,16 +1351,16 @@ bool W8Prop::TriggerRequiresItem()
 // FUNCTION: WIZ8 0x0044e3a0
 bool W8Prop::IsTriggerInView(srVector3T<float>* position)
 {
-    Trigger* trigger = trigger_18;
+    Trigger* trigger = this->trigger;
     srVector3T<float> minimum;
     srVector3T<float> maximum;
     srVector3T<float> center;
     srVector3T<float> projected;
     float distance;
 
-    if (trigger != 0 && (trigger->flags_0a0 & W8_TRIGGER_ENABLED) != 0 &&
-        ((trigger->flags_0a0 & W8_TRIGGER_ONCE) == 0 ||
-         (trigger->flags_0a0 & W8_TRIGGER_FIRED) == 0)) {
+    if (trigger != 0 && (trigger->flags & W8_TRIGGER_ENABLED) != 0 &&
+        ((trigger->flags & W8_TRIGGER_ONCE) == 0 ||
+         (trigger->flags & W8_TRIGGER_FIRED) == 0)) {
         AnimObjGetBounds(Rep()->animation, 2, Rep()->subcycle, &minimum, &maximum);
         center.Set((minimum.x + maximum.x) * g_double_005ebe80,
                    (minimum.y + maximum.y) * g_double_005ebe80,
@@ -1524,11 +1524,11 @@ bool W8PropRepresentation::LoadProp(W8ReadLevelInfo* info, W8Prop* prop)
             ly *= g_double_005ec150;
             lz *= g_double_005ec150;
             this->local_location.x = lx;
-            this->location_004.x = lx;
+            this->location.x = lx;
             this->local_location.y = ly;
-            this->location_004.y = ly;
+            this->location.y = ly;
             this->local_location.z = lz;
-            this->location_004.z = lz;
+            this->location.z = lz;
         }
         if (version > 5) {
             FileRead(hFile, &flag_bits, 4, 0);
@@ -1721,10 +1721,10 @@ bool W8PropRepresentation::LoadProp(W8ReadLevelInfo* info, W8Prop* prop)
                (the stores do not touch that word). */
             trigger->m_bRepType = 2;
             trigger->m_pProp = prop;
-            if (trigger->initial_action_22a == 0x40) {
+            if (trigger->initial_action == 0x40) {
                 InitializeStateDrivenPropVariables(trigger);
             }
-            if (trigger->trigger_kind == 1 && trigger->initial_action_22a == 8) {
+            if (trigger->trigger_kind == 1 && trigger->initial_action == 8) {
                 unsigned int path_count;
                 unsigned int path_i;
 
@@ -1738,7 +1738,7 @@ bool W8PropRepresentation::LoadProp(W8ReadLevelInfo* info, W8Prop* prop)
                     }
                 }
             }
-            switch (trigger->initial_action_22a) {
+            switch (trigger->initial_action) {
             case 1:
             case 2:
             case 3:
@@ -1749,7 +1749,7 @@ bool W8PropRepresentation::LoadProp(W8ReadLevelInfo* info, W8Prop* prop)
                 this->animation_playing = 0;
                 break;
             }
-            prop->trigger_18 = trigger;
+            prop->trigger = trigger;
             hFile = info->hFile;
         }
     }
@@ -1817,7 +1817,7 @@ void W8Prop::CollectModelInstances(W8GrowableVector<stModelInstance*>* instances
                 continue;
             }
             int frame_count = AniMeshValue(mesh);
-            if (mesh->flags_00 & W8_ANI_MESH_SINGLE_INSTANCE) {
+            if (mesh->flags & W8_ANI_MESH_SINGLE_INSTANCE) {
                 instances->Add(GetAniMeshFrame(mesh, 0));
             } else {
                 for (int frame = 0; frame < frame_count; ++frame) {

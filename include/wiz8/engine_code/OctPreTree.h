@@ -12,7 +12,7 @@ struct W8OctBuildNode;
    region id at +4 is consumed by the particle-region builder, and the six
    plane equations at +0x88 are consumed by 0x0049E460. */
 struct W8OctRegionVolume {
-    unsigned long flags_00;
+    unsigned long flags;
     unsigned short m_region;
     unsigned char positional[6];
     /* The bit the visibility pass tests and sets for this volume. */
@@ -48,7 +48,7 @@ struct W8OctSpatialState {
     void GetWorkingBounds(srVector3T<float>* minimum, srVector3T<float>* maximum);
     void SetWorkingBounds(const srVector3T<float>* minimum, const srVector3T<float>* maximum);
 
-    unsigned long flags_00;
+    unsigned long flags;
     float m_extent;
     float m_cell_size;
     srVector3T<float> m_minimum;
@@ -116,7 +116,7 @@ struct W8OctPreTreeVertex {
     /* bit0: welded into an earlier vertex - m_vertex_index then holds the
        redirect; bit1: material-split copy; bit2: sits inside more than one
        region volume (m_region zeroed). */
-    unsigned long flags_00;
+    unsigned long flags;
     /* Ordinal into the geometry vertex array; on welded vertices the merge
        helper stores the surviving vertex's index here. */
     unsigned long m_vertex_index;
@@ -126,7 +126,7 @@ struct W8OctPreTreeVertex {
        vertex's face run is walked once per pass. */
     bool m_visited;
     unsigned char padding_0b;
-    srVector3T<float> position_0c;
+    srVector3T<float> position;
     /* Number of polygons referencing this vertex; SortGeometry counts and
        the region pass tracks the run bound. */
     short m_normal_count;
@@ -148,7 +148,7 @@ struct W8OctPreTreeVertex {
     /* Corner texture coordinate written when a polygon vertex is split. */
     srVector2T<float> m_uv;
     /* Unscaled level-file position kept beside the engine-scaled
-       position_0c. */
+       position. */
     srVector3T<float> m_original_position;
 };
 
@@ -162,14 +162,14 @@ struct W8OctPreTreeGeometry {
     W8OctPreTreeVertex* m_vertices;
     unsigned long m_polygon_count;
     W8OctRegionPolygon* m_polygons;
-    unsigned long positional_10;
+    unsigned long positional2;
     void* owned;
     unsigned long m_material_count;
     unsigned long m_texture_count;
     /* Largest per-vertex polygon reference count, refreshed by the region
        assignment pass. */
     unsigned short m_max_face_count;
-    unsigned char positional_22[2];
+    unsigned char positional6[2];
 
     /* Grow an owned face-index run at capacity boundaries. Retail narrows
        count + capacity to 16 bits before allocation and returns a byte. */
@@ -185,8 +185,8 @@ struct W8OctPreTreeGeometry {
    m_link_index/next_link link fields are emitted as these indices minus
    one) and +0x08 carries the 1..3 mesh kind that becomes m_packed_header. */
 struct W8OctSubmeshBuild {
-    unsigned long flags_00;
-    unsigned long index_04;
+    unsigned long flags;
+    unsigned long index;
     unsigned long m_kind;
     unsigned long m_prev_link;
     unsigned long m_next_link;

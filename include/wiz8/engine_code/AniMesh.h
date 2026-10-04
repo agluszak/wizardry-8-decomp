@@ -21,12 +21,12 @@ enum W8AniMeshFlags {
    assertion-backed. Construction, copying, unloading, and frame lookup prove
    the remaining storage roles. */
 struct W8AniMesh {
-    unsigned char flags_00;              /* 0x00 */
+    unsigned char flags;              /* 0x00 */
     unsigned char frame_count;        /* 0x01 */
     stModelInstance** meshes;         /* 0x04: ppsrMeshes */
     srVector3T<float> bounds_minimum; /* 0x08 */
     srVector3T<float> bounds_maximum; /* 0x14 */
-    float radius_20;                     /* 0x20 */
+    float radius;                     /* 0x20 */
     unsigned int loaded_bytes;        /* 0x24 */
     signed char list_index;           /* 0x28 */
     char* bitmap_directory;           /* 0x2c: strBitmapDir */

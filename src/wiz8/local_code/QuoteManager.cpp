@@ -123,7 +123,7 @@ void RedrawPortraitQuoteBubbles(void)
 void StartBreathCycle(int party_slot, bool force)
 {
     if ((gXStatus.fSpellCastMode == 0 && gXStatus.fItemSelectMode == 0) || force != 0) {
-        QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_special_event_0068c50c, 0,
+        QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_special_event2, 0,
                             g_character_event_no_flags, g_character_event_full_volume);
     }
 }
@@ -154,7 +154,7 @@ int PickRandomPartySpeaker(unsigned int event_type, unsigned char excluded_slot)
    five-vector dispatch queue. */
 
 // GLOBAL: WIZ8 0x0068C578
-static int g_special_event_0068c578 = g_first_remapped_event;
+static int g_special_event21 = g_first_remapped_event;
 // GLOBAL: WIZ8 0x0068c57c
 unsigned int g_event_range_min = g_first_remapped_event + 21;
 /* 0x0068C580: the shared wide buffer formatted character text lands in. The
@@ -196,7 +196,7 @@ const int g_fact_check_event = 129;
 const unsigned int g_normal_event_count = 146; /* ordinary-event count */
 
 /* 0x005EE000: eight-byte dispatch records indexed by remapped event type.
-   The table ends at 0x005EE588 where g_effect_005ee588 begins. TryAdjustQueuedEvent
+   The table ends at 0x005EE588 where g_effect0 begins. TryAdjustQueuedEvent
    reads coalesce_duplicates at +4; ProcessDeferredCharacterEvents reads
    defer_outside_main_game at +5. */
 struct W8CharacterEventDescriptor {
@@ -305,49 +305,49 @@ const W8CharacterEventDescriptor g_character_event_descriptors[0xb1] = {
 };
 
 // GLOBAL: WIZ8 0x0068C504
-static int g_special_event_0068c504 = g_first_remapped_event + 9;
+static int g_special_event0 = g_first_remapped_event + 9;
 // GLOBAL: WIZ8 0x0068C508
-static int g_special_event_0068c508 = g_first_remapped_event + 10;
+static int g_special_event1 = g_first_remapped_event + 10;
 // GLOBAL: WIZ8 0x0068C50C
-int g_special_event_0068c50c = g_first_remapped_event + 5;
+int g_special_event2 = g_first_remapped_event + 5;
 // GLOBAL: WIZ8 0x0068C514
-static int g_special_event_0068c514 = g_first_remapped_event + 1;
+static int g_special_event3 = g_first_remapped_event + 1;
 // GLOBAL: WIZ8 0x0068C51C
-static int g_special_event_0068c51c = g_first_remapped_event + 18;
+static int g_special_event4 = g_first_remapped_event + 18;
 // GLOBAL: WIZ8 0x0068C524
-int g_special_event_0068c524 = g_first_remapped_event + 27;
+int g_special_event5 = g_first_remapped_event + 27;
 // GLOBAL: WIZ8 0x0068C528
-int g_special_event_0068c528 = g_first_remapped_event + 28;
+int g_special_event6 = g_first_remapped_event + 28;
 // GLOBAL: WIZ8 0x0068C52C
-static int g_special_event_0068c52c = g_first_remapped_event + 2;
+static int g_special_event7 = g_first_remapped_event + 2;
 // GLOBAL: WIZ8 0x0068C530
 int g_event_target_out_of_range = g_first_remapped_event + 29;
 // GLOBAL: WIZ8 0x0068C534
-int g_special_event_0068c534 = g_first_remapped_event + 4;
+int g_special_event8 = g_first_remapped_event + 4;
 // GLOBAL: WIZ8 0x0068C538
-static int g_special_event_0068c538 = g_first_remapped_event + 8;
+static int g_special_event9 = g_first_remapped_event + 8;
 // GLOBAL: WIZ8 0x0068C544
-static int g_special_event_0068c544 = g_first_remapped_event + 7;
+static int g_special_event11 = g_first_remapped_event + 7;
 // GLOBAL: WIZ8 0x0068C540
-static int g_special_event_0068c540 = g_first_remapped_event + 19;
+static int g_special_event10 = g_first_remapped_event + 19;
 // GLOBAL: WIZ8 0x0068C550
-static int g_special_event_0068c550 = g_first_remapped_event + 17;
+static int g_special_event12 = g_first_remapped_event + 17;
 // GLOBAL: WIZ8 0x0068C558
-int g_special_event_0068c558 = g_first_remapped_event + 15;
+int g_special_event13 = g_first_remapped_event + 15;
 // GLOBAL: WIZ8 0x0068C55C
-int g_special_event_0068c55c = g_first_remapped_event + 3;
+int g_special_event14 = g_first_remapped_event + 3;
 // GLOBAL: WIZ8 0x0068C560
-int g_special_event_0068c560 = g_first_remapped_event + 25;
+int g_special_event15 = g_first_remapped_event + 25;
 // GLOBAL: WIZ8 0x0068C564
-static int g_special_event_0068c564 = g_first_remapped_event + 20;
+static int g_special_event16 = g_first_remapped_event + 20;
 // GLOBAL: WIZ8 0x0068C568
-int g_special_event_0068c568 = g_first_remapped_event + 6;
+int g_special_event17 = g_first_remapped_event + 6;
 // GLOBAL: WIZ8 0x0068C56C
-int g_special_event_0068c56c = g_first_remapped_event + 22;
+int g_special_event18 = g_first_remapped_event + 22;
 // GLOBAL: WIZ8 0x0068C570
-int g_special_event_0068c570 = g_first_remapped_event + 24;
+int g_special_event19 = g_first_remapped_event + 24;
 // GLOBAL: WIZ8 0x0068C574
-int g_special_event_0068c574 = g_first_remapped_event + 26;
+int g_special_event20 = g_first_remapped_event + 26;
 
 static bool MapEventTypeToDescriptorIndex(unsigned int event_type, unsigned int* descriptor_index)
 {
@@ -530,8 +530,8 @@ void W8CharacterEventQueue::DestroyAllEvents()
     while (pending_events.count > 0) {
         pending_events.RemoveAtAndDelete(0);
     }
-    while (vector_00.count > 0) {
-        vector_00.RemoveAtAndDelete(0);
+    while (vector0.count > 0) {
+        vector0.RemoveAtAndDelete(0);
     }
 }
 
@@ -549,10 +549,10 @@ void W8CharacterEventQueue::RemoveCharacterEvents(W8Character* character)
             entry->Complete();
         }
     }
-    for (index = 0; index < vector_20.count; ++index) {
-        entry = *vector_20.GetAt(index);
+    for (index = 0; index < vector1.count; ++index) {
+        entry = *vector1.GetAt(index);
         if (entry->character == character) {
-            vector_20.RemoveAt(index);
+            vector1.RemoveAt(index);
             --index;
             delete entry;
         }
@@ -565,10 +565,10 @@ void W8CharacterEventQueue::RemoveCharacterEvents(W8Character* character)
             delete entry;
         }
     }
-    for (index = 0; index < vector_00.count; ++index) {
-        entry = *vector_00.GetAt(index);
+    for (index = 0; index < vector0.count; ++index) {
+        entry = *vector0.GetAt(index);
         if (entry->character == character) {
-            vector_00.RemoveAt(index);
+            vector0.RemoveAt(index);
             --index;
             delete entry;
         }
@@ -701,9 +701,9 @@ static bool CanDispatchCharacterEvent(unsigned int party_slot, unsigned int even
     }
     character = &g_status.buffers.Char[party_slot];
     if (character->highest_condition > 14) {
-        if (event_type == static_cast<unsigned int>(g_special_event_0068c538) ||
-            event_type == static_cast<unsigned int>(g_special_event_0068c540) ||
-            g_special_event_0068c564 != 0) {
+        if (event_type == static_cast<unsigned int>(g_special_event9) ||
+            event_type == static_cast<unsigned int>(g_special_event10) ||
+            g_special_event16 != 0) {
             if (character->uiCondition[17] != 0 || character->uiCondition[19] != 0) {
                 return 0;
             }
@@ -711,15 +711,15 @@ static bool CanDispatchCharacterEvent(unsigned int party_slot, unsigned int even
             if (character->highest_condition != 0x11 && character->highest_condition != 0xf) {
                 return 0;
             }
-            if (event_type != static_cast<unsigned int>(g_special_event_0068c544) &&
-                event_type != static_cast<unsigned int>(g_special_event_0068c550) &&
-                event_type != static_cast<unsigned int>(g_special_event_0068c51c)) {
+            if (event_type != static_cast<unsigned int>(g_special_event11) &&
+                event_type != static_cast<unsigned int>(g_special_event12) &&
+                event_type != static_cast<unsigned int>(g_special_event4)) {
                 return 0;
             }
         }
     }
     if (character->hp_current == 0 &&
-        event_type != static_cast<unsigned int>(g_special_event_0068c538)) {
+        event_type != static_cast<unsigned int>(g_special_event9)) {
         return 0;
     }
     mapped_event_type = event_type;
@@ -752,7 +752,7 @@ unsigned char W8CharacterEvent::PlayEventSound()
     W8NpcState* npc;
 
     if (character->uiCondition[8] != 0) {
-        sound_event = g_special_event_0068c508;
+        sound_event = g_special_event1;
     }
     if (npc_index == -1 || g_status.game_started == 0 ||
         g_current_screen_state.id == W8_SCREEN_CHARACTER) {
@@ -821,14 +821,14 @@ unsigned char W8CharacterEvent::Dispatch()
             IsConditionMet(event_type) == 0) {
             goto finish_without_dispatch;
         }
-        if (event_type != static_cast<unsigned int>(g_special_event_0068c578) &&
-            event_type != static_cast<unsigned int>(g_special_event_0068c508)) {
+        if (event_type != static_cast<unsigned int>(g_special_event21) &&
+            event_type != static_cast<unsigned int>(g_special_event1)) {
             if (character->uiCondition[W8_CONDITION_SPELLCASTING_BLOCKED] != 0) {
-                QueueCharacterEvent(character, g_special_event_0068c508, 0, 1, 0x7f);
+                QueueCharacterEvent(character, g_special_event1, 0, 1, 0x7f);
                 return 0;
             }
             if (character->uiCondition[11] != 0) {
-                QueueCharacterEvent(character, g_special_event_0068c578, 0, 1, 0x7f);
+                QueueCharacterEvent(character, g_special_event21, 0, 1, 0x7f);
                 return 0;
             }
         }
@@ -842,7 +842,7 @@ unsigned char W8CharacterEvent::Dispatch()
         npc_index = row->npc_index;
         if (npc_index != -1 && event_type < 0x93) {
             npc = GetNpcState(npc_index);
-            row->pending_event_type_ff = event_type;
+            row->pending_event_type = event_type;
             if (npc == 0) {
                 return 1;
             }
@@ -887,7 +887,7 @@ unsigned char W8CharacterEvent::Dispatch()
                 SetPartyPortraitEventState(party_slot, 1, event_type, g_character_text,
                                            1 - ((flags & g_character_event_flags_mask) != 0));
                 slot->active_character_event = this;
-                row->pending_event_type_ff = event_type;
+                row->pending_event_type = event_type;
                 slot->pending_event_type = event_type;
                 return 1;
             }
@@ -1083,7 +1083,7 @@ void SetPartyPortraitEventState(unsigned int party_slot, bool active,
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
         g_settings.main_ui_mode != W8_MAIN_UI_MODE_PORTRAITS &&
         g_level_block->portrait_refresh_pending[party_slot] == 0 &&
-        event_type != static_cast<unsigned int>(g_special_event_0068c568)) {
+        event_type != static_cast<unsigned int>(g_special_event17)) {
         RefreshSelectedPartyPortrait(party_slot);
         record->auto_portrait_refresh = 1;
         record->portrait_event_active = active;
@@ -1426,12 +1426,12 @@ W8CharacterEvent* QueueCharacterEvent(W8Character* character, int event_type, un
     W8CharacterEvent* entry;
 
     if (g_settings.pc_confirmations == 0 &&
-        (event_type == g_special_event_0068c50c || event_type == g_special_event_0068c568)) {
+        (event_type == g_special_event2 || event_type == g_special_event17)) {
         return 0;
     }
-    if (event_type != g_special_event_0068c504 && event_type != g_special_event_0068c550 &&
-        event_type != g_special_event_0068c51c && event_type != g_special_event_0068c538 &&
-        event_type != g_special_event_0068c540 && event_type != g_special_event_0068c564) {
+    if (event_type != g_special_event0 && event_type != g_special_event12 &&
+        event_type != g_special_event4 && event_type != g_special_event9 &&
+        event_type != g_special_event10 && event_type != g_special_event16) {
         volume = volume * 70 / 100;
     }
     entry = new W8CharacterEvent(character, event_type, flags, queue_mode, volume);
@@ -1489,12 +1489,12 @@ void MaybeStartIncapacitationEvent(unsigned int party_slot)
     if ((character->hp_current * 100) / static_cast<unsigned int>(character->uiHPMax) != 0) {
         return;
     }
-    effect = g_effect_005ee594;
+    effect = g_effect3;
     if (g_value_005ed8fc == 0) {
         if (g_flee_hp_fraction == 0) {
             return;
         }
-        effect = Random(2) == 0 ? g_effect_005ee590 : g_effect_005ee5f8;
+        effect = Random(2) == 0 ? g_effect2 : g_effect17;
     }
     if (effect != -1 && QueueCharacterEvent(character, effect, 0, g_character_event_no_flags,
                                             g_character_event_full_volume) != 0) {
@@ -1517,17 +1517,17 @@ void QueuePartyDeathReaction(unsigned int party_slot)
 
     if (party_slot < 2) {
         skip_first_two = 1;
-        effect = g_effect_005ee5d8;
+        effect = g_effect12;
     } else {
-        effect = g_effect_005ee5d0;
+        effect = g_effect10;
         if (g_status.buffers.Char[party_slot].gender != 0) {
-            effect = g_effect_005ee5d4;
+            effect = g_effect11;
         }
     }
     remaining = GetRandomPartySlots(0, 0, party_slot, selected, 1, skip_first_two);
     for (index = 0; index < remaining; ++index) {
         entry = QueueCharacterEvent(&g_status.buffers.Char[selected[index]], effect, 0,
-                                    g_effect_argument_005ed8cc, g_character_event_full_volume);
+                                    g_effect_argument0, g_character_event_full_volume);
         if (entry != 0) {
             entry->dispatch_delay_ms = 3000;
             entry->dispatch_delay_start = GetTickCount();
@@ -1551,25 +1551,25 @@ void QueueDamageReactionEvents(W8Character* character)
     hp_percent = (character->hp_current * 100) / static_cast<unsigned int>(character->uiHPMax);
     party_slot = CharacterPointerToPartySlot(character);
     has_incapacitation_event =
-        gXStatus.character_event_queue->HasEventCharacter(g_effect_005ee594, party_slot);
+        gXStatus.character_event_queue->HasEventCharacter(g_effect3, party_slot);
     has_flee_event =
-        gXStatus.character_event_queue->HasEventCharacter(g_effect_005ee590, party_slot);
-    gXStatus.character_event_queue->HasEventCharacter(g_effect_005ee5f8, party_slot);
+        gXStatus.character_event_queue->HasEventCharacter(g_effect2, party_slot);
+    gXStatus.character_event_queue->HasEventCharacter(g_effect17, party_slot);
     if (character->highest_condition != 0xf && character->highest_condition != 0x11) {
         if (g_value_005ed8fc <= hp_percent || has_incapacitation_event) {
             if (g_flee_hp_fraction <= hp_percent) {
                 goto queue_follow_up_event;
             }
             if (Random(2) != 0 || has_flee_event) {
-                effect = g_effect_005ee5f8;
+                effect = g_effect17;
             } else {
-                effect = g_effect_005ee590;
+                effect = g_effect2;
             }
-            entry = QueueCharacterEvent(character, effect, g_effect_argument_005ed8d4,
-                                        g_effect_argument_005ed8d0, g_character_event_full_volume);
+            entry = QueueCharacterEvent(character, effect, g_effect_argument2,
+                                        g_effect_argument1, g_character_event_full_volume);
         } else {
-            entry = QueueCharacterEvent(character, g_effect_005ee594, g_effect_argument_005ed8d4,
-                                        g_effect_argument_005ed8d0, g_character_event_full_volume);
+            entry = QueueCharacterEvent(character, g_effect3, g_effect_argument2,
+                                        g_effect_argument1, g_character_event_full_volume);
         }
         if (entry != 0) {
             entry->dispatch_delay_ms = 0x5dc;
@@ -1577,11 +1577,11 @@ void QueueDamageReactionEvents(W8Character* character)
         }
     }
 queue_follow_up_event:
-    follow_up_events[0] = g_special_event_0068c544;
-    follow_up_events[1] = g_special_event_0068c550;
-    follow_up_events[2] = g_special_event_0068c51c;
-    QueueCharacterEvent(character, follow_up_events[Random(3)], g_effect_argument_005ed8d4,
-                        g_effect_argument_005ed8cc, g_character_event_full_volume);
+    follow_up_events[0] = g_special_event11;
+    follow_up_events[1] = g_special_event12;
+    follow_up_events[2] = g_special_event4;
+    QueueCharacterEvent(character, follow_up_events[Random(3)], g_effect_argument2,
+                        g_effect_argument0, g_character_event_full_volume);
 }
 
 /* Turn-begin path for several surviving party members: queue event 0x15 on
@@ -1595,8 +1595,8 @@ void QueueTurnReactionEvent(void)
 
     remaining = GetRandomPartySlots(0, 0, -1, selected, 1, 0);
     for (index = 0; index < remaining; ++index) {
-        QueueCharacterEvent(&g_status.buffers.Char[selected[index]], g_effect_005ee5dc, 0,
-                            g_effect_argument_005ed8cc, g_character_event_full_volume);
+        QueueCharacterEvent(&g_status.buffers.Char[selected[index]], g_effect13, 0,
+                            g_effect_argument0, g_character_event_full_volume);
     }
 }
 
@@ -1616,8 +1616,8 @@ void QueueLastSurvivorEvent(void)
         }
     }
     if (alive_count != 0) {
-        QueueCharacterEvent(&g_status.buffers.Char[last_alive], g_effect_005ee5e0, 0,
-                            g_effect_argument_005ed8cc, g_character_event_full_volume);
+        QueueCharacterEvent(&g_status.buffers.Char[last_alive], g_effect14, 0,
+                            g_effect_argument0, g_character_event_full_volume);
     }
 }
 
@@ -1644,30 +1644,30 @@ void QueueConditionChangeReaction(W8Character* character)
     switch (character->highest_condition) {
     case 0x12:
         gXStatus.character_event_queue->RemoveCharacterEvents(character);
-        events[0] = g_special_event_0068c538;
-        events[1] = g_special_event_0068c540;
-        events[2] = g_special_event_0068c564;
-        QueueCharacterEvent(character, events[Random(3)], g_effect_argument_005ed8d4,
-                            g_effect_argument_005ed8cc, g_character_event_full_volume);
+        events[0] = g_special_event9;
+        events[1] = g_special_event10;
+        events[2] = g_special_event16;
+        QueueCharacterEvent(character, events[Random(3)], g_effect_argument2,
+                            g_effect_argument0, g_character_event_full_volume);
         return;
     case 0x11:
-        events[0] = g_special_event_0068c538;
-        events[1] = g_special_event_0068c540;
-        events[2] = g_special_event_0068c564;
+        events[0] = g_special_event9;
+        events[1] = g_special_event10;
+        events[2] = g_special_event16;
         QueueCharacterEvent(character, events[Random(3)], 0, g_character_event_no_flags,
                             g_character_event_full_volume);
         return;
     case 5:
-        QueueCharacterEvent(character, g_special_event_0068c558, 0, g_effect_argument_005ed8cc,
+        QueueCharacterEvent(character, g_special_event13, 0, g_effect_argument0,
                             g_character_event_full_volume);
         return;
     case 8:
-        QueueCharacterEvent(character, g_special_event_0068c508, 0, g_effect_argument_005ed8cc,
+        QueueCharacterEvent(character, g_special_event1, 0, g_effect_argument0,
                             g_character_event_full_volume);
         return;
     case 3:
     case 4:
-        QueueCharacterEvent(character, g_special_event_0068c52c, 0, g_effect_argument_005ed8cc,
+        QueueCharacterEvent(character, g_special_event7, 0, g_effect_argument0,
                             g_character_event_full_volume);
         return;
     case 2:
@@ -1678,21 +1678,21 @@ void QueueConditionChangeReaction(W8Character* character)
         if (Random(2) == 0) {
             reaction = g_condition_reaction_alt;
         }
-        QueueCharacterEvent(character, reaction, 0, g_effect_argument_005ed8cc,
+        QueueCharacterEvent(character, reaction, 0, g_effect_argument0,
                             g_character_event_full_volume);
         return;
     case 0xc:
-        QueueCharacterEvent(character, g_effect_005ee5a4, 0, g_effect_argument_005ed8cc,
+        QueueCharacterEvent(character, g_effect5, 0, g_effect_argument0,
                             g_character_event_full_volume);
         return;
     case 0xe:
     case 0x10:
-        QueueCharacterEvent(character, g_effect_005ee5ac, 0, g_effect_argument_005ed8cc,
+        QueueCharacterEvent(character, g_effect6, 0, g_effect_argument0,
                             g_character_event_full_volume);
         return;
     case 0x13:
         excluded_slot = CharacterPointerToPartySlot(character);
-        reaction = g_effect_005ee628;
+        reaction = g_effect27;
         if ((reaction < g_normal_event_count ||
              (g_first_remapped_event <= reaction &&
               reaction < g_remapped_event_count + g_first_remapped_event)) &&
@@ -1706,16 +1706,16 @@ void QueueConditionChangeReaction(W8Character* character)
                 ++attempts;
             }
             QueueCharacterEvent(&g_status.buffers.Char[slot], reaction, 0,
-                                g_effect_argument_005ed8cc, g_character_event_full_volume);
+                                g_effect_argument0, g_character_event_full_volume);
             return;
         }
         break;
     case 6:
-        QueueCharacterEvent(character, g_special_event_0068c514, 0, g_effect_argument_005ed8cc,
+        QueueCharacterEvent(character, g_special_event3, 0, g_effect_argument0,
                             g_character_event_full_volume);
         return;
     case 0xb:
-        QueueCharacterEvent(character, g_special_event_0068c578, 0, g_effect_argument_005ed8cc,
+        QueueCharacterEvent(character, g_special_event21, 0, g_effect_argument0,
                             g_character_event_full_volume);
         break;
     }
@@ -1736,12 +1736,12 @@ void QueueConditionClearedReaction(W8Character* character, int condition)
     }
     switch (condition) {
     case 0x12:
-        QueueCharacterEvent(character, g_effect_005ee5b8, 0, g_effect_argument_005ed8cc,
+        QueueCharacterEvent(character, g_effect8, 0, g_effect_argument0,
                             g_character_event_full_volume);
         return;
     case 10:
     case 0x13:
-        QueueCharacterEvent(character, g_effect_005ee5b4, 0, g_effect_argument_005ed8cc,
+        QueueCharacterEvent(character, g_effect7, 0, g_effect_argument0,
                             g_character_event_full_volume);
         return;
     case 2:
@@ -1758,11 +1758,11 @@ void QueueConditionClearedReaction(W8Character* character, int condition)
     case 0x10:
     case 0x11:
         if (character->highest_condition == 0) {
-            QueueCharacterEvent(character, g_effect_005ee6dc, 0, g_effect_argument_005ed8cc,
+            QueueCharacterEvent(character, g_effect35, 0, g_effect_argument0,
                                 g_character_event_full_volume);
             return;
         }
-        QueueCharacterEvent(character, g_effect_005ee6d8, 0, g_effect_argument_005ed8cc,
+        QueueCharacterEvent(character, g_effect34, 0, g_effect_argument0,
                             g_character_event_full_volume);
         break;
     }
@@ -1776,7 +1776,7 @@ void RequeueSelectedPortraitEvent(void)
     int slot = g_status.selected_character;
 
     if (slot != -1) {
-        unsigned int event_type = g_status.buffers.XChar[slot].pending_event_type_ff;
+        unsigned int event_type = g_status.buffers.XChar[slot].pending_event_type;
         if (event_type != 0) {
             QueueCharacterEvent(&g_status.buffers.Char[slot], event_type, 4, 0, 0x7f);
         }

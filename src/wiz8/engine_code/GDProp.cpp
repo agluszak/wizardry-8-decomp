@@ -142,13 +142,13 @@ void GDProp::Initialize(srModelInstance* instance, bool attach, unsigned short p
     int surface_total = 0;
     stMeshModel* mesh = static_cast<stMeshModel*>(instance->getModel());
     while (mesh != 0) {
-        unsigned int mesh_flags = mesh->flags_3a0;
+        unsigned int mesh_flags = mesh->flags;
         srVector3i* polygon_vertices = mesh->getPolyVertex();
         for (int polygon = 0; polygon < mesh->polygon_count; ++polygon) {
             W8GDSurface* surface = &m_pGDSurfaces[surface_total + polygon];
-            surface->vertex_indices_18[0] = polygon_vertices[polygon].x + vertex_base;
-            surface->vertex_indices_18[1] = polygon_vertices[polygon].y + vertex_base;
-            surface->vertex_indices_18[2] = polygon_vertices[polygon].z + vertex_base;
+            surface->vertex_indices[0] = polygon_vertices[polygon].x + vertex_base;
+            surface->vertex_indices[1] = polygon_vertices[polygon].y + vertex_base;
+            surface->vertex_indices[2] = polygon_vertices[polygon].z + vertex_base;
         }
         surface_total += mesh->polygon_count;
 
@@ -161,37 +161,37 @@ void GDProp::Initialize(srModelInstance* instance, bool attach, unsigned short p
 
         for (int surface_index = 0; surface_index < surface_total; ++surface_index) {
             W8GDSurface* surface = &m_pGDSurfaces[surface_index];
-            BuildTrianglePlane(&surface->plane_24, &m_pVertices[surface->vertex_indices_18[0]],
-                               &m_pVertices[surface->vertex_indices_18[1]],
-                               &m_pVertices[surface->vertex_indices_18[2]]);
+            BuildTrianglePlane(&surface->plane, &m_pVertices[surface->vertex_indices[0]],
+                               &m_pVertices[surface->vertex_indices[1]],
+                               &m_pVertices[surface->vertex_indices[2]]);
 
             int dominant_axis;
             float largest = 0.0f;
             for (int axis = 0; axis < 3; ++axis) {
-                float magnitude = static_cast<float>(fabs((&surface->plane_24.normal.x)[axis]));
+                float magnitude = static_cast<float>(fabs((&surface->plane.normal.x)[axis]));
                 if (largest < magnitude) {
                     largest = magnitude;
                     dominant_axis = axis;
                 }
             }
-            surface->flags_00 = dominant_axis + 0x800;
+            surface->flags = dominant_axis + 0x800;
             surface->footstep_surface = footstep_surface;
             surface->footstep_material = footstep_material;
             surface->hit_plane = 0;
             if ((mesh_flags & 1) != 0) {
-                surface->flags_00 |= 0x8000;
+                surface->flags |= 0x8000;
             }
 
-            if (g_float_005ebc7c <= surface->plane_24.normal.y) {
+            if (g_float_005ebc7c <= surface->plane.normal.y) {
                 surface->contact_margin = 500.0f;
-                surface->flags_00 |= 4;
-                if (g_float_005ebccc < surface->plane_24.normal.y) {
-                    surface->slope_48 = 1.0f;
+                surface->flags |= 4;
+                if (g_float_005ebccc < surface->plane.normal.y) {
+                    surface->slope = 1.0f;
                 } else {
-                    surface->slope_48 = surface->plane_24.normal.y;
+                    surface->slope = surface->plane.normal.y;
                 }
             } else {
-                surface->slope_48 = 0.0f;
+                surface->slope = 0.0f;
                 surface->contact_margin = 500.0f;
             }
         }
@@ -223,7 +223,7 @@ void GDProp::Initialize(srModelInstance* instance, bool attach, unsigned short p
             unsigned int flags = 0x08000000;
             if ((owner->lock_state.lock_type != 0 &&
                  owner->lock_state.device_state.completed == 0) ||
-                ((owner->flags_0a0 & W8_TRIGGER_ENABLED) == 0 ||
+                ((owner->flags & W8_TRIGGER_ENABLED) == 0 ||
                  (static_cast<W8DoorTriggerActionData*>(action)->door_flags & 5) != 0)) {
                 flags = 0x28000000;
             }
@@ -258,7 +258,7 @@ void GDProp::BindTrigger(Trigger* owner)
             unsigned int path_flags = 0x08000000;
             if ((owner->lock_state.lock_type == 0 ||
                  owner->lock_state.device_state.completed != 0) &&
-                (owner->flags_0a0 & W8_TRIGGER_ENABLED) != 0 &&
+                (owner->flags & W8_TRIGGER_ENABLED) != 0 &&
                 (static_cast<W8DoorTriggerActionData*>(action)->door_flags & 5) == 0) {
                 m_flags |= 8;
             } else {
@@ -327,9 +327,9 @@ char GDProp::BoundsOverlap(const srVector3T<float>* minimum, const srVector3T<fl
     bounds[1] = *maximum;
     for (int index = 0; index < m_surface_count && hit == 0; ++index) {
         W8GDSurface* surface = &m_pGDSurfaces[index];
-        triangle[0] = m_pVertices[surface->vertex_indices_18[0]];
-        triangle[1] = m_pVertices[surface->vertex_indices_18[1]];
-        triangle[2] = m_pVertices[surface->vertex_indices_18[2]];
+        triangle[0] = m_pVertices[surface->vertex_indices[0]];
+        triangle[1] = m_pVertices[surface->vertex_indices[1]];
+        triangle[2] = m_pVertices[surface->vertex_indices[2]];
         hit = TestSpatialTriangle(bounds, triangle, surface->Normal());
     }
     return hit;
@@ -556,9 +556,9 @@ void GDProp::TransformMeshGeometry(const W8LevelFileScaledPathNode* node, W8Leve
     if (node->path.angle != g_double_zero) {
         rotation.RotateAroundAxis(sin(node->path.angle), cos(node->path.angle), axis);
     }
-    translation.Set(node->path.position_00.x * g_double_005ec150,
-                    node->path.position_00.y * g_double_005ec150,
-                    node->path.position_00.z * g_double_005ec150);
+    translation.Set(node->path.position.x * g_double_005ec150,
+                    node->path.position.y * g_double_005ec150,
+                    node->path.position.z * g_double_005ec150);
 
     if ((mesh->flags & 1) != 0 && (mesh->flags & 2) != 0) {
         factor = mesh->lod_scale * g_world_scale;
@@ -595,18 +595,18 @@ void GDProp::TransformMeshGeometry(const W8LevelFileScaledPathNode* node, W8Leve
                 for (int face = 0; face < mesh->num_faces; ++face) {
                     W8GDSurface* surface = &m_pGDSurfaces[m_surface_count];
                     ++m_surface_count;
-                    surface->vertex_indices_18[0] = faces[face].vertex_indices[0] + vertex_base;
-                    surface->vertex_indices_18[1] = faces[face].vertex_indices[1] + vertex_base;
-                    surface->vertex_indices_18[2] = faces[face].vertex_indices[2] + vertex_base;
+                    surface->vertex_indices[0] = faces[face].vertex_indices[0] + vertex_base;
+                    surface->vertex_indices[1] = faces[face].vertex_indices[1] + vertex_base;
+                    surface->vertex_indices[2] = faces[face].vertex_indices[2] + vertex_base;
                 }
             } else {
                 W8ReadMeshFace* faces = mesh->pstFaces;
                 for (int face = 0; face < mesh->num_faces; ++face) {
                     W8GDSurface* surface = &m_pGDSurfaces[m_surface_count];
                     ++m_surface_count;
-                    surface->vertex_indices_18[0] = faces[face].vertices[0] + vertex_base;
-                    surface->vertex_indices_18[1] = faces[face].vertices[1] + vertex_base;
-                    surface->vertex_indices_18[2] = faces[face].vertices[2] + vertex_base;
+                    surface->vertex_indices[0] = faces[face].vertices[0] + vertex_base;
+                    surface->vertex_indices[1] = faces[face].vertices[1] + vertex_base;
+                    surface->vertex_indices[2] = faces[face].vertices[2] + vertex_base;
                 }
             }
         }
@@ -622,44 +622,44 @@ void GDProp::TransformMeshGeometry(const W8LevelFileScaledPathNode* node, W8Leve
             for (int face = 0; face < mesh->num_faces; ++face) {
                 W8GDSurface* surface = &m_pGDSurfaces[m_surface_count];
                 ++m_surface_count;
-                surface->vertex_indices_18[0] = faces[face].vertex_indices[0] + vertex_base;
-                surface->vertex_indices_18[1] = faces[face].vertex_indices[1] + vertex_base;
-                surface->vertex_indices_18[2] = faces[face].vertex_indices[2] + vertex_base;
+                surface->vertex_indices[0] = faces[face].vertex_indices[0] + vertex_base;
+                surface->vertex_indices[1] = faces[face].vertex_indices[1] + vertex_base;
+                surface->vertex_indices[2] = faces[face].vertex_indices[2] + vertex_base;
             }
         } else {
             W8ReadMeshFace* faces = mesh->pstFaces;
             for (int face = 0; face < mesh->num_faces; ++face) {
                 W8GDSurface* surface = &m_pGDSurfaces[m_surface_count];
                 ++m_surface_count;
-                surface->vertex_indices_18[0] = faces[face].vertices[0] + vertex_base;
-                surface->vertex_indices_18[1] = faces[face].vertices[1] + vertex_base;
-                surface->vertex_indices_18[2] = faces[face].vertices[2] + vertex_base;
+                surface->vertex_indices[0] = faces[face].vertices[0] + vertex_base;
+                surface->vertex_indices[1] = faces[face].vertices[1] + vertex_base;
+                surface->vertex_indices[2] = faces[face].vertices[2] + vertex_base;
             }
         }
     }
 
     for (int index = surface_base; index < m_surface_count; ++index) {
         W8GDSurface* surface = &m_pGDSurfaces[index];
-        BuildTrianglePlane(&surface->plane_24, &m_pVertices[surface->vertex_indices_18[0]],
-                           &m_pVertices[surface->vertex_indices_18[1]],
-                           &m_pVertices[surface->vertex_indices_18[2]]);
+        BuildTrianglePlane(&surface->plane, &m_pVertices[surface->vertex_indices[0]],
+                           &m_pVertices[surface->vertex_indices[1]],
+                           &m_pVertices[surface->vertex_indices[2]]);
 
         int dominant_axis;
         float largest = g_float_zero;
         for (int axis = 0; axis < 3; ++axis) {
-            float magnitude = static_cast<float>(fabs((&surface->plane_24.normal.x)[axis]));
+            float magnitude = static_cast<float>(fabs((&surface->plane.normal.x)[axis]));
             if (largest < magnitude) {
                 largest = magnitude;
                 dominant_axis = axis;
             }
         }
-        surface->flags_00 = dominant_axis + 0x800;
+        surface->flags = dominant_axis + 0x800;
         surface->hit_plane = 0;
-        if (g_float_005ebc7c <= surface->plane_24.normal.y) {
+        if (g_float_005ebc7c <= surface->plane.normal.y) {
             surface->contact_margin = 500.0f;
-            surface->flags_00 |= 4;
+            surface->flags |= 4;
         } else {
-            surface->slope_48 = 0.0f;
+            surface->slope = 0.0f;
             surface->contact_margin = 500.0f;
         }
     }

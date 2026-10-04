@@ -246,9 +246,9 @@ const char* g_trap_sounds[8] = {
     "Data\\Sound\\Misc\\Trap 06.wav", "Data\\Sound\\Misc\\Trap 04.wav",
 };
 // GLOBAL: WIZ8 0x0064BB88
-static char s_lock_open_fail_64bb88[] = "Data\\Sound\\Misc\\Lock_Open_Fail.wav";
+static char s_lock_open_fail[] = "Data\\Sound\\Misc\\Lock_Open_Fail.wav";
 // GLOBAL: WIZ8 0x0064BCF0
-static char s_trap_detect_64bcf0[] = "Data\\Sound\\Misc\\Trap Detect.wav";
+static char s_trap_detect[] = "Data\\Sound\\Misc\\Trap Detect.wav";
 
 // GLOBAL: WIZ8 0x0064bcac
 static char g_trap_inspection_sound[] = "Data\\Sound\\Misc\\Trap Inspection.wav";
@@ -346,15 +346,15 @@ static int g_lock_pin_target_height[4] = {10, 16, 22, 28};
 // GLOBAL: WIZ8 0x0064ba90
 static int g_knock_knock_chance[8] = {0, 344, 459, 516, 550, 573, 589, 602};
 // GLOBAL: WIZ8 0x0064BAE8
-static char s_lock_pin_falling_64bae8[] = "Data\\Sound\\Misc\\Lock_Pin_Falling.wav";
+static char s_lock_pin_falling[] = "Data\\Sound\\Misc\\Lock_Pin_Falling.wav";
 // GLOBAL: WIZ8 0x0064BABC
-static char s_lock_picking_success_64babc[] = "Data\\Sound\\Misc\\Lock_Picking_Success.wav";
+static char s_lock_picking_success[] = "Data\\Sound\\Misc\\Lock_Picking_Success.wav";
 // GLOBAL: WIZ8 0x0064BB10
-static char s_lock_pin_rising_64bb10[] = "Data\\Sound\\Misc\\Lock_Pin_Rising.wav";
+static char s_lock_pin_rising[] = "Data\\Sound\\Misc\\Lock_Pin_Rising.wav";
 // GLOBAL: WIZ8 0x0064BB34
-static char s_lock_forcing_fail_64bb34[] = "Data\\Sound\\Misc\\Lock_Forcing_Fail.wav";
+static char s_lock_forcing_fail[] = "Data\\Sound\\Misc\\Lock_Forcing_Fail.wav";
 // GLOBAL: WIZ8 0x0064BB5C
-static char s_lock_forcing_success_64bb5c[] = "Data\\Sound\\Misc\\Lock_Forcing_Successful.wav";
+static char s_lock_forcing_success[] = "Data\\Sound\\Misc\\Lock_Forcing_Successful.wav";
 // GLOBAL: WIZ8 0x0068F2B4
 static int g_lock_phase;
 // GLOBAL: WIZ8 0x0068F2B8
@@ -391,7 +391,7 @@ int OpenLockInteraction(Trigger* trigger)
             event->dispatch_delay_ms = 600;
             event->dispatch_delay_start = GetTickCount();
         }
-        SoundPlay(s_lock_open_fail_64bb88, 0);
+        SoundPlay(s_lock_open_fail, 0);
         return 1;
     }
     if (gXStatus.fCombatMode != 0) {
@@ -401,7 +401,7 @@ int OpenLockInteraction(Trigger* trigger)
             event->dispatch_delay_ms = 600;
             event->dispatch_delay_start = GetTickCount();
         }
-        SoundPlay(s_lock_open_fail_64bb88, 0);
+        SoundPlay(s_lock_open_fail, 0);
         return 1;
     }
     gXStatus.fLockInteractMode = true;
@@ -428,7 +428,7 @@ int OpenLockInteraction(Trigger* trigger)
             event->dispatch_delay_ms = 600;
             event->dispatch_delay_start = GetTickCount();
         }
-        SoundPlay(s_lock_open_fail_64bb88, 0);
+        SoundPlay(s_lock_open_fail, 0);
         g_lock_interaction = new W8LockInteraction(trigger);
         gXStatus.fLockInteract = false;
         return 1;
@@ -439,7 +439,7 @@ int OpenLockInteraction(Trigger* trigger)
     g_lock_interaction->m_action_panel->Invalidate(0);
     skill = GetPartySlotSkill10Level(g_status.selected_character);
     panel = g_lock_interaction->m_tumbler_panel;
-    for (i = 0; i < panel->m_tumbler_count_50; ++i) {
+    for (i = 0; i < panel->m_tumbler_count; ++i) {
         panel->m_tumblers[i]->SetEnabled(skill > -1);
     }
     character = &g_status.buffers.Char[g_status.selected_character];
@@ -454,7 +454,7 @@ int OpenLockInteraction(Trigger* trigger)
         character->attributes[W8_ATTRIBUTE_STRENGTH].effective <= 0x32) {
         force = 0xffffffff;
     } else {
-        count = g_settings.difficulty + g_lock_interaction->m_tumbler_count_0c - 1;
+        count = g_settings.difficulty + g_lock_interaction->m_tumbler_count - 1;
         ClampInteger(&count, 2, 8);
         force = (character->attributes[W8_ATTRIBUTE_STRENGTH].effective - 0x32) /
                 static_cast<unsigned int>(IntegerPower(2, count - 2));
@@ -533,7 +533,7 @@ void RefreshLockInteractionControls(void)
             level = character->skills[10].level;
         }
     }
-    for (i = 0; i < interaction->m_tumbler_panel->m_tumbler_count_50; i++) {
+    for (i = 0; i < interaction->m_tumbler_panel->m_tumbler_count; i++) {
         interaction->m_tumbler_panel->m_tumblers[i]->SetEnabled(level > -1);
     }
     character = &g_status.buffers.Char[g_status.selected_character];
@@ -558,7 +558,7 @@ void RefreshLockInteractionControls(void)
         if (character->stamina < 0x50 || character->attributes[W8_ATTRIBUTE_STRENGTH].effective <= 0x32) {
             figure = 0xffffffff;
         } else {
-            divisor = g_settings.difficulty - 1 + interaction->m_tumbler_count_0c;
+            divisor = g_settings.difficulty - 1 + interaction->m_tumbler_count;
             ClampInteger(&divisor, 2, 8);
             figure = (character->attributes[W8_ATTRIBUTE_STRENGTH].effective - 0x32) / IntegerPower(2, divisor - 2);
         }
@@ -616,7 +616,7 @@ void W8LockTumbler::Redraw(unsigned char full_redraw)
     frame = m_pin_index * 4 + 1;
     if (m_pin_set) {
         frame += m_at_top ? 2 : 1;
-    } else if (m_hovered_38 && !m_rising && !m_falling) {
+    } else if (m_hovered && !m_rising && !m_falling) {
         frame += 3;
     }
     DrawCatalogImage(-0xe, 0x1ae, 0, frame, left, top, 2, 0);
@@ -630,7 +630,7 @@ void W8LockTumbler::Redraw(unsigned char full_redraw)
 void W8LockTumbler::OnMouseEnter(int event)
 {
     PushButtonSoundScheme(0, 1);
-    m_hovered_38 = 1;
+    m_hovered = 1;
     if (m_enabled && !m_rising && !m_falling && !m_pin_set) {
         Invalidate(event);
     }
@@ -640,7 +640,7 @@ void W8LockTumbler::OnMouseEnter(int event)
 void W8LockTumbler::OnMouseLeave(int event)
 {
     PushButtonSoundScheme(0, 1);
-    m_hovered_38 = 0;
+    m_hovered = 0;
     if (m_enabled && !m_pin_set) {
         Invalidate(event);
     }
@@ -657,9 +657,9 @@ void W8LockTumbler::OnLeftButtonDown(int)
 void W8LockTumbler::OnLeftButtonUp(int event)
 {
     PushButtonSoundScheme(0, 1);
-    if (m_enabled && m_hovered_38 && !m_rising && !m_falling && !m_pin_set &&
-        m_listener_44 != 0) {
-        m_listener_44->OnTumblerReleased(this);
+    if (m_enabled && m_hovered && !m_rising && !m_falling && !m_pin_set &&
+        m_listener != 0) {
+        m_listener->OnTumblerReleased(this);
     }
 }
 
@@ -671,20 +671,20 @@ W8LockTumblerPanel::W8LockTumblerPanel(int tumbler_count, const unsigned char* p
     int i;
     int x;
 
-    m_tumbler_count_50 = tumbler_count;
+    m_tumbler_count = tumbler_count;
     m_animating = 0;
     m_phase = 0;
-    m_listener_e8 = 0;
+    m_listener = 0;
     AcquireRegionSet(&g_lock_tumbler_region_set);
     for (i = 0, x = 0x28; x < 0x108; i++, x += 0x1c) {
         m_tumblers[i] = new W8LockTumbler(this, x, 8, x + 0x14, 0x52, pin_data[i]);
-        m_tumblers[i]->m_listener_44 = this;
+        m_tumblers[i]->m_listener = this;
     }
     EnableRegionSet(1);
     SetEnabled(1);
     Invalidate(0);
-    if (m_tumbler_count_50 < 8) {
-        for (i = m_tumbler_count_50; i < 8; i++) {
+    if (m_tumbler_count < 8) {
+        for (i = m_tumbler_count; i < 8; i++) {
             m_tumblers[i]->SetActive(0);
         }
     }
@@ -705,13 +705,13 @@ void W8LockTumblerPanel::OnTumblerReleased(W8LockTumbler* tumbler)
     if (m_animating) {
         return;
     }
-    for (index = 0; index < m_tumbler_count_50; index++) {
+    for (index = 0; index < m_tumbler_count; index++) {
         if (m_tumblers[index] == tumbler) {
             break;
         }
     }
-    if (m_listener_e8 != 0) {
-        m_listener_e8->OnTumblerPicked(index);
+    if (m_listener != 0) {
+        m_listener->OnTumblerPicked(index);
     }
 }
 
@@ -733,7 +733,7 @@ void W8LockTumblerPanel::UpdateTumblerAnimation()
         if (g_lock_phase > 6) {
             g_lock_phase = 0xc - g_lock_phase;
         }
-        for (i = 0; i < m_tumbler_count_50; i++) {
+        for (i = 0; i < m_tumbler_count; i++) {
             if (m_tumblers[i]->m_at_top) {
                 m_tumblers[i]->Invalidate(0);
             }
@@ -741,7 +741,7 @@ void W8LockTumblerPanel::UpdateTumblerAnimation()
     }
     if (rise != 0 || fall != 0) {
         m_animating = 0;
-        for (i = 0; i < m_tumbler_count_50; i++) {
+        for (i = 0; i < m_tumbler_count; i++) {
             tumbler = m_tumblers[i];
             if (rise != 0 && tumbler->m_rising) {
                 tumbler->m_pin_height -= rise;
@@ -772,34 +772,34 @@ W8LockInfoPanel::W8LockInfoPanel(int tumbler_count) : Controls(0x17, 0x166, 0, 0
 {
     W8ControlsRect bounds;
 
-    m_tumbler_count_4c = tumbler_count;
+    m_tumbler_count = tumbler_count;
     bounds.left = m_bounds.left + 0x25;
     bounds.top = m_bounds.top + 7;
     bounds.right = m_bounds.left + 0xb4;
     bounds.bottom = m_bounds.top + 0x11;
-    m_text_050 =
+    m_text0 =
         new W8TextBuffer(&bounds, 0, g_wiz_text_font_secondary, g_W8TextBufferAlignCenter, 4);
     bounds.top += 0xe;
     bounds.bottom += 0xe;
-    m_text_054 = new W8TextBuffer(&bounds, gppStringList[0x7a9], g_wiz_text_font_secondary,
+    m_text1 = new W8TextBuffer(&bounds, gppStringList[0x7a9], g_wiz_text_font_secondary,
                                   g_W8TextBufferAlignLeft, 4);
     bounds.top += 0xe;
     bounds.bottom += 0xe;
-    m_text_05c = new W8TextBuffer(&bounds, gppStringList[0x7aa], g_wiz_text_font_secondary,
+    m_text3 = new W8TextBuffer(&bounds, gppStringList[0x7aa], g_wiz_text_font_secondary,
                                   g_W8TextBufferAlignLeft, 4);
     bounds.top += 0xe;
     bounds.bottom += 0xe;
-    m_text_064 = new W8TextBuffer(&bounds, gppStringList[0x7ab], g_wiz_text_font_secondary,
+    m_text5 = new W8TextBuffer(&bounds, gppStringList[0x7ab], g_wiz_text_font_secondary,
                                   g_W8TextBufferAlignLeft, 4);
     bounds.left = m_bounds.left + 0x98;
     bounds.top = m_bounds.top + 0x15;
     bounds.right = m_bounds.left + 0xb5;
     bounds.bottom = m_bounds.top + 0x1f;
-    m_text_058 =
+    m_text2 =
         new W8TextBuffer(&bounds, 0, g_wiz_text_font_secondary, g_W8TextBufferAlignCenter, 4);
     bounds.top += 0xe;
     bounds.bottom += 0xe;
-    m_text_060 =
+    m_text4 =
         new W8TextBuffer(&bounds, 0, g_wiz_text_font_secondary, g_W8TextBufferAlignCenter, 4);
     bounds.top += 0xe;
     bounds.bottom += 0xe;
@@ -812,12 +812,12 @@ W8LockInfoPanel::W8LockInfoPanel(int tumbler_count) : Controls(0x17, 0x166, 0, 0
 // FUNCTION: WIZ8 0x00585E20
 W8LockInfoPanel::~W8LockInfoPanel()
 {
-    delete m_text_050;
-    delete m_text_054;
-    delete m_text_058;
-    delete m_text_05c;
-    delete m_text_060;
-    delete m_text_064;
+    delete m_text0;
+    delete m_text1;
+    delete m_text2;
+    delete m_text3;
+    delete m_text4;
+    delete m_text5;
     delete m_text;
 }
 
@@ -830,31 +830,31 @@ void W8LockInfoPanel::RefreshInfo()
     unsigned int book;
     unsigned int realm;
 
-    m_text_050->SetText(character->name, g_wiz_text_font_secondary);
+    m_text0->SetText(character->name, g_wiz_text_font_secondary);
     if (!IsPartySlotEligible(g_status.selected_character) ||
         (character->skills[10].active == 0 && character->skills[10].level == 0) ||
         static_cast<int>(character->skills[10].level) < 0) {
-        m_text_058->SetFontStateIndex(0);
-        m_text_058->SetText(g_dash, g_wiz_text_font_secondary);
+        m_text2->SetFontStateIndex(0);
+        m_text2->SetText(g_dash, g_wiz_text_font_secondary);
     } else {
-        m_text_058->SetFontStateIndex(-1);
-        m_text_058->SetText(FormatWideString(g_format_d_percent, character->skills[10].level),
+        m_text2->SetFontStateIndex(-1);
+        m_text2->SetText(FormatWideString(g_format_d_percent, character->skills[10].level),
                             g_wiz_text_font_secondary);
     }
     if (!IsPartySlotEligible(g_status.selected_character) || character->spell_learned[0x27] != 1) {
-        m_text_060->SetFontStateIndex(0);
-        m_text_060->SetText(g_dash, g_wiz_text_font_secondary);
+        m_text4->SetFontStateIndex(0);
+        m_text4->SetText(g_dash, g_wiz_text_font_secondary);
     } else {
         book = GetBestSpellbookSkillForSpell(character, 0x27, 1, 0, 7);
         realm = character->skills[0x1c + g_spell_records[0x27].realm].level;
         book = character->skills[book].level;
-        m_text_060->SetFontStateIndex(-1);
-        m_text_060->SetText(FormatWideString(g_format_d_percent, (book + realm * 4) / 5),
+        m_text4->SetFontStateIndex(-1);
+        m_text4->SetText(FormatWideString(g_format_d_percent, (book + realm * 4) / 5),
                             g_wiz_text_font_secondary);
     }
     if (IsPartySlotEligible(g_status.selected_character) && character->stamina > 0x4f &&
         character->attributes[W8_ATTRIBUTE_STRENGTH].effective > 0x32) {
-        divisor = g_settings.difficulty - 1 + m_tumbler_count_4c;
+        divisor = g_settings.difficulty - 1 + m_tumbler_count;
         ClampInteger(&divisor, 2, 8);
         figure = (character->attributes[W8_ATTRIBUTE_STRENGTH].effective - 0x32) / IntegerPower(2, divisor - 2);
         if (static_cast<int>(figure) > -1) {
@@ -867,9 +867,9 @@ void W8LockInfoPanel::RefreshInfo()
     m_text->SetFontStateIndex(0);
     m_text->SetText(g_dash, g_wiz_text_font_secondary);
 done:
-    m_text_054->SetGeometryDirty();
-    m_text_05c->SetGeometryDirty();
-    m_text_064->SetGeometryDirty();
+    m_text1->SetGeometryDirty();
+    m_text3->SetGeometryDirty();
+    m_text5->SetGeometryDirty();
     Invalidate(0);
 }
 
@@ -878,18 +878,18 @@ void W8LockInfoPanel::Redraw()
 {
     if (m_fEnabled && m_fDirty) {
         Controls::Redraw();
-        m_text_050->RenderToTarget(0, 0, -0xe);
-        m_text_054->RenderToTarget(0, 0, -0xe);
-        m_text_058->RenderToTarget(0, 0, -0xe);
-        m_text_05c->RenderToTarget(0, 0, -0xe);
-        m_text_060->RenderToTarget(0, 0, -0xe);
-        m_text_064->RenderToTarget(0, 0, -0xe);
+        m_text0->RenderToTarget(0, 0, -0xe);
+        m_text1->RenderToTarget(0, 0, -0xe);
+        m_text2->RenderToTarget(0, 0, -0xe);
+        m_text3->RenderToTarget(0, 0, -0xe);
+        m_text4->RenderToTarget(0, 0, -0xe);
+        m_text5->RenderToTarget(0, 0, -0xe);
         m_text->RenderToTarget(0, 0, -0xe);
     }
 }
 
 // FUNCTION: WIZ8 0x005861A0
-W8LockInteraction::W8LockInteraction(Trigger* trigger) : m_timer_80()
+W8LockInteraction::W8LockInteraction(Trigger* trigger) : m_timer()
 {
     W8Character* character;
     int level;
@@ -901,17 +901,17 @@ W8LockInteraction::W8LockInteraction(Trigger* trigger) : m_timer_80()
     int i;
 
     m_trigger = trigger;
-    m_state_34 = 0;
-    m_tumbler_count_0c = trigger->lock_state.difficulty;
-    if (m_tumbler_count_0c < 2) {
-        m_tumbler_count_0c = 2;
-    } else if (m_tumbler_count_0c > 8) {
-        m_tumbler_count_0c = 8;
+    m_state = 0;
+    m_tumbler_count = trigger->lock_state.difficulty;
+    if (m_tumbler_count < 2) {
+        m_tumbler_count = 2;
+    } else if (m_tumbler_count > 8) {
+        m_tumbler_count = 8;
     }
     m_tumbler_panel =
-        new W8LockTumblerPanel(m_tumbler_count_0c, trigger->lock_state.device_state.pins);
-    m_tumbler_panel->m_listener_e8 = this;
-    m_info_panel = new W8LockInfoPanel(m_tumbler_count_0c);
+        new W8LockTumblerPanel(m_tumbler_count, trigger->lock_state.device_state.pins);
+    m_tumbler_panel->m_listener = this;
+    m_info_panel = new W8LockInfoPanel(m_tumbler_count);
     m_action_panel = new Controls(0x1e7, 0x166, 0, 0, 0x1af, 0, 2);
     m_action_panel->AcquireRegionSet(&g_lock_action_region_set);
     m_spell_button =
@@ -948,7 +948,7 @@ W8LockInteraction::W8LockInteraction(Trigger* trigger) : m_timer_80()
     } else {
         level = character->skills[10].level;
     }
-    for (i = 0; i < m_tumbler_panel->m_tumbler_count_50; i++) {
+    for (i = 0; i < m_tumbler_panel->m_tumbler_count; i++) {
         m_tumbler_panel->m_tumblers[i]->SetEnabled(level > -1);
     }
     if (IsPartySlotEligible(g_status.selected_character) && character->spell_learned[0x27] == 1) {
@@ -969,7 +969,7 @@ W8LockInteraction::W8LockInteraction(Trigger* trigger) : m_timer_80()
         character->attributes[W8_ATTRIBUTE_STRENGTH].effective <= 0x32) {
         figure = 0xffffffff;
     } else {
-        divisor = g_settings.difficulty - 1 + m_tumbler_count_0c;
+        divisor = g_settings.difficulty - 1 + m_tumbler_count;
         ClampInteger(&divisor, 2, 8);
         figure = (character->attributes[W8_ATTRIBUTE_STRENGTH].effective - 0x32) / IntegerPower(2, divisor - 2);
     }
@@ -996,12 +996,12 @@ void W8LockInteraction::Process()
     int i;
     int dropped;
 
-    if (m_state_34 == 8 && m_timer_80.GetProgress() >= g_float_one) {
+    if (m_state == 8 && m_timer.GetProgress() >= g_float_one) {
         m_trigger->CompleteItemInteraction();
         m_trigger->Run(-1);
-        m_state_34 = 9;
+        m_state = 9;
     }
-    if (m_state_34 == 9) {
+    if (m_state == 9) {
         gXStatus.fLockInteractMode = false;
         if (g_lock_interaction != 0) {
             delete g_lock_interaction;
@@ -1019,20 +1019,20 @@ void W8LockInteraction::Process()
     if (m_tumbler_panel->m_animating) {
         return;
     }
-    switch (m_state_34) {
+    switch (m_state) {
     case 1:
-        m_state_34 = 0;
+        m_state = 0;
         ResolvePick();
         return;
     case 2:
-        m_state_34 = 0;
+        m_state = 0;
         AttemptForce();
         return;
     case 3:
         dropped = 0;
-        m_state_34 = 4;
+        m_state = 4;
         slot = g_status.selected_character;
-        for (i = 0; i < m_tumbler_count_0c; i++) {
+        for (i = 0; i < m_tumbler_count; i++) {
             if (m_tumbler_owner[i] == slot && m_tumbler_locked[i] != 0) {
                 m_tumbler_owner[i] = -1;
                 m_tumbler_locked[i] = 0;
@@ -1046,7 +1046,7 @@ void W8LockInteraction::Process()
         m_tumbler_panel->Invalidate(0);
         goto lock_release_done;
     case 4:
-        m_state_34 = 0;
+        m_state = 0;
         slot = g_status.selected_character;
         if (GetKnockKnockSpellPower(g_status.selected_character) > -1 &&
             CanCharacterCastSpell(&g_status.buffers.Char[slot], 0x27)) {
@@ -1058,9 +1058,9 @@ void W8LockInteraction::Process()
         break;
     case 5:
         dropped = 0;
-        m_state_34 = 6;
+        m_state = 6;
         slot = g_status.selected_character;
-        for (i = 0; i < m_tumbler_count_0c; i++) {
+        for (i = 0; i < m_tumbler_count; i++) {
             if (m_tumbler_owner[i] == slot && m_tumbler_locked[i] != 0) {
                 m_tumbler_owner[i] = -1;
                 m_tumbler_locked[i] = 0;
@@ -1074,12 +1074,12 @@ void W8LockInteraction::Process()
         m_tumbler_panel->Invalidate(0);
     lock_release_done:
         if (dropped) {
-            SoundPlay(s_lock_pin_falling_64bae8, 0);
+            SoundPlay(s_lock_pin_falling, 0);
             return;
         }
         break;
     case 6:
-        m_state_34 = 0;
+        m_state = 0;
         m_cancel_button->SetAlternateTextEnabled(0);
         gXStatus.fLockInteractMode = false;
         EnablePanels(0);
@@ -1092,13 +1092,13 @@ void W8LockInteraction::Process()
         OpenUseItemSelectView(g_status.selected_character);
         return;
     case 7:
-        m_state_34 = 0;
-        for (i = 0; i < m_tumbler_count_0c; i++) {
+        m_state = 0;
+        for (i = 0; i < m_tumbler_count; i++) {
             if (m_tumbler_owner[i] == -1) {
                 return;
             }
         }
-        SoundPlay(s_lock_picking_success_64babc, 0);
+        SoundPlay(s_lock_picking_success, 0);
         ShowNotice(0xc, gppStringList[0x7ac]);
         BeginUnlock();
         break;
@@ -1148,7 +1148,7 @@ void W8LockInteraction::OnTumblerPicked(int index)
     }
     if (m_selected_slot != g_status.selected_character) {
         if (m_selected_slot != -1) {
-            for (i = 0; i < m_tumbler_count_0c; i++) {
+            for (i = 0; i < m_tumbler_count; i++) {
                 if (m_tumbler_owner[i] == m_selected_slot && m_tumbler_locked[i] == 0) {
                     m_tumbler_owner[i] = -1;
                     m_tumbler_panel->m_tumblers[i]->m_pin_set = 0;
@@ -1160,29 +1160,29 @@ void W8LockInteraction::OnTumblerPicked(int index)
         m_selected_slot = g_status.selected_character;
     }
     m_picked_tumbler = index;
-    m_state_34 = 1;
-    m_tumbler_panel->m_tumblers[index]->m_hovered_38 = 0;
+    m_state = 1;
+    m_tumbler_panel->m_tumblers[index]->m_hovered = 0;
     m_tumbler_panel->m_tumblers[index]->m_rising = 1;
     m_tumbler_panel->m_animating = 1;
-    SoundPlay(s_lock_pin_rising_64bb10, 0);
+    SoundPlay(s_lock_pin_rising, 0);
 }
 
 // FUNCTION: WIZ8 0x00586C00
 void W8LockInteraction::OnPrimary(W8TextControl* control)
 {
     if (control == m_done_button) {
-        m_state_34 = 9;
+        m_state = 9;
         return;
     }
-    if (m_tumbler_panel->m_animating && m_state_34 != 0) {
+    if (m_tumbler_panel->m_animating && m_state != 0) {
         return;
     }
     if (control == m_force_button) {
-        m_state_34 = 2;
+        m_state = 2;
     } else if (control == m_spell_button) {
-        m_state_34 = 3;
+        m_state = 3;
     } else if (control == m_cancel_button) {
-        m_state_34 = 5;
+        m_state = 5;
     }
 }
 
@@ -1196,7 +1196,7 @@ void W8LockInteraction::ResolvePick()
     int dropped;
 
     dropped = 0;
-    for (i = 0; i < m_tumbler_count_0c; i++) {
+    for (i = 0; i < m_tumbler_count; i++) {
         if (m_tumbler_owner[i] == m_selected_slot && m_tumbler_locked[i] == 0) {
             character = &g_status.buffers.Char[m_selected_slot];
             chance = character->skills[10].level + g_settings.difficulty * -5 + 5;
@@ -1221,14 +1221,14 @@ void W8LockInteraction::ResolvePick()
         }
     }
     if (dropped) {
-        SoundPlay(s_lock_pin_falling_64bae8, 0);
+        SoundPlay(s_lock_pin_falling, 0);
     }
-    for (i = 0; i < m_tumbler_count_0c; i++) {
+    for (i = 0; i < m_tumbler_count; i++) {
         if (m_tumbler_owner[i] == -1) {
             return;
         }
     }
-    SoundPlay(s_lock_picking_success_64babc, 0);
+    SoundPlay(s_lock_picking_success, 0);
     ShowNotice(0xc, gppStringList[0x7ac]);
     BeginUnlock();
 }
@@ -1247,19 +1247,19 @@ void W8LockInteraction::AttemptForce()
     character = &g_status.buffers.Char[g_status.selected_character];
     if (IsPartySlotEligible(g_status.selected_character) && character->stamina > 0x4f &&
         character->attributes[W8_ATTRIBUTE_STRENGTH].effective > 0x32) {
-        divisor = g_settings.difficulty - 1 + m_tumbler_count_0c;
+        divisor = g_settings.difficulty - 1 + m_tumbler_count;
         ClampInteger(&divisor, 2, 8);
         chance = (character->attributes[W8_ATTRIBUTE_STRENGTH].effective - 0x32) / IntegerPower(2, divisor - 2);
         if (static_cast<int>(chance) > -1) {
             FatigueCharacter(g_status.selected_character, 0x50, 0, 0);
             if (static_cast<int>(Random(100)) < static_cast<int>(chance)) {
-                SoundPlay(s_lock_forcing_success_64bb5c, 0);
+                SoundPlay(s_lock_forcing_success, 0);
                 ShowString(
                     FormatWideString(g_format_s_space_s, character->name, gppStringList[0x7ae]));
                 BeginUnlock();
                 return;
             }
-            SoundPlay(s_lock_forcing_fail_64bb34, 0);
+            SoundPlay(s_lock_forcing_fail, 0);
             ShowString(FormatWideString(g_format_s_space_s, character->name, gppStringList[0x7ad]));
             if (!IsPartySlotEligible(g_status.selected_character)) {
                 level = -1;
@@ -1268,7 +1268,7 @@ void W8LockInteraction::AttemptForce()
             } else {
                 level = character->skills[10].level;
             }
-            for (i = 0; i < m_tumbler_panel->m_tumbler_count_50; i++) {
+            for (i = 0; i < m_tumbler_panel->m_tumbler_count; i++) {
                 m_tumbler_panel->m_tumblers[i]->SetEnabled(level > -1);
             }
             if (!IsPartySlotEligible(g_status.selected_character) ||
@@ -1289,7 +1289,7 @@ void W8LockInteraction::AttemptForce()
                 character->attributes[W8_ATTRIBUTE_STRENGTH].effective <= 0x32) {
                 chance = -1;
             } else {
-                divisor = g_settings.difficulty + m_tumbler_count_0c - 1;
+                divisor = g_settings.difficulty + m_tumbler_count - 1;
                 ClampInteger(&divisor, 2, 8);
                 chance = (character->attributes[W8_ATTRIBUTE_STRENGTH].effective - 0x32) / IntegerPower(2, divisor - 2);
             }
@@ -1326,24 +1326,24 @@ void W8LockInteraction::ApplyKnockKnock(int level, int /*flag*/, char backfire)
     W8LockTumblerPanel* panel;
 
     slot = g_status.selected_character;
-    count = m_tumbler_count_0c;
+    count = m_tumbler_count;
     rolled = false;
     for (i = 0; i < static_cast<int>(count); ++i) {
         order[i] = i;
     }
     for (i = 0; i < static_cast<int>(count); ++i) {
         unsigned int first = Random(count);
-        unsigned int second = Random(m_tumbler_count_0c);
+        unsigned int second = Random(m_tumbler_count);
         if (first != second) {
             int swap = order[first];
             order[first] = order[second];
             order[second] = swap;
         }
-        count = m_tumbler_count_0c;
+        count = m_tumbler_count;
     }
     pins = level + 1;
-    if (m_tumbler_count_0c <= level + 1) {
-        pins = m_tumbler_count_0c;
+    if (m_tumbler_count <= level + 1) {
+        pins = m_tumbler_count;
     }
     chance = g_knock_knock_chance[level];
     for (i = 0; i < pins; ++i) {
@@ -1353,7 +1353,7 @@ void W8LockInteraction::ApplyKnockKnock(int level, int /*flag*/, char backfire)
             if (backfire == 0) {
                 if (m_tumbler_owner[pin] == -1) {
                     tumbler = panel->m_tumblers[pin];
-                    tumbler->m_hovered_38 = 0;
+                    tumbler->m_hovered = 0;
                     tumbler->m_rising = 1;
                     panel->m_animating = 1;
                 }
@@ -1377,9 +1377,9 @@ void W8LockInteraction::ApplyKnockKnock(int level, int /*flag*/, char backfire)
     }
     if (rolled) {
         if (backfire == 0) {
-            SoundPlay(s_lock_pin_rising_64bb10, 0);
+            SoundPlay(s_lock_pin_rising, 0);
         } else {
-            SoundPlay(s_lock_pin_falling_64bae8, 0);
+            SoundPlay(s_lock_pin_falling, 0);
             m_tumbler_panel->Invalidate(0);
         }
     }
@@ -1395,7 +1395,7 @@ void W8LockInteraction::ApplyKnockKnock(int level, int /*flag*/, char backfire)
         }
     }
     panel = m_tumbler_panel;
-    for (i = 0; i < panel->m_tumbler_count_50; ++i) {
+    for (i = 0; i < panel->m_tumbler_count; ++i) {
         panel->m_tumblers[i]->SetEnabled(pins > -1);
     }
     character = &g_status.buffers.Char[g_status.selected_character];
@@ -1413,7 +1413,7 @@ void W8LockInteraction::ApplyKnockKnock(int level, int /*flag*/, char backfire)
     }
     m_spell_button->SetEnabled(figure);
     slot = g_status.selected_character;
-    pins = m_tumbler_count_0c;
+    pins = m_tumbler_count;
     if (IsPartySlotEligible(slot) && g_status.buffers.Char[slot].stamina > 0x4f &&
         g_status.buffers.Char[slot].attributes[W8_ATTRIBUTE_STRENGTH].effective > 0x32) {
         divisor = pins - 1 + g_settings.difficulty;
@@ -1426,16 +1426,16 @@ void W8LockInteraction::ApplyKnockKnock(int level, int /*flag*/, char backfire)
     m_force_button->SetEnabled(static_cast<int>(figure) > -1);
     m_info_panel->RefreshInfo();
     m_action_panel->Invalidate(0);
-    m_state_34 = 7;
+    m_state = 7;
 }
 
 // FUNCTION: WIZ8 0x005874D0
 void W8LockInteraction::BeginUnlock()
 {
     EnablePanels(0);
-    m_state_34 = 8;
-    m_timer_80.SetDuration(1.0f);
-    m_timer_80.Restart();
+    m_state = 8;
+    m_timer.SetDuration(1.0f);
+    m_timer.Restart();
 }
 
 // FUNCTION: WIZ8 0x00587C80
@@ -1458,7 +1458,7 @@ W8MainGameTextKeyHandler::W8MainGameTextKeyHandler(Controls* panel, int left, in
                                                    const unsigned short* line_string_ids,
                                                    unsigned int* region_set)
     : W8Widget(panel, 0xffffffff, left, top, right - 0x13, bottom),
-      m_range_038(panel->m_bounds.left - 0x12 + right, panel->m_bounds.top + top,
+      m_range(panel->m_bounds.left - 0x12 + right, panel->m_bounds.top + top,
                   right + panel->m_bounds.left, panel->m_bounds.top + bottom, region_set)
 {
     m_line_count = line_count;
@@ -1468,11 +1468,11 @@ W8MainGameTextKeyHandler::W8MainGameTextKeyHandler(Controls* panel, int left, in
     m_first_visible_line = 0;
     m_range_listener = 0;
     m_hover_line = -1;
-    m_range_038.m_listener = this;
-    m_range_038.SetRange(0, m_line_count - m_visible_lines);
-    m_range_038.Invalidate(0);
-    m_range_038.SetEnabled(1);
-    m_range_038.SetRangeEnabled(1);
+    m_range.m_listener = this;
+    m_range.SetRange(0, m_line_count - m_visible_lines);
+    m_range.Invalidate(0);
+    m_range.SetEnabled(1);
+    m_range.SetRangeEnabled(1);
 }
 
 // FUNCTION: WIZ8 0x00587ea0
@@ -1516,7 +1516,7 @@ void W8MainGameTextKeyHandler::Redraw(unsigned char full_redraw)
         top += 0xe;
     }
     SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_wiz_text_font_secondary_palette);
-    m_range_038.Invalidate(0);
+    m_range.Invalidate(0);
     m_dirty = false;
 }
 
@@ -1546,11 +1546,11 @@ void W8MainGameTextKeyHandler::AdjustValue(int steps)
 {
     if (steps > 0) {
         for (; steps > 0; --steps) {
-            m_range_038.Decrement();
+            m_range.Decrement();
         }
     } else {
         for (; steps < 0; ++steps) {
-            m_range_038.Increment();
+            m_range.Increment();
         }
     }
 }
@@ -1572,17 +1572,17 @@ void W8MainGameTextKeyHandler::SetSelectedLine(int line)
     }
     m_selected_line = line;
     Invalidate(0);
-    if (m_selected_line < m_range_038.m_value ||
-        m_selected_line >= m_range_038.m_value + m_visible_lines) {
+    if (m_selected_line < m_range.m_value ||
+        m_selected_line >= m_range.m_value + m_visible_lines) {
         int first = m_selected_line;
-        if (m_selected_line >= m_range_038.m_value) {
+        if (m_selected_line >= m_range.m_value) {
             first = m_selected_line - m_visible_lines + 1;
         }
         m_first_visible_line = first;
-        m_range_038.SetValue(first);
+        m_range.SetValue(first);
     }
     if (m_range_listener != 0) {
-        m_range_listener->OnRangeChanged(&m_range_038);
+        m_range_listener->OnRangeChanged(&m_range);
     }
 }
 
@@ -1641,7 +1641,7 @@ W8MainGameTextEntry::W8MainGameTextEntry(Controls* panel, int index)
     int left;
     int top;
 
-    m_input_blocked_bc = false;
+    m_input_blocked = false;
     m_imageFrame = 0;
     m_image = -1;
     m_alternatePressedSprite = -1;
@@ -1691,7 +1691,7 @@ void W8MainGameTextEntry::Redraw(unsigned char full_redraw)
 // FUNCTION: WIZ8 0x00588440
 void W8MainGameTextEntry::OnLeftButtonDown(int event)
 {
-    if (m_input_blocked_bc) {
+    if (m_input_blocked) {
         PushButtonSoundScheme(0, 1);
         return;
     }
@@ -1701,7 +1701,7 @@ void W8MainGameTextEntry::OnLeftButtonDown(int event)
 // FUNCTION: WIZ8 0x00588470
 void W8MainGameTextEntry::OnLeftButtonUp(int event)
 {
-    if (m_input_blocked_bc) {
+    if (m_input_blocked) {
         PushButtonSoundScheme(0, 1);
         return;
     }
@@ -1711,7 +1711,7 @@ void W8MainGameTextEntry::OnLeftButtonUp(int event)
 // FUNCTION: WIZ8 0x005884a0
 void W8MainGameTextEntry::OnMouseEnter(int event)
 {
-    if (m_input_blocked_bc) {
+    if (m_input_blocked) {
         PushButtonSoundScheme(0, 1);
         return;
     }
@@ -1720,17 +1720,17 @@ void W8MainGameTextEntry::OnMouseEnter(int event)
 
 // FUNCTION: WIZ8 0x005884d0
 W8MainGameTextPanel::W8MainGameTextPanel()
-    : Controls(0xd3, 0x166, 0, 0, 0x1b1, 0, 1), m_selection_078(0), m_screen_07c(0),
-      m_values_080(0), m_progress_display(0), m_timer_118(0.04f, 0)
+    : Controls(0xd3, 0x166, 0, 0, 0x1b1, 0, 1), m_selection(0), m_screen(0),
+      m_values(0), m_progress_display(0), m_timer1(0.04f, 0)
 {
     int index;
 
     m_target_marker_pending = 0;
     AcquireRegionSet(&g_main_game_text_panel_region_set);
     for (index = 0; index < 8; ++index) {
-        m_entries_054[index] = new W8MainGameTextEntry(this, index);
-        m_entries_054[index]->m_listener = this;
-        m_entries_054[index]->EnableRegionHelp(0x7d1);
+        m_entries[index] = new W8MainGameTextEntry(this, index);
+        m_entries[index]->m_listener = this;
+        m_entries[index]->EnableRegionHelp(0x7d1);
     }
     m_key_handler = new W8MainGameTextKeyHandler(
         this, 0x8e, 5, 0x10f, 0x59, 0xf, g_value_0061e9ec, &g_main_game_text_key_region_set);
@@ -1741,24 +1741,24 @@ W8MainGameTextPanel::W8MainGameTextPanel()
     m_text_bounds.bottom = m_bounds.top + 0x33;
     m_text_buffer.SetLayoutBounds(&m_text_bounds, 1, 1);
     EnableRegionSet(1);
-    m_key_handler->m_range_038.EnableRegionSet(1);
+    m_key_handler->m_range.EnableRegionSet(1);
     SetEnabled(1);
     Invalidate(0);
     for (index = 0; index < 8; ++index) {
-        if ((static_cast<unsigned char>(m_entries_054[index]->m_stateFlags) &
+        if ((static_cast<unsigned char>(m_entries[index]->m_stateFlags) &
              g_W8TextControlStateSecondary) == 0) {
-            m_entries_054[index]->SetEnabled(GetTable650434Entry(m_selection_078, index) != 0);
-            m_entries_054[index]->Invalidate(0);
+            m_entries[index]->SetEnabled(GetTable650434Entry(m_selection, index) != 0);
+            m_entries[index]->Invalidate(0);
         }
     }
     for (index = 0; index < 8; ++index) {
-        if (m_values_080 == 0 ||
-            (m_values_080[index] == 0 && GetTable650434Entry(m_selection_078, index) == 0)) {
-            m_entries_054[index]->m_image = -1;
+        if (m_values == 0 ||
+            (m_values[index] == 0 && GetTable650434Entry(m_selection, index) == 0)) {
+            m_entries[index]->m_image = -1;
         } else {
-            m_entries_054[index]->m_image = m_values_080[index];
+            m_entries[index]->m_image = m_values[index];
         }
-        m_entries_054[index]->Invalidate(0);
+        m_entries[index]->Invalidate(0);
     }
 }
 
@@ -1780,7 +1780,7 @@ void W8MainGameTextPanel::Redraw()
         m_target_marker_pending = 1;
     }
     Controls::Redraw();
-    m_key_handler->m_range_038.Redraw();
+    m_key_handler->m_range.Redraw();
     if (!m_fEnabled) {
         return;
     }
@@ -1816,13 +1816,13 @@ void W8MainGameTextPanel::OnPrimary(W8TextControl* control)
     int index;
 
     for (index = 0; index < 8; ++index) {
-        if (control == m_entries_054[index]) {
+        if (control == m_entries[index]) {
             break;
         }
     }
-    m_entries_054[index]->m_input_blocked_bc = true;
-    if (m_screen_07c != 0) {
-        m_screen_07c->SelectTextEntry(index);
+    m_entries[index]->m_input_blocked = true;
+    if (m_screen != 0) {
+        m_screen->SelectTextEntry(index);
     }
 }
 
@@ -1834,22 +1834,22 @@ void W8MainGameTextPanel::OnRangeChanged(W8RangeControl* control)
     int selection = m_key_handler->m_selected_line;
 
     (void)control;
-    m_selection_078 = selection;
+    m_selection = selection;
     for (column = 0; column < 8; ++column) {
-        if ((static_cast<unsigned char>(m_entries_054[column]->m_stateFlags) &
+        if ((static_cast<unsigned char>(m_entries[column]->m_stateFlags) &
              g_W8TextControlStateSecondary) == 0) {
-            m_entries_054[column]->SetEnabled(GetTable650434Entry(selection, column) != 0);
-            m_entries_054[column]->Invalidate(0);
+            m_entries[column]->SetEnabled(GetTable650434Entry(selection, column) != 0);
+            m_entries[column]->Invalidate(0);
         }
     }
-    values = m_values_080;
+    values = m_values;
     for (column = 0; column < 8; ++column) {
         if (values == 0 || (values[column] == 0 && GetTable650434Entry(selection, column) == 0)) {
-            m_entries_054[column]->m_image = -1;
+            m_entries[column]->m_image = -1;
         } else {
-            m_entries_054[column]->m_image = values[column];
+            m_entries[column]->m_image = values[column];
         }
-        m_entries_054[column]->Invalidate(0);
+        m_entries[column]->Invalidate(0);
     }
 }
 
@@ -1866,29 +1866,29 @@ W8MainGameStatusPanel::W8MainGameStatusPanel() : Controls(0x17, 0x166, 0, 0, 0x1
         new W8TextBuffer(&bounds, 0, g_wiz_text_font_secondary, g_W8TextBufferAlignCenter, 4);
     bounds.top += 0xe;
     bounds.bottom += 0xe;
-    m_text_050 = new W8TextBuffer(&bounds, gppStringList[0x7a9], g_wiz_text_font_secondary,
+    m_text0 = new W8TextBuffer(&bounds, gppStringList[0x7a9], g_wiz_text_font_secondary,
                                   g_W8TextBufferAlignLeft, 4);
     bounds.top += 0xe;
     bounds.bottom += 0xe;
-    m_text_058 = new W8TextBuffer(&bounds, gppStringList[0x7aa], g_wiz_text_font_secondary,
+    m_text2 = new W8TextBuffer(&bounds, gppStringList[0x7aa], g_wiz_text_font_secondary,
                                   g_W8TextBufferAlignLeft, 4);
     bounds.top += 0xe;
     bounds.bottom += 0xe;
-    m_text_060 = new W8TextBuffer(&bounds, gppStringList[0x7b0], g_wiz_text_font_secondary,
+    m_text4 = new W8TextBuffer(&bounds, gppStringList[0x7b0], g_wiz_text_font_secondary,
                                   g_W8TextBufferAlignLeft, 4);
     bounds.left = m_bounds.left + 0x98;
     bounds.top = m_bounds.top + 0x15;
     bounds.right = m_bounds.left + 0xb5;
     bounds.bottom = m_bounds.top + 0x1f;
-    m_text_054 =
+    m_text1 =
         new W8TextBuffer(&bounds, 0, g_wiz_text_font_secondary, g_W8TextBufferAlignCenter, 4);
     bounds.top += 0xe;
     bounds.bottom += 0xe;
-    m_text_05c =
+    m_text3 =
         new W8TextBuffer(&bounds, 0, g_wiz_text_font_secondary, g_W8TextBufferAlignCenter, 4);
     bounds.top += 0xe;
     bounds.bottom += 0xe;
-    m_text_064 =
+    m_text5 =
         new W8TextBuffer(&bounds, 0, g_wiz_text_font_secondary, g_W8TextBufferAlignCenter, 4);
     m_target = 0;
     SetEnabled(1);
@@ -1899,12 +1899,12 @@ W8MainGameStatusPanel::W8MainGameStatusPanel() : Controls(0x17, 0x166, 0, 0, 0x1
 W8MainGameStatusPanel::~W8MainGameStatusPanel()
 {
     delete m_text;
-    delete m_text_050;
-    delete m_text_054;
-    delete m_text_058;
-    delete m_text_05c;
-    delete m_text_060;
-    delete m_text_064;
+    delete m_text0;
+    delete m_text1;
+    delete m_text2;
+    delete m_text3;
+    delete m_text4;
+    delete m_text5;
 }
 
 // FUNCTION: WIZ8 0x00588e60
@@ -1921,21 +1921,21 @@ void W8MainGameStatusPanel::RefreshStatusTexts()
         level += m_target * 6;
     }
     if (level < 0) {
-        m_text_054->SetFontStateIndex(0);
-        m_text_054->SetText(g_dash, g_wiz_text_font_secondary);
+        m_text1->SetFontStateIndex(0);
+        m_text1->SetText(g_dash, g_wiz_text_font_secondary);
     } else {
-        m_text_054->SetFontStateIndex(m_target < 1 ? -1 : 3);
-        m_text_054->SetText(FormatWideString(g_format_d_percent, level), g_wiz_text_font_secondary);
+        m_text1->SetFontStateIndex(m_target < 1 ? -1 : 3);
+        m_text1->SetText(FormatWideString(g_format_d_percent, level), g_wiz_text_font_secondary);
     }
     if (!IsPartySlotEligible(g_status.selected_character) || character->spell_learned[0x27] != 1) {
-        m_text_05c->SetFontStateIndex(0);
-        m_text_05c->SetText(g_dash, g_wiz_text_font_secondary);
+        m_text3->SetFontStateIndex(0);
+        m_text3->SetText(g_dash, g_wiz_text_font_secondary);
     } else {
         book = GetBestSpellbookSkillForSpell(character, 0x27, 1, 0, 7);
         realm = character->skills[0x1c + g_spell_records[0x27].realm].level;
         book = character->skills[book].level;
-        m_text_05c->SetFontStateIndex(-1);
-        m_text_05c->SetText(FormatWideString(g_format_d_percent, (book + realm * 4) / 5),
+        m_text3->SetFontStateIndex(-1);
+        m_text3->SetText(FormatWideString(g_format_d_percent, (book + realm * 4) / 5),
                             g_wiz_text_font_secondary);
     }
     if (IsPartySlotEligible(g_status.selected_character) && character->spell_learned[0x12] == 1) {
@@ -1944,21 +1944,21 @@ void W8MainGameStatusPanel::RefreshStatusTexts()
                   character->skills[0x1c + g_spell_records[0x12].realm].level * 4) /
                  5;
         if (static_cast<int>(figure) >= 0) {
-            m_text_064->SetFontStateIndex(-1);
-            m_text_064->SetText(FormatWideString(g_format_d_percent, figure),
+            m_text5->SetFontStateIndex(-1);
+            m_text5->SetText(FormatWideString(g_format_d_percent, figure),
                                 g_wiz_text_font_secondary);
-            m_text_050->SetGeometryDirty();
-            m_text_058->SetGeometryDirty();
-            m_text_060->SetGeometryDirty();
+            m_text0->SetGeometryDirty();
+            m_text2->SetGeometryDirty();
+            m_text4->SetGeometryDirty();
             Invalidate(0);
             return;
         }
     }
-    m_text_064->SetFontStateIndex(0);
-    m_text_064->SetText(g_dash, g_wiz_text_font_secondary);
-    m_text_050->SetGeometryDirty();
-    m_text_058->SetGeometryDirty();
-    m_text_060->SetGeometryDirty();
+    m_text5->SetFontStateIndex(0);
+    m_text5->SetText(g_dash, g_wiz_text_font_secondary);
+    m_text0->SetGeometryDirty();
+    m_text2->SetGeometryDirty();
+    m_text4->SetGeometryDirty();
     Invalidate(0);
 }
 
@@ -1983,12 +1983,12 @@ void W8MainGameStatusPanel::Redraw()
     if (m_fEnabled && m_fDirty) {
         Controls::Redraw();
         m_text->RenderToTarget(0, 0, -14);
-        m_text_050->RenderToTarget(0, 0, -14);
-        m_text_054->RenderToTarget(0, 0, -14);
-        m_text_058->RenderToTarget(0, 0, -14);
-        m_text_05c->RenderToTarget(0, 0, -14);
-        m_text_060->RenderToTarget(0, 0, -14);
-        m_text_064->RenderToTarget(0, 0, -14);
+        m_text0->RenderToTarget(0, 0, -14);
+        m_text1->RenderToTarget(0, 0, -14);
+        m_text2->RenderToTarget(0, 0, -14);
+        m_text3->RenderToTarget(0, 0, -14);
+        m_text4->RenderToTarget(0, 0, -14);
+        m_text5->RenderToTarget(0, 0, -14);
     }
 }
 
@@ -1999,7 +1999,7 @@ W8MainGameScreen::W8MainGameScreen(Trigger* owner)
     m_device_id = owner->lock_state.device_id;
     m_difficulty = owner->lock_state.difficulty;
     m_text_panel = new W8MainGameTextPanel();
-    m_text_panel->m_screen_07c = this;
+    m_text_panel->m_screen = this;
     m_status_panel = new W8MainGameStatusPanel();
     m_action_panel = new Controls(0x1e7, 0x166, 0, 0, 0x1b1, 0, 2);
     m_action_panel->AcquireRegionSet(&g_main_game_action_panel_region_set);
@@ -2064,7 +2064,7 @@ void W8MainGameScreen::SelectTextEntry(int index)
     if (skill > -1) {
         skill += ((m_target_difficulty + 1) / 2) * 6;
     }
-    skill -= g_table_6504e8[chance];
+    skill -= g_table2[chance];
     chance = (skill * 3) / 2 + (11 - g_settings.difficulty) * 10;
     if (chance < 0) {
         chance = 0;
@@ -2095,12 +2095,12 @@ void W8MainGameScreen::SelectTextEntry(int index)
     m_text_panel->m_progress_duration = duration;
     m_text_panel->m_progress_elapsed = 0.0f;
     m_text_panel->m_progress_drawn = 0;
-    m_text_panel->m_timer_094.SetDuration(hold);
-    m_text_panel->m_timer_094.Restart();
+    m_text_panel->m_timer0.SetDuration(hold);
+    m_text_panel->m_timer0.Restart();
     for (i = 0; i < 8; ++i) {
-        if ((static_cast<unsigned char>(m_text_panel->m_entries_054[i]->m_stateFlags) &
+        if ((static_cast<unsigned char>(m_text_panel->m_entries[i]->m_stateFlags) &
              g_W8TextControlStateSecondary) == 0) {
-            m_text_panel->m_entries_054[i]->m_input_blocked_bc = true;
+            m_text_panel->m_entries[i]->m_input_blocked = true;
         }
     }
     m_sound_handle = static_cast<int>(
@@ -2148,7 +2148,7 @@ void W8MainGameScreen::OnPrimary(W8TextControl* control)
     if (skill > -1) {
         skill += m_target_difficulty * 6;
     }
-    skill -= g_table_6504e8[chance];
+    skill -= g_table2[chance];
     chance = (skill * 3) / 2 + (11 - g_settings.difficulty) * 10;
     if (chance < 0) {
         chance = 0;
@@ -2173,12 +2173,12 @@ void W8MainGameScreen::OnPrimary(W8TextControl* control)
     m_text_panel->m_progress_duration = duration;
     m_text_panel->m_progress_elapsed = 0.0f;
     m_text_panel->m_progress_drawn = 0;
-    m_text_panel->m_timer_094.SetDuration(hold);
-    m_text_panel->m_timer_094.Restart();
+    m_text_panel->m_timer0.SetDuration(hold);
+    m_text_panel->m_timer0.Restart();
     for (i = 0; i < 8; ++i) {
-        if ((static_cast<unsigned char>(m_text_panel->m_entries_054[i]->m_stateFlags) &
+        if ((static_cast<unsigned char>(m_text_panel->m_entries[i]->m_stateFlags) &
              g_W8TextControlStateSecondary) == 0) {
-            m_text_panel->m_entries_054[i]->m_input_blocked_bc = true;
+            m_text_panel->m_entries[i]->m_input_blocked = true;
         }
     }
     m_sound_handle = static_cast<int>(SoundPlayStreamedFile(
@@ -2193,7 +2193,7 @@ void W8MainGameScreen::Update()
     int elapsed;
     float progress;
 
-    if (m_disarm_state == 9 && m_timer_154.GetProgress() >= g_float_one &&
+    if (m_disarm_state == 9 && m_timer.GetProgress() >= g_float_one &&
         PartyPortraitEventsIdle() != 0) {
         m_owner->Run(-1);
         m_disarm_state = 10;
@@ -2215,7 +2215,7 @@ void W8MainGameScreen::Update()
 
     panel = m_text_panel;
     if (panel->m_target_changed != 0) {
-        elapsed = static_cast<int>(panel->m_timer_118.GetProgress());
+        elapsed = static_cast<int>(panel->m_timer1.GetProgress());
         if (elapsed != 0) {
             panel->m_marker_anim_time += elapsed;
             panel->m_target_marker_pending = 1;
@@ -2224,7 +2224,7 @@ void W8MainGameScreen::Update()
 
     panel = m_text_panel;
     if (panel->m_progress_display != 0) {
-        progress = panel->m_timer_094.GetProgress();
+        progress = panel->m_timer0.GetProgress();
         if (progress < panel->m_progress_duration) {
             panel->m_progress_elapsed = progress;
             return;
@@ -2232,9 +2232,9 @@ void W8MainGameScreen::Update()
         panel->m_progress_display = 0;
         panel->Invalidate(0);
         for (column = 0; column < 8; ++column) {
-            if ((static_cast<unsigned char>(panel->m_entries_054[column]->m_stateFlags) &
+            if ((static_cast<unsigned char>(panel->m_entries[column]->m_stateFlags) &
                  g_W8TextControlStateSecondary) == 0) {
-                panel->m_entries_054[column]->m_input_blocked_bc = false;
+                panel->m_entries[column]->m_input_blocked = false;
             }
         }
     }
@@ -2260,7 +2260,7 @@ void W8MainGameScreen::Update()
     case 3:
         panel = m_text_panel;
         panel->EnableRegionSet(0);
-        panel->m_key_handler->m_range_038.EnableRegionSet(0);
+        panel->m_key_handler->m_range.EnableRegionSet(0);
         m_action_panel->EnableRegionSet(0);
         CompleteTrapDisarm(m_owner);
         gXStatus.fTrapInteractMode = false;
@@ -2285,8 +2285,8 @@ void W8MainGameScreen::Update()
         EnablePanelRegionSets(0);
         ResolveSprungTrap(m_owner);
         m_disarm_state = 9;
-        m_timer_154.SetDuration(2.0f);
-        m_timer_154.Restart();
+        m_timer.SetDuration(2.0f);
+        m_timer.Restart();
         return;
     case 5:
         m_disarm_state = 0;
@@ -2298,7 +2298,7 @@ void W8MainGameScreen::Update()
         return;
     case 7:
     case 8:
-        if (m_timer_154.GetProgress() >= g_float_one) {
+        if (m_timer.GetProgress() >= g_float_one) {
             m_disarm_state = (m_disarm_state != 7) + 3;
         }
         break;
@@ -2318,9 +2318,9 @@ void W8MainGameScreen::RefreshActionPanel()
 
     m_action_controls[4]->SetEnabled(skill >= 0);
     for (i = 0; i < 8; ++i) {
-        if ((static_cast<unsigned char>(m_text_panel->m_entries_054[i]->m_stateFlags) &
+        if ((static_cast<unsigned char>(m_text_panel->m_entries[i]->m_stateFlags) &
              g_W8TextControlStateSecondary) == 0) {
-            m_text_panel->m_entries_054[i]->m_input_blocked_bc = skill < 0;
+            m_text_panel->m_entries[i]->m_input_blocked = skill < 0;
         }
     }
     if ((!IsPartySlotEligible(slot) || character->spell_learned[0x27] != 1) &&
@@ -2337,23 +2337,23 @@ void W8MainGameScreen::RefreshActionPanel()
     }
     m_action_controls[1]->SetEnabled(can_cast != 0);
     if (m_slot_attempted[slot] == 0) {
-        m_text_panel->m_values_080 = 0;
+        m_text_panel->m_values = 0;
         for (column = 0; column < 8; ++column) {
-            m_text_panel->m_entries_054[column]->m_image = -1;
-            m_text_panel->m_entries_054[column]->Invalidate(0);
+            m_text_panel->m_entries[column]->m_image = -1;
+            m_text_panel->m_entries[column]->Invalidate(0);
         }
     } else {
         values = m_slot_columns[slot];
-        m_text_panel->m_values_080 = values;
+        m_text_panel->m_values = values;
         for (column = 0; column < 8; ++column) {
             if (values == 0 ||
                 (values[column] == 0 &&
-                 GetTable650434Entry(m_text_panel->m_selection_078, column) == 0)) {
-                m_text_panel->m_entries_054[column]->m_image = -1;
+                 GetTable650434Entry(m_text_panel->m_selection, column) == 0)) {
+                m_text_panel->m_entries[column]->m_image = -1;
             } else {
-                m_text_panel->m_entries_054[column]->m_image = values[column];
+                m_text_panel->m_entries[column]->m_image = values[column];
             }
-            m_text_panel->m_entries_054[column]->Invalidate(0);
+            m_text_panel->m_entries[column]->Invalidate(0);
         }
     }
     m_action_controls[2]->SetEnabled(1);
@@ -2368,7 +2368,7 @@ void W8MainGameScreen::EnablePanelRegionSets(bool enable)
     W8MainGameTextPanel* panel = m_text_panel;
 
     panel->EnableRegionSet(enable);
-    panel->m_key_handler->m_range_038.EnableRegionSet(enable);
+    panel->m_key_handler->m_range.EnableRegionSet(enable);
     m_action_panel->EnableRegionSet(enable);
 }
 
@@ -2401,7 +2401,7 @@ void W8MainGameScreen::ApplyInspectSuccess()
     if (skill > -1) {
         skill += m_target_difficulty * 6;
     }
-    skill -= g_table_6504e8[chance];
+    skill -= g_table2[chance];
     chance = (skill * 3) / 2 + (11 - g_settings.difficulty) * 10;
     if (chance < 0) {
         chance = 0;
@@ -2419,15 +2419,15 @@ void W8MainGameScreen::ApplyInspectSuccess()
     }
     m_slot_attempted[m_selected_character] = 1;
     values = m_slot_columns[m_selected_character];
-    m_text_panel->m_values_080 = values;
+    m_text_panel->m_values = values;
     for (column = 0; column < 8; ++column) {
         if (values == 0 || (values[column] == 0 &&
-                            GetTable650434Entry(m_text_panel->m_selection_078, column) == 0)) {
-            m_text_panel->m_entries_054[column]->m_image = -1;
+                            GetTable650434Entry(m_text_panel->m_selection, column) == 0)) {
+            m_text_panel->m_entries[column]->m_image = -1;
         } else {
-            m_text_panel->m_entries_054[column]->m_image = values[column];
+            m_text_panel->m_entries[column]->m_image = values[column];
         }
-        m_text_panel->m_entries_054[column]->Invalidate(0);
+        m_text_panel->m_entries[column]->Invalidate(0);
     }
 }
 
@@ -2475,7 +2475,7 @@ void W8MainGameScreen::CastTrapSpell()
     gXStatus.fTrapInteractMode = false;
     panel = screen->m_text_panel;
     panel->EnableRegionSet(0);
-    panel->m_key_handler->m_range_038.EnableRegionSet(0);
+    panel->m_key_handler->m_range.EnableRegionSet(0);
     screen->m_action_panel->EnableRegionSet(0);
     gXStatus.fTrapInteract = true;
     SelectTextBox(0);
@@ -2497,7 +2497,7 @@ void W8MainGameScreen::UseTrapItem()
     gXStatus.fTrapInteractMode = false;
     panel = screen->m_text_panel;
     panel->EnableRegionSet(0);
-    panel->m_key_handler->m_range_038.EnableRegionSet(0);
+    panel->m_key_handler->m_range.EnableRegionSet(0);
     screen->m_action_panel->EnableRegionSet(0);
     gXStatus.fTrapInteract = true;
     SelectTextBox(0);
@@ -2533,7 +2533,7 @@ int OpenTrapInteraction(Trigger* trigger)
             event->dispatch_delay_ms = 600;
             event->dispatch_delay_start = GetTickCount();
         }
-        SoundPlay(s_trap_detect_64bcf0, 0);
+        SoundPlay(s_trap_detect, 0);
         return 1;
     }
     if (gXStatus.fCombatMode != 0) {
@@ -2543,7 +2543,7 @@ int OpenTrapInteraction(Trigger* trigger)
             event->dispatch_delay_ms = 600;
             event->dispatch_delay_start = GetTickCount();
         }
-        SoundPlay(s_trap_detect_64bcf0, 0);
+        SoundPlay(s_trap_detect, 0);
         return 1;
     }
     gXStatus.fTrapInteractMode = true;
@@ -2567,7 +2567,7 @@ int OpenTrapInteraction(Trigger* trigger)
         screen = g_main_game_screen;
         panel = screen->m_text_panel;
         panel->EnableRegionSet(1);
-        panel->m_key_handler->m_range_038.EnableRegionSet(1);
+        panel->m_key_handler->m_range.EnableRegionSet(1);
         screen->m_action_panel->EnableRegionSet(1);
         screen->m_text_panel->Invalidate(0);
         screen->m_status_panel->RefreshStatusTexts();
@@ -2583,7 +2583,7 @@ int OpenTrapInteraction(Trigger* trigger)
     if (trigger->lock_state.last_interaction_clock == -1 ||
         0x3840 < static_cast<unsigned int>(g_status.world_clock -
                                            trigger->lock_state.last_interaction_clock)) {
-        event_type = g_effect_005ee5ec;
+        event_type = g_effect15;
         if (0x13 < Random(100)) {
             event_type = g_trap_notice_event;
         }
@@ -2595,7 +2595,7 @@ int OpenTrapInteraction(Trigger* trigger)
         }
     }
     trigger->lock_state.last_interaction_clock = g_status.world_clock;
-    SoundPlay(s_trap_detect_64bcf0, 0);
+    SoundPlay(s_trap_detect, 0);
     gXStatus.fTrapInteract = false;
     return 1;
 }
@@ -2627,7 +2627,7 @@ void EndTrapInteractMode(char suspend)
         W8MainGameTextPanel* panel = g_main_game_screen->m_text_panel;
         W8MainGameScreen* screen = g_main_game_screen;
         panel->EnableRegionSet(0);
-        panel->m_key_handler->m_range_038.EnableRegionSet(0);
+        panel->m_key_handler->m_range.EnableRegionSet(0);
         screen->m_action_panel->EnableRegionSet(0);
         gXStatus.fTrapInteract = true;
     } else {
@@ -2668,10 +2668,10 @@ W8NpcDialogueTextController::W8NpcDialogueTextController(int panel_left, int pan
     margin_image = margin_image_id;
     line_image = line_image_id;
     visible = 0;
-    GetCatalogImageSize(m_renderTarget, m_renderArg_1c, line_image, &width, &height);
+    GetCatalogImageSize(m_renderTarget, m_renderArg0, line_image, &width, &height);
     line_height = height & 0xffff;
     scroll_height = height & 0xffff;
-    GetCatalogImageSize(m_renderTarget, m_renderArg_1c, margin_image, &width, &height);
+    GetCatalogImageSize(m_renderTarget, m_renderArg0, margin_image, &width, &height);
     margin = height & 0xffff;
     bounds.bottom = panel_top + 0x12;
     bounds.left = panel_left + 6;
@@ -2699,7 +2699,7 @@ void W8NpcDialogueTextController::Redraw()
     if (m_fEnabled) {
         force = was_dirty != 0;
         if (force) {
-            DrawCatalogImageAndInvalidate(-0xe, m_renderTarget, m_renderArg_1c, m_renderArg_20,
+            DrawCatalogImageAndInvalidate(-0xe, m_renderTarget, m_renderArg0, m_renderArg1,
                                           m_bounds.left, m_bounds.top, 2, 0);
             m_fDirty = 0;
         }
@@ -2709,13 +2709,13 @@ void W8NpcDialogueTextController::Redraw()
                 top = (m_bounds.top - height) + margin;
                 if (height < scroll_height) {
                     do {
-                        DrawCatalogImageAndInvalidate(-0xe, m_renderTarget, m_renderArg_1c,
+                        DrawCatalogImageAndInvalidate(-0xe, m_renderTarget, m_renderArg0,
                                                       line_image, m_bounds.left, top, 2, 0);
                         top -= line_height;
                         height += line_height;
                     } while (height < scroll_height);
                 }
-                DrawCatalogImageAndInvalidate(-0xe, m_renderTarget, m_renderArg_1c, margin_image,
+                DrawCatalogImageAndInvalidate(-0xe, m_renderTarget, m_renderArg0, margin_image,
                                               m_bounds.left, (line_height - margin) + top, 2, 0);
                 force = 1;
             } else if (force == 0 && m_fLayoutDirty == 0) {
@@ -2910,7 +2910,7 @@ W8NpcDialogueScrollWidget::W8NpcDialogueScrollWidget(Controls* panel, unsigned i
                                                      int top, int right, int bottom)
     : W8Widget(panel, region, left, top, right, bottom)
 {
-    m_flags_34 = 0;
+    m_flags = 0;
 }
 
 // FUNCTION: WIZ8 0x0055E5E0
@@ -2939,7 +2939,7 @@ void W8NpcDialogueScrollWidget::OnMouseLeave(int event)
 void W8NpcDialogueScrollWidget::OnLeftButtonDown(int event)
 {
     if (m_active && m_enabled) {
-        m_flags_34 |= 1;
+        m_flags |= 1;
         if (m_leftButtonDownCallback) {
             m_leftButtonDownCallback();
         }
@@ -2949,8 +2949,8 @@ void W8NpcDialogueScrollWidget::OnLeftButtonDown(int event)
 // FUNCTION: WIZ8 0x0055E660
 void W8NpcDialogueScrollWidget::OnLeftButtonUp(int event)
 {
-    if (m_active && m_enabled && (m_flags_34 & 1)) {
-        m_flags_34 &= ~1u;
+    if (m_active && m_enabled && (m_flags & 1)) {
+        m_flags &= ~1u;
         if (m_primaryActivationCallback) {
             m_primaryActivationCallback();
         }
@@ -3129,7 +3129,7 @@ unsigned char MainGameScreenEnter(void)
     {
         W8GameTimer* timer = gXStatus.gameplay_timer;
         if ((timer->m_flags & 8) != 0 || (g_shared_timer_paused && (timer->m_flags & 1) == 0) ||
-            g_shared_timer_flag_d1) {
+            g_shared_timer_flag0) {
             timer->m_flags &= ~8;
             timer->m_start = timer->GetTime() - timer->m_start;
             timer->SetDuration(-1.0f);
@@ -3207,21 +3207,21 @@ void TickAmbientFollowUpIdle(unsigned char input_handled)
         gXStatus.fSurprisePossible == 0) {
         if (input_handled == 0) {
             if (GetMillisecondsSinceCursorMove() > 60000) {
-                if (ClockIsTicking(g_level_block->countdown_258) != 0) {
+                if (ClockIsTicking(g_level_block->countdown0) != 0) {
                     return;
                 }
                 gXStatus.character_event_queue->ProcessFollowUpEvents();
                 return;
             }
         } else {
-            g_level_block->countdown_258 = SetCountdownClock(60000);
+            g_level_block->countdown0 = SetCountdownClock(60000);
         }
         if ((gXStatus.character_event_queue->follow_up_flags & 1) != 0) {
             gXStatus.character_event_queue->follow_up_flags &= ~3;
             return;
         }
     } else {
-        g_level_block->countdown_258 = SetCountdownClock(60000);
+        g_level_block->countdown0 = SetCountdownClock(60000);
         if ((gXStatus.character_event_queue->follow_up_flags & 1) != 0) {
             gXStatus.character_event_queue->follow_up_flags &= ~3;
         }
@@ -4306,7 +4306,7 @@ void SelectPartyCharacter(int party_slot)
         return;
     }
     if (gXStatus.fCombatMode == 0) {
-        QueueCharacterEvent(character, g_special_event_0068c568, 0, g_character_event_no_flags,
+        QueueCharacterEvent(character, g_special_event17, 0, g_character_event_no_flags,
                             g_character_event_full_volume);
     }
     if (g_status.selected_character != -1) {
@@ -4958,7 +4958,7 @@ void FallbackFromUnreachableAction(int party_slot)
             if (g_combat_state->round_active == 0) {
                 if (gXStatus.fPartyMovementMode != 0 &&
                     (SelectPartyCharacter(party_slot), party_slot == g_status.selected_character)) {
-                    int spell_id = row->action_detail_041;
+                    int spell_id = row->action_detail0;
                     unsigned int needed_kind =
                         GetTargetNeededForSpellFriendly(spell_id, 0, W8_TARGETING_CONTEXT_CURRENT);
                     ConfigureSpellTargetFilter(GetSpellTargetType(spell_id, 0), needed_kind);
@@ -4968,7 +4968,7 @@ void FallbackFromUnreachableAction(int party_slot)
                 SelectPartyCharacter(party_slot);
                 if (party_slot == g_status.selected_character) {
                     OpenSpellCastingView(party_slot);
-                    SelectSpellPowerLevel(row->action_detail_045.spell.power_level - 1);
+                    SelectSpellPowerLevel(row->action_detail1.spell.power_level - 1);
                     return;
                 }
             }
@@ -4979,7 +4979,7 @@ void FallbackFromUnreachableAction(int party_slot)
             if (g_combat_state->round_active == 0) {
                 if (gXStatus.fPartyMovementMode != 0 &&
                     (SelectPartyCharacter(party_slot), party_slot == g_status.selected_character)) {
-                    int spell_id = GetItemSpell(row->action_detail_045.item_use.item);
+                    int spell_id = GetItemSpell(row->action_detail1.item_use.item);
                     unsigned int needed_kind =
                         GetTargetNeededForSpellFriendly(spell_id, 0, W8_TARGETING_CONTEXT_CURRENT);
                     ConfigureSpellTargetFilter(GetSpellTargetType(spell_id, 0), needed_kind);
@@ -5222,7 +5222,7 @@ void UpdateCombatPortraitStatus(void)
             } else {
                 status = 3;
             }
-            image = GetCombatPortraitImage(row->action, row->action_detail_041, status, slot);
+            image = GetCombatPortraitImage(row->action, row->action_detail0, status, slot);
             alternate = image;
             if (status == 3) {
                 if (combat_row->combat_status == 3) {
@@ -5283,15 +5283,15 @@ void UpdateKeyboardMenu(void)
             }
             if (!KeyboardMenuContainsCursor()) {
                 g_level_block->cursor_grace = 1;
-                g_level_block->countdown_30c = SetCountdownClock(0x258);
+                g_level_block->countdown3 = SetCountdownClock(0x258);
                 return;
             }
         } else {
             if (KeyboardMenuContainsCursor()) {
-                g_level_block->countdown_30c = SetCountdownClock(0);
+                g_level_block->countdown3 = SetCountdownClock(0);
                 g_level_block->combat_slot = GetSelectedPartySlot();
                 g_level_block->cursor_grace = 0;
-            } else if (ClockIsTicking(g_level_block->countdown_30c) == 0) {
+            } else if (ClockIsTicking(g_level_block->countdown3) == 0) {
                 CloseKeyboardMenu();
             }
         }
@@ -5727,7 +5727,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
             if (g_level_block->portrait_refresh_pending[slot] == 0 &&
                 g_settings.main_ui_mode != W8_MAIN_UI_MODE_PORTRAITS &&
                 g_level_block->portrait_overlay_party_slot == -1 &&
-                ClockIsTicking(g_level_block->countdown_32c) == 0 &&
+                ClockIsTicking(g_level_block->countdown5) == 0 &&
                 (region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
                 g_level_block->portrait_overlay_party_slot = slot;
                 if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
@@ -5742,7 +5742,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
             if (g_level_block->portrait_refresh_pending[slot] == 0 &&
                 g_settings.main_ui_mode != W8_MAIN_UI_MODE_PORTRAITS &&
                 g_level_block->portrait_overlay_party_slot == -1) {
-                g_level_block->countdown_32c = SetCountdownClock(500);
+                g_level_block->countdown5 = SetCountdownClock(500);
                 return 1;
             }
         } else if (us_event == LEFT_BUTTON_UP) {
@@ -5777,7 +5777,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                                 } else if (front_rank != 0) {
                                     QueueCharacterEvent(
                                         &g_status.buffers.Char[g_status.selected_character],
-                                        g_character_event_kind_005ee65c, 0,
+                                        g_character_event_kind2, 0,
                                         g_character_event_no_flags, g_character_event_full_volume);
                                     ShowNotice(0xc, gppStringList[0x7dc], -1, -1, 0);
                                 } else {
@@ -5790,7 +5790,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                             }
                         } else {
                             QueueCharacterEvent(&g_status.buffers.Char[g_status.selected_character],
-                                                g_character_event_kind_005ee65c, 0,
+                                                g_character_event_kind2, 0,
                                                 g_character_event_no_flags,
                                                 g_character_event_full_volume);
                         }
@@ -5857,7 +5857,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
         region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
         if (targeting == 0 && IsNpcDialogueCursorActive() == 0 &&
             gXStatus.scripted_scene == 0 && g_level_block->portrait_right_hold_armed == 0) {
-            g_level_block->countdown_320 = SetCountdownClock(1000);
+            g_level_block->countdown4 = SetCountdownClock(1000);
             g_level_block->portrait_right_hold_armed = true;
         }
     } else {
@@ -5866,7 +5866,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                 return 0;
             }
             if (g_level_block->portrait_right_hold_armed != 0 &&
-                ClockIsTicking(g_level_block->countdown_320) == 0) {
+                ClockIsTicking(g_level_block->countdown4) == 0) {
                 g_level_block->portrait_right_hold_armed = false;
                 if (gXStatus.fNpcDialogueMode != 0) {
                     CloseNpcDialogueForCamp();
@@ -6345,7 +6345,7 @@ unsigned char PartyCombatActionRegionEvent(const InputAtom* event, W8Region* reg
         if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
             if (g_level_block->keyboard_menu_open == 0) {
                 g_level_block->combat_slot = -1;
-                g_level_block->countdown_30c = SetCountdownClock(0);
+                g_level_block->countdown3 = SetCountdownClock(0);
                 g_level_block->hover_combat_slot = -1;
             }
             g_level_block->combat_action_hover_party_slot = -1;
@@ -6366,15 +6366,15 @@ unsigned char PartyCombatActionRegionEvent(const InputAtom* event, W8Region* reg
                 EnableRegionHelpFlag(region);
                 SetRegionHelpText(
                     FormatWideString(g_format_s_colon_s_paren_d, gppStringList[0x68],
-                                     g_spell_records[row->action_detail_041].display_name,
-                                     row->action_detail_045.spell.power_level));
+                                     g_spell_records[row->action_detail0].display_name,
+                                     row->action_detail1.spell.power_level));
                 return 0;
             }
             if (row->action == W8_ACTION_USE_ITEM) {
                 EnableRegionHelpFlag(region);
                 SetRegionHelpText(FormatWideString(
                     g_format_s_colon_s, gppStringList[0x69],
-                    FormatItemDisplayName(row->action_detail_045.item_use.item, 0)));
+                    FormatItemDisplayName(row->action_detail1.item_use.item, 0)));
                 return 0;
             }
         }
@@ -7092,7 +7092,7 @@ void SetCombatSelection(int value)
     int current = g_level_block->highlighted_item;
 
     if (value == current) {
-        if (current != -1 && !ClockIsTicking(g_level_block->countdown_25c) &&
+        if (current != -1 && !ClockIsTicking(g_level_block->countdown1) &&
             !HasScreenTransitionObjects()) {
             POINT point;
             wchar_t text[290];
@@ -7173,7 +7173,7 @@ void SetCombatSelection(int value)
     if (delay > 500) {
         delay = 500;
     }
-    g_level_block->countdown_25c = SetCountdownClock(delay);
+    g_level_block->countdown1 = SetCountdownClock(delay);
 }
 
 /* The world-item twin of SetCombatSelection: a pick change drops the old
@@ -7210,10 +7210,10 @@ void SetCombatTarget(int value)
         if (delay > 500) {
             delay = 500;
         }
-        g_level_block->countdown_25c = SetCountdownClock(delay);
+        g_level_block->countdown1 = SetCountdownClock(delay);
         return;
     }
-    if (current != -1 && !ClockIsTicking(g_level_block->countdown_25c) &&
+    if (current != -1 && !ClockIsTicking(g_level_block->countdown1) &&
         !HasScreenTransitionObjects()) {
         POINT point;
         W8WorldItem* item;
@@ -8210,8 +8210,8 @@ void ConfirmNpcTradeItem(void)
             npc = GetNpcState(npc_kind);
             if (npc != 0 && g_npc_interaction_state->trade_item != 0 &&
                 NpcWantsItem(npc, g_npc_interaction_state->trade_item) != 0) {
-                QueueCharacterEvent(&g_status.buffers.Char[selected], g_effect_005ee6ec, 0,
-                                    g_effect_argument_005ed8cc, g_character_event_full_volume);
+                QueueCharacterEvent(&g_status.buffers.Char[selected], g_effect36, 0,
+                                    g_effect_argument0, g_character_event_full_volume);
                 return;
             }
         }

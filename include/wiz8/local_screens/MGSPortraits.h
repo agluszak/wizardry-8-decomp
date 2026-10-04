@@ -41,13 +41,13 @@ public:
     unsigned char m_pad_b9[3];
     /* 0xbc: catalog image base copied whole from the status row; Redraw adds
        the per-condition offset (0xb6 or 0xc9). */
-    int m_image_object_bc;
+    int m_image_object;
     int m_ui_slot; /* 0xc0: party slot the button tracks */
 };
 static_assert(sizeof(W8ConditionButton) == 0xc4, "W8ConditionButton_size");
 static_assert(offsetof(W8ConditionButton, m_condition) == 0xb8,
               "W8ConditionButton_condition_b8");
-static_assert(offsetof(W8ConditionButton, m_image_object_bc) == 0xbc,
+static_assert(offsetof(W8ConditionButton, m_image_object) == 0xbc,
               "W8ConditionButton_image_object_bc");
 static_assert(offsetof(W8ConditionButton, m_ui_slot) == 0xc0, "W8ConditionButton_ui_slot_c0");
 

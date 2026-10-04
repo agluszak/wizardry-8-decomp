@@ -13,10 +13,10 @@ class srVertexPipe;
    Slot order follows getEyeSpaceLocation/getDiffuse/getSpecular/getST/getQ. */
 struct srVertexArray {
     srVector4T<float>* eye_locations;
-    srVector4T<float>* diffuse_04;
-    srVector4T<float>* specular_08;
+    srVector4T<float>* diffuse;
+    srVector4T<float>* specular;
     srVector2T<float>* st0;
-    srVector2T<float>* st1_10;
+    srVector2T<float>* st1;
     float* q0;
     float* q1;
     unsigned char* packed;

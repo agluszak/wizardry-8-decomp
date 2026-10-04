@@ -25,7 +25,7 @@ bool ConnectiveTissueLiche(Trigger* pTrigger)
 {
     MonGen* generator;
 
-    if (GetItemInHand() != 0x15d && pTrigger->action_230 == 0) {
+    if (GetItemInHand() != 0x15d && pTrigger->action == 0) {
         ShowLevelMessage(6);
         g_trigger_feedback = 1;
         return false;

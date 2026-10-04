@@ -88,7 +88,7 @@ public:
     // ?setMapper@srMaterial@@QAEXPAVsrVertexProcessor@@@Z
     inline void setMapper(srVertexProcessor* mapper)
     {
-        mapper_70 = mapper;
+        this->mapper = mapper;
     }
     // FUNCTION: SURRENDER 0x10034A80 SYMBOL
     // ?setOpacity@srMaterial@@QAEXN@Z
@@ -114,8 +114,8 @@ public:
        dirty. The original SurRender declaration therefore exposed this
        state to clients; keeping it protected would force a fabricated wrapper. */
     srVertexProcessor::MaterialInfo parms; /* 0x18 */
-    srFlags<e_oper> operations_6c;         /* 0x6c */
-    srVertexProcessor* mapper_70;          /* 0x70 */
+    srFlags<e_oper> operations;         /* 0x6c */
+    srVertexProcessor* mapper;          /* 0x70 */
     int dirty;                          /* 0x74 */
 };
 

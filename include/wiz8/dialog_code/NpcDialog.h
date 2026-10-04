@@ -10,7 +10,7 @@ extern wchar_t g_format_S[]; /* 0x0061C4B4 */
 class W8TextBuffer;
 
 /* The dialog receives the script entry itself. Its +0x0e sub-entry array is
-   the option list for kind 5; operand_01 is the price for kinds 0x12/0x1e. */
+   the option list for kind 5; operand0 is the price for kinds 0x12/0x1e. */
 
 /* Dialog Code\NpcDialog.cpp. The NPC dialogue popup: the dispatch code
    allocates 0x270 bytes and hands the constructor a request buffer whose

@@ -32,9 +32,9 @@ public:
 
     private:
         friend class srModel;
-        srPtr<srModel> model_04;
+        srPtr<srModel> model;
         Client* previous;
-        Client* next_0c;
+        Client* next;
     };
 
     srModel();

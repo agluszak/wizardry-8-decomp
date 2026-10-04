@@ -22,8 +22,8 @@ public:
        error state. Retail RTTI shows a one-byte type carrying the state. */
     class Failure {
     public:
-        Failure(e_state state) : state_00(static_cast<char>(state)) {}
-        char state_00;
+        Failure(e_state state) : state(static_cast<char>(state)) {}
+        char state;
     };
 
     virtual ~srBinStream();
@@ -50,10 +50,10 @@ protected:
     static void byteSwap(unsigned char* data, int size);
 
 private:
-    e_state state_04;
-    bool exceptions_08;
+    e_state state;
+    bool exceptions0;
     unsigned char padding_09_[3];
-    e_byteOrder byte_order_0c;
+    e_byteOrder byte_order;
 };
 
 static_assert(sizeof(srBinStream) == 0x10, "srBinStream_must_be_0x10");

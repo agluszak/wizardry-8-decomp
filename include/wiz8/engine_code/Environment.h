@@ -42,8 +42,8 @@ static_assert(sizeof(W8MaterialMapper) == 0x1c, "W8MaterialMapper00482010_must_b
    floats; the word copies below move it without reinterpreting it. */
 extern EnvironmentColour g_light_direction;
 
-extern EnvironmentColour g_environment_colours_65a178[256];
-extern EnvironmentColour g_environment_colours_65ad98[256];
+extern EnvironmentColour g_environment_colours0[256];
+extern EnvironmentColour g_environment_colours1[256];
 
 class stLight;
 void AddEnvironmentLight(stLight* light);

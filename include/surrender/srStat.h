@@ -12,7 +12,7 @@
 #pragma pack(push, 4)
 class srStat {
 public:
-    long count_00;                /* 0x00 */
+    long count;                /* 0x00 */
     unsigned char unknown_04_[4]; /* 0x04: alignment hole, never written */
     double mean;               /* 0x08 */
     double deviation;          /* 0x10 */

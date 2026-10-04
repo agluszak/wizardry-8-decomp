@@ -12,20 +12,20 @@
 void srFog::setDensity(float density)
 {
     if (density <= 0.0f) {
-        density_160 = 0.0f;
+        this->density = 0.0f;
         return;
     }
     if (density >= 1.0f) {
-        density_160 = 1.0f;
+        this->density = 1.0f;
         return;
     }
-    density_160 = density;
+    this->density = density;
 }
 
 // FUNCTION: SURRENDER 0x1004C130
 float srFog::getDensity() const
 {
-    return density_160;
+    return density;
 }
 
 // FUNCTION: SURRENDER 0x1004C140
@@ -50,7 +50,7 @@ int srFog::isActive(srVertexPipe& pipe)
     if ((group_mask & pipe.getExclusionMask()) != 0) {
         return 0;
     }
-    if (density_160 > 0.0f) {
+    if (density > 0.0f) {
         pipe.getEyeSpaceBoundingSphere(center, radius);
         if ((radius <= (float)fog_start) &&
             (center.x * center.x + center.y * center.y + center.z * center.z <
@@ -66,7 +66,7 @@ int srFog::isActive(srVertexPipe& pipe)
 void srFog::verify(srRuntimeClass::e_verify mode)
 {
     srClass::verify(mode);
-    if ((density_160 < 0.0) || (1.0 < density_160)) {
+    if ((density < 0.0) || (1.0 < density)) {
         srAssertFail("(density >= 0.0) && (density <= 1.0)",
                      "D:\\srsdk1x\\sources\\corelib\\srFog.cpp", 0x3c, 0);
     }
@@ -119,7 +119,7 @@ void srFog::process(srVertexPipe& pipe)
                 }
                 srVectorProcessor::clampUnit(values, values, count);
             }
-            density = density_160;
+            density = this->density;
             if ((count != 0) && (density != 1.0f)) {
                 if (density == 0.0f) {
                     srVectorProcessor::copy(
@@ -132,12 +132,12 @@ void srFog::process(srVertexPipe& pipe)
             pipe.applyFog(values);
         } else {
             float* fog = pipe.getFog();
-            if (density_160 >= 1.0f) {
+            if (this->density >= 1.0f) {
                 srVectorProcessor::copy(reinterpret_cast<SRDWORD*>(fog),
                                         /* reinterpret-ok: VP dword fill */ 0x3f800000, count);
                 return;
             }
-            density = 1.0f - density_160;
+            density = 1.0f - this->density;
             if ((count != 0) && (density != 1.0f)) {
                 if (density == 0.0f) {
                     srVectorProcessor::copy(
@@ -147,8 +147,8 @@ void srFog::process(srVertexPipe& pipe)
                     srVectorProcessor::mul(fog, density, fog, count);
                 }
             }
-            if ((count != 0) && (density_160 != 0.0f)) {
-                srVectorProcessor::add(fog, density_160, fog, count);
+            if ((count != 0) && (this->density != 0.0f)) {
+                srVectorProcessor::add(fog, this->density, fog, count);
             }
         }
     }
@@ -163,7 +163,7 @@ srFog::srFog(srNode* parent) : srIlluminator(0)
     }
     fog_start = 0.0;
     fog_end = 1000.0;
-    density_160 = 0.5f;
+    density = 0.5f;
 }
 
 // FUNCTION: SURRENDER 0x1004BD00
@@ -173,7 +173,7 @@ void srFog::dump(std::ostream& stream)
     long flags = stream.flags();
     stream.flags((flags & 0xfffffe7fL) | 0x40);
     stream.width(0x20);
-    stream << "Density: " << density_160 << '\n';
+    stream << "Density: " << density << '\n';
     stream.width(0x20);
     stream << "Fog start: " << fog_start << '\n';
     stream.width(0x20);

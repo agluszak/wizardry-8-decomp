@@ -9,14 +9,14 @@ public:
     ~stHeap()
     {
         if (external_storage == 0) {
-            delete[] entries_00;
+            delete[] entries;
         }
     }
 
-    T* entries_00;
+    T* entries;
     unsigned int external_storage;
     int capacity;
-    int size_0c;
+    int size;
 
     void Insert(const T* entry);
     void SiftDown(int index);
@@ -26,56 +26,56 @@ public:
 
 template <class T> void stHeap<T>::Insert(const T* entry)
 {
-    if (size_0c >= capacity) {
+    if (size >= capacity) {
         srAssertFail("heapsize < maxheapsize", "..\\Engine Code\\Include\\stHeap.hpp", 0xe1,
                      "stHeap overflow");
     }
-    entries_00[size_0c] = *entry;
-    SiftUp(size_0c);
-    ++size_0c;
+    entries[size] = *entry;
+    SiftUp(size);
+    ++size;
 }
 
 template <class T> void stHeap<T>::SiftDown(int index)
 {
-    T entry = entries_00[index];
+    T entry = entries[index];
     int child = index * 2 + 1;
-    while (child < size_0c) {
-        if (child + 1 < size_0c && entries_00[child + 1] <= entries_00[child]) {
+    while (child < size) {
+        if (child + 1 < size && entries[child + 1] <= entries[child]) {
             ++child;
         }
-        if (entry <= entries_00[child]) {
+        if (entry <= entries[child]) {
             break;
         }
-        entries_00[index] = entries_00[child];
+        entries[index] = entries[child];
         index = child;
         child = child * 2 + 1;
     }
-    entries_00[index] = entry;
+    entries[index] = entry;
 }
 
 template <class T> void stHeap<T>::SiftUp(int index)
 {
-    T entry = entries_00[index];
+    T entry = entries[index];
     while (index != 0) {
         int parent = (index - 1) >> 1;
-        if (entries_00[parent] <= entry) {
+        if (entries[parent] <= entry) {
             break;
         }
-        entries_00[index] = entries_00[parent];
+        entries[index] = entries[parent];
         index = parent;
     }
-    entries_00[index] = entry;
+    entries[index] = entry;
 }
 
 template <class T> T stHeap<T>::Delete()
 {
-    if (size_0c < 1) {
+    if (size < 1) {
         srAssertFail("heapsize > 0", "..\\Engine Code\\Include\\stHeap.hpp", 0xf2,
                      "Delete called on empty stHeap");
     }
 
-    T result = entries_00[0];
-    entries_00[0] = entries_00[--size_0c];
+    T result = entries[0];
+    entries[0] = entries[--size];
     SiftDown(0);
     return result;
 }

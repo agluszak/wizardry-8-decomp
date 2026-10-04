@@ -54,7 +54,7 @@ static_assert((sizeof(stMaterial) == 0x7C), "stMaterial_must_be_0x7c");
 struct W8MaterialRecord {
     unsigned char version;         /* 0x000 */
     char texture_name[0x28];      /* 0x001 */
-    char texture_names_029[4][0x28];  /* 0x029 */
+    char texture_names[4][0x28];  /* 0x029 */
     srVector3T<float> ambient;    /* 0x0c9 */
     srVector3T<float> diffuse;    /* 0x0d5 */
     srVector3T<float> emissive_colour; /* 0x0e1 */

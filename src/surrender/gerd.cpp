@@ -38,7 +38,7 @@ srGERD* srGERD::first;
 srGERD* srGERD::firstOpen;
 
 // FUNCTION: SURRENDER 0x1001EEA0
-srGERD::TexturePool::TexturePool() : count_00(0), free_04(0), pool_count(0) {}
+srGERD::TexturePool::TexturePool() : count(0), free(0), pool_count(0) {}
 
 // FUNCTION: SURRENDER 0x1001F0B0
 void srGERD::TexturePool::release()
@@ -47,79 +47,79 @@ void srGERD::TexturePool::release()
         srHeap.free(chunks[index]);
     }
     chunks.release();
-    free_04 = 0;
+    free = 0;
     pool_count = 0;
-    count_00 = 0;
+    count = 0;
 }
 
 // FUNCTION: SURRENDER 0x10019A00 SYMBOL
 // ??0MatrixStack@srGERD@@QAE@XZ
-srGERD::MatrixStack::MatrixStack() : depth_800(0) {}
+srGERD::MatrixStack::MatrixStack() : depth(0) {}
 
 // FUNCTION: SURRENDER 0x10019320
 srGERD::srGERD(srDD* device, void* module, const char* device_name)
-    : dirty_24_(0), state_flags_28_(0), dirty_21c0_(0)
+    : dirty(0), state_flags(0), vertex_arrays_dirty(0)
 {
-    owner_thread_1c_ = srThread::getHandle();
-    device_40_.dd_00_ = device;
-    device_40_.module_0c_ = module;
-    device_40_.window_334_ = 0;
-    device_40_.back_buffer_type_34c_ = static_cast<e_backBuffer>(0);
-    device_40_.debug_dd_04_ = 0;
-    device_40_.real_dd_08_ = 0;
-    dirty_21c0_ = 0xffffffff;
-    vertex_arrays_21c4_.clip.value = 0x3f;
-    vertex_arrays_21c4_.count = 0;
-    vertex_arrays_21c4_.mask.value = 0;
+    owner_thread = srThread::getHandle();
+    this->device.dd = device;
+    this->device.module = module;
+    this->device.window = 0;
+    this->device.back_buffer_type = static_cast<e_backBuffer>(0);
+    this->device.debug_dd = 0;
+    this->device.real_dd = 0;
+    vertex_arrays_dirty = 0xffffffff;
+    vertex_arrays.clip.value = 0x3f;
+    vertex_arrays.count = 0;
+    vertex_arrays.mask.value = 0;
     for (unsigned long index = 0; index < 6; ++index) {
-        vertex_arrays_21c4_.components[index] = 0;
-        vertex_arrays_21c4_.types[index] = srRendererDefs::TYPE_FLOAT;
-        vertex_arrays_21c4_.strides[index] = 0;
-        vertex_arrays_21c4_.arrays[index] = 0;
+        vertex_arrays.components[index] = 0;
+        vertex_arrays.types[index] = srRendererDefs::TYPE_FLOAT;
+        vertex_arrays.strides[index] = 0;
+        vertex_arrays.arrays[index] = 0;
     }
-    srZeroMemory(&state_390_, 0x13c8);
-    srZeroMemory(&accum_buffer_1af8_, 0x440);
-    srZeroMemory(&texture_slots_1f38_, 0xb0);
-    srZeroMemory(&device_40_.info_10_, 0x27c);
-    srZeroMemory(&device_40_.texture_formats_320_, 8);
-    srZeroMemory(&device_40_.display_modes_328_, 8);
-    srZeroMemory(&device_40_.driver_info_28c_, 0x94);
+    srZeroMemory(&state, 0x13c8);
+    srZeroMemory(&accum_buffer, 0x440);
+    srZeroMemory(&texture_slots, 0xb0);
+    srZeroMemory(&this->device.info, 0x27c);
+    srZeroMemory(&this->device.texture_formats, 8);
+    srZeroMemory(&this->device.display_modes, 8);
+    srZeroMemory(&this->device.driver_info, 0x94);
     if (device_name != 0) {
-        strncpy(device_40_.info_10_.text_3c_[0], device_name, 0x3f);
+        strncpy(this->device.info.text[0], device_name, 0x3f);
     }
-    polygon_mode_1fe0_ = POLYGON_FILL;
-    polygon_offset_1fe4_ = 0;
-    state_section_18_ = new srCriticalSection;
-    pick_176c_.pick_key_284_ = 0;
-    exclusion_mask_21bc_ = 0;
-    enable_flags_20_.value = 0;
-    enable_flags_20_.set(ENABLE_AUTO_FLIP, 1);
-    enable_flags_20_.set(ENABLE_CLEAR_ON_OPEN, 1);
-    state_flags_28_ = 0;
-    dirty_24_ = 0xffffffff;
+    polygon_mode = POLYGON_FILL;
+    polygon_offset = 0;
+    state_section = new srCriticalSection;
+    pick.pick_key = 0;
+    exclusion_mask = 0;
+    enable_flags.value = 0;
+    enable_flags.set(ENABLE_AUTO_FLIP, 1);
+    enable_flags.set(ENABLE_CLEAR_ON_OPEN, 1);
+    state_flags = 0;
+    dirty = 0xffffffff;
     setError(ERROR_NONE);
-    display_1758_.gamma_00_ = 1.0f;
-    display_1758_.swap_interval_0c_ = 1;
-    display_1758_.antialias_10_ = ANTIALIAS_NONE;
-    fog_color_1fe8_ = 0.0f;
-    shader_1ff8_ = srShader();
-    texture_iface_1ffc_[0] = 0;
-    texture_iface_1ffc_[1] = 0;
-    enable_flags_20_.set(ENABLE_POSITIONAL_0, 1);
-    device_40_.hints_330_[0] = static_cast<e_hintMode>(0);
+    display.gamma = 1.0f;
+    display.swap_interval = 1;
+    display.antialias = ANTIALIAS_NONE;
+    fog_color = 0.0f;
+    shader = srShader();
+    texture_iface[0] = 0;
+    texture_iface[1] = 0;
+    enable_flags.set(ENABLE_POSITIONAL_0, 1);
+    this->device.hints[0] = static_cast<e_hintMode>(0);
     initTextureParameterMatrix();
-    device_40_.driver_info_28c_.api_version = 0x128;
-    device_40_.driver_info_28c_.dd_api_version = 0;
-    device_40_.driver_info_28c_.debug_write = debugWrite;
-    device_40_.driver_info_28c_.flags_04 = 0;
+    this->device.driver_info.api_version = 0x128;
+    this->device.driver_info.dd_api_version = 0;
+    this->device.driver_info.debug_write = debugWrite;
+    this->device.driver_info.flags = 0;
     if ((srCore.getTimer()->m_cpu_features & 0x800000) != 0) {
-        device_40_.driver_info_28c_.flags_04 = 1;
+        this->device.driver_info.flags = 1;
     }
-    getDD()->getDriverInfo(device_40_.driver_info_28c_);
-    texture_hash_enabled_2044_ = false;
-    texture_cache_size_2038_ = 0;
-    texture_default_2030_ = 0;
-    texture_reduction_2040_ = 0;
+    getDD()->getDriverInfo(this->device.driver_info);
+    texture_hash_enabled = false;
+    texture_cache_size = 0;
+    texture_default = 0;
+    texture_reduction = 0;
     initClearColors();
     initLights();
     initMatrices();
@@ -137,26 +137,26 @@ srGERD::srGERD(srDD* device, void* module, const char* device_name)
         } while (node != 0);
     }
     if (previous != 0) {
-        prev_30_ = previous;
-        next_34_ = previous->getNext();
+        prev = previous;
+        next = previous->getNext();
     } else {
-        prev_30_ = 0;
-        next_34_ = getFirst();
+        prev = 0;
+        next = getFirst();
     }
-    if (prev_30_ != 0) {
-        prev_30_->next_34_ = this;
+    if (prev != 0) {
+        prev->next = this;
     } else {
         first = this;
     }
-    if (next_34_ != 0) {
-        next_34_->prev_30_ = this;
+    if (next != 0) {
+        next->prev = this;
     }
-    prev_open_38_ = 0;
-    next_open_3c_ = 0;
+    prev_open = 0;
+    next_open = 0;
     srCore.getRegistry()->registerInstance(sGetClassNode(), this);
-    setName(device_40_.driver_info_28c_.name);
-    renderers_10_ = 0;
-    renderers_section_14_ = new srCriticalSection;
+    setName(this->device.driver_info.name);
+    renderers = 0;
+    renderers_section = new srCriticalSection;
 }
 
 // FUNCTION: SURRENDER 0x10019F40
@@ -167,36 +167,36 @@ srGERD::~srGERD()
         toggle(ENABLE_DEBUG_DD);
     }
     deleteContext();
-    delete device_40_.dd_00_;
-    device_40_.dd_00_ = 0;
-    if (device_40_.module_0c_ != 0) {
-        srDynamicLibrary::free(device_40_.module_0c_);
+    delete device.dd;
+    device.dd = 0;
+    if (device.module != 0) {
+        srDynamicLibrary::free(device.module);
     }
-    if (prev_30_ != 0) {
-        prev_30_->next_34_ = next_34_;
+    if (prev != 0) {
+        prev->next = next;
     }
-    if (next_34_ != 0) {
-        next_34_->prev_30_ = prev_30_;
+    if (next != 0) {
+        next->prev = prev;
     }
     if (this == first) {
-        first = next_34_;
+        first = next;
     }
-    prev_30_ = 0;
-    next_34_ = 0;
-    srCriticalSection* section = renderers_section_14_;
+    prev = 0;
+    next = 0;
+    srCriticalSection* section = renderers_section;
     if (section != 0) {
         section->getAccess();
         section->releaseAccess();
         delete section;
     }
-    renderers_section_14_ = 0;
-    section = state_section_18_;
+    renderers_section = 0;
+    section = state_section;
     if (section != 0) {
         section->getAccess();
         section->releaseAccess();
         delete section;
     }
-    state_section_18_ = 0;
+    state_section = 0;
     srCore.getRegistry()->unregisterInstance(sGetClassNode(), this);
 }
 
@@ -209,45 +209,45 @@ srGERD& srGERD::operator=(const srGERD& other)
 // FUNCTION: SURRENDER 0x10017920
 srDD* srGERD::getDD() const
 {
-    statistics_1a78_.value_68++;
-    return device_40_.dd_00_;
+    statistics.value_68++;
+    return device.dd;
 }
 
 // FUNCTION: SURRENDER 0x10017A50
 void srGERD::setTextureReduction(long reduction)
 {
-    srCriticalSection* section = state_section_18_;
+    srCriticalSection* section = state_section;
     section->getAccess();
     if (reduction < 0) {
-        texture_reduction_2040_ = 0;
+        texture_reduction = 0;
         section->releaseAccess();
         return;
     }
     if (reduction > 7) {
         reduction = 7;
     }
-    texture_reduction_2040_ = reduction;
+    texture_reduction = reduction;
     section->releaseAccess();
 }
 
 // FUNCTION: SURRENDER 0x10017AC0
 void srGERD::setTexture(srTextureIFace* texture, unsigned long layer)
 {
-    srCriticalSectionAccess access(state_section_18_);
-    if (layer < device_40_.info_10_.max_texture_stages_28_ &&
-        texture_iface_1ffc_[layer] != texture) {
-        texture_iface_1ffc_[layer] = texture;
+    srCriticalSectionAccess access(state_section);
+    if (layer < device.info.max_texture_stages &&
+        texture_iface[layer] != texture) {
+        texture_iface[layer] = texture;
         changeTexture(texture, layer, 0);
-        dirty_24_ |= 1 << (layer + 0xa);
+        dirty |= 1 << (layer + 0xa);
     }
 }
 
 // FUNCTION: SURRENDER 0x10017F30
 unsigned long srGERD::getTextureCacheSize() const
 {
-    srCriticalSection* section = state_section_18_;
+    srCriticalSection* section = state_section;
     section->getAccess();
-    unsigned long size = texture_cache_size_2038_;
+    unsigned long size = texture_cache_size;
     section->releaseAccess();
     return size;
 }
@@ -255,9 +255,9 @@ unsigned long srGERD::getTextureCacheSize() const
 // FUNCTION: SURRENDER 0x10017F50
 unsigned long srGERD::getTextureCacheUsed() const
 {
-    srCriticalSection* section = state_section_18_;
+    srCriticalSection* section = state_section;
     section->getAccess();
-    unsigned long used = texture_cache_used_2034_;
+    unsigned long used = texture_cache_used;
     section->releaseAccess();
     return used;
 }
@@ -265,9 +265,9 @@ unsigned long srGERD::getTextureCacheUsed() const
 // FUNCTION: SURRENDER 0x1001AA60
 long srGERD::getDisplayMode(unsigned long width, unsigned long height, unsigned long depth) const
 {
-    if ((state_flags_28_ & 1) != 0) {
-        for (long i = 0; i < device_40_.display_mode_count_32c_; i++) {
-            unsigned long* mode = device_40_.display_modes_328_ + i * 3;
+    if ((state_flags & 1) != 0) {
+        for (long i = 0; i < device.display_mode_count; i++) {
+            unsigned long* mode = device.display_modes + i * 3;
             if (mode[0] == width && mode[1] == height && mode[2] == depth) {
                 return i;
             }
@@ -279,38 +279,38 @@ long srGERD::getDisplayMode(unsigned long width, unsigned long height, unsigned 
 // FUNCTION: SURRENDER 0x1001AAF0
 void srGERD::getStatistics(Statistics& statistics)
 {
-    srCriticalSectionAccess access(renderers_section_14_);
-    statistics_1a78_.value_34 = 0;
-    statistics_1a78_.value_3c = 0;
-    statistics_1a78_.value_30 = 0;
-    statistics_1a78_.value_38 = 0;
-    statistics_1a78_.value_64 = 0;
-    for (RendererEntry* entry = renderers_10_; entry != 0; entry = entry->next_04) {
-        Renderer* renderer = entry->renderer_08;
+    srCriticalSectionAccess access(renderers_section);
+    this->statistics.value_34 = 0;
+    this->statistics.value_3c = 0;
+    this->statistics.value_30 = 0;
+    this->statistics.value_38 = 0;
+    this->statistics.value_64 = 0;
+    for (RendererEntry* entry = renderers; entry != 0; entry = entry->next) {
+        Renderer* renderer = entry->renderer;
         if (renderer != 0) {
             unsigned long renderer_stats[7];
             renderer->getStatistics(renderer_stats);
-            statistics_1a78_.value_34 += renderer_stats[1];
-            statistics_1a78_.value_64 += renderer_stats[2];
-            statistics_1a78_.value_3c += renderer_stats[3];
-            statistics_1a78_.value_30 += renderer_stats[0];
-            if (renderer->sorted_d8_ == 1) {
-                statistics_1a78_.value_38 += renderer_stats[6];
+            this->statistics.value_34 += renderer_stats[1];
+            this->statistics.value_64 += renderer_stats[2];
+            this->statistics.value_3c += renderer_stats[3];
+            this->statistics.value_30 += renderer_stats[0];
+            if (renderer->sorted == 1) {
+                this->statistics.value_38 += renderer_stats[6];
             }
         }
     }
     srDD::Statistics device;
     memset(&device, 0, sizeof(device));
     getDD()->getStatistics(device);
-    statistics_1a78_.value_08 = device.value_00;
-    statistics_1a78_.value_0c = device.value_04;
-    statistics_1a78_.value_10 = device.value_08;
-    statistics_1a78_.value_18 = device.value_10;
-    statistics_1a78_.value_1c = device.value_14;
-    statistics_1a78_.value_20 = device.value_18;
-    statistics_1a78_.value_24 = device.value_1c;
-    statistics_1a78_.value_28 = device.value_20;
-    statistics = statistics_1a78_;
+    this->statistics.value_08 = device.value_00;
+    this->statistics.value_0c = device.value_04;
+    this->statistics.value_10 = device.value_08;
+    this->statistics.value_18 = device.value_10;
+    this->statistics.value_1c = device.value_14;
+    this->statistics.value_20 = device.value_18;
+    this->statistics.value_24 = device.value_1c;
+    this->statistics.value_28 = device.value_20;
+    statistics = this->statistics;
     statistics.elapsed =
         srCore.getTimer()->getTime(srTimer::TIMER_READ_DEFAULT) - statistics.elapsed;
 }
@@ -318,40 +318,40 @@ void srGERD::getStatistics(Statistics& statistics)
 // FUNCTION: SURRENDER 0x1001ACD0
 void srGERD::resetStatistics()
 {
-    memset(&statistics_1a78_, 0, sizeof(statistics_1a78_));
+    memset(&statistics, 0, sizeof(statistics));
     getDD()->resetStatistics();
-    srCriticalSectionAccess access(renderers_section_14_);
-    for (RendererEntry* entry = renderers_10_; entry != 0; entry = entry->next_04) {
+    srCriticalSectionAccess access(renderers_section);
+    for (RendererEntry* entry = renderers; entry != 0; entry = entry->next) {
         while (entry->busy != 0) {
             srThread::yield(0);
         }
-        entry->renderer_08->resetStatistics();
+        entry->renderer->resetStatistics();
     }
-    statistics_1a78_.elapsed = srCore.getTimer()->getTime(srTimer::TIMER_READ_DEFAULT);
-    statistics_19f8_ = statistics_1a78_;
+    statistics.elapsed = srCore.getTimer()->getTime(srTimer::TIMER_READ_DEFAULT);
+    frame_statistics = statistics;
 }
 
 // FUNCTION: SURRENDER 0x1001ADD0
 void srGERD::toggle(e_enable option)
 {
-    enable_flags_20_.value ^= 1UL << option;
+    enable_flags.value ^= 1UL << option;
     if (option == 0) {
-        dirty_24_ |= 1;
+        dirty |= 1;
         return;
     }
     if (option == 5) {
-        if ((enable_flags_20_.value & 0x20) == 0) {
-            device_40_.dd_00_ = device_40_.real_dd_08_;
-            if (device_40_.debug_dd_04_ != 0) {
-                delete device_40_.debug_dd_04_;
+        if ((enable_flags.value & 0x20) == 0) {
+            device.dd = device.real_dd;
+            if (device.debug_dd != 0) {
+                delete device.debug_dd;
             }
-            device_40_.real_dd_08_ = 0;
-            device_40_.debug_dd_04_ = 0;
+            device.real_dd = 0;
+            device.debug_dd = 0;
             return;
         }
-        device_40_.real_dd_08_ = device_40_.dd_00_;
-        device_40_.debug_dd_04_ = new srDebugDD(device_40_.real_dd_08_);
-        device_40_.dd_00_ = device_40_.debug_dd_04_;
+        device.real_dd = device.dd;
+        device.debug_dd = new srDebugDD(device.real_dd);
+        device.dd = device.debug_dd;
     }
 }
 
@@ -359,16 +359,16 @@ void srGERD::toggle(e_enable option)
 void srGERD::popEnable()
 {
     unsigned long flags = 0;
-    if (environment_state_2068_.enable_depth_144_ != 0) {
-        environment_state_2068_.enable_depth_144_ -= 1;
-        flags = environment_state_2068_.enable_stack_104_[environment_state_2068_.enable_depth_144_]
+    if (environment_state.enable_depth != 0) {
+        environment_state.enable_depth -= 1;
+        flags = environment_state.enable_stack[environment_state.enable_depth]
                     .value;
     }
-    if (flags != enable_flags_20_.value) {
+    if (flags != enable_flags.value) {
         for (e_enable option = static_cast<e_enable>(0); static_cast<int>(option) < 7;
              option = static_cast<e_enable>(static_cast<int>(option) + 1)) {
             unsigned long bit = 1UL << option;
-            if (((flags & bit) != 0) != ((enable_flags_20_.value & bit) != 0)) {
+            if (((flags & bit) != 0) != ((enable_flags.value & bit) != 0)) {
                 toggle(option);
             }
         }
@@ -378,9 +378,9 @@ void srGERD::popEnable()
 // FUNCTION: SURRENDER 0x1001AEC0
 void srGERD::setSwapInterval(unsigned long interval)
 {
-    if (interval != display_1758_.swap_interval_0c_) {
-        display_1758_.swap_interval_0c_ = interval;
-        dirty_24_ |= 4;
+    if (interval != display.swap_interval) {
+        display.swap_interval = interval;
+        dirty |= 4;
     }
 }
 
@@ -397,55 +397,55 @@ void srGERD::setGamma(const srVector3T<float>& gamma)
     if (adjusted.z < 0.0f) {
         adjusted.z = 0.0f;
     }
-    if (!(adjusted == display_1758_.gamma_00_)) {
-        display_1758_.gamma_00_ = adjusted;
-        dirty_24_ |= 2;
+    if (!(adjusted == display.gamma)) {
+        display.gamma = adjusted;
+        dirty |= 2;
     }
 }
 
 // FUNCTION: SURRENDER 0x1001AFB0
 void srGERD::setAntiAlias(e_antiAlias mode)
 {
-    if (mode != display_1758_.antialias_10_) {
-        display_1758_.antialias_10_ = mode;
-        dirty_24_ |= 8;
+    if (mode != display.antialias) {
+        display.antialias = mode;
+        dirty |= 8;
     }
 }
 
 // FUNCTION: SURRENDER 0x1001BE70
 void srGERD::setClipState(srFlags<srRendererDefs::e_clip> state)
 {
-    if (state.value != vertex_arrays_21c4_.clip.value) {
-        vertex_arrays_21c4_.clip = state;
-        dirty_21c0_ |= 1;
+    if (state.value != vertex_arrays.clip.value) {
+        vertex_arrays.clip = state;
+        vertex_arrays_dirty |= 1;
     }
 }
 
 // FUNCTION: SURRENDER 0x1001C380
 srGERD::e_winding srGERD::getWinding() const
 {
-    return state_390_.winding_12bc_;
+    return state.winding;
 }
 
 // FUNCTION: SURRENDER 0x1001C390
 void srGERD::setWinding(e_winding winding)
 {
-    if (state_390_.winding_12bc_ != winding) {
-        state_390_.winding_12bc_ = winding;
-        dirty_24_ |= 0x2000;
+    if (state.winding != winding) {
+        state.winding = winding;
+        dirty |= 0x2000;
     }
 }
 
 // FUNCTION: SURRENDER 0x1001C3B0
 void srGERD::setAmbientLight(const srVector4T<float>& light)
 {
-    ambient_light_2048_ = light;
+    ambient_light = light;
 }
 
 // FUNCTION: SURRENDER 0x1001C410
 void srGERD::getAmbientLight(srVector4T<float>& light)
 {
-    light = ambient_light_2048_;
+    light = ambient_light;
 }
 
 // FUNCTION: SURRENDER 0x1001C480
@@ -462,44 +462,44 @@ void srGERD::setAmbientLight(float red, float green, float blue, float alpha)
 // FUNCTION: SURRENDER 0x1001C4C0
 srGERD::e_cullMode srGERD::getCullMode() const
 {
-    return state_390_.cull_mode_12b8_;
+    return state.cull_mode;
 }
 
 // FUNCTION: SURRENDER 0x1001C4F0
 void srGERD::getEnvironmentRange(float& minimum, float& maximum) const
 {
-    minimum = environment_2058_.x;
-    maximum = environment_2058_.y;
+    minimum = environment.x;
+    maximum = environment.y;
 }
 
 // FUNCTION: SURRENDER 0x1001C5A0
 void srGERD::getEnvironmentScaleFactor(float& scale, float& inverse_scale)
 {
-    scale = environment_2058_.z;
-    inverse_scale = environment_2058_.w;
+    scale = environment.z;
+    inverse_scale = environment.w;
 }
 
 // FUNCTION: SURRENDER 0x1001C8A0
 void srGERD::setPolygonOffset(long offset)
 {
-    if (offset != polygon_offset_1fe4_) {
+    if (offset != polygon_offset) {
         flushImmediateRenderers();
-        polygon_offset_1fe4_ = offset;
-        dirty_24_ |= 0x8000;
+        polygon_offset = offset;
+        dirty |= 0x8000;
     }
 }
 
 // FUNCTION: SURRENDER 0x1001C8D0
 long srGERD::getPolygonOffset() const
 {
-    return polygon_offset_1fe4_;
+    return polygon_offset;
 }
 
 // FUNCTION: SURRENDER 0x1001CA30
 void srGERD::setClearColor(const srVector4T<float>& color)
 {
-    clear_1b08_.clear_values_00_.color_00 = color;
-    float* clear = &clear_1b08_.clear_values_00_.color_00.x;
+    clear_state.clear_values.color = color;
+    float* clear = &clear_state.clear_values.color.x;
     if (clear[0] <= 0.0f) {
         clear[0] = 0.0f;
     } else if (clear[0] >= 1.0f) {
@@ -537,32 +537,32 @@ void srGERD::setClearColor(float red, float green, float blue, float alpha)
 void srGERD::setClearDepth(double depth)
 {
     if (depth <= 0.0) {
-        clear_1b08_.clear_values_00_.depth_20 = 0.0;
+        clear_state.clear_values.depth = 0.0;
         return;
     }
     if (depth >= 1.0) {
-        clear_1b08_.clear_values_00_.depth_20 = 1.0;
+        clear_state.clear_values.depth = 1.0;
         return;
     }
-    clear_1b08_.clear_values_00_.depth_20 = depth;
+    clear_state.clear_values.depth = depth;
 }
 
 // FUNCTION: SURRENDER 0x1001CC10
 void srGERD::drawArrays(srRendererDefs::e_primitive primitive, long first, unsigned long count)
 {
-    if ((enable_flags_20_.value & 4) == 0) {
-        if ((dirty_24_ & 0x1f0) != 0) {
+    if ((enable_flags.value & 4) == 0) {
+        if ((dirty & 0x1f0) != 0) {
             applyViewStateChanges();
         }
-        if ((dirty_24_ & 0xfe00) != 0) {
+        if ((dirty & 0xfe00) != 0) {
             applyDrawStateChanges();
         }
-        if ((dirty_21c0_ & 1) != 0) {
-            getDD()->setVertexArrayInfo(&vertex_arrays_21c4_);
-            dirty_21c0_ &= ~1UL;
+        if ((vertex_arrays_dirty & 1) != 0) {
+            getDD()->setVertexArrayInfo(&vertex_arrays);
+            vertex_arrays_dirty &= ~1UL;
         }
         getDD()->drawArrays(primitive, first, count);
-        statistics_1a78_.draw_calls++;
+        statistics.draw_calls++;
     }
 }
 
@@ -570,35 +570,35 @@ void srGERD::drawArrays(srRendererDefs::e_primitive primitive, long first, unsig
 void srGERD::drawElements(srRendererDefs::e_primitive primitive, unsigned long count,
                           srRendererDefs::e_indexType type, const void* indices)
 {
-    if ((enable_flags_20_.value & 4) == 0) {
-        if ((dirty_24_ & 0x1f0) != 0) {
+    if ((enable_flags.value & 4) == 0) {
+        if ((dirty & 0x1f0) != 0) {
             applyViewStateChanges();
         }
-        if ((dirty_24_ & 0xfe00) != 0) {
+        if ((dirty & 0xfe00) != 0) {
             applyDrawStateChanges();
         }
-        if ((dirty_21c0_ & 1) != 0) {
-            getDD()->setVertexArrayInfo(&vertex_arrays_21c4_);
-            dirty_21c0_ &= ~1UL;
+        if ((vertex_arrays_dirty & 1) != 0) {
+            getDD()->setVertexArrayInfo(&vertex_arrays);
+            vertex_arrays_dirty &= ~1UL;
         }
         getDD()->drawElements(primitive, count, type, indices);
-        statistics_1a78_.draw_calls++;
+        statistics.draw_calls++;
     }
 }
 
 // FUNCTION: SURRENDER 0x1001CEC0
 unsigned long srGERD::getVertexProcessorCount() const
 {
-    return vertex_processors_21b0_.count_08;
+    return vertex_processors.count;
 }
 
 // FUNCTION: SURRENDER 0x1001CED0
 void srGERD::getVertexProcessors(srVertexProcessor** processors) const
 {
     if (processors != 0) {
-        unsigned long count = vertex_processors_21b0_.count_08;
+        unsigned long count = vertex_processors.count;
         for (unsigned long i = 0; i < count; i++) {
-            processors[i] = vertex_processors_21b0_.data[i];
+            processors[i] = vertex_processors.data[i];
         }
     }
 }
@@ -606,13 +606,13 @@ void srGERD::getVertexProcessors(srVertexProcessor** processors) const
 // FUNCTION: SURRENDER 0x1001CFC0
 void srGERD::setError(e_error error)
 {
-    last_error_2c_ = error;
+    last_error = error;
 }
 
 // FUNCTION: SURRENDER 0x1001CF80
 srGERD* srGERD::getNext() const
 {
-    return next_34_;
+    return next;
 }
 
 // FUNCTION: SURRENDER 0x1001CF50
@@ -624,13 +624,13 @@ srGERD* srGERD::getFirstOpen()
 // FUNCTION: SURRENDER 0x1001CF90
 srGERD* srGERD::getNextOpen() const
 {
-    return next_open_3c_;
+    return next_open;
 }
 
 // FUNCTION: SURRENDER 0x10018330
 void srGERD::invalidateTexture(srTextureIFace* texture)
 {
-    srCriticalSection* section = state_section_18_;
+    srCriticalSection* section = state_section;
     section->getAccess();
     if (texture != 0) {
         invalidateTextureByFrameHandle(texture->getTextureFrameHandle());
@@ -642,7 +642,7 @@ void srGERD::invalidateTexture(srTextureIFace* texture)
 void srGERD::invalidateTexture(Texture& texture)
 {
     Texture* candidate = &texture;
-    if (candidate != 0 && candidate != texture_default_2030_) {
+    if (candidate != 0 && candidate != texture_default) {
         markTextureAsDeleted(texture);
     }
 }
@@ -650,66 +650,66 @@ void srGERD::invalidateTexture(Texture& texture)
 // FUNCTION: SURRENDER 0x10028050
 void srGERD::invalidateResidentTexture(Texture& texture)
 {
-    if (texture.device_2c.resident_data != 0) {
-        if (texture.surface_data == 0 || srThread::getHandle() != owner_thread_1c_) {
+    if (texture.device.resident_data != 0) {
+        if (texture.surface_data == 0 || srThread::getHandle() != owner_thread) {
             invalidateTexture(texture);
         } else {
-            getDD()->deleteTexture(texture.device_2c);
-            texture.device_2c.resident_data = 0;
-            texture.device_2c.resident_size = 0;
-            for (unsigned long stage = 0; stage < device_40_.info_10_.max_texture_stages_28_;
+            getDD()->deleteTexture(texture.device);
+            texture.device.resident_data = 0;
+            texture.device.resident_size = 0;
+            for (unsigned long stage = 0; stage < device.info.max_texture_stages;
                  ++stage) {
-                if (texture_slots_1f38_[stage] == &texture) {
-                    texture_slots_1f38_[stage] = 0;
+                if (texture_slots[stage] == &texture) {
+                    texture_slots[stage] = 0;
                 }
             }
         }
-        dirty_24_ |= 0x400;
-        dirty_24_ |= 0x800;
+        dirty |= 0x400;
+        dirty |= 0x800;
     }
 }
 
 // FUNCTION: SURRENDER 0x100280F0
 void srGERD::resetCurrentTexPointers()
 {
-    for (unsigned long stage = 0; stage < device_40_.info_10_.max_texture_stages_28_; ++stage) {
-        texture_iface_1ffc_[stage] = 0;
-        texture_slots_1f38_[stage] = 0;
+    for (unsigned long stage = 0; stage < device.info.max_texture_stages; ++stage) {
+        texture_iface[stage] = 0;
+        texture_slots[stage] = 0;
     }
-    dirty_24_ |= 0x400;
-    dirty_24_ |= 0x800;
+    dirty |= 0x400;
+    dirty |= 0x800;
 }
 
 // FUNCTION: SURRENDER 0x10028150
 void srGERD::markTextureAsDeleted(Texture& texture)
 {
-    if (texture.device_2c.deleted == 0) {
+    if (texture.device.deleted == 0) {
         if (texture.prev != 0) {
-            texture.prev->next_04 = texture.next_04;
+            texture.prev->next = texture.next;
         }
-        if (texture.next_04 != 0) {
-            texture.next_04->prev = texture.prev;
+        if (texture.next != 0) {
+            texture.next->prev = texture.prev;
         }
-        if (&texture == texture_head_202c_) {
-            texture_head_202c_ = texture.next_04;
+        if (&texture == texture_head) {
+            texture_head = texture.next;
         }
         texture.prev = 0;
-        Texture* previous = texture_deleted_2028_;
-        texture.next_04 = previous;
+        Texture* previous = texture_deleted;
+        texture.next = previous;
         if (previous != 0) {
             previous->prev = &texture;
         }
-        texture_deleted_2028_ = &texture;
-        texture.device_2c.deleted = 1;
+        texture_deleted = &texture;
+        texture.device.deleted = 1;
     }
 }
 
 // FUNCTION: SURRENDER 0x10018390
 void srGERD::invalidateTextureByFrameHandle(unsigned long handle)
 {
-    srCriticalSectionAccess access(state_section_18_);
-    if (handle != 0 && texture_hash_enabled_2044_) {
-        Texture* texture = texture_lookup_2004_.Lookup(&handle);
+    srCriticalSectionAccess access(state_section);
+    if (handle != 0 && texture_hash_enabled) {
+        Texture* texture = texture_lookup.Lookup(&handle);
         if (texture != 0) {
             invalidateTexture(*texture);
         }
@@ -720,10 +720,10 @@ void srGERD::invalidateTextureByFrameHandle(unsigned long handle)
 void srGERD::invalidateResidentTextures()
 {
     flushImmediateRenderers();
-    srCriticalSectionAccess access(state_section_18_);
-    Texture* texture = texture_head_202c_;
+    srCriticalSectionAccess access(state_section);
+    Texture* texture = texture_head;
     while (texture != 0) {
-        Texture* next = texture->next_04;
+        Texture* next = texture->next;
         invalidateResidentTexture(*texture);
         texture = next;
     }
@@ -734,10 +734,10 @@ void srGERD::invalidateResidentTextures()
 void srGERD::invalidateResidentTexture(srTextureIFace* texture)
 {
     flushImmediateRenderers();
-    srCriticalSectionAccess access(state_section_18_);
+    srCriticalSectionAccess access(state_section);
     if (texture != 0) {
         unsigned long handle = texture->getTextureFrameHandle();
-        Texture* found = texture_lookup_2004_.Lookup(&handle);
+        Texture* found = texture_lookup.Lookup(&handle);
         if (found != 0) {
             invalidateResidentTexture(*found);
         }
@@ -747,10 +747,10 @@ void srGERD::invalidateResidentTexture(srTextureIFace* texture)
 // FUNCTION: SURRENDER 0x10017EC0
 void srGERD::setTextureCacheSize(unsigned long bytes)
 {
-    srCriticalSectionAccess access(state_section_18_);
-    texture_cache_size_2038_ = bytes;
-    if (bytes != 0 && bytes < texture_cache_used_2034_) {
-        releaseTextureMemory(texture_cache_used_2034_ - bytes);
+    srCriticalSectionAccess access(state_section);
+    texture_cache_size = bytes;
+    if (bytes != 0 && bytes < texture_cache_used) {
+        releaseTextureMemory(texture_cache_used - bytes);
     }
 }
 
@@ -758,18 +758,18 @@ void srGERD::setTextureCacheSize(unsigned long bytes)
 void srGERD::setTextureSubImage(srTextureIFace* texture, long mipmap, long x, long y, long width,
                                 long height)
 {
-    srCriticalSectionAccess access(state_section_18_);
+    srCriticalSectionAccess access(state_section);
     if (isWindowOpen() == 0) {
         return;
     }
     unsigned long handle = texture->getTextureFrameHandle();
-    Texture* resident = texture_lookup_2004_.Lookup(&handle);
-    if (resident != 0 && resident->device_2c.first_level <= (unsigned long)mipmap &&
-        (unsigned long)mipmap <= resident->device_2c.last_level) {
+    Texture* resident = texture_lookup.Lookup(&handle);
+    if (resident != 0 && resident->device.first_level <= (unsigned long)mipmap &&
+        (unsigned long)mipmap <= resident->device.last_level) {
         srTextureIFace::PartialRequest request;
-        request.width_00 = resident->device_2c.width_20;
-        request.height_04 = resident->device_2c.height_24;
-        request.mipmap_level_08 = mipmap;
+        request.width = resident->device.width;
+        request.height = resident->device.height;
+        request.mipmap_level = mipmap;
         request.source_right = x + width;
         request.source_bottom = y + height;
         if (x < 0) {
@@ -781,12 +781,12 @@ void srGERD::setTextureSubImage(srTextureIFace* texture, long mipmap, long x, lo
         request.destination_x = x;
         request.destination_y = y;
         unsigned long shift =
-            (unsigned long)((char)mipmap - (char)resident->device_2c.first_level);
-        unsigned long level_width = request.width_00 >> (shift & 0x1f);
+            (unsigned long)((char)mipmap - (char)resident->device.first_level);
+        unsigned long level_width = request.width >> (shift & 0x1f);
         if (level_width == 0) {
             level_width = 1;
         }
-        unsigned long level_height = request.height_04 >> (shift & 0x1f);
+        unsigned long level_height = request.height >> (shift & 0x1f);
         if (level_height == 0) {
             level_height = 1;
         }
@@ -806,19 +806,19 @@ void srGERD::setTextureSubImage(srTextureIFace* texture, long mipmap, long x, lo
                                                      level_width, level_height, pitch);
             texture->getMipmapLevelPartial(request);
             request.destination->release();
-            resident->device_2c.levels[mipmap] = staging;
-            getDD()->texSubImage(resident->device_2c, mipmap, request.destination_x,
+            resident->device.levels[mipmap] = staging;
+            getDD()->texSubImage(resident->device, mipmap, request.destination_x,
                                  request.destination_y, request.source_right,
                                  request.source_bottom);
-            resident->device_2c.levels[mipmap] = 0;
+            resident->device.levels[mipmap] = 0;
             srCore.getGlobalRecycler()->free(staging);
         } else {
             request.destination =
-                new srColorSurface(resident->pixel_format, resident->device_2c.levels[mipmap],
+                new srColorSurface(resident->pixel_format, resident->device.levels[mipmap],
                                    level_width, level_height, pitch);
             texture->getMipmapLevelPartial(request);
             request.destination->release();
-            getDD()->texSubImage(resident->device_2c, mipmap, request.destination_x,
+            getDD()->texSubImage(resident->device, mipmap, request.destination_x,
                                  request.destination_y, request.source_right,
                                  request.source_bottom);
         }
@@ -828,28 +828,28 @@ void srGERD::setTextureSubImage(srTextureIFace* texture, long mipmap, long x, lo
 // FUNCTION: SURRENDER 0x10018480
 void srGERD::invalidateTextureCache()
 {
-    srCriticalSectionAccess access(state_section_18_);
-    if (texture_hash_enabled_2044_) {
-        Texture* texture = texture_head_202c_;
+    srCriticalSectionAccess access(state_section);
+    if (texture_hash_enabled) {
+        Texture* texture = texture_head;
         while (texture != 0) {
-            Texture* next = texture->next_04;
+            Texture* next = texture->next;
             invalidateTexture(*texture);
             texture = next;
         }
         resetCurrentTexPointers();
-        texture_sequence_203c_ = 0;
+        texture_sequence = 0;
     }
 }
 
 // FUNCTION: SURRENDER 0x10018500
 unsigned long srGERD::getResidentTextureMemUsed() const
 {
-    srCriticalSection* section = state_section_18_;
+    srCriticalSection* section = state_section;
     section->getAccess();
     unsigned long used = 0;
-    for (Texture* texture = texture_head_202c_; texture != 0; texture = texture->next_04) {
-        if (texture->device_2c.resident_data != 0 && texture->device_2c.resident_size > 0) {
-            used += texture->device_2c.resident_size;
+    for (Texture* texture = texture_head; texture != 0; texture = texture->next) {
+        if (texture->device.resident_data != 0 && texture->device.resident_size > 0) {
+            used += texture->device.resident_size;
         }
     }
     section->releaseAccess();
@@ -859,28 +859,28 @@ unsigned long srGERD::getResidentTextureMemUsed() const
 // FUNCTION: SURRENDER 0x10023550
 void srGERD::matrixMode(e_matrixMode mode)
 {
-    state_390_.matrix_mode_12c0_ = mode;
+    state.matrix_mode = mode;
 }
 
 // FUNCTION: SURRENDER 0x100235B0
 void srGERD::pushMatrix()
 {
-    MatrixStack& stack = state_390_.matrix_stacks_80_[state_390_.matrix_mode_12c0_];
-    if (stack.depth_800 < 0x20) {
-        stack.stack[stack.depth_800] =
-            state_390_.matrix_current_00_[state_390_.matrix_mode_12c0_];
-        stack.depth_800++;
+    MatrixStack& stack = state.matrix_stacks[state.matrix_mode];
+    if (stack.depth < 0x20) {
+        stack.stack[stack.depth] =
+            state.matrix_current[state.matrix_mode];
+        stack.depth++;
     }
 }
 
 // FUNCTION: SURRENDER 0x10023560
 void srGERD::popMatrix()
 {
-    srMatrix4T<float>* matrix = &state_390_.matrix_current_00_[state_390_.matrix_mode_12c0_];
-    MatrixStack& stack = state_390_.matrix_stacks_80_[state_390_.matrix_mode_12c0_];
-    if (stack.depth_800 != 0) {
-        stack.depth_800--;
-        *matrix = stack.stack[stack.depth_800];
+    srMatrix4T<float>* matrix = &state.matrix_current[state.matrix_mode];
+    MatrixStack& stack = state.matrix_stacks[state.matrix_mode];
+    if (stack.depth != 0) {
+        stack.depth--;
+        *matrix = stack.stack[stack.depth];
     }
     setMatrixDirty();
 }
@@ -888,16 +888,16 @@ void srGERD::popMatrix()
 // FUNCTION: SURRENDER 0x100236D0
 void srGERD::setMatrixDirty()
 {
-    if (state_390_.matrix_mode_12c0_ == MATRIX_PROJECTION) {
-        dirty_24_ |= 0x10000;
+    if (state.matrix_mode == MATRIX_PROJECTION) {
+        dirty |= 0x10000;
     }
-    dirty_24_ |= 1 << (state_390_.matrix_mode_12c0_ + 5);
+    dirty |= 1 << (state.matrix_mode + 5);
 }
 
 // FUNCTION: SURRENDER 0x1001D2D0
 void srGERD::checkFrameStateChanges()
 {
-    if ((dirty_24_ & 0xf) != 0) {
+    if ((dirty & 0xf) != 0) {
         applyFrameStateChanges();
     }
 }
@@ -906,41 +906,41 @@ void srGERD::checkFrameStateChanges()
 void srGERD::applyFrameStateChanges()
 {
     srDD::Update update;
-    update.gamma = display_1758_.gamma_00_;
-    update.enabled = static_cast<unsigned long>(static_cast<char>(enable_flags_20_.value) & 1);
-    update.swap_interval = display_1758_.swap_interval_0c_;
-    update.antialias = display_1758_.antialias_10_;
-    update.flags_00 = 0;
+    update.gamma = display.gamma;
+    update.enabled = static_cast<unsigned long>(static_cast<char>(enable_flags.value) & 1);
+    update.swap_interval = display.swap_interval;
+    update.antialias = display.antialias;
+    update.flags = 0;
     update.value_10 = 1.0f;
-    if ((dirty_24_ & 8) != 0) {
-        update.flags_00 |= 8;
+    if ((dirty & 8) != 0) {
+        update.flags |= 8;
     }
-    if ((dirty_24_ & 1) != 0) {
-        update.flags_00 |= 1;
+    if ((dirty & 1) != 0) {
+        update.flags |= 1;
     }
-    if ((dirty_24_ & 2) != 0) {
-        update.flags_00 |= 4;
+    if ((dirty & 2) != 0) {
+        update.flags |= 4;
     }
-    if ((dirty_24_ & 4) != 0) {
-        update.flags_00 |= 2;
+    if ((dirty & 4) != 0) {
+        update.flags |= 2;
     }
     getDD()->update(update);
-    dirty_24_ &= ~0xfUL;
-    statistics_1a78_.frame_state_count++;
+    dirty &= ~0xfUL;
+    statistics.frame_state_count++;
 }
 
 // FUNCTION: SURRENDER 0x10019A40
 void srGERD::flushRenderers()
 {
-    if (srThread::getHandle() == owner_thread_1c_) {
+    if (srThread::getHandle() == owner_thread) {
         flushImmediateRenderers();
         flushSort();
-        srCriticalSectionAccess access(renderers_section_14_);
-        for (RendererEntry* entry = renderers_10_; entry != 0; entry = entry->next_04) {
+        srCriticalSectionAccess access(renderers_section);
+        for (RendererEntry* entry = renderers; entry != 0; entry = entry->next) {
             while (entry->busy != 0) {
                 srThread::yield(0);
             }
-            entry->renderer_08->reset(0);
+            entry->renderer->reset(0);
         }
     }
 }
@@ -948,14 +948,14 @@ void srGERD::flushRenderers()
 // FUNCTION: SURRENDER 0x10019AD0
 void srGERD::flushSort()
 {
-    if (srThread::getHandle() == owner_thread_1c_) {
-        srCriticalSectionAccess access(renderers_section_14_);
-        for (RendererEntry* entry = renderers_10_; entry != 0; entry = entry->next_04) {
-            if (entry->renderer_08->sorted_d8_ == 1) {
+    if (srThread::getHandle() == owner_thread) {
+        srCriticalSectionAccess access(renderers_section);
+        for (RendererEntry* entry = renderers; entry != 0; entry = entry->next) {
+            if (entry->renderer->sorted == 1) {
                 while (entry->busy != 0) {
                     srThread::yield(0);
                 }
-                entry->renderer_08->submit();
+                entry->renderer->submit();
             }
         }
     }
@@ -964,14 +964,14 @@ void srGERD::flushSort()
 // FUNCTION: SURRENDER 0x10019B60
 void srGERD::flushImmediateRenderers()
 {
-    if (srThread::getHandle() == owner_thread_1c_) {
-        srCriticalSectionAccess access(renderers_section_14_);
-        for (RendererEntry* entry = renderers_10_; entry != 0; entry = entry->next_04) {
-            if (entry->renderer_08->sorted_d8_ == 0) {
+    if (srThread::getHandle() == owner_thread) {
+        srCriticalSectionAccess access(renderers_section);
+        for (RendererEntry* entry = renderers; entry != 0; entry = entry->next) {
+            if (entry->renderer->sorted == 0) {
                 while (entry->busy != 0) {
                     srThread::yield(0);
                 }
-                entry->renderer_08->submit();
+                entry->renderer->submit();
             }
         }
     }
@@ -980,21 +980,21 @@ void srGERD::flushImmediateRenderers()
 // FUNCTION: SURRENDER 0x10019BF0
 srGERD::RendererEntry* srGERD::createRenderer(int sorted)
 {
-    srCriticalSectionAccess access(renderers_section_14_);
+    srCriticalSectionAccess access(renderers_section);
     Renderer::Parameters parameters;
     parameters.gerd = this;
     parameters.sorted = sorted != 0;
-    parameters.batch_limit = device_40_.info_10_.renderer_batch_limit_1c_;
-    parameters.texture_stages = device_40_.info_10_.max_texture_stages_28_;
+    parameters.batch_limit = device.info.renderer_batch_limit;
+    parameters.texture_stages = device.info.max_texture_stages;
     RendererEntry* entry = new RendererEntry;
-    entry->renderer_08 = new Renderer(parameters);
+    entry->renderer = new Renderer(parameters);
     entry->busy = 0;
     entry->prev = 0;
-    entry->next_04 = renderers_10_;
-    if (renderers_10_ != 0) {
-        renderers_10_->prev = entry;
+    entry->next = renderers;
+    if (renderers != 0) {
+        renderers->prev = entry;
     }
-    renderers_10_ = entry;
+    renderers = entry;
     return entry;
 }
 
@@ -1002,19 +1002,19 @@ srGERD::RendererEntry* srGERD::createRenderer(int sorted)
 srGERD::Renderer* srGERD::lockRenderer()
 {
     int sorted = 0;
-    if ((enable_flags_20_.value & 2) != 0) {
+    if ((enable_flags.value & 2) != 0) {
         sorted = 1;
     }
     for (;;) {
-        srCriticalSectionAccess access(renderers_section_14_);
+        srCriticalSectionAccess access(renderers_section);
         flushNonBusyRenderers();
-        for (RendererEntry* entry = renderers_10_; entry != 0; entry = entry->next_04) {
-            if (entry->busy == 0 && entry->renderer_08->sorted_d8_ == sorted) {
+        for (RendererEntry* entry = renderers; entry != 0; entry = entry->next) {
+            if (entry->busy == 0 && entry->renderer->sorted == sorted) {
                 return _lockRenderer(entry);
             }
         }
         if (sorted == 0) {
-            return _lockRenderer(createRenderer((enable_flags_20_.value >> 1) & 1));
+            return _lockRenderer(createRenderer((enable_flags.value >> 1) & 1));
         }
     }
 }
@@ -1023,17 +1023,17 @@ srGERD::Renderer* srGERD::lockRenderer()
 srGERD::Renderer* srGERD::_lockRenderer(RendererEntry* entry)
 {
     entry->busy = 1;
-    return entry->renderer_08;
+    return entry->renderer;
 }
 
 // FUNCTION: SURRENDER 0x10019D90
 void srGERD::unlockRenderer(Renderer* renderer, int submit)
 {
-    srCriticalSectionAccess access(renderers_section_14_);
-    for (RendererEntry* entry = renderers_10_; entry != 0; entry = entry->next_04) {
-        if (entry->renderer_08 == renderer) {
+    srCriticalSectionAccess access(renderers_section);
+    for (RendererEntry* entry = renderers; entry != 0; entry = entry->next) {
+        if (entry->renderer == renderer) {
             entry->busy = 0;
-            if (srThread::getHandle() == owner_thread_1c_ &&
+            if (srThread::getHandle() == owner_thread &&
                 (submit != 0 || renderer->isBatchFull() != 0)) {
                 renderer->submit();
             }
@@ -1045,11 +1045,11 @@ void srGERD::unlockRenderer(Renderer* renderer, int submit)
 // FUNCTION: SURRENDER 0x10019E30
 void srGERD::flushNonBusyRenderers()
 {
-    if (srThread::getHandle() == owner_thread_1c_) {
-        srCriticalSectionAccess access(renderers_section_14_);
-        for (RendererEntry* entry = renderers_10_; entry != 0; entry = entry->next_04) {
-            if (entry->busy == 0 && entry->renderer_08->isBatchFull() != 0) {
-                entry->renderer_08->submit();
+    if (srThread::getHandle() == owner_thread) {
+        srCriticalSectionAccess access(renderers_section);
+        for (RendererEntry* entry = renderers; entry != 0; entry = entry->next) {
+            if (entry->busy == 0 && entry->renderer->isBatchFull() != 0) {
+                entry->renderer->submit();
             }
         }
     }
@@ -1058,23 +1058,23 @@ void srGERD::flushNonBusyRenderers()
 // FUNCTION: SURRENDER 0x1001A790
 srGERD::e_error srGERD::beginFrame()
 {
-    if ((state_flags_28_ & 1) == 0) {
+    if ((state_flags & 1) == 0) {
         return ERROR_NO_CONTEXT;
     }
     if (isWindowOpen() == 0) {
         return ERROR_WINDOW_NOT_OPEN;
     }
-    if (srWindow::isWindow(device_40_.window_334_) == 0) {
+    if (srWindow::isWindow(device.window) == 0) {
         return ERROR_INVALID_WHANDLE;
     }
-    if ((state_flags_28_ & 4) == 0) {
-        if ((enable_flags_20_.value & 0x10) != 0 && (state_flags_28_ & 8) == 0) {
+    if ((state_flags & 4) == 0) {
+        if ((enable_flags.value & 0x10) != 0 && (state_flags & 8) == 0) {
             flipFrame();
         }
         checkFrameStateChanges();
         getDD()->beginFrame();
-        state_flags_28_ |= 4;
-        state_flags_28_ &= ~8UL;
+        state_flags |= 4;
+        state_flags &= ~8UL;
     }
     return ERROR_NONE;
 }
@@ -1086,10 +1086,10 @@ void srGERD::endFrame()
         setError(ERROR_WINDOW_NOT_OPEN);
         return;
     }
-    if ((state_flags_28_ & 4) != 0) {
+    if ((state_flags & 4) != 0) {
         flushRenderers();
         getDD()->endFrame();
-        state_flags_28_ &= ~4UL;
+        state_flags &= ~4UL;
     }
 }
 
@@ -1106,7 +1106,7 @@ void srGERD::flipFrame(const Rectangle* first, const Rectangle* second, unsigned
         setError(ERROR_WINDOW_NOT_OPEN);
         return;
     }
-    if ((state_flags_28_ & 8) != 0) {
+    if ((state_flags & 8) != 0) {
         return;
     }
     flush();
@@ -1142,9 +1142,9 @@ void srGERD::flipFrame(const Rectangle* first, const Rectangle* second, unsigned
         view_scissor.bottom = height;
         getDD()->flipFrame(&window_scissor, &view_scissor, 1);
     }
-    statistics_1a78_.frames += 1;
-    state_flags_28_ |= 8;
-    getStatistics(statistics_19f8_);
+    statistics.frames += 1;
+    state_flags |= 8;
+    getStatistics(frame_statistics);
 }
 
 // FUNCTION: SURRENDER 0x1001AAB0
@@ -1162,37 +1162,37 @@ void srGERD::flush()
 // FUNCTION: SURRENDER 0x1001CD20
 int srGERD::isContextCreated() const
 {
-    return state_flags_28_ & 1;
+    return state_flags & 1;
 }
 
 // FUNCTION: SURRENDER 0x1001D020
 long srGERD::getWidth() const
 {
-    return device_40_.open_info_338_.width_08;
+    return device.open_info.width;
 }
 
 // FUNCTION: SURRENDER 0x1001D0A0
 long srGERD::getHeight() const
 {
-    return device_40_.open_info_338_.height_0c;
+    return device.open_info.height;
 }
 
 // FUNCTION: SURRENDER 0x1001D0B0
 unsigned long srGERD::getWindowHandle() const
 {
-    return device_40_.window_334_;
+    return device.window;
 }
 
 // FUNCTION: SURRENDER 0x1001D0D0
 int srGERD::isWindowOpen() const
 {
-    return (state_flags_28_ >> 1) & 1;
+    return (state_flags >> 1) & 1;
 }
 
 // FUNCTION: SURRENDER 0x1001D0E0
 int srGERD::isFullScreen() const
 {
-    return device_40_.open_info_338_.display_mode_10 >= 0;
+    return device.open_info.display_mode >= 0;
 }
 
 // FUNCTION: SURRENDER 0x1001D030
@@ -1209,27 +1209,27 @@ void srGERD::getPixelFormat(srPixelConvert::PixelFormat& format) const
 // FUNCTION: SURRENDER 0x1001D100
 const char* srGERD::getDeviceName() const
 {
-    return device_40_.info_10_.text_3c_[0];
+    return device.info.text[0];
 }
 
 // FUNCTION: SURRENDER 0x1001D110
 const char* srGERD::getDeviceVendor() const
 {
-    return device_40_.info_10_.text_3c_[1];
+    return device.info.text[1];
 }
 
 // FUNCTION: SURRENDER 0x1001D120
 const char* srGERD::getDevicePlatform() const
 {
-    return device_40_.info_10_.text_3c_[2];
+    return device.info.text[2];
 }
 
 // FUNCTION: SURRENDER 0x1001D130
 const char* srGERD::getDriverName() const
 {
-    const char* name = device_40_.info_10_.text_3c_[3];
+    const char* name = device.info.text[3];
     if (isContextCreated() == 0) {
-        name = device_40_.driver_info_28c_.name;
+        name = device.driver_info.name;
     }
     return name;
 }
@@ -1237,31 +1237,31 @@ const char* srGERD::getDriverName() const
 // FUNCTION: SURRENDER 0x1001D150
 const char* srGERD::getDriverVendor() const
 {
-    return device_40_.info_10_.text_3c_[4];
+    return device.info.text[4];
 }
 
 // FUNCTION: SURRENDER 0x1001D160
 const char* srGERD::getDriverVersion() const
 {
-    return device_40_.info_10_.text_3c_[5];
+    return device.info.text[5];
 }
 
 // FUNCTION: SURRENDER 0x1001D170
 const char* srGERD::getHardwareChipset() const
 {
-    return device_40_.info_10_.text_3c_[6];
+    return device.info.text[6];
 }
 
 // FUNCTION: SURRENDER 0x1001D180
 const char* srGERD::getHardwareName() const
 {
-    return device_40_.info_10_.text_3c_[7];
+    return device.info.text[7];
 }
 
 // FUNCTION: SURRENDER 0x1001D190
 const char* srGERD::getHardwareVendor() const
 {
-    return device_40_.info_10_.text_3c_[8];
+    return device.info.text[8];
 }
 
 // FUNCTION: SURRENDER 0x1001D1A0
@@ -1273,16 +1273,16 @@ srGERD* srGERD::getFirst()
 // FUNCTION: SURRENDER 0x1001D1D0
 srDD::e_hardwareID srGERD::getHardwareID() const
 {
-    return static_cast<srDD::e_hardwareID>(device_40_.info_10_.hardware_id_38_);
+    return static_cast<srDD::e_hardwareID>(device.info.hardware_id);
 }
 
 // FUNCTION: SURRENDER 0x1001D1F0
 void srGERD::pushEnable()
 {
-    unsigned long depth = environment_state_2068_.enable_depth_144_;
+    unsigned long depth = environment_state.enable_depth;
     if (depth < 0x10) {
-        environment_state_2068_.enable_depth_144_ = depth + 1;
-        environment_state_2068_.enable_stack_104_[depth] = enable_flags_20_;
+        environment_state.enable_depth = depth + 1;
+        environment_state.enable_stack[depth] = enable_flags;
     }
 }
 
@@ -1296,47 +1296,47 @@ void srGERD::setViewPort(unsigned long x, unsigned long y, unsigned long width,
     if (height < 1) {
         height = 1;
     }
-    state_390_.view_top_12ac_ = y;
-    state_390_.view_left_12a8_ = x;
-    state_390_.view_bottom_12b4_ = y + height;
-    state_390_.view_right_12b0_ = x + width;
-    if (state_390_.view_left_12a8_ >= (unsigned long)getWidth()) {
-        state_390_.view_left_12a8_ = getWidth();
+    state.view_top = y;
+    state.view_left = x;
+    state.view_bottom = y + height;
+    state.view_right = x + width;
+    if (state.view_left >= (unsigned long)getWidth()) {
+        state.view_left = getWidth();
     }
-    if (state_390_.view_top_12ac_ >= (unsigned long)getHeight()) {
-        state_390_.view_top_12ac_ = getHeight();
+    if (state.view_top >= (unsigned long)getHeight()) {
+        state.view_top = getHeight();
     }
-    if (state_390_.view_right_12b0_ >= (unsigned long)getWidth()) {
-        state_390_.view_right_12b0_ = getWidth();
+    if (state.view_right >= (unsigned long)getWidth()) {
+        state.view_right = getWidth();
     }
-    if (state_390_.view_bottom_12b4_ >= (unsigned long)getHeight()) {
-        state_390_.view_bottom_12b4_ = getHeight();
+    if (state.view_bottom >= (unsigned long)getHeight()) {
+        state.view_bottom = getHeight();
     }
-    dirty_24_ |= 0x80;
+    dirty |= 0x80;
 }
 
 // FUNCTION: SURRENDER 0x1001D630
 void srGERD::performPickTest(const PickInput& input)
 {
-    unsigned long depth = pick_176c_.pick_depth_280_;
+    unsigned long depth = this->pick.pick_depth;
     if (depth == 0) {
         return;
     }
-    srVector4T<float>* vertices = pick_vertices_2230_.ensure(input.vertex_count);
+    srVector4T<float>* vertices = pick_vertices.ensure(input.vertex_count);
     for (unsigned long index = 0; index < input.vertex_count; index++) {
-        float inv_w = 1.0f / input.positions_10[index].w;
+        float inv_w = 1.0f / input.positions[index].w;
         vertices[index].w = inv_w < 0.0f ? -1.0f : 1.0f;
         inv_w = fabs(inv_w);
-        vertices[index].x = input.positions_10[index].x * inv_w;
-        vertices[index].y = input.positions_10[index].y * inv_w;
-        vertices[index].z = input.positions_10[index].z * inv_w;
+        vertices[index].x = input.positions[index].x * inv_w;
+        vertices[index].y = input.positions[index].y * inv_w;
+        vertices[index].z = input.positions[index].z * inv_w;
     }
-    Pick* pick = pick_176c_.pick_stack_00_;
+    Pick* pick = this->pick.pick_stack;
     do {
-        float pick_x = pick->position_00.x;
-        float pick_y = pick->position_00.y;
+        float pick_x = pick->position.x;
+        float pick_y = pick->position.y;
         for (unsigned long index = 0; index < input.triangle_count; index++) {
-            unsigned long triangle_index = input.indices_00[index];
+            unsigned long triangle_index = input.indices[index];
             const srVector3i& triangle = input.triangles[triangle_index];
             const srVector4T<float>* corner0 = &vertices[input.vertices[triangle.x]];
             const srVector4T<float>* corner1 = &vertices[input.vertices[triangle.y]];
@@ -1384,12 +1384,12 @@ void srGERD::performPickTest(const PickInput& input)
             float b = (v1z - v0z) * (v2x - v0x) - (v2z - v0z) * (v1x - v0x);
             float c = (v2y - v0y) * (v1x - v0x) - (v1y - v0y) * (v2x - v0x);
             float hit = -((a * pick_x + b * pick_y - (a * v0x + b * v0y + c * v0z)) / c);
-            if (hit >= -1.0f && hit < pick->position_00.z) {
-                pick->position_00.z = hit;
+            if (hit >= -1.0f && hit < pick->position.z) {
+                pick->position.z = hit;
                 /* reinterpret-ok: the public pick key arrives as ulong bits
                    naming the selected model instance. */
                 pick->selected_model =
-                    reinterpret_cast<srModelInstance*>(pick_176c_.pick_key_284_);
+                    reinterpret_cast<srModelInstance*>(this->pick.pick_key);
                 pick->value_10 = triangle_index;
             }
         }
@@ -1401,91 +1401,91 @@ void srGERD::performPickTest(const PickInput& input)
 // FUNCTION: SURRENDER 0x1001DAA0
 void srGERD::pushPick(const Pick& pick)
 {
-    if (pick_176c_.pick_depth_280_ < 0x20) {
-        pick_176c_.pick_stack_00_[pick_176c_.pick_depth_280_] = pick;
-        pick_176c_.pick_depth_280_ += 1;
+    if (this->pick.pick_depth < 0x20) {
+        this->pick.pick_stack[this->pick.pick_depth] = pick;
+        this->pick.pick_depth += 1;
     }
 }
 
 // FUNCTION: SURRENDER 0x1001DAE0
 void srGERD::popPick(Pick& pick)
 {
-    if (pick_176c_.pick_depth_280_ != 0) {
-        pick_176c_.pick_depth_280_ -= 1;
-        pick = pick_176c_.pick_stack_00_[pick_176c_.pick_depth_280_];
+    if (this->pick.pick_depth != 0) {
+        this->pick.pick_depth -= 1;
+        pick = this->pick.pick_stack[this->pick.pick_depth];
     }
 }
 
 // FUNCTION: SURRENDER 0x1001DB10
 void srGERD::setPickKey(unsigned long key)
 {
-    pick_176c_.pick_key_284_ = key;
+    pick.pick_key = key;
 }
 
 // FUNCTION: SURRENDER 0x1001EE50
 void srGERD::setExclusionMask(unsigned long mask)
 {
-    exclusion_mask_21bc_ = mask;
+    exclusion_mask = mask;
 }
 
 // FUNCTION: SURRENDER 0x1001EE60
 unsigned long srGERD::getExclusionMask() const
 {
-    return exclusion_mask_21bc_;
+    return exclusion_mask;
 }
 
 // FUNCTION: SURRENDER 0x100293E0
 void srGERD::resetTexture()
 {
-    dirty_24_ |= 0x400;
-    dirty_24_ |= 0x800;
+    dirty |= 0x400;
+    dirty |= 0x800;
 }
 
 // FUNCTION: SURRENDER 0x100213A0
 srMatrix4T<float>::e_scaleType srGERD::getModelViewScaleType()
 {
-    if ((dirty_24_ & 0x1f0) != 0) {
+    if ((dirty & 0x1f0) != 0) {
         applyViewStateChanges();
     }
-    return state_390_.modelview_scale_type_13b4_;
+    return state.modelview_scale_type;
 }
 
 // FUNCTION: SURRENDER 0x100213C0
 void srGERD::getNormalMatrix(srMatrix4T<float>& matrix)
 {
-    if ((dirty_24_ & 0x1f0) != 0) {
+    if ((dirty & 0x1f0) != 0) {
         applyViewStateChanges();
     }
-    if ((enable_flags_20_.value & 8) != 0) {
+    if ((enable_flags.value & 8) != 0) {
         srVector4T<float> negated;
-        negated.Set(-state_390_.normal_matrix_1374_.vectors[0].x,
-                    -state_390_.normal_matrix_1374_.vectors[0].y,
-                    -state_390_.normal_matrix_1374_.vectors[0].z,
-                    -state_390_.normal_matrix_1374_.vectors[0].w);
+        negated.Set(-state.normal_matrix.vectors[0].x,
+                    -state.normal_matrix.vectors[0].y,
+                    -state.normal_matrix.vectors[0].z,
+                    -state.normal_matrix.vectors[0].w);
         matrix.vectors[0] = negated;
-        negated.Set(-state_390_.normal_matrix_1374_.vectors[1].x,
-                    -state_390_.normal_matrix_1374_.vectors[1].y,
-                    -state_390_.normal_matrix_1374_.vectors[1].z,
-                    -state_390_.normal_matrix_1374_.vectors[1].w);
+        negated.Set(-state.normal_matrix.vectors[1].x,
+                    -state.normal_matrix.vectors[1].y,
+                    -state.normal_matrix.vectors[1].z,
+                    -state.normal_matrix.vectors[1].w);
         matrix.vectors[1] = negated;
-        negated.Set(-state_390_.normal_matrix_1374_.vectors[2].x,
-                    -state_390_.normal_matrix_1374_.vectors[2].y,
-                    -state_390_.normal_matrix_1374_.vectors[2].z,
-                    -state_390_.normal_matrix_1374_.vectors[2].w);
+        negated.Set(-state.normal_matrix.vectors[2].x,
+                    -state.normal_matrix.vectors[2].y,
+                    -state.normal_matrix.vectors[2].z,
+                    -state.normal_matrix.vectors[2].w);
         matrix.vectors[2] = negated;
-        matrix.vectors[3] = state_390_.normal_matrix_1374_.vectors[3];
+        matrix.vectors[3] = state.normal_matrix.vectors[3];
         return;
     }
-    matrix = state_390_.normal_matrix_1374_;
+    matrix = state.normal_matrix;
 }
 
 // FUNCTION: SURRENDER 0x100214F0
 void srGERD::getProjectClipNearMatrix(srMatrix4T<float>& matrix)
 {
-    if ((dirty_24_ & 0x1f0) != 0) {
+    if ((dirty & 0x1f0) != 0) {
         applyViewStateChanges();
     }
-    matrix = state_390_.project_clip_near_1334_;
+    matrix = state.project_clip_near;
 }
 
 // FUNCTION: SURRENDER 0x10022190
@@ -1499,7 +1499,7 @@ void srGERD::ortho(const Frustum& frustum)
     ortho_matrix.vectors[2].z = -2.0 / (frustum.far_plane - frustum.near_plane);
     ortho_matrix.vectors[2].w =
         -((frustum.near_plane + frustum.far_plane) / (frustum.far_plane - frustum.near_plane));
-    srMatrix4T<float>& matrix = state_390_.matrix_current_00_[state_390_.matrix_mode_12c0_];
+    srMatrix4T<float>& matrix = state.matrix_current[state.matrix_mode];
     matrix.vectors[0].w = matrix.vectors[0].x * ortho_matrix.vectors[0].w +
                           matrix.vectors[0].y * ortho_matrix.vectors[1].w +
                           matrix.vectors[0].z * ortho_matrix.vectors[2].w + matrix.vectors[0].w;
@@ -1566,7 +1566,7 @@ void srGERD::rotate(double angle, const srVector3T<double>& axis)
         rotation.vectors[2].x = unit_axis.x * unit_axis.z * complement - unit_axis.y * sine;
         rotation.vectors[2].y = unit_axis.y * unit_axis.z * complement + unit_axis.x * sine;
         rotation.vectors[2].z = unit_axis.z * unit_axis.z * complement + cosine;
-        srMatrix4T<float>& matrix = state_390_.matrix_current_00_[state_390_.matrix_mode_12c0_];
+        srMatrix4T<float>& matrix = state.matrix_current[state.matrix_mode];
         float x = matrix.vectors[0].x;
         float y = matrix.vectors[0].y;
         float z = matrix.vectors[0].z;
@@ -1618,7 +1618,7 @@ void srGERD::rotate(double angle, const srVector3T<float>& axis)
 // FUNCTION: SURRENDER 0x10022780
 void srGERD::scale(const srVector3T<double>& factors)
 {
-    srMatrix4T<float>& matrix = state_390_.matrix_current_00_[state_390_.matrix_mode_12c0_];
+    srMatrix4T<float>& matrix = state.matrix_current[state.matrix_mode];
     matrix.vectors[0].x *= factors.x;
     matrix.vectors[1].x *= factors.x;
     matrix.vectors[2].x *= factors.x;
@@ -1643,7 +1643,7 @@ void srGERD::scale(double x, double y, double z)
 // FUNCTION: SURRENDER 0x10022960
 void srGERD::translate(const srVector3T<double>& offset)
 {
-    srMatrix4T<float>& matrix = state_390_.matrix_current_00_[state_390_.matrix_mode_12c0_];
+    srMatrix4T<float>& matrix = state.matrix_current[state.matrix_mode];
     matrix.vectors[0].w = matrix.vectors[0].x * offset.x + matrix.vectors[0].y * offset.y +
                           matrix.vectors[0].z * offset.z + matrix.vectors[0].w;
     matrix.vectors[1].w = matrix.vectors[1].x * offset.x + matrix.vectors[1].y * offset.y +
@@ -1670,7 +1670,7 @@ void srGERD::translate(double x, double y, double z)
 // FUNCTION: SURRENDER 0x100231D0
 void srGERD::loadIdentity()
 {
-    srMatrix4T<float>& matrix = state_390_.matrix_current_00_[state_390_.matrix_mode_12c0_];
+    srMatrix4T<float>& matrix = state.matrix_current[state.matrix_mode];
     if (matrix.vectors[0].x != 1.0f || matrix.vectors[1].y != 1.0f || matrix.vectors[2].z != 1.0f ||
         matrix.vectors[3].w != 1.0f || matrix.vectors[0].y != 0.0f || matrix.vectors[0].z != 0.0f ||
         matrix.vectors[0].w != 0.0f || matrix.vectors[1].x != 0.0f || matrix.vectors[1].z != 0.0f ||
@@ -1688,19 +1688,19 @@ void srGERD::loadIdentity()
 // FUNCTION: SURRENDER 0x10023320
 void srGERD::getMatrix(e_matrixMode mode, srMatrix4T<float>& matrix)
 {
-    if ((dirty_24_ & 0x1f0) != 0) {
+    if ((dirty & 0x1f0) != 0) {
         applyViewStateChanges();
     }
-    matrix = state_390_.matrix_current_00_[mode];
+    matrix = state.matrix_current[mode];
 }
 
 // FUNCTION: SURRENDER 0x10023510
 void srGERD::getInverseModelViewMatrix(srMatrix4T<float>& matrix)
 {
-    if ((dirty_24_ & 0x1f0) != 0) {
+    if ((dirty & 0x1f0) != 0) {
         applyViewStateChanges();
     }
-    matrix = state_390_.inverse_modelview_12f4_;
+    matrix = state.inverse_modelview;
 }
 
 // FUNCTION: SURRENDER 0x1001F790
@@ -1720,15 +1720,15 @@ void srGERD::accumAlloc()
 {
     if (getWidth() != 0) {
         if (getHeight() != 0) {
-            accum_buffer_1af8_ =
+            accum_buffer =
                 static_cast<AccumPixel*>(srHeap.allocate(getWidth() * getHeight() * 8));
             unsigned long* scratch = static_cast<unsigned long*>(srHeap.allocate(getWidth() * 4));
             if (scratch != 0) {
-                accum_scratch_1afc_ = scratch;
+                accum_scratch = scratch;
                 accumClear();
                 return;
             }
-            accum_scratch_1afc_ = 0;
+            accum_scratch = 0;
             accumClear();
         }
     }
@@ -1737,22 +1737,22 @@ void srGERD::accumAlloc()
 // FUNCTION: SURRENDER 0x1001F8D0
 void srGERD::accumClear()
 {
-    if (accum_buffer_1af8_ == 0) {
+    if (accum_buffer == 0) {
         accumAlloc();
     }
-    if (accum_buffer_1af8_ == 0) {
+    if (accum_buffer == 0) {
         return;
     }
-    short first = accumConvert(clear_1b08_.clear_values_00_.accum.x);
-    short second = accumConvert(clear_1b08_.clear_values_00_.accum.y);
-    short third = accumConvert(clear_1b08_.clear_values_00_.accum.z);
-    short fourth = accumConvert(clear_1b08_.clear_values_00_.accum.w);
-    unsigned long left = state_390_.scissor_1298_.left;
-    unsigned long top = state_390_.scissor_1298_.top;
-    unsigned long width = state_390_.scissor_1298_.right - left;
-    unsigned long height = state_390_.scissor_1298_.bottom - top;
+    short first = accumConvert(clear_state.clear_values.accum.x);
+    short second = accumConvert(clear_state.clear_values.accum.y);
+    short third = accumConvert(clear_state.clear_values.accum.z);
+    short fourth = accumConvert(clear_state.clear_values.accum.w);
+    unsigned long left = state.scissor.left;
+    unsigned long top = state.scissor.top;
+    unsigned long width = state.scissor.right - left;
+    unsigned long height = state.scissor.bottom - top;
     /* reinterpret-ok: 16-bit accumulation pixels are filled as dword lanes. */
-    SRDWORD* row = reinterpret_cast<SRDWORD*>(accum_buffer_1af8_) + (getWidth() * top + left) * 2;
+    SRDWORD* row = reinterpret_cast<SRDWORD*>(accum_buffer) + (getWidth() * top + left) * 2;
     if (width == 0 || height == 0) {
         return;
     }
@@ -1825,16 +1825,16 @@ public:
                     unsigned long bottom);
 
 private:
-    srGERD* gerd_44_;
-    unsigned long left_48_;
-    unsigned long top_4c_;
-    unsigned long right_50_;
-    unsigned long bottom_54_;
-    srColorSurface* scratch_58_;
+    srGERD* gerd;
+    unsigned long left;
+    unsigned long top;
+    unsigned long right;
+    unsigned long bottom;
+    srColorSurface* scratch;
 
 public:
     /* Set by lockBuffer when the locked pixel format is 32-bit ARGB. */
-    unsigned char argb32_5c_;
+    unsigned char argb32;
 
 private:
     unsigned char unknown_5d_[3];
@@ -1850,22 +1850,22 @@ srGERD::LockSurface::LockSurface(srGERD* gerd, const srPixelConvert::PixelFormat
     description.pitch = (format.bytes_per_pixel_minus_one + 1) * description.width;
     description.pixel_format = format;
     setSurfaceDesc(description);
-    gerd_44_ = gerd;
-    left_48_ = 0;
-    top_4c_ = 0;
-    right_50_ = 0;
-    bottom_54_ = 0;
+    this->gerd = gerd;
+    left = 0;
+    top = 0;
+    right = 0;
+    bottom = 0;
     /* One row tall and as wide as the longest scissor axis. */
     unsigned long side =
         (long)description.width < (long)description.height ? description.height : description.width;
-    scratch_58_ = new srColorSurface(format, side, 1);
-    argb32_5c_ = 0;
+    scratch = new srColorSurface(format, side, 1);
+    argb32 = 0;
 }
 
 // FUNCTION: SURRENDER 0x1001F610
 srGERD::LockSurface::~LockSurface()
 {
-    scratch_58_->release();
+    scratch->release();
 }
 
 // FUNCTION: SURRENDER 0x1001F770
@@ -1889,256 +1889,256 @@ long srGERD::LockSurface::getDataSize()
 // FUNCTION: SURRENDER 0x100207A0
 void srGERD::LockSurface::setHLine(long y, long x0, long x1, unsigned long pixel)
 {
-    if (y < (long)top_4c_ || y >= (long)bottom_54_) {
+    if (y < (long)top || y >= (long)bottom) {
         return;
     }
-    if (x0 < (long)left_48_) {
-        x0 = left_48_;
+    if (x0 < (long)left) {
+        x0 = left;
     }
-    if (x1 > (long)right_50_) {
-        x1 = right_50_;
+    if (x1 > (long)right) {
+        x1 = right;
     }
     if (x0 >= x1) {
         return;
     }
     /* Convert the pixel through the scratch surface, then hand the device a
        pointer to the converted value. */
-    scratch_58_->setPixel(0, 0, pixel);
-    unsigned long converted = scratch_58_->getPixelRaw(0, 0);
+    scratch->setPixel(0, 0, pixel);
+    unsigned long converted = scratch->getPixelRaw(0, 0);
     srDD::BufferCommand command;
-    command.flags_00 = 0;
+    command.flags = 0;
     command.opcode = 4;
-    command.data_08 = &converted;
-    command.x_0c = x0;
-    command.y_10 = y;
-    command.count_14 = x1 - x0;
-    gerd_44_->getDD()->bufferOp(command);
+    command.data = &converted;
+    command.x = x0;
+    command.y = y;
+    command.count = x1 - x0;
+    gerd->getDD()->bufferOp(command);
 }
 
 // FUNCTION: SURRENDER 0x10020990
 void srGERD::LockSurface::getPixelRow(unsigned long* pixels, long y, long x0, long x1)
 {
-    if (y < (long)top_4c_ || y >= (long)bottom_54_) {
+    if (y < (long)top || y >= (long)bottom) {
         return;
     }
-    if (x0 < (long)left_48_) {
-        pixels += left_48_ - x0;
-        x0 = left_48_;
+    if (x0 < (long)left) {
+        pixels += left - x0;
+        x0 = left;
     }
-    if (x1 > (long)right_50_) {
-        x1 = right_50_;
+    if (x1 > (long)right) {
+        x1 = right;
     }
     if (x0 >= x1) {
         return;
     }
     long count = x1 - x0;
     srDD::BufferCommand command;
-    command.flags_00 = 0;
+    command.flags = 0;
     command.opcode = 2;
-    command.x_0c = x0;
-    command.y_10 = y;
-    command.count_14 = count;
-    if (argb32_5c_ != 0) {
-        command.data_08 = pixels;
-        gerd_44_->getDD()->bufferOp(command);
+    command.x = x0;
+    command.y = y;
+    command.count = count;
+    if (argb32 != 0) {
+        command.data = pixels;
+        gerd->getDD()->bufferOp(command);
         return;
     }
-    command.data_08 = scratch_58_->getDataPtr();
-    gerd_44_->getDD()->bufferOp(command);
-    scratch_58_->getPixelRow(pixels, 0, 0, count);
+    command.data = scratch->getDataPtr();
+    gerd->getDD()->bufferOp(command);
+    scratch->getPixelRow(pixels, 0, 0, count);
 }
 
 // FUNCTION: SURRENDER 0x10020840
 void srGERD::LockSurface::setPixelRow(const unsigned long* pixels, long y, long x0, long x1)
 {
-    if (y < (long)top_4c_ || y >= (long)bottom_54_) {
+    if (y < (long)top || y >= (long)bottom) {
         return;
     }
-    if (x0 < (long)left_48_) {
-        pixels += left_48_ - x0;
-        x0 = left_48_;
+    if (x0 < (long)left) {
+        pixels += left - x0;
+        x0 = left;
     }
-    if (x1 > (long)right_50_) {
-        x1 = right_50_;
+    if (x1 > (long)right) {
+        x1 = right;
     }
     if (x0 >= x1) {
         return;
     }
     long count = x1 - x0;
     srDD::BufferCommand command;
-    command.flags_00 = 0;
+    command.flags = 0;
     command.opcode = 3;
-    command.x_0c = x0;
-    command.y_10 = y;
-    command.count_14 = count;
-    if (argb32_5c_ != 0) {
-        command.data_08 = (void*)pixels;
-        gerd_44_->getDD()->bufferOp(command);
+    command.x = x0;
+    command.y = y;
+    command.count = count;
+    if (argb32 != 0) {
+        command.data = (void*)pixels;
+        gerd->getDD()->bufferOp(command);
         return;
     }
-    scratch_58_->setPixelRow(pixels, 0, 0, count);
-    command.data_08 = scratch_58_->getDataPtr();
-    gerd_44_->getDD()->bufferOp(command);
+    scratch->setPixelRow(pixels, 0, 0, count);
+    command.data = scratch->getDataPtr();
+    gerd->getDD()->bufferOp(command);
 }
 
 // FUNCTION: SURRENDER 0x10020A70
 void srGERD::LockSurface::getPixelRowRaw(void* pixels, long y, long x0, long x1)
 {
-    if (y < (long)top_4c_ || y >= (long)bottom_54_) {
+    if (y < (long)top || y >= (long)bottom) {
         return;
     }
-    if (x0 < (long)left_48_) {
+    if (x0 < (long)left) {
         /* Retail advances the raw pointer by one byte per clipped pixel. */
-        pixels = (char*)pixels + (left_48_ - x0);
-        x0 = left_48_;
+        pixels = (char*)pixels + (left - x0);
+        x0 = left;
     }
-    if (x1 > (long)right_50_) {
-        x1 = right_50_;
+    if (x1 > (long)right) {
+        x1 = right;
     }
     if (x0 >= x1) {
         return;
     }
     srDD::BufferCommand command;
-    command.flags_00 = 0;
+    command.flags = 0;
     command.opcode = 2;
-    command.data_08 = pixels;
-    command.x_0c = x0;
-    command.y_10 = y;
-    command.count_14 = x1 - x0;
-    gerd_44_->getDD()->bufferOp(command);
+    command.data = pixels;
+    command.x = x0;
+    command.y = y;
+    command.count = x1 - x0;
+    gerd->getDD()->bufferOp(command);
 }
 
 // FUNCTION: SURRENDER 0x10020900
 void srGERD::LockSurface::setPixelRowRaw(const void* pixels, long y, long x0, long x1)
 {
-    if (y < (long)top_4c_ || y >= (long)bottom_54_) {
+    if (y < (long)top || y >= (long)bottom) {
         return;
     }
-    if (x0 < (long)left_48_) {
+    if (x0 < (long)left) {
         pixels =
-            (const char*)pixels + (pixel_format_30.bytes_per_pixel_minus_one + 1) * (left_48_ - x0);
-        x0 = left_48_;
+            (const char*)pixels + (pixel_format.bytes_per_pixel_minus_one + 1) * (left - x0);
+        x0 = left;
     }
-    if (x1 > (long)right_50_) {
-        x1 = right_50_;
+    if (x1 > (long)right) {
+        x1 = right;
     }
     if (x0 >= x1) {
         return;
     }
     srDD::BufferCommand command;
-    command.flags_00 = 0;
+    command.flags = 0;
     command.opcode = 3;
-    command.data_08 = (void*)pixels;
-    command.x_0c = x0;
-    command.y_10 = y;
-    command.count_14 = x1 - x0;
-    gerd_44_->getDD()->bufferOp(command);
+    command.data = (void*)pixels;
+    command.x = x0;
+    command.y = y;
+    command.count = x1 - x0;
+    gerd->getDD()->bufferOp(command);
 }
 
 // FUNCTION: SURRENDER 0x10020BB0
 void srGERD::LockSurface::getPixelColumn(unsigned long* pixels, long x, long y0, long y1)
 {
-    if (x < (long)left_48_ || x >= (long)right_50_) {
+    if (x < (long)left || x >= (long)right) {
         return;
     }
-    if (y0 < (long)top_4c_) {
-        pixels += top_4c_ - y0;
-        y0 = top_4c_;
+    if (y0 < (long)top) {
+        pixels += top - y0;
+        y0 = top;
     }
-    if (y1 >= (long)bottom_54_) {
-        y1 = bottom_54_;
+    if (y1 >= (long)bottom) {
+        y1 = bottom;
     }
     if (y0 >= y1) {
         return;
     }
     long count = y1 - y0;
     srDD::BufferCommand command;
-    command.flags_00 = 0;
+    command.flags = 0;
     command.opcode = 6;
-    command.x_0c = x;
-    command.y_10 = y0;
-    command.count_14 = count;
-    if (argb32_5c_ != 0) {
-        command.data_08 = pixels;
-        gerd_44_->getDD()->bufferOp(command);
+    command.x = x;
+    command.y = y0;
+    command.count = count;
+    if (argb32 != 0) {
+        command.data = pixels;
+        gerd->getDD()->bufferOp(command);
         return;
     }
-    command.data_08 = scratch_58_->getDataPtr();
-    gerd_44_->getDD()->bufferOp(command);
-    scratch_58_->getPixelRow(pixels, 0, 0, count);
+    command.data = scratch->getDataPtr();
+    gerd->getDD()->bufferOp(command);
+    scratch->getPixelRow(pixels, 0, 0, count);
 }
 
 // FUNCTION: SURRENDER 0x10020AF0
 void srGERD::LockSurface::setPixelColumn(const unsigned long* pixels, long x, long y0, long y1)
 {
-    if (x < (long)left_48_ || x >= (long)right_50_) {
+    if (x < (long)left || x >= (long)right) {
         return;
     }
-    if (y0 < (long)top_4c_) {
-        pixels += top_4c_ - y0;
-        y0 = top_4c_;
+    if (y0 < (long)top) {
+        pixels += top - y0;
+        y0 = top;
     }
-    if (y1 >= (long)bottom_54_) {
-        y1 = bottom_54_;
+    if (y1 >= (long)bottom) {
+        y1 = bottom;
     }
     if (y0 >= y1) {
         return;
     }
     long count = y1 - y0;
     srDD::BufferCommand command;
-    command.flags_00 = 0;
+    command.flags = 0;
     command.opcode = 7;
-    command.x_0c = x;
-    command.y_10 = y0;
-    command.count_14 = count;
-    if (argb32_5c_ != 0) {
-        command.data_08 = (void*)pixels;
-        gerd_44_->getDD()->bufferOp(command);
+    command.x = x;
+    command.y = y0;
+    command.count = count;
+    if (argb32 != 0) {
+        command.data = (void*)pixels;
+        gerd->getDD()->bufferOp(command);
         return;
     }
-    scratch_58_->setPixelRow(pixels, 0, 0, count);
-    command.data_08 = scratch_58_->getDataPtr();
-    gerd_44_->getDD()->bufferOp(command);
+    scratch->setPixelRow(pixels, 0, 0, count);
+    command.data = scratch->getDataPtr();
+    gerd->getDD()->bufferOp(command);
 }
 
 // FUNCTION: SURRENDER 0x10020780
 void srGERD::LockSurface::setScissor(unsigned long left, unsigned long top, unsigned long right,
                                      unsigned long bottom)
 {
-    left_48_ = left;
-    right_50_ = right;
-    top_4c_ = top;
-    bottom_54_ = bottom;
+    this->left = left;
+    this->right = right;
+    this->top = top;
+    this->bottom = bottom;
 }
 
 // FUNCTION: SURRENDER 0x10020C90
 srDD::e_error srGERD::_lockBuffer()
 {
-    if (buffer_lock_count_1b04_ == 0) {
+    if (buffer_lock_count == 0) {
         flushImmediateRenderers();
         getDD()->flushFrame();
         srDD::BufferCommand command;
-        command.flags_00 = 0;
+        command.flags = 0;
         command.opcode = 0;
         srDD::e_error error = getDD()->bufferOp(command);
         if (error != 0) {
             return error;
         }
     }
-    buffer_lock_count_1b04_ += 1;
+    buffer_lock_count += 1;
     return srDD::ERROR_NONE;
 }
 
 // FUNCTION: SURRENDER 0x10020CF0
 srDD::e_error srGERD::_unlockBuffer()
 {
-    if (buffer_lock_count_1b04_ != 0) {
-        buffer_lock_count_1b04_ -= 1;
-        if (buffer_lock_count_1b04_ == 0) {
-            /* Retail's command.flags_00 ends up holding the decremented lock
+    if (buffer_lock_count != 0) {
+        buffer_lock_count -= 1;
+        if (buffer_lock_count == 0) {
+            /* Retail's command.flags ends up holding the decremented lock
                count (the decrement temporary shares that slot). */
             srDD::BufferCommand command;
-            command.flags_00 = buffer_lock_count_1b04_;
+            command.flags = buffer_lock_count;
             command.opcode = 1;
             return getDD()->bufferOp(command);
         }
@@ -2154,7 +2154,7 @@ void srGERD::clear(const srFlags<e_buffer>& buffers)
         return;
     }
     if (buffers.value != 0) {
-        if ((dirty_24_ & 0x1f0) != 0) {
+        if ((dirty & 0x1f0) != 0) {
             applyViewStateChanges();
         }
         /* GERD buffer bits 0,1,3 map to DD bits 0,1,2; GERD bit 2 is the
@@ -2168,7 +2168,7 @@ void srGERD::clear(const srFlags<e_buffer>& buffers)
             device_buffers.value |= srDD::BUFFER_STENCIL;
         }
         if (device_buffers.value != 0) {
-            getDD()->setClearValues(clear_1b08_.clear_values_00_);
+            getDD()->setClearValues(clear_state.clear_values);
             getDD()->clearBuffers(device_buffers);
         }
         if ((buffers.value & BUFFER_ACCUM) != 0) {
@@ -2180,31 +2180,31 @@ void srGERD::clear(const srFlags<e_buffer>& buffers)
 // FUNCTION: SURRENDER 0x1001BC70
 void srGERD::applyViewStateChanges()
 {
-    unsigned long dirty = dirty_24_;
-    statistics_1a78_.view_state_applies += 1;
+    unsigned long dirty = this->dirty;
+    statistics.view_state_applies += 1;
     if ((dirty & 0x20) != 0) {
         classifyMatrix(MATRIX_MODELVIEW);
-        dirty = dirty_24_ & ~0x20UL;
-        dirty_24_ = dirty;
+        dirty = this->dirty & ~0x20UL;
+        this->dirty = dirty;
         if (dirty == 0) {
             return;
         }
     }
     if ((dirty & 0x180) != 0) {
         srDD::ViewPort viewport;
-        viewport.x = state_390_.view_left_12a8_;
-        viewport.y = state_390_.view_top_12ac_;
-        viewport.width = state_390_.view_right_12b0_ - viewport.x;
-        viewport.height = state_390_.view_bottom_12b4_ - viewport.y;
-        memcpy(viewport.extra, &state_390_.depth_min_1288_, sizeof(viewport.extra));
-        if ((state_flags_28_ & 0x10) == 0) {
+        viewport.x = state.view_left;
+        viewport.y = state.view_top;
+        viewport.width = state.view_right - viewport.x;
+        viewport.height = state.view_bottom - viewport.y;
+        memcpy(viewport.extra, &state.depth_min, sizeof(viewport.extra));
+        if ((state_flags & 0x10) == 0) {
             getDD()->setViewPort(viewport);
         }
     }
-    if ((dirty_24_ & 0x40) != 0) {
+    if ((this->dirty & 0x40) != 0) {
         classifyMatrix(MATRIX_PROJECTION);
-        state_390_.project_clip_near_1334_ = state_390_.matrix_current_00_[MATRIX_PROJECTION];
-        srMatrix4T<float>& projection = state_390_.matrix_current_00_[MATRIX_PROJECTION];
+        state.project_clip_near = state.matrix_current[MATRIX_PROJECTION];
+        srMatrix4T<float>& projection = state.matrix_current[MATRIX_PROJECTION];
         if (((projection.vectors[3].x != 0.0f) || (projection.vectors[3].y != 0.0f) ||
              (projection.vectors[3].z != 0.0f)) &&
             ((projection.vectors[3].w + projection.vectors[2].w != 0.0f) &&
@@ -2212,84 +2212,84 @@ void srGERD::applyViewStateChanges()
                    (projection.vectors[3].w + projection.vectors[2].w)) != 1.0))) {
             float scale = (float)fabs((projection.vectors[3].z + projection.vectors[2].z) /
                                       (projection.vectors[3].w + projection.vectors[2].w));
-            state_390_.project_clip_near_1334_.vectors[0].x *= scale;
-            state_390_.project_clip_near_1334_.vectors[0].y *= scale;
-            state_390_.project_clip_near_1334_.vectors[0].z *= scale;
-            state_390_.project_clip_near_1334_.vectors[0].w *= scale;
-            state_390_.project_clip_near_1334_.vectors[1].x *= scale;
-            state_390_.project_clip_near_1334_.vectors[1].y *= scale;
-            state_390_.project_clip_near_1334_.vectors[1].z *= scale;
-            state_390_.project_clip_near_1334_.vectors[1].w *= scale;
-            state_390_.project_clip_near_1334_.vectors[2].x *= scale;
-            state_390_.project_clip_near_1334_.vectors[2].y *= scale;
-            state_390_.project_clip_near_1334_.vectors[2].z *= scale;
-            state_390_.project_clip_near_1334_.vectors[2].w *= scale;
-            state_390_.project_clip_near_1334_.vectors[3].x *= scale;
-            state_390_.project_clip_near_1334_.vectors[3].y *= scale;
-            state_390_.project_clip_near_1334_.vectors[3].z *= scale;
-            state_390_.project_clip_near_1334_.vectors[3].w *= scale;
+            state.project_clip_near.vectors[0].x *= scale;
+            state.project_clip_near.vectors[0].y *= scale;
+            state.project_clip_near.vectors[0].z *= scale;
+            state.project_clip_near.vectors[0].w *= scale;
+            state.project_clip_near.vectors[1].x *= scale;
+            state.project_clip_near.vectors[1].y *= scale;
+            state.project_clip_near.vectors[1].z *= scale;
+            state.project_clip_near.vectors[1].w *= scale;
+            state.project_clip_near.vectors[2].x *= scale;
+            state.project_clip_near.vectors[2].y *= scale;
+            state.project_clip_near.vectors[2].z *= scale;
+            state.project_clip_near.vectors[2].w *= scale;
+            state.project_clip_near.vectors[3].x *= scale;
+            state.project_clip_near.vectors[3].y *= scale;
+            state.project_clip_near.vectors[3].z *= scale;
+            state.project_clip_near.vectors[3].w *= scale;
         }
-        if ((state_flags_28_ & 0x10) == 0) {
-            getDD()->setProjectionMatrix(state_390_.project_clip_near_1334_,
-                                         state_390_.matrix_class_13bc_[MATRIX_PROJECTION]);
+        if ((state_flags & 0x10) == 0) {
+            getDD()->setProjectionMatrix(state.project_clip_near,
+                                         state.matrix_class[MATRIX_PROJECTION]);
         }
     }
-    if ((dirty_24_ & 0x10) != 0) {
+    if ((this->dirty & 0x10) != 0) {
         recalcScissor();
     }
-    dirty_24_ &= ~0x1f0UL;
+    this->dirty &= ~0x1f0UL;
 }
 
 // FUNCTION: SURRENDER 0x1001D580
 void srGERD::setScissor(unsigned long x, unsigned long y, unsigned long width, unsigned long height)
 {
-    state_390_.scissor_1298_.left = x;
-    state_390_.scissor_1298_.right = x + width;
-    state_390_.scissor_1298_.top = y;
-    state_390_.scissor_1298_.bottom = y + height;
-    if (state_390_.scissor_1298_.left >= (unsigned long)getWidth()) {
-        state_390_.scissor_1298_.left = getWidth();
+    state.scissor.left = x;
+    state.scissor.right = x + width;
+    state.scissor.top = y;
+    state.scissor.bottom = y + height;
+    if (state.scissor.left >= (unsigned long)getWidth()) {
+        state.scissor.left = getWidth();
     }
-    if (state_390_.scissor_1298_.top >= (unsigned long)getHeight()) {
-        state_390_.scissor_1298_.top = getHeight();
+    if (state.scissor.top >= (unsigned long)getHeight()) {
+        state.scissor.top = getHeight();
     }
-    if (state_390_.scissor_1298_.right >= (unsigned long)getWidth()) {
-        state_390_.scissor_1298_.right = getWidth();
+    if (state.scissor.right >= (unsigned long)getWidth()) {
+        state.scissor.right = getWidth();
     }
-    if (state_390_.scissor_1298_.bottom >= (unsigned long)getHeight()) {
-        state_390_.scissor_1298_.bottom = getHeight();
+    if (state.scissor.bottom >= (unsigned long)getHeight()) {
+        state.scissor.bottom = getHeight();
     }
     recalcScissor();
-    dirty_24_ |= 0x10;
+    dirty |= 0x10;
 }
 
 // FUNCTION: SURRENDER 0x100204C0
 void srGERD::recalcScissor()
 {
-    if (state_390_.scissor_1298_.left == 0 &&
-        state_390_.scissor_1298_.right == (unsigned long)getWidth() &&
-        state_390_.scissor_1298_.top == 0 &&
-        state_390_.scissor_1298_.bottom == (unsigned long)getHeight()) {
-        state_390_.scissor_flags_12f0_ |= 2;
+    if (state.scissor.left == 0 &&
+        state.scissor.right == (unsigned long)getWidth() &&
+        state.scissor.top == 0 &&
+        state.scissor.bottom == (unsigned long)getHeight()) {
+        state.scissor_flags |= 2;
     } else {
-        state_390_.scissor_flags_12f0_ &= ~2UL;
+        state.scissor_flags &= ~2UL;
     }
-    getDD()->setScissor(state_390_.scissor_1298_);
-    if (lock_surface_1b00_ != 0) {
-        lock_surface_1b00_->setScissor(state_390_.scissor_1298_.left, state_390_.scissor_1298_.top,
-                                       state_390_.scissor_1298_.right,
-                                       state_390_.scissor_1298_.bottom);
+    getDD()->setScissor(state.scissor);
+    if (lock_surface != 0) {
+        lock_surface->setScissor(state.scissor.left, state.scissor.top,
+                                       state.scissor.right,
+                                       state.scissor.bottom);
     }
 }
 
 // FUNCTION: SURRENDER 0x100215A0
 void srGERD::classifyMatrix(e_matrixMode mode)
 {
-    statistics_1a78_.matrix_classifications += 1;
+    statistics.matrix_classifications += 1;
     if (mode == MATRIX_MODELVIEW) {
-        srMatrix4T<float>* modelview = &state_390_.matrix_current_00_[MATRIX_MODELVIEW];
-        state_390_.matrix_class_13bc_[MATRIX_MODELVIEW] = (srMatrix4T<float>::e_type)0;
-        srMatrix4T<float>* inverse = &state_390_.inverse_modelview_12f4_;
+        srMatrix4T<float>* modelview = &state.matrix_current[MATRIX_MODELVIEW];
+        state.matrix_class[MATRIX_MODELVIEW] = (srMatrix4T<float>::e_type)0;
+        srMatrix4T<float>* inverse = &state.inverse_modelview;
         double length0 = modelview->vectors[2].x * modelview->vectors[2].x +
                          modelview->vectors[1].x * modelview->vectors[1].x +
                          modelview->vectors[0].x * modelview->vectors[0].x;
@@ -2301,8 +2301,8 @@ void srGERD::classifyMatrix(e_matrixMode mode)
                          modelview->vectors[0].z * modelview->vectors[0].z;
         if (fabs(length0 - length1) <= 1e-05 && fabs(length0 - length2) <= 1e-05) {
             if (fabs(length0 - 1.0) > 1e-05) {
-                state_390_.modelview_scale_type_13b4_ = srMatrix4T<float>::SCALE_TYPE_UNIFORM;
-                state_390_.max_modelview_scale_13b8_ = (float)sqrt(length0);
+                state.modelview_scale_type = srMatrix4T<float>::SCALE_TYPE_UNIFORM;
+                state.max_modelview_scale = (float)sqrt(length0);
                 length0 = 1.0 / length0;
                 inverse->vectors[0].x = length0 * modelview->vectors[0].x;
                 inverse->vectors[1].x = length0 * modelview->vectors[0].y;
@@ -2313,37 +2313,37 @@ void srGERD::classifyMatrix(e_matrixMode mode)
                 inverse->vectors[0].z = length0 * modelview->vectors[2].x;
                 inverse->vectors[1].z = length0 * modelview->vectors[2].y;
                 inverse->vectors[2].z = length0 * modelview->vectors[2].z;
-                float scale = state_390_.max_modelview_scale_13b8_;
-                state_390_.normal_matrix_1374_.vectors[0].x = scale * inverse->vectors[0].x;
-                state_390_.normal_matrix_1374_.vectors[0].y = scale * inverse->vectors[1].x;
-                state_390_.normal_matrix_1374_.vectors[0].z = scale * inverse->vectors[2].x;
-                state_390_.normal_matrix_1374_.vectors[1].x = scale * inverse->vectors[0].y;
-                state_390_.normal_matrix_1374_.vectors[1].y = scale * inverse->vectors[1].y;
-                state_390_.normal_matrix_1374_.vectors[1].z = scale * inverse->vectors[2].y;
-                state_390_.normal_matrix_1374_.vectors[2].x = scale * inverse->vectors[0].z;
-                state_390_.normal_matrix_1374_.vectors[2].y = scale * inverse->vectors[1].z;
-                state_390_.normal_matrix_1374_.vectors[2].z = scale * inverse->vectors[2].z;
+                float scale = state.max_modelview_scale;
+                state.normal_matrix.vectors[0].x = scale * inverse->vectors[0].x;
+                state.normal_matrix.vectors[0].y = scale * inverse->vectors[1].x;
+                state.normal_matrix.vectors[0].z = scale * inverse->vectors[2].x;
+                state.normal_matrix.vectors[1].x = scale * inverse->vectors[0].y;
+                state.normal_matrix.vectors[1].y = scale * inverse->vectors[1].y;
+                state.normal_matrix.vectors[1].z = scale * inverse->vectors[2].y;
+                state.normal_matrix.vectors[2].x = scale * inverse->vectors[0].z;
+                state.normal_matrix.vectors[2].y = scale * inverse->vectors[1].z;
+                state.normal_matrix.vectors[2].z = scale * inverse->vectors[2].z;
             } else {
-                state_390_.modelview_scale_type_13b4_ = srMatrix4T<float>::SCALE_TYPE_UNIT;
-                state_390_.max_modelview_scale_13b8_ = 1.0f;
+                state.modelview_scale_type = srMatrix4T<float>::SCALE_TYPE_UNIT;
+                state.max_modelview_scale = 1.0f;
                 inverse->vectors[0].x = modelview->vectors[0].x;
-                state_390_.normal_matrix_1374_.vectors[0].x = modelview->vectors[0].x;
+                state.normal_matrix.vectors[0].x = modelview->vectors[0].x;
                 inverse->vectors[1].x = modelview->vectors[0].y;
-                state_390_.normal_matrix_1374_.vectors[0].y = modelview->vectors[0].y;
+                state.normal_matrix.vectors[0].y = modelview->vectors[0].y;
                 inverse->vectors[2].x = modelview->vectors[0].z;
-                state_390_.normal_matrix_1374_.vectors[0].z = modelview->vectors[0].z;
+                state.normal_matrix.vectors[0].z = modelview->vectors[0].z;
                 inverse->vectors[0].y = modelview->vectors[1].x;
-                state_390_.normal_matrix_1374_.vectors[1].x = modelview->vectors[1].x;
+                state.normal_matrix.vectors[1].x = modelview->vectors[1].x;
                 inverse->vectors[1].y = modelview->vectors[1].y;
-                state_390_.normal_matrix_1374_.vectors[1].y = modelview->vectors[1].y;
+                state.normal_matrix.vectors[1].y = modelview->vectors[1].y;
                 inverse->vectors[2].y = modelview->vectors[1].z;
-                state_390_.normal_matrix_1374_.vectors[1].z = modelview->vectors[1].z;
+                state.normal_matrix.vectors[1].z = modelview->vectors[1].z;
                 inverse->vectors[0].z = modelview->vectors[2].x;
-                state_390_.normal_matrix_1374_.vectors[2].x = modelview->vectors[2].x;
+                state.normal_matrix.vectors[2].x = modelview->vectors[2].x;
                 inverse->vectors[1].z = modelview->vectors[2].y;
-                state_390_.normal_matrix_1374_.vectors[2].y = modelview->vectors[2].y;
+                state.normal_matrix.vectors[2].y = modelview->vectors[2].y;
                 inverse->vectors[2].z = modelview->vectors[2].z;
-                state_390_.normal_matrix_1374_.vectors[2].z = modelview->vectors[2].z;
+                state.normal_matrix.vectors[2].z = modelview->vectors[2].z;
             }
             inverse->vectors[0].w = -(modelview->vectors[0].w * inverse->vectors[0].x +
                                       modelview->vectors[1].w * inverse->vectors[0].y +
@@ -2369,8 +2369,8 @@ void srGERD::classifyMatrix(e_matrixMode mode)
         if (length0 < length2) {
             length0 = length2;
         }
-        state_390_.modelview_scale_type_13b4_ = srMatrix4T<float>::SCALE_TYPE_NON_UNIFORM;
-        state_390_.max_modelview_scale_13b8_ = (float)sqrt(length0);
+        state.modelview_scale_type = srMatrix4T<float>::SCALE_TYPE_NON_UNIFORM;
+        state.max_modelview_scale = (float)sqrt(length0);
         inverse->Inverse(*modelview);
         srMatrix4T<float> normalized = *modelview;
         normalized.vectors[0].x *= inv0;
@@ -2387,18 +2387,18 @@ void srGERD::classifyMatrix(e_matrixMode mode)
         normalized.vectors[3].z *= inv2;
         srMatrix4T<float> adjugate;
         adjugate.Inverse(normalized);
-        state_390_.normal_matrix_1374_.vectors[0].x = adjugate.vectors[0].x;
-        state_390_.normal_matrix_1374_.vectors[0].y = adjugate.vectors[1].x;
-        state_390_.normal_matrix_1374_.vectors[0].z = adjugate.vectors[2].x;
-        state_390_.normal_matrix_1374_.vectors[1].x = adjugate.vectors[0].y;
-        state_390_.normal_matrix_1374_.vectors[1].y = adjugate.vectors[1].y;
-        state_390_.normal_matrix_1374_.vectors[1].z = adjugate.vectors[2].y;
-        state_390_.normal_matrix_1374_.vectors[2].x = adjugate.vectors[0].z;
-        state_390_.normal_matrix_1374_.vectors[2].y = adjugate.vectors[1].z;
-        state_390_.normal_matrix_1374_.vectors[2].z = adjugate.vectors[2].z;
+        state.normal_matrix.vectors[0].x = adjugate.vectors[0].x;
+        state.normal_matrix.vectors[0].y = adjugate.vectors[1].x;
+        state.normal_matrix.vectors[0].z = adjugate.vectors[2].x;
+        state.normal_matrix.vectors[1].x = adjugate.vectors[0].y;
+        state.normal_matrix.vectors[1].y = adjugate.vectors[1].y;
+        state.normal_matrix.vectors[1].z = adjugate.vectors[2].y;
+        state.normal_matrix.vectors[2].x = adjugate.vectors[0].z;
+        state.normal_matrix.vectors[2].y = adjugate.vectors[1].z;
+        state.normal_matrix.vectors[2].z = adjugate.vectors[2].z;
         return;
     }
-    srMatrix4T<float>& matrix = state_390_.matrix_current_00_[mode];
+    srMatrix4T<float>& matrix = state.matrix_current[mode];
     unsigned long mask = 0;
     unsigned long bit = 1;
     for (long row = 0; row < 4; row++) {
@@ -2429,7 +2429,7 @@ void srGERD::classifyMatrix(e_matrixMode mode)
     } else {
         type = 0;
     }
-    state_390_.matrix_class_13bc_[mode] = (srMatrix4T<float>::e_type)type;
+    state.matrix_class[mode] = (srMatrix4T<float>::e_type)type;
 }
 
 // FUNCTION: SURRENDER 0x1001CF40
@@ -2438,7 +2438,7 @@ void srGERD::assertContext() const {}
 // FUNCTION: SURRENDER 0x1001BB10
 void srGERD::checkViewStateChanges()
 {
-    if ((dirty_24_ & 0x1f0) != 0) {
+    if ((dirty & 0x1f0) != 0) {
         applyViewStateChanges();
     }
 }
@@ -2446,7 +2446,7 @@ void srGERD::checkViewStateChanges()
 // FUNCTION: SURRENDER 0x1001BB30
 void srGERD::checkClipPlaneChanges()
 {
-    if ((dirty_24_ & 0x10000) != 0) {
+    if ((dirty & 0x10000) != 0) {
         applyClipPlaneChanges();
     }
 }
@@ -2454,7 +2454,7 @@ void srGERD::checkClipPlaneChanges()
 // FUNCTION: SURRENDER 0x1001BB20
 void srGERD::checkDrawStateChanges()
 {
-    if ((dirty_24_ & 0xfe00) != 0) {
+    if ((dirty & 0xfe00) != 0) {
         applyDrawStateChanges();
     }
 }
@@ -2462,12 +2462,12 @@ void srGERD::checkDrawStateChanges()
 // FUNCTION: SURRENDER 0x1001D2A0
 void srGERD::checkAllStateChanges()
 {
-    if (dirty_24_ != 0) {
-        if ((dirty_24_ & 0xfe00) != 0) {
+    if (dirty != 0) {
+        if ((dirty & 0xfe00) != 0) {
             applyDrawStateChanges();
         }
         checkFrameStateChanges();
-        if ((dirty_24_ & 0x1f0) != 0) {
+        if ((dirty & 0x1f0) != 0) {
             applyViewStateChanges();
         }
     }
@@ -2476,25 +2476,25 @@ void srGERD::checkAllStateChanges()
 // FUNCTION: SURRENDER 0x10023540
 srGERD::e_matrixMode srGERD::getMatrixMode() const
 {
-    return state_390_.matrix_mode_12c0_;
+    return state.matrix_mode;
 }
 
 // FUNCTION: SURRENDER 0x10023350
 void srGERD::getMatrix(srMatrix4T<float>& matrix)
 {
-    if ((dirty_24_ & 0x1f0) != 0) {
+    if ((dirty & 0x1f0) != 0) {
         applyViewStateChanges();
     }
-    matrix = state_390_.matrix_current_00_[state_390_.matrix_mode_12c0_];
+    matrix = state.matrix_current[state.matrix_mode];
 }
 
 // FUNCTION: SURRENDER 0x10023390
 void srGERD::getMatrix(e_matrixMode mode, srMatrix4T<double>& matrix)
 {
-    if ((dirty_24_ & 0x1f0) != 0) {
+    if ((dirty & 0x1f0) != 0) {
         applyViewStateChanges();
     }
-    const srMatrix4T<float>& current = state_390_.matrix_current_00_[mode];
+    const srMatrix4T<float>& current = state.matrix_current[mode];
     srMatrix4T<double> result;
     for (int row = 0; row != 4; ++row) {
         result.vectors[row].x = (double)current.vectors[row].x;
@@ -2508,10 +2508,10 @@ void srGERD::getMatrix(e_matrixMode mode, srMatrix4T<double>& matrix)
 // FUNCTION: SURRENDER 0x10023450
 void srGERD::getMatrix(srMatrix4T<double>& matrix)
 {
-    if ((dirty_24_ & 0x1f0) != 0) {
+    if ((dirty & 0x1f0) != 0) {
         applyViewStateChanges();
     }
-    const srMatrix4T<float>& current = state_390_.matrix_current_00_[state_390_.matrix_mode_12c0_];
+    const srMatrix4T<float>& current = state.matrix_current[state.matrix_mode];
     srMatrix4T<double> result;
     for (int row = 0; row != 4; ++row) {
         result.vectors[row].x = (double)current.vectors[row].x;
@@ -2525,22 +2525,22 @@ void srGERD::getMatrix(srMatrix4T<double>& matrix)
 // FUNCTION: SURRENDER 0x10021380
 float srGERD::getMaxModelViewScale()
 {
-    if ((dirty_24_ & 0x1f0) != 0) {
+    if ((dirty & 0x1f0) != 0) {
         applyViewStateChanges();
     }
-    return state_390_.max_modelview_scale_13b8_;
+    return state.max_modelview_scale;
 }
 
 // FUNCTION: SURRENDER 0x10021D20
 void srGERD::pushMultMatrix(const srMatrix4x3T<float>& matrix)
 {
-    MatrixStack& stack = state_390_.matrix_stacks_80_[state_390_.matrix_mode_12c0_];
-    if (stack.depth_800 < 0x20) {
-        stack.stack[stack.depth_800] =
-            state_390_.matrix_current_00_[state_390_.matrix_mode_12c0_];
-        stack.depth_800 += 1;
+    MatrixStack& stack = state.matrix_stacks[state.matrix_mode];
+    if (stack.depth < 0x20) {
+        stack.stack[stack.depth] =
+            state.matrix_current[state.matrix_mode];
+        stack.depth += 1;
     }
-    srMatrix4T<float>& current = state_390_.matrix_current_00_[state_390_.matrix_mode_12c0_];
+    srMatrix4T<float>& current = state.matrix_current[state.matrix_mode];
     for (int row = 0; row != 3; ++row) {
         float x = current.vectors[row].x;
         float y = current.vectors[row].y;
@@ -2558,7 +2558,7 @@ void srGERD::pushMultMatrix(const srMatrix4x3T<float>& matrix)
 void srGERD::multMatrix(const srMatrix4T<float>& matrix)
 {
     assertContext();
-    srMatrix4T<float>& current = state_390_.matrix_current_00_[state_390_.matrix_mode_12c0_];
+    srMatrix4T<float>& current = state.matrix_current[state.matrix_mode];
     for (int row = 0; row != 4; ++row) {
         float x = current.vectors[row].x;
         float y = current.vectors[row].y;
@@ -2580,7 +2580,7 @@ void srGERD::multMatrix(const srMatrix4T<float>& matrix)
 void srGERD::multMatrix(const srMatrix4T<double>& matrix)
 {
     assertContext();
-    srMatrix4T<float>& current = state_390_.matrix_current_00_[state_390_.matrix_mode_12c0_];
+    srMatrix4T<float>& current = state.matrix_current[state.matrix_mode];
     for (int row = 0; row != 4; ++row) {
         float x = current.vectors[row].x;
         float y = current.vectors[row].y;
@@ -2608,21 +2608,21 @@ void srGERD::loadMatrix(const srMatrix4T<double>& matrix)
         converted.vectors[row].z = (float)matrix.vectors[row].z;
         converted.vectors[row].w = (float)matrix.vectors[row].w;
     }
-    state_390_.matrix_current_00_[state_390_.matrix_mode_12c0_] = converted;
+    state.matrix_current[state.matrix_mode] = converted;
     setMatrixDirty();
 }
 
 // FUNCTION: SURRENDER 0x10022B20
 void srGERD::loadMatrix(const srMatrix4T<float>& matrix)
 {
-    state_390_.matrix_current_00_[state_390_.matrix_mode_12c0_] = matrix;
+    state.matrix_current[state.matrix_mode] = matrix;
     setMatrixDirty();
 }
 
 // FUNCTION: SURRENDER 0x10022B50
 void srGERD::loadMatrix(const srMatrix3T<double>& matrix)
 {
-    srMatrix4T<float>& current = state_390_.matrix_current_00_[state_390_.matrix_mode_12c0_];
+    srMatrix4T<float>& current = state.matrix_current[state.matrix_mode];
     current.vectors[0].x = (float)matrix.vectors[0].x;
     current.vectors[0].y = (float)matrix.vectors[0].y;
     current.vectors[0].z = (float)matrix.vectors[0].z;
@@ -2642,7 +2642,7 @@ void srGERD::loadMatrix(const srMatrix3T<double>& matrix)
 // FUNCTION: SURRENDER 0x10022BD0
 void srGERD::loadMatrix(const srMatrix3T<float>& matrix)
 {
-    srMatrix4T<float>& current = state_390_.matrix_current_00_[state_390_.matrix_mode_12c0_];
+    srMatrix4T<float>& current = state.matrix_current[state.matrix_mode];
     current.Set(matrix, srVector3T<float>(0.0f, 0.0f, 0.0f));
     setMatrixDirty();
 }
@@ -2657,7 +2657,7 @@ void srGERD::scale(const srVector3T<float>& factors)
 void srGERD::scale(double factor)
 {
     if (factor != 1.0) {
-        srMatrix4T<float>& current = state_390_.matrix_current_00_[state_390_.matrix_mode_12c0_];
+        srMatrix4T<float>& current = state.matrix_current[state.matrix_mode];
         current.vectors[0].x = (float)(current.vectors[0].x * factor);
         current.vectors[1].x = (float)(current.vectors[1].x * factor);
         current.vectors[2].x = (float)(current.vectors[2].x * factor);
@@ -2684,7 +2684,7 @@ void srGERD::rotate(double angle, double x, double y, double z)
 void srGERD::frustum(const Frustum& bounds)
 {
     if (0.0 < bounds.near_plane && 0.0 < bounds.far_plane) {
-        srMatrix4T<float>& current = state_390_.matrix_current_00_[state_390_.matrix_mode_12c0_];
+        srMatrix4T<float>& current = state.matrix_current[state.matrix_mode];
         srMatrix4T<double> projection;
         double double_near = bounds.near_plane + bounds.near_plane;
         projection.vectors[3].w = 0.0;
@@ -2729,7 +2729,7 @@ void srGERD::frustum(double left, double right, double bottom, double top, doubl
 void srGERD::perspective(double fov_y, double aspect, double near_plane, double far_plane)
 {
     if (0.0 < near_plane && 0.0 < far_plane) {
-        srMatrix4T<float>& current = state_390_.matrix_current_00_[state_390_.matrix_mode_12c0_];
+        srMatrix4T<float>& current = state.matrix_current[state.matrix_mode];
         double scale_y = 1.0 / tan(fov_y * 0.5);
         double scale_x = scale_y / aspect;
         float m22 = (float)((near_plane + far_plane) / (near_plane - far_plane));
@@ -2748,7 +2748,7 @@ void srGERD::perspective(double fov_y, double aspect, double near_plane, double 
 // FUNCTION: SURRENDER 0x1001B820
 void srGERD::applyClipPlaneChanges()
 {
-    const srMatrix4T<float>& projection = state_390_.matrix_current_00_[MATRIX_PROJECTION];
+    const srMatrix4T<float>& projection = state.matrix_current[MATRIX_PROJECTION];
     float slope = (projection.vectors[2].w + projection.vectors[3].w) /
                   (projection.vectors[2].z + projection.vectors[3].z);
     float bottom = projection.vectors[0].w + 1.0f;
@@ -2759,74 +2759,74 @@ void srGERD::applyClipPlaneChanges()
     float near_top = -((top * projection.vectors[3].w +
                         (projection.vectors[1].z - 1.0f) * projection.vectors[3].z * slope) /
                        projection.vectors[1].y);
-    state_390_.clip_planes_1088_[0].Set(slope, 0.0f, near_left, 0.0f);
-    state_390_.clip_planes_1088_[1].Set(
+    state.clip_planes[0].Set(slope, 0.0f, near_left, 0.0f);
+    state.clip_planes[1].Set(
         -slope, 0.0f,
         -(((projection.vectors[0].w - 1.0f) * projection.vectors[3].w) / bottom +
           ((projection.vectors[0].z + 1.0f) * projection.vectors[3].z) /
               (1.0f - projection.vectors[0].z)) *
             near_left,
         0.0f);
-    state_390_.clip_planes_1088_[2].Set(
+    state.clip_planes[2].Set(
         0.0f, -slope,
         -(((projection.vectors[1].w - 1.0f) * projection.vectors[3].w) / top +
           ((projection.vectors[1].z + 1.0f) * projection.vectors[3].z) /
               (1.0f - projection.vectors[1].z)) *
             near_top,
         0.0f);
-    state_390_.clip_planes_1088_[3].Set(0.0f, slope, near_top, 0.0f);
-    state_390_.clip_planes_1088_[4].Set(0.0f, 0.0f, -1.0f, slope);
-    state_390_.clip_planes_1088_[5].Set(0.0f, 0.0f, 1.0f,
+    state.clip_planes[3].Set(0.0f, slope, near_top, 0.0f);
+    state.clip_planes[4].Set(0.0f, 0.0f, -1.0f, slope);
+    state.clip_planes[5].Set(0.0f, 0.0f, 1.0f,
                                         (projection.vectors[2].w - projection.vectors[3].w) /
                                             (projection.vectors[2].z - projection.vectors[3].z));
     for (int plane = 0; plane != 4; ++plane) {
         float length =
-            sqrt(state_390_.clip_planes_1088_[plane].z * state_390_.clip_planes_1088_[plane].z +
-                 state_390_.clip_planes_1088_[plane].y * state_390_.clip_planes_1088_[plane].y +
-                 state_390_.clip_planes_1088_[plane].w * state_390_.clip_planes_1088_[plane].w +
-                 state_390_.clip_planes_1088_[plane].x * state_390_.clip_planes_1088_[plane].x);
+            sqrt(state.clip_planes[plane].z * state.clip_planes[plane].z +
+                 state.clip_planes[plane].y * state.clip_planes[plane].y +
+                 state.clip_planes[plane].w * state.clip_planes[plane].w +
+                 state.clip_planes[plane].x * state.clip_planes[plane].x);
         if (length != 0.0f) {
             float inverse_length = 1.0f / length;
-            state_390_.clip_planes_1088_[plane].x *= inverse_length;
-            state_390_.clip_planes_1088_[plane].y *= inverse_length;
-            state_390_.clip_planes_1088_[plane].z *= inverse_length;
-            state_390_.clip_planes_1088_[plane].w *= inverse_length;
+            state.clip_planes[plane].x *= inverse_length;
+            state.clip_planes[plane].y *= inverse_length;
+            state.clip_planes[plane].z *= inverse_length;
+            state.clip_planes[plane].w *= inverse_length;
         }
     }
-    dirty_24_ &= ~0x10000UL;
+    dirty &= ~0x10000UL;
 }
 
 // FUNCTION: SURRENDER 0x1001D4E0
 void srGERD::getScissor(unsigned long& x, unsigned long& y, unsigned long& width,
                         unsigned long& height) const
 {
-    x = state_390_.scissor_1298_.left;
-    y = state_390_.scissor_1298_.top;
-    width = state_390_.scissor_1298_.right - state_390_.scissor_1298_.left;
-    height = state_390_.scissor_1298_.bottom - state_390_.scissor_1298_.top;
+    x = state.scissor.left;
+    y = state.scissor.top;
+    width = state.scissor.right - state.scissor.left;
+    height = state.scissor.bottom - state.scissor.top;
 }
 
 // FUNCTION: SURRENDER 0x1001D530
 void srGERD::getViewPort(unsigned long& x, unsigned long& y, unsigned long& width,
                          unsigned long& height) const
 {
-    x = state_390_.view_left_12a8_;
-    y = state_390_.view_top_12ac_;
-    width = state_390_.view_right_12b0_ - state_390_.view_left_12a8_;
-    height = state_390_.view_bottom_12b4_ - state_390_.view_top_12ac_;
+    x = state.view_left;
+    y = state.view_top;
+    width = state.view_right - state.view_left;
+    height = state.view_bottom - state.view_top;
 }
 
 // FUNCTION: SURRENDER 0x1001C010
 void srGERD::pushClipPlane(const srVector4T<float>& plane, e_clipMode mode)
 {
-    if ((unsigned long)state_390_.clip_plane_count_12ec_ < 0x1a) {
-        if ((dirty_24_ & 0x10000) != 0) {
+    if ((unsigned long)state.clip_plane_count < 0x1a) {
+        if ((dirty & 0x10000) != 0) {
             applyClipPlaneChanges();
         }
-        if ((dirty_24_ & 0x1f0) != 0) {
+        if ((dirty & 0x1f0) != 0) {
             applyViewStateChanges();
         }
-        unsigned long bit = 1UL << (state_390_.clip_plane_count_12ec_ + 6);
+        unsigned long bit = 1UL << (state.clip_plane_count + 6);
         float inverse_length =
             1.0 / sqrt(plane.z * plane.z + plane.x * plane.x + plane.y * plane.y);
         float x = plane.x * inverse_length;
@@ -2834,94 +2834,94 @@ void srGERD::pushClipPlane(const srVector4T<float>& plane, e_clipMode mode)
         float z = plane.z * inverse_length;
         float w = inverse_length * plane.w;
         srVector4T<float>& eye_plane =
-            state_390_.clip_planes_1088_[state_390_.clip_plane_count_12ec_ + 6];
-        eye_plane.x = x * state_390_.inverse_modelview_12f4_.vectors[0].x +
-                      y * state_390_.inverse_modelview_12f4_.vectors[1].x +
-                      z * state_390_.inverse_modelview_12f4_.vectors[2].x +
-                      w * state_390_.inverse_modelview_12f4_.vectors[3].x;
-        eye_plane.y = x * state_390_.inverse_modelview_12f4_.vectors[0].y +
-                      y * state_390_.inverse_modelview_12f4_.vectors[1].y +
-                      z * state_390_.inverse_modelview_12f4_.vectors[2].y +
-                      w * state_390_.inverse_modelview_12f4_.vectors[3].y;
-        eye_plane.z = x * state_390_.inverse_modelview_12f4_.vectors[0].z +
-                      y * state_390_.inverse_modelview_12f4_.vectors[1].z +
-                      z * state_390_.inverse_modelview_12f4_.vectors[2].z +
-                      w * state_390_.inverse_modelview_12f4_.vectors[3].z;
-        eye_plane.w = x * state_390_.inverse_modelview_12f4_.vectors[0].w +
-                      y * state_390_.inverse_modelview_12f4_.vectors[1].w +
-                      z * state_390_.inverse_modelview_12f4_.vectors[2].w +
-                      w * state_390_.inverse_modelview_12f4_.vectors[3].w;
-        state_390_.clip_modes_12ca_[state_390_.clip_plane_count_12ec_] =
+            state.clip_planes[state.clip_plane_count + 6];
+        eye_plane.x = x * state.inverse_modelview.vectors[0].x +
+                      y * state.inverse_modelview.vectors[1].x +
+                      z * state.inverse_modelview.vectors[2].x +
+                      w * state.inverse_modelview.vectors[3].x;
+        eye_plane.y = x * state.inverse_modelview.vectors[0].y +
+                      y * state.inverse_modelview.vectors[1].y +
+                      z * state.inverse_modelview.vectors[2].y +
+                      w * state.inverse_modelview.vectors[3].y;
+        eye_plane.z = x * state.inverse_modelview.vectors[0].z +
+                      y * state.inverse_modelview.vectors[1].z +
+                      z * state.inverse_modelview.vectors[2].z +
+                      w * state.inverse_modelview.vectors[3].z;
+        eye_plane.w = x * state.inverse_modelview.vectors[0].w +
+                      y * state.inverse_modelview.vectors[1].w +
+                      z * state.inverse_modelview.vectors[2].w +
+                      w * state.inverse_modelview.vectors[3].w;
+        state.clip_modes[state.clip_plane_count] =
             static_cast<unsigned char>(mode);
-        state_390_.clip_mask_12e4_ |= bit;
+        state.clip_mask |= bit;
         if (mode == 1) {
-            state_390_.clip_mode1_mask_12e8_ |= bit;
+            state.clip_mode1_mask |= bit;
         } else {
-            state_390_.clip_mode1_mask_12e8_ &= ~bit;
+            state.clip_mode1_mask &= ~bit;
         }
     }
     // Retail increments even when the plane limit skips insertion.
-    state_390_.clip_plane_count_12ec_ += 1;
+    state.clip_plane_count += 1;
 }
 
 // FUNCTION: SURRENDER 0x1001C1F0
 void srGERD::popClipPlane()
 {
-    if (state_390_.clip_plane_count_12ec_ != 0) {
-        state_390_.clip_plane_count_12ec_ -= 1;
-        unsigned long mask = ~(1UL << (state_390_.clip_plane_count_12ec_ + 6));
-        state_390_.clip_mask_12e4_ &= mask;
-        state_390_.clip_mode1_mask_12e8_ &= mask;
+    if (state.clip_plane_count != 0) {
+        state.clip_plane_count -= 1;
+        unsigned long mask = ~(1UL << (state.clip_plane_count + 6));
+        state.clip_mask &= mask;
+        state.clip_mode1_mask &= mask;
     }
 }
 
 // FUNCTION: SURRENDER 0x1001C230
 void srGERD::getClipPlanes(ClipPlanes& planes)
 {
-    if ((dirty_24_ & 0x10000) != 0) {
+    if ((dirty & 0x10000) != 0) {
         applyClipPlaneChanges();
     }
     for (int plane = 0; plane != 6; ++plane) {
-        planes.planes_000[plane] = state_390_.clip_planes_1088_[plane];
+        planes.planes[plane] = state.clip_planes[plane];
     }
-    if ((state_390_.clip_mask_12e4_ & 0xffffffc0) != 0) {
+    if ((state.clip_mask & 0xffffffc0) != 0) {
         for (unsigned long index = 6; index < 0x20; ++index) {
-            if ((state_390_.clip_mask_12e4_ & (1UL << index)) != 0) {
-                planes.planes_000[index] = state_390_.clip_planes_1088_[index];
+            if ((state.clip_mask & (1UL << index)) != 0) {
+                planes.planes[index] = state.clip_planes[index];
             }
         }
     }
-    planes.mask_200 = state_390_.clip_mask_12e4_;
-    planes.value_204 = state_390_.clip_mode1_mask_12e8_;
+    planes.mask = state.clip_mask;
+    planes.value_204 = state.clip_mode1_mask;
 }
 
 // FUNCTION: SURRENDER 0x1001C5C0
 void srGERD::pushEnvironment()
 {
-    if (environment_state_2068_.environment_depth_100_ < 0x10) {
-        environment_state_2068_
-            .environment_stack_00_[environment_state_2068_.environment_depth_100_] =
-            environment_2058_;
-        environment_state_2068_.environment_depth_100_ += 1;
+    if (environment_state.environment_depth < 0x10) {
+        environment_state
+            .environment_stack[environment_state.environment_depth] =
+            environment;
+        environment_state.environment_depth += 1;
     }
 }
 
 // FUNCTION: SURRENDER 0x1001C600
 void srGERD::popEnvironment()
 {
-    if (environment_state_2068_.environment_depth_100_ != 0) {
-        environment_state_2068_.environment_depth_100_ -= 1;
-        environment_2058_ =
-            environment_state_2068_
-                .environment_stack_00_[environment_state_2068_.environment_depth_100_];
+    if (environment_state.environment_depth != 0) {
+        environment_state.environment_depth -= 1;
+        environment =
+            environment_state
+                .environment_stack[environment_state.environment_depth];
     }
 }
 
 // FUNCTION: SURRENDER 0x1001C4D0
 void srGERD::setEnvironmentRange(float minimum, float maximum)
 {
-    environment_2058_.x = minimum;
-    environment_2058_.y = maximum;
+    environment.x = minimum;
+    environment.y = maximum;
 }
 
 // FUNCTION: SURRENDER 0x1001C510
@@ -2934,31 +2934,31 @@ void srGERD::setEnvironmentScaleFactor(float scale, float inverse_scale)
     } else {
         scale = 0.0f;
     }
-    environment_2058_.z = scale;
+    environment.z = scale;
     if (0.0f < inverse_scale) {
         if (inverse_scale < 1.0f) {
-            environment_2058_.w = inverse_scale;
+            environment.w = inverse_scale;
             return;
         }
-        environment_2058_.w = 1.0f;
+        environment.w = 1.0f;
         return;
     }
-    environment_2058_.w = 0.0f;
+    environment.w = 0.0f;
 }
 
 // FUNCTION: SURRENDER 0x1001CE00
 void srGERD::pushVertexProcessor(srVertexProcessor& processor)
 {
-    unsigned long count = vertex_processors_21b0_.count_08;
-    vertex_processors_21b0_[count] = &processor;
-    vertex_processors_21b0_.count_08 += 1;
+    unsigned long count = vertex_processors.count;
+    vertex_processors[count] = &processor;
+    vertex_processors.count += 1;
 }
 
 // FUNCTION: SURRENDER 0x1001CEA0
 void srGERD::popVertexProcessor()
 {
-    if (vertex_processors_21b0_.count_08 > 0) {
-        vertex_processors_21b0_.count_08--;
+    if (vertex_processors.count > 0) {
+        vertex_processors.count--;
     }
 }
 
@@ -2997,18 +2997,18 @@ void srGERD::setFogColor(const srVector4T<float>& color)
     } else if (clamped.w >= 1.0f) {
         clamped.w = 1.0f;
     }
-    if (clamped.x != fog_color_1fe8_.x || clamped.y != fog_color_1fe8_.y ||
-        clamped.z != fog_color_1fe8_.z || clamped.w != fog_color_1fe8_.w) {
+    if (clamped.x != fog_color.x || clamped.y != fog_color.y ||
+        clamped.z != fog_color.z || clamped.w != fog_color.w) {
         flushImmediateRenderers();
-        fog_color_1fe8_ = clamped;
-        dirty_24_ |= 0x200;
+        fog_color = clamped;
+        dirty |= 0x200;
     }
 }
 
 // FUNCTION: SURRENDER 0x1001C680
 void srGERD::getFogColor(srVector4T<float>& color) const
 {
-    color = fog_color_1fe8_;
+    color = fog_color;
 }
 
 // FUNCTION: SURRENDER 0x1001C440
@@ -3025,52 +3025,52 @@ void srGERD::setAmbientLight(const srVector3T<float>& light)
 // FUNCTION: SURRENDER 0x1001DB20
 unsigned long srGERD::getPickKey() const
 {
-    return pick_176c_.pick_key_284_;
+    return pick.pick_key;
 }
 
 // FUNCTION: SURRENDER 0x1001DB30
 srGERD::e_visibility srGERD::testBoundingSphere(const srVector3T<float>& center, float radius)
 {
-    statistics_1a78_.sphere_tests++;
-    if ((dirty_24_ & 0x1f0) != 0) {
+    statistics.sphere_tests++;
+    if ((dirty & 0x1f0) != 0) {
         applyViewStateChanges();
     }
-    if ((dirty_24_ & 0x10000) != 0) {
+    if ((dirty & 0x10000) != 0) {
         applyClipPlaneChanges();
     }
-    const srMatrix4T<float>& modelview = state_390_.matrix_current_00_[MATRIX_MODELVIEW];
+    const srMatrix4T<float>& modelview = state.matrix_current[MATRIX_MODELVIEW];
     float eye_z = modelview.vectors[2].z * center.z + modelview.vectors[2].y * center.y +
                   modelview.vectors[2].x * center.x + modelview.vectors[2].w;
-    float negative_radius = -(radius * state_390_.max_modelview_scale_13b8_);
-    if (eye_z * state_390_.clip_planes_1088_[4].z + state_390_.clip_planes_1088_[4].w <=
+    float negative_radius = -(radius * state.max_modelview_scale);
+    if (eye_z * state.clip_planes[4].z + state.clip_planes[4].w <=
         negative_radius) {
         return VISIBILITY_OUTSIDE;
     }
-    if (eye_z * state_390_.clip_planes_1088_[5].z + state_390_.clip_planes_1088_[5].w <=
+    if (eye_z * state.clip_planes[5].z + state.clip_planes[5].w <=
         negative_radius) {
         return VISIBILITY_OUTSIDE;
     }
     float eye_x = modelview.vectors[0].x * center.x + modelview.vectors[0].z * center.z +
                   modelview.vectors[0].y * center.y + modelview.vectors[0].w;
-    if (eye_x * state_390_.clip_planes_1088_[0].x + eye_z * state_390_.clip_planes_1088_[0].z <=
+    if (eye_x * state.clip_planes[0].x + eye_z * state.clip_planes[0].z <=
         negative_radius) {
         return VISIBILITY_OUTSIDE;
     }
-    if (eye_z * state_390_.clip_planes_1088_[1].z + eye_x * state_390_.clip_planes_1088_[1].x <=
+    if (eye_z * state.clip_planes[1].z + eye_x * state.clip_planes[1].x <=
         negative_radius) {
         return VISIBILITY_OUTSIDE;
     }
     float eye_y = modelview.vectors[1].z * center.z + modelview.vectors[1].y * center.y +
                   modelview.vectors[1].x * center.x + modelview.vectors[1].w;
-    if (eye_z * state_390_.clip_planes_1088_[2].z + eye_y * state_390_.clip_planes_1088_[2].y <=
+    if (eye_z * state.clip_planes[2].z + eye_y * state.clip_planes[2].y <=
         negative_radius) {
         return VISIBILITY_OUTSIDE;
     }
-    if (eye_z * state_390_.clip_planes_1088_[3].z + eye_y * state_390_.clip_planes_1088_[3].y <=
+    if (eye_z * state.clip_planes[3].z + eye_y * state.clip_planes[3].y <=
         negative_radius) {
         return VISIBILITY_OUTSIDE;
     }
-    unsigned long remaining = state_390_.clip_mask_12e4_ & 0xffffffc0;
+    unsigned long remaining = state.clip_mask & 0xffffffc0;
     if (remaining != 0) {
         for (unsigned long index = 6; index < 0x20; ++index) {
             if (remaining == 0) {
@@ -3078,7 +3078,7 @@ srGERD::e_visibility srGERD::testBoundingSphere(const srVector3T<float>& center,
             }
             unsigned long bit = 1UL << index;
             if ((remaining & bit) != 0) {
-                const srVector4T<float>& plane = state_390_.clip_planes_1088_[index];
+                const srVector4T<float>& plane = state.clip_planes[index];
                 if (eye_z * plane.z + eye_x * plane.x + eye_y * plane.y + plane.w <=
                     negative_radius) {
                     return VISIBILITY_OUTSIDE;
@@ -3087,7 +3087,7 @@ srGERD::e_visibility srGERD::testBoundingSphere(const srVector3T<float>& center,
             }
         }
     }
-    statistics_1a78_.sphere_visible++;
+    statistics.sphere_visible++;
     return static_cast<e_visibility>(1);
 }
 
@@ -3095,14 +3095,14 @@ srGERD::e_visibility srGERD::testBoundingSphere(const srVector3T<float>& center,
 srGERD::e_visibility srGERD::testBoundingBox(const srVector3T<float>& minimum,
                                              const srVector3T<float>& maximum)
 {
-    statistics_1a78_.box_tests++;
-    if ((dirty_24_ & 0x1f0) != 0) {
+    statistics.box_tests++;
+    if ((dirty & 0x1f0) != 0) {
         applyViewStateChanges();
     }
-    srMatrix4T<float> combined = state_390_.matrix_current_00_[MATRIX_PROJECTION];
-    combined.MultiplyBy(state_390_.matrix_current_00_[MATRIX_MODELVIEW]);
+    srMatrix4T<float> combined = state.matrix_current[MATRIX_PROJECTION];
+    combined.MultiplyBy(state.matrix_current[MATRIX_MODELVIEW]);
     if (srVectorProcessor::vp->_srTestBoundingBox(combined, minimum, maximum) != 0) {
-        statistics_1a78_.box_visible++;
+        statistics.box_visible++;
         return static_cast<e_visibility>(1);
     }
     return VISIBILITY_OUTSIDE;
@@ -3111,62 +3111,62 @@ srGERD::e_visibility srGERD::testBoundingBox(const srVector3T<float>& minimum,
 // FUNCTION: SURRENDER 0x100235F0
 srVector4T<float> srGERD::getEyeSpaceLocation(const srVector3T<float>& object_location)
 {
-    if ((dirty_24_ & 0x1f0) != 0) {
+    if ((dirty & 0x1f0) != 0) {
         applyViewStateChanges();
     }
-    return state_390_.matrix_current_00_[MATRIX_MODELVIEW].Transform(object_location);
+    return state.matrix_current[MATRIX_MODELVIEW].Transform(object_location);
 }
 
 // FUNCTION: SURRENDER 0x1001DDF0
 void srGERD::getEyeSpaceBounds(srVector3T<float>& center, float& radius,
                                const srVector3T<float>& object_center, float object_radius)
 {
-    if ((dirty_24_ & 0x1f0) != 0) {
+    if ((dirty & 0x1f0) != 0) {
         applyViewStateChanges();
     }
-    const srMatrix4T<float>& modelview = state_390_.matrix_current_00_[MATRIX_MODELVIEW];
+    const srMatrix4T<float>& modelview = state.matrix_current[MATRIX_MODELVIEW];
     center.x = modelview.vectors[0].x * object_center.x + modelview.vectors[0].y * object_center.y +
                modelview.vectors[0].z * object_center.z + modelview.vectors[0].w;
     center.z = modelview.vectors[2].y * object_center.y + modelview.vectors[2].z * object_center.z +
                modelview.vectors[2].x * object_center.x + modelview.vectors[2].w;
     center.y = modelview.vectors[1].y * object_center.y + modelview.vectors[1].z * object_center.z +
                modelview.vectors[1].x * object_center.x + modelview.vectors[1].w;
-    radius = object_radius * state_390_.max_modelview_scale_13b8_;
+    radius = object_radius * state.max_modelview_scale;
 }
 
 // FUNCTION: SURRENDER 0x1001B570
 void srGERD::applyDrawStateChanges()
 {
-    srCriticalSectionAccess access(state_section_18_);
-    if ((dirty_24_ & 0x200) != 0) {
-        getDD()->setFogColor(fog_color_1fe8_);
+    srCriticalSectionAccess access(state_section);
+    if ((dirty & 0x200) != 0) {
+        getDD()->setFogColor(fog_color);
     }
-    if ((dirty_24_ & 0x1000) != 0) {
-        getDD()->setShader(shader_1ff8_);
-        statistics_1a78_.shader_sets++;
+    if ((dirty & 0x1000) != 0) {
+        getDD()->setShader(shader);
+        statistics.shader_sets++;
     }
     removeDeletedTextures();
-    if ((dirty_24_ & 0x400) != 0) {
-        changeTexture(texture_iface_1ffc_[0], 0, 1);
+    if ((dirty & 0x400) != 0) {
+        changeTexture(texture_iface[0], 0, 1);
     }
-    if (((dirty_24_ & 0x800) != 0) && (1 < device_40_.info_10_.max_texture_stages_28_)) {
-        changeTexture(texture_iface_1ffc_[1], 1, 1);
+    if (((dirty & 0x800) != 0) && (1 < device.info.max_texture_stages)) {
+        changeTexture(texture_iface[1], 1, 1);
     }
-    if ((dirty_24_ & 0x2000) != 0) {
-        switch (state_390_.cull_mode_12b8_) {
+    if ((dirty & 0x2000) != 0) {
+        switch (state.cull_mode) {
         case CULL_BACK:
-            getDD()->setCullMode(state_390_.winding_12bc_ != 0 ? srDD::CULL_FRONT : srDD::CULL_BACK);
+            getDD()->setCullMode(state.winding != 0 ? srDD::CULL_FRONT : srDD::CULL_BACK);
             break;
         case CULL_FRONT:
-            getDD()->setCullMode(state_390_.winding_12bc_ == 0 ? srDD::CULL_FRONT : srDD::CULL_BACK);
+            getDD()->setCullMode(state.winding == 0 ? srDD::CULL_FRONT : srDD::CULL_BACK);
             break;
         case CULL_NONE:
             getDD()->setCullMode(srDD::CULL_NONE);
             break;
         }
     }
-    if ((dirty_24_ & 0x4000) != 0) {
-        switch (polygon_mode_1fe0_) {
+    if ((dirty & 0x4000) != 0) {
+        switch (polygon_mode) {
         case POLYGON_POINT:
             getDD()->setPolygonMode(srDD::POLYGON_POINT);
             break;
@@ -3178,19 +3178,19 @@ void srGERD::applyDrawStateChanges()
             break;
         }
     }
-    if ((dirty_24_ & 0x8000) != 0) {
-        getDD()->setPolygonOffset(polygon_offset_1fe4_);
+    if ((dirty & 0x8000) != 0) {
+        getDD()->setPolygonOffset(polygon_offset);
     }
-    dirty_24_ &= 0xffff01ff;
-    statistics_1a78_.draw_state_applies++;
+    dirty &= 0xffff01ff;
+    statistics.draw_state_applies++;
 }
 
 // FUNCTION: SURRENDER 0x100281B0
 void srGERD::removeDeletedTextures()
 {
-    Texture* texture = texture_deleted_2028_;
+    Texture* texture = texture_deleted;
     while (texture != 0) {
-        Texture* next = texture->next_04;
+        Texture* next = texture->next;
         deleteTexture(*texture);
         texture = next;
     }
@@ -3200,88 +3200,88 @@ void srGERD::removeDeletedTextures()
 void srGERD::releaseTextureSurfaceData(Texture& texture)
 {
     for (long index = 0; index < 12; ++index) {
-        texture.device_2c.levels[index] = 0;
+        texture.device.levels[index] = 0;
     }
     if (texture.surface_data != 0) {
         srHeap.free(texture.surface_data);
         texture.surface_data = 0;
     }
-    texture_cache_used_2034_ -= texture.device_2c.size_1c;
-    texture.device_2c.size_1c = 0;
+    texture_cache_used -= texture.device.size;
+    texture.device.size = 0;
 }
 
 // FUNCTION: SURRENDER 0x100286F0
 void srGERD::deleteTexture(Texture& texture)
 {
-    for (unsigned long stage = 0; stage < device_40_.info_10_.max_texture_stages_28_; ++stage) {
-        if (&texture == texture_slots_1f38_[stage]) {
-            texture_slots_1f38_[stage] = 0;
-            dirty_24_ |= 1UL << (stage + 10);
+    for (unsigned long stage = 0; stage < device.info.max_texture_stages; ++stage) {
+        if (&texture == texture_slots[stage]) {
+            texture_slots[stage] = 0;
+            dirty |= 1UL << (stage + 10);
         }
     }
     if (texture.prev != 0) {
-        texture.prev->next_04 = texture.next_04;
+        texture.prev->next = texture.next;
     }
-    if (texture.next_04 != 0) {
-        texture.next_04->prev = texture.prev;
+    if (texture.next != 0) {
+        texture.next->prev = texture.prev;
     }
-    if (&texture == texture_deleted_2028_) {
-        texture_deleted_2028_ = texture.next_04;
+    if (&texture == texture_deleted) {
+        texture_deleted = texture.next;
     }
-    texture_lookup_2004_.Remove(&texture.id_08);
-    getDD()->deleteTexture(texture.device_2c);
-    if (texture.name_28 != 0) {
-        srHeap.free(texture.name_28);
-        texture.name_28 = 0;
+    texture_lookup.Remove(&texture.id);
+    getDD()->deleteTexture(texture.device);
+    if (texture.name != 0) {
+        srHeap.free(texture.name);
+        texture.name = 0;
     }
-    texture.device_2c.resident_data = 0;
-    texture.device_2c.resident_size = 0;
+    texture.device.resident_data = 0;
+    texture.device.resident_size = 0;
     texture.prev = 0;
-    texture.next_04 = 0;
-    texture.device_2c.deleted = 0;
+    texture.next = 0;
+    texture.device.deleted = 0;
     releaseTextureSurfaceData(texture);
-    texture.palette_24 = 0;
-    texture.id_08 = 0;
-    texture.device_2c.flags_00 = 0;
-    texture.device_2c.size_1c = 0;
-    texture.device_2c.last_use = 0;
-    texture.device_2c.priority = 0.5f;
-    texture.device_2c.resident_data = 0;
-    texture.device_2c.width_20 = 0;
-    texture.device_2c.height_24 = 0;
-    texture.device_2c.first_level = 0;
-    texture.device_2c.last_level = 0;
-    texture.device_2c.format_index = 0;
-    texture.device_2c.parameter = 0;
-    texture.device_2c.resident_size = 0;
+    texture.palette = 0;
+    texture.id = 0;
+    texture.device.flags = 0;
+    texture.device.size = 0;
+    texture.device.last_use = 0;
+    texture.device.priority = 0.5f;
+    texture.device.resident_data = 0;
+    texture.device.width = 0;
+    texture.device.height = 0;
+    texture.device.first_level = 0;
+    texture.device.last_level = 0;
+    texture.device.format_index = 0;
+    texture.device.parameter = 0;
+    texture.device.resident_size = 0;
     for (long level = 0; level < 12; ++level) {
-        texture.device_2c.levels[level] = 0;
+        texture.device.levels[level] = 0;
     }
-    --texture_pool_2014_.count_00;
-    texture.prev = texture_pool_2014_.free_04;
-    texture_pool_2014_.free_04 = &texture;
-    if (texture_pool_2014_.count_00 == 0) {
-        texture_pool_2014_.release();
+    --texture_pool.count;
+    texture.prev = texture_pool.free;
+    texture_pool.free = &texture;
+    if (texture_pool.count == 0) {
+        texture_pool.release();
     }
 }
 
 // FUNCTION: SURRENDER 0x10028910
 srGERD::Texture* srGERD::findLowestPriority()
 {
-    Texture* texture = texture_head_202c_;
+    Texture* texture = texture_head;
     Texture* found = 0;
-    unsigned long last_use = texture_sequence_203c_ + 1;
+    unsigned long last_use = texture_sequence + 1;
     float lowest = 1.01f;
     if (texture == 0) {
         return 0;
     }
     do {
-        if (texture->device_2c.priority < lowest ||
-            (texture->device_2c.priority == lowest &&
-             texture->device_2c.last_use < last_use)) {
+        if (texture->device.priority < lowest ||
+            (texture->device.priority == lowest &&
+             texture->device.last_use < last_use)) {
             int bound = 0;
-            if (device_40_.info_10_.max_texture_stages_28_ != 0) {
-                Texture** slot = texture_slots_1f38_;
+            if (device.info.max_texture_stages != 0) {
+                Texture** slot = texture_slots;
                 unsigned long stage = 0;
                 do {
                     if (*slot == texture) {
@@ -3290,15 +3290,15 @@ srGERD::Texture* srGERD::findLowestPriority()
                     }
                     ++stage;
                     ++slot;
-                } while (stage < device_40_.info_10_.max_texture_stages_28_);
+                } while (stage < device.info.max_texture_stages);
             }
             if (bound == 0) {
-                lowest = texture->device_2c.priority;
-                last_use = texture->device_2c.last_use;
+                lowest = texture->device.priority;
+                last_use = texture->device.last_use;
                 found = texture;
             }
         }
-        texture = texture->next_04;
+        texture = texture->next;
         if (texture == 0) {
             return found;
         }
@@ -3308,15 +3308,15 @@ srGERD::Texture* srGERD::findLowestPriority()
 // FUNCTION: SURRENDER 0x10028990
 srGERD::Texture* srGERD::allocTexture(unsigned long id)
 {
-    if (texture_pool_2014_.free_04 == 0) {
-        unsigned long chunk_count = texture_pool_2014_.count_00;
+    if (texture_pool.free == 0) {
+        unsigned long chunk_count = texture_pool.count;
         if (chunk_count < 2) {
             chunk_count = 1;
         } else if (0xff < (long)chunk_count) {
             chunk_count = 0x100;
         }
         Texture* chunk = static_cast<Texture*>(srHeap.allocate(chunk_count * sizeof(Texture)));
-        texture_pool_2014_.chunks[texture_pool_2014_.pool_count++] = chunk;
+        texture_pool.chunks[texture_pool.pool_count++] = chunk;
         Texture* link = chunk;
         for (unsigned long index = chunk_count; index != 0; --index) {
             link->prev = link + 1;
@@ -3324,51 +3324,51 @@ srGERD::Texture* srGERD::allocTexture(unsigned long id)
         }
         chunk[chunk_count - 1].prev = 0;
     }
-    Texture* texture = texture_pool_2014_.free_04;
-    texture_pool_2014_.free_04 = texture->prev;
-    ++texture_pool_2014_.count_00;
+    Texture* texture = texture_pool.free;
+    texture_pool.free = texture->prev;
+    ++texture_pool.count;
     /* Retail zeroes 0xa4 bytes: the aligned/unaligned dword-and-byte fill is
        memset lowering; the trailing dword is the free-list link, already
        consumed above. */
     memset(texture, 0, 0xa4);
-    texture->id_08 = id;
-    texture->palette_24 = 0;
-    texture_lookup_2004_.Insert(&texture->id_08, &texture);
-    texture->next_04 = texture_head_202c_;
+    texture->id = id;
+    texture->palette = 0;
+    texture_lookup.Insert(&texture->id, &texture);
+    texture->next = texture_head;
     texture->prev = 0;
-    if (texture_head_202c_ != 0) {
-        texture_head_202c_->prev = texture;
+    if (texture_head != 0) {
+        texture_head->prev = texture;
     }
-    texture_head_202c_ = texture;
-    texture->device_2c.flags_00 = 0;
-    texture->device_2c.size_1c = 0;
-    texture->device_2c.last_use = 0;
-    texture->device_2c.priority = 0.5f;
-    texture->device_2c.resident_data = 0;
-    texture->device_2c.width_20 = 0;
-    texture->device_2c.height_24 = 0;
-    texture->device_2c.first_level = 0;
-    texture->device_2c.last_level = 0;
-    texture->device_2c.format_index = 0;
-    texture->device_2c.parameter = 0;
-    texture->device_2c.resident_size = 0;
+    texture_head = texture;
+    texture->device.flags = 0;
+    texture->device.size = 0;
+    texture->device.last_use = 0;
+    texture->device.priority = 0.5f;
+    texture->device.resident_data = 0;
+    texture->device.width = 0;
+    texture->device.height = 0;
+    texture->device.first_level = 0;
+    texture->device.last_level = 0;
+    texture->device.format_index = 0;
+    texture->device.parameter = 0;
+    texture->device.resident_size = 0;
     for (long level = 0; level < 12; ++level) {
-        texture->device_2c.levels[level] = 0;
+        texture->device.levels[level] = 0;
     }
-    texture->name_28 = 0;
-    texture->device_2c.resident = 0;
-    texture->device_2c.deleted = 0;
+    texture->name = 0;
+    texture->device.resident = 0;
+    texture->device.deleted = 0;
     return texture;
 }
 
 // FUNCTION: SURRENDER 0x10029390
 void srGERD::invalidatePalette()
 {
-    if (palette_1fdc_ != 0) {
-        getDD()->deletePalette(palette_1f50_);
-        palette_1fdc_ = 0;
-        palette_1f50_.data_00 = 0;
-        palette_1f50_.size_04 = 0;
+    if (palette != 0) {
+        getDD()->deletePalette(device_palette);
+        palette = 0;
+        device_palette.data = 0;
+        device_palette.size = 0;
     }
 }
 
@@ -3378,45 +3378,45 @@ void srGERD::setTextureParameters(unsigned long stage, const srTextureIFace::Par
     unsigned long state = parameters.packed_state;
     float bias = parameters.mipmap_bias;
     unsigned long packed =
-        ((((texture_state_1f5c_.wrap_s_map_48_[(state >> 0xc) & 1] & 0xfffffff3) |
-           (texture_state_1f5c_.wrap_t_map_50_[(state >> 0xd) & 1] << 2))
+        ((((texture_state.wrap_s_map[(state >> 0xc) & 1] & 0xfffffff3) |
+           (texture_state.wrap_t_map[(state >> 0xd) & 1] << 2))
               << 2 |
-          (texture_state_1f5c_.mipmap_map_38_[(state >> 10) & 3] & 0xffffffc3))
+          (texture_state.mipmap_map[(state >> 10) & 3] & 0xffffffc3))
              << 2 |
-         (texture_state_1f5c_.min_filter_map_24_[(state >> 7) & 7] & 0xffffff03))
+         (texture_state.min_filter_map[(state >> 7) & 7] & 0xffffff03))
             << 2 |
-        (texture_state_1f5c_.mag_filter_map_10_[(state >> 4) & 7] & 0xfffffc0f);
-    packed = (packed << 4) | (texture_state_1f5c_.correction_map_00_[state & 3] & 0xffffc00f);
-    srDD::TexParms* parms = &texture_parms_1f40_[stage];
+        (texture_state.mag_filter_map[(state >> 4) & 7] & 0xfffffc0f);
+    packed = (packed << 4) | (texture_state.correction_map[state & 3] & 0xffffc00f);
+    srDD::TexParms* parms = &texture_parms[stage];
     if (packed == parms->packed && bias == parms->mipmap_bias) {
         return;
     }
     parms->packed = packed;
     parms->mipmap_bias = bias;
-    ++statistics_1a78_.texture_parameter_sets;
+    ++statistics.texture_parameter_sets;
     getDD()->setTextureParameters(stage, *parms);
 }
 
 // FUNCTION: SURRENDER 0x10029400
 void srGERD::changeTexture(srTextureIFace* texture, unsigned long stage, int apply_parms)
 {
-    if ((state_flags_28_ & 0x10) != 0) {
+    if ((state_flags & 0x10) != 0) {
         return;
     }
-    if (device_40_.info_10_.max_texture_stages_28_ <= stage) {
+    if (device.info.max_texture_stages <= stage) {
         return;
     }
     Texture* found;
     if (texture == 0) {
-        if (texture_slots_1f38_[stage] == texture_default_2030_) {
+        if (texture_slots[stage] == texture_default) {
             return;
         }
     } else {
         unsigned long id = texture->getTextureFrameHandle();
         if (id != 0) {
-            int slot = texture_lookup_2004_.FindNextEntry(&id, -1);
+            int slot = texture_lookup.FindNextEntry(&id, -1);
             if (slot != -1) {
-                found = texture_lookup_2004_.entries[slot].value;
+                found = texture_lookup.entries[slot].value;
                 if (found != 0) {
                     goto bound;
                 }
@@ -3427,37 +3427,37 @@ void srGERD::changeTexture(srTextureIFace* texture, unsigned long stage, int app
             }
         }
     }
-    found = texture_default_2030_;
+    found = texture_default;
     texture = srCore.getTexture();
 bound:
-    ++texture_sequence_203c_;
-    found->device_2c.last_use = texture_sequence_203c_;
+    ++texture_sequence;
+    found->device.last_use = texture_sequence;
     if (apply_parms == 0) {
         return;
     }
-    if (found->palette_24 != 0 && found->palette_24 != palette_1fdc_) {
-        ++statistics_1a78_.palette_binds;
+    if (found->palette != 0 && found->palette != this->palette) {
+        ++statistics.palette_binds;
         invalidatePalette();
-        srPalette* palette = found->palette_24;
-        palette_1f50_.flags = 0;
-        palette_1f50_.data_00 = palette->getPaletteDataPtr();
+        srPalette* palette = found->palette;
+        device_palette.flags = 0;
+        device_palette.data = palette->getPaletteDataPtr();
         unsigned long size = palette->getPaletteSize();
-        palette_1f50_.size_04 = size;
+        device_palette.size = size;
         if (0x100 < size) {
-            palette_1f50_.size_04 = 0x100;
+            device_palette.size = 0x100;
         }
-        getDD()->bindPalette(palette_1f50_);
-        palette_1fdc_ = palette;
+        getDD()->bindPalette(device_palette);
+        this->palette = palette;
     }
-    Texture* previous = texture_slots_1f38_[stage];
-    texture_slots_1f38_[stage] = found;
+    Texture* previous = texture_slots[stage];
+    texture_slots[stage] = found;
     if (previous != found) {
-        getDD()->bindTexture(stage, found->device_2c);
-        if (found != texture_default_2030_ && found->device_2c.resident == 0 &&
-            found->surface_data != 0 && (device_40_.info_10_.flags_18_ & 0x20) != 0) {
+        getDD()->bindTexture(stage, found->device);
+        if (found != texture_default && found->device.resident == 0 &&
+            found->surface_data != 0 && (device.info.flags & 0x20) != 0) {
             releaseTextureSurfaceData(*found);
         }
-        ++statistics_1a78_.texture_binds;
+        ++statistics.texture_binds;
     }
     srTextureIFace::Parameters parameters;
     texture->getTextureParms(parameters);
@@ -3537,20 +3537,20 @@ void srGERD::convertPixelFormat(srDD::PixelFormat& device,
 // FUNCTION: SURRENDER 0x10018F30
 void srGERD::initTextureFormats()
 {
-    device_40_.texture_formats_320_ = 0;
-    device_40_.texture_format_count_324_ = 0;
+    device.texture_formats = 0;
+    device.texture_format_count = 0;
     srDD::PixelFormatList list;
     getDD()->getTextureFormats(list);
     long count = list.count;
     if (count != 0) {
-        device_40_.texture_formats_320_ = new srPixelConvert::PixelFormat[count];
+        device.texture_formats = new srPixelConvert::PixelFormat[count];
         long i;
         for (i = 0; i < count; i++) {
-            device_40_.texture_formats_320_[i].flags = 0;
+            device.texture_formats[i].flags = 0;
         }
-        device_40_.texture_format_count_324_ = count;
+        device.texture_format_count = count;
         for (i = 0; i < count; i++) {
-            convertPixelFormat(device_40_.texture_formats_320_[i], list.formats[i]);
+            convertPixelFormat(device.texture_formats[i], list.formats[i]);
         }
     }
 }
@@ -3562,15 +3562,15 @@ void srGERD::initDisplayModeList()
     list.count = 0;
     list.entries = 0;
     getDD()->getWindowList(list);
-    device_40_.display_modes_328_ = 0;
-    device_40_.display_mode_count_32c_ = 0;
+    device.display_modes = 0;
+    device.display_mode_count = 0;
     if (list.count != 0) {
-        device_40_.display_modes_328_ = new unsigned long[list.count * 3];
-        device_40_.display_mode_count_32c_ = list.count;
+        device.display_modes = new unsigned long[list.count * 3];
+        device.display_mode_count = list.count;
         for (long i = 0; i < list.count; i++) {
-            device_40_.display_modes_328_[i * 3] = list.entries[i].width;
-            device_40_.display_modes_328_[i * 3 + 1] = list.entries[i].height;
-            device_40_.display_modes_328_[i * 3 + 2] = list.entries[i].depth;
+            device.display_modes[i * 3] = list.entries[i].width;
+            device.display_modes[i * 3 + 1] = list.entries[i].height;
+            device.display_modes[i * 3 + 2] = list.entries[i].depth;
         }
     }
 }
@@ -3578,55 +3578,55 @@ void srGERD::initDisplayModeList()
 // FUNCTION: SURRENDER 0x10019080
 void srGERD::initDDInfo()
 {
-    memset(&device_40_.info_10_, 0, sizeof(device_40_.info_10_));
-    device_40_.info_10_.flags_18_ = 0;
-    device_40_.info_10_.hardware_id_38_ = 1;
-    device_40_.info_10_.texture_min_dim_2c_ = 1;
-    device_40_.info_10_.texture_max_aspect_34_ = 1;
-    device_40_.info_10_.max_texture_stages_28_ = 1;
-    device_40_.info_10_.renderer_batch_limit_1c_ = 0x100;
-    device_40_.info_10_.unknown_20_ = 0x3b808081;
-    device_40_.info_10_.texture_ram_24_ = 0x200000;
-    device_40_.info_10_.unknown_0c_ = 0x10;
-    device_40_.info_10_.unknown_08_ = 4;
-    device_40_.info_10_.texture_max_dim_30_ = 0x100;
-    device_40_.info_10_.unknown_10_ = 1.0f;
-    device_40_.info_10_.unknown_14_ = 65536.0f;
+    memset(&device.info, 0, sizeof(device.info));
+    device.info.flags = 0;
+    device.info.hardware_id = 1;
+    device.info.texture_min_dim = 1;
+    device.info.texture_max_aspect = 1;
+    device.info.max_texture_stages = 1;
+    device.info.renderer_batch_limit = 0x100;
+    device.info.unknown_20_ = 0x3b808081;
+    device.info.texture_ram = 0x200000;
+    device.info.unknown_0c_ = 0x10;
+    device.info.unknown_08_ = 4;
+    device.info.texture_max_dim = 0x100;
+    device.info.unknown_10_ = 1.0f;
+    device.info.unknown_14_ = 65536.0f;
     for (long i = 0; i < 9; i++) {
-        sprintf(device_40_.info_10_.text_3c_[i], "Unknown");
+        sprintf(device.info.text[i], "Unknown");
     }
-    getDD()->getInfo(device_40_.info_10_);
-    if (device_40_.info_10_.max_texture_stages_28_ > 2) {
-        device_40_.info_10_.max_texture_stages_28_ = 2;
+    getDD()->getInfo(device.info);
+    if (device.info.max_texture_stages > 2) {
+        device.info.max_texture_stages = 2;
     }
 }
 
 // FUNCTION: SURRENDER 0x1001C3E0
 void srGERD::initLights()
 {
-    ambient_light_2048_.Set(0.2f, 0.2f, 0.2f, 1.0f);
+    ambient_light.Set(0.2f, 0.2f, 0.2f, 1.0f);
 }
 
 // FUNCTION: SURRENDER 0x10021BE0
 void srGERD::initMatrices()
 {
-    state_390_.matrix_mode_12c0_ = MATRIX_MODELVIEW;
+    state.matrix_mode = MATRIX_MODELVIEW;
     for (long i = 0; i < 2; i++) {
-        state_390_.matrix_current_00_[i].vectors[0].Set(1.0f, 0.0f, 0.0f, 0.0f);
-        state_390_.matrix_current_00_[i].vectors[1].Set(0.0f, 1.0f, 0.0f, 0.0f);
-        state_390_.matrix_current_00_[i].vectors[2].Set(0.0f, 0.0f, 1.0f, 0.0f);
-        state_390_.matrix_current_00_[i].vectors[3].Set(0.0f, 0.0f, 0.0f, 1.0f);
-        state_390_.matrix_class_13bc_[i] = static_cast<srMatrix4T<float>::e_type>(4);
-        state_390_.matrix_stacks_80_[i].depth_800 = 0;
+        state.matrix_current[i].vectors[0].Set(1.0f, 0.0f, 0.0f, 0.0f);
+        state.matrix_current[i].vectors[1].Set(0.0f, 1.0f, 0.0f, 0.0f);
+        state.matrix_current[i].vectors[2].Set(0.0f, 0.0f, 1.0f, 0.0f);
+        state.matrix_current[i].vectors[3].Set(0.0f, 0.0f, 0.0f, 1.0f);
+        state.matrix_class[i] = static_cast<srMatrix4T<float>::e_type>(4);
+        state.matrix_stacks[i].depth = 0;
     }
-    state_390_.normal_matrix_1374_.vectors[0].Set(1.0f, 0.0f, 0.0f, 0.0f);
-    state_390_.normal_matrix_1374_.vectors[1].Set(0.0f, 1.0f, 0.0f, 0.0f);
-    state_390_.normal_matrix_1374_.vectors[2].Set(0.0f, 0.0f, 1.0f, 0.0f);
-    state_390_.normal_matrix_1374_.vectors[3].Set(0.0f, 0.0f, 0.0f, 1.0f);
-    state_390_.inverse_modelview_12f4_.vectors[0].Set(1.0f, 0.0f, 0.0f, 0.0f);
-    state_390_.inverse_modelview_12f4_.vectors[1].Set(0.0f, 1.0f, 0.0f, 0.0f);
-    state_390_.inverse_modelview_12f4_.vectors[2].Set(0.0f, 0.0f, 1.0f, 0.0f);
-    state_390_.inverse_modelview_12f4_.vectors[3].Set(0.0f, 0.0f, 0.0f, 1.0f);
+    state.normal_matrix.vectors[0].Set(1.0f, 0.0f, 0.0f, 0.0f);
+    state.normal_matrix.vectors[1].Set(0.0f, 1.0f, 0.0f, 0.0f);
+    state.normal_matrix.vectors[2].Set(0.0f, 0.0f, 1.0f, 0.0f);
+    state.normal_matrix.vectors[3].Set(0.0f, 0.0f, 0.0f, 1.0f);
+    state.inverse_modelview.vectors[0].Set(1.0f, 0.0f, 0.0f, 0.0f);
+    state.inverse_modelview.vectors[1].Set(0.0f, 1.0f, 0.0f, 0.0f);
+    state.inverse_modelview.vectors[2].Set(0.0f, 0.0f, 1.0f, 0.0f);
+    state.inverse_modelview.vectors[3].Set(0.0f, 0.0f, 0.0f, 1.0f);
 }
 
 // FUNCTION: SURRENDER 0x1001CD60
@@ -3662,7 +3662,7 @@ void srGERD::dump(std::ostream& stream, const srFlags<e_info>& info)
     }
     if ((info.value & INFO_DEVICE) != 0) {
         unsigned long renderers = 0;
-        for (RendererEntry* entry = renderers_10_; entry != 0; entry = entry->next_04) {
+        for (RendererEntry* entry = this->renderers; entry != 0; entry = entry->next) {
             renderers++;
         }
         stream << "Renderers used     : " << renderers << std::endl;
@@ -3682,12 +3682,12 @@ void srGERD::dump(std::ostream& stream, const srFlags<e_info>& info)
         } else if (back_buffer == static_cast<e_backBuffer>(3)) {
             stream << "two (triple-buffered)" << std::endl;
         }
-        stream << "Swap interval      : " << display_1758_.swap_interval_0c_ << std::endl;
-        stream << "Gamma              : " << '{' << display_1758_.gamma_00_.x << ','
-               << display_1758_.gamma_00_.y << ',' << display_1758_.gamma_00_.z << '}' << std::endl;
+        stream << "Swap interval      : " << display.swap_interval << std::endl;
+        stream << "Gamma              : " << '{' << display.gamma.x << ','
+               << display.gamma.y << ',' << display.gamma.z << '}' << std::endl;
     }
     if ((info.value & INFO_STATISTICS) != 0) {
-        Statistics statistics = statistics_19f8_;
+        Statistics statistics = frame_statistics;
         if (statistics.elapsed > 0.1) {
             stream << std::endl;
             stream << "Seconds since reset             : " << statistics.elapsed << '\n';
@@ -3751,7 +3751,7 @@ void srGERD::dump(std::ostream& stream, const srFlags<e_info>& info)
             stream << std::endl;
             stream << "DD draw commands                : "
                    << statistics.draw_calls / statistics.elapsed << '\n';
-            if ((device_40_.info_10_.flags_18_ & 0x10) != 0) {
+            if ((device.info.flags & 0x10) != 0) {
                 stream << "DD pixels drawn          (M/s)  : "
                        << statistics.value_10 * 1e-06 / statistics.elapsed << '\n';
                 /* reinterpret-ok: the device stats mirror stores the
@@ -3766,16 +3766,16 @@ void srGERD::dump(std::ostream& stream, const srFlags<e_info>& info)
             stream << "Function calls to DD            : "
                    << statistics.value_68 / statistics.elapsed << std::endl;
         }
-        if ((info.value & INFO_DEBUG_DD) != 0 && (enable_flags_20_.value & 0x20) != 0 &&
-            device_40_.debug_dd_04_ != 0) {
+        if ((info.value & INFO_DEBUG_DD) != 0 && (enable_flags.value & 0x20) != 0 &&
+            device.debug_dd != 0) {
             double total = 0.0;
             srStreamPrintf(stream, "\nFunction                        Calls/sec  Time used\n");
             srStreamPrintf(stream,
                            "---------------------------------------------------------------\n");
             for (long i = 0; i < 0x2b; i++) {
-                unsigned long calls = device_40_.debug_dd_04_->call_counts[i];
-                double used = device_40_.debug_dd_04_->call_times[i] -
-                              calls * device_40_.debug_dd_04_->time_scale_10;
+                unsigned long calls = device.debug_dd->call_counts[i];
+                double used = device.debug_dd->call_times[i] -
+                              calls * device.debug_dd->time_scale;
                 if (used <= 0.0) {
                     used = 0.0;
                 }
@@ -3802,40 +3802,40 @@ void srGERD::dump(std::ostream& stream, const srFlags<e_info>& info)
 // FUNCTION: SURRENDER 0x1001EB20
 void srGERD::dumpTextureCache(std::ostream& stream)
 {
-    srCriticalSectionAccess access(state_section_18_);
-    if (!texture_hash_enabled_2044_) {
+    srCriticalSectionAccess access(state_section);
+    if (!texture_hash_enabled) {
         srStreamPrintf(stream, "Texture cache hibernating\n");
         return;
     }
     unsigned long count = 0;
-    for (Texture* texture = texture_head_202c_; texture != 0; texture = texture->next_04) {
+    for (Texture* texture = texture_head; texture != 0; texture = texture->next) {
         count++;
     }
     srStreamPrintf(stream, "GERD Texture cache:\n\n");
     srStreamPrintf(stream, "Cached textures:          %d\n", count);
-    srStreamPrintf(stream, "Hash table size           %d\n", texture_lookup_2004_.bucket_count);
+    srStreamPrintf(stream, "Hash table size           %d\n", texture_lookup.bucket_count);
     srStreamPrintf(stream, "GERD Cache memory used:   %d kB\n",
-                   (texture_cache_used_2034_ + 0x3ff) >> 10);
-    if (texture_cache_size_2038_ == 0) {
+                   (texture_cache_used + 0x3ff) >> 10);
+    if (texture_cache_size == 0) {
         srStreamPrintf(stream, "Max cache size:           infinite\n");
     } else {
         srStreamPrintf(stream, "Max cache size:           %d kB\n",
-                       (texture_cache_size_2038_ + 0x3ff) >> 10);
+                       (texture_cache_size + 0x3ff) >> 10);
     }
     srStreamPrintf(stream, "\n");
     srStreamPrintf(stream, "Device TMUs:              %d\n",
-                   device_40_.info_10_.max_texture_stages_28_);
-    if (device_40_.info_10_.texture_ram_24_ == 0) {
+                   device.info.max_texture_stages);
+    if (device.info.texture_ram == 0) {
         srStreamPrintf(stream, "Device texture RAM:       infinite\n");
     } else {
         srStreamPrintf(stream, "Device texture RAM:       %d kB\n",
-                       (device_40_.info_10_.texture_ram_24_ + 0x3ff) >> 10);
+                       (device.info.texture_ram + 0x3ff) >> 10);
     }
     srStreamPrintf(stream, "Resident textures:        %d kB ",
                    (getResidentTextureMemUsed() + 0x3ff) >> 10);
-    if (device_40_.info_10_.texture_ram_24_ != 0) {
+    if (device.info.texture_ram != 0) {
         srStreamPrintf(stream, " (%.2f%%)",
-                       getResidentTextureMemUsed() * 100.0 / device_40_.info_10_.texture_ram_24_);
+                       getResidentTextureMemUsed() * 100.0 / device.info.texture_ram);
     }
     srStreamPrintf(stream, "\n\n");
     srStreamPrintf(stream,
@@ -3845,29 +3845,29 @@ void srGERD::dumpTextureCache(std::ostream& stream)
                    "-----------------------------------------------------------------------------"
                    "--------------\n");
     long index = 0;
-    for (Texture* entry = texture_head_202c_; entry != 0; entry = entry->next_04) {
+    for (Texture* entry = texture_head; entry != 0; entry = entry->next) {
         char format_name[64];
         format_name[0] = '\0';
         entry->pixel_format.getName(format_name);
-        srStreamPrintf(stream, "%04d  %03dx%03d     %-11s  ", index, entry->device_2c.width_20,
-                       entry->device_2c.height_24, format_name);
+        srStreamPrintf(stream, "%04d  %03dx%03d     %-11s  ", index, entry->device.width,
+                       entry->device.height, format_name);
         index++;
-        float kb = (entry->device_2c.size_1c + 0x3ff) * 0.0009765625f;
+        float kb = (entry->device.size + 0x3ff) * 0.0009765625f;
         if (kb >= 10.0f) {
             srStreamPrintf(stream, "%-4d  ", static_cast<long>(kb));
         } else {
             srStreamPrintf(stream, "%.1f   ", kb);
         }
         int resident =
-            entry->device_2c.resident_data != 0 && entry->device_2c.resident_size != 0;
+            entry->device.resident_data != 0 && entry->device.resident_size != 0;
         srStreamPrintf(stream, "%-2d    %.4f     %08x   %-5s     %08x   ",
-                       entry->device_2c.last_level - entry->device_2c.first_level + 1,
-                       entry->device_2c.priority, entry->device_2c.last_use,
-                       srBoolToString(resident), entry->id_08);
-        if (entry->name_28 == 0) {
+                       entry->device.last_level - entry->device.first_level + 1,
+                       entry->device.priority, entry->device.last_use,
+                       srBoolToString(resident), entry->id);
+        if (entry->name == 0) {
             srStreamPrintf(stream, "anon\n");
         } else {
-            srStreamPrintf(stream, "%s\n", entry->name_28);
+            srStreamPrintf(stream, "%s\n", entry->name);
         }
     }
 }
@@ -3875,7 +3875,7 @@ void srGERD::dumpTextureCache(std::ostream& stream)
 // FUNCTION: SURRENDER 0x1001EE20
 void srGERD::dumpDeviceList(std::ostream& stream)
 {
-    for (srGERD* gerd = first; gerd != 0; gerd = gerd->next_34_) {
+    for (srGERD* gerd = first; gerd != 0; gerd = gerd->next) {
         srStreamPrintf(stream, "%s\n", gerd->getDeviceName());
     }
 }
@@ -4062,96 +4062,96 @@ srGERD::e_error srGERD::createContext(unsigned long window)
     if (getDD()->createContext(window) != 0) {
         return ERROR_CONTEXT_CREATION_FAILED;
     }
-    device_40_.window_334_ = window;
+    device.window = window;
     initDDInfo();
     initTextureFormats();
     initDisplayModeList();
     initGlobalPalette();
     resetStatistics();
-    state_flags_28_ |= 1;
+    state_flags |= 1;
     return ERROR_NONE;
 }
 
 // FUNCTION: SURRENDER 0x100192A0
 void srGERD::deleteContext()
 {
-    if ((state_flags_28_ & 1) != 0) {
+    if ((state_flags & 1) != 0) {
         closeWindow(static_cast<e_closeHint>(0));
         closeTexCache();
-        if (device_40_.texture_formats_320_ != 0) {
-            delete[] device_40_.texture_formats_320_;
+        if (device.texture_formats != 0) {
+            delete[] device.texture_formats;
         }
-        if (device_40_.display_modes_328_ != 0) {
-            delete[] device_40_.display_modes_328_;
+        if (device.display_modes != 0) {
+            delete[] device.display_modes;
         }
-        device_40_.texture_formats_320_ = 0;
-        device_40_.display_modes_328_ = 0;
-        device_40_.texture_format_count_324_ = 0;
-        device_40_.display_mode_count_32c_ = 0;
+        device.texture_formats = 0;
+        device.display_modes = 0;
+        device.texture_format_count = 0;
+        device.display_mode_count = 0;
         getDD()->deleteContext();
-        state_flags_28_ &= ~1UL;
-        device_40_.window_334_ = 0;
+        state_flags &= ~1UL;
+        device.window = 0;
     }
 }
 
 // FUNCTION: SURRENDER 0x10019EB0
 void srGERD::deleteRenderers()
 {
-    srCriticalSectionAccess access(renderers_section_14_);
-    while (renderers_10_ != 0) {
-        RendererEntry* next = renderers_10_->next_04;
-        delete renderers_10_->renderer_08;
-        delete renderers_10_;
-        renderers_10_ = next;
+    srCriticalSectionAccess access(renderers_section);
+    while (renderers != 0) {
+        RendererEntry* next = renderers->next;
+        delete renderers->renderer;
+        delete renderers;
+        renderers = next;
     }
 }
 
 // FUNCTION: SURRENDER 0x1001F880
 void srGERD::accumRelease()
 {
-    if (accum_buffer_1af8_ != 0) {
-        srHeap.free(accum_buffer_1af8_);
-        accum_buffer_1af8_ = 0;
+    if (accum_buffer != 0) {
+        srHeap.free(accum_buffer);
+        accum_buffer = 0;
     }
-    if (accum_scratch_1afc_ != 0) {
-        srHeap.free(accum_scratch_1afc_);
-        accum_scratch_1afc_ = 0;
+    if (accum_scratch != 0) {
+        srHeap.free(accum_scratch);
+        accum_scratch = 0;
     }
 }
 
 // FUNCTION: SURRENDER 0x10020DF0
 srColorSurfaceIFace* srGERD::lockBuffer()
 {
-    if (lock_surface_1b00_ != 0) {
+    if (lock_surface != 0) {
         return 0;
     }
     flush();
     if (_lockBuffer() != 0) {
         return 0;
     }
-    if ((dirty_24_ & 0x1f0) != 0) {
+    if ((dirty & 0x1f0) != 0) {
         applyViewStateChanges();
     }
     srPixelConvert::PixelFormat format;
     getPixelFormat(format);
-    lock_surface_1b00_ = new LockSurface(this, format);
-    lock_surface_1b00_->setScissor(state_390_.scissor_1298_.left, state_390_.scissor_1298_.top,
-                                   state_390_.scissor_1298_.right, state_390_.scissor_1298_.bottom);
+    lock_surface = new LockSurface(this, format);
+    lock_surface->setScissor(state.scissor.left, state.scissor.top,
+                                   state.scissor.right, state.scissor.bottom);
     if (format.conversion_class == 0 && format.bytes_per_pixel_minus_one == 3 &&
         format.red_bits == 8 && format.green_bits == 8 && format.blue_bits == 8 &&
         format.alpha_bits == 8 && format.red_shift == 0x10 && format.green_shift == 8 &&
         format.blue_shift == 0 && format.alpha_shift == 0x18) {
-        lock_surface_1b00_->argb32_5c_ = 1;
+        lock_surface->argb32 = 1;
     }
-    return lock_surface_1b00_;
+    return lock_surface;
 }
 
 // FUNCTION: SURRENDER 0x10020F30
 void srGERD::unlockBuffer()
 {
-    if (lock_surface_1b00_ != 0) {
-        lock_surface_1b00_->release();
-        lock_surface_1b00_ = 0;
+    if (lock_surface != 0) {
+        lock_surface->release();
+        lock_surface = 0;
         _unlockBuffer();
     }
 }
@@ -4159,9 +4159,9 @@ void srGERD::unlockBuffer()
 // FUNCTION: SURRENDER 0x1001A5F0
 void srGERD::closeWindow(e_closeHint hint)
 {
-    srCriticalSectionAccess access(state_section_18_);
+    srCriticalSectionAccess access(state_section);
     if (isWindowOpen() != 0) {
-        state_flags_28_ |= 0x10;
+        state_flags |= 0x10;
         flush();
         deleteRenderers();
         unlockBuffer();
@@ -4171,161 +4171,161 @@ void srGERD::closeWindow(e_closeHint hint)
         getDD()->closeWindow();
         resetStatistics();
         accumRelease();
-        memset(&device_40_.open_info_338_, 0, sizeof(device_40_.open_info_338_));
-        state_flags_28_ &= ~2UL;
-        device_40_.back_buffer_type_34c_ = static_cast<e_backBuffer>(0);
-        if (prev_open_38_ != 0) {
-            prev_open_38_->next_open_3c_ = next_open_3c_;
+        memset(&device.open_info, 0, sizeof(device.open_info));
+        state_flags &= ~2UL;
+        device.back_buffer_type = static_cast<e_backBuffer>(0);
+        if (prev_open != 0) {
+            prev_open->next_open = next_open;
         }
-        if (next_open_3c_ != 0) {
-            next_open_3c_->prev_open_38_ = prev_open_38_;
+        if (next_open != 0) {
+            next_open->prev_open = prev_open;
         }
         if (this == firstOpen) {
-            firstOpen = next_open_3c_;
+            firstOpen = next_open;
         }
-        prev_open_38_ = 0;
-        next_open_3c_ = 0;
-        state_flags_28_ &= ~0x10UL;
-        shader_1ff8_ = srShader();
-        texture_iface_1ffc_[0] = 0;
-        texture_iface_1ffc_[1] = 0;
-        pick_vertices_2230_.release();
+        prev_open = 0;
+        next_open = 0;
+        state_flags &= ~0x10UL;
+        shader = srShader();
+        texture_iface[0] = 0;
+        texture_iface[1] = 0;
+        pick_vertices.release();
     }
 }
 
 // FUNCTION: SURRENDER 0x1001CD10
 srGERD::e_backBuffer srGERD::getBackBufferType() const
 {
-    return device_40_.back_buffer_type_34c_;
+    return device.back_buffer_type;
 }
 
 // FUNCTION: SURRENDER 0x1001A120
 srGERD::e_error srGERD::openWindow()
 {
-    if ((state_flags_28_ & 1) == 0) {
+    if ((state_flags & 1) == 0) {
         return ERROR_NO_CONTEXT;
     }
-    return openWindow(srWindow::getWidth(device_40_.window_334_),
-                      srWindow::getHeight(device_40_.window_334_));
+    return openWindow(srWindow::getWidth(device.window),
+                      srWindow::getHeight(device.window));
 }
 
 // FUNCTION: SURRENDER 0x1001A160
 srGERD::e_error srGERD::openWindow(long width, long height)
 {
-    if ((state_flags_28_ & 1) == 0) {
+    if ((state_flags & 1) == 0) {
         return ERROR_NO_CONTEXT;
     }
-    if (srWindow::isWindow(device_40_.window_334_) == 0) {
+    if (srWindow::isWindow(device.window) == 0) {
         return ERROR_INVALID_WHANDLE;
     }
     OpenInfo info;
-    info.window_width = srWindow::getWidth(device_40_.window_334_);
-    info.window_height = srWindow::getHeight(device_40_.window_334_);
-    info.width_08 = width;
-    info.height_0c = height;
-    info.display_mode_10 = -1;
+    info.window_width = srWindow::getWidth(device.window);
+    info.window_height = srWindow::getHeight(device.window);
+    info.width = width;
+    info.height = height;
+    info.display_mode = -1;
     return openWindowInternal(info);
 }
 
 // FUNCTION: SURRENDER 0x1001A1F0
 srGERD::e_error srGERD::openWindow(long mode)
 {
-    if ((state_flags_28_ & 1) == 0) {
+    if ((state_flags & 1) == 0) {
         return ERROR_NO_CONTEXT;
     }
     if (mode < 0) {
         return openWindow();
     }
-    if (srWindow::isWindow(device_40_.window_334_) == 0) {
+    if (srWindow::isWindow(device.window) == 0) {
         return ERROR_INVALID_WHANDLE;
     }
-    if (device_40_.display_mode_count_32c_ <= mode) {
+    if (device.display_mode_count <= mode) {
         return ERROR_WINDOW_OPEN_FAILED;
     }
-    unsigned long* entry = device_40_.display_modes_328_ + mode * 3;
+    unsigned long* entry = device.display_modes + mode * 3;
     OpenInfo info;
-    info.window_width = info.width_08 = (long)entry[0];
-    info.window_height = info.height_0c = (long)entry[1];
-    info.display_mode_10 = mode;
+    info.window_width = info.width = (long)entry[0];
+    info.window_height = info.height = (long)entry[1];
+    info.display_mode = mode;
     return openWindowInternal(info);
 }
 
 // FUNCTION: SURRENDER 0x1001A290
 srGERD::e_error srGERD::openWindowInternal(const OpenInfo& info)
 {
-    srCriticalSectionAccess access(state_section_18_);
-    if ((unsigned long)info.width_08 > (unsigned long)info.window_width ||
-        (unsigned long)info.height_0c > (unsigned long)info.window_height) {
+    srCriticalSectionAccess access(state_section);
+    if ((unsigned long)info.width > (unsigned long)info.window_width ||
+        (unsigned long)info.height > (unsigned long)info.window_height) {
         return ERROR_INVALID_VALUE;
     }
-    if ((state_flags_28_ & 1) == 0) {
+    if ((state_flags & 1) == 0) {
         return ERROR_NO_CONTEXT;
     }
     closeWindow(static_cast<e_closeHint>(1));
-    if (info.width_08 != 0 && info.height_0c != 0 && info.window_width != 0 &&
+    if (info.width != 0 && info.height != 0 && info.window_width != 0 &&
         info.window_height != 0) {
-        if (srWindow::isWindow(device_40_.window_334_) == 0) {
+        if (srWindow::isWindow(device.window) == 0) {
             return ERROR_INVALID_WHANDLE;
         }
-        if (info.display_mode_10 < -1 ||
-            device_40_.display_mode_count_32c_ <= info.display_mode_10 ||
-            device_40_.info_10_.unknown_00_ < (unsigned long)info.width_08 ||
-            device_40_.info_10_.unknown_04_ < (unsigned long)info.height_0c) {
+        if (info.display_mode < -1 ||
+            device.display_mode_count <= info.display_mode ||
+            device.info.unknown_00_ < (unsigned long)info.width ||
+            device.info.unknown_04_ < (unsigned long)info.height) {
             return ERROR_INVALID_VALUE;
         }
-        memset(&device_40_.open_info_338_, 0, sizeof(device_40_.open_info_338_));
+        memset(&device.open_info, 0, sizeof(device.open_info));
         srDD::OpenInfo dd_info;
-        dd_info.width = (unsigned long)info.width_08;
-        dd_info.height = (unsigned long)info.height_0c;
-        dd_info.display_mode = info.display_mode_10;
+        dd_info.width = (unsigned long)info.width;
+        dd_info.height = (unsigned long)info.height;
+        dd_info.display_mode = info.display_mode;
         srDD::OpenResult result;
         result.back_buffer_type = 0;
         if (getDD()->openWindow(dd_info, result) == 0) {
-            device_40_.open_info_338_ = info;
+            device.open_info = info;
             if (result.back_buffer_type == 1) {
-                device_40_.back_buffer_type_34c_ = BACKBUFFER_NONE;
+                device.back_buffer_type = BACKBUFFER_NONE;
             } else if (result.back_buffer_type == 2) {
-                device_40_.back_buffer_type_34c_ = BACKBUFFER_ONE;
+                device.back_buffer_type = BACKBUFFER_ONE;
             } else if (result.back_buffer_type == 3) {
-                device_40_.back_buffer_type_34c_ = BACKBUFFER_TWO;
+                device.back_buffer_type = BACKBUFFER_TWO;
             }
-            prev_open_38_ = 0;
-            next_open_3c_ = firstOpen;
+            prev_open = 0;
+            next_open = firstOpen;
             if (firstOpen != 0) {
-                firstOpen->prev_open_38_ = this;
+                firstOpen->prev_open = this;
             }
-            unsigned long flags = state_flags_28_ & ~4UL;
+            unsigned long flags = state_flags & ~4UL;
             firstOpen = this;
-            state_flags_28_ |= 2;
-            state_flags_28_ = flags | 2;
-            state_flags_28_ |= 8;
+            state_flags |= 2;
+            state_flags = flags | 2;
+            state_flags |= 8;
             resetStatistics();
-            dirty_24_ = 0xffffffff;
+            dirty = 0xffffffff;
             initTexCache();
-            texture_iface_1ffc_[0] = 0;
-            texture_iface_1ffc_[1] = 0;
-            shader_1ff8_ = srShader();
-            if (device_40_.info_10_.max_texture_stages_28_ != 0) {
+            texture_iface[0] = 0;
+            texture_iface[1] = 0;
+            shader = srShader();
+            if (device.info.max_texture_stages != 0) {
                 unsigned long stage = 0;
                 do {
-                    texture_parms_1f40_[stage].mipmap_bias = 0.0f;
-                    texture_parms_1f40_[stage].packed = 0x1a1;
-                    texture_parms_1f40_[stage].mipmap_bias = -1234567.0f;
+                    texture_parms[stage].mipmap_bias = 0.0f;
+                    texture_parms[stage].packed = 0x1a1;
+                    texture_parms[stage].mipmap_bias = -1234567.0f;
                     setTexture(0, stage);
                     stage++;
-                } while (stage < device_40_.info_10_.max_texture_stages_28_);
+                } while (stage < device.info.max_texture_stages);
             }
             invalidatePalette();
-            state_390_.scissor_1298_.left = 0;
-            state_390_.scissor_1298_.top = 0;
-            state_390_.scissor_1298_.right = getWidth();
-            state_390_.scissor_1298_.bottom = getHeight();
-            state_390_.view_left_12a8_ = 0;
-            state_390_.view_top_12ac_ = 0;
-            state_390_.view_right_12b0_ = getWidth();
-            state_390_.view_bottom_12b4_ = getHeight();
+            state.scissor.left = 0;
+            state.scissor.top = 0;
+            state.scissor.right = getWidth();
+            state.scissor.bottom = getHeight();
+            state.view_left = 0;
+            state.view_top = 0;
+            state.view_right = getWidth();
+            state.view_bottom = getHeight();
             createRenderer(1);
-            if ((enable_flags_20_.value & 0x40) != 0) {
+            if ((enable_flags.value & 0x40) != 0) {
                 long count;
                 e_backBuffer back_buffer = getBackBufferType();
                 if (back_buffer == static_cast<e_backBuffer>(2)) {
@@ -4350,34 +4350,34 @@ srGERD::e_error srGERD::openWindowInternal(const OpenInfo& info)
 // FUNCTION: SURRENDER 0x10028460
 void srGERD::closeTexCache()
 {
-    if (texture_hash_enabled_2044_ != 0) {
+    if (texture_hash_enabled != 0) {
         invalidateTextureCache();
         removeDeletedTextures();
-        markTextureAsDeleted(*texture_default_2030_);
-        deleteTexture(*texture_default_2030_);
-        texture_default_2030_ = 0;
-        texture_lookup_2004_.Clear();
-        texture_pool_2014_.release();
-        texture_deleted_2028_ = 0;
-        texture_head_202c_ = 0;
-        texture_cache_used_2034_ = 0;
-        texture_hash_enabled_2044_ = 0;
+        markTextureAsDeleted(*texture_default);
+        deleteTexture(*texture_default);
+        texture_default = 0;
+        texture_lookup.Clear();
+        texture_pool.release();
+        texture_deleted = 0;
+        texture_head = 0;
+        texture_cache_used = 0;
+        texture_hash_enabled = 0;
     }
 }
 
 // FUNCTION: SURRENDER 0x10028200
 void srGERD::initTexCache()
 {
-    if (texture_hash_enabled_2044_ == 0) {
-        texture_lookup_2004_.Clear();
-        texture_head_202c_ = 0;
-        texture_deleted_2028_ = 0;
-        texture_cache_used_2034_ = 0;
-        texture_pool_2014_.release();
+    if (texture_hash_enabled == 0) {
+        texture_lookup.Clear();
+        texture_head = 0;
+        texture_deleted = 0;
+        texture_cache_used = 0;
+        texture_pool.release();
         resetCurrentTexPointers();
-        texture_default_2030_ = createNewTexture(srCore.getTexture());
-        texture_default_2030_->device_2c.priority = 1.1f;
-        texture_hash_enabled_2044_ = 1;
+        texture_default = createNewTexture(srCore.getTexture());
+        texture_default->device.priority = 1.1f;
+        texture_hash_enabled = 1;
         invalidateTextureCache();
     }
 }
@@ -4386,49 +4386,49 @@ void srGERD::initTexCache()
 void srGERD::evaluateTextureDimensions(srDD::Texture& device,
                                        const srTextureIFace::Dimensions& dimensions)
 {
-    unsigned long min_dim = device_40_.info_10_.texture_min_dim_2c_;
+    unsigned long min_dim = this->device.info.texture_min_dim;
     unsigned char reduction = 0;
     if ((dimensions.hints & 0x80) == 0) {
-        reduction = (unsigned char)texture_reduction_2040_;
+        reduction = (unsigned char)texture_reduction;
     }
     unsigned long width = nextTextureDimension(dimensions.width) >> (reduction & 0x1f);
     unsigned long height = nextTextureDimension(dimensions.height) >> (reduction & 0x1f);
     unsigned long device_width = min_dim;
-    if (min_dim <= width && width <= device_40_.info_10_.texture_max_dim_30_) {
+    if (min_dim <= width && width <= this->device.info.texture_max_dim) {
         device_width = width;
     }
     unsigned long device_height = min_dim;
-    if (min_dim <= height && height <= device_40_.info_10_.texture_max_dim_30_) {
+    if (min_dim <= height && height <= this->device.info.texture_max_dim) {
         device_height = height;
     }
     int unbalanced = 0;
     if (device_height < device_width) {
-        while (device_40_.info_10_.texture_max_aspect_34_ < device_width / device_height &&
-               device_height < device_40_.info_10_.texture_max_dim_30_) {
+        while (this->device.info.texture_max_aspect < device_width / device_height &&
+               device_height < this->device.info.texture_max_dim) {
             device_height *= 2;
         }
         unbalanced = device_height < device_width;
     }
     if (unbalanced == 0 && device_height != device_width) {
-        while (device_40_.info_10_.texture_max_aspect_34_ < device_height / device_width &&
-               device_width < device_40_.info_10_.texture_max_dim_30_) {
+        while (this->device.info.texture_max_aspect < device_height / device_width &&
+               device_width < this->device.info.texture_max_dim) {
             device_width *= 2;
         }
     }
-    device.width_20 = device_width;
-    device.height_24 = device_height;
+    device.width = device_width;
+    device.height = device_height;
     device.first_level = 0;
     device.last_level = 0;
-    if (((dimensions.hints & 8) == 0 || (device_40_.info_10_.flags_18_ & 0x40) != 0) &&
-        device_40_.info_10_.texture_min_dim_2c_ < device_width) {
+    if (((dimensions.hints & 8) == 0 || (this->device.info.flags & 0x40) != 0) &&
+        this->device.info.texture_min_dim < device_width) {
         do {
-            if (device_height <= device_40_.info_10_.texture_min_dim_2c_) {
+            if (device_height <= this->device.info.texture_min_dim) {
                 return;
             }
             ++device.last_level;
             device_width >>= 1;
             device_height >>= 1;
-        } while (device_40_.info_10_.texture_min_dim_2c_ < device_width);
+        } while (this->device.info.texture_min_dim < device_width);
     }
 }
 
@@ -4454,21 +4454,21 @@ void srGERD::evaluateTexturePixelFormat(Texture& texture,
         format.alpha_bits = 0;
     }
     if ((flags & 0x40) != 0) {
-        texture.device_2c.flags_00 |= 1;
+        texture.device.flags |= 1;
     }
-    texture.device_2c.resident = (dimensions.hints >> 5) & 1;
-    convertPixelFormat(texture.device_2c.format_04, format);
-    unsigned long index = format.match(device_40_.texture_formats_320_,
-                                       (unsigned long)device_40_.texture_format_count_324_);
-    texture.device_2c.format_index = index;
-    texture.pixel_format = device_40_.texture_formats_320_[index];
+    texture.device.resident = (dimensions.hints >> 5) & 1;
+    convertPixelFormat(texture.device.format, format);
+    unsigned long index = format.match(device.texture_formats,
+                                       (unsigned long)device.texture_format_count);
+    texture.device.format_index = index;
+    texture.pixel_format = device.texture_formats[index];
     if (texture.pixel_format.conversion_class == 3) {
-        texture.palette_24 = dimensions.palette;
+        texture.palette = dimensions.palette;
     } else {
-        texture.palette_24 = 0;
+        texture.palette = 0;
     }
-    texture.device_2c.parameter =
-        texture_state_1f5c_.default_texture_params_68_[dimensions.compression];
+    texture.device.parameter =
+        texture_state.default_texture_params[dimensions.compression];
 }
 
 // FUNCTION: SURRENDER 0x10028E60
@@ -4477,7 +4477,7 @@ void srGERD::releaseTextureMemory(long bytes)
     if (0 < bytes) {
         Texture* texture = findLowestPriority();
         while (texture != 0) {
-            bytes -= (long)texture->device_2c.size_1c;
+            bytes -= (long)texture->device.size;
             markTextureAsDeleted(*texture);
             deleteTexture(*texture);
             if (bytes < 1) {
@@ -4491,11 +4491,11 @@ void srGERD::releaseTextureMemory(long bytes)
 // FUNCTION: SURRENDER 0x10028EB0
 unsigned long srGERD::getTextureBytesNeeded(Texture& texture) const
 {
-    unsigned long width = texture.device_2c.width_20;
-    unsigned long height = texture.device_2c.height_24;
+    unsigned long width = texture.device.width;
+    unsigned long height = texture.device.height;
     unsigned long bytes = 0;
-    if (texture.device_2c.first_level <= texture.device_2c.last_level) {
-        long count = (long)(texture.device_2c.last_level - texture.device_2c.first_level) + 1;
+    if (texture.device.first_level <= texture.device.last_level) {
+        long count = (long)(texture.device.last_level - texture.device.first_level) + 1;
         do {
             bytes += height * width * (texture.pixel_format.bytes_per_pixel_minus_one + 1);
             width >>= 1;
@@ -4510,23 +4510,23 @@ unsigned long srGERD::getTextureBytesNeeded(Texture& texture) const
 void srGERD::allocTextureData(Texture& texture)
 {
     unsigned long size = getTextureBytesNeeded(texture);
-    if (texture_cache_size_2038_ != 0 &&
-        texture_cache_size_2038_ < size + texture_cache_used_2034_) {
-        float priority = texture.device_2c.priority;
-        texture.device_2c.priority = 1.2f;
-        releaseTextureMemory((long)(size - texture_cache_size_2038_ + texture_cache_used_2034_));
-        texture.device_2c.priority = priority;
+    if (texture_cache_size != 0 &&
+        texture_cache_size < size + texture_cache_used) {
+        float priority = texture.device.priority;
+        texture.device.priority = 1.2f;
+        releaseTextureMemory((long)(size - texture_cache_size + texture_cache_used));
+        texture.device.priority = priority;
     }
     texture.surface_data = srHeap.allocate(size);
-    texture.device_2c.size_1c = size;
-    texture_cache_used_2034_ += size;
+    texture.device.size = size;
+    texture_cache_used += size;
     long bytes_per_pixel = texture.pixel_format.bytes_per_pixel_minus_one;
     unsigned char* data = (unsigned char*)texture.surface_data;
-    unsigned long width = texture.device_2c.width_20;
-    unsigned long height = texture.device_2c.height_24;
-    unsigned long level = texture.device_2c.first_level;
-    if (level <= texture.device_2c.last_level) {
-        void** levels = &texture.device_2c.levels[level];
+    unsigned long width = texture.device.width;
+    unsigned long height = texture.device.height;
+    unsigned long level = texture.device.first_level;
+    if (level <= texture.device.last_level) {
+        void** levels = &texture.device.levels[level];
         do {
             *levels = data;
             data += height * width * (unsigned long)(bytes_per_pixel + 1);
@@ -4534,7 +4534,7 @@ void srGERD::allocTextureData(Texture& texture)
             height >>= 1;
             ++level;
             ++levels;
-        } while (level <= texture.device_2c.last_level);
+        } while (level <= texture.device.last_level);
     }
 }
 
@@ -4551,36 +4551,36 @@ srGERD::Texture* srGERD::createNewTexture(srTextureIFace* texture)
     Texture* result = allocTexture(texture->getTextureFrameHandle());
     const char* name = texture->getName();
     if (name == 0 || *name == 0) {
-        result->name_28 = 0;
+        result->name = 0;
     } else {
         char* copy = (char*)srHeap.allocate(strlen(name) + 1);
-        result->name_28 = copy;
+        result->name = copy;
         strcpy(copy, name);
     }
-    dimensions.compression = texture_state_1f5c_.default_compression_7c_;
+    dimensions.compression = texture_state.default_compression;
     dimensions.width = 1;
     dimensions.height = 1;
     dimensions.palette = 0;
-    dimensions.format = *device_40_.texture_formats_320_;
+    dimensions.format = *device.texture_formats;
     dimensions.filter = 0;
     dimensions.hints = 0;
     texture->getDimensions(dimensions);
-    evaluateTextureDimensions(result->device_2c, dimensions);
+    evaluateTextureDimensions(result->device, dimensions);
     evaluateTexturePixelFormat(*result, dimensions);
     allocTextureData(*result);
     srTextureIFace::MultiRequest request;
-    request.mipmap_level = (long)result->device_2c.first_level;
-    request.last_level = result->device_2c.last_level;
-    unsigned long width = result->device_2c.width_20;
-    unsigned long height = result->device_2c.height_24;
+    request.mipmap_level = (long)result->device.first_level;
+    request.last_level = result->device.last_level;
+    unsigned long width = result->device.width;
+    unsigned long height = result->device.height;
     long level = request.mipmap_level;
     for (; level <= (long)request.last_level; ++level) {
         srColorSurface* surface = new srColorSurface(
-            result->pixel_format, result->device_2c.levels[level], width, height,
+            result->pixel_format, result->device.levels[level], width, height,
             (unsigned long)(result->pixel_format.bytes_per_pixel_minus_one + 1) * width);
         request.destinations[level] = surface;
-        if (result->palette_24 != 0) {
-            surface->setPalette(result->palette_24);
+        if (result->palette != 0) {
+            surface->setPalette(result->palette);
         }
         surface->setFilter(dimensions.filter);
         width >>= 1;
@@ -4590,35 +4590,35 @@ srGERD::Texture* srGERD::createNewTexture(srTextureIFace* texture)
     for (level = request.mipmap_level; level <= (long)request.last_level; ++level) {
         request.destinations[level]->release();
     }
-    result->device_2c.resident_data = 0;
-    result->device_2c.priority = texture->getPriority();
-    ++statistics_1a78_.textures_created;
+    result->device.resident_data = 0;
+    result->device.priority = texture->getPriority();
+    ++statistics.textures_created;
     return result;
 }
 
 // FUNCTION: SURRENDER 0x10017930
 long srGERD::getMaxTextureWidth() const
 {
-    return device_40_.info_10_.texture_max_dim_30_;
+    return device.info.texture_max_dim;
 }
 
 // FUNCTION: SURRENDER 0x10017940
 long srGERD::getMaxTextureHeight() const
 {
-    return device_40_.info_10_.texture_max_dim_30_;
+    return device.info.texture_max_dim;
 }
 
 // FUNCTION: SURRENDER 0x10017950
 long srGERD::getMaxTextureAspectRatio() const
 {
-    return device_40_.info_10_.texture_max_aspect_34_;
+    return device.info.texture_max_aspect;
 }
 
 // FUNCTION: SURRENDER 0x10017960
 void srGERD::setGlobalPalette(const srPalette& palette)
 {
-    srCriticalSectionAccess access(state_section_18_);
-    if (palette.matchPalette(global_palette_1b38_, 0x100) != 0) {
+    srCriticalSectionAccess access(state_section);
+    if (palette.matchPalette(global_palette, 0x100) != 0) {
         return;
     }
     unsigned long count = palette.getPaletteSize();
@@ -4626,18 +4626,18 @@ void srGERD::setGlobalPalette(const srPalette& palette)
         count = 0x100;
     }
     for (unsigned long i = 0; i < count; ++i) {
-        global_palette_1b38_[i] = palette.getColor(i);
+        global_palette[i] = palette.getColor(i);
     }
     /* reinterpret-ok: the DD receives the palette entries as raw dwords. */
-    getDD()->setGlobalPalette(reinterpret_cast<unsigned long*>(global_palette_1b38_), count);
+    getDD()->setGlobalPalette(reinterpret_cast<unsigned long*>(global_palette), count);
 }
 
 // FUNCTION: SURRENDER 0x10017AA0
 long srGERD::getTextureReduction() const
 {
-    srCriticalSection* section = state_section_18_;
+    srCriticalSection* section = state_section;
     section->getAccess();
-    long reduction = texture_reduction_2040_;
+    long reduction = texture_reduction;
     section->releaseAccess();
     return reduction;
 }
@@ -4645,20 +4645,20 @@ long srGERD::getTextureReduction() const
 // FUNCTION: SURRENDER 0x10017B70
 void srGERD::invalidateResidentPalette(srPalette* palette)
 {
-    if (palette != 0 && palette == palette_1fdc_) {
-        palette_1fdc_ = 0;
-        dirty_24_ |= 0x400;
-        dirty_24_ |= 0x800;
+    if (palette != 0 && palette == this->palette) {
+        this->palette = 0;
+        dirty |= 0x400;
+        dirty |= 0x800;
     }
 }
 
 // FUNCTION: SURRENDER 0x10017D00
 int srGERD::isTextureCached(srTextureIFace* texture) const
 {
-    srCriticalSectionAccess access(state_section_18_);
+    srCriticalSectionAccess access(state_section);
     if (texture != 0) {
         unsigned long handle = texture->getTextureFrameHandle();
-        return texture_lookup_2004_.Lookup(&handle) != 0;
+        return texture_lookup.Lookup(&handle) != 0;
     }
     return 0;
 }
@@ -4666,12 +4666,12 @@ int srGERD::isTextureCached(srTextureIFace* texture) const
 // FUNCTION: SURRENDER 0x10017DD0
 int srGERD::isTextureResident(srTextureIFace* texture) const
 {
-    srCriticalSectionAccess access(state_section_18_);
+    srCriticalSectionAccess access(state_section);
     if (texture != 0 && isWindowOpen() != 0) {
         unsigned long handle = texture->getTextureFrameHandle();
-        Texture* resident = texture_lookup_2004_.Lookup(&handle);
-        if (resident != 0 && resident->device_2c.resident_data != 0 &&
-            resident->device_2c.resident_size != 0) {
+        Texture* resident = texture_lookup.Lookup(&handle);
+        if (resident != 0 && resident->device.resident_data != 0 &&
+            resident->device.resident_size != 0) {
             return 1;
         }
     }
@@ -4681,17 +4681,17 @@ int srGERD::isTextureResident(srTextureIFace* texture) const
 // FUNCTION: SURRENDER 0x10017F70
 int srGERD::getTextureInfo(srTextureIFace* texture, TextureInfo& info)
 {
-    srCriticalSectionAccess access(state_section_18_);
+    srCriticalSectionAccess access(state_section);
     if (isWindowOpen() == 0) {
         return 0;
     }
     unsigned long handle = texture->getTextureFrameHandle();
-    Texture* resident = texture_lookup_2004_.Lookup(&handle);
+    Texture* resident = texture_lookup.Lookup(&handle);
     if (resident != 0) {
         info.pixel_format = resident->pixel_format;
-        info.width_14 = resident->device_2c.width_20;
-        info.height_18 = resident->device_2c.height_24;
-        info.last_level = resident->device_2c.last_level;
+        info.width = resident->device.width;
+        info.height = resident->device.height;
+        info.last_level = resident->device.last_level;
         return 1;
     }
     return 0;
@@ -4703,14 +4703,14 @@ void srGERD::initGlobalPalette()
     float level = 0.0f;
     for (long i = 0; i < 0x100; ++i) {
         unsigned char gray = (unsigned char)srFloatToInt(level * 255.0);
-        global_palette_1b38_[i].blue = gray;
-        global_palette_1b38_[i].green = gray;
-        global_palette_1b38_[i].red = gray;
-        global_palette_1b38_[i].alpha = 0xff;
+        global_palette[i].blue = gray;
+        global_palette[i].green = gray;
+        global_palette[i].red = gray;
+        global_palette[i].alpha = 0xff;
         level += 0.003921569f;
     }
     /* reinterpret-ok: the DD receives the palette entries as raw dwords. */
-    getDD()->setGlobalPalette(reinterpret_cast<unsigned long*>(global_palette_1b38_), 0x100);
+    getDD()->setGlobalPalette(reinterpret_cast<unsigned long*>(global_palette), 0x100);
 }
 
 // FUNCTION: SURRENDER 0x10018C70
@@ -4755,8 +4755,8 @@ void srGERD::releaseAll()
 // FUNCTION: SURRENDER 0x1001AFD0
 void srGERD::setHint(e_hint hint, e_hintMode mode)
 {
-    if (device_40_.hints_330_[hint] != mode) {
-        device_40_.hints_330_[hint] = mode;
+    if (device.hints[hint] != mode) {
+        device.hints[hint] = mode;
     }
 }
 
@@ -4807,7 +4807,7 @@ srGERD* srGERD::getGERD(unsigned long index)
 // FUNCTION: SURRENDER 0x10020DD0
 int srGERD::isBufferLocked()
 {
-    return lock_surface_1b00_ != 0;
+    return lock_surface != 0;
 }
 
 // FUNCTION: SURRENDER 0x1001C830
@@ -4837,23 +4837,23 @@ long srGERD::getAccumBlueBits() const
 // FUNCTION: SURRENDER 0x1001C870
 void srGERD::setPolygonMode(e_polygonMode mode)
 {
-    if (mode != polygon_mode_1fe0_) {
+    if (mode != polygon_mode) {
         flushImmediateRenderers();
-        polygon_mode_1fe0_ = mode;
-        dirty_24_ |= 0x4000;
+        polygon_mode = mode;
+        dirty |= 0x4000;
     }
 }
 
 // FUNCTION: SURRENDER 0x1001C8E0
 srGERD::e_polygonMode srGERD::getPolygonMode() const
 {
-    return polygon_mode_1fe0_;
+    return polygon_mode;
 }
 
 // FUNCTION: SURRENDER 0x1001C8F0
 void srGERD::getClearAccum(srVector4T<float>& color) const
 {
-    color = clear_1b08_.clear_values_00_.accum;
+    color = clear_state.clear_values.accum;
 }
 
 // FUNCTION: SURRENDER 0x1001C920
@@ -4870,8 +4870,8 @@ void srGERD::setClearAccum(float red, float green, float blue, float alpha)
 // FUNCTION: SURRENDER 0x1001C960
 void srGERD::setClearAccum(const srVector4T<float>& color)
 {
-    clear_1b08_.clear_values_00_.accum = color;
-    float* clear = &clear_1b08_.clear_values_00_.accum.x;
+    clear_state.clear_values.accum = color;
+    float* clear = &clear_state.clear_values.accum.x;
     if (clear[0] < -1.0f) {
         clear[0] = -1.0f;
     }
@@ -4901,43 +4901,43 @@ void srGERD::setClearAccum(const srVector4T<float>& color)
 // FUNCTION: SURRENDER 0x1001CB40
 void srGERD::getClearColor(srVector4T<float>& color) const
 {
-    color = clear_1b08_.clear_values_00_.color_00;
+    color = clear_state.clear_values.color;
 }
 
 // FUNCTION: SURRENDER 0x1001CBE0
 void srGERD::setClearStencil(unsigned long stencil)
 {
-    clear_1b08_.clear_values_00_.stencil = stencil;
+    clear_state.clear_values.stencil = stencil;
 }
 
 // FUNCTION: SURRENDER 0x1001CBF0
 double srGERD::getClearDepth() const
 {
-    return clear_1b08_.clear_values_00_.depth_20;
+    return clear_state.clear_values.depth;
 }
 
 // FUNCTION: SURRENDER 0x1001CC00
 unsigned long srGERD::getClearStencil() const
 {
-    return clear_1b08_.clear_values_00_.stencil;
+    return clear_state.clear_values.stencil;
 }
 
 // FUNCTION: SURRENDER 0x1001CF00
 unsigned long srGERD::getDDAPIVersion() const
 {
-    return device_40_.driver_info_28c_.dd_api_version;
+    return device.driver_info.dd_api_version;
 }
 
 // FUNCTION: SURRENDER 0x1001CF60
 srGERD* srGERD::getPrev() const
 {
-    return prev_30_;
+    return prev;
 }
 
 // FUNCTION: SURRENDER 0x1001CF70
 srGERD* srGERD::getPrevOpen() const
 {
-    return prev_open_38_;
+    return prev_open;
 }
 
 // FUNCTION: SURRENDER 0x1001CFA0
@@ -4949,25 +4949,25 @@ void srGERD::extCommand(unsigned long command, void* data, unsigned long size)
 // FUNCTION: SURRENDER 0x1001CFD0
 srGERD::e_hintMode srGERD::getHint(e_hint hint) const
 {
-    return device_40_.hints_330_[hint];
+    return device.hints[hint];
 }
 
 // FUNCTION: SURRENDER 0x1001CFE0
 void srGERD::getGamma(srVector3T<float>& gamma) const
 {
-    gamma = display_1758_.gamma_00_;
+    gamma = display.gamma;
 }
 
 // FUNCTION: SURRENDER 0x1001D000
 srGERD::e_antiAlias srGERD::getAntiAlias() const
 {
-    return display_1758_.antialias_10_;
+    return display.antialias;
 }
 
 // FUNCTION: SURRENDER 0x1001D010
 srGERD::e_error srGERD::getError()
 {
-    e_error error = last_error_2c_;
+    e_error error = last_error;
     setError(ERROR_NONE);
     return error;
 }
@@ -4975,70 +4975,70 @@ srGERD::e_error srGERD::getError()
 // FUNCTION: SURRENDER 0x1001D0C0
 int srGERD::isFlipped() const
 {
-    return (state_flags_28_ >> 3) & 1;
+    return (state_flags >> 3) & 1;
 }
 
 // FUNCTION: SURRENDER 0x1001D0F0
 const char* srGERD::getApiVersion() const
 {
-    return device_40_.driver_info_28c_.api_name;
+    return device.driver_info.api_name;
 }
 
 // FUNCTION: SURRENDER 0x1001D1B0
 srGERD::e_depthBuffer srGERD::getDepthBufferType() const
 {
-    return (e_depthBuffer)((device_40_.info_10_.flags_18_ & 0xff) >> 3 & 1);
+    return (e_depthBuffer)((device.info.flags & 0xff) >> 3 & 1);
 }
 
 // FUNCTION: SURRENDER 0x1001D1C0
 srDD::e_driverID srGERD::getDriverID() const
 {
-    return (srDD::e_driverID)device_40_.driver_info_28c_.driver_id;
+    return (srDD::e_driverID)device.driver_info.driver_id;
 }
 
 // FUNCTION: SURRENDER 0x1001D1E0
 unsigned long srGERD::getSwapInterval() const
 {
-    return display_1758_.swap_interval_0c_;
+    return display.swap_interval;
 }
 
 // FUNCTION: SURRENDER 0x1001D210
 void srGERD::getTextureFormat(unsigned long index, srPixelConvert::PixelFormat& format) const
 {
-    if (device_40_.texture_format_count_324_ <= (long)index) {
+    if (device.texture_format_count <= (long)index) {
         index = 0;
     }
-    format = device_40_.texture_formats_320_[index];
+    format = device.texture_formats[index];
 }
 
 // FUNCTION: SURRENDER 0x1001D240
 unsigned long srGERD::getTextureFormatCount() const
 {
-    return device_40_.texture_format_count_324_;
+    return device.texture_format_count;
 }
 
 // FUNCTION: SURRENDER 0x1001D250
 void srGERD::getDisplayModeInfo(long index, DisplayModeInfo& info) const
 {
-    if (device_40_.display_mode_count_32c_ <= index) {
+    if (device.display_mode_count <= index) {
         index = 0;
     }
-    info.width_00 = device_40_.display_modes_328_[index * 3];
-    info.height_04 = device_40_.display_modes_328_[index * 3 + 1];
-    info.depth_08 = device_40_.display_modes_328_[index * 3 + 2];
+    info.width = device.display_modes[index * 3];
+    info.height = device.display_modes[index * 3 + 1];
+    info.depth = device.display_modes[index * 3 + 2];
 }
 
 // FUNCTION: SURRENDER 0x1001D290
 unsigned long srGERD::getDisplayModeCount() const
 {
-    return device_40_.display_mode_count_32c_;
+    return device.display_mode_count;
 }
 
 // FUNCTION: SURRENDER 0x1001D330
 void srGERD::getDepthRange(double& minimum, double& maximum) const
 {
-    minimum = state_390_.depth_min_1288_;
-    maximum = state_390_.depth_max_1290_;
+    minimum = state.depth_min;
+    maximum = state.depth_max;
 }
 
 // FUNCTION: SURRENDER 0x1001D360
@@ -5049,29 +5049,29 @@ void srGERD::setDepthRange(double minimum, double maximum)
     } else if (minimum >= 1.0) {
         minimum = 1.0;
     }
-    state_390_.depth_min_1288_ = minimum;
+    state.depth_min = minimum;
     if (maximum > 0.0) {
         if (maximum < 1.0) {
-            state_390_.depth_max_1290_ = maximum;
+            state.depth_max = maximum;
         } else {
-            state_390_.depth_max_1290_ = 1.0;
+            state.depth_max = 1.0;
         }
     } else {
-        state_390_.depth_max_1290_ = 0.0;
+        state.depth_max = 0.0;
     }
-    dirty_24_ |= 0x100;
+    dirty |= 0x100;
 }
 
 // FUNCTION: SURRENDER 0x1001BB00
 srShader srGERD::getShader() const
 {
-    return shader_1ff8_;
+    return shader;
 }
 
 // FUNCTION: SURRENDER 0x1001BAA0
 void srGERD::disable(e_enable option)
 {
-    if ((enable_flags_20_.value & (1UL << option)) != 0) {
+    if ((enable_flags.value & (1UL << option)) != 0) {
         toggle(option);
     }
 }
@@ -5079,7 +5079,7 @@ void srGERD::disable(e_enable option)
 // FUNCTION: SURRENDER 0x1001BAC0
 void srGERD::enable(e_enable option)
 {
-    if ((enable_flags_20_.value & (1UL << option)) == 0) {
+    if ((enable_flags.value & (1UL << option)) == 0) {
         toggle(option);
     }
 }
@@ -5087,20 +5087,20 @@ void srGERD::enable(e_enable option)
 // FUNCTION: SURRENDER 0x1001BBB0
 void srGERD::drawTriangle(const srVector3i& triangle)
 {
-    if ((enable_flags_20_.value & 4) == 0) {
-        if ((dirty_24_ & 0x1f0) != 0) {
+    if ((enable_flags.value & 4) == 0) {
+        if ((dirty & 0x1f0) != 0) {
             applyViewStateChanges();
         }
-        if ((dirty_24_ & 0xfe00) != 0) {
+        if ((dirty & 0xfe00) != 0) {
             applyDrawStateChanges();
         }
-        if ((dirty_21c0_ & 1) != 0) {
-            getDD()->setVertexArrayInfo(&vertex_arrays_21c4_);
-            dirty_21c0_ &= ~1UL;
+        if ((vertex_arrays_dirty & 1) != 0) {
+            getDD()->setVertexArrayInfo(&vertex_arrays);
+            vertex_arrays_dirty &= ~1UL;
         }
         getDD()->drawElements(static_cast<srRendererDefs::e_primitive>(3), 3,
                               srRendererDefs::INDEX_ULONG, &triangle);
-        statistics_1a78_.draw_calls++;
+        statistics.draw_calls++;
     }
 }
 
@@ -5114,11 +5114,11 @@ void srGERD::fenceVertexArrays()
 void srGERD::setDataPtr(srRendererDefs::e_vertexArray index, long components,
                         srRendererDefs::e_type type, unsigned long stride, const void* values)
 {
-    vertex_arrays_21c4_.components[index] = components;
-    vertex_arrays_21c4_.types[index] = type;
-    vertex_arrays_21c4_.strides[index] = stride;
-    vertex_arrays_21c4_.arrays[index] = values;
-    dirty_21c0_ |= 1;
+    vertex_arrays.components[index] = components;
+    vertex_arrays.types[index] = type;
+    vertex_arrays.strides[index] = stride;
+    vertex_arrays.arrays[index] = values;
+    vertex_arrays_dirty |= 1;
 }
 
 // FUNCTION: SURRENDER 0x1001BF10
@@ -5132,22 +5132,22 @@ void srGERD::setDiffusePointer(long components, srRendererDefs::e_type type, uns
 void srGERD::setSpecularPointer(long components, srRendererDefs::e_type type, unsigned long stride,
                                 const void* values)
 {
-    vertex_arrays_21c4_.components[2] = components;
-    vertex_arrays_21c4_.types[2] = type;
-    vertex_arrays_21c4_.strides[2] = stride;
-    vertex_arrays_21c4_.arrays[2] = values;
-    dirty_21c0_ |= 1;
+    vertex_arrays.components[2] = components;
+    vertex_arrays.types[2] = type;
+    vertex_arrays.strides[2] = stride;
+    vertex_arrays.arrays[2] = values;
+    vertex_arrays_dirty |= 1;
 }
 
 // FUNCTION: SURRENDER 0x1001BF90
 void srGERD::setFogPointer(long components, srRendererDefs::e_type type, unsigned long stride,
                            const void* values)
 {
-    vertex_arrays_21c4_.components[3] = components;
-    vertex_arrays_21c4_.types[3] = type;
-    vertex_arrays_21c4_.strides[3] = stride;
-    vertex_arrays_21c4_.arrays[3] = values;
-    dirty_21c0_ |= 1;
+    vertex_arrays.components[3] = components;
+    vertex_arrays.types[3] = type;
+    vertex_arrays.strides[3] = stride;
+    vertex_arrays.arrays[3] = values;
+    vertex_arrays_dirty |= 1;
 }
 
 // FUNCTION: SURRENDER 0x10020550
@@ -5165,50 +5165,50 @@ void srGERD::initClearColors()
 // FUNCTION: SURRENDER 0x1001D2E0
 void srGERD::initView()
 {
-    state_390_.depth_min_1288_ = 0.0;
-    state_390_.depth_max_1290_ = 1.0;
-    state_390_.clip_plane_count_12ec_ = 0;
-    state_390_.clip_mask_12e4_ = 0x3f;
-    state_390_.clip_mode1_mask_12e8_ = 0;
-    state_390_.cull_mode_12b8_ = CULL_BACK;
-    state_390_.winding_12bc_ = static_cast<e_winding>(0);
+    state.depth_min = 0.0;
+    state.depth_max = 1.0;
+    state.clip_plane_count = 0;
+    state.clip_mask = 0x3f;
+    state.clip_mode1_mask = 0;
+    state.cull_mode = CULL_BACK;
+    state.winding = static_cast<e_winding>(0);
 }
 
 // FUNCTION: SURRENDER 0x10027F60
 void srGERD::initTextureParameterMatrix()
 {
-    texture_state_1f5c_.correction_map_00_[0] = 0;
-    texture_state_1f5c_.correction_map_00_[1] = 1;
-    texture_state_1f5c_.correction_map_00_[2] = 2;
-    texture_state_1f5c_.correction_map_00_[3] = 1;
-    texture_state_1f5c_.mag_filter_map_10_[0] = 0;
-    texture_state_1f5c_.mag_filter_map_10_[1] = 1;
-    texture_state_1f5c_.mag_filter_map_10_[2] = 2;
-    texture_state_1f5c_.mag_filter_map_10_[3] = 3;
-    texture_state_1f5c_.mag_filter_map_10_[4] = 2;
-    texture_state_1f5c_.min_filter_map_24_[0] = 0;
-    texture_state_1f5c_.min_filter_map_24_[1] = 1;
-    texture_state_1f5c_.min_filter_map_24_[2] = 2;
-    texture_state_1f5c_.min_filter_map_24_[3] = 3;
-    texture_state_1f5c_.min_filter_map_24_[4] = 2;
-    texture_state_1f5c_.mipmap_map_38_[0] = 0;
-    texture_state_1f5c_.mipmap_map_38_[1] = 1;
-    texture_state_1f5c_.mipmap_map_38_[2] = 2;
-    texture_state_1f5c_.mipmap_map_38_[3] = 1;
-    texture_state_1f5c_.wrap_s_map_48_[0] = 0;
-    texture_state_1f5c_.wrap_s_map_48_[1] = 1;
-    texture_state_1f5c_.wrap_t_map_50_[0] = 0;
-    texture_state_1f5c_.wrap_t_map_50_[1] = 1;
-    texture_state_1f5c_.default_correction_58_ = static_cast<srTextureIFace::e_correction>(1);
-    texture_state_1f5c_.default_mag_filter_5c_ = static_cast<srTextureIFace::e_filter>(2);
-    texture_state_1f5c_.default_min_filter_60_ = static_cast<srTextureIFace::e_filter>(2);
-    texture_state_1f5c_.default_mipmap_64_ = static_cast<srTextureIFace::e_mipmap>(1);
-    texture_state_1f5c_.default_texture_params_68_[0] = 0;
-    texture_state_1f5c_.default_texture_params_68_[1] = 1;
-    texture_state_1f5c_.default_texture_params_68_[2] = 2;
-    texture_state_1f5c_.default_texture_params_68_[3] = 3;
-    texture_state_1f5c_.default_texture_params_68_[4] = 0;
-    texture_state_1f5c_.default_compression_7c_ = static_cast<srTextureIFace::e_compression>(0);
+    texture_state.correction_map[0] = 0;
+    texture_state.correction_map[1] = 1;
+    texture_state.correction_map[2] = 2;
+    texture_state.correction_map[3] = 1;
+    texture_state.mag_filter_map[0] = 0;
+    texture_state.mag_filter_map[1] = 1;
+    texture_state.mag_filter_map[2] = 2;
+    texture_state.mag_filter_map[3] = 3;
+    texture_state.mag_filter_map[4] = 2;
+    texture_state.min_filter_map[0] = 0;
+    texture_state.min_filter_map[1] = 1;
+    texture_state.min_filter_map[2] = 2;
+    texture_state.min_filter_map[3] = 3;
+    texture_state.min_filter_map[4] = 2;
+    texture_state.mipmap_map[0] = 0;
+    texture_state.mipmap_map[1] = 1;
+    texture_state.mipmap_map[2] = 2;
+    texture_state.mipmap_map[3] = 1;
+    texture_state.wrap_s_map[0] = 0;
+    texture_state.wrap_s_map[1] = 1;
+    texture_state.wrap_t_map[0] = 0;
+    texture_state.wrap_t_map[1] = 1;
+    texture_state.default_correction = static_cast<srTextureIFace::e_correction>(1);
+    texture_state.default_mag_filter = static_cast<srTextureIFace::e_filter>(2);
+    texture_state.default_min_filter = static_cast<srTextureIFace::e_filter>(2);
+    texture_state.default_mipmap = static_cast<srTextureIFace::e_mipmap>(1);
+    texture_state.default_texture_params[0] = 0;
+    texture_state.default_texture_params[1] = 1;
+    texture_state.default_texture_params[2] = 2;
+    texture_state.default_texture_params[3] = 3;
+    texture_state.default_texture_params[4] = 0;
+    texture_state.default_compression = static_cast<srTextureIFace::e_compression>(0);
 }
 
 // FUNCTION: SURRENDER 0x1001CDF0
@@ -5413,14 +5413,14 @@ void srGERD::accumulate(e_accum operation, float scale)
     if (!isWindowOpen()) {
         return;
     }
-    long width = state_390_.scissor_1298_.right - state_390_.scissor_1298_.left;
-    long height = state_390_.scissor_1298_.bottom - state_390_.scissor_1298_.top;
+    long width = state.scissor.right - state.scissor.left;
+    long height = state.scissor.bottom - state.scissor.top;
     if (width == 0 || height == 0) {
         return;
     }
-    if (accum_buffer_1af8_ == 0) {
+    if (accum_buffer == 0) {
         accumAlloc();
-        if (accum_buffer_1af8_ == 0) {
+        if (accum_buffer == 0) {
             return;
         }
     }
@@ -5430,11 +5430,11 @@ void srGERD::accumulate(e_accum operation, float scale)
         setError(ERROR_BUFFER_LOCK_FAILED);
         return;
     }
-    AccumPixel* row = accum_buffer_1af8_ + getWidth() * state_390_.scissor_1298_.top +
-                      state_390_.scissor_1298_.left;
+    AccumPixel* row = accum_buffer + getWidth() * state.scissor.top +
+                      state.scissor.left;
     /* reinterpret-ok: the accum row scratch is raw dword storage reused as
        an ARGB pixel row. */
-    srARGB* pixels = reinterpret_cast<srARGB*>(accum_scratch_1afc_);
+    srARGB* pixels = reinterpret_cast<srARGB*>(accum_scratch);
     if ((srCore.getTimer()->m_cpu_features & 0x800000) != 0) {
         long scale16 = (long)(scale * (operation == ACCUM_MULTIPLY ? 32767.0 : 65536.0));
         switch (operation) {
@@ -5443,8 +5443,8 @@ void srGERD::accumulate(e_accum operation, float scale)
                 surface->getPixelRow(
                     reinterpret_cast<unsigned long*>(
                         pixels), // reinterpret-ok: ARGB row buffer through the dword pixel-row ABI
-                    state_390_.scissor_1298_.top + y, state_390_.scissor_1298_.left,
-                    state_390_.scissor_1298_.right);
+                    state.scissor.top + y, state.scissor.left,
+                    state.scissor.right);
                 __asm {
                     mov edi, row
                     mov esi, pixels
@@ -5484,8 +5484,8 @@ void srGERD::accumulate(e_accum operation, float scale)
                 surface->getPixelRow(
                     reinterpret_cast<unsigned long*>(
                         pixels), // reinterpret-ok: ARGB row buffer through the dword pixel-row ABI
-                    state_390_.scissor_1298_.top + y, state_390_.scissor_1298_.left,
-                    state_390_.scissor_1298_.right);
+                    state.scissor.top + y, state.scissor.left,
+                    state.scissor.right);
                 __asm {
                     mov edi, row
                     mov esi, pixels
@@ -5606,8 +5606,8 @@ void srGERD::accumulate(e_accum operation, float scale)
                 surface->setPixelRow(
                     reinterpret_cast<const unsigned long*>(
                         pixels), // reinterpret-ok: ARGB row buffer through the dword pixel-row ABI
-                    state_390_.scissor_1298_.top + y, state_390_.scissor_1298_.left,
-                    state_390_.scissor_1298_.right);
+                    state.scissor.top + y, state.scissor.left,
+                    state.scissor.right);
                 row += getWidth();
             }
             break;
@@ -5627,13 +5627,13 @@ void srGERD::accumulate(e_accum operation, float scale)
                 surface->getPixelRow(
                     reinterpret_cast<unsigned long*>(
                         pixels), // reinterpret-ok: ARGB row buffer through the dword pixel-row ABI
-                    state_390_.scissor_1298_.top + y, state_390_.scissor_1298_.left,
-                    state_390_.scissor_1298_.right);
+                    state.scissor.top + y, state.scissor.left,
+                    state.scissor.right);
                 for (long x = 0; x < width; x++) {
-                    row[x].red_00 = row[x].red_00 + table[pixels[x].blue];
-                    row[x].green_02 = row[x].green_02 + table[pixels[x].green];
-                    row[x].blue_04 = row[x].blue_04 + table[pixels[x].red];
-                    row[x].alpha_06 = row[x].alpha_06 + table[pixels[x].alpha];
+                    row[x].red = row[x].red + table[pixels[x].blue];
+                    row[x].green = row[x].green + table[pixels[x].green];
+                    row[x].blue = row[x].blue + table[pixels[x].red];
+                    row[x].alpha = row[x].alpha + table[pixels[x].alpha];
                 }
                 row += getWidth();
             }
@@ -5648,13 +5648,13 @@ void srGERD::accumulate(e_accum operation, float scale)
                 surface->getPixelRow(
                     reinterpret_cast<unsigned long*>(
                         pixels), // reinterpret-ok: ARGB row buffer through the dword pixel-row ABI
-                    state_390_.scissor_1298_.top + y, state_390_.scissor_1298_.left,
-                    state_390_.scissor_1298_.right);
+                    state.scissor.top + y, state.scissor.left,
+                    state.scissor.right);
                 for (long x = 0; x < width; x++) {
-                    row[x].red_00 = table[pixels[x].blue];
-                    row[x].green_02 = table[pixels[x].green];
-                    row[x].blue_04 = table[pixels[x].red];
-                    row[x].alpha_06 = table[pixels[x].alpha];
+                    row[x].red = table[pixels[x].blue];
+                    row[x].green = table[pixels[x].green];
+                    row[x].blue = table[pixels[x].red];
+                    row[x].alpha = table[pixels[x].alpha];
                 }
                 row += getWidth();
             }
@@ -5663,10 +5663,10 @@ void srGERD::accumulate(e_accum operation, float scale)
         case ACCUM_MULTIPLY: {
             for (long y = 0; y < height; y++) {
                 for (long x = 0; x < width; x++) {
-                    row[x].red_00 = row[x].red_00 + addend;
-                    row[x].green_02 = row[x].green_02 + addend;
-                    row[x].blue_04 = row[x].blue_04 + addend;
-                    row[x].alpha_06 = row[x].alpha_06 + addend;
+                    row[x].red = row[x].red + addend;
+                    row[x].green = row[x].green + addend;
+                    row[x].blue = row[x].blue + addend;
+                    row[x].alpha = row[x].alpha + addend;
                 }
                 row += getWidth();
             }
@@ -5675,10 +5675,10 @@ void srGERD::accumulate(e_accum operation, float scale)
         case ACCUM_ADD: {
             for (long y = 0; y < height; y++) {
                 for (long x = 0; x < width; x++) {
-                    row[x].red_00 = (short)srFloatToInt(row[x].red_00 * scale);
-                    row[x].green_02 = (short)srFloatToInt(row[x].green_02 * scale);
-                    row[x].blue_04 = (short)srFloatToInt(row[x].blue_04 * scale);
-                    row[x].alpha_06 = (short)srFloatToInt(row[x].alpha_06 * scale);
+                    row[x].red = (short)srFloatToInt(row[x].red * scale);
+                    row[x].green = (short)srFloatToInt(row[x].green * scale);
+                    row[x].blue = (short)srFloatToInt(row[x].blue * scale);
+                    row[x].alpha = (short)srFloatToInt(row[x].alpha * scale);
                 }
                 row += getWidth();
             }
@@ -5697,16 +5697,16 @@ void srGERD::accumulate(e_accum operation, float scale)
             }
             for (long y = 0; y < height; y++) {
                 for (long x = 0; x < width; x++) {
-                    pixels[x].blue = table[((unsigned short)row[x].red_00) >> 7];
-                    pixels[x].green = table[((unsigned short)row[x].green_02) >> 7];
-                    pixels[x].red = table[((unsigned short)row[x].blue_04) >> 7];
-                    pixels[x].alpha = table[((unsigned short)row[x].alpha_06) >> 7];
+                    pixels[x].blue = table[((unsigned short)row[x].red) >> 7];
+                    pixels[x].green = table[((unsigned short)row[x].green) >> 7];
+                    pixels[x].red = table[((unsigned short)row[x].blue) >> 7];
+                    pixels[x].alpha = table[((unsigned short)row[x].alpha) >> 7];
                 }
                 surface->setPixelRow(
                     reinterpret_cast<const unsigned long*>(
                         pixels), // reinterpret-ok: ARGB row buffer through the dword pixel-row ABI
-                    state_390_.scissor_1298_.top + y, state_390_.scissor_1298_.left,
-                    state_390_.scissor_1298_.right);
+                    state.scissor.top + y, state.scissor.left,
+                    state.scissor.right);
                 row += getWidth();
             }
             break;

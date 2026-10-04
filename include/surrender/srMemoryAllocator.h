@@ -25,15 +25,15 @@ private:
        class, not struct. */
     class Block {
     public:
-        Block* next_00;
-        Block* previous_04;
+        Block* next;
+        Block* previous;
         void* raw_allocation;
         /* Written through by allocate's strcpy - mutable storage despite the
            read-only getName accessor. */
-        char* name_0c;
+        char* name;
         unsigned long total_size;
         unsigned long requested_size;
-        unsigned long reserved_18[2];
+        unsigned long reserved[2];
     };
 
     SR_DLL_IMPORT Block* align(void* allocation);
@@ -41,7 +41,7 @@ private:
     Block* first_block;
     unsigned long allocated_bytes;
     unsigned long allocation_count;
-    e_alignSize alignment_0c;
+    e_alignSize alignment;
     int clear;
 };
 

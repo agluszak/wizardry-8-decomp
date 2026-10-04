@@ -21,7 +21,7 @@ class W8Missile;
    half-tick baseline, +0x14 the elapsed flight clock, +0x18 the early-impact
    limit and +0x1c a trailing flag. */
 struct W8AIMissile : W8AIRecord {
-    /* Gravity latch copied from the missile's gravity_1e3: when set, the
+    /* Gravity latch copied from the missile's gravity: when set, the
        vertical fall rate decays each step. */
     bool gravity;
     unsigned char padding_02[2];
@@ -30,7 +30,7 @@ struct W8AIMissile : W8AIRecord {
     /* Current vertical fall rate, seeded from launch pitch and decayed by
        gravity. */
     float fall_speed;
-    W8Missile* missile_0c;
+    W8Missile* missile;
     /* Half-tick baseline (getMsTime()>>1) the delta against the current
        half-tick is clamped to 0xfa. */
     int last_half_tick;
@@ -109,7 +109,7 @@ public:
     bool BlocksEndingCombat();
 
 public:
-    int missile_table_index_1d8;
+    int missile_table_index;
     /* Assertion-backed original spelling. Distinct from GrObject::m_pRep at
        +0x14; GetRepresentation() returns this GrCycle-tail slot at +0x1dc. */
 #if defined(__clang__)
@@ -121,24 +121,24 @@ public:
 #pragma clang diagnostic pop
 #endif
     /* Flight exhausted its duration; the world updater destroys the missile
-       once block_released_1e2 is also set. */
+       once block_released is also set. */
     bool flight_done;
     /* Set by EnterImpactCycle while the impact animation plays. */
     bool impacting;
     /* Set once the missile no longer blocks combat end (BlocksEndingCombat
        returned 0 or combat already resolved). */
-    unsigned char block_released_1e2;
-    bool gravity_1e3;
-    bool align_camera_1e4;
-    bool explode_ground_1e5;
-    bool align_explosion_1e6;
+    unsigned char block_released;
+    bool gravity;
+    bool align_camera;
+    bool explode_ground;
+    bool align_explosion;
     bool flag;
     void* value_1e8;
     void* value_1ec;
     float lifetime;
-    int flags_1f4;
-    float duration_1f8;
-    W8SpellEffectDefinition definition_1fc;
+    int flags0;
+    float duration;
+    W8SpellEffectDefinition definition;
     W8TargetSource m_Source;
     W8CombatSlot combat_slot;
     /* 0x280: the damage and condition results this missile has accumulated,
@@ -150,7 +150,7 @@ public:
 
 static_assert(sizeof(W8Missile) == 0x328, "W8Missile_size_must_be_0x328");
 /* Secondary vftable 0x005ecdf4 keeps the W8Navigator subobject at +0x18. */
-W8_ASSERT_BASE_OFFSET(W8Missile, W8Navigator, navigation_mode_008, 0x18);
+W8_ASSERT_BASE_OFFSET(W8Missile, W8Navigator, navigation_mode, 0x18);
 
 W8Missile* FireMissile(unsigned int missile_table_index, srVector3T<float>* source,
                        srVector3T<float>* target, float flight_speed, unsigned int trace_mask,

@@ -90,14 +90,14 @@ private:
     struct Chunk;
 
     struct Block {
-        void* allocation_00;
+        void* allocation;
         unsigned long alloc_size;
         Block* next;
         Block* previous;
         unsigned long largest_free_size;
         Chunk* largest_free_block;
-        unsigned long guard_18;
-        unsigned long guard_1c;
+        unsigned long guard0;
+        unsigned long guard1;
     };
 
     static_assert(sizeof(Block) == 0x20, "srHeap_Block_must_be_0x20");
@@ -106,14 +106,14 @@ private:
        header sits immediately before the user pointer; the byte at +0x1f is
        the allocation tag read by free(). */
     struct Chunk {
-        Block* owner_00;
-        unsigned long size_04;
+        Block* owner;
+        unsigned long size;
         Chunk* previous;
-        Chunk* next_0c;
+        Chunk* next;
         Chunk* free_previous;
         Chunk* free_next;
-        unsigned long free_18;
-        char unused_1c[3];
+        unsigned long free;
+        char unused[3];
         char tag;
     };
 
@@ -135,14 +135,14 @@ private:
     Block* current_block;
     Block* small_blocks;
     Block* partial_blocks;
-    Block* block_90;
+    Block* block;
     Block* medium_blocks;
     Block* large_blocks;
     Block* cached_block;
     unsigned long active_block_count;
     unsigned long block_size;
     unsigned long block_sequence;
-    unsigned long system_block_count_ac;
+    unsigned long system_block_count;
     srCriticalSection* critical_section;
 };
 

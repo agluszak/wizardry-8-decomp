@@ -28,7 +28,7 @@ public:
     unsigned char AddSoundEvent(W8SoundEvent* event);
 
 public:
-    unsigned char kind_004;                    /* 0x04 */
+    unsigned char kind;                    /* 0x04 */
     int id;                                /* 0x08 */
     W8AIRecord* m_pAI;                         /* 0x0c: GrObject::GetAI() assertion */
     W8Vector<W8SoundEvent*>* m_plsSoundEvents; /* 0x10 */

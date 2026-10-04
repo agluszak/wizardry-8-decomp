@@ -63,14 +63,14 @@ enum { W8_REDRAW_TEXT_BOX = 0x800 };
    the original 32-bit list-pointer bits. */
 struct W8MessageStorageDiskRecord {
     unsigned long character_count;
-    unsigned char font_palette_04;
-    unsigned char highlight_color_05;
-    unsigned char highlight_start_06;
-    unsigned char highlight_stop_07;
+    unsigned char font_palette;
+    unsigned char highlight_color;
+    unsigned char highlight_start;
+    unsigned char highlight_stop;
     TIMER clock;
     UINT32 saved_remaining_ms;
-    int link_10;
-    int length_14;
+    int link;
+    int length;
     unsigned long serialized_entries_18_bits;
     unsigned char trailing_bytes[8];
 };
@@ -79,17 +79,17 @@ static_assert(sizeof(W8MessageStorageDiskRecord) == 0x24,
               "W8MessageStorageDiskRecord_must_be_0x24");
 static_assert(offsetof(W8MessageStorageDiskRecord, character_count) == 0x00,
               "W8MessageStorageDiskRecord_count_offset");
-static_assert(offsetof(W8MessageStorageDiskRecord, font_palette_04) == 0x04,
+static_assert(offsetof(W8MessageStorageDiskRecord, font_palette) == 0x04,
               "W8MessageStorageDiskRecord_byte_fields_offset");
-static_assert(offsetof(W8MessageStorageDiskRecord, highlight_stop_07) == 0x07,
+static_assert(offsetof(W8MessageStorageDiskRecord, highlight_stop) == 0x07,
               "W8MessageStorageDiskRecord_last_byte_field_offset");
 static_assert(offsetof(W8MessageStorageDiskRecord, clock) == 0x08,
               "W8MessageStorageDiskRecord_scalar_fields_offset");
 static_assert(offsetof(W8MessageStorageDiskRecord, saved_remaining_ms) == 0x0c,
               "W8MessageStorageDiskRecord_saved_remaining_ms_offset");
-static_assert(offsetof(W8MessageStorageDiskRecord, link_10) == 0x10,
+static_assert(offsetof(W8MessageStorageDiskRecord, link) == 0x10,
               "W8MessageStorageDiskRecord_link_offset");
-static_assert(offsetof(W8MessageStorageDiskRecord, length_14) == 0x14,
+static_assert(offsetof(W8MessageStorageDiskRecord, length) == 0x14,
               "W8MessageStorageDiskRecord_length_offset");
 static_assert(offsetof(W8MessageStorageDiskRecord, serialized_entries_18_bits) == 0x18,
               "W8MessageStorageDiskRecord_entries_bits_offset");
@@ -181,7 +181,7 @@ void ResetMessageStorage(void)
                     W8NoticeWord* stored = static_cast<W8NoticeWord*>(malloc(sizeof(W8NoticeWord)));
                     *stored = word;
                     stored->keyword = 0;
-                    stored->redraw_09 = false;
+                    stored->redraw = false;
                     PLAdoptAppend(record->entries, stored);
                 }
             }
@@ -201,8 +201,8 @@ void ResetEditorStatusLine(short line)
         g_level_block->text_lines[line] = 0;
     }
     g_level_block->text_lines[4 + line] = -1;
-    g_level_block->text_slots_1d8[line] = -1;
-    g_level_block->text_slots_1e8[line] = -1;
+    g_level_block->text_slots0[line] = -1;
+    g_level_block->text_slots1[line] = -1;
     g_level_block->text_content_region = 0x56;
     g_level_block->dialogue_content_region = 0x59;
     g_level_block->dialogue_text_input_open = 0;
@@ -277,14 +277,14 @@ static void AppendNoticeLine(unsigned char font_palette, const wchar_t* text, sh
             W8NoticeWord* stored = static_cast<W8NoticeWord*>(malloc(sizeof(W8NoticeWord)));
             *stored = word;
             stored->keyword = 0;
-            stored->redraw_09 = false;
+            stored->redraw = false;
             PLAdoptAppend(record->entries, stored);
         }
     }
     record->font_palette = font_palette;
     record->highlight_color = 0xff;
-    record->link_10 = wrapped_line;
-    record->length_14 = -1;
+    record->link = wrapped_line;
+    record->length = -1;
     ++g_notice_line_count;
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
         g_status.text_line_cursor == text_box) {
@@ -503,14 +503,14 @@ unsigned char SaveMessageStorage(int file)
                 live_record->wString != 0
                     ? static_cast<unsigned long>(wcslen(live_record->wString) + 1)
                     : 0;
-            disk_record.font_palette_04 = live_record->font_palette;
-            disk_record.highlight_color_05 = live_record->highlight_color;
-            disk_record.highlight_start_06 = live_record->highlight_start;
-            disk_record.highlight_stop_07 = live_record->highlight_stop;
+            disk_record.font_palette = live_record->font_palette;
+            disk_record.highlight_color = live_record->highlight_color;
+            disk_record.highlight_start = live_record->highlight_start;
+            disk_record.highlight_stop = live_record->highlight_stop;
             disk_record.clock = live_record->clock;
             disk_record.saved_remaining_ms = live_record->saved_remaining_ms;
-            disk_record.link_10 = live_record->link_10;
-            disk_record.length_14 = live_record->length_14;
+            disk_record.link = live_record->link;
+            disk_record.length = live_record->length;
             memcpy(&disk_record.serialized_entries_18_bits, &live_record->entries,
                    sizeof(disk_record.serialized_entries_18_bits));
             memcpy(disk_record.trailing_bytes, live_record->unknown_1c,
@@ -550,14 +550,14 @@ unsigned char LoadMessageStorage(int file)
         for (index = 0; index < g_status.text_box_lines_used[region]; ++index) {
             FileRead(file, &disk_record, sizeof(disk_record), 0);
             live_record = &g_message_storage[region][index];
-            live_record->font_palette = disk_record.font_palette_04;
-            live_record->highlight_color = disk_record.highlight_color_05;
-            live_record->highlight_start = disk_record.highlight_start_06;
-            live_record->highlight_stop = disk_record.highlight_stop_07;
+            live_record->font_palette = disk_record.font_palette;
+            live_record->highlight_color = disk_record.highlight_color;
+            live_record->highlight_start = disk_record.highlight_start;
+            live_record->highlight_stop = disk_record.highlight_stop;
             live_record->clock = disk_record.clock;
             live_record->saved_remaining_ms = disk_record.saved_remaining_ms;
-            live_record->link_10 = disk_record.link_10;
-            live_record->length_14 = disk_record.length_14;
+            live_record->link = disk_record.link;
+            live_record->length = disk_record.length;
             live_record->entries = 0;
             memcpy(live_record->unknown_1c, disk_record.trailing_bytes,
                    sizeof(live_record->unknown_1c));
@@ -572,12 +572,12 @@ unsigned char LoadMessageStorage(int file)
     return 1;
 }
 
-/* One entry of text_slots_1e8. Index 2 is the secondary NPC-dialogue item
+/* One entry of text_slots1. Index 2 is the secondary NPC-dialogue item
    editor slot; other indices remain positional. */
 // FUNCTION: WIZ8 0x0058fa60
 int GetTextSlot1E8(int index)
 {
-    return g_level_block->text_slots_1e8[index];
+    return g_level_block->text_slots1[index];
 }
 
 /* Empty one entry of either slot table and ask for a redraw. The two bodies
@@ -586,14 +586,14 @@ int GetTextSlot1E8(int index)
 // FUNCTION: WIZ8 0x0058f960
 void ClearTextSlot1D8(int index)
 {
-    g_level_block->text_slots_1d8[index] = -1;
+    g_level_block->text_slots0[index] = -1;
     RedrawTextBox();
 }
 
 // FUNCTION: WIZ8 0x0058fa30
 void ClearTextSlot1E8(int index)
 {
-    g_level_block->text_slots_1e8[index] = -1;
+    g_level_block->text_slots1[index] = -1;
     RedrawTextBox();
 }
 
@@ -697,7 +697,7 @@ void AppendTextBoxLine(const wchar_t* text, ...)
     if (line->wString == 0) {
         srAssertFail("pTextLine->wString != NULL", MGS_TEXT_BOX_CPP, 0x223, 0);
     }
-    line->length_14 = wcslen(line->wString);
+    line->length = wcslen(line->wString);
     wchar_t* previous = line->wString;
     line->wString = static_cast<wchar_t*>(
         malloc((wcslen(previous) + wcslen(text)) * sizeof(wchar_t) + sizeof(wchar_t)));
@@ -849,7 +849,7 @@ void AppendToLastTextLine(const wchar_t* text, short text_box)
     wcscpy(merged, line->wString);
     wcscat(merged, text);
     unsigned char channel = line->font_palette;
-    int link = line->link_10;
+    int link = line->link;
     unsigned char color = line->highlight_color;
     unsigned char stop = line->highlight_stop;
     unsigned char start = line->highlight_start;
@@ -885,13 +885,13 @@ void AppendToLastTextLine(const wchar_t* text, short text_box)
             srAssertFail("pTextLine->wString != NULL", MGS_TEXT_BOX_CPP, 0xfbd, 0);
         }
         int propagated = 0;
-        if (last->link_10 != -1 && last->link_10 + 1 > 0) {
+        if (last->link != -1 && last->link + 1 > 0) {
             W8MessageStorageRecord* entry = last;
             do {
-                entry->link_10 += link;
+                entry->link += link;
                 ++propagated;
                 --entry;
-            } while (propagated < last->link_10 + 1);
+            } while (propagated < last->link + 1);
         }
     }
 }
@@ -1977,11 +1977,11 @@ static void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, bool slo
                 palette = g_font_state_palettes[5];
             }
             SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
-            if (line->length_14 == -1) {
+            if (line->length == -1) {
                 gprintfDirty(x, y, Wiz8ToSgpWideText(g_format_s), line->wString);
             } else {
-                wcsncpy(scratch, line->wString, line->length_14);
-                scratch[line->length_14] = 0;
+                wcsncpy(scratch, line->wString, line->length);
+                scratch[line->length] = 0;
                 gprintfDirty(x, y, Wiz8ToSgpWideText(g_format_s), scratch);
             }
         } else if (line->highlight_color == 0xff) {
@@ -1991,11 +1991,11 @@ static void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, bool slo
                 palette = g_level_block->palette;
             }
             SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
-            if (line->length_14 == -1) {
+            if (line->length == -1) {
                 gprintfDirty(x, y, Wiz8ToSgpWideText(g_format_s), line->wString);
             } else {
-                wcsncpy(scratch, line->wString, line->length_14);
-                scratch[line->length_14] = 0;
+                wcsncpy(scratch, line->wString, line->length);
+                scratch[line->length] = 0;
                 gprintfDirty(x, y, Wiz8ToSgpWideText(g_format_s), scratch);
             }
         } else {
@@ -2016,11 +2016,11 @@ static void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, bool slo
                 srAssertFail("pTextLine->ubStopChar >= pTextLine->ubStartChar", MGS_TEXT_BOX_CPP,
                              0x5da, 0);
             }
-            if (line->length_14 == -1 ||
-                line->highlight_stop <= static_cast<unsigned int>(line->length_14)) {
+            if (line->length == -1 ||
+                line->highlight_stop <= static_cast<unsigned int>(line->length)) {
                 length = line->highlight_stop - line->highlight_start;
             } else {
-                length = line->length_14 - line->highlight_start;
+                length = line->length - line->highlight_start;
             }
             if (length > 0) {
                 if (line->highlight_color < 0xf) {
@@ -2040,15 +2040,15 @@ static void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, bool slo
                     FormatString("DrawTextMessage: ERROR - String %ls, length %d, StopChar %d",
                                  line->wString, wcslen(line->wString), line->highlight_stop));
             }
-            if (line->length_14 == -1) {
+            if (line->length == -1) {
                 length = static_cast<int>(wcslen(line->wString)) - line->highlight_stop;
             } else {
-                length = line->length_14 - line->highlight_stop;
+                length = line->length - line->highlight_stop;
             }
             if (length > 0) {
                 unsigned char palette_index;
-                if (line->length_14 == -1 ||
-                    line->highlight_stop <= static_cast<unsigned int>(line->length_14)) {
+                if (line->length == -1 ||
+                    line->highlight_stop <= static_cast<unsigned int>(line->length)) {
                     palette_index = line->font_palette;
                 } else {
                     palette_index = line->highlight_color;
@@ -2066,17 +2066,17 @@ static void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, bool slo
         }
     } else {
         SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
-        if (line->length_14 == -1) {
+        if (line->length == -1) {
             gprintfDirty(x, y, Wiz8ToSgpWideText(g_format_s), line->wString);
         } else {
-            wcsncpy(scratch, line->wString, line->length_14);
-            scratch[line->length_14] = 0;
+            wcsncpy(scratch, line->wString, line->length);
+            scratch[line->length] = 0;
             gprintfDirty(x, y, Wiz8ToSgpWideText(g_format_s), scratch);
         }
     }
 
-    if (line->length_14 != -1) {
-        wcscpy(scratch, line->wString + line->length_14);
+    if (line->length != -1) {
+        wcscpy(scratch, line->wString + line->length);
         width = StringPixLength(Wiz8ToSgpWideText(scratch), g_level_block->text_box_font);
         gprintfDirty(g_level_block->text_box_right - width, y, Wiz8ToSgpWideText(g_format_s),
                      scratch);
@@ -2168,8 +2168,8 @@ void RedrawTextBoxBody(bool skip_invalidate)
                 }
                 DrawTextBoxLine(
                     line, x, g_level_block->text_box_top + y_offset,
-                    line_index - line->link_10 == g_level_block->text_slots_1d8[text_box],
-                    line_index - line->link_10 == g_level_block->text_slots_1e8[text_box],
+                    line_index - line->link == g_level_block->text_slots0[text_box],
+                    line_index - line->link == g_level_block->text_slots1[text_box],
                     skip_invalidate);
             }
         }
@@ -2297,12 +2297,12 @@ int FindStoppedTextLine(void)
 char TextBoxHandleKey(const InputAtom* event)
 {
     W8MainGameTextPanel* panel = g_main_game_screen->m_text_panel;
-    int before = panel->m_selection_078;
+    int before = panel->m_selection;
     char handled;
 
     handled = panel->m_key_handler->HandleKey(event->usParam);
 
-    if (handled != 0 && panel->m_selection_078 != before) {
+    if (handled != 0 && panel->m_selection != before) {
         ResetButtonSoundScheme();
         PlayButtonSound(3);
     }
@@ -2335,10 +2335,10 @@ void AttemptTrapDisarm(int level, int /*flag*/, char backfire)
         screen->m_disarm_state = 8;
     }
     screen->m_text_panel->EnableRegionSet(0);
-    screen->m_text_panel->m_key_handler->m_range_038.EnableRegionSet(0);
+    screen->m_text_panel->m_key_handler->m_range.EnableRegionSet(0);
     screen->m_action_panel->EnableRegionSet(0);
-    screen->m_timer_154.SetDuration(1.5f);
-    screen->m_timer_154.Restart();
+    screen->m_timer.SetDuration(1.5f);
+    screen->m_timer.Restart();
 }
 
 // FUNCTION: WIZ8 0x0058a9c0
@@ -2405,11 +2405,11 @@ void SelectTextSlot1D8(int line, int index)
         if (first <= static_cast<unsigned int>(line) &&
             static_cast<unsigned int>(line) < first + 7) {
             record = &g_message_storage[index][line];
-            while (record->link_10 != 0 && line != 0) {
+            while (record->link != 0 && line != 0) {
                 --line;
                 --record;
             }
-            g_level_block->text_slots_1d8[index] = line;
+            g_level_block->text_slots0[index] = line;
             RedrawTextBox();
         }
     }
@@ -2424,7 +2424,7 @@ void ClearTextLineEntry(int index)
 // FUNCTION: WIZ8 0x0058F990
 int GetTextSlot1D8(int index)
 {
-    return g_level_block->text_slots_1d8[index];
+    return g_level_block->text_slots0[index];
 }
 
 // FUNCTION: WIZ8 0x0058F9B0
@@ -2438,11 +2438,11 @@ void SelectTextSlot1E8(int line, int index)
         if (first <= static_cast<unsigned int>(line) &&
             static_cast<unsigned int>(line) < first + 7) {
             record = &g_message_storage[index][line];
-            while (record->link_10 != 0 && line != 0) {
+            while (record->link != 0 && line != 0) {
                 --line;
                 --record;
             }
-            g_level_block->text_slots_1e8[index] = line;
+            g_level_block->text_slots1[index] = line;
             RedrawTextBox();
         }
     }
@@ -2467,9 +2467,9 @@ static void DrawNoticeWordOverlays(W8MessageStorageRecord* line, int x, int y)
             wcsncpy(word_text, line->wString + word->start, word->end - word->start + 1);
             gprintfDirty(word->x_start + x, y, Wiz8ToSgpWideText(g_format_s),
                          Wiz8ToSgpWideText(word_text));
-            word->redraw_09 = false;
+            word->redraw = false;
         }
-        if (word->redraw_09 != 0) {
+        if (word->redraw != 0) {
             unsigned short* palette;
             if (line->font_palette < 0xf) {
                 palette = g_font_state_palettes[line->font_palette];
@@ -2481,7 +2481,7 @@ static void DrawNoticeWordOverlays(W8MessageStorageRecord* line, int x, int y)
             wcsncpy(word_text, line->wString + word->start, word->end - word->start + 1);
             gprintfDirty(word->x_start + x, y, Wiz8ToSgpWideText(g_format_s),
                          Wiz8ToSgpWideText(word_text));
-            word->redraw_09 = false;
+            word->redraw = false;
         }
     }
 }
@@ -2497,7 +2497,7 @@ void ResetUsedNoticeWords(int text_box, bool redraw)
                 W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(list, j));
                 if (word->keyword == 2) {
                     word->keyword = 0;
-                    word->redraw_09 = true;
+                    word->redraw = true;
                 }
             }
         }
@@ -2518,7 +2518,7 @@ void ClearNoticeWordHover(int text_box, bool redraw)
                 W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(list, j));
                 if (word->keyword != 2) {
                     word->keyword = 0;
-                    word->redraw_09 = true;
+                    word->redraw = true;
                 }
             }
         }
@@ -2545,7 +2545,7 @@ void HighlightNoticeWordAt(int text_box, unsigned short x, unsigned short y)
                 W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(list, j));
                 if (word->keyword != 2) {
                     word->keyword = 0;
-                    word->redraw_09 = true;
+                    word->redraw = true;
                 }
             }
         }
@@ -2675,7 +2675,7 @@ void RefreshTextBoxMode(unsigned short mode)
         srAssertFail("gStatus.uiTextBoxLinesUsed[iTextBuffer] > 0", MGS_TEXT_BOX_CPP, 0x109e, 0);
     }
     last_line = g_status.text_box_lines_used[text_box] - 1;
-    group_lines = g_message_storage[text_box][last_line].link_10;
+    group_lines = g_message_storage[text_box][last_line].link;
     if (last_line < group_lines) {
         srAssertFail("uiLastLineIndex >= uiGroupLine", MGS_TEXT_BOX_CPP, 0x10a6, 0);
     }

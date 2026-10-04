@@ -10,7 +10,7 @@ srDebugVP::srDebugVP(srVP* processor)
 {
     int iteration;
 
-    processor_444 = processor;
+    this->processor = processor;
     call_times[0] = 0.0;
     for (iteration = 0; iteration < 0x2710; ++iteration) {
         ScopeTimer scope(this, 0, 0, 0, 0, 0, 0);
@@ -307,9 +307,9 @@ srDebugVP::ScopeTimer::ScopeTimer(srDebugVP* owner, SRDWORD elements, int index,
                                   const void* pointer_0, const void* pointer_1,
                                   const void* pointer_2, const void* pointer_3)
 {
-    elements_00 = elements;
-    owner_04 = owner;
-    index_08 = index;
+    this->elements = elements;
+    this->owner = owner;
+    this->index = index;
     if (owner->check_misalignments != 0) {
         /* reinterpret-ok: the forwarded pointer arguments are OR-ed together
            so a single mask reports any address that is not 8- or 16-byte
@@ -331,10 +331,10 @@ srDebugVP::ScopeTimer::ScopeTimer(srDebugVP* owner, SRDWORD elements, int index,
 // FUNCTION: SURRENDER 0x1006A340
 srDebugVP::ScopeTimer::~ScopeTimer()
 {
-    owner_04->call_times[index_08] +=
+    owner->call_times[index] +=
         srCore.getTimer()->getTime(srTimer::TIMER_READ_DEFAULT) - start_time;
-    ++owner_04->call_counts[index_08];
-    owner_04->element_counts[index_08] += elements_00;
+    ++owner->call_counts[index];
+    owner->element_counts[index] += elements;
 }
 
 // FUNCTION: SURRENDER 0x1006A3C0
@@ -347,28 +347,28 @@ const char* srDebugVP::getName()
 int srDebugVP::_memcmp(const void* source_0, const void* source_1, SRDWORD bytes)
 {
     ScopeTimer scope_timer(this, bytes, 1, source_0, source_1, 0, 0);
-    return processor_444->_memcmp(source_0, source_1, bytes);
+    return processor->_memcmp(source_0, source_1, bytes);
 }
 
 // FUNCTION: SURRENDER 0x1006A450
 void srDebugVP::_memcopy(void* destination, const void* source, SRDWORD bytes)
 {
     ScopeTimer scope_timer(this, bytes, 2, destination, source, 0, 0);
-    processor_444->_memcopy(destination, source, bytes);
+    processor->_memcopy(destination, source, bytes);
 }
 
 // FUNCTION: SURRENDER 0x1006A4D0
 void srDebugVP::_memcopy(void* destination, int source, SRDWORD bytes)
 {
     ScopeTimer scope_timer(this, bytes, 3, destination, 0, 0, 0);
-    processor_444->_memcopy(destination, source, bytes);
+    processor->_memcopy(destination, source, bytes);
 }
 
 // FUNCTION: SURRENDER 0x1006A550
 void srDebugVP::_prefetch(const void* destination, SRDWORD bytes, SRDWORD value_014)
 {
     ScopeTimer scope_timer(this, bytes >> 5, 4, destination, 0, 0, 0);
-    processor_444->_prefetch(destination, bytes, value_014);
+    processor->_prefetch(destination, bytes, value_014);
 }
 
 // FUNCTION: SURRENDER 0x1006A5D0
@@ -376,7 +376,7 @@ void srDebugVP::_copyInterleaved(void* destination, const void* source, SRDWORD 
                                  SRDWORD source_pitch, SRDWORD width, SRDWORD count)
 {
     ScopeTimer scope_timer(this, width * count, 5, destination, source, 0, 0);
-    processor_444->_copyInterleaved(destination, source, destination_pitch, source_pitch, width,
+    processor->_copyInterleaved(destination, source, destination_pitch, source_pitch, width,
                                     count);
 }
 
@@ -384,42 +384,42 @@ void srDebugVP::_copyInterleaved(void* destination, const void* source, SRDWORD 
 void srDebugVP::_swap(void* first, void* second, SRDWORD bytes)
 {
     ScopeTimer scope_timer(this, bytes, 6, first, second, 0, 0);
-    processor_444->_swap(first, second, bytes);
+    processor->_swap(first, second, bytes);
 }
 
 // FUNCTION: SURRENDER 0x1006A6E0
 void srDebugVP::_copy(SRDWORD* destination, SRDWORD constant, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 7, destination, 0, 0, 0);
-    processor_444->_copy(destination, constant, count);
+    processor->_copy(destination, constant, count);
 }
 
 // FUNCTION: SURRENDER 0x1006A760
 void srDebugVP::_reverse(SRDWORD* destination, const SRDWORD* source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 8, destination, source, 0, 0);
-    processor_444->_reverse(destination, source, count);
+    processor->_reverse(destination, source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006A7E0
 void srDebugVP::_and(SRDWORD* destination, const SRDWORD* source, SRDWORD constant, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 9, destination, source, 0, 0);
-    processor_444->_and(destination, source, constant, count);
+    processor->_and(destination, source, constant, count);
 }
 
 // FUNCTION: SURRENDER 0x1006A860
 void srDebugVP::_or(SRDWORD* destination, const SRDWORD* source, SRDWORD constant, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 10, destination, source, 0, 0);
-    processor_444->_or(destination, source, constant, count);
+    processor->_or(destination, source, constant, count);
 }
 
 // FUNCTION: SURRENDER 0x1006A8E0
 void srDebugVP::_xor(SRDWORD* destination, const SRDWORD* source, SRDWORD constant, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 11, destination, source, 0, 0);
-    processor_444->_xor(destination, source, constant, count);
+    processor->_xor(destination, source, constant, count);
 }
 
 // FUNCTION: SURRENDER 0x1006A960
@@ -427,7 +427,7 @@ void srDebugVP::_and(SRDWORD* destination, const SRDWORD* source_0, const SRDWOR
                      SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 12, destination, source_0, source_1, 0);
-    processor_444->_and(destination, source_0, source_1, count);
+    processor->_and(destination, source_0, source_1, count);
 }
 
 // FUNCTION: SURRENDER 0x1006A9F0
@@ -435,7 +435,7 @@ void srDebugVP::_or(SRDWORD* destination, const SRDWORD* source_0, const SRDWORD
                     SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 13, destination, source_0, source_1, 0);
-    processor_444->_or(destination, source_0, source_1, count);
+    processor->_or(destination, source_0, source_1, count);
 }
 
 // FUNCTION: SURRENDER 0x1006AA80
@@ -443,14 +443,14 @@ void srDebugVP::_xor(SRDWORD* destination, const SRDWORD* source_0, const SRDWOR
                      SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 14, destination, source_0, source_1, 0);
-    processor_444->_xor(destination, source_0, source_1, count);
+    processor->_xor(destination, source_0, source_1, count);
 }
 
 // FUNCTION: SURRENDER 0x1006AB10
 void srDebugVP::_asr(SRDWORD* destination, const SRDWORD* source, SRDWORD shift, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 15, destination, source, 0, 0);
-    processor_444->_asr(destination, source, shift, count);
+    processor->_asr(destination, source, shift, count);
 }
 
 // FUNCTION: SURRENDER 0x1006AB90
@@ -458,21 +458,21 @@ void srDebugVP::_asrAnd(SRDWORD* destination, const SRDWORD* source, SRDWORD shi
                         SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 16, destination, source, 0, 0);
-    processor_444->_asrAnd(destination, source, shift, mask, count);
+    processor->_asrAnd(destination, source, shift, mask, count);
 }
 
 // FUNCTION: SURRENDER 0x1006AC20
 void srDebugVP::_lsr(SRDWORD* destination, const SRDWORD* source, SRDWORD shift, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 17, destination, source, 0, 0);
-    processor_444->_lsr(destination, source, shift, count);
+    processor->_lsr(destination, source, shift, count);
 }
 
 // FUNCTION: SURRENDER 0x1006ACA0
 void srDebugVP::_lsl(SRDWORD* destination, const SRDWORD* source, SRDWORD shift, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 18, destination, source, 0, 0);
-    processor_444->_lsl(destination, source, shift, count);
+    processor->_lsl(destination, source, shift, count);
 }
 
 // FUNCTION: SURRENDER 0x1006AD20
@@ -480,35 +480,35 @@ void srDebugVP::_lslAnd(SRDWORD* destination, const SRDWORD* source, SRDWORD shi
                         SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 19, destination, source, 0, 0);
-    processor_444->_lslAnd(destination, source, shift, mask, count);
+    processor->_lslAnd(destination, source, shift, mask, count);
 }
 
 // FUNCTION: SURRENDER 0x1006ADB0
 int srDebugVP::_isEqual(const SRDWORD* source, SRDWORD constant, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 20, source, 0, 0, 0);
-    return processor_444->_isEqual(source, constant, count);
+    return processor->_isEqual(source, constant, count);
 }
 
 // FUNCTION: SURRENDER 0x1006AE30
 int srDebugVP::_isEqual(const SRDWORD* source_0, const SRDWORD* source_1, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 21, source_0, source_1, 0, 0);
-    return processor_444->_isEqual(source_0, source_1, count);
+    return processor->_isEqual(source_0, source_1, count);
 }
 
 // FUNCTION: SURRENDER 0x1006AEB0
 SRDWORD srDebugVP::_max(const SRDWORD* source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 22, source, 0, 0, 0);
-    return processor_444->_min(source, count);
+    return processor->_min(source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006AF30
 SRDWORD srDebugVP::_min(const SRDWORD* source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 23, source, 0, 0, 0);
-    return processor_444->_max(source, count);
+    return processor->_max(source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006AFB0
@@ -516,28 +516,28 @@ void srDebugVP::_copyIndexed(SRDWORD* destination, const SRDWORD* source, const 
                              SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 24, destination, source, 0, 0);
-    processor_444->_copyIndexed(destination, source, indices, count);
+    processor->_copyIndexed(destination, source, indices, count);
 }
 
 // FUNCTION: SURRENDER 0x1006B040
 void srDebugVP::_addS(SRBYTE* destination, const SRBYTE* source, SRBYTE constant, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 25, destination, source, 0, 0);
-    processor_444->_addS(destination, source, constant, count);
+    processor->_addS(destination, source, constant, count);
 }
 
 // FUNCTION: SURRENDER 0x1006B0D0
 void srDebugVP::_subS(SRBYTE* destination, const SRBYTE* source, SRBYTE constant, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 26, destination, source, 0, 0);
-    processor_444->_subS(destination, source, constant, count);
+    processor->_subS(destination, source, constant, count);
 }
 
 // FUNCTION: SURRENDER 0x1006B160
 void srDebugVP::_subS(SRBYTE* destination, SRBYTE constant, const SRBYTE* source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 27, destination, source, 0, 0);
-    processor_444->_subS(destination, constant, source, count);
+    processor->_subS(destination, constant, source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006B1F0
@@ -545,7 +545,7 @@ void srDebugVP::_addS(SRBYTE* destination, const SRBYTE* source_0, const SRBYTE*
                       SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 28, destination, source_0, source_1, 0);
-    processor_444->_addS(destination, source_0, source_1, count);
+    processor->_addS(destination, source_0, source_1, count);
 }
 
 // FUNCTION: SURRENDER 0x1006B280
@@ -553,42 +553,42 @@ void srDebugVP::_subS(SRBYTE* destination, const SRBYTE* source_0, const SRBYTE*
                       SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 29, destination, source_0, source_1, 0);
-    processor_444->_subS(destination, source_0, source_1, count);
+    processor->_subS(destination, source_0, source_1, count);
 }
 
 // FUNCTION: SURRENDER 0x1006B310
 void srDebugVP::_toFloat(float* destination, const SRBYTE* source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 30, destination, destination, source, 0);
-    processor_444->_toFloat(destination, source, count);
+    processor->_toFloat(destination, source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006B390
 void srDebugVP::_add(float* destination, float constant, const float* source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 31, destination, source, 0, 0);
-    processor_444->_add(destination, constant, source, count);
+    processor->_add(destination, constant, source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006B420
 void srDebugVP::_sub(float* destination, float constant, const float* source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 32, destination, source, 0, 0);
-    processor_444->_sub(destination, constant, source, count);
+    processor->_sub(destination, constant, source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006B4B0
 void srDebugVP::_mul(float* destination, float constant, const float* source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 33, destination, source, 0, 0);
-    processor_444->_mul(destination, constant, source, count);
+    processor->_mul(destination, constant, source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006B540
 void srDebugVP::_div(float* destination, float constant, const float* source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 34, destination, source, 0, 0);
-    processor_444->_div(destination, constant, source, count);
+    processor->_div(destination, constant, source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006B5D0
@@ -596,7 +596,7 @@ void srDebugVP::_add(float* destination, const float* source_0, const float* sou
                      SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 35, destination, source_0, source_1, 0);
-    processor_444->_add(destination, source_0, source_1, count);
+    processor->_add(destination, source_0, source_1, count);
 }
 
 // FUNCTION: SURRENDER 0x1006B660
@@ -604,7 +604,7 @@ void srDebugVP::_sub(float* destination, const float* source_0, const float* sou
                      SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 36, destination, source_0, source_1, 0);
-    processor_444->_sub(destination, source_0, source_1, count);
+    processor->_sub(destination, source_0, source_1, count);
 }
 
 // FUNCTION: SURRENDER 0x1006B6F0
@@ -612,7 +612,7 @@ void srDebugVP::_mul(float* destination, const float* source_0, const float* sou
                      SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 37, destination, source_0, source_1, 0);
-    processor_444->_mul(destination, source_0, source_1, count);
+    processor->_mul(destination, source_0, source_1, count);
 }
 
 // FUNCTION: SURRENDER 0x1006B780
@@ -620,7 +620,7 @@ void srDebugVP::_div(float* destination, const float* source_0, const float* sou
                      SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 38, destination, source_0, source_1, 0);
-    processor_444->_div(destination, source_0, source_1, count);
+    processor->_div(destination, source_0, source_1, count);
 }
 
 // FUNCTION: SURRENDER 0x1006B810
@@ -628,7 +628,7 @@ void srDebugVP::_mul(float* destination, float constant, const float* source_0,
                      const float* source_1, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 39, destination, source_0, source_1, 0);
-    processor_444->_mul(destination, constant, source_0, source_1, count);
+    processor->_mul(destination, constant, source_0, source_1, count);
 }
 
 // FUNCTION: SURRENDER 0x1006B8A0
@@ -636,42 +636,42 @@ void srDebugVP::_clamp(float* destination, const float* source, float minimum, f
                        SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 40, destination, source, 0, 0);
-    processor_444->_clamp(destination, source, minimum, maximum, count);
+    processor->_clamp(destination, source, minimum, maximum, count);
 }
 
 // FUNCTION: SURRENDER 0x1006B930
 void srDebugVP::_clampMin(float* destination, const float* source, float minimum, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 41, destination, source, 0, 0);
-    processor_444->_clampMin(destination, source, minimum, count);
+    processor->_clampMin(destination, source, minimum, count);
 }
 
 // FUNCTION: SURRENDER 0x1006B9C0
 void srDebugVP::_clampMax(float* destination, const float* source, float maximum, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 42, destination, source, 0, 0);
-    processor_444->_clampMax(destination, source, maximum, count);
+    processor->_clampMax(destination, source, maximum, count);
 }
 
 // FUNCTION: SURRENDER 0x1006BA50
 void srDebugVP::_clampUnit(float* destination, const float* source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 43, destination, source, 0, 0);
-    processor_444->_clampUnit(destination, source, count);
+    processor->_clampUnit(destination, source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006BAD0
 void srDebugVP::_sqrt(float* destination, const float* source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 44, destination, source, 0, 0);
-    processor_444->_sqrt(destination, source, count);
+    processor->_sqrt(destination, source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006BB50
 void srDebugVP::_isqrt(float* destination, const float* source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 45, destination, source, 0, 0);
-    processor_444->_isqrt(destination, source, count);
+    processor->_isqrt(destination, source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006BBD0
@@ -679,56 +679,56 @@ void srDebugVP::_lerp(float* destination, const float* target, const float* sour
                       SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 46, destination, target, source, 0);
-    processor_444->_lerp(destination, target, source, constant, count);
+    processor->_lerp(destination, target, source, constant, count);
 }
 
 // FUNCTION: SURRENDER 0x1006BC60
 int srDebugVP::_isNeg(const float* source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 47, source, 0, 0, 0);
-    return processor_444->_isNeg(source, count);
+    return processor->_isNeg(source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006BCE0
 int srDebugVP::_isPos(const float* source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 48, source, 0, 0, 0);
-    return processor_444->_isPos(source, count);
+    return processor->_isPos(source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006BD60
 int srDebugVP::_isZero(const float* source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 49, source, 0, 0, 0);
-    return processor_444->_isZero(source, count);
+    return processor->_isZero(source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006BDE0
 float srDebugVP::_min(const float* source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 50, source, 0, 0, 0);
-    return processor_444->_min(source, count);
+    return processor->_min(source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006BE60
 float srDebugVP::_max(const float* source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 51, source, 0, 0, 0);
-    return processor_444->_max(source, count);
+    return processor->_max(source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006BEE0
 void srDebugVP::_minMax(const float* source, float& minimum, float& maximum, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 52, source, 0, 0, 0);
-    processor_444->_minMax(source, minimum, maximum, count);
+    processor->_minMax(source, minimum, maximum, count);
 }
 
 // FUNCTION: SURRENDER 0x1006BF60
 double srDebugVP::_sum(const float* source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 53, source, 0, 0, 0);
-    return processor_444->_sum(source, count);
+    return processor->_sum(source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006BFE0
@@ -736,7 +736,7 @@ void srDebugVP::_axpy(float* destination, float add_constant, float multiply_con
                       const float* multiply_source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 54, destination, multiply_source, 0, 0);
-    processor_444->_axpy(destination, add_constant, multiply_constant, multiply_source, count);
+    processor->_axpy(destination, add_constant, multiply_constant, multiply_source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006C070
@@ -744,7 +744,7 @@ void srDebugVP::_axpy(float* destination, float add_constant, const float* scale
                       const float* multiply_source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 55, destination, scale_source, multiply_source, 0);
-    processor_444->_axpy(destination, add_constant, scale_source, multiply_source, count);
+    processor->_axpy(destination, add_constant, scale_source, multiply_source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006C100
@@ -752,7 +752,7 @@ void srDebugVP::_axpy(float* destination, const float* add_source, float multipl
                       const float* multiply_source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 56, destination, add_source, multiply_source, 0);
-    processor_444->_axpy(destination, add_source, multiply_constant, multiply_source, count);
+    processor->_axpy(destination, add_source, multiply_constant, multiply_source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006C190
@@ -760,7 +760,7 @@ void srDebugVP::_axpy(float* destination, const float* add_source, const float* 
                       const float* multiply_source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 57, destination, add_source, scale_source, multiply_source);
-    processor_444->_axpy(destination, add_source, scale_source, multiply_source, count);
+    processor->_axpy(destination, add_source, scale_source, multiply_source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006C220
@@ -768,7 +768,7 @@ void srDebugVP::_axpy(float* destination, float add_constant, float scale,
                       const float* scale_source, const float* multiply_source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 58, destination, scale_source, multiply_source, 0);
-    processor_444->_axpy(destination, add_constant, scale, scale_source, multiply_source, count);
+    processor->_axpy(destination, add_constant, scale, scale_source, multiply_source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006C2B0
@@ -776,7 +776,7 @@ void srDebugVP::_axpy(float* destination, const float* add_source, float scale,
                       const float* scale_source, const float* multiply_source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 59, destination, add_source, scale_source, multiply_source);
-    processor_444->_axpy(destination, add_source, scale, scale_source, multiply_source, count);
+    processor->_axpy(destination, add_source, scale, scale_source, multiply_source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006C350
@@ -784,7 +784,7 @@ void srDebugVP::_mulIndexed(float* destination, const float* linear_source,
                             const float* indexed_source, const SRDWORD* indices, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 60, destination, linear_source, indexed_source, indices);
-    processor_444->_mulIndexed(destination, linear_source, indexed_source, indices, count);
+    processor->_mulIndexed(destination, linear_source, indexed_source, indices, count);
 }
 
 // FUNCTION: SURRENDER 0x1006C3E0
@@ -792,14 +792,14 @@ void srDebugVP::_mulIndexed(float* destination, float constant, const float* ind
                             const SRDWORD* indices, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 61, destination, indexed_source, indices, 0);
-    processor_444->_mulIndexed(destination, constant, indexed_source, indices, count);
+    processor->_mulIndexed(destination, constant, indexed_source, indices, count);
 }
 
 // FUNCTION: SURRENDER 0x1006C470
 void srDebugVP::_toInt(SRLONG* destination, const float* source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 62, destination, source, 0, 0);
-    processor_444->_toInt(destination, source, count);
+    processor->_toInt(destination, source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006C4F0
@@ -807,35 +807,35 @@ void srDebugVP::_invPoly(float* destination, const float* source, const srVector
                          SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 63, destination, source, 0, 0);
-    processor_444->_invPoly(destination, source, poly, count);
+    processor->_invPoly(destination, source, poly, count);
 }
 
 // FUNCTION: SURRENDER 0x1006C580
 void srDebugVP::_abs(float* destination, const float* source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 64, destination, source, 0, 0);
-    processor_444->_abs(destination, source, count);
+    processor->_abs(destination, source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006C600
 void srDebugVP::_neg(float* destination, const float* source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 65, destination, source, 0, 0);
-    processor_444->_neg(destination, source, count);
+    processor->_neg(destination, source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006C680
 void srDebugVP::_cubic(float* destination, const float* source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 66, destination, source, 0, 0);
-    processor_444->_cubic(destination, source, count);
+    processor->_cubic(destination, source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006C700
 void srDebugVP::_copy(srVector2* destination, const srVector2& constant, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 157, destination, 0, 0, 0);
-    processor_444->_copy(destination, constant, count);
+    processor->_copy(destination, constant, count);
 }
 
 // FUNCTION: SURRENDER 0x1006C780
@@ -843,7 +843,7 @@ void srDebugVP::_copyIndexed(srVector2* destination, const srVector2* source,
                              const SRDWORD* indices, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 158, destination, source, 0, 0);
-    processor_444->_copyIndexed(destination, source, indices, count);
+    processor->_copyIndexed(destination, source, indices, count);
 }
 
 // FUNCTION: SURRENDER 0x1006C810
@@ -851,21 +851,21 @@ void srDebugVP::_div(srVector2* destination, const srVector2* vector_source,
                      const float* float_source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 159, destination, vector_source, float_source, 0);
-    processor_444->_div(destination, vector_source, float_source, count);
+    processor->_div(destination, vector_source, float_source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006C8A0
 void srDebugVP::_copy(srVector3* destination, const srVector3& constant, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 67, destination, 0, 0, 0);
-    processor_444->_copy(destination, constant, count);
+    processor->_copy(destination, constant, count);
 }
 
 // FUNCTION: SURRENDER 0x1006C920
 void srDebugVP::_copy(srVector3* destination, const srVector4* source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 68, destination, source, 0, 0);
-    processor_444->_copy(destination, source, count);
+    processor->_copy(destination, source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006C9A0
@@ -873,7 +873,7 @@ void srDebugVP::_add(srVector3* destination, const srVector3& constant,
                      const srVector3* vector_source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 69, destination, vector_source, 0, 0);
-    processor_444->_add(destination, constant, vector_source, count);
+    processor->_add(destination, constant, vector_source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006CA30
@@ -881,7 +881,7 @@ void srDebugVP::_sub(srVector3* destination, const srVector3& constant,
                      const srVector3* vector_source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 70, destination, vector_source, 0, 0);
-    processor_444->_sub(destination, constant, vector_source, count);
+    processor->_sub(destination, constant, vector_source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006CAC0
@@ -889,7 +889,7 @@ void srDebugVP::_mul(srVector3* destination, const srVector3& constant,
                      const srVector3* vector_source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 71, destination, vector_source, 0, 0);
-    processor_444->_mul(destination, constant, vector_source, count);
+    processor->_mul(destination, constant, vector_source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006CB50
@@ -897,7 +897,7 @@ void srDebugVP::_div(srVector3* destination, const srVector3& constant,
                      const srVector3* vector_source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 72, destination, vector_source, 0, 0);
-    processor_444->_div(destination, constant, vector_source, count);
+    processor->_div(destination, constant, vector_source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006CBE0
@@ -905,7 +905,7 @@ void srDebugVP::_add(srVector3* destination, const srVector3& constant, const fl
                      SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 73, destination, float_source, 0, 0);
-    processor_444->_add(destination, constant, float_source, count);
+    processor->_add(destination, constant, float_source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006CC70
@@ -913,7 +913,7 @@ void srDebugVP::_sub(srVector3* destination, const srVector3& constant, const fl
                      SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 74, destination, float_source, 0, 0);
-    processor_444->_sub(destination, constant, float_source, count);
+    processor->_sub(destination, constant, float_source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006CD00
@@ -921,7 +921,7 @@ void srDebugVP::_mul(srVector3* destination, const srVector3& constant, const fl
                      SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 75, destination, float_source, 0, 0);
-    processor_444->_mul(destination, constant, float_source, count);
+    processor->_mul(destination, constant, float_source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006CD90
@@ -929,7 +929,7 @@ void srDebugVP::_div(srVector3* destination, const srVector3& constant, const fl
                      SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 76, destination, float_source, 0, 0);
-    processor_444->_div(destination, constant, float_source, count);
+    processor->_div(destination, constant, float_source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006CE20
@@ -937,7 +937,7 @@ void srDebugVP::_add(srVector3* destination, const srVector3* vector_source,
                      const float* float_source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 77, destination, vector_source, float_source, 0);
-    processor_444->_add(destination, vector_source, float_source, count);
+    processor->_add(destination, vector_source, float_source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006CEB0
@@ -945,7 +945,7 @@ void srDebugVP::_sub(srVector3* destination, const srVector3* vector_source,
                      const float* float_source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 78, destination, vector_source, float_source, 0);
-    processor_444->_sub(destination, vector_source, float_source, count);
+    processor->_sub(destination, vector_source, float_source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006CF40
@@ -953,7 +953,7 @@ void srDebugVP::_mul(srVector3* destination, const srVector3* vector_source,
                      const float* float_source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 79, destination, vector_source, float_source, 0);
-    processor_444->_mul(destination, vector_source, float_source, count);
+    processor->_mul(destination, vector_source, float_source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006CFD0
@@ -961,7 +961,7 @@ void srDebugVP::_div(srVector3* destination, const srVector3* vector_source,
                      const float* float_source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 80, destination, vector_source, float_source, 0);
-    processor_444->_div(destination, vector_source, float_source, count);
+    processor->_div(destination, vector_source, float_source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006D060
@@ -969,7 +969,7 @@ void srDebugVP::_sub(srVector3* destination, const float* float_source,
                      const srVector3* vector_source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 81, destination, float_source, vector_source, 0);
-    processor_444->_sub(destination, float_source, vector_source, count);
+    processor->_sub(destination, float_source, vector_source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006D0F0
@@ -977,7 +977,7 @@ void srDebugVP::_div(srVector3* destination, const float* float_source,
                      const srVector3* vector_source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 82, destination, float_source, vector_source, 0);
-    processor_444->_div(destination, float_source, vector_source, count);
+    processor->_div(destination, float_source, vector_source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006D180
@@ -985,7 +985,7 @@ void srDebugVP::_dot(float* destination, const srVector3& constant, const srVect
                      SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 83, destination, vectors, 0, 0);
-    processor_444->_dot(destination, constant, vectors, count);
+    processor->_dot(destination, constant, vectors, count);
 }
 
 // FUNCTION: SURRENDER 0x1006D210
@@ -993,7 +993,7 @@ void srDebugVP::_dot(float* destination, const srVector3* vectors_0, const srVec
                      SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 84, destination, vectors_0, vectors_1, 0);
-    processor_444->_dot(destination, vectors_0, vectors_1, count);
+    processor->_dot(destination, vectors_0, vectors_1, count);
 }
 
 // FUNCTION: SURRENDER 0x1006D2A0
@@ -1001,14 +1001,14 @@ void srDebugVP::_cross(srVector3* destination, const srVector3* vectors_0,
                        const srVector3* vectors_1, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 85, destination, vectors_0, vectors_1, 0);
-    processor_444->_cross(destination, vectors_0, vectors_1, count);
+    processor->_cross(destination, vectors_0, vectors_1, count);
 }
 
 // FUNCTION: SURRENDER 0x1006D330
 void srDebugVP::_length(float* destination, const srVector3* vectors, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 86, destination, vectors, 0, 0);
-    processor_444->_length(destination, vectors, count);
+    processor->_length(destination, vectors, count);
 }
 
 // FUNCTION: SURRENDER 0x1006D3B0
@@ -1016,7 +1016,7 @@ void srDebugVP::_normalize(srVector3* destination, const srVector3* vectors, flo
                            SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 87, destination, vectors, 0, 0);
-    processor_444->_normalize(destination, vectors, length, count);
+    processor->_normalize(destination, vectors, length, count);
 }
 
 // FUNCTION: SURRENDER 0x1006D440
@@ -1024,7 +1024,7 @@ void srDebugVP::_minMax(const srVector3* source, srVector3& minimum, srVector3& 
                         SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 88, source, 0, 0, 0);
-    processor_444->_minMax(source, minimum, maximum, count);
+    processor->_minMax(source, minimum, maximum, count);
 }
 
 // FUNCTION: SURRENDER 0x1006D4C0
@@ -1032,7 +1032,7 @@ void srDebugVP::_transform(srVector3* destination, const srVector3* vectors,
                            const srMatrix4& matrix, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 89, destination, vectors, 0, 0);
-    processor_444->_transform(destination, vectors, matrix, count);
+    processor->_transform(destination, vectors, matrix, count);
 }
 
 // FUNCTION: SURRENDER 0x1006D550
@@ -1040,7 +1040,7 @@ void srDebugVP::_copyIndexed(srVector3* destination, const srVector2* source,
                              const SRDWORD* indices, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 90, destination, source, indices, 0);
-    processor_444->_copyIndexed(destination, source, indices, count);
+    processor->_copyIndexed(destination, source, indices, count);
 }
 
 // FUNCTION: SURRENDER 0x1006D5E0
@@ -1048,7 +1048,7 @@ void srDebugVP::_copyIndexed(srVector3* destination, const srVector3* source,
                              const SRDWORD* indices, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 91, destination, source, indices, 0);
-    processor_444->_copyIndexed(destination, source, indices, count);
+    processor->_copyIndexed(destination, source, indices, count);
 }
 
 // FUNCTION: SURRENDER 0x1006D670
@@ -1056,7 +1056,7 @@ void srDebugVP::_copyIndexed(srVector3* destination, const srVector4* source,
                              const SRDWORD* indices, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 92, destination, source, indices, 0);
-    processor_444->_copyIndexed(destination, source, indices, count);
+    processor->_copyIndexed(destination, source, indices, count);
 }
 
 // FUNCTION: SURRENDER 0x1006D700
@@ -1064,7 +1064,7 @@ void srDebugVP::_mulIndexed(srVector3* destination, const srVector3* linear_sour
                             const srVector3* indexed_source, const SRDWORD* indices, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 93, destination, linear_source, indexed_source, indices);
-    processor_444->_mulIndexed(destination, linear_source, indexed_source, indices, count);
+    processor->_mulIndexed(destination, linear_source, indexed_source, indices, count);
 }
 
 // FUNCTION: SURRENDER 0x1006D790
@@ -1072,28 +1072,28 @@ void srDebugVP::_mulIndexed(srVector3* destination, const srVector3& constant,
                             const srVector3* indexed_source, const SRDWORD* indices, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 94, destination, indexed_source, indices, 0);
-    processor_444->_mulIndexed(destination, constant, indexed_source, indices, count);
+    processor->_mulIndexed(destination, constant, indexed_source, indices, count);
 }
 
 // FUNCTION: SURRENDER 0x1006D820
 void srDebugVP::_dir(srVector3* destination, float* lengths, const srVector3* source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 95, destination, lengths, source, 0);
-    processor_444->_dir(destination, lengths, source, count);
+    processor->_dir(destination, lengths, source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006D8B0
 void srDebugVP::_dir(srVector3* destination, float* lengths, const srVector4* source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 96, destination, lengths, source, 0);
-    processor_444->_dir(destination, lengths, source, count);
+    processor->_dir(destination, lengths, source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006D940
 void srDebugVP::_copy(srVector4* destination, const srVector4& constant, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 97, destination, 0, 0, 0);
-    processor_444->_copy(destination, constant, count);
+    processor->_copy(destination, constant, count);
 }
 
 // FUNCTION: SURRENDER 0x1006D9C0
@@ -1101,7 +1101,7 @@ void srDebugVP::_copy(srVector4* destination, const srVector3* source, float con
                       SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 98, destination, source, 0, 0);
-    processor_444->_copy(destination, source, constant, count);
+    processor->_copy(destination, source, constant, count);
 }
 
 // FUNCTION: SURRENDER 0x1006DA40
@@ -1109,28 +1109,28 @@ void srDebugVP::_copy(srVector4* destination, const srVector3* source_0, const f
                       SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 99, destination, source_0, source_1, 0);
-    processor_444->_copy(destination, source_0, source_1, count);
+    processor->_copy(destination, source_0, source_1, count);
 }
 
 // FUNCTION: SURRENDER 0x1006DAD0
 void srDebugVP::_copyW(srVector4* destination, float constant, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 100, destination, 0, 0, 0);
-    processor_444->_copyW(destination, constant, count);
+    processor->_copyW(destination, constant, count);
 }
 
 // FUNCTION: SURRENDER 0x1006DB50
 void srDebugVP::_copyW(srVector4* destination, const float* source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 101, destination, source, 0, 0);
-    processor_444->_copyW(destination, source, count);
+    processor->_copyW(destination, source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006DBD0
 void srDebugVP::_copyW(float* destination, const srVector4* source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 102, destination, source, 0, 0);
-    processor_444->_copyW(destination, source, count);
+    processor->_copyW(destination, source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006DC50
@@ -1138,7 +1138,7 @@ void srDebugVP::_add(srVector4* destination, const srVector4& constant,
                      const srVector4* vector_source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 103, destination, vector_source, 0, 0);
-    processor_444->_add(destination, constant, vector_source, count);
+    processor->_add(destination, constant, vector_source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006DCE0
@@ -1146,7 +1146,7 @@ void srDebugVP::_sub(srVector4* destination, const srVector4& constant,
                      const srVector4* vector_source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 104, destination, vector_source, 0, 0);
-    processor_444->_sub(destination, constant, vector_source, count);
+    processor->_sub(destination, constant, vector_source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006DD70
@@ -1154,7 +1154,7 @@ void srDebugVP::_mul(srVector4* destination, const srVector4& constant,
                      const srVector4* vector_source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 105, destination, vector_source, 0, 0);
-    processor_444->_mul(destination, constant, vector_source, count);
+    processor->_mul(destination, constant, vector_source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006DE00
@@ -1162,7 +1162,7 @@ void srDebugVP::_div(srVector4* destination, const srVector4& constant,
                      const srVector4* vector_source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 106, destination, vector_source, 0, 0);
-    processor_444->_div(destination, constant, vector_source, count);
+    processor->_div(destination, constant, vector_source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006DE90
@@ -1170,7 +1170,7 @@ void srDebugVP::_add(srVector4* destination, const srVector4& constant, const fl
                      SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 107, destination, float_source, 0, 0);
-    processor_444->_add(destination, constant, float_source, count);
+    processor->_add(destination, constant, float_source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006DF20
@@ -1178,7 +1178,7 @@ void srDebugVP::_sub(srVector4* destination, const srVector4& constant, const fl
                      SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 108, destination, float_source, 0, 0);
-    processor_444->_sub(destination, constant, float_source, count);
+    processor->_sub(destination, constant, float_source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006DFB0
@@ -1186,7 +1186,7 @@ void srDebugVP::_mul(srVector4* destination, const srVector4& constant, const fl
                      SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 109, destination, float_source, 0, 0);
-    processor_444->_mul(destination, constant, float_source, count);
+    processor->_mul(destination, constant, float_source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006E040
@@ -1194,7 +1194,7 @@ void srDebugVP::_div(srVector4* destination, const srVector4& constant, const fl
                      SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 110, destination, float_source, 0, 0);
-    processor_444->_div(destination, constant, float_source, count);
+    processor->_div(destination, constant, float_source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006E0D0
@@ -1202,7 +1202,7 @@ void srDebugVP::_add(srVector4* destination, const srVector4* vector_source,
                      const float* float_source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 111, destination, vector_source, float_source, 0);
-    processor_444->_add(destination, vector_source, float_source, count);
+    processor->_add(destination, vector_source, float_source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006E160
@@ -1210,7 +1210,7 @@ void srDebugVP::_sub(srVector4* destination, const srVector4* vector_source,
                      const float* float_source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 112, destination, vector_source, float_source, 0);
-    processor_444->_sub(destination, vector_source, float_source, count);
+    processor->_sub(destination, vector_source, float_source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006E1F0
@@ -1218,7 +1218,7 @@ void srDebugVP::_mul(srVector4* destination, const srVector4* vector_source,
                      const float* float_source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 113, destination, vector_source, float_source, 0);
-    processor_444->_mul(destination, vector_source, float_source, count);
+    processor->_mul(destination, vector_source, float_source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006E280
@@ -1226,7 +1226,7 @@ void srDebugVP::_div(srVector4* destination, const srVector4* vector_source,
                      const float* float_source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 114, destination, vector_source, float_source, 0);
-    processor_444->_div(destination, vector_source, float_source, count);
+    processor->_div(destination, vector_source, float_source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006E310
@@ -1234,7 +1234,7 @@ void srDebugVP::_sub(srVector4* destination, const float* float_source,
                      const srVector4* vector_source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 115, destination, float_source, vector_source, 0);
-    processor_444->_sub(destination, float_source, vector_source, count);
+    processor->_sub(destination, float_source, vector_source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006E3A0
@@ -1242,7 +1242,7 @@ void srDebugVP::_div(srVector4* destination, const float* float_source,
                      const srVector4* vector_source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 116, destination, float_source, vector_source, 0);
-    processor_444->_div(destination, float_source, vector_source, count);
+    processor->_div(destination, float_source, vector_source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006E430
@@ -1250,7 +1250,7 @@ void srDebugVP::_dot(float* destination, const srVector4& constant, const srVect
                      SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 117, vectors, 0, 0, 0);
-    processor_444->_dot(destination, constant, vectors, count);
+    processor->_dot(destination, constant, vectors, count);
 }
 
 // FUNCTION: SURRENDER 0x1006E4B0
@@ -1258,14 +1258,14 @@ void srDebugVP::_dot(float* destination, const srVector4* vectors_0, const srVec
                      SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 118, vectors_0, vectors_1, 0, 0);
-    processor_444->_dot(destination, vectors_0, vectors_1, count);
+    processor->_dot(destination, vectors_0, vectors_1, count);
 }
 
 // FUNCTION: SURRENDER 0x1006E540
 void srDebugVP::_length(float* destination, const srVector4* vectors, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 119, destination, vectors, 0, 0);
-    processor_444->_length(destination, vectors, count);
+    processor->_length(destination, vectors, count);
 }
 
 // FUNCTION: SURRENDER 0x1006E5C0
@@ -1273,7 +1273,7 @@ void srDebugVP::_normalize(srVector4* destination, const srVector4* vectors, flo
                            SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 120, destination, vectors, 0, 0);
-    processor_444->_normalize(destination, vectors, length, count);
+    processor->_normalize(destination, vectors, length, count);
 }
 
 // FUNCTION: SURRENDER 0x1006E650
@@ -1281,7 +1281,7 @@ void srDebugVP::_minMax(const srVector4* source, srVector4& minimum, srVector4& 
                         SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 121, source, 0, 0, 0);
-    processor_444->_minMax(source, minimum, maximum, count);
+    processor->_minMax(source, minimum, maximum, count);
 }
 
 // FUNCTION: SURRENDER 0x1006E6D0
@@ -1289,7 +1289,7 @@ void srDebugVP::_transform(srVector4* destination, const srVector4* vectors,
                            const srMatrix4& matrix, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 122, destination, vectors, 0, 0);
-    processor_444->_transform(destination, vectors, matrix, count);
+    processor->_transform(destination, vectors, matrix, count);
 }
 
 // FUNCTION: SURRENDER 0x1006E760
@@ -1297,7 +1297,7 @@ void srDebugVP::_transform(srVector4* destination, const srVector3* vectors,
                            const srMatrix4& matrix, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 123, destination, vectors, 0, 0);
-    processor_444->_transform(destination, vectors, matrix, count);
+    processor->_transform(destination, vectors, matrix, count);
 }
 
 // FUNCTION: SURRENDER 0x1006E7F0
@@ -1305,7 +1305,7 @@ void srDebugVP::_transformOrtho(srVector4* destination, const srVector4* source,
                                 const srMatrix4& matrix, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 124, destination, source, 0, 0);
-    processor_444->_transformOrtho(destination, source, matrix, count);
+    processor->_transformOrtho(destination, source, matrix, count);
 }
 
 // FUNCTION: SURRENDER 0x1006E880
@@ -1313,7 +1313,7 @@ void srDebugVP::_transformPerspective(srVector4* destination, const srVector4* s
                                       const srMatrix4& matrix, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 125, destination, source, 0, 0);
-    processor_444->_transformPerspective(destination, source, matrix, count);
+    processor->_transformPerspective(destination, source, matrix, count);
 }
 
 // FUNCTION: SURRENDER 0x1006E910
@@ -1322,7 +1322,7 @@ void srDebugVP::_axpy(srVector4* destination, const srVector4& add_constant,
                       SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 126, destination, multiply_source, 0, 0);
-    processor_444->_axpy(destination, add_constant, multiply_constant, multiply_source, count);
+    processor->_axpy(destination, add_constant, multiply_constant, multiply_source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006E9A0
@@ -1331,7 +1331,7 @@ void srDebugVP::_axpy(srVector4* destination, const srVector4& add_constant,
                       SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 127, destination, multiply_vectors, multiply_source, 0);
-    processor_444->_axpy(destination, add_constant, multiply_vectors, multiply_source, count);
+    processor->_axpy(destination, add_constant, multiply_vectors, multiply_source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006EA30
@@ -1340,7 +1340,7 @@ void srDebugVP::_axpy(srVector4* destination, const srVector4* add_source,
                       SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 128, destination, add_source, multiply_source, 0);
-    processor_444->_axpy(destination, add_source, multiply_constant, multiply_source, count);
+    processor->_axpy(destination, add_source, multiply_constant, multiply_source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006EAC0
@@ -1350,7 +1350,7 @@ void srDebugVP::_axpy(srVector4* destination, const srVector4* add_source,
 {
     ScopeTimer scope_timer(this, count, 129, destination, add_source, multiply_vectors,
                            multiply_source);
-    processor_444->_axpy(destination, add_source, multiply_vectors, multiply_source, count);
+    processor->_axpy(destination, add_source, multiply_vectors, multiply_source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006EB50
@@ -1359,7 +1359,7 @@ void srDebugVP::_axpy(srVector4* destination, const srVector4& add_constant,
                       const float* multiply_source_1, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 130, destination, multiply_source_0, multiply_source_1, 0);
-    processor_444->_axpy(destination, add_constant, multiply_constant, multiply_source_0,
+    processor->_axpy(destination, add_constant, multiply_constant, multiply_source_0,
                          multiply_source_1, count);
 }
 
@@ -1370,7 +1370,7 @@ void srDebugVP::_axpy(srVector4* destination, const srVector4* add_source,
 {
     ScopeTimer scope_timer(this, count, 131, destination, add_source, multiply_source_0,
                            multiply_source_1);
-    processor_444->_axpy(destination, add_source, multiply_constant, multiply_source_0,
+    processor->_axpy(destination, add_source, multiply_constant, multiply_source_0,
                          multiply_source_1, count);
 }
 
@@ -1380,7 +1380,7 @@ void srDebugVP::_mulAdd(srVector4* destination, const srVector4& add_constant,
                         SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 132, destination, multiply_source, 0, 0);
-    processor_444->_mulAdd(destination, add_constant, multiply_constant, multiply_source, count);
+    processor->_mulAdd(destination, add_constant, multiply_constant, multiply_source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006ED20
@@ -1389,7 +1389,7 @@ void srDebugVP::_mulAdd(srVector4* destination, const srVector4* add_source,
                         SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 133, destination, add_source, multiply_source, 0);
-    processor_444->_mulAdd(destination, add_source, multiply_constant, multiply_source, count);
+    processor->_mulAdd(destination, add_source, multiply_constant, multiply_source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006EDB0
@@ -1398,14 +1398,14 @@ void srDebugVP::_mulAdd(srVector4* destination, const srVector4& add_constant,
                         SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 134, destination, multiply_source_0, multiply_source_1, 0);
-    processor_444->_mulAdd(destination, add_constant, multiply_source_0, multiply_source_1, count);
+    processor->_mulAdd(destination, add_constant, multiply_source_0, multiply_source_1, count);
 }
 
 // FUNCTION: SURRENDER 0x1006EE40
 void srDebugVP::_divByW(srVector4* destination, const srVector4* source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 135, destination, source, 0, 0);
-    processor_444->_divByW(destination, source, count);
+    processor->_divByW(destination, source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006EEC0
@@ -1413,7 +1413,7 @@ void srDebugVP::_copyIndexed(srVector4* destination, const srVector2* source,
                              const SRDWORD* indices, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 136, destination, source, indices, 0);
-    processor_444->_copyIndexed(destination, source, indices, count);
+    processor->_copyIndexed(destination, source, indices, count);
 }
 
 // FUNCTION: SURRENDER 0x1006EF50
@@ -1421,7 +1421,7 @@ void srDebugVP::_copyIndexed(srVector4* destination, const srVector3* source,
                              const SRDWORD* indices, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 137, destination, source, indices, 0);
-    processor_444->_copyIndexed(destination, source, indices, count);
+    processor->_copyIndexed(destination, source, indices, count);
 }
 
 // FUNCTION: SURRENDER 0x1006EFE0
@@ -1429,7 +1429,7 @@ void srDebugVP::_copyIndexed(srVector4* destination, const srVector4* source,
                              const SRDWORD* indices, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 138, destination, source, indices, 0);
-    processor_444->_copyIndexed(destination, source, indices, count);
+    processor->_copyIndexed(destination, source, indices, count);
 }
 
 // FUNCTION: SURRENDER 0x1006F070
@@ -1437,7 +1437,7 @@ void srDebugVP::_copyIndexed(srVector4* destination, const srARGB* source, const
                              SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 139, destination, source, indices, 0);
-    processor_444->_copyIndexed(destination, source, indices, count);
+    processor->_copyIndexed(destination, source, indices, count);
 }
 
 /* Retail swaps these overloads' statistics indices. The linear form tracks
@@ -1447,7 +1447,7 @@ void srDebugVP::_mulIndexed(srVector4* destination, const srVector4* linear_sour
                             const srVector4* indexed_source, const SRDWORD* indices, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 141, destination, linear_source, indexed_source, indices);
-    processor_444->_mulIndexed(destination, linear_source, indexed_source, indices, count);
+    processor->_mulIndexed(destination, linear_source, indexed_source, indices, count);
 }
 
 // FUNCTION: SURRENDER 0x1006F100
@@ -1455,14 +1455,14 @@ void srDebugVP::_mulIndexed(srVector4* destination, const srVector4& constant,
                             const srVector4* indexed_source, const SRDWORD* indices, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 140, destination, indexed_source, indices, 0);
-    processor_444->_mulIndexed(destination, constant, indexed_source, indices, count);
+    processor->_mulIndexed(destination, constant, indexed_source, indices, count);
 }
 
 // FUNCTION: SURRENDER 0x1006F220
 void srDebugVP::_mul(srMatrix4& destination, const srMatrix4& source_0, const srMatrix4& source_1)
 {
     ScopeTimer scope_timer(this, 1, 142, 0, 0, 0, 0);
-    processor_444->_mul(destination, source_0, source_1);
+    processor->_mul(destination, source_0, source_1);
 }
 
 // FUNCTION: SURRENDER 0x1006F2A0
@@ -1470,7 +1470,7 @@ void srDebugVP::_mul(srMatrix4* destination, const srMatrix4* source_0, const sr
                      SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 143, destination, source_0, source_1, 0);
-    processor_444->_mul(destination, source_0, source_1, count);
+    processor->_mul(destination, source_0, source_1, count);
 }
 
 // FUNCTION: SURRENDER 0x1006F330
@@ -1478,7 +1478,7 @@ int srDebugVP::_srTestBoundingBox(const srMatrix4& matrix, const srVector3& mini
                                   const srVector3& maximum)
 {
     ScopeTimer scope_timer(this, 1, 144, 0, 0, 0, 0);
-    return processor_444->_srTestBoundingBox(matrix, minimum, maximum);
+    return processor->_srTestBoundingBox(matrix, minimum, maximum);
 }
 
 // FUNCTION: SURRENDER 0x1006F3B0
@@ -1486,7 +1486,7 @@ void srDebugVP::_srSpecularPow(float* destination, const float* source, float ex
                                SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 145, destination, source, 0, 0);
-    processor_444->_srSpecularPow(destination, source, exponent, count);
+    processor->_srSpecularPow(destination, source, exponent, count);
 }
 
 // FUNCTION: SURRENDER 0x1006F440
@@ -1494,7 +1494,7 @@ void srDebugVP::_srCopyIndexedRemap(srVector3i* destination, const srVector3i* s
                                     const SRDWORD* indices, const SRDWORD* remap, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 146, 0, 0, 0, 0);
-    processor_444->_srCopyIndexedRemap(destination, source, indices, remap, count);
+    processor->_srCopyIndexedRemap(destination, source, indices, remap, count);
 }
 
 // FUNCTION: SURRENDER 0x1006F4D0
@@ -1502,35 +1502,35 @@ void srDebugVP::_srSetIndexed(SRBYTE* destination, const srVector3i* source, con
                               SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 147, destination, 0, 0, 0);
-    processor_444->_srSetIndexed(destination, source, indices, count);
+    processor->_srSetIndexed(destination, source, indices, count);
 }
 
 // FUNCTION: SURRENDER 0x1006F560
 SRDWORD srDebugVP::_srCollectPos(SRDWORD* destination, const float* source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 148, destination, source, 0, 0);
-    return processor_444->_srCollectPos(destination, source, count);
+    return processor->_srCollectPos(destination, source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006F5F0
 SRDWORD srDebugVP::_srCollectNeg(SRDWORD* destination, const float* source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 149, destination, source, 0, 0);
-    return processor_444->_srCollectNeg(destination, source, count);
+    return processor->_srCollectNeg(destination, source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006F680
 SRDWORD srDebugVP::_srCollectNonZero(SRDWORD* destination, const SRBYTE* source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 150, destination, source, 0, 0);
-    return processor_444->_srCollectNonZero(destination, source, count);
+    return processor->_srCollectNonZero(destination, source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006F710
 void srDebugVP::_srRemapInverse(SRDWORD* destination, const SRDWORD* map, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 151, destination, 0, 0, 0);
-    processor_444->_srRemapInverse(destination, map, count);
+    processor->_srRemapInverse(destination, map, count);
 }
 
 // FUNCTION: SURRENDER 0x1006F790
@@ -1538,7 +1538,7 @@ void srDebugVP::_srDirect3DConvertColor(SRDWORD* destination, const srVector4* s
                                         SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 152, destination, source, 0, 0);
-    processor_444->_srDirect3DConvertColor(destination, source, count);
+    processor->_srDirect3DConvertColor(destination, source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006F810
@@ -1546,7 +1546,7 @@ void srDebugVP::_transformIndexed(srVector4* destination, const srVector3* sourc
                                   const SRDWORD* indices, const srMatrix4& matrix, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 154, source, 0, 0, 0);
-    processor_444->_transformIndexed(destination, source, indices, matrix, count);
+    processor->_transformIndexed(destination, source, indices, matrix, count);
 }
 
 // FUNCTION: SURRENDER 0x1006F8A0
@@ -1554,7 +1554,7 @@ void srDebugVP::_transformIndexed(srVector3* destination, const srVector3* sourc
                                   const SRDWORD* indices, const srMatrix4& matrix, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 153, 0, 0, 0, 0);
-    processor_444->_transformIndexed(destination, source, indices, matrix, count);
+    processor->_transformIndexed(destination, source, indices, matrix, count);
 }
 
 // FUNCTION: SURRENDER 0x1006F930
@@ -1562,7 +1562,7 @@ void srDebugVP::_dotIndexed(float* destination, const srVector4& constant, const
                             const SRDWORD* indices, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 155, vectors, 0, 0, 0);
-    processor_444->_dotIndexed(destination, constant, vectors, indices, count);
+    processor->_dotIndexed(destination, constant, vectors, indices, count);
 }
 
 // FUNCTION: SURRENDER 0x1006F9C0
@@ -1570,7 +1570,7 @@ void srDebugVP::_dot(float* destination, const srVector4& constant, const srVect
                      SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 156, destination, 0, 0, 0);
-    processor_444->_dot(destination, constant, vectors, count);
+    processor->_dot(destination, constant, vectors, count);
 }
 
 // FUNCTION: SURRENDER 0x1006FA50
@@ -1578,21 +1578,21 @@ SRDWORD srDebugVP::_srCullNoClip(SRDWORD* destination, const srVector4& constant
                                  const srVector4* vectors, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 160, vectors, 0, 0, 0);
-    return processor_444->_srCullNoClip(destination, constant, vectors, count);
+    return processor->_srCullNoClip(destination, constant, vectors, count);
 }
 
 // FUNCTION: SURRENDER 0x1006FAE0
 void srDebugVP::_srFloatToLinear(SRDWORD* destination, const float* source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 161, destination, source, 0, 0);
-    processor_444->_srFloatToLinear(destination, source, count);
+    processor->_srFloatToLinear(destination, source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006FB60
 void srDebugVP::_srLinearToFloat(float* destination, const SRDWORD* source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 162, destination, source, 0, 0);
-    processor_444->_srLinearToFloat(destination, source, count);
+    processor->_srLinearToFloat(destination, source, count);
 }
 
 // FUNCTION: SURRENDER 0x1006FBE0
@@ -1605,5 +1605,5 @@ void srDebugVP::unknown_2a4() {}
 void srDebugVP::_srGetClipFlags(SRBYTE* destination, const srVector4* source, SRDWORD count)
 {
     ScopeTimer scope_timer(this, count, 165, source, 0, 0, 0);
-    processor_444->_srGetClipFlags(destination, source, count);
+    processor->_srGetClipFlags(destination, source, count);
 }

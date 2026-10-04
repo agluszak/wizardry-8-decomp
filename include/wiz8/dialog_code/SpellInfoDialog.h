@@ -26,10 +26,10 @@ private:
     static void ScrollCallback(W8DialogScrollBar* scroll_bar, int first_visible_entry);
 
     unsigned int m_spell;           /* 0x054 */
-    W8DialogScrollBar m_scroll_bar_058; /* 0x058 */
+    W8DialogScrollBar m_scroll_bar; /* 0x058 */
     W8DialogButton m_button;        /* 0x0a4 */
-    W8DialogTextArea m_text_area_0ec;   /* 0x0ec */
-    W8GameTimer m_timer_144;            /* 0x144 */
+    W8DialogTextArea m_text_area;   /* 0x0ec */
+    W8GameTimer m_timer;            /* 0x144 */
     unsigned int m_animation_frame;     /* 0x168 */
 };
 static_assert(sizeof(W8SpellInfoDialog) == 0x16c, "W8SpellInfoDialog_size");

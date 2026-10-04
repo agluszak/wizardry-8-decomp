@@ -6,22 +6,22 @@
 #include <string.h>
 
 // FUNCTION: SURRENDER 0x10003840
-srStringTable::srStringTable() : strings_00(), count_08(0) {}
+srStringTable::srStringTable() : strings(), count(0) {}
 
 // FUNCTION: SURRENDER 0x10003850
 void srStringTable::reset()
 {
-    for (long index = 0; index < count_08; ++index) {
-        char*& string = strings_00[index];
+    for (long index = 0; index < count; ++index) {
+        char*& string = strings[index];
         if (string != 0) {
             srHeap.free(string);
             string = 0;
         }
     }
-    if (strings_00.capacity != 0) {
-        strings_00.release();
+    if (strings.capacity != 0) {
+        strings.release();
     }
-    count_08 = 0;
+    count = 0;
 }
 
 // FUNCTION: SURRENDER 0x10003910
@@ -39,20 +39,20 @@ void srStringTable::addString(const char* string)
     }
 
     /* This spelling emits one operator[] grow path before allocation, matching retail. */
-    char*& slot = strings_00[count_08];
+    char*& slot = strings[count];
     char* copy = static_cast<char*>(srHeap.allocate(strlen(string) + 1));
     slot = copy;
     strcpy(copy, string);
-    ++count_08;
+    ++count;
 }
 
 // FUNCTION: SURRENDER 0x10003A40
 char* srStringTable::getString(long index) const
 {
-    if (index < 0 || index >= count_08) {
+    if (index < 0 || index >= count) {
         return 0;
     }
-    return strings_00.data[index];
+    return strings.data[index];
 }
 
 // FUNCTION: SURRENDER 0x10003A70

@@ -116,7 +116,7 @@ public:
 #endif
     long getHeight() const
     {
-        return height_20;
+        return height;
     }
 // FUNCTION: SURRENDER 0x100599E0 SYMBOL
 // ?getPitch@srColorSurfaceIFace@@QBEJXZ
@@ -125,7 +125,7 @@ public:
 #endif
     long getPitch() const
     {
-        return pitch_24;
+        return pitch;
     }
 // FUNCTION: SURRENDER 0x100599F0 SYMBOL
 // ?getPixelFormat@srColorSurfaceIFace@@QBEXAAUPixelFormat@srPixelConvert@@@Z
@@ -134,7 +134,7 @@ public:
 #endif
     void getPixelFormat(srPixelConvert::PixelFormat& format) const
     {
-        format = pixel_format_30;
+        format = pixel_format;
     }
     SR_DLL_IMPORT long getRedBits() const;
 // FUNCTION: SURRENDER 0x10059A10 SYMBOL
@@ -144,12 +144,12 @@ public:
 #endif
     void getSurfaceDesc(SurfaceDesc& description) const
     {
-        description.width = width_1c;
-        description.height = height_20;
-        description.pitch = pitch_24;
-        description.clamp_modes = clamp_modes_28;
-        description.filter = filter_2c;
-        description.pixel_format = pixel_format_30;
+        description.width = width;
+        description.height = height;
+        description.pitch = pitch;
+        description.clamp_modes = clamp_modes;
+        description.filter = filter;
+        description.pixel_format = pixel_format;
     }
     SR_DLL_IMPORT int getVClampMode() const;
 // FUNCTION: SURRENDER 0x10059A60 SYMBOL
@@ -159,7 +159,7 @@ public:
 #endif
     long getWidth() const
     {
-        return width_1c;
+        return width;
     }
     SR_DLL_IMPORT int isAlpha() const;
     SR_DLL_IMPORT int isPaletted() const;
@@ -171,7 +171,7 @@ public:
 #endif
     void setFilter(srFilter* filter)
     {
-        filter_2c = filter;
+        this->filter = filter;
     }
     SR_DLL_IMPORT void setHClampMode(int enabled);
     SR_DLL_IMPORT void setVClampMode(int enabled);
@@ -190,7 +190,7 @@ protected:
     SR_DLL_IMPORT int isPixelFormatCompatible(const srColorSurfaceIFace& source) const;
     SR_DLL_IMPORT void setSurfaceDesc(const SurfaceDesc& description);
 
-    /* stTextureFile::loadSurface reads pixel_format_30.alpha_bits directly;
+    /* stTextureFile::loadSurface reads pixel_format.alpha_bits directly;
        Wiz8 imports no alpha accessor, so the read is a field access. The
        file-scope pixel decoder reads bytes_per_pixel_minus_one the same way. */
     friend class stTextureFile;
@@ -204,13 +204,13 @@ protected:
 
     unsigned char unknown_18_[0x04];
     /* Retail compares these against signed loop/clip coordinates (JL/JGE
-       branches, not JB/JAE), matching pitch_24's signed type. */
-    long width_1c;
-    long height_20;
-    long pitch_24;
-    unsigned long clamp_modes_28;
-    srFilter* filter_2c;
-    srPixelConvert::PixelFormat pixel_format_30;
+       branches, not JB/JAE), matching pitch's signed type. */
+    long width;
+    long height;
+    long pitch;
+    unsigned long clamp_modes;
+    srFilter* filter;
+    srPixelConvert::PixelFormat pixel_format;
 };
 
 static_assert(sizeof(srColorSurfaceIFace) == 0x44, "srColorSurfaceIFace_must_be_0x44");

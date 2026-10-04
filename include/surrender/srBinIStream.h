@@ -116,9 +116,9 @@ public:
 private:
     virtual SR_DLL_IMPORT unsigned long vread(void* destination, unsigned long size) override;
 
-    const unsigned char* data_08;
-    unsigned long size_0c;
-    unsigned long position_10;
+    const unsigned char* data;
+    unsigned long size;
+    unsigned long position0;
 };
 
 static_assert(sizeof(srBinIStream) == 0x18, "srBinIStream_must_be_0x18");

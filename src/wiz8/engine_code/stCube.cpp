@@ -53,8 +53,8 @@
 // FUNCTION: WIZ8 0x0048d050
 unsigned char W8WorldCursorNode::GetLocation(srVector3T<float>* position)
 {
-    if (node_04 != 0) {
-        node_04->getLocation(*position);
+    if (node != 0) {
+        node->getLocation(*position);
         return 1;
     }
     return 0;
@@ -96,12 +96,12 @@ W8WorldCursorNode* CreateWorldCursorCube(void)
        stack Vertices are constructed and unused, matching retail. */
     srModeler::Vertex unused[4];
     (void)unused;
-    srModeler::Vertex* vertices = polygon.vertices_30;
+    srModeler::Vertex* vertices = polygon.vertices;
 
-    vertices[0].uv_c0[0].Set(1.0f, 1.0f);
-    vertices[1].uv_c0[0].Set(0.0f, 1.0f);
-    vertices[2].uv_c0[0].SetZero();
-    vertices[3].uv_c0[0].Set(1.0f, 0.0f);
+    vertices[0].uv[0].Set(1.0f, 1.0f);
+    vertices[1].uv[0].Set(0.0f, 1.0f);
+    vertices[2].uv[0].SetZero();
+    vertices[3].uv[0].Set(1.0f, 0.0f);
 
     srVector3T<float> npp(-0.5f, 1.0f, 0.5f);
     srVector3T<float> ppp(0.5f, 1.0f, 0.5f);
@@ -112,40 +112,40 @@ W8WorldCursorNode* CreateWorldCursorCube(void)
     srVector3T<float> nnp(-0.5f, 0.0f, 0.5f);
     srVector3T<float> pnn(0.5f, 0.0f, -0.5f);
 
-    vertices[0].position_00 = npp;
-    vertices[1].position_00 = ppp;
-    vertices[2].position_00 = ppn;
-    vertices[3].position_00 = npn;
+    vertices[0].position = npp;
+    vertices[1].position = ppp;
+    vertices[2].position = ppn;
+    vertices[3].position = npn;
     modeller.addPolygon(polygon);
 
-    vertices[0].position_00 = nnn;
-    vertices[1].position_00 = nnp;
-    vertices[2].position_00 = npp;
-    vertices[3].position_00 = npn;
+    vertices[0].position = nnn;
+    vertices[1].position = nnp;
+    vertices[2].position = npp;
+    vertices[3].position = npn;
     modeller.addPolygon(polygon);
 
-    vertices[0].position_00 = nnp;
-    vertices[1].position_00 = pnp;
-    vertices[2].position_00 = ppp;
-    vertices[3].position_00 = npp;
+    vertices[0].position = nnp;
+    vertices[1].position = pnp;
+    vertices[2].position = ppp;
+    vertices[3].position = npp;
     modeller.addPolygon(polygon);
 
-    vertices[0].position_00 = pnp;
-    vertices[1].position_00 = pnn;
-    vertices[2].position_00 = ppn;
-    vertices[3].position_00 = ppp;
+    vertices[0].position = pnp;
+    vertices[1].position = pnn;
+    vertices[2].position = ppn;
+    vertices[3].position = ppp;
     modeller.addPolygon(polygon);
 
-    vertices[0].position_00 = pnn;
-    vertices[1].position_00 = nnn;
-    vertices[2].position_00 = npn;
-    vertices[3].position_00 = ppn;
+    vertices[0].position = pnn;
+    vertices[1].position = nnn;
+    vertices[2].position = npn;
+    vertices[3].position = ppn;
     modeller.addPolygon(polygon);
 
-    vertices[0].position_00 = pnn;
-    vertices[1].position_00 = pnp;
-    vertices[2].position_00 = nnp;
-    vertices[3].position_00 = nnn;
+    vertices[0].position = pnn;
+    vertices[1].position = pnp;
+    vertices[2].position = nnp;
+    vertices[3].position = nnn;
     modeller.addPolygon(polygon);
 
     srMaterial* material = SR_NEW(srMaterial);
@@ -206,7 +206,7 @@ W8WorldCursorNode* CreateWorldCursorCube(void)
     model->autoRelease();
     model->setName("stCube");
     instance->setModel(model);
-    entry->node_04 = instance;
+    entry->node = instance;
 
     for (int index = 0; index < 3; ++index) {
         SetWorldCursorNodeParameter(entry, index, 0);
@@ -217,8 +217,8 @@ W8WorldCursorNode* CreateWorldCursorCube(void)
     SetWorldCursorNodeColor(entry, packed);
     DrawWorldCursorNodeLabel(entry);
     entry->pUserdata = 0;
-    entry->size_1c = 0;
-    entry->name_24[0] = 0;
+    entry->size = 0;
+    entry->name[0] = 0;
 
     g_world_cursor_nodes.Add(entry);
     return entry;
@@ -232,9 +232,9 @@ void DestroyWorldCursorCube(W8WorldCursorNode* entry)
             free(entry->pUserdata);
             entry->pUserdata = 0;
         }
-        entry->size_1c = 0;
-        entry->node_04->setParent(0, 1);
-        entry->node_04->release();
+        entry->size = 0;
+        entry->node->setParent(0, 1);
+        entry->node->release();
         g_world_cursor_nodes.Remove(entry);
         delete entry;
     }
@@ -253,8 +253,8 @@ void MoveWorldCursorNode(W8WorldCursorNode* entry, srVector3T<float>* position)
     if (entry == 0) {
         srAssertFail("pCube", ST_CUBE_CPP, 0x10b, 0);
     }
-    if (entry->node_04 != 0) {
-        entry->node_04->setLocation(srVector3T<double>(static_cast<double>(location.x),
+    if (entry->node != 0) {
+        entry->node->setLocation(srVector3T<double>(static_cast<double>(location.x),
                                                        static_cast<double>(location.y),
                                                        static_cast<double>(location.z)));
     }
@@ -272,7 +272,7 @@ void RefreshWorldCursorNodeLabel(W8WorldCursorNode* entry)
 void DrawWorldCursorNodeLabel(W8WorldCursorNode* entry)
 {
     if (entry != 0) {
-        stModelInstance* instance = static_cast<stModelInstance*>(entry->node_04);
+        stModelInstance* instance = static_cast<stModelInstance*>(entry->node);
         if (instance == 0) {
             srAssertFail("pstModelInstance", ST_CUBE_CPP, 0x124, 0);
         }
@@ -285,7 +285,7 @@ void DrawWorldCursorNodeLabel(W8WorldCursorNode* entry)
             srAssertFail("psrTexture", ST_CUBE_CPP, 0x12a, 0);
         }
         srColorSurfaceIFace* surface = texture->getSurfacePtr();
-        surface->fill(entry->color_20);
+        surface->fill(entry->color);
         unsigned char* data = static_cast<unsigned char*>(surface->getDataPtr());
         if (data == 0) {
             srAssertFail("pBuffer", ST_CUBE_CPP, 0x130, 0);
@@ -312,7 +312,7 @@ void ScaleWorldCursorNodeX(W8WorldCursorNode* entry, double scale)
     srVector3T<float> factors(static_cast<float>(scale), 1.0f, 1.0f);
     if (entry != 0) {
         stMeshModel* model =
-            static_cast<stMeshModel*>(static_cast<stModelInstance*>(entry->node_04)->getModel());
+            static_cast<stMeshModel*>(static_cast<stModelInstance*>(entry->node)->getModel());
         if (model != 0) {
             model->scale(factors);
         }
@@ -325,7 +325,7 @@ void ScaleWorldCursorNodeY(W8WorldCursorNode* entry, double scale)
     srVector3T<float> factors(1.0f, static_cast<float>(scale), 1.0f);
     if (entry != 0) {
         stMeshModel* model =
-            static_cast<stMeshModel*>(static_cast<stModelInstance*>(entry->node_04)->getModel());
+            static_cast<stMeshModel*>(static_cast<stModelInstance*>(entry->node)->getModel());
         if (model != 0) {
             model->scale(factors);
         }
@@ -338,7 +338,7 @@ void ScaleWorldCursorNodeZ(W8WorldCursorNode* entry, double scale)
     srVector3T<float> factors(1.0f, 1.0f, static_cast<float>(scale));
     if (entry != 0) {
         stMeshModel* model =
-            static_cast<stMeshModel*>(static_cast<stModelInstance*>(entry->node_04)->getModel());
+            static_cast<stMeshModel*>(static_cast<stModelInstance*>(entry->node)->getModel());
         if (model != 0) {
             model->scale(factors);
         }
@@ -431,7 +431,7 @@ void SetWorldCursorNodeParameter(W8WorldCursorNode* entry, int index, int value)
             free(entry->pUserdata);
             entry->pUserdata = 0;
         }
-        entry->size_1c = 0;
+        entry->size = 0;
     }
 }
 
@@ -447,11 +447,11 @@ W8WorldCursorNode* FindNearestWorldCursorNode(int x, int y)
 
     for (int index = 0; index < count; ++index) {
         W8WorldCursorNode* entry = *g_world_cursor_nodes.GetAt(index);
-        if (entry != 0 && entry->node_04 != 0 && entry->node_04 == GetPickedModelInstance()) {
+        if (entry != 0 && entry->node != 0 && entry->node == GetPickedModelInstance()) {
             srVector3T<double> camera;
             g_world->camera->getLocation(camera);
             srVector3T<double> node;
-            entry->node_04->getLocation(node);
+            entry->node->getLocation(node);
             float distance = static_cast<float>((node - camera).Length());
             if (distance < nearest) {
                 nearest = distance;
@@ -472,7 +472,7 @@ W8WorldCursorNode* PickWorldCursorNodeAtScreenPoint(int x, int y)
 // FUNCTION: WIZ8 0x0048e400
 void SetWorldCursorNodeColor(W8WorldCursorNode* entry, unsigned long color)
 {
-    entry->color_20 = color;
+    entry->color = color;
     DrawWorldCursorNodeLabel(entry);
 }
 
@@ -515,7 +515,7 @@ unsigned int LoadWorldCursorNodeStates(int handle)
             FileRead(handle, name, sizeof(name), 0);
             for (cube_index = 0; cube_index < g_world_cursor_nodes.GetCount(); ++cube_index) {
                 W8WorldCursorNode* candidate = *g_world_cursor_nodes.GetAt(cube_index);
-                if (strcmp(candidate->name_24, name) == 0) {
+                if (strcmp(candidate->name, name) == 0) {
                     cube = candidate;
                     break;
                 }
@@ -526,18 +526,18 @@ unsigned int LoadWorldCursorNodeStates(int handle)
             }
         }
 
-        if (success && FileRead(handle, &cube->size_1c, 4, 0)) {
+        if (success && FileRead(handle, &cube->size, 4, 0)) {
             success = true;
         } else {
             success = false;
         }
-        if (cube->size_1c != 0) {
-            cube->pUserdata = malloc(cube->size_1c);
+        if (cube->size != 0) {
+            cube->pUserdata = malloc(cube->size);
             if (cube->pUserdata == 0) {
                 srAssertFail("pCube->pUserdata", ST_CUBE_CPP, 0x3c8, 0);
             }
-            memset(cube->pUserdata, 0, cube->size_1c);
-            if (success && FileRead(handle, cube->pUserdata, cube->size_1c, 0)) {
+            memset(cube->pUserdata, 0, cube->size);
+            if (success && FileRead(handle, cube->pUserdata, cube->size, 0)) {
                 success = true;
             } else {
                 success = false;
@@ -548,7 +548,7 @@ unsigned int LoadWorldCursorNodeStates(int handle)
                 free(cube->pUserdata);
                 cube->pUserdata = 0;
             }
-            cube->size_1c = 0;
+            cube->size = 0;
             delete cube;
         }
     }
@@ -573,10 +573,10 @@ unsigned char SaveWorldCursorNodeStates(int handle)
     }
     for (index = 0; index < count && ok; ++index) {
         node = *g_world_cursor_nodes.GetAt(index);
-        ok = FileWrite(handle, node->name_24, sizeof(node->name_24), 0) &&
-             FileWrite(handle, &node->size_1c, 4, 0);
-        if (node->size_1c != 0) {
-            ok = ok && FileWrite(handle, node->pUserdata, node->size_1c, 0);
+        ok = FileWrite(handle, node->name, sizeof(node->name), 0) &&
+             FileWrite(handle, &node->size, 4, 0);
+        if (node->size != 0) {
+            ok = ok && FileWrite(handle, node->pUserdata, node->size, 0);
         }
     }
     return ok;
@@ -612,12 +612,12 @@ unsigned int LoadWorldCursorNodes(int handle)
         int component;
 
         if (version >= 2) {
-            FileRead(handle, cube->name_24, 0x20, 0);
-            if (cube->name_24[0] == 0) {
-                sprintf(cube->name_24, "Cube%3.3d", gXStatus.mipe_cube_serial++);
+            FileRead(handle, cube->name, 0x20, 0);
+            if (cube->name[0] == 0) {
+                sprintf(cube->name, "Cube%3.3d", gXStatus.mipe_cube_serial++);
             }
         } else {
-            sprintf(cube->name_24, "Cube%d", index);
+            sprintf(cube->name, "Cube%d", index);
         }
         for (component = 0; component < 3; ++component) {
             if (success && FileRead(handle, &cube->numbers[component], 4, 0)) {
@@ -645,7 +645,7 @@ unsigned int LoadWorldCursorNodes(int handle)
                                 (maximum.y - minimum.y) * static_cast<float>(g_world_cursor_scale),
                                 (maximum.z - minimum.z) * static_cast<float>(g_world_cursor_scale));
         if (cube != 0) {
-            stModelInstance* instance = static_cast<stModelInstance*>(cube->node_04);
+            stModelInstance* instance = static_cast<stModelInstance*>(cube->node);
             if (instance != 0) {
                 stMeshModel* model = static_cast<stMeshModel*>(instance->getModel());
                 if (model != 0) {
@@ -664,11 +664,11 @@ unsigned int LoadWorldCursorNodes(int handle)
         if (cube == 0) {
             srAssertFail("pCube", ST_CUBE_CPP, 0x10b, 0);
         }
-        if (cube->node_04 != 0) {
+        if (cube->node != 0) {
             srVector3T<double> node_location(static_cast<double>(location.x),
                                              static_cast<double>(location.y),
                                              static_cast<double>(location.z));
-            cube->node_04->setLocation(node_location);
+            cube->node->setLocation(node_location);
         }
         if (success && FileRead(handle, &cube->value_08, 4, 0)) {
             success = true;
@@ -702,12 +702,12 @@ unsigned char SaveWorldCursorNodes(int handle)
     }
     for (index = 0; index < count && ok; ++index) {
         node = *g_world_cursor_nodes.GetAt(index);
-        FileWrite(handle, node->name_24, sizeof(node->name_24), 0);
+        FileWrite(handle, node->name, sizeof(node->name), 0);
         for (component = 0; component < 3 && ok; ++component) {
             ok = FileWrite(handle, &node->numbers[component], 4, 0);
         }
-        node->node_04->getLocalBounds(bounds);
-        location = node->node_04->getLocation();
+        node->node->getLocalBounds(bounds);
+        location = node->node->getLocation();
         ok = ok && FileWrite(handle, &bounds.minimum.x, 4, 0) &&
              FileWrite(handle, &bounds.minimum.y, 4, 0) &&
              FileWrite(handle, &bounds.minimum.z, 4, 0) &&
@@ -738,10 +738,10 @@ void AttachWorldCursorNode(W8WorldCursorNode* entry, bool attached)
 {
     if (entry != 0) {
         if (attached != 0) {
-            entry->node_04->setParent(g_world->dynamic_scene, 1);
+            entry->node->setParent(g_world->dynamic_scene, 1);
             return;
         }
-        entry->node_04->setParent(0, 1);
+        entry->node->setParent(0, 1);
     }
 }
 
@@ -750,8 +750,8 @@ void AttachWorldCursorNode(W8WorldCursorNode* entry, bool attached)
 // FUNCTION: WIZ8 0x0048F110
 void SetWorldCursorNodeName(W8WorldCursorNode* entry, const char* name)
 {
-    strncpy(entry->name_24, name, 0x20);
-    entry->name_24[0x1f] = 0;
+    strncpy(entry->name, name, 0x20);
+    entry->name[0x1f] = 0;
 }
 
 /* Reparent the world's cursor-attached nodes onto the dynamic scene, or
@@ -770,7 +770,7 @@ void SetWorldCursorNodesVisible(bool visible)
             if (visible != 0) {
                 parent = g_world->dynamic_scene;
             }
-            entry->node_04->setParent(parent, 1);
+            entry->node->setParent(parent, 1);
         }
     }
 }
@@ -796,10 +796,10 @@ W8WorldCursorNode* FindWorldCursorNodeAtPoint(W8WorldCursorNode* after, srVector
     }
     while (index < count) {
         W8WorldCursorNode* entry = *g_world_cursor_nodes.GetAt(index);
-        if (entry->node_04 != 0) {
+        if (entry->node != 0) {
             srNode::BoundInfo bounds;
-            entry->node_04->getLocalBounds(bounds);
-            srVector3T<double> location = entry->node_04->getLocation();
+            entry->node->getLocalBounds(bounds);
+            srVector3T<double> location = entry->node->getLocation();
             bounds.minimum.x += static_cast<float>(location.x);
             bounds.minimum.y += static_cast<float>(location.y);
             bounds.minimum.z += static_cast<float>(location.z);
@@ -825,7 +825,7 @@ void GetWorldCursorNodeUserdata(W8WorldCursorNode* entry, char** buffer, int* si
             *buffer = static_cast<char*>(entry->pUserdata);
         }
         if (size != 0) {
-            *size = entry->size_1c;
+            *size = entry->size;
         }
     } else {
         if (buffer != 0) {
@@ -855,14 +855,14 @@ void SetWorldCursorNodeUserdataSize(W8WorldCursorNode* entry, int size)
                 entry->pUserdata = 0;
             }
         }
-        entry->size_1c = size;
+        entry->size = size;
     }
 }
 
 /* Select the cursor node nearest the camera within the selection distance,
    remembering it for the next call. Answers whether one was close enough.
-   Retail loads entry->node_04->getLocation() before TEST ESI,ESI on both the
-   cached-index path and the table scan; there is no separate node_04 null
+   Retail loads entry->node->getLocation() before TEST ESI,ESI on both the
+   cached-index path and the table scan; there is no separate node null
    check. Keep that load order. */
 // FUNCTION: WIZ8 0x0048EFC0
 bool SelectWorldCursorNode(void)
@@ -876,7 +876,7 @@ bool SelectWorldCursorNode(void)
         int selected = g_cursor_node_index;
         if (selected >= 0 && selected < g_world_cursor_nodes.count) {
             W8WorldCursorNode* entry = g_world_cursor_nodes.data[selected];
-            srVector3T<double> target = entry->node_04->getLocation();
+            srVector3T<double> target = entry->node->getLocation();
 
             if (entry != 0) {
                 srVector3T<double> delta = target;
@@ -890,7 +890,7 @@ bool SelectWorldCursorNode(void)
         int count = g_world_cursor_nodes.count;
         for (int index = 0; index < count; ++index) {
             W8WorldCursorNode* entry = g_world_cursor_nodes.data[index];
-            srVector3T<double> target = entry->node_04->getLocation();
+            srVector3T<double> target = entry->node->getLocation();
 
             if (entry != 0) {
                 srVector3T<double> delta = target;

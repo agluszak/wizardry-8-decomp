@@ -34,8 +34,8 @@ private:
     };
 
     struct QueueEntry {
-        Job* job_00;
-        QueueEntry* next_04;
+        Job* job;
+        QueueEntry* next;
         QueueEntry* previous;
         long state;
     };
@@ -57,7 +57,7 @@ private:
     static void __cdecl workerEntry(void* argument);
 
     WorkerSlot workers[4];
-    srHashTable<Job*, QueueEntry*> lookup_20;
+    srHashTable<Job*, QueueEntry*> lookup;
     QueueEntry* first_job;
     QueueEntry* last_job;
     long job_count;

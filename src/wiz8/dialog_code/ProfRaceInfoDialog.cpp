@@ -86,11 +86,11 @@ int W8ProfRaceInfoDialogBase::CreateControls()
     resources.arrows_path = "Data\\Main Interface\\main_scroll.sti";
     resources.track_frame = 1;
     resources.on_scroll = ScrollCallback;
-    m_scroll_bar_084.CreateControls(&resources);
+    m_scroll_bar.CreateControls(&resources);
     int x = m_x;
-    m_scroll_bar_084.SetLayout(x + 0x159, m_y + 0x29, m_text_area_118.GetTotalLineCount(), 0,
-                               m_text_area_118.GetLineHeight(), 0xb8);
-    m_scroll_bar_084.m_owner = this;
+    m_scroll_bar.SetLayout(x + 0x159, m_y + 0x29, m_text_area.GetTotalLineCount(), 0,
+                               m_text_area.GetLineHeight(), 0xb8);
+    m_scroll_bar.m_owner = this;
 
     m_button.Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 0, 1, 4, 2,
                            DialogCloseButtonCallback, 0, 0, 0x7f, -1, 0, 0);
@@ -102,7 +102,7 @@ int W8ProfRaceInfoDialogBase::CreateControls()
 // FUNCTION: WIZ8 0x005DED40
 void W8ProfRaceInfoDialogBase::DestroyControls()
 {
-    m_scroll_bar_084.DestroyControls();
+    m_scroll_bar.DestroyControls();
     W8DialogBase::DestroyControls();
 }
 
@@ -113,8 +113,8 @@ void W8ProfRaceInfoDialogBase::Draw()
         if (m_initialized == 0) {
             CreateControls();
         }
-        m_text_area_118.m_dirty = true;
-        m_scroll_bar_084.m_dirty = true;
+        m_text_area.m_dirty = true;
+        m_scroll_bar.m_dirty = true;
         m_button.m_dirty = true;
         W8DialogBase::Draw();
         DrawCatalogImageAndInvalidate(-0xe, m_uiTitleId, 0, m_uiSummaryId, m_x + 0xd, m_y + 0xd, 2,
@@ -140,8 +140,8 @@ void W8ProfRaceInfoDialogBase::Draw()
             top += 0xe;
         }
     }
-    m_text_area_118.Draw(0);
-    m_scroll_bar_084.Draw(0);
+    m_text_area.Draw(0);
+    m_scroll_bar.Draw(0);
     m_button.Draw();
 }
 
@@ -169,8 +169,8 @@ unsigned char W8ProfRaceInfoDialogBase::PopulateText()
     bounds.top = m_y + 0x29;
     bounds.right = m_x + 0x151;
     bounds.bottom = m_y + 0xe1;
-    m_text_area_118.Configure(&bounds, g_wiz_text_font_secondary, 0);
-    m_text_area_118.SetEntrySpacing(0);
+    m_text_area.Configure(&bounds, g_wiz_text_font_secondary, 0);
+    m_text_area.SetEntrySpacing(0);
     return 1;
 }
 
@@ -188,11 +188,11 @@ void W8ProfRaceInfoDialogBase::OnMouseWheel(int delta)
 {
     if (delta > 0) {
         for (int step = 0; step < delta; ++step) {
-            m_scroll_bar_084.ScrollUp();
+            m_scroll_bar.ScrollUp();
         }
     } else if (delta < 0) {
         for (int step = 0; step < -delta; ++step) {
-            m_scroll_bar_084.ScrollDown();
+            m_scroll_bar.ScrollDown();
         }
     }
 }
@@ -207,14 +207,14 @@ void W8ProfRaceInfoDialogBase::ScrollCallback(W8DialogScrollBar* scroll_bar,
     int bottom;
     W8ProfRaceInfoDialogBase* dialog = static_cast<W8ProfRaceInfoDialogBase*>(scroll_bar->m_owner);
     if (dialog != 0) {
-        dialog->m_text_area_118.SetFirstVisibleLine(first_visible_entry);
+        dialog->m_text_area.SetFirstVisibleLine(first_visible_entry);
         left = dialog->m_x + 0xa2;
         top = dialog->m_y + 0x29;
         right = left + 0xaf;
         bottom = top + 0xb8;
         InvalidateRegion(left, top, right, bottom, 0);
         BlitCatalogSurfaceRectTo16BPP(-0xe, left, top, right, bottom, 0x1b6, 0, 0);
-        dialog->m_text_area_118.m_dirty = true;
+        dialog->m_text_area.m_dirty = true;
     }
 }
 
@@ -241,37 +241,37 @@ W8ProfessionInfoDialog::W8ProfessionInfoDialog(unsigned int uiIndex)
 unsigned char W8ProfessionInfoDialog::PopulateText()
 {
     W8ProfRaceInfoDialogBase::PopulateText();
-    m_text_area_118.AddEntry(gppStringList[0x153], gppStringList[m_uiDetailId], 10, 0xf, 0);
-    m_text_area_118.AddEntry(0, &g_empty_wide_string, 10, 0xf, 0);
-    m_text_area_118.AddEntry(gppStringList[0x14d], &g_empty_wide_string, 10, 0xf, 0);
+    m_text_area.AddEntry(gppStringList[0x153], gppStringList[m_uiDetailId], 10, 0xf, 0);
+    m_text_area.AddEntry(0, &g_empty_wide_string, 10, 0xf, 0);
+    m_text_area.AddEntry(gppStringList[0x14d], &g_empty_wide_string, 10, 0xf, 0);
     unsigned int index;
     for (index = 0; index < 3; ++index) {
         int ability = g_profession_abilities[m_uiIndex].ability_ids[index];
         if (ability == -1) {
             break;
         }
-        m_text_area_118.AddEntry(0, gppStringList[g_character_trait_name_ids[ability]], 10, 0xf, 0);
+        m_text_area.AddEntry(0, gppStringList[g_character_trait_name_ids[ability]], 10, 0xf, 0);
     }
-    m_text_area_118.AddEntry(0, &g_empty_wide_string, 10, 0xf, 0);
-    m_text_area_118.AddEntry(gppStringList[0x14e], &g_empty_wide_string, 10, 0xf, 0);
-    m_text_area_118.AddEntry(
+    m_text_area.AddEntry(0, &g_empty_wide_string, 10, 0xf, 0);
+    m_text_area.AddEntry(gppStringList[0x14e], &g_empty_wide_string, 10, 0xf, 0);
+    m_text_area.AddEntry(
         0, gppStringList[g_character_skill_name_ids[g_profession_bonus_skills[m_uiIndex]]], 10, 0xf,
         0);
-    m_text_area_118.AddEntry(0, &g_empty_wide_string, 10, 0xf, 0);
-    m_text_area_118.AddEntry(gppStringList[0x14f], &g_empty_wide_string, 10, 0xf, 0);
+    m_text_area.AddEntry(0, &g_empty_wide_string, 10, 0xf, 0);
+    m_text_area.AddEntry(gppStringList[0x14f], &g_empty_wide_string, 10, 0xf, 0);
     for (index = 0; index < 4; ++index) {
         int skill = g_profession_skills[m_uiIndex][index];
         if (skill == -1) {
             break;
         }
-        m_text_area_118.AddEntry(0, gppStringList[g_character_skill_name_ids[skill]], 10, 0xf, 0);
+        m_text_area.AddEntry(0, gppStringList[g_character_skill_name_ids[skill]], 10, 0xf, 0);
     }
-    m_text_area_118.AddEntry(0, &g_empty_wide_string, 10, 0xf, 0);
-    m_text_area_118.AddEntry(gppStringList[0x150], &g_empty_wide_string, 10, 0xf, 0);
+    m_text_area.AddEntry(0, &g_empty_wide_string, 10, 0xf, 0);
+    m_text_area.AddEntry(gppStringList[0x150], &g_empty_wide_string, 10, 0xf, 0);
     for (index = 0; index < 6; ++index) {
         int item = g_starting_equipment[m_uiIndex][index];
         if (item != -1) {
-            m_text_area_118.AddEntry(0, g_item_records[item].display_name, 10, 0xf, 0);
+            m_text_area.AddEntry(0, g_item_records[item].display_name, 10, 0xf, 0);
         }
     }
     const wchar_t* first;
@@ -286,15 +286,15 @@ unsigned char W8ProfessionInfoDialog::PopulateText()
         first = g_item_records[18].display_name;
         break;
     case 8:
-        m_text_area_118.AddEntry(0, g_item_records[599].display_name, 10, 0xf, 0);
+        m_text_area.AddEntry(0, g_item_records[599].display_name, 10, 0xf, 0);
         return 1;
     case 9:
-        m_text_area_118.AddEntry(0, g_item_records[324].display_name, 10, 0xf, 0);
+        m_text_area.AddEntry(0, g_item_records[324].display_name, 10, 0xf, 0);
         return 1;
     default:
         return 1;
     }
-    m_text_area_118.AddEntry(0, FormatWideString(gppStringList[0x151], first, second), 10, 0xf, 0);
+    m_text_area.AddEntry(0, FormatWideString(gppStringList[0x151], first, second), 10, 0xf, 0);
     return 1;
 }
 
@@ -326,19 +326,19 @@ W8RaceInfoDialog::W8RaceInfoDialog(unsigned int uiIndex)
 unsigned char W8RaceInfoDialog::PopulateText()
 {
     W8ProfRaceInfoDialogBase::PopulateText();
-    m_text_area_118.AddEntry(gppStringList[0x153], gppStringList[m_uiDetailId], 10, 0xf, 0);
-    m_text_area_118.AddEntry(0, &g_empty_wide_string, 10, 0xf, 0);
-    m_text_area_118.AddEntry(gppStringList[0x14d], &g_empty_wide_string, 10, 0xf, 0);
+    m_text_area.AddEntry(gppStringList[0x153], gppStringList[m_uiDetailId], 10, 0xf, 0);
+    m_text_area.AddEntry(0, &g_empty_wide_string, 10, 0xf, 0);
+    m_text_area.AddEntry(gppStringList[0x14d], &g_empty_wide_string, 10, 0xf, 0);
     bool listed = 0;
     for (unsigned int index = 0; index < 5; ++index) {
         int ability = g_race_abilities[m_uiIndex].ability_ids[index];
         if (ability == -1) {
             if (!listed) {
-                m_text_area_118.AddEntry(0, gppStringList[0x154], 10, 0xf, 0);
+                m_text_area.AddEntry(0, gppStringList[0x154], 10, 0xf, 0);
             }
             return 1;
         }
-        m_text_area_118.AddEntry(0, gppStringList[g_character_trait_name_ids[ability]], 10, 0xf, 0);
+        m_text_area.AddEntry(0, gppStringList[g_character_trait_name_ids[ability]], 10, 0xf, 0);
         listed = 1;
     }
     return 1;

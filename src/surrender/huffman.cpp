@@ -9,9 +9,9 @@ static void* copyMemory(void* destination, const void* source, long size);
 void srHuffman::BitIStream::fetchCache(long position)
 {
     cache_base = position;
-    stream_00->seek(position);
-    stream_00->read(cache_04, 0x80);
-    stream_00->setState(srBinStream::SR_STREAM_OK);
+    stream->seek(position);
+    stream->read(cache, 0x80);
+    stream->setState(srBinStream::SR_STREAM_OK);
 }
 
 // FUNCTION: SURRENDER 0x100015C0
@@ -22,7 +22,7 @@ unsigned long srHuffman::BitIStream::getByte(long position)
         fetchCache(position);
         offset = 0;
     }
-    return cache_04[offset];
+    return cache[offset];
 }
 
 // FUNCTION: SURRENDER 0x10001490
@@ -34,7 +34,7 @@ unsigned long srHuffman::BitIStream::getDWord(long position)
         offset = 0;
     }
     /* reinterpret-ok: the byte cache is read as an unaligned dword. */
-    return *reinterpret_cast<unsigned long*>(cache_04 + offset);
+    return *reinterpret_cast<unsigned long*>(cache + offset);
 }
 
 // FUNCTION: SURRENDER 0x10001340
@@ -50,9 +50,9 @@ unsigned long srHuffman::BitIStream::getWordOrLess(unsigned long bits)
 // FUNCTION: SURRENDER 0x100010A0
 srHuffman::BitIStream::BitIStream(srBinIStream& stream)
 {
-    stream_00 = &stream;
+    this->stream = &stream;
     cache_base = -0x100;
-    bit_pos = stream_00->tell() << 3;
+    bit_pos = this->stream->tell() << 3;
 }
 
 // FUNCTION: SURRENDER 0x100010E0
@@ -87,19 +87,19 @@ srHuffman::BitOStream& srHuffman::BitOStream::operator=(const BitOStream& stream
     return *this;
 }
 
-/* Retail copies table_00 memberwise and assigns symbols_10 through
+/* Retail copies table memberwise and assigns symbols through
    srArray::operator=. */
 
-/* Retail assigns table_00 memberwise and symbols_10 through srArray::operator=. */
+/* Retail assigns table memberwise and symbols through srArray::operator=. */
 
 // FUNCTION: SURRENDER 0x100016D0
 srHuffman::BitOStream::BitOStream(srBinOStream& stream)
 {
-    stream_00 = &stream;
-    pending_0c = 0;
-    bit_count_08 = 0;
-    bytes_04 = 0;
-    buffered_50 = 0;
+    this->stream = &stream;
+    pending = 0;
+    bit_count = 0;
+    bytes = 0;
+    buffered = 0;
 }
 
 // FUNCTION: SURRENDER 0x10001730
@@ -127,13 +127,13 @@ void srHuffman::BitOStream::flush()
 // FUNCTION: SURRENDER 0x100017B0
 void srHuffman::BitOStream::flushByte()
 {
-    if (bit_count_08 != 0) {
-        buffer_10[buffered_50] = (unsigned char)pending_0c;
-        ++bytes_04;
-        ++buffered_50;
-        pending_0c = 0;
-        bit_count_08 = 0;
-        if (buffered_50 == 0x40) {
+    if (bit_count != 0) {
+        buffer[buffered] = (unsigned char)pending;
+        ++bytes;
+        ++buffered;
+        pending = 0;
+        bit_count = 0;
+        if (buffered == 0x40) {
             flushBuffer();
         }
     }
@@ -142,54 +142,54 @@ void srHuffman::BitOStream::flushByte()
 // FUNCTION: SURRENDER 0x100017F0
 void srHuffman::BitOStream::flushBuffer()
 {
-    if (buffered_50 != 0) {
-        stream_00->write(buffer_10, buffered_50);
+    if (buffered != 0) {
+        stream->write(buffer, buffered);
     }
-    buffered_50 = 0;
+    buffered = 0;
 }
 
 // FUNCTION: SURRENDER 0x10001810
 void srHuffman::BitOStream::putBit(unsigned long bit)
 {
-    pending_0c |= (bit & 1) << bit_count_08;
-    ++bit_count_08;
-    if (bit_count_08 == 8) {
+    pending |= (bit & 1) << bit_count;
+    ++bit_count;
+    if (bit_count == 8) {
         flushByte();
     }
 }
 
 // FUNCTION: SURRENDER 0x10001840
-srHuffman::Sampler::Sampler() : count_18(0) {}
+srHuffman::Sampler::Sampler() : count(0) {}
 
 // FUNCTION: SURRENDER 0x10001990
 void srHuffman::Sampler::insert(unsigned long symbol)
 {
-    if (table_00.FindNextEntry(&symbol, -1) == -1) {
-        symbols_10[count_18].symbol_00 = symbol;
-        symbols_10[count_18].frequency = 1;
-        table_00.Insert(&symbol, &count_18);
-        ++count_18;
+    if (table.FindNextEntry(&symbol, -1) == -1) {
+        symbols[count].symbol = symbol;
+        symbols[count].frequency = 1;
+        table.Insert(&symbol, &count);
+        ++count;
     } else {
-        ++symbols_10[table_00.Lookup(&symbol)].frequency;
+        ++symbols[table.Lookup(&symbol)].frequency;
     }
 }
 
 // FUNCTION: SURRENDER 0x10001BA0
 unsigned long srHuffman::Sampler::getNumSymbols() const
 {
-    return count_18;
+    return count;
 }
 
 // FUNCTION: SURRENDER 0x10001BB0
 unsigned long srHuffman::Sampler::getSymbolValue(unsigned long index) const
 {
-    return symbols_10.data[index].symbol_00;
+    return symbols.data[index].symbol;
 }
 
 // FUNCTION: SURRENDER 0x10001BC0
 unsigned long srHuffman::Sampler::getSymbolFrequency(unsigned long index) const
 {
-    return symbols_10.data[index].frequency;
+    return symbols.data[index].frequency;
 }
 
 // FUNCTION: SURRENDER 0x10001BD0
@@ -197,55 +197,55 @@ srHuffman::Compressor::Compressor(const Sampler& sampler)
 {
     num_symbols = sampler.getNumSymbols();
     code_width = 0;
-    total_24 = 0;
-    nodes_10 = 0;
-    root_18 = 0;
+    total = 0;
+    nodes = 0;
+    root = 0;
     free_list = 0;
     if (num_symbols != 0) {
-        nodes_10 = static_cast<Node*>(::operator new(num_symbols * 2 * sizeof(Node)));
-        free_list = nodes_10;
+        nodes = static_cast<Node*>(::operator new(num_symbols * 2 * sizeof(Node)));
+        free_list = nodes;
         for (unsigned long index = 0; index < num_symbols * 2; ++index) {
-            nodes_10[index].symbol_00 = 0;
-            nodes_10[index].frequency = 0;
-            nodes_10[index].next_10 = nodes_10 + index + 1;
-            nodes_10[index].children_14[0] = 0;
-            nodes_10[index].children_14[1] = 0;
-            nodes_10[index].code_08 = 0;
-            nodes_10[index].bits_0c = 0;
+            nodes[index].symbol = 0;
+            nodes[index].frequency = 0;
+            nodes[index].next = nodes + index + 1;
+            nodes[index].children[0] = 0;
+            nodes[index].children[1] = 0;
+            nodes[index].code = 0;
+            nodes[index].bits = 0;
         }
-        nodes_10[num_symbols - 1].next_10 = 0;
-        free_list = nodes_10 + num_symbols;
-        nodes_10[num_symbols * 2 - 1].next_10 = 0;
+        nodes[num_symbols - 1].next = 0;
+        free_list = nodes + num_symbols;
+        nodes[num_symbols * 2 - 1].next = 0;
         collectSymbols(sampler);
         buildSymbolTree();
-        total_24 = 0;
-        setupPath(root_18, 0, 0);
+        total = 0;
+        setupPath(root, 0, 0);
     }
 }
 
 // FUNCTION: SURRENDER 0x10001E10
 srHuffman::Compressor::~Compressor()
 {
-    ::operator delete(nodes_10);
+    ::operator delete(nodes);
 }
 
 // FUNCTION: SURRENDER 0x10001E40
 void srHuffman::Compressor::storeSymbolTable(BitOStream& stream)
 {
-    dumpNode(stream, root_18);
+    dumpNode(stream, root);
 }
 
 // FUNCTION: SURRENDER 0x10001E60
 void srHuffman::Compressor::dumpNode(BitOStream& stream, Node* node)
 {
-    while (node != 0 && node->children_14[0] != 0) {
+    while (node != 0 && node->children[0] != 0) {
         stream.put(0, 1);
-        dumpNode(stream, node->children_14[0]);
-        node = node->children_14[1];
+        dumpNode(stream, node->children[0]);
+        node = node->children[1];
     }
     if (node != 0) {
         stream.put(1, 1);
-        stream.put(node->symbol_00, code_width);
+        stream.put(node->symbol, code_width);
     }
 }
 
@@ -253,19 +253,19 @@ void srHuffman::Compressor::dumpNode(BitOStream& stream, Node* node)
 void srHuffman::Compressor::setupPath(Node* node, unsigned long code, unsigned long depth)
 {
     if (node != 0) {
-        while (node->children_14[0] != 0) {
-            setupPath(node->children_14[0], code, depth + 1);
-            node = node->children_14[1];
+        while (node->children[0] != 0) {
+            setupPath(node->children[0], code, depth + 1);
+            node = node->children[1];
             code |= 1 << depth;
             ++depth;
             if (node == 0) {
                 return;
             }
         }
-        node->code_08 = code;
-        node->bits_0c = depth;
-        table_00.Insert(&node->symbol_00, &node);
-        total_24 += node->frequency * node->bits_0c;
+        node->code = code;
+        node->bits = depth;
+        table.Insert(&node->symbol, &node);
+        total += node->frequency * node->bits;
     }
 }
 
@@ -276,14 +276,14 @@ void srHuffman::Compressor::buildSymbolTree()
         Node* heads[2];
         Node* tails[2];
         Node* root = 0;
-        heads[0] = nodes_10;
+        heads[0] = nodes;
         heads[1] = 0;
         tails[1] = 0;
         for (unsigned long merged = 0; merged < num_symbols - 1; ++merged) {
             Node* node = free_list;
-            free_list = node->next_10;
-            node->next_10 = 0;
-            Node** slot = node->children_14;
+            free_list = node->next;
+            node->next = 0;
+            Node** slot = node->children;
             for (int remaining = 2; remaining != 0; --remaining) {
                 int which = 0;
                 if (heads[1] != 0 &&
@@ -292,27 +292,27 @@ void srHuffman::Compressor::buildSymbolTree()
                 }
                 Node* picked = heads[which];
                 *slot = picked;
-                heads[which] = picked->next_10;
+                heads[which] = picked->next;
                 if (heads[which] == 0) {
                     tails[which] = 0;
                 }
                 picked = *slot;
                 ++slot;
-                picked->next_10 = 0;
+                picked->next = 0;
             }
             node->frequency =
-                node->children_14[1]->frequency + node->children_14[0]->frequency;
+                node->children[1]->frequency + node->children[0]->frequency;
             if (tails[1] == 0) {
                 heads[1] = node;
             } else {
-                tails[1]->next_10 = node;
+                tails[1]->next = node;
             }
             root = heads[1];
             tails[1] = node;
         }
-        root_18 = root;
+        this->root = root;
     } else {
-        root_18 = nodes_10;
+        this->root = nodes;
     }
 }
 
@@ -363,39 +363,39 @@ void srHuffman::Compressor::collectSymbols(const Sampler& sampler)
         Sampler::Symbol* pairs = static_cast<Sampler::Symbol*>(srHeap.allocate(num_symbols * 8));
         unsigned long bulk = num_symbols & ~3;
         for (index = 0; index < bulk; index += 4) {
-            pairs[index].symbol_00 = symbols[index];
+            pairs[index].symbol = symbols[index];
             pairs[index].frequency = frequencies[index];
-            pairs[index + 1].symbol_00 = symbols[index + 1];
+            pairs[index + 1].symbol = symbols[index + 1];
             pairs[index + 1].frequency = frequencies[index + 1];
-            pairs[index + 2].symbol_00 = symbols[index + 2];
+            pairs[index + 2].symbol = symbols[index + 2];
             pairs[index + 2].frequency = frequencies[index + 2];
-            pairs[index + 3].symbol_00 = symbols[index + 3];
+            pairs[index + 3].symbol = symbols[index + 3];
             pairs[index + 3].frequency = frequencies[index + 3];
         }
         for (; index < num_symbols; ++index) {
-            pairs[index].symbol_00 = symbols[index];
+            pairs[index].symbol = symbols[index];
             pairs[index].frequency = frequencies[index];
         }
         sortSymbolPairs(pairs, num_symbols);
         for (index = 0; index < bulk; index += 4) {
-            symbols[index] = pairs[index].symbol_00;
+            symbols[index] = pairs[index].symbol;
             frequencies[index] = pairs[index].frequency;
-            symbols[index + 1] = pairs[index + 1].symbol_00;
+            symbols[index + 1] = pairs[index + 1].symbol;
             frequencies[index + 1] = pairs[index + 1].frequency;
-            symbols[index + 2] = pairs[index + 2].symbol_00;
+            symbols[index + 2] = pairs[index + 2].symbol;
             frequencies[index + 2] = pairs[index + 2].frequency;
-            symbols[index + 3] = pairs[index + 3].symbol_00;
+            symbols[index + 3] = pairs[index + 3].symbol;
             frequencies[index + 3] = pairs[index + 3].frequency;
         }
         for (; index < num_symbols; ++index) {
-            symbols[index] = pairs[index].symbol_00;
+            symbols[index] = pairs[index].symbol;
             frequencies[index] = pairs[index].frequency;
         }
         srHeap.free(pairs);
     }
     for (index = 0; index < num_symbols; ++index) {
-        nodes_10[index].symbol_00 = symbols[index];
-        nodes_10[index].frequency = frequencies[index];
+        nodes[index].symbol = symbols[index];
+        nodes[index].frequency = frequencies[index];
     }
     srHeap.free(symbols);
     srHeap.free(frequencies);
@@ -404,17 +404,17 @@ void srHuffman::Compressor::collectSymbols(const Sampler& sampler)
 // FUNCTION: SURRENDER 0x10002340
 srHuffman::Decompressor::Decompressor(BitIStream& stream)
 {
-    symbols_04 = 0;
-    next_node_08 = 0;
-    stream_00 = &stream;
-    num_symbols = stream_00->get(0x20);
-    code_width = stream_00->get(6);
-    data_count = stream_00->get(0x20);
+    symbols = 0;
+    next_node = 0;
+    this->stream = &stream;
+    num_symbols = this->stream->get(0x20);
+    code_width = this->stream->get(6);
+    data_count = this->stream->get(0x20);
     if (num_symbols != 0) {
-        symbols_04 = static_cast<Symbol*>(::operator new(num_symbols * 0x18));
-        setupSymbolTable(symbols_04);
+        symbols = static_cast<Symbol*>(::operator new(num_symbols * 0x18));
+        setupSymbolTable(symbols);
         for (unsigned long index = 0; index < 0x100; ++index) {
-            Symbol* node = symbols_04;
+            Symbol* node = symbols;
             unsigned long depth = 0;
             do {
                 Symbol* next = node->children[0];
@@ -427,8 +427,8 @@ srHuffman::Decompressor::Decompressor(BitIStream& stream)
                 ++depth;
                 node = next;
             } while (depth < 8);
-            lookup_1c[index] = node;
-            depth_41c[index] = (unsigned char)depth;
+            lookup[index] = node;
+            this->depth[index] = (unsigned char)depth;
         }
     }
 }
@@ -436,7 +436,7 @@ srHuffman::Decompressor::Decompressor(BitIStream& stream)
 // FUNCTION: SURRENDER 0x100024F0
 srHuffman::Decompressor::~Decompressor()
 {
-    ::operator delete(symbols_04);
+    ::operator delete(symbols);
 }
 
 // FUNCTION: SURRENDER 0x10002500
@@ -448,10 +448,10 @@ unsigned long srHuffman::Decompressor::getDataCount() const
 // FUNCTION: SURRENDER 0x10002510
 unsigned long srHuffman::Decompressor::decompressSymbol()
 {
-    BitIStream* stream = stream_00;
+    BitIStream* stream = this->stream;
     unsigned long key = stream->get(8);
-    stream->rewind(8 - depth_41c[key]);
-    Symbol* node = lookup_1c[key];
+    stream->rewind(8 - depth[key]);
+    Symbol* node = lookup[key];
     while (node->children[0] != 0) {
         node = node->children[stream->getBit()];
     }
@@ -462,17 +462,17 @@ unsigned long srHuffman::Decompressor::decompressSymbol()
 void srHuffman::Decompressor::setupSymbolTable(Symbol* node)
 {
     while (true) {
-        ++next_node_08;
-        if (stream_00->get(1) != 0) {
+        ++next_node;
+        if (stream->get(1) != 0) {
             break;
         }
         node->value_00 = 0xffffffff;
-        node->children[0] = &symbols_04[next_node_08];
+        node->children[0] = &symbols[next_node];
         setupSymbolTable(node->children[0]);
-        node->children[1] = &symbols_04[next_node_08];
+        node->children[1] = &symbols[next_node];
         node = node->children[1];
     }
-    node->value_00 = stream_00->get(code_width);
+    node->value_00 = stream->get(code_width);
     node->children[0] = 0;
     node->children[1] = 0;
 }

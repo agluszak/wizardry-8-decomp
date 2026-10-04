@@ -605,7 +605,7 @@ void UpdateNpcPartyMember(int party_slot)
         }
     }
     if (character->highest_condition < 0xf) {
-        QueueCharacterEvent(character, g_effect_005ee69c, 0, g_character_event_no_flags,
+        QueueCharacterEvent(character, g_effect33, 0, g_character_event_no_flags,
                             g_character_event_full_volume);
     }
 }
@@ -991,7 +991,7 @@ void ProcessNpcPendingEvents(void)
                     W8Character* character =
                         &g_status.buffers.Char[g_status.sedexus_party_slot];
                     if (character->gender == W8_GENDER_MALE) {
-                        QueueCharacterEvent(character, g_effect_005ee638, 0,
+                        QueueCharacterEvent(character, g_effect30, 0,
                                             g_character_event_no_flags,
                                             g_character_event_full_volume);
                     }
@@ -1066,8 +1066,8 @@ void ProcessNpcPendingEvents(void)
                                     static_cast<unsigned int>(band)) {
                                     if ((bound->record->service_flags &
                                          g_npc_services[index].bit) != 0) {
-                                        row->npc_bound_fe = true;
-                                        bound->event_clock_eb = g_status.world_clock;
+                                        row->npc_bound = true;
+                                        bound->event_clock = g_status.world_clock;
                                         RebuildConditionsAndDerivedStats(slot);
                                         QueueCharacterEvent(character, 0x56, 0,
                                                             g_character_event_no_flags,
@@ -1175,9 +1175,9 @@ void SelectStartNpcGreeting(void)
                 return;
             }
             monster = monster_info->p3D;
-            head.Set(monster->movement_0c0.position_040.x,
-                     monster->movement_0c0.position_040.y + monster->movement_0c0.height_offset,
-                     monster->movement_0c0.position_040.z);
+            head.Set(monster->movement.position.x,
+                     monster->movement.position.y + monster->movement.height_offset,
+                     monster->movement.position.z);
             g_gd_camera->LookAt(&head, 0);
             return;
         }
@@ -1381,7 +1381,7 @@ W8NpcState* CreateNpcRuntimeNode(int npc_id)
     npc->disposition = g_npc_records[npc_id].disposition;
     npc->gold = g_npc_records[npc_id].gold;
     npc->greeting_pending = 1;
-    npc->trade_pool_ca = g_npc_records[npc_id].trade_pool;
+    npc->trade_pool = g_npc_records[npc_id].trade_pool;
 
     for (index = 0; index < g_npc_states->count; ++index) {
         released = *g_npc_states->GetAt(index);
@@ -1909,12 +1909,12 @@ void ApplyNpcInteraction(W8NpcState* npc, int kind, int value, W8ItemInstance* i
         SpendPartyGold(gold);
         level = static_cast<int>(GetBestPartySkillLevel(W8_SKILL_COMMUNICATION, 0));
         adjusted = gold + level * (static_cast<int>(gold & 0xffff) / 5) / 100;
-        if (static_cast<int>(npc->trade_pool_ca - (adjusted & 0xffff)) < 0) {
-            npc->trade_pool_ca = 0;
+        if (static_cast<int>(npc->trade_pool - (adjusted & 0xffff)) < 0) {
+            npc->trade_pool = 0;
         } else {
-            npc->trade_pool_ca = static_cast<unsigned short>(npc->trade_pool_ca - adjusted);
+            npc->trade_pool = static_cast<unsigned short>(npc->trade_pool - adjusted);
         }
-        if (npc->trade_pool_ca != 0) {
+        if (npc->trade_pool != 0) {
             break;
         }
         GetNpcDisposition(npc);
@@ -1927,7 +1927,7 @@ void ApplyNpcInteraction(W8NpcState* npc, int kind, int value, W8ItemInstance* i
         if (level != 0) {
             npc->disposition = 0x4b;
         }
-        npc->trade_pool_ca = g_npc_records[npc->name_style].trade_pool;
+        npc->trade_pool = g_npc_records[npc->name_style].trade_pool;
         break;
     }
     case 3: {
@@ -1937,12 +1937,12 @@ void ApplyNpcInteraction(W8NpcState* npc, int kind, int value, W8ItemInstance* i
 
         level = static_cast<int>(GetBestPartySkillLevel(W8_SKILL_COMMUNICATION, 0));
         adjusted = price + level * (static_cast<int>(price & 0xffff) / 5) / 100;
-        if (static_cast<int>(npc->trade_pool_ca - (adjusted & 0xffff)) < 0) {
-            npc->trade_pool_ca = 0;
+        if (static_cast<int>(npc->trade_pool - (adjusted & 0xffff)) < 0) {
+            npc->trade_pool = 0;
         } else {
-            npc->trade_pool_ca = static_cast<unsigned short>(npc->trade_pool_ca - adjusted);
+            npc->trade_pool = static_cast<unsigned short>(npc->trade_pool - adjusted);
         }
-        if (npc->trade_pool_ca != 0) {
+        if (npc->trade_pool != 0) {
             break;
         }
         GetNpcDisposition(npc);
@@ -1955,7 +1955,7 @@ void ApplyNpcInteraction(W8NpcState* npc, int kind, int value, W8ItemInstance* i
         if (level != 0) {
             npc->disposition = 0x4b;
         }
-        npc->trade_pool_ca = g_npc_records[npc->name_style].trade_pool;
+        npc->trade_pool = g_npc_records[npc->name_style].trade_pool;
         break;
     }
     default:
@@ -2159,7 +2159,7 @@ void TriggerBelaVoice(W8Monster* monster)
 {
     srVector3T<float> position;
 
-    monster->flags_1dc |= W8_MONSTER_PARKED;
+    monster->flags1 |= W8_MONSTER_PARKED;
     position.SetZero();
     monster->SetPosition(&position);
 
@@ -2232,7 +2232,7 @@ void UpdateNpcEvents(void)
 
         for (int slot = 0; slot < g_npc_states->GetCount(); ++slot) {
             npc = *g_npc_states->GetAt(slot);
-            if (npc->binding_unavailable != 0 || npc->restored_ea == 0) {
+            if (npc->binding_unavailable != 0 || npc->restored == 0) {
                 g_status.npc_restore_pending = 0;
                 continue;
             }
@@ -2316,15 +2316,15 @@ void UpdateNpcEvents(void)
                         npc_state = 0;
                     }
                 }
-                if (row->npc_bound_fe != 0 &&
-                    (g_status.world_clock - npc_state->event_clock_eb) > 0x168) {
+                if (row->npc_bound != 0 &&
+                    (g_status.world_clock - npc_state->event_clock) > 0x168) {
                     if (Random(2) == 0) {
-                        npc_state->event_clock_eb = g_status.world_clock + Random(6) * 0x3c;
+                        npc_state->event_clock = g_status.world_clock + Random(6) * 0x3c;
                     } else {
                         int event = Random(2) == 0 ? 0x57 : 0x58;
                         QueueCharacterEvent(character, event, 0, g_character_event_no_flags,
                                             g_character_event_full_volume);
-                        npc_state->event_clock_eb = g_status.world_clock;
+                        npc_state->event_clock = g_status.world_clock;
                     }
                 }
             }
@@ -2360,7 +2360,7 @@ void ResetNpcBindingsForParty(void)
 
         if (row->fOccupied != 0 && character->hp_current != 0) {
             GetNpcState(row->npc_index)->incapacitated = 0;
-            row->npc_bound_fe = false;
+            row->npc_bound = false;
             RebuildConditionsAndDerivedStats(party_slot);
         }
     }
@@ -2374,7 +2374,7 @@ void ApplyBoundNpcPenalty(W8Character* character, W8GameplayModifierBlock* targe
 {
     unsigned int index;
 
-    if (g_status.buffers.XChar[CharacterPointerToPartySlot(character)].npc_bound_fe == 0) {
+    if (g_status.buffers.XChar[CharacterPointerToPartySlot(character)].npc_bound == 0) {
         return;
     }
     for (index = 0; index < 7; ++index) {
@@ -2410,7 +2410,7 @@ void RestoreNamedNpcAtLevel(int kind, char level, const char* entity_name)
     }
     if (level == g_status.current_level) {
         RestoreNpcMonster(npc, entity_name);
-        npc->restored_ea = false;
+        npc->restored = false;
         return;
     }
     npc->pending_restore = 1;
@@ -2783,7 +2783,7 @@ void HandleMarkedNpcEvent(W8NpcState* npc, char mode)
             }
         }
     } else {
-        npc->restored_ea = true;
+        npc->restored = true;
         g_status.npc_restore_pending = 1;
     }
     if (npc->restore_done == 0) {
@@ -2890,7 +2890,7 @@ bool NotifyNpcTriggerActivation(Trigger* trigger)
     if (gXStatus.fNpcDialogueMode == 0) {
         W8NpcState* npc = *g_npc_states->GetAt(trigger->m_lData1);
 
-        if ((trigger->flags_0a0 & W8_TRIGGER_ENABLED) != 0 || npc->name_style == '{') {
+        if ((trigger->flags & W8_TRIGGER_ENABLED) != 0 || npc->name_style == '{') {
             if (g_status.item_in_cursor != 0) {
                 item = &g_status.item_in_hand;
             }

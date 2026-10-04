@@ -74,7 +74,7 @@ static void ClearPotionExplosionSoundFlag(void*)
     ClearScriptedSceneActive();
 }
 
-/* Camera-shake completion callback stored on W8CameraShakeEffect::completion_callback_48. */
+/* Camera-shake completion callback stored on W8CameraShakeEffect::completion_callback. */
 // FUNCTION: WIZ8 0x005092d0
 static void ReplayEarthquakeShake(void)
 {
@@ -244,7 +244,7 @@ void HandleFactChange(int fact_id, unsigned char value)
     case 0x91:
         if (value != 0) {
             trigger = FindTriggerByName("Door08");
-            if (trigger != 0 && (trigger->flags_0a0 & W8_TRIGGER_FIRED) == 0) {
+            if (trigger != 0 && (trigger->flags & W8_TRIGGER_FIRED) == 0) {
                 trigger->Run(-1);
             }
         }
@@ -272,7 +272,7 @@ void HandleFactChange(int fact_id, unsigned char value)
             return;
         }
         trigger = FindTriggerByName("Door07");
-        if (trigger != 0 && (trigger->flags_0a0 & W8_TRIGGER_FIRED) == 0) {
+        if (trigger != 0 && (trigger->flags & W8_TRIGGER_FIRED) == 0) {
             trigger->Run(-1);
         }
         return;
@@ -281,7 +281,7 @@ void HandleFactChange(int fact_id, unsigned char value)
             return;
         }
         trigger = FindTriggerByName("Door06");
-        if (trigger != 0 && (trigger->flags_0a0 & W8_TRIGGER_FIRED) == 0) {
+        if (trigger != 0 && (trigger->flags & W8_TRIGGER_FIRED) == 0) {
             trigger->Run(-1);
         }
         return;
@@ -294,7 +294,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         if (trigger == 0) {
             return;
         }
-        trigger->flags_0a0 &= ~W8_TRIGGER_ENABLED;
+        trigger->flags &= ~W8_TRIGGER_ENABLED;
         return;
     case 0xb6:
         if (value != 0) {
@@ -394,7 +394,7 @@ void HandleFactChange(int fact_id, unsigned char value)
             if (trigger == 0) {
                 return;
             }
-            trigger->flags_0a0 &= ~W8_TRIGGER_ENABLED;
+            trigger->flags &= ~W8_TRIGGER_ENABLED;
             return;
         }
         trigger = FindTriggerByName("Muraltrigger");
@@ -415,7 +415,7 @@ void HandleFactChange(int fact_id, unsigned char value)
     case 0x151:
         trigger = FindTriggerByName("ChaosBTrigger");
         if (trigger != 0) {
-            trigger->flags_0a0 &= ~W8_TRIGGER_ENABLED;
+            trigger->flags &= ~W8_TRIGGER_ENABLED;
         }
         trigger = FindTriggerByName("ChaosDoor01");
         if (trigger != 0) {
@@ -426,7 +426,7 @@ void HandleFactChange(int fact_id, unsigned char value)
     case 0x153:
         trigger = FindTriggerByName("KnowBTrigger");
         if (trigger != 0) {
-            trigger->flags_0a0 &= ~W8_TRIGGER_ENABLED;
+            trigger->flags &= ~W8_TRIGGER_ENABLED;
         }
         trigger = FindTriggerByName("DoorKnow03");
         if (trigger != 0) {
@@ -437,7 +437,7 @@ void HandleFactChange(int fact_id, unsigned char value)
     case 0x155:
         trigger = FindTriggerByName("LifeBTrigger");
         if (trigger != 0) {
-            trigger->flags_0a0 &= ~W8_TRIGGER_ENABLED;
+            trigger->flags &= ~W8_TRIGGER_ENABLED;
         }
         trigger = FindTriggerByName("DoorLife03");
         if (trigger != 0) {
@@ -520,7 +520,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         if (trigger == 0) {
             return;
         }
-        trigger->flags_0a0 &= ~W8_TRIGGER_ENABLED;
+        trigger->flags &= ~W8_TRIGGER_ENABLED;
         return;
     case 0x197:
         QueueNpcMessageLine(W8_NPC_MSG_MILANO_RAT_DOOR, 0);
@@ -919,8 +919,8 @@ void HandleFactChange(int fact_id, unsigned char value)
         }
         SoundPlayStreamedFile("Data\\Sound\\Misc\\Earthquake End.wav", 0);
         shake = CreateCameraShakeEffect(6.0f, 0, 1.0f, 0, 0);
-        shake->flags_00 |= 0x20;
-        shake->completion_callback_48 = ReplayEarthquakeShake;
+        shake->flags |= 0x20;
+        shake->completion_callback = ReplayEarthquakeShake;
         return;
     default:
         return;
@@ -978,7 +978,7 @@ void HandleScriptedNpcDeath(unsigned int monster_list_index)
     }
     for (index = 0; index < eligible_count; ++index) {
         if (eligible_slots[index] == lead_index) {
-            QueueCharacterEvent(&g_status.buffers.Char[eligible_slots[index]], g_effect_005ee618,
+            QueueCharacterEvent(&g_status.buffers.Char[eligible_slots[index]], g_effect24,
                                 g_character_event_no_npc_defer, g_character_event_no_flags,
                                 g_character_event_full_volume);
         }
@@ -987,7 +987,7 @@ void HandleScriptedNpcDeath(unsigned int monster_list_index)
         do {
             pick = Random(eligible_count);
         } while (eligible_slots[pick] == lead_index);
-        QueueCharacterEvent(&g_status.buffers.Char[eligible_slots[pick]], g_effect_005ee618,
+        QueueCharacterEvent(&g_status.buffers.Char[eligible_slots[pick]], g_effect24,
                             g_character_event_no_npc_defer, g_character_event_no_flags,
                             g_character_event_full_volume);
     }
@@ -995,7 +995,7 @@ void HandleScriptedNpcDeath(unsigned int monster_list_index)
         W8Character* character = &g_status.buffers.Char[slot];
         if (g_status.buffers.XChar[slot].fOccupied != 0 && character->hp_current != 0 &&
             character->highest_condition < 0xf) {
-            QueueCharacterEvent(character, g_effect_005ee630, g_character_event_no_npc_defer,
+            QueueCharacterEvent(character, g_effect28, g_character_event_no_npc_defer,
                                 g_character_event_no_flags, g_character_event_full_volume);
         }
     }
@@ -1052,7 +1052,7 @@ void MonsterKilled(int record_id, int killer_party_slot)
                     RemoveCharacterCondition(g_status.sedexus_party_slot, 10, 0);
                 }
                 QueueCharacterEvent(&g_status.buffers.Char[g_status.sedexus_party_slot],
-                                    g_effect_005ee6f8, 0, g_character_event_no_flags,
+                                    g_effect37, 0, g_character_event_no_flags,
                                     g_character_event_full_volume);
             }
             SetFact(0x1b6, 1, 0);

@@ -245,10 +245,10 @@ unsigned char W8DialogTextArea::CopyVisibleEntryText(unsigned int index, wchar_t
 // FUNCTION: WIZ8 0x005d2150
 unsigned char W8DialogTextArea::SetEntryState5D(int index)
 {
-    if (m_visible_lines.count != 0 && !(*m_visible_lines.GetAt(index))->m_state_5d) {
+    if (m_visible_lines.count != 0 && !(*m_visible_lines.GetAt(index))->m_state0) {
         W8DialogTextEntry* entry = *m_visible_lines.GetAt(index);
-        if (entry->m_state_5d != 1) {
-            entry->m_state_5d = 1;
+        if (entry->m_state0 != 1) {
+            entry->m_state0 = 1;
             entry->SetGeometryDirty();
         }
         m_state_5d_entry = index;
@@ -265,8 +265,8 @@ unsigned char W8DialogTextArea::ClearEntryState5D()
         m_state_5d_entry = -1;
     } else if (m_state_5d_entry != -1) {
         W8DialogTextEntry* entry = *m_visible_lines.GetAt(m_state_5d_entry);
-        if (entry->m_state_5d) {
-            entry->m_state_5d = 0;
+        if (entry->m_state0) {
+            entry->m_state0 = 0;
             entry->SetGeometryDirty();
         }
         selection_dirty = 1;
@@ -299,8 +299,8 @@ int W8DialogTextArea::GetOwningEntryIndex(int visible_index)
 void W8DialogTextArea::SetEntryState60(int index, bool state)
 {
     W8DialogTextEntry* entry = *m_all_lines.GetAt(index);
-    if (entry->m_state_60 != state) {
-        entry->m_state_60 = state;
+    if (entry->m_state1 != state) {
+        entry->m_state1 = state;
         entry->SetGeometryDirty();
     }
     selection_dirty = 1;
@@ -334,7 +334,7 @@ int W8DialogTextArea::AddEntry(const wchar_t* prefix, const wchar_t* text,
 void W8DialogTextArea::RemoveEntry(unsigned int index)
 {
     if (m_all_lines.count != 0 && index < static_cast<unsigned int>(m_all_lines.count)) {
-        if ((*m_all_lines.GetAt(index))->m_state_5d)
+        if ((*m_all_lines.GetAt(index))->m_state0)
             m_state_5d_entry = -1;
         if ((*m_all_lines.GetAt(index))->m_selected)
             m_selected_visible_entry = -1;

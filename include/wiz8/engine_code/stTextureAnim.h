@@ -36,7 +36,7 @@ public:
     void UpdateFrame();
 
     W8Vector<srTextureIFace*>* textures;
-    int frame_58;
+    int frame;
     int direction;
     unsigned char animation_mode;
     int initial_frame;
@@ -44,7 +44,7 @@ public:
     unsigned long frame_tick;
     int trigger_mode;
     float probability;
-    bool running_78;
+    bool running;
 };
 
 static_assert(sizeof(stTextureAnim) == 0x7c, "stTextureAnim_size_must_be_0x7c");

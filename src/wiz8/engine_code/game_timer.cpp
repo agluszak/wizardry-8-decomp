@@ -26,9 +26,9 @@ static int g_shared_timer_refs;
 // GLOBAL: WIZ8 0x006598D0
 bool g_shared_timer_paused;
 // GLOBAL: WIZ8 0x006598D1
-bool g_shared_timer_flag_d1;
+bool g_shared_timer_flag0;
 // GLOBAL: WIZ8 0x006598D2
-bool g_shared_timer_flag_d2;
+bool g_shared_timer_flag1;
 
 // GLOBAL: WIZ8 0x005ec0a8
 const float g_float_005ec0a8 = 10000.0f;
@@ -72,7 +72,7 @@ void PauseSharedGameTimers(void)
 void ResumeSharedGameTimers(void)
 {
     g_shared_timer_paused = false;
-    g_shared_timer_flag_d1 = false;
+    g_shared_timer_flag0 = false;
     if (g_shared_timer != 0) {
         g_shared_timer_pause_base =
             g_shared_timer->getUTime(srTimer::TIMER_READ_DEFAULT) - g_shared_timer_pause_time;
@@ -133,8 +133,8 @@ W8GameTimer::W8GameTimer()
 
     if (g_shared_timer == 0) {
         g_shared_timer_paused = false;
-        g_shared_timer_flag_d1 = false;
-        g_shared_timer_flag_d2 = false;
+        g_shared_timer_flag0 = false;
+        g_shared_timer_flag1 = false;
 
         srTimer* timer = new srTimer(0, 0, 1);
 
@@ -186,8 +186,8 @@ W8GameTimer::W8GameTimer(float duration, unsigned char raw_time)
 
     if (g_shared_timer == 0) {
         g_shared_timer_paused = false;
-        g_shared_timer_flag_d1 = false;
-        g_shared_timer_flag_d2 = false;
+        g_shared_timer_flag0 = false;
+        g_shared_timer_flag1 = false;
         srTimer* timer = new srTimer(0, 0, 1);
         g_shared_timer = timer;
         g_shared_timer_base = timer;
@@ -267,7 +267,7 @@ float W8GameTimer::GetProgress()
     }
 
     if ((m_flags & 8) == 0 && (g_shared_timer_paused == 0 || (m_flags & 1) != 0) &&
-        g_shared_timer_flag_d1 == 0 && (g_shared_timer_flag_d2 == 0 || (m_flags & 1) != 0)) {
+        g_shared_timer_flag0 == 0 && (g_shared_timer_flag1 == 0 || (m_flags & 1) != 0)) {
         return progress;
     }
     return 0.0f;

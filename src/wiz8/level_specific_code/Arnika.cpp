@@ -1130,8 +1130,8 @@ int ArnikaPedestalItem(int* previous_item)
     if (npc != 0) {
         info = GetNpcMonsterInfo(npc);
         if (info != 0) {
-            position = info->p3D->movement_0c0.position_040;
-            position.y += info->p3D->movement_0c0.height_offset;
+            position = info->p3D->movement.position;
+            position.y += info->p3D->movement.height_offset;
             g_gd_camera->LookAt(&position, 0);
         }
         QueueNpcScriptNotice(npc, 0, 8, 0, 0);

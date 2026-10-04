@@ -1720,9 +1720,9 @@ int srVP_generic::_srTestBoundingBox(const srMatrix4& matrix, const srVector3& m
         float base_max = row[-1] * maximum.x + row[2];
         float ymax = row[0] * maximum.y;
         float zmax = maximum.z * row[1];
-        float v_000 = zmin + ymin + base_min;
-        if (-w_000 < v_000) {
-            if (w_000 <= v_000 && w_001 <= zmax + ymin + base_min &&
+        float v = zmin + ymin + base_min;
+        if (-w_000 < v) {
+            if (w_000 <= v && w_001 <= zmax + ymin + base_min &&
                 w_010 <= ymax + zmin + base_min && w_011 <= zmax + ymax + base_min &&
                 w_100 <= base_max + zmin + ymin && w_101 <= zmax + base_max + ymin &&
                 w_110 <= ymax + base_max + zmin && w_111 <= zmax + ymax + base_max) {
@@ -1741,7 +1741,7 @@ int srVP_generic::_srTestBoundingBox(const srMatrix4& matrix, const srVector3& m
 /* Table-driven specular power: the exponent is clamped to 127 and halved
    until it lies in [1,2); the fractional part of (reduced-1)*16 selects two
    rows of the inherited coefficient table for lerp, and
-   points_248[index+1][squarings] is the per-element dead-zone threshold
+   points[index+1][squarings] is the per-element dead-zone threshold
    below which the result is 0. */
 // FUNCTION: SURRENDER 0x10068A80
 void srVP_generic::_srSpecularPow(float* destination, const float* source, float exponent,
@@ -1759,15 +1759,15 @@ void srVP_generic::_srSpecularPow(float* destination, const float* source, float
     int index = static_cast<int>(index_value);
     index_value -= index;
     double complement = 1.0 - index_value;
-    float coefficient_0 = (float)(index_value * coefficients_08[index + 1][0] +
-                                  complement * coefficients_08[index][0]);
-    float coefficient_1 = (float)(index_value * coefficients_08[index + 1][1] +
-                                  complement * coefficients_08[index][1]);
-    float coefficient_2 = (float)(index_value * coefficients_08[index + 1][2] +
-                                  complement * coefficients_08[index][2]);
-    float coefficient_3 = (float)(index_value * coefficients_08[index + 1][3] +
-                                  complement * coefficients_08[index][3]);
-    float threshold = points_248[index + 1][squarings];
+    float coefficient_0 = (float)(index_value * coefficients[index + 1][0] +
+                                  complement * coefficients[index][0]);
+    float coefficient_1 = (float)(index_value * coefficients[index + 1][1] +
+                                  complement * coefficients[index][1]);
+    float coefficient_2 = (float)(index_value * coefficients[index + 1][2] +
+                                  complement * coefficients[index][2]);
+    float coefficient_3 = (float)(index_value * coefficients[index + 1][3] +
+                                  complement * coefficients[index][3]);
+    float threshold = points[index + 1][squarings];
     for (SRDWORD element = 0; element < count; ++element) {
         if (source[element] > threshold) {
             float value = source[element];

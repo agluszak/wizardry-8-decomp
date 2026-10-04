@@ -352,12 +352,12 @@ srPalette::Quantizer::Quantizer(const Quantizer& other)
 // FUNCTION: SURRENDER 0x10004160
 int srPalette::matchPalette(const srARGB* const colors, long color_count) const
 {
-    if (color_count != color_count_20) {
+    if (color_count != this->color_count) {
         return 0;
     }
     for (long index = 0; index < color_count; ++index) {
         // reinterpret-ok: retail compares the packed color dwords
-        if (reinterpret_cast<const unsigned long&>(colors_1c[index]) !=
+        if (reinterpret_cast<const unsigned long&>(this->colors[index]) !=
             reinterpret_cast<const unsigned long&>(colors[index])) {
             return 0;
         }
@@ -393,7 +393,7 @@ void srPalette::releaseQuantizer()
         srHeap.free(quantizer);
     }
     quantizer = 0;
-    flags_18 = flags_18 | 1;
+    flags = flags | 1;
 }
 
 // FUNCTION: SURRENDER 0x10004240
@@ -407,14 +407,14 @@ void srPalette::updateQuantizer()
        exported without any operator new/delete, so the heap routing is at
        the new-expression, not a class allocator. */
     quantizer = new (srHeap.allocate(sizeof(Quantizer)))
-        Quantizer(colors_1c, color_count_20, 0, '\b', '\b', '\b');
+        Quantizer(colors, color_count, 0, '\b', '\b', '\b');
 }
 
 // FUNCTION: SURRENDER 0x10004300
 void srPalette::update()
 {
     updateQuantizer();
-    flags_18 = flags_18 & ~1;
+    flags = flags & ~1;
 }
 
 /* A null color table builds the default palette: the 6x6x6 color cube with
@@ -422,10 +422,10 @@ void srPalette::update()
    ramp for the rest of the 256. A non-cube count gets a linear ramp. */
 // FUNCTION: SURRENDER 0x10004310
 srPalette::srPalette(srARGB* colors, long color_count)
-    : srClassSupport<srPalette, srClass, 1, 0x2900>(), flags_18(0)
+    : srClassSupport<srPalette, srClass, 1, 0x2900>(), flags(0)
 {
-    colors_1c = new srARGB[color_count];
-    color_count_20 = color_count;
+    this->colors = new srARGB[color_count];
+    this->color_count = color_count;
     quantizer = 0;
     if (colors == 0) {
         if (color_count == 0x100) {
@@ -434,7 +434,7 @@ srPalette::srPalette(srARGB* colors, long color_count)
                 for (long green = 0; green < 6; ++green) {
                     for (long blue = 0; blue < 6; ++blue) {
                         if (red != green || red != blue) {
-                            srARGB& color = colors_1c[index++];
+                            srARGB& color = this->colors[index++];
                             color.alpha = static_cast<unsigned char>(srFloatToInt(255.0));
                             color.red =
                                 static_cast<unsigned char>(srFloatToInt(red * 0.2f * 255.0));
@@ -447,7 +447,7 @@ srPalette::srPalette(srARGB* colors, long color_count)
                 }
             }
             for (long gray = 0; gray < 0x2e; ++gray) {
-                srARGB& color = colors_1c[0xd2 + gray];
+                srARGB& color = this->colors[0xd2 + gray];
                 color.alpha = static_cast<unsigned char>(srFloatToInt(255.0));
                 double value = gray * 0.022222223f * 255.0;
                 color.red = static_cast<unsigned char>(srFloatToInt(value));
@@ -460,7 +460,7 @@ srPalette::srPalette(srARGB* colors, long color_count)
                 step = 1.0 / (color_count - 1);
             }
             for (long index = 0; index < color_count; ++index) {
-                srARGB& color = colors_1c[index];
+                srARGB& color = this->colors[index];
                 double value = index * step * 255.0;
                 color.alpha = static_cast<unsigned char>(srFloatToInt(255.0));
                 color.red = static_cast<unsigned char>(srFloatToInt(value));
@@ -469,17 +469,17 @@ srPalette::srPalette(srARGB* colors, long color_count)
             }
         }
     } else if (0 < color_count * 4) {
-        memcpy(colors_1c, colors, color_count * 4);
+        memcpy(this->colors, colors, color_count * 4);
     }
-    flags_18 = flags_18 | 1;
+    flags = flags | 1;
 }
 
 // FUNCTION: SURRENDER 0x10004610
 srPalette::~srPalette()
 {
-    if (colors_1c != 0) {
-        delete[] colors_1c;
-        colors_1c = 0;
+    if (colors != 0) {
+        delete[] colors;
+        colors = 0;
     }
     if (quantizer != 0) {
         srHeap.free(quantizer);
@@ -493,26 +493,26 @@ srPalette& srPalette::operator=(const srPalette& other)
     if (this == &other) {
         return *this;
     }
-    if (colors_1c != 0) {
-        delete[] colors_1c;
-        colors_1c = 0;
+    if (colors != 0) {
+        delete[] colors;
+        colors = 0;
     }
     if (quantizer != 0) {
         srHeap.free(quantizer);
         quantizer = 0;
     }
     srClass::operator=(other);
-    flags_18 = other.flags_18;
-    color_count_20 = other.color_count_20;
-    colors_1c = 0;
-    if (0 < color_count_20) {
-        colors_1c = new srARGB[color_count_20];
-        for (long index = 0; index < color_count_20; ++index) {
-            colors_1c[index] = other.colors_1c[index];
+    flags = other.flags;
+    color_count = other.color_count;
+    colors = 0;
+    if (0 < color_count) {
+        colors = new srARGB[color_count];
+        for (long index = 0; index < color_count; ++index) {
+            colors[index] = other.colors[index];
         }
     }
     quantizer = 0;
-    flags_18 = flags_18 | 1;
+    flags = flags | 1;
     return *this;
 }
 
@@ -523,48 +523,48 @@ void srPalette::dump(std::ostream& stream)
     std::ios::fmtflags flags = stream.flags();
     stream.setf(std::ios::left, std::ios::adjustfield);
     stream.width(0x20);
-    stream << "  Colors: " << color_count_20 << '\n';
+    stream << "  Colors: " << color_count << '\n';
     stream.width(0x20);
-    stream << "  Dataptr: " << static_cast<void*>(colors_1c) << '\n';
+    stream << "  Dataptr: " << static_cast<void*>(colors) << '\n';
     stream.flags(static_cast<std::ios::fmtflags>(flags & 0x7fff));
 }
 
 // FUNCTION: SURRENDER 0x10004850
 void srPalette::setColors(long destination_index, const srARGB* const colors, long color_count)
 {
-    if (0 <= destination_index && destination_index + color_count <= color_count_20) {
+    if (0 <= destination_index && destination_index + color_count <= this->color_count) {
         for (long index = 0; index < color_count; ++index) {
-            colors_1c[destination_index + index] = colors[index];
+            this->colors[destination_index + index] = colors[index];
         }
-        flags_18 = flags_18 | 1;
+        flags = flags | 1;
     }
 }
 
 // FUNCTION: SURRENDER 0x100048A0
 srARGB srPalette::getColor(long index) const
 {
-    return colors_1c[index];
+    return colors[index];
 }
 
 // FUNCTION: SURRENDER 0x100048C0
 long srPalette::getPaletteSize() const
 {
-    return color_count_20;
+    return color_count;
 }
 
 // FUNCTION: SURRENDER 0x100048D0
 void srPalette::setColor(long index, const srARGB& color)
 {
-    if (0 <= index && index < color_count_20) {
-        colors_1c[index] = color;
-        flags_18 = flags_18 | 1;
+    if (0 <= index && index < color_count) {
+        colors[index] = color;
+        flags = flags | 1;
     }
 }
 
 // FUNCTION: SURRENDER 0x10004900
 unsigned char srPalette::quantize(const srARGB& color)
 {
-    if ((flags_18 & 1) != 0) {
+    if ((flags & 1) != 0) {
         update();
     }
     return quantizer->quantize(color);
@@ -573,7 +573,7 @@ unsigned char srPalette::quantize(const srARGB& color)
 // FUNCTION: SURRENDER 0x10004920
 void srPalette::quantize(unsigned char* const indices, const srARGB* const colors, long color_count)
 {
-    if ((flags_18 & 1) != 0) {
+    if ((flags & 1) != 0) {
         update();
     }
     quantizer->quantize(indices, colors, color_count);
@@ -582,7 +582,7 @@ void srPalette::quantize(unsigned char* const indices, const srARGB* const color
 // FUNCTION: SURRENDER 0x10004950
 const srARGB* srPalette::getPaletteDataPtr()
 {
-    return colors_1c;
+    return colors;
 }
 
 // FUNCTION: SURRENDER 0x10004960

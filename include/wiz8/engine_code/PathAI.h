@@ -22,7 +22,7 @@ enum { W8_AI_RECORD_PATH = 0, W8_AI_RECORD_MISSILE = 3 };
 static_assert(sizeof(W8AIRecordKind) == 1, "W8AIRecordKind_size");
 
 struct W8AIRecord {
-    W8AIRecordKind kind_00; /* 0x00 */
+    W8AIRecordKind kind; /* 0x00 */
 };
 
 struct W8PathAI : W8AIRecord {
@@ -60,7 +60,7 @@ static_assert(sizeof(W8GrowableVector<srVector3T<float>*>) == 0x10,
               "PathAI_vector_size_must_be_0x10");
 static_assert(sizeof(W8PathAI) == 0x40, "W8PathAI_size_must_be_0x40");
 
-/* Tagged-record dispatchers: the body switches on kind_00 and hands the
+/* Tagged-record dispatchers: the body switches on kind and hands the
    record to the path or missile implementation. */
 unsigned char PathAIUpdate(W8AIRecord* record, signed char direction);
 void PathAIResetRecord(W8PathAI* path);
@@ -95,12 +95,12 @@ unsigned char PathAIAddPoint(W8PathAI* path, const srVector3T<float>* point);
 W8PathAI* CreateRecord(int unused);
 
 /* The two operations stLight applies to the path it owns at +0x244. The
-   release is DestroyPathAI's body behind an extra `kind_00 == W8_AI_RECORD_PATH`
+   release is DestroyPathAI's body behind an extra `kind == W8_AI_RECORD_PATH`
    guard; the clone allocates a fresh 0x40-byte record and deep-copies the
    node vector and both trailing arrays. */
 void DestroyOwnedPathAI(W8PathAI* path);
 
-/* The dispatcher every AI-record copy goes through; the kind_00 tag, not the
+/* The dispatcher every AI-record copy goes through; the kind tag, not the
    declaration, decides which concrete record it clones. */
 W8AIRecord* CloneAIRecord(const W8AIRecord* record);
 W8PathAI* ClonePathAI(const W8PathAI* path);

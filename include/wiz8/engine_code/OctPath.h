@@ -61,7 +61,7 @@ struct W8NavigatorMovementState;
    doubles as the per-step steering context StepAlongPath hands to the
    0x004CAE50-0x004CCB60 method cluster: InitializeSteeringContext
    seeds it from the movement state each step, the steering helpers accumulate
-   into force_38, and IntegrateSteering applies the result. */
+   into force, and IntegrateSteering applies the result. */
 class W8PathParameters {
 public:
     W8PathParameters(); /* 0x004CAE40 */
@@ -71,39 +71,39 @@ public:
        normalized velocity or a yaw-derived default direction, the right-hand
        perpendicular, and cleared force/query state. */
     void InitializeSteeringContext(W8NavigatorMovementState* movement); /* 0x004CAE50 */
-    /* Lazily fills nearby_locations_50/nearby_count_4c with the location ids
+    /* Lazily fills nearby_locations/nearby_count with the location ids
        inside a radius-scaled box around the movement position; the cached
        result is returned on repeat calls. */
     unsigned char QueryNearbyNavigators(); /* 0x004CAFC0 */
-    /* Applies force_38 for one time step: clamps it to acceleration_0c,
-       integrates velocity toward speed_limit_08, resolves the heading, snaps
+    /* Applies force for one time step: clamps it to acceleration,
+       integrates velocity toward speed_limit, resolves the heading, snaps
        the new position against the path mesh and falls back to sliding or
        stopping when the snap fails. */
     void IntegrateSteering(); /* 0x004CB090 */
-    /* Advances movement_00->target_yaw toward movement_00->yaw by the shorter
+    /* Advances movement->target_yaw toward movement->yaw by the shorter
        arc, accelerating or decelerating the angular velocity in
-       movement_00->yaw_velocity. */
+       movement->yaw_velocity. */
     void UpdateYawSteering(float time_step, bool use_turn_rate); /* 0x004CB520 */
     /* Predicts a collision with another navigator or the party inside the
        prediction window; returns nonzero when one is found ahead. */
     unsigned char PredictNavigatorCollision(); /* 0x004CB620 */
-    /* Steers around geometry: brakes and deflects force_38 perpendicular to a
+    /* Steers around geometry: brakes and deflects force perpendicular to a
        clipped span, pushes toward the next waypoint when it falls behind the
        heading, or uses directional clearance for oversized radii. */
     unsigned char HandleObstacleAhead(); /* 0x004CBB70 */
-    /* Adds the seek force toward target_14 scaled by
-       g_path_acceleration_factor into force_38, clamped to
-       acceleration_0c; with a stopped movement it instead pushes along the
-       2-D target direction and zeroes speed_limit_08. */
+    /* Adds the seek force toward target scaled by
+       g_path_acceleration_factor into force, clamped to
+       acceleration; with a stopped movement it instead pushes along the
+       2-D target direction and zeroes speed_limit. */
     void AccumulateSeekForce(); /* 0x004CC1A0 */
-    /* Scales speed_limit_08 down by target distance through the approach
+    /* Scales speed_limit down by target distance through the approach
        profile, then accumulates the seek force. */
     void SeekWithApproachSpeed(); /* 0x004CC420 */
     /* Adds a repulsion force from every linked navigator inside the combined
-       radius into force_38. */
+       radius into force. */
     void AccumulateGroupRepulsion(); /* 0x004CC4C0 */
     /* Steers around the linked leader: lateral pass targets, following
-       distance, or a blocked-path fallback that reseeds target_14. */
+       distance, or a blocked-path fallback that reseeds target. */
     unsigned char SteerAroundLeader(bool allow_path_fallback); /* 0x004CC680 */
     /* The full per-step driver for a navigator at the start of its route:
        obstacle, collision, leader and waypoint steering, group repulsion,
@@ -116,22 +116,22 @@ public:
                                  char alternate); /* 0x004CCB60 */
 
 private:
-    W8NavigatorMovementState* movement_00;
+    W8NavigatorMovementState* movement;
     unsigned char padding_04[4];
-    float speed_limit_08;
-    float acceleration_0c;
-    float velocity_length_10;
-    srVector3T<float> target_14;
-    srVector3T<float> direction_20;
-    srVector3T<float> perpendicular_2c;
-    srVector3T<float> force_38;
-    float radius_44;
-    bool nearby_queried_48;
-    bool blocked_49;
+    float speed_limit;
+    float acceleration;
+    float velocity_length;
+    srVector3T<float> target;
+    srVector3T<float> direction;
+    srVector3T<float> perpendicular;
+    srVector3T<float> force;
+    float radius;
+    bool nearby_queried;
+    bool blocked;
     unsigned char padding_4a[2];
-    unsigned int nearby_count_4c;
-    unsigned long* nearby_locations_50;
-    W8Monster* monster_54;
+    unsigned int nearby_count;
+    unsigned long* nearby_locations;
+    W8Monster* monster;
 };
 
 static_assert(sizeof(W8PathParameters) == 0x58, "W8PathParameters_must_be_0x58");
@@ -140,20 +140,20 @@ struct W8NavigatorAttachment;
 /* OctPath.cpp's two compact graph records. Surface zero and edge zero are
    sentinels; live records are addressed by their unsigned-short indices. */
 struct W8PathSurface {
-    unsigned short flags_00;
-    unsigned short index_02;
-    srVector3T<float> position_04;
-    unsigned short parent_10;
+    unsigned short flags;
+    unsigned short index;
+    srVector3T<float> position;
+    unsigned short parent;
     unsigned char padding_12[0x02];
     /* Monotonic visit stamp: patrol selection picks the smallest value, and
        both mover paths write elapsed game time as each waypoint is consumed. */
-    unsigned int visit_stamp_14;
+    unsigned int visit_stamp;
     /* A* heuristic: distance to the goal scaled by g_float_005ec394, cached by
        FindPath while the surface is open. */
-    float heuristic_18;
-    float cost_1c;
-    float remaining_cost_20;
-    unsigned short first_edge_24;
+    float heuristic;
+    float cost;
+    float remaining_cost;
+    unsigned short first_edge;
     unsigned short padding_26;
 };
 
@@ -161,18 +161,18 @@ struct W8PathSurface {
    persistent flags, first edge and world position from the live 0x28-byte
    surface. */
 struct W8FileWaypoint {
-    unsigned short flags_00;
-    unsigned short first_edge_02;
-    srVector3T<float> position_04;
+    unsigned short flags;
+    unsigned short first_edge;
+    srVector3T<float> position;
 };
 
 #pragma pack(push, 1)
 struct W8PathEdge {
-    unsigned int flags_00;
-    unsigned short source_04;
-    unsigned short destination_06;
-    float distance_08;
-    unsigned short next_0c;
+    unsigned int flags;
+    unsigned short source;
+    unsigned short destination;
+    float distance;
+    unsigned short next;
 };
 #pragma pack(pop)
 
@@ -214,26 +214,26 @@ static_assert(sizeof(GDPropCondPaths) == 0x44, "GDPropCondPaths_must_be_0x44");
    participate and the third slots are zeroed. Retail does not distinguish
    this grouping from adjacent scalar storage in the original declaration. */
 struct W8PathGridWalk {
-    srVector3T<int> cell_00; /* 0x00: destination X/Z cells; third component zero */
-    srVector3T<int> step_0c; /* 0x0c: +1 or -1 per active axis; third component zero */
-    int major_axis_18;  /* 0x18: 0 for X, 1 for Z */
-    int minor_axis_1c;  /* 0x1c: (major + 1) % 2 */
-    int minor_axis_20;  /* 0x20: unused second secondary axis, zero */
-    int count_24;       /* 0x24: cells to visit */
-    int error_delta_28; /* 0x28 */
-    int error_2c;       /* 0x2c */
-    int error_reset_30; /* 0x30: cell size */
-    int error_delta_34; /* 0x34: unused second error channel, zero */
-    int error_38;
-    int error_reset_3c;
+    srVector3T<int> cell; /* 0x00: destination X/Z cells; third component zero */
+    srVector3T<int> step; /* 0x0c: +1 or -1 per active axis; third component zero */
+    int major_axis;  /* 0x18: 0 for X, 1 for Z */
+    int minor_axis0;  /* 0x1c: (major + 1) % 2 */
+    int minor_axis1;  /* 0x20: unused second secondary axis, zero */
+    int count;       /* 0x24: cells to visit */
+    int error_delta0; /* 0x28 */
+    int error0;       /* 0x2c */
+    int error_reset0; /* 0x30: cell size */
+    int error_delta1; /* 0x34: unused second error channel, zero */
+    int error1;
+    int error_reset1;
 };
 
 static_assert(sizeof(W8PathGridWalk) == 0x40, "W8PathGridWalk_must_be_0x40");
-static_assert(offsetof(W8PathGridWalk, step_0c) == 0x0c, "W8PathGridWalk_step_offset");
-static_assert(offsetof(W8PathGridWalk, minor_axis_20) == 0x20, "W8PathGridWalk_second_axis_offset");
-static_assert(offsetof(W8PathGridWalk, error_delta_34) == 0x34,
+static_assert(offsetof(W8PathGridWalk, step) == 0x0c, "W8PathGridWalk_step_offset");
+static_assert(offsetof(W8PathGridWalk, minor_axis1) == 0x20, "W8PathGridWalk_second_axis_offset");
+static_assert(offsetof(W8PathGridWalk, error_delta1) == 0x34,
               "W8PathGridWalk_second_error_offset");
-static_assert(offsetof(W8PathGridWalk, error_reset_3c) == 0x3c,
+static_assert(offsetof(W8PathGridWalk, error_reset1) == 0x3c,
               "W8PathGridWalk_second_reset_offset");
 
 /* One of the fixed probe volumes assembled by 0x004656A0. The outer radius
@@ -241,10 +241,10 @@ static_assert(offsetof(W8PathGridWalk, error_reset_3c) == 0x3c,
    the movement search origin. The player entry leaves the inner bound
    untouched. 0x00465970 tests candidates against these bounds and center. */
 struct W8PathProbeVolume {
-    unsigned int tag_00;
-    float outer_radius_04;
-    float inner_radius_08; /* Initial distance from the search origin, not a body radius. */
-    srVector3T<float> center_0c;
+    unsigned int tag;
+    float outer_radius;
+    float inner_radius; /* Initial distance from the search origin, not a body radius. */
+    srVector3T<float> center;
 };
 
 static_assert(sizeof(W8PathProbeVolume) == 0x18, "W8PathProbeVolume_must_be_0x18");
@@ -254,27 +254,27 @@ static_assert(sizeof(W8PathProbeVolume) == 0x18, "W8PathProbeVolume_must_be_0x18
    accumulated score and world position; the remaining planner state stays
    positional until its readers are recovered. */
 struct W8PathSearchNode {
-    unsigned short flags_00;
-    unsigned short node_index_02;
-    unsigned short cell_x_04;
-    unsigned short cell_z_06;
-    unsigned short path_height_08;
-    unsigned short parent_node_0a;
-    float base_score_0c;
-    float path_cost_10;
-    float distance_14;
-    float clearance_18;
-    float score_1c;
-    srVector3T<float> position_20;
+    unsigned short flags;
+    unsigned short node_index;
+    unsigned short cell_x;
+    unsigned short cell_z;
+    unsigned short path_height;
+    unsigned short parent_node;
+    float base_score;
+    float path_cost;
+    float distance;
+    float clearance;
+    float score;
+    srVector3T<float> position;
 };
 
 struct W8PathHeapEntry {
-    unsigned int node_00;
-    unsigned int priority_04;
+    unsigned int node;
+    unsigned int priority;
 
     bool operator<=(const W8PathHeapEntry& other) const
     {
-        return priority_04 <= other.priority_04;
+        return priority <= other.priority;
     }
 };
 
@@ -283,11 +283,11 @@ typedef stHeap<W8PathHeapEntry> W8PathHeap;
 struct W8PathHeapHandle {
     ~W8PathHeapHandle()
     {
-        delete heap_00;
+        delete heap;
     }
 
-    W8PathHeap* heap_00;
-    unsigned int root_node_04;
+    W8PathHeap* heap;
+    unsigned int root_node;
 
     void DeleteRoot(W8PathSearchNode* node);
 };
@@ -464,11 +464,11 @@ public:
     /* The active edge-filter mask for patrol/path searches. ConfigureForLevel
        loads it from the octree header; BuildPatrolPath stores its `flags` here
        for FindPatrolPath. */
-    unsigned int path_flags_000;
+    unsigned int path_flags0;
     int path_node_count; /* 0x04 */
     /* PrePathing's CreatePathNodeArray counts edge nodes here starting from
        one, and WriteOctFile serializes it beside the node count. */
-    int edge_node_count_008;
+    int edge_node_count;
     /* ReadOctFile tests this beside m_waypoint_editing before settling a portal. */
     unsigned int m_ulNumWayPoints;  /* 0x0c */
     unsigned int m_ulNumWayPtLinks; /* 0x10 */
@@ -476,13 +476,13 @@ public:
     /* Incremented for each edge removed by the waypoint editor; never read. */
     int m_removed_edge_count;
     /* The grid divisor both linking walks divide by. */
-    float grid_scale_01c; /* 0x1c */
-    float span_020;       /* 0x20 */
-    short cell_count_024; /* 0x24 */
+    float grid_scale; /* 0x1c */
+    float span;       /* 0x20 */
+    short cell_count; /* 0x24 */
     unsigned short m_padding_026;
     /* Path probe-clearance height, raw float bits from the octree
        header word; only ConfigureForLevel writes it. */
-    int path_clearance_028; /* 0x28 */
+    int path_clearance; /* 0x28 */
     W8BoundingBox level_bounds; /* 0x2c: minimum/maximum pair */
     /* Four malloc'd tables and one polymorphic object, all released by
        0x00457B10 - the first four with free, the last through its own
@@ -505,7 +505,7 @@ public:
        body-equivalent and retail's linker folds them. */
     W8HashTable<unsigned int, unsigned int>* m_pPathValues; /* 0x64 */
     const char* level_name;                                     /* 0x68 */
-    W8PathHeapHandle* path_heap_06c;                            /* 0x6c */
+    W8PathHeapHandle* path_heap;                            /* 0x6c */
     float m_path_cost_limit;                                  /* 0x70: starts 1.0e10f */
     W8HashTable<unsigned int, int>* m_pVisitedCells;        /* 0x74 */
     unsigned int m_probe_cell_key;                            /* 0x78 */
@@ -513,18 +513,18 @@ public:
     unsigned int m_probe_limit;                               /* 0x88 */
     bool m_probe_bounded;                                     /* 0x8c */
     unsigned char m_padding_08d[3];
-    unsigned int planner_location_090;
+    unsigned int planner_location;
     unsigned int m_path_candidate_count;
     unsigned long* m_path_candidates;
-    bool explicit_target_09c; /* 0x9c */
+    bool explicit_target; /* 0x9c */
     unsigned char m_padding_09d[3];
     unsigned int m_waypoint_neighbor_mask; /* 0xa0 */
     bool m_trace_configured;               /* 0xa4 */
     unsigned char m_padding_0a5[3];
     float m_trace_max_distance;
-    srVector3T<float> trace_offset_0ac;
+    srVector3T<float> trace_offset;
     int m_trace_mode;
-    float trace_height_offset_0bc;
+    float trace_height_offset;
     int m_trace_target_location;
     float m_trace_target_yaw;
     W8PathSearchNode* m_search_nodes; /* 0xc8 */
@@ -533,17 +533,17 @@ public:
     unsigned int m_path_probe_count;
     W8PathProbeVolume m_path_probes[10];
     bool m_waypoint_editing; /* 0x1c8 */
-    bool flag_1c9;
-    bool flag_1ca;
-    bool search_visualization_1cb;
-    bool waypoints_dirty_1cc;
+    bool flag1;
+    bool flag2;
+    bool search_visualization;
+    bool waypoints_dirty;
     unsigned char m_padding_1cd;
-    unsigned short path_flags_1ce; /* 0x1ce: starts 4 */
-    int link_flags_1d0;
-    unsigned short start_waypoint_1d4;
-    unsigned short destination_waypoint_1d6;
-    unsigned short saved_surface_1d8;
-    bool path_direction_valid_1da;
+    unsigned short path_flags1; /* 0x1ce: starts 4 */
+    int link_flags;
+    unsigned short start_waypoint;
+    unsigned short destination_waypoint;
+    unsigned short saved_surface;
+    bool path_direction_valid;
     unsigned char m_padding_1db;
     /* Patrol-search state laid down by BuildPatrolPath and consulted by the
        recursive FindPatrolPath: the argmin-key candidate node, the accepted
@@ -572,7 +572,7 @@ public:
     unsigned short* m_pusCondNodeFrames; /* 0x230 */
     unsigned int* m_pulCondNodeKeys;     /* 0x234 */
     unsigned int* m_pulCondNodeValues;   /* 0x238 */
-    bool span_blocked_23c;
+    bool span_blocked;
     unsigned char m_padding_23d[3];
 };
 
@@ -626,13 +626,13 @@ public:
     int CreatePathNodeArray();
     unsigned char CreateAutomapNodes(W8LevelFile* level);
 
-    W8PrePathNode** path_node_list_240; /* path_node_count entries */
-    OctPrePathLog* path_log_244;
+    W8PrePathNode** path_node_list; /* path_node_count entries */
+    OctPrePathLog* path_log;
     /* A malloc'd buffer the destructor `free`s; no surviving writer. */
     void* owned_248;
-    int named_position_count_24c;
-    srVector3T<float>* named_positions_250;
-    W8HashTable<unsigned int, int>* cell_map_254;
+    int named_position_count;
+    srVector3T<float>* named_positions;
+    W8HashTable<unsigned int, int>* cell_map;
     /* Embedded chunk table: each slot is a malloc'd run of
        W8_PREPATH_NODES_PER_CHUNK path-node records. The constructor fills slot 0, and the
        destructor frees every slot through chunk_index inclusive. */
@@ -641,14 +641,14 @@ public:
     int chunk_node_count;
     /* Components smaller than this percent of the node count get deleted
        while linking; capped at 50. */
-    unsigned int min_component_percent_1200;
+    unsigned int min_component_percent;
 };
 
 static_assert(sizeof(PrePathing) == 0x1204, "PrePathing_must_be_0x1204");
-static_assert(offsetof(PrePathing, path_node_list_240) == 0x240, "PrePathing_path_node_list_240");
+static_assert(offsetof(PrePathing, path_node_list) == 0x240, "PrePathing_path_node_list_240");
 static_assert(offsetof(PrePathing, node_chunks) == 0x258, "PrePathing_node_chunks_258");
 static_assert(offsetof(PrePathing, chunk_index) == 0x11f8, "PrePathing_chunk_index_11f8");
-static_assert(offsetof(PrePathing, min_component_percent_1200) == 0x1200,
+static_assert(offsetof(PrePathing, min_component_percent) == 0x1200,
               "PrePathing_min_component_percent_1200");
 
 /* Move an integer path cell one compass step; directions outside the

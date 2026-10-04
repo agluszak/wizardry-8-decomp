@@ -11,10 +11,10 @@ template <class T> class srVector3T;
    directly; the flag and the path engine pointer are what
    UpdateCameraPathState toggles. */
 struct W8CameraPath {
-    char name_00[0x14];
-    bool active_14;
+    char name0[0x14];
+    bool active;
     unsigned char padding_15[3];
-    W8PathAI* path_18;
+    W8PathAI* path;
 };
 static_assert(sizeof(W8CameraPath) == 0x1c, "W8CameraPath_must_be_0x1c");
 
@@ -22,7 +22,7 @@ static_assert(sizeof(W8CameraPath) == 0x1c, "W8CameraPath_must_be_0x1c");
    off for the world and dispatches the per-path end actions. */
 void UpdateCameraPathState(W8World* world, W8CameraPath* path, int active);
 /* 0x0048F280 is UpdateCameraPathStateByName in World.h: activate the world's
-   camera path whose name_00 matches `name` (case-insensitive), then dispatch
+   camera path whose name0 matches `name` (case-insensitive), then dispatch
    through UpdateCameraPathState. */
 /* 0x0048F650: face the camera at a monster's head; force overrides the
    tracking-mode gate, animate chooses the eased transition over the snap. */

@@ -67,8 +67,8 @@ extern const unsigned int g_W8TextControlLayoutImageAtOrigin = 0x80;
 Controls::Controls()
 {
     m_renderTarget = -1;
-    m_renderArg_1c = -1;
-    m_renderArg_20 = -1;
+    m_renderArg0 = -1;
+    m_renderArg1 = -1;
     m_fEnabled = 0;
     m_fDirty = 0;
     m_fLayoutDirty = 0;
@@ -91,8 +91,8 @@ Controls::Controls(int left, int top, int right_bound, int bottom_bound, int ren
     m_fDirty = 0;
     m_fLayoutDirty = 0;
     m_renderTarget = render_target;
-    m_renderArg_1c = render_arg_1c;
-    m_renderArg_20 = render_arg_20;
+    m_renderArg0 = render_arg_1c;
+    m_renderArg1 = render_arg_20;
     m_bounds.top = top;
     m_bounds.bottom = bottom_bound;
     m_dirtyRect.left = -1;
@@ -2201,12 +2201,12 @@ void Controls::Redraw()
     }
     if (m_fDirty) {
         if (m_renderTarget != -1) {
-            DrawCatalogImage(-14, m_renderTarget, m_renderArg_1c, m_renderArg_20, m_bounds.left,
+            DrawCatalogImage(-14, m_renderTarget, m_renderArg0, m_renderArg1, m_bounds.left,
                              m_bounds.top, 2, 0);
         }
         if (m_fWholeAreaDirty) {
             if (m_renderTarget != -1) {
-                InvalidateCatalogImageRect(m_renderTarget, m_renderArg_1c, m_renderArg_20,
+                InvalidateCatalogImageRect(m_renderTarget, m_renderArg0, m_renderArg1,
                                            m_bounds.left, m_bounds.top, 2);
             }
         } else {

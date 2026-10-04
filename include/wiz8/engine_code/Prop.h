@@ -110,14 +110,14 @@ public:
        position minus the home position into `out`; otherwise `out` is zeroed.
        `point` is accepted but never read. */
     char GetDelta(srVector3T<float>* out, const srVector3T<float>* point); /* 0x0044E130 */
-    /* The prop's position for external queries: position_02c while its
+    /* The prop's position for external queries: position3 while its
        animation runs, else the rep node's location. */
     void GetPosition(srVector3T<float>* out); /* 0x0044E2C0 */
-    /* Mirror of GetPosition: stores `position` in position_02c while the
+    /* Mirror of GetPosition: stores `position` in position3 while the
        animation runs, else moves the rep node through SetLocation. */
     void SetPosition(srVector3T<float>* position); /* 0x0044E310 */
     bool TriggerHasActionMessage();                /* 0x0044E360 */
-    /* Whether trigger_18 exists and takes an item (required_item_id >= 0 or a
+    /* Whether trigger exists and takes an item (required_item_id >= 0 or a
        type-10 action payload naming item). */
     bool TriggerRequiresItem(); /* 0x0044E380 */
     /* The prop's current animation value; -1 when it has none. */
@@ -145,23 +145,23 @@ public:
     bool IsPickedProp(W8World* world); /* 0x0044D680 */
     void GetBounds(srVector3T<float>* minimum, srVector3T<float>* maximum);
     void CollectModelInstances(W8GrowableVector<stModelInstance*>* instances);
-    /* Run trigger_18 when its action is one of the missile-impact kinds
+    /* Run trigger when its action is one of the missile-impact kinds
        (0x3a..0x3c); the record hands Run the missile's table index. */
     void RunMissileTrigger(W8AIMissile* record);
 
-    Trigger* trigger_18;   /* 0x18 */
+    Trigger* trigger;   /* 0x18 */
     unsigned int flags; /* 0x1c */
     char* m_name;          /* 0x20 */
     /* 0x24: UpdatePropAnimation stores the animation timer's progress here, then
        reduces it by the whole-frame count - the fractional remainder. */
     float anim_frame_fraction;
     W8GameTimer* m_pTimer;          /* 0x28 */
-    srVector3T<float> position_02c; /* 0x2c: written by ApplyAnimationFrame */
+    srVector3T<float> position3; /* 0x2c: written by ApplyAnimationFrame */
     GDProp* m_gd_prop;              /* 0x38 */
-    srVector3T<float> position_03c; /* 0x3c */
+    srVector3T<float> position5; /* 0x3c */
     /* Prop::Prop writes two identity bases here as nine floats each. */
-    srMatrix3T<float> rotation_048; /* 0x48 */
-    srMatrix3T<float> rotation_06c; /* 0x6c */
+    srMatrix3T<float> rotation0; /* 0x48 */
+    srMatrix3T<float> rotation1; /* 0x6c */
 }; /* 0x90 */
 
 static_assert(sizeof(W8Prop) == 0x90, "W8Prop_must_be_0x90");

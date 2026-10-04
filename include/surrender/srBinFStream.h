@@ -40,12 +40,12 @@ protected:
 
     /* The directional file streams' vget/vput/vread/vwrite bodies all touch
        the file handle directly, so the member sits at protected access. */
-    FILE* file_08;
+    FILE* file;
 
 private:
     void setPath(const char* path);
 
-    srInlineString path_0c;
+    srInlineString path;
 };
 
 // VTABLE: SURRENDER 0x10076A70 srBinStream

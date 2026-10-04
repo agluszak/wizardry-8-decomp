@@ -23,7 +23,7 @@ public:
        fstp, which is what types it. */
     float angle;
     float depth;
-    float width_140;
+    float width;
     unsigned char padding_144[4];
 
 private:

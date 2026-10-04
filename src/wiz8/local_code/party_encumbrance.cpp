@@ -146,7 +146,7 @@ bool RecalculateCarriedWeight(W8Character* character)
         character->carrying_capacity < character->inventory_weight) {
         int effect = g_camp_overload_event_id;
         if (g_current_screen_state.id != W8_SCREEN_CAMP) {
-            effect = g_special_event_0068c558;
+            effect = g_special_event13;
         }
         QueueCharacterEvent(character, effect, 0, g_character_event_no_flags,
                             g_character_event_full_volume);

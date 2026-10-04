@@ -34,10 +34,10 @@ public:
 
 private:
     struct Entry {
-        Entry* previous_00;
-        Entry* next_04;
-        long offset_08;
-        long size_0c;
+        Entry* previous;
+        Entry* next;
+        long offset;
+        long size;
         int locked;
     };
 
@@ -50,7 +50,7 @@ private:
     // ?convertPtr@srMemoryPool@@ABEJPBX@Z
     long convertPtr(const void* allocation) const
     {
-        return static_cast<const char*>(allocation) - static_cast<const char*>(memory_08);
+        return static_cast<const char*>(allocation) - static_cast<const char*>(memory);
     }
     void defrag(Entry* entry);
     Entry* find(long offset) const;
@@ -67,12 +67,12 @@ private:
         return (offset >> 5) & 0xff;
     }
 
-    e_fit policy_00;
-    long size_04;
-    void* memory_08;
-    long used_0c;
+    e_fit policy;
+    long size;
+    void* memory;
+    long used;
     long largest_free;
-    unsigned long alignment_14;
+    unsigned long alignment;
     Entry* first_free;
     Entry* allocations[256];
     int largest_free_dirty;

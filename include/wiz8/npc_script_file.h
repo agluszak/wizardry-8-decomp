@@ -32,20 +32,20 @@
    entry read at 0x005251F0 consumes sub-entry pairs whose +0 dwords are the
    fact id and the expected value. */
 struct W8NpcQuoteSubEntry {
-    int operand_00; /* 0x00: fact id on even slots, the expected value on odd */
+    int operand; /* 0x00: fact id on even slots, the expected value on odd */
     char* text;     /* 0x04 */
 }; /* 0x08 */
 
 /* One 0x12-byte entry. Byte 0 is the kind discriminator read by 0x00576060;
    the next twelve bytes come off disk untouched. The three dwords are
-   per-kind operand slots: the response chooser reads operand_01 as the fixed
-   or low response index, operand_05 == 2 as the random-selection mode and
-   operand_09 as the range bound / chain marker. */
+   per-kind operand slots: the response chooser reads operand0 as the fixed
+   or low response index, operand1 == 2 as the random-selection mode and
+   operand2 as the range bound / chain marker. */
 struct W8NpcQuoteEntry {
-    unsigned char kind_00;
-    int operand_01;
-    int operand_05;
-    int operand_09;
+    unsigned char kind;
+    int operand0;
+    int operand1;
+    int operand2;
     unsigned char sub_entry_count;   /* 0x0d */
     W8NpcQuoteSubEntry* sub_entries; /* 0x0e */
 }; /* 0x12 */

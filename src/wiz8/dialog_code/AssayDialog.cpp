@@ -294,7 +294,7 @@ unsigned char W8AssayDialog::PopulateText()
     if (m_item->identified != 0) {
         count = 0;
         for (index = 0; index < 0x10; ++index) {
-            if (record->missile_values_050[index] != 0) {
+            if (record->missile_values[index] != 0) {
                 if (count == 0) {
                     wcscpy(g_assay_entry_text, &g_empty_wide_string);
                 } else if (wcslen(g_assay_entry_text) + 1 + wcslen(g_comma_space) < 0x101) {
@@ -307,7 +307,7 @@ unsigned char W8AssayDialog::PopulateText()
                 if (wcslen(g_assay_entry_text) + 1 + wcslen(L" ") < 0x101) {
                     wcscat(g_assay_entry_text, L" ");
                 }
-                text = FormatWideString(g_format_d_percent, record->missile_values_050[index]);
+                text = FormatWideString(g_format_d_percent, record->missile_values[index]);
                 if (wcslen(text) + 1 + wcslen(g_assay_entry_text) < 0x101) {
                     wcscat(g_assay_entry_text, text);
                 }

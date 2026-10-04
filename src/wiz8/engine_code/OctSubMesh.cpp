@@ -249,9 +249,9 @@ stMeshModel* OctMeshModel::Read(int file, srMaterialIFace** materials, srTexture
     }
     model->autoRelease();
     if (unweighted) {
-        model->flags_3a0 &= ~1U;
+        model->flags &= ~1U;
     } else {
-        model->flags_3a0 |= 1;
+        model->flags |= 1;
     }
 
     m_vertex_locations = model->getVertexLoc();

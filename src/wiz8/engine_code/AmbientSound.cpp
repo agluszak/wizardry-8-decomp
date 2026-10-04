@@ -41,7 +41,7 @@ W8AmbientSound::W8AmbientSound()
       time_max(0), radius(0), in_range(0), looping(0), sound_handle(-1), sample_handle(-1),
       shared(0), bounded(0), region_angle(0)
 {
-    config_004.wave_name[0] = 0;
+    config.wave_name[0] = 0;
     position.SetZero();
     pacSoundName = 0;
     stopped = 0;
@@ -105,7 +105,7 @@ void W8AmbientSound::UpdatePosition(const srVector3T<float>* listener)
             if (in_range != 0) {
                 in_range = 0;
                 if (shared != 0) {
-                    W8AmbientSound* match = FindNextMatching(config_004.wave_name, 0);
+                    W8AmbientSound* match = FindNextMatching(config.wave_name, 0);
                     while (match != 0) {
                         if (handed_off != 0) {
                             return;
@@ -132,7 +132,7 @@ void W8AmbientSound::UpdatePosition(const srVector3T<float>* listener)
                                 handed_off = 1;
                             }
                         }
-                        match = FindNextMatching(config_004.wave_name, match);
+                        match = FindNextMatching(config.wave_name, match);
                     }
                     if (handed_off != 0) {
                         return;
@@ -228,7 +228,7 @@ void W8AmbientSound::Service(bool entered)
             parms.uiTimeMax = time_max;
             parms.uiSpeedMin = speed_min;
             parms.uiSpeedMax = speed_max;
-            sample_handle = SoundPlayRandom(config_004.wave_name, &parms);
+            sample_handle = SoundPlayRandom(config.wave_name, &parms);
             if (sample_handle != -1) {
                 SoundSetSampleFlags(sample_handle, 8);
             }
@@ -331,13 +331,13 @@ void W8AmbientSound::Service(bool entered)
         parms.Pos.flUpZ = 0.0f;
         parms.Pos.flFalloffMax = parms.Pos.flFalloffMin;
         parms.Pos.uiVolume = parms.uiVolume;
-        sound_handle = Sound3DPlay(config_004.wave_name, &parms);
+        sound_handle = Sound3DPlay(config.wave_name, &parms);
         if (sound_handle == -1) {
             in_range = 0;
         }
         return;
     }
-    if (SoundFileIsPlaying(config_004.wave_name) != 0) {
+    if (SoundFileIsPlaying(config.wave_name) != 0) {
         return;
     }
     {
@@ -348,7 +348,7 @@ void W8AmbientSound::Service(bool entered)
         parms.uiLoop = 0;
         current_volume = 0;
         target_volume = (volume_max * g_settings.sound_effects_volume) / 0x7f;
-        sound_handle = SoundPlay(config_004.wave_name, &parms);
+        sound_handle = SoundPlay(config.wave_name, &parms);
         fade_timer.SetDuration(g_float_005ec3b8 / target_volume);
         fade_timer.Restart();
         fade_timer.m_flags &= ~8;
@@ -383,7 +383,7 @@ W8AmbientSound* W8AmbientSound::FindNextMatching(const char* match_name, W8Ambie
     do {
         W8AmbientSound* candidate = GetWorldAmbientSound(g_world, index);
         if (candidate != 0 && candidate != this && candidate->shared != 0 &&
-            _stricmp(candidate->config_004.wave_name, match_name) == 0) {
+            _stricmp(candidate->config.wave_name, match_name) == 0) {
             return candidate;
         }
         ++index;
@@ -606,7 +606,7 @@ unsigned char AddAmbientSound(W8World* world, const char* name, const W8AmbientS
         }
         strcpy(sound->pacSoundName, name);
     }
-    sound->config_004 = *config;
+    sound->config = *config;
     sound->position = *position;
     sound->region_min = *region_min;
     sound->region_max = *region_max;

@@ -86,7 +86,7 @@ bool CanPartySlotAttackAnyTarget(int party_slot, int category, int flag, bool ha
     char side;
     int first = party_slot;
 
-    if (gXStatus.fCombatMode == 0 || g_combat_state->characters[party_slot].berserk_80 == 0) {
+    if (gXStatus.fCombatMode == 0 || g_combat_state->characters[party_slot].berserk == 0) {
         side = hand;
     } else {
         side = 1;
@@ -235,7 +235,7 @@ bool CharacterActionReachesTarget(int party_slot, int hand, W8TargetingContext c
         float dz = point.z - camera.z;
         if (distance + g_float_one <
             sqrtf(dx * dx + (point.y - camera.y) * (point.y - camera.y) + dz * dz) -
-                g_startup_world->radius_084) {
+                g_startup_world->radius) {
             return false;
         }
         if (trace) {
@@ -532,7 +532,7 @@ bool RangeCategoryUsesSightCondition(const W8MonsterInfo* monster, W8RangeCatego
 }
 
 /* Whether the monster's attack `attack` reaches anyone at all; `hostile_only`
-   counts only those it is hostile to. In combat with berserk_015 set the
+   counts only those it is hostile to. In combat with berserk set the
    hostile filter is forced on. Party members and other monsters defer to the corresponding
    MonsterAttackReachesCharacter/Monster helpers. */
 // FUNCTION: WIZ8 0x00519c00
@@ -546,7 +546,7 @@ bool MonsterAttackReachesAnyone(W8MonsterInfo* monster_info, unsigned int attack
     unsigned int count;
     W8MonsterInfo* other;
 
-    if (monster_info->fInCombat == 0 || monster_info->pCombat->berserk_015 == 0) {
+    if (monster_info->fInCombat == 0 || monster_info->pCombat->berserk == 0) {
         disposition_needed = hostile_only;
     } else {
         disposition_needed = 1;
@@ -813,7 +813,7 @@ W8RangeCategory GetMonsterBestRangeCategory(W8MonsterInfo* monster_info,
     }
 
     for (spell = 0; spell < 10; ++spell) {
-        unsigned int spell_id = record->spells_14d[spell];
+        unsigned int spell_id = record->spells[spell];
 
         if (MonsterCanAimSpell(spell_id) == 0) {
             continue;
@@ -897,7 +897,7 @@ float CalcRangeDistance(int range_category, W8TargetSource* source)
 {
     float distance = CalcRangeDistance(static_cast<W8RangeCategory>(range_category));
     if (TargetSourceIsCharacter(source, 0)) {
-        return g_startup_world->movement_0c0.alternate_radius + distance;
+        return g_startup_world->movement.alternate_radius + distance;
     }
     if (TargetSourceIsMonster(source, 0)) {
         if (source->iMonsterID == -1) {
@@ -906,7 +906,7 @@ float CalcRangeDistance(int range_category, W8TargetSource* source)
         unsigned int monster_list_index =
             MonsterGetIndexByLocationID(0x484, COMBAT_RANGE_CPP, source->iMonsterID, 1);
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
-        return monster_info->p3D->movement_0c0.alternate_radius + distance;
+        return monster_info->p3D->movement.alternate_radius + distance;
     }
     return distance;
 }
@@ -916,7 +916,7 @@ float CalcRangeDistance(int range_category, W8TargetSource* source)
 // FUNCTION: WIZ8 0x0051AB50
 float CalcRangeDistanceFromParty(W8RangeCategory range_category)
 {
-    return CalcRangeDistance(range_category) + g_startup_world->movement_0c0.collision_radius;
+    return CalcRangeDistance(range_category) + g_startup_world->movement.collision_radius;
 }
 
 /* Shrink a short-range category by the formation rows CountRowsBetween says
@@ -1317,7 +1317,7 @@ int FindNearestVisibleGroupMonster(W8MonsterInfo* monster_info, int group_id, in
 // FUNCTION: WIZ8 0x0051b320
 void GetMonsterAttackSourceOffset(W8Monster* monster, int kind, srVector3T<float>* out)
 {
-    out->Set(0.0f, monster->movement_0c0.height_offset, 0.0f);
+    out->Set(0.0f, monster->movement.height_offset, 0.0f);
     if (kind == 1) {
         if (monster->GetProjectilePosition(out) != 0) {
             srVector3T<float> position = monster->GetPosition();

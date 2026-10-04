@@ -60,7 +60,7 @@ public:
     };
 
     /* srNode ctor dump table at 0x1009c374: DISABLE,TERMINATE,GLOBAL,
-       IGNORE_TRANSFORM (bits 0–3 of flags_124). traverse omits this node
+       IGNORE_TRANSFORM (bits 0–3 of flags). traverse omits this node
        when DISABLE is set and does not walk children when TERMINATE is set.
        Lights, clip planes and bounders set GLOBAL. setFlag(IGNORE_TRANSFORM)
        also dirties the cached world transform. */
@@ -210,15 +210,15 @@ private:
     static SR_DLL_IMPORT srCriticalSection sceneGraphCSect;
     static SR_DLL_IMPORT long sceneGraphLockCount;
 
-    srMatrix3T<double> rotation_18; /* 0x018 */
-    srVector3T<double> location_60; /* 0x060 */
-    srVector3T<double> scale_78;    /* 0x078 */
+    srMatrix3T<double> rotation; /* 0x018 */
+    srVector3T<double> location; /* 0x060 */
+    srVector3T<double> scale;    /* 0x078 */
     /* Cached world transforms and the notification word mutate inside the
        const updateTransformation/getter family. */
-    mutable srMatrix4x3T<double> world_transform_90; /* 0x090: cached affine world transform */
-    mutable srMatrix4x3T<float> world_transform_f0;  /* 0x0f0 */
-    mutable srFlags<e_notify> notifications_120;     /* 0x120 */
-    srFlags<e_flag> flags_124;                       /* 0x124 */
+    mutable srMatrix4x3T<double> world_transform0; /* 0x090: cached affine world transform */
+    mutable srMatrix4x3T<float> world_transform1;  /* 0x0f0 */
+    mutable srFlags<e_notify> notifications;     /* 0x120 */
+    srFlags<e_flag> flags;                       /* 0x124 */
 
 public:
     /* The hierarchy links are read directly by derived traversals and by

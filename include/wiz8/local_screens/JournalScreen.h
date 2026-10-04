@@ -19,18 +19,18 @@ public:
     virtual void OnPrimary(W8TextControl* control) override;
     void Refresh();
 
-    W8TextControl* m_next_050;
-    W8TextControl* m_previous_054;
+    W8TextControl* m_next;
+    W8TextControl* m_previous;
     W8TextControl* m_close;
     W8TextControl* m_mode;
-    W8TextBuffer* m_page_text_060;
+    W8TextBuffer* m_page_text;
     unsigned char m_alternate_mode;
     unsigned char m_pad_065[3];
 };
 
 static_assert(sizeof(W8JournalPanel) == 0x68, "W8JournalPanel_size");
 /* Retail secondary vftable 0x005ef338 places W8TextControl::Listener at +0x4c. */
-W8_ASSERT_BASE_END(W8JournalPanel, W8TextControl::Listener, m_next_050, 0x4c);
+W8_ASSERT_BASE_END(W8JournalPanel, W8TextControl::Listener, m_next, 0x4c);
 
 struct W8JournalEntry {
     int level;

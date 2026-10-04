@@ -180,7 +180,7 @@ void RemoveCharacterCondition(int party_slot, int condition, bool announce)
             break;
         case 0xb:
             if (gXStatus.fCombatMode != 0 &&
-                g_combat_state->characters[party_slot].berserk_80 != 0) {
+                g_combat_state->characters[party_slot].berserk != 0) {
                 row->target_out_of_combat = row->target_in_combat;
             }
             break;
@@ -473,7 +473,7 @@ void SetMonsterCondition(int location_id, int condition, int duration, int argum
     if (monster_info->hp_current == 0) {
         return;
     }
-    kind = record->kind_0cb;
+    kind = record->kind;
     for (immunity = g_condition_immunities; immunity < g_condition_immunities + 3; ++immunity) {
         if (immunity->kind == kind) {
             for (index = 0; index < 0x14; ++index) {

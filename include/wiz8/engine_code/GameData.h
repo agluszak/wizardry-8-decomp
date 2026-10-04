@@ -39,43 +39,43 @@ struct W8LevelDataRecord {
     float speed;                   /* 0x20 */
     /* 0x24/0x28: pending elapsed times ConsumeLevelElapsedTime hands
        to the movement/fatigue pass, then clears. */
-    float real_elapsed_24;
-    float frame_elapsed_28;
-    float movement_limit_2c;
+    float real_elapsed;
+    float frame_elapsed;
+    float movement_limit;
     float movement_progress;
-    srVector3T<float> camera_position_34;       /* 0x34 */
-    srVector3T<float> vector_40;                /* 0x40 */
+    srVector3T<float> camera_position;       /* 0x34 */
+    srVector3T<float> vector2;                /* 0x40 */
     srVector3T<float> camera_forward;        /* 0x4c */
-    srVector3T<float> vector_58;                /* 0x58 */
-    srVector3T<float> vector_64;                /* 0x64 */
-    srVector3T<float> vector_70;                /* 0x70 */
+    srVector3T<float> vector3;                /* 0x58 */
+    srVector3T<float> vector4;                /* 0x64 */
+    srVector3T<float> vector5;                /* 0x70 */
     srVector3T<float> scaled_camera_forward; /* 0x7c */
-    srVector3T<float> vector_88;                /* 0x88 */
-    srVector3T<float> vector_94;                /* 0x94 */
-    srVector3T<float> vector_a0;                /* 0xa0 */
+    srVector3T<float> vector6;                /* 0x88 */
+    srVector3T<float> vector7;                /* 0x94 */
+    srVector3T<float> vector8;                /* 0xa0 */
     /* 0xac: contact surface normal; 0xb8: scalar stored beside it (retail
        constructor writes 1.0f). Remaining 8 bytes stay unresolved. */
-    srVector3T<float> contact_normal_ac; /* 0xac */
+    srVector3T<float> contact_normal; /* 0xac */
     float contact_normal_scale;       /* 0xb8 */
     unsigned char unknown_bc[8];         /* 0xbc */
     W8IntervalGate interval_gate;     /* 0xc4 */
-    bool flag_ec;                        /* 0xec */
-    bool flag_ed;                        /* 0xed */
+    bool flag5;                        /* 0xec */
+    bool flag6;                        /* 0xed */
     unsigned char pad_ee[2];
     float vertical_motion; /* 0xf0 */
 
     W8LevelDataRecord(); /* 0x0041FD10 */
     /* 0x0041FE20: when the camera sits outside the game-data AABB, push
-       vector_a0 toward the box, clear environ vector_24, and optionally start
+       vector8 toward the box, clear environ vector, and optionally start
        party movement; returns non-zero when a clamp fired. */
     unsigned char ClampCameraToBounds(const srVector3T<float>* minimum,
                                       const srVector3T<float>* maximum);
     /* 0x0041FF00: toggle setting-6e props referenced by primary_contact_prop_id/secondary_contact_prop_id. */
     unsigned char ToggleBoundProps();
-    /* 0x00420470: integrate camera_forward into vector_64/vector_70. */
+    /* 0x00420470: integrate camera_forward into vector4/vector5. */
     unsigned char IntegrateCameraForward();
-    /* 0x00420810: rotate vector_40 by the saved yaw matrix and refresh
-       vector_a0; returns the updated fast-move latch. */
+    /* 0x00420810: rotate vector2 by the saved yaw matrix and refresh
+       vector8; returns the updated fast-move latch. */
     unsigned char ApplySavedMotionMatrix(unsigned char prior_fast, bool fast_move,
                                          const srMatrix3T<float>* saved);
     /* 0x0041FF90: advance movement progress / footstep state for one tick. */
@@ -104,14 +104,14 @@ struct W8EnvironRecord {
     unsigned char pad_06[2];
     int value_08;
     /* Per-frame scale copied from the level camera_scale; 0x00421850 multiplies
-       vector_24 by it when advancing the camera under environment load. */
-    float scale_0c;
+       vector by it when advancing the camera under environment load. */
+    float scale;
     float gravity_x;
     float gravity_y;
     float gravity_z;
     float motion_step;
     float motion_factor;
-    srVector3T<float> vector_24;
+    srVector3T<float> vector;
     float world_height;
     float forward_scale;
     float motion_limit;
@@ -119,9 +119,9 @@ struct W8EnvironRecord {
     float value_40;
 
     unsigned char RescaleToReference(const W8EnvironRecord* reference);
-    /* 0x00421800: store `motion` / scale_0c as the per-frame vector_24. */
+    /* 0x00421800: store `motion` / scale as the per-frame vector. */
     void SetScaledMotion(const srVector3T<float>* motion);
-    /* 0x00421850: add vector_24 * scale_0c into `position`. */
+    /* 0x00421850: add vector * scale into `position`. */
     void AddScaledMotion(srVector3T<float>* position);
 };
 
@@ -143,7 +143,7 @@ struct W8GDInterface {
    compared against, and the count/first-index slice of conditional-poly
    surface indexes in W8GameData::m_piCondPolys. */
 struct W8GDInterfaceState {
-    int group_00;
+    int group;
     int poly_count;
     int poly_first;
 };
@@ -205,17 +205,17 @@ struct W8GameData {
     /* +0x04: the loading octree's back-pointer, stored by W8Octree's file-load
        finish path (retail writes [ESI+4], not +0) and tested by trigger
        integration. geometry_index above is untouched by that store. */
-    W8Octree* octree_04;
-    srVector3T<float> minimum_08;
-    srVector3T<float> maximum_14;
+    W8Octree* octree;
+    srVector3T<float> minimum;
+    srVector3T<float> maximum;
     /* Member names through m_ppEnvirons are proven by retail assertion strings
        in ReadProcessedGameData/SetInterfaceState; each m_iNum* count pairs the
        proven array member it counts. */
     int m_iNumVertices;
     srVector3T<float>* m_pVertices;
     int m_iNumSurfaces;
-    int trigger_surface_base_2c;
-    int trigger_surface_count_2c;
+    int trigger_surface_base;
+    int trigger_surface_count;
     int integrated_surface_count;
     W8GDSurface* m_pSurfaces;
     int m_iNumTrigSurfaces;
@@ -280,8 +280,8 @@ struct W8GameData {
     bool TestProp(int prop_id, W8OctreeTrace* trace, char skip_flag, char gate); /* 0x0041C140 */
     /* Ray-test `count` surfaces - all of m_pSurfaces when `surface_ids` is
        null, else the listed surface indexes - against the trace record.
-       trace_flag4_gate, flag and mode filters apply; a closer hit stores index_04
-       into last_hit_surface, the contact into the record's end_0c and the distance
+       trace_flag4_gate, flag and mode filters apply; a closer hit stores index
+       into last_hit_surface, the contact into the record's end and the distance
        into hit_limit. */
     bool TestTraceResult(int count, unsigned long* surface_ids, W8OctreeTrace* trace,
                          char skip_flag, int mode); /* 0x0041C330 */
@@ -293,7 +293,7 @@ static_assert(offsetof(W8LevelDataRecord, primary_contact_prop_id) == 0x04,
               "W8LevelDataRecord_primary_contact_prop_id");
 static_assert(offsetof(W8LevelDataRecord, residual_contact_length) == 0x18,
               "W8LevelDataRecord_residual_contact_length");
-static_assert(offsetof(W8LevelDataRecord, contact_normal_ac) == 0xac,
+static_assert(offsetof(W8LevelDataRecord, contact_normal) == 0xac,
               "W8LevelDataRecord_contact_normal_ac");
 static_assert(offsetof(W8LevelDataRecord, contact_normal_scale) == 0xb8,
               "W8LevelDataRecord_contact_normal_scale");

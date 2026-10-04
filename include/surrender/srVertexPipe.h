@@ -16,11 +16,11 @@ class SR_DLL_EXPORT srVertexPipe {
 public:
     struct Input {
         unsigned long record_count;
-        unsigned long vertex_count_04;
-        const unsigned long* indices_08;
+        unsigned long vertex_count;
+        const unsigned long* indices;
         int position_is_float3;
-        const srVector3T<float>* positions_10;
-        const srVector3T<float>* values_14;
+        const srVector3T<float>* positions;
+        const srVector3T<float>* values;
         srVector3T<float> eye_center;
         float eye_radius;
         const srMatrix4T<float>* model_view;
@@ -87,16 +87,16 @@ public:
     SR_DLL_IMPORT void swapDiffuseAndSpecular();
     SR_DLL_IMPORT int testEyeSpaceBounds(const srVector3T<float>& center, float radius) const;
 
-    /* Per-record render state from Input::records, stride 0x5c. flags_00:
+    /* Per-record render state from Input::records, stride 0x5c. flags:
        bit0 vertex colors present, bit1 indexed specular into diffuse,
        bit2 indexed specular into specular, bit3 indexed alpha, bits4/5
-       indexed ST0/ST1, bit6 per-vertex material table. channels_04 is the
+       indexed ST0/ST1, bit6 per-vertex material table. channels is the
        shader's channel-disable mask; color_source.kind selects the
        ARGB/vector3/vector4 copyIndexed source for color_source.colors. */
     struct Record {
-        unsigned long flags_00;
-        unsigned long channels_04;
-        srMaterialIFace* material_08;
+        unsigned long flags;
+        unsigned long channels;
+        srMaterialIFace* material;
         /* The colors/kind pair is a member object: copyDiffuseColors is a
            member call (retail loads ECX = record+0xc at the call site). */
         struct ColorSource {
@@ -165,21 +165,21 @@ private:
 
     static_assert(sizeof(Scratch) == 0xb04, "Scratch_must_be_0xb04");
 
-    Scratch* scratch_00;                              /* 0x00 */
+    Scratch* scratch;                              /* 0x00 */
     srVertexProcessor** processor_heap;            /* 0x04 */
     unsigned long processor_heap_capacity;         /* 0x08 */
     unsigned long channel_mask;                    /* 0x0c */
     unsigned long lazy_setup_mask;                 /* 0x10 */
     srVertexProcessor::MaterialInfo material_info; /* 0x14 through 0x67; flags at +0x64 */
-    srMaterialIFace* material_68;                     /* 0x68 */
-    const Input* input_6c;                            /* 0x6c */
+    srMaterialIFace* material;                     /* 0x68 */
+    const Input* input;                            /* 0x6c */
     const unsigned long* avt;                      /* 0x70 */
     const Record* current_record;                  /* 0x74 */
     srVertexArray* vertex_array;                   /* 0x78 */
     srVector4T<float>* eye_space_locations;        /* 0x7c */
     unsigned long batch_base;                      /* 0x80 */
     unsigned long sub_batch_offset;                /* 0x84 */
-    unsigned long vertex_count_88;                    /* 0x88 */
+    unsigned long vertex_count;                    /* 0x88 */
     unsigned long batch_count;                     /* 0x8c */
     unsigned long active_processor_count;          /* 0x90 */
     srVertexProcessor** active_processors;         /* 0x94 */

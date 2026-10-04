@@ -17,14 +17,14 @@ struct W8World;
 struct W8ReadLevelInfo;
 
 /* Callers build this trio before loading a .mon/.mls resource. The loader
-   carries world_00 into its four-field read record and never reads the other
+   carries world into its four-field read record and never reads the other
    two, but callers still store into them: monster callers null
-   bitmap_directory_04 and set directory_08 to "Data\\Monsters", while the
-   spell factory points directory_08 at the spell-bitmap tree. */
+   bitmap_directory and set directory to "Data\\Monsters", while the
+   spell factory points directory at the spell-bitmap tree. */
 struct W8GrCycleLoadContext {
-    W8World* world_00;
-    const char* bitmap_directory_04;
-    const char* directory_08;
+    W8World* world;
+    const char* bitmap_directory;
+    const char* directory;
 };
 
 class stLight;
@@ -47,7 +47,7 @@ void DestroyLightVector(W8GrowableVector<stLight*>* vector); /* 0x004A8C50 */
    deleting. That shared ownership bit, the shared factory and the shared 0x4c
    allocation are what prove the two are one class rather than two of a size.
 
-   flags_00: bit 0 says the effect is in the live list, bit 1 that the live list
+   flags: bit 0 says the effect is in the live list, bit 1 that the live list
    owns it. Bits 2, 3 and 4 are set together by the constructor's own flag, and
    Trigger sets bit 4 on its own to reverse the shake. */
 class W8CameraShakeEffect {
@@ -59,16 +59,16 @@ public:
        reports how much it contributes this frame. */
     unsigned char Evaluate(const srVector3T<float>* position, float* out_amount);
 
-    unsigned int flags_00;         /* 0x00 */
-    float intensity_04;            /* 0x04 */
-    float distance_cap_08;         /* 0x08: distance cap for bit-2 effects */
-    srVector3T<float> position_0c; /* 0x0c */
+    unsigned int flags;         /* 0x00 */
+    float intensity;            /* 0x04 */
+    float distance_cap;         /* 0x08: distance cap for bit-2 effects */
+    srVector3T<float> position; /* 0x0c */
     W8GameTimer timer;          /* 0x18 */
     /* The key 0x004AE170 matches an animation event against. */
-    int cycle_3c;                         /* 0x3c */
-    int frame_40;                         /* 0x40 */
-    int subcycle_44;                      /* 0x44 */
-    void (*completion_callback_48)(void); /* 0x48 */
+    int cycle;                         /* 0x3c */
+    int frame;                         /* 0x40 */
+    int subcycle;                      /* 0x44 */
+    void (*completion_callback)(void); /* 0x48 */
 };
 
 static_assert(sizeof(W8CameraShakeEffect) == 0x4c, "W8CameraShakeEffect_must_be_0x4c");
@@ -97,15 +97,15 @@ void UpdateShakeEffects();
    0x00498180, a vector at +0x0c, and the 0x24-byte tail wholesale. */
 class W8GrCycleParticleAttachment {
 public:
-    int cycle_00;
-    signed char subcycle_04;
+    int cycle;
+    signed char subcycle;
     unsigned char padding_05[3];
     stParticle* m_pstParticles;
-    srVector3T<float> position_0c;
+    srVector3T<float> position;
     /* 0x004A7E50 composes this into the model instance's own rotation with
        MultiplyBy, which is what makes it a matrix rather than 0x24
        opaque bytes. */
-    srMatrix3T<float> rotation_18;
+    srMatrix3T<float> rotation;
 };
 
 static_assert(sizeof(W8GrCycleParticleAttachment) == 0x3c,
@@ -181,7 +181,7 @@ public:
     bool aim_set;
     /* The axis 0x004A7E50 aims a mode-three particle along. */
     srVector3T<float> m_axis;
-    float scale_1cc;
+    float scale;
     stGroundShadow* m_ground_shadow; /* 0x1d0: typed runtime class stGroundShadow */
     /* Fractional frame progress after TickAnimation consumes whole frames.
        Monster interpolation and light definition time use the same fraction. */
@@ -190,7 +190,7 @@ public:
 
 static_assert(sizeof(W8GrCycle) == 0x1d8, "W8GrCycle_size_must_be_0x1d8");
 /* Secondary vftable 0x005eceb8 places the W8Navigator subobject at +0x18. */
-W8_ASSERT_BASE_OFFSET(W8GrCycle, W8Navigator, navigation_mode_008, 0x18);
+W8_ASSERT_BASE_OFFSET(W8GrCycle, W8Navigator, navigation_mode, 0x18);
 
 /* 0x005EC128: hundredth-second scale shared by the monster and trigger
    durations. */

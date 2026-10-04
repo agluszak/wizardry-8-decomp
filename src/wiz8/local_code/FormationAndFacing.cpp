@@ -201,10 +201,10 @@ enum { W8_FACING_ANY = 4 };
    highest_condition below HOSTILE, tighter than the party-wide death window. */
 
 // GLOBAL: WIZ8 0x005ee858
-const double g_facing_tolerance_005ee858 = 2.3561944500000003;
+const double g_facing_tolerance1 = 2.3561944500000003;
 
 // GLOBAL: WIZ8 0x005ebcf4
-const float g_facing_tolerance_005ebcf4 = 0.05f;
+const float g_facing_tolerance0 = 0.05f;
 
 /* Whether one character can hold a place in the formation at all: they have to
    be alive and in better shape than the party sweeps demand. */
@@ -391,7 +391,7 @@ bool IsPartyLookingAwayFrom(int, W8MonsterInfo* monster_info)
     float bearing = NormalizeAngle(GetHeadingAngle(&monster_position, &party_position));
     float facing = monster_info->p3D->GetYaw();
 
-    return ShortestAngleDistance(bearing, facing) >= g_facing_tolerance_005ee858;
+    return ShortestAngleDistance(bearing, facing) >= g_facing_tolerance1;
 }
 
 /* The facing step from `position`'s quadrant toward `arg_2`'s quadrant: the
@@ -445,7 +445,7 @@ bool IsPartyLookingAt(W8MonsterInfo* monster_info, srVector3T<float> point)
     srVector3T<float> monster_position = monster_info->p3D->GetPosition();
     float bearing = NormalizeAngle(GetHeadingAngle(&monster_position, &point));
 
-    return fabsf(bearing - monster_info->p3D->GetYaw()) <= g_facing_tolerance_005ebcf4;
+    return fabsf(bearing - monster_info->p3D->GetYaw()) <= g_facing_tolerance0;
 }
 
 /* The five formation rows' display names, indexed by row. */
@@ -762,7 +762,7 @@ int IsMonsterLookingAwayFrom(W8MonsterInfo* first, W8MonsterInfo* second)
     float bearing = NormalizeAngle(GetHeadingAngle(&second_position, &first_position));
     float facing = second->p3D->GetYaw();
 
-    if (static_cast<float>(g_facing_tolerance_005ee858) <= ShortestAngleDistance(bearing, facing)) {
+    if (static_cast<float>(g_facing_tolerance1) <= ShortestAngleDistance(bearing, facing)) {
         return 1;
     }
     return 0;

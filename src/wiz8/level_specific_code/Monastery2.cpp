@@ -41,12 +41,12 @@ bool Monastery2BellButton(Trigger* pTrigger)
             if (pPropTrigger == 0) {
                 srAssertFail("pPropTrigger", MONASTERY2_CPP, 0x21, 0);
             }
-            pPropTrigger->flags_0a0 &= ~W8_TRIGGER_ON;
+            pPropTrigger->flags &= ~W8_TRIGGER_ON;
             pPropTrigger = FindTriggerByName("bell_button");
             if (pPropTrigger == 0) {
                 srAssertFail("pPropTrigger", MONASTERY2_CPP, 0x24, 0);
             }
-            pPropTrigger->flags_0a0 &= ~W8_TRIGGER_ON;
+            pPropTrigger->flags &= ~W8_TRIGGER_ON;
             return 1;
         }
     }

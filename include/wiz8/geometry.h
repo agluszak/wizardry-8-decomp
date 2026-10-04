@@ -36,15 +36,15 @@ struct W8Plane {
 static_assert(sizeof(W8Plane) == 0x10, "W8Plane_must_be_0x10");
 
 struct W8GDSurface {
-    unsigned int flags_00;
-    unsigned int index_04;
+    unsigned int flags;
+    unsigned int index;
     int trigger_index;
     int edge_link[3];
-    int vertex_indices_18[3];
+    int vertex_indices[3];
     /* The region word at +0x32 belongs to W8OctRegionPolygon, not this
        surface. */
-    W8Plane plane_24;
-    float distance_34;
+    W8Plane plane;
+    float distance;
     /* Hit plane ProbePropsAlongMotion fills for ResolveCollision. */
     W8Plane* hit_plane;
     unsigned char footstep_surface;  /* W8FootstepSurface selector */
@@ -52,17 +52,17 @@ struct W8GDSurface {
     unsigned char positional[2];
     float contact_margin;
     unsigned int chance;
-    float slope_48; /* face slope; generated surfaces derive it from plane_24.normal.y */
+    float slope; /* face slope; generated surfaces derive it from plane.normal.y */
 
     /* The plane's unit normal. */
     const srVector3T<float>* Normal() const
     {
-        return &plane_24.normal;
+        return &plane.normal;
     }
 
     /* 0x0041CF90: segment-vs-surface test used by env motion. On a hit `from`
        advances to the contact point and `hit_distance` gets the travelled
-       length; distance_34 takes the surface's updated limit. */
+       length; distance takes the surface's updated limit. */
     unsigned char TestSegment(srVector3T<float>* from, const srVector3T<float>* direction,
                               float* hit_distance, srVector3T<float>* vertices);
     /* 0x0041D9D0: shrink `limit` to the remaining in-plane distance against

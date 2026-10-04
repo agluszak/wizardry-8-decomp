@@ -611,17 +611,17 @@ void HealCharacter(int party_slot, int amount, char announce)
     }
 
     fraction = (character->hp_current * 100) / static_cast<unsigned int>(character->uiHPMax);
-    if (fraction >= g_effect_threshold_005ed904) {
-        if (gXStatus.character_event_queue->HasEventCharacter(g_effect_005ee594, party_slot)) {
-            gXStatus.character_event_queue->SetEventCharacterMask(g_effect_005ee594, party_slot, 0);
+    if (fraction >= g_effect_threshold1) {
+        if (gXStatus.character_event_queue->HasEventCharacter(g_effect3, party_slot)) {
+            gXStatus.character_event_queue->SetEventCharacterMask(g_effect3, party_slot, 0);
         }
-        if (fraction >= g_effect_threshold_005ed900) {
-            if (gXStatus.character_event_queue->HasEventCharacter(g_effect_005ee590, party_slot)) {
-                gXStatus.character_event_queue->SetEventCharacterMask(g_effect_005ee590, party_slot,
+        if (fraction >= g_effect_threshold0) {
+            if (gXStatus.character_event_queue->HasEventCharacter(g_effect2, party_slot)) {
+                gXStatus.character_event_queue->SetEventCharacterMask(g_effect2, party_slot,
                                                                       0);
             }
-            if (gXStatus.character_event_queue->HasEventCharacter(g_effect_005ee5f8, party_slot)) {
-                gXStatus.character_event_queue->SetEventCharacterMask(g_effect_005ee5f8, party_slot,
+            if (gXStatus.character_event_queue->HasEventCharacter(g_effect17, party_slot)) {
+                gXStatus.character_event_queue->SetEventCharacterMask(g_effect17, party_slot,
                                                                       0);
             }
         }
@@ -1008,7 +1008,7 @@ void FatigueCharacter(int party_slot, int amount, bool scale_by_load,
         }
     } else if (band != previous_band && band > W8_FATIGUE_BAND_DEEP) {
         if (!character->deep_fatigue_applied) {
-            QueueCharacterEvent(character, g_effect_005ee598, 0, g_character_event_no_flags,
+            QueueCharacterEvent(character, g_effect4, 0, g_character_event_no_flags,
                                 g_character_event_full_volume);
             character->deep_fatigue_applied = 1;
         }

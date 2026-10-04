@@ -9,7 +9,7 @@
 #define GROBJECT_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\GrObject.cpp"
 
 // FUNCTION: WIZ8 0x004b6900
-W8GrObject::W8GrObject() : kind_004(0), id(-1), m_pAI(0), m_plsSoundEvents(0) {}
+W8GrObject::W8GrObject() : kind(0), id(-1), m_pAI(0), m_plsSoundEvents(0) {}
 
 /* Nothing is shared with the source. The AI record goes through the tagged
    dispatcher, and each sound event is rebuilt from the four leading values and
@@ -22,7 +22,7 @@ W8GrObject::W8GrObject() : kind_004(0), id(-1), m_pAI(0), m_plsSoundEvents(0) {}
 // FUNCTION: WIZ8 0x004b69a0
 W8GrObject::W8GrObject(const W8GrObject& other)
 {
-    kind_004 = other.kind_004;
+    kind = other.kind;
     id = other.id;
     if (other.m_pAI != 0) {
         m_pAI = CloneAIRecord(other.m_pAI);

@@ -13,7 +13,7 @@ struct W8ModelInstance2DRenderState {
     short position_x;
     short position_y;
     unsigned char display_state;
-    /* 0x0d: enables the pulsing glow pass over mesh.materials_70[0]. */
+    /* 0x0d: enables the pulsing glow pass over mesh.materials[0]. */
     bool glow_enabled;
     unsigned char padding_0e[2];
 };
@@ -41,10 +41,10 @@ public:
     void GetRotation(srMatrix3T<float>* rotation);
 
 public:
-    srVector3T<float> location_004;
+    srVector3T<float> location;
     srVector3T<float> local_location;
     srVector3T<float> parent_location;
-    srMatrix3T<float> rotation_028;
+    srMatrix3T<float> rotation;
     /* RGBA highlight colour; GrCycle copies it into the 3D mesh instance,
        which renders it as its highlight material's emissive colour. */
     srVector4T<float> highlight_colour;
@@ -113,7 +113,7 @@ static_assert(offsetof(W8AnimRepBase, highlight_colour) == 0x4c,
 static_assert(sizeof(W8AnimRepBase) == 0x64, "W8AnimRepBase_size_must_be_0x64");
 static_assert(sizeof(W8AnimRep) == 0x98, "W8AnimRep_size_must_be_0x98");
 
-extern float g_lod_range_default_0060e608;
-extern float g_lod_range_default_0060e60c;
+extern float g_lod_range_default0;
+extern float g_lod_range_default1;
 
 #endif

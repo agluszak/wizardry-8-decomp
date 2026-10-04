@@ -15,9 +15,9 @@ struct W8CharacterEvent;
 struct W8MonsterManagerEntry;
 struct W8Region;
 
-extern int g_special_event_0068c558;
-extern int g_special_event_0068c55c;
-extern int g_special_event_0068c568;
+extern int g_special_event13;
+extern int g_special_event14;
+extern int g_special_event17;
 int UpdateCharacterEventState(void);
 W8CharacterEvent* QueueCharacterEvent(W8Character* character, int event_type, unsigned int flags,
                                       int queue_mode, unsigned int volume);
@@ -79,21 +79,21 @@ void SetPartyPortraitEventState(unsigned int party_slot, bool active,
    formatters. Its middle argument is the context the notices are posted under -
    zero while the NPC dialogue owns the screens, -1 otherwise. */
 void PostCharacterNoticeInContext(int party_slot, int context, const wchar_t* format, ...);
-extern int g_special_event_0068c50c;   /* 0x0068C50C */
+extern int g_special_event2;   /* 0x0068C50C */
 extern unsigned int g_event_range_max; /* 0x0068C554 */
-extern int g_special_event_0068c56c;   /* 0x0068C56C: one of the three melee
+extern int g_special_event18;   /* 0x0068C56C: one of the three melee
                                          swing event ids StartCharacterAttack
                                          rolls between */
-extern int g_special_event_0068c560;   /* 0x0068C560: one of the three blocked-hit
+extern int g_special_event15;   /* 0x0068C560: one of the three blocked-hit
                                         reaction ids ContinueMonsterAttack rolls
                                         between, with 0x68c570 and 0x68c574 */
-extern int g_special_event_0068c570;   /* 0x0068C570 */
-extern int g_special_event_0068c574;   /* 0x0068C574 */
+extern int g_special_event19;   /* 0x0068C570 */
+extern int g_special_event20;   /* 0x0068C574 */
 extern unsigned int g_event_range_min; /* 0x0068C57C */
-extern int g_special_event_0068c524;   /* 0x0068C524 */
-extern int g_special_event_0068c528;   /* 0x0068C528 */
+extern int g_special_event5;   /* 0x0068C524 */
+extern int g_special_event6;   /* 0x0068C528 */
 extern int g_event_target_out_of_range;   /* 0x0068C530: emitted when a slot's action
                                         cannot reach a monster group */
 extern int g_event_sight_blocked;   /* 0x0068C518: emitted when the selected
                                         sight line is blocked */
-extern int g_special_event_0068c534;   /* 0x0068C534 */
+extern int g_special_event8;   /* 0x0068C534 */

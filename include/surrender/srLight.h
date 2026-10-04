@@ -123,13 +123,13 @@ public:
        setLinearAttenuation stores the linear coefficient in .y. */
     srVector3T<float> opengl_attenuation; /* 0x188 */
     unsigned long enable_flags;           /* 0x194 */
-    srVector3T<float> ambient_198;            /* 0x198 */
-    srVector3T<float> diffuse_1a4;            /* 0x1a4 */
-    srVector3T<float> specular_1b0;           /* 0x1b0 */
+    srVector3T<float> ambient;            /* 0x198 */
+    srVector3T<float> diffuse;            /* 0x1a4 */
+    srVector3T<float> specular;           /* 0x1b0 */
     srVector3T<float> spot_direction;     /* 0x1bc */
     float spot_angle;                     /* 0x1c8 */
     float spot_exponent;                  /* 0x1cc */
-    float intensity_1d0;                      /* 0x1d0 */
+    float intensity;                      /* 0x1d0 */
     float safe_range;                     /* 0x1d4 */
     srVector4T<float> scaled_ambient;     /* 0x1d8: ambient * intensity */
     srVector4T<float> scaled_diffuse;     /* 0x1e8: diffuse * intensity */

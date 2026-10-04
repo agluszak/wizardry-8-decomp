@@ -23,14 +23,14 @@ struct W8WorldCursorState {
        then cleared. The group-bind paths also bump .z. */
     srVector3i input_delta;
     /* 0x18: camera-relative offset the placement update derives from
-       position_28. */
+       position. */
     srVector3T<float> cam_rel_offset;
     /* 0x24: the light node the complete teardown removes from the world. */
     stLight* light;
     /* 0x28: read back by the path-visualization update as a world point. */
-    srVector3T<float> position_28;
+    srVector3T<float> position;
     /* 0x34: the last position published to the cursor's nodes and monster;
-       the update compares it against position_28 to detect a move. Seeded
+       the update compares it against position to detect a move. Seeded
        to the -1e7 sentinel by the placement update. */
     srVector3T<float> last_published;
     /* 0x40: authored name fEnabled - the cursor update asserts it. */
@@ -38,7 +38,7 @@ struct W8WorldCursorState {
     /* 0x41: ground tracking. Set by the initializer and the placement
        update; the target march lifts each step to the settled ground height
        while set and re-arms it when the result lands near the ground, and
-       the cursor update settles position_28 to the terrain while set. */
+       the cursor update settles position to the terrain while set. */
     bool track_ground;
     unsigned char padding_42[2];
     /* 0x44: the cursor's march range, initialized to 50000; both movement
@@ -54,7 +54,7 @@ struct W8WorldCursorState {
        g_cursor_saved_group_id. */
     int monster_group_id;
     /* 0x50: when set the cursor is detached from the camera - input moves
-       position_28 directly and the placement update skips the
+       position directly and the placement update skips the
        camera-relative cam_rel_offset store. */
     bool detached;
     /* 0x51: while detached, run the ground/sight march on the moved
@@ -79,7 +79,7 @@ struct W8WorldCursorState {
     srVector3T<float> extent_max;
     /* 0xdc: the monster info latched by the shift-drag; the update drags
        it to the cursor position and releases it when shift lifts. */
-    W8MonsterInfo* dragged_info_dc;
+    W8MonsterInfo* dragged_info;
 };
 
 static_assert(sizeof(W8WorldCursorState) == 0xe0, "W8WorldCursorState_size");

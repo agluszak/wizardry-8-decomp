@@ -152,15 +152,15 @@ void W8CharacterScreen::BuildControls()
     m_controls = new Controls(0, 0x1c2, 0, 0, 0x107, 0, 4);
     m_controls->AcquireRegionSet(&g_character_screen_region_set);
 
-    m_next_1af8 =
+    m_next =
         new W8TextControl(m_controls, 0xffffffff, 0x254, 0, 0, 0, 0x106, 0, 8, 10, 9, 10, 0xb);
-    m_next_1af8->EnableRegionHelp(0xdc);
-    m_next_1af8->m_listener = this;
+    m_next->EnableRegionHelp(0xdc);
+    m_next->m_listener = this;
 
-    m_previous_1af4 = new W8TextControl(m_controls, 0xffffffff, 0x228, 0, 0, 0, 0x106, 0, 0xc,
+    m_previous = new W8TextControl(m_controls, 0xffffffff, 0x228, 0, 0, 0, 0x106, 0, 0xc,
                                         0xe, 0xd, 0xe, 0xf);
-    m_previous_1af4->EnableRegionHelp(0xdd);
-    m_previous_1af4->m_listener = this;
+    m_previous->EnableRegionHelp(0xdd);
+    m_previous->m_listener = this;
 
     m_exit = new W8TextControl(m_controls, 0xffffffff, 0x1fc, 0, 0, 0, 0x106, 0, 0x14,
                                     0x16, 0x15, 0x16, 0x17);
@@ -235,12 +235,12 @@ void W8CharacterScreen::UpdateNavigation(W8CharacterPage* page)
     bool next_enabled;
     bool exit_enabled;
     page->GetNavigationState(&next_enabled, &exit_enabled);
-    if (!m_next_1af8->m_enabled && next_enabled) {
+    if (!m_next->m_enabled && next_enabled) {
         SoundPlay("Data\\Sound\\Misc\\Points Spent.wav", 0);
     }
-    if (m_next_1af8->m_enabled != next_enabled) {
-        m_next_1af8->SetEnabled(next_enabled);
-        m_next_1af8->Invalidate(0);
+    if (m_next->m_enabled != next_enabled) {
+        m_next->SetEnabled(next_enabled);
+        m_next->Invalidate(0);
     }
     if (m_exit->m_enabled != exit_enabled) {
         m_exit->SetEnabled(exit_enabled);
@@ -317,7 +317,7 @@ void W8CharacterScreen::OnPrimary(W8TextControl* control)
         }
     } else if (control == m_exit) {
         m_pages[m_page_index]->Accept();
-    } else if (control == m_previous_1af4) {
+    } else if (control == m_previous) {
         int index = m_page_index - 1;
         while (index >= 0 && !m_page_enabled[index]) {
             --index;
@@ -325,7 +325,7 @@ void W8CharacterScreen::OnPrimary(W8TextControl* control)
         if (index != -1) {
             SelectPage(index);
         }
-    } else if (control == m_next_1af8) {
+    } else if (control == m_next) {
         AdvancePage(0);
     } else if (control == m_reset) {
         memset(m_page_enabled, 1, sizeof(m_page_enabled));
@@ -360,7 +360,7 @@ void W8CharacterScreen::ShowCharacterSummary()
 // FUNCTION: WIZ8 0x005b0b50
 void W8CharacterScreen::AdvancePage(bool forward)
 {
-    if (!forward || (m_page_index != 3 && m_next_1af8->m_enabled)) {
+    if (!forward || (m_page_index != 3 && m_next->m_enabled)) {
         int index = m_page_index;
         if (index == 1 && m_creation_state.spell_points_remaining > 0 &&
             !m_block_advance) {
@@ -442,7 +442,7 @@ void W8CharacterScreen::SelectPage(int index)
             page = CreateCharacterPersonalityPage();
             break;
         }
-        page->m_screen_05c = this;
+        page->m_screen = this;
         page->SetCharacter(&m_character, &m_creation_state, m_mode);
         m_pages[index] = page;
     }
@@ -454,24 +454,24 @@ void W8CharacterScreen::SelectPage(int index)
     int previous = index - 1;
     while (previous >= 0 && !m_page_enabled[previous])
         --previous;
-    m_previous_1af4->SetActive(previous != -1);
+    m_previous->SetActive(previous != -1);
     int next = index + 1;
     while (next < 4 && !m_page_enabled[next])
         ++next;
     if (next == 4) {
-        m_next_1af8->m_normalSprite = 0x10;
-        m_next_1af8->m_pressedSprite = 0x12;
-        m_next_1af8->m_alternatePressedSprite = 0x12;
-        m_next_1af8->m_alternateNormalSprite = 0x11;
-        m_next_1af8->m_disabledSprite = 0x13;
-        m_next_1af8->EnableRegionHelp(0xe0);
+        m_next->m_normalSprite = 0x10;
+        m_next->m_pressedSprite = 0x12;
+        m_next->m_alternatePressedSprite = 0x12;
+        m_next->m_alternateNormalSprite = 0x11;
+        m_next->m_disabledSprite = 0x13;
+        m_next->EnableRegionHelp(0xe0);
     } else {
-        m_next_1af8->m_normalSprite = 8;
-        m_next_1af8->m_pressedSprite = 10;
-        m_next_1af8->m_alternatePressedSprite = 10;
-        m_next_1af8->m_alternateNormalSprite = 9;
-        m_next_1af8->m_disabledSprite = 0xb;
-        m_next_1af8->EnableRegionHelp(0xdc);
+        m_next->m_normalSprite = 8;
+        m_next->m_pressedSprite = 10;
+        m_next->m_alternatePressedSprite = 10;
+        m_next->m_alternateNormalSprite = 9;
+        m_next->m_disabledSprite = 0xb;
+        m_next->EnableRegionHelp(0xdc);
     }
     m_controls->Invalidate(0);
     page->Prepare();

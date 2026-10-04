@@ -49,7 +49,7 @@ void UpdateCameraPathStateByName(W8World* world, const char* name, int active)
     if (world->plsCameras != 0 && count != 0) {
         for (int index = 0; index < static_cast<int>(count); ++index) {
             W8CameraPath* path = GetWorldCameraPath(world, index);
-            if (_stricmp(path->name_00, name) == 0) {
+            if (_stricmp(path->name0, name) == 0) {
                 UpdateCameraPathState(world, path, active);
                 return;
             }
@@ -70,17 +70,17 @@ void UpdateCameraPathState(W8World* world, W8CameraPath* path, int active)
     float angle;
     float pitch;
 
-    if (path->active_14 == 0 && active != 0) {
+    if (path->active == 0 && active != 0) {
         g_camera_path_active = 1;
-        path->active_14 = 1;
-        PathAISetValue(path->path_18, 0.0f);
-        PathAIResetTick(path->path_18);
-        path->path_18->distance_travelled = 0.0f;
-        path->path_18->upright = 1;
+        path->active = 1;
+        PathAISetValue(path->path, 0.0f);
+        PathAIResetTick(path->path);
+        path->path->distance_travelled = 0.0f;
+        path->path->upright = 1;
         g_saved_environment_flag = SetEnvironmentLoadFlag(0);
         return;
     }
-    if (path->active_14 == 0 || active != 0) {
+    if (path->active == 0 || active != 0) {
         return;
     }
     g_camera_path_active = 0;
@@ -88,18 +88,18 @@ void UpdateCameraPathState(W8World* world, W8CameraPath* path, int active)
     target.Set(0.0f, 0.0f, 1.0f);
     world->camera->getRotation(rotation);
     ApplyCameraRotation(&rotation);
-    path->active_14 = 0;
+    path->active = 0;
     SetEnvironmentLoadFlag(g_saved_environment_flag);
     if (g_status.current_level == 1) {
-        if (_stricmp(path->name_00, "Camera01") == 0) {
+        if (_stricmp(path->name0, "Camera01") == 0) {
             QueueNpcMessageLine(W8_NPC_MSG_PORTRAIT_STRING, 0x721);
             QueueNpcMessageLine(W8_NPC_MSG_PATH2_TRIGGER, 0);
             return;
         }
-        if (_stricmp(path->name_00, "Camera02") == 0) {
+        if (_stricmp(path->name0, "Camera02") == 0) {
             npc = GetNpcStateByKind(0x33);
         } else {
-            if (_stricmp(path->name_00, "Camera03") != 0) {
+            if (_stricmp(path->name0, "Camera03") != 0) {
                 return;
             }
             group = FindFirstMonsterByID(0x18c);
@@ -131,8 +131,8 @@ void UpdateCameraPathState(W8World* world, W8CameraPath* path, int active)
         }
         return;
     }
-    if (g_status.current_level == 4 && _stricmp(path->name_00, "CameraPath2") != 0) {
-        if (_stricmp(path->name_00, "CameraPath3") == 0) {
+    if (g_status.current_level == 4 && _stricmp(path->name0, "CameraPath2") != 0) {
+        if (_stricmp(path->name0, "CameraPath3") == 0) {
             ClearMainGameTargetState();
             group = FindFirstMonsterByID(0x1b4);
             if (group != 0) {
@@ -143,7 +143,7 @@ void UpdateCameraPathState(W8World* world, W8CameraPath* path, int active)
                 MonsterForwardReferencePosition(monster_info->p3D, 0);
                 return;
             }
-        } else if (_stricmp(path->name_00, "CameraPath4") == 0) {
+        } else if (_stricmp(path->name0, "CameraPath4") == 0) {
             ResetLevelDataVectors();
             return;
         }
@@ -184,15 +184,15 @@ void PointCameraAtMonster(W8MonsterInfo* monster_info, bool force, bool animate)
     if (monster->IsRenderable(1) == 0) {
         return;
     }
-    if (monster->movement_0c0.height_offset -
-                monster->movement_0c0.secondary_height_offset <
+    if (monster->movement.height_offset -
+                monster->movement.secondary_height_offset <
             g_float_005ebc64 ||
         monster->GetDistanceToPlayer() > g_float_005ebcdc) {
-        position = monster->movement_0c0.position_040;
-        position.y += monster->movement_0c0.secondary_height_offset;
+        position = monster->movement.position;
+        position.y += monster->movement.secondary_height_offset;
     } else {
-        position = monster->movement_0c0.position_040;
-        position.y += monster->movement_0c0.height_offset;
+        position = monster->movement.position;
+        position.y += monster->movement.height_offset;
     }
     if (track != 0) {
         if (animate == 0) {

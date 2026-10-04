@@ -641,3 +641,54 @@ def test_descriptive_rename_does_not_erase_string_literal_changes() -> None:
         '+    call("new", reinterpret_cast<int*>(new));',
     )
     assert len(_added_casts(diff)) == 1
+
+
+@pytest.mark.parametrize("target", ["(float)", "reinterpret_cast<int*>"])
+def test_member_qualification_preserves_existing_cast(target: str) -> None:
+    diff = _diff(
+        "src/wiz8/example.cpp",
+        "@@ -1,1 +1,1 @@",
+        f"-    return {target}(old_20);",
+        f"+    return {target}(this->old);",
+    )
+    assert not _added_casts(diff)
+    assert not _added_c_style_casts(diff)
+
+
+def test_member_qualification_keeps_literal_changes_visible() -> None:
+    diff = _diff(
+        "src/wiz8/example.cpp",
+        "@@ -1,1 +1,1 @@",
+        '-    call("this->old", reinterpret_cast<int*>(old_20));',
+        '+    call("old", reinterpret_cast<int*>(this->old));',
+    )
+    assert len(_added_casts(diff)) == 1
+
+
+def test_raw_offset_rename_consumes_existing_occurrence_once(tmp_path: Path) -> None:
+    source = tmp_path / "src/wiz8/example.cpp"
+    source.parent.mkdir(parents=True)
+    line = "    block->name = reinterpret_cast<char*>(block) + 0x20;"
+    source.write_text(line + "\n" + line + "\n")
+    diff = _diff(
+        "src/wiz8/example.cpp",
+        "@@ -1,1 +1,2 @@",
+        "-    block->name_0c = reinterpret_cast<char*>(block) + 0x20;",
+        "+" + line,
+        "+" + line,
+    )
+    assert len(_raw_offset_violations(tmp_path, diff)) == 1
+
+
+def test_raw_offset_rename_preserves_offset_changes(tmp_path: Path) -> None:
+    source = tmp_path / "src/wiz8/example.cpp"
+    source.parent.mkdir(parents=True)
+    line = "    block->name = reinterpret_cast<char*>(block) + 0x24;"
+    source.write_text(line + "\n")
+    diff = _diff(
+        "src/wiz8/example.cpp",
+        "@@ -1,1 +1,1 @@",
+        "-    block->name_0c = reinterpret_cast<char*>(block) + 0x20;",
+        "+" + line,
+    )
+    assert len(_raw_offset_violations(tmp_path, diff)) == 1

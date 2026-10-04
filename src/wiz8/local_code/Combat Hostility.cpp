@@ -486,7 +486,7 @@ bool CanPartySlotTurnUndead(int party_slot)
     for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(index);
         if (monster->fActive && monster->fInCombat && monster->ubDisposition == 1 &&
-            monster->hp_current != 0 && GetMonsterDataForInfo(monster)->kind_0cb == 0x14) {
+            monster->hp_current != 0 && GetMonsterDataForInfo(monster)->kind == 0x14) {
             return 1;
         }
     }
@@ -775,8 +775,8 @@ int CharacterPrayAction(int party_slot)
         case 5:
             found = false;
             for (index = 0; index < 6; ++index) {
-                if (g_combat_state->effect_slots_85a[index].active &&
-                    g_combat_state->effect_slots_85a[index].effect_id == 2) {
+                if (g_combat_state->effect_slots0[index].active &&
+                    g_combat_state->effect_slots0[index].effect_id == 2) {
                     found = true;
                     break;
                 }

@@ -194,7 +194,7 @@ bool MonsterResistsSpellEffect(const W8CombatSlot* target, int power)
     monster_info = MonsterGetScriptPartByLocationIndex(
         MonsterGetIndexByLocationID(0xf93, MAGIC_EFFECTS_CPP, target->iMonsterID, 1));
     monster = GetMonsterDataForInfo(monster_info);
-    if (monster->kind_0cb == 0x14) {
+    if (monster->kind == 0x14) {
         return true;
     }
     if (monster_info->highest_condition >= 0x12) {
@@ -263,11 +263,11 @@ void ResetCombatEffects(void)
         }
     }
     for (i = 0; i < 6; ++i) {
-        if (g_combat_state->effect_slots_85a[i].active != 0) {
-            g_combat_state->effect_slots_85a[i].active = 0;
-            g_combat_state->effect_slots_85a[i].effect_id = 0;
-            g_combat_state->effect_slots_85a[i].amount = 0;
-            g_combat_state->effect_slots_85a[i].duration = 0;
+        if (g_combat_state->effect_slots0[i].active != 0) {
+            g_combat_state->effect_slots0[i].active = 0;
+            g_combat_state->effect_slots0[i].effect_id = 0;
+            g_combat_state->effect_slots0[i].amount = 0;
+            g_combat_state->effect_slots0[i].duration = 0;
             RebuildPartyEffectBlock();
             InvalidateMainGameEffectHud();
             RequestRedraw(0x800100);
@@ -911,7 +911,7 @@ bool ResolveAttackOnTarget(const W8TargetSource* source, W8CombatSlot* target, i
         }
         W8ConditionImmunity* immunity = g_condition_immunities;
         for (; immunity < g_condition_immunities + 3; ++immunity) {
-            if (monster->kind_0cb != immunity->kind) {
+            if (monster->kind != immunity->kind) {
                 continue;
             }
             for (index = 0; index < W8_CONDITION_COUNT; ++index) {
@@ -1642,7 +1642,7 @@ char TryCureConditionOnTargets(W8SpellEffectEntry* effect, int condition, bool f
                         }
                     }
                     if (Random(100) < 0x32) {
-                        QueueCharacterEvent(character, g_special_event_0068c55c, 0,
+                        QueueCharacterEvent(character, g_special_event14, 0,
                                             g_character_event_no_flags,
                                             g_character_event_full_volume);
                     }
@@ -2100,7 +2100,7 @@ void ApplyDefenseEffectSlot(W8SpellEffectEntry* effect)
         }
     }
     if (effect->target_indices.GetCount() != 0) {
-        slot = &g_combat_state->effect_slots_85a[slot_index];
+        slot = &g_combat_state->effect_slots0[slot_index];
         slot->active = 1;
         slot->effect_id = spell_id;
         slot->amount = effect->definition.duration_scale;
@@ -2515,8 +2515,8 @@ void ApplyMonsterControlToNearbyMonsters(W8SpellEffectEntry* effect)
             monster_info->ubDisposition != W8_DISPOSITION_HOSTILE) {
             continue;
         }
-        eye = monster_info->p3D->movement_0c0.position_040;
-        eye.y += monster_info->p3D->movement_0c0.height_offset;
+        eye = monster_info->p3D->movement.position;
+        eye.y += monster_info->p3D->movement.height_offset;
         if (g_octree->HasLineOfSight(&eye, &center, 1) == 0) {
             continue;
         }
@@ -2891,7 +2891,7 @@ void TickRadiusBlastEffectSlots(W8EffectSlot* effect_slots)
             SetTextBoxMode(1, -1);
             {
                 float reach = CalcRangeDistance(W8_RANGE_SHORT);
-                float radius = g_startup_world->radius_084;
+                float radius = g_startup_world->radius;
                 srVector3T<float> centre = g_startup_world->GetPosition();
                 CollectMonstersWithinRadius(&centre, &centre, &found, radius + reach, 1, 0);
             }
@@ -3542,7 +3542,7 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
         shake = CreateCameraShakeEffect(level * g_navigator_vertical_phase_step + g_float_005ebc7c,
                                         1, level * g_navigator_snap_angle + g_float_005ee838,
                                         50000.0f, &point);
-        shake->flags_00 &= 0xffffffe7;
+        shake->flags &= 0xffffffe7;
         sound_name = g_spell_records[spell_id].sound_name;
         if (sound_name[0] != 0) {
             parms = 0;

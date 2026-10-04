@@ -17,7 +17,7 @@ public:
     void releaseAccess();
 
 private:
-    HANDLE handle_04;
+    HANDLE handle;
     long access_count;
 };
 

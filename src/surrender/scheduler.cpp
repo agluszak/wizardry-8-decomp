@@ -49,12 +49,12 @@ void srScheduler::queue(Job& job)
 {
     srCriticalSectionAccess access(critical_section);
     QueueEntry* entry = new QueueEntry;
-    entry->job_00 = &job;
-    entry->next_04 = 0;
+    entry->job = &job;
+    entry->next = 0;
     entry->previous = last_job;
     entry->state = 0;
     if (last_job != 0) {
-        last_job->next_04 = entry;
+        last_job->next = entry;
     }
     last_job = entry;
     if (first_job == 0) {
@@ -62,7 +62,7 @@ void srScheduler::queue(Job& job)
     }
     job_count += 1;
     Job* key = &job;
-    lookup_20.Insert(&key, &entry);
+    lookup.Insert(&key, &entry);
     wakeWorker();
 }
 
@@ -71,10 +71,10 @@ void srScheduler::cancel(Job& job)
 {
     critical_section->getAccess();
     Job* key = &job;
-    QueueEntry* entry = lookup_20.Lookup(&key);
+    QueueEntry* entry = lookup.Lookup(&key);
     if (entry != 0 && entry->state != 2) {
         if (entry->state == 0) {
-            entry->job_00->cancel();
+            entry->job->cancel();
             removeQueueEntry(entry);
             critical_section->releaseAccess();
             return;
@@ -91,24 +91,24 @@ void srScheduler::finish(Job& job)
 {
     critical_section->getAccess();
     Job* key = &job;
-    QueueEntry* entry = lookup_20.Lookup(&key);
+    QueueEntry* entry = lookup.Lookup(&key);
     if (entry != 0 && entry->state != 2) {
         if (entry->state != 0) {
             critical_section->releaseAccess();
             waitForJob(&job);
             return;
         }
-        Job* queued = entry->job_00;
-        lookup_20.Remove(&queued, &entry);
+        Job* queued = entry->job;
+        lookup.Remove(&queued, &entry);
         if (entry->previous == 0) {
-            first_job = entry->next_04;
+            first_job = entry->next;
         } else {
-            entry->previous->next_04 = entry->next_04;
+            entry->previous->next = entry->next;
         }
-        if (entry->next_04 == 0) {
+        if (entry->next == 0) {
             last_job = entry->previous;
         } else {
-            entry->next_04->previous = entry->previous;
+            entry->next->previous = entry->previous;
         }
         entry->state = 1;
         critical_section->releaseAccess();
@@ -133,7 +133,7 @@ void srScheduler::cancelAll()
     critical_section->getAccess();
     QueueEntry* entry = first_job;
     while (entry != 0) {
-        entry->job_00->cancel();
+        entry->job->cancel();
         removeQueueEntry(first_job);
         entry = first_job;
     }
@@ -169,17 +169,17 @@ long srScheduler::getJobCount() const
 void srScheduler::removeQueueEntry(QueueEntry* entry)
 {
     srCriticalSectionAccess access(critical_section);
-    Job* job = entry->job_00;
-    lookup_20.Remove(&job, &entry);
+    Job* job = entry->job;
+    lookup.Remove(&job, &entry);
     if (entry->previous == 0) {
-        first_job = entry->next_04;
+        first_job = entry->next;
     } else {
-        entry->previous->next_04 = entry->next_04;
+        entry->previous->next = entry->next;
     }
-    if (entry->next_04 == 0) {
+    if (entry->next == 0) {
         last_job = entry->previous;
     } else {
-        entry->next_04->previous = entry->previous;
+        entry->next->previous = entry->previous;
     }
     delete entry;
     job_count -= 1;
@@ -195,26 +195,26 @@ long srScheduler::executeNextJob()
         return 0;
     }
     if (entry->previous == 0) {
-        first_job = entry->next_04;
+        first_job = entry->next;
     } else {
-        entry->previous->next_04 = entry->next_04;
+        entry->previous->next = entry->next;
     }
-    if (entry->next_04 == 0) {
+    if (entry->next == 0) {
         last_job = entry->previous;
     } else {
-        entry->next_04->previous = entry->previous;
+        entry->next->previous = entry->previous;
     }
     entry->state = 1;
     critical_section->releaseAccess();
     try {
-        entry->job_00->execute();
+        entry->job->execute();
     } catch (...) {
         throw;
     }
     critical_section->getAccess();
-    Job* job = entry->job_00;
+    Job* job = entry->job;
     entry->state = 2;
-    lookup_20.Remove(&job, &entry);
+    lookup.Remove(&job, &entry);
     delete entry;
     job_count -= 1;
     critical_section->releaseAccess();
@@ -262,7 +262,7 @@ void srScheduler::waitForJob(Job* job)
 {
     while (true) {
         critical_section->getAccess();
-        bool pending = lookup_20.Lookup(&job) != 0;
+        bool pending = lookup.Lookup(&job) != 0;
         critical_section->releaseAccess();
         if (!pending) {
             return;

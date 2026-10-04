@@ -11,8 +11,8 @@ void TurnPartyToImmediate(unsigned int degrees, char snap);
 /* Sync party facing/heading from the camera yaw and refresh the compass. */
 void SyncPartyFacingFromCamera(void); /* 0x005552F0 */
 
-extern const double g_facing_tolerance_005ee858;
-extern const float g_facing_tolerance_005ebcf4;
+extern const double g_facing_tolerance1;
+extern const float g_facing_tolerance0;
 
 signed char DecideFacingForPosition(int position, int arg_2); /* 0x00555E70 */
 

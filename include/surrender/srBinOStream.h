@@ -87,9 +87,9 @@ public:
 private:
     virtual SR_DLL_IMPORT unsigned long vwrite(const void* source, unsigned long size) override;
 
-    srArray<unsigned char> buffer_08;
-    unsigned long position_10;
-    unsigned long size_14;
+    srArray<unsigned char> buffer;
+    unsigned long position0;
+    unsigned long size;
 };
 
 static_assert(sizeof(srBinOStream) == 0x18, "srBinOStream_must_be_0x18");

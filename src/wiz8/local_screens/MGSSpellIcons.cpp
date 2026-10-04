@@ -237,7 +237,7 @@ static void RebuildCombatEffectHudRows(void)
     right = 0x7d;
     g_combat_effect_right_count = 0;
     for (slot = 0; slot < 6; ++slot) {
-        effect = &g_combat_state->effect_slots_85a[slot];
+        effect = &g_combat_state->effect_slots0[slot];
         if (effect->active != 0) {
             icon = g_effect_visual_table[effect->effect_id][0];
             if (icon == -1) {
@@ -399,7 +399,7 @@ void ShowCombatLeftEffectIconHelp(int slot_index)
 void ShowCombatRightEffectIconHelp(int slot_index)
 {
     W8SpellRuntimeRecord* records = g_spell_records;
-    W8EffectSlot* slot = &g_combat_state->effect_slots_85a[slot_index];
+    W8EffectSlot* slot = &g_combat_state->effect_slots0[slot_index];
     int amount = slot->amount;
     unsigned int duration = slot->duration;
     int effect_id = slot->effect_id;
@@ -468,7 +468,7 @@ unsigned char CombatLeftEffectIconRegionEvent(const InputAtom* event, W8Region* 
     return 0;
 }
 
-/* Right combat-effect strip (six slots at g_combat_state->effect_slots_85a). */
+/* Right combat-effect strip (six slots at g_combat_state->effect_slots0). */
 
 // FUNCTION: WIZ8 0x005AF5E0
 unsigned char CombatRightEffectIconRegionEvent(const InputAtom* event, W8Region* region)
@@ -481,7 +481,7 @@ unsigned char CombatRightEffectIconRegionEvent(const InputAtom* event, W8Region*
         PushButtonSoundScheme(0, 1);
         match = 0;
         slot_index = 0;
-        slot = g_combat_state->effect_slots_85a;
+        slot = g_combat_state->effect_slots0;
         do {
             if (slot->active != 0) {
                 if (match == region->callback_id) {
@@ -502,7 +502,7 @@ unsigned char CombatRightEffectIconRegionEvent(const InputAtom* event, W8Region*
                 return 1;
             }
             if (g_effect_icon_help_duration !=
-                g_combat_state->effect_slots_85a[slot_index].duration) {
+                g_combat_state->effect_slots0[slot_index].duration) {
                 ShowCombatRightEffectIconHelp(slot_index);
                 ResetRegionHelp(0);
             }

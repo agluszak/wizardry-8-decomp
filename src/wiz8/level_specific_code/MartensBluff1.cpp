@@ -44,9 +44,9 @@ static bool g_teleport_running;
 // GLOBAL: WIZ8 0x0068355C
 static Trigger* g_door_controller;
 // GLOBAL: WIZ8 0x00683560
-static stSound3D* g_gas_sound_00;
+static stSound3D* g_gas_sound0;
 // GLOBAL: WIZ8 0x00683564
-static stSound3D* g_gas_sound_01;
+static stSound3D* g_gas_sound1;
 // GLOBAL: WIZ8 0x00683568
 static W8IntervalGate* g_transport_gate;
 
@@ -66,8 +66,8 @@ void MartensBluff1Setup(void)
 
     FindTriggerByName("Gas-Switch");
     g_door_controller = FindTriggerByName("J-Doorcontroller");
-    g_gas_sound_00 = 0;
-    g_gas_sound_01 = 0;
+    g_gas_sound0 = 0;
+    g_gas_sound1 = 0;
     g_teleport_running = 0;
     if (g_door_controller != 0 && GetLocationVarIDByName("DialState") == -1) {
         Random(8);
@@ -78,7 +78,7 @@ void MartensBluff1Setup(void)
     MartensBluff1Transporter(static_cast<int>(0xEFFFFFFF));
     position = GetWorld()->camera->getLocation();
     pTrigger = FindTriggerByName("MR101");
-    if (pTrigger != 0 && (pTrigger->flags_0a0 & W8_TRIGGER_POSITIONED) != 0) {
+    if (pTrigger != 0 && (pTrigger->flags & W8_TRIGGER_POSITIONED) != 0) {
         pTrigger->GetPosition(&trigger_position);
         if ((trigger_position - position).Length() < g_double_005ec150) {
             FindTriggerByName("Lift2Marten2");
@@ -99,7 +99,7 @@ void MartensBluff1Setup(void)
                 particle->SetActive(0);
             } else {
                 particle->getLocation(position);
-                g_gas_sound_00 = CreateAndPlaySoundNode(
+                g_gas_sound0 = CreateAndPlaySoundNode(
                     "Data\\Sound\\Ambients\\Air_Escaping_Loop.wav", position, 0.3f, 30.0f, 1);
             }
         }
@@ -109,7 +109,7 @@ void MartensBluff1Setup(void)
                 particle->SetActive(0);
             } else {
                 particle->getLocation(position);
-                g_gas_sound_01 = CreateAndPlaySoundNode(
+                g_gas_sound1 = CreateAndPlaySoundNode(
                     "Data\\Sound\\Ambients\\Air_Escaping_Loop.wav", position, 0.3f, 30.0f, 1);
             }
         }
@@ -208,13 +208,13 @@ bool MartensBluff1GasSwitch(Trigger* pTrigger)
     if (particle != 0) {
         particle->SetActive(0);
     }
-    if (g_gas_sound_00 != 0) {
-        g_gas_sound_00->Stop();
-        g_gas_sound_00 = 0;
+    if (g_gas_sound0 != 0) {
+        g_gas_sound0->Stop();
+        g_gas_sound0 = 0;
     }
-    if (g_gas_sound_01 != 0) {
-        g_gas_sound_01->Stop();
-        g_gas_sound_01 = 0;
+    if (g_gas_sound1 != 0) {
+        g_gas_sound1->Stop();
+        g_gas_sound1 = 0;
     }
     SetTriggerVariableByName("DialState", state);
     return true;
@@ -245,14 +245,14 @@ bool MartensBluff1JDoorController(Trigger* pTrigger)
     if (particle != 0) {
         particle->SetActive(1);
         particle->getLocation(position);
-        g_gas_sound_00 = CreateAndPlaySoundNode("Data\\Sound\\Ambients\\Air_Escaping_Loop.wav",
+        g_gas_sound0 = CreateAndPlaySoundNode("Data\\Sound\\Ambients\\Air_Escaping_Loop.wav",
                                                 position, 0.3f, 30.0f, 1);
     }
     particle = FindRegisteredParticle("GasSpray-01");
     if (particle != 0) {
         particle->SetActive(1);
         particle->getLocation(position);
-        g_gas_sound_01 = CreateAndPlaySoundNode("Data\\Sound\\Ambients\\Air_Escaping_Loop.wav",
+        g_gas_sound1 = CreateAndPlaySoundNode("Data\\Sound\\Ambients\\Air_Escaping_Loop.wav",
                                                 position, 0.3f, 30.0f, 1);
     }
     position = GetWorld()->camera->getLocation();

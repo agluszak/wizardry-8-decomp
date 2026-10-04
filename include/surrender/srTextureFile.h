@@ -49,12 +49,12 @@ protected:
     virtual ~srTextureFile() override;
     virtual void setupDefaultValues() override;
 
-    int cached_54;
-    char* file_name_58;
+    int cached;
+    char* file_name;
     /* loadSurface stores the importSurface result here and releaseSurface
        releases through srClass; the field is the interface pointer. */
-    srColorSurfaceIFace* surface_5c;
-    unsigned long frame_handle_60;
+    srColorSurfaceIFace* surface;
+    unsigned long frame_handle;
 };
 
 static_assert(sizeof(srTextureFile) == 0x64, "srTextureFile_must_be_0x64");
