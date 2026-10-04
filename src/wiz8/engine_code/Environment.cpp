@@ -126,15 +126,7 @@ void W8MaterialMapper::process(srVertexPipe& pipe)
 void ClearEnvironmentObjects(void)
 {
     ResetEnvironment();
-    if (g_environment_object0 != 0) {
-        g_environment_object0->release();
-    }
-    if (g_environment_object1 != 0) {
-        g_environment_object1->release();
-    }
-    g_environment_object0 = 0;
-    g_environment_object1 = 0;
-    g_environment_lights.Clear();
+    ReleaseEnvironmentObjects();
 }
 
 /* Advance the authoritative game clock and place the two celestial props on

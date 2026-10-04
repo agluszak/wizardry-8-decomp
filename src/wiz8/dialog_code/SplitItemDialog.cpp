@@ -104,74 +104,13 @@ W8SplitItemDialog::~W8SplitItemDialog()
     DestroyControls();
 }
 
-// FUNCTION: WIZ8 0x005DD130
-int W8SplitItemDialog::CreateControls()
+/* Shared cleanup in failure paths and DestroyControls. The helper name
+   is descriptive; its mode-dependent extent and delete order come from retail. */
+void W8SplitItemDialog::DestroyButtons()
 {
-    int index;
     int count;
-
-    W8DialogBase::CreateControls();
-    m_first_draw = 1;
-    split_result = 0;
-    if (!CreateButtons()) {
-        m_error = 7;
-        return 7;
-    }
-    if (!CreateTextBuffers()) {
-        count = 0;
-        if (m_kind == 0) {
-            count = 8;
-        } else if (m_kind <= 2) {
-            count = 10;
-        }
-        for (index = 0; index < count; ++index) {
-            if (m_buttons[index] != 0) {
-                delete m_buttons[index];
-                m_buttons[index] = 0;
-            }
-        }
-        m_error = 7;
-        return 7;
-    }
-    if (!CreateNumericInput()) {
-        count = 0;
-        if (m_kind == 0) {
-            count = 8;
-        } else if (m_kind <= 2) {
-            count = 10;
-        }
-        for (index = 0; index < count; ++index) {
-            if (m_buttons[index] != 0) {
-                delete m_buttons[index];
-                m_buttons[index] = 0;
-            }
-        }
-        count = 0;
-        if (m_kind == 0) {
-            count = 10;
-        } else if (m_kind <= 2) {
-            count = 14;
-        }
-        for (index = 0; index < count; ++index) {
-            if (m_texts[index] != 0) {
-                delete m_texts[index];
-                m_texts[index] = 0;
-            }
-        }
-        m_error = 7;
-        return 7;
-    }
-    UpdateTotals();
-    return 0;
-}
-
-// FUNCTION: WIZ8 0x005DD3C0
-void W8SplitItemDialog::DestroyControls()
-{
     int index;
-    int count;
 
-    W8DialogBase::DestroyControls();
     count = 0;
     if (m_kind == 0) {
         count = 8;
@@ -184,6 +123,15 @@ void W8SplitItemDialog::DestroyControls()
             m_buttons[index] = 0;
         }
     }
+}
+
+/* Shared cleanup in failure paths and DestroyControls. The helper name
+   is descriptive; its mode-dependent extent and delete order come from retail. */
+void W8SplitItemDialog::DestroyTextBuffers()
+{
+    int count;
+    int index;
+
     count = 0;
     if (m_kind == 0) {
         count = 10;
@@ -196,6 +144,39 @@ void W8SplitItemDialog::DestroyControls()
             m_texts[index] = 0;
         }
     }
+}
+
+// FUNCTION: WIZ8 0x005DD130
+int W8SplitItemDialog::CreateControls()
+{
+    W8DialogBase::CreateControls();
+    m_first_draw = 1;
+    split_result = 0;
+    if (!CreateButtons()) {
+        m_error = 7;
+        return 7;
+    }
+    if (!CreateTextBuffers()) {
+        DestroyButtons();
+        m_error = 7;
+        return 7;
+    }
+    if (!CreateNumericInput()) {
+        DestroyButtons();
+        DestroyTextBuffers();
+        m_error = 7;
+        return 7;
+    }
+    UpdateTotals();
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x005DD3C0
+void W8SplitItemDialog::DestroyControls()
+{
+    W8DialogBase::DestroyControls();
+    DestroyButtons();
+    DestroyTextBuffers();
     if (m_count_input != 0) {
         NoOp();
         delete m_count_input;
@@ -218,18 +199,7 @@ unsigned char W8SplitItemDialog::CreateButtons()
     for (index = 0; index < count; ++index) {
         m_buttons[index] = new W8DialogButton;
         if (m_buttons[index] == 0) {
-            count = 0;
-            if (m_kind == 0) {
-                count = 8;
-            } else if (m_kind <= 2) {
-                count = 10;
-            }
-            for (index = 0; index < count; ++index) {
-                if (m_buttons[index] != 0) {
-                    delete m_buttons[index];
-                    m_buttons[index] = 0;
-                }
-            }
+            DestroyButtons();
             return 0;
         }
     }
@@ -288,18 +258,7 @@ unsigned char W8SplitItemDialog::CreateTextBuffers()
             &bounds, gppStringList[g_split_text_string_ids[index]], g_wiz_text_font_secondary,
             g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter, 4);
         if (m_texts[index] == 0) {
-            count = 0;
-            if (m_kind == 0) {
-                count = 10;
-            } else if (m_kind <= 2) {
-                count = 14;
-            }
-            for (index = 0; index < count; ++index) {
-                if (m_texts[index] != 0) {
-                    delete m_texts[index];
-                    m_texts[index] = 0;
-                }
-            }
+            DestroyTextBuffers();
             return 0;
         }
     }

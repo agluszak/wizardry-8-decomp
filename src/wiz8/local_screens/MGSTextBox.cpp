@@ -209,19 +209,28 @@ void ResetEditorStatusLine(short line)
     RedrawTextBox();
 }
 
+/* Shared default-box selection in notice formatting, wrapping and line
+   updates. The descriptive name covers the repeated operation; explicit box
+   numbers pass through unchanged. */
+static short ResolveNoticeTextBox(short text_box)
+{
+    if (text_box == -1) {
+        if ((gXStatus.fNpcDialogueMode != 0 && !CanOpenNpcDialogue()) || gXStatus.fCampMode != 0) {
+            return IsNpcDialogueTextBoxActive() ? 0 : 2;
+        }
+        if (IsMipeActive()) {
+            return 0;
+        }
+        return gXStatus.fCombatMode != 0;
+    }
+    return text_box;
+}
+
 // FUNCTION: WIZ8 0x0058af60
 static void AppendNoticeLine(unsigned char font_palette, const wchar_t* text, short text_box,
                              int wrapped_line)
 {
-    if (text_box == -1) {
-        if ((gXStatus.fNpcDialogueMode && !CanOpenNpcDialogue()) || gXStatus.fCampMode) {
-            text_box = IsNpcDialogueTextBoxActive() ? 0 : 2;
-        } else if (IsMipeActive()) {
-            text_box = 0;
-        } else {
-            text_box = gXStatus.fCombatMode != 0 ? 1 : 0;
-        }
-    }
+    text_box = ResolveNoticeTextBox(text_box);
     if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME &&
         g_current_screen_state.id != W8_SCREEN_CAMP &&
         g_current_screen_state.id != W8_SCREEN_PLEASE_WAIT &&
@@ -350,16 +359,7 @@ void ShowNotice(unsigned int font_palette, const wchar_t* text, short text_box,
         if (wrap_width == ~0U) {
             wrap_width = g_level_block->text_box_right - g_level_block->text_box_left - 10;
         }
-        if (text_box == -1) {
-            if ((gXStatus.fNpcDialogueMode != 0 && !CanOpenNpcDialogue()) ||
-                gXStatus.fCampMode != 0) {
-                text_box = IsNpcDialogueTextBoxActive() ? 0 : 2;
-            } else if (IsMipeActive()) {
-                text_box = 0;
-            } else {
-                text_box = gXStatus.fCombatMode != 0 ? 1 : 0;
-            }
-        }
+        text_box = ResolveNoticeTextBox(text_box);
         if (g_status.quote_audit) {
             g_notice_line_count = 0;
             g_status.long_quote = 0;
@@ -374,16 +374,7 @@ void ShowNotice(unsigned int font_palette, const wchar_t* text, short text_box,
             int line_index = 0;
             /* This repeated default-box selection is present in the retail
                wrapping path as well as the unwrapped entry above. */
-            if (text_box == -1) {
-                if ((gXStatus.fNpcDialogueMode != 0 && !CanOpenNpcDialogue()) ||
-                    gXStatus.fCampMode != 0) {
-                    text_box = IsNpcDialogueTextBoxActive() ? 0 : 2;
-                } else if (IsMipeActive()) {
-                    text_box = 0;
-                } else {
-                    text_box = gXStatus.fCombatMode != 0 ? 1 : 0;
-                }
-            }
+            text_box = ResolveNoticeTextBox(text_box);
             while (more) {
                 int words = 0;
                 wchar_t* output = line;
@@ -613,15 +604,7 @@ void FormatNotice(int channel, short text_box, const wchar_t* format, ...)
     vswprintf(text, format, arguments);
     va_end(arguments);
 
-    if (text_box == -1) {
-        if ((gXStatus.fNpcDialogueMode != 0 && !CanOpenNpcDialogue()) || gXStatus.fCampMode != 0) {
-            text_box = IsNpcDialogueTextBoxActive() ? 0 : 2;
-        } else if (IsMipeActive()) {
-            text_box = 0;
-        } else {
-            text_box = gXStatus.fCombatMode != 0 ? 1 : 0;
-        }
-    }
+    text_box = ResolveNoticeTextBox(text_box);
     ShowNotice(channel, text, text_box, -1, 0);
 }
 
@@ -683,15 +666,7 @@ void AppendTextBoxLine(const wchar_t* text, ...)
     short text_box = static_cast<short>(va_arg(arguments, int));
     va_end(arguments);
 
-    if (text_box == -1) {
-        if ((gXStatus.fNpcDialogueMode != 0 && !CanOpenNpcDialogue()) || gXStatus.fCampMode != 0) {
-            text_box = IsNpcDialogueTextBoxActive() ? 0 : 2;
-        } else if (IsMipeActive()) {
-            text_box = 0;
-        } else {
-            text_box = gXStatus.fCombatMode != 0;
-        }
-    }
+    text_box = ResolveNoticeTextBox(text_box);
     W8MessageStorageRecord* line =
         &g_message_storage[text_box][g_status.text_box_lines_used[text_box] - 1];
     if (line->wString == 0) {
@@ -766,15 +741,7 @@ void HighlightTextBoxRange(unsigned char color, unsigned char start, unsigned ch
     if (g_current_screen_state.id != 7) {
         return;
     }
-    if (text_box == -1) {
-        if ((gXStatus.fNpcDialogueMode != 0 && !CanOpenNpcDialogue()) || gXStatus.fCampMode != 0) {
-            text_box = IsNpcDialogueTextBoxActive() ? 0 : 2;
-        } else if (IsMipeActive()) {
-            text_box = 0;
-        } else {
-            text_box = gXStatus.fCombatMode != 0;
-        }
-    }
+    text_box = ResolveNoticeTextBox(text_box);
     if (!(g_status.text_box_lines_used[text_box] > 0)) {
         srAssertFail("gStatus.uiTextBoxLinesUsed[iTextBuffer] > 0", MGS_TEXT_BOX_CPP, 0x261, 0);
     }
@@ -828,15 +795,7 @@ void AppendToLastTextLine(const wchar_t* text, short text_box)
         ShowNotice(g_text_box_value, text, text_box, -1, 0);
         return;
     }
-    if (text_box == -1) {
-        if ((gXStatus.fNpcDialogueMode != 0 && !CanOpenNpcDialogue()) || gXStatus.fCampMode != 0) {
-            text_box = IsNpcDialogueTextBoxActive() ? 0 : 2;
-        } else if (IsMipeActive()) {
-            text_box = 0;
-        } else {
-            text_box = gXStatus.fCombatMode != 0;
-        }
-    }
+    text_box = ResolveNoticeTextBox(text_box);
     unsigned int* lines_used = &g_status.text_box_lines_used[text_box];
     if (!(*lines_used > 0)) {
         srAssertFail("gStatus.uiTextBoxLinesUsed[iTextBuffer] > 0", MGS_TEXT_BOX_CPP, 0xf92, 0);

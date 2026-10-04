@@ -427,19 +427,7 @@ void ShutdownVideoManager(void)
     FreeMouseCursor();
     ShutdownVideoScenes();
     ShutdownStartupNavigation();
-    if (g_video_active) {
-        PauseMainGameWorld();
-        g_video_active = 0;
-        if (g_gerd) {
-            g_flush_pending = false;
-            g_gerd->closeWindow(static_cast<srGERD::e_closeHint>(0));
-        }
-        if (!g_fullscreen) {
-            GetWindowRect(ghWindow, &g_window_rect);
-        }
-        ShowWindow(ghWindow, SW_MINIMIZE);
-        FreeMouseCursor();
-    }
+    SuspendVideoManager();
     if (g_primary_surface1) {
         g_primary_surface1->Release();
         g_primary_surface1 = 0;

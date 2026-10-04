@@ -150,22 +150,10 @@ static unsigned short g_faction_name_ids[W8_FACTION_COUNT] = {
 void SetFactionDispositionBand(signed char faction, signed char band)
 {
     wchar_t notice[20];
-    char old_band;
+    W8FactionDisposition old_band;
     char palette;
 
-    if (faction < 0) {
-        srAssertFail("bFaction >= 0", "C:\\Projects\\Wizardry 8\\Local Code\\Factions.cpp", 0xaf,
-                     0);
-    }
-    if (faction >= W8_FACTION_COUNT) {
-        srAssertFail("bFaction < FACTION_COUNT",
-                     "C:\\Projects\\Wizardry 8\\Local Code\\Factions.cpp", 0xb0, 0);
-    }
-    if (g_factions[faction].disposition_score < 34) {
-        old_band = 0;
-    } else {
-        old_band = (g_factions[faction].disposition_score >= 67) + 1;
-    }
+    old_band = GetFactionDisposition(faction);
     switch (band) {
     case 0:
         g_factions[faction].disposition_score = 0x19;
@@ -291,25 +279,13 @@ void AdjustFactionDisposition(signed char faction, char delta)
     wchar_t notice[20];
     signed char score;
     signed char old_score;
-    signed char old_band;
-    signed char new_band;
+    W8FactionDisposition old_band;
+    W8FactionDisposition new_band;
     char palette;
 
-    if (faction < 0) {
-        srAssertFail("bFaction >= 0", "C:\\Projects\\Wizardry 8\\Local Code\\Factions.cpp", 0xaf,
-                     0);
-    }
-    if (faction >= W8_FACTION_COUNT) {
-        srAssertFail("bFaction < FACTION_COUNT",
-                     "C:\\Projects\\Wizardry 8\\Local Code\\Factions.cpp", 0xb0, 0);
-    }
+    old_band = GetFactionDisposition(faction);
     score = g_factions[faction].disposition_score;
     old_score = g_factions[faction].disposition_score;
-    if (old_score < 34) {
-        old_band = 0;
-    } else {
-        old_band = (old_score >= 67) + 1;
-    }
     if (score + delta > 99) {
         score = 99;
     } else if (score + delta < 0) {
@@ -318,19 +294,7 @@ void AdjustFactionDisposition(signed char faction, char delta)
         score += delta;
     }
     g_factions[faction].disposition_score = score;
-    if (faction < 0) {
-        srAssertFail("bFaction >= 0", "C:\\Projects\\Wizardry 8\\Local Code\\Factions.cpp", 0xaf,
-                     0);
-    }
-    if (faction >= W8_FACTION_COUNT) {
-        srAssertFail("bFaction < FACTION_COUNT",
-                     "C:\\Projects\\Wizardry 8\\Local Code\\Factions.cpp", 0xb0, 0);
-    }
-    if (g_factions[faction].disposition_score < 34) {
-        new_band = 0;
-    } else {
-        new_band = (g_factions[faction].disposition_score >= 67) + 1;
-    }
+    new_band = GetFactionDisposition(faction);
     if (new_band != old_band) {
         g_factions[faction].band_changed_clock = g_status.world_clock;
     }

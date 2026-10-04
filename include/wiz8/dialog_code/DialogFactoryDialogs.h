@@ -287,8 +287,10 @@ private:
     /* 0x005DD480: create and place the arrow, frame, accept and cancel
        buttons; eight for inventory splits, ten in trade modes. */
     unsigned char CreateButtons();
+    void DestroyButtons();
     /* 0x005DD750: create the label text buffers and fill the item-name rows. */
     unsigned char CreateTextBuffers();
+    void DestroyTextBuffers();
     /* 0x005DDA60: create the count entry field over its backing button. */
     unsigned char CreateNumericInput();
     /* 0x005DCC00: refresh the two trade-price labels in trade modes. */
