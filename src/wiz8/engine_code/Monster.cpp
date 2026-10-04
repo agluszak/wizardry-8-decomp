@@ -3518,10 +3518,7 @@ void W8Monster::SetCycle(signed char cycle)
 
                 light->setParent(0, 1);
                 if (light->definition() != 0) {
-                    int world_index = g_world->lights_to_update->IndexOf(light);
-                    if (world_index != -1) {
-                        g_world->lights_to_update->RemoveAt(world_index);
-                    }
+                    g_world->lights_to_update->Remove(light);
                 }
             }
         }
@@ -3815,8 +3812,7 @@ void W8Monster::UpdateAttachedObjects()
                 poster->setLocation(location);
                 ++poster_index;
             } else {
-                representation->linked_runtime_objects.RemoveAt(
-                    representation->linked_runtime_objects.IndexOf(poster));
+                representation->linked_runtime_objects.Remove(poster);
                 delete poster;
                 --poster_count;
             }

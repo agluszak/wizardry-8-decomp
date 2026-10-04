@@ -288,30 +288,7 @@ void srConfig::set(const char* name, const char* value)
         removeEntry(node->entry);
     }
 
-    if (entry_pool.free_entries == 0) {
-        long count = entry_pool.entry_count < 2 ? 1 : entry_pool.entry_count;
-        if (count > 0xff) {
-            count = 0x100;
-        }
-        Entry* block = static_cast<Entry*>(srHeap.allocate(count * sizeof(Entry)));
-        unsigned long block_index = entry_pool.entry_block_count;
-        entry_pool.free_entries = block;
-        entry_pool.entry_block_count = block_index + 1;
-        entry_pool.entry_blocks[block_index] = block;
-        Entry* free_entry = block;
-        for (unsigned long index_ = count; index_ != 0; --index_) {
-            // reinterpret-ok: free pool entries thread the next-free pointer
-            // through the name field.
-            free_entry->name = reinterpret_cast<char*>(free_entry + 1);
-            ++free_entry;
-        }
-        block[count - 1].name = 0;
-    }
-
-    Entry* entry = entry_pool.free_entries;
-    // reinterpret-ok: the free list link lives in the name pointer.
-    entry_pool.free_entries = reinterpret_cast<Entry*>(entry->name);
-    ++entry_pool.entry_count;
+    Entry* entry = entry_pool.allocate();
     entry->previous = 0;
     entry->next = first_entry;
     if (first_entry != 0) {
@@ -391,13 +368,7 @@ void srConfig::removeEntry(Entry* entry)
     }
     delete[] entry->name;
     delete[] entry->value;
-    --entry_pool.entry_count;
-    // reinterpret-ok: the free list link lives in the name pointer.
-    entry->name = reinterpret_cast<char*>(entry_pool.free_entries);
-    entry_pool.free_entries = entry;
-    if (entry_pool.entry_count == 0) {
-        entry_pool.release();
-    }
+    entry_pool.free(entry);
 }
 
 // FUNCTION: SURRENDER 0x10012850
@@ -611,13 +582,7 @@ void srConfig::Index::resize(long bucket_count)
                     }
                     buckets[bucket] = node;
 
-                    int record = by_entry.allocRecord();
-                    unsigned long sub_bucket =
-                        srHashValue(old_node->entry) & (by_entry.count - 1);
-                    by_entry.records[record].key = old_node->entry;
-                    by_entry.records[record].value_08 = node;
-                    by_entry.records[record].next = by_entry.heads[sub_bucket];
-                    by_entry.heads[sub_bucket] = record;
+                    by_entry.insert(old_node->entry, node);
                 }
             }
         }

@@ -2235,10 +2235,7 @@ void Trigger::FinishAction()
         break;
 
     case 0x23: {
-        int index = g_timed_events.IndexOf(m_pEvent);
-        if (index >= 0) {
-            g_timed_events.RemoveAt(index);
-        }
+        g_timed_events.Remove(m_pEvent);
         action_completed = true;
         break;
     }
@@ -3875,18 +3872,12 @@ Trigger::~Trigger()
     }
 
     if (m_pEvent != 0) {
-        int index = g_timed_events.IndexOf(m_pEvent);
-        if (index != -1) {
-            g_timed_events.RemoveAt(index);
-        }
+        g_timed_events.Remove(m_pEvent);
         delete m_pEvent;
     }
 
     if (m_pWorld != 0 && m_pWorld->triggers != 0) {
-        int index = m_pWorld->triggers->IndexOf(this);
-        if (index != -1) {
-            m_pWorld->triggers->RemoveAt(index);
-        }
+        m_pWorld->triggers->Remove(this);
     }
 
     if (world_item_group != 0) {

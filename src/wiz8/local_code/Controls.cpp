@@ -2111,11 +2111,7 @@ void Controls::SetEnabled(bool enable)
 // FUNCTION: WIZ8 0x004f2da0
 void Controls::RemoveControl(W8Widget* control)
 {
-    int index = m_controls.IndexOf(control);
-
-    if (index != -1) {
-        m_controls.RemoveAt(index);
-    }
+    m_controls.Remove(control);
 }
 
 // FUNCTION: WIZ8 0x004f2df0

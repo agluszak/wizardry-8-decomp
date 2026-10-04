@@ -209,10 +209,7 @@ void W8SpellVisual::SetCycle(signed char cycle)
 
             light->setParent(0, 1);
             if (light->definition() != 0) {
-                int world_index = g_world->lights_to_update->IndexOf(light);
-                if (world_index != -1) {
-                    g_world->lights_to_update->RemoveAt(world_index);
-                }
+                g_world->lights_to_update->Remove(light);
             }
         }
     }
@@ -389,7 +386,7 @@ void UpdateWorldSpellVisuals(W8World* world)
                 visual->UpdateRepresentation(world);
                 visual->UpdateNavigation(0, 0);
             } else {
-                world->spell_visuals->RemoveAt(world->spell_visuals->IndexOf(visual));
+                world->spell_visuals->Remove(visual);
                 if (visual->m_plsLights != 0) {
                     int light_count = visual->m_plsLights->GetCount();
                     while (light_count != 0) {
@@ -726,10 +723,7 @@ W8SpellVisual::~W8SpellVisual()
     SetLights(0);
     delete host;
 
-    int index = g_world->spell_visuals->IndexOf(this);
-    if (index != -1) {
-        g_world->spell_visuals->RemoveAt(index);
-    }
+    g_world->spell_visuals->Remove(this);
     UnregisterGrCycle(this);
 }
 
@@ -744,7 +738,7 @@ void DestroyAllSpellVisuals(W8World* world)
         if (spell == 0) {
             srAssertFail("pSpell", "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp", 0x51c, 0);
         }
-        g_world->spell_visuals->RemoveAt(g_world->spell_visuals->IndexOf(spell));
+        g_world->spell_visuals->Remove(spell);
         if (spell->m_plsLights != 0) {
             int count = spell->m_plsLights->GetCount();
 
@@ -1420,10 +1414,7 @@ stSound3D::~stSound3D()
     if (sound_handle != -1) {
         SoundStop(sound_handle);
     }
-    int index = g_sound3d_instances.IndexOf(this);
-    if (index != -1) {
-        g_sound3d_instances.RemoveAt(index);
-    }
+    g_sound3d_instances.Remove(this);
 }
 
 // FUNCTION: WIZ8 0x004AE8B0

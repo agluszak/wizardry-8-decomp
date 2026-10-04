@@ -507,7 +507,7 @@ W8Navigator::~W8Navigator()
     if (path_ai != 0) {
         DestroyOwnedPathAI(path_ai);
     }
-    g_registered_navigators.RemoveAt(g_registered_navigators.IndexOf(this));
+    g_registered_navigators.Remove(this);
     delete owned_object;
     owned_object = 0;
     if (movement.location_id != 0 && g_octree != 0) {

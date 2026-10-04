@@ -398,10 +398,7 @@ static void CharacterEventSoundEndCallback(void* callback_data)
     RuntimeObserve(RUNTIME_VOICE_FINISHED, CharacterPointerToPartySlot(entry->character),
                    entry->event_type, 0);
 #endif
-    int index = queue->active_events.IndexOf(entry);
-    if (index >= 0) {
-        queue->active_events.RemoveAt(index);
-    }
+    queue->active_events.Remove(entry);
     queue->RestartFollowUpClock(entry);
     entry->Complete();
     delete entry;
@@ -598,7 +595,7 @@ void W8CharacterEventQueue::CompleteFirstActiveEvent()
 
     if (active_events.count > 0) {
         entry = *active_events.GetAt(0);
-        active_events.RemoveAt(active_events.IndexOf(entry));
+        active_events.Remove(entry);
         RestartFollowUpClock(entry);
         entry->Complete();
         delete entry;
@@ -1447,11 +1444,7 @@ W8CharacterEvent* QueueCharacterEvent(W8Character* character, int event_type, un
 // FUNCTION: WIZ8 0x0052D8D0
 void W8CharacterEventQueue::CompleteActiveEvent(W8CharacterEvent* entry)
 {
-    int index = active_events.IndexOf(entry);
-
-    if (index >= 0) {
-        active_events.RemoveAt(index);
-    }
+    active_events.Remove(entry);
     RestartFollowUpClock(entry);
     entry->Complete();
     delete entry;

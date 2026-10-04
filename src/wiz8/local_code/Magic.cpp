@@ -734,10 +734,7 @@ void DetachMissileReferences(W8Missile* missile)
 {
     for (int index = 0; index < g_spell_effects.GetCount(); ++index) {
         W8SpellEffectEntry* effect = *g_spell_effects.GetAt(index);
-        int missile_index = effect->missiles.IndexOf(missile);
-
-        if (missile_index != -1) {
-            effect->missiles.RemoveAt(missile_index);
+        if (effect->missiles.Remove(missile)) {
             return;
         }
     }

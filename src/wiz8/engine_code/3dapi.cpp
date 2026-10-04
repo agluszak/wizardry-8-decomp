@@ -560,8 +560,6 @@ void DestroyWorldCollections(W8World* world)
 // FUNCTION: WIZ8 0x0044FAF0
 void DestroyWorld(W8World* world)
 {
-    int index;
-
     if (world == 0) {
         srAssertFail("pWorld", THREE_D_API_CPP, 0x1ff, 0);
     }
@@ -592,10 +590,7 @@ void DestroyWorld(W8World* world)
     if (IsWorldCursorVisible() != 0)
         HideWorldCursor();
 
-    index = g_worlds.IndexOf(world);
-    if (index >= 0) {
-        g_worlds.RemoveAt(index);
-    }
+    g_worlds.Remove(world);
     if (world->static_scene != 0) {
         world->static_scene->release();
         world->static_scene = 0;

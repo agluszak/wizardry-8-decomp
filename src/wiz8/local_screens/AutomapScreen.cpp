@@ -896,9 +896,7 @@ void AutomapScreenFrame(void)
             } else if (g_automap_tool == 3) {
                 W8AutomapNote* note = FindAutomapNoteUnderCursor();
                 if (note) {
-                    int index = g_automap_notes->IndexOf(note);
-                    if (index >= 0)
-                        g_automap_notes->RemoveAt(index);
+                    g_automap_notes->Remove(note);
                     free(note->text);
                     delete note;
                     if (g_automap_hovered_note == note)
@@ -1039,9 +1037,7 @@ unsigned char AutomapScreenLeave(int)
     while (g_automap_markers->GetCount()) {
         srClass* object = *g_automap_markers->GetAt(0);
         object->release();
-        int index = g_automap_markers->IndexOf(object);
-        if (index >= 0)
-            g_automap_markers->RemoveAt(index);
+        g_automap_markers->Remove(object);
     }
     g_automap_party_marker->setParent(0, 1);
     for (int index = 0; index < 16; ++index) {
@@ -2050,9 +2046,7 @@ void RenderAutomapMarkers(void)
     while (g_automap_markers->GetCount()) {
         srClass* object = *g_automap_markers->GetAt(0);
         object->release();
-        int index = g_automap_markers->IndexOf(object);
-        if (index >= 0)
-            g_automap_markers->RemoveAt(index);
+        g_automap_markers->Remove(object);
     }
     float left = g_automap_position.x - g_automap_zoom * g_float_005ebc7c;
     srVector3T<float> point(g_automap_saved_camera.position.x, 1.0f,
@@ -2393,10 +2387,7 @@ unsigned char HandleAutomapNoteInput(const InputAtom* input)
         } else if (input->usParam == 0xd) {
             g_automap_editing_note->text[last] = 0;
             if (wcslen(g_automap_editing_note->text) == 0) {
-                int index = g_automap_notes->IndexOf(g_automap_editing_note);
-                if (index >= 0) {
-                    g_automap_notes->RemoveAt(index);
-                }
+                g_automap_notes->Remove(g_automap_editing_note);
                 free(g_automap_editing_note->text);
                 delete g_automap_editing_note;
                 if (g_automap_hovered_note == g_automap_editing_note) {
@@ -2417,10 +2408,7 @@ unsigned char HandleAutomapNoteInput(const InputAtom* input)
             g_automap_editing_note = 0;
             g_automap_redraw = true;
         } else if (input->usParam == 0x1b) {
-            int index = g_automap_notes->IndexOf(g_automap_editing_note);
-            if (index >= 0) {
-                g_automap_notes->RemoveAt(index);
-            }
+            g_automap_notes->Remove(g_automap_editing_note);
             free(g_automap_editing_note->text);
             delete g_automap_editing_note;
             if (g_automap_hovered_note == g_automap_editing_note) {

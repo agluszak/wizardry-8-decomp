@@ -78,7 +78,7 @@ struct srRegistry::ClassNode::NameIndex {
         /* Retail clears the popped entry's link before reconfiguring it
            (0x1000F97B), even though the bucket push below overwrites it. */
         entry->next = 0;
-        unsigned long bucket = hashName(name) & (bucket_count - 1);
+        unsigned long bucket = bucketIndex(name);
         entry->bucket = bucket;
         entry->name = name;
         entry->instance = instance;
@@ -185,7 +185,7 @@ private:
                         }
                         NameEntry* reused = free;
                         free = reused->next;
-                        unsigned long new_bucket = hashName(name) & (this->bucket_count - 1);
+                        unsigned long new_bucket = bucketIndex(name);
                         reused->bucket = new_bucket;
                         reused->name = name;
                         reused->instance = entry->instance;

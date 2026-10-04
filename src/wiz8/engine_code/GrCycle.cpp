@@ -158,7 +158,7 @@ void StopShakeEffects(W8GrowableVector<W8CameraShakeEffect*>* effects)
         if ((effect->flags & 1) != 0) {
             unsigned int flags;
 
-            g_shake_effects->RemoveAt(g_shake_effects->IndexOf(effect));
+            g_shake_effects->Remove(effect);
             flags = effect->flags;
             effect->flags = flags & ~1u;
             if ((flags >> 1 & 1) != 0 && effect != 0) {
@@ -1464,10 +1464,7 @@ void DestroyLightVector(W8GrowableVector<stLight*>* vector)
             stLight* light = *vector->GetAt(index);
 
             if (light->definition() != 0) {
-                int world_index = g_world->lights_to_update->IndexOf(light);
-                if (world_index != -1) {
-                    g_world->lights_to_update->RemoveAt(world_index);
-                }
+                g_world->lights_to_update->Remove(light);
             }
             light->setParent(0, 1);
             WorldRemoveLight(g_world, light);
