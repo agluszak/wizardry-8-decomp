@@ -6,7 +6,6 @@
 #include "wiz8/xstatus.h"
 #include "wiz8/layouts/screen_state.h"
 #include "wiz8/local_code/Gameloop.h"
-#include "wiz8/gameloop.h"
 #include "wiz8/local_screens/IntroScreen.h"
 #include "wiz8/local_screens/MainMenuScreen.h"
 #include "wiz8/local_screens/CharacterScreen.h"

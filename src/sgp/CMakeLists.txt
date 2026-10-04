@@ -54,7 +54,6 @@ target_include_directories(WIZ8_SGP PRIVATE
     "${PROJECT_SOURCE_DIR}/include"
     "${PROJECT_SOURCE_DIR}/include/wiz8"
     "${PROJECT_SOURCE_DIR}/include/wiz8/engine_code"
-    "${PROJECT_SOURCE_DIR}/include/wiz8/sgp-compat"
 )
 # DirectX Common.cpp owns the two DirectDraw IIDs; search the SDK archive after
 # extracting the SGP objects for the remaining GUIDs.

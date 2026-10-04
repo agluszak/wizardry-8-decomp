@@ -25,7 +25,6 @@
 #include "wiz8/float_constants.h"
 #include "wiz8/item_spawning.h"
 #include "wiz8/local_code/MonsterManager.h"
-#include "wiz8/sgp_bridge.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/Missile.h"
 #include "wiz8/engine_code/Octree.h"

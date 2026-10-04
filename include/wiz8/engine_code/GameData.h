@@ -1,12 +1,13 @@
 #pragma once
 
-#include "wiz8/sgp_bridge.h"
-
 #include "Types.h"
 #include "wiz8/engine_code/IntervalGate.h"
 #include "wiz8/wiz8_windows.h"
 
 extern bool g_shared_timers_paused;
+
+enum { TIMER_SUSPEND = 1, TIMER_RESUME = 8 };
+float MoveTimer(int action);
 
 void ResetLevelMovement(float movement_limit, bool reset, bool fast_move); /* 0x0041EEE0 */
 

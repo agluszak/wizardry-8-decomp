@@ -1,18 +1,15 @@
 #pragma once
 
-#ifdef __cplusplus
 unsigned char InitializeMenuFonts(void);
-#endif
 
 #include "vobject.h"
 #include "Types.h"
-#include "wiz8/sgp_bridge.h"
 
 /* The game-specific font catalog: role-selected font handles, their derived
    video objects, and the palette pointers the menu initializer fills in.
    startup_subsystems.cpp owns the definitions; every consumer includes this
-   header instead of redeclaring them. Only ghTinyMonoFont reaches the SGP C
-   translation units and stays C-linked through sgp_bridge.h. */
+   header instead of redeclaring them. */
+extern int ghTinyMonoFont;
 extern int g_calligraphy_shadow_font;
 extern int g_calligraphy_font;
 extern HVOBJECT g_button_font_object;

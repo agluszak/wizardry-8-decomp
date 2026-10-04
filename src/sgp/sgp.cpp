@@ -5,6 +5,7 @@
    Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
    Keep gfGameInitialized set across shutdown, as retail does.
    Annotate the retail addresses of the startup and shutdown statics.
+   Consume the owning C++ timer header and SDK mouse-wheel declarations, 2026-10-04.
    Distributed under the accompanying SFI Source Code license agreement. */
 #include "types.h"
 #include <windows.h>
@@ -16,19 +17,19 @@
 #include "RegInst.h"
 #include "vobject.h"
 #include "font.h"
-#include "local.h"
 #include "Fileman.h"
 #include "input.h"
 #include "Random.h"
-#include "gameloop.h"
+#include "wiz8/game_init.h"
+#include "wiz8/local_code/Gameloop.h"
 #include "soundman.h"
 #include "Button System.h"
 #include "mousesystem.h"
 #include "wiz8/engine_code/Octree.h"
-#include "wiz8/sgp_bridge.h"       // for MoveTimer() [Wizardry specific]
+#include "wiz8/engine_code/GameData.h"
 
 #include "input.h"
-#include "zmouse.h"
+#include <zmouse.h>
 
 
 
@@ -717,7 +718,5 @@ CHAR8	*pCopy=NULL, *pToken;
 
 	MemFree(pCopy);
 }
-
-
 
 

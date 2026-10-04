@@ -80,7 +80,6 @@ directives are the only line-level fact the checker reads.
   or template implementations such as the proven `stHeap.hpp` and
   `vector.h`. Template-instantiation member declarations belong to the
   template body in the header.
-- **bridge**: `sgp_bridge.h`, the C linkage SGP C sources consume.
 - **unresolved**: declarations that resolve to no implementation and no retail
   placement. Reported, never hidden behind a configured role.
 
@@ -90,6 +89,13 @@ them. Every project-local `#include "wiz8/…"` must resolve to an existing
 header, which catches stale includes of deleted compatibility umbrellas; the
 removed umbrella filenames themselves are a fixed policy list in the checker,
 not configurable data.
+
+SGP compiles as C++ and consumes owning product headers directly. `MoveTimer`
+and its action constants belong to `GameData.h`; game font handles belong to
+`fonts.h`. The retired `sgp_bridge.h` is not a header role or a linkage exception.
+Game initialization belongs to `game_init.h`; game-loop entries belong to
+`local_code/Gameloop.h`. Video and octree product calls have ordinary C++ linkage.
+Historical SGP API declarations retain their C linkage in the SGP headers.
 
 Provenance is independent of role: `proven-original-headers` records the
 assertion-evidenced filename. `header_architecture.json` therefore contains

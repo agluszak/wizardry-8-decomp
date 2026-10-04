@@ -4,6 +4,10 @@
 #include "wiz8/layouts/screen_state.h"
 #include "Container.h"
 
+void ShutdownGame(void);
+void GameLoop(void);
+void GameloopExit(unsigned char unload_screens);
+
 /* Local Code\Gameloop.cpp's screen-state machine storage. */
 extern W8ScreenStateHandlers g_screen_handlers[W8_SCREEN_COUNT];
 extern W8ScreenStateRuntime g_current_screen_state;

@@ -680,7 +680,7 @@ extern W8Octree* g_octree;
 extern OctPreTree* g_oct_pre_tree;
 
 /* The SGP /NOOCT startup switch sets this flag; an Octree-unit body reads it. */
-extern "C" void NoOct(void); // C-LINKAGE: src/sgp/sgp.c invokes the /NOOCT switch
+void NoOct(void);
 extern bool g_octree_disabled;
 
 bool __stdcall IsNavigatorAtTarget(W8NavigatorMovementState* movement);

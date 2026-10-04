@@ -3,9 +3,11 @@
    Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
    Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
    Recover the wide-character predicate return width and key translation modulo.
+   Remove the unused local configuration include and use the SDK mouse-wheel header, 2026-10-04.
    Distributed under the accompanying SFI Source Code license agreement. */
 #include "types.h"
 #include <windows.h>
+#include <zmouse.h>
 #include <stdio.h>
 #include <memory.h>
 #include "debug.h"
@@ -13,9 +15,6 @@
 #include "memman.h"
 #include "english.h"
 #include "video2.h"
-#include "local.h"
-
-#include "zmouse.h"
 
 // Make sure to refer to the translation table which is within one of the following files (depending
 // on the language used). ENGLISH.C, JAPANESE.C, FRENCH.C, GERMAN.C, SPANISH.C, etc...
