@@ -815,7 +815,7 @@ unsigned char ReadOrCloneMonsterCycles(const W8GrCycleLoadContext* context,
     (*monster)->SetBounds(&minimum, &maximum);
     if (movement_rate < 0.1f)
         movement_rate = 2.0f;
-    (*monster)->SetValue120(movement_rate);
+    (*monster)->SetMovementScale(movement_rate);
     (*monster)->SetTurnRate(rotation_rate * static_cast<float>(g_double_005ec318));
 
     int navigation_mode = 1;
@@ -4668,18 +4668,18 @@ void MonsterResumeAllNavigators(void)
  * float, and a bare return for the four that hand nothing back.
  */
 // FUNCTION: WIZ8 0x004c5f50
-void MonsterSetNavigatorValue120(W8Monster* monster, float value)
+void MonsterSetNavigatorMovementScale(W8Monster* monster, float value)
 {
     if (monster != 0) {
-        monster->SetValue120(value);
+        monster->SetMovementScale(value);
     }
 }
 
 // FUNCTION: WIZ8 0x004c5f70
-float MonsterGetNavigatorValue120(W8Monster* monster)
+float MonsterGetNavigatorMovementScale(W8Monster* monster)
 {
     if (monster != 0) {
-        float value = monster->GetValue120();
+        float value = monster->GetMovementScale();
         return value;
     }
     return 0.0f;
@@ -4781,10 +4781,10 @@ unsigned short MonsterConfigureMovementToMonster(W8Monster* monster, W8Monster* 
 }
 
 // FUNCTION: WIZ8 0x004c6200
-void MonsterSetNavigatorFlag25(W8Monster* monster, bool value)
+void MonsterSetNavigatorHalted(W8Monster* monster, bool value)
 {
     if (monster != 0) {
-        monster->SetFlag25(value);
+        monster->SetHalted(value);
     }
 }
 

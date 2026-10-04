@@ -71,7 +71,8 @@ blockers. Floating and class-ownership clients remain future work.
 ## Property-specific propagation
 
 The solver classifies every `F` transfer from both endpoint declarations:
-`copy`, `alias-change` (different typedef, same representation), `binding`
+`copy`, `sign-change` (same width, different signedness), `alias-change`
+(different typedef, same representation), `binding`
 (callback slot ABI), `widening`/`narrowing`, `domain-change`, `erasure`
 (`T*` to `void*`), `pointer-conversion` and explicit `conversion`. Each property
 gives every class one meaning:
@@ -79,6 +80,7 @@ gives every class one meaning:
 | class | signedness | width | enum domain | pointee | nominal | character |
 | --- | --- | --- | --- | --- | --- | --- |
 | copy, binding | equal | equal | equal | equal | equal | equal |
+| sign-change | barrier | equal | equal | - | - | review |
 | alias-change | equal | equal | equal | equal | producer | equal |
 | widening | review producer | review | review | - | barrier | review |
 | narrowing | barrier | review | review | - | barrier | review |
@@ -96,6 +98,15 @@ evidence on the consumer itself. The collector no longer emits width-change
 escapes; an explicit-conversion escape at the same site as its modeled edge is
 handled by that edge. One questionable transfer now blocks only the property that
 it actually affects instead of merging and blocking a whole component.
+
+## Aggregate storage escapes
+
+Passing a record (as a receiver, pointer or reference) to a direct callee is an
+escape of its fields only when that callee's body was not collected anywhere in
+the corpus; a collected body records its own field uses. A virtual call is
+contained only when every override in its collected override closure has a body
+(pure declarations dispatch elsewhere). Template instantiation bodies are not
+traversed, so calls into them remain escapes.
 
 ## Source-boundary completeness
 
@@ -253,7 +264,9 @@ bound to the exact declaration, source file, line and operation.
 Additional records share the same fact stream: `T` type identity, `O` consumed
 constant/operation, `V` explicit conversion endpoints/types, `J` callback slot,
 `C` implementation binding, `L` source type atom/snapshot, `FR` field reference,
-`CH` storage character/byte-count observation and `LK` linkage. Legacy bool
+`CH` storage character/byte-count observation and `LK` linkage. `HB` records every
+collected function body (including void/record returns), `OV` a virtual override
+edge and `PV` a pure virtual. Legacy bool
 records retain their meanings. Report schema `wiz8.scalar-report-v2` keeps one
 component list per property under `integer_components`, plus `pointer_components`,
 `nominal_components`, `array_components`, `domain_inventory` and `callbacks`;

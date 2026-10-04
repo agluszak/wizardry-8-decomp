@@ -4,6 +4,7 @@ extern float g_automap_grid_cell_size;
 
 #include "input.h"
 #include "wiz8/geometry.h"
+#include "wiz8/layouts/main_game_screen.h"
 
 #include "surrender/srMath.h"
 #include "wiz8/vector.h"
@@ -18,10 +19,10 @@ struct W8AutomapNote {
 static_assert(sizeof(W8AutomapNote) == 0x10, "W8AutomapNote_size");
 
 extern W8Vector<W8AutomapNote*>* g_automap_notes;
-extern int g_ui_mode_current;
-extern int g_ui_mode_saved;
-void SetCurrentAutomapUiMode(int value); /* 0x00587C10 */
-void SetSavedAutomapUiMode(int value); /* 0x0058A870 */
+extern W8MainUiMode g_ui_mode_current;
+extern W8MainUiMode g_ui_mode_saved;
+void SetCurrentAutomapUiMode(W8MainUiMode value); /* 0x00587C10 */
+void SetSavedAutomapUiMode(W8MainUiMode value);   /* 0x0058A870 */
 
 class W8DialogButton;
 extern W8DialogButton** g_automap_buttons;

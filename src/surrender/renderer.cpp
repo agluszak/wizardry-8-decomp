@@ -934,7 +934,7 @@ void srGERD::Renderer::submit()
         vertices_78_.bind(arrays, 0);
         programVertexArrays(&arrays, vertex_count);
         e_cullMode saved_cull = gerd_d4_->getCullMode();
-        gerd_d4_->setCullMode(CULL_FRONT);
+        gerd_d4_->setCullMode(CULL_NONE);
         if (sorted_d8_ == 0) {
             drawImmediate();
         } else {

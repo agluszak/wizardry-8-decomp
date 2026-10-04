@@ -121,7 +121,7 @@ bool WillNpcTradeForItem(W8NpcState* npc, W8ItemInstance* item); /* 0x0050A9C0 *
 void ApplyNpcInteraction(W8NpcState* npc, int kind, int value, W8ItemInstance* item,
                          unsigned int gold); /* 0x0050A570: every retail call pushes five */
 /* 0x0050AA00: whether the NPC's database entry carries the value at 0x002. */
-bool NpcRecordHasValue002(W8NpcState* npc);
+bool NpcRecordHasTradePool(W8NpcState* npc);
 /* 0x0050C140: push a topic onto the NPC's five-slot topic list. */
 void AddNpcTopic(W8NpcState* npc, int topic);
 /* 0x0050BC90: resolve one pickpocket attempt; the taken item goes to

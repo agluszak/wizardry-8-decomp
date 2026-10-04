@@ -1,6 +1,8 @@
 #pragma once
 
 #include "input.h"
+#include "wiz8/layouts/gameplay_databases.h"
+#include "wiz8/layouts/targeting.h"
 #include "wiz8/local_code/TextControl.h"
 
 #include <cstddef>
@@ -55,9 +57,10 @@ void ReleaseConditionButtons(void);
 void CreateLevelButtons(void); /* 0x0059B940 */
 /* Refresh cached HP/stamina/spell portrait bar widths; dirty + redraw when
    any slot's displayed fraction (or numeric HP) changes. */
-short GetCombatPortraitImage(int action, int detail, char status, short slot); /* 0x0059A180 */
-void SyncPartyPortraitVitalsBars(void);                                        /* 0x0059A3A0 */
-void RecordCharacterDamage(int party_slot, unsigned int amount);               /* 0x0059AC40 */
+short GetCombatPortraitImage(W8ActionKind action, int detail, char status,
+                             short slot);                        /* 0x0059A180 */
+void SyncPartyPortraitVitalsBars(void);                          /* 0x0059A3A0 */
+void RecordCharacterDamage(int party_slot, unsigned int amount); /* 0x0059AC40 */
 /* Advance per-slot portrait FX counters on a 100ms clock and dirty redraw. */
 void TickPartyPortraitFx(void); /* 0x0059B1A0 */
 /* Clear each occupied slot's damage-splat/effect-icon portrait overlays and
@@ -76,7 +79,8 @@ void UpdatePortraitAdvanceButtons(void);
 void UpdateConditionButtons(void);
 /* 0x0059AF40: stage the casting icon on a monster-manager entry; the spell's
    realm picks the icon catalog base and the flag picks the dim variant. */
-void StageMonsterCastIcon(unsigned int monster_index, int spell_realm, bool flag, int spell_id);
+void StageMonsterCastIcon(unsigned int monster_index, W8SpellRealm spell_realm, bool flag,
+                          int spell_id);
 /* 0x0059C030 / 0x0059BFC0: hide or show the condition-button region set for
    the current layout. SyncMainGameModeRegions picks between them. */
 void DisableConditionButtons(void);

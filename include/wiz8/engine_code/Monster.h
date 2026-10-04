@@ -474,10 +474,10 @@ void MonsterSelectLOD(W8Monster* monster, const srVector3T<float>* position);
    representation; it stays free because its callers pass the object on the
    stack. */
 void UpdateCycleRepresentation(W8GrCycle* cycle, W8World* world);
-void MonsterSetNavigatorFlag25(W8Monster* monster, bool value);
-W8AIRecord* MonsterGetObject0C(W8Monster* monster);                /* 0x004C5B30 */
-void MonsterSetNavigatorValue120(W8Monster* monster, float value); /* 0x004C5F50 */
-float MonsterGetNavigatorValue120(W8Monster* monster);             /* 0x004C5F70 */
+void MonsterSetNavigatorHalted(W8Monster* monster, bool value);
+W8AIRecord* MonsterGetObject0C(W8Monster* monster);                     /* 0x004C5B30 */
+void MonsterSetNavigatorMovementScale(W8Monster* monster, float value); /* 0x004C5F50 */
+float MonsterGetNavigatorMovementScale(W8Monster* monster);             /* 0x004C5F70 */
 unsigned char
 MonsterConfigureMovementToPosition(W8Monster* monster,
                                    const srVector3T<float>* position);           /* 0x004C5F90 */

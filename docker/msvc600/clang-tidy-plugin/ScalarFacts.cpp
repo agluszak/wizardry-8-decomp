@@ -158,6 +158,9 @@ public:
         for (const auto* parameter : function->parameters())
             declare(parameter);
         if (function->doesThisDeclarationHaveABody()) {
+            // Every collected body, including void and record-returning functions.
+            if (point)
+                writer_.fact({"HB", owner_key(canonical)});
             event("H", function, "body", function->getLocation());
             for (const auto* parameter : function->parameters())
                 event("H", parameter, "body", function->getLocation());
@@ -165,6 +168,15 @@ public:
         if (const auto* method = dyn_cast<CXXMethodDecl>(function)) {
             if (method->isVirtual())
                 escape_signature(function, "virtual slot", function->getLocation());
+            // Override topology lets the solver decide whether a virtual call
+            // can only reach collected bodies.
+            if (point && method->isVirtual() && method == method->getCanonicalDecl()) {
+                if (method->isPureVirtual())
+                    writer_.fact({"PV", owner_key(canonical)});
+                for (const auto* overridden : method->overridden_methods())
+                    writer_.fact({"OV", owner_key(overridden->getCanonicalDecl()),
+                                  owner_key(canonical)});
+            }
         }
         return true;
     }
@@ -292,8 +304,9 @@ public:
             callback_signature(slot, call->getExprLoc());
         if (const auto* member = dyn_cast<CXXMemberCallExpr>(call)) {
             const Expr* receiver = member->getImplicitObjectArgument();
+            // Virtual dispatch is resolved against the collected override closure.
             if (receiver != nullptr)
-                escape_record(receiver->getType(), call->getExprLoc());
+                escape_record(receiver->getType(), call->getExprLoc(), member->getMethodDecl());
         }
         for (unsigned index = 0; index < call->getNumArgs(); ++index) {
             const Expr* argument = call->getArg(index);
@@ -316,7 +329,8 @@ public:
             transfer(parameter, argument, "argument", argument->getExprLoc());
             if (parameter->getType()->isReferenceType() || parameter->getType()->isPointerType()) {
                 escape(argument, "indirect storage argument", argument->getExprLoc());
-                escape_record(argument->IgnoreParenImpCasts()->getType(), argument->getExprLoc());
+                escape_record(argument->IgnoreParenImpCasts()->getType(), argument->getExprLoc(),
+                              function);
                 if (const auto* array = array_owner(argument)) {
                     declare(array);
                     event("A", array, "array storage argument", argument->getExprLoc());
@@ -1024,7 +1038,10 @@ private:
             escape(cast->getSubExpr(), reason, location);
     }
 
-    void escape_record(QualType type, SourceLocation location)
+    // Storage handed to a direct callee escapes only if that callee's body is
+    // not collected anywhere; the solver resolves `@callee` against HB facts.
+    void escape_record(QualType type, SourceLocation location,
+                       const FunctionDecl* callee = nullptr)
     {
         type = type.getCanonicalType();
         if (type->isPointerType() || type->isReferenceType())
@@ -1034,12 +1051,18 @@ private:
             return;
         if (const auto* cxx = dyn_cast<CXXRecordDecl>(record->getDecl()->getDefinition())) {
             for (const auto& base : cxx->bases())
-                escape_record(base.getType(), location);
+                escape_record(base.getType(), location, callee);
         }
+        const auto* method = dyn_cast_or_null<CXXMethodDecl>(callee);
+        const std::string detail =
+            "aggregate storage argument" +
+            (callee == nullptr ? std::string()
+                               : (method != nullptr && method->isVirtual() ? "@virtual:" : "@") +
+                                     owner_key(callee->getCanonicalDecl()));
         for (const auto* field : record->getDecl()->getDefinition()->fields()) {
-            event("A", field, "aggregate storage argument", location);
+            event("A", field, detail, location);
             if (field->getType()->isRecordType())
-                escape_record(field->getType(), location);
+                escape_record(field->getType(), location, callee);
         }
     }
 

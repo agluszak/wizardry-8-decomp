@@ -1860,7 +1860,7 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
     int saved_detail = monster_info->action_detail;
     int saved_kind = monster_info->action_kind;
     int sight_kind;
-    int target_type;
+    W8SpellTargetType target_type;
     W8CombatSlot slot;
     W8MonsterGroup* monster_group;
     W8MonsterInfo* member;

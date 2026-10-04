@@ -135,9 +135,9 @@ public:
     void SetAnimationSpeed(float speed);
     bool IsSetting6FTwo();
     void ToggleSetting6E();
-    Trigger* GetValue18();
+    Trigger* GetTrigger();
     bool IsTriggerInView(srVector3T<float>* position);
-    Trigger* GetGDPropValue24();
+    Trigger* GetGDPropOwnerTrigger();
     void GetCenterPosition(srVector3T<float>* position);
     /* Whether the renderer's currently selected model instance is dispatched
        by this prop's animation - the prop half of ResolvePickedProp's test.

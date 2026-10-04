@@ -741,8 +741,8 @@ bool CompatiblePartnerItems(int ranged_item_id, int other_item_id)
     case 0x6e:
     case 0x72:
         if (g_item_records[other_item_id].equip_class > 3 ||
-            g_item_records[ranged_item_id].wield_group ==
-                g_item_records[other_item_id].wield_group) {
+            g_item_records[ranged_item_id].range_category ==
+                g_item_records[other_item_id].range_category) {
             if (ranged_item_id != -1 && g_compatible_partner_pairs[0][0] != 0) {
                 int index = 0;
                 short name = g_compatible_partner_pairs[0][0];
@@ -829,8 +829,8 @@ static bool CanHoldItemsTogether(int first_item_id, int second_item_id)
         return true;
     }
     if (g_item_records[second_item_id].equip_class < W8_EQUIP_CLASS_FIRST_NON_WEAPON) {
-        return g_item_records[first_item_id].wield_group ==
-               g_item_records[second_item_id].wield_group;
+        return g_item_records[first_item_id].range_category ==
+               g_item_records[second_item_id].range_category;
     }
     return true;
 }
@@ -2566,10 +2566,10 @@ char FindCharacterItemByDatabaseKind(W8Character* character, short item_kind, W8
 /* At what range an item's spell works. An item with no spell has no range at
    all, which is a different answer from touch. */
 // FUNCTION: WIZ8 0x005207e0
-int GetItemSpellRange(const W8ItemInstance* item)
+W8RangeCategory GetItemSpellRange(const W8ItemInstance* item)
 {
     if (item == 0) {
-        return -1;
+        return W8_RANGE_NONE;
     }
     if (item->iItemNo == -1) {
         srAssertFail("pPCItem->iItemNo != -1", PC_ITEM_CPP, 4003, 0);
@@ -2580,7 +2580,7 @@ int GetItemSpellRange(const W8ItemInstance* item)
     if (g_item_records[item->iItemNo].spell_id != 0) {
         return g_spell_records[g_item_records[item->iItemNo].spell_id].range_category;
     }
-    return -1;
+    return W8_RANGE_NONE;
 }
 
 /* One character's attempt at identifying an item. Their strength is a sixth of
@@ -3022,15 +3022,15 @@ void RefreshAfterItemRecordChange(W8ItemInstance* item, W8Character* character,
     }
 
     if (primary_right || primary_left) {
-        int hand_state = row->action_kind;
-        if (hand_state == W8_ACTION_BERSERK) {
+        W8ActionKind action_kind = row->action_kind;
+        if (action_kind == W8_ACTION_BERSERK) {
             if (!CanCharacterBerserk(party_slot)) {
                 row->action_kind = W8_ACTION_ATTACK;
                 if (row->action_03d == W8_ACTION_BERSERK) {
                     row->action_03d = W8_ACTION_ATTACK;
                 }
             }
-        } else if (hand_state == W8_ACTION_ATTACK && row->action_is_berserk &&
+        } else if (action_kind == W8_ACTION_ATTACK && row->action_is_berserk &&
                    CanCharacterBerserk(party_slot)) {
             row->action_kind = W8_ACTION_BERSERK;
             if (row->action_03d == W8_ACTION_ATTACK) {
@@ -3039,7 +3039,7 @@ void RefreshAfterItemRecordChange(W8ItemInstance* item, W8Character* character,
         }
 
         if (gXStatus.fCombatMode) {
-            int action = row->action_03d;
+            W8ActionKind action = row->action_03d;
             if (action == W8_ACTION_ATTACK || action == W8_ACTION_BERSERK) {
                 if (!CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 1, 0)) {
                     AimByKind(party_slot, W8_TARGET_KIND_NONE, W8_TARGETING_CONTEXT_IN_COMBAT);

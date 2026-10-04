@@ -254,8 +254,10 @@ public:
         float mipmap_bias_04;
     };
 
-    enum e_error {};
-    enum e_buffer {};
+    enum e_error { ERROR_NONE = 0 };
+    /* srDD_OpenGL clearBuffers: bit 0 clears GL_COLOR_BUFFER_BIT, bit 1
+       GL_DEPTH_BUFFER_BIT and bit 2 GL_STENCIL_BUFFER_BIT. */
+    enum e_buffer { BUFFER_COLOR = 1, BUFFER_DEPTH = 2, BUFFER_STENCIL = 4 };
     /* Enumerator order is proven by the command indices srDebugDD's
        wrappers pass to ScopeTimer and by the funcName string table at
        0x10099028 (index 0 is "dummy command", index 43 is "CMDMAX").
@@ -306,8 +308,12 @@ public:
         COMMAND_SET_POLYGON_OFFSET,
         COMMAND_MAX
     };
-    enum e_cullMode {};
-    enum e_polygonMode {};
+    /* srDD_OpenGL setCullMode: 0 disables GL_CULL_FACE, 1 culls GL_BACK and
+       2 culls GL_FRONT. */
+    enum e_cullMode { CULL_NONE = 0, CULL_BACK = 1, CULL_FRONT = 2 };
+    /* srDD_OpenGL setPolygonMode: glPolygonMode(GL_FRONT_AND_BACK, ...) with
+       GL_POINT, GL_LINE and GL_FILL. */
+    enum e_polygonMode { POLYGON_POINT = 0, POLYGON_LINE = 1, POLYGON_FILL = 2 };
     enum e_driverID {};
     enum e_hardwareID {};
 

@@ -452,7 +452,7 @@ void stMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
 
 /* Wizardry-extended srMeshModel::renderTriMesh. Optional polygon normals enable
    a software backface cull into g_software_cull_active_polygons and
-   forces CULL_FRONT; a null table leaves hardware cull at CULL_NONE unless
+   forces CULL_NONE; a null table leaves hardware cull at CULL_BACK unless
    g_render_cull_front already requested front culling. */
 // FUNCTION: WIZ8 0x00470380
 void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& mesh,
@@ -469,9 +469,9 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
         }
 
         if (g_render_cull_front != 0) {
-            renderer.setCullMode(srGERD::CULL_FRONT);
+            renderer.setCullMode(srGERD::CULL_NONE);
         } else if (poly_equations != 0) {
-            renderer.setCullMode(srGERD::CULL_FRONT);
+            renderer.setCullMode(srGERD::CULL_NONE);
 
             g_software_cull_active_polygons.setCapacity(
                 static_cast<unsigned long>(mesh.polygon_count_04), 1);
@@ -541,7 +541,7 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
                 }
             }
         } else {
-            renderer.setCullMode(srGERD::CULL_NONE);
+            renderer.setCullMode(srGERD::CULL_BACK);
         }
 
         for (int side = 1; side >= 0; --side) {
@@ -1684,9 +1684,9 @@ void srTriMeshPipeline::FlushSlots()
     srGERD::e_winding winding = renderer_88->getWinding();
 
     srTriangleCuller::Input culler_input;
-    if (cull_mode == srGERD::CULL_FRONT) {
+    if (cull_mode == srGERD::CULL_NONE) {
         culler_input.cull_mode_0c = 2;
-    } else if (cull_mode == srGERD::CULL_BACK) {
+    } else if (cull_mode == srGERD::CULL_FRONT) {
         culler_input.cull_mode_0c = winding == srGERD::WINDING_POSITIONAL_0;
     } else {
         culler_input.cull_mode_0c = winding != srGERD::WINDING_POSITIONAL_0;
@@ -1730,7 +1730,7 @@ void srTriMeshPipeline::FlushSlots()
             ratio = 3.0f;
         }
         batch_limit = static_cast<unsigned long>(1300.0f / (slot_count_84 * ratio));
-        if (cull_mode == srGERD::CULL_FRONT) {
+        if (cull_mode == srGERD::CULL_NONE) {
             batch_limit >>= 1;
         }
         if (batch_limit > total) {

@@ -1003,10 +1003,12 @@ void ApplyWorldUpdateFlags(W8World* world, unsigned int flags)
         world->m_loaded = world->m_loaded == 0;
     }
     if ((flags & 0x100) != 0) {
-        SetWorldEnvironmentValue(g_world, GetWorldValue24(g_world) + g_float_005ec258);
+        SetWorldEnvironmentIntensity(g_world,
+                                     GetWorldEnvironmentIntensity(g_world) + g_float_005ec258);
     }
     if ((flags & 0x200) != 0) {
-        SetWorldEnvironmentValue(g_world, GetWorldValue24(g_world) - g_float_005ec258);
+        SetWorldEnvironmentIntensity(g_world,
+                                     GetWorldEnvironmentIntensity(g_world) - g_float_005ec258);
     }
 }
 

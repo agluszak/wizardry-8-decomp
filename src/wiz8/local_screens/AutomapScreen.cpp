@@ -1171,9 +1171,9 @@ void SetAutomapToolCursor(int tool)
 // GLOBAL: WIZ8 0x0064b914
 float g_automap_grid_cell_size = 2000.0f;
 // GLOBAL: WIZ8 0x0068f2b0
-int g_ui_mode_current;
+W8MainUiMode g_ui_mode_current;
 // GLOBAL: WIZ8 0x0068f2c4
-int g_ui_mode_saved;
+W8MainUiMode g_ui_mode_saved;
 
 // FUNCTION: WIZ8 0x00585300
 void SetAutomapGridCellSize(float value)
@@ -1188,13 +1188,13 @@ float GetAutomapGridCellSize(void)
 }
 
 // FUNCTION: WIZ8 0x00587C10
-void SetCurrentAutomapUiMode(int value)
+void SetCurrentAutomapUiMode(W8MainUiMode value)
 {
     g_ui_mode_current = value;
 }
 
 // FUNCTION: WIZ8 0x0058A870
-void SetSavedAutomapUiMode(int value)
+void SetSavedAutomapUiMode(W8MainUiMode value)
 {
     g_ui_mode_saved = value;
 }

@@ -92,9 +92,9 @@ enum { W8_NPC_DISPOSITION_HOSTILE = 0x21, W8_NPC_DISPOSITION_FRIENDLY = 0x42 };
 // GLOBAL: WIZ8 0x00689F94
 W8GrowableVector<W8NpcState*>* g_npc_states;
 
-/* Whether the NPC's database entry carries the value at 0x002 at all. */
+/* Whether the NPC's database record names a trade pool. */
 // FUNCTION: WIZ8 0x0050aa00
-bool NpcRecordHasValue002(W8NpcState* npc)
+bool NpcRecordHasTradePool(W8NpcState* npc)
 {
     return npc->record->trade_pool_002 != 0;
 }

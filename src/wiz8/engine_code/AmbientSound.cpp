@@ -471,7 +471,7 @@ const char* g_footstep_scuff_name = "Scuff";
 /* Surface and material ids are range-checked against 1..9 / 1..25 before
    indexing the name tables. */
 // FUNCTION: WIZ8 0x0047a440
-int PlayFootstep(signed char surface, signed char material, int kind)
+int PlayFootstep(signed char surface, signed char material, W8FootstepKind kind)
 {
     signed char selected_surface;
     signed char selected_material;

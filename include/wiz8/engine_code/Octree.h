@@ -199,9 +199,9 @@ public:
 
     /* Returns whether the pairing ended up recorded; every recovered caller
        discards it. */
-    unsigned char RegisterObjectCell(int kind, int id, const int* point);
-    unsigned char MoveObjectToCell(int kind, int id, const int* point);
-    unsigned char UnregisterObject(int kind, int id);
+    unsigned char RegisterObjectCell(W8OctreeObjectKind kind, int id, const srVector3T<int>* point);
+    unsigned char MoveObjectToCell(W8OctreeObjectKind kind, int id, const srVector3T<int>* point);
+    unsigned char UnregisterObject(W8OctreeObjectKind kind, int id);
 };
 
 /* The cell walk 0x004362D0 builds and both line-of-sight bodies step: an
@@ -209,8 +209,8 @@ public:
    carry a delta, an accumulator and the reset the accumulator takes when it
    goes negative, which is what makes the two triples symmetric. */
 struct W8OctreeWalk {
-    int cell_00[3];     /* 0x00: the cell the walk starts in */
-    int step_0c[3];     /* 0x0c: +1 or -1 per axis */
+    srVector3T<int> cell_00; /* 0x00: the cell the walk starts in */
+    srVector3T<int> step_0c; /* 0x0c: +1 or -1 per axis */
     int major_axis_18;  /* 0x18 */
     int minor_axis_1c;  /* 0x1c: (major + 1) % 3 */
     int minor_axis_20;  /* 0x20: (major + 2) % 3 */
@@ -275,7 +275,8 @@ struct W8OctreeView {
     float horizontal_fov_cosine_38;
     float vertical_fov_cosine_3c;
     float far_clip_40;
-    int visible_cells_44[6];
+    srVector3T<int> visible_cells_44;
+    unsigned char unknown_50[0xc];
     /* The six frustum planes 0x004302E0 builds; 0x0046D880 tests a point
        against all six. */
     W8Plane frustum_planes_5c[6];
@@ -299,21 +300,23 @@ public:
     void SetPropSunBits(BitArray* bits);
     /* Whether prop `offset` past prop_sun_base_184 has its sunlight bit; a
        negative offset checkpoints the shared index into the base. */
-    int TestPropSunBit(int offset);
+    bool TestPropSunBit(int offset);
     void AddCollidablePropBounds(int index, const W8BoundingBox* bounds);
     void VisitPointCopy(unsigned short location_id, srVector3T<float>* position);
     /* Writes the cell coordinates and returns `point`, or null when the
        position is outside the octree bounds. */
-    int* WorldPositionToCell(const srVector3T<float>* position, int* point); /* 0x00431440 */
-    unsigned long FindLeaf(const int* point);
+    srVector3T<int>* WorldPositionToCell(const srVector3T<float>* position,
+                                         srVector3T<int>* point); /* 0x00431440 */
+    unsigned long FindLeaf(const srVector3T<int>* point);
     void UpdateMonsterLocation(unsigned short location_id, const srVector3T<float>* position);
     /* Object-kind values the query machinery dispatches on: 3 = GD triangle,
        8 = collidable-prop polygon reference, 9 = path waypoint, 12 = location entry,
        13 = secondary location entry. Registry values pack kind into the high
        half and id+1 into the low half; cell keys pack x/y/z bytes with a +1
        sentinel. */
-    void UnregisterLocationObjects(unsigned int location_id);          /* 0x0042E650 */
-    void UnregisterLocationObject(unsigned int location_id, int kind); /* 0x0042E880 */
+    void UnregisterLocationObjects(unsigned int location_id); /* 0x0042E650 */
+    void UnregisterLocationObject(unsigned int location_id,
+                                  W8OctreeObjectKind kind); /* 0x0042E880 */
     /* Collect object ids of `kind` under the segment from `origin` to
        `origin + delta`, grown by `extent` (also at least the delta length).
        `*results` carries the destination buffer in and out; a null
@@ -332,10 +335,11 @@ public:
                                   const srVector3T<float>* upper); /* 0x0042EF30 */
     /* Append the objects of `kind` inside one cell to the shared query
        buffer; the registry path deduplicates through m_visited_object_bits. */
-    unsigned int CollectObjectsInCell(const int* cell, unsigned short kind); /* 0x0042F400 */
+    unsigned int CollectObjectsInCell(const srVector3T<int>* cell,
+                                      unsigned short kind); /* 0x0042F400 */
     /* Bounds-checked cell -> leaf index: the direct leaf grid when present,
        else a masked descent through the branch tree. */
-    unsigned int LeafIndexForCell(const int* cell); /* 0x00433730 */
+    unsigned int LeafIndexForCell(const srVector3T<int>* cell); /* 0x00433730 */
     /* Descend the branch tree while `masked_cell`'s leading mask word keeps
        the current level bit set, choosing the octant from the three
        coordinate words. */
@@ -356,11 +360,11 @@ public:
     void BuildCellWalk(srVector3T<float> from, srVector3T<float> to,
                        W8OctreeWalk* walk); /* 0x00436280 */
     /* Reset the shared buffer and collect one cell's leaf object ids. */
-    int ProbeCellForTrace(const int* cell); /* 0x00435B00 */
+    int ProbeCellForTrace(const srVector3T<int>* cell); /* 0x00435B00 */
     /* Reset vs append variants collecting one cell's leaf polygon references
        (mapped through m_aulPolyLookup into (mesh<<16)|polygon keys). */
-    int ProbeCellForBlockers(const int* cell);       /* 0x00435C40 */
-    int ProbeCellForBlockersAppend(const int* cell); /* 0x00435DA0 */
+    int ProbeCellForBlockers(const srVector3T<int>* cell);       /* 0x00435C40 */
+    int ProbeCellForBlockersAppend(const srVector3T<int>* cell); /* 0x00435DA0 */
     /* Test every buffered (mesh<<16)|polygon key's triangle against the trace
        ray; on a closer hit, end_0c returns the contact point. */
     unsigned char TestProbeResult(W8OctreeTrace* trace); /* 0x00435F00 */
@@ -455,8 +459,8 @@ public:
     int CollectModelsNearPoint(W8GrowableVector<stModelInstance*>* out,
                                const srVector3T<float>* point, float radius, unsigned int flags,
                                bool only_accumulated); /* 0x0042F9A0 */
-    unsigned char CollectVisibleRegions(srVector3T<float>* location, int* cells, float* depth,
-                                        unsigned char mode);
+    unsigned char CollectVisibleRegions(srVector3T<float>* location, srVector3T<int>* cells,
+                                        srVector3T<float>* depth, unsigned char mode);
     void CollectVisibleCells();
     /* Project every candidate region volume against the frustum planes and
        mark the visible ones in the current region set. */
@@ -646,7 +650,7 @@ public:
     bool SegmentClear(const srVector3T<float>* from, const srVector3T<float>* to);
     /* Resets the collected-id run and appends every not-yet-seen polygon id
        the leaf under `cell` lists. */
-    void CollectLeafPolygons(const int* cell);
+    void CollectLeafPolygons(const srVector3T<int>* cell);
     /* Tests the collected region polygons' planes against the trace segment;
        a polygon blocks only when the ray pierces at least 5.0f past its plane
        (or starts within 1.0f in front) and the contact lands inside it. */

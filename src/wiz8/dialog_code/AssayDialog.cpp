@@ -363,7 +363,7 @@ unsigned char W8AssayDialog::PopulateText()
     case 0x11:
     case 0x12:
         m_text_area.AddEntry(gppStringList[0x8e7],
-                             gppStringList[g_spell_range_name_ids[record->wield_group]], 10, 0xf,
+                             gppStringList[g_spell_range_name_ids[record->range_category]], 10, 0xf,
                              0);
     }
     index = GetItemSpellPresentation(record);

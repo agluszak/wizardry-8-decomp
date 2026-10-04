@@ -548,7 +548,7 @@ void W8CharacterStatsPage::UpdateRowValues()
         }
     }
 
-    int profession = m_character_060->iProfession;
+    W8Profession profession = m_character_060->iProfession;
     W8CharacterStatsRow* row = m_profession_row_07c;
     if (profession == -1) {
         row->m_value_control_024->SetRecord(0);
@@ -588,7 +588,7 @@ void W8CharacterStatsPage::UpdateRowValues()
         row->m_subpanel_028->Invalidate(0);
     }
 
-    int gender = m_character_060->gender;
+    W8Gender gender = m_character_060->gender;
     row = m_gender_row_084;
     if (gender == -1) {
         row->m_value_control_024->SetRecord(0);
