@@ -286,22 +286,8 @@ struct srRegistry::ClassNode::IDIndex {
             return;
         }
         by_id.Remove(&id);
-        if (link->previous == 0) {
-            first = link->next;
-        } else {
-            link->previous->next = link->next;
-        }
-        if (link->next == 0) {
-            last = link->previous;
-        } else {
-            link->next->previous = link->previous;
-        }
-        --active_count;
-        link->free = free;
-        free = link;
-        if (active_count == 0) {
-            clearBlocks();
-        }
+        unlink(link);
+        recycle(link);
         --list_count;
     }
 
@@ -334,6 +320,32 @@ private:
     /* Retail emits insert as a callable body (0x100107E0), so its definition
        sits out-of-line below the struct. */
     InstanceLink* insert(InstanceLink* after, srRuntimeClass*& instance);
+
+    /* remove and clearLinks share the same list unlink and pool return.
+       Keep list_count updates and clearLinks' null guard at their callers. */
+    void unlink(InstanceLink* link)
+    {
+        if (link->previous == 0) {
+            first = link->next;
+        } else {
+            link->previous->next = link->next;
+        }
+        if (link->next == 0) {
+            last = link->previous;
+        } else {
+            link->next->previous = link->previous;
+        }
+    }
+
+    void recycle(InstanceLink* link)
+    {
+        --active_count;
+        link->free = free;
+        free = link;
+        if (active_count == 0) {
+            clearBlocks();
+        }
+    }
 
     void allocateBlock()
     {
@@ -432,25 +444,11 @@ void srRegistry::ClassNode::IDIndex::clearLinks()
 {
     while (first != 0) {
         InstanceLink* link = first;
-        if (link->previous == 0) {
-            first = link->next;
-        } else {
-            link->previous->next = link->next;
-        }
-        if (link->next == 0) {
-            last = link->previous;
-        } else {
-            link->next->previous = link->previous;
-        }
+        unlink(link);
         /* Retail guards the unlink bookkeeping with link != 0 even though
            link was just taken from the non-null first. */
         if (link != 0) {
-            --active_count;
-            link->free = free;
-            free = link;
-            if (active_count == 0) {
-                clearBlocks();
-            }
+            recycle(link);
         }
         --list_count;
     }
