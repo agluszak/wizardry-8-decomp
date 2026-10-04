@@ -1572,7 +1572,7 @@ void ReportCharacterAttackResult(int party_slot, W8SpellEffectResult* report)
             }
         }
     }
-    while (report->reports.count > 0) {
+    while (report->reports.GetCount() > 0) {
         entry = report->reports.RemoveAt(0);
         if (entry != NULL) {
             if (entry->kind == 1) {
@@ -2089,7 +2089,7 @@ void ReportMonsterAttackResult(W8MonsterInfo* monster_info, W8SpellEffectResult*
             }
         }
     }
-    while (report->reports.count > 0) {
+    while (report->reports.GetCount() > 0) {
         entry = report->reports.RemoveAt(0);
         if (entry != NULL) {
             if (entry->kind == 1) {

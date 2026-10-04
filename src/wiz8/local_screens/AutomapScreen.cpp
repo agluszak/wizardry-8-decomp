@@ -715,13 +715,13 @@ unsigned char AutomapScreenEnter(void)
         W8Vector<char*> excluded_textures(5);
         int line = 0;
         int section = -1;
-        while (section < g_status.current_level && line < script.lines.count) {
+        while (section < g_status.current_level && line < script.lines.GetCount()) {
             if (strchr((*script.lines.GetAt(line))->text, '['))
                 ++section;
             ++line;
         }
-        if (line < script.lines.count && section == g_status.current_level) {
-            for (; line < script.lines.count; ++line) {
+        if (line < script.lines.GetCount() && section == g_status.current_level) {
+            for (; line < script.lines.GetCount(); ++line) {
                 char* text = (*script.lines.GetAt(line))->text;
                 if (strchr(text, '['))
                     break;

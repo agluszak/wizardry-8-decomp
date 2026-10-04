@@ -118,7 +118,7 @@ stMeshModel::~stMeshModel()
         delete linked;
     }
     FreeFrameStorage();
-    while (skin_table_names.count != 0) {
+    while (skin_table_names.GetCount() != 0) {
         RemoveSkinTable(0);
     }
     if ((flags & 4) != 0) {

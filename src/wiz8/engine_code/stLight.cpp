@@ -186,12 +186,13 @@ void stLight::Update()
         stKeyframedLightDefinition* definition =
             static_cast<stKeyframedLightDefinition*>(m_definition);
         float time = definition->time;
-        int count = definition->key_frames.count;
+        int count = definition->key_frames.GetCount();
         int last = count - 1;
         int* slot = definition->key_frames.GetAt(last);
         if (time <= *slot) {
             definition->keyframe_index = 0;
-            if (definition->key_frames.count != 1 && -1 < definition->key_frames.count - 1) {
+            if (definition->key_frames.GetCount() != 1 &&
+                -1 < definition->key_frames.GetCount() - 1) {
                 do {
                     int next = definition->keyframe_index + 1;
                     slot = definition->key_frames.GetAt(next);

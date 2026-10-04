@@ -118,7 +118,7 @@ W8SearchableView* CollectSearchablesInView(void)
             }
         }
     }
-    return g_search_view.items.count != 0 ? &g_search_view : 0;
+    return g_search_view.items.GetCount() != 0 ? &g_search_view : 0;
 }
 
 /* Register one searchable world item. The item pointer lands in the record's
@@ -223,7 +223,7 @@ void RunSearchPulse(void)
             if (view != 0) {
                 for (;;) {
                     ++view->cursor;
-                    if (view->items.count <= view->cursor) {
+                    if (view->items.GetCount() <= view->cursor) {
                         --view->cursor;
                         break;
                     }

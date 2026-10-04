@@ -252,7 +252,7 @@ void W8OptionsSaveLoadPanel::SetActive(unsigned char active)
     W8OptionsPanel::SetActive(active);
     if (active != 0 && g_options_screen->m_text_editor == 0 && m_panel == 12 &&
         m_selection.m_selectedIndex == 0 && m_current == 0) {
-        OnEditSaveName(m_rows.data[0]);
+        OnEditSaveName((*m_rows.GetAt(0)));
     }
 }
 
@@ -294,7 +294,7 @@ void W8OptionsSaveLoadPanel::SetCurrent(int current)
     m_selection.SetSelected(0);
     if (g_options_screen->m_text_editor == 0 && m_panel == 12 && m_selection.m_selectedIndex == 0 &&
         m_current == 0) {
-        OnEditSaveName(m_rows.data[0]);
+        OnEditSaveName((*m_rows.GetAt(0)));
     }
 }
 
@@ -382,7 +382,7 @@ void W8OptionsSaveLoadPanel::OnDialogClosed(unsigned char reason, int value)
         }
     }
     if (selected_slot == 0) {
-        OnEditSaveName(m_rows.data[0]);
+        OnEditSaveName((*m_rows.GetAt(0)));
     }
 }
 
@@ -449,7 +449,7 @@ void W8OptionsSaveLoadPanel::OnSelectionChanged(W8ControlSelection*, int)
         g_options_screen->m_text_editor = 0;
     }
     if (m_panel == 12 && m_current == 0 && m_selection.m_selectedIndex == 0) {
-        OnEditSaveName(m_rows.data[0]);
+        OnEditSaveName((*m_rows.GetAt(0)));
     }
 }
 
@@ -530,7 +530,7 @@ void W8OptionsSaveLoadPanel::SaveSelectedSave()
     g_pending_screen_state.mode = 2;
     strcpy(g_pending_screen_state.name, ConvertWideStringToString(slot->name));
     g_pending_screen_state.parameter_3 =
-        new W8SaveScreenshot(g_options_screen->m_save_slots.data[0]->screenshot);
+        new W8SaveScreenshot((*g_options_screen->m_save_slots.GetAt(0))->screenshot);
     SetPendingScreenState(W8_SCREEN_PLEASE_WAIT);
 }
 
@@ -1835,8 +1835,8 @@ void W8OptionsPanelSet::Advance()
             m_current = current;
             (*m_panels.GetAt(current))->SetActive(1);
         }
-    } else if (m_panels.data[0]->m_current < m_page_count - 1) {
-        m_panels.data[0]->SetCurrent(m_panels.data[0]->m_current + 1);
+    } else if ((*m_panels.GetAt(0))->m_current < m_page_count - 1) {
+        (*m_panels.GetAt(0))->SetCurrent((*m_panels.GetAt(0))->m_current + 1);
     }
 }
 
@@ -1853,8 +1853,8 @@ void W8OptionsPanelSet::Retreat()
             m_current = current;
             (*m_panels.GetAt(current))->SetActive(1);
         }
-    } else if (m_panels.data[0]->m_current > 0) {
-        m_panels.data[0]->SetCurrent(m_panels.data[0]->m_current - 1);
+    } else if ((*m_panels.GetAt(0))->m_current > 0) {
+        (*m_panels.GetAt(0))->SetCurrent((*m_panels.GetAt(0))->m_current - 1);
     }
 }
 
@@ -1880,7 +1880,7 @@ void W8OptionsMenuSet::UpdateMenuSet()
         current = panel_set->m_current;
         count = panel_set->m_panels.GetCount();
     } else {
-        current = panel_set->m_panels.data[0]->m_current;
+        current = (*panel_set->m_panels.GetAt(0))->m_current;
         count = panel_set->m_page_count;
     }
     bounds.top = panel_set->m_compact_layout != 0 ? 0x180 : 0x1a8;

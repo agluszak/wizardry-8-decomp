@@ -179,6 +179,6 @@ void W8ListBoxDialog::SliderTrackButtonCallback(GUI_BUTTON* button, INT32 reason
         if (cursor.y > bottom) {
             cursor.y = bottom;
         }
-        dialog->SetCurrentLine((cursor.y - top) * dialog->m_lines.count / (bottom - top));
+        dialog->SetCurrentLine((cursor.y - top) * dialog->m_lines.GetCount() / (bottom - top));
     }
 }

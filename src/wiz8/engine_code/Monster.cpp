@@ -925,11 +925,7 @@ void W8Monster::RandomizeAppearanceAndMotion()
                                                   m_pRep->name, g_cycle_names[1].name,
                                                   animation_index));
             }
-            if (animation_index < m_pRep->animations[1].GetCount()) {
-                animation = *m_pRep->animations[1].GetAt(animation_index);
-            } else {
-                animation = *m_pRep->animations[1].GetAt(0);
-            }
+            animation = *m_pRep->animations[1].GetAt(animation_index);
             if (scale < g_float_one) {
                 scale = g_float_one;
             }
@@ -2954,11 +2950,7 @@ unsigned char W8Monster::GetPatrolPoint(srVector3T<float>* point)
     if (order_mode == 0) {
         patrol_point = vector.GetAt(0);
     } else if (order_mode > 1 && order_mode < 4) {
-        if (patrol_index < vector.GetCount()) {
-            patrol_point = vector.GetAt(patrol_index);
-        } else {
-            patrol_point = vector.GetAt(0);
-        }
+        patrol_point = vector.GetAt(patrol_index);
     } else {
         return 0;
     }

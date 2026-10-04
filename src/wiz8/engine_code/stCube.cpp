@@ -913,7 +913,7 @@ bool SelectWorldCursorNode(void)
 void ReleaseWorldCursorNodes(void)
 {
     while (g_world_cursor_nodes.GetCount() != 0) {
-        W8WorldCursorNode* entry = g_world_cursor_nodes.data[0];
+        W8WorldCursorNode* entry = (*g_world_cursor_nodes.GetAt(0));
 
         DestroyWorldCursorCube(entry);
     }

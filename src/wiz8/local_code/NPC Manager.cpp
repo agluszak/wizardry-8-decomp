@@ -1597,7 +1597,7 @@ void ReleaseNpcBinding(int value)
     if (value < g_npc_states->GetCount()) {
         npc = g_npc_states->data[value];
     } else {
-        npc = g_npc_states->data[0];
+        npc = (*g_npc_states->GetAt(0));
     }
     file = npc->script_file;
     npc->has_monster = 0;

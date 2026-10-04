@@ -690,7 +690,7 @@ unsigned char SaveStatusHeader(W8Chunk* chunks)
     SaveAutomapNotes(chunks->m_hFile);
     chunks->ReleaseCurrentChunk();
 
-    if (g_world->triggers->count != 0) {
+    if (g_world->triggers->GetCount() != 0) {
         chunks->OpenChunk(0x47495254, 0); /* TRIG */
         SaveWorldTriggers(g_world, chunks->m_hFile);
         chunks->ReleaseCurrentChunk();
