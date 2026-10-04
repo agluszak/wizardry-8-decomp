@@ -381,7 +381,7 @@ jobs:
           fi
           # Differences are review material; the step fails only when a
           # comparison did not complete or a changed function is unpaired.
-          uv run wiz8 compare --changed --since "$merge_base"
+          uv run wiz8 compare --changed --dependents --since "$merge_base"
       - name: Capture selected WIZ8 comparison
         if: github.event_name == 'pull_request'
         shell: bash
@@ -640,7 +640,7 @@ jobs:
             echo 'No changed SURRENDER C/C++ source; skipping function comparison.'
             exit 0
           fi
-          uv run wiz8 compare --changed --since "$merge_base" --program sr.dll
+          uv run wiz8 compare --changed --dependents --since "$merge_base" --program sr.dll
       - name: Capture selected SURRENDER comparison
         if: github.event_name == 'pull_request'
         shell: bash
