@@ -664,5 +664,515 @@
     "miles": "SGP sound manager and Wizardry Miles import boundary",
     "jpeg": "SurRender JPEG importer extension",
     "zlib_unzip": "Existing zlib consumers and SurRender unzip extension"
+  },
+  "lifetime_fields": [
+    {
+      "record": "W8Octree",
+      "field": "m_branches",
+      "source_file": "include/wiz8/engine_code/Octree.h",
+      "type": "W8OctPreTreeBranch *",
+      "ownership": "owned",
+      "allocator": "malloc",
+      "release": "free",
+      "source_evidence": [
+        "include/wiz8/engine_code/Octree.h",
+        "src/wiz8/engine_code/Octree.cpp"
+      ],
+      "contract": "Array backing storage released by the octree destructor; preserve serialized transfer widths independently from element types."
+    },
+    {
+      "record": "W8Octree",
+      "field": "m_leaves",
+      "source_file": "include/wiz8/engine_code/Octree.h",
+      "type": "W8OctPreTreeLeaf *",
+      "ownership": "owned",
+      "allocator": "malloc",
+      "release": "free",
+      "source_evidence": [
+        "include/wiz8/engine_code/Octree.h",
+        "src/wiz8/engine_code/Octree.cpp"
+      ],
+      "contract": "Array backing storage released by the octree destructor; preserve serialized transfer widths independently from element types."
+    },
+    {
+      "record": "W8Octree",
+      "field": "m_leaf_lookup",
+      "source_file": "include/wiz8/engine_code/Octree.h",
+      "type": "unsigned long *",
+      "ownership": "owned",
+      "allocator": "malloc",
+      "release": "free",
+      "source_evidence": [
+        "include/wiz8/engine_code/Octree.h",
+        "src/wiz8/engine_code/Octree.cpp"
+      ],
+      "contract": "Array backing storage released by the octree destructor; preserve serialized transfer widths independently from element types."
+    },
+    {
+      "record": "W8Octree",
+      "field": "m_polygon_index_stream",
+      "source_file": "include/wiz8/engine_code/Octree.h",
+      "type": "unsigned long *",
+      "ownership": "owned",
+      "allocator": "malloc",
+      "release": "free",
+      "source_evidence": [
+        "include/wiz8/engine_code/Octree.h",
+        "src/wiz8/engine_code/Octree.cpp"
+      ],
+      "contract": "Array backing storage released by the octree destructor; preserve serialized transfer widths independently from element types."
+    },
+    {
+      "record": "W8Octree",
+      "field": "m_gd_surface_index_stream",
+      "source_file": "include/wiz8/engine_code/Octree.h",
+      "type": "unsigned long *",
+      "ownership": "owned",
+      "allocator": "malloc",
+      "release": "free",
+      "source_evidence": [
+        "include/wiz8/engine_code/Octree.h",
+        "src/wiz8/engine_code/Octree.cpp"
+      ],
+      "contract": "Array backing storage released by the octree destructor; preserve serialized transfer widths independently from element types."
+    },
+    {
+      "record": "W8Octree",
+      "field": "m_trigger_indices",
+      "source_file": "include/wiz8/engine_code/Octree.h",
+      "type": "unsigned short *",
+      "ownership": "owned",
+      "allocator": "malloc",
+      "release": "free",
+      "source_evidence": [
+        "include/wiz8/engine_code/Octree.h",
+        "src/wiz8/engine_code/Octree.cpp"
+      ],
+      "contract": "Array backing storage released by the octree destructor; preserve serialized transfer widths independently from element types."
+    },
+    {
+      "record": "W8Octree",
+      "field": "m_region_index_stream",
+      "source_file": "include/wiz8/engine_code/Octree.h",
+      "type": "unsigned short *",
+      "ownership": "owned",
+      "allocator": "malloc",
+      "release": "free",
+      "source_evidence": [
+        "include/wiz8/engine_code/Octree.h",
+        "src/wiz8/engine_code/Octree.cpp"
+      ],
+      "contract": "Array backing storage released by the octree destructor; preserve serialized transfer widths independently from element types."
+    },
+    {
+      "record": "W8Octree",
+      "field": "m_visited_polygon_bits",
+      "source_file": "include/wiz8/engine_code/Octree.h",
+      "type": "BitArray *",
+      "ownership": "owned",
+      "allocator": "new",
+      "release": "delete",
+      "source_evidence": [
+        "include/wiz8/engine_code/Octree.h",
+        "src/wiz8/engine_code/Octree.cpp"
+      ],
+      "contract": "Owns BitArray objects; their internal buffers have a separate lifetime."
+    },
+    {
+      "record": "W8Octree",
+      "field": "m_visited_object_bits",
+      "source_file": "include/wiz8/engine_code/Octree.h",
+      "type": "BitArray *",
+      "ownership": "owned",
+      "allocator": "new",
+      "release": "delete",
+      "source_evidence": [
+        "include/wiz8/engine_code/Octree.h",
+        "src/wiz8/engine_code/Octree.cpp"
+      ],
+      "contract": "Owns BitArray objects; their internal buffers have a separate lifetime."
+    },
+    {
+      "record": "W8Octree",
+      "field": "m_sample_points",
+      "source_file": "include/wiz8/engine_code/Octree.h",
+      "type": "srVector3T<float> *",
+      "ownership": "owned",
+      "allocator": "new[]",
+      "release": "delete[]",
+      "source_evidence": [
+        "include/wiz8/engine_code/Octree.h",
+        "src/wiz8/engine_code/Octree.cpp"
+      ],
+      "contract": "Sample-point array is destroyed with array delete, unlike the malloc-backed octree streams."
+    },
+    {
+      "record": "W8OctSpatialState",
+      "field": "m_region_volumes",
+      "source_file": "include/wiz8/engine_code/OctPreTree.h",
+      "type": "W8OctRegionVolume *",
+      "ownership": "borrowed",
+      "allocator": "owner-dependent",
+      "release": "none",
+      "source_evidence": [
+        "include/wiz8/engine_code/OctPreTree.h",
+        "src/wiz8/engine_code/OctPreTree.cpp",
+        "src/wiz8/engine_code/OctBuildTree.cpp",
+        "src/wiz8/engine_code/Octree.cpp"
+      ],
+      "contract": "Spatial copies share the region and build-root pointers; the view destructor clears pointers. The enclosing tree controls allocation and release."
+    },
+    {
+      "record": "W8OctSpatialState",
+      "field": "m_root",
+      "source_file": "include/wiz8/engine_code/OctPreTree.h",
+      "type": "W8OctBuildNode *",
+      "ownership": "borrowed",
+      "allocator": "owner-dependent",
+      "release": "none",
+      "source_evidence": [
+        "include/wiz8/engine_code/OctPreTree.h",
+        "src/wiz8/engine_code/OctPreTree.cpp",
+        "src/wiz8/engine_code/OctBuildTree.cpp",
+        "src/wiz8/engine_code/Octree.cpp"
+      ],
+      "contract": "Spatial copies share the region and build-root pointers; the view destructor clears pointers. The enclosing tree controls allocation and release."
+    },
+    {
+      "record": "W8OctSpatialState",
+      "field": "m_triangle_vertices",
+      "source_file": "include/wiz8/engine_code/OctPreTree.h",
+      "type": "const srVector3T<float> *",
+      "ownership": "borrowed",
+      "allocator": "stack",
+      "release": "none",
+      "source_evidence": [
+        "include/wiz8/engine_code/OctPreTree.h",
+        "src/wiz8/engine_code/OctBuildTree.cpp",
+        "src/wiz8/engine_code/OctPreTree.cpp"
+      ],
+      "contract": "Insertion binds a stack triangle for recursive bounds tests; copies remain borrowed views."
+    },
+    {
+      "record": "W8PathingService",
+      "field": "m_search_nodes",
+      "source_file": "include/wiz8/engine_code/OctPath.h",
+      "type": "W8PathSearchNode *",
+      "ownership": "owned",
+      "allocator": "new[]",
+      "release": "delete[]",
+      "source_evidence": [
+        "include/wiz8/engine_code/OctPath.h",
+        "src/wiz8/engine_code/OctPath.cpp"
+      ],
+      "contract": "Search-node array is allocated and grown with array new and released with array delete."
+    },
+    {
+      "record": "W8World",
+      "field": "game_data",
+      "source_file": "include/wiz8/layouts/world.h",
+      "type": "W8GameData *",
+      "ownership": "owned",
+      "allocator": "new",
+      "release": "delete",
+      "source_evidence": [
+        "include/wiz8/layouts/world.h",
+        "src/wiz8/engine_code/3dapi.cpp"
+      ],
+      "contract": "DestroyWorld scalar-deletes game_data and clears the field."
+    },
+    {
+      "record": "W8World",
+      "field": "quads",
+      "source_file": "include/wiz8/layouts/world.h",
+      "type": "W8Quad *",
+      "ownership": "owned",
+      "allocator": "subsystem-managed",
+      "release": "DestroyWorldQuad",
+      "source_evidence": [
+        "include/wiz8/layouts/world.h",
+        "src/wiz8/engine_code/3dapi.cpp",
+        "src/wiz8/engine_code/UpdateMesh.cpp"
+      ],
+      "contract": "Quad hierarchy has its own recursive teardown, separate from game_data."
+    },
+    {
+      "record": "W8World",
+      "field": "nodes_to_disable",
+      "source_file": "include/wiz8/layouts/world.h",
+      "type": "W8PList",
+      "ownership": "owned_container_borrowed_elements",
+      "allocator": "PList backing storage",
+      "release": "PListFreeData",
+      "source_evidence": [
+        "include/wiz8/layouts/world.h",
+        "src/wiz8/engine_code/3dapi.cpp"
+      ],
+      "contract": "Updates disable nodes and clear the list; teardown frees backing storage without deleting nodes."
+    },
+    {
+      "record": "W8World",
+      "field": "transient_lights",
+      "source_file": "include/wiz8/layouts/world.h",
+      "type": "W8PList",
+      "ownership": "adopted_reference_container",
+      "allocator": "PList backing storage",
+      "release": "release references then PListFreeData",
+      "source_evidence": [
+        "include/wiz8/layouts/world.h",
+        "src/wiz8/engine_code/3dapi.cpp",
+        "src/wiz8/engine_code/3d.cpp",
+        "src/wiz8/3d_code/PList.cpp"
+      ],
+      "contract": "Append adopts an existing reference; PLAdoptAppend does not addReference. Removal and world teardown release the adopted references."
+    },
+    {
+      "record": "W8OctPreTreeGeometry",
+      "field": "m_vertices",
+      "source_file": "include/wiz8/engine_code/OctPreTree.h",
+      "type": "W8OctPreTreeVertex *",
+      "ownership": "owned",
+      "allocator": "malloc",
+      "release": "free",
+      "source_evidence": [
+        "include/wiz8/engine_code/OctPreTree.h",
+        "src/wiz8/engine_code/OctRegionPolygon.cpp",
+        "src/wiz8/engine_code/materials.cpp"
+      ],
+      "contract": "Release frees the buffers; owned_14 retains an unresolved payload type."
+    },
+    {
+      "record": "W8OctPreTreeGeometry",
+      "field": "m_polygons",
+      "source_file": "include/wiz8/engine_code/OctPreTree.h",
+      "type": "W8OctRegionPolygon *",
+      "ownership": "owned",
+      "allocator": "malloc",
+      "release": "free",
+      "source_evidence": [
+        "include/wiz8/engine_code/OctPreTree.h",
+        "src/wiz8/engine_code/OctRegionPolygon.cpp",
+        "src/wiz8/engine_code/materials.cpp"
+      ],
+      "contract": "Release frees the buffers; owned_14 retains an unresolved payload type."
+    },
+    {
+      "record": "W8OctPreTreeGeometry",
+      "field": "owned_14",
+      "source_file": "include/wiz8/engine_code/OctPreTree.h",
+      "type": "void *",
+      "ownership": "owned",
+      "allocator": "malloc",
+      "release": "free",
+      "source_evidence": [
+        "include/wiz8/engine_code/OctPreTree.h",
+        "src/wiz8/engine_code/OctRegionPolygon.cpp",
+        "src/wiz8/engine_code/materials.cpp"
+      ],
+      "contract": "Release frees the buffers; owned_14 retains an unresolved payload type."
+    },
+    {
+      "record": "W8OctPreTreeVertex",
+      "field": "face_indices_44",
+      "source_file": "include/wiz8/engine_code/OctPreTree.h",
+      "type": "int *",
+      "ownership": "shared_allocation",
+      "allocator": "malloc",
+      "release": "geometry Release deduplicates consecutive runs",
+      "source_evidence": [
+        "include/wiz8/engine_code/OctPreTree.h",
+        "src/wiz8/engine_code/OctRegionPolygon.cpp",
+        "src/wiz8/engine_code/materials.cpp"
+      ],
+      "contract": "Adjacent records may share an allocation. Release handles distinct consecutive runs; vertices do not individually delete these pointers."
+    },
+    {
+      "record": "W8OctPreTreeVertex",
+      "field": "owned_48",
+      "source_file": "include/wiz8/engine_code/OctPreTree.h",
+      "type": "int *",
+      "ownership": "shared_allocation",
+      "allocator": "malloc",
+      "release": "geometry Release deduplicates consecutive runs",
+      "source_evidence": [
+        "include/wiz8/engine_code/OctPreTree.h",
+        "src/wiz8/engine_code/OctRegionPolygon.cpp",
+        "src/wiz8/engine_code/materials.cpp"
+      ],
+      "contract": "Adjacent records may share an allocation. Release handles distinct consecutive runs; vertices do not individually delete these pointers."
+    },
+    {
+      "record": "W8OctRegionPolygon",
+      "field": "face_indices_44",
+      "source_file": "include/wiz8/engine_code/OctBuildPreTree.h",
+      "type": "int *",
+      "ownership": "shared_allocation",
+      "allocator": "malloc",
+      "release": "geometry Release deduplicates consecutive runs",
+      "source_evidence": [
+        "include/wiz8/engine_code/OctBuildPreTree.h",
+        "src/wiz8/engine_code/OctRegionPolygon.cpp"
+      ],
+      "contract": "Adjacent polygon records may share an allocation; geometry cleanup releases distinct consecutive runs."
+    },
+    {
+      "record": "OctMeshModel",
+      "field": "m_vertex_locations",
+      "source_file": "include/wiz8/engine_code/OctMeshModel.h",
+      "type": "srVector3T<float> *",
+      "ownership": "owned",
+      "allocator": "srHeap",
+      "release": "srHeap.free",
+      "source_evidence": [
+        "include/wiz8/engine_code/OctMeshModel.h",
+        "src/wiz8/engine_code/OctSubMesh.cpp"
+      ],
+      "contract": "Write consumes and clears these buffers; destructor releases any remaining buffers."
+    },
+    {
+      "record": "OctMeshModel",
+      "field": "m_vertex_map",
+      "source_file": "include/wiz8/engine_code/OctMeshModel.h",
+      "type": "srVector2T<float> *",
+      "ownership": "owned",
+      "allocator": "srHeap",
+      "release": "srHeap.free",
+      "source_evidence": [
+        "include/wiz8/engine_code/OctMeshModel.h",
+        "src/wiz8/engine_code/OctSubMesh.cpp"
+      ],
+      "contract": "Write consumes and clears these buffers; destructor releases any remaining buffers."
+    },
+    {
+      "record": "OctMeshModel",
+      "field": "m_poly_vertices",
+      "source_file": "include/wiz8/engine_code/OctMeshModel.h",
+      "type": "srVector3i *",
+      "ownership": "owned",
+      "allocator": "srHeap",
+      "release": "srHeap.free",
+      "source_evidence": [
+        "include/wiz8/engine_code/OctMeshModel.h",
+        "src/wiz8/engine_code/OctSubMesh.cpp"
+      ],
+      "contract": "Write consumes and clears these buffers; destructor releases any remaining buffers."
+    },
+    {
+      "record": "OctMeshModel",
+      "field": "m_poly_uv_index",
+      "source_file": "include/wiz8/engine_code/OctMeshModel.h",
+      "type": "srVector3i *",
+      "ownership": "owned",
+      "allocator": "srHeap",
+      "release": "srHeap.free",
+      "source_evidence": [
+        "include/wiz8/engine_code/OctMeshModel.h",
+        "src/wiz8/engine_code/OctSubMesh.cpp"
+      ],
+      "contract": "Write consumes and clears these buffers; destructor releases any remaining buffers."
+    },
+    {
+      "record": "OctMeshModel",
+      "field": "m_vertex_normals",
+      "source_file": "include/wiz8/engine_code/OctMeshModel.h",
+      "type": "srVector3T<float> *",
+      "ownership": "owned",
+      "allocator": "srHeap",
+      "release": "srHeap.free",
+      "source_evidence": [
+        "include/wiz8/engine_code/OctMeshModel.h",
+        "src/wiz8/engine_code/OctSubMesh.cpp"
+      ],
+      "contract": "Write consumes and clears these buffers; destructor releases any remaining buffers."
+    },
+    {
+      "record": "OctMeshModel",
+      "field": "m_vertex_lights",
+      "source_file": "include/wiz8/engine_code/OctMeshModel.h",
+      "type": "srVector3T<float> *",
+      "ownership": "owned",
+      "allocator": "srHeap",
+      "release": "srHeap.free",
+      "source_evidence": [
+        "include/wiz8/engine_code/OctMeshModel.h",
+        "src/wiz8/engine_code/OctSubMesh.cpp"
+      ],
+      "contract": "Write consumes and clears these buffers; destructor releases any remaining buffers."
+    },
+    {
+      "record": "OctMeshModel",
+      "field": "m_poly_equations",
+      "source_file": "include/wiz8/engine_code/OctMeshModel.h",
+      "type": "srVector4T<float> *",
+      "ownership": "owned",
+      "allocator": "srHeap",
+      "release": "srHeap.free",
+      "source_evidence": [
+        "include/wiz8/engine_code/OctMeshModel.h",
+        "src/wiz8/engine_code/OctSubMesh.cpp"
+      ],
+      "contract": "Write consumes and clears these buffers; destructor releases any remaining buffers."
+    },
+    {
+      "record": "OctMeshModel",
+      "field": "m_vertex_materials",
+      "source_file": "include/wiz8/engine_code/OctMeshModel.h",
+      "type": "int *",
+      "ownership": "owned",
+      "allocator": "malloc",
+      "release": "free",
+      "source_evidence": [
+        "include/wiz8/engine_code/OctMeshModel.h",
+        "src/wiz8/engine_code/OctSubMesh.cpp"
+      ],
+      "contract": "Write consumes and clears these buffers; destructor releases any remaining buffers."
+    },
+    {
+      "record": "OctMeshModel",
+      "field": "m_poly_textures",
+      "source_file": "include/wiz8/engine_code/OctMeshModel.h",
+      "type": "int *",
+      "ownership": "owned",
+      "allocator": "malloc",
+      "release": "free",
+      "source_evidence": [
+        "include/wiz8/engine_code/OctMeshModel.h",
+        "src/wiz8/engine_code/OctSubMesh.cpp"
+      ],
+      "contract": "Write consumes and clears these buffers; destructor releases any remaining buffers."
+    },
+    {
+      "record": "OctMeshModel",
+      "field": "m_sun_lights",
+      "source_file": "include/wiz8/engine_code/OctMeshModel.h",
+      "type": "float **",
+      "ownership": "owned_with_asymmetric_release",
+      "allocator": "malloc",
+      "release": "free per-sun arrays; pointer table only freed by Write",
+      "source_evidence": [
+        "include/wiz8/engine_code/OctMeshModel.h",
+        "src/wiz8/engine_code/OctSubMesh.cpp"
+      ],
+      "contract": "Write frees the per-sun arrays and pointer table. Destructor frees per-sun arrays but leaves the pointer table; preserve this asymmetry."
+    }
+  ],
+  "lifetime_source_snapshots": {
+    "include/wiz8/engine_code/OctBuildPreTree.h": "0a7910585dd79a0bce80f0d2fa285f8b008badd3be773d3cf826acb7d77197ca",
+    "include/wiz8/engine_code/OctMeshModel.h": "aae0baa64b2f9ef6caca6986fade80f959b98b02bec2d4821cd220109a2651b7",
+    "include/wiz8/engine_code/OctPath.h": "c60e4f353bcf12df17e6b8d6cae8c469ae98bc804a598ac068bbf92d27f0e445",
+    "include/wiz8/engine_code/OctPreTree.h": "e20a9ebdc7c16b95b75511ad1b2f14cfbbc846a4babcf4819a424967b372307e",
+    "include/wiz8/engine_code/Octree.h": "145dea39cb8f33f45f697b01024d050690df2e688726527333b78ae947f464cd",
+    "include/wiz8/layouts/world.h": "4d88aac6b0d6d41a49b2c4acd7c8b71f96d3e32e40109fc01d1693f618e93dc6",
+    "src/wiz8/3d_code/PList.cpp": "129fea6f9d617b025684cbfdb4aa6b964cf7d5c5efb309988819268eeb4fdd46",
+    "src/wiz8/engine_code/3d.cpp": "9ad0b1f1988dce2025e2badd71661e5bb3c67934a9fc846bcb0e3fff587e4778",
+    "src/wiz8/engine_code/3dapi.cpp": "b0cec301928c59adda89b5395eaeccf1b9e88b1d0329f96d7b89ab6fc7bdde98",
+    "src/wiz8/engine_code/OctBuildTree.cpp": "ab38d2e4f0129dbea02472f74e7b5964b5329ad4099831288750284b99f80f7a",
+    "src/wiz8/engine_code/OctPath.cpp": "445afd52120461fa18122e76e30e3d8357e7f2831be11934ca9e415faba3290e",
+    "src/wiz8/engine_code/OctPreTree.cpp": "2c47cb381e9e4bb36ab62caaff8e444765f186a2d7eff536594483f38123798f",
+    "src/wiz8/engine_code/OctRegionPolygon.cpp": "e32aee86d15503ddf7d33b5b6d7680fcf42674dbc0bf22311ca282a81cb05e01",
+    "src/wiz8/engine_code/OctSubMesh.cpp": "7b78afb951dcfb5b86013811c127d6ab4ca8196a6bd333fde1c072aa4922075a",
+    "src/wiz8/engine_code/Octree.cpp": "7df8502656155b90f6d72bcb29b099d4e0a125f8b1369c762caebf6cda3feb9e",
+    "src/wiz8/engine_code/UpdateMesh.cpp": "e4abcd09bb6abae595f4c2e804676eafd6224f62042626ad99d5a11b44c6c4ac",
+    "src/wiz8/engine_code/materials.cpp": "104166f3e4b731d4fcecef6071665fbe9ef4ca16ab92acb1be9f05cbca9f8dbf"
   }
 }

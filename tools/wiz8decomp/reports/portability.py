@@ -6,6 +6,7 @@ classifications remain separate; none of these observations seed retail types.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 from collections import Counter
@@ -161,6 +162,58 @@ def _assembly_sites(path: str, code: str) -> list[dict[str, Any]]:
     return rows
 
 
+def _lifetime_reviews(
+    repository: Path, index: dict[str, Any], reviewed: dict[str, Any]
+) -> dict[tuple[str, str, str], dict[str, Any]]:
+    """Bind source-model contracts to exact declarations and frozen source inputs.
+
+    Matching a source snapshot does not independently prove retail ownership.
+    Missing/stale/conflicting observations remain in the review queue.
+    """
+    declarations: dict[tuple[str, str, str], set[str]] = {}
+    for record in index.get("classes", []):
+        for field in record.get("fields", []):
+            key = (
+                str(record.get("qualified_name") or ""),
+                str(field.get("name") or ""),
+                str(field.get("source_file") or ""),
+            )
+            declarations.setdefault(key, set()).add(str(field.get("type") or ""))
+    evidence = reviewed.get("lifetime_source_snapshots", {})
+    snapshot_status = {}
+    for path, expected in evidence.items():
+        file = repository / path
+        snapshot_status[path] = (
+            file.is_file() and hashlib.sha256(file.read_bytes()).hexdigest() == expected
+        )
+    results = {}
+    for review in reviewed.get("lifetime_fields", []):
+        key = (review["record"], review["field"], review["source_file"])
+        if key in results:
+            raise ValueError(f"Duplicate lifetime field review: {key}")
+        types = declarations.get(key, set())
+        inputs = review.get("source_evidence", [])
+        status = (
+            "declaration_not_observed"
+            if not types
+            else "conflicting_declarations"
+            if len(types) != 1
+            else "declaration_changed"
+            if types != {review["type"]}
+            else "source_evidence_changed"
+            if key[2] not in inputs or any(not snapshot_status.get(path, False) for path in inputs)
+            else "source_model_review"
+        )
+        results[key] = {
+            **review,
+            "status": status,
+            "observed_types": sorted(types),
+            "provenance": "recovered_source_contract",
+            "retail_equivalence": "not_established_by_this_report",
+        }
+    return results
+
+
 def portability_queues(repository: Path, index: dict[str, Any]) -> dict[str, Any]:
     """Read existing source/projection; never compile, capture or guess layouts."""
     config_path = repository / "config/pre-portability.json"
@@ -168,7 +221,9 @@ def portability_queues(repository: Path, index: dict[str, Any]) -> dict[str, Any
     width, compiler, platforms, headers, comments, layouts, assembly = [], [], [], [], [], [], []
     source_count = 0
     seen_layouts = set()
-    layout_reviews = {row["record"]: row for row in reviewed.get("layouts", [])}
+    layout_reviews = {
+        (row["source_file"], row["record"]): row for row in reviewed.get("layouts", [])
+    }
     for root_name in ROOTS:
         root = repository / root_name
         for file in sorted(root.rglob("*")) if root.is_dir() else [root]:
@@ -237,10 +292,7 @@ def portability_queues(repository: Path, index: dict[str, Any]) -> dict[str, Any
                 if (path, name) in seen_layouts:
                     continue
                 seen_layouts.add((path, name))
-                review = layout_reviews.get(name)
-                # Do not attach a review to a same-named type at another owner.
-                if review and review["source_file"] != path:
-                    review = None
+                review = layout_reviews.get((path, name))
                 layouts.append(
                     {
                         "record": name,
@@ -250,6 +302,7 @@ def portability_queues(repository: Path, index: dict[str, Any]) -> dict[str, Any
                         "review": review,
                     }
                 )
+    lifetime_reviews = _lifetime_reviews(repository, index, reviewed)
     pointers = []
     seen_fields = set()
     for record in index.get("classes", []):
@@ -263,9 +316,7 @@ def portability_queues(repository: Path, index: dict[str, Any]) -> dict[str, Any
             and (path, name) not in seen_layouts
         ):
             seen_layouts.add((path, name))
-            review = layout_reviews.get(name)
-            if review and review["source_file"] != path:
-                review = None
+            review = layout_reviews.get((path, name))
             layouts.append(
                 {
                     "record": name,
@@ -287,6 +338,8 @@ def portability_queues(repository: Path, index: dict[str, Any]) -> dict[str, Any
             if key in seen_fields:
                 continue
             seen_fields.add(key)
+            review = lifetime_reviews.get(key)
+            active_review = review if review and review["status"] == "source_model_review" else None
             pointers.append(
                 {
                     "record": record.get("qualified_name"),
@@ -294,16 +347,20 @@ def portability_queues(repository: Path, index: dict[str, Any]) -> dict[str, Any
                     "type": spelling,
                     "source_file": path,
                     "line": field.get("line"),
-                    "ownership": "requires_review",
+                    "ownership": active_review["ownership"] if active_review else "requires_review",
+                    "lifetime_review": review,
                 }
             )
     return {
         "coverage": {
             "source_files": source_count,
             "roots": list(ROOTS),
-            "limitations": "lexical candidates plus supplied source-index fields; aliases, indirect calls, ownership and semantic equivalence need review",
+            "limitations": "lexical candidates plus supplied source-index fields; field contracts validate frozen recovered-source inputs, not retail equivalence; aliases and indirect calls need review",
         },
         "summary": {
+            "reviewed_lifetime_fields": sum(
+                row["status"] == "source_model_review" for row in lifetime_reviews.values()
+            ),
             "abi_width_sites": len(width),
             "compiler_boundary_sites": len(compiler),
             "platform_dependency_sites": len(platforms),
@@ -312,7 +369,9 @@ def portability_queues(repository: Path, index: dict[str, Any]) -> dict[str, Any
             "unclassified_layout_candidates": sum(
                 row["classification"] == "unclassified" for row in layouts
             ),
-            "pointer_fields_requiring_review": len(pointers),
+            "pointer_fields_requiring_review": sum(
+                row["ownership"] == "requires_review" for row in pointers
+            ),
         },
         "abi_width_sites": width,
         "compiler_boundary_sites": compiler,
@@ -338,14 +397,20 @@ def portability_queues(repository: Path, index: dict[str, Any]) -> dict[str, Any
         "comment_metadata": comments,
         "layout_candidates": layouts,
         "pointer_fields": pointers,
+        "lifetime_field_reviews": list(lifetime_reviews.values()),
         "reviewed_boundaries": reviewed,
         "fork_status": "blocked",
         "fork_blockers": {
+            "inactive_lifetime_reviews": sum(
+                row["status"] != "source_model_review" for row in lifetime_reviews.values()
+            ),
             "unreviewed_abi_sites": len(width),
             "unclassified_layout_candidates": sum(
                 row["classification"] == "unclassified" for row in layouts
             ),
-            "pointer_fields_requiring_review": len(pointers),
+            "pointer_fields_requiring_review": sum(
+                row["ownership"] == "requires_review" for row in pointers
+            ),
             "missing_behavioral_references": [
                 row["observation"]
                 for row in reviewed.get("behavioral_references", [])

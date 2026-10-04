@@ -93,3 +93,11 @@ Forty-two level-file transfers now use their array extents, and geometry allocat
 uses the established vertex size while preserving reservation counts. Twenty-five
 more layouts and two geometry allocator contracts are reviewed. Scalar fixtures
 exercise both function decay and callback signatures without colliding test names.
+
+Field lifetime reviews now bind 34 contracts to exact record/field/declaration
+owners and types, with hashed source inputs. Changed or absent inputs and conflicting
+TU observations reopen the review; matching snapshots describe the recovered source,
+not independent retail equivalence. Container backing storage and element lifetime
+remain separate, including borrowed nodes and adopted light references. The mesh
+sun-light pointer-table cleanup asymmetry is retained explicitly. Layout reviews
+also bind to source owners, so same-named records cannot shadow one another.
