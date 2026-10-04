@@ -76,7 +76,7 @@ public:
             const unsigned long* indices_0c;
             const srVector3i* triangles_10;
             const unsigned long* vertices_14;
-            const void* passes_18;
+            const srTriMeshPipeline::Pass* passes_18;
             int position_is_float3_1c;
             const srMatrix4T<float>* project_clip_near_20;
             float sort_bias_24;

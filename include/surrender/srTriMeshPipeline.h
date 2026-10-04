@@ -116,7 +116,7 @@ public:
        xyz-only center math keep these as vec3; the vec4 slot is recorded,
        not a reason to widen the fields. */
     const srVector3T<float>* positions_38;
-    const void* vertex_extras_3c;
+    const srVector3T<float>* vertex_extras_3c;
     float sort_bias_40;
     srVector3T<float> bounds_minimum_44;
     srVector3T<float> bounds_maximum_50;
