@@ -54,9 +54,15 @@ unsigned int ApplyDamageToMonster(W8MonsterInfo* monster_info, unsigned int amou
 /* 0x0052A890: the character-side counterpart - damage absorbed by the
    slot-2 enchantment first, two thirds of the rest fatigue the character, the
    remainder comes off hit points and can kill. Retail call sites pass exactly
-   seven args; the sixth parameter receives a kill-counting result block. */
-unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, char arg_3, char arg_4,
-                                    char arg_5, W8SpellEffectResult* result_stats, char arg_7);
+   seven args; the sixth parameter receives a kill-counting result block.
+   `quiet` marks non-provoking damage such as a poison tick: it picks the
+   shield/notice strings and the poison suffix, and keeps a sleeping character
+   asleep. `announce` gates the damage notice, `short_notice` selects the terse
+   ShowNoticef form over the verbose PostCharacterNotice one, and `detailed`
+   selects the named FormatWideString form. */
+unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, bool quiet, bool announce,
+                                    bool short_notice, W8SpellEffectResult* result_stats,
+                                    bool detailed);
 extern wchar_t g_poison_suffix[]; /* 0x0061C964 */
 /* 0x0052BEB0: how a monster answers being struck - the struck cycle, a
    possible condition knock-on, and the hostility check toward the attacker. */
