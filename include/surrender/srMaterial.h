@@ -24,7 +24,15 @@
 class SR_DLL_IMPORT SR_DLL_EXPORT srMaterial
     : public srClassSupport<srMaterial, srMaterialIFace, 0, 0x2210> {
 public:
-    enum e_oper {};
+    /* Bit indices, not masks. preProcess/postProcess (0x10033C00/0x10033C90)
+       distinguish depth cue, alpha and the three lighting-channel modes. */
+    enum e_oper {
+        OPER_DEPTH_CUE = 0,
+        OPER_ALPHA = 1,
+        OPER_SPECULAR = 2,
+        OPER_DIFFUSE = 3,
+        OPER_DIFFUSE_SPECULAR = 4
+    };
 
     // FUNCTION: SURRENDER 0x10034700 SYMBOL
     // ??0srMaterial@@QAE@XZ

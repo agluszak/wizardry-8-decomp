@@ -17,7 +17,9 @@ public:
     // class Client
     class SR_DLL_IMPORT SR_DLL_EXPORT Client {
     public:
-        enum e_update {};
+        /* srMeshModel sends 0 after bounds invalidation/recalculation;
+           srModelInstance forwards it as NOTIFY_BOUNDS_DIRTY. */
+        enum e_update { UPDATE_BOUNDS = 0 };
 
         Client();
         /* Copy construction/assignment are plain memberwise srPtr/links copies;

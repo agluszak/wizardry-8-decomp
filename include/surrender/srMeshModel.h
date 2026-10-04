@@ -18,10 +18,18 @@
 // VTABLE: SURRENDER 0x10076D48 srMeshModel
 class SR_DLL_EXPORT srMeshModel : public srClassSupport<srMeshModel, srModel, 0, 0x2010> {
 public:
-    enum e_side {};
-    /* Bit indices into dirty_flags; setDirty(0..3) marks per-pass dirty
-       flags and updateAllClients(0) runs when flag 0 is newly raised. */
-    enum e_flags {};
+    /* Front/back table indices: dump labels materials[pass][0/1] and
+       renderTriMesh uses the corresponding CONTROL_FRONT/BACK bits. */
+    enum e_side { SIDE_FRONT = 0, SIDE_BACK = 1 };
+    /* Bit indices into dirty_flags. calculateBounds, calculatePolygonNormals,
+       calculateVertexNormals and updateTriMesh clear bits 0, 1, 2 and 3.
+       Raising the bounds bit notifies model clients. */
+    enum e_flags {
+        DIRTY_BOUNDS = 0,
+        DIRTY_POLYGON_NORMALS = 1,
+        DIRTY_VERTEX_NORMALS = 2,
+        DIRTY_TRI_MESH = 3
+    };
     /* Bit indices into render_control. renderTriMesh tests bits 0/1 as
        front/back sides. updateTriMesh skips auto box when bit 4 is set and
        auto sphere when bit 5 is set. */
@@ -129,9 +137,9 @@ public:
         unsigned long mask = 1 << flag;
         if ((dirty_flags.value & mask) == 0) {
             dirty_flags.set(flag, 1);
-            dirty_flags.set(3, 1);
-            if (flag == 0) {
-                updateAllClients(static_cast<Client::e_update>(0));
+            dirty_flags.set(DIRTY_TRI_MESH, 1);
+            if (flag == DIRTY_BOUNDS) {
+                updateAllClients(Client::UPDATE_BOUNDS);
             }
         }
     }
@@ -162,7 +170,7 @@ public:
     void setSortBias(float bias)
     {
         sort_bias = bias;
-        setDirty(static_cast<e_flags>(3));
+        setDirty(DIRTY_TRI_MESH);
     }
     float getSortBias() const;
     void disable(e_control control);
@@ -170,16 +178,16 @@ public:
     void enable(e_control control)
     {
         render_control.set(control, 1);
-        setDirty(static_cast<e_flags>(3));
+        setDirty(DIRTY_TRI_MESH);
     }
     int isEnabled(e_control control) const;
     // FUNCTION: SURRENDER 0x10041660
     void setDirtyAll()
     {
-        setDirty(static_cast<e_flags>(0));
-        setDirty(static_cast<e_flags>(1));
-        setDirty(static_cast<e_flags>(2));
-        setDirty(static_cast<e_flags>(3));
+        setDirty(DIRTY_BOUNDS);
+        setDirty(DIRTY_POLYGON_NORMALS);
+        setDirty(DIRTY_VERTEX_NORMALS);
+        setDirty(DIRTY_TRI_MESH);
     }
     void setDirtyBounds();
     void setDirtyNormals();

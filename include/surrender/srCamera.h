@@ -13,7 +13,13 @@ class SR_DLL_IMPORT SR_DLL_EXPORT srCamera : public srClassSupport<srCamera, srN
 public:
     enum e_project { PROJECT_PERSPECTIVE = 0, PROJECT_ORTHOGRAPHIC = 1 };
 
-    enum e_projectionResult { PROJECTION_RESULT_ACCEPTED = 0 };
+    /* project (0x10048E30): a projected point inside the view is 0,
+       outside its XY bounds is 1, outside the near/far interval is 2. */
+    enum e_projectionResult {
+        PROJECTION_RESULT_ACCEPTED = 0,
+        PROJECTION_RESULT_OUTSIDE_VIEW = 1,
+        PROJECTION_RESULT_OUTSIDE_CLIP_RANGE = 2
+    };
 
     struct Rect {
         double left;

@@ -269,7 +269,7 @@ stMeshModel* OctMeshModel::Read(int file, srMaterialIFace** materials, srTexture
     int index;
     if (m_material_index < 0) {
         srPtr<srMaterialIFace>* vertex_materials =
-            model->getVertexMaterial(0, static_cast<srMeshModel::e_side>(0), 1);
+            model->getVertexMaterial(0, srMeshModel::SIDE_FRONT, 1);
         if (vertex_materials == 0) {
             ShutdownWithErrorBox("OctMeshModel::Read -- Could not get vertex material array.\n");
         }
@@ -287,7 +287,7 @@ stMeshModel* OctMeshModel::Read(int file, srMaterialIFace** materials, srTexture
             vertex_materials[index]->addReference();
         }
     } else {
-        model->setMaterial(materials[m_material_index], 0, static_cast<srMeshModel::e_side>(0));
+        model->setMaterial(materials[m_material_index], 0, srMeshModel::SIDE_FRONT);
     }
 
     m_poly_uv_index = model->getPolyUVIndex(0, 1);

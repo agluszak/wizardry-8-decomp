@@ -426,10 +426,10 @@ srCamera::e_projectionResult srCamera::project(srVector3T<float>& output,
             point.z * lower <= point.y && point.y <= point.z * upper) {
             return PROJECTION_RESULT_ACCEPTED;
         }
-        return static_cast<e_projectionResult>(1);
+        return PROJECTION_RESULT_OUTSIDE_VIEW;
     }
     output.SetZero();
-    return static_cast<e_projectionResult>(2);
+    return PROJECTION_RESULT_OUTSIDE_CLIP_RANGE;
 }
 
 // FUNCTION: SURRENDER 0x100490B0

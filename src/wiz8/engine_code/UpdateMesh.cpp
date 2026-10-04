@@ -364,7 +364,7 @@ void UpdateWorldMeshFromQuads(W8World* world)
             }
         }
     }
-    mesh->setDirty(static_cast<srMeshModel::e_flags>(3));
+    mesh->setDirty(srMeshModel::DIRTY_TRI_MESH);
 }
 
 // FUNCTION: WIZ8 0x004BAF50
@@ -394,6 +394,6 @@ void UpdateWorldMesh(W8World* world)
         for (index = 0; static_cast<long>(index) < polygon_count; ++index) {
             table[index] = index;
         }
-        mesh->setDirty(static_cast<srMeshModel::e_flags>(3));
+        mesh->setDirty(srMeshModel::DIRTY_TRI_MESH);
     }
 }

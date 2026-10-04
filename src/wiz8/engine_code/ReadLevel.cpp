@@ -1167,8 +1167,7 @@ unsigned char ReadLevel(W8World* world, int handle, bool use_octree, const char*
                         SetModelInstanceChainExclusionMask(instance, 4);
                     }
 
-                    srMaterialIFace* material_iface =
-                        mesh->getMaterial(0, static_cast<srMeshModel::e_side>(0));
+                    srMaterialIFace* material_iface = mesh->getMaterial(0, srMeshModel::SIDE_FRONT);
                     if (material_iface != 0) {
                         srMaterial* material = static_cast<srMaterial*>(material_iface);
                         srMaterial* copy = static_cast<srMaterial*>(material->clone());
@@ -1180,7 +1179,7 @@ unsigned char ReadLevel(W8World* world, int handle, bool use_octree, const char*
                         copy->parms.emissive.y += g_environment_offset.y;
                         copy->parms.emissive.z += g_environment_offset.z;
                         copy->dirty = 1;
-                        mesh->setMaterial(copy, 0, static_cast<srMeshModel::e_side>(0));
+                        mesh->setMaterial(copy, 0, srMeshModel::SIDE_FRONT);
                     }
                 }
             }

@@ -2288,7 +2288,7 @@ void srGERD::classifyMatrix(e_matrixMode mode)
     statistics.matrix_classifications += 1;
     if (mode == MATRIX_MODELVIEW) {
         srMatrix4T<float>* modelview = &state.matrix_current[MATRIX_MODELVIEW];
-        state.matrix_class[MATRIX_MODELVIEW] = (srMatrix4T<float>::e_type)0;
+        state.matrix_class[MATRIX_MODELVIEW] = srMatrix4T<float>::TYPE_GENERAL;
         srMatrix4T<float>* inverse = &state.inverse_modelview;
         double length0 = modelview->vectors[2].x * modelview->vectors[2].x +
                          modelview->vectors[1].x * modelview->vectors[1].x +
@@ -2416,20 +2416,20 @@ void srGERD::classifyMatrix(e_matrixMode mode)
         }
         bit *= 0x10;
     }
-    unsigned long type;
+    srMatrix4T<float>::e_type type;
     if (mask == 0x7bde && matrix.vectors[0].x == 1.0f && matrix.vectors[1].y == 1.0f &&
         matrix.vectors[2].z == 1.0f && matrix.vectors[3].w == 1.0f) {
-        type = 4;
+        type = srMatrix4T<float>::TYPE_IDENTITY;
     } else if ((mask & 0xb39a) == 0xb39a) {
-        type = 6;
+        type = srMatrix4T<float>::TYPE_PERSPECTIVE;
     } else if ((mask & 0x7356) == 0x7356) {
-        type = 5;
+        type = srMatrix4T<float>::TYPE_ORTHOGRAPHIC;
     } else if ((mask & 0x7000) == 0x7000 && matrix.vectors[3].w == 1.0f) {
-        type = 3;
+        type = srMatrix4T<float>::TYPE_AFFINE;
     } else {
-        type = 0;
+        type = srMatrix4T<float>::TYPE_GENERAL;
     }
-    state.matrix_class[mode] = (srMatrix4T<float>::e_type)type;
+    state.matrix_class[mode] = type;
 }
 
 // FUNCTION: SURRENDER 0x1001CF40
@@ -3616,7 +3616,7 @@ void srGERD::initMatrices()
         state.matrix_current[i].vectors[1].Set(0.0f, 1.0f, 0.0f, 0.0f);
         state.matrix_current[i].vectors[2].Set(0.0f, 0.0f, 1.0f, 0.0f);
         state.matrix_current[i].vectors[3].Set(0.0f, 0.0f, 0.0f, 1.0f);
-        state.matrix_class[i] = static_cast<srMatrix4T<float>::e_type>(4);
+        state.matrix_class[i] = srMatrix4T<float>::TYPE_IDENTITY;
         state.matrix_stacks[i].depth = 0;
     }
     state.normal_matrix.vectors[0].Set(1.0f, 0.0f, 0.0f, 0.0f);

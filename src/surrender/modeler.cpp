@@ -1400,8 +1400,7 @@ void srModeler::autoSmooth(double threshold, int smooth)
 void srModeler::setMaterial(srMaterialIFace* material, long pass, srMeshModel::e_side side)
 {
     if (0 <= pass && pass < 4 &&
-        (side == static_cast<srMeshModel::e_side>(0) ||
-         side == static_cast<srMeshModel::e_side>(1))) {
+        (side == srMeshModel::SIDE_FRONT || side == srMeshModel::SIDE_BACK)) {
         Triangle* triangle = &triangles[0];
         for (long index = 0; index < (long)triangle_count; ++index) {
             for (int vertex = 0; vertex < 3; ++vertex) {
@@ -1449,8 +1448,8 @@ void srModeler::convert(srMeshModel& model, int preserve)
     }
     VertexHash* hash = getUniqueVertexList();
     model.reset(triangle_count, hash->unique_count);
-    model.clearDirty(static_cast<srMeshModel::e_flags>(1));
-    model.clearDirty(static_cast<srMeshModel::e_flags>(2));
+    model.clearDirty(srMeshModel::DIRTY_POLYGON_NORMALS);
+    model.clearDirty(srMeshModel::DIRTY_VERTEX_NORMALS);
     model.pass_count = pass_count;
     if (pass_count < 1) {
         model.pass_count = 1;
@@ -1593,8 +1592,8 @@ void srModeler::convert(srMeshModel& model, int preserve)
                 ++entry;
             }
         }
-        model.setMaterial(material_front, pass, static_cast<srMeshModel::e_side>(0));
-        model.setMaterial(material_back, pass, static_cast<srMeshModel::e_side>(1));
+        model.setMaterial(material_front, pass, srMeshModel::SIDE_FRONT);
+        model.setMaterial(material_back, pass, srMeshModel::SIDE_BACK);
         for (side = 0; side < 2; ++side) {
             if (same_material[side] == 0) {
                 srPtr<srMaterialIFace>* table =
@@ -1637,9 +1636,9 @@ void srModeler::convert(srMeshModel& model, int preserve)
     for (index = 0; index < unique; ++index) {
         shades[index] = hash->entries[index].shade_index;
     }
-    model.setDirty(static_cast<srMeshModel::e_flags>(0));
-    model.setDirty(static_cast<srMeshModel::e_flags>(1));
-    model.setDirty(static_cast<srMeshModel::e_flags>(2));
-    model.setDirty(static_cast<srMeshModel::e_flags>(3));
+    model.setDirty(srMeshModel::DIRTY_BOUNDS);
+    model.setDirty(srMeshModel::DIRTY_POLYGON_NORMALS);
+    model.setDirty(srMeshModel::DIRTY_VERTEX_NORMALS);
+    model.setDirty(srMeshModel::DIRTY_TRI_MESH);
     delete hash;
 }

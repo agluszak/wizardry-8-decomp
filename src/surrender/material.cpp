@@ -139,21 +139,21 @@ void srMaterial::getMaterialInfo(srVertexProcessor::MaterialInfo& info)
 // FUNCTION: SURRENDER 0x10033C00
 void srMaterial::preProcess(srVertexPipe& pipe)
 {
-    if ((operations.value & 0x10) != 0) {
+    if ((operations.value & (1UL << OPER_DIFFUSE_SPECULAR)) != 0) {
         pipe.enableChannel(srVertexProcessor::CHANNEL_DIFFUSE);
         pipe.enableChannel(srVertexProcessor::CHANNEL_LIGHT_DIFFUSE);
         pipe.enableChannel(srVertexProcessor::CHANNEL_LIGHT_AMBIENT);
         pipe.enableChannel(srVertexProcessor::CHANNEL_SPECULAR);
         return;
     }
-    if ((operations.value & 8) != 0) {
+    if ((operations.value & (1UL << OPER_DIFFUSE)) != 0) {
         pipe.enableChannel(srVertexProcessor::CHANNEL_DIFFUSE);
         pipe.enableChannel(srVertexProcessor::CHANNEL_LIGHT_DIFFUSE);
         pipe.enableChannel(srVertexProcessor::CHANNEL_LIGHT_AMBIENT);
         pipe.disableChannel(srVertexProcessor::CHANNEL_SPECULAR);
         return;
     }
-    if ((operations.value & 4) != 0) {
+    if ((operations.value & (1UL << OPER_SPECULAR)) != 0) {
         pipe.disableChannel(srVertexProcessor::CHANNEL_DIFFUSE);
         pipe.disableChannel(srVertexProcessor::CHANNEL_LIGHT_DIFFUSE);
         pipe.disableChannel(srVertexProcessor::CHANNEL_LIGHT_AMBIENT);
@@ -177,11 +177,11 @@ void srMaterial::postProcess(srVertexPipe& pipe)
     }
     operations = this->operations.value;
     vertex_count = pipe.vertex_count;
-    blend = operations & 1;
+    blend = operations & (1UL << OPER_DEPTH_CUE);
     if (operations != 0) {
-        if ((operations & 0x10) == 0) {
-            if ((operations & 8) == 0) {
-                if ((operations & 4) == 0) {
+        if ((operations & (1UL << OPER_DIFFUSE_SPECULAR)) == 0) {
+            if ((operations & (1UL << OPER_DIFFUSE)) == 0) {
+                if ((operations & (1UL << OPER_SPECULAR)) == 0) {
                     goto channels_done;
                 }
                 if (blend != 0) {
@@ -267,7 +267,7 @@ channels_done:
             }
         }
     }
-    if ((this->operations.value & 2) != 0 && (pipe.channel_mask & 8) != 0) {
+    if ((this->operations.value & (1UL << OPER_ALPHA)) != 0 && (pipe.channel_mask & 8) != 0) {
         if ((pipe.scratch->flags & 0x10) == 0) {
             pipe.setupDepthCue();
         }
