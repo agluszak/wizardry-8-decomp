@@ -724,13 +724,13 @@ unsigned char HandleMipeMonsterCreateKey(unsigned short key)
                      static_cast<int>(gXStatus.uiMonstersInDatabase));
         }
         if (monster_index == gXStatus.uiMonstersInDatabase) {
-            record.record_id_187 = 0;
+            record.record_id = 0;
         } else {
             LoadMonsterDatabaseRecord(monster_index, &record);
         }
         GetWorldCursorAnchor(&anchor);
         monster_group = CreateGroup(
-            static_cast<unsigned int>(static_cast<unsigned short>(record.record_id_187)),
+            static_cast<unsigned int>(static_cast<unsigned short>(record.record_id)),
             static_cast<unsigned int>(g_mipe_count), &anchor, 1, 1, 1);
         if (monster_group == 0) {
             g_mipe_count = 0;
@@ -1028,14 +1028,14 @@ void HandleMipeMonsterCategoryKey(unsigned short key)
                      static_cast<int>(gXStatus.uiMonstersInDatabase));
         }
         if (monster_index == gXStatus.uiMonstersInDatabase) {
-            record.record_id_187 = 0;
+            record.record_id = 0;
         } else {
             LoadMonsterDatabaseRecord(monster_index, &record);
         }
-        g_mipe_monster_index = record.record_id_187;
+        g_mipe_monster_index = record.record_id;
         if (g_mipe_state->creation_method != 1) {
             if (g_mipe_state->creation_method == 2) {
-                LoadMonsterDatabaseRecord(static_cast<int>(record.record_id_187), &selected);
+                LoadMonsterDatabaseRecord(static_cast<int>(record.record_id), &selected);
                 g_mipe_count =
                     selected.group_size_dice.sides * selected.group_size_dice.count +
                     static_cast<int>(selected.group_size_dice.base);
@@ -1865,7 +1865,7 @@ int HandleMonsterGeneratorEditKey(unsigned short key)
             if (0 < g_encounter_tables.count) {
                 do {
                     table = GetEncounterTable(index);
-                    if (table->category_150 == static_cast<unsigned int>(g_mipe_category)) {
+                    if (table->category == static_cast<unsigned int>(g_mipe_category)) {
                         PLAdoptAppend(list, table);
                     }
                     ++index;
@@ -1893,7 +1893,7 @@ int HandleMonsterGeneratorEditKey(unsigned short key)
         } else {
             table = GetEncounterTable(current_index);
             list = g_mipe_category_list;
-            g_mipe_category = static_cast<unsigned char>(table->category_150);
+            g_mipe_category = static_cast<unsigned char>(table->category);
             if (g_mipe_category_list != 0) {
                 PListClear(g_mipe_category_list);
                 count = g_encounter_tables.count;
@@ -1901,7 +1901,7 @@ int HandleMonsterGeneratorEditKey(unsigned short key)
                 if (0 < g_encounter_tables.count) {
                     do {
                         table = GetEncounterTable(index);
-                        if (table->category_150 == static_cast<unsigned int>(g_mipe_category)) {
+                        if (table->category == static_cast<unsigned int>(g_mipe_category)) {
                             PLAdoptAppend(list, table);
                         }
                         ++index;
@@ -2038,7 +2038,7 @@ void HandleMipeGeneratorTableKey(unsigned short key)
                 unsigned int category = g_mipe_category & 0xff;
                 do {
                     entry = GetEncounterTable(table_index);
-                    if (entry->category_150 == category) {
+                    if (entry->category == category) {
                         if (found == index) {
                             break;
                         }
@@ -2121,7 +2121,7 @@ void HandleMipeGeneratorTableKey(unsigned short key)
                 if (0 < g_encounter_tables.count) {
                     do {
                         entry = GetEncounterTable(index);
-                        if (entry->category_150 == static_cast<unsigned int>(category)) {
+                        if (entry->category == static_cast<unsigned int>(category)) {
                             PLAdoptAppend(list, entry);
                         }
                         ++index;
@@ -2192,7 +2192,7 @@ void HandleMipeGeneratorTableKey(unsigned short key)
                 if (0 < g_encounter_tables.count) {
                     do {
                         entry = GetEncounterTable(index);
-                        if (entry->category_150 == static_cast<unsigned int>(g_mipe_category)) {
+                        if (entry->category == static_cast<unsigned int>(g_mipe_category)) {
                             PLAdoptAppend(list, entry);
                         }
                         ++index;
@@ -2278,7 +2278,7 @@ void HandleMipeLockTrapKey(unsigned short key)
     lock_state = &trigger->lock_state;
     action_trigger = g_mipe_state->prop->GetTrigger();
     action = action_trigger->m_pActionData;
-    if (action == 0 || action->type_004 != '\n') {
+    if (action == 0 || action->type != '\n') {
         action = 0;
     }
     switch (key) {
@@ -2301,9 +2301,9 @@ void HandleMipeLockTrapKey(unsigned short key)
             } else {
                 pending = 1;
             }
-            static_cast<W8DoorTriggerActionData*>(action)->flags_008 =
-                (pending << 2) | (static_cast<W8DoorTriggerActionData*>(action)->flags_008 & 0xfb);
-            static_cast<W8DoorTriggerActionData*>(action)->item_00a =
+            static_cast<W8DoorTriggerActionData*>(action)->door_flags =
+                (pending << 2) | (static_cast<W8DoorTriggerActionData*>(action)->door_flags & 0xfb);
+            static_cast<W8DoorTriggerActionData*>(action)->item =
                 static_cast<short>(trigger->lock_state.key_id);
         }
         break;
@@ -2351,7 +2351,7 @@ void EditTriggerKeyID(unsigned int key)
 
     trigger = g_mipe_state->prop->GetTrigger();
     action = g_mipe_state->prop->GetTrigger()->m_pActionData;
-    if (action == 0 || action->type_004 != '\n') {
+    if (action == 0 || action->type != '\n') {
         action = 0;
     }
     key_id = trigger->lock_state.key_id;
@@ -2388,9 +2388,9 @@ void EditTriggerKeyID(unsigned int key)
         } else {
             pending = 1;
         }
-        static_cast<W8DoorTriggerActionData*>(action)->flags_008 =
-            (pending << 2) | (static_cast<W8DoorTriggerActionData*>(action)->flags_008 & 0xfb);
-        static_cast<W8DoorTriggerActionData*>(action)->item_00a =
+        static_cast<W8DoorTriggerActionData*>(action)->door_flags =
+            (pending << 2) | (static_cast<W8DoorTriggerActionData*>(action)->door_flags & 0xfb);
+        static_cast<W8DoorTriggerActionData*>(action)->item =
             static_cast<short>(trigger->lock_state.key_id);
     }
     trigger = g_mipe_state->prop->GetTrigger();
@@ -2701,7 +2701,7 @@ unsigned char HandleMipeKey(const InputAtom* event)
                                     g_mipe_mode = 0;
                                     trigger = g_mipe_state->trigger;
                                     if (trigger != 0 &&
-                                        (rep_item = trigger->rep_item_114, rep_item != 0)) {
+                                        (rep_item = trigger->rep_item, rep_item != 0)) {
                                         rep_item->SetHighlight(false);
                                     }
                                     g_mipe_state->trigger = 0;
@@ -3466,7 +3466,7 @@ bool MipeWorldViewEvent(int event, const POINT* point)
                 W8Item* item;
 
                 trigger->flags_0a0 &= ~0x20u;
-                item = trigger->rep_item_114;
+                item = trigger->rep_item;
                 if ((trigger->flags_0a0 & W8_TRIGGER_ON) != 0 && item != 0) {
                     static_cast<W8ItemRep*>(item->m_pRep)->SetFlags(0x10, 0);
                     item->SetHighlight(0);

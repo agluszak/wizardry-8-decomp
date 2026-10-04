@@ -20,29 +20,29 @@ struct W8OctRegionPolygon {
        across regions (cleared with bit3 after the duplicate pass). */
     unsigned long flags_00;
     /* 1-based ordinal into the geometry polygon array. */
-    unsigned long ordinal_04;
-    W8Plane plane_08; /* unit normal plus signed distance */
+    unsigned long ordinal;
+    W8Plane plane; /* unit normal plus signed distance */
     srVector3T<float> position_18;
     /* Canonical material-group index assigned by the material sort. */
-    unsigned long material_24;
+    unsigned long material;
     /* The per-polygon texture/material index CreateSubMeshes copies into
        OctMeshModel's m_plPolyTextures row. */
-    unsigned long texture_28;
+    unsigned long texture;
     /* The automesh kind (1..3) SplitMeshes partitions polygon lists on. */
-    unsigned long kind_2c;
+    unsigned long kind;
     /* Set by the polygon builder when the face collapses. */
     unsigned char degenerate;
-    bool visited_31;
-    unsigned short region_32;
+    bool visited;
+    unsigned short region;
     /* Corner vertices of the shared build-vertex array; the material sort
        and SplitVertices repoint these at split copies. */
-    W8OctPreTreeVertex* vertices_34[3];
-    unsigned short face_count_40;
+    W8OctPreTreeVertex* vertices[3];
+    unsigned short face_count;
     unsigned char padding_42[2];
     /* Growable per-polygon run the cleanup releases. */
     int* face_indices;
     /* Whole source mesh face copied by the polygon builder. */
-    W8ReadMeshFace face_48;
+    W8ReadMeshFace face;
     unsigned char padding_71[3];
 
     /* Tests the polygon's representative point against six frustum planes;
@@ -105,7 +105,7 @@ struct OctBuildPreTree : W8OctBuildTree {
                                   srVector3T<float>* maximum);
     /* Walks the node tree remapping leaf region ids through region_remap. */
     void RemapNodeRegions(W8OctBuildNode* node, int depth);
-    /* Assigns a polygon's region_32 from the region volume containing its
+    /* Assigns a polygon's region from the region volume containing its
        representative point, falling back to the corner vertices' regions;
        marks multi-region polygons with flags bit2 and counts the assignment
        on the volume. */
@@ -117,7 +117,7 @@ struct OctBuildPreTree : W8OctBuildTree {
     /* Resolves a shared polygon (flags bit2): histograms the neighboring
        polygons' regions collected through the corner vertices' face runs,
        picks the most frequent region the polygon actually touches, assigns it
-       and counts it on the volume. Answers the polygon's region_32. */
+       and counts it on the volume. Answers the polygon's region. */
     unsigned short SplitSharedPolygon(W8OctPreTreeGeometry* geometry, int index);
 
     unsigned long path_capacity_bc;
@@ -142,14 +142,14 @@ struct OctBuildPreTree : W8OctBuildTree {
     unsigned short mesh_prop_count;
     unsigned short padding_11a;
     unsigned long particle_count_11c;
-    unsigned long prop_count_120;
+    unsigned long prop_count;
     W8HashTable<unsigned short, unsigned long>* region_path_map;
     /* Allocated next to region_path_map but never read, inserted into, or
        freed in recovered code - dead table kept for layout fidelity. */
-    W8HashTable<unsigned int, short>* positional_128;
+    W8HashTable<unsigned int, short>* positional;
     W8HashTable<unsigned short, short>* inside_region_map;
     W8HashTable<unsigned short, short>* overlap_region_map;
-    W8OctPreTreeGeometry* game_data_134;
+    W8OctPreTreeGeometry* game_data;
     unsigned long unknown_138;
     unsigned long unknown_13c;
 };

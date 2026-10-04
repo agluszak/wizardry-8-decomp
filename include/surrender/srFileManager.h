@@ -26,7 +26,7 @@ public:
 
         char* name_00;
         Path* next_04;
-        Path* previous_08;
+        Path* previous;
     };
 
     SR_DLL_IMPORT srFileManager();

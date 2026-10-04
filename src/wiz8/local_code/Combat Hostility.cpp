@@ -362,7 +362,7 @@ bool MonsterCanAimSpell(int spell_id)
 bool CombatAllowsLiveGroups(void)
 {
     return gXStatus.fCombatMode != 0 && g_combat_state->enemies_engaged == 0 &&
-           g_combat_state->round_count_004 <= 1;
+           g_combat_state->round_count <= 1;
 }
 
 // GLOBAL: WIZ8 0x0061ec0c
@@ -625,9 +625,9 @@ int CharacterPrayAction(int party_slot)
         SetTextBoxMode(1, -1);
     }
     roll = Random(g_pray_roll_total);
-    if (g_combat_state->round_count_004 < 4) {
-        roll += (g_combat_state->round_count_004 * 3 - 12) * 5;
-    } else if (g_combat_state->round_count_004 > 8) {
+    if (g_combat_state->round_count < 4) {
+        roll += (g_combat_state->round_count * 3 - 12) * 5;
+    } else if (g_combat_state->round_count > 8) {
         roll += Random(10);
     }
     if (g_settings.difficulty == 0) {

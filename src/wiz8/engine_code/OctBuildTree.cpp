@@ -65,7 +65,7 @@ W8OctBuildNode::W8OctBuildNode()
     memset(this, 0, 10 * sizeof(unsigned long));
     leaf_kind = 0;
     region_28 = 0;
-    provisional_region_2c = 0;
+    provisional_region = 0;
 }
 
 // FUNCTION: WIZ8 0x00446350
@@ -93,7 +93,7 @@ W8OctBuildTree::W8OctBuildTree(float leaf_size, srVector3T<float>* minimum,
     link_lists = 0;
     leaf_polygon_count = 0;
     gd_surface_count = 0;
-    leaf_count_a8 = 0;
+    leaf_count = 0;
     max_leaf_regions_ac = 0;
     unknown_ae = 0;
     region_assignments = 0;
@@ -101,7 +101,7 @@ W8OctBuildTree::W8OctBuildTree(float leaf_size, srVector3T<float>* minimum,
     unknown_b5[0] = 0;
     unknown_b5[1] = 0;
     unknown_b5[2] = 0;
-    deepest_link_list_b8 = 0;
+    deepest_link_list = 0;
 
     if (leaf_size < g_float_005ebc64) {
         ReportBuildStatus(7, "Leaf Size too small--try a larger leaf size!\n");
@@ -312,8 +312,8 @@ unsigned char W8OctBuildTree::InsertSurfaceRecursive(W8OctSpatialState* working,
 void W8OctBuildTree::AppendLink(W8OctBuildNode* node, void* payload, short kind)
 {
     ++node->leaf_kind;
-    if (deepest_link_list_b8 < node->leaf_kind) {
-        deepest_link_list_b8 = node->leaf_kind;
+    if (deepest_link_list < node->leaf_kind) {
+        deepest_link_list = node->leaf_kind;
     }
     W8OctBuildLink* head = node->links_00[kind];
     if (head == 0) {
@@ -514,14 +514,14 @@ int W8OctBuildTree::CollectLeaf(W8OctBuildNode* node, short depth, short kind)
             second = 0;
             /* Retail's kind-10 path dereferences a link head at +0x2c, beyond
                the eight-slot union member — in the proven 0x30-byte node that
-               is the provisional_region_2c/positional_2e ushort pair, which
+               is the provisional_region/positional ushort pair, which
                OctBuildPreTree writes as the leaf's provisional region index
-               (node->provisional_region_2c = node->region_28; FinalizeRegionMapping
+               (node->provisional_region = node->region_28; FinalizeRegionMapping
                reads it back as a ushort). No producer appends at a kind above
                4, so the read is of ushort region-index storage; retained as
                the observed retail read of dead code. */
             // reinterpret-ok: dead kind-10 path reads the proven ushort region-index pair at +0x2c as a link head
-            for (link = *reinterpret_cast<W8OctBuildLink**>(&node->provisional_region_2c);
+            for (link = *reinterpret_cast<W8OctBuildLink**>(&node->provisional_region);
                  link != 0; link = link->next_04) {
                 if (CollectSurfacePredicate(static_cast<W8GDSurface*>(link->surface_00), 0xb) !=
                     0) {

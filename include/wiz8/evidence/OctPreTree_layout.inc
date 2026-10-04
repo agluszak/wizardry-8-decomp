@@ -9,8 +9,8 @@ static_assert(offsetof(W8OctSubmeshBuild, index_04) == 0x04, "W8OctSubmeshBuild_
 static_assert(offsetof(W8OctSubmeshBuild, m_kind) == 0x08, "W8OctSubmeshBuild_kind_08");
 static_assert(offsetof(W8OctSubmeshBuild, m_prev_link) == 0x0c, "W8OctSubmeshBuild_prev_link_0c");
 static_assert(offsetof(W8OctSubmeshBuild, m_next_link) == 0x10, "W8OctSubmeshBuild_next_link_10");
-static_assert(offsetof(W8OctSubmeshBuild, vertex_count_14) == 0x14,
-              "W8OctSubmeshBuild_vertex_count_14");
+static_assert(offsetof(W8OctSubmeshBuild, vertex_count) == 0x14,
+              "W8OctSubmeshBuild_vertex_count");
 static_assert(offsetof(W8OctSubmeshBuild, m_map_count) == 0x18, "W8OctSubmeshBuild_map_count_18");
 static_assert(offsetof(W8OctSubmeshBuild, m_polygon_count) == 0x1c,
               "W8OctSubmeshBuild_polygon_count_1c");
@@ -23,7 +23,7 @@ static_assert(offsetof(W8OctSubmeshBuild, m_poly_uv_index) == 0x2c,
               "W8OctSubmeshBuild_poly_uv_index_2c");
 static_assert(offsetof(W8OctSubmeshBuild, m_uv_map) == 0x30, "W8OctSubmeshBuild_uv_map_30");
 static_assert(sizeof(W8OctFileHeader) == 0xf5, "W8OctFileHeader_must_be_0xf5");
-static_assert(offsetof(W8OctFileHeader, version_00) == 0x00, "W8OctFileHeader_version_00");
+static_assert(offsetof(W8OctFileHeader, version) == 0x00, "W8OctFileHeader_version");
 static_assert(offsetof(W8OctFileHeader, m_extent) == 0x02, "W8OctFileHeader_extent_02");
 static_assert(offsetof(W8OctFileHeader, m_cell_size) == 0x06, "W8OctFileHeader_cell_size_06");
 static_assert(offsetof(W8OctFileHeader, m_node_extent) == 0x0a, "W8OctFileHeader_node_extent_0a");

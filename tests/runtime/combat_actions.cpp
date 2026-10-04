@@ -113,7 +113,7 @@ static void ProvokeHostileEncounterOnGameThread(void* opaque)
            path instead of reproducing that empty-drop bug. */
         W8MonsterRecord* provoked_record = GetMonsterDataForInfo(provoked_info);
         if (provoked_record != 0) {
-            W8MonsterTreasureEntry* treasure = &provoked_record->treasure_1f3.slots[0];
+            W8MonsterTreasureEntry* treasure = &provoked_record->treasure.slots[0];
             treasure->type = 0;
             treasure->count = 1;
             treasure->item_id = 0x23c; /* the container item SpawnItem drops */
@@ -317,7 +317,7 @@ static void ReadHostileEngagementOnGameThread(void* opaque)
         s->first_target_monster = -1;
         for (int slot = 0; slot < 8; ++slot) {
             const W8PartySlotRow* row = &g_status.buffers.XChar[slot];
-            if (row->fOccupied != 0 && row->action_03d == W8_ACTION_ATTACK) {
+            if (row->fOccupied != 0 && row->action == W8_ACTION_ATTACK) {
                 ++s->queued_attacks;
                 if (s->first_target_type < 0) {
                     s->first_target_type = row->target_in_combat.iType;
@@ -397,14 +397,14 @@ static void QueuePartyAttacksOnGameThread(void* opaque)
            CanAnyHandReachTarget refuses every swing. Recompute through the
            product's own entry point. */
         CalcAttacks(character);
-        if (row->action_03d != W8_ACTION_ATTACK) {
+        if (row->action != W8_ACTION_ATTACK) {
             ChooseAction(slot, W8_ACTION_ATTACK, -1, 0, 0, 1);
         }
         /* ChooseAction only records the action; the swing resolves against
            target_in_combat, which the player path fills through AimAtTarget.
            Without it the queued attack swings at nothing and can never
            land. */
-        if (aim_location_id >= 0 && row->action_03d == W8_ACTION_ATTACK) {
+        if (aim_location_id >= 0 && row->action == W8_ACTION_ATTACK) {
             if (row->target_in_combat.iType != W8_TARGET_KIND_MONSTER ||
                 row->target_in_combat.iMonsterID != aim_location_id) {
                 W8CombatSlot target;
@@ -434,7 +434,7 @@ static void QueuePartyAttacksOnGameThread(void* opaque)
                 ++query->aimed;
             }
         }
-        if (row->action_03d == W8_ACTION_ATTACK) {
+        if (row->action == W8_ACTION_ATTACK) {
             ++query->queued;
         }
     }
@@ -552,7 +552,7 @@ static void QueuePartySpellsOnGameThread(void* opaque)
         } else {
             SetCharacterSpell(character, query->spell_id, 1);
         }
-        if (row->action_03d == W8_ACTION_CAST_SPELL) {
+        if (row->action == W8_ACTION_CAST_SPELL) {
             ++query->queued;
             if (row->spell_target.iType == W8_TARGET_KIND_MONSTER) {
                 ++query->aimed;
@@ -580,10 +580,10 @@ static void QueuePartyDefendOnGameThread(void* opaque)
             continue;
         }
         ++query->eligible;
-        if (row->action_03d != W8_ACTION_DEFEND) {
+        if (row->action != W8_ACTION_DEFEND) {
             ChooseAction(slot, W8_ACTION_DEFEND, -1, 0, 0, 1);
         }
-        if (row->action_03d == W8_ACTION_DEFEND) {
+        if (row->action == W8_ACTION_DEFEND) {
             ++query->queued;
         }
     }

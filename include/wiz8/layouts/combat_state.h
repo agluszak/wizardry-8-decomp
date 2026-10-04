@@ -32,7 +32,7 @@ struct W8PartySlotRow {
     /* 0x3d: the action chosen for the in-combat context, its detail word, and
        the action's own two-word block. A use-item action holds the aimed item
        in the block's item member. */
-    W8ActionKind action_03d;
+    W8ActionKind action;
     int action_detail_041;
     W8ActionDetailBlock action_detail_045;
     W8CombatSlot target_in_combat;
@@ -47,7 +47,7 @@ struct W8PartySlotRow {
     /* The item-use two-word detail block: the use kind plus the item. */
     W8ActionDetailBlock item_detail;
     W8CombatSlot item_target;
-    int item_id_0c9;
+    int item_id;
     unsigned char item_origin;
     unsigned short item_slot;
     /* 0x0d0: the non-melee W8_ACTION_* code ChooseAction stored for the slot,
@@ -112,7 +112,7 @@ static_assert(sizeof(W8CombatHandRecord) == 0x10, "W8CombatHandRecord_must_be_0x
 struct W8CombatCharacterRow {
     unsigned int phase; /* 0x00: combat phase; cleared when the character dies */
     unsigned char unknown_04[0x30];
-    bool dead_34; /* 0x34: raised when the character dies */
+    bool dead; /* 0x34: raised when the character dies */
     unsigned char padding_35[3];
     /* 0x38: the two hand values GetCharacterTurnValue reuses once this row's
        turn is already set up. Retail indexes them from the combat-state base
@@ -133,7 +133,7 @@ struct W8CombatCharacterRow {
     int paired_equip_slot;
     /* 0x78/0x7c: the item record indexes of the weapon in the attacking hand
        and of the paired weapon (the primary's own when nothing is paired). */
-    int weapon_item_id_78;
+    int weapon_item_id;
     int paired_item_id;
     /* 0x80: berserk latch - interrupt case 8 sets it; while set the slot
        retargets onto friends and skips the enemy-hostility bookkeeping.
@@ -146,7 +146,7 @@ struct W8CombatCharacterRow {
     /* 0x84/0x88: the slot's combat-portrait catalog image and the alternate the
        combat portrait strip draws while the slot is the hovered combat slot
        (combat_action_hover_party_slot); -1 draws nothing. */
-    int portrait_image_084;
+    int portrait_image;
     int portrait_image_alternate;
     /* 0x8c: the slot's combat-strip status recomputed each combat-mode frame:
        -1 slot empty or out of the fight, 0 ready, 1 cannot switch to combat,
@@ -156,7 +156,7 @@ struct W8CombatCharacterRow {
     /* 0x90: how many times the character already rolled to notice an attacker
        this round; the first attempt always succeeds and each later one is 25
        points harder on the senses check. */
-    int spot_attempts_90;
+    int spot_attempts;
     /* 0x94: incremented when an out-of-combat action is repicked during
        combat; the eight rows are addressed with the established 0xd4 stride.
        0x00541c00 compares it with JBE, so it is unsigned. */
@@ -208,11 +208,11 @@ struct W8CombatState {
     /* 0x001: set when combat begins and when continuous combat resumes;
        cleared at the round boundary while continuous_combat is off. Gates
        party movement and the combat-sensitive UI panels. */
-    bool round_active_001;
+    bool round_active;
     unsigned char padding_002[2];
     /* 0x004: current round number - incremented at each round boundary,
        shown in the round notices and gating the round-one specials. */
-    unsigned int round_count_004;
+    unsigned int round_count;
     unsigned int round_counter; /* 0x008: bounded combat phase, 1..100 */
     /* 0x00c: the combat outcome the end-of-combat pass reports - zero while no
        result is recorded, otherwise the kill count formatted next to

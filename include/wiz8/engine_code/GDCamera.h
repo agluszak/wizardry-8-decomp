@@ -54,12 +54,12 @@ public:
     srMatrix3T<float> m_pitch_rotation; /* 0x00c */
     srMatrix3T<float> m_yaw_rotation;   /* 0x030 */
     srMatrix3T<float> m_rotation;       /* 0x054 */
-    srVector3T<float> m_direction_078;  /* 0x078 */
+    srVector3T<float> m_direction;  /* 0x078 */
     float m_frame_elapsed;              /* 0x084 */
     bool m_transition_active;           /* 0x088 */
     bool m_forced_transition;  /* 0x089 */
     unsigned char m_padding_08a[2];
-    srVector3T<float> m_position_08c;     /* 0x08c */
+    srVector3T<float> m_position;     /* 0x08c */
     float m_target_angle;             /* 0x098 */
     float m_target_pitch;             /* 0x09c */
     float m_start_angle;              /* 0x0a0 */

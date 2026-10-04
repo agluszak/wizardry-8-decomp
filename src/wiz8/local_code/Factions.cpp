@@ -266,7 +266,7 @@ void RecordFactionOffense(signed char faction, unsigned int victim_location_inde
             return;
         }
     }
-    if (record->record_id_187 == 0x146) {
+    if (record->record_id == 0x146) {
         AdjustFactionDisposition(faction, -0x28);
         return;
     }

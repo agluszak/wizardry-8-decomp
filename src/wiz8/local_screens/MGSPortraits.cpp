@@ -383,7 +383,7 @@ void RedrawCombatPortraits(void)
 
         if (party_row->fOccupied == 0 || character->hp_current == 0 ||
             character->highest_condition >= W8_CONDITION_DEAD ||
-            combat_row->portrait_image_084 == -1 || entry->combat_portrait_dirty == 0 ||
+            combat_row->portrait_image == -1 || entry->combat_portrait_dirty == 0 ||
             slot == g_level_block->combat_slot) {
             continue;
         }
@@ -402,7 +402,7 @@ void RedrawCombatPortraits(void)
         }
         if (g_level_block->combat_action_hover_party_slot == -1 ||
             g_level_block->combat_action_hover_party_slot != slot) {
-            portrait_image = combat_row->portrait_image_084;
+            portrait_image = combat_row->portrait_image;
         } else {
             portrait_image = combat_row->portrait_image_alternate;
         }
@@ -744,7 +744,7 @@ bool PreparePartyPortraitOverlay(unsigned int party_slot, unsigned int left, uns
             }
             if (BlitPartyPortraitAnimation(portrait, left, top, flags, party_slot, 0) != 0 &&
                 ((gXStatus.fCombatMode != 0 &&
-                  g_combat_state->characters[party_slot].dead_34 != 0) ||
+                  g_combat_state->characters[party_slot].dead != 0) ||
                  gXStatus.fSurprisePossible != 0 || character->highest_condition == 0x13)) {
                 return 1;
             }
@@ -831,7 +831,7 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, bool highlighted, bool 
                 g_level_block->portrait_refresh_pending[party_slot] != 0) {
                 main_hand_item_id = character->EquippedItem[6].iItemNo;
                 if (main_hand_item_id == -1 ||
-                    (g_item_records[main_hand_item_id].flags_041 & 4) == 0) {
+                    (g_item_records[main_hand_item_id].flags & 4) == 0) {
                     show_off_hand_row = 0;
                     hp_bar_frame = 0;
                 } else {

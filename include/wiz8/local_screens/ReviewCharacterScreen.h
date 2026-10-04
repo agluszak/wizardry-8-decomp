@@ -54,8 +54,8 @@ public:
     void SetCombatView(bool enabled);
     bool m_combat_view;
     unsigned char m_pad_051[3];
-    W8TextControl* m_button_054;
-    W8TextControl* m_button_058;
+    W8TextControl* m_combat_tab;
+    W8TextControl* m_stats_tab;
     W8HelpTextControl* m_values[4];
 };
 
@@ -199,9 +199,9 @@ struct W8CampScreenRegion {
     int y;                     /* 0x04 */
     int width;                 /* 0x08 */
     int height;                /* 0x0c */
-    int frame_10;              /* 0x10: catalog frame for the slot border */
+    int frame;              /* 0x10: catalog frame for the slot border */
     int unidentified_frame; /* 0x14: overlay frame while the item is unidentified */
-    int label_x_18;            /* 0x18: item label left */
+    int label_x;            /* 0x18: item label left */
     int label_y;            /* 0x1c: item label top */
     int label_flag;         /* 0x20: label draw flag */
 };

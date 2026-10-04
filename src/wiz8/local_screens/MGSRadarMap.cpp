@@ -390,7 +390,7 @@ void UpdateRadarBlips(void)
                     center.Set((bounds_min.x + bounds_max.x) * g_double_005ebe80,
                                (bounds_min.y + bounds_max.y) * g_double_005ebe80,
                                (bounds_min.z + bounds_max.z) * g_double_005ebe80);
-                    position = center + info->party_threat.camera_position_0c;
+                    position = center + info->party_threat.camera_position;
                     party = g_startup_world->GetPosition();
                     delta = position - party;
                     float distance = delta.Length();

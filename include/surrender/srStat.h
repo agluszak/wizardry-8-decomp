@@ -17,8 +17,8 @@ public:
     double mean;               /* 0x08 */
     double deviation;          /* 0x10 */
     long median;               /* 0x18 */
-    long min_1c;                  /* 0x1c */
-    long max_20;                  /* 0x20 */
+    long min;                  /* 0x1c */
+    long max;                  /* 0x20 */
 };
 #pragma pack(pop)
 

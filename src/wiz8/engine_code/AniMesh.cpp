@@ -75,16 +75,16 @@ W8AniMesh* CreateAniMesh()
         srAssertFail("pAniMesh", ANI_MESH_CPP, 0x72, 0);
     }
     memset(mesh, 0, sizeof(W8AniMesh));
-    mesh->bitmap_directory_2c = static_cast<char*>(malloc(0x400));
-    mesh->filename_30 = static_cast<char*>(malloc(0x80));
-    if (mesh->bitmap_directory_2c == 0) {
+    mesh->bitmap_directory = static_cast<char*>(malloc(0x400));
+    mesh->filename = static_cast<char*>(malloc(0x80));
+    if (mesh->bitmap_directory == 0) {
         srAssertFail("pAniMesh->strBitmapDir", ANI_MESH_CPP, 0x7a, 0);
     }
-    if (mesh->filename_30 == 0) {
+    if (mesh->filename == 0) {
         srAssertFail("pAniMesh->strFilename", ANI_MESH_CPP, 0x7b, 0);
     }
-    mesh->bitmap_directory_2c[0] = '\0';
-    mesh->filename_30[0] = '\0';
+    mesh->bitmap_directory[0] = '\0';
+    mesh->filename[0] = '\0';
     return mesh;
 }
 
@@ -103,48 +103,48 @@ W8AniMesh* CopyAniMesh(const W8AniMesh* other)
     }
     memset(mesh, 0, sizeof(W8AniMesh));
     mesh->flags_00 = other->flags_00;
-    mesh->frame_count_01 = other->frame_count_01;
-    mesh->bounds_minimum_08 = other->bounds_minimum_08;
-    mesh->bounds_maximum_14 = other->bounds_maximum_14;
+    mesh->frame_count = other->frame_count;
+    mesh->bounds_minimum = other->bounds_minimum;
+    mesh->bounds_maximum = other->bounds_maximum;
     mesh->radius_20 = other->radius_20;
     mesh->loaded_bytes = other->loaded_bytes;
-    mesh->list_index_28 = other->list_index_28;
-    mesh->file_offset_34 = other->file_offset_34;
-    mesh->world_38 = other->world_38;
+    mesh->list_index = other->list_index;
+    mesh->file_offset = other->file_offset;
+    mesh->world = other->world;
     mesh->last_used = other->last_used;
 
-    mesh->bitmap_directory_2c = static_cast<char*>(malloc(0x400));
-    mesh->filename_30 = static_cast<char*>(malloc(0x80));
-    if (mesh->bitmap_directory_2c == 0) {
+    mesh->bitmap_directory = static_cast<char*>(malloc(0x400));
+    mesh->filename = static_cast<char*>(malloc(0x80));
+    if (mesh->bitmap_directory == 0) {
         srAssertFail("pAniMesh->strBitmapDir", ANI_MESH_CPP, 0xc6, 0);
     }
-    if (mesh->filename_30 == 0) {
+    if (mesh->filename == 0) {
         srAssertFail("pAniMesh->strFilename", ANI_MESH_CPP, 0xc7, 0);
     }
-    strcpy(mesh->bitmap_directory_2c, other->bitmap_directory_2c);
-    strcpy(mesh->filename_30, other->filename_30);
+    strcpy(mesh->bitmap_directory, other->bitmap_directory);
+    strcpy(mesh->filename, other->filename);
 
     if ((other->flags_00 & W8_ANI_MESH_SINGLE_INSTANCE) != 0) {
         mesh->flags_00 |= W8_ANI_MESH_SINGLE_INSTANCE;
-        mesh->meshes_04 = static_cast<stModelInstance**>(malloc(sizeof(*mesh->meshes_04)));
-        if (mesh->meshes_04 == 0) {
+        mesh->meshes = static_cast<stModelInstance**>(malloc(sizeof(*mesh->meshes)));
+        if (mesh->meshes == 0) {
             srAssertFail("pAniMesh->ppsrMeshes", ANI_MESH_CPP, 0xd4, 0);
         }
-        mesh->meshes_04[0] = DuplicateModelInstance(other->meshes_04[0]);
-        mesh->meshes_04[0]->setName("Ani Mesh Duplicate Instance");
+        mesh->meshes[0] = DuplicateModelInstance(other->meshes[0]);
+        mesh->meshes[0]->setName("Ani Mesh Duplicate Instance");
         return mesh;
     }
 
-    mesh->meshes_04 =
-        static_cast<stModelInstance**>(malloc(mesh->frame_count_01 * sizeof(*mesh->meshes_04)));
-    if (mesh->meshes_04 == 0) {
+    mesh->meshes =
+        static_cast<stModelInstance**>(malloc(mesh->frame_count * sizeof(*mesh->meshes)));
+    if (mesh->meshes == 0) {
         srAssertFail("pAniMesh->ppsrMeshes", ANI_MESH_CPP, 0xde, 0);
     }
-    memset(mesh->meshes_04, 0, mesh->frame_count_01 * sizeof(*mesh->meshes_04));
-    for (frame = 0; frame < mesh->frame_count_01; ++frame) {
-        if (other->meshes_04 != 0 && other->meshes_04[frame] != 0) {
-            mesh->meshes_04[frame] = DuplicateModelInstance(other->meshes_04[frame]);
-            mesh->meshes_04[frame]->setName("Ani Mesh Duplicate Instance");
+    memset(mesh->meshes, 0, mesh->frame_count * sizeof(*mesh->meshes));
+    for (frame = 0; frame < mesh->frame_count; ++frame) {
+        if (other->meshes != 0 && other->meshes[frame] != 0) {
+            mesh->meshes[frame] = DuplicateModelInstance(other->meshes[frame]);
+            mesh->meshes[frame]->setName("Ani Mesh Duplicate Instance");
         }
     }
     return mesh;
@@ -160,13 +160,13 @@ unsigned char LoadAniMeshFromInfo(W8ReadLevelInfo* info, W8AniMesh* mesh, unsign
     }
     if (info == 0 || mesh == 0)
         return 0;
-    strcpy(mesh->bitmap_directory_2c, info->bitmap_folder);
-    mesh->world_38 = info->world;
+    strcpy(mesh->bitmap_directory, info->bitmap_folder);
+    mesh->world = info->world;
     mesh->flags_00 = 0;
     mesh->last_used = 0;
     if (info->mesh_filename != 0)
-        strcpy(mesh->filename_30, info->mesh_filename);
-    mesh->file_offset_34 = FileGetPos(info->hFile);
+        strcpy(mesh->filename, info->mesh_filename);
+    mesh->file_offset = FileGetPos(info->hFile);
     if (load_all == 0) {
         unsigned char result = LoadAniMeshFrameCount(info->hFile, mesh);
         mesh->flags_00 |= W8_ANI_MESH_FRAME_COUNT_LOADED | W8_ANI_MESH_KEEP_LOADED;
@@ -214,20 +214,20 @@ unsigned char LoadAniMesh(int file, W8AniMesh* mesh, bool load_all)
     W8ReadLevelInfo info;
 
     if (handle == 0) {
-        handle = FileOpen(mesh->filename_30, FILE_ACCESS_READ | FILE_OPEN_EXISTING, 0);
+        handle = FileOpen(mesh->filename, FILE_ACCESS_READ | FILE_OPEN_EXISTING, 0);
         if (handle == 0) {
             srAssertFail(
                 "0", ANI_MESH_CPP, 0x199,
-                reinterpret_cast<const char*>(String("Couldn't open %s", mesh->filename_30)));
+                reinterpret_cast<const char*>(String("Couldn't open %s", mesh->filename)));
             return 0;
         }
     }
 
-    info.world = mesh->world_38;
+    info.world = mesh->world;
     info.hFile = handle;
-    info.bitmap_folder = mesh->bitmap_directory_2c;
+    info.bitmap_folder = mesh->bitmap_directory;
     if (file == 0) {
-        FileSeek(handle, mesh->file_offset_34, FILE_SEEK_FROM_START);
+        FileSeek(handle, mesh->file_offset, FILE_SEEK_FROM_START);
     }
 
     if (!FileRead(handle, &frame_count, sizeof(frame_count), 0)) {
@@ -235,12 +235,12 @@ unsigned char LoadAniMesh(int file, W8AniMesh* mesh, bool load_all)
         FileClose(handle);
         return 0;
     }
-    mesh->frame_count_01 = frame_count;
+    mesh->frame_count = frame_count;
     mesh->flags_00 |= W8_ANI_MESH_FRAME_COUNT_LOADED;
 
-    if (mesh->filename_30[0] != '\0') {
-        instance_name = new char[strlen(mesh->filename_30) + 8];
-        sprintf(instance_name, "%s::%d::%d", mesh->filename_30, 0, mesh->list_index_28);
+    if (mesh->filename[0] != '\0') {
+        instance_name = new char[strlen(mesh->filename) + 8];
+        sprintf(instance_name, "%s::%d::%d", mesh->filename, 0, mesh->list_index);
     }
 
     if (!FileRead(handle, &frame_index, sizeof(frame_index), 0) ||
@@ -257,31 +257,31 @@ unsigned char LoadAniMesh(int file, W8AniMesh* mesh, bool load_all)
 
     if (model->frame_count > 1) {
         mesh->flags_00 |= W8_ANI_MESH_SINGLE_INSTANCE;
-        mesh->meshes_04 = static_cast<stModelInstance**>(malloc(sizeof(*mesh->meshes_04)));
-        if (mesh->meshes_04 == 0) {
+        mesh->meshes = static_cast<stModelInstance**>(malloc(sizeof(*mesh->meshes)));
+        if (mesh->meshes == 0) {
             srAssertFail("pAniMesh->ppsrMeshes", ANI_MESH_CPP, 0x1d0, 0);
         }
-        mesh->meshes_04[0] = instance;
+        mesh->meshes[0] = instance;
     } else {
-        mesh->meshes_04 =
-            static_cast<stModelInstance**>(malloc(frame_count * sizeof(*mesh->meshes_04)));
-        if (mesh->meshes_04 == 0) {
+        mesh->meshes =
+            static_cast<stModelInstance**>(malloc(frame_count * sizeof(*mesh->meshes)));
+        if (mesh->meshes == 0) {
             srAssertFail("pAniMesh->ppsrMeshes", ANI_MESH_CPP, 0x1db, 0);
         }
-        if (mesh->meshes_04 == 0) {
+        if (mesh->meshes == 0) {
             delete[] instance_name;
             FileClose(handle);
             return 0;
         }
-        memset(mesh->meshes_04, 0, frame_count * sizeof(*mesh->meshes_04));
-        mesh->meshes_04[0] = instance;
+        memset(mesh->meshes, 0, frame_count * sizeof(*mesh->meshes));
+        mesh->meshes[0] = instance;
 
         loaded_count = 1;
         while (loaded_count < frame_count) {
             loaded_instance = 0;
             if (instance_name != 0) {
-                sprintf(instance_name, "%s::%d::%d", mesh->filename_30, loaded_count,
-                        mesh->list_index_28);
+                sprintf(instance_name, "%s::%d::%d", mesh->filename, loaded_count,
+                        mesh->list_index);
             }
             if (!load_all || !FileRead(handle, &frame_index, sizeof(frame_index), 0) ||
                 !ReadSingleLevelMesh(&info, &loaded_instance, 0, 0, instance_name, load_all)) {
@@ -296,7 +296,7 @@ unsigned char LoadAniMesh(int file, W8AniMesh* mesh, bool load_all)
                 return 0;
             }
             loaded_instance->setName("AniMeshReallyReadFromFile");
-            mesh->meshes_04[frame_index] = static_cast<stModelInstance*>(loaded_instance);
+            mesh->meshes[frame_index] = static_cast<stModelInstance*>(loaded_instance);
             ++loaded_count;
         }
     }
@@ -306,16 +306,16 @@ unsigned char LoadAniMesh(int file, W8AniMesh* mesh, bool load_all)
     g_animesh_cache_bytes += mesh->loaded_bytes;
 
     mesh->radius_20 = 0.0f;
-    for (frame_index = 0; frame_index < mesh->frame_count_01; ++frame_index) {
+    for (frame_index = 0; frame_index < mesh->frame_count; ++frame_index) {
         float radius = GetAniMeshFrameRadius(mesh, frame_index);
         if (mesh->radius_20 <= radius) {
             mesh->radius_20 = radius;
         }
     }
 
-    mesh->bounds_minimum_08.SetZero();
-    mesh->bounds_maximum_14.SetZero();
-    for (frame_index = 0; frame_index < mesh->frame_count_01; ++frame_index) {
+    mesh->bounds_minimum.SetZero();
+    mesh->bounds_maximum.SetZero();
+    for (frame_index = 0; frame_index < mesh->frame_count; ++frame_index) {
         stModelInstance* frame = GetAniMeshFrame(mesh, frame_index);
         if (frame != 0) {
             stMeshModel* frame_model = static_cast<stMeshModel*>(frame->getModel());
@@ -324,7 +324,7 @@ unsigned char LoadAniMesh(int file, W8AniMesh* mesh, bool load_all)
                 srVector3T<float> maximum;
 
                 frame_model->getBoundingBox(minimum, maximum);
-                ExpandBounds(&mesh->bounds_minimum_08, &mesh->bounds_maximum_14, &minimum,
+                ExpandBounds(&mesh->bounds_minimum, &mesh->bounds_maximum, &minimum,
                              &maximum);
                 frame_model = frame_model->next;
             }
@@ -360,8 +360,8 @@ unsigned char GetAniMeshBounds(W8AniMesh* mesh, srVector3T<float>* minimum,
             return 0;
         }
     }
-    *minimum = mesh->bounds_minimum_08;
-    *maximum = mesh->bounds_maximum_14;
+    *minimum = mesh->bounds_minimum;
+    *maximum = mesh->bounds_maximum;
     mesh->last_used = g_animesh_cache_stamp++;
     return 1;
 }
@@ -375,8 +375,8 @@ void DestroyAniMesh(W8AniMesh* mesh)
     if ((mesh->flags_00 & W8_ANI_MESH_LOADED) != 0) {
         UnloadAniMesh(mesh, 1);
     }
-    free(mesh->bitmap_directory_2c);
-    free(mesh->filename_30);
+    free(mesh->bitmap_directory);
+    free(mesh->filename);
     free(mesh);
 }
 
@@ -387,20 +387,20 @@ unsigned char LoadAniMeshFrameCount(int file, W8AniMesh* mesh)
     unsigned char frame_count, frame_index, loaded_count, success;
     W8ReadLevelInfo info;
     if (handle == 0) {
-        handle = FileOpen(mesh->filename_30, FILE_ACCESS_READ | FILE_OPEN_EXISTING, 0);
+        handle = FileOpen(mesh->filename, FILE_ACCESS_READ | FILE_OPEN_EXISTING, 0);
         if (handle == 0) {
             srAssertFail(
                 "fi.hFile", ANI_MESH_CPP, 0x23f,
-                reinterpret_cast<const char*>(String("Couldn't open %s", mesh->filename_30)));
+                reinterpret_cast<const char*>(String("Couldn't open %s", mesh->filename)));
             return 0;
         }
     }
-    info.world = mesh->world_38;
+    info.world = mesh->world;
     info.hFile = handle;
-    info.bitmap_folder = mesh->bitmap_directory_2c;
-    info.mesh_filename = mesh->filename_30;
+    info.bitmap_folder = mesh->bitmap_directory;
+    info.mesh_filename = mesh->filename;
     if (file == 0)
-        FileSeek(handle, mesh->file_offset_34, FILE_SEEK_FROM_START);
+        FileSeek(handle, mesh->file_offset, FILE_SEEK_FROM_START);
     success = FileRead(handle, &frame_count, 1, 0);
     if (success == 0) {
         srAssertFail("fSuccess", ANI_MESH_CPP, 0x253, 0);
@@ -408,7 +408,7 @@ unsigned char LoadAniMeshFrameCount(int file, W8AniMesh* mesh)
         return 0;
     }
     mesh->flags_00 |= W8_ANI_MESH_FRAME_COUNT_LOADED;
-    mesh->frame_count_01 = frame_count;
+    mesh->frame_count = frame_count;
     for (loaded_count = 0; loaded_count < frame_count; ++loaded_count) {
         if (success != 0)
             success = FileRead(handle, &frame_index, 1, 0);
@@ -434,17 +434,17 @@ unsigned char UnloadAniMesh(W8AniMesh* mesh, bool force)
         return 0;
     }
     if ((mesh->flags_00 & W8_ANI_MESH_SINGLE_INSTANCE) != 0) {
-        mesh->meshes_04[0]->release();
+        mesh->meshes[0]->release();
     } else {
         if ((mesh->flags_00 & W8_ANI_MESH_FRAME_COUNT_LOADED) == 0) {
             if (LoadAniMesh(0, mesh, 1) == 0) {
                 srAssertFail("0", ANI_MESH_CPP, 0x2c6, 0);
                 frame_count = 0xff;
             } else {
-                frame_count = mesh->frame_count_01;
+                frame_count = mesh->frame_count;
             }
         } else {
-            frame_count = mesh->frame_count_01;
+            frame_count = mesh->frame_count;
         }
         for (frame = 0; frame < frame_count; ++frame) {
             stModelInstance* instance = GetAniMeshFrame(mesh, frame);
@@ -455,9 +455,9 @@ unsigned char UnloadAniMesh(W8AniMesh* mesh, bool force)
         }
     }
     g_animesh_cache_bytes -= mesh->loaded_bytes;
-    free(mesh->meshes_04);
+    free(mesh->meshes);
     mesh->flags_00 &= ~W8_ANI_MESH_LOADED;
-    mesh->meshes_04 = 0;
+    mesh->meshes = 0;
     return 1;
 }
 
@@ -467,9 +467,9 @@ stModelInstance* GetAniMeshFrame(W8AniMesh* mesh, unsigned char frame)
     stModelInstance* instance;
     char message[0x80];
 
-    if (mesh == 0 || frame >= mesh->frame_count_01) {
+    if (mesh == 0 || frame >= mesh->frame_count) {
         sprintf(message, "AniMeshGetMeshForFrame error, frame %d, num %d", frame,
-                mesh->frame_count_01);
+                mesh->frame_count);
         srAssertFail("0", ANI_MESH_CPP, 0x2e6, message);
         return 0;
     }
@@ -478,10 +478,10 @@ stModelInstance* GetAniMeshFrame(W8AniMesh* mesh, unsigned char frame)
         return 0;
     }
     if ((mesh->flags_00 & W8_ANI_MESH_SINGLE_INSTANCE) != 0) {
-        instance = mesh->meshes_04[0];
-        instance->frame_index_180 = frame;
+        instance = mesh->meshes[0];
+        instance->frame_index = frame;
     } else {
-        instance = mesh->meshes_04[frame];
+        instance = mesh->meshes[frame];
     }
     mesh->last_used = g_animesh_cache_stamp;
     ++g_animesh_cache_stamp;
@@ -501,7 +501,7 @@ unsigned char AniMeshValue(W8AniMesh* mesh)
             return 0xff;
         }
     }
-    return mesh->frame_count_01;
+    return mesh->frame_count;
 }
 
 // FUNCTION: WIZ8 0x004b66e0

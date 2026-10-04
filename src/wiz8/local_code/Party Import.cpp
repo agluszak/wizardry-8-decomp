@@ -108,12 +108,12 @@ unsigned char LoadWizardry7ImportFile(char* path)
     unsigned int bytes_read;
     unsigned char header[0x34c];
     short party_block[0x26];
-    unsigned char skip_80[0x80];
-    unsigned char skip_90[0x90];
-    unsigned char skip_68[0x68];
-    unsigned char skip_14a[0x14a];
-    unsigned char skip_344[0x344];
-    unsigned char skip_42[0x42];
+    unsigned char skipped_section_1[0x80];
+    unsigned char skipped_section_2[0x90];
+    unsigned char skipped_section_3[0x68];
+    unsigned char skipped_section_4[0x14a];
+    unsigned char skipped_section_5[0x344];
+    unsigned char skipped_section_6[0x42];
     HWFILE file;
     int index;
 
@@ -137,12 +137,12 @@ unsigned char LoadWizardry7ImportFile(char* path)
                 }
             }
             if (FileRead(file, party_block, 0x4c, &bytes_read) != 0 && party_block[0x25] != 0 &&
-                party_block[0x25] < 7 && FileRead(file, skip_80, 0x80, &bytes_read) != 0 &&
-                FileRead(file, skip_90, 0x90, &bytes_read) != 0 &&
-                FileRead(file, skip_68, 0x68, &bytes_read) != 0 &&
-                FileRead(file, skip_14a, 0x14a, &bytes_read) != 0 &&
-                FileRead(file, skip_344, 0x344, &bytes_read) != 0 &&
-                FileRead(file, skip_42, 0x42, &bytes_read) != 0 &&
+                party_block[0x25] < 7 && FileRead(file, skipped_section_1, 0x80, &bytes_read) != 0 &&
+                FileRead(file, skipped_section_2, 0x90, &bytes_read) != 0 &&
+                FileRead(file, skipped_section_3, 0x68, &bytes_read) != 0 &&
+                FileRead(file, skipped_section_4, 0x14a, &bytes_read) != 0 &&
+                FileRead(file, skipped_section_5, 0x344, &bytes_read) != 0 &&
+                FileRead(file, skipped_section_6, 0x42, &bytes_read) != 0 &&
                 FileSeek(file, 100, FILE_SEEK_FROM_CURRENT) != 0) {
                 for (index = 0; index < party_block[0x25]; ++index) {
                     if (FileRead(file, &g_imported_characters[index],
@@ -239,11 +239,11 @@ void ImportWizardry7Character(W8Character* character, W8Wiz7Character* imported)
     int status;
 
     memset(character, 0, sizeof(W8Character));
-    swprintf(character->name, g_combat_log_format, TitleCaseString(imported->name_000));
+    swprintf(character->name, g_combat_log_format, TitleCaseString(imported->name));
     wcscpy(character->name_part_2, character->name);
-    character->iRace = imported->race_237;
-    character->gender = static_cast<W8Gender>(imported->gender_238);
-    switch (imported->profession_239) {
+    character->iRace = imported->race;
+    character->gender = static_cast<W8Gender>(imported->gender);
+    switch (imported->profession) {
     default:
         profession = W8_PROFESSION_FIGHTER;
         break;
@@ -289,18 +289,18 @@ void ImportWizardry7Character(W8Character* character, W8Wiz7Character* imported)
     }
     character->iProfession = profession;
     CalcCharacterTableValue(character);
-    level = static_cast<unsigned short>(imported->level_024);
-    if (imported->level_024 > 0) {
+    level = static_cast<unsigned short>(imported->level);
+    if (imported->level > 0) {
         level = 1;
     }
     AdvanceCharacterToLevel(character, level);
     character->experience = 13000;
-    character->kill_count_09f9 = imported->kill_count_010;
+    character->kill_count = imported->kill_count;
     character->death_count = imported->deaths - 1;
     character->profession_levels[character->iProfession] = character->uiExpLevel;
     character->original_profession = character->iProfession;
     character->level_band_base = 0;
-    status = imported->status_23b;
+    status = imported->status;
     if (status == 2 || status == 3) {
         character->uiCondition[0x12] = 9999;
         character->highest_condition = 0x12;
@@ -311,8 +311,8 @@ void ImportWizardry7Character(W8Character* character, W8Wiz7Character* imported)
     ConvertAttribute(character, imported);
     GrantStartingSpells(character, imported);
     for (skill_id = 0; skill_id < 0x29; ++skill_id) {
-        character->skills[skill_id].active_00 = 0;
-        character->skills[skill_id].points_02 = ConvertSkill(skill_id, character, imported);
+        character->skills[skill_id].active = 0;
+        character->skills[skill_id].points = ConvertSkill(skill_id, character, imported);
     }
     RefreshCharacterSkillAvailability(character);
     ImportEquipment(character, imported);
@@ -622,7 +622,7 @@ void ImportEquipment(W8Character* character, const W8Wiz7Character* imported)
                     AddItemToCharacter(character, &item, 1, 0, 0);
                 }
             } else {
-                if (equip_slot == 6 && (g_item_records[item_id].flags_041 & 8) != 0) {
+                if (equip_slot == 6 && (g_item_records[item_id].flags & 8) != 0) {
                     equip_slot = 7;
                 }
                 if (character->EquippedItem[equip_slot].iItemNo == -1) {
@@ -831,8 +831,8 @@ unsigned int ConvertSkill(unsigned int skill_id, W8Character* character,
                 base_value = 0;
                 break;
             }
-            if (imported->profession_239 == 5 || imported->profession_239 == '\r' ||
-                imported->profession_239 == 4) {
+            if (imported->profession == 5 || imported->profession == '\r' ||
+                imported->profession == 4) {
                 base_value = imported->skills[0x1d];
             } else {
                 base_value = imported->skills[0xe];

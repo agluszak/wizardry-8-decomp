@@ -35,9 +35,9 @@ void srIlluminator::process(const ProcessInfo& info, e_processType type)
         origin.y = 0.0f;
         origin.z = 0.0f;
         const srVector4T<float> location = renderer->getEyeSpaceLocation(origin);
-        eye_location_140.x = location.x;
-        eye_location_140.y = location.y;
-        eye_location_140.z = location.z;
+        eye_location.x = location.x;
+        eye_location.y = location.y;
+        eye_location.z = location.z;
         renderer->popMatrix();
         renderer->pushVertexProcessor(*this);
         return;

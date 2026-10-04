@@ -21,28 +21,28 @@ class srModelInstance;
  */
 struct W8AnimObj {
     unsigned char group_count;          /* 0x00: mesh/list group count, max 3 */
-    unsigned char animation_playing_01; /* 0x01: copied onto monster/prop animation_playing_06d */
-    unsigned char frame_method_02;      /* 0x02: copied onto frame_method_06f */
-    unsigned char behaviour_03;         /* 0x03: copied onto animation_behaviour */
+    unsigned char animation_playing; /* 0x01: copied onto monster/prop animation_playing */
+    unsigned char frame_method;      /* 0x02: copied onto frame_method */
+    unsigned char behaviour;         /* 0x03: copied onto animation_behaviour */
     unsigned char cycle;                /* 0x04: default cycle/emitter index */
-    unsigned char path_lists_05;        /* 0x05: 0 = mesh entries, nonzero = path lists */
+    unsigned char path_lists;        /* 0x05: 0 = mesh entries, nonzero = path lists */
     unsigned char padding_06[2];
-    float playback_scale_08;      /* 0x08 */
-    unsigned char random_play_0c; /* 0x0c: copied onto prop random_play_0a5 */
+    float playback_scale;      /* 0x08 */
+    unsigned char random_play; /* 0x0c: copied onto prop random_play */
     unsigned char padding_0d[3];
     /* Serialized as a float; 0x004A0320 copies its four-byte representation. */
-    float play_chance_10; /* 0x10: copied onto prop play_chance_0a8 */
-    unsigned char start_frame_14;
-    unsigned char end_frame_15;
-    unsigned char frame_count_16; /* 0x16: prop clamps frame_index_0a0 to it */
+    float play_chance; /* 0x10: copied onto prop play_chance */
+    unsigned char start_frame;
+    unsigned char end_frame;
+    unsigned char frame_count; /* 0x16: prop clamps frame_index to it */
     unsigned char padding_17;
-    W8AniMesh* entries_18[3]; /* 0x18 */
-    W8PathAI* path_24;        /* 0x24 */
+    W8AniMesh* entries[3]; /* 0x18 */
+    W8PathAI* path;        /* 0x24 */
     /* Six lists in two groups of three, not nine. The first group's entries are
        meshes, released the same way; the second group's are paths, released
        through DestroyPathAI. */
-    W8PList* meshes_28[3]; /* 0x28 */
-    W8PList* paths_34[3];  /* 0x34 */
+    W8PList* meshes[3]; /* 0x28 */
+    W8PList* paths[3];  /* 0x34 */
     /* Named by 0x004A1710's own assertion,
        "pao->pfKnownBBoxFrames && pao->pvecBoundMin && pao->pvecBoundMax".
        One byte a frame saying whether that frame's bounds are already known,

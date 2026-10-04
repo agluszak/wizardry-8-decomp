@@ -70,9 +70,9 @@ stMeshModel::stMeshModel(long polygons, long vertices)
         s_compressed_normal_table_ready = true;
     }
 
-    memset(&tri_mesh_23c, 0, sizeof(tri_mesh_23c));
+    memset(&tri_mesh, 0, sizeof(tri_mesh));
     srMeshModel::reset(polygons, vertices);
-    sort_bias_238 = 0.0f;
+    sort_bias = 0.0f;
 
     for (int pass = 0; pass < 4; ++pass) {
         int side;
@@ -89,7 +89,7 @@ stMeshModel::stMeshModel(long polygons, long vertices)
     previous = 0;
     next = 0;
     flags_3a0 = 2;
-    ambient_color_3a4.Set(-1.0f, -1.0f, -1.0f);
+    ambient_color.Set(-1.0f, -1.0f, -1.0f);
     frame_count = 1;
     vertex_light_table = 0;
     compressed_vertex_locations = 0;
@@ -98,7 +98,7 @@ stMeshModel::stMeshModel(long polygons, long vertices)
     m_pVertexLoc = 0;
     m_pVertexNormal = 0;
     m_pPolyNormal = 0;
-    control_state_394.value &= ~0x10UL;
+    render_control.value &= ~0x10UL;
     setDirty(static_cast<e_flags>(0));
     lerp_buffer = 0;
     automap_polygons = 0;
@@ -152,22 +152,22 @@ srClass* stMeshModel::vInstance()
 // FUNCTION: WIZ8 0x00471dd0
 int stMeshModel::getBoundingSphere(srVector3T<float>& center, float& radius)
 {
-    if ((control_state_390.value & 1) != 0) {
+    if ((dirty_flags.value & 1) != 0) {
         CalculateLinkedBounds();
     }
-    center = bounds_center_218;
-    radius = bounds_radius_224;
+    center = bounds_center;
+    radius = bounds_radius;
     return 1;
 }
 
 // FUNCTION: WIZ8 0x00471d80
 int stMeshModel::getBoundingBox(srVector3T<float>& minimum, srVector3T<float>& maximum)
 {
-    if ((control_state_390.value & 1) != 0) {
+    if ((dirty_flags.value & 1) != 0) {
         CalculateLinkedBounds();
     }
-    minimum = bounds_minimum_200;
-    maximum = bounds_maximum_20c;
+    minimum = bounds_minimum;
+    maximum = bounds_maximum;
     return 1;
 }
 
@@ -179,10 +179,10 @@ int stMeshModel::getBoundingBox(srVector3T<float>& minimum, srVector3T<float>& m
 // FUNCTION: WIZ8 0x00471E10
 void stMeshModel::CalculateLinkedBounds()
 {
-    bounds_minimum_200.SetZero();
-    bounds_maximum_20c.SetZero();
-    bounds_center_218.SetZero();
-    bounds_radius_224 = 0;
+    bounds_minimum.SetZero();
+    bounds_maximum.SetZero();
+    bounds_center.SetZero();
+    bounds_radius = 0;
 
     stMeshModel* head = this;
     while (head->previous != 0) {
@@ -252,19 +252,19 @@ void stMeshModel::GetFrameBounds(int frame, srVector3T<float>* minimum, srVector
 {
     minimum->SetZero();
     maximum->SetZero();
-    if (m_pVertexLoc != 0 && vertex_location_count_22c != 0 &&
+    if (m_pVertexLoc != 0 && vertex_location_count != 0 &&
         static_cast<unsigned int>(frame) < frame_count) {
         srVector3T<float>* vertices = m_pVertexLoc[frame];
         if (vertices == 0) {
-            vertices = new srVector3T<float>[vertex_location_count_22c];
+            vertices = new srVector3T<float>[vertex_location_count];
             if (vertices == 0) {
                 return;
             }
             DecompressFrame(frame, 1, vertices);
         }
-        if (vertex_location_count_22c != 0) {
+        if (vertex_location_count != 0) {
             srVectorProcessor::minMax(vertices, *minimum, *maximum,
-                                      static_cast<SRDWORD>(vertex_location_count_22c));
+                                      static_cast<SRDWORD>(vertex_location_count));
         }
         if (m_pVertexLoc[frame] == 0) {
             delete[] vertices;
@@ -292,21 +292,21 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
     srVector3T<float> ambient_rgb;
 
     if ((flags_3a0 & 2) != 0 && g_render_unlit == 0) {
-        lights = vertex_lights_3b4[vertex_light_table].data;
+        lights = vertex_lights[vertex_light_table].data;
         sunlight = vertex_sunlight.data;
         if (lights != 0 && sunlight != 0) {
             dig = getVertexDIG(0, 1);
             vertex_materials = getVertexMaterial(0, static_cast<e_side>(0), 0);
             if (vertex_materials == 0) {
-                if ((ambient_color_3a4.x == g_float_zero && ambient_color_3a4.y == g_float_zero &&
-                     ambient_color_3a4.z == g_float_zero) ||
+                if ((ambient_color.x == g_float_zero && ambient_color.y == g_float_zero &&
+                     ambient_color.z == g_float_zero) ||
                     vertex_light_table == 1) {
-                    CopyDwordBuffer(dig, lights, vertex_location_count_22c * 3);
+                    CopyDwordBuffer(dig, lights, vertex_location_count * 3);
                     if ((g_environment_offset.x != g_float_zero ||
                          g_environment_offset.y != g_float_zero ||
                          g_environment_offset.z != g_float_zero) &&
                         vertex_light_table != 1 &&
-                        (count = vertex_location_count_22c, count != 0) &&
+                        (count = vertex_location_count, count != 0) &&
                         IsZeroVector(&g_environment_offset) == 0) {
                         srVectorProcessor::add(dig, g_environment_offset, dig,
                                                static_cast<SRDWORD>(count));
@@ -318,10 +318,10 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
                     ambient_rgb.x = material->parms.ambient.x;
                     ambient_rgb.y = material->parms.ambient.y;
                     ambient_rgb.z = material->parms.ambient.z;
-                    count = vertex_location_count_22c;
-                    scaled.x = ambient_rgb.x * ambient_color_3a4.x;
-                    scaled.y = ambient_rgb.y * ambient_color_3a4.y;
-                    scaled.z = ambient_rgb.z * ambient_color_3a4.z;
+                    count = vertex_location_count;
+                    scaled.x = ambient_rgb.x * ambient_color.x;
+                    scaled.y = ambient_rgb.y * ambient_color.y;
+                    scaled.z = ambient_rgb.z * ambient_color.z;
                     if (count != 0) {
                         if (scaled.x == scaled.y && scaled.x == scaled.z) {
                             unsigned int bits;
@@ -332,54 +332,54 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
                             srVectorProcessor::copy(dig, scaled, static_cast<SRDWORD>(count));
                         }
                     }
-                    if (vertex_location_count_22c != 0) {
+                    if (vertex_location_count != 0) {
                         srVectorProcessor::mul(dig, dig, sunlight,
-                                               static_cast<SRDWORD>(vertex_location_count_22c));
+                                               static_cast<SRDWORD>(vertex_location_count));
                     }
                     AddFloatBuffer(
                         reinterpret_cast<float*>(dig),    // reinterpret-ok: packed DIG as float*
                         reinterpret_cast<float*>(lights), // reinterpret-ok: packed lights as float*
-                        vertex_location_count_22c * 3);
+                        vertex_location_count * 3);
                     if ((g_environment_offset.x != g_float_zero ||
                          g_environment_offset.y != g_float_zero ||
                          g_environment_offset.z != g_float_zero) &&
-                        (count = vertex_location_count_22c, count != 0) &&
+                        (count = vertex_location_count, count != 0) &&
                         IsZeroVector(&g_environment_offset) == 0) {
                         srVectorProcessor::add(dig, g_environment_offset, dig,
                                                static_cast<SRDWORD>(count));
                     }
                 }
             } else {
-                if ((ambient_color_3a4.x == g_float_zero && ambient_color_3a4.y == g_float_zero &&
-                     ambient_color_3a4.z == g_float_zero) ||
+                if ((ambient_color.x == g_float_zero && ambient_color.y == g_float_zero &&
+                     ambient_color.z == g_float_zero) ||
                     vertex_light_table == 1) {
-                    if (vertex_location_count_22c != 0) {
-                        FillDwordBuffer(dig, 0, vertex_location_count_22c * 3);
+                    if (vertex_location_count != 0) {
+                        FillDwordBuffer(dig, 0, vertex_location_count * 3);
                     }
                 } else {
-                    count = vertex_location_count_22c;
+                    count = vertex_location_count;
                     if (count != 0) {
-                        if (ambient_color_3a4.x == ambient_color_3a4.y &&
-                            ambient_color_3a4.x == ambient_color_3a4.z) {
+                        if (ambient_color.x == ambient_color.y &&
+                            ambient_color.x == ambient_color.z) {
                             unsigned int bits;
                             // reinterpret-ok: FillDwordBuffer takes the float bit pattern
-                            bits = *reinterpret_cast<unsigned int*>(&ambient_color_3a4.x);
+                            bits = *reinterpret_cast<unsigned int*>(&ambient_color.x);
                             FillDwordBuffer(dig, bits, count * 3);
                         } else {
-                            srVectorProcessor::copy(dig, ambient_color_3a4,
+                            srVectorProcessor::copy(dig, ambient_color,
                                                     static_cast<SRDWORD>(count));
                         }
                     }
-                    if (vertex_location_count_22c != 0) {
+                    if (vertex_location_count != 0) {
                         srVectorProcessor::mul(dig, dig, sunlight,
-                                               static_cast<SRDWORD>(vertex_location_count_22c));
+                                               static_cast<SRDWORD>(vertex_location_count));
                     }
                 }
                 index = 0;
                 do {
                     next_index = index + 1;
                     run = 1;
-                    if (next_index < vertex_location_count_22c) {
+                    if (next_index < vertex_location_count) {
                         do {
                             if (static_cast<srMaterialIFace*>(vertex_materials[index]) !=
                                 static_cast<srMaterialIFace*>(vertex_materials[next_index])) {
@@ -387,7 +387,7 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
                             }
                             ++run;
                             ++next_index;
-                        } while (next_index < vertex_location_count_22c);
+                        } while (next_index < vertex_location_count);
                     }
                     material_iface = vertex_materials[index];
                     if (material_iface != 0) {
@@ -405,22 +405,22 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
                         }
                     }
                     index += run;
-                } while (index < vertex_location_count_22c);
+                } while (index < vertex_location_count);
                 AddFloatBuffer(
                     reinterpret_cast<float*>(dig),    // reinterpret-ok: packed DIG as float*
                     reinterpret_cast<float*>(lights), // reinterpret-ok: packed lights as float*
-                    vertex_location_count_22c * 3);
+                    vertex_location_count * 3);
                 if ((g_environment_offset.x != g_float_zero ||
                      g_environment_offset.y != g_float_zero ||
                      g_environment_offset.z != g_float_zero) &&
                     vertex_light_table != 1 &&
-                    (count = vertex_location_count_22c, count != 0) &&
+                    (count = vertex_location_count, count != 0) &&
                     IsZeroVector(&g_environment_offset) == 0) {
                     srVectorProcessor::add(dig, g_environment_offset, dig,
                                            static_cast<SRDWORD>(count));
                 }
             }
-            if (light_scale != g_float_one && (count = vertex_location_count_22c, count != 0)) {
+            if (light_scale != g_float_one && (count = vertex_location_count, count != 0)) {
                 if (light_scale == g_float_zero) {
                     FillDwordBuffer(dig, 0, count * 3);
                 } else {
@@ -461,7 +461,7 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
     unsigned long active_count = 0;
     srShader shader;
 
-    if (mesh.polygon_count_04 != 0 && mesh.vertex_count_00 != 0) {
+    if (mesh.polygon_count != 0 && mesh.vertex_count != 0) {
         renderer.pushEnable();
         if ((g_inverted_depth_render != 0 || (mesh.control_flags & 0x40) != 0) &&
             !renderer.isEnabled(srGERD::ENABLE_SORTED_RENDERING)) {
@@ -474,18 +474,18 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
             renderer.setCullMode(srGERD::CULL_NONE);
 
             g_software_cull_active_polygons.setCapacity(
-                static_cast<unsigned long>(mesh.polygon_count_04), 1);
+                static_cast<unsigned long>(mesh.polygon_count), 1);
 
             srMatrix4T<float> inverse_model_view;
             renderer.getInverseModelViewMatrix(inverse_model_view);
             srVector3T<float> eye(inverse_model_view.vectors[0].w, inverse_model_view.vectors[1].w,
                                   inverse_model_view.vectors[2].w);
 
-            if (mesh.active_polygons_14c == 0) {
+            if (mesh.active_polygons == 0) {
                 if (renderer.getWinding() == srGERD::WINDING_POSITIONAL_0) {
-                    for (long polygon = 0; polygon < mesh.polygon_count_04; ++polygon) {
+                    for (long polygon = 0; polygon < mesh.polygon_count; ++polygon) {
                         int vertex = mesh.poly_vertices_10[polygon].y;
-                        const srVector3T<float>& position = mesh.positions_38[vertex];
+                        const srVector3T<float>& position = mesh.positions[vertex];
                         const srVector3T<float>& equation = poly_equations[polygon];
                         float facing = (eye.x - position.x) * equation.x +
                                        (eye.y - position.y) * equation.y +
@@ -497,9 +497,9 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
                         }
                     }
                 } else {
-                    for (long polygon = 0; polygon < mesh.polygon_count_04; ++polygon) {
+                    for (long polygon = 0; polygon < mesh.polygon_count; ++polygon) {
                         int vertex = mesh.poly_vertices_10[polygon].y;
-                        const srVector3T<float>& position = mesh.positions_38[vertex];
+                        const srVector3T<float>& position = mesh.positions[vertex];
                         const srVector3T<float>& equation = poly_equations[polygon];
                         float facing = (eye.x - position.x) * equation.x +
                                        (eye.y - position.y) * equation.y +
@@ -512,10 +512,10 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
                     }
                 }
             } else if (renderer.getWinding() == srGERD::WINDING_POSITIONAL_0) {
-                for (long index = 0; index < mesh.active_polygon_count_150; ++index) {
-                    unsigned long polygon = mesh.active_polygons_14c[index];
+                for (long index = 0; index < mesh.active_polygon_count; ++index) {
+                    unsigned long polygon = mesh.active_polygons[index];
                     int vertex = mesh.poly_vertices_10[polygon].y;
-                    const srVector3T<float>& position = mesh.positions_38[vertex];
+                    const srVector3T<float>& position = mesh.positions[vertex];
                     const srVector3T<float>& equation = poly_equations[polygon];
                     float facing = (eye.x - position.x) * equation.x +
                                    (eye.y - position.y) * equation.y +
@@ -526,10 +526,10 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
                     }
                 }
             } else {
-                for (long index = 0; index < mesh.active_polygon_count_150; ++index) {
-                    unsigned long polygon = mesh.active_polygons_14c[index];
+                for (long index = 0; index < mesh.active_polygon_count; ++index) {
+                    unsigned long polygon = mesh.active_polygons[index];
                     int vertex = mesh.poly_vertices_10[polygon].y;
-                    const srVector3T<float>& position = mesh.positions_38[vertex];
+                    const srVector3T<float>& position = mesh.positions[vertex];
                     const srVector3T<float>& equation = poly_equations[polygon];
                     float facing = (eye.x - position.x) * equation.x +
                                    (eye.y - position.y) * equation.y +
@@ -547,76 +547,76 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
         for (int side = 1; side >= 0; --side) {
             if ((mesh.control_flags & (1u << side)) != 0) {
                 srTriMeshPipeline* pipeline = srTriMeshPipeline::Get(&renderer);
-                pipeline->sort_bias_40 = mesh.sort_bias_148;
-                pipeline->triangles_34 = mesh.poly_vertices_10;
-                pipeline->triangle_count_1c = static_cast<unsigned long>(mesh.polygon_count_04);
-                pipeline->positions_38 = mesh.positions_38;
-                pipeline->vertex_count_20 = static_cast<unsigned long>(mesh.vertex_count_00);
-                pipeline->vertex_extras_3c = mesh.normals_3c;
+                pipeline->sort_bias = mesh.sort_bias;
+                pipeline->triangles = mesh.poly_vertices_10;
+                pipeline->triangle_count = static_cast<unsigned long>(mesh.polygon_count);
+                pipeline->positions = mesh.positions;
+                pipeline->vertex_count = static_cast<unsigned long>(mesh.vertex_count);
+                pipeline->vertex_extras = mesh.normals;
 
                 if (poly_equations != 0) {
-                    pipeline->projected_vertices_30 = 0;
+                    pipeline->projected_vertices = 0;
                 } else {
-                    pipeline->projected_vertices_30 = mesh.poly_equations_14;
+                    pipeline->projected_vertices = mesh.poly_equations_14;
                 }
 
                 if (poly_equations != 0) {
-                    pipeline->active_triangles_2c = g_software_cull_active_polygons.data;
-                    pipeline->active_triangle_count_24 = active_count;
-                } else if (mesh.active_polygons_14c != 0) {
-                    pipeline->active_triangles_2c = mesh.active_polygons_14c;
-                    pipeline->active_triangle_count_24 = mesh.active_polygon_count_150;
+                    pipeline->active_triangles = g_software_cull_active_polygons.data;
+                    pipeline->active_triangle_count = active_count;
+                } else if (mesh.active_polygons != 0) {
+                    pipeline->active_triangles = mesh.active_polygons;
+                    pipeline->active_triangle_count = mesh.active_polygon_count;
                 }
 
                 if ((mesh.control_flags & 0x10) == 0) {
-                    pipeline->bounds_minimum_44 = mesh.bounds_minimum_120;
-                    pipeline->bounds_maximum_50 = mesh.bounds_maximum_12c;
+                    pipeline->bounds_minimum = mesh.bounds_minimum;
+                    pipeline->bounds_maximum = mesh.bounds_maximum;
                     if (pipeline->bounds_state == 0) {
                         pipeline->bounds_state = 2;
                     }
                 }
                 if ((mesh.control_flags & 0x20) == 0) {
-                    pipeline->bounds_center_5c = mesh.bounds_center_138;
-                    pipeline->bounds_radius_68 = mesh.bounds_radius_144;
+                    pipeline->bounds_center = mesh.bounds_center;
+                    pipeline->bounds_radius = mesh.bounds_radius;
                     pipeline->bounds_state = 1;
                 }
 
-                for (long pass = 0; pass < mesh.pass_count_08; ++pass) {
-                    pipeline->current_record_14->flags_00 = 0;
+                for (long pass = 0; pass < mesh.pass_count; ++pass) {
+                    pipeline->current_record->flags_00 = 0;
                     pipeline->current_pass->shader_14 = 0;
-                    pipeline->current_pass->texture_array_0c = 0;
-                    pipeline->current_pass->texture_array_10 = 0;
+                    pipeline->current_pass->tex_table_0 = 0;
+                    pipeline->current_pass->tex_table_1 = 0;
 
-                    if (mesh.dig_40[pass] != 0) {
-                        pipeline->current_record_14->colors_0c = mesh.dig_40[pass];
-                        pipeline->current_record_14->color_format = 1;
-                        pipeline->current_record_14->flags_00 |= 1;
+                    if (mesh.dig[pass] != 0) {
+                        pipeline->current_record->colors_0c = mesh.dig[pass];
+                        pipeline->current_record->color_format = 1;
+                        pipeline->current_record->flags_00 |= 1;
                     }
-                    if (mesh.dcg_50[pass] != 0) {
-                        pipeline->current_record_14->dcg_14 = mesh.dcg_50[pass];
-                        pipeline->current_record_14->flags_00 |= 2;
+                    if (mesh.dcg[pass] != 0) {
+                        pipeline->current_record->dcg = mesh.dcg[pass];
+                        pipeline->current_record->flags_00 |= 2;
                     }
-                    if (mesh.scg_60[pass] != 0) {
-                        pipeline->current_record_14->scg_18 = mesh.scg_60[pass];
-                        pipeline->current_record_14->flags_00 |= 4;
+                    if (mesh.scg[pass] != 0) {
+                        pipeline->current_record->scg = mesh.scg[pass];
+                        pipeline->current_record->flags_00 |= 4;
                     }
 
                     if (mesh.vertex_materials_c0[pass][side] == 0) {
                         srMaterialIFace* material = mesh.materials_70[pass][side];
                         pipeline->material_80 = material;
-                        pipeline->current_record_14->material_08 = material;
+                        pipeline->current_record->material_08 = material;
                     } else {
-                        pipeline->current_record_14->vertex_materials_28 =
+                        pipeline->current_record->vertex_materials =
                             mesh.vertex_materials_c0[pass][side];
-                        pipeline->current_record_14->flags_00 |= 0x40;
+                        pipeline->current_record->flags_00 |= 0x40;
                     }
 
-                    if (mesh.poly_uv_110[pass] != 0) {
-                        pipeline->current_pass->poly_uv_1c = mesh.poly_uv_110[pass];
+                    if (mesh.poly_uv[pass] != 0) {
+                        pipeline->current_pass->poly_uv = mesh.poly_uv[pass];
                     }
 
                     if (mesh.poly_shaders[pass] == 0) {
-                        shader.value = mesh.shaders_b0[pass].value;
+                        shader.value = mesh.shaders[pass].value;
                         if (g_inverted_depth_render != 0) {
                             shader.value = (shader.value & 0xfffffffeUL) | 6UL;
                         }
@@ -626,12 +626,12 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
                     }
 
                     if (mesh.texcoords_18[pass][0] != 0) {
-                        pipeline->current_record_14->st0_20 = mesh.texcoords_18[pass][0];
-                        pipeline->current_record_14->flags_00 |= 0x10;
+                        pipeline->current_record->st0 = mesh.texcoords_18[pass][0];
+                        pipeline->current_record->flags_00 |= 0x10;
                     }
                     if (mesh.texcoords_18[pass][1] != 0) {
-                        pipeline->current_record_14->flags_00 |= 0x20;
-                        pipeline->current_record_14->st1_24 = mesh.texcoords_18[pass][1];
+                        pipeline->current_record->flags_00 |= 0x20;
+                        pipeline->current_record->st1_24 = mesh.texcoords_18[pass][1];
                     }
 
                     for (int layer = 0; layer < 2; ++layer) {
@@ -640,12 +640,12 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
                             (&pipeline->texture_78)[layer] = texture;
                             (&pipeline->current_pass->texture_00)[layer] = texture;
                         } else {
-                            (&pipeline->current_pass->texture_array_0c)[layer] =
+                            (&pipeline->current_pass->tex_table_0)[layer] =
                                 mesh.poly_textures_e0[pass][layer];
                         }
                     }
 
-                    ++pipeline->slot_count_84;
+                    ++pipeline->slot_count;
                     pipeline->PrepareSlot();
                 }
 
@@ -731,11 +731,11 @@ void stMeshModel::ApplyAutomapPolygonFilter(const W8GrowableVector<char*>* exclu
         automap_polygons = 0;
     }
     automap_polygon_count = 0;
-    automap_polygons = new unsigned long[polygon_count_230];
+    automap_polygons = new unsigned long[polygon_count];
     automap_filter_active = 1;
     srPtr<srTextureIFace>* texture = getPolyTexture(0, 0, 0);
     if (texture) {
-        for (unsigned int polygon = 0; polygon < static_cast<unsigned int>(polygon_count_230);
+        for (unsigned int polygon = 0; polygon < static_cast<unsigned int>(polygon_count);
              ++polygon, ++texture) {
             if (*texture) {
                 char name[256];
@@ -752,7 +752,7 @@ void stMeshModel::ApplyAutomapPolygonFilter(const W8GrowableVector<char*>* exclu
             }
         }
     }
-    if (automap_polygon_count >= static_cast<unsigned int>(polygon_count_230)) {
+    if (automap_polygon_count >= static_cast<unsigned int>(polygon_count)) {
         delete[] automap_polygons;
         automap_polygons = 0;
         automap_polygon_count = 0;
@@ -809,7 +809,7 @@ unsigned long* stMeshModel::GetActivePolygons(long* count_out, int table, bool f
     }
 
     *count_out = 0;
-    unsigned long* fresh = new unsigned long[polygon_count_230];
+    unsigned long* fresh = new unsigned long[polygon_count];
     srPtr<srTextureIFace>* textures = 0;
     if (index < 0) {
         automap_filter_active = 1;
@@ -828,7 +828,7 @@ unsigned long* stMeshModel::GetActivePolygons(long* count_out, int table, bool f
         }
     }
     if (textures != 0) {
-        for (unsigned int polygon = 0; polygon < static_cast<unsigned int>(polygon_count_230);
+        for (unsigned int polygon = 0; polygon < static_cast<unsigned int>(polygon_count);
              ++polygon) {
             if (textures[polygon] == 0) {
                 fresh[*count_out] = polygon;
@@ -842,7 +842,7 @@ unsigned long* stMeshModel::GetActivePolygons(long* count_out, int table, bool f
                 }
             }
         }
-        if (*count_out != polygon_count_230) {
+        if (*count_out != polygon_count) {
             if (index < 0) {
                 automap_polygons = fresh;
                 automap_polygon_count = *count_out;
@@ -964,25 +964,25 @@ unsigned char stMeshModel::AllocateFrameStorage()
         return 0;
     }
     for (unsigned int frame = 0; frame < frame_count; ++frame) {
-        compressed_vertex_locations[frame] = new short[vertex_location_count_22c * 3];
+        compressed_vertex_locations[frame] = new short[vertex_location_count * 3];
         if (compressed_vertex_locations[frame] == 0) {
             srAssertFail("m_psCompVertexLoc[uiCount]",
                          "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp", 0x1ce, 0);
         }
         memset(compressed_vertex_locations[frame], 0,
-               vertex_location_count_22c * 3 * sizeof(short));
-        compressed_vertex_normals[frame] = new unsigned char[vertex_location_count_22c * 3];
+               vertex_location_count * 3 * sizeof(short));
+        compressed_vertex_normals[frame] = new unsigned char[vertex_location_count * 3];
         if (compressed_vertex_normals[frame] == 0) {
             srAssertFail("m_pbCompVertexNormal[uiCount]",
                          "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp", 0x1d3, 0);
         }
-        memset(compressed_vertex_normals[frame], 0, vertex_location_count_22c * 3);
-        compressed_polygon_normals[frame] = new unsigned char[polygon_count_230 * 3];
+        memset(compressed_vertex_normals[frame], 0, vertex_location_count * 3);
+        compressed_polygon_normals[frame] = new unsigned char[polygon_count * 3];
         if (compressed_polygon_normals[frame] == 0) {
             srAssertFail("m_pbCompPolyNormal[uiCount]",
                          "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp", 0x1d8, 0);
         }
-        memset(compressed_polygon_normals[frame], 0, polygon_count_230 * 3);
+        memset(compressed_polygon_normals[frame], 0, polygon_count * 3);
     }
     return 1;
 }
@@ -1044,7 +1044,7 @@ int stMeshModel::ReleaseDecompressedFrames()
     if (m_pVertexLoc != 0) {
         for (frame = 0; frame < frame_count; ++frame) {
             if (m_pVertexLoc[frame] != 0) {
-                released += vertex_location_count_22c * sizeof(srVector3T<float>);
+                released += vertex_location_count * sizeof(srVector3T<float>);
                 srHeap.free(m_pVertexLoc[frame]);
                 m_pVertexLoc[frame] = 0;
             }
@@ -1053,7 +1053,7 @@ int stMeshModel::ReleaseDecompressedFrames()
     if (m_pVertexNormal != 0) {
         for (frame = 0; frame < frame_count; ++frame) {
             if (m_pVertexNormal[frame] != 0) {
-                released += vertex_location_count_22c * sizeof(srVector3T<float>);
+                released += vertex_location_count * sizeof(srVector3T<float>);
                 srHeap.free(m_pVertexNormal[frame]);
                 m_pVertexNormal[frame] = 0;
             }
@@ -1062,7 +1062,7 @@ int stMeshModel::ReleaseDecompressedFrames()
     if (m_pPolyNormal != 0) {
         for (frame = 0; frame < frame_count; ++frame) {
             if (m_pPolyNormal[frame] != 0) {
-                released += polygon_count_230 * sizeof(srVector3T<float>);
+                released += polygon_count * sizeof(srVector3T<float>);
                 srHeap.free(m_pPolyNormal[frame]);
                 m_pPolyNormal[frame] = 0;
             }
@@ -1150,8 +1150,8 @@ int stMeshModel::CreateSkinTable(const char* name, int base_table)
         ++table;
     }
 
-    srPtr<srTextureIFace>* textures = new srPtr<srTextureIFace>[polygon_count_230];
-    for (int polygon = 0; polygon < polygon_count_230; ++polygon) {
+    srPtr<srTextureIFace>* textures = new srPtr<srTextureIFace>[polygon_count];
+    for (int polygon = 0; polygon < polygon_count; ++polygon) {
         textures[polygon] = source[polygon];
     }
     skin_texture_tables.Add(textures);
@@ -1194,7 +1194,7 @@ int stMeshModel::CreateSkinTable(const char* name, int base_table)
 void stMeshModel::RemoveSkinTable(int index)
 {
     srPtr<srTextureIFace>* textures = *skin_texture_tables.GetAt(index);
-    for (int polygon = 0; polygon < polygon_count_230; ++polygon) {
+    for (int polygon = 0; polygon < polygon_count; ++polygon) {
         textures[polygon] = static_cast<srTextureIFace*>(0);
     }
     delete[] textures;
@@ -1240,7 +1240,7 @@ unsigned char stMeshModel::DecompressFrame(int frame, unsigned char flags,
                                            srVector3T<float>* destination)
 {
     if (flags & 1) {
-        for (int index = 0; index < vertex_location_count_22c; ++index) {
+        for (int index = 0; index < vertex_location_count; ++index) {
             const short* source = &compressed_vertex_locations[frame][index * 3];
             destination[index].Set(source[0] * vertex_compression_scale,
                                    source[1] * vertex_compression_scale,
@@ -1249,7 +1249,7 @@ unsigned char stMeshModel::DecompressFrame(int frame, unsigned char flags,
         return 1;
     }
     if (flags & 2) {
-        for (int index = 0; index < vertex_location_count_22c; ++index) {
+        for (int index = 0; index < vertex_location_count; ++index) {
             const unsigned char* source = &compressed_vertex_normals[frame][index * 3];
             destination[index].Set(s_compressed_normal_table[source[0]],
                                    s_compressed_normal_table[source[1]],
@@ -1258,7 +1258,7 @@ unsigned char stMeshModel::DecompressFrame(int frame, unsigned char flags,
         return 1;
     }
     if (flags & 4) {
-        for (int index = 0; index < polygon_count_230; ++index) {
+        for (int index = 0; index < polygon_count; ++index) {
             const unsigned char* source = &compressed_polygon_normals[frame][index * 3];
             destination[index].Set(s_compressed_normal_table[source[0]],
                                    s_compressed_normal_table[source[1]],
@@ -1276,7 +1276,7 @@ unsigned char stMeshModel::DecompressFrame(int frame, unsigned char flags,
 unsigned char stMeshModel::AllocateFrameBuffers(unsigned int uiFrame, unsigned char flags)
 {
     if ((flags & 1) != 0 && m_pVertexLoc[uiFrame] == 0) {
-        int needed = vertex_location_count_22c * sizeof(srVector3T<float>);
+        int needed = vertex_location_count * sizeof(srVector3T<float>);
         if (g_decompressed_mesh_byte_limit <= g_decompressed_mesh_bytes + needed) {
             if (ReclaimDecompressedBytes(needed) == 0) {
                 return 0;
@@ -1284,14 +1284,14 @@ unsigned char stMeshModel::AllocateFrameBuffers(unsigned int uiFrame, unsigned c
         }
         g_decompressed_mesh_bytes += needed;
         m_pVertexLoc[uiFrame] = static_cast<srVector3T<float>*>(
-            srHeap.allocate(vertex_location_count_22c * sizeof(srVector3T<float>)));
+            srHeap.allocate(vertex_location_count * sizeof(srVector3T<float>)));
         if (m_pVertexLoc[uiFrame] == 0) {
             srAssertFail("m_pVertexLoc[uiFrame]",
                          "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp", 0x243, 0);
         }
     }
     if ((flags & 2) != 0 && m_pVertexNormal[uiFrame] == 0) {
-        int needed = vertex_location_count_22c * sizeof(srVector3T<float>);
+        int needed = vertex_location_count * sizeof(srVector3T<float>);
         if (g_decompressed_mesh_byte_limit <= g_decompressed_mesh_bytes + needed) {
             if (ReclaimDecompressedBytes(needed) == 0) {
                 return 0;
@@ -1299,14 +1299,14 @@ unsigned char stMeshModel::AllocateFrameBuffers(unsigned int uiFrame, unsigned c
         }
         g_decompressed_mesh_bytes += needed;
         m_pVertexNormal[uiFrame] = static_cast<srVector3T<float>*>(
-            srHeap.allocate(vertex_location_count_22c * sizeof(srVector3T<float>)));
+            srHeap.allocate(vertex_location_count * sizeof(srVector3T<float>)));
         if (m_pVertexNormal[uiFrame] == 0) {
             srAssertFail("m_pVertexNormal[uiFrame]",
                          "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp", 0x24e, 0);
         }
     }
     if ((flags & 4) != 0 && m_pPolyNormal[uiFrame] == 0) {
-        int needed = polygon_count_230 * sizeof(srVector3T<float>);
+        int needed = polygon_count * sizeof(srVector3T<float>);
         if (g_decompressed_mesh_byte_limit <= g_decompressed_mesh_bytes + needed) {
             if (ReclaimDecompressedBytes(needed) == 0) {
                 return 0;
@@ -1314,7 +1314,7 @@ unsigned char stMeshModel::AllocateFrameBuffers(unsigned int uiFrame, unsigned c
         }
         g_decompressed_mesh_bytes += needed;
         m_pPolyNormal[uiFrame] = static_cast<srVector3T<float>*>(
-            srHeap.allocate(polygon_count_230 * sizeof(srVector3T<float>)));
+            srHeap.allocate(polygon_count * sizeof(srVector3T<float>)));
         if (m_pPolyNormal[uiFrame] == 0) {
             srAssertFail("m_pPolyNormal[uiFrame]",
                          "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp", 0x259, 0);
@@ -1337,7 +1337,7 @@ srVector3T<float>* stMeshModel::GetVertexLocations(unsigned int frame, bool load
         unsigned int next_frame = (frame + 1) % frame_count;
         if (lerp_buffer == 0) {
             lerp_buffer = static_cast<srVector3T<float>*>(
-                srHeap.allocate(vertex_location_count_22c * sizeof(srVector3T<float>)));
+                srHeap.allocate(vertex_location_count * sizeof(srVector3T<float>)));
             if (lerp_buffer == 0) {
                 srAssertFail("m_pLerpBuffer",
                              "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp", 0x2d4, 0);
@@ -1354,12 +1354,12 @@ srVector3T<float>* stMeshModel::GetVertexLocations(unsigned int frame, bool load
         if (lerp_buffer != 0) {
             srVector3T<float>* next = m_pVertexLoc[next_frame];
             srVector3T<float>* current = m_pVertexLoc[frame];
-            if (next != 0 && current != 0 && vertex_location_count_22c != 0) {
+            if (next != 0 && current != 0 && vertex_location_count != 0) {
                 if (interpolation == g_float_one) {
-                    CopyDwordBuffer(lerp_buffer, next, vertex_location_count_22c * 3);
+                    CopyDwordBuffer(lerp_buffer, next, vertex_location_count * 3);
                 } else {
                     srVectorProcessor::lerp(&lerp_buffer->x, &next->x, &current->x,
-                                            interpolation, vertex_location_count_22c * 3);
+                                            interpolation, vertex_location_count * 3);
                 }
             }
         }
@@ -1409,9 +1409,9 @@ srVector3T<float>* stMeshModel::GetPolygonNormals(unsigned int frame, bool load)
 // FUNCTION: WIZ8 0x00472990
 void stMeshModel::SetAmbientColor(const srVector3T<float>& color)
 {
-    if (ambient_color_3a4.x != color.x || ambient_color_3a4.y != color.y ||
-        ambient_color_3a4.z != color.z) {
-        ambient_color_3a4 = color;
+    if (ambient_color.x != color.x || ambient_color.y != color.y ||
+        ambient_color.z != color.z) {
+        ambient_color = color;
         flags_3a0 |= 2;
     }
 }
@@ -1423,12 +1423,12 @@ void stMeshModel::SetAmbientColor(const srVector3T<float>& color)
 // FUNCTION: WIZ8 0x004729F0
 void stMeshModel::ComputeFrameNormals(int frame)
 {
-    if (polygon_count_230 == 0 || vertex_location_count_22c == 0) {
+    if (polygon_count == 0 || vertex_location_count == 0) {
         return;
     }
 
     srVector3i* poly_vertex = getPolyVertex();
-    srVector3T<float>* pnorm = new srVector3T<float>[polygon_count_230];
+    srVector3T<float>* pnorm = new srVector3T<float>[polygon_count];
     if (pnorm == 0 || poly_vertex == 0) {
         return;
     }
@@ -1439,7 +1439,7 @@ void stMeshModel::ComputeFrameNormals(int frame)
         l = m_pVertexLoc[frame];
     }
     if (l == 0) {
-        l = new srVector3T<float>[vertex_location_count_22c];
+        l = new srVector3T<float>[vertex_location_count];
         if (l == 0) {
             srAssertFail("l", "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp", 0x4ca, 0);
         }
@@ -1447,53 +1447,53 @@ void stMeshModel::ComputeFrameNormals(int frame)
         decompressed = 1;
     }
 
-    for (int poly = 0; poly < polygon_count_230; ++poly) {
+    for (int poly = 0; poly < polygon_count; ++poly) {
         const srVector3T<float>& origin = l[poly_vertex[poly].x];
         srVector3T<float> edge_0 = l[poly_vertex[poly].y] - origin;
         srVector3T<float> edge_1 = l[poly_vertex[poly].z] - origin;
         pnorm[poly] = CrossProduct(edge_0, edge_1);
     }
 
-    srVector3T<float>* vnorm = new srVector3T<float>[vertex_location_count_22c];
+    srVector3T<float>* vnorm = new srVector3T<float>[vertex_location_count];
     unsigned long* shade_index = getVertexShadeIndex(0);
     if (vnorm == 0) {
         srAssertFail("vnorm", "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp", 0x4db, 0);
     }
     if (shade_index == 0) {
-        FillDwordBuffer(vnorm, 0, vertex_location_count_22c * 3);
-        for (int corner_poly = 0; corner_poly < polygon_count_230; ++corner_poly) {
+        FillDwordBuffer(vnorm, 0, vertex_location_count * 3);
+        for (int corner_poly = 0; corner_poly < polygon_count; ++corner_poly) {
             vnorm[poly_vertex[corner_poly].x] += pnorm[corner_poly];
             vnorm[poly_vertex[corner_poly].y] += pnorm[corner_poly];
             vnorm[poly_vertex[corner_poly].z] += pnorm[corner_poly];
         }
     } else {
-        srVector3T<float>* shaded = new srVector3T<float>[vertex_location_count_22c];
-        FillDwordBuffer(shaded, 0, vertex_location_count_22c * 3);
-        for (int corner_poly = 0; corner_poly < polygon_count_230; ++corner_poly) {
+        srVector3T<float>* shaded = new srVector3T<float>[vertex_location_count];
+        FillDwordBuffer(shaded, 0, vertex_location_count * 3);
+        for (int corner_poly = 0; corner_poly < polygon_count; ++corner_poly) {
             shaded[shade_index[poly_vertex[corner_poly].x]] += pnorm[corner_poly];
             shaded[shade_index[poly_vertex[corner_poly].y]] += pnorm[corner_poly];
             shaded[shade_index[poly_vertex[corner_poly].z]] += pnorm[corner_poly];
         }
-        srVectorProcessor::copyIndexed(vnorm, shaded, shade_index, vertex_location_count_22c);
+        srVectorProcessor::copyIndexed(vnorm, shaded, shade_index, vertex_location_count);
         delete[] shaded;
     }
 
-    srVectorProcessor::normalize(vnorm, vnorm, 1.0f, vertex_location_count_22c);
-    for (int vertex = 0; vertex < vertex_location_count_22c; ++vertex) {
+    srVectorProcessor::normalize(vnorm, vnorm, 1.0f, vertex_location_count);
+    for (int vertex = 0; vertex < vertex_location_count; ++vertex) {
         if (vnorm[vertex].x == 0.0f && vnorm[vertex].y == 0.0f && vnorm[vertex].z == 0.0f) {
             vnorm[vertex].Set(1e-6f, 1e-6f, 1e-6f);
         }
     }
-    srVectorProcessor::mul(&vnorm->x, 127.0f, &vnorm->x, vertex_location_count_22c * 3);
-    for (int index = 0; index < vertex_location_count_22c; ++index) {
+    srVectorProcessor::mul(&vnorm->x, 127.0f, &vnorm->x, vertex_location_count * 3);
+    for (int index = 0; index < vertex_location_count; ++index) {
         compressed_vertex_normals[frame][index * 3] = static_cast<char>(vnorm[index].x);
         compressed_vertex_normals[frame][index * 3 + 1] = static_cast<char>(vnorm[index].y);
         compressed_vertex_normals[frame][index * 3 + 2] = static_cast<char>(vnorm[index].z);
     }
 
-    srVectorProcessor::normalize(pnorm, pnorm, 1.0f, polygon_count_230);
-    srVectorProcessor::mul(&pnorm->x, 127.0f, &pnorm->x, polygon_count_230 * 3);
-    for (int polygon = 0; polygon < polygon_count_230; ++polygon) {
+    srVectorProcessor::normalize(pnorm, pnorm, 1.0f, polygon_count);
+    srVectorProcessor::mul(&pnorm->x, 127.0f, &pnorm->x, polygon_count * 3);
+    for (int polygon = 0; polygon < polygon_count; ++polygon) {
         compressed_polygon_normals[frame][polygon * 3] = static_cast<char>(pnorm[polygon].x);
         compressed_polygon_normals[frame][polygon * 3 + 1] = static_cast<char>(pnorm[polygon].y);
         compressed_polygon_normals[frame][polygon * 3 + 2] = static_cast<char>(pnorm[polygon].z);
@@ -1513,9 +1513,9 @@ srVector3T<float>* stMeshModel::GetVertexLights(bool initialize, int table)
     if (table == -1) {
         table = vertex_light_table;
     }
-    srHeapBuffer<srVector3T<float> >& lights = vertex_lights_3b4[table];
+    srHeapBuffer<srVector3T<float> >& lights = vertex_lights[table];
     if (lights.data == 0 && initialize) {
-        lights.setCapacity(vertex_location_count_22c, 0);
+        lights.setCapacity(vertex_location_count, 0);
         srVector3T<float> zero(0.0f, 0.0f, 0.0f);
         for (unsigned int index = 0; index < lights.capacity; ++index) {
             lights.data[index] = zero;
@@ -1531,7 +1531,7 @@ srVector3T<float>* stMeshModel::GetVertexLights(bool initialize, int table)
 float* stMeshModel::GetVertexSunlight(bool initialize)
 {
     if (vertex_sunlight.data == 0 && initialize) {
-        vertex_sunlight.setCapacity(vertex_location_count_22c, 0);
+        vertex_sunlight.setCapacity(vertex_location_count, 0);
         for (unsigned int index = 0; index < vertex_sunlight.capacity; ++index) {
             vertex_sunlight.data[index] = 1.0f;
         }
@@ -1563,35 +1563,35 @@ void stMeshModel::FinalizeVertexFrame(int frame)
 void srTriMeshPipeline::SetFlags(srShader shader)
 {
     shader_74 = shader;
-    current_pass->flags_08 = shader;
+    current_pass->flags = shader;
 }
 
-/* Point current_record_14 / current_pass at slot slot_count_84, growing
+/* Point current_record / current_pass at slot slot_count, growing
    either table by (capacity + slot + 8) when needed. */
 // FUNCTION: WIZ8 0x00475540
 void srTriMeshPipeline::PrepareSlot()
 {
-    current_record_14 = &records_94[slot_count_84];
-    current_pass = &passes_9c[slot_count_84];
+    current_record = &records[slot_count];
+    current_pass = &passes[slot_count];
 
-    current_record_14->flags_00 = 0;
-    current_record_14->disable_mask_04 = 0;
-    current_record_14->material_08 = material_80;
+    current_record->flags_00 = 0;
+    current_record->disable_mask_04 = 0;
+    current_record->material_08 = material_80;
     current_pass->texture_00 = texture_78;
-    current_pass->texture_04 = texture_7c;
-    current_pass->flags_08.value = shader_74.value;
-    current_pass->texture_array_0c = 0;
-    current_pass->texture_array_10 = 0;
+    current_pass->texture = texture_7c;
+    current_pass->flags.value = shader_74.value;
+    current_pass->tex_table_0 = 0;
+    current_pass->tex_table_1 = 0;
     current_pass->shader_14 = 0;
-    current_pass->st_18 = 0;
-    current_pass->poly_uv_1c = 0;
+    current_pass->st = 0;
+    current_pass->poly_uv = 0;
 }
 
 // FUNCTION: WIZ8 0x00475510
 void srTriMeshPipeline::Flush()
 {
     flushing = 1;
-    if (slot_count_84 > 0) {
+    if (slot_count > 0) {
         FlushSlots();
     }
     flushing = 0;
@@ -1601,20 +1601,20 @@ void srTriMeshPipeline::Flush()
 // FUNCTION: WIZ8 0x004753F0
 void srTriMeshPipeline::Reset(srGERD* renderer)
 {
-    slot_count_84 = 0;
+    slot_count = 0;
     renderer_88 = renderer;
     flags_28 = 0;
     flags_28 |= 1;
     flags_28 |= 2;
-    triangle_count_1c = 0;
-    active_triangles_2c = 0;
-    projected_vertices_30 = 0;
-    triangles_34 = 0;
-    vertex_count_20 = 0;
-    positions_38 = 0;
-    vertex_extras_3c = 0;
+    triangle_count = 0;
+    active_triangles = 0;
+    projected_vertices = 0;
+    triangles = 0;
+    vertex_count = 0;
+    positions = 0;
+    vertex_extras = 0;
     bounds_state = 0;
-    sort_bias_40 = 0.0f;
+    sort_bias = 0.0f;
     shader_74.value = 0x0100241b;
     texture_78 = 0;
     texture_7c = 0;
@@ -1627,7 +1627,7 @@ srTriMeshPipeline::srTriMeshPipeline()
 {
     flags_28 = 0;
     shader_74.value = 0;
-    vertex_pipe_90 = new srVertexPipe();
+    vertex_pipe = new srVertexPipe();
     flushing = 0;
     Reset(0);
     Flush();
@@ -1639,29 +1639,29 @@ srTriMeshPipeline::~srTriMeshPipeline()
     while (flushing != 0) {
     }
 
-    delete vertex_pipe_90;
+    delete vertex_pipe;
 }
 
 // FUNCTION: WIZ8 0x00475600
 void srTriMeshPipeline::FlushSlots()
 {
-    if (triangle_count_1c == 0 || (active_triangles_2c != 0 && active_triangle_count_24 == 0)) {
+    if (triangle_count == 0 || (active_triangles != 0 && active_triangle_count == 0)) {
         return;
     }
 
     if (bounds_state != 1) {
-        if (bounds_state == 0 && vertex_count_20 != 0) {
-            srVectorProcessor::minMax(positions_38, bounds_minimum_44, bounds_maximum_50,
-                                      vertex_count_20);
+        if (bounds_state == 0 && vertex_count != 0) {
+            srVectorProcessor::minMax(positions, bounds_minimum, bounds_maximum,
+                                      vertex_count);
         }
 
         srVector3T<float> center;
-        center.Set((bounds_minimum_44.x + bounds_maximum_50.x) * 0.5,
-                   (bounds_minimum_44.y + bounds_maximum_50.y) * 0.5,
-                   (bounds_minimum_44.z + bounds_maximum_50.z) * 0.5);
-        bounds_center_5c = center;
+        center.Set((bounds_minimum.x + bounds_maximum.x) * 0.5,
+                   (bounds_minimum.y + bounds_maximum.y) * 0.5,
+                   (bounds_minimum.z + bounds_maximum.z) * 0.5);
+        bounds_center = center;
 
-        bounds_radius_68 = (bounds_center_5c - bounds_minimum_44).Length() * 1.001f;
+        bounds_radius = (bounds_center - bounds_minimum).Length() * 1.001f;
     }
 
     srVector3T<float> eye_center;
@@ -1672,7 +1672,7 @@ void srTriMeshPipeline::FlushSlots()
     srMatrix4T<float> project_clip_near;
     srMatrix4T<float> normal_matrix;
 
-    renderer_88->getEyeSpaceBounds(eye_center, eye_radius, bounds_center_5c, bounds_radius_68);
+    renderer_88->getEyeSpaceBounds(eye_center, eye_radius, bounds_center, bounds_radius);
     renderer_88->getMatrix(srGERD::MATRIX_MODELVIEW, model_view);
     renderer_88->getInverseModelViewMatrix(inverse_model_view);
     renderer_88->getClipPlanes(clip_planes);
@@ -1685,51 +1685,51 @@ void srTriMeshPipeline::FlushSlots()
 
     srTriangleCuller::Input culler_input;
     if (cull_mode == srGERD::CULL_NONE) {
-        culler_input.cull_mode_0c = 2;
+        culler_input.cull_mode = 2;
     } else if (cull_mode == srGERD::CULL_FRONT) {
-        culler_input.cull_mode_0c = winding == srGERD::WINDING_POSITIONAL_0;
+        culler_input.cull_mode = winding == srGERD::WINDING_POSITIONAL_0;
     } else {
-        culler_input.cull_mode_0c = winding != srGERD::WINDING_POSITIONAL_0;
+        culler_input.cull_mode = winding != srGERD::WINDING_POSITIONAL_0;
     }
 
-    culler_input.vertex_count_04 = vertex_count_20;
-    culler_input.vertices_1c = positions_38;
-    culler_input.clip_planes_20 = clip_planes.planes_000;
-    culler_input.model_view_24 = &model_view;
-    culler_input.inverse_model_view_28 = &inverse_model_view;
+    culler_input.vertex_count_04 = vertex_count;
+    culler_input.vertices_1c = positions;
+    culler_input.clip_planes = clip_planes.planes_000;
+    culler_input.model_view = &model_view;
+    culler_input.inverse_model_view = &inverse_model_view;
     culler_input.scale_type_2c = scale_type;
 
     if ((flags_28 & 1) == 0) {
-        culler_input.clip_mask_30 = 0;
+        culler_input.clip_mask = 0;
     } else {
         float depth;
         unsigned long clip_mask = srTriangleCuller::getClipMask(
             eye_center, eye_radius, clip_planes.planes_000, clip_planes.mask_200, depth);
         int retain_clip_mask =
             clip_mask != 0 && ((clip_mask & 0xffffffc0UL) != 0 ||
-                               (slot_count_84 * triangle_count_1c > 45 && depth > 0.23f));
-        culler_input.clip_mask_30 = retain_clip_mask ? clip_mask : 0;
+                               (slot_count * triangle_count > 45 && depth > 0.23f));
+        culler_input.clip_mask = retain_clip_mask ? clip_mask : 0;
     }
 
-    if (active_triangles_2c == 0) {
+    if (active_triangles == 0) {
         srCore.getStatisticsManager()->statistics_00.triangles_submitted +=
-            slot_count_84 * triangle_count_1c;
+            slot_count * triangle_count;
     } else {
         srCore.getStatisticsManager()->statistics_00.triangles_submitted +=
-            slot_count_84 * active_triangle_count_24;
+            slot_count * active_triangle_count;
     }
-    ++srCore.getStatisticsManager()->statistics_00.meshes_submitted_0c;
+    ++srCore.getStatisticsManager()->statistics_00.meshes_submitted;
     srCore.getStatisticsManager()->statistics_00.vertices_submitted +=
-        slot_count_84 * vertex_count_20;
+        slot_count * vertex_count;
 
-    unsigned long total = active_triangles_2c == 0 ? triangle_count_1c : active_triangle_count_24;
+    unsigned long total = active_triangles == 0 ? triangle_count : active_triangle_count;
     unsigned long batch_limit = total;
     if ((flags_28 & 2) != 0) {
-        double ratio = static_cast<double>(vertex_count_20) / triangle_count_1c;
+        double ratio = static_cast<double>(vertex_count) / triangle_count;
         if (ratio > 3.0f) {
             ratio = 3.0f;
         }
-        batch_limit = static_cast<unsigned long>(1300.0f / (slot_count_84 * ratio));
+        batch_limit = static_cast<unsigned long>(1300.0f / (slot_count * ratio));
         if (cull_mode == srGERD::CULL_NONE) {
             batch_limit >>= 1;
         }
@@ -1738,11 +1738,11 @@ void srTriMeshPipeline::FlushSlots()
         }
     }
 
-    unsigned long* scratch = culler_scratch.ensure(batch_limit + vertex_count_20 * 2);
+    unsigned long* scratch = culler_scratch.ensure(batch_limit + vertex_count * 2);
     srTriangleCuller::Output culler_output;
     culler_output.indices_00 = scratch;
     culler_output.avt_04 = scratch + batch_limit;
-    culler_output.clip_flags_08 = culler_output.avt_04 + vertex_count_20;
+    culler_output.clip_flags_08 = culler_output.avt_04 + vertex_count;
 
     unsigned long processed = 0;
     while (processed < total) {
@@ -1751,43 +1751,43 @@ void srTriMeshPipeline::FlushSlots()
             batch_count = batch_limit;
         }
 
-        if (active_triangles_2c == 0) {
+        if (active_triangles == 0) {
             culler_input.triangle_count_00 = batch_count;
-            culler_input.active_triangle_count_08 = 0;
-            culler_input.active_triangles_10 = 0;
-            culler_input.projected_vertices_14 = projected_vertices_30 + processed;
-            culler_input.triangles_18 = triangles_34 + processed;
+            culler_input.active_triangle_count = 0;
+            culler_input.active_triangles = 0;
+            culler_input.projected_vertices = projected_vertices + processed;
+            culler_input.triangles_18 = triangles + processed;
         } else {
-            culler_input.triangle_count_00 = triangle_count_1c;
-            culler_input.active_triangle_count_08 = batch_count;
-            culler_input.active_triangles_10 = active_triangles_2c + processed;
-            culler_input.projected_vertices_14 = projected_vertices_30;
-            culler_input.triangles_18 = triangles_34;
+            culler_input.triangle_count_00 = triangle_count;
+            culler_input.active_triangle_count = batch_count;
+            culler_input.active_triangles = active_triangles + processed;
+            culler_input.projected_vertices = projected_vertices;
+            culler_input.triangles_18 = triangles;
         }
 
         if (srTriangleCuller::cull(culler_output, culler_input)) {
             srCore.getStatisticsManager()->statistics_00.triangles_after_culling +=
-                slot_count_84 * culler_output.triangle_count_0c;
+                slot_count * culler_output.triangle_count_0c;
             srCore.getStatisticsManager()->statistics_00.vertices_after_culling +=
-                slot_count_84 * culler_output.vertex_count_10;
+                slot_count * culler_output.vertex_count_10;
 
             srGERD::Renderer* renderer = renderer_88->lockRenderer();
 
-            (void)vertex_arrays_a4[slot_count_84];
+            (void)vertex_arrays_a4[slot_count];
             srVertexArray* vertex_arrays = &vertex_arrays_a4[0];
             renderer->allocVertexArray(vertex_arrays[0],
-                                       slot_count_84 * culler_output.vertex_count_10);
+                                       slot_count * culler_output.vertex_count_10);
 
-            for (unsigned long slot = 1; slot < slot_count_84; ++slot) {
+            for (unsigned long slot = 1; slot < slot_count; ++slot) {
                 unsigned long offset = slot * culler_output.vertex_count_10;
                 vertex_arrays[slot].eye_locations = vertex_arrays[0].eye_locations + offset;
                 vertex_arrays[slot].diffuse_04 = vertex_arrays[0].diffuse_04 + offset;
                 vertex_arrays[slot].specular_08 = vertex_arrays[0].specular_08 + offset;
-                vertex_arrays[slot].st0_0c = vertex_arrays[0].st0_0c + offset;
+                vertex_arrays[slot].st0 = vertex_arrays[0].st0 + offset;
                 vertex_arrays[slot].st1_10 = vertex_arrays[0].st1_10 + offset;
-                vertex_arrays[slot].q0_14 = vertex_arrays[0].q0_14 + offset;
-                vertex_arrays[slot].q1_18 = vertex_arrays[0].q1_18 + offset;
-                vertex_arrays[slot].packed_1c = vertex_arrays[0].packed_1c + offset;
+                vertex_arrays[slot].q0 = vertex_arrays[0].q0 + offset;
+                vertex_arrays[slot].q1 = vertex_arrays[0].q1 + offset;
+                vertex_arrays[slot].packed = vertex_arrays[0].packed + offset;
             }
 
             unsigned long processor_count = renderer_88->getVertexProcessorCount();
@@ -1808,28 +1808,28 @@ void srTriMeshPipeline::FlushSlots()
             unsigned long exclusion_mask = renderer_88->getExclusionMask();
 
             srVertexPipe::Input pipe_input;
-            pipe_input.record_count_00 = slot_count_84;
+            pipe_input.record_count = slot_count;
             pipe_input.vertex_count_04 = culler_output.vertex_count_10;
             pipe_input.indices_08 = culler_output.avt_04;
-            pipe_input.position_is_float3_0c = culler_output.linear == 0;
-            pipe_input.positions_10 = positions_38;
-            pipe_input.values_14 = vertex_extras_3c;
-            pipe_input.eye_center_18 = eye_center;
-            pipe_input.eye_radius_24 = eye_radius;
-            pipe_input.model_view_28 = &model_view;
-            pipe_input.normal_matrix_2c = &normal_matrix;
-            pipe_input.vertex_arrays_30 = &vertex_arrays_a4[0];
-            pipe_input.exclusion_mask_34 = exclusion_mask;
-            pipe_input.ambient_light_38 = ambient_light;
-            pipe_input.records_48 = &records_94[0];
-            pipe_input.processors_4c = processors;
-            pipe_input.processor_count_50 = processor_count;
-            pipe_input.environment_minimum_54 = environment_minimum;
-            pipe_input.environment_maximum_58 = environment_maximum;
-            pipe_input.environment_scale_5c = environment_scale;
-            pipe_input.environment_inverse_scale_60 = environment_inverse_scale;
+            pipe_input.position_is_float3 = culler_output.linear == 0;
+            pipe_input.positions_10 = positions;
+            pipe_input.values_14 = vertex_extras;
+            pipe_input.eye_center = eye_center;
+            pipe_input.eye_radius = eye_radius;
+            pipe_input.model_view = &model_view;
+            pipe_input.normal_matrix = &normal_matrix;
+            pipe_input.vertex_arrays = &vertex_arrays_a4[0];
+            pipe_input.exclusion_mask = exclusion_mask;
+            pipe_input.ambient_light = ambient_light;
+            pipe_input.records = &records[0];
+            pipe_input.processors = processors;
+            pipe_input.processor_count = processor_count;
+            pipe_input.environment_minimum = environment_minimum;
+            pipe_input.environment_maximum = environment_maximum;
+            pipe_input.environment_scale = environment_scale;
+            pipe_input.environment_inverse_scale = environment_inverse_scale;
 
-            if (active_triangles_2c == 0 && processed != 0) {
+            if (active_triangles == 0 && processed != 0) {
                 for (unsigned long index = 0; index < batch_count; ++index) {
                     culler_output.indices_00[index] += processed;
                 }
@@ -1840,37 +1840,37 @@ void srTriMeshPipeline::FlushSlots()
                 renderer_disable_mask = 0x140;
             }
 
-            for (unsigned long pass_index = 0; pass_index < slot_count_84; ++pass_index) {
-                passes_9c[pass_index].st_18 = records_94[pass_index].st0_20;
+            for (unsigned long pass_index = 0; pass_index < slot_count; ++pass_index) {
+                passes[pass_index].st = records[pass_index].st0;
 
                 unsigned long disable_mask;
-                if (passes_9c[pass_index].shader_14 != 0) {
+                if (passes[pass_index].shader_14 != 0) {
                     srFlags<srVertexProcessor::e_channel> flags =
-                        srVertexPipe::getShaderDisableMask(passes_9c[pass_index].shader_14,
+                        srVertexPipe::getShaderDisableMask(passes[pass_index].shader_14,
                                                            culler_output.indices_00,
                                                            culler_output.triangle_count_0c);
                     disable_mask = flags.value;
                 } else {
                     srFlags<srVertexProcessor::e_channel> flags =
-                        srVertexPipe::getShaderDisableMask(passes_9c[pass_index].flags_08);
+                        srVertexPipe::getShaderDisableMask(passes[pass_index].flags);
                     disable_mask = flags.value;
                 }
-                records_94[pass_index].disable_mask_04 = disable_mask | renderer_disable_mask;
+                records[pass_index].disable_mask_04 = disable_mask | renderer_disable_mask;
             }
 
-            vertex_pipe_90->process(pipe_input);
+            vertex_pipe->process(pipe_input);
 
             srGERD::Renderer::TriInput render_input;
             render_input.triangle_count_00 = culler_output.triangle_count_0c;
-            render_input.record_count_04 = slot_count_84;
-            render_input.vertex_count_08 = culler_output.vertex_count_10;
+            render_input.record_count = slot_count;
+            render_input.vertex_count = culler_output.vertex_count_10;
             render_input.indices_0c = culler_output.indices_00;
-            render_input.triangles_10 = triangles_34;
+            render_input.triangles = triangles;
             render_input.vertices_14 = culler_output.clip_flags_08;
-            render_input.passes_18 = &passes_9c[0];
-            render_input.position_is_float3_1c = culler_output.linear == 0;
-            render_input.project_clip_near_20 = &project_clip_near;
-            render_input.sort_bias_24 = sort_bias_40;
+            render_input.passes = &passes[0];
+            render_input.position_is_float3 = culler_output.linear == 0;
+            render_input.project_clip_near = &project_clip_near;
+            render_input.sort_bias = sort_bias;
             renderer->render(render_input);
             renderer_88->unlockRenderer(renderer, 0);
         }

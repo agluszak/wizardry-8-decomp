@@ -152,12 +152,12 @@ static bool RunSearchModeSemanticTest(void)
              ++index) {
             W8MessageStorageRecord* record = &g_message_storage[box][index];
             free(record->wString);
-            if (record->entries_18) {
-                for (unsigned int entry = 0; entry < PLLength(record->entries_18); ++entry) {
-                    free(PLGet(record->entries_18, entry));
+            if (record->entries) {
+                for (unsigned int entry = 0; entry < PLLength(record->entries); ++entry) {
+                    free(PLGet(record->entries, entry));
                 }
-                PListClear(record->entries_18);
-                PLDestroy(record->entries_18);
+                PListClear(record->entries);
+                PLDestroy(record->entries);
             }
             memset(record, 0, sizeof(*record));
         }
@@ -638,7 +638,7 @@ static void PrepareMainGameFixtureOnGameThread(void* opaque)
                                  creation.attribute_points_remaining);
     }
     for (unsigned int skill = 0; skill < 0x29; ++skill) {
-        if (character.skills[skill].active_00) {
+        if (character.skills[skill].active) {
             InitializeLevelUpAttributePool(&character, &creation, skill,
                                            creation.skill_points_remaining);
         }
@@ -892,9 +892,9 @@ static void QueueVoiceEventOnGameThread(void* opaque)
     }
     W8Character* character = &g_status.buffers.Char[2];
     character->gender = W8_GENDER_FEMALE;
-    character->personality_0081 = 0;
+    character->personality = 0;
     character->voice = 0;
-    g_status.greeting_pending_2497 = 0;
+    g_status.greeting_pending = 0;
     result->queued = QueueCharacterEvent(character, 4, 0, W8_EVENT_BYPASS_CHECKS, 0x7f) != 0;
 }
 

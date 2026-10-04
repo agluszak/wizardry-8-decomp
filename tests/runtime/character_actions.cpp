@@ -52,11 +52,11 @@ static void ReadCharacterFlowOnGameThread(void* opaque)
     state->stats_set_enabled = g_character_stats_region_set != 0 &&
                                g_character_stats_region_set < g_region_set_count &&
                                g_region_sets[g_character_stats_region_set].enabled != 0;
-    state->dialog_present = screen->m_dialog_1b1c != 0;
-    memcpy(state->name, screen->m_character_018.name, sizeof(state->name));
-    memcpy(state->name_part_2, screen->m_character_018.name_part_2, sizeof(state->name_part_2));
+    state->dialog_present = screen->m_dialog != 0;
+    memcpy(state->name, screen->m_character.name, sizeof(state->name));
+    memcpy(state->name_part_2, screen->m_character.name_part_2, sizeof(state->name_part_2));
 
-    W8CharacterCreationState* creation = &screen->m_creation_state_187c;
+    W8CharacterCreationState* creation = &screen->m_creation_state;
     state->attributes_complete = creation->attributes_complete ? 1 : 0;
     state->skills_complete = creation->skills_complete ? 1 : 0;
 
@@ -69,19 +69,19 @@ static void ReadCharacterFlowOnGameThread(void* opaque)
             stats_page->m_race_row != 0 ? stats_page->m_race_row->m_index : -1;
         state->gender_index =
             stats_page->m_gender_row != 0 ? stats_page->m_gender_row->m_index : -1;
-        state->stat_count = stats_page->m_entries_04c.count;
+        state->stat_count = stats_page->m_entries.count;
         if (state->stat_count > 16) {
             state->stat_count = 16;
         }
         for (int index = 0; index < state->stat_count; ++index) {
-            W8CharacterPageEntry* entry = stats_page->m_entries_04c.data[index];
+            W8CharacterPageEntry* entry = stats_page->m_entries.data[index];
             FlowEntryState* out = &state->stat_entries[index];
             if (entry == 0) {
                 continue;
             }
             out->enabled = entry->m_enabled_03a ? 1 : 0;
             out->increment_allowed = entry->m_increment_allowed ? 1 : 0;
-            out->spent = entry->m_second_024 != 0 ? *entry->m_second_024 : 0;
+            out->spent = entry->m_second != 0 ? *entry->m_second : 0;
             out->limit = entry->m_third != 0 ? *entry->m_third : 0;
         }
         state->stat_entries_enabled = state->stat_count > 0 && state->stat_entries[0].enabled;
@@ -90,19 +90,19 @@ static void ReadCharacterFlowOnGameThread(void* opaque)
     W8CharacterSkillsPage* skills_page =
         static_cast<W8CharacterSkillsPage*>(screen->m_pages[2]);
     if (state->page_present[2] && skills_page != 0) {
-        state->skill_count = skills_page->m_entries_04c.count;
+        state->skill_count = skills_page->m_entries.count;
         if (state->skill_count > 16) {
             state->skill_count = 16;
         }
         for (int index = 0; index < state->skill_count; ++index) {
-            W8CharacterPageEntry* entry = skills_page->m_entries_04c.data[index];
+            W8CharacterPageEntry* entry = skills_page->m_entries.data[index];
             FlowEntryState* out = &state->skill_entries[index];
             if (entry == 0) {
                 continue;
             }
             out->enabled = entry->m_enabled_03a ? 1 : 0;
             out->increment_allowed = entry->m_increment_allowed ? 1 : 0;
-            out->spent = entry->m_second_024 != 0 ? *entry->m_second_024 : 0;
+            out->spent = entry->m_second != 0 ? *entry->m_second : 0;
             out->limit = entry->m_third != 0 ? *entry->m_third : 0;
         }
     }
@@ -159,31 +159,31 @@ static int FlowRegionForTarget(int target, int index)
         }
         if (target == FLOW_TARGET_PROFESSION_NEXT) {
             control = stats_page->m_profession_row != 0
-                          ? stats_page->m_profession_row->m_increment_020
+                          ? stats_page->m_profession_row->m_increment
                           : 0;
         } else if (target == FLOW_TARGET_RACE_NEXT) {
             control =
-                stats_page->m_race_row != 0 ? stats_page->m_race_row->m_increment_020 : 0;
+                stats_page->m_race_row != 0 ? stats_page->m_race_row->m_increment : 0;
         } else if (target == FLOW_TARGET_GENDER_NEXT) {
             control = stats_page->m_gender_row != 0
-                          ? stats_page->m_gender_row->m_increment_020
+                          ? stats_page->m_gender_row->m_increment
                           : 0;
-        } else if (index >= 0 && index < stats_page->m_entries_04c.count &&
-                   stats_page->m_entries_04c.data[index] != 0) {
-            control = stats_page->m_entries_04c.data[index]->m_increment_008;
+        } else if (index >= 0 && index < stats_page->m_entries.count &&
+                   stats_page->m_entries.data[index] != 0) {
+            control = stats_page->m_entries.data[index]->m_increment;
         }
         return control != 0 ? control->m_region : -1;
     }
     if (target == FLOW_TARGET_SKILL_INCREMENT || target == FLOW_TARGET_SKILL_HELP) {
         W8CharacterSkillsPage* skills_page =
             static_cast<W8CharacterSkillsPage*>(screen->m_pages[2]);
-        if (skills_page == 0 || index < 0 || index >= skills_page->m_entries_04c.count ||
-            skills_page->m_entries_04c.data[index] == 0) {
+        if (skills_page == 0 || index < 0 || index >= skills_page->m_entries.count ||
+            skills_page->m_entries.data[index] == 0) {
             return -1;
         }
-        W8CharacterPageEntry* entry = skills_page->m_entries_04c.data[index];
+        W8CharacterPageEntry* entry = skills_page->m_entries.data[index];
         control =
-            target == FLOW_TARGET_SKILL_INCREMENT ? entry->m_increment_008 : entry->m_help;
+            target == FLOW_TARGET_SKILL_INCREMENT ? entry->m_increment : entry->m_help;
         return control != 0 ? control->m_region : -1;
     }
     if (target == FLOW_TARGET_NEXT) {

@@ -798,8 +798,8 @@ W8RangeCategory GetMonsterBestRangeCategory(W8MonsterInfo* monster_info,
         return best;
     }
     if (skip_capability_checks != 0 || record->flee_chance >= 0x50) {
-        if (record->special_attack_kind_0e3 != 0 &&
-            g_special_attack_table[record->special_attack_kind_0e3][0] != 6 &&
+        if (record->special_attack_kind != 0 &&
+            g_special_attack_table[record->special_attack_kind][0] != 6 &&
             (skip_capability_checks != 0 || CanMonsterFlee(monster_info, record, 1) != 0)) {
             if (best < W8_RANGE_LONG) {
                 best = W8_RANGE_LONG;
@@ -897,7 +897,7 @@ float CalcRangeDistance(int range_category, W8TargetSource* source)
 {
     float distance = CalcRangeDistance(static_cast<W8RangeCategory>(range_category));
     if (TargetSourceIsCharacter(source, 0)) {
-        return g_startup_world->movement_0c0.alternate_radius_0b4 + distance;
+        return g_startup_world->movement_0c0.alternate_radius + distance;
     }
     if (TargetSourceIsMonster(source, 0)) {
         if (source->iMonsterID == -1) {
@@ -906,7 +906,7 @@ float CalcRangeDistance(int range_category, W8TargetSource* source)
         unsigned int monster_list_index =
             MonsterGetIndexByLocationID(0x484, COMBAT_RANGE_CPP, source->iMonsterID, 1);
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
-        return monster_info->p3D->movement_0c0.alternate_radius_0b4 + distance;
+        return monster_info->p3D->movement_0c0.alternate_radius + distance;
     }
     return distance;
 }
@@ -957,7 +957,7 @@ bool AnyoneStandsAhead(unsigned char position)
 
     for (index = 0; index < W8_FORMATION_ROW_WIDTH; ++index) {
         slot = g_status.formation.bOccupantChar[position][index];
-        if (slot != -1 && g_status.buffers.Char[slot].bonus_1770.out_of_formation == 0) {
+        if (slot != -1 && g_status.buffers.Char[slot].bonus.out_of_formation == 0) {
             ++found;
         }
     }
@@ -985,7 +985,7 @@ char CountRowsBetween(int party_slot, W8MonsterInfo* monster_info)
 
     for (index = 0; index < W8_FORMATION_ROW_WIDTH; ++index) {
         slot = g_status.formation.bOccupantChar[monster_quadrant][index];
-        if (slot != -1 && g_status.buffers.Char[slot].bonus_1770.out_of_formation == 0) {
+        if (slot != -1 && g_status.buffers.Char[slot].bonus.out_of_formation == 0) {
             ++rows;
         }
     }
@@ -1014,7 +1014,7 @@ char CountRowsBetween(int party_slot, W8MonsterInfo* monster_info)
     found_front = 0;
     for (index = 0; index < W8_FORMATION_ROW_WIDTH; ++index) {
         slot = g_status.formation.bOccupantChar[4][index];
-        if (slot != -1 && g_status.buffers.Char[slot].bonus_1770.out_of_formation == 0) {
+        if (slot != -1 && g_status.buffers.Char[slot].bonus.out_of_formation == 0) {
             ++found_front;
         }
     }
@@ -1053,7 +1053,7 @@ bool FrontRankScreens(unsigned int from_position, unsigned int to_position)
     found = 0;
     for (index = 0; index < W8_FORMATION_ROW_WIDTH; ++index) {
         slot = g_status.formation.bOccupantChar[4][index];
-        if (slot != -1 && g_status.buffers.Char[slot].bonus_1770.out_of_formation == 0) {
+        if (slot != -1 && g_status.buffers.Char[slot].bonus.out_of_formation == 0) {
             ++found;
         }
     }
@@ -1130,7 +1130,7 @@ void InitializeMonsterRangeCapabilities(W8MonsterInfo* monster_info, const W8Mon
     monster_info->has_missile =
         best_range > W8_RANGE_SHORT && monster_info->p3D->GetProjectilePosition(&position) == 1;
 
-    monster_info->has_spell_37c = record->spell_chance != 0 &&
+    monster_info->has_spell = record->spell_chance != 0 &&
                                   MonsterIsCycleSupported(monster_info->p3D, 0x19) &&
                                   monster_info->p3D->GetSpellPosition(&position) == 1;
 }

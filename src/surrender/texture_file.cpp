@@ -169,7 +169,7 @@ void srTextureFile::getMipmapData(MultiRequest& request)
 #pragma clang diagnostic ignored "-Wsign-compare"
         /* Retail compares the signed level against the unsigned last level
            (JA branch); the mixed-sign spelling is part of the body. */
-        for (long level = request.mipmap_level + 1; level <= request.last_level_04; ++level) {
+        for (long level = request.mipmap_level + 1; level <= request.last_level; ++level) {
             if (request.destinations[level] != 0 && request.destinations[level - 1] != 0) {
                 request.destinations[level]->copy(*request.destinations[level - 1]);
             }

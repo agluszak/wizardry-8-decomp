@@ -62,12 +62,12 @@ enum { W8_REDRAW_TEXT_BOX = 0x800 };
    its first word is a wide-character count, and its entries word preserves
    the original 32-bit list-pointer bits. */
 struct W8MessageStorageDiskRecord {
-    unsigned long character_count_00;
+    unsigned long character_count;
     unsigned char font_palette_04;
     unsigned char highlight_color_05;
     unsigned char highlight_start_06;
     unsigned char highlight_stop_07;
-    TIMER clock_08;
+    TIMER clock;
     UINT32 saved_remaining_ms;
     int link_10;
     int length_14;
@@ -77,13 +77,13 @@ struct W8MessageStorageDiskRecord {
 
 static_assert(sizeof(W8MessageStorageDiskRecord) == 0x24,
               "W8MessageStorageDiskRecord_must_be_0x24");
-static_assert(offsetof(W8MessageStorageDiskRecord, character_count_00) == 0x00,
+static_assert(offsetof(W8MessageStorageDiskRecord, character_count) == 0x00,
               "W8MessageStorageDiskRecord_count_offset");
 static_assert(offsetof(W8MessageStorageDiskRecord, font_palette_04) == 0x04,
               "W8MessageStorageDiskRecord_byte_fields_offset");
 static_assert(offsetof(W8MessageStorageDiskRecord, highlight_stop_07) == 0x07,
               "W8MessageStorageDiskRecord_last_byte_field_offset");
-static_assert(offsetof(W8MessageStorageDiskRecord, clock_08) == 0x08,
+static_assert(offsetof(W8MessageStorageDiskRecord, clock) == 0x08,
               "W8MessageStorageDiskRecord_scalar_fields_offset");
 static_assert(offsetof(W8MessageStorageDiskRecord, saved_remaining_ms) == 0x0c,
               "W8MessageStorageDiskRecord_saved_remaining_ms_offset");
@@ -161,10 +161,10 @@ void ResetMessageStorage(void)
             if (record->wString == 0) {
                 continue;
             }
-            if (record->entries_18 == 0) {
-                record->entries_18 = PLCreate();
+            if (record->entries == 0) {
+                record->entries = PLCreate();
             } else {
-                W8PList* entries = record->entries_18;
+                W8PList* entries = record->entries;
                 /* 0x0058FF14 tests the entry count signed and 0x0058FF2A
                    compares the index signed. */
                 int count = PLLength(entries);
@@ -180,9 +180,9 @@ void ResetMessageStorage(void)
                 while ((cursor = GetNextNoticeWord(cursor, record->wString, &word)) != -1) {
                     W8NoticeWord* stored = static_cast<W8NoticeWord*>(malloc(sizeof(W8NoticeWord)));
                     *stored = word;
-                    stored->keyword_08 = 0;
+                    stored->keyword = 0;
                     stored->redraw_09 = false;
-                    PLAdoptAppend(record->entries_18, stored);
+                    PLAdoptAppend(record->entries, stored);
                 }
             }
         }
@@ -234,15 +234,15 @@ static void AppendNoticeLine(unsigned char font_palette, const wchar_t* text, sh
             free(first->wString);
             first->wString = 0;
         }
-        if (first->entries_18) {
-            W8PList* entries = first->entries_18;
+        if (first->entries) {
+            W8PList* entries = first->entries;
             int count = PLLength(entries);
             for (int index = 0; index < count; ++index) {
                 free(PLGet(entries, index));
             }
             PListClear(entries);
-            PLDestroy(first->entries_18);
-            first->entries_18 = 0;
+            PLDestroy(first->entries);
+            first->entries = 0;
         }
         memmove(first, first + 1, 349 * sizeof(*first));
         memset(first + 349, 0, sizeof(*first));
@@ -260,11 +260,11 @@ static void AppendNoticeLine(unsigned char font_palette, const wchar_t* text, sh
     record->wString = static_cast<wchar_t*>(malloc((wcslen(text) + 1) * sizeof(wchar_t)));
     if (record->wString) {
         wcscpy(record->wString, text);
-        record->entries_18 = 0;
-        if (!record->entries_18) {
-            record->entries_18 = PLCreate();
+        record->entries = 0;
+        if (!record->entries) {
+            record->entries = PLCreate();
         } else {
-            W8PList* entries = record->entries_18;
+            W8PList* entries = record->entries;
             int count = PLLength(entries);
             for (int entry = 0; entry < count; ++entry) {
                 free(PLGet(entries, entry));
@@ -276,9 +276,9 @@ static void AppendNoticeLine(unsigned char font_palette, const wchar_t* text, sh
         while ((cursor = GetNextNoticeWord(cursor, record->wString, &word)) != -1) {
             W8NoticeWord* stored = static_cast<W8NoticeWord*>(malloc(sizeof(W8NoticeWord)));
             *stored = word;
-            stored->keyword_08 = 0;
+            stored->keyword = 0;
             stored->redraw_09 = false;
-            PLAdoptAppend(record->entries_18, stored);
+            PLAdoptAppend(record->entries, stored);
         }
     }
     record->font_palette = font_palette;
@@ -301,7 +301,7 @@ static void AppendNoticeLine(unsigned char font_palette, const wchar_t* text, sh
         if (delay > 60000) {
             delay = 60000;
         }
-        last->clock_08 = SetCountdownClock(delay);
+        last->clock = SetCountdownClock(delay);
     }
 }
 
@@ -459,7 +459,7 @@ void ReleaseMessageStorage(void)
             if (record->wString) {
                 free(record->wString);
             }
-            W8PList* entries = record->entries_18;
+            W8PList* entries = record->entries;
             if (entries) {
                 unsigned int count = PLLength(entries);
                 for (unsigned int entry = 0; entry < count; ++entry) {
@@ -467,7 +467,7 @@ void ReleaseMessageStorage(void)
                 }
                 PListClear(entries);
                 PLDestroy(entries);
-                record->entries_18 = 0;
+                record->entries = 0;
             }
             memset(record, 0, sizeof(*record));
         }
@@ -499,7 +499,7 @@ unsigned char SaveMessageStorage(int file)
         FileWrite(file, &g_status.text_box_lines_used[region], 4, 0);
         for (index = 0; index < g_status.text_box_lines_used[region]; ++index) {
             live_record = &g_message_storage[region][index];
-            disk_record.character_count_00 =
+            disk_record.character_count =
                 live_record->wString != 0
                     ? static_cast<unsigned long>(wcslen(live_record->wString) + 1)
                     : 0;
@@ -507,16 +507,16 @@ unsigned char SaveMessageStorage(int file)
             disk_record.highlight_color_05 = live_record->highlight_color;
             disk_record.highlight_start_06 = live_record->highlight_start;
             disk_record.highlight_stop_07 = live_record->highlight_stop;
-            disk_record.clock_08 = live_record->clock_08;
+            disk_record.clock = live_record->clock;
             disk_record.saved_remaining_ms = live_record->saved_remaining_ms;
             disk_record.link_10 = live_record->link_10;
             disk_record.length_14 = live_record->length_14;
-            memcpy(&disk_record.serialized_entries_18_bits, &live_record->entries_18,
+            memcpy(&disk_record.serialized_entries_18_bits, &live_record->entries,
                    sizeof(disk_record.serialized_entries_18_bits));
             memcpy(disk_record.trailing_bytes, live_record->unknown_1c,
                    sizeof(disk_record.trailing_bytes));
             FileWrite(file, &disk_record, sizeof(disk_record), 0);
-            FileWrite(file, live_record->wString, disk_record.character_count_00 * 2, 0);
+            FileWrite(file, live_record->wString, disk_record.character_count * 2, 0);
         }
     }
     return 1;
@@ -554,14 +554,14 @@ unsigned char LoadMessageStorage(int file)
             live_record->highlight_color = disk_record.highlight_color_05;
             live_record->highlight_start = disk_record.highlight_start_06;
             live_record->highlight_stop = disk_record.highlight_stop_07;
-            live_record->clock_08 = disk_record.clock_08;
+            live_record->clock = disk_record.clock;
             live_record->saved_remaining_ms = disk_record.saved_remaining_ms;
             live_record->link_10 = disk_record.link_10;
             live_record->length_14 = disk_record.length_14;
-            live_record->entries_18 = 0;
+            live_record->entries = 0;
             memcpy(live_record->unknown_1c, disk_record.trailing_bytes,
                    sizeof(live_record->unknown_1c));
-            size = disk_record.character_count_00 * 2;
+            size = disk_record.character_count * 2;
             text = static_cast<wchar_t*>(malloc(size));
             live_record->wString = text;
             if (text != 0) {
@@ -857,7 +857,7 @@ void AppendToLastTextLine(const wchar_t* text, short text_box)
         free(line->wString);
         line->wString = 0;
     }
-    W8PList* entries = line->entries_18;
+    W8PList* entries = line->entries;
     if (entries) {
         unsigned int count = PLLength(entries);
         for (unsigned int entry = 0; entry < count; ++entry) {
@@ -865,7 +865,7 @@ void AppendToLastTextLine(const wchar_t* text, short text_box)
         }
         PListClear(entries);
         PLDestroy(entries);
-        line->entries_18 = 0;
+        line->entries = 0;
     }
     if (g_status.text_box_lines_shown[text_box] == *lines_used) {
         if (!(g_status.text_box_lines_shown[text_box] > 0)) {
@@ -1028,7 +1028,7 @@ void AdvanceNoticeLine(short text_box)
     if (delay > 60000) {
         delay = 60000;
     }
-    record->clock_08 = SetCountdownClock(delay);
+    record->clock = SetCountdownClock(delay);
     unsigned int shown = ++g_status.text_box_lines_shown[text_box];
     if (g_level_block->text_scroll_drag_idle) {
         if (gXStatus.fNpcDialogueMode && g_npc_interaction_state->text_box_collapsed) {
@@ -1269,7 +1269,7 @@ void RedrawDialogueTextInput(void)
             SaveFontSettings();
             SetFontDestBuffer(0xfffffff2, g_level_block->text_box_left, g_level_block->text_box_top,
                               g_level_block->text_box_right, g_level_block->text_box_bottom, 0);
-            SetFontObjectPalette16BPP(g_level_block->text_box_font, g_level_block->palette_2ec);
+            SetFontObjectPalette16BPP(g_level_block->text_box_font, g_level_block->palette);
             SetFont(g_level_block->text_box_font);
 
             int y = g_level_block->text_box_top + offset * 0xb;
@@ -1291,7 +1291,7 @@ void RedrawDialogueTextInput(void)
                 DrawDialogueTextCursor(g_level_block->text_box_left, y);
             }
 
-            SetFontObjectPalette16BPP(g_level_block->text_box_font, g_level_block->palette_2ec);
+            SetFontObjectPalette16BPP(g_level_block->text_box_font, g_level_block->palette);
             RestoreFontSettings();
         }
     }
@@ -1988,7 +1988,7 @@ static void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, bool slo
             if (line->font_palette < 0xf) {
                 palette = g_font_state_palettes[line->font_palette];
             } else {
-                palette = g_level_block->palette_2ec;
+                palette = g_level_block->palette;
             }
             SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
             if (line->length_14 == -1) {
@@ -2004,7 +2004,7 @@ static void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, bool slo
                 if (line->font_palette < 0xf) {
                     palette = g_font_state_palettes[line->font_palette];
                 } else {
-                    palette = g_level_block->palette_2ec;
+                    palette = g_level_block->palette;
                 }
                 SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
                 wcsncpy(scratch, line->wString, line->highlight_start);
@@ -2026,7 +2026,7 @@ static void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, bool slo
                 if (line->highlight_color < 0xf) {
                     palette = g_font_state_palettes[line->highlight_color];
                 } else {
-                    palette = g_level_block->palette_2ec;
+                    palette = g_level_block->palette;
                 }
                 SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
                 wcsncpy(scratch, line->wString + line->highlight_start, length);
@@ -2056,7 +2056,7 @@ static void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, bool slo
                 if (palette_index < 0xf) {
                     palette = g_font_state_palettes[palette_index];
                 } else {
-                    palette = g_level_block->palette_2ec;
+                    palette = g_level_block->palette;
                 }
                 SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
                 wcsncpy(scratch, line->wString + line->highlight_stop, length);
@@ -2137,7 +2137,7 @@ void RedrawTextBoxBody(bool skip_invalidate)
         can_scroll_down = scroll + static_cast<unsigned int>(GetTextBoxVisibleLineCount()) <
                           GetTextBoxLineCount(text_box);
         if (!can_scroll_down &&
-            ClockIsTicking(g_message_storage[text_box][scroll + rows - 1].clock_08) == 0) {
+            ClockIsTicking(g_message_storage[text_box][scroll + rows - 1].clock) == 0) {
             return;
         }
     }
@@ -2145,7 +2145,7 @@ void RedrawTextBoxBody(bool skip_invalidate)
     SaveFontSettings();
     SetFontDestBuffer(0xfffffff2, g_level_block->text_box_left, g_level_block->text_box_top,
                       g_level_block->text_box_right, g_level_block->text_box_bottom, 0);
-    SetFontObjectPalette16BPP(g_level_block->text_box_font, g_level_block->palette_2ec);
+    SetFontObjectPalette16BPP(g_level_block->text_box_font, g_level_block->palette);
     SetFont(g_level_block->text_box_font);
 
     y_offset = 0;
@@ -2176,7 +2176,7 @@ void RedrawTextBoxBody(bool skip_invalidate)
         y_offset += 0xb;
     }
 
-    SetFontObjectPalette16BPP(g_level_block->text_box_font, g_level_block->palette_2ec);
+    SetFontObjectPalette16BPP(g_level_block->text_box_font, g_level_block->palette);
     RestoreFontSettings();
 }
 
@@ -2268,7 +2268,7 @@ void RedrawTextBoxComplete(void)
 
     screen->m_text_panel->Invalidate(0);
     screen->m_status_panel->RefreshStatusTexts();
-    screen->m_action_panel_014->Invalidate(0);
+    screen->m_action_panel->Invalidate(0);
 }
 
 /* The last message on the current line whose clock has stopped, searched from
@@ -2283,7 +2283,7 @@ int FindStoppedTextLine(void)
         return -1;
     }
     while (--index >= 0) {
-        if (ClockIsTicking(g_message_storage[g_status.text_line_cursor][index].clock_08) ==
+        if (ClockIsTicking(g_message_storage[g_status.text_line_cursor][index].clock) ==
             0) {
             return index;
         }
@@ -2336,7 +2336,7 @@ void AttemptTrapDisarm(int level, int /*flag*/, char backfire)
     }
     screen->m_text_panel->EnableRegionSet(0);
     screen->m_text_panel->m_key_handler->m_range_038.EnableRegionSet(0);
-    screen->m_action_panel_014->EnableRegionSet(0);
+    screen->m_action_panel->EnableRegionSet(0);
     screen->m_timer_154.SetDuration(1.5f);
     screen->m_timer_154.Restart();
 }
@@ -2351,7 +2351,7 @@ void SetKnockKnockTarget(int target, int /*flag*/, int /*backfire*/)
         return;
     }
     screen->m_target_difficulty = target;
-    screen->m_status_panel->m_target_068 = target;
+    screen->m_status_panel->m_target = target;
     screen->m_text_panel->m_target_changed = 1;
 }
 
@@ -2453,15 +2453,15 @@ static void DrawNoticeWordOverlays(W8MessageStorageRecord* line, int x, int y)
 {
     wchar_t word_text[100];
 
-    if (line->entries_18 == 0) {
+    if (line->entries == 0) {
         return;
     }
-    unsigned int count = PLLength(line->entries_18);
+    unsigned int count = PLLength(line->entries);
     for (int i = 0; i < static_cast<int>(count); ++i) {
-        W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(line->entries_18, i));
-        if (word->keyword_08 != 0) {
+        W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(line->entries, i));
+        if (word->keyword != 0) {
             unsigned short* palette =
-                word->keyword_08 == 2 ? g_font_state_palettes[3] : g_font_state_palettes[5];
+                word->keyword == 2 ? g_font_state_palettes[3] : g_font_state_palettes[5];
             SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
             memset(word_text, 0, sizeof(word_text));
             wcsncpy(word_text, line->wString + word->start, word->end - word->start + 1);
@@ -2474,7 +2474,7 @@ static void DrawNoticeWordOverlays(W8MessageStorageRecord* line, int x, int y)
             if (line->font_palette < 0xf) {
                 palette = g_font_state_palettes[line->font_palette];
             } else {
-                palette = g_level_block->palette_2ec;
+                palette = g_level_block->palette;
             }
             SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
             memset(word_text, 0, sizeof(word_text));
@@ -2490,13 +2490,13 @@ static void DrawNoticeWordOverlays(W8MessageStorageRecord* line, int x, int y)
 void ResetUsedNoticeWords(int text_box, bool redraw)
 {
     for (int i = 0; i < 0x15e; ++i) {
-        W8PList* list = g_message_storage[text_box][i].entries_18;
+        W8PList* list = g_message_storage[text_box][i].entries;
         if (list != 0) {
             unsigned int count = PLLength(list);
             for (int j = 0; j < static_cast<int>(count); ++j) {
                 W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(list, j));
-                if (word->keyword_08 == 2) {
-                    word->keyword_08 = 0;
+                if (word->keyword == 2) {
+                    word->keyword = 0;
                     word->redraw_09 = true;
                 }
             }
@@ -2511,13 +2511,13 @@ void ResetUsedNoticeWords(int text_box, bool redraw)
 void ClearNoticeWordHover(int text_box, bool redraw)
 {
     for (int i = 0; i < 0x15e; ++i) {
-        W8PList* list = g_message_storage[text_box][i].entries_18;
+        W8PList* list = g_message_storage[text_box][i].entries;
         if (list != 0) {
             unsigned int count = PLLength(list);
             for (int j = 0; j < static_cast<int>(count); ++j) {
                 W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(list, j));
-                if (word->keyword_08 != 2) {
-                    word->keyword_08 = 0;
+                if (word->keyword != 2) {
+                    word->keyword = 0;
                     word->redraw_09 = true;
                 }
             }
@@ -2538,13 +2538,13 @@ void HighlightNoticeWordAt(int text_box, unsigned short x, unsigned short y)
     unsigned int count;
 
     for (int i = 0; i < 0x15e; ++i) {
-        list = g_message_storage[text_box][i].entries_18;
+        list = g_message_storage[text_box][i].entries;
         if (list != 0) {
             count = PLLength(list);
             for (int j = 0; j < static_cast<int>(count); ++j) {
                 W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(list, j));
-                if (word->keyword_08 != 2) {
-                    word->keyword_08 = 0;
+                if (word->keyword != 2) {
+                    word->keyword = 0;
                     word->redraw_09 = true;
                 }
             }
@@ -2563,13 +2563,13 @@ void HighlightNoticeWordAt(int text_box, unsigned short x, unsigned short y)
                                      g_level_block->text_box_font) /
                          2);
             }
-            list = g_message_storage[text_box][line].entries_18;
+            list = g_message_storage[text_box][line].entries;
             count = PLLength(list);
             offset = x - x_base;
             for (int i = 0; i < static_cast<int>(count); ++i) {
                 W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(list, i));
-                if (word->x_start <= offset && offset <= word->x_end && word->keyword_08 != 2) {
-                    word->keyword_08 = 1;
+                if (word->x_start <= offset && offset <= word->x_end && word->keyword != 2) {
+                    word->keyword = 1;
                 }
             }
         }
@@ -2600,7 +2600,7 @@ W8NoticeWord* HitTestNoticeWord(int text_box, unsigned short x, unsigned short y
                                      g_level_block->text_box_font) /
                          2);
             }
-            list = g_message_storage[text_box][line].entries_18;
+            list = g_message_storage[text_box][line].entries;
             count = PLLength(list);
             offset = x - x_base;
             for (int i = 0; i < static_cast<int>(count); ++i) {

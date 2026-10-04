@@ -10,12 +10,12 @@
 srModelInstance::srModelInstance(srNode* parent)
     : srClassSupport<srModelInstance, srNode, 0, 0x1100>(static_cast<srNode*>(0))
 {
-    alignment_flags_148.value = 0;
-    align_angle_158 = 0.0f;
+    alignment_flags.value = 0;
+    align_angle = 0.0f;
     align_axis.x = 0.0f;
     align_axis.y = 0.0f;
     align_axis.z = 1.0f;
-    exclusion_mask_15c = 0;
+    exclusion_mask = 0;
     if (parent != 0) {
         setParent(parent, 0);
     }
@@ -26,11 +26,11 @@ srModelInstance& srModelInstance::operator=(const srModelInstance& other)
 {
     if (this != &other) {
         srNode::operator=(other);
-        alignment_flags_148 = other.alignment_flags_148;
+        alignment_flags = other.alignment_flags;
         setModel(other.getModel());
-        align_angle_158 = other.align_angle_158;
+        align_angle = other.align_angle;
         align_axis = other.align_axis;
-        exclusion_mask_15c = other.exclusion_mask_15c;
+        exclusion_mask = other.exclusion_mask;
     }
     return *this;
 }
@@ -66,10 +66,10 @@ void srModelInstance::getLocalBounds(BoundInfo& bounds)
 {
     srModel* model = getModel();
     if (model == 0) {
-        bounds.state_28 = 0;
+        bounds.state = 0;
         return;
     }
-    bounds.state_28 = 1;
+    bounds.state = 1;
     model->getBoundingBox(bounds.minimum, bounds.maximum);
     model->getBoundingSphere(bounds.center, bounds.radius);
 }
@@ -87,7 +87,7 @@ void srModelInstance::process(const ProcessInfo& info, e_processType type)
 {
     srGERD* renderer = info.renderer;
     ++srCore.getStatisticsManager()->statistics_00.meshes_traversed;
-    if ((alignment_flags_148.value & 1) == 0) {
+    if ((alignment_flags.value & 1) == 0) {
         applyWorldSpaceMatrix(*renderer);
     } else {
         renderer->matrixMode(srGERD::MATRIX_MODELVIEW);
@@ -132,15 +132,15 @@ void srModelInstance::process(const ProcessInfo& info, e_processType type)
         srVector3T<float> translation;
         translation.Set(position.x, position.y, position.z);
         renderer->translate(translation);
-        if (align_angle_158 != 0.0f) {
-            renderer->rotate(align_angle_158, align_axis);
+        if (align_angle != 0.0f) {
+            renderer->rotate(align_angle, align_axis);
         }
         renderer->scale((float)world_scale.x * length_x, (float)world_scale.y * length_y,
                         -((float)world_scale.z * length_z));
     }
-    if (exclusion_mask_15c != 0) {
+    if (exclusion_mask != 0) {
         unsigned long mask = renderer->getExclusionMask();
-        renderer->setExclusionMask(mask | exclusion_mask_15c);
+        renderer->setExclusionMask(mask | exclusion_mask);
         getModel()->render(*renderer);
         renderer->setExclusionMask(mask);
     } else {
@@ -157,27 +157,27 @@ void srModelInstance::dump(std::ostream& stream)
     long flags = stream.flags();
     stream.flags((flags & 0xfffffe7fL) | 0x40);
     stream.width(0x20);
-    stream << "  Is aligned: " << srBoolToString(alignment_flags_148.value & 1) << '\n';
-    if ((alignment_flags_148.value & 1) != 0) {
+    stream << "  Is aligned: " << srBoolToString(alignment_flags.value & 1) << '\n';
+    if ((alignment_flags.value & 1) != 0) {
         stream.width(0x20);
         stream << "    Align axis: ";
         stream << '{' << align_axis.x << ',' << align_axis.y << ',' << align_axis.z
                << '}' << '\n';
         stream.width(0x20);
-        stream << "    Align angle: " << (double)align_angle_158 << '\n';
+        stream << "    Align angle: " << (double)align_angle << '\n';
     }
     stream.width(0x20);
     stream << "  Model: ";
     stream << (getModel() != 0 ? getModel()->getName() : "none") << '\n';
     stream.width(0x20);
-    stream << "  Exclusion mask: " << exclusion_mask_15c << '\n';
+    stream << "  Exclusion mask: " << exclusion_mask << '\n';
     stream.flags(flags & 0x7fff);
 }
 
 // FUNCTION: SURRENDER 0x1004FF40
 double srModelInstance::getAlignAngle() const
 {
-    return (double)align_angle_158;
+    return (double)align_angle;
 }
 
 // FUNCTION: SURRENDER 0x1004FF50
@@ -189,30 +189,30 @@ srVector3T<float> srModelInstance::getAlignAxis() const
 // FUNCTION: SURRENDER 0x1004FE90
 int srModelInstance::isAligned() const
 {
-    return (int)(alignment_flags_148.value & 1);
+    return (int)(alignment_flags.value & 1);
 }
 
 // FUNCTION: SURRENDER 0x10050000
 unsigned long srModelInstance::getExclusionMask() const
 {
-    return exclusion_mask_15c;
+    return exclusion_mask;
 }
 
 // FUNCTION: SURRENDER 0x1004FE60
 void srModelInstance::setAlignment(int enabled)
 {
     if (enabled != 0) {
-        alignment_flags_148.value |= 1;
+        alignment_flags.value |= 1;
         return;
     }
-    alignment_flags_148.value &= ~1u;
+    alignment_flags.value &= ~1u;
 }
 
 // FUNCTION: SURRENDER 0x1004FEA0
 void srModelInstance::setAlignAngle(double angle)
 {
-    align_angle_158 = (float)angle;
-    alignment_flags_148.value |= 1;
+    align_angle = (float)angle;
+    alignment_flags.value |= 1;
 }
 
 // FUNCTION: SURRENDER 0x1004FEC0
@@ -226,11 +226,11 @@ void srModelInstance::setAlignAxis(srVector3T<float> axis)
         float scale = (float)(1.0 / sqrt(length_squared));
         align_axis *= scale;
     }
-    alignment_flags_148.value |= 1;
+    alignment_flags.value |= 1;
 }
 
 // FUNCTION: SURRENDER 0x1004FFF0
 void srModelInstance::setExclusionMask(unsigned long mask)
 {
-    exclusion_mask_15c = mask;
+    exclusion_mask = mask;
 }

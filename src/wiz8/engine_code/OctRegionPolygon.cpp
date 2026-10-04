@@ -66,8 +66,8 @@ void W8OctPreTreeGeometry::Release()
 {
     if (m_vertices != 0) {
         int* last_faces = m_vertices[1].face_indices;
-        int* last_owned = m_vertices[1].owned_48;
-        for (unsigned long index = 1; index < vertex_count_00; ++index) {
+        int* last_owned = m_vertices[1].owned;
+        for (unsigned long index = 1; index < vertex_count; ++index) {
             W8OctPreTreeVertex* vertex = &m_vertices[index];
             if (vertex->face_indices != 0 && vertex->face_indices != last_faces) {
                 if (last_faces != 0) {
@@ -76,12 +76,12 @@ void W8OctPreTreeGeometry::Release()
                 last_faces = vertex->face_indices;
                 vertex->face_indices = 0;
             }
-            if (vertex->owned_48 != 0 && vertex->owned_48 != last_owned) {
+            if (vertex->owned != 0 && vertex->owned != last_owned) {
                 if (last_owned != 0) {
                     free(last_owned);
                 }
-                last_owned = vertex->owned_48;
-                vertex->owned_48 = 0;
+                last_owned = vertex->owned;
+                vertex->owned = 0;
             }
         }
         if (last_faces != 0) {
@@ -109,7 +109,7 @@ void W8OctPreTreeGeometry::Release()
         }
         free(m_polygons);
     }
-    if (owned_14 != 0) {
-        free(owned_14);
+    if (owned != 0) {
+        free(owned);
     }
 }

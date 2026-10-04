@@ -181,8 +181,8 @@ void HandleFactChange(int fact_id, unsigned char value)
         }
         return;
     case 0x39:
-        if (value != 0 && g_status.buffers.Char[g_status.party_slot_249c].uiCondition[0x13] != 0) {
-            RemoveCharacterCondition(g_status.party_slot_249c, 0x13, 1);
+        if (value != 0 && g_status.buffers.Char[g_status.party_slot].uiCondition[0x13] != 0) {
+            RemoveCharacterCondition(g_status.party_slot, 0x13, 1);
         }
         return;
     case 0x3a:
@@ -224,8 +224,8 @@ void HandleFactChange(int fact_id, unsigned char value)
                 if (g_status.buffers.XChar[slot].fOccupied != 0 &&
                     character->highest_condition < 0x12 &&
                     g_profession_skill_availability[7][character->iProfession] != 0 &&
-                    character->skills[7].points_02 < 10) {
-                    character->skills[7].points_02 = 10;
+                    character->skills[7].points < 10) {
+                    character->skills[7].points = 10;
                     ApplySkillChange(character, 7);
                 }
             }
@@ -814,7 +814,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         particle = FindParticleByName(g_world, "FuzzBlast");
         if (particle != 0) {
             particle->SetActive(0);
-            particle->start_frame_264 = 0;
+            particle->start_frame = 0;
             particle->emission_count = 0;
             particle->SetActive(1);
             particle->SetTraversalEnabled(1);
@@ -936,22 +936,22 @@ void HandleScriptedNpcDeath(unsigned int monster_list_index)
         return;
     }
     if ((record->flags & W8_MONSTER_FLAG_NPC) != 0) {
-        W8NpcState* npc = GetNpcStateByKind(record->npc_kind_0cd);
+        W8NpcState* npc = GetNpcStateByKind(record->npc_kind);
         if (npc != 0) {
-            npc->spawned_04 = 1;
+            npc->spawned = 1;
             if (npc->name_style == 0x18) {
                 wchar_t display_value[16];
                 unsigned char fact_ok = GetFact(0xc1);
                 if (fact_ok == 0) {
                     fact_ok = GetFact(0xdb);
                     if (fact_ok == 0) {
-                        npc->spawned_04 = 0;
+                        npc->spawned = 0;
                     }
                 }
             }
         }
     }
-    if (record->record_id_187 != 0x234) {
+    if (record->record_id != 0x234) {
         return;
     }
     int lead_index = -1;
@@ -1048,10 +1048,10 @@ void MonsterKilled(int record_id, int killer_party_slot)
                 SetFact(0x2a6, 0, 0);
             }
             if (g_status.rpc_active != 0) {
-                if (g_status.buffers.Char[g_status.sedexus_party_slot_247f].uiCondition[10] > 0) {
-                    RemoveCharacterCondition(g_status.sedexus_party_slot_247f, 10, 0);
+                if (g_status.buffers.Char[g_status.sedexus_party_slot].uiCondition[10] > 0) {
+                    RemoveCharacterCondition(g_status.sedexus_party_slot, 10, 0);
                 }
-                QueueCharacterEvent(&g_status.buffers.Char[g_status.sedexus_party_slot_247f],
+                QueueCharacterEvent(&g_status.buffers.Char[g_status.sedexus_party_slot],
                                     g_effect_005ee6f8, 0, g_character_event_no_flags,
                                     g_character_event_full_volume);
             }

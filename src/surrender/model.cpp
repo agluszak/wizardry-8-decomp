@@ -8,7 +8,7 @@
 srModel::Client::Client()
 {
     model_04 = 0;
-    previous_08 = 0;
+    previous = 0;
     next_0c = 0;
 }
 
@@ -24,11 +24,11 @@ void srModel::Client::setModel(srModel* model)
     srModel* old = model_04;
     if (old != model) {
         if (old != 0) {
-            if (previous_08 != 0) {
-                previous_08->next_0c = next_0c;
+            if (previous != 0) {
+                previous->next_0c = next_0c;
             }
             if (next_0c != 0) {
-                next_0c->previous_08 = previous_08;
+                next_0c->previous = previous;
             }
             if (this == old->first_client) {
                 old->first_client = next_0c;
@@ -36,10 +36,10 @@ void srModel::Client::setModel(srModel* model)
         }
         model_04 = model;
         if (model != 0) {
-            previous_08 = 0;
+            previous = 0;
             next_0c = model->first_client;
             if (next_0c != 0) {
-                next_0c->previous_08 = this;
+                next_0c->previous = this;
             }
             model->first_client = this;
         }
@@ -64,7 +64,7 @@ srModel::Client* srModel::Client::getNextClient() const
 // FUNCTION: SURRENDER 0x1003C6E0
 srModel::Client* srModel::Client::getPrevClient() const
 {
-    return previous_08;
+    return previous;
 }
 
 // FUNCTION: SURRENDER 0x1003C520

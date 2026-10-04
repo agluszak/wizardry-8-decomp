@@ -206,8 +206,8 @@ unsigned char BitArray::Save(int handle)
         }
 
         srHuffman::Compressor compressor(sampler);
-        bits.put(compressor.num_symbols_1c, 32);
-        bits.put(compressor.code_width_20, 6);
+        bits.put(compressor.num_symbols, 32);
+        bits.put(compressor.code_width, 6);
         bits.put(count, 32);
         compressor.storeSymbolTable(bits);
         if (count > 0) {

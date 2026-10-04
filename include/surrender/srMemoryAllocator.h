@@ -31,7 +31,7 @@ private:
         /* Written through by allocate's strcpy - mutable storage despite the
            read-only getName accessor. */
         char* name_0c;
-        unsigned long allocation_size_10;
+        unsigned long total_size;
         unsigned long requested_size;
         unsigned long reserved_18[2];
     };
@@ -39,10 +39,10 @@ private:
     SR_DLL_IMPORT Block* align(void* allocation);
 
     Block* first_block;
-    unsigned long allocated_bytes_04;
-    unsigned long allocation_count_08;
+    unsigned long allocated_bytes;
+    unsigned long allocation_count;
     e_alignSize alignment_0c;
-    int clear_10;
+    int clear;
 };
 
 static_assert(sizeof(srMemoryAllocator) == 0x14, "srMemoryAllocator_must_be_0x14");

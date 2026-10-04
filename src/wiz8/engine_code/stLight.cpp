@@ -53,8 +53,8 @@ stLight::stLight(srNode* parent)
         setParent(parent, 0);
     }
     attenuation_model = srLight::ATTENUATION_3DSTUDIO_MAX;
-    m_owned_244 = 0;
-    m_direction_239 = 1;
+    path_ai = 0;
+    m_direction = 1;
     m_path_index = 0;
     m_path_direction = 1;
     m_position_228.SetZero();
@@ -73,8 +73,8 @@ stLight::stLight(srNode* parent)
 stLight::~stLight()
 {
     delete m_definition;
-    if (m_owned_244 != 0) {
-        DestroyOwnedPathAI(m_owned_244);
+    if (path_ai != 0) {
+        DestroyOwnedPathAI(path_ai);
     }
 }
 
@@ -95,11 +95,11 @@ stLight& stLight::operator=(const stLight& other)
         m_definition = 0;
     }
     m_unknown_238 = other.m_unknown_238;
-    m_direction_239 = other.m_direction_239;
-    if (other.m_owned_244 != 0) {
-        m_owned_244 = ClonePathAI(other.m_owned_244);
+    m_direction = other.m_direction;
+    if (other.path_ai != 0) {
+        path_ai = ClonePathAI(other.path_ai);
     } else {
-        m_owned_244 = 0;
+        path_ai = 0;
     }
     m_path_index = other.m_path_index;
     m_path_direction = other.m_path_direction;
@@ -173,8 +173,8 @@ void stLight::SetDefinitionTime(float time)
 /* Advance the light's definition-driven state by one update. A keyframed
    (type 2) definition walks keyframe_index through the time table and lerps
    intensity and diffuse color between the surrounding keys; a flags-driven
-   definition either oscillates intensity between intensity_28 and
-   intensity_to_2c (optionally lerping color toward color_to_*), ramps it
+   definition either oscillates intensity between intensity and
+   intensity_to (optionally lerping color toward color_to_*), ramps it
    one way, or flickers the node disable flag and its prop's animated
    texture at a per-update probability. Any owned path advances once the
    elapsed seconds times the path rate exceed one whole step, wrapping or
@@ -186,15 +186,15 @@ void stLight::Update()
         stKeyframedLightDefinition* definition =
             static_cast<stKeyframedLightDefinition*>(m_definition);
         float time = definition->time_4c;
-        int count = definition->values_18.count;
+        int count = definition->key_frames.count;
         int last = count - 1;
-        int* slot = definition->values_18.GetAt(last);
+        int* slot = definition->key_frames.GetAt(last);
         if (time <= *slot) {
             definition->keyframe_index = 0;
-            if (definition->values_18.count != 1 && -1 < definition->values_18.count - 1) {
+            if (definition->key_frames.count != 1 && -1 < definition->key_frames.count - 1) {
                 do {
                     int next = definition->keyframe_index + 1;
-                    slot = definition->values_18.GetAt(next);
+                    slot = definition->key_frames.GetAt(next);
                     if (*slot <= time) {
                         definition->keyframe_index = next;
                     } else {
@@ -203,29 +203,29 @@ void stLight::Update()
                 } while (definition->keyframe_index < count - 1);
             }
         } else {
-            slot = definition->values_18.GetAt(last);
+            slot = definition->key_frames.GetAt(last);
             time = *slot;
             definition->keyframe_index = count - 2;
         }
-        if (*definition->values_18.data <= time) {
+        if (*definition->key_frames.data <= time) {
             int index = definition->keyframe_index;
             if (count - 2 <= index) {
                 return;
             }
-            int* from = definition->values_18.GetAt(index);
-            int* to = definition->values_18.GetAt(index + 1);
+            int* from = definition->key_frames.GetAt(index);
+            int* to = definition->key_frames.GetAt(index + 1);
             float span = *to - *from;
             float blend = g_float_one;
             if (span != g_float_zero) {
                 blend = (time - *from) / span;
             }
-            float* key_from = definition->values_28.GetAt(index);
-            float* key_to = definition->values_28.GetAt(index + 1);
+            float* key_from = definition->key_intensities.GetAt(index);
+            float* key_to = definition->key_intensities.GetAt(index + 1);
             float inverse = g_float_one - blend;
             intensity_1d0 = inverse * *key_from + blend * *key_to;
             index = definition->keyframe_index;
-            srVector3T<float>* color_to = definition->values_38.GetAt(index + 1);
-            srVector3T<float>* color_from = definition->values_38.GetAt(index);
+            srVector3T<float>* color_to = definition->key_colors.GetAt(index + 1);
+            srVector3T<float>* color_from = definition->key_colors.GetAt(index);
             float red = color_from->x * inverse + color_to->x * blend;
             float green = color_from->y * inverse + color_to->y * blend;
             float blue = color_from->z * inverse + color_to->z * blend;
@@ -246,29 +246,29 @@ void stLight::Update()
     }
 
     unsigned long ticks = GetTickCount();
-    W8PathAI* path = m_owned_244;
+    W8PathAI* path = path_ai;
     float seconds = ticks * g_float_005ec128;
     stParametricLightDefinition* definition =
         static_cast<stParametricLightDefinition*>(m_definition);
-    if (definition->period_30 < g_float_005ebc90) {
-        definition->period_30 = 1.0f;
+    if (definition->period < g_float_005ebc90) {
+        definition->period = 1.0f;
     }
-    unsigned int mode = definition->flags_08 & 3;
+    unsigned int mode = definition->flags & 3;
     if (mode == 0) {
-        float step = (seconds - m_level_time) * definition->rate_34;
+        float step = (seconds - m_level_time) * definition->rate;
         if (g_float_zero < step) {
             float level = m_level;
-            step = (g_float_one / definition->period_30) * step;
-            if (m_direction_239 == 0) {
+            step = (g_float_one / definition->period) * step;
+            if (m_direction == 0) {
                 level -= step;
                 if (level < g_float_zero) {
-                    m_direction_239 = 1;
+                    m_direction = 1;
                     level = step + step + level;
                 }
             } else {
                 level = step + level;
                 if (g_float_one < level) {
-                    m_direction_239 = 0;
+                    m_direction = 0;
                     level -= step + step;
                 }
             }
@@ -279,16 +279,16 @@ void stLight::Update()
                     blend = g_float_one;
                 }
             }
-            intensity_1d0 = (definition->intensity_to_2c - definition->intensity_28) * blend +
-                            definition->intensity_28;
+            intensity_1d0 = (definition->intensity_to - definition->intensity) * blend +
+                            definition->intensity;
             m_level = blend;
-            if ((definition->flags_08 & 8) == 0) {
+            if ((definition->flags & 8) == 0) {
                 m_level_time = seconds;
             } else {
                 float inverse = g_float_one - blend;
-                float red = blend * definition->color_to_1c.x + inverse * definition->color_10.x;
-                float green = blend * definition->color_to_1c.y + inverse * definition->color_10.y;
-                float blue = blend * definition->color_to_1c.z + inverse * definition->color_10.z;
+                float red = blend * definition->color_to.x + inverse * definition->color.x;
+                float green = blend * definition->color_to.y + inverse * definition->color.y;
+                float blue = blend * definition->color_to.z + inverse * definition->color.z;
                 if (g_float_one < red) {
                     red = 1.0f;
                 }
@@ -303,22 +303,22 @@ void stLight::Update()
             }
         }
     } else if (mode == 3) {
-        float step = (seconds - m_level_time) * definition->rate_34;
+        float step = (seconds - m_level_time) * definition->rate;
         if (g_float_zero < step) {
-            float blend = (g_float_one / definition->period_30) * step + m_level;
+            float blend = (g_float_one / definition->period) * step + m_level;
             if (blend <= g_float_one) {
                 float level = blend;
-                intensity_1d0 = (definition->intensity_to_2c - definition->intensity_28) * level +
-                                definition->intensity_28;
+                intensity_1d0 = (definition->intensity_to - definition->intensity) * level +
+                                definition->intensity;
                 m_level = level;
-                if ((definition->flags_08 & 8) != 0) {
+                if ((definition->flags & 8) != 0) {
                     float inverse = g_float_one - blend;
                     float red =
-                        blend * definition->color_to_1c.x + inverse * definition->color_10.x;
+                        blend * definition->color_to.x + inverse * definition->color.x;
                     float green =
-                        blend * definition->color_to_1c.y + inverse * definition->color_10.y;
+                        blend * definition->color_to.y + inverse * definition->color.y;
                     float blue =
-                        blend * definition->color_to_1c.z + inverse * definition->color_10.z;
+                        blend * definition->color_to.z + inverse * definition->color.z;
                     if (g_float_one < red) {
                         red = 1.0f;
                     }
@@ -333,7 +333,7 @@ void stLight::Update()
                 m_level_time = seconds;
             }
         }
-    } else if ((definition->flags_08 & 1) == 1) {
+    } else if ((definition->flags & 1) == 1) {
         W8Prop* prop = m_prop;
         srModelInstance* instance = 0;
         if (prop != 0) {
@@ -344,8 +344,8 @@ void stLight::Update()
                 instance = 0;
             }
         }
-        if ((definition->flags_08 & 8) != 0) {
-            diffuse_1a4 = definition->color_10;
+        if ((definition->flags & 8) != 0) {
+            diffuse_1a4 = definition->color;
         }
         if (testFlag(FLAG_DISABLE) == 0) {
             setFlag(FLAG_DISABLE);
@@ -354,7 +354,7 @@ void stLight::Update()
             }
         } else {
             int roll = rand();
-            if (roll * g_float_005ec1e4 < definition->flicker_chance_0c) {
+            if (roll * g_float_005ec1e4 < definition->flicker_chance) {
                 if (testFlag(FLAG_DISABLE) == 0) {
                     setFlag(FLAG_DISABLE);
                     if (instance != 0) {
@@ -370,17 +370,17 @@ void stLight::Update()
         }
     }
     if ((path == 0) || (PathAIEntryCount(path) == 0) ||
-        ((seconds - m_path_time) * definition->path_speed_38 < g_float_one)) {
+        ((seconds - m_path_time) * definition->path_speed < g_float_one)) {
         return;
     }
-    int index = static_cast<int>((seconds - m_path_time) * definition->path_speed_38);
+    int index = static_cast<int>((seconds - m_path_time) * definition->path_speed);
     index = index * m_path_direction + m_path_index;
     if (index < static_cast<int>(PathAIEntryCount(path))) {
         if (index < 0) {
             m_path_direction = 1;
             index = 0;
         }
-    } else if ((definition->flags_08 & 0x20) != 0) {
+    } else if ((definition->flags & 0x20) != 0) {
         m_path_direction = -1;
         index = static_cast<int>(PathAIEntryCount(path)) - 2;
     } else {
@@ -410,9 +410,9 @@ void stLight::Reset()
         } else {
             stParametricLightDefinition* definition =
                 static_cast<stParametricLightDefinition*>(m_definition);
-            intensity_1d0 = definition->intensity_28;
-            if ((definition->flags_08 & 8) != 0) {
-                diffuse_1a4 = definition->color_10;
+            intensity_1d0 = definition->intensity;
+            if ((definition->flags & 8) != 0) {
+                diffuse_1a4 = definition->color;
             }
         }
     }

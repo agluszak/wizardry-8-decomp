@@ -16,7 +16,7 @@ public:
         PRIMITIVE_TRIANGLE_FAN = 4,
         PRIMITIVE_TRIANGLES = 5
     };
-    /* Bit indices into srGERD's VertexArrayInfo clip_08 mask / getClipMask.
+    /* Bit indices into srGERD's VertexArrayInfo clip mask / getClipMask.
        applyClipPlaneChanges fills the six frustum planes at GERD+0x1418 in this
        order (X pair, Y pair, then constant Z near/far). Bits 6+ are extra user
        planes from pushClipPlane. Wizardry's 2D path writes the six-bit mask 0x3f. */
@@ -32,7 +32,7 @@ public:
        Wizardry passes it for float[] position and texcoord arrays. */
     enum e_type { TYPE_FLOAT = 1 };
     /* DD vertex-array slot indices consumed by srGERD::setDataPtr;
-       VertexArrayInfo mask_00 sets bit 1<<slot for each live stream. Slot 3
+       VertexArrayInfo mask sets bit 1<<slot for each live stream. Slot 3
        carries the specular record's w component alone when a batch has
        specular alpha without a specular stream. */
     enum e_vertexArray {
@@ -49,12 +49,12 @@ public:
        srDD::setVertexArrayInfo before each draw: live-slot mask, vertex count,
        clip mask, then the per-slot component/type/stride/pointer arrays. */
     struct VertexArrayInfo {
-        srFlags<e_vertexArray> mask_00;
-        unsigned long count_04;
-        srFlags<e_clip> clip_08;
-        long components_0c[6];
-        e_type types_24[6];
+        srFlags<e_vertexArray> mask;
+        unsigned long count;
+        srFlags<e_clip> clip;
+        long components[6];
+        e_type types[6];
         unsigned long strides[6];
-        const void* arrays_54[6];
+        const void* arrays[6];
     };
 };

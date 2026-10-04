@@ -25,7 +25,7 @@ private:
 // FUNCTION: SURRENDER 0x10035530
 void srGlobalRecycler::releaseAllUnused()
 {
-    RecyclerAccess access(&critical_section_8c.critical_section_00);
+    RecyclerAccess access(&critical_section_8c.critical_section);
     for (unsigned long index = 0; index < 16; ++index) {
         if ((used_mask & (1UL << index)) == 0) {
             freeEntry(index);
@@ -36,7 +36,7 @@ void srGlobalRecycler::releaseAllUnused()
 // FUNCTION: SURRENDER 0x100355A0
 void srGlobalRecycler::setLimit(unsigned long limit)
 {
-    RecyclerAccess access(&critical_section_8c.critical_section_00);
+    RecyclerAccess access(&critical_section_8c.critical_section);
     for (unsigned long index = 0; index < 16; ++index) {
         if (cached_bytes <= limit) {
             break;
@@ -73,7 +73,7 @@ void srGlobalRecycler::freeEntry(unsigned long index)
 srGlobalRecycler::srGlobalRecycler()
 {
     used_mask = 0;
-    InitializeCriticalSection(&critical_section_8c.critical_section_00);
+    InitializeCriticalSection(&critical_section_8c.critical_section);
     for (unsigned long index = 0; index < 16; ++index) {
         entries_00[index].allocation = 0;
         entries_00[index].size = 0;
@@ -87,7 +87,7 @@ srGlobalRecycler::srGlobalRecycler()
 srGlobalRecycler::~srGlobalRecycler()
 {
     {
-        RecyclerAccess access(&critical_section_8c.critical_section_00);
+        RecyclerAccess access(&critical_section_8c.critical_section);
     }
     for (unsigned long index = 0; index < 16; ++index) {
         freeEntry(index);
@@ -100,7 +100,7 @@ void* srGlobalRecycler::allocate(unsigned long size)
     if (size < 0x4000) {
         return AllocateRecyclerStorage(size);
     }
-    RecyclerAccess access(&critical_section_8c.critical_section_00);
+    RecyclerAccess access(&critical_section_8c.critical_section);
     if ((used_mask & 0xffff) != 0xffff) {
         const unsigned long rounded = (size + 0x3ff) & ~0x3ffUL;
         long best_fit = -1;
@@ -141,7 +141,7 @@ void* srGlobalRecycler::allocate(unsigned long size)
 void srGlobalRecycler::free(void* allocation)
 {
     if (allocation != 0) {
-        RecyclerAccess access(&critical_section_8c.critical_section_00);
+        RecyclerAccess access(&critical_section_8c.critical_section);
         for (unsigned long index = 0; index < 16; ++index) {
             if (entries_00[index].allocation == allocation) {
                 used_mask &= ~(1UL << index);

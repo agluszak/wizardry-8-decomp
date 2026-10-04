@@ -179,7 +179,7 @@ public:
     int m_current_04c;
     int m_content_top;
     int unknown_054;
-    W8Vector<W8TextBuffer*> m_text_buffers_058;
+    W8Vector<W8TextBuffer*> m_text_buffers;
     W8Vector<W8OptionsSelection*> m_option_selections;
 };
 

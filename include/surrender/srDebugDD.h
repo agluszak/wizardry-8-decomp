@@ -84,13 +84,13 @@ public:
     private:
         srDebugDD* owner_00;
         e_command command_04;
-        double start_08;
+        double start_time;
     };
     /* VC6 does not grant a nested class access to the enclosing class's
        protected members, so the statistics arrays stay reachable through an
        explicit friend declaration. */
     friend class ScopeTimer;
-    /* srGERD::dump (0x1001E9A6) reads call_counts_170 and funcName directly,
+    /* srGERD::dump (0x1001E9A6) reads call_counts and funcName directly,
        so srGERD was a friend. */
     friend class srGERD;
 
@@ -107,6 +107,6 @@ private:
     /* +0x0c..+0x0f is alignment padding before time_scale_10, not a member:
        the copy bodies skip it. */
     double time_scale_10;
-    double call_times_18[0x2b];
-    unsigned long call_counts_170[0x2b];
+    double call_times[0x2b];
+    unsigned long call_counts[0x2b];
 };

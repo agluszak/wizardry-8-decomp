@@ -760,7 +760,7 @@ void DrawCampEquipmentItems(void)
         if (item_id == -1) {
             if (slot == 7 || slot == 9) {
                 int paired = character->EquippedItem[GetPairedEquipSlot(slot)].iItemNo;
-                if (paired != -1 && (g_item_records[paired].flags_041 & 4) != 0) {
+                if (paired != -1 && (g_item_records[paired].flags & 4) != 0) {
                     DrawCatalogImageAndInvalidate(-14, 0x146, 0, 0, region->x, region->y, 2, 0);
                 }
             }
@@ -798,11 +798,11 @@ void DrawCampEquipmentItems(void)
         DrawRcsText(state->caption, region->x + 2, region->y + 2, 0x11,
                     g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
     no_armor_label:
-        DrawCatalogImageAndInvalidate(-14, 0x115, 0, region->frame_10 + 3, region->x - 2,
+        DrawCatalogImageAndInvalidate(-14, 0x115, 0, region->frame + 3, region->x - 2,
                                       region->y - 2, 2, 0);
         if (item_id != -1 && g_item_records[item_id].binds_on_equip != 0 &&
             character->EquippedItem[slot].bound != 0) {
-            DrawCatalogImageAndInvalidate(-14, 0x115, 0, region->frame_10 + 2, region->x - 2,
+            DrawCatalogImageAndInvalidate(-14, 0x115, 0, region->frame + 2, region->x - 2,
                                           region->y - 2, 2, 0);
         }
         if (state->hover_region == slot + 0xfc) {
@@ -821,7 +821,7 @@ void DrawCampEquipmentItems(void)
                     continue;
                 }
             }
-            frame = region->frame_10;
+            frame = region->frame;
         } else {
             if (g_status.item_in_cursor == 0 || state->entry_mode == 1 ||
                 !IsPartySlotEligible(giReviewCharSlot) ||
@@ -830,7 +830,7 @@ void DrawCampEquipmentItems(void)
                 !CanCharacterUseItem(character, g_status.item_in_hand.iItemNo)) {
                 continue;
             }
-            frame = region->frame_10 + 1;
+            frame = region->frame + 1;
         }
         DrawCatalogImageAndInvalidate(-14, 0x115, 0, frame, region->x - 2, region->y - 2, 2, 0);
     }
@@ -969,12 +969,12 @@ W8CampCharacterInfo::W8CampCharacterInfo() : Controls(0x136, 0, 0x280, 0xa5, 0x1
 {
     AcquireRegionSet(&g_camp_character_info_region_set);
     m_combat_view = 1;
-    m_button_058 = new W8TextControl(this, -1, 8, 0x8b, 0, 0, 0x121, 0, 15, 16, 17, 19, 18);
-    m_button_058->m_listener = this;
-    m_button_058->EnableRegionHelp(0x960);
-    m_button_054 = new W8TextControl(this, -1, 8, 0x8b, 0, 0, 0x121, 0, 10, 11, 12, 14, 13);
-    m_button_054->m_listener = this;
-    m_button_054->EnableRegionHelp(0x95f);
+    m_stats_tab = new W8TextControl(this, -1, 8, 0x8b, 0, 0, 0x121, 0, 15, 16, 17, 19, 18);
+    m_stats_tab->m_listener = this;
+    m_stats_tab->EnableRegionHelp(0x960);
+    m_combat_tab = new W8TextControl(this, -1, 8, 0x8b, 0, 0, 0x121, 0, 10, 11, 12, 14, 13);
+    m_combat_tab->m_listener = this;
+    m_combat_tab->EnableRegionHelp(0x95f);
     m_values[0] = new W8HelpTextControl(this, -1, 0xa0, 0x4c, 0xc0, 0x58);
     m_values[1] = new W8HelpTextControl(this, -1, 0x122, 0x4c, 0x142, 0x58);
     m_values[2] = new W8HelpTextControl(this, -1, 0xa0, 0x3e, 0xc0, 0x4a);
@@ -994,8 +994,8 @@ void W8CampCharacterInfo::SetEnabled(bool enabled)
 void W8CampCharacterInfo::SetCombatView(bool enabled)
 {
     m_combat_view = enabled;
-    m_button_058->SetActive(enabled);
-    m_button_054->SetActive(!enabled);
+    m_stats_tab->SetActive(enabled);
+    m_combat_tab->SetActive(!enabled);
     m_values[0]->SetActive(enabled);
     m_values[1]->SetActive(enabled);
     m_values[2]->SetActive(enabled);
@@ -1013,7 +1013,7 @@ void W8CampCharacterInfo::SetCombatView(bool enabled)
 // FUNCTION: WIZ8 0x005b3470
 void W8CampCharacterInfo::OnPrimary(W8TextControl* control)
 {
-    SetCombatView(control == m_button_054);
+    SetCombatView(control == m_combat_tab);
 }
 
 // GLOBAL: WIZ8 0x0061e798
@@ -1035,7 +1035,7 @@ void W8CampCharacterInfo::Redraw()
     InvalidateCampPanel();
     DrawRcsText(gppStringList[0x935], 0x15e, 0x84, 0x4e,
                 g_W8TextBufferAlignMiddle | g_W8TextBufferAlignLeft);
-    swprintf(g_camp_screen->caption, L"%d", g_review_character->kill_count_09f9);
+    swprintf(g_camp_screen->caption, L"%d", g_review_character->kill_count);
     DrawRcsText(g_camp_screen->caption, 0x1ae, 0x84, 0x20,
                 g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
     DrawRcsText(gppStringList[0x936], 0x15e, 0x92, 0x4e,
@@ -1118,12 +1118,12 @@ void W8CampCharacterInfo::Redraw()
                 minimum = 1;
             if (maximum < 2)
                 maximum = 1;
-            int hit_bonus = attack->hit_bonus + g_review_character->bonus_1770.hit_bonus_01;
+            int hit_bonus = attack->hit_bonus + g_review_character->bonus.hit_bonus;
             int skill_bonus =
                 (attack->attack_score < 0 ? attack->attack_score - 2 : attack->attack_score + 2) /
                 5;
             swprintf(g_camp_screen->caption, L"%+d",
-                     attack->damage_bonus + g_review_character->bonus_1770.damage_bonus_00);
+                     attack->damage_bonus + g_review_character->bonus.damage_bonus);
             DrawRcsText(g_camp_screen->caption, x, 0x30, 0x20,
                         g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
             swprintf(g_camp_screen->caption, L"%d-%d", minimum, maximum);
@@ -1155,7 +1155,7 @@ void W8CampCharacterInfo::Redraw()
             DrawRcsText(g_camp_screen->caption, x, 0x76, 0x20,
                         g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
             swprintf(g_camp_screen->caption, L"%+d",
-                     attack->attack_bonus_25 + g_review_character->bonus_1770.attack_bonus_02);
+                     attack->attack_bonus + g_review_character->bonus.attack_bonus);
             DrawRcsText(g_camp_screen->caption, x, 0x84, 0x20,
                         g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
             swprintf(g_camp_screen->caption, L"%+d%%", damage_bonus);
@@ -1768,7 +1768,7 @@ void DeactivateCampPage(void)
     case 2:
         DisableCampSkillRegions();
         for (index = 0; index < 0x29; ++index) {
-            g_review_character->skills[index].improved_12 = 0;
+            g_review_character->skills[index].improved = 0;
         }
         return;
     case 3:
@@ -1794,7 +1794,7 @@ void DrawCampRegenStats(void)
     SetObjectShade(g_calligraphy_font_object, 0);
     gprintfDirty(0x14a, 0x14, gppStringList[0x8cd]);
     SetObjectShade(g_calligraphy_font_object, 4);
-    gprintfDirty(0x221, 0x14, L"%6.3f", g_review_character->stamina_regen_rate_0b71);
+    gprintfDirty(0x221, 0x14, L"%6.3f", g_review_character->stamina_regen_rate);
     SetObjectShade(g_calligraphy_font_object, 0);
     gprintfDirty(0x14a, 0x23, gppStringList[0x8d0]);
     SetObjectShade(g_calligraphy_font_object, 4);
@@ -2514,15 +2514,15 @@ bool IsCampActionAllowed(int party_slot)
     } else {
         row = &g_status.buffers.XChar[party_slot];
         if (g_combat_state->equip_phase == 0) {
-            if (g_combat_state->characters[party_slot].dead_34 != 0) {
+            if (g_combat_state->characters[party_slot].dead != 0) {
                 if (row->pending_action == W8_ACTION_EQUIP) {
                     message = gppStringList[0x903];
-                } else if (row->action_03d == W8_ACTION_EQUIP) {
+                } else if (row->action == W8_ACTION_EQUIP) {
                     message = gppStringList[0x904];
                 } else {
                     message = gppStringList[0x902];
                 }
-            } else if (row->action_03d == W8_ACTION_EQUIP) {
+            } else if (row->action == W8_ACTION_EQUIP) {
                 message = gppStringList[0x903];
             } else {
                 message = gppStringList[0x902];
@@ -2531,7 +2531,7 @@ bool IsCampActionAllowed(int party_slot)
             if (row->pending_action == W8_ACTION_EQUIP) {
                 return 1;
             }
-            if (row->action_03d == W8_ACTION_EQUIP) {
+            if (row->action == W8_ACTION_EQUIP) {
                 message = gppStringList[0x904];
             } else {
                 message = gppStringList[0x902];

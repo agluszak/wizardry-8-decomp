@@ -63,7 +63,7 @@ public:
     float intensity_04;            /* 0x04 */
     float distance_cap_08;         /* 0x08: distance cap for bit-2 effects */
     srVector3T<float> position_0c; /* 0x0c */
-    W8GameTimer timer_18;          /* 0x18 */
+    W8GameTimer timer;          /* 0x18 */
     /* The key 0x004AE170 matches an animation event against. */
     int cycle_3c;                         /* 0x3c */
     int frame_40;                         /* 0x40 */
@@ -173,8 +173,8 @@ public:
     W8Vector<W8GrCycleParticleAttachment*>* m_plsParticles; /* 0x1b8 */
     /* 0x1bc: set when the frame walk wrapped to first_frame; suppresses the
        per-subcycle light reset. */
-    bool wrapped_1bc;
-    bool enabled_1bd;
+    bool wrapped;
+    bool enabled;
     /* 0x1be: mirror the model on X (the left-handed strike pick). */
     unsigned char mirror_x;
     /* 0x1bf: m_axis holds an aim point; mode-3 particles orient along it. */

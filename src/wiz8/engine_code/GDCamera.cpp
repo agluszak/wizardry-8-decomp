@@ -164,8 +164,8 @@ GDCamera::GDCamera()
     m_state_000 = 0;
     m_target_angle = 0.0f;
     m_target_pitch = 0.0f;
-    m_position_08c.SetZero();
-    m_position_08c.y = g_default_world_height;
+    m_position.SetZero();
+    m_position.y = g_default_world_height;
     m_transition_active = 0;
 
     pitch = 0.0f;
@@ -227,7 +227,7 @@ srCamera* GDCamera::CreateOrAttachCamera(srNode* parent, srCamera* camera)
 
         g_game_camera = SR_NEW(srCamera)(parent);
         g_game_camera->setName("Sirtech Camera");
-        position.SetFromFloat(&m_position_08c);
+        position.SetFromFloat(&m_position);
         g_game_camera->setLocation(position);
         g_game_camera->setClipRange(250.0, 75000.0);
         g_game_camera->setRotation(0.0, 0.0, 0.0);
@@ -245,7 +245,7 @@ srCamera* GDCamera::CreateOrAttachCamera(srNode* parent, srCamera* camera)
         } else {
             g_game_camera = camera;
         }
-        position.SetFromFloat(&m_position_08c);
+        position.SetFromFloat(&m_position);
         g_game_camera->setLocation(position);
         g_game_camera->setRotation(0.0, 0.0, 0.0);
     }
@@ -321,8 +321,8 @@ void GDCamera::SnapToTarget(const srVector3T<float>* target)
         }
     }
 
-    srVector3T<float> direction(target->x - m_position_08c.x, target->y - m_position_08c.y,
-                                target->z - m_position_08c.z);
+    srVector3T<float> direction(target->x - m_position.x, target->y - m_position.y,
+                                target->z - m_position.z);
     if (direction.Length() < 1.0) {
         return;
     }
@@ -396,8 +396,8 @@ unsigned char GDCamera::LookAt(const srVector3T<float>* target, bool preserve_pi
         }
     }
 
-    srVector3T<float> direction(target->x - m_position_08c.x, target->y - m_position_08c.y,
-                                target->z - m_position_08c.z);
+    srVector3T<float> direction(target->x - m_position.x, target->y - m_position.y,
+                                target->z - m_position.z);
     if (direction.Length() < 1.0) {
         return 0;
     }
@@ -436,15 +436,15 @@ unsigned char GDCamera::ComputeTrackingOrientation(const srVector3T<float>* targ
                                                    float* pitch)
 {
     float lower_margin = -g_camera_vertical_margin;
-    if (g_level_block->camera_mode_100 == 1 || g_level_block->camera_mode_100 == 2) {
+    if (g_level_block->camera_mode == 1 || g_level_block->camera_mode == 2) {
         lower_margin = -g_camera_vertical_margin * g_float_005ebc7c;
     }
 
-    float angle_delta = (NormalizeAngle(GetHeadingAngle(&m_position_08c, target)) +
+    float angle_delta = (NormalizeAngle(GetHeadingAngle(&m_position, target)) +
                          g_camera_angle_period) -
                         (NormalizeAngle(m_yaw) + g_camera_angle_period);
     float pitch_delta =
-        (GetElevationAngle(&m_position_08c, target) + g_camera_angle_period) -
+        (GetElevationAngle(&m_position, target) + g_camera_angle_period) -
         (m_pitch + g_camera_angle_period);
     if (fabs(angle_delta) > g_camera_pi) {
         if (angle_delta >= 0.0f) {
@@ -461,7 +461,7 @@ unsigned char GDCamera::ComputeTrackingOrientation(const srVector3T<float>* targ
         }
     }
 
-    if ((target->x != m_position_08c.x || target->z != m_position_08c.z) &&
+    if ((target->x != m_position.x || target->z != m_position.z) &&
         (static_cast<float>(fabs(angle_delta)) > g_camera_horizontal_margin ||
          pitch_delta >= g_camera_vertical_margin || pitch_delta <= lower_margin)) {
         if (static_cast<float>(fabs(angle_delta)) > g_camera_horizontal_margin) {
@@ -898,11 +898,11 @@ void GDCamera::GetForwardPoint(float distance, srVector3T<float>* output)
 {
     m_rotation = m_yaw_rotation;
     m_rotation.MultiplyBy(m_pitch_rotation);
-    m_direction_078.Set(0.0f, 0.0f, 1.0f);
-    m_direction_078.Transform(m_rotation);
-    *output = m_direction_078;
+    m_direction.Set(0.0f, 0.0f, 1.0f);
+    m_direction.Transform(m_rotation);
+    *output = m_direction;
     output->SetLength(distance);
-    *output += m_position_08c;
+    *output += m_position;
 }
 
 // FUNCTION: WIZ8 0x00478E00

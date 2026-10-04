@@ -134,7 +134,7 @@ unsigned char EvaluateFact(int fact_id)
             if (npc == 0) {
                 return 0;
             }
-            return static_cast<unsigned char>(npc->spawned_04);
+            return static_cast<unsigned char>(npc->spawned);
         }
         case 0x81:
             value = GetFact(0x86);
@@ -209,7 +209,7 @@ unsigned char EvaluateFact(int fact_id)
                 unsigned int slot = 0;
                 do {
                     if (g_status.buffers.XChar[slot].fOccupied != 0 &&
-                        slot == static_cast<unsigned int>(g_status.sedexus_party_slot_247f)) {
+                        slot == static_cast<unsigned int>(g_status.sedexus_party_slot)) {
                         return 1;
                     }
                     ++slot;

@@ -36,7 +36,7 @@ public:
     void setMinFilter(e_filter filter);
     void setWrapS(e_wrap wrap);
     void setWrapT(e_wrap wrap);
-    /* The flag getters unpack the packed_state_18 fields retail writes
+    /* The flag getters unpack the packed_state fields retail writes
        through the setters below; all six are exported at 0x1005ED20..70. */
     e_correction getCorrection() const;
     e_filter getMagFilter() const;
@@ -62,8 +62,8 @@ protected:
     void invalidateFrameHandle(unsigned long handle);
     void setupDefaultValuesFromSurface(srColorSurfaceIFace* surface);
 
-    unsigned long packed_state_18; /* 0x18: correction/mag/min/mipmap/wrap bits */
-    float mipmap_bias_1c;          /* 0x1c */
+    unsigned long packed_state; /* 0x18: correction/mag/min/mipmap/wrap bits */
+    float mipmap_bias;          /* 0x1c */
     /* 0x20: width/height, palette (+0x28), pixel format (+0x2c), hint/creation
        flags (+0x40), parameter index (+0x44) and filter (+0x48, getFilter). */
     Dimensions texture_dimensions_; /* 0x20 */

@@ -62,7 +62,7 @@ public:
        controls' state words.  This is observed storage access, not an accessor
        API inferred for convenience. */
     unsigned int m_stateFlags;            /* 0x34: paired state masks */
-    unsigned int m_flags_38;              /* 0x38: 0x02 builds layout, 0x04 pins left */
+    unsigned int m_flags;              /* 0x38: 0x02 builds layout, 0x04 pins left */
     unsigned char m_alternateTextEnabled; /* 0x3c: alternate text-selection flag */
     unsigned char pad_3d[3];
     int m_imageObject;

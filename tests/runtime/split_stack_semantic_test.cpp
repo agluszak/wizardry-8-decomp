@@ -28,7 +28,7 @@ static int FindStackableItemId(void)
 
     for (index = 0; index < gXStatus.uiItemsInDatabase; ++index) {
         W8ItemDatabaseRecord* record = g_item_records + index;
-        if (record->quantity_kind == 1 && (record->flags_041 & 2) == 0 &&
+        if (record->quantity_kind == 1 && (record->flags & 2) == 0 &&
             record->maximum_quantity >= 8) {
             return (int)index;
         }

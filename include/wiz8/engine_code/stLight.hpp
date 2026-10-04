@@ -39,74 +39,74 @@ public:
         if (copy == 0) {
             srAssertFail("pNew", "..\\Engine Code\\Include\\stLight.hpp", 0x56, 0);
         }
-        copy->flags_08 = flags_08;
-        copy->flicker_chance_0c = flicker_chance_0c;
-        copy->color_10 = color_10;
-        copy->color_to_1c = color_to_1c;
-        copy->intensity_28 = intensity_28;
-        copy->intensity_to_2c = intensity_to_2c;
-        copy->period_30 = period_30;
-        copy->rate_34 = rate_34;
-        copy->path_speed_38 = path_speed_38;
-        copy->subcycle_min_3c = subcycle_min_3c;
-        copy->subcycle_max_40 = subcycle_max_40;
+        copy->flags = flags;
+        copy->flicker_chance = flicker_chance;
+        copy->color = color;
+        copy->color_to = color_to;
+        copy->intensity = intensity;
+        copy->intensity_to = intensity_to;
+        copy->period = period;
+        copy->rate = rate;
+        copy->path_speed = path_speed;
+        copy->subcycle_min = subcycle_min;
+        copy->subcycle_max = subcycle_max;
         return copy;
     }
 
     // FUNCTION: WIZ8 0x004A21E0
     virtual bool IsEnabledForSubcycle(unsigned char subcycle) override
     {
-        if (subcycle >= subcycle_min_3c && subcycle <= subcycle_max_40) {
+        if (subcycle >= subcycle_min && subcycle <= subcycle_max) {
             return true;
         }
         return false;
     }
 
-    /* flags_08 bits 0-1 select the update mode (0 oscillating intensity, 1
+    /* flags bits 0-1 select the update mode (0 oscillating intensity, 1
        flicker, 3 one-way ramp); bit 3 lerps diffuse toward the target color,
        bit 5 ping-pongs the path direction at the ends. */
-    unsigned int flags_08;
+    unsigned int flags;
     /* Per-update flicker probability, compared against rand()/32768. */
-    float flicker_chance_0c;
-    srVector3T<float> color_10;
+    float flicker_chance;
+    srVector3T<float> color;
     /* The diffuse color the intensity sweep lerps toward under flag bit 3. */
-    srVector3T<float> color_to_1c;
-    float intensity_28;
+    srVector3T<float> color_to;
+    float intensity;
     /* The intensity the sweep lerps toward. */
-    float intensity_to_2c;
+    float intensity_to;
     /* Sweep period divisor; Update clamps it up to 1.0 when below ~0.0001. */
-    float period_30;
+    float period;
     /* Elapsed-time multiplier applied to the sweep step. */
-    float rate_34;
-    float path_speed_38;
-    int subcycle_min_3c;
-    int subcycle_max_40;
+    float rate;
+    float path_speed;
+    int subcycle_min;
+    int subcycle_max;
 };
 
 static_assert(sizeof(stParametricLightDefinition) == 0x44,
               "stParametricLightDefinition_size_must_be_0x44");
-static_assert(offsetof(stParametricLightDefinition, flags_08) == 0x08,
-              "stParametricLightDefinition_flags_08");
-static_assert(offsetof(stParametricLightDefinition, flicker_chance_0c) == 0x0c,
-              "stParametricLightDefinition_flicker_chance_0c");
-static_assert(offsetof(stParametricLightDefinition, color_10) == 0x10,
-              "stParametricLightDefinition_color_10");
-static_assert(offsetof(stParametricLightDefinition, color_to_1c) == 0x1c,
-              "stParametricLightDefinition_color_to_1c");
-static_assert(offsetof(stParametricLightDefinition, intensity_28) == 0x28,
-              "stParametricLightDefinition_intensity_28");
-static_assert(offsetof(stParametricLightDefinition, intensity_to_2c) == 0x2c,
-              "stParametricLightDefinition_intensity_to_2c");
-static_assert(offsetof(stParametricLightDefinition, period_30) == 0x30,
-              "stParametricLightDefinition_period_30");
-static_assert(offsetof(stParametricLightDefinition, rate_34) == 0x34,
-              "stParametricLightDefinition_rate_34");
-static_assert(offsetof(stParametricLightDefinition, path_speed_38) == 0x38,
-              "stParametricLightDefinition_path_speed_38");
-static_assert(offsetof(stParametricLightDefinition, subcycle_min_3c) == 0x3c,
-              "stParametricLightDefinition_subcycle_min_3c");
-static_assert(offsetof(stParametricLightDefinition, subcycle_max_40) == 0x40,
-              "stParametricLightDefinition_subcycle_max_40");
+static_assert(offsetof(stParametricLightDefinition, flags) == 0x08,
+              "stParametricLightDefinition_flags");
+static_assert(offsetof(stParametricLightDefinition, flicker_chance) == 0x0c,
+              "stParametricLightDefinition_flicker_chance");
+static_assert(offsetof(stParametricLightDefinition, color) == 0x10,
+              "stParametricLightDefinition_color");
+static_assert(offsetof(stParametricLightDefinition, color_to) == 0x1c,
+              "stParametricLightDefinition_color_to");
+static_assert(offsetof(stParametricLightDefinition, intensity) == 0x28,
+              "stParametricLightDefinition_intensity");
+static_assert(offsetof(stParametricLightDefinition, intensity_to) == 0x2c,
+              "stParametricLightDefinition_intensity_to");
+static_assert(offsetof(stParametricLightDefinition, period) == 0x30,
+              "stParametricLightDefinition_period");
+static_assert(offsetof(stParametricLightDefinition, rate) == 0x34,
+              "stParametricLightDefinition_rate");
+static_assert(offsetof(stParametricLightDefinition, path_speed) == 0x38,
+              "stParametricLightDefinition_path_speed");
+static_assert(offsetof(stParametricLightDefinition, subcycle_min) == 0x3c,
+              "stParametricLightDefinition_subcycle_min");
+static_assert(offsetof(stParametricLightDefinition, subcycle_max) == 0x40,
+              "stParametricLightDefinition_subcycle_max");
 
 /* Type 2: a light driven by keyframe tables stepped by keyframe_index. */
 // VTABLE: WIZ8 0x005ecda0
@@ -119,33 +119,33 @@ public:
     virtual stLightDefinition* Clone() const override;
     virtual bool IsEnabledForSubcycle(unsigned char subcycle) override;
 
-    W8GrowableVector<int> values_08;
-    W8GrowableVector<int> values_18;
-    W8GrowableVector<float> values_28;
-    W8GrowableVector<srVector3T<float> > values_38;
+    W8GrowableVector<int> frame_sums;
+    W8GrowableVector<int> key_frames;
+    W8GrowableVector<float> key_intensities;
+    W8GrowableVector<srVector3T<float> > key_colors;
     int keyframe_index;
     float time_4c;
-    int start_frame_50;
-    float end_frame_54;
+    int start_frame;
+    float end_frame;
 };
 
 static_assert(sizeof(stKeyframedLightDefinition) == 0x58,
               "stKeyframedLightDefinition_size_must_be_0x58");
-static_assert(offsetof(stKeyframedLightDefinition, values_08) == 0x08,
+static_assert(offsetof(stKeyframedLightDefinition, frame_sums) == 0x08,
               "stKeyframedLightDefinition_values_08");
-static_assert(offsetof(stKeyframedLightDefinition, values_18) == 0x18,
+static_assert(offsetof(stKeyframedLightDefinition, key_frames) == 0x18,
               "stKeyframedLightDefinition_values_18");
-static_assert(offsetof(stKeyframedLightDefinition, values_28) == 0x28,
+static_assert(offsetof(stKeyframedLightDefinition, key_intensities) == 0x28,
               "stKeyframedLightDefinition_values_28");
-static_assert(offsetof(stKeyframedLightDefinition, values_38) == 0x38,
+static_assert(offsetof(stKeyframedLightDefinition, key_colors) == 0x38,
               "stKeyframedLightDefinition_values_38");
 static_assert(offsetof(stKeyframedLightDefinition, keyframe_index) == 0x48,
               "stKeyframedLightDefinition_keyframe_index");
 static_assert(offsetof(stKeyframedLightDefinition, time_4c) == 0x4c,
               "stKeyframedLightDefinition_time_4c");
-static_assert(offsetof(stKeyframedLightDefinition, start_frame_50) == 0x50,
-              "stKeyframedLightDefinition_start_frame_50");
-static_assert(offsetof(stKeyframedLightDefinition, end_frame_54) == 0x54,
+static_assert(offsetof(stKeyframedLightDefinition, start_frame) == 0x50,
+              "stKeyframedLightDefinition_start_frame");
+static_assert(offsetof(stKeyframedLightDefinition, end_frame) == 0x54,
               "stKeyframedLightDefinition_end_frame_54");
 
 /*
@@ -220,7 +220,7 @@ public:
     stLightDefinition* m_definition; /* 0x234: owned */
     unsigned char m_unknown_238;         /* 0x238 */
     /* Oscillation direction: zero sweeps intensity down, nonzero sweeps up. */
-    unsigned char m_direction_239;
+    unsigned char m_direction;
     /* Raised by light-toggle triggers; the save path serializes the names of
        lights carrying it so their toggled state persists in savegames. */
     bool m_save_marked; /* 0x23a */
@@ -229,7 +229,7 @@ public:
     float m_level_time;
     /* Current 0..1 sweep level driving intensity_1d0 and the color lerp. */
     float m_level;
-    W8PathAI* m_owned_244; /* 0x244 */
+    W8PathAI* path_ai; /* 0x244 */
     /* Current path entry index, advanced by m_path_direction. */
     int m_path_index;
     /* GetTickCount()/1000 timestamp of the last path advance. */

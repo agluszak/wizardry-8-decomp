@@ -15,10 +15,10 @@ struct W8Wiz7Item {
    body reads are named; the gaps and the total size are unknown (no
    size assertion). */
 struct W8Wiz7Character {
-    char name_000[0x10]; /* 0x000: ASCII name TitleCaseString reads */
-    int kill_count_010;  /* 0x010: stored verbatim to kill_count_09f9 */
+    char name[0x10]; /* 0x000: ASCII name TitleCaseString reads */
+    int kill_count;  /* 0x010: stored verbatim to kill_count */
     unsigned char unknown_014[0x10];
-    short level_024;  /* 0x024: positive values import as level 1 */
+    short level;  /* 0x024: positive values import as level 1 */
     short deaths; /* 0x026: stored to death_count minus one */
     unsigned char unknown_028[0x18];
     W8Wiz7Item items[2][10]; /* 0x040: two ten-item lists, 0x78 each */
@@ -33,11 +33,11 @@ struct W8Wiz7Character {
        difficulty. */
     unsigned char party_tag;
     unsigned char unknown_233[4];
-    unsigned char race_237;       /* 0x237 */
-    unsigned char gender_238;     /* 0x238 */
-    unsigned char profession_239; /* 0x239: Wiz7 class byte */
+    unsigned char race;       /* 0x237 */
+    unsigned char gender;     /* 0x238 */
+    unsigned char profession; /* 0x239: Wiz7 class byte */
     unsigned char unknown_23a;
-    unsigned char status_23b; /* 0x23b: 2 or 3 imports as a dead member */
+    unsigned char status; /* 0x23b: 2 or 3 imports as a dead member */
     unsigned char unknown_23c[0xc];
 }; /* 0x248 */
 

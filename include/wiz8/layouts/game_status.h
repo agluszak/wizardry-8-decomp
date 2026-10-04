@@ -61,7 +61,7 @@ struct W8GlobalStatus {
     unsigned int legacy_text_box_lines[2][3];
     /* 0x17af: the party's twelve effect slots, the same 0x11-byte records the
        monster and combat tables hold. The trailing run is opaque. */
-    W8EffectSlot effect_slots_17af[12];
+    W8EffectSlot effect_slots[12];
     unsigned char unknown_187b[0x55];
     int party_facing;
     unsigned int party_heading;
@@ -84,14 +84,14 @@ struct W8GlobalStatus {
        refills. Its +0x4a flag is the light gate the monster-sight threshold
        pass reads. */
     W8GameplayModifierBlock party_modifiers;
-    int next_group_id_234a;
-    int next_monster_location_id_234e;
-    int next_world_item_id_2352;
-    int next_trigger_id_2356;
+    int next_group_id;
+    int next_monster_location_id;
+    int next_world_item_id;
+    int next_trigger_id;
     unsigned char item_in_cursor;
     W8ItemInstance item_in_hand;
     /* 0x2367: per-slot flags the character-load path consults at 0x006874D7. */
-    unsigned char flags_2367[0x20];
+    unsigned char flags[0x20];
     unsigned int game_time_ms;
     unsigned int aging_accumulator;
     /* 0x238f: search mode toggle. Mirrors the submenu search button, slows
@@ -104,8 +104,8 @@ struct W8GlobalStatus {
     /* 0x2391/0x2395: session accumulators ConsumeLevelElapsedTime
        folds the level's pending elapsed times into; the 0x00502D00 wait
        pass sums them against zero. */
-    float real_elapsed_2391;
-    float frame_elapsed_2395;
+    float real_elapsed;
+    float frame_elapsed;
     unsigned int wait_state;
     unsigned int item_recharge_ms;
     W8PartyFormationState formation;
@@ -150,7 +150,7 @@ struct W8GlobalStatus {
     wchar_t monster_name_buffer[22];
     /* 0x247f: party slot selected by the Sedexus path before rpc_active
        is armed; later capture, fact and death handling reuse the same slot. */
-    int sedexus_party_slot_247f;
+    int sedexus_party_slot;
     unsigned int stamina_tick_ms;
     unsigned char condition13_clock;
     /* 0x2488: one-shot gate; when set, the next condition-change and
@@ -163,10 +163,10 @@ struct W8GlobalStatus {
     unsigned int condition13_stamp;
     int pending_condition_party_slot;
     int fact_b8_clock;
-    bool greeting_pending_2497;
+    bool greeting_pending;
     unsigned int camp_fatigue_count;
     /* 0x249c: party slot fact 0x39 hands to RemoveCharacterCondition. */
-    int party_slot_249c;
+    int party_slot;
     /* 0x24a0: per-spell 0x10-byte stat records; TrackItemSpellSource
        walks records[0..149] bumping usable_cast_count for spells the character
        carries and cast_count for the selected source spell. */
@@ -209,14 +209,14 @@ struct W8GlobalStatus {
     int trang_check_clock;
     bool trang_check_pending;
     bool intro_shown;
-    bool flag_49bd;
+    bool flag;
     unsigned char padding_49be[2];
     /* 0x49c0: set when the endgame transition starts; saves carrying either
-       this or flag_49bd are filtered from the load list. */
+       this or flag are filtered from the load list. */
     bool endgame_started;
     /* 0x49c1: latched while g_dev_mode is set at teardown; persisted into
-       the save slot as dev_flagged_263c. */
-    bool dev_flagged_49c1;
+       the save slot as dev_flagged. */
+    bool dev_flagged;
 };
 #pragma pack(pop)
 

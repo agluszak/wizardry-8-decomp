@@ -22,7 +22,7 @@ public:
     W8TextControl* m_next_050;
     W8TextControl* m_previous_054;
     W8TextControl* m_close;
-    W8TextControl* m_mode_05c;
+    W8TextControl* m_mode;
     W8TextBuffer* m_page_text_060;
     unsigned char m_alternate_mode;
     unsigned char m_pad_065[3];

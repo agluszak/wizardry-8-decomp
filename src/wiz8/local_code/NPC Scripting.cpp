@@ -190,7 +190,7 @@ int FindNpcNameOrPlaceQuote(W8NpcState* npc, wchar_t* text)
     int index;
     int band;
 
-    if (CompareWideTextIgnoreAsciiCase(npc->record->source_name_004, text) == 0) {
+    if (CompareWideTextIgnoreAsciiCase(npc->record->source_name, text) == 0) {
         return 0x75;
     }
     for (index = 0; g_npc_named_quotes[index].name[0] != 0; ++index) {
@@ -486,7 +486,7 @@ void ProcessNpcScriptingFrame(void)
                 (STR)g_sedexus_moaning_sound, &local_sound_parms));
         } else {
             ClearMainGameTargetState();
-            sedexus_party_slot = g_status.sedexus_party_slot_247f;
+            sedexus_party_slot = g_status.sedexus_party_slot;
             for (party_slot = 0; party_slot < 8; ++party_slot) {
                 W8PartySlotRow* row = &g_status.buffers.XChar[party_slot];
                 character = &g_status.buffers.Char[party_slot];
@@ -494,7 +494,7 @@ void ProcessNpcScriptingFrame(void)
                     ((character->hp_current > 0 || character->highest_condition < 0x12) &&
                      party_slot != sedexus_party_slot)) {
                     RemoveCharacterCondition(party_slot, 0x11, 0);
-                    sedexus_party_slot = g_status.sedexus_party_slot_247f;
+                    sedexus_party_slot = g_status.sedexus_party_slot;
                 }
             }
             character = &g_status.buffers.Char[sedexus_party_slot];
@@ -671,7 +671,7 @@ static void SpeakNpcSubquote(W8NpcScriptQuote* quote, unsigned char subquote_ind
         return;
     }
 
-    sprintf(npc_name, "%S", g_npc_scripting.npc->record->source_name_004);
+    sprintf(npc_name, "%S", g_npc_scripting.npc->record->source_name);
     if (g_npc_scripting.npc->is_grouped != 0 && force_npc_voice == 0) {
         sprintf(voice_dir, "PCs");
     } else {
@@ -689,10 +689,10 @@ static void SpeakNpcSubquote(W8NpcScriptQuote* quote, unsigned char subquote_ind
     if (quote->subquotes == 0) {
         swprintf(display_text, L" Missing quote #%d for %s.",
                  g_npc_scripting.staging_restore.current_quote_index,
-                 g_npc_scripting.npc->record->source_name_004);
+                 g_npc_scripting.npc->record->source_name);
         swprintf(plain_text, L" Missing quote #%d for %s.",
                  g_npc_scripting.staging_restore.current_quote_index,
-                 g_npc_scripting.npc->record->source_name_004);
+                 g_npc_scripting.npc->record->source_name);
     } else {
         swprintf(display_text, L" \"%S\"", quote->subquotes[subquote_index]);
         swprintf(plain_text, L"%S", quote->subquotes[subquote_index]);
@@ -708,7 +708,7 @@ static void SpeakNpcSubquote(W8NpcScriptQuote* quote, unsigned char subquote_ind
                 return;
             }
             swprintf(plain_text, gppStringList[s_empty_quote_text_ids[g_empty_quote_text_index]],
-                     g_npc_scripting.npc->record->source_name_004);
+                     g_npc_scripting.npc->record->source_name);
             ++g_empty_quote_text_index;
             if (g_empty_quote_text_index == 2) {
                 g_empty_quote_text_index = 0;
@@ -750,7 +750,7 @@ static void SpeakNpcSubquote(W8NpcScriptQuote* quote, unsigned char subquote_ind
             g_npc_scripting.npc->is_grouped == 0) {
             if (gXStatus.fNpcDialogueMode == 0 &&
                 g_npc_scripting.npc->record->voice_script == 0) {
-                swprintf(prefixed_text, L"%s: %s", g_npc_scripting.npc->record->source_name_004,
+                swprintf(prefixed_text, L"%s: %s", g_npc_scripting.npc->record->source_name,
                          display_text);
                 wcscpy(display_text, prefixed_text);
             }
@@ -758,7 +758,7 @@ static void SpeakNpcSubquote(W8NpcScriptQuote* quote, unsigned char subquote_ind
             payload.text = 0;
             SetNpcQuoteBubbleVisible(1, display_text, 0,
                                      g_npc_scripting.staging_restore.current_quote_index, -1, 0,
-                                     payload, g_npc_scripting.npc->partner_index_2c);
+                                     payload, g_npc_scripting.npc->partner_index);
         }
         memset(&voice_parms, 0xff, sizeof(voice_parms));
         voice_parms.uiVolume = g_settings.voice_volume * 70 / 100;
@@ -799,7 +799,7 @@ static void SpeakNpcSubquote(W8NpcScriptQuote* quote, unsigned char subquote_ind
                     g_npc_scripting.staging_restore.current_quote_index;
                 entry->pending_event_type = g_npc_scripting.staging_restore.current_quote_index;
                 g_npc_interaction_state->last_notice_npc_kind =
-                    g_npc_scripting.npc->partner_index_2c;
+                    g_npc_scripting.npc->partner_index;
             } else {
                 LoadMouthGapTrack(voice_path, &g_npc_scripting.gap_track);
             }
@@ -807,7 +807,7 @@ static void SpeakNpcSubquote(W8NpcScriptQuote* quote, unsigned char subquote_ind
         g_npc_scripting.quote_active = 1;
         return;
     }
-    swprintf(prefixed_text, L"%s: %s", g_npc_scripting.npc->record->source_name_004, display_text);
+    swprintf(prefixed_text, L"%s: %s", g_npc_scripting.npc->record->source_name, display_text);
     wcscpy(display_text, prefixed_text);
     ShowNotice(0xf, display_text, 0, GetTextBoxScrollRange(), 0);
 }
@@ -1380,7 +1380,7 @@ void ProcessNpcQuoteEntry(W8NpcQuoteEntry* entry, int continuation_quote)
         RemoveNpcScriptItem(0, 1, entry->operand_01);
         break;
     case 0x10:
-        swprintf(notice_text, gppStringList[0x7e9], g_npc_scripting.npc->record->source_name_004,
+        swprintf(notice_text, gppStringList[0x7e9], g_npc_scripting.npc->record->source_name,
                  entry->operand_01);
         AddPartyGold(entry->operand_01, 0);
         SetNpcQuoteBubbleVisible(1, notice_text, 0, -1, 0x47);
@@ -1685,7 +1685,7 @@ void ProcessMessageBoxQueue(void)
                 int party_slot = skill_changes->party_slots[index];
                 int skill = skill_changes->skills[index];
                 W8Character* character = &g_status.buffers.Char[party_slot];
-                unsigned int value = character->skills[skill].points_02;
+                unsigned int value = character->skills[skill].points;
                 if (skill == g_profession_bonus_skills[character->iProfession]) {
                     value = value * 125 / 100;
                 }
@@ -2675,7 +2675,7 @@ void EndScriptedPortraitPick(int party_slot)
             FindItemOnCharacter(character, 0x1ff, &found, 0, 0) != 0) {
             SetFact(0x1c1, 0, 0);
             swprintf(g_status.monster_name_buffer, g_format_al_s, character->name);
-            g_status.sedexus_party_slot_247f = party_slot;
+            g_status.sedexus_party_slot = party_slot;
             g_status.rpc_active = 1;
             g_status.infatuation_pending = 1;
             QueueCharacterEvent(character, g_special_event_0068c50c, 0, g_character_event_no_flags,
@@ -2711,7 +2711,7 @@ void BeginSedexusCapture(void)
         if (g_status.buffers.XChar[party_slot].fOccupied != 0 &&
             (g_status.buffers.Char[party_slot].hp_current > 0 ||
              g_status.buffers.Char[party_slot].highest_condition < 0x12) &&
-            party_slot != static_cast<unsigned int>(g_status.sedexus_party_slot_247f)) {
+            party_slot != static_cast<unsigned int>(g_status.sedexus_party_slot)) {
             SetCharacterCondition(party_slot, 0x11, 9999, 0, 0, 0);
         }
     }

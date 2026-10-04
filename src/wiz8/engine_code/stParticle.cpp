@@ -48,13 +48,13 @@ const float g_float_005ecc40 = 0.00019174758926965296f;
 // FUNCTION: WIZ8 0x00498A10
 srShader stParticle::GetRenderFlags() const
 {
-    return render_flags_150;
+    return render_flags;
 }
 
 // FUNCTION: WIZ8 0x004925A0
 void stParticle::SetRenderFlags(srShader flags)
 {
-    render_flags_150 = flags;
+    render_flags = flags;
 }
 
 // FUNCTION: WIZ8 0x0049ADB0
@@ -149,24 +149,24 @@ stParticle::stParticle(srNode* parent, int count)
 {
     persisted = 0;
     update_flags = 0;
-    attachment_key_260 = -1;
-    start_frame_264 = -1;
-    end_frame_268 = -1;
-    callback_26c = 0;
+    attachment_key = -1;
+    start_frame = -1;
+    end_frame = -1;
+    callback = 0;
     size_scale = 1.0f;
 
     setParent(parent, 1);
 
-    particle_count_180 = count;
+    particle_count = count;
     particle_positions = 0;
-    texcoords_164 = 0;
+    texcoords = 0;
     vertex_positions = 0;
-    vertex_extras_170 = 0;
-    triangles_168 = 0;
-    colors_16c = 0;
+    vertex_extras = 0;
+    triangles = 0;
+    colors = 0;
     texture_154 = 0;
-    requires_sorted_renderer_138 = 0;
-    particle_size_140 = 1.0;
+    requires_sorted_renderer = 0;
+    particle_size = 1.0;
 
     if (count == 0) {
         return;
@@ -179,53 +179,53 @@ stParticle::stParticle(srNode* parent, int count)
     particle_positions =
         static_cast<srVector3T<float>*>(srHeap.allocate(count * sizeof(srVector3T<float>)));
     /* 0x00497C57 and 0x00498360 test the count parameter signed, while every
-       comparison against the stored particle_count_180 (0x00497D6C, 0x00497E74)
-       and vertex_count_158 (0x00497EA8) is unsigned. */
+       comparison against the stored particle_count (0x00497D6C, 0x00497E74)
+       and vertex_count (0x00497EA8) is unsigned. */
     int i;
     for (i = 0; i < count; ++i) {
         particle_positions[i] = 0.0f;
     }
 
-    vertex_count_158 = count * 4;
+    vertex_count = count * 4;
     texture_frame_count = count * 2;
-    texcoords_164 = static_cast<srVector2T<float>*>(
-        srHeap.allocate(vertex_count_158 * sizeof(srVector2T<float>)));
+    texcoords = static_cast<srVector2T<float>*>(
+        srHeap.allocate(vertex_count * sizeof(srVector2T<float>)));
     vertex_positions = static_cast<srVector3T<float>*>(
-        srHeap.allocate(vertex_count_158 * sizeof(srVector3T<float>)));
-    triangles_168 = static_cast<srVector3i*>(srHeap.allocate(count * 2 * sizeof(srVector3i)));
-    alphas_174 = new float[vertex_count_158];
+        srHeap.allocate(vertex_count * sizeof(srVector3T<float>)));
+    triangles = static_cast<srVector3i*>(srHeap.allocate(count * 2 * sizeof(srVector3i)));
+    alphas = new float[vertex_count];
     texture_frames = 0;
 
     for (i = 0; i < count; ++i) {
         unsigned int vertex = i * 4;
         unsigned int triangle = i * 2;
-        triangles_168[triangle].x = vertex;
-        triangles_168[triangle].y = vertex + 1;
-        triangles_168[triangle].z = vertex + 2;
-        triangles_168[triangle + 1].x = vertex + 2;
-        triangles_168[triangle + 1].y = vertex + 3;
-        triangles_168[triangle + 1].z = vertex;
+        triangles[triangle].x = vertex;
+        triangles[triangle].y = vertex + 1;
+        triangles[triangle].z = vertex + 2;
+        triangles[triangle + 1].x = vertex + 2;
+        triangles[triangle + 1].y = vertex + 3;
+        triangles[triangle + 1].z = vertex;
 
         particle_positions[i] = 0.0f;
 
-        texcoords_164[vertex].SetZero();
-        texcoords_164[vertex + 1].Set(1.0f, 0.0f);
-        texcoords_164[vertex + 2].Set(1.0f, 1.0f);
-        texcoords_164[vertex + 3].Set(0.0f, 1.0f);
+        texcoords[vertex].SetZero();
+        texcoords[vertex + 1].Set(1.0f, 0.0f);
+        texcoords[vertex + 2].Set(1.0f, 1.0f);
+        texcoords[vertex + 3].Set(0.0f, 1.0f);
     }
 
-    for (unsigned int v = 0; v < vertex_count_158; ++v) {
-        alphas_174[v] = 1.0f;
+    for (unsigned int v = 0; v < vertex_count; ++v) {
+        alphas[v] = 1.0f;
     }
 
     emitting = 1;
     traversal_enabled = 1;
-    retained_14c = 0;
-    emission_limit_184 = 0;
-    release_when_done_190 = false;
+    retained = 0;
+    emission_limit = 0;
+    release_when_done = false;
     replace_when_full_191 = 0;
     emission_count = 0;
-    active_triangles_254 = new unsigned long[texture_frame_count];
+    active_triangles = new unsigned long[texture_frame_count];
     active_particle_count = 0;
     velocities =
         static_cast<srVector3T<float>*>(srHeap.allocate(count * sizeof(srVector3T<float>)));
@@ -233,33 +233,33 @@ stParticle::stParticle(srNode* parent, int count)
     particle_active = new bool[count];
     memset(particle_active, 0, count);
 
-    has_acceleration_1a8 = 0;
-    expiry_mode_1ac = 0;
+    has_acceleration = 0;
+    expiry_mode = 0;
     emission_mode = 0;
     los_check_enabled = 0;
-    direction_mode_1b8 = 3;
+    direction_mode = 3;
     camera_relative = 0;
-    emission_interval_1c8 = 50;
+    emission_interval = 50;
     lifetime_ms = 1500;
-    bounds_mode_1a4 = 2;
-    placement_mode_1bc = 2;
+    bounds_mode = 2;
+    placement_mode = 2;
     minimum_1d0 = -250.0f;
     maximum_1dc = 250.0f;
     direction_1e8.Set(0.0f, -1.0f, 0.0f);
     initial_speed = 500.0f;
     acceleration_1f4.Set(0.0f, -4905.0f, 0.0f);
-    flutter_mode_1c0 = 0;
+    flutter_mode = 0;
     m_pflFlutterAngle = 0;
     flutter_amplitude = 0.0f;
-    flutter_period_204 = 0;
-    speed_max_218 = 4000.0f;
+    flutter_period = 0;
+    speed_max = 4000.0f;
     cone_yaw = 0.39269906f;
     cone_pitch = 0.39269906f;
-    speed_min_214 = 1000.0f;
+    speed_min = 1000.0f;
     minimum_21c = -1000.0f;
     maximum_228 = 1000.0f;
-    bounds_origin_234.SetZero();
-    bounds_radius_240 = 2000.0f;
+    bounds_origin.SetZero();
+    bounds_radius = 2000.0f;
     update_flags = 0;
     activated_at = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
     updated_at = activated_at;
@@ -273,33 +273,33 @@ stParticle::stParticle(const stParticle& other)
 {
     persisted = other.persisted;
     update_flags = 0;
-    start_frame_264 = other.start_frame_264;
-    end_frame_268 = other.end_frame_268;
+    start_frame = other.start_frame;
+    end_frame = other.end_frame;
     emission_gap = other.emission_gap;
     size_scale = other.size_scale;
 
     /* The copied count is compared signed at 0x00498360 even though the member
        it comes from is stored and compared unsigned. */
-    int count = other.particle_count_180;
+    int count = other.particle_count;
     if (count == 0) {
         return;
     }
 
     setParent(other.getParent(), 1);
     setName(other.getName());
-    particle_count_180 = count;
+    particle_count = count;
     particle_positions = 0;
-    texcoords_164 = 0;
+    texcoords = 0;
     vertex_positions = 0;
-    vertex_extras_170 = 0;
-    triangles_168 = 0;
-    colors_16c = 0;
+    vertex_extras = 0;
+    triangles = 0;
+    colors = 0;
     texture_154 = 0;
-    requires_sorted_renderer_138 = other.requires_sorted_renderer_138;
-    particle_size_140 = other.particle_size_140;
+    requires_sorted_renderer = other.requires_sorted_renderer;
+    particle_size = other.particle_size;
     texture_frames = 0;
-    retained_14c = other.retained_14c;
-    retained_14c->addReference();
+    retained = other.retained;
+    retained->addReference();
     SetRenderFlags(other.GetRenderFlags());
 
     particle_positions =
@@ -308,57 +308,57 @@ stParticle::stParticle(const stParticle& other)
         srAssertFail("pLoc", ST_PARTICLE_CPP, 0xda, 0);
     }
     /* 0x00497C57 and 0x00498360 test the count parameter signed, while every
-       comparison against the stored particle_count_180 (0x00497D6C, 0x00497E74)
-       and vertex_count_158 (0x00497EA8) is unsigned. */
+       comparison against the stored particle_count (0x00497D6C, 0x00497E74)
+       and vertex_count (0x00497EA8) is unsigned. */
     int i;
     for (i = 0; i < count; ++i) {
         particle_positions[i] = 0.0f;
     }
 
-    vertex_count_158 = count * 4;
+    vertex_count = count * 4;
     texture_frame_count = count * 2;
     SetTexture(other.texture_154);
-    texcoords_164 = static_cast<srVector2T<float>*>(
-        srHeap.allocate(vertex_count_158 * sizeof(srVector2T<float>)));
-    if (texcoords_164 == 0) {
+    texcoords = static_cast<srVector2T<float>*>(
+        srHeap.allocate(vertex_count * sizeof(srVector2T<float>)));
+    if (texcoords == 0) {
         srAssertFail("vUV", ST_PARTICLE_CPP, 0xe4, 0);
     }
     vertex_positions = static_cast<srVector3T<float>*>(
-        srHeap.allocate(vertex_count_158 * sizeof(srVector3T<float>)));
+        srHeap.allocate(vertex_count * sizeof(srVector3T<float>)));
     if (vertex_positions == 0) {
         srAssertFail("vLoc", ST_PARTICLE_CPP, 0xe5, 0);
     }
-    triangles_168 =
+    triangles =
         static_cast<srVector3i*>(srHeap.allocate(texture_frame_count * sizeof(srVector3i)));
-    if (triangles_168 == 0) {
+    if (triangles == 0) {
         srAssertFail("pVertex", ST_PARTICLE_CPP, 0xe7, 0);
     }
-    alphas_174 = new float[vertex_count_158];
+    alphas = new float[vertex_count];
 
     for (i = 0; i < count; ++i) {
         unsigned int vertex = i * 4;
         unsigned int triangle = i * 2;
-        triangles_168[triangle].x = vertex;
-        triangles_168[triangle].y = vertex + 1;
-        triangles_168[triangle].z = vertex + 2;
-        triangles_168[triangle + 1].x = vertex + 2;
-        triangles_168[triangle + 1].y = vertex + 3;
-        triangles_168[triangle + 1].z = vertex;
+        triangles[triangle].x = vertex;
+        triangles[triangle].y = vertex + 1;
+        triangles[triangle].z = vertex + 2;
+        triangles[triangle + 1].x = vertex + 2;
+        triangles[triangle + 1].y = vertex + 3;
+        triangles[triangle + 1].z = vertex;
 
         particle_positions[i] = 0.0f;
-        texcoords_164[vertex].Set(0.0f, 0.0f);
-        texcoords_164[vertex + 1].Set(1.0f, 0.0f);
-        texcoords_164[vertex + 2].Set(1.0f, 1.0f);
-        texcoords_164[vertex + 3].Set(0.0f, 1.0f);
+        texcoords[vertex].Set(0.0f, 0.0f);
+        texcoords[vertex + 1].Set(1.0f, 0.0f);
+        texcoords[vertex + 2].Set(1.0f, 1.0f);
+        texcoords[vertex + 3].Set(0.0f, 1.0f);
     }
-    for (unsigned int v = 0; v < vertex_count_158; ++v) {
-        alphas_174[v] = 1.0f;
+    for (unsigned int v = 0; v < vertex_count; ++v) {
+        alphas[v] = 1.0f;
     }
 
-    emission_limit_184 = other.emission_limit_184;
+    emission_limit = other.emission_limit;
     emission_count = 0;
     active_particle_count = 0;
-    release_when_done_190 = other.release_when_done_190;
+    release_when_done = other.release_when_done;
     replace_when_full_191 = other.replace_when_full_191;
     particle_active = new bool[count];
     memset(particle_active, 0, count);
@@ -367,19 +367,19 @@ stParticle::stParticle(const stParticle& other)
     birth_ticks = new unsigned int[count];
     emitting = other.emitting;
     traversal_enabled = 1;
-    bounds_mode_1a4 = other.bounds_mode_1a4;
-    has_acceleration_1a8 = other.has_acceleration_1a8;
-    expiry_mode_1ac = other.expiry_mode_1ac;
+    bounds_mode = other.bounds_mode;
+    has_acceleration = other.has_acceleration;
+    expiry_mode = other.expiry_mode;
     emission_mode = other.emission_mode;
     los_check_enabled = other.los_check_enabled;
-    direction_mode_1b8 = other.direction_mode_1b8;
-    placement_mode_1bc = other.placement_mode_1bc;
+    direction_mode = other.direction_mode;
+    placement_mode = other.placement_mode;
     camera_relative = other.camera_relative;
     m_pflFlutterAngle = 0;
     flutter_amplitude = other.flutter_amplitude;
-    flutter_period_204 = other.flutter_period_204;
-    SetFlutter(other.flutter_mode_1c0);
-    emission_interval_1c8 = other.emission_interval_1c8;
+    flutter_period = other.flutter_period;
+    SetFlutter(other.flutter_mode);
+    emission_interval = other.emission_interval;
     lifetime_ms = other.lifetime_ms;
     minimum_1d0 = other.minimum_1d0;
     maximum_1dc = other.maximum_1dc;
@@ -388,18 +388,18 @@ stParticle::stParticle(const stParticle& other)
     cone_yaw = other.cone_yaw;
     cone_pitch = other.cone_pitch;
     initial_speed = other.initial_speed;
-    speed_min_214 = other.speed_min_214;
-    speed_max_218 = other.speed_max_218;
+    speed_min = other.speed_min;
+    speed_max = other.speed_max;
     minimum_21c = other.minimum_21c;
     maximum_228 = other.maximum_228;
-    bounds_origin_234 = other.bounds_origin_234;
-    bounds_radius_240 = other.bounds_radius_240;
+    bounds_origin = other.bounds_origin;
+    bounds_radius = other.bounds_radius;
     update_flags = 2;
-    active_triangles_254 = new unsigned long[texture_frame_count];
+    active_triangles = new unsigned long[texture_frame_count];
     activated_at = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
     updated_at = activated_at;
-    attachment_key_260 = other.attachment_key_260;
-    callback_26c = 0;
+    attachment_key = other.attachment_key;
+    callback = 0;
 
     setLocation(other.getLocation());
     srMatrix3T<float> rotation;
@@ -420,25 +420,25 @@ stParticle::stParticle(const stParticle& other)
 // FUNCTION: WIZ8 0x00499A50
 unsigned char stParticle::ActivateParticle(unsigned int* out_index, bool replace_when_full)
 {
-    if (emission_limit_184 != 0 && emission_count >= emission_limit_184) {
+    if (emission_limit != 0 && emission_count >= emission_limit) {
         return 0;
     }
 
     unsigned int index;
-    for (index = 0; index < particle_count_180; ++index) {
+    for (index = 0; index < particle_count; ++index) {
         if (particle_active[index] == 0) {
             break;
         }
     }
 
-    if (index == particle_count_180) {
+    if (index == particle_count) {
         if (replace_when_full == 0) {
             return 0;
         }
 
         unsigned int oldest = 0;
         unsigned int candidate;
-        for (candidate = 0; candidate < particle_count_180; ++candidate) {
+        for (candidate = 0; candidate < particle_count; ++candidate) {
             if (birth_ticks[candidate] < birth_ticks[oldest] &&
                 particle_active[candidate] != 0) {
                 oldest = candidate;
@@ -453,16 +453,16 @@ unsigned char stParticle::ActivateParticle(unsigned int* out_index, bool replace
     birth_ticks[index] = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
 
     float magnitude = 0.0f;
-    if (placement_mode_1bc == 1) {
+    if (placement_mode == 1) {
         magnitude = initial_speed;
-    } else if (placement_mode_1bc == 2) {
+    } else if (placement_mode == 2) {
         magnitude =
-            (speed_max_218 - speed_min_214) * (rand() & 0x7fff) * g_float_005ec438 + speed_min_214;
+            (speed_max - speed_min) * (rand() & 0x7fff) * g_float_005ec438 + speed_min;
     }
     magnitude *= size_scale;
 
     srVector3T<float>& velocity = velocities[index];
-    switch (direction_mode_1b8) {
+    switch (direction_mode) {
     case 2: {
         srVector3T<double> direction = getWorldSpaceDOF();
         velocity = direction * magnitude;
@@ -519,7 +519,7 @@ unsigned char stParticle::ActivateParticle(unsigned int* out_index, bool replace
     unsigned int vertex = index * 4;
     unsigned int end = vertex + 4;
     for (; vertex < end; ++vertex) {
-        alphas_174[vertex] = 1.0f;
+        alphas[vertex] = 1.0f;
     }
 
     update_flags |= 2;
@@ -572,13 +572,13 @@ void stParticle::Update()
         srVector3T<float> acceleration_step = acceleration_1f4 * (elapsed * g_double_005ec8d0);
 
         unsigned int index;
-        for (index = 0; index < particle_count_180; ++index) {
+        for (index = 0; index < particle_count; ++index) {
             if (particle_active[index] == 0) {
                 continue;
             }
 
             unsigned int vertex = index * 4;
-            if (expiry_mode_1ac == 0) {
+            if (expiry_mode == 0) {
                 unsigned int expires_at = birth_ticks[index] + lifetime_ms;
                 if (expires_at < now) {
                     particle_active[index] = 0;
@@ -591,12 +591,12 @@ void stParticle::Update()
                     unsigned int alpha_end = vertex + 4;
                     unsigned int alpha_index;
                     for (alpha_index = vertex; alpha_index < alpha_end; ++alpha_index) {
-                        alphas_174[alpha_index] = alpha;
+                        alphas[alpha_index] = alpha;
                     }
                 }
-            } else if (expiry_mode_1ac == 1) {
+            } else if (expiry_mode == 1) {
                 if (texture_frames == 0) {
-                    expiry_mode_1ac = 0;
+                    expiry_mode = 0;
                     if (lifetime_ms == 0) {
                         lifetime_ms = 1000;
                     }
@@ -612,7 +612,7 @@ void stParticle::Update()
                 }
             }
 
-            if (has_acceleration_1a8 == 1) {
+            if (has_acceleration == 1) {
                 velocities[index] += acceleration_step;
             }
 
@@ -621,26 +621,26 @@ void stParticle::Update()
             srVector3T<float> candidate;
             candidate = particle_positions[index] + movement;
 
-            if (bounds_mode_1a4 == 2) {
+            if (bounds_mode == 2) {
                 double distance;
-                if (bounds_origin_234.x == g_float_zero &&
-                    bounds_origin_234.y == g_float_zero &&
-                    bounds_origin_234.z == g_float_zero) {
+                if (bounds_origin.x == g_float_zero &&
+                    bounds_origin.y == g_float_zero &&
+                    bounds_origin.z == g_float_zero) {
                     distance = (candidate - node_location).Length();
                 } else {
                     srVector3T<float> center =
-                        rotation.Transform(bounds_origin_234) + node_location;
+                        rotation.Transform(bounds_origin) + node_location;
                     srVector3T<float> difference = candidate - center;
                     distance = difference.Length();
                 }
 
-                if (size_scale * bounds_radius_240 < distance) {
+                if (size_scale * bounds_radius < distance) {
                     particle_active[index] = 0;
                     update_flags |= 2;
                     --active_particle_count;
                     continue;
                 }
-            } else if (bounds_mode_1a4 == 1) {
+            } else if (bounds_mode == 1) {
                 srVector3T<float> local = candidate - node_location;
                 srVector4T<float> transformed = transform.Transform(local);
                 srVector3T<float> local_point;
@@ -673,7 +673,7 @@ void stParticle::Update()
     }
 
     unsigned int emission_elapsed = now - updated_at;
-    if (emission_elapsed < emission_interval_1c8) {
+    if (emission_elapsed < emission_interval) {
         return;
     }
 
@@ -683,19 +683,19 @@ void stParticle::Update()
         updated_at = now;
         return;
     }
-    if (emission_mode != 2 || emission_elapsed <= emission_interval_1c8) {
+    if (emission_mode != 2 || emission_elapsed <= emission_interval) {
         return;
     }
 
     for (;;) {
-        unsigned int lag = now - emission_interval_1c8 - updated_at;
+        unsigned int lag = now - emission_interval - updated_at;
         unsigned int particle_index;
         if (ActivateParticle(&particle_index, replace_when_full_191) == 0) {
             updated_at = now;
             return;
         }
 
-        if (has_acceleration_1a8 == 1) {
+        if (has_acceleration == 1) {
             srVector3T<float> acceleration = (acceleration_1f4 * static_cast<double>(lag)) / 1000.0;
             velocities[particle_index] += acceleration;
         }
@@ -706,8 +706,8 @@ void stParticle::Update()
         InitializeParticlePosition(&particle_positions[particle_index]);
         particle_positions[particle_index] += displacement;
 
-        updated_at += emission_interval_1c8;
-        if (now - updated_at <= emission_interval_1c8) {
+        updated_at += emission_interval;
+        if (now - updated_at <= emission_interval) {
             return;
         }
     }
@@ -803,13 +803,13 @@ void stParticle::PrepareRenderer(srMatrix4T<float>& view)
     for (unsigned int index = 0; index < 4; ++index) {
         srVector4T<float> transformed = view.Transform(corners[index]);
 
-        float scale = static_cast<float>(particle_size_140) * size_scale;
+        float scale = static_cast<float>(particle_size) * size_scale;
         offsets[index] = srVector3T<float>(transformed.x, transformed.y, transformed.z) *
                          static_cast<double>(scale);
     }
 
-    if (flutter_mode_1c0 == 0) {
-        for (unsigned int direct_index = 0; direct_index < particle_count_180; ++direct_index) {
+    if (flutter_mode == 0) {
+        for (unsigned int direct_index = 0; direct_index < particle_count; ++direct_index) {
             unsigned int vertex = direct_index * 4;
             const srVector3T<float>& position = particle_positions[direct_index];
             vertex_positions[vertex] = position + offsets[0];
@@ -821,14 +821,14 @@ void stParticle::PrepareRenderer(srMatrix4T<float>& view)
     }
 
     float phase = g_float_zero;
-    if (flutter_period_204 != 0) {
+    if (flutter_period != 0) {
         phase = static_cast<float>(g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT) %
-                                   flutter_period_204) /
-                static_cast<int>(flutter_period_204) * g_camera_angle_period;
+                                   flutter_period) /
+                static_cast<int>(flutter_period) * g_camera_angle_period;
     }
     float flutter = static_cast<float>(sin(phase)) * flutter_amplitude * size_scale;
 
-    for (unsigned int particle_index = 0; particle_index < particle_count_180; ++particle_index) {
+    for (unsigned int particle_index = 0; particle_index < particle_count; ++particle_index) {
         srVector3T<float> position;
 
         if (velocities[particle_index].y >= g_float_zero) {
@@ -836,7 +836,7 @@ void stParticle::PrepareRenderer(srMatrix4T<float>& view)
         } else {
             position.Set(flutter, 0.0f, 0.0f);
 
-            if (flutter_mode_1c0 == 2) {
+            if (flutter_mode == 2) {
                 float scale = g_float_005ecc3c;
                 if (g_float_005ecc3c < velocities[particle_index].y) {
                     scale = velocities[particle_index].y;
@@ -863,7 +863,7 @@ void stParticle::PrepareRenderer(srMatrix4T<float>& view)
    finally handed to the shared triangle-mesh pipeline as a single slot.
 
    The retired path is the only one that can drop the system: a particle whose
-   activity has run out notifies its shake callback and, when release_when_done_190 marks
+   activity has run out notifies its shake callback and, when release_when_done marks
    it as self-owned, releases itself. */
 // FUNCTION: WIZ8 0x004994D0
 void stParticle::SubmitToRenderer(srGERD* renderer)
@@ -873,7 +873,7 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
     if (camera_relative == 1) {
         srVector3T<float> camera_position;
         GetCameraPosition(&camera_position);
-        position = camera_position + camera_offset_244;
+        position = camera_position + camera_offset;
 
         srVector3T<double> placed;
         placed.SetFromFloat(&position);
@@ -887,15 +887,15 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
 
     Update();
 
-    if (emission_limit_184 != 0 && emission_count >= emission_limit_184) {
+    if (emission_limit != 0 && emission_count >= emission_limit) {
         emitting = 0;
     }
 
     if (emitting == 0 && active_particle_count == 0) {
-        if (callback_26c != 0) {
-            callback_26c->RestoreAnimation();
+        if (callback != 0) {
+            callback->RestoreAnimation();
         }
-        if (release_when_done_190) {
+        if (release_when_done) {
             release();
         }
         return;
@@ -903,25 +903,25 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
 
     srMatrix3T<float> rotation;
 
-    if (bounds_mode_1a4 == 2) {
+    if (bounds_mode == 2) {
         srGERD::e_visibility visibility;
 
-        const srVector3T<float>& extent = bounds_origin_234;
+        const srVector3T<float>& extent = bounds_origin;
 
         if (extent.x == g_float_zero && extent.y == g_float_zero &&
             extent.z == g_float_zero) {
-            visibility = renderer->testBoundingSphere(position, size_scale * bounds_radius_240);
+            visibility = renderer->testBoundingSphere(position, size_scale * bounds_radius);
         } else {
             getRotation(rotation);
             srVector3T<float> center = rotation.Transform(extent) + position;
-            visibility = renderer->testBoundingSphere(center, size_scale * bounds_radius_240);
+            visibility = renderer->testBoundingSphere(center, size_scale * bounds_radius);
         }
         if (visibility == srGERD::VISIBILITY_OUTSIDE) {
             return;
         }
     }
 
-    if (bounds_mode_1a4 == 1) {
+    if (bounds_mode == 1) {
         getRotation(rotation);
         srVector3T<float> minimum = rotation.Transform(minimum_21c) + position;
         srVector3T<float> maximum = rotation.Transform(maximum_228) + position;
@@ -936,10 +936,10 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
        has marked the pairs stale. */
     if ((update_flags & 2) != 0) {
         unsigned int written = 0;
-        for (unsigned int index = 0; index < particle_count_180; ++index) {
+        for (unsigned int index = 0; index < particle_count; ++index) {
             if (particle_active[index] != 0) {
-                active_triangles_254[written++] = index * 2;
-                active_triangles_254[written++] = index * 2 + 1;
+                active_triangles[written++] = index * 2;
+                active_triangles[written++] = index * 2 + 1;
             }
         }
         update_flags &= ~2u;
@@ -953,7 +953,7 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
     view.Invert();
     PrepareRenderer(view);
 
-    if (requires_sorted_renderer_138 != 0 &&
+    if (requires_sorted_renderer != 0 &&
         !renderer->isEnabled(srGERD::ENABLE_SORTED_RENDERING)) {
         renderer->toggle(srGERD::ENABLE_SORTED_RENDERING);
     }
@@ -964,45 +964,45 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
 
     /* Three array/count pairs: the index pairs rebuilt above, the polygon
        index list, and the transformed vertex positions. */
-    pipeline->active_triangles_2c = active_triangles_254;
-    pipeline->active_triangle_count_24 = active_particle_count * 2;
-    pipeline->triangles_34 = triangles_168;
-    pipeline->triangle_count_1c = texture_frame_count;
-    pipeline->positions_38 = vertex_positions;
-    pipeline->vertex_count_20 = vertex_count_158;
-    if (vertex_extras_170 != 0) {
-        pipeline->vertex_extras_3c = vertex_extras_170;
+    pipeline->active_triangles = active_triangles;
+    pipeline->active_triangle_count = active_particle_count * 2;
+    pipeline->triangles = triangles;
+    pipeline->triangle_count = texture_frame_count;
+    pipeline->positions = vertex_positions;
+    pipeline->vertex_count = vertex_count;
+    if (vertex_extras != 0) {
+        pipeline->vertex_extras = vertex_extras;
     }
 
-    pipeline->current_record_14->flags_00 = 0;
+    pipeline->current_record->flags_00 = 0;
     pipeline->current_pass->shader_14 = 0;
-    pipeline->current_pass->texture_array_0c = 0;
-    pipeline->current_pass->texture_array_10 = 0;
+    pipeline->current_pass->tex_table_0 = 0;
+    pipeline->current_pass->tex_table_1 = 0;
 
-    if (colors_16c != 0) {
-        pipeline->current_record_14->colors_0c = colors_16c;
-        pipeline->current_record_14->color_format = 1;
-        pipeline->current_record_14->flags_00 |= 1;
+    if (colors != 0) {
+        pipeline->current_record->colors_0c = colors;
+        pipeline->current_record->color_format = 1;
+        pipeline->current_record->flags_00 |= 1;
     }
-    if (alphas_174 != 0) {
-        pipeline->current_record_14->alphas_1c = alphas_174;
-        pipeline->current_record_14->flags_00 |= 8;
+    if (alphas != 0) {
+        pipeline->current_record->alphas = alphas;
+        pipeline->current_record->flags_00 |= 8;
     }
 
     /* The retained object is the batch's material: the same pointer reaches
        both the pipeline and the record it is about to submit. */
-    pipeline->material_80 = retained_14c;
-    pipeline->current_record_14->material_08 = retained_14c;
+    pipeline->material_80 = retained;
+    pipeline->current_record->material_08 = retained;
 
-    pipeline->SetFlags(render_flags_150);
+    pipeline->SetFlags(render_flags);
 
-    if (texcoords_164 != 0) {
-        pipeline->current_record_14->st0_20 = texcoords_164;
-        pipeline->current_record_14->flags_00 |= 0x10;
+    if (texcoords != 0) {
+        pipeline->current_record->st0 = texcoords;
+        pipeline->current_record->flags_00 |= 0x10;
     }
 
     if (texture_frames != 0) {
-        pipeline->current_pass->texture_array_0c = texture_frames;
+        pipeline->current_pass->tex_table_0 = texture_frames;
     } else {
         srTextureIFace* texture = texture_154;
 
@@ -1012,7 +1012,7 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
         }
     }
 
-    ++pipeline->slot_count_84;
+    ++pipeline->slot_count;
     pipeline->PrepareSlot();
 
     if (!renderer->isPickStackEmpty()) {
@@ -1033,26 +1033,26 @@ stParticle::~stParticle()
     if (particle_positions != 0) {
         srHeap.free(particle_positions);
     }
-    if (vertex_extras_170 != 0) {
-        srHeap.free(vertex_extras_170);
+    if (vertex_extras != 0) {
+        srHeap.free(vertex_extras);
     }
-    if (texcoords_164 != 0) {
-        srHeap.free(texcoords_164);
+    if (texcoords != 0) {
+        srHeap.free(texcoords);
     }
     if (vertex_positions != 0) {
         srHeap.free(vertex_positions);
     }
-    if (triangles_168 != 0) {
-        srHeap.free(triangles_168);
+    if (triangles != 0) {
+        srHeap.free(triangles);
     }
-    if (colors_16c != 0) {
-        srHeap.free(colors_16c);
+    if (colors != 0) {
+        srHeap.free(colors);
     }
-    if (alphas_174 != 0) {
-        delete[] alphas_174;
+    if (alphas != 0) {
+        delete[] alphas;
     }
-    if (retained_14c != 0) {
-        retained_14c->release();
+    if (retained != 0) {
+        retained->release();
     }
     if (velocities != 0) {
         srHeap.free(velocities);
@@ -1060,8 +1060,8 @@ stParticle::~stParticle()
     if (birth_ticks != 0) {
         delete[] birth_ticks;
     }
-    if (active_triangles_254 != 0) {
-        delete[] active_triangles_254;
+    if (active_triangles != 0) {
+        delete[] active_triangles;
     }
     if (particle_active != 0) {
         delete[] particle_active;
@@ -1135,10 +1135,10 @@ unsigned char stParticle::ReplaceTexture(const char* old_name, srTextureIFace* r
 // FUNCTION: WIZ8 0x0049ACA0
 void stParticle::SetRetainedObject(srMaterialIFace* material)
 {
-    if (retained_14c != 0) {
-        retained_14c->release();
+    if (retained != 0) {
+        retained->release();
     }
-    retained_14c = material;
+    retained = material;
     if (material != 0) {
         material->addReference();
     }
@@ -1149,18 +1149,18 @@ void stParticle::SetFlutter(int enabled)
 {
     unsigned int i;
 
-    flutter_mode_1c0 = enabled;
+    flutter_mode = enabled;
     if (enabled == 0) {
         if (m_pflFlutterAngle != 0) {
             delete[] m_pflFlutterAngle;
             m_pflFlutterAngle = 0;
         }
     } else if (m_pflFlutterAngle == 0) {
-        m_pflFlutterAngle = new float[particle_count_180];
+        m_pflFlutterAngle = new float[particle_count];
         if (m_pflFlutterAngle == 0) {
             srAssertFail("m_pflFlutterAngle", ST_PARTICLE_CPP, 1210, 0);
         }
-        for (i = 0; i < particle_count_180; ++i) {
+        for (i = 0; i < particle_count; ++i) {
             m_pflFlutterAngle[i] = 0.0f;
         }
     }

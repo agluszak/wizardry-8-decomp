@@ -202,7 +202,7 @@ int GetPairedEquipSlot(int equip_slot)
 /* Which slot each bit of an equip-slot mask stands for: bit N is slot N. */
 #define W8_EQUIP_SLOT_BIT(slot) ((unsigned short)(1 << (slot)))
 
-/* Bits of W8ItemDatabaseRecord::flags_041 that recovered bodies read. */
+/* Bits of W8ItemDatabaseRecord::flags that recovered bodies read. */
 enum {
     W8_ITEM_FLAG_NO_DISCARD = 0x02,
     W8_ITEM_FLAG_TWO_HANDED = 0x04,
@@ -593,7 +593,7 @@ unsigned short GetItemEquipSlotMask(int item_id, bool primary_off_hand_free,
                                &g_item_records[item_id]);
             return 0;
         }
-        if ((g_item_records[item_id].flags_041 & W8_ITEM_FLAG_TWO_HANDED) != 0) {
+        if ((g_item_records[item_id].flags & W8_ITEM_FLAG_TWO_HANDED) != 0) {
             if (primary_off_hand_free) {
                 slots = W8_EQUIP_SLOT_BIT(W8_EQUIP_SLOT_PRIMARY_RIGHT);
             }
@@ -604,7 +604,7 @@ unsigned short GetItemEquipSlotMask(int item_id, bool primary_off_hand_free,
         }
         slots = W8_EQUIP_SLOT_BIT(W8_EQUIP_SLOT_PRIMARY_RIGHT) |
                 W8_EQUIP_SLOT_BIT(W8_EQUIP_SLOT_ALTERNATE_RIGHT);
-        if ((g_item_records[item_id].flags_041 & W8_ITEM_FLAG_OFF_HAND_ALLOWED) == 0) {
+        if ((g_item_records[item_id].flags & W8_ITEM_FLAG_OFF_HAND_ALLOWED) == 0) {
             return slots;
         }
         if (primary_main_hand_free) {
@@ -660,12 +660,12 @@ bool CanEquipItemInSlot(W8Character* character, int item_id, unsigned char equip
         character->EquippedItem[W8_EQUIP_SLOT_ALTERNATE_LEFT].iItemNo == -1 || ignore_worn_items;
     primary_main_hand_free =
         character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_RIGHT].iItemNo == -1 ||
-        (g_item_records[character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_RIGHT].iItemNo].flags_041 &
+        (g_item_records[character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_RIGHT].iItemNo].flags &
          W8_ITEM_FLAG_TWO_HANDED) == 0 ||
         ignore_worn_items;
     alternate_main_hand_free =
         character->EquippedItem[W8_EQUIP_SLOT_ALTERNATE_RIGHT].iItemNo == -1 ||
-        (g_item_records[character->EquippedItem[W8_EQUIP_SLOT_ALTERNATE_RIGHT].iItemNo].flags_041 &
+        (g_item_records[character->EquippedItem[W8_EQUIP_SLOT_ALTERNATE_RIGHT].iItemNo].flags &
          W8_ITEM_FLAG_TWO_HANDED) == 0 ||
         ignore_worn_items;
 
@@ -813,8 +813,8 @@ static bool CanHoldItemsTogether(int first_item_id, int second_item_id)
     if (first_item_id == -1 || second_item_id == -1) {
         return true;
     }
-    if ((g_item_records[first_item_id].flags_041 & W8_ITEM_FLAG_TWO_HANDED) != 0 ||
-        (g_item_records[second_item_id].flags_041 & W8_ITEM_FLAG_TWO_HANDED) != 0) {
+    if ((g_item_records[first_item_id].flags & W8_ITEM_FLAG_TWO_HANDED) != 0 ||
+        (g_item_records[second_item_id].flags & W8_ITEM_FLAG_TWO_HANDED) != 0) {
         return false;
     }
     if (g_item_records[first_item_id].equip_class == 3 ||
@@ -1017,7 +1017,7 @@ bool CanCharacterActivateItem(W8Character* character, const W8ItemInstance* item
     }
 
     record = &g_item_records[item->iItemNo];
-    if ((record->flags_041 & 0x40) != 0 ||
+    if ((record->flags & 0x40) != 0 ||
         GetItemDefaultEquipSlot(item->iItemNo) != W8_EQUIP_SLOT_NONE) {
         if (!IsItemWornByCharacter(character, item)) {
             return 0;
@@ -1217,7 +1217,7 @@ unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_use
             if (g_item_spell_presentation[record->category] == 9) {
                 fatigue_cost = 10;
             }
-            power = record->spell_power_064;
+            power = record->spell_power;
         } else {
             /* A casting aid has to beat the difficulty of the character's own
                level in the skill that presents the spell. Each attempt that
@@ -1707,7 +1707,7 @@ void StashDepartingCharacterItems(W8Character* character)
             gXStatus.held_item_slot = 0xffff;
             ClearHeldItemDisplay();
             CopyItemInstance(&g_status.item_in_hand, item, 0, 1);
-            if ((g_item_records[g_status.item_in_hand.iItemNo].flags_041 & 2) == 0) {
+            if ((g_item_records[g_status.item_in_hand.iItemNo].flags & 2) == 0) {
                 DropHeldItem(0);
             } else {
                 ShowNoticeLine(gppStringList[0x4ef], 0, 1, 0);
@@ -1732,7 +1732,7 @@ void StashDepartingCharacterItems(W8Character* character)
             gXStatus.held_item_slot = 0xffff;
             ClearHeldItemDisplay();
             CopyItemInstance(&g_status.item_in_hand, item, 0, 1);
-            if ((g_item_records[g_status.item_in_hand.iItemNo].flags_041 & 2) == 0) {
+            if ((g_item_records[g_status.item_in_hand.iItemNo].flags & 2) == 0) {
                 DropHeldItem(0);
             } else {
                 ShowNoticeLine(gppStringList[0x4ef], 0, 1, 0);
@@ -1886,7 +1886,7 @@ unsigned char GiveItemToCharacterOrParty(int uiChar, W8ItemInstance* item,
 // FUNCTION: WIZ8 0x0051be50
 bool DropItemInHand(int arg_1)
 {
-    if ((g_item_records[g_status.item_in_hand.iItemNo].flags_041 & W8_ITEM_FLAG_NO_DISCARD) !=
+    if ((g_item_records[g_status.item_in_hand.iItemNo].flags & W8_ITEM_FLAG_NO_DISCARD) !=
         0) {
         ShowNoticeLine(gppStringList[0x4ef], 0, 1, 0);
         return false;
@@ -2045,7 +2045,7 @@ void ReplaceOrCreateItem(W8ItemInstance* item, int item_id, bool maximum_quantit
             srAssertFail("FALSE", PC_ITEM_CPP, 599, "InitNewItem: ERROR - Invalid multi code");
         }
     }
-    if (force_identified || (record->flags_041 & 1) != 0) {
+    if (force_identified || (record->flags & 1) != 0) {
         item->identified = 1;
     }
     if (mark_special) {
@@ -2215,7 +2215,7 @@ bool ItemHasHiddenProperties(int item_id)
     unsigned int index;
 
     for (index = 0; index < 9; ++index) {
-        if ((record->attack_flags_04e & (1 << index)) != 0) {
+        if ((record->attack_flags & (1 << index)) != 0) {
             return true;
         }
     }
@@ -2223,12 +2223,12 @@ bool ItemHasHiddenProperties(int item_id)
         return true;
     }
     for (index = 0; index < 6; ++index) {
-        if (record->resistance_bonus_06f[index] != 0) {
+        if (record->resistance_bonus[index] != 0) {
             return true;
         }
     }
-    if (record->binds_on_equip != 0 || record->modifier_06c != 0 || record->modifier_06d != 0 ||
-        record->modifier_06e != 0) {
+    if (record->binds_on_equip != 0 || record->health_regen_bonus != 0 || record->stamina_regen_bonus != 0 ||
+        record->spell_regen_bonus != 0) {
         return true;
     }
     return false;
@@ -2630,7 +2630,7 @@ void BindEveryPartyItem(void)
 {
     unsigned int party_slot;
 
-    if (gXStatus.fCombatMode != 0 && g_combat_state->round_active_001 == 0 &&
+    if (gXStatus.fCombatMode != 0 && g_combat_state->round_active == 0 &&
         gXStatus.fPartyMovementMode == 0) {
         ShowNotice(0xc, gppStringList[0x1f6], -1, -1, 0);
         return;
@@ -3017,7 +3017,7 @@ void RefreshAfterItemRecordChange(W8ItemInstance* item, W8Character* character,
     RebuildEquipmentAndDerivedStatsForSlot(party_slot);
 
     W8PartySlotRow* row = &g_status.buffers.XChar[party_slot];
-    if (row->action_03d == W8_ACTION_USE_ITEM && row->action_detail_045.item_use.item == item) {
+    if (row->action == W8_ACTION_USE_ITEM && row->action_detail_045.item_use.item == item) {
         DropCharacterFromRound(party_slot);
     }
 
@@ -3026,20 +3026,20 @@ void RefreshAfterItemRecordChange(W8ItemInstance* item, W8Character* character,
         if (action_kind == W8_ACTION_BERSERK) {
             if (!CanCharacterBerserk(party_slot)) {
                 row->action_kind = W8_ACTION_ATTACK;
-                if (row->action_03d == W8_ACTION_BERSERK) {
-                    row->action_03d = W8_ACTION_ATTACK;
+                if (row->action == W8_ACTION_BERSERK) {
+                    row->action = W8_ACTION_ATTACK;
                 }
             }
         } else if (action_kind == W8_ACTION_ATTACK && row->action_is_berserk &&
                    CanCharacterBerserk(party_slot)) {
             row->action_kind = W8_ACTION_BERSERK;
-            if (row->action_03d == W8_ACTION_ATTACK) {
-                row->action_03d = W8_ACTION_BERSERK;
+            if (row->action == W8_ACTION_ATTACK) {
+                row->action = W8_ACTION_BERSERK;
             }
         }
 
         if (gXStatus.fCombatMode) {
-            W8ActionKind action = row->action_03d;
+            W8ActionKind action = row->action;
             if (action == W8_ACTION_ATTACK || action == W8_ACTION_BERSERK) {
                 if (!CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 1, 0)) {
                     AimByKind(party_slot, W8_TARGET_KIND_NONE, W8_TARGETING_CONTEXT_IN_COMBAT);
@@ -3515,18 +3515,18 @@ int ChooseCharacterEquipSlot(W8Character* character, int item_id)
     switch (g_item_records[item_id].equip_class) {
     case 0:
     case 1:
-        if (character->skills[0x12].points_02 != 0) {
+        if (character->skills[0x12].points != 0) {
             if (CanEquipItemInSlot(character, item_id, 7, 0)) {
                 if (primary_right != -1 && primary_left == -1 &&
                     (g_item_records[primary_right].equip_class == 0 ||
                      g_item_records[primary_right].equip_class == 1) &&
-                    (g_item_records[primary_right].flags_041 & 4) == 0) {
+                    (g_item_records[primary_right].flags & 4) == 0) {
                     slot = 7;
                 }
                 if (alternate_right != -1 && alternate_left == -1 &&
                     (g_item_records[alternate_right].equip_class == 0 ||
                      g_item_records[alternate_right].equip_class == 1) &&
-                    (g_item_records[alternate_right].flags_041 & 4) == 0) {
+                    (g_item_records[alternate_right].flags & 4) == 0) {
                     return 9;
                 }
             } else {
@@ -3637,7 +3637,7 @@ void StagePartySlotItemUse(int party_slot, W8ItemInstance* item, const W8CombatS
     row->item_detail.item_use.kind = -1;
     row->item_detail.item_use.item = item;
     row->item_target = *target;
-    row->item_id_0c9 = item->iItemNo;
+    row->item_id = item->iItemNo;
     GetOriginOfCharacterItem(party_slot, item, &row->item_origin, &row->item_slot);
 }
 
@@ -3742,7 +3742,7 @@ unsigned char AddItemToPartyOrDrop(W8ItemInstance* item, bool announce)
     gXStatus.held_item_slot = 0xffff;
     ClearHeldItemDisplay();
     CopyItemInstance(&g_status.item_in_hand, item, 0, 1);
-    if ((g_item_records[g_status.item_in_hand.iItemNo].flags_041 & W8_ITEM_FLAG_NO_DISCARD) ==
+    if ((g_item_records[g_status.item_in_hand.iItemNo].flags & W8_ITEM_FLAG_NO_DISCARD) ==
         0) {
         DropHeldItem(0);
     } else {
@@ -3802,7 +3802,7 @@ int CastItemSpell(W8Character* character, W8ItemInstance* item, unsigned int pow
     }
 
     SetTargetSourceToCharacter(party_slot, &target);
-    target.item_cast_21 = 1;
+    target.item_cast = 1;
     TrackItemSpellSource(character, spell_id);
 
     if (skill == 9) {
@@ -4244,7 +4244,7 @@ unsigned char SwapWeaponSetSlots(int party_slot, char announce, bool refresh)
 void BindCharacterItems(int party_slot, int arg_2)
 {
     if (gXStatus.fCombatMode != 0) {
-        if (g_combat_state->round_active_001 == 0 && gXStatus.fPartyMovementMode == 0) {
+        if (g_combat_state->round_active == 0 && gXStatus.fPartyMovementMode == 0) {
             ShowNotice(0xc, gppStringList[0x1f6], -1, 0xffffffff, 0);
             return;
         }

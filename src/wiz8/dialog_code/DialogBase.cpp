@@ -249,7 +249,7 @@ unsigned char W8DialogBase::ProcessInput()
 // FUNCTION: WIZ8 0x005d6eb0
 void DialogCloseButtonCallback(W8DialogButton* button)
 {
-    W8DialogBase* dialog = button->m_owner_040;
+    W8DialogBase* dialog = button->m_owner;
     if (dialog != 0) {
         dialog->m_keep_open = false;
     }

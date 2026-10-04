@@ -98,7 +98,7 @@ int g_special_attack_table[32][2] = {
 
 /* The spell that fills each being effect slot, walked by
    MonsterSpellTargetOK to tell whether a buff is already running; the
-   monster side indexes effect_slots_10f, the party side the matching rows
+   monster side indexes effect_slots, the party side the matching rows
    in g_status. */
 // GLOBAL: WIZ8 0x00616D84
 int g_being_effect_slot_spells[12] = {
@@ -106,14 +106,14 @@ int g_being_effect_slot_spells[12] = {
 };
 
 /* The combat-state spell per effect slot, walked against
-   W8CombatState::effect_slots and the monster's effect_slots_3e. */
+   W8CombatState::effect_slots and the monster's combat_effects. */
 // GLOBAL: WIZ8 0x00616DB4
 int g_combat_effect_slot_spells[9] = {
     0x31, 0x30, 0x4c, 0x51, 0x5d, 0x50, 0, 0, 0,
 };
 
 /* The same mapping for the second combat effect block, indexed against
-   W8CombatState::effect_slots_85a and the monster's effect_slots_d7. One
+   W8CombatState::effect_slots_85a and the monster's combat_effects_2. One
    retail array: [0..6) are spell ids, [6..23) — the retail sub-table at
    0x00616DF0 — is the spell-point budget/failure percentage indexed by cost
    band that Magic.cpp's failure and power-level readers consume. */
@@ -159,12 +159,12 @@ static bool g_special_attack_cycle_error_reported;
 // FUNCTION: WIZ8 0x00530110
 void UpdateMonsterSight(void)
 {
-    if (gXStatus.fCombatMode == 0 || gXStatus.sight_refresh_pending_a03 != 0) {
-        if (gXStatus.sight_refresh_pending_a03 != 0) {
-            gXStatus.sight_refresh_pending_a03 = 0;
+    if (gXStatus.fCombatMode == 0 || gXStatus.sight_refresh_pending != 0) {
+        if (gXStatus.sight_refresh_pending != 0) {
+            gXStatus.sight_refresh_pending = 0;
         }
         RefreshOutwardSightForAllMonsters();
-        if (gXStatus.fCombatMode != 0 && g_combat_state->round_count_004 == 0) {
+        if (gXStatus.fCombatMode != 0 && g_combat_state->round_count == 0) {
             CheckMonsterGroupsEnterCombat();
         }
     }
@@ -400,7 +400,7 @@ void DoMonsterRTAI(W8MonsterInfo* monster_info, bool engage)
         mode = monster_info->ai_mode & 0xf;
         if (mode != 6 &&
             (monster_info->p3D->face_party == 0 || monster_info->pathing_cooldown != 0 ||
-             mode != 0xa || monster_info->player_visibility.line_of_sight_28 == 0 ||
+             mode != 0xa || monster_info->player_visibility.line_of_sight == 0 ||
              (monster_info->p3D->movement_0c0.position_040 - g_startup_world->GetPosition())
                      .Length() >= g_float_005ec2f8)) {
             monster_info->ai_mode &= 0x7f;
@@ -409,7 +409,7 @@ void DoMonsterRTAI(W8MonsterInfo* monster_info, bool engage)
             update = 1;
         }
     }
-    if (monster_info->ubDisposition == 1 || monster_info->p3D->script_wait_240 != 1 ||
+    if (monster_info->ubDisposition == 1 || monster_info->p3D->script_wait != 1 ||
         decision != 0) {
         if (decision != monster_info->ai_mode || update != 0) {
             if (engage == 0 && decision == 1) {
@@ -436,7 +436,7 @@ char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
     mode = 0;
     changed = false;
     if (monster->face_party != 0 && monster_info->pathing_cooldown == 0 &&
-        monster_info->player_visibility.line_of_sight_28 != 0) {
+        monster_info->player_visibility.line_of_sight != 0) {
         srVector3T<float> delta;
 
         delta = monster->movement_0c0.position_040 - g_startup_world->GetPosition();
@@ -519,7 +519,7 @@ char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
                     mode = 8;
                 }
             }
-        } else if (monster_info->look_timer_303 != 0) {
+        } else if (monster_info->pause_time != 0) {
             if (Random(0x14) == 0) {
                 double angle;
 
@@ -565,7 +565,7 @@ char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
                 if (delta.Length() >= g_double_005ee768) {
                     break;
                 }
-                count = monster->vector_29c.GetCount();
+                count = monster->vector.GetCount();
                 if (monster->order_mode == 2) {
                     next = monster->patrol_index + 1;
                     if (next < count) {
@@ -870,7 +870,7 @@ void UpdateMonsterAI(W8MonsterInfo* monster_info)
             }
             if (CanMonsterFlee(monster_info, record, 0) && Random(100) < chance) {
                 monster_info->action_kind = W8_MONSTER_ACTION_FLEE;
-                if (g_special_attack_table[record->special_attack_kind_0e3][0] ==
+                if (g_special_attack_table[record->special_attack_kind][0] ==
                     W8_SPECIAL_ATTACK_EFFECT_SUMMON) {
                     position = monster_info->p3D->GetPosition();
                     ResetCombatSlot(&monster_info->Target);
@@ -1010,7 +1010,7 @@ members:
                         destination = g_startup_world->GetPosition();
                         source = leader->p3D->GetPosition();
                         waypoint_result =
-                            g_octree->pathing_180->TestWaypointSpan(&source, &destination, 0, 0);
+                            g_octree->pathing->TestWaypointSpan(&source, &destination, 0, 0);
                     }
                     waypoint_checked = true;
                 }
@@ -1101,7 +1101,7 @@ void BuildMonsterActionQueue(W8MonsterInfo* monster_info, char target_locked, ch
         srAssertFail("pMonsterInfo->pCombat->plsCombatActionList != NULL", MONSTER_AI_CPP, 1385, 0);
     }
     if (target_locked == 0 && attack_locked == 0) {
-        if (CanMonsterProtect(monster_info) != 0 && Random(100) < monster_info->attributes[1]) {
+        if (CanMonsterProtect(monster_info) != 0 && Random(100) < monster_info->attributes[W8_MONSTER_ATTRIBUTE_INTELLIGENCE]) {
             monster_info->action_kind = 8;
             for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
                 other = MonsterGetScriptPartByLocationIndex(index);
@@ -1128,7 +1128,7 @@ void BuildMonsterActionQueue(W8MonsterInfo* monster_info, char target_locked, ch
             }
         }
         if (record->combat_morale == 2 && record->combat_behavior != 3 &&
-            Random(100) < monster_info->attributes[1]) {
+            Random(100) < monster_info->attributes[W8_MONSTER_ATTRIBUTE_INTELLIGENCE]) {
             QueueMonsterAction(monster_info, 1, -1, 0, W8_TARGET_KIND_NONE, 0);
         }
     }
@@ -1141,7 +1141,7 @@ void BuildMonsterActionQueue(W8MonsterInfo* monster_info, char target_locked, ch
         attack_hi = attack_lo + 1;
     }
     if (target_locked == 0 || attack_locked != 0 || monster_info->pCombat->berserk_015 != 0 ||
-        monster_info->attributes[2] >= 0x4b) {
+        monster_info->attributes[W8_MONSTER_ATTRIBUTE_DEXTERITY] >= 0x4b) {
         char_lo = 0;
         char_hi = 8;
         scan_chars = 1;
@@ -1292,8 +1292,8 @@ unsigned char ChooseRandomMonsterAction(W8MonsterInfo* monster_info, int arg_2, 
         monster_info->pCombat->attack_index_11 = entry->attack_index;
         monster_info->action_detail = entry->action_detail;
         if (set_attack_rate != 0) {
-            monster_info->pCombat->attacks_per_round_005 = record->attacks_per_round_0e5;
-            monster_info->pCombat->attacks_per_round = record->attacks_per_round_0e5;
+            monster_info->pCombat->attacks_per_round_005 = record->attacks_per_round;
+            monster_info->pCombat->attacks_per_round = record->attacks_per_round;
         }
         break;
     case 1:
@@ -1482,12 +1482,12 @@ bool MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id, W8CombatSlo
         for (index = 0; index < 9; ++index) {
             if (spell_id == g_combat_effect_slot_spells_and_cast_success[index]) {
                 if (combat_slot->iType == W8_TARGET_KIND_CHARACTER) {
-                    duration = g_combat_state->effect_slots_85a[index].duration_0d;
+                    duration = g_combat_state->effect_slots_85a[index].duration;
                 } else {
                     if (target->fInCombat == 0) {
                         continue;
                     }
-                    duration = target->pCombat->effect_slots_d7[index].duration_0d;
+                    duration = target->pCombat->combat_effects_2[index].duration;
                 }
                 if (duration != 0) {
                     return 0;
@@ -1547,9 +1547,9 @@ bool MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id, W8CombatSlo
         for (index = 0; index < 12; ++index) {
             if (spell_id == g_being_effect_slot_spells[index]) {
                 if (combat_slot->iType == W8_TARGET_KIND_CHARACTER) {
-                    duration = g_status.effect_slots_17af[index].duration_0d;
+                    duration = g_status.effect_slots[index].duration;
                 } else {
-                    duration = target->effect_slots_10f[index].duration_0d;
+                    duration = target->effect_slots[index].duration;
                 }
                 if (duration != 0) {
                     return 0;
@@ -1646,12 +1646,12 @@ bool MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id, W8CombatSlo
         for (index = 0; index < 9; ++index) {
             if (spell_id == g_combat_effect_slot_spells[index]) {
                 if (combat_slot->iType == W8_TARGET_KIND_CHARACTER) {
-                    duration = g_combat_state->effect_slots[index].duration_0d;
+                    duration = g_combat_state->effect_slots[index].duration;
                 } else {
                     if (target->fInCombat == 0) {
                         continue;
                     }
-                    duration = target->pCombat->effect_slots_3e[index].duration_0d;
+                    duration = target->pCombat->combat_effects[index].duration;
                 }
                 if (duration != 0) {
                     return 0;
@@ -1691,12 +1691,12 @@ bool MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id, W8CombatSlo
         for (index = 0; index < 9; ++index) {
             if (g_combat_effect_slot_spells[index] != 0x31) {
                 if (combat_slot->iType == W8_TARGET_KIND_CHARACTER) {
-                    duration = g_combat_state->effect_slots[index].duration_0d;
+                    duration = g_combat_state->effect_slots[index].duration;
                 } else {
                     if (target->fInCombat == 0) {
                         continue;
                     }
-                    duration = target->pCombat->effect_slots_3e[index].duration_0d;
+                    duration = target->pCombat->combat_effects[index].duration;
                 }
                 if (duration != 0) {
                     return 1;
@@ -2288,7 +2288,7 @@ bool CanMonsterFlee(W8MonsterInfo* monster_info, W8MonsterRecord* record, bool e
     if (record->flee_chance == 0) {
         return 0;
     }
-    if (record->special_attack_kind_0e3 == 0) {
+    if (record->special_attack_kind == 0) {
         return 0;
     }
     if (MonsterIsCycleSupported(monster_info->p3D, 0x12) == 0) {
@@ -2306,10 +2306,10 @@ bool CanMonsterFlee(W8MonsterInfo* monster_info, W8MonsterRecord* record, bool e
         return 0;
     }
     if (monster_info->uiCondition[W8_CONDITION_SPELLCASTING_BLOCKED] != 0 &&
-        MonsterSpecialAttackHonorsCastingBlock(record->special_attack_kind_0e3) != 0) {
+        MonsterSpecialAttackHonorsCastingBlock(record->special_attack_kind) != 0) {
         return 0;
     }
-    if (g_special_attack_table[record->special_attack_kind_0e3][0] ==
+    if (g_special_attack_table[record->special_attack_kind][0] ==
         W8_SPECIAL_ATTACK_EFFECT_SUMMON) {
         if (CalcRangeDistance(W8_RANGE_LONG) < monster_info->p3D->GetDistanceToPlayer()) {
             return 0;
@@ -2336,7 +2336,7 @@ unsigned char AimFleeingMonster(W8MonsterInfo* monster_info, const W8MonsterReco
 {
     srVector3T<float> position;
 
-    if (g_special_attack_table[record->special_attack_kind_0e3][0] ==
+    if (g_special_attack_table[record->special_attack_kind][0] ==
         W8_SPECIAL_ATTACK_EFFECT_SUMMON) {
         position = monster_info->p3D->GetPosition();
         ResetCombatSlot(&monster_info->Target);
@@ -2376,7 +2376,7 @@ bool IsMonsterActionUsable(W8MonsterInfo* monster_info)
         }
         break;
     case W8_MONSTER_ACTION_FLEE:
-        if (g_special_attack_table[GetMonsterDataForInfo(monster_info)->special_attack_kind_0e3]
+        if (g_special_attack_table[GetMonsterDataForInfo(monster_info)->special_attack_kind]
                                   [0] == W8_SPECIAL_ATTACK_EFFECT_SUMMON) {
             return 0;
         }

@@ -131,10 +131,10 @@ srColorSurfaceIFace* srJPEGImporter::importSurface(
 // FUNCTION: SREXT_JPEGIMPORTER 0x10015400
 static void initializeExportOptions(JpegExportOptions32* options)
 {
-    options->limit_200 = 200;
+    options->limit = 200;
     options->quality = 100;
     options->smoothing_factor = 0;
-    options->pointer_08 = 0;
+    options->pointer = 0;
 }
 
 // FUNCTION: SREXT_JPEGIMPORTER 0x10015200

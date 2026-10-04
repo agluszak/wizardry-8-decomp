@@ -52,18 +52,18 @@ static_assert((sizeof(stMaterial) == 0x7C), "stMaterial_must_be_0x7c");
    level particles and animated-texture descriptors. The four 40-byte texture
    names and the unaligned tail fields are fixed by 0x004B8A70/0x004B98F0. */
 struct W8MaterialRecord {
-    unsigned char version_00;         /* 0x000 */
-    char texture_name_001[0x28];      /* 0x001 */
+    unsigned char version;         /* 0x000 */
+    char texture_name[0x28];      /* 0x001 */
     char texture_names_029[4][0x28];  /* 0x029 */
-    float ambient_0c9[3];             /* 0x0c9 */
-    float diffuse_0d5[3];             /* 0x0d5 */
+    float ambient[3];             /* 0x0c9 */
+    float diffuse[3];             /* 0x0d5 */
     float emissive_colour[3];     /* 0x0e1 */
-    float specular_0ed[3];            /* 0x0ed */
-    float shininess_0f9;              /* 0x0f9 */
-    float opacity_0fd;                /* 0x0fd */
-    float emission_101;               /* 0x101 */
+    float specular[3];            /* 0x0ed */
+    float shininess;              /* 0x0f9 */
+    float opacity;                /* 0x0fd */
+    float emission;               /* 0x101 */
     unsigned char padding_105[8];     /* 0x105 */
-    unsigned char animation_mode_10d; /* 0x10d */
+    unsigned char animation_mode; /* 0x10d */
     int animation_frame;          /* 0x10e */
     float animation_rate;         /* 0x112 */
     unsigned long shader_flags;   /* 0x116 */

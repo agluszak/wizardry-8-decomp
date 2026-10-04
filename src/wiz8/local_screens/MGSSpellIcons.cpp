@@ -153,7 +153,7 @@ void RebuildSpellIconHudRows(void)
     right = 0xe3;
     g_spell_icon_count = 0;
     for (slot = 0; slot < 12; ++slot) {
-        effect = &g_status.effect_slots_17af[slot];
+        effect = &g_status.effect_slots[slot];
         if (effect->active != 0) {
             icon = g_effect_visual_table[effect->effect_id][0];
             if (icon == -1) {
@@ -303,9 +303,9 @@ void InvalidateMainGameEffectHud(void)
 void ShowPartyEffectIconHelp(int slot_index)
 {
     W8SpellRuntimeRecord* records = g_spell_records;
-    W8EffectSlot* slot = &g_status.effect_slots_17af[slot_index];
+    W8EffectSlot* slot = &g_status.effect_slots[slot_index];
     int amount = slot->amount;
-    unsigned int duration = slot->duration_0d;
+    unsigned int duration = slot->duration;
     int effect_id = slot->effect_id;
     wchar_t* name;
     wchar_t* detail;
@@ -336,7 +336,7 @@ unsigned char PartyEffectIconRegionEvent(const InputAtom* event, W8Region* regio
     W8EffectSlot* slot;
 
     PushButtonSoundScheme(0, 1);
-    slot = g_status.effect_slots_17af;
+    slot = g_status.effect_slots;
     do {
         if (slot->active != 0) {
             if (match == region->callback_id) {
@@ -346,7 +346,7 @@ unsigned char PartyEffectIconRegionEvent(const InputAtom* event, W8Region* regio
         }
         ++slot;
         ++slot_index;
-    } while (slot < &g_status.effect_slots_17af[12]);
+    } while (slot < &g_status.effect_slots[12]);
 
     if (slot_index != 12 && event->usEvent == MOUSE_POS) {
         if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
@@ -356,7 +356,7 @@ unsigned char PartyEffectIconRegionEvent(const InputAtom* event, W8Region* regio
             ShowPartyEffectIconHelp(slot_index);
             return 1;
         }
-        if (g_effect_icon_help_duration != g_status.effect_slots_17af[slot_index].duration_0d) {
+        if (g_effect_icon_help_duration != g_status.effect_slots[slot_index].duration) {
             ShowPartyEffectIconHelp(slot_index);
             ResetRegionHelp(0);
         }
@@ -372,7 +372,7 @@ void ShowCombatLeftEffectIconHelp(int slot_index)
     W8SpellRuntimeRecord* records = g_spell_records;
     W8EffectSlot* slot = &g_combat_state->effect_slots[slot_index];
     int amount = slot->amount;
-    unsigned int duration = slot->duration_0d;
+    unsigned int duration = slot->duration;
     int effect_id = slot->effect_id;
     wchar_t* name;
     wchar_t* detail;
@@ -401,7 +401,7 @@ void ShowCombatRightEffectIconHelp(int slot_index)
     W8SpellRuntimeRecord* records = g_spell_records;
     W8EffectSlot* slot = &g_combat_state->effect_slots_85a[slot_index];
     int amount = slot->amount;
-    unsigned int duration = slot->duration_0d;
+    unsigned int duration = slot->duration;
     int effect_id = slot->effect_id;
     wchar_t* name;
     wchar_t* detail;
@@ -459,7 +459,7 @@ unsigned char CombatLeftEffectIconRegionEvent(const InputAtom* event, W8Region* 
                 return 1;
             }
             if (g_effect_icon_help_duration !=
-                g_combat_state->effect_slots[slot_index].duration_0d) {
+                g_combat_state->effect_slots[slot_index].duration) {
                 ShowCombatLeftEffectIconHelp(slot_index);
                 ResetRegionHelp(0);
             }
@@ -502,7 +502,7 @@ unsigned char CombatRightEffectIconRegionEvent(const InputAtom* event, W8Region*
                 return 1;
             }
             if (g_effect_icon_help_duration !=
-                g_combat_state->effect_slots_85a[slot_index].duration_0d) {
+                g_combat_state->effect_slots_85a[slot_index].duration) {
                 ShowCombatRightEffectIconHelp(slot_index);
                 ResetRegionHelp(0);
             }

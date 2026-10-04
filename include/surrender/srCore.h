@@ -140,7 +140,7 @@ private:
        srDebugPrintf reads the dword before masking with 0xff. */
     unsigned long debug_level;
     int multi_thread;
-    srNode* root_node_164;
+    srNode* root_node;
     srModelIOManager* model_io_manager;
     srHierarchyIOManager* hierarchy_io_manager;
     srMaterial* material_170;

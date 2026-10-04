@@ -59,20 +59,20 @@ public:
     void SetHelpActive(bool active);                           /* 0x005AFAE0 */
 
     W8CharacterPageEntryListener* m_listener_004;
-    W8TextControl* m_increment_008;
-    W8TextControl* m_decrement_00c;
+    W8TextControl* m_increment;
+    W8TextControl* m_decrement;
     W8TextControl* m_help;
     W8TextBuffer* m_label;
     W8TextBuffer* m_first_text;
     W8TextBuffer* m_second_text;
-    unsigned int* m_first_020;
-    int* m_second_024;
+    unsigned int* m_first;
+    int* m_second;
     int* m_third;
     unsigned int m_id;
-    int m_x_030;
-    int m_y_034;
+    int m_x;
+    int m_y;
     bool m_draw_background;
-    bool m_dirty_039;
+    bool m_dirty;
     bool m_enabled_03a;
     bool m_increment_allowed;
 };
@@ -95,11 +95,11 @@ public:
     virtual void HandleInput(InputAtom* input); /* 0x005B1BE0 */
     virtual void Refresh();                     /* 0x005B1BF0 */
     virtual void Prepare();                     /* 0x005AFFA0 */
-    W8Vector<W8CharacterPageEntry*> m_entries_04c;
+    W8Vector<W8CharacterPageEntry*> m_entries;
     W8CharacterScreen* m_screen_05c;
-    W8Character* m_character_060;
-    W8CharacterCreationState* m_creation_state_064;
-    int m_mode_068;
+    W8Character* m_character;
+    W8CharacterCreationState* m_creation_state;
+    int m_mode;
     bool m_prepared;
     bool m_dirty_06d;
     unsigned char pad_06e[2];
@@ -116,12 +116,12 @@ class W8CharacterStatsRow;
 struct W8CharacterStatsRecord {
     /* 0x00: the video-object catalog id handed to DrawCatalogImage's
        `object` argument. */
-    unsigned int object_00;
+    unsigned int object;
     /* 0x04/0x08: catalog image ids drawn while the control is enabled and
        disabled respectively. */
     int image_enabled;
     int image_disabled;
-    unsigned short name_id_0c;
+    unsigned short name_id;
     unsigned char enabled_0e;
     unsigned char pad_0f;
 };
@@ -172,12 +172,12 @@ public:
     int m_index; /* current stat index */
     unsigned short m_count;
     unsigned char pad_00a[2];
-    int m_x_00c;
-    int m_y_010;
-    unsigned int* m_region_set_014;
+    int m_x;
+    int m_y;
+    unsigned int* m_region_set;
     const W8CharacterStatsRecord* m_table;
-    W8TextControl* m_decrement_01c;
-    W8TextControl* m_increment_020;
+    W8TextControl* m_decrement;
+    W8TextControl* m_increment;
     W8CharacterStatsValue* m_value_control;
     Controls* m_subpanel;
     W8TextControl** m_subpanel_entries;
@@ -218,7 +218,7 @@ public:
     W8CharacterStatsRow* m_profession_row;
     W8CharacterStatsRow* m_race_row;
     W8CharacterStatsRow* m_gender_row;
-    bool m_navigation_state_088;
+    bool nav_next_state;
     bool m_rows_initialized;
     unsigned char pad_08a[2];
     W8TextControl* m_attribute_controls[5];
@@ -249,7 +249,7 @@ class W8CharacterSpellList;
    embedded framework object. The range-list callbacks use the +0x70 base. */
 class W8CharacterSpellsPage : public W8CharacterPage, public W8CharacterSpellListListener {
 public:
-    W8CharacterSpellsPage() : W8CharacterPage(0x109), m_animation_timer_5e4(0.05f, 1)
+    W8CharacterSpellsPage() : W8CharacterPage(0x109), anim_timer(0.05f, 1)
     {
         for (int realm = 0; realm < 6; ++realm) {
             m_realms[realm] = 0;
@@ -269,7 +269,7 @@ private:
     void UpdateSpellLists();
     W8CharacterSpellList* m_realms[6];
     W8CharacterSpellEntry m_SpellData[114];
-    W8GameTimer m_animation_timer_5e4;
+    W8GameTimer anim_timer;
     unsigned int m_animation_frames[6];
     unsigned int m_last_selected;
 };
@@ -294,7 +294,7 @@ private:
     void UpdateEntries(); /* 0x005C7B50 */
     bool m_force_redraw;
     bool m_show_fifth_category;
-    bool m_navigation_state_076;
+    bool nav_next_state;
     unsigned char padding_077;
 };
 static_assert(sizeof(W8CharacterSkillsPage) == 0x78, "W8CharacterSkillsPage_size");
@@ -306,7 +306,7 @@ class W8CharacterPersonalityPage : public W8CharacterPage,
                                    public W8TextControl::Listener {
 public:
     W8CharacterPersonalityPage()
-        : W8CharacterPage(0x105), m_animation_timer_0d4(0.4f, 1), m_animation_active(0)
+        : W8CharacterPage(0x105), anim_timer(0.4f, 1), m_animation_active(0)
     {
     }
     virtual void Redraw() override;
@@ -328,8 +328,8 @@ private:
     W8TextControl* m_randomize;
     W8ControlSelection m_personality_selection;
     W8ControlSelection m_voice_selection;
-    W8GameTimer m_animation_timer_0d4;
-    int m_animation_frame_0f8;
+    W8GameTimer anim_timer;
+    int m_animation_frame;
     bool m_animation_active;
     bool m_description_dirty;
     bool m_portrait_dirty;
@@ -430,19 +430,19 @@ public:
     virtual void OnPrimary(W8TextControl* control) override;
     virtual void OnSecondary(W8TextControl* control) override;
 
-    int m_mode_008;
+    int m_mode;
     int m_page_index;
     bool m_header_dirty;
     unsigned char pad_011[3];
     W8Character* m_original;
-    W8Character m_character_018;
+    W8Character m_character;
     unsigned char pad_187a[2];
-    W8CharacterCreationState m_creation_state_187c;
+    W8CharacterCreationState m_creation_state;
     bool m_block_advance;
     bool m_confirm_profession;
     bool m_force_transition;
     unsigned char pad_1aef;
-    Controls* m_controls_1af0;
+    Controls* m_controls;
     W8TextControl* m_previous_1af4;
     W8TextControl* m_next_1af8;
     W8TextControl* m_exit;
@@ -450,14 +450,14 @@ public:
     W8TextControl* m_reset;
     bool m_page_enabled[4];
     W8CharacterPage* m_pages[4];
-    W8DialogBase* m_dialog_1b1c;
+    W8DialogBase* m_dialog;
     unsigned int m_dialog_response;
     bool m_capture_dialog_result;
     unsigned char pad_1b25[3];
 };
 static_assert(sizeof(W8CharacterScreen) == 0x1b28, "W8CharacterScreen_size");
 /* Retail secondary vftable 0x005ef21c places W8TextControl::Listener at +0x4. */
-W8_ASSERT_BASE_END(W8CharacterScreen, W8TextControl::Listener, m_mode_008, 0x4);
+W8_ASSERT_BASE_END(W8CharacterScreen, W8TextControl::Listener, m_mode, 0x4);
 
 extern W8CharacterScreen* g_character_screen;
 

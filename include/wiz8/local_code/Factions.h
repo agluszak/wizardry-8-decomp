@@ -44,7 +44,7 @@ struct W8FactionRuntimeRecord {
     int band_changed_clock;
     /* 0x0a: raised by the sight pass the first time the party sees one of
        this faction's monsters; the journal lists encountered factions. */
-    bool encountered_0a;
+    bool encountered;
     unsigned char unknown_0b[3];
 };
 

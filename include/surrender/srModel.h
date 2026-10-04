@@ -33,7 +33,7 @@ public:
     private:
         friend class srModel;
         srPtr<srModel> model_04;
-        Client* previous_08;
+        Client* previous;
         Client* next_0c;
     };
 

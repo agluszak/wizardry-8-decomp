@@ -109,16 +109,16 @@ public:
     int m_fill_colour;        /* 0x088: highlight fill colour */
     int m_text_button;        /* 0x08c */
     int m_second_text_button; /* 0x090 */
-    short m_inlay_image_094;      /* 0x094: DialogInlay inlay for 0x098 */
+    short area_inlay;      /* 0x094: DialogInlay inlay for 0x098 */
     short padding_096;
     int m_area_button;   /* 0x098: scrolling text area */
-    int m_up_button_09c;     /* 0x09c */
-    int m_up_image_0a0;      /* 0x0a0 */
-    int m_down_button_0a4;   /* 0x0a4 */
-    int m_down_image_0a8;    /* 0x0a8 */
+    int m_up_button;     /* 0x09c */
+    int m_up_image;      /* 0x0a0 */
+    int m_down_button;   /* 0x0a4 */
+    int m_down_image;    /* 0x0a8 */
     int m_slider_button; /* 0x0ac */
     int m_slider_image;  /* 0x0b0 */
-    short m_inlay_image_0b4; /* 0x0b4: DialogInlay inlay for 0x0b8 */
+    short third_btn_inlay; /* 0x0b4: DialogInlay inlay for 0x0b8 */
     short padding_0b6;
     int m_third_text_button; /* 0x0b8 */
     int m_ok_button;         /* 0x0bc */
@@ -131,10 +131,10 @@ public:
     W8ControlsRect m_cancel_rect;
     bool m_scrollable; /* 0x0ec: scrolling area is scrollable */
     unsigned char padding_0ed[3];
-    int m_first_visible_line_0f0; /* 0x0f0 */
-    int m_selected_line_0f4;      /* 0x0f4 */
-    short m_inlay_image_0f8;      /* 0x0f8: DialogEdge inlay for the text buttons */
-    short flags_0fa;
+    int m_first_visible_line; /* 0x0f0 */
+    int m_selected_line;      /* 0x0f4 */
+    short edge_inlay;      /* 0x0f8: DialogEdge inlay for the text buttons */
+    short flags;
 }; /* 0xfc */
 
 // VTABLE: WIZ8 0x005ef9f0
@@ -255,8 +255,8 @@ private:
     static void ScrollItemsToMouse(W8DialogButton* button);   /* 0x005CEAF0 */
 
 public:
-    W8Vector<W8WorldItem*> items_54;
-    W8GrowableVector<unsigned char> flags_64;
+    W8Vector<W8WorldItem*> items;
+    W8GrowableVector<unsigned char> flags;
     W8DialogButton* m_buttons_74[13];
     int m_first_item;
     W8WorldItem* m_item_group;
@@ -323,7 +323,7 @@ public:
     int split_result;
 
 private:
-    unsigned int m_kind_0cc;        /* 0x0cc: 0 inventory, 1 and 2 trade modes */
+    unsigned int m_kind;        /* 0x0cc: 0 inventory, 1 and 2 trade modes */
     W8ItemInstance* m_item_0d0;     /* 0x0d0 */
     bool m_first_draw; /* 0x0d4: draw the item icon once */
     unsigned char padding_0d5[3];

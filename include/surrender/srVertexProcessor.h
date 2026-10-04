@@ -15,11 +15,11 @@ struct srVertexArray {
     srVector4T<float>* eye_locations;
     srVector4T<float>* diffuse_04;
     srVector4T<float>* specular_08;
-    srVector2T<float>* st0_0c;
+    srVector2T<float>* st0;
     srVector2T<float>* st1_10;
-    float* q0_14;
-    float* q1_18;
-    unsigned char* packed_1c;
+    float* q0;
+    float* q1;
+    unsigned char* packed;
 };
 
 static_assert(sizeof(srVertexArray) == 0x20, "srVertexArray_must_be_0x20");
@@ -46,7 +46,7 @@ public:
         float shininess;            /* 0x34 */
         float value_38;             /* 0x38 */
         srVector4T<float> emissive; /* 0x3c */
-        float value_4c;             /* 0x4c */
+        float value;             /* 0x4c */
         unsigned long flags;        /* 0x50 */
     };
 

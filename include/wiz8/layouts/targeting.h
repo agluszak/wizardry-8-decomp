@@ -53,7 +53,7 @@ struct W8TargetSource {
     unsigned char spell_difficulty;
     unsigned char unknown_20;
     /* 0x21: set on sources the item-spell path builds. */
-    unsigned char item_cast_21;
+    unsigned char item_cast;
     unsigned char unknown_22[0x12];
 }; /* 0x34 */
 
@@ -110,7 +110,7 @@ union W8ActionDetailBlock {
 }; /* 0x08 */
 static_assert(sizeof(W8ActionDetailBlock) == 0x08, "W8ActionDetailBlock_size");
 
-/* The combat actions a party slot row's action_03d and the level block's
+/* The combat actions a party slot row's action and the level block's
    selection_kind carry; ChooseCombatAction picks one and ChooseAction applies
    it. The names are the submenu help captions (string ids 0x52-0x5f): a menu-0
    entry's caption is the action its row selects. 10 and 11 are the two party

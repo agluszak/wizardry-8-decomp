@@ -31,15 +31,15 @@ float srFog::getDensity() const
 // FUNCTION: SURRENDER 0x1004C140
 void srFog::setRange(double start, double end)
 {
-    fog_start_150 = start;
-    fog_end_158 = end;
+    fog_start = start;
+    fog_end = end;
 }
 
 // FUNCTION: SURRENDER 0x1004C170
 void srFog::getRange(double& start, double& end)
 {
-    start = fog_start_150;
-    end = fog_end_158;
+    start = fog_start;
+    end = fog_end;
 }
 
 // FUNCTION: SURRENDER 0x1004B6F0
@@ -52,9 +52,9 @@ int srFog::isActive(srVertexPipe& pipe)
     }
     if (density_160 > 0.0f) {
         pipe.getEyeSpaceBoundingSphere(center, radius);
-        if ((radius <= (float)fog_start_150) &&
+        if ((radius <= (float)fog_start) &&
             (center.x * center.x + center.y * center.y + center.z * center.z <
-             ((float)fog_start_150 - radius) * ((float)fog_start_150 - radius))) {
+             ((float)fog_start - radius) * ((float)fog_start - radius))) {
             return 0;
         }
         return 1;
@@ -70,13 +70,13 @@ void srFog::verify(srRuntimeClass::e_verify mode)
         srAssertFail("(density >= 0.0) && (density <= 1.0)",
                      "D:\\srsdk1x\\sources\\corelib\\srFog.cpp", 0x3c, 0);
     }
-    if (fog_start_150 < 0.0) {
+    if (fog_start < 0.0) {
         srAssertFail("fogStart >= 0.0", "D:\\srsdk1x\\sources\\corelib\\srFog.cpp", 0x3d, 0);
     }
-    if (fog_end_158 < 0.0) {
+    if (fog_end < 0.0) {
         srAssertFail("fogEnd >= 0.0", "D:\\srsdk1x\\sources\\corelib\\srFog.cpp", 0x3e, 0);
     }
-    if (fog_end_158 < fog_start_150) {
+    if (fog_end < fog_start) {
         srAssertFail("fogEnd >= fogStart", "D:\\srsdk1x\\sources\\corelib\\srFog.cpp", 0x3f, 0);
     }
 }
@@ -91,22 +91,22 @@ void srFog::process(srVertexPipe& pipe)
         srVector3T<float> center;
         float radius;
         pipe.getEyeSpaceBoundingSphere(center, radius);
-        float limit = radius + (float)fog_end_158;
+        float limit = radius + (float)fog_end;
         long count = (long)pipe.getVertexCount();
         if (center.x * center.x + center.y * center.y + center.z * center.z <= limit * limit) {
-            if (fog_end_158 == fog_start_150) {
+            if (fog_end == fog_start) {
                 scale = 1e+08f;
             } else {
-                scale = (float)(1.0 / (fog_end_158 - fog_start_150));
+                scale = (float)(1.0 / (fog_end - fog_start));
             }
             const float* distances = pipe.getEyeSpaceDist();
             if (count != 0) {
-                if ((float)fog_start_150 == 0.0f) {
+                if ((float)fog_start == 0.0f) {
                     if (values != distances) {
                         srVectorProcessor::memcopy(values, distances, count * 4);
                     }
                 } else {
-                    srVectorProcessor::add(values, -(float)fog_start_150, distances, count);
+                    srVectorProcessor::add(values, -(float)fog_start, distances, count);
                 }
                 if (scale != 1.0f) {
                     if (scale == 0.0f) {
@@ -161,8 +161,8 @@ srFog::srFog(srNode* parent) : srIlluminator(0)
     if (parent != 0) {
         setParent(parent, 0);
     }
-    fog_start_150 = 0.0;
-    fog_end_158 = 1000.0;
+    fog_start = 0.0;
+    fog_end = 1000.0;
     density_160 = 0.5f;
 }
 
@@ -175,9 +175,9 @@ void srFog::dump(std::ostream& stream)
     stream.width(0x20);
     stream << "Density: " << density_160 << '\n';
     stream.width(0x20);
-    stream << "Fog start: " << fog_start_150 << '\n';
+    stream << "Fog start: " << fog_start << '\n';
     stream.width(0x20);
-    stream << "Fog end: " << fog_end_158 << '\n';
+    stream << "Fog end: " << fog_end << '\n';
     stream.flags(flags & 0x7fff);
 }
 

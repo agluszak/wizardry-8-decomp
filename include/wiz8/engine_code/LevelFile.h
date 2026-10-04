@@ -30,7 +30,7 @@ struct W8LevelFileScaledPathNode { /* 0x28 */
 };
 
 struct W8LevelFilePathAI {
-    unsigned char version_00;
+    unsigned char version;
     unsigned char scaled; /* == 2 -> pScaledPaths */
     int position;
     unsigned char unknown_06[4];
@@ -53,7 +53,7 @@ struct W8LevelFileCompressedFace { /* 0x21 */
 };
 
 struct W8LevelFileMesh {
-    int version_00;
+    int version;
     int num_vertices;
     int num_faces;
     unsigned char flags; /* bit0: LOD vertices; bit1: short LOD verts; bit2: compressed faces */
@@ -82,10 +82,10 @@ static_assert(sizeof(srVector3T<float>) == 0xc, "Level mesh position record size
 static_assert(offsetof(W8LevelFileMesh, pstVertices) == 0x4c, "Level mesh position pointer offset");
 
 /* The 0x3c-byte serialized block covering stParametricLightDefinition fields
-   flags_08 through subcycle_max_40: the runtime object's first 8 bytes
+   flags through subcycle_max: the runtime object's first 8 bytes
    (vtable/type) are not serialized. flags_00 bit 0x10 marks the light as
    owning a path-AI block. Serialized under a light's flags_04 bit1, and
-   after every version_00 > 1 anim-light record. */
+   after every version > 1 anim-light record. */
 struct W8LevelFileLightExtra { /* 0x3c */
     unsigned int flags_00;
     float flicker_chance;
@@ -128,7 +128,7 @@ struct W8LevelFileClippingPlaneRecord { /* 0x50 */
 /* Serialized form of the .pvl W8LevelLightRecord (ReadLevel.cpp): the dword
    at +0x02 packs create, visible and the low flag bits. */
 struct W8LevelFileLight {
-    short version_00;
+    short version;
     unsigned char create;    /* != 0 -> created light path over static */
     unsigned char visible;   /* bake requires != 0 to emit the light */
     unsigned short flags_04; /* bit 0x2 -> pExtra serialized */
@@ -137,18 +137,18 @@ struct W8LevelFileLight {
     srVector3T<float> colour;
     float intensity;
     float range;
-    char name_28[0x14];            /* version_00 > 1; sun/moon/lightning classify it */
+    char name_28[0x14];            /* version > 1; sun/moon/lightning classify it */
     W8LevelFileLightExtra* pExtra; /* flags_04 & 0x2 */
     W8LevelFilePathAI* pPathAI;    /* pExtra->flags_00 & 0x10 */
 };
 
 struct W8LevelFileAnimLight {
-    char version_00;
+    char version;
     srVector3T<float> position;
     srVector3T<float> color;
     float intensity;
     float range;
-    W8LevelFileLightExtra* pExtra; /* version_00 > 1: light definition */
+    W8LevelFileLightExtra* pExtra; /* version > 1: light definition */
 };
 
 /* Serialized monster: the 0x1e-byte head is the 0x14-byte name plus the
@@ -191,7 +191,7 @@ struct W8LevelFileCamera {
    reads the same byte stream: version, nine flag bytes, the item index, a
    position gate, an optional position and the linked trigger name. */
 struct W8LevelFileDoor { /* 0x99 */
-    unsigned char version_00;
+    unsigned char version;
     unsigned char flags[9];
     unsigned short item;
     unsigned char has_position;
@@ -220,12 +220,12 @@ struct W8LevelFileLinkedRecord {
     signed char linked_face;
     /* 0x1b2: second serialized flag byte (.pvl legacy_flags[1]); no
        consumer reads it. */
-    unsigned char flag_1b2;
+    unsigned char flag;
     /* 0x1b3: float factor handed to the environment-record builder
        (0x00448E60), which multiplies the surface normal by it. */
     float normal_scale;
     /* 0x1b7: float factor applied to the new environment record's
-       forward_scale_34. */
+       forward_scale. */
     float forward_scale;
 };
 
@@ -233,25 +233,25 @@ struct W8LevelFileLinkedRecord {
    (Trigger.cpp case 1) reads the same fields into a W8Trigger, which names
    the serialized semantics. */
 struct W8LevelFileSwitch { /* 0x271 */
-    char version_00;
+    char version;
     int cycle_bounce;           /* -> Trigger::cycle_bounce */
     int state_count;            /* -> Trigger::state_count */
     float animate_states;       /* != 0 -> W8_TRIGGER_ANIMATE_STATES */
     int range;                  /* -> Trigger::range_maximum (*500) */
     int action;                 /* -> Trigger::initial_action_22a */
-    int value_15;               /* serialized; no reader consumer */
+    int value;               /* serialized; no reader consumer */
     int animate_action;         /* != 0 -> W8_TRIGGER_ANIMATE_ACTION */
     unsigned char packed_flags; /* bit0 FIRE_LINKED, bit1 LINK_ON_DEACTIVATE */
     unsigned char enabled;      /* != 0 -> W8_TRIGGER_ENABLED */
     char name[0x80];
     char recipients[0x100];
     char sound[0x80];               /* wave filename -> "data\sound\%s" */
-    float minimum_range;            /* version_00 > 1 -> range_minimum (*500) */
-    char surface_id[0x40];          /* version_00 > 1: surface name/id string */
-    unsigned char has_door_trigger; /* version_00 > 2 */
+    float minimum_range;            /* version > 1 -> range_minimum (*500) */
+    char surface_id[0x40];          /* version > 1: surface name/id string */
+    unsigned char has_door_trigger; /* version > 2 */
     W8LevelFileDoorRef door;        /* has_door_trigger != 0; kind 1 owns door */
     unsigned char padding_269[4];   /* never serialized */
-    int action_value_26d;           /* version_00 > 3 -> Trigger::action_value */
+    int action_value;           /* version > 3 -> Trigger::action_value */
 };
 
 struct W8LevelFilePlane { /* 0x30 */
@@ -261,7 +261,7 @@ struct W8LevelFilePlane { /* 0x30 */
 /* The 0x241-byte type-2 (invisible) trigger record. The .pvl type-2 stream
    (Trigger.cpp case 2) reads the same fields into a W8Trigger. */
 struct W8LevelFileInvisible { /* 0x241 */
-    char version_00;
+    char version;
     float range;                /* -> range_maximum (*500) */
     srVector3T<float> position; /* -> position_118 (*500) */
     int action;                 /* -> initial_action_22a */
@@ -270,17 +270,17 @@ struct W8LevelFileInvisible { /* 0x241 */
     unsigned char enabled;      /* != 0 -> W8_TRIGGER_ENABLED */
     char name[0x80];
     char recipients[0x100];
-    unsigned char plane_flag;      /* version_00 > 1: ==1 registers the
+    unsigned char plane_flag;      /* version > 1: ==1 registers the
                                             vectors as a trigger plane */
-    W8LevelFilePlane* pPlane;          /* version_00 > 1: 0x30 record ->
+    W8LevelFilePlane* pPlane;          /* version > 1: 0x30 record ->
                                             representation_vectors (*500) */
-    float angle;                       /* version_00 > 2 -> angle_0fc */
-    srVector3T<float> direction;       /* version_00 > 2 -> direction_100 */
-    unsigned char unused_1b0;          /* version_00 > 2: serialized, unread */
-    char action_string[0x80];          /* version_00 > 2: action-17 payload */
-    unsigned char flag_231;            /* version_00 > 3 -> flags_0a0 bit3 */
-    int action_value_232;              /* version_00 > 3 -> action_value */
-    unsigned char has_legacy_geometry; /* version_00 > 4: serialized gate */
+    float angle;                       /* version > 2 -> angle_0fc */
+    srVector3T<float> direction;       /* version > 2 -> direction */
+    unsigned char unused_1b0;          /* version > 2: serialized, unread */
+    char action_string[0x80];          /* version > 2: action-17 payload */
+    unsigned char flag;            /* version > 3 -> flags_0a0 bit3 */
+    int action_value;              /* version > 3 -> action_value */
+    unsigned char has_legacy_geometry; /* version > 4: serialized gate */
     /* Retail zeroes the record, serializes geometry_kind, but tests this
        distinct byte for kind 2 in both the reader and writer. */
     /* Retail tests this distinct byte; the serialized kind is at +0x238. */
@@ -294,7 +294,7 @@ struct W8LevelFileInvisible { /* 0x241 */
    stream (Trigger.cpp case 3) reads the same fields and hands them to
    AddAmbientSound. */
 struct W8LevelFileSound { /* 0x170 */
-    char version_00;
+    char version;
     int volume_min;
     int volume_max;
     int speed_min;
@@ -307,18 +307,18 @@ struct W8LevelFileSound { /* 0x170 */
     srVector3T<float> region_u;
     srVector3T<float> region_v;
     char wave[0x80];                 /* wave filename -> "data\sound\%s" */
-    unsigned char has_position;      /* version_00 > 1 */
-    unsigned char looping;           /* version_00 > 1 */
-    srVector3T<float> region_center; /* version_00 > 2 */
-    float region_angle;              /* version_00 > 2 */
-    srVector3T<float> region_min;    /* version_00 > 2 */
-    srVector3T<float> region_max;    /* version_00 > 2 */
-    char name[0x80];                 /* version_00 > 3 */
-    unsigned char shared;            /* version_00 > 4 */
+    unsigned char has_position;      /* version > 1 */
+    unsigned char looping;           /* version > 1 */
+    srVector3T<float> region_center; /* version > 2 */
+    float region_angle;              /* version > 2 */
+    srVector3T<float> region_min;    /* version > 2 */
+    srVector3T<float> region_max;    /* version > 2 */
+    char name[0x80];                 /* version > 3 */
+    unsigned char shared;            /* version > 4 */
 };
 
 struct W8LevelFileSuperTrigger { /* 0x867 */
-    char version_00;
+    char version;
     char name[0x80];
     unsigned char flags; /* bit0 skips the placement and hotspot records */
     unsigned char active;
@@ -339,15 +339,15 @@ struct W8LevelFileSuperTrigger { /* 0x867 */
     char animation[0x80];
     unsigned char padding_31b[0x180]; /* never serialized; the reader and
                                          writer jump straight to the
-                                         version_00 > 1 block */
-    float size[3];                    /* version_00 > 1 */
-    float direction;                  /* version_00 > 1 */
-    unsigned char wait_4ab;           /* version_00 > 1 */
-    unsigned char wait_4ac;           /* version_00 > 1 */
-    unsigned char wait_4ad;           /* version_00 > 1 */
-    unsigned char loop;               /* version_00 > 1 */
-    float speed;                      /* version_00 > 1 */
-    float unknown_4b3[3];             /* version_00 > 1 */
+                                         version > 1 block */
+    float size[3];                    /* version > 1 */
+    float direction;                  /* version > 1 */
+    unsigned char wait_4ab;           /* version > 1 */
+    unsigned char wait_4ac;           /* version > 1 */
+    unsigned char wait_4ad;           /* version > 1 */
+    unsigned char loop;               /* version > 1 */
+    float speed;                      /* version > 1 */
+    float unknown_4b3[3];             /* version > 1 */
     unsigned char ignore;
     unsigned char group;
     unsigned char set_group;
@@ -355,10 +355,10 @@ struct W8LevelFileSuperTrigger { /* 0x867 */
     char objects[0x100];
     unsigned char close_door;
     int wait_6c3;
-    int field_6c7;
+    int field;
     char event[0x100];
     float normal_scale;                    /* copied to the linked record's normal_scale */
-    char particle_system[0x80];            /* version_00 > 2 */
+    char particle_system[0x80];            /* version > 2 */
     unsigned char placement_kind;          /* !(flags & 1) */
     W8LevelFileTriggerPosition* pPosition; /* placement_kind == 1 */
     W8LevelFilePlane* pPlane;              /* placement_kind == 2 */
@@ -370,7 +370,7 @@ struct W8LevelFileSuperTrigger { /* 0x867 */
 };
 
 struct W8LevelFileTrigger {
-    unsigned char version_00;
+    unsigned char version;
     char type;   /* 1 switch, 2 invisible, 3 sound, 4 super */
     void* pData; /* type selects the pointed-to record */
 };
@@ -413,7 +413,7 @@ struct W8LevelFileBounds { /* 0x18 */
 /* Serialized AnimObj embedded in a prop record; distinct from the runtime
    W8AnimObj (0x4c, AnimObj.h). */
 struct W8LevelFileAnimObj { /* 0x5f */
-    char version_00;
+    char version;
     /* The four byte counts below are not interchangeable. The retail reads
        each with a one-byte FileRead and then sign-extends two of them:
        num_anims with movsx at 0x004D3B5B and 0x004D3B88, num_anim_lights
@@ -426,17 +426,17 @@ struct W8LevelFileAnimObj { /* 0x5f */
     char behaviour;
     char cycle;
     char path_lists; /* 0 -> morphs, else transforms */
-    /* version_00 >= 3; default 15.0f */
+    /* version >= 3; default 15.0f */
     float playback_scale;
-    char start_frame; /* version_00 >= 5 */
-    /* version_00 >= 6 */
-    char random_play_0c;
+    char start_frame; /* version >= 5 */
+    /* version >= 6 */
+    char random_play;
     float play_chance;                /* default 1.0f */
-    unsigned char discarded_11[0x32]; /* serialized; never read back */
+    unsigned char discarded[0x32]; /* serialized; never read back */
     char* abHowMany;                  /* 0x43: num_anims channel bytes */
-    unsigned char num_bound_box;      /* version_00 > 6 */
+    unsigned char num_bound_box;      /* version > 6 */
     W8LevelFileBounds* pBoundBox;     /* 0x48: num_bound_box * 0x18 */
-    /* version_00 > 7. ReadAnimObjFile sign-extends this count with
+    /* version > 7. ReadAnimObjFile sign-extends this count with
        movsx at 0x004D3C9E, 0x004D3CC4 and 0x004D3D0B, and tests it signed
        with jle at 0x004D3CE3; WriteAnimObjFile does the same with jle at
        0x004D46B3 and movsx at 0x004D46CF. By contrast num_bound_box is
@@ -444,7 +444,7 @@ struct W8LevelFileAnimObj { /* 0x5f */
        sign-extended plain char, so the three are not interchangeable. */
     signed char num_anim_lights;
     W8LevelFileAnimLight* pAnimLights; /* num_anim_lights * 0x25 */
-    unsigned char has_path_ai;         /* version_00 > 8 && path_lists == 0 */
+    unsigned char has_path_ai;         /* version > 8 && path_lists == 0 */
     W8LevelFilePathAI* pPathAI;
     W8LevelFileMorph* pMorphs;         /* path_lists == 0: num_anims * 6 */
     char num_transforms;               /* path_lists != 0 */
@@ -452,23 +452,23 @@ struct W8LevelFileAnimObj { /* 0x5f */
 };
 
 struct W8LevelFileProp { /* 0xbf */
-    char version_00;
+    char version;
     unsigned char bNumFrames;   /* 0x01: original name from the
        CreatePathProps assertion text (frame-count upper bound) */
-    unsigned char option_02;    /* version_00 > 4: alignment option */
-    srVector3T<float> position; /* version_00 > 4: serialized prop position */
-    /* version_00 > 5; bit 0 marks the prop for stop-mesh record emission
+    unsigned char option;    /* version > 4: alignment option */
+    srVector3T<float> position; /* version > 4: serialized prop position */
+    /* version > 5; bit 0 marks the prop for stop-mesh record emission
        in OctPreTree. */
     unsigned int flags;
-    char name[0x40]; /* version_00 > 6 */
+    char name[0x40]; /* version > 6 */
     W8LevelFileAnimObj anim_obj;
     char has_trigger;
     W8LevelFileTrigger* pTrigger; /* 0xb3 */
-    char num_frame_pos;           /* version_00 > 7 */
+    char num_frame_pos;           /* version > 7 */
     /* 0xb8: num_frame_pos frame/tag records; CreatePathProps consumes
        the frame index, the tag feeds the .pvl prop's segment tag. */
     W8LevelFileFramePosition* usFrame_Pos;
-    /* version_00 > 8: != 0 serializes footstep surface/material bytes. */
+    /* version > 8: != 0 serializes footstep surface/material bytes. */
     char has_footsteps;
     unsigned char footstep_surface;
     unsigned char footstep_material;
@@ -485,7 +485,7 @@ struct W8LevelParticleRecord {
     srVector3T<float> location;         /* 0x040 */
     float rotation_angle;               /* 0x04c */
     srVector3T<float> rotation_axis;    /* 0x050 */
-    unsigned char positional_05c[0x0c]; /* 0x05c */
+    unsigned char positional[0x0c]; /* 0x05c */
     unsigned int particle_count;        /* 0x068 */
     /* 0x06c-0x074: emission spread extents; x/y bound both minimum_1d0
        and maximum_1dc symmetrically, z only the maximum. */
@@ -504,9 +504,9 @@ struct W8LevelParticleRecord {
     unsigned int emission_interval;  /* 0x0b4 */
     int los_check;                   /* 0x0b8: nonzero enables the line-of-sight check */
     int placement_mode;              /* 0x0bc */
-    float placement_0c0;             /* 0x0c0 */
-    float placement_0c4;             /* 0x0c4 */
-    float placement_0c8;             /* 0x0c8 */
+    float initial_speed;             /* 0x0c0 */
+    float speed_min;             /* 0x0c4 */
+    float speed_max;             /* 0x0c8 */
     float particle_size;             /* 0x0cc: billboard quad scale */
     int flutter_mode;                /* 0x0d0 */
     float flutter_value;             /* 0x0d4 */
@@ -516,26 +516,26 @@ struct W8LevelParticleRecord {
     float direction_0e4;             /* 0x0e4 */
     int initially_active;            /* 0x0e8 */
     W8MaterialRecord material;       /* 0x0ec */
-    /* 0x216, version >= 2: copied to the particle's attachment_key_260 when
+    /* 0x216, version >= 2: copied to the particle's attachment_key when
        non-negative. */
     short attachment_key;
-    /* 0x218, version >= 3: copied to the particle's emission_limit_184. */
+    /* 0x218, version >= 3: copied to the particle's emission_limit. */
     int emission_limit;
-    /* 0x21c, version >= 3: copied to the particle's requires_sorted_renderer_138. */
+    /* 0x21c, version >= 3: copied to the particle's requires_sorted_renderer. */
     unsigned char requires_sorted_renderer;
     int start_frame; /* 0x21d, unaligned, version >= 4 */
     int end_frame;   /* 0x221, version >= 4 */
 };
 
 struct W8LevelFileParticleSystem { /* 0x226 */
-    char version_00;
+    char version;
     W8LevelParticleRecord particle;
 };
 
 /* Serialized form of W8NamedPosition: one version byte precedes the runtime
    record's name, position and trailing scalar fields. */
 struct W8LevelFileNamedPosition { /* 0x9d */
-    unsigned char version_00;
+    unsigned char version;
     char name[0x80];
     srVector3T<float> position;
     int value_08d;

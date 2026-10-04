@@ -753,7 +753,7 @@ void W8OptionsKeyboardPanel::Populate()
     W8TextBuffer* title =
         new W8TextBuffer(&title_bounds, gppStringList[page.title], g_options_detail_font,
                          g_W8TextBufferAlignTop | g_W8TextBufferAlignCenter, 4);
-    m_text_buffers_058.Add(title);
+    m_text_buffers.Add(title);
     m_content_top += 44;
 
     int first = 0;
@@ -768,7 +768,7 @@ void W8OptionsKeyboardPanel::Populate()
         W8TextBuffer* label =
             new W8TextBuffer(&label_bounds, gppStringList[row->label], g_options_detail_font,
                              g_W8TextBufferAlignTop | g_W8TextBufferAlignLeft, 4);
-        m_text_buffers_058.Add(label);
+        m_text_buffers.Add(label);
 
         W8OptionsKeyButton* button = new W8OptionsKeyButton(
             this, m_content_top, row->primary_binding, row->secondary_binding);
@@ -1238,8 +1238,8 @@ void W8OptionsUnavailablePanel::Populate()
                              m_bounds.right - 30, m_bounds.bottom};
     W8TextBuffer* text = new W8TextBuffer(&bounds, gppStringList[m_message], g_options_detail_font,
                                           g_W8TextBufferAlignTop | g_W8TextBufferAlignCenter, 4);
-    m_text_buffers_058.Add(text);
-    (*m_text_buffers_058.GetAt(0))->SetLineHeight(22);
+    m_text_buffers.Add(text);
+    (*m_text_buffers.GetAt(0))->SetLineHeight(22);
 }
 
 // FUNCTION: WIZ8 0x005a9090
@@ -1653,8 +1653,8 @@ W8OptionsPanel::~W8OptionsPanel()
 {
     int index;
     DestroyAllControls();
-    for (index = m_text_buffers_058.count - 1; index >= 0; --index) {
-        m_text_buffers_058.RemoveAtAndDelete(index);
+    for (index = m_text_buffers.count - 1; index >= 0; --index) {
+        m_text_buffers.RemoveAtAndDelete(index);
     }
     for (index = m_option_selections.count - 1; index >= 0; --index) {
         m_option_selections.RemoveAtAndDelete(index);
@@ -1668,7 +1668,7 @@ W8OptionsCheckbox* W8OptionsPanel::AddCheckbox(int label, int* value)
                              m_bounds.top + m_content_top + 22};
     W8TextBuffer* text = new W8TextBuffer(&bounds, gppStringList[label], g_options_detail_font,
                                           g_W8TextBufferAlignTop | g_W8TextBufferAlignLeft, 4);
-    m_text_buffers_058.Add(text);
+    m_text_buffers.Add(text);
     W8OptionsCheckbox* checkbox = new W8OptionsCheckbox(this, m_content_top, value);
     m_content_top += 44;
     return checkbox;
@@ -1681,7 +1681,7 @@ W8TextControl* W8OptionsPanel::AddChoiceButton(int label)
                              m_bounds.top + m_content_top + 22};
     W8TextBuffer* text = new W8TextBuffer(&bounds, gppStringList[label], g_options_detail_font,
                                           g_W8TextBufferAlignTop | g_W8TextBufferAlignRight, 4);
-    m_text_buffers_058.Add(text);
+    m_text_buffers.Add(text);
     W8TextControl* button = new W8TextControl(this, 0xffffffff, 0x151, m_content_top + 1, 0, 0,
                                               0xf1, 0, 4, 6, 5, 7, -1);
     button->AddLayoutFlags(g_W8TextControlMask | g_W8TextControlLayoutToggle);
@@ -1696,7 +1696,7 @@ W8OptionsSlider* W8OptionsPanel::AddSlider(int label, float* value, bool alterna
                              m_bounds.top + m_content_top + 22};
     W8TextBuffer* text = new W8TextBuffer(&bounds, gppStringList[label], g_options_detail_font,
                                           g_W8TextBufferAlignTop | g_W8TextBufferAlignLeft, 4);
-    m_text_buffers_058.Add(text);
+    m_text_buffers.Add(text);
     W8OptionsSlider* slider = new W8OptionsSlider(this, m_content_top, value, alternate);
     m_content_top += 22;
     return slider;
@@ -1709,7 +1709,7 @@ void W8OptionsPanel::AddChoices(int label, int count, const int* choices, int* v
                              m_bounds.top + m_content_top + 22};
     W8TextBuffer* text = new W8TextBuffer(&bounds, gppStringList[label], g_options_detail_font,
                                           g_W8TextBufferAlignTop | g_W8TextBufferAlignLeft, 4);
-    m_text_buffers_058.Add(text);
+    m_text_buffers.Add(text);
     W8OptionsSelection* selection = new W8OptionsSelection(value);
     m_option_selections.Add(selection);
     for (int index = 0; index < count; ++index) {
@@ -1742,8 +1742,8 @@ void W8OptionsPanel::Redraw()
     bool redraw_text = m_fDirty && m_fEnabled;
     Controls::Redraw();
     if (redraw_text) {
-        for (int index = 0; index < m_text_buffers_058.count; ++index) {
-            (*m_text_buffers_058.GetAt(index))->RenderToTarget(0, 1, -14);
+        for (int index = 0; index < m_text_buffers.count; ++index) {
+            (*m_text_buffers.GetAt(index))->RenderToTarget(0, 1, -14);
         }
     }
 }

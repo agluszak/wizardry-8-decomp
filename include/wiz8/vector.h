@@ -250,7 +250,7 @@
 // VTABLE: WIZ8 0x005ef01c
 // class W8Vector<W8OptionsPanel*>
 
-/* W8OptionsPanel::m_text_buffers_058 is a W8Vector<W8TextBuffer*>: the derived
+/* W8OptionsPanel::m_text_buffers is a W8Vector<W8TextBuffer*>: the derived
    0x005EEFCC table over base 0x005EEFD0. */
 // VTABLE: WIZ8 0x005eefd0
 // class W8GrowableVector<W8TextBuffer*>

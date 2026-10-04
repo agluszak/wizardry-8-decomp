@@ -762,7 +762,7 @@ srVector3T<T> srMatrix3T<T>::TransformTransposed(const srVector3T<T>& value) con
 }
 
 /* In-place vector×matrix: *this = matrix.Transform(*this). GetForwardPoint
-   0x00478CE0 overwrites m_direction_078 this way. Same row DotProduct body
+   0x00478CE0 overwrites m_direction this way. Same row DotProduct body
    as srMatrix3T::Transform. */
 template <class T> srVector3T<T>& srVector3T<T>::Transform(const srMatrix3T<T>& matrix)
 {

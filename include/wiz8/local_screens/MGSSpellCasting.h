@@ -40,7 +40,7 @@ struct W8SpellCastingView {
     /* 0x540: indexed by region callback id. */
     W8TextControl* power_controls[W8_SPELL_POWER_CONTROL_COUNT];
     W8MainUiMode saved_game_mode;    /* 0x56c */
-    bool input_blocked_570;          /* 0x570 */
+    bool input_blocked;          /* 0x570 */
     unsigned char pad_571[3];
     int field_574;                 /* 0x574 */
     int interact_id;               /* 0x578 */

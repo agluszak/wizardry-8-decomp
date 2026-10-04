@@ -71,7 +71,7 @@ W8SplitItemDialog::W8SplitItemDialog(int kind, W8ItemInstance* item, int count)
     } else if (kind == 0) {
         SetBackground("Data\\Dialogs\\popup_splititem.sti", 1);
     }
-    m_kind_0cc = kind;
+    m_kind = kind;
     for (index = 0; index < 10; ++index) {
         m_buttons_054[index] = 0;
     }
@@ -119,9 +119,9 @@ int W8SplitItemDialog::CreateControls()
     }
     if (!CreateTextBuffers()) {
         count = 0;
-        if (m_kind_0cc == 0) {
+        if (m_kind == 0) {
             count = 8;
-        } else if (m_kind_0cc <= 2) {
+        } else if (m_kind <= 2) {
             count = 10;
         }
         for (index = 0; index < count; ++index) {
@@ -135,9 +135,9 @@ int W8SplitItemDialog::CreateControls()
     }
     if (!CreateNumericInput()) {
         count = 0;
-        if (m_kind_0cc == 0) {
+        if (m_kind == 0) {
             count = 8;
-        } else if (m_kind_0cc <= 2) {
+        } else if (m_kind <= 2) {
             count = 10;
         }
         for (index = 0; index < count; ++index) {
@@ -147,9 +147,9 @@ int W8SplitItemDialog::CreateControls()
             }
         }
         count = 0;
-        if (m_kind_0cc == 0) {
+        if (m_kind == 0) {
             count = 10;
-        } else if (m_kind_0cc <= 2) {
+        } else if (m_kind <= 2) {
             count = 14;
         }
         for (index = 0; index < count; ++index) {
@@ -173,9 +173,9 @@ void W8SplitItemDialog::DestroyControls()
 
     W8DialogBase::DestroyControls();
     count = 0;
-    if (m_kind_0cc == 0) {
+    if (m_kind == 0) {
         count = 8;
-    } else if (m_kind_0cc <= 2) {
+    } else if (m_kind <= 2) {
         count = 10;
     }
     for (index = 0; index < count; ++index) {
@@ -185,9 +185,9 @@ void W8SplitItemDialog::DestroyControls()
         }
     }
     count = 0;
-    if (m_kind_0cc == 0) {
+    if (m_kind == 0) {
         count = 10;
-    } else if (m_kind_0cc <= 2) {
+    } else if (m_kind <= 2) {
         count = 14;
     }
     for (index = 0; index < count; ++index) {
@@ -210,18 +210,18 @@ unsigned char W8SplitItemDialog::CreateButtons()
     int index;
 
     count = 0;
-    if (m_kind_0cc == 0) {
+    if (m_kind == 0) {
         count = 8;
-    } else if (m_kind_0cc <= 2) {
+    } else if (m_kind <= 2) {
         count = 10;
     }
     for (index = 0; index < count; ++index) {
         m_buttons_054[index] = new W8DialogButton;
         if (m_buttons_054[index] == 0) {
             count = 0;
-            if (m_kind_0cc == 0) {
+            if (m_kind == 0) {
                 count = 8;
-            } else if (m_kind_0cc <= 2) {
+            } else if (m_kind <= 2) {
                 count = 10;
             }
             for (index = 0; index < count; ++index) {
@@ -249,7 +249,7 @@ unsigned char W8SplitItemDialog::CreateButtons()
                                 OnAccept, 0, 0, 0x7f, -1, 0, 0);
     m_buttons_054[7]->Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 5, 6, 9, 7,
                                 OnCancel, 0, 0, 0x7f, -1, 0, 0);
-    if (m_kind_0cc == 1 || m_kind_0cc == 2) {
+    if (m_kind == 1 || m_kind == 2) {
         m_buttons_054[8]->Configure("Data\\Dialogs\\popup_splititem.sti", -1, 3, -1, 3, -1, 0, 0, 0,
                                     0, -1, 0, 0);
         m_buttons_054[9]->Configure("Data\\Dialogs\\popup_splititem.sti", -1, 3, -1, 3, -1, 0, 0, 0,
@@ -260,7 +260,7 @@ unsigned char W8SplitItemDialog::CreateButtons()
     for (index = 0; index < count; ++index) {
         m_buttons_054[index]->SetPosition(g_split_button_offsets[index].x + m_x,
                                           g_split_button_offsets[index].y + m_y);
-        m_buttons_054[index]->m_owner_040 = this;
+        m_buttons_054[index]->m_owner = this;
     }
     return 1;
 }
@@ -274,9 +274,9 @@ unsigned char W8SplitItemDialog::CreateTextBuffers()
     W8ControlsRect bounds;
 
     count = 0;
-    if (m_kind_0cc == 0) {
+    if (m_kind == 0) {
         count = 10;
-    } else if (m_kind_0cc <= 2) {
+    } else if (m_kind <= 2) {
         count = 14;
     }
     for (index = 0; index < count; ++index) {
@@ -289,9 +289,9 @@ unsigned char W8SplitItemDialog::CreateTextBuffers()
             g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter, 4);
         if (m_texts[index] == 0) {
             count = 0;
-            if (m_kind_0cc == 0) {
+            if (m_kind == 0) {
                 count = 10;
-            } else if (m_kind_0cc <= 2) {
+            } else if (m_kind <= 2) {
                 count = 14;
             }
             for (index = 0; index < count; ++index) {
@@ -306,10 +306,10 @@ unsigned char W8SplitItemDialog::CreateTextBuffers()
     m_texts[2]->SetLayoutMode(g_W8TextBufferAlignRight | g_W8TextBufferAlignMiddle);
     m_texts[7]->SetLayoutMode(g_W8TextBufferAlignRight | g_W8TextBufferAlignMiddle);
     m_texts[9]->SetLayoutMode(g_W8TextBufferAlignRight | g_W8TextBufferAlignMiddle);
-    if (m_kind_0cc == 1 || m_kind_0cc == 2) {
+    if (m_kind == 1 || m_kind == 2) {
         m_texts[11]->SetLayoutMode(g_W8TextBufferAlignRight | g_W8TextBufferAlignMiddle);
         m_texts[13]->SetLayoutMode(g_W8TextBufferAlignRight | g_W8TextBufferAlignMiddle);
-        if (m_kind_0cc == 1) {
+        if (m_kind == 1) {
             m_texts[1]->SetText(gppStringList[274], g_wiz_text_font_secondary);
             header = gppStringList[268];
         } else {
@@ -357,15 +357,15 @@ void W8SplitItemDialog::Draw()
     int text_count;
 
     button_count = 0;
-    if (m_kind_0cc == 0) {
+    if (m_kind == 0) {
         button_count = 8;
-    } else if (m_kind_0cc <= 2) {
+    } else if (m_kind <= 2) {
         button_count = 10;
     }
     text_count = 0;
-    if (m_kind_0cc == 0) {
+    if (m_kind == 0) {
         text_count = 10;
-    } else if (m_kind_0cc <= 2) {
+    } else if (m_kind <= 2) {
         text_count = 14;
     }
     if ((m_dirty_flags & 1) != 0) {
@@ -417,10 +417,10 @@ void W8SplitItemDialog::UpdateCostLabels()
     int split_price;
 
     stack = *m_item_0d0;
-    if (m_kind_0cc == 0) {
+    if (m_kind == 0) {
         return;
     }
-    if (m_kind_0cc == 1) {
+    if (m_kind == 1) {
         stack.stack_count = static_cast<unsigned char>(split_count);
         if (split_count == 0) {
             split_price = 0;
@@ -435,7 +435,7 @@ void W8SplitItemDialog::UpdateCostLabels()
             remaining_price =
                 CalculateTradeStackPrice(g_npc_interaction_state->dialogue_npc, &stack, 0);
         }
-    } else if (m_kind_0cc == 2) {
+    } else if (m_kind == 2) {
         stack.stack_count = static_cast<unsigned char>(split_count);
         if (split_count == 0) {
             split_price = 0;
@@ -492,7 +492,7 @@ void W8SplitItemDialog::UpdateAcceptButton()
     stack = *m_item_0d0;
     stack.stack_count = static_cast<unsigned char>(split_count);
     can_accept = split_count != 0;
-    switch (m_kind_0cc) {
+    switch (m_kind) {
     case 1:
         if (g_status.party_gold < static_cast<unsigned int>(CalculateTradeStackPrice(
                                       g_npc_interaction_state->dialogue_npc, &stack, 0))) {
@@ -634,7 +634,7 @@ void W8SplitItemDialog::OnSplitDecrement(W8DialogButton* button)
     if (button == 0) {
         return;
     }
-    dialog = static_cast<W8SplitItemDialog*>(button->m_owner_040);
+    dialog = static_cast<W8SplitItemDialog*>(button->m_owner);
     dialog->split_count = __max(0, dialog->split_count - 1);
     dialog->m_remaining_0bc = __min(dialog->m_stack_total, dialog->m_remaining_0bc + 1);
     dialog->UpdateTotals();
@@ -648,7 +648,7 @@ void W8SplitItemDialog::OnSplitIncrement(W8DialogButton* button)
     if (button == 0) {
         return;
     }
-    dialog = static_cast<W8SplitItemDialog*>(button->m_owner_040);
+    dialog = static_cast<W8SplitItemDialog*>(button->m_owner);
     dialog->m_remaining_0bc = __max(0, dialog->m_remaining_0bc - 1);
     dialog->split_count = __min(dialog->m_stack_total, dialog->split_count + 1);
     dialog->UpdateTotals();
@@ -662,7 +662,7 @@ void W8SplitItemDialog::OnSplitDecrementMany(W8DialogButton* button)
     if (button == 0) {
         return;
     }
-    dialog = static_cast<W8SplitItemDialog*>(button->m_owner_040);
+    dialog = static_cast<W8SplitItemDialog*>(button->m_owner);
     dialog->split_count = __max(0, dialog->split_count - 5);
     dialog->m_remaining_0bc = __min(dialog->m_stack_total, dialog->m_remaining_0bc + 5);
     dialog->UpdateTotals();
@@ -676,7 +676,7 @@ void W8SplitItemDialog::OnSplitIncrementMany(W8DialogButton* button)
     if (button == 0) {
         return;
     }
-    dialog = static_cast<W8SplitItemDialog*>(button->m_owner_040);
+    dialog = static_cast<W8SplitItemDialog*>(button->m_owner);
     dialog->m_remaining_0bc = __max(0, dialog->m_remaining_0bc - 5);
     dialog->split_count = __min(dialog->m_stack_total, dialog->split_count + 5);
     dialog->UpdateTotals();
@@ -690,7 +690,7 @@ void W8SplitItemDialog::OnAccept(W8DialogButton* button)
     if (button == 0) {
         return;
     }
-    dialog = static_cast<W8SplitItemDialog*>(button->m_owner_040);
+    dialog = static_cast<W8SplitItemDialog*>(button->m_owner);
     dialog->split_result = 1;
     dialog->m_keep_open = false;
 }
@@ -703,7 +703,7 @@ void W8SplitItemDialog::OnCancel(W8DialogButton* button)
     if (button == 0) {
         return;
     }
-    dialog = static_cast<W8SplitItemDialog*>(button->m_owner_040);
+    dialog = static_cast<W8SplitItemDialog*>(button->m_owner);
     dialog->split_result = 2;
     dialog->m_keep_open = false;
 }
@@ -718,7 +718,7 @@ void W8SplitItemDialog::OnCountFieldClick(W8DialogButton* button)
     if (button == 0) {
         return;
     }
-    dialog = static_cast<W8SplitItemDialog*>(button->m_owner_040);
+    dialog = static_cast<W8SplitItemDialog*>(button->m_owner);
     SGPMouseGetPos(&mouse);
     if (dialog->m_count_input == 0) {
         return;

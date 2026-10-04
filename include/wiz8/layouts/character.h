@@ -74,12 +74,12 @@ struct W8CharacterAttribute {
    establishes the stride and the leading flag it sets when a skill first
    becomes available; IsCharacterSkillAvailable reads the same flag. */
 struct W8CharacterSkill {
-    bool active_00; /* 0x00: skill slot in use */
+    bool active; /* 0x00: skill slot in use */
     /* 0x01: ResetSkillContribution stores 1 here; no retail code reads it. */
     bool reset_flag;
     /* 0x02: invested points. Spellbook selection and skill-increase notices
        read these; the spell-learning ceiling divides them by ten. */
-    unsigned int points_02;
+    unsigned int points;
     /* 0x06: current level after profession/modifier adjustments. Spell pricing
        and resistance recalculation read this instead of the invested points. */
     unsigned int level;
@@ -92,8 +92,8 @@ struct W8CharacterSkill {
     unsigned int practice_count;
     /* 0x12: set when practice raises value_02; the flag the skill-increase
        notices key off. */
-    bool improved_12;
-    bool available_13;
+    bool improved;
+    bool available;
     unsigned char unknown_14[0x12];
 }; /* 0x26 */
 
@@ -140,8 +140,8 @@ struct W8HandAttack {
     int swings;                  /* 0x19 */
     int damage_bonus;            /* 0x1d */
     int hit_bonus;               /* 0x21 */
-    int attack_bonus_25;         /* 0x25: attack-score term, paired with modifier attack_bonus_02 */
-    int damage_percent_29; /* 0x29: percent damage multiplier, paired with modifier damage_percent_03 */
+    int attack_bonus;         /* 0x25: attack-score term, paired with modifier attack_bonus */
+    int damage_percent; /* 0x29: percent damage multiplier, paired with modifier damage_percent */
     W8Dice damage_dice;                  /* 0x2d */
     unsigned short attack_flags;         /* 0x31 */
     unsigned char condition_chances[16]; /* 0x33: unarmed condition probabilities */
@@ -153,8 +153,8 @@ struct W8HandAttack {
    dwords as the level the binding was made on and the bound monster's id. */
 struct W8CharacterConditionRecord {
     int level_acquired; /* 0x00: level the condition attached on */
-    int source_monster_04; /* 0x04: monster id/location the dependence is bound to */
-    bool active_08;
+    int source_monster; /* 0x04: monster id/location the dependence is bound to */
+    bool active;
     unsigned char unknown_09[8];
 }; /* 0x11 */
 static_assert(sizeof(W8CharacterConditionRecord) == 0x11, "W8CharacterConditionRecord_size");
@@ -193,7 +193,7 @@ struct W8Character {
     /* 0x007d: cleared by DeriveCharacterPersonality in both of its branches and set to -1
        by the character rebuild; all three accesses are four-byte stores. */
     int unknown_007d;
-    int personality_0081; /* indexes the state-5 descriptor text */
+    int personality; /* indexes the state-5 descriptor text */
     int voice;       /* selected by the character voice control */
     /* 0x0089: uiExpLevel, spelled by the assertion pPC->uiExpLevel > 0;
        averaged across occupied slots. */
@@ -221,7 +221,7 @@ struct W8Character {
     unsigned int experience_previous_goal;
     /* 0x09f9: this character's confirmed kills, shown on the camp stats
        page and imported from the Wiz7 record. */
-    int kill_count_09f9;
+    int kill_count;
     /* 0x09fd: how many times this character has died. */
     int death_count;
     /* 0x0a01: one entry per condition, holding how long it has left to run;
@@ -278,10 +278,10 @@ struct W8Character {
     /* 0x0b6d: fractional hit-point regeneration remainder carried between
        0x00503100 ticks; reset to zero when hit points reach the ceiling. */
     float health_regen_accumulator;
-    float stamina_regen_rate_0b71;
+    float stamina_regen_rate;
     /* 0x0b75: fractional stamina-regeneration remainder carried between
        0x00504730 ticks; reset to zero when stamina reaches the ceiling. */
-    float stamina_regen_accumulator_0b75;
+    float stamina_regen_accumulator;
     float spell_regen_rates[12];
     unsigned char unknown_0ba9[0x10];
     unsigned int inventory_weight;     /* 0x0bb9 */
@@ -350,10 +350,10 @@ struct W8Character {
     W8GameplayModifierBlock condition_modifiers;
     /* 0x1709: the equipment bonus block 0x0050E980 accumulates from the worn
        items and 0x0050F030 folds into the derived block at 0x1770. */
-    W8GameplayModifierBlock equipment_bonus_1709;
+    W8GameplayModifierBlock equipment_bonus;
     /* 0x1770: the derived modifier block the rebuild clears and folds the
        equipment, persistent and party blocks into. */
-    W8GameplayModifierBlock bonus_1770;
+    W8GameplayModifierBlock bonus;
     /* 0x17d7: the CamPos record GetWorldCameraState writes and recall restores.
        The cross-level path copies the whole 0x3c bytes onto
        W8GlobalStatus::pending_move_location. */
@@ -361,7 +361,7 @@ struct W8Character {
     /* 0x1813: which level that anchor belongs to. The recall compares it
        against g_status.current_level and takes a different path when they differ. */
     int saved_level;                               /* 0x1813 */
-    W8CharacterConditionRecord conditions_1817[4]; /* 0x1817 .. 0x185a */
+    W8CharacterConditionRecord conditions[4]; /* 0x1817 .. 0x185a */
     /* 0x185b: the deep-fatigue effect is already on this character, which is
        what stops FatigueCharacter re-applying it every turn. */
     bool deep_fatigue_applied;

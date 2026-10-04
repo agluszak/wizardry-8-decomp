@@ -76,8 +76,8 @@ srTexture::srTexture()
     if (s_flag_names_100a4a20 == 0) {
         s_flag_names_100a4a20 = "GENERATESURFACE_FAILURE,DIRTY_DEFAULTS";
     }
-    mipmap_bias_1c = 0.0f;
-    packed_state_18 = 0xe43;
+    mipmap_bias = 0.0f;
+    packed_state = 0xe43;
     texture_priority = 0.5f;
     texture_flags_ |= 1 << FLAG_DIRTY_DEFAULTS;
 }
@@ -91,8 +91,8 @@ srTexture& srTexture::operator=(const srTexture& other)
     if (this != &other) {
         invalidate();
         srClass::operator=(other);
-        packed_state_18 = other.packed_state_18;
-        mipmap_bias_1c = other.mipmap_bias_1c;
+        packed_state = other.packed_state;
+        mipmap_bias = other.mipmap_bias;
         texture_priority = other.texture_priority;
         texture_dimensions_ = other.texture_dimensions_;
         texture_flags_ = other.texture_flags_;
@@ -206,7 +206,7 @@ void srTexture::dump(std::ostream& stream)
     }
     stream << name << '\n';
     stream.width(0x20);
-    stream << "  Mipmap bias: " << mipmap_bias_1c << '\n';
+    stream << "  Mipmap bias: " << mipmap_bias << '\n';
     stream.width(0x20);
     stream << "  Priority: ";
     stream.width(0x20);
@@ -282,7 +282,7 @@ void srTexture::setPriority(float priority)
 // FUNCTION: SURRENDER 0x1005EB10
 float srTexture::getMipmapBias() const
 {
-    return mipmap_bias_1c;
+    return mipmap_bias;
 }
 
 // FUNCTION: SURRENDER 0x1005EB30
@@ -300,79 +300,79 @@ void srTexture::setDimensionsDirty()
 // FUNCTION: SURRENDER 0x1005EB40
 void srTexture::setMipmapBias(float bias)
 {
-    mipmap_bias_1c = bias;
+    mipmap_bias = bias;
 }
 
 // FUNCTION: SURRENDER 0x1005EC60
 void srTexture::setCorrection(e_correction correction)
 {
-    packed_state_18 = (packed_state_18 & ~3) | correction;
+    packed_state = (packed_state & ~3) | correction;
 }
 
 // FUNCTION: SURRENDER 0x1005EC80
 void srTexture::setMagFilter(e_filter filter)
 {
-    packed_state_18 = (packed_state_18 & ~0x70) | (filter << 4);
+    packed_state = (packed_state & ~0x70) | (filter << 4);
 }
 
 // FUNCTION: SURRENDER 0x1005ECA0
 void srTexture::setMinFilter(e_filter filter)
 {
-    packed_state_18 = (packed_state_18 & ~0x380) | (filter << 7);
+    packed_state = (packed_state & ~0x380) | (filter << 7);
 }
 
 // FUNCTION: SURRENDER 0x1005ECC0
 void srTexture::setMipmap(e_mipmap mipmap)
 {
-    packed_state_18 = (packed_state_18 & ~0xc00) | (mipmap << 10);
+    packed_state = (packed_state & ~0xc00) | (mipmap << 10);
 }
 
 // FUNCTION: SURRENDER 0x1005ECE0
 void srTexture::setWrapS(e_wrap wrap)
 {
-    packed_state_18 = (packed_state_18 & ~0x1000) | (wrap << 12);
+    packed_state = (packed_state & ~0x1000) | (wrap << 12);
 }
 
 // FUNCTION: SURRENDER 0x1005ED00
 void srTexture::setWrapT(e_wrap wrap)
 {
-    packed_state_18 = (packed_state_18 & ~0x2000) | (wrap << 13);
+    packed_state = (packed_state & ~0x2000) | (wrap << 13);
 }
 
 // FUNCTION: SURRENDER 0x1005ED20
 srTextureIFace::e_correction srTexture::getCorrection() const
 {
-    return static_cast<e_correction>(packed_state_18 & 3);
+    return static_cast<e_correction>(packed_state & 3);
 }
 
 // FUNCTION: SURRENDER 0x1005ED30
 srTextureIFace::e_filter srTexture::getMagFilter() const
 {
-    return static_cast<e_filter>((packed_state_18 >> 4) & 7);
+    return static_cast<e_filter>((packed_state >> 4) & 7);
 }
 
 // FUNCTION: SURRENDER 0x1005ED40
 srTextureIFace::e_filter srTexture::getMinFilter() const
 {
-    return static_cast<e_filter>((packed_state_18 >> 7) & 7);
+    return static_cast<e_filter>((packed_state >> 7) & 7);
 }
 
 // FUNCTION: SURRENDER 0x1005ED50
 srTextureIFace::e_mipmap srTexture::getMipmap() const
 {
-    return static_cast<e_mipmap>((packed_state_18 >> 10) & 3);
+    return static_cast<e_mipmap>((packed_state >> 10) & 3);
 }
 
 // FUNCTION: SURRENDER 0x1005ED60
 srTextureIFace::e_wrap srTexture::getWrapS() const
 {
-    return static_cast<e_wrap>((packed_state_18 >> 12) & 1);
+    return static_cast<e_wrap>((packed_state >> 12) & 1);
 }
 
 // FUNCTION: SURRENDER 0x1005ED70
 srTextureIFace::e_wrap srTexture::getWrapT() const
 {
-    return static_cast<e_wrap>((packed_state_18 >> 13) & 1);
+    return static_cast<e_wrap>((packed_state >> 13) & 1);
 }
 
 // FUNCTION: SURRENDER 0x1005ED80
@@ -437,8 +437,8 @@ void srTexture::getMipmapLevelPartial(PartialRequest& request) {}
 // FUNCTION: SURRENDER 0x1005EEB0
 void srTexture::getTextureParms(Parameters& parameters)
 {
-    parameters.packed_state_00 = packed_state_18;
-    parameters.mipmap_bias_04 = mipmap_bias_1c;
+    parameters.packed_state = packed_state;
+    parameters.mipmap_bias = mipmap_bias;
 }
 
 // FUNCTION: SURRENDER 0x1005F140

@@ -36,7 +36,7 @@ public:
 #endif
 
     unsigned long group_mask;       /* 0x13c */
-    srVector3T<float> eye_location_140; /* 0x140 */
+    srVector3T<float> eye_location; /* 0x140 */
 };
 
 static_assert((sizeof(srIlluminator) == 0x150), "srIlluminator_must_be_0x150");

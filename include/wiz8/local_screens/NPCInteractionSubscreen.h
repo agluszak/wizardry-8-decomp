@@ -181,7 +181,7 @@ struct W8NpcInteractionState {
     /* 0x0f4: the party slot 0x0056D030 picks as the dialogue's leading
        speaker - the occupied row whose character leads skill 0x16. */
     int dialogue_speaker;
-    int target_location_id_f8;
+    int target_location_id;
     /* 0x0fc: the layout currently up, a W8NpcDialogueLayout value. 0x104: the
        layout the current one replaced; back-out paths reopen it. */
     W8NpcDialogueLayout dialogue_layout;
@@ -272,7 +272,7 @@ struct W8NpcInteractionState {
     int trade_gold;
     /* 0x230: g_settings.main_ui_mode saved while the NPC dialogue is
        suppressed and handed back to ApplyMainGameModeFlag when it reopens. */
-    W8MainUiMode saved_mode_230;
+    W8MainUiMode saved_mode;
     /* 0x234: the next UpdateNpcDialogueSubMode must reapply the
        trade_pc_items toggle state; armed when the option layout opens and
        when a re-open is staged through SyncDialogueNpcState*. */

@@ -15,7 +15,7 @@ public:
 
     T* entries_00;
     unsigned int external_storage;
-    int capacity_08;
+    int capacity;
     int size_0c;
 
     void Insert(const T* entry);
@@ -26,7 +26,7 @@ public:
 
 template <class T> void stHeap<T>::Insert(const T* entry)
 {
-    if (size_0c >= capacity_08) {
+    if (size_0c >= capacity) {
         srAssertFail("heapsize < maxheapsize", "..\\Engine Code\\Include\\stHeap.hpp", 0xe1,
                      "stHeap overflow");
     }

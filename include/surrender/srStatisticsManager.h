@@ -9,7 +9,7 @@ public:
     struct Statistics {
         double elapsed_time;
         unsigned long meshes_traversed;
-        unsigned long meshes_submitted_0c;
+        unsigned long meshes_submitted;
         unsigned long triangles_submitted;
         unsigned long triangles_after_culling;
         unsigned long vertices_submitted;

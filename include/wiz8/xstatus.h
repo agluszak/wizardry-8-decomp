@@ -101,7 +101,7 @@ struct W8XStatus {
     int picked_group;                         /* 0x9ff: 0x006840B7 */
     /* 0xa03: one-shot latch set when the combat/party panels refresh; the next
        UpdateMonsterSight pass consumes and clears it. */
-    bool sight_refresh_pending_a03;
+    bool sight_refresh_pending;
     bool world_update_blocked; /* 0xa04: 0x006840BC */
     /* 0xa05: user-pause latch set by ToggleMainGamePause alongside
        PauseMainGameWorld; cleared by the resume paths. */

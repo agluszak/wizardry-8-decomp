@@ -40,8 +40,8 @@ public:
     unsigned char padding_099[3];
     /* Two LOD switch distances, scaled by the detail slider before they
        are compared. 0x004A7BE0 reads both with fmul, which types them. */
-    float lod_range_09c;
-    float lod_range_0a0;
+    float lod_near;
+    float lod_far;
     /* W8GrCycle itself reads these inherited bytes as the common selected
        cycle/subcycle and pending cycle. Missile and Spell use current_cycle
        for the same role; there is no separate Monster view. Only +0xa6 stays

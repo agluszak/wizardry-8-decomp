@@ -43,16 +43,16 @@ public:
 public:
     srVector3T<float> location_004;
     srVector3T<float> local_location;
-    srVector3T<float> parent_location_01c;
+    srVector3T<float> parent_location;
     srMatrix3T<float> rotation_028;
     /* RGBA highlight colour; GrCycle copies it into the 3D mesh instance,
        which renders it as its highlight material's emissive colour. */
-    srVector4T<float> highlight_colour_04c;
+    srVector4T<float> highlight_colour;
     /* Set by monster scale transitions; GrCycle copies it to model instances
        only when +0x61 enables that path. A value of one clears the instance
        scale flag instead of storing a redundant scale. */
     float instance_scale;
-    bool flag_060;
+    bool flag;
     bool apply_instance_scale;
     unsigned char padding_062[2];
 };
@@ -71,23 +71,23 @@ public:
 public:
     /* Current frame/subcycle. GrCycle advances it and all derived renderers
        use it to select the live mesh, event, particle, and light state. */
-    unsigned char subcycle_064;
+    unsigned char subcycle;
     unsigned char padding_065;
     /* 0xffff means no queued subcycle; ApplyPendingCycle consumes and clears
        this only after the pending cycle is accepted. */
     unsigned short pending_subcycle;
     /* Frame-advance timestamp; GrCycle subtracts it from the current time. */
-    unsigned int timer_068;
+    unsigned int timer;
     unsigned char
         active; /* bool-byte-ok: SetSetting6C stores and GetSetting6C returns the caller's byte. */
     unsigned char
-        animation_playing_06d; /* bool-byte-ok: copied directly from file-backed W8AnimObj byte. */
+        animation_playing; /* bool-byte-ok: copied directly from file-backed W8AnimObj byte. */
     /* Direction 1 advances and 3 reverses in GrCycle. Other direction codes
        also occur in monster completion checks, so this remains a byte. */
     unsigned char frame_direction;
     /* SetFrameMethod checks the retail DIR_FIRST..DIR_LAST range; endpoint
        behavior 1 wraps and 2 reverses in AdvanceAnimationFrame. */
-    unsigned char frame_method_06f;
+    unsigned char frame_method;
     unsigned char animation_behaviour;
     /* 0xff means no pending change. ApplyPendingCycle applies it to the
        selected representation, then clears the old object's slot. */
@@ -96,19 +96,19 @@ public:
     /* Prop computes this pair from the animation's bounds, and stores the
        scaled extent in +0x8c. Other representation families inherit the
        storage even when their own use is not yet established. */
-    srVector3T<float> bounds_min_074;
-    srVector3T<float> bounds_max_080;
-    float bounds_extent_08c;
-    unsigned int value_090;
+    srVector3T<float> bounds_min;
+    srVector3T<float> bounds_max;
+    float bounds_extent;
+    unsigned int value;
     /* The ordered frame range GrCycle plays between. */
-    unsigned char first_frame_094;
-    unsigned char last_frame_095;
+    unsigned char first_frame;
+    unsigned char last_frame;
     unsigned char padding_096[2];
 };
 
 static_assert(sizeof(W8ModelInstance2DRenderState) == 0x10,
               "W8ModelInstance2DRenderState_size_must_be_0x10");
-static_assert(offsetof(W8AnimRepBase, highlight_colour_04c) == 0x4c,
+static_assert(offsetof(W8AnimRepBase, highlight_colour) == 0x4c,
               "W8AnimRepBase_render_state_offset");
 static_assert(sizeof(W8AnimRepBase) == 0x64, "W8AnimRepBase_size_must_be_0x64");
 static_assert(sizeof(W8AnimRep) == 0x98, "W8AnimRep_size_must_be_0x98");

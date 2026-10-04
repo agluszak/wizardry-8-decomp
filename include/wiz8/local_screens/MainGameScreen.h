@@ -79,12 +79,12 @@ public:
     virtual void OnRangeChanged(W8RangeControl* control) override;
 
     W8RangeControl m_range_038;
-    int m_line_count_0a4;
-    int m_visible_lines_0a8;
+    int m_line_count;
+    int m_visible_lines;
     const unsigned short* m_line_string_ids;
-    int m_selected_line_0b0;
+    int m_selected_line;
     int m_hover_line;
-    int m_first_visible_line_0b8;
+    int m_first_visible_line;
     W8RangeListener* m_range_listener;
 };
 static_assert(sizeof(W8MainGameTextKeyHandler) == 0xc0, "W8MainGameTextKeyHandler_size");
@@ -104,7 +104,7 @@ public:
     virtual void OnLeftButtonDown(int event) override;
     virtual void OnLeftButtonUp(int event) override;
 
-    int m_image_b8;
+    int m_image;
     bool m_input_blocked_bc;
     unsigned char m_pad_bd[3];
 };
@@ -140,7 +140,7 @@ public:
     int m_progress_drawn; /* widest progress extent drawn so far */
     W8GameTimer m_timer_094;
     W8ControlsRect m_text_bounds;
-    W8TextBuffer m_text_buffer_0c8;
+    W8TextBuffer m_text_buffer;
     W8GameTimer m_timer_118;
     int m_marker_anim_time; /* drives the 12-frame target-changed marker */
     bool m_target_changed;
@@ -164,14 +164,14 @@ public:
     virtual void Redraw() override;
     void RefreshStatusTexts(); /* 0x00588E60 */
 
-    W8TextBuffer* m_text_04c;
+    W8TextBuffer* m_text;
     W8TextBuffer* m_text_050;
     W8TextBuffer* m_text_054;
     W8TextBuffer* m_text_058;
     W8TextBuffer* m_text_05c;
     W8TextBuffer* m_text_060;
     W8TextBuffer* m_text_064;
-    int m_target_068;
+    int m_target;
 };
 static_assert(sizeof(W8MainGameStatusPanel) == 0x6c, "W8MainGameStatusPanel_size");
 
@@ -377,7 +377,7 @@ public:
     W8TextBuffer* m_text_05c; /* 0x5c */
     W8TextBuffer* m_text_060; /* 0x60: spell power */
     W8TextBuffer* m_text_064; /* 0x64 */
-    W8TextBuffer* m_text_068; /* 0x68: force chance */
+    W8TextBuffer* m_text; /* 0x68: force chance */
 };
 static_assert(sizeof(W8LockInfoPanel) == 0x6c, "W8LockInfoPanel_size");
 
@@ -409,11 +409,11 @@ public:
     int m_tumbler_count_0c; /* 0x0c: trigger->lock_state.difficulty clamped to [2,8] */
     W8LockTumblerPanel* m_tumbler_panel;
     W8LockInfoPanel* m_info_panel;
-    Controls* m_action_panel_18;
+    Controls* m_action_panel;
     W8TextControl* m_done_button;      /* 0x1c: OnPrimary target, state 9 */
     W8TextControl* m_spell_button;     /* 0x20: gated by spell-0x27 power */
     W8TextControl* m_force_button;     /* 0x24: gated by the force chance */
-    W8TextControl* m_cancel_button_28;    /* 0x28: OnPrimary target, state 5 (cancel) */
+    W8TextControl* m_cancel_button;    /* 0x28: OnPrimary target, state 5 (cancel) */
     int m_selected_slot;               /* 0x2c: party slot owning the raised pins */
     int m_picked_tumbler;              /* 0x30: index OnTumblerPicked recorded */
     int m_state_34;                       /* 0x34: Process() state */
@@ -460,10 +460,10 @@ public:
     void CastTrapSpell();                    /* 0x0058A200 */
     void UseTrapItem();                      /* 0x0058A3E0 */
 
-    Trigger* m_owner_008;
+    Trigger* m_owner;
     W8MainGameTextPanel* m_text_panel;
     W8MainGameStatusPanel* m_status_panel;
-    Controls* m_action_panel_014;
+    Controls* m_action_panel;
     int m_disarm_state;
     int m_selected_character;
     W8TextControl* m_action_controls[5];
@@ -478,7 +478,7 @@ public:
 };
 static_assert(sizeof(W8MainGameScreen) == 0x178, "W8MainGameScreen_size");
 /* Retail secondary vftable 0x005eebd0 places W8TextControl::Listener at +0x4. */
-W8_ASSERT_BASE_END(W8MainGameScreen, W8TextControl::Listener, m_owner_008, 0x4);
+W8_ASSERT_BASE_END(W8MainGameScreen, W8TextControl::Listener, m_owner, 0x4);
 
 extern W8LevelRuntimeBlock* g_level_block;
 extern W8MainGameScreen* g_main_game_screen;

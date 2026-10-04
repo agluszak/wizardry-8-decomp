@@ -1370,7 +1370,7 @@ void ResetAutomapLighting(void)
                 for (stMeshModel* model = static_cast<stMeshModel*>(instance->getModel());
                      model != 0; model = model->next) {
                     srVector3T<float>* lights = model->GetVertexLights(1, 1);
-                    int count = model->vertex_location_count_22c * 3;
+                    int count = model->vertex_location_count * 3;
                     if (count != 0) {
                         // reinterpret-ok: vertex-light floats zeroed via dword fill.
                         srVectorProcessor::copy(reinterpret_cast<SRDWORD*>(lights), 0,
@@ -1385,7 +1385,7 @@ void ResetAutomapLighting(void)
                  static_cast<stMeshModel*>(g_world->update_mesh_source->getModel());
              model != 0; model = model->next) {
             srVector3T<float>* lights = model->GetVertexLights(1, 1);
-            int count = model->vertex_location_count_22c * 3;
+            int count = model->vertex_location_count * 3;
             if (count != 0) {
                 // reinterpret-ok: vertex-light floats zeroed via dword fill.
                 srVectorProcessor::copy(reinterpret_cast<SRDWORD*>(lights), 0,
@@ -1556,7 +1556,7 @@ void LightAutomapCell(const srVector3T<float>* position)
             while (model != 0) {
                 srVector3T<float>* lights = model->GetVertexLights(1, -1);
                 srVector3T<float>* source = model->getVertexLoc();
-                int count = model->vertex_location_count_22c;
+                int count = model->vertex_location_count;
                 if (inside != 0) {
                     float light_value = 1.0f;
                     // reinterpret-ok: vertex-light floats filled via dword fill.

@@ -98,10 +98,10 @@ int W8SpellInfoDialog::CreateControls()
                                m_text_area_0ec.GetLineHeight(), 0xb9);
     m_scroll_bar_058.m_owner = this;
 
-    m_button_0a4.Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 0, 1, 4, 2,
+    m_button.Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 0, 1, 4, 2,
                            DialogCloseButtonCallback, 0, 0, 0x7f, -1, 0, 0);
-    m_button_0a4.SetPosition(m_x + 0x11a, m_y + 0x104);
-    m_button_0a4.m_owner_040 = this;
+    m_button.SetPosition(m_x + 0x11a, m_y + 0x104);
+    m_button.m_owner = this;
     return 0;
 }
 
@@ -126,13 +126,13 @@ void W8SpellInfoDialog::Draw()
         }
         m_text_area_0ec.m_dirty = true;
         m_scroll_bar_058.m_dirty = true;
-        m_button_0a4.m_dirty = true;
+        m_button.m_dirty = true;
         W8DialogBase::Draw();
         DrawLabels();
     }
     m_text_area_0ec.Draw(0);
     m_scroll_bar_058.Draw(0);
-    m_button_0a4.Draw();
+    m_button.Draw();
     steps = static_cast<int>(m_timer_144.GetProgress());
     if (steps > 0) {
         realm = g_spell_records[m_spell].realm;
@@ -220,8 +220,8 @@ unsigned char W8SpellInfoDialog::PopulateText()
         }
     }
 
-    duration_per_level = record->duration_per_level_04d;
-    duration_base = record->duration_044;
+    duration_per_level = record->duration_per_level;
+    duration_base = record->duration;
     if (duration_per_level != 0 || duration_base != 0) {
         text[0] = L'\0';
         ui_units = 0;

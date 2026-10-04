@@ -35,15 +35,15 @@ protected:
 public:
     void UpdateFrame();
 
-    W8Vector<srTextureIFace*>* textures_54;
+    W8Vector<srTextureIFace*>* textures;
     int frame_58;
-    int direction_5c;
-    unsigned char animation_mode_60;
-    int initial_frame_64;
+    int direction;
+    unsigned char animation_mode;
+    int initial_frame;
     float frame_rate;
     unsigned long frame_tick;
     int trigger_mode;
-    float probability_74;
+    float probability;
     bool running_78;
 };
 

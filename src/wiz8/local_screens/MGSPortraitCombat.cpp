@@ -164,7 +164,7 @@ unsigned char CreateSubMenuButtons(void)
     for (index = 0; index < 9; ++index) {
         g_submenu_buttons[index]->SetPosition(g_submenu_button_positions[index].x,
                                               g_submenu_button_positions[index].y);
-        g_submenu_buttons[index]->m_owner_040 = 0;
+        g_submenu_buttons[index]->m_owner = 0;
     }
     return 1;
 }
@@ -204,7 +204,7 @@ void UpdateSubMenuButton(int index)
         g_submenu_buttons[index]->SetEnabled(0);
         return;
     }
-    if (gXStatus.fCombatMode != 0 && g_combat_state->round_active_001 == 0) {
+    if (gXStatus.fCombatMode != 0 && g_combat_state->round_active == 0) {
         g_submenu_buttons[index]->SetEnabled(0);
         return;
     }

@@ -279,7 +279,7 @@ void W8CharacterSpellsPage::Accept()
     for (int index = 0; index < 0x72; ++index) {
         m_SpellData[index].selected = 0;
     }
-    ResetSpellSelections(m_character_060, m_creation_state_064);
+    ResetSpellSelections(m_character, m_creation_state);
     Invalidate(0);
     m_dirty_06d = 1;
     m_screen_05c->UpdateNavigation(this);
@@ -305,7 +305,7 @@ void W8CharacterSpellsPage::Redraw()
         bounds.right = 0xc2;
         bounds.bottom = 0x173;
         text.SetLayoutBounds(&bounds, 1, 1);
-        text.SetText(gppStringList[m_creation_state_064->spell_points_total == 0 ? 0xeb : 0xea],
+        text.SetText(gppStringList[m_creation_state->spell_points_total == 0 ? 0xeb : 0xea],
                      g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
 
@@ -326,8 +326,8 @@ void W8CharacterSpellsPage::Redraw()
         DrawCatalogImage(-14, 0x107, 0, 5, 0x8f, 0x173, 2, 0);
         text.SetLayoutBounds(&bounds, 1, 1);
         text.SetText(FormatWideString(g_format_d_slash_d,
-                                      m_creation_state_064->spell_points_remaining,
-                                      m_creation_state_064->spell_points_total),
+                                      m_creation_state->spell_points_remaining,
+                                      m_creation_state->spell_points_total),
                      g_options_detail_font);
         text.RenderToTarget(0, 1, -14);
         m_dirty_06d = 0;
@@ -351,7 +351,7 @@ void W8CharacterSpellsPage::Redraw()
             text.SetFontStateIndex(-1);
             text.SetLayoutMode(g_W8TextBufferAlignRight | g_W8TextBufferAlignMiddle);
             text.SetText(
-                FormatWideString(g_format_d, m_character_060->skills[0x1c + realm].points_02),
+                FormatWideString(g_format_d, m_character->skills[0x1c + realm].points),
                 g_wiz_text_font_secondary);
             text.RenderToTarget(0, 0, -14);
 
@@ -366,14 +366,14 @@ void W8CharacterSpellsPage::Redraw()
             text.SetFontStateIndex(-1);
             text.SetLayoutMode(g_W8TextBufferAlignRight | g_W8TextBufferAlignMiddle);
             text.SetText(FormatWideString(g_format_d_slash_d,
-                                          GetCharacterRealmSpellPoints(m_character_060, realm),
-                                          m_character_060->sp_max[realm]),
+                                          GetCharacterRealmSpellPoints(m_character, realm),
+                                          m_character->sp_max[realm]),
                          g_wiz_text_font_secondary);
             text.RenderToTarget(0, 0, -14);
         }
     }
 
-    int elapsed = static_cast<int>(m_animation_timer_5e4.GetProgress());
+    int elapsed = static_cast<int>(anim_timer.GetProgress());
     if (elapsed > 0 || redraw) {
         for (int realm = 0; realm < 6; ++realm) {
             const W8SpellRealmAnimation& animation = g_spell_realm_animations[realm];
@@ -410,7 +410,7 @@ void W8CharacterSpellsPage::UpdateSpellLists()
         for (char pass = 0; pass < 2; ++pass) {
             for (unsigned int spell = 0; spell < 0x72; ++spell) {
                 if (g_spell_records[spell].realm == realm) {
-                    switch (m_character_060->spell_learned[spell]) {
+                    switch (m_character->spell_learned[spell]) {
                     case -1:
                     case 2:
                         if (pass == 0) {
@@ -418,7 +418,7 @@ void W8CharacterSpellsPage::UpdateSpellLists()
                             m_SpellData[entry].spell = spell;
                             m_SpellData[entry].fSelectable = 1;
                             m_SpellData[entry].selected =
-                                m_character_060->spell_learned[spell] == 2;
+                                m_character->spell_learned[spell] == 2;
                             ++entry;
                         }
                         break;
@@ -445,7 +445,7 @@ void W8CharacterSpellsPage::GetNavigationState(bool* next_enabled, bool* exit_en
 {
     *next_enabled = 1;
     *exit_enabled =
-        m_creation_state_064->spell_points_remaining < m_creation_state_064->spell_points_total;
+        m_creation_state->spell_points_remaining < m_creation_state->spell_points_total;
 }
 
 /* Retail emits this with the W8CharacterSpellListListener-adjusted `this`
@@ -459,22 +459,22 @@ void W8CharacterSpellsPage::SelectSpell(unsigned int uiSelected)
     }
     if (m_SpellData[uiSelected].selected != 0) {
         m_SpellData[uiSelected].selected = 0;
-        DeselectCreationSpell(m_character_060, m_creation_state_064, m_SpellData[uiSelected].spell);
+        DeselectCreationSpell(m_character, m_creation_state, m_SpellData[uiSelected].spell);
     } else {
-        if (m_creation_state_064->spell_points_remaining == 0) {
+        if (m_creation_state->spell_points_remaining == 0) {
             for (unsigned int index = 0; index < 0x72; ++index) {
                 if (m_SpellData[index].selected != 0 &&
                     (index != m_last_selected ||
-                     m_creation_state_064->spell_points_total == 1)) {
+                     m_creation_state->spell_points_total == 1)) {
                     m_SpellData[index].selected = 0;
-                    DeselectCreationSpell(m_character_060, m_creation_state_064,
+                    DeselectCreationSpell(m_character, m_creation_state,
                                           m_SpellData[index].spell);
                     break;
                 }
             }
         }
         m_SpellData[uiSelected].selected = 1;
-        SelectCreationSpell(m_character_060, m_creation_state_064, m_SpellData[uiSelected].spell);
+        SelectCreationSpell(m_character, m_creation_state, m_SpellData[uiSelected].spell);
         m_last_selected = uiSelected;
     }
     UpdateSpellLists();

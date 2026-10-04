@@ -9,7 +9,7 @@ struct W8Character;
 struct W8CharacterCreationState {
     int attribute_points_remaining; /* 0x000 */
     int attribute_points_total;     /* 0x004 */
-    int attribute_values_008[7];    /* 0x008 */
+    int attribute_values[7];    /* 0x008 */
     int attribute_step_limit;       /* 0x024 */
     int attribute_limits[7];    /* 0x028 */
     bool attributes_complete;       /* 0x044: set once every attribute choice validates */

@@ -17,7 +17,7 @@ static_assert(offsetof(W8GlobalStatus, party_item_count) == 0x1791,
               "W8GlobalStatus_party_item_count_offset");
 static_assert(offsetof(W8GlobalStatus, text_line_cursor) == 0x1795,
               "W8GlobalStatus_text_line_cursor_offset");
-static_assert(offsetof(W8GlobalStatus, flags_2367) == 0x2367, "W8GlobalStatus_flags_2367_offset");
+static_assert(offsetof(W8GlobalStatus, flags) == 0x2367, "W8GlobalStatus_flags_offset");
 static_assert(offsetof(W8GlobalStatus, party_facing) == 0x18d0,
               "W8GlobalStatus_party_facing_offset");
 static_assert(offsetof(W8GlobalStatus, current_level) == 0x1900,
@@ -48,11 +48,11 @@ static_assert(offsetof(W8GlobalStatus, rpc_races) == 0x243a,
               "W8GlobalStatus_rpc_races_offset");
 static_assert(offsetof(W8GlobalStatus, monster_name_buffer) == 0x2453,
               "W8GlobalStatus_monster_name_buffer_offset");
-static_assert(offsetof(W8GlobalStatus, sedexus_party_slot_247f) == 0x247f,
+static_assert(offsetof(W8GlobalStatus, sedexus_party_slot) == 0x247f,
               "W8GlobalStatus_sedexus_party_slot_offset");
-static_assert(offsetof(W8GlobalStatus, greeting_pending_2497) == 0x2497,
+static_assert(offsetof(W8GlobalStatus, greeting_pending) == 0x2497,
               "W8GlobalStatus_flag_2497_offset");
-static_assert(offsetof(W8GlobalStatus, next_group_id_234a) == 0x234a,
+static_assert(offsetof(W8GlobalStatus, next_group_id) == 0x234a,
               "W8GlobalStatus_next_group_id_offset");
 static_assert(offsetof(W8GlobalStatus, log_fact_checks) == 0x3120,
               "W8GlobalStatus_log_fact_checks_offset");
@@ -76,8 +76,8 @@ static_assert(offsetof(W8GlobalStatus, endgame2_queued) == 0x498f,
               "W8GlobalStatus_value_498f_offset");
 static_assert(offsetof(W8GlobalStatus, endgame3_queued) == 0x4993,
               "W8GlobalStatus_value_4993_offset");
-static_assert(offsetof(W8GlobalStatus, party_slot_249c) == 0x249c,
-              "W8GlobalStatus_party_slot_249c_offset");
+static_assert(offsetof(W8GlobalStatus, party_slot) == 0x249c,
+              "W8GlobalStatus_party_slot_offset");
 static_assert(offsetof(W8GlobalStatus, regular_member_count) == 0x000d,
               "W8GlobalStatus_regular_member_count_offset");
 static_assert(offsetof(W8GlobalStatus, auxiliary_member_count) == 0x0011,

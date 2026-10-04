@@ -38,7 +38,7 @@ private:
         Entry* next_04;
         long offset_08;
         long size_0c;
-        int locked_10;
+        int locked;
     };
 
     static_assert(sizeof(Entry) == 0x14, "srMemoryPool_Entry_must_be_0x14");

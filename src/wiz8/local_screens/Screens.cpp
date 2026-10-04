@@ -374,7 +374,7 @@ void InitializeMainGameLevelBlock(void)
         g_level_block->redraw_flags = static_cast<unsigned int>(-1);
     }
     g_level_block->transition_pending = 0;
-    g_level_block->camera_mode_100 = 7;
+    g_level_block->camera_mode = 7;
     g_level_block->message_box_pending = IsMessageBoxActive();
     g_level_block->portrait_strip_dirty = 0;
     g_level_block->flag_210 = false;
@@ -402,7 +402,7 @@ void InitializeMainGameLevelBlock(void)
     g_level_block->world_render_flags = 0;
     g_level_block->highlighted_item = -1;
     g_level_block->selected_item = -1;
-    g_level_block->clock_214 = GetClock();
+    g_level_block->clock = GetClock();
     g_level_block->portrait_flash = 0;
     for (slot = 0; slot < 8; ++slot) {
         g_level_block->portrait_refresh_pending[slot] = 0;
@@ -424,7 +424,7 @@ void InitializeMainGameLevelBlock(void)
     g_level_block->mipe_editing = 0;
     g_level_block->dialogue_text_input = 0;
     g_level_block->value_278 = 0;
-    g_level_block->tick_274 = GetTickCount();
+    g_level_block->tick = GetTickCount();
     g_level_block->group_list_rows = 0;
     g_level_block->group_list_width = 0;
     DisableRegionInput(0xe5);
@@ -447,9 +447,9 @@ void InitializeMainGameLevelBlock(void)
     }
     g_level_block->unknown_2e4[0] = 0;
     g_level_block->text_box_font = g_wiz_text_font_secondary;
-    g_level_block->palette_2ec = g_wiz_text_font_secondary_palette;
+    g_level_block->palette = g_wiz_text_font_secondary_palette;
     g_level_block->selection_kind = -1;
-    g_level_block->value_2f4 = -1;
+    g_level_block->pending_action = -1;
     g_level_block->selection_settled = 0;
     g_level_block->tooltip_since = 0;
     g_level_block->tooltip_pending = false;

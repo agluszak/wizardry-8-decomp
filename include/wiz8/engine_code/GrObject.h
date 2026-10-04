@@ -29,7 +29,7 @@ public:
 
 public:
     unsigned char kind_004;                    /* 0x04 */
-    int id_008;                                /* 0x08 */
+    int id;                                /* 0x08 */
     W8AIRecord* m_pAI;                         /* 0x0c: GrObject::GetAI() assertion */
     W8Vector<W8SoundEvent*>* m_plsSoundEvents; /* 0x10 */
     /* +0x14 remains deliberately uninitialized and unowned by this base.

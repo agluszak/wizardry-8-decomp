@@ -31,11 +31,11 @@ public:
     virtual const TriMesh& getTriMesh() override; /* 0x00472270 */
     virtual void renderTriMesh(class srGERD& renderer,
                                const TriMesh& mesh) override; /* 0x00470360 */
-    /* Shared Wizardry-extended tri-mesh submit. `poly_equations` null skips
+    /* Shared Wizardry-extended tri-mesh submit. `poly_normals` null skips
        the software backface pass; non-null callers supply polygon normals used
        to build the active-polygon scratch at 0x00659ce0. */
     void RenderTriMeshWithEquations(class srGERD& renderer, const TriMesh& mesh,
-                                    const srVector3T<float>* poly_equations); /* 0x00470380 */
+                                    const srVector3T<float>* poly_normals); /* 0x00470380 */
 
     int FindMappedIndex(short key); /* 0x004712D0 */
     void SetMappedVertex(short vertex, short key);
@@ -74,11 +74,11 @@ public:
     stMeshModel* next;     /* 0x398 */
     stMeshModel* previous; /* 0x39c */
     unsigned int flags_3a0;
-    srVector3T<float> ambient_color_3a4;
+    srVector3T<float> ambient_color;
     int vertex_light_table;
     /* m_pVertLights: per-vertex static lighting, zero-filled on demand; table
        -1 selects vertex_light_table. */
-    srHeapBuffer<srVector3T<float> > vertex_lights_3b4[2];
+    srHeapBuffer<srVector3T<float> > vertex_lights[2];
     /* Per-vertex sunlight intensity, filled with 1.0f on demand. */
     srHeapBuffer<float> vertex_sunlight;
     unsigned char duplicate_on_reuse;

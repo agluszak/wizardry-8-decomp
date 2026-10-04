@@ -850,15 +850,15 @@ void SelectNpcDialogueSpeaker(W8NpcState* npc, int flags)
 
     state = g_npc_interaction_state;
     speaker = -1;
-    state->target_location_id_f8 = -1;
+    state->target_location_id = -1;
     best = 0xffffffff;
     state->dialogue_npc = 0;
     info = GetNpcMonsterInfo(npc);
     if (info != 0) {
-        state->target_location_id_f8 = info->location_id;
+        state->target_location_id = info->location_id;
     }
     state->dialogue_npc = npc;
-    state->dialogue_npc->flag_22 = false;
+    state->dialogue_npc->flag = false;
     state->dialogue_npc->flag_23 = 0;
     if (state->dialogue_npc->greeting_pending != 0) {
         state->dialogue_npc->suspicion = 0;
@@ -867,7 +867,7 @@ void SelectNpcDialogueSpeaker(W8NpcState* npc, int flags)
     if ((state->dialogue_layout == W8_DIALOGUE_LAYOUT_TRANSCRIPT ||
          state->dialogue_layout == W8_DIALOGUE_LAYOUT_TOPIC_MENU) &&
         gXStatus.fNpcDialogueMode != 0) {
-        static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_NPC_NAME])->m_textBuffer.SetText(state->dialogue_npc->record->source_name_004,
+        static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_NPC_NAME])->m_textBuffer.SetText(state->dialogue_npc->record->source_name,
                                                        g_wiz_text_bold_font);
         static_cast<W8TextControl*>(state->dialogue_controls[W8_NPC_CONTROL_NPC_NAME])->Invalidate(1);
     }
@@ -1636,7 +1636,7 @@ void NpcDialogueTextBoxLeftUp(int x, int y)
     switch (g_npc_interaction_state->dialogue_layout) {
     case W8_DIALOGUE_LAYOUT_TRANSCRIPT:
         word = HitTestNoticeWord(3, x, y, &line);
-        if (word == 0 || word->keyword_08 != 1) {
+        if (word == 0 || word->keyword != 1) {
             return;
         }
         if (gfKeyState[0x10] == 0) {
@@ -1644,7 +1644,7 @@ void NpcDialogueTextBoxLeftUp(int x, int y)
             word_text[0] = 0;
             SetInputFieldStringWith16BitString(0, word_text);
         }
-        word->keyword_08 = 2;
+        word->keyword = 2;
         CopyNoticeWordText(word, word_text, 0xc8, 3, line);
         Get16BitStringFromField(0, field_text);
         StripNpcKeywordPunctuation(field_text);
@@ -1741,8 +1741,8 @@ void NpcDialogueTextBoxDoubleClick(int x, int y)
             word_text[0] = 0;
             SetInputFieldStringWith16BitString(0, word_text);
         }
-        if (word->keyword_08 != 2) {
-            word->keyword_08 = 2;
+        if (word->keyword != 2) {
+            word->keyword = 2;
             CopyNoticeWordText(word, word_text, 0xc8, 3, line);
             Get16BitStringFromField(0, field_text);
             StripNpcKeywordPunctuation(field_text);
@@ -2057,7 +2057,7 @@ void ShowNpcDialogueTopicMenu(void)
     RegionSetEnable(0x18);
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_38])->SetActive(1);
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_NPC_NAME])->m_textBuffer.SetText(
-        g_npc_interaction_state->dialogue_npc->record->source_name_004, g_wiz_text_bold_font);
+        g_npc_interaction_state->dialogue_npc->record->source_name, g_wiz_text_bold_font);
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_NPC_NAME])->Invalidate(1);
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_38])->m_textBuffer.SetText(gppStringList[0x726],
                                                                      g_wiz_text_bold_font);
@@ -2210,12 +2210,12 @@ void OpenNpcDialogueTranscriptLayout(void)
     RegionSetEnable(0x16);
     if (g_npc_interaction_state->dialogue_npc->name_style == 0x32) {
         swprintf(g_status.monster_name_buffer, L"Al-%s",
-                 g_status.buffers.Char[g_status.sedexus_party_slot_247f].name);
+                 g_status.buffers.Char[g_status.sedexus_party_slot].name);
         static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_NPC_NAME])->m_textBuffer.SetText(
             g_status.monster_name_buffer, g_wiz_text_bold_font);
     } else {
         static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_NPC_NAME])->m_textBuffer.SetText(
-            g_npc_interaction_state->dialogue_npc->record->source_name_004, g_wiz_text_bold_font);
+            g_npc_interaction_state->dialogue_npc->record->source_name, g_wiz_text_bold_font);
     }
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1])->m_textBuffer.SetText(gppStringList[0x735],
                                                                      g_wiz_text_font_secondary);
@@ -2423,7 +2423,7 @@ void AddNpcDialogueKeyword(wchar_t* text, signed char category, int play_chime)
             category = W8_DIALOGUE_CATEGORY_ITEMS;
         } else {
             for (index = 0; index < gXStatus.uiNpcsInDatabase; ++index) {
-                if (CompareWideTextIgnoreAsciiCase(text, g_npc_records[index].source_name_004) ==
+                if (CompareWideTextIgnoreAsciiCase(text, g_npc_records[index].source_name) ==
                     0) {
                     break;
                 }
@@ -3516,7 +3516,7 @@ void CloseNpcDialogueMode1Layout(void)
 // FUNCTION: WIZ8 0x00573ED0
 void RequestNpcSpellService3(void)
 {
-    int location = g_npc_interaction_state->target_location_id_f8;
+    int location = g_npc_interaction_state->target_location_id;
     int mode = g_npc_interaction_state->dialogue_layout;
 
     gXStatus.fCampMode = true;
@@ -3528,7 +3528,7 @@ void RequestNpcSpellService3(void)
 // FUNCTION: WIZ8 0x00573F10
 void RequestNpcSpellService41(void)
 {
-    int location = g_npc_interaction_state->target_location_id_f8;
+    int location = g_npc_interaction_state->target_location_id;
     int mode = g_npc_interaction_state->dialogue_layout;
 
     gXStatus.fCampMode = true;
@@ -4282,7 +4282,7 @@ unsigned char HandleNpcDialogueItem(W8ItemInstance* item)
                 if (g_npc_interaction_state->dialogue_npc->record->voice_script != 0) {
                     return 1;
                 }
-                if ((g_item_records[item->iItemNo].flags_041 & 2) != 0) {
+                if ((g_item_records[item->iItemNo].flags & 2) != 0) {
                     QueueNpcScriptLine(0x11, 0, 0, 0);
                     return 1;
                 }
@@ -4309,7 +4309,7 @@ unsigned char HandleNpcDialogueItem(W8ItemInstance* item)
             }
         }
     } else if (item != 0) {
-        if ((g_item_records[item->iItemNo].flags_041 & 2) == 0) {
+        if ((g_item_records[item->iItemNo].flags & 2) == 0) {
             if (WillNpcTradeForItem(g_npc_interaction_state->dialogue_npc, item) == 0) {
                 QueueNpcScriptLine(7, 0, 0, 0);
                 return 1;
@@ -4485,7 +4485,7 @@ void OpenNpcDialog(W8NpcQuoteEntry* request, int aux_data)
         monster_info = GetNpcMonsterInfo(g_npc_interaction_state->dialogue_npc);
         if (monster_info != 0) {
             g_npc_interaction_state->pending_price -= static_cast<int>(
-                monster_info->effect_2de * 0.01f * g_npc_interaction_state->pending_price);
+                monster_info->effect * 0.01f * g_npc_interaction_state->pending_price);
         }
         g_npc_interaction_state->pending_price -=
             GetBestPartySkillLevel(W8_SKILL_COMMUNICATION, 0) *
@@ -4546,7 +4546,7 @@ void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuot
             if (g_npc_interaction_state->dialogue_npc != 0) {
                 swprintf(error_text,
                          L"Error creating box - most likely text too large: NPC %s, quote %d",
-                         g_npc_interaction_state->dialogue_npc->record->source_name_004, quote_id);
+                         g_npc_interaction_state->dialogue_npc->record->source_name, quote_id);
             } else {
                 swprintf(error_text, L"Error creating box - most likely text too large");
             }
@@ -4598,7 +4598,7 @@ void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuot
             int slot = skills->party_slots[index];
             int skill = skills->skills[index];
             W8Character* character = &g_status.buffers.Char[slot];
-            unsigned int value = character->skills[skill].points_02;
+            unsigned int value = character->skills[skill].points;
             if (skill == g_profession_bonus_skills[character->iProfession]) {
                 value = value * 125 / 100;
             }
@@ -4689,7 +4689,7 @@ void FlushPendingNoticeLines(void)
             line->npc_kind != g_npc_interaction_state->last_notice_npc_kind) {
             W8NpcState* npc = GetNpcState(line->npc_kind);
             if (npc != 0) {
-                swprintf(npc_name, L"%s", npc->record->source_name_004);
+                swprintf(npc_name, L"%s", npc->record->source_name);
                 ShowNotice(1, npc_name, 3, -1, 0);
                 g_npc_interaction_state->last_notice_npc_kind = line->npc_kind;
             }
@@ -4725,7 +4725,7 @@ void SetNpcDialogueHidden(char value)
     int index;
 
     if (value != 0) {
-        g_npc_interaction_state->saved_mode_230 = g_settings.main_ui_mode;
+        g_npc_interaction_state->saved_mode = g_settings.main_ui_mode;
         ApplyMainGameModeFlag(W8_MAIN_UI_MODE_PORTRAITS, 0);
         static_cast<W8NpcDialogueTextController*>(g_npc_interaction_state->dialogue_panels[2])->SetEnabled(0);
         static_cast<W8NpcDialogueTextController*>(g_npc_interaction_state->dialogue_panels[2])->Collapse();
@@ -4752,7 +4752,7 @@ void SetNpcDialogueHidden(char value)
         static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_5])->SetEnabled(0);
         static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_6])->SetEnabled(0);
     } else {
-        ApplyMainGameModeFlag(g_npc_interaction_state->saved_mode_230, 0);
+        ApplyMainGameModeFlag(g_npc_interaction_state->saved_mode, 0);
         for (index = 0; index < 8; ++index) {
             if (g_status.buffers.XChar[index].fOccupied != 0) {
                 RegionSetDisable(index + 7);
@@ -4823,7 +4823,7 @@ void ResolveNpcPickpocket(int party_slot)
     case 3:
         QueueNpcScriptLine(0x17, 0, 0, 0);
         SetNpcDispositionBand(g_npc_interaction_state->dialogue_npc, 1);
-        ApplyFactionChange(3, 1, g_npc_interaction_state->dialogue_npc->record->faction_5f, -5);
+        ApplyFactionChange(3, 1, g_npc_interaction_state->dialogue_npc->record->faction, -5);
         CloseNpcDialogueTranscriptLayout();
         ShowNpcDialogueTopicMenu();
         return;
@@ -4986,14 +4986,14 @@ void HandleNpcDialogueDeparture(unsigned char value)
             }
             if (gXStatus.fNpcDialogueMode != 0 && g_npc_interaction_state->scripted_dialogue == 0) {
                 AddNpcDialogueKeyword(
-                    g_npc_interaction_state->dialogue_npc->record->source_name_004, -1, 1);
+                    g_npc_interaction_state->dialogue_npc->record->source_name, -1, 1);
                 return;
             }
             if (g_npc_interaction_state->dialogue_npc->record->monster_bound == 0 &&
                 (g_npc_interaction_state->dialogue_npc->record->voice_script == 0 ||
                  g_npc_interaction_state->dialogue_npc->is_present != 0)) {
                 AddDialogueTranscriptKeyword(
-                    g_npc_interaction_state->dialogue_npc->record->source_name_004, -1);
+                    g_npc_interaction_state->dialogue_npc->record->source_name, -1);
             }
         }
     }
@@ -5077,7 +5077,7 @@ void AddDialogueTranscriptKeyword(const wchar_t* name, signed char category)
         }
         if (category == -1) {
             for (index = 0; index < gXStatus.uiNpcsInDatabase; ++index) {
-                if (CompareWideTextIgnoreAsciiCase(keyword, g_npc_records[index].source_name_004) ==
+                if (CompareWideTextIgnoreAsciiCase(keyword, g_npc_records[index].source_name) ==
                     0) {
                     category = W8_DIALOGUE_CATEGORY_PEOPLE;
                     break;

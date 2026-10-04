@@ -34,7 +34,7 @@ srScene::srScene(srNode* parent)
     traversal.entry_count = 0;
     traversal.node_count = 0;
     traversal.renderer = 0;
-    enabled_138.value = 0;
+    enabled.value = 0;
     if (parent != 0) {
         setParent(parent, 0);
     }
@@ -48,7 +48,7 @@ srScene& srScene::operator=(const srScene& other)
         srNode::operator=(other);
         ambient_light_174 = other.ambient_light_174;
         fog_color_180 = other.fog_color_180;
-        enabled_138 = other.enabled_138;
+        enabled = other.enabled;
     }
     return *this;
 }
@@ -108,7 +108,7 @@ void srScene::process(const ProcessInfo& info, e_processType type)
     }
     long remaining = entry_count;
     while (remaining > 0) {
-        if ((enabled_138.value & 1) != 0) {
+        if ((enabled.value & 1) != 0) {
             // reinterpret-ok: the pick key is the node pointer itself.
             renderer->setPickKey(reinterpret_cast<unsigned long>(entries->node));
         }
@@ -160,15 +160,15 @@ void srScene::render(srGERD& renderer, srCamera* camera)
 void srScene::getStatistics(Statistics& statistics)
 {
     statistics = statistics_140;
-    statistics.elapsed_00 =
-        srCore.getTimer()->getTime(srTimer::TIMER_READ_DEFAULT) - statistics.elapsed_00;
+    statistics.elapsed =
+        srCore.getTimer()->getTime(srTimer::TIMER_READ_DEFAULT) - statistics.elapsed;
 }
 
 // FUNCTION: SURRENDER 0x10056550
 void srScene::resetStatistics()
 {
     memset(&statistics_140, 0, sizeof(statistics_140));
-    statistics_140.elapsed_00 = srCore.getTimer()->getTime(srTimer::TIMER_READ_DEFAULT);
+    statistics_140.elapsed = srCore.getTimer()->getTime(srTimer::TIMER_READ_DEFAULT);
 }
 
 // FUNCTION: SURRENDER 0x10056750
@@ -188,13 +188,13 @@ void srScene::dump(std::ostream& stream)
     Statistics statistics;
     getStatistics(statistics);
     stream.width(0x20);
-    stream << "  Time since stat reset: " << statistics.elapsed_00 << '\n';
+    stream << "  Time since stat reset: " << statistics.elapsed << '\n';
     stream.width(0x20);
-    stream << "  Render calls/sec: " << statistics.render_calls / statistics.elapsed_00 << '\n';
+    stream << "  Render calls/sec: " << statistics.render_calls / statistics.elapsed << '\n';
     stream.width(0x20);
-    stream << "  Global calls/sec: " << statistics.node_calls / statistics.elapsed_00 << '\n';
+    stream << "  Global calls/sec: " << statistics.node_calls / statistics.elapsed << '\n';
     stream.width(0x20);
-    stream << "  Process calls/sec: " << statistics.process_calls / statistics.elapsed_00
+    stream << "  Process calls/sec: " << statistics.process_calls / statistics.elapsed
            << '\n';
     stream.flags(flags & 0x7fff);
 }
@@ -202,19 +202,19 @@ void srScene::dump(std::ostream& stream)
 // FUNCTION: SURRENDER 0x10056B50
 void srScene::disable(e_enable option)
 {
-    enabled_138.value &= ~(1ul << option);
+    enabled.value &= ~(1ul << option);
 }
 
 // FUNCTION: SURRENDER 0x10056B70
 void srScene::enable(e_enable option)
 {
-    enabled_138.value |= 1ul << option;
+    enabled.value |= 1ul << option;
 }
 
 // FUNCTION: SURRENDER 0x10056B90
 int srScene::isEnabled(e_enable option) const
 {
-    return (enabled_138.value & (1ul << option)) != 0;
+    return (enabled.value & (1ul << option)) != 0;
 }
 
 // FUNCTION: SURRENDER 0x10056C20

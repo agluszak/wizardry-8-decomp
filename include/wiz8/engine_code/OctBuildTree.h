@@ -40,8 +40,8 @@ struct W8OctBuildNode {
     unsigned long padding_24;
     unsigned short region_28;
     unsigned short leaf_kind;
-    unsigned short provisional_region_2c;
-    unsigned short positional_2e;
+    unsigned short provisional_region;
+    unsigned short positional;
 };
 
 /* A zero-storage node variant with independently evidenced behavior: its
@@ -89,13 +89,13 @@ struct W8OctBuildTree {
     W8OctBuildLinkLists* link_lists;
     unsigned long leaf_polygon_count;
     unsigned long gd_surface_count;
-    unsigned long leaf_count_a8;
+    unsigned long leaf_count;
     unsigned short max_leaf_regions_ac;
     unsigned short unknown_ae;
     unsigned long region_assignments;
     bool use_owned_nodes;
     unsigned char unknown_b5[3];
-    unsigned long deepest_link_list_b8;
+    unsigned long deepest_link_list;
 };
 
 static_assert(sizeof(W8OctBuildLink) == 8, "W8OctBuildLink_must_be_8");

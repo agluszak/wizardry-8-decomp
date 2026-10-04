@@ -122,10 +122,10 @@ void srNode::getLocalBounds(BoundInfo& bounds)
     bounds.center.SetZero();
     bounds.radius = 0.0f;
     if (testFlag(FLAG_GLOBAL) != 0) {
-        bounds.state_28 = 2;
+        bounds.state = 2;
         return;
     }
-    bounds.state_28 = 0;
+    bounds.state = 0;
 }
 
 // FUNCTION: SURRENDER 0x100505E0

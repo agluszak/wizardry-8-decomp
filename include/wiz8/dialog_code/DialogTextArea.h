@@ -57,7 +57,7 @@ private:
     int m_first_visible_entry;                        /* 0x14 */
     int m_first_visible_line;                         /* 0x18 */
     W8Vector<W8DialogTextEntry*> m_all_lines;     /* owns entries */
-    W8Vector<W8DialogTextEntry*> m_visible_lines_02c; /* non-owning view */
+    W8Vector<W8DialogTextEntry*> m_visible_lines; /* non-owning view */
     bool m_layout_initialized;                        /* 0x3c */
 public:
     /* Owning dialogs raise this before Draw, the same way they dirty the

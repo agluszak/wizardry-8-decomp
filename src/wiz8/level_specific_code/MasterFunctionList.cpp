@@ -154,7 +154,7 @@ stSound3D* CreateAndPlaySoundNode(char* sound_name, srVector3T<float> position, 
 }
 
 /* One row of the cursor-node dispatch table at 0x006109F4, indexed by the
-   node's type parameter (numbers_0c[2]). The dispatcher invokes a row as
+   node's type parameter (numbers[2]). The dispatcher invokes a row as
    (command, node, context); the context slot normally carries the address of
    the command's argument byte, while command 4 smuggles the byte itself
    through it. */
@@ -416,7 +416,7 @@ static unsigned char WorldCursorNodeMaleCharacterEvent(int command, W8WorldCurso
     W8Character* character;
 
     if (command == 1 && g_status.rpc_active != 0) {
-        character = g_status.buffers.Char + g_status.sedexus_party_slot_247f;
+        character = g_status.buffers.Char + g_status.sedexus_party_slot;
         if (character->gender == W8_GENDER_MALE) {
             QueueCharacterEvent(character, g_character_event_kind_005ee63c, 0,
                                 g_character_event_no_flags, g_character_event_full_volume);

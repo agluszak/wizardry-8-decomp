@@ -30,7 +30,7 @@ struct W8PortraitQuoteBubble {
     UINT32 background_surface;         /* 0x0c */
     UINT32 object;                     /* 0x10 */
     bool has_resources;             /* 0x14 */
-    bool created_15;                   /* 0x15 */
+    bool created;                   /* 0x15 */
     UINT32 flags;                      /* 0x18: bit 0 selects the flat fill */
     wchar_t* text;                     /* 0x1c */
     UINT32 palette;                    /* 0x20 */
@@ -605,7 +605,7 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
             return 0;
         }
         bubble->palette = font_palette;
-        bubble->created_15 = true;
+        bubble->created = true;
         bubble->width = static_cast<unsigned short>(max_width);
         bubble->height = static_cast<unsigned short>(height);
         rect.iLeft = 0;
@@ -701,7 +701,7 @@ unsigned char ReleasePortraitQuoteBubble(int quote_handle)
 
     if (quote_handle != -1 && (quote = g_portrait_quotes[quote_handle]) != 0 &&
         (g_current_portrait_quote = quote) != 0) {
-        if (g_current_portrait_quote->created_15 != 0) {
+        if (g_current_portrait_quote->created != 0) {
             for (int index = 0; index < 10; ++index) {
                 if (g_portrait_quotes[index] == quote) {
                     g_portrait_quotes[index] = 0;

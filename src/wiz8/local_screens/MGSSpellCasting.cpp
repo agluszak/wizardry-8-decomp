@@ -291,7 +291,7 @@ unsigned char OpenSpellCastingView(int party_slot)
     if (g_level_block->combat_end_notification != -1) {
         DestroySubMenuControls();
     }
-    gpSCSV->input_blocked_570 = 0;
+    gpSCSV->input_blocked = 0;
     gpSCSV->field_574 = 1;
     gpSCSV->location_id = -1;
     gpSCSV->interact_id = -1;
@@ -1199,14 +1199,14 @@ unsigned char SpellRealmButtonRegionEvent(const InputAtom* event, W8Region* regi
 }
 
 /* Power-pip / cancel-button region callback (ids 0..8 and 10). While
-   input_blocked_570 is set the handler swallows input. */
+   input_blocked is set the handler swallows input. */
 // FUNCTION: WIZ8 0x005A0E50
 unsigned char SpellPowerPipRegionEvent(const InputAtom* event, W8Region* region)
 {
     int us_event;
     unsigned int callback_id;
 
-    if (gpSCSV->input_blocked_570 != 0) {
+    if (gpSCSV->input_blocked != 0) {
         return 1;
     }
 

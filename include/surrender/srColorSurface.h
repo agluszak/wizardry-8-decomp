@@ -98,7 +98,7 @@ private:
     srPixelConvert::ConversionFunc pixel_read;
     srPtr<srPalette> palette_4c;
     unsigned long surface_flags;
-    long data_size_54;
+    long data_size;
     void* data_58;
 };
 

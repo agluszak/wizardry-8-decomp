@@ -83,7 +83,7 @@ bool g_hide_invisible_items = 1;
 // FUNCTION: WIZ8 0x004f69f0
 bool InitializeItemManagerState()
 {
-    g_status.next_world_item_id_2352 = 1;
+    g_status.next_world_item_id = 1;
     gXStatus.item_manager_pending = 0;
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
         g_level_block->selected_item = -1;
@@ -232,7 +232,7 @@ int GenerateItemsFromTable(W8GrowableVector<W8WorldItem*>* output_items, unsigne
     table_id &= 0xffff;
     for (entry_index = 0; entry_index < 40; ++entry_index) {
         table = g_item_tables[table_id];
-        if (table->entries[entry_index].selector_00 != 0) {
+        if (table->entries[entry_index].selector != 0) {
             item_record = &g_item_records[table->entries[entry_index].item_id];
             if (table->entries[entry_index].weight == 0) {
                 output_items->Add(CreateTableItem(
@@ -258,7 +258,7 @@ int GenerateItemsFromTable(W8GrowableVector<W8WorldItem*>* output_items, unsigne
         g_item_tables[table_id]->level_scaled != 0) {
         candidates.Clear();
         for (entry_index = 0; entry_index < 40; ++entry_index) {
-            if (g_item_tables[table_id]->entries[entry_index].selector_00 != 0) {
+            if (g_item_tables[table_id]->entries[entry_index].selector != 0) {
                 candidates.Add(entry_index);
             }
         }
@@ -411,7 +411,7 @@ bool ItemInfoIsWorldPersistent(const W8WorldItem* item)
     if (item == 0) {
         return false;
     }
-    return (g_item_records[item->item.iItemNo].flags_041 & W8_ITEM_FLAG_PERSISTENT) != 0;
+    return (g_item_records[item->item.iItemNo].flags & W8_ITEM_FLAG_PERSISTENT) != 0;
 }
 
 // FUNCTION: WIZ8 0x004f9210
@@ -716,9 +716,9 @@ void ActivateItem(W8WorldItem* item)
         mesh = static_cast<stModelInstance*>(item->p3D->GetMesh());
         if (mesh != 0) {
             if (g_octree->HasLineOfSight(&position, &sun_position, 1)) {
-                mesh->light_scale_194 = 1.0f;
+                mesh->light_scale = 1.0f;
             } else {
-                mesh->light_scale_194 = 0.0f;
+                mesh->light_scale = 0.0f;
             }
         }
     }
@@ -971,7 +971,7 @@ unsigned char InteractWithWorldItem(int runtime_id)
     if (item == 0) {
         srAssertFail("pItemInfo != NULL", ITEM_MANAGER_CPP, 857, 0);
     }
-    if (g_item_records[item->item.iItemNo].flags_041 & 0x20) {
+    if (g_item_records[item->item.iItemNo].flags & 0x20) {
         W8TriggerItemPickerDialog* dialog = new W8TriggerItemPickerDialog;
         if (dialog != 0) {
             dialog->SetItemGroup(item);
@@ -1161,14 +1161,14 @@ unsigned char AdvanceFallingWorldItem(W8WorldItem* item)
     previous_y = item->position.y;
     probe.Set(item->position.x, previous_y + g_world_scale, item->position.z);
     dt = g_game_time_accumulator->GetFrameDelta();
-    if (g_camera_snap_epsilon < item->vertical_velocity_35) {
-        probe.y = dt * item->vertical_velocity_35 + probe.y;
+    if (g_camera_snap_epsilon < item->vertical_velocity) {
+        probe.y = dt * item->vertical_velocity + probe.y;
     }
 
     ground = g_octree->SettleToGround(&probe, &hit, 1, 250.0f);
     if (hit == 0 || fabs(ground - previous_y) < g_camera_snap_epsilon) {
         item->flags &= ~2u;
-        item->vertical_velocity_35 = 0.0f;
+        item->vertical_velocity = 0.0f;
         return 0;
     }
 
@@ -1184,12 +1184,12 @@ unsigned char AdvanceFallingWorldItem(W8WorldItem* item)
     }
 
     if (previous_y <= ground) {
-        item->vertical_velocity_35 = (ground - previous_y) / dt;
+        item->vertical_velocity = (ground - previous_y) / dt;
         probe.y = ground;
     } else {
-        item->vertical_velocity_35 =
-            dt * g_navigator_gravity * g_float_005ebc7c + item->vertical_velocity_35;
-        probe.y = probe.y - dt * item->vertical_velocity_35;
+        item->vertical_velocity =
+            dt * g_navigator_gravity * g_float_005ebc7c + item->vertical_velocity;
+        probe.y = probe.y - dt * item->vertical_velocity;
         if (probe.y < ground) {
             probe.y = ground;
         }
@@ -1215,7 +1215,7 @@ unsigned char SettleWorldItem(W8WorldItem* item)
     start.Set(item->position.x, item->position.y + g_world_scale, item->position.z);
 
     item->flags &= ~2u;
-    item->vertical_velocity_35 = 0.0f;
+    item->vertical_velocity = 0.0f;
 
     g_octree->SettleToGround(&start, &hit, 1, 250.0f);
     if (hit == 0) {
@@ -1265,7 +1265,7 @@ W8WorldItem* CreateWorldItem(W8ItemInstance* item, const srVector3T<float>* posi
 
     memset(result, 0, sizeof(W8WorldItem));
     EmptyItemRecord(&result->item, 0, 1);
-    result->runtime_id = g_status.next_world_item_id_2352++;
+    result->runtime_id = g_status.next_world_item_id++;
     result->fActive = 0;
     result->p3D = 0;
     result->position = *position;
@@ -1310,7 +1310,7 @@ W8WorldItem* SpawnItem(int item_id, const srVector3T<float>* position, int entit
    the drop count; type 1 routes the id to GenerateItemsFromTable once per
    roll) and roll the gold dice. NPC-bound monsters empty their state item
    list instead: every zero-weight slot drops outright, then a weighted pick
-   rolls item_count_dice_10e items out of what remains; the NPC's gold field
+   rolls item_count_dice items out of what remains; the NPC's gold field
    pays out directly. One drop is adopted into plsItemList at the death
    position; two or more are chained onto a container spawned with
    SpawnItem - 0x23c by default, or value when the caller names one. */
@@ -1333,7 +1333,7 @@ void DropMonsterLoot(W8MonsterInfo* monster_info, int value)
         int pick;
         if ((record->flags & W8_MONSTER_FLAG_NPC) == 0) {
             for (slot = 0; slot < 8; ++slot) {
-                W8MonsterTreasureEntry* entry = &record->treasure_1f3.slots[slot];
+                W8MonsterTreasureEntry* entry = &record->treasure.slots[slot];
                 if (entry->count != 0 && Random(100) <= entry->chance) {
                     int rolls = RollDice(&entry->dice);
                     for (roll = 0; roll < rolls; ++roll) {
@@ -1348,7 +1348,7 @@ void DropMonsterLoot(W8MonsterInfo* monster_info, int value)
                     }
                 }
             }
-            gold = RollDice(&record->treasure_1f3.gold_dice);
+            gold = RollDice(&record->treasure.gold_dice);
         } else {
             W8NpcState* npc = GetNpcStateForMonsterInfo(monster_info, 1);
             if (npc == 0) {
@@ -1377,7 +1377,7 @@ void DropMonsterLoot(W8MonsterInfo* monster_info, int value)
                         total_weight += static_cast<signed char>(npc->item_weights[index]);
                     }
                 }
-                take = RollDice(&npc->item_count_dice_10e);
+                take = RollDice(&npc->item_count_dice);
                 if (remaining < take) {
                     take = remaining;
                 }
@@ -1397,7 +1397,7 @@ void DropMonsterLoot(W8MonsterInfo* monster_info, int value)
                     }
                 }
             }
-            gold = npc->gold_80;
+            gold = npc->gold;
         }
         if (gold != 0) {
             AddPartyGold(gold, 1);

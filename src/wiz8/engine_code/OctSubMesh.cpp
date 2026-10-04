@@ -44,7 +44,7 @@ void ReadMeshArray(int file, T* values, int count, const char* get_message,
 
 // FUNCTION: WIZ8 0x0049E4C0
 OctMeshModel::OctMeshModel()
-    : version_00(0), m_link_index(0), next_link(0), m_material_index(0), m_map_count(0),
+    : version(0), m_link_index(0), next_link(0), m_material_index(0), m_map_count(0),
       m_vertex_locations(0), m_vertex_map(0), m_vertex_materials(0), m_poly_vertices(0),
       m_poly_uv_index(0), m_poly_textures(0), m_vertex_normals(0), m_vertex_lights(0),
       m_poly_equations(0), m_sun_lights(0), m_packed_header(0), m_vertex_count(0),
@@ -83,7 +83,7 @@ OctMeshModel::~OctMeshModel()
         srHeap.free(m_poly_equations);
     }
     if (m_sun_lights != 0) {
-        for (short index = 0; index < version_00; ++index) {
+        for (short index = 0; index < version; ++index) {
             free(m_sun_lights[index]);
         }
     }
@@ -96,7 +96,7 @@ bool OctMeshModel::Write(int hFile)
     unsigned char write_result;
     int index;
 
-    m_packed_header |= static_cast<unsigned int>(version_00) << 8;
+    m_packed_header |= static_cast<unsigned int>(version) << 8;
     success = FileWrite(hFile, &m_packed_header, 4, 0);
     success &= FileWrite(hFile, &m_vertex_count, 4, 0);
     success &= FileWrite(hFile, &m_map_count, 4, 0);
@@ -185,13 +185,13 @@ bool OctMeshModel::Write(int hFile)
     srHeap.free(m_poly_equations);
     m_poly_equations = 0;
 
-    if (version_00 != 0) {
+    if (version != 0) {
         write_result = FileWrite(hFile, m_sun_lights[0], m_vertex_count * sizeof(float), 0);
         if (write_result == 0) {
             srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\OctSubMesh.cpp", 0x143,
                          "OctMeshModel::Write -- Could not write m_ppflSunLights.\n");
         }
-        for (index = 0; index < version_00; ++index) {
+        for (index = 0; index < version; ++index) {
             free(m_sun_lights[index]);
         }
         free(m_sun_lights);
@@ -232,7 +232,7 @@ stMeshModel* OctMeshModel::Read(int file, srMaterialIFace** materials, srTexture
     unsigned int header = m_packed_header;
     bool unweighted = (header & 0xff) == 0;
     m_packed_header = header & 0xff;
-    version_00 = static_cast<short>((header >> 8) & 0xff);
+    version = static_cast<short>((header >> 8) & 0xff);
 
     int index_count = m_vertex_count;
     if (index_count < m_polygon_count) {
@@ -335,7 +335,7 @@ stMeshModel* OctMeshModel::Read(int file, srMaterialIFace** materials, srTexture
     if (weights == 0) {
         ShutdownWithErrorBox("OctMeshModel::Read -- Could not allocate intensity array.\n");
     }
-    if (version_00 != 0 && !FileRead(file, weights, m_vertex_count * sizeof(float), 0)) {
+    if (version != 0 && !FileRead(file, weights, m_vertex_count * sizeof(float), 0)) {
         ShutdownWithErrorBox("OctMeshModel::Read -- Could not read Sunlight array.\n");
     }
 

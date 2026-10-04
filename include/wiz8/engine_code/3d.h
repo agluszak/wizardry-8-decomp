@@ -36,7 +36,7 @@ void FinalizeStaticScene(srScene* scene);
 stModelInstance* CreateModelInstance(stMeshModel* model);
 
 unsigned char FinalizeWorldScenes(srNode* node, srNode* dynamic_scene);
-/* Mark an instance lit and bake dynamic-scene lights once (render_flags_178 bit 1). */
+/* Mark an instance lit and bake dynamic-scene lights once (render_flags bit 1). */
 unsigned char BakeInstanceVertexLightingIfNeeded(stModelInstance* instance,
                                                  srNode* dynamic_scene); /* 0x0046F4A0 */
 unsigned char BakeInstanceVertexLighting(stModelInstance* instance, srNode* lights,

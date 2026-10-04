@@ -1095,7 +1095,7 @@ void DrawCampHands(void)
     unsigned short* palette;
 
     item_id = g_review_character->EquippedItem[6].iItemNo;
-    if (item_id == -1 || (g_item_records[item_id].flags_041 & 4) == 0) {
+    if (item_id == -1 || (g_item_records[item_id].flags & 4) == 0) {
         two_handed = false;
         hand_image = 0;
     } else {

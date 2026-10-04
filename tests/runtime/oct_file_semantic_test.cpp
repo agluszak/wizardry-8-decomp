@@ -293,11 +293,11 @@ static unsigned char CheckFileLayout(const OctPreTree* tree, const W8OctPreTreeG
         LoadDword(bytes, 0x5e) != tree->m_leaf_grid_dim_z ||
         LoadWord(bytes, 0x62) != spatial->m_depth ||
         LoadWord(bytes, 0x64) != spatial->m_region_id_bound ||
-        LoadDword(bytes, 0x66) != spatial->submesh_count_74 ||
+        LoadDword(bytes, 0x66) != spatial->submesh_count ||
         LoadDword(bytes, 0x6a) != tree->m_branch_count ||
         LoadDword(bytes, 0x6e) != tree->m_leaf_count ||
         LoadDword(bytes, 0x72) != geometry->m_polygon_count ||
-        LoadDword(bytes, 0x76) != geometry->vertex_count_00 || LoadDword(bytes, 0x7a) != 0 ||
+        LoadDword(bytes, 0x76) != geometry->vertex_count || LoadDword(bytes, 0x7a) != 0 ||
         LoadDword(bytes, 0x7e) != 0 || LoadDword(bytes, 0x82) != tree->polygon_cursor ||
         LoadDword(bytes, 0x86) != tree->m_gd_surface_stream_len || LoadDword(bytes, 0x8a) != 0 ||
         LoadDword(bytes, 0x8e) != 0 || LoadDword(bytes, 0x92) != tree->m_region_list_len ||
@@ -332,7 +332,7 @@ static unsigned char CheckFileLayout(const OctPreTree* tree, const W8OctPreTreeG
         ok = 0;
     }
     cursor += 4;
-    cursor += (spatial->submesh_count_74 + 1) * 0x10;
+    cursor += (spatial->submesh_count + 1) * 0x10;
     /* Alpha bits, particle and prop lookup tables skipped (counts 0). */
     if (LoadDword(bytes, cursor) != 0xffffffff) {
         ok = 0;
@@ -400,7 +400,7 @@ static unsigned char CheckUvSeam(OctPreTree* tree)
 
     memset(&record, 0, sizeof(record));
     memset(polygons, 0, sizeof(polygons));
-    record.vertex_count_14 = 4;
+    record.vertex_count = 4;
     record.m_polygon_count = 2;
     poly_vertices[0].x = 0;
     poly_vertices[0].y = 1;
@@ -412,12 +412,12 @@ static unsigned char CheckUvSeam(OctPreTree* tree)
     polygon_ids[0] = 0;
     polygon_ids[1] = 1;
     record.m_polygon_ids = polygon_ids;
-    polygons[0].face_48.texture_coordinates[0].Set(0.1f, 0.2f);
-    polygons[0].face_48.texture_coordinates[1].Set(0.3f, 0.4f);
-    polygons[0].face_48.texture_coordinates[2].Set(0.5f, 0.6f);
-    polygons[1].face_48.texture_coordinates[0].Set(0.7f, 0.8f);
-    polygons[1].face_48.texture_coordinates[1].Set(0.5f, 0.6f);
-    polygons[1].face_48.texture_coordinates[2].Set(0.9f, 1.0f);
+    polygons[0].face.texture_coordinates[0].Set(0.1f, 0.2f);
+    polygons[0].face.texture_coordinates[1].Set(0.3f, 0.4f);
+    polygons[0].face.texture_coordinates[2].Set(0.5f, 0.6f);
+    polygons[1].face.texture_coordinates[0].Set(0.7f, 0.8f);
+    polygons[1].face.texture_coordinates[1].Set(0.5f, 0.6f);
+    polygons[1].face.texture_coordinates[2].Set(0.9f, 1.0f);
     memset(&geometry, 0, sizeof(geometry));
     geometry.m_polygons = polygons;
 
@@ -493,7 +493,7 @@ static unsigned char CheckPathNodeChunking()
     /* Deliberately leaked: ~W8PathingService frees g_path_scratch and
        clears g_pathing - globals this object does not own. */
     return first == prepath->node_chunks[0] && second == first + 1 && first->level_flags == 0 &&
-           first->cell == 0 && prepath->chunk_index_11f8 == 0 &&
+           first->cell == 0 && prepath->chunk_index == 0 &&
            prepath->chunk_node_count == 2;
 }
 
@@ -563,7 +563,7 @@ static void RunOctFileRoundTrip(OctFileSemanticResult* result)
     tree->m_spatial.m_max_region_radius = 2.5f;
     /* One submesh entry exercises the mesh block and the reader's
        max-scan/allocation of the region-index store. */
-    tree->m_spatial.submesh_count_74 = 1;
+    tree->m_spatial.submesh_count = 1;
     tree->m_leaf_grid_dim_x = 2;
     tree->m_leaf_grid_dim_y = 2;
     tree->m_leaf_grid_dim_z = 2;
@@ -603,10 +603,10 @@ static void RunOctFileRoundTrip(OctFileSemanticResult* result)
     tree->m_gd_surface_index_stream[0] = 0xdeadbeef;
     tree->m_region_index_stream[0] = 0x5a5a;
     memset(tree->m_pSubmeshes, 0, 2 * 0x10);
-    tree->m_pSubmeshes[1].polygon_count_0c = 5;
+    tree->m_pSubmeshes[1].polygon_count = 5;
 
     memset(&geometry, 0, sizeof(geometry));
-    geometry.vertex_count_00 = 3;
+    geometry.vertex_count = 3;
     geometry.m_polygon_count = 1;
 
     result->write_ok = tree->WriteOctFile(&geometry, game_data);
@@ -628,7 +628,7 @@ static void RunOctFileRoundTrip(OctFileSemanticResult* result)
                                    loaded->m_aulPolyLookup[0] == 0xaabbccdd &&
                                    loaded->m_gd_surface_index_stream[0] == 0xdeadbeef &&
                                    loaded->m_region_index_stream[0] == 0x5a5a &&
-                                   loaded->m_pSubmeshes[1].polygon_count_0c == 5 &&
+                                   loaded->m_pSubmeshes[1].polygon_count == 5 &&
                                    memcmp(loaded->m_leaf_lookup, tree->m_leaf_lookup, 8 * 4) == 0;
         result->gamedata_roundtrip = loaded_data->m_iNumEnvirons == 1 &&
                                      loaded_data->m_ppEnvirons != 0 &&

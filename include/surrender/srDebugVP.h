@@ -12,7 +12,7 @@ class srVectorProcessor;
    the signature table at 0x100A9250 (index = vtable slot - 1; entry 0 is
    the "dummy command" lead-in). Every forwarding override scopes the
    wrapped call in a ScopeTimer, which accumulates elapsed time, element
-   count, call count and - while check_misalignments_440 is set - the number
+   count, call count and - while check_misalignments is set - the number
    of pointer arguments that were not 8- or 16-byte aligned. */
 // VTABLE: SURRENDER 0x10077960 srDebugVP
 class srDebugVP : public srVP {
@@ -360,7 +360,7 @@ protected:
         SRDWORD elements_00;
         srDebugVP* owner_04;
         int index_08;
-        double start_10;
+        double start_time;
     };
     /* VC6 does not grant a nested class access to the enclosing class's
        protected members, so the statistics arrays stay reachable through an
@@ -370,12 +370,12 @@ protected:
     /* Written from srVectorProcessor::startDebug's argument after
        construction; zero disables the ScopeTimer alignment counters and
        makes dump print "misAlignments not checked". */
-    int check_misalignments_440;
+    int check_misalignments;
     srVP* processor_444;
     double call_overhead;
-    double call_times_450[0xa6];
+    double call_times[0xa6];
     double element_counts[0xa6];
-    unsigned long call_counts_eb0[0xa6];
+    unsigned long call_counts[0xa6];
     unsigned long misaligned8[0xa6];
     unsigned long misaligned16[0xa6];
 

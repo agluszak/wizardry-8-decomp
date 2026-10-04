@@ -728,16 +728,16 @@ void srIStreamOpener::addStreamType(Opener* opener, const char* stream_type)
     node->opener_00 = opener;
     node->extension_04 = type_copy;
     StreamType* first = first_04;
-    StreamType* previous = first->previous_0c;
-    node->next_08 = first;
-    node->previous_0c = previous;
+    StreamType* previous = first->previous;
+    node->next = first;
+    node->previous = previous;
     if (previous != 0) {
-        previous->next_08 = node;
+        previous->next = node;
     } else {
         first_04 = node;
     }
-    if (node->next_08 != 0) {
-        node->next_08->previous_0c = node;
+    if (node->next != 0) {
+        node->next->previous = node;
     }
     ++count_00;
 }
@@ -745,7 +745,7 @@ void srIStreamOpener::addStreamType(Opener* opener, const char* stream_type)
 // FUNCTION: SURRENDER 0x10032630
 srIStreamOpener::Opener* srIStreamOpener::findOpener(const char* stream_type)
 {
-    for (StreamType* node = first_04; node != end_08; node = node->next_08) {
+    for (StreamType* node = first_04; node != end; node = node->next) {
         if (_stricmp(node->extension_04, stream_type) == 0) {
             return node->opener_00;
         }
@@ -786,7 +786,7 @@ srBinIStream* srIStreamOpener::open(const char* prefix, const char* path)
         srBinIStream* stream = new srBinIFStream(local_path.data());
         if (!stream->good()) {
             delete stream;
-            for (StreamType* node = first_04; node != end_08; node = node->next_08) {
+            for (StreamType* node = first_04; node != end; node = node->next) {
                 stream = node->opener_00->open(local_path.data());
                 if (stream != 0) {
                     return stream;
@@ -811,18 +811,18 @@ srBinIStream* srIStreamOpener::open(const char* prefix, const char* path)
 // FUNCTION: SURRENDER 0x10032A80
 srIStreamOpener::~srIStreamOpener()
 {
-    for (StreamType* node = first_04; node != end_08; node = node->next_08) {
+    for (StreamType* node = first_04; node != end; node = node->next) {
         delete[] node->extension_04;
         node->extension_04 = 0;
     }
     StreamType* entry = first_04;
-    while (entry != end_08) {
-        first_04 = entry->next_08;
-        if (entry->previous_0c != 0) {
-            entry->previous_0c->next_08 = entry->next_08;
+    while (entry != end) {
+        first_04 = entry->next;
+        if (entry->previous != 0) {
+            entry->previous->next = entry->next;
         }
-        if (entry->next_08 != 0) {
-            entry->next_08->previous_0c = entry->previous_0c;
+        if (entry->next != 0) {
+            entry->next->previous = entry->previous;
         }
         delete entry;
         entry = first_04;

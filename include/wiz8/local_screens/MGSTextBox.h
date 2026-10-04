@@ -17,7 +17,7 @@ struct W8NoticeWord {
     short end;
     short x_start;
     short x_end;
-    unsigned char keyword_08; /* 0x08: 0 none, 1 keyword, 2 selected */
+    unsigned char keyword; /* 0x08: 0 none, 1 keyword, 2 selected */
     bool redraw_09;           /* 0x09: repaint once after deselection */
 };
 static_assert(sizeof(W8NoticeWord) == 10, "W8NoticeWord_must_be_10");
@@ -32,7 +32,7 @@ struct W8MessageStorageRecord {
     unsigned char highlight_color;
     unsigned char highlight_start;
     unsigned char highlight_stop;
-    TIMER clock_08;
+    TIMER clock;
     /* 0x0c: SaveGame snapshots the unsigned milliseconds remaining from
        ClockIsTicking; load rearms the countdown with this duration. */
     UINT32 saved_remaining_ms;
@@ -41,7 +41,7 @@ struct W8MessageStorageRecord {
     int length_14; /* 0x14: wString length, -1 when unset */
     /* 0x18: live list pointer; save preserves its 32-bit representation and
        load discards the serialized word instead of reconstructing a pointer. */
-    W8PList* entries_18;
+    W8PList* entries;
     unsigned char unknown_1c[8];
 };
 

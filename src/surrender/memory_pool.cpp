@@ -38,7 +38,7 @@ void* srMemoryPool::allocate(long size)
     space->offset_08 += aligned;
     entry->size_0c = aligned;
     entry->offset_08 = offset;
-    entry->locked_10 = 0;
+    entry->locked = 0;
     if (space->size_0c == 0) {
         space->previous_00->next_04 = space->next_04;
         space->next_04->previous_00 = space->previous_00;
@@ -69,11 +69,11 @@ srMemoryPool::srMemoryPool(void* memory, long size, long alignment)
     entry = addEntry(first_free, 0);
     entry->size_0c = 0;
     entry->offset_08 = padding + 1 + size_04;
-    entry->locked_10 = 1;
+    entry->locked = 1;
     entry = addEntry(0, first_free);
     first_free = entry;
     entry->size_0c = 0;
-    entry->locked_10 = 1;
+    entry->locked = 1;
     entry->offset_08 = padding - 1;
     largest_free_dirty = 1;
     used_0c = 0;
@@ -244,7 +244,7 @@ void srMemoryPool::free(void* allocation)
 // FUNCTION: SURRENDER 0x10036CA0
 void srMemoryPool::freeInternal(Entry* entry)
 {
-    if (entry->locked_10 == 0) {
+    if (entry->locked == 0) {
         Entry* placing = findPlacing(entry->offset_08);
         if (placing->offset_08 + placing->size_0c == entry->offset_08) {
             placing->size_0c += entry->size_0c;
@@ -284,7 +284,7 @@ int srMemoryPool::getLockStatus(void* allocation) const
 {
     Entry* entry = find(convertPtr(allocation));
     if (entry != 0) {
-        return entry->locked_10;
+        return entry->locked;
     }
     return 0;
 }
@@ -316,7 +316,7 @@ void srMemoryPool::lock(void* allocation)
 {
     Entry* entry = find(convertPtr(allocation));
     if (entry != 0) {
-        entry->locked_10 = 1;
+        entry->locked = 1;
     }
 }
 
@@ -387,6 +387,6 @@ void srMemoryPool::unlock(void* allocation)
 {
     Entry* entry = find(convertPtr(allocation));
     if (entry != 0) {
-        entry->locked_10 = 0;
+        entry->locked = 0;
     }
 }

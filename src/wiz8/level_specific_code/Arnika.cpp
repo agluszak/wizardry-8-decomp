@@ -149,7 +149,7 @@ bool ArnikaLazerScanner(Trigger* pTrigger)
                      0x3ed, 0);
     }
     g_lazer_prop = pTrigger->m_pProp;
-    if (g_lazer_prop->Rep()->animation_playing_06d != 0) {
+    if (g_lazer_prop->Rep()->animation_playing != 0) {
         return 0;
     }
     if (GetLocationVarIDByName("HLLDoorOpen") != -1) {
@@ -186,7 +186,7 @@ void ArnikaLaserScanMaster(int command)
         g_remove_current_master_function = true;
         return;
     }
-    if (g_lazer_prop->Rep()->animation_playing_06d != 0) {
+    if (g_lazer_prop->Rep()->animation_playing != 0) {
         return;
     }
     g_remove_current_master_function = true;
@@ -433,7 +433,7 @@ bool ArnikaExitButton(Trigger* pTrigger)
 void ArnikaTeleportWatch(int command)
 {
     g_remove_current_master_function = false;
-    if (g_exit_door_prop->Rep()->animation_playing_06d != 0) {
+    if (g_exit_door_prop->Rep()->animation_playing != 0) {
         return;
     }
     g_remove_current_master_function = true;
@@ -622,7 +622,7 @@ void ArnikaEl1Button(int command)
         g_remove_current_master_function = true;
         return;
     }
-    if (g_el01_button_prop->Rep()->animation_playing_06d != 0) {
+    if (g_el01_button_prop->Rep()->animation_playing != 0) {
         return;
     }
     if (gEl01.button_down == 1) {
@@ -676,7 +676,7 @@ void ArnikaEl1Moving(int command)
         g_remove_current_master_function = true;
         return;
     }
-    if (gEl01.pProp->Rep()->animation_playing_06d != 0) {
+    if (gEl01.pProp->Rep()->animation_playing != 0) {
         return;
     }
     g_remove_current_master_function = true;
@@ -832,7 +832,7 @@ void ArnikaEl2Button(int command)
         g_remove_current_master_function = true;
         return;
     }
-    if (g_el02_button_prop->Rep()->animation_playing_06d != 0) {
+    if (g_el02_button_prop->Rep()->animation_playing != 0) {
         return;
     }
     if (gEl02.button_down == 1) {
@@ -876,7 +876,7 @@ void ArnikaEl2Moving(int command)
         g_remove_current_master_function = true;
         return;
     }
-    if (gEl02.pProp->Rep()->animation_playing_06d != 0) {
+    if (gEl02.pProp->Rep()->animation_playing != 0) {
         return;
     }
     g_remove_current_master_function = true;

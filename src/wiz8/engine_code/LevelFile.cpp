@@ -65,7 +65,7 @@ W8LevelFile* ReadLevelFile(int hFile)
     for (i = 0; i < pLevel->nTextures; ++i) {
         W8MaterialRecord* pTexture = pLevel->pTextures + i;
         ok = FileRead(hFile, pTexture, 0x11a, 0);
-        if (pTexture->version_00 >= 4) {
+        if (pTexture->version >= 4) {
             ok &= FileRead(hFile, pTexture->texture_modes, 0x10, 0);
         }
         if (ok == 0) {
@@ -298,7 +298,7 @@ BOOLEAN WriteLevelFile(int hFile, int hFileIn, W8LevelFile* pLevel)
     for (i = 0; i < static_cast<short>(iCount); ++i) {
         W8MaterialRecord* pTexture = pLevel->pTextures + i;
         ok = FileWrite(hFile, pTexture, 0x11a, 0);
-        if (pTexture->version_00 >= 4) {
+        if (pTexture->version >= 4) {
             ok &= FileWrite(hFile, pTexture->texture_modes, 0x10, 0);
         }
         if (ok == 0) {
@@ -507,7 +507,7 @@ BOOLEAN ReadMeshFile(int hFile, W8LevelFileMesh* pMesh)
     int i;
     memset(pMesh, 0, sizeof(W8LevelFileMesh));
     BOOLEAN fSuccess = TRUE;
-    fSuccess &= FileRead(hFile, &pMesh->version_00, 4, 0);
+    fSuccess &= FileRead(hFile, &pMesh->version, 4, 0);
     fSuccess &= FileRead(hFile, &pMesh->num_vertices, 4, 0);
     fSuccess &= FileRead(hFile, &pMesh->num_faces, 4, 0);
     if (fSuccess == 0) {
@@ -525,15 +525,15 @@ BOOLEAN ReadMeshFile(int hFile, W8LevelFileMesh* pMesh)
         ReportBuildStatus(7, g_level_file_error);
         return FALSE;
     }
-    if (pMesh->version_00 >= 3) {
+    if (pMesh->version >= 3) {
         fSuccess = FileRead(hFile, &pMesh->flags, 1, 0);
     }
-    if (pMesh->version_00 >= 2) {
+    if (pMesh->version >= 2) {
         fSuccess &= FileRead(hFile, &pMesh->location, sizeof(pMesh->location), 0);
         fSuccess &= FileRead(hFile, &pMesh->rotation_angle, 0x10, 0);
         fSuccess &= FileRead(hFile, &pMesh->scale, sizeof(pMesh->scale), 0);
     }
-    if (pMesh->version_00 >= 4) {
+    if (pMesh->version >= 4) {
         fSuccess &= FileRead(hFile, &pMesh->mapping_count, 1, 0);
         if (pMesh->mapping_count != 0) {
             fSuccess &= FileRead(hFile, &pMesh->mapped_value, 4, 0);
@@ -618,21 +618,21 @@ BOOLEAN ReadMeshFile(int hFile, W8LevelFileMesh* pMesh)
 BOOLEAN WriteMeshFile(int hFile, W8LevelFileMesh* pMesh)
 {
     BOOLEAN fSuccess = TRUE;
-    fSuccess &= FileWrite(hFile, &pMesh->version_00, 4, 0);
+    fSuccess &= FileWrite(hFile, &pMesh->version, 4, 0);
     fSuccess &= FileWrite(hFile, &pMesh->num_vertices, 4, 0);
     fSuccess &= FileWrite(hFile, &pMesh->num_faces, 4, 0);
     if (fSuccess == 0) {
         return FALSE;
     }
-    if (pMesh->version_00 >= 3) {
+    if (pMesh->version >= 3) {
         fSuccess = FileWrite(hFile, &pMesh->flags, 1, 0);
     }
-    if (pMesh->version_00 >= 2) {
+    if (pMesh->version >= 2) {
         fSuccess &= FileWrite(hFile, &pMesh->location, sizeof(pMesh->location), 0);
         fSuccess &= FileWrite(hFile, &pMesh->rotation_angle, 0x10, 0);
         fSuccess &= FileWrite(hFile, &pMesh->scale, sizeof(pMesh->scale), 0);
     }
-    if (pMesh->version_00 >= 4) {
+    if (pMesh->version >= 4) {
         fSuccess &= FileWrite(hFile, &pMesh->mapping_count, 1, 0);
         if (pMesh->mapping_count != 0) {
             fSuccess &= FileWrite(hFile, &pMesh->mapped_value, 4, 0);
@@ -710,7 +710,7 @@ BOOLEAN WriteMeshFile(int hFile, W8LevelFileMesh* pMesh)
 BOOLEAN ReadLightFile(int hFile, W8LevelFileLight* pLight)
 {
     BOOLEAN fSuccess = TRUE;
-    fSuccess &= FileRead(hFile, &pLight->version_00, 2, 0);
+    fSuccess &= FileRead(hFile, &pLight->version, 2, 0);
     fSuccess &= FileRead(hFile, &pLight->create, 4, 0);
     fSuccess &= FileRead(hFile, pLight->unknown_06, 2, 0);
     fSuccess &= FileRead(hFile, &pLight->position, sizeof(pLight->position), 0);
@@ -720,7 +720,7 @@ BOOLEAN ReadLightFile(int hFile, W8LevelFileLight* pLight)
     if (fSuccess == 0) {
         return FALSE;
     }
-    if (pLight->version_00 >= 2) {
+    if (pLight->version >= 2) {
         fSuccess = FileRead(hFile, pLight->name_28, 0x14, 0) != 0;
         if ((pLight->flags_04 & 2) != 0) {
             pLight->create = 1;
@@ -753,7 +753,7 @@ BOOLEAN ReadLightFile(int hFile, W8LevelFileLight* pLight)
 BOOLEAN WriteLightFile(int hFile, W8LevelFileLight* pLight)
 {
     BOOLEAN fSuccess = TRUE;
-    fSuccess &= FileWrite(hFile, &pLight->version_00, 2, 0);
+    fSuccess &= FileWrite(hFile, &pLight->version, 2, 0);
     fSuccess &= FileWrite(hFile, &pLight->create, 4, 0);
     fSuccess &= FileWrite(hFile, pLight->unknown_06, 2, 0);
     fSuccess &= FileWrite(hFile, &pLight->position, sizeof(pLight->position), 0);
@@ -763,7 +763,7 @@ BOOLEAN WriteLightFile(int hFile, W8LevelFileLight* pLight)
     if (fSuccess == 0) {
         return FALSE;
     }
-    if (pLight->version_00 >= 2) {
+    if (pLight->version >= 2) {
         fSuccess = FileWrite(hFile, pLight->name_28, 0x14, 0) != 0;
         if (((pLight->flags_04 & 2) != 0) && (pLight->pExtra != 0)) {
             fSuccess &= FileWrite(hFile, pLight->pExtra, sizeof(W8LevelFileLightExtra), 0);
@@ -787,7 +787,7 @@ BOOLEAN WriteLightFile(int hFile, W8LevelFileLight* pLight)
 BOOLEAN ReadAnimLightFile(int hFile, W8LevelFileAnimLight* pLight)
 {
     BOOLEAN fSuccess = TRUE;
-    fSuccess &= FileRead(hFile, &pLight->version_00, 1, 0);
+    fSuccess &= FileRead(hFile, &pLight->version, 1, 0);
     fSuccess &= FileRead(hFile, &pLight->position, sizeof(pLight->position), 0);
     fSuccess &= FileRead(hFile, &pLight->color, sizeof(pLight->color), 0);
     fSuccess &= FileRead(hFile, &pLight->intensity, 4, 0);
@@ -795,7 +795,7 @@ BOOLEAN ReadAnimLightFile(int hFile, W8LevelFileAnimLight* pLight)
     if (fSuccess == 0) {
         return FALSE;
     }
-    if (pLight->version_00 >= 2) {
+    if (pLight->version >= 2) {
         pLight->pExtra = static_cast<W8LevelFileLightExtra*>(malloc(sizeof(W8LevelFileLightExtra)));
         if (pLight->pExtra == 0) {
             return FALSE;
@@ -812,7 +812,7 @@ BOOLEAN ReadAnimLightFile(int hFile, W8LevelFileAnimLight* pLight)
 BOOLEAN WriteAnimLightFile(int hFile, W8LevelFileAnimLight* pLight)
 {
     BOOLEAN fSuccess = TRUE;
-    fSuccess &= FileWrite(hFile, &pLight->version_00, 1, 0);
+    fSuccess &= FileWrite(hFile, &pLight->version, 1, 0);
     fSuccess &= FileWrite(hFile, &pLight->position, sizeof(pLight->position), 0);
     fSuccess &= FileWrite(hFile, &pLight->color, sizeof(pLight->color), 0);
     fSuccess &= FileWrite(hFile, &pLight->intensity, 4, 0);
@@ -820,7 +820,7 @@ BOOLEAN WriteAnimLightFile(int hFile, W8LevelFileAnimLight* pLight)
     if (fSuccess == 0) {
         return FALSE;
     }
-    if ((pLight->version_00 >= 2) && (pLight->pExtra != 0)) {
+    if ((pLight->version >= 2) && (pLight->pExtra != 0)) {
         fSuccess &= FileWrite(hFile, pLight->pExtra, sizeof(W8LevelFileLightExtra), 0);
         free(pLight->pExtra);
     }
@@ -834,7 +834,7 @@ BOOLEAN WriteAnimLightFile(int hFile, W8LevelFileAnimLight* pLight)
 BOOLEAN ReadTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
 {
     unsigned char fSuccess =
-        FileRead(hFile, &pTrigger->version_00, 1, 0) && FileRead(hFile, &pTrigger->type, 1, 0);
+        FileRead(hFile, &pTrigger->version, 1, 0) && FileRead(hFile, &pTrigger->type, 1, 0);
     switch (pTrigger->type) {
     case 1: {
         W8LevelFileSwitch* pSwitch =
@@ -843,13 +843,13 @@ BOOLEAN ReadTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
             srAssertFail("pSwitch", LEVELFILE_CPP, 0x3f8, 0);
         }
         memset(pSwitch, 0, sizeof(W8LevelFileSwitch));
-        fSuccess &= FileRead(hFile, &pSwitch->version_00, 1, 0);
+        fSuccess &= FileRead(hFile, &pSwitch->version, 1, 0);
         fSuccess &= FileRead(hFile, &pSwitch->cycle_bounce, 4, 0);
         fSuccess &= FileRead(hFile, &pSwitch->state_count, 4, 0);
         fSuccess &= FileRead(hFile, &pSwitch->animate_states, 4, 0);
         fSuccess &= FileRead(hFile, &pSwitch->range, 4, 0);
         fSuccess &= FileRead(hFile, &pSwitch->action, 4, 0);
-        fSuccess &= FileRead(hFile, &pSwitch->value_15, 4, 0);
+        fSuccess &= FileRead(hFile, &pSwitch->value, 4, 0);
         fSuccess &= FileRead(hFile, &pSwitch->animate_action, 4, 0);
         fSuccess &= FileRead(hFile, &pSwitch->packed_flags, 1, 0);
         fSuccess &= FileRead(hFile, &pSwitch->enabled, 1, 0);
@@ -865,14 +865,14 @@ BOOLEAN ReadTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
                 const char*>(String(
                 "Switch Trigger: %s, recipients: %s\n", // reinterpret-ok: String returns a logging buffer
                 pSwitch->name, pSwitch->recipients)));
-        if (pSwitch->version_00 > 1) {
+        if (pSwitch->version > 1) {
             fSuccess &= FileRead(hFile, &pSwitch->minimum_range, 4, 0);
             fSuccess &= FileRead(hFile, pSwitch->surface_id, sizeof(pSwitch->surface_id), 0);
             ReportBuildStatus(
                 5, reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
                        String("Switch Trigger name: %s\n", pSwitch->surface_id)));
         }
-        if (pSwitch->version_00 > 2) {
+        if (pSwitch->version > 2) {
             fSuccess &= FileRead(hFile, &pSwitch->has_door_trigger, 1, 0);
             if (pSwitch->has_door_trigger != 0) {
                 fSuccess &= FileRead(hFile, &pSwitch->door.kind_00, 1, 0);
@@ -885,8 +885,8 @@ BOOLEAN ReadTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
                 }
             }
         }
-        if (pSwitch->version_00 > 3) {
-            fSuccess &= FileRead(hFile, &pSwitch->action_value_26d, 4, 0);
+        if (pSwitch->version > 3) {
+            fSuccess &= FileRead(hFile, &pSwitch->action_value, 4, 0);
         }
         pTrigger->pData = pSwitch;
         g_level_file->switch_triggers[g_level_file->num_switch_triggers] = pSwitch;
@@ -900,7 +900,7 @@ BOOLEAN ReadTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
             srAssertFail("pInvis", LEVELFILE_CPP, 0x42f, 0);
         }
         memset(pInvis, 0, sizeof(W8LevelFileInvisible));
-        fSuccess &= FileRead(hFile, &pInvis->version_00, 1, 0);
+        fSuccess &= FileRead(hFile, &pInvis->version, 1, 0);
         fSuccess &= FileRead(hFile, &pInvis->range, 4, 0);
         fSuccess &= FileRead(hFile, &pInvis->position, sizeof(pInvis->position), 0);
         fSuccess &= FileRead(hFile, &pInvis->action, 4, 0);
@@ -915,7 +915,7 @@ BOOLEAN ReadTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
                 const char*>(String(
                 "Invisible Trigger: %s, recipients: %s\n", // reinterpret-ok: String returns a logging buffer
                 pInvis->name, pInvis->recipients)));
-        if (pInvis->version_00 > 1) {
+        if (pInvis->version > 1) {
             fSuccess &= FileRead(hFile, &pInvis->plane_flag, 1, 0);
             pInvis->pPlane = static_cast<W8LevelFilePlane*>(malloc(sizeof(W8LevelFilePlane)));
             if (pInvis->pPlane == 0) {
@@ -924,17 +924,17 @@ BOOLEAN ReadTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
             memset(pInvis->pPlane, 0, sizeof(W8LevelFilePlane));
             fSuccess &= FileRead(hFile, pInvis->pPlane, sizeof(W8LevelFilePlane), 0);
         }
-        if (pInvis->version_00 > 2) {
+        if (pInvis->version > 2) {
             fSuccess &= FileRead(hFile, &pInvis->angle, 4, 0);
             fSuccess &= FileRead(hFile, &pInvis->direction, sizeof(pInvis->direction), 0);
             fSuccess &= FileRead(hFile, &pInvis->unused_1b0, 1, 0);
             fSuccess &= FileRead(hFile, pInvis->action_string, sizeof(pInvis->action_string), 0);
         }
-        if (pInvis->version_00 > 3) {
-            fSuccess &= FileRead(hFile, &pInvis->flag_231, 1, 0);
-            fSuccess &= FileRead(hFile, &pInvis->action_value_232, 4, 0);
+        if (pInvis->version > 3) {
+            fSuccess &= FileRead(hFile, &pInvis->flag, 1, 0);
+            fSuccess &= FileRead(hFile, &pInvis->action_value, 4, 0);
         }
-        if (pInvis->version_00 > 4) {
+        if (pInvis->version > 4) {
             fSuccess &= FileRead(hFile, &pInvis->has_legacy_geometry, 1, 0);
             if (pInvis->has_legacy_geometry != 0) {
                 fSuccess &= FileRead(hFile, &pInvis->geometry_kind, 1, 0);
@@ -974,7 +974,7 @@ BOOLEAN ReadTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
             srAssertFail("pSound", LEVELFILE_CPP, 0x46c, 0);
         }
         memset(pSound, 0, sizeof(W8LevelFileSound));
-        fSuccess &= FileRead(hFile, &pSound->version_00, 1, 0);
+        fSuccess &= FileRead(hFile, &pSound->version, 1, 0);
         fSuccess &= FileRead(hFile, &pSound->volume_min, 4, 0);
         fSuccess &= FileRead(hFile, &pSound->volume_max, 4, 0);
         fSuccess &= FileRead(hFile, &pSound->speed_min, 4, 0);
@@ -987,17 +987,17 @@ BOOLEAN ReadTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
         fSuccess &= FileRead(hFile, &pSound->region_u, sizeof(pSound->region_u), 0);
         fSuccess &= FileRead(hFile, &pSound->region_v, sizeof(pSound->region_v), 0);
         fSuccess &= FileRead(hFile, pSound->wave, sizeof(pSound->wave), 0);
-        if (pSound->version_00 > 1) {
+        if (pSound->version > 1) {
             fSuccess &= FileRead(hFile, &pSound->has_position, 1, 0);
             fSuccess &= FileRead(hFile, &pSound->looping, 1, 0);
         }
-        if (pSound->version_00 > 2) {
+        if (pSound->version > 2) {
             fSuccess &= FileRead(hFile, &pSound->region_center, sizeof(pSound->region_center), 0);
             fSuccess &= FileRead(hFile, &pSound->region_angle, 4, 0);
             fSuccess &= FileRead(hFile, &pSound->region_min, sizeof(pSound->region_min), 0);
             fSuccess &= FileRead(hFile, &pSound->region_max, sizeof(pSound->region_max), 0);
         }
-        if (pSound->version_00 > 3) {
+        if (pSound->version > 3) {
             fSuccess &= FileRead(hFile, pSound->name, sizeof(pSound->name), 0);
             ReportBuildStatus(
                 5, reinterpret_cast< // reinterpret-ok: String returns a logging buffer
@@ -1005,7 +1005,7 @@ BOOLEAN ReadTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
                        String("Sound Trigger: %s\n",
                               pSound->name))); // reinterpret-ok: String returns a logging buffer
         }
-        if (pSound->version_00 > 4) {
+        if (pSound->version > 4) {
             fSuccess &= FileRead(hFile, &pSound->shared, 1, 0);
         }
         pTrigger->pData = pSound;
@@ -1021,7 +1021,7 @@ BOOLEAN ReadTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
 // FUNCTION: WIZ8 0x004D23F0
 BOOLEAN WriteTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
 {
-    unsigned char fSuccess = FileWrite(hFile, &pTrigger->version_00, 1, 0) != 0;
+    unsigned char fSuccess = FileWrite(hFile, &pTrigger->version, 1, 0) != 0;
     fSuccess &= fSuccess && FileWrite(hFile, &pTrigger->type, 1, 0);
     switch (pTrigger->type) {
     case 1: {
@@ -1029,13 +1029,13 @@ BOOLEAN WriteTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
         if (pSwitch == 0) {
             srAssertFail("pSwitch", LEVELFILE_CPP, 0x4be, 0);
         }
-        fSuccess &= FileWrite(hFile, &pSwitch->version_00, 1, 0);
+        fSuccess &= FileWrite(hFile, &pSwitch->version, 1, 0);
         fSuccess &= FileWrite(hFile, &pSwitch->cycle_bounce, 4, 0);
         fSuccess &= FileWrite(hFile, &pSwitch->state_count, 4, 0);
         fSuccess &= FileWrite(hFile, &pSwitch->animate_states, 4, 0);
         fSuccess &= FileWrite(hFile, &pSwitch->range, 4, 0);
         fSuccess &= FileWrite(hFile, &pSwitch->action, 4, 0);
-        fSuccess &= FileWrite(hFile, &pSwitch->value_15, 4, 0);
+        fSuccess &= FileWrite(hFile, &pSwitch->value, 4, 0);
         fSuccess &= FileWrite(hFile, &pSwitch->animate_action, 4, 0);
         fSuccess &= FileWrite(hFile, &pSwitch->packed_flags, 1, 0);
         fSuccess &= FileWrite(hFile, &pSwitch->enabled, 1, 0);
@@ -1045,11 +1045,11 @@ BOOLEAN WriteTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
         if (fSuccess == 0) {
             srAssertFail("fSuccess", LEVELFILE_CPP, 0x4cd, 0);
         }
-        if (pSwitch->version_00 > 1) {
+        if (pSwitch->version > 1) {
             fSuccess &= FileWrite(hFile, &pSwitch->minimum_range, 4, 0);
             fSuccess &= FileWrite(hFile, pSwitch->surface_id, sizeof(pSwitch->surface_id), 0);
         }
-        if (pSwitch->version_00 > 2) {
+        if (pSwitch->version > 2) {
             fSuccess &= FileWrite(hFile, &pSwitch->has_door_trigger, 1, 0);
             if (pSwitch->has_door_trigger != 0) {
                 fSuccess &= FileWrite(hFile, &pSwitch->door.kind_00, 1, 0);
@@ -1058,8 +1058,8 @@ BOOLEAN WriteTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
                 }
             }
         }
-        if (pSwitch->version_00 > 3) {
-            fSuccess &= FileWrite(hFile, &pSwitch->action_value_26d, 4, 0);
+        if (pSwitch->version > 3) {
+            fSuccess &= FileWrite(hFile, &pSwitch->action_value, 4, 0);
         }
         free(pSwitch);
         return fSuccess;
@@ -1069,7 +1069,7 @@ BOOLEAN WriteTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
         if (pInvis == 0) {
             srAssertFail("pInvis", LEVELFILE_CPP, 0x4ea, 0);
         }
-        fSuccess &= FileWrite(hFile, &pInvis->version_00, 1, 0);
+        fSuccess &= FileWrite(hFile, &pInvis->version, 1, 0);
         fSuccess &= FileWrite(hFile, &pInvis->range, 4, 0);
         fSuccess &= FileWrite(hFile, &pInvis->position, sizeof(pInvis->position), 0);
         fSuccess &= FileWrite(hFile, &pInvis->action, 4, 0);
@@ -1078,22 +1078,22 @@ BOOLEAN WriteTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
         fSuccess &= FileWrite(hFile, &pInvis->enabled, 1, 0);
         fSuccess &= FileWrite(hFile, pInvis->name, sizeof(pInvis->name), 0);
         fSuccess &= FileWrite(hFile, pInvis->recipients, sizeof(pInvis->recipients), 0);
-        if (pInvis->version_00 > 1) {
+        if (pInvis->version > 1) {
             fSuccess &= FileWrite(hFile, &pInvis->plane_flag, 1, 0);
             fSuccess &= FileWrite(hFile, pInvis->pPlane, sizeof(W8LevelFilePlane), 0);
             free(pInvis->pPlane);
         }
-        if (pInvis->version_00 > 2) {
+        if (pInvis->version > 2) {
             fSuccess &= FileWrite(hFile, &pInvis->angle, 4, 0);
             fSuccess &= FileWrite(hFile, &pInvis->direction, sizeof(pInvis->direction), 0);
             fSuccess &= FileWrite(hFile, &pInvis->unused_1b0, 1, 0);
             fSuccess &= FileWrite(hFile, pInvis->action_string, sizeof(pInvis->action_string), 0);
         }
-        if (pInvis->version_00 > 3) {
-            fSuccess &= FileWrite(hFile, &pInvis->flag_231, 1, 0);
-            fSuccess &= FileWrite(hFile, &pInvis->action_value_232, 4, 0);
+        if (pInvis->version > 3) {
+            fSuccess &= FileWrite(hFile, &pInvis->flag, 1, 0);
+            fSuccess &= FileWrite(hFile, &pInvis->action_value, 4, 0);
         }
-        if (pInvis->version_00 > 4) {
+        if (pInvis->version > 4) {
             fSuccess &= FileWrite(hFile, &pInvis->has_legacy_geometry, 1, 0);
             if (pInvis->has_legacy_geometry != 0) {
                 fSuccess &= FileWrite(hFile, &pInvis->geometry_kind, 1, 0);
@@ -1122,7 +1122,7 @@ BOOLEAN WriteTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
         if (pSound == 0) {
             srAssertFail("pSound", LEVELFILE_CPP, 0x51e, 0);
         }
-        fSuccess &= FileWrite(hFile, &pSound->version_00, 1, 0);
+        fSuccess &= FileWrite(hFile, &pSound->version, 1, 0);
         fSuccess &= FileWrite(hFile, &pSound->volume_min, 4, 0);
         fSuccess &= FileWrite(hFile, &pSound->volume_max, 4, 0);
         fSuccess &= FileWrite(hFile, &pSound->speed_min, 4, 0);
@@ -1135,20 +1135,20 @@ BOOLEAN WriteTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
         fSuccess &= FileWrite(hFile, &pSound->region_u, sizeof(pSound->region_u), 0);
         fSuccess &= FileWrite(hFile, &pSound->region_v, sizeof(pSound->region_v), 0);
         fSuccess &= FileWrite(hFile, pSound->wave, sizeof(pSound->wave), 0);
-        if (pSound->version_00 > 1) {
+        if (pSound->version > 1) {
             fSuccess &= FileWrite(hFile, &pSound->has_position, 1, 0);
             fSuccess &= FileWrite(hFile, &pSound->looping, 1, 0);
         }
-        if (pSound->version_00 > 2) {
+        if (pSound->version > 2) {
             fSuccess &= FileWrite(hFile, &pSound->region_center, sizeof(pSound->region_center), 0);
             fSuccess &= FileWrite(hFile, &pSound->region_angle, 4, 0);
             fSuccess &= FileWrite(hFile, &pSound->region_min, sizeof(pSound->region_min), 0);
             fSuccess &= FileWrite(hFile, &pSound->region_max, sizeof(pSound->region_max), 0);
         }
-        if (pSound->version_00 > 3) {
+        if (pSound->version > 3) {
             fSuccess &= FileWrite(hFile, pSound->name, sizeof(pSound->name), 0);
         }
-        if (pSound->version_00 > 4) {
+        if (pSound->version > 4) {
             fSuccess &= FileWrite(hFile, &pSound->shared, 1, 0);
         }
         free(pSound);
@@ -1170,7 +1170,7 @@ BOOLEAN ReadSuperTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
         ReportBuildStatus(7, "ReadSuperTrigger: Could not allocate SuperTrigger strucutre.\n");
         return FALSE;
     }
-    unsigned char fSuccess = FileRead(hFile, &pSuper->version_00, 1, 0);
+    unsigned char fSuccess = FileRead(hFile, &pSuper->version, 1, 0);
     fSuccess &= FileRead(hFile, pSuper->name, sizeof(pSuper->name), 0);
     fSuccess &= FileRead(hFile, &pSuper->flags, 1, 0);
     fSuccess &= FileRead(hFile, &pSuper->active, 1, 0);
@@ -1196,7 +1196,7 @@ BOOLEAN ReadSuperTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
         5,
         reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
             String("Super Trigger: %s, recipients: %s\n", pSuper->name, pSuper->recipients)));
-    if (pSuper->version_00 >= 2) {
+    if (pSuper->version >= 2) {
         fSuccess &= FileRead(hFile, pSuper->size, sizeof(pSuper->size), 0);
         fSuccess &= FileRead(hFile, &pSuper->direction, 4, 0);
         fSuccess &= FileRead(hFile, &pSuper->wait_4ab, 1, 0);
@@ -1218,13 +1218,13 @@ BOOLEAN ReadSuperTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
         return FALSE;
     }
     fSuccess &= FileRead(hFile, &pSuper->wait_6c3, 4, 0);
-    fSuccess &= FileRead(hFile, &pSuper->field_6c7, 4, 0);
+    fSuccess &= FileRead(hFile, &pSuper->field, 4, 0);
     fSuccess &= FileRead(hFile, pSuper->event, sizeof(pSuper->event), 0);
     fSuccess &= FileRead(hFile, &pSuper->normal_scale, 4, 0);
     if (!fSuccess) {
         return FALSE;
     }
-    if (pSuper->version_00 >= 3) {
+    if (pSuper->version >= 3) {
         fSuccess &= FileRead(hFile, pSuper->particle_system, sizeof(pSuper->particle_system), 0);
     }
     if ((pSuper->flags & 1) == 0) {
@@ -1303,7 +1303,7 @@ BOOLEAN WriteSuperTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
         ReportBuildStatus(7, "WriteSuperTrigger: Couldn't create SuperTrigger structure.\n");
         return 0;
     }
-    unsigned char fSuccess = FileWrite(hFile, &pSuper->version_00, 1, 0);
+    unsigned char fSuccess = FileWrite(hFile, &pSuper->version, 1, 0);
     fSuccess &= FileWrite(hFile, pSuper->name, sizeof(pSuper->name), 0);
     fSuccess &= FileWrite(hFile, &pSuper->flags, 1, 0);
     fSuccess &= FileWrite(hFile, &pSuper->active, 1, 0);
@@ -1325,7 +1325,7 @@ BOOLEAN WriteSuperTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
     if (fSuccess == 0) {
         return 0;
     }
-    if (pSuper->version_00 >= 2) {
+    if (pSuper->version >= 2) {
         fSuccess &= FileWrite(hFile, pSuper->size, sizeof(pSuper->size), 0);
         fSuccess &= FileWrite(hFile, &pSuper->direction, 4, 0);
         fSuccess &= FileWrite(hFile, &pSuper->wait_4ab, 1, 0);
@@ -1347,13 +1347,13 @@ BOOLEAN WriteSuperTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
         return 0;
     }
     fSuccess &= FileWrite(hFile, &pSuper->wait_6c3, 4, 0);
-    fSuccess &= FileWrite(hFile, &pSuper->field_6c7, 4, 0);
+    fSuccess &= FileWrite(hFile, &pSuper->field, 4, 0);
     fSuccess &= FileWrite(hFile, pSuper->event, sizeof(pSuper->event), 0);
     fSuccess &= FileWrite(hFile, &pSuper->normal_scale, 4, 0);
     if (fSuccess == 0) {
         return 0;
     }
-    if (pSuper->version_00 >= 3) {
+    if (pSuper->version >= 3) {
         fSuccess &= FileWrite(hFile, pSuper->particle_system, sizeof(pSuper->particle_system), 0);
     }
     if ((pSuper->flags & 1) == 0) {
@@ -1419,7 +1419,7 @@ BOOLEAN ReadDoorTriggerFile(int hFile, W8LevelFileDoorRef* pDoor)
     if (pDoorRec == 0) {
         return 0;
     }
-    unsigned char fSuccess = FileRead(hFile, &pDoorRec->version_00, 1, 0);
+    unsigned char fSuccess = FileRead(hFile, &pDoorRec->version, 1, 0);
     fSuccess &= FileRead(hFile, &pDoorRec->flags[0], 1, 0);
     fSuccess &= FileRead(hFile, &pDoorRec->flags[1], 1, 0);
     fSuccess &= FileRead(hFile, &pDoorRec->flags[2], 1, 0);
@@ -1444,7 +1444,7 @@ BOOLEAN WriteDoorTriggerFile(int hFile, W8LevelFileDoorRef* pDoor)
     if (pDoorRec == 0) {
         return 0;
     }
-    unsigned char fSuccess = FileWrite(hFile, &pDoorRec->version_00, 1, 0);
+    unsigned char fSuccess = FileWrite(hFile, &pDoorRec->version, 1, 0);
     fSuccess &= FileWrite(hFile, &pDoorRec->flags[0], 1, 0);
     fSuccess &= FileWrite(hFile, &pDoorRec->flags[1], 1, 0);
     fSuccess &= FileWrite(hFile, &pDoorRec->flags[2], 1, 0);
@@ -1465,7 +1465,7 @@ BOOLEAN WriteDoorTriggerFile(int hFile, W8LevelFileDoorRef* pDoor)
 // FUNCTION: WIZ8 0x004D3770
 BOOLEAN ReadPathAIFile(int hFile, W8LevelFilePathAI* pPathAI)
 {
-    unsigned char fSuccess = FileRead(hFile, &pPathAI->version_00, 1, 0);
+    unsigned char fSuccess = FileRead(hFile, &pPathAI->version, 1, 0);
     fSuccess &= FileRead(hFile, &pPathAI->scaled, 1, 0);
     fSuccess &= FileRead(hFile, &pPathAI->position, 4, 0);
     fSuccess &= FileRead(hFile, pPathAI->unknown_06, 4, 0);
@@ -1495,7 +1495,7 @@ BOOLEAN ReadPathAIFile(int hFile, W8LevelFilePathAI* pPathAI)
 // FUNCTION: WIZ8 0x004D38E0
 BOOLEAN WritePathAIFile(int hFile, W8LevelFilePathAI* pPathAI)
 {
-    unsigned char fSuccess = FileWrite(hFile, &pPathAI->version_00, 1, 0);
+    unsigned char fSuccess = FileWrite(hFile, &pPathAI->version, 1, 0);
     fSuccess &= FileWrite(hFile, &pPathAI->scaled, 1, 0);
     fSuccess &= FileWrite(hFile, &pPathAI->position, 4, 0);
     fSuccess &= FileWrite(hFile, pPathAI->unknown_06, 4, 0);
@@ -1531,31 +1531,31 @@ BOOLEAN ReadAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj)
 
     memset(pAnimObj, 0, sizeof(W8LevelFileAnimObj));
     BOOLEAN fSuccess = TRUE;
-    fSuccess &= FileRead(hFile, &pAnimObj->version_00, 1, 0);
+    fSuccess &= FileRead(hFile, &pAnimObj->version, 1, 0);
     fSuccess &= FileRead(hFile, &pAnimObj->num_anims, 1, 0);
     fSuccess &= FileRead(hFile, &pAnimObj->animation_playing, 1, 0);
     fSuccess &= FileRead(hFile, &pAnimObj->frame_method, 1, 0);
     fSuccess &= FileRead(hFile, &pAnimObj->behaviour, 1, 0);
     fSuccess &= FileRead(hFile, &pAnimObj->cycle, 1, 0);
     fSuccess &= FileRead(hFile, &pAnimObj->path_lists, 1, 0);
-    if (pAnimObj->version_00 >= 3) {
+    if (pAnimObj->version >= 3) {
         fSuccess = fSuccess && FileRead(hFile, &pAnimObj->playback_scale, 4, 0);
     } else {
         pAnimObj->playback_scale = 15.0f;
     }
-    if (pAnimObj->version_00 >= 5) {
+    if (pAnimObj->version >= 5) {
         fSuccess = fSuccess && FileRead(hFile, &pAnimObj->start_frame, 1, 0);
     } else {
         pAnimObj->start_frame = 0;
     }
-    if (pAnimObj->version_00 >= 6) {
-        fSuccess = fSuccess && FileRead(hFile, &pAnimObj->random_play_0c, 1, 0) &&
+    if (pAnimObj->version >= 6) {
+        fSuccess = fSuccess && FileRead(hFile, &pAnimObj->random_play, 1, 0) &&
                    FileRead(hFile, &pAnimObj->play_chance, 4, 0);
     } else {
-        pAnimObj->random_play_0c = 0;
+        pAnimObj->random_play = 0;
         pAnimObj->play_chance = 1.0f;
     }
-    fSuccess = fSuccess && FileRead(hFile, pAnimObj->discarded_11, 0x32, 0);
+    fSuccess = fSuccess && FileRead(hFile, pAnimObj->discarded, 0x32, 0);
     if (!fSuccess) {
         srAssertFail("fSuccess", LEVELFILE_CPP, 0x7a5, 0);
     }
@@ -1566,7 +1566,7 @@ BOOLEAN ReadAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj)
         }
         fSuccess &= FileRead(hFile, pAnimObj->abHowMany, pAnimObj->num_anims, 0);
     }
-    if (pAnimObj->version_00 >= 7) {
+    if (pAnimObj->version >= 7) {
         fSuccess &= FileRead(hFile, &pAnimObj->num_bound_box, 1, 0);
         if (pAnimObj->num_bound_box != 0) {
             pAnimObj->pBoundBox = static_cast<W8LevelFileBounds*>(
@@ -1581,7 +1581,7 @@ BOOLEAN ReadAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj)
     if (fSuccess == 0) {
         return FALSE;
     }
-    if (pAnimObj->version_00 >= 8) {
+    if (pAnimObj->version >= 8) {
         fSuccess = FileRead(hFile, &pAnimObj->num_anim_lights, 1, 0);
         if (fSuccess == 0) {
             return FALSE;
@@ -1603,7 +1603,7 @@ BOOLEAN ReadAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj)
         }
     }
     if (pAnimObj->path_lists == 0) {
-        if ((pAnimObj->version_00 >= 9) &&
+        if ((pAnimObj->version >= 9) &&
             (FileRead(hFile, &pAnimObj->has_path_ai, 1, 0), pAnimObj->has_path_ai != 0)) {
             pAnimObj->pPathAI = static_cast<W8LevelFilePathAI*>(malloc(sizeof(W8LevelFilePathAI)));
             if (pAnimObj->pPathAI == 0) {
@@ -1656,7 +1656,7 @@ BOOLEAN ReadAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj)
                                 for (j = 0; j < pFrame->num_textures; ++j) {
                                     W8MaterialRecord* pTexture = pFrame->pTextures + j;
                                     fTextures = FileRead(hFile, pTexture, 0x11a, 0);
-                                    if (pTexture->version_00 >= 4) {
+                                    if (pTexture->version >= 4) {
                                         fTextures &=
                                             FileRead(hFile, pTexture->texture_modes, 0x10, 0);
                                     }
@@ -1730,7 +1730,7 @@ BOOLEAN ReadAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj)
                                 for (j = 0; j < pFrame->num_textures; ++j) {
                                     W8MaterialRecord* pTexture = pFrame->pTextures + j;
                                     fTextures = FileRead(hFile, pTexture, 0x11a, 0);
-                                    if (pTexture->version_00 >= 4) {
+                                    if (pTexture->version >= 4) {
                                         fTextures &=
                                             FileRead(hFile, pTexture->texture_modes, 0x10, 0);
                                     }
@@ -1761,24 +1761,24 @@ BOOLEAN WriteAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj)
     short j;
 
     BOOLEAN fSuccess = TRUE;
-    fSuccess &= FileWrite(hFile, &pAnimObj->version_00, 1, 0);
+    fSuccess &= FileWrite(hFile, &pAnimObj->version, 1, 0);
     fSuccess &= FileWrite(hFile, &pAnimObj->num_anims, 1, 0);
     fSuccess &= FileWrite(hFile, &pAnimObj->animation_playing, 1, 0);
     fSuccess &= FileWrite(hFile, &pAnimObj->frame_method, 1, 0);
     fSuccess &= FileWrite(hFile, &pAnimObj->behaviour, 1, 0);
     fSuccess &= FileWrite(hFile, &pAnimObj->cycle, 1, 0);
     fSuccess &= FileWrite(hFile, &pAnimObj->path_lists, 1, 0);
-    if (pAnimObj->version_00 >= 3) {
+    if (pAnimObj->version >= 3) {
         fSuccess = fSuccess && FileWrite(hFile, &pAnimObj->playback_scale, 4, 0);
     }
-    if (pAnimObj->version_00 >= 5) {
+    if (pAnimObj->version >= 5) {
         fSuccess = fSuccess && FileWrite(hFile, &pAnimObj->start_frame, 1, 0);
     }
-    if (pAnimObj->version_00 >= 6) {
-        fSuccess = fSuccess && FileWrite(hFile, &pAnimObj->random_play_0c, 1, 0) &&
+    if (pAnimObj->version >= 6) {
+        fSuccess = fSuccess && FileWrite(hFile, &pAnimObj->random_play, 1, 0) &&
                    FileWrite(hFile, &pAnimObj->play_chance, 4, 0);
     }
-    fSuccess = fSuccess && FileWrite(hFile, pAnimObj->discarded_11, 0x32, 0);
+    fSuccess = fSuccess && FileWrite(hFile, pAnimObj->discarded, 0x32, 0);
     if (!fSuccess) {
         srAssertFail("fSuccess", LEVELFILE_CPP, 0x867, 0);
     }
@@ -1789,7 +1789,7 @@ BOOLEAN WriteAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj)
         fSuccess &= FileWrite(hFile, pAnimObj->abHowMany, pAnimObj->num_anims, 0);
         free(pAnimObj->abHowMany);
     }
-    if (pAnimObj->version_00 >= 7) {
+    if (pAnimObj->version >= 7) {
         fSuccess &= FileWrite(hFile, &pAnimObj->num_bound_box, 1, 0);
         if (pAnimObj->num_bound_box != 0) {
             if (pAnimObj->pBoundBox == 0) {
@@ -1803,7 +1803,7 @@ BOOLEAN WriteAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj)
     if (fSuccess == 0) {
         return FALSE;
     }
-    if (pAnimObj->version_00 >= 8) {
+    if (pAnimObj->version >= 8) {
         fSuccess = FileWrite(hFile, &pAnimObj->num_anim_lights, 1, 0);
         if ((pAnimObj->num_anim_lights != 0) && (pAnimObj->pAnimLights != 0)) {
             for (i = 0; i < pAnimObj->num_anim_lights; ++i) {
@@ -1819,7 +1819,7 @@ BOOLEAN WriteAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj)
         }
     }
     if (pAnimObj->path_lists == 0) {
-        if ((pAnimObj->version_00 >= 9) &&
+        if ((pAnimObj->version >= 9) &&
             (FileWrite(hFile, &pAnimObj->has_path_ai, 1, 0), pAnimObj->has_path_ai != 0) &&
             (pAnimObj->pPathAI != 0)) {
             fSuccess = WritePathAIFile(hFile, pAnimObj->pPathAI);
@@ -1857,7 +1857,7 @@ BOOLEAN WriteAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj)
                             for (j = 0; j < pFrame->num_textures; ++j) {
                                 W8MaterialRecord* pTexture = pFrame->pTextures + j;
                                 fSuccess = FileWrite(hFile, pTexture, 0x11a, 0);
-                                if (pTexture->version_00 >= 4) {
+                                if (pTexture->version >= 4) {
                                     fSuccess &=
                                         FileWrite(hFile, pTexture->texture_modes, 0x10, 0);
                                 }
@@ -1915,7 +1915,7 @@ BOOLEAN WriteAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj)
                             for (j = 0; j < pFrame->num_textures; ++j) {
                                 W8MaterialRecord* pTexture = pFrame->pTextures + j;
                                 fSuccess = FileWrite(hFile, pTexture, 0x11a, 0);
-                                if (pTexture->version_00 >= 4) {
+                                if (pTexture->version >= 4) {
                                     fSuccess &=
                                         FileWrite(hFile, pTexture->texture_modes, 0x10, 0);
                                 }
@@ -1959,15 +1959,15 @@ W8LevelFileProp* ReadPropsFile(int hFile, int count)
     for (int i = 0; i < count; ++i) {
         W8LevelFileProp* pProp = pProps + i;
         fSuccess &=
-            FileRead(hFile, &pProp->version_00, 1, 0) & FileRead(hFile, &pProp->bNumFrames, 1, 0);
-        if (pProp->version_00 >= 5) {
-            fSuccess &= FileRead(hFile, &pProp->option_02, 1, 0) &
+            FileRead(hFile, &pProp->version, 1, 0) & FileRead(hFile, &pProp->bNumFrames, 1, 0);
+        if (pProp->version >= 5) {
+            fSuccess &= FileRead(hFile, &pProp->option, 1, 0) &
                         FileRead(hFile, &pProp->position, sizeof(pProp->position), 0);
         }
-        if (pProp->version_00 >= 6) {
+        if (pProp->version >= 6) {
             fSuccess &= FileRead(hFile, &pProp->flags, 4, 0);
         }
-        if (pProp->version_00 >= 7) {
+        if (pProp->version >= 7) {
             fSuccess &= FileRead(hFile, pProp->name, sizeof(pProp->name), 0);
             ReportBuildStatus(
                 5, reinterpret_cast< // reinterpret-ok: String returns a logging buffer
@@ -1978,7 +1978,7 @@ W8LevelFileProp* ReadPropsFile(int hFile, int count)
         if (fSuccess == 0) {
             srAssertFail("fSuccess", LEVELFILE_CPP, 0x918, 0);
         }
-        if (pProp->version_00 >= 8) {
+        if (pProp->version >= 8) {
             fSuccess &= FileRead(hFile, &pProp->num_frame_pos, 1, 0);
             if (pProp->num_frame_pos != 0) {
                 pProp->usFrame_Pos = static_cast<W8LevelFileFramePosition*>(
@@ -2013,7 +2013,7 @@ W8LevelFileProp* ReadPropsFile(int hFile, int count)
                 srAssertFail("fSuccess", LEVELFILE_CPP, 0x938, 0);
             }
         }
-        if (pProp->version_00 >= 9) {
+        if (pProp->version >= 9) {
             fSuccess &= FileRead(hFile, &pProp->has_footsteps, 1, 0);
             if (fSuccess == 0) {
                 srAssertFail("fSuccess", LEVELFILE_CPP, 0x93e, 0);
@@ -2043,21 +2043,21 @@ BOOLEAN WritePropsFile(int hFile, int count, W8LevelFileProp* pProps)
     for (int i = 0; i < count; ++i) {
         W8LevelFileProp* pProp = pProps + i;
         fSuccess &=
-            FileWrite(hFile, &pProp->version_00, 1, 0) & FileWrite(hFile, &pProp->bNumFrames, 1, 0);
-        if (pProp->version_00 >= 5) {
-            fSuccess &= FileWrite(hFile, &pProp->option_02, 1, 0) &
+            FileWrite(hFile, &pProp->version, 1, 0) & FileWrite(hFile, &pProp->bNumFrames, 1, 0);
+        if (pProp->version >= 5) {
+            fSuccess &= FileWrite(hFile, &pProp->option, 1, 0) &
                         FileWrite(hFile, &pProp->position, sizeof(pProp->position), 0);
         }
-        if (pProp->version_00 >= 6) {
+        if (pProp->version >= 6) {
             fSuccess &= FileWrite(hFile, &pProp->flags, 4, 0);
         }
-        if (pProp->version_00 >= 7) {
+        if (pProp->version >= 7) {
             fSuccess &= FileWrite(hFile, pProp->name, sizeof(pProp->name), 0);
         }
         if (fSuccess == 0) {
             srAssertFail("fSuccess", LEVELFILE_CPP, 0x970, 0);
         }
-        if (pProp->version_00 >= 8) {
+        if (pProp->version >= 8) {
             fSuccess &= FileWrite(hFile, &pProp->num_frame_pos, 1, 0);
             if (pProp->num_frame_pos != 0) {
                 if (pProp->usFrame_Pos == 0) {
@@ -2080,7 +2080,7 @@ BOOLEAN WritePropsFile(int hFile, int count, W8LevelFileProp* pProps)
             free(pProp->pTrigger);
             pProp->pTrigger = 0;
         }
-        if (pProp->version_00 >= 9) {
+        if (pProp->version >= 9) {
             fSuccess &= FileWrite(hFile, &pProp->has_footsteps, 1, 0);
             if (fSuccess == 0) {
                 srAssertFail("fSuccess", LEVELFILE_CPP, 0x993, 0);
@@ -2100,19 +2100,19 @@ BOOLEAN ReadParticleSystemFile(int hFile, W8LevelFileParticleSystem* pSystem)
 {
     BOOLEAN fSuccess = TRUE;
     fSuccess &= FileRead(hFile, pSystem, 0x217, 0);
-    if (pSystem->version_00 > 1) {
+    if (pSystem->version > 1) {
         fSuccess &= FileRead(hFile, &pSystem->particle.attachment_key, 2, 0);
     } else {
         pSystem->particle.attachment_key = 0;
     }
-    if (pSystem->version_00 > 2) {
+    if (pSystem->version > 2) {
         fSuccess &= FileRead(hFile, &pSystem->particle.emission_limit, 4, 0);
         fSuccess &= FileRead(hFile, &pSystem->particle.requires_sorted_renderer, 1, 0);
     } else {
         pSystem->particle.emission_limit = 0;
         pSystem->particle.requires_sorted_renderer = 0;
     }
-    if (pSystem->version_00 > 3) {
+    if (pSystem->version > 3) {
         fSuccess &= FileRead(hFile, &pSystem->particle.start_frame, 4, 0);
         fSuccess &= FileRead(hFile, &pSystem->particle.end_frame, 4, 0);
     } else {
@@ -2136,14 +2136,14 @@ BOOLEAN WriteParticleSystemFile(int hFile, W8LevelFileParticleSystem* pSystem)
 {
     BOOLEAN fSuccess = TRUE;
     fSuccess &= FileWrite(hFile, pSystem, 0x217, 0);
-    if (pSystem->version_00 > 1) {
+    if (pSystem->version > 1) {
         fSuccess &= FileWrite(hFile, &pSystem->particle.attachment_key, 2, 0);
     }
-    if (pSystem->version_00 > 2) {
+    if (pSystem->version > 2) {
         fSuccess &= FileWrite(hFile, &pSystem->particle.emission_limit, 4, 0);
         fSuccess &= FileWrite(hFile, &pSystem->particle.requires_sorted_renderer, 1, 0);
     }
-    if (pSystem->version_00 > 3) {
+    if (pSystem->version > 3) {
         fSuccess &= FileWrite(hFile, &pSystem->particle.start_frame, 4, 0);
         fSuccess &= FileWrite(hFile, &pSystem->particle.end_frame, 4, 0);
     }

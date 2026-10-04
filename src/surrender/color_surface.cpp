@@ -969,15 +969,15 @@ void srColorSurfaceIFace::getChannelStatistics(srStat& statistics, srARGB::e_ind
         statistics.mean = 0.0;
         statistics.deviation = 0.0;
         statistics.median = 0;
-        statistics.min_1c = 0x100;
-        statistics.max_20 = 0;
+        statistics.min = 0x100;
+        statistics.max = 0;
         for (i = 0; i < 0x100; ++i) {
             if (histogram[i] != 0) {
-                if (i < statistics.min_1c) {
-                    statistics.min_1c = i;
+                if (i < statistics.min) {
+                    statistics.min = i;
                 }
-                if (statistics.max_20 < i) {
-                    statistics.max_20 = i;
+                if (statistics.max < i) {
+                    statistics.max = i;
                 }
             }
         }
@@ -1157,7 +1157,7 @@ srColorSurface::srColorSurface(srPixelConvert::e_surfaceType type, void* data, u
     srPixelConvert::mapPixelFormat(type, format);
     init(format, width, height, pitch);
     surface_flags |= 1;
-    data_size_54 = pitch_24 * height_20;
+    data_size = pitch_24 * height_20;
     data_58 = data;
     srPixelConvert::selectFuncs(format, pixel_write, pixel_read);
 }
@@ -1175,7 +1175,7 @@ srColorSurface& srColorSurface::operator=(const srColorSurface& other)
         pixel_write = other.pixel_write;
         pixel_read = other.pixel_read;
         if ((surface_flags & 1) != 0) {
-            data_size_54 = other.data_size_54;
+            data_size = other.data_size;
             data_58 = other.data_58;
             return *this;
         }
@@ -1192,7 +1192,7 @@ srColorSurface::srColorSurface(const srPixelConvert::PixelFormat& format, void* 
     surface_flags = 0;
     init(format, width, height, pitch);
     surface_flags |= 1;
-    data_size_54 = pitch_24 * height_20;
+    data_size = pitch_24 * height_20;
     data_58 = data;
     srPixelConvert::selectFuncs(format, pixel_write, pixel_read);
 }
@@ -1212,7 +1212,7 @@ void* srColorSurface::getDataPtr()
 // FUNCTION: SURRENDER 0x1005B560
 long srColorSurface::getDataSize()
 {
-    return data_size_54;
+    return data_size;
 }
 
 // FUNCTION: SURRENDER 0x1005B570
@@ -1263,9 +1263,9 @@ void srColorSurface::convertFromARGB8888(void* pixels, const unsigned long* sour
 // FUNCTION: SURRENDER 0x1005B650
 void srColorSurface::allocData()
 {
-    data_size_54 = pitch_24 * height_20;
-    if (data_size_54 != 0) {
-        data_58 = srHeap.allocate(data_size_54);
+    data_size = pitch_24 * height_20;
+    if (data_size != 0) {
+        data_58 = srHeap.allocate(data_size);
     }
 }
 
@@ -1292,7 +1292,7 @@ void srColorSurface::init(const srPixelConvert::PixelFormat& format, unsigned lo
     palette_4c = srCore.getPalette();
     pixel_write = 0;
     pixel_read = 0;
-    data_size_54 = 0;
+    data_size = 0;
     data_58 = 0;
     surface_flags = 0;
 }

@@ -260,7 +260,7 @@ void stTextureFile::releaseSurface()
 // FUNCTION: WIZ8 0x0047C630
 stTextureFile::stTextureFile(const char* file_name, int cached)
     : cached_54(0), file_name_58(0), surface_5c(0), frame_handle_60(getNewFrameHandle()),
-      has_alpha_64(0)
+      has_alpha(0)
 {
     /* Retail stores 0 then conditionally stores 1: the authored value is the
        normalized predicate, not the raw parameter. */
@@ -383,7 +383,7 @@ void stTextureFile::loadSurface()
     surface_5c->setFilter(getFilter());
     /* Retail reads the alpha channel count straight out of the surface's
        pixel format (unsigned SETA): the authored comparison is `> 0`. */
-    has_alpha_64 = (surface_5c->pixel_format_30.alpha_bits > 0);
+    has_alpha = (surface_5c->pixel_format_30.alpha_bits > 0);
 }
 
 // FUNCTION: WIZ8 0x0047CA50
@@ -396,13 +396,13 @@ void stTextureFile::getMipmapData(MultiRequest& request)
         return;
     }
 
-    /* 0x0047CA85 and 0x0047CAAB compare the level against last_level_04
-       unsigned, and last_level_04 is already unsigned in the request record. */
+    /* 0x0047CA85 and 0x0047CAAB compare the level against last_level
+       unsigned, and last_level is already unsigned in the request record. */
     unsigned long level = static_cast<unsigned long>(request.mipmap_level);
     if (request.destinations[level] != 0) {
         request.destinations[level]->copy(*surface_5c);
     }
-    for (++level; level <= request.last_level_04; ++level) {
+    for (++level; level <= request.last_level; ++level) {
         if (request.destinations[level] != 0 && request.destinations[level - 1] != 0) {
             request.destinations[level]->copy(*request.destinations[level - 1]);
         }

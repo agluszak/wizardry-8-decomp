@@ -27,7 +27,7 @@ private:
 
     unsigned int m_spell;           /* 0x054 */
     W8DialogScrollBar m_scroll_bar_058; /* 0x058 */
-    W8DialogButton m_button_0a4;        /* 0x0a4 */
+    W8DialogButton m_button;        /* 0x0a4 */
     W8DialogTextArea m_text_area_0ec;   /* 0x0ec */
     W8GameTimer m_timer_144;            /* 0x144 */
     unsigned int m_animation_frame;     /* 0x168 */

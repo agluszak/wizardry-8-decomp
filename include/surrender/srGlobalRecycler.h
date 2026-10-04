@@ -30,12 +30,12 @@ private:
     public:
         ~CriticalSection()
         {
-            EnterCriticalSection(&critical_section_00);
-            LeaveCriticalSection(&critical_section_00);
-            DeleteCriticalSection(&critical_section_00);
+            EnterCriticalSection(&critical_section);
+            LeaveCriticalSection(&critical_section);
+            DeleteCriticalSection(&critical_section);
         }
 
-        CRITICAL_SECTION critical_section_00;
+        CRITICAL_SECTION critical_section;
     };
 
     CacheEntry entries_00[16];

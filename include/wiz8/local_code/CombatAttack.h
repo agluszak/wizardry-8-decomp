@@ -28,7 +28,7 @@ extern unsigned short g_monster_hit_location_labels[W8_MONSTER_HIT_LOCATIONS]
 /* 0x0061E9CC: gppStringList indices naming the sixteen damage channels the
    missile_values arrays on monster attacks and item records carry. */
 extern unsigned short g_damage_type_name_ids[0x10];
-/* Paired label ids for the nine W8ItemDatabaseRecord::attack_flags_04e bits;
+/* Paired label ids for the nine W8ItemDatabaseRecord::attack_flags bits;
    AssayDialog reads the first of each pair, combat logging the second. */
 extern unsigned short g_attack_flag_name_ids[9][2];
 /* Label ids for an item's special-category byte, also indexed by the MIPE

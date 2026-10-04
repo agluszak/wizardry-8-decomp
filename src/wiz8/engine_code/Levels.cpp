@@ -187,7 +187,7 @@ char GetLevelBand(int saved_level)
     /* `<= 0x2f` is the retail bound: it admits the first test-level slot, one
        past the W8_LEVEL_COUNT-entry table. */
     if (level >= 0 && level <= 0x2f) {
-        return g_level_folders[level].level_band_6a;
+        return g_level_folders[level].level_band;
     }
     return 0;
 }
@@ -363,7 +363,7 @@ unsigned char LoadSkyWorld(int level, W8LevelInfo* info)
     material->parms.shininess = 1.0f;
     material->parms.diffuse.w = 1.0f;
     material->parms.emissive = 0.0f;
-    material->dirty_74 = 1;
+    material->dirty = 1;
     material->m_shader_flags = 0;
     material->setMapper(&g_material_mapper);
 
@@ -592,7 +592,7 @@ unsigned char LoadLevel(int requested_level, int entrance, bool restoring_game)
                 srVector3T<float> axis;
                 srMatrix3T<float> rotation;
 
-                axis = trigger->direction_100;
+                axis = trigger->direction;
                 rotation.SetIdentity();
                 if (trigger->angle_0fc != 0.0f) {
                     rotation.RotateAroundAxis(sin(trigger->angle_0fc), cos(trigger->angle_0fc),
@@ -638,7 +638,7 @@ unsigned char LoadLevel(int requested_level, int entrance, bool restoring_game)
             RecordLevelEntryDialogueState();
             gXStatus.combat_countdown = 0;
         }
-        if (g_status.greeting_pending_2497 && (GetFact(0x4c) || GetFact(0x4b))) {
+        if (g_status.greeting_pending && (GetFact(0x4c) || GetFact(0x4b))) {
             DespawnAllActiveMonsterGroups();
         } else {
             UpdateRandomEncounterBudget(first_visit);

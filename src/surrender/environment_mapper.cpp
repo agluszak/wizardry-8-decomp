@@ -17,16 +17,16 @@ void srEnvironmentMapper::process(srVertexPipe& pipe)
 {
     unsigned long count = pipe.vertex_count_88;
     srVertexPipe::Scratch* scratch = pipe.scratch_00;
-    if ((scratch->flags_b00 & 1) == 0) {
+    if ((scratch->flags & 1) == 0) {
         pipe.setupEyeSpaceDirAndDist();
     }
-    const srVector3T<float>* directions = scratch->dir_000 + pipe.sub_batch_offset_84;
-    if ((scratch->flags_b00 & 8) == 0) {
+    const srVector3T<float>* directions = scratch->dir + pipe.sub_batch_offset;
+    if ((scratch->flags & 8) == 0) {
         pipe.setupEyeSpaceNormal();
     }
-    const srVector3T<float>* normals = scratch->normals_300 + pipe.sub_batch_offset_84;
+    const srVector3T<float>* normals = scratch->normals + pipe.sub_batch_offset;
     srVector2T<float>* st =
-        pipe.vertex_array_78->st0_0c + pipe.batch_base + pipe.sub_batch_offset_84;
+        pipe.vertex_array->st0 + pipe.batch_base + pipe.sub_batch_offset;
     srCore.getStatisticsManager()->statistics_00.texture_coordinate_operations += count;
     pipe.lazy_setup_mask |= 1 << srVertexProcessor::CHANNEL_ST0;
     for (unsigned long index = 0; index < count; ++index) {

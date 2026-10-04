@@ -52,7 +52,7 @@ void AlertMonsterGroupsToNoise(const srVector3T<float>* position, int radius, in
         if (remaining <= 0) {
             continue;
         }
-        if (Random(100) >= remaining * g_float_005ec128 + record->attribute_values_d1[4]) {
+        if (Random(100) >= remaining * g_float_005ec128 + record->attribute_values[W8_MONSTER_ATTRIBUTE_SENSES]) {
             continue;
         }
         if (group->leader_group_id != 0) {

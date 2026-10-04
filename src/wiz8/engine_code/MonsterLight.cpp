@@ -31,10 +31,10 @@ MonsterLight::MonsterLight(srNode* parent, bool cycle_color, float range,
     attenuation_model = srLight::ATTENUATION_3DSTUDIO_MAX;
     enable_flags |= 0x10; /* ENABLE_RANGE_FAR */
     enable_flags |= 4;    /* ENABLE_BOUNDING_SPHERE */
-    far_end_170 = range;
-    near_start_158 = 0.0;
-    near_end_160 = 0.0;
-    far_start_168 = 0.0;
+    far_end = range;
+    near_start = 0.0;
+    near_end = 0.0;
+    far_start = 0.0;
     safe_range = 5000.0f;
     setLinearAttenuation(range, 0.0019569471f);
     specular_1b0.SetZero();
@@ -51,21 +51,21 @@ MonsterLight::MonsterLight(const MonsterLight& other) : srLight(0)
 {
     srLight::operator=(other);
     attenuation_model = other.attenuation_model;
-    near_start_158 = other.near_start_158;
-    near_end_160 = other.near_end_160;
-    far_start_168 = other.far_start_168;
-    far_end_170 = other.far_end_170;
-    scaled_near_start_178 = other.scaled_near_start_178;
-    scaled_far_end_17c = other.scaled_far_end_17c;
-    near_attenuation_180 = other.near_attenuation_180;
-    far_attenuation_184 = other.far_attenuation_184;
+    near_start = other.near_start;
+    near_end = other.near_end;
+    far_start = other.far_start;
+    far_end = other.far_end;
+    scaled_near_start = other.scaled_near_start;
+    scaled_far_end = other.scaled_far_end;
+    near_attenuation = other.near_attenuation;
+    far_attenuation = other.far_attenuation;
     opengl_attenuation = other.opengl_attenuation;
     enable_flags = other.enable_flags;
     ambient_198 = other.ambient_198;
     diffuse_1a4 = other.diffuse_1a4;
     specular_1b0 = other.specular_1b0;
     spot_direction = other.spot_direction;
-    spot_angle_1c8 = other.spot_angle_1c8;
+    spot_angle = other.spot_angle;
     spot_exponent = other.spot_exponent;
     intensity_1d0 = other.intensity_1d0;
     safe_range = other.safe_range;
@@ -73,10 +73,10 @@ MonsterLight::MonsterLight(const MonsterLight& other) : srLight(0)
     scaled_diffuse = other.scaled_diffuse;
     scaled_specular = other.scaled_specular;
     spot_direction_eye = other.spot_direction_eye;
-    spot_cutoff_214 = other.spot_cutoff_214;
+    spot_cutoff = other.spot_cutoff;
     attenuation_range = other.attenuation_range;
     derived_flags = other.derived_flags;
-    channel_mask_220 = other.channel_mask_220;
+    channel_mask = other.channel_mask;
 
     m_vertical_offset = other.m_vertical_offset;
     m_color_first = other.m_color_first;
@@ -94,8 +94,8 @@ MonsterLight::MonsterLight(const MonsterLight& other) : srLight(0)
 // FUNCTION: WIZ8 0x0049D940
 void MonsterLight::SetRange(float range)
 {
-    far_start_168 = 0.0;
-    far_end_170 = range;
+    far_start = 0.0;
+    far_end = range;
     setLinearAttenuation(range, 0.0019569471f);
 }
 

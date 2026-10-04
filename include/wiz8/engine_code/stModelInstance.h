@@ -50,17 +50,17 @@ public:
 
 public:
     unsigned long overlay_scene_flag;
-    srVector4T<float> highlight_colour_164;
+    srVector4T<float> highlight_colour;
     /* Lazily built highlight material; RenderMeshes fills it from the
        render-state RGBA and installs it as the pass material. */
-    srMaterial* retained_174;
-    unsigned long render_flags_178;
-    long mesh_index_17c;
-    unsigned int frame_index_180;
-    int damage_stage_184;
+    srMaterial* retained;
+    unsigned long render_flags;
+    long mesh_index;
+    unsigned int frame_index;
+    int damage_stage;
     srHeapBuffer<int> damage_stage_tables;
     int highlight_pass_mode;
-    srVector3T<float> light_scale_194;
+    srVector3T<float> light_scale;
     bool diffuse_scale_enabled;
     bool emissive_override_enabled;
     unsigned char padding_1a2[2];
@@ -69,7 +69,7 @@ public:
     float frame_interpolation;
 };
 
-static_assert(offsetof(stModelInstance, highlight_colour_164) == 0x164,
+static_assert(offsetof(stModelInstance, highlight_colour) == 0x164,
               "stModelInstance_render_state_offset");
 static_assert(sizeof(stModelInstance) == 0x1b0, "stModelInstance_size_must_be_0x1b0");
 
@@ -112,8 +112,8 @@ public:
         render_state.position_y = 0;
         render_state.display_state = 0;
         render_state.glow_enabled = 0;
-        vector_174 = 0;
-        vector_178 = 0;
+        glow_color_base = 0;
+        glow_color_peak = 0;
         m_pGlowMaterial = 0;
     }
     void setRenderDepth(unsigned long depth)
@@ -123,8 +123,8 @@ public:
 
     unsigned long overlay_scene_flag;
     W8ModelInstance2DRenderState render_state;
-    srVector4T<float>* vector_174;
-    srVector4T<float>* vector_178;
+    srVector4T<float>* glow_color_base;
+    srVector4T<float>* glow_color_peak;
     srMaterial* m_pGlowMaterial;
     virtual ~stModelInstance2D() override; /* 0x0047F410 */
 };

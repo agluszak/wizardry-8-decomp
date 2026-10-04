@@ -54,7 +54,7 @@ void CollectViewQuadCells(W8World* world, long* x_list, long* y_list, long* coun
     srMatrix3T<float> rotation;
     world->camera->getRotation(rotation);
 
-    srVector3T<float> direction(0.0f, 0.0f, world->render_range_78);
+    srVector3T<float> direction(0.0f, 0.0f, world->render_range);
     srMatrix3T<float> work = rotation;
     double angle = -g_float_00609c88 * g_float_005ed168;
     if (angle != 0.0) {
@@ -64,7 +64,7 @@ void CollectViewQuadCells(W8World* world, long* x_list, long* y_list, long* coun
     long edge1_x = cam_x + static_cast<long>(direction.x / cell_size);
     long edge1_y = cam_y + static_cast<long>(direction.z / cell_size);
 
-    direction.Set(0.0f, 0.0f, world->render_range_78);
+    direction.Set(0.0f, 0.0f, world->render_range);
     work = rotation;
     angle = g_float_00609c88 * g_float_005ed168;
     if (angle != 0.0) {
@@ -388,7 +388,7 @@ void UpdateWorldMesh(W8World* world)
     source = world->update_mesh_source;
     if (source != 0) {
         mesh = static_cast<srMeshModel*>(source->getModel());
-        polygon_count = mesh->polygon_count_230;
+        polygon_count = mesh->polygon_count;
         mesh->setActivePolygonCount(polygon_count);
         table = mesh->getActivePolygonTable(1);
         for (index = 0; static_cast<long>(index) < polygon_count; ++index) {

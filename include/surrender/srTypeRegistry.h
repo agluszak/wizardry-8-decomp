@@ -23,7 +23,7 @@ public:
         struct ChildLink {
             ClassNode* node_00;
             ChildLink* next_04;
-            ChildLink* previous_08;
+            ChildLink* previous;
         };
 
         /* The child list is a single member object at offset 0: the
@@ -33,26 +33,26 @@ public:
         struct ChildList {
             unsigned long count_00;
             ChildLink* first_04;
-            ChildLink* last_08;
+            ChildLink* last;
 
-            ChildList() : first_04(new ChildLink), last_08(first_04)
+            ChildList() : first_04(new ChildLink), last(first_04)
             {
                 first_04->next_04 = 0;
-                first_04->previous_08 = 0;
+                first_04->previous = 0;
                 count_00 = 0;
             }
 
             // FUNCTION: SURRENDER 0x10010780
             ~ChildList()
             {
-                while (first_04 != last_08) {
+                while (first_04 != last) {
                     ChildLink* link = first_04;
                     first_04 = link->next_04;
-                    if (link->previous_08 != 0) {
-                        link->previous_08->next_04 = link->next_04;
+                    if (link->previous != 0) {
+                        link->previous->next_04 = link->next_04;
                     }
                     if (link->next_04 != 0) {
-                        link->next_04->previous_08 = link->previous_08;
+                        link->next_04->previous = link->previous;
                     }
                     delete link;
                     --count_00;
@@ -151,10 +151,10 @@ private:
     SR_DLL_IMPORT ClassNode* addToTree(ClassNode* parent, const char* class_name,
                                        unsigned long class_id);
 
-    ClassNode* root_00;
+    ClassNode* root;
     ClassIndex* class_index;
-    int valid_08;
-    srCriticalSection* critical_section_0c;
+    int valid;
+    srCriticalSection* critical_section;
 };
 
 static_assert(sizeof(srRegistry::ClassNode) == 0x2c, "srRegistry_ClassNode_must_be_0x2c");
@@ -307,8 +307,8 @@ private:
         double interval_08;
         UpdateCallBack callback_10;
         srClass* instance_14;
-        Update* previous_18;
-        Update* next_1c;
+        Update* previous;
+        Update* next;
     };
 
     static_assert(sizeof(Update) == 0x20, "srClass_Update_must_be_0x20");

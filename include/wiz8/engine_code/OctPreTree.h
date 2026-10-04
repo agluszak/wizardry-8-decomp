@@ -14,7 +14,7 @@ struct W8OctBuildNode;
 struct W8OctRegionVolume {
     unsigned long flags_00;
     unsigned short m_region;
-    unsigned char positional_06[6];
+    unsigned char positional[6];
     /* The bit the visibility pass tests and sets for this volume. */
     unsigned int m_region_bit;
     /* Two record dwords LoadRegionFile copies from the .cub record at +0x10
@@ -88,7 +88,7 @@ struct W8OctSpatialState {
     float m_node_extent;
     /* Emitted submesh record bound: the build packs kind-0 then kind-1
        records beneath it. */
-    unsigned long submesh_count_74;
+    unsigned long submesh_count;
     srVector3T<float> m_working_minimum;
     srVector3T<float> m_working_maximum;
     /* The build octree root: W8OctBuildNode or the counted subclass
@@ -138,13 +138,13 @@ struct W8OctPreTreeVertex {
     srVector3T<float> m_normal;
     srVector3T<float> m_light;
     float* m_sun_lights;
-    unsigned short face_count_40;
+    unsigned short face_count;
     unsigned char padding_42[2];
     /* Growable run of polygon ordinals sharing this vertex, built by the
        region pass; consecutive vertices may share one allocation. */
     int* face_indices;
     /* Second owned run freed by the geometry cleanup. */
-    int* owned_48;
+    int* owned;
     /* Corner texture coordinate written when a polygon vertex is split. */
     srVector2T<float> m_uv;
     /* Unscaled level-file position kept beside the engine-scaled
@@ -158,12 +158,12 @@ struct W8OctPreTreeVertex {
    the canonical material/texture group counts; +0x10/+0x14 hold an owned
    buffer the cleanup releases. */
 struct W8OctPreTreeGeometry {
-    unsigned long vertex_count_00;
+    unsigned long vertex_count;
     W8OctPreTreeVertex* m_vertices;
     unsigned long m_polygon_count;
     W8OctRegionPolygon* m_polygons;
     unsigned long positional_10;
-    void* owned_14;
+    void* owned;
     unsigned long m_material_count;
     unsigned long m_texture_count;
     /* Largest per-vertex polygon reference count, refreshed by the region
@@ -190,7 +190,7 @@ struct W8OctSubmeshBuild {
     unsigned long m_kind;
     unsigned long m_prev_link;
     unsigned long m_next_link;
-    unsigned long vertex_count_14;
+    unsigned long vertex_count;
     unsigned long m_map_count;
     unsigned long m_polygon_count;
     int* m_vertex_ids;
@@ -213,7 +213,7 @@ struct W8OctSubmeshBuild {
 #pragma pack(push, 1)
 struct W8OctFileHeader {
     enum { VERSION = 0x22 };
-    unsigned short version_00; /* written 0x22 */
+    unsigned short version; /* written 0x22 */
     float m_extent;
     float m_cell_size;
     float m_node_extent;

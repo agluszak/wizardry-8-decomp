@@ -27,7 +27,7 @@ static unsigned long g_ground_shadow_shader;
 
 /* The material mapper installed for ground shadows: process projects each
    indexed vertex's world x/z through a rotated scale matrix into the first
-   texture-coordinate set. transform_04 starts as the 1/width,1/depth scale
+   texture-coordinate set. transform starts as the 1/width,1/depth scale
    and is rotated by the shadow's facing each render; center_14/center_18 are
    the shadow's world z/x origins and polygons_20 carries the selected
    triangle indices for the active mesh. No source name survives, so the
@@ -44,7 +44,7 @@ public:
     }
     virtual void process(srVertexPipe& pipe) override;
 
-    srMatrix2T<float> transform_04;
+    srMatrix2T<float> transform;
     float center_z;
     float center_x;
     srVector3T<float>* vertices_1c;
@@ -66,9 +66,9 @@ void W8GroundShadowMapper::process(srVertexPipe& pipe)
         pipe.vertex_count_88;
     pipe.lazy_setup_mask |= 1 << CHANNEL_ST0;
 
-    const unsigned long* index = pipe.avt_70 + pipe.sub_batch_offset_84;
+    const unsigned long* index = pipe.avt + pipe.sub_batch_offset;
     srVector2T<float>* output =
-        pipe.vertex_array_78->st0_0c + pipe.batch_base + pipe.sub_batch_offset_84;
+        pipe.vertex_array->st0 + pipe.batch_base + pipe.sub_batch_offset;
     unsigned long count = pipe.vertex_count_88;
     if (count == 0) {
         return;
@@ -79,8 +79,8 @@ void W8GroundShadowMapper::process(srVertexPipe& pipe)
         float dx = vertex->x - center_x;
         srVector2T<float> coordinate;
         coordinate.Set(
-            dz * transform_04.vectors[0].x + dx * transform_04.vectors[0].y + g_float_005ebc7c,
-            dx * transform_04.vectors[1].x + dz * transform_04.vectors[1].y + g_float_005ebc7c);
+            dz * transform.vectors[0].x + dx * transform.vectors[0].y + g_float_005ebc7c,
+            dx * transform.vectors[1].x + dz * transform.vectors[1].y + g_float_005ebc7c);
         ++index;
         *output++ = coordinate;
     } while (--count != 0);
@@ -93,8 +93,8 @@ void W8GroundShadowMapper::process(srVertexPipe& pipe)
 stGroundShadow::stGroundShadow(srNode* parent)
     : srClassSupport<stGroundShadow, srNode, false, 0x10010>(static_cast<srNode*>(0))
 {
-    angle_138 = 0;
-    depth_13c = 500.0f;
+    angle = 0;
+    depth = 500.0f;
     width_140 = 500.0f;
     setParent(parent, 1);
 
@@ -119,8 +119,8 @@ stGroundShadow::stGroundShadow(const stGroundShadow& other)
 {
     setParent(other.parent_, 1);
     setName(other.getName());
-    angle_138 = other.angle_138;
-    depth_13c = other.depth_13c;
+    angle = other.angle;
+    depth = other.depth;
     width_140 = other.width_140;
 }
 
@@ -177,10 +177,10 @@ void stGroundShadow::renderGroundShadow(srGERD* renderer)
 
     getLocation(position);
     position.y += g_world_scale;
-    if (depth_13c <= width_140) {
+    if (depth <= width_140) {
         radius = width_140;
     } else {
-        radius = depth_13c;
+        radius = depth;
     }
     polygons =
         g_octree->CollectPolygonsNearPoint(&position, radius, radius + radius + g_world_scale);
@@ -191,15 +191,15 @@ void stGroundShadow::renderGroundShadow(srGERD* renderer)
     saved_offset = renderer->getPolygonOffset();
     renderer->setPolygonOffset(2);
 
-    g_ground_shadow_material_parameters.transform_04.vectors[0].Set(g_float_005ebc7c / width_140,
+    g_ground_shadow_material_parameters.transform.vectors[0].Set(g_float_005ebc7c / width_140,
                                                                     0);
-    g_ground_shadow_material_parameters.transform_04.vectors[1].Set(0,
-                                                                    g_float_005ebc7c / depth_13c);
-    cosine = cos(-angle_138);
-    sine = sin(-angle_138);
+    g_ground_shadow_material_parameters.transform.vectors[1].Set(0,
+                                                                    g_float_005ebc7c / depth);
+    cosine = cos(-angle);
+    sine = sin(-angle);
     rotation.vectors[0].Set(cosine, -sine);
     rotation.vectors[1].Set(sine, cosine);
-    g_ground_shadow_material_parameters.transform_04.MultiplyBy(rotation);
+    g_ground_shadow_material_parameters.transform.MultiplyBy(rotation);
     g_ground_shadow_material_parameters.center_z = position.z;
     g_ground_shadow_material_parameters.center_x = position.x;
 
@@ -220,8 +220,8 @@ void stGroundShadow::renderGroundShadow(srGERD* renderer)
         mesh.textures_90[0][0] = g_ground_shadow_texture;
         mesh.vertex_materials_c0[0][0] = 0;
         mesh.poly_shaders[0] = 0;
-        mesh.shaders_b0[0].value = g_ground_shadow_shader;
-        mesh.poly_uv_110[0] = 0;
+        mesh.shaders[0].value = g_ground_shadow_shader;
+        mesh.poly_uv[0] = 0;
         g_ground_shadow_material_parameters.vertices_1c = model->getVertexLoc();
         model->RenderTriMeshWithEquations(*renderer, mesh, 0);
     }

@@ -166,11 +166,11 @@ void srHuffman::Sampler::insert(unsigned long symbol)
 {
     if (table_00.FindNextEntry(&symbol, -1) == -1) {
         symbols_10[count_18].symbol_00 = symbol;
-        symbols_10[count_18].frequency_04 = 1;
+        symbols_10[count_18].frequency = 1;
         table_00.Insert(&symbol, &count_18);
         ++count_18;
     } else {
-        ++symbols_10[table_00.Lookup(&symbol)].frequency_04;
+        ++symbols_10[table_00.Lookup(&symbol)].frequency;
     }
 }
 
@@ -189,33 +189,33 @@ unsigned long srHuffman::Sampler::getSymbolValue(unsigned long index) const
 // FUNCTION: SURRENDER 0x10001BC0
 unsigned long srHuffman::Sampler::getSymbolFrequency(unsigned long index) const
 {
-    return symbols_10.data[index].frequency_04;
+    return symbols_10.data[index].frequency;
 }
 
 // FUNCTION: SURRENDER 0x10001BD0
 srHuffman::Compressor::Compressor(const Sampler& sampler)
 {
-    num_symbols_1c = sampler.getNumSymbols();
-    code_width_20 = 0;
+    num_symbols = sampler.getNumSymbols();
+    code_width = 0;
     total_24 = 0;
     nodes_10 = 0;
     root_18 = 0;
     free_list = 0;
-    if (num_symbols_1c != 0) {
-        nodes_10 = static_cast<Node*>(::operator new(num_symbols_1c * 2 * sizeof(Node)));
+    if (num_symbols != 0) {
+        nodes_10 = static_cast<Node*>(::operator new(num_symbols * 2 * sizeof(Node)));
         free_list = nodes_10;
-        for (unsigned long index = 0; index < num_symbols_1c * 2; ++index) {
+        for (unsigned long index = 0; index < num_symbols * 2; ++index) {
             nodes_10[index].symbol_00 = 0;
-            nodes_10[index].frequency_04 = 0;
+            nodes_10[index].frequency = 0;
             nodes_10[index].next_10 = nodes_10 + index + 1;
             nodes_10[index].children_14[0] = 0;
             nodes_10[index].children_14[1] = 0;
             nodes_10[index].code_08 = 0;
             nodes_10[index].bits_0c = 0;
         }
-        nodes_10[num_symbols_1c - 1].next_10 = 0;
-        free_list = nodes_10 + num_symbols_1c;
-        nodes_10[num_symbols_1c * 2 - 1].next_10 = 0;
+        nodes_10[num_symbols - 1].next_10 = 0;
+        free_list = nodes_10 + num_symbols;
+        nodes_10[num_symbols * 2 - 1].next_10 = 0;
         collectSymbols(sampler);
         buildSymbolTree();
         total_24 = 0;
@@ -245,7 +245,7 @@ void srHuffman::Compressor::dumpNode(BitOStream& stream, Node* node)
     }
     if (node != 0) {
         stream.put(1, 1);
-        stream.put(node->symbol_00, code_width_20);
+        stream.put(node->symbol_00, code_width);
     }
 }
 
@@ -265,21 +265,21 @@ void srHuffman::Compressor::setupPath(Node* node, unsigned long code, unsigned l
         node->code_08 = code;
         node->bits_0c = depth;
         table_00.Insert(&node->symbol_00, &node);
-        total_24 += node->frequency_04 * node->bits_0c;
+        total_24 += node->frequency * node->bits_0c;
     }
 }
 
 // FUNCTION: SURRENDER 0x10001F90
 void srHuffman::Compressor::buildSymbolTree()
 {
-    if (num_symbols_1c != 1) {
+    if (num_symbols != 1) {
         Node* heads[2];
         Node* tails[2];
         Node* root = 0;
         heads[0] = nodes_10;
         heads[1] = 0;
         tails[1] = 0;
-        for (unsigned long merged = 0; merged < num_symbols_1c - 1; ++merged) {
+        for (unsigned long merged = 0; merged < num_symbols - 1; ++merged) {
             Node* node = free_list;
             free_list = node->next_10;
             node->next_10 = 0;
@@ -287,7 +287,7 @@ void srHuffman::Compressor::buildSymbolTree()
             for (int remaining = 2; remaining != 0; --remaining) {
                 int which = 0;
                 if (heads[1] != 0 &&
-                    (heads[0] == 0 || heads[1]->frequency_04 <= heads[0]->frequency_04)) {
+                    (heads[0] == 0 || heads[1]->frequency <= heads[0]->frequency)) {
                     which = 1;
                 }
                 Node* picked = heads[which];
@@ -300,8 +300,8 @@ void srHuffman::Compressor::buildSymbolTree()
                 ++slot;
                 picked->next_10 = 0;
             }
-            node->frequency_04 =
-                node->children_14[1]->frequency_04 + node->children_14[0]->frequency_04;
+            node->frequency =
+                node->children_14[1]->frequency + node->children_14[0]->frequency;
             if (tails[1] == 0) {
                 heads[1] = node;
             } else {
@@ -319,11 +319,11 @@ void srHuffman::Compressor::buildSymbolTree()
 // FUNCTION: SURRENDER 0x10002080
 void srHuffman::Compressor::collectSymbols(const Sampler& sampler)
 {
-    unsigned long* symbols = static_cast<unsigned long*>(srHeap.allocate(num_symbols_1c * 4));
-    unsigned long* frequencies = static_cast<unsigned long*>(srHeap.allocate(num_symbols_1c * 4));
+    unsigned long* symbols = static_cast<unsigned long*>(srHeap.allocate(num_symbols * 4));
+    unsigned long* frequencies = static_cast<unsigned long*>(srHeap.allocate(num_symbols * 4));
     unsigned long max_symbol = 0;
     unsigned long index;
-    for (index = 0; index < num_symbols_1c; ++index) {
+    for (index = 0; index < num_symbols; ++index) {
         symbols[index] = sampler.getSymbolValue(index);
         frequencies[index] = sampler.getSymbolFrequency(index);
         if (max_symbol < symbols[index]) {
@@ -355,47 +355,47 @@ void srHuffman::Compressor::collectSymbols(const Sampler& sampler)
             width += 1;
         }
     }
-    code_width_20 = width + 1;
-    if (code_width_20 < 1) {
-        code_width_20 = 1;
+    code_width = width + 1;
+    if (code_width < 1) {
+        code_width = 1;
     }
-    if (num_symbols_1c > 1) {
-        Sampler::Symbol* pairs = static_cast<Sampler::Symbol*>(srHeap.allocate(num_symbols_1c * 8));
-        unsigned long bulk = num_symbols_1c & ~3;
+    if (num_symbols > 1) {
+        Sampler::Symbol* pairs = static_cast<Sampler::Symbol*>(srHeap.allocate(num_symbols * 8));
+        unsigned long bulk = num_symbols & ~3;
         for (index = 0; index < bulk; index += 4) {
             pairs[index].symbol_00 = symbols[index];
-            pairs[index].frequency_04 = frequencies[index];
+            pairs[index].frequency = frequencies[index];
             pairs[index + 1].symbol_00 = symbols[index + 1];
-            pairs[index + 1].frequency_04 = frequencies[index + 1];
+            pairs[index + 1].frequency = frequencies[index + 1];
             pairs[index + 2].symbol_00 = symbols[index + 2];
-            pairs[index + 2].frequency_04 = frequencies[index + 2];
+            pairs[index + 2].frequency = frequencies[index + 2];
             pairs[index + 3].symbol_00 = symbols[index + 3];
-            pairs[index + 3].frequency_04 = frequencies[index + 3];
+            pairs[index + 3].frequency = frequencies[index + 3];
         }
-        for (; index < num_symbols_1c; ++index) {
+        for (; index < num_symbols; ++index) {
             pairs[index].symbol_00 = symbols[index];
-            pairs[index].frequency_04 = frequencies[index];
+            pairs[index].frequency = frequencies[index];
         }
-        sortSymbolPairs(pairs, num_symbols_1c);
+        sortSymbolPairs(pairs, num_symbols);
         for (index = 0; index < bulk; index += 4) {
             symbols[index] = pairs[index].symbol_00;
-            frequencies[index] = pairs[index].frequency_04;
+            frequencies[index] = pairs[index].frequency;
             symbols[index + 1] = pairs[index + 1].symbol_00;
-            frequencies[index + 1] = pairs[index + 1].frequency_04;
+            frequencies[index + 1] = pairs[index + 1].frequency;
             symbols[index + 2] = pairs[index + 2].symbol_00;
-            frequencies[index + 2] = pairs[index + 2].frequency_04;
+            frequencies[index + 2] = pairs[index + 2].frequency;
             symbols[index + 3] = pairs[index + 3].symbol_00;
-            frequencies[index + 3] = pairs[index + 3].frequency_04;
+            frequencies[index + 3] = pairs[index + 3].frequency;
         }
-        for (; index < num_symbols_1c; ++index) {
+        for (; index < num_symbols; ++index) {
             symbols[index] = pairs[index].symbol_00;
-            frequencies[index] = pairs[index].frequency_04;
+            frequencies[index] = pairs[index].frequency;
         }
         srHeap.free(pairs);
     }
-    for (index = 0; index < num_symbols_1c; ++index) {
+    for (index = 0; index < num_symbols; ++index) {
         nodes_10[index].symbol_00 = symbols[index];
-        nodes_10[index].frequency_04 = frequencies[index];
+        nodes_10[index].frequency = frequencies[index];
     }
     srHeap.free(symbols);
     srHeap.free(frequencies);
@@ -407,22 +407,22 @@ srHuffman::Decompressor::Decompressor(BitIStream& stream)
     symbols_04 = 0;
     next_node_08 = 0;
     stream_00 = &stream;
-    num_symbols_14 = stream_00->get(0x20);
-    code_width_0c = stream_00->get(6);
+    num_symbols = stream_00->get(0x20);
+    code_width = stream_00->get(6);
     data_count = stream_00->get(0x20);
-    if (num_symbols_14 != 0) {
-        symbols_04 = static_cast<Symbol*>(::operator new(num_symbols_14 * 0x18));
+    if (num_symbols != 0) {
+        symbols_04 = static_cast<Symbol*>(::operator new(num_symbols * 0x18));
         setupSymbolTable(symbols_04);
         for (unsigned long index = 0; index < 0x100; ++index) {
             Symbol* node = symbols_04;
             unsigned long depth = 0;
             do {
-                Symbol* next = node->children_04[0];
+                Symbol* next = node->children[0];
                 if (next == 0) {
                     break;
                 }
                 if ((index & (1 << depth)) != 0) {
-                    next = node->children_04[1];
+                    next = node->children[1];
                 }
                 ++depth;
                 node = next;
@@ -452,8 +452,8 @@ unsigned long srHuffman::Decompressor::decompressSymbol()
     unsigned long key = stream->get(8);
     stream->rewind(8 - depth_41c[key]);
     Symbol* node = lookup_1c[key];
-    while (node->children_04[0] != 0) {
-        node = node->children_04[stream->getBit()];
+    while (node->children[0] != 0) {
+        node = node->children[stream->getBit()];
     }
     return node->value_00;
 }
@@ -467,14 +467,14 @@ void srHuffman::Decompressor::setupSymbolTable(Symbol* node)
             break;
         }
         node->value_00 = 0xffffffff;
-        node->children_04[0] = &symbols_04[next_node_08];
-        setupSymbolTable(node->children_04[0]);
-        node->children_04[1] = &symbols_04[next_node_08];
-        node = node->children_04[1];
+        node->children[0] = &symbols_04[next_node_08];
+        setupSymbolTable(node->children[0]);
+        node->children[1] = &symbols_04[next_node_08];
+        node = node->children[1];
     }
-    node->value_00 = stream_00->get(code_width_0c);
-    node->children_04[0] = 0;
-    node->children_04[1] = 0;
+    node->value_00 = stream_00->get(code_width);
+    node->children[0] = 0;
+    node->children[1] = 0;
 }
 
 // FUNCTION: SURRENDER 0x100027F0
@@ -492,7 +492,7 @@ static void sortSymbolPairs(srHuffman::Sampler::Symbol* pairs, unsigned long cou
     for (unsigned long pass = 0; pass < 4; ++pass) {
         srZeroMemory(counts, sizeof(counts));
         /* reinterpret-ok: radix pass extracts byte `pass` of each key. */
-        unsigned char* keys = reinterpret_cast<unsigned char*>(&src[0].frequency_04) + pass;
+        unsigned char* keys = reinterpret_cast<unsigned char*>(&src[0].frequency) + pass;
         unsigned long index = 0;
         for (; index < bulk; index += 4) {
             ++counts[keys[index * 8]];

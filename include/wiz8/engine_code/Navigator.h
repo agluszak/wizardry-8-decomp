@@ -21,7 +21,7 @@ struct W8PathAI;
      (AdvanceAlongPathPositions) instead of steering directly at the target.
    - PATH_LENGTH_CACHED latches MeasurePathLength's cached path_length; any
      waypoint edit clears it.
-   - START_WAYPOINT marks start_waypoint_28 as the next position to steer to;
+   - START_WAYPOINT marks start_waypoint as the next position to steer to;
      the planner sets both together and the mover clears the bit on arrival.
    - POSITION_RECORDED is raised whenever position_40 is recorded. */
 enum W8NavigatorAttachmentFlag {
@@ -46,7 +46,7 @@ struct W8NavigatorAttachment {
     unsigned short padding_0e;
     srVector3T<float> position_10;
     srVector3T<float> position_1c;
-    srVector3T<float> start_waypoint_28; /* valid while W8_NAV_ATTACHMENT_START_WAYPOINT */
+    srVector3T<float> start_waypoint; /* valid while W8_NAV_ATTACHMENT_START_WAYPOINT */
     srVector3T<float> position_34;
     srVector3T<float> position_40;
     /* The owned vector array uses the vector type's new[]/delete[] overloads,
@@ -141,7 +141,7 @@ public:
    independently. World collision routines receive this subobject, while the
    surrounding Navigator owns the path and group-following state. */
 struct W8NavigatorMovementState {
-    unsigned int flags_000;
+    unsigned int movement_flags;
     unsigned short location_id_004;
     unsigned short padding_006;
     int leadership_rank;
@@ -150,19 +150,19 @@ struct W8NavigatorMovementState {
        location id of the tracked target; OctPath's single-candidate path
        search aliases the slot itself as its one-element candidate array
        (LEA [movement+0x10]) — see TargetLocationAsCandidate(). */
-    int target_location_id_010;
+    int target_location_id;
     float yaw;
     float target_yaw;
     /* UpdateYawSteering accelerates/decelerates this signed angular rate. */
     float yaw_velocity;
     float pitch_020;
-    float target_pitch_024;
+    float target_pitch;
     float roll_028;
     float target_roll;
     float unknown_030;
     srVector3T<float> velocity_034;
     srVector3T<float> position_040;
-    srVector3T<float> target_position_04c;
+    srVector3T<float> target_position;
     float callback_threshold;
     float callback_progress;
     float movement_scale;
@@ -174,22 +174,22 @@ struct W8NavigatorMovementState {
     bool roll_enabled;
     bool boundary_enabled;
     unsigned char padding_077;
-    float vertical_velocity_078;
+    float vertical_velocity;
     float vertical_base;
     float vertical_amplitude;
     float vertical_phase;
     /* Reset installs the identity here; the constructor starts every row at
        zero before the owner calls Reset. MeasurePathDistance copies it as
        one 36-byte object (0x0045333F). */
-    srMatrix3T<float> basis_088;
+    srMatrix3T<float> basis;
     W8NavigatorAttachment* attachment_0ac;
     /* Collision/path radius, initialized to 500 by the outer navigator and
        scaled with the navigator in SetScale. */
     float collision_radius;
-    float alternate_radius_0b4;
+    float alternate_radius;
     float height_offset;
     float secondary_height_offset;
-    float vertical_offset_0c0;
+    float vertical_offset;
     float scale_0c4;
     bool position_adjusted;
     unsigned char padding_0c9[3];
@@ -201,7 +201,7 @@ struct W8NavigatorMovementState {
     ~W8NavigatorMovementState(); /* 0x00457530 */
 
     /* Copies the eleven fields a navigator carries across from another's
-       movement tail and invalidates target_location_id_010. It returns nothing, so it is a
+       movement tail and invalidates target_location_id. It returns nothing, so it is a
        named member rather than an assignment operator. */
     void CopySettingsFrom(const W8NavigatorMovementState& other);
 
@@ -212,7 +212,7 @@ struct W8NavigatorMovementState {
     unsigned long* TargetLocationAsCandidate()
     {
         // reinterpret-ok: candidate array aliases the one target-location slot
-        return reinterpret_cast<unsigned long*>(&target_location_id_010);
+        return reinterpret_cast<unsigned long*>(&target_location_id);
     }
 };
 
@@ -248,7 +248,7 @@ public:
     void SetVelocity(const srVector3T<float>* velocity); /* 0x00453520 */
     /* movement_0c0.target_yaw = NormalizeAngle(angle). */
     void SetTargetYaw(float angle); /* 0x004538D0 */
-    /* movement_0c0.target_pitch_024 = NormalizeAngle(angle). */
+    /* movement_0c0.target_pitch = NormalizeAngle(angle). */
     void SetTargetPitch(float angle); /* 0x00453920 */
     /* The navigator a from->to trace runs into: the startup world, a monster's
        navigator, or null. `include_target` lets the trace report the tracked
@@ -270,9 +270,9 @@ public:
     void configureStartupRange(float range)
     {
         radius_084 = range;
-        trace_mask_090 = 1;
+        trace_mask = 1;
         movement_0c0.collision_radius = range;
-        movement_0c0.alternate_radius_0b4 = range;
+        movement_0c0.alternate_radius = range;
     }
     void configureStartupDepth(float near_depth, float far_depth)
     {
@@ -354,7 +354,7 @@ public:
     unsigned int flags_00c;
     double collision_margin;
     /* Current 3D movement target. */
-    srVector3T<float> movement_target_018;
+    srVector3T<float> movement_target;
     /* Set when the navigator's movement has stopped - the constructors raise
        it, SetMovementStopped raises it when motion halts (levelling
        pitch unless the navigation mode banks), and a successful
@@ -370,7 +370,7 @@ public:
     bool unknown_027;
     srVector3T<float> position_028;
     float minimum_height;
-    float maximum_height_038;
+    float maximum_height;
     srVector3T<float> position_03c;
     unsigned int unknown_048;
     W8Navigator* target_navigator;
@@ -390,13 +390,13 @@ public:
     unsigned char padding_089[3];
     void(__cdecl* movement_callback)(W8Navigator* navigator);
     /* Trace-hit exclusion mask: ResolveTraceHit skips monsters whose
-       (trace_mask_090 & flags) is nonzero; configureStartupRange raises bit 0. */
-    unsigned int trace_mask_090;
+       (trace_mask & flags) is nonzero; configureStartupRange raises bit 0. */
+    unsigned int trace_mask;
     unsigned int unknown_094;
     unsigned int unknown_098;
     /* 0x09c: byte flag - SetMonsterGroupNavigatorDirty stores its uchar
        parameter raw, with no bool normalization. */
-    bool position_dirty_09c;
+    bool position_dirty;
     /* 0x09d: raised by the trigger sweep after it reactivates the monster
        (members_active, animation restart, rep/path reset). */
     bool reactivated;
@@ -417,7 +417,7 @@ public:
        owner. Copy construction constructs a fresh attachment and transfers
        selected settings; it never shares the source's path allocation. */
     W8NavigatorMovementState movement_0c0;
-    srNode* node_18c; /* 0x18c: constructed srNode */
+    srNode* node; /* 0x18c: constructed srNode */
 }; /* 0x190 */
 
 void SetNavigatorLinkMode(unsigned char mode);

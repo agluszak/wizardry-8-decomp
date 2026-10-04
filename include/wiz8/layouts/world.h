@@ -58,7 +58,7 @@ struct W8World {
        environment_colour.blue like the start/end fractions); no recovered
        consumer reads it. */
     float environment_range_blue;
-    float view_distance_020;
+    float view_distance;
     float environment_intensity;
     /* Snapshot of environment_intensity taken when a fade-out starts; the
        lighting transition multiplies g_light_scale by this base. */
@@ -78,7 +78,7 @@ struct W8World {
     W8Quad* quads;
     srModelInstance* update_mesh_source;
     float render_range_74;
-    float render_range_78;
+    float render_range;
     unsigned char m_unknown_07c[0x20];
     W8PList nodes_to_disable;
     W8PList transient_lights;

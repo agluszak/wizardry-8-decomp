@@ -115,10 +115,10 @@ struct W8MonsterRep : public W8EmitterHost {
     unsigned char highlight_mask;
     unsigned char padding_5bd[3];
     char* name_5c0; /* 0x5c0: owned copy */
-    /* 0x5c4: number of populated party-icon entries in objects_5c8; the
+    /* 0x5c4: number of populated party-icon entries in objects; the
        attachment layout read by UpdateAttachedObjects. */
     int icon_count;
-    W8Item* objects_5c8[8];   /* 0x5c8 */
+    W8Item* objects[8];   /* 0x5c8 */
     W8PList* spell_icons; /* 0x5e8: W8MonsterSpellIcon records */
     float standing_height;
     float scale_5f0;
@@ -269,7 +269,7 @@ public:
     int location_id_1e4;
     /* 0x1e8/0x1f0: the X/Z siblings of scale_y_1ec; mirror_x flips the
        X term for left-handed strikes. */
-    float scale_x_1e8;
+    float scale_x;
     /* Y-axis scale applied while W8_MONSTER_SCALING_Y is set (decayed per
        frame by g_float_005ebc3c). */
     float scale_y_1ec;
@@ -277,7 +277,7 @@ public:
     /* Attack-animation frame that triggers the missile launch. */
     int missile_frame;
     /* Cycle-25 animation frame that triggers the attached spell effect. */
-    int spell_frame_1f8;
+    int spell_frame;
     /* 0x1fc: talking state armed by StartTalking; cleared by StopTalking. */
     bool talking;
     /* 0x1fd: the StartTalking argument; mouth texture animation only runs
@@ -319,11 +319,11 @@ public:
     unsigned char padding_22f;
     CycleCallback cycle_callback;
     int callback_cycle;
-    stScript* script_238;
-    int script_line_23c;
-    int script_wait_240;
-    W8GrowableVector<unsigned char> script_conditions_244;
-    W8GameTimer timer_254;
+    stScript* script;
+    int script_line;
+    int script_wait;
+    W8GrowableVector<unsigned char> script_conditions;
+    W8GameTimer script_delay_timer;
     Trigger* trigger_278;
     int registry_weight;
     srVector3T<float> formation;
@@ -336,7 +336,7 @@ public:
     unsigned char padding_292[2];
     float patrol_distance;
     float patrol_variation;
-    W8GrowableVector<srVector3T<float> > vector_29c;
+    W8GrowableVector<srVector3T<float> > vector;
     signed char patrol_index;
     unsigned char padding_2ad[3];
     float direction_x;
@@ -350,17 +350,21 @@ public:
     /* 0x2d0: sun-visibility state for the model light-scale lerp: -1
        uninitialized, 1 lit (scale toward 0.75), 0 shadowed (toward 0). */
     int sunlit_state;
-    bool position_dirty_2d4;
+    bool move_dirty;
     unsigned char padding_2d5[3];
-    W8GameTimer timer_2d8;
+    W8GameTimer light_scale_timer;
     float target_scale;
-    float current_scale_300;
+    float current_scale;
     /* 0x304: one-shot latch; the cycle-25 spell frame fires
        CreateAttachedSpellEffect once then clears it. */
     bool spell_effect_armed;
     unsigned char padding_305[3];
-    srNode* node_308;
-    W8GameTimer timer_30c;
+    /* The render mesh of the world sector this monster currently occupies,
+       cached by W8Octree::UpdateMonsterLocation (null while unplaced).
+       IsWithinWorldRange answers from its disable flag when present.
+       This is not the inherited navigator scene node. */
+    srNode* sector_mesh;
+    W8GameTimer fade_timer;
     signed char fade_state;
     /* 0x331: this monster is the highlighted target; exempt from the
        attachment distance-scale clamp. */
@@ -369,8 +373,8 @@ public:
        Targeting and Combat Hostility. */
     unsigned char hostility_preserved;
     unsigned char padding_333;
-    stSound3D* sound_334;
-    W8GrowableVector<int> values_338;
+    stSound3D* sound;
+    W8GrowableVector<int> values;
 };
 
 int ParseMonsterCycleName(const char* name, signed char* subcycle = 0);

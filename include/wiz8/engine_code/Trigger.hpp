@@ -16,7 +16,7 @@ struct W8WorldItem;
 
 /* Timed Trigger actions are ordinary polymorphic objects owned by Trigger.cpp.
    The 0x38-byte event owns its embedded timer, but not m_pCountdown;
-   its destructor at 0x004409A0 tears down only timer_008. */
+   its destructor at 0x004409A0 tears down only timer. */
 class W8TriggerEvent {
 public:
     W8TriggerEvent();
@@ -25,10 +25,10 @@ public:
 
     short action_004;
     unsigned short unknown_006;
-    W8GameTimer timer_008;
+    W8GameTimer timer;
     W8GameTimer* m_pCountdown;
     Trigger* trigger_030;
-    bool repeat_034;
+    bool repeat;
     bool completed_035;
 };
 
@@ -42,7 +42,7 @@ public:
     W8TriggerActionData();
     virtual ~W8TriggerActionData();
 
-    signed char type_004;
+    signed char type;
 };
 
 static_assert(sizeof(W8TriggerActionData) == 0x08, "W8TriggerActionData_must_be_0x08");
@@ -61,10 +61,10 @@ static_assert(sizeof(W8EnvironmentTriggerActionData) == 0x0c,
    linked trigger name and optional world position read from the save. */
 class W8DoorTriggerActionData : public W8TriggerActionData {
 public:
-    unsigned char flags_008;
-    unsigned char flags_009;
-    short item_00a;
-    char linked_trigger_00c[0x80];
+    unsigned char door_flags;
+    unsigned char extra_flags;
+    short item;
+    char linked_trigger[0x80];
     srVector3T<float> position_08c;
 };
 
@@ -206,7 +206,7 @@ public:
        the m_lData1..3 action message at the end of Run. */
     bool HasActionMessage();
     /* Whether the trigger takes an item: required_item_id >= 0 (the special-item
-       notice path) or a type-10 action payload naming item_00a. */
+       notice path) or a type-10 action payload naming item. */
     bool RequiresItem();
     bool SelectAction();
     void GenerateItemGroup();
@@ -241,11 +241,11 @@ public:
     unsigned char unknown_0ca[2];
     srVector3T<float> representation_vectors[4];
     float angle_0fc;
-    srVector3T<float> direction_100;
+    srVector3T<float> direction;
     unsigned char m_bRepType;
     unsigned char unknown_10d[3];
     W8Prop* m_pProp;
-    W8Item* rep_item_114;
+    W8Item* rep_item;
     srVector3T<float> position_118;
     W8World* m_pWorld;
     char action_data_128[0x80];
@@ -271,7 +271,7 @@ public:
     /* Sampled during construction, persisted in saves and used to reseed
        item-table generation so a trigger's generated loot is repeatable. */
     unsigned int item_group_seed;
-    int gold_358;
+    int gold;
     int uses_remaining;
     ActivationCallback activation_callback;
     bool running;

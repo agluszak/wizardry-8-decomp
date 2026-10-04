@@ -108,14 +108,14 @@ void W8MaterialMapper::process(srVertexPipe& pipe)
     unsigned long count = pipe.getVertexCount();
     srVector2T<float>* coordinates = pipe.getST(0, 0);
 
-    offset_x = scroll_rate_u * g_frame_elapsed + offset_14;
-    offset_14 = offset_x - static_cast<float>(floor(offset_x));
-    offset_y = scroll_rate_v * g_frame_elapsed + offset_18;
-    offset_18 = offset_y - static_cast<float>(floor(offset_y));
+    offset_x = scroll_rate_u * g_frame_elapsed + scroll_u;
+    scroll_u = offset_x - static_cast<float>(floor(offset_x));
+    offset_y = scroll_rate_v * g_frame_elapsed + scroll_v;
+    scroll_v = offset_y - static_cast<float>(floor(offset_y));
 
     for (unsigned long index = 0; index < count; ++index) {
-        coordinates[index].x += offset_14;
-        coordinates[index].y += offset_18;
+        coordinates[index].x += scroll_u;
+        coordinates[index].y += scroll_v;
     }
 }
 
@@ -724,13 +724,13 @@ bool IsSkyEnabled(void)
 void RefreshFogRanges(void)
 {
     if (g_environment_object_0065b9b0 != 0 && g_world != 0) {
-        g_environment_object_0065b9b0->fog_end_158 =
+        g_environment_object_0065b9b0->fog_end =
             WorldGetFarClip(g_world) * g_world->environment_range_end;
-        g_environment_object_0065b9b0->fog_start_150 =
+        g_environment_object_0065b9b0->fog_start =
             WorldGetFarClip(g_world) * g_world->environment_range_start;
-        g_environment_object_0065b9b4->fog_start_150 =
+        g_environment_object_0065b9b4->fog_start =
             WorldGetFarClip(g_world) * g_world->environment_range_start;
-        g_environment_object_0065b9b4->fog_end_158 =
+        g_environment_object_0065b9b4->fog_end =
             WorldGetFarClip(g_world) * g_world->environment_range_end;
     }
 }
@@ -898,7 +898,7 @@ void ApplyEnvironmentColour(W8World* world, float intensity, const EnvironmentCo
             material->parms.diffuse.w =
                 static_cast<float>(brightness * g_double_005ebf40 + g_double_005ec980);
 
-            material->dirty_74 = 1;
+            material->dirty = 1;
         }
     }
 }
@@ -1029,7 +1029,7 @@ void InitializeLevelEnvironment(void)
 
                 g_sky_gradient_animations[index] = animation;
                 if (animation != 0) {
-                    animation->animation_mode_60 = 3;
+                    animation->animation_mode = 3;
                 }
             }
         }

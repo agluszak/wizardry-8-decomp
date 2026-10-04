@@ -60,13 +60,13 @@ struct W8LevelRuntimeBlock {
        formatter reuse the leading 0xf0 bytes as wchar_t storage. */
     wchar_t text_paint_scratch[0xf0 / sizeof(wchar_t)];
     bool message_box_pending; /* 0x0f0: message box lived last frame; render deferred */
-    unsigned char flags_0f1[3];
+    unsigned char flags[3];
     unsigned int redraw_flags; /* 0x0f4 */
     /* Snapshot of redraw_flags taken before the two redraw passes; the second
        pass consumes this copy while the live word may still change. */
     unsigned int saved_redraw_flags;           /* 0x0f8 */
     W8MainUiMode main_ui_mode;                 /* 0x0fc: portraits / formation / radar */
-    int camera_mode_100;                       /* 0x100 */
+    int camera_mode;                       /* 0x100 */
     unsigned int hover_region;                 /* 0x104 */
     bool portrait_strip_dirty;             /* 0x108: portrait strip needs a redraw */
     unsigned char portrait_refresh_pending[8]; /* 0x109 */
@@ -131,8 +131,8 @@ struct W8LevelRuntimeBlock {
     int condition_highlight_party_slot; /* 0x20c: -1 while untracked */
     bool flag_210;                      /* 0x210 */
     unsigned char padding_211[3];
-    TIMER clock_214;                  /* 0x214 */
-    unsigned char portrait_flash; /* 0x218: 500ms highlight pulse on clock_214 */
+    TIMER clock;                  /* 0x214 */
+    unsigned char portrait_flash; /* 0x218: 500ms highlight pulse on clock */
     unsigned char padding_219[3];
     /* 0x21c: content row count captured by the mode-6 hover overlay draw. */
     int hover_overlay_row_count;
@@ -174,7 +174,7 @@ struct W8LevelRuntimeBlock {
     bool text_box_visible;
     bool mipe_editing; /* 0x272: MIPE edit session owns the hidden action panel */
     unsigned char padding_273;
-    unsigned int tick_274; /* 0x274 */
+    unsigned int tick; /* 0x274 */
     int value_278;         /* 0x278 */
     int pending_level;
     int pending_entry_id;
@@ -206,13 +206,13 @@ struct W8LevelRuntimeBlock {
     int text_box_top;
     int text_box_right;
     int text_box_bottom;
-    int move_budget_2dc;
-    int move_budget_2e0;
+    int move_percent;
+    int move_percent_shown;
     unsigned char unknown_2e4[4];
     int text_box_font; /* 0x2e8: g_wiz_text_font_secondary while the main text box is live */
-    unsigned short* palette_2ec; /* 0x2ec */
+    unsigned short* palette; /* 0x2ec */
     int selection_kind;
-    int value_2f4; /* 0x2f4 */
+    int pending_action; /* 0x2f4 */
     bool selection_settled;
     unsigned char padding_2f9[3];
     unsigned int tooltip_since;

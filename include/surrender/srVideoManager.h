@@ -25,12 +25,12 @@ public:
            extensions memset the block, mapPixelFormat the leading format,
            then write the extent/count/rate fields and a description string. */
         struct Info {
-            srPixelConvert::PixelFormat pixel_format_00;
+            srPixelConvert::PixelFormat pixel_format;
             unsigned long width_14;
             unsigned long height_18;
-            unsigned long frame_count_1c;
-            float frames_per_second_20;
-            char description_24[0x40];
+            unsigned long frame_count;
+            float frames_per_second;
+            char description[0x40];
             unsigned long field_64;
             unsigned long field_68;
             unsigned long field_6c;
@@ -42,7 +42,7 @@ public:
                the flags dword of the embedded pixel format. */
             Info()
             {
-                pixel_format_00.flags = 0;
+                pixel_format.flags = 0;
             }
         };
 
@@ -50,7 +50,7 @@ public:
         // FUNCTION: SURRENDER 0x1002DF90
         virtual int isLoaded()
         {
-            return loaded_04;
+            return loaded;
         }
         /* Base reset only marks the rewind pending; srEXT_FLIC's override
            rewalks the chunk headers itself. */
@@ -62,7 +62,7 @@ public:
         // FUNCTION: SURRENDER 0x1002DFB0
         virtual long getIndex()
         {
-            return index_0c;
+            return index;
         }
         /* The +0x08 payload's semantics are unresolved; no shipping importer
            reads it. */
@@ -89,9 +89,9 @@ public:
     protected:
         SR_DLL_EXPORT Stream(const char* path = 0);
 
-        long loaded_04;
+        long loaded;
         long parameter_08;
-        long index_0c;
+        long index;
         long reset_pending;
         long clamp_14;
         long position_18;

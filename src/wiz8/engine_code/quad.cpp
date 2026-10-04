@@ -107,7 +107,7 @@ W8Quad* BuildWorldQuad(srModelInstance* instance, int, float minimum_x, float mi
     }
 
     srMeshModel* model = static_cast<srMeshModel*>(instance->getModel());
-    for (int polygon = 0; polygon < model->polygon_count_230; ++polygon) {
+    for (int polygon = 0; polygon < model->polygon_count; ++polygon) {
         unsigned int polygon_row;
         unsigned int polygon_column;
         W8QuadCell* cell = GetPolygonQuadCell(quad, instance, polygon, &polygon_row,

@@ -15,7 +15,7 @@ public:
     {
         return "stParticle";
     }
-    /* 0x00497C57 compares count signed, while particle_count_180 is stored and
+    /* 0x00497C57 compares count signed, while particle_count is stored and
        compared unsigned, so the parameter is not the member's type. */
     stParticle(srNode* parent, int count); /* 0x00497AF0 */
     stParticle(const stParticle& other);   /* 0x00498180 */
@@ -45,40 +45,40 @@ protected:
     virtual ~stParticle() override; /* 0x00498A20 */
 
 public:
-    unsigned int requires_sorted_renderer_138;
+    unsigned int requires_sorted_renderer;
     unsigned char padding_13c[4];
-    double particle_size_140; /* 0x140: billboard quad scale from particle_size */
+    double particle_size; /* 0x140: billboard quad scale from particle_size */
     /* Per-particle world positions; the retail allocation assert spells the
        buffer pParticle. */
     srVector3T<float>* particle_positions;
-    srMaterialIFace* retained_14c;
-    srShader render_flags_150;
+    srMaterialIFace* retained;
+    srShader render_flags;
     srTextureIFace* texture_154;
-    unsigned int vertex_count_158;
-    /* particle_count_180 * 2 - the billboard triangle count, and the length of
+    unsigned int vertex_count;
+    /* particle_count * 2 - the billboard triangle count, and the length of
        texture_frames where consecutive pairs share one frame. */
     unsigned int texture_frame_count;
     /* Per-vertex billboard corners (assert pVertex), texture UVs (pTexCoord)
-       and triangle index triples; srHeap-allocated, vertex_count_158 /
+       and triangle index triples; srHeap-allocated, vertex_count /
        texture_frame_count long. */
     srVector3T<float>* vertex_positions;
-    srVector2T<float>* texcoords_164;
-    srVector3i* triangles_168;
+    srVector2T<float>* texcoords;
+    srVector3i* triangles;
     /* Optional per-vertex arrays handed to the record/pipeline color and
        extra slots (dig-format vec3 colors and vertex extras/normals). Retail
        never allocates them - both stay null in every recovered path. */
-    srVector3T<float>* colors_16c;
-    srVector3T<float>* vertex_extras_170;
-    float* alphas_174;
+    srVector3T<float>* colors;
+    srVector3T<float>* vertex_extras;
+    float* alphas;
     stTextureAnim** texture_frames;
     float* m_pflFlutterAngle; /* 0x17c */
-    unsigned int particle_count_180;
+    unsigned int particle_count;
     /* Both unsigned: 0x004994D0 gates the particle off with the unsigned
-       `emission_limit_184 != 0 && emission_limit_184 <= emission_count` pair. */
-    unsigned int emission_limit_184;
+       `emission_limit != 0 && emission_limit <= emission_count` pair. */
+    unsigned int emission_limit;
     unsigned int emission_count;
     unsigned int active_particle_count;
-    bool release_when_done_190;
+    bool release_when_done;
     bool replace_when_full_191;
     bool persisted;
     unsigned char padding_193;
@@ -92,17 +92,17 @@ public:
     unsigned char emitting;
     bool traversal_enabled;
     unsigned char padding_1a2[2];
-    int bounds_mode_1a4;
-    int has_acceleration_1a8;
-    int expiry_mode_1ac;
+    int bounds_mode;
+    int has_acceleration;
+    int expiry_mode;
     int emission_mode;
     int los_check_enabled;
-    int direction_mode_1b8;
-    int placement_mode_1bc;
-    int flutter_mode_1c0;
+    int direction_mode;
+    int placement_mode;
+    int flutter_mode;
     int camera_relative;
     /* Emission interval; elapsed comparisons use unsigned subtraction. */
-    unsigned int emission_interval_1c8;
+    unsigned int emission_interval;
     /* Lifetime added to each absolute unsigned birth tick. */
     unsigned int lifetime_ms;
     srVector3T<float> minimum_1d0;
@@ -111,32 +111,32 @@ public:
     srVector3T<float> acceleration_1f4;
     float flutter_amplitude;
     /* 0x00498DD0 uses this as an unsigned modulus period. */
-    unsigned int flutter_period_204;
+    unsigned int flutter_period;
     float cone_yaw;
     float cone_pitch;
     float initial_speed;
-    float speed_min_214;
-    float speed_max_218;
+    float speed_min;
+    float speed_max;
     srVector3T<float> minimum_21c;
     srVector3T<float> maximum_228;
-    srVector3T<float> bounds_origin_234;
-    float bounds_radius_240;
+    srVector3T<float> bounds_origin;
+    float bounds_radius;
     /* Added to the camera position when camera_relative selects camera-relative
        placement. */
-    srVector3T<float> camera_offset_244;
+    srVector3T<float> camera_offset;
     unsigned int update_flags;
     /* Index pairs, two per still-active particle, rebuilt whenever
        update_flags carries bit 1. */
-    unsigned long* active_triangles_254;
+    unsigned long* active_triangles;
     /* Last accepted particle-integration tick. */
     unsigned int activated_at;
     /* Emission schedule tick. */
     unsigned int updated_at;
-    short attachment_key_260;
+    short attachment_key;
     unsigned char padding_262[2];
-    int start_frame_264;
-    int end_frame_268;
-    W8MonsterShakeCallback* callback_26c;
+    int start_frame;
+    int end_frame;
+    W8MonsterShakeCallback* callback;
     unsigned int emission_gap;
     unsigned int last_emitted_at;
     float size_scale;

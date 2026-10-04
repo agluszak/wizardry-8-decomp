@@ -70,10 +70,10 @@ void srExtension::releaseAll()
 
 // FUNCTION: SURRENDER 0x10013990
 srExtension::srExtension(const char* name)
-    : module_08(0), previous_0c(0), next_10(firstExt)
+    : module_08(0), previous(0), next_10(firstExt)
 {
     if (firstExt != 0) {
-        firstExt->previous_0c = this;
+        firstExt->previous = this;
     }
     firstExt = this;
     ++count;
@@ -90,11 +90,11 @@ srExtension::srExtension(const char* name)
 // FUNCTION: SURRENDER 0x10013A40
 srExtension::~srExtension()
 {
-    if (previous_0c != 0) {
-        previous_0c->next_10 = next_10;
+    if (previous != 0) {
+        previous->next_10 = next_10;
     }
     if (next_10 != 0) {
-        next_10->previous_0c = previous_0c;
+        next_10->previous = previous;
     }
     if (firstExt == this) {
         firstExt = next_10;

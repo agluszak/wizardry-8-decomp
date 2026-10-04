@@ -446,7 +446,7 @@ private:
     static void* module;
 
     /* srVertexPipe::process snapshots the active processor into its own
-       vector_processor_98 and dispatches vtable slots through it. */
+       vector_processor and dispatches vtable slots through it. */
     friend class srVertexPipe;
     /* srGERD::testBoundingBox dispatches the processor's bounding-box slot
        through vp (IAT 0x005eb7e8). */

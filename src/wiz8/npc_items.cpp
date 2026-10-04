@@ -630,7 +630,7 @@ unsigned char SellItemToNpc(W8NpcState* npc, W8ItemInstance* item, unsigned char
     W8ItemInstance stack;
     int amount;
 
-    if ((g_item_records[item->iItemNo].flags_041 & 2) == 0) {
+    if ((g_item_records[item->iItemNo].flags & 2) == 0) {
         if (NpcAcceptsTradeItemClass(npc, item) != 0) {
             ReplaceOrCreateItem(&stack, item->iItemNo, 0, item->identified, 0);
             stack.stack_count = quantity;
@@ -792,7 +792,7 @@ bool NpcAcceptsTradeItemClass(W8NpcState* npc, W8ItemInstance* item)
 // FUNCTION: WIZ8 0x0055b250
 bool NpcAcceptsTradeItem(W8NpcState* npc, W8ItemInstance* item)
 {
-    if ((g_item_records[item->iItemNo].flags_041 & 2) != 0) {
+    if ((g_item_records[item->iItemNo].flags & 2) != 0) {
         return 0;
     }
     return NpcAcceptsTradeItemClass(npc, item);
@@ -979,7 +979,7 @@ void DecayNpcInventory(W8NpcState* npc)
             entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, item_index));
             if (((entry != 0 && entry->quantity != 0) &&
                  (item_id = entry->item.iItemNo,
-                  (g_item_records[item_id].flags_041 & 0x12) == 0))) {
+                  (g_item_records[item_id].flags & 0x12) == 0))) {
                 if (entry->available_at > 0) {
                     goto next_item;
                 }

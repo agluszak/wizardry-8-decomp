@@ -179,7 +179,7 @@ bool W8ItemRep::ReadFromFile(W8ReadLevelInfo* info, W8Item* item, bool anonymous
         srAssertFail("fSuccess && psrMesh", ITEM_CPP, 0x8c, 0);
     }
     mesh->setName("ItemRep::ReadFromFile");
-    static_cast<stModelInstance*>(mesh)->render_flags_178 |= 8;
+    static_cast<stModelInstance*>(mesh)->render_flags |= 8;
     SetModelInstanceChainExclusionMask(mesh, 4);
     info->bitmap_folder = bitmap_folder;
     flags |= 0x40;
@@ -201,7 +201,7 @@ W8Item::W8Item()
     trigger_018 = 0;
     kind_004 = 2;
     m_pRep = new W8ItemRep;
-    id_008 = AllocateGrObjectId();
+    id = AllocateGrObjectId();
     countdown_01c = SetCountdownClock(0);
 }
 
@@ -381,10 +381,10 @@ void W8Item::SetHighlight(bool enabled)
             alpha = 1.0f;
         }
     }
-    rep->highlight_colour_04c.x = 0.0f;
-    rep->highlight_colour_04c.y = green;
-    rep->highlight_colour_04c.z = blue;
-    rep->highlight_colour_04c.w = alpha;
+    rep->highlight_colour.x = 0.0f;
+    rep->highlight_colour.y = green;
+    rep->highlight_colour.z = blue;
+    rep->highlight_colour.w = alpha;
 }
 
 // FUNCTION: WIZ8 0x0049FF40

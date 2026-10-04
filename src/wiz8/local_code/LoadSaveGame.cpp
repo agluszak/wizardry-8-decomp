@@ -147,7 +147,7 @@ static unsigned int g_save_filetime_xor_high = 0xe77c28c1;
    vendored SGP FileMan.h already on this target's include path, so they are not
    restated here. */
 
-/* 0x0068517C selects where characters live, and flags_2367 is a per-slot byte
+/* 0x0068517C selects where characters live, and flags is a per-slot byte
    consulted only when it is set. The failure notice comes out of the shared
    notice array, and 0x00683678 is passed alongside; neither is established
    beyond that, so both keep positional names. */
@@ -167,7 +167,7 @@ void BuildCharacterFilePath(char* destination, const char* filename, int slot)
         sprintf(destination, "%s\\%s", directory, filename);
         return;
     }
-    if (slot != -1 && !g_status.flags_2367[slot]) {
+    if (slot != -1 && !g_status.flags[slot]) {
         sprintf(destination, "%s\\%s", "Saves\\NPCs", filename);
         return;
     }
@@ -183,7 +183,7 @@ void BuildCharacterPath(char* destination, const wchar_t* name, int slot)
     sprintf(filename, "%ls.%s", name, "CHR");
     if (!g_status.game_started) {
         strcpy(directory, slot == -1 ? "Saves\\Characters" : "Saves\\NPCs");
-    } else if (slot == -1 || g_status.flags_2367[slot]) {
+    } else if (slot == -1 || g_status.flags[slot]) {
         strcpy(destination, filename);
         return;
     } else {
@@ -211,7 +211,7 @@ unsigned char LoadCharacter(const char* name, W8Character* character, int slot, 
     int handle;
 
     if (g_status.game_started) {
-        if (slot != -1 && g_status.flags_2367[slot] == 0) {
+        if (slot != -1 && g_status.flags[slot] == 0) {
             sprintf(path, "%s\\%s", "Saves\\NPCs", name);
         } else {
             strcpy(path, name);
@@ -221,7 +221,7 @@ unsigned char LoadCharacter(const char* name, W8Character* character, int slot, 
         sprintf(path, "%s\\%s", directory, name);
     }
 
-    if (g_status.game_started && (slot == -1 || g_status.flags_2367[slot] != 0)) {
+    if (g_status.game_started && (slot == -1 || g_status.flags[slot] != 0)) {
         loaded = LoadCharacterFromCurrentGame(path, character) != 0;
     } else {
         handle = FileOpen(path, 1, 0);
@@ -295,7 +295,7 @@ unsigned char EnumerateSaveSlots(W8GrowableVector<W8SaveSlot*>* slots)
                             AllocateStatusBuffers(&status.buffers);
                             LoadGameStatus(&chunks, &status);
                             FreeStatusBuffers(&status.buffers);
-                            slot->dev_flagged_263c = status.dev_flagged_49c1;
+                            slot->dev_flagged = status.dev_flagged;
                             break;
                         case 0x52455647:
                             chunks.Read(&slot->version_major, 4, 0);
@@ -311,7 +311,7 @@ unsigned char EnumerateSaveSlots(W8GrowableVector<W8SaveSlot*>* slots)
                     chunks.ReleaseCurrentChunk();
                 }
                 chunks.Close();
-                if (status.flag_49bd == 0 && status.endgame_started == 0) {
+                if (status.flag == 0 && status.endgame_started == 0) {
                     char* extension = strrchr(find_data.cFileName, '.');
                     if (extension != 0) {
                         *extension = 0;
@@ -421,7 +421,7 @@ bool SaveGame(const char* name, W8SaveScreenshot* screenshot)
     for (region = 0; region != 4; ++region) {
         for (index = 0; index < g_status.text_box_lines_shown[region]; ++index) {
             g_message_storage[region][index].saved_remaining_ms =
-                ClockIsTicking(g_message_storage[region][index].clock_08);
+                ClockIsTicking(g_message_storage[region][index].clock);
         }
     }
     gXStatus.gameplay_timer->Restart();
@@ -564,21 +564,21 @@ unsigned char LoadStatusHeader(W8Chunk* chunk)
     if (header.version != 2.0f) {
         return 0;
     }
-    g_status.next_group_id_234a = header.next_group_id;
-    g_status.next_monster_location_id_234e = header.next_monster_location_id;
-    g_status.next_world_item_id_2352 = header.next_world_item_id;
-    g_status.next_trigger_id_2356 = header.next_trigger_id;
+    g_status.next_group_id = header.next_group_id;
+    g_status.next_monster_location_id = header.next_monster_location_id;
+    g_status.next_world_item_id = header.next_world_item_id;
+    g_status.next_trigger_id = header.next_trigger_id;
     if (header.next_group_id == 0) {
-        g_status.next_group_id_234a = 1;
+        g_status.next_group_id = 1;
     }
     if (header.next_monster_location_id == 0) {
-        g_status.next_monster_location_id_234e = 1;
+        g_status.next_monster_location_id = 1;
     }
     if (header.next_world_item_id == 0) {
-        g_status.next_world_item_id_2352 = 1;
+        g_status.next_world_item_id = 1;
     }
     if (header.next_trigger_id == 0) {
-        g_status.next_trigger_id_2356 = 1;
+        g_status.next_trigger_id = 1;
     }
     memcpy(g_status.status_header_prefix, header.status_block, sizeof(header.status_block));
     return 1;
@@ -637,10 +637,10 @@ unsigned char SaveStatusHeader(W8Chunk* chunks)
     chunks->OpenChunk(0x54415453, 0); /* STAT */
     memset(&header, 0, sizeof(header));
     header.version = 2.0f;
-    header.next_group_id = g_status.next_group_id_234a;
-    header.next_monster_location_id = g_status.next_monster_location_id_234e;
-    header.next_world_item_id = g_status.next_world_item_id_2352;
-    header.next_trigger_id = g_status.next_trigger_id_2356;
+    header.next_group_id = g_status.next_group_id;
+    header.next_monster_location_id = g_status.next_monster_location_id;
+    header.next_world_item_id = g_status.next_world_item_id;
+    header.next_trigger_id = g_status.next_trigger_id;
     memcpy(header.status_block, g_status.status_header_prefix, sizeof(header.status_block));
     if (!chunks->Write(&header, sizeof(header), &count)) {
         chunks->ReleaseCurrentChunk();
@@ -829,27 +829,27 @@ static unsigned char SaveMonsterRecord(W8Chunk* chunks, unsigned int index)
         MonsterGetLocation(info->p3D, &location);
         location.y = SettlePositionToGround(&location, 0);
         info->position_17 = location;
-        info->derived_23 = MonsterGetAngleD4(info->p3D);
+        info->derived = MonsterGetAngleD4(info->p3D);
     }
     record_size = sizeof(*info);
     chunks->Write(&record_size, 4, 0);
     chunks->Write(info, record_size, 0);
-    if (info->p3D->script_238 == 0) {
+    if (info->p3D->script == 0) {
         chunks->Write(&has_script, 1, 0);
     } else {
         has_script = 1;
         chunks->Write(&has_script, 1, 0);
         memset(script_name, 0, sizeof(script_name));
-        strcpy(script_name, info->p3D->script_238 != 0 ? info->p3D->script_238->getName() : 0);
-        script_wait = info->p3D->script_wait_240;
-        script_line = info->p3D->script_line_23c;
+        strcpy(script_name, info->p3D->script != 0 ? info->p3D->script->getName() : 0);
+        script_wait = info->p3D->script_wait;
+        script_line = info->p3D->script_line;
         chunks->Write(script_name, 0x40, 0);
         chunks->Write(&script_wait, 4, 0);
         chunks->Write(&script_line, 4, 0);
-        queue_count = info->p3D->script_conditions_244.GetCount();
+        queue_count = info->p3D->script_conditions.GetCount();
         chunks->Write(&queue_count, 4, 0);
         for (i = 0; i < queue_count; ++i) {
-            value = *info->p3D->script_conditions_244.GetAt(i);
+            value = *info->p3D->script_conditions.GetAt(i);
             chunks->Write(&value, 1, 0);
         }
     }
@@ -871,10 +871,10 @@ static unsigned char SaveMonsterRecord(W8Chunk* chunks, unsigned int index)
     chunks->Write(&patrol_value, 4, 0);
     value = monster->patrol_index;
     chunks->Write(&value, 1, 0);
-    point_count = monster->vector_29c.GetCount();
+    point_count = monster->vector.GetCount();
     chunks->Write(&point_count, 4, 0);
     for (i = 0; i < point_count; ++i) {
-        point = *monster->vector_29c.GetAt(i);
+        point = *monster->vector.GetAt(i);
         for (component = 0; component < 3; ++component) {
             chunks->Write(&point.x + component, 4, 0);
         }
@@ -1269,13 +1269,13 @@ unsigned char LoadMonster(W8Chunk* chunk)
         }
     }
     for (index = 0; index < 12; ++index) {
-        if (monster_info->effect_slots_10f[index].duration_0d != 0) {
+        if (monster_info->effect_slots[index].duration != 0) {
             SetMonsterSpellIcon(
-                monster, g_effect_visual_table[monster_info->effect_slots_10f[index].effect_id][1],
+                monster, g_effect_visual_table[monster_info->effect_slots[index].effect_id][1],
                 1);
         }
     }
-    if (monster_info->effect_2de > 0) {
+    if (monster_info->effect > 0) {
         SetMonsterSpellIcon(monster, SPELL_ICON_CHARMED, 1);
     }
     if (monster_info->summoned != 0) {
@@ -1305,7 +1305,7 @@ unsigned char LoadMonster(W8Chunk* chunk)
                 chunk->Read(&read_point.x + component, 4, 0);
             }
             point = read_point;
-            monster->vector_29c.Add(point);
+            monster->vector.Add(point);
         }
         if (record_version >= 4) {
             for (component = 0; component < 3; ++component) {
@@ -1329,10 +1329,10 @@ unsigned char LoadMonster(W8Chunk* chunk)
     if (script_name[0] != '\0') {
         monster_info->ai_mode |= 0x10;
         monster->SetScript(script_name, 0);
-        monster->script_wait_240 = script_wait;
-        monster->script_line_23c = script_line;
+        monster->script_wait = script_wait;
+        monster->script_line = script_line;
         while (script_conditions.GetCount() != 0) {
-            monster->script_conditions_244.Add(*script_conditions.GetAt(0));
+            monster->script_conditions.Add(*script_conditions.GetAt(0));
             script_conditions.RemoveAt(0);
         }
     }
@@ -1547,7 +1547,7 @@ unsigned char SaveCharacter(W8Character* character, int slot, bool report_failur
     if (g_status.game_started == 0) {
         strcpy(directory, slot != -1 ? "Saves\\NPCs" : "Saves\\Characters");
         sprintf(path, "%s\\%s", directory, file_name);
-    } else if (slot == -1 || g_status.flags_2367[slot] != 0) {
+    } else if (slot == -1 || g_status.flags[slot] != 0) {
         strcpy(path, file_name);
     } else {
         sprintf(path, "%s\\%s", "Saves\\NPCs", file_name);
@@ -1900,7 +1900,7 @@ void SaveMonsterControlSpellEffect(W8Chunk* chunks)
     chunks->Write(&lure->target, sizeof(lure->target), 0);
     chunks->Write(&lure->OrigSource, sizeof(lure->OrigSource), 0);
     chunks->Write(&lure->OrigTarget, sizeof(lure->OrigTarget), 0);
-    chunks->Write(&lure->recast_120, 1, 0);
+    chunks->Write(&lure->recast, 1, 0);
     chunks->Write(&lure->sustained, 1, 0);
     chunks->Write(&lure->missiles_pending, 1, 0);
     chunks->Write(&lure->targets_resolved, 1, 0);
@@ -2353,7 +2353,7 @@ unsigned char LoadGame(const char* slot_name)
         /* 0x00512BA6 tests the member unsigned, so this loop has its own
            unsigned counter rather than the function's signed `index`. */
         for (unsigned int line = 0; line < g_status.text_box_lines_shown[box]; ++line) {
-            g_message_storage[box][line].clock_08 =
+            g_message_storage[box][line].clock =
                 SetCountdownClock(g_message_storage[box][line].saved_remaining_ms);
         }
     }
@@ -2387,7 +2387,7 @@ void LoadMonsterControlSpellEffect(W8Chunk* chunks)
     chunks->Read(&effect->target, 0x20, 0);
     chunks->Read(&effect->OrigSource, 0x34, 0);
     chunks->Read(&effect->OrigTarget, 0x20, 0);
-    chunks->Read(&effect->recast_120, 1, 0);
+    chunks->Read(&effect->recast, 1, 0);
     chunks->Read(&effect->sustained, 1, 0);
     chunks->Read(&effect->missiles_pending, 1, 0);
     chunks->Read(&effect->targets_resolved, 1, 0);

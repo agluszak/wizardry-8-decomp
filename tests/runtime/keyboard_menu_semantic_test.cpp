@@ -238,7 +238,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     saved_refresh_combat = g_level_block->refresh_combat_panel;
     saved_refresh_party = g_level_block->refresh_party_panel;
     saved_pick_changed = g_level_block->pick_changed;
-    saved_clock_214 = g_level_block->clock_214;
+    saved_clock_214 = g_level_block->clock;
 
     g_status.buffers.XChar[1].fOccupied = 1;
     g_status.buffers.Char[1].highest_condition = 0;
@@ -262,7 +262,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
        while the recorded-spell entry settles it, both through the level
        block's selection fields. */
     saved_selection_kind = g_level_block->selection_kind;
-    saved_value = g_level_block->value_2f4;
+    saved_value = g_level_block->pending_action;
     saved_settled = g_level_block->selection_settled;
 
     MapSubMenuSelection(W8_SUBMENU_ATTACK, 1);
@@ -285,7 +285,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     saved_condition8 = g_status.buffers.Char[0].uiCondition[W8_CONDITION_SPELLCASTING_BLOCKED];
     saved_item_origin = g_status.buffers.XChar[0].item_origin;
     saved_item_slot = g_status.buffers.XChar[0].item_slot;
-    saved_item_id = g_status.buffers.XChar[0].item_id_0c9;
+    saved_item_id = g_status.buffers.XChar[0].item_id;
     saved_item_target_char = g_status.buffers.XChar[0].item_target.iChar;
     saved_item_use_ptr = g_status.buffers.XChar[0].item_detail.item_use.item;
     saved_target_type = g_spell_records[spell_id].target_type;
@@ -302,7 +302,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     g_status.buffers.Char[0].uiCondition[W8_CONDITION_SPELLCASTING_BLOCKED] = 0;
     g_status.buffers.XChar[0].item_origin = W8_ITEM_ORIGIN_BACKPACK;
     g_status.buffers.XChar[0].item_slot = 0;
-    g_status.buffers.XChar[0].item_id_0c9 = item_id;
+    g_status.buffers.XChar[0].item_id = item_id;
     g_status.buffers.XChar[0].item_target.iChar = 0;
     g_item_records[item_id].profession_mask = 0xffff;
     g_item_records[item_id].race_mask = 0xffffffff;
@@ -312,7 +312,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     g_item_records[item_id].skill_requirements[0].stat_id = 0xff;
     g_item_records[item_id].skill_requirements[1].stat_id = 0xff;
     g_item_records[item_id].equip_class = 0x10;
-    g_item_records[item_id].flags_041 = 0;
+    g_item_records[item_id].flags = 0;
     g_item_records[item_id].category = 2;
     g_item_records[item_id].spell_id = spell_id;
     g_item_records[item_id].quantity_kind = 1;
@@ -336,7 +336,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     g_status.buffers.Char[0].uiCondition[W8_CONDITION_SPELLCASTING_BLOCKED] = saved_condition8;
     g_status.buffers.XChar[0].item_origin = saved_item_origin;
     g_status.buffers.XChar[0].item_slot = saved_item_slot;
-    g_status.buffers.XChar[0].item_id_0c9 = saved_item_id;
+    g_status.buffers.XChar[0].item_id = saved_item_id;
     g_status.buffers.XChar[0].item_target.iChar = saved_item_target_char;
     g_status.buffers.XChar[0].item_detail.item_use.item = saved_item_use_ptr;
     g_spell_records[spell_id].target_type = saved_target_type;
@@ -345,7 +345,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     gXStatus.fTrapInteract = saved_trap_interact;
 
     g_level_block->selection_kind = saved_selection_kind;
-    g_level_block->value_2f4 = saved_value;
+    g_level_block->pending_action = saved_value;
     g_level_block->selection_settled = saved_settled;
 
     g_status.buffers.XChar[1].fOccupied = saved_occupied1;
@@ -359,7 +359,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     g_level_block->refresh_combat_panel = saved_refresh_combat;
     g_level_block->refresh_party_panel = saved_refresh_party;
     g_level_block->pick_changed = saved_pick_changed;
-    g_level_block->clock_214 = saved_clock_214;
+    g_level_block->clock = saved_clock_214;
 
     gXStatus.monster_manager_entries[0].keyboard_menu_open = saved_entry_flag;
     g_level_block->keyboard_menu_open = saved_keyboard_open;

@@ -91,9 +91,9 @@ private:
 
     struct Block {
         void* allocation_00;
-        unsigned long allocation_size_04;
-        Block* next_08;
-        Block* previous_0c;
+        unsigned long alloc_size;
+        Block* next;
+        Block* previous;
         unsigned long largest_free_size;
         Chunk* largest_free_block;
         unsigned long guard_18;
@@ -108,13 +108,13 @@ private:
     struct Chunk {
         Block* owner_00;
         unsigned long size_04;
-        Chunk* previous_08;
+        Chunk* previous;
         Chunk* next_0c;
         Chunk* free_previous;
         Chunk* free_next;
         unsigned long free_18;
         char unused_1c[3];
-        char tag_1f;
+        char tag;
     };
 
     static_assert(sizeof(Chunk) == 0x20, "srHeap_Chunk_must_be_0x20");
@@ -130,20 +130,20 @@ private:
     void* allocateSystem(unsigned long size);
     void freeSystem(void* allocation);
 
-    void* small_free_lists_00[32];
+    void* small_free_lists[32];
     unsigned long current_block_offset;
     Block* current_block;
-    Block* block_list_88;
-    Block* block_list_8c;
+    Block* small_blocks;
+    Block* partial_blocks;
     Block* block_90;
-    Block* block_list_94;
-    Block* block_list_98;
+    Block* medium_blocks;
+    Block* large_blocks;
     Block* cached_block;
     unsigned long active_block_count;
-    unsigned long block_size_a4;
+    unsigned long block_size;
     unsigned long block_sequence;
     unsigned long system_block_count_ac;
-    srCriticalSection* critical_section_b0;
+    srCriticalSection* critical_section;
 };
 
 static_assert(sizeof(srHeap) == 0xb4, "srHeap_must_be_0xb4");

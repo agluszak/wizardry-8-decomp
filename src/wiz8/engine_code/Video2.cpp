@@ -2623,7 +2623,7 @@ void PurgeInactiveSceneInstances(srScene* scene)
         if (class_id == 0x10004) {
             /* Retail also applies the 2D byte test to 3D highlight alpha.
                This representation read does not establish a 3D state member. */
-            memcpy(&display_state, &static_cast<stModelInstance*>(node)->highlight_colour_164.w,
+            memcpy(&display_state, &static_cast<stModelInstance*>(node)->highlight_colour.w,
                    sizeof(display_state));
         } else if (class_id == 0x10005) {
             display_state = static_cast<stModelInstance2D*>(node)->displayState();
@@ -3136,7 +3136,7 @@ stModelInstance2D* CreateColoredPolygonSprite(int width, int height, const srVec
     material->setSpecular(zero);
     material->parms.shininess = 1.0f;
     material->parms.diffuse.w = 1.0f;
-    material->dirty_74 = 1;
+    material->dirty = 1;
     model->setMaterial(material, 0, static_cast<srMeshModel::e_side>(0));
 
     stModelInstance2D* instance = new stModelInstance2D(g_scene_user);
@@ -3739,7 +3739,7 @@ srNode* MakePosterQuad(srTextureIFace* texture, float width, float height, bool 
     if (instance != 0) {
         instance->setModel(model);
     }
-    instance->render_flags_178 |= 0x10;
+    instance->render_flags |= 0x10;
     return instance;
 }
 

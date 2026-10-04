@@ -35,7 +35,7 @@ private:
     srPlugin* plugin_00;
     char* name_04;
     HMODULE module_08;
-    srExtension* previous_0c;
+    srExtension* previous;
     srExtension* next_10;
 };
 

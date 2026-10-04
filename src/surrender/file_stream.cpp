@@ -21,7 +21,7 @@
 srFileManager::Path::Path(const char* name)
 {
     next_04 = 0;
-    previous_08 = 0;
+    previous = 0;
     if (name != 0 && *name != '\0') {
         name_00 = new char[strlen(name) + 1];
         strcpy(name_00, name);
@@ -50,7 +50,7 @@ srFileManager::Path* srFileManager::Path::getNext() const
     return next_04;
 }
 
-/* Retail 0x100163A0 copies name_00, next_04 and previous_08 memberwise,
+/* Retail 0x100163A0 copies name_00, next_04 and previous memberwise,
    preserving the pointer aliasing even though Path owns name_00. */
 
 // FUNCTION: SURRENDER 0x1002E0B0
@@ -75,9 +75,9 @@ void srFileManager::addPath(const char* path)
         }
         Path* new_node = new Path(local_path);
         new_node->next_04 = first_path;
-        new_node->previous_08 = 0;
+        new_node->previous = 0;
         if (first_path != 0) {
-            first_path->previous_08 = new_node;
+            first_path->previous = new_node;
         }
         first_path = new_node;
     }
@@ -96,10 +96,10 @@ void srFileManager::removePath(const char* path)
         while (node != 0) {
             if (strcmp(local_path, node->getName()) == 0) {
                 if (node->next_04 != 0) {
-                    node->next_04->previous_08 = node->previous_08;
+                    node->next_04->previous = node->previous;
                 }
-                if (node->previous_08 != 0) {
-                    node->previous_08->next_04 = node->next_04;
+                if (node->previous != 0) {
+                    node->previous->next_04 = node->next_04;
                 }
                 if (node == first_path) {
                     first_path = node->next_04;
@@ -222,37 +222,37 @@ public:
         stream_04 = stream;
         buffer_08 = buffer;
         size_0c = size;
-        critical_section_14 = new srCriticalSection;
+        critical_section = new srCriticalSection;
         status_10 = 0;
     }
 
     // FUNCTION: SURRENDER 0x1002EC70
     virtual ~ReadJob() override
     {
-        if (critical_section_14 != 0) {
-            critical_section_14->getAccess();
-            critical_section_14->releaseAccess();
-            delete critical_section_14;
+        if (critical_section != 0) {
+            critical_section->getAccess();
+            critical_section->releaseAccess();
+            delete critical_section;
         }
     }
 
     // FUNCTION: SURRENDER 0x1002ECD0
     virtual void execute() override
     {
-        critical_section_14->getAccess();
+        critical_section->getAccess();
         if (buffer_08 != 0 && size_0c != 0) {
             if (stream_04->good()) {
                 stream_04->read(buffer_08, size_0c);
             }
         }
         status_10 = 2 - stream_04->good();
-        critical_section_14->releaseAccess();
+        critical_section->releaseAccess();
     }
 
     // FUNCTION: SURRENDER 0x1002ED70
     virtual void cancel() override
     {
-        srCriticalSection* lock = critical_section_14;
+        srCriticalSection* lock = critical_section;
         lock->getAccess();
         status_10 = 2;
         lock->releaseAccess();
@@ -265,13 +265,13 @@ private:
     void* buffer_08;
     unsigned long size_0c;
     unsigned long status_10;
-    srCriticalSection* critical_section_14;
+    srCriticalSection* critical_section;
 };
 
 // FUNCTION: SURRENDER 0x1002ECB0
 unsigned long ReadJob::getStatus()
 {
-    srCriticalSection* lock = critical_section_14;
+    srCriticalSection* lock = critical_section;
     lock->getAccess();
     unsigned long status = status_10;
     lock->releaseAccess();

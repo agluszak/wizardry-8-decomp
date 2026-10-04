@@ -33,7 +33,7 @@ void srStatisticsManager::dump(std::ostream& stream, const Statistics& statistic
         stream << "Meshes traversed:               "
                << statistics.meshes_traversed / statistics.elapsed_time << '\n';
         stream << "Meshes submitted:               "
-               << statistics.meshes_submitted_0c / statistics.elapsed_time << '\n';
+               << statistics.meshes_submitted / statistics.elapsed_time << '\n';
         stream << "Triangles submitted:            "
                << statistics.triangles_submitted / statistics.elapsed_time << '\n';
         stream << "Triangles after culling:        "
@@ -58,14 +58,14 @@ void srStatisticsManager::dump(std::ostream& stream, const Statistics& statistic
         stream << "Material processing stalls:     "
                << statistics.material_processing_stalls / statistics.elapsed_time
                << '\n';
-        if (statistics.meshes_submitted_0c != 0) {
+        if (statistics.meshes_submitted != 0) {
             stream << "Avg. triangles per mesh:        "
                    << statistics.triangles_submitted /
-                          (double)statistics.meshes_submitted_0c
+                          (double)statistics.meshes_submitted
                    << '\n';
             stream << "Avg. vertices per mesh:         "
                    << statistics.vertices_submitted /
-                          (double)statistics.meshes_submitted_0c
+                          (double)statistics.meshes_submitted
                    << '\n';
         }
         if (statistics.vertices_after_culling != 0) {

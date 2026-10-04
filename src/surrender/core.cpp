@@ -73,8 +73,8 @@ int __cdecl srInit()
         srCore.setFilter(0);
         srCore.palette_34 = new srPalette(0, 0x100);
         srCore.palette_34->setName("SurRender default palette");
-        srCore.root_node_164 = new srScene(0);
-        srCore.root_node_164->setName("SurRender root node");
+        srCore.root_node = new srScene(0);
+        srCore.root_node->setName("SurRender root node");
         srCore.material_170 = new srMaterial;
         srCore.material_170->setName("SurRender default material");
         srDebugPrintf(0xfe, "srInit() -- initializing IO managers\n");
@@ -155,8 +155,8 @@ int __cdecl srExit()
         srCore.scheduler_00 = 0;
         srGERD::releaseAll();
         srCachedExponentTable::freeAll();
-        srCore.root_node_164->release();
-        srCore.root_node_164 = 0;
+        srCore.root_node->release();
+        srCore.root_node = 0;
         srCore.texture_174->release();
         srCore.texture_174 = 0;
         srCore.surface_0c->release();
@@ -279,7 +279,7 @@ srIStreamOpener* srCore::getIStreamOpener() const
 // FUNCTION: SURRENDER 0x10015B00
 srNode* srCore::getRootNode() const
 {
-    return root_node_164;
+    return root_node;
 }
 
 // FUNCTION: SURRENDER 0x10015B20
@@ -319,7 +319,7 @@ srCore::srCore()
     model_io_manager = 0;
     hierarchy_io_manager = 0;
     filter_1c = 0;
-    root_node_164 = 0;
+    root_node = 0;
     memory_allocator = 0;
     default_file_manager = 0;
     file_manager = 0;
@@ -343,7 +343,7 @@ void srCore::reset()
     model_io_manager = 0;
     hierarchy_io_manager = 0;
     filter_1c = 0;
-    root_node_164 = 0;
+    root_node = 0;
     memory_allocator = 0;
     default_file_manager = 0;
     file_manager = 0;

@@ -36,7 +36,7 @@ public:
        count/allocate/fill pass. */
     struct VertexEntry {
         long count_00;
-        long fill_04;
+        long fill;
         unsigned long* triangles_08;
     };
 
@@ -50,15 +50,15 @@ public:
     };
 
     /* Per triangle: its edge list plus the assigned/blocked group masks;
-       groups_10 becomes the triangle's new flags_360. */
+       groups becomes the triangle's new flags_360. */
     struct TriangleEntry {
-        TriangleEntry() : blocked_0c(0), groups_10(0) {}
+        TriangleEntry() : blocked(0), groups(0) {}
 
         long count_00;
-        unsigned long* edges_04;
-        long fill_08;
-        unsigned long blocked_0c;
-        unsigned long groups_10;
+        unsigned long* edges;
+        long fill;
+        unsigned long blocked;
+        unsigned long groups;
     };
 
     int isSmooth(unsigned long first, unsigned long second, double cosine, int smooth);
@@ -71,7 +71,7 @@ public:
     long vertex_count_0c;
     unsigned long edge_count;
     VertexEntry* vertices_14;
-    Edge* edges_18;
+    Edge* edges;
     TriangleEntry* entries_1c;
 };
 
@@ -84,9 +84,9 @@ AutoSmoother::AutoSmoother(srModeler::Triangle* triangles, unsigned long triangl
     unsigned long vertex;
     /* The adjacency table is indexed by the representative shade index, not
        the unique ordinal: vertices duplicated across triangles share one. */
-    for (index = 0; index < hash_08->unique_count_1008; ++index) {
-        if (vertex_count_0c < hash_08->entries_00[index].shade_index_04) {
-            vertex_count_0c = hash_08->entries_00[index].shade_index_04;
+    for (index = 0; index < hash_08->unique_count; ++index) {
+        if (vertex_count_0c < hash_08->entries_00[index].shade_index) {
+            vertex_count_0c = hash_08->entries_00[index].shade_index;
         }
     }
     ++vertex_count_0c;
@@ -97,13 +97,13 @@ AutoSmoother::AutoSmoother(srModeler::Triangle* triangles, unsigned long triangl
 #pragma clang diagnostic ignored "-Wsign-compare"
     for (vertex = 0; vertex < vertex_count_0c; ++vertex) {
         vertices_14[vertex].count_00 = 0;
-        vertices_14[vertex].fill_04 = 0;
+        vertices_14[vertex].fill = 0;
     }
     srModeler::VertexHash::Entry** entries = hash_08->table_1004;
     for (index = 0; index < triangle_count_04; ++index) {
-        ++vertices_14[entries[0]->shade_index_04].count_00;
-        ++vertices_14[entries[1]->shade_index_04].count_00;
-        ++vertices_14[entries[2]->shade_index_04].count_00;
+        ++vertices_14[entries[0]->shade_index].count_00;
+        ++vertices_14[entries[1]->shade_index].count_00;
+        ++vertices_14[entries[2]->shade_index].count_00;
         entries += 3;
     }
     for (vertex = 0; vertex < vertex_count_0c; ++vertex) {
@@ -111,19 +111,19 @@ AutoSmoother::AutoSmoother(srModeler::Triangle* triangles, unsigned long triangl
     }
     entries = hash_08->table_1004;
     for (index = 0; index < triangle_count_04; ++index) {
-        VertexEntry* group = &vertices_14[entries[0]->shade_index_04];
-        group->triangles_08[group->fill_04++] = index;
-        group = &vertices_14[entries[1]->shade_index_04];
-        group->triangles_08[group->fill_04++] = index;
-        group = &vertices_14[entries[2]->shade_index_04];
-        group->triangles_08[group->fill_04++] = index;
+        VertexEntry* group = &vertices_14[entries[0]->shade_index];
+        group->triangles_08[group->fill++] = index;
+        group = &vertices_14[entries[1]->shade_index];
+        group->triangles_08[group->fill++] = index;
+        group = &vertices_14[entries[2]->shade_index];
+        group->triangles_08[group->fill++] = index;
         entries += 3;
     }
     edge_count = 0;
     for (vertex = 0; vertex < vertex_count_0c; ++vertex) {
         edge_count += (vertices_14[vertex].count_00 - 1) * vertices_14[vertex].count_00 / 2;
     }
-    edges_18 = new Edge[edge_count];
+    edges = new Edge[edge_count];
     double cosine = cos(threshold);
     unsigned long edge = 0;
 #pragma clang diagnostic push
@@ -135,12 +135,12 @@ AutoSmoother::AutoSmoother(srModeler::Triangle* triangles, unsigned long triangl
     for (vertex = 0; vertex < vertex_count_0c; ++vertex) {
         for (long i = 0; i < vertices_14[vertex].count_00 - 1; ++i) {
             for (long j = i + 1; j < vertices_14[vertex].count_00; ++j) {
-                edges_18[edge].group_04 = -1;
-                edges_18[edge].first_08 = vertices_14[vertex].triangles_08[i];
-                edges_18[edge].second_0c = vertices_14[vertex].triangles_08[j];
-                edges_18[edge].smooth_00 =
-                    isSmooth(edges_18[edge].first_08, edges_18[edge].second_0c, cosine, smooth);
-                if (edges_18[edge].smooth_00 != 0) {
+                edges[edge].group_04 = -1;
+                edges[edge].first_08 = vertices_14[vertex].triangles_08[i];
+                edges[edge].second_0c = vertices_14[vertex].triangles_08[j];
+                edges[edge].smooth_00 =
+                    isSmooth(edges[edge].first_08, edges[edge].second_0c, cosine, smooth);
+                if (edges[edge].smooth_00 != 0) {
                     ++smooth_edges;
                 }
                 ++edge;
@@ -153,20 +153,20 @@ AutoSmoother::AutoSmoother(srModeler::Triangle* triangles, unsigned long triangl
         entries_1c[index].count_00 = 0;
     }
     for (edge = 0; edge < edge_count; ++edge) {
-        ++entries_1c[edges_18[edge].first_08].count_00;
-        ++entries_1c[edges_18[edge].second_0c].count_00;
+        ++entries_1c[edges[edge].first_08].count_00;
+        ++entries_1c[edges[edge].second_0c].count_00;
     }
     for (index = 0; index < triangle_count_04; ++index) {
-        entries_1c[index].groups_10 = 0;
-        entries_1c[index].blocked_0c = 0;
-        entries_1c[index].edges_04 = new unsigned long[entries_1c[index].count_00];
-        entries_1c[index].fill_08 = 0;
+        entries_1c[index].groups = 0;
+        entries_1c[index].blocked = 0;
+        entries_1c[index].edges = new unsigned long[entries_1c[index].count_00];
+        entries_1c[index].fill = 0;
     }
     for (edge = 0; edge < edge_count; ++edge) {
-        TriangleEntry* first = &entries_1c[edges_18[edge].first_08];
-        first->edges_04[first->fill_08++] = edge;
-        TriangleEntry* second = &entries_1c[edges_18[edge].second_0c];
-        second->edges_04[second->fill_08++] = edge;
+        TriangleEntry* first = &entries_1c[edges[edge].first_08];
+        first->edges[first->fill++] = edge;
+        TriangleEntry* second = &entries_1c[edges[edge].second_0c];
+        second->edges[second->fill++] = edge;
     }
 }
 
@@ -174,10 +174,10 @@ AutoSmoother::AutoSmoother(srModeler::Triangle* triangles, unsigned long triangl
 AutoSmoother::~AutoSmoother()
 {
     for (unsigned long index = 0; index < triangle_count_04; ++index) {
-        delete[] entries_1c[index].edges_04;
+        delete[] entries_1c[index].edges;
     }
     delete[] entries_1c;
-    delete[] edges_18;
+    delete[] edges;
     /* Retail walks the vertex table with an unsigned counter against the
        signed vertex_count_0c (JBE); the mixed-sign spelling is part of the
        body. */
@@ -229,23 +229,23 @@ void AutoSmoother::markEdge(Edge* edge, long group)
 {
     edge->group_04 = group;
     unsigned long bit = 1 << (group & 0x1f);
-    entries_1c[edge->first_08].groups_10 |= bit;
-    entries_1c[edge->second_0c].groups_10 |= bit;
+    entries_1c[edge->first_08].groups |= bit;
+    entries_1c[edge->second_0c].groups |= bit;
     long index;
     for (index = 0; index < entries_1c[edge->first_08].count_00; ++index) {
-        Edge* other = &edges_18[entries_1c[edge->first_08].edges_04[index]];
+        Edge* other = &edges[entries_1c[edge->first_08].edges[index]];
         if (other->smooth_00 == 0) {
             unsigned long triangle =
                 other->first_08 == edge->first_08 ? other->second_0c : other->first_08;
-            entries_1c[triangle].blocked_0c |= bit;
+            entries_1c[triangle].blocked |= bit;
         }
     }
     for (index = 0; index < entries_1c[edge->second_0c].count_00; ++index) {
-        Edge* other = &edges_18[entries_1c[edge->second_0c].edges_04[index]];
+        Edge* other = &edges[entries_1c[edge->second_0c].edges[index]];
         if (other->smooth_00 == 0) {
             unsigned long triangle =
                 other->first_08 == edge->second_0c ? other->second_0c : other->first_08;
-            entries_1c[triangle].blocked_0c |= bit;
+            entries_1c[triangle].blocked |= bit;
         }
     }
 }
@@ -256,27 +256,27 @@ void AutoSmoother::assignGroups(long group)
     if (group >= 0x1f) {
         srErr << "Warning: srModeler::autoSmooth() ran out of groups." << std::endl;
         for (unsigned long index = 0; index < edge_count; ++index) {
-            if (edges_18[index].group_04 == -1) {
-                entries_1c[edges_18[index].first_08].groups_10 |= 0x80000000;
-                entries_1c[edges_18[index].second_0c].groups_10 |= 0x80000000;
-                edges_18[index].group_04 = 0x1f;
+            if (edges[index].group_04 == -1) {
+                entries_1c[edges[index].first_08].groups |= 0x80000000;
+                entries_1c[edges[index].second_0c].groups |= 0x80000000;
+                edges[index].group_04 = 0x1f;
             }
         }
         return;
     }
     for (unsigned long index = 0; index < edge_count; ++index) {
-        Edge* edge = &edges_18[index];
+        Edge* edge = &edges[index];
         if (edge->smooth_00 != 0 && edge->group_04 == -1) {
             ++group;
             markEdge(edge, group);
             /* Rescan from the seed edge: a smooth edge with no hard-edge
                neighbour blocking this group joins it immediately. */
             for (unsigned long scan = index; scan < edge_count; ++scan) {
-                Edge* other = &edges_18[scan];
+                Edge* other = &edges[scan];
                 if (other->smooth_00 != 0 && other->group_04 == -1) {
                     unsigned long bit = 1 << (group & 0x1f);
-                    if ((entries_1c[other->first_08].blocked_0c & bit) == 0 &&
-                        (entries_1c[other->second_0c].blocked_0c & bit) == 0) {
+                    if ((entries_1c[other->first_08].blocked & bit) == 0 &&
+                        (entries_1c[other->second_0c].blocked & bit) == 0) {
                         markEdge(other, group);
                     }
                 }
@@ -319,7 +319,7 @@ void AutoSmoother::smooth()
         if (bit < 0x1f) {
             assignGroups(bit - 1);
             for (unsigned long index = 0; index < triangle_count_04; ++index) {
-                triangles_00[index].flags_360 = entries_1c[index].groups_10;
+                triangles_00[index].flags_360 = entries_1c[index].groups;
             }
         }
     }
@@ -517,7 +517,7 @@ void srModeler::Polygon::reAllocate(int vertices)
 srModeler::srModeler()
 {
     triangle_count_04 = 0;
-    pass_count_10 = 1;
+    pass_count = 1;
 }
 
 // FUNCTION: SURRENDER 0x1003BC70
@@ -527,7 +527,7 @@ srModeler::~srModeler() {}
 void srModeler::discard()
 {
     setTriangleCount(0);
-    pass_count_10 = 1;
+    pass_count = 1;
 }
 
 // FUNCTION: SURRENDER 0x10037C00
@@ -840,19 +840,19 @@ void srModeler::getAxialBounds(e_axis axis, float& minimum, float& maximum)
 // FUNCTION: SURRENDER 0x1003BB00
 void srModeler::setPassCount(long passes)
 {
-    pass_count_10 = passes;
+    pass_count = passes;
     if (passes < 0) {
-        pass_count_10 = 0;
+        pass_count = 0;
     }
-    if (pass_count_10 > 4) {
-        pass_count_10 = 4;
+    if (pass_count > 4) {
+        pass_count = 4;
     }
 }
 
 // FUNCTION: SURRENDER 0x1003BB30
 long srModeler::getPassCount() const
 {
-    return pass_count_10;
+    return pass_count;
 }
 
 // FUNCTION: SURRENDER 0x10038BF0
@@ -860,9 +860,9 @@ srModeler::VertexHash::VertexHash(unsigned long vertex_count)
 {
     entries_00 = new Entry[vertex_count];
     table_1004 = new Entry*[vertex_count];
-    unique_count_1008 = 0;
+    unique_count = 0;
     memset(entries_00, 0, vertex_count * sizeof(Entry));
-    memset(buckets_04, 0, sizeof(buckets_04));
+    memset(buckets, 0, sizeof(buckets));
     memset(table_1004, 0, vertex_count * sizeof(Entry*));
 }
 
@@ -899,14 +899,14 @@ srModeler::VertexHash* srModeler::getUniqueVertexList()
                 VertexHash::hash(source->position_00.x * scale, source->position_00.y * scale,
                                  source->position_00.z * scale);
             VertexHash::Entry* entry;
-            for (entry = hash->buckets_04[bucket]; entry != 0; entry = entry->next_0c) {
+            for (entry = hash->buckets[bucket]; entry != 0; entry = entry->next_0c) {
                 Vertex* other = entry->vertex_08;
                 if (fabs((source->position_00.x - other->position_00.x) * scale) < 0.0001f &&
                     fabs((source->position_00.y - other->position_00.y) * scale) < 0.0001f &&
                     fabs((source->position_00.z - other->position_00.z) * scale) < 0.0001f &&
                     (entry->flags_00 & flags) != 0 &&
                     source->shade_index_0c == other->shade_index_0c) {
-                    group = entry->shade_index_04;
+                    group = entry->shade_index;
                 }
                 if (*source == *other && (entry->flags_00 & flags) != 0) {
                     hash->table_1004[slot] = entry;
@@ -920,19 +920,19 @@ srModeler::VertexHash* srModeler::getUniqueVertexList()
                 created->vertex_08 = source;
                 created->index_10 = unique;
                 if (group == 0xffffffff) {
-                    created->shade_index_04 = unique;
+                    created->shade_index = unique;
                 } else {
-                    created->shade_index_04 = group;
+                    created->shade_index = group;
                 }
-                created->next_0c = hash->buckets_04[bucket];
+                created->next_0c = hash->buckets[bucket];
                 ++unique;
-                hash->buckets_04[bucket] = created;
+                hash->buckets[bucket] = created;
             }
             ++slot;
         }
         ++triangle;
     }
-    hash->unique_count_1008 = unique;
+    hash->unique_count = unique;
     return hash;
 }
 
@@ -940,7 +940,7 @@ srModeler::VertexHash* srModeler::getUniqueVertexList()
 unsigned long srModeler::getUniqueVertexCount()
 {
     VertexHash* hash = getUniqueVertexList();
-    unsigned long count = hash->unique_count_1008;
+    unsigned long count = hash->unique_count;
     delete hash;
     return count;
 }
@@ -1453,28 +1453,28 @@ void srModeler::convert(srMeshModel& model, int preserve)
         disableDegenerateTriangles();
         removeDisabledTriangles();
     }
-    if (triangle_count_04 == 0 || pass_count_10 == 0) {
+    if (triangle_count_04 == 0 || pass_count == 0) {
         model.reset(0, 0);
         return;
     }
     VertexHash* hash = getUniqueVertexList();
-    model.reset(triangle_count_04, hash->unique_count_1008);
+    model.reset(triangle_count_04, hash->unique_count);
     model.clearDirty(static_cast<srMeshModel::e_flags>(1));
     model.clearDirty(static_cast<srMeshModel::e_flags>(2));
-    model.pass_count_228 = pass_count_10;
-    if (pass_count_10 < 1) {
-        model.pass_count_228 = 1;
-    } else if (4 < pass_count_10) {
-        model.pass_count_228 = 4;
+    model.pass_count = pass_count;
+    if (pass_count < 1) {
+        model.pass_count = 1;
+    } else if (4 < pass_count) {
+        model.pass_count = 4;
     }
-    unsigned long unique = hash->unique_count_1008;
+    unsigned long unique = hash->unique_count;
     unsigned long count = triangle_count_04;
     unsigned long index;
     long layer;
     long side;
     Vertex* vertex;
     VertexHash::Entry* entry;
-    for (long pass = 0; pass < pass_count_10; ++pass) {
+    for (long pass = 0; pass < pass_count; ++pass) {
         char same_shader = 1;
         char same_material[2];
         char same_texture[2];
@@ -1645,7 +1645,7 @@ void srModeler::convert(srMeshModel& model, int preserve)
     }
     unsigned long* shades = model.getVertexShadeIndex(1);
     for (index = 0; index < unique; ++index) {
-        shades[index] = hash->entries_00[index].shade_index_04;
+        shades[index] = hash->entries_00[index].shade_index;
     }
     model.setDirty(static_cast<srMeshModel::e_flags>(0));
     model.setDirty(static_cast<srMeshModel::e_flags>(1));

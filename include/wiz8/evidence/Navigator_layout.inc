@@ -13,7 +13,7 @@ static_assert(offsetof(W8NavigatorAttachment, position_10) == 0x10,
               "W8NavigatorAttachment_position_10");
 static_assert(offsetof(W8NavigatorAttachment, position_1c) == 0x1c,
               "W8NavigatorAttachment_position_1c");
-static_assert(offsetof(W8NavigatorAttachment, start_waypoint_28) == 0x28,
+static_assert(offsetof(W8NavigatorAttachment, start_waypoint) == 0x28,
               "W8NavigatorAttachment_position_28");
 static_assert(offsetof(W8NavigatorAttachment, position_34) == 0x34,
               "W8NavigatorAttachment_position_34");
@@ -36,8 +36,8 @@ static_assert(offsetof(W8NavigatorMovementState, target_yaw) == 0x18,
               "W8NavigatorMovementState_target_yaw");
 static_assert(offsetof(W8NavigatorMovementState, pitch_020) == 0x20,
               "W8NavigatorMovementState_pitch_020");
-static_assert(offsetof(W8NavigatorMovementState, target_pitch_024) == 0x24,
-              "W8NavigatorMovementState_target_pitch_024");
+static_assert(offsetof(W8NavigatorMovementState, target_pitch) == 0x24,
+              "W8NavigatorMovementState_target_pitch");
 static_assert(offsetof(W8NavigatorMovementState, roll_028) == 0x28,
               "W8NavigatorMovementState_roll_028");
 static_assert(offsetof(W8NavigatorMovementState, target_roll) == 0x2c,
@@ -46,8 +46,8 @@ static_assert(offsetof(W8NavigatorMovementState, velocity_034) == 0x34,
               "W8NavigatorMovementState_velocity_034");
 static_assert(offsetof(W8NavigatorMovementState, position_040) == 0x40,
               "W8NavigatorMovementState_position_040");
-static_assert(offsetof(W8NavigatorMovementState, target_position_04c) == 0x4c,
-              "W8NavigatorMovementState_target_position_04c");
+static_assert(offsetof(W8NavigatorMovementState, target_position) == 0x4c,
+              "W8NavigatorMovementState_target_position");
 static_assert(offsetof(W8NavigatorMovementState, callback_threshold) == 0x58,
               "W8NavigatorMovementState_callback_threshold");
 static_assert(offsetof(W8NavigatorMovementState, callback_progress) == 0x5c,
@@ -64,28 +64,28 @@ static_assert(offsetof(W8NavigatorMovementState, pitch_enabled) == 0x74,
               "W8NavigatorMovementState_pitch_enabled");
 static_assert(offsetof(W8NavigatorMovementState, roll_enabled) == 0x75,
               "W8NavigatorMovementState_roll_enabled");
-static_assert(offsetof(W8NavigatorMovementState, vertical_velocity_078) == 0x78,
-              "W8NavigatorMovementState_vertical_velocity_078");
+static_assert(offsetof(W8NavigatorMovementState, vertical_velocity) == 0x78,
+              "W8NavigatorMovementState_vertical_velocity");
 static_assert(offsetof(W8NavigatorMovementState, vertical_base) == 0x7c,
               "W8NavigatorMovementState_vertical_base");
 static_assert(offsetof(W8NavigatorMovementState, vertical_amplitude) == 0x80,
               "W8NavigatorMovementState_vertical_amplitude");
 static_assert(offsetof(W8NavigatorMovementState, vertical_phase) == 0x84,
               "W8NavigatorMovementState_vertical_phase");
-static_assert(offsetof(W8NavigatorMovementState, basis_088) == 0x88,
-              "W8NavigatorMovementState_basis_088");
+static_assert(offsetof(W8NavigatorMovementState, basis) == 0x88,
+              "W8NavigatorMovementState_basis");
 static_assert(offsetof(W8NavigatorMovementState, attachment_0ac) == 0xac,
               "W8NavigatorMovementState_attachment_0ac");
 static_assert(offsetof(W8NavigatorMovementState, collision_radius) == 0xb0,
               "W8NavigatorMovementState_collision_radius");
-static_assert(offsetof(W8NavigatorMovementState, alternate_radius_0b4) == 0xb4,
-              "W8NavigatorMovementState_alternate_radius_0b4");
+static_assert(offsetof(W8NavigatorMovementState, alternate_radius) == 0xb4,
+              "W8NavigatorMovementState_alternate_radius");
 static_assert(offsetof(W8NavigatorMovementState, height_offset) == 0xb8,
               "W8NavigatorMovementState_height_offset");
 static_assert(offsetof(W8NavigatorMovementState, secondary_height_offset) == 0xbc,
               "W8NavigatorMovementState_secondary_height_offset");
-static_assert(offsetof(W8NavigatorMovementState, vertical_offset_0c0) == 0xc0,
-              "W8NavigatorMovementState_vertical_offset_0c0");
+static_assert(offsetof(W8NavigatorMovementState, vertical_offset) == 0xc0,
+              "W8NavigatorMovementState_vertical_offset");
 static_assert(offsetof(W8NavigatorMovementState, scale_0c4) == 0xc4,
               "W8NavigatorMovementState_scale_0c4");
 static_assert(offsetof(W8NavigatorMovementState, position_adjusted) == 0xc8,
@@ -97,4 +97,4 @@ static_assert(offsetof(W8Navigator, flags_00c) == 0x0c, "W8Navigator_flags_00c")
 static_assert(offsetof(W8Navigator, collision_margin) == 0x10,
               "W8Navigator_collision_margin");
 static_assert(offsetof(W8Navigator, movement_0c0) == 0xc0, "W8Navigator_movement_0c0");
-static_assert(offsetof(W8Navigator, node_18c) == 0x18c, "W8Navigator_node_18c");
+static_assert(offsetof(W8Navigator, node) == 0x18c, "W8Navigator_node");

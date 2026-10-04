@@ -60,12 +60,12 @@ static_assert(offsetof(W8LevelRuntimeBlock, enchantment_orb_party_slot) == 0x208
 static_assert(offsetof(W8LevelRuntimeBlock, condition_highlight_party_slot) == 0x20c,
               "W8LevelRuntimeBlock_condition_highlight_party_slot");
 static_assert(offsetof(W8LevelRuntimeBlock, flag_210) == 0x210, "W8LevelRuntimeBlock_flag_210");
-static_assert(offsetof(W8LevelRuntimeBlock, clock_214) == 0x214, "W8LevelRuntimeBlock_clock_214");
+static_assert(offsetof(W8LevelRuntimeBlock, clock) == 0x214, "W8LevelRuntimeBlock_clock");
 static_assert(offsetof(W8LevelRuntimeBlock, countdown_258) == 0x258,
               "W8LevelRuntimeBlock_countdown_258");
 static_assert(offsetof(W8LevelRuntimeBlock, countdown_26c) == 0x26c,
               "W8LevelRuntimeBlock_countdown_26c");
-static_assert(offsetof(W8LevelRuntimeBlock, palette_2ec) == 0x2ec,
-              "W8LevelRuntimeBlock_palette_2ec");
+static_assert(offsetof(W8LevelRuntimeBlock, palette) == 0x2ec,
+              "W8LevelRuntimeBlock_palette");
 static_assert(offsetof(W8LevelRuntimeBlock, countdown_32c) == 0x32c,
               "W8LevelRuntimeBlock_countdown_32c");

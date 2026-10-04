@@ -417,21 +417,21 @@ W8CharacterEvent::W8CharacterEvent(W8Character* character, unsigned int event_ty
     switch (event_type) {
     case 2:
     case 3:
-        threshold_18 = character->hp_current;
+        trigger_value = character->hp_current;
         break;
     case 5:
     case 6:
     case 9:
     case 0x54:
-        threshold_18 = character->highest_condition;
+        trigger_value = character->highest_condition;
         break;
     case 7:
-        threshold_18 = 12;
+        trigger_value = 12;
         break;
     case 0x38:
     case 0x55:
-        threshold_18 = character->hp_current;
-        threshold_1c = character->highest_condition;
+        trigger_value = character->hp_current;
+        trigger_value_2 = character->highest_condition;
         break;
     }
 }
@@ -466,7 +466,7 @@ bool FormatCharacterQuoteText(W8Character* character, unsigned int event_type,
     if (!has_npc) {
         char gender_code = static_cast<char>(((character->gender != 0) - 1U & 7) + 0x66);
         sprintf(path, "Data\\Quotes\\PCs\\%c_%s%d0.MSG", gender_code,
-                g_quote_personality_names[character->personality_0081],
+                g_quote_personality_names[character->personality],
                 (character->voice != 0) + 1);
         if (!FileExists(path)) {
             g_character_text[0] = 0;
@@ -643,12 +643,12 @@ unsigned char W8CharacterEvent::IsConditionMet(unsigned int event_type)
         switch (event_type) {
         case 2:
         case 3:
-            return static_cast<unsigned int>(threshold_18) > character->hp_current;
+            return static_cast<unsigned int>(trigger_value) > character->hp_current;
         case 5:
         case 6:
         case 7:
         case 9:
-            return character->highest_condition == static_cast<unsigned int>(threshold_18);
+            return character->highest_condition == static_cast<unsigned int>(trigger_value);
         case 10:
             event_type = original_event_type;
             break;
@@ -661,12 +661,12 @@ unsigned char W8CharacterEvent::IsConditionMet(unsigned int event_type)
         case 45:
             return character->gender != W8_GENDER_FEMALE;
         case 56:
-            return character->hp_current >= static_cast<unsigned int>(threshold_18) &&
-                   character->highest_condition >= static_cast<unsigned int>(threshold_1c);
+            return character->hp_current >= static_cast<unsigned int>(trigger_value) &&
+                   character->highest_condition >= static_cast<unsigned int>(trigger_value_2);
         case 84:
-            return static_cast<unsigned int>(threshold_18) > character->highest_condition;
+            return static_cast<unsigned int>(trigger_value) > character->highest_condition;
         case 85:
-            if (character->hp_current < static_cast<unsigned int>(threshold_18) ||
+            if (character->hp_current < static_cast<unsigned int>(trigger_value) ||
                 character->highest_condition != 0) {
                 QueueCharacterEvent(character, 84, 0, 1, 0x7f);
                 return 0;
@@ -758,7 +758,7 @@ unsigned char W8CharacterEvent::PlayEventSound()
         g_current_screen_state.id == W8_SCREEN_CHARACTER) {
         char gender_code = static_cast<char>(((character->gender != 0) - 1U & 7) + 0x66);
         sprintf(voice_stem, "%c_%s%d0", gender_code,
-                g_quote_personality_names[character->personality_0081], character->voice + 1);
+                g_quote_personality_names[character->personality], character->voice + 1);
         sprintf(sound_path, "Data\\Sound\\PCs\\%s\\%s_%03d.wav", voice_stem, voice_stem,
                 sound_event);
     } else {
@@ -1167,7 +1167,7 @@ int W8CharacterEventQueue::QueueEntry(W8CharacterEvent* entry)
         delete entry;
         return 0;
     }
-    if (g_status.greeting_pending_2497 != 0) {
+    if (g_status.greeting_pending != 0) {
         delete entry;
         return 0;
     }
@@ -1979,7 +1979,7 @@ void RenderPartyPortrait(int portrait, int left, int top, int flags, unsigned ch
         bool drawn = BlitPartyPortraitAnimation(portrait, left, top, flags, party_slot, 1);
         value = drawn == 0;
     }
-    if ((((gXStatus.fCombatMode != 0 && g_combat_state->characters[party_slot].dead_34 != 0) ||
+    if ((((gXStatus.fCombatMode != 0 && g_combat_state->characters[party_slot].dead != 0) ||
           gXStatus.fSurprisePossible != 0) ||
          g_status.buffers.Char[party_slot].highest_condition == 0x13) &&
         value != 0) {
@@ -2016,7 +2016,7 @@ bool BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int 
         rect.right = width + rect.left;
         rect.bottom = height + rect.top;
         if (animate == 0 &&
-            ((gXStatus.fCombatMode != 0 && g_combat_state->characters[party_slot].dead_34 != 0) ||
+            ((gXStatus.fCombatMode != 0 && g_combat_state->characters[party_slot].dead != 0) ||
              gXStatus.fSurprisePossible != 0)) {
             RenderPartyPortrait(portrait, left, top, flags, 0, party_slot);
         }
@@ -2049,7 +2049,7 @@ bool BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int 
         GetCatalogImageSize(0x12, portrait, state->portrait_frame, &width, &height);
         GetCatalogImagePosition(0x12, portrait, state->portrait_frame, &image_x, &image_y);
         if (animate == 0 && drawn == 0 && gXStatus.fCombatMode != 0 &&
-            g_combat_state->characters[party_slot].dead_34 != 0) {
+            g_combat_state->characters[party_slot].dead != 0) {
             RenderPartyPortrait(portrait, left, top, flags, 0, party_slot);
         }
         DrawCatalogImage(-0xe, 0x12, portrait, state->portrait_frame, left, top, flags, 0);
@@ -2075,7 +2075,7 @@ bool BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int 
         state->previous_portrait_frame = state->portrait_frame;
         state->portrait_frame_dirty = 0;
     }
-    if (((gXStatus.fCombatMode != 0 && g_combat_state->characters[party_slot].dead_34 != 0) ||
+    if (((gXStatus.fCombatMode != 0 && g_combat_state->characters[party_slot].dead != 0) ||
          gXStatus.fSurprisePossible != 0) ||
         g_status.buffers.Char[party_slot].highest_condition == 0x13) {
         ShadowVideoSurfaceRect(-0xe, left, top, left + 0x59, top + 0x47);

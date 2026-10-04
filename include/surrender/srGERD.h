@@ -71,15 +71,15 @@ public:
     public:
         struct TriInput {
             unsigned long triangle_count_00;
-            unsigned long record_count_04;
-            unsigned long vertex_count_08;
+            unsigned long record_count;
+            unsigned long vertex_count;
             const unsigned long* indices_0c;
-            const srVector3i* triangles_10;
+            const srVector3i* triangles;
             const unsigned long* vertices_14;
-            const srTriMeshPipeline::Pass* passes_18;
-            int position_is_float3_1c;
-            const srMatrix4T<float>* project_clip_near_20;
-            float sort_bias_24;
+            const srTriMeshPipeline::Pass* passes;
+            int position_is_float3;
+            const srMatrix4T<float>* project_clip_near;
+            float sort_bias;
         };
 
         /* createRenderer packs this record on the stack for the ctor
@@ -96,8 +96,8 @@ public:
            repacks into interleaved {st,q} elements when the driver wants
            combined texture-coordinate+w streams. */
         struct TexCoordQ {
-            srVector2T<float> st_00;
-            float q_08;
+            srVector2T<float> st;
+            float q;
         };
         static_assert(sizeof(TexCoordQ) == 0xc, "TexCoordQ_must_be_0xc");
 
@@ -106,13 +106,13 @@ public:
            shader's DSTBLEND field (ZERO -> 0, SRC_ALPHA pair -> 1, ONE -> 2,
            SRC_COLOR pair -> 3). */
         struct TextureSetKey {
-            srTextureIFace* texture0_00;
-            srTextureIFace* texture1_04;
+            srTextureIFace* texture0;
+            srTextureIFace* texture1;
             srShader shader_08;
 
             bool operator==(const TextureSetKey& other) const
             {
-                return texture0_00 == other.texture0_00 && texture1_04 == other.texture1_04 &&
+                return texture0 == other.texture0 && texture1 == other.texture1 &&
                        shader_08.value == other.shader_08.value;
             }
             bool operator!=(const TextureSetKey& other) const
@@ -121,10 +121,10 @@ public:
             }
         };
         struct TextureSet {
-            srTextureIFace* texture0_00;
-            srTextureIFace* texture1_04;
+            srTextureIFace* texture0;
+            srTextureIFace* texture1;
             srShader shader_08;
-            unsigned long blend_0c;
+            unsigned long blend;
         };
         /* +0x44: texture-set interning cache. The map's value is the index
            into sets_04_; reset() runs the map's Clear() and empties the
@@ -163,8 +163,8 @@ public:
         struct IndexWrite {
             srVector3i* triangles_00;
             unsigned long* texture_set_04;
-            unsigned long* sort_key_08;
-            unsigned long* aux_0c;
+            unsigned long* sort_key;
+            unsigned long* aux;
         };
         /* +0x54: accumulated primitive work. alloc() reserves count entries
            plus 0x40 headroom across all four streams and returns the write
@@ -174,12 +174,12 @@ public:
             srArray<srVector3i> triangles_00;
             srArray<unsigned long> texture_set_08;
             srArray<unsigned long> sort_key_10;
-            srArray<unsigned long> aux_18;
+            srArray<unsigned long> aux;
             unsigned long count_20;
 
             /* Retail's constructor emission calls the reserve form with 0
                on the three operator-new arrays. */
-            IndexBatch() : texture_set_08(0), sort_key_10(0), aux_18(0), count_20(0) {}
+            IndexBatch() : texture_set_08(0), sort_key_10(0), aux(0), count_20(0) {}
             void alloc(IndexWrite& write, unsigned long count);
             void reset(int release);
         };
@@ -190,11 +190,11 @@ public:
            +0x00/+0x08/+0x10 streams bind to diffuse/specular/eye locations
            in that order. */
         struct VertexArrays {
-            srArray<srVector4T<float> > diffuse_00;
+            srArray<srVector4T<float> > diffuse;
             srArray<srVector4T<float> > specular_08;
             srArray<srVector4T<float> > positions_10;
-            srArray<srVector2T<float> > st_18[2];
-            srArray<float> q_28[2];
+            srArray<srVector2T<float> > st[2];
+            srArray<float> q[2];
             srArray<unsigned char> packed_38;
             /* isBatchFull compares this signed against batch_limit_dc_. */
             long count_40;
@@ -203,7 +203,7 @@ public:
             /* Retail's constructor emission calls the reserve form with 0
                on the vec4 streams and the packed byte array. */
             VertexArrays()
-                : diffuse_00(0), specular_08(0), positions_10(0), packed_38(0), count_40(0),
+                : diffuse(0), specular_08(0), positions_10(0), packed_38(0), count_40(0),
                   capacity_44(0)
             {
             }
@@ -372,10 +372,10 @@ public:
     /* getTextureInfo output: the device pixel format plus the device's
        width/height and last mip level. */
     struct TextureInfo {
-        srPixelConvert::PixelFormat pixel_format_00;
+        srPixelConvert::PixelFormat pixel_format;
         unsigned long width_14;
         unsigned long height_18;
-        unsigned long last_level_1c;
+        unsigned long last_level;
     };
     /* accumulate()'s signed 16-bit accum-buffer pixel. */
     struct AccumPixel {
@@ -415,8 +415,8 @@ public:
     /* openWindowInternal parameter block: the current client size and the
        requested backbuffer size plus the display-mode index (-1 windowed). */
     struct OpenInfo {
-        long window_width_00;
-        long window_height_04;
+        long window_width;
+        long window_height;
         long width_08;
         long height_0c;
         long display_mode_10;
@@ -448,7 +448,7 @@ public:
     struct Statistics {
         /* Epoch written by resetStatistics; getStatistics returns the
            seconds elapsed since then. */
-        double elapsed_00;
+        double elapsed;
         /* Device texture byte count mirrored from srDD::Statistics +0x00 as
            two dwords; dump reinterprets the pair as a double for the
            "DD Texture data transfer (Mb/s)" line. */
@@ -461,7 +461,7 @@ public:
         unsigned long value_24;
         unsigned long value_28;
         /* Frames presented: flipFrame increments once per call. */
-        unsigned long frames_2c;
+        unsigned long frames;
         unsigned long value_30;
         unsigned long value_34;
         /* getStatistics accumulates this only for sorted renderers. */
@@ -779,7 +779,7 @@ public:
     // ?setVertexArrayMask@srGERD@@QAEXV?$srFlags@W4e_vertexArray@srRendererDefs@@@@@Z
     void setVertexArrayMask(srFlags<srRendererDefs::e_vertexArray> mask)
     {
-        vertex_arrays_21c4_.mask_00 = mask;
+        vertex_arrays_21c4_.mask = mask;
         dirty_21c0_ |= 1;
     }
 
@@ -787,7 +787,7 @@ public:
     // ?getVertexArrayMask@srGERD@@QBE?AV?$srFlags@W4e_vertexArray@srRendererDefs@@@@XZ
     srFlags<srRendererDefs::e_vertexArray> getVertexArrayMask() const
     {
-        return vertex_arrays_21c4_.mask_00;
+        return vertex_arrays_21c4_.mask;
     }
 
     /* Retail emits each specialized setter as its own export writing the
@@ -806,10 +806,10 @@ public:
                             const void* values, unsigned long layer)
     {
         unsigned long index = layer + 4;
-        vertex_arrays_21c4_.components_0c[index] = components;
-        vertex_arrays_21c4_.types_24[index] = type;
+        vertex_arrays_21c4_.components[index] = components;
+        vertex_arrays_21c4_.types[index] = type;
         vertex_arrays_21c4_.strides[index] = stride;
-        vertex_arrays_21c4_.arrays_54[index] = values;
+        vertex_arrays_21c4_.arrays[index] = values;
         dirty_21c0_ |= 1;
     }
 
@@ -818,26 +818,26 @@ public:
     void setVertexPointer(long primitive, srRendererDefs::e_type type, unsigned long stride,
                           const void* values, long count)
     {
-        vertex_arrays_21c4_.count_04 = count < 0 ? 0 : count;
-        vertex_arrays_21c4_.components_0c[0] = primitive;
-        vertex_arrays_21c4_.types_24[0] = type;
+        vertex_arrays_21c4_.count = count < 0 ? 0 : count;
+        vertex_arrays_21c4_.components[0] = primitive;
+        vertex_arrays_21c4_.types[0] = type;
         vertex_arrays_21c4_.strides[0] = stride;
-        vertex_arrays_21c4_.arrays_54[0] = values;
+        vertex_arrays_21c4_.arrays[0] = values;
         dirty_21c0_ |= 1;
     }
 
 private:
     /* Pooled device-texture record, 0xa8 bytes. allocTexture links chunks
-       through +0x00, keeps live/deleted lists in {prev_00, next_04} and the
+       through +0x00, keeps live/deleted lists in {prev, next_04} and the
        texture-interface id at +0x08 as the hash key. The embedded
        srDD::Texture at +0x2c is handed to the device. */
     struct Texture {
-        Texture* prev_00;
+        Texture* prev;
         Texture* next_04;
         unsigned long id_08;
         /* evaluateTexturePixelFormat copies the matched device format here. */
-        srPixelConvert::PixelFormat pixel_format_0c;
-        void* surface_data_20;
+        srPixelConvert::PixelFormat pixel_format;
+        void* surface_data;
         srPtr<srPalette> palette_24;
         char* name_28;
         srDD::Texture device_2c;
@@ -851,11 +851,11 @@ private:
        positions is the renderer's vec4 stream base. */
     struct PickInput {
         const unsigned long* indices_00;
-        const srVector3i* triangles_04;
-        unsigned long triangle_count_08;
-        const unsigned long* vertices_0c;
+        const srVector3i* triangles;
+        unsigned long triangle_count;
+        const unsigned long* vertices;
         const srVector4T<float>* positions_10;
-        unsigned long vertex_count_14;
+        unsigned long vertex_count;
     };
 
     /* Retail's exported operator= is a private no-op returning *this; the
@@ -899,10 +899,10 @@ private:
        and the lock/flush walks; +0x0c is the busy flag _lockRenderer
        raises. */
     struct RendererEntry {
-        RendererEntry* prev_00;
+        RendererEntry* prev;
         RendererEntry* next_04;
         Renderer* renderer_08;
-        long busy_0c;
+        long busy;
     };
     void setError(e_error error);
     void resetTexture();
@@ -1007,7 +1007,7 @@ private:
 
         unsigned long count_00;
         Texture* free_04;
-        srArray<Texture*> chunks_08;
+        srArray<Texture*> chunks;
         unsigned long pool_count;
     };
 
@@ -1032,7 +1032,7 @@ private:
            is a real function, not an inlined member init. */
         MatrixStack();
 
-        srMatrix4T<float> stack_00[32];
+        srMatrix4T<float> stack[32];
         unsigned long depth_800;
     };
 
@@ -1167,7 +1167,7 @@ private:
         srTextureIFace::e_mipmap default_mipmap_64_;
         /* Per-type default device parameters; evaluateTexturePixelFormat
            copies entry [Dimensions::parameter_index] into
-           srDD::Texture::parameter_34. Entry [4] doubles as the current
+           srDD::Texture::parameter. Entry [4] doubles as the current
            compression parameter written by setTextureDefaultCompression. */
         unsigned long default_texture_params_68_[5];
         /* Default Dimensions::compression for newly created textures;
@@ -1262,7 +1262,7 @@ private:
     /* Live textures keyed by the texture interface's frame handle. */
     srHashTable<unsigned long, Texture*> texture_lookup_2004_;
     /* Chunk pointers backing the 0xa8-byte Texture pool; ~srGERD calls its
-       release() before the memberwise teardown reaches chunks_08. */
+       release() before the memberwise teardown reaches chunks. */
     TexturePool texture_pool_2014_;
     Texture* texture_deleted_2028_;
     Texture* texture_head_202c_;
@@ -1298,9 +1298,9 @@ private:
 inline unsigned int srHashValue(const srGERD::Renderer::TextureSetKey& key)
 {
     // reinterpret-ok: the hash mixes the stored interface addresses.
-    return ((key.shader_08.value >> 10 ^ reinterpret_cast<unsigned long>(key.texture1_04)) >> 1 ^
+    return ((key.shader_08.value >> 10 ^ reinterpret_cast<unsigned long>(key.texture1)) >> 1 ^
             // reinterpret-ok: as above.
-            reinterpret_cast<unsigned long>(key.texture0_00)) >>
+            reinterpret_cast<unsigned long>(key.texture0)) >>
                5 ^
            key.shader_08.value;
 }

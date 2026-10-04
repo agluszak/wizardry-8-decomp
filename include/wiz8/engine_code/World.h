@@ -50,6 +50,6 @@ void SetSecondaryWorld(W8World* world);
 void SaveWorldProps(W8World* world, int handle);
 /* APST chunk: restore saved prop animation state. The 0xDEADD00D signature
    selects the name-keyed format; older saves carry a bare count plus the
-   object's id_008 key. Unmatched records are consumed by a scratch prop. */
+   object's id key. Unmatched records are consumed by a scratch prop. */
 void LoadWorldProps(W8World* world, int handle);
 void UpdateCameraPathStateByName(W8World* world, const char* name, int active);

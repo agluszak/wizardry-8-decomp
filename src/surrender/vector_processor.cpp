@@ -55,7 +55,7 @@ void srVectorProcessor::startDebug(int check_misalignments)
         debug = new srDebugVP(vp);
         vp = debug;
         debug_active = 1;
-        debug->check_misalignments_440 = check_misalignments;
+        debug->check_misalignments = check_misalignments;
     }
 }
 
@@ -92,9 +92,9 @@ void srVectorProcessor::dump(std::ostream& stream)
     double total = 0.0;
     int used = 0;
     for (command = 0; command < 0xa6; ++command) {
-        if (debug->call_counts_eb0[command] != 0) {
-            double time = debug->call_times_450[command] -
-                          debug->call_counts_eb0[command] * debug->call_overhead;
+        if (debug->call_counts[command] != 0) {
+            double time = debug->call_times[command] -
+                          debug->call_counts[command] * debug->call_overhead;
             if (time <= 0.0) {
                 time = 0.0;
             }
@@ -109,9 +109,9 @@ void srVectorProcessor::dump(std::ostream& stream)
     int* order = static_cast<int*>(operator new(used * 4));
     index = 0;
     for (command = 0; command < 0xa6; ++command) {
-        if (debug->call_counts_eb0[command] != 0) {
-            double time = debug->call_times_450[command] -
-                          debug->call_counts_eb0[command] * debug->call_overhead;
+        if (debug->call_counts[command] != 0) {
+            double time = debug->call_times[command] -
+                          debug->call_counts[command] * debug->call_overhead;
             if (time <= 0.0) {
                 time = 0.0;
             }
@@ -134,9 +134,9 @@ void srVectorProcessor::dump(std::ostream& stream)
     }
     for (index = 0; index < used; ++index) {
         command = order[index];
-        double calls = debug->call_counts_eb0[command];
+        double calls = debug->call_counts[command];
         double elements = debug->element_counts[command];
-        double time = debug->call_times_450[command] - calls * debug->call_overhead;
+        double time = debug->call_times[command] - calls * debug->call_overhead;
         if (time <= 0.0) {
             time = 0.0;
         }
@@ -155,7 +155,7 @@ void srVectorProcessor::dump(std::ostream& stream)
                        element_text, misalignments, srDebugVP::command_names[command]);
     }
     srStreamPrintf(stream, "\n\n");
-    if (debug->check_misalignments_440 == 0) {
+    if (debug->check_misalignments == 0) {
         srStreamPrintf(stream, "misAlignments not checked\n");
     }
     srStreamPrintf(stream, "\n");

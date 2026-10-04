@@ -75,7 +75,7 @@ W8GameTimer* g_shake_timer;
 W8CameraShakeEffect::W8CameraShakeEffect(const W8CameraShakeEffect& other)
     : flags_00(other.flags_00), intensity_04(other.intensity_04),
       distance_cap_08(other.distance_cap_08), position_0c(other.position_0c),
-      timer_18(other.timer_18.m_duration_seconds, 0), cycle_3c(other.cycle_3c),
+      timer(other.timer.m_duration_seconds, 0), cycle_3c(other.cycle_3c),
       frame_40(other.frame_40), subcycle_44(other.subcycle_44),
       completion_callback_48(other.completion_callback_48)
 {
@@ -89,7 +89,7 @@ W8CameraShakeEffect::W8CameraShakeEffect(const W8CameraShakeEffect& other)
 // FUNCTION: WIZ8 0x004aded0
 W8CameraShakeEffect::W8CameraShakeEffect(float duration, bool preset, float intensity,
                                          float distance_cap, const srVector3T<float>* position)
-    : flags_00(0), intensity_04(intensity), distance_cap_08(distance_cap), timer_18(duration, 0),
+    : flags_00(0), intensity_04(intensity), distance_cap_08(distance_cap), timer(duration, 0),
       cycle_3c(0), frame_40(0), subcycle_44(0), completion_callback_48(0)
 {
     if (g_shake_effects == 0) {
@@ -116,7 +116,7 @@ W8CameraShakeEffect* CreateCameraShakeEffect(float duration, bool preset, float 
         new W8CameraShakeEffect(duration, preset, intensity, distance_cap, position);
 
     effect->flags_00 |= 3;
-    effect->timer_18.Restart();
+    effect->timer.Restart();
     g_shake_effects->Add(effect);
     return effect;
 }
@@ -139,7 +139,7 @@ void TriggerShakeEffects(W8GrowableVector<W8CameraShakeEffect*>* effects, int cy
             }
             effect->position_0c = *position;
             effect->flags_00 |= 1;
-            effect->timer_18.Restart();
+            effect->timer.Restart();
         }
     }
 }
@@ -220,7 +220,7 @@ void UpdateShakeEffects()
 // FUNCTION: WIZ8 0x004AE4E0
 unsigned char W8CameraShakeEffect::Evaluate(const srVector3T<float>* position, float* out_amount)
 {
-    float progress = timer_18.GetProgress();
+    float progress = timer.GetProgress();
     if (g_float_one <= progress) {
         return 0;
     }
@@ -342,7 +342,7 @@ unsigned char ReadGrCycleData(W8ReadLevelInfo* info, W8GrCycle** cycle, int cycl
             srAssertFail("pCycle", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x1d2, 0);
         }
         if (object_type == 0) {
-            (*cycle)->id_008 = AllocateGrObjectId();
+            (*cycle)->id = AllocateGrObjectId();
         }
         (*cycle)->GetRepresentation()->current_cycle = -1;
     }
@@ -417,8 +417,8 @@ W8GrCycle::W8GrCycle()
     m_fDeleteLights = false;
     last_subcycle = 0;
     m_plsParticles = 0;
-    wrapped_1bc = 0;
-    enabled_1bd = true;
+    wrapped = 0;
+    enabled = true;
     mirror_x = 0;
     aim_set = 0;
     m_ground_shadow = 0;
@@ -446,8 +446,8 @@ W8GrCycle::W8GrCycle(const W8GrCycle& other) : W8GrObject(other), W8Navigator(ot
     m_fDeleteLights = other.m_fDeleteLights;
     last_subcycle = other.last_subcycle;
     m_plsParticles = 0;
-    wrapped_1bc = 0;
-    enabled_1bd = true;
+    wrapped = 0;
+    enabled = true;
     mirror_x = other.mirror_x;
     aim_set = 0;
     scale_1cc = other.scale_1cc;
@@ -561,8 +561,8 @@ W8GrCycle::~W8GrCycle()
                 event->m_pstParticles = 0;
                 delete event;
                 owner->SetActive(1);
-                owner->emission_limit_184 = 1;
-                owner->release_when_done_190 = true;
+                owner->emission_limit = 1;
+                owner->release_when_done = true;
             }
         }
         delete m_plsParticles;
@@ -590,19 +590,19 @@ void W8GrCycle::TickAnimation(float scale)
     W8EmitterHost* representation = GetRepresentation();
 
     ApplyPendingCycle();
-    if (representation->animation_playing_06d != 0) {
+    if (representation->animation_playing != 0) {
         signed char subcycle_count = GetNumSubCycles();
 
         if (subcycle_count != 0) {
             unsigned int now = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
-            unsigned int elapsed = now - representation->timer_068;
+            unsigned int elapsed = now - representation->timer;
             float rate;
             float progress;
             int frames;
 
             if (elapsed > 1000) {
                 elapsed = 1000;
-                representation->timer_068 = now - 1000;
+                representation->timer = now - 1000;
             }
 
             rate = GetCurrentAnimationScale() * scale;
@@ -613,8 +613,8 @@ void W8GrCycle::TickAnimation(float scale)
             if (frames != 0) {
                 srVector3T<float> position;
 
-                representation->timer_068 += static_cast<int>(frames * g_float_005ebc64 / rate);
-                wrapped_1bc = 0;
+                representation->timer += static_cast<int>(frames * g_float_005ebc64 / rate);
+                wrapped = 0;
                 position = GetPosition();
                 do {
                     --frames;
@@ -626,12 +626,12 @@ void W8GrCycle::TickAnimation(float scale)
                         UpdateSoundEvents(m_plsSoundEvents, &position,
                                           W8_SOUND_EVENT_FRAME | W8_SOUND_EVENT_FOOTSTEP,
                                           representation->current_cycle,
-                                          representation->subcycle_064,
+                                          representation->subcycle,
                                           representation->current_subcycle);
                     }
                     if (m_plsShakeEvents != 0) {
                         TriggerShakeEffects(m_plsShakeEvents, representation->current_cycle,
-                                            representation->subcycle_064,
+                                            representation->subcycle,
                                             representation->current_subcycle, &position);
                     }
                 } while (frames != 0);
@@ -641,7 +641,7 @@ void W8GrCycle::TickAnimation(float scale)
         if (m_plsLights != 0 && m_plsLights->GetCount() != 0) {
             UpdateLights();
         }
-        last_subcycle = representation->subcycle_064;
+        last_subcycle = representation->subcycle;
     }
 }
 
@@ -663,7 +663,7 @@ unsigned char W8GrCycle::ApplyPendingCycle()
             W8EmitterHost* current = GetRepresentation();
 
             if (static_cast<int>(subcycle) < static_cast<int>(subcycle_count)) {
-                current->subcycle_064 = subcycle;
+                current->subcycle = subcycle;
             }
             representation->pending_subcycle = 0xffff;
         }
@@ -684,21 +684,21 @@ unsigned char W8GrCycle::ApplyPendingCycle()
         if (m_plsSoundEvents != 0) {
             UpdateSoundEvents(m_plsSoundEvents, &position,
                               W8_SOUND_EVENT_FRAME | W8_SOUND_EVENT_CYCLE | W8_SOUND_EVENT_FOOTSTEP,
-                              representation->current_cycle, representation->subcycle_064,
+                              representation->current_cycle, representation->subcycle,
                               representation->current_subcycle);
         }
         if (m_plsShakeEvents != 0) {
             TriggerShakeEffects(m_plsShakeEvents, representation->current_cycle,
-                                representation->subcycle_064, representation->current_subcycle,
+                                representation->subcycle, representation->current_subcycle,
                                 &position);
         }
 
         signed char subcycle_count = GetNumSubCycles();
-        if (representation->subcycle_064 >= static_cast<unsigned char>(subcycle_count)) {
-            representation->subcycle_064 = subcycle_count - 1;
+        if (representation->subcycle >= static_cast<unsigned char>(subcycle_count)) {
+            representation->subcycle = subcycle_count - 1;
         }
-        representation->animation_playing_06d = 1;
-        representation->timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
+        representation->animation_playing = 1;
+        representation->timer = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
         return 1;
     }
     return 0;
@@ -721,13 +721,13 @@ void W8GrCycle::UpdateLights()
         if (definition->type_04 == 1) {
             stParametricLightDefinition* cycle_definition =
                 static_cast<stParametricLightDefinition*>(definition);
-            if ((cycle_definition->flags_08 & 3) == 3 && (cycle_definition->flags_08 & 0x40) != 0) {
-                if (cycle_definition->IsEnabledForSubcycle(representation->subcycle_064) == 0) {
+            if ((cycle_definition->flags & 3) == 3 && (cycle_definition->flags & 0x40) != 0) {
+                if (cycle_definition->IsEnabledForSubcycle(representation->subcycle) == 0) {
                     if (light->parent_ != 0) {
                         light->setParent(0, 0);
                     }
-                } else if ((representation->subcycle_064 == 0 &&
-                            cycle_definition->subcycle_min_3c == 0) ||
+                } else if ((representation->subcycle == 0 &&
+                            cycle_definition->subcycle_min == 0) ||
                            light->parent_ == srCore.getRootNode()) {
                     light->setParent(g_world->dynamic_scene, 0);
                     light->m_path_index = 0;
@@ -736,10 +736,10 @@ void W8GrCycle::UpdateLights()
                 }
             }
         } else if (definition->type_04 == 2) {
-            if (representation->subcycle_064 == 0 || wrapped_1bc != 0) {
+            if (representation->subcycle == 0 || wrapped != 0) {
                 light->Reset();
             }
-            light->SetDefinitionTime(representation->subcycle_064 + frame_fraction);
+            light->SetDefinitionTime(representation->subcycle + frame_fraction);
             if (definition->IsEnabledForSubcycle(0) == 0) {
                 if (light->parent_ != 0) {
                     light->setParent(0, 0);
@@ -757,7 +757,7 @@ unsigned char W8GrCycle::GetAnimationBounds(srVector3T<float>* minimum, srVector
     W8AnimObj* animation = GetCurrentAnimation();
     W8EmitterHost* representation = GetRepresentation();
 
-    return AnimObjGetBounds(animation, representation->m_bLOD, representation->subcycle_064,
+    return AnimObjGetBounds(animation, representation->m_bLOD, representation->subcycle,
                             (srVector3T<float>*)minimum, (srVector3T<float>*)maximum);
 }
 
@@ -782,40 +782,40 @@ void W8GrCycle::AdvanceAnimationFrame(int, int)
 
     if (representation->animation_behaviour == 1) {
         if (representation->frame_direction == 1) {
-            frame = representation->subcycle_064;
-            if (frame < representation->last_frame_095) {
-                representation->subcycle_064 = frame + 1;
+            frame = representation->subcycle;
+            if (frame < representation->last_frame) {
+                representation->subcycle = frame + 1;
             } else {
-                representation->animation_playing_06d = 0;
+                representation->animation_playing = 0;
             }
         } else if (representation->frame_direction == 3) {
-            frame = representation->subcycle_064;
-            if (frame > representation->first_frame_094) {
-                representation->subcycle_064 = frame - 1;
+            frame = representation->subcycle;
+            if (frame > representation->first_frame) {
+                representation->subcycle = frame - 1;
             } else {
-                representation->animation_playing_06d = 0;
+                representation->animation_playing = 0;
             }
         }
     } else if (representation->frame_direction == 1) {
-        frame = representation->subcycle_064;
-        if (frame != representation->last_frame_095) {
-            representation->subcycle_064 = frame + 1;
-        } else if (representation->frame_method_06f == 2) {
-            representation->subcycle_064 = frame - 1;
+        frame = representation->subcycle;
+        if (frame != representation->last_frame) {
+            representation->subcycle = frame + 1;
+        } else if (representation->frame_method == 2) {
+            representation->subcycle = frame - 1;
             representation->frame_direction = 3;
-        } else if (representation->frame_method_06f == 1) {
-            representation->subcycle_064 = representation->first_frame_094;
-            wrapped_1bc = 1;
+        } else if (representation->frame_method == 1) {
+            representation->subcycle = representation->first_frame;
+            wrapped = 1;
         }
     } else if (representation->frame_direction == 3) {
-        frame = representation->subcycle_064;
-        if (frame > representation->first_frame_094) {
-            representation->subcycle_064 = frame - 1;
-        } else if (representation->frame_method_06f == 2) {
-            representation->subcycle_064 = representation->first_frame_094 + 1;
+        frame = representation->subcycle;
+        if (frame > representation->first_frame) {
+            representation->subcycle = frame - 1;
+        } else if (representation->frame_method == 2) {
+            representation->subcycle = representation->first_frame + 1;
             representation->frame_direction = 1;
-        } else if (representation->frame_method_06f == 1) {
-            representation->subcycle_064 = representation->last_frame_095;
+        } else if (representation->frame_method == 1) {
+            representation->subcycle = representation->last_frame;
         }
     }
 
@@ -827,7 +827,7 @@ void W8GrCycle::AdvanceAnimationFrame(int, int)
             W8PathAI* path = AnimObjListEntry(animation, representation->m_bLOD,
                                               static_cast<signed char>(index));
             if (path != 0) {
-                PathAISetValue(path, static_cast<float>(representation->subcycle_064));
+                PathAISetValue(path, static_cast<float>(representation->subcycle));
             }
         }
     }
@@ -843,8 +843,8 @@ void W8GrCycle::ResetRepresentation()
     }
     PathAIResetRecord(static_cast<W8PathAI*>(m_pAI));
     target->frame_direction = 1;
-    target->subcycle_064 = 0;
-    target->timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
+    target->subcycle = 0;
+    target->timer = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
 }
 
 /* Push the cycle's animation state into the live scene.
@@ -888,7 +888,7 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
                 srAssertFail("psrMesh", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x3e4,
                              0);
             }
-            psrMesh->highlight_colour_164 = pRep->highlight_colour_04c;
+            psrMesh->highlight_colour = pRep->highlight_colour;
             if (pRep->apply_instance_scale != 0) {
                 if (pRep->instance_scale == g_float_one) {
                     psrMesh->diffuse_scale_enabled = 0;
@@ -905,7 +905,7 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
             }
             vecPos = movement_0c0.position_040;
             location.SetFromFloat(&vecPos);
-            location.y += movement_0c0.vertical_offset_0c0;
+            location.y += movement_0c0.vertical_offset;
             psrMesh->setLocation(location);
             pRep->GetRotation(&rotation);
             psrMesh->getRotation(current);
@@ -915,14 +915,14 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
         }
     } else {
         stModelInstance* psrMesh = static_cast<stModelInstance*>(
-            SelectCycleFrameLod(pRep->current_cycle, pRep->subcycle_064, pRep->m_bLOD));
+            SelectCycleFrameLod(pRep->current_cycle, pRep->subcycle, pRep->m_bLOD));
         srNode* child;
 
         if (psrMesh == 0) {
             srAssertFail("psrMesh", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x40f, 0);
         }
         AniMeshSetFlag10(pRep->GetEmitterAniMesh(pRep->current_cycle), 1);
-        psrMesh->highlight_colour_164 = pRep->highlight_colour_04c;
+        psrMesh->highlight_colour = pRep->highlight_colour;
         if (pRep->apply_instance_scale != 0) {
             if (pRep->instance_scale == g_float_one) {
                 psrMesh->diffuse_scale_enabled = 0;
@@ -933,7 +933,7 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
         }
         vecPos = movement_0c0.position_040;
         location.SetFromFloat(&vecPos);
-        location.y += movement_0c0.vertical_offset_0c0;
+        location.y += movement_0c0.vertical_offset;
         pRep->GetRotation(&rotation);
         child = psrMesh->first_child_;
         if (child == 0) {
@@ -957,7 +957,7 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
 
         location.SetFromFloat(&position);
         m_ground_shadow->setLocation(location);
-        m_ground_shadow->angle_138 = GetYaw();
+        m_ground_shadow->angle = GetYaw();
         m_ground_shadow->clearFlag(srNode::FLAG_TERMINATE);
         m_ground_shadow->setParent(g_world->dynamic_scene, 0);
     }
@@ -970,7 +970,7 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
         } else {
             vecPos = movement_0c0.position_040;
             origin = vecPos;
-            origin.y += movement_0c0.vertical_offset_0c0;
+            origin.y += movement_0c0.vertical_offset;
         }
         pRep->GetRotation(&rotation);
         for (index = 0; index < count; ++index) {
@@ -1072,7 +1072,7 @@ void W8GrCycle::UpdateParticleAttachments()
         if (AnimationIsRunning(animation) == 1) {
             psrMesh = AnimObjDispatchList(animation, rep->m_bLOD, 0);
         } else {
-            psrMesh = SelectCycleFrameLod(rep->current_cycle, rep->subcycle_064, rep->m_bLOD);
+            psrMesh = SelectCycleFrameLod(rep->current_cycle, rep->subcycle, rep->m_bLOD);
         }
     }
     pRep = GetRepresentation();
@@ -1095,7 +1095,7 @@ void W8GrCycle::UpdateParticleAttachments()
             continue;
         }
         if (pMeshModel != 0) {
-            short key = particle->attachment_key_260;
+            short key = particle->attachment_key;
 
             if (key < 0) {
                 vertex = -1;
@@ -1122,9 +1122,9 @@ void W8GrCycle::UpdateParticleAttachments()
             if ((pMeshModel->flags_3a0 >> 2 & 1) == 0) {
                 locations = pMeshModel->getVertexLoc();
             } else {
-                locations = pMeshModel->GetVertexLocations(pRep->subcycle_064, 1, 0);
+                locations = pMeshModel->GetVertexLocations(pRep->subcycle, 1, 0);
             }
-            if (vertex >= pMeshModel->vertex_location_count_22c) {
+            if (vertex >= pMeshModel->vertex_location_count) {
                 vertex = 0;
             }
             offset = locations[vertex];
@@ -1138,11 +1138,11 @@ void W8GrCycle::UpdateParticleAttachments()
         anchor.SetFromDouble(&location);
         placed += anchor;
 
-        if (aim_set != 0 && particle->direction_mode_1b8 == 3) {
+        if (aim_set != 0 && particle->direction_mode == 3) {
             target.SetFromFloat(&placed);
             axis.SetFromFloat(&m_axis);
             particle->setRotation(axis, target, 0.0);
-        } else if (particle->direction_mode_1b8 != 4) {
+        } else if (particle->direction_mode != 4) {
             combined = rotation;
             combined.MultiplyBy(attachment->rotation_18);
             world.vectors[0].SetFromFloat(&combined.vectors[0]);
@@ -1177,7 +1177,7 @@ void W8GrCycle::SelectLOD(const srVector3T<float>* position)
     if (has_lod_2 == 0 && has_lod_1 == 0 && has_lod_0 == 0) {
         ShutdownWithErrorBox("Monster has no valid LODs!");
     }
-    if (g_render_brightness * pRep->lod_range_09c > distance) {
+    if (g_render_brightness * pRep->lod_near > distance) {
         if (has_lod_2 != 0) {
             pRep->m_bLOD = 2;
         } else if (has_lod_1 != 0) {
@@ -1185,7 +1185,7 @@ void W8GrCycle::SelectLOD(const srVector3T<float>* position)
         } else {
             pRep->m_bLOD = 0;
         }
-    } else if (g_render_brightness * pRep->lod_range_0a0 > distance) {
+    } else if (g_render_brightness * pRep->lod_far > distance) {
         if (has_lod_1 != 0) {
             pRep->m_bLOD = 1;
         } else if (has_lod_2 != 0) {
@@ -1239,7 +1239,7 @@ srModelInstance* W8GrCycle::GetCurrentModelInstance()
         return AnimObjDispatchList(animation, representation->m_bLOD, 0);
     }
 
-    return SelectCycleFrameLod(representation->current_cycle, representation->subcycle_064,
+    return SelectCycleFrameLod(representation->current_cycle, representation->subcycle,
                                representation->m_bLOD);
 }
 
@@ -1310,7 +1310,7 @@ void W8GrCycle::SetSubCycle(unsigned char subcycle)
     W8EmitterHost* target = GetRepresentation();
 
     if (subcycle < count) {
-        target->subcycle_064 = subcycle;
+        target->subcycle = subcycle;
     }
 }
 
@@ -1505,7 +1505,7 @@ void W8GrCycle::CreateGroundShadow(float width, float depth)
     m_ground_shadow = new stGroundShadow(0);
     m_ground_shadow->setName("Ground Shadow");
     m_ground_shadow->width_140 = width;
-    m_ground_shadow->depth_13c = depth;
+    m_ground_shadow->depth = depth;
 }
 
 // FUNCTION: WIZ8 0x004a8de0

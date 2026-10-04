@@ -26,8 +26,8 @@ public:
 protected:
     static void ScrollCallback(W8DialogScrollBar* scroll_bar, int first_visible_entry);
 
-    W8DialogScrollBar scrollbar_054;
-    W8DialogButton button_0a0;
+    W8DialogScrollBar scrollbar;
+    W8DialogButton button;
     W8DialogTextArea textarea;
     unsigned int m_title_id;  /* 0x140: gppStringList index, DrawTitle */
     unsigned int m_detail_id; /* 0x144: gppStringList index, PopulateText */
@@ -65,8 +65,8 @@ protected:
 
 private:
     unsigned int m_skill;
-    bool m_first_14c;
-    bool m_second_14d;
+    bool m_first;
+    bool m_second;
     bool m_bonus;
     unsigned char pad_14f;
 };

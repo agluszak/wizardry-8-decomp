@@ -106,19 +106,19 @@ public:
     SR_DLL_IMPORT float getSafeRange() const;
 
     e_attenuationModel attenuation_model; /* 0x150 */
-    double near_start_158;                    /* 0x158 */
-    double near_end_160;                      /* 0x160 */
-    double far_start_168;                     /* 0x168 */
-    double far_end_170;                       /* 0x170 */
+    double near_start;                    /* 0x158 */
+    double near_end;                      /* 0x160 */
+    double far_start;                     /* 0x168 */
+    double far_end;                       /* 0x170 */
     /* Eye-space derived state filled by process(ProcessInfo): the near/far
        attenuation ranges rescaled by the model-view scale, their reciprocal
        slopes, the intensity-scaled colors, the eye-space spot direction and
        cone cutoff, the cull range, the derived light flags and the channel
        mask the vertex processor gates on. */
-    float scaled_near_start_178; /* 0x178 */
-    float scaled_far_end_17c;    /* 0x17c */
-    float near_attenuation_180;  /* 0x180 */
-    float far_attenuation_184;   /* 0x184 */
+    float scaled_near_start; /* 0x178 */
+    float scaled_far_end;    /* 0x17c */
+    float near_attenuation;  /* 0x180 */
+    float far_attenuation;   /* 0x184 */
     /* BakeInstanceVertexLighting copies this wholesale into a local vec3;
        setLinearAttenuation stores the linear coefficient in .y. */
     srVector3T<float> opengl_attenuation; /* 0x188 */
@@ -127,7 +127,7 @@ public:
     srVector3T<float> diffuse_1a4;            /* 0x1a4 */
     srVector3T<float> specular_1b0;           /* 0x1b0 */
     srVector3T<float> spot_direction;     /* 0x1bc */
-    float spot_angle_1c8;                     /* 0x1c8 */
+    float spot_angle;                     /* 0x1c8 */
     float spot_exponent;                  /* 0x1cc */
     float intensity_1d0;                      /* 0x1d0 */
     float safe_range;                     /* 0x1d4 */
@@ -135,10 +135,10 @@ public:
     srVector4T<float> scaled_diffuse;     /* 0x1e8: diffuse * intensity */
     srVector4T<float> scaled_specular;    /* 0x1f8: specular * intensity */
     srVector3T<float> spot_direction_eye; /* 0x208 */
-    float spot_cutoff_214;                    /* 0x214: cos(spot_angle) */
+    float spot_cutoff;                    /* 0x214: cos(spot_angle) */
     float attenuation_range;              /* 0x218: scaled far end */
     unsigned long derived_flags;          /* 0x21c */
-    unsigned long channel_mask_220;           /* 0x220 */
+    unsigned long channel_mask;           /* 0x220 */
 };
 
 static_assert(sizeof(srLight) == 0x228, "srLight_must_be_0x228");

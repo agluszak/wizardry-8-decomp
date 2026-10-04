@@ -264,7 +264,7 @@ void OpenSplitStackDialog(W8ItemInstance* item)
 
     g_split_item_source = 0;
     if (item->iItemNo != -1 && item->stack_count > 1 &&
-        (g_item_records[item->iItemNo].flags_041 & 2) == 0 &&
+        (g_item_records[item->iItemNo].flags & 2) == 0 &&
         g_item_records[item->iItemNo].quantity_kind == 1) {
         g_split_item_source = item;
         dialog = new W8SplitItemDialog(g_split_dialog_kind, item, -1);
@@ -435,7 +435,7 @@ int CanCharacterUseItemEntry(W8Character* character, W8ItemInstance* item)
 bool CanSplitItemStack(const W8ItemInstance* item)
 {
     const W8ItemDatabaseRecord* record = g_item_records + item->iItemNo;
-    if ((record->flags_041 & 2) != 0) {
+    if ((record->flags & 2) != 0) {
         return 0;
     }
     return record->quantity_kind == 1;
@@ -568,7 +568,7 @@ void UpdateItemCursorForState(int flag, W8ItemInstance* item, int slot)
         }
         if (g_camp_screen->entry_mode == 4) {
             const W8ItemDatabaseRecord* record = g_item_records + item->iItemNo;
-            if ((record->flags_041 & 2) != 0 || record->quantity_kind != 1) {
+            if ((record->flags & 2) != 0 || record->quantity_kind != 1) {
                 return;
             }
             if (gXStatus.fCombatMode != 0 && IsEquippableItemClass(item) == 0 &&
@@ -643,7 +643,7 @@ void UnequipBothHands(void)
 {
     W8Character* character;
 
-    if (gXStatus.fCombatMode != 0 && g_combat_state->round_active_001 == 0 &&
+    if (gXStatus.fCombatMode != 0 && g_combat_state->round_active == 0 &&
         gXStatus.fPartyMovementMode == 0 && g_combat_state->equip_phase == 0) {
         ShowCampNoticeLine(gppStringList[0x903], 0, 1, 0);
         return;
@@ -1204,7 +1204,7 @@ void DrawCampItemIcons(void)
     for (index = 0; index < 12; ++index) {
         item = &character->EquippedItem[index];
         if (item->iItemNo != -1) {
-            DrawCampItemLabel(item, region->label_x_18, region->label_y,
+            DrawCampItemLabel(item, region->label_x, region->label_y,
                               static_cast<char>(region->label_flag));
         }
         ++region;

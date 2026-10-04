@@ -19,7 +19,7 @@ srTriangulator::CircularList::ListIterator::operator-(int distance) const
     ListIterator result = *this;
     while (distance > 0) {
         distance--;
-        result.node_00 = result.node_00->prev_08;
+        result.node_00 = result.node_00->prev;
     }
     return result;
 }
@@ -29,7 +29,7 @@ void srTriangulator::CircularList::erase(ListIterator position)
 {
     ListIterator next = position + 1;
     ListIterator previous = position - 1;
-    next.node_00->prev_08 = previous.node_00;
+    next.node_00->prev = previous.node_00;
     previous.node_00->next_04 = next.node_00;
     count_00--;
 }
@@ -38,64 +38,64 @@ void srTriangulator::CircularList::erase(ListIterator position)
 srTriangulator::CircularList::CircularList(int count)
 {
     count_00 = count;
-    nodes_04 = static_cast<Node*>(operator new(count * sizeof(Node)));
-    nodes_04[0].prev_08 = &nodes_04[count - 1];
-    nodes_04[0].next_04 = &nodes_04[1];
-    nodes_04[count - 1].prev_08 = &nodes_04[count - 2];
-    nodes_04[count - 1].next_04 = nodes_04;
+    nodes = static_cast<Node*>(operator new(count * sizeof(Node)));
+    nodes[0].prev = &nodes[count - 1];
+    nodes[0].next_04 = &nodes[1];
+    nodes[count - 1].prev = &nodes[count - 2];
+    nodes[count - 1].next_04 = nodes;
     for (int i = 1; i < count - 1; i++) {
-        nodes_04[i].prev_08 = &nodes_04[i - 1];
-        nodes_04[i].next_04 = &nodes_04[i + 1];
+        nodes[i].prev = &nodes[i - 1];
+        nodes[i].next_04 = &nodes[i + 1];
     }
 }
 
 // FUNCTION: SURRENDER 0x1003c260
 srTriangulator::CircularList::~CircularList()
 {
-    delete nodes_04;
+    delete nodes;
 }
 
 // FUNCTION: SURRENDER 0x1003bea0
-srTriangulator::srTriangulator(srVector2T<float>* points, int count) : list_04(count)
+srTriangulator::srTriangulator(srVector2T<float>* points, int count) : list(count)
 {
     points_0c = points;
-    CircularList::Node* node = list_04.nodes_04;
+    CircularList::Node* node = list.nodes;
     for (int i = 0; i < count; i++) {
         node->index_00 = i;
         node = node->next_04;
     }
-    current_00.node_00 = list_04.nodes_04;
+    current.node_00 = list.nodes;
 }
 
 // FUNCTION: SURRENDER 0x1003c0e0
 srVector3i srTriangulator::next()
 {
     srVector3i result;
-    if (list_04.count_00 > 3) {
-        CircularList::Node* start = current_00.node_00;
-        while (!satisfyConstraints(current_00)) {
-            current_00.node_00 = current_00.node_00->next_04;
-            if (current_00.node_00 == start) {
+    if (list.count_00 > 3) {
+        CircularList::Node* start = current.node_00;
+        while (!satisfyConstraints(current)) {
+            current.node_00 = current.node_00->next_04;
+            if (current.node_00 == start) {
                 result.x = -1;
                 result.y = 0;
                 result.z = 0;
                 return result;
             }
         }
-        CircularList::Node* next_node = (current_00 + 1).node_00;
-        result.x = (current_00 - 1).node_00->index_00;
-        result.y = current_00.node_00->index_00;
+        CircularList::Node* next_node = (current + 1).node_00;
+        result.x = (current - 1).node_00->index_00;
+        result.y = current.node_00->index_00;
         result.z = next_node->index_00;
-        list_04.erase(current_00);
-        current_00 = current_00 - 1;
+        list.erase(current);
+        current = current - 1;
         return result;
     }
-    if (list_04.count_00 == 3) {
-        CircularList::Node* next_node = current_00.node_00->next_04;
-        result.x = current_00.node_00->index_00;
+    if (list.count_00 == 3) {
+        CircularList::Node* next_node = current.node_00->next_04;
+        result.x = current.node_00->index_00;
         result.y = next_node->index_00;
         result.z = next_node->next_04->index_00;
-        list_04.count_00 = 0;
+        list.count_00 = 0;
         return result;
     }
     result.x = -1;

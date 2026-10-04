@@ -70,16 +70,16 @@ struct W8MonsterAttack {
     /* 0x04: the attack's innate attack-score value; the monster score formula
        adds it alongside the modifier hit bonus and re-reads it inside the
        surprise repick penalty. */
-    unsigned char attack_score_04;
+    unsigned char attack_score;
     unsigned char missile_values_05[0x10]; /* 0x05 */
     unsigned short attack_modes;           /* 0x15 */
     /* 0x17: the attack's damage dice, packed; the missile path copies it
        into the attack block and the melee path rolls it. */
     W8Dice damage_dice;
-    unsigned char missile_magnitude_1b;
+    unsigned char missile_magnitude;
     /* 0x1c: the attack's weapon class, handed signed to BlockedForSpecialReason
-       the way a character's weapon_sound_class_0c5 is. */
-    signed char weapon_class_1c;
+       the way a character's weapon_sound_class is. */
+    signed char weapon_class;
     signed char missile_type; /* 0x1d */
     unsigned char unknown_1e[4];
 }; /* 0x22 */
@@ -164,11 +164,11 @@ struct W8SpellRuntimeRecord {
     char database_name[64]; /* 0x000 */
     unsigned char unknown_040[4];
     /* 0x044: base duration the spell-info dialog prints. */
-    int duration_044;
+    int duration;
     unsigned char alchemy_spell; /* 0x048 */
     int spell_point_cost;        /* 0x049: per power level */
-    /* 0x04d: per-level duration added to duration_044 on the same line. */
-    int duration_per_level_04d;
+    /* 0x04d: per-level duration added to duration on the same line. */
+    int duration_per_level;
     W8Dice effect_dice; /* 0x051 */
     unsigned char unknown_055;
     int spell_level;              /* 0x056: zero through seven */
@@ -202,7 +202,7 @@ struct W8SpellRuntimeRecord {
     unsigned char needs_aim;
     /* 0x140: the MissileTables.dbs row index the cast fires its effect
        through when missile_delivered is set. */
-    int missile_index_140;
+    int missile_index;
     /* 0x144: the spell's effect is delivered by a missile in flight, so its
        queued effect stays alive until the missile lands. Set for the ten
        projectile spells - Frost, Heal Wounds, Make Wounds, Sleep, Stamina,
@@ -215,9 +215,9 @@ struct W8SpellRuntimeRecord {
     char sound_name[0x74]; /* 0x14b: relative to Data\Spells\Sounds */
 }; /* 0x1bf */
 static_assert(sizeof(W8SpellRuntimeRecord) == 0x1bf, "W8SpellRuntimeRecord_size");
-static_assert(offsetof(W8SpellRuntimeRecord, duration_044) == 0x044,
-              "W8SpellRuntimeRecord_duration_044");
-static_assert(offsetof(W8SpellRuntimeRecord, duration_per_level_04d) == 0x04d,
+static_assert(offsetof(W8SpellRuntimeRecord, duration) == 0x044,
+              "W8SpellRuntimeRecord_duration");
+static_assert(offsetof(W8SpellRuntimeRecord, duration_per_level) == 0x04d,
               "W8SpellRuntimeRecord_duration_per_level");
 static_assert(offsetof(W8SpellRuntimeRecord, show_effect_dice) == 0x147,
               "W8SpellRuntimeRecord_show_effect_dice");
@@ -228,11 +228,11 @@ struct W8FactDatabaseRecord {
     /* 0x036: the journal shades this fact's text when its value is true. */
     unsigned char highlight_when_true;
     /* 0x037: the visibility level the journal entry needs. */
-    signed char visibility_037;
+    signed char visibility;
     /* 0x038 and 0x100: the alternate and normal journal descriptions, wide,
        selected by the fact's current value. */
     wchar_t alternate_description[0x64];
-    wchar_t description_100[0x6c];
+    wchar_t description[0x6c];
 }; /* 0x1d8 */
 
 static_assert(sizeof(W8FactDatabaseRecord) == 0x1d8, "W8FactDatabaseRecord_size_must_be_0x1d8");
@@ -285,7 +285,7 @@ struct W8NpcDatabaseRecord {
     short trade_pool;
     /* 0x004: the wide source name the level-entry rebinding prefixes with an
        underscore to build the NPC's trigger name. */
-    wchar_t source_name_004[0x28];
+    wchar_t source_name[0x28];
     /* 0x054: monster-bound NPC: no standalone runtime node is created, its
        state comes through the monster binding, and releasing the binding
        marks it unavailable. */
@@ -310,7 +310,7 @@ struct W8NpcDatabaseRecord {
     signed char talk_scale;
     /* 0x05f: the faction the NPC belongs to; zero leaves GetNpcDisposition on
        the record's own disposition byte. */
-    unsigned char faction_5f;
+    unsigned char faction;
     /* 0x060: one bit per named-person alias the NPC answers to; read as one
        dword by FindNpcNameOrPlaceQuote. */
     unsigned int name_alias_mask;
@@ -401,7 +401,7 @@ static_assert(offsetof(W8LevelDatabaseRecord, gameplay_time_scale) == 0x54,
    rather than in either of them. */
 enum { W8_MONSTER_RECORD_ALTERNATE_NAME = 397 };
 
-/* One slot of W8MonsterRecord::treasure_1f3. type selects direct item (0) or
+/* One slot of W8MonsterRecord::treasure. type selects direct item (0) or
    item-table (1) drops; the entry only fires when count is nonzero and a
    Random(100) roll stays under chance. */
 struct W8MonsterTreasureEntry {
@@ -456,7 +456,7 @@ struct W8MonsterRecord {
     /* 0x0cd: the NPC record index this monster is bound to, fed to
        GetNpcStateByKind and compared against W8NpcState::name_style; 0xfa
        marks a record with no bound NPC. */
-    unsigned char npc_kind_0cd;
+    unsigned char npc_kind;
     /* 0x0ce: signed stamina regeneration rate (Monster Editor: ST Regen). */
     signed char stamina_regeneration;
     /* 0x0cf: the monster's own percentage reduction on incoming damage. */
@@ -467,8 +467,8 @@ struct W8MonsterRecord {
        bounds-checks the index against five. The group update at 0x005113a0
        squares index one and scales it by fifteen for a cache duration, which is
        a use of an attribute rather than a separate field at 0x0d2. */
-    unsigned char attribute_values_d1[5]; /* 0x0d1 */
-    W8Dice hit_points_d6;                 /* 0x0d6: rolled into uiHPMax/hp_current */
+    unsigned char attribute_values[5]; /* 0x0d1 */
+    W8Dice hit_points;                 /* 0x0d6: rolled into uiHPMax/hp_current */
     W8Dice stamina_dice_da;               /* 0x0da: initializes maximum and current stamina */
     unsigned char unknown_0de[2];
     /* 0x0e0/0x0e1: the percentage chances the AI casts a spell or flees each
@@ -480,11 +480,11 @@ struct W8MonsterRecord {
     unsigned char advance_chance;
     /* 0x0e3: Special attack selector; indexes the effect rows used by
        GroupAttacks.cpp and the corresponding display-name table. */
-    unsigned char special_attack_kind_0e3;
-    unsigned char initiative_0e4; /* 0x0e4: Monster Editor Initiative */
+    unsigned char special_attack_kind;
+    unsigned char initiative; /* 0x0e4: Monster Editor Initiative */
     /* 0x0e5/0x0e6: attacks and swings per round, named by the Combat Attack.cpp
        data-error messages "has 0 ATTACKS/round" and "has 0 SWINGS/round". */
-    unsigned char attacks_per_round_0e5;
+    unsigned char attacks_per_round;
     unsigned char swings_per_round;
     /* 0x0e7: the monster's three attacks, named by the Combat Range.cpp
        assertions pMonsterDB->Attack[uiAttack].fHasAttack and uiAttack <
@@ -513,10 +513,10 @@ struct W8MonsterRecord {
     /* 0x17c: hit points gained (or lost, when negative) per game minute. */
     signed char hp_regeneration;
     unsigned char unknown_17d[4];
-    unsigned int experience_181; /* 0x181: base experience value */
+    unsigned int experience; /* 0x181: base experience value */
     unsigned char unknown_185[2];
-    short record_id_187;       /* 0x187: equals the zero-based database index */
-    char cycle_name_189[0x30]; /* 0x189: GrCycle lookup key */
+    short record_id;       /* 0x187: equals the zero-based database index */
+    char cycle_name[0x30]; /* 0x189: GrCycle lookup key */
     /* 0x1b9: prefer ranged actions instead of closing/backing off. */
     unsigned char prefer_ranged_actions;
     float combat_move_range; /* 0x1ba: designer-facing combat movement range */
@@ -537,7 +537,7 @@ struct W8MonsterRecord {
        the slot dice for the drop count; type 0 creates the item id directly,
        type 1 feeds the id to GenerateItemsFromTable. The gold dice lands in
        AddPartyGold. */
-    W8MonsterTreasureBlock treasure_1f3;
+    W8MonsterTreasureBlock treasure;
     unsigned char attack_multiple_targets;
     /* 0x248: Monster Editor camouflage rating; retail sight code consumes it. */
     unsigned char camouflage_248;
@@ -553,18 +553,18 @@ struct W8MonsterRecord {
     /* 0x251: monster level shown by MonsterInfo and related UI. */
     unsigned char display_level;
     unsigned char unknown_252;
-    int model_index_253;           /* 0x253: selected by 0x004e5b50 */
+    int model_index;           /* 0x253: selected by 0x004e5b50 */
     int alternate_model_index; /* 0x257: alternate selected value */
     int hostility_radius;      /* 0x25b: Minimal Neutrality Distance / Hostility Radius */
     int faction_id;            /* 0x25f: W8Faction value, domain 0..20 */
-    int material_263;              /* 0x263: Monster Editor Material selector */
+    int material;              /* 0x263: Monster Editor Material selector */
     /* Carved out because LoadMonsterGroup skips every live-group step for a
        record that has it set. */
     unsigned char deleted; /* 0x267 */
     unsigned char significant_kill;
     unsigned char unknown_269;
     /* 0x26a: unborn monsters enter the birth/encounter lists before acting. */
-    unsigned char unborn_26a;
+    unsigned char unborn;
     unsigned int experience_override; /* 0x26b: nonzero experience override */
     /* 0x26f: the spell-point budget the monster casts out of, before its own
        runtime bonus. Zero is a data error the power-level chooser reports by
@@ -582,8 +582,8 @@ static_assert(offsetof(W8MonsterRecord, stamina_dice_da) == 0xda,
               "W8MonsterRecord_stamina_dice_offset");
 static_assert(offsetof(W8MonsterRecord, remains_model_name) == 0x1c3,
               "W8MonsterRecord_remains_model_name_offset");
-static_assert(offsetof(W8MonsterRecord, treasure_1f3) == 0x1f3, "W8MonsterRecord_treasure_offset");
-static_assert(offsetof(W8MonsterRecord, treasure_1f3.gold_dice) == 0x243,
+static_assert(offsetof(W8MonsterRecord, treasure) == 0x1f3, "W8MonsterRecord_treasure_offset");
+static_assert(offsetof(W8MonsterRecord, treasure.gold_dice) == 0x243,
               "W8MonsterRecord_gold_dice_offset");
 static_assert(offsetof(W8MonsterRecord, attack_body_part_chances) == 0x157,
               "W8MonsterRecord_attack_body_part_chances");

@@ -20,7 +20,7 @@ public:
                       srShader* render_flags, stMeshModel** meshes, int material_count);
     bool Write(int hFile); /* 0x0049E5D0 */
 
-    short version_00;
+    short version;
     short padding_02;
     int m_link_index;
     int next_link;

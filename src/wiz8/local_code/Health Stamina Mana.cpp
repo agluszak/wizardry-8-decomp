@@ -383,7 +383,7 @@ unsigned int ApplyDamageToMonster(W8MonsterInfo* monster_info, unsigned int amou
         ++result_stats->count;
     }
     if (amount != 0) {
-        if (gXStatus.fCombatMode != 0 || monster_info->party_threat.visible_to_player_25 != 0) {
+        if (gXStatus.fCombatMode != 0 || monster_info->party_threat.visible_to_player != 0) {
             PointCameraAtMonster(monster_info, 0, 1);
             category = 9;
             if (TargetSourceIsCharacter(source, 0) != 0 && source->iChar != -1) {
@@ -901,7 +901,7 @@ void MonsterReactsToBeingStruck(W8MonsterInfo* monster_info, W8TargetSource* att
     StartMonsterCycle(monster_info, 0x14, 1);
 
     if (monster_info->uiCondition[15] != 0 && quiet == 0 &&
-        Random(100) < static_cast<unsigned int>((monster_info->attributes[4] >> 1) + 0x32)) {
+        Random(100) < static_cast<unsigned int>((monster_info->attributes[W8_MONSTER_ATTRIBUTE_SENSES] >> 1) + 0x32)) {
         ClearMonsterCondition(monster_info->location_id, W8_CONDITION_ASLEEP);
     }
     if (monster_info->control_state == 1) {
@@ -1160,7 +1160,7 @@ void CharacterDies(int party_slot)
         }
         row->pending_action = W8_ACTION_NONE;
         g_combat_state->characters[party_slot].phase = 0;
-        g_combat_state->characters[party_slot].dead_34 = 1;
+        g_combat_state->characters[party_slot].dead = 1;
         DropCharacterFromRound(party_slot);
     }
 
@@ -1168,7 +1168,7 @@ void CharacterDies(int party_slot)
     if (animation != -1) {
         W8NpcState* npc = GetNpcState(animation);
         if (npc != 0) {
-            npc->spawned_04 = 1;
+            npc->spawned = 1;
         }
     }
 }
@@ -1240,7 +1240,7 @@ void RecalculateCharacterStamina(W8Character* character)
 {
     unsigned int previous = character->uiStaminaMax;
     unsigned int value = static_cast<unsigned int>(
-        ((character->attributes[0].effective + character->attributes[W8_ATTRIBUTE_PIETY].effective +
+        ((character->attributes[W8_ATTRIBUTE_STRENGTH].effective + character->attributes[W8_ATTRIBUTE_PIETY].effective +
           character->attributes[W8_ATTRIBUTE_VITALITY].effective) *
          (1.0f / 3.0f)) *
             (character->uiExpLevel * g_float_005ed8b8 + g_environment_near_scale) +
