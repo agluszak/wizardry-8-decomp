@@ -264,15 +264,7 @@ int W8MeshStripBuilder::CountNeighbors(int index)
 // FUNCTION: WIZ8 0x004879C0
 void W8MeshStripBuilder::BuildEdgeTable()
 {
-    if (edges.bucket_count != 0) {
-        delete[] edges.bucket_heads;
-        delete[] edges.entries;
-    }
-    edges.bucket_count = 0;
-    edges.bucket_heads = 0;
-    edges.entries = 0;
-    edges.free_head = -1;
-    edges.Grow();
+    edges.Clear();
 
     for (unsigned int index = 0; index < count; ++index) {
         W8MeshStripPolygon* polygon = polygons + index;

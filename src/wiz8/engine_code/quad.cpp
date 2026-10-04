@@ -121,7 +121,7 @@ W8Quad* BuildWorldQuad(srModelInstance* instance, int, float minimum_x, float mi
     }
 
     quad->cell_size = g_quad_cell_size;
-    quad->origin_x = minimum_x;
-    quad->origin_z = minimum_z;
+    quad->origin.x = minimum_x;
+    quad->origin.y = minimum_z;
     return quad;
 }

@@ -216,17 +216,15 @@ bool OctPreTree::TestCollectedPolygons(W8OctreeTrace* trace)
             break;
         }
         W8OctRegionPolygon* polygon = &game_data_3a4->m_polygons[m_aulGDObjs[index]];
-        const float* plane = &polygon->plane.normal.x;
-        if (plane[0] * trace->step_18.x + trace->step_18.y * plane[1] +
-                trace->step_18.z * plane[2] <=
+        const W8Plane* plane = &polygon->plane;
+        if (plane->normal.x * trace->step_18.x + trace->step_18.y * plane->normal.y +
+                trace->step_18.z * plane->normal.z <=
             g_float_zero) {
-            float front = trace->start.x * plane[0] + trace->start.y * plane[1] +
-                          trace->start.z * plane[2] + plane[3];
+            float front = SignedPlaneDistance(*plane, trace->start);
             if (front <= limit && g_float_zero < front) {
                 srVector3T<float> contact;
                 if (g_float_one <= front) {
-                    float back = trace->end_0c.x * plane[0] + trace->end_0c.y * plane[1] +
-                                 trace->end_0c.z * plane[2] + plane[3];
+                    float back = SignedPlaneDistance(*plane, trace->end_0c);
                     if (g_float_005ebc28 <= back) {
                         continue;
                     }
@@ -277,15 +275,13 @@ unsigned char OctPreTree::WriteOctFile(W8OctPreTreeGeometry* geometry, W8GameDat
     header.m_cell_size = m_spatial.m_cell_size;
     header.m_node_extent = m_spatial.m_node_extent;
     header.version = W8OctFileHeader::VERSION;
-    for (int axis = 0; axis < 3; ++axis) {
-        (&header.m_bounds[0].x)[axis] = (&m_spatial.m_minimum.x)[axis];
-        (&header.m_bounds[1].x)[axis] = (&m_spatial.m_maximum.x)[axis];
-        (&header.m_bounds[2].x)[axis] = (&m_spatial.m_clipped_minimum.x)[axis];
-        (&header.m_bounds[3].x)[axis] = (&m_spatial.m_clipped_maximum.x)[axis];
-        (&header.m_bounds[4].x)[axis] = (&m_spatial.m_working_minimum.x)[axis];
-        (&header.m_bounds[5].x)[axis] = (&m_spatial.m_working_maximum.x)[axis];
-        header.m_grid_dims[axis] = (&m_leaf_grid_dim_x)[axis];
-    }
+    header.m_bounds[0] = m_spatial.m_minimum;
+    header.m_bounds[1] = m_spatial.m_maximum;
+    header.m_bounds[2] = m_spatial.m_clipped_minimum;
+    header.m_bounds[3] = m_spatial.m_clipped_maximum;
+    header.m_bounds[4] = m_spatial.m_working_minimum;
+    header.m_bounds[5] = m_spatial.m_working_maximum;
+    header.m_grid_dims = m_leaf_grid_dimensions;
     header.m_depth = m_spatial.m_depth;
     header.m_region_id_bound = m_spatial.m_region_id_bound;
     header.m_root_mesh_count = m_root_mesh_count;
@@ -316,7 +312,7 @@ unsigned char OctPreTree::WriteOctFile(W8OctPreTreeGeometry* geometry, W8GameDat
         header.m_path_nodes = 0;
         header.m_edge_node_count = 0;
     } else {
-        header.m_path_nodes = pre_pathing_2a0->size_004;
+        header.m_path_nodes = pre_pathing_2a0->path_node_count;
         header.m_edge_node_count = pre_pathing_2a0->edge_node_count_008;
     }
     file = FileOpen("NewLevel.oct", FILE_ACCESS_WRITE | FILE_CREATE_ALWAYS, 0);
@@ -343,7 +339,8 @@ unsigned char OctPreTree::WriteOctFile(W8OctPreTreeGeometry* geometry, W8GameDat
         ReportBuildStatus(7, "WriteOctFile: Couldn't write Poly List info.\n");
         return 0;
     }
-    unsigned int grid_cells = m_leaf_grid_dim_z * m_leaf_grid_dim_y * m_leaf_grid_dim_x;
+    unsigned int grid_cells =
+        m_leaf_grid_dimensions.z * m_leaf_grid_dimensions.y * m_leaf_grid_dimensions.x;
     if (grid_cells < 250000 && FileWrite(file, m_leaf_lookup, grid_cells * 4, 0) == 0) {
         ReportBuildStatus(7, "WriteOctFile: Couldn't write uiLeafGrid info.\n");
         return 0;
@@ -1012,14 +1009,11 @@ unsigned long OctPreTree::AllocateSubMesh(W8OctSubmeshBuild* records)
         W8OctSubmeshBuild* record = records + index;
         /* Retail initialises the bounds only on this path; for empty records
            the cell check below reads whatever the stack held. */
-        float min_x, min_y, min_z, max_x, max_y, max_z;
+        srVector3T<float> minimum;
+        srVector3T<float> maximum;
         if (record->m_polygon_count != 0) {
-            min_x = 1e+06f;
-            min_y = 1e+06f;
-            min_z = 1e+06f;
-            max_x = -1e+06f;
-            max_y = -1e+06f;
-            max_z = -1e+06f;
+            minimum = 1e+06f;
+            maximum = -1e+06f;
             record->m_polygon_ids = static_cast<int*>(malloc(record->m_polygon_count * 4 + 8));
             if (record->m_polygon_ids == 0) {
                 ReportBuildStatus(7, "\nAllocateSubMesh: Could not allocate aulFaces.\n");
@@ -1037,25 +1031,25 @@ unsigned long OctPreTree::AllocateSubMesh(W8OctSubmeshBuild* records)
                                 6, "One of your regions has more than 5000 polys in it!\n");
                         }
                         for (int corner = 0; corner < 3; ++corner) {
-                            float* position =
-                                &game_data_3a4->m_polygons[poly].vertices[corner]->position_0c.x;
-                            if (max_x < position[0]) {
-                                max_x = position[0];
+                            const srVector3T<float>* position =
+                                &game_data_3a4->m_polygons[poly].vertices[corner]->position_0c;
+                            if (maximum.x < position->x) {
+                                maximum.x = position->x;
                             }
-                            if (position[0] < min_x) {
-                                min_x = position[0];
+                            if (position->x < minimum.x) {
+                                minimum.x = position->x;
                             }
-                            if (max_y < position[1]) {
-                                max_y = position[1];
+                            if (maximum.y < position->y) {
+                                maximum.y = position->y;
                             }
-                            if (position[1] < min_y) {
-                                min_y = position[1];
+                            if (position->y < minimum.y) {
+                                minimum.y = position->y;
                             }
-                            if (max_z < position[2]) {
-                                max_z = position[2];
+                            if (maximum.z < position->z) {
+                                maximum.z = position->z;
                             }
-                            if (position[2] < min_z) {
-                                min_z = position[2];
+                            if (position->z < minimum.z) {
+                                minimum.z = position->z;
                             }
                         }
                     }
@@ -1077,9 +1071,9 @@ unsigned long OctPreTree::AllocateSubMesh(W8OctSubmeshBuild* records)
             float cell_y =
                 ((cell >> 8) & 0xff) * m_spatial.m_region_grid_cell + m_spatial.m_minimum.y;
             float cell_z = (cell & 0xff) * m_spatial.m_region_grid_cell + m_spatial.m_minimum.z;
-            if (cell_x + m_spatial.m_region_grid_cell < min_x || max_x < cell_x ||
-                cell_y + m_spatial.m_region_grid_cell < min_y || max_y < cell_y ||
-                cell_z + m_spatial.m_region_grid_cell < min_z || max_z < cell_z) {
+            if (cell_x + m_spatial.m_region_grid_cell < minimum.x || maximum.x < cell_x ||
+                cell_y + m_spatial.m_region_grid_cell < minimum.y || maximum.y < cell_y ||
+                cell_z + m_spatial.m_region_grid_cell < minimum.z || maximum.z < cell_z) {
                 ReportBuildStatus(7, "AutoMesh has no vertices inside region.");
             }
             slot = cells->FindNextEntry(&key, slot);
@@ -1143,40 +1137,36 @@ void OctPreTree::VerifyAutoMeshes(W8OctPreTreeGeometry* geometry, W8OctSubmeshBu
                 if (m_branches[node].region != key) {
                     ReportBuildStatus(7, "Region has wrong automesh.");
                 }
-                float min_x = g_float_005ec3c0;
-                float min_y = 1e+06f;
-                float min_z = 1e+06f;
-                float max_x = -1e+06f;
-                float max_y = -1e+06f;
-                float max_z = -1e+06f;
+                srVector3T<float> minimum(g_float_005ec3c0, 1e+06f, 1e+06f);
+                srVector3T<float> maximum(-1e+06f, -1e+06f, -1e+06f);
                 for (unsigned long link = mesh; link != 0; link = records[link].m_next_link) {
                     W8OctSubmeshBuild* record = records + link;
                     for (unsigned long i = 0; i < record->vertex_count; ++i) {
-                        float* position =
-                            &geometry->m_vertices[record->m_vertex_ids[i]].position_0c.x;
-                        if (max_x < position[0]) {
-                            max_x = position[0];
+                        const srVector3T<float>* position =
+                            &geometry->m_vertices[record->m_vertex_ids[i]].position_0c;
+                        if (maximum.x < position->x) {
+                            maximum.x = position->x;
                         }
-                        if (position[0] < min_x) {
-                            min_x = position[0];
+                        if (position->x < minimum.x) {
+                            minimum.x = position->x;
                         }
-                        if (max_y < position[1]) {
-                            max_y = position[1];
+                        if (maximum.y < position->y) {
+                            maximum.y = position->y;
                         }
-                        if (position[1] < min_y) {
-                            min_y = position[1];
+                        if (position->y < minimum.y) {
+                            minimum.y = position->y;
                         }
-                        if (max_z < position[2]) {
-                            max_z = position[2];
+                        if (maximum.z < position->z) {
+                            maximum.z = position->z;
                         }
-                        if (position[2] < min_z) {
-                            min_z = position[2];
+                        if (position->z < minimum.z) {
+                            minimum.z = position->z;
                         }
                     }
                 }
-                if (cell_x + m_spatial.m_region_grid_cell < min_x || max_x < cell_x ||
-                    cell_y + m_spatial.m_region_grid_cell < min_y || max_y < cell_y ||
-                    cell_z + m_spatial.m_region_grid_cell < min_z || max_z < cell_z) {
+                if (cell_x + m_spatial.m_region_grid_cell < minimum.x || maximum.x < cell_x ||
+                    cell_y + m_spatial.m_region_grid_cell < minimum.y || maximum.y < cell_y ||
+                    cell_z + m_spatial.m_region_grid_cell < minimum.z || maximum.z < cell_z) {
                     ReportBuildStatus(7, "AutoMesh has no vertices inside region.");
                 }
             }

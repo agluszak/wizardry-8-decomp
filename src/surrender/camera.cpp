@@ -396,10 +396,7 @@ srCamera::e_projectionResult srCamera::project(srVector3T<float>& output,
     srMatrix3T<double> rotation;
     getWorldSpaceRotation(rotation);
     srVector3T<double> location = getWorldSpaceLocation();
-    srVector3T<double> delta;
-    delta.x = input.x - location.x;
-    delta.y = input.y - location.y;
-    delta.z = input.z - location.z;
+    srVector3T<double> delta = input - location;
     srVector3T<double> point = rotation.Transform(delta);
 
     double near_clip = near_clip_168 < far_clip_170 ? near_clip_168 : far_clip_170;
@@ -431,9 +428,7 @@ srCamera::e_projectionResult srCamera::project(srVector3T<float>& output,
         }
         return static_cast<e_projectionResult>(1);
     }
-    output.x = 0.0f;
-    output.y = 0.0f;
-    output.z = 0.0f;
+    output.SetZero();
     return static_cast<e_projectionResult>(2);
 }
 
@@ -449,9 +444,7 @@ int srCamera::unproject(srVector3T<float>& output, const srVector3T<double>& inp
     double y = ((bottom - top) * input.y + top) * depth;
     double near_clip = near_clip_168 < far_clip_170 ? near_clip_168 : far_clip_170;
     double far_clip = near_clip_168 < far_clip_170 ? far_clip_170 : near_clip_168;
-    output.x = 0.0f;
-    output.y = 0.0f;
-    output.z = 0.0f;
+    output.SetZero();
     if (near_clip <= depth && depth <= far_clip) {
         double x_upper = left;
         double x_lower = right;

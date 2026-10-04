@@ -321,14 +321,13 @@ void GDCamera::SnapToTarget(const srVector3T<float>* target)
         }
     }
 
-    srVector3T<float> direction(target->x - m_position.x, target->y - m_position.y,
-                                target->z - m_position.z);
+    srVector3T<float> direction = *target - m_position;
     if (direction.Length() < 1.0) {
         return;
     }
     direction.Normalize();
 
-    srVector2T<float> horizontal(direction.x, direction.z);
+    srVector2T<float> horizontal = direction.xz();
     horizontal *= 1.0 / horizontal.Length();
     float x = horizontal.x;
     float y = direction.y;
@@ -396,14 +395,13 @@ unsigned char GDCamera::LookAt(const srVector3T<float>* target, bool preserve_pi
         }
     }
 
-    srVector3T<float> direction(target->x - m_position.x, target->y - m_position.y,
-                                target->z - m_position.z);
+    srVector3T<float> direction = *target - m_position;
     if (direction.Length() < 1.0) {
         return 0;
     }
     direction.Normalize();
 
-    srVector2T<float> horizontal(direction.x, direction.z);
+    srVector2T<float> horizontal = direction.xz();
     horizontal *= 1.0 / horizontal.Length();
     float x = horizontal.x;
     float y = direction.y;

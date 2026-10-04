@@ -182,8 +182,10 @@ unsigned char AnimObjReadFromFile(W8ReadLevelInfo* info, W8AnimObj* animation, i
                     if (typed->key_frames.count == 1) {
                         typed->frame_sums.Add(frame);
                     } else {
-                        typed->frame_sums.Add(*typed->frame_sums.GetAt(typed->frame_sums.count - 1) +
-                                             frame);
+                        typed->frame_sums.Add(
+                            *typed->frame_sums.GetAt(typed->frame_sums.count -
+                                                                1) +
+                            frame);
                     }
                 }
                 definition = typed;
@@ -546,21 +548,17 @@ void TransformBounds(const srMatrix3T<float>* rotation, const srVector3T<float>*
                      const srVector3T<float>* scale, srVector3T<float>* minimum,
                      srVector3T<float>* maximum)
 {
-    float corner[6];
+    srVector3T<float> corner[2];
     int i;
     int j;
     int k;
 
-    corner[0] = minimum->x;
-    corner[1] = minimum->y;
-    corner[2] = minimum->z;
-    corner[3] = maximum->x;
-    corner[5] = maximum->z;
-    corner[4] = maximum->y;
+    corner[0] = *minimum;
+    corner[1] = *maximum;
     for (i = 0; i < 2; ++i) {
         for (j = 0; j < 2; ++j) {
             for (k = 0; k < 2; ++k) {
-                srVector3T<float> point(corner[i * 3], corner[j * 3 + 1], corner[k * 3 + 2]);
+                srVector3T<float> point(corner[i].x, corner[j].y, corner[k].z);
                 srVector3T<float> transformed = rotation->Transform(point);
                 float tx = (transformed.x + translation->x) * scale->x;
                 float ty = (transformed.y + translation->y) * scale->y;
@@ -809,7 +807,8 @@ stLightDefinition* stKeyframedLightDefinition::Clone() const
 // FUNCTION: WIZ8 0x004a2580
 bool stKeyframedLightDefinition::IsEnabledForSubcycle(unsigned char subcycle)
 {
-    if (*key_frames.GetAt(0) <= time_4c && time_4c <= *key_frames.GetAt(key_frames.GetCount() - 1)) {
+    if (*key_frames.GetAt(0) <= time_4c &&
+        time_4c <= *key_frames.GetAt(key_frames.GetCount() - 1)) {
         return true;
     }
     return false;

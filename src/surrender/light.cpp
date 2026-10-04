@@ -25,9 +25,9 @@ srLight::srLight(srNode* parent, e_preset preset)
     channel_mask = 0;
     setFlag(FLAG_GLOBAL);
     enable_flags = 0;
-    ambient_198.x = ambient_198.y = ambient_198.z = 0.0f;
-    diffuse_1a4.x = diffuse_1a4.y = diffuse_1a4.z = 1.0f;
-    specular_1b0.x = specular_1b0.y = specular_1b0.z = 1.0f;
+    ambient_198.SetZero();
+    diffuse_1a4 = 1.0f;
+    specular_1b0 = 1.0f;
     spot_direction.x = spot_direction.y = 0.0f;
     spot_direction.z = 1.0f;
     spot_exponent = 1.0f;
@@ -212,13 +212,10 @@ void srLight::process(const ProcessInfo& info, e_processType type)
         derived_flags |= 0x4;
         srVector3T<float> direction(-model_view.vectors[0].z, -model_view.vectors[1].z,
                                     -model_view.vectors[2].z);
-        float length_squared =
-            direction.x * direction.x + direction.y * direction.y + direction.z * direction.z;
+        float length_squared = direction.LengthSquared();
         if (length_squared != 1.0f) {
             double scale = 1.0 / sqrt(length_squared);
-            direction.x *= scale;
-            direction.y *= scale;
-            direction.z *= scale;
+            direction *= scale;
         }
         eye_location = direction;
     } else {
@@ -236,14 +233,10 @@ void srLight::process(const ProcessInfo& info, e_processType type)
             spot_direction_eye.z = inverse.vectors[0].z * spot_direction.x +
                                        inverse.vectors[1].z * spot_direction.y +
                                        inverse.vectors[2].z * spot_direction.z;
-            float length_squared = spot_direction_eye.x * spot_direction_eye.x +
-                                   spot_direction_eye.y * spot_direction_eye.y +
-                                   spot_direction_eye.z * spot_direction_eye.z;
+            float length_squared = spot_direction_eye.LengthSquared();
             if (length_squared != 0.0f) {
                 double scale = 1.0 / sqrt(length_squared);
-                spot_direction_eye.x *= scale;
-                spot_direction_eye.y *= scale;
-                spot_direction_eye.z *= scale;
+                spot_direction_eye *= scale;
             }
         }
         if (attenuation_model != ATTENUATION_NONE) {
@@ -638,14 +631,10 @@ srVector3T<float> srLight::getSpecular() const
 void srLight::setSpotDirection(const srVector3T<float>& direction)
 {
     spot_direction = direction;
-    float length_squared = spot_direction.x * spot_direction.x +
-                           spot_direction.y * spot_direction.y +
-                           spot_direction.z * spot_direction.z;
+    float length_squared = spot_direction.LengthSquared();
     if (length_squared != 0.0f) {
         double scale = 1.0 / sqrt(length_squared);
-        spot_direction.x *= scale;
-        spot_direction.y *= scale;
-        spot_direction.z *= scale;
+        spot_direction *= scale;
     }
 }
 

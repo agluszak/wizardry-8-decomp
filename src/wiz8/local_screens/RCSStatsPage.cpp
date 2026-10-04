@@ -79,7 +79,7 @@ void DrawCampEffectEntry(W8CampEffectEntry* entry, int* line_out);
    header draws. Category 4 sits below the right-hand column; the others fill
    the left and right columns. */
 // GLOBAL: WIZ8 0x0064ef40
-static int g_camp_skill_category_positions[5][2] = {
+static srVector2i g_camp_skill_category_positions[5] = {
     {0x160, 0x8}, {0x160, 0xcc}, {0x22, 0x9}, {0x22, 0x86}, {0x2a, 0x21},
 };
 // GLOBAL: WIZ8 0x0064ef68
@@ -92,7 +92,7 @@ static unsigned int g_character_page2_region_set;
 // GLOBAL: WIZ8 0x0069c52c
 unsigned int g_character_page4_region_set;
 // GLOBAL: WIZ8 0x0064ef90
-static int g_character_page2_category_geometry[5][2] = {
+static srVector2i g_character_page2_category_geometry[5] = {
     {0xf9, 0x0a}, {0xf9, 0xcd}, {0x22, 0x0a}, {0x22, 0x87}, {0xf9, 0x120},
 };
 // GLOBAL: WIZ8 0x0064efb8
@@ -786,8 +786,8 @@ void CreateCampSkillRegions(void)
             SetRegionCallback(region, CampSkillListRegionHandler,
                               static_cast<unsigned short>(category));
             SetRegionHelp(region, 1, -1);
-            int x = g_camp_skill_category_positions[category][0];
-            int y = g_camp_skill_category_positions[category][1];
+            int x = g_camp_skill_category_positions[category].x;
+            int y = g_camp_skill_category_positions[category].y;
             if (category == 4) {
                 x += 0x136;
             } else {
@@ -827,8 +827,8 @@ void DrawCampSkillsPage(void)
         DrawCatalogImageAndInvalidate(-0xe, 0x141, 0, 2, 0, 0xa5, 2, 0);
         for (int category = 0; category < 5; ++category) {
             if (category != 4 || has_fifth) {
-                int x = g_camp_skill_category_positions[category][0];
-                int y = g_camp_skill_category_positions[category][1];
+                int x = g_camp_skill_category_positions[category].x;
+                int y = g_camp_skill_category_positions[category].y;
                 if (category == 4) {
                     x += 0x136;
                 } else {
@@ -844,8 +844,8 @@ void DrawCampSkillsPage(void)
             W8CharacterSkill* value = &g_review_character->skills[skill];
             if (value->active != 0 || value->points != 0 || value->level != 0) {
                 int category = g_skill_attributes[skill].category;
-                int left = g_camp_skill_category_positions[category][0];
-                int top = g_camp_skill_category_positions[category][1];
+                int left = g_camp_skill_category_positions[category].x;
+                int top = g_camp_skill_category_positions[category].y;
                 if (category == 4) {
                     left += 0x136;
                 } else {
@@ -1383,8 +1383,8 @@ void W8CharacterSkillsPage::SetCharacter(W8Character* character,
     for (int skill = 0; skill < 0x29; ++skill) {
         int category = g_skill_attributes[skill].category;
         W8CharacterPageEntry* entry = new W8CharacterPageEntry(
-            this, g_character_page2_category_geometry[category][0],
-            g_character_page2_category_geometry[category][1] + category_count[category] * 0xe, 1);
+            this, g_character_page2_category_geometry[category].x,
+            g_character_page2_category_geometry[category].y + category_count[category] * 0xe, 1);
         AddEntry(entry);
         entry->m_listener_004 = this;
         ++category_count[category];
@@ -1464,8 +1464,8 @@ void W8CharacterSkillsPage::Redraw()
             if (category != 4 || m_show_fifth_category) {
                 DrawCatalogImage(
                     -14, 0x144, 0, static_cast<short>(g_character_page2_category_frames[category]),
-                    m_bounds.left + g_character_page2_category_geometry[category][0] - 0x16,
-                    m_bounds.top + g_character_page2_category_geometry[category][1] - 3, 2, 0);
+                    m_bounds.left + g_character_page2_category_geometry[category].x - 0x16,
+                    m_bounds.top + g_character_page2_category_geometry[category].y - 3, 2, 0);
             }
         }
         if (!m_show_fifth_category) {

@@ -1,3 +1,4 @@
+#include "wiz8/engine_code/stMeshModel.h"
 #include "wiz8/local_code/Targeting.h"
 #include "wiz8/local_code/CombatHostility.h"
 #include "wiz8/local_code/GameplayCode.h"
@@ -667,8 +668,7 @@ void ApplyMonsterRTAIDecision(W8MonsterInfo* monster_info, unsigned char decisio
             monster_info->ai_mode &= 0x7f;
             break;
         }
-        if (monster->formation.x == 0.0f && monster->formation.y == 0.0f &&
-            monster->formation.z == 0.0f) {
+        if (IsZeroVector(&monster->formation) != 0) {
             monster->formation = monster->GetPosition();
         }
         position = monster->formation;

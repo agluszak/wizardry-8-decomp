@@ -1252,7 +1252,7 @@ void RenderInactiveTextFieldNode(TEXTINPUTNODE* field)
     RestoreFontSettings();
 
     if (disabled) {
-        int rectangle[4] = {
+        SGPRect rectangle = {
             field->region.RegionTopLeftX,
             field->region.RegionTopLeftY,
             field->region.RegionBottomRightX,
@@ -1260,7 +1260,7 @@ void RenderInactiveTextFieldNode(TEXTINPUTNODE* field)
         };
         unsigned int pitch;
         void* pixels = LockVideoSurface(FRAME_BUFFER, &pitch);
-        Blt16BPPBufferShadowRect((unsigned short*)pixels, pitch, (SGPRect*)rectangle);
+        Blt16BPPBufferShadowRect(static_cast<unsigned short*>(pixels), pitch, &rectangle);
         UnLockVideoSurface(FRAME_BUFFER);
     }
 }

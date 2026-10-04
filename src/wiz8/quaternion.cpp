@@ -5,7 +5,7 @@
 W8Quaternion* W8Quaternion::SetFromMatrix(const srMatrix3T<float>& matrix)
 {
     const float* m = &matrix.vectors[0].x;
-    float temp[4];
+    srVector4T<float> temp;
     double root;
     double scale;
     float trace;
@@ -30,12 +30,12 @@ W8Quaternion* W8Quaternion::SetFromMatrix(const srMatrix3T<float>& matrix)
     j = (i + 1) % 3;
     k = (j + 1) % 3;
     root = sqrt(m[i * 4] - (m[k * 4] + m[j * 4]) + 1.0);
-    temp[i] = static_cast<float>(root * 0.5);
+    (&temp.x)[i] = static_cast<float>(root * 0.5);
     scale = 0.5 / root;
-    temp[3] = static_cast<float>((m[k * 3 + j] - m[j * 3 + k]) * scale);
-    temp[j] = static_cast<float>((m[i * 3 + j] + m[j * 3 + i]) * scale);
-    temp[k] = static_cast<float>((m[i * 3 + k] + m[k * 3 + i]) * scale);
-    w = temp[3];
-    v.Set(temp[0], temp[1], temp[2]);
+    temp.w = static_cast<float>((m[k * 3 + j] - m[j * 3 + k]) * scale);
+    (&temp.x)[j] = static_cast<float>((m[i * 3 + j] + m[j * 3 + i]) * scale);
+    (&temp.x)[k] = static_cast<float>((m[i * 3 + k] + m[k * 3 + i]) * scale);
+    w = temp.w;
+    v = temp.xyz();
     return this;
 }

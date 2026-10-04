@@ -98,7 +98,7 @@ srGERD::srGERD(srDD* device, void* module, const char* device_name)
     state_flags_28_ = 0;
     dirty_24_ = 0xffffffff;
     setError(ERROR_NONE);
-    display_1758_.gamma_00_.Set(1.0, 1.0, 1.0);
+    display_1758_.gamma_00_ = 1.0f;
     display_1758_.swap_interval_0c_ = 1;
     display_1758_.antialias_10_ = ANTIALIAS_NONE;
     fog_color_1fe8_ = 0.0f;
@@ -387,10 +387,7 @@ void srGERD::setSwapInterval(unsigned long interval)
 // FUNCTION: SURRENDER 0x1001AEE0
 void srGERD::setGamma(const srVector3T<float>& gamma)
 {
-    srVector3T<float> adjusted;
-    adjusted.x = gamma.x;
-    adjusted.y = gamma.y;
-    adjusted.z = gamma.z;
+    srVector3T<float> adjusted = gamma;
     if (adjusted.x < 0.0f) {
         adjusted.x = 0.0f;
     }
@@ -400,8 +397,7 @@ void srGERD::setGamma(const srVector3T<float>& gamma)
     if (adjusted.z < 0.0f) {
         adjusted.z = 0.0f;
     }
-    if (adjusted.x != display_1758_.gamma_00_.x || adjusted.y != display_1758_.gamma_00_.y ||
-        adjusted.z != display_1758_.gamma_00_.z) {
+    if (!(adjusted == display_1758_.gamma_00_)) {
         display_1758_.gamma_00_ = adjusted;
         dirty_24_ |= 2;
     }
@@ -2647,19 +2643,7 @@ void srGERD::loadMatrix(const srMatrix3T<double>& matrix)
 void srGERD::loadMatrix(const srMatrix3T<float>& matrix)
 {
     srMatrix4T<float>& current = state_390_.matrix_current_00_[state_390_.matrix_mode_12c0_];
-    current.vectors[0].x = matrix.vectors[0].x;
-    current.vectors[0].y = matrix.vectors[0].y;
-    current.vectors[0].z = matrix.vectors[0].z;
-    current.vectors[0].w = 0.0f;
-    current.vectors[1].x = matrix.vectors[1].x;
-    current.vectors[1].y = matrix.vectors[1].y;
-    current.vectors[1].z = matrix.vectors[1].z;
-    current.vectors[1].w = 0.0f;
-    current.vectors[2].x = matrix.vectors[2].x;
-    current.vectors[2].y = matrix.vectors[2].y;
-    current.vectors[2].z = matrix.vectors[2].z;
-    current.vectors[2].w = 0.0f;
-    current.vectors[3].Set(0.0f, 0.0f, 0.0f, 1.0f);
+    current.Set(matrix, srVector3T<float>(0.0f, 0.0f, 0.0f));
     setMatrixDirty();
 }
 

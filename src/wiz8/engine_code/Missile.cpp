@@ -484,8 +484,8 @@ W8Missile* AllocateMissile(int missile_table_index)
     }
     missile->impacting = 0;
     g_world->missiles->Add(missile);
-    minimum.Set(-125.0, -125.0, -125.0);
-    maximum.Set(125.0, 125.0, 125.0);
+    minimum = -125.0;
+    maximum = 125.0;
     missile->SetBounds(&minimum, &maximum);
     missile->active_088 = 1;
     return missile;
@@ -536,7 +536,7 @@ unsigned char LoadMissileCycle(W8GrCycleLoadContext* context, const char* name,
             srAssertFail("pMissile", MISSILE_CPP, 0x3eb, 0);
         }
         ai = static_cast<W8AIMissile*>(missile->m_pAI);
-        if (ai->kind_00 != 3) {
+        if (ai->kind_00 != W8_AI_RECORD_MISSILE) {
             srAssertFail("pAI->ubAIType == AI_TYPE_MISSILE", MISSILE_CPP, 0x3f1, 0);
         }
         ai->missile_0c = missile;
@@ -764,7 +764,7 @@ W8Missile* CreateMissile(unsigned int missile_table_index, srVector3T<float>* so
             float scale = flight_speed * g_float_005ec128;
             memset(ai, 0, sizeof(W8AIMissile));
             ai->speed_per_step = scale;
-            ai->kind_00 = 3;
+            ai->kind_00 = W8_AI_RECORD_MISSILE;
             ai->gravity = missile->gravity_1e3;
             ai->limit = limit;
             ai->last_half_tick =
@@ -822,8 +822,8 @@ W8MissileRep::W8MissileRep()
 {
     emitters[0] = 0;
     emitters[1] = 0;
-    emitter_values[0] = 15.0f;
-    emitter_values[1] = 15.0f;
+    emitter_playback_scales[0] = 15.0f;
+    emitter_playback_scales[1] = 15.0f;
 }
 
 /* Copy the two proven representation values, clone each animation, and deep
@@ -839,10 +839,10 @@ W8MissileRep::W8MissileRep(const W8MissileRep& other)
     for (emitter = 0; emitter < 2; ++emitter) {
         if (other.emitters[emitter] == 0) {
             emitters[emitter] = 0;
-            emitter_values[emitter] = 15.0f;
+            emitter_playback_scales[emitter] = 15.0f;
         } else {
             emitters[emitter] = CloneAnimObj(other.emitters[emitter]);
-            emitter_values[emitter] = other.emitter_values[emitter];
+            emitter_playback_scales[emitter] = other.emitter_playback_scales[emitter];
         }
     }
 
@@ -922,7 +922,7 @@ unsigned char W8MissileRep::ReadCycleData(W8ReadLevelInfo* info, W8Missile* miss
         emitter = static_cast<signed char>(cycle_index);
         current_cycle = emitter;
     }
-    emitter_values[emitter] = animation->playback_scale;
+    emitter_playback_scales[emitter] = animation->playback_scale;
     active = 1;
     frame_direction = 1;
     timer = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);

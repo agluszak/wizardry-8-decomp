@@ -15,8 +15,14 @@ class W8AnimRepBase;
    selects the record type, kind 0 being W8PathAI and kind 3 being
    Missile.cpp's W8AIMissile. The dispatcher entry points below take this base;
    operations on record-specific tails keep the concrete type. */
+/* The discriminator is a byte in the packed AI records. Kind 1 has no
+   recovered payload; only the path and missile domains are named. */
+typedef unsigned char W8AIRecordKind;
+enum { W8_AI_RECORD_PATH = 0, W8_AI_RECORD_MISSILE = 3 };
+static_assert(sizeof(W8AIRecordKind) == 1, "W8AIRecordKind_size");
+
 struct W8AIRecord {
-    unsigned char kind_00; /* 0x00 */
+    W8AIRecordKind kind_00; /* 0x00 */
 };
 
 struct W8PathAI : W8AIRecord {
@@ -58,7 +64,7 @@ static_assert(sizeof(W8PathAI) == 0x40, "W8PathAI_size_must_be_0x40");
    record to the path or missile implementation. */
 unsigned char PathAIUpdate(W8AIRecord* record, signed char direction);
 void PathAIResetRecord(W8PathAI* path);
-unsigned char PathAIRecordFlag(const W8AIRecord* record);
+W8AIRecordKind GetAIRecordKind(const W8AIRecord* record);
 void PathAIApplyToRep(W8AIRecord* record, W8AnimRepBase* representation);
 /* Places one srNode (model instance, light, camera, …) through a path. The
    body only calls srNode child/location/rotation/scale APIs; retail callers
@@ -89,7 +95,7 @@ unsigned char PathAIAddPoint(W8PathAI* path, const srVector3T<float>* point);
 W8PathAI* CreateRecord(int unused);
 
 /* The two operations stLight applies to the path it owns at +0x244. The
-   release is DestroyPathAI's body behind an extra `kind_00 == 0`
+   release is DestroyPathAI's body behind an extra `kind_00 == W8_AI_RECORD_PATH`
    guard; the clone allocates a fresh 0x40-byte record and deep-copies the
    node vector and both trailing arrays. */
 void DestroyOwnedPathAI(W8PathAI* path);

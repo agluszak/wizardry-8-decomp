@@ -2230,7 +2230,7 @@ void W8Monster::ProcessScript()
                     break;
                 variation = static_cast<float>(atof(token)) * g_world_scale;
                 home = formation;
-                if (home.x == 0.0f && home.y == 0.0f && home.z == 0.0f) {
+                if (IsZeroVector(&home) != 0) {
                     srVector3T<float> current = GetPosition();
                     home = current;
                     formation = home;
@@ -2944,7 +2944,7 @@ unsigned char W8Monster::GetPatrolPoint(srVector3T<float>* point)
         return 0;
     }
     if (vector.GetCount() == 0) {
-        if (formation.x == 0.0f && formation.y == 0.0f && formation.z == 0.0f) {
+        if (IsZeroVector(&formation) != 0) {
             srVector3T<float> position = GetPosition();
             formation = position;
         }
@@ -3091,12 +3091,8 @@ float W8Monster::GetDistanceToMonster(W8Monster* monster)
 float W8Monster::GetPointDistanceToMonster(W8Monster* monster, srVector3T<float> point)
 {
     srVector3T<float> position = monster->GetPosition();
-    float delta_x = point.x - position.x;
-    float delta_y = point.y - position.y;
-    float delta_z = point.z - position.z;
-    float distance =
-        static_cast<float>(sqrt(delta_x * delta_x + delta_y * delta_y + delta_z * delta_z)) -
-        movement_0c0.alternate_radius - monster->movement_0c0.alternate_radius;
+    float distance = (point - position).Length() - movement_0c0.alternate_radius -
+                     monster->movement_0c0.alternate_radius;
 
     if (distance < g_float_zero) {
         distance = g_float_zero;
@@ -3835,7 +3831,7 @@ void W8Monster::UpdateAttachedObjects()
 
             if ((poster_position - mapped_position).Length() <=
                 static_cast<float>(g_monster_poster_max_distance)) {
-                location.Set(poster_position.x, poster_position.y, poster_position.z);
+                location.SetFromFloat(&poster_position);
                 poster->setLocation(location);
                 ++poster_index;
             } else {
@@ -5096,21 +5092,21 @@ void W8Monster::SpawnDamageNumber(unsigned int amount)
             shader.value = 0x100c4b3;
             particle->SetRenderFlags(shader);
             particle->particle_size = 20.0;
-            particle->expiry_mode = 0;
-            particle->bounds_origin.Set(0.0f, 0.0f, 0.0f);
+            particle->expiry_mode = W8_PARTICLE_EXPIRY_TIMED;
+            particle->bounds_origin.SetZero();
             particle->cone_yaw = 1.5707963f;
             particle->cone_pitch = 1.5707963f;
             particle->emission_interval = 1;
             particle->has_acceleration = 1;
-            particle->placement_mode = 2;
-            particle->emission_mode = 1;
+            particle->speed_mode = W8_PARTICLE_SPEED_RANDOM;
+            particle->emission_mode = W8_PARTICLE_EMISSION_SINGLE;
             particle->lifetime_ms = 10000;
-            particle->direction_mode = 3;
+            particle->direction_mode = W8_PARTICLE_DIRECTION_CONE;
             particle->speed_min = 1000.0f;
             particle->speed_max = 3000.0f;
             particle->emission_limit = 8;
             particle->release_when_done = true;
-            particle->bounds_mode = 2;
+            particle->bounds_mode = W8_PARTICLE_BOUNDS_SPHERE;
             particle->bounds_radius = 1000.0f;
             location.SetFromFloat(&position);
             particle->setLocation(location);

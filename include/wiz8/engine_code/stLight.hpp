@@ -11,14 +11,21 @@ class Trigger;
 struct W8PathAI;
 extern unsigned int g_light_update_flags;
 
+enum W8LightDefinitionKind {
+    W8_LIGHT_DEFINITION_NONE = 0,
+    W8_LIGHT_DEFINITION_PARAMETRIC = 1,
+    W8_LIGHT_DEFINITION_KEYFRAMED = 2
+};
+static_assert(sizeof(W8LightDefinitionKind) == 4, "W8LightDefinitionKind_size");
+
 class stLightDefinition {
 public:
-    stLightDefinition() : type_04(0) {}
+    stLightDefinition() : kind(W8_LIGHT_DEFINITION_NONE) {}
     virtual ~stLightDefinition();
     virtual stLightDefinition* Clone() const = 0;
     virtual bool IsEnabledForSubcycle(unsigned char subcycle) = 0;
 
-    int type_04;
+    W8LightDefinitionKind kind;
 };
 
 static_assert(sizeof(stLightDefinition) == 0x8, "stLightDefinition_size_must_be_0x8");
@@ -30,7 +37,7 @@ class stParametricLightDefinition : public stLightDefinition {
 public:
     stParametricLightDefinition()
     {
-        type_04 = 1;
+        kind = W8_LIGHT_DEFINITION_PARAMETRIC;
     }
     // FUNCTION: WIZ8 0x004A2140
     virtual stLightDefinition* Clone() const override
@@ -114,7 +121,7 @@ class stKeyframedLightDefinition : public stLightDefinition {
 public:
     stKeyframedLightDefinition() : keyframe_index(0), time_4c(0.0f)
     {
-        type_04 = 2;
+        kind = W8_LIGHT_DEFINITION_KEYFRAMED;
     }
     virtual stLightDefinition* Clone() const override;
     virtual bool IsEnabledForSubcycle(unsigned char subcycle) override;
@@ -217,7 +224,7 @@ public:
        form VC6 emits for a class type's memberwise assignment, not through three
        independent displacement loads. */
     srVector3T<float> m_position_228;    /* 0x228 */
-    stLightDefinition* m_definition; /* 0x234: owned */
+    stLightDefinition* m_definition;     /* 0x234: owned */
     unsigned char m_unknown_238;         /* 0x238 */
     /* Oscillation direction: zero sweeps intensity down, nonzero sweeps up. */
     unsigned char m_direction;

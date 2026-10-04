@@ -30,11 +30,11 @@ unsigned char PathAIUpdate(W8AIRecord* record, signed char direction)
         return 0;
     }
     switch (record->kind_00) {
-    case 0:
+    case W8_AI_RECORD_PATH:
         return PathAITick(static_cast<W8PathAI*>(record), direction);
     case 1:
         return 0;
-    case 3:
+    case W8_AI_RECORD_MISSILE:
         return UpdateMissileAI(static_cast<W8AIMissile*>(record));
     default:
         return 0;
@@ -96,9 +96,7 @@ bool LoadPathAI(W8PathAI** output, int handle)
             FileRead(handle, &point->x, 4, 0);
             FileRead(handle, &point->y, 4, 0);
             FileRead(handle, &point->z, 4, 0);
-            point->x = static_cast<float>(point->x * g_double_005ec150);
-            point->y = static_cast<float>(point->y * g_double_005ec150);
-            point->z = static_cast<float>(point->z * g_double_005ec150);
+            *point *= g_double_005ec150;
             PathAIAddPoint(path, point);
 
             FileRead(handle, &angle, 4, 0);
@@ -125,13 +123,13 @@ bool LoadPathAI(W8PathAI** output, int handle)
 // FUNCTION: WIZ8 0x004a9720
 void PathAIResetRecord(W8PathAI* path)
 {
-    if (path != 0 && path->kind_00 == 0) {
+    if (path != 0 && path->kind_00 == W8_AI_RECORD_PATH) {
         path->position = 0;
     }
 }
 
 // FUNCTION: WIZ8 0x004a9740
-unsigned char PathAIRecordFlag(const W8AIRecord* record)
+W8AIRecordKind GetAIRecordKind(const W8AIRecord* record)
 {
     return record->kind_00;
 }
@@ -139,8 +137,8 @@ unsigned char PathAIRecordFlag(const W8AIRecord* record)
 // FUNCTION: WIZ8 0x004a91f0
 void PathAIApplyToRep(W8AIRecord* record, W8AnimRepBase* representation)
 {
-    if (record->kind_00 != 0) {
-        if (record->kind_00 == 3) {
+    if (record->kind_00 != W8_AI_RECORD_PATH) {
+        if (record->kind_00 == W8_AI_RECORD_MISSILE) {
             NoOp(record, representation);
         }
         return;
@@ -189,7 +187,7 @@ void DestroyOwnedPathAI(W8PathAI* path)
 {
     W8GrowableVector<srVector3T<float>*>* nodes;
 
-    if (path != 0 && path->kind_00 == 0) {
+    if (path != 0 && path->kind_00 == W8_AI_RECORD_PATH) {
         nodes = path->nodes;
         if (nodes != 0) {
             while (nodes->count != 0) {
@@ -292,9 +290,9 @@ W8AIRecord* CloneAIRecord(const W8AIRecord* record)
         return 0;
     }
     switch (record->kind_00) {
-    case 0:
+    case W8_AI_RECORD_PATH:
         return ClonePathAI(static_cast<const W8PathAI*>(record));
-    case 3:
+    case W8_AI_RECORD_MISSILE:
         return CopyAIMissile(static_cast<const W8AIMissile*>(record));
     default:
         return 0;

@@ -75,7 +75,7 @@ struct W8OctBuildTree {
     /* Recursive box descent for the segment collect: classify the state's box
        against `bounds` (six floats: min then max), then collect the leaf,
        descend the octants, or skip the node entirely. */
-    int CollectRecursive(W8OctSpatialState* state, const float* bounds, short kind);
+    int CollectRecursive(W8OctSpatialState* state, const srVector3T<float>* bounds, short kind);
     /* Leaf collector: walks the per-kind link lists and appends qualifying
        surfaces to the shared scratch array, deduplicating by pointer or by
        the 0x2000 flag mark. */
@@ -83,7 +83,7 @@ struct W8OctBuildTree {
     /* Box-vs-bounds classification: 2 when the box sits fully inside bounds,
        1 on a partial overlap, 0 when disjoint. `leaf` early-outs the corner
        scan at the bottom octree level. */
-    int ClassifyBoxBounds(const float* box, const float* bounds, bool leaf);
+    int ClassifyBoxBounds(const srVector3T<float>* box, const srVector3T<float>* bounds, bool leaf);
 
     W8OctSpatialState spatial_00;
     W8OctBuildLinkLists* link_lists;

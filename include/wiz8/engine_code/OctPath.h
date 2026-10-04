@@ -18,6 +18,24 @@ class W8Monster;
 struct W8LevelFile;
 struct W8LevelFileNamedPosition;
 
+/* The .oct path hash array: one packed X/Z key and its height/state word.
+   Build-time producers and the loader agree on an eight-byte stride. */
+struct W8FilePathNode {
+    unsigned int cell;
+    unsigned int level_flags;
+};
+static_assert(sizeof(W8FilePathNode) == 8, "W8FilePathNode_size");
+
+/* Header preceding the conditional path tables. The writer deliberately
+   writes zero to flags while the reader accepts the stored word. */
+struct W8ConditionalPathHeader {
+    unsigned int path_count;
+    unsigned int frame_count;
+    unsigned int node_count;
+    unsigned int flags;
+};
+static_assert(sizeof(W8ConditionalPathHeader) == 0x10, "W8ConditionalPathHeader_size");
+
 /* One pre-path prop record handed to LinkCollideableProps: the prop's path
    name plus the GDPreProp array OctPreTree.cpp builds for it (stride 0x48). */
 struct W8PreProp {
@@ -447,7 +465,7 @@ public:
        loads it from the octree header; BuildPatrolPath stores its `flags` here
        for FindPatrolPath. */
     unsigned int path_flags_000;
-    int size_004; /* 0x04 */
+    int path_node_count; /* 0x04 */
     /* PrePathing's CreatePathNodeArray counts edge nodes here starting from
        one, and WriteOctFile serializes it beside the node count. */
     int edge_node_count_008;
@@ -469,7 +487,7 @@ public:
     /* Four malloc'd tables and one polymorphic object, all released by
        0x00457B10 - the first four with free, the last through its own
        deleting slot. */
-    unsigned int* path_nodes_044; /* 0x44: serialized key/value pairs */
+    W8FilePathNode* file_path_nodes; /* 0x44: serialized cell/height-state records */
     /* Surfaces are 0x28 bytes apart, edges 0xe; an edge names two surfaces by
        index in its two shorts at +4 and +6. */
     W8PathSurface* m_pSurfaces;        /* 0x48 */
@@ -608,7 +626,7 @@ public:
     int CreatePathNodeArray();
     unsigned char CreateAutomapNodes(W8LevelFile* level);
 
-    W8PrePathNode** path_node_list_240; /* size_004 entries */
+    W8PrePathNode** path_node_list_240; /* path_node_count entries */
     OctPrePathLog* path_log_244;
     /* A malloc'd buffer the destructor `free`s; no surviving writer. */
     void* owned_248;

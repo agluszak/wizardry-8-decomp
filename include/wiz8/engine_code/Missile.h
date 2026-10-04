@@ -65,7 +65,7 @@ public:
     unsigned int value_0b0;
     unsigned char unknown_0b4[0x24];
     W8AnimObj* emitters[2];
-    float emitter_values[2];
+    float emitter_playback_scales[2];
     W8GrowableVector<W8GrowableVector<stLight*>*> light_lists[2];
 };
 

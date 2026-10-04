@@ -452,10 +452,7 @@ W8WorldCursorNode* FindNearestWorldCursorNode(int x, int y)
             g_world->camera->getLocation(camera);
             srVector3T<double> node;
             entry->node_04->getLocation(node);
-            double dx = node.x - camera.x;
-            double dy = node.y - camera.y;
-            double dz = node.z - camera.z;
-            float distance = static_cast<float>(sqrt(dx * dx + dy * dy + dz * dz));
+            float distance = static_cast<float>((node - camera).Length());
             if (distance < nearest) {
                 nearest = distance;
                 result = entry;

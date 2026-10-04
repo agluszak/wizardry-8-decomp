@@ -349,7 +349,7 @@ void W8SpellVisual::UpdateRepresentation(W8World* world)
         float angle;
 
         billboard.SetIdentity();
-        camera_position = g_gd_camera->m_position;
+        GetCameraPosition(&camera_position);
         angle =
             GetHeadingAngle(&visual_position, &camera_position) + static_cast<float>(g_camera_pi);
         if (angle != g_double_zero) {
@@ -417,7 +417,7 @@ W8SpellEmitterHost::W8SpellEmitterHost() : value_0ac(0), value_0b0(0), billboard
 
     for (emitter = 0; emitter < SPELL_NUM_CYCLES; ++emitter) {
         emitters[emitter] = 0;
-        emitter_values[emitter] = 15.0f;
+        emitter_playback_scales[emitter] = 15.0f;
     }
 }
 
@@ -434,10 +434,10 @@ W8SpellEmitterHost::W8SpellEmitterHost(const W8SpellEmitterHost& other)
     for (emitter = 0; emitter < SPELL_NUM_CYCLES; ++emitter) {
         if (other.emitters[emitter] == 0) {
             emitters[emitter] = 0;
-            emitter_values[emitter] = 15.0f;
+            emitter_playback_scales[emitter] = 15.0f;
         } else {
             emitters[emitter] = CloneAnimObj(other.emitters[emitter]);
-            emitter_values[emitter] = other.emitter_values[emitter];
+            emitter_playback_scales[emitter] = other.emitter_playback_scales[emitter];
         }
     }
 
@@ -517,7 +517,7 @@ unsigned char W8SpellEmitterHost::ReadCycleData(W8ReadLevelInfo* info, W8SpellVi
         emitter = static_cast<signed char>(emitter_index);
         current_cycle = emitter;
     }
-    emitter_values[emitter] = animation->playback_scale;
+    emitter_playback_scales[emitter] = animation->playback_scale;
     active = 1;
     frame_direction = 1;
     timer = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
@@ -1473,8 +1473,7 @@ void stSound3D::BuildSoundOptions(const srVector3T<float>* listener, SOUND3DPARM
     float z = transformed.z;
 
     memset(options, 0xff, sizeof(*options));
-    srVector3T<float> listener_offset(listener->x - node_position.x, listener->y - node_position.y,
-                                      listener->z - node_position.z);
+    srVector3T<float> listener_offset = *listener - node_position;
     options->uiVolume = static_cast<unsigned int>(
         (g_float_one - listener_offset.Length() / falloff) * scaled_volume);
     options->uiLoop = 1;

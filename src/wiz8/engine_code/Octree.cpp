@@ -868,26 +868,26 @@ void W8Octree::CollectVisibleCells()
     MarkVisibleRegions();
     short radius = static_cast<short>(
         (static_cast<int>((view_1c0.far_clip_40 / m_spatial.m_region_grid_cell)) + 1));
-    short center[3];
+    srVector3T<short> center;
 
     for (int axis = 0; axis < 3; ++axis) {
-        center[axis] = static_cast<short>(static_cast<int>(
+        (&center.x)[axis] = static_cast<short>(static_cast<int>(
             (((&view_1c0.camera_location_00.x)[axis] - (&m_spatial.m_minimum.x)[axis]) /
              m_spatial.m_region_grid_cell)));
     }
     unsigned int region_base = m_region_mask;
     for (short x = -radius; x <= radius; ++x) {
-        short cell_x = center[0] + x;
+        short cell_x = center.x + x;
         if (cell_x < 0 || cell_x >= m_spatial.m_region_cells_per_axis) {
             continue;
         }
         for (short y = -radius; y <= radius; ++y) {
-            short cell_y = center[1] + y;
+            short cell_y = center.y + y;
             if (cell_y < 0 || cell_y >= m_spatial.m_region_cells_per_axis) {
                 continue;
             }
             for (short z = -radius; z <= radius; ++z) {
-                short cell_z = center[2] + z;
+                short cell_z = center.z + z;
                 if (cell_z < 0 || cell_z >= m_spatial.m_region_cells_per_axis) {
                     continue;
                 }
@@ -1652,10 +1652,7 @@ unsigned char W8Octree::UpdateWorldTrace()
     unsigned long color;
 
     GetCameraPosition(&camera);
-    for (int axis = 0; axis < 3; ++axis) {
-        (&cell.x)[axis] = static_cast<int>(
-            (((&camera.x)[axis] - (&m_spatial.m_minimum.x)[axis]) / m_spatial.m_node_extent));
-    }
+    WorldPositionToCell(&camera, &cell);
     minimum.Set(cell.x * m_spatial.m_node_extent + m_spatial.m_minimum.x,
                 cell.y * m_spatial.m_node_extent + m_spatial.m_minimum.y,
                 cell.z * m_spatial.m_node_extent + m_spatial.m_minimum.z);
@@ -1851,7 +1848,7 @@ unsigned char W8Octree::PrepareNavigatorTarget(W8NavigatorMovementState* movemen
     }
     srVector3T<float> delta = movement->target_position - movement->position_040;
     delta.y = 0.0f;
-    if (srVector2T<float>(delta.x, delta.z).Length() < NAVIGATOR_MINIMUM_HORIZONTAL_DISTANCE) {
+    if (delta.xz().Length() < NAVIGATOR_MINIMUM_HORIZONTAL_DISTANCE) {
         return 0;
     }
     if ((movement->attachment_0ac->flags_00 & W8_NAV_ATTACHMENT_FOLLOW_PATH) == 0) {
@@ -2043,9 +2040,9 @@ int W8Octree::DescendByMask(const unsigned int* masked_cell)
 // FUNCTION: WIZ8 0x00433730
 unsigned int W8Octree::LeafIndexForCell(const srVector3T<int>* cell)
 {
-    if (cell->x < 0 || static_cast<int>(m_leaf_grid_dim_x) <= cell->x || cell->y < 0 ||
-        static_cast<int>(m_leaf_grid_dim_y) <= cell->y || cell->z < 0 ||
-        static_cast<int>(m_leaf_grid_dim_z) <= cell->z) {
+    if (cell->x < 0 || static_cast<int>(m_leaf_grid_dimensions.x) <= cell->x || cell->y < 0 ||
+        static_cast<int>(m_leaf_grid_dimensions.y) <= cell->y || cell->z < 0 ||
+        static_cast<int>(m_leaf_grid_dimensions.z) <= cell->z) {
         return 0;
     }
     if (m_leaf_lookup != 0) {
@@ -2083,9 +2080,7 @@ float W8Octree::SettleToGround(srVector3T<float>* position, bool* out_hit, char 
     end = *position;
     start = *position;
     start.y = position->y + limit;
-    cell.x = static_cast<int>(((start.x - m_spatial.m_minimum.x) / m_spatial.m_node_extent));
-    cell.y = static_cast<int>(((start.y - m_spatial.m_minimum.y) / m_spatial.m_node_extent));
-    cell.z = static_cast<int>(((start.z - m_spatial.m_minimum.z) / m_spatial.m_node_extent));
+    WorldPositionToCell(&start, &cell);
     end.y = ((cell.y - 1)) * m_spatial.m_node_extent + m_spatial.m_minimum.y;
     trace.Reseed(&start, &end);
     if (-1 < cell.y) {
@@ -2212,13 +2207,9 @@ bool W8Octree::HasLineOfSight(const srVector3T<float>* from, srVector3T<float>* 
         }
     } else {
         BuildCellWalk(from, to, &walk);
-        cell.x = walk.cell_00.x;
-        cell.y = walk.cell_00.y;
-        cell.z = walk.cell_00.z;
+        cell = walk.cell_00;
         minor_1 = walk.minor_axis_20;
-        step.x = walk.step_0c.x;
-        step.y = walk.step_0c.y;
-        step.z = walk.step_0c.z;
+        step = walk.step_0c;
         count = walk.count_24;
         index = 0;
         error_1 = walk.error_38;
@@ -2324,16 +2315,12 @@ short W8Octree::TraceLineOfSight(const srVector3T<float>* from, srVector3T<float
             }
         } else {
             BuildCellWalk(from, to, &walk);
-            cell.y = walk.cell_00.y;
-            cell.x = walk.cell_00.x;
-            cell.z = walk.cell_00.z;
+            cell = walk.cell_00;
             minor_0 = walk.minor_axis_1c;
             major = walk.major_axis_18;
             minor_1 = walk.minor_axis_20;
-            step.x = walk.step_0c.x;
+            step = walk.step_0c;
             count = walk.count_24;
-            step.y = walk.step_0c.y;
-            step.z = walk.step_0c.z;
             index = 0;
             error_1 = walk.error_38;
             error_0 = walk.error_2c;
@@ -2837,9 +2824,7 @@ void W8Octree::BuildCellWalk(const srVector3T<float>* from, const srVector3T<flo
     walk->cell_00.x = from_cell.x / cell;
     walk->cell_00.y = from_cell.y / cell;
     walk->cell_00.z = from_cell.z / cell;
-    walk->step_0c.x = step.x;
-    walk->step_0c.y = step.y;
-    walk->step_0c.z = step.z;
+    walk->step_0c = step;
 }
 
 // FUNCTION: WIZ8 0x00436280
@@ -2885,13 +2870,9 @@ int W8Octree::TraceAgainstProps(const srVector3T<float>* from, srVector3T<float>
         }
     } else {
         BuildCellWalk(from, to, &walk);
-        cell.x = walk.cell_00.x;
+        cell = walk.cell_00;
         minor_1 = walk.minor_axis_20;
-        step.z = walk.step_0c.z;
-        cell.y = walk.cell_00.y;
-        cell.z = walk.cell_00.z;
-        step.x = walk.step_0c.x;
-        step.y = walk.step_0c.y;
+        step = walk.step_0c;
         if (walk.count_24 > 0) {
             int major_step = (&step.x)[walk.major_axis_18];
             int* major_cell = &cell.x + walk.major_axis_18;
@@ -3162,7 +3143,7 @@ unsigned long* W8Octree::CollectPolygonsNearPoint(srVector3T<float>* center, flo
         }
         if (m_aulGDObjs[index] != 0) {
             srVector3T<float> normal;
-            normal.Set(plane->x, plane->y, plane->z);
+            normal = plane->xyz();
             const srVector3i* poly_vertex = model->getPolyVertex() + (m_aulGDObjs[index] & 0xffff);
             const srVector3T<float>* vertices = model->getVertexLoc();
             srVector3T<float> triangle[3];
@@ -3217,9 +3198,7 @@ void W8Octree::UpdateMonsterLocation(unsigned short location_id, const srVector3
             monster->sector_mesh = mesh;
         }
     }
-    point.x = static_cast<int>(((position->x - m_spatial.m_minimum.x) / m_spatial.m_node_extent));
-    point.y = static_cast<int>(((position->y - m_spatial.m_minimum.y) / m_spatial.m_node_extent));
-    point.z = static_cast<int>(((position->z - m_spatial.m_minimum.z) / m_spatial.m_node_extent));
+    WorldPositionToCell(position, &point);
     object_registry->RegisterObjectCell(W8_OCTREE_KIND_LOCATION, queue_id, &point);
 }
 
@@ -3360,7 +3339,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
         }
     }
 
-    limit = m_leaf_grid_dim_x * m_leaf_grid_dim_y * m_leaf_grid_dim_z;
+    limit = m_leaf_grid_dimensions.x * m_leaf_grid_dimensions.y * m_leaf_grid_dimensions.z;
     if (fLoaded != 0 && limit < 250000) {
         m_leaf_lookup = static_cast<unsigned long*>(malloc(limit * sizeof(unsigned long)));
         if (m_leaf_lookup == 0) {
@@ -3368,7 +3347,9 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
             goto finish;
         }
         fLoaded = FileRead(hOctFile, m_leaf_lookup,
-                           m_leaf_grid_dim_x * m_leaf_grid_dim_y * m_leaf_grid_dim_z * 4, &uiRead);
+                           m_leaf_grid_dimensions.x * m_leaf_grid_dimensions.y *
+                               m_leaf_grid_dimensions.z * 4,
+                           &uiRead);
         if (fLoaded == 0) {
             strcpy(acMessage, "ReadOctFile: Couldn't read leaf grid.");
         }
@@ -3790,9 +3771,9 @@ void W8Octree::Reset()
     m_spatial.Reset();
     m_branches = 0;
     m_leaves = 0;
-    m_leaf_grid_dim_z = 0;
-    m_leaf_grid_dim_y = 0;
-    m_leaf_grid_dim_x = 0;
+    m_leaf_grid_dimensions.z = 0;
+    m_leaf_grid_dimensions.y = 0;
+    m_leaf_grid_dimensions.x = 0;
     m_leaf_lookup = 0;
     m_branch_count = 0;
     m_leaf_count = 0;
@@ -3886,7 +3867,6 @@ void W8Octree::Reset()
 // FUNCTION: WIZ8 0x0042d2a0
 void W8Octree::Initialize(const W8OctFileHeader* header)
 {
-    unsigned int axis;
     unsigned short level;
 
     if (header != 0) {
@@ -3900,18 +3880,16 @@ void W8Octree::Initialize(const W8OctFileHeader* header)
         m_unknown_27c[3] = 0;
         m_unknown_27c[4] = 0;
         m_unknown_27c[5] = 0;
-        for (axis = 0; axis < 3; ++axis) {
-            (&m_spatial.m_minimum.x)[axis] = (&header->m_bounds[0].x)[axis];
-            (&m_spatial.m_maximum.x)[axis] = (&header->m_bounds[1].x)[axis];
-            (&m_spatial.m_clipped_minimum.x)[axis] = (&header->m_bounds[2].x)[axis];
-            (&m_spatial.m_clipped_maximum.x)[axis] = (&header->m_bounds[3].x)[axis];
-            (&m_spatial.m_working_minimum.x)[axis] = (&header->m_bounds[4].x)[axis];
-            (&m_spatial.m_working_maximum.x)[axis] = (&header->m_bounds[5].x)[axis];
-            (&m_leaf_grid_dim_x)[axis] = header->m_grid_dims[axis];
-        }
+        m_spatial.m_minimum = header->m_bounds[0];
+        m_spatial.m_maximum = header->m_bounds[1];
+        m_spatial.m_clipped_minimum = header->m_bounds[2];
+        m_spatial.m_clipped_maximum = header->m_bounds[3];
+        m_spatial.m_working_minimum = header->m_bounds[4];
+        m_spatial.m_working_maximum = header->m_bounds[5];
+        m_leaf_grid_dimensions = header->m_grid_dims;
 
-        m_spatial.m_leaf_grid_stride_x = m_leaf_grid_dim_y * m_leaf_grid_dim_z;
-        m_spatial.m_leaf_grid_stride_y = m_leaf_grid_dim_z;
+        m_spatial.m_leaf_grid_stride_x = m_leaf_grid_dimensions.y * m_leaf_grid_dimensions.z;
+        m_spatial.m_leaf_grid_stride_y = m_leaf_grid_dimensions.z;
         m_spatial.m_depth = header->m_depth;
         m_spatial.m_region_id_bound = header->m_region_id_bound;
         m_spatial.m_region_count = header->m_region_count;
@@ -4285,14 +4263,14 @@ int W8Octree::CollectObjectsAlongSegment(unsigned long** results, const srVector
     if (low_cell.x <= high_cell.x) {
         cell.x = low_cell.x;
         do {
-            if (cell.x >= 0 && cell.x < static_cast<int>(m_leaf_grid_dim_x) /* c-style-cast-ok:
+            if (cell.x >= 0 && cell.x < static_cast<int>(m_leaf_grid_dimensions.x) /* c-style-cast-ok:
                     cell coordinate vs grid dimension */) {
                 cell.y = low_cell.y;
                 while (cell.y <= high_cell.y) {
-                    if (cell.y >= 0 && cell.y < static_cast<int>(m_leaf_grid_dim_y) /* c-style-cast-ok:
+                    if (cell.y >= 0 && cell.y < static_cast<int>(m_leaf_grid_dimensions.y) /* c-style-cast-ok:
                             cell coordinate vs grid dimension */) {
                         for (cell.z = low_cell.z; cell.z <= high_cell.z; ++cell.z) {
-                            if (cell.z >= 0 && cell.z < static_cast<int>(m_leaf_grid_dim_z)
+                            if (cell.z >= 0 && cell.z < static_cast<int>(m_leaf_grid_dimensions.z)
                                 /* c-style-cast-ok: cell coordinate vs grid dimension */) {
                                 CollectObjectsInCell(&cell, kind);
                             }
@@ -4339,16 +4317,11 @@ unsigned char W8Octree::TestBoxOccupied(const srVector3T<float>* lower,
             W8GDSurface* surface = g_octree_game_data->m_pSurfaces + objects[index];
             srVector3T<float> bounds[2];
             srVector3T<float> triangle[3];
-            for (int axis = 0; axis < 3; ++axis) {
-                (&bounds[0].x)[axis] = (&lower->x)[axis];
-                (&bounds[1].x)[axis] = (&upper->x)[axis];
-                (&triangle[0].x)[axis] =
-                    (&g_octree_game_data->m_pVertices[surface->vertex_indices_18[0]].x)[axis];
-                (&triangle[1].x)[axis] =
-                    (&g_octree_game_data->m_pVertices[surface->vertex_indices_18[1]].x)[axis];
-                (&triangle[2].x)[axis] =
-                    (&g_octree_game_data->m_pVertices[surface->vertex_indices_18[2]].x)[axis];
-            }
+            bounds[0] = *lower;
+            bounds[1] = *upper;
+            triangle[0] = g_octree_game_data->m_pVertices[surface->vertex_indices_18[0]];
+            triangle[1] = g_octree_game_data->m_pVertices[surface->vertex_indices_18[1]];
+            triangle[2] = g_octree_game_data->m_pVertices[surface->vertex_indices_18[2]];
             if (TestSpatialTriangle(bounds, triangle, surface->Normal()) != 0) {
                 return 1;
             }
@@ -4388,16 +4361,11 @@ unsigned char W8Octree::TestBoxOccupied(const srVector3T<float>* lower,
                     W8GDSurface* surface = gd_prop->m_pGDSurfaces + surface_index;
                     srVector3T<float> bounds[2];
                     srVector3T<float> triangle[3];
-                    for (int axis = 0; axis < 3; ++axis) {
-                        (&bounds[0].x)[axis] = (&lower->x)[axis];
-                        (&bounds[1].x)[axis] = (&upper->x)[axis];
-                        (&triangle[0].x)[axis] =
-                            (&gd_prop->m_pVertices[surface->vertex_indices_18[0]].x)[axis];
-                        (&triangle[1].x)[axis] =
-                            (&gd_prop->m_pVertices[surface->vertex_indices_18[1]].x)[axis];
-                        (&triangle[2].x)[axis] =
-                            (&gd_prop->m_pVertices[surface->vertex_indices_18[2]].x)[axis];
-                    }
+                    bounds[0] = *lower;
+                    bounds[1] = *upper;
+                    triangle[0] = gd_prop->m_pVertices[surface->vertex_indices_18[0]];
+                    triangle[1] = gd_prop->m_pVertices[surface->vertex_indices_18[1]];
+                    triangle[2] = gd_prop->m_pVertices[surface->vertex_indices_18[2]];
                     if (TestSpatialTriangle(bounds, triangle, surface->Normal()) != 0) {
                         return 1;
                     }
@@ -4432,24 +4400,20 @@ int W8Octree::QueryObjects(unsigned long** objects, const srVector3T<float>* low
     if (excluded >= 0) {
         m_visited_object_bits->Set(excluded);
     }
-    start.x = static_cast<int>(((lower->x - m_spatial.m_minimum.x) / m_spatial.m_node_extent));
-    start.y = static_cast<int>(((lower->y - m_spatial.m_minimum.y) / m_spatial.m_node_extent));
-    start.z = static_cast<int>(((lower->z - m_spatial.m_minimum.z) / m_spatial.m_node_extent));
-    end.x = static_cast<int>(((upper->x - m_spatial.m_minimum.x) / m_spatial.m_node_extent));
-    end.y = static_cast<int>(((upper->y - m_spatial.m_minimum.y) / m_spatial.m_node_extent));
-    end.z = static_cast<int>(((upper->z - m_spatial.m_minimum.z) / m_spatial.m_node_extent));
+    WorldPositionToCell(lower, &start);
+    WorldPositionToCell(upper, &end);
     for (cell.x = start.x; cell.x <= end.x; ++cell.x) {
-        if (cell.x < 0 || static_cast<int>(m_leaf_grid_dim_x) <= cell.x /* c-style-cast-ok:
+        if (cell.x < 0 || static_cast<int>(m_leaf_grid_dimensions.x) <= cell.x /* c-style-cast-ok:
                 cell coordinate vs grid dimension */) {
             continue;
         }
         for (cell.y = start.y; cell.y <= end.y; ++cell.y) {
-            if (cell.y < 0 || static_cast<int>(m_leaf_grid_dim_y) <= cell.y /* c-style-cast-ok:
+            if (cell.y < 0 || static_cast<int>(m_leaf_grid_dimensions.y) <= cell.y /* c-style-cast-ok:
                     cell coordinate vs grid dimension */) {
                 continue;
             }
             for (cell.z = start.z; cell.z <= end.z; ++cell.z) {
-                if (cell.z >= 0 && cell.z < static_cast<int>(m_leaf_grid_dim_z) /* c-style-cast-ok:
+                if (cell.z >= 0 && cell.z < static_cast<int>(m_leaf_grid_dimensions.z) /* c-style-cast-ok:
                         cell coordinate vs grid dimension */) {
                     CollectObjectsInCell(&cell, kind);
                 }
@@ -4581,10 +4545,7 @@ void W8Octree::QueueOctreeKind13(int id, const srVector3T<float>* position)
 {
     srVector3T<int> point;
 
-    for (int axis = 0; axis < 3; ++axis) {
-        (&point.x)[axis] = static_cast<int>(
-            ((&position->x)[axis] - (&m_spatial.m_minimum.x)[axis]) / m_spatial.m_node_extent);
-    }
+    WorldPositionToCell(position, &point);
     object_registry->RegisterObjectCell(W8_OCTREE_KIND_NAVIGATOR, id + 1, &point);
 }
 
@@ -4660,7 +4621,7 @@ unsigned int W8Octree::AdvanceNavigator(W8NavigatorMovementState* movement, floa
     }
     vecDir = movement->target_position - movement->position_040;
     vecDir.y = 0.0f;
-    distance = srVector2T<float>(vecDir.x, vecDir.z).Length();
+    distance = vecDir.xz().Length();
     step = g_game_time_accumulator->GetFrameDelta() * movement->movement_scale * g_rate *
            g_world_scale;
     if (step >= distance) {

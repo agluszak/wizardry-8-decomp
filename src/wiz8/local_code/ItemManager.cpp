@@ -1069,7 +1069,7 @@ bool IsWorldItemWithinReach(W8Item* owner, const srVector3T<float>* from, float 
     owner->m_pRep->GetLocation(&position);
     GetCameraPosition(&eye);
 
-    srVector3T<float> delta(position.x - from->x, position.y - from->y, position.z - from->z);
+    srVector3T<float> delta = position - *from;
     if (delta.LengthSquared() < radius * radius) {
         owner->GetCachedLocalBounds(&lower, &upper);
         lower += position;
@@ -1108,8 +1108,7 @@ bool AnyWorldItemVisible(void)
         if (item->p3D != 0) {
             item->p3D->m_pRep->GetLocation(&position);
             GetCameraPosition(&eye);
-            srVector3T<float> delta(position.x - camera.x, position.y - camera.y,
-                                    position.z - camera.z);
+            srVector3T<float> delta = position - camera;
             if (delta.Length() < static_cast<float>(g_double_005ec030)) {
                 item->p3D->GetCachedLocalBounds(&lower, &upper);
                 lower += position;
@@ -1126,8 +1125,7 @@ bool AnyWorldItemVisible(void)
         if (item->p3D != 0) {
             item->p3D->m_pRep->GetLocation(&position);
             GetCameraPosition(&eye);
-            srVector3T<float> delta(position.x - camera.x, position.y - camera.y,
-                                    position.z - camera.z);
+            srVector3T<float> delta = position - camera;
             if (delta.Length() < static_cast<float>(g_double_005ec030)) {
                 item->p3D->GetCachedLocalBounds(&lower, &upper);
                 lower += position;

@@ -1417,24 +1417,7 @@ void GetWorldColour(EnvironmentColour* colour)
 {
     if (g_world != 0) {
         const srVector3T<float> fog = g_world->static_scene->getFogColor();
-        colour->x = fog.x;
-        colour->y = fog.y;
-        colour->z = fog.z;
-        if (colour->x <= 0.0f) {
-            colour->x = 0.0f;
-        } else if (colour->x >= 1.0f) {
-            colour->x = 1.0f;
-        }
-        if (colour->y <= 0.0f) {
-            colour->y = 0.0f;
-        } else if (colour->y >= 1.0f) {
-            colour->y = 1.0f;
-        }
-        if (colour->z <= 0.0f) {
-            colour->z = 0.0f;
-        } else if (colour->z >= 1.0f) {
-            colour->z = 1.0f;
-        }
+        colour->SetSaturated(fog);
         return;
     }
     colour->SetZero();

@@ -1924,11 +1924,11 @@ void RefreshSpellTargetHighlightsAtRange(void)
         if (monster_info->fActive != 0 && monster_info->hp_current != 0 &&
             monster_info->uiCondition[W8_CONDITION_DEAD] == 0) {
             W8Monster* monster = monster_info->p3D;
-            float channels[4];
+            srVector4T<float> channels;
 
-            memcpy(channels, &monster->m_pRep->highlight_colour, sizeof(channels));
-            if (channels[0] != g_float_zero || channels[1] != g_float_zero ||
-                channels[2] != g_float_zero || channels[3] != g_float_zero) {
+            channels = monster->m_pRep->highlight_colour;
+            if (channels.x != g_float_zero || channels.y != g_float_zero ||
+                channels.z != g_float_zero || channels.w != g_float_zero) {
                 srVector4T<float> block;
                 block.Set(0.0f, 0.0f, 0.0f, 0.0f);
                 MonsterSetHighlightColour(monster, block);
@@ -2039,8 +2039,7 @@ void RefreshTargetMarker(void)
     srVector3T<float> position;
 
     GetWorldCursorTargetPosition(&position);
-    if (position.x != gXStatus.target_position.x || position.y != gXStatus.target_position.y ||
-        position.z != gXStatus.target_position.z) {
+    if (!(position == gXStatus.target_position)) {
         gXStatus.target_position = position;
         PopulateTargetMarkerForCurrentAction(&position, &gXStatus.target_markers, 1);
     }

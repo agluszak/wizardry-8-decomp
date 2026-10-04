@@ -304,7 +304,7 @@ void stModelInstance2D::process(const ProcessInfo& info, e_processType)
         }
 
         renderer->loadIdentity();
-        translation.Set(transformed_location.x, transformed_location.y, transformed_location.z);
+        translation = transformed_location.xyz();
         renderer->translate(translation);
         if (align_angle != g_float_zero) {
             renderer->rotate(static_cast<double>(align_angle), align_axis);
@@ -527,7 +527,7 @@ void stModelInstance::process(const ProcessInfo& info, e_processType)
         }
 
         renderer->loadIdentity();
-        translation.Set(transformed_location.x, transformed_location.y, transformed_location.z);
+        translation = transformed_location.xyz();
         renderer->translate(translation);
         if (align_angle != g_float_zero) {
             renderer->rotate(align_angle, align_axis);
@@ -586,7 +586,7 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
     srVector4T<float> ambient;
     renderer.getAmbientLight(ambient);
     srVector3T<float> ambient_color;
-    ambient_color.Set(ambient.x, ambient.y, ambient.z);
+    ambient_color = ambient.xyz();
 
     srVector4T<float> light;
     if (model->vertex_lighting_ready == 0) {
@@ -875,9 +875,9 @@ static void BuildShadowMesh()
             g_shadow_mesh->control_flags |= 8;
             g_shadow_mesh->polygon_count = 2;
             g_shadow_mesh->vertex_count = 6;
-            g_shadow_mesh->bounds_maximum.Set(500.0f, 500.0f, 500.0f);
-            g_shadow_mesh->bounds_minimum.Set(0.0f, 0.0f, 0.0f);
-            g_shadow_mesh->bounds_center.Set(250.0f, 250.0f, 250.0f);
+            g_shadow_mesh->bounds_maximum = 500.0f;
+            g_shadow_mesh->bounds_minimum.SetZero();
+            g_shadow_mesh->bounds_center = 250.0f;
             g_shadow_mesh->bounds_radius = 250.0f;
             g_shadow_mesh->pass_count = 1;
             g_shadow_mesh->shaders[0] = shader;

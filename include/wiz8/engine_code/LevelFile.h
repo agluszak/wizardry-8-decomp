@@ -489,21 +489,19 @@ struct W8LevelParticleRecord {
     unsigned int particle_count;        /* 0x068 */
     /* 0x06c-0x074: emission spread extents; x/y bound both minimum_1d0
        and maximum_1dc symmetrically, z only the maximum. */
-    float spread_x;
-    float spread_y;
-    float spread_z;
+    srVector3T<float> spread;
     int has_acceleration;            /* 0x078 */
     srVector3T<float> acceleration;  /* 0x07c */
-    int expiry_mode;                 /* 0x088: nonzero enables particle expiry */
+    int expiry_mode;                 /* 0x088: nonzero selects texture-frame expiry */
     int bounds_mode;                 /* 0x08c */
     srVector3T<float> bounds_origin; /* 0x090 */
     float bounds_radius;             /* 0x09c */
     srVector3T<float> bounds_extent; /* 0x0a0 */
     unsigned int lifetime;           /* 0x0ac */
-    int velocity_mode;               /* 0x0b0 */
+    int emission_mode;               /* 0x0b0 */
     unsigned int emission_interval;  /* 0x0b4 */
     int los_check;                   /* 0x0b8: nonzero enables the line-of-sight check */
-    int placement_mode;              /* 0x0bc */
+    int speed_mode;                  /* 0x0bc */
     float initial_speed;             /* 0x0c0 */
     float speed_min;             /* 0x0c4 */
     float speed_max;             /* 0x0c8 */

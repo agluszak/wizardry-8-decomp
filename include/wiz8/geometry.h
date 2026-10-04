@@ -98,9 +98,7 @@ inline void SetPlaneFromThreePoints(W8Plane* plane, const srVector3T<float>* fir
     vertices[1] = *second;
     vertices[2] = *third;
 
-    plane->normal.x = 0.0f;
-    plane->normal.y = 0.0f;
-    plane->normal.z = 0.0f;
+    plane->normal.SetZero();
     plane->w = 0.0f;
 
     for (int index = 0; index < 3; ++index) {

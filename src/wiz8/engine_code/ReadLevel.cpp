@@ -215,7 +215,7 @@ void AssociateWorldLights(W8World* world)
         stLight* light = *world->lights_to_update->GetAt(light_index);
         stLightDefinition* definition = light->m_definition;
 
-        if (definition != 0 && definition->type_04 == 1 &&
+        if (definition != 0 && definition->kind == W8_LIGHT_DEFINITION_PARAMETRIC &&
             (static_cast<stParametricLightDefinition*>(definition)->flags & 1) != 0) {
             int prop_count = PLLength(world->plsProps);
             int prop_index;
@@ -833,28 +833,29 @@ unsigned char ReadWorldParticles(W8ReadLevelInfo* pInfo, srNode* pScene,
             particle->replace_when_full_191 = 1;
             record.bounds_origin.x = 0.0f;
         }
-        if (record.bounds_mode == 1) {
+        if (record.bounds_mode == W8_PARTICLE_BOUNDS_BOX) {
             srVector3T<float> center;
             srVector3T<float> extent;
 
             center = record.bounds_origin * g_world_scale;
             extent = record.bounds_extent * 250.0f;
-            particle->bounds_mode = 1;
+            particle->bounds_mode = W8_PARTICLE_BOUNDS_BOX;
             particle->minimum_21c = center - extent;
             particle->maximum_228 = center + extent;
-        } else if (record.bounds_mode == 2 && record.bounds_radius > 0.0f) {
-            particle->bounds_mode = 2;
+        } else if (record.bounds_mode == W8_PARTICLE_BOUNDS_SPHERE && record.bounds_radius > 0.0f) {
+            particle->bounds_mode = W8_PARTICLE_BOUNDS_SPHERE;
             particle->bounds_origin = record.bounds_origin * g_world_scale;
             particle->bounds_radius = record.bounds_radius * g_world_scale;
         } else {
-            particle->bounds_mode = 0;
+            particle->bounds_mode = W8_PARTICLE_BOUNDS_NONE;
         }
 
         if (record.initially_active == 0) {
             particle->SetActive(0);
         }
         particle->particle_size = record.particle_size;
-        particle->expiry_mode = record.expiry_mode != 0;
+        particle->expiry_mode =
+            record.expiry_mode != 0 ? W8_PARTICLE_EXPIRY_TEXTURE : W8_PARTICLE_EXPIRY_TIMED;
         particle->lifetime_ms = record.lifetime;
         particle->los_check_enabled = record.los_check != 0;
         particle->emission_interval =
@@ -867,20 +868,20 @@ unsigned char ReadWorldParticles(W8ReadLevelInfo* pInfo, srNode* pScene,
             particle->acceleration_1f4 = record.acceleration * g_world_scale;
         }
 
-        if (record.velocity_mode == 0) {
-            particle->emission_mode = 0;
-        } else if (record.velocity_mode == 1) {
-            particle->emission_mode = 1;
+        if (record.emission_mode == W8_PARTICLE_EMISSION_NONE) {
+            particle->emission_mode = W8_PARTICLE_EMISSION_NONE;
+        } else if (record.emission_mode == W8_PARTICLE_EMISSION_SINGLE) {
+            particle->emission_mode = W8_PARTICLE_EMISSION_SINGLE;
         } else {
-            particle->emission_mode = 2;
-            particle->minimum_1d0.Set(-record.spread_x * 250.0f, -record.spread_y * 250.0f, 0.0f);
-            particle->maximum_1dc.Set(record.spread_x * 250.0f, record.spread_y * 250.0f,
-                                      record.spread_z * g_world_scale);
+            particle->emission_mode = W8_PARTICLE_EMISSION_CATCH_UP;
+            particle->minimum_1d0.Set(-record.spread.x * 250.0f, -record.spread.y * 250.0f, 0.0f);
+            particle->maximum_1dc.Set(record.spread.x * 250.0f, record.spread.y * 250.0f,
+                                      record.spread.z * g_world_scale);
         }
 
-        if (record.direction_mode == 0) {
-            particle->direction_mode = 0;
-        } else if (record.direction_mode == 1) {
+        if (record.direction_mode == W8_PARTICLE_DIRECTION_STATIONARY) {
+            particle->direction_mode = W8_PARTICLE_DIRECTION_STATIONARY;
+        } else if (record.direction_mode == W8_PARTICLE_DIRECTION_FIXED) {
             srMatrix3T<float> rotation;
             srVector3T<float> direction;
             srVector3T<float> transformed;
@@ -895,33 +896,33 @@ unsigned char ReadWorldParticles(W8ReadLevelInfo* pInfo, srNode* pScene,
             direction.Set(0.0, 0.0, -1.0);
             transformed = rotation.Transform(direction);
             transformed.Unitize();
-            particle->direction_mode = 1;
+            particle->direction_mode = W8_PARTICLE_DIRECTION_FIXED;
             particle->direction_1e8 = transformed;
-        } else if (record.direction_mode == 2) {
-            particle->direction_mode = 2;
-        } else if (record.direction_mode == 3) {
-            particle->direction_mode = 3;
+        } else if (record.direction_mode == W8_PARTICLE_DIRECTION_NODE_FORWARD) {
+            particle->direction_mode = W8_PARTICLE_DIRECTION_NODE_FORWARD;
+        } else if (record.direction_mode == W8_PARTICLE_DIRECTION_CONE) {
+            particle->direction_mode = W8_PARTICLE_DIRECTION_CONE;
             particle->cone_yaw = record.direction_0e0 * 0.017453292519943295f;
             particle->cone_pitch = record.direction_0e4 * 0.017453292519943295f;
         } else {
-            particle->direction_mode = 4;
+            particle->direction_mode = W8_PARTICLE_DIRECTION_RANDOM;
         }
 
-        if (record.placement_mode == 0) {
-            particle->placement_mode = 0;
-        } else if (record.placement_mode == 1) {
-            particle->placement_mode = 1;
+        if (record.speed_mode == W8_PARTICLE_SPEED_ZERO) {
+            particle->speed_mode = W8_PARTICLE_SPEED_ZERO;
+        } else if (record.speed_mode == W8_PARTICLE_SPEED_FIXED) {
+            particle->speed_mode = W8_PARTICLE_SPEED_FIXED;
             particle->initial_speed = record.initial_speed * g_world_scale;
         } else {
-            particle->placement_mode = 2;
+            particle->speed_mode = W8_PARTICLE_SPEED_RANDOM;
             particle->speed_min = record.speed_min * g_world_scale;
             particle->speed_max = record.speed_max * g_world_scale;
         }
 
         if (record.flutter_mode == 0) {
-            particle->SetFlutter(0);
+            particle->SetFlutter(W8_PARTICLE_FLUTTER_NONE);
         } else {
-            particle->SetFlutter(2);
+            particle->SetFlutter(W8_PARTICLE_FLUTTER_VELOCITY_SCALED);
             particle->flutter_amplitude = record.flutter_value;
             particle->flutter_period = static_cast<unsigned int>(record.flutter_period);
         }

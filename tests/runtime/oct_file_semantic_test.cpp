@@ -288,9 +288,9 @@ static unsigned char CheckFileLayout(const OctPreTree* tree, const W8OctPreTreeG
         LoadFloat(bytes, 0x32) != spatial->m_clipped_maximum.x ||
         LoadFloat(bytes, 0x3e) != spatial->m_working_minimum.x ||
         LoadFloat(bytes, 0x4a) != spatial->m_working_maximum.x ||
-        LoadDword(bytes, 0x56) != tree->m_leaf_grid_dim_x ||
-        LoadDword(bytes, 0x5a) != tree->m_leaf_grid_dim_y ||
-        LoadDword(bytes, 0x5e) != tree->m_leaf_grid_dim_z ||
+        LoadDword(bytes, 0x56) != tree->m_leaf_grid_dimensions.x ||
+        LoadDword(bytes, 0x5a) != tree->m_leaf_grid_dimensions.y ||
+        LoadDword(bytes, 0x5e) != tree->m_leaf_grid_dimensions.z ||
         LoadWord(bytes, 0x62) != spatial->m_depth ||
         LoadWord(bytes, 0x64) != spatial->m_region_id_bound ||
         LoadDword(bytes, 0x66) != spatial->submesh_count ||
@@ -323,7 +323,8 @@ static unsigned char CheckFileLayout(const OctPreTree* tree, const W8OctPreTreeG
     cursor += tree->m_branch_count * 0x24;
     cursor += tree->m_leaf_count * 0x28;
     cursor += tree->polygon_cursor * 4;
-    cursor += tree->m_leaf_grid_dim_x * tree->m_leaf_grid_dim_y * tree->m_leaf_grid_dim_z * 4;
+    cursor += tree->m_leaf_grid_dimensions.x * tree->m_leaf_grid_dimensions.y *
+              tree->m_leaf_grid_dimensions.z * 4;
     cursor += geometry->m_polygon_count * 4;
     cursor += tree->m_region_list_len * 2;
     cursor += tree->m_gd_surface_stream_len * 4;
@@ -376,9 +377,9 @@ static unsigned char CheckLoadedSpatial(const OctPreTree* written, const W8Octre
            back->m_depth == source->m_depth && back->m_region_count == source->m_region_count &&
            back->m_leaf_level == source->m_leaf_level &&
            back->m_region_id_bound == source->m_region_id_bound &&
-           loaded->m_leaf_grid_dim_x == written->m_leaf_grid_dim_x &&
-           loaded->m_leaf_grid_dim_y == written->m_leaf_grid_dim_y &&
-           loaded->m_leaf_grid_dim_z == written->m_leaf_grid_dim_z &&
+           loaded->m_leaf_grid_dimensions.x == written->m_leaf_grid_dimensions.x &&
+           loaded->m_leaf_grid_dimensions.y == written->m_leaf_grid_dimensions.y &&
+           loaded->m_leaf_grid_dimensions.z == written->m_leaf_grid_dimensions.z &&
            loaded->m_leaf_polygon_stream_len == written->polygon_cursor &&
            loaded->m_gd_surface_stream_len == written->m_gd_surface_stream_len &&
            loaded->m_region_cell == written->m_region_cell;
@@ -564,9 +565,9 @@ static void RunOctFileRoundTrip(OctFileSemanticResult* result)
     /* One submesh entry exercises the mesh block and the reader's
        max-scan/allocation of the region-index store. */
     tree->m_spatial.submesh_count = 1;
-    tree->m_leaf_grid_dim_x = 2;
-    tree->m_leaf_grid_dim_y = 2;
-    tree->m_leaf_grid_dim_z = 2;
+    tree->m_leaf_grid_dimensions.x = 2;
+    tree->m_leaf_grid_dimensions.y = 2;
+    tree->m_leaf_grid_dimensions.z = 2;
     tree->m_branch_count = 1;
     tree->m_leaf_count = 1;
     tree->polygon_cursor = 1;

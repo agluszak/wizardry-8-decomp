@@ -662,7 +662,7 @@ void DispatchMGSCommand(int command)
 }
 
 // GLOBAL: WIZ8 0x0064c1cc
-int g_keyboard_row_positions[13][2] = {
+srVector2i g_keyboard_row_positions[13] = {
     {5, 55}, {23, 55}, {41, 55}, {59, 55}, {59, 37}, {5, 37},  {5, 19},
     {5, 1},  {23, 1},  {41, 1},  {59, 1},  {59, 19}, {32, 28},
 };
@@ -782,9 +782,9 @@ unsigned char BuildKeyboardMenu(void)
                 continue;
             }
             control = new W8TextControl(
-                g_keyboard_menu_panel, row + 0xb4, g_keyboard_row_positions[row][0],
-                g_keyboard_row_positions[row][1], g_keyboard_row_positions[row][0] + 0x12,
-                g_keyboard_row_positions[row][1] + 0x12, 0x89, 0, -1, -1, -1, -1, message + 6);
+                g_keyboard_menu_panel, row + 0xb4, g_keyboard_row_positions[row].x,
+                g_keyboard_row_positions[row].y, g_keyboard_row_positions[row].x + 0x12,
+                g_keyboard_row_positions[row].y + 0x12, 0x89, 0, -1, -1, -1, -1, message + 6);
             g_keyboard_menu_rows[row] = control;
             if (control == 0) {
                 if (g_keyboard_menu_panel != 0) {
@@ -808,9 +808,9 @@ unsigned char BuildKeyboardMenu(void)
         }
     }
     g_keyboard_menu_rows[row] = new W8TextControl(
-        g_keyboard_menu_panel, row + 0xb4, g_keyboard_row_positions[row][0],
-        g_keyboard_row_positions[row][1], g_keyboard_row_positions[row][0] + 0x12,
-        g_keyboard_row_positions[row][1] + 0x12, 0x89, 0, 0xbd, 0xbd, 0xbf, 0xbf, -1);
+        g_keyboard_menu_panel, row + 0xb4, g_keyboard_row_positions[row].x,
+        g_keyboard_row_positions[row].y, g_keyboard_row_positions[row].x + 0x12,
+        g_keyboard_row_positions[row].y + 0x12, 0x89, 0, 0xbd, 0xbd, 0xbf, 0xbf, -1);
     g_keyboard_menu_rows[row]->m_primaryActivationCallback = CloseKeyboardMenu;
     g_keyboard_menu_rows[row]->m_secondaryActivationCallback = CloseKeyboardMenu;
     SetRegionHelp(row + 0xb4, 1, 0x11);

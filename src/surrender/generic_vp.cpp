@@ -595,8 +595,7 @@ void srVP_generic::_neg(float* destination, const float* source, SRDWORD count)
 void srVP_generic::_copy(srVector2* destination, const srVector2& constant, SRDWORD count)
 {
     for (SRDWORD index = 0; index < count; ++index) {
-        destination[index].x = constant.x;
-        destination[index].y = constant.y;
+        destination[index] = constant;
     }
 }
 
@@ -606,8 +605,7 @@ void srVP_generic::_copyIndexed(srVector2* destination, const srVector2* source,
 {
     for (SRDWORD index = 0; index < count; ++index) {
         SRDWORD source_index = indices[index];
-        destination[index].x = source[source_index].x;
-        destination[index].y = source[source_index].y;
+        destination[index] = source[source_index];
     }
 }
 
@@ -657,9 +655,7 @@ void srVP_generic::_copy(srVector3* destination, const srVector4* source, SRDWOR
 void srVP_generic::_copy(srVector3* destination, const srVector3& constant, SRDWORD count)
 {
     for (SRDWORD index = 0; index < count; ++index) {
-        destination[index].x = constant.x;
-        destination[index].y = constant.y;
-        destination[index].z = constant.z;
+        destination[index] = constant;
     }
 }
 
@@ -668,9 +664,7 @@ void srVP_generic::_add(srVector3* destination, const srVector3& constant,
                         const srVector3* vector_source, SRDWORD count)
 {
     for (SRDWORD index = 0; index < count; ++index) {
-        destination[index].x = vector_source[index].x + constant.x;
-        destination[index].y = vector_source[index].y + constant.y;
-        destination[index].z = vector_source[index].z + constant.z;
+        destination[index] = vector_source[index] + constant;
     }
 }
 
@@ -679,9 +673,7 @@ void srVP_generic::_sub(srVector3* destination, const srVector3& constant,
                         const srVector3* vector_source, SRDWORD count)
 {
     for (SRDWORD index = 0; index < count; ++index) {
-        destination[index].x = constant.x - vector_source[index].x;
-        destination[index].y = constant.y - vector_source[index].y;
-        destination[index].z = constant.z - vector_source[index].z;
+        destination[index] = constant - vector_source[index];
     }
 }
 
@@ -821,9 +813,7 @@ void srVP_generic::_div(srVector3* destination, const float* float_source,
 void srVP_generic::_length(float* destination, const srVector3* vectors, SRDWORD count)
 {
     for (SRDWORD index = 0; index < count; ++index) {
-        destination[index] =
-            (float)sqrt(vectors[index].x * vectors[index].x + vectors[index].y * vectors[index].y +
-                        vectors[index].z * vectors[index].z);
+        destination[index] = vectors[index].Length();
     }
 }
 
@@ -832,8 +822,7 @@ void srVP_generic::_dot(float* destination, const srVector3& constant, const srV
                         SRDWORD count)
 {
     for (SRDWORD index = 0; index < count; ++index) {
-        destination[index] = vectors[index].x * constant.x + vectors[index].y * constant.y +
-                             vectors[index].z * constant.z;
+        destination[index] = DotProduct(vectors[index], constant);
     }
 }
 
@@ -852,9 +841,7 @@ void srVP_generic::_dot(float* destination, const srVector3* vectors_0, const sr
                         SRDWORD count)
 {
     for (SRDWORD index = 0; index < count; ++index) {
-        destination[index] = vectors_0[index].x * vectors_1[index].x +
-                             vectors_0[index].y * vectors_1[index].y +
-                             vectors_0[index].z * vectors_1[index].z;
+        destination[index] = DotProduct(vectors_0[index], vectors_1[index]);
     }
 }
 
@@ -863,9 +850,7 @@ void srVP_generic::_normalize(srVector3* destination, const srVector3* vectors, 
                               SRDWORD count)
 {
     for (SRDWORD index = 0; index < count; ++index) {
-        float scale = length / (float)sqrt(vectors[index].x * vectors[index].x +
-                                           vectors[index].y * vectors[index].y +
-                                           vectors[index].z * vectors[index].z);
+        float scale = length / vectors[index].Length();
         destination[index].x = scale * vectors[index].x;
         destination[index].y = scale * vectors[index].y;
         destination[index].z = scale * vectors[index].z;
@@ -916,9 +901,7 @@ void srVP_generic::_copyIndexed(srVector3* destination, const srVector3* source,
 {
     for (SRDWORD index = 0; index < count; ++index) {
         SRDWORD source_index = indices[index];
-        destination[index].x = source[source_index].x;
-        destination[index].y = source[source_index].y;
-        destination[index].z = source[source_index].z;
+        destination[index] = source[source_index];
     }
 }
 
@@ -954,9 +937,7 @@ void srVP_generic::_dir(srVector3* destination, float* lengths, const srVector3*
                         SRDWORD count)
 {
     for (SRDWORD index = 0; index < count; ++index) {
-        float length =
-            (float)sqrt(source[index].x * source[index].x + source[index].y * source[index].y +
-                        source[index].z * source[index].z);
+        float length = source[index].Length();
         lengths[index] = length;
         destination[index].x = source[index].x / length;
         destination[index].y = source[index].y / length;
@@ -1021,10 +1002,7 @@ void srVP_generic::_copy(srVector4* destination, const srVector3* source, float 
 void srVP_generic::_copy(srVector4* destination, const srVector4& constant, SRDWORD count)
 {
     for (SRDWORD index = 0; index < count; ++index) {
-        destination[index].x = constant.x;
-        destination[index].y = constant.y;
-        destination[index].z = constant.z;
-        destination[index].w = constant.w;
+        destination[index] = constant;
     }
 }
 
@@ -1200,9 +1178,7 @@ void srVP_generic::_div(srVector4* destination, const float* float_source,
 void srVP_generic::_length(float* destination, const srVector4* vectors, SRDWORD count)
 {
     for (SRDWORD index = 0; index < count; ++index) {
-        destination[index] =
-            (float)sqrt(vectors[index].x * vectors[index].x + vectors[index].y * vectors[index].y +
-                        vectors[index].z * vectors[index].z + vectors[index].w * vectors[index].w);
+        destination[index] = vectors[index].Length();
     }
 }
 
@@ -1244,10 +1220,7 @@ void srVP_generic::_normalize(srVector4* destination, const srVector4* vectors, 
                               SRDWORD count)
 {
     for (SRDWORD index = 0; index < count; ++index) {
-        float scale =
-            length /
-            (float)sqrt(vectors[index].x * vectors[index].x + vectors[index].y * vectors[index].y +
-                        vectors[index].z * vectors[index].z + vectors[index].w * vectors[index].w);
+        float scale = length / vectors[index].Length();
         destination[index].x = scale * vectors[index].x;
         destination[index].y = scale * vectors[index].y;
         destination[index].z = scale * vectors[index].z;
@@ -1302,10 +1275,7 @@ void srVP_generic::_copyIndexed(srVector4* destination, const srVector4* source,
 {
     for (SRDWORD index = 0; index < count; ++index) {
         SRDWORD source_index = indices[index];
-        destination[index].x = source[source_index].x;
-        destination[index].y = source[source_index].y;
-        destination[index].z = source[source_index].z;
-        destination[index].w = source[source_index].w;
+        destination[index] = source[source_index];
     }
 }
 
