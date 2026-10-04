@@ -545,6 +545,11 @@ def main() -> None:
             help="write a reviewable source patch from accepted whole-chain proposals",
         )
         parser.add_argument("--repository", type=Path, default=Path.cwd())
+        parser.add_argument(
+            "--padding",
+            action="store_true",
+            help="also remove explicit padding members that natural layout reproduces",
+        )
         options = parser.parse_args(sys.argv[2:])
         report = write_integer_report(options.facts, options.evidence, options.output)
         if options.patch:
@@ -552,7 +557,11 @@ def main() -> None:
 
             facts = read_scalar_facts(options.facts)
             report["recovery_patch"] = write_recovery_patch(
-                facts, read_evidence(options.evidence, facts), options.repository, options.patch
+                facts,
+                read_evidence(options.evidence, facts),
+                options.repository,
+                options.patch,
+                padding=options.padding,
             )
             options.output.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
         return

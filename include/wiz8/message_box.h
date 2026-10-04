@@ -12,7 +12,6 @@ struct W8ItemInstance;
 struct W8ExperienceNoticePayload {
     unsigned int amount;
     unsigned char alternate_message;
-    unsigned char pad_05[3];
 };
 
 struct W8SkillNoticePayload {

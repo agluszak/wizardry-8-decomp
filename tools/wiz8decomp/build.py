@@ -1073,7 +1073,11 @@ def tidy_audit(settings: Settings) -> dict[str, Any]:
 
 
 def scalar_campaign(
-    settings: Settings, *, evidence: Path | None = None, patch: bool = False
+    settings: Settings,
+    *,
+    evidence: Path | None = None,
+    patch: bool = False,
+    padding: bool = False,
 ) -> dict[str, Any]:
     """Collect the complete configured corpus and run the shared recovery clients.
 
@@ -1107,6 +1111,15 @@ def scalar_campaign(
         "coverage": "configured source corpus; source observations and separately reviewed evidence",
     }
     atomic_json(directory / "manifest.json", manifest)
+    expected_paths = [compile_database_relative(path, repository) for path in recovered + oracle]
+    if None in expected_paths:
+        raise RuntimeError("configured scalar translation unit is outside the repository")
+    expected = {path for path in expected_paths if path is not None}
+    # The solver verifies source-side boundary completeness against this census.
+    (directory / "facts").mkdir()
+    (directory / "facts/expected-units.txt").write_text(
+        "".join(path + "\n" for path in sorted(expected)), encoding="utf-8"
+    )
     try:
         run(
             [
@@ -1147,14 +1160,10 @@ def scalar_campaign(
             replay.extend(("--evidence", "/scalar-evidence.json"))
         if patch:
             replay.extend(("--repository", "/repo", "--patch", f"{container}/recovery.patch"))
+            if padding:
+                replay.append("--padding")
         run(replay, cwd=repository, log_path=directory / "solve.json")
         report = json.loads((directory / "report.json").read_text(encoding="utf-8"))
-        expected_paths = [
-            compile_database_relative(path, repository) for path in recovered + oracle
-        ]
-        if None in expected_paths:
-            raise RuntimeError("configured scalar translation unit is outside the repository")
-        expected = {path for path in expected_paths if path is not None}
         observed = set(report["translation_units"])
         if expected != observed or not report["declarations"]:
             raise RuntimeError(
@@ -1173,7 +1182,8 @@ def scalar_campaign(
         "sgp_translation_units": len(oracle),
         "declarations": len(report["declarations"]),
         "flows": len(report["flows"]),
-        "components": len(report["components"]),
+        "source_coverage_complete": report["coverage"]["complete"],
+        "source_complete_boundaries": report["coverage"]["source_complete_boundaries"],
         "domain_behaviors": dict(Counter(item["behavior"] for item in report["domain_inventory"])),
         "value_domains": dict(Counter(item["value_domain"] for item in report["domain_inventory"])),
         "callbacks": dict(Counter(item["status"] for item in report["callbacks"])),
@@ -1182,12 +1192,23 @@ def scalar_campaign(
             key: len(report.get("structural_inventory", {}).get(key, []))
             for key in ("arrays", "records", "duplicate_layouts")
         },
+        "padding_proposals": dict(
+            Counter(row["status"] for row in report["structural_inventory"]["padding"])
+        ),
+        "divergent_layouts": len(report["structural_inventory"]["divergent_layouts"]),
+        "redundant_packing": sum(
+            bool(row["redundant_packing"]) for row in report["structural_inventory"]["records"]
+        ),
         "integer_proposals": {
-            property_: dict(
-                Counter(item["properties"][property_]["status"] for item in report["components"])
-            )
-            for property_ in ("width", "signedness", "domain")
+            property_: dict(Counter(item["status"] for item in rows))
+            for property_, rows in report["integer_components"].items()
         },
+        "character_proposals": dict(
+            Counter(item["status"] for item in report["array_components"]["character_components"])
+        ),
+        "extent_proposals": dict(
+            Counter(item["status"] for item in report["array_components"]["extents"])
+        ),
         "pointer_proposals": dict(Counter(item["status"] for item in report["pointer_components"])),
         "nominal_proposals": dict(Counter(item["status"] for item in report["nominal_components"])),
         "artifacts": str(directory.relative_to(repository)),

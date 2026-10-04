@@ -43,9 +43,9 @@ calling-convention disagreements are reported rather than overwritten.
 - Compiler-backed PDB procedure/member-function definitions, unions, bools and
   varargs come from the pinned reccmp importer. Do not duplicate that parsing
   in project-specific declaration code.
-- `callback_typing` is a narrow audit/fallback layer for already-named field sites. Compiler-backed
-  `Pointer(FunctionDefinition)` fields are left alone. Do not grow manual
-  callback-family inventories.
+- Callback fields, typedefs and slots are owned by recovered source and arrive through that
+  compiler-backed projection. Do not reintroduce a manual callback-family inventory; whole-chain
+  callback signature recovery belongs to the scalar-facts callback client.
 - Type-graph projection reconciles fields onto the one bound Structure.
   Equal-authority disagreements remain conflicts; do not use "richer wins".
 - Vtable census extents are preserved. Unresolved slots stay explicit rather

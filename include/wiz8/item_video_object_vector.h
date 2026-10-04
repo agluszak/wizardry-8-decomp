@@ -3,7 +3,6 @@
 
 struct W8ItemVideoObjectEntry {
     bool initialized;
-    unsigned char padding_01[3];
     int video_object;
 
     W8ItemVideoObjectEntry();

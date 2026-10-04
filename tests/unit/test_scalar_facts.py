@@ -63,7 +63,7 @@ def evidence(scalar, tmp_path, facts, *claims):
 
 
 def property_report(scalar, facts, claims=(), property_="signedness"):
-    return scalar.integer_report(facts, list(claims))["components"][0]["properties"][property_]
+    return scalar.integer_report(facts, list(claims))["integer_components"][property_][0]
 
 
 def test_unsigned_evidence_propagates_entire_copy_chain(scalar, tmp_path):
@@ -165,7 +165,7 @@ def test_conflicts_are_reported_without_changes(scalar, tmp_path):
         "function pointer",
         "virtual slot",
         "explicit conversion",
-        "width-changing conversion",
+        "reference binding",
         "aggregate storage argument",
     ],
 )
@@ -390,7 +390,7 @@ def test_integer_report_cli_reuses_saved_facts_without_compiling(scalar, tmp_pat
     )
     report = json.loads(destination.read_text())
     assert report["report_only"]
-    assert report["components"][0]["properties"]["signedness"]["status"] == "unknown"
+    assert report["integer_components"]["signedness"][0]["status"] == "unknown"
 
 
 @pytest.mark.parametrize("body_present", [False, True])
@@ -606,30 +606,52 @@ def test_void_pointer_chain_uses_known_owner_and_cast_metadata(scalar, tmp_path)
         "A\tresult\texplicit conversion\tx.cpp\t2\t1",
         "A\tstorage\texplicit conversion\tx.cpp\t2\t1",
     )
-    seeds = evidence(scalar, tmp_path, facts, independent_claim("owner", "pointee", "Record"))
-    result = scalar.anchored_report(facts, seeds, "pointee")[0]
-    assert result["status"] == "candidate"
-    assert result["changes"] == ["storage"]
+    # Erasure is directional: the typed producer must agree with the erased
+    # storage's own evidence, but never seeds that storage by itself.
+    seeds = evidence(scalar, tmp_path, facts, independent_claim("storage", "pointee", "Record"))
+    by_member = {
+        member: item
+        for item in scalar.anchored_report(facts, seeds, "pointee")
+        for member in item["members"]
+    }
+    assert by_member["storage"]["status"] == "candidate"
+    assert by_member["storage"]["changes"] == ["storage"]
+    owner_seed = independent_claim("owner", "pointee", "Record")
+    assert not any(
+        item["changes"] for item in scalar.anchored_report(facts, [owner_seed], "pointee")
+    )
     assert scalar.anchored_report(facts, [], "pointee")[0]["status"] == "unknown"
 
 
 @pytest.mark.parametrize(
-    "pointee,escape", [("Other", ""), ("const Record", ""), ("Record", "address taken")]
+    "producer,pointee,escape",
+    [
+        ("Record", "Other", ""),
+        ("Record", "const Record", ""),
+        ("Record", "Record", "address taken"),
+        ("Other", "void", ""),
+    ],
 )
-def test_pointer_conflicts_qualifiers_and_mutation_block(scalar, tmp_path, pointee, escape):
+def test_pointer_conflicts_qualifiers_and_mutation_block(
+    scalar, tmp_path, producer, pointee, escape
+):
     rows = [
         declaration("owner", domain="pointer"),
         declaration("storage", domain="pointer"),
-        "T\towner\tRecord *\t\tRecord",
+        f"T\towner\t{producer} *\t\t{producer}",
         f"T\tstorage\t{pointee} *\t\t{pointee}",
         "F\tstorage\towner\tassignment\tx.cpp\t1\t1",
     ]
     if escape:
         rows.append(f"A\tstorage\t{escape}\tx.cpp\t2\t1")
     facts = read(scalar, tmp_path, *rows)
-    result = scalar.anchored_report(
-        facts, [independent_claim("owner", "pointee", "Record")], "pointee"
-    )[0]
+    result = next(
+        item
+        for item in scalar.anchored_report(
+            facts, [independent_claim("storage", "pointee", "Record")], "pointee"
+        )
+        if "storage" in item["members"]
+    )
     assert result["status"] == "blocked"
 
 
@@ -643,10 +665,18 @@ def test_nominal_id_owner_does_not_normalize_identical_other_typedef(scalar, tmp
         "T\tcopy\tunsigned int\tSkillId\t",
         "F\tcopy\towner\tassignment\tx.cpp\t1\t1",
     )
+    # A typedef'd producer neither seeds nor normalizes a differently typed consumer.
     seeds = evidence(
         scalar, tmp_path, facts, independent_claim("owner", "nominal", "MonsterId", role="ID")
     )
-    assert scalar.anchored_report(facts, seeds, "nominal")[0]["status"] == "blocked"
+    assert not any(item["changes"] for item in scalar.anchored_report(facts, seeds, "nominal"))
+    consumer = independent_claim("copy", "nominal", "MonsterId", role="ID")
+    result = next(
+        item
+        for item in scalar.anchored_report(facts, [consumer], "nominal")
+        if "copy" in item["members"]
+    )
+    assert result["status"] == "blocked"
 
 
 def test_nominal_identity_and_role_require_independent_evidence(scalar, tmp_path):
@@ -780,9 +810,13 @@ def test_nominal_owner_uses_representation_not_int_long_spelling(scalar, tmp_pat
         "F\tcopy\towner\tassignment\tx.cpp\t1\t1",
     )
     seeds = evidence(
-        scalar, tmp_path, facts, independent_claim("owner", "nominal", "FLAGS32", role="flags")
+        scalar, tmp_path, facts, independent_claim("copy", "nominal", "FLAGS32", role="flags")
     )
-    result = scalar.anchored_report(facts, seeds, "nominal")[0]
+    result = next(
+        item
+        for item in scalar.anchored_report(facts, seeds, "nominal")
+        if "copy" in item["members"]
+    )
     assert result["status"] == "candidate"
     assert result["changes"] == ["copy"]
 
@@ -810,7 +844,7 @@ def test_predicate32_inventory_does_not_depend_on_bool_client_names(scalar, tmp_
     )
     report = scalar.integer_report(facts, [])
     assert [row["key"] for row in report["predicate32_inventory"]] == ["CheckReady"]
-    assert report["components"][0]["properties"]["signedness"]["status"] == "unknown"
+    assert report["integer_components"]["signedness"][0]["status"] == "unknown"
 
 
 def test_callback_topology_requires_all_parameter_nodes(scalar, tmp_path):
@@ -847,15 +881,15 @@ def test_array_and_record_observations_do_not_seed_recovery(scalar, tmp_path):
         tmp_path,
         "ARR\ta\tsrc/wiz8/test.cpp\t3\t1\tbuffer\tchar\t5\t8\ta::element",
         "AU\ta\tstring-initializer\tsrc/wiz8/test.cpp\t3\t8",
-        "REC\tr\tsrc/wiz8/test.cpp\t4\tPacked\t40\t8\t64",
-        "RF\tr\tprefix\t0\t8\tchar",
-        "RF\tr\tpayload\t8\t32\tint",
+        "REC\tr\tsrc/wiz8/test.cpp\t4\tPacked\t40\t8\t64\t8",
+        "RF\tr\tr.prefix\tprefix\t0\t8\t8\tchar",
+        "RF\tr\tr.payload\tpayload\t8\t32\t32\tint",
     )
     report = scalar.structural_report(facts)
     assert report["arrays"][0]["extent"] == 5
     assert report["arrays"][0]["text_initializer"]
     assert report["records"][0]["packing_changes_size"]
-    assert not scalar.integer_report(facts, [])["components"]
+    assert not any(scalar.integer_report(facts, [])["integer_components"].values())
 
 
 def test_evidence_selector_survives_line_changes_and_rejects_ambiguity(scalar, tmp_path):
@@ -1080,3 +1114,189 @@ def test_qualified_void_is_erased_storage_not_a_concrete_pointee_seed(scalar, tm
                 "basis": mapping["basis"],
             },
         )
+
+
+def test_narrowing_is_independent_storage_but_widening_consumes_signedness(scalar, tmp_path):
+    facts = read(
+        scalar,
+        tmp_path,
+        declaration("wide"),
+        declaration("narrow", width=16, spelling="short"),
+        declaration("widened"),
+        "F\tnarrow\twide\tassignment\tx.cpp\t1\t1",
+        "F\twidened\tnarrow\tassignment\tx.cpp\t2\t1",
+    )
+    by_member = {
+        member: item
+        for item in scalar.component_report(facts, [claim("wide")], "signedness")
+        for member in item["members"]
+    }
+    # Truncation does not care about the producer's signedness.
+    assert by_member["wide"]["status"] == "candidate"
+    assert by_member["wide"]["changes"] == ["wide"]
+    assert by_member["narrow"]["status"] == "unknown"
+    narrow = claim("narrow")
+    narrow["basis"] |= {"value_width": 16, "operand_width": 16}
+    result = next(
+        item
+        for item in scalar.component_report(facts, [narrow], "signedness")
+        if "narrow" in item["members"]
+    )
+    # Sign- versus zero-extension of the narrow producer changes `widened`.
+    assert result["status"] == "blocked"
+    assert any("widening" in blocker["reason"] for blocker in result["blockers"])
+
+
+@pytest.mark.parametrize("units", [None, "src/wiz8/test.cpp\n", "src/wiz8/missing.cpp\n"])
+def test_width_boundary_requires_machine_checked_source_coverage(scalar, tmp_path, units):
+    rows = [
+        declaration("A", kind="field", width=16, spelling="short"),
+        "M\tsrc/wiz8/test.cpp",
+    ]
+    if units is not None:
+        (tmp_path / "expected-units.txt").write_text(units)
+    facts = read(scalar, tmp_path, *rows)
+    seed = claim("A", "width", 32, complete_storage_accesses=True)
+    result = property_report(scalar, facts, [seed], "width")
+    if units == "src/wiz8/test.cpp\n":
+        assert result["status"] == "candidate", result
+    else:
+        assert result["status"] == "blocked"
+        assert result["blockers"][0]["reason"].startswith("source boundary incomplete")
+
+
+def record_rows(*fields, size=96, align=32, pack=0, natural=96):
+    rows = [f"REC\tr\tsrc/wiz8/test.cpp\t1\tRecord\t{size}\t{align}\t{natural}\t{pack}"]
+    for name, offset, bits, field_align, type_ in fields:
+        rows.append(f"RF\tr\tr:{name}\t{name}\t{offset}\t{bits}\t{field_align}\t{type_}")
+    return rows
+
+
+def test_padding_removal_requires_unchanged_layout_and_no_use(scalar, tmp_path):
+    source = "struct Record {\n    char tag;\n    char padding_1[3]; // +0x01\n    int value;\n};\n"
+    (tmp_path / "test.cpp").write_text(source)
+    start = source.index("char padding_1")
+    facts = read(
+        scalar,
+        tmp_path,
+        *record_rows(
+            ("tag", 0, 8, 8, "char"),
+            ("padding_1", 8, 24, 8, "char[3]"),
+            ("value", 32, 32, 32, "int"),
+            ("pad_tail", 64, 8, 8, "char"),
+            size=96,
+        ),
+        span("r:padding_1", "test.cpp", start, "char padding_1[3];", source, "field-declaration"),
+        span("r:pad_tail", "test.cpp", 0, "struct", source, "field-declaration"),
+    )
+    rows = {row["name"]: row for row in scalar.padding_report(facts)}
+    assert rows["padding_1"]["status"] == "candidate"
+    assert "record size" in rows["pad_tail"]["reason"]
+    patch = tmp_path / "recovery.patch"
+    assert not scalar.write_recovery_patch(facts, [], tmp_path, patch)["edits"]
+    scalar.write_recovery_patch(facts, [], tmp_path, patch, padding=True)
+    assert "-    char padding_1[3]; // +0x01\n" in patch.read_text()
+    # Another TU compiling a member type under a different pack has no single replay.
+    facts.record_fields.add(("r", "r:value", "value", "32", "32", "8", "int"))
+    assert (
+        "differs across"
+        in {row["name"]: row for row in scalar.padding_report(facts)}["padding_1"]["reason"]
+    )
+    facts.record_fields.discard(("r", "r:value", "value", "32", "32", "8", "int"))
+    facts.field_references.add(scalar.Use("r:padding_1", "reference", "test.cpp", 9, 1))
+    assert {row["name"]: row for row in scalar.padding_report(facts)}["padding_1"][
+        "reason"
+    ] == "member is referenced"
+
+
+def array_rows(extent="30", element_type="int", bits=32):
+    return [
+        declaration("a::element", kind="array-element", width=bits, spelling=element_type),
+        f"ARR\ta\tsrc/wiz8/test.cpp\t1\t1\ttable\t{element_type}\t{extent}\t{bits}\ta::element",
+    ]
+
+
+def extent_claim(value, **extra):
+    return independent_claim(
+        "a::element",
+        "extent",
+        value,
+        **extra,
+    ) | {
+        "basis": {
+            "kind": "source-oracle",
+            "reference": "released header",
+            "reason": "declaration contract",
+            "extent_kind": "declaration-contract",
+        }
+    }
+
+
+@pytest.mark.parametrize(
+    "extent_text,use,blocked",
+    [
+        ("30", None, False),
+        ("TABLE_SIZE", None, True),
+        ("30", "sizeof", True),
+        ("30", "index:25", True),
+        ("30", "indexed", True),
+    ],
+)
+def test_extent_recovery_requires_literal_and_complete_census(
+    scalar, tmp_path, extent_text, use, blocked
+):
+    source = f"int table[{extent_text}];\n"
+    (tmp_path / "test.cpp").write_text(source)
+    rows = [
+        *array_rows(),
+        span("a::element", "test.cpp", 10, extent_text, source, "array-extent"),
+    ]
+    if use:
+        rows.append(f"AU\ta\t{use}\tsrc/wiz8/test.cpp\t3\t1")
+    facts = read(scalar, tmp_path, *rows)
+    claims = evidence(scalar, tmp_path, facts, extent_claim(25))
+    result = scalar.extent_report(facts, claims)[0]
+    assert result["status"] == ("blocked" if blocked else "candidate"), result
+    if not blocked:
+        scalar.write_recovery_patch(facts, claims, tmp_path, tmp_path / "recovery.patch")
+        assert "+int table[25];" in (tmp_path / "recovery.patch").read_text()
+
+
+def test_retail_extent_requires_reviewed_storage_census(scalar, tmp_path):
+    facts = read(scalar, tmp_path, *array_rows())
+    retail = {
+        "key": "a::element",
+        "property": "extent",
+        "value": 25,
+        "basis": {
+            "kind": "retail",
+            "reference": "retail-sha256:address",
+            "reason": "loop bound",
+            "extent_kind": "indexing-range",
+        },
+    }
+    with pytest.raises(ValueError, match="census"):
+        evidence(scalar, tmp_path, facts, retail)
+    assert evidence(scalar, tmp_path, facts, retail | {"complete_storage_accesses": True})
+
+
+@pytest.mark.parametrize(
+    "kind,role,blocked",
+    [
+        ("char", "api:strcpy#0", False),
+        ("raw-byte", "api:memcpy#0", False),
+        ("wchar_t", "api:lstrcpyW#0", True),
+        ("type:unsigned short", "call:LoadName#0", True),
+    ],
+)
+def test_character_recovery_follows_every_storage_consumer(scalar, tmp_path, kind, role, blocked):
+    facts = read(
+        scalar,
+        tmp_path,
+        *array_rows("64", "unsigned char", 8),
+        f"CH\ta\t{kind}\t{role}\tsrc/wiz8/test.cpp\t4\t1",
+        "A\ta::element\tarray storage argument\tsrc/wiz8/test.cpp\t4\t1",
+    )
+    seed = independent_claim("a::element", "character", "char")
+    result = scalar.array_report(facts, [seed])["character_components"][0]
+    assert result["status"] == ("blocked" if blocked else "candidate"), result
