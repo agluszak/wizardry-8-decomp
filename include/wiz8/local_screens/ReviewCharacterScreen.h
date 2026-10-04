@@ -110,7 +110,7 @@ struct W8CampScreenState {
        slots RCSItemsPage.cpp renders. RebuildCampItemList rebuilds it; the pool
        handler reads it through item_scroll. */
     unsigned int item_list_count;
-    int item_list_4ec[500];
+    int item_list[500];
     W8CampItemRange* item_range; /* 0xcbc */
     W8CampSpellRange* spell_ranges[6];
     W8CampStatsRange* stats_range; /* 0xcd8 */
@@ -142,14 +142,14 @@ struct W8CampScreenState {
     unsigned char entry_mode;
     /* 0xd40[0]: mouse is over the reviewed portrait; drives the highlight
        frame and a redraw. */
-    unsigned char portrait_hovered_d40[4];
+    unsigned char portrait_hovered[4];
     W8DialogBase* dialog;
     unsigned char item_mode;
     unsigned char padding_d49[3];
     W8CampCharacterInfo* character_info;
     /* 0xd50: the camp item icons were drawn while the monster/combat
        timer was enabled; its stop forces a full redraw to drop them. */
-    bool item_icons_drawn_d50;
+    bool item_icons_drawn;
     unsigned char padding_d51[3];
 };
 static_assert(sizeof(W8CampScreenState) == 0xd54, "W8CampScreenState_size");
@@ -200,10 +200,10 @@ struct W8CampScreenRegion {
     int width;                 /* 0x08 */
     int height;                /* 0x0c */
     int frame_10;              /* 0x10: catalog frame for the slot border */
-    int unidentified_frame_14; /* 0x14: overlay frame while the item is unidentified */
+    int unidentified_frame; /* 0x14: overlay frame while the item is unidentified */
     int label_x_18;            /* 0x18: item label left */
-    int label_y_1c;            /* 0x1c: item label top */
-    int label_flag_20;         /* 0x20: label draw flag */
+    int label_y;            /* 0x1c: item label top */
+    int label_flag;         /* 0x20: label draw flag */
 };
 
 extern W8CampScreenRegion g_camp_screen_regions[12];

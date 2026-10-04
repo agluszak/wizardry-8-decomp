@@ -438,8 +438,8 @@ unsigned char RunItemTrigger(W8Item* item)
         return 1;
     }
     trigger->Run(-1);
-    if (trigger->action_state_232 == 1 || trigger->action_state_232 == 4) {
-        return trigger->action_state_232;
+    if (trigger->action_state == 1 || trigger->action_state == 4) {
+        return trigger->action_state;
     }
     return 1;
 }

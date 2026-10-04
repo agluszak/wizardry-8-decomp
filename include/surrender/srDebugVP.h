@@ -372,12 +372,12 @@ protected:
        makes dump print "misAlignments not checked". */
     int check_misalignments_440;
     srVP* processor_444;
-    double call_overhead_448;
+    double call_overhead;
     double call_times_450[0xa6];
-    double element_counts_980[0xa6];
+    double element_counts[0xa6];
     unsigned long call_counts_eb0[0xa6];
-    unsigned long misaligned8_1148[0xa6];
-    unsigned long misaligned16_13e0[0xa6];
+    unsigned long misaligned8[0xa6];
+    unsigned long misaligned16[0xa6];
 
     static const char* command_names[0xa6];
 

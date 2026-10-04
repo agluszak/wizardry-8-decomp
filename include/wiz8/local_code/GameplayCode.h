@@ -61,7 +61,7 @@ void AwardPartyExperience(int value, int mode); /* 0x004EEF10 */
 bool IsCharacterReadyToAdvance(int party_slot);
 void CalcXPGoal(W8Character* character);
 void DeriveCharacterPersonality(W8Character* character);
-/* Rerolls personality_0081/voice_0085 until no party member shares the
+/* Rerolls personality_0081/voice until no party member shares the
    character's gender/personality/voice pick. */
 void EnsureUniquePartyVoice(W8Character* character); /* 0x004EFAD0 */
 /* 0x00587C80: knock-knock style spell committed against the active lock or

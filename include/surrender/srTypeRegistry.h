@@ -102,11 +102,11 @@ public:
         ClassNode* parent_0c;
         unsigned long class_id_10;
         const char* class_name_14;
-        NameIndex* named_instances_18;
-        NameIndex* inherited_named_instances_1c;
-        IDIndex* instances_by_id_20;
-        IDIndex* inherited_instances_by_id_24;
-        long instance_count_28;
+        NameIndex* named_instances;
+        NameIndex* inherited_named_instances;
+        IDIndex* instances_by_id;
+        IDIndex* inherited_instances_by_id;
+        long instance_count;
     };
 
     SR_DLL_IMPORT srRegistry();
@@ -126,8 +126,8 @@ public:
     SR_DLL_IMPORT int isDerivedOrSame(ClassNode* base, ClassNode* derived);
     /* SR.DLL's registerClass at 0x1000EC60 adds the node, then calls
        0x1000F7E0 only when the last argument is non-zero. That routine
-       allocates this node's own instance indices, named_instances_18 and
-       instances_by_id_20, when they are still null. So the argument selects
+       allocates this node's own instance indices, named_instances and
+       instances_by_id, when they are still null. So the argument selects
        whether the node carries its own instance lookup tables; it is not C++
        abstractness. stTexture2D and stSurface2D are constructed directly and
        still pass 0, which independently rules that reading out. */
@@ -152,7 +152,7 @@ private:
                                        unsigned long class_id);
 
     ClassNode* root_00;
-    ClassIndex* class_index_04;
+    ClassIndex* class_index;
     int valid_08;
     srCriticalSection* critical_section_0c;
 };
@@ -303,7 +303,7 @@ protected:
 
 private:
     struct Update {
-        double last_update_time_00;
+        double last_update_time;
         double interval_08;
         UpdateCallBack callback_10;
         srClass* instance_14;
@@ -317,7 +317,7 @@ private:
     static SR_DLL_IMPORT double _lastUpdateTime;
     static SR_DLL_IMPORT unsigned long _timestampCtr;
 
-    mutable long reference_count_0c;
+    mutable long reference_count;
     unsigned long timestamp_10;
     Update* update_14;
 };

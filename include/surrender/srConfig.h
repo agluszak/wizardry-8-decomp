@@ -76,8 +76,8 @@ private:
     Index* getIndex() const;
     void removeEntry(Entry* entry);
 
-    Entry* first_entry_00;
-    EntryPool entry_pool_04;
+    Entry* first_entry;
+    EntryPool entry_pool;
     mutable Index* index_18;
 };
 

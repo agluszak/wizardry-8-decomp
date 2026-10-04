@@ -73,18 +73,18 @@ struct W8GameplayModifierBlock {
     unsigned char out_of_formation; /* 0x45 */
     /* 0x46: set by effect id 0x11; the secret-search pass treats every
        slot as a finder while it holds. */
-    unsigned char detect_secrets_46;
+    unsigned char detect_secrets;
     unsigned char light_47; /* 0x47: the doubled light value the sky node reads */
     unsigned char value_48; /* 0x48: max-combined, effect id 0x21 */
     /* 0x49: missile deflection chance in percent; Missile.cpp compares it
        against Random(100)+1. Max-combined, effect id 0x1a. */
-    unsigned char missile_deflect_chance_49;
+    unsigned char missile_deflect_chance;
     /* 0x4a: set by effect id 0x2d; feeds ComputeSightThreshold's
        sight_override and gates the party-surprise pass. */
     unsigned char sight_override_4a;
     /* 0x4b: armor-class adjustment; added to character component 8 and the
        monster target-armor modifier, reduced by conditions. */
-    signed char armor_class_adjustment_4b;
+    signed char armor_class_adjustment;
     unsigned char unknown_4c[0x1b]; /* 0x4c .. 0x66 */
 }; /* 0x67 */
 

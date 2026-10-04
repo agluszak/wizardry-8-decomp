@@ -64,7 +64,7 @@ static wchar_t g_format_d_d_s[] = L"%d-%d %s";
 
 // FUNCTION: WIZ8 0x005dbb60
 W8SpellInfoDialog::W8SpellInfoDialog(unsigned int spell)
-    : m_spell_054(spell), m_timer_144(0.05f, 1), m_animation_frame(0)
+    : m_spell(spell), m_timer_144(0.05f, 1), m_animation_frame(0)
 {
     SetOrigin(0x9c, 0x5a);
     SetExtent(0x14a, 0x12c);
@@ -135,7 +135,7 @@ void W8SpellInfoDialog::Draw()
     m_button_0a4.Draw();
     steps = static_cast<int>(m_timer_144.GetProgress());
     if (steps > 0) {
-        realm = g_spell_records[m_spell_054].realm;
+        realm = g_spell_records[m_spell].realm;
         animation = &g_spell_realm_animations[realm];
         m_animation_frame += steps;
         m_animation_frame %= animation->frame_count;
@@ -168,7 +168,7 @@ unsigned char W8SpellInfoDialog::PopulateText()
     m_text_area_0ec.Configure(&bounds, g_wiz_text_font_secondary, 0);
     m_text_area_0ec.SetEntrySpacing(1);
 
-    record = &g_spell_records[m_spell_054];
+    record = &g_spell_records[m_spell];
     text[0] = L'\0';
     spellbook_mask = static_cast<unsigned int>(record->wizardry_spell != 0) |
                      (record->divinity_spell != 0 ? W8_SPELLBOOK_DIVINITY : W8_SPELLBOOK_NONE) |
@@ -189,7 +189,7 @@ unsigned char W8SpellInfoDialog::PopulateText()
                              gppStringList[g_spell_usage_name_ids[record->usable_when]], 10, 0xf,
                              0);
 
-    target_type = GetSpellTargetType(m_spell_054, 0);
+    target_type = GetSpellTargetType(m_spell, 0);
     m_text_area_0ec.AddEntry(
         gppStringList[0x11e],
         FormatWideString(g_format_s_space_s,
@@ -288,12 +288,12 @@ unsigned char W8SpellInfoDialog::PopulateText()
     }
 
     text[0] = L'\0';
-    if (GetStringFromStringDatabase(g_spell_effect_database_path, m_spell_054, text, 0, 0) != 0 &&
+    if (GetStringFromStringDatabase(g_spell_effect_database_path, m_spell, text, 0, 0) != 0 &&
         text[0] != L'\0') {
         m_text_area_0ec.AddEntry(gppStringList[0x12b], text, 10, 0xf, 0);
     }
     text[0] = L'\0';
-    if (GetStringFromStringDatabase(g_spell_desc_database_path, m_spell_054, text, 0, 0) != 0 &&
+    if (GetStringFromStringDatabase(g_spell_desc_database_path, m_spell, text, 0, 0) != 0 &&
         text[0] != L'\0') {
         m_text_area_0ec.AddEntry(gppStringList[0x12c], text, 10, 0xf, 0);
     }
@@ -305,7 +305,7 @@ void W8SpellInfoDialog::DrawLabels()
 {
     wchar_t* text;
     INT16 width;
-    W8SpellRuntimeRecord* record = &g_spell_records[m_spell_054];
+    W8SpellRuntimeRecord* record = &g_spell_records[m_spell];
 
     SetFont(g_wiz_text_font_secondary);
     SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_wiz_text_font_secondary_palette);

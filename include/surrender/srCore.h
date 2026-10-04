@@ -125,24 +125,24 @@ private:
     srColorSurfaceIFace* surface_0c;
     srSurfaceIOManager* surface_io_manager_10;
     srIStreamOpener* stream_opener_14;
-    srFStreamOpener* file_stream_opener_18;
+    srFStreamOpener* file_stream_opener;
     srFilter* filter_1c;
-    srMemoryAllocator* memory_allocator_20;
-    srFileManager* file_manager_24;
+    srMemoryAllocator* memory_allocator;
+    srFileManager* file_manager;
     srStatisticsManager* statistics_manager_28;
     srRegistry* registry_;
-    srFileManager* default_file_manager_30;
+    srFileManager* default_file_manager;
     srPalette* palette_34;
-    unsigned long next_unique_id_38;
+    unsigned long next_unique_id;
     char version_[0x20];
     char copyright_[0x100];
     /* Full dword member: setDebugLevel stores MOVZX+4-byte write and
        srDebugPrintf reads the dword before masking with 0xff. */
-    unsigned long debug_level_15c;
-    int multi_thread_160;
+    unsigned long debug_level;
+    int multi_thread;
     srNode* root_node_164;
-    srModelIOManager* model_io_manager_168;
-    srHierarchyIOManager* hierarchy_io_manager_16c;
+    srModelIOManager* model_io_manager;
+    srHierarchyIOManager* hierarchy_io_manager;
     srMaterial* material_170;
     srTexture* texture_174;
     srVideoManager* video_manager_178;

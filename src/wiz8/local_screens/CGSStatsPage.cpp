@@ -133,10 +133,10 @@ public:
     virtual void OnMouseLeave(int event) override;
     virtual void OnRightButtonUp(int event) override;
 
-    const W8CharacterStatsRecord* m_record_0b8;
-    unsigned char m_variant_0bc;
+    const W8CharacterStatsRecord* m_record;
+    unsigned char m_variant;
     unsigned char pad_0bd[3];
-    int m_text_offset_0c0;
+    int m_text_offset;
 };
 static_assert(sizeof(W8CharacterStatsRecordControl) == 0xc4, "W8CharacterStatsRecordControl_size");
 
@@ -144,7 +144,7 @@ static_assert(sizeof(W8CharacterStatsRecordControl) == 0xc4, "W8CharacterStatsRe
 W8CharacterStatsValue::W8CharacterStatsValue(Controls* owner, int x, int y,
                                              const W8CharacterStatsRecord* default_record)
     : W8TextControl(owner, 0xffffffff, x, y, 0, 0, 0x104, 0, 1, 1, 2, 2, 3),
-      m_default_record_0bc(default_record)
+      m_default_record(default_record)
 {
     m_textBuffer.SetText(gppStringList[default_record->name_id_0c], g_options_detail_font);
     m_textBuffer.SetLayoutMode(g_W8TextBufferAlignMiddle | g_W8TextBufferAlignLeft);
@@ -158,9 +158,9 @@ W8CharacterStatsValue::W8CharacterStatsValue(Controls* owner, int x, int y,
 void W8CharacterStatsValue::SetRecord(const W8CharacterStatsRecord* record)
 {
     if (record == 0) {
-        record = m_default_record_0bc;
+        record = m_default_record;
     }
-    m_record_0b8 = record;
+    m_record = record;
     m_textBuffer.SetText(gppStringList[record->name_id_0c], g_options_detail_font);
 }
 
@@ -174,8 +174,8 @@ void W8CharacterStatsValue::Redraw(unsigned char full_redraw)
     }
     int left = m_pPanel->m_bounds.left + m_left + 2;
     int top = m_pPanel->m_bounds.top + m_top + 1;
-    const W8CharacterStatsRecord* record = m_record_0b8;
-    unsigned int image = m_enabled ? record->image_enabled_04 : record->image_disabled_08;
+    const W8CharacterStatsRecord* record = m_record;
+    unsigned int image = m_enabled ? record->image_enabled : record->image_disabled;
     DrawCatalogImage(-14, record->object_00, 0, image, left, top, 2, 0);
 }
 
@@ -196,18 +196,18 @@ W8CharacterStatsRecordControl::W8CharacterStatsRecordControl(Controls* owner, in
                                                              int variant)
     : W8TextControl(owner, 0xffffffff, 0, top, 0x7e, top + height, 0x104, 0, 0, 0, 0, 0, 0)
 {
-    m_record_0b8 = record;
-    m_variant_0bc = static_cast<unsigned char>(variant);
+    m_record = record;
+    m_variant = static_cast<unsigned char>(variant);
     int text = 0;
     if (variant == 0) {
         text = 4;
-        m_text_offset_0c0 = 2;
+        m_text_offset = 2;
     } else if (variant == 1) {
         text = 5;
-        m_text_offset_0c0 = 0;
+        m_text_offset = 0;
     } else if (variant == 2) {
         text = 6;
-        m_text_offset_0c0 = 0;
+        m_text_offset = 0;
     } else {
         text = variant;
     }
@@ -220,7 +220,7 @@ W8CharacterStatsRecordControl::W8CharacterStatsRecordControl(Controls* owner, in
     m_textBuffer.SetText(gppStringList[record->name_id_0c], g_options_detail_font);
     m_textBuffer.SetLayoutMode(g_W8TextBufferAlignMiddle | g_W8TextBufferAlignLeft);
     m_pressedTextOffset = 0;
-    UpdateTextBounds(0x19, m_text_offset_0c0 + top, 0x7e, m_text_offset_0c0 + top + 0x16);
+    UpdateTextBounds(0x19, m_text_offset + top, 0x7e, m_text_offset + top + 0x16);
 }
 
 /* Redraw the record's catalogue image over the entry's own background. */
@@ -232,9 +232,9 @@ void W8CharacterStatsRecordControl::Redraw(unsigned char full_redraw)
         return;
     }
     int left = m_pPanel->m_bounds.left + m_left + 2;
-    int top = m_pPanel->m_bounds.top + m_text_offset_0c0 + m_top + 1;
-    const W8CharacterStatsRecord* record = m_record_0b8;
-    unsigned int image = m_enabled ? record->image_enabled_04 : record->image_disabled_08;
+    int top = m_pPanel->m_bounds.top + m_text_offset + m_top + 1;
+    const W8CharacterStatsRecord* record = m_record;
+    unsigned int image = m_enabled ? record->image_enabled : record->image_disabled;
     DrawCatalogImage(-14, record->object_00, 0, image, left, top, 2, 0);
 }
 
@@ -273,8 +273,8 @@ void W8CharacterStatsRow::Initialize(Controls* owner, unsigned int* region_set, 
                                      const W8CharacterStatsRecord* default_record, int help_first,
                                      int help_second, int help_value)
 {
-    m_table_018 = table;
-    m_count_008 = static_cast<unsigned short>(count);
+    m_table = table;
+    m_count = static_cast<unsigned short>(count);
     m_x_00c = owner->m_bounds.left + x;
     m_y_010 = owner->m_bounds.top + y;
     m_region_set_014 = region_set;
@@ -292,14 +292,14 @@ void W8CharacterStatsRow::Initialize(Controls* owner, unsigned int* region_set, 
     m_increment_020->m_listener = this;
     m_increment_020->EnableRegionHelp(help_value);
 
-    m_value_control_024 = new W8CharacterStatsValue(owner, x + 0x1c, y + 4, default_record);
-    m_value_control_024->AddLayoutFlags(g_W8TextControlLayoutToggle);
-    m_value_control_024->m_listener = this;
-    m_value_control_024->EnableRegionHelp(help_second);
+    m_value_control = new W8CharacterStatsValue(owner, x + 0x1c, y + 4, default_record);
+    m_value_control->AddLayoutFlags(g_W8TextControlLayoutToggle);
+    m_value_control->m_listener = this;
+    m_value_control->EnableRegionHelp(help_second);
 
     m_decrement_01c->SetActive(1);
     m_increment_020->SetActive(1);
-    m_value_control_024->SetActive(1);
+    m_value_control->SetActive(1);
 }
 
 /* Build the expanded record list once, then enable it and mirror each
@@ -307,14 +307,14 @@ void W8CharacterStatsRow::Initialize(Controls* owner, unsigned int* region_set, 
 // FUNCTION: WIZ8 0x005c94e0
 void W8CharacterStatsRow::BuildSubpanel()
 {
-    if (m_subpanel_028 == 0) {
-        m_subpanel_028 =
+    if (m_subpanel == 0) {
+        m_subpanel =
             new Controls(m_x_00c + 0x9e, m_y_010 + 1, m_x_00c + 0x11c,
-                         m_y_010 + 5 + static_cast<unsigned int>(m_count_008) * 0x16, -1, 0, -1);
-        m_subpanel_028->AcquireRegionSet(m_region_set_014);
-        m_subpanel_entries_02c = new W8TextControl*[m_count_008];
+                         m_y_010 + 5 + static_cast<unsigned int>(m_count) * 0x16, -1, 0, -1);
+        m_subpanel->AcquireRegionSet(m_region_set_014);
+        m_subpanel_entries = new W8TextControl*[m_count];
 
-        for (unsigned int index = 0; index < m_count_008; ++index) {
+        for (unsigned int index = 0; index < m_count; ++index) {
             int variant;
             int top;
             int height;
@@ -322,7 +322,7 @@ void W8CharacterStatsRow::BuildSubpanel()
                 variant = 0;
                 top = 0;
                 height = 0x18;
-            } else if (index == m_count_008 - 1) {
+            } else if (index == m_count - 1) {
                 variant = 2;
                 top = index * 0x16 + 2;
                 height = 0x18;
@@ -331,15 +331,15 @@ void W8CharacterStatsRow::BuildSubpanel()
                 top = index * 0x16 + 2;
                 height = 0x16;
             }
-            m_subpanel_entries_02c[index] = new W8CharacterStatsRecordControl(
-                m_subpanel_028, top, height, &m_table_018[index], variant);
-            m_subpanel_entries_02c[index]->m_listener = this;
+            m_subpanel_entries[index] = new W8CharacterStatsRecordControl(
+                m_subpanel, top, height, &m_table[index], variant);
+            m_subpanel_entries[index]->m_listener = this;
         }
     }
-    m_subpanel_028->SetEnabled(1);
-    m_subpanel_028->EnableRegionSet(1);
-    for (unsigned int index = 0; index < m_count_008; ++index) {
-        m_subpanel_entries_02c[index]->SetEnabled(m_table_018[index].enabled_0e);
+    m_subpanel->SetEnabled(1);
+    m_subpanel->EnableRegionSet(1);
+    for (unsigned int index = 0; index < m_count; ++index) {
+        m_subpanel_entries[index]->SetEnabled(m_table[index].enabled_0e);
     }
 }
 
@@ -349,13 +349,13 @@ void W8CharacterStatsRow::BuildSubpanel()
 void W8CharacterStatsRow::SetValue(int index)
 {
     if (index == -1) {
-        m_value_control_024->SetRecord(0);
+        m_value_control->SetRecord(0);
     } else {
-        m_value_control_024->SetRecord(&m_table_018[index]);
+        m_value_control->SetRecord(&m_table[index]);
     }
-    int previous = m_index_004;
-    m_index_004 = index;
-    m_value_control_024->Invalidate(1);
+    int previous = m_index;
+    m_index = index;
+    m_value_control->Invalidate(1);
     if (m_listener_030 != 0 && previous != index) {
         m_listener_030->OnRowValueChanged(this, index);
     }
@@ -365,16 +365,16 @@ void W8CharacterStatsRow::SetValue(int index)
 void W8CharacterStatsRow::OnPrimary(W8TextControl* control)
 {
     if (control == m_decrement_01c) {
-        int previous = m_index_004;
+        int previous = m_index;
         int index = previous - 1;
         if (index >= 0) {
-            const W8CharacterStatsRecord* record = &m_table_018[index];
+            const W8CharacterStatsRecord* record = &m_table[index];
             do {
                 if (record->enabled_0e != 0) {
-                    m_value_control_024->SetRecord(index == -1 ? 0 : &m_table_018[index]);
+                    m_value_control->SetRecord(index == -1 ? 0 : &m_table[index]);
                     bool changed = previous != index;
-                    m_index_004 = index;
-                    m_value_control_024->Invalidate(1);
+                    m_index = index;
+                    m_value_control->Invalidate(1);
                     if (m_listener_030 == 0 || !changed) {
                         return;
                     }
@@ -385,9 +385,9 @@ void W8CharacterStatsRow::OnPrimary(W8TextControl* control)
                 --record;
             } while (index >= 0);
         }
-        index = m_count_008 - 1;
+        index = m_count - 1;
         if (previous < index) {
-            const W8CharacterStatsRecord* record = &m_table_018[index];
+            const W8CharacterStatsRecord* record = &m_table[index];
             while (record->enabled_0e == 0) {
                 --index;
                 --record;
@@ -395,25 +395,25 @@ void W8CharacterStatsRow::OnPrimary(W8TextControl* control)
                     return;
                 }
             }
-            m_value_control_024->SetRecord(index == -1 ? 0 : &m_table_018[index]);
+            m_value_control->SetRecord(index == -1 ? 0 : &m_table[index]);
             bool changed = previous != index;
-            m_index_004 = index;
-            m_value_control_024->Invalidate(1);
+            m_index = index;
+            m_value_control->Invalidate(1);
             if (m_listener_030 != 0 && changed) {
                 m_listener_030->OnRowValueChanged(this, index);
             }
         }
     } else if (control == m_increment_020) {
-        int previous = m_index_004;
+        int previous = m_index;
         int index = previous + 1;
-        if (index < static_cast<int>(static_cast<unsigned int>(m_count_008))) {
-            const W8CharacterStatsRecord* record = &m_table_018[index];
+        if (index < static_cast<int>(static_cast<unsigned int>(m_count))) {
+            const W8CharacterStatsRecord* record = &m_table[index];
             do {
                 if (record->enabled_0e != 0) {
-                    m_value_control_024->SetRecord(index == -1 ? 0 : &m_table_018[index]);
+                    m_value_control->SetRecord(index == -1 ? 0 : &m_table[index]);
                     bool changed = previous != index;
-                    m_index_004 = index;
-                    m_value_control_024->Invalidate(1);
+                    m_index = index;
+                    m_value_control->Invalidate(1);
                     if (m_listener_030 == 0 || !changed) {
                         return;
                     }
@@ -422,11 +422,11 @@ void W8CharacterStatsRow::OnPrimary(W8TextControl* control)
                 }
                 ++index;
                 ++record;
-            } while (index < static_cast<int>(static_cast<unsigned int>(m_count_008)));
+            } while (index < static_cast<int>(static_cast<unsigned int>(m_count)));
         }
         index = 0;
         if (previous > 0) {
-            const W8CharacterStatsRecord* record = &m_table_018[0];
+            const W8CharacterStatsRecord* record = &m_table[0];
             while (record->enabled_0e == 0) {
                 ++index;
                 ++record;
@@ -434,37 +434,37 @@ void W8CharacterStatsRow::OnPrimary(W8TextControl* control)
                     return;
                 }
             }
-            m_value_control_024->SetRecord(index == -1 ? 0 : &m_table_018[index]);
+            m_value_control->SetRecord(index == -1 ? 0 : &m_table[index]);
             bool changed = previous != index;
-            m_index_004 = index;
-            m_value_control_024->Invalidate(1);
+            m_index = index;
+            m_value_control->Invalidate(1);
             if (m_listener_030 != 0 && changed) {
                 m_listener_030->OnRowValueChanged(this, index);
             }
         }
-    } else if (control == m_value_control_024) {
-        if ((m_value_control_024->m_stateFlags & g_W8TextControlStateSecondary) != 0) {
+    } else if (control == m_value_control) {
+        if ((m_value_control->m_stateFlags & g_W8TextControlStateSecondary) != 0) {
             BuildSubpanel();
-            m_subpanel_028->Invalidate(0);
+            m_subpanel->Invalidate(0);
             if (m_listener_030 != 0) {
                 m_listener_030->OnRowExpanded(this);
             }
         } else {
-            m_subpanel_028->SetEnabled(0);
-            m_subpanel_028->EnableRegionSet(0);
-            m_value_control_024->DisableSecondaryState(1);
+            m_subpanel->SetEnabled(0);
+            m_subpanel->EnableRegionSet(0);
+            m_value_control->DisableSecondaryState(1);
             if (m_listener_030 != 0) {
                 m_listener_030->OnRowCollapsed(this);
             }
         }
     } else {
-        for (int index = 0; index < m_count_008; ++index) {
-            if (control == m_subpanel_entries_02c[index]) {
+        for (int index = 0; index < m_count; ++index) {
+            if (control == m_subpanel_entries[index]) {
                 control->OnMouseLeave(0);
                 SetValue(index);
-                m_subpanel_028->SetEnabled(0);
-                m_subpanel_028->EnableRegionSet(0);
-                m_value_control_024->DisableSecondaryState(1);
+                m_subpanel->SetEnabled(0);
+                m_subpanel->EnableRegionSet(0);
+                m_value_control->DisableSecondaryState(1);
                 if (m_listener_030 != 0) {
                     m_listener_030->OnRowCollapsed(this);
                 }
@@ -477,13 +477,13 @@ void W8CharacterStatsRow::OnPrimary(W8TextControl* control)
 void W8CharacterStatsRow::OnSecondary(W8TextControl* control)
 {
     if (control != m_decrement_01c && control != m_increment_020) {
-        if (control == m_value_control_024) {
-            if (m_index_004 != -1) {
-                m_listener_030->OnRowInfoRequested(this, m_index_004);
+        if (control == m_value_control) {
+            if (m_index != -1) {
+                m_listener_030->OnRowInfoRequested(this, m_index);
             }
         } else {
-            for (int index = 0; index < m_count_008; ++index) {
-                if (control == m_subpanel_entries_02c[index]) {
+            for (int index = 0; index < m_count; ++index) {
+                if (control == m_subpanel_entries[index]) {
                     control->OnMouseLeave(0);
                     m_listener_030->OnRowInfoRequested(this, index);
                 }
@@ -494,8 +494,8 @@ void W8CharacterStatsRow::OnSecondary(W8TextControl* control)
 
 /* The row's default state: no selection, no table, no child controls. */
 W8CharacterStatsRow::W8CharacterStatsRow()
-    : m_index_004(-1), m_count_008(0), m_table_018(0), m_decrement_01c(0), m_increment_020(0),
-      m_value_control_024(0), m_subpanel_028(0), m_subpanel_entries_02c(0), m_listener_030(0)
+    : m_index(-1), m_count(0), m_table(0), m_decrement_01c(0), m_increment_020(0),
+      m_value_control(0), m_subpanel(0), m_subpanel_entries(0), m_listener_030(0)
 {
 }
 
@@ -507,11 +507,11 @@ void W8CharacterStatsPage::Activate()
     EnableRegionSet(1);
     Refresh();
     for (int index = 0; index < 5; ++index) {
-        m_attribute_controls_08c[index]->SetActive(1);
-        m_attribute_controls_08c[index]->SetEnabled(1);
+        m_attribute_controls[index]->SetActive(1);
+        m_attribute_controls[index]->SetEnabled(1);
     }
     m_dirty_06d = 1;
-    m_prepared_06c = 1;
+    m_prepared = 1;
 }
 
 /* The skills page's Deactivate is the same one-call body; the linker folded
@@ -549,63 +549,63 @@ void W8CharacterStatsPage::UpdateRowValues()
     }
 
     W8Profession profession = m_character_060->iProfession;
-    W8CharacterStatsRow* row = m_profession_row_07c;
+    W8CharacterStatsRow* row = m_profession_row;
     if (profession == -1) {
-        row->m_value_control_024->SetRecord(0);
+        row->m_value_control->SetRecord(0);
     } else {
-        row->m_value_control_024->SetRecord(&row->m_table_018[profession]);
+        row->m_value_control->SetRecord(&row->m_table[profession]);
     }
-    int previous = row->m_index_004;
-    row->m_index_004 = profession;
-    row->m_value_control_024->Invalidate(1);
+    int previous = row->m_index;
+    row->m_index = profession;
+    row->m_value_control->Invalidate(1);
     if (row->m_listener_030 != 0 && previous != profession) {
         row->m_listener_030->OnRowValueChanged(row, profession);
     }
     row->m_decrement_01c->Invalidate(0);
     row->m_increment_020->Invalidate(0);
-    row->m_value_control_024->Invalidate(0);
-    if (row->m_subpanel_028 != 0) {
-        row->m_subpanel_028->Invalidate(0);
+    row->m_value_control->Invalidate(0);
+    if (row->m_subpanel != 0) {
+        row->m_subpanel->Invalidate(0);
     }
 
     int race = m_character_060->iRace;
-    row = m_race_row_080;
+    row = m_race_row;
     if (race == -1) {
-        row->m_value_control_024->SetRecord(0);
+        row->m_value_control->SetRecord(0);
     } else {
-        row->m_value_control_024->SetRecord(&row->m_table_018[race]);
+        row->m_value_control->SetRecord(&row->m_table[race]);
     }
-    previous = row->m_index_004;
-    row->m_index_004 = race;
-    row->m_value_control_024->Invalidate(1);
+    previous = row->m_index;
+    row->m_index = race;
+    row->m_value_control->Invalidate(1);
     if (row->m_listener_030 != 0 && previous != race) {
         row->m_listener_030->OnRowValueChanged(row, race);
     }
     row->m_decrement_01c->Invalidate(0);
     row->m_increment_020->Invalidate(0);
-    row->m_value_control_024->Invalidate(0);
-    if (row->m_subpanel_028 != 0) {
-        row->m_subpanel_028->Invalidate(0);
+    row->m_value_control->Invalidate(0);
+    if (row->m_subpanel != 0) {
+        row->m_subpanel->Invalidate(0);
     }
 
     W8Gender gender = m_character_060->gender;
-    row = m_gender_row_084;
+    row = m_gender_row;
     if (gender == -1) {
-        row->m_value_control_024->SetRecord(0);
+        row->m_value_control->SetRecord(0);
     } else {
-        row->m_value_control_024->SetRecord(&row->m_table_018[gender]);
+        row->m_value_control->SetRecord(&row->m_table[gender]);
     }
-    previous = row->m_index_004;
-    row->m_index_004 = gender;
-    row->m_value_control_024->Invalidate(1);
+    previous = row->m_index;
+    row->m_index = gender;
+    row->m_value_control->Invalidate(1);
     if (row->m_listener_030 != 0 && previous != gender) {
         row->m_listener_030->OnRowValueChanged(row, gender);
     }
     row->m_decrement_01c->Invalidate(0);
     row->m_increment_020->Invalidate(0);
-    row->m_value_control_024->Invalidate(0);
-    if (row->m_subpanel_028 != 0) {
-        row->m_subpanel_028->Invalidate(0);
+    row->m_value_control->Invalidate(0);
+    if (row->m_subpanel != 0) {
+        row->m_subpanel->Invalidate(0);
     }
 }
 
@@ -616,12 +616,12 @@ void W8CharacterStatsPage::Refresh()
     UpdateRowValues();
     if (m_character_060->iRace != -1 || m_character_060->iProfession != -1) {
         for (int index = 0; index < m_entries_04c.count; ++index) {
-            if (!m_rows_initialized_089) {
+            if (!m_rows_initialized) {
                 m_entries_04c.data[index]->SetEnabled(1);
             }
             m_entries_04c.data[index]->UpdateButtons();
         }
-        m_rows_initialized_089 = true;
+        m_rows_initialized = true;
     }
 }
 
@@ -667,57 +667,57 @@ void W8CharacterStatsPage::HandleInput(InputAtom* input)
     if (input->usEvent != LEFT_BUTTON_DOWN && input->usEvent != RIGHT_BUTTON_DOWN) {
         return;
     }
-    W8CharacterStatsRow* row = m_profession_row_07c;
-    if (row->m_subpanel_028 != 0 && row->m_subpanel_028->m_fEnabled) {
+    W8CharacterStatsRow* row = m_profession_row;
+    if (row->m_subpanel != 0 && row->m_subpanel->m_fEnabled) {
         int index = 0;
-        while (index < row->m_count_008) {
-            if (row->m_subpanel_entries_02c[index]->m_alternateTextEnabled) {
+        while (index < row->m_count) {
+            if (row->m_subpanel_entries[index]->m_alternateTextEnabled) {
                 goto next_profession;
             }
             ++index;
         }
-        if (!row->m_value_control_024->m_alternateTextEnabled) {
-            row->m_subpanel_028->SetEnabled(0);
-            row->m_subpanel_028->EnableRegionSet(0);
-            row->m_value_control_024->DisableSecondaryState(1);
+        if (!row->m_value_control->m_alternateTextEnabled) {
+            row->m_subpanel->SetEnabled(0);
+            row->m_subpanel->EnableRegionSet(0);
+            row->m_value_control->DisableSecondaryState(1);
             if (row->m_listener_030 != 0) {
                 row->m_listener_030->OnRowCollapsed(row);
             }
         }
     }
 next_profession:
-    row = m_race_row_080;
-    if (row->m_subpanel_028 != 0 && row->m_subpanel_028->m_fEnabled) {
+    row = m_race_row;
+    if (row->m_subpanel != 0 && row->m_subpanel->m_fEnabled) {
         int index = 0;
-        while (index < row->m_count_008) {
-            if (row->m_subpanel_entries_02c[index]->m_alternateTextEnabled) {
+        while (index < row->m_count) {
+            if (row->m_subpanel_entries[index]->m_alternateTextEnabled) {
                 goto next_race;
             }
             ++index;
         }
-        if (!row->m_value_control_024->m_alternateTextEnabled) {
-            row->m_subpanel_028->SetEnabled(0);
-            row->m_subpanel_028->EnableRegionSet(0);
-            row->m_value_control_024->DisableSecondaryState(1);
+        if (!row->m_value_control->m_alternateTextEnabled) {
+            row->m_subpanel->SetEnabled(0);
+            row->m_subpanel->EnableRegionSet(0);
+            row->m_value_control->DisableSecondaryState(1);
             if (row->m_listener_030 != 0) {
                 row->m_listener_030->OnRowCollapsed(row);
             }
         }
     }
 next_race:
-    row = m_gender_row_084;
-    if (row->m_subpanel_028 != 0 && row->m_subpanel_028->m_fEnabled) {
+    row = m_gender_row;
+    if (row->m_subpanel != 0 && row->m_subpanel->m_fEnabled) {
         int index = 0;
-        while (index < row->m_count_008) {
-            if (row->m_subpanel_entries_02c[index]->m_alternateTextEnabled) {
+        while (index < row->m_count) {
+            if (row->m_subpanel_entries[index]->m_alternateTextEnabled) {
                 return;
             }
             ++index;
         }
-        if (!row->m_value_control_024->m_alternateTextEnabled) {
-            row->m_subpanel_028->SetEnabled(0);
-            row->m_subpanel_028->EnableRegionSet(0);
-            row->m_value_control_024->DisableSecondaryState(1);
+        if (!row->m_value_control->m_alternateTextEnabled) {
+            row->m_subpanel->SetEnabled(0);
+            row->m_subpanel->EnableRegionSet(0);
+            row->m_value_control->DisableSecondaryState(1);
             if (row->m_listener_030 != 0) {
                 row->m_listener_030->OnRowCollapsed(row);
             }
@@ -732,14 +732,14 @@ void W8CharacterStatsPage::AdjustEntry(W8CharacterPageEntry* entry, int delta)
 {
     entry->MarkDirty();
     m_dirty_06d = 1;
-    AdjustAllocatedAttribute(m_character_060, m_creation_state_064, entry->m_id_02c, delta);
+    AdjustAllocatedAttribute(m_character_060, m_creation_state_064, entry->m_id, delta);
     Invalidate(0);
     m_screen_05c->UpdateNavigation(this);
-    if (m_character_060->attributes[entry->m_id_02c].value >= 100) {
+    if (m_character_060->attributes[entry->m_id].value >= 100) {
         for (int skill = 0x22; skill < 0x29; ++skill) {
-            if (g_skill_attributes[skill].attribute_1_08 == static_cast<int>(entry->m_id_02c) &&
+            if (g_skill_attributes[skill].attribute_1 == static_cast<int>(entry->m_id) &&
                 m_character_060->skills[skill].active_00 != 0) {
-                m_screen_05c->ShowDescription(entry->m_id_02c, skill);
+                m_screen_05c->ShowDescription(entry->m_id, skill);
             }
         }
     }
@@ -748,7 +748,7 @@ void W8CharacterStatsPage::AdjustEntry(W8CharacterPageEntry* entry, int delta)
 // FUNCTION: WIZ8 0x005ca7e0
 void W8CharacterStatsPage::ShowEntryInfo(W8CharacterPageEntry* entry)
 {
-    m_screen_05c->ShowPrimaryAttributeInfo(entry->m_id_02c);
+    m_screen_05c->ShowPrimaryAttributeInfo(entry->m_id);
 }
 
 /* A value row moved: rerun the whole creation rebuild for the new
@@ -756,10 +756,10 @@ void W8CharacterStatsPage::ShowEntryInfo(W8CharacterPageEntry* entry)
 // FUNCTION: WIZ8 0x005ca800
 void W8CharacterStatsPage::OnRowValueChanged(W8CharacterStatsRow* row, int value)
 {
-    if (row == m_profession_row_07c) {
+    if (row == m_profession_row) {
         RebuildLevelUpPoolsForProfession(m_character_060, m_creation_state_064,
                                          static_cast<W8Profession>(value));
-    } else if (row == m_race_row_080) {
+    } else if (row == m_race_row) {
         SetCharacterRace(m_character_060, m_creation_state_064, value);
     } else {
         SetCharacterGender(m_character_060, m_creation_state_064, static_cast<W8Gender>(value));
@@ -774,21 +774,21 @@ void W8CharacterStatsPage::OnRowValueChanged(W8CharacterStatsRow* row, int value
 // FUNCTION: WIZ8 0x005ca8d0
 void W8CharacterStatsPage::OnRowExpanded(W8CharacterStatsRow* row)
 {
-    if (row == m_profession_row_07c) {
-        m_profession_row_07c->m_increment_020->SetActive(0);
-        m_race_row_080->m_increment_020->SetActive(0);
-        m_gender_row_084->m_increment_020->SetActive(0);
-    } else if (row == m_race_row_080) {
-        m_race_row_080->m_increment_020->SetActive(0);
-        m_gender_row_084->m_increment_020->SetActive(0);
+    if (row == m_profession_row) {
+        m_profession_row->m_increment_020->SetActive(0);
+        m_race_row->m_increment_020->SetActive(0);
+        m_gender_row->m_increment_020->SetActive(0);
+    } else if (row == m_race_row) {
+        m_race_row->m_increment_020->SetActive(0);
+        m_gender_row->m_increment_020->SetActive(0);
     } else {
-        m_gender_row_084->m_increment_020->SetActive(0);
+        m_gender_row->m_increment_020->SetActive(0);
     }
     for (int entry_index = 0; entry_index < m_entries_04c.count; ++entry_index) {
         m_entries_04c.data[entry_index]->SetHelpActive(0);
     }
     for (int control_index = 0; control_index < 5; ++control_index) {
-        m_attribute_controls_08c[control_index]->SetActive(0);
+        m_attribute_controls[control_index]->SetActive(0);
     }
 }
 
@@ -796,21 +796,21 @@ void W8CharacterStatsPage::OnRowExpanded(W8CharacterStatsRow* row)
 // FUNCTION: WIZ8 0x005ca970
 void W8CharacterStatsPage::OnRowCollapsed(W8CharacterStatsRow* row)
 {
-    if (row == m_profession_row_07c) {
-        m_profession_row_07c->m_increment_020->SetActive(1);
-        m_race_row_080->m_increment_020->SetActive(1);
-        m_gender_row_084->m_increment_020->SetActive(1);
-    } else if (row == m_race_row_080) {
-        m_race_row_080->m_increment_020->SetActive(1);
-        m_gender_row_084->m_increment_020->SetActive(1);
+    if (row == m_profession_row) {
+        m_profession_row->m_increment_020->SetActive(1);
+        m_race_row->m_increment_020->SetActive(1);
+        m_gender_row->m_increment_020->SetActive(1);
+    } else if (row == m_race_row) {
+        m_race_row->m_increment_020->SetActive(1);
+        m_gender_row->m_increment_020->SetActive(1);
     } else {
-        m_gender_row_084->m_increment_020->SetActive(1);
+        m_gender_row->m_increment_020->SetActive(1);
     }
     for (int entry_index = 0; entry_index < m_entries_04c.count; ++entry_index) {
         m_entries_04c.data[entry_index]->SetHelpActive(1);
     }
     for (int control_index = 0; control_index < 5; ++control_index) {
-        m_attribute_controls_08c[control_index]->SetActive(1);
+        m_attribute_controls[control_index]->SetActive(1);
     }
     Invalidate(0);
 }
@@ -819,11 +819,11 @@ void W8CharacterStatsPage::OnRowCollapsed(W8CharacterStatsRow* row)
 // FUNCTION: WIZ8 0x005caa20
 void W8CharacterStatsPage::OnRowInfoRequested(W8CharacterStatsRow* row, int value)
 {
-    if (row == m_profession_row_07c) {
+    if (row == m_profession_row) {
         m_screen_05c->ShowProfessionInfo(value);
         return;
     }
-    if (row == m_race_row_080) {
+    if (row == m_race_row) {
         m_screen_05c->ShowRaceInfo(value);
     }
 }
@@ -839,7 +839,7 @@ void W8CharacterStatsPage::OnPrimary(W8TextControl*) {}
 void W8CharacterStatsPage::OnSecondary(W8TextControl* control)
 {
     for (unsigned int index = 0; index < 5; ++index) {
-        if (control == m_attribute_controls_08c[index]) {
+        if (control == m_attribute_controls[index]) {
             m_screen_05c->ShowSecondaryAttributeInfo(index);
         }
     }
@@ -850,16 +850,16 @@ void W8CharacterStatsPage::Prepare()
 {
     W8CharacterPage::Prepare();
     W8CharacterStatsRow* rows[3] = {
-        m_profession_row_07c,
-        m_race_row_080,
-        m_gender_row_084,
+        m_profession_row,
+        m_race_row,
+        m_gender_row,
     };
     for (int index = 0; index < 3; ++index) {
         rows[index]->m_decrement_01c->Invalidate(0);
         rows[index]->m_increment_020->Invalidate(0);
-        rows[index]->m_value_control_024->Invalidate(0);
-        if (rows[index]->m_subpanel_028 != 0) {
-            rows[index]->m_subpanel_028->Invalidate(0);
+        rows[index]->m_value_control->Invalidate(0);
+        if (rows[index]->m_subpanel != 0) {
+            rows[index]->m_subpanel->Invalidate(0);
         }
     }
 }
@@ -871,61 +871,61 @@ void W8CharacterStatsPage::SetCharacter(W8Character* character,
                                         W8CharacterCreationState* creation_state, int mode)
 {
     W8CharacterPage::SetCharacter(character, creation_state, mode);
-    m_profession_row_07c = new W8CharacterStatsRow;
-    m_race_row_080 = new W8CharacterStatsRow;
-    m_gender_row_084 = new W8CharacterStatsRow;
+    m_profession_row = new W8CharacterStatsRow;
+    m_race_row = new W8CharacterStatsRow;
+    m_gender_row = new W8CharacterStatsRow;
     AcquireRegionSet(&g_character_stats_region_set);
-    m_profession_row_07c->Initialize(this, &g_character_stats_profession_region_set, 0x16, 10, 0xf,
+    m_profession_row->Initialize(this, &g_character_stats_profession_region_set, 0x16, 10, 0xf,
                                      g_character_profession_records,
                                      &g_character_profession_default_record, 0xf7, 0xf6, 0xf8);
-    m_race_row_080->Initialize(this, &g_character_stats_race_region_set, 0x16, 0x3d, 0xb,
+    m_race_row->Initialize(this, &g_character_stats_race_region_set, 0x16, 0x3d, 0xb,
                                g_character_race_records, &g_character_race_default_record, 0xfa,
                                0xf9, 0xfb);
-    m_gender_row_084->Initialize(this, &g_character_stats_gender_region_set, 0x16, 0x70, 2,
+    m_gender_row->Initialize(this, &g_character_stats_gender_region_set, 0x16, 0x70, 2,
                                  g_character_gender_records, &g_character_gender_default_record,
                                  0xfd, 0xfc, 0xfe);
-    m_profession_row_07c->m_listener_030 = this;
-    m_race_row_080->m_listener_030 = this;
-    m_gender_row_084->m_listener_030 = this;
+    m_profession_row->m_listener_030 = this;
+    m_race_row->m_listener_030 = this;
+    m_gender_row->m_listener_030 = this;
 
     if (mode == 0) {
         W8CharacterStatsRow* rows[3] = {
-            m_profession_row_07c,
-            m_race_row_080,
-            m_gender_row_084,
+            m_profession_row,
+            m_race_row,
+            m_gender_row,
         };
         for (int row_index = 0; row_index < 3; ++row_index) {
             rows[row_index]->m_decrement_01c->SetEnabled(1);
             rows[row_index]->m_increment_020->SetEnabled(1);
-            rows[row_index]->m_value_control_024->SetEnabled(1);
+            rows[row_index]->m_value_control->SetEnabled(1);
         }
     } else if (mode == 1) {
         W8CharacterStatsRow* rows[3] = {
-            m_profession_row_07c,
-            m_race_row_080,
-            m_gender_row_084,
+            m_profession_row,
+            m_race_row,
+            m_gender_row,
         };
         for (int row_index = 0; row_index < 3; ++row_index) {
             rows[row_index]->m_decrement_01c->SetEnabled(0);
             rows[row_index]->m_increment_020->SetEnabled(0);
-            rows[row_index]->m_value_control_024->SetEnabled(0);
+            rows[row_index]->m_value_control->SetEnabled(0);
         }
     } else if (mode == 2) {
         if (character->iRace == 0xf) {
-            m_profession_row_07c->m_decrement_01c->SetEnabled(0);
-            m_profession_row_07c->m_increment_020->SetEnabled(0);
-            m_profession_row_07c->m_value_control_024->SetEnabled(0);
+            m_profession_row->m_decrement_01c->SetEnabled(0);
+            m_profession_row->m_increment_020->SetEnabled(0);
+            m_profession_row->m_value_control->SetEnabled(0);
         } else {
-            m_profession_row_07c->m_decrement_01c->SetEnabled(1);
-            m_profession_row_07c->m_increment_020->SetEnabled(1);
-            m_profession_row_07c->m_value_control_024->SetEnabled(1);
+            m_profession_row->m_decrement_01c->SetEnabled(1);
+            m_profession_row->m_increment_020->SetEnabled(1);
+            m_profession_row->m_value_control->SetEnabled(1);
         }
-        m_race_row_080->m_decrement_01c->SetEnabled(0);
-        m_race_row_080->m_increment_020->SetEnabled(0);
-        m_race_row_080->m_value_control_024->SetEnabled(0);
-        m_gender_row_084->m_decrement_01c->SetEnabled(0);
-        m_gender_row_084->m_increment_020->SetEnabled(0);
-        m_gender_row_084->m_value_control_024->SetEnabled(0);
+        m_race_row->m_decrement_01c->SetEnabled(0);
+        m_race_row->m_increment_020->SetEnabled(0);
+        m_race_row->m_value_control->SetEnabled(0);
+        m_gender_row->m_decrement_01c->SetEnabled(0);
+        m_gender_row->m_increment_020->SetEnabled(0);
+        m_gender_row->m_value_control->SetEnabled(0);
     }
 
     for (int attribute_index = 0; attribute_index < 7; ++attribute_index) {
@@ -937,17 +937,17 @@ void W8CharacterStatsPage::SetCharacter(W8Character* character,
                           gppStringList[g_character_description_first_ids[attribute_index]],
                           &character->attributes[attribute_index].value,
                           &creation_state->attribute_values_008[attribute_index],
-                          &creation_state->attribute_limits_028[attribute_index], 0x101);
+                          &creation_state->attribute_limits[attribute_index], 0x101);
         entry->SetEnabled(0);
     }
     m_navigation_state_088 = false;
-    m_rows_initialized_089 = false;
+    m_rows_initialized = false;
 
     for (int control_index = 0; control_index < 5; ++control_index) {
         W8TextControl* control =
             new W8TextControl(this, 0xffffffff, 0xf3, 0xba + control_index * 0xe, 0x195,
                               0xba + control_index * 0xe + 0xc, -1, -1, -1, -1, -1, -1, -1);
-        m_attribute_controls_08c[control_index] = control;
+        m_attribute_controls[control_index] = control;
         control->SetActive(0);
         control->m_listener = this;
         control->EnableRegionHelp(0x101);
@@ -958,19 +958,19 @@ void W8CharacterStatsPage::SetCharacter(W8Character* character,
 W8CharacterStatsPage::~W8CharacterStatsPage()
 {
     W8CharacterStatsRow* rows[3] = {
-        m_profession_row_07c,
-        m_race_row_080,
-        m_gender_row_084,
+        m_profession_row,
+        m_race_row,
+        m_gender_row,
     };
     for (int index = 0; index < 3; ++index) {
         W8CharacterStatsRow* row = rows[index];
         if (row != 0) {
-            delete row->m_subpanel_028;
-            if (row->m_subpanel_entries_02c != 0) {
-                for (unsigned int entry = 0; entry < row->m_count_008; ++entry) {
-                    delete row->m_subpanel_entries_02c[entry];
+            delete row->m_subpanel;
+            if (row->m_subpanel_entries != 0) {
+                for (unsigned int entry = 0; entry < row->m_count; ++entry) {
+                    delete row->m_subpanel_entries[entry];
                 }
-                delete[] row->m_subpanel_entries_02c;
+                delete[] row->m_subpanel_entries;
             }
             delete row;
         }
@@ -1235,7 +1235,7 @@ void W8CharacterStatsPage::Redraw()
     }
 
     text.SetLayoutMode(g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
-    if (m_prepared_06c) {
+    if (m_prepared) {
         W8ControlsRect bounds = {4, 0xec, 0xc2, 0x162};
         text.SetLayoutBounds(&bounds, 1, 1);
         if (m_mode_068 == 0) {
@@ -1257,7 +1257,7 @@ void W8CharacterStatsPage::Redraw()
         text.SetLayoutBounds(&bounds, 1, 1);
         text.SetText(gppStringList[0xe4], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
-        m_prepared_06c = 0;
+        m_prepared = 0;
     }
 
     if (m_dirty_06d) {
@@ -1284,14 +1284,14 @@ void W8CharacterStatsPage::Redraw()
     }
 
     W8CharacterStatsRow* rows[3] = {
-        m_profession_row_07c,
-        m_race_row_080,
-        m_gender_row_084,
+        m_profession_row,
+        m_race_row,
+        m_gender_row,
     };
     for (int row_index = 0; row_index < 3; ++row_index) {
         W8CharacterStatsRow* row = rows[row_index];
-        if (row->m_subpanel_028 != 0 && row->m_subpanel_028->m_fEnabled) {
-            row->m_subpanel_028->Redraw();
+        if (row->m_subpanel != 0 && row->m_subpanel->m_fEnabled) {
+            row->m_subpanel->Redraw();
         }
     }
 }

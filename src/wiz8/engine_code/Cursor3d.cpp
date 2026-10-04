@@ -110,32 +110,32 @@ void InitializeWorldCursor(void)
             memset(gp3DCursor, 0, sizeof(*gp3DCursor));
             gp3DCursor->monster_00 = 0;
             gp3DCursor->unknown_08 = 1;
-            gp3DCursor->group_bind_pending_09 = 0;
-            gp3DCursor->input_delta_0c.x = 0;
-            gp3DCursor->input_delta_0c.y = 0;
-            gp3DCursor->input_delta_0c.z = 0;
+            gp3DCursor->group_bind_pending = 0;
+            gp3DCursor->input_delta.x = 0;
+            gp3DCursor->input_delta.y = 0;
+            gp3DCursor->input_delta.z = 0;
             gp3DCursor->light_24 = 0;
             gp3DCursor->enabled_40 = 1;
-            gp3DCursor->track_ground_41 = 1;
+            gp3DCursor->track_ground = 1;
             gp3DCursor->range_44 = 50000.0f;
-            gp3DCursor->left_held_48 = 0;
+            gp3DCursor->left_held = 0;
             gp3DCursor->monster_group_id_4c = g_cursor_saved_group_id;
-            gp3DCursor->detached_50 = 0;
-            gp3DCursor->march_enabled_51 = 1;
-            gp3DCursor->footprint_mode_c0 = 0;
+            gp3DCursor->detached = 0;
+            gp3DCursor->march_enabled = 1;
+            gp3DCursor->footprint_mode = 0;
             gp3DCursor->dragged_info_dc = 0;
             context.directory_08 = "Data\\Monsters";
             context.world_00 = g_world;
             LoadMonsterCycle(&context, "3DCursor", &gp3DCursor->monster_00, -1, 1);
             MonsterSetCycle(gp3DCursor->monster_00, 0);
-            gp3DCursor->last_published_34.Set(-100000000.0f, -100000000.0f, -100000000.0f);
+            gp3DCursor->last_published.Set(-100000000.0f, -100000000.0f, -100000000.0f);
             gp3DCursor->position_28.Set(0.0f, 0.0f, 0.0f);
             gp3DCursor->offset_18.Set(0.0f, 0.0f, 0.0f);
-            gp3DCursor->monster_00->inactive_215 = 1;
+            gp3DCursor->monster_00->inactive = 1;
             WarpSystemCursor(0x140, 0xf0);
-            gp3DCursor->input_delta_0c.x = 0;
-            gp3DCursor->input_delta_0c.y = 0;
-            gp3DCursor->input_delta_0c.z = 0;
+            gp3DCursor->input_delta.x = 0;
+            gp3DCursor->input_delta.y = 0;
+            gp3DCursor->input_delta.z = 0;
             position = gp3DCursor->position_28;
             MonsterSetAdjustedPosition(gp3DCursor->monster_00, &position);
             PLAdoptAppend(g_world->plsMonsters, gp3DCursor->monster_00);
@@ -163,41 +163,41 @@ void InitializeWorldCursor(void)
                 gp3DCursor->particle_04->emission_interval_1c8 = 300;
                 gp3DCursor->particle_04->acceleration_1f4.Set(0.0f, -1000.0f, 0.0f);
                 gp3DCursor->particle_04->has_acceleration_1a8 = 1;
-                gp3DCursor->particle_04->initial_speed_210 = 500.0f;
+                gp3DCursor->particle_04->initial_speed = 500.0f;
                 gp3DCursor->particle_04->placement_mode_1bc = 2;
-                gp3DCursor->particle_04->emission_mode_1b0 = 1;
+                gp3DCursor->particle_04->emission_mode = 1;
                 gp3DCursor->particle_04->bounds_mode_1a4 = 0;
                 gp3DCursor->particle_04->expiry_mode_1ac = 0;
-                gp3DCursor->particle_04->lifetime_ms_1cc = 6000;
-                gp3DCursor->particle_04->cone_yaw_208 = 1.5707963f;
-                gp3DCursor->particle_04->cone_pitch_20c = 1.5707963f;
+                gp3DCursor->particle_04->lifetime_ms = 6000;
+                gp3DCursor->particle_04->cone_yaw = 1.5707963f;
+                gp3DCursor->particle_04->cone_pitch = 1.5707963f;
                 gp3DCursor->particle_04->speed_min_214 = 500.0f;
                 gp3DCursor->particle_04->speed_max_218 = 1000.0f;
                 gp3DCursor->particle_04->SetFlutter(2);
-                gp3DCursor->particle_04->flutter_amplitude_200 = 50.0f;
+                gp3DCursor->particle_04->flutter_amplitude = 50.0f;
                 gp3DCursor->particle_04->flutter_period_204 = 1000;
             }
             ApplyWorldCursorInput();
             if (gp3DCursor != 0) {
                 GetCameraPosition(&camera_position);
-                if (gp3DCursor->detached_50 == 0) {
+                if (gp3DCursor->detached == 0) {
                     gp3DCursor->offset_18 += camera_position;
                 }
-                gp3DCursor->detached_50 = 1;
+                gp3DCursor->detached = 1;
             }
             ClearCombatSelection();
             gp3DCursor->monster_00->GetAnimationBounds(&minimum, &maximum);
-            gp3DCursor->probe_center_54.Set((maximum.x + minimum.x) * g_double_005ebe80,
+            gp3DCursor->probe_center.Set((maximum.x + minimum.x) * g_double_005ebe80,
                                             (minimum.y + maximum.y) * g_double_005ebe80,
                                             (minimum.z + maximum.z) * g_double_005ebe80);
-            gp3DCursor->probe_offsets_60[0] = maximum;
-            gp3DCursor->probe_offsets_60[1].Set(minimum.x, maximum.y, maximum.z);
-            gp3DCursor->probe_offsets_60[2].Set(minimum.x, maximum.y, minimum.z);
-            gp3DCursor->probe_offsets_60[3].Set(maximum.x, maximum.y, minimum.z);
-            gp3DCursor->probe_offsets_60[4].Set(maximum.x, minimum.y, maximum.z);
-            gp3DCursor->probe_offsets_60[5].Set(minimum.x, minimum.y, maximum.z);
-            gp3DCursor->probe_offsets_60[6] = minimum;
-            gp3DCursor->probe_offsets_60[7].Set(maximum.x, minimum.y, minimum.z);
+            gp3DCursor->probe_offsets[0] = maximum;
+            gp3DCursor->probe_offsets[1].Set(minimum.x, maximum.y, maximum.z);
+            gp3DCursor->probe_offsets[2].Set(minimum.x, maximum.y, minimum.z);
+            gp3DCursor->probe_offsets[3].Set(maximum.x, maximum.y, minimum.z);
+            gp3DCursor->probe_offsets[4].Set(maximum.x, minimum.y, maximum.z);
+            gp3DCursor->probe_offsets[5].Set(minimum.x, minimum.y, maximum.z);
+            gp3DCursor->probe_offsets[6] = minimum;
+            gp3DCursor->probe_offsets[7].Set(maximum.x, minimum.y, minimum.z);
             UpdateWorldCursorPlacement();
             if (g_dev_mode != 0 && (gfKeyState[0x10] != 0 || gfKeyState[0x11] != 0)) {
                 g_cursor_pick_latch = true;
@@ -242,7 +242,7 @@ void ReleaseWorldCursor(void)
         WorldRemoveLight(g_world, cursor->light_24);
         cursor->light_24 = 0;
     }
-    cursor->group_bind_pending_09 = 0;
+    cursor->group_bind_pending = 0;
     g_cursor_saved_group_id = cursor->monster_group_id_4c;
     EnableCursorScene();
     RequestRefreshPartyState();
@@ -342,12 +342,12 @@ void ApplyWorldCursorInput(void)
     if (gp3DCursor->enabled_40 == 0) {
         srAssertFail("gp3DCursor->fEnabled", CURSOR3D_CPP, 0x189, 0);
     }
-    delta.Set(gp3DCursor->input_delta_0c.x * g_float_005ebc88,
-              gp3DCursor->input_delta_0c.y * g_float_005ebc88,
-              gp3DCursor->input_delta_0c.z * g_float_005ebc88);
-    gp3DCursor->input_delta_0c.x = 0;
-    gp3DCursor->input_delta_0c.y = 0;
-    gp3DCursor->input_delta_0c.z = 0;
+    delta.Set(gp3DCursor->input_delta.x * g_float_005ebc88,
+              gp3DCursor->input_delta.y * g_float_005ebc88,
+              gp3DCursor->input_delta.z * g_float_005ebc88);
+    gp3DCursor->input_delta.x = 0;
+    gp3DCursor->input_delta.y = 0;
+    gp3DCursor->input_delta.z = 0;
     if (g_dev_mode != 0) {
         if (gfKeyState[0x10] == 0 && gfKeyState[0x11] == 0) {
             if (g_cursor_pick_latch != 0) {
@@ -360,7 +360,7 @@ void ApplyWorldCursorInput(void)
             gp3DCursor->dragged_info_dc = FindNearestMonsterInfo(&gp3DCursor->position_28, 2500.0);
         }
     }
-    if (gp3DCursor->detached_50 == 0) {
+    if (gp3DCursor->detached == 0) {
         lifted.Set(delta.x, delta.y + g_float_005ebc64, delta.z);
         if (gp3DCursor->range_44 > g_float_zero && gp3DCursor->range_44 < lifted.Length()) {
             delta.SetLength(gp3DCursor->range_44);
@@ -372,7 +372,7 @@ void ApplyWorldCursorInput(void)
         srVector3T<float> scene_location;
         scene_location.SetFromDouble(&node_location);
         gp3DCursor->position_28 += scene_location;
-        if (gp3DCursor->track_ground_41 != 0) {
+        if (gp3DCursor->track_ground != 0) {
             if (gp3DCursor->position_28.y < saved_y) {
                 gp3DCursor->position_28.y = saved_y;
             }
@@ -399,15 +399,15 @@ void ApplyWorldCursorInput(void)
             clamped.SetLength(g_monster_poster_max_distance);
             delta = camera + clamped;
         }
-        if (gp3DCursor->march_enabled_51 != 0) {
+        if (gp3DCursor->march_enabled != 0) {
             MarchWorldCursorTarget(&delta);
         }
         gp3DCursor->position_28 = delta;
         gp3DCursor->offset_18 = delta;
     }
-    if (gp3DCursor->last_published_34.x != gp3DCursor->position_28.x ||
-        gp3DCursor->last_published_34.y != gp3DCursor->position_28.y ||
-        gp3DCursor->last_published_34.z != gp3DCursor->position_28.z) {
+    if (gp3DCursor->last_published.x != gp3DCursor->position_28.x ||
+        gp3DCursor->last_published.y != gp3DCursor->position_28.y ||
+        gp3DCursor->last_published.z != gp3DCursor->position_28.z) {
         lifted = gp3DCursor->position_28;
         MonsterSetAdjustedPosition(gp3DCursor->monster_00, &lifted);
         if (g_cursor_node_0065ba90 != 0) {
@@ -434,7 +434,7 @@ void ApplyWorldCursorInput(void)
                 MonsterForwardReferencePosition(gp3DCursor->dragged_info_dc->p3D, 1);
             }
         }
-        gp3DCursor->last_published_34 = gp3DCursor->position_28;
+        gp3DCursor->last_published = gp3DCursor->position_28;
     }
     g_octree->UpdatePathVisualization();
 }
@@ -458,9 +458,9 @@ void BindCursorMonsterToGroup(void)
     W8MonsterInfo* monster_info;
     unsigned int index;
 
-    if (gp3DCursor->group_bind_pending_09 != 0 && gp3DCursor->light_24 != 0) {
-        gp3DCursor->group_bind_pending_09 = 0;
-        ++gp3DCursor->input_delta_0c.z;
+    if (gp3DCursor->group_bind_pending != 0 && gp3DCursor->light_24 != 0) {
+        gp3DCursor->group_bind_pending = 0;
+        ++gp3DCursor->input_delta.z;
         if (gp3DCursor->particle_04 != 0) {
             gp3DCursor->particle_04->speed_min_214 = 1000.0f;
             gp3DCursor->particle_04->speed_max_218 = 2000.0f;
@@ -513,7 +513,7 @@ const float g_float_005ec260 = 50000.0f;
 
 /* Install an action-range distance into the live cursor: subtract
    g_float_005ebcdc / distance * world_scale, clamp to 50000, write range_44,
-   and force last_published_34 to the -1e8 republish sentinel. */
+   and force last_published to the -1e8 republish sentinel. */
 // FUNCTION: WIZ8 0x00491650
 void SetWorldCursorRange(float distance)
 {
@@ -523,7 +523,7 @@ void SetWorldCursorRange(float distance)
             distance = g_float_005ec260;
         }
         gp3DCursor->range_44 = distance;
-        gp3DCursor->last_published_34 = -100000000.0f;
+        gp3DCursor->last_published = -100000000.0f;
     }
 }
 
@@ -582,9 +582,9 @@ void UpdateWorldCursor(void)
     SyncSystemCursor();
     SGPMouseGetPos(&cursor_point);
     if (gfRightButtonState != 0) {
-        if (gp3DCursor->group_bind_pending_09 == 0 && gp3DCursor->light_24 != 0) {
-            gp3DCursor->group_bind_pending_09 = 1;
-            ++gp3DCursor->input_delta_0c.z;
+        if (gp3DCursor->group_bind_pending == 0 && gp3DCursor->light_24 != 0) {
+            gp3DCursor->group_bind_pending = 1;
+            ++gp3DCursor->input_delta.z;
             if (gp3DCursor->particle_04 != 0) {
                 gp3DCursor->particle_04->speed_min_214 = 3000.0f;
                 gp3DCursor->particle_04->speed_max_218 = 6000.0f;
@@ -595,13 +595,13 @@ void UpdateWorldCursor(void)
         BindCursorMonsterToGroup();
     }
     if (gfRightButtonState != 0) {
-        if (gp3DCursor->detached_50 != 0) {
-            gp3DCursor->track_ground_41 = 0;
+        if (gp3DCursor->detached != 0) {
+            gp3DCursor->track_ground = 0;
         }
-        gp3DCursor->input_delta_0c.y += 0xf0 - cursor_point.y;
+        gp3DCursor->input_delta.y += 0xf0 - cursor_point.y;
     } else {
-        gp3DCursor->input_delta_0c.x += cursor_point.x - 0x140;
-        gp3DCursor->input_delta_0c.z += 0xf0 - cursor_point.y;
+        gp3DCursor->input_delta.x += cursor_point.x - 0x140;
+        gp3DCursor->input_delta.z += 0xf0 - cursor_point.y;
     }
     WarpSystemCursor(0x140, 0xf0);
     ApplyWorldCursorInput();
@@ -611,13 +611,13 @@ void UpdateWorldCursor(void)
         position.Set(0.0, 0.0, 0.0);
     }
     if (gfLeftButtonState == 0) {
-        if (gp3DCursor->left_held_48 != 0 && gXStatus.iTargetingMode == 3) {
+        if (gp3DCursor->left_held != 0 && gXStatus.iTargetingMode == 3) {
             GetCameraPosition(&camera);
             if (ResolveWorldCursorTarget(&resolved) != 0 &&
                 g_octree->TraceLineOfSight(&camera, &resolved, 1, -3, -3, 1, 0) == 0) {
                 box_min = resolved + gp3DCursor->offset_c4;
                 box_max = resolved + gp3DCursor->offset_d0;
-                if (gp3DCursor->footprint_mode_c0 == 0 ||
+                if (gp3DCursor->footprint_mode == 0 ||
                     g_octree->TestBoxOccupied(&box_min, &box_max) == 0) {
                     AimAtPlace(g_status.selected_character);
                     ToggleWorldCursor();
@@ -628,13 +628,13 @@ void UpdateWorldCursor(void)
             // documented historical ABI boundary.
             SoundPlay((STR) "Data\\Sound\\Misc\\ErrorBeep.wav", 0);
         }
-        gp3DCursor->left_held_48 = 0;
+        gp3DCursor->left_held = 0;
     } else {
-        gp3DCursor->left_held_48 = 1;
+        gp3DCursor->left_held = 1;
     }
     if (old_position.x != position.x || old_position.y != position.y ||
         old_position.z != position.z) {
-        if (gp3DCursor->detached_50 != 0) {
+        if (gp3DCursor->detached != 0) {
             position.y += g_float_005ecb08;
             PointCameraAtTarget(&position, 1, 0);
         }
@@ -665,7 +665,7 @@ char MarchWorldCursorTarget(srVector3T<float>* target)
     bool upper_found;
     int i;
 
-    trace_from = *target + gp3DCursor->probe_center_54;
+    trace_from = *target + gp3DCursor->probe_center;
     origin = gp3DCursor->position_28;
     dist = (*target - origin).Length();
     if (dist == g_double_zero) {
@@ -689,7 +689,7 @@ char MarchWorldCursorTarget(srVector3T<float>* target)
             step_pos = origin + scaled;
             end_pos = step_pos;
             for (i = 4; i < 8; i++) {
-                probe = gp3DCursor->probe_offsets_60[i];
+                probe = gp3DCursor->probe_offsets[i];
                 probe *= g_double_005ecb18;
                 probe += step_pos;
                 ground = g_octree->SettleToGround(&probe, &hit, 1, 500.0f);
@@ -705,7 +705,7 @@ char MarchWorldCursorTarget(srVector3T<float>* target)
                     upper_best = ground;
                 }
             }
-            if (gp3DCursor->track_ground_41 != 0) {
+            if (gp3DCursor->track_ground != 0) {
                 if (upper_found) {
                     end_pos.y = upper_best + g_float_005ecb10;
                     target->y = end_pos.y;
@@ -716,9 +716,9 @@ char MarchWorldCursorTarget(srVector3T<float>* target)
                     origin.y = end_pos.y;
                 }
             }
-            trace_from = end_pos + gp3DCursor->probe_center_54;
+            trace_from = end_pos + gp3DCursor->probe_center;
             for (i = 0; i < 8; i++) {
-                probe = end_pos + gp3DCursor->probe_offsets_60[i];
+                probe = end_pos + gp3DCursor->probe_offsets[i];
                 if (g_octree->TraceLineOfSight(&trace_from, &probe, 1, -3, -3, 1, 0) != 0) {
                     *target = last_valid;
                     return 1;
@@ -729,7 +729,7 @@ char MarchWorldCursorTarget(srVector3T<float>* target)
     }
     *target = last_valid;
     if (target->y - lower_best < g_float_005ecb0c) {
-        gp3DCursor->track_ground_41 = 1;
+        gp3DCursor->track_ground = 1;
     }
     return 0;
 }
@@ -765,15 +765,15 @@ void UpdateWorldCursorPlacement(void)
     GetCameraPosition(&camera);
     camera.y -= g_default_world_height;
     cursor = gp3DCursor;
-    cursor->last_published_34 = -100000000.0f;
+    cursor->last_published = -100000000.0f;
     forward.Set(0.0, 0.0, g_float_60ab48);
     target = camera + rotation.Transform(forward);
     cursor->position_28 = camera;
-    cursor->track_ground_41 = 1;
+    cursor->track_ground = 1;
     if (MarchWorldCursorTarget(&target) == 0) {
         cursor->position_28 = target;
         cursor->offset_18 = cursor->position_28;
-        if (cursor->detached_50 == 0) {
+        if (cursor->detached == 0) {
             cursor->offset_18 -= camera;
         }
         target.y += g_float_005ecb08;
@@ -791,7 +791,7 @@ void SetWorldCursorExtents(const srVector3T<float>* minimum, const srVector3T<fl
     if (gp3DCursor == 0) {
         return;
     }
-    gp3DCursor->footprint_mode_c0 = 1;
+    gp3DCursor->footprint_mode = 1;
     gp3DCursor->offset_c4 = *minimum;
     gp3DCursor->offset_d0 = *maximum;
 }
@@ -817,9 +817,9 @@ int ResolveWorldCursorTarget(srVector3T<float>* position)
     if (cursor == 0) {
         return 1;
     }
-    if (cursor->footprint_mode_c0 == 0) {
+    if (cursor->footprint_mode == 0) {
         for (i = 0; i < 4; i++) {
-            probe = *position + cursor->probe_offsets_60[i + 4];
+            probe = *position + cursor->probe_offsets[i + 4];
             if (best <= g_octree->SettleToGround(&probe, 0, 1, 500.0f)) {
                 best = g_octree->SettleToGround(&probe, 0, 1, 500.0f);
             }

@@ -104,9 +104,9 @@ struct W8SpellEffectEntry {
         memset(&target, 0, sizeof(target));
         memset(&definition, 0, sizeof(definition));
         recast_120 = 0;
-        sustained_121 = 0;
-        missiles_pending_122 = 0;
-        targets_resolved_123 = 0;
+        sustained = 0;
+        missiles_pending = 0;
+        targets_resolved = 0;
         reported_124 = false;
         applied_125 = false;
         /* The retail rep-stosd zeroes the whole result block, including the
@@ -135,7 +135,7 @@ struct W8SpellEffectEntry {
     /* The two integer lists are base-class vectors: their retail member
        constructors write only the W8GrowableVector<int> vftable. */
     W8GrowableVector<int> monster_ids_0e0;    /* 0x0e0 */
-    W8GrowableVector<int> target_indices_0f0; /* 0x0f0 */
+    W8GrowableVector<int> target_indices; /* 0x0f0 */
     /* 0x100/0x110: spawned visuals and owned missiles. Their constructors
        install a base vector table followed by the derived table. */
     W8Vector<W8SpellVisual*> spell_visuals; /* 0x100 */
@@ -145,13 +145,13 @@ struct W8SpellEffectEntry {
     bool recast_120;
     /* 0x121: sustained effect - ticks once per turn while turns_remaining
        counts down (set for the monster-control spell 0x26). */
-    bool sustained_121;
+    bool sustained;
     /* 0x122: missiles carrying the effect are still in flight; the tick
        releases them and spawns the impact visual before resolving. */
-    bool missiles_pending_122;
+    bool missiles_pending;
     /* 0x123: the non-missile path has already run ProcessSpellEffectTargets;
        skips re-resolution and gates the post-resolution bookkeeping. */
-    bool targets_resolved_123;
+    bool targets_resolved;
     /* 0x124: set once this effect's result has been reported. */
     bool reported_124;
     /* 0x125: set by a handler that actually landed its effect; the result
@@ -167,7 +167,7 @@ static_assert(offsetof(W8SpellEffectEntry, target) == 0x090, "W8SpellEffectEntry
 static_assert(offsetof(W8SpellEffectEntry, definition) == 0x0b0, "W8SpellEffectEntry_definition");
 static_assert(offsetof(W8SpellEffectEntry, monster_ids_0e0) == 0x0e0,
               "W8SpellEffectEntry_monster_ids");
-static_assert(offsetof(W8SpellEffectEntry, target_indices_0f0) == 0x0f0,
+static_assert(offsetof(W8SpellEffectEntry, target_indices) == 0x0f0,
               "W8SpellEffectEntry_target_indices");
 static_assert(offsetof(W8SpellEffectEntry, spell_visuals) == 0x100,
               "W8SpellEffectEntry_spell_visuals");

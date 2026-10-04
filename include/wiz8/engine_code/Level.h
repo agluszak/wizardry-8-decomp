@@ -20,7 +20,7 @@ public:
     virtual void process(const ProcessInfo& info, e_processType type) override; /* 0x004B9DD0 */
 
     unsigned long m_active;         /* 0x138; renderer exclusion mask */
-    unsigned long m_positional_13c; /* 0x13c; submitted polygon count */
+    unsigned long m_positional; /* 0x13c; submitted polygon count */
 };
 
 static_assert(sizeof(stLevel) == 0x140, "stLevel_must_be_0x140");

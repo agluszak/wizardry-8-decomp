@@ -69,8 +69,8 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     unsigned char saved_entry_flag;
     unsigned char saved_keyboard_open;
     unsigned char saved_pending0;
-    unsigned char saved_portrait_flash_218;
-    unsigned char saved_cursor_grace_31c;
+    unsigned char saved_portrait_flash;
+    unsigned char saved_cursor_grace;
     unsigned char saved_pick_changed;
     unsigned char saved_refresh_combat;
     unsigned char saved_refresh_party;
@@ -79,7 +79,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     int saved_combat_slot;
     int saved_hover_slot;
     int saved_selection_kind;
-    int saved_value_2f4;
+    int saved_value;
     unsigned int saved_clock_214;
     W8ItemInstance saved_backpack_item;
     W8ItemInstance* saved_item_use_ptr;
@@ -87,7 +87,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     W8Profession saved_profession0;
     W8Gender saved_gender0;
     int saved_race0;
-    int saved_item_id_0c9;
+    int saved_item_id;
     int saved_item_target_char;
     W8SpellTargetType saved_target_type;
     unsigned char saved_item_origin;
@@ -207,13 +207,13 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     saved_keyboard_open = g_level_block->keyboard_menu_open;
     saved_combat_slot = g_level_block->combat_slot;
     saved_hover_slot = g_level_block->hover_combat_slot;
-    saved_cursor_grace_31c = g_level_block->cursor_grace_31c;
+    saved_cursor_grace = g_level_block->cursor_grace;
     saved_pending0 = g_level_block->portrait_refresh_pending[0];
 
     gXStatus.monster_manager_entries[0].keyboard_menu_open = 1;
     g_level_block->keyboard_menu_open = 1;
     g_level_block->combat_slot = 3;
-    g_level_block->cursor_grace_31c = 1;
+    g_level_block->cursor_grace = 1;
     g_level_block->portrait_refresh_pending[0] = 1;
     CloseKeyboardMenu();
     result->close_cleared_open_flag = g_level_block->keyboard_menu_open == 0;
@@ -234,10 +234,10 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     saved_cursor = gXStatus.iCurrentCursor;
     saved_confirmations = g_settings.pc_confirmations;
     saved_combat_notification = g_level_block->combat_end_notification;
-    saved_portrait_flash_218 = g_level_block->portrait_flash_218;
+    saved_portrait_flash = g_level_block->portrait_flash;
     saved_refresh_combat = g_level_block->refresh_combat_panel;
     saved_refresh_party = g_level_block->refresh_party_panel;
-    saved_pick_changed = g_level_block->pick_changed_154;
+    saved_pick_changed = g_level_block->pick_changed;
     saved_clock_214 = g_level_block->clock_214;
 
     g_status.buffers.XChar[1].fOccupied = 1;
@@ -247,22 +247,22 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     gXStatus.iCurrentCursor = -1;
     g_settings.pc_confirmations = 0;
     g_level_block->combat_end_notification = -1;
-    g_level_block->portrait_flash_218 = 0;
+    g_level_block->portrait_flash = 0;
     g_level_block->refresh_combat_panel = 0;
     g_level_block->refresh_party_panel = 0;
-    g_level_block->pick_changed_154 = 0;
+    g_level_block->pick_changed = 0;
 
     SelectPartyCharacter(1);
     result->select_moved_selection = g_status.selected_character == 1;
     result->select_flagged_refresh =
-        g_level_block->portrait_flash_218 != 0 && g_level_block->refresh_combat_panel != 0 &&
-        g_level_block->refresh_party_panel != 0 && g_level_block->pick_changed_154 != 0;
+        g_level_block->portrait_flash != 0 && g_level_block->refresh_combat_panel != 0 &&
+        g_level_block->refresh_party_panel != 0 && g_level_block->pick_changed != 0;
 
     /* MapSubMenuSelection: an attack entry lands as the unsettled action
        while the recorded-spell entry settles it, both through the level
        block's selection fields. */
     saved_selection_kind = g_level_block->selection_kind;
-    saved_value_2f4 = g_level_block->value_2f4;
+    saved_value = g_level_block->value_2f4;
     saved_settled = g_level_block->selection_settled;
 
     MapSubMenuSelection(W8_SUBMENU_ATTACK, 1);
@@ -285,7 +285,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     saved_condition8 = g_status.buffers.Char[0].uiCondition[W8_CONDITION_SPELLCASTING_BLOCKED];
     saved_item_origin = g_status.buffers.XChar[0].item_origin;
     saved_item_slot = g_status.buffers.XChar[0].item_slot;
-    saved_item_id_0c9 = g_status.buffers.XChar[0].item_id_0c9;
+    saved_item_id = g_status.buffers.XChar[0].item_id_0c9;
     saved_item_target_char = g_status.buffers.XChar[0].item_target.iChar;
     saved_item_use_ptr = g_status.buffers.XChar[0].item_detail.item_use.item;
     saved_target_type = g_spell_records[spell_id].target_type;
@@ -336,7 +336,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     g_status.buffers.Char[0].uiCondition[W8_CONDITION_SPELLCASTING_BLOCKED] = saved_condition8;
     g_status.buffers.XChar[0].item_origin = saved_item_origin;
     g_status.buffers.XChar[0].item_slot = saved_item_slot;
-    g_status.buffers.XChar[0].item_id_0c9 = saved_item_id_0c9;
+    g_status.buffers.XChar[0].item_id_0c9 = saved_item_id;
     g_status.buffers.XChar[0].item_target.iChar = saved_item_target_char;
     g_status.buffers.XChar[0].item_detail.item_use.item = saved_item_use_ptr;
     g_spell_records[spell_id].target_type = saved_target_type;
@@ -345,7 +345,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     gXStatus.fTrapInteract = saved_trap_interact;
 
     g_level_block->selection_kind = saved_selection_kind;
-    g_level_block->value_2f4 = saved_value_2f4;
+    g_level_block->value_2f4 = saved_value;
     g_level_block->selection_settled = saved_settled;
 
     g_status.buffers.XChar[1].fOccupied = saved_occupied1;
@@ -355,17 +355,17 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     gXStatus.iCurrentCursor = saved_cursor;
     g_settings.pc_confirmations = saved_confirmations;
     g_level_block->combat_end_notification = saved_combat_notification;
-    g_level_block->portrait_flash_218 = saved_portrait_flash_218;
+    g_level_block->portrait_flash = saved_portrait_flash;
     g_level_block->refresh_combat_panel = saved_refresh_combat;
     g_level_block->refresh_party_panel = saved_refresh_party;
-    g_level_block->pick_changed_154 = saved_pick_changed;
+    g_level_block->pick_changed = saved_pick_changed;
     g_level_block->clock_214 = saved_clock_214;
 
     gXStatus.monster_manager_entries[0].keyboard_menu_open = saved_entry_flag;
     g_level_block->keyboard_menu_open = saved_keyboard_open;
     g_level_block->combat_slot = saved_combat_slot;
     g_level_block->hover_combat_slot = saved_hover_slot;
-    g_level_block->cursor_grace_31c = saved_cursor_grace_31c;
+    g_level_block->cursor_grace = saved_cursor_grace;
     g_level_block->portrait_refresh_pending[0] = saved_pending0;
 
     for (index = 0; index < KEYBOARD_MENU_ROW_COUNT; ++index) {

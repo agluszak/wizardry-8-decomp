@@ -67,7 +67,7 @@ protected:
     /* 0x20: width/height, palette (+0x28), pixel format (+0x2c), hint/creation
        flags (+0x40), parameter index (+0x44) and filter (+0x48, getFilter). */
     Dimensions texture_dimensions_; /* 0x20 */
-    float texture_priority_4c;      /* 0x4c: getPriority; the ctor seeds 0.5f */
+    float texture_priority;      /* 0x4c: getPriority; the ctor seeds 0.5f */
     unsigned long texture_flags_;   /* 0x50 */
 };
 

@@ -12,19 +12,19 @@ static void yieldOneMillisecond();
 srScheduler::srScheduler()
 {
     critical_section_40 = new srCriticalSection;
-    first_job_30 = 0;
-    last_job_34 = 0;
-    job_count_38 = 0;
+    first_job = 0;
+    last_job = 0;
+    job_count = 0;
     for (int index = 0; index != 4; ++index) {
-        workers_00[index].thread_handle_00 = -1;
+        workers_00[index].thread_handle = -1;
         workers_00[index].scheduler_04 = this;
     }
-    worker_count_3c = srCore.getTimer()->m_cpu_count;
-    if (worker_count_3c < 1) {
-        worker_count_3c = 1;
+    worker_count = srCore.getTimer()->m_cpu_count;
+    if (worker_count < 1) {
+        worker_count = 1;
     }
-    if (4 < worker_count_3c) {
-        worker_count_3c = 4;
+    if (4 < worker_count) {
+        worker_count = 4;
     }
 }
 
@@ -32,8 +32,8 @@ srScheduler::srScheduler()
 srScheduler::~srScheduler()
 {
     cancelAll();
-    for (int index = 0; index < worker_count_3c; ++index) {
-        while (workers_00[index].thread_handle_00 != -1) {
+    for (int index = 0; index < worker_count; ++index) {
+        while (workers_00[index].thread_handle != -1) {
             yieldOneMillisecond();
         }
     }
@@ -51,16 +51,16 @@ void srScheduler::queue(Job& job)
     QueueEntry* entry = new QueueEntry;
     entry->job_00 = &job;
     entry->next_04 = 0;
-    entry->previous_08 = last_job_34;
+    entry->previous_08 = last_job;
     entry->state_0c = 0;
-    if (last_job_34 != 0) {
-        last_job_34->next_04 = entry;
+    if (last_job != 0) {
+        last_job->next_04 = entry;
     }
-    last_job_34 = entry;
-    if (first_job_30 == 0) {
-        first_job_30 = entry;
+    last_job = entry;
+    if (first_job == 0) {
+        first_job = entry;
     }
-    job_count_38 += 1;
+    job_count += 1;
     Job* key = &job;
     lookup_20.Insert(&key, &entry);
     wakeWorker();
@@ -101,12 +101,12 @@ void srScheduler::finish(Job& job)
         Job* queued = entry->job_00;
         lookup_20.Remove(&queued, &entry);
         if (entry->previous_08 == 0) {
-            first_job_30 = entry->next_04;
+            first_job = entry->next_04;
         } else {
             entry->previous_08->next_04 = entry->next_04;
         }
         if (entry->next_04 == 0) {
-            last_job_34 = entry->previous_08;
+            last_job = entry->previous_08;
         } else {
             entry->next_04->previous_08 = entry->previous_08;
         }
@@ -120,7 +120,7 @@ void srScheduler::finish(Job& job)
         critical_section_40->getAccess();
         entry->state_0c = 2;
         delete entry;
-        job_count_38 -= 1;
+        job_count -= 1;
         critical_section_40->releaseAccess();
         return;
     }
@@ -131,11 +131,11 @@ void srScheduler::finish(Job& job)
 void srScheduler::cancelAll()
 {
     critical_section_40->getAccess();
-    QueueEntry* entry = first_job_30;
+    QueueEntry* entry = first_job;
     while (entry != 0) {
         entry->job_00->cancel();
-        removeQueueEntry(first_job_30);
-        entry = first_job_30;
+        removeQueueEntry(first_job);
+        entry = first_job;
     }
     critical_section_40->releaseAccess();
     finishAll();
@@ -146,7 +146,7 @@ void srScheduler::finishAll()
 {
     while (true) {
         critical_section_40->getAccess();
-        long count = job_count_38;
+        long count = job_count;
         critical_section_40->releaseAccess();
         if (count == 0) {
             break;
@@ -160,7 +160,7 @@ long srScheduler::getJobCount() const
 {
     srCriticalSection* section = critical_section_40;
     section->getAccess();
-    long count = job_count_38;
+    long count = job_count;
     section->releaseAccess();
     return count;
 }
@@ -172,35 +172,35 @@ void srScheduler::removeQueueEntry(QueueEntry* entry)
     Job* job = entry->job_00;
     lookup_20.Remove(&job, &entry);
     if (entry->previous_08 == 0) {
-        first_job_30 = entry->next_04;
+        first_job = entry->next_04;
     } else {
         entry->previous_08->next_04 = entry->next_04;
     }
     if (entry->next_04 == 0) {
-        last_job_34 = entry->previous_08;
+        last_job = entry->previous_08;
     } else {
         entry->next_04->previous_08 = entry->previous_08;
     }
     delete entry;
-    job_count_38 -= 1;
+    job_count -= 1;
 }
 
 // FUNCTION: SURRENDER 0x100144B0
 long srScheduler::executeNextJob()
 {
     critical_section_40->getAccess();
-    QueueEntry* entry = first_job_30;
+    QueueEntry* entry = first_job;
     if (entry == 0) {
         critical_section_40->releaseAccess();
         return 0;
     }
     if (entry->previous_08 == 0) {
-        first_job_30 = entry->next_04;
+        first_job = entry->next_04;
     } else {
         entry->previous_08->next_04 = entry->next_04;
     }
     if (entry->next_04 == 0) {
-        last_job_34 = entry->previous_08;
+        last_job = entry->previous_08;
     } else {
         entry->next_04->previous_08 = entry->previous_08;
     }
@@ -216,7 +216,7 @@ long srScheduler::executeNextJob()
     entry->state_0c = 2;
     lookup_20.Remove(&job, &entry);
     delete entry;
-    job_count_38 -= 1;
+    job_count -= 1;
     critical_section_40->releaseAccess();
     return 1;
 }
@@ -225,17 +225,17 @@ long srScheduler::executeNextJob()
 void srScheduler::wakeWorker()
 {
     srCriticalSectionAccess access(critical_section_40);
-    if (job_count_38 != 0) {
+    if (job_count != 0) {
         int busy = 0;
-        for (int index = 0; index < worker_count_3c; ++index) {
-            if (workers_00[index].thread_handle_00 != -1) {
+        for (int index = 0; index < worker_count; ++index) {
+            if (workers_00[index].thread_handle != -1) {
                 ++busy;
             }
         }
-        if ((busy < job_count_38) && (busy < worker_count_3c)) {
-            for (int index = 0; index < worker_count_3c; ++index) {
-                if (workers_00[index].thread_handle_00 == -1) {
-                    workers_00[index].thread_handle_00 =
+        if ((busy < job_count) && (busy < worker_count)) {
+            for (int index = 0; index < worker_count; ++index) {
+                if (workers_00[index].thread_handle == -1) {
+                    workers_00[index].thread_handle =
                         srThread::begin(workerEntry, &workers_00[index]);
                     break;
                 }
@@ -253,7 +253,7 @@ void __cdecl srScheduler::workerEntry(void* argument)
     while (slot->scheduler_04->executeNextJob() != 0) {
         srThread::yield(0);
     }
-    slot->thread_handle_00 = -1;
+    slot->thread_handle = -1;
     srThread::end();
 }
 

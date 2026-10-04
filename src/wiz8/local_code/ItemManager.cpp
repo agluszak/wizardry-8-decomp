@@ -906,7 +906,7 @@ void DropHeldItem(int arg_1)
     srVector3T<float> position = camera + delta;
     position.y = g_octree->SettleToGround(&position, 0, 1, 250.0f) + g_float_005ec3f8;
     if (FindNearbyFreePosition(250.0f, &position, 1, 1) != 0) {
-        W8WorldItem* item = CreateWorldItem(&g_status.item_in_hand_235b, &position, 3, 1);
+        W8WorldItem* item = CreateWorldItem(&g_status.item_in_hand, &position, 3, 1);
         if (item == 0) {
             // Retail passes the NULL item pointer as the assert message.
             // reinterpret-ok: pointer-valued assert message argument.
@@ -987,7 +987,7 @@ unsigned char InteractWithWorldItem(int runtime_id)
         }
     }
     if ((static_cast<W8ItemRep*>(item->p3D->m_pRep)->flags & 4) == 0) {
-        CopyItemInstance(&g_status.item_in_hand_235b, &item->item, 0, 1);
+        CopyItemInstance(&g_status.item_in_hand, &item->item, 0, 1);
     }
     index = ItemIndex(runtime_id);
     item = ItemInfo(index);
@@ -1356,25 +1356,25 @@ void DropMonsterLoot(W8MonsterInfo* monster_info, int value)
                              FormatString("Monster %S marked as NPC with no NPC data", record));
             }
             for (index = 0; index < 40; ++index) {
-                if (npc->item_ids_30[index] != -1 && npc->item_weights_115[index] == 0) {
-                    item = SpawnItem(npc->item_ids_30[index], &position, 3, 0);
+                if (npc->item_ids[index] != -1 && npc->item_weights[index] == 0) {
+                    item = SpawnItem(npc->item_ids[index], &position, 3, 0);
                     if (item != 0) {
                         items.Add(item);
                     }
-                    npc->item_ids_30[index] = -1;
+                    npc->item_ids[index] = -1;
                 }
             }
             remaining = 0;
             for (index = 0; index < 40; ++index) {
-                if (npc->item_ids_30[index] != -1) {
+                if (npc->item_ids[index] != -1) {
                     ++remaining;
                 }
             }
             if (remaining != 0) {
                 total_weight = 0;
                 for (index = 0; index < 40; ++index) {
-                    if (npc->item_ids_30[index] != -1) {
-                        total_weight += static_cast<signed char>(npc->item_weights_115[index]);
+                    if (npc->item_ids[index] != -1) {
+                        total_weight += static_cast<signed char>(npc->item_weights[index]);
                     }
                 }
                 take = RollDice(&npc->item_count_dice_10e);
@@ -1384,16 +1384,16 @@ void DropMonsterLoot(W8MonsterInfo* monster_info, int value)
                 taken = 0;
                 while (taken < take) {
                     pick = Random(40);
-                    if (npc->item_ids_30[pick] != -1 &&
+                    if (npc->item_ids[pick] != -1 &&
                         static_cast<short>(Random(total_weight)) <=
                             static_cast<short>(
-                                static_cast<signed char>(npc->item_weights_115[pick]))) {
-                        item = SpawnItem(npc->item_ids_30[pick], &position, 3, 0);
+                                static_cast<signed char>(npc->item_weights[pick]))) {
+                        item = SpawnItem(npc->item_ids[pick], &position, 3, 0);
                         if (item != 0) {
                             items.Add(item);
                         }
                         ++taken;
-                        npc->item_ids_30[pick] = -1;
+                        npc->item_ids[pick] = -1;
                     }
                 }
             }

@@ -122,7 +122,7 @@ void KillTrynnieGroups(void)
     for (index = 0; index < static_cast<int>(PLLength(gXStatus.plsMonsterGroupList)); ++index) {
         group = GetMonsterGroupByListIndex(index);
         if (group != 0 && group->members_active != 0 &&
-            (record = MonsterGroupGetRecord(group), record->faction_id_25f == 0xd) &&
+            (record = MonsterGroupGetRecord(group), record->faction_id == 0xd) &&
             ReplaceMonsterGroupSpecies(group, 0x1be) != 0) {
             RemoveAllGroupMembers(group);
         }

@@ -11,7 +11,7 @@ class srScene;
 struct W8QuadCell {
     W8IList* polygon_indices;
     W8PList* objects;
-    unsigned int dirty_stamp_08;
+    unsigned int dirty_stamp;
     bool occupied;
     unsigned char padding_0d[3];
 };
@@ -38,9 +38,9 @@ struct W8Quad {
 static_assert(sizeof(W8Quad) == 0x1c, "W8Quad_must_be_0x1c");
 
 void DestroyWorldQuad(W8Quad* quad);
-W8Quad* BuildWorldQuad(srModelInstance* instance, int positional_08, float minimum_x_0c,
-                       float minimum_y_10, float minimum_z_14, float maximum_x_18,
-                       float maximum_y_1c, float maximum_z_20, srScene* scene, int positional_28);
+W8Quad* BuildWorldQuad(srModelInstance* instance, int positional_08, float minimum_x,
+                       float minimum_y, float minimum_z, float maximum_x,
+                       float maximum_y, float maximum_z, srScene* scene, int positional_28);
 
 /* Pick-angle helpers (GetHeadingAngle, GetElevationAngle, HeadingToTargetCPP,
    ElevationToTargetCPP) are declared in wiz8/engine_code/PolyPick.h. */

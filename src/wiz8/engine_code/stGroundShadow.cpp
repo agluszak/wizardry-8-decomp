@@ -45,8 +45,8 @@ public:
     virtual void process(srVertexPipe& pipe) override;
 
     srMatrix2T<float> transform_04;
-    float center_z_14;
-    float center_x_18;
+    float center_z;
+    float center_x;
     srVector3T<float>* vertices_1c;
     unsigned long polygons_20[0x1e];
 };
@@ -62,21 +62,21 @@ static W8GroundShadowMapper g_ground_shadow_material_parameters;
 // FUNCTION: WIZ8 0x004D6090
 void W8GroundShadowMapper::process(srVertexPipe& pipe)
 {
-    srCore.getStatisticsManager()->statistics_00.texture_coordinate_operations_34 +=
+    srCore.getStatisticsManager()->statistics_00.texture_coordinate_operations +=
         pipe.vertex_count_88;
-    pipe.lazy_setup_mask_10 |= 1 << CHANNEL_ST0;
+    pipe.lazy_setup_mask |= 1 << CHANNEL_ST0;
 
     const unsigned long* index = pipe.avt_70 + pipe.sub_batch_offset_84;
     srVector2T<float>* output =
-        pipe.vertex_array_78->st0_0c + pipe.batch_base_80 + pipe.sub_batch_offset_84;
+        pipe.vertex_array_78->st0_0c + pipe.batch_base + pipe.sub_batch_offset_84;
     unsigned long count = pipe.vertex_count_88;
     if (count == 0) {
         return;
     }
     do {
         const srVector3T<float>* vertex = vertices_1c + *index;
-        float dz = vertex->z - center_z_14;
-        float dx = vertex->x - center_x_18;
+        float dz = vertex->z - center_z;
+        float dx = vertex->x - center_x;
         srVector2T<float> coordinate;
         coordinate.Set(
             dz * transform_04.vectors[0].x + dx * transform_04.vectors[0].y + g_float_005ebc7c,
@@ -200,8 +200,8 @@ void stGroundShadow::renderGroundShadow(srGERD* renderer)
     rotation.vectors[0].Set(cosine, -sine);
     rotation.vectors[1].Set(sine, cosine);
     g_ground_shadow_material_parameters.transform_04.MultiplyBy(rotation);
-    g_ground_shadow_material_parameters.center_z_14 = position.z;
-    g_ground_shadow_material_parameters.center_x_18 = position.x;
+    g_ground_shadow_material_parameters.center_z = position.z;
+    g_ground_shadow_material_parameters.center_x = position.x;
 
     while (*polygons != 0) {
         mesh_index = *polygons >> 0x10;
@@ -219,7 +219,7 @@ void stGroundShadow::renderGroundShadow(srGERD* renderer)
         mesh.poly_textures_e0[0][0] = 0;
         mesh.textures_90[0][0] = g_ground_shadow_texture;
         mesh.vertex_materials_c0[0][0] = 0;
-        mesh.poly_shaders_100[0] = 0;
+        mesh.poly_shaders[0] = 0;
         mesh.shaders_b0[0].value = g_ground_shadow_shader;
         mesh.poly_uv_110[0] = 0;
         g_ground_shadow_material_parameters.vertices_1c = model->getVertexLoc();

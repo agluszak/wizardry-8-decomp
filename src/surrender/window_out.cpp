@@ -81,24 +81,24 @@ private:
     WNDCLASSA window_class_3c;    /* 0x3c */
     HINSTANCE instance_64;        /* 0x64 */
     HWND parent_68;               /* 0x68 */
-    HWND edit_window_6c;          /* 0x6c */
+    HWND edit_window;          /* 0x6c */
     HWND frame_window_70;         /* 0x70 */
     unsigned long field_74;       /* 0x74 */
     HFONT font_78;                /* 0x78 */
     HMENU menu_7c;                /* 0x7c */
-    HMENU file_menu_80;           /* 0x80 */
-    HMODULE riched_module_84;     /* 0x84 */
+    HMENU file_menu;           /* 0x80 */
+    HMODULE riched_module;     /* 0x84 */
     Pending pending_88;           /* 0x88 */
     unsigned long length_90;      /* 0x90: used bytes in pending_88 */
     unsigned long scroll_94;      /* 0x94: caret scroll needed */
-    char* line_buffer_98;         /* 0x98: allocated but unused */
+    char* line_buffer;         /* 0x98: allocated but unused */
     unsigned long buffer_size_9c; /* 0x9c */
     unsigned long font_height_a0; /* 0xa0 */
 };
 
 // GLOBAL: SURRENDER 0x100A49B0
 // Unique suffix counter for the "srDebugWndClass<i>" window-class names.
-static int class_counter_100a49b0;
+static int class_counter;
 
 // FUNCTION: SURRENDER 0x10047C80
 void srWindowOutStreamBuf::Pending::reserve(unsigned long size)
@@ -149,8 +149,8 @@ long __stdcall srWindowOutStreamBuf::windowProc(HWND window, unsigned int messag
                 self->closeWindow();
                 return DefWindowProcA(window, message, wparam, lparam);
             }
-        } else if (message == WM_SIZE && self != 0 && self->edit_window_6c != 0) {
-            MoveWindow(self->edit_window_6c, 0, 0, lparam & 0xffff, static_cast<unsigned long>(lparam) >> 0x10,
+        } else if (message == WM_SIZE && self != 0 && self->edit_window != 0) {
+            MoveWindow(self->edit_window, 0, 0, lparam & 0xffff, static_cast<unsigned long>(lparam) >> 0x10,
                        1);
             return DefWindowProcA(window, message, wparam, lparam);
         }
@@ -197,13 +197,13 @@ void srWindowOutStreamBuf::clearText()
     pending_88.reserve(1);
     *pending_88.c_str() = 0;
     length_90 = 0;
-    SendMessageA(edit_window_6c, WM_SETTEXT, 0, (LPARAM)pending_88.c_str());
+    SendMessageA(edit_window, WM_SETTEXT, 0, (LPARAM)pending_88.c_str());
 }
 
 // FUNCTION: SURRENDER 0x10046E90
 void srWindowOutStreamBuf::scrollCaret()
 {
-    SendMessageA(edit_window_6c, EM_SCROLLCARET, 0, 0);
+    SendMessageA(edit_window, EM_SCROLLCARET, 0, 0);
     scroll_94 = 0;
 }
 
@@ -214,15 +214,15 @@ void srWindowOutStreamBuf::emit(int ch)
         return;
     if ((char)ch == '\n') {
         scroll_94 = 1;
-        SendMessageA(edit_window_6c, EM_SETSEL, (WPARAM)-1, -1);
+        SendMessageA(edit_window, EM_SETSEL, (WPARAM)-1, -1);
         unsigned long start;
         unsigned long end;
-        SendMessageA(edit_window_6c, EM_GETSEL, (WPARAM)&start, (LPARAM)&end);
-        SendMessageA(edit_window_6c, EM_SETSEL, start + end, start + end);
+        SendMessageA(edit_window, EM_GETSEL, (WPARAM)&start, (LPARAM)&end);
+        SendMessageA(edit_window, EM_SETSEL, start + end, start + end);
         put(length_90++, '\r');
         put(length_90++, '\n');
         put(length_90, 0);
-        SendMessageA(edit_window_6c, EM_REPLACESEL, 0, (LPARAM)pending_88.c_str());
+        SendMessageA(edit_window, EM_REPLACESEL, 0, (LPARAM)pending_88.c_str());
         length_90 = 0;
         return;
     }
@@ -269,12 +269,12 @@ void srWindowOutStreamBuf::saveText()
         return;
     std::ofstream* stream = new std::ofstream(file);
     if (scroll_94 == 0 && length_90 != 0) {
-        SendMessageA(edit_window_6c, EM_SETSEL, (WPARAM)-1, -1);
+        SendMessageA(edit_window, EM_SETSEL, (WPARAM)-1, -1);
         unsigned long start;
         unsigned long end;
-        SendMessageA(edit_window_6c, EM_GETSEL, (WPARAM)&start, (LPARAM)&end);
-        SendMessageA(edit_window_6c, EM_SETSEL, start + end, start + end + 1);
-        SendMessageA(edit_window_6c, EM_REPLACESEL, 0, (LPARAM)pending_88.c_str());
+        SendMessageA(edit_window, EM_GETSEL, (WPARAM)&start, (LPARAM)&end);
+        SendMessageA(edit_window, EM_SETSEL, start + end, start + end + 1);
+        SendMessageA(edit_window, EM_REPLACESEL, 0, (LPARAM)pending_88.c_str());
         length_90 = 0;
         scroll_94 = 1;
     }
@@ -284,7 +284,7 @@ void srWindowOutStreamBuf::saveText()
         stream);
     output.dwError = 0;
     output.pfnCallback = streamOutCallback;
-    SendMessageA(edit_window_6c, EM_STREAMOUT, SF_TEXT, (LPARAM)&output);
+    SendMessageA(edit_window, EM_STREAMOUT, SF_TEXT, (LPARAM)&output);
     delete stream;
 }
 
@@ -296,11 +296,11 @@ void srWindowOutStreamBuf::closeWindow()
         return;
     if (srWindow::isWindow((unsigned long)frame_window_70)) {
         SetMenu(frame_window_70, 0);
-        DestroyMenu(file_menu_80);
+        DestroyMenu(file_menu);
         DestroyMenu(menu_7c);
         KillTimer(frame_window_70, 0x1ce7ea);
         SetWindowLongA(frame_window_70, GWL_USERDATA, 0);
-        file_menu_80 = 0;
+        file_menu = 0;
         menu_7c = 0;
     }
     frame_window_70 = 0;
@@ -316,16 +316,16 @@ srWindowOutStreamBuf::srWindowOutStreamBuf(unsigned long instance, unsigned long
     length_90 = 0;
     disabled_38 = 1;
     scroll_94 = 1;
-    line_buffer_98 = new char;
-    edit_window_6c = 0;
+    line_buffer = new char;
+    edit_window = 0;
     frame_window_70 = 0;
-    riched_module_84 = 0;
+    riched_module = 0;
     font_78 = 0;
     instance_64 = (HINSTANCE)instance;
     parent_68 = (HWND)parent;
 
     char class_name[256];
-    sprintf(class_name, "%s%i", "srDebugWndClass", class_counter_100a49b0++);
+    sprintf(class_name, "%s%i", "srDebugWndClass", class_counter++);
 
     window_class_3c.style = 0xb;
     window_class_3c.lpfnWndProc = windowProc;
@@ -353,8 +353,8 @@ srWindowOutStreamBuf::srWindowOutStreamBuf(unsigned long instance, unsigned long
     rect.top = 0;
     rect.right += GetSystemMetrics(SM_CXSCREEN) - rect.right;
 
-    riched_module_84 = LoadLibraryA("riched32.dll");
-    if (riched_module_84 == 0)
+    riched_module = LoadLibraryA("riched32.dll");
+    if (riched_module == 0)
         return;
 
     frame_window_70 =
@@ -363,36 +363,36 @@ srWindowOutStreamBuf::srWindowOutStreamBuf(unsigned long instance, unsigned long
                         rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top,
                         (HWND)parent, 0, (HINSTANCE)instance, 0);
     SetWindowLongA(frame_window_70, GWL_USERDATA, (long)this);
-    edit_window_6c = CreateWindowExA(0, "RichEdit", "",
+    edit_window = CreateWindowExA(0, "RichEdit", "",
                                      WS_CHILD | WS_VISIBLE | WS_VSCROLL | WS_HSCROLL | ES_READONLY |
                                          ES_AUTOHSCROLL | ES_AUTOVSCROLL | ES_MULTILINE,
                                      0, 0, 400, 400, frame_window_70, 0, (HINSTANCE)instance, 0);
     RECT client;
     GetClientRect(frame_window_70, &client);
-    MoveWindow(edit_window_6c, 0, 0, client.right - client.left, client.bottom - client.top, 1);
+    MoveWindow(edit_window, 0, 0, client.right - client.left, client.bottom - client.top, 1);
     font_78 = CreateFontA(10, 0, 0, 0, 400, 0, 0, 0, 0, 0, 0, 1, 1, "Lucida Console");
     font_height_a0 = 0xb;
     if (font_78 == 0) {
         font_78 = CreateFontA(9, 0, 0, 0, 400, 0, 0, 0, 0, 0, 0, 1, 1, "Fixedsys");
         font_height_a0 = 0xa;
     }
-    SendMessageA(edit_window_6c, WM_SETFONT, (WPARAM)font_78, 0);
-    SendMessageA(edit_window_6c, EM_SETBKGNDCOLOR, 0, 0);
+    SendMessageA(edit_window, WM_SETFONT, (WPARAM)font_78, 0);
+    SendMessageA(edit_window, EM_SETBKGNDCOLOR, 0, 0);
     CHARFORMATA format;
     unsigned long index;
     for (index = 0; index < sizeof(format) / 4; ++index)
         ((unsigned long*)&format)[index] = 0;
-    SendMessageA(edit_window_6c, EM_GETCHARFORMAT, 0, (LPARAM)&format);
+    SendMessageA(edit_window, EM_GETCHARFORMAT, 0, (LPARAM)&format);
     format.dwMask |= 0x40000008;
     format.cbSize = 0x3c;
     format.dwEffects = 0;
     /* Retail stores the window height into crTextColor. */
     format.crTextColor = height;
-    SendMessageA(edit_window_6c, EM_SETCHARFORMAT, SCF_ALL, (LPARAM)&format);
+    SendMessageA(edit_window, EM_SETCHARFORMAT, SCF_ALL, (LPARAM)&format);
     disabled_38 = 0;
 
     menu_7c = CreateMenu();
-    file_menu_80 = CreateMenu();
+    file_menu = CreateMenu();
     MENUITEMINFOA item;
     for (index = 0; index < sizeof(item) / 4; ++index)
         ((unsigned long*)&item)[index] = 0;
@@ -401,7 +401,7 @@ srWindowOutStreamBuf::srWindowOutStreamBuf(unsigned long instance, unsigned long
     item.fType = 0;
     item.fState = 0;
     item.wID = 0;
-    item.hSubMenu = file_menu_80;
+    item.hSubMenu = file_menu;
     item.dwItemData = 0;
     item.dwTypeData = (char*)"&File";
     item.cch = 5;
@@ -410,12 +410,12 @@ srWindowOutStreamBuf::srWindowOutStreamBuf(unsigned long instance, unsigned long
     item.wID = 1;
     item.dwTypeData = (char*)"&Clear";
     item.hSubMenu = 0;
-    InsertMenuItemA(file_menu_80, 0, 0, &item);
+    InsertMenuItemA(file_menu, 0, 0, &item);
     item.fMask |= 4;
     item.wID = 2;
     item.dwTypeData = (char*)"&Save";
     item.hSubMenu = 0;
-    InsertMenuItemA(file_menu_80, 1, 0, &item);
+    InsertMenuItemA(file_menu, 1, 0, &item);
     SetMenu(frame_window_70, menu_7c);
     SetTimer(frame_window_70, 0x1ce7ea, 100, timerProc);
 }
@@ -427,9 +427,9 @@ srWindowOutStreamBuf::~srWindowOutStreamBuf()
         DeleteObject(font_78);
     if (frame_window_70 != 0 && srWindow::isWindow((unsigned long)frame_window_70))
         DestroyWindow(frame_window_70);
-    delete line_buffer_98;
-    if (riched_module_84 != 0)
-        FreeLibrary(riched_module_84);
+    delete line_buffer;
+    if (riched_module != 0)
+        FreeLibrary(riched_module);
     delete[] pending_88.text;
     pending_88.text = 0;
     pending_88.capacity = 0;

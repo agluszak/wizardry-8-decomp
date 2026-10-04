@@ -49,7 +49,7 @@ struct W8DialogueTextState {
     short unknown_22;              /* 0x22: never consumed by the retail cluster */
     unsigned int wrap_width;       /* 0x24: pixel budget and notice width */
     unsigned int cursor;           /* 0x28: insertion point in text */
-    unsigned char cursor_dirty_2c; /* 0x2c: repaint just the dialogue cursor */
+    unsigned char cursor_dirty; /* 0x2c: repaint just the dialogue cursor */
     bool dirty;                    /* 0x2d: cursor/text redraw pending */
     unsigned char padding_2e[2];
     unsigned int saved_scroll_line; /* 0x30: restored when input closes */
@@ -58,8 +58,8 @@ struct W8DialogueTextState {
 struct W8LevelRuntimeBlock {
     /* 0x000: notice/list paint scratch. DrawTextBoxLine and the monster-list
        formatter reuse the leading 0xf0 bytes as wchar_t storage. */
-    wchar_t text_paint_scratch_000[0xf0 / sizeof(wchar_t)];
-    bool message_box_pending_0f0; /* 0x0f0: message box lived last frame; render deferred */
+    wchar_t text_paint_scratch[0xf0 / sizeof(wchar_t)];
+    bool message_box_pending; /* 0x0f0: message box lived last frame; render deferred */
     unsigned char flags_0f1[3];
     unsigned int redraw_flags; /* 0x0f4 */
     /* Snapshot of redraw_flags taken before the two redraw passes; the second
@@ -68,17 +68,17 @@ struct W8LevelRuntimeBlock {
     W8MainUiMode main_ui_mode;                 /* 0x0fc: portraits / formation / radar */
     int camera_mode_100;                       /* 0x100 */
     unsigned int hover_region;                 /* 0x104 */
-    bool portrait_strip_dirty_108;             /* 0x108: portrait strip needs a redraw */
+    bool portrait_strip_dirty;             /* 0x108: portrait strip needs a redraw */
     unsigned char portrait_refresh_pending[8]; /* 0x109 */
     unsigned char padding_111[3];
     int portrait_refresh_image[8]; /* 0x114 */
     int portrait_refresh_mode[8];  /* 0x134 */
-    bool pick_changed_154;
+    bool pick_changed;
     unsigned char action_panel_visible;
     bool formation_board_visible; /* 0x156: formation board shown */
     unsigned char radar_map_visible;
     /* 0x158: portraits UI mode selected; picks the portrait-hover layout. */
-    unsigned char portrait_mode_158;
+    unsigned char portrait_mode;
     unsigned char text_scroll_drag_idle; /* 0x159: cleared while thumb is dragged */
     unsigned char padding_15a[2];
     /* 0x15c: the x origin the mode-6 hover panel anchors the slot's portrait
@@ -87,7 +87,7 @@ struct W8LevelRuntimeBlock {
     /* 0x160/0x164/0x168: layout offsets ApplyMainGameModeFlag writes when the
        action panel or portrait chrome is down (0x76/6 and 0x69/6); cleared to
        zero while the matching panel is up. */
-    int portrait_y_shift_160;
+    int portrait_y_shift;
     int portrait_layout_inset;
     int action_panel_layout_inset;
     int highlight_override; /* 0x16c */
@@ -101,7 +101,7 @@ struct W8LevelRuntimeBlock {
        row, 2 lower, 3 assayable item; Screens resets it to 0. */
     int portrait_assay_hover_mode;
     int formation_highlight_party_slot; /* 0x18c */
-    int held_item_display_190;          /* 0x190 */
+    int held_item_display;          /* 0x190 */
     int value_194;
     int value_198;
     int value_19c;
@@ -132,18 +132,18 @@ struct W8LevelRuntimeBlock {
     bool flag_210;                      /* 0x210 */
     unsigned char padding_211[3];
     TIMER clock_214;                  /* 0x214 */
-    unsigned char portrait_flash_218; /* 0x218: 500ms highlight pulse on clock_214 */
+    unsigned char portrait_flash; /* 0x218: 500ms highlight pulse on clock_214 */
     unsigned char padding_219[3];
     /* 0x21c: content row count captured by the mode-6 hover overlay draw. */
     int hover_overlay_row_count;
-    int dialogue_x_220;
-    unsigned int dialogue_y_224; /* ClearSurfaceRect's unsigned top/bottom */
-    unsigned int dialogue_height_228;
-    int dialogue_row_y_22c;      /* 0x22c: first content row's y; the highlight
+    int dialogue_x;
+    unsigned int dialogue_y; /* ClearSurfaceRect's unsigned top/bottom */
+    unsigned int dialogue_height;
+    int dialogue_row_y;      /* 0x22c: first content row's y; the highlight
                                   sprite hangs off it at highlight_row * 0x12 */
-    int dialogue_text_x_230;     /* 0x230: panel left + 9 */
-    int dialogue_text_width_234; /* 0x234: panel width - 0x12 */
-    int dialogue_width_238;
+    int dialogue_text_x;     /* 0x230: panel left + 9 */
+    int dialogue_text_width; /* 0x234: panel width - 0x12 */
+    int dialogue_width;
     int highlight_row; /* 0x23c: -1 none; the content row the highlight sits on */
     /* The dialogue highlight sprite. DrawHighlightOverlay lazily creates it
        from catalog object 0x72 through CreateSpriteFromSurface - the retail
@@ -154,9 +154,9 @@ struct W8LevelRuntimeBlock {
     unsigned int world_update_flags;      /* 0x244 */
     unsigned int world_render_flags;      /* 0x248 */
     /* 0x24c: mouselook debug overlay; draws the pending pitch/yaw readout. */
-    unsigned char mouselook_debug_24c;
+    unsigned char mouselook_debug;
     /* 0x24d: video inspector overlay enabled when no modal mode owns input. */
-    bool inspector_enabled_24d;
+    bool inspector_enabled;
     unsigned char padding_24e[2];
     TIMER character_update_timer; /* 0x250 */
     TIMER world_update_timer;     /* 0x254 */
@@ -171,19 +171,19 @@ struct W8LevelRuntimeBlock {
     bool flag_270;
     /* 0x271: text box visible; toggled by the keyboard shortcut and raised
        by spell/item/dialogue screens that need it. */
-    bool text_box_visible_271;
-    bool mipe_editing_272; /* 0x272: MIPE edit session owns the hidden action panel */
+    bool text_box_visible;
+    bool mipe_editing; /* 0x272: MIPE edit session owns the hidden action panel */
     unsigned char padding_273;
     unsigned int tick_274; /* 0x274 */
     int value_278;         /* 0x278 */
     int pending_level;
     int pending_entry_id;
-    int group_list_rows_284;  /* 0x284 */
-    int group_list_width_288; /* 0x288 */
-    int action_group_28c;     /* 0x28c */
+    int group_list_rows;  /* 0x284 */
+    int group_list_width; /* 0x288 */
+    int action_group;     /* 0x28c */
     /* 0x290: result of HighlightMonsterAsTarget for the current pick; [0]
        drives the group tint and the target cursor shape. */
-    unsigned char target_highlight_ok_290[0x10];
+    unsigned char target_highlight_ok[0x10];
     /* 0x2a0..0x2a8: the formation board's three stModelInstance2D-family
        sprites - the board art with slot markers baked in, the rotating compass
        needle tracking party_facing against party_heading, and a lazily
@@ -229,7 +229,7 @@ struct W8LevelRuntimeBlock {
     int hover_combat_slot; /* 0x318 */
     /* 0x31c: keyboard-menu cursor-left grace countdown armed; expires into
        CloseKeyboardMenu. */
-    unsigned char cursor_grace_31c;
+    unsigned char cursor_grace;
     unsigned char padding_31d[3];
     TIMER countdown_320; /* 0x320: portrait right-hold arm clock */
     /* 0x324: PortraitSelectRegionEvent right-button hold armed for camp. */
@@ -238,7 +238,7 @@ struct W8LevelRuntimeBlock {
     unsigned char radar_map_alternate;       /* 0x326: radar uses alternate frame art */
     bool review_transition_active;           /* 0x327: set while leaving into review */
     /* 0x328: the review-screen transition finished; gates its early-out. */
-    bool review_transition_done_328;
+    bool review_transition_done;
     unsigned char padding_329[3];
     TIMER countdown_32c;
 };

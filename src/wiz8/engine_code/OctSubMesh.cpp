@@ -44,7 +44,7 @@ void ReadMeshArray(int file, T* values, int count, const char* get_message,
 
 // FUNCTION: WIZ8 0x0049E4C0
 OctMeshModel::OctMeshModel()
-    : version_00(0), m_link_index(0), next_link_08(0), m_material_index(0), m_map_count(0),
+    : version_00(0), m_link_index(0), next_link(0), m_material_index(0), m_map_count(0),
       m_vertex_locations(0), m_vertex_map(0), m_vertex_materials(0), m_poly_vertices(0),
       m_poly_uv_index(0), m_poly_textures(0), m_vertex_normals(0), m_vertex_lights(0),
       m_poly_equations(0), m_sun_lights(0), m_packed_header(0), m_vertex_count(0),
@@ -102,7 +102,7 @@ bool OctMeshModel::Write(int hFile)
     success &= FileWrite(hFile, &m_map_count, 4, 0);
     success &= FileWrite(hFile, &m_polygon_count, 4, 0);
     success &= FileWrite(hFile, &m_link_index, 4, 0);
-    success &= FileWrite(hFile, &next_link_08, 4, 0);
+    success &= FileWrite(hFile, &next_link, 4, 0);
     success &= FileWrite(hFile, &m_material_index, 4, 0);
     if (success == 0) {
         srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\OctSubMesh.cpp", 0x105,
@@ -223,7 +223,7 @@ stMeshModel* OctMeshModel::Read(int file, srMaterialIFace** materials, srTexture
     read_ok &= FileRead(file, &m_map_count, 4, 0);
     read_ok &= FileRead(file, &m_polygon_count, 4, 0);
     read_ok &= FileRead(file, &m_link_index, 4, 0);
-    read_ok &= FileRead(file, &next_link_08, 4, 0);
+    read_ok &= FileRead(file, &next_link, 4, 0);
     read_ok &= FileRead(file, &m_material_index, 4, 0);
     if (read_ok == 0) {
         ShutdownWithErrorBox("OctMeshModel::Read -- Could not read Integer fields.\n");

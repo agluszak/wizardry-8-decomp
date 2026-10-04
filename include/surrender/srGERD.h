@@ -37,7 +37,7 @@ public:
         /* Normalized pick point the caller fills: x and y are the cursor's
            viewport-space coordinates, z is the fixed 1.0 far value. */
         srVector3T<float> position_00;
-        srModelInstance* selected_model_0c;
+        srModelInstance* selected_model;
         unsigned long value_10;
     };
 
@@ -131,7 +131,7 @@ public:
            record array. */
         struct TextureSetCache {
             srHashTable<TextureSetKey, unsigned long>* map_00;
-            srArray<TextureSet> sets_04;
+            srArray<TextureSet> sets;
             unsigned long count_0c;
 
             /* Retail's constructor emission allocates the map after the
@@ -141,8 +141,8 @@ public:
                 map_00 = new srHashTable<TextureSetKey, unsigned long>;
             }
             /* ~Renderer inlines this sequence as map->Clear(),
-               sets_04.release(), count_0c = 0, delete map_00 followed by the
-               memberwise ~sets_04. */
+               sets.release(), count_0c = 0, delete map_00 followed by the
+               memberwise ~sets. */
             ~TextureSetCache()
             {
                 clear();
@@ -153,7 +153,7 @@ public:
             void clear()
             {
                 map_00->Clear();
-                sets_04.release();
+                sets.release();
                 count_0c = 0;
             }
             unsigned long intern(const TextureSetKey& key);
@@ -468,34 +468,34 @@ public:
         unsigned long value_38;
         unsigned long value_3c;
         /* applyViewStateChanges increments this counter on every apply. */
-        unsigned long view_state_applies_40;
+        unsigned long view_state_applies;
         /* applyDrawStateChanges increments this counter on every apply. */
-        unsigned long draw_state_applies_44;
+        unsigned long draw_state_applies;
         /* applyFrameStateChanges increments this counter on every apply. */
-        unsigned long frame_state_count_48;
+        unsigned long frame_state_count;
         /* Texture binds counted by changeTexture after the stage's bound
            texture actually changes; the debug overlay prints it as "TC". */
-        unsigned long texture_binds_4c;
+        unsigned long texture_binds;
         /* Texture-parameter updates counted by setTextureParameters. */
-        unsigned long texture_parameter_sets_50;
+        unsigned long texture_parameter_sets;
         /* createNewTexture increments this created-texture count. */
-        unsigned long textures_created_54;
+        unsigned long textures_created;
         /* Palette binds counted when a changed texture carries a new palette. */
-        unsigned long palette_binds_58;
+        unsigned long palette_binds;
         /* setShader calls counted by applyDrawStateChanges. */
-        unsigned long shader_sets_5c;
+        unsigned long shader_sets;
         /* drawArrays/drawElements increment this draw-call count. */
-        unsigned long draw_calls_60;
+        unsigned long draw_calls;
         unsigned long value_64;
         unsigned long value_68;
         /* testBoundingSphere call count / visible-result count. */
-        unsigned long sphere_tests_6c;
-        unsigned long sphere_visible_70;
+        unsigned long sphere_tests;
+        unsigned long sphere_visible;
         /* testBoundingBox call count / visible-result count. */
-        unsigned long box_tests_74;
-        unsigned long box_visible_78;
+        unsigned long box_tests;
+        unsigned long box_visible;
         /* classifyMatrix call count. */
-        unsigned long matrix_classifications_7c;
+        unsigned long matrix_classifications;
     };
     void getStatistics(Statistics& statistics);
     unsigned long getTextureCacheUsed() const;
@@ -808,7 +808,7 @@ public:
         unsigned long index = layer + 4;
         vertex_arrays_21c4_.components_0c[index] = components;
         vertex_arrays_21c4_.types_24[index] = type;
-        vertex_arrays_21c4_.strides_3c[index] = stride;
+        vertex_arrays_21c4_.strides[index] = stride;
         vertex_arrays_21c4_.arrays_54[index] = values;
         dirty_21c0_ |= 1;
     }
@@ -821,7 +821,7 @@ public:
         vertex_arrays_21c4_.count_04 = count < 0 ? 0 : count;
         vertex_arrays_21c4_.components_0c[0] = primitive;
         vertex_arrays_21c4_.types_24[0] = type;
-        vertex_arrays_21c4_.strides_3c[0] = stride;
+        vertex_arrays_21c4_.strides[0] = stride;
         vertex_arrays_21c4_.arrays_54[0] = values;
         dirty_21c0_ |= 1;
     }
@@ -1008,7 +1008,7 @@ private:
         unsigned long count_00;
         Texture* free_04;
         srArray<Texture*> chunks_08;
-        unsigned long pool_count_10;
+        unsigned long pool_count;
     };
 
     /* +0x21b0: the registered srVertexProcessor pointers plus the live count

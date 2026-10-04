@@ -135,7 +135,7 @@ void RefreshPartySlotDisplay(unsigned int party_slot)
         break;
     case W8_SCREEN_CAMP:
         if (giReviewCharSlot == static_cast<int>(party_slot) && g_camp_screen->input_mode == 0) {
-            if (g_camp_screen->portrait_hovered_d40[0] != 0) {
+            if (g_camp_screen->portrait_hovered[0] != 0) {
                 g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_PORTRAIT;
                 return;
             }
@@ -175,7 +175,7 @@ void RefreshPartySlotDisplay(unsigned int party_slot)
             if (party_slot == static_cast<unsigned int>(g_level_block->highlight_override) ||
                 party_slot ==
                     static_cast<unsigned int>(g_level_block->formation_highlight_party_slot) ||
-                party_slot == static_cast<unsigned int>(g_level_block->held_item_display_190)) {
+                party_slot == static_cast<unsigned int>(g_level_block->held_item_display)) {
                 highlighted = 1;
             }
             RedrawPartyPortraitOverlay(party_slot, highlighted, overlay_ready,
@@ -211,10 +211,10 @@ void SetTargetCursor(int cursor)
         if ((g_current_screen_state.id == W8_SCREEN_MAIN_GAME ||
              g_current_screen_state.id == W8_SCREEN_CAMP) &&
             g_status.item_in_cursor) {
-            if (g_status.item_in_hand_235b.iItemNo != -1) {
+            if (g_status.item_in_hand.iItemNo != -1) {
                 g_status.item_in_cursor = 1;
                 object =
-                    g_item_video_objects.GetOrCreateVideoObject(g_status.item_in_hand_235b.iItemNo);
+                    g_item_video_objects.GetOrCreateVideoObject(g_status.item_in_hand.iItemNo);
                 SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(object, 0),
                                               GetCatalogVideoObjectYOffset(object), 0, 0);
                 BlitToMouseCursor(GetCatalogVideoObjectHandle(0, 0),
@@ -245,10 +245,10 @@ void UpdateHeldItemCursor(void)
     if ((g_current_screen_state.id == W8_SCREEN_MAIN_GAME ||
          g_current_screen_state.id == W8_SCREEN_CAMP) &&
         g_status.item_in_cursor) {
-        if (g_status.item_in_hand_235b.iItemNo != -1) {
+        if (g_status.item_in_hand.iItemNo != -1) {
             g_status.item_in_cursor = 1;
             object =
-                g_item_video_objects.GetOrCreateVideoObject(g_status.item_in_hand_235b.iItemNo);
+                g_item_video_objects.GetOrCreateVideoObject(g_status.item_in_hand.iItemNo);
             SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(object, 0),
                                           GetCatalogVideoObjectYOffset(object), 0, 0);
             BlitToMouseCursor(GetCatalogVideoObjectHandle(0, 0), GetCatalogVideoObjectYOffset(0), 0,
@@ -293,14 +293,14 @@ void ApplyCurrentCursor(void)
 }
 
 /* Empty the item-in-hand record and restore the normal cursor. The held item is
-   the 0x0c-byte record at g_status.item_in_hand_235b (0x006874CB); the
+   the 0x0c-byte record at g_status.item_in_hand (0x006874CB); the
    byte directly before it is item_in_cursor. */
 // FUNCTION: WIZ8 0x0055f1e0
 void ClearHeldItemDisplay(void)
 {
-    memset(&g_status.item_in_hand_235b, 0, sizeof(g_status.item_in_hand_235b));
+    memset(&g_status.item_in_hand, 0, sizeof(g_status.item_in_hand));
     g_status.item_in_cursor = 0;
-    g_status.item_in_hand_235b.iItemNo = -1;
+    g_status.item_in_hand.iItemNo = -1;
 
     if (gXStatus.iCurrentCursor != -1) {
         SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(0, 0),
@@ -333,9 +333,9 @@ void SetItemCursor(int item_id)
     unsigned short y_offset;
     unsigned int handle;
 
-    if (g_status.item_in_hand_235b.iItemNo != -1) {
+    if (g_status.item_in_hand.iItemNo != -1) {
         g_status.item_in_cursor = 1;
-        object = g_item_video_objects.GetOrCreateVideoObject(g_status.item_in_hand_235b.iItemNo);
+        object = g_item_video_objects.GetOrCreateVideoObject(g_status.item_in_hand.iItemNo);
         y_offset = GetCatalogVideoObjectYOffset(object);
         handle = GetCatalogVideoObjectHandle(object, 0);
         SetMouseCursorFromVideoObject(handle, y_offset, 0, 0);
@@ -375,8 +375,8 @@ void InitializeMainGameLevelBlock(void)
     }
     g_level_block->transition_pending = 0;
     g_level_block->camera_mode_100 = 7;
-    g_level_block->message_box_pending_0f0 = IsMessageBoxActive();
-    g_level_block->portrait_strip_dirty_108 = 0;
+    g_level_block->message_box_pending = IsMessageBoxActive();
+    g_level_block->portrait_strip_dirty = 0;
     g_level_block->flag_210 = false;
     g_level_block->value_194 = -1;
     g_level_block->highlight_override = -1;
@@ -388,7 +388,7 @@ void InitializeMainGameLevelBlock(void)
     g_level_block->combat_action_hover_party_slot = -1;
     g_level_block->portrait_assay_hover_mode = 0;
     g_level_block->formation_highlight_party_slot = -1;
-    g_level_block->held_item_display_190 = -1;
+    g_level_block->held_item_display = -1;
     g_level_block->highlight_row = -1;
     g_level_block->highlight_graphic = 0;
     g_level_block->value_198 = 0x35;
@@ -403,7 +403,7 @@ void InitializeMainGameLevelBlock(void)
     g_level_block->highlighted_item = -1;
     g_level_block->selected_item = -1;
     g_level_block->clock_214 = GetClock();
-    g_level_block->portrait_flash_218 = 0;
+    g_level_block->portrait_flash = 0;
     for (slot = 0; slot < 8; ++slot) {
         g_level_block->portrait_refresh_pending[slot] = 0;
         g_level_block->portrait_refresh_image[slot] = 0;
@@ -419,20 +419,20 @@ void InitializeMainGameLevelBlock(void)
     g_level_block->countdown_25c = SetCountdownClock(0);
     g_level_block->countdown_26c = SetCountdownClock(0xfa);
     g_level_block->flag_270 = true;
-    g_level_block->text_box_visible_271 = 1;
+    g_level_block->text_box_visible = 1;
     g_level_block->dialogue_text_input_open = 0;
-    g_level_block->mipe_editing_272 = 0;
+    g_level_block->mipe_editing = 0;
     g_level_block->dialogue_text_input = 0;
     g_level_block->value_278 = 0;
     g_level_block->tick_274 = GetTickCount();
-    g_level_block->group_list_rows_284 = 0;
-    g_level_block->group_list_width_288 = 0;
+    g_level_block->group_list_rows = 0;
+    g_level_block->group_list_width = 0;
     DisableRegionInput(0xe5);
-    g_level_block->action_group_28c = -1;
+    g_level_block->action_group = -1;
     g_level_block->value_2ac = 0;
     g_level_block->value_2b4 = 0;
     g_level_block->value_2b0 = 0;
-    g_level_block->text_lines[4 + g_status.text_line_cursor_1795] = FindStoppedTextLine();
+    g_level_block->text_lines[4 + g_status.text_line_cursor] = FindStoppedTextLine();
     g_level_block->refresh_combat_panel = 1;
     g_level_block->combat_panel_timer = SetCountdownClock(0);
     g_level_block->refresh_party_panel = 1;
@@ -459,7 +459,7 @@ void InitializeMainGameLevelBlock(void)
     g_level_block->combat_slot = -1;
     g_level_block->keyboard_menu_open = 0;
     g_level_block->hover_combat_slot = -1;
-    g_level_block->cursor_grace_31c = 0;
+    g_level_block->cursor_grace = 0;
     g_level_block->countdown_320 = SetCountdownClock(0);
     g_level_block->portrait_right_hold_armed = false;
     g_level_block->formation_board_alternate = 0;

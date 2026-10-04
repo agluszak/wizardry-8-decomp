@@ -54,7 +54,7 @@ bool Trynnie2GoodaVineA(Trigger* pTrigger)
     if (g_status.item_in_cursor != 0) {
         return 0;
     }
-    ReplaceOrCreateItem(&g_status.item_in_hand_235b, 0x16d, 1, 1, 0);
+    ReplaceOrCreateItem(&g_status.item_in_hand, 0x16d, 1, 1, 0);
     SetItemCursor(0);
     return 1;
 }
@@ -67,7 +67,7 @@ bool Trynnie2GoodaVineB(Trigger* pTrigger)
     if (g_status.item_in_cursor != 0) {
         return 0;
     }
-    ReplaceOrCreateItem(&g_status.item_in_hand_235b, 0x16e, 1, 1, 0);
+    ReplaceOrCreateItem(&g_status.item_in_hand, 0x16e, 1, 1, 0);
     SetItemCursor(0);
     return 1;
 }
@@ -80,7 +80,7 @@ bool Trynnie2GiveZulu(Trigger* pTrigger)
     if (g_status.item_in_cursor != 0) {
         return 0;
     }
-    ReplaceOrCreateItem(&g_status.item_in_hand_235b, 0x1b3, 1, 1, 0);
+    ReplaceOrCreateItem(&g_status.item_in_hand, 0x1b3, 1, 1, 0);
     SetItemCursor(0);
     return 1;
 }
@@ -169,8 +169,8 @@ bool Trynnie2UseItem(W8ItemInstance* item)
     } else {
         ShowString(gppStringList[0x967]);
     }
-    if (g_status.use_item_latch_2445 == 0) {
-        g_status.use_item_latch_2445 = true;
+    if (g_status.use_item_latch == 0) {
+        g_status.use_item_latch = true;
     } else {
         ShowString(gppStringList[0x969]);
         if (FindEntityByName("NP_MysticalShaman", &position, 0, 0) != 0) {

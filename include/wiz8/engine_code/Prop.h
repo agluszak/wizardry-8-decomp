@@ -36,8 +36,8 @@ class W8PropRepresentation : public W8AnimRep {
 public:
     /* Default construction is inlined at Prop::Prop. */
     W8PropRepresentation()
-        : animation(0), animation_speed(0.0f), frame_index_0a0(0), animation_running_0a4(0),
-          random_play_0a5(0), play_chance_0a8(0.5f), saved_subcycle_0ac(0), frame_steps_0ad(0),
+        : animation(0), animation_speed(0.0f), frame_index_0a0(0), animation_running(0),
+          random_play_0a5(0), play_chance_0a8(0.5f), saved_subcycle(0), frame_steps(0),
           slots(5), footstep_surface_0c0(0xff), footstep_material_0c1(0xff)
     {
     }
@@ -58,12 +58,12 @@ public:
        frame count to it with a dword add, compares it against the animation's
        value_16, and FILD-converts it for PathAISetValue. */
     int frame_index_0a0;
-    bool animation_running_0a4; /* 0xa4 */
+    bool animation_running; /* 0xa4 */
     bool random_play_0a5;       /* 0xa5 */
     unsigned char padding_0a6[2];
     float play_chance_0a8;            /* 0xa8: constructed as 0.5 */
-    unsigned char saved_subcycle_0ac; /* 0xac */
-    unsigned char frame_steps_0ad;    /* 0xad */
+    unsigned char saved_subcycle; /* 0xac */
+    unsigned char frame_steps;    /* 0xad */
     unsigned char padding_0ae[2];
     W8Vector<W8PropAnimationSegment*> slots; /* 0xb0 */
     unsigned char footstep_surface_0c0;      /* 0xc0 */
@@ -154,7 +154,7 @@ public:
     char* m_name;          /* 0x20 */
     /* 0x24: UpdatePropAnimation stores the animation timer's progress here, then
        reduces it by the whole-frame count - the fractional remainder. */
-    float anim_frame_fraction_024;
+    float anim_frame_fraction;
     W8GameTimer* m_pTimer;          /* 0x28 */
     srVector3T<float> position_02c; /* 0x2c: written by ApplyAnimationFrame */
     GDProp* m_gd_prop;              /* 0x38 */

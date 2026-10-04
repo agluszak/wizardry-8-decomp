@@ -32,12 +32,12 @@ public:
     virtual void process(srVertexPipe&) override {}
 
 public:
-    float m_vertical_offset_228;          /* 0x228 */
-    srVector3T<float> m_color_first_22c;  /* 0x22c */
-    srVector3T<float> m_color_second_238; /* 0x238 */
-    float m_start_time_244;               /* 0x244 */
-    bool m_cycle_color_248;      /* 0x248 */
-    bool m_fade_out_249;         /* 0x249 */
+    float m_vertical_offset;          /* 0x228 */
+    srVector3T<float> m_color_first;  /* 0x22c */
+    srVector3T<float> m_color_second; /* 0x238 */
+    float m_start_time;               /* 0x244 */
+    bool m_cycle_color;      /* 0x248 */
+    bool m_fade_out;         /* 0x249 */
     unsigned char m_padding_24a[6];
 };
 

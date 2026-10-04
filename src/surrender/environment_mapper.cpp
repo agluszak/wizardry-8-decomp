@@ -26,9 +26,9 @@ void srEnvironmentMapper::process(srVertexPipe& pipe)
     }
     const srVector3T<float>* normals = scratch->normals_300 + pipe.sub_batch_offset_84;
     srVector2T<float>* st =
-        pipe.vertex_array_78->st0_0c + pipe.batch_base_80 + pipe.sub_batch_offset_84;
-    srCore.getStatisticsManager()->statistics_00.texture_coordinate_operations_34 += count;
-    pipe.lazy_setup_mask_10 |= 1 << srVertexProcessor::CHANNEL_ST0;
+        pipe.vertex_array_78->st0_0c + pipe.batch_base + pipe.sub_batch_offset_84;
+    srCore.getStatisticsManager()->statistics_00.texture_coordinate_operations += count;
+    pipe.lazy_setup_mask |= 1 << srVertexProcessor::CHANNEL_ST0;
     for (unsigned long index = 0; index < count; ++index) {
         float projection = directions[index].x * normals[index].x +
                            directions[index].y * normals[index].y +

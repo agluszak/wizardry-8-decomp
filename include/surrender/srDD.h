@@ -74,14 +74,14 @@ public:
         unsigned long height_24;
         unsigned long first_level_28;
         unsigned long last_level_2c;
-        unsigned long format_index_30;
+        unsigned long format_index;
         unsigned long parameter_34;
         void* levels_38[12];
         /* Resident device-surface record and its byte size: written by the
            device texture-upload path, cleared on invalidate, summed by
            srGERD::getResidentTextureMemUsed. */
-        unsigned long resident_data_68;
-        unsigned long resident_size_6c;
+        unsigned long resident_data;
+        unsigned long resident_size;
         /* markTextureAsDeleted sets this once the texture is on the
            GERD-side deleted list. */
         unsigned long deleted_70;
@@ -110,13 +110,13 @@ public:
            record's member init (0x2d0 inside the +0x2cc embedding). */
         DriverInfo() : flags_04(0) {}
 
-        unsigned long api_version_00;
+        unsigned long api_version;
         unsigned long flags_04;
-        void (*debug_write_08)(const char* text);
-        unsigned long dd_api_version_0c;
+        void (*debug_write)(const char* text);
+        unsigned long dd_api_version;
         unsigned long driver_id_10;
         char name_14[64];
-        char api_name_54[64];
+        char api_name[64];
     };
     static_assert(sizeof(DriverInfo) == 0x94, "srDD_DriverInfo_must_be_0x94");
     /* getInfo output record, 0x27c bytes. srGERD embeds it verbatim at +0x50
@@ -243,8 +243,8 @@ public:
         unsigned long flags_00;
         srVector3T<float> gamma_04;
         float value_10;
-        unsigned long swap_interval_14;
-        unsigned long antialias_18;
+        unsigned long swap_interval;
+        unsigned long antialias;
         unsigned long enabled_1c;
     };
     /* srGERD::setTextureParameters repacks the texture's Parameters into

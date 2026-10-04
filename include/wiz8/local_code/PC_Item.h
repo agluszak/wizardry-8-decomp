@@ -179,7 +179,7 @@ int CalculateTradeStackPrice(W8NpcState* npc, W8ItemInstance* item, char mode); 
 /* 0x0051D7A0: whether any occupied, conscious party member can use the item. */
 bool AnyPartyMemberCanUseItem(int item_id);
 
-extern unsigned char g_byte_652da6;
+extern unsigned char g_byte;
 
 enum W8ItemOrigin {
     W8_ITEM_ORIGIN_BACKPACK = 0,

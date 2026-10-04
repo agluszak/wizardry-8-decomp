@@ -231,7 +231,7 @@ unsigned long srGERD::Renderer::TextureSetCache::intern(const TextureSetKey& key
     unsigned long index = count_0c;
     map->Insert(&key, &index);
 
-    TextureSet& set = sets_04[index];
+    TextureSet& set = sets[index];
     set.texture0_00 = key.texture0_00;
     set.texture1_04 = key.texture1_04;
     set.shader_08 = key.shader_08;
@@ -588,14 +588,14 @@ void srGERD::Renderer::expandTriangles(const TriInput& input, int sorted)
                     vertices_78_.alloc(arrays, new_count);
                     arrays.diffuse_04 = &vertices_78_.diffuse_00[0];
                     arrays.specular_08 = &vertices_78_.specular_08[0];
-                    arrays.eye_locations_00 = &vertices_78_.positions_10[0];
+                    arrays.eye_locations = &vertices_78_.positions_10[0];
                     arrays.st0_0c = &vertices_78_.st_18[0][0];
                     arrays.st1_10 = &vertices_78_.st_18[1][0];
                     arrays.q0_14 = &vertices_78_.q_28[0][0];
                     arrays.q1_18 = &vertices_78_.q_28[1][0];
                     arrays.packed_1c = &vertices_78_.packed_38[0];
-                    srVectorProcessor::copyIndexed(arrays.eye_locations_00 + base,
-                                                   arrays.eye_locations_00, remap, new_count);
+                    srVectorProcessor::copyIndexed(arrays.eye_locations + base,
+                                                   arrays.eye_locations, remap, new_count);
                     srVectorProcessor::copyIndexed(arrays.diffuse_04 + base, arrays.diffuse_04,
                                                    remap, new_count);
                     srVectorProcessor::copyIndexed(arrays.specular_08 + base, arrays.specular_08,
@@ -760,7 +760,7 @@ void srGERD::Renderer::drawImmediate()
         const unsigned long* texture_set = &indices_54_.texture_set_08[0];
         indices_54_.sort_key_10[0];
         indices_54_.aux_18[0];
-        const TextureSet& first = texture_sets_44_.sets_04.data[texture_set[0]];
+        const TextureSet& first = texture_sets_44_.sets.data[texture_set[0]];
         texture0_c4_ = first.texture0_00;
         texture1_c8_ = first.texture1_04;
         shader_cc_ = first.shader_08;
@@ -813,7 +813,7 @@ void srGERD::Renderer::drawSorted()
             }
             srHeap.free(pairs);
         }
-        const TextureSet& first = texture_sets_44_.sets_04.data[texture_set[order[0]]];
+        const TextureSet& first = texture_sets_44_.sets.data[texture_set[order[0]]];
         texture0_c4_ = first.texture0_00;
         texture1_c8_ = first.texture1_04;
         shader_cc_ = first.shader_08;
@@ -869,7 +869,7 @@ void srGERD::Renderer::programVertexArrays(srVertexArray* arrays, unsigned long 
     }
     srFlags<srRendererDefs::e_vertexArray> mask(1 << srRendererDefs::VERTEX_ARRAY_POSITIONS);
     gerd_d4_->setClipState(srFlags<srRendererDefs::e_clip>(clip_state_d0_));
-    gerd_d4_->setVertexPointer(4, srRendererDefs::TYPE_FLOAT, 0x10, arrays->eye_locations_00,
+    gerd_d4_->setVertexPointer(4, srRendererDefs::TYPE_FLOAT, 0x10, arrays->eye_locations,
                                static_cast<long>(count));
     if ((attributes & 1) != 0) {
         gerd_d4_->setDataPtr(srRendererDefs::VERTEX_ARRAY_DIFFUSE, 4, srRendererDefs::TYPE_FLOAT,
@@ -1121,7 +1121,7 @@ void srGERD::Renderer::VertexArrays::bind(srVertexArray& arrays, unsigned long b
 {
     arrays.diffuse_04 = &diffuse_00[base];
     arrays.specular_08 = &specular_08[base];
-    arrays.eye_locations_00 = &positions_10[base];
+    arrays.eye_locations = &positions_10[base];
     arrays.st0_0c = &st_18[0][base];
     arrays.st1_10 = &st_18[1][base];
     arrays.q0_14 = &q_28[0][base];
@@ -1132,7 +1132,7 @@ void srGERD::Renderer::VertexArrays::bind(srVertexArray& arrays, unsigned long b
 // FUNCTION: SURRENDER 0x10027ED0
 void srGERD::Renderer::bindTextureSet(unsigned long index)
 {
-    const TextureSet& set = texture_sets_44_.sets_04.data[index];
+    const TextureSet& set = texture_sets_44_.sets.data[index];
     if (set.texture0_00 != texture0_c4_) {
         texture0_c4_ = set.texture0_00;
         gerd_d4_->setTexture(texture0_c4_, 0);

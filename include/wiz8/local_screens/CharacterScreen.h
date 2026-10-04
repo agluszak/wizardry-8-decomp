@@ -42,9 +42,9 @@ public:
     W8CharacterPageEntry(Controls* owner, int x, int y, bool compact); /* 0x005AF690 */
     virtual ~W8CharacterPageEntry()
     {
-        delete m_label_014;
-        delete m_first_text_018;
-        delete m_second_text_01c;
+        delete m_label;
+        delete m_first_text;
+        delete m_second_text;
     }
     void SetContent(unsigned int id, const wchar_t* label, unsigned int* first, int* second,
                     int* third, int help_id);                  /* 0x005AF9E0 */
@@ -61,20 +61,20 @@ public:
     W8CharacterPageEntryListener* m_listener_004;
     W8TextControl* m_increment_008;
     W8TextControl* m_decrement_00c;
-    W8TextControl* m_help_010;
-    W8TextBuffer* m_label_014;
-    W8TextBuffer* m_first_text_018;
-    W8TextBuffer* m_second_text_01c;
+    W8TextControl* m_help;
+    W8TextBuffer* m_label;
+    W8TextBuffer* m_first_text;
+    W8TextBuffer* m_second_text;
     unsigned int* m_first_020;
     int* m_second_024;
-    int* m_third_028;
-    unsigned int m_id_02c;
+    int* m_third;
+    unsigned int m_id;
     int m_x_030;
     int m_y_034;
-    bool m_draw_background_038;
+    bool m_draw_background;
     bool m_dirty_039;
     bool m_enabled_03a;
-    bool m_increment_allowed_03b;
+    bool m_increment_allowed;
 };
 static_assert(sizeof(W8CharacterPageEntry) == 0x3c, "W8CharacterPageEntry_size");
 
@@ -100,7 +100,7 @@ public:
     W8Character* m_character_060;
     W8CharacterCreationState* m_creation_state_064;
     int m_mode_068;
-    bool m_prepared_06c;
+    bool m_prepared;
     bool m_dirty_06d;
     unsigned char pad_06e[2];
 
@@ -119,8 +119,8 @@ struct W8CharacterStatsRecord {
     unsigned int object_00;
     /* 0x04/0x08: catalog image ids drawn while the control is enabled and
        disabled respectively. */
-    int image_enabled_04;
-    int image_disabled_08;
+    int image_enabled;
+    int image_disabled;
     unsigned short name_id_0c;
     unsigned char enabled_0e;
     unsigned char pad_0f;
@@ -139,8 +139,8 @@ public:
     virtual void OnRightButtonUp(int event) override;
     void SetRecord(const W8CharacterStatsRecord* record);
 
-    const W8CharacterStatsRecord* m_record_0b8;
-    const W8CharacterStatsRecord* m_default_record_0bc;
+    const W8CharacterStatsRecord* m_record;
+    const W8CharacterStatsRecord* m_default_record;
 };
 static_assert(sizeof(W8CharacterStatsValue) == 0xc0, "W8CharacterStatsValue_size");
 
@@ -169,18 +169,18 @@ public:
     void BuildSubpanel();            /* 0x005c94e0 */
     void SetValue(int index);        /* 0x005c96c0 */
 
-    int m_index_004; /* current stat index */
-    unsigned short m_count_008;
+    int m_index; /* current stat index */
+    unsigned short m_count;
     unsigned char pad_00a[2];
     int m_x_00c;
     int m_y_010;
     unsigned int* m_region_set_014;
-    const W8CharacterStatsRecord* m_table_018;
+    const W8CharacterStatsRecord* m_table;
     W8TextControl* m_decrement_01c;
     W8TextControl* m_increment_020;
-    W8CharacterStatsValue* m_value_control_024;
-    Controls* m_subpanel_028;
-    W8TextControl** m_subpanel_entries_02c;
+    W8CharacterStatsValue* m_value_control;
+    Controls* m_subpanel;
+    W8TextControl** m_subpanel_entries;
     W8CharacterStatsRowListener* m_listener_030;
 };
 static_assert(sizeof(W8CharacterStatsRow) == 0x34, "W8CharacterStatsRow_size");
@@ -215,19 +215,19 @@ private:
     void UpdateRowValues(); /* 0x005ca200 */
 
 public:
-    W8CharacterStatsRow* m_profession_row_07c;
-    W8CharacterStatsRow* m_race_row_080;
-    W8CharacterStatsRow* m_gender_row_084;
+    W8CharacterStatsRow* m_profession_row;
+    W8CharacterStatsRow* m_race_row;
+    W8CharacterStatsRow* m_gender_row;
     bool m_navigation_state_088;
-    bool m_rows_initialized_089;
+    bool m_rows_initialized;
     unsigned char pad_08a[2];
-    W8TextControl* m_attribute_controls_08c[5];
+    W8TextControl* m_attribute_controls[5];
 };
 static_assert(sizeof(W8CharacterStatsPage) == 0xa0, "W8CharacterStatsPage_size");
 /* Retail places the secondary bases W8CharacterStatsRowListener at
    +0x70, W8CharacterPageEntryListener at +0x74 and W8TextControl::Listener at
    +0x78; the rows begin at +0x7c. */
-W8_ASSERT_BASE_END(W8CharacterStatsPage, W8TextControl::Listener, m_profession_row_07c, 0x78);
+W8_ASSERT_BASE_END(W8CharacterStatsPage, W8TextControl::Listener, m_profession_row, 0x78);
 
 struct W8CharacterSpellEntry {
     int realm;
@@ -252,7 +252,7 @@ public:
     W8CharacterSpellsPage() : W8CharacterPage(0x109), m_animation_timer_5e4(0.05f, 1)
     {
         for (int realm = 0; realm < 6; ++realm) {
-            m_realms_074[realm] = 0;
+            m_realms[realm] = 0;
         }
     }
     virtual void SetCharacter(W8Character*, W8CharacterCreationState*, int) override;
@@ -267,11 +267,11 @@ public:
 
 private:
     void UpdateSpellLists();
-    W8CharacterSpellList* m_realms_074[6];
+    W8CharacterSpellList* m_realms[6];
     W8CharacterSpellEntry m_SpellData[114];
     W8GameTimer m_animation_timer_5e4;
-    unsigned int m_animation_frames_608[6];
-    unsigned int m_last_selected_620;
+    unsigned int m_animation_frames[6];
+    unsigned int m_last_selected;
 };
 static_assert(sizeof(W8CharacterSpellsPage) == 0x624, "W8CharacterSpellsPage_size");
 /* Retail places the W8CharacterSpellListListener secondary base at +0x70,
@@ -292,8 +292,8 @@ public:
 
 private:
     void UpdateEntries(); /* 0x005C7B50 */
-    bool m_force_redraw_074;
-    bool m_show_fifth_category_075;
+    bool m_force_redraw;
+    bool m_show_fifth_category;
     bool m_navigation_state_076;
     unsigned char padding_077;
 };
@@ -306,7 +306,7 @@ class W8CharacterPersonalityPage : public W8CharacterPage,
                                    public W8TextControl::Listener {
 public:
     W8CharacterPersonalityPage()
-        : W8CharacterPage(0x105), m_animation_timer_0d4(0.4f, 1), m_animation_active_0fc(0)
+        : W8CharacterPage(0x105), m_animation_timer_0d4(0.4f, 1), m_animation_active(0)
     {
     }
     virtual void Redraw() override;
@@ -325,14 +325,14 @@ private:
     W8TextControl* m_control_07c;
     W8TextControl* m_control_080;
     W8TextControl* m_control_084;
-    W8TextControl* m_randomize_088;
-    W8ControlSelection m_personality_selection_08c;
-    W8ControlSelection m_voice_selection_0b0;
+    W8TextControl* m_randomize;
+    W8ControlSelection m_personality_selection;
+    W8ControlSelection m_voice_selection;
     W8GameTimer m_animation_timer_0d4;
     int m_animation_frame_0f8;
-    bool m_animation_active_0fc;
-    bool m_description_dirty_0fd;
-    bool m_portrait_dirty_0fe;
+    bool m_animation_active;
+    bool m_description_dirty;
+    bool m_portrait_dirty;
     unsigned char pad_0ff;
 };
 static_assert(sizeof(W8CharacterPersonalityPage) == 0x100, "W8CharacterPersonalityPage_size");
@@ -431,28 +431,28 @@ public:
     virtual void OnSecondary(W8TextControl* control) override;
 
     int m_mode_008;
-    int m_page_index_00c;
-    bool m_header_dirty_010;
+    int m_page_index;
+    bool m_header_dirty;
     unsigned char pad_011[3];
-    W8Character* m_original_014;
+    W8Character* m_original;
     W8Character m_character_018;
     unsigned char pad_187a[2];
     W8CharacterCreationState m_creation_state_187c;
-    bool m_block_advance_1aec;
-    bool m_confirm_profession_1aed;
-    bool m_force_transition_1aee;
+    bool m_block_advance;
+    bool m_confirm_profession;
+    bool m_force_transition;
     unsigned char pad_1aef;
     Controls* m_controls_1af0;
     W8TextControl* m_previous_1af4;
     W8TextControl* m_next_1af8;
-    W8TextControl* m_exit_1afc;
-    W8TextControl* m_accept_1b00;
-    W8TextControl* m_reset_1b04;
-    bool m_page_enabled_1b08[4];
-    W8CharacterPage* m_pages_1b0c[4];
+    W8TextControl* m_exit;
+    W8TextControl* m_accept;
+    W8TextControl* m_reset;
+    bool m_page_enabled[4];
+    W8CharacterPage* m_pages[4];
     W8DialogBase* m_dialog_1b1c;
-    unsigned int m_dialog_response_1b20;
-    bool m_capture_dialog_result_1b24;
+    unsigned int m_dialog_response;
+    bool m_capture_dialog_result;
     unsigned char pad_1b25[3];
 };
 static_assert(sizeof(W8CharacterScreen) == 0x1b28, "W8CharacterScreen_size");

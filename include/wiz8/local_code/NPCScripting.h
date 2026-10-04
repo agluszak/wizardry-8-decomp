@@ -29,7 +29,7 @@ struct W8NpcDialogueStagingRestore {
        is staged or the cursor runs past subquote_count. */
     unsigned char subquote_index;
     unsigned char unused_49d;
-    short staged_short_49e;
+    short staged_short;
 };
 
 static_assert(sizeof(W8NpcDialogueStagingRestore) == 12, "W8NpcDialogueStagingRestore_must_be_12");
@@ -57,7 +57,7 @@ struct W8NpcScriptingState {
     unsigned int last_tick;
     /* 0xc4: latched by CancelNpcDialogue; the response loop checks it at
        entries_done and abandons the pending response. */
-    bool dialogue_cancelled_c4;
+    bool dialogue_cancelled;
     bool restore_staged_session;
     bool portrait_message_active;
     bool scripted_scene_active;
@@ -94,8 +94,8 @@ static_assert(offsetof(W8NpcScriptingState, gap_track) == 0xac,
               "W8NpcScriptingState_gap_track_offset");
 static_assert(offsetof(W8NpcScriptingState, last_tick) == 0xc0,
               "W8NpcScriptingState_last_tick_offset");
-static_assert(offsetof(W8NpcScriptingState, dialogue_cancelled_c4) == 0xc4,
-              "W8NpcScriptingState_dialogue_cancelled_c4_offset");
+static_assert(offsetof(W8NpcScriptingState, dialogue_cancelled) == 0xc4,
+              "W8NpcScriptingState_dialogue_cancelled_offset");
 static_assert(offsetof(W8NpcScriptingState, restore_staged_session) == 0xc5,
               "W8NpcScriptingState_restore_staged_session_offset");
 static_assert(offsetof(W8NpcScriptingState, portrait_message_active) == 0xc6,

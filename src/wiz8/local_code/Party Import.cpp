@@ -47,8 +47,8 @@
    values. */
 // GLOBAL: WIZ8 0x00614FC8
 static int g_profession_primary_attributes[15][3] = {
-    {0, 4, 3}, {0, 4, 2}, {3, 0, 2}, {4, 1, 6}, {4, 5, 1}, {4, 5, 1}, {5, 4, 6}, {4, 5, 6},
-    {4, 6, 1}, {4, 1, 6}, {2, 1, 3}, {1, 4, 2}, {1, 4, 2}, {1, 6, 2}, {1, 4, 2},
+    {W8_ATTRIBUTE_STRENGTH, W8_ATTRIBUTE_DEXTERITY, W8_ATTRIBUTE_VITALITY}, {W8_ATTRIBUTE_STRENGTH, W8_ATTRIBUTE_DEXTERITY, W8_ATTRIBUTE_PIETY}, {W8_ATTRIBUTE_VITALITY, W8_ATTRIBUTE_STRENGTH, W8_ATTRIBUTE_PIETY}, {W8_ATTRIBUTE_DEXTERITY, W8_ATTRIBUTE_INTELLIGENCE, W8_ATTRIBUTE_SENSES}, {W8_ATTRIBUTE_DEXTERITY, W8_ATTRIBUTE_SPEED, W8_ATTRIBUTE_INTELLIGENCE}, {W8_ATTRIBUTE_DEXTERITY, W8_ATTRIBUTE_SPEED, W8_ATTRIBUTE_INTELLIGENCE}, {W8_ATTRIBUTE_SPEED, W8_ATTRIBUTE_DEXTERITY, W8_ATTRIBUTE_SENSES}, {W8_ATTRIBUTE_DEXTERITY, W8_ATTRIBUTE_SPEED, W8_ATTRIBUTE_SENSES},
+    {W8_ATTRIBUTE_DEXTERITY, W8_ATTRIBUTE_SENSES, W8_ATTRIBUTE_INTELLIGENCE}, {W8_ATTRIBUTE_DEXTERITY, W8_ATTRIBUTE_INTELLIGENCE, W8_ATTRIBUTE_SENSES}, {W8_ATTRIBUTE_PIETY, W8_ATTRIBUTE_INTELLIGENCE, W8_ATTRIBUTE_VITALITY}, {W8_ATTRIBUTE_INTELLIGENCE, W8_ATTRIBUTE_DEXTERITY, W8_ATTRIBUTE_PIETY}, {W8_ATTRIBUTE_INTELLIGENCE, W8_ATTRIBUTE_DEXTERITY, W8_ATTRIBUTE_PIETY}, {W8_ATTRIBUTE_INTELLIGENCE, W8_ATTRIBUTE_SENSES, W8_ATTRIBUTE_PIETY}, {W8_ATTRIBUTE_INTELLIGENCE, W8_ATTRIBUTE_DEXTERITY, W8_ATTRIBUTE_PIETY},
 };
 
 /* The starting spells LearnSpell grants each profession on import. */
@@ -66,7 +66,7 @@ static int FindItemByLegacyNumber(short item_number)
 {
     unsigned int index = 0;
     while (index < gXStatus.uiItemsInDatabase) {
-        if (g_item_records[index].legacy_item_number_03c == item_number) {
+        if (g_item_records[index].legacy_item_number == item_number) {
             return index;
         }
         ++index;
@@ -149,8 +149,8 @@ unsigned char LoadWizardry7ImportFile(char* path)
                                  sizeof(g_imported_characters[index]), &bytes_read) == 0) {
                         goto fail;
                     }
-                    if (index != 0 && g_imported_characters[index].party_tag_232 !=
-                                          g_imported_characters[index - 1].party_tag_232) {
+                    if (index != 0 && g_imported_characters[index].party_tag !=
+                                          g_imported_characters[index - 1].party_tag) {
                         goto fail;
                     }
                 }
@@ -158,7 +158,7 @@ unsigned char LoadWizardry7ImportFile(char* path)
                 g_import_character_count = party_block[0x25];
                 g_import_ending_record = party_block[0] == -1;
                 if (g_import_ending_record != 0) {
-                    switch (g_imported_characters[0].party_tag_232 & 0xf0) {
+                    switch (g_imported_characters[0].party_tag & 0xf0) {
                     case 0x10:
                         g_wiz7_ending = 0;
                         break;
@@ -177,7 +177,7 @@ unsigned char LoadWizardry7ImportFile(char* path)
                 } else {
                     g_wiz7_ending = -1;
                 }
-                switch (g_imported_characters[0].party_tag_232 & 0xf) {
+                switch (g_imported_characters[0].party_tag & 0xf) {
                 case 1:
                     g_import_difficulty = 0;
                     break;
@@ -217,7 +217,7 @@ unsigned char ImportWizardry7Party(char* path)
     }
     ResetForNewGame();
     g_status.party_gold = 2500;
-    g_status.skip_loose_character_check_2444 = 1;
+    g_status.skip_loose_character_check = 1;
     if (g_import_character_count < 7) {
         for (index = 0; index < g_import_character_count; ++index) {
             ImportWizardry7Character(&scratch, &g_imported_characters[index]);
@@ -296,7 +296,7 @@ void ImportWizardry7Character(W8Character* character, W8Wiz7Character* imported)
     AdvanceCharacterToLevel(character, level);
     character->experience = 13000;
     character->kill_count_09f9 = imported->kill_count_010;
-    character->death_count_09fd = imported->deaths_026 - 1;
+    character->death_count = imported->deaths - 1;
     character->profession_levels[character->iProfession] = character->uiExpLevel;
     character->original_profession = character->iProfession;
     character->level_band_base = 0;
@@ -466,7 +466,7 @@ void ConvertAttribute(W8Character* character, const W8Wiz7Character* imported)
             }
         } while (removed < -points);
     }
-    character->attribute_point_deficit_0199 = points;
+    character->attribute_point_deficit = points;
     character->level_band_base = 1;
 }
 

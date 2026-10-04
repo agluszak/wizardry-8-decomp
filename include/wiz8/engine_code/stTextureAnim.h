@@ -40,9 +40,9 @@ public:
     int direction_5c;
     unsigned char animation_mode_60;
     int initial_frame_64;
-    float frame_rate_68;
-    unsigned long frame_tick_6c;
-    int trigger_mode_70;
+    float frame_rate;
+    unsigned long frame_tick;
+    int trigger_mode;
     float probability_74;
     bool running_78;
 };

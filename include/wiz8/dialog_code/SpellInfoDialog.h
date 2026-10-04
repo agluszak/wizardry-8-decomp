@@ -25,7 +25,7 @@ private:
     void DrawLabels();            /* 0x005DC490 */
     static void ScrollCallback(W8DialogScrollBar* scroll_bar, int first_visible_entry);
 
-    unsigned int m_spell_054;           /* 0x054 */
+    unsigned int m_spell;           /* 0x054 */
     W8DialogScrollBar m_scroll_bar_058; /* 0x058 */
     W8DialogButton m_button_0a4;        /* 0x0a4 */
     W8DialogTextArea m_text_area_0ec;   /* 0x0ec */

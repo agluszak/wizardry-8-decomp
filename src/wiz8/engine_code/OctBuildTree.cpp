@@ -63,7 +63,7 @@ W8OctBuildLink* W8OctBuildLinkLists::GetNewLink(void* surface)
 W8OctBuildNode::W8OctBuildNode()
 {
     memset(this, 0, 10 * sizeof(unsigned long));
-    leaf_kind_2a = 0;
+    leaf_kind = 0;
     region_28 = 0;
     provisional_region_2c = 0;
 }
@@ -71,7 +71,7 @@ W8OctBuildNode::W8OctBuildNode()
 // FUNCTION: WIZ8 0x00446350
 W8OctBuildNode::~W8OctBuildNode()
 {
-    if (leaf_kind_2a != 0) {
+    if (leaf_kind != 0) {
         memset(this, 0, 10 * sizeof(unsigned long));
         return;
     }
@@ -90,14 +90,14 @@ W8OctBuildTree::W8OctBuildTree(float leaf_size, srVector3T<float>* minimum,
     : spatial_00(0)
 {
     spatial_00.Reset();
-    link_lists_9c = 0;
-    leaf_polygon_count_a0 = 0;
-    gd_surface_count_a4 = 0;
+    link_lists = 0;
+    leaf_polygon_count = 0;
+    gd_surface_count = 0;
     leaf_count_a8 = 0;
     max_leaf_regions_ac = 0;
     unknown_ae = 0;
-    region_assignments_b0 = 0;
-    use_owned_nodes_b4 = 0;
+    region_assignments = 0;
+    use_owned_nodes = 0;
     unknown_b5[0] = 0;
     unknown_b5[1] = 0;
     unknown_b5[2] = 0;
@@ -177,7 +177,7 @@ W8OctBuildTree::W8OctBuildTree(float leaf_size, srVector3T<float>* minimum,
         spatial_00.m_item_count = 0;
         spatial_00.m_root = 0;
         spatial_00.m_triangle_vertices = 0;
-        link_lists_9c = new W8OctBuildLinkLists;
+        link_lists = new W8OctBuildLinkLists;
     }
 }
 
@@ -194,20 +194,20 @@ W8OctBuildTree::~W8OctBuildTree()
     g_oct_build_scratch = 0;
 
     spatial_00.m_triangle_vertices = 0;
-    if (link_lists_9c != 0) {
+    if (link_lists != 0) {
         for (int index = 0; index != 100; ++index) {
-            if (link_lists_9c->m_apLinkLists[index] != 0) {
-                free(link_lists_9c->m_apLinkLists[index]);
+            if (link_lists->m_apLinkLists[index] != 0) {
+                free(link_lists->m_apLinkLists[index]);
             }
-            link_lists_9c->m_apLinkLists[index] = 0;
-            link_lists_9c->m_ausLinkCounts[index] = 0;
+            link_lists->m_apLinkLists[index] = 0;
+            link_lists->m_ausLinkCounts[index] = 0;
         }
-        delete link_lists_9c;
+        delete link_lists;
     }
 }
 
 /* Recursive node teardown: internal nodes delete the eight children, leaf
-   nodes (leaf_kind_2a != 0) clear the ten link/array slots. */
+   nodes (leaf_kind != 0) clear the ten link/array slots. */
 
 /* Reject triangles outside the build domain, lazily create the root node, and
    then hand the complete typed working record to the recursive inserter. */
@@ -231,7 +231,7 @@ unsigned char W8OctBuildTree::InsertSurface(W8GDSurface* surface, unsigned long 
     }
 
     if (spatial_00.m_root == 0) {
-        if (use_owned_nodes_b4 == 0) {
+        if (use_owned_nodes == 0) {
             spatial_00.m_root = new W8OctBuildNode;
         } else {
             spatial_00.m_root = new W8CountedOctBuildNode;
@@ -287,7 +287,7 @@ unsigned char W8OctBuildTree::InsertSurfaceRecursive(W8OctSpatialState* working,
                                             plane_point) != 0) {
                         W8OctBuildNode* node = working->m_root;
                         if (node->children_00[octant] == 0) {
-                            if (use_owned_nodes_b4 == 0) {
+                            if (use_owned_nodes == 0) {
                                 node->children_00[octant] = new W8OctBuildNode;
                             } else {
                                 node->children_00[octant] = new W8CountedOctBuildNode;
@@ -311,20 +311,20 @@ unsigned char W8OctBuildTree::InsertSurfaceRecursive(W8OctSpatialState* working,
 // FUNCTION: WIZ8 0x00446d00
 void W8OctBuildTree::AppendLink(W8OctBuildNode* node, void* payload, short kind)
 {
-    ++node->leaf_kind_2a;
-    if (deepest_link_list_b8 < node->leaf_kind_2a) {
-        deepest_link_list_b8 = node->leaf_kind_2a;
+    ++node->leaf_kind;
+    if (deepest_link_list_b8 < node->leaf_kind) {
+        deepest_link_list_b8 = node->leaf_kind;
     }
     W8OctBuildLink* head = node->links_00[kind];
     if (head == 0) {
-        node->links_00[kind] = link_lists_9c->GetNewLink(payload);
+        node->links_00[kind] = link_lists->GetNewLink(payload);
         return;
     }
     W8OctBuildLink* next;
     for (next = head->next_04; next != 0; next = next->next_04) {
         head = next;
     }
-    head->next_04 = link_lists_9c->GetNewLink(payload);
+    head->next_04 = link_lists->GetNewLink(payload);
 }
 
 /* Segment query over the build tree: seed the caller's result array with the

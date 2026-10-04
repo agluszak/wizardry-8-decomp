@@ -27,7 +27,7 @@ int NoiseHearingMargin(int radius, int range, int hops)
 // FUNCTION: WIZ8 0x004F0E80
 void AlertMonsterGroupsToNoise(const srVector3T<float>* position, int radius, int flag)
 {
-    if (g_status.world_suspended_2390 != 0) {
+    if (g_status.world_suspended != 0) {
         return;
     }
     srVector3T<float> noise_position = *position;
@@ -36,7 +36,7 @@ void AlertMonsterGroupsToNoise(const srVector3T<float>* position, int radius, in
         W8MonsterGroup* group = GetMonsterGroupByListIndex(group_index);
         W8MonsterInfo* info = MonsterInfoFromID(
             0x2e, "C:\\Projects\\Wizardry 8\\Local Code\\Noise.cpp", group->leader_location_id, 1);
-        if (info->p3D->deaf_28f != 0) {
+        if (info->p3D->deaf != 0) {
             continue;
         }
         if (flag == 1) {
@@ -61,7 +61,7 @@ void AlertMonsterGroupsToNoise(const srVector3T<float>* position, int radius, in
             W8MonsterGroup* leader = GetMonsterGroupByListIndex(leader_index);
             info = MonsterInfoFromID(0x55, "C:\\Projects\\Wizardry 8\\Local Code\\Noise.cpp",
                                      leader->leader_location_id, 1);
-            if (info->p3D->deaf_28f != 0) {
+            if (info->p3D->deaf != 0) {
                 continue;
             }
         }
@@ -77,15 +77,15 @@ void AlertMonsterGroupsToNoise(const srVector3T<float>* position, int radius, in
                 continue;
             }
         }
-        if (remaining <= info->heard_noise_margin_2f5) {
+        if (remaining <= info->heard_noise_margin) {
             continue;
         }
         if (flag == 1) {
             MonsterGroupEnterCombat(group);
         }
-        info->heard_noise_radius_43 = radius;
-        info->heard_noise_margin_2f5 = remaining;
-        info->heard_noise_position_37 = noise_position;
+        info->heard_noise_radius = radius;
+        info->heard_noise_margin = remaining;
+        info->heard_noise_position = noise_position;
     }
 }
 
@@ -99,7 +99,7 @@ void AlertWorldNoise(void)
 // FUNCTION: WIZ8 0x004F1150
 void AlertCombatNoise(bool large_radius)
 {
-    if (g_status.world_suspended_2390 != 0) {
+    if (g_status.world_suspended != 0) {
         return;
     }
     srVector3T<float> position = g_startup_world->GetPosition();

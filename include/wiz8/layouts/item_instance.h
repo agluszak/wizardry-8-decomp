@@ -12,10 +12,10 @@ struct W8ItemInstance {
     unsigned char uses_or_charges; /* 0x05: quantity-kinds 2 through 4 */
     bool identified;
     /* 0x07: the spell hint displays even before full identification. */
-    unsigned char spell_hint_07;
+    unsigned char spell_hint;
     unsigned char unknown_08;
     /* 0x09 bit0: the item's one-shot use effect has fired. */
-    bool effect_used_09;
+    bool effect_used;
     /* 0x0a: the binding has already been announced for this instance, which is
        what stops the log line repeating. */
     unsigned char bind_announced;

@@ -8,7 +8,7 @@ static void* copyMemory(void* destination, const void* source, long size);
 // FUNCTION: SURRENDER 0x100013D0
 void srHuffman::BitIStream::fetchCache(long position)
 {
-    cache_base_84 = position;
+    cache_base = position;
     stream_00->seek(position);
     stream_00->read(cache_04, 0x80);
     stream_00->setState(srBinStream::SR_STREAM_OK);
@@ -17,7 +17,7 @@ void srHuffman::BitIStream::fetchCache(long position)
 // FUNCTION: SURRENDER 0x100015C0
 unsigned long srHuffman::BitIStream::getByte(long position)
 {
-    unsigned long offset = position - cache_base_84;
+    unsigned long offset = position - cache_base;
     if (offset >= 0x80) {
         fetchCache(position);
         offset = 0;
@@ -28,7 +28,7 @@ unsigned long srHuffman::BitIStream::getByte(long position)
 // FUNCTION: SURRENDER 0x10001490
 unsigned long srHuffman::BitIStream::getDWord(long position)
 {
-    unsigned long offset = position - cache_base_84;
+    unsigned long offset = position - cache_base;
     if (offset >= 0x7d) {
         fetchCache(position);
         offset = 0;
@@ -40,10 +40,10 @@ unsigned long srHuffman::BitIStream::getDWord(long position)
 // FUNCTION: SURRENDER 0x10001340
 unsigned long srHuffman::BitIStream::getWordOrLess(unsigned long bits)
 {
-    long position = bit_pos_88 / 8;
-    unsigned long shift = bit_pos_88 & 7;
+    long position = bit_pos / 8;
+    unsigned long shift = bit_pos & 7;
     unsigned long data = getDWord(position);
-    bit_pos_88 += bits;
+    bit_pos += bits;
     return (data & ((1 << (shift + bits)) - 1)) >> shift;
 }
 
@@ -51,8 +51,8 @@ unsigned long srHuffman::BitIStream::getWordOrLess(unsigned long bits)
 srHuffman::BitIStream::BitIStream(srBinIStream& stream)
 {
     stream_00 = &stream;
-    cache_base_84 = -0x100;
-    bit_pos_88 = stream_00->tell() << 3;
+    cache_base = -0x100;
+    bit_pos = stream_00->tell() << 3;
 }
 
 // FUNCTION: SURRENDER 0x100010E0
@@ -69,16 +69,16 @@ unsigned long srHuffman::BitIStream::get(unsigned long bits)
 // FUNCTION: SURRENDER 0x10001290
 unsigned long srHuffman::BitIStream::getBit()
 {
-    unsigned long data = getByte(bit_pos_88 / 8);
-    unsigned long bit = (data >> (bit_pos_88 & 7)) & 1;
-    ++bit_pos_88;
+    unsigned long data = getByte(bit_pos / 8);
+    unsigned long bit = (data >> (bit_pos & 7)) & 1;
+    ++bit_pos;
     return bit;
 }
 
 // FUNCTION: SURRENDER 0x10001320
 void srHuffman::BitIStream::rewind(long bits)
 {
-    bit_pos_88 -= bits;
+    bit_pos -= bits;
 }
 
 // FUNCTION: SURRENDER 0x10001420
@@ -200,10 +200,10 @@ srHuffman::Compressor::Compressor(const Sampler& sampler)
     total_24 = 0;
     nodes_10 = 0;
     root_18 = 0;
-    free_list_14 = 0;
+    free_list = 0;
     if (num_symbols_1c != 0) {
         nodes_10 = static_cast<Node*>(::operator new(num_symbols_1c * 2 * sizeof(Node)));
-        free_list_14 = nodes_10;
+        free_list = nodes_10;
         for (unsigned long index = 0; index < num_symbols_1c * 2; ++index) {
             nodes_10[index].symbol_00 = 0;
             nodes_10[index].frequency_04 = 0;
@@ -214,7 +214,7 @@ srHuffman::Compressor::Compressor(const Sampler& sampler)
             nodes_10[index].bits_0c = 0;
         }
         nodes_10[num_symbols_1c - 1].next_10 = 0;
-        free_list_14 = nodes_10 + num_symbols_1c;
+        free_list = nodes_10 + num_symbols_1c;
         nodes_10[num_symbols_1c * 2 - 1].next_10 = 0;
         collectSymbols(sampler);
         buildSymbolTree();
@@ -280,8 +280,8 @@ void srHuffman::Compressor::buildSymbolTree()
         heads[1] = 0;
         tails[1] = 0;
         for (unsigned long merged = 0; merged < num_symbols_1c - 1; ++merged) {
-            Node* node = free_list_14;
-            free_list_14 = node->next_10;
+            Node* node = free_list;
+            free_list = node->next_10;
             node->next_10 = 0;
             Node** slot = node->children_14;
             for (int remaining = 2; remaining != 0; --remaining) {
@@ -409,7 +409,7 @@ srHuffman::Decompressor::Decompressor(BitIStream& stream)
     stream_00 = &stream;
     num_symbols_14 = stream_00->get(0x20);
     code_width_0c = stream_00->get(6);
-    data_count_18 = stream_00->get(0x20);
+    data_count = stream_00->get(0x20);
     if (num_symbols_14 != 0) {
         symbols_04 = static_cast<Symbol*>(::operator new(num_symbols_14 * 0x18));
         setupSymbolTable(symbols_04);
@@ -442,7 +442,7 @@ srHuffman::Decompressor::~Decompressor()
 // FUNCTION: SURRENDER 0x10002500
 unsigned long srHuffman::Decompressor::getDataCount() const
 {
-    return data_count_18;
+    return data_count;
 }
 
 // FUNCTION: SURRENDER 0x10002510

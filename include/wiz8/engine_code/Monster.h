@@ -104,7 +104,7 @@ struct W8MonsterRep : public W8EmitterHost {
        "pMonRep->GetSpellIcons()". */
     W8PList* GetSpellIcons()
     {
-        return spell_icons_5e8;
+        return spell_icons;
     }
 
     W8GrowableVector<W8AnimObj*> animations[W8_MONSTER_CYCLE_COUNT];                   /* 0x0ac */
@@ -112,37 +112,37 @@ struct W8MonsterRep : public W8EmitterHost {
     W8GrowableVector<W8GrowableVector<stLight*>*> light_lists[W8_MONSTER_CYCLE_COUNT]; /* 0x40c */
     /* 0x5bc: per-party-member highlight bitmask - bit N set while party
        member N has the monster highlighted/targeted. */
-    unsigned char highlight_mask_5bc;
+    unsigned char highlight_mask;
     unsigned char padding_5bd[3];
     char* name_5c0; /* 0x5c0: owned copy */
     /* 0x5c4: number of populated party-icon entries in objects_5c8; the
        attachment layout read by UpdateAttachedObjects. */
-    int icon_count_5c4;
+    int icon_count;
     W8Item* objects_5c8[8];   /* 0x5c8 */
-    W8PList* spell_icons_5e8; /* 0x5e8: W8MonsterSpellIcon records */
-    float standing_height_5ec;
+    W8PList* spell_icons; /* 0x5e8: W8MonsterSpellIcon records */
+    float standing_height;
     float scale_5f0;
-    float minimum_scale_5f4;
-    float maximum_scale_5f8;
+    float minimum_scale;
+    float maximum_scale;
     /* 0x5fc: death shrink factor multiplying scale_5f0 on the death path. */
     float death_scale_5fc;
     /* 0x600: the rep carries a random idle cycle - animations[1] gets a
        per-update random playback scale. */
-    bool random_idle_600;
+    bool random_idle;
     /* 0x601: flies, swims or full-transitions - suppresses the grounded
        transition check at 0x004C0000. */
-    bool special_movement_601;
+    bool special_movement;
     unsigned char padding_602[2];
     /* 0x604: the idle cycle's own playback scale, added to the per-update
        random roll. */
-    float idle_playback_scale_604;
+    float idle_playback_scale;
     float random_idle_fps_min;
     float random_idle_fps_max;
     /* 0x610: left-handed strike chance percent; Random(100) is rolled
        against it for the mirrored attack anim. */
     int left_handed_610;
-    W8Vector<stModelInstance*> linked_runtime_objects_614;
-    class MonsterLight* monster_light_624;
+    W8Vector<stModelInstance*> linked_runtime_objects;
+    class MonsterLight* monster_light;
 
     unsigned char GetNumSubsPerCycle(signed char bCycle);
     /* 0x004C4660. A method, not the free function an earlier reading assumed:
@@ -267,7 +267,7 @@ public:
     /* 0x1e4: the monster's location id, stored by MonsterSetLocationId and
        used throughout for MonsterInfo lookups. */
     int location_id_1e4;
-    /* 0x1e8/0x1f0: the X/Z siblings of scale_y_1ec; mirror_x_1be flips the
+    /* 0x1e8/0x1f0: the X/Z siblings of scale_y_1ec; mirror_x flips the
        X term for left-handed strikes. */
     float scale_x_1e8;
     /* Y-axis scale applied while W8_MONSTER_SCALING_Y is set (decayed per
@@ -275,7 +275,7 @@ public:
     float scale_y_1ec;
     float scale_z_1f0;
     /* Attack-animation frame that triggers the missile launch. */
-    int missile_frame_1f4;
+    int missile_frame;
     /* Cycle-25 animation frame that triggers the attached spell effect. */
     int spell_frame_1f8;
     /* 0x1fc: talking state armed by StartTalking; cleared by StopTalking. */
@@ -288,86 +288,86 @@ public:
        flicker used while the gap track reports the mouth closed. */
     int mouth_frame_clock;
     int mouth_frame;
-    unsigned int talk_start_208;
-    unsigned int talk_duration_20c;
-    int talk_state_210;
+    unsigned int talk_start;
+    unsigned int talk_duration;
+    int talk_state;
     /* 0x214: the current mouth state the dialogue update copies out of the
        active W8MouthGapTrack; forces mouth frame 0 while open. */
     unsigned char mouth_open; // bool-byte-ok: copied raw from the C gap track byte
     /* 0x215: set while the monster is deactivated (active_088 cleared). */
-    unsigned char inactive_215;
+    unsigned char inactive;
     /* 0x216: raised at construction; cleared once AddMonsterToWorld and the
        spawn bookkeeping finish - iteration skips monsters still pending. */
-    bool pending_finalize_216;
+    bool pending_finalize;
     /* 0x217: suppresses rendering and radar/automap display. */
     bool disabled_217;
-    unsigned char nearest_to_party_218;
+    unsigned char nearest_to_party;
     unsigned char padding_219[3];
     /* 0x21c/0x220: hover base-height random range (scaled by
-       g_world_scale into movement_0c0.vertical_base_07c). */
-    int hover_base_min_21c;
-    int hover_base_max_220;
+       g_world_scale into movement_0c0.vertical_base). */
+    int hover_base_min;
+    int hover_base_max;
     /* 0x224/0x228: bob-amplitude random range (scaled into
-       movement_0c0.vertical_amplitude_080). */
-    int bob_amplitude_min_224;
-    int bob_amplitude_max_228;
+       movement_0c0.vertical_amplitude). */
+    int bob_amplitude_min;
+    int bob_amplitude_max;
     /* 0x22c: the missing spell-launch-vertex warning already fired once. */
-    bool spell_vertex_warned_22c;
+    bool spell_vertex_warned;
     /* 0x22d: the missing missile-start-point warning already fired once. */
-    bool missile_point_warned_22d;
-    signed char removal_state_22e;
+    bool missile_point_warned;
+    signed char removal_state;
     unsigned char padding_22f;
-    CycleCallback cycle_callback_230;
-    int callback_cycle_234;
+    CycleCallback cycle_callback;
+    int callback_cycle;
     stScript* script_238;
     int script_line_23c;
     int script_wait_240;
     W8GrowableVector<unsigned char> script_conditions_244;
     W8GameTimer timer_254;
     Trigger* trigger_278;
-    int registry_weight_27c;
+    int registry_weight;
     srVector3T<float> formation;
-    unsigned char defining_orders_28c;
-    unsigned char orders_finished_28d;
-    signed char order_mode_28e;
-    unsigned char deaf_28f;
-    unsigned char face_party_290;
-    unsigned char stay_home_291;
+    unsigned char defining_orders;
+    unsigned char orders_finished;
+    signed char order_mode;
+    unsigned char deaf;
+    unsigned char face_party;
+    unsigned char stay_home;
     unsigned char padding_292[2];
-    float patrol_distance_294;
-    float patrol_variation_298;
+    float patrol_distance;
+    float patrol_variation;
     W8GrowableVector<srVector3T<float> > vector_29c;
-    signed char patrol_index_2ac;
+    signed char patrol_index;
     unsigned char padding_2ad[3];
-    float direction_x_2b0;
-    float direction_y_2b4;
-    float direction_z_2b8;
+    float direction_x;
+    float direction_y;
+    float direction_z;
     /* 0x2bc: the direction the real-time AI moves the monster along, added to
        its position to pick the aim point (mode 0xa). */
-    srVector3T<float> move_direction_2bc;
-    int look_frequency_2c8;
-    int look_duration_2cc;
+    srVector3T<float> move_direction;
+    int look_frequency;
+    int look_duration;
     /* 0x2d0: sun-visibility state for the model light-scale lerp: -1
        uninitialized, 1 lit (scale toward 0.75), 0 shadowed (toward 0). */
-    int sunlit_state_2d0;
+    int sunlit_state;
     bool position_dirty_2d4;
     unsigned char padding_2d5[3];
     W8GameTimer timer_2d8;
-    float target_scale_2fc;
+    float target_scale;
     float current_scale_300;
     /* 0x304: one-shot latch; the cycle-25 spell frame fires
        CreateAttachedSpellEffect once then clears it. */
-    bool spell_effect_armed_304;
+    bool spell_effect_armed;
     unsigned char padding_305[3];
     srNode* node_308;
     W8GameTimer timer_30c;
-    signed char fade_state_330;
+    signed char fade_state;
     /* 0x331: this monster is the highlighted target; exempt from the
        attachment distance-scale clamp. */
-    bool target_highlighted_331;
+    bool target_highlighted;
     /* 0x332: copied from the source monster; blocks hostility recompute in
        Targeting and Combat Hostility. */
-    unsigned char hostility_preserved_332;
+    unsigned char hostility_preserved;
     unsigned char padding_333;
     stSound3D* sound_334;
     W8GrowableVector<int> values_338;

@@ -69,7 +69,7 @@ public:
     unsigned long triangle_count_04;
     srModeler::VertexHash* hash_08;
     long vertex_count_0c;
-    unsigned long edge_count_10;
+    unsigned long edge_count;
     VertexEntry* vertices_14;
     Edge* edges_18;
     TriangleEntry* entries_1c;
@@ -119,11 +119,11 @@ AutoSmoother::AutoSmoother(srModeler::Triangle* triangles, unsigned long triangl
         group->triangles_08[group->fill_04++] = index;
         entries += 3;
     }
-    edge_count_10 = 0;
+    edge_count = 0;
     for (vertex = 0; vertex < vertex_count_0c; ++vertex) {
-        edge_count_10 += (vertices_14[vertex].count_00 - 1) * vertices_14[vertex].count_00 / 2;
+        edge_count += (vertices_14[vertex].count_00 - 1) * vertices_14[vertex].count_00 / 2;
     }
-    edges_18 = new Edge[edge_count_10];
+    edges_18 = new Edge[edge_count];
     double cosine = cos(threshold);
     unsigned long edge = 0;
 #pragma clang diagnostic push
@@ -152,7 +152,7 @@ AutoSmoother::AutoSmoother(srModeler::Triangle* triangles, unsigned long triangl
     for (index = 0; index < triangle_count_04; ++index) {
         entries_1c[index].count_00 = 0;
     }
-    for (edge = 0; edge < edge_count_10; ++edge) {
+    for (edge = 0; edge < edge_count; ++edge) {
         ++entries_1c[edges_18[edge].first_08].count_00;
         ++entries_1c[edges_18[edge].second_0c].count_00;
     }
@@ -162,7 +162,7 @@ AutoSmoother::AutoSmoother(srModeler::Triangle* triangles, unsigned long triangl
         entries_1c[index].edges_04 = new unsigned long[entries_1c[index].count_00];
         entries_1c[index].fill_08 = 0;
     }
-    for (edge = 0; edge < edge_count_10; ++edge) {
+    for (edge = 0; edge < edge_count; ++edge) {
         TriangleEntry* first = &entries_1c[edges_18[edge].first_08];
         first->edges_04[first->fill_08++] = edge;
         TriangleEntry* second = &entries_1c[edges_18[edge].second_0c];
@@ -255,7 +255,7 @@ void AutoSmoother::assignGroups(long group)
 {
     if (group >= 0x1f) {
         srErr << "Warning: srModeler::autoSmooth() ran out of groups." << std::endl;
-        for (unsigned long index = 0; index < edge_count_10; ++index) {
+        for (unsigned long index = 0; index < edge_count; ++index) {
             if (edges_18[index].group_04 == -1) {
                 entries_1c[edges_18[index].first_08].groups_10 |= 0x80000000;
                 entries_1c[edges_18[index].second_0c].groups_10 |= 0x80000000;
@@ -264,14 +264,14 @@ void AutoSmoother::assignGroups(long group)
         }
         return;
     }
-    for (unsigned long index = 0; index < edge_count_10; ++index) {
+    for (unsigned long index = 0; index < edge_count; ++index) {
         Edge* edge = &edges_18[index];
         if (edge->smooth_00 != 0 && edge->group_04 == -1) {
             ++group;
             markEdge(edge, group);
             /* Rescan from the seed edge: a smooth edge with no hard-edge
                neighbour blocking this group joins it immediately. */
-            for (unsigned long scan = index; scan < edge_count_10; ++scan) {
+            for (unsigned long scan = index; scan < edge_count; ++scan) {
                 Edge* other = &edges_18[scan];
                 if (other->smooth_00 != 0 && other->group_04 == -1) {
                     unsigned long bit = 1 << (group & 0x1f);

@@ -62,7 +62,7 @@ void RecountCombatMonsters(void)
         }
     }
     if (gXStatus.fCombatMode && gXStatus.hostile_monster_count != 0) {
-        g_combat_state->enemies_engaged_a54 = true;
+        g_combat_state->enemies_engaged = true;
     }
     RequestRefreshPartyState();
 }
@@ -91,11 +91,11 @@ char MonsterHostility(W8MonsterInfo* first, W8MonsterInfo* second)
     }
     first_record = GetMonsterDataForInfo(first);
     second_record = GetMonsterDataForInfo(second);
-    first_faction = first_record->faction_id_25f;
+    first_faction = first_record->faction_id;
     if (first_faction == 0) {
         return 1;
     }
-    second_faction = second_record->faction_id_25f;
+    second_faction = second_record->faction_id;
     if (second_faction == 0 || first_faction != second_faction) {
         return 1;
     }
@@ -361,7 +361,7 @@ bool MonsterCanAimSpell(int spell_id)
 // FUNCTION: WIZ8 0x00547510
 bool CombatAllowsLiveGroups(void)
 {
-    return gXStatus.fCombatMode != 0 && g_combat_state->enemies_engaged_a54 == 0 &&
+    return gXStatus.fCombatMode != 0 && g_combat_state->enemies_engaged == 0 &&
            g_combat_state->round_count_004 <= 1;
 }
 
@@ -389,7 +389,7 @@ void SetMonsterGroupHostility(W8MonsterGroup* group, unsigned int hostility, boo
     }
     W8MonsterInfo* leader =
         MonsterInfoFromID(0x21e, COMBAT_HOSTILITY_CPP, group->leader_location_id, 1);
-    if (leader != 0 && leader->p3D->hostility_preserved_332) {
+    if (leader != 0 && leader->p3D->hostility_preserved) {
         return;
     }
     W8Disposition previous = group->ubDisposition;
@@ -431,13 +431,13 @@ void SetMonsterGroupHostility(W8MonsterGroup* group, unsigned int hostility, boo
     }
     if (recurse) {
         W8MonsterRecord* record = MonsterGroupGetRecord(group);
-        if (record->faction_id_25f != 0) {
+        if (record->faction_id != 0) {
             for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterGroupList); ++index) {
                 W8MonsterGroup* other = GetMonsterGroupByListIndex(index);
                 W8MonsterRecord* other_record = MonsterGroupGetRecord(other);
                 if (other != group &&
                     ((other_record->flags & W8_MONSTER_FLAG_NPC) == 0 || !other->forced_neutral) &&
-                    record->faction_id_25f == other_record->faction_id_25f &&
+                    record->faction_id == other_record->faction_id &&
                     MonsterGroupCanSeeGroup(other, group)) {
                     SetMonsterGroupHostility(other, group->ubDisposition, 0);
                 }
@@ -451,7 +451,7 @@ void SetMonsterGroupHostility(W8MonsterGroup* group, unsigned int hostility, boo
 void SetMonsterHostility(W8MonsterInfo* monster, unsigned char hostility)
 {
     W8Disposition previous = monster->ubDisposition;
-    if (previous == hostility || monster->p3D->hostility_preserved_332) {
+    if (previous == hostility || monster->p3D->hostility_preserved) {
         return;
     }
     monster->ubDisposition = hostility;
@@ -508,12 +508,12 @@ int TurnUndead(int party_slot, int* out_cost, bool check)
 
     W8TargetSource source;
     SetTargetSourceToCharacter(party_slot, &source);
-    source.aim_resolved_1a = true;
+    source.aim_resolved = true;
     int power;
     if (!check) {
         power = g_status.buffers.Char[party_slot].profession_levels[0xc] + 10 +
                 g_status.buffers.Char[party_slot].profession_levels[10];
-        source.auto_cast_18 = 1;
+        source.auto_cast = 1;
     } else {
         power = g_status.buffers.Char[party_slot].profession_levels[0xc] +
                 g_status.buffers.Char[party_slot].profession_levels[10];
@@ -609,8 +609,8 @@ int CharacterPrayAction(int party_slot)
         }
     }
     SetTargetSourceToCharacter(party_slot, &source);
-    source.auto_cast_18 = 1;
-    source.aim_resolved_1a = true;
+    source.auto_cast = 1;
+    source.aim_resolved = true;
     ResetCombatSlot(&target);
     PostCharacterNotice(party_slot, gppStringList[0x174]);
     cost = CharacterActionFatigueCost(party_slot, W8_ACTION_PRAY);
@@ -651,7 +651,7 @@ int CharacterPrayAction(int party_slot)
         case 0:
             if (Random(2) == 0) {
                 AppendToLastTextLine(gppStringList[0x178], -1);
-                g_combat_state->experience_bonus_014 += 10;
+                g_combat_state->experience_bonus += 10;
             } else {
                 AppendToLastTextLine(gppStringList[0x177], -1);
                 AddPartyGold(100, 1);
@@ -676,7 +676,7 @@ int CharacterPrayAction(int party_slot)
             for (index = 0; index < 8; ++index) {
                 W8Character* member = &g_status.buffers.Char[index];
                 if (g_status.buffers.XChar[index].fOccupied && member->hp_current != 0 &&
-                    member->highest_condition < 0x12 && member->enchantments[2].power_00 == 0) {
+                    member->highest_condition < 0x12 && member->enchantments[2].power == 0) {
                     ++in_range;
                     found = true;
                 }
@@ -686,7 +686,7 @@ int CharacterPrayAction(int party_slot)
                 for (index = 0; index < 8; ++index) {
                     W8Character* member = &g_status.buffers.Char[index];
                     if (g_status.buffers.XChar[index].fOccupied && member->hp_current != 0 &&
-                        member->highest_condition < 0x12 && member->enchantments[2].power_00 == 0 &&
+                        member->highest_condition < 0x12 && member->enchantments[2].power == 0 &&
                         --pick == 0) {
                         AppendToLastTextLine(
                             FormatWideString(gppStringList[0x17a], member->name, -1), -1);
@@ -915,13 +915,13 @@ int CharacterPrayAction(int party_slot)
 void AlertSameFactionGroups(W8MonsterGroup* monster_group)
 {
     W8MonsterRecord* record = MonsterGroupGetRecord(monster_group);
-    if (record->faction_id_25f != 0) {
+    if (record->faction_id != 0) {
         for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterGroupList); ++index) {
             W8MonsterGroup* other = GetMonsterGroupByListIndex(index);
             W8MonsterRecord* other_record = MonsterGroupGetRecord(other);
             if (other != monster_group &&
                 ((other_record->flags & W8_MONSTER_FLAG_NPC) == 0 || other->forced_neutral == 0) &&
-                record->faction_id_25f == other_record->faction_id_25f &&
+                record->faction_id == other_record->faction_id &&
                 MonsterGroupCanSeeGroup(other, monster_group) != 0) {
                 SetMonsterGroupHostility(other, monster_group->ubDisposition, 0);
             }

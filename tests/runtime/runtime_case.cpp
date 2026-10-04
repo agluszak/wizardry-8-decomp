@@ -281,15 +281,15 @@ void CheckGameplayReadyOnGameThread(void* opaque)
        regions are disabled even though input is not blocked. */
     bool settled = g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
                    g_pending_screen_state.id == -1 && g_mgs_keyboard != 0 && g_level_block != 0 &&
-                   !g_level_block->review_transition_done_328 &&
+                   !g_level_block->review_transition_done &&
                    !g_level_block->review_transition_active && g_level_data != 0 &&
                    !IsScreenInputBlocked() && gXStatus.world_update_blocked == 0;
     check->screen = g_current_screen_state.id;
     check->pending = g_pending_screen_state.id;
     check->keyboard_present = g_mgs_keyboard != 0;
     check->level_block_present = g_level_block != 0;
-    check->review_transition_done_328 =
-        g_level_block != 0 ? g_level_block->review_transition_done_328 : -1;
+    check->review_transition_done =
+        g_level_block != 0 ? g_level_block->review_transition_done : -1;
     check->review_transition_active =
         g_level_block != 0 ? g_level_block->review_transition_active : -1;
     check->level_data_present = g_level_data != 0;
@@ -347,7 +347,7 @@ void ReadGameplaySnapshotOnGameThread(void* opaque)
     s->combat = gXStatus.fCombatMode != 0;
     s->movement_ui = gXStatus.fPartyMovementUi != 0;
     s->movement_budget = g_level_block != 0 ? g_level_block->move_budget_2dc : 0;
-    s->round_active = g_combat_state != 0 ? g_combat_state->execution_active_000 : 0;
+    s->round_active = g_combat_state != 0 ? g_combat_state->execution_active : 0;
     s->round_count = g_combat_state != 0 ? g_combat_state->round_count_004 : 0;
     s->party_action_status = g_combat_state != 0 ? g_combat_state->uiCurrentPartyActionStatus : 0;
     s->action_status = g_combat_state != 0 ? g_combat_state->eCombatActionStatus : 0;

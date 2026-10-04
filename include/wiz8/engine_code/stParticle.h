@@ -50,18 +50,18 @@ public:
     double particle_size_140; /* 0x140: billboard quad scale from particle_size */
     /* Per-particle world positions; the retail allocation assert spells the
        buffer pParticle. */
-    srVector3T<float>* particle_positions_148;
+    srVector3T<float>* particle_positions;
     srMaterialIFace* retained_14c;
     srShader render_flags_150;
     srTextureIFace* texture_154;
     unsigned int vertex_count_158;
     /* particle_count_180 * 2 - the billboard triangle count, and the length of
-       texture_frames_178 where consecutive pairs share one frame. */
-    unsigned int texture_frame_count_15c;
+       texture_frames where consecutive pairs share one frame. */
+    unsigned int texture_frame_count;
     /* Per-vertex billboard corners (assert pVertex), texture UVs (pTexCoord)
        and triangle index triples; srHeap-allocated, vertex_count_158 /
-       texture_frame_count_15c long. */
-    srVector3T<float>* vertex_positions_160;
+       texture_frame_count long. */
+    srVector3T<float>* vertex_positions;
     srVector2T<float>* texcoords_164;
     srVector3i* triangles_168;
     /* Optional per-vertex arrays handed to the record/pipeline color and
@@ -70,76 +70,76 @@ public:
     srVector3T<float>* colors_16c;
     srVector3T<float>* vertex_extras_170;
     float* alphas_174;
-    stTextureAnim** texture_frames_178;
+    stTextureAnim** texture_frames;
     float* m_pflFlutterAngle; /* 0x17c */
     unsigned int particle_count_180;
     /* Both unsigned: 0x004994D0 gates the particle off with the unsigned
-       `emission_limit_184 != 0 && emission_limit_184 <= emission_count_188` pair. */
+       `emission_limit_184 != 0 && emission_limit_184 <= emission_count` pair. */
     unsigned int emission_limit_184;
-    unsigned int emission_count_188;
-    unsigned int active_particle_count_18c;
+    unsigned int emission_count;
+    unsigned int active_particle_count;
     bool release_when_done_190;
     bool replace_when_full_191;
-    bool persisted_192;
+    bool persisted;
     unsigned char padding_193;
     /* Per-particle liveness flag byte; the update loop retires it when the
        birth tick plus lifetime expires. */
-    bool* particle_active_194;
+    bool* particle_active;
     /* Per-particle velocity; acceleration_1f4 integrates it each update. */
-    srVector3T<float>* velocities_198;
+    srVector3T<float>* velocities;
     /* Unsigned millisecond birth ticks, one per particle. */
-    unsigned int* birth_ticks_19c;
-    unsigned char emitting_1a0;
-    bool traversal_enabled_1a1;
+    unsigned int* birth_ticks;
+    unsigned char emitting;
+    bool traversal_enabled;
     unsigned char padding_1a2[2];
     int bounds_mode_1a4;
     int has_acceleration_1a8;
     int expiry_mode_1ac;
-    int emission_mode_1b0;
-    int los_check_enabled_1b4;
+    int emission_mode;
+    int los_check_enabled;
     int direction_mode_1b8;
     int placement_mode_1bc;
     int flutter_mode_1c0;
-    int camera_relative_1c4;
+    int camera_relative;
     /* Emission interval; elapsed comparisons use unsigned subtraction. */
     unsigned int emission_interval_1c8;
     /* Lifetime added to each absolute unsigned birth tick. */
-    unsigned int lifetime_ms_1cc;
+    unsigned int lifetime_ms;
     srVector3T<float> minimum_1d0;
     srVector3T<float> maximum_1dc;
     srVector3T<float> direction_1e8;
     srVector3T<float> acceleration_1f4;
-    float flutter_amplitude_200;
+    float flutter_amplitude;
     /* 0x00498DD0 uses this as an unsigned modulus period. */
     unsigned int flutter_period_204;
-    float cone_yaw_208;
-    float cone_pitch_20c;
-    float initial_speed_210;
+    float cone_yaw;
+    float cone_pitch;
+    float initial_speed;
     float speed_min_214;
     float speed_max_218;
     srVector3T<float> minimum_21c;
     srVector3T<float> maximum_228;
     srVector3T<float> bounds_origin_234;
     float bounds_radius_240;
-    /* Added to the camera position when camera_relative_1c4 selects camera-relative
+    /* Added to the camera position when camera_relative selects camera-relative
        placement. */
     srVector3T<float> camera_offset_244;
-    unsigned int update_flags_250;
+    unsigned int update_flags;
     /* Index pairs, two per still-active particle, rebuilt whenever
-       update_flags_250 carries bit 1. */
+       update_flags carries bit 1. */
     unsigned long* active_triangles_254;
     /* Last accepted particle-integration tick. */
-    unsigned int activated_at_258;
+    unsigned int activated_at;
     /* Emission schedule tick. */
-    unsigned int updated_at_25c;
+    unsigned int updated_at;
     short attachment_key_260;
     unsigned char padding_262[2];
     int start_frame_264;
     int end_frame_268;
     W8MonsterShakeCallback* callback_26c;
-    unsigned int emission_gap_270;
-    unsigned int last_emitted_at_274;
-    float size_scale_278;
+    unsigned int emission_gap;
+    unsigned int last_emitted_at;
+    float size_scale;
     unsigned char padding_27c[4];
 };
 

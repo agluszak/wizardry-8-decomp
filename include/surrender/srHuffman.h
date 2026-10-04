@@ -49,8 +49,8 @@ public:
 
         srBinIStream* stream_00;
         unsigned char cache_04[0x80];
-        long cache_base_84;
-        long bit_pos_88;
+        long cache_base;
+        long bit_pos;
     };
 
     class
@@ -147,7 +147,7 @@ public:
 
         srHashTable<unsigned long, Node*> table_00;
         Node* nodes_10;
-        Node* free_list_14;
+        Node* free_list;
         Node* root_18;
         unsigned long num_symbols_1c;
         unsigned long code_width_20;
@@ -190,7 +190,7 @@ public:
         unsigned long code_width_0c;
         unsigned long unknown_10;
         unsigned long num_symbols_14;
-        unsigned long data_count_18;
+        unsigned long data_count;
         Symbol* lookup_1c[0x100];
         unsigned char depth_41c[0x100];
     };

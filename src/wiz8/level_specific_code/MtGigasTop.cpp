@@ -25,7 +25,7 @@ bool OnEwaxxCannon1Activated(Trigger* trigger)
     W8ItemInstance* item = 0;
 
     if (g_status.item_in_cursor != 0) {
-        item = &g_status.item_in_hand_235b;
+        item = &g_status.item_in_hand;
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);
     return true;
@@ -40,7 +40,7 @@ bool OnEwaxxLandingActivated(Trigger* trigger)
     W8ItemInstance* item = 0;
 
     if (g_status.item_in_cursor != 0) {
-        item = &g_status.item_in_hand_235b;
+        item = &g_status.item_in_hand;
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);
     return true;
@@ -64,7 +64,7 @@ bool OnEwaxxTopDoor2Activated(Trigger* trigger)
     W8ItemInstance* item = 0;
 
     if (g_status.item_in_cursor != 0) {
-        item = &g_status.item_in_hand_235b;
+        item = &g_status.item_in_hand;
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);
     g_trigger_feedback = 1;

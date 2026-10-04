@@ -635,7 +635,7 @@ bool MartensBluff2StoneIdol(Trigger* pTrigger)
     if (g_status.item_in_cursor != 0) {
         return false;
     }
-    ReplaceOrCreateItem(&g_status.item_in_hand_235b, 0x291, 0, 0, 0);
+    ReplaceOrCreateItem(&g_status.item_in_hand, 0x291, 0, 0, 0);
     SetItemCursor(0);
     ShowString(gppStringList[0x71d]);
     particle = FindRegisteredParticle("IdolGas");
@@ -660,7 +660,7 @@ bool MartensBluff2BlueFlowers(Trigger* pTrigger)
         if (g_status.item_in_cursor != 0) {
             return false;
         }
-        ReplaceOrCreateItem(&g_status.item_in_hand_235b, 0x2eb, 0, 0, 0);
+        ReplaceOrCreateItem(&g_status.item_in_hand, 0x2eb, 0, 0, 0);
         SetItemCursor(0);
     }
     g_running_trigger_from_script = false;

@@ -51,19 +51,19 @@
 // FUNCTION: WIZ8 0x0050E700
 void RebuildPartyEffectBlock(void)
 {
-    memset(&g_status.party_modifiers_22e3, 0, sizeof(W8GameplayModifierBlock));
-    ApplyPartyEffectSlots(g_status.effect_slots_17af, &g_status.party_modifiers_22e3);
+    memset(&g_status.party_modifiers, 0, sizeof(W8GameplayModifierBlock));
+    ApplyPartyEffectSlots(g_status.effect_slots_17af, &g_status.party_modifiers);
     if (gXStatus.fCombatMode != 0) {
-        unsigned char value = g_status.party_modifiers_22e3.armor_bonus_05;
+        unsigned char value = g_status.party_modifiers.armor_bonus_05;
 
         for (int index = 0; index < 9; ++index) {
             W8EffectSlot* slot = &g_combat_state->effect_slots[index];
             if (slot->active != 0 && slot->effect_id == 0x31) {
                 value -= slot->amount;
-                g_status.party_modifiers_22e3.armor_bonus_05 = value;
+                g_status.party_modifiers.armor_bonus_05 = value;
             }
         }
-        ApplyCombatEffectSlots(g_combat_state->effect_slots_85a, &g_status.party_modifiers_22e3);
+        ApplyCombatEffectSlots(g_combat_state->effect_slots_85a, &g_status.party_modifiers);
     }
     int active = 0;
     unsigned int slot_byte = 0;
@@ -77,9 +77,9 @@ void RebuildPartyEffectBlock(void)
         ++active;
     }
     if (slot_byte < 0x830) {
-        g_status.party_modifiers_22e3.boost_health_regen = 1;
-        g_status.party_modifiers_22e3.boost_stamina_regen = 1;
-        g_status.party_modifiers_22e3.boost_spell_regen = 1;
+        g_status.party_modifiers.boost_health_regen = 1;
+        g_status.party_modifiers.boost_stamina_regen = 1;
+        g_status.party_modifiers.boost_spell_regen = 1;
     }
     for (int party_slot = 0; party_slot < 8; ++party_slot) {
         if (g_status.buffers.XChar[party_slot].fOccupied != 0) {
@@ -88,12 +88,12 @@ void RebuildPartyEffectBlock(void)
             RecalculateCharacterDerivedStats(character);
         }
     }
-    if (g_status.party_modifiers_22e3.light_47 == 0) {
+    if (g_status.party_modifiers.light_47 == 0) {
         SetSkyNodeVisible(0);
         return;
     }
     SetSkyNodeVisible(1);
-    SetCameraLightIntensity(g_status.party_modifiers_22e3.light_47 + g_environment_near_scale);
+    SetCameraLightIntensity(g_status.party_modifiers.light_47 + g_environment_near_scale);
 }
 
 /* Fold the worn items into one character's equipment bonus block: the twelve
@@ -155,7 +155,7 @@ void ApplyModifierBlock(W8GameplayModifierBlock* target, const W8GameplayModifie
     target->hit_bonus_01 += source->hit_bonus_01;
     target->attack_bonus_02 += source->attack_bonus_02;
     target->damage_percent_03 += source->damage_percent_03;
-    target->armor_class_adjustment_4b += source->armor_class_adjustment_4b;
+    target->armor_class_adjustment += source->armor_class_adjustment;
     target->armor_bonus_04 += source->armor_bonus_04;
     target->armor_bonus_05 += source->armor_bonus_05;
     target->damage_reduction_adjustment += source->damage_reduction_adjustment;
@@ -185,8 +185,8 @@ void ApplyModifierBlock(W8GameplayModifierBlock* target, const W8GameplayModifie
     if (source->out_of_formation != 0) {
         target->out_of_formation = 1;
     }
-    if (source->detect_secrets_46 != 0) {
-        target->detect_secrets_46 = 1;
+    if (source->detect_secrets != 0) {
+        target->detect_secrets = 1;
     }
     if (source->sight_override_4a != 0) {
         target->sight_override_4a = 1;
@@ -197,8 +197,8 @@ void ApplyModifierBlock(W8GameplayModifierBlock* target, const W8GameplayModifie
     if (target->value_48 < source->value_48) {
         target->value_48 = source->value_48;
     }
-    if (target->missile_deflect_chance_49 < source->missile_deflect_chance_49) {
-        target->missile_deflect_chance_49 = source->missile_deflect_chance_49;
+    if (target->missile_deflect_chance < source->missile_deflect_chance) {
+        target->missile_deflect_chance = source->missile_deflect_chance;
     }
 }
 
@@ -231,7 +231,7 @@ void ApplyPartyEffectSlots(const W8EffectSlot* source, W8GameplayModifierBlock* 
                 target->resistance_bonus_all += adjusted;
                 break;
             case 0x11:
-                target->detect_secrets_46 = 1;
+                target->detect_secrets = 1;
                 break;
             case 8:
                 AdjustByteByPercent(&adjusted, percent);
@@ -244,7 +244,7 @@ void ApplyPartyEffectSlots(const W8EffectSlot* source, W8GameplayModifierBlock* 
             case 0x1a:
                 adjusted = static_cast<unsigned char>((slot->amount + 5) * 5);
                 AdjustByteByPercent(&adjusted, percent);
-                target->missile_deflect_chance_49 = adjusted;
+                target->missile_deflect_chance = adjusted;
                 break;
             case 0x2d:
                 target->sight_override_4a = 1;
@@ -298,9 +298,9 @@ void RebuildCharacterModifierBlock(W8Character* character)
 {
     memset(&character->bonus_1770, 0, sizeof(W8GameplayModifierBlock));
     ApplyModifierBlock(&character->bonus_1770, &character->equipment_bonus_1709);
-    ApplyModifierBlock(&character->bonus_1770, &character->condition_modifiers_16a2);
+    ApplyModifierBlock(&character->bonus_1770, &character->condition_modifiers);
     if (character->fInParty != 0) {
-        ApplyModifierBlock(&character->bonus_1770, &g_status.party_modifiers_22e3);
+        ApplyModifierBlock(&character->bonus_1770, &g_status.party_modifiers);
     }
 }
 
@@ -334,11 +334,11 @@ void RebuildConditionsAndDerivedStats(int party_slot)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
 
-    memset(&character->condition_modifiers_16a2, 0, sizeof(W8GameplayModifierBlock));
+    memset(&character->condition_modifiers, 0, sizeof(W8GameplayModifierBlock));
     ApplyConditionModifiers(character, character->uiCondition, character->condition_argument,
-                            &character->condition_modifiers_16a2);
-    ApplyEnchantmentModifiers(character->enchantments, &character->condition_modifiers_16a2);
-    ApplyBoundNpcPenalty(character, &character->condition_modifiers_16a2);
+                            &character->condition_modifiers);
+    ApplyEnchantmentModifiers(character->enchantments, &character->condition_modifiers);
+    ApplyBoundNpcPenalty(character, &character->condition_modifiers);
     RebuildCharacterModifierBlock(character);
     RecalculateCharacterDerivedStats(character);
 }
@@ -390,22 +390,22 @@ void ApplyConditionModifiers(W8Character* character, const unsigned int* conditi
         switch (index) {
         case 3:
             target->hit_bonus_01 -= 2;
-            target->armor_class_adjustment_4b -= 2;
+            target->armor_class_adjustment -= 2;
             break;
         case 4:
             target->hit_bonus_01 -= 5;
-            target->armor_class_adjustment_4b -= 4;
+            target->armor_class_adjustment -= 4;
             break;
         case 5:
             target->attribute_adjustments[5] -= 0x32;
             break;
         case 6:
             target->hit_bonus_01 -= 3;
-            target->armor_class_adjustment_4b -= 2;
+            target->armor_class_adjustment -= 2;
             break;
         case W8_CONDITION_POISONED:
             target->hit_bonus_01 -= 2;
-            target->armor_class_adjustment_4b -= 2;
+            target->armor_class_adjustment -= 2;
             target->damage_per_minute += condition_argument;
             break;
         case 9:
@@ -441,12 +441,12 @@ void ApplyConditionModifiers(W8Character* character, const unsigned int* conditi
         case 0x13:
             if (GetConditionRecordFlag(CharacterPointerToPartySlot(character), 1) != 0) {
                 W8MonsterInfo* bound;
-                if (character->conditions_1817[1].level_acquired_00 == g_status.current_level &&
+                if (character->conditions_1817[1].level_acquired == g_status.current_level &&
                     (bound = MonsterInfoFromID(0x16b, GAMEPLAY_MODS_CPP,
                                                character->conditions_1817[1].source_monster_04,
                                                1)) != 0) {
                     W8MonsterRecord* monster = GetMonsterDataForInfo(bound);
-                    target->health_regen_adjustment += -1 - (monster->effective_level_24f >> 1);
+                    target->health_regen_adjustment += -1 - (monster->effective_level >> 1);
                 } else {
                     target->health_regen_adjustment += -5;
                 }
@@ -468,28 +468,28 @@ void ApplyEnchantmentModifiers(const W8Enchantment* enchantments, W8GameplayModi
 
     for (unsigned int index = 0; index < 8; ++index) {
         const W8Enchantment* slot = &enchantments[index];
-        if (slot->turns_08 == 0) {
+        if (slot->turns == 0) {
             continue;
         }
         switch (index) {
         case 5:
-            amount = static_cast<unsigned char>(slot->power_00 * 10);
-            AdjustByteByPercent(&amount, slot->percent_04);
+            amount = static_cast<unsigned char>(slot->power * 10);
+            AdjustByteByPercent(&amount, slot->percent);
             target->attribute_adjustments[5] += amount;
             break;
         case 6:
-            amount = static_cast<unsigned char>(slot->power_00 * 5);
-            AdjustByteByPercent(&amount, slot->percent_04);
+            amount = static_cast<unsigned char>(slot->power * 5);
+            AdjustByteByPercent(&amount, slot->percent);
             for (i = 0; i < 7; ++i) {
                 target->attribute_adjustments[i] += amount;
             }
             break;
         case 7:
-            amount = static_cast<unsigned char>(slot->power_00 << 3);
-            AdjustByteByPercent(&amount, slot->percent_04);
+            amount = static_cast<unsigned char>(slot->power << 3);
+            AdjustByteByPercent(&amount, slot->percent);
             target->damage_reduction_adjustment += amount;
-            amount = static_cast<unsigned char>(slot->power_00);
-            AdjustByteByPercent(&amount, slot->percent_04);
+            amount = static_cast<unsigned char>(slot->power);
+            AdjustByteByPercent(&amount, slot->percent);
             target->armor_bonus_05 += amount;
             break;
         }

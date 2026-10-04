@@ -15,7 +15,7 @@ public:
         unsigned long* clip_flags_08;
         unsigned long triangle_count_0c;
         unsigned long vertex_count_10;
-        int linear_14;
+        int linear;
     };
 
     struct Input {

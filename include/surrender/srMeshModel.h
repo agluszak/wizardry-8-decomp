@@ -45,7 +45,7 @@ public:
         long vertex_count_00;
         long polygon_count_04;
         long pass_count_08;
-        unsigned long control_flags_0c;
+        unsigned long control_flags;
         srVector3i* poly_vertices_10;
         srVector4T<float>* poly_equations_14;
         srVector2T<float>* texcoords_18[4][2];
@@ -59,7 +59,7 @@ public:
         srShader shaders_b0[4];
         srPtr<srMaterialIFace>* vertex_materials_c0[4][2];
         srPtr<srTextureIFace>* poly_textures_e0[4][2];
-        srShader* poly_shaders_100[4];
+        srShader* poly_shaders[4];
         srVector3i* poly_uv_110[4];
         srVector3T<float> bounds_minimum_120;
         srVector3T<float> bounds_maximum_12c;
@@ -307,15 +307,15 @@ public:
     MeshTable<srShader> poly_shaders_ac[4];
     MeshTable<srPtr<srMaterialIFace> > vertex_materials_cc[4][2];
     MeshTable<srVector3i> poly_vertices_10c;
-    MeshTable<srVector3i> poly_uv_indices_114[4];
+    MeshTable<srVector3i> poly_uv_indices[4];
     MeshTable<srVector4T<float> > poly_equations_134;
     MeshTable<srVector2T<float> > texcoords_13c[4][2];
     MeshTable<srVector3T<float> > dig_17c[4];
     MeshTable<srVector4T<float> > dcg_19c[4];
     MeshTable<srVector4T<float> > scg_1bc[4];
     MeshTable<srVector3T<float> > vertex_locations_1dc;
-    MeshTable<srVector3T<float> > vertex_normals_1e4;
-    MeshTable<unsigned long> vertex_shade_indices_1ec;
+    MeshTable<srVector3T<float> > vertex_normals;
+    MeshTable<unsigned long> vertex_shade_indices;
     MeshTable<unsigned long> active_polygons_1f4;
     long active_polygon_count_1fc;
     srVector3T<float> bounds_minimum_200;

@@ -52,13 +52,13 @@ struct W8GlobalStatus {
     int total_member_count;
     unsigned int party_gold;
     int selected_character;
-    W8ItemInstance party_item_pool_0021[500];
-    unsigned int party_item_count_1791;
+    W8ItemInstance party_item_pool[500];
+    unsigned int party_item_count;
     /* 0x1795: signed 16-bit text-box line cursor. Every retail access is a
        word load/store or MOVSX; a 32-bit type would overlap the legacy save
        fields at +0x1797. */
-    short text_line_cursor_1795;
-    unsigned int legacy_text_box_lines_1797[2][3];
+    short text_line_cursor;
+    unsigned int legacy_text_box_lines[2][3];
     /* 0x17af: the party's twelve effect slots, the same 0x11-byte records the
        monster and combat tables hold. The trailing run is opaque. */
     W8EffectSlot effect_slots_17af[12];
@@ -66,15 +66,15 @@ struct W8GlobalStatus {
     int party_facing;
     unsigned int party_heading;
     int world_clock;
-    unsigned int world_clock_ms_18dc;
+    unsigned int world_clock_ms;
     unsigned int party_order_slots[8];
     int current_level;
     /* 0x1904..0x1a03: the 0x100-byte STAT header block. Assertion evidence
        names the dword at +0xd4 uiTurnsElapsed; the surrounding bytes remain a
        save/load blob. */
-    unsigned char status_header_prefix_1904[0xd4];
+    unsigned char status_header_prefix[0xd4];
     unsigned int uiTurnsElapsed; /* 0x19d8 */
-    unsigned char status_header_suffix_19dc[0x28];
+    unsigned char status_header_suffix[0x28];
     W8LevelProgressRow level_progress[W8_LEVEL_COUNT];
     unsigned char unknown_2013[0x294];
     /* 0x22a7: CamPos staged by recall when the anchor is on another level;
@@ -83,97 +83,97 @@ struct W8GlobalStatus {
     /* 0x22e3: the party-wide modifier block the effect rebuild clears and
        refills. Its +0x4a flag is the light gate the monster-sight threshold
        pass reads. */
-    W8GameplayModifierBlock party_modifiers_22e3;
+    W8GameplayModifierBlock party_modifiers;
     int next_group_id_234a;
     int next_monster_location_id_234e;
     int next_world_item_id_2352;
     int next_trigger_id_2356;
     unsigned char item_in_cursor;
-    W8ItemInstance item_in_hand_235b;
+    W8ItemInstance item_in_hand;
     /* 0x2367: per-slot flags the character-load path consults at 0x006874D7. */
     unsigned char flags_2367[0x20];
     unsigned int game_time_ms;
-    unsigned int aging_accumulator_238b;
+    unsigned int aging_accumulator;
     /* 0x238f: search mode toggle. Mirrors the submenu search button, slows
        party movement, and scales the monster-sight threshold while set. */
     unsigned char search_mode;
     /* 0x2390: cleared by the main-game frame; HP/SP and condition updates
        skip work while it is set, and encounter culling treats it as the
        force-despawn gate. */
-    bool world_suspended_2390;
+    bool world_suspended;
     /* 0x2391/0x2395: session accumulators ConsumeLevelElapsedTime
        folds the level's pending elapsed times into; the 0x00502D00 wait
        pass sums them against zero. */
     float real_elapsed_2391;
     float frame_elapsed_2395;
-    unsigned int wait_state_2399;
-    unsigned int item_recharge_ms_239d;
+    unsigned int wait_state;
+    unsigned int item_recharge_ms;
     W8PartyFormationState formation;
     int game_time_days;
     unsigned char iron_man;
     /* 0x242a: world-clock stamp of the last NPC-binding reset; the event
        pass waits 0x3c ticks past it. */
-    int binding_reset_clock_242a;
+    int binding_reset_clock;
     /* 0x242e: binding-reset grace period in effect; cleared once the sweep
        runs after the clock elapses. */
-    bool binding_reset_pending_242e;
+    bool binding_reset_pending;
     unsigned char padding_242f;
     /* 0x2430: one-shot gate for the NPC event pass. */
-    bool npc_restore_pending_2430;
+    bool npc_restore_pending;
     /* 0x2431: raised by the .nsf quote audit while it runs; ShowNotice counts
        each notice's wrapped lines under it. */
-    unsigned char quote_audit_2431;
-    /* 0x2432: ShowNotice sets it under quote_audit_2431 when a notice wraps
+    unsigned char quote_audit;
+    /* 0x2432: ShowNotice sets it under quote_audit when a notice wraps
        past seven lines; the audit reports those as "Long Quote". */
-    unsigned char long_quote_2432;
-    bool party_fatigued_2433;
+    unsigned char long_quote;
+    bool party_fatigued;
     /* 0x2434: index of the party member the main-game selection flow is on.
        The screen reset writes 0xff and the 0x00526E90 handler reads and
        updates it while walking the 0x1862-byte character records. */
-    unsigned char selected_party_member_2434;
+    unsigned char selected_party_member;
     /* 0x2435: read as a gate by the main-game frame's world-cursor path. */
-    unsigned char world_cursor_gate_2435;
-    unsigned int camp_tick_ms_2436;
+    unsigned char world_cursor_gate;
+    unsigned int camp_tick_ms;
     /* 0x243a: the five RPC race ids AssayDialog walks as NUM_RPC_RACES. */
-    unsigned char rpc_races_243a[5];
+    unsigned char rpc_races[5];
     unsigned char unknown_243f[5];
     /* Character creation skips the loose CHR collision check when set. */
-    unsigned char skip_loose_character_check_2444;
+    unsigned char skip_loose_character_check;
     /* 0x2445: latched once the Trynnie2 Zulu/0x1c3 use-item action has been
        handled at a cursor node; later uses take the Mystical Shaman branch. */
-    bool use_item_latch_2445;
-    bool infatuation_pending_2446;
+    bool use_item_latch;
+    bool infatuation_pending;
     int difficulty;
     /* 0x244b: the save file's creation-time pair XOR-masked by SaveGame's
        two data constants; both halves are written as dwords. */
-    unsigned int save_filetime_xor_244b[2];
-    wchar_t monster_name_buffer_2453[22];
-    /* 0x247f: party slot selected by the Sedexus path before rpc_active_2489
+    unsigned int save_filetime_xor[2];
+    wchar_t monster_name_buffer[22];
+    /* 0x247f: party slot selected by the Sedexus path before rpc_active
        is armed; later capture, fact and death handling reuse the same slot. */
     int sedexus_party_slot_247f;
-    unsigned int stamina_tick_ms_2483;
-    unsigned char condition13_clock_2487;
+    unsigned int stamina_tick_ms;
+    unsigned char condition13_clock;
     /* 0x2488: one-shot gate; when set, the next condition-change and
        condition-cleared reaction is swallowed and the flag cleared. */
     unsigned char skip_next_condition_reaction;
-    bool rpc_active_2489; /* 0x2489: fact 0x14c gate */
+    bool rpc_active; /* 0x2489: fact 0x14c gate */
     /* 0x248a: armed by the long NPC reward event; the event also stamps
        0x2493 with the world clock. */
-    bool fact_b8_pending_248a;
-    unsigned int condition13_stamp_248b;
-    int pending_condition_party_slot_248f;
-    int fact_b8_clock_2493;
+    bool fact_b8_pending;
+    unsigned int condition13_stamp;
+    int pending_condition_party_slot;
+    int fact_b8_clock;
     bool greeting_pending_2497;
-    unsigned int camp_fatigue_count_2498;
+    unsigned int camp_fatigue_count;
     /* 0x249c: party slot fact 0x39 hands to RemoveCharacterCondition. */
     int party_slot_249c;
     /* 0x24a0: per-spell 0x10-byte stat records; TrackItemSpellSource
        walks records[0..149] bumping usable_cast_count for spells the character
        carries and cast_count for the selected source spell. */
-    W8ItemSpellUsageRecord item_spell_usage_24a0[200];
-    unsigned char log_fact_checks_3120;
-    int status_ints_3121[1000];
-    bool fact_88_latch_40c1;
+    W8ItemSpellUsageRecord item_spell_usage[200];
+    unsigned char log_fact_checks;
+    int status_ints[1000];
+    bool fact_88_latch;
     unsigned char unknown_40c2[0xc];
     /* Retail addresses cast_count through +0x40c2 + spell_id * 0x10 and
        usable_cast_count through +0x40c6 + spell_id * 0x10. These are the
@@ -182,12 +182,12 @@ struct W8GlobalStatus {
        Spell 0x72 is item-routed in the audited producers; the unchecked cast
        update would enter the following unknown storage if it were supplied,
        so +0x47de is not an independently established original member boundary. */
-    W8CharacterSpellUsageRecord spell_usage_40ce[0x71];
+    W8CharacterSpellUsageRecord spell_usage[0x71];
     unsigned char unknown_47de[0x194];
     /* 0x4972: set once the Cosmic Circle arena monsters have been spawned by
-       the level-4 setup; the setup skips its work while this or world_suspended_2390
+       the level-4 setup; the setup skips its work while this or world_suspended
        holds. */
-    bool cc_arena_spawned_4972;
+    bool cc_arena_spawned;
     /* 0x4973/0x4977: GetTickCount stamps. NpcScriptSavantHackDone writes the
        first; UpdateNpcEvents retires NPC 0x1b3 fifty ticks later and starts
        the second, which gates monster group 0x1b6's Bela cycle after five
@@ -198,22 +198,22 @@ struct W8GlobalStatus {
     /* 0x497f: combat difficulty band counters, indexed by EvaluateCombatDifficulty. */
     unsigned int combat_difficulty_counts[3];
     /* 0x498b: NPC group event counter, cleared once the group event runs. */
-    int vi_event_stage_498b;
+    int vi_event_stage;
     /* 0x498f/0x4993: pending-stage flags set by FACT_QUE_ENDGAME2/3; the book
        callback queues ENDGAME2's script notice while either holds. */
     int endgame2_queued;
     int endgame3_queued;
-    unsigned int text_box_lines_used_4997[4];
-    unsigned int text_box_lines_shown_49a7[4];
+    unsigned int text_box_lines_used[4];
+    unsigned int text_box_lines_shown[4];
     /* 0x49b7: world-clock stamp the 0x49bb reward event compares against. */
-    int trang_check_clock_49b7;
-    bool trang_check_pending_49bb;
-    bool intro_shown_49bc;
+    int trang_check_clock;
+    bool trang_check_pending;
+    bool intro_shown;
     bool flag_49bd;
     unsigned char padding_49be[2];
     /* 0x49c0: set when the endgame transition starts; saves carrying either
        this or flag_49bd are filtered from the load list. */
-    bool endgame_started_49c0;
+    bool endgame_started;
     /* 0x49c1: latched while g_dev_mode is set at teardown; persisted into
        the save slot as dev_flagged_263c. */
     bool dev_flagged_49c1;

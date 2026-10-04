@@ -200,7 +200,7 @@ unsigned char AnimObjReadFromFile(W8ReadLevelInfo* info, W8AnimObj* animation, i
                 light->intensity_1d0 = intensity;
                 light->setLocation(position.x, position.y, position.z);
                 light->m_position_228 = position;
-                light->m_definition_234 = definition;
+                light->m_definition = definition;
                 light->setGroupMask(2);
                 light_list->Add(light);
             }
@@ -216,7 +216,7 @@ unsigned char AnimObjReadFromFile(W8ReadLevelInfo* info, W8AnimObj* animation, i
             if (!success) {
                 srAssertFail("fSuccess", ANIM_OBJ_CPP, 0x1c5, 0);
             }
-            path->discrete_mode_1c = 1;
+            path->discrete_mode = 1;
             PathAISetAnimated(path, 0);
             PathAISetScale(path, animation->playback_scale_08);
             animation->path_24 = path;
@@ -279,7 +279,7 @@ unsigned char AnimObjReadFromFile(W8ReadLevelInfo* info, W8AnimObj* animation, i
                     srAssertFail("fSuccess", ANIM_OBJ_CPP, 0x217, 0);
                 }
                 PListInsert(animation->paths_34[channel], entry, path);
-                path->discrete_mode_1c = 1;
+                path->discrete_mode = 1;
                 PathAISetAnimated(path, 0);
                 PathAISetScale(path, animation->playback_scale_08);
                 animation->frame_count_16 = static_cast<unsigned char>(path->nodes_0c->count);
@@ -799,7 +799,7 @@ stLightDefinition* stKeyframedLightDefinition::Clone() const
         copy->values_28.Add(*values_28.GetAt(index));
         copy->values_38.Add(*values_38.GetAt(index));
     }
-    copy->keyframe_index_48 = keyframe_index_48;
+    copy->keyframe_index = keyframe_index;
     copy->time_4c = time_4c;
     copy->start_frame_50 = start_frame_50;
     copy->end_frame_54 = end_frame_54;

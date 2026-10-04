@@ -22,10 +22,10 @@ W8GameTimeAccumulator* g_game_time_accumulator;
 W8GameTimeAccumulator::W8GameTimeAccumulator()
 {
     m_duration_seconds = g_rate;
-    m_scale_24 = 2.0f;
-    m_frame_delta_28 = 0;
-    m_elapsed_ticks_2c = 0;
-    m_elapsed_30 = 0;
+    m_scale = 2.0f;
+    m_frame_delta = 0;
+    m_elapsed_ticks = 0;
+    m_elapsed = 0;
     m_duration_scale = 1.0f;
     m_duration = static_cast<int>(m_duration_seconds * 10000.0f);
     m_end = m_duration;
@@ -38,21 +38,21 @@ void W8GameTimeAccumulator::SetDurationScale(float scale)
     if (scale < 0.5f) {
         m_flags |= 0x10;
     }
-    m_scale_24 = 2.0f / scale;
+    m_scale = 2.0f / scale;
     m_duration = static_cast<int>(scale * m_duration_seconds * 10000.0f);
     Restart();
-    m_frame_delta_28 = 0.0f;
+    m_frame_delta = 0.0f;
 }
 
 // FUNCTION: WIZ8 0x0043aa20
 void W8GameTimeAccumulator::ResetDurationScale()
 {
     m_flags &= ~0x10;
-    m_scale_24 = 2.0f;
+    m_scale = 2.0f;
     m_duration_scale = 1.0f;
     m_duration = static_cast<int>(m_duration_seconds * 10000.0f);
     Restart();
-    m_frame_delta_28 = 0.0f;
+    m_frame_delta = 0.0f;
 }
 
 // FUNCTION: WIZ8 0x0043aad0
@@ -60,22 +60,22 @@ float W8GameTimeAccumulator::Update()
 {
     if ((m_flags & 8) != 0 || (g_shared_timer_paused != 0 && (m_flags & 1) == 0) ||
         g_shared_timer_flag_d1 != 0) {
-        m_frame_delta_28 = 0.0f;
+        m_frame_delta = 0.0f;
     } else {
         int sample = ReadClock();
-        m_elapsed_ticks_2c = static_cast<unsigned int>(sample - m_start);
+        m_elapsed_ticks = static_cast<unsigned int>(sample - m_start);
         m_start = sample;
-        m_frame_delta_28 =
-            m_elapsed_ticks_2c / static_cast<float>(static_cast<unsigned int>(m_duration));
-        if (m_frame_delta_28 > m_scale_24) {
-            m_frame_delta_28 = m_scale_24;
-            m_elapsed_ticks_2c =
-                static_cast<unsigned int>(static_cast<unsigned int>(m_duration) * m_scale_24);
+        m_frame_delta =
+            m_elapsed_ticks / static_cast<float>(static_cast<unsigned int>(m_duration));
+        if (m_frame_delta > m_scale) {
+            m_frame_delta = m_scale;
+            m_elapsed_ticks =
+                static_cast<unsigned int>(static_cast<unsigned int>(m_duration) * m_scale);
         }
-        m_elapsed_30 += m_frame_delta_28;
+        m_elapsed += m_frame_delta;
     }
     if (g_shared_timer_flag_d2 != 0 && (m_flags & 1) == 0) {
         return 0.0f;
     }
-    return m_frame_delta_28;
+    return m_frame_delta;
 }

@@ -339,8 +339,8 @@ void UpdateWorldMeshFromQuads(W8World* world)
             &quad->rows[g_visible_quad_rows[index]].cells[g_visible_quad_columns[index]];
         if (cell != 0 && (cell->polygon_indices != 0 || cell->objects != 0)) {
             long j;
-            if (cell->objects != 0 && cell->dirty_stamp_08 < quad->dirty) {
-                cell->dirty_stamp_08 = quad->dirty;
+            if (cell->objects != 0 && cell->dirty_stamp < quad->dirty) {
+                cell->dirty_stamp = quad->dirty;
                 long object_count = static_cast<long>(PLLength(cell->objects));
                 for (j = 0; j < object_count; ++j) {
                     char* item = static_cast<char*>(PLGet(cell->objects, j));

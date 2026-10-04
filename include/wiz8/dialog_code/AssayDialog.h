@@ -49,4 +49,4 @@ private:
 };
 static_assert(sizeof(W8AssayDialog) == 0x1ac, "W8AssayDialog_size");
 extern unsigned short g_equip_class_name_ids[32];
-extern wchar_t g_assay_format_1f[];
+extern wchar_t g_assay_format[];

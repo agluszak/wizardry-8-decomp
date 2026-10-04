@@ -242,7 +242,7 @@ void RefreshLevelUpReadyNotices(void)
         return;
     }
 
-    gXStatus.level_up_notice_027 = 0;
+    gXStatus.level_up_notice = 0;
     for (party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
         W8PartySlotRow* row = &g_status.buffers.XChar[party_slot];
         bool* ready_flag = &gXStatus.monster_manager_entries[party_slot].level_up_ready;
@@ -254,7 +254,7 @@ void RefreshLevelUpReadyNotices(void)
                     RequestPartySlotRedraw(party_slot);
                 }
                 *ready_flag = 0;
-                row->portrait_advance_103 = 0;
+                row->portrait_advance = 0;
             }
         } else if (character->hp_current != 0) {
             if (character->highest_condition > 0x11 ||
@@ -264,12 +264,12 @@ void RefreshLevelUpReadyNotices(void)
                         RequestPartySlotRedraw(party_slot);
                     }
                     *ready_flag = 0;
-                    row->portrait_advance_103 = 0;
+                    row->portrait_advance = 0;
                 }
             } else {
-                gXStatus.level_up_notice_027 = 1;
+                gXStatus.level_up_notice = 1;
                 if (*ready_flag == 0) {
-                    if (row->portrait_advance_103 == 0) {
+                    if (row->portrait_advance == 0) {
                         wchar_t* text;
                         int* extra;
                         size_t length;
@@ -298,7 +298,7 @@ void RefreshLevelUpReadyNotices(void)
                     } else {
                         *ready_flag = 1;
                     }
-                } else if (row->portrait_advance_103 != 0) {
+                } else if (row->portrait_advance != 0) {
                     *ready_flag = 1;
                 }
             }
@@ -472,8 +472,8 @@ int CalcPhysCombatExperience(W8Character* character)
 void CalcInitiative(W8Character* character)
 {
     character->initiative = ((character->uiExpLevel + 1) >> 1) +
-                            character->attributes[6].effective / 5 - 10 +
-                            character->attributes[5].effective / 5;
+                            character->attributes[W8_ATTRIBUTE_SENSES].effective / 5 - 10 +
+                            character->attributes[W8_ATTRIBUTE_SPEED].effective / 5;
 
     if (character->skills[39].active_00 != 0) {
         character->initiative += character->skills[39].level / 10 + 1;
@@ -635,7 +635,7 @@ void CalcAttacks(W8Character* character)
             dual_penalty = 0;
         }
 
-        attack->attack_score = (dual_penalty + character->attributes[4].effective / 2 +
+        attack->attack_score = (dual_penalty + character->attributes[W8_ATTRIBUTE_DEXTERITY].effective / 2 +
                                 attack->combined_skill * 2 + physical_experience) /
                                    3 +
                                60;
@@ -648,7 +648,7 @@ void CalcAttacks(W8Character* character)
             }
         }
 
-        score = (((character->attributes[5].effective + character->attributes[4].effective) >> 1) +
+        score = (((character->attributes[5].effective + character->attributes[W8_ATTRIBUTE_DEXTERITY].effective) >> 1) +
                  dual_penalty + physical_experience + load_penalty + attack->combined_skill) /
                 3;
         attack->attacks = 1;
@@ -663,7 +663,7 @@ void CalcAttacks(W8Character* character)
             attack->attacks = 2;
         }
 
-        score = (character->attributes[5].effective + attack->swings * 10 + dual_penalty +
+        score = (character->attributes[W8_ATTRIBUTE_SPEED].effective + attack->swings * 10 + dual_penalty +
                  physical_experience + load_penalty + attack->combined_skill) /
                 3;
         attack->swings = 1;
@@ -705,8 +705,8 @@ void CalcAttacks(W8Character* character)
                 attack->damage_dice.base += 2;
             }
             memset(attack->condition_chances, 0, sizeof(attack->condition_chances));
-            if (character->attributes[0].effective > 49) {
-                attack->condition_chances[6] = (character->attributes[0].effective - 50) / 5;
+            if (character->attributes[W8_ATTRIBUTE_STRENGTH].effective > 49) {
+                attack->condition_chances[6] = (character->attributes[W8_ATTRIBUTE_STRENGTH].effective - 50) / 5;
             }
         }
 
@@ -724,24 +724,24 @@ void CalcAttacks(W8Character* character)
             }
         }
 
-        if (character->attributes[0].effective < 50) {
-            attack->hit_bonus -= (50 - character->attributes[0].effective) / (divisor * 10);
-            attack->damage_percent_29 -= (50 - character->attributes[0].effective) / divisor;
-        } else if (character->attributes[0].effective > 50) {
+        if (character->attributes[W8_ATTRIBUTE_STRENGTH].effective < 50) {
+            attack->hit_bonus -= (50 - character->attributes[W8_ATTRIBUTE_STRENGTH].effective) / (divisor * 10);
+            attack->damage_percent_29 -= (50 - character->attributes[W8_ATTRIBUTE_STRENGTH].effective) / divisor;
+        } else if (character->attributes[W8_ATTRIBUTE_STRENGTH].effective > 50) {
             divisor *= hand + 1;
-            attack->hit_bonus += (character->attributes[0].effective - 50) / (divisor * 10);
-            attack->damage_percent_29 += (character->attributes[0].effective * 2 - 100) / divisor;
+            attack->hit_bonus += (character->attributes[W8_ATTRIBUTE_STRENGTH].effective - 50) / (divisor * 10);
+            attack->damage_percent_29 += (character->attributes[W8_ATTRIBUTE_STRENGTH].effective * 2 - 100) / divisor;
         }
 
-        if (character->attributes[4].effective < 50) {
-            attack->hit_bonus -= (50 - character->attributes[4].effective) / 10;
-        } else if (character->attributes[4].effective > 50) {
-            attack->hit_bonus += (character->attributes[4].effective - 50) / 10;
+        if (character->attributes[W8_ATTRIBUTE_DEXTERITY].effective < 50) {
+            attack->hit_bonus -= (50 - character->attributes[W8_ATTRIBUTE_DEXTERITY].effective) / 10;
+        } else if (character->attributes[W8_ATTRIBUTE_DEXTERITY].effective > 50) {
+            attack->hit_bonus += (character->attributes[W8_ATTRIBUTE_DEXTERITY].effective - 50) / 10;
         }
-        if (character->attributes[6].effective < 30) {
-            attack->hit_bonus -= (30 - character->attributes[6].effective) / 10;
-        } else if (character->attributes[6].effective > 70) {
-            attack->hit_bonus += (character->attributes[6].effective - 70) / 10;
+        if (character->attributes[W8_ATTRIBUTE_SENSES].effective < 30) {
+            attack->hit_bonus -= (30 - character->attributes[W8_ATTRIBUTE_SENSES].effective) / 10;
+        } else if (character->attributes[W8_ATTRIBUTE_SENSES].effective > 70) {
+            attack->hit_bonus += (character->attributes[W8_ATTRIBUTE_SENSES].effective - 70) / 10;
         }
 
         switch (character->load_category) {
@@ -809,7 +809,7 @@ void CalcArmorClasses(W8Character* character)
         if (CharacterHasTrait(character, W8_TRAIT_FAERIE_BASE_ARMOR_CLASS)) {
             character->armor_class_components[0] += 2;
         }
-        unsigned int speed = character->attributes[5].effective;
+        unsigned int speed = character->attributes[W8_ATTRIBUTE_SPEED].effective;
         if (speed > 79) {
             ++character->armor_class_components[1];
         }
@@ -840,7 +840,7 @@ void CalcArmorClasses(W8Character* character)
         }
 
         character->armor_class_components[5] += character->bonus_1770.armor_bonus_04;
-        character->armor_class_components[8] += character->bonus_1770.armor_class_adjustment_4b;
+        character->armor_class_components[8] += character->bonus_1770.armor_class_adjustment;
         if (defensive_action) {
             character->armor_class_components[10] += 2;
         }
@@ -940,9 +940,9 @@ void DeriveCharacterPersonality(W8Character* character)
     flag = g_character_value_table[index][1];
     character->personality_0081 = g_character_value_table[index][0];
     if (flag == 1) {
-        character->voice_0085 = 0;
+        character->voice = 0;
     } else {
-        character->voice_0085 = 1;
+        character->voice = 1;
     }
     character->unknown_007d = 0;
 }
@@ -963,7 +963,7 @@ void EnsureUniquePartyVoice(W8Character* character)
         for (;;) {
             if (other->fInParty != 0 && other != character && other->gender == character->gender &&
                 other->personality_0081 == character->personality_0081 &&
-                other->voice_0085 == character->voice_0085) {
+                other->voice == character->voice) {
                 break;
             }
             ++slot;
@@ -974,10 +974,10 @@ void EnsureUniquePartyVoice(W8Character* character)
         }
         if (attempts == 0) {
             attempts = 1;
-            character->voice_0085 = (character->voice_0085 == 0);
+            character->voice = (character->voice == 0);
         } else {
             character->personality_0081 = Random(9);
-            character->voice_0085 = Random(2);
+            character->voice = Random(2);
             ++attempts;
         }
     }
@@ -1195,7 +1195,7 @@ void AwardPartyExperience(int amount, int alternate_message)
                     gained = total;
                 }
             }
-            gXStatus.level_up_notice_027 = 1;
+            gXStatus.level_up_notice = 1;
         }
     }
     wchar_t* text = new wchar_t[0x200];

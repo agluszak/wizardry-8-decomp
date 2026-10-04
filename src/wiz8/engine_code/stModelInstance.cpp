@@ -68,7 +68,7 @@ stTextureAnim* stModelInstance::FindMouthTexture()
     } else {
         while (mesh != 0) {
             srPtr<srTextureIFace>* textures =
-                mesh->GetTextureTable(damage_stage_tables_188.data[damage_stage_184]);
+                mesh->GetTextureTable(damage_stage_tables.data[damage_stage_184]);
 
             if (textures != 0) {
                 for (int polygon = 0; polygon < mesh->polygon_count_230; ++polygon) {
@@ -104,11 +104,11 @@ int stModelInstance::AddDamageStage(const char* name)
         return -1;
     }
 
-    int stage = damage_stage_tables_188.capacity;
-    damage_stage_tables_188.setCapacity(stage + 1, 1);
+    int stage = damage_stage_tables.capacity;
+    damage_stage_tables.setCapacity(stage + 1, 1);
 
-    int base_table = stage > 0 ? damage_stage_tables_188.data[0] : -1;
-    damage_stage_tables_188.data[stage] = mesh->CreateSkinTable(name, base_table);
+    int base_table = stage > 0 ? damage_stage_tables.data[0] : -1;
+    damage_stage_tables.data[stage] = mesh->CreateSkinTable(name, base_table);
     for (mesh = mesh->next; mesh != 0; mesh = mesh->next) {
         mesh->CreateSkinTable(name, base_table);
     }
@@ -125,9 +125,9 @@ int stModelInstance::AddExistingDamageStage(const char* name)
         return -1;
     }
 
-    int stage = damage_stage_tables_188.capacity;
-    damage_stage_tables_188.setCapacity(stage + 1, 1);
-    damage_stage_tables_188.data[stage] = table;
+    int stage = damage_stage_tables.capacity;
+    damage_stage_tables.setCapacity(stage + 1, 1);
+    damage_stage_tables.data[stage] = table;
     return stage;
 }
 
@@ -147,7 +147,7 @@ unsigned char stModelInstance::ReplaceDamageStageTexture(int stage, const char* 
 
     for (; mesh != 0; mesh = mesh->next) {
         srPtr<srTextureIFace>* textures =
-            mesh->GetTextureTable(damage_stage_tables_188.data[stage]);
+            mesh->GetTextureTable(damage_stage_tables.data[stage]);
         if (textures == 0) {
             continue;
         }
@@ -183,14 +183,14 @@ unsigned char stModelInstance::ReplaceDamageStageTexture(int stage, const char* 
 stModelInstance2D::stModelInstance2D(srNode* parent)
     : srClassSupport<stModelInstance2D, srModelInstance, false, 0x10005>(static_cast<srNode*>(0))
 {
-    render_state_164.display_state = 0;
-    render_state_164.width = 0;
-    render_state_164.height = 0;
-    render_state_164.position_x = 0;
-    render_state_164.position_y = 0;
-    overlay_scene_flag_160 = 0;
-    render_state_164.glow_enabled_0d = 0;
-    render_state_164.render_depth = 2000;
+    render_state.display_state = 0;
+    render_state.width = 0;
+    render_state.height = 0;
+    render_state.position_x = 0;
+    render_state.position_y = 0;
+    overlay_scene_flag = 0;
+    render_state.glow_enabled = 0;
+    render_state.render_depth = 2000;
     vector_174 = 0;
     vector_178 = 0;
     m_pGlowMaterial = 0;
@@ -221,17 +221,17 @@ stModelInstance2D::~stModelInstance2D()
 stModelInstance2D& stModelInstance2D::operator=(const stModelInstance2D& other)
 {
     srModelInstance::operator=(other);
-    render_state_164.display_state = other.render_state_164.display_state;
-    render_state_164.width = other.render_state_164.width;
-    render_state_164.height = other.render_state_164.height;
-    render_state_164.position_x = other.render_state_164.position_x;
-    render_state_164.position_y = other.render_state_164.position_y;
-    overlay_scene_flag_160 = other.overlay_scene_flag_160;
+    render_state.display_state = other.render_state.display_state;
+    render_state.width = other.render_state.width;
+    render_state.height = other.render_state.height;
+    render_state.position_x = other.render_state.position_x;
+    render_state.position_y = other.render_state.position_y;
+    overlay_scene_flag = other.overlay_scene_flag;
     if (other.parent_ != 0) {
         setParent(other.parent_, 1);
     }
-    render_state_164.glow_enabled_0d = other.render_state_164.glow_enabled_0d;
-    render_state_164.render_depth = other.render_state_164.render_depth;
+    render_state.glow_enabled = other.render_state.glow_enabled;
+    render_state.render_depth = other.render_state.render_depth;
     if (other.vector_174 != 0) {
         vector_174 = static_cast<srVector4T<float>*>(srHeap.allocate(sizeof(srVector4T<float>)));
         *vector_174 = *other.vector_174;
@@ -307,7 +307,7 @@ void stModelInstance2D::process(const ProcessInfo& info, e_processType)
         translation.Set(transformed_location.x, transformed_location.y, transformed_location.z);
         renderer->translate(translation);
         if (align_angle_158 != g_float_zero) {
-            renderer->rotate(static_cast<double>(align_angle_158), align_axis_14c);
+            renderer->rotate(static_cast<double>(align_angle_158), align_axis);
         }
         renderer->scale(world_scale.x * basis_x, world_scale.y * basis_y,
                         -(world_scale.z * basis_z));
@@ -316,7 +316,7 @@ void stModelInstance2D::process(const ProcessInfo& info, e_processType)
     srMeshModel* model = static_cast<srMeshModel*>(getModel());
     model->getTriMesh(mesh);
 
-    if (render_state_164.glow_enabled_0d != 0) {
+    if (render_state.glow_enabled != 0) {
         if (m_pGlowMaterial == 0) {
             m_pGlowMaterial = new stMaterial;
             if (m_pGlowMaterial == 0) {
@@ -331,8 +331,8 @@ void stModelInstance2D::process(const ProcessInfo& info, e_processType)
         }
 
         float glow_weight = static_cast<float>(
-            fabs(sin(((GetTickCount() % render_state_164.render_depth) /
-                      static_cast<double>(static_cast<int>(render_state_164.render_depth))) *
+            fabs(sin(((GetTickCount() % render_state.render_depth) /
+                      static_cast<double>(static_cast<int>(render_state.render_depth))) *
                      g_camera_angle_period)));
         float base_weight = g_float_one - glow_weight;
         srVector4T<float> emissive;
@@ -360,7 +360,7 @@ void stModelInstance2D::SetGlowEnabled(bool enable)
         m_pGlowMaterial->release();
         m_pGlowMaterial = 0;
     }
-    render_state_164.glow_enabled_0d = enable;
+    render_state.glow_enabled = enable;
 }
 
 /* Scaled 2D extent used by the tooltip and cursor placement code. A unit
@@ -372,9 +372,9 @@ unsigned short stModelInstance2D::GetScaledWidth()
     srVector3T<double> scale = getScale();
     float scale_z = static_cast<float>(scale.z);
     if (scale.x == 1.0f && scale.y == 1.0f && scale_z == 1.0f) {
-        return render_state_164.width;
+        return render_state.width;
     }
-    return static_cast<unsigned short>(render_state_164.width * scale.x);
+    return static_cast<unsigned short>(render_state.width * scale.x);
 }
 
 // FUNCTION: WIZ8 0x00480F70
@@ -384,9 +384,9 @@ unsigned short stModelInstance2D::GetScaledHeight()
     float scale_y = static_cast<float>(scale.y);
     float scale_z = static_cast<float>(scale.z);
     if (scale.x == 1.0f && scale_y == 1.0f && scale_z == 1.0f) {
-        return render_state_164.height;
+        return render_state.height;
     }
-    return static_cast<unsigned short>(render_state_164.height * scale_z);
+    return static_cast<unsigned short>(render_state.height * scale_z);
 }
 
 /* Lazily allocate the two glow-color vectors and copy the supplied pair; the
@@ -424,18 +424,18 @@ stModelInstance::stModelInstance(srNode* parent)
     render_flags_178 = 0;
     mesh_index_17c = -1;
     frame_index_180 = 0;
-    highlight_pass_mode_190 = 0;
+    highlight_pass_mode = 0;
     if (parent != 0) {
         setParent(parent, 1);
     }
     damage_stage_184 = -1;
     retained_174 = 0;
     light_scale_194 = 1.0f;
-    diffuse_scale_enabled_1a0 = 0;
-    diffuse_scale_1a4 = 0.0f;
-    emissive_override_enabled_1a1 = 0;
-    emissive_override_1a8 = 0.0f;
-    frame_interpolation_1ac = 0.0f;
+    diffuse_scale_enabled = 0;
+    diffuse_scale = 0.0f;
+    emissive_override_enabled = 0;
+    emissive_override = 0.0f;
+    frame_interpolation = 0.0f;
 }
 
 // FUNCTION: WIZ8 0x0047EDF0
@@ -447,16 +447,16 @@ stModelInstance& stModelInstance::operator=(const stModelInstance& other)
     mesh_index_17c = other.mesh_index_17c;
     frame_index_180 = other.frame_index_180;
 
-    damage_stage_tables_188 = other.damage_stage_tables_188;
+    damage_stage_tables = other.damage_stage_tables;
     damage_stage_184 = other.damage_stage_184;
-    highlight_pass_mode_190 = other.highlight_pass_mode_190;
+    highlight_pass_mode = other.highlight_pass_mode;
     retained_174 = 0;
     light_scale_194 = other.light_scale_194;
-    diffuse_scale_1a4 = 0.0f;
-    diffuse_scale_enabled_1a0 = 0;
-    emissive_override_enabled_1a1 = other.emissive_override_enabled_1a1;
-    emissive_override_1a8 = other.emissive_override_1a8;
-    frame_interpolation_1ac = 0.0f;
+    diffuse_scale = 0.0f;
+    diffuse_scale_enabled = 0;
+    emissive_override_enabled = other.emissive_override_enabled;
+    emissive_override = other.emissive_override;
+    frame_interpolation = 0.0f;
     return *this;
 }
 
@@ -530,7 +530,7 @@ void stModelInstance::process(const ProcessInfo& info, e_processType)
         translation.Set(transformed_location.x, transformed_location.y, transformed_location.z);
         renderer->translate(translation);
         if (align_angle_158 != g_float_zero) {
-            renderer->rotate(align_angle_158, align_axis_14c);
+            renderer->rotate(align_angle_158, align_axis);
         }
         renderer->scale(world_scale.x * basis_x, world_scale.y * basis_y,
                         -(world_scale.z * basis_z));
@@ -559,7 +559,7 @@ void stModelInstance::process(const ProcessInfo& info, e_processType)
 void stModelInstance::RenderMeshes(srGERD& renderer)
 {
     srMeshModel::TriMesh mesh;
-    mesh.control_flags_0c = 0;
+    mesh.control_flags = 0;
 
     stMeshModel* model = static_cast<stMeshModel*>(getModel());
     stMeshModel* first_model = model;
@@ -589,7 +589,7 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
     ambient_color.Set(ambient.x, ambient.y, ambient.z);
 
     srVector4T<float> light;
-    if (model->vertex_lighting_ready_3cd == 0) {
+    if (model->vertex_lighting_ready == 0) {
         light.w = 1.0f;
         light.x =
             (ambient_color.x * light_scale_194.x + g_environment_offset.x) * g_monster_light_scale;
@@ -628,7 +628,7 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
         srVector3T<float>* poly_normals;
         if ((model->flags_3a0 >> 2) & 1) {
             mesh.positions_38 =
-                model->GetVertexLocations(frame_index_180, 1, frame_interpolation_1ac);
+                model->GetVertexLocations(frame_index_180, 1, frame_interpolation);
             mesh.normals_3c = model->GetVertexNormals(frame_index_180, 1);
             poly_normals = model->GetPolygonNormals(frame_index_180, 1);
         } else {
@@ -637,7 +637,7 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
 
         if (g_render_untextured != 0) {
             mesh.shaders_b0[0].value &= 0xffff73ff;
-            mesh.poly_shaders_100[0] = 0;
+            mesh.poly_shaders[0] = 0;
             mesh.poly_textures_e0[0][0] = 0;
             mesh.poly_uv_110[0] = 0;
             mesh.texcoords_18[0][0] = 0;
@@ -651,9 +651,9 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
             unsigned long* active;
             if (damage_stage_184 >= 0) {
                 mesh.poly_textures_e0[0][0] =
-                    model->GetTextureTable(damage_stage_tables_188.data[damage_stage_184]);
+                    model->GetTextureTable(damage_stage_tables.data[damage_stage_184]);
                 active = model->GetActivePolygons(
-                    &active_count, damage_stage_tables_188.data[damage_stage_184], 1);
+                    &active_count, damage_stage_tables.data[damage_stage_184], 1);
             } else {
                 active = model->GetActivePolygons(&active_count, -1, 1);
             }
@@ -666,15 +666,15 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
         if (((highlight_colour_164.x == g_float_zero) && (highlight_colour_164.y == g_float_zero) &&
              (highlight_colour_164.z == g_float_zero) &&
              (highlight_colour_164.w == g_float_zero)) ||
-            (highlight_pass_mode_190 != 1)) {
-            if (diffuse_scale_enabled_1a0 != 0) {
-                g_material_diffuse_scale = diffuse_scale_1a4;
+            (highlight_pass_mode != 1)) {
+            if (diffuse_scale_enabled != 0) {
+                g_material_diffuse_scale = diffuse_scale;
                 mesh.shaders_b0[0].value = (mesh.shaders_b0[0].value & 0xffffd7bf) | 0x44a0;
-                mesh.control_flags_0c |= 0x40;
+                mesh.control_flags |= 0x40;
                 g_material_diffuse_scale_enabled = 1;
             }
-            if (emissive_override_enabled_1a1 != 0) {
-                g_material_emissive_override = emissive_override_1a8;
+            if (emissive_override_enabled != 0) {
+                g_material_emissive_override = emissive_override;
                 g_material_emissive_override_enabled = 1;
             }
         } else {
@@ -701,10 +701,10 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
         } else {
             model = 0;
         }
-        if (diffuse_scale_enabled_1a0 != 0) {
+        if (diffuse_scale_enabled != 0) {
             g_material_diffuse_scale_enabled = 0;
         }
-        if (emissive_override_enabled_1a1 != 0) {
+        if (emissive_override_enabled != 0) {
             g_material_emissive_override_enabled = 0;
         }
     }
@@ -712,7 +712,7 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
     if (highlight_colour_164.x != g_float_zero || highlight_colour_164.y != g_float_zero ||
         highlight_colour_164.z != g_float_zero || highlight_colour_164.w != g_float_zero) {
         model = static_cast<stMeshModel*>(getModel());
-        if (highlight_pass_mode_190 == 0) {
+        if (highlight_pass_mode == 0) {
             renderer.setWinding(srGERD::WINDING_POSITIONAL_1);
         }
         while (model != 0) {
@@ -734,7 +734,7 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
                     const srVector3T<float>* poly_normals = 0;
                     if ((model->flags_3a0 >> 2) & 1) {
                         mesh.dig_40[0] =
-                            model->GetVertexLocations(frame_index_180, 1, frame_interpolation_1ac);
+                            model->GetVertexLocations(frame_index_180, 1, frame_interpolation);
                         mesh.dig_40[1] = model->GetVertexNormals(frame_index_180, 1);
                         poly_normals = model->GetPolygonNormals(frame_index_180, 1);
                     }
@@ -744,7 +744,7 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
                         unsigned long* active;
                         if (damage_stage_184 >= 0) {
                             active = model->GetActivePolygons(
-                                &active_count, damage_stage_tables_188.data[damage_stage_184], 1);
+                                &active_count, damage_stage_tables.data[damage_stage_184], 1);
                         } else {
                             active = model->GetActivePolygons(&active_count, -1, 1);
                         }
@@ -756,7 +756,7 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
 
                     mesh.materials_70[0][0] = retained_174;
                     mesh.shaders_b0[1].value = (mesh.shaders_b0[0].value & 0xffff5cb7) | 0x40a0;
-                    mesh.poly_shaders_100[1] = 0;
+                    mesh.poly_shaders[1] = 0;
                     mesh.poly_textures_e0[0][1] = 0;
                     mesh.vertex_materials_c0[0][1] = 0;
                     mesh.poly_uv_110[1] = 0;
@@ -791,7 +791,7 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
                             mesh.vertex_count_00 * 3);
                     }
                     mesh.positions_38 = g_vertex_scratch->data;
-                    mesh.control_flags_0c |= 0x40;
+                    mesh.control_flags |= 0x40;
 
                     if (((render_flags_178 >> 4) & 1) != 0 && !renderer.isPickStackEmpty()) {
                         srGERD::Pick pick;
@@ -813,7 +813,7 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
                 child = previous->first_child_;
             }
         }
-        if (highlight_pass_mode_190 == 0) {
+        if (highlight_pass_mode == 0) {
             renderer.setWinding(srGERD::WINDING_POSITIONAL_0);
         }
     }
@@ -850,7 +850,7 @@ static void BuildShadowMesh()
                 material->setEmissive(color);
                 color.Set(1.0f, 1.0f, 1.0f, 0.0f);
                 material->setDiffuse(color);
-                material->m_shader_flags_78 = 0;
+                material->m_shader_flags = 0;
             }
             srVector3i* triangles = static_cast<srVector3i*>(srHeap.allocate(6 * sizeof(long)));
             g_shadow_mesh->poly_vertices_10 = triangles;
@@ -869,10 +869,10 @@ static void BuildShadowMesh()
             positions[4].Set(0.0f, -250.0f, 0.0f);
             positions[5].Set(0.0f, 250.0f, 250.0f);
             g_shadow_mesh->normals_3c = 0;
-            g_shadow_mesh->control_flags_0c = 0;
-            g_shadow_mesh->control_flags_0c |= 0x10;
-            g_shadow_mesh->control_flags_0c |= 0x20;
-            g_shadow_mesh->control_flags_0c |= 8;
+            g_shadow_mesh->control_flags = 0;
+            g_shadow_mesh->control_flags |= 0x10;
+            g_shadow_mesh->control_flags |= 0x20;
+            g_shadow_mesh->control_flags |= 8;
             g_shadow_mesh->polygon_count_04 = 2;
             g_shadow_mesh->vertex_count_00 = 6;
             g_shadow_mesh->bounds_maximum_12c.Set(500.0f, 500.0f, 500.0f);
@@ -885,7 +885,7 @@ static void BuildShadowMesh()
             g_shadow_mesh->texcoords_18[0][0] = 0;
             g_shadow_mesh->materials_70[0][0] = material;
             g_shadow_mesh->textures_90[0][0] = 0;
-            g_shadow_mesh->poly_shaders_100[0] = 0;
+            g_shadow_mesh->poly_shaders[0] = 0;
             g_shadow_mesh->poly_uv_110[0] = 0;
             g_shadow_mesh->active_polygons_14c = 0;
             g_shadow_mesh->dcg_50[0] = 0;
@@ -931,25 +931,25 @@ void stModelInstance::RenderShadow(srGERD& renderer, srMeshModel::TriMesh& mesh)
     pipeline->positions_38 = g_shadow_mesh->positions_38;
     pipeline->vertex_extras_3c = g_shadow_mesh->normals_3c;
     pipeline->current_record_14->flags_00 = 0;
-    pipeline->current_pass_18->shader_14 = 0;
-    pipeline->current_pass_18->texture_array_0c = 0;
-    pipeline->current_pass_18->texture_array_10 = 0;
+    pipeline->current_pass->shader_14 = 0;
+    pipeline->current_pass->texture_array_0c = 0;
+    pipeline->current_pass->texture_array_10 = 0;
     pipeline->material_80 = g_shadow_mesh->materials_70[0][0];
     pipeline->current_record_14->material_08 = pipeline->material_80;
     pipeline->SetFlags(g_shadow_mesh->shaders_b0[0]);
     pipeline->current_record_14 = &pipeline->records_94[++pipeline->slot_count_84];
-    pipeline->current_pass_18 = &pipeline->passes_9c[pipeline->slot_count_84];
+    pipeline->current_pass = &pipeline->passes_9c[pipeline->slot_count_84];
     pipeline->current_record_14->flags_00 = 0;
     pipeline->current_record_14->disable_mask_04 = 0;
     pipeline->current_record_14->material_08 = pipeline->material_80;
-    pipeline->current_pass_18->texture_00 = pipeline->texture_78;
-    pipeline->current_pass_18->texture_04 = pipeline->texture_7c;
-    pipeline->current_pass_18->flags_08.value = pipeline->shader_74.value;
-    pipeline->current_pass_18->texture_array_0c = 0;
-    pipeline->current_pass_18->texture_array_10 = 0;
-    pipeline->current_pass_18->shader_14 = 0;
-    pipeline->current_pass_18->st_18 = 0;
-    pipeline->current_pass_18->poly_uv_1c = 0;
+    pipeline->current_pass->texture_00 = pipeline->texture_78;
+    pipeline->current_pass->texture_04 = pipeline->texture_7c;
+    pipeline->current_pass->flags_08.value = pipeline->shader_74.value;
+    pipeline->current_pass->texture_array_0c = 0;
+    pipeline->current_pass->texture_array_10 = 0;
+    pipeline->current_pass->shader_14 = 0;
+    pipeline->current_pass->st_18 = 0;
+    pipeline->current_pass->poly_uv_1c = 0;
     pipeline->FlushIfCurrent();
     renderer.popMatrix();
     renderer.popEnable();

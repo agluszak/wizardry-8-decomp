@@ -84,14 +84,14 @@ stMeshModel::stMeshModel(long polygons, long vertices)
         }
         shaders_5c[pass] = srShader();
     }
-    duplicate_on_reuse_3cc = 1;
-    vertex_lighting_ready_3cd = false;
+    duplicate_on_reuse = 1;
+    vertex_lighting_ready = false;
     previous = 0;
     next = 0;
     flags_3a0 = 2;
     ambient_color_3a4.Set(-1.0f, -1.0f, -1.0f);
     frame_count = 1;
-    vertex_light_table_3b0 = 0;
+    vertex_light_table = 0;
     compressed_vertex_locations = 0;
     compressed_vertex_normals = 0;
     compressed_polygon_normals = 0;
@@ -100,13 +100,13 @@ stMeshModel::stMeshModel(long polygons, long vertices)
     m_pPolyNormal = 0;
     control_state_394.value &= ~0x10UL;
     setDirty(static_cast<e_flags>(0));
-    lerp_buffer_448 = 0;
+    lerp_buffer = 0;
     automap_polygons = 0;
     automap_polygon_count = 0;
     automap_filter_active = false;
-    skin_blanking_apt_458 = 0;
-    skin_blanking_apt_number_45c = 0;
-    skin_blanking_checked_460 = 0;
+    skin_blanking_apt = 0;
+    skin_blanking_apt_number = 0;
+    skin_blanking_checked = 0;
 }
 
 // FUNCTION: WIZ8 0x00470ED0
@@ -124,22 +124,22 @@ stMeshModel::~stMeshModel()
     if ((flags_3a0 & 4) != 0) {
         g_mesh_models.Remove(this);
     }
-    if (lerp_buffer_448 != 0) {
-        srHeap.free(lerp_buffer_448);
-        lerp_buffer_448 = 0;
+    if (lerp_buffer != 0) {
+        srHeap.free(lerp_buffer);
+        lerp_buffer = 0;
     }
     if (automap_polygons != 0) {
         delete[] automap_polygons;
         automap_polygons = 0;
     }
-    if (skin_blanking_apt_458 != 0) {
-        delete skin_blanking_apt_458;
+    if (skin_blanking_apt != 0) {
+        delete skin_blanking_apt;
     }
-    if (skin_blanking_apt_number_45c != 0) {
-        delete skin_blanking_apt_number_45c;
+    if (skin_blanking_apt_number != 0) {
+        delete skin_blanking_apt_number;
     }
-    if (skin_blanking_checked_460 != 0) {
-        delete skin_blanking_checked_460;
+    if (skin_blanking_checked != 0) {
+        delete skin_blanking_checked;
     }
 }
 
@@ -292,20 +292,20 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
     srVector3T<float> ambient_rgb;
 
     if ((flags_3a0 & 2) != 0 && g_render_unlit == 0) {
-        lights = vertex_lights_3b4[vertex_light_table_3b0].data;
-        sunlight = vertex_sunlight_3c4.data;
+        lights = vertex_lights_3b4[vertex_light_table].data;
+        sunlight = vertex_sunlight.data;
         if (lights != 0 && sunlight != 0) {
             dig = getVertexDIG(0, 1);
             vertex_materials = getVertexMaterial(0, static_cast<e_side>(0), 0);
             if (vertex_materials == 0) {
                 if ((ambient_color_3a4.x == g_float_zero && ambient_color_3a4.y == g_float_zero &&
                      ambient_color_3a4.z == g_float_zero) ||
-                    vertex_light_table_3b0 == 1) {
+                    vertex_light_table == 1) {
                     CopyDwordBuffer(dig, lights, vertex_location_count_22c * 3);
                     if ((g_environment_offset.x != g_float_zero ||
                          g_environment_offset.y != g_float_zero ||
                          g_environment_offset.z != g_float_zero) &&
-                        vertex_light_table_3b0 != 1 &&
+                        vertex_light_table != 1 &&
                         (count = vertex_location_count_22c, count != 0) &&
                         IsZeroVector(&g_environment_offset) == 0) {
                         srVectorProcessor::add(dig, g_environment_offset, dig,
@@ -352,7 +352,7 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
             } else {
                 if ((ambient_color_3a4.x == g_float_zero && ambient_color_3a4.y == g_float_zero &&
                      ambient_color_3a4.z == g_float_zero) ||
-                    vertex_light_table_3b0 == 1) {
+                    vertex_light_table == 1) {
                     if (vertex_location_count_22c != 0) {
                         FillDwordBuffer(dig, 0, vertex_location_count_22c * 3);
                     }
@@ -413,7 +413,7 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
                 if ((g_environment_offset.x != g_float_zero ||
                      g_environment_offset.y != g_float_zero ||
                      g_environment_offset.z != g_float_zero) &&
-                    vertex_light_table_3b0 != 1 &&
+                    vertex_light_table != 1 &&
                     (count = vertex_location_count_22c, count != 0) &&
                     IsZeroVector(&g_environment_offset) == 0) {
                     srVectorProcessor::add(dig, g_environment_offset, dig,
@@ -463,7 +463,7 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
 
     if (mesh.polygon_count_04 != 0 && mesh.vertex_count_00 != 0) {
         renderer.pushEnable();
-        if ((g_inverted_depth_render != 0 || (mesh.control_flags_0c & 0x40) != 0) &&
+        if ((g_inverted_depth_render != 0 || (mesh.control_flags & 0x40) != 0) &&
             !renderer.isEnabled(srGERD::ENABLE_SORTED_RENDERING)) {
             renderer.toggle(srGERD::ENABLE_SORTED_RENDERING);
         }
@@ -545,7 +545,7 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
         }
 
         for (int side = 1; side >= 0; --side) {
-            if ((mesh.control_flags_0c & (1u << side)) != 0) {
+            if ((mesh.control_flags & (1u << side)) != 0) {
                 srTriMeshPipeline* pipeline = srTriMeshPipeline::Get(&renderer);
                 pipeline->sort_bias_40 = mesh.sort_bias_148;
                 pipeline->triangles_34 = mesh.poly_vertices_10;
@@ -568,28 +568,28 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
                     pipeline->active_triangle_count_24 = mesh.active_polygon_count_150;
                 }
 
-                if ((mesh.control_flags_0c & 0x10) == 0) {
+                if ((mesh.control_flags & 0x10) == 0) {
                     pipeline->bounds_minimum_44 = mesh.bounds_minimum_120;
                     pipeline->bounds_maximum_50 = mesh.bounds_maximum_12c;
-                    if (pipeline->bounds_state_6c == 0) {
-                        pipeline->bounds_state_6c = 2;
+                    if (pipeline->bounds_state == 0) {
+                        pipeline->bounds_state = 2;
                     }
                 }
-                if ((mesh.control_flags_0c & 0x20) == 0) {
+                if ((mesh.control_flags & 0x20) == 0) {
                     pipeline->bounds_center_5c = mesh.bounds_center_138;
                     pipeline->bounds_radius_68 = mesh.bounds_radius_144;
-                    pipeline->bounds_state_6c = 1;
+                    pipeline->bounds_state = 1;
                 }
 
                 for (long pass = 0; pass < mesh.pass_count_08; ++pass) {
                     pipeline->current_record_14->flags_00 = 0;
-                    pipeline->current_pass_18->shader_14 = 0;
-                    pipeline->current_pass_18->texture_array_0c = 0;
-                    pipeline->current_pass_18->texture_array_10 = 0;
+                    pipeline->current_pass->shader_14 = 0;
+                    pipeline->current_pass->texture_array_0c = 0;
+                    pipeline->current_pass->texture_array_10 = 0;
 
                     if (mesh.dig_40[pass] != 0) {
                         pipeline->current_record_14->colors_0c = mesh.dig_40[pass];
-                        pipeline->current_record_14->color_format_10 = 1;
+                        pipeline->current_record_14->color_format = 1;
                         pipeline->current_record_14->flags_00 |= 1;
                     }
                     if (mesh.dcg_50[pass] != 0) {
@@ -612,17 +612,17 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
                     }
 
                     if (mesh.poly_uv_110[pass] != 0) {
-                        pipeline->current_pass_18->poly_uv_1c = mesh.poly_uv_110[pass];
+                        pipeline->current_pass->poly_uv_1c = mesh.poly_uv_110[pass];
                     }
 
-                    if (mesh.poly_shaders_100[pass] == 0) {
+                    if (mesh.poly_shaders[pass] == 0) {
                         shader.value = mesh.shaders_b0[pass].value;
                         if (g_inverted_depth_render != 0) {
                             shader.value = (shader.value & 0xfffffffeUL) | 6UL;
                         }
                         pipeline->SetFlags(shader);
                     } else {
-                        pipeline->current_pass_18->shader_14 = mesh.poly_shaders_100[pass];
+                        pipeline->current_pass->shader_14 = mesh.poly_shaders[pass];
                     }
 
                     if (mesh.texcoords_18[pass][0] != 0) {
@@ -638,9 +638,9 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
                         if (mesh.poly_textures_e0[pass][layer] == 0) {
                             srTextureIFace* texture = mesh.textures_90[pass][layer];
                             (&pipeline->texture_78)[layer] = texture;
-                            (&pipeline->current_pass_18->texture_00)[layer] = texture;
+                            (&pipeline->current_pass->texture_00)[layer] = texture;
                         } else {
-                            (&pipeline->current_pass_18->texture_array_0c)[layer] =
+                            (&pipeline->current_pass->texture_array_0c)[layer] =
                                 mesh.poly_textures_e0[pass][layer];
                         }
                     }
@@ -654,7 +654,7 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
         }
 
         renderer.popEnable();
-        last_decompress_release_tick_440 = GetTickCount();
+        last_decompress_release_tick = GetTickCount();
     }
 }
 
@@ -788,13 +788,13 @@ unsigned long* stMeshModel::GetActivePolygons(long* count_out, int table, bool f
     unsigned long* list;
     unsigned char checked;
     if (index >= 0) {
-        if (skin_blanking_apt_458 == 0) {
+        if (skin_blanking_apt == 0) {
             *count_out = 0;
             return 0;
         }
-        list = *skin_blanking_apt_458->GetAt(index);
-        *count_out = *skin_blanking_apt_number_45c->GetAt(index);
-        checked = *skin_blanking_checked_460->GetAt(index);
+        list = *skin_blanking_apt->GetAt(index);
+        *count_out = *skin_blanking_apt_number->GetAt(index);
+        checked = *skin_blanking_checked->GetAt(index);
     } else {
         *count_out = automap_polygon_count;
         list = automap_polygons;
@@ -815,7 +815,7 @@ unsigned long* stMeshModel::GetActivePolygons(long* count_out, int table, bool f
         automap_filter_active = 1;
         textures = getPolyTexture(0, 0, 0);
     } else {
-        skin_blanking_checked_460->SetAt(index, 1);
+        skin_blanking_checked->SetAt(index, 1);
         int skin = -1;
         for (int i = 0; i < skin_table_ids.GetCount(); ++i) {
             if (*skin_table_ids.GetAt(i) == table) {
@@ -847,8 +847,8 @@ unsigned long* stMeshModel::GetActivePolygons(long* count_out, int table, bool f
                 automap_polygons = fresh;
                 automap_polygon_count = *count_out;
             } else {
-                skin_blanking_apt_458->SetAt(index, fresh);
-                skin_blanking_apt_number_45c->SetAt(index, *count_out);
+                skin_blanking_apt->SetAt(index, fresh);
+                skin_blanking_apt_number->SetAt(index, *count_out);
             }
             return fresh;
         }
@@ -1068,7 +1068,7 @@ int stMeshModel::ReleaseDecompressedFrames()
             }
         }
     }
-    last_decompress_release_tick_440 = GetTickCount();
+    last_decompress_release_tick = GetTickCount();
     g_decompressed_mesh_bytes -= released;
     return released;
 }
@@ -1088,9 +1088,9 @@ unsigned char ReclaimDecompressedBytes(unsigned int needed)
                 srAssertFail("pstModel", "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp",
                              0x712, 0);
             }
-            if (model->last_decompress_release_tick_440 < oldest_tick) {
+            if (model->last_decompress_release_tick < oldest_tick) {
                 oldest = model;
-                oldest_tick = model->last_decompress_release_tick_440;
+                oldest_tick = model->last_decompress_release_tick;
             }
         }
         if (oldest == 0) {
@@ -1161,32 +1161,32 @@ int stMeshModel::CreateSkinTable(const char* name, int base_table)
     strcpy(copied_name, name);
     skin_table_names.Add(copied_name);
 
-    if (skin_blanking_apt_458 == 0) {
-        skin_blanking_apt_458 = new W8GrowableVector<unsigned long*>;
-        if (skin_blanking_apt_458 == 0) {
+    if (skin_blanking_apt == 0) {
+        skin_blanking_apt = new W8GrowableVector<unsigned long*>;
+        if (skin_blanking_apt == 0) {
             srAssertFail("m_plsSkinBlankingAPT",
                          "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp", 0x5cd, 0);
         }
     }
-    skin_blanking_apt_458->Add(0);
+    skin_blanking_apt->Add(0);
 
-    if (skin_blanking_apt_number_45c == 0) {
-        skin_blanking_apt_number_45c = new W8GrowableVector<int>;
-        if (skin_blanking_apt_number_45c == 0) {
+    if (skin_blanking_apt_number == 0) {
+        skin_blanking_apt_number = new W8GrowableVector<int>;
+        if (skin_blanking_apt_number == 0) {
             srAssertFail("m_plsSkinBlankingAPTNum",
                          "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp", 0x5d6, 0);
         }
     }
-    skin_blanking_apt_number_45c->Add(0);
+    skin_blanking_apt_number->Add(0);
 
-    if (skin_blanking_checked_460 == 0) {
-        skin_blanking_checked_460 = new W8GrowableVector<unsigned char>;
-        if (skin_blanking_checked_460 == 0) {
+    if (skin_blanking_checked == 0) {
+        skin_blanking_checked = new W8GrowableVector<unsigned char>;
+        if (skin_blanking_checked == 0) {
             srAssertFail("m_plsSkinBlankingChecked",
                          "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp", 0x5df, 0);
         }
     }
-    skin_blanking_checked_460->Add(0);
+    skin_blanking_checked->Add(0);
     return table;
 }
 
@@ -1204,13 +1204,13 @@ void stMeshModel::RemoveSkinTable(int index)
     skin_table_names.RemoveAt(index);
     skin_table_ids.RemoveAt(index);
 
-    unsigned long* apt = *skin_blanking_apt_458->GetAt(index);
+    unsigned long* apt = *skin_blanking_apt->GetAt(index);
     if (apt != 0) {
         delete apt;
     }
-    skin_blanking_apt_458->RemoveAt(index);
-    skin_blanking_apt_number_45c->RemoveAt(index);
-    skin_blanking_checked_460->RemoveAt(index);
+    skin_blanking_apt->RemoveAt(index);
+    skin_blanking_apt_number->RemoveAt(index);
+    skin_blanking_checked->RemoveAt(index);
 }
 
 /* Skin tables are named with the owning cycle plus a one-character suffix.
@@ -1242,9 +1242,9 @@ unsigned char stMeshModel::DecompressFrame(int frame, unsigned char flags,
     if (flags & 1) {
         for (int index = 0; index < vertex_location_count_22c; ++index) {
             const short* source = &compressed_vertex_locations[frame][index * 3];
-            destination[index].Set(source[0] * vertex_compression_scale_444,
-                                   source[1] * vertex_compression_scale_444,
-                                   source[2] * vertex_compression_scale_444);
+            destination[index].Set(source[0] * vertex_compression_scale,
+                                   source[1] * vertex_compression_scale,
+                                   source[2] * vertex_compression_scale);
         }
         return 1;
     }
@@ -1325,7 +1325,7 @@ unsigned char stMeshModel::AllocateFrameBuffers(unsigned int uiFrame, unsigned c
 
 /* Return frame `frame`'s vertex locations, decompressing on demand. When
    `interpolation` is positive and another frame follows, both frames are
-   decompressed and lerped into lerp_buffer_448 (m_pLerpBuffer). */
+   decompressed and lerped into lerp_buffer (m_pLerpBuffer). */
 // FUNCTION: WIZ8 0x00471AD0
 srVector3T<float>* stMeshModel::GetVertexLocations(unsigned int frame, bool load,
                                                    float interpolation)
@@ -1335,10 +1335,10 @@ srVector3T<float>* stMeshModel::GetVertexLocations(unsigned int frame, bool load
     }
     if (g_float_zero < interpolation && frame < frame_count - 1) {
         unsigned int next_frame = (frame + 1) % frame_count;
-        if (lerp_buffer_448 == 0) {
-            lerp_buffer_448 = static_cast<srVector3T<float>*>(
+        if (lerp_buffer == 0) {
+            lerp_buffer = static_cast<srVector3T<float>*>(
                 srHeap.allocate(vertex_location_count_22c * sizeof(srVector3T<float>)));
-            if (lerp_buffer_448 == 0) {
+            if (lerp_buffer == 0) {
                 srAssertFail("m_pLerpBuffer",
                              "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp", 0x2d4, 0);
             }
@@ -1351,19 +1351,19 @@ srVector3T<float>* stMeshModel::GetVertexLocations(unsigned int frame, bool load
             AllocateFrameBuffers(next_frame, 1);
             DecompressFrame(next_frame, 1, m_pVertexLoc[next_frame]);
         }
-        if (lerp_buffer_448 != 0) {
+        if (lerp_buffer != 0) {
             srVector3T<float>* next = m_pVertexLoc[next_frame];
             srVector3T<float>* current = m_pVertexLoc[frame];
             if (next != 0 && current != 0 && vertex_location_count_22c != 0) {
                 if (interpolation == g_float_one) {
-                    CopyDwordBuffer(lerp_buffer_448, next, vertex_location_count_22c * 3);
+                    CopyDwordBuffer(lerp_buffer, next, vertex_location_count_22c * 3);
                 } else {
-                    srVectorProcessor::lerp(&lerp_buffer_448->x, &next->x, &current->x,
+                    srVectorProcessor::lerp(&lerp_buffer->x, &next->x, &current->x,
                                             interpolation, vertex_location_count_22c * 3);
                 }
             }
         }
-        return lerp_buffer_448;
+        return lerp_buffer;
     }
     if (m_pVertexLoc[frame] == 0) {
         AllocateFrameBuffers(frame, 1);
@@ -1511,7 +1511,7 @@ void stMeshModel::ComputeFrameNormals(int frame)
 srVector3T<float>* stMeshModel::GetVertexLights(bool initialize, int table)
 {
     if (table == -1) {
-        table = vertex_light_table_3b0;
+        table = vertex_light_table;
     }
     srHeapBuffer<srVector3T<float> >& lights = vertex_lights_3b4[table];
     if (lights.data == 0 && initialize) {
@@ -1520,8 +1520,8 @@ srVector3T<float>* stMeshModel::GetVertexLights(bool initialize, int table)
         for (unsigned int index = 0; index < lights.capacity; ++index) {
             lights.data[index] = zero;
         }
-        if (vertex_sunlight_3c4.data != 0) {
-            vertex_lighting_ready_3cd = 1;
+        if (vertex_sunlight.data != 0) {
+            vertex_lighting_ready = 1;
         }
     }
     return lights.data;
@@ -1530,14 +1530,14 @@ srVector3T<float>* stMeshModel::GetVertexLights(bool initialize, int table)
 // FUNCTION: WIZ8 0x004721E0
 float* stMeshModel::GetVertexSunlight(bool initialize)
 {
-    if (vertex_sunlight_3c4.data == 0 && initialize) {
-        vertex_sunlight_3c4.setCapacity(vertex_location_count_22c, 0);
-        for (unsigned int index = 0; index < vertex_sunlight_3c4.capacity; ++index) {
-            vertex_sunlight_3c4.data[index] = 1.0f;
+    if (vertex_sunlight.data == 0 && initialize) {
+        vertex_sunlight.setCapacity(vertex_location_count_22c, 0);
+        for (unsigned int index = 0; index < vertex_sunlight.capacity; ++index) {
+            vertex_sunlight.data[index] = 1.0f;
         }
-        vertex_lighting_ready_3cd = 1;
+        vertex_lighting_ready = 1;
     }
-    return vertex_sunlight_3c4.data;
+    return vertex_sunlight.data;
 }
 
 // FUNCTION: WIZ8 0x00473180
@@ -1563,38 +1563,38 @@ void stMeshModel::FinalizeVertexFrame(int frame)
 void srTriMeshPipeline::SetFlags(srShader shader)
 {
     shader_74 = shader;
-    current_pass_18->flags_08 = shader;
+    current_pass->flags_08 = shader;
 }
 
-/* Point current_record_14 / current_pass_18 at slot slot_count_84, growing
+/* Point current_record_14 / current_pass at slot slot_count_84, growing
    either table by (capacity + slot + 8) when needed. */
 // FUNCTION: WIZ8 0x00475540
 void srTriMeshPipeline::PrepareSlot()
 {
     current_record_14 = &records_94[slot_count_84];
-    current_pass_18 = &passes_9c[slot_count_84];
+    current_pass = &passes_9c[slot_count_84];
 
     current_record_14->flags_00 = 0;
     current_record_14->disable_mask_04 = 0;
     current_record_14->material_08 = material_80;
-    current_pass_18->texture_00 = texture_78;
-    current_pass_18->texture_04 = texture_7c;
-    current_pass_18->flags_08.value = shader_74.value;
-    current_pass_18->texture_array_0c = 0;
-    current_pass_18->texture_array_10 = 0;
-    current_pass_18->shader_14 = 0;
-    current_pass_18->st_18 = 0;
-    current_pass_18->poly_uv_1c = 0;
+    current_pass->texture_00 = texture_78;
+    current_pass->texture_04 = texture_7c;
+    current_pass->flags_08.value = shader_74.value;
+    current_pass->texture_array_0c = 0;
+    current_pass->texture_array_10 = 0;
+    current_pass->shader_14 = 0;
+    current_pass->st_18 = 0;
+    current_pass->poly_uv_1c = 0;
 }
 
 // FUNCTION: WIZ8 0x00475510
 void srTriMeshPipeline::Flush()
 {
-    flushing_8c = 1;
+    flushing = 1;
     if (slot_count_84 > 0) {
         FlushSlots();
     }
-    flushing_8c = 0;
+    flushing = 0;
 }
 
 /* Bind a renderer and rebuild the current slot through PrepareSlot. */
@@ -1613,7 +1613,7 @@ void srTriMeshPipeline::Reset(srGERD* renderer)
     vertex_count_20 = 0;
     positions_38 = 0;
     vertex_extras_3c = 0;
-    bounds_state_6c = 0;
+    bounds_state = 0;
     sort_bias_40 = 0.0f;
     shader_74.value = 0x0100241b;
     texture_78 = 0;
@@ -1628,7 +1628,7 @@ srTriMeshPipeline::srTriMeshPipeline()
     flags_28 = 0;
     shader_74.value = 0;
     vertex_pipe_90 = new srVertexPipe();
-    flushing_8c = 0;
+    flushing = 0;
     Reset(0);
     Flush();
 }
@@ -1636,7 +1636,7 @@ srTriMeshPipeline::srTriMeshPipeline()
 // FUNCTION: WIZ8 0x004752F0
 srTriMeshPipeline::~srTriMeshPipeline()
 {
-    while (flushing_8c != 0) {
+    while (flushing != 0) {
     }
 
     delete vertex_pipe_90;
@@ -1649,8 +1649,8 @@ void srTriMeshPipeline::FlushSlots()
         return;
     }
 
-    if (bounds_state_6c != 1) {
-        if (bounds_state_6c == 0 && vertex_count_20 != 0) {
+    if (bounds_state != 1) {
+        if (bounds_state == 0 && vertex_count_20 != 0) {
             srVectorProcessor::minMax(positions_38, bounds_minimum_44, bounds_maximum_50,
                                       vertex_count_20);
         }
@@ -1712,14 +1712,14 @@ void srTriMeshPipeline::FlushSlots()
     }
 
     if (active_triangles_2c == 0) {
-        srCore.getStatisticsManager()->statistics_00.triangles_submitted_10 +=
+        srCore.getStatisticsManager()->statistics_00.triangles_submitted +=
             slot_count_84 * triangle_count_1c;
     } else {
-        srCore.getStatisticsManager()->statistics_00.triangles_submitted_10 +=
+        srCore.getStatisticsManager()->statistics_00.triangles_submitted +=
             slot_count_84 * active_triangle_count_24;
     }
     ++srCore.getStatisticsManager()->statistics_00.meshes_submitted_0c;
-    srCore.getStatisticsManager()->statistics_00.vertices_submitted_18 +=
+    srCore.getStatisticsManager()->statistics_00.vertices_submitted +=
         slot_count_84 * vertex_count_20;
 
     unsigned long total = active_triangles_2c == 0 ? triangle_count_1c : active_triangle_count_24;
@@ -1738,7 +1738,7 @@ void srTriMeshPipeline::FlushSlots()
         }
     }
 
-    unsigned long* scratch = culler_scratch_0c.ensure(batch_limit + vertex_count_20 * 2);
+    unsigned long* scratch = culler_scratch.ensure(batch_limit + vertex_count_20 * 2);
     srTriangleCuller::Output culler_output;
     culler_output.indices_00 = scratch;
     culler_output.avt_04 = scratch + batch_limit;
@@ -1766,9 +1766,9 @@ void srTriMeshPipeline::FlushSlots()
         }
 
         if (srTriangleCuller::cull(culler_output, culler_input)) {
-            srCore.getStatisticsManager()->statistics_00.triangles_after_culling_14 +=
+            srCore.getStatisticsManager()->statistics_00.triangles_after_culling +=
                 slot_count_84 * culler_output.triangle_count_0c;
-            srCore.getStatisticsManager()->statistics_00.vertices_after_culling_1c +=
+            srCore.getStatisticsManager()->statistics_00.vertices_after_culling +=
                 slot_count_84 * culler_output.vertex_count_10;
 
             srGERD::Renderer* renderer = renderer_88->lockRenderer();
@@ -1780,7 +1780,7 @@ void srTriMeshPipeline::FlushSlots()
 
             for (unsigned long slot = 1; slot < slot_count_84; ++slot) {
                 unsigned long offset = slot * culler_output.vertex_count_10;
-                vertex_arrays[slot].eye_locations_00 = vertex_arrays[0].eye_locations_00 + offset;
+                vertex_arrays[slot].eye_locations = vertex_arrays[0].eye_locations + offset;
                 vertex_arrays[slot].diffuse_04 = vertex_arrays[0].diffuse_04 + offset;
                 vertex_arrays[slot].specular_08 = vertex_arrays[0].specular_08 + offset;
                 vertex_arrays[slot].st0_0c = vertex_arrays[0].st0_0c + offset;
@@ -1793,7 +1793,7 @@ void srTriMeshPipeline::FlushSlots()
             unsigned long processor_count = renderer_88->getVertexProcessorCount();
             srVertexProcessor** processors = 0;
             if (processor_count != 0) {
-                processors = vertex_processors_04.ensure(processor_count);
+                processors = vertex_processors.ensure(processor_count);
                 renderer_88->getVertexProcessors(processors);
             }
 
@@ -1811,7 +1811,7 @@ void srTriMeshPipeline::FlushSlots()
             pipe_input.record_count_00 = slot_count_84;
             pipe_input.vertex_count_04 = culler_output.vertex_count_10;
             pipe_input.indices_08 = culler_output.avt_04;
-            pipe_input.position_is_float3_0c = culler_output.linear_14 == 0;
+            pipe_input.position_is_float3_0c = culler_output.linear == 0;
             pipe_input.positions_10 = positions_38;
             pipe_input.values_14 = vertex_extras_3c;
             pipe_input.eye_center_18 = eye_center;
@@ -1868,7 +1868,7 @@ void srTriMeshPipeline::FlushSlots()
             render_input.triangles_10 = triangles_34;
             render_input.vertices_14 = culler_output.clip_flags_08;
             render_input.passes_18 = &passes_9c[0];
-            render_input.position_is_float3_1c = culler_output.linear_14 == 0;
+            render_input.position_is_float3_1c = culler_output.linear == 0;
             render_input.project_clip_near_20 = &project_clip_near;
             render_input.sort_bias_24 = sort_bias_40;
             renderer->render(render_input);

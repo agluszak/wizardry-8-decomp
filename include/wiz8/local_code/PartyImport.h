@@ -19,7 +19,7 @@ struct W8Wiz7Character {
     int kill_count_010;  /* 0x010: stored verbatim to kill_count_09f9 */
     unsigned char unknown_014[0x10];
     short level_024;  /* 0x024: positive values import as level 1 */
-    short deaths_026; /* 0x026: stored to death_count_09fd minus one */
+    short deaths; /* 0x026: stored to death_count minus one */
     unsigned char unknown_028[0x18];
     W8Wiz7Item items[2][10]; /* 0x040: two ten-item lists, 0x78 each */
     unsigned char unknown_130[0x40];
@@ -31,7 +31,7 @@ struct W8Wiz7Character {
     /* 0x232: the shared save tag - every record in one import file carries the
        same byte; its high nibble picks the Wiz7 ending and its low nibble the
        difficulty. */
-    unsigned char party_tag_232;
+    unsigned char party_tag;
     unsigned char unknown_233[4];
     unsigned char race_237;       /* 0x237 */
     unsigned char gender_238;     /* 0x238 */

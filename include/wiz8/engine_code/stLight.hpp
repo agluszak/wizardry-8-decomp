@@ -108,11 +108,11 @@ static_assert(offsetof(stParametricLightDefinition, subcycle_min_3c) == 0x3c,
 static_assert(offsetof(stParametricLightDefinition, subcycle_max_40) == 0x40,
               "stParametricLightDefinition_subcycle_max_40");
 
-/* Type 2: a light driven by keyframe tables stepped by keyframe_index_48. */
+/* Type 2: a light driven by keyframe tables stepped by keyframe_index. */
 // VTABLE: WIZ8 0x005ecda0
 class stKeyframedLightDefinition : public stLightDefinition {
 public:
-    stKeyframedLightDefinition() : keyframe_index_48(0), time_4c(0.0f)
+    stKeyframedLightDefinition() : keyframe_index(0), time_4c(0.0f)
     {
         type_04 = 2;
     }
@@ -123,7 +123,7 @@ public:
     W8GrowableVector<int> values_18;
     W8GrowableVector<float> values_28;
     W8GrowableVector<srVector3T<float> > values_38;
-    int keyframe_index_48;
+    int keyframe_index;
     float time_4c;
     int start_frame_50;
     float end_frame_54;
@@ -139,8 +139,8 @@ static_assert(offsetof(stKeyframedLightDefinition, values_28) == 0x28,
               "stKeyframedLightDefinition_values_28");
 static_assert(offsetof(stKeyframedLightDefinition, values_38) == 0x38,
               "stKeyframedLightDefinition_values_38");
-static_assert(offsetof(stKeyframedLightDefinition, keyframe_index_48) == 0x48,
-              "stKeyframedLightDefinition_keyframe_index_48");
+static_assert(offsetof(stKeyframedLightDefinition, keyframe_index) == 0x48,
+              "stKeyframedLightDefinition_keyframe_index");
 static_assert(offsetof(stKeyframedLightDefinition, time_4c) == 0x4c,
               "stKeyframedLightDefinition_time_4c");
 static_assert(offsetof(stKeyframedLightDefinition, start_frame_50) == 0x50,
@@ -203,13 +203,13 @@ public:
     }
     stLightDefinition* definition() const
     {
-        return m_definition_234;
+        return m_definition;
     }
     void ConfigureMonsterCopy()
     {
-        attenuation_model_150 = srLight::ATTENUATION_3DSTUDIO_MAX;
-        enable_flags_194 |= 0x10; /* ENABLE_RANGE_FAR */
-        enable_flags_194 |= 4;    /* ENABLE_BOUNDING_SPHERE */
+        attenuation_model = srLight::ATTENUATION_3DSTUDIO_MAX;
+        enable_flags |= 0x10; /* ENABLE_RANGE_FAR */
+        enable_flags |= 4;    /* ENABLE_BOUNDING_SPHERE */
     }
 
 public:
@@ -217,26 +217,26 @@ public:
        form VC6 emits for a class type's memberwise assignment, not through three
        independent displacement loads. */
     srVector3T<float> m_position_228;    /* 0x228 */
-    stLightDefinition* m_definition_234; /* 0x234: owned */
+    stLightDefinition* m_definition; /* 0x234: owned */
     unsigned char m_unknown_238;         /* 0x238 */
     /* Oscillation direction: zero sweeps intensity down, nonzero sweeps up. */
     unsigned char m_direction_239;
     /* Raised by light-toggle triggers; the save path serializes the names of
        lights carrying it so their toggled state persists in savegames. */
-    bool m_save_marked_23a; /* 0x23a */
+    bool m_save_marked; /* 0x23a */
     unsigned char m_padding_23b;
     /* GetTickCount()/1000 timestamp of the last intensity/color update. */
-    float m_level_time_23c;
+    float m_level_time;
     /* Current 0..1 sweep level driving intensity_1d0 and the color lerp. */
-    float m_level_240;
+    float m_level;
     W8PathAI* m_owned_244; /* 0x244 */
-    /* Current path entry index, advanced by m_path_direction_250. */
-    int m_path_index_248;
+    /* Current path entry index, advanced by m_path_direction. */
+    int m_path_index;
     /* GetTickCount()/1000 timestamp of the last path advance. */
-    float m_path_time_24c;
+    float m_path_time;
     /* Path step direction, +1 or -1 under the ping-pong flag. */
-    int m_path_direction_250;
-    W8Prop* m_prop_254; /* 0x254 */
+    int m_path_direction;
+    W8Prop* m_prop; /* 0x254 */
 };
 
 static_assert(sizeof(stLight) == 0x258, "stLight_must_be_0x258");

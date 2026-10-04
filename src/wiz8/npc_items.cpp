@@ -368,7 +368,7 @@ void ClearNpcItems(W8NpcState* npc)
 {
     W8PList* items;
 
-    if (npc->record->owns_stock_055 != 0 && (items = npc->items) != 0) {
+    if (npc->record->owns_stock != 0 && (items = npc->items) != 0) {
         while (PLLength(items) != 0) {
             delete static_cast<W8NpcItemEntry*>(PLRemoveAt(items, 0));
         }

@@ -72,7 +72,7 @@ struct W8NpcState {
     unsigned char partner_index_2c;
     /* 0x2d: the NPC's monster has noticed the party once; the sight path
        raises it to fire the one-shot surprise/bark event. */
-    bool party_noticed_2d;
+    bool party_noticed;
     /* 0x2e: the naming-style id a fact can substitute; values run to 0x85,
        past the signed-char range. */
     unsigned char name_style;
@@ -80,7 +80,7 @@ struct W8NpcState {
     unsigned char bound_level;
     /* 0x30: the forty item ids 0x0050B9E0 copies out of the record's item
        table, -1 for an unused slot; every retail reader sign-extends. */
-    short item_ids_30[40];
+    short item_ids[40];
     /* 0x80: the purse 0x004F8CB0 hands to AddPartyGold, from the record's
        gold field. */
     int gold_80;
@@ -88,10 +88,10 @@ struct W8NpcState {
        set. */
     /* 0x84: theft suspicion; each theft attempt raises it toward 0x64 and it
        scales the theft score down. */
-    unsigned char suspicion_84;
+    unsigned char suspicion;
     /* 0x85: bitmask the refusal callback reads and sets one bit per queued
        refusal quote (0x67, 0x68, 0x69); retail accesses it as one dword. */
-    unsigned int refusal_flags_85;
+    unsigned int refusal_flags;
     /* 0x089: five topics stored one more than their id so zero means empty. */
     int topics[5];
     char restore_entity_name[0x28]; /* 0x9d: FindEntityByName key for restore */
@@ -111,7 +111,7 @@ struct W8NpcState {
     /* 0x0e8: cleared by the level-entry NPC-binding reset. */
     /* 0xe8: the bound character's highest condition reached a serious
        band; cleared when the character recovers. */
-    unsigned char incapacitated_e8;
+    unsigned char incapacitated;
     /* 0x0e9 and 0x114: two flags raised together when the NPC is marked. */
     unsigned char marked_e9;
     /* 0x0ea: this NPC is a candidate for the scripted event pass. */
@@ -123,8 +123,8 @@ struct W8NpcState {
     /* 0x0ef: disposition band snapshot taken when dialogue opens. */
     unsigned char disposition_at_open_ef;
     /* 0x0f0/0x0f1: death-save assist offer, selected by name style. */
-    unsigned char healer_assist_f0;
-    unsigned char item_assist_f1;
+    unsigned char healer_assist;
+    unsigned char item_assist;
     /* 0x0f2: fourteen facts, appended in order and terminated by zero. */
     short known_facts[14];
     /* 0x10e: the item-count dice of the item table 0x0050B9E0 copied. */
@@ -134,9 +134,9 @@ struct W8NpcState {
     bool pending_release;
     unsigned char pending_release_level;
     unsigned char marked_114;
-    /* 0x115: the forty entry weights matching item_ids_30; only the slots
+    /* 0x115: the forty entry weights matching item_ids; only the slots
        whose table selector was set carry a weight. */
-    unsigned char item_weights_115[40];
+    unsigned char item_weights[40];
 }; /* 0x13d by allocation */
 
 #pragma pack(pop)

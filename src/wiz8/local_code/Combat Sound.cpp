@@ -55,8 +55,8 @@ void PlayCombatSound(char* sound_name, unsigned int variant_count, bool store_ha
         handle = SoundPlay(zSoundFileName, 0);
     }
     if (handle != 0xffffffff && g_combat_state != 0 && store_handle) {
-        g_combat_state->hit_sound_7bc = handle;
-        g_combat_state->hit_sound_active_7c0 = 1;
+        g_combat_state->hit_sound = handle;
+        g_combat_state->hit_sound_active = 1;
     }
 }
 
@@ -243,7 +243,7 @@ void MakePCMeleeHitSound(int iChar, const W8HandAttack* hand_attack, W8CombatSlo
     if (hand_attack->uiHolds == HOLDS_NOTHING) {
         weapon_class = 9;
     } else {
-        weapon_class = g_item_records[g_combat_state->characters[iChar].paired_item_id_7c]
+        weapon_class = g_item_records[g_combat_state->characters[iChar].paired_item_id]
                            .weapon_sound_class_0c5;
     }
     if (target->iType == W8_TARGET_KIND_CHARACTER) {

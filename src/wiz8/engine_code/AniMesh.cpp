@@ -107,11 +107,11 @@ W8AniMesh* CopyAniMesh(const W8AniMesh* other)
     mesh->bounds_minimum_08 = other->bounds_minimum_08;
     mesh->bounds_maximum_14 = other->bounds_maximum_14;
     mesh->radius_20 = other->radius_20;
-    mesh->loaded_bytes_24 = other->loaded_bytes_24;
+    mesh->loaded_bytes = other->loaded_bytes;
     mesh->list_index_28 = other->list_index_28;
     mesh->file_offset_34 = other->file_offset_34;
     mesh->world_38 = other->world_38;
-    mesh->last_used_3c = other->last_used_3c;
+    mesh->last_used = other->last_used;
 
     mesh->bitmap_directory_2c = static_cast<char*>(malloc(0x400));
     mesh->filename_30 = static_cast<char*>(malloc(0x80));
@@ -163,7 +163,7 @@ unsigned char LoadAniMeshFromInfo(W8ReadLevelInfo* info, W8AniMesh* mesh, unsign
     strcpy(mesh->bitmap_directory_2c, info->bitmap_folder);
     mesh->world_38 = info->world;
     mesh->flags_00 = 0;
-    mesh->last_used_3c = 0;
+    mesh->last_used = 0;
     if (info->mesh_filename != 0)
         strcpy(mesh->filename_30, info->mesh_filename);
     mesh->file_offset_34 = FileGetPos(info->hFile);
@@ -302,8 +302,8 @@ unsigned char LoadAniMesh(int file, W8AniMesh* mesh, bool load_all)
     }
 
     mesh->flags_00 |= W8_ANI_MESH_LOADED;
-    mesh->last_used_3c = g_animesh_cache_stamp++;
-    g_animesh_cache_bytes += mesh->loaded_bytes_24;
+    mesh->last_used = g_animesh_cache_stamp++;
+    g_animesh_cache_bytes += mesh->loaded_bytes;
 
     mesh->radius_20 = 0.0f;
     for (frame_index = 0; frame_index < mesh->frame_count_01; ++frame_index) {
@@ -362,7 +362,7 @@ unsigned char GetAniMeshBounds(W8AniMesh* mesh, srVector3T<float>* minimum,
     }
     *minimum = mesh->bounds_minimum_08;
     *maximum = mesh->bounds_maximum_14;
-    mesh->last_used_3c = g_animesh_cache_stamp++;
+    mesh->last_used = g_animesh_cache_stamp++;
     return 1;
 }
 
@@ -454,7 +454,7 @@ unsigned char UnloadAniMesh(W8AniMesh* mesh, bool force)
             instance->release();
         }
     }
-    g_animesh_cache_bytes -= mesh->loaded_bytes_24;
+    g_animesh_cache_bytes -= mesh->loaded_bytes;
     free(mesh->meshes_04);
     mesh->flags_00 &= ~W8_ANI_MESH_LOADED;
     mesh->meshes_04 = 0;
@@ -483,7 +483,7 @@ stModelInstance* GetAniMeshFrame(W8AniMesh* mesh, unsigned char frame)
     } else {
         instance = mesh->meshes_04[frame];
     }
-    mesh->last_used_3c = g_animesh_cache_stamp;
+    mesh->last_used = g_animesh_cache_stamp;
     ++g_animesh_cache_stamp;
     return instance;
 }
@@ -518,7 +518,7 @@ bool AniMeshRadius(W8AniMesh* mesh, float* radius)
             }
         }
         *radius = mesh->radius_20;
-        mesh->last_used_3c = g_animesh_cache_stamp;
+        mesh->last_used = g_animesh_cache_stamp;
         ++g_animesh_cache_stamp;
         return 1;
     }
@@ -554,8 +554,8 @@ void EnforceAniMeshMemoryLimit(W8AniMesh* current)
                     srAssertFail("pAniMesh", ANI_MESH_CPP, 0x3d0, 0);
                 }
                 if ((candidate->flags_00 & W8_ANI_MESH_FLAG_10) == 0 &&
-                    (oldest_index == -1 || static_cast<unsigned int>(candidate->last_used_3c) <
-                                               static_cast<unsigned int>(oldest->last_used_3c))) {
+                    (oldest_index == -1 || static_cast<unsigned int>(candidate->last_used) <
+                                               static_cast<unsigned int>(oldest->last_used))) {
                     oldest = candidate;
                     oldest_index = index;
                 }

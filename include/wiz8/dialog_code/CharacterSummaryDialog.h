@@ -35,23 +35,23 @@ private:
     bool CreateQuoteText();
     unsigned char HandleInputEvent(const InputAtom* input);
 
-    bool m_voice_started_054;
+    bool m_voice_started;
     unsigned char pad_055[3];
-    W8TextBuffer* m_quote_text_058;
-    W8DialogNumericInput* m_numeric_input_05c;
+    W8TextBuffer* m_quote_text;
+    W8DialogNumericInput* m_numeric_input;
     void* m_field_060;
     int m_remaining_064;
     int m_taken_068;
     int m_total_06c;
     int m_field_070;
     W8Character* m_character_074;
-    W8Character m_saved_character_078;
-    W8MonsterManagerEntry m_saved_monster_entry_18da;
-    W8PartySlotRow m_saved_party_row_19f2;
+    W8Character m_saved_character;
+    W8MonsterManagerEntry m_saved_monster_entry;
+    W8PartySlotRow m_saved_party_row;
     unsigned char m_field_1af8;
-    bool m_portrait_clock_started_1af9;
+    bool m_portrait_clock_started;
     unsigned char pad_1afa[2];
-    TIMER m_portrait_clock_1afc;
+    TIMER m_portrait_clock;
 };
 
 static_assert(sizeof(W8CharacterSummaryDialog) == 0x1b00,

@@ -169,11 +169,11 @@ void LoadMonsterGroupMembers(W8MonsterGroup* monster_group);     /* 0x0050F630 *
 void RefreshMonsterGroupHostility(W8MonsterGroup* monster_group); /* 0x005113A0 */
 void MonsterGroupEnterCombat(W8MonsterGroup* monster_group);      /* 0x0050F720 */
 /* Re-elect the group's leader member: the live member carrying the highest
-   navigator leadership_rank_008 takes over leader_location_id, else the first member does, and
+   navigator leadership_rank takes over leader_location_id, else the first member does, and
    the outgoing leader's script and heard-noise state move across. */
 void ElectGroupLeaderMember(W8MonsterGroup* monster_group); /* 0x005103E0 */
 /* Re-elect the allied leader group when this group's leader falls: the allied
-   group whose members hold the highest navigator leadership_rank_008 leads the rest,
+   group whose members hold the highest navigator leadership_rank leads the rest,
    and the fallen leader's script and heard-noise state carry to the new
    leader's MonsterInfo. */
 void ElectAlliedLeaderGroup(W8MonsterGroup* monster_group,

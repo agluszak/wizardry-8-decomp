@@ -1961,7 +1961,7 @@ void CreateAutomapMarkerSprites(void)
             first.Set(0.0f, 0.25f, 0.0f, 1.0f);
             second.Set(0.0f, 0.75f, 0.0f, 1.0f);
             g_automap_party_marker->SetGlowColors(&first, &second);
-            g_automap_party_marker->render_state_164.render_depth = 2000;
+            g_automap_party_marker->render_state.render_depth = 2000;
         }
     }
     if (g_automap_friendly_marker == 0) {
@@ -2101,7 +2101,7 @@ void RenderAutomapMarkers(void)
             }
         }
         if (g_automap_show_all_monsters != 0 || detect_all != 0 ||
-            (monster->disabled_217 == 0 && info->party_threat.sight_state_04 == W8_SIGHT_SEEN)) {
+            (monster->disabled_217 == 0 && info->party_threat.sight_state == W8_SIGHT_SEEN)) {
             left = g_automap_position.x - g_automap_zoom * g_float_005ebc7c;
             top = g_automap_position.z - g_automap_zoom * g_float_005ebc7c;
             if (location.x < left || left + g_automap_zoom < location.x || location.z < top ||

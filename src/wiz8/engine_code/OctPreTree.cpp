@@ -53,10 +53,10 @@ OctPreTree::OctPreTree() : W8Octree(0, 0)
     unknown_3ac = 0;
     deepest_link_list_3b0 = 0;
     m_region_cell = 0.0f;
-    path_node_extent_3b4 = 0;
-    automesh_cells_29c = 0;
-    pre_pathing_2a0 = 0;
-    props_3b8 = new W8GrowableVector<GDProp*>;
+    path_node_extent = 0;
+    automesh_cells = 0;
+    pre_pathing = 0;
+    props = new W8GrowableVector<GDProp*>;
     g_oct_pre_tree = this;
 }
 
@@ -65,16 +65,16 @@ OctPreTree::OctPreTree() : W8Octree(0, 0)
 // FUNCTION: WIZ8 0x00467ab0
 OctPreTree::~OctPreTree()
 {
-    if (automesh_cells_29c != 0) {
-        delete automesh_cells_29c;
-        automesh_cells_29c = 0;
+    if (automesh_cells != 0) {
+        delete automesh_cells;
+        automesh_cells = 0;
     }
-    if (pre_pathing_2a0 != 0) {
-        delete pre_pathing_2a0;
-        pre_pathing_2a0 = 0;
+    if (pre_pathing != 0) {
+        delete pre_pathing;
+        pre_pathing = 0;
     }
-    if (props_3b8 != 0) {
-        delete props_3b8;
+    if (props != 0) {
+        delete props;
     }
     g_oct_pre_tree = 0;
 }
@@ -96,9 +96,9 @@ void OctPreTree::CollectLeafPolygons(const srVector3T<int>* cell)
 {
     m_gd_result_count = 0;
     unsigned int leaf_index = LeafIndexForCell(cell);
-    if (leaf_index != 0 && m_leaves[leaf_index].polygon_offset_08 != 0) {
+    if (leaf_index != 0 && m_leaves[leaf_index].polygon_offset != 0) {
         const unsigned long* stream =
-            m_polygon_index_stream + m_leaves[leaf_index].polygon_offset_08;
+            m_polygon_index_stream + m_leaves[leaf_index].polygon_offset;
         for (int remaining = *stream; remaining != 0; --remaining) {
             ++stream;
             if (m_visited_polygon_bits->Set(*stream) == 0) {
@@ -299,7 +299,7 @@ unsigned char OctPreTree::WriteOctFile(W8OctPreTreeGeometry* geometry, W8GameDat
     header.m_vertex_count = geometry->vertex_count_00;
     header.m_surface_count = game_data->m_iNumSurfaces;
     header.m_gd_surface_stream_len = m_gd_surface_stream_len;
-    header.m_leaf_polygon_stream_len = polygon_cursor_3a0;
+    header.m_leaf_polygon_stream_len = polygon_cursor;
     header.m_trigger_count = m_trigger_count;
     header.m_region_list_len = m_region_list_len;
     header.m_region_cell = m_region_cell;
@@ -312,12 +312,12 @@ unsigned char OctPreTree::WriteOctFile(W8OctPreTreeGeometry* geometry, W8GameDat
     header.m_particle_count = m_ulNumParticles;
     header.m_kind1_submesh_count = m_kind1_submesh_count;
     header.m_zero = 0;
-    if (pre_pathing_2a0 == 0) {
+    if (pre_pathing == 0) {
         header.m_path_nodes = 0;
         header.m_edge_node_count = 0;
     } else {
-        header.m_path_nodes = pre_pathing_2a0->size_004;
-        header.m_edge_node_count = pre_pathing_2a0->edge_node_count_008;
+        header.m_path_nodes = pre_pathing->size_004;
+        header.m_edge_node_count = pre_pathing->edge_node_count;
     }
     file = FileOpen("NewLevel.oct", FILE_ACCESS_WRITE | FILE_CREATE_ALWAYS, 0);
     if (file == 0) {
@@ -417,7 +417,7 @@ unsigned char OctPreTree::WriteOctFile(W8OctPreTreeGeometry* geometry, W8GameDat
                           "WriteOctFile: Couldn't write Terminator after Mesh Prop Link Table.\n");
         return 0;
     }
-    if (pre_pathing_2a0 != 0 && pre_pathing_2a0->WritePathNodes(file) == 0) {
+    if (pre_pathing != 0 && pre_pathing->WritePathNodes(file) == 0) {
         ReportBuildStatus(7, "WriteOctFile: Couldn't write Path Nodes.\n");
         return 0;
     }
@@ -525,7 +525,7 @@ OctMeshModel* OctPreTree::CreateSubMeshes(W8OctPreTreeGeometry* geometry)
                         }
                         submesh->mesh_04 = model_index;
                         submesh->polygon_count_0c = record->m_polygon_count;
-                        submesh->next_link_08 = record->m_next_link;
+                        submesh->next_link = record->m_next_link;
                         model->m_packed_header = record->m_kind;
                         model->version_00 = m_sun_count;
                         kind_counts[record->m_kind] += 1;
@@ -536,7 +536,7 @@ OctMeshModel* OctPreTree::CreateSubMeshes(W8OctPreTreeGeometry* geometry)
                         if (record->m_prev_link == 0) {
                             ++root_count;
                         }
-                        model->next_link_08 = record->m_next_link - 1;
+                        model->next_link = record->m_next_link - 1;
                         model->m_vertex_locations = static_cast<srVector3T<float>*>(
                             srHeap.allocate(record->vertex_count_14 * 0xc));
                         model->m_vertex_map = record->m_uv_map;
@@ -1068,7 +1068,7 @@ unsigned long OctPreTree::AllocateSubMesh(W8OctSubmeshBuild* records)
             record->m_polygon_count = found;
         }
         unsigned short key = static_cast<unsigned short>(index);
-        W8HashTable<unsigned short, unsigned long>* cells = automesh_cells_29c;
+        W8HashTable<unsigned short, unsigned long>* cells = automesh_cells;
         int slot = cells->FindNextEntry(&key, -1);
         while (slot != -1) {
             unsigned long cell = cells->entries[slot].value;
@@ -1127,10 +1127,10 @@ void OctPreTree::VerifyAutoMeshes(W8OctPreTreeGeometry* geometry, W8OctSubmeshBu
 {
     for (unsigned long mesh = 1; mesh < m_meshCount; ++mesh) {
         unsigned short key = static_cast<unsigned short>(mesh);
-        int slot = automesh_cells_29c->FindNextEntry(&key, -1);
+        int slot = automesh_cells->FindNextEntry(&key, -1);
         while (slot != -1) {
             unsigned int cell[4];
-            unsigned long packed = automesh_cells_29c->entries[slot].value;
+            unsigned long packed = automesh_cells->entries[slot].value;
             cell[0] = packed >> 0x18;
             cell[1] = packed >> 0x10 & 0xff;
             cell[2] = packed >> 8 & 0xff;
@@ -1180,7 +1180,7 @@ void OctPreTree::VerifyAutoMeshes(W8OctPreTreeGeometry* geometry, W8OctSubmeshBu
                     ReportBuildStatus(7, "AutoMesh has no vertices inside region.");
                 }
             }
-            slot = automesh_cells_29c->FindNextEntry(&key, slot);
+            slot = automesh_cells->FindNextEntry(&key, slot);
         }
     }
 }
@@ -1204,11 +1204,11 @@ unsigned char OctPreTree::BuildPathLists(W8GameData* game_data, W8LevelFile* lev
     SetOctreeGameData(game_data);
     delete m_visited_object_bits;
     m_visited_object_bits = new BitArray(m_spatial.m_item_count + 0x14);
-    pre_pathing_2a0 = new PrePathing;
-    pre_pathing_2a0->SnapNamedPositions(level->pNamedPositions, level->nNamedPositions,
+    pre_pathing = new PrePathing;
+    pre_pathing->SnapNamedPositions(level->pNamedPositions, level->nNamedPositions,
                                         min_component_percent, this);
     ReportBuildStatus(6, "\nBuilding Path Lists:\n=======================\n");
-    path_node_extent_3b4 = m_region_cell + m_region_cell;
+    path_node_extent = m_region_cell + m_region_cell;
     float level_height = (m_spatial.m_maximum.y - m_spatial.m_minimum.y) * g_path_span_scale;
     int x_cells =
         static_cast<int>((m_spatial.m_maximum.x - m_spatial.m_minimum.x) / m_region_cell) + 1;
@@ -1216,9 +1216,9 @@ unsigned char OctPreTree::BuildPathLists(W8GameData* game_data, W8LevelFile* lev
         static_cast<int>((m_spatial.m_maximum.z - m_spatial.m_minimum.z) / m_region_cell) + 1;
 
     int prop_count = CreatePathProps(level, &preprops);
-    W8PrePathNode* record = pre_pathing_2a0->GetPathNode();
+    W8PrePathNode* record = pre_pathing->GetPathNode();
     W8PrePathNode* head = record;
-    path_node_count_2a4 = 1;
+    path_node_count = 1;
     int last_percent = 0;
     if (x_cells > 0) {
         float x_cells_f = static_cast<float>(x_cells);
@@ -1227,7 +1227,7 @@ unsigned char OctPreTree::BuildPathLists(W8GameData* game_data, W8LevelFile* lev
             if (last_percent < percent) {
                 ++last_percent;
                 sprintf(message, "  %d%% Complete:  %d Path Nodes Created \r", last_percent,
-                        path_node_count_2a4);
+                        path_node_count);
                 ReportStartupMessage(message);
             }
             unsigned int cell = static_cast<unsigned int>(x);
@@ -1247,7 +1247,7 @@ unsigned char OctPreTree::BuildPathLists(W8GameData* game_data, W8LevelFile* lev
                         node.y = snapped;
                     }
                     if (PathNodeObstructed(&node) != 1) {
-                        W8PrePathNode* next = pre_pathing_2a0->GetPathNode();
+                        W8PrePathNode* next = pre_pathing->GetPathNode();
                         record->next = next;
                         record = next;
                         record->cell = cell;
@@ -1262,10 +1262,10 @@ unsigned char OctPreTree::BuildPathLists(W8GameData* game_data, W8LevelFile* lev
                         }
                         int slot = node_map.FindNextEntry(&cell, -1);
                         if (slot == -1 || node_map.entries[slot].value == 0) {
-                            node_map.Insert(&cell, &path_node_count_2a4);
+                            node_map.Insert(&cell, &path_node_count);
                             record->level_flags |= 0x10000000;
                         }
-                        ++path_node_count_2a4;
+                        ++path_node_count;
                     }
                     node.y -=
                         m_lNumSupports != 0 ? NAVIGATOR_MINIMUM_HORIZONTAL_DISTANCE : g_world_scale;
@@ -1274,29 +1274,29 @@ unsigned char OctPreTree::BuildPathLists(W8GameData* game_data, W8LevelFile* lev
             }
         }
     }
-    sprintf(message, "%d Path Nodes Created               \n", path_node_count_2a4);
+    sprintf(message, "%d Path Nodes Created               \n", path_node_count);
     ReportBuildStatus(6, message);
-    if (path_node_count_2a4 != 0) {
-        if (pre_pathing_2a0 == 0) {
+    if (path_node_count != 0) {
+        if (pre_pathing == 0) {
             ReportBuildStatus(7, "Could not create PrePathing object\n");
         }
-        pre_pathing_2a0->ConfigureForLevel(path_node_count_2a4, m_region_cell,
+        pre_pathing->ConfigureForLevel(path_node_count, m_region_cell,
                                            static_cast<int>(m_path_clearance), &m_spatial.m_minimum,
                                            m_owned_0c0);
         /* Verified retail behavior: this early return runs only the two
            local hash-table destructors.  preprops (and its pStopMeshes
            arrays), object_registry and g_octree_game_data are all
            left behind - the registry pointer and global stay live. */
-        if (!pre_pathing_2a0->BuildPathList(head, &node_map)) {
+        if (!pre_pathing->BuildPathList(head, &node_map)) {
             return 0;
         }
-        pre_pathing_2a0->LinkCollideableProps(prop_count, preprops, &cond_map);
-        pre_pathing_2a0->CreateAutomapNodes(level);
+        pre_pathing->LinkCollideableProps(prop_count, preprops, &cond_map);
+        pre_pathing->CreateAutomapNodes(level);
     }
     for (int i = 0; i < prop_count; ++i) {
         /* Verified retail oddity: the binary tests pStopMeshes twice around
            the count check. */
-        if (preprops[i].pStopMeshes != 0 && preprops[i].num_stop_meshes_40 != 0 &&
+        if (preprops[i].pStopMeshes != 0 && preprops[i].num_stop_meshes != 0 &&
             preprops[i].pStopMeshes != 0) {
             delete[] preprops[i].pStopMeshes;
         }
@@ -1421,12 +1421,12 @@ unsigned char OctPreTree::InsertConditionalNodes(W8HashTable<unsigned int, CondP
         bool found = false;
         for (int p = 0; p < preprop_count && !found; ++p) {
             W8PreProp* pp = preprops + p;
-            if (pp->num_stop_meshes_40 != 0 &&
-                static_cast<int>(pp->first_prop_number_42) <= prop_id &&
-                prop_id < static_cast<int>(pp->first_prop_number_42 + pp->num_stop_meshes_40)) {
+            if (pp->num_stop_meshes != 0 &&
+                static_cast<int>(pp->first_prop_number) <= prop_id &&
+                prop_id < static_cast<int>(pp->first_prop_number + pp->num_stop_meshes)) {
                 unsigned int key =
                     (static_cast<unsigned int>(
-                         pp->pStopMeshes[prop_id - pp->first_prop_number_42].m_prop_number_02)
+                         pp->pStopMeshes[prop_id - pp->first_prop_number].m_prop_number)
                      << 16) |
                     static_cast<unsigned int>(p + 1);
                 CondPathNode* cond_node = static_cast<CondPathNode*>(malloc(sizeof(CondPathNode)));
@@ -1451,12 +1451,12 @@ unsigned char OctPreTree::InsertConditionalNodes(W8HashTable<unsigned int, CondP
         bool found = false;
         for (int p2 = 0; p2 < preprop_count && !found; ++p2) {
             W8PreProp* pp = preprops + p2;
-            if (pp->num_stop_meshes_40 != 0 &&
-                static_cast<int>(pp->first_prop_number_42) <= prop_id &&
-                prop_id < static_cast<int>(pp->first_prop_number_42 + pp->num_stop_meshes_40)) {
+            if (pp->num_stop_meshes != 0 &&
+                static_cast<int>(pp->first_prop_number) <= prop_id &&
+                prop_id < static_cast<int>(pp->first_prop_number + pp->num_stop_meshes)) {
                 unsigned int key =
                     (static_cast<unsigned int>(
-                         pp->pStopMeshes[prop_id - pp->first_prop_number_42].m_prop_number_02)
+                         pp->pStopMeshes[prop_id - pp->first_prop_number].m_prop_number)
                      << 16) |
                     static_cast<unsigned int>(p2 + 1);
                 CondPathNode* cond_node = static_cast<CondPathNode*>(malloc(sizeof(CondPathNode)));
@@ -1508,7 +1508,7 @@ char OctPreTree::TestPathPropBounds(const srVector3T<float>* minimum,
     bool prop_hit = false;
     for (int k = 0; k < count; ++k) {
         int id = ids[k];
-        GDProp* prop = *props_3b8->GetAt(id);
+        GDProp* prop = *props->GetAt(id);
         if (prop->BoundsOverlap(minimum, maximum) != 0) {
             prop_hit = true;
             if ((prop->m_flags_00 & 1) != 0)
@@ -1529,7 +1529,7 @@ char OctPreTree::TestPathPropBounds(const srVector3T<float>* minimum,
 
 /* Builds one W8PreProp per level prop flagged for pathing: allocates the
    per-frame GDPreProp stop meshes, applies each anim frame to seed bounds,
-   and registers every element in props_3b8. Returns the record count and the
+   and registers every element in props. Returns the record count and the
    malloc'd array through `preprops`. */
 // FUNCTION: WIZ8 0x0046c0f0
 int OctPreTree::CreatePathProps(W8LevelFile* level, W8PreProp** preprops)
@@ -1548,9 +1548,9 @@ int OctPreTree::CreatePathProps(W8LevelFile* level, W8PreProp** preprops)
             if ((prop->flags & 1) == 0)
                 continue;
             if (prop->num_frame_pos == 0) {
-                record->num_stop_meshes_40 = PropFramesDiffer(&prop->anim_obj, 0, 0xffff) ? 2 : 1;
-                record->first_prop_number_42 = prop_number;
-                record->pStopMeshes = new GDPreProp[record->num_stop_meshes_40];
+                record->num_stop_meshes = PropFramesDiffer(&prop->anim_obj, 0, 0xffff) ? 2 : 1;
+                record->first_prop_number = prop_number;
+                record->pStopMeshes = new GDPreProp[record->num_stop_meshes];
                 if (record->pStopMeshes == 0) {
                     srAssertFail("pPreProps[i].pStopMeshes", OCTPRETREE_CPP, 0x88e,
                                  "CreatePathProps: Couldn't allocate GDPreProp objects.");
@@ -1559,12 +1559,12 @@ int OctPreTree::CreatePathProps(W8LevelFile* level, W8PreProp** preprops)
                 record->pStopMeshes[0].ApplyAnimFrame(0, &prop->anim_obj);
                 record->pStopMeshes[0].ComputeBounds(&bounds.minimum, &bounds.maximum);
                 AddCollidablePropBounds(prop_number, &bounds);
-                props_3b8->Add(record->pStopMeshes);
-                if (record->num_stop_meshes_40 == 2) {
+                props->Add(record->pStopMeshes);
+                if (record->num_stop_meshes == 2) {
                     record->pStopMeshes[1].ApplyAnimFrame(0xffff, &prop->anim_obj);
                     record->pStopMeshes[1].ComputeBounds(&bounds.minimum, &bounds.maximum);
                     AddCollidablePropBounds(static_cast<unsigned short>(prop_number + 1), &bounds);
-                    props_3b8->Add(record->pStopMeshes + 1);
+                    props->Add(record->pStopMeshes + 1);
                     prop_number += 2;
                 } else {
                     record->pStopMeshes[0].m_flags_00 |= 1;
@@ -1581,15 +1581,15 @@ int OctPreTree::CreatePathProps(W8LevelFile* level, W8PreProp** preprops)
                     ++prop_number;
                 }
             } else {
-                record->num_stop_meshes_40 = static_cast<unsigned short>(prop->num_frame_pos);
-                record->first_prop_number_42 = prop_number;
+                record->num_stop_meshes = static_cast<unsigned short>(prop->num_frame_pos);
+                record->first_prop_number = prop_number;
                 strcpy(record->name, prop->name);
-                record->pStopMeshes = new GDPreProp[record->num_stop_meshes_40];
+                record->pStopMeshes = new GDPreProp[record->num_stop_meshes];
                 if (record->pStopMeshes == 0) {
                     srAssertFail("pPreProps[i].pStopMeshes", OCTPRETREE_CPP, 0x8ad,
                                  "CreatePathProps: Couldn't allocate GDPreProp objects.");
                 }
-                for (unsigned short j = 0; j < record->num_stop_meshes_40; ++j) {
+                for (unsigned short j = 0; j < record->num_stop_meshes; ++j) {
                     unsigned short frame = prop->usFrame_Pos[j].frame;
                     if (static_cast<unsigned short>(prop->bNumFrames) <= frame) {
                         srAssertFail(
@@ -1605,7 +1605,7 @@ int OctPreTree::CreatePathProps(W8LevelFile* level, W8PreProp** preprops)
                     record->pStopMeshes[j].ComputeBounds(&bounds.minimum, &bounds.maximum);
                     AddCollidablePropBounds(prop_number, &bounds);
                     ++prop_number;
-                    props_3b8->Add(record->pStopMeshes + j);
+                    props->Add(record->pStopMeshes + j);
                 }
             }
         }

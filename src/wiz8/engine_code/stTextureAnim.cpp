@@ -22,9 +22,9 @@ stTextureAnim::stTextureAnim()
     direction_5c = 1;
     animation_mode_60 = 0;
     initial_frame_64 = 0;
-    frame_rate_68 = 15.0f;
-    frame_tick_6c = GetTickCount();
-    trigger_mode_70 = 0;
+    frame_rate = 15.0f;
+    frame_tick = GetTickCount();
+    trigger_mode = 0;
     probability_74 = -1.0f;
     running_78 = 0;
     textures_54 = new W8Vector<srTextureIFace*>;
@@ -46,9 +46,9 @@ stTextureAnim::stTextureAnim(const stTextureAnim& other)
     direction_5c = 1;
     animation_mode_60 = other.animation_mode_60;
     initial_frame_64 = other.initial_frame_64;
-    frame_rate_68 = other.frame_rate_68;
-    frame_tick_6c = GetTickCount();
-    trigger_mode_70 = other.trigger_mode_70;
+    frame_rate = other.frame_rate;
+    frame_tick = GetTickCount();
+    trigger_mode = other.trigger_mode;
     probability_74 = other.probability_74;
     running_78 = other.running_78;
     textures_54 = new W8Vector<srTextureIFace*>;
@@ -78,7 +78,7 @@ stTextureAnim::~stTextureAnim()
 void stTextureAnim::SetFrame(int frame)
 {
     frame_58 = frame;
-    frame_tick_6c = GetTickCount();
+    frame_tick = GetTickCount();
 }
 
 // FUNCTION: WIZ8 0x00485420
@@ -97,7 +97,7 @@ void stTextureAnim::UpdateFrame()
         return;
     }
 
-    if (trigger_mode_70 == 1) {
+    if (trigger_mode == 1) {
         if (rand() / static_cast<float>(RAND_MAX) < probability_74) {
             frame_58 =
                 static_cast<int>(rand() / static_cast<float>(RAND_MAX) * textures_54->GetCount());
@@ -105,12 +105,12 @@ void stTextureAnim::UpdateFrame()
         return;
     }
 
-    if (trigger_mode_70 == 2) {
+    if (trigger_mode == 2) {
         if (running_78 == 0 && rand() / static_cast<float>(RAND_MAX) < probability_74) {
             running_78 = 1;
             direction_5c = 0;
             frame_58 = 0;
-            frame_tick_6c = GetTickCount();
+            frame_tick = GetTickCount();
         }
         if (running_78 == 0 || textures_54->GetCount() == 0) {
             return;
@@ -120,7 +120,7 @@ void stTextureAnim::UpdateFrame()
     }
 
     elapsed_frames =
-        static_cast<int>((GetTickCount() - frame_tick_6c) * frame_rate_68 * g_float_005ec128);
+        static_cast<int>((GetTickCount() - frame_tick) * frame_rate * g_float_005ec128);
     if (animation_mode_60 == 0) {
         int frame = (direction_5c * elapsed_frames) % textures_54->GetCount();
         if (frame < frame_58) {

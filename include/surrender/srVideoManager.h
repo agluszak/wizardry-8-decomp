@@ -57,7 +57,7 @@ public:
         // FUNCTION: SURRENDER 0x1002DFA0
         virtual void reset()
         {
-            reset_pending_10 = 1;
+            reset_pending = 1;
         }
         // FUNCTION: SURRENDER 0x1002DFB0
         virtual long getIndex()
@@ -92,7 +92,7 @@ public:
         long loaded_04;
         long parameter_08;
         long index_0c;
-        long reset_pending_10;
+        long reset_pending;
         long clamp_14;
         long position_18;
     };

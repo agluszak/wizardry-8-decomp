@@ -42,20 +42,20 @@ public:
     GDProp()
     {
         m_flags_00 = 0;
-        m_prop_number_02 = 0;
+        m_prop_number = 0;
         m_vertex_count_18 = 0;
         m_surface_count_14 = 0;
         m_pGDSurfaces = 0;
         m_pVertices = 0;
         m_owner_24 = 0;
-        m_links_0c = 0;
-        m_waypoints_10 = 0;
-        m_path_range_28.sentinel = -10000000.0f;
+        m_links = 0;
+        m_waypoints = 0;
+        m_path_range.sentinel = -10000000.0f;
         m_list_54 = 0;
-        m_path_bounds_4c.max_z = 0;
-        m_path_bounds_4c.min_z = 0;
-        m_path_bounds_4c.max_x = 0;
-        m_path_bounds_4c.min_x = 0;
+        m_path_bounds.max_z = 0;
+        m_path_bounds.min_z = 0;
+        m_path_bounds.max_x = 0;
+        m_path_bounds.min_x = 0;
     }
     GDProp(srModelInstance* instance, const char* path_name, unsigned short prop_number,
            unsigned char footstep_surface, unsigned char footstep_material); /* 0x004B6E00 */
@@ -66,7 +66,7 @@ public:
     /* Rebuilds m_pVertices/m_pGDSurfaces for the given animation frame of the
        level prop's transforms. */
     void ApplyAnimFrame(unsigned short frame, W8LevelFileAnimObj* anim);
-    /* Computes the vertex AABB into m_bound_min_34/m_bound_max_40 and copies
+    /* Computes the vertex AABB into m_bound_min/m_bound_max and copies
        it to the out parameters. */
     void ComputeBounds(srVector3T<float>* minimum, srVector3T<float>* maximum);
     /* Box-vs-bound test used by the pre-tree path obstruction pass. */
@@ -90,23 +90,23 @@ private:
     void TransformMeshGeometry(const W8LevelFileScaledPathNode* node, W8LevelFileMesh* mesh);
 
     unsigned short m_flags_00;           /* 0x00 */
-    unsigned short m_prop_number_02;     /* 0x02 */
-    unsigned int m_path_handle_04;       /* 0x04 */
-    unsigned short m_link_count_08;      /* 0x08 */
-    unsigned short m_waypoint_count_0a;  /* 0x0a */
-    unsigned short* m_links_0c;          /* 0x0c; released by CRT free */
-    unsigned short* m_waypoints_10;      /* 0x10; released by CRT free */
+    unsigned short m_prop_number;     /* 0x02 */
+    unsigned int m_path_handle;       /* 0x04 */
+    unsigned short m_link_count;      /* 0x08 */
+    unsigned short m_waypoint_count;  /* 0x0a */
+    unsigned short* m_links;          /* 0x0c; released by CRT free */
+    unsigned short* m_waypoints;      /* 0x10; released by CRT free */
     int m_surface_count_14;              /* 0x14; m_pGDSurfaces count */
     int m_vertex_count_18;               /* 0x18; m_pVertices count */
     W8GDSurface* m_pGDSurfaces;          /* 0x1c */
     srVector3T<float>* m_pVertices;      /* 0x20 */
     Trigger* m_owner_24;                 /* 0x24: installed by 0x004B7470 */
-    W8PathVerticalRange m_path_range_28; /* 0x28 */
+    W8PathVerticalRange m_path_range; /* 0x28 */
     /* Vertex AABB cached by ComputeBounds and tested by
        BoundsOverlap. */
-    srVector3T<float> m_bound_min_34;  /* 0x34 */
-    srVector3T<float> m_bound_max_40;  /* 0x40 */
-    W8PathGridBounds m_path_bounds_4c; /* 0x4c */
+    srVector3T<float> m_bound_min;  /* 0x34 */
+    srVector3T<float> m_bound_max;  /* 0x40 */
+    W8PathGridBounds m_path_bounds; /* 0x4c */
     W8PList* m_list_54;                /* 0x54 */
 }; /* 0x58 */
 

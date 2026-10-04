@@ -49,7 +49,7 @@ public:
     virtual ~stModelInstance() override; /* 0x0047EF70 */
 
 public:
-    unsigned long overlay_scene_flag_160;
+    unsigned long overlay_scene_flag;
     srVector4T<float> highlight_colour_164;
     /* Lazily built highlight material; RenderMeshes fills it from the
        render-state RGBA and installs it as the pass material. */
@@ -58,15 +58,15 @@ public:
     long mesh_index_17c;
     unsigned int frame_index_180;
     int damage_stage_184;
-    srHeapBuffer<int> damage_stage_tables_188;
-    int highlight_pass_mode_190;
+    srHeapBuffer<int> damage_stage_tables;
+    int highlight_pass_mode;
     srVector3T<float> light_scale_194;
-    bool diffuse_scale_enabled_1a0;
-    bool emissive_override_enabled_1a1;
+    bool diffuse_scale_enabled;
+    bool emissive_override_enabled;
     unsigned char padding_1a2[2];
-    float diffuse_scale_1a4;
-    float emissive_override_1a8;
-    float frame_interpolation_1ac;
+    float diffuse_scale;
+    float emissive_override;
+    float frame_interpolation;
 };
 
 static_assert(offsetof(stModelInstance, highlight_colour_164) == 0x164,
@@ -100,35 +100,35 @@ public:
 
     unsigned char displayState() const
     {
-        return render_state_164.display_state;
+        return render_state.display_state;
     }
     void configure2D(unsigned short width, unsigned short height)
     {
-        overlay_scene_flag_160 = 0;
-        render_state_164.render_depth = 2000;
-        render_state_164.width = width;
-        render_state_164.height = height;
-        render_state_164.position_x = 0;
-        render_state_164.position_y = 0;
-        render_state_164.display_state = 0;
-        render_state_164.glow_enabled_0d = 0;
+        overlay_scene_flag = 0;
+        render_state.render_depth = 2000;
+        render_state.width = width;
+        render_state.height = height;
+        render_state.position_x = 0;
+        render_state.position_y = 0;
+        render_state.display_state = 0;
+        render_state.glow_enabled = 0;
         vector_174 = 0;
         vector_178 = 0;
         m_pGlowMaterial = 0;
     }
     void setRenderDepth(unsigned long depth)
     {
-        render_state_164.render_depth = depth;
+        render_state.render_depth = depth;
     }
 
-    unsigned long overlay_scene_flag_160;
-    W8ModelInstance2DRenderState render_state_164;
+    unsigned long overlay_scene_flag;
+    W8ModelInstance2DRenderState render_state;
     srVector4T<float>* vector_174;
     srVector4T<float>* vector_178;
     srMaterial* m_pGlowMaterial;
     virtual ~stModelInstance2D() override; /* 0x0047F410 */
 };
 
-static_assert(offsetof(stModelInstance2D, render_state_164) == 0x164,
+static_assert(offsetof(stModelInstance2D, render_state) == 0x164,
               "stModelInstance2D_render_state_offset");
 static_assert(sizeof(stModelInstance2D) == 0x180, "stModelInstance2D_must_be_0x180");

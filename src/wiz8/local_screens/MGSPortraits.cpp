@@ -62,9 +62,9 @@ int g_empty_hand_catalog_ids[32] = {
 // GLOBAL: WIZ8 0x0069B940
 static Controls* g_portrait_panel; /* gpLevelButtonsPanel */
 // GLOBAL: WIZ8 0x0061AA9C
-char s_spell_sound_format_0061aa9c[] = "Data\\Spells\\Sounds\\%s.wav";
+char s_spell_sound_format[] = "Data\\Spells\\Sounds\\%s.wav";
 // GLOBAL: WIZ8 0x0064C664
-char s_general_magic_sound_0064c664[] = "Data\\Spells\\Sounds\\GeneralMagic.wav";
+char s_general_magic_sound[] = "Data\\Spells\\Sounds\\GeneralMagic.wav";
 
 // GLOBAL: WIZ8 0x0069B920
 static W8TextControl* g_portrait_controls[8]; /* gpLevelButtons[uiSlot] */
@@ -404,7 +404,7 @@ void RedrawCombatPortraits(void)
             g_level_block->combat_action_hover_party_slot != slot) {
             portrait_image = combat_row->portrait_image_084;
         } else {
-            portrait_image = combat_row->portrait_image_alternate_088;
+            portrait_image = combat_row->portrait_image_alternate;
         }
         DrawCatalogImageAndInvalidate(-0xe, 0x8a, 0, portrait_image, portrait_x, row_y + 0x44, 2,
                                       0);
@@ -703,8 +703,8 @@ void StageMonsterCastIcon(unsigned int party_slot, W8SpellRealm realm, bool alte
     entry->effect_icon_end_frame = GetCatalogVideoObject(catalog, 0, 0)->usNumberOfObjects;
     char* sound =
         spell_id != 0 && g_spell_records[spell_id].sound_name[0] != 0
-            ? FormatString(s_spell_sound_format_0061aa9c, g_spell_records[spell_id].sound_name)
-            : s_general_magic_sound_0064c664;
+            ? FormatString(s_spell_sound_format, g_spell_records[spell_id].sound_name)
+            : s_general_magic_sound;
     SoundPlay(sound, 0);
     if (g_settings.main_ui_mode != W8_MAIN_UI_MODE_PORTRAITS &&
         g_level_block->portrait_refresh_pending[party_slot] == 0) {
@@ -941,7 +941,7 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, bool highlighted, bool 
             int highlight_catalog;
 
             if (highlighted == 0 || gfLeftButtonState != 0 ||
-                g_level_block->portrait_flash_218 != 0) {
+                g_level_block->portrait_flash != 0) {
                 if (g_status.selected_character != static_cast<int>(party_slot)) {
                     goto draw_condition_icons;
                 }
@@ -963,7 +963,7 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, bool highlighted, bool 
             if (highlighted == 0 ||
                 (gfLeftButtonState != 0 && gXStatus.fReviewCharacterMode == 0) ||
                 (g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
-                 g_level_block->portrait_flash_218 != 0)) {
+                 g_level_block->portrait_flash != 0)) {
                 if (g_status.selected_character != static_cast<int>(party_slot)) {
                     goto draw_condition_icons;
                 }
@@ -1095,7 +1095,7 @@ portrait_fx:
         g_npc_interaction_state->scripted_dialogue == 0 &&
         g_npc_interaction_state->dialogue_panel_hidden == 0 &&
         g_npc_interaction_state->script_busy == 0 &&
-        g_npc_interaction_state->dialogue_hidden == 0 && gXStatus.scripted_scene_19b7 == 0) {
+        g_npc_interaction_state->dialogue_hidden == 0 && gXStatus.scripted_scene == 0) {
         SetNpcDialoguePanelVisible(1);
     }
 }
@@ -1205,7 +1205,7 @@ void EnablePortraitAdvanceRegions(void)
     int party_slot = 0;
     do {
         if (!IsCharacterReadyToAdvance(party_slot) ||
-            g_status.buffers.XChar[party_slot].portrait_advance_103 == 0) {
+            g_status.buffers.XChar[party_slot].portrait_advance == 0) {
             DisableRegionInput(party_slot + 0x12);
         } else {
             EnableRegionInput(party_slot + 0x12);
@@ -1238,7 +1238,7 @@ void UpdatePortraitAdvanceButtons(void)
     for (slot = 0, control = g_portrait_controls; control < &g_portrait_controls[8];
          ++slot, ++control) {
         if (IsCharacterReadyToAdvance(slot) && gXStatus.fNpcDialogueMode == 0 &&
-            g_status.buffers.XChar[slot].portrait_advance_103 != 0) {
+            g_status.buffers.XChar[slot].portrait_advance != 0) {
             if (!(*control)->m_active) {
                 (*control)->SetActive(true);
                 InvalidatePortraitPanel();
@@ -1336,9 +1336,9 @@ void W8ConditionButton::Redraw(unsigned char full_redraw)
     GetTextOrigin(&left, &top);
     left += 2;
     top += 2;
-    if (m_condition_b8 == 0) {
+    if (m_condition == 0) {
         DrawCatalogImageAndInvalidate(-14, m_image_object_bc + 0xb6, 0, 0, left, top, 2, 0);
-    } else if (m_condition_b8 == 1) {
+    } else if (m_condition == 1) {
         DrawCatalogImageAndInvalidate(-14, m_image_object_bc + 0xc9, 0, 0, left, top, 2, 0);
     }
 }
@@ -1359,7 +1359,7 @@ void W8ConditionButton::OnMouseLeave(int event)
 void W8ConditionButton::OnLeftButtonDown(int event)
 {
     W8TextControl::OnLeftButtonDown(event);
-    g_level_block->condition_highlight_party_slot = m_ui_slot_c0;
+    g_level_block->condition_highlight_party_slot = m_ui_slot;
     RequestRedraw(0x8000);
 }
 
@@ -1469,8 +1469,8 @@ void UpdateConditionButtons(void)
                         button->m_image_object_bc = image;
                         button->Invalidate(0);
                     }
-                    if (button->m_condition_b8 != 1) {
-                        button->m_condition_b8 = 1;
+                    if (button->m_condition != 1) {
+                        button->m_condition = 1;
                         button->Invalidate(0);
                     }
                 }
@@ -1479,8 +1479,8 @@ void UpdateConditionButtons(void)
                     button->m_image_object_bc = image;
                     button->Invalidate(0);
                 }
-                if (button->m_condition_b8 != 0) {
-                    button->m_condition_b8 = 0;
+                if (button->m_condition != 0) {
+                    button->m_condition = 0;
                     button->Invalidate(0);
                 }
             }

@@ -966,9 +966,9 @@ void srColorSurfaceIFace::getChannelStatistics(srStat& statistics, srARGB::e_ind
             }
         }
         statistics.count_00 = 0;
-        statistics.mean_08 = 0.0;
-        statistics.deviation_10 = 0.0;
-        statistics.median_18 = 0;
+        statistics.mean = 0.0;
+        statistics.deviation = 0.0;
+        statistics.median = 0;
         statistics.min_1c = 0x100;
         statistics.max_20 = 0;
         for (i = 0; i < 0x100; ++i) {
@@ -982,20 +982,20 @@ void srColorSurfaceIFace::getChannelStatistics(srStat& statistics, srARGB::e_ind
             }
         }
         for (i = 0; i < 0x100; ++i) {
-            statistics.mean_08 = (histogram[i] * i) + statistics.mean_08;
+            statistics.mean = (histogram[i] * i) + statistics.mean;
             statistics.count_00 = statistics.count_00 + histogram[i];
         }
-        statistics.mean_08 = statistics.mean_08 / statistics.count_00;
+        statistics.mean = statistics.mean / statistics.count_00;
         for (i = 0; i < 0x100; ++i) {
-            double difference = i - statistics.mean_08;
-            statistics.deviation_10 =
-                histogram[i] * difference * difference + statistics.deviation_10;
+            double difference = i - statistics.mean;
+            statistics.deviation =
+                histogram[i] * difference * difference + statistics.deviation;
         }
-        statistics.deviation_10 = sqrt(statistics.deviation_10 / statistics.count_00);
+        statistics.deviation = sqrt(statistics.deviation / statistics.count_00);
         long running = 0;
         for (i = 0; i < 0x100; ++i) {
             running += histogram[i];
-            statistics.median_18 = i;
+            statistics.median = i;
             if (statistics.count_00 / 2 < running) {
                 break;
             }
@@ -1128,10 +1128,10 @@ void srColorSurfaceIFace::rotate180()
 srColorSurface::srColorSurface(const srPixelConvert::PixelFormat& format, unsigned long width,
                                unsigned long height)
 {
-    surface_flags_50 = 0;
+    surface_flags = 0;
     init(format, width, height, (format.bytes_per_pixel_minus_one + 1) * width);
     allocData();
-    srPixelConvert::selectFuncs(format, pixel_write_44, pixel_read_48);
+    srPixelConvert::selectFuncs(format, pixel_write, pixel_read);
 }
 
 // FUNCTION: SURRENDER 0x1005B8A0
@@ -1139,11 +1139,11 @@ srColorSurface::srColorSurface(srPixelConvert::e_surfaceType type, unsigned long
                                unsigned long height)
 {
     srPixelConvert::PixelFormat format;
-    surface_flags_50 = 0;
+    surface_flags = 0;
     srPixelConvert::mapPixelFormat(type, format);
     init(format, width, height, (format.bytes_per_pixel_minus_one + 1) * width);
     allocData();
-    srPixelConvert::selectFuncs(format, pixel_write_44, pixel_read_48);
+    srPixelConvert::selectFuncs(format, pixel_write, pixel_read);
 }
 
 /* The data-taking variants adopt caller storage: flag bit 0 marks the
@@ -1153,13 +1153,13 @@ srColorSurface::srColorSurface(srPixelConvert::e_surfaceType type, void* data, u
                                unsigned long height, unsigned long pitch)
 {
     srPixelConvert::PixelFormat format;
-    surface_flags_50 = 0;
+    surface_flags = 0;
     srPixelConvert::mapPixelFormat(type, format);
     init(format, width, height, pitch);
-    surface_flags_50 |= 1;
+    surface_flags |= 1;
     data_size_54 = pitch_24 * height_20;
     data_58 = data;
-    srPixelConvert::selectFuncs(format, pixel_write_44, pixel_read_48);
+    srPixelConvert::selectFuncs(format, pixel_write, pixel_read);
 }
 
 // FUNCTION: SURRENDER 0x1005D520
@@ -1171,10 +1171,10 @@ srColorSurface& srColorSurface::operator=(const srColorSurface& other)
         srPixelConvert::PixelFormat format = other.pixel_format_30;
         init(format, other.width_1c, other.height_20, other.pitch_24);
         palette_4c = other.palette_4c;
-        surface_flags_50 = other.surface_flags_50;
-        pixel_write_44 = other.pixel_write_44;
-        pixel_read_48 = other.pixel_read_48;
-        if ((surface_flags_50 & 1) != 0) {
+        surface_flags = other.surface_flags;
+        pixel_write = other.pixel_write;
+        pixel_read = other.pixel_read;
+        if ((surface_flags & 1) != 0) {
             data_size_54 = other.data_size_54;
             data_58 = other.data_58;
             return *this;
@@ -1189,12 +1189,12 @@ srColorSurface& srColorSurface::operator=(const srColorSurface& other)
 srColorSurface::srColorSurface(const srPixelConvert::PixelFormat& format, void* data,
                                unsigned long width, unsigned long height, unsigned long pitch)
 {
-    surface_flags_50 = 0;
+    surface_flags = 0;
     init(format, width, height, pitch);
-    surface_flags_50 |= 1;
+    surface_flags |= 1;
     data_size_54 = pitch_24 * height_20;
     data_58 = data;
-    srPixelConvert::selectFuncs(format, pixel_write_44, pixel_read_48);
+    srPixelConvert::selectFuncs(format, pixel_write, pixel_read);
 }
 
 // FUNCTION: SURRENDER 0x1005BBE0
@@ -1244,7 +1244,7 @@ void srColorSurface::convertToARGB8888(unsigned long* pixels, const void* source
     info.count = count;
     info.palette = palette_4c;
     info.format = &pixel_format_30;
-    pixel_read_48(info);
+    pixel_read(info);
 }
 
 // FUNCTION: SURRENDER 0x1005B610
@@ -1257,7 +1257,7 @@ void srColorSurface::convertFromARGB8888(void* pixels, const unsigned long* sour
     info.count = count;
     info.palette = palette_4c;
     info.format = &pixel_format_30;
-    pixel_write_44(info);
+    pixel_write(info);
 }
 
 // FUNCTION: SURRENDER 0x1005B650
@@ -1272,7 +1272,7 @@ void srColorSurface::allocData()
 // FUNCTION: SURRENDER 0x1005B680
 void srColorSurface::freeData()
 {
-    if (!(surface_flags_50 & 1) && data_58 != 0) {
+    if (!(surface_flags & 1) && data_58 != 0) {
         srHeap.free(data_58);
         data_58 = 0;
     }
@@ -1290,30 +1290,30 @@ void srColorSurface::init(const srPixelConvert::PixelFormat& format, unsigned lo
     desc.pixel_format = format;
     setSurfaceDesc(desc);
     palette_4c = srCore.getPalette();
-    pixel_write_44 = 0;
-    pixel_read_48 = 0;
+    pixel_write = 0;
+    pixel_read = 0;
     data_size_54 = 0;
     data_58 = 0;
-    surface_flags_50 = 0;
+    surface_flags = 0;
 }
 
 // FUNCTION: SURRENDER 0x1005DD70
 srPixelConvert::ConversionFunc srColorSurface::getPixelWriteFunc() const
 {
-    return pixel_write_44;
+    return pixel_write;
 }
 
 // FUNCTION: SURRENDER 0x1005DD80
 srPixelConvert::ConversionFunc srColorSurface::getPixelReadFunc() const
 {
-    return pixel_read_48;
+    return pixel_read;
 }
 
 // FUNCTION: SURRENDER 0x1005DD90
 void srColorSurface::setPixelWriteFunc(srPixelConvert::ConversionFunc function)
 {
     if (function != 0) {
-        pixel_write_44 = function;
+        pixel_write = function;
     }
 }
 
@@ -1321,7 +1321,7 @@ void srColorSurface::setPixelWriteFunc(srPixelConvert::ConversionFunc function)
 void srColorSurface::setPixelReadFunc(srPixelConvert::ConversionFunc function)
 {
     if (function != 0) {
-        pixel_read_48 = function;
+        pixel_read = function;
     }
 }
 
@@ -1344,7 +1344,7 @@ int srColorSurface::resize(long width, long height)
         if (width == width_1c && height == height_20) {
             return 1;
         }
-        if (!(surface_flags_50 & 1)) {
+        if (!(surface_flags & 1)) {
             freeData();
             SurfaceDesc desc;
             desc.width = width;
@@ -1368,7 +1368,7 @@ int srColorSurface::rescale(long width, long height)
         if (width == width_1c && height == height_20) {
             return 1;
         }
-        if (!(surface_flags_50 & 1)) {
+        if (!(surface_flags & 1)) {
             srColorSurface* scaled =
                 new srColorSurface(srPixelConvert::SURFACE_BGRA32, width, height);
             scaled->copySurfaceParameters(*this);
@@ -1385,7 +1385,7 @@ int srColorSurface::rescale(long width, long height)
 // FUNCTION: SURRENDER 0x1005BDE0
 int srColorSurface::changePixelFormat(const srPixelConvert::PixelFormat& format, int preserve)
 {
-    if (surface_flags_50 & 1) {
+    if (surface_flags & 1) {
         return 0;
     }
     if (!(format == pixel_format_30)) {
@@ -1394,13 +1394,13 @@ int srColorSurface::changePixelFormat(const srPixelConvert::PixelFormat& format,
             previous = static_cast<srColorSurfaceIFace*>(vClone());
         }
         srPalette* palette = getPalette();
-        unsigned long flags = surface_flags_50;
+        unsigned long flags = surface_flags;
         freeData();
         init(format, width_1c, height_20, (format.bytes_per_pixel_minus_one + 1) * width_1c);
         allocData();
-        srPixelConvert::selectFuncs(format, pixel_write_44, pixel_read_48);
+        srPixelConvert::selectFuncs(format, pixel_write, pixel_read);
         setPalette(palette);
-        surface_flags_50 = flags;
+        surface_flags = flags;
         if (previous != 0) {
             copy(*previous);
             previous->release();
@@ -3358,7 +3358,7 @@ void srColorSurface::dump(std::ostream& stream)
     }
     stream.width(0x20);
     stream << "  Flags: ";
-    dumpFlags(stream, surface_flags_50, s_flag_names_100a4a10);
+    dumpFlags(stream, surface_flags, s_flag_names_100a4a10);
     stream << '\n';
     stream.flags(static_cast<std::ios::fmtflags>(flags & 0x7fff));
 }

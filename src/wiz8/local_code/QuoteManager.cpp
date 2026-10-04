@@ -467,7 +467,7 @@ bool FormatCharacterQuoteText(W8Character* character, unsigned int event_type,
         char gender_code = static_cast<char>(((character->gender != 0) - 1U & 7) + 0x66);
         sprintf(path, "Data\\Quotes\\PCs\\%c_%s%d0.MSG", gender_code,
                 g_quote_personality_names[character->personality_0081],
-                (character->voice_0085 != 0) + 1);
+                (character->voice != 0) + 1);
         if (!FileExists(path)) {
             g_character_text[0] = 0;
             return 0;
@@ -758,7 +758,7 @@ unsigned char W8CharacterEvent::PlayEventSound()
         g_current_screen_state.id == W8_SCREEN_CHARACTER) {
         char gender_code = static_cast<char>(((character->gender != 0) - 1U & 7) + 0x66);
         sprintf(voice_stem, "%c_%s%d0", gender_code,
-                g_quote_personality_names[character->personality_0081], character->voice_0085 + 1);
+                g_quote_personality_names[character->personality_0081], character->voice + 1);
         sprintf(sound_path, "Data\\Sound\\PCs\\%s\\%s_%03d.wav", voice_stem, voice_stem,
                 sound_event);
     } else {
@@ -888,11 +888,11 @@ unsigned char W8CharacterEvent::Dispatch()
                                            1 - ((flags & g_character_event_flags_mask) != 0));
                 slot->active_character_event = this;
                 row->pending_event_type_ff = event_type;
-                slot->pending_event_type_114 = event_type;
+                slot->pending_event_type = event_type;
                 return 1;
             }
             SetPartyPortraitEventState(party_slot, 1, event_type, 0, 1);
-            slot->pending_event_type_114 = event_type;
+            slot->pending_event_type = event_type;
             return 1;
         }
         Complete();
@@ -949,7 +949,7 @@ void SetPartyPortraitEventState(unsigned int party_slot, bool active,
             record->portrait_event_active = active;
             return;
         }
-        unsigned int stored_event = record->pending_event_type_114;
+        unsigned int stored_event = record->pending_event_type;
         unsigned int mapped_event = stored_event;
         if (static_cast<int>(g_normal_event_count) < static_cast<int>(mapped_event)) {
         show_deactivate_quote:
@@ -1886,8 +1886,8 @@ int UpdateCharacterEventState(void)
                             int direction = ChooseDifferentMonsterDirection(
                                                 static_cast<short>(record->portrait_frame) - 6) +
                                             6;
-                            if (g_event_range_min <= record->pending_event_type_114 &&
-                                record->pending_event_type_114 <= g_event_range_max) {
+                            if (g_event_range_min <= record->pending_event_type &&
+                                record->pending_event_type <= g_event_range_max) {
                                 direction = 8;
                             }
                             record->previous_portrait_frame = record->portrait_frame;

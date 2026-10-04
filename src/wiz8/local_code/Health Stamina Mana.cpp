@@ -99,16 +99,16 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, bool qu
     if (character->hp_current == 0) {
         return 0;
     }
-    if (g_status.world_suspended_2390 != 0) {
+    if (g_status.world_suspended != 0) {
         PostCharacterNotice(party_slot, gppStringList[0x253], amount);
         return 0;
     }
 
-    if (character->enchantments[2].turns_08 != 0) {
-        absorbed = character->enchantments[2].magnitude_06;
+    if (character->enchantments[2].turns != 0) {
+        absorbed = character->enchantments[2].magnitude;
         if (amount <= absorbed) {
             PostCharacterNotice(party_slot, gppStringList[0x193 - (quiet != 0)], amount);
-            character->enchantments[2].magnitude_06 =
+            character->enchantments[2].magnitude =
                 static_cast<unsigned short>(absorbed - amount);
             if (result_stats != 0) {
                 ++result_stats->count;
@@ -174,7 +174,7 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, bool qu
     }
 
     if (character->uiCondition[W8_CONDITION_ASLEEP] != 0 && quiet == 0 &&
-        Random(100) < (character->attributes[6].effective >> 1) + 0x32) {
+        Random(100) < (character->attributes[W8_ATTRIBUTE_SENSES].effective >> 1) + 0x32) {
         RemoveCharacterCondition(party_slot, W8_CONDITION_ASLEEP, 1);
     }
     return amount;
@@ -363,11 +363,11 @@ unsigned int ApplyDamageToMonster(W8MonsterInfo* monster_info, unsigned int amou
     if (monster_info->hp_current == 0) {
         return 0;
     }
-    if (monster_info->enchantments[2].turns_08 != 0) {
-        absorbed = monster_info->enchantments[2].magnitude_06;
+    if (monster_info->enchantments[2].turns != 0) {
+        absorbed = monster_info->enchantments[2].magnitude;
         if (amount <= absorbed) {
             PostMonsterNotice(monster_info, gppStringList[0x193 - (quiet != 0)], amount);
-            monster_info->enchantments[2].magnitude_06 =
+            monster_info->enchantments[2].magnitude =
                 static_cast<unsigned short>(absorbed - amount);
             if (result_stats != 0) {
                 ++result_stats->count;
@@ -404,7 +404,7 @@ unsigned int ApplyDamageToMonster(W8MonsterInfo* monster_info, unsigned int amou
         }
         if (source->fBackfire == 0 && source->fReflection == 0 && source->target_diverted == 0 &&
             quiet == 0) {
-            monster_info->condition_target_304 = *source;
+            monster_info->condition_target = *source;
             if (monster_info->fInCombat != 0 && TargetSourceIsCharacter(source, 0) != 0 &&
                 source->iChar != -1) {
                 monster_info->pCombat->character_hate[source->iChar] += amount;
@@ -689,7 +689,7 @@ void DrainCharacterSpellPoints(int party_slot, unsigned int amount, char announc
     if (character->hp_current == 0) {
         return;
     }
-    if (g_status.world_suspended_2390 != 0) {
+    if (g_status.world_suspended != 0) {
         PostCharacterNotice(party_slot, gppStringList[0x260], amount);
         return;
     }
@@ -972,7 +972,7 @@ void FatigueCharacter(int party_slot, int amount, bool scale_by_load,
             break;
         }
         if (character->uiCondition[W8_CONDITION_LOAD_EASED] == 0) {
-            if (character->enchantments[5].turns_08 != 0) {
+            if (character->enchantments[5].turns != 0) {
                 load_percent += 0x19;
             }
         } else {
@@ -1099,7 +1099,7 @@ void DrainCharacterRealmSpellPoints(int party_slot, int realm, unsigned int amou
         return;
     }
 
-    if (g_status.world_suspended_2390 != 0) {
+    if (g_status.world_suspended != 0) {
         PostCharacterNotice(party_slot, gppStringList[0x262], amount,
                             gppStringList[g_realm_message_offsets[realm]]);
         return;
@@ -1136,7 +1136,7 @@ void CharacterDies(int party_slot)
         srAssertFail("fCHAR_OCCUPIED(uiChar)", HEALTH_STAMINA_MANA_CPP, 561, 0);
     }
 
-    ++character->death_count_09fd;
+    ++character->death_count;
     for (condition = 0; condition < W8_CONDITION_CLEARABLE_COUNT; ++condition) {
         if (condition != 10 && character->uiCondition[condition] != 0) {
             RemoveCharacterCondition(party_slot, condition, 0);
@@ -1204,7 +1204,7 @@ void RecalculateCharacterHitPoints(W8Character* character)
             levels++;
         }
         if (levels > 0) {
-            double vitality = character->attributes[3].effective * 0.4;
+            double vitality = character->attributes[W8_ATTRIBUTE_VITALITY].effective * 0.4;
             total += (vitality * 0.02 + 0.6) * g_profession_hit_point_factors[profession] * levels;
         }
     }
@@ -1240,14 +1240,14 @@ void RecalculateCharacterStamina(W8Character* character)
 {
     unsigned int previous = character->uiStaminaMax;
     unsigned int value = static_cast<unsigned int>(
-        ((character->attributes[0].effective + character->attributes[2].effective +
-          character->attributes[3].effective) *
+        ((character->attributes[0].effective + character->attributes[W8_ATTRIBUTE_PIETY].effective +
+          character->attributes[W8_ATTRIBUTE_VITALITY].effective) *
          (1.0f / 3.0f)) *
             (character->uiExpLevel * g_float_005ed8b8 + g_environment_near_scale) +
         g_double_005ebe80);
     character->uiStaminaMax = value;
-    if (character->fatigue_penalty_0b21 < value) {
-        character->uiStaminaMax = value - character->fatigue_penalty_0b21;
+    if (character->fatigue_penalty < value) {
+        character->uiStaminaMax = value - character->fatigue_penalty;
     } else {
         character->uiStaminaMax = 0;
     }
@@ -1326,7 +1326,7 @@ int RebuildRealmSpellPointCeilings(W8Character* character)
         int old = character->sp_max[index];
         unsigned int learned = character->skill_unlocks[0x1c + index];
         int computed = static_cast<int>(((weighted + character->skills[0x1c + index].level * 3 +
-                                          character->attributes[2].effective) *
+                                          character->attributes[W8_ATTRIBUTE_PIETY].effective) *
                                          g_float_005ecbb4) *
                                             (learned + character->uiExpLevel + 1) +
                                         g_double_005ebe80);

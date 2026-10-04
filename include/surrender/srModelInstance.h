@@ -37,7 +37,7 @@ public:
 #else
     srVector3T<float> getAlignAxis() const
     {
-        return align_axis_14c;
+        return align_axis;
     }
 #endif
     unsigned long getExclusionMask() const;
@@ -64,12 +64,12 @@ public:
         float length_squared;
         float scale;
 
-        align_axis_14c = axis;
-        length_squared = align_axis_14c.z * align_axis_14c.z + align_axis_14c.y * align_axis_14c.y +
-                         align_axis_14c.x * align_axis_14c.x;
+        align_axis = axis;
+        length_squared = align_axis.z * align_axis.z + align_axis.y * align_axis.y +
+                         align_axis.x * align_axis.x;
         if (length_squared != 0.0) {
             scale = static_cast<float>(1.0 / sqrt(length_squared));
-            align_axis_14c *= scale;
+            align_axis *= scale;
         }
         alignment_flags_148.value |= 1;
     }
@@ -100,7 +100,7 @@ public:
 protected:
     SR_DLL_IMPORT virtual ~srModelInstance() override;
 
-    srVector3T<float> align_axis_14c;
+    srVector3T<float> align_axis;
     float align_angle_158;
     unsigned long exclusion_mask_15c;
 };

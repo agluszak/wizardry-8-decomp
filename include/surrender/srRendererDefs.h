@@ -54,7 +54,7 @@ public:
         srFlags<e_clip> clip_08;
         long components_0c[6];
         e_type types_24[6];
-        unsigned long strides_3c[6];
+        unsigned long strides[6];
         const void* arrays_54[6];
     };
 };

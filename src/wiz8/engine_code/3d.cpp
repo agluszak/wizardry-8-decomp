@@ -236,7 +236,7 @@ unsigned char BakeInstanceVertexLighting(stModelInstance* instance, srNode* ligh
             if (light_node->getClassID() == stLight::CLASS_ID &&
                 _strnicmp(light_node->getName(), "Sun", 3) != 0) {
                 stLight* light = static_cast<stLight*>(light_node);
-                srVector3T<float> attenuation = light->opengl_attenuation_188;
+                srVector3T<float> attenuation = light->opengl_attenuation;
                 float range =
                     static_cast<float>(g_double_005ec428 / (attenuation.y * g_double_005ec430));
                 srVector3T<float> light_position;
@@ -370,7 +370,7 @@ void SetWorldMeshVertexLightTable(W8World* world, int table)
     if (world->octree == 0) {
         for (stMeshModel* model = static_cast<stMeshModel*>(world->update_mesh_source->getModel());
              model != 0; model = model->next) {
-            model->vertex_light_table_3b0 = table;
+            model->vertex_light_table = table;
             model->flags_3a0 |= 2;
         }
     } else {
@@ -379,7 +379,7 @@ void SetWorldMeshVertexLightTable(W8World* world, int table)
             if (instance != 0) {
                 for (stMeshModel* model = static_cast<stMeshModel*>(instance->getModel());
                      model != 0; model = model->next) {
-                    model->vertex_light_table_3b0 = table;
+                    model->vertex_light_table = table;
                     model->flags_3a0 |= 2;
                 }
             }
@@ -597,9 +597,9 @@ stLight* CreateLight(srNode* parent, const char* name)
 
     if (light != 0) {
         light->setName(name);
-        light->attenuation_model_150 = srLight::ATTENUATION_3DSTUDIO_MAX;
-        light->enable_flags_194 |= 0x10; /* ENABLE_RANGE_FAR */
-        light->enable_flags_194 |= 4;    /* ENABLE_BOUNDING_SPHERE */
+        light->attenuation_model = srLight::ATTENUATION_3DSTUDIO_MAX;
+        light->enable_flags |= 0x10; /* ENABLE_RANGE_FAR */
+        light->enable_flags |= 4;    /* ENABLE_BOUNDING_SPHERE */
     }
     return light;
 }
@@ -623,9 +623,9 @@ stLight* CreateWorldLight(W8World* world, const char* name)
         srAssertFail("pLight", THREE_D_CPP, 579, 0);
     }
     light->setName(name);
-    light->attenuation_model_150 = srLight::ATTENUATION_3DSTUDIO_MAX;
-    light->enable_flags_194 |= 0x10; /* ENABLE_RANGE_FAR */
-    light->enable_flags_194 |= 4;    /* ENABLE_BOUNDING_SPHERE */
+    light->attenuation_model = srLight::ATTENUATION_3DSTUDIO_MAX;
+    light->enable_flags |= 0x10; /* ENABLE_RANGE_FAR */
+    light->enable_flags |= 4;    /* ENABLE_BOUNDING_SPHERE */
 
     if (world != 0) {
         PLAdoptAppend(&world->transient_lights, light);
@@ -650,15 +650,15 @@ stLight* CreateRangedWorldLight(W8World* world, const char* name)
         srAssertFail("pLight", THREE_D_CPP, 608, 0);
     }
 
-    light->attenuation_model_150 = srLight::ATTENUATION_3DSTUDIO_MAX;
-    light->enable_flags_194 |= 0x10; /* ENABLE_RANGE_FAR */
-    light->enable_flags_194 |= 4;    /* ENABLE_BOUNDING_SPHERE */
+    light->attenuation_model = srLight::ATTENUATION_3DSTUDIO_MAX;
+    light->enable_flags |= 0x10; /* ENABLE_RANGE_FAR */
+    light->enable_flags |= 4;    /* ENABLE_BOUNDING_SPHERE */
     light->setName(name);
     light->near_start_158 = 0.0;
     light->near_end_160 = 0.0;
     light->far_start_168 = 0.0;
     light->far_end_170 = 1500.0;
-    light->safe_range_1d4 = 5000.0f;
+    light->safe_range = 5000.0f;
     light->setLinearAttenuation(1500.0f, 0.0019569471f);
     PLAdoptAppend(&world->transient_lights, light);
     return light;
@@ -689,7 +689,7 @@ void ConfigureWorldLight(srLight* light, float range)
     light->near_start_158 = 0.0;
     light->near_end_160 = 0.0;
     light->far_start_168 = 0.0;
-    light->safe_range_1d4 = 5000.0f;
+    light->safe_range = 5000.0f;
     light->setLinearAttenuation(range, 0.0019569471f);
 }
 

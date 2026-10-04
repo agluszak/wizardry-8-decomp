@@ -47,7 +47,7 @@ int srFog::isActive(srVertexPipe& pipe)
 {
     srVector3T<float> center;
     float radius;
-    if ((group_mask_13c & pipe.getExclusionMask()) != 0) {
+    if ((group_mask & pipe.getExclusionMask()) != 0) {
         return 0;
     }
     if (density_160 > 0.0f) {

@@ -207,11 +207,11 @@ unsigned char GetPartyHasteSteps(unsigned int* out_steps)
         if (character->uiCondition[19] != 0) {
             continue;
         }
-        if (character->enchantments[5].turns_08 == 0) {
+        if (character->enchantments[5].turns == 0) {
             return 0;
         }
-        steps = static_cast<unsigned char>(character->enchantments[5].power_00 * 10);
-        AdjustIntegerByPercent(&steps, character->enchantments[5].percent_04);
+        steps = static_cast<unsigned char>(character->enchantments[5].power * 10);
+        AdjustIntegerByPercent(&steps, character->enchantments[5].percent);
         total += steps;
         ++count;
     }
@@ -476,7 +476,7 @@ void BeginPartyMovementPhase(void)
         gXStatus.party_move_distance = 0.0f;
     }
     FinishPartyMovementAction();
-    g_combat_state->passive_round_a55 = 0;
+    g_combat_state->passive_round = 0;
 }
 
 // FUNCTION: WIZ8 0x004f00c0

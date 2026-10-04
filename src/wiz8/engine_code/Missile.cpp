@@ -86,9 +86,9 @@ W8AIMissile* CopyAIMissile(const W8AIMissile* source)
     }
     copy->kind_00 = source->kind_00;
     copy->gravity_01 = source->gravity_01;
-    copy->speed_per_step_04 = source->speed_per_step_04;
-    copy->fall_speed_08 = source->fall_speed_08;
-    copy->last_half_tick_10 = source->last_half_tick_10;
+    copy->speed_per_step = source->speed_per_step;
+    copy->fall_speed = source->fall_speed;
+    copy->last_half_tick = source->last_half_tick;
     copy->elapsed_14 = source->elapsed_14;
     copy->limit_18 = source->limit_18;
     copy->unknown_1c = source->unknown_1c;
@@ -117,7 +117,7 @@ unsigned char UpdateMissileAI(W8AIMissile* record)
         return 0;
     }
     missile = record->missile_0c;
-    if (missile->impacting_1e1 != 0) {
+    if (missile->impacting != 0) {
         if (missile->align_explosion_1e6 == 0) {
             return 1;
         }
@@ -133,11 +133,11 @@ unsigned char UpdateMissileAI(W8AIMissile* record)
     }
     position = missile->GetPosition();
     count = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT) >> 1;
-    delta = count - record->last_half_tick_10;
+    delta = count - record->last_half_tick;
     if (delta > 0xfa) {
         delta = 0xfa;
     }
-    record->last_half_tick_10 = count;
+    record->last_half_tick = count;
     if (gXStatus.world_update_blocked != 0) {
         return 1;
     }
@@ -173,12 +173,12 @@ unsigned char UpdateMissileAI(W8AIMissile* record)
         }
         return 1;
     }
-    missile->flight_done_1e0 = 1;
+    missile->flight_done = 1;
     if (missile->missile_table_index_1d8 == 0x23 &&
         (g_combat_state == 0 || g_combat_state->missile_hit_result != 2)) {
         missile->DetonateMissileSpell();
     }
-    if (g_missile_table[missile->missile_table_index_1d8].spell_missile_154 != 0) {
+    if (g_missile_table[missile->missile_table_index_1d8].spell_missile != 0) {
         AbsorbMissileDamage(missile);
     }
     return 1;
@@ -207,7 +207,7 @@ float AdvanceMissileAI(W8AIMissile* record, srVector3T<float>* out, unsigned int
         *out = representation->location_004;
         return 0.0f;
     }
-    advance = steps * record->speed_per_step_04;
+    advance = steps * record->speed_per_step;
     record->missile_0c->GetVelocity(&direction);
     *out = direction;
     position = record->missile_0c->GetPosition();
@@ -224,8 +224,8 @@ float AdvanceMissileAI(W8AIMissile* record, srVector3T<float>* out, unsigned int
         float dy;
         float dz;
 
-        record->fall_speed_08 =
-            record->fall_speed_08 - steps * static_cast<float>(g_missile_gravity_acceleration);
+        record->fall_speed =
+            record->fall_speed - steps * static_cast<float>(g_missile_gravity_acceleration);
         position = record->missile_0c->GetPosition();
         if (out->y != position.y) {
             dx = representation->location_004.x - out->x;
@@ -322,7 +322,7 @@ void ReleaseMissileDatabase(void)
 // FUNCTION: WIZ8 0x004a5790
 bool W8Missile::BlocksEndingCombat()
 {
-    if (flight_done_1e0 == 0) {
+    if (flight_done == 0) {
         if (GetAnimationState(6) != 1) {
             return 1;
         }
@@ -425,7 +425,7 @@ void UpdateWorldMissiles(W8World* world)
         W8Missile* missile = *world->missiles->GetAt(index);
         if (missile != 0) {
             missile->DetachRepresentation(world);
-            if (missile->flight_done_1e0 == 0 || missile->block_released_1e2 == 0) {
+            if (missile->flight_done == 0 || missile->block_released_1e2 == 0) {
                 missile->StartIfHostActive();
                 missile->UpdateRepresentation(world);
                 missile->UpdateNavigation(0, 0);
@@ -472,17 +472,17 @@ W8Missile* AllocateMissile(int missile_table_index)
     }
     missile->missile_table_index_1d8 = missile_table_index;
     missile->m_pRep->pending_cycle = 0;
-    missile->flight_done_1e0 = 0;
-    if (missile->flight_done_1e0 != 0) {
+    missile->flight_done = 0;
+    if (missile->flight_done != 0) {
         if (missile->missile_table_index_1d8 == 0x23 &&
             (g_combat_state == 0 || g_combat_state->missile_hit_result != 2)) {
             missile->DetonateMissileSpell();
         }
-        if (g_missile_table[missile->missile_table_index_1d8].spell_missile_154 != 0) {
+        if (g_missile_table[missile->missile_table_index_1d8].spell_missile != 0) {
             AbsorbMissileDamage(missile);
         }
     }
-    missile->impacting_1e1 = 0;
+    missile->impacting = 0;
     g_world->missiles->Add(missile);
     minimum.Set(-125.0, -125.0, -125.0);
     maximum.Set(125.0, 125.0, 125.0);
@@ -720,8 +720,8 @@ W8Missile* CreateMissile(unsigned int missile_table_index, srVector3T<float>* so
     if (missile != 0) {
         missile->m_pRep->pending_cycle = 0;
         missile->SetCycle(0);
-        missile->m_pRep->pending_behaviour_071 = 3;
-        missile->m_pRep->pending_subcycle_066 = 0;
+        missile->m_pRep->pending_behaviour = 3;
+        missile->m_pRep->pending_subcycle = 0;
         missile->m_pRep->subcycle_064 = 0;
         rotation.vectors[0].Set(1.0, 0.0, 0.0);
         rotation.vectors[1].Set(0.0, 1.0, 0.0);
@@ -763,11 +763,11 @@ W8Missile* CreateMissile(unsigned int missile_table_index, srVector3T<float>* so
         if (ai != 0) {
             float scale = flight_speed * g_float_005ec128;
             memset(ai, 0, sizeof(W8AIMissile));
-            ai->speed_per_step_04 = scale;
+            ai->speed_per_step = scale;
             ai->kind_00 = 3;
             ai->gravity_01 = missile->gravity_1e3;
             ai->limit_18 = limit;
-            ai->last_half_tick_10 =
+            ai->last_half_tick =
                 g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT) >> 1;
             ai->missile_0c = missile;
         }
@@ -775,7 +775,7 @@ W8Missile* CreateMissile(unsigned int missile_table_index, srVector3T<float>* so
         if (ai == 0) {
             srAssertFail("pMissile->GrObject::GetAI()", MISSILE_CPP, 0x120, 0);
         }
-        ai->fall_speed_08 = static_cast<float>(sin(-pitch) * flight_speed * g_float_005ec128);
+        ai->fall_speed = static_cast<float>(sin(-pitch) * flight_speed * g_float_005ec128);
         ai->limit_18 = limit;
         missile->trace_mask_090 = trace_mask;
         missile->duration_1f8 = duration;
@@ -924,9 +924,9 @@ unsigned char W8MissileRep::ReadCycleData(W8ReadLevelInfo* info, W8Missile* miss
     }
     emitter_values[emitter] = animation->playback_scale_08;
     active = 1;
-    frame_direction_06e = 1;
+    frame_direction = 1;
     timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
-    animation_behaviour_070 = animation->behaviour_03;
+    animation_behaviour = animation->behaviour_03;
     frame_method_06f = animation->frame_method_02;
     animation_playing_06d = animation->animation_playing_01;
     emitters[emitter] = animation;
@@ -949,17 +949,17 @@ unsigned char W8MissileRep::ReadCycleData(W8ReadLevelInfo* info, W8Missile* miss
    ordering is preserved because it is present explicitly in the product. */
 // FUNCTION: WIZ8 0x004A3C10
 W8Missile::W8Missile()
-    : missile_table_index_1d8(-1), flight_done_1e0(0), impacting_1e1(0), block_released_1e2(1),
+    : missile_table_index_1d8(-1), flight_done(0), impacting(0), block_released_1e2(1),
       gravity_1e3(0), align_camera_1e4(0), explode_ground_1e5(0), align_explosion_1e6(0),
       flag_1e7(1), value_1e8(0), value_1ec(0), lifetime_1f0(15000.0f), flags_1f4(0),
-      retargeted_322(false)
+      retargeted(false)
 {
     W8GrObject::kind_004 = 1;
     radius_084 = 1.0f;
     if (g_runtime_world_scale < 1.0f) {
         g_runtime_world_scale = 1.0f;
     }
-    movement_0c0.collision_radius_0b0 = 1.0f;
+    movement_0c0.collision_radius = 1.0f;
     if (g_runtime_world_scale < 1.0f) {
         g_runtime_world_scale = 1.0f;
     }
@@ -987,13 +987,13 @@ W8Missile::W8Missile()
    does. */
 // FUNCTION: WIZ8 0x004A3E50
 W8Missile::W8Missile(const W8Missile& other)
-    : W8GrCycle(other), missile_table_index_1d8(other.missile_table_index_1d8), flight_done_1e0(0),
-      impacting_1e1(0), block_released_1e2(other.block_released_1e2),
+    : W8GrCycle(other), missile_table_index_1d8(other.missile_table_index_1d8), flight_done(0),
+      impacting(0), block_released_1e2(other.block_released_1e2),
       gravity_1e3(other.gravity_1e3), align_camera_1e4(other.align_camera_1e4),
       explode_ground_1e5(other.explode_ground_1e5), align_explosion_1e6(other.align_explosion_1e6),
       flag_1e7(other.flag_1e7), value_1e8(other.value_1e8), value_1ec(other.value_1ec),
       lifetime_1f0(other.lifetime_1f0), flags_1f4(other.flags_1f4), duration_1f8(0.0f),
-      retargeted_322(false)
+      retargeted(false)
 {
     W8GrObject::kind_004 = 1;
     id_008 = AllocateGrObjectId();
@@ -1054,18 +1054,18 @@ void W8Missile::StartIfHostActive()
     if (m_pRep->active == 0) {
         return;
     }
-    if (GetAnimationState(2) == 0 || impacting_1e1 == 0) {
+    if (GetAnimationState(2) == 0 || impacting == 0) {
         if (m_pAI != 0) {
             PathAIUpdate(m_pAI, 1);
         }
         W8GrCycle::TickAnimation(1.0f);
     } else {
-        flight_done_1e0 = 1;
+        flight_done = 1;
         if (missile_table_index_1d8 == 0x23 &&
             (g_combat_state == 0 || g_combat_state->missile_hit_result != 2)) {
             DetonateMissileSpell();
         }
-        if (g_missile_table[missile_table_index_1d8].spell_missile_154 != 0) {
+        if (g_missile_table[missile_table_index_1d8].spell_missile != 0) {
             AbsorbMissileDamage(this);
         }
     }
@@ -1249,7 +1249,7 @@ void W8Missile::SetCycle(signed char cycle)
     m_pRep->current_cycle = cycle;
     animation = m_pRep->emitters[cycle];
     m_pRep->active = 1;
-    m_pRep->frame_direction_06e = 1;
+    m_pRep->frame_direction = 1;
     if (m_pRep->SetCycleFrameLod(cycle, 0, 2) != 0) {
         m_pRep->m_bLOD = 2;
     } else if (m_pRep->SetCycleFrameLod(cycle, 0, 1) != 0) {
@@ -1281,7 +1281,7 @@ void W8Missile::SetCycle(signed char cycle)
 
             if (event->cycle_00 == cycle) {
                 event->m_pstParticles->SetActive(1);
-                event->m_pstParticles->emission_count_188 = 0;
+                event->m_pstParticles->emission_count = 0;
             } else {
                 event->m_pstParticles->SetActive(0);
             }
@@ -1321,7 +1321,7 @@ void W8Missile::DetonateMissileSpell()
     source.iChar = m_Source.iChar;
     source.iType = W8_TARGET_SOURCE_CHARACTER;
     source.point = position;
-    source.aim_resolved_1a = true;
+    source.aim_resolved = true;
     ResetCombatSlot(&target);
     target.iType = W8_TARGET_KIND_PLACE;
     target.point = position;
@@ -1371,19 +1371,19 @@ void W8Missile::EnterImpactCycle()
             W8MissileRep* representation = m_pRep;
             srVector3T<float> position = representation->location_004;
             representation->pending_cycle = 1;
-            representation->pending_behaviour_071 = 1;
-            impacting_1e1 = 1;
+            representation->pending_behaviour = 1;
+            impacting = 1;
             if (explode_ground_1e5 != 0) {
                 representation->location_004.y = SettlePositionToGround(&position, 0);
             }
         }
     } else {
-        flight_done_1e0 = 1;
+        flight_done = 1;
         if (missile_table_index_1d8 == 0x23 &&
             (g_combat_state == 0 || g_combat_state->missile_hit_result != 2)) {
             DetonateMissileSpell();
         }
-        if (g_missile_table[missile_table_index_1d8].spell_missile_154 != 0) {
+        if (g_missile_table[missile_table_index_1d8].spell_missile != 0) {
             AbsorbMissileDamage(this);
         }
     }
@@ -1401,11 +1401,11 @@ bool W8Missile::OnCollision(W8Navigator* other)
         }
         if (combat_slot_260.iType != W8_TARGET_KIND_PARTY &&
             combat_slot_260.iType != W8_TARGET_KIND_CHARACTER) {
-            if (g_missile_table[missile_table_index_1d8].spell_missile_154 != 0) {
+            if (g_missile_table[missile_table_index_1d8].spell_missile != 0) {
                 goto miss;
             }
             if (combat_slot_260.iType != W8_TARGET_KIND_NONE) {
-                retargeted_322 = true;
+                retargeted = true;
             }
             combat_slot_260.iType = W8_TARGET_KIND_CHARACTER;
             combat_slot_260.iChar = GetRandomCharacter(1, 1, -1, -1);
@@ -1431,11 +1431,11 @@ bool W8Missile::OnCollision(W8Navigator* other)
         }
         if (combat_slot_260.iType != W8_TARGET_KIND_MONSTER ||
             combat_slot_260.iMonsterID != location_id) {
-            if (g_missile_table[missile_table_index_1d8].spell_missile_154 != 0) {
+            if (g_missile_table[missile_table_index_1d8].spell_missile != 0) {
                 goto miss;
             }
             if (combat_slot_260.iType != W8_TARGET_KIND_NONE) {
-                retargeted_322 = true;
+                retargeted = true;
             }
             combat_slot_260.iType = W8_TARGET_KIND_MONSTER;
             combat_slot_260.iChar = -1;
@@ -1447,14 +1447,14 @@ bool W8Missile::OnCollision(W8Navigator* other)
     }
 
     hit_result = 1;
-    if (g_missile_table[missile_table_index_1d8].spell_missile_154 == 0) {
+    if (g_missile_table[missile_table_index_1d8].spell_missile == 0) {
         if (combat_slot_260.iType == W8_TARGET_KIND_CHARACTER) {
             deflect_chance =
-                g_status.buffers.Char[combat_slot_260.iChar].bonus_1770.missile_deflect_chance_49;
+                g_status.buffers.Char[combat_slot_260.iChar].bonus_1770.missile_deflect_chance;
         } else {
             W8MonsterInfo* monster_info =
                 MonsterInfoFromID(0x676, MISSILE_CPP, combat_slot_260.iMonsterID, 1);
-            deflect_chance = monster_info->modifiers_1db.missile_deflect_chance_49;
+            deflect_chance = monster_info->modifiers_1db.missile_deflect_chance;
         }
         if (deflect_chance > 0 && Random(100) + 1 <= deflect_chance) {
             hit_result = 2;
@@ -1466,7 +1466,7 @@ bool W8Missile::OnCollision(W8Navigator* other)
     } else if (g_combat_state != 0 && g_combat_state->engaged_missile != 0) {
         g_combat_state->missile_hit_result = hit_result;
         g_combat_state->TargetHit = combat_slot_260;
-    } else if (g_missile_table[missile_table_index_1d8].spell_missile_154 != 0) {
+    } else if (g_missile_table[missile_table_index_1d8].spell_missile != 0) {
         ResolveSpellMissileHit(this);
     } else {
         ResolveMissileHit(this, hit_result == 2);

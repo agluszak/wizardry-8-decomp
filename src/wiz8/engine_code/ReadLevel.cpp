@@ -88,7 +88,7 @@ void stLevel::process(const ProcessInfo& info, e_processType)
     srVector4T<float> ambient;
     renderer.getAmbientLight(ambient);
     srVector3T<float> ambient_color(ambient.x, ambient.y, ambient.z);
-    m_positional_13c = 0;
+    m_positional = 0;
 
     for (srNode* child = first_child_; child != 0; child = child->next_sibling_) {
         stModelInstance* instance = static_cast<stModelInstance*>(child);
@@ -117,12 +117,12 @@ void stLevel::process(const ProcessInfo& info, e_processType)
         srNode* linked_child = child;
         while (model != 0) {
             if (model->getActivePolygonTable(0) != 0) {
-                m_positional_13c += model->getActivePolygonCount();
+                m_positional += model->getActivePolygonCount();
             } else {
-                m_positional_13c += model->polygon_count_230;
+                m_positional += model->polygon_count_230;
             }
 
-            if (model->vertex_lighting_ready_3cd) {
+            if (model->vertex_lighting_ready) {
                 srVector4T<float> dark;
                 dark.Set(0.0f, 0.0f, 0.0f, 0.0f);
                 renderer.setAmbientLight(dark);
@@ -133,7 +133,7 @@ void stLevel::process(const ProcessInfo& info, e_processType)
             model->getTriMesh(mesh);
             if (g_render_untextured != 0) {
                 mesh.shaders_b0[0].value &= 0xffff7fff;
-                mesh.poly_shaders_100[0] = 0;
+                mesh.poly_shaders[0] = 0;
             }
             srPtr<srTextureIFace>*(*poly_textures)[2] = mesh.poly_textures_e0;
             if (poly_textures != 0 && mesh.active_polygons_14c == 0) {
@@ -154,7 +154,7 @@ void stLevel::process(const ProcessInfo& info, e_processType)
                 model->renderTriMesh(renderer, mesh);
             }
 
-            if (model->vertex_lighting_ready_3cd) {
+            if (model->vertex_lighting_ready) {
                 renderer.setAmbientLight(ambient);
             }
             if (linked_child != 0 && linked_child->testFlag(FLAG_TERMINATE) != 0) {
@@ -213,7 +213,7 @@ void AssociateWorldLights(W8World* world)
 
     for (light_index = 0; light_index < world->lights_to_update->GetCount(); ++light_index) {
         stLight* light = *world->lights_to_update->GetAt(light_index);
-        stLightDefinition* definition = light->m_definition_234;
+        stLightDefinition* definition = light->m_definition;
 
         if (definition != 0 && definition->type_04 == 1 &&
             (static_cast<stParametricLightDefinition*>(definition)->flags_08 & 1) != 0) {
@@ -225,7 +225,7 @@ void AssociateWorldLights(W8World* world)
 
                 if (prop->m_name != 0 && _stricmp(prop->m_name, light->getName()) == 0) {
                     srModelInstance* instance = prop->ToggleRepAnimationDefault();
-                    light->m_prop_254 = prop;
+                    light->m_prop = prop;
                     GetModelAnimatedTexture(instance)->animation_mode_60 = 3;
                 }
             }
@@ -281,7 +281,7 @@ static unsigned char ReadWorldLights(W8World* world, int hFile)
                     if (!success) {
                         srAssertFail("fSuccess", READ_LEVEL_CPP, 532, 0);
                     }
-                    path->discrete_mode_1c = 1;
+                    path->discrete_mode = 1;
                     PathAISetAnimated(path, 0);
                     PathAISetScale(path, definition->path_speed_38);
                 }
@@ -293,7 +293,7 @@ static unsigned char ReadWorldLights(W8World* world, int hFile)
                 light = CreateRangedWorldLight(world, name);
             } else {
                 light = CreateWorldLight(world, name);
-                light->m_definition_234 = definition;
+                light->m_definition = definition;
                 world->lights_to_update->Add(light);
                 if (path != 0) {
                     light->m_owned_244 = path;
@@ -415,9 +415,9 @@ unsigned char ReadWorldEnvironment(W8ReadLevelInfo* pInfo, W8World* pWorld)
     distance_scale =
         view_distance < g_octree_cell_scale ? g_environment_near_scale : g_float_005ec3b8;
     WorldSetRenderRange(pWorld, distance_scale * pWorld->view_distance_020);
-    pWorld->environment_range_start_014 = environment_range.x;
-    pWorld->environment_range_end_018 = environment_range.y;
-    pWorld->environment_range_blue_01c = environment_range.z;
+    pWorld->environment_range_start = environment_range.x;
+    pWorld->environment_range_end = environment_range.y;
+    pWorld->environment_range_blue = environment_range.z;
 
     if (fog_enabled == 0) {
         SetFogEnabled(0);
@@ -855,8 +855,8 @@ unsigned char ReadWorldParticles(W8ReadLevelInfo* pInfo, srNode* pScene,
         }
         particle->particle_size_140 = record.particle_size;
         particle->expiry_mode_1ac = record.expiry_mode != 0;
-        particle->lifetime_ms_1cc = record.lifetime;
-        particle->los_check_enabled_1b4 = record.los_check != 0;
+        particle->lifetime_ms = record.lifetime;
+        particle->los_check_enabled = record.los_check != 0;
         particle->emission_interval_1c8 =
             record.emission_interval < 2 ? 1 : record.emission_interval;
         particle->start_frame_264 = record.start_frame;
@@ -868,11 +868,11 @@ unsigned char ReadWorldParticles(W8ReadLevelInfo* pInfo, srNode* pScene,
         }
 
         if (record.velocity_mode == 0) {
-            particle->emission_mode_1b0 = 0;
+            particle->emission_mode = 0;
         } else if (record.velocity_mode == 1) {
-            particle->emission_mode_1b0 = 1;
+            particle->emission_mode = 1;
         } else {
-            particle->emission_mode_1b0 = 2;
+            particle->emission_mode = 2;
             particle->minimum_1d0.Set(-record.spread_x * 250.0f, -record.spread_y * 250.0f, 0.0f);
             particle->maximum_1dc.Set(record.spread_x * 250.0f, record.spread_y * 250.0f,
                                       record.spread_z * g_world_scale);
@@ -901,8 +901,8 @@ unsigned char ReadWorldParticles(W8ReadLevelInfo* pInfo, srNode* pScene,
             particle->direction_mode_1b8 = 2;
         } else if (record.direction_mode == 3) {
             particle->direction_mode_1b8 = 3;
-            particle->cone_yaw_208 = record.direction_0e0 * 0.017453292519943295f;
-            particle->cone_pitch_20c = record.direction_0e4 * 0.017453292519943295f;
+            particle->cone_yaw = record.direction_0e0 * 0.017453292519943295f;
+            particle->cone_pitch = record.direction_0e4 * 0.017453292519943295f;
         } else {
             particle->direction_mode_1b8 = 4;
         }
@@ -911,7 +911,7 @@ unsigned char ReadWorldParticles(W8ReadLevelInfo* pInfo, srNode* pScene,
             particle->placement_mode_1bc = 0;
         } else if (record.placement_mode == 1) {
             particle->placement_mode_1bc = 1;
-            particle->initial_speed_210 = record.placement_0c0 * g_world_scale;
+            particle->initial_speed = record.placement_0c0 * g_world_scale;
         } else {
             particle->placement_mode_1bc = 2;
             particle->speed_min_214 = record.placement_0c4 * g_world_scale;
@@ -922,7 +922,7 @@ unsigned char ReadWorldParticles(W8ReadLevelInfo* pInfo, srNode* pScene,
             particle->SetFlutter(0);
         } else {
             particle->SetFlutter(2);
-            particle->flutter_amplitude_200 = record.flutter_value;
+            particle->flutter_amplitude = record.flutter_value;
             particle->flutter_period_204 = static_cast<unsigned int>(record.flutter_period);
         }
         if (record.attachment_key >= 0) {
@@ -942,7 +942,7 @@ unsigned char ReadWorldParticles(W8ReadLevelInfo* pInfo, srNode* pScene,
         if (strncmp(record.name, "CLOUD", 5) == 0) {
             srVector3T<double> current = particle->getLocation();
             particle->camera_offset_244 = current;
-            particle->camera_relative_1c4 = 1;
+            particle->camera_relative = 1;
             particle->SetActive(1);
         } else if (g_octree != 0) {
             g_octree->AddLoadedParticle(particle);
@@ -1103,7 +1103,7 @@ unsigned char ReadLevel(W8World* world, int handle, bool use_octree, const char*
             for (index = 0; index < section_count; ++index) {
                 Trigger::CreateAndLoadLevelTrigger(info.hFile, world);
             }
-            if (world->game_data != 0 && world->game_data->geometry_index_00 != 0) {
+            if (world->game_data != 0 && world->game_data->geometry_index != 0) {
                 world->game_data->IntegrateTriggers();
             }
         }

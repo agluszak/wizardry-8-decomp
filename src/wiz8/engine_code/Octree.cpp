@@ -83,10 +83,10 @@ void W8Octree::UpdatePathVisualization()
            fcomp loads use the y slot) and never tests x. */
         if (cursor.y != g_float_zero || cursor.y != g_float_zero || cursor.z != g_float_zero) {
             srVector3T<float> point = cursor;
-            pathing_180->UpdatePathVisualization(&point, &view_1c0.camera_dof_0c);
+            pathing_180->UpdatePathVisualization(&point, &view_1c0.camera_dof);
             return;
         }
-        pathing_180->UpdatePathVisualization(&view_1c0.camera_location_00, &view_1c0.camera_dof_0c);
+        pathing_180->UpdatePathVisualization(&view_1c0.camera_location_00, &view_1c0.camera_dof);
     }
 }
 
@@ -202,8 +202,8 @@ void W8Octree::UpdateCameraVisibility()
 
     view_1c0.far_clip_40 = static_cast<float>(WorldGetFarClip(world));
     world->camera->getLocation(view_1c0.camera_location_00);
-    view_1c0.horizontal_fov_30 = static_cast<float>(world->camera->getHorizontalFOV());
-    view_1c0.vertical_fov_34 = static_cast<float>(world->camera->getVerticalFOV());
+    view_1c0.horizontal_fov = static_cast<float>(world->camera->getHorizontalFOV());
+    view_1c0.vertical_fov = static_cast<float>(world->camera->getVerticalFOV());
 
     srMatrix3T<float> rotation;
     world->camera->getRotation(rotation);
@@ -213,9 +213,9 @@ void W8Octree::UpdateCameraVisibility()
                                     rotation.vectors[2].y);
 
     srVector3T<double> dof = world->camera->getWorldSpaceDOF();
-    view_1c0.camera_dof_0c = dof;
-    view_1c0.horizontal_fov_cosine_38 = static_cast<float>(cos(view_1c0.horizontal_fov_30));
-    view_1c0.vertical_fov_cosine_3c = static_cast<float>(cos(view_1c0.vertical_fov_34));
+    view_1c0.camera_dof = dof;
+    view_1c0.horizontal_fov_cosine = static_cast<float>(cos(view_1c0.horizontal_fov));
+    view_1c0.vertical_fov_cosine = static_cast<float>(cos(view_1c0.vertical_fov));
     m_visited_polygon_bits->ClearAll();
     m_projected_regions->ClearAll();
     UpdateVisibility();
@@ -298,7 +298,7 @@ void W8Octree::UpdateVisibility()
     }
     m_projected_regions_valid = false;
     m_location_region_matched = 0;
-    CollectVisibleRegions(&view_1c0.camera_location_00, &view_1c0.visible_cells_44, 0, 1);
+    CollectVisibleRegions(&view_1c0.camera_location_00, &view_1c0.visible_cells, 0, 1);
     CollectVisibleCells();
     if (pathing_180 != 0) {
         srVector3T<float> dof;
@@ -307,10 +307,10 @@ void W8Octree::UpdateVisibility()
            twice and x is never examined. */
         if (dof.y != g_float_zero || dof.y != g_float_zero || dof.z != g_float_zero) {
             srVector3T<float> probe = dof;
-            pathing_180->UpdatePathVisualization(&probe, &view_1c0.camera_dof_0c);
+            pathing_180->UpdatePathVisualization(&probe, &view_1c0.camera_dof);
         } else {
             pathing_180->UpdatePathVisualization(&view_1c0.camera_location_00,
-                                                 &view_1c0.camera_dof_0c);
+                                                 &view_1c0.camera_dof);
         }
     }
     if (m_projected_regions_valid != 0) {
@@ -791,10 +791,10 @@ void W8Octree::MarkVisibleRegions()
         if (delta.LengthSquared() >= radius_squared) {
             continue;
         }
-        bool visible = PointInsideFrustum(&volume->m_points[0], view_1c0.frustum_planes_5c);
+        bool visible = PointInsideFrustum(&volume->m_points[0], view_1c0.frustum_planes);
 
         for (int point = 1; !visible && point < 9; ++point) {
-            visible = PointInsideFrustum(&volume->m_points[point], view_1c0.frustum_planes_5c);
+            visible = PointInsideFrustum(&volume->m_points[point], view_1c0.frustum_planes);
         }
         if (visible != 0 && volume->m_region_bit != 0) {
             m_current_regions->Set(volume->m_region_bit);
@@ -807,19 +807,19 @@ void W8Octree::MarkVisibleRegions()
 // FUNCTION: WIZ8 0x004302e0
 void W8Octree::BuildFrustumPlanes()
 {
-    float fov = view_1c0.horizontal_fov_30 * g_float_005ebc7c;
+    float fov = view_1c0.horizontal_fov * g_float_005ebc7c;
     float extent = m_spatial.m_max_region_radius;
     float far_clip = view_1c0.far_clip_40;
     float backoff = extent / sin(fov);
     float ratio = extent / cos(fov);
     double tangent = tan(fov);
-    double tangent_vertical = tan(view_1c0.vertical_fov_34 * g_float_005ebc7c);
+    double tangent_vertical = tan(view_1c0.vertical_fov * g_float_005ebc7c);
     srVector3T<float> corners[8];
 
-    view_1c0.frustum_planes_5c[4].w = 0.0f;
-    view_1c0.frustum_planes_5c[5].w = 0.0f;
+    view_1c0.frustum_planes[4].w = 0.0f;
+    view_1c0.frustum_planes[5].w = 0.0f;
     for (int axis = 0; axis < 3; ++axis) {
-        float dof = (&view_1c0.camera_dof_0c.x)[axis];
+        float dof = (&view_1c0.camera_dof.x)[axis];
         float column1 = (&view_1c0.rotation_column_18.x)[axis];
         float column2 = (&view_1c0.rotation_column_24.x)[axis];
         float w = far_clip * dof;
@@ -838,17 +838,17 @@ void W8Octree::BuildFrustumPlanes()
         (&corners[5].x)[axis] += (&view_1c0.camera_location_00.x)[axis];
         (&corners[6].x)[axis] += (&view_1c0.camera_location_00.x)[axis];
         (&corners[7].x)[axis] += (&view_1c0.camera_location_00.x)[axis];
-        (&view_1c0.frustum_planes_5c[4].normal.x)[axis] = dof;
-        view_1c0.frustum_planes_5c[4].w -= dof * (&corners[0].x)[axis];
-        (&view_1c0.frustum_planes_5c[5].normal.x)[axis] = -dof;
-        view_1c0.frustum_planes_5c[5].w -= -dof * (&corners[4].x)[axis];
+        (&view_1c0.frustum_planes[4].normal.x)[axis] = dof;
+        view_1c0.frustum_planes[4].w -= dof * (&corners[0].x)[axis];
+        (&view_1c0.frustum_planes[5].normal.x)[axis] = -dof;
+        view_1c0.frustum_planes[5].w -= -dof * (&corners[4].x)[axis];
     }
-    BuildPlaneFromPoints(&view_1c0.frustum_planes_5c[0], &corners[0], &corners[5], &corners[4]);
-    BuildPlaneFromPoints(&view_1c0.frustum_planes_5c[1], &corners[0], &corners[4], &corners[6]);
-    BuildPlaneFromPoints(&view_1c0.frustum_planes_5c[2], &corners[0], &corners[7], &corners[5]);
-    BuildPlaneFromPoints(&view_1c0.frustum_planes_5c[3], &corners[0], &corners[6], &corners[7]);
+    BuildPlaneFromPoints(&view_1c0.frustum_planes[0], &corners[0], &corners[5], &corners[4]);
+    BuildPlaneFromPoints(&view_1c0.frustum_planes[1], &corners[0], &corners[4], &corners[6]);
+    BuildPlaneFromPoints(&view_1c0.frustum_planes[2], &corners[0], &corners[7], &corners[5]);
+    BuildPlaneFromPoints(&view_1c0.frustum_planes[3], &corners[0], &corners[6], &corners[7]);
     for (int index = 0; index < 6; ++index) {
-        view_1c0.frustum_planes_5c[index].w += m_spatial.m_region_grid_cell;
+        view_1c0.frustum_planes[index].w += m_spatial.m_region_grid_cell;
     }
 }
 
@@ -900,7 +900,7 @@ void W8Octree::CollectVisibleCells()
                         cell_y * m_spatial.m_region_grid_cell + m_spatial.m_minimum.y + offset;
                     point.z =
                         cell_z * m_spatial.m_region_grid_cell + m_spatial.m_minimum.z + offset;
-                    if (PointInsideFrustum(&point, view_1c0.frustum_planes_5c) == 0) {
+                    if (PointInsideFrustum(&point, view_1c0.frustum_planes) == 0) {
                         continue;
                     }
                 }
@@ -1196,8 +1196,8 @@ unsigned int W8Octree::SampleRegionLinks(const srVector3T<float>* point, bool de
     srVector3T<double> location;
     location.SetFromFloat(point);
     world->camera->setLocation(location);
-    view_1c0.horizontal_fov_30 = static_cast<float>(world->camera->getHorizontalFOV());
-    view_1c0.vertical_fov_34 = static_cast<float>(world->camera->getVerticalFOV());
+    view_1c0.horizontal_fov = static_cast<float>(world->camera->getHorizontalFOV());
+    view_1c0.vertical_fov = static_cast<float>(world->camera->getVerticalFOV());
     if (region_key == 0) {
         region_key = RegionKeyForPoint(point);
     }
@@ -1208,15 +1208,15 @@ unsigned int W8Octree::SampleRegionLinks(const srVector3T<float>* point, bool de
     }
     m_projected_regions_valid = false;
     short samples = static_cast<short>(static_cast<int>(
-        g_camera_angle_period / view_1c0.horizontal_fov_30 + g_camera_snap_epsilon));
-    if (samples * view_1c0.horizontal_fov_30 < g_region_link_circle_coverage) {
+        g_camera_angle_period / view_1c0.horizontal_fov + g_camera_snap_epsilon));
+    if (samples * view_1c0.horizontal_fov < g_region_link_circle_coverage) {
         ++samples;
     }
     if (samples > 0) {
         double cos_tilt = cos(g_region_link_camera_tilt);
         double sin_tilt = sin(g_region_link_camera_tilt);
         for (int direction = 0; direction < samples; ++direction) {
-            float angle = direction * view_1c0.horizontal_fov_30;
+            float angle = direction * view_1c0.horizontal_fov;
             srMatrix3T<float> frame;
             frame.SetIdentity();
             if (angle != g_double_zero) {
@@ -1235,7 +1235,7 @@ unsigned int W8Octree::SampleRegionLinks(const srVector3T<float>* point, bool de
             view_1c0.rotation_column_24.y = DotProduct(frame.vectors[1], unit);
             view_1c0.rotation_column_24.z = DotProduct(frame.vectors[2], unit);
             srVector3T<double> dof = world->camera->getWorldSpaceDOF();
-            view_1c0.camera_dof_0c = dof;
+            view_1c0.camera_dof = dof;
             m_current_regions->ClearAll();
             CollectVisibleCells();
             int bit = m_current_regions->NextSetBit(1);
@@ -1864,10 +1864,10 @@ unsigned char W8Octree::PrepareNavigatorTarget(W8NavigatorMovementState* movemen
                     pathing_180->BuildAttachmentPath(movement->attachment_0ac, movement->flags_000);
                 if (result != 0) {
                     W8NavigatorAttachment* attachment = movement->attachment_0ac;
-                    attachment->position_4c[attachment->path_position_index_08] =
+                    attachment->position_4c[attachment->path_position_index] =
                         movement->target_position_04c;
                     attachment->position_1c =
-                        attachment->position_4c[attachment->path_position_index_08];
+                        attachment->position_4c[attachment->path_position_index];
                     pathing_180->AdvanceAttachmentWaypoint(&movement->position_040, attachment);
                     movement->attachment_0ac->GetNextPosition(&movement->target_position_04c);
                     return result;
@@ -1875,10 +1875,10 @@ unsigned char W8Octree::PrepareNavigatorTarget(W8NavigatorMovementState* movemen
                 result = pathing_180->ProbeAttachmentPath(movement->attachment_0ac);
                 if (result != 0) {
                     W8NavigatorAttachment* attachment = movement->attachment_0ac;
-                    attachment->position_4c[attachment->path_position_index_08] =
+                    attachment->position_4c[attachment->path_position_index] =
                         movement->target_position_04c;
                     attachment->position_1c =
-                        attachment->position_4c[attachment->path_position_index_08];
+                        attachment->position_4c[attachment->path_position_index];
                     return result;
                 }
             } else {
@@ -1915,7 +1915,7 @@ bool __stdcall IsNavigatorAtTarget(W8NavigatorMovementState* movement)
     srVector3T<float> target;
     if (movement->attachment_0ac != 0) {
         W8NavigatorAttachment* attachment = movement->attachment_0ac;
-        if (attachment->path_cursor_04 < attachment->path_position_index_08 ||
+        if (attachment->path_cursor < attachment->path_position_index ||
             (attachment->flags_00 & W8_NAV_ATTACHMENT_START_WAYPOINT) != 0) {
             return 0;
         }
@@ -1923,7 +1923,7 @@ bool __stdcall IsNavigatorAtTarget(W8NavigatorMovementState* movement)
     } else {
         target = movement->target_position_04c;
     }
-    if (movement->movement_scale_060 * g_world_scale < (target - movement->position_040).Length()) {
+    if (movement->movement_scale * g_world_scale < (target - movement->position_040).Length()) {
         return 0;
     }
     return 1;
@@ -1944,7 +1944,7 @@ unsigned char W8Octree::PrepareNavigatorPatrol(W8NavigatorMovementState* movemen
         if (result == 0) {
             return 0;
         }
-        double step = movement->movement_scale_060 * g_world_scale;
+        double step = movement->movement_scale * g_world_scale;
         movement->attachment_0ac->GetNextPosition(&movement->target_position_04c);
         srVector3T<float> delta;
         delta = movement->target_position_04c - movement->position_040;
@@ -2107,7 +2107,7 @@ float W8Octree::SettleToGround(srVector3T<float>* position, bool* out_hit, char 
                     }
                 }
             }
-            g_octree_game_data->trace_flag4_gate_88 = 1;
+            g_octree_game_data->trace_flag4_gate = 1;
             if (ProbeCellForTrace(&cell) == 0) {
                 goto descend;
             }
@@ -2126,7 +2126,7 @@ float W8Octree::SettleToGround(srVector3T<float>* position, bool* out_hit, char 
             } else if (prop_hit) {
                 current_prop = -1;
             }
-            g_octree_game_data->trace_flag4_gate_88 = 0;
+            g_octree_game_data->trace_flag4_gate = 0;
         } while (-1 < cell.y);
         if (hit != 0) {
         done:
@@ -2315,12 +2315,12 @@ short W8Octree::TraceLineOfSight(const srVector3T<float>* from, srVector3T<float
         if (span < 2) {
             ProbeCellForTrace(&cell);
             blocked = g_octree_game_data->TestTraceResult(m_gd_result_count, m_aulGDObjs, &trace,
-                                                          m_trace_skip_flag_134, 0);
+                                                          m_trace_skip_flag, 0);
 
             if (blocked == 0 && span != 0) {
                 ProbeCellForTrace(&end_cell);
                 blocked = g_octree_game_data->TestTraceResult(m_gd_result_count, m_aulGDObjs,
-                                                              &trace, m_trace_skip_flag_134, 0);
+                                                              &trace, m_trace_skip_flag, 0);
             }
         } else {
             BuildCellWalk(from, to, &walk);
@@ -2346,7 +2346,7 @@ short W8Octree::TraceLineOfSight(const srVector3T<float>* from, srVector3T<float
                     }
                     if (ProbeCellForTrace(&cell) != 0) {
                         blocked = g_octree_game_data->TestTraceResult(
-                            m_gd_result_count, m_aulGDObjs, &trace, m_trace_skip_flag_134, 0);
+                            m_gd_result_count, m_aulGDObjs, &trace, m_trace_skip_flag, 0);
                     }
                     if (error_0 < error_1) {
                         if (error_0 < 0 && blocked == 0) {
@@ -2354,7 +2354,7 @@ short W8Octree::TraceLineOfSight(const srVector3T<float>* from, srVector3T<float
                             error_0 += walk.error_reset_30;
                             if (ProbeCellForTrace(&cell) != 0) {
                                 blocked = g_octree_game_data->TestTraceResult(
-                                    m_gd_result_count, m_aulGDObjs, &trace, m_trace_skip_flag_134,
+                                    m_gd_result_count, m_aulGDObjs, &trace, m_trace_skip_flag,
                                     0);
                             }
                             if (error_1 < 0 && blocked == 0) {
@@ -2363,7 +2363,7 @@ short W8Octree::TraceLineOfSight(const srVector3T<float>* from, srVector3T<float
                                 if (ProbeCellForTrace(&cell) != 0) {
                                     blocked = g_octree_game_data->TestTraceResult(
                                         m_gd_result_count, m_aulGDObjs, &trace,
-                                        m_trace_skip_flag_134, 0);
+                                        m_trace_skip_flag, 0);
                                 }
                             }
                         }
@@ -2372,14 +2372,14 @@ short W8Octree::TraceLineOfSight(const srVector3T<float>* from, srVector3T<float
                         error_1 += walk.error_reset_3c;
                         if (ProbeCellForTrace(&cell) != 0) {
                             blocked = g_octree_game_data->TestTraceResult(
-                                m_gd_result_count, m_aulGDObjs, &trace, m_trace_skip_flag_134, 0);
+                                m_gd_result_count, m_aulGDObjs, &trace, m_trace_skip_flag, 0);
                         }
                         if (error_0 < 0 && blocked == 0) {
                             (&cell.x)[minor_0] += (&step.x)[minor_0];
                             error_0 += walk.error_reset_30;
                             if (ProbeCellForTrace(&cell) != 0) {
                                 blocked = g_octree_game_data->TestTraceResult(
-                                    m_gd_result_count, m_aulGDObjs, &trace, m_trace_skip_flag_134,
+                                    m_gd_result_count, m_aulGDObjs, &trace, m_trace_skip_flag,
                                     0);
                             }
                         }
@@ -2520,7 +2520,7 @@ no_probes:;
                         center.x = monster->movement_0c0.position_040.x;
                         center.z = monster->movement_0c0.position_040.z;
                         center.y = monster->movement_0c0.position_040.y +
-                                   monster->movement_0c0.height_offset_0b8;
+                                   monster->movement_0c0.height_offset;
                         float distance = PointToSegmentDistance(&center, from, to, 1, 0);
                         if (noise_adjust != 0) {
                             distance =
@@ -2946,8 +2946,8 @@ int W8Octree::TraceAgainstProps(const srVector3T<float>* from, srVector3T<float>
    resolve its leaf index through the direct leaf grid when one exists else by
    descending the branch tree one octant per level, then drain the chosen leaf
    stream into m_aulGDObjs through the m_visited_object_bits dedupe set. ProbeCellForTrace
-   reads the leaf's gd_polygon_offset_0c into the m_gd_surface_index_stream surface-id stream;
-   ProbeCellForBlockers reads polygon_offset_08 into the m_polygon_index_stream index stream
+   reads the leaf's gd_polygon_offset into the m_gd_surface_index_stream surface-id stream;
+   ProbeCellForBlockers reads polygon_offset into the m_polygon_index_stream index stream
    and maps each entry through m_aulPolyLookup to a (mesh<<16)|polygon key, marking
    the mesh in m_current_regions. The Append variant skips the result-count
    reset so successive cells accumulate. */
@@ -2957,9 +2957,9 @@ int W8Octree::ProbeCellForTrace(const srVector3T<int>* cell)
 {
     unsigned int leaf_index = LeafIndexForCell(cell);
     m_gd_result_count = 0;
-    if (leaf_index != 0 && m_leaves[leaf_index].gd_polygon_offset_0c != 0) {
+    if (leaf_index != 0 && m_leaves[leaf_index].gd_polygon_offset != 0) {
         const unsigned long* stream =
-            m_gd_surface_index_stream + m_leaves[leaf_index].gd_polygon_offset_0c;
+            m_gd_surface_index_stream + m_leaves[leaf_index].gd_polygon_offset;
         int remaining = *stream;
         while (remaining != 0) {
             ++stream;
@@ -2981,9 +2981,9 @@ int W8Octree::ProbeCellForBlockers(const srVector3T<int>* cell)
 {
     unsigned int leaf_index = LeafIndexForCell(cell);
     m_gd_result_count = 0;
-    if (leaf_index != 0 && m_leaves[leaf_index].polygon_offset_08 != 0) {
+    if (leaf_index != 0 && m_leaves[leaf_index].polygon_offset != 0) {
         const unsigned long* stream =
-            m_polygon_index_stream + m_leaves[leaf_index].polygon_offset_08;
+            m_polygon_index_stream + m_leaves[leaf_index].polygon_offset;
         for (int remaining = *stream; remaining != 0; --remaining) {
             ++stream;
             if (m_visited_polygon_bits->Set(*stream) == 0) {
@@ -3004,9 +3004,9 @@ int W8Octree::ProbeCellForBlockers(const srVector3T<int>* cell)
 int W8Octree::ProbeCellForBlockersAppend(const srVector3T<int>* cell)
 {
     unsigned int leaf_index = LeafIndexForCell(cell);
-    if (leaf_index != 0 && m_leaves[leaf_index].polygon_offset_08 != 0) {
+    if (leaf_index != 0 && m_leaves[leaf_index].polygon_offset != 0) {
         const unsigned long* stream =
-            m_polygon_index_stream + m_leaves[leaf_index].polygon_offset_08;
+            m_polygon_index_stream + m_leaves[leaf_index].polygon_offset;
         for (int remaining = *stream; remaining != 0; --remaining) {
             ++stream;
             if (m_visited_polygon_bits->Set(*stream) == 0) {
@@ -3025,7 +3025,7 @@ int W8Octree::ProbeCellForBlockersAppend(const srVector3T<int>* cell)
 
 /* March the buffered (mesh<<16)|polygon keys, ray-test each live mesh
    instance's triangle against the record and keep the nearest contact: the
-   record's end_0c returns the hit position and hit_limit_24 the distance. */
+   record's end_0c returns the hit position and hit_limit the distance. */
 // FUNCTION: WIZ8 0x00435f00
 unsigned char W8Octree::TestProbeResult(W8OctreeTrace* trace)
 {
@@ -3049,7 +3049,7 @@ unsigned char W8Octree::TestProbeResult(W8OctreeTrace* trace)
                     g_float_zero &&
                 (distance = plane->y * trace->start_00.y + plane->x * trace->start_00.x +
                             plane->z * trace->start_00.z + plane->w,
-                 distance <= trace->hit_limit_24) &&
+                 distance <= trace->hit_limit) &&
                 g_float_zero < distance) {
                 if (g_float_one <= distance) {
                     float back = plane->x * trace->end_0c.x + trace->end_0c.y * plane->y +
@@ -3058,7 +3058,7 @@ unsigned char W8Octree::TestProbeResult(W8OctreeTrace* trace)
                         continue;
                     }
                     back = -back;
-                    if (g_float_one <= back || trace->hit_limit_24 < trace->length_28) {
+                    if (g_float_one <= back || trace->hit_limit < trace->length_28) {
                         t = (distance / (back + distance)) * trace->length_28;
                         point.x = trace->step_18.x * t;
                         point.y = trace->step_18.y * t;
@@ -3090,8 +3090,8 @@ unsigned char W8Octree::TestProbeResult(W8OctreeTrace* trace)
                 triangle[0] = vertices[poly_vertex->x];
                 triangle[1] = vertices[poly_vertex->y];
                 triangle[2] = vertices[poly_vertex->z];
-                if (PointInsideTriangle(triangle, axis, &point) != 0 && t < trace->hit_limit_24) {
-                    trace->hit_limit_24 = t;
+                if (PointInsideTriangle(triangle, axis, &point) != 0 && t < trace->hit_limit) {
+                    trace->hit_limit = t;
                     hit = true;
                     contact = point;
                 }
@@ -3840,7 +3840,7 @@ void W8Octree::Reset()
     m_papParticles = 0;
     m_usNumPropsLoaded = 0;
     m_usNumParticlesLoaded = 0;
-    m_trace_skip_flag_134 = 0;
+    m_trace_skip_flag = 0;
     m_visited_object_bits = 0;
     m_accumulated_regions = 0;
     m_owned_19c = 0;
@@ -3875,7 +3875,7 @@ void W8Octree::Reset()
     m_points_dirty = false;
     m_unknown_299 = 0;
     m_sun_count = 0;
-    prop_sun_base_184 = 0;
+    prop_sun_base = 0;
     m_pPropSunBits = 0;
     m_ulNumProps = 0;
     current_prop = -1;
@@ -4188,10 +4188,10 @@ void W8Octree::SetPropSunBits(BitArray* bits)
 bool W8Octree::TestPropSunBit(int offset)
 {
     if (offset < 0) {
-        prop_sun_base_184 = g_prop_sun_index;
+        prop_sun_base = g_prop_sun_index;
         return false;
     }
-    g_prop_sun_index = prop_sun_base_184 + offset;
+    g_prop_sun_index = prop_sun_base + offset;
     if (m_pPropSunBits != 0 && m_pPropSunBits->Test(g_prop_sun_index)) {
         return true;
     }
@@ -4481,9 +4481,9 @@ unsigned int W8Octree::CollectObjectsInCell(const srVector3T<int>* cell, unsigne
             leaf_index = m_leaf_lookup[m_spatial.m_leaf_grid_stride_y * cell->y +
                                        m_spatial.m_leaf_grid_stride_x * cell->x + cell->z];
         }
-        if (leaf_index != 0 && m_leaves[leaf_index].gd_polygon_offset_0c != 0) {
+        if (leaf_index != 0 && m_leaves[leaf_index].gd_polygon_offset != 0) {
             const unsigned long* stream =
-                m_gd_surface_index_stream + m_leaves[leaf_index].gd_polygon_offset_0c;
+                m_gd_surface_index_stream + m_leaves[leaf_index].gd_polygon_offset;
             found = *stream;
             if (found != 0) {
                 unsigned int index = 0;
@@ -4661,7 +4661,7 @@ unsigned int W8Octree::AdvanceNavigator(W8NavigatorMovementState* movement, floa
     vecDir = movement->target_position_04c - movement->position_040;
     vecDir.y = 0.0f;
     distance = srVector2T<float>(vecDir.x, vecDir.z).Length();
-    step = g_game_time_accumulator->GetFrameDelta() * movement->movement_scale_060 * g_rate *
+    step = g_game_time_accumulator->GetFrameDelta() * movement->movement_scale * g_rate *
            g_world_scale;
     if (step >= distance) {
         step = distance;

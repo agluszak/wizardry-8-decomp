@@ -39,8 +39,8 @@ private:
     };
 
     CacheEntry entries_00[16];
-    unsigned long used_mask_80;
-    unsigned long cached_bytes_84;
+    unsigned long used_mask;
+    unsigned long cached_bytes;
     unsigned long limit_88;
     CriticalSection critical_section_8c;
 };

@@ -12,7 +12,7 @@ class srVertexPipe;
    srTriMeshPipeline's array instantiation advances by the same 0x20 stride.
    Slot order follows getEyeSpaceLocation/getDiffuse/getSpecular/getST/getQ. */
 struct srVertexArray {
-    srVector4T<float>* eye_locations_00;
+    srVector4T<float>* eye_locations;
     srVector4T<float>* diffuse_04;
     srVector4T<float>* specular_08;
     srVector2T<float>* st0_0c;

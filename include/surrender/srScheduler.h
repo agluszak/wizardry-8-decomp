@@ -29,7 +29,7 @@ public:
 
 private:
     struct WorkerSlot {
-        long thread_handle_00;
+        long thread_handle;
         srScheduler* scheduler_04;
     };
 
@@ -58,10 +58,10 @@ private:
 
     WorkerSlot workers_00[4];
     srHashTable<Job*, QueueEntry*> lookup_20;
-    QueueEntry* first_job_30;
-    QueueEntry* last_job_34;
-    long job_count_38;
-    long worker_count_3c;
+    QueueEntry* first_job;
+    QueueEntry* last_job;
+    long job_count;
+    long worker_count;
     srCriticalSection* critical_section_40;
 };
 

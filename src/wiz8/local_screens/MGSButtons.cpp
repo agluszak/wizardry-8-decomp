@@ -614,10 +614,10 @@ void UpdateCombatStanceButtons(void)
     }
 
     if (g_settings.continuous_combat == 0) {
-        stance = g_combat_state->execution_active_000 != 0 ? 3U : 0U;
-    } else if ((ClockIsTicking(g_combat_state->combat_ui_timer_7a8) == 0 &&
+        stance = g_combat_state->execution_active != 0 ? 3U : 0U;
+    } else if ((ClockIsTicking(g_combat_state->combat_ui_timer) == 0 &&
                 CombatMayAdvanceContinuously() != 0) ||
-               g_combat_state->party_surprised_a52 != 0) {
+               g_combat_state->party_surprised != 0) {
         stance = g_combat_state->round_active_001 != 0 ? 1U : 4U;
     } else {
         stance = 2;
@@ -653,7 +653,7 @@ static void MainGameCombatConfirmButton(W8DialogButton* button)
     if (gXStatus.fCombatMode == 0) {
         return;
     }
-    if (g_combat_state->execution_active_000 != 0) {
+    if (g_combat_state->execution_active != 0) {
         TogglePartyCombatStance();
         return;
     }
@@ -661,10 +661,10 @@ static void MainGameCombatConfirmButton(W8DialogButton* button)
     if (g_settings.continuous_combat == 0) {
         return;
     }
-    if (ClockIsTicking(g_combat_state->combat_ui_timer_7a8) == 0) {
+    if (ClockIsTicking(g_combat_state->combat_ui_timer) == 0) {
         return;
     }
-    g_combat_state->combat_ui_timer_7a8 = SetCountdownClock(0);
+    g_combat_state->combat_ui_timer = SetCountdownClock(0);
 }
 
 // FUNCTION: WIZ8 0x00597ED0

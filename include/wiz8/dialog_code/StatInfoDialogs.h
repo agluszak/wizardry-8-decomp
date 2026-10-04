@@ -28,9 +28,9 @@ protected:
 
     W8DialogScrollBar scrollbar_054;
     W8DialogButton button_0a0;
-    W8DialogTextArea textarea_0e8;
-    unsigned int m_title_id_140;  /* 0x140: gppStringList index, DrawTitle */
-    unsigned int m_detail_id_144; /* 0x144: gppStringList index, PopulateText */
+    W8DialogTextArea textarea;
+    unsigned int m_title_id;  /* 0x140: gppStringList index, DrawTitle */
+    unsigned int m_detail_id; /* 0x144: gppStringList index, PopulateText */
 };
 
 // VTABLE: WIZ8 0x005efcc8
@@ -64,10 +64,10 @@ protected:
     virtual unsigned char PopulateText() override;
 
 private:
-    unsigned int m_skill_148;
+    unsigned int m_skill;
     bool m_first_14c;
     bool m_second_14d;
-    bool m_bonus_14e;
+    bool m_bonus;
     unsigned char pad_14f;
 };
 

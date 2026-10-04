@@ -364,7 +364,7 @@ unsigned char LoadSkyWorld(int level, W8LevelInfo* info)
     material->parms.diffuse.w = 1.0f;
     material->parms.emissive = 0.0f;
     material->dirty_74 = 1;
-    material->m_shader_flags_78 = 0;
+    material->m_shader_flags = 0;
     material->setMapper(&g_material_mapper);
 
     for (srNode* node = sky_world->level->first_child_; node != 0; node = node->next_sibling_) {
@@ -588,7 +588,7 @@ unsigned char LoadLevel(int requested_level, int entrance, bool restoring_game)
             }
             SetWorldScenePosition(GetWorld(), &position);
 
-            if (trigger->trigger_kind_018 == 2) {
+            if (trigger->trigger_kind == 2) {
                 srVector3T<float> axis;
                 srMatrix3T<float> rotation;
 

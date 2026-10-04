@@ -78,7 +78,7 @@ srTexture::srTexture()
     }
     mipmap_bias_1c = 0.0f;
     packed_state_18 = 0xe43;
-    texture_priority_4c = 0.5f;
+    texture_priority = 0.5f;
     texture_flags_ |= 1 << FLAG_DIRTY_DEFAULTS;
 }
 
@@ -93,7 +93,7 @@ srTexture& srTexture::operator=(const srTexture& other)
         srClass::operator=(other);
         packed_state_18 = other.packed_state_18;
         mipmap_bias_1c = other.mipmap_bias_1c;
-        texture_priority_4c = other.texture_priority_4c;
+        texture_priority = other.texture_priority;
         texture_dimensions_ = other.texture_dimensions_;
         texture_flags_ = other.texture_flags_;
     }
@@ -264,18 +264,18 @@ srFilter* srTexture::getFilter() const
 // FUNCTION: SURRENDER 0x1005EB20
 float srTexture::getPriority()
 {
-    return texture_priority_4c;
+    return texture_priority;
 }
 
 // FUNCTION: SURRENDER 0x1005EAC0
 void srTexture::setPriority(float priority)
 {
     if (priority <= 0.0f) {
-        texture_priority_4c = 0.0f;
+        texture_priority = 0.0f;
     } else if (priority >= 1.0f) {
-        texture_priority_4c = 1.0f;
+        texture_priority = 1.0f;
     } else {
-        texture_priority_4c = priority;
+        texture_priority = priority;
     }
 }
 

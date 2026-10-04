@@ -186,8 +186,8 @@ void RedistributePartyEncumbrance(void)
     }
 
     unsigned int party_weight = 0;
-    for (slot = 0; slot < g_status.party_item_count_1791; ++slot) {
-        party_weight += GetItemStackWeight(&g_status.party_item_pool_0021[slot]);
+    for (slot = 0; slot < g_status.party_item_count; ++slot) {
+        party_weight += GetItemStackWeight(&g_status.party_item_pool[slot]);
     }
 
     for (party_weight >>= 1; party_weight != 0; --party_weight) {

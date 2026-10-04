@@ -11,7 +11,7 @@ srIlluminator::srIlluminator(srNode* parent)
         setParent(parent, 0);
     }
     setFlag(FLAG_GLOBAL);
-    group_mask_13c = 0x80000000;
+    group_mask = 0x80000000;
 }
 
 // FUNCTION: SURRENDER 0x1004C8D0
@@ -19,7 +19,7 @@ srIlluminator& srIlluminator::operator=(const srIlluminator& other)
 {
     if (this != &other) {
         srNode::operator=(other);
-        group_mask_13c = other.group_mask_13c;
+        group_mask = other.group_mask;
     }
     return *this;
 }
@@ -88,11 +88,11 @@ const char* srIlluminator::sGetClassName()
 // FUNCTION: SURRENDER 0x1004CAF0
 void srIlluminator::setGroupMask(unsigned long mask)
 {
-    group_mask_13c = mask;
+    group_mask = mask;
 }
 
 // FUNCTION: SURRENDER 0x1004CB00
 unsigned long srIlluminator::getGroupMask() const
 {
-    return group_mask_13c;
+    return group_mask;
 }

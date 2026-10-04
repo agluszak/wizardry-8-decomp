@@ -116,7 +116,7 @@ namespace {
 bool ReadMeshFaceNeedsSplit(const W8ReadMeshFace& face, srMaterialIFace** materials)
 {
     return (face.flags & 4) != 0 ||
-           (static_cast<stMaterial*>(materials[face.material_index])->m_shader_flags_78 & 1) != 0;
+           (static_cast<stMaterial*>(materials[face.material_index])->m_shader_flags & 1) != 0;
 }
 
 } // namespace
@@ -773,7 +773,7 @@ static int ReadMeshMaterials(W8ReadLevelInfo* info, srMaterialIFace*** materials
             FileRead(info->hFile, records + index, 0x11a, 0);
         }
     } else {
-        FileRead(info->hFile, records[0].texture_modes_11a, sizeof(records[0].texture_modes_11a),
+        FileRead(info->hFile, records[0].texture_modes, sizeof(records[0].texture_modes),
                  0);
         if (count > 1) {
             FileRead(info->hFile, records + 1, (count - 1) * sizeof(W8MaterialRecord), 0);
@@ -831,7 +831,7 @@ unsigned char ReadSingleLevelMesh(W8ReadLevelInfo* info, srModelInstance** insta
         }
 
         stMeshModel* model = static_cast<stMeshModel*>(registry->find(node, name, 0));
-        if (model != 0 && model->duplicate_on_reuse_3cc != 0) {
+        if (model != 0 && model->duplicate_on_reuse != 0) {
             stModelInstance* duplicate = CreateModelInstance(model);
             duplicate->setName("Read Mesh Duplicate Instance");
             *instance = duplicate;
@@ -1028,7 +1028,7 @@ unsigned char ReadSingleLevelMeshBody(W8ReadLevelInfo* info, srModelInstance** i
             loaded_instance->setRotation(rotation);
         }
         *instance = loaded_instance;
-        first_model->duplicate_on_reuse_3cc = MeshHasAnimatedTexture(first_model) ? 0 : 1;
+        first_model->duplicate_on_reuse = MeshHasAnimatedTexture(first_model) ? 0 : 1;
     }
 
     if ((flags & 1) == 0) {
@@ -1045,7 +1045,7 @@ unsigned char ReadSingleLevelMeshBody(W8ReadLevelInfo* info, srModelInstance** i
             int mesh_index = 0;
             for (stMeshModel* model = first_model; model != 0; model = model->next, ++mesh_index) {
                 model->InitializeVertexFrames(frame_count);
-                model->vertex_compression_scale_444 = 500.0f / compression_scale;
+                model->vertex_compression_scale = 500.0f / compression_scale;
                 short* model_vertices = model->GetVertex(frame);
                 for (int index = 0; index < model->vertex_location_count_22c; ++index) {
                     int source = vertex_maps[mesh_index][index];
@@ -1153,7 +1153,7 @@ unsigned char ReadMultipleLevelMeshes(W8ReadLevelInfo* info, srModelInstance** i
             stModelInstance* instance = CreateModelInstance(model);
             instance->setName("Multi Mesh Instance");
             instance->mesh_index_17c = g_read_mesh_index;
-            model->duplicate_on_reuse_3cc = MeshHasAnimatedTexture(model);
+            model->duplicate_on_reuse = MeshHasAnimatedTexture(model);
             instances[g_read_mesh_index] = instance;
         }
     }

@@ -362,7 +362,7 @@ int srTriangleCuller::cull(Output& output, const Input& input)
     unsigned long clip_mask = input.clip_mask_30;
     const srMatrix4& inverse_model_view = *input.inverse_model_view_28;
     unsigned long* clip_flags = output.clip_flags_08;
-    output.linear_14 = 1;
+    output.linear = 1;
     output.triangle_count_0c = 0;
     output.vertex_count_10 = 0;
     srVector4 constant;

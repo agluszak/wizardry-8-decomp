@@ -54,23 +54,23 @@ W8PortraitDescriptor g_portrait_descriptors[80] = {
 
 // FUNCTION: WIZ8 0x005af690
 W8CharacterPageEntry::W8CharacterPageEntry(Controls* owner, int x, int y, bool compact)
-    : m_listener_004(0), m_first_020(0), m_second_024(0), m_third_028(0), m_id_02c(-1),
-      m_draw_background_038(compact), m_dirty_039(1), m_enabled_03a(0), m_increment_allowed_03b(1)
+    : m_listener_004(0), m_first_020(0), m_second_024(0), m_third(0), m_id(-1),
+      m_draw_background(compact), m_dirty_039(1), m_enabled_03a(0), m_increment_allowed(1)
 {
     m_x_030 = owner->m_bounds.left + x;
     m_y_034 = owner->m_bounds.top + y;
     int split = m_x_030 + (compact ? 0x6d : 0x78);
     W8ControlsRect bounds = {m_x_030 + 5, m_y_034 + 1, split, m_y_034 + 0xd};
-    m_label_014 = new W8TextBuffer(&bounds, 0, 0, 0, 4);
-    m_label_014->SetLayoutMode(g_W8TextBufferAlignLeft);
+    m_label = new W8TextBuffer(&bounds, 0, 0, 0, 4);
+    m_label->SetLayoutMode(g_W8TextBufferAlignLeft);
     bounds.left = split;
     bounds.right = split + 0x17;
-    m_first_text_018 = new W8TextBuffer(&bounds, 0, 0, 0, 4);
-    m_first_text_018->SetLayoutMode(g_W8TextBufferAlignRight);
+    m_first_text = new W8TextBuffer(&bounds, 0, 0, 0, 4);
+    m_first_text->SetLayoutMode(g_W8TextBufferAlignRight);
     bounds.left = split + 0x2a;
     bounds.right = split + 0x39;
-    m_second_text_01c = new W8TextBuffer(&bounds, 0, 0, 0, 4);
-    m_second_text_01c->SetLayoutMode(g_W8TextBufferAlignRight);
+    m_second_text = new W8TextBuffer(&bounds, 0, 0, 0, 4);
+    m_second_text->SetLayoutMode(g_W8TextBufferAlignRight);
 
     int relative_split = split - owner->m_bounds.left;
     m_decrement_00c = new W8TextControl(owner, 0xffffffff, relative_split + 0x1b, y + 1, 0, 0,
@@ -86,25 +86,25 @@ W8CharacterPageEntry::W8CharacterPageEntry(Controls* owner, int x, int y, bool c
     m_increment_008->SetActive(0);
     m_increment_008->m_listener = this;
 
-    m_help_010 = new W8TextControl(owner, 0xffffffff, x, y, relative_split, y + 0xc, -1, -1, -1, -1,
+    m_help = new W8TextControl(owner, 0xffffffff, x, y, relative_split, y + 0xc, -1, -1, -1, -1,
                                    -1, -1, -1);
-    m_help_010->SetActive(0);
-    m_help_010->m_listener = this;
+    m_help->SetActive(0);
+    m_help->m_listener = this;
 }
 
 // FUNCTION: WIZ8 0x005af9e0
 void W8CharacterPageEntry::SetContent(unsigned int id, const wchar_t* label, unsigned int* first,
                                       int* second, int* third, int help_id)
 {
-    m_id_02c = id;
+    m_id = id;
     m_first_020 = first;
     m_second_024 = second;
-    m_third_028 = third;
-    m_label_014->SetText(label, g_wiz_text_font_secondary);
+    m_third = third;
+    m_label->SetText(label, g_wiz_text_font_secondary);
     if (help_id == -1)
-        m_help_010->DisableRegionHelp();
+        m_help->DisableRegionHelp();
     else
-        m_help_010->EnableRegionHelp(help_id);
+        m_help->EnableRegionHelp(help_id);
     SetEnabled(1);
     UpdateButtons();
     MarkDirty();
@@ -113,7 +113,7 @@ void W8CharacterPageEntry::SetContent(unsigned int id, const wchar_t* label, uns
 // FUNCTION: WIZ8 0x005afc20
 void W8CharacterPageEntry::SetIncrementAllowed(bool allowed)
 {
-    m_increment_allowed_03b = allowed;
+    m_increment_allowed = allowed;
     UpdateButtons();
     MarkDirty();
 }
@@ -124,35 +124,35 @@ void W8CharacterPageEntry::SetEnabled(bool enabled)
     m_enabled_03a = enabled;
     m_increment_008->SetActive(enabled);
     m_decrement_00c->SetActive(enabled);
-    m_help_010->SetActive(enabled);
+    m_help->SetActive(enabled);
     MarkDirty();
 }
 
 // FUNCTION: WIZ8 0x005afae0
 void W8CharacterPageEntry::SetHelpActive(bool active)
 {
-    m_help_010->SetActive(active);
+    m_help->SetActive(active);
 }
 
 // FUNCTION: WIZ8 0x005afaf0
 void W8CharacterPageEntry::Redraw()
 {
     if (m_enabled_03a && m_dirty_039) {
-        if (m_draw_background_038) {
+        if (m_draw_background) {
             DrawCatalogImageAndInvalidate(-14, 0x108, 0, 2, m_x_030, m_y_034, 2, 0);
         }
-        m_first_text_018->SetText(FormatWideString(g_format_d, *m_first_020),
+        m_first_text->SetText(FormatWideString(g_format_d, *m_first_020),
                                   g_wiz_text_font_secondary);
-        m_second_text_01c->SetText(FormatWideString(g_format_d, *m_second_024),
+        m_second_text->SetText(FormatWideString(g_format_d, *m_second_024),
                                    g_wiz_text_font_secondary);
-        m_first_text_018->FillBounds(0x8000);
-        m_second_text_01c->FillBounds(0x8000);
-        m_label_014->RenderToTarget(0, 1, -14);
-        m_first_text_018->RenderToTarget(0, 1, -14);
-        m_second_text_01c->RenderToTarget(0, 1, -14);
+        m_first_text->FillBounds(0x8000);
+        m_second_text->FillBounds(0x8000);
+        m_label->RenderToTarget(0, 1, -14);
+        m_first_text->RenderToTarget(0, 1, -14);
+        m_second_text->RenderToTarget(0, 1, -14);
         m_dirty_039 = 0;
-    } else if (!m_draw_background_038 && m_dirty_039) {
-        m_label_014->RenderToTarget(0, 1, -14);
+    } else if (!m_draw_background && m_dirty_039) {
+        m_label->RenderToTarget(0, 1, -14);
         m_dirty_039 = 0;
     }
 }
@@ -160,7 +160,7 @@ void W8CharacterPageEntry::Redraw()
 // FUNCTION: WIZ8 0x005afbf0
 void W8CharacterPageEntry::SetLabelFontState(int state)
 {
-    m_label_014->SetFontStateIndex(state);
+    m_label->SetFontStateIndex(state);
 }
 
 // FUNCTION: WIZ8 0x005afc00
@@ -180,12 +180,12 @@ void W8CharacterPageEntry::UpdateButtons()
             m_decrement_00c->SetEnabled(enabled);
             m_decrement_00c->Invalidate(0);
         }
-        enabled = m_increment_allowed_03b && *m_second_024 < *m_third_028;
+        enabled = m_increment_allowed && *m_second_024 < *m_third;
         if (m_increment_008->m_enabled != enabled) {
             m_increment_008->SetEnabled(enabled);
             m_increment_008->Invalidate(0);
         }
-        m_help_010->SetEnabled(1);
+        m_help->SetEnabled(1);
     }
 }
 
@@ -275,7 +275,7 @@ void W8CharacterPage::Prepare()
 {
     Invalidate(0);
     m_dirty_06d = 1;
-    m_prepared_06c = 1;
+    m_prepared = 1;
 }
 
 // FUNCTION: WIZ8 0x005affc0

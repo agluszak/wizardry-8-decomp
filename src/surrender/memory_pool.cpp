@@ -30,9 +30,9 @@ void* srMemoryPool::allocate(long size)
     }
     long offset = space->offset_08;
     unsigned long bucket = hashVal(offset);
-    Entry* entry = addEntry(0, allocations_1c[bucket]);
-    allocations_1c[bucket] = entry;
-    largest_free_dirty_41c = 1;
+    Entry* entry = addEntry(0, allocations[bucket]);
+    allocations[bucket] = entry;
+    largest_free_dirty = 1;
     used_0c += aligned;
     space->size_0c -= aligned;
     space->offset_08 += aligned;
@@ -42,8 +42,8 @@ void* srMemoryPool::allocate(long size)
     if (space->size_0c == 0) {
         space->previous_00->next_04 = space->next_04;
         space->next_04->previous_00 = space->previous_00;
-        if (space == first_free_18) {
-            first_free_18 = space->next_04;
+        if (space == first_free) {
+            first_free = space->next_04;
         }
         delete space;
     }
@@ -61,21 +61,21 @@ srMemoryPool::srMemoryPool(void* memory, long size, long alignment)
         padding = alignment - padding;
     }
     size_04 = size - padding;
-    srZeroMemory(allocations_1c, sizeof(allocations_1c));
+    srZeroMemory(allocations, sizeof(allocations));
     Entry* entry = addEntry(0, 0);
-    first_free_18 = entry;
+    first_free = entry;
     entry->size_0c = size_04;
     entry->offset_08 = padding;
-    entry = addEntry(first_free_18, 0);
+    entry = addEntry(first_free, 0);
     entry->size_0c = 0;
     entry->offset_08 = padding + 1 + size_04;
     entry->locked_10 = 1;
-    entry = addEntry(0, first_free_18);
-    first_free_18 = entry;
+    entry = addEntry(0, first_free);
+    first_free = entry;
     entry->size_0c = 0;
     entry->locked_10 = 1;
     entry->offset_08 = padding - 1;
-    largest_free_dirty_41c = 1;
+    largest_free_dirty = 1;
     used_0c = 0;
     policy_00 = FIT_FIRST;
 }
@@ -83,14 +83,14 @@ srMemoryPool::srMemoryPool(void* memory, long size, long alignment)
 // FUNCTION: SURRENDER 0x10036D80
 srMemoryPool::~srMemoryPool()
 {
-    Entry* entry = first_free_18;
+    Entry* entry = first_free;
     while (entry != 0) {
         Entry* next = entry->next_04;
         delete entry;
         entry = next;
     }
     for (unsigned long i = 0; i < 256; i++) {
-        entry = allocations_1c[i];
+        entry = allocations[i];
         while (entry != 0) {
             Entry* next = entry->next_04;
             delete entry;
@@ -99,8 +99,8 @@ srMemoryPool::~srMemoryPool()
     }
     memory_08 = 0;
     size_04 = 0;
-    first_free_18 = 0;
-    largest_free_10 = 0;
+    first_free = 0;
+    largest_free = 0;
 }
 
 // FUNCTION: SURRENDER 0x10036BB0
@@ -122,8 +122,8 @@ void srMemoryPool::defrag(Entry* entry)
         Entry* next = dead->next_04;
         dead->previous_00->next_04 = next;
         next->previous_00 = dead->previous_00;
-        if (dead == first_free_18) {
-            first_free_18 = next;
+        if (dead == first_free) {
+            first_free = next;
         }
         delete dead;
         dead = next;
@@ -134,13 +134,13 @@ void srMemoryPool::defrag(Entry* entry)
 void srMemoryPool::dump()
 {
     srPrintf("Free blocks:\n\n");
-    for (Entry* entry = first_free_18; entry != 0; entry = entry->next_04) {
+    for (Entry* entry = first_free; entry != 0; entry = entry->next_04) {
         srPrintf("%08p %06d\n", static_cast<char*>(memory_08) + entry->offset_08,
                  entry->size_0c);
     }
     srPrintf("\nUsed blocks:\n\n");
     for (unsigned long i = 0; i < 256; i++) {
-        for (Entry* entry = allocations_1c[i]; entry != 0; entry = entry->next_04) {
+        for (Entry* entry = allocations[i]; entry != 0; entry = entry->next_04) {
             srPrintf("%08p %06d (%03d)\n",
                      static_cast<char*>(memory_08) + entry->offset_08, entry->size_0c,
                      hashVal(entry->offset_08));
@@ -158,7 +158,7 @@ void srMemoryPool::dump()
 srMemoryPool::Entry* srMemoryPool::find(long offset) const
 {
     if (offset >= 0 && offset < size_04) {
-        for (Entry* entry = allocations_1c[hashVal(offset)]; entry != 0;
+        for (Entry* entry = allocations[hashVal(offset)]; entry != 0;
              entry = entry->next_04) {
             if (entry->offset_08 == offset) {
                 return entry;
@@ -171,7 +171,7 @@ srMemoryPool::Entry* srMemoryPool::find(long offset) const
 // FUNCTION: SURRENDER 0x100369A0
 srMemoryPool::Entry* srMemoryPool::findArea(long offset) const
 {
-    for (Entry* entry = first_free_18; entry != 0; entry = entry->next_04) {
+    for (Entry* entry = first_free; entry != 0; entry = entry->next_04) {
         if (entry->offset_08 <= offset && offset < entry->size_0c + entry->offset_08) {
             return entry;
         }
@@ -184,7 +184,7 @@ srMemoryPool::Entry* srMemoryPool::findBestFit(long size) const
 {
     Entry* best = 0;
     long best_size = 0x40000000;
-    for (Entry* entry = first_free_18; entry != 0; entry = entry->next_04) {
+    for (Entry* entry = first_free; entry != 0; entry = entry->next_04) {
         long entry_size = entry->size_0c;
         if (entry_size >= size && entry_size < best_size) {
             if (entry_size == size) {
@@ -200,7 +200,7 @@ srMemoryPool::Entry* srMemoryPool::findBestFit(long size) const
 // FUNCTION: SURRENDER 0x100368C0
 srMemoryPool::Entry* srMemoryPool::findFirstFit(long size) const
 {
-    for (Entry* entry = first_free_18; entry != 0; entry = entry->next_04) {
+    for (Entry* entry = first_free; entry != 0; entry = entry->next_04) {
         if (size <= entry->size_0c) {
             return entry;
         }
@@ -212,7 +212,7 @@ srMemoryPool::Entry* srMemoryPool::findFirstFit(long size) const
 srMemoryPool::Entry* srMemoryPool::findPlacing(long offset) const
 {
     Entry* previous = 0;
-    for (Entry* entry = first_free_18; entry != 0 && entry->offset_08 <= offset;
+    for (Entry* entry = first_free; entry != 0 && entry->offset_08 <= offset;
          entry = entry->next_04) {
         previous = entry;
     }
@@ -264,12 +264,12 @@ void srMemoryPool::freeInternal(Entry* entry)
             entry->next_04->previous_00 = entry->previous_00;
         }
         unsigned long bucket = hashVal(entry->offset_08);
-        if (entry == allocations_1c[bucket]) {
-            allocations_1c[bucket] = entry->next_04;
+        if (entry == allocations[bucket]) {
+            allocations[bucket] = entry->next_04;
         }
         delete entry;
         defrag(placing);
-        largest_free_dirty_41c = 1;
+        largest_free_dirty = 1;
     }
 }
 
@@ -333,7 +333,7 @@ int srMemoryPool::maskArea(const void* memory, long size)
     }
     long old_size = area->size_0c;
     used_0c += size;
-    largest_free_dirty_41c = 1;
+    largest_free_dirty = 1;
     /* Retail stores the absolute pointer minus the relative entry offset
        here; keep the established behavior.
        reinterpret-ok: retail subtracts the raw pointer value, not an offset. */
@@ -350,17 +350,17 @@ int srMemoryPool::maskArea(const void* memory, long size)
 // FUNCTION: SURRENDER 0x10036EC0
 long srMemoryPool::memAvail()
 {
-    if (!largest_free_dirty_41c) {
-        return largest_free_10;
+    if (!largest_free_dirty) {
+        return largest_free;
     }
     long largest = 0;
-    for (Entry* entry = first_free_18; entry != 0; entry = entry->next_04) {
+    for (Entry* entry = first_free; entry != 0; entry = entry->next_04) {
         if (largest < entry->size_0c) {
             largest = entry->size_0c;
         }
     }
-    largest_free_10 = largest;
-    largest_free_dirty_41c = 0;
+    largest_free = largest;
+    largest_free_dirty = 0;
     return largest;
 }
 

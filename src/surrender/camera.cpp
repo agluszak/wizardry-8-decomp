@@ -95,8 +95,8 @@ void srCamera::processPush(srGERD* renderer)
     }
 
     renderer->pushEnvironment();
-    renderer->setEnvironmentRange(environment_near_178, environment_far_17c);
-    renderer->setEnvironmentScaleFactor(environment_near_scale_180, environment_far_scale_184);
+    renderer->setEnvironmentRange(environment_near, environment_far);
+    renderer->setEnvironmentScaleFactor(environment_near_scale, environment_far_scale);
 }
 
 // FUNCTION: SURRENDER 0x10048030
@@ -122,8 +122,8 @@ void srCamera::processPop(srGERD* renderer)
 // FUNCTION: SURRENDER 0x10048430
 double srCamera::getAspectRatio() const
 {
-    return (view_plane_140.right - view_plane_140.left) /
-           (view_plane_140.top - view_plane_140.bottom);
+    return (view_plane.right - view_plane.left) /
+           (view_plane.top - view_plane.bottom);
 }
 
 // FUNCTION: SURRENDER 0x10048450
@@ -133,10 +133,10 @@ srCamera::srCamera(srNode* parent)
     flags_138.value = 0;
     near_clip_168 = 0.1;
     far_clip_170 = 1000.0;
-    environment_near_178 = 0.0f;
-    environment_far_17c = 1000.0f;
-    environment_near_scale_180 = 0.0f;
-    environment_far_scale_184 = 1.0f;
+    environment_near = 0.0f;
+    environment_far = 1000.0f;
+    environment_near_scale = 0.0f;
+    environment_far_scale = 1.0f;
     if (parent != 0) {
         setParent(parent, 0);
     }
@@ -146,58 +146,58 @@ srCamera::srCamera(srNode* parent)
 // FUNCTION: SURRENDER 0x100485A0
 void srCamera::getNormalizedViewPlane(Rect& rectangle) const
 {
-    rectangle.left = view_plane_140.left / view_plane_distance_160;
-    rectangle.bottom = view_plane_140.bottom / view_plane_distance_160;
-    rectangle.right = view_plane_140.right / view_plane_distance_160;
-    rectangle.top = view_plane_140.top / view_plane_distance_160;
+    rectangle.left = view_plane.left / view_plane_distance;
+    rectangle.bottom = view_plane.bottom / view_plane_distance;
+    rectangle.right = view_plane.right / view_plane_distance;
+    rectangle.top = view_plane.top / view_plane_distance;
 }
 
 // FUNCTION: SURRENDER 0x100485F0
 void srCamera::normalizeViewPlane()
 {
-    view_plane_140.left /= view_plane_distance_160;
-    view_plane_140.bottom /= view_plane_distance_160;
-    view_plane_140.right /= view_plane_distance_160;
-    view_plane_140.top /= view_plane_distance_160;
-    view_plane_distance_160 = 1.0;
+    view_plane.left /= view_plane_distance;
+    view_plane.bottom /= view_plane_distance;
+    view_plane.right /= view_plane_distance;
+    view_plane.top /= view_plane_distance;
+    view_plane_distance = 1.0;
 }
 
 // FUNCTION: SURRENDER 0x10048650
 void srCamera::getViewPlane(Rect& rectangle, double& distance) const
 {
-    rectangle.left = view_plane_140.left;
-    rectangle.bottom = view_plane_140.bottom;
-    rectangle.right = view_plane_140.right;
-    rectangle.top = view_plane_140.top;
-    distance = view_plane_distance_160;
+    rectangle.left = view_plane.left;
+    rectangle.bottom = view_plane.bottom;
+    rectangle.right = view_plane.right;
+    rectangle.top = view_plane.top;
+    distance = view_plane_distance;
 }
 
 // FUNCTION: SURRENDER 0x100486C0
 void srCamera::setEnvironmentRange(float near_range, float far_range)
 {
-    environment_near_178 = near_range;
-    environment_far_17c = far_range;
+    environment_near = near_range;
+    environment_far = far_range;
 }
 
 // FUNCTION: SURRENDER 0x100486E0
 void srCamera::setEnvironmentScale(float near_scale, float far_scale)
 {
-    environment_near_scale_180 = near_scale;
-    environment_far_scale_184 = far_scale;
+    environment_near_scale = near_scale;
+    environment_far_scale = far_scale;
 }
 
 // FUNCTION: SURRENDER 0x10048700
 void srCamera::getEnvironmentRange(float& near_range, float& far_range) const
 {
-    near_range = environment_near_178;
-    far_range = environment_far_17c;
+    near_range = environment_near;
+    far_range = environment_far;
 }
 
 // FUNCTION: SURRENDER 0x10048720
 void srCamera::getEnvironmentScale(float& near_scale, float& far_scale) const
 {
-    near_scale = environment_near_scale_180;
-    far_scale = environment_far_scale_184;
+    near_scale = environment_near_scale;
+    far_scale = environment_far_scale;
 }
 
 // FUNCTION: SURRENDER 0x10048740
@@ -229,11 +229,11 @@ void srCamera::getClipRange(double& near_plane, double& far_plane) const
 void srCamera::setViewPlane(const Rect& rectangle, double distance)
 {
     if (distance > 5.9604644775390625e-08) {
-        view_plane_140.left = rectangle.left;
-        view_plane_140.bottom = rectangle.bottom;
-        view_plane_140.right = rectangle.right;
-        view_plane_140.top = rectangle.top;
-        view_plane_distance_160 = distance;
+        view_plane.left = rectangle.left;
+        view_plane.bottom = rectangle.bottom;
+        view_plane.right = rectangle.right;
+        view_plane.top = rectangle.top;
+        view_plane_distance = distance;
     }
 }
 
@@ -264,14 +264,14 @@ void srCamera::setViewPlane(double width, double height)
         height = 3.141592653589793;
     }
     double half_width = tan(width * 0.5);
-    view_plane_distance_160 = 1.0;
+    view_plane_distance = 1.0;
     double half_height = tan(height * 0.5);
     Rect rectangle;
     rectangle.left = -half_width;
     rectangle.bottom = -half_height;
     rectangle.right = half_width;
     rectangle.top = half_height;
-    view_plane_140 = rectangle;
+    view_plane = rectangle;
 }
 
 // FUNCTION: SURRENDER 0x10048A10
@@ -285,43 +285,43 @@ void srCamera::setFOV(double field_of_view, double aspect_ratio)
         angle = maximum;
     }
     double half_angle = tan(angle * 0.5);
-    view_plane_distance_160 = 1.0;
+    view_plane_distance = 1.0;
     Rect rectangle;
     rectangle.left = -(half_angle * aspect_ratio);
     rectangle.bottom = -half_angle;
     rectangle.right = half_angle * aspect_ratio;
     rectangle.top = half_angle;
-    view_plane_140 = rectangle;
+    view_plane = rectangle;
 }
 
 // FUNCTION: SURRENDER 0x10048AB0
 double srCamera::getHorizontalFOV() const
 {
-    return atan(view_plane_140.right / view_plane_distance_160) -
-           atan(view_plane_140.left / view_plane_distance_160);
+    return atan(view_plane.right / view_plane_distance) -
+           atan(view_plane.left / view_plane_distance);
 }
 
 // FUNCTION: SURRENDER 0x10048AE0
 double srCamera::getVerticalFOV() const
 {
-    return atan(view_plane_140.top / view_plane_distance_160) -
-           atan(view_plane_140.bottom / view_plane_distance_160);
+    return atan(view_plane.top / view_plane_distance) -
+           atan(view_plane.bottom / view_plane_distance);
 }
 
 // FUNCTION: SURRENDER 0x10048B10
 void srCamera::flipVertical()
 {
-    double swap = view_plane_140.bottom;
-    view_plane_140.bottom = view_plane_140.top;
-    view_plane_140.top = swap;
+    double swap = view_plane.bottom;
+    view_plane.bottom = view_plane.top;
+    view_plane.top = swap;
 }
 
 // FUNCTION: SURRENDER 0x10048B40
 void srCamera::flipHorizontal()
 {
-    double swap = view_plane_140.left;
-    view_plane_140.left = view_plane_140.right;
-    view_plane_140.right = swap;
+    double swap = view_plane.left;
+    view_plane.left = view_plane.right;
+    view_plane.right = swap;
 }
 
 // FUNCTION: SURRENDER 0x10048B70
@@ -369,9 +369,9 @@ void srCamera::dump(std::ostream& stream)
     }
     stream << '\n';
     stream.width(0x20);
-    stream << "  Viewplane: " << view_plane_140 << '\n';
+    stream << "  Viewplane: " << view_plane << '\n';
     stream.width(0x20);
-    stream << "  Viewplane distance: " << view_plane_distance_160 << '\n';
+    stream << "  Viewplane distance: " << view_plane_distance << '\n';
     stream.width(0x20);
     double near_plane;
     double far_plane;
@@ -405,17 +405,17 @@ srCamera::e_projectionResult srCamera::project(srVector3T<float>& output,
     double near_clip = near_clip_168 < far_clip_170 ? near_clip_168 : far_clip_170;
     double far_clip = near_clip_168 < far_clip_170 ? far_clip_170 : near_clip_168;
     if (near_clip <= point.z && point.z <= far_clip) {
-        double inverse_distance = 1.0 / view_plane_distance_160;
-        double bottom = inverse_distance * view_plane_140.bottom;
-        double top = inverse_distance * view_plane_140.top;
+        double inverse_distance = 1.0 / view_plane_distance;
+        double bottom = inverse_distance * view_plane.bottom;
+        double top = inverse_distance * view_plane.top;
         double lower = top;
         double upper = bottom;
         if (bottom < top) {
             lower = bottom;
             upper = top;
         }
-        double left = inverse_distance * view_plane_140.left;
-        double right = inverse_distance * view_plane_140.right;
+        double left = inverse_distance * view_plane.left;
+        double right = inverse_distance * view_plane.right;
         double x_lower = right;
         double x_upper = left;
         if (left < right) {
@@ -440,10 +440,10 @@ srCamera::e_projectionResult srCamera::project(srVector3T<float>& output,
 // FUNCTION: SURRENDER 0x100490B0
 int srCamera::unproject(srVector3T<float>& output, const srVector3T<double>& input)
 {
-    double left = view_plane_140.left / view_plane_distance_160;
-    double right = view_plane_140.right / view_plane_distance_160;
-    double bottom = view_plane_140.bottom / view_plane_distance_160;
-    double top = view_plane_140.top / view_plane_distance_160;
+    double left = view_plane.left / view_plane_distance;
+    double right = view_plane.right / view_plane_distance;
+    double bottom = view_plane.bottom / view_plane_distance;
+    double top = view_plane.top / view_plane_distance;
     double depth = input.z;
     double x = ((right - left) * input.x + left) * depth;
     double y = ((bottom - top) * input.y + top) * depth;

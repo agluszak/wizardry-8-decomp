@@ -72,7 +72,7 @@ bool MtGigas1Lift1(Trigger* pTrigger)
     W8ItemInstance* item = 0;
 
     if (g_status.item_in_cursor != 0) {
-        item = &g_status.item_in_hand_235b;
+        item = &g_status.item_in_hand;
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);
     g_trigger_feedback = 1;
@@ -91,7 +91,7 @@ bool MtGigas1Lift2(Trigger* pTrigger)
     W8ItemInstance* item = 0;
 
     if (g_status.item_in_cursor != 0) {
-        item = &g_status.item_in_hand_235b;
+        item = &g_status.item_in_hand;
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);
     g_trigger_feedback = 1;

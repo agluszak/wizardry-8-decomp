@@ -25,7 +25,7 @@ class srMaterialIFace;
 class srTriMeshPipeline {
 public:
     struct Record {
-        inline Record() : flags_00(0), disable_mask_04(0), colors_0c(0), color_format_10(2) {}
+        inline Record() : flags_00(0), disable_mask_04(0), colors_0c(0), color_format(2) {}
 
         unsigned long flags_00;
         unsigned long disable_mask_04;
@@ -33,7 +33,7 @@ public:
         /* Bit 0: DIG or particle colors (+0x0c) with format at +0x10.
            Bit 1: DCG at +0x14. Bit 2: SCG at +0x18. */
         void* colors_0c;
-        unsigned long color_format_10;
+        unsigned long color_format;
         srVector4T<float>* dcg_14;
         srVector4T<float>* scg_18;
         /* Optional per-vertex arrays, each gated by its own flags_00 bit:
@@ -84,11 +84,11 @@ public:
         srTriMeshPipeline* current = pipe;
 
         if (this == current) {
-            current->flushing_8c = 1;
+            current->flushing = 1;
             if (current->slot_count_84 > 0) {
                 current->FlushSlots();
             }
-            current->flushing_8c = 0;
+            current->flushing = 0;
         }
     }
 
@@ -97,10 +97,10 @@ public:
     /* Slot 1 / complete destructor at 0x004752F0. */
     virtual ~srTriMeshPipeline();
 
-    srHeapBuffer<srVertexProcessor*> vertex_processors_04;
-    srHeapBuffer<unsigned long> culler_scratch_0c;
+    srHeapBuffer<srVertexProcessor*> vertex_processors;
+    srHeapBuffer<unsigned long> culler_scratch;
     Record* current_record_14;
-    Pass* current_pass_18;
+    Pass* current_pass;
     unsigned long triangle_count_1c;
     unsigned long vertex_count_20;
     unsigned long active_triangle_count_24;
@@ -122,7 +122,7 @@ public:
     srVector3T<float> bounds_maximum_50;
     srVector3T<float> bounds_center_5c;
     float bounds_radius_68;
-    unsigned long bounds_state_6c;
+    unsigned long bounds_state;
     unsigned long unknown_70;
     srShader shader_74;
     srTextureIFace* texture_78;
@@ -130,7 +130,7 @@ public:
     srMaterialIFace* material_80;
     unsigned long slot_count_84;
     srGERD* renderer_88;
-    volatile unsigned long flushing_8c;
+    volatile unsigned long flushing;
     srVertexPipe* vertex_pipe_90;
     srArray<Record> records_94;
     srArray<Pass> passes_9c;

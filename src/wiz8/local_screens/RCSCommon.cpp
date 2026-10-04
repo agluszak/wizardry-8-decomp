@@ -174,7 +174,7 @@ void TryGiveHeldItemToCampPortrait(int slot)
     if (IsCampActionAllowed(slot) == 0) {
         return;
     }
-    AddItemToCharacter(character, &g_status.item_in_hand_235b, 0, 0, 0);
+    AddItemToCharacter(character, &g_status.item_in_hand, 0, 0, 0);
 }
 
 // FUNCTION: WIZ8 0x005b6d20
@@ -199,7 +199,7 @@ bool CanSelectRcsPartySlot(int ui_slot)
         return false;
     }
     if (gXStatus.fCombatMode) {
-        if (!g_combat_state->equip_phase_a50) {
+        if (!g_combat_state->equip_phase) {
             return false;
         }
         if (g_status.buffers.XChar[ui_slot].pending_action != W8_ACTION_EQUIP) {
@@ -267,7 +267,7 @@ static void OpenLevelUpCharacterScreen(void)
 }
 
 /* Dismiss-confirm portrait/name hitbox (help 2368): click dismisses the
-   reviewed party member; mouse enter/leave toggles portrait_hovered_d40[0]. */
+   reviewed party member; mouse enter/leave toggles portrait_hovered[0]. */
 // FUNCTION: WIZ8 0x005B5E90
 unsigned char CampDismissPortraitRegionEvent(const InputAtom* event, W8Region* region)
 {
@@ -285,9 +285,9 @@ unsigned char CampDismissPortraitRegionEvent(const InputAtom* event, W8Region* r
             if ((region->flags & W8_REGION_MOUSE_ENTER) == 0) {
                 return 0;
             }
-            g_camp_screen->portrait_hovered_d40[0] = 1;
+            g_camp_screen->portrait_hovered[0] = 1;
         } else {
-            g_camp_screen->portrait_hovered_d40[0] = 0;
+            g_camp_screen->portrait_hovered[0] = 0;
         }
         g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_PORTRAIT;
         return 0;
@@ -577,7 +577,7 @@ void UpdateRcsLevelUpPanel(void)
 {
     bool enabled = IsCharacterReadyToAdvance(giReviewCharSlot);
     if (!enabled || gXStatus.fCombatMode ||
-        (!g_status.buffers.XChar[giReviewCharSlot].portrait_advance_103 && g_status.game_started) ||
+        (!g_status.buffers.XChar[giReviewCharSlot].portrait_advance && g_status.game_started) ||
         gXStatus.fCampMode) {
         if (g_level_up_button->m_active) {
             g_level_up_button->SetActive(0);
@@ -868,7 +868,7 @@ void DrawCampHeader(void)
             RenderPartyPortrait(character->portrait_index, 0xa4, 0xc, 2, 1, giReviewCharSlot);
         }
         DrawCatalogImage(-14, 0x10f, 0, 9, 0xa4, 0xc, 2, 0);
-        if (state->portrait_hovered_d40[0] != 0) {
+        if (state->portrait_hovered[0] != 0) {
             DrawCatalogImage(-14, 0x116, 0, 0, 0xa4, 0xc, 2, 0);
         }
         if (gXStatus.fCombatMode == 0) {
@@ -1281,7 +1281,7 @@ void RefreshCampItemActions(bool invalidate)
 {
     int index;
     W8SpellRuntimeRecord* spell;
-    W8ItemInstance* held = &g_status.item_in_hand_235b;
+    W8ItemInstance* held = &g_status.item_in_hand;
 
     for (index = 0; index < 8; ++index) {
         W8TextControl* control = g_item_action_controls[index];
@@ -1304,7 +1304,7 @@ void RefreshCampItemActions(bool invalidate)
                     continue;
                 }
                 if (gXStatus.fCombatMode == 0 ||
-                    (g_combat_state->equip_phase_a50 != 0 &&
+                    (g_combat_state->equip_phase != 0 &&
                      g_status.buffers.XChar[giReviewCharSlot].pending_action == W8_ACTION_EQUIP)) {
                     control->SetEnabled(1);
                     continue;
@@ -1547,7 +1547,7 @@ static void OnCampItemActionButton0(void)
                                    g_W8TextControlStateSecondary) != 0) {
         g_camp_entry_parameter = g_review_character;
         if (g_status.item_in_cursor != 0) {
-            IdentifyAndOpenItemInfo(&g_status.item_in_hand_235b);
+            IdentifyAndOpenItemInfo(&g_status.item_in_hand);
             return;
         }
         SetCampItemActionMode(3);
@@ -1577,7 +1577,7 @@ static void OnCampItemActionButton2(void)
     if (static_cast<unsigned char>(g_item_action_controls[2]->m_stateFlags &
                                    g_W8TextControlStateSecondary) != 0) {
         if (g_status.item_in_cursor != 0) {
-            OpenSplitStackDialog(&g_status.item_in_hand_235b);
+            OpenSplitStackDialog(&g_status.item_in_hand);
             return;
         }
         SetCampItemActionMode(4);
@@ -1592,7 +1592,7 @@ static void OnCampItemActionButton3(void)
     if (static_cast<unsigned char>(g_item_action_controls[3]->m_stateFlags &
                                    g_W8TextControlStateSecondary) != 0) {
         if (g_status.item_in_cursor != 0) {
-            UseCampItem(&g_status.item_in_hand_235b);
+            UseCampItem(&g_status.item_in_hand);
             return;
         }
         SetCampItemActionMode(5);
@@ -1648,7 +1648,7 @@ static void OnCampItemActionButton6(void)
                                    g_W8TextControlStateSecondary) != 0) {
         giCasterCharSlot = giReviewCharSlot;
         if (g_status.item_in_cursor != 0) {
-            UseHeldItemOnItem(&g_status.item_in_hand_235b);
+            UseHeldItemOnItem(&g_status.item_in_hand);
             g_item_action_controls[6]->DisableSecondaryState(0);
             g_item_action_controls[6]->Invalidate(0);
             return;

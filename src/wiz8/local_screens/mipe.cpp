@@ -107,8 +107,8 @@ int FindCategoryItemTable(unsigned int category, int ordinal);
 void ToggleMipePanel(void)
 {
     if (g_mipe_active != 0) {
-        g_level_block->text_box_visible_271 = 1;
-        g_level_block->mipe_editing_272 = 0;
+        g_level_block->text_box_visible = 1;
+        g_level_block->mipe_editing = 0;
         ResetEditorStatusLine(-1);
         if (gXStatus.fCombatMode != 0) {
             SelectTextBox(1);
@@ -142,8 +142,8 @@ void ToggleMipePanel(void)
         return;
     }
 
-    g_level_block->text_box_visible_271 = 0;
-    g_level_block->mipe_editing_272 = 1;
+    g_level_block->text_box_visible = 0;
+    g_level_block->mipe_editing = 1;
     SelectTextBox(0);
     ResetEditorStatusLine(-1);
     g_mipe_active = 1;
@@ -177,7 +177,7 @@ void ToggleMipePanel(void)
         }
         wcscpy(entry->name, records[index].name_00);
         entry->kind = records[index].kind_0cb;
-        entry->selectable = records[index].deleted == 0 && records[index].editor_index_1c1 == -1;
+        entry->selectable = records[index].deleted == 0 && records[index].editor_index == -1;
         PLAdoptAppend(g_mipe_monster_entries, entry);
     }
     free(records);
@@ -227,14 +227,14 @@ void ToggleMipePanel(void)
     } else {
         W8MonsterRecord record;
         LoadMonsterDatabaseRecord(monster_index, &record);
-        g_mipe_monster_index = record.editor_index_1c1;
+        g_mipe_monster_index = record.editor_index;
     }
 
     int item_index = 0;
     visible = 0;
     while (item_index < static_cast<int>(gXStatus.uiItemsInDatabase)) {
         if (g_item_records[item_index].equip_class == g_mipe_category &&
-            g_item_records[item_index].editor_excluded_0cb == 0) {
+            g_item_records[item_index].editor_excluded == 0) {
             if (visible == selection) {
                 break;
             }
@@ -282,12 +282,12 @@ static void ShowMipeMonsterStatus(void)
     ShowNoticef(6, L"OR type O to edit the creation method.      ");
     ShowNoticef(3, L"How many: %d", g_mipe_count);
     ShowNoticef(0xf, &g_empty_wide_string);
-    if (g_mipe_state->creation_method_30 == 0) {
+    if (g_mipe_state->creation_method == 0) {
         method = L"Creation Method: Exact #";
-    } else if (g_mipe_state->creation_method_30 == 1) {
+    } else if (g_mipe_state->creation_method == 1) {
         method = L"Creation Method: Placeholder";
     } else {
-        if (g_mipe_state->creation_method_30 != 2) {
+        if (g_mipe_state->creation_method != 2) {
             ShowNoticef(0xf, L"Monster:   %s        ", name);
             return;
         }
@@ -422,7 +422,7 @@ static void ShowMipeTriggerMenu(void)
         }
         status = L"---> SELECTING TRIGGER <---";
     } else {
-        kind = g_mipe_state->trigger->trigger_kind_018;
+        kind = g_mipe_state->trigger->trigger_kind;
         if (kind == 1) {
             status = L"Trigger is Switch";
             if (g_mipe_state->selecting == 0) {
@@ -698,9 +698,9 @@ unsigned char HandleMipeMonsterCreateKey(unsigned short key)
         ShowMipeTableRows(list);
         return 1;
     case 0x4f:
-        ++g_mipe_state->creation_method_30;
-        if (2 < g_mipe_state->creation_method_30) {
-            g_mipe_state->creation_method_30 = 0;
+        ++g_mipe_state->creation_method;
+        if (2 < g_mipe_state->creation_method) {
+            g_mipe_state->creation_method = 0;
         }
         ShowMipeMonsterStatus();
         return 1;
@@ -738,7 +738,7 @@ unsigned char HandleMipeMonsterCreateKey(unsigned short key)
         }
         formation = anchor;
         SetMonsterGroupFormation(monster_group, &formation);
-        monster_group->group_state[0x6d] = g_mipe_state->creation_method_30;
+        monster_group->group_state[0x6d] = g_mipe_state->creation_method;
     }
     return 1;
 }
@@ -763,7 +763,7 @@ void HandleMipeItemCategoryKey(unsigned short key)
              static_cast<int>(item_index) < static_cast<int>(gXStatus.uiItemsInDatabase);
              ++item_index) {
             if (g_item_records[item_index].equip_class == g_mipe_category &&
-                g_item_records[item_index].editor_excluded_0cb == 0) {
+                g_item_records[item_index].editor_excluded == 0) {
                 if (found == g_mipe_table_base + g_mipe_table_row) {
                     break;
                 }
@@ -788,7 +788,7 @@ void HandleMipeItemCategoryKey(unsigned short key)
             PListClear(g_mipe_category_list);
             for (found = 0; found < static_cast<int>(gXStatus.uiItemsInDatabase); ++found) {
                 entry = &g_item_records[found];
-                if (entry->equip_class == g_mipe_category && entry->editor_excluded_0cb == 0) {
+                if (entry->equip_class == g_mipe_category && entry->editor_excluded == 0) {
                     PLAdoptAppend(list, entry);
                 }
             }
@@ -805,7 +805,7 @@ void HandleMipeItemCategoryKey(unsigned short key)
             PListClear(g_mipe_category_list);
             for (found = 0; found < static_cast<int>(gXStatus.uiItemsInDatabase); ++found) {
                 entry = &g_item_records[found];
-                if (entry->equip_class == g_mipe_category && entry->editor_excluded_0cb == 0) {
+                if (entry->equip_class == g_mipe_category && entry->editor_excluded == 0) {
                     PLAdoptAppend(list, entry);
                 }
             }
@@ -893,7 +893,7 @@ unsigned char HandleMipeItemCreateKey(unsigned short key)
             PListClear(list);
             for (index = 0; index < static_cast<int>(gXStatus.uiItemsInDatabase); ++index) {
                 if (g_item_records[index].equip_class == g_mipe_category &&
-                    g_item_records[index].editor_excluded_0cb == 0) {
+                    g_item_records[index].editor_excluded == 0) {
                     PLAdoptAppend(list, &g_item_records[index]);
                 }
             }
@@ -957,7 +957,7 @@ unsigned char HandleMipeItemCreateKey(unsigned short key)
              static_cast<int>(item_index) < static_cast<int>(gXStatus.uiItemsInDatabase);
              ++item_index) {
             if (g_item_records[item_index].equip_class == g_mipe_category &&
-                g_item_records[item_index].editor_excluded_0cb == 0) {
+                g_item_records[item_index].editor_excluded == 0) {
                 if (found == g_mipe_table_base + g_mipe_table_row) {
                     break;
                 }
@@ -1033,12 +1033,12 @@ void HandleMipeMonsterCategoryKey(unsigned short key)
             LoadMonsterDatabaseRecord(monster_index, &record);
         }
         g_mipe_monster_index = record.record_id_187;
-        if (g_mipe_state->creation_method_30 != 1) {
-            if (g_mipe_state->creation_method_30 == 2) {
+        if (g_mipe_state->creation_method != 1) {
+            if (g_mipe_state->creation_method == 2) {
                 LoadMonsterDatabaseRecord(static_cast<int>(record.record_id_187), &selected);
                 g_mipe_count =
-                    selected.group_size_dice_0c1.sides * selected.group_size_dice_0c1.count +
-                    static_cast<int>(selected.group_size_dice_0c1.base);
+                    selected.group_size_dice.sides * selected.group_size_dice.count +
+                    static_cast<int>(selected.group_size_dice.base);
             }
             ShowMipeMonsterStatus();
             g_mipe_mode = 1;
@@ -1255,7 +1255,7 @@ void HandleMonsterDebugKey(unsigned short key)
             monster->SetForcedSubcycleA6(cycle + 1);
         cycle_done:
             monster->SetSubCycle(0);
-            monster->m_pRep->pending_subcycle_066 = 0;
+            monster->m_pRep->pending_subcycle = 0;
             world = GetWorld();
             WorldGetCameraLocation(world, &location);
             position = location;
@@ -1432,7 +1432,7 @@ void HandleMipePropEditKey(unsigned short key)
                 ShowNoticef(0xf, L" Difficulty (3+/4-): %d", trigger->lock_state.difficulty);
             } else if (key == 0x32) {
                 trigger = prop->GetTrigger();
-                table_index = FindItemTableByName(trigger->inline_action_data_24c);
+                table_index = FindItemTableByName(trigger->inline_action_data);
                 if (g_mipe_category_list == 0) {
                     g_mipe_category_list = PLCreate();
                 }
@@ -2422,7 +2422,7 @@ void HandleMipeItemTableKey(unsigned short key)
                 FindCategoryItemTable(g_mipe_category & 0xff, g_mipe_table_base + g_mipe_table_row);
             table = g_item_tables[table_index & 0xffff];
             trigger = g_mipe_state->prop->GetTrigger();
-            strcpy(trigger->inline_action_data_24c, table->name);
+            strcpy(trigger->inline_action_data, table->name);
             trigger->items_generated = 0;
         }
         ShowMipePropMenu();

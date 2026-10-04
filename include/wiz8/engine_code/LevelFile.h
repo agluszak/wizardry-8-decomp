@@ -64,7 +64,7 @@ struct W8LevelFileMesh {
     srVector3T<float> scale;         /* version > 1 */
     char mapping_count;              /* version > 3 */
     unsigned char padding_39[3];     /* never serialized */
-    short mapped_value_3c;           /* version > 3 && mapping_count != 0 */
+    short mapped_value;           /* version > 3 && mapping_count != 0 */
     short mapped_key;                /* version > 3 && mapping_count != 0 */
     char lod_mode;                   /* flags & 1 */
     unsigned char padding_41;        /* never serialized */
@@ -237,7 +237,7 @@ struct W8LevelFileSwitch { /* 0x271 */
     int cycle_bounce;           /* -> Trigger::cycle_bounce */
     int state_count;            /* -> Trigger::state_count */
     float animate_states;       /* != 0 -> W8_TRIGGER_ANIMATE_STATES */
-    int range;                  /* -> Trigger::range_maximum_0a8 (*500) */
+    int range;                  /* -> Trigger::range_maximum (*500) */
     int action;                 /* -> Trigger::initial_action_22a */
     int value_15;               /* serialized; no reader consumer */
     int animate_action;         /* != 0 -> W8_TRIGGER_ANIMATE_ACTION */
@@ -246,7 +246,7 @@ struct W8LevelFileSwitch { /* 0x271 */
     char name[0x80];
     char recipients[0x100];
     char sound[0x80];               /* wave filename -> "data\sound\%s" */
-    float minimum_range;            /* version_00 > 1 -> range_minimum_0a4 (*500) */
+    float minimum_range;            /* version_00 > 1 -> range_minimum (*500) */
     char surface_id[0x40];          /* version_00 > 1: surface name/id string */
     unsigned char has_door_trigger; /* version_00 > 2 */
     W8LevelFileDoorRef door;        /* has_door_trigger != 0; kind 1 owns door */
@@ -262,7 +262,7 @@ struct W8LevelFilePlane { /* 0x30 */
    (Trigger.cpp case 2) reads the same fields into a W8Trigger. */
 struct W8LevelFileInvisible { /* 0x241 */
     char version_00;
-    float range;                /* -> range_maximum_0a8 (*500) */
+    float range;                /* -> range_maximum (*500) */
     srVector3T<float> position; /* -> position_118 (*500) */
     int action;                 /* -> initial_action_22a */
     int searchable;             /* -> Trigger::searchable */
@@ -270,10 +270,10 @@ struct W8LevelFileInvisible { /* 0x241 */
     unsigned char enabled;      /* != 0 -> W8_TRIGGER_ENABLED */
     char name[0x80];
     char recipients[0x100];
-    unsigned char plane_flag_19b;      /* version_00 > 1: ==1 registers the
+    unsigned char plane_flag;      /* version_00 > 1: ==1 registers the
                                             vectors as a trigger plane */
     W8LevelFilePlane* pPlane;          /* version_00 > 1: 0x30 record ->
-                                            representation_vectors_0cc (*500) */
+                                            representation_vectors (*500) */
     float angle;                       /* version_00 > 2 -> angle_0fc */
     srVector3T<float> direction;       /* version_00 > 2 -> direction_100 */
     unsigned char unused_1b0;          /* version_00 > 2: serialized, unread */
@@ -615,10 +615,10 @@ struct W8LevelFile {
     int read_end_position; /* FileGetPos result on read */
     int num_switch_triggers;
     W8LevelFileSwitch* switch_triggers[1000];
-    int num_invisible_planes_1665;
-    W8LevelFilePlane* invisible_planes_1669[1000];
-    int num_linked_records_2609;
-    W8LevelFileLinkedRecord* linked_records_260d[100];
+    int num_invisible_planes;
+    W8LevelFilePlane* invisible_planes[1000];
+    int num_linked_records;
+    W8LevelFileLinkedRecord* linked_records[100];
 };
 
 #pragma pack(pop)

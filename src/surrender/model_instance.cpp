@@ -12,9 +12,9 @@ srModelInstance::srModelInstance(srNode* parent)
 {
     alignment_flags_148.value = 0;
     align_angle_158 = 0.0f;
-    align_axis_14c.x = 0.0f;
-    align_axis_14c.y = 0.0f;
-    align_axis_14c.z = 1.0f;
+    align_axis.x = 0.0f;
+    align_axis.y = 0.0f;
+    align_axis.z = 1.0f;
     exclusion_mask_15c = 0;
     if (parent != 0) {
         setParent(parent, 0);
@@ -29,7 +29,7 @@ srModelInstance& srModelInstance::operator=(const srModelInstance& other)
         alignment_flags_148 = other.alignment_flags_148;
         setModel(other.getModel());
         align_angle_158 = other.align_angle_158;
-        align_axis_14c = other.align_axis_14c;
+        align_axis = other.align_axis;
         exclusion_mask_15c = other.exclusion_mask_15c;
     }
     return *this;
@@ -86,7 +86,7 @@ void srModelInstance::updateClient(srModel::Client::e_update update)
 void srModelInstance::process(const ProcessInfo& info, e_processType type)
 {
     srGERD* renderer = info.renderer;
-    ++srCore.getStatisticsManager()->statistics_00.meshes_traversed_08;
+    ++srCore.getStatisticsManager()->statistics_00.meshes_traversed;
     if ((alignment_flags_148.value & 1) == 0) {
         applyWorldSpaceMatrix(*renderer);
     } else {
@@ -133,7 +133,7 @@ void srModelInstance::process(const ProcessInfo& info, e_processType type)
         translation.Set(position.x, position.y, position.z);
         renderer->translate(translation);
         if (align_angle_158 != 0.0f) {
-            renderer->rotate(align_angle_158, align_axis_14c);
+            renderer->rotate(align_angle_158, align_axis);
         }
         renderer->scale((float)world_scale.x * length_x, (float)world_scale.y * length_y,
                         -((float)world_scale.z * length_z));
@@ -161,7 +161,7 @@ void srModelInstance::dump(std::ostream& stream)
     if ((alignment_flags_148.value & 1) != 0) {
         stream.width(0x20);
         stream << "    Align axis: ";
-        stream << '{' << align_axis_14c.x << ',' << align_axis_14c.y << ',' << align_axis_14c.z
+        stream << '{' << align_axis.x << ',' << align_axis.y << ',' << align_axis.z
                << '}' << '\n';
         stream.width(0x20);
         stream << "    Align angle: " << (double)align_angle_158 << '\n';
@@ -183,7 +183,7 @@ double srModelInstance::getAlignAngle() const
 // FUNCTION: SURRENDER 0x1004FF50
 srVector3T<float> srModelInstance::getAlignAxis() const
 {
-    return align_axis_14c;
+    return align_axis;
 }
 
 // FUNCTION: SURRENDER 0x1004FE90
@@ -218,13 +218,13 @@ void srModelInstance::setAlignAngle(double angle)
 // FUNCTION: SURRENDER 0x1004FEC0
 void srModelInstance::setAlignAxis(srVector3T<float> axis)
 {
-    align_axis_14c = axis;
-    float length_squared = align_axis_14c.z * align_axis_14c.z +
-                           align_axis_14c.y * align_axis_14c.y +
-                           align_axis_14c.x * align_axis_14c.x;
+    align_axis = axis;
+    float length_squared = align_axis.z * align_axis.z +
+                           align_axis.y * align_axis.y +
+                           align_axis.x * align_axis.x;
     if (length_squared != 0.0) {
         float scale = (float)(1.0 / sqrt(length_squared));
-        align_axis_14c *= scale;
+        align_axis *= scale;
     }
     alignment_flags_148.value |= 1;
 }

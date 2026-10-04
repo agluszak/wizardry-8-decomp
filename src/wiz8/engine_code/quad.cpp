@@ -66,14 +66,14 @@ W8QuadCell* GetPolygonQuadCell(W8Quad* quad, srModelInstance* instance, int poly
 }
 
 // FUNCTION: WIZ8 0x004BE200
-W8Quad* BuildWorldQuad(srModelInstance* instance, int, float minimum_x_0c, float minimum_y_10,
-                       float minimum_z_14, float maximum_x_18, float, float maximum_z_20, srScene*,
+W8Quad* BuildWorldQuad(srModelInstance* instance, int, float minimum_x, float minimum_y,
+                       float minimum_z, float maximum_x, float, float maximum_z, srScene*,
                        int)
 {
     unsigned int row_count =
-        static_cast<unsigned int>((maximum_x_18 - minimum_x_0c) / g_quad_cell_size) + 1;
+        static_cast<unsigned int>((maximum_x - minimum_x) / g_quad_cell_size) + 1;
     unsigned int column_count =
-        static_cast<unsigned int>((maximum_z_20 - minimum_z_14) / g_quad_cell_size) + 1;
+        static_cast<unsigned int>((maximum_z - minimum_z) / g_quad_cell_size) + 1;
     W8Quad* quad = static_cast<W8Quad*>(malloc(sizeof(W8Quad)));
     unsigned int row;
 
@@ -99,7 +99,7 @@ W8Quad* BuildWorldQuad(srModelInstance* instance, int, float minimum_x_0c, float
         for (column = 0; cells != 0 && column < column_count; ++column) {
             cells[column].polygon_indices = 0;
             cells[column].objects = 0;
-            cells[column].dirty_stamp_08 = 0;
+            cells[column].dirty_stamp = 0;
             cells[column].occupied = 0;
         }
         quad->rows[row].cells = cells;
@@ -111,7 +111,7 @@ W8Quad* BuildWorldQuad(srModelInstance* instance, int, float minimum_x_0c, float
         unsigned int polygon_row;
         unsigned int polygon_column;
         W8QuadCell* cell = GetPolygonQuadCell(quad, instance, polygon, &polygon_row,
-                                              &polygon_column, minimum_x_0c, minimum_z_14);
+                                              &polygon_column, minimum_x, minimum_z);
 
         cell->occupied = 1;
         if (cell->polygon_indices == 0) {
@@ -121,7 +121,7 @@ W8Quad* BuildWorldQuad(srModelInstance* instance, int, float minimum_x_0c, float
     }
 
     quad->cell_size = g_quad_cell_size;
-    quad->origin_x = minimum_x_0c;
-    quad->origin_z = minimum_z_14;
+    quad->origin_x = minimum_x;
+    quad->origin_z = minimum_z;
     return quad;
 }

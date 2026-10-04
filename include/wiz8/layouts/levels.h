@@ -16,10 +16,10 @@ struct W8LevelProgressRow {
     bool visited;
     /* 0x01: incremented by the combat teardown for each finished fight while
        characters are still active. */
-    unsigned short combat_end_count_01;
+    unsigned short combat_end_count;
     /* 0x03: counted by RecordMonsterKill for each in-combat kill credited
        while the party is on this level. */
-    short monster_kill_count_03;
+    short monster_kill_count;
     unsigned int experience_gained; /* 0x05: accumulated when experience is awarded */
     int gold_collected;
     int sight_clock;

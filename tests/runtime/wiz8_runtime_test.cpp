@@ -120,7 +120,7 @@ static bool RunSearchModeSemanticTest(void)
     unsigned char saved_dialogue = gXStatus.fNpcDialogueMode;
     unsigned int saved_clock = g_search_pulse_clock;
     unsigned int used[4];
-    memcpy(used, g_status.text_box_lines_used_4997, sizeof(used));
+    memcpy(used, g_status.text_box_lines_used, sizeof(used));
     g_level_block = &level;
     /* The loading screen accepts notices without advancing the live game UI. */
     g_current_screen_state.id = W8_SCREEN_PLEASE_WAIT;
@@ -132,10 +132,10 @@ static bool RunSearchModeSemanticTest(void)
     ToggleSearchMode();
     bool on =
         g_status.search_mode != 0 && g_search_pulse_clock != 0 &&
-        g_status.text_box_lines_used_4997[0] == used[0] + 1 &&
+        g_status.text_box_lines_used[0] == used[0] + 1 &&
         wcscmp(g_message_storage[0][used[0]].wString, gppStringList[W8_NOTICE_SEARCH_MODE_ON]) == 0;
     ToggleSearchMode();
-    bool off = g_status.search_mode == 0 && g_status.text_box_lines_used_4997[0] == used[0] + 2 &&
+    bool off = g_status.search_mode == 0 && g_status.text_box_lines_used[0] == used[0] + 2 &&
                wcscmp(g_message_storage[0][used[0] + 1].wString,
                       gppStringList[W8_NOTICE_SEARCH_MODE_OFF]) == 0;
     gXStatus.fCombatMode = 1;
@@ -144,11 +144,11 @@ static bool RunSearchModeSemanticTest(void)
     int combat_box = IsMipeActive() ? 0 : 1;
     unsigned int combat_index = used[combat_box] + (combat_box == 0 ? 2 : 0);
     bool blocked = g_status.search_mode == 0 && g_search_pulse_clock == clock &&
-                   g_status.text_box_lines_used_4997[combat_box] == combat_index + 1 &&
+                   g_status.text_box_lines_used[combat_box] == combat_index + 1 &&
                    wcscmp(g_message_storage[combat_box][combat_index].wString,
                           gppStringList[W8_NOTICE_SEARCH_BLOCKED_COMBAT]) == 0;
     for (int box = 0; box < 4; ++box) {
-        for (unsigned int index = used[box]; index < g_status.text_box_lines_used_4997[box];
+        for (unsigned int index = used[box]; index < g_status.text_box_lines_used[box];
              ++index) {
             W8MessageStorageRecord* record = &g_message_storage[box][index];
             free(record->wString);
@@ -162,7 +162,7 @@ static bool RunSearchModeSemanticTest(void)
             memset(record, 0, sizeof(*record));
         }
     }
-    memcpy(g_status.text_box_lines_used_4997, used, sizeof(used));
+    memcpy(g_status.text_box_lines_used, used, sizeof(used));
     g_level_block = saved_level;
     g_current_screen_state.id = saved_screen;
     g_status.search_mode = saved_search;
@@ -708,7 +708,7 @@ static bool PrepareMainGameFixture(RuntimeCase& test, int party_size)
                 "timer_flags=%02x paused=%d d1=%d d2=%d scale=%.3f latch=%d "
                 "world_blocked=%u ready_calls=%u\n",
                 last.screen, last.pending, last.keyboard_present, last.level_block_present,
-                last.review_transition_done_328, last.review_transition_active,
+                last.review_transition_done, last.review_transition_active,
                 last.level_data_present, last.flags, last.flag4_effective, last.blocked,
                 last.camera_x, last.camera_y, last.camera_z, last.timer_flags, last.timer_paused,
                 last.timer_d1, last.timer_d2, last.timer_scale, last.ground_latch,
@@ -893,7 +893,7 @@ static void QueueVoiceEventOnGameThread(void* opaque)
     W8Character* character = &g_status.buffers.Char[2];
     character->gender = W8_GENDER_FEMALE;
     character->personality_0081 = 0;
-    character->voice_0085 = 0;
+    character->voice = 0;
     g_status.greeting_pending_2497 = 0;
     result->queued = QueueCharacterEvent(character, 4, 0, W8_EVENT_BYPASS_CHECKS, 0x7f) != 0;
 }

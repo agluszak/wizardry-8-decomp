@@ -242,7 +242,7 @@
 // VTABLE: WIZ8 0x005ef08c
 // class W8Vector<W8OptionsSaveRow*>
 
-/* W8OptionsPanelSet::m_panels_010 is a W8Vector<W8OptionsPanel*>: the derived
+/* W8OptionsPanelSet::m_panels is a W8Vector<W8OptionsPanel*>: the derived
    0x005EF01C table over base 0x005EEFE0. */
 // VTABLE: WIZ8 0x005eefe0
 // class W8GrowableVector<W8OptionsPanel*>

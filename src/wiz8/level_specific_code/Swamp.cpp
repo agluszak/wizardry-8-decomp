@@ -42,7 +42,7 @@ bool SwampOilPool(Trigger* pTrigger)
 {
     if (g_status.item_in_cursor != 0 && GetItemInHand() == 0x2d0) {
         ClearHeldItemDisplay();
-        ReplaceOrCreateItem(&g_status.item_in_hand_235b, 0x15e, 0, 1, 0);
+        ReplaceOrCreateItem(&g_status.item_in_hand, 0x15e, 0, 1, 0);
         SetItemCursor(0);
         g_trigger_feedback = 1;
     }
@@ -110,14 +110,14 @@ static bool SwampGasFireSpawn(Trigger* pTrigger)
     SetFact(0x16d, 1, 0);
     ResetInactiveLevelDataVectors();
     center.Set(
-        (pTrigger->representation_vectors_0cc[0].x + pTrigger->representation_vectors_0cc[1].x +
-         pTrigger->representation_vectors_0cc[2].x + pTrigger->representation_vectors_0cc[3].x) *
+        (pTrigger->representation_vectors[0].x + pTrigger->representation_vectors[1].x +
+         pTrigger->representation_vectors[2].x + pTrigger->representation_vectors[3].x) *
             g_double_005ec980,
-        (pTrigger->representation_vectors_0cc[0].y + pTrigger->representation_vectors_0cc[1].y +
-         pTrigger->representation_vectors_0cc[2].y + pTrigger->representation_vectors_0cc[3].y) *
+        (pTrigger->representation_vectors[0].y + pTrigger->representation_vectors[1].y +
+         pTrigger->representation_vectors[2].y + pTrigger->representation_vectors[3].y) *
             g_double_005ec980,
-        (pTrigger->representation_vectors_0cc[0].z + pTrigger->representation_vectors_0cc[1].z +
-         pTrigger->representation_vectors_0cc[2].z + pTrigger->representation_vectors_0cc[3].z) *
+        (pTrigger->representation_vectors[0].z + pTrigger->representation_vectors[1].z +
+         pTrigger->representation_vectors[2].z + pTrigger->representation_vectors[3].z) *
             g_double_005ec980);
     position = center;
     group = SpawnMonsters(0x1b5, 1, &position, 0, 1, 0, 0);
@@ -127,12 +127,12 @@ static bool SwampGasFireSpawn(Trigger* pTrigger)
             MonsterGetIndexByLocationID(0x8f, SWAMP_CPP, index, 1));
         if (monster_info != 0) {
             g_swamp_spawned_monster = monster_info->p3D;
-            monster_info->p3D->m_pRep->instance_scale_05c = 1.0f;
-            monster_info->p3D->m_pRep->apply_instance_scale_061 = 1;
+            monster_info->p3D->m_pRep->instance_scale = 1.0f;
+            monster_info->p3D->m_pRep->apply_instance_scale = 1;
             g_swamp_spawned_monster->BeginFadeIn(2.0f);
             g_swamp_spawned_monster->GetMappedPosition(&mapped);
             look_target = monster_info->p3D->movement_0c0.position_040;
-            look_target.y += monster_info->p3D->movement_0c0.height_offset_0b8;
+            look_target.y += monster_info->p3D->movement_0c0.height_offset;
             g_gd_camera->LookAt(&look_target, 0);
             g_npc_dialogue_closed = false;
             g_master_functions->Add(SwampGasFireItemDrop);

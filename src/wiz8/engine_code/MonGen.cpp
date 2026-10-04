@@ -305,8 +305,8 @@ int MonGen::SelectEncounterCandidates(W8EncounterTableRuntime* table,
 // FUNCTION: WIZ8 0x0048BC30
 int MonGen::RollEncounterGroupSize(W8MonsterRecord* record)
 {
-    W8Dice* dice = &record->group_size_dice_0c1;
-    float relative_level = record->display_level_251 / GetAveragePartyMemberLevel();
+    W8Dice* dice = &record->group_size_dice;
+    float relative_level = record->display_level / GetAveragePartyMemberLevel();
     int minimum = dice->base + dice->count;
     int maximum = dice->base + dice->count * dice->sides;
     float midpoint = (minimum + maximum) * 0.5f;
@@ -392,7 +392,7 @@ unsigned char MonGen::GenerateEncounter(const srVector3T<float>* position)
        reads it afterwards; the external calls can still populate cycle data. */
     encounter_weight = GetMonsterCycleFallbackValue(species);
     for (index = 0; index < 2; ++index) {
-        companion_records[index] = record->companions_0c5[index];
+        companion_records[index] = record->companions[index];
         if (companion_records[index].species > 0 && Chance(companion_records[index].chance)) {
             companion_active[index] = 1;
             encounter_weight += GetMonsterCycleFallbackValue(companion_records[index].species);
@@ -401,7 +401,7 @@ unsigned char MonGen::GenerateEncounter(const srVector3T<float>* position)
     static_cast<void>(encounter_weight);
 
     if ((flags & W8_MONGEN_STORY_GATED) != 0) {
-        if (GetFactionDisposition(record->faction_id_25f) != W8_FACTION_HOSTILE ||
+        if (GetFactionDisposition(record->faction_id) != W8_FACTION_HOSTILE ||
             (!GetFact(0x30) && !GetFact(0x22) && !GetFact(0x31))) {
             return 0;
         }
@@ -447,7 +447,7 @@ unsigned char MonGen::GenerateEncounter(const srVector3T<float>* position)
             return 0;
         }
 
-        int companion_group_count = RollDice(&companion_record->group_size_dice_0c1);
+        int companion_group_count = RollDice(&companion_record->group_size_dice);
         companion_count += companion_group_count;
         W8MonsterGroup* companion_group =
             CreateGroup(companion_species, companion_group_count, &spawn_position, 0, 0, 1);
@@ -489,7 +489,7 @@ unsigned char MonGen::CanGenerateEncounter(bool force)
     srVector3T<float> delta = spawn_position_0c - camera;
     distance = delta.Length();
 
-    if (force == 0 && g_status.world_suspended_2390 == 0) {
+    if (force == 0 && g_status.world_suspended == 0) {
         if (distance > 200000.0f || distance < 35000.0f) {
             return 0;
         }
@@ -638,7 +638,7 @@ void CullExpiredEncounters(void)
             srVector3T<float> delta = position - party;
 
             if (g_encounter_culling_distance < delta.Length() ||
-                g_status.world_suspended_2390 != 0) {
+                g_status.world_suspended != 0) {
                 DespawnMonsterGroup(group);
             }
         }

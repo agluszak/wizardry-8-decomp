@@ -189,7 +189,7 @@ void DrawPartyMovementPanel(void)
         }
     } else {
         image = 0;
-        if (g_combat_state->execution_active_000 != 0 && IsPartyEngaged() == 0) {
+        if (g_combat_state->execution_active != 0 && IsPartyEngaged() == 0) {
             caption = (g_combat_state->uiCurrentPartyAction != 2) + 0x77b;
         } else {
             caption = (g_combat_state->uiNextPartyAction != 2) + 0x77b;
@@ -244,7 +244,7 @@ void DrawPartyMovementGauge(short right, short image, bool panel_live, int capti
     }
     unsigned int action;
     if (CanPartyMove() == 0 ||
-        (g_combat_state->execution_active_000 != 0 && IsPartyEngaged() == 0)) {
+        (g_combat_state->execution_active != 0 && IsPartyEngaged() == 0)) {
         action = g_combat_state->uiCurrentPartyAction;
     } else {
         action = g_combat_state->uiNextPartyAction;

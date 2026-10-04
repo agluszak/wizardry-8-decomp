@@ -228,8 +228,8 @@ struct W8NpcInteractionState {
     unsigned char transcript_sorted;
     /* 0x1ed: the item a pending NPC notice carries; the queued-notice block
        at 0x0068EE60 copies it here when the dialogue opens. */
-    W8ItemInstance pending_item_1ed;
-    /* 0x1f9: pending_item_1ed came in through the cursor item; dialogue close
+    W8ItemInstance pending_item;
+    /* 0x1f9: pending_item came in through the cursor item; dialogue close
        returns it to the hand and the consume path drains its stack. */
     bool held_item_pending;
     unsigned char script_busy; /* 0x1fa: set 0xff during script execution */
@@ -238,9 +238,9 @@ struct W8NpcInteractionState {
        request is a 0x12/0x1e price check; the reply handler runs it as the
        accepted script line, tells it as a fact, or runs its kind-0x17 decline
        entries. */
-    int pending_fact_1fc;
+    int pending_fact;
     /* 0x200: a kind-0x12/0x1e price-check modal is awaiting its yes/no reply;
-       the reply handler matches the accepted string against pending_price_204.
+       the reply handler matches the accepted string against pending_price.
        0x201: the request was kind 0x1e, so the accept path skips the
        TellNpcFact call 0x12 makes. */
     bool price_check_pending;
@@ -248,7 +248,7 @@ struct W8NpcInteractionState {
     unsigned char unknown_202[2];
     /* 0x204: the haggled price the NPC dialogue's price-check popup displays
        and the submit path acts on. */
-    int pending_price_204;
+    int pending_price;
     int quote_bubble;
     short quote_x;
     short quote_y;
@@ -285,13 +285,13 @@ struct W8NpcInteractionState {
        which case the close path queues a delayed party reaction event. */
     bool suppress_parting_reaction;
     /* 0x23d: LookAtDialogueNpc aimed the camera at the NPC, so the close
-       restores saved_camera_pitch_240. */
+       restores saved_camera_pitch. */
     bool camera_redirected;
     unsigned char unknown_23e[2];
     /* 0x240/0x244: the camera pitch and yaw saved while the dialogue opens so
        its close can restore them. */
-    float saved_camera_pitch_240;
-    float saved_camera_yaw_244;
+    float saved_camera_pitch;
+    float saved_camera_yaw;
     unsigned char quote_notice_kind;
     unsigned char unknown_249[3];
     /* 0x24c: notice payload discriminated by quote_notice_kind: 1 takes
@@ -302,7 +302,7 @@ struct W8NpcInteractionState {
        clicks, layout keys other than Escape and layout leave paths bail. */
     bool modal_dialog_open;
     /* 0x251: a refusal/farewell line 0x5c was queued for the exit path. */
-    bool farewell_queued_251;
+    bool farewell_queued;
     /* 0x252: the dialogue session runs as queued script lines without the
        interactive panel; input, portrait and panel paths gate on it. */
     bool scripted_dialogue;
@@ -438,7 +438,7 @@ void SetNpcDialogueHidden(char value);                                      /* 0
 /* While NPC script deferral holds character events, drain Escape / click so
    the open dialogue layout can dismiss without the normal input path. */
 void DrainNpcDialogueDeferralInput(void); /* 0x00575C50 */
-/* When world_cursor_gate_2435 is set, discard queued input after a mouse-position hook so
+/* When world_cursor_gate is set, discard queued input after a mouse-position hook so
    the world-cursor gate does not process stale events. */
 void FlushInputWhileWorldCursorGate(void);                  /* 0x00577560 */
 void HandleNpcDialogueReply(wchar_t* text, bool echo);      /* 0x00574250 */

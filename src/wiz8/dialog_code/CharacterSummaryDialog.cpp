@@ -31,9 +31,9 @@ static W8ControlsRect g_character_summary_quote_bounds[1] = {
 
 // FUNCTION: WIZ8 0x005e0320
 W8CharacterSummaryDialog::W8CharacterSummaryDialog(W8Character* character)
-    : m_voice_started_054(0), m_quote_text_058(0), m_numeric_input_05c(0), m_field_060(0),
+    : m_voice_started(0), m_quote_text(0), m_numeric_input(0), m_field_060(0),
       m_remaining_064(0), m_taken_068(0), m_total_06c(0), m_field_070(0),
-      m_character_074(character), m_field_1af8(0), m_portrait_clock_started_1af9(0)
+      m_character_074(character), m_field_1af8(0), m_portrait_clock_started(0)
 {
     SetExtent(0x171, 0x60);
     SetBackground("Data\\Dialogs\\popup_quote.sti", 0);
@@ -51,11 +51,11 @@ int W8CharacterSummaryDialog::CreateControls()
     W8DialogBase::CreateControls();
     m_field_070 = 0;
     m_field_1af8 = 0;
-    memcpy(&m_saved_character_078, g_status.buffers.Char, sizeof(m_saved_character_078));
-    memcpy(&m_saved_monster_entry_18da,
+    memcpy(&m_saved_character, g_status.buffers.Char, sizeof(m_saved_character));
+    memcpy(&m_saved_monster_entry,
            &gXStatus.monster_manager_entries[0],
-           sizeof(m_saved_monster_entry_18da));
-    memcpy(&m_saved_party_row_19f2, g_status.buffers.XChar, sizeof(m_saved_party_row_19f2));
+           sizeof(m_saved_monster_entry));
+    memcpy(&m_saved_party_row, g_status.buffers.XChar, sizeof(m_saved_party_row));
     memcpy(g_status.buffers.Char, m_character_074, sizeof(*m_character_074));
     ResetPartySlotRow(0);
     ResetGameplaySlot(0);
@@ -72,22 +72,22 @@ int W8CharacterSummaryDialog::CreateControls()
 void W8CharacterSummaryDialog::DestroyControls()
 {
     W8DialogBase::DestroyControls();
-    delete m_quote_text_058;
-    m_quote_text_058 = 0;
+    delete m_quote_text;
+    m_quote_text = 0;
     gXStatus.character_event_queue->CompleteAllActiveEvents();
     if (!m_field_1af8) {
-        memcpy(g_status.buffers.Char, &m_saved_character_078, sizeof(m_saved_character_078));
+        memcpy(g_status.buffers.Char, &m_saved_character, sizeof(m_saved_character));
         memcpy(&gXStatus.monster_manager_entries[0],
-               &m_saved_monster_entry_18da,
-               sizeof(m_saved_monster_entry_18da));
-        memcpy(g_status.buffers.XChar, &m_saved_party_row_19f2, sizeof(m_saved_party_row_19f2));
+               &m_saved_monster_entry,
+               sizeof(m_saved_monster_entry));
+        memcpy(g_status.buffers.XChar, &m_saved_party_row, sizeof(m_saved_party_row));
     }
 }
 
 // FUNCTION: WIZ8 0x005e0600
 bool W8CharacterSummaryDialog::CreateQuoteText()
 {
-    W8TextBuffer** buffers[] = {&m_quote_text_058};
+    W8TextBuffer** buffers[] = {&m_quote_text};
 
     for (int index = 0; index < 1; ++index) {
         W8ControlsRect absolute = {g_character_summary_quote_bounds[index].left + m_x,
@@ -103,8 +103,8 @@ bool W8CharacterSummaryDialog::CreateQuoteText()
                              g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter, 4);
         delete event;
         if (*buffers[index] == 0) {
-            delete m_quote_text_058;
-            m_quote_text_058 = 0;
+            delete m_quote_text;
+            m_quote_text = 0;
             return false;
         }
     }
@@ -118,16 +118,16 @@ void W8CharacterSummaryDialog::Draw()
         if (!m_initialized) {
             CreateControls();
         }
-        m_quote_text_058->SetGeometryDirty();
+        m_quote_text->SetGeometryDirty();
         W8DialogBase::Draw();
     }
-    if (m_quote_text_058 != 0) {
-        m_quote_text_058->RenderToTarget(0, 0, -14);
+    if (m_quote_text != 0) {
+        m_quote_text->RenderToTarget(0, 0, -14);
     }
     RenderPartyPortrait(m_character_074->portrait_index, m_x + 11, m_y + 11, 2, 1, 0);
-    if (!m_portrait_clock_started_1af9) {
-        m_portrait_clock_started_1af9 = 1;
-        m_portrait_clock_1afc = GetClock();
+    if (!m_portrait_clock_started) {
+        m_portrait_clock_started = 1;
+        m_portrait_clock = GetClock();
     }
 }
 
@@ -141,7 +141,7 @@ void W8CharacterSummaryDialog::DrawPortraitAnimationFrame()
 void W8CharacterSummaryDialog::OnNumericInputChanged(int value)
 {
     if (value == 0) {
-        m_taken_068 = m_numeric_input_05c->m_value;
+        m_taken_068 = m_numeric_input->m_value;
         m_remaining_064 = m_total_06c - m_taken_068;
     }
 }
@@ -149,7 +149,7 @@ void W8CharacterSummaryDialog::OnNumericInputChanged(int value)
 // FUNCTION: WIZ8 0x005e0880
 unsigned char W8CharacterSummaryDialog::HandleInputEvent(const InputAtom* input)
 {
-    W8DialogNumericInput* inputs[] = {m_numeric_input_05c};
+    W8DialogNumericInput* inputs[] = {m_numeric_input};
     for (int index = 0; index < 1; ++index) {
         if (inputs[index] != 0 && inputs[index]->m_active) {
             if (inputs[index]->HandleInput(input)) {
@@ -179,8 +179,8 @@ unsigned char W8CharacterSummaryDialog::ProcessInput()
 
     SGPMouseGetPos(&mouse);
     MSYS_SGP_Mouse_Handler_Hook(MOUSE_POS, mouse.x, mouse.y, gfLeftButtonState, gfRightButtonState);
-    if (!m_voice_started_054 && m_portrait_clock_1afc + 750 < GetClock()) {
-        m_voice_started_054 = 1;
+    if (!m_voice_started && m_portrait_clock + 750 < GetClock()) {
+        m_voice_started = 1;
         W8Character* character = m_field_1af8 ? m_character_074 : g_status.buffers.Char;
         QueueCharacterEvent(character, g_effect_005ee588, 0, g_character_event_no_flags,
                             g_character_event_full_volume);

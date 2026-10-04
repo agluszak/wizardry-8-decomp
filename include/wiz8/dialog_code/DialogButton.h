@@ -80,7 +80,7 @@ public:
     bool m_dirty; /* 0x38: set by owning screens before Draw */
 private:
     bool silent_039;       /* suppresses all button sounds */
-    bool hover_silent_03a; /* suppresses hover/exit sounds only */
+    bool hover_silent; /* suppresses hover/exit sounds only */
 
 public:
     /* 0x3b: raised on spinner-style buttons (the split dialog's arrows); the
@@ -89,7 +89,7 @@ public:
     unsigned char m_fires_on_press;
 
 private:
-    bool press_armed_03c; /* clicked-on and fires_on_press: release completes */
+    bool press_armed; /* clicked-on and fires_on_press: release completes */
 
 public:
     /* 0x40: set by the dialog factories to the owning dialog; the per-button

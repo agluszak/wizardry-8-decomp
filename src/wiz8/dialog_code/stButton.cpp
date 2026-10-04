@@ -174,9 +174,9 @@ W8DialogButton::W8DialogButton()
     m_tooltip_index = -1;
     m_dirty = true;
     silent_039 = false;
-    hover_silent_03a = false;
+    hover_silent = false;
     m_fires_on_press = 0;
-    press_armed_03c = false;
+    press_armed = false;
     m_owner_040 = 0;
     m_gray_frame = -1;
     m_off_normal_frame = -1;
@@ -339,7 +339,7 @@ void DialogButtonCallback(GUI_BUTTON* button, INT32 reason)
                             if ((reason & MSYS_CALLBACK_REASON_GAIN_MOUSE) != 0) {
                                 button->Area.uiFlags |= MSYS_MOUSE_IN_AREA;
                                 self->m_dirty = true;
-                                if (self->hover_silent_03a != 0) {
+                                if (self->hover_silent != 0) {
                                     return;
                                 }
                                 if (self->silent_039 != 0) {
@@ -350,7 +350,7 @@ void DialogButtonCallback(GUI_BUTTON* button, INT32 reason)
                             }
                             if ((reason & MSYS_CALLBACK_REASON_LOST_MOUSE) != 0) {
                                 button->Area.uiFlags &= ~MSYS_MOUSE_IN_AREA;
-                                self->press_armed_03c = false;
+                                self->press_armed = false;
                                 self->m_dirty = true;
                                 handle = self->m_button_01c;
                                 if (self->m_left_toggles == 0 && handle >= 0 &&
@@ -361,7 +361,7 @@ void DialogButtonCallback(GUI_BUTTON* button, INT32 reason)
                                         self->m_dirty = true;
                                     }
                                 }
-                                if (self->hover_silent_03a != 0) {
+                                if (self->hover_silent != 0) {
                                     return;
                                 }
                                 if (self->silent_039 != 0) {
@@ -388,7 +388,7 @@ void DialogButtonCallback(GUI_BUTTON* button, INT32 reason)
                         if ((button->uiFlags & BUTTON_CLICKED_ON) == 0) {
                             return;
                         }
-                        self->press_armed_03c = true;
+                        self->press_armed = true;
                     } else {
                         if (self->m_right_toggles != 0) {
                             return;
@@ -398,8 +398,8 @@ void DialogButtonCallback(GUI_BUTTON* button, INT32 reason)
                         }
                         button->uiFlags &= ~BUTTON_CLICKED_ON;
                         self->m_dirty = true;
-                        if (self->m_fires_on_press != 0 && self->press_armed_03c != 0) {
-                            self->press_armed_03c = false;
+                        if (self->m_fires_on_press != 0 && self->press_armed != 0) {
+                            self->press_armed = false;
                             return;
                         }
                     }
@@ -425,7 +425,7 @@ void DialogButtonCallback(GUI_BUTTON* button, INT32 reason)
                 if ((button->uiFlags & BUTTON_CLICKED_ON) == 0) {
                     return;
                 }
-                self->press_armed_03c = true;
+                self->press_armed = true;
                 if (left_callback != 0) {
                     left_callback(self);
                 }
@@ -440,8 +440,8 @@ void DialogButtonCallback(GUI_BUTTON* button, INT32 reason)
         }
         button->uiFlags &= ~BUTTON_CLICKED_ON;
         self->m_dirty = true;
-        if (self->m_fires_on_press != 0 && self->press_armed_03c != 0) {
-            self->press_armed_03c = false;
+        if (self->m_fires_on_press != 0 && self->press_armed != 0) {
+            self->press_armed = false;
             return;
         }
     } else {

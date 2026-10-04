@@ -14,7 +14,7 @@
    in-range provider code ever stores to it, so the source spelling stays
    unresolved beyond the address binding. */
 // GLOBAL: SURRENDER 0x100A48C0
-static const char* s_oper_names_100a48c0;
+static const char* s_oper_names;
 
 // FUNCTION: SURRENDER 0x100335D0
 void srMaterial::verify(srRuntimeClass::e_verify mode)
@@ -188,12 +188,12 @@ void srMaterial::postProcess(srVertexPipe& pipe)
                     if ((pipe.scratch_00->flags_b00 & 0x10) == 0) {
                         pipe.setupDepthCue();
                     }
-                    srCore.getStatisticsManager()->statistics_00.specular_operations_28 +=
+                    srCore.getStatisticsManager()->statistics_00.specular_operations +=
                         pipe.vertex_count_88;
-                    if ((pipe.lazy_setup_mask_10 & 4) == 0) {
+                    if ((pipe.lazy_setup_mask & 4) == 0) {
                         pipe.setupSpecular();
                     }
-                    color = pipe.vertex_array_78->specular_08 + pipe.batch_base_80 +
+                    color = pipe.vertex_array_78->specular_08 + pipe.batch_base +
                             pipe.sub_batch_offset_84;
                     if (vertex_count != 0) {
                         srVectorProcessor::vp->_mul(
@@ -209,12 +209,12 @@ void srMaterial::postProcess(srVertexPipe& pipe)
                     if ((pipe.scratch_00->flags_b00 & 0x10) == 0) {
                         pipe.setupDepthCue();
                     }
-                    srCore.getStatisticsManager()->statistics_00.diffuse_operations_24 +=
+                    srCore.getStatisticsManager()->statistics_00.diffuse_operations +=
                         pipe.vertex_count_88;
-                    if ((pipe.lazy_setup_mask_10 & 2) == 0) {
+                    if ((pipe.lazy_setup_mask & 2) == 0) {
                         pipe.setupDiffuse();
                     }
-                    color = pipe.vertex_array_78->diffuse_04 + pipe.batch_base_80 +
+                    color = pipe.vertex_array_78->diffuse_04 + pipe.batch_base +
                             pipe.sub_batch_offset_84;
                     if (vertex_count != 0) {
                         srVectorProcessor::vp->_mul(
@@ -236,13 +236,13 @@ channels_done:
             if ((pipe.scratch_00->flags_b00 & 0x10) == 0) {
                 pipe.setupDepthCue();
             }
-            srCore.getStatisticsManager()->statistics_00.diffuse_operations_24 +=
+            srCore.getStatisticsManager()->statistics_00.diffuse_operations +=
                 pipe.vertex_count_88;
-            if ((pipe.lazy_setup_mask_10 & 2) == 0) {
+            if ((pipe.lazy_setup_mask & 2) == 0) {
                 pipe.setupDiffuse();
             }
             color =
-                pipe.vertex_array_78->diffuse_04 + pipe.batch_base_80 + pipe.sub_batch_offset_84;
+                pipe.vertex_array_78->diffuse_04 + pipe.batch_base + pipe.sub_batch_offset_84;
             if (vertex_count != 0) {
                 srVectorProcessor::vp->_mul(
                     color, color, pipe.scratch_00->depth_cue_800 + pipe.sub_batch_offset_84,
@@ -253,13 +253,13 @@ channels_done:
             if ((pipe.scratch_00->flags_b00 & 0x10) == 0) {
                 pipe.setupDepthCue();
             }
-            srCore.getStatisticsManager()->statistics_00.specular_operations_28 +=
+            srCore.getStatisticsManager()->statistics_00.specular_operations +=
                 pipe.vertex_count_88;
-            if ((pipe.lazy_setup_mask_10 & 4) == 0) {
+            if ((pipe.lazy_setup_mask & 4) == 0) {
                 pipe.setupSpecular();
             }
             color =
-                pipe.vertex_array_78->specular_08 + pipe.batch_base_80 + pipe.sub_batch_offset_84;
+                pipe.vertex_array_78->specular_08 + pipe.batch_base + pipe.sub_batch_offset_84;
             if (vertex_count != 0) {
                 srVectorProcessor::vp->_mul(
                     color, color, pipe.scratch_00->depth_cue_800 + pipe.sub_batch_offset_84,
@@ -271,8 +271,8 @@ channels_done:
         if ((pipe.scratch_00->flags_b00 & 0x10) == 0) {
             pipe.setupDepthCue();
         }
-        srCore.getStatisticsManager()->statistics_00.alpha_operations_2c += pipe.vertex_count_88;
-        if ((pipe.lazy_setup_mask_10 & 8) == 0) {
+        srCore.getStatisticsManager()->statistics_00.alpha_operations += pipe.vertex_count_88;
+        if ((pipe.lazy_setup_mask & 8) == 0) {
             pipe.setupAlpha();
         }
         channel = pipe.scratch_00->alpha_900 + pipe.sub_batch_offset_84;
@@ -343,7 +343,7 @@ void srMaterial::dump(std::ostream& stream)
     } else {
         stream << '[';
         bool first = true;
-        const char* names = s_oper_names_100a48c0;
+        const char* names = s_oper_names;
         const char* name = names;
         for (unsigned long bit = 0; bit < 0x20; ++bit) {
             if ((operations_6c.value & (1 << bit)) == 0) {

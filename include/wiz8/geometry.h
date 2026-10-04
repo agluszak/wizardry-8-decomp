@@ -39,14 +39,14 @@ struct W8GDSurface {
     unsigned int flags_00;
     unsigned int index_04;
     int trigger_index_08;
-    int edge_link_0c[3];
+    int edge_link[3];
     int vertex_indices_18[3];
     /* The region word at +0x32 belongs to W8OctRegionPolygon, not this
        surface. */
     W8Plane plane_24;
     float distance_34;
     /* Hit plane ProbePropsAlongMotion fills for ResolveCollision. */
-    W8Plane* hit_plane_38;
+    W8Plane* hit_plane;
     unsigned char footstep_surface_3c;  /* W8FootstepSurface selector */
     unsigned char footstep_material_3d; /* W8FootstepMaterial selector */
     unsigned char positional_3e[2];

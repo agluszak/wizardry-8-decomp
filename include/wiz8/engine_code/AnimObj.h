@@ -23,7 +23,7 @@ struct W8AnimObj {
     unsigned char group_count;          /* 0x00: mesh/list group count, max 3 */
     unsigned char animation_playing_01; /* 0x01: copied onto monster/prop animation_playing_06d */
     unsigned char frame_method_02;      /* 0x02: copied onto frame_method_06f */
-    unsigned char behaviour_03;         /* 0x03: copied onto animation_behaviour_070 */
+    unsigned char behaviour_03;         /* 0x03: copied onto animation_behaviour */
     unsigned char cycle;                /* 0x04: default cycle/emitter index */
     unsigned char path_lists_05;        /* 0x05: 0 = mesh entries, nonzero = path lists */
     unsigned char padding_06[2];

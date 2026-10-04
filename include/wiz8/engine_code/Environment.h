@@ -28,8 +28,8 @@ public:
     virtual int isActive(srVertexPipe& pipe) override;
     virtual void process(srVertexPipe& pipe) override;
 
-    float scroll_rate_u_04;      /* 0x04 */
-    float scroll_rate_v_08;      /* 0x08 */
+    float scroll_rate_u;      /* 0x04 */
+    float scroll_rate_v;      /* 0x08 */
     unsigned char padding_0c[8]; /* 0x0c */
     float offset_14;             /* 0x14 */
     float offset_18;             /* 0x18 */

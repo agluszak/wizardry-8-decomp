@@ -109,7 +109,7 @@ void AttemptTrapDisarm(int level, int flag, char backfire);
    the current game mode writes to. */
 void AppendToLastTextLine(const wchar_t* text, short text_box);
 /* 0x0069B7BC: wrapped line count of the notice ShowNotice last displayed;
-   only maintained while game_status.quote_audit_2431 is raised. */
+   only maintained while game_status.quote_audit is raised. */
 extern int g_notice_line_count;
 /* 0x0058FB30: the number of lines the notice pane can scroll. */
 int GetTextBoxScrollRange(void);

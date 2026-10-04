@@ -227,7 +227,7 @@ extern stSurface2D* g_surface_node;
 extern srMaterial* g_blit_material;
 extern srColorSurface* g_mouse_surface;
 extern srNode* g_surface_nodes[0x12c0];
-extern unsigned char g_block_652ddc[0x12c0];
+extern unsigned char g_block[0x12c0];
 extern IDirectDraw2* g_direct_draw2;
 extern IDirectDrawSurface* g_video_primary_surface1;
 extern IDirectDrawSurface2* g_video_primary_surface2;

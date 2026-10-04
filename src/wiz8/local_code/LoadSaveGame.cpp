@@ -311,7 +311,7 @@ unsigned char EnumerateSaveSlots(W8GrowableVector<W8SaveSlot*>* slots)
                     chunks.ReleaseCurrentChunk();
                 }
                 chunks.Close();
-                if (status.flag_49bd == 0 && status.endgame_started_49c0 == 0) {
+                if (status.flag_49bd == 0 && status.endgame_started == 0) {
                     char* extension = strrchr(find_data.cFileName, '.');
                     if (extension != 0) {
                         *extension = 0;
@@ -419,7 +419,7 @@ bool SaveGame(const char* name, W8SaveScreenshot* screenshot)
     }
     GetWorldCameraState(GetWorld(), &g_status.pending_move_location);
     for (region = 0; region != 4; ++region) {
-        for (index = 0; index < g_status.text_box_lines_shown_49a7[region]; ++index) {
+        for (index = 0; index < g_status.text_box_lines_shown[region]; ++index) {
             g_message_storage[region][index].saved_remaining_ms =
                 ClockIsTicking(g_message_storage[region][index].clock_08);
         }
@@ -431,19 +431,19 @@ bool SaveGame(const char* name, W8SaveScreenshot* screenshot)
     g_status.difficulty = g_settings.difficulty;
     if (g_status.iron_man != 0) {
         GetFileManFileTime(chunks.m_hFile, &creation_time, &access_time, &write_time);
-        g_status.save_filetime_xor_244b[0] = creation_time.dwLowDateTime ^ g_save_filetime_xor_low;
-        g_status.save_filetime_xor_244b[1] =
+        g_status.save_filetime_xor[0] = creation_time.dwLowDateTime ^ g_save_filetime_xor_low;
+        g_status.save_filetime_xor[1] =
             creation_time.dwHighDateTime ^ g_save_filetime_xor_high;
     }
-    cursor = g_status.text_line_cursor_1795;
+    cursor = g_status.text_line_cursor;
     if (cursor == 2) {
         saved = 2;
         cursor = 2;
-        g_status.text_line_cursor_1795 = 0;
+        g_status.text_line_cursor = 0;
         static_cast<void>(saved);
     }
     SaveGlobalStatus(&chunks, &g_status);
-    g_status.text_line_cursor_1795 = cursor;
+    g_status.text_line_cursor = cursor;
     chunks.OpenChunk(0x52455647, 0); /* GVER */
     version_major = 1;
     version_minor = 2;
@@ -580,7 +580,7 @@ unsigned char LoadStatusHeader(W8Chunk* chunk)
     if (header.next_trigger_id == 0) {
         g_status.next_trigger_id_2356 = 1;
     }
-    memcpy(g_status.status_header_prefix_1904, header.status_block, sizeof(header.status_block));
+    memcpy(g_status.status_header_prefix, header.status_block, sizeof(header.status_block));
     return 1;
 }
 
@@ -641,7 +641,7 @@ unsigned char SaveStatusHeader(W8Chunk* chunks)
     header.next_monster_location_id = g_status.next_monster_location_id_234e;
     header.next_world_item_id = g_status.next_world_item_id_2352;
     header.next_trigger_id = g_status.next_trigger_id_2356;
-    memcpy(header.status_block, g_status.status_header_prefix_1904, sizeof(header.status_block));
+    memcpy(header.status_block, g_status.status_header_prefix, sizeof(header.status_block));
     if (!chunks->Write(&header, sizeof(header), &count)) {
         chunks->ReleaseCurrentChunk();
     }
@@ -857,19 +857,19 @@ static unsigned char SaveMonsterRecord(W8Chunk* chunks, unsigned int index)
     chunks->Write(&unborn, 1, 0);
     monster = info->p3D;
     monster->SaveMovementState(chunks->m_hFile);
-    value = monster->defining_orders_28c;
+    value = monster->defining_orders;
     chunks->Write(&value, 1, 0);
-    value = monster->order_mode_28e;
+    value = monster->order_mode;
     chunks->Write(&value, 1, 0);
-    value = monster->orders_finished_28d;
+    value = monster->orders_finished;
     chunks->Write(&value, 1, 0);
-    value = monster->deaf_28f;
+    value = monster->deaf;
     chunks->Write(&value, 1, 0);
-    patrol_value = monster->patrol_distance_294;
+    patrol_value = monster->patrol_distance;
     chunks->Write(&patrol_value, 4, 0);
-    patrol_value = monster->patrol_variation_298;
+    patrol_value = monster->patrol_variation;
     chunks->Write(&patrol_value, 4, 0);
-    value = monster->patrol_index_2ac;
+    value = monster->patrol_index;
     chunks->Write(&value, 1, 0);
     point_count = monster->vector_29c.GetCount();
     chunks->Write(&point_count, 4, 0);
@@ -879,13 +879,13 @@ static unsigned char SaveMonsterRecord(W8Chunk* chunks, unsigned int index)
             chunks->Write(&point.x + component, 4, 0);
         }
     }
-    point.Set(monster->direction_x_2b0, monster->direction_y_2b4, monster->direction_z_2b8);
+    point.Set(monster->direction_x, monster->direction_y, monster->direction_z);
     for (component = 0; component < 3; ++component) {
         chunks->Write(&point.x + component, 4, 0);
     }
-    value = monster->face_party_290;
+    value = monster->face_party;
     chunks->Write(&value, 1, 0);
-    value = monster->stay_home_291;
+    value = monster->stay_home;
     chunks->Write(&value, 1, 0);
     return 1;
 }
@@ -1264,7 +1264,7 @@ unsigned char LoadMonster(W8Chunk* chunk)
         }
     }
     for (index = 0; index < 8; ++index) {
-        if (monster_info->enchantments[index].turns_08 != 0) {
+        if (monster_info->enchantments[index].turns != 0) {
             SetMonsterSpellIcon(monster, index + 0x10, 1);
         }
     }
@@ -1278,7 +1278,7 @@ unsigned char LoadMonster(W8Chunk* chunk)
     if (monster_info->effect_2de > 0) {
         SetMonsterSpellIcon(monster, SPELL_ICON_CHARMED, 1);
     }
-    if (monster_info->summoned_2da != 0) {
+    if (monster_info->summoned != 0) {
         SetMonsterSpellIcon(monster, SPELL_ICON_SUMMONED, 1);
     }
     if (record_version >= 2) {
@@ -1286,19 +1286,19 @@ unsigned char LoadMonster(W8Chunk* chunk)
     }
     if (record_version >= 3) {
         chunk->Read(&value, 1, 0);
-        monster->defining_orders_28c = value;
+        monster->defining_orders = value;
         chunk->Read(&value, 1, 0);
-        monster->order_mode_28e = value;
+        monster->order_mode = value;
         chunk->Read(&value, 1, 0);
-        monster->orders_finished_28d = value;
+        monster->orders_finished = value;
         chunk->Read(&value, 1, 0);
-        monster->deaf_28f = value;
+        monster->deaf = value;
         chunk->Read(&patrol_value, 4, 0);
-        monster->patrol_distance_294 = patrol_value;
+        monster->patrol_distance = patrol_value;
         chunk->Read(&patrol_value, 4, 0);
-        monster->patrol_variation_298 = patrol_value;
+        monster->patrol_variation = patrol_value;
         chunk->Read(&value, 1, 0);
-        monster->patrol_index_2ac = value;
+        monster->patrol_index = value;
         chunk->Read(&point_count, 4, 0);
         for (index = 0; index < point_count; ++index) {
             for (component = 0; component < 3; ++component) {
@@ -1312,22 +1312,22 @@ unsigned char LoadMonster(W8Chunk* chunk)
                 chunk->Read(&read_point.x + component, 4, 0);
             }
             point = read_point;
-            monster->direction_x_2b0 = point.x;
-            monster->direction_y_2b4 = point.y;
-            monster->direction_z_2b8 = point.z;
+            monster->direction_x = point.x;
+            monster->direction_y = point.y;
+            monster->direction_z = point.z;
         }
         if (record_version >= 6) {
             chunk->Read(&value, 1, 0);
-            monster->face_party_290 = value;
+            monster->face_party = value;
         }
         if (record_version >= 7) {
             chunk->Read(&value, 1, 0);
-            monster->stay_home_291 = value;
+            monster->stay_home = value;
         }
-        monster_info->ai_mode_255 |= 0x80;
+        monster_info->ai_mode |= 0x80;
     }
     if (script_name[0] != '\0') {
-        monster_info->ai_mode_255 |= 0x10;
+        monster_info->ai_mode |= 0x10;
         monster->SetScript(script_name, 0);
         monster->script_wait_240 = script_wait;
         monster->script_line_23c = script_line;
@@ -1765,7 +1765,7 @@ unsigned char AutoSaveIfAllowed(bool forced)
     char name[64];
 
     gXStatus.save_notice_shown = false;
-    if (g_status.world_cursor_gate_2435 == 0 && AnyMonsterDying() == 0 &&
+    if (g_status.world_cursor_gate == 0 && AnyMonsterDying() == 0 &&
         ((g_settings.auto_save != 0 && forced == 0) || g_status.iron_man != 0) &&
         gXStatus.fCombatMode == 0 && IsSightRangeOverridden() == 0 &&
         IsLevelDataFlag4EffectivelySet() != 0 && gXStatus.fNpcDialogueMode == 0 &&
@@ -1823,7 +1823,7 @@ void ProcessMainGameAutoSave(void)
     char name[64];
     bool saved;
 
-    if (g_status.world_cursor_gate_2435 != 0) {
+    if (g_status.world_cursor_gate != 0) {
         return;
     }
     if (AnyMonsterDying() != 0) {
@@ -1859,7 +1859,7 @@ void ProcessMainGameAutoSave(void)
         return;
     }
     gXStatus.save_notice_shown = false;
-    if (g_status.world_cursor_gate_2435 == 0 && AnyMonsterDying() == 0 &&
+    if (g_status.world_cursor_gate == 0 && AnyMonsterDying() == 0 &&
         (g_settings.auto_save != 0 || g_status.iron_man != 0) && gXStatus.fCombatMode == 0 &&
         IsSightRangeOverridden() == 0 && IsLevelDataFlag4EffectivelySet() != 0 &&
         gXStatus.fNpcDialogueMode == 0 && gXStatus.fCampMode == 0) {
@@ -1901,9 +1901,9 @@ void SaveMonsterControlSpellEffect(W8Chunk* chunks)
     chunks->Write(&lure->OrigSource, sizeof(lure->OrigSource), 0);
     chunks->Write(&lure->OrigTarget, sizeof(lure->OrigTarget), 0);
     chunks->Write(&lure->recast_120, 1, 0);
-    chunks->Write(&lure->sustained_121, 1, 0);
-    chunks->Write(&lure->missiles_pending_122, 1, 0);
-    chunks->Write(&lure->targets_resolved_123, 1, 0);
+    chunks->Write(&lure->sustained, 1, 0);
+    chunks->Write(&lure->missiles_pending, 1, 0);
+    chunks->Write(&lure->targets_resolved, 1, 0);
     chunks->Write(&lure->definition, sizeof(lure->definition), 0);
 }
 
@@ -2096,11 +2096,11 @@ void LoadGameStatus(W8Chunk* chunks, W8GlobalStatus* status)
 
     if (status->buffers.save_version < 1.1f) {
         for (slot = 0; slot != 3; ++slot) {
-            status->text_box_lines_used_4997[slot] = status->legacy_text_box_lines_1797[0][slot];
-            status->text_box_lines_shown_49a7[slot] = status->legacy_text_box_lines_1797[1][slot];
+            status->text_box_lines_used[slot] = status->legacy_text_box_lines[0][slot];
+            status->text_box_lines_shown[slot] = status->legacy_text_box_lines[1][slot];
         }
-        status->text_box_lines_used_4997[3] = 0;
-        status->text_box_lines_shown_49a7[3] = 0;
+        status->text_box_lines_used[3] = 0;
+        status->text_box_lines_shown[3] = 0;
     }
 
     status->buffers.Char = characters;
@@ -2138,7 +2138,7 @@ void LoadGameStatus(W8Chunk* chunks, W8GlobalStatus* status)
                 item = FindCharacterItemAt(slot, static_cast<unsigned char>(origin),
                                            static_cast<unsigned short>(item_slot));
             }
-            party_row->pending_action_detail_015.item_use.item = item;
+            party_row->pending_action_detail.item_use.item = item;
             party_row->action_detail_045.item_use.item = 0;
             party_row->spell_target.pPCItem = 0;
             party_row->item_target.pPCItem = 0;
@@ -2352,14 +2352,14 @@ unsigned char LoadGame(const char* slot_name)
     for (box = 0; box < 4; ++box) {
         /* 0x00512BA6 tests the member unsigned, so this loop has its own
            unsigned counter rather than the function's signed `index`. */
-        for (unsigned int line = 0; line < g_status.text_box_lines_shown_49a7[box]; ++line) {
+        for (unsigned int line = 0; line < g_status.text_box_lines_shown[box]; ++line) {
             g_message_storage[box][line].clock_08 =
                 SetCountdownClock(g_message_storage[box][line].saved_remaining_ms);
         }
     }
     gXStatus.gameplay_timer->Restart();
     ResetMainGameScreenState();
-    if (g_status.item_in_hand_235b.iItemNo == -1) {
+    if (g_status.item_in_hand.iItemNo == -1) {
         ClearHeldItemDisplay();
     } else {
         SetItemCursor(0);
@@ -2388,9 +2388,9 @@ void LoadMonsterControlSpellEffect(W8Chunk* chunks)
     chunks->Read(&effect->OrigSource, 0x34, 0);
     chunks->Read(&effect->OrigTarget, 0x20, 0);
     chunks->Read(&effect->recast_120, 1, 0);
-    chunks->Read(&effect->sustained_121, 1, 0);
-    chunks->Read(&effect->missiles_pending_122, 1, 0);
-    chunks->Read(&effect->targets_resolved_123, 1, 0);
+    chunks->Read(&effect->sustained, 1, 0);
+    chunks->Read(&effect->missiles_pending, 1, 0);
+    chunks->Read(&effect->targets_resolved, 1, 0);
     chunks->Read(&effect->definition, sizeof(effect->definition), 0);
     AddSpellEffect(effect);
 }

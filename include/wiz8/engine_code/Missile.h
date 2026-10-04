@@ -26,14 +26,14 @@ struct W8AIMissile : W8AIRecord {
     bool gravity_01;
     unsigned char padding_02[2];
     /* Per-step advance scale (speed units per step tick). */
-    float speed_per_step_04;
+    float speed_per_step;
     /* Current vertical fall rate, seeded from launch pitch and decayed by
        gravity_01. */
-    float fall_speed_08;
+    float fall_speed;
     W8Missile* missile_0c;
     /* Half-tick baseline (getMsTime()>>1) the delta against the current
        half-tick is clamped to 0xfa. */
-    int last_half_tick_10;
+    int last_half_tick;
     float elapsed_14;
     float limit_18;
     bool unknown_1c;
@@ -122,9 +122,9 @@ public:
 #endif
     /* Flight exhausted its duration; the world updater destroys the missile
        once block_released_1e2 is also set. */
-    bool flight_done_1e0;
+    bool flight_done;
     /* Set by EnterImpactCycle while the impact animation plays. */
-    bool impacting_1e1;
+    bool impacting;
     /* Set once the missile no longer blocks combat end (BlocksEndingCombat
        returned 0 or combat already resolved). */
     unsigned char block_released_1e2;
@@ -144,7 +144,7 @@ public:
     /* 0x280: the damage and condition results this missile has accumulated,
        folded into the owning spell effect by 0x00500460. */
     W8SpellEffectResult result_280;
-    bool retargeted_322; /* the missile struck something other than its intended target */
+    bool retargeted; /* the missile struck something other than its intended target */
     unsigned char padding_323[5];
 };
 
@@ -179,7 +179,7 @@ struct W8MissileTableRecord {
     int magnitude_base_150;
     /* 0x154: nonzero marks a spell missile - its hits resolve through
        ResolveSpellMissileHit instead of the physical hit/deflect path. */
-    bool spell_missile_154;
+    bool spell_missile;
     /* 0x155: the percentage chances the missile's hit effect assigns each
        condition; CastSpellFromSource copies them into its effect block. */
     unsigned char condition_chances_155[0x10];

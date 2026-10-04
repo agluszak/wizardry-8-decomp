@@ -105,7 +105,7 @@ public:
     SR_DLL_IMPORT void setSafeRange(float range);
     SR_DLL_IMPORT float getSafeRange() const;
 
-    e_attenuationModel attenuation_model_150; /* 0x150 */
+    e_attenuationModel attenuation_model; /* 0x150 */
     double near_start_158;                    /* 0x158 */
     double near_end_160;                      /* 0x160 */
     double far_start_168;                     /* 0x168 */
@@ -121,23 +121,23 @@ public:
     float far_attenuation_184;   /* 0x184 */
     /* BakeInstanceVertexLighting copies this wholesale into a local vec3;
        setLinearAttenuation stores the linear coefficient in .y. */
-    srVector3T<float> opengl_attenuation_188; /* 0x188 */
-    unsigned long enable_flags_194;           /* 0x194 */
+    srVector3T<float> opengl_attenuation; /* 0x188 */
+    unsigned long enable_flags;           /* 0x194 */
     srVector3T<float> ambient_198;            /* 0x198 */
     srVector3T<float> diffuse_1a4;            /* 0x1a4 */
     srVector3T<float> specular_1b0;           /* 0x1b0 */
-    srVector3T<float> spot_direction_1bc;     /* 0x1bc */
+    srVector3T<float> spot_direction;     /* 0x1bc */
     float spot_angle_1c8;                     /* 0x1c8 */
-    float spot_exponent_1cc;                  /* 0x1cc */
+    float spot_exponent;                  /* 0x1cc */
     float intensity_1d0;                      /* 0x1d0 */
-    float safe_range_1d4;                     /* 0x1d4 */
-    srVector4T<float> scaled_ambient_1d8;     /* 0x1d8: ambient * intensity */
-    srVector4T<float> scaled_diffuse_1e8;     /* 0x1e8: diffuse * intensity */
-    srVector4T<float> scaled_specular_1f8;    /* 0x1f8: specular * intensity */
-    srVector3T<float> spot_direction_eye_208; /* 0x208 */
+    float safe_range;                     /* 0x1d4 */
+    srVector4T<float> scaled_ambient;     /* 0x1d8: ambient * intensity */
+    srVector4T<float> scaled_diffuse;     /* 0x1e8: diffuse * intensity */
+    srVector4T<float> scaled_specular;    /* 0x1f8: specular * intensity */
+    srVector3T<float> spot_direction_eye; /* 0x208 */
     float spot_cutoff_214;                    /* 0x214: cos(spot_angle) */
-    float attenuation_range_218;              /* 0x218: scaled far end */
-    unsigned long derived_flags_21c;          /* 0x21c */
+    float attenuation_range;              /* 0x218: scaled far end */
+    unsigned long derived_flags;          /* 0x21c */
     unsigned long channel_mask_220;           /* 0x220 */
 };
 

@@ -136,12 +136,12 @@ unsigned char W8MonsterInfoDialog::PopulateText()
         MonsterGetIndexByLocationID(0xa0, MONSTER_INFO_DIALOG_CPP, m_location_id, 1));
     record = GetMonsterDataForInfo(monster_info);
     average_level = GetAveragePartyMemberLevel();
-    monster_level = record->display_level_251;
+    monster_level = record->display_level;
     if (monster_info->ubDisposition != 1 && (record->flags & W8_MONSTER_FLAG_NPC) != 0 &&
         (npc = GetNpcStateByKind(record->npc_kind_0cd)) != 0 && npc->record->has_group != 0) {
         is_npc = true;
     }
-    if (monster_info->summoned_2da == 1) {
+    if (monster_info->summoned == 1) {
         knowledge = 0x7d;
     } else {
         knowledge = GetBestPartySkillLevel(W8_SKILL_MYTHOLOGY, &best_party_slot);
@@ -161,7 +161,7 @@ unsigned char W8MonsterInfoDialog::PopulateText()
     if (g_dev_mode != 0) {
         group = GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
             0xc8, MONSTER_INFO_DIALOG_CPP, monster_info->monster_group_id, 1));
-        linked = monster_info->p3D->linked_navigator_05c;
+        linked = monster_info->p3D->linked_navigator;
         if (linked == 0) {
             leader_location_id = m_location_id;
         } else {
@@ -192,7 +192,7 @@ unsigned char W8MonsterInfoDialog::PopulateText()
     }
     m_text_area_ec.AddEntry(prefix, entry_text, 10, 0xf, 0);
 
-    if (g_status.status_ints_3121[monster_info->monster_species] == 2) {
+    if (g_status.status_ints[monster_info->monster_species] == 2) {
         FormatUnsignedIntegerWithCommas(text, GetMonsterExperience(record));
     } else {
         wcscpy(text, gppStringList[0x13a]);
@@ -273,7 +273,7 @@ unsigned char W8MonsterInfoDialog::PopulateText()
         wcscat(text, gppStringList[0x145]);
         ++count;
     }
-    if (monster_info->summoned_2da != 0) {
+    if (monster_info->summoned != 0) {
         if (count > 0) {
             wcscat(text, g_comma_space);
         }
@@ -287,7 +287,7 @@ unsigned char W8MonsterInfoDialog::PopulateText()
     text[0] = L'\0';
     count = 0;
     for (index = 0; index < 8; ++index) {
-        if (monster_info->enchantments[index].turns_08 != 0) {
+        if (monster_info->enchantments[index].turns != 0) {
             if (count > 0) {
                 wcscat(text, g_comma_space);
             }
@@ -408,7 +408,7 @@ unsigned char W8MonsterInfoDialog::PopulateText()
                            gppStringList[g_condition_notices[immunity->conditions[slot] * 4 + 3]]);
                     ++count;
                 }
-                if (immunity->immune_all_01 != 0) {
+                if (immunity->immune_all != 0) {
                     if (count > 0) {
                         wcscat(text, g_comma_space);
                     }
@@ -445,9 +445,9 @@ unsigned char W8MonsterInfoDialog::PopulateText()
                                 FormatWideString(L"<%S>", script != 0 ? script->getName() : 0), 5,
                                 0xf, 0);
         m_text_area_ec.AddEntry(L"Leader's AI Mode",
-                                FormatWideString(g_format_d, leader_info->ai_mode_255), 5, 0xf, 0);
+                                FormatWideString(g_format_d, leader_info->ai_mode), 5, 0xf, 0);
         const wchar_t* strategy = L"Close";
-        if (record->prefer_ranged_actions_1b9 != 0) {
+        if (record->prefer_ranged_actions != 0) {
             strategy = L"Ranged";
         }
         m_text_area_ec.AddEntry(L"Combat Strategy", strategy, 5, 0xf, 0);

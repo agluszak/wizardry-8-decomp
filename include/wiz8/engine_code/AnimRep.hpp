@@ -14,7 +14,7 @@ struct W8ModelInstance2DRenderState {
     short position_y;
     unsigned char display_state;
     /* 0x0d: enables the pulsing glow pass over mesh.materials_70[0]. */
-    bool glow_enabled_0d;
+    bool glow_enabled;
     unsigned char padding_0e[2];
 };
 
@@ -42,7 +42,7 @@ public:
 
 public:
     srVector3T<float> location_004;
-    srVector3T<float> local_location_010;
+    srVector3T<float> local_location;
     srVector3T<float> parent_location_01c;
     srMatrix3T<float> rotation_028;
     /* RGBA highlight colour; GrCycle copies it into the 3D mesh instance,
@@ -51,9 +51,9 @@ public:
     /* Set by monster scale transitions; GrCycle copies it to model instances
        only when +0x61 enables that path. A value of one clears the instance
        scale flag instead of storing a redundant scale. */
-    float instance_scale_05c;
+    float instance_scale;
     bool flag_060;
-    bool apply_instance_scale_061;
+    bool apply_instance_scale;
     unsigned char padding_062[2];
 };
 
@@ -75,7 +75,7 @@ public:
     unsigned char padding_065;
     /* 0xffff means no queued subcycle; ApplyPendingCycle consumes and clears
        this only after the pending cycle is accepted. */
-    unsigned short pending_subcycle_066;
+    unsigned short pending_subcycle;
     /* Frame-advance timestamp; GrCycle subtracts it from the current time. */
     unsigned int timer_068;
     unsigned char
@@ -84,14 +84,14 @@ public:
         animation_playing_06d; /* bool-byte-ok: copied directly from file-backed W8AnimObj byte. */
     /* Direction 1 advances and 3 reverses in GrCycle. Other direction codes
        also occur in monster completion checks, so this remains a byte. */
-    unsigned char frame_direction_06e;
+    unsigned char frame_direction;
     /* SetFrameMethod checks the retail DIR_FIRST..DIR_LAST range; endpoint
        behavior 1 wraps and 2 reverses in AdvanceAnimationFrame. */
     unsigned char frame_method_06f;
-    unsigned char animation_behaviour_070;
+    unsigned char animation_behaviour;
     /* 0xff means no pending change. ApplyPendingCycle applies it to the
        selected representation, then clears the old object's slot. */
-    unsigned char pending_behaviour_071;
+    unsigned char pending_behaviour;
     unsigned char padding_072[2];
     /* Prop computes this pair from the animation's bounds, and stores the
        scaled extent in +0x8c. Other representation families inherit the

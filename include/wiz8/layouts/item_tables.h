@@ -61,7 +61,7 @@ struct W8ItemDatabaseRecord {
     wchar_t display_name[30]; /* 0x000 */
     /* 0x03c: the item number the Wizardry 7 import matches imported item ids
        against (Party Import.cpp). */
-    short legacy_item_number_03c;
+    short legacy_item_number;
     unsigned char equip_class;              /* 0x03e: open byte domain; named W8ItemEquipClass
                                   values are the proven subset, not the bound */
     unsigned short unidentified_name_index; /* 0x03f */
@@ -87,7 +87,7 @@ struct W8ItemDatabaseRecord {
     /* 0x061: the monster kind the weapon slays for an extra damage die,
        compared against W8MonsterRecord::kind_0cb by the character damage
        resolver; 0xff means the weapon slays nothing. */
-    unsigned char slays_kind_061;
+    unsigned char slays_kind;
     signed char armor_class_bonus; /* 0x062 */
     unsigned char spell_id;        /* 0x063 */
     /* 0x064: the cast spell's power level - Assay prints "(Pwr %d)" and the
@@ -122,7 +122,7 @@ struct W8ItemDatabaseRecord {
        attack; StartCharacterAttack adds it to the rolled uiSwingsRemaining.
        It sits inside the retail name region's tail dword, so the name buffer
        is really 0x20 characters. */
-    int swings_bonus_0ad;
+    int swings_bonus;
     /* 0x0b1/0x0b3: the item's (index, value) modifier pairs the equipment
        fold adds to the derived block's two byte tables. 0xff is no pair. */
     signed char modifier_0b1_index;
@@ -140,7 +140,7 @@ struct W8ItemDatabaseRecord {
     int weapon_sound_class_0c5;
     signed char merge_skill;           /* 0x0c9: skill required to create this item, -1 for none */
     unsigned char merge_skill_level;   /* 0x0ca: level of merge_skill required */
-    unsigned char editor_excluded_0cb; /* hidden from the MIPE item list */
+    unsigned char editor_excluded; /* hidden from the MIPE item list */
     /* 0x0cc: the missile table entry the item fires; the missile resolver
        bounds it against g_missile_table_count. */
     signed char missile_type;

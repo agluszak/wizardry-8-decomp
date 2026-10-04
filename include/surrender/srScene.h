@@ -17,9 +17,9 @@ public:
 
     struct Statistics {
         double elapsed_00;              /* seconds since the last reset */
-        unsigned long render_calls_08;  /* scene renders accumulated */
-        unsigned long node_calls_0c;    /* node visits accumulated per render */
-        unsigned long process_calls_10; /* per-node process calls accumulated */
+        unsigned long render_calls;  /* scene renders accumulated */
+        unsigned long node_calls;    /* node visits accumulated per render */
+        unsigned long process_calls; /* per-node process calls accumulated */
         unsigned long value_14;
     };
 
@@ -89,7 +89,7 @@ public:
 protected:
     srFlags<e_enable> enabled_138;       /* 0x138 */
     Statistics statistics_140;           /* 0x140 */
-    TraverseInfo traversal_158;          /* 0x158 (renderer at 0x170) */
+    TraverseInfo traversal;          /* 0x158 (renderer at 0x170) */
     srVector3T<float> ambient_light_174; /* 0x174 */
     srVector3T<float> fog_color_180;     /* 0x180 */
 };

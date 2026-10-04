@@ -142,7 +142,7 @@ struct W8OctPreTreeVertex {
     unsigned char padding_42[2];
     /* Growable run of polygon ordinals sharing this vertex, built by the
        region pass; consecutive vertices may share one allocation. */
-    int* face_indices_44;
+    int* face_indices;
     /* Second owned run freed by the geometry cleanup. */
     int* owned_48;
     /* Corner texture coordinate written when a polygon vertex is split. */
@@ -182,7 +182,7 @@ struct W8OctPreTreeGeometry {
 
 /* The 0x34-byte per-submesh build record SplitMeshes partitions polygons and
    vertices into.  Records chain through +0x0c/+0x10 (the OctMeshModel
-   m_link_index/next_link_08 link fields are emitted as these indices minus
+   m_link_index/next_link link fields are emitted as these indices minus
    one) and +0x08 carries the 1..3 mesh kind that becomes m_packed_header. */
 struct W8OctSubmeshBuild {
     unsigned long flags_00;

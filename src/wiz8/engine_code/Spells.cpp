@@ -220,7 +220,7 @@ void W8SpellVisual::SetCycle(signed char cycle)
     host->current_cycle = cycle;
     animation = host->emitters[cycle];
     host->active = 1;
-    host->frame_direction_06e = 1;
+    host->frame_direction = 1;
     if (host->SetCycleFrameLod(cycle, 0, 2) != 0) {
         host->m_bLOD = 2;
     } else if (host->SetCycleFrameLod(cycle, 0, 1) != 0) {
@@ -252,7 +252,7 @@ void W8SpellVisual::SetCycle(signed char cycle)
 
             if (event->cycle_00 == cycle) {
                 event->m_pstParticles->SetActive(1);
-                event->m_pstParticles->emission_count_188 = 0;
+                event->m_pstParticles->emission_count = 0;
             } else {
                 event->m_pstParticles->SetActive(0);
             }
@@ -519,9 +519,9 @@ unsigned char W8SpellEmitterHost::ReadCycleData(W8ReadLevelInfo* info, W8SpellVi
     }
     emitter_values[emitter] = animation->playback_scale_08;
     active = 1;
-    frame_direction_06e = 1;
+    frame_direction = 1;
     timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
-    animation_behaviour_070 = animation->behaviour_03;
+    animation_behaviour = animation->behaviour_03;
     frame_method_06f = animation->frame_method_02;
     animation_playing_06d = animation->animation_playing_01;
     emitters[emitter] = animation;
@@ -698,7 +698,7 @@ bool LoadSpellVisualResource(const W8GrCycleLoadContext* context, const char* na
                          FormatString("Spell %s missing cycle of type %d", name, group));
         }
         (*visual)->host->billboard_378 = 0;
-        (*visual)->host->pending_behaviour_071 = 1;
+        (*visual)->host->pending_behaviour = 1;
     }
 
     ResumeSharedGameTimers();
@@ -867,7 +867,7 @@ W8SpellVisual* SpawnSpellEffect(const srVector3T<float>* position, const char* r
         visual->mode_1d8 = W8_SPELL_VISUAL_EXPLOSION;
         visual->host->pending_cycle = static_cast<signed char>(cycle);
         visual->host->billboard_378 = 1;
-        visual->effect_value_1f0 = value;
+        visual->effect_value = value;
         visual->flags_1f4 = flags;
         visual->SetPositionInternal(position);
     }
@@ -927,7 +927,7 @@ placed:
 
         visual->mode_1d8 = W8_SPELL_VISUAL_FLASH;
         visual->host->pending_cycle = static_cast<signed char>(cycle);
-        visual->effect_value_1f0 = value;
+        visual->effect_value = value;
         visual->flags_1f4 = flags;
         GetCameraPosition(&position);
         visual->SetCyclePosition(&position);
@@ -1004,7 +1004,7 @@ placed:
         visual->mode_1d8 = W8_SPELL_VISUAL_TARGET;
         visual->host->pending_cycle = static_cast<signed char>(cycle);
         visual->host->billboard_378 = 1;
-        visual->effect_value_1f0 = value;
+        visual->effect_value = value;
         visual->flags_1f4 = flags;
         visual->location_id_1ec = monster->location_id_1e4;
         monster->GetAnimationBounds(&minimum, &maximum);
@@ -1073,7 +1073,7 @@ placed:
 
         visual->mode_1d8 = W8_SPELL_VISUAL_CONE;
         visual->host->pending_cycle = static_cast<signed char>(cycle);
-        visual->effect_value_1f0 = value;
+        visual->effect_value = value;
         visual->flags_1f4 = flags;
         if (parent != 0) {
             srVector3T<float> minimum;
@@ -1155,7 +1155,7 @@ placed:
     if (visual != 0) {
         visual->mode_1d8 = W8_SPELL_VISUAL_CONE;
         visual->host->pending_cycle = static_cast<signed char>(cycle);
-        visual->effect_value_1f0 = value;
+        visual->effect_value = value;
         visual->flags_1f4 = flags;
         visual->SetCyclePosition(position);
         visual->host->SetRotation(rotation);
@@ -1174,7 +1174,7 @@ void SetTargetConeEnabled(bool enabled)
         if (g_target_cone_visual == 0) {
             g_target_cone_visual = CreateAttachedSpellEffect("TargetCone", 1, 0, 0, 0);
             if (g_target_cone_visual != 0) {
-                g_target_cone_visual->host->pending_behaviour_071 = 3;
+                g_target_cone_visual->host->pending_behaviour = 3;
             }
         }
         return;
@@ -1595,7 +1595,7 @@ void ClearMonsterSpellIcons(W8Monster* monster)
     if (rep == 0) {
         srAssertFail("pMonRep", "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp", 0x854, 0);
     }
-    W8PList* list = rep->spell_icons_5e8;
+    W8PList* list = rep->spell_icons;
     if (list != 0) {
         unsigned int count = PLLength(list);
         for (int index = 0; index < static_cast<int>(count); ++index) {

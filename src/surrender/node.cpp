@@ -20,7 +20,7 @@ long srNode::sceneGraphLockCount;
 static const char* s_flag_names_100a4a00;
 
 // GLOBAL: SURRENDER 0x100A4A04
-static const char* s_notify_names_100a4a04;
+static const char* s_notify_names;
 
 // FUNCTION: SURRENDER 0x10050340
 void srNode::lockSceneGraph()
@@ -437,7 +437,7 @@ void srNode::dump(std::ostream& stream)
     stream << '\n';
     stream.width(0x20);
     stream << "  Notify: ";
-    dumpFlags(stream, notifications_120.value, s_notify_names_100a4a04);
+    dumpFlags(stream, notifications_120.value, s_notify_names);
     stream << '\n';
     stream.flags(flags & 0x7fff);
     delete[] path;

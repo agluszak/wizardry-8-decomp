@@ -74,14 +74,14 @@ bool LoadPathAI(W8PathAI** output, int handle)
         DestroyPathAI(path);
         path = 0;
     } else {
-        path->rotations_14 =
+        path->rotations =
             static_cast<srMatrix3T<float>*>(malloc(point_count * sizeof(srMatrix3T<float>)));
-        if (path->rotations_14 == 0) {
+        if (path->rotations == 0) {
             srAssertFail("pPathAI->pRotations", PATH_AI_CPP, 0x104, 0);
         }
         if (path->version_01 == 2) {
-            path->scales_18 = new srVector3T<float>[point_count];
-            if (path->scales_18 == 0) {
+            path->scales = new srVector3T<float>[point_count];
+            if (path->scales == 0) {
                 srAssertFail("pPathAI->pvecScales", PATH_AI_CPP, 0x10a, 0);
             }
         }
@@ -109,10 +109,10 @@ bool LoadPathAI(W8PathAI** output, int handle)
             if (angle != g_double_zero) {
                 rotation.RotateAroundAxis(sin(angle), cos(angle), axis);
             }
-            path->rotations_14[index] = rotation;
+            path->rotations[index] = rotation;
             if (path->version_01 == 2) {
                 success = success &&
-                          FileRead(handle, &path->scales_18[index], sizeof(srVector3T<float>), 0);
+                          FileRead(handle, &path->scales[index], sizeof(srVector3T<float>), 0);
             }
             srHeap.free(point);
         }
@@ -165,17 +165,17 @@ void DestroyPathAI(W8PathAI* path)
                 srHeap.free(nodes->RemoveAt(nodes->GetCount() - 1));
                 nodes = path->nodes_0c;
             }
-            if (path->rotations_14 != 0) {
-                free(path->rotations_14);
-                path->rotations_14 = 0;
+            if (path->rotations != 0) {
+                free(path->rotations);
+                path->rotations = 0;
             }
             delete path->nodes_0c;
         }
-        if (path->rotations_14 != 0) {
-            free(path->rotations_14);
+        if (path->rotations != 0) {
+            free(path->rotations);
         }
-        if (path->scales_18 != 0) {
-            delete[] path->scales_18;
+        if (path->scales != 0) {
+            delete[] path->scales;
         }
         free(path);
     }
@@ -196,17 +196,17 @@ void DestroyOwnedPathAI(W8PathAI* path)
                 srHeap.free(nodes->RemoveAt(nodes->GetCount() - 1));
                 nodes = path->nodes_0c;
             }
-            if (path->rotations_14 != 0) {
-                free(path->rotations_14);
-                path->rotations_14 = 0;
+            if (path->rotations != 0) {
+                free(path->rotations);
+                path->rotations = 0;
             }
             delete path->nodes_0c;
         }
-        if (path->rotations_14 != 0) {
-            free(path->rotations_14);
+        if (path->rotations != 0) {
+            free(path->rotations);
         }
-        if (path->scales_18 != 0) {
-            delete[] path->scales_18;
+        if (path->scales != 0) {
+            delete[] path->scales;
         }
         free(path);
     }
@@ -214,7 +214,7 @@ void DestroyOwnedPathAI(W8PathAI* path)
 
 /* A deep copy. Everything the source owns is rebuilt: each node point gets its
    own srHeap allocation, and both trailing arrays are reallocated and copied
-   element by element at the node count. Nothing is shared, and timed_3c is the
+   element by element at the node count. Nothing is shared, and timed is the
    one field the copy does not carry over. */
 // FUNCTION: WIZ8 0x004a98c0
 W8PathAI* ClonePathAI(const W8PathAI* source)
@@ -231,7 +231,7 @@ W8PathAI* ClonePathAI(const W8PathAI* source)
     copy->position = source->position;
     copy->unknown_08 = source->unknown_08;
     copy->entry_index_10 = source->entry_index_10;
-    copy->discrete_mode_1c = source->discrete_mode_1c;
+    copy->discrete_mode = source->discrete_mode;
     copy->point_index = source->point_index;
     copy->interpolation_fraction = source->interpolation_fraction;
     copy->last_update_tick = source->last_update_tick;
@@ -239,9 +239,9 @@ W8PathAI* ClonePathAI(const W8PathAI* source)
     copy->distance_travelled = source->distance_travelled;
     copy->total_length = source->total_length;
     copy->looping = source->looping;
-    copy->step_by_node_39 = source->step_by_node_39;
-    copy->animated_3a = source->animated_3a;
-    copy->upright_3b = source->upright_3b;
+    copy->step_by_node = source->step_by_node;
+    copy->animated = source->animated;
+    copy->upright = source->upright;
     if (source->nodes_0c != 0) {
         count = source->nodes_0c->GetCount();
     } else {
@@ -264,20 +264,20 @@ W8PathAI* ClonePathAI(const W8PathAI* source)
             copy->nodes_0c->Add(point);
         }
     }
-    copy->rotations_14 = 0;
-    if (source->rotations_14 != 0) {
-        copy->rotations_14 =
+    copy->rotations = 0;
+    if (source->rotations != 0) {
+        copy->rotations =
             static_cast<srMatrix3T<float>*>(malloc(count * sizeof(srMatrix3T<float>)));
         for (index = 0; index < count; ++index) {
-            copy->rotations_14[index] = source->rotations_14[index];
+            copy->rotations[index] = source->rotations[index];
         }
     }
-    copy->scales_18 = 0;
-    if (source->scales_18 != 0) {
-        copy->scales_18 =
+    copy->scales = 0;
+    if (source->scales != 0) {
+        copy->scales =
             new srVector3T<float>[count];
         for (index = 0; index < count; ++index) {
-            copy->scales_18[index] = source->scales_18[index];
+            copy->scales[index] = source->scales[index];
         }
     }
     return copy;
@@ -314,9 +314,9 @@ void PathAIClearOwned(W8PathAI* path)
                 nodes = path->nodes_0c;
             }
         }
-        if (path->rotations_14 != 0) {
-            free(path->rotations_14);
-            path->rotations_14 = 0;
+        if (path->rotations != 0) {
+            free(path->rotations);
+            path->rotations = 0;
         }
     }
 }
@@ -364,14 +364,14 @@ unsigned char PathAIAddPoint(W8PathAI* path, const srVector3T<float>* point)
 // FUNCTION: WIZ8 0x004a9b90
 void PathAISetAnimated(W8PathAI* path, unsigned char value)
 {
-    path->animated_3a = value;
+    path->animated = value;
 }
 
 // FUNCTION: WIZ8 0x004a9ba0
 void PathAIEnableTimedMode(W8PathAI* path)
 {
-    path->animated_3a = 1;
-    path->timed_3c = 1;
+    path->animated = 1;
+    path->timed = 1;
 }
 
 // FUNCTION: WIZ8 0x004a9c20
@@ -432,7 +432,7 @@ void PathAISetValue(W8PathAI* path, float value)
     if (path == 0) {
         srAssertFail("pPathAI", PATH_AI_CPP, 0x46e, 0);
     }
-    if (path->animated_3a != 0) {
+    if (path->animated != 0) {
         path->position = 0.0f;
         path->interpolation_fraction = 0;
         path->distance_travelled = 0;
@@ -545,10 +545,10 @@ unsigned char PathAITick(W8PathAI* path, signed char direction)
         srAssertFail("pPathAI", PATH_AI_CPP, 0x520, 0);
     }
     now = GetTickCount();
-    if (path->discrete_mode_1c == 0 && path->animated_3a != 0) {
+    if (path->discrete_mode == 0 && path->animated != 0) {
         elapsed = now - path->last_update_tick;
         if (path->last_update_tick < now) {
-            if (path->timed_3c != 0) {
+            if (path->timed != 0) {
                 PathAIAdvanceNormalized(path, elapsed * g_float_005ec128);
             } else {
                 point_count = static_cast<float>(path->nodes_0c->count);
@@ -559,7 +559,7 @@ unsigned char PathAITick(W8PathAI* path, signed char direction)
             return 1;
         }
     } else {
-        if (path->step_by_node_39 == 0) {
+        if (path->step_by_node == 0) {
             amount = (now - path->last_update_tick) * g_float_005ec128 * direction * path->speed;
         } else {
             amount = g_negative_one;
@@ -604,8 +604,8 @@ void PathAIPosition(W8PathAI* path, srVector3T<float>* value)
     if (path->position < g_float_zero) {
         srAssertFail("pPathAI->flPosition>=0.0f", PATH_AI_CPP, 0x5e8, 0);
     }
-    if (path->animated_3a == 0) {
-        if (path->discrete_mode_1c == 0) {
+    if (path->animated == 0) {
+        if (path->discrete_mode == 0) {
             index =
                 static_cast<int>((path->nodes_0c->count - 1) * path->position + g_double_005ebe80);
         } else {
@@ -675,7 +675,7 @@ void PathAIApply(W8PathAI* path, srNode* target)
     }
 
     if (0 < path->nodes_0c->count) {
-        if (path->discrete_mode_1c == 0) {
+        if (path->discrete_mode == 0) {
             blend = path->interpolation_fraction;
             index = path->point_index;
         } else {
@@ -687,9 +687,9 @@ void PathAIApply(W8PathAI* path, srNode* target)
             blend = -1.0f;
         }
 
-        rotation = path->rotations_14[index];
+        rotation = path->rotations[index];
         if (g_float_zero < blend) {
-            next = path->rotations_14[index + 1];
+            next = path->rotations[index + 1];
             if (!(rotation == next)) {
                 W8Quaternion::InterpolateRotation(rotation, next, blend, &rotation);
             }
@@ -705,8 +705,8 @@ void PathAIApply(W8PathAI* path, srNode* target)
             } while (node != 0);
         }
 
-        if (path->scales_18 != 0) {
-            scale_vector = &path->scales_18[index];
+        if (path->scales != 0) {
+            scale_vector = &path->scales[index];
             node = target->first_child_;
             if (node == 0) {
                 location.SetFromFloat(scale_vector);
@@ -720,7 +720,7 @@ void PathAIApply(W8PathAI* path, srNode* target)
             }
         }
 
-        if (path->upright_3b != 0) {
+        if (path->upright != 0) {
             target->rotateX(1.5707963);
         }
     }
@@ -747,7 +747,7 @@ void PathAISetDiscreteMode(W8PathAI* path, unsigned char value)
     if (path == 0) {
         srAssertFail("pPathAI", PATH_AI_CPP, 0x6ee, 0);
     }
-    path->discrete_mode_1c = value;
+    path->discrete_mode = value;
 }
 
 // FUNCTION: WIZ8 0x004AAA50

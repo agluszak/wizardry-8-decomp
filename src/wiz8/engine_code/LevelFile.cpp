@@ -36,10 +36,10 @@ W8LevelFile* ReadLevelFile(int hFile)
     pLevel->mesh_count = 1;
     pLevel->num_switch_triggers = 0;
     memset(pLevel->switch_triggers, 0, sizeof(pLevel->switch_triggers));
-    pLevel->num_invisible_planes_1665 = 0;
-    memset(pLevel->invisible_planes_1669, 0, sizeof(pLevel->invisible_planes_1669));
-    pLevel->num_linked_records_2609 = 0;
-    memset(pLevel->linked_records_260d, 0, sizeof(pLevel->linked_records_260d));
+    pLevel->num_invisible_planes = 0;
+    memset(pLevel->invisible_planes, 0, sizeof(pLevel->invisible_planes));
+    pLevel->num_linked_records = 0;
+    memset(pLevel->linked_records, 0, sizeof(pLevel->linked_records));
     g_level_file = pLevel;
 
     pLevel->pMeshes = static_cast<W8LevelFileMesh*>(malloc(sizeof(W8LevelFileMesh)));
@@ -66,7 +66,7 @@ W8LevelFile* ReadLevelFile(int hFile)
         W8MaterialRecord* pTexture = pLevel->pTextures + i;
         ok = FileRead(hFile, pTexture, 0x11a, 0);
         if (pTexture->version_00 >= 4) {
-            ok &= FileRead(hFile, pTexture->texture_modes_11a, 0x10, 0);
+            ok &= FileRead(hFile, pTexture->texture_modes, 0x10, 0);
         }
         if (ok == 0) {
             return 0;
@@ -299,7 +299,7 @@ BOOLEAN WriteLevelFile(int hFile, int hFileIn, W8LevelFile* pLevel)
         W8MaterialRecord* pTexture = pLevel->pTextures + i;
         ok = FileWrite(hFile, pTexture, 0x11a, 0);
         if (pTexture->version_00 >= 4) {
-            ok &= FileWrite(hFile, pTexture->texture_modes_11a, 0x10, 0);
+            ok &= FileWrite(hFile, pTexture->texture_modes, 0x10, 0);
         }
         if (ok == 0) {
             return FALSE;
@@ -496,7 +496,7 @@ BOOLEAN WriteLevelFile(int hFile, int hFileIn, W8LevelFile* pLevel)
         fSuccess &= fDone;
     } while (chunk == 0x400);
     pLevel->num_switch_triggers = 0;
-    pLevel->num_invisible_planes_1665 = 0;
+    pLevel->num_invisible_planes = 0;
     free(pLevel);
     return fSuccess;
 }
@@ -536,7 +536,7 @@ BOOLEAN ReadMeshFile(int hFile, W8LevelFileMesh* pMesh)
     if (pMesh->version_00 >= 4) {
         fSuccess &= FileRead(hFile, &pMesh->mapping_count, 1, 0);
         if (pMesh->mapping_count != 0) {
-            fSuccess &= FileRead(hFile, &pMesh->mapped_value_3c, 4, 0);
+            fSuccess &= FileRead(hFile, &pMesh->mapped_value, 4, 0);
         }
     }
     if (fSuccess == 0) {
@@ -635,7 +635,7 @@ BOOLEAN WriteMeshFile(int hFile, W8LevelFileMesh* pMesh)
     if (pMesh->version_00 >= 4) {
         fSuccess &= FileWrite(hFile, &pMesh->mapping_count, 1, 0);
         if (pMesh->mapping_count != 0) {
-            fSuccess &= FileWrite(hFile, &pMesh->mapped_value_3c, 4, 0);
+            fSuccess &= FileWrite(hFile, &pMesh->mapped_value, 4, 0);
         }
     }
     if (fSuccess == 0) {
@@ -916,7 +916,7 @@ BOOLEAN ReadTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
                 "Invisible Trigger: %s, recipients: %s\n", // reinterpret-ok: String returns a logging buffer
                 pInvis->name, pInvis->recipients)));
         if (pInvis->version_00 > 1) {
-            fSuccess &= FileRead(hFile, &pInvis->plane_flag_19b, 1, 0);
+            fSuccess &= FileRead(hFile, &pInvis->plane_flag, 1, 0);
             pInvis->pPlane = static_cast<W8LevelFilePlane*>(malloc(sizeof(W8LevelFilePlane)));
             if (pInvis->pPlane == 0) {
                 srAssertFail("pInvis->pPlane", LEVELFILE_CPP, 0x441, 0);
@@ -947,9 +947,9 @@ BOOLEAN ReadTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
                         okRecord &=
                             FileRead(hFile, pRecord->vertices, sizeof(pRecord->vertices), 0);
                         okRecord &= FileRead(hFile, &pRecord->linked_face, 2, 0);
-                        g_level_file->linked_records_260d[g_level_file->num_linked_records_2609] =
+                        g_level_file->linked_records[g_level_file->num_linked_records] =
                             pRecord;
-                        ++g_level_file->num_linked_records_2609;
+                        ++g_level_file->num_linked_records;
                         pInvis->pRecord = pRecord;
                     }
                     if ((fSuccess & okRecord) != 0) {
@@ -962,9 +962,9 @@ BOOLEAN ReadTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
                 }
             }
         }
-        g_level_file->invisible_planes_1669[g_level_file->num_invisible_planes_1665] =
+        g_level_file->invisible_planes[g_level_file->num_invisible_planes] =
             pInvis->pPlane;
-        ++g_level_file->num_invisible_planes_1665;
+        ++g_level_file->num_invisible_planes;
         pTrigger->pData = pInvis;
         return fSuccess;
     }
@@ -1079,7 +1079,7 @@ BOOLEAN WriteTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
         fSuccess &= FileWrite(hFile, pInvis->name, sizeof(pInvis->name), 0);
         fSuccess &= FileWrite(hFile, pInvis->recipients, sizeof(pInvis->recipients), 0);
         if (pInvis->version_00 > 1) {
-            fSuccess &= FileWrite(hFile, &pInvis->plane_flag_19b, 1, 0);
+            fSuccess &= FileWrite(hFile, &pInvis->plane_flag, 1, 0);
             fSuccess &= FileWrite(hFile, pInvis->pPlane, sizeof(W8LevelFilePlane), 0);
             free(pInvis->pPlane);
         }
@@ -1246,9 +1246,9 @@ BOOLEAN ReadSuperTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
                 return FALSE;
             }
             fSuccess &= FileRead(hFile, pSuper->pPlane, sizeof(W8LevelFilePlane), 0);
-            g_level_file->invisible_planes_1669[g_level_file->num_invisible_planes_1665] =
+            g_level_file->invisible_planes[g_level_file->num_invisible_planes] =
                 pSuper->pPlane;
-            ++g_level_file->num_invisible_planes_1665;
+            ++g_level_file->num_invisible_planes;
         }
         if (!fSuccess) {
             return FALSE;
@@ -1281,8 +1281,8 @@ BOOLEAN ReadSuperTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
                 ok = FileRead(hFile, &pRecord->kind_00, 1, 0);
                 ok &= FileRead(hFile, pRecord->vertices, sizeof(pRecord->vertices), 0);
                 ok &= FileRead(hFile, &pRecord->linked_face, 2, 0);
-                g_level_file->linked_records_260d[g_level_file->num_linked_records_2609] = pRecord;
-                ++g_level_file->num_linked_records_2609;
+                g_level_file->linked_records[g_level_file->num_linked_records] = pRecord;
+                ++g_level_file->num_linked_records;
                 pSuper->pRecord = pRecord;
             }
             fSuccess &= ok;
@@ -1658,7 +1658,7 @@ BOOLEAN ReadAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj)
                                     fTextures = FileRead(hFile, pTexture, 0x11a, 0);
                                     if (pTexture->version_00 >= 4) {
                                         fTextures &=
-                                            FileRead(hFile, pTexture->texture_modes_11a, 0x10, 0);
+                                            FileRead(hFile, pTexture->texture_modes, 0x10, 0);
                                     }
                                     if (fTextures == 0) {
                                         return FALSE;
@@ -1732,7 +1732,7 @@ BOOLEAN ReadAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj)
                                     fTextures = FileRead(hFile, pTexture, 0x11a, 0);
                                     if (pTexture->version_00 >= 4) {
                                         fTextures &=
-                                            FileRead(hFile, pTexture->texture_modes_11a, 0x10, 0);
+                                            FileRead(hFile, pTexture->texture_modes, 0x10, 0);
                                     }
                                     if (fTextures == 0) {
                                         return FALSE;
@@ -1859,7 +1859,7 @@ BOOLEAN WriteAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj)
                                 fSuccess = FileWrite(hFile, pTexture, 0x11a, 0);
                                 if (pTexture->version_00 >= 4) {
                                     fSuccess &=
-                                        FileWrite(hFile, pTexture->texture_modes_11a, 0x10, 0);
+                                        FileWrite(hFile, pTexture->texture_modes, 0x10, 0);
                                 }
                                 if (fSuccess == 0) {
                                     return FALSE;
@@ -1917,7 +1917,7 @@ BOOLEAN WriteAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj)
                                 fSuccess = FileWrite(hFile, pTexture, 0x11a, 0);
                                 if (pTexture->version_00 >= 4) {
                                     fSuccess &=
-                                        FileWrite(hFile, pTexture->texture_modes_11a, 0x10, 0);
+                                        FileWrite(hFile, pTexture->texture_modes, 0x10, 0);
                                 }
                                 if (fSuccess == 0) {
                                     return FALSE;

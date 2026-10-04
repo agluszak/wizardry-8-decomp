@@ -24,13 +24,13 @@ float g_lod_range_default_0060e60c = 8500.0f;
 W8AnimRepBase::W8AnimRepBase()
 {
     location_004.SetZero();
-    local_location_010.SetZero();
+    local_location.SetZero();
     parent_location_01c.SetZero();
     rotation_028.SetIdentity();
     highlight_colour_04c.Set(0.0f, 0.0f, 0.0f, 0.0f);
-    instance_scale_05c = 1.0f;
+    instance_scale = 1.0f;
     flag_060 = false;
-    apply_instance_scale_061 = 0;
+    apply_instance_scale = 0;
 }
 
 // FUNCTION: WIZ8 0x004b55c0
@@ -48,10 +48,10 @@ void W8AnimRep::SetFrameMethod(signed char method)
    not touched by the canonical constructor. */
 // FUNCTION: WIZ8 0x004b87c0
 W8AnimRepBase::W8AnimRepBase(const W8AnimRepBase& other)
-    : location_004(other.location_004), local_location_010(other.local_location_010),
+    : location_004(other.location_004), local_location(other.local_location),
       parent_location_01c(other.parent_location_01c), rotation_028(other.rotation_028),
-      highlight_colour_04c(other.highlight_colour_04c), instance_scale_05c(1.0f), flag_060(false),
-      apply_instance_scale_061(0)
+      highlight_colour_04c(other.highlight_colour_04c), instance_scale(1.0f), flag_060(false),
+      apply_instance_scale(0)
 {
 }
 
@@ -61,8 +61,8 @@ W8AnimRepBase::W8AnimRepBase(const W8AnimRepBase& other)
 // FUNCTION: WIZ8 0x004b8850
 void W8AnimRepBase::SetLocation(const srVector3T<float>* location)
 {
-    local_location_010 = *location;
-    location_004 = parent_location_01c + local_location_010;
+    local_location = *location;
+    location_004 = parent_location_01c + local_location;
 }
 
 // FUNCTION: WIZ8 0x004b8890
@@ -74,7 +74,7 @@ void W8AnimRepBase::GetLocation(srVector3T<float>* location) const
 // FUNCTION: WIZ8 0x004b88b0
 void W8AnimRepBase::GetLocalLocation(srVector3T<float>* location) const
 {
-    *location = local_location_010;
+    *location = local_location;
 }
 
 // FUNCTION: WIZ8 0x004b88d0
@@ -91,9 +91,9 @@ void W8AnimRepBase::GetRotation(srMatrix3T<float>* rotation)
 
 // FUNCTION: WIZ8 0x004b53d0
 W8AnimRep::W8AnimRep()
-    : subcycle_064(0), pending_subcycle_066(0xffff), timer_068(0), active(0),
-      animation_playing_06d(0), frame_direction_06e(0), frame_method_06f(0),
-      animation_behaviour_070(0), pending_behaviour_071(-1), bounds_min_074(0.0f, 0.0f, 0.0f),
+    : subcycle_064(0), pending_subcycle(0xffff), timer_068(0), active(0),
+      animation_playing_06d(0), frame_direction(0), frame_method_06f(0),
+      animation_behaviour(0), pending_behaviour(-1), bounds_min_074(0.0f, 0.0f, 0.0f),
       bounds_max_080(0.0f, 0.0f, 0.0f), bounds_extent_08c(0), value_090(0), first_frame_094(0xff),
       last_frame_095(0xff)
 {
@@ -117,11 +117,11 @@ W8AnimRepBase* W8AnimRepBase::Clone()
 // FUNCTION: WIZ8 0x004b54a0
 W8AnimRep::W8AnimRep(const W8AnimRep& other)
     : W8AnimRepBase(other), subcycle_064(other.subcycle_064),
-      pending_subcycle_066(other.pending_subcycle_066), timer_068(other.timer_068),
+      pending_subcycle(other.pending_subcycle), timer_068(other.timer_068),
       active(other.active), animation_playing_06d(other.animation_playing_06d),
-      frame_direction_06e(other.frame_direction_06e), frame_method_06f(other.frame_method_06f),
-      animation_behaviour_070(other.animation_behaviour_070),
-      pending_behaviour_071(other.pending_behaviour_071), bounds_min_074(other.bounds_min_074),
+      frame_direction(other.frame_direction), frame_method_06f(other.frame_method_06f),
+      animation_behaviour(other.animation_behaviour),
+      pending_behaviour(other.pending_behaviour), bounds_min_074(other.bounds_min_074),
       bounds_max_080(other.bounds_max_080), bounds_extent_08c(other.bounds_extent_08c),
       value_090(other.value_090), first_frame_094(other.first_frame_094),
       last_frame_095(other.last_frame_095)
@@ -138,7 +138,7 @@ W8AnimRep::W8AnimRep(const W8AnimRep& other)
 W8EmitterHost::W8EmitterHost(const W8EmitterHost& other)
     : W8AnimRep(other), m_bLOD(other.m_bLOD), lod_range_09c(other.lod_range_09c),
       lod_range_0a0(other.lod_range_0a0), current_cycle(0), current_subcycle(0),
-      forced_subcycle_0a6(-1), pending_cycle(-1), animation_radius_0a8(other.animation_radius_0a8)
+      forced_subcycle(-1), pending_cycle(-1), animation_radius(other.animation_radius)
 {
 }
 
@@ -146,6 +146,6 @@ W8EmitterHost::W8EmitterHost(const W8EmitterHost& other)
 W8EmitterHost::W8EmitterHost()
     : m_bLOD(0), lod_range_09c(g_lod_range_default_0060e608),
       lod_range_0a0(g_lod_range_default_0060e60c), current_cycle(0), current_subcycle(0),
-      forced_subcycle_0a6(-1), pending_cycle(-1), animation_radius_0a8(0)
+      forced_subcycle(-1), pending_cycle(-1), animation_radius(0)
 {
 }

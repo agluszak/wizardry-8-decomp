@@ -50,7 +50,7 @@ static_assert(sizeof(W8TriggerActionData) == 0x08, "W8TriggerActionData_must_be_
 /* Type 5 installs its own final table and retains the previous environment value. */
 class W8EnvironmentTriggerActionData : public W8TriggerActionData {
 public:
-    float previous_environment_008;
+    float previous_environment;
 };
 
 static_assert(sizeof(W8EnvironmentTriggerActionData) == 0x0c,
@@ -74,7 +74,7 @@ static_assert(sizeof(W8DoorTriggerActionData) == 0x98, "W8DoorTriggerActionData_
 class W8StringTriggerActionData : public W8TriggerActionData {
 public:
     virtual ~W8StringTriggerActionData() override;
-    char* owned_string_008;
+    char* owned_string;
 };
 
 static_assert(sizeof(W8StringTriggerActionData) == 0x0c, "W8StringTriggerActionData_must_be_0x0c");
@@ -95,7 +95,7 @@ static_assert(sizeof(W8StringTriggerActionData) == 0x0c, "W8StringTriggerActionD
    - REACTIVATE_LINKED re-fires linked recipients when a finished trigger
      reactivates.
    - ALTERNATE_ACTION alternates action_data_128 with
-     alternate_action_data_1a8, tracked by ALTERNATE_SELECTED.
+     alternate_action_data, tracked by ALTERNATE_SELECTED.
    - ITEM_PICKER marks the item-picker dialog open for this trigger.
    - SEARCHED marks an already-searched trigger; loading unregisters it.
    - ANIMATE_STATES animates the prop through its states as the state index
@@ -217,15 +217,15 @@ public:
     void RunDestination(const char* destination);
     void Run(int source);
 
-    int trigger_kind_018;
+    int trigger_kind;
     char name_01c[0x80];
     int trigger_id_09c;
     /* W8TriggerFlag bits with established producer/consumer semantics. The
        rest of the word is record-loaded or unresolved state and stays masked
        by literal. */
     unsigned int flags_0a0;
-    float range_minimum_0a4;
-    float range_maximum_0a8;
+    float range_minimum;
+    float range_maximum;
     int action_value;
     unsigned char state_count;
     unsigned char state_index;
@@ -239,7 +239,7 @@ public:
     int m_lData3;
     unsigned short searchable;
     unsigned char unknown_0ca[2];
-    srVector3T<float> representation_vectors_0cc[4];
+    srVector3T<float> representation_vectors[4];
     float angle_0fc;
     srVector3T<float> direction_100;
     unsigned char m_bRepType;
@@ -249,14 +249,14 @@ public:
     srVector3T<float> position_118;
     W8World* m_pWorld;
     char action_data_128[0x80];
-    char alternate_action_data_1a8[0x80];
-    signed char action_data_mode_228;
+    char alternate_action_data[0x80];
+    signed char action_data_mode;
     signed char sound_volume;
     unsigned short initial_action_22a;
     unsigned short alternate_action;
     unsigned short fallback_action_22e;
     unsigned short action_230;
-    unsigned char action_state_232;
+    unsigned char action_state;
     unsigned char unknown_233;
     W8TriggerActionData* m_pActionData;
     char* m_pacRecipients;
@@ -264,16 +264,16 @@ public:
     char* m_pacRequiredStates;
     char* m_pacStateToMod;
     W8TriggerEvent* m_pEvent;
-    char inline_action_data_24c[0x100];
-    W8WorldItem* world_item_group_34c;
+    char inline_action_data[0x100];
+    W8WorldItem* world_item_group;
     unsigned char items_generated;
     unsigned char unknown_351[3];
     /* Sampled during construction, persisted in saves and used to reseed
        item-table generation so a trigger's generated loot is repeatable. */
-    unsigned int item_group_seed_354;
+    unsigned int item_group_seed;
     int gold_358;
     int uses_remaining;
-    ActivationCallback activation_callback_360;
+    ActivationCallback activation_callback;
     bool running;
     unsigned char unknown_365[3];
     W8LockState lock_state;

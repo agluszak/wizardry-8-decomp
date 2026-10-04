@@ -26,10 +26,10 @@ struct W8PortraitQuoteBubble {
     unsigned short width;              /* 0x04 */
     unsigned short height;             /* 0x06 */
     unsigned char background_index_08; /* 0x08 */
-    unsigned char object_index_09;     /* 0x09 */
+    unsigned char object_index;     /* 0x09 */
     UINT32 background_surface;         /* 0x0c */
     UINT32 object;                     /* 0x10 */
-    bool has_resources_14;             /* 0x14 */
+    bool has_resources;             /* 0x14 */
     bool created_15;                   /* 0x15 */
     UINT32 flags;                      /* 0x18: bit 0 selects the flat fill */
     wchar_t* text;                     /* 0x1c */
@@ -494,18 +494,18 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
             delete bubble;
             return -1;
         }
-        g_current_portrait_quote->has_resources_14 = true;
+        g_current_portrait_quote->has_resources = true;
         g_current_portrait_quote->background_index_08 = background_index;
-        g_current_portrait_quote->object_index_09 = edge_index;
+        g_current_portrait_quote->object_index = edge_index;
     } else {
         bubble = g_portrait_quotes[quote_handle];
         g_current_portrait_quote = bubble;
         if (background_index != bubble->background_index_08 ||
-            edge_index != bubble->object_index_09 || bubble->has_resources_14 == 0) {
-            if (bubble != 0 && bubble->has_resources_14 != 0) {
+            edge_index != bubble->object_index || bubble->has_resources == 0) {
+            if (bubble != 0 && bubble->has_resources != 0) {
                 DeleteVideoSurfaceFromIndex(bubble->background_surface);
                 DeleteVideoObjectFromIndex(g_current_portrait_quote->object);
-                g_current_portrait_quote->has_resources_14 = false;
+                g_current_portrait_quote->has_resources = false;
             }
             surface_desc.fCreateFlags = VSURFACE_CREATE_FROMFILE | VSURFACE_SYSTEM_MEM_USAGE;
             strcpy(surface_desc.ImageFile, g_quote_bubble_backgrounds[background_index]);
@@ -517,9 +517,9 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
             if (!AddVideoObject(&object_desc, &g_current_portrait_quote->object)) {
                 return -1;
             }
-            g_current_portrait_quote->has_resources_14 = true;
+            g_current_portrait_quote->has_resources = true;
             g_current_portrait_quote->background_index_08 = background_index;
-            g_current_portrait_quote->object_index_09 = edge_index;
+            g_current_portrait_quote->object_index = edge_index;
         }
     }
     g_current_portrait_quote->text = static_cast<wchar_t*>(malloc(wcslen(text) * 2 + 2));
@@ -710,10 +710,10 @@ unsigned char ReleasePortraitQuoteBubble(int quote_handle)
             }
             DeleteVideoSurfaceFromIndex(quote->surface);
             free(g_current_portrait_quote->text);
-            if (g_current_portrait_quote != 0 && g_current_portrait_quote->has_resources_14 != 0) {
+            if (g_current_portrait_quote != 0 && g_current_portrait_quote->has_resources != 0) {
                 DeleteVideoSurfaceFromIndex(g_current_portrait_quote->background_surface);
                 DeleteVideoObjectFromIndex(g_current_portrait_quote->object);
-                g_current_portrait_quote->has_resources_14 = false;
+                g_current_portrait_quote->has_resources = false;
             }
             delete g_current_portrait_quote;
             g_current_portrait_quote = 0;

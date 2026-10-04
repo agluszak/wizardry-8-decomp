@@ -68,18 +68,18 @@ void srFileManager::addPath(const char* path)
                 local_path[index] = '/';
             }
         }
-        for (Path* node = first_path_04; node != 0; node = node->next_04) {
+        for (Path* node = first_path; node != 0; node = node->next_04) {
             if (strcmp(local_path, node->getName()) == 0) {
                 return;
             }
         }
         Path* new_node = new Path(local_path);
-        new_node->next_04 = first_path_04;
+        new_node->next_04 = first_path;
         new_node->previous_08 = 0;
-        if (first_path_04 != 0) {
-            first_path_04->previous_08 = new_node;
+        if (first_path != 0) {
+            first_path->previous_08 = new_node;
         }
-        first_path_04 = new_node;
+        first_path = new_node;
     }
 }
 
@@ -92,7 +92,7 @@ void srFileManager::removePath(const char* path)
         if (local_path[strlen(local_path) - 1] != '/') {
             strcat(local_path, "/");
         }
-        Path* node = first_path_04;
+        Path* node = first_path;
         while (node != 0) {
             if (strcmp(local_path, node->getName()) == 0) {
                 if (node->next_04 != 0) {
@@ -101,8 +101,8 @@ void srFileManager::removePath(const char* path)
                 if (node->previous_08 != 0) {
                     node->previous_08->next_04 = node->next_04;
                 }
-                if (node == first_path_04) {
-                    first_path_04 = node->next_04;
+                if (node == first_path) {
+                    first_path = node->next_04;
                 }
                 delete node;
                 return;
@@ -115,11 +115,11 @@ void srFileManager::removePath(const char* path)
 // FUNCTION: SURRENDER 0x1002E390
 void srFileManager::setPath(const char* path)
 {
-    while (first_path_04 != 0) {
-        Path* node = first_path_04;
+    while (first_path != 0) {
+        Path* node = first_path;
         Path* next = node->next_04;
         delete node;
-        first_path_04 = next;
+        first_path = next;
     }
     if (path != 0) {
         addPath(path);
@@ -187,13 +187,13 @@ void srFileManager::save(const char* path, void* source, unsigned long size)
 // FUNCTION: SURRENDER 0x1002E6F0
 srFileManager::Path* srFileManager::getFirstPath() const
 {
-    return first_path_04;
+    return first_path;
 }
 
 // FUNCTION: SURRENDER 0x1002E700
 void srFileManager::dump(std::ostream& stream)
 {
-    for (Path* path = first_path_04; path != 0; path = path->getNext()) {
+    for (Path* path = first_path; path != 0; path = path->getNext()) {
         stream << path->getName() << '\n';
     }
 }
@@ -201,7 +201,7 @@ void srFileManager::dump(std::ostream& stream)
 // FUNCTION: SURRENDER 0x1002E740
 srFileManager::srFileManager()
 {
-    first_path_04 = 0;
+    first_path = 0;
 }
 
 // FUNCTION: SURRENDER 0x1002E750

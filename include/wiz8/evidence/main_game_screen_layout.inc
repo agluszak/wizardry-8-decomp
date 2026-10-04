@@ -12,11 +12,11 @@ static_assert(offsetof(W8MainGameResourceSlot, hotspot_x) == 0x10,
 static_assert(sizeof(W8DialogueTextState) == 0x34, "W8DialogueTextState_size");
 static_assert(offsetof(W8DialogueTextState, saved_scroll_line) == 0x30,
               "W8DialogueTextState_saved_scroll_line");
-static_assert(offsetof(W8LevelRuntimeBlock, text_paint_scratch_000) == 0x0,
-              "W8LevelRuntimeBlock_text_paint_scratch_000");
+static_assert(offsetof(W8LevelRuntimeBlock, text_paint_scratch) == 0x0,
+              "W8LevelRuntimeBlock_text_paint_scratch");
 static_assert(sizeof(W8LevelRuntimeBlock) == 0x330, "W8LevelRuntimeBlock_must_be_0x330");
-static_assert(offsetof(W8LevelRuntimeBlock, message_box_pending_0f0) == 0x0f0,
-              "W8LevelRuntimeBlock_message_box_pending_0f0");
+static_assert(offsetof(W8LevelRuntimeBlock, message_box_pending) == 0x0f0,
+              "W8LevelRuntimeBlock_message_box_pending");
 static_assert(offsetof(W8LevelRuntimeBlock, saved_redraw_flags) == 0x0f8,
               "W8LevelRuntimeBlock_saved_redraw_flags");
 static_assert(offsetof(W8LevelRuntimeBlock, main_ui_mode) == 0x0fc,

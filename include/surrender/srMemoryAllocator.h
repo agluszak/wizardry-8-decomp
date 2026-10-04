@@ -27,18 +27,18 @@ private:
     public:
         Block* next_00;
         Block* previous_04;
-        void* raw_allocation_08;
+        void* raw_allocation;
         /* Written through by allocate's strcpy - mutable storage despite the
            read-only getName accessor. */
         char* name_0c;
         unsigned long allocation_size_10;
-        unsigned long requested_size_14;
+        unsigned long requested_size;
         unsigned long reserved_18[2];
     };
 
     SR_DLL_IMPORT Block* align(void* allocation);
 
-    Block* first_block_00;
+    Block* first_block;
     unsigned long allocated_bytes_04;
     unsigned long allocation_count_08;
     e_alignSize alignment_0c;

@@ -225,7 +225,7 @@ bool CharacterHasTrait(const W8Character* character, int trait)
             }
         }
     }
-    if (trait == 0x1c && character->enchantments[1].turns_08 != 0) {
+    if (trait == 0x1c && character->enchantments[1].turns != 0) {
         return true;
     }
     return false;
@@ -253,7 +253,7 @@ float ScaleValueByProfessionLevel(W8Character* character, W8Trait, float base)
 // FUNCTION: WIZ8 0x00547a00
 float ScaleValueByMonsterLevel(W8MonsterRecord* record, int, float base)
 {
-    return ScaleValueByLevel(record->effective_level_24f, base);
+    return ScaleValueByLevel(record->effective_level, base);
 }
 
 /* The Valkyrie cheat-death trait fires instead of death while the character
@@ -350,7 +350,7 @@ void BrewAlchemistPotion(W8Character* character)
         made = 1;
     }
     if (made != 0) {
-        character->potion_brew_cooldown_0b65 = 0x168;
+        character->potion_brew_cooldown = 0x168;
     }
 }
 
@@ -466,9 +466,9 @@ void ResetCharacterAttributes(W8Character* character)
         UnequipUnusableItems(character);
     }
     for (index = 0; index < 0x29; ++index) {
-        int first = g_skill_attributes[index].attribute_1_08;
-        int second = g_skill_attributes[index].attribute_2_0c;
-        character->skills[index].base_level_0a =
+        int first = g_skill_attributes[index].attribute_1;
+        int second = g_skill_attributes[index].attribute_2;
+        character->skills[index].base_level =
             (character->attributes[first].value + character->attributes[second].value) >> 1;
     }
 }
@@ -585,9 +585,9 @@ void ApplySkillChange(W8Character* character, int skill_id)
 void InitializeSkillBaseLevels(W8Character* character)
 {
     for (int index = 0; index < 0x29; ++index) {
-        int first = g_skill_attributes[index].attribute_1_08;
-        int second = g_skill_attributes[index].attribute_2_0c;
-        character->skills[index].base_level_0a =
+        int first = g_skill_attributes[index].attribute_1;
+        int second = g_skill_attributes[index].attribute_2;
+        character->skills[index].base_level =
             (character->attributes[first].value + character->attributes[second].value) >> 1;
     }
 }
@@ -641,7 +641,7 @@ unsigned int GetSkillQuarterValue(W8Character* character, int skill_id)
 
 /* Practice one skill: mark it practiced, unlock it if the character newly
    qualifies, then roll every usage point against the value-scaled chance -
-   (100 - value) * base_level_0a / 100, halved again for magic-realm skills -
+   (100 - value) * base_level / 100, halved again for magic-realm skills -
    and bank a level on every eighth success. A leveled skill refreshes its
    effective level through the same profession-bonus path ApplySkillChange
    uses, then reports immediately on the idle main-game screen or defers the
@@ -671,7 +671,7 @@ void PracticeCharacterSkill(W8Character* character, int skill_id, int usage_poin
         if (usage_points != 0) {
             do {
                 if (skill->points_02 < 100) {
-                    threshold = (100 - (skill->points_02 * 100) / 100) * skill->base_level_0a / 100;
+                    threshold = (100 - (skill->points_02 * 100) / 100) * skill->base_level / 100;
                     if (g_skill_attributes[skill_id].category == 4) {
                         threshold /= 2;
                     }
@@ -679,10 +679,10 @@ void PracticeCharacterSkill(W8Character* character, int skill_id, int usage_poin
                         threshold = 1;
                     }
                     if (Random(100) < threshold) {
-                        ++skill->practice_count_0e;
-                        if (skill->practice_count_0e >= 8) {
+                        ++skill->practice_count;
+                        if (skill->practice_count >= 8) {
                             ++skill->points_02;
-                            skill->practice_count_0e = 0;
+                            skill->practice_count = 0;
                             skill->improved_12 = 1;
                             improved = true;
                         }
@@ -710,7 +710,7 @@ void PracticeCharacterSkill(W8Character* character, int skill_id, int usage_poin
                 RecalculateCharacterDerivedStats(character);
                 slot = CharacterPointerToPartySlot(character);
                 if (gXStatus.fCombatMode == 0 && IsModalOpen() == 0 &&
-                    gXStatus.item_pick_pending_19b6 == 0 &&
+                    gXStatus.item_pick_pending == 0 &&
                     g_current_screen_state.id == W8_SCREEN_MAIN_GAME && IsScreenIdle() != 0 &&
                     suppress_notification == 0) {
                     wchar_t* text = new wchar_t[0x200];

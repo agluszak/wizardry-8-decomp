@@ -94,7 +94,7 @@ void srVectorProcessor::dump(std::ostream& stream)
     for (command = 0; command < 0xa6; ++command) {
         if (debug->call_counts_eb0[command] != 0) {
             double time = debug->call_times_450[command] -
-                          debug->call_counts_eb0[command] * debug->call_overhead_448;
+                          debug->call_counts_eb0[command] * debug->call_overhead;
             if (time <= 0.0) {
                 time = 0.0;
             }
@@ -111,7 +111,7 @@ void srVectorProcessor::dump(std::ostream& stream)
     for (command = 0; command < 0xa6; ++command) {
         if (debug->call_counts_eb0[command] != 0) {
             double time = debug->call_times_450[command] -
-                          debug->call_counts_eb0[command] * debug->call_overhead_448;
+                          debug->call_counts_eb0[command] * debug->call_overhead;
             if (time <= 0.0) {
                 time = 0.0;
             }
@@ -135,8 +135,8 @@ void srVectorProcessor::dump(std::ostream& stream)
     for (index = 0; index < used; ++index) {
         command = order[index];
         double calls = debug->call_counts_eb0[command];
-        double elements = debug->element_counts_980[command];
-        double time = debug->call_times_450[command] - calls * debug->call_overhead_448;
+        double elements = debug->element_counts[command];
+        double time = debug->call_times_450[command] - calls * debug->call_overhead;
         if (time <= 0.0) {
             time = 0.0;
         }
@@ -149,8 +149,8 @@ void srVectorProcessor::dump(std::ostream& stream)
         sprintf(cycles, "%.2f", time * frequency / elements);
         sprintf(call_text, "%d", static_cast<int>(calls));
         sprintf(element_text, "%d", static_cast<int>(elements / calls));
-        sprintf(misalignments, "%d/%d", static_cast<int>(debug->misaligned8_1148[command]),
-                static_cast<int>(debug->misaligned16_13e0[command]));
+        sprintf(misalignments, "%d/%d", static_cast<int>(debug->misaligned8[command]),
+                static_cast<int>(debug->misaligned16[command]));
         srStreamPrintf(stream, "%-8s %-8s %-8s %-9s %-12s %s\n", percent, cycles, call_text,
                        element_text, misalignments, srDebugVP::command_names[command]);
     }

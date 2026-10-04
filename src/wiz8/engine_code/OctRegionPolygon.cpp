@@ -65,16 +65,16 @@ unsigned char W8OctPreTreeGeometry::CheckArrayLength(int** run, unsigned short c
 void W8OctPreTreeGeometry::Release()
 {
     if (m_vertices != 0) {
-        int* last_faces = m_vertices[1].face_indices_44;
+        int* last_faces = m_vertices[1].face_indices;
         int* last_owned = m_vertices[1].owned_48;
         for (unsigned long index = 1; index < vertex_count_00; ++index) {
             W8OctPreTreeVertex* vertex = &m_vertices[index];
-            if (vertex->face_indices_44 != 0 && vertex->face_indices_44 != last_faces) {
+            if (vertex->face_indices != 0 && vertex->face_indices != last_faces) {
                 if (last_faces != 0) {
                     free(last_faces);
                 }
-                last_faces = vertex->face_indices_44;
-                vertex->face_indices_44 = 0;
+                last_faces = vertex->face_indices;
+                vertex->face_indices = 0;
             }
             if (vertex->owned_48 != 0 && vertex->owned_48 != last_owned) {
                 if (last_owned != 0) {
@@ -93,15 +93,15 @@ void W8OctPreTreeGeometry::Release()
         free(m_vertices);
     }
     if (m_polygons != 0) {
-        int* last_faces = m_polygons[1].face_indices_44;
+        int* last_faces = m_polygons[1].face_indices;
         for (unsigned long index = 1; index < m_polygon_count; ++index) {
             W8OctRegionPolygon* polygon = &m_polygons[index];
-            if (polygon->face_indices_44 != 0 && polygon->face_indices_44 != last_faces) {
+            if (polygon->face_indices != 0 && polygon->face_indices != last_faces) {
                 if (last_faces != 0) {
                     free(last_faces);
                 }
-                last_faces = polygon->face_indices_44;
-                polygon->face_indices_44 = 0;
+                last_faces = polygon->face_indices;
+                polygon->face_indices = 0;
             }
         }
         if (last_faces != 0) {

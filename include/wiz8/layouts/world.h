@@ -52,18 +52,18 @@ struct W8World {
     W8PList* plsProps;
     W8PList* plsCameras;
     W8PList* plsAmbientSounds;
-    float environment_range_start_014;
-    float environment_range_end_018;
+    float environment_range_start;
+    float environment_range_end;
     /* Third serialized environment channel (loaded from
        environment_colour.blue like the start/end fractions); no recovered
        consumer reads it. */
-    float environment_range_blue_01c;
+    float environment_range_blue;
     float view_distance_020;
-    float environment_intensity_024;
-    /* Snapshot of environment_intensity_024 taken when a fade-out starts; the
+    float environment_intensity;
+    /* Snapshot of environment_intensity taken when a fade-out starts; the
        lighting transition multiplies g_light_scale by this base. */
-    float environment_base_intensity_028;
-    EnvironmentColour environment_colour_02c;
+    float environment_base_intensity;
+    EnvironmentColour environment_colour;
     stLevel* level;
     srScene* static_scene;
     srNode* dynamic_scene;

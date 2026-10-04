@@ -15,7 +15,7 @@ srDebugVP::srDebugVP(srVP* processor)
     for (iteration = 0; iteration < 0x2710; ++iteration) {
         ScopeTimer scope(this, 0, 0, 0, 0, 0, 0);
     }
-    call_overhead_448 = call_times_450[0] * 0.0001;
+    call_overhead = call_times_450[0] * 0.0001;
     resetInternalStatistics();
     command_names[0] = "dummy command";
     command_names[1] = "_memcmp  (const void* src0, const void* src1,  const SRDWORD bytes)";
@@ -296,9 +296,9 @@ void srDebugVP::resetInternalStatistics()
     for (command = 0; command < 0xa6; ++command) {
         call_times_450[command] = 0.0;
         call_counts_eb0[command] = 0;
-        element_counts_980[command] = 0.0;
-        misaligned8_1148[command] = 0;
-        misaligned16_13e0[command] = 0;
+        element_counts[command] = 0.0;
+        misaligned8[command] = 0;
+        misaligned16[command] = 0;
     }
 }
 
@@ -319,10 +319,10 @@ srDebugVP::ScopeTimer::ScopeTimer(srDebugVP* owner, SRDWORD elements, int index,
                              reinterpret_cast<unsigned long>(pointer_2) |
                              reinterpret_cast<unsigned long>(pointer_3);
         if ((mask & 7) != 0) {
-            ++owner->misaligned8_1148[index];
+            ++owner->misaligned8[index];
         }
         if ((mask & 0xf) != 0) {
-            ++owner->misaligned16_13e0[index];
+            ++owner->misaligned16[index];
         }
     }
     start_10 = srCore.getTimer()->getTime(srTimer::TIMER_READ_DEFAULT);
@@ -334,7 +334,7 @@ srDebugVP::ScopeTimer::~ScopeTimer()
     owner_04->call_times_450[index_08] +=
         srCore.getTimer()->getTime(srTimer::TIMER_READ_DEFAULT) - start_10;
     ++owner_04->call_counts_eb0[index_08];
-    owner_04->element_counts_980[index_08] += elements_00;
+    owner_04->element_counts[index_08] += elements_00;
 }
 
 // FUNCTION: SURRENDER 0x1006A3C0

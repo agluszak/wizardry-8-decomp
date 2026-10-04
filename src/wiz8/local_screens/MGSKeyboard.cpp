@@ -570,7 +570,7 @@ void DispatchMGSCommand(int command)
             gXStatus.fItemSelectMode != 0) {
             break;
         }
-        if (g_combat_state->execution_active_000 == 0) {
+        if (g_combat_state->execution_active == 0) {
             BeginCombatExecution();
         } else if (gXStatus.fPartyMovementUi != 0 && CanPartyMove() == 0 &&
                    GetLevelDataFlag6() == 0) {
@@ -647,7 +647,7 @@ void DispatchMGSCommand(int command)
         ScrollTextBoxDown(1);
         break;
     case W8_MGS_COMMAND_DEBUG_TOGGLE_FLAG_271:
-        g_level_block->text_box_visible_271 ^= 1;
+        g_level_block->text_box_visible ^= 1;
         RequestRedraw(0x800);
         break;
     case W8_MGS_COMMAND_DEBUG_MONSTER_SCRIPT:
@@ -720,7 +720,7 @@ void CloseKeyboardMenu(void)
     g_level_block->keyboard_menu_open = 0;
     g_level_block->combat_slot = -1;
     g_level_block->hover_combat_slot = g_selected_party_slot;
-    g_level_block->cursor_grace_31c = 0;
+    g_level_block->cursor_grace = 0;
     RefreshPartySlotRegions();
     if (gXStatus.fCombatMode != 0) {
         EnableMainRegionSet();

@@ -27,7 +27,7 @@ void srGlobalRecycler::releaseAllUnused()
 {
     RecyclerAccess access(&critical_section_8c.critical_section_00);
     for (unsigned long index = 0; index < 16; ++index) {
-        if ((used_mask_80 & (1UL << index)) == 0) {
+        if ((used_mask & (1UL << index)) == 0) {
             freeEntry(index);
         }
     }
@@ -38,10 +38,10 @@ void srGlobalRecycler::setLimit(unsigned long limit)
 {
     RecyclerAccess access(&critical_section_8c.critical_section_00);
     for (unsigned long index = 0; index < 16; ++index) {
-        if (cached_bytes_84 <= limit) {
+        if (cached_bytes <= limit) {
             break;
         }
-        if ((used_mask_80 & (1UL << index)) == 0) {
+        if ((used_mask & (1UL << index)) == 0) {
             freeEntry(index);
         }
     }
@@ -62,24 +62,24 @@ void srGlobalRecycler::freeEntry(unsigned long index)
     void* allocation = entries_00[index].allocation;
     if (allocation != 0) {
         srHeap.free(allocation);
-        cached_bytes_84 -= entries_00[index].size;
+        cached_bytes -= entries_00[index].size;
         entries_00[index].allocation = 0;
         entries_00[index].size = 0;
-        used_mask_80 &= ~(1UL << index);
+        used_mask &= ~(1UL << index);
     }
 }
 
 // FUNCTION: SURRENDER 0x100356A0
 srGlobalRecycler::srGlobalRecycler()
 {
-    used_mask_80 = 0;
+    used_mask = 0;
     InitializeCriticalSection(&critical_section_8c.critical_section_00);
     for (unsigned long index = 0; index < 16; ++index) {
         entries_00[index].allocation = 0;
         entries_00[index].size = 0;
     }
-    used_mask_80 = 0;
-    cached_bytes_84 = 0;
+    used_mask = 0;
+    cached_bytes = 0;
     limit_88 = 0x100000;
 }
 
@@ -101,14 +101,14 @@ void* srGlobalRecycler::allocate(unsigned long size)
         return AllocateRecyclerStorage(size);
     }
     RecyclerAccess access(&critical_section_8c.critical_section_00);
-    if ((used_mask_80 & 0xffff) != 0xffff) {
+    if ((used_mask & 0xffff) != 0xffff) {
         const unsigned long rounded = (size + 0x3ff) & ~0x3ffUL;
         long best_fit = -1;
         long smallest = -1;
         unsigned long fit_size = ~0UL;
         unsigned long small_size = ~0UL;
         for (unsigned long index = 0; index < 16; ++index) {
-            if ((used_mask_80 & (1UL << index)) == 0) {
+            if ((used_mask & (1UL << index)) == 0) {
                 unsigned long entry_size = entries_00[index].size;
                 if (entry_size < small_size) {
                     smallest = (long)index;
@@ -121,16 +121,16 @@ void* srGlobalRecycler::allocate(unsigned long size)
             }
         }
         if (best_fit != -1) {
-            used_mask_80 |= 1UL << best_fit;
+            used_mask |= 1UL << best_fit;
             return entries_00[best_fit].allocation;
         }
         freeEntry(smallest);
-        if (rounded + cached_bytes_84 <= limit_88) {
+        if (rounded + cached_bytes <= limit_88) {
             void* allocation = AllocateRecyclerStorage(rounded);
             entries_00[smallest].allocation = allocation;
             entries_00[smallest].size = rounded;
-            cached_bytes_84 += rounded;
-            used_mask_80 |= 1UL << smallest;
+            cached_bytes += rounded;
+            used_mask |= 1UL << smallest;
             return entries_00[smallest].allocation;
         }
     }
@@ -144,7 +144,7 @@ void srGlobalRecycler::free(void* allocation)
         RecyclerAccess access(&critical_section_8c.critical_section_00);
         for (unsigned long index = 0; index < 16; ++index) {
             if (entries_00[index].allocation == allocation) {
-                used_mask_80 &= ~(1UL << index);
+                used_mask &= ~(1UL << index);
                 return;
             }
         }

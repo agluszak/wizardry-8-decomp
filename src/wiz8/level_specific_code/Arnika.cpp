@@ -1113,7 +1113,7 @@ int ArnikaPedestalItem(int* previous_item)
         CreateLocationVar("PedestalItem", -1);
         previous = 0x244;
         if (item == -1) {
-            ReplaceOrCreateItem(&g_status.item_in_hand_235b, previous, 0, 0, 0);
+            ReplaceOrCreateItem(&g_status.item_in_hand, previous, 0, 0, 0);
         }
     } else {
         previous = GetLocationVarValueByName("PedestalItem");
@@ -1122,7 +1122,7 @@ int ArnikaPedestalItem(int* previous_item)
                 return -2;
             }
         } else if (item == -1) {
-            ReplaceOrCreateItem(&g_status.item_in_hand_235b, previous, 0, 0, 0);
+            ReplaceOrCreateItem(&g_status.item_in_hand, previous, 0, 0, 0);
         }
     }
     SetItemCursor(0);
@@ -1131,7 +1131,7 @@ int ArnikaPedestalItem(int* previous_item)
         info = GetNpcMonsterInfo(npc);
         if (info != 0) {
             position = info->p3D->movement_0c0.position_040;
-            position.y += info->p3D->movement_0c0.height_offset_0b8;
+            position.y += info->p3D->movement_0c0.height_offset;
             g_gd_camera->LookAt(&position, 0);
         }
         QueueNpcScriptNotice(npc, 0, 8, 0, 0);
@@ -1179,7 +1179,7 @@ bool ArnikaFlightRecorder(Trigger* pTrigger)
     npc = GetNpcStateByKind(0x14);
     item = 0;
     if (g_status.item_in_cursor != 0) {
-        item = &g_status.item_in_hand_235b;
+        item = &g_status.item_in_hand;
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);
     return false;

@@ -56,7 +56,7 @@ private:
     int m_font;                                       /* 0x10 */
     int m_first_visible_entry;                        /* 0x14 */
     int m_first_visible_line;                         /* 0x18 */
-    W8Vector<W8DialogTextEntry*> m_all_lines_01c;     /* owns entries */
+    W8Vector<W8DialogTextEntry*> m_all_lines;     /* owns entries */
     W8Vector<W8DialogTextEntry*> m_visible_lines_02c; /* non-owning view */
     bool m_layout_initialized;                        /* 0x3c */
 public:
@@ -64,7 +64,7 @@ public:
        contained button and scrollbar. */
     bool m_dirty; /* 0x3d */
 private:
-    bool selection_dirty_03e; /* repaint after a selection change */
+    bool selection_dirty; /* repaint after a selection change */
     unsigned char unknown_03f;
     int m_entry_spacing;             /* 0x40 */
     int m_behavior_flags;            /* 0x44 */

@@ -35,11 +35,11 @@ public:
     virtual SR_DLL_IMPORT ~srIlluminator() override;
 #endif
 
-    unsigned long group_mask_13c;       /* 0x13c */
+    unsigned long group_mask;       /* 0x13c */
     srVector3T<float> eye_location_140; /* 0x140 */
 };
 
 static_assert((sizeof(srIlluminator) == 0x150), "srIlluminator_must_be_0x150");
 /* The secondary srVertexProcessor subobject sits at +0x138 (retail secondary
    vftable); the group's own members begin at +0x13c. */
-W8_ASSERT_BASE_END(srIlluminator, srVertexProcessor, group_mask_13c, 0x138);
+W8_ASSERT_BASE_END(srIlluminator, srVertexProcessor, group_mask, 0x138);

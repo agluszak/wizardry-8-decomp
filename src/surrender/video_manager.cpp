@@ -7,7 +7,7 @@ srVideoManager::Stream::Stream(const char* path)
 {
     loaded_04 = 0;
     parameter_08 = 0;
-    reset_pending_10 = 1;
+    reset_pending = 1;
     clamp_14 = 0;
     index_0c = 0;
     position_18 = 0;

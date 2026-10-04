@@ -79,7 +79,7 @@ public:
     bool fixed_transform;
     float scale_1e8;
     int location_id_1ec;
-    int effect_value_1f0; /* 0x1f0: spawn `value` payload */
+    int effect_value; /* 0x1f0: spawn `value` payload */
     int flags_1f4;        /* 0x1f4 */
 };
 

@@ -30,18 +30,18 @@ void srModel::Client::setModel(srModel* model)
             if (next_0c != 0) {
                 next_0c->previous_08 = previous_08;
             }
-            if (this == old->first_client_18) {
-                old->first_client_18 = next_0c;
+            if (this == old->first_client) {
+                old->first_client = next_0c;
             }
         }
         model_04 = model;
         if (model != 0) {
             previous_08 = 0;
-            next_0c = model->first_client_18;
+            next_0c = model->first_client;
             if (next_0c != 0) {
                 next_0c->previous_08 = this;
             }
-            model->first_client_18 = this;
+            model->first_client = this;
         }
     }
 }
@@ -70,7 +70,7 @@ srModel::Client* srModel::Client::getPrevClient() const
 // FUNCTION: SURRENDER 0x1003C520
 srModel::srModel()
 {
-    first_client_18 = 0;
+    first_client = 0;
 }
 
 // FUNCTION: SURRENDER 0x1003C500
@@ -91,9 +91,9 @@ void srModel::dump(std::ostream& stream)
     srClass::dump(stream);
     long flags = stream.flags();
     stream.flags((flags & 0xfffffe7fL) | 0x40);
-    if (first_client_18 != 0) {
+    if (first_client != 0) {
         stream.width(0x20);
-        stream << "  First client: " << first_client_18 << '\n';
+        stream << "  First client: " << first_client << '\n';
     }
     stream.flags(flags & 0x7fff);
 }
@@ -101,7 +101,7 @@ void srModel::dump(std::ostream& stream)
 // FUNCTION: SURRENDER 0x1003C440
 void srModel::updateAllClients(Client::e_update update)
 {
-    for (Client* client = first_client_18; client != 0; client = client->next_0c) {
+    for (Client* client = first_client; client != 0; client = client->next_0c) {
         client->updateClient(update);
     }
 }
@@ -109,5 +109,5 @@ void srModel::updateAllClients(Client::e_update update)
 // FUNCTION: SURRENDER 0x1003C700
 srModel::Client* srModel::getFirstClient() const
 {
-    return first_client_18;
+    return first_client;
 }

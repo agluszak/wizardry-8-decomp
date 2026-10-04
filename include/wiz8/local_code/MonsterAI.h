@@ -19,7 +19,7 @@ unsigned char GetMonsterGroupPartySightState(W8MonsterGroup* monster_group); /* 
    "DoMonsterRTAI: ERROR - Invalid disposition" assertion. */
 void DoMonsterRTAI(W8MonsterInfo* monster_info, bool engage); /* 0x00530560 */
 /* The orders-driven half of DoMonsterRTAI: investigate a fresh heard noise or
-   let the monster's scripted order_mode_28e pick the next mode. `decision`
+   let the monster's scripted order_mode pick the next mode. `decision`
    receives the mode; nonzero return means applying it is worthwhile. */
 char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision);   /* 0x005308C0 */
 void ApplyMonsterRTAIDecision(W8MonsterInfo* monster_info, unsigned char decision); /* 0x00530F10 */
