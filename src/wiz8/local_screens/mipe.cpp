@@ -733,8 +733,7 @@ unsigned char HandleMipeMonsterCreateKey(unsigned short key)
             static_cast<unsigned int>(static_cast<unsigned short>(record.record_id_187)),
             static_cast<unsigned int>(g_mipe_count), &anchor, 1, 1, 1);
         if (monster_group == 0) {
-            g_mipe_count = reinterpret_cast<int>(
-                monster_group); /* reinterpret-ok: retail stores the null group pointer as the count sentinel */
+            g_mipe_count = 0;
             return 1;
         }
         formation = anchor;

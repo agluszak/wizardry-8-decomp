@@ -398,11 +398,11 @@ public:
        argmin-key fallback nodes, and returns the reached endpoint or zero.
        Retail names it in the "Too many links" assert. */
     /* Depth-first link search from `waypoint` toward the target stored in
-       patrol_start_1ec by LinkAttachmentTarget: collects admissible
+       m_patrol_start by LinkAttachmentTarget: collects admissible
        edge destinations (filtered like FindPath), prices each by accumulated
        link cost plus distance-to-target, sorts by that key, then returns the
-       first candidate beyond patrol_distance_1e8 or the first nonzero
-       recursive result. probe_cell_key_078 tracks the farthest candidate. */
+       first candidate beyond m_patrol_distance or the first nonzero
+       recursive result. m_probe_cell_key tracks the farthest candidate. */
     unsigned short RecurseTargetLinks(unsigned short waypoint); /* 0x004615D0 */
     unsigned short RecursePatrolLinks(unsigned short waypoint);
     float MeasureDirectionalPath(const int* cell, int direction, unsigned int height,
@@ -451,12 +451,12 @@ public:
     /* PrePathing's CreatePathNodeArray counts edge nodes here starting from
        one, and WriteOctFile serializes it beside the node count. */
     int edge_node_count_008;
-    /* ReadOctFile tests this beside waypoint_editing_1c8 before settling a portal. */
+    /* ReadOctFile tests this beside m_waypoint_editing before settling a portal. */
     unsigned int m_ulNumWayPoints;  /* 0x0c */
     unsigned int m_ulNumWayPtLinks; /* 0x10 */
     int m_unknown_014;
     /* Incremented for each edge removed by the waypoint editor; never read. */
-    int m_removed_edge_count_018;
+    int m_removed_edge_count;
     /* The grid divisor both linking walks divide by. */
     float grid_scale_01c; /* 0x1c */
     float span_020;       /* 0x20 */
@@ -473,49 +473,49 @@ public:
     unsigned int* path_nodes_044; /* 0x44: serialized key/value pairs */
     /* Surfaces are 0x28 bytes apart, edges 0xe; an edge names two surfaces by
        index in its two shorts at +4 and +6. */
-    W8PathSurface* m_pSurfaces_048;        /* 0x48 */
-    W8PathEdge* m_pEdges_04c;              /* 0x4c */
+    W8PathSurface* m_pSurfaces;        /* 0x48 */
+    W8PathEdge* m_pEdges;              /* 0x4c */
     W8FileWaypoint* m_pFileWayPoints;      /* 0x50 */
     stModelInstance* m_pPathModelInstance; /* 0x54 */
-    BitArray* visible_waypoints_058;       /* 0x58 */
-    BitArray* rendered_waypoints_05c;      /* 0x5c */
-    BitArray* collected_waypoints_060;     /* 0x60 */
+    BitArray* m_visible_waypoints;       /* 0x58 */
+    BitArray* m_rendered_waypoints;      /* 0x5c */
+    BitArray* m_collected_waypoints;     /* 0x60 */
     /* Two hash indexes the loader builds and 0x00457B10 destroys. The path
        value words are bitfields (height in the low half, state flags in the
        high bits), so 0x64 takes unsigned values; 0x74 is the visited-cell set
        and keeps the signed value the octree registry also instantiates. The
        template only copies and compares values, so the two instantiations are
        body-equivalent and retail's linker folds them. */
-    W8HashTable<unsigned int, unsigned int>* m_pPathValues_064; /* 0x64 */
+    W8HashTable<unsigned int, unsigned int>* m_pPathValues; /* 0x64 */
     const char* level_name;                                     /* 0x68 */
     W8PathHeapHandle* path_heap_06c;                            /* 0x6c */
-    float path_cost_limit_070;                                  /* 0x70: starts 1.0e10f */
-    W8HashTable<unsigned int, int>* m_pVisitedCells_074;        /* 0x74 */
-    unsigned int probe_cell_key_078;                            /* 0x78 */
-    srVector3T<float> probe_position_07c;                       /* 0x7c */
-    unsigned int probe_limit_088;                               /* 0x88 */
-    bool probe_bounded_08c;                                     /* 0x8c */
+    float m_path_cost_limit;                                  /* 0x70: starts 1.0e10f */
+    W8HashTable<unsigned int, int>* m_pVisitedCells;        /* 0x74 */
+    unsigned int m_probe_cell_key;                            /* 0x78 */
+    srVector3T<float> m_probe_position;                       /* 0x7c */
+    unsigned int m_probe_limit;                               /* 0x88 */
+    bool m_probe_bounded;                                     /* 0x8c */
     unsigned char m_padding_08d[3];
     unsigned int planner_location_090;
-    unsigned int path_candidate_count_094;
-    unsigned long* path_candidates_098;
+    unsigned int m_path_candidate_count;
+    unsigned long* m_path_candidates;
     bool explicit_target_09c; /* 0x9c */
     unsigned char m_padding_09d[3];
-    unsigned int waypoint_neighbor_mask_0a0; /* 0xa0 */
-    bool trace_configured_0a4;               /* 0xa4 */
+    unsigned int m_waypoint_neighbor_mask; /* 0xa0 */
+    bool m_trace_configured;               /* 0xa4 */
     unsigned char m_padding_0a5[3];
-    float trace_max_distance_0a8;
+    float m_trace_max_distance;
     srVector3T<float> trace_offset_0ac;
-    int trace_mode_0b8;
+    int m_trace_mode;
     float trace_height_offset_0bc;
-    int trace_target_location_0c0;
-    float trace_target_yaw_0c4;
-    W8PathSearchNode* m_owned_0c8; /* 0xc8 */
-    unsigned int search_node_count_0cc;
-    unsigned int search_node_capacity_0d0;
-    unsigned int path_probe_count_0d4;
-    W8PathProbeVolume path_probes_0d8[10];
-    bool waypoint_editing_1c8; /* 0x1c8 */
+    int m_trace_target_location;
+    float m_trace_target_yaw;
+    W8PathSearchNode* m_search_nodes; /* 0xc8 */
+    unsigned int m_search_node_count;
+    unsigned int m_search_node_capacity;
+    unsigned int m_path_probe_count;
+    W8PathProbeVolume m_path_probes[10];
+    bool m_waypoint_editing; /* 0x1c8 */
     bool flag_1c9;
     bool flag_1ca;
     bool search_visualization_1cb;
@@ -533,16 +533,16 @@ public:
        min/max start-to-destination range, the randomized target path cost,
        the start and destination positions, and the best alternate
        candidate's cost. */
-    unsigned int patrol_node_1dc;
-    float patrol_min_1e0;
-    float patrol_max_1e4;
-    float patrol_distance_1e8;
-    srVector3T<float> patrol_start_1ec;
-    srVector3T<float> patrol_destination_1f8;
+    unsigned int m_patrol_node;
+    float m_patrol_min;
+    float m_patrol_max;
+    float m_patrol_distance;
+    srVector3T<float> m_patrol_start;
+    srVector3T<float> m_patrol_destination;
     unsigned char m_padding_204[0x0c];
-    float patrol_cost_210;
-    W8PathParameters* path_parameters_214; /* 0x214 */
-    W8NavigatorAttachment* linked_attachment_218;
+    float m_patrol_cost;
+    W8PathParameters* m_path_parameters; /* 0x214 */
+    W8NavigatorAttachment* m_linked_attachment;
     /* The conditional path tables. ReadPathNodes at 0x00458CE0 asserts on the
        first by name and names the other four in its own failure messages: a
        lookup, a frame, a key and a value array, sized from the two counts.

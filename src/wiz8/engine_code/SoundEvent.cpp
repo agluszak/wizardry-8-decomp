@@ -181,7 +181,7 @@ unsigned char W8SoundEvent::Play(unsigned int mask, const srVector3T<float>* pos
         srMatrix3T<float> rotation;
 
         rotation.SetIdentity();
-        if (angle != g_zero_005ebb40) {
+        if (angle != g_double_zero) {
             rotation.RotateAboutY(sin(angle), cos(angle));
         }
 
@@ -194,7 +194,7 @@ unsigned char W8SoundEvent::Play(unsigned int mask, const srVector3T<float>* pos
 
         memset(&options, 0xff, sizeof(options));
         unsigned int event_volume = static_cast<unsigned int>(
-            (g_float_005ebb38 - camera_offset.Length() / falloff) * base_volume);
+            (g_float_one - camera_offset.Length() / falloff) * base_volume);
         event_volume = (GetSoundEffectsVolume() * event_volume) / 0x7f;
         if (event_volume != 0) {
             options.uiVolume = event_volume;
@@ -209,7 +209,7 @@ unsigned char W8SoundEvent::Play(unsigned int mask, const srVector3T<float>* pos
             options.Pos.flFaceY = -y;
             options.Pos.flFaceZ = -z;
             options.Pos.flUpX = 0.0f;
-            options.Pos.flUpY = g_float_005ebb38;
+            options.Pos.flUpY = g_float_one;
             options.Pos.flUpZ = 0.0f;
             options.Pos.flFalloffMin = falloff;
             options.Pos.flFalloffMax = falloff;

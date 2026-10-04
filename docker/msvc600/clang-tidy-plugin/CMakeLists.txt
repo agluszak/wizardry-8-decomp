@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(wiz8_clang_tidy_plugin LANGUAGES CXX)
+project(wiz8_clang_tidy_plugin LANGUAGES C CXX)
 
 find_package(LLVM REQUIRED CONFIG)
 find_package(Clang REQUIRED CONFIG)

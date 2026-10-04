@@ -116,17 +116,17 @@ void MonsterLight::Update(const srVector3T<float>* position)
 
     if (m_fade_out_249 != 0) {
         float fade = elapsed * g_float_005ebc3c;
-        if (fade > g_float_005ebb38) {
-            fade = g_float_005ebb38;
+        if (fade > g_float_one) {
+            fade = g_float_one;
         }
-        intensity_1d0 = g_float_005ebb38 - fade;
+        intensity_1d0 = g_float_one - fade;
     } else if (m_cycle_color_248 != 0) {
         float cycle = elapsed * g_monster_light_cycle_rate;
         double whole = floor(cycle);
         float first_weight =
-            static_cast<float>(sin((cycle - whole) * g_double_005ec318) + g_float_005ebb38) *
+            static_cast<float>(sin((cycle - whole) * g_double_005ec318) + g_float_one) *
             g_float_005ebc7c;
-        float second_weight = g_float_005ebb38 - first_weight;
+        float second_weight = g_float_one - first_weight;
 
         diffuse_1a4.x = m_color_first_22c.x * first_weight + m_color_second_238.x * second_weight;
         diffuse_1a4.y = m_color_first_22c.y * first_weight + m_color_second_238.y * second_weight;

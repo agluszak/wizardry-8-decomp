@@ -1114,7 +1114,7 @@ static RuntimeWorldRenderData ObserveWorldRenderState()
                  (g_render_mesh_sky ? 16UL : 0UL) | (g_world_pick_enabled ? 32UL : 0UL);
     data.scene_children = g_world->static_scene->getChildCount();
     if (g_world->octree != 0 && g_world->psrMeshes != 0) {
-        for (unsigned long index = 0; index < g_world->octree->m_meshCount_1b4; ++index) {
+        for (unsigned long index = 0; index < g_world->octree->m_meshCount; ++index) {
             srModelInstance* instance = g_world->psrMeshes[index];
             if (instance != 0 && !instance->testFlag(srNode::FLAG_DISABLE)) {
                 ++data.visible_meshes;
@@ -1543,11 +1543,11 @@ stModelInstance2D* CreateSpriteFromTexture(srTextureIFace* texture, double width
     model->autoRelease();
     model->setName("Video2DMakePolygonBrush");
 
-    float step = g_surface_scale * (g_float_005ebb38 / w);
+    float step = g_surface_scale * (g_float_one / w);
     g_modeler->createGrid(1, 1);
     srModeler::MappingInfo mapping(srModeler::AXIS_X, srModeler::AXIS_Y,
-                                   g_float_005ebb38 - (step + step),
-                                   g_float_005ebb38 - (step + step), step, step);
+                                   g_float_one - (step + step), g_float_one - (step + step), step,
+                                   step);
     g_modeler->planarMap(0, 0, mapping);
     scale.Set(static_cast<float>(width), static_cast<float>(height), 1.0f);
     g_modeler->scale(scale);
@@ -3701,15 +3701,14 @@ srNode* MakePosterQuad(srTextureIFace* texture, float width, float height, bool 
     if (model == 0) {
         return 0;
     }
-    float extent_w = g_float_005ebb38 / dimensions.width * g_surface_scale;
-    float extent_h = g_float_005ebb38 / dimensions.height * g_surface_scale;
+    float extent_w = g_float_one / dimensions.width * g_surface_scale;
+    float extent_h = g_float_one / dimensions.height * g_surface_scale;
     model->autoRelease();
     model->setName("VideoMakePoster");
     texture->getDimensions(dimensions);
     g_modeler->createGrid(1, 1);
-    srModeler::MappingInfo mapping(srModeler::AXIS_X, srModeler::AXIS_Y,
-                                   g_float_005ebb38 - extent_w, g_float_005ebb38 - extent_h,
-                                   extent_w, extent_h);
+    srModeler::MappingInfo mapping(srModeler::AXIS_X, srModeler::AXIS_Y, g_float_one - extent_w,
+                                   g_float_one - extent_h, extent_w, extent_h);
     g_modeler->planarMap(0, 0, mapping);
     srVector3T<float> scale;
     scale.Set(width, height, 1.0f);

@@ -199,7 +199,7 @@ void stSurface2D::DrawTiles(srGERD* renderer)
 void stSurface2D::setScale(float new_scale)
 {
     float* coordinate = coordinates;
-    float factor = g_float_005ebb38 / tile_size;
+    float factor = g_float_one / tile_size;
     float delta = (new_scale - scale) * factor;
     int row;
     int column;

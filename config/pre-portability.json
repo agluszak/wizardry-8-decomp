@@ -1,0 +1,668 @@
+{
+  "schema": "wiz8.pre-portability-v1",
+  "layouts": [
+    {
+      "record": "W8MonsterAttack",
+      "source_file": "include/wiz8/layouts/gameplay_databases.h",
+      "classification": "disk-format",
+      "reference": "docs/wiz8-data-formats.md",
+      "reason": "Canonical fixed-stride database record or embedded database representation; preserve packed widths and 16-bit text."
+    },
+    {
+      "record": "W8SpellRuntimeRecord",
+      "source_file": "include/wiz8/layouts/gameplay_databases.h",
+      "classification": "disk-format",
+      "reference": "docs/wiz8-data-formats.md",
+      "reason": "Canonical fixed-stride database record or embedded database representation; preserve packed widths and 16-bit text."
+    },
+    {
+      "record": "W8FactDatabaseRecord",
+      "source_file": "include/wiz8/layouts/gameplay_databases.h",
+      "classification": "disk-format",
+      "reference": "docs/wiz8-data-formats.md",
+      "reason": "Canonical fixed-stride database record or embedded database representation; preserve packed widths and 16-bit text."
+    },
+    {
+      "record": "W8NpcItemStockRule",
+      "source_file": "include/wiz8/layouts/gameplay_databases.h",
+      "classification": "disk-format",
+      "reference": "docs/wiz8-data-formats.md",
+      "reason": "Canonical fixed-stride database record or embedded database representation; preserve packed widths and 16-bit text."
+    },
+    {
+      "record": "W8NpcCharacterTemplate",
+      "source_file": "include/wiz8/layouts/gameplay_databases.h",
+      "classification": "disk-format",
+      "reference": "docs/wiz8-data-formats.md",
+      "reason": "Canonical fixed-stride database record or embedded database representation; preserve packed widths and 16-bit text."
+    },
+    {
+      "record": "W8LevelDatabaseRecord",
+      "source_file": "include/wiz8/layouts/gameplay_databases.h",
+      "classification": "disk-format",
+      "reference": "docs/wiz8-data-formats.md",
+      "reason": "Canonical fixed-stride database record or embedded database representation; preserve packed widths and 16-bit text."
+    },
+    {
+      "record": "W8MonsterTreasureEntry",
+      "source_file": "include/wiz8/layouts/gameplay_databases.h",
+      "classification": "disk-format",
+      "reference": "docs/wiz8-data-formats.md",
+      "reason": "Canonical fixed-stride database record or embedded database representation; preserve packed widths and 16-bit text."
+    },
+    {
+      "record": "W8MonsterTreasureBlock",
+      "source_file": "include/wiz8/layouts/gameplay_databases.h",
+      "classification": "disk-format",
+      "reference": "docs/wiz8-data-formats.md",
+      "reason": "Canonical fixed-stride database record or embedded database representation; preserve packed widths and 16-bit text."
+    },
+    {
+      "record": "W8EncounterCompanionRecord",
+      "source_file": "include/wiz8/layouts/gameplay_databases.h",
+      "classification": "disk-format",
+      "reference": "docs/wiz8-data-formats.md",
+      "reason": "Canonical fixed-stride database record or embedded database representation; preserve packed widths and 16-bit text."
+    },
+    {
+      "record": "W8MonsterRecord",
+      "source_file": "include/wiz8/layouts/gameplay_databases.h",
+      "classification": "disk-format",
+      "reference": "docs/wiz8-data-formats.md",
+      "reason": "Canonical fixed-stride database record or embedded database representation; preserve packed widths and 16-bit text."
+    },
+    {
+      "record": "W8NpcDatabaseRecord",
+      "source_file": "include/wiz8/layouts/gameplay_databases.h",
+      "classification": "mixed",
+      "reference": "src/wiz8/local_code/GameplayDatabase.cpp",
+      "reason": "NPC database storage contains the live item_stock_rules pointer; InitializeNpcDatabase constructs it and DestroyNpcDatabase destroys it."
+    },
+    {
+      "record": "W8ItemTableEntry",
+      "source_file": "include/wiz8/layouts/item_tables.h",
+      "classification": "disk-format",
+      "reference": "docs/wiz8-data-formats.md",
+      "reason": "Packed item database representation read at the canonical record stride."
+    },
+    {
+      "record": "W8ItemTableRecord",
+      "source_file": "include/wiz8/layouts/item_tables.h",
+      "classification": "disk-format",
+      "reference": "docs/wiz8-data-formats.md",
+      "reason": "Packed item database representation read at the canonical record stride."
+    },
+    {
+      "record": "W8ItemDatabaseRecord",
+      "source_file": "include/wiz8/layouts/item_tables.h",
+      "classification": "disk-format",
+      "reference": "docs/wiz8-data-formats.md",
+      "reason": "Packed item database representation read at the canonical record stride."
+    },
+    {
+      "record": "W8EncounterTableDiskHeader",
+      "source_file": "include/wiz8/layouts/encounter_tables.h",
+      "classification": "disk-format",
+      "reference": "docs/wiz8-data-formats.md",
+      "reason": "Fixed encounter header preceding parallel variable arrays."
+    },
+    {
+      "record": "W8SaveScreenshot",
+      "source_file": "include/wiz8/local_code/LoadSaveGame.h",
+      "classification": "disk-format",
+      "reference": "src/wiz8/local_code/LoadSaveGame.cpp",
+      "reason": "SHOT payload is written as the complete screenshot record."
+    },
+    {
+      "record": "W8SaveSlot",
+      "source_file": "include/wiz8/local_code/LoadSaveGame.h",
+      "classification": "mixed",
+      "reference": "include/wiz8/local_code/LoadSaveGame.h",
+      "reason": "Runtime save-list entry embeds the disk SHOT payload alongside Windows file timestamps; the whole slot is not a disk record."
+    },
+    {
+      "record": "W8StatusHeader",
+      "source_file": "src/wiz8/local_code/LoadSaveGame.cpp",
+      "classification": "disk-format",
+      "reference": "src/wiz8/local_code/LoadSaveGame.cpp",
+      "reason": "LoadStatusHeader and SaveStatusHeader transfer the complete fixed header."
+    },
+    {
+      "record": "W8Chunk",
+      "source_file": "include/wiz8/chunk.h",
+      "classification": "runtime-only",
+      "reference": "include/wiz8/chunk.h",
+      "reason": "Live file-navigation state; chunk parsing does not make this object a raw disk record."
+    },
+    {
+      "record": "W8ChunkHead",
+      "source_file": "include/wiz8/chunk.h",
+      "classification": "mixed",
+      "reference": "src/wiz8/local_code/chunk.cpp",
+      "reason": "Runtime header is 12 bytes, but OpenChunk serializes its four fields separately as 4+1+1+4 bytes; runtime padding is excluded from the disk representation."
+    },
+    {
+      "record": "BINK",
+      "source_file": "include/bink.h",
+      "classification": "external ABI",
+      "reference": "include/bink.h",
+      "reason": "Published Bink SDK prefix consumed across the middleware boundary."
+    },
+    {
+      "record": "BINKRECT",
+      "source_file": "include/bink.h",
+      "classification": "external ABI",
+      "reference": "include/bink.h",
+      "reason": "Published Bink SDK prefix consumed across the middleware boundary."
+    },
+    {
+      "record": "srCriticalSection",
+      "source_file": "include/surrender/srCriticalSection.h",
+      "classification": "external ABI",
+      "reference": "docs/libraries/surrender-abi.md",
+      "reason": "Provider/consumer class ABI, including native Windows or virtual-object representation."
+    },
+    {
+      "record": "srBinStream",
+      "source_file": "include/surrender/srBinStream.h",
+      "classification": "external ABI",
+      "reference": "docs/libraries/surrender-abi.md",
+      "reason": "Provider/consumer class ABI, including native Windows or virtual-object representation."
+    },
+    {
+      "record": "W8LevelFilePathNode",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "disk-format",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "ReadPathAIFile and WritePathAIFile transfer complete 28-byte position/axis-angle keyframes."
+    },
+    {
+      "record": "W8LevelFileScaledPathNode",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "disk-format",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Scaled path keyframes append a 12-byte scale to the 28-byte path keyframe."
+    },
+    {
+      "record": "W8LevelFileCompressedFace",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "disk-format",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "ReadMeshFile and WriteMeshFile transfer complete packed 33-byte compressed faces."
+    },
+    {
+      "record": "W8LevelFileLightExtra",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "disk-format",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "The serialized 60-byte light payload excludes the runtime light vtable and type prefix."
+    },
+    {
+      "record": "W8LevelFileItemRecord",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "disk-format",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "ReadLevelFile and WriteLevelFile transfer complete 68-byte item records."
+    },
+    {
+      "record": "W8LevelFilePlane",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "disk-format",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Trigger readers and writers transfer four position vectors as a 48-byte plane payload."
+    },
+    {
+      "record": "W8LevelFileBounds",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "disk-format",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "ReadAnimObjFile and WriteAnimObjFile transfer complete 24-byte minimum/maximum pairs."
+    },
+    {
+      "record": "W8LevelFilePathAI",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "mixed",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Versioned path header and counts are serialized separately; the two path-array pointers are live malloc-backed storage."
+    },
+    {
+      "record": "W8LevelFileMesh",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "mixed",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Versioned mesh fields exclude padding and pointers. Position/face arrays are live allocations; the non-LOD reader reserves twice the serialized element count."
+    },
+    {
+      "record": "W8LevelFileLight",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "mixed",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Versioned light payload is serialized separately from optional owned light-definition and path-AI allocations."
+    },
+    {
+      "record": "W8LevelFileDoorRef",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "mixed",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "The stream stores a kind byte followed by a door payload; the workspace stores a live door pointer, never its address on disk."
+    },
+    {
+      "record": "W8LevelFileSwitch",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "mixed",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Versioned switch payload excludes workspace padding and owns an optional door allocation through door."
+    },
+    {
+      "record": "W8LevelFileInvisible",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "mixed",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Versioned trigger fields coexist with live plane and linked-record pointers; field_237 and geometry_kind are distinct retail bytes."
+    },
+    {
+      "record": "W8LevelFileSuperTrigger",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "mixed",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Versioned trigger fields coexist with allocated placement, plane, hotspot, door and linked-record payloads; workspace padding is not serialized."
+    },
+    {
+      "record": "W8LevelFileFrame",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "mixed",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "A flag, mesh payload and texture count/table are serialized; mesh and texture pointers refer to live allocations."
+    },
+    {
+      "record": "W8LevelFileAnimObj",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "mixed",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Versioned animation fields coexist with owned channel, bounds, light, path, morph and transform arrays; byte-count signedness follows retail extension instructions."
+    },
+    {
+      "record": "W8LevelFileTriggerPosition",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "disk-format",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "The type-4 trigger placement payload is position (12 bytes), angle (4), then direction (12); the runtime reader scales only position."
+    },
+    {
+      "record": "W8LevelFileTriggerHotSpot",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "disk-format",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Fixed 133-byte legacy action payload. Its unknown bytes remain opaque; classification does not establish scalar domains."
+    },
+    {
+      "record": "W8LevelFileCamera",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "mixed",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Versioned camera header includes a 20-byte name and embeds a PathAI workspace with live path-array pointers."
+    },
+    {
+      "record": "W8LevelFileSound",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "disk-format",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Pointer-free ambient-sound payload is transferred fieldwise under version gates; no workspace addresses are serialized."
+    },
+    {
+      "record": "W8LevelFileLinkedRecord",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "disk-format",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Serialized kind, 36 position triples, two byte flags and two float factors; linked_face keeps its established signed-byte representation."
+    },
+    {
+      "record": "W8LevelFileDoor",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "disk-format",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Pointer-free door action payload is transferred fieldwise under version and position gates."
+    },
+    {
+      "record": "W8LevelFileClippingPlaneRecord",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "disk-format",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "ReadLevelFile and WriteLevelFile transfer complete packed clipping-plane records."
+    },
+    {
+      "record": "W8LevelFileFramePosition",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "disk-format",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Prop frame/tag arrays use the complete four-byte frame-position representation."
+    },
+    {
+      "record": "W8LevelFileNamedPosition",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "disk-format",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "ReadLevelFile and WriteLevelFile transfer complete packed named-position records."
+    },
+    {
+      "record": "W8LevelParticleRecord",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "disk-format",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Version-sized particle payload embeds a pointer-free material representation; the runtime reader interprets each versioned prefix."
+    },
+    {
+      "record": "W8LevelFileParticleSystem",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "disk-format",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "A version byte followed by the pointer-free particle payload; the serialized prefix length depends on version."
+    },
+    {
+      "record": "W8LevelFileMonster",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "mixed",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Serialized monster header is followed by path records; MonPath is an allocated workspace pointer excluded from the header transfer."
+    },
+    {
+      "record": "W8LevelFileMorph",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "mixed",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Morph channel/count fields accompany a LODMesh workspace holding a live frame pointer."
+    },
+    {
+      "record": "W8LevelFileTransform",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "mixed",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Transform fields embed LODMesh and PathAI workspaces with live frame/path pointers."
+    },
+    {
+      "record": "W8LevelFileProp",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "mixed",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Versioned prop fields embed an animation workspace and live trigger/frame-position pointers."
+    },
+    {
+      "record": "W8LevelFileTrigger",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "mixed",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Version/type bytes select a separately allocated payload; pData is intentional discriminator-selected storage and is not written as an address."
+    },
+    {
+      "record": "W8LevelFileAnimLight",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "mixed",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Versioned animation-light fields coexist with an optional allocated light-definition pointer."
+    },
+    {
+      "record": "W8LevelFileBlock",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "disk-format",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "Pointer-free version/gate-dependent environment and camera values plus two 256-entry RGB ramps."
+    },
+    {
+      "record": "W8LevelFile",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "classification": "mixed",
+      "reference": "src/wiz8/engine_code/LevelFile.cpp",
+      "reason": "The level-editor workspace combines versioned payloads, tables, embedded records and allocated subrecord pointers; it is not serialized as one memory image."
+    },
+    {
+      "record": "OctMeshModel",
+      "source_file": "include/wiz8/engine_code/OctMeshModel.h",
+      "classification": "mixed",
+      "reference": "src/wiz8/engine_code/OctSubMesh.cpp",
+      "reason": "Serialized mesh header and independent vector/index streams coexist with live array pointers; allocator families are preserved."
+    },
+    {
+      "record": "W8OctFileHeader",
+      "source_file": "include/wiz8/engine_code/OctPreTree.h",
+      "classification": "disk-format",
+      "reference": "src/wiz8/engine_code/OctPreTree.cpp",
+      "reason": "The packed octree header is transferred as a complete fixed record, followed by counted streams."
+    },
+    {
+      "record": "W8OctRegionVolume",
+      "source_file": "include/wiz8/engine_code/OctPreTree.h",
+      "classification": "disk-format",
+      "reference": "src/wiz8/engine_code/OctPreTree.cpp",
+      "reason": "Octree region arrays transfer complete 232-byte region-volume records."
+    },
+    {
+      "record": "W8OctPreTreeGeometry",
+      "source_file": "include/wiz8/engine_code/OctPreTree.h",
+      "classification": "runtime-only",
+      "reference": "src/wiz8/engine_code/materials.cpp",
+      "reason": "Build context owns live vertex/polygon runs; output serializes derived streams rather than this pointer-bearing context."
+    },
+    {
+      "record": "W8OctPreTreeVertex",
+      "source_file": "include/wiz8/engine_code/OctPreTree.h",
+      "classification": "runtime-only",
+      "reference": "src/wiz8/engine_code/materials.cpp",
+      "reason": "A 96-byte build vertex holds traversal state and shared face/light runs; emitted mesh streams are separate representations."
+    },
+    {
+      "record": "W8OctSpatialState",
+      "source_file": "include/wiz8/engine_code/OctPreTree.h",
+      "classification": "runtime-only",
+      "reference": "src/wiz8/engine_code/OctPreTree.cpp",
+      "reason": "Recursive spatial state is a borrowed working view; the file header is a separate packed representation."
+    }
+  ],
+  "lifetimes": [
+    {
+      "owner": "W8GrowableVector<T>",
+      "source_file": "include/wiz8/vector.h",
+      "contract": "Owns its new[] backing array; pointer elements are not deleted by the vector destructor. RemoveAtAndDelete explicitly deletes the removed pointee."
+    },
+    {
+      "owner": "W8Chunk",
+      "source_file": "include/wiz8/chunk.h",
+      "contract": "Owns and deletes chunk heads; member vectors release their backing arrays separately."
+    },
+    {
+      "owner": "srPtr<T>",
+      "source_file": "include/surrender/srPtr.h",
+      "contract": "Intrusive ownership: copies addReference, destruction releases, assignment acquires incoming reference before releasing current reference."
+    },
+    {
+      "owner": "W8NpcDatabaseRecord::item_stock_rules",
+      "source_file": "include/wiz8/layouts/gameplay_databases.h",
+      "contract": "Constructed by InitializeNpcDatabase and destroyed by DestroyNpcDatabase; the field is live storage inside a database-sized record."
+    },
+    {
+      "owner": "W8OctSpatialState",
+      "source_file": "include/wiz8/engine_code/OctPreTree.h",
+      "contract": "Shallow-copy spatial view: copy construction copies region/root/triangle pointers; destruction clears them without freeing. m_triangle_vertices borrows the inserter's stack triangle for recursive bounds tests."
+    },
+    {
+      "owner": "W8Octree",
+      "source_file": "include/wiz8/engine_code/Octree.h",
+      "contract": "Owns malloc-backed branches, leaves, lookup/index streams and m_spatial.m_region_volumes; destruction frees these buffers. BitArray fields and the region-link owner use scalar delete, separately from their backing data."
+    },
+    {
+      "owner": "W8PathingService::m_search_nodes",
+      "source_file": "include/wiz8/engine_code/OctPath.h",
+      "contract": "Allocated with new W8PathSearchNode[g_path_reserve + 0x14] and destroyed with delete[]. Other path buffers use malloc/free, while heap/hash/bitset owners use scalar delete."
+    },
+    {
+      "owner": "W8World::game_data",
+      "source_file": "include/wiz8/layouts/world.h",
+      "contract": "Owned W8GameData is destroyed by scalar delete in DestroyWorld; the world clears the pointer afterwards."
+    },
+    {
+      "owner": "W8World::quads",
+      "source_file": "include/wiz8/layouts/world.h",
+      "contract": "Owned quad hierarchy is released by DestroyWorldQuad, separately from game_data and octree destruction."
+    },
+    {
+      "owner": "W8World::nodes_to_disable",
+      "source_file": "include/wiz8/layouts/world.h",
+      "contract": "Borrowed srNode pointers: UpdateWorld disables the nodes and clears the list. World teardown frees list backing storage without deleting the nodes."
+    },
+    {
+      "owner": "W8World::transient_lights",
+      "source_file": "include/wiz8/layouts/world.h",
+      "contract": "Adopts the existing light reference when appended; PLAdoptAppend itself does not addReference. WorldRemoveLight and DestroyWorldLights remove borrowed update-list entries and release each adopted reference; teardown separately frees PList backing storage."
+    },
+    {
+      "owner": "W8LevelFileMesh",
+      "source_file": "include/wiz8/engine_code/LevelFile.h",
+      "contract": "ReadMeshFile allocates position/LOD/face buffers with malloc. WriteMeshFile consumes the mesh and frees vertex/face buffers and each LOD frame after writing; existing error paths and pointer-table release behavior are preserved."
+    },
+    {
+      "owner": "W8OctPreTreeGeometry",
+      "source_file": "include/wiz8/engine_code/OctPreTree.h",
+      "contract": "Release frees distinct consecutive per-vertex face/owned runs once, then vertex/polygon arrays and owned_14 with free. Shared adjacent run pointers do not imply individually owning vertices."
+    },
+    {
+      "owner": "OctMeshModel",
+      "source_file": "include/wiz8/engine_code/OctMeshModel.h",
+      "contract": "Vector buffers use srHeap.free; vertex-material and sun-light allocations use free. Write consumes and clears the buffers it writes; destructor cleans remaining buffers. Preserve the existing asymmetric serialized index and sun-light transfers."
+    }
+  ],
+  "components": [
+    {
+      "component": "Bink",
+      "decision": "undecided",
+      "owner": "src/wiz8/engine_code/Bink.cpp",
+      "boundary": "include/bink.h",
+      "requires": "Choose a decoder implementation preserving frame timing, buffer formats and audio behavior; proprietary DLL is a user-supplied input."
+    },
+    {
+      "component": "Miles",
+      "decision": "undecided",
+      "owner": "src/wiz8/imports/mss.cpp",
+      "boundary": "src/wiz8/imports/mss32.def",
+      "requires": "Choose audio implementation or API emulation after reviewing SGP sound ownership."
+    },
+    {
+      "component": "DirectX",
+      "decision": "replace implementation",
+      "owner": "src/sgp; src/wiz8/engine_code/Video2.cpp; src/surrender",
+      "boundary": "src/sgp/vsurface.h",
+      "requires": "Preserve surface formats, lock semantics and renderer behavior behind existing interfaces."
+    },
+    {
+      "component": "zlib/unzip",
+      "decision": "keep source",
+      "owner": "src/wiz8; src/srext_unzip",
+      "boundary": "docs/libraries/zlib-1.0.4.md",
+      "requires": "Retain format semantics; changing the pinned implementation is separate work."
+    },
+    {
+      "component": "JPEG",
+      "decision": "keep source",
+      "owner": "src/srext_jpegimporter",
+      "boundary": "docs/targets/srext-jpegimporter.md",
+      "requires": "Preserve decoder settings, pixel conversion and ownership."
+    },
+    {
+      "component": "SGP",
+      "decision": "keep source",
+      "owner": "src/sgp",
+      "boundary": "src/sgp/README.md",
+      "requires": "Keep the verbatim SFI license and prominent dated modification notices; derived source keeps its existing non-commercial distribution terms."
+    },
+    {
+      "component": "SurRender",
+      "decision": "keep source",
+      "owner": "src/surrender; include/surrender",
+      "boundary": "docs/libraries/surrender-import-visibility.md",
+      "requires": "Substitute Windows/renderer implementations behind recovered provider interfaces."
+    },
+    {
+      "component": "CRT/STL",
+      "decision": "replace implementation",
+      "owner": "include/wiz8/compat/compiler.h",
+      "boundary": "docs/libraries/msvc6-runtime.md",
+      "requires": "Review allocator, container, exception and text semantics before using modern library implementations."
+    }
+  ],
+  "behavioral_references": [
+    {
+      "observation": "boot-main-menu",
+      "status": "capture_required",
+      "reference": null
+    },
+    {
+      "observation": "new-game",
+      "status": "capture_required",
+      "reference": null
+    },
+    {
+      "observation": "load-game",
+      "status": "capture_required",
+      "reference": null
+    },
+    {
+      "observation": "enter-world",
+      "status": "capture_required",
+      "reference": null
+    },
+    {
+      "observation": "combat-round",
+      "status": "capture_required",
+      "reference": null
+    },
+    {
+      "observation": "inventory-equipment",
+      "status": "capture_required",
+      "reference": null
+    },
+    {
+      "observation": "save-load-round-trip",
+      "status": "capture_required",
+      "reference": null
+    },
+    {
+      "observation": "2d-ui",
+      "status": "capture_required",
+      "reference": null
+    },
+    {
+      "observation": "rendered-scene",
+      "status": "capture_required",
+      "reference": null
+    }
+  ],
+  "distribution": {
+    "status": "preserve-existing-terms",
+    "reference": "src/sgp/SFI Source Code license agreement.txt",
+    "portable_repo": "No broader licensing claim for SGP-derived source; game assets and proprietary middleware remain user-supplied."
+  },
+  "fork": {
+    "status": "blocked",
+    "requires": [
+      "Reviewed semantic and width queues",
+      "Reviewed source and lifetime ownership",
+      "Classified remaining mismatch causes",
+      "Subsystem owners and component decisions",
+      "Repeatable provenance-complete behavioral references"
+    ],
+    "first_milestone": "Modern Windows x86/x64 with existing gameplay and architecture; platform substitution before modernization"
+  },
+  "platform_boundaries": {
+    "window_events": "SGP window/event loop; SurRender window and diagnostic-stream interfaces",
+    "directdraw": "SGP video surfaces and Wizardry Video2 presentation",
+    "renderer": "SurRender renderer/vertex-processor interfaces",
+    "input": "SGP input interfaces",
+    "clock": "SGP timer and SurRender timer interfaces",
+    "synchronization": "SurRender critical-section/thread interfaces; review SGP exceptions",
+    "filesystem": "SGP file manager and SurRender stream adapters",
+    "registry": "Existing SGP/Wizardry configuration owners",
+    "dialogs_debugger": "SGP debug/dialog and SurRender diagnostic output",
+    "bink": "Wizardry W8BinkVideo",
+    "miles": "SGP sound manager and Wizardry Miles import boundary",
+    "jpeg": "SurRender JPEG importer extension",
+    "zlib_unzip": "Existing zlib consumers and SurRender unzip extension"
+  }
+}

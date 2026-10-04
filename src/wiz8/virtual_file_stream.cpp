@@ -7,9 +7,7 @@
 #include "wiz8/virtual_file_stream.h"
 #include "FileMan.h"
 
-/* Unresolved fragment: all nine functions lie in the single anchored gap
-   between Quality.cpp (0x0047B500) and stModelInstance.cpp (0x00480920).
-   One contiguous interval, but no anchor proves a single original TU. */
+/* Original translation-unit ownership is unknown; surrounding anchors do not resolve it. */
 
 /* The SurRender-facing stream adapter that carries the SLF virtual file system
    into the SR stream hierarchy. It is declared as what it is rather than as an

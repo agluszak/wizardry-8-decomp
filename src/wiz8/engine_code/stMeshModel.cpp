@@ -298,14 +298,13 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
             dig = getVertexDIG(0, 1);
             vertex_materials = getVertexMaterial(0, static_cast<e_side>(0), 0);
             if (vertex_materials == 0) {
-                if ((ambient_color_3a4.x == g_float_005ebb34 &&
-                     ambient_color_3a4.y == g_float_005ebb34 &&
-                     ambient_color_3a4.z == g_float_005ebb34) ||
+                if ((ambient_color_3a4.x == g_float_zero && ambient_color_3a4.y == g_float_zero &&
+                     ambient_color_3a4.z == g_float_zero) ||
                     vertex_light_table_3b0 == 1) {
                     CopyDwordBuffer(dig, lights, vertex_location_count_22c * 3);
-                    if ((g_environment_offset.x != g_float_005ebb34 ||
-                         g_environment_offset.y != g_float_005ebb34 ||
-                         g_environment_offset.z != g_float_005ebb34) &&
+                    if ((g_environment_offset.x != g_float_zero ||
+                         g_environment_offset.y != g_float_zero ||
+                         g_environment_offset.z != g_float_zero) &&
                         vertex_light_table_3b0 != 1 &&
                         (count = vertex_location_count_22c, count != 0) &&
                         IsZeroVector(&g_environment_offset) == 0) {
@@ -341,9 +340,9 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
                         reinterpret_cast<float*>(dig),    // reinterpret-ok: packed DIG as float*
                         reinterpret_cast<float*>(lights), // reinterpret-ok: packed lights as float*
                         vertex_location_count_22c * 3);
-                    if ((g_environment_offset.x != g_float_005ebb34 ||
-                         g_environment_offset.y != g_float_005ebb34 ||
-                         g_environment_offset.z != g_float_005ebb34) &&
+                    if ((g_environment_offset.x != g_float_zero ||
+                         g_environment_offset.y != g_float_zero ||
+                         g_environment_offset.z != g_float_zero) &&
                         (count = vertex_location_count_22c, count != 0) &&
                         IsZeroVector(&g_environment_offset) == 0) {
                         srVectorProcessor::add(dig, g_environment_offset, dig,
@@ -351,9 +350,8 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
                     }
                 }
             } else {
-                if ((ambient_color_3a4.x == g_float_005ebb34 &&
-                     ambient_color_3a4.y == g_float_005ebb34 &&
-                     ambient_color_3a4.z == g_float_005ebb34) ||
+                if ((ambient_color_3a4.x == g_float_zero && ambient_color_3a4.y == g_float_zero &&
+                     ambient_color_3a4.z == g_float_zero) ||
                     vertex_light_table_3b0 == 1) {
                     if (vertex_location_count_22c != 0) {
                         FillDwordBuffer(dig, 0, vertex_location_count_22c * 3);
@@ -412,9 +410,9 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
                     reinterpret_cast<float*>(dig),    // reinterpret-ok: packed DIG as float*
                     reinterpret_cast<float*>(lights), // reinterpret-ok: packed lights as float*
                     vertex_location_count_22c * 3);
-                if ((g_environment_offset.x != g_float_005ebb34 ||
-                     g_environment_offset.y != g_float_005ebb34 ||
-                     g_environment_offset.z != g_float_005ebb34) &&
+                if ((g_environment_offset.x != g_float_zero ||
+                     g_environment_offset.y != g_float_zero ||
+                     g_environment_offset.z != g_float_zero) &&
                     vertex_light_table_3b0 != 1 &&
                     (count = vertex_location_count_22c, count != 0) &&
                     IsZeroVector(&g_environment_offset) == 0) {
@@ -422,9 +420,8 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
                                            static_cast<SRDWORD>(count));
                 }
             }
-            if (light_scale != g_float_005ebb38 &&
-                (count = vertex_location_count_22c, count != 0)) {
-                if (light_scale == g_float_005ebb34) {
+            if (light_scale != g_float_one && (count = vertex_location_count_22c, count != 0)) {
+                if (light_scale == g_float_zero) {
                     FillDwordBuffer(dig, 0, count * 3);
                 } else {
                     srVectorProcessor::mul(
@@ -493,7 +490,7 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
                         float facing = (eye.x - position.x) * equation.x +
                                        (eye.y - position.y) * equation.y +
                                        (eye.z - position.z) * equation.z;
-                        if (static_cast<float>(g_zero_005ebb40) <= facing) {
+                        if (static_cast<float>(g_double_zero) <= facing) {
                             g_software_cull_active_polygons.data[active_count] =
                                 static_cast<unsigned long>(polygon);
                             ++active_count;
@@ -507,7 +504,7 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
                         float facing = (eye.x - position.x) * equation.x +
                                        (eye.y - position.y) * equation.y +
                                        (eye.z - position.z) * equation.z;
-                        if (facing <= static_cast<float>(g_zero_005ebb40)) {
+                        if (facing <= static_cast<float>(g_double_zero)) {
                             g_software_cull_active_polygons.data[active_count] =
                                 static_cast<unsigned long>(polygon);
                             ++active_count;
@@ -523,7 +520,7 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
                     float facing = (eye.x - position.x) * equation.x +
                                    (eye.y - position.y) * equation.y +
                                    (eye.z - position.z) * equation.z;
-                    if (static_cast<float>(g_zero_005ebb40) <= facing) {
+                    if (static_cast<float>(g_double_zero) <= facing) {
                         g_software_cull_active_polygons.data[active_count] = polygon;
                         ++active_count;
                     }
@@ -537,7 +534,7 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
                     float facing = (eye.x - position.x) * equation.x +
                                    (eye.y - position.y) * equation.y +
                                    (eye.z - position.z) * equation.z;
-                    if (facing <= static_cast<float>(g_zero_005ebb40)) {
+                    if (facing <= static_cast<float>(g_double_zero)) {
                         g_software_cull_active_polygons.data[active_count] = polygon;
                         ++active_count;
                     }
@@ -686,8 +683,7 @@ void CopyDwordBuffer(void* destination, const void* source, int count)
 // FUNCTION: WIZ8 0x0046ffa0
 int __fastcall IsZeroVector(const srVector3T<float>* vector)
 {
-    if (vector->x == g_float_005ebb34 && vector->y == g_float_005ebb34 &&
-        vector->z == g_float_005ebb34) {
+    if (vector->x == g_float_zero && vector->y == g_float_zero && vector->z == g_float_zero) {
         return 1;
     }
     return 0;
@@ -719,8 +715,7 @@ void OffsetVertices(srVector3T<float>* destination, const srVector3T<float>* sou
                     const srVector3T<float>* offset, int count)
 {
     if (count != 0) {
-        if (offset->x == g_float_005ebb34 && offset->y == g_float_005ebb34 &&
-            offset->z == g_float_005ebb34) {
+        if (offset->x == g_float_zero && offset->y == g_float_zero && offset->z == g_float_zero) {
             CopyDwordBuffer(destination, source, count * 3);
         } else {
             srVectorProcessor::add(destination, *offset, source, static_cast<SRDWORD>(count));
@@ -1338,7 +1333,7 @@ srVector3T<float>* stMeshModel::GetVertexLocations(unsigned int frame, bool load
     if (m_pVertexLoc == 0) {
         return 0;
     }
-    if (g_float_005ebb34 < interpolation && frame < frame_count - 1) {
+    if (g_float_zero < interpolation && frame < frame_count - 1) {
         unsigned int next_frame = (frame + 1) % frame_count;
         if (lerp_buffer_448 == 0) {
             lerp_buffer_448 = static_cast<srVector3T<float>*>(
@@ -1360,7 +1355,7 @@ srVector3T<float>* stMeshModel::GetVertexLocations(unsigned int frame, bool load
             srVector3T<float>* next = m_pVertexLoc[next_frame];
             srVector3T<float>* current = m_pVertexLoc[frame];
             if (next != 0 && current != 0 && vertex_location_count_22c != 0) {
-                if (interpolation == g_float_005ebb38) {
+                if (interpolation == g_float_one) {
                     CopyDwordBuffer(lerp_buffer_448, next, vertex_location_count_22c * 3);
                 } else {
                     srVectorProcessor::lerp(&lerp_buffer_448->x, &next->x, &current->x,

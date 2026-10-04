@@ -1,7 +1,6 @@
 #include "wiz8/geometry.h"
 
-/* Unresolved fragment: 0x0044ECA0 lies between the Prop.cpp 0x0044E1F0
-   and 3dapi.cpp 0x0044F1C0 anchors. Neither proves this helper's TU. */
+/* Original translation unit is not established by the surrounding source anchors. */
 // FUNCTION: WIZ8 0x0044eca0
 W8Quaternion* W8Quaternion::SetFromMatrix(const srMatrix3T<float>& matrix)
 {

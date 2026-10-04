@@ -795,21 +795,21 @@ unsigned char ReadWorldParticles(W8ReadLevelInfo* pInfo, srNode* pScene,
             FileRead(pInfo->hFile, &record, sizeof(record), 0);
         } else if (version == 3) {
             FileRead(pInfo->hFile, &record, 0x21d, 0);
-            record.start_frame_21d = -1;
-            record.end_frame_221 = -1;
+            record.start_frame = -1;
+            record.end_frame = -1;
         } else if (version == 2) {
             FileRead(pInfo->hFile, &record, 0x218, 0);
-            record.emission_limit_218 = 0;
-            record.requires_sorted_renderer_21c = 0;
-            record.start_frame_21d = -1;
-            record.end_frame_221 = -1;
+            record.emission_limit = 0;
+            record.requires_sorted_renderer = 0;
+            record.start_frame = -1;
+            record.end_frame = -1;
         } else if (version == 1) {
             FileRead(pInfo->hFile, &record, 0x216, 0);
-            record.attachment_key_216 = -1;
-            record.emission_limit_218 = 0;
-            record.requires_sorted_renderer_21c = 0;
-            record.start_frame_21d = -1;
-            record.end_frame_221 = -1;
+            record.attachment_key = -1;
+            record.emission_limit = 0;
+            record.requires_sorted_renderer = 0;
+            record.start_frame = -1;
+            record.end_frame = -1;
         } else {
             srAssertFail("0", READ_LEVEL_CPP, 0x5fe, "Unknown particle structure version");
         }
@@ -859,8 +859,8 @@ unsigned char ReadWorldParticles(W8ReadLevelInfo* pInfo, srNode* pScene,
         particle->los_check_enabled_1b4 = record.los_check != 0;
         particle->emission_interval_1c8 =
             record.emission_interval < 2 ? 1 : record.emission_interval;
-        particle->start_frame_264 = record.start_frame_21d;
-        particle->end_frame_268 = record.end_frame_221;
+        particle->start_frame_264 = record.start_frame;
+        particle->end_frame_268 = record.end_frame;
 
         if (record.has_acceleration != 0) {
             particle->has_acceleration_1a8 = 1;
@@ -873,10 +873,9 @@ unsigned char ReadWorldParticles(W8ReadLevelInfo* pInfo, srNode* pScene,
             particle->emission_mode_1b0 = 1;
         } else {
             particle->emission_mode_1b0 = 2;
-            particle->minimum_1d0.Set(-record.spread_x_06c * 250.0f, -record.spread_y_070 * 250.0f,
-                                      0.0f);
-            particle->maximum_1dc.Set(record.spread_x_06c * 250.0f, record.spread_y_070 * 250.0f,
-                                      record.spread_z_074 * g_world_scale);
+            particle->minimum_1d0.Set(-record.spread_x * 250.0f, -record.spread_y * 250.0f, 0.0f);
+            particle->maximum_1dc.Set(record.spread_x * 250.0f, record.spread_y * 250.0f,
+                                      record.spread_z * g_world_scale);
         }
 
         if (record.direction_mode == 0) {
@@ -926,11 +925,11 @@ unsigned char ReadWorldParticles(W8ReadLevelInfo* pInfo, srNode* pScene,
             particle->flutter_amplitude_200 = record.flutter_value;
             particle->flutter_period_204 = static_cast<unsigned int>(record.flutter_period);
         }
-        if (record.attachment_key_216 >= 0) {
-            particle->attachment_key_260 = record.attachment_key_216;
+        if (record.attachment_key >= 0) {
+            particle->attachment_key_260 = record.attachment_key;
         }
-        particle->requires_sorted_renderer_138 = record.requires_sorted_renderer_21c;
-        particle->emission_limit_184 = record.emission_limit_218;
+        particle->requires_sorted_renderer_138 = record.requires_sorted_renderer;
+        particle->emission_limit_184 = record.emission_limit;
         particle->release_when_done_190 = false;
 
         LoadMaterial(pInfo->bitmap_folder, &record.material, &material, &texture, &render_flags, 1);
@@ -998,8 +997,7 @@ static unsigned char ReadNamedPositions(W8ReadLevelInfo* pInfo,
     }
 
 // FUNCTION: WIZ8 0x004BAFF0
-unsigned char ReadLevel(W8World* world, int handle, bool use_octree,
-                        const char* bitmap_folder)
+unsigned char ReadLevel(W8World* world, int handle, bool use_octree, const char* bitmap_folder)
 {
     W8ReadLevelInfo info;
     srModelInstance* level_mesh;
@@ -1053,8 +1051,7 @@ unsigned char ReadLevel(W8World* world, int handle, bool use_octree,
         if (!ReadMultipleLevelMeshes(&info, world->psrMeshes, world->octree->GetMeshCount(), 0)) {
             ShutdownWithErrorBox("ReadLevel: Error reading multi-meshes.");
         }
-        for (unsigned int mesh_index = 0; mesh_index < world->octree->m_meshCount_1b4;
-             ++mesh_index) {
+        for (unsigned int mesh_index = 0; mesh_index < world->octree->m_meshCount; ++mesh_index) {
             if (world->psrMeshes[mesh_index] != 0) {
                 world->psrMeshes[mesh_index]->setParent(world->level, 1);
                 SetModelInstanceChainExclusionMask(world->psrMeshes[mesh_index], 1);
@@ -1106,8 +1103,8 @@ unsigned char ReadLevel(W8World* world, int handle, bool use_octree,
             for (index = 0; index < section_count; ++index) {
                 Trigger::CreateAndLoadLevelTrigger(info.hFile, world);
             }
-            if (world->m_owned_04c != 0 && world->m_owned_04c->geometry_index_00 != 0) {
-                world->m_owned_04c->IntegrateTriggers();
+            if (world->game_data != 0 && world->game_data->geometry_index_00 != 0) {
+                world->game_data->IntegrateTriggers();
             }
         }
     }
@@ -1129,9 +1126,8 @@ unsigned char ReadLevel(W8World* world, int handle, bool use_octree,
     if (use_octree != 0) {
         srMeshModel* model = static_cast<srMeshModel*>(level_mesh->getModel());
         model->getBoundingBox(minimum, maximum);
-        world->m_owned_06c =
-            BuildWorldQuad(level_mesh, 0, minimum.x, minimum.y, minimum.z, maximum.x, maximum.y,
-                           maximum.z, world->static_scene, 0);
+        world->quads = BuildWorldQuad(level_mesh, 0, minimum.x, minimum.y, minimum.z, maximum.x,
+                                      maximum.y, maximum.z, world->static_scene, 0);
     }
     RefreshEnvironment();
     FinalizeStaticScene(world->static_scene);

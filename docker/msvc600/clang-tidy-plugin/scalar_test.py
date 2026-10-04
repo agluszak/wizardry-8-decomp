@@ -104,6 +104,22 @@ assert arrays["escaped_pending"] in facts.bool_escaped
 
 assert arrays["shifted_pending"] in facts.bool_escaped
 assert arrays["numeric_pending"] in facts.bool_invalid
+
+# Function decay must never connect a callback slot to the function's return
+# domain. Actual calls still participate in the scalar copy graph.
+callback_keys = {
+    row.name: key
+    for key, row in facts.declarations.items()
+    if row.name in {"ReadCallbackValue", "decay_callback_pointer", "decay_callback_result"}
+}
+callback = callback_keys["decay_callback_pointer"]
+result = callback_keys["decay_callback_result"]
+reader = callback_keys["ReadCallbackValue"]
+assert not any(flow.target == callback or flow.source == callback for flow in facts.flows)
+assert any(flow.target == result and flow.source == reader for flow in facts.flows)
+assert any(use.key == callback for use in facts.escapes)
+assert any(use.key == reader for use in facts.escapes)
+assert not any(row["target"] == callback for row in report["pointer_integer_transports"])
 print("scalar facts: cross-TU recovery and bool compatibility fixtures pass")
 
 # New clients consume the same collector facts rather than separate inventories.
@@ -160,7 +176,11 @@ nominal = next(
 assert nominal["status"] == "candidate", nominal
 assert nominal["changes"] == [by_name["fixture_id_copy"]]
 
-callback = integer_report(facts, [])["callbacks"][0]
+callback = next(
+    row
+    for row in integer_report(facts, [])["callbacks"]
+    if row["slot"] == by_name["fixture_callback"]
+)
 assert callback["status"] == "modeled", callback
 assert len(callback["nodes"]) == 2
 assert any(

@@ -12,11 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* Unresolved fragment between Camera.cpp (0x0048F2F0) and Cursor3d.cpp
-   (0x00490C60). Playlist bodies and the three music-volume helpers below are
-   address-interleaved in that gap; Configuration.cpp's proved anchors are
-   elsewhere, so those helpers live here rather than in that TU. No retail
-   path string proves a filename — leave unresolved-fragment. */
+/* Original translation-unit ownership is unknown; surrounding anchors do not resolve it. */
 
 // GLOBAL: WIZ8 0x0060aae0
 int g_music_sample_handle = -1;

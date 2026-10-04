@@ -233,7 +233,7 @@ bool CharacterActionReachesTarget(int party_slot, int hand, W8TargetingContext c
         }
         float dx = point.x - camera.x;
         float dz = point.z - camera.z;
-        if (distance + g_float_005ebb38 <
+        if (distance + g_float_one <
             sqrtf(dx * dx + (point.y - camera.y) * (point.y - camera.y) + dz * dz) -
                 g_startup_world->radius_084) {
             return false;

@@ -1511,9 +1511,9 @@ void MonsterGroupEnterCombat(W8MonsterGroup* monster_group)
    radian offset the sum is biased by. Retail keeps both as addressable .data
    floats; only PositionMonsterGroupNearCamera reads them. */
 // GLOBAL: WIZ8 0x005ed828
-const float g_float_005ed828 = 0.001600000075995922f;
+const float g_monster_scatter_heading_random_scale = 0.001600000075995922f;
 // GLOBAL: WIZ8 0x005ebb30
-const float g_float_005ebb30 = 0.8f;
+const float g_monster_scatter_heading_bias = 0.8f;
 
 /* Places a group relative to the camera: flag clear moves it straight onto the
    camera position, flag set scatters it `distance` out on a random heading
@@ -1538,8 +1538,8 @@ bool PositionMonsterGroupNearCamera(W8MonsterGroup* group, float distance, float
     }
     member_info = MonsterGetScriptPartByLocationIndex(
         MonsterGetIndexByLocationID(0x719, MONSTER_GROUP_CPP, group->leader_location_id, 1));
-    angle = NormalizeAngle(GetCameraYawRadians() + Random(1000) * g_float_005ed828 +
-                           g_monster_rotation_offset - g_float_005ebb30);
+    angle = NormalizeAngle(GetCameraYawRadians() + Random(1000) * g_monster_scatter_heading_random_scale +
+                           g_monster_rotation_offset - g_monster_scatter_heading_bias);
     radius = member_info->p3D->radius_084;
     for (index = 0; index < W8_MONSTER_GROUP_ALLY_COUNT; ++index) {
         if (group->allied_group_ids[index] != 0) {
@@ -1552,8 +1552,8 @@ bool PositionMonsterGroupNearCamera(W8MonsterGroup* group, float distance, float
             }
         }
     }
-    if (distance <= g_float_005ebb34) {
-        distance = g_startup_world->radius_084 + radius + g_float_005ebb38;
+    if (distance <= g_float_zero) {
+        distance = g_startup_world->radius_084 + radius + g_float_one;
     }
     target.y = camera.y;
     target.x = camera.x + distance * sin(angle);

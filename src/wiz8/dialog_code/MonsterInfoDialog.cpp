@@ -148,8 +148,8 @@ unsigned char W8MonsterInfoDialog::PopulateText()
         if (static_cast<int>(average_level) < monster_level) {
             float adjusted_knowledge =
                 knowledge - (monster_level - average_level) * g_float_005ec52c + g_float_005ebc7c;
-            if (adjusted_knowledge < g_float_005ebb34) {
-                adjusted_knowledge = g_float_005ebb34;
+            if (adjusted_knowledge < g_float_zero) {
+                adjusted_knowledge = g_float_zero;
             }
             knowledge = static_cast<unsigned int>(adjusted_knowledge);
         }

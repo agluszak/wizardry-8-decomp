@@ -79,7 +79,7 @@ bool g_renderer_ready = true;
 static int g_game_data_runtime_pending = 1;
 
 // GLOBAL: WIZ8 0x005ec240
-const double g_double_005ec240 = 250000.0;
+const double g_automap_refresh_distance_squared = 250000.0;
 
 class W8AmbientSound;
 
@@ -209,12 +209,12 @@ unsigned char LoadWorld(W8World* world, char* level_file_name, const char* level
     g_worlds.Add(world);
 
     world->m_loaded = true;
-    PListInit(&world->m_list_09c);
-    PListInit(&world->m_lights_0a8);
-    world->m_owned_04c = 0;
+    PListInit(&world->nodes_to_disable);
+    PListInit(&world->transient_lights);
+    world->game_data = 0;
 
     if (CheckLevelAssetSet(oct_path) >= 0) {
-        world->octree = new W8Octree(oct_path, &world->m_owned_04c);
+        world->octree = new W8Octree(oct_path, &world->game_data);
         if (world->octree != 0 && world->octree->HasLoadError()) {
             delete world->octree;
             world->octree = 0;
@@ -223,9 +223,9 @@ unsigned char LoadWorld(W8World* world, char* level_file_name, const char* level
         }
     }
 
-    if (game_data_path[0] != '\0' && world->m_owned_04c == 0) {
-        world->m_owned_04c = ReadGameData(game_data_path, false);
-        if (world->m_owned_04c != 0 && InitializeGameData(world->m_owned_04c) == 0) {
+    if (game_data_path[0] != '\0' && world->game_data == 0) {
+        world->game_data = ReadGameData(game_data_path, false);
+        if (world->game_data != 0 && InitializeGameData(world->game_data) == 0) {
             return 0;
         }
     }
@@ -256,7 +256,7 @@ unsigned char LoadWorld(W8World* world, char* level_file_name, const char* level
         strcpy(level_path, pvl_path);
     }
 
-    world->m_owned_06c = 0;
+    world->quads = 0;
     world->update_mesh_source = 0;
     memset(world->m_unknown_07c, 0, 0x10);
 
@@ -276,8 +276,8 @@ unsigned char LoadWorld(W8World* world, char* level_file_name, const char* level
     world->m_unknown_0d4[0] = 0;
     if (world->octree != 0) {
         UpdateWorldOctree(world);
-    } else if (world->m_owned_06c != 0) {
-        world->m_owned_06c->dirty = 1;
+    } else if (world->quads != 0) {
+        world->quads->dirty = 1;
         UpdateWorldMeshFromQuads(world);
     }
     return 1;
@@ -368,7 +368,7 @@ void UpdateWorld(W8World* world)
         UpdateSpellEffects();
     }
 
-    W8PList* nodes = &world->m_list_09c;
+    W8PList* nodes = &world->nodes_to_disable;
     int count = static_cast<short>(PLLength(nodes));
     for (int index = 0; index < count; ++index) {
         srNode* node = static_cast<srNode*>(PLGet(nodes, index));
@@ -546,8 +546,8 @@ void DestroyWorldCollections(W8World* world)
     DestroyAllMissiles(world);
     DestroyAllSpellVisuals(world);
     DestroyWorldLights(world);
-    PListFreeData(&world->m_lights_0a8);
-    PListFreeData(&world->m_list_09c);
+    PListFreeData(&world->transient_lights);
+    PListFreeData(&world->nodes_to_disable);
 
     delete world->lights_to_update;
     delete world->collidable_props;
@@ -573,17 +573,17 @@ void DestroyWorld(W8World* world)
     if (world->update_mesh_source != 0) {
         world->update_mesh_source = 0;
     }
-    if (world->m_owned_04c != 0) {
-        delete world->m_owned_04c;
-        world->m_owned_04c = 0;
+    if (world->game_data != 0) {
+        delete world->game_data;
+        world->game_data = 0;
     }
     if (world->octree != 0) {
         delete world->octree;
         world->octree = 0;
     }
-    if (world->m_owned_06c != 0) {
-        DestroyWorldQuad(world->m_owned_06c);
-        world->m_owned_06c = 0;
+    if (world->quads != 0) {
+        DestroyWorldQuad(world->quads);
+        world->quads = 0;
     }
     if (g_world_cleanup_flag != 0)
         RenderFrame();
@@ -634,24 +634,24 @@ void UpdateWorldCameraAndPaths(W8World* world, unsigned int flags)
 
     RefreshDirtyAutomap();
     GetCameraPosition(&camera_position);
-    if (g_game_data_runtime_pending != 0 && world->m_owned_04c != 0) {
+    if (g_game_data_runtime_pending != 0 && world->game_data != 0) {
         UpdateGameDataRuntime();
         g_game_data_runtime_pending = 0;
     }
-    if (world->m_owned_04c != 0) {
+    if (world->game_data != 0) {
         if (g_level_flags != 0) {
             *g_level_flags &= ~0x200u;
         }
-        if (world->m_owned_04c != 0 && (flags & 0x40) == 0) {
+        if (world->game_data != 0 && (flags & 0x40) == 0) {
             world->camera->getRotation(rotation);
-            world->m_owned_04c->ApplyCameraMotionFlags(flags, &rotation, &motion_saved);
+            world->game_data->ApplyCameraMotionFlags(flags, &rotation, &motion_saved);
             world->camera->setRotation(rotation);
             s_saved_camera_rotation = rotation;
             yaw = GetCameraYawInDegrees();
             pitch = GetCameraPitchInDegrees();
             g_startup_world->SetAngles(yaw);
             g_startup_world->SetPitch(pitch);
-            if (world->m_owned_04c->ApplyCameraMotion(flags, &camera_position, &delta,
+            if (world->game_data->ApplyCameraMotion(flags, &camera_position, &delta,
                                                       &motion_saved) != 0) {
                 camera_position += delta;
                 navigator_position.Set(camera_position.x,
@@ -667,7 +667,7 @@ void UpdateWorldCameraAndPaths(W8World* world, unsigned int flags)
                 dx = camera_position.x - s_last_automap_refresh_position.x;
                 dy = camera_position.y - s_last_automap_refresh_position.y;
                 dz = camera_position.z - s_last_automap_refresh_position.z;
-                if (dx * dx + dy * dy + dz * dz > g_double_005ec240) {
+                if (dx * dx + dy * dy + dz * dz > g_automap_refresh_distance_squared) {
                     s_last_automap_refresh_position = camera_position;
                     camera_position.y -= g_default_world_height;
                     if (AutomapHasCellAt(&camera_position) != 0) {
@@ -709,7 +709,7 @@ void UpdateWorldCameraAndPaths(W8World* world, unsigned int flags)
                 }
                 ApplyCameraRotation(&path_rotation);
                 if (path->discrete_mode_1c != 0) {
-                    if (path->position >= path->nodes_0c->GetCount() - g_float_005ebb38) {
+                    if (path->position >= path->nodes_0c->GetCount() - g_float_one) {
                         UpdateCameraPathState(world, camera_path, 0);
                     }
                 } else if (path->position >= g_double_005ebc30) {
@@ -802,8 +802,8 @@ void UpdateWorldMeshAfterLoad(void)
     if (g_renderer_ready != 0 && g_world_mesh_update_enabled != 0) {
         if (g_world->octree != 0) {
             UpdateWorldOctree(g_world);
-        } else if (g_world->m_owned_06c != 0) {
-            ++g_world->m_owned_06c->dirty;
+        } else if (g_world->quads != 0) {
+            ++g_world->quads->dirty;
             UpdateWorldMeshFromQuads(g_world);
         }
         RepositionAmbientSounds(g_world);

@@ -73,9 +73,7 @@ unsigned char LoadLevelStatus(const char* path, int level);
 void BuildLevelStatusPath(char* path, unsigned int level);
 unsigned char LoadStatusHeader(W8Chunk* chunk);
 unsigned char SaveStatusHeader(W8Chunk* chunks);
-/* The per-level section reader behind LoadLevelStatus, and the already-open
-   save scan behind SaveLevelStatus. Both keep their address names until a
-   reviewed body supplies a semantic one. */
+/* The per-level item-section reader and the already-open level-status scan. */
 unsigned char LoadItemStatus(W8Chunk* chunk, int level);
 unsigned char MeasureLevelStatusChunks(W8Chunk* chunk, int level, unsigned int* empty_percent);
 

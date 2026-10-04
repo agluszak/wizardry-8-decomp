@@ -779,10 +779,10 @@ void W8Navigator::SetTurnRate(float turn_rate)
 // FUNCTION: WIZ8 0x00453ef0
 void W8Navigator::SetHeightRange(float minimum, float maximum)
 {
-    if (minimum >= g_float_005ebb34) {
+    if (minimum >= g_float_zero) {
         minimum_height_034 = minimum;
     }
-    if (maximum >= g_float_005ebb34) {
+    if (maximum >= g_float_zero) {
         maximum_height_038 = maximum;
     }
 }
@@ -1353,7 +1353,7 @@ unsigned char W8NavigatorAttachment::CheckPositionHopHeight(const srVector3T<flo
     from.Set(position_4c[base].x, position_4c[base].z);
     to.Set(position_4c[end].x, position_4c[end].z);
     distance = PointToSegmentDistance2D(&point, &from, &to, 0, &fraction);
-    surfaces = g_octree->pathing_180->m_pSurfaces_048;
+    surfaces = g_octree->pathing_180->m_pSurfaces;
     from_height = (surfaces[path_values_50[base]].flags_00 >> 0xc) * g_world_scale;
     to_height = (surfaces[path_values_50[end]].flags_00 >> 0xc) * g_world_scale;
     if (from_height != to_height) {
@@ -1392,7 +1392,7 @@ unsigned char W8NavigatorAttachment::CheckPredictedHopHeight(const srVector3T<fl
             distance = other_distance;
         }
     }
-    surfaces = g_octree->pathing_180->m_pSurfaces_048;
+    surfaces = g_octree->pathing_180->m_pSurfaces;
     from_height = (surfaces[path_values_50[base]].flags_00 >> 0xc) * g_world_scale;
     to_height = (surfaces[path_values_50[base + 1]].flags_00 >> 0xc) * g_world_scale;
     if (from_height != to_height) {
@@ -1421,7 +1421,7 @@ unsigned char W8NavigatorAttachment::AdvancePositionTowardWaypoint(srVector3T<fl
     PointToSegmentDistance2D(&point, &from, &to, 1, &fraction);
     dir_x = to.x - from.x;
     dir_z = to.y - from.y;
-    remainder = (g_float_005ebb38 - fraction) * srVector2T<float>(dir_x, dir_z).Length();
+    remainder = (g_float_one - fraction) * srVector2T<float>(dir_x, dir_z).Length();
     if (distance <= remainder) {
         reached = 0;
     } else {
@@ -1437,13 +1437,13 @@ unsigned char W8NavigatorAttachment::AdvancePositionTowardWaypoint(srVector3T<fl
     if (remainder < distance) {
         distance = remainder;
     }
-    if (distance <= g_float_005ebb34) {
+    if (distance <= g_float_zero) {
         position->x = point.x;
         position->z = point.y;
         return reached;
     }
     segment = srVector2T<float>(dir_x, dir_z).Length();
-    if (segment != g_zero_005ebb40) {
+    if (segment != g_double_zero) {
         distance /= segment;
         dir_x *= distance;
         dir_z *= distance;
@@ -1462,13 +1462,13 @@ unsigned char W8NavigatorAttachment::AdvancePositionWithDirection(srVector3T<flo
                                                                   srVector3T<float>* direction)
 {
     while (path_cursor_04 <= path_position_index_08) {
-        if (distance <= g_zero_005ebb40) {
+        if (distance <= g_double_zero) {
             break;
         }
         srVector3T<float>* waypoint = &position_4c[path_cursor_04];
         *direction = *waypoint - *position;
         float length = direction->Length();
-        if (g_zero_005ebb40 < length) {
+        if (g_double_zero < length) {
             float scale = static_cast<float>(g_double_005ebc30 / length);
             *direction *= scale;
         }
@@ -1483,7 +1483,7 @@ unsigned char W8NavigatorAttachment::AdvancePositionWithDirection(srVector3T<flo
             position->x = direction->x * distance + position->x;
             position->y = direction->y * distance + position->y;
             position->z = direction->z * distance + position->z;
-            distance = static_cast<float>(g_zero_005ebb40);
+            distance = static_cast<float>(g_double_zero);
         }
     }
     return 0;
@@ -1738,7 +1738,7 @@ unsigned char W8Navigator::ConfigureMovement(float minimum, float maximum)
 {
     flags_00c |= 0x20000000;
     movement_0c0.attachment_0ac->flags_00 |= 0x800000;
-    if (minimum > g_float_005ebb34) {
+    if (minimum > g_float_zero) {
         minimum_height_034 = minimum;
     }
     if (maximum > g_float_005ec2f8) {
@@ -1993,7 +1993,7 @@ void W8Navigator::UpdateAngles()
         direction = g_negative_one;
         if (reverse_distance < distance) {
             distance = reverse_distance;
-            direction = g_float_005ebb38;
+            direction = g_float_one;
         }
         if (step <= distance) {
             movement_0c0.yaw = NormalizeAngle(step * direction + movement_0c0.yaw);
@@ -2019,7 +2019,7 @@ void W8Navigator::UpdateAngles()
         direction = g_negative_one;
         if (reverse_distance < distance) {
             distance = reverse_distance;
-            direction = g_float_005ebb38;
+            direction = g_float_one;
         }
         if (step <= distance) {
             movement_0c0.pitch_020 = NormalizeAngle(step * direction + movement_0c0.pitch_020);
@@ -2035,7 +2035,7 @@ void W8Navigator::UpdateAngles()
         direction = g_negative_one;
         if (reverse_distance < distance) {
             distance = reverse_distance;
-            direction = g_float_005ebb38;
+            direction = g_float_one;
         }
         if (distance < step) {
             movement_0c0.roll_028 = movement_0c0.target_roll_02c;
@@ -2122,7 +2122,7 @@ void W8Navigator::UpdateNavigation(unsigned char skip_movement, bool slowed)
             *AdjustPosition(&adjusted, &movement_0c0.position_040, &previous);
     }
 
-    if (movement_0c0.vertical_amplitude_080 != g_float_005ebb34) {
+    if (movement_0c0.vertical_amplitude_080 != g_float_zero) {
         if (g_navigator_vertical_enabled == 0) {
             movement_0c0.vertical_offset_0c0 = movement_0c0.vertical_base_07c;
         } else {

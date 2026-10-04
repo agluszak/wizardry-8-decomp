@@ -29,6 +29,7 @@ VC6_IMAGE = "wizardry8-msvc600:sp5"
 VC6_PRODUCT_IMAGE = "wizardry8-msvc600:sp5-product"
 LINT_BUILD_DIR = "build/clang"
 DIAGNOSTICS_BUILD_DIR = "build/clang-diagnostics"
+X64_DIAGNOSTICS_BUILD_DIR = "build/clang-diagnostics-x64"
 TARGET_ALIASES = {
     "match": "WIZ8",
     "runtime": "WIZ8_RUNTIME",
@@ -550,10 +551,21 @@ def _clang_configuration_current(repository: Path, output: Path) -> bool:
 
 
 def configure_clang(
-    settings: Settings, *, full_diagnostics: bool = False, force: bool = False
+    settings: Settings,
+    *,
+    full_diagnostics: bool = False,
+    force: bool = False,
+    x64: bool = False,
 ) -> tuple[Path, list[str]]:
     """Configure the compiler-backed source projection when stale or missing."""
-    output = settings.repo_dir / (DIAGNOSTICS_BUILD_DIR if full_diagnostics else LINT_BUILD_DIR)
+    if x64 and not full_diagnostics:
+        raise ValueError("x64 is a diagnostic lane, not a source-index or matching target")
+    build_dir = (
+        X64_DIAGNOSTICS_BUILD_DIR
+        if x64
+        else (DIAGNOSTICS_BUILD_DIR if full_diagnostics else LINT_BUILD_DIR)
+    )
+    output = settings.repo_dir / build_dir
     output.mkdir(parents=True, exist_ok=True)
     prefix = clang_container_prefix(settings, output)
     if not force and _clang_configuration_current(settings.repo_dir, output):
@@ -571,7 +583,7 @@ def configure_clang(
         "-G",
         "Ninja",
         "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
-        "-DCMAKE_TOOLCHAIN_FILE=/repo/cmake/clang-cl-i686.cmake",
+        f"-DCMAKE_TOOLCHAIN_FILE=/repo/cmake/clang-cl-{'x86_64' if x64 else 'i686'}.cmake",
         "-DIJG_JPEG_SOURCE=/jpeg",
         "-DZLIB_SOURCE=/zlib",
         "-DINFOZIP_SOURCE=/infozip",
@@ -584,7 +596,13 @@ def configure_clang(
         log_path=settings.repo_dir
         / "build"
         / "logs"
-        / ("clang-full-configure.json" if full_diagnostics else "clang-lint-configure.json"),
+        / (
+            "clang-x64-configure.json"
+            if x64
+            else "clang-full-configure.json"
+            if full_diagnostics
+            else "clang-lint-configure.json"
+        ),
     )
     return output, prefix
 
@@ -615,6 +633,35 @@ def clang_container_prefix(settings: Settings, output: Path) -> list[str]:
     for mount in mounts:
         command.extend(("--volume", mount.docker_argument()))
     return command
+
+
+def x64_diagnostic_summary(stdout: str, stderr: str) -> dict[str, Any]:
+    """Separate legacy-header blockers from source findings; never waive them."""
+    errors: Counter[str] = Counter()
+    toolchain_errors: Counter[str] = Counter()
+    for line in (stdout + "\n" + stderr).splitlines():
+        if "error:" not in line:
+            continue
+        message = line.split("error:", 1)[1].strip()
+        (errors if line.startswith("/repo/") else toolchain_errors)[message] += 1
+    blocked = any(
+        "Must define a target architecture" in message or "typedef redefinition" in message
+        for message in toolchain_errors
+    )
+    return {
+        "toolchain_blocked": blocked,
+        "source_errors": sum(errors.values()),
+        "toolchain_errors": sum(toolchain_errors.values()),
+        "distinct_source_errors": len(errors),
+        "source_examples": [
+            {"message": message, "count": count} for message, count in errors.most_common(20)
+        ],
+        "toolchain_examples": [
+            {"message": message, "count": count}
+            for message, count in toolchain_errors.most_common(10)
+        ],
+        "limitations": "VC6 headers have no Windows x64 SDK declarations; source findings require review after an x64 header lane is available",
+    }
 
 
 def _repository_relative(repository: Path, path: Path) -> str:
@@ -861,12 +908,20 @@ def lint(
     full_diagnostics: bool = False,
     since: str | None = None,
     changed_paths: list[Path] | None = None,
+    x64: bool = False,
 ) -> dict[str, Any]:
     """Compile changed C/C++ with structural or full recovery diagnostics."""
 
+    if x64 and not full_diagnostics:
+        raise ValueError("x64 is only available with full diagnostics")
     if full_diagnostics:
-        output, prefix = configure_clang(settings, full_diagnostics=True)
-        run(
+        output, prefix = configure_clang(settings, full_diagnostics=True, x64=x64)
+        log = (
+            "build/logs/clang-x64-diagnostics.json"
+            if x64
+            else "build/logs/clang-full-diagnostics.json"
+        )
+        result = run(
             [
                 *prefix,
                 "--entrypoint",
@@ -881,12 +936,21 @@ def lint(
                 "0",
             ],
             cwd=settings.repo_dir,
-            log_path=settings.repo_dir / "build/logs/clang-full-diagnostics.json",
+            log_path=settings.repo_dir / log,
+            check=not x64,
         )
         return {
-            "status": "ok",
-            "mode": "full-diagnostics",
-            "log": str(Path("build/logs/clang-full-diagnostics.json")),
+            "status": (
+                "toolchain-blocked"
+                if x64 and x64_diagnostic_summary(result.stdout, result.stderr)["toolchain_blocked"]
+                else "diagnostic-failures"
+                if result.exit_status
+                else "ok"
+            ),
+            "mode": "x64-diagnostics" if x64 else "full-diagnostics",
+            "exit_status": result.exit_status,
+            "log": log,
+            "diagnostics": x64_diagnostic_summary(result.stdout, result.stderr) if x64 else None,
         }
 
     from .clang_tidy_lines import redundant_cast_line_filter

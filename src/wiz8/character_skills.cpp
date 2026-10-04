@@ -33,11 +33,7 @@
 #include <string.h>
 #include <wchar.h>
 
-/* Unresolved fragment in two clusters: 0x00547940/0x005479B0 lie in the
-   Combat Hostility.cpp (ends 0x00547570) to VideoObjectManager.cpp
-   (0x00548F90) gap, and the six 0x00553xxx-0x00555xxx functions plus
-   0x00558610 sit in the gaps around the anchored CharGeneration.cpp,
-   ButtonSound.cpp and Formation & Facing.cpp hulls. No proven ownership. */
+/* Original translation-unit ownership is unknown; surrounding anchors do not resolve it. */
 
 // GLOBAL: WIZ8 0x0061ec94
 static wchar_t g_format_s_possessive[] = L"%s's";

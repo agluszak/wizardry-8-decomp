@@ -1,9 +1,13 @@
 # Modern diagnostics over the real VC6 headers. This toolchain is compile-only
 # and never participates in matching or linked-image comparison.
 set(CMAKE_SYSTEM_NAME Windows)
-set(CMAKE_SYSTEM_PROCESSOR x86)
-
-set(_target i686-pc-windows-msvc)
+if(WIZ8_ANALYSIS_X64)
+    set(CMAKE_SYSTEM_PROCESSOR AMD64)
+    set(_target x86_64-pc-windows-msvc)
+else()
+    set(CMAKE_SYSTEM_PROCESSOR x86)
+    set(_target i686-pc-windows-msvc)
+endif()
 set(CMAKE_C_COMPILER clang-cl)
 set(CMAKE_CXX_COMPILER clang-cl)
 set(CMAKE_C_COMPILER_TARGET ${_target})

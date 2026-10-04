@@ -2734,7 +2734,7 @@ unsigned char UpdateScreenFade(void)
     if (g_fade_out == 0) {
         material->setOpacity(progress);
     } else {
-        material->setOpacity(g_float_005ebb38 - progress);
+        material->setOpacity(g_float_one - progress);
     }
     if (g_fade_flag != 0) {
         RenderFrame();

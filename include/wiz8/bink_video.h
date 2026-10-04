@@ -2,7 +2,7 @@
 #define WIZ8_BINK_VIDEO_H
 
 #include "bink.h"
-#include "wiz8/wiz8_windows.h"
+#include "wiz8/wiz8_directdraw.h"
 
 /* First-party owner around the closed Bink middleware handle. Engine
    Code\Bink.cpp is named by the retained failure path in its surface copy. */

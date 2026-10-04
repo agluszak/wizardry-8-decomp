@@ -530,7 +530,6 @@ def test_bounded_differential_rejects_debugger_exit_after_ready(
     settings = SimpleNamespace(repo_dir=tmp_path, product_build_dir=tmp_path)
     monkeypatch.setattr(command_support, "settings", lambda: settings)
     monkeypatch.setattr(dynamic.Sandbox, "from_environment", lambda: None)
-    monkeypatch.setattr(dynamic, "write_report", lambda *_: None)
 
     def trace(*_args, executable, **_kwargs):
         code = returncode if executable == "Wiz8Runtime.exe" else None

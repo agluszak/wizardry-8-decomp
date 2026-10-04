@@ -32,7 +32,7 @@ public:
     int width_00;
     int rows_04;
     float scale_08;
-    float minimum_0c[3];
+    float m_minimum[3];
     char** m_pPathStrings;
     char** m_pLinkStrings;
 };
@@ -48,9 +48,9 @@ OctPrePathLog::OctPrePathLog(float scale, const float* bounds)
     if (bounds != 0) {
         width_00 = static_cast<int>((bounds[3] - bounds[0]) / scale) + 1;
         rows_04 = static_cast<int>((bounds[5] - bounds[2]) / scale) + 1;
-        minimum_0c[0] = bounds[0];
-        minimum_0c[1] = bounds[1];
-        minimum_0c[2] = bounds[2];
+        m_minimum[0] = bounds[0];
+        m_minimum[1] = bounds[1];
+        m_minimum[2] = bounds[2];
         m_pPathStrings = static_cast<char**>(malloc(rows_04 << 2));
         if (m_pPathStrings == 0) {
             ReportBuildStatus(7, "OctPrePathLog: Could not allocate m_pPathStrings.\n");
@@ -151,9 +151,9 @@ int PrePathing::SnapNamedPositions(W8LevelFileNamedPosition* positions, int coun
     if (count != 0) {
         named_positions_250 = new srVector3T<float>[count];
         for (int i = 0; i < named_position_count_24c; ++i) {
-            named_positions_250[i].Set(positions[i].position_81.x * g_world_scale,
-                                       positions[i].position_81.y * g_world_scale,
-                                       positions[i].position_81.z * g_world_scale);
+            named_positions_250[i].Set(positions[i].position.x * g_world_scale,
+                                       positions[i].position.y * g_world_scale,
+                                       positions[i].position.z * g_world_scale);
             octree->SnapToGround(&named_positions_250[i], 0);
         }
     }
@@ -340,9 +340,9 @@ unsigned int PrePathing::DeleteUnreachableAreas()
         }
         minimum = static_cast<unsigned int>(size_004 * min_component_percent_1200) / 100;
     }
-    visible_waypoints_058 = new BitArray(size_004);
-    rendered_waypoints_05c = new BitArray(size_004);
-    collected_waypoints_060 = new BitArray(size_004);
+    m_visible_waypoints = new BitArray(size_004);
+    m_rendered_waypoints = new BitArray(size_004);
+    m_collected_waypoints = new BitArray(size_004);
     ReportBuildStatus(6, "Deleting Unreacheable Areas.\n");
     ReportBuildStatus(6, "Deleting Nodes: \t");
     for (unsigned int i = 1; i < static_cast<unsigned int>(size_004); ++i) {
@@ -353,19 +353,19 @@ unsigned int PrePathing::DeleteUnreachableAreas()
                     deleted);
             ReportStartupMessage(message);
         }
-        if (rendered_waypoints_05c->Test(i)) {
+        if (m_rendered_waypoints->Test(i)) {
             continue;
         }
         int component_size = 0;
-        visible_waypoints_058->ClearAll();
-        collected_waypoints_060->ClearAll();
+        m_visible_waypoints->ClearAll();
+        m_collected_waypoints->ClearAll();
         int pending = i + 1;
         while (pending != 0) {
             do {
                 unsigned int index = pending - 1;
                 if (path_node_list_240[index] != 0) {
-                    visible_waypoints_058->Clear(index);
-                    collected_waypoints_060->Set(index);
+                    m_visible_waypoints->Clear(index);
+                    m_collected_waypoints->Set(index);
                     ++component_size;
                     for (int direction = 0; direction < 8; ++direction) {
                         W8PrePathNode* node = path_node_list_240[index];
@@ -407,22 +407,22 @@ unsigned int PrePathing::DeleteUnreachableAreas()
                                 }
                             }
                         }
-                        if (neighbor != 0 && !collected_waypoints_060->Test(next_index)) {
-                            if (!rendered_waypoints_05c->Test(next_index)) {
-                                visible_waypoints_058->Set(next_index);
+                        if (neighbor != 0 && !m_collected_waypoints->Test(next_index)) {
+                            if (!m_rendered_waypoints->Test(next_index)) {
+                                m_visible_waypoints->Set(next_index);
                             } else {
                                 component_size = minimum + 1;
                             }
                         }
                     }
                 }
-                pending = visible_waypoints_058->NextSetBit(0);
+                pending = m_visible_waypoints->NextSetBit(0);
             } while (pending != 0);
-            pending = visible_waypoints_058->NextSetBit(1);
+            pending = m_visible_waypoints->NextSetBit(1);
         }
         if (component_size < static_cast<int>(minimum)) {
             bool clear_of_named = true;
-            pending = collected_waypoints_060->NextSetBit(1);
+            pending = m_collected_waypoints->NextSetBit(1);
             if (pending != 0) {
                 do {
                     if (!clear_of_named) {
@@ -443,21 +443,21 @@ unsigned int PrePathing::DeleteUnreachableAreas()
                             clear_of_named = false;
                         }
                     }
-                    pending = collected_waypoints_060->NextSetBit(0);
+                    pending = m_collected_waypoints->NextSetBit(0);
                 } while (pending != 0);
                 if (!clear_of_named) {
                     goto component_done;
                 }
             }
-            pending = collected_waypoints_060->NextSetBit(1);
+            pending = m_collected_waypoints->NextSetBit(1);
             while (pending != 0) {
                 path_node_list_240[pending - 1]->level_flags |= 0x40000000;
                 ++deleted;
-                pending = collected_waypoints_060->NextSetBit(0);
+                pending = m_collected_waypoints->NextSetBit(0);
             }
         }
     component_done:
-        rendered_waypoints_05c->UnionWith(*collected_waypoints_060);
+        m_rendered_waypoints->UnionWith(*m_collected_waypoints);
     }
     cell_map_254->Clear();
     int kept = 1;
@@ -472,12 +472,12 @@ unsigned int PrePathing::DeleteUnreachableAreas()
             ++kept;
         }
     }
-    delete visible_waypoints_058;
-    visible_waypoints_058 = 0;
-    delete rendered_waypoints_05c;
-    rendered_waypoints_05c = 0;
-    delete collected_waypoints_060;
-    collected_waypoints_060 = 0;
+    delete m_visible_waypoints;
+    m_visible_waypoints = 0;
+    delete m_rendered_waypoints;
+    m_rendered_waypoints = 0;
+    delete m_collected_waypoints;
+    m_collected_waypoints = 0;
     sprintf(message, "Nodes Deleted: %d\n", size_004 - kept);
     ReportBuildStatus(6, message);
     size_004 = kept;
@@ -559,21 +559,20 @@ unsigned char PrePathing::CreateAutomapNodes(W8LevelFile* level)
         } while (i < static_cast<unsigned int>(size_004));
     }
     used_keys.Clear();
-    level->num_automap_nodes_6b1 = node_keys.GetCount();
+    level->num_automap_nodes = node_keys.GetCount();
     sprintf(message, "Creating Automap Nodes:  100%% Complete:  %d Automap Nodes created  \n",
             node_keys.GetCount());
     ReportStartupMessage(message);
-    sprintf(message, "  %d Total Automap Nodes.\n", level->num_automap_nodes_6b1);
+    sprintf(message, "  %d Total Automap Nodes.\n", level->num_automap_nodes);
     ReportBuildStatus(6, message);
-    level->automap_nodes_6b5 =
-        static_cast<unsigned long*>(malloc(level->num_automap_nodes_6b1 << 2));
-    if (level->automap_nodes_6b5 == 0) {
-        level->num_automap_nodes_6b1 = 0;
+    level->automap_nodes = static_cast<unsigned long*>(malloc(level->num_automap_nodes << 2));
+    if (level->automap_nodes == 0) {
+        level->num_automap_nodes = 0;
     } else {
-        for (i = 0; i < static_cast<unsigned int>(level->num_automap_nodes_6b1); ++i) {
-            level->automap_nodes_6b5[i] = *node_keys.GetAt(i);
+        for (i = 0; i < static_cast<unsigned int>(level->num_automap_nodes); ++i) {
+            level->automap_nodes[i] = *node_keys.GetAt(i);
         }
-        QuickSort(level->automap_nodes_6b5, 0, level->num_automap_nodes_6b1 - 1);
+        QuickSort(level->automap_nodes, 0, level->num_automap_nodes - 1);
     }
     for (i = 1; i < static_cast<unsigned int>(size_004); ++i) {
         path_node_list_240[i] = 0;
@@ -596,9 +595,9 @@ void W8PathingService::LinkCollideableProps(int lNumProps, W8PreProp* pPreProps,
     m_ulNumCondPaths = 1;
     m_ulNumCondNodes = 1;
     m_ulNumCondFrames = 1;
-    m_pPathValues_064 = new W8HashTable<unsigned int, unsigned int>;
+    m_pPathValues = new W8HashTable<unsigned int, unsigned int>;
     for (i = 0; i < size_004; ++i) {
-        m_pPathValues_064->Insert(&path_nodes_044[i * 2], &path_nodes_044[i * 2 + 1]);
+        m_pPathValues->Insert(&path_nodes_044[i * 2], &path_nodes_044[i * 2 + 1]);
     }
 
     GDPropCondPaths** ppCondPaths = static_cast<GDPropCondPaths**>(malloc(lNumProps * 4 + 8));

@@ -1061,7 +1061,7 @@ void W8Prop::AttachAnimationInstances(W8World* world)
             rotation_06c = rotation;
             current = **path->nodes_0c->GetAt(Rep()->subcycle_064);
             next_pos = **path->nodes_0c->GetAt(next_frame);
-            inv = g_float_005ebb38 - anim_frame_fraction_024;
+            inv = g_float_one - anim_frame_fraction_024;
             position = current * inv + next_pos * anim_frame_fraction_024;
             if (path->scales_18 != 0) {
                 has_scales = true;
@@ -1420,7 +1420,7 @@ bool CreateAndLoadProp(W8ReadLevelInfo* info, W8Prop** prop_out)
     if (success) {
         *prop_out = prop;
         prop->m_pTimer->SetDuration(
-            g_float_005ebb38 / static_cast<W8PropRepresentation*>(prop->m_pRep)->animation_speed);
+            g_float_one / static_cast<W8PropRepresentation*>(prop->m_pRep)->animation_speed);
         prop->ApplyAnimationFrame();
     }
     return success;
