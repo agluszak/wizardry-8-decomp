@@ -85,8 +85,9 @@
 #define HEALTH_STAMINA_MANA_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Health Stamina Mana.cpp"
 
 // FUNCTION: WIZ8 0x0052A890
-unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, char arg_3, char arg_4,
-                                    char arg_5, W8SpellEffectResult* result_stats, char arg_7)
+unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, bool quiet, bool announce,
+                                    bool short_notice, W8SpellEffectResult* result_stats,
+                                    bool detailed)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
     unsigned int absorbed;
@@ -106,7 +107,7 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, char ar
     if (character->enchantments[2].turns_08 != 0) {
         absorbed = character->enchantments[2].magnitude_06;
         if (amount <= absorbed) {
-            PostCharacterNotice(party_slot, gppStringList[0x193 - (arg_3 != 0)], amount);
+            PostCharacterNotice(party_slot, gppStringList[0x193 - (quiet != 0)], amount);
             character->enchantments[2].magnitude_06 =
                 static_cast<unsigned short>(absorbed - amount);
             if (result_stats != 0) {
@@ -115,7 +116,7 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, char ar
             return 0;
         }
 
-        PostCharacterNotice(party_slot, gppStringList[0x193 - (arg_3 != 0)], absorbed);
+        PostCharacterNotice(party_slot, gppStringList[0x193 - (quiet != 0)], absorbed);
         amount -= absorbed;
         ClearCharacterEnchantmentSlot(party_slot, 2);
         PostCharacterNotice(party_slot, gppStringList[0x194]);
@@ -127,14 +128,14 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, char ar
         ++result_stats->count;
     }
 
-    if (arg_5 != 0) {
-        if (arg_7 != 0) {
+    if (announce != 0) {
+        if (detailed != 0) {
             PostCharacterNotice(party_slot, gppStringList[0x268], amount);
-        } else if (arg_4 != 0) {
+        } else if (short_notice != 0) {
             ShowNoticef(9, gppStringList[0x254], amount);
         } else {
             PostCharacterNotice(party_slot, gppStringList[0x255], amount,
-                                arg_3 != 0 ? gppStringList[0x257] : &g_empty_wide_string);
+                                quiet != 0 ? gppStringList[0x257] : &g_empty_wide_string);
         }
     }
 
@@ -172,7 +173,7 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, char ar
                               result_stats == 0);
     }
 
-    if (character->uiCondition[W8_CONDITION_ASLEEP] != 0 && arg_3 == 0 &&
+    if (character->uiCondition[W8_CONDITION_ASLEEP] != 0 && quiet == 0 &&
         Random(100) < (character->attributes[6].effective >> 1) + 0x32) {
         RemoveCharacterCondition(party_slot, W8_CONDITION_ASLEEP, 1);
     }
