@@ -138,6 +138,11 @@ def test_compare_changed_uses_existing_index_without_building(tmp_path, monkeypa
     monkeypatch.setattr(command_support, "settings", lambda: settings)
     monkeypatch.setattr(comparison, "changed_source_files", lambda *_args: [source])
     monkeypatch.setattr(
+        comparison,
+        "header_dependent_files",
+        lambda *_args: pytest.fail("direct --changed must not expand header consumers"),
+    )
+    monkeypatch.setattr(
         source_index, "write_source_index", lambda *_args: pytest.fail("must not refresh index")
     )
     monkeypatch.setattr(
