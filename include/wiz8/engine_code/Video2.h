@@ -1,5 +1,6 @@
 /* Modified for the Wizardry 8 reconstruction, 2026-09-10.
-   Reconstructed Wizardry Video2 interface and product C linkage.
+   Reconstructed Wizardry Video2 interface.
+   Remove the artificial SGP C boundary and unused local configuration include, 2026-10-04.
    Distributed under the accompanying SFI Source Code license agreement. */
 #ifndef WIZ8_VIDEO2_H
 #define WIZ8_VIDEO2_H
@@ -8,7 +9,6 @@
 #include <ddraw.h>
 #include <process.h>
 
-#include "Local.h"
 #include "Debug.h"
 #include "Types.h"
 #include "DirectDraw Calls.h"
@@ -24,9 +24,6 @@
 #define MAX_CURSOR_HEIGHT 64
 #define VIDEO_NO_CURSOR 0xFFFF
 
-#ifdef __cplusplus
-extern "C" { // C-LINKAGE: the SGP video manager interface that src/sgp/*.c references
-#endif
 
 extern HWND ghWindow;
 
@@ -64,7 +61,7 @@ void VideoGetClientRect(RECT* rect);
 void VideoToolTip(UINT16* text);
 extern INT32 g_help_box_width;
 extern INT32 g_help_box_height;
-/* DisplayFastHelp in mousesystem.c and the product region code both access
+/* DisplayFastHelp in mousesystem.cpp and the product region code both access
    these fields inline; no separate getter bodies occur at those call sites. */
 static __inline INT32 VideoGetToolTipWidth(void)
 {
@@ -79,21 +76,14 @@ void VideoRemoveToolTip(void);
 
 void SGPMouseGetPos(POINT* point);
 
-#ifdef __cplusplus
-}
-
 /* Tooltip ownership query: nonzero while a VideoToolTip object is alive. */
 bool HasScreenTransitionObjects(void); /* 0x004297D0 */
 /* 0x00422EC0: invalidate each rectangle in a run. */
 struct W8ScreenRect;
 void InvalidateScreenRects(W8ScreenRect* rects, unsigned int count, int flags);
 
-#endif
 
-#ifdef __cplusplus
-/* Renderer state and helpers with only product C++ consumers. The C block
-   above is the SGP video-manager surface the SGP C translation units
-   reference; these stay ordinary C++ linkage because no C unit names them. */
+/* Renderer state and helpers shared by the product C++ consumers. */
 extern bool g_auto_capture;
 extern int g_cursor_image_height;
 /* 0x00652DA4: set while the swaying camera view is active; see
@@ -102,7 +92,6 @@ extern bool g_camera_sway_active;
 extern int g_screenshot_index;
 extern int g_screenshot_page;
 void ClearSurfaceRect(int left, unsigned int top, int right, unsigned int bottom);
-#ifdef __cplusplus
 
 extern const float g_viewport_x_scale;
 extern const float g_viewport_y_scale;
@@ -189,11 +178,9 @@ void BeginRenderProbe(void);
 unsigned int MeasureNodeRender(srNode* node);
 void EndRenderProbe(void);
 
-#endif
 
 void WarpSystemCursor(int x, int y); /* 0x004280C0: fullscreen-safe */
 
-#ifdef __cplusplus
 
 class srColorSurface;
 class srCamera;
@@ -315,9 +302,7 @@ void SetPickedModelInstance(srModelInstance* value);
 bool IsCursorInsideViewport(void);      /* 0x00428070 */
 bool IsCursorImageInsideViewport(void); /* 0x00428030 */
 
-#endif
 
-#endif
 
 void SetDisplayGamma(float value);
 unsigned int GetTotalPhysicalMemory(void);

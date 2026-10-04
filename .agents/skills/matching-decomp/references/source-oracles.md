@@ -16,8 +16,8 @@ Search `src/sgp` before recovering or declaring an SGP API elsewhere.
 - The pinned released SGP baseline (see the README) is the immutable ancestor oracle. Wizardry
   deltas belong in the original SGP units; there is no parallel pristine runtime implementation plus
   override layer.
-- Include real owning product headers where recovered. `include/wiz8/sgp-compat` is only for genuinely
-  unresolved original interfaces. Do not duplicate SGP functions into Wizardry C++ to work around
+- Include real owning product headers directly; SGP compiles as C++. Do not recreate the retired
+  C bridge or compatibility shells. Do not duplicate SGP functions into Wizardry C++ to work around
   archive extraction, folding, or other linker behavior.
 - Preserve SFI-SCLA, upstream notices, and dated modification notices. History, licensing, source
   membership, and build specifics live in [src/sgp/README.md](../../../../src/sgp/README.md).

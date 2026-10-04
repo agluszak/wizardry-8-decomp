@@ -4,7 +4,6 @@ Every header under ``include/wiz8`` gets an inferred role:
 
 - ``shared-layout``: ``include/wiz8/layouts/**`` and headers that declare no
   functions or globals — packed records, enums and shared-state ``extern``s.
-- ``bridge``: ``include/wiz8/sgp_bridge.h``.
 - ``header-implementation``: the header emits the code itself — inline or
   template definitions the index records inside a header.
 - ``tu-interface``: resolved declarations belong to one original TU.
@@ -47,7 +46,6 @@ from .source_units import (
     source_unit_records,
 )
 
-BRIDGE = "bridge"
 SHARED_LAYOUT = "shared-layout"
 TU_INTERFACE = "tu-interface"
 MULTI_TU = "multi-tu"
@@ -59,8 +57,6 @@ PLACED_ATTRIBUTIONS = frozenset({"direct", "bounded", "cross-build"})
 
 ARCHITECTURE_PATH = Path("src/wiz8/header_architecture.json")
 HEADER_ROOT = Path("include/wiz8")
-BRIDGE_HEADER = "include/wiz8/sgp_bridge.h"
-SKIP_DIRECTORIES = frozenset({"sgp-compat"})
 _LAYOUT_PREFIX = "include/wiz8/layouts/"
 _LOCAL_INCLUDE_PREFIX = "wiz8/"
 
@@ -70,12 +66,14 @@ _LOCAL_INCLUDE_PREFIX = "wiz8/"
 _REMOVED_AGGREGATES = (
     "include/wiz8/character.h",
     "include/wiz8/combat_state.h",
+    "include/wiz8/gameloop.h",
     "include/wiz8/engine_code/anim.h",
     "include/wiz8/engine_code/anim_defs.h",
     "include/wiz8/engine_code/anim_loader.h",
     "include/wiz8/engine_code/palette_effects.h",
     "include/wiz8/magic.h",
     "include/wiz8/render_state.h",
+    "include/wiz8/sgp_bridge.h",
     "include/wiz8/spell_effect.h",
     "include/wiz8/stats.h",
 )
@@ -132,12 +130,7 @@ def _header_files(repo_dir: Path) -> list[Path]:
     header_root = repo_dir / HEADER_ROOT
     if not header_root.is_dir():
         return []
-    return sorted(
-        path
-        for path in header_root.rglob("*")
-        if path.suffix.lower() in {".h", ".hpp"}
-        and not set(path.relative_to(header_root).parts) & SKIP_DIRECTORIES
-    )
+    return sorted(path for path in header_root.rglob("*") if path.suffix.lower() in {".h", ".hpp"})
 
 
 def _source_includes(path: Path) -> list[str]:
@@ -296,9 +289,7 @@ def analyze_header_architecture(
                 }
             )
 
-        if relative == BRIDGE_HEADER:
-            role = BRIDGE
-        elif is_layout or not decls:
+        if is_layout or not decls:
             role = SHARED_LAYOUT
         elif not units and not unmapped_sources and not recovered:
             if unresolved:

@@ -54,9 +54,9 @@ function(wiz8_lint_target target)
     )
 
     if(ARG_VENDOR)
-        # WIZ8_SGP is the retained SFI C library. It compiles through the same headers
+        # WIZ8_SGP retains the released SFI source style in C++. It uses the same headers
         # and defines, but only the decompilation-correctness diagnostics gate it: its
-        # upstream C style warnings (pointer-sign, unused-but-set, incompatible pointer
+        # released-source style warnings (pointer-sign, unused-but-set, incompatible pointer
         # types, ...) are vendor behavior and stay report-only in `wiz8 diagnostics`.
         # Signed comparisons are included in that vendor exception because the
         # reconstructed callers already fix their own side. The recovery warnings below
@@ -64,7 +64,7 @@ function(wiz8_lint_target target)
         # `wiz8 diagnostics` never fails on what it is supposed to report. Clang 19
         # additionally promotes implicit declarations and mismatched callback pointers
         # to errors by default; those stay demoted to warnings here for the same
-        # vendor reason instead of rewriting retained C.
+        # vendor reason instead of rewriting retained source.
         target_compile_options(${target} PRIVATE
             /UNOMINMAX
             -Wno-cast-function-type-mismatch

@@ -117,10 +117,30 @@ SGP comparison findings after the delta recovery are classified:
 Retail list callers reach the folded size/delete bodies through `ListSize` and
 `DeleteList`; product code uses the list API for `HLIST` values.
 
-SGP's product calls use the real `GameData.h`, `Video2.h`, and `gameloop.h` C
-boundaries. Only unresolved original configuration headers remain in
-`include/wiz8/sgp-compat`. `tools/lint/include` contains host-only
-filename-capitalization adapters.
+SGP's product calls use the real `GameData.h`, `Video2.h`, `game_init.h`, and
+`local_code/Gameloop.h` declarations. `MoveTimer` and its action constants belong
+to `GameData.h`;
+product font handles belong to `fonts.h`. The C++ source has no parallel
+`sgp_bridge.h` or game-loop umbrella interface. Product timer, video, game-loop,
+and octree calls use ordinary C++ linkage. Historical SGP API linkage remains
+in the SGP headers; `gap.c` retains its real C boundary.
+
+The empty `builddefines.h` and unused `local.h` configuration shells and their
+lint filename adapters are removed. The VC6 SDK supplies `zmouse.h`, including
+wheel constants hidden by the old `WINUSER.H` target-version guards. No
+`include/wiz8/sgp-compat` tree or include path remains. Other `tools/lint/include`
+filename-capitalization adapters
+still resolve the released SGP names on the host filesystem.
+
+Cleanup verification (`run-8qc2gk6v`, 2026-10-04) selects 5,688 addresses:
+2,797 `no-differences`, 2,687 `differences`, and 204 explicitly classified
+compiler non-emissions, with zero unpaired or analysis failures. The same 340
+SGP functions now have 290 `no-differences` and 50 `differences`, three gains
+and zero regressions against the migration report. Comparing common functions
+with PR #861's saved CI report adds one residual: VC6 emits exception-unwind
+setup around the allocation in `MoveTimer` after its declaration gains C++
+linkage. Its authored body is unchanged; no exception or optimizer controls are
+added to reproduce the former C-linkage output.
 
 ## Known Wizardry deltas
 
@@ -188,8 +208,8 @@ The C++ residuals include changed helper inlining (`DequeueEvent`,
 and C++ local-static symbol spelling (`WindowProcedure`, `RenderFastHelp`).
 Keep natural calls and expressions rather than shaping them to reproduce the
 C compiler's output. Build-context and decompiler-label differences are not
-behavioral-equivalence proofs. Removal of the remaining bridge and compatibility
-headers is a subsequent source-ownership cleanup.
+behavioral-equivalence proofs. The subsequent source-ownership cleanup removes
+the bridge and compatibility shells as described above.
 
 Compile and compare whole translation units so `/Ob2` sees the actual helpers,
 globals and headers. reccmp's COFF object view retains functions, static symbols,

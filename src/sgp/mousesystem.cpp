@@ -2,8 +2,8 @@
    Include the declarations used by the Wizardry build explicitly.
    Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
    Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
+   Remove the unused product font include; fast-help rendering delegates to VideoToolTip, 2026-10-04.
    Distributed under the accompanying SFI Source Code license agreement. */
-#include "wiz8/fonts.h"
 
 //=================================================================================================
 //	MouseSystem.c

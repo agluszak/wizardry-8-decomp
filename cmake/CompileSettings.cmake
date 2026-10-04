@@ -22,6 +22,5 @@ target_include_directories(wiz8_compile_settings INTERFACE
     include
     include/wiz8
     include/wiz8/engine_code
-    include/wiz8/sgp-compat
     src/sgp
 )
