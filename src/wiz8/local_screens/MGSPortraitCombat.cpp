@@ -338,49 +338,17 @@ static void SubMenuButtonToggleFlag(W8DialogButton* button)
 // FUNCTION: WIZ8 0x00595110
 static void SubMenuButtonUseItem(W8DialogButton* button)
 {
-    int index;
-
     if (gXStatus.fItemSelectMode != 0) {
         CloseUseItemSelectView();
         return;
     }
     if (gXStatus.fCombatMode != 0) {
         if (g_level_block->combat_end_notification != -1) {
-            SetSubMenuButtonTooltips(1);
-            g_level_block->combat_end_notification = -1;
-            g_submenu_entry_count = 0;
-            RegionSetDisable(0x27);
-            DisableRegionSetInput(0x27);
-            if (gpSubMenuPanel != 0) {
-                delete gpSubMenuPanel;
-                gpSubMenuPanel = 0;
-            }
-            for (index = 0; index < 5; ++index) {
-                if (g_submenu_rows[index] != 0) {
-                    delete g_submenu_rows[index];
-                    g_submenu_rows[index] = 0;
-                }
-            }
-            RequestRedraw(0x200);
+            DestroySubMenuControls();
         }
         UpdateScreenOverlays(0);
         if (BuildSubMenuPanel(3) == 0) {
-            SetSubMenuButtonTooltips(1);
-            g_level_block->combat_end_notification = -1;
-            g_submenu_entry_count = 0;
-            RegionSetDisable(0x27);
-            DisableRegionSetInput(0x27);
-            if (gpSubMenuPanel != 0) {
-                delete gpSubMenuPanel;
-                gpSubMenuPanel = 0;
-            }
-            for (index = 0; index < 5; ++index) {
-                if (g_submenu_rows[index] != 0) {
-                    delete g_submenu_rows[index];
-                    g_submenu_rows[index] = 0;
-                }
-            }
-            RequestRedraw(0x200);
+            DestroySubMenuControls();
         }
         SetSubMenuButtonTooltips(0);
         g_submenu_clock = SetCountdownClock(0);
@@ -407,44 +375,12 @@ static void SubMenuButtonSpellView(W8DialogButton* button)
 // FUNCTION: WIZ8 0x005952D0
 static void SubMenuButtonOpenMenu0(W8DialogButton* button)
 {
-    int index;
-
     if (g_level_block->combat_end_notification != -1) {
-        SetSubMenuButtonTooltips(1);
-        g_level_block->combat_end_notification = -1;
-        g_submenu_entry_count = 0;
-        RegionSetDisable(0x27);
-        DisableRegionSetInput(0x27);
-        if (gpSubMenuPanel != 0) {
-            delete gpSubMenuPanel;
-            gpSubMenuPanel = 0;
-        }
-        for (index = 0; index < 5; ++index) {
-            if (g_submenu_rows[index] != 0) {
-                delete g_submenu_rows[index];
-                g_submenu_rows[index] = 0;
-            }
-        }
-        RequestRedraw(0x200);
+        DestroySubMenuControls();
     }
     UpdateScreenOverlays(0);
     if (BuildSubMenuPanel(6) == 0) {
-        SetSubMenuButtonTooltips(1);
-        g_level_block->combat_end_notification = -1;
-        g_submenu_entry_count = 0;
-        RegionSetDisable(0x27);
-        DisableRegionSetInput(0x27);
-        if (gpSubMenuPanel != 0) {
-            delete gpSubMenuPanel;
-            gpSubMenuPanel = 0;
-        }
-        for (index = 0; index < 5; ++index) {
-            if (g_submenu_rows[index] != 0) {
-                delete g_submenu_rows[index];
-                g_submenu_rows[index] = 0;
-            }
-        }
-        RequestRedraw(0x200);
+        DestroySubMenuControls();
     }
     SetSubMenuButtonTooltips(0);
     g_submenu_clock = SetCountdownClock(0);
@@ -455,44 +391,12 @@ static void SubMenuButtonOpenMenu0(W8DialogButton* button)
 // FUNCTION: WIZ8 0x00595410
 static void SubMenuButtonOpenMenu1(W8DialogButton* button)
 {
-    int index;
-
     if (g_level_block->combat_end_notification != -1) {
-        SetSubMenuButtonTooltips(1);
-        g_level_block->combat_end_notification = -1;
-        g_submenu_entry_count = 0;
-        RegionSetDisable(0x27);
-        DisableRegionSetInput(0x27);
-        if (gpSubMenuPanel != 0) {
-            delete gpSubMenuPanel;
-            gpSubMenuPanel = 0;
-        }
-        for (index = 0; index < 5; ++index) {
-            if (g_submenu_rows[index] != 0) {
-                delete g_submenu_rows[index];
-                g_submenu_rows[index] = 0;
-            }
-        }
-        RequestRedraw(0x200);
+        DestroySubMenuControls();
     }
     UpdateScreenOverlays(0);
     if (BuildSubMenuPanel(5) == 0) {
-        SetSubMenuButtonTooltips(1);
-        g_level_block->combat_end_notification = -1;
-        g_submenu_entry_count = 0;
-        RegionSetDisable(0x27);
-        DisableRegionSetInput(0x27);
-        if (gpSubMenuPanel != 0) {
-            delete gpSubMenuPanel;
-            gpSubMenuPanel = 0;
-        }
-        for (index = 0; index < 5; ++index) {
-            if (g_submenu_rows[index] != 0) {
-                delete g_submenu_rows[index];
-                g_submenu_rows[index] = 0;
-            }
-        }
-        RequestRedraw(0x200);
+        DestroySubMenuControls();
     }
     SetSubMenuButtonTooltips(0);
     g_submenu_clock = SetCountdownClock(0);
@@ -509,8 +413,8 @@ static void SubMenuButtonToggleCombat(W8DialogButton* button)
 }
 
 /* Drop the combat-end notification and tear down the panel and its rows.
-   The reset body compiles this three times - before the rebuild, again while
-   the notification is still live, and once more when the rebuild fails. */
+   Retail expands this operation throughout the submenu callbacks; callers
+   share this body and leave the inlining decision to the compiler. */
 // FUNCTION: WIZ8 0x00595570
 void DestroySubMenuControls(void)
 {
@@ -537,46 +441,15 @@ void DestroySubMenuControls(void)
 // FUNCTION: WIZ8 0x00595600
 void ReopenSubMenuPanel(void)
 {
-    int index;
     short notification = g_level_block->combat_end_notification;
 
     if (notification == -1) {
         return;
     }
-    SetSubMenuButtonTooltips(1);
-    g_level_block->combat_end_notification = -1;
-    g_submenu_entry_count = 0;
-    RegionSetDisable(0x27);
-    DisableRegionSetInput(0x27);
-    if (gpSubMenuPanel != 0) {
-        delete gpSubMenuPanel;
-        gpSubMenuPanel = 0;
-    }
-    for (index = 0; index < 5; ++index) {
-        if (g_submenu_rows[index] != 0) {
-            delete g_submenu_rows[index];
-            g_submenu_rows[index] = 0;
-        }
-    }
-    RequestRedraw(0x200);
+    DestroySubMenuControls();
     UpdateScreenOverlays(0);
     if (BuildSubMenuPanel(notification) == 0) {
-        SetSubMenuButtonTooltips(1);
-        g_level_block->combat_end_notification = -1;
-        g_submenu_entry_count = 0;
-        RegionSetDisable(0x27);
-        DisableRegionSetInput(0x27);
-        if (gpSubMenuPanel != 0) {
-            delete gpSubMenuPanel;
-            gpSubMenuPanel = 0;
-        }
-        for (index = 0; index < 5; ++index) {
-            if (g_submenu_rows[index] != 0) {
-                delete g_submenu_rows[index];
-                g_submenu_rows[index] = 0;
-            }
-        }
-        RequestRedraw(0x200);
+        DestroySubMenuControls();
     }
     SetSubMenuButtonTooltips(0);
     g_submenu_clock = SetCountdownClock(0);

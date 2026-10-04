@@ -290,6 +290,24 @@ void srGERD::Renderer::IndexBatch::reset(int release)
     count = 0;
 }
 
+/* Vertex-stream teardown expanded in Renderer::reset. The method name is
+   descriptive, following the companion IndexBatch operation. */
+void srGERD::Renderer::VertexArrays::reset(int release)
+{
+    if (release != 0) {
+        diffuse.release();
+        specular.release();
+        positions.release();
+        st[0].release();
+        st[1].release();
+        q[0].release();
+        q[1].release();
+        packed.release();
+        capacity = 0;
+    }
+    count = 0;
+}
+
 // FUNCTION: SURRENDER 0x10024680
 void srGERD::Renderer::VertexArrays::alloc(srVertexArray& arrays, unsigned long count)
 {
@@ -954,18 +972,7 @@ void srGERD::Renderer::submit()
 void srGERD::Renderer::reset(int release_buffers)
 {
     indices.reset(release_buffers);
-    if (release_buffers != 0) {
-        vertices.diffuse.release();
-        vertices.specular.release();
-        vertices.positions.release();
-        vertices.st[0].release();
-        vertices.st[1].release();
-        vertices.q[0].release();
-        vertices.q[1].release();
-        vertices.packed.release();
-        vertices.capacity = 0;
-    }
-    vertices.count = 0;
+    vertices.reset(release_buffers);
     texture_sets.clear();
     if (release_buffers != 0) {
         bytes.release();

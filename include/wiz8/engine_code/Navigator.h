@@ -323,6 +323,7 @@ public:
     void SetHeightRange(float minimum, float maximum); /* 0x00453EF0 */
     void SetHalted(bool value);                        /* 0x004531F0 */
     void SetMovementStopped();                         /* 0x00453880 */
+    void ClearMovementStopped();
     /* Save the presence-gated movement state LoadMovementState
        consumes: the flag byte, then for an ungrouped navigator with flag
        0x20000000 set the height bounds, position and movement target. */
