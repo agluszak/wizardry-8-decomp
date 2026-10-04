@@ -784,12 +784,9 @@ srVector3T<double> srNode::getWorldSpaceLocation() const
 void srNode::getWorldSpaceRotation(srMatrix3T<double>& rotation) const
 {
     checkTransformation();
-    rotation.vectors[0].Set(world_transform_90.rows[0].x, world_transform_90.rows[0].y,
-                            world_transform_90.rows[0].z);
-    rotation.vectors[1].Set(world_transform_90.rows[1].x, world_transform_90.rows[1].y,
-                            world_transform_90.rows[1].z);
-    rotation.vectors[2].Set(world_transform_90.rows[2].x, world_transform_90.rows[2].y,
-                            world_transform_90.rows[2].z);
+    rotation.vectors[0] = world_transform_90.rows[0].xyz();
+    rotation.vectors[1] = world_transform_90.rows[1].xyz();
+    rotation.vectors[2] = world_transform_90.rows[2].xyz();
     srVector3T<double> scale = getWorldSpaceScale();
     srVector3T<double> inverse_scale(1.0 / scale.x, 1.0 / scale.y, 1.0 / scale.z);
     rotation.vectors[0] *= inverse_scale;
@@ -801,12 +798,9 @@ void srNode::getWorldSpaceRotation(srMatrix3T<double>& rotation) const
 void srNode::getWorldSpaceRotation(srMatrix3T<float>& rotation) const
 {
     checkTransformation();
-    rotation.vectors[0].Set(world_transform_f0.rows[0].x, world_transform_f0.rows[0].y,
-                            world_transform_f0.rows[0].z);
-    rotation.vectors[1].Set(world_transform_f0.rows[1].x, world_transform_f0.rows[1].y,
-                            world_transform_f0.rows[1].z);
-    rotation.vectors[2].Set(world_transform_f0.rows[2].x, world_transform_f0.rows[2].y,
-                            world_transform_f0.rows[2].z);
+    rotation.vectors[0] = world_transform_f0.rows[0].xyz();
+    rotation.vectors[1] = world_transform_f0.rows[1].xyz();
+    rotation.vectors[2] = world_transform_f0.rows[2].xyz();
     srVector3T<double> scale = getWorldSpaceScale();
     float inverse_x = 1.0f / (float)scale.x;
     float inverse_y = 1.0f / (float)scale.y;
@@ -1309,10 +1303,7 @@ void srNode::setWorldSpaceRotation(const srMatrix3T<double>& rotation)
         world.vectors[2].y = rotation.vectors[2].y * scale_78.y;
         world.vectors[2].z = rotation.vectors[2].z * scale_78.z;
         world.vectors[2].w = 0.0;
-        world.vectors[3].x = 0.0;
-        world.vectors[3].y = 0.0;
-        world.vectors[3].z = 0.0;
-        world.vectors[3].w = 1.0;
+        world.vectors[3].Set(0.0, 0.0, 0.0, 1.0);
         srMatrix4T<double> local;
         parent_->getWorldSpaceMatrix(local);
         local.vectors[0].w = 0.0;
@@ -1324,10 +1315,7 @@ void srNode::setWorldSpaceRotation(const srMatrix3T<double>& rotation)
         local = inverse;
         local.MultiplyBy(world);
         srMatrix3T<double> result;
-        result.SetRows(
-            srVector3T<double>(local.vectors[0].x, local.vectors[0].y, local.vectors[0].z),
-            srVector3T<double>(local.vectors[1].x, local.vectors[1].y, local.vectors[1].z),
-            srVector3T<double>(local.vectors[2].x, local.vectors[2].y, local.vectors[2].z));
+        result.SetRows(local.vectors[0].xyz(), local.vectors[1].xyz(), local.vectors[2].xyz());
         rotation_18 = result;
         srVector3T<double> column_x;
         srVector3T<double> column_y;
@@ -1362,9 +1350,7 @@ void srNode::setWorldSpaceMatrix(const srMatrix4T<double>& matrix)
         local.MultiplyBy(matrix);
     }
     srMatrix3T<double> result;
-    result.SetRows(srVector3T<double>(local.vectors[0].x, local.vectors[0].y, local.vectors[0].z),
-                   srVector3T<double>(local.vectors[1].x, local.vectors[1].y, local.vectors[1].z),
-                   srVector3T<double>(local.vectors[2].x, local.vectors[2].y, local.vectors[2].z));
+    result.SetRows(local.vectors[0].xyz(), local.vectors[1].xyz(), local.vectors[2].xyz());
     rotation_18 = result;
     location_60 = srVector3T<double>(local.vectors[0].w, local.vectors[1].w, local.vectors[2].w);
     srVector3T<double> column_x;

@@ -12,9 +12,7 @@ srModelInstance::srModelInstance(srNode* parent)
 {
     alignment_flags.value = 0;
     align_angle = 0.0f;
-    align_axis.x = 0.0f;
-    align_axis.y = 0.0f;
-    align_axis.z = 1.0f;
+    align_axis.Set(0.0f, 0.0f, 1.0f);
     exclusion_mask = 0;
     if (parent != 0) {
         setParent(parent, 0);
@@ -129,8 +127,7 @@ void srModelInstance::process(const ProcessInfo& info, e_processType type)
             length_z = -length_z;
         }
         renderer->loadIdentity();
-        srVector3T<float> translation;
-        translation.Set(position.x, position.y, position.z);
+        srVector3T<float> translation = position.xyz();
         renderer->translate(translation);
         if (align_angle != 0.0f) {
             renderer->rotate(align_angle, align_axis);

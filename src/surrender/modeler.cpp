@@ -1111,8 +1111,7 @@ void srModeler::removeMapping(long pass, long layer)
         Triangle* triangle = &triangles_08[0];
         for (unsigned long index = 0; index < triangle_count_04; ++index) {
             for (int vertex = 0; vertex < 3; ++vertex) {
-                triangle->vertices_30[vertex].uv_c0[pass * 2 + layer].x = 0.0f;
-                triangle->vertices_30[vertex].uv_c0[pass * 2 + layer].y = 0.0f;
+                triangle->vertices_30[vertex].uv_c0[pass * 2 + layer].SetZero();
             }
             ++triangle;
         }

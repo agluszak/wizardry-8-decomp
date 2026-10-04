@@ -28,8 +28,7 @@ srLight::srLight(srNode* parent, e_preset preset)
     ambient_198.SetZero();
     diffuse_1a4 = 1.0f;
     specular_1b0 = 1.0f;
-    spot_direction.x = spot_direction.y = 0.0f;
-    spot_direction.z = 1.0f;
+    spot_direction.Set(0.0f, 0.0f, 1.0f);
     spot_exponent = 1.0f;
     intensity_1d0 = 1.0f;
     spot_angle = (float)(3.141592653589793 * 0.5);

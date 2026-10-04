@@ -287,22 +287,10 @@ channels_done:
 // FUNCTION: SURRENDER 0x10033F60
 void srMaterial::reset()
 {
-    parms.ambient.x = 0.2f;
-    parms.ambient.y = 0.2f;
-    parms.ambient.z = 0.2f;
-    parms.ambient.w = 1.0f;
-    parms.diffuse.w = 1.0f;
-    parms.diffuse.x = 0.8f;
-    parms.diffuse.y = 0.8f;
-    parms.diffuse.z = 0.8f;
-    parms.specular.x = 0.0f;
-    parms.specular.y = 0.0f;
-    parms.specular.z = 0.0f;
-    parms.specular.w = 1.0f;
-    parms.emissive.x = 0.0f;
-    parms.emissive.y = 0.0f;
-    parms.emissive.z = 0.0f;
-    parms.emissive.w = 1.0f;
+    parms.ambient.Set(0.2f, 0.2f, 0.2f, 1.0f);
+    parms.diffuse.Set(0.8f, 0.8f, 0.8f, 1.0f);
+    parms.specular.Set(0.0f, 0.0f, 0.0f, 1.0f);
+    parms.emissive.Set(0.0f, 0.0f, 0.0f, 1.0f);
     parms.shininess = 1.0f;
     parms.translucency = 0.0f;
     parms.flags = 0;
