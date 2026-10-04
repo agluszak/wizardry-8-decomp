@@ -153,7 +153,12 @@ def compare_command(
     changed: bool = typer.Option(
         False,
         "--changed",
-        help="Compare changed C/C++ files and consumers of changed headers, including template emissions.",
+        help="Compare functions in changed C/C++ files, including template emissions.",
+    ),
+    dependents: bool = typer.Option(
+        False,
+        "--dependents",
+        help="With --changed, also compare consumers of changed headers.",
     ),
     all_source: bool = typer.Option(
         False,
@@ -195,6 +200,8 @@ def compare_command(
         target = target_for_program(settings.repo_dir, program)
         if since is not None and not changed:
             raise ValueError("--since requires --changed")
+        if dependents and not changed:
+            raise ValueError("--dependents requires --changed")
         if all_source and (addresses or files or changed):
             raise ValueError("--all-source cannot be combined with addresses, --file, or --changed")
         if ctx.args:
@@ -225,7 +232,7 @@ def compare_command(
                 from ..source_index import warn_if_source_index_may_be_stale
 
                 index_stale = warn_if_source_index_may_be_stale(settings.repo_dir, target)
-            if changed:
+            if changed and dependents:
                 changed_headers = [
                     path for path in changed_files if path.suffix.lower() in {".h", ".hpp", ".hxx"}
                 ]
@@ -272,7 +279,7 @@ def compare_command(
             if changed:
                 baseline = since or "working-copy parent"
                 result["selection"] = {
-                    "mode": "changed-and-dependent-files",
+                    "mode": "changed-and-dependent-files" if dependents else "changed-files",
                     "baseline": baseline,
                     "changed_files": [
                         str(path.relative_to(settings.repo_dir)) for path in changed_files
