@@ -1172,6 +1172,28 @@ void UpdateSubMenuPanelButtons(void)
     }
 }
 
+static void UpdateSubMenuScrollButtons()
+{
+    W8DialogButton** button;
+
+    if (g_level_block->combat_end_notification == -1 && gXStatus.fNpcDialogueMode == 0 &&
+        gXStatus.fCampMode == 0) {
+        for (button = g_submenu_scroll_buttons; button < &g_submenu_scroll_buttons[2];
+             ++button) {
+            (*button)->SetEnabled(1);
+        }
+    } else {
+        for (button = g_submenu_scroll_buttons; button < &g_submenu_scroll_buttons[2];
+             ++button) {
+            (*button)->SetEnabled(0);
+        }
+    }
+    for (button = g_submenu_scroll_buttons; button < &g_submenu_scroll_buttons[2];
+         ++button) {
+        (*button)->Draw();
+    }
+}
+
 /* Redraw the bottom sub-menu strip: bank chrome, the nine bank buttons, panel
    chrome/buttons, character-action caption, and the scroll arrows. */
 // FUNCTION: WIZ8 0x00598810
@@ -1211,22 +1233,7 @@ void RedrawSubMenuButtons(void)
          ++button) {
         (*button)->m_dirty = true;
     }
-    if (g_level_block->combat_end_notification == -1 && gXStatus.fNpcDialogueMode == 0 &&
-        gXStatus.fCampMode == 0) {
-        for (button = g_submenu_scroll_buttons; button < &g_submenu_scroll_buttons[2];
-             ++button) {
-            (*button)->SetEnabled(1);
-        }
-    } else {
-        for (button = g_submenu_scroll_buttons; button < &g_submenu_scroll_buttons[2];
-             ++button) {
-            (*button)->SetEnabled(0);
-        }
-    }
-    for (button = g_submenu_scroll_buttons; button < &g_submenu_scroll_buttons[2];
-         ++button) {
-        (*button)->Draw();
-    }
+    UpdateSubMenuScrollButtons();
 }
 
 // FUNCTION: WIZ8 0x00597550
@@ -1333,22 +1340,7 @@ void UpdateMainGameButtons(void)
         UpdateSubMenuButton(index);
         (*button)->Draw();
     }
-    if (g_level_block->combat_end_notification == -1 && gXStatus.fNpcDialogueMode == 0 &&
-        gXStatus.fCampMode == 0) {
-        for (button = g_submenu_scroll_buttons; button < &g_submenu_scroll_buttons[2];
-             ++button) {
-            (*button)->SetEnabled(1);
-        }
-    } else {
-        for (button = g_submenu_scroll_buttons; button < &g_submenu_scroll_buttons[2];
-             ++button) {
-            (*button)->SetEnabled(0);
-        }
-    }
-    for (button = g_submenu_scroll_buttons; button < &g_submenu_scroll_buttons[2];
-         ++button) {
-        (*button)->Draw();
-    }
+    UpdateSubMenuScrollButtons();
     UpdateSubMenuPanelButtons();
     enabled = gXStatus.fNpcDialogueMode == 0 && gXStatus.fLockInteractMode == 0 &&
               gXStatus.fTrapInteractMode == 0 && gXStatus.fCampMode == 0 &&

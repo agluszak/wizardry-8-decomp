@@ -87,29 +87,9 @@ static int g_spell_point_bonus;
 // GLOBAL: WIZ8 0x0068de34
 static bool g_gender_locked;
 
-/* A fresh creation: zero the character and the editing state, install the
-   sentinel values, and hand out the level-one pools. */
-// FUNCTION: WIZ8 0x00556dc0
-void InitializeCharacterCreation(W8Character* character, W8CharacterCreationState* creation_state)
+static void InitializeCharacterPointPools(W8Character* character,
+                                          W8CharacterCreationState* creation_state)
 {
-    g_attribute_point_bonus = 0;
-    g_skill_point_bonus = 0;
-    g_spell_point_bonus = 0;
-    g_gender_locked = false;
-    memset(character, 0, sizeof(*character));
-    character->gender = W8_GENDER_UNSET;
-    character->iProfession = W8_PROFESSION_NONE;
-    character->iRace = -1;
-    character->uiExpLevel = 1;
-    character->level_band_base = 0;
-    character->highest_condition = 0;
-    character->enchantment_top = 0;
-    character->portrait_index = -1;
-    character->unknown_007d = -1;
-    character->personality = -1;
-    memset(creation_state, 0, sizeof(*creation_state));
-    EmptyAllCarriedItems(character);
-
     int points = 0;
     if (character->iProfession != -1 && character->iRace != -1) {
         points = 0x3c + g_attribute_point_bonus;
@@ -136,6 +116,32 @@ void InitializeCharacterCreation(W8Character* character, W8CharacterCreationStat
     RecomputeSkillLimits(character, creation_state);
 }
 
+/* A fresh creation: zero the character and the editing state, install the
+   sentinel values, and hand out the level-one pools. */
+// FUNCTION: WIZ8 0x00556dc0
+void InitializeCharacterCreation(W8Character* character, W8CharacterCreationState* creation_state)
+{
+    g_attribute_point_bonus = 0;
+    g_skill_point_bonus = 0;
+    g_spell_point_bonus = 0;
+    g_gender_locked = false;
+    memset(character, 0, sizeof(*character));
+    character->gender = W8_GENDER_UNSET;
+    character->iProfession = W8_PROFESSION_NONE;
+    character->iRace = -1;
+    character->uiExpLevel = 1;
+    character->level_band_base = 0;
+    character->highest_condition = 0;
+    character->enchantment_top = 0;
+    character->portrait_index = -1;
+    character->unknown_007d = -1;
+    character->personality = -1;
+    memset(creation_state, 0, sizeof(*creation_state));
+    EmptyAllCarriedItems(character);
+
+    InitializeCharacterPointPools(character, creation_state);
+}
+
 /* One level gained: raise the level and profession counter, reset the editing
    state, and re-derive every pool the character's new level entitles them
    to. */
@@ -150,30 +156,7 @@ void InitializeCharacterLevelUp(W8Character* character, W8CharacterCreationState
     ++character->profession_levels[character->iProfession];
     memset(creation_state, 0, sizeof(*creation_state));
 
-    int points = 0;
-    if (character->iProfession != -1 && character->iRace != -1) {
-        points = 0x3c + g_attribute_point_bonus;
-        if (character->uiExpLevel != 1) {
-            points -= 0x36;
-        }
-        if (points < 0) {
-            points = 0;
-        }
-    }
-    creation_state->attribute_points_total = points;
-    creation_state->attribute_points_remaining = points;
-    RecomputeAttributeLimits(character, creation_state);
-
-    points = 0xf + g_skill_point_bonus;
-    if (character->uiExpLevel != 1) {
-        points -= 6;
-    }
-    if (points < 0) {
-        points = 0;
-    }
-    creation_state->skill_points_total = points;
-    creation_state->skill_points_remaining = points;
-    RecomputeSkillLimits(character, creation_state);
+    InitializeCharacterPointPools(character, creation_state);
 
     if (character->attribute_point_deficit < 0) {
         PayDownAttributeDebt(character, creation_state);

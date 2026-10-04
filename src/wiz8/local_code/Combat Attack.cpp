@@ -887,6 +887,39 @@ void ResolveSpellMissileHit(W8Missile* missile)
                           g_settings.verbose_combat_messages, &missile->result);
 }
 
+static unsigned int RollMonsterHitLocation(W8MonsterRecord* record)
+{
+    unsigned int total = 0;
+    unsigned int roll = Random(100);
+    for (unsigned int hit_location = 0;; ++hit_location) {
+        if (hit_location >= W8_MONSTER_HIT_LOCATIONS) {
+            FormatDebugMessage(0, "ERROR: DBS Hit Locations total only %d%% for monster %ls", total,
+                               record->name0);
+            return 3;
+        }
+        total += record->hit_location_chances[hit_location];
+        if (roll < total) {
+            return hit_location;
+        }
+    }
+}
+
+static unsigned int RollCharacterHitLocation()
+{
+    unsigned int total = 0;
+    unsigned int roll = Random(100);
+    for (unsigned int hit_location = 0;; ++hit_location) {
+        if (hit_location >= W8_PC_HIT_LOCATIONS) {
+            FormatDebugMessage(1, "ERROR: gubLocalACPercent total only %d%%");
+            return 1;
+        }
+        total += gubLocalACPercent[hit_location];
+        if (roll < total) {
+            return hit_location;
+        }
+    }
+}
+
 /* Land a physical missile on its target. The notice names the target, with
    the retargeted suffix when the shot was turned aside onto it, and colours
    the name by side. A deflected shot only reports the deflection. Otherwise
@@ -911,8 +944,6 @@ void ResolveMissileHit(W8Missile* missile, bool deflected)
     char source_color;
     char target_color;
     unsigned int hit_location;
-    unsigned int total;
-    unsigned int roll;
     int attack_mode;
     int chance;
     int penetration_roll;
@@ -953,20 +984,7 @@ void ResolveMissileHit(W8Missile* missile, bool deflected)
             MonsterGetIndexByLocationID(0x14d9, COMBAT_ATTACK_CPP, target->iMonsterID, 1);
         monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
         record = GetMonsterDataForInfo(monster_info);
-        total = 0;
-        roll = Random(100);
-        for (hit_location = 0;; ++hit_location) {
-            if (hit_location >= W8_MONSTER_HIT_LOCATIONS) {
-                FormatDebugMessage(0, "ERROR: DBS Hit Locations total only %d%% for monster %ls",
-                                   total, record->name0);
-                hit_location = 3;
-                break;
-            }
-            total += record->hit_location_chances[hit_location];
-            if (roll < total) {
-                break;
-            }
-        }
+        hit_location = RollMonsterHitLocation(record);
         if (record->hit_location_chances[hit_location] < 100) {
             wcscpy(location_name,
                    gppStringList[g_monster_hit_location_labels[hit_location]
@@ -975,19 +993,7 @@ void ResolveMissileHit(W8Missile* missile, bool deflected)
             wcscpy(location_name, &g_empty_wide_string);
         }
     } else {
-        total = 0;
-        roll = Random(100);
-        for (hit_location = 0;; ++hit_location) {
-            if (hit_location >= W8_PC_HIT_LOCATIONS) {
-                FormatDebugMessage(1, "ERROR: gubLocalACPercent total only %d%%");
-                hit_location = 1;
-                break;
-            }
-            total += gubLocalACPercent[hit_location];
-            if (roll < total) {
-                break;
-            }
-        }
+        hit_location = RollCharacterHitLocation();
         wcscpy(location_name, gppStringList[g_pc_hit_location_labels[hit_location][0]]);
     }
     if (g_settings.verbose_combat_messages != 0) {
@@ -1772,21 +1778,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
             target_info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
                 0x868, COMBAT_ATTACK_CPP, g_combat_state->TargetHit.iMonsterID, 1));
             target_record = GetMonsterDataForInfo(target_info);
-            unsigned int total = 0;
-            unsigned int location_roll = Random(100);
-            for (hit_location = 0;; ++hit_location) {
-                if (hit_location >= W8_MONSTER_HIT_LOCATIONS) {
-                    FormatDebugMessage(0,
-                                       "ERROR: DBS Hit Locations total only %d%% for monster %ls",
-                                       total, target_record->name0);
-                    hit_location = 3;
-                    break;
-                }
-                total += target_record->hit_location_chances[hit_location];
-                if (location_roll < total) {
-                    break;
-                }
-            }
+            hit_location = RollMonsterHitLocation(target_record);
             if (target_record->hit_location_chances[hit_location] < 100) {
                 location_text =
                     gppStringList[g_monster_hit_location_labels[hit_location]
@@ -4119,21 +4111,7 @@ int ResolveCharacterAttack(int party_slot)
                     1000, COMBAT_ATTACK_CPP, g_combat_state->TargetHit.iMonsterID, 1);
                 monster_info = MonsterGetScriptPartByLocationIndex(location_index);
                 W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
-                unsigned int total = 0;
-                unsigned int location_roll = Random(100);
-                for (hit_location = 0;; ++hit_location) {
-                    if (hit_location >= W8_MONSTER_HIT_LOCATIONS) {
-                        FormatDebugMessage(
-                            0, "ERROR: DBS Hit Locations total only %d%% for monster %ls", total,
-                            record->name0);
-                        hit_location = 3;
-                        break;
-                    }
-                    total += record->hit_location_chances[hit_location];
-                    if (location_roll < total) {
-                        break;
-                    }
-                }
+                hit_location = RollMonsterHitLocation(record);
                 if (record->hit_location_chances[hit_location] < 100) {
                     wcscpy(location_name,
                            gppStringList[g_monster_hit_location_labels[hit_location]
@@ -4152,19 +4130,7 @@ int ResolveCharacterAttack(int party_slot)
                                        source.iChar, source.iMonsterID);
                     return 3;
                 }
-                unsigned int total = 0;
-                unsigned int location_roll = Random(100);
-                for (hit_location = 0;; ++hit_location) {
-                    if (hit_location >= W8_PC_HIT_LOCATIONS) {
-                        FormatDebugMessage(1, "ERROR: gubLocalACPercent total only %d%%");
-                        hit_location = 1;
-                        break;
-                    }
-                    total += gubLocalACPercent[hit_location];
-                    if (location_roll < total) {
-                        break;
-                    }
-                }
+                hit_location = RollCharacterHitLocation();
                 wcscpy(location_name, gppStringList[g_pc_hit_location_labels[hit_location][0]]);
             }
             if (guaranteed_hit == 0 && to_hit < roll) {

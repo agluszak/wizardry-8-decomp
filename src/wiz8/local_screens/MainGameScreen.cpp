@@ -7014,6 +7014,24 @@ void ApplyPendingTooltip(void)
     g_level_block->tooltip_kind = -1;
 }
 
+static void PositionSelectionToolTip(POINT point)
+{
+    int y = point.y - g_cursor_image_height / 2;
+    if (point.x < 0) {
+        point.x = 2;
+    }
+    if (point.x + g_help_box_width + 2 > 0x27f) {
+        point.x = 0x280 - (g_help_box_width + 2);
+    }
+    if (y < 0) {
+        y = 2;
+    }
+    if (y + g_help_box_height + 2 > 0x1df) {
+        y = 0x1e0 - (g_help_box_height + 2);
+    }
+    VideoPositionToolTip(point.x, y);
+}
+
 /* Re-picking the same monster while its tooltip clock is idle pops a
    name-plus-health tooltip at the cursor. A pick change drops the old
    monster's group or target highlight, and a valid new pick relights it in
@@ -7042,20 +7060,7 @@ void SetCombatSelection(int value)
                 wcscat(text, health);
                 wcscat(text, L")");
                 VideoToolTip(text);
-                int y = point.y - g_cursor_image_height / 2;
-                if (point.x < 0) {
-                    point.x = 2;
-                }
-                if (point.x + g_help_box_width + 2 > 0x27f) {
-                    point.x = 0x280 - (g_help_box_width + 2);
-                }
-                if (y < 0) {
-                    y = 2;
-                }
-                if (y + g_help_box_height + 2 > 0x1df) {
-                    y = 0x1e0 - (g_help_box_height + 2);
-                }
-                VideoPositionToolTip(point.x, y);
+                PositionSelectionToolTip(point);
             }
         }
         return;
@@ -7155,23 +7160,9 @@ void SetCombatTarget(int value)
         item = ItemInfo(ItemIndex(g_level_block->selected_item));
         if (item != 0) {
             wchar_t* text = FormatItemDisplayName(&item->item, 1);
-            int y;
 
             VideoToolTip(text);
-            y = point.y - g_cursor_image_height / 2;
-            if (point.x < 0) {
-                point.x = 2;
-            }
-            if (point.x + g_help_box_width + 2 > 0x27f) {
-                point.x = 0x280 - (g_help_box_width + 2);
-            }
-            if (y < 0) {
-                y = 2;
-            }
-            if (y + g_help_box_height + 2 > 0x1df) {
-                y = 0x1e0 - (g_help_box_height + 2);
-            }
-            VideoPositionToolTip(point.x, y);
+            PositionSelectionToolTip(point);
         }
     }
 }

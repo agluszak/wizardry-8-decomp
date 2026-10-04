@@ -38,6 +38,27 @@
 // GLOBAL: WIZ8 0x0061ec94
 static wchar_t g_format_s_possessive[] = L"%s's";
 
+unsigned int GetCharacterSkillNoticeValue(W8Character* character, int skill_id)
+{
+    unsigned int value = character->skills[skill_id].points;
+    if (skill_id == g_profession_bonus_skills[character->iProfession]) {
+        value = value * 125 / 100;
+    }
+    return value;
+}
+
+void PostSkillIncreaseNotices(const W8SkillNoticePayload* notices)
+{
+    for (int index = 0; index < notices->count; ++index) {
+        int slot = notices->party_slots[index];
+        int skill = notices->skills[index];
+        W8Character* character = &g_status.buffers.Char[slot];
+        unsigned int value = GetCharacterSkillNoticeValue(character, skill);
+        PostCharacterNotice(slot, gppStringList[0x1d9],
+                            gppStringList[g_character_skill_name_ids[skill]], value);
+    }
+}
+
 // FUNCTION: WIZ8 0x00554170
 void AppendSkillIncreaseNoticeText(wchar_t* text, unsigned int* length, int party_slot,
                                    bool continue_line, int skill_id)
@@ -70,10 +91,7 @@ void AppendSkillIncreaseNoticeText(wchar_t* text, unsigned int* length, int part
     *length += 1;
     text[*length] = L' ';
     *length += 1;
-    skill_level = character->skills[skill_id].points;
-    if (skill_id == g_profession_bonus_skills[character->iProfession]) {
-        skill_level = (skill_level * 0x7d) / 100;
-    }
+    skill_level = GetCharacterSkillNoticeValue(character, skill_id);
     swprintf(text + *length, gppStringList[0x1db],
              gppStringList[g_character_skill_name_ids[skill_id]], skill_level);
     *length = static_cast<unsigned int>(wcslen(text));

@@ -4549,17 +4549,7 @@ void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuot
     }
     case 2: {
         W8SkillNoticePayload* skills = g_npc_interaction_state->quote_notice_payload.skill_notices;
-        for (int index = 0; index < skills->count; ++index) {
-            int slot = skills->party_slots[index];
-            int skill = skills->skills[index];
-            W8Character* character = &g_status.buffers.Char[slot];
-            unsigned int value = character->skills[skill].points;
-            if (skill == g_profession_bonus_skills[character->iProfession]) {
-                value = value * 125 / 100;
-            }
-            PostCharacterNotice(slot, gppStringList[0x1d9],
-                                gppStringList[g_character_skill_name_ids[skill]], value);
-        }
+        PostSkillIncreaseNotices(skills);
         delete skills;
         break;
     }

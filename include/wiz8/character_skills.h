@@ -3,6 +3,7 @@
 #include "surrender/srMath.h"
 
 struct W8Character;
+struct W8SkillNoticePayload;
 struct W8MonsterInfo;
 struct W8MonsterRecord;
 
@@ -73,6 +74,9 @@ enum W8Skill {
    the result; suppress_notification keeps silent practice calls silent. */
 void PracticeCharacterSkill(W8Character* character, int skill_id, int usage_points,
                             bool suppress_notification);
+
+unsigned int GetCharacterSkillNoticeValue(W8Character* character, int skill_id);
+void PostSkillIncreaseNotices(const W8SkillNoticePayload* notices);
 
 /* 0x00554170: append one "race-icon Name's skill +level" clause to a notice
    buffer; when continue_line is set, insert a line break first. */

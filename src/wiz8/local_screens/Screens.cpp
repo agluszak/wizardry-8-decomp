@@ -202,34 +202,11 @@ int GetTextInputCursor(void)
 // FUNCTION: WIZ8 0x0055EE70
 void SetTargetCursor(int cursor)
 {
-    int object;
-
     if (cursor == gXStatus.iCurrentCursor) {
         return;
     }
     if (cursor == -1) {
-        if ((g_current_screen_state.id == W8_SCREEN_MAIN_GAME ||
-             g_current_screen_state.id == W8_SCREEN_CAMP) &&
-            g_status.item_in_cursor) {
-            if (g_status.item_in_hand.iItemNo != -1) {
-                g_status.item_in_cursor = 1;
-                object =
-                    g_item_video_objects.GetOrCreateVideoObject(g_status.item_in_hand.iItemNo);
-                SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(object, 0),
-                                              GetCatalogVideoObjectYOffset(object), 0, 0);
-                BlitToMouseCursor(GetCatalogVideoObjectHandle(0, 0),
-                                  GetCatalogVideoObjectYOffset(0), 0, 0);
-                RefreshMouseCursorTexture();
-                gXStatus.iCurrentCursor = 7;
-            }
-        } else if (gXStatus.iCurrentCursor != -1) {
-            SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(0, 0),
-                                          GetCatalogVideoObjectYOffset(0), 0, 0);
-            RefreshMouseCursorTexture();
-            gXStatus.iCurrentCursor = -1;
-            gXStatus.current_cursor_frame = 0;
-            gXStatus.current_cursor_time = 0;
-        }
+        UpdateHeldItemCursor();
     } else {
         gXStatus.iCurrentCursor = cursor;
         gXStatus.current_cursor_frame = 0;
