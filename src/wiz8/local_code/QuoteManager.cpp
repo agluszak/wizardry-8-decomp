@@ -111,7 +111,7 @@ void RedrawPortraitQuoteBubbles(void)
         slot = &gXStatus.monster_manager_entries[party_slot];
         if (g_status.buffers.XChar[party_slot].fOccupied == 0 ||
             g_status.buffers.Char[party_slot].hp_current <= 0 ||
-            g_status.buffers.Char[party_slot].highest_condition >= 0xf ||
+            g_status.buffers.Char[party_slot].highest_condition >= W8_CONDITION_ASLEEP ||
             slot->portrait_event_active == 0) {
             continue;
         }
@@ -139,7 +139,7 @@ int PickRandomPartySpeaker(unsigned int event_type, unsigned char excluded_slot)
     for (int slot = 0; slot < 8; ++slot) {
         W8Character* character = &g_status.buffers.Char[slot];
         if (g_status.buffers.XChar[slot].fOccupied != 0 && slot != excluded_slot &&
-            character->hp_current != 0 && character->highest_condition < 0xf &&
+            character->hp_current != 0 && character->highest_condition < W8_CONDITION_ASLEEP &&
             FormatCharacterQuoteText(character, event_type, 0) != 0) {
             eligible[count++] = slot;
         }
@@ -660,7 +660,7 @@ unsigned char W8CharacterEvent::IsConditionMet(unsigned int event_type)
             return static_cast<unsigned int>(trigger_value) > character->highest_condition;
         case 85:
             if (character->hp_current < static_cast<unsigned int>(trigger_value) ||
-                character->highest_condition != 0) {
+                character->highest_condition != W8_CONDITION_NONE) {
                 QueueCharacterEvent(character, 84, 0, 1, 0x7f);
                 return 0;
             }
@@ -693,7 +693,7 @@ static bool CanDispatchCharacterEvent(unsigned int party_slot, unsigned int even
         return 0;
     }
     character = &g_status.buffers.Char[party_slot];
-    if (character->highest_condition > 14) {
+    if (character->highest_condition > W8_CONDITION_WEBBED) {
         if (event_type == static_cast<unsigned int>(g_special_event9) ||
             event_type == static_cast<unsigned int>(g_special_event10) ||
             g_special_event16 != 0) {
@@ -701,7 +701,8 @@ static bool CanDispatchCharacterEvent(unsigned int party_slot, unsigned int even
                 return 0;
             }
         } else {
-            if (character->highest_condition != 0x11 && character->highest_condition != 0xf) {
+            if (character->highest_condition != W8_CONDITION_UNCONSCIOUS &&
+                character->highest_condition != W8_CONDITION_ASLEEP) {
                 return 0;
             }
             if (event_type != static_cast<unsigned int>(g_special_event11) &&
@@ -828,7 +829,7 @@ unsigned char W8CharacterEvent::Dispatch()
         }
         if (event_type != static_cast<unsigned int>(g_special_event21) &&
             event_type != static_cast<unsigned int>(g_special_event1)) {
-            if (character->uiCondition[W8_CONDITION_SPELLCASTING_BLOCKED] != 0) {
+            if (character->uiCondition[W8_CONDITION_SILENCED] != 0) {
                 QueueCharacterEvent(character, g_special_event1, 0, 1, 0x7f);
                 return 0;
             }
@@ -921,8 +922,8 @@ void SetPartyPortraitEventState(unsigned int party_slot, bool active,
         record->portrait_frame_dirty = 1;
         int pc_slot = RPCPtrToPCSlot(record);
         record->portrait_pose_animation_active = 0;
-        unsigned int highest_condition = g_status.buffers.Char[pc_slot].highest_condition;
-        if (highest_condition < 0xf && gXStatus.fSurprisePossible == 0) {
+        W8Condition highest_condition = g_status.buffers.Char[pc_slot].highest_condition;
+        if (highest_condition < W8_CONDITION_ASLEEP && gXStatus.fSurprisePossible == 0) {
             if (record->target_portrait_pose != 1) {
                 record->target_portrait_pose = 1;
             }
@@ -996,8 +997,8 @@ void SetPartyPortraitEventState(unsigned int party_slot, bool active,
     }
     int pc_slot = RPCPtrToPCSlot(record);
     record->portrait_pose_animation_active = 0;
-    unsigned int highest_condition = g_status.buffers.Char[pc_slot].highest_condition;
-    if (highest_condition < 0xf && gXStatus.fSurprisePossible == 0) {
+    W8Condition highest_condition = g_status.buffers.Char[pc_slot].highest_condition;
+    if (highest_condition < W8_CONDITION_ASLEEP && gXStatus.fSurprisePossible == 0) {
         if (record->target_portrait_pose != pose_category) {
             record->target_portrait_pose = pose_category;
         }
@@ -1447,7 +1448,7 @@ void SetPortraitTargetPose(W8MonsterManagerEntry* slot, int pose)
     int party_slot = RPCPtrToPCSlot(slot);
 
     slot->portrait_pose_animation_active = 0;
-    if (g_status.buffers.Char[party_slot].highest_condition < 0xf &&
+    if (g_status.buffers.Char[party_slot].highest_condition < W8_CONDITION_ASLEEP &&
         gXStatus.fSurprisePossible == 0) {
         if (slot->target_portrait_pose != pose) {
             slot->target_portrait_pose = pose;
@@ -1535,7 +1536,8 @@ void QueueDamageReactionEvents(W8Character* character)
     has_flee_event =
         gXStatus.character_event_queue->HasEventCharacter(g_effect2, party_slot);
     gXStatus.character_event_queue->HasEventCharacter(g_effect17, party_slot);
-    if (character->highest_condition != 0xf && character->highest_condition != 0x11) {
+    if (character->highest_condition != W8_CONDITION_ASLEEP &&
+        character->highest_condition != W8_CONDITION_UNCONSCIOUS) {
         if (g_value_005ed8fc <= hp_percent || has_incapacitation_event) {
             if (g_flee_hp_fraction <= hp_percent) {
                 goto queue_follow_up_event;
@@ -1698,6 +1700,8 @@ void QueueConditionChangeReaction(W8Character* character)
         QueueCharacterEvent(character, g_special_event21, 0, g_effect_argument0,
                             g_character_event_full_volume);
         break;
+    default:
+        break;
     }
 }
 
@@ -1705,7 +1709,7 @@ void QueueConditionChangeReaction(W8Character* character)
    condition the character announces full recovery (0x55), otherwise the
    surviving-condition line (0x54); selected conditions map to fixed events. */
 // FUNCTION: WIZ8 0x0052F790
-void QueueConditionClearedReaction(W8Character* character, int condition)
+void QueueConditionClearedReaction(W8Character* character, W8Condition condition)
 {
     if (IsSedexusCaptureActive() != 0) {
         return;
@@ -1715,35 +1719,37 @@ void QueueConditionClearedReaction(W8Character* character, int condition)
         return;
     }
     switch (condition) {
-    case 0x12:
+    case W8_CONDITION_DEAD:
         QueueCharacterEvent(character, g_effect8, 0, g_effect_argument0,
                             g_character_event_full_volume);
         return;
-    case 10:
-    case 0x13:
+    case W8_CONDITION_INFATUATED:
+    case W8_CONDITION_MISSING:
         QueueCharacterEvent(character, g_effect7, 0, g_effect_argument0,
                             g_character_event_full_volume);
         return;
-    case 2:
-    case 3:
-    case 4:
-    case 5:
-    case 6:
-    case 7:
-    case 8:
-    case 9:
-    case 0xb:
-    case 0xc:
-    case 0xe:
-    case 0x10:
-    case 0x11:
-        if (character->highest_condition == 0) {
+    case W8_CONDITION_DISEASED:
+    case W8_CONDITION_IRRITATED:
+    case W8_CONDITION_NAUSEATED:
+    case W8_CONDITION_SLOWED:
+    case W8_CONDITION_AFRAID:
+    case W8_CONDITION_POISONED:
+    case W8_CONDITION_SILENCED:
+    case W8_CONDITION_HEXED:
+    case W8_CONDITION_INSANE:
+    case W8_CONDITION_BLIND:
+    case W8_CONDITION_WEBBED:
+    case W8_CONDITION_PARALYZED:
+    case W8_CONDITION_UNCONSCIOUS:
+        if (character->highest_condition == W8_CONDITION_NONE) {
             QueueCharacterEvent(character, g_effect35, 0, g_effect_argument0,
                                 g_character_event_full_volume);
             return;
         }
         QueueCharacterEvent(character, g_effect34, 0, g_effect_argument0,
                             g_character_event_full_volume);
+        break;
+    default:
         break;
     }
 }
@@ -1838,7 +1844,8 @@ int UpdateCharacterEventState(void)
             }
         } else {
             W8Character* character = &g_status.buffers.Char[party_slot];
-            if ((character->highest_condition > 14 || character->hp_current == 0) &&
+            if ((character->highest_condition > W8_CONDITION_WEBBED ||
+                 character->hp_current == 0) &&
                 record->active_character_event != 0) {
                 gXStatus.character_event_queue->CompleteActiveEvent(record->active_character_event);
             }
@@ -1961,7 +1968,7 @@ void RenderPartyPortrait(int portrait, int left, int top, int flags, unsigned ch
     }
     if ((((gXStatus.fCombatMode != 0 && g_combat_state->characters[party_slot].dead != 0) ||
           gXStatus.fSurprisePossible != 0) ||
-         g_status.buffers.Char[party_slot].highest_condition == 0x13) &&
+         g_status.buffers.Char[party_slot].highest_condition == W8_CONDITION_MISSING) &&
         value != 0) {
         ShadowVideoSurfaceRect(-0xe, left, top, left + 0x59, top + 0x47);
     }
@@ -2057,7 +2064,7 @@ bool BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int 
     }
     if (((gXStatus.fCombatMode != 0 && g_combat_state->characters[party_slot].dead != 0) ||
          gXStatus.fSurprisePossible != 0) ||
-        g_status.buffers.Char[party_slot].highest_condition == 0x13) {
+        g_status.buffers.Char[party_slot].highest_condition == W8_CONDITION_MISSING) {
         ShadowVideoSurfaceRect(-0xe, left, top, left + 0x59, top + 0x47);
     }
     return drawn;

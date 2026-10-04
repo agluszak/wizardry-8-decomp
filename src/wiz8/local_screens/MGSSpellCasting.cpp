@@ -58,7 +58,6 @@
 
 /* The first realm skill id; character->skill_unlocks[first + realm] counts
    the spells known in that realm. */
-enum { W8_SKILL_FIRST_REALM = 0x1c };
 
 /* Realm-name string ids for the spell-casting realm-button tooltips. */
 // GLOBAL: WIZ8 0x0064C840
@@ -597,12 +596,12 @@ static void RebuildSpellCastingList(int spell_id)
         gpSCSV->uiSpells[index] = 0;
         gpSCSV->alt_colors[index] = 0xff;
     }
-    if (gpSCSV->caster->skill_unlocks[W8_SKILL_FIRST_REALM + realm] != 0) {
+    if (gpSCSV->caster->skill_unlocks[W8_SKILL_FIRE_MAGIC + realm] != 0) {
         pass = 0;
         do {
             index = 0;
             while (index <
-                   static_cast<int>(gpSCSV->caster->skill_unlocks[W8_SKILL_FIRST_REALM + realm])) {
+                   static_cast<int>(gpSCSV->caster->skill_unlocks[W8_SKILL_FIRE_MAGIC + realm])) {
                 int id = gpSCSV->learned.spell_ids_by_realm[realm][index];
                 gpSCSV->override_spell = id;
                 spell = &g_spell_records[id];
@@ -1177,7 +1176,7 @@ unsigned char SpellRealmButtonRegionEvent(const InputAtom* event, W8Region* regi
                     g_format_s_parens_s_colon_d,
                     gppStringList[g_spell_realm_help_string_ids[realm]], gppStringList[0x2d],
                     g_status.buffers.Char[g_status.selected_character]
-                        .skills[W8_SKILL_FIRST_REALM + realm]
+                        .skills[W8_SKILL_FIRE_MAGIC + realm]
                         .level));
             }
             gpSCSV->realm_icons[realm]->Invalidate(0);

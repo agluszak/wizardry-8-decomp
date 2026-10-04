@@ -396,7 +396,7 @@ void ResetGameplaySlot(unsigned int slot)
     record->portrait_frame = 6;
     record->portrait_pose_animation_active = 0;
     tier = 1;
-    if (g_status.buffers.Char[slot].highest_condition >= 0xf) {
+    if (g_status.buffers.Char[slot].highest_condition >= W8_CONDITION_ASLEEP) {
         tier = 2;
     }
     record->portrait_pose = tier;

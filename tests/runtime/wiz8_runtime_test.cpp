@@ -113,7 +113,7 @@ static bool RunSearchModeSemanticTest(void)
     level.text_box_font = g_wiz_text_font_secondary;
     level.text_box_right = 30000;
     W8LevelRuntimeBlock* saved_level = g_level_block;
-    int saved_screen = g_current_screen_state.id;
+    W8ScreenId saved_screen = g_current_screen_state.id;
     unsigned char saved_search = g_status.search_mode;
     unsigned char saved_combat = gXStatus.fCombatMode;
     unsigned char saved_camp = gXStatus.fCampMode;
@@ -272,7 +272,7 @@ static DWORD FailScenarioAt(const char* step, const char* reason, int line)
    off-thread. */
 struct MainMenuCheck {
     int ready;
-    int screen;
+    W8ScreenId screen;
     unsigned int region_enabled;
     unsigned int first_region;
     unsigned int last_region;
@@ -375,7 +375,7 @@ static void ResetNpcStateOnGameThread(void* opaque)
 }
 
 struct MenuChecksResult {
-    int menu_state;
+    W8ScreenId menu_state;
     unsigned int region_set_enabled;
     unsigned int first_region;
     unsigned int last_region;
@@ -634,7 +634,7 @@ static void PrepareMainGameFixtureOnGameThread(void* opaque)
     SetCharacterGender(&character, &creation, W8_GENDER_MALE);
     RebuildLevelUpPoolsForProfession(&character, &creation, W8_PROFESSION_FIGHTER);
     for (int attribute = 0; attribute < 7; ++attribute) {
-        AdjustAllocatedAttribute(&character, &creation, attribute,
+        AdjustAllocatedAttribute(&character, &creation, static_cast<W8Attribute>(attribute),
                                  creation.attribute_points_remaining);
     }
     for (unsigned int skill = 0; skill < 0x29; ++skill) {
@@ -1409,7 +1409,7 @@ int main(int argc, char** argv)
     g_scenario = g_scenario_spec->name;
     g_scenario_started = GetTickCount();
     memset(&g_observation, 0, sizeof(g_observation));
-    g_observation.menu_state = -1;
+    g_observation.menu_state = W8_SCREEN_NONE;
     HANDLE driver = CreateThread(NULL, 0, DriveScenario, NULL, 0, NULL);
     if (driver == NULL) {
         fprintf(stderr, "could not start in-process scenario driver\n");

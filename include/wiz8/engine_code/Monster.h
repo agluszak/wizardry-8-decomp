@@ -1,6 +1,7 @@
 #ifndef WIZ8_ENGINE_CODE_MONSTER_H
 #define WIZ8_ENGINE_CODE_MONSTER_H
 
+#include "wiz8/monster_spell_icons.h"
 #include <stddef.h>
 
 #include "surrender/srMath.h"
@@ -75,7 +76,7 @@ extern float g_monster_light_scale;
    billboard object created for it. Field names come from the
    SetMonsterSpellIcon asserts "pSpellMI->psrBMO" and its icon compares. */
 struct W8MonsterSpellIcon {
-    int icon;
+    W8MonsterSpellIconId icon;
     W8Item* psrBMO;
 };
 

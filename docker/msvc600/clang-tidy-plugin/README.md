@@ -141,6 +141,38 @@ clang-tidy --wiz8-scalar-report /out/scalar-facts \
   --output /out/scalar-report.json
 ```
 
+## Propagate accepted source enums
+
+For source consistency after recovering an enum owner, use the same collector and
+patch writer with an explicit opt-in:
+
+```sh
+uv run wiz8 analyze scalar-facts --patch \
+  --propagate-enum W8Condition --propagate-enum W8NpcDialogueLayout
+```
+
+The separate `enum_propagation` report starts from current typed declarations.
+These are accepted source owners, not independent historical evidence; they do
+not seed `integer_components` or relax evidence validation. Only builtin locals
+with complete, same-width, same-signedness enum copy producers are patched.
+Comparisons, indexing and switches can consume the identity. Numeric writes,
+arithmetic, unknown producers, unseeded cycles, conflicting enums, escapes,
+width-sensitive consumers and incomplete collection block automatic changes.
+Globals, signatures, fields and overloaded consumers are reported for manual review, preserving packed storage
+and independently established ABI boundaries. Dependent editable locals form one
+patch group, using the existing source-hash, redeclaration and shared-type-atom
+checks. The command writes a patch for review and never applies it.
+
+Saved facts can be replayed with the repository's current Python solver, without
+recollecting unchanged C++:
+
+```sh
+python3 docker/msvc600/clang-tidy-plugin/clang-tidy-wrapper.py \
+  --wiz8-scalar-report build/clang/scalar-campaigns/run-EXAMPLE/facts \
+  --propagate-enum W8Condition --output build/enum-propagation.json \
+  --repository . --patch build/enum-propagation.patch
+```
+
 The report is bounded by the supplied TUs, including bodies and call sites. It
 is not a whole-binary reachability claim. No finding automatically edits source or
 fails lint. A separate 32-bit predicate inventory requires ABI and independent

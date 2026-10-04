@@ -2327,7 +2327,7 @@ srTexture* LoadTextureFromFolder(const char* folder, const char* name, bool requ
     srRegistry::ClassNode* node;
     stTextureFile* texture;
 
-    if (g_current_screen_state.id == 4) {
+    if (g_current_screen_state.id == W8_SCREEN_PLEASE_WAIT) {
         UpdatePleaseWaitLoadFrame();
     }
     strcpy(path, folder);

@@ -68,21 +68,21 @@ bool W8NpcDialogueTextController::HandleScrollUpCommand(unsigned int command)
 /* Return the requested screen id, falling back to the state at the top of the
    return stack when there is no explicit pending state. */
 // FUNCTION: WIZ8 0x0055EC10
-int GetPendingScreenState(void)
+W8ScreenId GetPendingScreenState(void)
 {
     W8ScreenStateRuntime state;
 
-    if (g_pending_screen_state.id != -1) {
+    if (g_pending_screen_state.id != W8_SCREEN_NONE) {
         return g_pending_screen_state.id;
     }
     if (PeekStack(g_screen_return_stack, &state)) {
         return state.id;
     }
-    return -1;
+    return W8_SCREEN_NONE;
 }
 
 // FUNCTION: WIZ8 0x0055ec50
-void SetPendingScreenState(int value)
+void SetPendingScreenState(W8ScreenId value)
 {
     g_pending_screen_state.id = value;
 }
@@ -96,7 +96,7 @@ void RequestScreenTransition(void)
 // FUNCTION: WIZ8 0x0055EC70
 unsigned char IsScreenTransitionPending(void)
 {
-    if (g_pending_screen_state.id == -1 && g_screen_return_requested == 0) {
+    if (g_pending_screen_state.id == W8_SCREEN_NONE && g_screen_return_requested == 0) {
         return 0;
     }
     return 1;
@@ -184,6 +184,8 @@ void RefreshPartySlotDisplay(unsigned int party_slot)
             InvalidatePortraitControl(party_slot);
             return;
         }
+        break;
+    default:
         break;
     }
 }
@@ -334,6 +336,8 @@ void ShowNoticeLine(wchar_t* text, W8DialogDestroyCallback callback, int confirm
         break;
     case W8_SCREEN_MAIN_GAME:
         ShowMainGameNoticeLine(text, callback, confirmation, cancel);
+        break;
+    default:
         break;
     }
 }

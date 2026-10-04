@@ -38,7 +38,7 @@
 // FUNCTION: WIZ8 0x004D9D30
 void EnsureTrynnie2KilledVar(void)
 {
-    if (GetFact(0x229) == 1) {
+    if (GetFact(W8_FACT_TRYNNIE_SHAMAN_DIES) == 1) {
         if (GetLocationVarIDByName("Trynnie2Killed") == -1) {
             KillTrynnieGroups();
             CreateLocationVar("Trynnie2Killed", 1);
@@ -126,7 +126,7 @@ bool Trynnie2MeatBox(Trigger* pTrigger)
     }
     index = MonsterGetIndexByLocationID(0x68, TRYNNIE2_CPP, group->leader_location_id, 1);
     info = MonsterGetScriptPartByLocationIndex(index);
-    if (info->highest_condition >= 0xf) {
+    if (info->highest_condition >= W8_CONDITION_ASLEEP) {
         return 1;
     }
     if (item_id == 0x1b4) {

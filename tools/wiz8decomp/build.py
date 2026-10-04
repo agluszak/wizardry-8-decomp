@@ -1078,6 +1078,7 @@ def scalar_campaign(
     evidence: Path | None = None,
     patch: bool = False,
     padding: bool = False,
+    propagate_enums: list[str] | None = None,
 ) -> dict[str, Any]:
     """Collect the complete configured corpus and run the shared recovery clients.
 
@@ -1108,6 +1109,10 @@ def scalar_campaign(
         "recovered_translation_units": recovered,
         "sgp_translation_units": oracle,
         "evidence_sha256": sha256_file(evidence) if evidence else None,
+        "solver_sha256": sha256_file(
+            repository / "docker/msvc600/clang-tidy-plugin/scalar_facts.py"
+        ),
+        "propagate_source_enums": propagate_enums or [],
         "coverage": "configured source corpus; source observations and separately reviewed evidence",
     }
     atomic_json(directory / "manifest.json", manifest)
@@ -1148,8 +1153,9 @@ def scalar_campaign(
         replay.extend(
             (
                 "--entrypoint",
-                "clang-tidy",
+                "python3",
                 VC6_IMAGE,
+                "/repo/docker/msvc600/clang-tidy-plugin/clang-tidy-wrapper.py",
                 "--wiz8-scalar-report",
                 f"{container}/facts",
                 "--output",
@@ -1158,6 +1164,8 @@ def scalar_campaign(
         )
         if evidence is not None:
             replay.extend(("--evidence", "/scalar-evidence.json"))
+        for name in propagate_enums or []:
+            replay.extend(("--propagate-enum", name))
         if patch:
             replay.extend(("--repository", "/repo", "--patch", f"{container}/recovery.patch"))
             if padding:
@@ -1211,6 +1219,11 @@ def scalar_campaign(
         ),
         "pointer_proposals": dict(Counter(item["status"] for item in report["pointer_components"])),
         "nominal_proposals": dict(Counter(item["status"] for item in report["nominal_components"])),
+        "enum_propagation": dict(
+            Counter(
+                item["status"] for item in report.get("enum_propagation", {}).get("proposals", [])
+            )
+        ),
         "artifacts": str(directory.relative_to(repository)),
         "recovery_patch": report.get("recovery_patch"),
     }

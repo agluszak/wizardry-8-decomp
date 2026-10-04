@@ -31,7 +31,7 @@ bool Rift1Sexspawn(Trigger* pTrigger)
     srVector3T<float> position;
     W8MonsterInfo* monster_info;
 
-    if (GetFact(0x15f) != 0) {
+    if (GetFact(W8_FACT_TEMPLAR) != 0) {
         if (GetLocationVarIDByName("AlSedexusSwapped") == -1) {
             CreateLocationVar("AlSedexusSwapped", 1);
             monster_info = FindMonsterInfoBySpecies(0xd9);
@@ -59,7 +59,7 @@ bool Rift1Hotstuff(Trigger* pTrigger)
     W8MonsterGroup* group;
     W8Monster* monster;
 
-    if (GetFact(0x326) == 0) {
+    if (GetFact(W8_FACT_LAVALORD_DIE) == 0) {
         if (FindEntityByName("Hotstuff", &position, 0, 0)) {
             group = SpawnMonsters(0x175, 1, &position, 0, 1, 0, 0);
             if (group != 0) {
@@ -90,7 +90,7 @@ bool Rift1Fireantspawn(Trigger* pTrigger)
 // FUNCTION: WIZ8 0x004DB160
 bool Rift1Gate(Trigger* pTrigger)
 {
-    SetFact(0x1c4, 1, 0);
+    SetFact(W8_FACT_RIFT_RAFE_CAGE_OPEN, 1, 0);
     return true;
 }
 

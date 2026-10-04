@@ -638,7 +638,8 @@ unsigned char LoadLevel(int requested_level, int entrance, bool restoring_game)
             RecordLevelEntryDialogueState();
             gXStatus.combat_countdown = 0;
         }
-        if (g_status.greeting_pending && (GetFact(0x4c) || GetFact(0x4b))) {
+        if (g_status.greeting_pending &&
+            (GetFact(W8_FACT_IMPORT_UMPANI) || GetFact(W8_FACT_IMPORT_TRANG))) {
             DespawnAllActiveMonsterGroups();
         } else {
             UpdateRandomEncounterBudget(first_visit);

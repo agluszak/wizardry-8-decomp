@@ -148,7 +148,8 @@ unsigned char StartCombat(int surprise)
         for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
             monster_info = MonsterGetScriptPartByLocationIndex(index);
             if (monster_info->fInCombat != 0 && monster_info->ubDisposition == DISP_HOSTILE &&
-                monster_info->hp_current > 0 && monster_info->highest_condition < 0x10) {
+                monster_info->hp_current > 0 &&
+                monster_info->highest_condition < W8_CONDITION_PARALYZED) {
                 npc = GetNpcStateForMonsterInfo(monster_info, 0);
                 if (npc != 0 && npc->record->combat_script_notice_enabled != 0) {
                     QueueNpcScriptNotice(npc, 0, -1, 0, 0);
@@ -248,7 +249,8 @@ unsigned char StartCombat(int surprise)
             monster_info->pCombat->active = 1;
             monster_info->pCombat->settle_ticks = 0;
             RequestRedraw(0x100000);
-            if (monster_info->hp_current > 0 && monster_info->highest_condition < 0xe &&
+            if (monster_info->hp_current > 0 &&
+                monster_info->highest_condition < W8_CONDITION_WEBBED &&
                 monster_info->uiCondition[0xc] == 0) {
                 MonsterChooseTarget(monster_info, &chosen, 3);
                 if (chosen.iType == 2) {
@@ -311,7 +313,7 @@ void ResetPartyCombatRows(void)
         g_combat_state->characters[slot].portrait_image_alternate = -1;
         g_combat_state->characters[slot].dead =
             g_status.buffers.Char[slot].hp_current == 0 ||
-            g_status.buffers.Char[slot].highest_condition >= 0xf;
+            g_status.buffers.Char[slot].highest_condition >= W8_CONDITION_ASLEEP;
         g_status.buffers.Char[slot].conditions[0].active = 0;
         g_status.buffers.Char[slot].conditions[0].level_acquired = 0;
         g_status.buffers.Char[slot].conditions[0].source_monster = 0;
@@ -339,7 +341,7 @@ bool CombatMayAdvanceContinuously(void)
             W8PartySlotRow* row = &g_status.buffers.XChar[slot];
             W8Character* character = &g_status.buffers.Char[slot];
             if (row->fOccupied && character->hp_current != 0 &&
-                character->highest_condition < 0xf &&
+                character->highest_condition < W8_CONDITION_ASLEEP &&
                 g_combat_state->npc_combat_script_pending[slot]) {
                 return false;
             }
@@ -370,7 +372,8 @@ bool QueueNpcCombatScript(void)
     for (int slot = 0; slot < 2; ++slot) {
         W8PartySlotRow* row = &g_status.buffers.XChar[slot];
         W8Character* character = &g_status.buffers.Char[slot];
-        if (!row->fOccupied || character->hp_current == 0 || character->highest_condition >= 0xb ||
+        if (!row->fOccupied || character->hp_current == 0 ||
+            character->highest_condition >= W8_CONDITION_INSANE ||
             g_combat_state->npc_combat_script_pending[slot]) {
             continue;
         }
@@ -480,7 +483,7 @@ void ApplyCombatEndEffects(void)
             W8NpcState* npc = GetNpcState(row->npc_index);
             if (npc != 0) {
                 W8Character* character = &g_status.buffers.Char[slot];
-                if (character->highest_condition == 0x12) {
+                if (character->highest_condition == W8_CONDITION_DEAD) {
                     if (npc->healer_assist) {
                         ApplyItemEffectToRandomCharacter(g_effect9, -1, 0,
                                                          g_character_event_no_flags);
@@ -566,7 +569,8 @@ void BeginCombatExecution(void)
             row->spot_attempts = 0;
             row->pending_action_repick_count = 0;
             row->interception_count = 0;
-            row->dead = character->hp_current == 0 || character->highest_condition >= 0xf;
+            row->dead =
+                character->hp_current == 0 || character->highest_condition >= W8_CONDITION_ASLEEP;
             row->phase_clock_stamp = 0;
             row->defend_switched = 0;
             CalcArmorClasses(character);
@@ -581,7 +585,7 @@ void BeginCombatExecution(void)
             if (party->pending_action == W8_ACTION_ATTACK) {
                 W8Character* character = &g_status.buffers.Char[slot];
                 if (CharacterHasTrait(character, W8_TRAIT_LIGHTNING_STRIKE) &&
-                    character->Hand[0].weapon_skill == 0 &&
+                    character->Hand[0].weapon_skill == W8_SKILL_SWORD &&
                     Random(100) < static_cast<unsigned char>(ScaleValueByProfessionLevel(
                                       character, W8_TRAIT_LIGHTNING_STRIKE, 12.0f))) {
                     row->extra_swings[0] = 1;
@@ -639,7 +643,8 @@ void BeginCombatExecution(void)
     }
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(index);
-        if (!monster->fInCombat || monster->hp_current == 0 || monster->highest_condition >= 0xe) {
+        if (!monster->fInCombat || monster->hp_current == 0 ||
+            monster->highest_condition >= W8_CONDITION_WEBBED) {
             continue;
         }
         if (monster->action_kind == 1) {
@@ -689,7 +694,7 @@ int IsPartyEngaged(void)
         for (party_slot = 0; party_slot < 8; ++party_slot) {
             if (g_status.buffers.XChar[party_slot].fOccupied != 0 &&
                 g_status.buffers.Char[party_slot].hp_current != 0 &&
-                g_status.buffers.Char[party_slot].highest_condition < 0xf &&
+                g_status.buffers.Char[party_slot].highest_condition < W8_CONDITION_ASLEEP &&
                 g_combat_state->characters[party_slot].dead != 0) {
                 return 1;
             }
@@ -809,8 +814,8 @@ void NotifyNearbyMonsters(int what)
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info->fInCombat != 0 && monster_info->hp_current != 0 &&
-            monster_info->highest_condition < 0xe && monster_info->uiCondition[12] == 0 &&
-            monster_info->ubDisposition == 1) {
+            monster_info->highest_condition < W8_CONDITION_WEBBED &&
+            monster_info->uiCondition[12] == 0 && monster_info->ubDisposition == 1) {
             if (monster_info->p3D->GetDistanceToPlayer() <= CalcRangeDistance(W8_RANGE_SHORT)) {
                 MonsterForwardReferencePosition(monster_info->p3D, what);
             }
@@ -831,7 +836,7 @@ int PartyAvoidsSurprise(void)
     }
     while (g_status.buffers.XChar[party_slot].fOccupied == 0 ||
            g_status.buffers.Char[party_slot].hp_current == 0 ||
-           g_status.buffers.Char[party_slot].highest_condition > 10) {
+           g_status.buffers.Char[party_slot].highest_condition > W8_CONDITION_INFATUATED) {
         ++party_slot;
         if (party_slot > 7) {
             return 1;
@@ -917,7 +922,7 @@ void EndMonsterTurn(W8MonsterInfo* monster_info)
     monster_info->pCombat->settle_ticks = 0;
     RequestRedraw(0x100000);
 
-    if (monster_info->hp_current != 0 && monster_info->highest_condition < 0xe &&
+    if (monster_info->hp_current != 0 && monster_info->highest_condition < W8_CONDITION_WEBBED &&
         monster_info->uiCondition[12] == 0) {
         MonsterChooseTarget(monster_info, &chosen, 3);
         if (chosen.iType == 2) {
@@ -1012,7 +1017,7 @@ unsigned char TryCharacterAction(int party_slot, W8ActionKind action, bool commi
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
 
-    if (character->hp_current == 0 || character->highest_condition >= 0xf) {
+    if (character->hp_current == 0 || character->highest_condition >= W8_CONDITION_ASLEEP) {
         return 0;
     }
     if (g_combat_state->characters[party_slot].dead != 0) {
@@ -1076,8 +1081,8 @@ void EndCombat(unsigned char mode)
     RequestRedrawCombatBar();
     ClearAllMonsterHighlights();
     SetTargetingMode(0);
-    RemoveConditionFromEveryone(5);
-    RemoveConditionFromParty(0xd);
+    RemoveConditionFromEveryone(W8_CONDITION_SLOWED);
+    RemoveConditionFromParty(W8_CONDITION_TURNCOAT);
     RemoveAllEnchantments();
     ResetCombatEffects();
     ProcessMonstersAtCombatEnd(mode);
@@ -1239,8 +1244,8 @@ void ApplyPartyCombatAction(int party_slot, W8ActionKind action, int detail,
                 character = &g_status.buffers.Char[party_slot_index];
                 row = &g_combat_state->characters[party_slot_index];
                 if (g_status.buffers.XChar[party_slot_index].fOccupied != 0 &&
-                    character->hp_current != 0 && character->highest_condition < 0xf &&
-                    row->dead != 0) {
+                    character->hp_current != 0 &&
+                    character->highest_condition < W8_CONDITION_ASLEEP && row->dead != 0) {
                     deferred = true;
                     break;
                 }
@@ -1294,7 +1299,7 @@ void SetCharacterCombatAction(int party_slot, W8ActionKind action_kind, int acti
     }
     row->action_changed = 1;
     W8Character* character = &g_status.buffers.Char[party_slot];
-    if (character->hp_current != 0 && character->highest_condition < 0xd &&
+    if (character->hp_current != 0 && character->highest_condition < W8_CONDITION_TURNCOAT &&
         action_kind != W8_ACTION_NONE) {
         if (CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 1, notify) == 0) {
             AimByKind(party_slot, W8_TARGET_KIND_NONE, W8_TARGETING_CONTEXT_IN_COMBAT);
@@ -1454,7 +1459,7 @@ bool CharacterCanSwitchTo(int party_slot, W8TargetingContext context, unsigned c
     if (CanPartySlotParticipate(party_slot) == 0) {
         return 0;
     }
-    if (character->highest_condition > 0xd) {
+    if (character->highest_condition > W8_CONDITION_TURNCOAT) {
         return 0;
     }
     if (context == W8_TARGETING_CONTEXT_CURRENT) {
@@ -1646,7 +1651,7 @@ bool AnyCombatMonsterBusy(void)
             }
             if (fabsf(monster->movement.target_yaw - monster->movement.yaw) >=
                     g_camera_transition_epsilon &&
-                monster_info->highest_condition < 0xe) {
+                monster_info->highest_condition < W8_CONDITION_WEBBED) {
                 return true;
             }
         }
@@ -1709,7 +1714,8 @@ void AssignCombatPhases(void)
         W8Character* character = &g_status.buffers.Char[party_slot];
         W8CombatCharacterRow* row = &g_combat_state->characters[party_slot];
         if (party_row->fOccupied == 0 || character->hp_current == 0 ||
-            character->highest_condition > 0xe || g_combat_state->party_surprised != 0) {
+            character->highest_condition > W8_CONDITION_WEBBED ||
+            g_combat_state->party_surprised != 0) {
             party_row->pending_action = W8_ACTION_NONE;
             row->phase = 0;
             row->dead = 1;
@@ -1744,8 +1750,8 @@ void AssignCombatPhases(void)
             } else {
                 side_done = g_combat_state->party_surprised;
             }
-            if (monster_info->hp_current == 0 || monster_info->highest_condition > 0xe ||
-                side_done != 0) {
+            if (monster_info->hp_current == 0 ||
+                monster_info->highest_condition > W8_CONDITION_WEBBED || side_done != 0) {
                 monster_info->action_kind = -1;
                 monster_info->pCombat->phase = 0;
                 monster_info->pCombat->active = 1;
@@ -1778,7 +1784,7 @@ void PracticeCombatRoundSkills(int party_slot)
         }
         while (hand_record->score != 0) {
             if (Random(100) < chance) {
-                int skill_id = 0;
+                W8Skill skill_id = W8_SKILL_SWORD;
                 int pick = Random((hand_record->dual_wielding != 0) + 2);
                 if (pick == 0) {
                     skill_id = hand_record->weapon_skill;
@@ -1800,7 +1806,7 @@ void PracticeCombatRoundSkills(int party_slot)
         if (row->skill_use_flags[skill_id] != 0 &&
             (skill_id == W8_SKILL_SHIELD || skill_id == W8_SKILL_STEALTH ||
              skill_id == W8_SKILL_REFLEXTION)) {
-            PracticeCharacterSkill(character, skill_id, 2, 0);
+            PracticeCharacterSkill(character, static_cast<W8Skill>(skill_id), 2, 0);
             row->skill_use_flags[skill_id] = 0;
         }
     }
@@ -1867,7 +1873,8 @@ void AdvanceCombatRound(void)
         if (g_status.buffers.XChar[party_slot].fOccupied != 0) {
             W8Character* character = &g_status.buffers.Char[party_slot];
             if (g_status.buffers.XChar[party_slot].pending_action == W8_ACTION_DEFEND ||
-                character->highest_condition == 0xf || character->highest_condition == 0x11) {
+                character->highest_condition == W8_CONDITION_ASLEEP ||
+                character->highest_condition == W8_CONDITION_UNCONSCIOUS) {
                 int sides = static_cast<unsigned int>(character->uiStaminaMax) / 0x14 - 1;
                 if (sides == 0) {
                     sides = 1;
@@ -1884,7 +1891,9 @@ void AdvanceCombatRound(void)
             }
             PracticeCombatRoundSkills(party_slot);
             g_combat_state->characters[party_slot].dead =
-                (character->hp_current == 0 || character->highest_condition > 0xe) ? 1 : 0;
+                (character->hp_current == 0 || character->highest_condition > W8_CONDITION_WEBBED)
+                    ? 1
+                    : 0;
             CalcArmorClasses(character);
         }
     }
@@ -1892,8 +1901,9 @@ void AdvanceCombatRound(void)
     while (index < PLLength(gXStatus.plsMonsterList)) {
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info->fInCombat != 0) {
-            if (monster_info->action_kind == 1 || monster_info->highest_condition == 0xf ||
-                monster_info->highest_condition == 0x11) {
+            if (monster_info->action_kind == 1 ||
+                monster_info->highest_condition == W8_CONDITION_ASLEEP ||
+                monster_info->highest_condition == W8_CONDITION_UNCONSCIOUS) {
                 int sides = static_cast<unsigned int>(monster_info->stamina_max) / 0x14 - 1;
                 if (sides == 0) {
                     sides = 1;
@@ -1921,7 +1931,8 @@ void AdvanceCombatRound(void)
     while (index < PLLength(gXStatus.plsMonsterList)) {
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info->fInCombat != 0 && monster_info->hp_current != 0 &&
-            monster_info->highest_condition < 0xe && monster_info->uiCondition[0xc] == 0) {
+            monster_info->highest_condition < W8_CONDITION_WEBBED &&
+            monster_info->uiCondition[0xc] == 0) {
             W8CombatSlot chosen;
             MonsterChooseTarget(monster_info, &chosen, 3);
             if (chosen.iType == 2) {
@@ -1948,8 +1959,8 @@ int CheckCombatEnd(unsigned int arg_1)
         for (int party_slot = 0; party_slot < 8; ++party_slot) {
             W8Character* character = &g_status.buffers.Char[party_slot];
             if (g_status.buffers.XChar[party_slot].fOccupied != 0 &&
-                (character->hp_current != 0 || character->highest_condition < 0x12)) {
-                SetCharacterCondition(party_slot, 0x12, 9999, 0, 0, 1);
+                (character->hp_current != 0 || character->highest_condition < W8_CONDITION_DEAD)) {
+                SetCharacterCondition(party_slot, W8_CONDITION_DEAD, 9999, 0, 0, 1);
             }
         }
     } else {
@@ -2022,7 +2033,8 @@ void RollCombatSurprise(char arg_1)
             for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
                 monster_info = MonsterGetScriptPartByLocationIndex(index);
                 if (monster_info->fActive != 0 && monster_info->fInCombat != 0 &&
-                    monster_info->hp_current != 0 && monster_info->highest_condition < 0x10 &&
+                    monster_info->hp_current != 0 &&
+                    monster_info->highest_condition < W8_CONDITION_PARALYZED &&
                     monster_info->ubDisposition == 1 &&
                     monster_info->party_threat.sight_state == W8_SIGHT_SEEN) {
                     found = true;
@@ -2050,7 +2062,8 @@ void RollCombatSurprise(char arg_1)
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info->fActive != 0 && monster_info->fInCombat != 0 &&
-            monster_info->hp_current != 0 && monster_info->highest_condition < 0x10 &&
+            monster_info->hp_current != 0 &&
+            monster_info->highest_condition < W8_CONDITION_PARALYZED &&
             monster_info->ubDisposition == 1 &&
             monster_info->player_visibility.sight_state == W8_SIGHT_SEEN) {
             found = true;
@@ -2156,7 +2169,7 @@ void ExecuteCharacterAction(int party_slot)
             case 7:
                 slot->pending_action = W8_ACTION_NONE;
                 action = W8_ACTION_NONE;
-                RemoveCharacterCondition(party_slot, 0xe, 1);
+                RemoveCharacterCondition(party_slot, W8_CONDITION_WEBBED, 1);
                 break;
             case 8:
                 g_combat_state->characters[party_slot].berserk = 1;
@@ -2406,7 +2419,7 @@ void ExecuteMonsterAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
             break;
         case 7:
             monster_info->action_kind = -1;
-            ClearMonsterCondition(monster_info->location_id, 0xe);
+            ClearMonsterCondition(monster_info->location_id, W8_CONDITION_WEBBED);
             break;
         case 8:
             if (monster_info->pCombat->berserk == 0) {
@@ -2816,7 +2829,8 @@ void StepMonsterCombatAction(W8MonsterInfo* monster_info)
             break;
         }
         if ((monster_info->action_kind == 5 || monster_info->action_kind == 7) &&
-            monster_info->hp_current != 0 && monster_info->highest_condition < 0xe &&
+            monster_info->hp_current != 0 &&
+            monster_info->highest_condition < W8_CONDITION_WEBBED &&
             monster_info->uiCondition[W8_CONDITION_BLIND] == 0) {
             MonsterChooseTarget(monster_info, &chosen, 3);
             if (chosen.iType == 2) {
@@ -3110,7 +3124,7 @@ void UpdateCombat(void)
             for (unsigned int slot = 0; slot < 2; ++slot) {
                 if (g_status.buffers.XChar[slot].fOccupied != 0 &&
                     g_status.buffers.Char[slot].hp_current != 0 &&
-                    g_status.buffers.Char[slot].highest_condition < 0xf &&
+                    g_status.buffers.Char[slot].highest_condition < W8_CONDITION_ASLEEP &&
                     g_combat_state->npc_combat_script_pending[slot] != 0) {
                     return;
                 }
@@ -3283,7 +3297,8 @@ void ScheduleCombatActor(void)
                     continue;
                 }
                 W8Character* character = &g_status.buffers.Char[slot];
-                if (character->hp_current != 0 && character->highest_condition < 0xf) {
+                if (character->hp_current != 0 &&
+                    character->highest_condition < W8_CONDITION_ASLEEP) {
                     g_combat_state->eCombatActionStatus = 1;
                     g_combat_state->iActionChar = slot;
                     break;
@@ -3307,7 +3322,8 @@ void ScheduleCombatActor(void)
                 if (combat->phase != g_combat_state->round_counter) {
                     continue;
                 }
-                if (monster_info->hp_current != 0 && monster_info->highest_condition < 0xf &&
+                if (monster_info->hp_current != 0 &&
+                    monster_info->highest_condition < W8_CONDITION_ASLEEP &&
                     monster_info->fMotionless == 0) {
                     g_combat_state->eCombatActionStatus = 1;
                     g_combat_state->pActionMonsterInfo = monster_info;
@@ -3417,7 +3433,7 @@ void ScheduleCombatActor(void)
                     for (unsigned int slot = 0; slot < 8; ++slot) {
                         if (g_status.buffers.XChar[slot].fOccupied != 0 &&
                             g_status.buffers.Char[slot].hp_current != 0 &&
-                            g_status.buffers.Char[slot].highest_condition < 0xd &&
+                            g_status.buffers.Char[slot].highest_condition < W8_CONDITION_TURNCOAT &&
                             g_status.buffers.XChar[slot].pending_action == W8_ACTION_EQUIP) {
                             ++g_combat_state->equip_pending;
                             if (g_combat_state->equip_phase == 0) {
@@ -3453,7 +3469,7 @@ short GetCombatActionProgress(int* out_total)
         for (int party_slot = 0; party_slot < 8; ++party_slot) {
             W8Character* character = &g_status.buffers.Char[party_slot];
             if (g_status.buffers.XChar[party_slot].fOccupied != 0 && character->hp_current != 0 &&
-                character->highest_condition < 0xf &&
+                character->highest_condition < W8_CONDITION_ASLEEP &&
                 TryCharacterAction(party_slot, W8_ACTION_DEFEND, 0) == 0 &&
                 TryCharacterAction(party_slot, W8_ACTION_PROTECT, 0) == 0 &&
                 TryCharacterAction(party_slot, W8_ACTION_NONE, 0) == 0) {
@@ -3484,9 +3500,9 @@ short GetCombatActionProgress(int* out_total)
     for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info->fInCombat != 0 && monster_info->hp_current != 0 &&
-            monster_info->highest_condition < 0xf && monster_info->fMotionless == 0 &&
-            monster_info->action_kind != 1 && monster_info->action_kind != 8 &&
-            monster_info->action_kind != -1) {
+            monster_info->highest_condition < W8_CONDITION_ASLEEP &&
+            monster_info->fMotionless == 0 && monster_info->action_kind != 1 &&
+            monster_info->action_kind != 8 && monster_info->action_kind != -1) {
             total +=
                 monster_info->action_kind == 0 ? monster_info->pCombat->attacks_per_round0 : 1;
             if (monster_info->pCombat->active != 0) {

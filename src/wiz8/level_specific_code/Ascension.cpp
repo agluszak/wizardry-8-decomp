@@ -92,10 +92,10 @@ unsigned char AscensionPeakInit(void)
             W8NpcState* npc = GetNpcStateByKind(0x31);
 
             if (npc != 0 && npc->greeting_pending != 0 && npc->spawned == 0 &&
-                npc->party_noticed == 0 && GetFact(0x15f) != 0) {
+                npc->party_noticed == 0 && GetFact(W8_FACT_TEMPLAR) != 0) {
                 if (FindEntityByName("NP_Daughter", &position, 0, 0)) {
                     SpawnMonsters(0x18d, 1, &position, 0, 1, 0, 0);
-                    SetFact(0x327, 1, 0);
+                    SetFact(static_cast<W8FactId>(0x327), 1, 0);
                 }
                 CreateLocationVar("AP_SpawnDaughter", 1);
             }
@@ -106,7 +106,8 @@ unsigned char AscensionPeakInit(void)
             if (FindEntityByName("NP_Savants01", &position, 0, 0)) {
                 SpawnMonsters(0x1a0, 6, &position, 1, 1, 0, 0);
             }
-            if (GetFact(0x5c) != 0 || GetFact(0x97) != 0) {
+            if (GetFact(W8_FACT_TMISSION_MEET_ZANT_AT_AP) != 0 ||
+                GetFact(W8_FACT_UMISSION_MEET_AP_ASSIGN) != 0) {
                 Trigger* bodies = FindTriggerByName("Bodies");
 
                 if (bodies != 0) {
@@ -179,13 +180,13 @@ void AscensionAvalanche(bool command)
         position = GetWorld()->camera->getLocation();
         FindTriggerByName("ASC40")->GetPosition(&trigger_position);
         if ((position - trigger_position).Length() < g_double_005ec030) {
-            SetFact(0x15d, 1, 0);
-            SetFact(0x15e, 0, 0);
+            SetFact(W8_FACT_LANDSLIDE_RAPAX_SIDE, 1, 0);
+            SetFact(W8_FACT_LANDSLIDE_WILD_SIDE, 0, 0);
         } else {
             FindTriggerByName("ASC30")->GetPosition(&trigger_position);
             if ((position - trigger_position).Length() < g_double_005ec030) {
-                SetFact(0x15d, 0, 0);
-                SetFact(0x15e, 1, 0);
+                SetFact(W8_FACT_LANDSLIDE_RAPAX_SIDE, 0, 0);
+                SetFact(W8_FACT_LANDSLIDE_WILD_SIDE, 1, 0);
             }
         }
         g_master_functions->Add(AscensionLandShaker);

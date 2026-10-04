@@ -313,10 +313,10 @@ int MonGen::RollEncounterGroupSize(W8MonsterRecord* record)
     int rolled = RollDice(dice);
 
     if (relative_level >= 1.2f) {
-        if (g_settings.difficulty == 0) {
+        if (g_settings.difficulty == W8_DIFFICULTY_NOVICE) {
             return minimum;
         }
-        if (g_settings.difficulty == 2) {
+        if (g_settings.difficulty == W8_DIFFICULTY_EXPERT) {
             return rolled;
         }
         while (rolled > midpoint) {
@@ -329,10 +329,10 @@ int MonGen::RollEncounterGroupSize(W8MonsterRecord* record)
     if (midpoint > 0.8f) {
         return rolled;
     }
-    if (g_settings.difficulty == 2) {
+    if (g_settings.difficulty == W8_DIFFICULTY_EXPERT) {
         return maximum;
     }
-    if (g_settings.difficulty == 0) {
+    if (g_settings.difficulty == W8_DIFFICULTY_NOVICE) {
         return rolled;
     }
     while (rolled < midpoint) {
@@ -402,7 +402,8 @@ unsigned char MonGen::GenerateEncounter(const srVector3T<float>* position)
 
     if ((flags & W8_MONGEN_STORY_GATED) != 0) {
         if (GetFactionDisposition(record->faction_id) != W8_FACTION_HOSTILE ||
-            (!GetFact(0x30) && !GetFact(0x22) && !GetFact(0x31))) {
+            (!GetFact(W8_FACT_DESTINAE_POSSESS) && !GetFact(W8_FACT_ASTRAL_POSSESS) &&
+             !GetFact(W8_FACT_CHAOS_POSSESS))) {
             return 0;
         }
     }

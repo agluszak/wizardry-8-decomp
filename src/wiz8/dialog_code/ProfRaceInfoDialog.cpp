@@ -260,8 +260,8 @@ unsigned char W8ProfessionInfoDialog::PopulateText()
     m_text_area.AddEntry(0, &g_empty_wide_string, 10, 0xf, 0);
     m_text_area.AddEntry(gppStringList[0x14f], &g_empty_wide_string, 10, 0xf, 0);
     for (index = 0; index < 4; ++index) {
-        int skill = g_profession_skills[m_uiIndex][index];
-        if (skill == -1) {
+        W8Skill skill = g_profession_skills[m_uiIndex][index];
+        if (skill == W8_SKILL_NONE) {
             break;
         }
         m_text_area.AddEntry(0, gppStringList[g_character_skill_name_ids[skill]], 10, 0xf, 0);

@@ -1299,7 +1299,7 @@ const char* g_monster_spell_icon_names[40] = {
    adopts the link record; the remove path finds the record by icon id, pulls
    the item out of the world list, deletes it and frees the record. */
 // FUNCTION: WIZ8 0x004acd80
-void SetMonsterSpellIcon(W8Monster* pMonster, int iIcon, bool add)
+void SetMonsterSpellIcon(W8Monster* pMonster, W8MonsterSpellIconId iIcon, bool add)
 {
     W8MonsterRep* pMonRep;
     W8MonsterSpellIcon* pSpellMI;
@@ -1355,7 +1355,7 @@ void SetMonsterSpellIcon(W8Monster* pMonster, int iIcon, bool add)
                          "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp", 0x80a, 0);
         }
         pSpellMI = static_cast<W8MonsterSpellIcon*>(malloc(8));
-        pSpellMI->icon = 0;
+        pSpellMI->icon = SPELL_ICON_DRAINED;
         pSpellMI->psrBMO = 0;
         sprintf(path, "%s\\%s_A.TGA", "Data\\Icons\\MonsterSpells",
                 g_monster_spell_icon_names[iIcon]);

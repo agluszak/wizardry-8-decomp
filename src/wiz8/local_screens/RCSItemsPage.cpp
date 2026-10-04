@@ -223,9 +223,9 @@ void OpenSecondaryAttributeInfoDialog4(void)
 }
 
 // FUNCTION: WIZ8 0x005BA2B0
-void OpenAttributeInfoDialog(unsigned int uiIndex)
+void OpenAttributeInfoDialog(W8Attribute attribute)
 {
-    DisplayCampDialog(new W8AttributeInfoDialog(uiIndex));
+    DisplayCampDialog(new W8AttributeInfoDialog(attribute));
 }
 
 // FUNCTION: WIZ8 0x005BA310

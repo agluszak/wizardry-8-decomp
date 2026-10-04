@@ -384,8 +384,8 @@ extern unsigned int g_character_stats_region_set;
 
 /* Skill-availability bookkeeping raised by RefreshCharacterSkillAvailability while the character
    screen is open: adjust the named page-2 entry and refresh that page. */
-void ResetCharacterScreenSkill(int skill_id);
-void RefundCharacterScreenSkill(int skill_id);
+void ResetCharacterScreenSkill(W8Skill skill_id);
+void RefundCharacterScreenSkill(W8Skill skill_id);
 
 /* Primary interface at 0x005EF224, used by the pages to raise the screen-owned
    dialogs and to query the current character. */
@@ -395,9 +395,9 @@ public:
     virtual void ShowSpellInfo(int value) = 0;
     virtual void ShowProfessionInfo(unsigned int profession) = 0;
     virtual void ShowRaceInfo(unsigned int race) = 0;
-    virtual void ShowPrimaryAttributeInfo(unsigned int attribute) = 0;
+    virtual void ShowPrimaryAttributeInfo(W8Attribute attribute) = 0;
     virtual void ShowSecondaryAttributeInfo(unsigned int attribute) = 0;
-    virtual void ShowSkillInfo(int value) = 0;
+    virtual void ShowSkillInfo(W8Skill value) = 0;
     virtual void ShowDescription(int first, int second) = 0;
     virtual void ShowCharacterSummary() = 0;
     virtual unsigned char HasDialog() = 0;
@@ -423,9 +423,9 @@ public:
     virtual void ShowSpellInfo(int value) override;
     virtual void ShowProfessionInfo(unsigned int profession) override;
     virtual void ShowRaceInfo(unsigned int race) override;
-    virtual void ShowPrimaryAttributeInfo(unsigned int attribute) override;
+    virtual void ShowPrimaryAttributeInfo(W8Attribute attribute) override;
     virtual void ShowSecondaryAttributeInfo(unsigned int attribute) override;
-    virtual void ShowSkillInfo(int value) override;
+    virtual void ShowSkillInfo(W8Skill value) override;
     virtual void ShowDescription(int first, int second) override;
     virtual void ShowCharacterSummary() override;
     virtual unsigned char HasDialog() override;

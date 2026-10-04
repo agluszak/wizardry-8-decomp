@@ -276,7 +276,7 @@ void W8CharacterScreen::ShowRaceInfo(unsigned int race)
 }
 
 // FUNCTION: WIZ8 0x005b07c0
-void W8CharacterScreen::ShowPrimaryAttributeInfo(unsigned int attribute)
+void W8CharacterScreen::ShowPrimaryAttributeInfo(W8Attribute attribute)
 {
     m_dialog_response = 0;
     m_dialog = new W8AttributeInfoDialog(attribute);
@@ -294,7 +294,7 @@ void W8CharacterScreen::ShowSecondaryAttributeInfo(unsigned int attribute)
 }
 
 // FUNCTION: WIZ8 0x005b08e0
-void W8CharacterScreen::ShowSkillInfo(int value)
+void W8CharacterScreen::ShowSkillInfo(W8Skill value)
 {
     m_dialog_response = 0;
     if (value == g_profession_bonus_skills[m_character.iProfession]) {
@@ -600,7 +600,7 @@ bool W8CharacterScreen::CommitCharacter()
    current. They adjust the named skill through the page-2 helpers and then
    refresh page 2, the skills list. */
 // FUNCTION: WIZ8 0x005b1af0
-void ResetCharacterScreenSkill(int skill_id)
+void ResetCharacterScreenSkill(W8Skill skill_id)
 {
     W8CharacterScreen* screen = g_character_screen;
     ResetSkillContribution(&screen->m_character, &screen->m_creation_state, skill_id);
@@ -610,7 +610,7 @@ void ResetCharacterScreenSkill(int skill_id)
 }
 
 // FUNCTION: WIZ8 0x005b1b30
-void RefundCharacterScreenSkill(int skill_id)
+void RefundCharacterScreenSkill(W8Skill skill_id)
 {
     W8CharacterScreen* screen = g_character_screen;
     RefundSkillAllocation(&screen->m_character, &screen->m_creation_state, skill_id);

@@ -212,7 +212,7 @@ void TellNpcFact(W8NpcState* npc, short fact)
 /* Whether the NPC has already been told a fact. The scan stops at the first
    empty slot, so the list is packed from the front. */
 // FUNCTION: WIZ8 0x0050dd10
-bool NpcKnowsFact(W8NpcState* npc, unsigned int fact)
+bool NpcKnowsFact(W8NpcState* npc, W8FactId fact)
 {
     int slot;
 
@@ -294,7 +294,8 @@ bool NpcLeadHasNameStyle(unsigned int kind)
                 npc = 0;
             }
         }
-        if (npc->name_style == kind && g_status.buffers.Char[0].highest_condition < 0xf) {
+        if (npc->name_style == kind &&
+            g_status.buffers.Char[0].highest_condition < W8_CONDITION_ASLEEP) {
             return 1;
         }
     }
@@ -311,7 +312,8 @@ bool NpcLeadHasNameStyle(unsigned int kind)
                 npc = 0;
             }
         }
-        if (npc->name_style == kind && g_status.buffers.Char[1].highest_condition < 0xf) {
+        if (npc->name_style == kind &&
+            g_status.buffers.Char[1].highest_condition < W8_CONDITION_ASLEEP) {
             return 1;
         }
     }
@@ -517,7 +519,7 @@ int DismissNpcFromParty(int party_slot, int /*unused*/, bool skip_spawn, bool ne
     /* Retail clears all 0x118 bytes, including the embedded vector's vfptr. */
     memset(&gXStatus.monster_manager_entries[party_slot], 0, sizeof(W8MonsterManagerEntry));
     row->npc_index = -1;
-    if (npc->character->highest_condition != 18 && !skip_spawn) {
+    if (npc->character->highest_condition != W8_CONDITION_DEAD && !skip_spawn) {
         W8MonsterRecord* records;
         LoadMonsterDatabase(&records);
         unsigned int species;
@@ -569,13 +571,13 @@ void UpdateNpcPartyMember(int party_slot)
     W8Character* character = &g_status.buffers.Char[party_slot];
     srVector3T<float> position;
 
-    if (character->highest_condition == 0x12) {
+    if (character->highest_condition == W8_CONDITION_DEAD) {
         ShowNoticef(0, gppStringList[0x7d4], character->name);
         StashDepartingCharacterItems(character);
         RemoveCharacterFromParty(party_slot, 0);
         return;
     }
-    if (character->highest_condition == 0x13) {
+    if (character->highest_condition == W8_CONDITION_MISSING) {
         RemoveCharacterFromParty(party_slot, 0);
         return;
     }
@@ -589,7 +591,7 @@ void UpdateNpcPartyMember(int party_slot)
         while (g_npc_services[service].service_id != 0xffffffff) {
             if (g_npc_services[service].service_id == static_cast<unsigned int>(band)) {
                 if ((npc->record->service_flags & g_npc_services[service].bit) != 0) {
-                    if (character->highest_condition > 0xe) {
+                    if (character->highest_condition > W8_CONDITION_WEBBED) {
                         npc->event_pending = 1;
                         BeginScriptedWorldAction();
                         QueueNpcMessageLine(W8_NPC_MSG_GROUP_ACTION, party_slot);
@@ -604,7 +606,7 @@ void UpdateNpcPartyMember(int party_slot)
             ++service;
         }
     }
-    if (character->highest_condition < 0xf) {
+    if (character->highest_condition < W8_CONDITION_ASLEEP) {
         QueueCharacterEvent(character, g_effect33, 0, g_character_event_no_flags,
                             g_character_event_full_volume);
     }
@@ -836,7 +838,7 @@ bool CanNpcJoinParty(W8NpcState* npc)
         for (index = 0; index < 8; ++index) {
             if (g_status.buffers.XChar[index].fOccupied != 0 &&
                 g_status.buffers.Char[index].hp_current > 0 &&
-                g_status.buffers.Char[index].highest_condition < 0xf) {
+                g_status.buffers.Char[index].highest_condition < W8_CONDITION_ASLEEP) {
                 ++count;
                 total += g_status.buffers.Char[index].uiExpLevel;
             }
@@ -998,7 +1000,7 @@ void ProcessNpcPendingEvents(void)
                     SetCharacterCondition(g_status.sedexus_party_slot, W8_CONDITION_INFATUATED,
                                           9999, 0, 0, 1);
                     g_status.infatuation_pending = 0;
-                    SetFact(0x2a6, 1, 0);
+                    SetFact(W8_FACT_QUEST_KILL_ALSEDEXUS, 1, 0);
                 }
             }
         }
@@ -1021,18 +1023,20 @@ void ProcessNpcPendingEvents(void)
                         continue;
                     }
                     W8NpcState* npc = GetNpcState(row->npc_index);
-                    if (character->highest_condition < 0xf) {
+                    if (character->highest_condition < W8_CONDITION_ASLEEP) {
                         int event = 0;
                         if (GetLevelBand(g_status.current_level) != 0xd) {
                             if (npc->name_style == 0x11 &&
                                 (g_status.buffers.XChar[0].fOccupied == 0 ||
                                  GetNpcState(g_status.buffers.XChar[0].npc_index)->name_style !=
                                      0x10 ||
-                                 g_status.buffers.Char[0].highest_condition >= 0xf) &&
+                                 g_status.buffers.Char[0].highest_condition >=
+                                     W8_CONDITION_ASLEEP) &&
                                 (g_status.buffers.XChar[1].fOccupied == 0 ||
                                  GetNpcState(g_status.buffers.XChar[1].npc_index)->name_style !=
                                      0x10 ||
-                                 g_status.buffers.Char[1].highest_condition >= 0xf)) {
+                                 g_status.buffers.Char[1].highest_condition >=
+                                     W8_CONDITION_ASLEEP)) {
                                 event = 0x6c;
                             } else if (npc->name_style == 0x10 && !NpcLeadHasNameStyle(0x11)) {
                                 event = 0x67;
@@ -1078,9 +1082,9 @@ void ProcessNpcPendingEvents(void)
                             }
                         }
                         npc->incapacitated = 0;
-                    } else if (character->highest_condition == 0x11 ||
-                               character->highest_condition == 0x10 ||
-                               character->highest_condition == 0xf) {
+                    } else if (character->highest_condition == W8_CONDITION_UNCONSCIOUS ||
+                               character->highest_condition == W8_CONDITION_PARALYZED ||
+                               character->highest_condition == W8_CONDITION_ASLEEP) {
                         all_clear = false;
                         npc->incapacitated = 1;
                     }
@@ -1103,11 +1107,11 @@ void ChooseNewGameStartLocation(int* level, int* entrance)
     unsigned char value;
     int start_level;
 
-    value = GetFact(0x4e);
+    value = GetFact(W8_FACT_VIRGIN);
     if (value != 0) {
         start_level = 8;
     } else {
-        value = GetFact(0x4c);
+        value = GetFact(W8_FACT_IMPORT_UMPANI);
         if (value != 0) {
             start_level = 0xe;
         } else {
@@ -1118,19 +1122,19 @@ void ChooseNewGameStartLocation(int* level, int* entrance)
     *entrance = 0;
     g_status.greeting_pending = 1;
 
-    value = GetFact(0x4e);
+    value = GetFact(W8_FACT_VIRGIN);
     if (value != 0) {
         return;
     }
 
-    value = GetFact(0x4c);
+    value = GetFact(W8_FACT_IMPORT_UMPANI);
     if (value != 0) {
         RestoreNamedNpcAtLevel(0x18, 0xe, "NP_ViGigas");
         RestoreNamedNpcAtLevel(0xc, 0xe, "NP_BalbrakIntro");
         return;
     }
 
-    value = GetFact(0x4b);
+    value = GetFact(W8_FACT_IMPORT_TRANG);
     if (value != 0) {
         RestoreNamedNpcAtLevel(0x18, 6, "NP_ViBluff");
         RestoreNamedNpcAtLevel(0x8c, 6, "NP_GuardBluff");
@@ -1153,17 +1157,17 @@ void SelectStartNpcGreeting(void)
     unsigned char value;
     srVector3T<float> head;
 
-    value = GetFact(0x4e);
+    value = GetFact(W8_FACT_VIRGIN);
     if (value != 0) {
         ApplyItemEffectToRandomCharacter(g_fact_check_event, -1, 0, g_character_event_no_flags);
         return;
     }
 
-    value = GetFact(0x4c);
+    value = GetFact(W8_FACT_IMPORT_UMPANI);
     if (value != 0) {
         npc = GetNpcStateByKind(0xc);
     } else {
-        value = GetFact(0x4b);
+        value = GetFact(W8_FACT_IMPORT_TRANG);
         if (value != 0) {
             npc = GetNpcStateByKind(0x8c);
             if (npc == 0) {
@@ -1195,17 +1199,17 @@ int SelectNewGameStartLevel(void)
 {
     unsigned char value;
 
-    value = GetFact(0x4e);
+    value = GetFact(W8_FACT_VIRGIN);
     if (value != 0) {
         return 8;
     }
 
-    value = GetFact(0x4c);
+    value = GetFact(W8_FACT_IMPORT_UMPANI);
     if (value != 0) {
         return 0xe;
     }
 
-    value = GetFact(0x4b);
+    value = GetFact(W8_FACT_IMPORT_TRANG);
     if (value != 0) {
         return 6;
     }
@@ -1490,8 +1494,8 @@ unsigned char InitializeNpcCharacter(W8NpcState* npc, W8Character* character)
     memset(character, 0, sizeof(*character));
     character->level_band_base = 0;
     character->attribute_point_deficit = 0;
-    character->highest_condition = 0;
-    character->enchantment_top = 0;
+    character->highest_condition = W8_CONDITION_NONE;
+    character->enchantment_top = W8_ENCHANTMENT_NONE;
     character->unknown_007d = -1;
     character->personality = -1;
     for (index = 0; index < 12; ++index) {
@@ -1845,7 +1849,7 @@ void ApplyNpcInteraction(W8NpcState* npc, int kind, int value, W8ItemInstance* i
         for (index = 0; index < 8; ++index) {
             W8Character* character = &g_status.buffers.Char[index];
             if (g_status.buffers.XChar[index].fOccupied != 0 && character->hp_current != 0 &&
-                character->highest_condition < 0xf) {
+                character->highest_condition < W8_CONDITION_ASLEEP) {
                 ++count;
                 total_level += character->uiExpLevel;
             }
@@ -2306,7 +2310,7 @@ void UpdateNpcEvents(void)
     if (g_status.fact_b8_pending != 0 &&
         static_cast<unsigned int>(g_status.world_clock - g_status.fact_b8_clock) > 0x2a300) {
         g_status.fact_b8_pending = 0;
-        SetFact(0xb8, 1, 0);
+        SetFact(W8_FACT_MOOK_CHAOS_STOLEN, 1, 0);
     }
     if (g_status.greeting_pending != 0 &&
         (g_status.world_clock - g_status.binding_reset_clock) > 0x3c) {
@@ -2554,7 +2558,7 @@ void HandleMarkedNpcEvent(W8NpcState* npc, char mode)
 {
     W8MonsterInfo* monster_info = GetNpcMonsterInfo(npc);
 
-    if (monster_info != 0 && monster_info->highest_condition > 0xe) {
+    if (monster_info != 0 && monster_info->highest_condition > W8_CONDITION_WEBBED) {
         return;
     }
     if (npc->name_style == ' ' || npc->name_style == '!') {
@@ -2563,7 +2567,7 @@ void HandleMarkedNpcEvent(W8NpcState* npc, char mode)
         return;
     }
     if (npc->name_style == W8_NPC_VI_DOMINA) {
-        SetFact(0x22b, 0, 0);
+        SetFact(W8_FACT_INTRO_VI_DISAPPEARS, 0, 0);
     }
     if (npc->name_style == ')' && g_status.current_level == 0xd) {
         srVector3T<float> position;
@@ -2583,7 +2587,7 @@ void HandleMarkedNpcEvent(W8NpcState* npc, char mode)
                     trigger->Run(-1);
                 }
             }
-            SetFact(0x21e, 0, 0);
+            SetFact(W8_FACT_UMISSION_MOVE_RUBBLE_COVERT, 0, 0);
             npc->event_pending = 0;
             npc->restore_done = 0;
             return;
@@ -2625,7 +2629,7 @@ void HandleMarkedNpcEvent(W8NpcState* npc, char mode)
         g_status.npc_restore_pending = 1;
     }
     if (npc->restore_done == 0) {
-        if (npc->name_style == 7 && GetFact(0x1f) != 0) {
+        if (npc->name_style == 7 && GetFact(W8_FACT_RAPAX_MYLES_IN_JAIL) != 0) {
             RestoreNamedNpcAtLevel(npc->name_style, 0x11, "NP_MylesCell");
         } else {
             RestoreNamedNpcAtLevel(npc->name_style, npc->record->restore_level,
@@ -2789,7 +2793,7 @@ char QueueNpcDepartureEvents(int destination_level)
             continue;
         }
         W8NpcState* npc = GetNpcState(row->npc_index);
-        if (character->highest_condition >= 0xf) {
+        if (character->highest_condition >= W8_CONDITION_ASLEEP) {
             continue;
         }
         int service = 0;
@@ -2845,14 +2849,14 @@ char QueueNpcDepartureEvents(int destination_level)
                 if (g_status.buffers.XChar[0].fOccupied != 0) {
                     W8NpcState* lead = GetNpcState(g_status.buffers.XChar[0].npc_index);
                     if (lead->name_style == W8_NPC_DRAZIC &&
-                        g_status.buffers.Char[0].highest_condition < 0xf) {
+                        g_status.buffers.Char[0].highest_condition < W8_CONDITION_ASLEEP) {
                         paired = true;
                     }
                 }
                 if (!paired && g_status.buffers.XChar[1].fOccupied != 0) {
                     W8NpcState* lead = GetNpcState(g_status.buffers.XChar[1].npc_index);
                     if (lead->name_style == W8_NPC_DRAZIC &&
-                        g_status.buffers.Char[1].highest_condition < 0xf) {
+                        g_status.buffers.Char[1].highest_condition < W8_CONDITION_ASLEEP) {
                         paired = true;
                     }
                 }
@@ -2864,14 +2868,14 @@ char QueueNpcDepartureEvents(int destination_level)
                 if (g_status.buffers.XChar[0].fOccupied != 0) {
                     W8NpcState* lead = GetNpcState(g_status.buffers.XChar[0].npc_index);
                     if (lead->name_style == W8_NPC_RODAN &&
-                        g_status.buffers.Char[0].highest_condition < 0xf) {
+                        g_status.buffers.Char[0].highest_condition < W8_CONDITION_ASLEEP) {
                         paired = true;
                     }
                 }
                 if (!paired && g_status.buffers.XChar[1].fOccupied != 0) {
                     W8NpcState* lead = GetNpcState(g_status.buffers.XChar[1].npc_index);
                     if (lead->name_style == W8_NPC_RODAN &&
-                        g_status.buffers.Char[1].highest_condition < 0xf) {
+                        g_status.buffers.Char[1].highest_condition < W8_CONDITION_ASLEEP) {
                         paired = true;
                     }
                 }
@@ -2908,7 +2912,7 @@ void QueueNpcTravelRefusals(int destination_level)
             continue;
         }
         W8NpcState* npc = GetNpcState(row->npc_index);
-        if (character->highest_condition >= 0xf) {
+        if (character->highest_condition >= W8_CONDITION_ASLEEP) {
             continue;
         }
         int service = 0;
@@ -2930,7 +2934,7 @@ void QueueNpcTravelRefusals(int destination_level)
             if (g_status.buffers.XChar[0].fOccupied != 0) {
                 W8NpcState* lead = GetNpcState(g_status.buffers.XChar[0].npc_index);
                 if (lead->name_style == W8_NPC_DRAZIC &&
-                    g_status.buffers.Char[0].highest_condition < 0xf) {
+                    g_status.buffers.Char[0].highest_condition < W8_CONDITION_ASLEEP) {
                     paired = true;
                 }
             }
@@ -2942,7 +2946,7 @@ void QueueNpcTravelRefusals(int destination_level)
                 }
                 W8NpcState* lead = GetNpcState(g_status.buffers.XChar[1].npc_index);
                 if (lead->name_style != W8_NPC_DRAZIC ||
-                    g_status.buffers.Char[1].highest_condition >= 0xf) {
+                    g_status.buffers.Char[1].highest_condition >= W8_CONDITION_ASLEEP) {
                     BeginScriptedWorldAction();
                     QueueNpcMessageLine(W8_NPC_MSG_GROUP_ACTION, slot);
                     return;
@@ -2954,7 +2958,7 @@ void QueueNpcTravelRefusals(int destination_level)
             if (g_status.buffers.XChar[0].fOccupied != 0) {
                 W8NpcState* lead = GetNpcState(g_status.buffers.XChar[0].npc_index);
                 if (lead->name_style == W8_NPC_RODAN &&
-                    g_status.buffers.Char[0].highest_condition < 0xf) {
+                    g_status.buffers.Char[0].highest_condition < W8_CONDITION_ASLEEP) {
                     paired = true;
                 }
             }
@@ -2966,7 +2970,7 @@ void QueueNpcTravelRefusals(int destination_level)
                 }
                 W8NpcState* lead = GetNpcState(g_status.buffers.XChar[1].npc_index);
                 if (lead->name_style != W8_NPC_RODAN ||
-                    g_status.buffers.Char[1].highest_condition >= 0xf) {
+                    g_status.buffers.Char[1].highest_condition >= W8_CONDITION_ASLEEP) {
                     BeginScriptedWorldAction();
                     QueueNpcMessageLine(W8_NPC_MSG_GROUP_ACTION, slot);
                     return;

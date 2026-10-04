@@ -1689,7 +1689,8 @@ void W8PartySelectionController::OnPrimary(W8TextControl* control)
             SetMode(2);
             return;
         case 2:
-            g_settings.difficulty = m_control3->m_options.m_selectedIndex;
+            g_settings.difficulty =
+                static_cast<W8Difficulty>(m_control3->m_options.m_selectedIndex);
             g_settings.simplified_npc_interaction = static_cast<unsigned char>(
                 m_control3->npc_interact_toggle->m_stateFlags & g_W8TextControlStateSecondary);
             if ((m_control3->m_toggle->m_stateFlags & g_W8TextControlStateSecondary) != 0) {
@@ -2050,7 +2051,7 @@ unsigned char PartySelectionScreenEnter(void)
         g_party_selection_controller = new W8PartySelectionController;
         g_party_selection_controller->Setup();
     } else {
-        if (g_previous_screen_id == 3 && g_party_selection_controller->m_mode != 1) {
+        if (g_previous_screen_id == W8_SCREEN_CHARACTER && g_party_selection_controller->m_mode != 1) {
             collection->ReloadCharacters();
             g_party_selection_controller->SetSelection(0, 0, 1);
         }

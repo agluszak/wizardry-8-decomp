@@ -1,6 +1,7 @@
 #pragma once
 
 extern wchar_t g_default_level[];
+#include "wiz8/fact_state.h"
 #include "wiz8/layouts/screen_state.h"
 #include "wiz8/vector.h"
 
@@ -34,7 +35,7 @@ W8_ASSERT_BASE_END(W8JournalPanel, W8TextControl::Listener, m_next, 0x4c);
 
 struct W8JournalEntry {
     int level;
-    int fact;
+    W8FactId fact;
     int alternate_text;
 };
 static_assert(sizeof(W8JournalEntry) == 0x0c, "W8JournalEntry_size");
@@ -48,7 +49,7 @@ extern wchar_t g_journal_page_format[];
 void InitializeFactJournal(void);
 /* 0x005588F0: append one changed fact to the journal and, unless notices are
    suppressed, post the fact's own journal entry. */
-void RecordFactChangeForJournal(int fact_id);
+void RecordFactChangeForJournal(W8FactId fact_id);
 /* 0x00558A90: write the entry count, a format dword and each journal entry
    into the open JRNL chunk. */
 void SaveFactJournal(int file);

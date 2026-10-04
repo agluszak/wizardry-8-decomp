@@ -353,7 +353,8 @@ unsigned char HandlePartyMovement(float* real_elapsed, float* frame_elapsed)
     for (party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
         W8PartySlotRow* row = &g_status.buffers.XChar[party_slot];
         W8Character* character = &g_status.buffers.Char[party_slot];
-        if (row->fOccupied == 0 || character->stamina <= 0 || character->highest_condition >= 0xf) {
+        if (row->fOccupied == 0 || character->stamina <= 0 ||
+            character->highest_condition >= W8_CONDITION_ASLEEP) {
             continue;
         }
         amount = *frame_elapsed;

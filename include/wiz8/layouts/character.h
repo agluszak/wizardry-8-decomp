@@ -1,6 +1,9 @@
 #ifndef WIZ8_LAYOUTS_CHARACTER_H
 #define WIZ8_LAYOUTS_CHARACTER_H
 
+#include "wiz8/character_skills.h"
+#include "wiz8/conditions.h"
+#include "wiz8/load_category.h"
 #include "surrender/srMath.h"
 #include "wiz8/gameplay_modifiers.h"
 #include "wiz8/layouts/item_instance.h"
@@ -9,31 +12,6 @@
 
 #pragma pack(push, 1)
 
-/* The eighteen conditions a character can be under, indexed directly into
-   W8Character::uiCondition. Only the ones a recovered body names are
-   spelled out; the rest keep their numbers. */
-enum {
-    /* Twenty entries: the per-character copier walks all twenty, while the
-       sweep that lifts everything stops at eighteen because the last two are
-       not the kind a rest clears. */
-    W8_CONDITION_COUNT = 20,
-    W8_CONDITION_CLEARABLE_COUNT = 18,
-    W8_CONDITION_FATIGUE_DOUBLED = 2,
-    W8_CONDITION_LOAD_EASED = 5,
-    /* Seven is COND_POISONED: the assertion at SetCharacterCondition names it,
-       and it is the one condition that carries a second value (poison
-       strength) alongside its duration. */
-    W8_CONDITION_POISONED = 7,
-    W8_CONDITION_SPELLCASTING_BLOCKED = 8,
-    W8_CONDITION_HOSTILE = 0xd,
-    W8_CONDITION_ASLEEP = 0xf,
-    W8_CONDITION_EXHAUSTED = 0x11,
-    /* Eighteen is death: applying it calls CharacterDies, and the bound-equipment
-       unlock path is a consequence of that condition being set. */
-    W8_CONDITION_DEAD = 18,
-    /* The duration that means "until lifted". */
-    W8_CONDITION_INDEFINITE = 9999
-};
 
 /* One enchantment slot. Both a character and a monster carry eight of them,
    and both clear a slot by zeroing all three dwords at once. */
@@ -114,7 +92,7 @@ enum {
     /* The six skills whose level feeds the matching resistance, and the one
        whose presence adds a flat bonus to every one of them. */
     W8_FIRST_RESISTANCE_SKILL = 28,
-    W8_RESISTANCE_BONUS_SKILL = 36,
+
     /* A race adjustment at or below this is a flat amount; above it, it selects
        a character attribute by index biased this far. */
     W8_RACE_ADJUSTMENT_ATTRIBUTE_BIAS = 1000
@@ -132,8 +110,8 @@ enum {
 struct W8HandAttack {
     int uiHolds;                 /* 0x00 */
     bool in_play;                /* 0x04 */
-    int weapon_skill;            /* 0x05, unaligned */
-    int combat_skill;            /* 0x09 */
+    W8Skill weapon_skill;        /* 0x05, unaligned */
+    W8Skill combat_skill;        /* 0x09 */
     unsigned int combined_skill; /* 0x0d */
     int attack_score;            /* 0x11 */
     unsigned int attacks;        /* 0x15 */
@@ -244,10 +222,10 @@ struct W8Character {
        monster copy at W8MonsterInfo::highest_condition. Thresholds are the
        condition ids themselves: below HOSTILE for rest/formation, below
        DEAD for ordinary party eligibility. */
-    unsigned int highest_condition;
+    W8Condition highest_condition;
     /* 0x0b05: the highest enchantment slot still in use, recomputed by
        scanning down from the last one whenever a slot is cleared. */
-    int enchantment_top;
+    W8EnchantmentSlot enchantment_top;
     /* 0x0b09: the argument COND_POISONED carries (poison strength). */
     int condition_argument;
     /* 0x0b0d..0x0b20: the two pools with a ceiling each, plus the adjustment
@@ -290,7 +268,7 @@ struct W8Character {
     unsigned int carrying_capacity;    /* 0x0bc5; displayed divided by 10 */
     /* 0x0bc9: the load category, zero through four, which scales what an
        action costs in fatigue. FatigueCharacter's error text calls it that. */
-    int load_category;
+    W8LoadCategory load_category;
     /* 0x0bcd: one entry per spell. CanCharacterUseItem refuses a spell-source
        item whose spell already reads one here, so one is the learned state. */
     int spell_learned[136]; /* 0x0bcd */
@@ -387,15 +365,15 @@ struct W8SkillAttributes {
     W8SkillImportPolicy import_policy; /* 0x04: Wiz7 skill import eligibility */
     /* 0x08/0x0c: governing attributes averaged into base_level and
        listed in the stat-info dialog. */
-    int attribute_1;
-    int attribute_2;
+    W8Attribute attribute_1;
+    W8Attribute attribute_2;
 };
 
 #pragma pack(pop)
 
 extern W8RaceResistanceProfile g_race_resistance_profiles[];
 extern int g_profession_skill_availability[0x29][W8_PROFESSION_COUNT];
-extern int g_profession_bonus_skills[W8_PROFESSION_COUNT];
+extern W8Skill g_profession_bonus_skills[W8_PROFESSION_COUNT];
 extern W8SkillAttributes g_skill_attributes[0x29];
 
 /* Profession and race trait sets consulted by CharacterHasTrait. Each entry is
@@ -410,7 +388,7 @@ struct W8RaceAbilitySet {
 
 extern W8ProfessionAbilitySet g_profession_abilities[W8_PROFESSION_COUNT];
 extern W8RaceAbilitySet g_race_abilities[16];
-extern int g_profession_skills[W8_PROFESSION_COUNT][4];
+extern W8Skill g_profession_skills[W8_PROFESSION_COUNT][4];
 extern int g_profession_magic_level_offsets[W8_PROFESSION_COUNT];
 extern float g_profession_hit_point_factors[W8_PROFESSION_COUNT];
 

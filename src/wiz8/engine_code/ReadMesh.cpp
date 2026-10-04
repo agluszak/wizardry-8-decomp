@@ -1127,7 +1127,7 @@ unsigned char ReadMultipleLevelMeshes(W8ReadLevelInfo* info, srModelInstance** i
     srVector3T<float> minimum;
     srVector3T<float> maximum;
     for (g_read_mesh_index = 0; g_read_mesh_index < mesh_count; ++g_read_mesh_index) {
-        if (g_current_screen_state.id == 4) {
+        if (g_current_screen_state.id == W8_SCREEN_PLEASE_WAIT) {
             UpdatePleaseWaitLoadFrame();
         }
         stMeshModel* model =

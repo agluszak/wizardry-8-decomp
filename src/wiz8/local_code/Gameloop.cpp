@@ -98,9 +98,9 @@ W8ScreenStateHandlers g_screen_handlers[W8_SCREEN_COUNT] = {
     {ScreenLifecycleSuccess, ExitScreenEnter, ExitScreenFrame, MainMenuScreenLeave,
      ScreenLifecycleSuccess}};
 // GLOBAL: WIZ8 0x00647bc0
-int g_previous_screen_id = -1;
+W8ScreenId g_previous_screen_id = W8_SCREEN_NONE;
 // GLOBAL: WIZ8 0x00647bc4
-int g_suspended_screen_id = -1;
+W8ScreenId g_suspended_screen_id = W8_SCREEN_NONE;
 
 // FUNCTION: WIZ8 0x004e3290
 void ShutdownGame(void)
@@ -138,7 +138,7 @@ void ShutdownGame(void)
 // FUNCTION: WIZ8 0x004e3340
 void GameLoop(void)
 {
-    int state;
+    W8ScreenId state;
 
     SoundServiceStreams();
     ServiceMusicPlaylist();
@@ -148,31 +148,31 @@ void GameLoop(void)
         VideoRemoveToolTip();
         if (!g_screen_handlers[g_current_screen_state.id].leave(1)) {
             gfProgramIsRunning = 0;
-            g_current_screen_state.id = -1;
+            g_current_screen_state.id = W8_SCREEN_NONE;
             return;
         }
-        g_current_screen_state.id = -1;
-        if (g_pending_screen_state.id == -1 &&
+        g_current_screen_state.id = W8_SCREEN_NONE;
+        if (g_pending_screen_state.id == W8_SCREEN_NONE &&
             (!StackSize(g_screen_return_stack) ||
              !Pop(g_screen_return_stack, &g_pending_screen_state))) {
             gfProgramIsRunning = 0;
             return;
         }
-        state = -1;
+        state = W8_SCREEN_NONE;
         g_current_screen_state.id = state;
         g_screen_return_requested = 0;
     }
-    if (g_pending_screen_state.id != -1 && g_pending_screen_state.id != state) {
+    if (g_pending_screen_state.id != W8_SCREEN_NONE && g_pending_screen_state.id != state) {
         /* Retail tests only the low byte of the count. */
         if (static_cast<unsigned char>(gXStatus.character_event_queue->active_events.count) != 0) {
             gXStatus.character_event_queue->CompleteFirstActiveEvent();
             state = g_current_screen_state.id;
         }
-        if (state != -1) {
+        if (state != W8_SCREEN_NONE) {
             g_previous_screen_id = state;
             VideoRemoveToolTip();
             if (!g_screen_handlers[g_current_screen_state.id].leave(0)) {
-                g_current_screen_state.id = -1;
+                g_current_screen_state.id = W8_SCREEN_NONE;
                 gfProgramIsRunning = 0;
                 return;
             }
@@ -182,12 +182,12 @@ void GameLoop(void)
         state = g_pending_screen_state.id;
         g_current_screen_state = g_pending_screen_state;
         if (!g_screen_handlers[state].enter()) {
-            g_current_screen_state.id = -1;
+            g_current_screen_state.id = W8_SCREEN_NONE;
             gfProgramIsRunning = 0;
             return;
         }
         state = g_current_screen_state.id;
-        g_pending_screen_state.id = -1;
+        g_pending_screen_state.id = W8_SCREEN_NONE;
 #ifdef WIZ8_RUNTIME_TESTS
         RuntimeObserve(RUNTIME_SCREEN_CHANGED, g_previous_screen_id, state, -1);
         if (state == W8_SCREEN_MAIN_GAME) {
@@ -195,7 +195,7 @@ void GameLoop(void)
         }
 #endif
     }
-    if (state == -1) {
+    if (state == W8_SCREEN_NONE) {
         gfProgramIsRunning = 0;
         return;
     }
@@ -205,7 +205,7 @@ void GameLoop(void)
 // FUNCTION: WIZ8 0x004e34b0
 void GameloopExit(unsigned char release_screens)
 {
-    int state;
+    W8ScreenId state;
 
     SetFontObjectPalette16BPP(g_smfnt_font, g_font_palette_smfnt);
     SetFontObjectPalette16BPP(g_calligraphy_font, g_font_palette_calligraphy);
@@ -219,18 +219,18 @@ void GameloopExit(unsigned char release_screens)
         return;
     }
     for (;;) {
-        if (g_current_screen_state.id != -1) {
+        if (g_current_screen_state.id != W8_SCREEN_NONE) {
             g_previous_screen_id = g_current_screen_state.id;
             VideoRemoveToolTip();
             g_screen_handlers[g_current_screen_state.id].leave(1);
-            g_current_screen_state.id = -1;
+            g_current_screen_state.id = W8_SCREEN_NONE;
         }
         if (!StackSize(g_screen_return_stack) ||
             !Pop(g_screen_return_stack, &g_pending_screen_state)) {
             break;
         }
-        if (g_pending_screen_state.id != -1) {
-            if (g_current_screen_state.id != -1) {
+        if (g_pending_screen_state.id != W8_SCREEN_NONE) {
+            if (g_current_screen_state.id != W8_SCREEN_NONE) {
                 srAssertFail("gCurrentScreen.iScreenId == NO_SCREEN",
                              "C:\\Projects\\Wizardry 8\\Local Code\\Gameloop.cpp", 0x276, 0);
             }
@@ -238,9 +238,9 @@ void GameloopExit(unsigned char release_screens)
             memcpy(&g_current_screen_state, &g_pending_screen_state,
                    sizeof(g_current_screen_state));
             if (!g_screen_handlers[state].enter()) {
-                g_current_screen_state.id = -1;
+                g_current_screen_state.id = W8_SCREEN_NONE;
             } else {
-                g_pending_screen_state.id = -1;
+                g_pending_screen_state.id = W8_SCREEN_NONE;
 #ifdef WIZ8_RUNTIME_TESTS
                 RuntimeObserve(RUNTIME_SCREEN_CHANGED, g_previous_screen_id, state, -1);
                 if (state == W8_SCREEN_MAIN_GAME) {

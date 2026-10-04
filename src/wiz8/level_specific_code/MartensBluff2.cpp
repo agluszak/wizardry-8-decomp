@@ -604,7 +604,7 @@ bool MartensBluff2StoneIdol(Trigger* pTrigger)
     g_master_functions->Add(MartensBluff2IdolGas);
     pTrigger->flags &= ~W8_TRIGGER_ENABLED;
     g_running_trigger_from_script = true;
-    SetFact(0x323, 1, 0);
+    SetFact(W8_FACT_QUEST_MARTEN_IDOL, 1, 0);
     return true;
 }
 
@@ -744,8 +744,8 @@ void MartensBluff2IdolGasVictim(void)
             }
         }
         g_status.party_slot = slot;
-        SetCharacterCondition(slot, 0x13, W8_CONDITION_INDEFINITE, 0, 0, 1);
-        SetFact(0x33, 1, 0);
+        SetCharacterCondition(slot, W8_CONDITION_MISSING, W8_CONDITION_INDEFINITE, 0, 0, 1);
+        SetFact(W8_FACT_CROCK_KIDNAPPED_PLAYER, 1, 0);
     }
 }
 

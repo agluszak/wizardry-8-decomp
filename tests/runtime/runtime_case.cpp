@@ -308,8 +308,8 @@ void CheckGameplayReadyOnGameThread(void* opaque)
     check->camera_z = camera.z;
     check->timer_flags = g_game_time_accumulator != 0 ? g_game_time_accumulator->m_flags : 0;
     check->timer_paused = g_shared_timer_paused;
-    check->timer_d1 = g_shared_timer_flag_d1;
-    check->timer_d2 = g_shared_timer_flag_d2;
+    check->timer_d1 = g_shared_timer_flag0;
+    check->timer_d2 = g_shared_timer_flag1;
     check->timer_scale =
         g_game_time_accumulator != 0 ? g_game_time_accumulator->GetFrameDelta() : -1.0f;
     check->ground_latch = g_environ_ground_latch;
@@ -339,8 +339,8 @@ void ReadGameplaySnapshotOnGameThread(void* opaque)
         GetCameraPosition(&s->position);
         GetCameraOrientation(yaw, pitch);
         s->yaw = yaw[0];
-        s->input_motion = g_level_data->vector_40.Length();
-        s->world_motion = g_level_data->vector_a0.Length();
+        s->input_motion = g_level_data->vector2.Length();
+        s->world_motion = g_level_data->vector8.Length();
     }
     s->screen = g_current_screen_state.id;
     s->pending = g_pending_screen_state.id;

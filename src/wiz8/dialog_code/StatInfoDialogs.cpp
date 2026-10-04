@@ -173,9 +173,9 @@ unsigned char W8StatInfoDialogBase::PopulateText()
 }
 
 // FUNCTION: WIZ8 0x005dfc70
-W8AttributeInfoDialog::W8AttributeInfoDialog(unsigned int uiIndex)
+W8AttributeInfoDialog::W8AttributeInfoDialog(W8Attribute uiIndex)
 {
-    if (uiIndex >= ATTR_COUNT) {
+    if (static_cast<unsigned int>(uiIndex) >= ATTR_COUNT) {
         srAssertFail("uiIndex < ATTR_COUNT", STAT_INFO_DIALOGS_CPP, 204, 0);
     }
     m_uiIndex = uiIndex;
@@ -190,10 +190,9 @@ W8AttributeInfoDialog::~W8AttributeInfoDialog()
 }
 
 // FUNCTION: WIZ8 0x005dfe40
-W8SkillInfoDialog::W8SkillInfoDialog(unsigned int skill, bool first, bool second,
-                                     bool bonus)
+W8SkillInfoDialog::W8SkillInfoDialog(W8Skill skill, bool first, bool second, bool bonus)
 {
-    if (skill >= SKILL_COUNT) {
+    if (static_cast<unsigned int>(skill) >= SKILL_COUNT) {
         srAssertFail("uiIndex < SKILL_COUNT", STAT_INFO_DIALOGS_CPP, 227, 0);
     }
     m_skill = skill;

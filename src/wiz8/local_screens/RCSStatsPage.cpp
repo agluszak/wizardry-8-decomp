@@ -982,7 +982,7 @@ unsigned char CampSkillListRegionHandler(const InputAtom* event, W8Region* regio
             }
         }
         W8SkillInfoDialog* dialog = new W8SkillInfoDialog(
-            skill, best, g_review_character->skills[skill].active == 0,
+            static_cast<W8Skill>(skill), best, g_review_character->skills[skill].active == 0,
             skill == g_profession_bonus_skills[g_review_character->iProfession]);
         DisplayCampDialog(dialog);
     }
@@ -1435,7 +1435,7 @@ void W8CharacterSkillsPage::AdjustEntry(W8CharacterPageEntry* entry, int delta)
 // FUNCTION: WIZ8 0x005c77d0
 void W8CharacterSkillsPage::ShowEntryInfo(W8CharacterPageEntry* entry)
 {
-    m_screen->ShowSkillInfo(entry->m_id);
+    m_screen->ShowSkillInfo(static_cast<W8Skill>(entry->m_id));
 }
 
 // FUNCTION: WIZ8 0x005c77f0

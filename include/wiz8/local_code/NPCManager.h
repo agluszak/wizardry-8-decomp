@@ -1,5 +1,6 @@
 #pragma once
 
+#include "wiz8/fact_state.h"
 #include "surrender/srMath.h"
 #include "wiz8/layouts/npc_state.h"
 
@@ -54,7 +55,7 @@ void ReturnDismissedNpcItems(W8NpcState* npc, W8Character* character);          
 /* 0x0050B9B0: how many leading party slots are occupied. */
 unsigned char CountLeadingPartySlots(void);
 char GetNpcDisposition(W8NpcState* npc);               /* 0x0050A280 */
-bool NpcKnowsFact(W8NpcState* npc, unsigned int fact); /* 0x0050DD10 */
+bool NpcKnowsFact(W8NpcState* npc, W8FactId fact);     /* 0x0050DD10 */
 unsigned char FindNpcOfKind(int kind);                 /* 0x0050DD80 */
 bool CanNpcJoinParty(W8NpcState* npc);                 /* 0x0050C870 */
 bool ProbeNpcPlacementNearParty(int party_slot, int mode,

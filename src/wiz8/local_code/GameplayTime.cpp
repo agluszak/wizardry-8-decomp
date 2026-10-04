@@ -359,10 +359,10 @@ void EndSurprise(void)
         g_status.condition13_clock = 0;
         g_status.skip_next_condition_reaction = 1;
         int party_slot = g_status.pending_condition_party_slot;
-        RemoveCharacterCondition(party_slot, 0x13, 0);
+        RemoveCharacterCondition(party_slot, W8_CONDITION_MISSING, 0);
         QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_effect32, 0,
                             g_character_event_no_flags, g_character_event_full_volume);
-        SetFact(0xb6, 1, 0);
+        SetFact(W8_FACT_MOOK_MOOK_PC_SWAP_COMPLETE, 1, 0);
     }
 }
 
@@ -389,7 +389,7 @@ void ResolveSurpriseWake(void)
         for (unsigned int slot = 0; slot < 8; ++slot) {
             W8Character* character = &g_status.buffers.Char[slot];
             if (g_status.buffers.XChar[slot].fOccupied == 0 ||
-                character->highest_condition >= 0x12) {
+                character->highest_condition >= W8_CONDITION_DEAD) {
                 continue;
             }
             int roll = static_cast<int>(Random(100)) - 0x14 -
@@ -398,7 +398,7 @@ void ResolveSurpriseWake(void)
                 PostCharacterNotice(slot, gppStringList[0x243],
                                     gppStringList[g_condition_notices[60]]);
             } else {
-                SetCharacterCondition(slot, 0xf, roll / 0x1e + 1, 0, 0, 0);
+                SetCharacterCondition(slot, W8_CONDITION_ASLEEP, roll / 0x1e + 1, 0, 0, 0);
             }
         }
     }
@@ -506,7 +506,7 @@ void AdvanceTimedEffects(unsigned int minutes)
     for (unsigned int slot = 0; slot < 8; ++slot) {
         W8Character* character = &g_status.buffers.Char[slot];
         if (g_status.buffers.XChar[slot].fOccupied != 0 &&
-            (character->highest_condition < 0x12 ||
+            (character->highest_condition < W8_CONDITION_DEAD ||
              (character->uiCondition[0x12] == 0 && GetConditionRecordFlag(slot, 1) != 0))) {
             GameTurnsPassedChar(slot, minutes);
         }
@@ -522,7 +522,7 @@ void AdvanceTimedEffects(unsigned int minutes)
 
     for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
-        if (monster_info->highest_condition < 0x12) {
+        if (monster_info->highest_condition < W8_CONDITION_DEAD) {
             AgeMonsterSight(monster_info, minutes, 0);
         }
     }
@@ -658,7 +658,8 @@ void GameTurnsPassedChar(int party_slot, unsigned int minutes)
                     condition = minutes;
                     break;
                 }
-                SetCharacterCondition(party_slot, condition, W8_CONDITION_INDEFINITE, 0, 0, 1);
+                SetCharacterCondition(party_slot, static_cast<W8Condition>(condition),
+                                      W8_CONDITION_INDEFINITE, 0, 0, 1);
                 break;
             }
             case 1: {
@@ -667,7 +668,7 @@ void GameTurnsPassedChar(int party_slot, unsigned int minutes)
                     character->attributes[attribute].value =
                         character->attributes[attribute].value - 1;
                     ++character->attributes[attribute].change_counter;
-                    ApplyAttributeChange(character, attribute);
+                    ApplyAttributeChange(character, static_cast<W8Attribute>(attribute));
                     PostCharacterNotice(
                         party_slot, gppStringList[0x270],
                         gppStringList[g_character_description_first_ids[attribute]]);
@@ -884,7 +885,7 @@ void GameTurnsPassedChar(int party_slot, unsigned int minutes)
     for (unsigned int condition = 0; condition < W8_CONDITION_COUNT; ++condition) {
         if (character->uiCondition[condition] != 0 &&
             character->uiCondition[condition] < W8_CONDITION_INDEFINITE) {
-            TickCharacterCondition(party_slot, condition, minutes);
+            TickCharacterCondition(party_slot, static_cast<W8Condition>(condition), minutes);
         }
     }
     for (unsigned int slot = 0; slot < 8; ++slot) {
@@ -893,7 +894,7 @@ void GameTurnsPassedChar(int party_slot, unsigned int minutes)
             if (turns > minutes) {
                 character->enchantments[slot].turns = turns - minutes;
             } else {
-                ClearCharacterEnchantmentSlot(party_slot, slot);
+                ClearCharacterEnchantmentSlot(party_slot, static_cast<W8EnchantmentSlot>(slot));
             }
         }
     }
@@ -1218,7 +1219,8 @@ after_early: {
     for (int condition = 0; condition < 0x14; ++condition) {
         if (monster_info->uiCondition[condition] != 0 &&
             monster_info->uiCondition[condition] < 9999) {
-            TickMonsterCondition(monster_info->location_id, condition, minutes);
+            TickMonsterCondition(monster_info->location_id, static_cast<W8Condition>(condition),
+                                 minutes);
         }
     }
     for (int enchant = 0; enchant < 8; ++enchant) {
@@ -1229,7 +1231,8 @@ after_early: {
                 monster_info->enchantments[enchant].turns =
                     static_cast<int>(remaining) - static_cast<int>(minutes);
             } else {
-                ClearMonsterEnchantmentSlot(monster_info->location_id, enchant);
+                ClearMonsterEnchantmentSlot(monster_info->location_id,
+                                            static_cast<W8EnchantmentSlot>(enchant));
             }
         }
     }
@@ -1299,7 +1302,7 @@ void UpdateCampFatigue(int ticks)
     for (unsigned int slot = 0; slot < 8; ++slot) {
         W8Character* character = &g_status.buffers.Char[slot];
         if (g_status.buffers.XChar[slot].fOccupied != 0 && character->hp_current != 0 &&
-            character->highest_condition < 0x12 && character->iRace != 0xf &&
+            character->highest_condition < W8_CONDITION_DEAD && character->iRace != 0xf &&
             FindItemOnCharacter(character, 0x1e5, static_cast<W8ItemInstance**>(0), 0,
                                 static_cast<W8ItemInstance*>(0)) == 0) {
             W8Dice dice;
@@ -1357,7 +1360,7 @@ void UpdatePartyStamina(int ticks)
             continue;
         }
         W8Character* character = &g_status.buffers.Char[slot];
-        if (character->highest_condition >= 0x12 &&
+        if (character->highest_condition >= W8_CONDITION_DEAD &&
             (character->uiCondition[0x12] != 0 || GetConditionRecordFlag(slot, 1) == 0)) {
             continue;
         }

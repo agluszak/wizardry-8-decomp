@@ -442,15 +442,16 @@ static unsigned char WorldCursorNodeSeenBodies(int command, W8WorldCursorNode* n
     if (command == 1) {
         if (GetLocationVarIDByName("AP_SeenBodies") == -1) {
             if (CountAscensionPeakItems() == 3) {
-                if (GetFact(0x5c) != 0 || GetFact(0x97) != 0) {
+                if (GetFact(W8_FACT_TMISSION_MEET_ZANT_AT_AP) != 0 ||
+                    GetFact(W8_FACT_UMISSION_MEET_AP_ASSIGN) != 0) {
                     ApplyItemEffectToRandomCharacter(g_character_event_kind3, -1, 0,
                                                      g_character_event_no_flags);
                     CreateLocationVar("AP_SeenBodies", 1);
-                    if (GetFact(0x133) != 0) {
-                        SetFact(0x133, 0, 0);
+                    if (GetFact(W8_FACT_QUEST_PEACE_GOTO_AP) != 0) {
+                        SetFact(W8_FACT_QUEST_PEACE_GOTO_AP, 0, 0);
                     }
-                    if (GetFact(0x133) != 0) {
-                        SetFact(0x133, 0, 0);
+                    if (GetFact(W8_FACT_QUEST_PEACE_GOTO_AP) != 0) {
+                        SetFact(W8_FACT_QUEST_PEACE_GOTO_AP, 0, 0);
                     }
                 }
             }
@@ -484,7 +485,7 @@ void ClearActiveWorldCursorNode(void)
 int NormalizeMasterFunctionValue(int value)
 {
     if (value == 0x10 || value == 0x26) {
-        if (GetFact(0x5b) == 0 && GetFact(0x1ce) == 0) {
+        if (GetFact(W8_FACT_RAPAX_AWAY_CAMP_EXISTS) == 0 && GetFact(W8_FACT_PARTY_AT_RAC) == 0) {
             return 0x26;
         }
         value = 0x10;
@@ -1256,9 +1257,9 @@ void InitializeLevelMasterFunctions(int level)
         pTrigger->activation_callback = OnEwaxxTopDoor2Activated;
         return;
     case 0x10:
-        if (GetFact(0x1ce) == 0) {
+        if (GetFact(W8_FACT_PARTY_AT_RAC) == 0) {
             LoadAwayCampChest();
-            SetFact(0x1ce, 0, 0);
+            SetFact(W8_FACT_PARTY_AT_RAC, 0, 0);
         }
         pTrigger = FindTriggerByName("prisondoor06");
         if (pTrigger == 0) {

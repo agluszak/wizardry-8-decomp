@@ -1,5 +1,6 @@
 #pragma once
 
+#include "wiz8/difficulty.h"
 #include "wiz8/layouts/main_game_screen.h"
 
 void LoadGameConfiguration(void);
@@ -13,7 +14,6 @@ void SetMusicMuted(unsigned char muted);
    block at 0x006850C8. Difficulty is stored as this int; the options list
    labels it Novice/Normal/Expert. */
 
-enum { W8_DIFFICULTY_NOVICE = 0, W8_DIFFICULTY_NORMAL = 1, W8_DIFFICULTY_EXPERT = 2 };
 
 #pragma pack(push, 1)
 struct W8GameSettings {
@@ -27,7 +27,7 @@ struct W8GameSettings {
     unsigned char continuous_combat;
     unsigned char auto_advance_character;
     bool tooltips_enabled;
-    int difficulty;
+    W8Difficulty difficulty;
     unsigned int text_display_delay_ms;
     int combat_delay_ms;
     int continuous_combat_start_delay_ms;

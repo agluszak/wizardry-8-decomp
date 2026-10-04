@@ -41,7 +41,7 @@ bool MonsterAttackReachesMonster(W8MonsterInfo* monster_info, W8MonsterRecord* r
 bool MonsterAttackReachesAnyone(W8MonsterInfo* monster_info, unsigned int attack,
                                          char hostile_only); /* 0x00519C00 */
 /* The base missile speed a range category grants `source`, in world units. */
-float CalcRangeDistance(int range_category, W8TargetSource* source); /* 0x0051AA30 */
+float CalcRangeDistance(W8RangeCategory range_category, W8TargetSource* source); /* 0x0051AA30 */
 /* The sight-condition slot a range band needs the observer's sight flags
    checked under: zero inside long range, the current condition beyond it. */
 bool RangeCategoryUsesSightCondition(const W8MonsterInfo* monster,

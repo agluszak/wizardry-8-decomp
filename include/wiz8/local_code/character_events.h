@@ -1,5 +1,6 @@
 #pragma once
 
+#include "wiz8/conditions.h"
 #include <wchar.h>
 
 #include "input.h"
@@ -50,7 +51,7 @@ void QueueLastSurvivorEvent(void);
 /* 0x0052F430: react to a freshly recomputed highest_condition. */
 void QueueConditionChangeReaction(W8Character* character);
 /* 0x0052F790: react to a condition being lifted. */
-void QueueConditionClearedReaction(W8Character* character, int condition);
+void QueueConditionClearedReaction(W8Character* character, W8Condition condition);
 /* 0x0052E480: requeue the selected character's stored portrait event. */
 void RequeueSelectedPortraitEvent(void);
 /* 0x0052F000: set the pose a party-slot portrait animates toward; clears any

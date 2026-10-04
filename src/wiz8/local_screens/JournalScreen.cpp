@@ -98,7 +98,7 @@ void SetFactNotificationsSuppressed(bool suppressed)
    and the fact is visible at the current notice setting, post the fact's own
    description through the notice pane with its sound. */
 // FUNCTION: WIZ8 0x005588f0
-void RecordFactChangeForJournal(int fact_id)
+void RecordFactChangeForJournal(W8FactId fact_id)
 {
     if (g_fact_journal_entries == 0) {
         InitializeFactJournal();

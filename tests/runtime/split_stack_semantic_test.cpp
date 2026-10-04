@@ -94,14 +94,13 @@ static bool RunSplitStackBody(SplitStackSemanticResult* result, bool fail_early)
     }
     result->ctor_split_in_range = dialog->split_count == expected_split;
     result->ctor_counts_sum_to_stack =
-        dialog->split_count + dialog->m_remaining_0bc == 6 && dialog->m_stack_total == 6;
+        dialog->split_count + dialog->m_remaining == 6 && dialog->m_stack_total == 6;
     delete dialog;
 
     /* An explicit count splits exactly that many off the stack. */
     dialog = new W8SplitItemDialog(0, &source, 2);
     if (dialog != 0) {
-        result->explicit_count_applied =
-            dialog->split_count == 2 && dialog->m_remaining_0bc == 4;
+        result->explicit_count_applied = dialog->split_count == 2 && dialog->m_remaining == 4;
         delete dialog;
     }
 
@@ -131,11 +130,11 @@ bool RunSplitStackSemanticTest(SplitStackSemanticResult* result)
 
         memset(&sentinel_source, 0, sizeof(sentinel_source));
         g_split_item_source = &sentinel_source;
-        g_status.item_in_cursor = 0x5a;
+        g_status.item_in_cursor = true;
         g_status.item_in_hand.iItemNo = 0x1234;
         RunSplitStackBody(result, true);
         result->state_restored_after_failure = g_split_item_source == &sentinel_source &&
-                                               g_status.item_in_cursor == 0x5a &&
+                                               g_status.item_in_cursor &&
                                                g_status.item_in_hand.iItemNo == 0x1234;
     }
 

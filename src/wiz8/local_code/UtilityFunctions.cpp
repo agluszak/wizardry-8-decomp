@@ -393,7 +393,7 @@ unsigned int GetRandomPartySlots(int require_primary, int require_secondary,
                 W8Character* character = &g_status.buffers.Char[slot];
                 if (g_status.buffers.XChar[slot].fOccupied != 0 && slot != excluded_slot &&
                     claimed[slot] == 0 && (character->hp_current != 0 || require_primary == 2) &&
-                    (character->highest_condition < 0x12 || require_secondary == 2)) {
+                    (character->highest_condition < W8_CONDITION_DEAD || require_secondary == 2)) {
                     eligible[found] = slot;
                     ++found;
                     claimed[slot] = 1;
@@ -453,10 +453,11 @@ retry:
         if (g_status.buffers.XChar[slot].fOccupied != 0 &&
             static_cast<int>(slot) != excluded_slot) {
             character = &g_status.buffers.Char[slot];
-            if ((character->hp_current > 0 && character->highest_condition < 0x12) ||
+            if ((character->hp_current > 0 && character->highest_condition < W8_CONDITION_DEAD) ||
                 require_primary == 2) {
                 if (excluded_gender == -1 || excluded_gender != character->gender) {
-                    if (character->highest_condition < 0xf || require_secondary == 2) {
+                    if (character->highest_condition < W8_CONDITION_ASLEEP ||
+                        require_secondary == 2) {
                         matched = true;
                         if (skip == 0) {
                             return slot;
@@ -505,9 +506,9 @@ retry:
         if (rows[slot].fOccupied != 0) {
             W8Character* character = &characters[slot];
 
-            if ((character->hp_current > 0 && character->highest_condition < 0x12) ||
+            if ((character->hp_current > 0 && character->highest_condition < W8_CONDITION_DEAD) ||
                 require_primary == 2) {
-                if (character->highest_condition < 0xf || require_secondary == 2) {
+                if (character->highest_condition < W8_CONDITION_ASLEEP || require_secondary == 2) {
                     return slot;
                 }
             }

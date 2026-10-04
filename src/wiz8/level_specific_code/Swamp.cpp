@@ -60,7 +60,7 @@ bool SwampGasPlane(Trigger* pTrigger)
 {
     srVector3T<float> position;
 
-    if (GetFact(0x16d) == 0) {
+    if (GetFact(W8_FACT_SAVANT_PARTY_SWAMP_MEET) == 0) {
         SwampGasFireSpawn(pTrigger);
         return 0;
     }
@@ -76,7 +76,7 @@ bool SwampFirePlane(Trigger* pTrigger)
 {
     srVector3T<float> position;
 
-    if (GetFact(0x16d) == 0) {
+    if (GetFact(W8_FACT_SAVANT_PARTY_SWAMP_MEET) == 0) {
         SwampGasFireSpawn(pTrigger);
         return 0;
     }
@@ -104,10 +104,10 @@ static bool SwampGasFireSpawn(Trigger* pTrigger)
     W8NpcState* npc;
     int index;
 
-    if (GetFact(0x16d) != 0) {
+    if (GetFact(W8_FACT_SAVANT_PARTY_SWAMP_MEET) != 0) {
         return 0;
     }
-    SetFact(0x16d, 1, 0);
+    SetFact(W8_FACT_SAVANT_PARTY_SWAMP_MEET, 1, 0);
     ResetInactiveLevelDataVectors();
     center.Set(
         (pTrigger->representation_vectors[0].x + pTrigger->representation_vectors[1].x +
@@ -180,9 +180,9 @@ static void SwampGasFireItemDrop(int command)
 // FUNCTION: WIZ8 0x004DADF0
 bool SwampOnelid(Trigger* pTrigger)
 {
-    if (GetFact(0x33) != 0 && FindNpcOfKind(0x1e) != 0) {
-        SetFact(0x39, 1, 0);
-        SetFact(0x33, 0, 0);
+    if (GetFact(W8_FACT_CROCK_KIDNAPPED_PLAYER) != 0 && FindNpcOfKind(0x1e) != 0) {
+        SetFact(W8_FACT_CROCK_PLAYER_RETURNED_TO_PARTY, 1, 0);
+        SetFact(W8_FACT_CROCK_KIDNAPPED_PLAYER, 0, 0);
     }
     return 1;
 }

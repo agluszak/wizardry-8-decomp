@@ -1,5 +1,6 @@
 #pragma once
 
+#include "wiz8/monster_spell_icons.h"
 #include "surrender/srMath.h"
 #include "wiz8/engine_code/SpellVisual.h"
 #include "wiz8/layouts/gameplay_databases.h"
@@ -9,16 +10,6 @@ struct W8Item;
 struct W8GrCycleLoadContext;
 struct W8World;
 
-/* Spells.cpp's assertion names for the monster spell-icon domain: the icon
-   index into g_monster_spell_icon_names, with SPELL_ICON_NONE marking no
-   icon. The two literal indices cast code uses are named from the same
-   table. */
-enum {
-    SPELL_ICON_NONE = -1,
-    SPELL_ICON_CHARMED = 0x26,
-    SPELL_ICON_SUMMONED = 0x27,
-    SPELL_NUM_ICONS = 40
-};
 
 /* Walks every registered stSound3D each audio update: releases finished
    auto-release nodes and re-aims/re-volumes playing voices relative to the
@@ -51,5 +42,5 @@ int MinimumCasterLevelForSpellLevel(int spell_level);
 int GetMinimumCasterLevelForSpell(int spell_id);
 bool CanSpellBackfire(int spell_id);
 void ClearMonsterSpellIcons(W8Monster* monster);                  /* 0x004ACF90 */
-void SetMonsterSpellIcon(W8Monster* monster, int icon, bool add); /* 0x004ACD80 */
+void SetMonsterSpellIcon(W8Monster* monster, W8MonsterSpellIconId icon, bool add); /* 0x004ACD80 */
 void UpdateWorldSpellVisuals(W8World* world);

@@ -53,7 +53,7 @@ static void ProvokeHostileEncounterOnGameThread(void* opaque)
                 "runtime-test pathing: svc=%p size=%d grid=%f bounds=(%.0f %.0f %.0f)-(%.0f %.0f "
                 "%.0f)\n",
                 (void*)pathing, pathing != 0 ? pathing->path_node_count : -1,
-                pathing != 0 ? pathing->grid_scale_01c : 0.0f,
+                pathing != 0 ? pathing->grid_scale : 0.0f,
                 pathing != 0 ? pathing->level_bounds.minimum.x : 0.0f,
                 pathing != 0 ? pathing->level_bounds.minimum.y : 0.0f,
                 pathing != 0 ? pathing->level_bounds.minimum.z : 0.0f,
@@ -273,7 +273,7 @@ static void ReadHostileEngagementOnGameThread(void* opaque)
                 continue;
             ++s->active_monsters;
             float distance = (info->p3D->GetPosition() - party_position).Length();
-            if (info->uiCondition[W8_CONDITION_HOSTILE] != 0)
+            if (info->uiCondition[W8_CONDITION_TURNCOAT] != 0)
                 ++s->hostile_condition_monsters;
             if (info->fInCombat != 0) {
                 ++s->engaged_hostiles;

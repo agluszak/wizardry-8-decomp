@@ -512,7 +512,9 @@ def test_scalar_campaign_owns_fresh_complete_corpus_and_rejects_partial_runs(
         if failure == "compiler":
             assert not list(output.glob("scalar-campaigns/*/report.json"))
     else:
-        first = build.scalar_campaign(settings, evidence=evidence, patch=True)
+        first = build.scalar_campaign(
+            settings, evidence=evidence, patch=True, propagate_enums=["W8Condition"]
+        )
         second = build.scalar_campaign(settings, evidence=evidence, patch=True)
         assert first["artifacts"] != second["artifacts"]
         assert first["recovered_translation_units"] == 2
@@ -522,6 +524,10 @@ def test_scalar_campaign_owns_fresh_complete_corpus_and_rejects_partial_runs(
         assert manifest["status"] == "completed"
         assert manifest["evidence_sha256"]
         assert manifest["image"] == "sha256:fixture"
+        assert manifest["propagate_source_enums"] == ["W8Condition"]
+        assert manifest["solver_sha256"]
+        assert calls[1][calls[1].index("--propagate-enum") + 1] == "W8Condition"
+        assert "/repo/docker/msvc600/clang-tidy-plugin/clang-tidy-wrapper.py" in calls[1]
 
 
 def test_scalar_export_evidence_reuses_compile_owner_and_orders_driver_flags(tmp_path, monkeypatch):

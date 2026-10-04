@@ -34,9 +34,9 @@ static bool CheckSerialization(MonGen* generator)
     generator->SetName("deterministic");
     generator->flags = 4;
     generator->custom_spawn_chance = 17;
-    generator->spawn_position_0c.x = 1.0f;
-    generator->spawn_position_0c.y = 2.0f;
-    generator->spawn_position_0c.z = 3.0f;
+    generator->spawn_position.x = 1.0f;
+    generator->spawn_position.y = 2.0f;
+    generator->spawn_position.z = 3.0f;
     generator->Save(file);
     unsigned char bytes[59];
     FileSeek(file, 0, FILE_SEEK_FROM_START);
@@ -58,8 +58,8 @@ static bool CheckSerialization(MonGen* generator)
                     loaded.flags == 0 && loaded.generation_enabled == 1 &&
                     loaded.custom_spawn_chance == 17 && loaded.custom_interval_seconds == 10 &&
                     (unsigned short)loaded.unknown_08 == 0xffff &&
-                    loaded.spawn_position_0c.x == 1.0f && loaded.spawn_position_0c.y == 2.0f &&
-                    loaded.spawn_position_0c.z == 3.0f && loaded.encounter_table_index == -1;
+                    loaded.spawn_position.x == 1.0f && loaded.spawn_position.y == 2.0f &&
+                    loaded.spawn_position.z == 3.0f && loaded.encounter_table_index == -1;
     FileClose(file);
     FileDelete(path);
     return serialized && restored;
@@ -93,9 +93,9 @@ bool RunMonGenSemanticTest(void)
     bool gates_clear = !g_generator_save_flag && !gXStatus.world_update_blocked &&
                        !gXStatus.fCombatMode && !gXStatus.fNpcDialogueMode && !IsMipeActive() &&
                        !g_status.world_suspended;
-    GetCameraPosition(&generator.spawn_position_0c);
+    GetCameraPosition(&generator.spawn_position);
     bool range = gates_clear && generator.CanGenerateEncounter(0) == 0;
-    generator.spawn_position_0c.x += 200001.0f;
+    generator.spawn_position.x += 200001.0f;
     range = range && generator.CanGenerateEncounter(0) == 0;
 
     unsigned int saved_time = g_status.game_time_ms;

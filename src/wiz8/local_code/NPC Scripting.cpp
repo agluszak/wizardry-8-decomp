@@ -483,10 +483,10 @@ void ProcessNpcScriptingFrame(void)
             for (party_slot = 0; party_slot < 8; ++party_slot) {
                 W8PartySlotRow* row = &g_status.buffers.XChar[party_slot];
                 character = &g_status.buffers.Char[party_slot];
-                if (row->fOccupied != 0 &&
-                    ((character->hp_current > 0 || character->highest_condition < 0x12) &&
-                     party_slot != sedexus_party_slot)) {
-                    RemoveCharacterCondition(party_slot, 0x11, 0);
+                if (row->fOccupied != 0 && ((character->hp_current > 0 ||
+                                             character->highest_condition < W8_CONDITION_DEAD) &&
+                                            party_slot != sedexus_party_slot)) {
+                    RemoveCharacterCondition(party_slot, W8_CONDITION_UNCONSCIOUS, 0);
                     sedexus_party_slot = g_status.sedexus_party_slot;
                 }
             }
@@ -597,7 +597,7 @@ int SelectNpcQuoteResponse(W8NpcQuoteEntry* entry)
     while (index < entry->sub_entry_count) {
         expected = static_cast<unsigned char>(
             entry->sub_entries[index + 1].operand) /* c-style-cast-ok: packed byte operand */;
-        if (GetFact(entry->sub_entries[index].operand) != expected) {
+        if (GetFact(static_cast<W8FactId>(entry->sub_entries[index].operand)) != expected) {
             return -1;
         }
         index += 2;
@@ -1016,7 +1016,7 @@ void RunNpcScriptLine(int script_line, bool force_npc_voice)
                     finished = true;
                     break;
                 case 7:
-                    SetFact(entry->operand0, entry->operand1, 0);
+                    SetFact(static_cast<W8FactId>(entry->operand0), entry->operand1, 0);
                     break;
                 case 8:
                     W8MessageBoxPayload close_dialogue_payload;
@@ -1424,7 +1424,7 @@ void NpcScriptTurnToBook(void)
 void NpcScriptEndgameScreen(void)
 {
     SetIntroVideoIndex(5);
-    SetPendingScreenState(0);
+    SetPendingScreenState(W8_SCREEN_INTRO);
 }
 
 // FUNCTION: WIZ8 0x00526E90
@@ -1513,7 +1513,8 @@ void ProcessMessageBoxQueue(void)
             for (index = 0; index < quote->entry_count; ++index) {
                 unsigned char kind = quote->entries[index].kind;
                 if ((kind == 0x12 || kind == 0x1e) &&
-                    (kind == 0x1e || NpcKnowsFact(g_npc_scripting.npc, line->quote_index) == 0)) {
+                    (kind == 0x1e || NpcKnowsFact(g_npc_scripting.npc,
+                                                  static_cast<W8FactId>(line->quote_index)) == 0)) {
                     RunNpcScriptLine(0x12, 0);
                     g_npc_interaction_state->script_busy = 0xff;
                     W8MessageBoxLine* continuation = new W8MessageBoxLine;
@@ -1689,7 +1690,7 @@ void ProcessMessageBoxQueue(void)
     case W8_NPC_MSG_SET_CONDITION_13: {
         int party_slot = line->payload.argument;
         g_status.skip_next_condition_reaction = 1;
-        SetCharacterCondition(party_slot, 0x13, 9999, 0, 0, 0);
+        SetCharacterCondition(party_slot, W8_CONDITION_MISSING, 9999, 0, 0, 0);
         g_status.condition13_clock = 1;
         g_status.condition13_stamp = g_status.world_clock;
         g_status.pending_condition_party_slot = party_slot;
@@ -1824,7 +1825,7 @@ void ProcessMessageBoxQueue(void)
         int party_slot;
         for (party_slot = 2; party_slot < 8; ++party_slot) {
             if (g_status.buffers.XChar[party_slot].fOccupied != 0 &&
-                g_status.buffers.Char[party_slot].highest_condition < 0xf) {
+                g_status.buffers.Char[party_slot].highest_condition < W8_CONDITION_ASLEEP) {
                 ++eligible;
             }
         }
@@ -1832,7 +1833,7 @@ void ProcessMessageBoxQueue(void)
             for (party_slot = 0; party_slot < 8; ++party_slot) {
                 W8Character* character = &g_status.buffers.Char[party_slot];
                 if (g_status.buffers.XChar[party_slot].fOccupied != 0 && character->iRace == 10 &&
-                    character->highest_condition < 0xf) {
+                    character->highest_condition < W8_CONDITION_ASLEEP) {
                     QueueCharacterEvent(character, g_effect31,
                                         g_character_event_no_npc_defer, g_character_event_no_flags,
                                         g_character_event_full_volume);
@@ -2634,10 +2635,10 @@ void EndScriptedPortraitPick(int party_slot)
     ClearScriptedSceneActive();
     gXStatus.scripted_scene = 0;
     other_gender_present = false;
-    SetFact(0x1c0, 0, 0);
-    SetFact(0x200, 0, 0);
-    SetFact(0x1c1, 0, 0);
-    SetFact(0x227, 0, 0);
+    SetFact(W8_FACT_ALSEDEXUS_SACRIFICE_WOMAN, 0, 0);
+    SetFact(W8_FACT_ALSEDEXUS_SACRIFICE_ALL_WOMAN, 0, 0);
+    SetFact(W8_FACT_ALSEDEXUS_SACRIFICE_NOT_DRESSED, 0, 0);
+    SetFact(W8_FACT_ALSEDEXUS_SACRIFICE_NOT_ABLE, 0, 0);
     for (slot = 0; slot < 8; ++slot) {
         if (g_status.buffers.XChar[slot].fOccupied != 0 &&
             g_status.buffers.Char[slot].gender != W8_GENDER_FEMALE) {
@@ -2647,16 +2648,17 @@ void EndScriptedPortraitPick(int party_slot)
     }
     character = &g_status.buffers.Char[party_slot];
     if (character->gender == W8_GENDER_FEMALE && other_gender_present != 0) {
-        SetFact(0x1c0, 1, 0);
+        SetFact(W8_FACT_ALSEDEXUS_SACRIFICE_WOMAN, 1, 0);
         QueueCharacterEvent(character, g_effect29, g_character_event_no_npc_defer,
                             g_character_event_no_flags, g_character_event_full_volume);
         return;
     }
-    if (g_status.buffers.XChar[party_slot].npc_index == -1 && character->highest_condition < 0xf) {
+    if (g_status.buffers.XChar[party_slot].npc_index == -1 &&
+        character->highest_condition < W8_CONDITION_ASLEEP) {
         if (FindItemOnCharacter(character, 0x1fd, &found, 0, 0) != 0 &&
             FindItemOnCharacter(character, 0x1fe, &found, 0, 0) != 0 &&
             FindItemOnCharacter(character, 0x1ff, &found, 0, 0) != 0) {
-            SetFact(0x1c1, 0, 0);
+            SetFact(W8_FACT_ALSEDEXUS_SACRIFICE_NOT_DRESSED, 0, 0);
             swprintf(g_status.monster_name_buffer, g_format_al_s, character->name);
             g_status.sedexus_party_slot = party_slot;
             g_status.rpc_active = 1;
@@ -2664,10 +2666,10 @@ void EndScriptedPortraitPick(int party_slot)
             QueueCharacterEvent(character, g_special_event2, 0, g_character_event_no_flags,
                                 g_character_event_full_volume);
         } else {
-            SetFact(0x1c1, 1, 0);
+            SetFact(W8_FACT_ALSEDEXUS_SACRIFICE_NOT_DRESSED, 1, 0);
         }
     } else {
-        SetFact(0x227, 1, 0);
+        SetFact(W8_FACT_ALSEDEXUS_SACRIFICE_NOT_ABLE, 1, 0);
     }
     for (slot = 0; slot < 8; ++slot) {
         if (g_status.buffers.XChar[slot].fOccupied != 0) {
@@ -2693,9 +2695,9 @@ void BeginSedexusCapture(void)
     for (party_slot = 0; party_slot < 8; ++party_slot) {
         if (g_status.buffers.XChar[party_slot].fOccupied != 0 &&
             (g_status.buffers.Char[party_slot].hp_current > 0 ||
-             g_status.buffers.Char[party_slot].highest_condition < 0x12) &&
+             g_status.buffers.Char[party_slot].highest_condition < W8_CONDITION_DEAD) &&
             party_slot != static_cast<unsigned int>(g_status.sedexus_party_slot)) {
-            SetCharacterCondition(party_slot, 0x11, 9999, 0, 0, 0);
+            SetCharacterCondition(party_slot, W8_CONDITION_UNCONSCIOUS, 9999, 0, 0, 0);
         }
     }
 }

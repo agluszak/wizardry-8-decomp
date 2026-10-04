@@ -116,7 +116,8 @@ bool AnyMonsterEngaged(void)
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info->fInCombat != 0 && monster_info->ubDisposition == 1 &&
-            monster_info->hp_current != 0 && monster_info->highest_condition < 0xe) {
+            monster_info->hp_current != 0 &&
+            monster_info->highest_condition < W8_CONDITION_WEBBED) {
             return true;
         }
     }
@@ -133,7 +134,7 @@ int CountActiveCharacters(void)
     for (party_slot = 0; party_slot < 8; ++party_slot) {
         if (g_status.buffers.XChar[party_slot].fOccupied != 0 &&
             g_status.buffers.Char[party_slot].hp_current != 0 &&
-            g_status.buffers.Char[party_slot].highest_condition < 0x12) {
+            g_status.buffers.Char[party_slot].highest_condition < W8_CONDITION_DEAD) {
             ++count;
         }
     }
@@ -257,7 +258,7 @@ void RefreshLevelUpReadyNotices(void)
                 row->portrait_advance = 0;
             }
         } else if (character->hp_current != 0) {
-            if (character->highest_condition > 0x11 ||
+            if (character->highest_condition > W8_CONDITION_UNCONSCIOUS ||
                 character->experience < character->experience_goal) {
                 if (character->hp_current != 0) {
                     if (*ready_flag != 0) {
@@ -323,7 +324,7 @@ bool IsCharacterReadyToAdvance(int party_slot)
     if (character->hp_current == 0) {
         return false;
     }
-    if (character->highest_condition > 0x11) {
+    if (character->highest_condition > W8_CONDITION_UNCONSCIOUS) {
         return false;
     }
     return character->experience >= character->experience_goal;
@@ -481,18 +482,18 @@ void CalcInitiative(W8Character* character)
     character->initiative += character->bonus.damage_bonus;
 
     switch (character->load_category) {
-    case 0:
+    case W8_LOAD_NONE:
         break;
-    case 1:
+    case W8_LOAD_LIGHT:
         character->initiative -= 1;
         break;
-    case 2:
+    case W8_LOAD_MEDIUM:
         character->initiative -= 2;
         break;
-    case 3:
+    case W8_LOAD_HEAVY:
         character->initiative -= 4;
         break;
-    case 4:
+    case W8_LOAD_EXTREME:
         character->initiative -= 8;
         break;
     default:
@@ -518,10 +519,10 @@ void CalcAttacks(W8Character* character)
         equipment[hand] = &character->EquippedItem[hand + 6];
         if (equipment[hand]->iItemNo == -1) {
             records[hand] = 0;
-            attacks[hand]->weapon_skill = 14;
+            attacks[hand]->weapon_skill = W8_SKILL_MARTIAL_ARTS;
         } else {
             records[hand] = &g_item_records[equipment[hand]->iItemNo];
-            attacks[hand]->weapon_skill = records[hand]->weapon_skill;
+            attacks[hand]->weapon_skill = static_cast<W8Skill>(records[hand]->weapon_skill);
         }
     }
 
@@ -537,12 +538,12 @@ void CalcAttacks(W8Character* character)
         case 5:
         case 6:
         case 14:
-            attack->combat_skill = 16;
+            attack->combat_skill = W8_SKILL_CLOSE_COMBAT;
             break;
         case 7:
         case 8:
         case 9:
-            attack->combat_skill = 17;
+            attack->combat_skill = W8_SKILL_RANGED_COMBAT;
             if (ItemHasSingledOutGenericName(equipment[hand]->iItemNo) &&
                 (equipment[hand == 0]->iItemNo == -1 ||
                  !CompatiblePartnerItems(equipment[hand]->iItemNo,
@@ -554,7 +555,7 @@ void CalcAttacks(W8Character* character)
             }
             break;
         default:
-            attack->combat_skill = -1;
+            attack->combat_skill = W8_SKILL_NONE;
             attack->in_play = 0;
         }
 
@@ -605,26 +606,26 @@ void CalcAttacks(W8Character* character)
         attack->combined_skill = score * 10 / divisor;
 
         switch (character->load_category) {
-        case 0:
+        case W8_LOAD_NONE:
             load_penalty = 0;
             break;
-        case 1:
+        case W8_LOAD_LIGHT:
             load_penalty = -15;
             break;
-        case 2:
+        case W8_LOAD_MEDIUM:
             load_penalty = -30;
             break;
-        case 3:
+        case W8_LOAD_HEAVY:
             load_penalty = -60;
             break;
-        case 4:
+        case W8_LOAD_EXTREME:
             load_penalty = -120;
             break;
         default:
             srAssertFail("FALSE", GAMEPLAY_CODE_CPP, 715,
                          "CalcAttacks: ERROR - Invalid load category");
         }
-        if (attack->weapon_skill == 7) {
+        if (attack->weapon_skill == W8_SKILL_MODERN_WEAPONS) {
             load_penalty /= 2;
         }
 
@@ -745,33 +746,35 @@ void CalcAttacks(W8Character* character)
         }
 
         switch (character->load_category) {
-        case 0:
+        case W8_LOAD_NONE:
             load_penalty = 0;
             break;
-        case 1:
+        case W8_LOAD_LIGHT:
             load_penalty = -1;
             break;
-        case 2:
+        case W8_LOAD_MEDIUM:
             load_penalty = -2;
             break;
-        case 3:
+        case W8_LOAD_HEAVY:
             load_penalty = -4;
             break;
-        case 4:
+        case W8_LOAD_EXTREME:
             load_penalty = -8;
+            break;
+        default:
             break;
         }
         if (hand == 1) {
             load_penalty = load_penalty * 3 / 2;
         }
-        if (attack->weapon_skill == 7) {
+        if (attack->weapon_skill == W8_SKILL_MODERN_WEAPONS) {
             load_penalty /= 2;
         }
         attack->hit_bonus += load_penalty;
-        if (character->skills[W8_SKILL_EAGLE_EYE].active && attack->combat_skill == 17) {
+        if (character->skills[W8_SKILL_EAGLE_EYE].active && attack->combat_skill == W8_SKILL_RANGED_COMBAT) {
             attack->hit_bonus += character->skills[W8_SKILL_EAGLE_EYE].level / 20 + 1;
         }
-        if (character->skills[W8_SKILL_POWER_STRIKE].active && attack->combat_skill == 16) {
+        if (character->skills[W8_SKILL_POWER_STRIKE].active && attack->combat_skill == W8_SKILL_CLOSE_COMBAT) {
             attack->hit_bonus += character->skills[W8_SKILL_POWER_STRIKE].level / 20 + 1;
         }
     }
@@ -806,7 +809,7 @@ void CalcArmorClasses(W8Character* character)
         }
     }
 
-    if (character->highest_condition <= 0x11) {
+    if (character->highest_condition <= W8_CONDITION_UNCONSCIOUS) {
         if (CharacterHasTrait(character, W8_TRAIT_FAERIE_BASE_ARMOR_CLASS)) {
             character->armor_class_components[0] += 2;
         }
@@ -848,14 +851,16 @@ void CalcArmorClasses(W8Character* character)
             character->armor_class_components[10] += 2;
         }
         switch (character->load_category) {
-        case 2:
+        case W8_LOAD_MEDIUM:
             character->armor_class_components[7] -= 1;
             break;
-        case 3:
+        case W8_LOAD_HEAVY:
             character->armor_class_components[7] -= 2;
             break;
-        case 4:
+        case W8_LOAD_EXTREME:
             character->armor_class_components[7] -= 4;
+            break;
+        default:
             break;
         }
         character->armor_class_components[9] -= FatigueArmorPenalty(character->fatigue_band) / 10;
@@ -1094,8 +1099,8 @@ unsigned char RemoveCharacterFromParty(int party_slot, bool save_character_data)
         }
     }
     g_status.buffers.XChar[party_slot].fOccupied = 0;
-    character->highest_condition = 0;
-    character->enchantment_top = 0;
+    character->highest_condition = W8_CONDITION_NONE;
+    character->enchantment_top = W8_ENCHANTMENT_NONE;
     SetFormationPosition(&g_status.formation, party_slot, -1, -1, 0, 1, 1);
     if (gXStatus.fCombatMode != 0) {
         SetFormationPosition(&gXStatus.edited_formation, party_slot, -1, -1, 0, 1, 1);
@@ -1182,8 +1187,8 @@ void AwardPartyExperience(int amount, int alternate_message)
     for (int slot = 0; slot < 8; ++slot) {
         W8PartySlotRow* row = &g_status.buffers.XChar[slot];
         W8Character* character = &g_status.buffers.Char[slot];
-        if (row->fOccupied && character->hp_current > 0 && character->highest_condition < 0x12 &&
-            amount != 0) {
+        if (row->fOccupied && character->hp_current > 0 &&
+            character->highest_condition < W8_CONDITION_DEAD && amount != 0) {
             unsigned int total = character->experience + static_cast<unsigned int>(amount);
             if (total > character->experience) {
                 character->experience = total;

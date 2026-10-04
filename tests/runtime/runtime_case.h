@@ -6,14 +6,15 @@
 #include "game_thread_executor.h"
 #include "runtime_instrumentation.h"
 #include "surrender/srMath.h"
+#include "wiz8/layouts/screen_state.h"
 
 struct GameplaySnapshot {
     srVector3T<float> position;
     float yaw;
     float input_motion;
     float world_motion;
-    int screen;
-    int pending;
+    W8ScreenId screen;
+    W8ScreenId pending;
     bool combat;
     bool movement_ui;
     /* +0 gates action execution; +1 separately gates command selection. */
@@ -52,8 +53,8 @@ struct GameplayReadyCheck {
     bool ready;
     bool waiting_on_ground;
     unsigned int calls;
-    int screen;
-    int pending;
+    W8ScreenId screen;
+    W8ScreenId pending;
     int keyboard_present;
     int level_block_present;
     int review_transition_done;

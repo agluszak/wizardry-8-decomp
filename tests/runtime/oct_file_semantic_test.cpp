@@ -595,7 +595,7 @@ static void RunOctFileRoundTrip(OctFileSemanticResult* result)
     memset(tree->m_leaves, 0x5a, 0x28);
     /* The writer's leaf fixup strips bit 0 before serializing: 3 becomes 2
        in the file and after the round-trip. */
-    tree->m_leaves[0].flags_00 = 3;
+    tree->m_leaves[0].flags = 3;
     for (index = 0; index < 8; ++index) {
         tree->m_leaf_lookup[index] = 0x1000 + index * 0x11;
     }
@@ -620,10 +620,10 @@ static void RunOctFileRoundTrip(OctFileSemanticResult* result)
 
     loaded = new W8Octree("NewLevel.oct", &loaded_data);
     result->load_ok = loaded != 0 && loaded_data != 0 && g_octree == loaded &&
-                      (loaded->m_spatial.flags_00 & 0x80000000) == 0;
+                      (loaded->m_spatial.flags & 0x80000000) == 0;
     if (result->load_ok != 0) {
         result->spatial_roundtrip = CheckLoadedSpatial(tree, loaded);
-        result->leaf_flag_cleared = loaded->m_leaves[0].flags_00 == 2;
+        result->leaf_flag_cleared = loaded->m_leaves[0].flags == 2;
         result->tables_roundtrip = loaded->m_branch_count == 1 && loaded->m_leaf_count == 1 &&
                                    loaded->m_polygon_index_stream[0] == 0x11223344 &&
                                    loaded->m_aulPolyLookup[0] == 0xaabbccdd &&

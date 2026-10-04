@@ -160,7 +160,7 @@ bool CanMonsterSeeMonster(W8MonsterInfo* source, W8MonsterInfo* target, W8Visibi
     unsigned char ranged_bonus;
     float threshold;
 
-    if (source->hp_current == 0 || source->highest_condition >= 0xf) {
+    if (source->hp_current == 0 || source->highest_condition >= W8_CONDITION_ASLEEP) {
         return 0;
     }
     target_record = GetMonsterDataForInfo(target);
@@ -319,7 +319,7 @@ bool MonsterGroupHasVisibleThreat(W8MonsterGroup* group)
     for (index = 0; index < ILLength(group->monsters); ++index) {
         monster_info = MonsterInfoFromID(1120, SIGHT_CPP, IListGetAt(group->monsters, index), 1);
         if (monster_info->fActive != 0 && !monster_info->p3D->IsDying() &&
-            monster_info->hp_current != 0 && monster_info->highest_condition < 0xc &&
+            monster_info->hp_current != 0 && monster_info->highest_condition < W8_CONDITION_BLIND &&
             monster_info->party_threat.sight_state == W8_SIGHT_SEEN) {
             return true;
         }
@@ -388,7 +388,7 @@ unsigned int AgeAllMonsterSight(void)
     }
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
-        if (monster_info->highest_condition < 0x12) {
+        if (monster_info->highest_condition < W8_CONDITION_DEAD) {
             AgeMonsterSight(monster_info, steps, 1);
         }
     }
@@ -624,7 +624,8 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, bool direction,
             monster_info->player_visibility.line_of_sight = monster->CheckLineOfSightToPlayer();
         }
         if (monster_info->player_visibility.line_of_sight != 0) {
-            if (monster_info->hp_current == 0 || monster_info->highest_condition > 0xe) {
+            if (monster_info->hp_current == 0 ||
+                monster_info->highest_condition > W8_CONDITION_WEBBED) {
                 visible_to_player = 0;
             } else {
                 float yaw = monster->GetYaw();
@@ -643,7 +644,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, bool direction,
                     W8Character* character = &g_status.buffers.Char[slot];
 
                     if (row->fOccupied != 0 && character->hp_current != 0 &&
-                        character->highest_condition < 0xf &&
+                        character->highest_condition < W8_CONDITION_ASLEEP &&
                         character->uiExpLevel < minimum_level) {
                         minimum_level = character->uiExpLevel;
                     }
@@ -751,7 +752,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, bool direction,
                     W8Character* character = &g_status.buffers.Char[slot];
 
                     if (row->fOccupied != 0 && character->hp_current != 0 &&
-                        character->highest_condition < 0xf) {
+                        character->highest_condition < W8_CONDITION_ASLEEP) {
                         srVector3T<float> observer_position;
                         srVector3T<float> target_position;
 

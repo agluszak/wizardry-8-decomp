@@ -1,6 +1,7 @@
 #ifndef WIZ8_LAYOUTS_GAME_STATUS_H
 #define WIZ8_LAYOUTS_GAME_STATUS_H
 
+#include "wiz8/difficulty.h"
 #include "Types.h"
 
 #include "wiz8/gameplay_modifiers.h"
@@ -143,7 +144,7 @@ struct W8GlobalStatus {
        handled at a cursor node; later uses take the Mystical Shaman branch. */
     bool use_item_latch;
     bool infatuation_pending;
-    int difficulty;
+    W8Difficulty difficulty;
     /* 0x244b: the save file's creation-time pair XOR-masked by SaveGame's
        two data constants; both halves are written as dwords. */
     unsigned int save_filetime_xor[2];

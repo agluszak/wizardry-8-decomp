@@ -10,8 +10,8 @@
 /* Everything a combat driver loop needs from live game state, filled
    entirely on the game thread. */
 struct HostileEngagementSnapshot {
-    int screen;
-    int pending;
+    W8ScreenId screen;
+    W8ScreenId pending;
     unsigned int hostile_count;
     unsigned int active_monsters;
     unsigned int engaged_hostiles;
