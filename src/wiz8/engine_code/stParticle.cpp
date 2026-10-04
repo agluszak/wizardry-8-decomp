@@ -975,31 +975,31 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
         pipeline->vertex_extras = vertex_extras;
     }
 
-    pipeline->current_record->flags_00 = 0;
-    pipeline->current_pass->shader_14 = 0;
+    pipeline->current_record->flags = 0;
+    pipeline->current_pass->shaders = 0;
     pipeline->current_pass->tex_table_0 = 0;
     pipeline->current_pass->tex_table_1 = 0;
 
     if (colors != 0) {
-        pipeline->current_record->colors_0c = colors;
+        pipeline->current_record->colors = colors;
         pipeline->current_record->color_format = 1;
-        pipeline->current_record->flags_00 |= 1;
+        pipeline->current_record->flags |= 1;
     }
     if (alphas != 0) {
         pipeline->current_record->alphas = alphas;
-        pipeline->current_record->flags_00 |= 8;
+        pipeline->current_record->flags |= 8;
     }
 
     /* The retained object is the batch's material: the same pointer reaches
        both the pipeline and the record it is about to submit. */
-    pipeline->material_80 = retained;
-    pipeline->current_record->material_08 = retained;
+    pipeline->material = retained;
+    pipeline->current_record->material = retained;
 
     pipeline->SetFlags(render_flags);
 
     if (texcoords != 0) {
         pipeline->current_record->st0 = texcoords;
-        pipeline->current_record->flags_00 |= 0x10;
+        pipeline->current_record->flags |= 0x10;
     }
 
     if (texture_frames != 0) {
@@ -1008,8 +1008,8 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
         srTextureIFace* texture = texture_154;
 
         if (texture != 0) {
-            pipeline->texture_78 = texture;
-            pipeline->current_pass->texture_00 = texture;
+            pipeline->texture0 = texture;
+            pipeline->current_pass->texture0 = texture;
         }
     }
 

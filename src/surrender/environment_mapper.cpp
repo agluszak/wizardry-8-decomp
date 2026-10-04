@@ -15,8 +15,8 @@ int srEnvironmentMapper::isActive(srVertexPipe&)
 // FUNCTION: SURRENDER 0x100352f0
 void srEnvironmentMapper::process(srVertexPipe& pipe)
 {
-    unsigned long count = pipe.vertex_count_88;
-    srVertexPipe::Scratch* scratch = pipe.scratch_00;
+    unsigned long count = pipe.vertex_count;
+    srVertexPipe::Scratch* scratch = pipe.scratch;
     if ((scratch->flags & 1) == 0) {
         pipe.setupEyeSpaceDirAndDist();
     }

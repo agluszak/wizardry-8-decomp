@@ -322,8 +322,8 @@ void stModelInstance2D::process(const ProcessInfo& info, e_processType)
             if (m_pGlowMaterial == 0) {
                 srAssertFail("m_pGlowMaterial", ST_MODEL_INSTANCE_CPP, 926, 0);
             }
-            if (mesh.materials_70[0][0] != 0) {
-                *m_pGlowMaterial = *mesh.materials_70[0][0];
+            if (mesh.materials[0][0] != 0) {
+                *m_pGlowMaterial = *mesh.materials[0][0];
             }
             if (m_pGlowMaterial == 0) {
                 goto render_mesh;
@@ -341,7 +341,7 @@ void stModelInstance2D::process(const ProcessInfo& info, e_processType)
         emissive.z = glow_color_base->z * base_weight + glow_color_peak->z * glow_weight;
         emissive.w = g_float_one;
         m_pGlowMaterial->setEmissive(emissive);
-        mesh.materials_70[0][0] = m_pGlowMaterial;
+        mesh.materials[0][0] = m_pGlowMaterial;
         mesh.shaders[0].value = (mesh.shaders[0].value & ~srShader::MASK_GRADIENT_MODULATE) |
                                    srShader::MASK_GRADIENT_ADD;
     }
@@ -638,19 +638,19 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
         if (g_render_untextured != 0) {
             mesh.shaders[0].value &= 0xffff73ff;
             mesh.poly_shaders[0] = 0;
-            mesh.poly_textures_e0[0][0] = 0;
+            mesh.poly_textures[0][0] = 0;
             mesh.poly_uv[0] = 0;
-            mesh.texcoords_18[0][0] = 0;
+            mesh.texcoords[0][0] = 0;
         }
         if (g_render_unlit != 0) {
             mesh.dig[0] = 0;
         }
-        srPtr<srTextureIFace>*(*poly_textures)[2] = mesh.poly_textures_e0;
+        srPtr<srTextureIFace>*(*poly_textures)[2] = mesh.poly_textures;
         if (poly_textures != 0 && mesh.active_polygons == 0) {
             long active_count;
             unsigned long* active;
             if (damage_stage >= 0) {
-                mesh.poly_textures_e0[0][0] =
+                mesh.poly_textures[0][0] =
                     model->GetTextureTable(damage_stage_tables.data[damage_stage]);
                 active = model->GetActivePolygons(
                     &active_count, damage_stage_tables.data[damage_stage], 1);
@@ -678,8 +678,8 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
                 g_material_emissive_override_enabled = 1;
             }
         } else {
-            mesh.vertex_materials_c0[0][0] = 0;
-            mesh.materials_70[0][0] = retained;
+            mesh.vertex_materials[0][0] = 0;
+            mesh.materials[0][0] = retained;
         }
 
         if (((render_flags >> 4) & 1) != 0 && !renderer.isPickStackEmpty()) {
@@ -718,9 +718,9 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
         while (model != 0) {
             model->getTriMesh(mesh);
             if (((model->flags_3a0 & 1) == 0) || (model == first_model)) {
-                if (mesh.poly_textures_e0[0][0] != 0 ||
-                    ((mesh.textures_90[0][0] != 0) &&
-                     (_strnicmp("blank", mesh.textures_90[0][0]->getName(), 5) != 0))) {
+                if (mesh.poly_textures[0][0] != 0 ||
+                    ((mesh.textures[0][0] != 0) &&
+                     (_strnicmp("blank", mesh.textures[0][0]->getName(), 5) != 0))) {
                     if (g_vertex_scratch == 0) {
                         g_vertex_scratch = new srHeapBuffer<srVector3T<float> >;
                     }
@@ -738,7 +738,7 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
                         mesh.dig[1] = model->GetVertexNormals(frame_index, 1);
                         poly_normals = model->GetPolygonNormals(frame_index, 1);
                     }
-                    srPtr<srTextureIFace>*(*poly_textures)[2] = mesh.poly_textures_e0;
+                    srPtr<srTextureIFace>*(*poly_textures)[2] = mesh.poly_textures;
                     if (poly_textures != 0 && mesh.active_polygons == 0) {
                         long active_count;
                         unsigned long* active;
@@ -754,11 +754,11 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
                         }
                     }
 
-                    mesh.materials_70[0][0] = retained;
+                    mesh.materials[0][0] = retained;
                     mesh.shaders[1].value = (mesh.shaders[0].value & 0xffff5cb7) | 0x40a0;
                     mesh.poly_shaders[1] = 0;
-                    mesh.poly_textures_e0[0][1] = 0;
-                    mesh.vertex_materials_c0[0][1] = 0;
+                    mesh.poly_textures[0][1] = 0;
+                    mesh.vertex_materials[0][1] = 0;
                     mesh.poly_uv[1] = 0;
 
                     double factor = g_double_005ebc30 / getScale().y * g_double_005ec8d8;
@@ -853,7 +853,7 @@ static void BuildShadowMesh()
                 material->m_shader_flags = 0;
             }
             srVector3i* triangles = static_cast<srVector3i*>(srHeap.allocate(6 * sizeof(long)));
-            g_shadow_mesh->poly_vertices_10 = triangles;
+            g_shadow_mesh->poly_vertices = triangles;
             triangles[0].x = 0;
             triangles[0].y = 1;
             triangles[0].z = 2;
@@ -881,10 +881,10 @@ static void BuildShadowMesh()
             g_shadow_mesh->bounds_radius = 250.0f;
             g_shadow_mesh->pass_count = 1;
             g_shadow_mesh->shaders[0] = shader;
-            g_shadow_mesh->poly_equations_14 = 0;
-            g_shadow_mesh->texcoords_18[0][0] = 0;
-            g_shadow_mesh->materials_70[0][0] = material;
-            g_shadow_mesh->textures_90[0][0] = 0;
+            g_shadow_mesh->poly_equations = 0;
+            g_shadow_mesh->texcoords[0][0] = 0;
+            g_shadow_mesh->materials[0][0] = material;
+            g_shadow_mesh->textures[0][0] = 0;
             g_shadow_mesh->poly_shaders[0] = 0;
             g_shadow_mesh->poly_uv[0] = 0;
             g_shadow_mesh->active_polygons = 0;
@@ -926,28 +926,28 @@ void stModelInstance::RenderShadow(srGERD& renderer, srMeshModel::TriMesh& mesh)
 
     srTriMeshPipeline* pipeline = srTriMeshPipeline::Get(&renderer);
     pipeline->triangle_count = g_shadow_mesh->polygon_count;
-    pipeline->triangles = g_shadow_mesh->poly_vertices_10;
+    pipeline->triangles = g_shadow_mesh->poly_vertices;
     pipeline->vertex_count = g_shadow_mesh->vertex_count;
     pipeline->positions = g_shadow_mesh->positions;
     pipeline->vertex_extras = g_shadow_mesh->normals;
-    pipeline->current_record->flags_00 = 0;
-    pipeline->current_pass->shader_14 = 0;
+    pipeline->current_record->flags = 0;
+    pipeline->current_pass->shaders = 0;
     pipeline->current_pass->tex_table_0 = 0;
     pipeline->current_pass->tex_table_1 = 0;
-    pipeline->material_80 = g_shadow_mesh->materials_70[0][0];
-    pipeline->current_record->material_08 = pipeline->material_80;
+    pipeline->material = g_shadow_mesh->materials[0][0];
+    pipeline->current_record->material = pipeline->material;
     pipeline->SetFlags(g_shadow_mesh->shaders[0]);
     pipeline->current_record = &pipeline->records[++pipeline->slot_count];
     pipeline->current_pass = &pipeline->passes[pipeline->slot_count];
-    pipeline->current_record->flags_00 = 0;
-    pipeline->current_record->disable_mask_04 = 0;
-    pipeline->current_record->material_08 = pipeline->material_80;
-    pipeline->current_pass->texture_00 = pipeline->texture_78;
-    pipeline->current_pass->texture = pipeline->texture_7c;
-    pipeline->current_pass->flags.value = pipeline->shader_74.value;
+    pipeline->current_record->flags = 0;
+    pipeline->current_record->disable_mask = 0;
+    pipeline->current_record->material = pipeline->material;
+    pipeline->current_pass->texture0 = pipeline->texture0;
+    pipeline->current_pass->texture1 = pipeline->texture1;
+    pipeline->current_pass->flags.value = pipeline->shader.value;
     pipeline->current_pass->tex_table_0 = 0;
     pipeline->current_pass->tex_table_1 = 0;
-    pipeline->current_pass->shader_14 = 0;
+    pipeline->current_pass->shaders = 0;
     pipeline->current_pass->st = 0;
     pipeline->current_pass->poly_uv = 0;
     pipeline->FlushIfCurrent();

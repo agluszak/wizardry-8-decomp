@@ -1324,19 +1324,19 @@ void srGERD::performPickTest(const PickInput& input)
     }
     srVector4T<float>* vertices = pick_vertices_2230_.ensure(input.vertex_count);
     for (unsigned long index = 0; index < input.vertex_count; index++) {
-        float inv_w = 1.0f / input.positions_10[index].w;
+        float inv_w = 1.0f / input.positions[index].w;
         vertices[index].w = inv_w < 0.0f ? -1.0f : 1.0f;
         inv_w = fabs(inv_w);
-        vertices[index].x = input.positions_10[index].x * inv_w;
-        vertices[index].y = input.positions_10[index].y * inv_w;
-        vertices[index].z = input.positions_10[index].z * inv_w;
+        vertices[index].x = input.positions[index].x * inv_w;
+        vertices[index].y = input.positions[index].y * inv_w;
+        vertices[index].z = input.positions[index].z * inv_w;
     }
     Pick* pick = pick_176c_.pick_stack_00_;
     do {
         float pick_x = pick->position_00.x;
         float pick_y = pick->position_00.y;
         for (unsigned long index = 0; index < input.triangle_count; index++) {
-            unsigned long triangle_index = input.indices_00[index];
+            unsigned long triangle_index = input.indices[index];
             const srVector3i& triangle = input.triangles[triangle_index];
             const srVector4T<float>* corner0 = &vertices[input.vertices[triangle.x]];
             const srVector4T<float>* corner1 = &vertices[input.vertices[triangle.y]];

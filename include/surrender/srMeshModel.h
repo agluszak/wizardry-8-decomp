@@ -38,27 +38,27 @@ public:
        from the live tables; getTriMesh copies or returns it; renderTriMesh
        feeds srTriMeshPipeline from these slots. */
     struct TriMesh {
-        /* verify()'s emission zeroes only poly_vertices_10 before the
+        /* verify()'s emission zeroes only poly_vertices before the
            getTriMesh fill. */
-        TriMesh() : poly_vertices_10(0) {}
+        TriMesh() : poly_vertices(0) {}
 
         long vertex_count;
         long polygon_count;
         long pass_count;
         unsigned long control_flags;
-        srVector3i* poly_vertices_10;
-        srVector4T<float>* poly_equations_14;
-        srVector2T<float>* texcoords_18[4][2];
+        srVector3i* poly_vertices;
+        srVector4T<float>* poly_equations;
+        srVector2T<float>* texcoords[4][2];
         srVector3T<float>* positions;
         srVector3T<float>* normals;
         srVector3T<float>* dig[4];
         srVector4T<float>* dcg[4];
         srVector4T<float>* scg[4];
-        srMaterial* materials_70[4][2];
-        srTextureIFace* textures_90[4][2];
+        srMaterial* materials[4][2];
+        srTextureIFace* textures[4][2];
         srShader shaders[4];
-        srPtr<srMaterialIFace>* vertex_materials_c0[4][2];
-        srPtr<srTextureIFace>* poly_textures_e0[4][2];
+        srPtr<srMaterialIFace>* vertex_materials[4][2];
+        srPtr<srTextureIFace>* poly_textures[4][2];
         srShader* poly_shaders[4];
         srVector3i* poly_uv[4];
         srVector3T<float> bounds_minimum;
@@ -202,9 +202,9 @@ public:
     /* setMaterial indexes [pass][side]; ctor default-constructs eight slots.
        The ctor/dtor array emissions prove srPtr elements (4 x 8 bytes via
        __eharray, single srPtr ctor/dtor each). */
-    srPtr<srMaterialIFace> materials_1c[4][2];
-    srPtr<srTextureIFace> textures_3c[4][2];
-    srShader shaders_5c[4];
+    srPtr<srMaterialIFace> materials[4][2];
+    srPtr<srTextureIFace> textures[4][2];
+    srShader shaders[4];
     /* Lazily grown mesh table pair. Retail's constructor/destructor emit the
        pair records through array ctors/dtors; every table accessor resizes
        `data` to its governing count on first use. POD elements zero-fill;
@@ -303,16 +303,16 @@ public:
         unsigned long count;
     };
 
-    MeshTable<srPtr<srTextureIFace> > poly_textures_6c[4][2];
-    MeshTable<srShader> poly_shaders_ac[4];
-    MeshTable<srPtr<srMaterialIFace> > vertex_materials_cc[4][2];
+    MeshTable<srPtr<srTextureIFace> > poly_textures[4][2];
+    MeshTable<srShader> poly_shaders[4];
+    MeshTable<srPtr<srMaterialIFace> > vertex_materials[4][2];
     MeshTable<srVector3i> poly_vertices;
     MeshTable<srVector3i> poly_uv_indices[4];
-    MeshTable<srVector4T<float> > poly_equations_134;
-    MeshTable<srVector2T<float> > texcoords_13c[4][2];
-    MeshTable<srVector3T<float> > dig_17c[4];
-    MeshTable<srVector4T<float> > dcg_19c[4];
-    MeshTable<srVector4T<float> > scg_1bc[4];
+    MeshTable<srVector4T<float> > poly_equations;
+    MeshTable<srVector2T<float> > texcoords[4][2];
+    MeshTable<srVector3T<float> > dig[4];
+    MeshTable<srVector4T<float> > dcg[4];
+    MeshTable<srVector4T<float> > scg[4];
     MeshTable<srVector3T<float> > vertex_locations;
     MeshTable<srVector3T<float> > vertex_normals;
     MeshTable<unsigned long> vertex_shade_indices;

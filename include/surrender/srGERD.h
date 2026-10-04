@@ -70,12 +70,12 @@ public:
     class Renderer {
     public:
         struct TriInput {
-            unsigned long triangle_count_00;
+            unsigned long triangle_count;
             unsigned long record_count;
             unsigned long vertex_count;
-            const unsigned long* indices_0c;
+            const unsigned long* indices;
             const srVector3i* triangles;
-            const unsigned long* vertices_14;
+            const unsigned long* vertices;
             const srTriMeshPipeline::Pass* passes;
             int position_is_float3;
             const srMatrix4T<float>* project_clip_near;
@@ -108,12 +108,12 @@ public:
         struct TextureSetKey {
             srTextureIFace* texture0;
             srTextureIFace* texture1;
-            srShader shader_08;
+            srShader shader;
 
             bool operator==(const TextureSetKey& other) const
             {
                 return texture0 == other.texture0 && texture1 == other.texture1 &&
-                       shader_08.value == other.shader_08.value;
+                       shader.value == other.shader.value;
             }
             bool operator!=(const TextureSetKey& other) const
             {
@@ -123,46 +123,46 @@ public:
         struct TextureSet {
             srTextureIFace* texture0;
             srTextureIFace* texture1;
-            srShader shader_08;
+            srShader shader;
             unsigned long blend;
         };
         /* +0x44: texture-set interning cache. The map's value is the index
            into sets_04_; reset() runs the map's Clear() and empties the
            record array. */
         struct TextureSetCache {
-            srHashTable<TextureSetKey, unsigned long>* map_00;
+            srHashTable<TextureSetKey, unsigned long>* map;
             srArray<TextureSet> sets;
-            unsigned long count_0c;
+            unsigned long count;
 
             /* Retail's constructor emission allocates the map after the
                record array and count are zeroed. */
-            TextureSetCache() : count_0c(0)
+            TextureSetCache() : count(0)
             {
-                map_00 = new srHashTable<TextureSetKey, unsigned long>;
+                map = new srHashTable<TextureSetKey, unsigned long>;
             }
             /* ~Renderer inlines this sequence as map->Clear(),
-               sets.release(), count_0c = 0, delete map_00 followed by the
+               sets.release(), count = 0, delete map followed by the
                memberwise ~sets. */
             ~TextureSetCache()
             {
                 clear();
-                delete map_00;
+                delete map;
             }
             /* Renderer::reset inlines the same triple: clear the interning
                map, drop the record array, reset the count. */
             void clear()
             {
-                map_00->Clear();
+                map->Clear();
                 sets.release();
-                count_0c = 0;
+                count = 0;
             }
             unsigned long intern(const TextureSetKey& key);
         };
         /* Write pointers alloc() (0x10024460) returns for the reserved
            triangle range. */
         struct IndexWrite {
-            srVector3i* triangles_00;
-            unsigned long* texture_set_04;
+            srVector3i* triangles;
+            unsigned long* texture_set;
             unsigned long* sort_key;
             unsigned long* aux;
         };
@@ -171,15 +171,15 @@ public:
            pointers; reset() (0x10024620) always clears the count and only
            frees when asked. */
         struct IndexBatch {
-            srArray<srVector3i> triangles_00;
-            srArray<unsigned long> texture_set_08;
-            srArray<unsigned long> sort_key_10;
+            srArray<srVector3i> triangles;
+            srArray<unsigned long> texture_set;
+            srArray<unsigned long> sort_key;
             srArray<unsigned long> aux;
-            unsigned long count_20;
+            unsigned long count;
 
             /* Retail's constructor emission calls the reserve form with 0
                on the three operator-new arrays. */
-            IndexBatch() : texture_set_08(0), sort_key_10(0), aux(0), count_20(0) {}
+            IndexBatch() : texture_set(0), sort_key(0), aux(0), count(0) {}
             void alloc(IndexWrite& write, unsigned long count);
             void reset(int release);
         };
@@ -191,20 +191,20 @@ public:
            in that order. */
         struct VertexArrays {
             srArray<srVector4T<float> > diffuse;
-            srArray<srVector4T<float> > specular_08;
-            srArray<srVector4T<float> > positions_10;
+            srArray<srVector4T<float> > specular;
+            srArray<srVector4T<float> > positions;
             srArray<srVector2T<float> > st[2];
             srArray<float> q[2];
-            srArray<unsigned char> packed_38;
+            srArray<unsigned char> packed;
             /* isBatchFull compares this signed against batch_limit_dc_. */
-            long count_40;
-            unsigned long capacity_44;
+            long count;
+            unsigned long capacity;
 
             /* Retail's constructor emission calls the reserve form with 0
                on the vec4 streams and the packed byte array. */
             VertexArrays()
-                : diffuse(0), specular_08(0), positions_10(0), packed_38(0), count_40(0),
-                  capacity_44(0)
+                : diffuse(0), specular(0), positions(0), packed(0), count(0),
+                  capacity(0)
             {
             }
             void alloc(srVertexArray& arrays, unsigned long count);
@@ -850,11 +850,11 @@ private:
        srVector3i stream, vertices remaps each corner to a position index,
        positions is the renderer's vec4 stream base. */
     struct PickInput {
-        const unsigned long* indices_00;
+        const unsigned long* indices;
         const srVector3i* triangles;
         unsigned long triangle_count;
         const unsigned long* vertices;
-        const srVector4T<float>* positions_10;
+        const srVector4T<float>* positions;
         unsigned long vertex_count;
     };
 
@@ -1298,11 +1298,11 @@ private:
 inline unsigned int srHashValue(const srGERD::Renderer::TextureSetKey& key)
 {
     // reinterpret-ok: the hash mixes the stored interface addresses.
-    return ((key.shader_08.value >> 10 ^ reinterpret_cast<unsigned long>(key.texture1)) >> 1 ^
+    return ((key.shader.value >> 10 ^ reinterpret_cast<unsigned long>(key.texture1)) >> 1 ^
             // reinterpret-ok: as above.
             reinterpret_cast<unsigned long>(key.texture0)) >>
                5 ^
-           key.shader_08.value;
+           key.shader.value;
 }
 
 static_assert(sizeof(srGERD) == 0x2238, "srGERD_must_be_0x2238");

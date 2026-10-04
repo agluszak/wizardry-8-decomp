@@ -47,7 +47,7 @@ public:
     srMatrix2T<float> transform;
     float center_z;
     float center_x;
-    srVector3T<float>* vertices_1c;
+    srVector3T<float>* vertices;
     unsigned long polygons_20[0x1e];
 };
 
@@ -63,18 +63,18 @@ static W8GroundShadowMapper g_ground_shadow_material_parameters;
 void W8GroundShadowMapper::process(srVertexPipe& pipe)
 {
     srCore.getStatisticsManager()->statistics_00.texture_coordinate_operations +=
-        pipe.vertex_count_88;
+        pipe.vertex_count;
     pipe.lazy_setup_mask |= 1 << CHANNEL_ST0;
 
     const unsigned long* index = pipe.avt + pipe.sub_batch_offset;
     srVector2T<float>* output =
         pipe.vertex_array->st0 + pipe.batch_base + pipe.sub_batch_offset;
-    unsigned long count = pipe.vertex_count_88;
+    unsigned long count = pipe.vertex_count;
     if (count == 0) {
         return;
     }
     do {
-        const srVector3T<float>* vertex = vertices_1c + *index;
+        const srVector3T<float>* vertex = vertices + *index;
         float dz = vertex->z - center_z;
         float dx = vertex->x - center_x;
         srVector2T<float> coordinate;
@@ -215,14 +215,14 @@ void stGroundShadow::renderGroundShadow(srGERD* renderer)
             }
             ++polygons;
         }
-        mesh.materials_70[0][0] = g_ground_shadow_material;
-        mesh.poly_textures_e0[0][0] = 0;
-        mesh.textures_90[0][0] = g_ground_shadow_texture;
-        mesh.vertex_materials_c0[0][0] = 0;
+        mesh.materials[0][0] = g_ground_shadow_material;
+        mesh.poly_textures[0][0] = 0;
+        mesh.textures[0][0] = g_ground_shadow_texture;
+        mesh.vertex_materials[0][0] = 0;
         mesh.poly_shaders[0] = 0;
         mesh.shaders[0].value = g_ground_shadow_shader;
         mesh.poly_uv[0] = 0;
-        g_ground_shadow_material_parameters.vertices_1c = model->getVertexLoc();
+        g_ground_shadow_material_parameters.vertices = model->getVertexLoc();
         model->RenderTriMeshWithEquations(*renderer, mesh, 0);
     }
     renderer->setPolygonOffset(saved_offset);

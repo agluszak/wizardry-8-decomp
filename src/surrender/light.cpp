@@ -289,7 +289,7 @@ void srLight::process(const ProcessInfo& info, e_processType type)
 // FUNCTION: SURRENDER 0x1004CCC0
 int srLight::isActive(srVertexPipe& pipe)
 {
-    const srVertexPipe::Input* input = pipe.input_6c;
+    const srVertexPipe::Input* input = pipe.input;
     if ((group_mask & input->exclusion_mask) != 0) {
         return 0;
     }
@@ -333,7 +333,7 @@ void srLight::process(srVertexPipe& pipe)
     if ((channels & 0x400) != 0 || (channels & 0x4) != 0) {
         need_normals = 1;
     }
-    SRDWORD count = pipe.vertex_count_88;
+    SRDWORD count = pipe.vertex_count;
     /* Retail's stack frame aligns a 0x700-byte work area to 32 bytes: five
        64-entry banks (spot factors, attenuation, dot products, distances,
        eye-space directions). */
@@ -346,7 +346,7 @@ void srLight::process(srVertexPipe& pipe)
     float* distances = work + 0xc0;
     // reinterpret-ok: raw aligned scratch reinterpreted as the direction array.
     srVector3T<float>* directions = reinterpret_cast<srVector3T<float>*>(work + 0x100);
-    srVertexPipe::Scratch* scratch = pipe.scratch_00;
+    srVertexPipe::Scratch* scratch = pipe.scratch;
     float* attenuation = 0;
 
     if ((derived_flags & 0x4) == 0) {
@@ -460,7 +460,7 @@ void srLight::process(srVertexPipe& pipe)
             pipe.setupDiffuse();
         }
         srVector4T<float>* out =
-            pipe.vertex_array->diffuse_04 + pipe.batch_base + pipe.sub_batch_offset;
+            pipe.vertex_array->diffuse + pipe.batch_base + pipe.sub_batch_offset;
         if (attenuation != 0) {
             srVectorProcessor::axpy(out, out, diffuse, attenuation, dots, count);
         } else {
@@ -515,7 +515,7 @@ void srLight::process(srVertexPipe& pipe)
         pipe.setupSpecular();
     }
     srVector4T<float>* out =
-        pipe.vertex_array->specular_08 + pipe.batch_base + pipe.sub_batch_offset;
+        pipe.vertex_array->specular + pipe.batch_base + pipe.sub_batch_offset;
     if (attenuation != 0) {
         srVectorProcessor::axpy(out, out, specular, attenuation, distances, count);
     } else {

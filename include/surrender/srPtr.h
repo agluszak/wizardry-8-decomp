@@ -18,9 +18,9 @@ public:
         }
         pointer_ = other.pointer_;
     }
-    /* The scalar-array element-dtor emissions: mesh_model's materials_1c
+    /* The scalar-array element-dtor emissions: mesh_model's materials
        array uses the srPtr<srMaterialIFace> copy at 0x10042B00 while
-       textures_3c's deduplicates to the earlier emission at 0x1001EE90. */
+       textures's deduplicates to the earlier emission at 0x1001EE90. */
     ~srPtr()
     {
         if (pointer_ != 0) {

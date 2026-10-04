@@ -25,22 +25,22 @@ class srMaterialIFace;
 class srTriMeshPipeline {
 public:
     struct Record {
-        inline Record() : flags_00(0), disable_mask_04(0), colors_0c(0), color_format(2) {}
+        inline Record() : flags(0), disable_mask(0), colors(0), color_format(2) {}
 
-        unsigned long flags_00;
-        unsigned long disable_mask_04;
-        srMaterialIFace* material_08;
+        unsigned long flags;
+        unsigned long disable_mask;
+        srMaterialIFace* material;
         /* Bit 0: DIG or particle colors (+0x0c) with format at +0x10.
            Bit 1: DCG at +0x14. Bit 2: SCG at +0x18. */
-        void* colors_0c;
+        void* colors;
         unsigned long color_format;
         srVector4T<float>* dcg;
         srVector4T<float>* scg;
-        /* Optional per-vertex arrays, each gated by its own flags_00 bit:
+        /* Optional per-vertex arrays, each gated by its own flags bit:
            0x004994D0 sets +0x1c under bit 3 and +0x20 under bit 4. */
         float* alphas;
         srVector2T<float>* st0;
-        srVector2T<float>* st1_24;
+        srVector2T<float>* st1;
         srPtr<srMaterialIFace>* vertex_materials;
         unsigned char unknown_2c_[0x30];
     };
@@ -51,8 +51,8 @@ public:
             flags.value = 0x0100241b; /* default packed srShader */
         }
 
-        srTextureIFace* texture_00;
-        srTextureIFace* texture;
+        srTextureIFace* texture0;
+        srTextureIFace* texture1;
         srShader flags;
         /* Per-stage per-vertex texture tables; the mesh fills both slots of
            the {0x0c,0x10} pair through (&tex_table_0)[layer]. Writers
@@ -60,7 +60,7 @@ public:
            renderer only copies each dword entry into the texture-set key. */
         void* tex_table_0;
         void* tex_table_1;
-        const srShader* shader_14;
+        const srShader* shaders;
         srVector2T<float>* st;
         /* The mesh's per-triangle poly-UV corner source table. */
         const srVector3i* poly_uv;
@@ -106,7 +106,7 @@ public:
     unsigned long active_triangle_count;
     /* Bit 0: run getClipMask (frustum 0x3f plus user planes in bits 6+).
        Bit 1: vertex/triangle batch-limit path. Reset/Get always set both. */
-    unsigned long flags_28;
+    unsigned long flags;
     const unsigned long* active_triangles;
     const srVector4T<float>* projected_vertices;
     const srVector3i* triangles;
@@ -124,17 +124,17 @@ public:
     float bounds_radius;
     unsigned long bounds_state;
     unsigned long unknown_70;
-    srShader shader_74;
-    srTextureIFace* texture_78;
-    srTextureIFace* texture_7c;
-    srMaterialIFace* material_80;
+    srShader shader;
+    srTextureIFace* texture0;
+    srTextureIFace* texture1;
+    srMaterialIFace* material;
     unsigned long slot_count;
-    srGERD* renderer_88;
+    srGERD* renderer;
     volatile unsigned long flushing;
     srVertexPipe* vertex_pipe;
     srArray<Record> records;
     srArray<Pass> passes;
-    srArray<srVertexArray> vertex_arrays_a4;
+    srArray<srVertexArray> vertex_arrays;
 
 protected:
     /* srExit releases the singleton through this protected static. */
