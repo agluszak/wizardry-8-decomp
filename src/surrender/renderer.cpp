@@ -208,14 +208,14 @@ static unsigned long firstMismatchSorted(const unsigned long* values, unsigned l
 // FUNCTION: SURRENDER 0x10024200
 void srGERD::Renderer::resetStatistics()
 {
-    memset(statistics_28_, 0, sizeof(statistics_28_));
+    memset(statistics, 0, sizeof(statistics));
 }
 
 // FUNCTION: SURRENDER 0x10024260
 void srGERD::Renderer::getStatistics(unsigned long* statistics)
 {
     for (int i = 0; i < 7; i++) {
-        statistics[i] = statistics_28_[i];
+        statistics[i] = this->statistics[i];
     }
 }
 
@@ -349,21 +349,21 @@ void srGERD::Renderer::VertexArrays::alloc(srVertexArray& arrays, unsigned long 
 
 // FUNCTION: SURRENDER 0x10024900
 srGERD::Renderer::Renderer(const Parameters& parameters)
-    : gerd_d4_(parameters.gerd), sorted_d8_(parameters.sorted),
-      batch_limit_dc_(parameters.batch_limit), texture_stages_e0_(parameters.texture_stages)
+    : gerd(parameters.gerd), sorted(parameters.sorted),
+      batch_limit(parameters.batch_limit), texture_stages(parameters.texture_stages)
 {
-    clip_state_d0_ = 0;
-    first_vertex_c0_ = -1;
-    memset(statistics_28_, 0, sizeof(statistics_28_));
-    texture0_c4_ = 0;
-    texture1_c8_ = 0;
-    shader_cc_ = srShader();
+    clip_state = 0;
+    first_vertex = -1;
+    memset(statistics, 0, sizeof(statistics));
+    texture0 = 0;
+    texture1 = 0;
+    shader = srShader();
 }
 
 // FUNCTION: SURRENDER 0x10024DB0
 int srGERD::Renderer::isBatchFull() const
 {
-    if (sorted_d8_ == 0 && batch_limit_dc_ < vertices_78_.count_40) {
+    if (sorted == 0 && batch_limit < vertices.count_40) {
         return 1;
     }
     return 0;
@@ -372,16 +372,16 @@ int srGERD::Renderer::isBatchFull() const
 // FUNCTION: SURRENDER 0x10024DE0
 void srGERD::Renderer::rewindVertexArray(unsigned long count)
 {
-    if (first_vertex_c0_ != -1) {
-        vertices_78_.count_40 -= count;
+    if (first_vertex != -1) {
+        vertices.count_40 -= count;
     }
 }
 
 // FUNCTION: SURRENDER 0x10024E00
 void srGERD::Renderer::allocVertexArray(srVertexArray& arrays, unsigned long count)
 {
-    first_vertex_c0_ = vertices_78_.count_40;
-    vertices_78_.alloc(arrays, count);
+    first_vertex = vertices.count_40;
+    vertices.alloc(arrays, count);
 }
 
 // FUNCTION: SURRENDER 0x10024E30
@@ -400,13 +400,13 @@ void srGERD::Renderer::assignTextureSets(unsigned long* texture_set, const unsig
         mask |= 4;
     }
     if (mask == 0) {
-        unsigned long set = texture_sets_44_.intern(key);
+        unsigned long set = texture_sets.intern(key);
         if (count != 0) {
             srVectorProcessor::copy(texture_set, set, count);
         }
         return;
     }
-    unsigned long set = texture_sets_44_.intern(key);
+    unsigned long set = texture_sets.intern(key);
     unsigned long done = 0;
     while (done < count) {
         unsigned long chunk = count - done;
@@ -454,7 +454,7 @@ void srGERD::Renderer::assignTextureSets(unsigned long* texture_set, const unsig
                     if ((changed & 4) != 0) {
                         key.shader_08 = pass->shader_14[vertex];
                     }
-                    set = texture_sets_44_.intern(key);
+                    set = texture_sets.intern(key);
                 }
                 out[index] = set;
             }
@@ -495,7 +495,7 @@ static void sortKeys(unsigned long* keys, const srVector3i* triangles,
 void srGERD::Renderer::expandTriangles(const TriInput& input, int sorted)
 {
     IndexWrite write;
-    indices_54_.alloc(write, input.triangle_count_00 * input.record_count);
+    indices.alloc(write, input.triangle_count_00 * input.record_count);
     const srTriMeshPipeline::Pass* passes = input.passes;
     unsigned long record = 0;
     while (record < input.record_count && passes[record].poly_uv == 0) {
@@ -511,14 +511,14 @@ void srGERD::Renderer::expandTriangles(const TriInput& input, int sorted)
             }
             if (input.position_is_float3 == 0) {
                 gatherIndexedTriangles(write.triangles_00 + done, input.triangles,
-                                       input.indices_0c + done, input.vertices_14, first_vertex_c0_,
+                                       input.indices_0c + done, input.vertices_14, first_vertex,
                                        chunk);
             } else {
                 gatherTriangles(write.triangles_00 + done, input.triangles,
-                                input.indices_0c + done, first_vertex_c0_, chunk);
+                                input.indices_0c + done, first_vertex, chunk);
             }
             if (sorted != 0) {
-                const srVector4T<float>* positions = &vertices_78_.positions_10[0];
+                const srVector4T<float>* positions = &vertices.positions_10[0];
                 sortKeys(write.sort_key + done, write.triangles_00 + done, positions,
                          input.sort_bias, chunk);
                 for (unsigned long replica = 1; replica < input.record_count; replica++) {
@@ -534,16 +534,16 @@ void srGERD::Renderer::expandTriangles(const TriInput& input, int sorted)
     } else {
         /* Dedup path: any pass with a poly-UV corner table reuses the
            designated source corner's vertex and allocates fresh slots for
-           the others; remap_10_ carries six dwords per triangle — the new
+           the others; remap carries six dwords per triangle — the new
            vertices' batch positions, then their corner-source indices. */
         unsigned long free_vertex =
-            input.record_count * input.vertex_count + first_vertex_c0_;
-        unsigned long* remap = remap_10_.ensure(input.triangle_count_00 * 6);
+            input.record_count * input.vertex_count + first_vertex;
+        unsigned long* remap = this->remap.ensure(input.triangle_count_00 * 6);
         unsigned long* corner_remap = remap + input.triangle_count_00 * 3;
         unsigned long written = 0;
         for (record = 0; record < input.record_count; record++) {
             const srTriMeshPipeline::Pass& pass = passes[record];
-            unsigned long vertex_base = record * input.vertex_count + first_vertex_c0_;
+            unsigned long vertex_base = record * input.vertex_count + first_vertex;
             if (pass.poly_uv != 0) {
                 const srVector3i* poly_uv = pass.poly_uv;
                 unsigned long new_count = 0;
@@ -585,15 +585,15 @@ void srGERD::Renderer::expandTriangles(const TriInput& input, int sorted)
                 }
                 if (new_count != 0) {
                     srVertexArray arrays;
-                    vertices_78_.alloc(arrays, new_count);
-                    arrays.diffuse_04 = &vertices_78_.diffuse[0];
-                    arrays.specular_08 = &vertices_78_.specular_08[0];
-                    arrays.eye_locations = &vertices_78_.positions_10[0];
-                    arrays.st0 = &vertices_78_.st[0][0];
-                    arrays.st1_10 = &vertices_78_.st[1][0];
-                    arrays.q0 = &vertices_78_.q[0][0];
-                    arrays.q1 = &vertices_78_.q[1][0];
-                    arrays.packed = &vertices_78_.packed_38[0];
+                    vertices.alloc(arrays, new_count);
+                    arrays.diffuse_04 = &vertices.diffuse[0];
+                    arrays.specular_08 = &vertices.specular_08[0];
+                    arrays.eye_locations = &vertices.positions_10[0];
+                    arrays.st0 = &vertices.st[0][0];
+                    arrays.st1_10 = &vertices.st[1][0];
+                    arrays.q0 = &vertices.q[0][0];
+                    arrays.q1 = &vertices.q[1][0];
+                    arrays.packed = &vertices.packed_38[0];
                     srVectorProcessor::copyIndexed(arrays.eye_locations + base,
                                                    arrays.eye_locations, remap, new_count);
                     srVectorProcessor::copyIndexed(arrays.diffuse_04 + base, arrays.diffuse_04,
@@ -618,7 +618,7 @@ void srGERD::Renderer::expandTriangles(const TriInput& input, int sorted)
                                             0x3f800000, new_count);
                 }
                 if (sorted != 0) {
-                    const srVector4T<float>* positions = &vertices_78_.positions_10[0];
+                    const srVector4T<float>* positions = &vertices.positions_10[0];
                     sortKeys(write.sort_key + written, write.triangles_00 + written, positions,
                              input.sort_bias, input.triangle_count_00);
                 }
@@ -628,7 +628,7 @@ void srGERD::Renderer::expandTriangles(const TriInput& input, int sorted)
                                        input.indices_0c, input.vertices_14, vertex_base,
                                        input.triangle_count_00);
                 if (sorted != 0) {
-                    const srVector4T<float>* positions = &vertices_78_.positions_10[0];
+                    const srVector4T<float>* positions = &vertices.positions_10[0];
                     sortKeys(write.sort_key + written, write.triangles_00 + written, positions,
                              input.sort_bias, input.triangle_count_00);
                 }
@@ -647,7 +647,7 @@ void srGERD::Renderer::expandTriangles(const TriInput& input, int sorted)
 // FUNCTION: SURRENDER 0x100259D0
 void srGERD::Renderer::transformVertices(const TriInput& input, unsigned char* clip_flags)
 {
-    srVector4T<float>* write = &vertices_78_.positions_10[first_vertex_c0_];
+    srVector4T<float>* write = &vertices.positions_10[first_vertex];
     const srMatrix4T<float>& matrix = *input.project_clip_near;
     unsigned long zero_mask = 0;
     unsigned long bit = 1;
@@ -753,22 +753,22 @@ static unsigned long attributeMask(const unsigned char* packed, unsigned long co
 // FUNCTION: SURRENDER 0x10025D50
 void srGERD::Renderer::drawImmediate()
 {
-    unsigned long count = indices_54_.count_20;
+    unsigned long count = this->indices.count_20;
     if (count != 0) {
         /* The [0] probes force the batch streams to their initial capacity. */
-        const srVector3i* indices = &indices_54_.triangles_00[0];
-        const unsigned long* texture_set = &indices_54_.texture_set_08[0];
-        indices_54_.sort_key_10[0];
-        indices_54_.aux[0];
-        const TextureSet& first = texture_sets_44_.sets.data[texture_set[0]];
-        texture0_c4_ = first.texture0;
-        texture1_c8_ = first.texture1;
-        shader_cc_ = first.shader_08;
-        gerd_d4_->setTexture(texture0_c4_, 0);
-        gerd_d4_->setTexture(texture1_c8_, 1);
-        gerd_d4_->setShader(shader_cc_);
+        const srVector3i* indices = &this->indices.triangles_00[0];
+        const unsigned long* texture_set = &this->indices.texture_set_08[0];
+        this->indices.sort_key_10[0];
+        this->indices.aux[0];
+        const TextureSet& first = texture_sets.sets.data[texture_set[0]];
+        this->texture0 = first.texture0;
+        this->texture1 = first.texture1;
+        shader = first.shader_08;
+        gerd->setTexture(this->texture0, 0);
+        gerd->setTexture(this->texture1, 1);
+        gerd->setShader(shader);
         if (srVectorProcessor::isEqual(texture_set, texture_set[0], count) != 0) {
-            gerd_d4_->drawElements(srRendererDefs::PRIMITIVE_TRIANGLES, count * 3,
+            gerd->drawElements(srRendererDefs::PRIMITIVE_TRIANGLES, count * 3,
                                    /* The batcher's only retail index type. */
                                    static_cast<srRendererDefs::e_indexType>(2), indices);
             return;
@@ -778,7 +778,7 @@ void srGERD::Renderer::drawImmediate()
             unsigned long id = texture_set[run];
             bindTextureSet(id);
             unsigned long length = 1 + firstMismatch(texture_set + run + 1, id, count - run - 1);
-            gerd_d4_->drawElements(srRendererDefs::PRIMITIVE_TRIANGLES, length * 3,
+            gerd->drawElements(srRendererDefs::PRIMITIVE_TRIANGLES, length * 3,
                                    static_cast<srRendererDefs::e_indexType>(2), indices + run);
             run += length;
         }
@@ -788,12 +788,12 @@ void srGERD::Renderer::drawImmediate()
 // FUNCTION: SURRENDER 0x10025F40
 void srGERD::Renderer::drawSorted()
 {
-    unsigned long count = indices_54_.count_20;
+    unsigned long count = indices.count_20;
     if (count != 0) {
-        const srVector3i* triangles = &indices_54_.triangles_00[0];
-        unsigned long* texture_set = &indices_54_.texture_set_08[0];
-        unsigned long* sort_key = &indices_54_.sort_key_10[0];
-        indices_54_.aux[0];
+        const srVector3i* triangles = &indices.triangles_00[0];
+        unsigned long* texture_set = &indices.texture_set_08[0];
+        unsigned long* sort_key = &indices.sort_key_10[0];
+        indices.aux[0];
         unsigned long* order =
             static_cast<unsigned long*>(::operator new(count * sizeof(unsigned long)));
         unsigned long index = 0;
@@ -813,13 +813,13 @@ void srGERD::Renderer::drawSorted()
             }
             srHeap.free(pairs);
         }
-        const TextureSet& first = texture_sets_44_.sets.data[texture_set[order[0]]];
-        texture0_c4_ = first.texture0;
-        texture1_c8_ = first.texture1;
-        shader_cc_ = first.shader_08;
-        gerd_d4_->setTexture(texture0_c4_, 0);
-        gerd_d4_->setTexture(texture1_c8_, 1);
-        gerd_d4_->setShader(shader_cc_);
+        const TextureSet& first = texture_sets.sets.data[texture_set[order[0]]];
+        this->texture0 = first.texture0;
+        this->texture1 = first.texture1;
+        shader = first.shader_08;
+        gerd->setTexture(this->texture0, 0);
+        gerd->setTexture(this->texture1, 1);
+        gerd->setShader(shader);
         /* 0x200 index triples per submission chunk (0x1800 bytes). */
         srVector3i* batch = static_cast<srVector3i*>(srHeap.allocate(0x1800));
         if (srVectorProcessor::isEqual(texture_set, texture_set[order[0]], count) != 0) {
@@ -830,7 +830,7 @@ void srGERD::Renderer::drawSorted()
                     chunk = 0x200;
                 }
                 gatherTriangles(batch, triangles, order + offset, 0, chunk);
-                gerd_d4_->drawElements(srRendererDefs::PRIMITIVE_TRIANGLES, chunk * 3,
+                gerd->drawElements(srRendererDefs::PRIMITIVE_TRIANGLES, chunk * 3,
                                        static_cast<srRendererDefs::e_indexType>(2), batch);
                 offset += 0x200;
             } while (offset < count);
@@ -846,7 +846,7 @@ void srGERD::Renderer::drawSorted()
                 unsigned long length =
                     1 + firstMismatchSorted(texture_set, id, order + run + 1, limit);
                 gatherTriangles(batch, triangles, order + run, 0, length);
-                gerd_d4_->drawElements(srRendererDefs::PRIMITIVE_TRIANGLES, length * 3,
+                gerd->drawElements(srRendererDefs::PRIMITIVE_TRIANGLES, length * 3,
                                        static_cast<srRendererDefs::e_indexType>(2), batch);
                 run += length;
             } while (run < count);
@@ -863,116 +863,116 @@ void srGERD::Renderer::drawSorted()
 void srGERD::Renderer::programVertexArrays(srVertexArray* arrays, unsigned long count)
 {
     unsigned long attributes = attributeMask(arrays->packed, count);
-    if (texture_stages_e0_ < 2) {
+    if (texture_stages < 2) {
         /* Single-stage devices cannot take stage-1 st/q streams. */
         attributes &= ~0x50UL;
     }
     srFlags<srRendererDefs::e_vertexArray> mask(1 << srRendererDefs::VERTEX_ARRAY_POSITIONS);
-    gerd_d4_->setClipState(srFlags<srRendererDefs::e_clip>(clip_state_d0_));
-    gerd_d4_->setVertexPointer(4, srRendererDefs::TYPE_FLOAT, 0x10, arrays->eye_locations,
+    gerd->setClipState(srFlags<srRendererDefs::e_clip>(clip_state));
+    gerd->setVertexPointer(4, srRendererDefs::TYPE_FLOAT, 0x10, arrays->eye_locations,
                                static_cast<long>(count));
     if ((attributes & 1) != 0) {
-        gerd_d4_->setDataPtr(srRendererDefs::VERTEX_ARRAY_DIFFUSE, 4, srRendererDefs::TYPE_FLOAT,
+        gerd->setDataPtr(srRendererDefs::VERTEX_ARRAY_DIFFUSE, 4, srRendererDefs::TYPE_FLOAT,
                              0x10, arrays->diffuse_04);
         mask.set(srRendererDefs::VERTEX_ARRAY_DIFFUSE, 1);
     }
     if ((attributes & 2) != 0) {
         mask.set(srRendererDefs::VERTEX_ARRAY_SPECULAR, 1);
-        gerd_d4_->setDataPtr(srRendererDefs::VERTEX_ARRAY_SPECULAR, ((attributes & 4) != 0) + 3,
+        gerd->setDataPtr(srRendererDefs::VERTEX_ARRAY_SPECULAR, ((attributes & 4) != 0) + 3,
                              srRendererDefs::TYPE_FLOAT, 0x10, arrays->specular_08);
     } else if ((attributes & 4) != 0) {
         mask.set(srRendererDefs::VERTEX_ARRAY_SPECULAR_ALPHA, 1);
-        gerd_d4_->setDataPtr(srRendererDefs::VERTEX_ARRAY_SPECULAR_ALPHA, 1,
+        gerd->setDataPtr(srRendererDefs::VERTEX_ARRAY_SPECULAR_ALPHA, 1,
                              srRendererDefs::TYPE_FLOAT, 0x10, &arrays->specular_08->w);
     }
     if ((attributes & 8) != 0) {
         mask.set(srRendererDefs::VERTEX_ARRAY_TEXCOORD0, 1);
         if ((attributes & 0x20) == 0) {
-            gerd_d4_->setDataPtr(srRendererDefs::VERTEX_ARRAY_TEXCOORD0, 2,
+            gerd->setDataPtr(srRendererDefs::VERTEX_ARRAY_TEXCOORD0, 2,
                                  srRendererDefs::TYPE_FLOAT, 8, arrays->st0);
         } else {
-            TexCoordQ* stq = stq_18_[0].ensure(count);
+            TexCoordQ* stq = this->stq[0].ensure(count);
             for (unsigned long i = 0; i < count; i++) {
                 stq[i].st = arrays->st0[i];
                 stq[i].q = arrays->q0[i];
             }
-            gerd_d4_->setDataPtr(srRendererDefs::VERTEX_ARRAY_TEXCOORD0, 3,
+            gerd->setDataPtr(srRendererDefs::VERTEX_ARRAY_TEXCOORD0, 3,
                                  srRendererDefs::TYPE_FLOAT, 0xc, stq);
         }
     }
     if ((attributes & 0x10) != 0) {
         mask.set(srRendererDefs::VERTEX_ARRAY_TEXCOORD1, 1);
         if ((attributes & 0x40) == 0) {
-            gerd_d4_->setDataPtr(srRendererDefs::VERTEX_ARRAY_TEXCOORD1, 2,
+            gerd->setDataPtr(srRendererDefs::VERTEX_ARRAY_TEXCOORD1, 2,
                                  srRendererDefs::TYPE_FLOAT, 8, arrays->st1_10);
         } else {
-            TexCoordQ* stq = stq_18_[1].ensure(count);
+            TexCoordQ* stq = this->stq[1].ensure(count);
             for (unsigned long i = 0; i < count; i++) {
                 stq[i].st = arrays->st1_10[i];
                 stq[i].q = arrays->q1[i];
             }
-            gerd_d4_->setDataPtr(srRendererDefs::VERTEX_ARRAY_TEXCOORD1, 3,
+            gerd->setDataPtr(srRendererDefs::VERTEX_ARRAY_TEXCOORD1, 3,
                                  srRendererDefs::TYPE_FLOAT, 0xc, stq);
         }
     }
-    gerd_d4_->setVertexArrayMask(mask);
+    gerd->setVertexArrayMask(mask);
 }
 
 // FUNCTION: SURRENDER 0x100266E0
 void srGERD::Renderer::submit()
 {
-    unsigned long vertex_count = vertices_78_.count_40;
-    statistics_28_[4] += 1;
-    statistics_28_[5] += vertex_count;
-    statistics_28_[6] += indices_54_.count_20;
-    if (gerd_d4_ != 0 && vertex_count != 0 && indices_54_.count_20 != 0) {
-        e_matrixMode saved_mode = gerd_d4_->getMatrixMode();
-        gerd_d4_->matrixMode(MATRIX_PROJECTION);
-        gerd_d4_->pushMatrix();
-        gerd_d4_->loadIdentity();
+    unsigned long vertex_count = vertices.count_40;
+    statistics[4] += 1;
+    statistics[5] += vertex_count;
+    statistics[6] += indices.count_20;
+    if (gerd != 0 && vertex_count != 0 && indices.count_20 != 0) {
+        e_matrixMode saved_mode = gerd->getMatrixMode();
+        gerd->matrixMode(MATRIX_PROJECTION);
+        gerd->pushMatrix();
+        gerd->loadIdentity();
         srVertexArray arrays;
-        vertices_78_.bind(arrays, 0);
+        vertices.bind(arrays, 0);
         programVertexArrays(&arrays, vertex_count);
-        e_cullMode saved_cull = gerd_d4_->getCullMode();
-        gerd_d4_->setCullMode(CULL_NONE);
-        if (sorted_d8_ == 0) {
+        e_cullMode saved_cull = gerd->getCullMode();
+        gerd->setCullMode(CULL_NONE);
+        if (sorted == 0) {
             drawImmediate();
         } else {
             drawSorted();
         }
-        gerd_d4_->popMatrix();
-        gerd_d4_->matrixMode(saved_mode);
-        gerd_d4_->setCullMode(saved_cull);
+        gerd->popMatrix();
+        gerd->matrixMode(saved_mode);
+        gerd->setCullMode(saved_cull);
     }
-    gerd_d4_->getDD()->fence();
-    indices_54_.reset(0);
-    vertices_78_.count_40 = 0;
-    clip_state_d0_ = 0;
+    gerd->getDD()->fence();
+    indices.reset(0);
+    vertices.count_40 = 0;
+    clip_state = 0;
 }
 
 // FUNCTION: SURRENDER 0x100268A0
 void srGERD::Renderer::reset(int release_buffers)
 {
-    indices_54_.reset(release_buffers);
+    indices.reset(release_buffers);
     if (release_buffers != 0) {
-        vertices_78_.diffuse.release();
-        vertices_78_.specular_08.release();
-        vertices_78_.positions_10.release();
-        vertices_78_.st[0].release();
-        vertices_78_.st[1].release();
-        vertices_78_.q[0].release();
-        vertices_78_.q[1].release();
-        vertices_78_.packed_38.release();
-        vertices_78_.capacity_44 = 0;
+        vertices.diffuse.release();
+        vertices.specular_08.release();
+        vertices.positions_10.release();
+        vertices.st[0].release();
+        vertices.st[1].release();
+        vertices.q[0].release();
+        vertices.q[1].release();
+        vertices.packed_38.release();
+        vertices.capacity_44 = 0;
     }
-    vertices_78_.count_40 = 0;
-    texture_sets_44_.clear();
+    vertices.count_40 = 0;
+    texture_sets.clear();
     if (release_buffers != 0) {
-        bytes_00_.release();
-        dwords_08_.release();
-        remap_10_.release();
-        stq_18_[0].release();
-        stq_18_[1].release();
+        bytes.release();
+        dwords.release();
+        remap.release();
+        stq[0].release();
+        stq[1].release();
     }
 }
 
@@ -1011,22 +1011,22 @@ static unsigned long filterTriangles(unsigned long* destination, const unsigned 
 // FUNCTION: SURRENDER 0x10026B30
 void srGERD::Renderer::render(const TriInput& input)
 {
-    if (first_vertex_c0_ == -1) {
+    if (first_vertex == -1) {
         return;
     }
     if (input.triangle_count_00 == 0) {
-        vertices_78_.count_40 += first_vertex_c0_ - vertices_78_.count_40;
-        first_vertex_c0_ = -1;
+        this->vertices.count_40 += first_vertex - this->vertices.count_40;
+        first_vertex = -1;
         return;
     }
-    statistics_28_[0] += 1;
-    statistics_28_[1] += input.triangle_count_00 * input.record_count;
-    statistics_28_[3] += input.vertex_count * input.record_count;
-    unsigned char* flags = bytes_00_.ensure(input.vertex_count);
+    statistics[0] += 1;
+    statistics[1] += input.triangle_count_00 * input.record_count;
+    statistics[3] += input.vertex_count * input.record_count;
+    unsigned char* flags = bytes.ensure(input.vertex_count);
     transformVertices(input, flags);
     if (fullyClipped(flags, input.vertex_count) != 0) {
-        vertices_78_.count_40 += first_vertex_c0_ - vertices_78_.count_40;
-        first_vertex_c0_ = -1;
+        this->vertices.count_40 += first_vertex - this->vertices.count_40;
+        first_vertex = -1;
         return;
     }
     const TriInput* batch = &input;
@@ -1035,30 +1035,30 @@ void srGERD::Renderer::render(const TriInput& input)
     if (mask != 0) {
         filtered = input;
         /* const_cast-ok: the filtered list buffer was just reserved. */
-        filtered.indices_0c = dwords_08_.ensure(input.triangle_count_00);
+        filtered.indices_0c = dwords.ensure(input.triangle_count_00);
         filtered.triangle_count_00 =
             filterTriangles(const_cast<unsigned long*>(filtered.indices_0c), flags, input);
         if (filtered.triangle_count_00 != 0) {
-            clip_state_d0_ |= mask;
+            clip_state |= mask;
             batch = &filtered;
         } else {
-            vertices_78_.count_40 += first_vertex_c0_ - vertices_78_.count_40;
-            first_vertex_c0_ = -1;
+            this->vertices.count_40 += first_vertex - this->vertices.count_40;
+            first_vertex = -1;
             return;
         }
     }
-    if (gerd_d4_->pick_176c_.pick_depth_280_ != 0) {
+    if (gerd->pick.pick_depth != 0) {
         PickInput pick;
         pick.indices_00 = batch->indices_0c;
         pick.triangles = batch->triangles;
         pick.triangle_count = batch->triangle_count_00;
         pick.vertices = batch->vertices_14;
-        pick.positions_10 = &vertices_78_.positions_10[first_vertex_c0_];
+        pick.positions_10 = &this->vertices.positions_10[first_vertex];
         pick.vertex_count = batch->vertex_count;
-        gerd_d4_->performPickTest(pick);
+        gerd->performPickTest(pick);
     }
-    expandTriangles(*batch, sorted_d8_ != 0);
-    first_vertex_c0_ = -1;
+    expandTriangles(*batch, sorted != 0);
+    first_vertex = -1;
 }
 
 /* Retail 0x100278E0: mark `bit` in output wherever the indexed table value
@@ -1132,18 +1132,18 @@ void srGERD::Renderer::VertexArrays::bind(srVertexArray& arrays, unsigned long b
 // FUNCTION: SURRENDER 0x10027ED0
 void srGERD::Renderer::bindTextureSet(unsigned long index)
 {
-    const TextureSet& set = texture_sets_44_.sets.data[index];
-    if (set.texture0 != texture0_c4_) {
-        texture0_c4_ = set.texture0;
-        gerd_d4_->setTexture(texture0_c4_, 0);
+    const TextureSet& set = texture_sets.sets.data[index];
+    if (set.texture0 != this->texture0) {
+        this->texture0 = set.texture0;
+        gerd->setTexture(this->texture0, 0);
     }
-    if (set.texture1 != texture1_c8_) {
-        texture1_c8_ = set.texture1;
-        gerd_d4_->setTexture(texture1_c8_, 1);
+    if (set.texture1 != this->texture1) {
+        this->texture1 = set.texture1;
+        gerd->setTexture(this->texture1, 1);
     }
-    if (set.shader_08.value != shader_cc_.value) {
-        shader_cc_ = set.shader_08;
-        gerd_d4_->setShader(shader_cc_);
+    if (set.shader_08.value != shader.value) {
+        shader = set.shader_08;
+        gerd->setShader(shader);
     }
 }
 

@@ -124,9 +124,9 @@ public:
        to srDD::getInfo). The nine trailing 0x40-byte strings are the device
        identity fields initDDInfo fills with "Unknown". */
     struct Info {
-        /* srGERD's constructor emits the single flags_18_ zero-store as this
+        /* srGERD's constructor emits the single flags zero-store as this
            record's member init (0x68 inside the +0x50 embedding). */
-        Info() : flags_18_(0) {}
+        Info() : flags(0) {}
 
         /* openWindowInternal rejects back-buffer dimensions above these
            maximums. */
@@ -141,29 +141,29 @@ public:
         float unknown_14_;
         /* initDDInfo defaults: 0. changeTexture tests bit 5;
            getDepthBufferType reads bit 3 of the low byte. */
-        unsigned long flags_18_;
+        unsigned long flags;
         /* initDDInfo defaults: 0x100; createRenderer passes it to each
            Renderer as its batch limit. */
-        unsigned long renderer_batch_limit_1c_;
+        unsigned long renderer_batch_limit;
         /* initDDInfo defaults: 0x3b808081 / 0x200000. */
         unsigned long unknown_20_;
         /* Device texture RAM in bytes; dumpTextureCache prints it in kB and
            treats 0 as "infinite" (no residency percentage). */
-        unsigned long texture_ram_24_;
+        unsigned long texture_ram;
         /* initDDInfo defaults: 1, 1, 0x100, 1; texture-dimension clamps
            applied by evaluateTextureDimensions. initDDInfo clamps
            max_texture_stages to 2 after getInfo. */
-        unsigned long max_texture_stages_28_;
-        unsigned long texture_min_dim_2c_;
-        unsigned long texture_max_dim_30_;
-        unsigned long texture_max_aspect_34_;
+        unsigned long max_texture_stages;
+        unsigned long texture_min_dim;
+        unsigned long texture_max_dim;
+        unsigned long texture_max_aspect;
         /* initDDInfo defaults: 1. getHardwareID result; e_hardwareID is an
            empty enum and cannot be the field type. */
-        unsigned long hardware_id_38_;
+        unsigned long hardware_id;
         /* Device identity strings in getter order: device name, vendor,
            platform, driver name, vendor, version, hardware chipset, name,
            vendor. */
-        char text_3c_[9][0x40];
+        char text[9][0x40];
     };
     static_assert(sizeof(Info) == 0x27c, "srDD_Info_must_be_0x27c");
     /* getStatistics output record, 0x28 bytes: srGERD::getStatistics
