@@ -117,12 +117,16 @@ def pr_check_command(
     )
 
 
-def diagnostics_command() -> None:
+def diagnostics_command(
+    x64: Annotated[
+        bool, typer.Option("--x64", help="Audit Windows pointer-width changes.")
+    ] = False,
+) -> None:
     """Emit non-gating recovery-relevant clang diagnostics."""
     from .. import command_support as cli
     from ..build import lint
 
-    cli.emit(lint(cli.settings(), full_diagnostics=True))
+    cli.emit(lint(cli.settings(), full_diagnostics=True, x64=x64))
 
 
 def build_command(
@@ -511,6 +515,7 @@ def register(app: typer.Typer) -> None:
     analyze_app.command("inventory")(inventory_command)
     analyze_app.command("trace")(trace_command)
     analyze_app.command("differential")(differential_command)
+    analyze_app.command("freeze-oracle")(freeze_oracle_command)
     analyze_app.command("smoke")(smoke_command)
     analyze_app.command("source-layouts")(verify_source_layouts_command)
     analyze_app.command("source-index")(source_index_command)
@@ -815,6 +820,7 @@ def differential_command(
             raise RuntimeError(f"no linker MAP for {executable}; pass --link-map or build it")
 
         runs = {}
+        capture_receipts = {}
         for label, image, plan_map in (
             ("retail-a", "Wiz8.exe", None),
             ("retail-b", "Wiz8.exe", None),
@@ -830,7 +836,9 @@ def differential_command(
                 save=save,
             )
             runs[label] = result
-            write_report({**result, "scenario": f"{scenario}-{label}"}, reports)
+            capture_receipts[label] = write_report(
+                {**result, "scenario": f"{scenario}-{label}"}, reports
+            )
 
         def events(run: dict) -> list[Event]:
             return [
@@ -936,12 +944,27 @@ def differential_command(
                     "started": run["started"],
                     "state": states[label],
                     "provenance": run["provenance"],
+                    "capture_sha256": capture_receipts[label]["capture_sha256"],
                 }
                 for label, run in runs.items()
             },
         }
 
     cli.emit(action())
+
+
+def freeze_oracle_command(
+    report: Annotated[Path, typer.Argument(exists=True, dir_okay=False)],
+    output: Annotated[Path, typer.Option("--output", help="New reference JSON file.")],
+    captures: Annotated[Path, typer.Option("--captures", exists=True, file_okay=False)] = Path(
+        "build/reports/trace"
+    ),
+) -> None:
+    """Freeze a successful saved differential and its provenance-complete captures."""
+    from .. import command_support as cli
+    from ..dynamic import freeze_reference
+
+    cli.emit(freeze_reference(report, captures, output))
 
 
 def smoke_command(

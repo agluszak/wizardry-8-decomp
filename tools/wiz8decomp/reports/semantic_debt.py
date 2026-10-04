@@ -11,7 +11,7 @@ from ..source_index import load_source_index, source_functions
 from ..source_units import UNMAPPED_SOURCE, source_unit_records
 
 _PLACEHOLDER = re.compile(r"^Function[0-9A-Fa-f]{6,9}$")
-_ADDRESS_SUFFIX = re.compile(r"[A-Za-z_][A-Za-z0-9_:<>]*[0-9A-Fa-f]{6,8}$")
+_ADDRESS_SUFFIX = re.compile(r"[A-Za-z_][A-Za-z0-9_:<>]*[0-9][0-9A-Fa-f]{5,7}$")
 _SOURCE_SUFFIXES = frozenset({".c", ".cc", ".cpp", ".cxx", ".h", ".hpp", ".hxx"})
 
 _STALE_CLAIM = re.compile(
@@ -1006,6 +1006,9 @@ def semantic_debt_report(
     single_unit = _external_single_unit_definitions(index, usage) if usage else []
     empty_special = _empty_special_members(index, sources) if sources else []
     base_assignments = _explicit_base_assignments(index, sources) if sources else []
+    from .portability import portability_queues
+
+    portability = portability_queues(repository, index)
     return {
         "schema": "wiz8.semantic-debt-v2",
         "non_gating": True,
@@ -1047,4 +1050,5 @@ def semantic_debt_report(
         "external_single_unit_definitions": single_unit,
         "empty_special_members": empty_special,
         "explicit_base_assignments": base_assignments,
+        "pre_portability": portability,
     }

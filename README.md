@@ -64,7 +64,8 @@ to write decompiler-shaped or compiler-shaped C++.
 Some useful starting points are the
 [Wizardry executable overview](docs/targets/wiz8-executable.md),
 [source and class model](docs/wiz8-source-model.md), and
-[data-format documentation](docs/wiz8-data-formats.md).
+[data-format documentation](docs/wiz8-data-formats.md), and
+[pre-portability tasks](docs/pre-portability-tasks.md).
 
 ## Game files and licensing
 

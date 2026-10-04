@@ -31,8 +31,8 @@ float GetHeadingAngle(const srVector3T<float>* source, const srVector3T<float>* 
     float x = target->x - source->x;
     float z = target->z - source->z;
 
-    if (z == g_float_005ebb34) {
-        if (x > g_float_005ebb34) {
+    if (z == g_float_zero) {
+        if (x > g_float_zero) {
             return g_camera_half_pi;
         }
         return g_negative_quarter_turn;
@@ -40,7 +40,7 @@ float GetHeadingAngle(const srVector3T<float>* source, const srVector3T<float>* 
     {
         float angle = static_cast<float>(atan2(x, z));
         if (!_finite(angle)) {
-            return g_float_005ebb34;
+            return g_float_zero;
         }
         return angle;
     }
@@ -56,12 +56,12 @@ float GetElevationAngle(const srVector3T<float>* source, const srVector3T<float>
     float length = delta.Length();
     float angle;
 
-    if (length == g_float_005ebb34) {
-        return g_float_005ebb34;
+    if (length == g_float_zero) {
+        return g_float_zero;
     }
     angle = static_cast<float>(acos(delta.y / length));
     if (!_finite(angle)) {
-        return g_float_005ebb34;
+        return g_float_zero;
     }
     return angle - g_quarter_turn;
 }
@@ -77,12 +77,12 @@ float ElevationToTargetCPP(const srVector3T<float>* target)
     float length = delta.Length();
     float angle;
 
-    if (length == g_float_005ebb34) {
-        return g_float_005ebb34;
+    if (length == g_float_zero) {
+        return g_float_zero;
     }
     angle = static_cast<float>(acos(delta.y / length));
     if (!_finite(angle)) {
-        return g_float_005ebb34;
+        return g_float_zero;
     }
     return angle - g_quarter_turn;
 }
@@ -95,8 +95,8 @@ float GetCameraFacingYaw(const srVector3T<float>* position)
     srVector3T<float> camera_position;
 
     GetCameraPosition(&camera_position);
-    if (camera_position.z - position_z == g_float_005ebb34) {
-        if (g_float_005ebb34 < camera_position.x - position_x) {
+    if (camera_position.z - position_z == g_float_zero) {
+        if (g_float_zero < camera_position.x - position_x) {
             return g_camera_half_pi;
         }
         return g_negative_quarter_turn;
@@ -105,7 +105,7 @@ float GetCameraFacingYaw(const srVector3T<float>* position)
         float angle = static_cast<float>(
             atan2(camera_position.x - position_x, camera_position.z - position_z));
         if (!_finite(angle)) {
-            return g_float_005ebb34;
+            return g_float_zero;
         }
         return angle;
     }
@@ -121,8 +121,8 @@ float HeadingToTargetCPP(const srVector3T<float>* target)
     float x = position.x - target->x;
     float z = position.z - target->z;
 
-    if (z == g_float_005ebb34) {
-        if (x > g_float_005ebb34) {
+    if (z == g_float_zero) {
+        if (x > g_float_zero) {
             return g_camera_half_pi;
         }
         return g_negative_quarter_turn;
@@ -130,7 +130,7 @@ float HeadingToTargetCPP(const srVector3T<float>* target)
     {
         float angle = static_cast<float>(atan2(x, z));
         if (!_finite(angle)) {
-            return g_float_005ebb34;
+            return g_float_zero;
         }
         return angle;
     }

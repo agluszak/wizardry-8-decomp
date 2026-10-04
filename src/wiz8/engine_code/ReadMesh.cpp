@@ -989,12 +989,12 @@ unsigned char ReadSingleLevelMeshBody(W8ReadLevelInfo* info, srModelInstance** i
         }
         for (int index = 0; index < face_count; ++index) {
             for (int vertex = 0; vertex < 3; ++vertex) {
-                faces[index].vertices[vertex] = compressed_faces[index].vertex_indices_00[vertex];
+                faces[index].vertices[vertex] = compressed_faces[index].vertex_indices[vertex];
                 faces[index].texture_coordinates[vertex] =
-                    compressed_faces[index].texture_coordinates_06[vertex];
+                    compressed_faces[index].texture_coordinates[vertex];
             }
-            faces[index].material_index = compressed_faces[index].material_index_1e;
-            faces[index].flags = compressed_faces[index].flags_20;
+            faces[index].material_index = compressed_faces[index].material_index;
+            faces[index].flags = compressed_faces[index].flags;
         }
         free(compressed_faces);
     }

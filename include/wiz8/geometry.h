@@ -113,7 +113,7 @@ inline void SetPlaneFromThreePoints(W8Plane* plane, const srVector3T<float>* fir
     }
 
     srVector3T<float> normal(plane->normal);
-    float scale = g_float_005ebb38 / normal.Length();
+    float scale = g_float_one / normal.Length();
     plane->normal.x *= scale;
     plane->normal.y *= scale;
     plane->normal.z *= scale;
@@ -186,7 +186,7 @@ inline void W8Quaternion::InterpolateRotation(const srMatrix3T<float>& from,
     adjusted = second;
     dot = first.w * second.w + first.v.x * second.v.x + first.v.y * second.v.y +
           first.v.z * second.v.z;
-    if (dot < g_zero_005ebb40) {
+    if (dot < g_double_zero) {
         dot = -dot;
         adjusted.v = -adjusted.v;
         adjusted.w = -adjusted.w;

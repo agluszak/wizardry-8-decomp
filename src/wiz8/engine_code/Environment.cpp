@@ -146,11 +146,11 @@ void ClearEnvironmentObjects(void)
 // FUNCTION: WIZ8 0x00482a20
 void AdvanceEnvironmentTime(int elapsed)
 {
-    unsigned int time = static_cast<unsigned int>(g_status.game_time_ms + elapsed);
+    unsigned int time = g_status.game_time_ms + elapsed;
     if (time > 86399999U) {
         ++g_status.game_time_days;
     }
-    g_status.game_time_ms = static_cast<int>(time % 86400000U);
+    g_status.game_time_ms = time % 86400000U;
 
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
         UpdateGameClock(elapsed);
@@ -160,10 +160,10 @@ void AdvanceEnvironmentTime(int elapsed)
     const double arc = 3.141592653589793 * (1.0f / 180.0f) * 80.0;
     bool day;
     double angle;
-    if (static_cast<unsigned int>(g_status.game_time_ms) < 18000001U) {
+    if (g_status.game_time_ms < 18000001U) {
         day = false;
         angle = (g_status.game_time_ms + 7200000) * arc * 3.9682539682539686e-08;
-    } else if (static_cast<unsigned int>(g_status.game_time_ms) < 79200001U) {
+    } else if (g_status.game_time_ms < 79200001U) {
         day = true;
         angle = (g_status.game_time_ms - 18000000) * arc * 1.633986928104575e-08;
     } else {
@@ -193,7 +193,7 @@ void AdvanceEnvironmentTime(int elapsed)
         opposite->Rep()->SetLocation(&g_celestial_origin);
     }
 
-    unsigned int phase = ((static_cast<unsigned int>(g_status.game_time_ms) / 1000U) << 8) / 86400U;
+    unsigned int phase = ((g_status.game_time_ms / 1000U) << 8) / 86400U;
     stTextureAnim** animation = g_sky_gradient_animations;
 
     for (int index = 0; index != 3; ++index, ++animation) {
@@ -235,7 +235,7 @@ void SetEnvironmentTimeEnabled(bool enabled)
 // FUNCTION: WIZ8 0x00482770
 void UpdateEnvironment(void)
 {
-    if (g_environment_transition_rate != g_float_005ebb34) {
+    if (g_environment_transition_rate != g_float_zero) {
         UpdateEnvironmentLighting();
         return;
     }
@@ -377,7 +377,7 @@ void UpdateEnvironmentLight(void)
                 static_cast<int>(static_cast<double>(elapsed) * g_view_distance));
         }
     }
-    unsigned int phase = ((static_cast<unsigned int>(g_status.game_time_ms) / 1000U) << 8) / 86400U;
+    unsigned int phase = ((g_status.game_time_ms / 1000U) << 8) / 86400U;
     if (phase != static_cast<unsigned int>(g_last_light_phase)) {
         g_light_direction = g_environment_colours_65ad98[phase];
         PublishLightDirection(&g_environment_colours_65ad98[phase]);
@@ -497,7 +497,7 @@ void RefreshEnvironment(void)
                 static_cast<int>(static_cast<double>(elapsed) * g_view_distance));
         }
     }
-    unsigned int phase = ((static_cast<unsigned int>(g_status.game_time_ms) / 1000U) << 8) / 86400U;
+    unsigned int phase = ((g_status.game_time_ms / 1000U) << 8) / 86400U;
     if (phase != static_cast<unsigned int>(g_last_environment_colour_phase)) {
         EnvironmentColour colour = g_environment_colours_65a178[phase];
         SetWorldEnvironmentColour(g_world, colour);
@@ -515,12 +515,12 @@ void SetWorldEnvironmentValue(W8World* world, float value)
     if (world == 0) {
         srAssertFail("pWorld", ENVIRONMENT_CPP, 0x298, 0);
     }
-    if (g_double_005ebc30 <= value || g_zero_005ebb40 < value) {
+    if (g_double_005ebc30 <= value || g_double_zero < value) {
         if (g_double_005ebc30 <= value) {
             value = static_cast<float>(g_double_005ebc30);
         }
     } else {
-        value = static_cast<float>(g_zero_005ebb40);
+        value = static_cast<float>(g_double_zero);
     }
     if (world->static_scene == 0) {
         colour = 0.0;
@@ -542,7 +542,7 @@ void BeginWorldLightingFade(float duration)
     EnvironmentColour colour;
     EnvironmentColour direction;
 
-    if (duration == g_float_005ebb34) {
+    if (duration == g_float_zero) {
         g_environment_lighting_mode = 2;
         g_environment_transition_rate = 0.0f;
         g_world_render_enabled = 1;
@@ -555,12 +555,12 @@ void BeginWorldLightingFade(float duration)
         if (world == 0) {
             srAssertFail("pWorld", ENVIRONMENT_CPP, 0x298, 0);
         }
-        if (g_double_005ebc30 <= intensity || g_zero_005ebb40 < intensity) {
+        if (g_double_005ebc30 <= intensity || g_double_zero < intensity) {
             if (g_double_005ebc30 <= intensity) {
                 intensity = static_cast<float>(g_double_005ebc30);
             }
         } else {
-            intensity = static_cast<float>(g_zero_005ebb40);
+            intensity = static_cast<float>(g_double_zero);
         }
         if (world->static_scene == 0) {
             colour.SetZero();
@@ -573,12 +573,12 @@ void BeginWorldLightingFade(float duration)
         world = g_secondary_world;
         if (world != 0) {
             intensity = world->environment_base_intensity_028;
-            if (g_double_005ebc30 <= intensity || g_zero_005ebb40 < intensity) {
+            if (g_double_005ebc30 <= intensity || g_double_zero < intensity) {
                 if (g_double_005ebc30 <= intensity) {
                     intensity = static_cast<float>(g_double_005ebc30);
                 }
             } else {
-                intensity = static_cast<float>(g_zero_005ebb40);
+                intensity = static_cast<float>(g_double_zero);
             }
             if (world->static_scene == 0) {
                 colour.SetZero();
@@ -595,10 +595,10 @@ void BeginWorldLightingFade(float duration)
         return;
     }
 
-    g_environment_transition_rate = g_float_005ebb38 / duration;
+    g_environment_transition_rate = g_float_one / duration;
     g_environment_transition_tick = GetTickCount();
     g_environment_lighting_mode = 1;
-    if (duration < g_float_005ebb34) {
+    if (duration < g_float_zero) {
         g_world->environment_base_intensity_028 = g_world->environment_intensity_024;
         if (g_secondary_world != 0) {
             g_secondary_world->environment_base_intensity_028 =
@@ -628,9 +628,9 @@ void UpdateEnvironmentLighting(void)
     }
 
     scale = elapsed * g_environment_transition_rate + g_monster_light_scale;
-    if (g_float_005ebb38 < scale) {
+    if (g_float_one < scale) {
         scale = 1.0f;
-    } else if (scale < g_float_005ebb34) {
+    } else if (scale < g_float_zero) {
         scale = 0.0f;
     }
     g_monster_light_scale = scale;
@@ -640,12 +640,12 @@ void UpdateEnvironmentLighting(void)
     if (world == 0) {
         srAssertFail("pWorld", ENVIRONMENT_CPP, 0x298, 0);
     }
-    if (g_double_005ebc30 <= intensity || g_zero_005ebb40 < intensity) {
+    if (g_double_005ebc30 <= intensity || g_double_zero < intensity) {
         if (g_double_005ebc30 <= intensity) {
             intensity = static_cast<float>(g_double_005ebc30);
         }
     } else {
-        intensity = static_cast<float>(g_zero_005ebb40);
+        intensity = static_cast<float>(g_double_zero);
     }
     if (world->static_scene == 0) {
         colour.SetZero();
@@ -658,12 +658,12 @@ void UpdateEnvironmentLighting(void)
     world = g_secondary_world;
     if (world != 0) {
         float secondary = scale * world->environment_base_intensity_028;
-        if (g_double_005ebc30 <= secondary || g_zero_005ebb40 < secondary) {
+        if (g_double_005ebc30 <= secondary || g_double_zero < secondary) {
             if (g_double_005ebc30 <= secondary) {
                 secondary = static_cast<float>(g_double_005ebc30);
             }
         } else {
-            secondary = static_cast<float>(g_zero_005ebb40);
+            secondary = static_cast<float>(g_double_zero);
         }
         if (world->static_scene == 0) {
             colour.SetZero();
@@ -680,7 +680,7 @@ void UpdateEnvironmentLighting(void)
     SaturateColor(&direction);
     PublishLightDirection(&direction);
 
-    if (intensity == g_float_005ebb34) {
+    if (intensity == g_float_zero) {
         g_environment_lighting_mode = 0;
         g_world_render_enabled = 0;
         g_monster_shadow_updates_enabled = 0;
@@ -689,7 +689,7 @@ void UpdateEnvironmentLighting(void)
         g_environment_transition_tick = now;
         return;
     }
-    if (scale == g_float_005ebb38) {
+    if (scale == g_float_one) {
         g_environment_lighting_mode = 2;
         g_world_render_enabled = 1;
         g_monster_shadow_updates_enabled = 1;
@@ -945,7 +945,7 @@ void SetCameraLightMode(int mode)
         case 0:
             camera_light->clearFlag(srNode::FLAG_DISABLE);
             camera_light = g_world->camera_light;
-            intensity = g_float_005ebb34;
+            intensity = g_float_zero;
             if (camera_light != 0) {
                 intensity = camera_light->intensity_1d0;
             }
@@ -959,7 +959,7 @@ void SetCameraLightMode(int mode)
             return;
         case 1:
             intensity = camera_light->intensity_1d0 - g_float_005ebc7c;
-            if (g_float_005ebb34 < intensity) {
+            if (g_float_zero < intensity) {
                 camera_light->intensity_1d0 = intensity;
                 return;
             }
@@ -1001,7 +1001,7 @@ void InitializeLevelEnvironment(void)
         g_sun_prop = FindPropByName(g_secondary_world, "Sun");
         g_moon_prop = FindPropByName(g_secondary_world, "Moon");
     }
-    if (g_celestial_orbit_radius < g_float_005ebb34) {
+    if (g_celestial_orbit_radius < g_float_zero) {
         if (g_sun_prop == 0 || g_moon_prop == 0) {
             g_sun_prop = 0;
             g_moon_prop = 0;
@@ -1049,8 +1049,7 @@ void InitializeLevelEnvironment(void)
         }
     }
     {
-        unsigned int phase =
-            (static_cast<unsigned int>(g_status.game_time_ms) / 1000U << 8) / 0x15180;
+        unsigned int phase = (g_status.game_time_ms / 1000U << 8) / 0x15180;
         EnvironmentColour colour = g_environment_colours_65a178[phase];
 
         if (g_world == 0) {

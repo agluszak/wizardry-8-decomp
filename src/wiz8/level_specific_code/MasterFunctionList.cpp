@@ -135,9 +135,9 @@ W8MonsterGroup* SpawnMonsters(int monster_id, int count, srVector3T<float>* posi
 stSound3D* CreateAndPlaySoundNode(char* sound_name, srVector3T<float> position, float volume,
                                   float scale, bool play_flag)
 {
-    if (volume > g_float_005ebb38) {
+    if (volume > g_float_one) {
         volume = 1.0f;
-    } else if (volume < g_float_005ebb34) {
+    } else if (volume < g_float_zero) {
         return 0;
     }
 

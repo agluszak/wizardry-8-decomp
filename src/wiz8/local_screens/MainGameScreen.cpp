@@ -996,7 +996,7 @@ void W8LockInteraction::Process()
     int i;
     int dropped;
 
-    if (m_state_34 == 8 && m_timer_80.GetProgress() >= g_float_005ebb38) {
+    if (m_state_34 == 8 && m_timer_80.GetProgress() >= g_float_one) {
         m_trigger_08->CompleteItemInteraction();
         m_trigger_08->Run(-1);
         m_state_34 = 9;
@@ -2193,7 +2193,7 @@ void W8MainGameScreen::Update()
     int elapsed;
     float progress;
 
-    if (m_disarm_state_018 == 9 && m_timer_154.GetProgress() >= g_float_005ebb38 &&
+    if (m_disarm_state_018 == 9 && m_timer_154.GetProgress() >= g_float_one &&
         PartyPortraitEventsIdle() != 0) {
         m_owner_008->Run(-1);
         m_disarm_state_018 = 10;
@@ -2298,7 +2298,7 @@ void W8MainGameScreen::Update()
         return;
     case 7:
     case 8:
-        if (m_timer_154.GetProgress() >= g_float_005ebb38) {
+        if (m_timer_154.GetProgress() >= g_float_one) {
             m_disarm_state_018 = (m_disarm_state_018 != 7) + 3;
         }
         break;
@@ -6968,10 +6968,10 @@ static void ApplyPendingMouselook(void)
     if (elapsed > 9 && elapsed < 0x33) {
         scale = (elapsed / 10) * g_generator_jitter_fraction;
     } else if (elapsed > 9) {
-        scale = g_float_005ebb38;
+        scale = g_float_one;
     }
-    if (g_mouselook_pending_pitch == g_float_005ebb34 &&
-        g_mouselook_pending_yaw == g_float_005ebb34) {
+    if (g_mouselook_pending_pitch == g_float_zero &&
+        g_mouselook_pending_yaw == g_float_zero) {
         return;
     }
     if (g_settings.mouselook_smoothing == 0) {
@@ -8901,7 +8901,7 @@ void ReverseSurpriseFade(void)
         g_surprise_fade_in = g_surprise_fade_in == 0;
         if (g_surprise_fade_in != 0) {
             g_surprise_fade_tick_base =
-                now + static_cast<int>((g_float_005ebb38 - opacity) * g_fade_resume_scale);
+                now + static_cast<int>((g_float_one - opacity) * g_fade_resume_scale);
         } else {
             g_surprise_fade_tick_base = now + static_cast<int>(opacity * g_fade_resume_scale);
         }
@@ -8952,7 +8952,7 @@ unsigned char UpdateSurpriseFade(void)
     } else {
         opacity = (now - g_surprise_fade_tick_base) * g_float_005ebc60;
         if (g_surprise_fade_in == 0) {
-            opacity = g_float_005ebb38 - opacity;
+            opacity = g_float_one - opacity;
         }
     }
 

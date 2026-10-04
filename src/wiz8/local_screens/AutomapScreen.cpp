@@ -325,7 +325,7 @@ void ResetAutomapView(void)
         g_automap_grid_min.Set(-250000.0f, -250000.0f, -250000.0f);
         g_automap_grid_max.Set(250000.0f, 250000.0f, 250000.0f);
     } else {
-        g_octree->spatial_000.GetClippedBounds(&g_automap_grid_min, &g_automap_grid_max);
+        g_octree->m_spatial.GetClippedBounds(&g_automap_grid_min, &g_automap_grid_max);
     }
     g_automap_grid_origin = g_automap_grid_min;
     g_automap_grid_center.Set((g_automap_grid_min.x + g_automap_grid_max.x) * g_float_005ebc7c,
@@ -752,7 +752,7 @@ unsigned char AutomapScreenEnter(void)
                     }
                 }
             }
-            for (unsigned int mesh = 0; mesh < g_world->octree->m_meshCount_1b4; ++mesh) {
+            for (unsigned int mesh = 0; mesh < g_world->octree->m_meshCount; ++mesh) {
                 for (stMeshModel* model =
                          static_cast<stMeshModel*>(g_world->psrMeshes[mesh]->getModel());
                      model; model = model->next) {
@@ -1057,7 +1057,7 @@ unsigned char AutomapScreenLeave(int)
     MSYS_Shutdown();
     UpdateHeldItemCursor();
     EnableCursorScene();
-    for (unsigned int mesh = 0; mesh < g_world->octree->m_meshCount_1b4; ++mesh) {
+    for (unsigned int mesh = 0; mesh < g_world->octree->m_meshCount; ++mesh) {
         for (stMeshModel* model = static_cast<stMeshModel*>(g_world->psrMeshes[mesh]->getModel());
              model; model = model->next) {
             model->ClearAutomapPolygonFilter();
@@ -1364,7 +1364,7 @@ unsigned char ZoomAutomapIn(const srVector3T<float>* point)
 void ResetAutomapLighting(void)
 {
     if (g_world->octree != 0) {
-        for (unsigned int mesh = 0; mesh < g_world->octree->m_meshCount_1b4; ++mesh) {
+        for (unsigned int mesh = 0; mesh < g_world->octree->m_meshCount; ++mesh) {
             srModelInstance* instance = g_world->psrMeshes[mesh];
             if (instance != 0) {
                 for (stMeshModel* model = static_cast<stMeshModel*>(instance->getModel());
@@ -2069,12 +2069,12 @@ void RenderAutomapMarkers(void)
     } else {
         int x = 0xc - static_cast<int>((point.x - left) / g_automap_zoom * -455.0f);
         int y = 0x20 - static_cast<int>((1.0f - (point.z - top) / g_automap_zoom) * -435.0f);
-        float factor = (g_float_005ebb38 / (g_automap_zoom * 0.00004f)) * 0.44f;
+        float factor = (g_float_one / (g_automap_zoom * 0.00004f)) * 0.44f;
         srVector3T<double> scale(factor, factor, factor);
         g_automap_party_marker->setScale(scale);
         if (g_automap_party_marker->GetScaledHeight() < 1) {
             g_automap_party_marker->setScale(srVector3T<double>(1.0, 1.0, 1.0));
-            factor = g_float_005ebb38 / g_automap_party_marker->GetScaledHeight();
+            factor = g_float_one / g_automap_party_marker->GetScaledHeight();
             scale.Set(factor, factor, factor);
             g_automap_party_marker->setScale(scale);
         }
@@ -2249,7 +2249,7 @@ stModelInstance2D* CreateAutomapItemMarker(int item_id)
     int x = (0x40 - properties.usWidth) / 2;
     BlitVideoObjectToColorSurface(GetCatalogVideoObjectHandle(object, 0),
                                   GetCatalogVideoObjectYOffset(object), surface, x, y);
-    float factor = (g_float_005ebb38 / (g_automap_zoom * 0.00004f)) * 0.44f;
+    float factor = (g_float_one / (g_automap_zoom * 0.00004f)) * 0.44f;
     stModelInstance2D* marker = static_cast<stModelInstance2D*>(
         MakePolygonBrush(g_scene_fullscreen, surface, surface->getWidth() * g_viewport_x_scale,
                          surface->getHeight() * g_viewport_y_scale, 0.0f, 0.0f, 1.0f, 1.0f, 1));
@@ -2265,9 +2265,9 @@ stModelInstance2D* CreateAutomapItemMarker(int item_id)
     first.Set(0.0f, 0.0f, 0.25f, 1.0f);
     marker->SetGlowColors(&first, &second);
     marker->setRenderDepth(2000);
-    if (marker->GetScaledHeight() * factor < g_float_005ebb38) {
+    if (marker->GetScaledHeight() * factor < g_float_one) {
         marker->setScale(srVector3T<double>(1.0, 1.0, 1.0));
-        factor = g_float_005ebb38 / marker->GetScaledHeight();
+        factor = g_float_one / marker->GetScaledHeight();
         marker->setScale(srVector3T<double>(factor, factor, factor));
         return marker;
     }
@@ -2318,11 +2318,11 @@ stModelInstance2D* CreateAutomapMonsterMarker(int type)
     marker->setRenderDepth(2000);
     /* Retail scales by 0.85 as a step of its own; written as one product, VC6
        folds 0.44 * 0.85 into a single constant. */
-    float factor = (g_float_005ebb38 / (g_automap_zoom * 0.00004f)) * 0.44f;
+    float factor = (g_float_one / (g_automap_zoom * 0.00004f)) * 0.44f;
     factor *= 0.85f;
-    if (marker->GetScaledHeight() * factor < g_float_005ebb38) {
+    if (marker->GetScaledHeight() * factor < g_float_one) {
         marker->setScale(srVector3T<double>(1.0, 1.0, 1.0));
-        factor = g_float_005ebb38 / marker->GetScaledHeight();
+        factor = g_float_one / marker->GetScaledHeight();
         marker->setScale(srVector3T<double>(factor, factor, factor));
     } else {
         marker->setScale(srVector3T<double>(factor, factor, factor));
@@ -2341,10 +2341,10 @@ stModelInstance2D* CreateAutomapTextMarker(void)
     }
     *marker = *g_automap_text_marker;
     g_automap_markers->Add(marker);
-    float factor = (g_float_005ebb38 / (g_automap_zoom * 0.00004f)) * 0.44f * g_float_005ebc7c;
-    if (marker->GetScaledHeight() * factor < g_float_005ebb38) {
+    float factor = (g_float_one / (g_automap_zoom * 0.00004f)) * 0.44f * g_float_005ebc7c;
+    if (marker->GetScaledHeight() * factor < g_float_one) {
         marker->setScale(srVector3T<double>(1.0, 1.0, 1.0));
-        factor = g_float_005ebb38 / marker->GetScaledHeight();
+        factor = g_float_one / marker->GetScaledHeight();
         marker->setScale(srVector3T<double>(factor, factor, factor));
     } else {
         marker->setScale(srVector3T<double>(factor, factor, factor));

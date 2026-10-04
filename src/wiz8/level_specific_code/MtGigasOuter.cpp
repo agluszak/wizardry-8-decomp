@@ -176,7 +176,7 @@ void ControlLiftGate(int command)
                 g_lift_gate->SetProgress(value * g_movement_speed_step);
             }
             position.y =
-                (LIFT_TOP_Y - LIFT_BOTTOM_Y) * (g_float_005ebb38 - value * g_movement_speed_step) +
+                (LIFT_TOP_Y - LIFT_BOTTOM_Y) * (g_float_one - value * g_movement_speed_step) +
                 LIFT_BOTTOM_Y;
         } else {
             if (value == 100) {
@@ -200,7 +200,7 @@ void ControlLiftGate(int command)
             g_remove_current_master_function = true;
         }
         g_lift_prop->GetPosition(&position);
-        position.y = (g_float_005ebb38 - progress) * (LIFT_TOP_Y - LIFT_BOTTOM_Y) + LIFT_BOTTOM_Y;
+        position.y = (g_float_one - progress) * (LIFT_TOP_Y - LIFT_BOTTOM_Y) + LIFT_BOTTOM_Y;
         g_lift_prop->SetPosition(&position);
     } else {
         g_remove_current_master_function = true;

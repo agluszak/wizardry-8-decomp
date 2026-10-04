@@ -296,10 +296,13 @@ private:
                        ? canonical_scalar_declaration(dyn_cast<ValueDecl>(reference->getDecl()))
                        : nullptr;
         }
-        if (const auto* member = dyn_cast<MemberExpr>(expression))
+        if (const auto* member = dyn_cast<MemberExpr>(expression)) {
+            if (isa<FunctionDecl>(member->getMemberDecl()))
+                return nullptr;
             return array_type(member->getMemberDecl()) == nullptr
                        ? canonical_scalar_declaration(member->getMemberDecl())
                        : nullptr;
+        }
         if (const auto* call = dyn_cast<CallExpr>(expression))
             return canonical_scalar_declaration(call->getDirectCallee());
         if (const auto* indexed = dyn_cast<ArraySubscriptExpr>(expression))

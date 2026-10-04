@@ -475,7 +475,7 @@ unsigned char stParticle::ActivateParticle(unsigned int* out_index, bool replace
 
     case 3: {
         srVector3T<float> direction;
-        direction.Set(g_float_005ebb34, g_float_005ebb34, magnitude);
+        direction.Set(g_float_zero, g_float_zero, magnitude);
 
         double angle = ((rand() & 0x7fff) * g_float_005ec438 - g_float_005ebc7c) * cone_pitch_20c;
         direction.RotateAboutX(sin(angle), cos(angle));
@@ -623,9 +623,9 @@ void stParticle::Update()
 
             if (bounds_mode_1a4 == 2) {
                 double distance;
-                if (bounds_origin_234.x == g_float_005ebb34 &&
-                    bounds_origin_234.y == g_float_005ebb34 &&
-                    bounds_origin_234.z == g_float_005ebb34) {
+                if (bounds_origin_234.x == g_float_zero &&
+                    bounds_origin_234.y == g_float_zero &&
+                    bounds_origin_234.z == g_float_zero) {
                     distance = (candidate - node_location).Length();
                 } else {
                     srVector3T<float> center =
@@ -820,18 +820,18 @@ void stParticle::PrepareRenderer(srMatrix4T<float>& view)
         return;
     }
 
-    float phase = g_float_005ebb34;
+    float phase = g_float_zero;
     if (flutter_period_204 != 0) {
         phase = static_cast<float>(g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT) %
                                    flutter_period_204) /
-                static_cast<int>(flutter_period_204) * g_camera_angle_period_005ec014;
+                static_cast<int>(flutter_period_204) * g_camera_angle_period;
     }
     float flutter = static_cast<float>(sin(phase)) * flutter_amplitude_200 * size_scale_278;
 
     for (unsigned int particle_index = 0; particle_index < particle_count_180; ++particle_index) {
         srVector3T<float> position;
 
-        if (velocities_198[particle_index].y >= g_float_005ebb34) {
+        if (velocities_198[particle_index].y >= g_float_zero) {
             position = particle_positions_148[particle_index];
         } else {
             position.Set(flutter, 0.0f, 0.0f);
@@ -908,8 +908,8 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
 
         const srVector3T<float>& extent = bounds_origin_234;
 
-        if (extent.x == g_float_005ebb34 && extent.y == g_float_005ebb34 &&
-            extent.z == g_float_005ebb34) {
+        if (extent.x == g_float_zero && extent.y == g_float_zero &&
+            extent.z == g_float_zero) {
             visibility = renderer->testBoundingSphere(position, size_scale_278 * bounds_radius_240);
         } else {
             getRotation(rotation);

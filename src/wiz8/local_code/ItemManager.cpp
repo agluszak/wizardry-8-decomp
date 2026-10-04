@@ -53,7 +53,7 @@
 /* 0x005ED7B0: 1/360, the half-degree step random item angles are built
    from. */
 // GLOBAL: WIZ8 0x005ed7b0
-extern const double g_double_005ed7b0 = 1.0 / 360.0;
+extern const double g_inverse_full_turn_degrees = 1.0 / 360.0;
 
 /* 0x005ED7B8: camera distance inside which inactive world items are activated. */
 // GLOBAL: WIZ8 0x005ed7b8
@@ -698,7 +698,7 @@ void ActivateItem(W8WorldItem* item)
     }
     position = item->position;
     item->p3D->SetLocation(&position);
-    item->p3D->SetYaw(static_cast<float>(Random(0x168) * 2 * g_camera_pi * g_double_005ed7b0));
+    item->p3D->SetYaw(static_cast<float>(Random(0x168) * 2 * g_camera_pi * g_inverse_full_turn_degrees));
     static_cast<W8ItemRep*>(item->p3D->m_pRep)->flags |= item->entity_flags;
     item->p3D->AttachMesh(GetWorld());
     AddItemToWorld(GetWorld(), item->p3D);
@@ -895,10 +895,10 @@ void DropHeldItem(int arg_1)
     srVector3T<float> delta = direction - camera;
     float distance_squared = delta.LengthSquared();
     float distance = static_cast<float>(sqrt(distance_squared)) - g_float_005ec3f8;
-    if (distance < g_float_005ebb34) {
-        distance = g_float_005ebb34;
+    if (distance < g_float_zero) {
+        distance = g_float_zero;
     }
-    if (distance_squared != static_cast<float>(g_zero_005ebb40)) {
+    if (distance_squared != static_cast<float>(g_double_zero)) {
         distance /= static_cast<float>(sqrt(distance_squared));
         delta *= distance;
     }

@@ -14,17 +14,17 @@
 #include <stdlib.h>
 #include <string.h>
 /* VC6 places `float x = 0.0f` in .bss; retail keeps this slot in initialized
-   .data next to g_float_005ebb38. Const storage lands in .rdata with physical
+   .data next to g_float_one. Const storage lands in .rdata with physical
    zeros so datacmp agrees. */
 // GLOBAL: WIZ8 0x005ebb34
-const float g_float_005ebb34 = 0.0f;
+const float g_float_zero = 0.0f;
 
 #define ANI_MESH_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\AniMesh.cpp"
 
 // GLOBAL: WIZ8 0x005ebe80
 const double g_double_005ebe80 = 0.5;
 // GLOBAL: WIZ8 0x005ebb40
-extern const double g_zero_005ebb40 = 0.0;
+extern const double g_double_zero = 0.0;
 
 /* AniMesh cache: a generation stamp, the loaded-byte total, the 16 MiB primary
    limit, the unused 1 MiB secondary limit the initializer still writes, and
@@ -199,7 +199,7 @@ float GetAniMeshFrameRadius(W8AniMesh* mesh, unsigned char frame)
             return static_cast<float>((minimum - maximum).Length() * g_double_005ebe80);
         }
     }
-    return g_float_005ebb34;
+    return g_float_zero;
 }
 
 // FUNCTION: WIZ8 0x004b5d00

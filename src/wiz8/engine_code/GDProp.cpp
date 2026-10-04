@@ -236,7 +236,8 @@ void GDProp::Initialize(srModelInstance* instance, bool attach, unsigned short p
     if (m_list_54 != 0) {
         unsigned int count = PLLength(m_list_54);
         for (unsigned int index = 0; index < count; ++index) {
-            W8WorldItem* item = static_cast<W8WorldItem*>(PLGet(m_list_54, static_cast<int>(index)));
+            W8WorldItem* item =
+                static_cast<W8WorldItem*>(PLGet(m_list_54, static_cast<int>(index)));
             if (item != 0) {
                 SetWorldItemFlag02(item, 1);
             }
@@ -490,24 +491,24 @@ void GDProp::ApplyAnimFrame(unsigned short frame, W8LevelFileAnimObj* anim)
 {
     signed char index;
 
-    for (index = 0; index < anim->num_transforms_5a; ++index) {
-        W8LevelFileTransform* transform = &anim->pTransforms_5b[index];
-        if (frame >= transform->pathAI_06.path_count_0a) {
-            frame = transform->pathAI_06.path_count_0a - 1;
+    for (index = 0; index < anim->num_transforms; ++index) {
+        W8LevelFileTransform* transform = &anim->pTransforms[index];
+        if (frame >= transform->pathAI.path_count) {
+            frame = transform->pathAI.path_count - 1;
         }
     }
     m_prop_number_02 = frame;
 
-    for (index = 0; index < anim->num_transforms_5a; ++index) {
-        W8LevelFileMesh* mesh = &anim->pTransforms_5b[index].LODMesh_02.pFrames->mesh_01;
-        if ((mesh->flags_0c & 1) != 0) {
+    for (index = 0; index < anim->num_transforms; ++index) {
+        W8LevelFileMesh* mesh = &anim->pTransforms[index].LODMesh.pFrames->mesh;
+        if ((mesh->flags & 1) != 0) {
             srAssertFail("FALSE", "C:\\Projects\\Wizardry 8\\Engine Code\\GDProp.cpp", 0x355,
                          "Transform prop made collideable!!!");
-            m_surface_count_14 += mesh->num_lods_42 * mesh->num_faces_08;
-            m_vertex_count_18 += mesh->num_lods_42 * mesh->num_vertices_04;
+            m_surface_count_14 += mesh->num_lods * mesh->num_faces;
+            m_vertex_count_18 += mesh->num_lods * mesh->num_vertices;
         } else {
-            m_surface_count_14 += mesh->num_faces_08;
-            m_vertex_count_18 += mesh->num_vertices_04;
+            m_surface_count_14 += mesh->num_faces;
+            m_vertex_count_18 += mesh->num_vertices;
         }
     }
 
@@ -521,16 +522,16 @@ void GDProp::ApplyAnimFrame(unsigned short frame, W8LevelFileAnimObj* anim)
     m_vertex_count_18 = 0;
     m_surface_count_14 = 0;
 
-    for (index = 0; index < anim->num_transforms_5a; ++index) {
-        W8LevelFileTransform* transform = &anim->pTransforms_5b[index];
+    for (index = 0; index < anim->num_transforms; ++index) {
+        W8LevelFileTransform* transform = &anim->pTransforms[index];
         W8LevelFileScaledPathNode node;
-        if (transform->pathAI_06.scaled_01 == 2) {
-            node = transform->pathAI_06.pScaledPaths[frame];
+        if (transform->pathAI.scaled == 2) {
+            node = transform->pathAI.pScaledPaths[frame];
         } else {
-            node.path = transform->pathAI_06.pPaths[frame];
+            node.path = transform->pathAI.pPaths[frame];
             node.scale.x = node.scale.y = node.scale.z = 1.0f;
         }
-        TransformMeshGeometry(&node, &transform->LODMesh_02.pFrames->mesh_01);
+        TransformMeshGeometry(&node, &transform->LODMesh.pFrames->mesh);
     }
 }
 
@@ -544,7 +545,7 @@ void GDProp::TransformMeshGeometry(const W8LevelFileScaledPathNode* node, W8Leve
 {
     int surface_base = m_surface_count_14;
 
-    srVector3T<float> axis = node->path.axis_10;
+    srVector3T<float> axis = node->path.axis;
     srMatrix3T<float> rotation;
     srMatrix4x3T<float> matrix;
     srVector3T<float> translation;
@@ -552,15 +553,15 @@ void GDProp::TransformMeshGeometry(const W8LevelFileScaledPathNode* node, W8Leve
     float factor;
 
     rotation.SetIdentity();
-    if (node->path.angle_0c != g_zero_005ebb40) {
-        rotation.RotateAroundAxis(sin(node->path.angle_0c), cos(node->path.angle_0c), axis);
+    if (node->path.angle != g_double_zero) {
+        rotation.RotateAroundAxis(sin(node->path.angle), cos(node->path.angle), axis);
     }
     translation.Set(node->path.position_00.x * g_double_005ec150,
                     node->path.position_00.y * g_double_005ec150,
                     node->path.position_00.z * g_double_005ec150);
 
-    if ((mesh->flags_0c & 1) != 0 && (mesh->flags_0c & 2) != 0) {
-        factor = mesh->lod_scale_58 * g_world_scale;
+    if ((mesh->flags & 1) != 0 && (mesh->flags & 2) != 0) {
+        factor = mesh->lod_scale * g_world_scale;
     } else {
         factor = static_cast<float>(g_double_005ec150);
     }
@@ -572,12 +573,12 @@ void GDProp::TransformMeshGeometry(const W8LevelFileScaledPathNode* node, W8Leve
     matrix.SetTranslation(translation);
     matrix.Scale(scale);
 
-    if ((mesh->flags_0c & 1) != 0) {
-        for (int lod = 0; lod < mesh->num_lods_42; ++lod) {
+    if ((mesh->flags & 1) != 0) {
+        for (int lod = 0; lod < mesh->num_lods; ++lod) {
             int vertex_base = m_vertex_count_18;
-            if ((mesh->flags_0c & 2) != 0) {
-                short* vertices = mesh->lod_shorts_44[lod];
-                for (int vertex = 0; vertex < mesh->num_vertices_04; ++vertex) {
+            if ((mesh->flags & 2) != 0) {
+                short* vertices = mesh->lod_shorts[lod];
+                for (int vertex = 0; vertex < mesh->num_vertices; ++vertex) {
                     m_pVertices[m_vertex_count_18] = matrix.TransformPoint(
                         srVector3T<float>(static_cast<float>(vertices[vertex * 3]),
                                           static_cast<float>(vertices[vertex * 3 + 1]),
@@ -585,25 +586,24 @@ void GDProp::TransformMeshGeometry(const W8LevelFileScaledPathNode* node, W8Leve
                     ++m_vertex_count_18;
                 }
             } else {
-                float* vertices = mesh->lods_48[lod];
-                for (int vertex = 0; vertex < mesh->num_vertices_04; ++vertex) {
-                    m_pVertices[m_vertex_count_18] = matrix.TransformPoint(srVector3T<float>(
-                        vertices[vertex * 3], vertices[vertex * 3 + 1], vertices[vertex * 3 + 2]));
+                const srVector3T<float>* vertices = mesh->lods[lod];
+                for (int vertex = 0; vertex < mesh->num_vertices; ++vertex) {
+                    m_pVertices[m_vertex_count_18] = matrix.TransformPoint(vertices[vertex]);
                     ++m_vertex_count_18;
                 }
             }
-            if ((mesh->flags_0c & 2) != 0) {
+            if ((mesh->flags & 2) != 0) {
                 W8LevelFileCompressedFace* faces = mesh->pstCompFaces;
-                for (int face = 0; face < mesh->num_faces_08; ++face) {
+                for (int face = 0; face < mesh->num_faces; ++face) {
                     W8GDSurface* surface = &m_pGDSurfaces[m_surface_count_14];
                     ++m_surface_count_14;
-                    surface->vertex_indices_18[0] = faces[face].vertex_indices_00[0] + vertex_base;
-                    surface->vertex_indices_18[1] = faces[face].vertex_indices_00[1] + vertex_base;
-                    surface->vertex_indices_18[2] = faces[face].vertex_indices_00[2] + vertex_base;
+                    surface->vertex_indices_18[0] = faces[face].vertex_indices[0] + vertex_base;
+                    surface->vertex_indices_18[1] = faces[face].vertex_indices[1] + vertex_base;
+                    surface->vertex_indices_18[2] = faces[face].vertex_indices[2] + vertex_base;
                 }
             } else {
                 W8ReadMeshFace* faces = mesh->pstFaces;
-                for (int face = 0; face < mesh->num_faces_08; ++face) {
+                for (int face = 0; face < mesh->num_faces; ++face) {
                     W8GDSurface* surface = &m_pGDSurfaces[m_surface_count_14];
                     ++m_surface_count_14;
                     surface->vertex_indices_18[0] = faces[face].vertices[0] + vertex_base;
@@ -614,24 +614,23 @@ void GDProp::TransformMeshGeometry(const W8LevelFileScaledPathNode* node, W8Leve
         }
     } else {
         int vertex_base = m_vertex_count_18;
-        float* vertices = mesh->pstVertices;
-        for (int vertex = 0; vertex < mesh->num_vertices_04; ++vertex) {
-            m_pVertices[m_vertex_count_18] = matrix.TransformPoint(srVector3T<float>(
-                vertices[vertex * 3], vertices[vertex * 3 + 1], vertices[vertex * 3 + 2]));
+        const srVector3T<float>* vertices = mesh->pstVertices;
+        for (int vertex = 0; vertex < mesh->num_vertices; ++vertex) {
+            m_pVertices[m_vertex_count_18] = matrix.TransformPoint(vertices[vertex]);
             ++m_vertex_count_18;
         }
-        if ((mesh->flags_0c & 2) != 0) {
+        if ((mesh->flags & 2) != 0) {
             W8LevelFileCompressedFace* faces = mesh->pstCompFaces;
-            for (int face = 0; face < mesh->num_faces_08; ++face) {
+            for (int face = 0; face < mesh->num_faces; ++face) {
                 W8GDSurface* surface = &m_pGDSurfaces[m_surface_count_14];
                 ++m_surface_count_14;
-                surface->vertex_indices_18[0] = faces[face].vertex_indices_00[0] + vertex_base;
-                surface->vertex_indices_18[1] = faces[face].vertex_indices_00[1] + vertex_base;
-                surface->vertex_indices_18[2] = faces[face].vertex_indices_00[2] + vertex_base;
+                surface->vertex_indices_18[0] = faces[face].vertex_indices[0] + vertex_base;
+                surface->vertex_indices_18[1] = faces[face].vertex_indices[1] + vertex_base;
+                surface->vertex_indices_18[2] = faces[face].vertex_indices[2] + vertex_base;
             }
         } else {
             W8ReadMeshFace* faces = mesh->pstFaces;
-            for (int face = 0; face < mesh->num_faces_08; ++face) {
+            for (int face = 0; face < mesh->num_faces; ++face) {
                 W8GDSurface* surface = &m_pGDSurfaces[m_surface_count_14];
                 ++m_surface_count_14;
                 surface->vertex_indices_18[0] = faces[face].vertices[0] + vertex_base;
@@ -648,7 +647,7 @@ void GDProp::TransformMeshGeometry(const W8LevelFileScaledPathNode* node, W8Leve
                            &m_pVertices[surface->vertex_indices_18[2]]);
 
         int dominant_axis;
-        float largest = g_float_005ebb34;
+        float largest = g_float_zero;
         for (int axis = 0; axis < 3; ++axis) {
             float magnitude = static_cast<float>(fabs((&surface->plane_24.normal.x)[axis]));
             if (largest < magnitude) {

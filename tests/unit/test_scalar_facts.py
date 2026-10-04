@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import importlib
 import json
 import subprocess
@@ -93,6 +94,61 @@ def test_current_unsigned_source_type_is_not_a_seed(scalar, tmp_path):
         scalar, tmp_path, declaration("A", signedness="unsigned", spelling="unsigned long")
     )
     assert property_report(scalar, facts)["status"] == "unknown"
+
+
+@pytest.mark.parametrize(
+    "spelling,domain,hazard",
+    [
+        ("unsigned long", "integer", "long_ilp32_llp64_32_lp64_64"),
+        ("size_t", "integer", "pointer_sized_integer"),
+        ("wchar_t *", "pointer", "vc6_wide_code_unit_16"),
+        ("Mode", "enum", "enum_representation_review"),
+        ("int Owner::*", "pointer", "pointer_representation"),
+    ],
+)
+def test_abi_inventory_never_seeds_retail_width(scalar, tmp_path, spelling, domain, hazard):
+    facts = read(scalar, tmp_path, declaration("A", spelling=spelling, domain=domain))
+    report = scalar.integer_report(facts, [])
+    assert hazard in report["abi_width_inventory"][0]["hazards"]
+    assert property_report(scalar, facts, property_="width")["status"] == "unknown"
+
+
+def test_long_long_and_unresolved_alias_require_no_false_long_classification(scalar, tmp_path):
+    facts = read(
+        scalar,
+        tmp_path,
+        declaration("A", spelling="unsigned long long"),
+        declaration("B", spelling="FLAGS32"),
+    )
+    assert scalar.abi_width_inventory(facts) == []
+
+
+def test_pointer_transport_through_typedef_is_attributed_without_narrowing_claim(scalar, tmp_path):
+    facts = read(
+        scalar,
+        tmp_path,
+        declaration("pointer", domain="pointer", spelling="HWND"),
+        declaration("slot", spelling="DWORD"),
+        "F\tslot\tpointer\texplicit-conversion\tsrc/wiz8/test.cpp\t8\t1",
+    )
+    row = scalar.integer_report(facts, [])["pointer_integer_transports"][0]
+    assert row["source_type"] == "HWND"
+    assert row["target_type"] == "DWORD"
+    assert row["line"] == 8
+    assert row["status"] == "requires_abi_boundary_review"
+
+
+def test_saved_scalar_report_attributes_inputs_without_claiming_source_freshness(scalar, tmp_path):
+    read(scalar, tmp_path, declaration("slot", spelling="DWORD"))
+    report = scalar.write_integer_report(tmp_path, None, tmp_path / "report.json")
+    snapshot = report["input_snapshot"]
+    assert snapshot["current_source_status"] == "not_verified"
+    assert snapshot["files"] == [
+        {
+            "path": str(tmp_path / "facts-1.tsv"),
+            "sha256": hashlib.sha256((tmp_path / "facts-1.tsv").read_bytes()).hexdigest(),
+        }
+    ]
 
 
 def test_conflicts_are_reported_without_changes(scalar, tmp_path):

@@ -297,7 +297,7 @@ void ActivateMonster(W8MonsterInfo* monster_info, int mode)
         MonsterSetCycle(monster_info->p3D, 1);
     }
 
-    if (monster_info->scale_24f < g_float_005ebb34 ||
+    if (monster_info->scale_24f < g_float_zero ||
         g_status.level_progress[g_status.current_level].visited == 0) {
         monster_info->cycle17_state = MonsterGetMirrorX(monster_info->p3D);
         monster_info->scale_24f = CalculateMonsterScale(monster_info);
@@ -1701,8 +1701,8 @@ void FormatMonsterHealth(W8MonsterInfo* monster_info, wchar_t* health_text)
             float adjusted_knowledge = health_knowledge -
                                        (monster_level - average_party_level) * g_float_005ec52c +
                                        g_float_005ebc7c;
-            if (adjusted_knowledge < g_float_005ebb34) {
-                adjusted_knowledge = g_float_005ebb34;
+            if (adjusted_knowledge < g_float_zero) {
+                adjusted_knowledge = g_float_zero;
             }
             health_knowledge = static_cast<unsigned int>(adjusted_knowledge);
         }

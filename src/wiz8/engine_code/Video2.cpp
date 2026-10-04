@@ -1114,7 +1114,7 @@ static RuntimeWorldRenderData ObserveWorldRenderState()
                  (g_render_mesh_sky ? 16UL : 0UL) | (g_world_pick_enabled ? 32UL : 0UL);
     data.scene_children = g_world->static_scene->getChildCount();
     if (g_world->octree != 0 && g_world->psrMeshes != 0) {
-        for (unsigned long index = 0; index < g_world->octree->m_meshCount_1b4; ++index) {
+        for (unsigned long index = 0; index < g_world->octree->m_meshCount; ++index) {
             srModelInstance* instance = g_world->psrMeshes[index];
             if (instance != 0 && !instance->testFlag(srNode::FLAG_DISABLE)) {
                 ++data.visible_meshes;
@@ -1194,15 +1194,16 @@ void RenderFrame(void)
             goto clear_viewport;
         }
     } else if (g_world_blacked_out || !g_render_mesh_sky || g_secondary_world == 0) {
-    clear_viewport: {
-        unsigned long height = g_gerd->getHeight();
-        unsigned long width = g_gerd->getWidth();
-        g_gerd->setScissor(g_viewport.left * width / 640, g_viewport.top * height / 480,
-                           (g_viewport.right - g_viewport.left) * width / 640,
-                           (g_viewport.bottom - g_viewport.top) * height / 480);
-        g_gerd->clear(srFlags<srGERD::e_buffer>(3));
-        g_gerd->setScissor(0, 0, width, height);
-    }
+    clear_viewport:
+        {
+            unsigned long height = g_gerd->getHeight();
+            unsigned long width = g_gerd->getWidth();
+            g_gerd->setScissor(g_viewport.left * width / 640, g_viewport.top * height / 480,
+                               (g_viewport.right - g_viewport.left) * width / 640,
+                               (g_viewport.bottom - g_viewport.top) * height / 480);
+            g_gerd->clear(srFlags<srGERD::e_buffer>(3));
+            g_gerd->setScissor(0, 0, width, height);
+        }
     }
 
     first_page = g_active_page ? g_scene_prerender0 : g_scene_prerender1;
@@ -1543,11 +1544,11 @@ stModelInstance2D* CreateSpriteFromTexture(srTextureIFace* texture, double width
     model->autoRelease();
     model->setName("Video2DMakePolygonBrush");
 
-    float step = g_surface_scale * (g_float_005ebb38 / w);
+    float step = g_surface_scale * (g_float_one / w);
     g_modeler->createGrid(1, 1);
     srModeler::MappingInfo mapping(srModeler::AXIS_X, srModeler::AXIS_Y,
-                                   g_float_005ebb38 - (step + step),
-                                   g_float_005ebb38 - (step + step), step, step);
+                                   g_float_one - (step + step), g_float_one - (step + step), step,
+                                   step);
     g_modeler->planarMap(0, 0, mapping);
     scale.Set(static_cast<float>(width), static_cast<float>(height), 1.0f);
     g_modeler->scale(scale);
@@ -2920,16 +2921,16 @@ const double g_double_005ebe90 = 0.0015625;
 // GLOBAL: WIZ8 0x005ebf40
 const double g_double_005ebf40 = 0.75;
 
-/* Packs four normalized colour components into the surface byte order:
-   red, green, blue, alpha from the high byte down. */
+/* Pack normalized alpha/red/green/blue into the surface's high-to-low
+   bytes, using the current x87 rounding mode. */
 // FUNCTION: WIZ8 0x00429700
-void __fastcall PackColourBytes(unsigned char* colour, double red, double green, double blue,
-                                double alpha)
+void __fastcall PackColourBytes(unsigned char* colour, double alpha, double red, double green,
+                                double blue)
 {
-    colour[3] = static_cast<int>(red * g_double_005ebf60);
-    colour[2] = static_cast<int>(green * g_double_005ebf60);
-    colour[1] = static_cast<int>(blue * g_double_005ebf60);
-    colour[0] = static_cast<int>(alpha * g_double_005ebf60);
+    colour[3] = static_cast<unsigned char>(srFloatToInt(alpha * g_double_005ebf60));
+    colour[2] = static_cast<unsigned char>(srFloatToInt(red * g_double_005ebf60));
+    colour[1] = static_cast<unsigned char>(srFloatToInt(green * g_double_005ebf60));
+    colour[0] = static_cast<unsigned char>(srFloatToInt(blue * g_double_005ebf60));
 }
 
 /* Places one tooltip node at a screen position in normalized coordinates.
@@ -3351,10 +3352,15 @@ void VideoToolTip(UINT16* text)
     }
     buffer->RenderText(static_cast<unsigned char*>(data),
                        static_cast<unsigned int>(surface->getPitch()), 2, 1, 1);
-    surface->setHLine(0, 0, g_help_box_width, 0xffed9954);
-    surface->setHLine(0, g_help_box_height - 1, g_help_box_width, 0xffed9954);
-    surface->setVLine(0, 0, g_help_box_height, 0xffed9954);
-    surface->setVLine(g_help_box_width - 1, 0, g_help_box_height, 0xffed9954);
+    unsigned long border_colour;
+    PackColourToLong(&border_colour, 1.0, 0.93, 0.6, 0.33);
+    surface->setHLine(0, 0, g_help_box_width, border_colour);
+    PackColourToLong(&border_colour, 1.0, 0.93, 0.6, 0.33);
+    surface->setHLine(0, g_help_box_height - 1, g_help_box_width, border_colour);
+    PackColourToLong(&border_colour, 1.0, 0.93, 0.6, 0.33);
+    surface->setVLine(0, 0, g_help_box_height, border_colour);
+    PackColourToLong(&border_colour, 1.0, 0.93, 0.6, 0.33);
+    surface->setVLine(g_help_box_width - 1, 0, g_help_box_height, border_colour);
 
     int rect[4];
     rect[0] = 0;
@@ -3701,15 +3707,14 @@ srNode* MakePosterQuad(srTextureIFace* texture, float width, float height, bool 
     if (model == 0) {
         return 0;
     }
-    float extent_w = g_float_005ebb38 / dimensions.width * g_surface_scale;
-    float extent_h = g_float_005ebb38 / dimensions.height * g_surface_scale;
+    float extent_w = g_float_one / dimensions.width * g_surface_scale;
+    float extent_h = g_float_one / dimensions.height * g_surface_scale;
     model->autoRelease();
     model->setName("VideoMakePoster");
     texture->getDimensions(dimensions);
     g_modeler->createGrid(1, 1);
-    srModeler::MappingInfo mapping(srModeler::AXIS_X, srModeler::AXIS_Y,
-                                   g_float_005ebb38 - extent_w, g_float_005ebb38 - extent_h,
-                                   extent_w, extent_h);
+    srModeler::MappingInfo mapping(srModeler::AXIS_X, srModeler::AXIS_Y, g_float_one - extent_w,
+                                   g_float_one - extent_h, extent_w, extent_h);
     g_modeler->planarMap(0, 0, mapping);
     srVector3T<float> scale;
     scale.Set(width, height, 1.0f);

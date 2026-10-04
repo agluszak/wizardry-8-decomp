@@ -1,26 +1,17 @@
 #ifndef WIZ8_FLOAT_CONSTANTS_H
 #define WIZ8_FLOAT_CONSTANTS_H
 
-/* Float globals the image keeps as addressable storage rather than as
-   immediate operands. A body that compares against one of these emits an FPU
-   compare against its address; writing the literal instead lets VC6 fold the
-   comparison into an integer test, which is how the difference shows up.
+/* Shared addressable floating-point constants. Zero and one serve several
+   unrelated roles; other names describe established consumers. Each retail
+   storage location has one declaration and one definition. */
 
-   They live here because more than one translation unit reads them, and one
-   address must have one name: 0x005EBB38 had accumulated four - g_one,
-   g_float, g_light_scale_identity twice - across GDCamera, Monster, PathAI,
-   Navigator, Spells and the stLight unit. The names here are
-   address-qualified on purpose: the same slot is read as a scale by one body,
-   as a clamp bound by another and as a threshold by a third, so no role name
-   is true of it. */
-
-extern const float g_float_005ebb38;
-extern const float g_float_005ebb34;
+extern const float g_float_one;
+extern const float g_float_zero;
 /* 0x005EBB30: 0.8, the radian bias subtracted from the near-camera scatter
    heading in PositionMonsterGroupNearCamera. */
-extern const float g_float_005ebb30;
+extern const float g_monster_scatter_heading_bias;
 /* 0x005ED828: 0.0016, the Random(1000) scale on the same scatter heading. */
-extern const float g_float_005ed828;
+extern const float g_monster_scatter_heading_random_scale;
 /* 0x005EE774: scales the record float into the group-engagement probe
    distance. */
 extern const float g_group_engagement_probe_scale;
@@ -114,7 +105,7 @@ extern const float g_float_005ebcb4;
 extern const float g_float_005ebcb8;
 extern const double g_double_005ebcc0;
 /* Shadow-extrusion pitch scale: 1/1500 as a float. */
-extern const float g_float_005ec8e0;
+extern const float g_shadow_extrusion_pitch_scale;
 extern const float g_float_005ee838;
 /* Automap pan step as a fraction of the current zoom span. */
 extern const float g_float_005ebcd8;
@@ -124,7 +115,7 @@ extern float g_search_radius;
 extern float g_search_cone_angle;
 extern const float g_float_005ebccc;
 /* 0x005EC340: 1.25, the fast magic-recovery trait's spell-point regen scale. */
-extern const float g_float_005ec340;
+extern const float g_fast_magic_recovery_scale;
 extern const float g_float_005ec028;
 extern const float g_float_005ec1a0;
 /* 0x005ED7A8: pi, the amplitude cursor-driven throw angles are scaled from. */
@@ -174,13 +165,12 @@ extern const float g_float_005ed8b8;
    0x005EC3FC and 0x005ED1E8 are the positive and negative half turns returned
    when the heading is exactly on the axis, and 0x005EC2A8 is the slightly
    different half turn the elevation helper subtracts. */
-/* 0x005ECE50: the per-step homing decay AdvanceMissileAI multiplies into the
-   record's turn budget. */
-extern const double g_double_005ece50;
+/* Per-step gravity subtracted from AdvanceMissileAI's vertical velocity. */
+extern const double g_missile_gravity_acceleration;
 /* 0x005ECE58/0x005ECE5C: the character launch height base and the per-slot
    vertical step GetCharacterProjectilePosition applies. */
-extern const float g_float_005ece58;
-extern const float g_float_005ece5c;
+extern const float g_character_projectile_height;
+extern const float g_character_projectile_height_step;
 extern const float g_camera_half_pi;
 extern const float g_quarter_turn;
 extern const float g_negative_quarter_turn;
@@ -198,11 +188,11 @@ extern const double g_double_005ed2e0;
 extern const float g_float_005ebca0;
 extern const float g_movement_speed_step;
 
-extern const double g_zero_005ebb40;
+extern const double g_double_zero;
 /* 0x005ED7D0: -1000000, the ground-settle failure height; the only reader is
    the backfire scatter retry loop in Magic.cpp, so it owns the constant. */
 extern const float g_ground_settle_fail;
-extern const float g_camera_angle_period_005ec014;
+extern const float g_camera_angle_period;
 extern const float g_float_005ebcf0;
 extern const float g_float_005ebcf8;
 extern const double g_double_005ec150;
@@ -211,15 +201,14 @@ extern const double g_double_005ec150;
 extern const double g_camera_view_factor_005ec300;
 /* 0x005EC240: 250000.0, squared camera-travel distance that triggers an
    automap cell refresh in UpdateWorldCameraAndPaths. */
-extern const double g_double_005ec240;
-/* 0x005ED7B0: 1/360, the half-degree step the random wander angle is built
-   from. */
-extern const double g_double_005ed7b0;
+extern const double g_automap_refresh_distance_squared;
+/* Reciprocal degrees per full turn, used to scale randomized headings. */
+extern const double g_inverse_full_turn_degrees;
 /* 0x005EE768: 1500.0, the "close enough" distance for patrol points and heard
    noises. */
 extern const double g_double_005ee768;
 /* 0x005EECD0: 1/2500, the party-movement fatigue accumulator's
    accumulator-to-tick conversion. */
-extern const float g_float_005eecd0;
+extern const float g_movement_fatigue_tick_scale;
 
 #endif

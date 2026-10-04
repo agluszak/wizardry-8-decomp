@@ -13,7 +13,7 @@ unsigned char W8OctRegionPolygon::InsideFrustumPlanes(const W8Plane* planes) con
 {
     for (short plane = 0; plane < 6; ++plane) {
         float distance = DotProduct(planes[plane].normal, position_18) + planes[plane].w;
-        if (distance < g_float_005ebb34) {
+        if (distance < g_float_zero) {
             return 0;
         }
     }
@@ -64,11 +64,11 @@ unsigned char W8OctPreTreeGeometry::CheckArrayLength(int** run, unsigned short c
 // FUNCTION: WIZ8 0x004cfc10
 void W8OctPreTreeGeometry::Release()
 {
-    if (vertices_04 != 0) {
-        int* last_faces = vertices_04[1].face_indices_44;
-        int* last_owned = vertices_04[1].owned_48;
+    if (m_vertices != 0) {
+        int* last_faces = m_vertices[1].face_indices_44;
+        int* last_owned = m_vertices[1].owned_48;
         for (unsigned long index = 1; index < vertex_count_00; ++index) {
-            W8OctPreTreeVertex* vertex = &vertices_04[index];
+            W8OctPreTreeVertex* vertex = &m_vertices[index];
             if (vertex->face_indices_44 != 0 && vertex->face_indices_44 != last_faces) {
                 if (last_faces != 0) {
                     free(last_faces);
@@ -90,12 +90,12 @@ void W8OctPreTreeGeometry::Release()
         if (last_owned != 0) {
             free(last_owned);
         }
-        free(vertices_04);
+        free(m_vertices);
     }
-    if (polygons_0c != 0) {
-        int* last_faces = polygons_0c[1].face_indices_44;
-        for (unsigned long index = 1; index < polygon_count_08; ++index) {
-            W8OctRegionPolygon* polygon = &polygons_0c[index];
+    if (m_polygons != 0) {
+        int* last_faces = m_polygons[1].face_indices_44;
+        for (unsigned long index = 1; index < m_polygon_count; ++index) {
+            W8OctRegionPolygon* polygon = &m_polygons[index];
             if (polygon->face_indices_44 != 0 && polygon->face_indices_44 != last_faces) {
                 if (last_faces != 0) {
                     free(last_faces);
@@ -107,7 +107,7 @@ void W8OctPreTreeGeometry::Release()
         if (last_faces != 0) {
             free(last_faces);
         }
-        free(polygons_0c);
+        free(m_polygons);
     }
     if (owned_14 != 0) {
         free(owned_14);

@@ -1389,7 +1389,7 @@ void CollectMonstersWithinRadius(const srVector3T<float>* centre, const srVector
 {
     unsigned int index;
 
-    if (radius == g_float_005ebb34) {
+    if (radius == g_float_zero) {
         return;
     }
 
@@ -1927,8 +1927,8 @@ void RefreshSpellTargetHighlightsAtRange(void)
             float channels[4];
 
             memcpy(channels, &monster->m_pRep->highlight_colour_04c, sizeof(channels));
-            if (channels[0] != g_float_005ebb34 || channels[1] != g_float_005ebb34 ||
-                channels[2] != g_float_005ebb34 || channels[3] != g_float_005ebb34) {
+            if (channels[0] != g_float_zero || channels[1] != g_float_zero ||
+                channels[2] != g_float_zero || channels[3] != g_float_zero) {
                 srVector4T<float> block;
                 block.Set(0.0f, 0.0f, 0.0f, 0.0f);
                 MonsterSetHighlightColour(monster, block);

@@ -1069,10 +1069,7 @@ void MonsterKilled(int record_id, int killer_party_slot)
     }
 }
 
-/* Unresolved fragment: five of the six functions lie in the anchored gap
-   between Sight.cpp (ends 0x00505F30) and NPC Scripting Facts.cpp
-   (0x00506670); 0x005080F0 sits past that hull in the gap before
-   NPC Manager.cpp (0x00509CD0). Two clusters, no proven ownership. */
+/* Original translation-unit ownership of these helpers is unknown. */
 
 // GLOBAL: WIZ8 0x00689b78
 unsigned char g_fact_values[1000];

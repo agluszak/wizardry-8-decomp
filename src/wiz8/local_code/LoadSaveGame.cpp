@@ -1848,7 +1848,7 @@ void ProcessMainGameAutoSave(void)
         return;
     }
     if (gXStatus.save_notice_shown == 0) {
-        if (gXStatus.gameplay_timer->GetProgress() <= g_float_005ebb38) {
+        if (gXStatus.gameplay_timer->GetProgress() <= g_float_one) {
             return;
         }
         gXStatus.save_notice_shown = true;

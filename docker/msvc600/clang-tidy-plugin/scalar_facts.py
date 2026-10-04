@@ -9,6 +9,7 @@ from __future__ import annotations
 import difflib
 import hashlib
 import json
+import re
 from collections import defaultdict, deque
 from dataclasses import dataclass, field, replace
 from pathlib import Path
@@ -281,6 +282,68 @@ def semantic_domain(declaration: DeclarationFact) -> str:
     if declaration.domain == "enum":
         return "enum:" + declaration.spelling.removeprefix("enum ")
     return declaration.domain
+
+
+def abi_width_inventory(facts: ScalarFacts) -> list[dict]:
+    """Classify current declaration spellings, without seeding retail recovery.
+
+    Saved facts retain typedef spelling, so aliases not named here require a
+    separate alias review. An enum fact does not say whether its declaration
+    has an explicit underlying type. Pointer/member-pointer ABI is target
+    dependent even if the pointed-to integer has an invariant width.
+    """
+    rows = []
+    for key, declaration in sorted(facts.declarations.items()):
+        spelling = declaration.spelling
+        hazards = []
+        if re.search(r"\blong\b", spelling) and not re.search(r"\blong\s+long\b", spelling):
+            hazards.append("long_ilp32_llp64_32_lp64_64")
+        if re.search(r"\b(?:size_t|ptrdiff_t|intptr_t|uintptr_t)\b", spelling):
+            hazards.append("pointer_sized_integer")
+        if re.search(r"\bwchar_t\b", spelling):
+            hazards.append("vc6_wide_code_unit_16")
+        if declaration.domain == "enum":
+            hazards.append("enum_representation_review")
+        if declaration.domain == "pointer":
+            hazards.append("pointer_representation")
+        if not hazards:
+            continue
+        rows.append(
+            {
+                "key": key,
+                "file": declaration.file,
+                "line": declaration.line,
+                "kind": declaration.kind,
+                "spelling": spelling,
+                "current_ast_width": declaration.width,
+                "hazards": hazards,
+                "status": "inconsistent" if key in facts.inconsistent else "requires_review",
+            }
+        )
+    return rows
+
+
+def pointer_integer_transports(facts: ScalarFacts) -> list[dict]:
+    """AST-attributed transport edges, including typedef-backed integer slots."""
+    rows = []
+    for flow in sorted(facts.flows):
+        source = facts.declarations.get(flow.source)
+        target = facts.declarations.get(flow.target)
+        if source is None or target is None:
+            continue
+        if {source.domain, target.domain} != {"pointer", "integer"}:
+            continue
+        rows.append(
+            {
+                **vars(flow),
+                "source_type": source.spelling,
+                "target_type": target.spelling,
+                "source_width": source.width,
+                "target_width": target.width,
+                "status": "requires_abi_boundary_review",
+            }
+        )
+    return rows
 
 
 def read_evidence(path: Path | None, facts: ScalarFacts) -> list[dict]:
@@ -1082,12 +1145,23 @@ def integer_report(facts: ScalarFacts, claims: list[dict]) -> dict:
             }
             for key in predicates
         ],
+        "abi_width_inventory": abi_width_inventory(facts),
+        "pointer_integer_transports": pointer_integer_transports(facts),
     }
 
 
 def write_integer_report(directory: Path, evidence_path: Path | None, destination: Path) -> dict:
     facts = read_scalar_facts(directory)
     report = integer_report(facts, read_evidence(evidence_path, facts))
+    # A saved AST snapshot can outlive the source that produced it. Hash its
+    # inputs for attribution without calling it current or retail evidence.
+    report["input_snapshot"] = {
+        "current_source_status": "not_verified",
+        "files": [
+            {"path": str(path), "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
+            for path in sorted(directory.glob("facts-*.tsv"))
+        ],
+    }
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     return report

@@ -277,39 +277,38 @@ static unsigned char CheckFileLayout(const OctPreTree* tree, const W8OctPreTreeG
     fclose(file);
 
     unsigned char ok = 1;
-    const W8OctSpatialState* spatial = &tree->spatial_000;
+    const W8OctSpatialState* spatial = &tree->m_spatial;
 
-    if (LoadWord(bytes, 0x00) != 0x22 || LoadFloat(bytes, 0x02) != spatial->extent_04 ||
-        LoadFloat(bytes, 0x06) != spatial->cell_size_08 ||
-        LoadFloat(bytes, 0x0a) != spatial->node_extent_70 ||
-        LoadFloat(bytes, 0x0e) != spatial->minimum_0c.x ||
-        LoadFloat(bytes, 0x1a) != spatial->maximum_18.x ||
-        LoadFloat(bytes, 0x26) != spatial->clipped_minimum_24.x ||
-        LoadFloat(bytes, 0x32) != spatial->clipped_maximum_30.x ||
-        LoadFloat(bytes, 0x3e) != spatial->working_minimum_78.x ||
-        LoadFloat(bytes, 0x4a) != spatial->working_maximum_84.x ||
-        LoadDword(bytes, 0x56) != tree->m_leaf_grid_dim_x_0a4 ||
-        LoadDword(bytes, 0x5a) != tree->m_leaf_grid_dim_y_0a8 ||
-        LoadDword(bytes, 0x5e) != tree->m_leaf_grid_dim_z_0ac ||
-        LoadWord(bytes, 0x62) != spatial->depth_44 ||
-        LoadWord(bytes, 0x64) != spatial->region_id_bound_58 ||
+    if (LoadWord(bytes, 0x00) != 0x22 || LoadFloat(bytes, 0x02) != spatial->m_extent ||
+        LoadFloat(bytes, 0x06) != spatial->m_cell_size ||
+        LoadFloat(bytes, 0x0a) != spatial->m_node_extent ||
+        LoadFloat(bytes, 0x0e) != spatial->m_minimum.x ||
+        LoadFloat(bytes, 0x1a) != spatial->m_maximum.x ||
+        LoadFloat(bytes, 0x26) != spatial->m_clipped_minimum.x ||
+        LoadFloat(bytes, 0x32) != spatial->m_clipped_maximum.x ||
+        LoadFloat(bytes, 0x3e) != spatial->m_working_minimum.x ||
+        LoadFloat(bytes, 0x4a) != spatial->m_working_maximum.x ||
+        LoadDword(bytes, 0x56) != tree->m_leaf_grid_dim_x ||
+        LoadDword(bytes, 0x5a) != tree->m_leaf_grid_dim_y ||
+        LoadDword(bytes, 0x5e) != tree->m_leaf_grid_dim_z ||
+        LoadWord(bytes, 0x62) != spatial->m_depth ||
+        LoadWord(bytes, 0x64) != spatial->m_region_id_bound ||
         LoadDword(bytes, 0x66) != spatial->submesh_count_74 ||
-        LoadDword(bytes, 0x6a) != tree->m_branch_count_0b4 ||
-        LoadDword(bytes, 0x6e) != tree->m_leaf_count_0b8 ||
-        LoadDword(bytes, 0x72) != geometry->polygon_count_08 ||
+        LoadDword(bytes, 0x6a) != tree->m_branch_count ||
+        LoadDword(bytes, 0x6e) != tree->m_leaf_count ||
+        LoadDword(bytes, 0x72) != geometry->m_polygon_count ||
         LoadDword(bytes, 0x76) != geometry->vertex_count_00 || LoadDword(bytes, 0x7a) != 0 ||
         LoadDword(bytes, 0x7e) != 0 || LoadDword(bytes, 0x82) != tree->polygon_cursor_3a0 ||
-        LoadDword(bytes, 0x86) != tree->m_gd_surface_stream_len_124 ||
-        LoadDword(bytes, 0x8a) != 0 || LoadDword(bytes, 0x8e) != 0 ||
-        LoadDword(bytes, 0x92) != tree->m_region_list_len_138 ||
-        LoadWord(bytes, 0x96) != spatial->region_count_46 ||
-        LoadWord(bytes, 0x98) != spatial->leaf_level_52 ||
-        LoadDword(bytes, 0x9a) != tree->m_root_mesh_count_1a8 ||
-        LoadDword(bytes, 0x9e) != tree->m_meshCount_1b4 ||
-        LoadDword(bytes, 0xa2) != tree->m_kind1_submesh_count_1ac ||
-        LoadFloat(bytes, 0xa6) != spatial->region_grid_cell_54 ||
-        LoadFloat(bytes, 0xac) != tree->m_region_cell_178 || LoadDword(bytes, 0xb0) != 0 ||
-        bytes[0xb8] != 0 || LoadFloat(bytes, 0xb9) != spatial->max_region_radius_60 ||
+        LoadDword(bytes, 0x86) != tree->m_gd_surface_stream_len || LoadDword(bytes, 0x8a) != 0 ||
+        LoadDword(bytes, 0x8e) != 0 || LoadDword(bytes, 0x92) != tree->m_region_list_len ||
+        LoadWord(bytes, 0x96) != spatial->m_region_count ||
+        LoadWord(bytes, 0x98) != spatial->m_leaf_level ||
+        LoadDword(bytes, 0x9a) != tree->m_root_mesh_count ||
+        LoadDword(bytes, 0x9e) != tree->m_meshCount ||
+        LoadDword(bytes, 0xa2) != tree->m_kind1_submesh_count ||
+        LoadFloat(bytes, 0xa6) != spatial->m_region_grid_cell ||
+        LoadFloat(bytes, 0xac) != tree->m_region_cell || LoadDword(bytes, 0xb0) != 0 ||
+        bytes[0xb8] != 0 || LoadFloat(bytes, 0xb9) != spatial->m_max_region_radius ||
         LoadDword(bytes, 0xbd) != 0 || LoadDword(bytes, 0xc1) != 0 || LoadWord(bytes, 0xc5) != 0 ||
         LoadWord(bytes, 0xc7) != 0) {
         ok = 0;
@@ -321,14 +320,13 @@ static unsigned char CheckFileLayout(const OctPreTree* tree, const W8OctPreTreeG
         ok = 0;
     }
     cursor += 4;
-    cursor += tree->m_branch_count_0b4 * 0x24;
-    cursor += tree->m_leaf_count_0b8 * 0x28;
+    cursor += tree->m_branch_count * 0x24;
+    cursor += tree->m_leaf_count * 0x28;
     cursor += tree->polygon_cursor_3a0 * 4;
-    cursor +=
-        tree->m_leaf_grid_dim_x_0a4 * tree->m_leaf_grid_dim_y_0a8 * tree->m_leaf_grid_dim_z_0ac * 4;
-    cursor += geometry->polygon_count_08 * 4;
-    cursor += tree->m_region_list_len_138 * 2;
-    cursor += tree->m_gd_surface_stream_len_124 * 4;
+    cursor += tree->m_leaf_grid_dim_x * tree->m_leaf_grid_dim_y * tree->m_leaf_grid_dim_z * 4;
+    cursor += geometry->m_polygon_count * 4;
+    cursor += tree->m_region_list_len * 2;
+    cursor += tree->m_gd_surface_stream_len * 4;
     /* Trigger list skipped (count 0); region array skipped (count <= 1). */
     if (LoadDword(bytes, cursor) != 0xffffffff) {
         ok = 0;
@@ -368,23 +366,22 @@ static unsigned char CheckFileLayout(const OctPreTree* tree, const W8OctPreTreeG
    exactly what the reader produces. */
 static unsigned char CheckLoadedSpatial(const OctPreTree* written, const W8Octree* loaded)
 {
-    const W8OctSpatialState* source = &written->spatial_000;
-    const W8OctSpatialState* back = &loaded->spatial_000;
-    return back->extent_04 == source->extent_04 && back->cell_size_08 == source->cell_size_08 &&
-           back->node_extent_70 == source->node_extent_70 &&
-           back->minimum_0c.x == source->minimum_0c.x &&
-           back->maximum_18.z == source->maximum_18.z &&
-           back->clipped_minimum_24.y == source->clipped_minimum_24.y &&
-           back->working_maximum_84.z == source->working_maximum_84.z &&
-           back->depth_44 == source->depth_44 && back->region_count_46 == source->region_count_46 &&
-           back->leaf_level_52 == source->leaf_level_52 &&
-           back->region_id_bound_58 == source->region_id_bound_58 &&
-           loaded->m_leaf_grid_dim_x_0a4 == written->m_leaf_grid_dim_x_0a4 &&
-           loaded->m_leaf_grid_dim_y_0a8 == written->m_leaf_grid_dim_y_0a8 &&
-           loaded->m_leaf_grid_dim_z_0ac == written->m_leaf_grid_dim_z_0ac &&
-           loaded->m_leaf_polygon_stream_len_0cc == written->polygon_cursor_3a0 &&
-           loaded->m_gd_surface_stream_len_124 == written->m_gd_surface_stream_len_124 &&
-           loaded->m_region_cell_178 == written->m_region_cell_178;
+    const W8OctSpatialState* source = &written->m_spatial;
+    const W8OctSpatialState* back = &loaded->m_spatial;
+    return back->m_extent == source->m_extent && back->m_cell_size == source->m_cell_size &&
+           back->m_node_extent == source->m_node_extent &&
+           back->m_minimum.x == source->m_minimum.x && back->m_maximum.z == source->m_maximum.z &&
+           back->m_clipped_minimum.y == source->m_clipped_minimum.y &&
+           back->m_working_maximum.z == source->m_working_maximum.z &&
+           back->m_depth == source->m_depth && back->m_region_count == source->m_region_count &&
+           back->m_leaf_level == source->m_leaf_level &&
+           back->m_region_id_bound == source->m_region_id_bound &&
+           loaded->m_leaf_grid_dim_x == written->m_leaf_grid_dim_x &&
+           loaded->m_leaf_grid_dim_y == written->m_leaf_grid_dim_y &&
+           loaded->m_leaf_grid_dim_z == written->m_leaf_grid_dim_z &&
+           loaded->m_leaf_polygon_stream_len == written->polygon_cursor_3a0 &&
+           loaded->m_gd_surface_stream_len == written->m_gd_surface_stream_len &&
+           loaded->m_region_cell == written->m_region_cell;
 }
 
 /* One vertex shared by two polygons with a different corner uv must grow the
@@ -404,17 +401,17 @@ static unsigned char CheckUvSeam(OctPreTree* tree)
     memset(&record, 0, sizeof(record));
     memset(polygons, 0, sizeof(polygons));
     record.vertex_count_14 = 4;
-    record.polygon_count_1c = 2;
+    record.m_polygon_count = 2;
     poly_vertices[0].x = 0;
     poly_vertices[0].y = 1;
     poly_vertices[0].z = 2;
     poly_vertices[1].x = 0;
     poly_vertices[1].y = 2;
     poly_vertices[1].z = 3;
-    record.poly_vertices_28 = poly_vertices;
+    record.m_poly_vertices = poly_vertices;
     polygon_ids[0] = 0;
     polygon_ids[1] = 1;
-    record.polygon_ids_24 = polygon_ids;
+    record.m_polygon_ids = polygon_ids;
     polygons[0].face_48.texture_coordinates[0].Set(0.1f, 0.2f);
     polygons[0].face_48.texture_coordinates[1].Set(0.3f, 0.4f);
     polygons[0].face_48.texture_coordinates[2].Set(0.5f, 0.6f);
@@ -422,16 +419,16 @@ static unsigned char CheckUvSeam(OctPreTree* tree)
     polygons[1].face_48.texture_coordinates[1].Set(0.5f, 0.6f);
     polygons[1].face_48.texture_coordinates[2].Set(0.9f, 1.0f);
     memset(&geometry, 0, sizeof(geometry));
-    geometry.polygons_0c = polygons;
+    geometry.m_polygons = polygons;
 
-    if (tree->SplitUVMaps(&record, &geometry) != 5 || record.poly_uv_index_2c == 0 ||
-        record.uv_map_30 == 0) {
+    if (tree->SplitUVMaps(&record, &geometry) != 5 || record.m_poly_uv_index == 0 ||
+        record.m_uv_map == 0) {
         return 0;
     }
-    return record.poly_uv_index_2c[0].x == 0 && record.poly_uv_index_2c[0].y == 1 &&
-           record.poly_uv_index_2c[0].z == 2 && record.poly_uv_index_2c[1].x == 4 &&
-           record.poly_uv_index_2c[1].y == 2 && record.poly_uv_index_2c[1].z == 3 &&
-           record.uv_map_30[4].x == 0.7f && record.uv_map_30[4].y == 0.8f;
+    return record.m_poly_uv_index[0].x == 0 && record.m_poly_uv_index[0].y == 1 &&
+           record.m_poly_uv_index[0].z == 2 && record.m_poly_uv_index[1].x == 4 &&
+           record.m_poly_uv_index[1].y == 2 && record.m_poly_uv_index[1].z == 3 &&
+           record.m_uv_map[4].x == 0.7f && record.m_uv_map[4].y == 0.8f;
 }
 
 /* InsertConditionalNodes packs (stop-prop number << 16) | (preprop index + 1)
@@ -465,10 +462,10 @@ static unsigned char CheckCondNodes(OctPreTree* tree)
                                        0x02) = 0x80; /* reinterpret-ok: same private-field
         poke at +0x02 */
 
-    tree->m_lNumSupports_2a8 = 1;
-    tree->m_lSupports_2b0[0] = 5;
-    tree->m_lNumBlocks_2ac = 1;
-    tree->m_lBlocks_328[0] = 12;
+    tree->m_lNumSupports = 1;
+    tree->m_lSupports[0] = 5;
+    tree->m_lNumBlocks = 1;
+    tree->m_lBlocks[0] = 12;
     if (tree->InsertConditionalNodes(&nodes, 0x1234, 0x56, preprops, 2) != 1) {
         return 0;
     }
@@ -549,67 +546,68 @@ static void RunOctFileRoundTrip(OctFileSemanticResult* result)
     result->uv_seam_ok = CheckUvSeam(tree);
     result->cond_nodes_ok = CheckCondNodes(tree);
 
-    tree->spatial_000.extent_04 = 64.0f;
-    tree->spatial_000.cell_size_08 = 4.0f;
-    tree->spatial_000.node_extent_70 = 128.0f;
-    tree->spatial_000.minimum_0c.Set(8.0f, 16.0f, 24.0f);
-    tree->spatial_000.maximum_18.Set(72.0f, 40.0f, 88.0f);
-    tree->spatial_000.clipped_minimum_24.Set(12.0f, 20.0f, 28.0f);
-    tree->spatial_000.clipped_maximum_30.Set(68.0f, 36.0f, 84.0f);
-    tree->spatial_000.working_minimum_78.Set(4.0f, 8.0f, 12.0f);
-    tree->spatial_000.working_maximum_84.Set(76.0f, 44.0f, 92.0f);
-    tree->spatial_000.depth_44 = 3;
-    tree->spatial_000.region_id_bound_58 = 7;
-    tree->spatial_000.region_count_46 = 1;
-    tree->spatial_000.leaf_level_52 = 5;
-    tree->spatial_000.region_grid_cell_54 = 1.5f;
-    tree->spatial_000.max_region_radius_60 = 2.5f;
+    tree->m_spatial.m_extent = 64.0f;
+    tree->m_spatial.m_cell_size = 4.0f;
+    tree->m_spatial.m_node_extent = 128.0f;
+    tree->m_spatial.m_minimum.Set(8.0f, 16.0f, 24.0f);
+    tree->m_spatial.m_maximum.Set(72.0f, 40.0f, 88.0f);
+    tree->m_spatial.m_clipped_minimum.Set(12.0f, 20.0f, 28.0f);
+    tree->m_spatial.m_clipped_maximum.Set(68.0f, 36.0f, 84.0f);
+    tree->m_spatial.m_working_minimum.Set(4.0f, 8.0f, 12.0f);
+    tree->m_spatial.m_working_maximum.Set(76.0f, 44.0f, 92.0f);
+    tree->m_spatial.m_depth = 3;
+    tree->m_spatial.m_region_id_bound = 7;
+    tree->m_spatial.m_region_count = 1;
+    tree->m_spatial.m_leaf_level = 5;
+    tree->m_spatial.m_region_grid_cell = 1.5f;
+    tree->m_spatial.m_max_region_radius = 2.5f;
     /* One submesh entry exercises the mesh block and the reader's
        max-scan/allocation of the region-index store. */
-    tree->spatial_000.submesh_count_74 = 1;
-    tree->m_leaf_grid_dim_x_0a4 = 2;
-    tree->m_leaf_grid_dim_y_0a8 = 2;
-    tree->m_leaf_grid_dim_z_0ac = 2;
-    tree->m_branch_count_0b4 = 1;
-    tree->m_leaf_count_0b8 = 1;
+    tree->m_spatial.submesh_count_74 = 1;
+    tree->m_leaf_grid_dim_x = 2;
+    tree->m_leaf_grid_dim_y = 2;
+    tree->m_leaf_grid_dim_z = 2;
+    tree->m_branch_count = 1;
+    tree->m_leaf_count = 1;
     tree->polygon_cursor_3a0 = 1;
-    tree->m_gd_surface_stream_len_124 = 1;
-    tree->m_region_list_len_138 = 1;
-    tree->m_root_mesh_count_1a8 = 4;
-    tree->m_kind1_submesh_count_1ac = 3;
-    tree->m_region_cell_178 = 8.0f;
+    tree->m_gd_surface_stream_len = 1;
+    tree->m_region_list_len = 1;
+    tree->m_root_mesh_count = 4;
+    tree->m_kind1_submesh_count = 3;
+    tree->m_region_cell = 8.0f;
 
-    tree->m_owned_09c = static_cast<W8OctPreTreeBranch*>(malloc(0x24));
-    tree->m_owned_0a0 = static_cast<W8OctPreTreeLeaf*>(malloc(0x28));
-    tree->m_owned_0b0 = static_cast<unsigned long*>(malloc(8 * 4));
-    tree->m_owned_0d0 = static_cast<unsigned long*>(malloc(4));
+    tree->m_branches = static_cast<W8OctPreTreeBranch*>(malloc(0x24));
+    tree->m_leaves = static_cast<W8OctPreTreeLeaf*>(malloc(0x28));
+    tree->m_leaf_lookup = static_cast<unsigned long*>(malloc(8 * 4));
+    tree->m_polygon_index_stream = static_cast<unsigned long*>(malloc(4));
     tree->m_aulPolyLookup = static_cast<unsigned long*>(malloc(4));
-    tree->m_owned_12c = static_cast<unsigned long*>(malloc(4));
-    tree->m_owned_148 = static_cast<unsigned short*>(malloc(2));
+    tree->m_gd_surface_index_stream = static_cast<unsigned long*>(malloc(4));
+    tree->m_region_index_stream = static_cast<unsigned short*>(malloc(2));
     tree->m_pSubmeshes = static_cast<W8OctSubmesh*>(malloc(2 * 0x10));
-    if (tree->m_owned_09c == 0 || tree->m_owned_0a0 == 0 || tree->m_owned_0b0 == 0 ||
-        tree->m_owned_0d0 == 0 || tree->m_aulPolyLookup == 0 || tree->m_owned_12c == 0 ||
-        tree->m_owned_148 == 0 || tree->m_pSubmeshes == 0) {
+    if (tree->m_branches == 0 || tree->m_leaves == 0 || tree->m_leaf_lookup == 0 ||
+        tree->m_polygon_index_stream == 0 || tree->m_aulPolyLookup == 0 ||
+        tree->m_gd_surface_index_stream == 0 || tree->m_region_index_stream == 0 ||
+        tree->m_pSubmeshes == 0) {
         goto restore;
     }
-    memset(tree->m_owned_09c, 0xa5, 0x24);
-    memset(tree->m_owned_0a0, 0x5a, 0x28);
+    memset(tree->m_branches, 0xa5, 0x24);
+    memset(tree->m_leaves, 0x5a, 0x28);
     /* The writer's leaf fixup strips bit 0 before serializing: 3 becomes 2
        in the file and after the round-trip. */
-    tree->m_owned_0a0[0].flags_00 = 3;
+    tree->m_leaves[0].flags_00 = 3;
     for (index = 0; index < 8; ++index) {
-        tree->m_owned_0b0[index] = 0x1000 + index * 0x11;
+        tree->m_leaf_lookup[index] = 0x1000 + index * 0x11;
     }
-    tree->m_owned_0d0[0] = 0x11223344;
+    tree->m_polygon_index_stream[0] = 0x11223344;
     tree->m_aulPolyLookup[0] = 0xaabbccdd;
-    tree->m_owned_12c[0] = 0xdeadbeef;
-    tree->m_owned_148[0] = 0x5a5a;
+    tree->m_gd_surface_index_stream[0] = 0xdeadbeef;
+    tree->m_region_index_stream[0] = 0x5a5a;
     memset(tree->m_pSubmeshes, 0, 2 * 0x10);
     tree->m_pSubmeshes[1].polygon_count_0c = 5;
 
     memset(&geometry, 0, sizeof(geometry));
     geometry.vertex_count_00 = 3;
-    geometry.polygon_count_08 = 1;
+    geometry.m_polygon_count = 1;
 
     result->write_ok = tree->WriteOctFile(&geometry, game_data);
     if (result->write_ok == 0) {
@@ -621,16 +619,17 @@ static void RunOctFileRoundTrip(OctFileSemanticResult* result)
 
     loaded = new W8Octree("NewLevel.oct", &loaded_data);
     result->load_ok = loaded != 0 && loaded_data != 0 && g_octree == loaded &&
-                      (loaded->spatial_000.flags_00 & 0x80000000) == 0;
+                      (loaded->m_spatial.flags_00 & 0x80000000) == 0;
     if (result->load_ok != 0) {
         result->spatial_roundtrip = CheckLoadedSpatial(tree, loaded);
-        result->leaf_flag_cleared = loaded->m_owned_0a0[0].flags_00 == 2;
-        result->tables_roundtrip =
-            loaded->m_branch_count_0b4 == 1 && loaded->m_leaf_count_0b8 == 1 &&
-            loaded->m_owned_0d0[0] == 0x11223344 && loaded->m_aulPolyLookup[0] == 0xaabbccdd &&
-            loaded->m_owned_12c[0] == 0xdeadbeef && loaded->m_owned_148[0] == 0x5a5a &&
-            loaded->m_pSubmeshes[1].polygon_count_0c == 5 &&
-            memcmp(loaded->m_owned_0b0, tree->m_owned_0b0, 8 * 4) == 0;
+        result->leaf_flag_cleared = loaded->m_leaves[0].flags_00 == 2;
+        result->tables_roundtrip = loaded->m_branch_count == 1 && loaded->m_leaf_count == 1 &&
+                                   loaded->m_polygon_index_stream[0] == 0x11223344 &&
+                                   loaded->m_aulPolyLookup[0] == 0xaabbccdd &&
+                                   loaded->m_gd_surface_index_stream[0] == 0xdeadbeef &&
+                                   loaded->m_region_index_stream[0] == 0x5a5a &&
+                                   loaded->m_pSubmeshes[1].polygon_count_0c == 5 &&
+                                   memcmp(loaded->m_leaf_lookup, tree->m_leaf_lookup, 8 * 4) == 0;
         result->gamedata_roundtrip = loaded_data->m_iNumEnvirons == 1 &&
                                      loaded_data->m_ppEnvirons != 0 &&
                                      loaded_data->m_ppEnvirons[0] != 0 &&

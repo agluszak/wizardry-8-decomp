@@ -954,8 +954,8 @@ void W8TriggerShakeEvent::Update()
     if (effect_038 == 0) {
         float intensity = intensity_03c / g_float_005ecf9c;
 
-        if (intensity < g_float_005ebb38) {
-            intensity = g_float_005ebb38;
+        if (intensity < g_float_one) {
+            intensity = g_float_one;
         }
         effect_038 = CreateCameraShakeEffect(m_pCountdown->m_duration_seconds, 0, intensity, 0, 0);
         effect_038->flags_00 &= ~2;
@@ -1523,7 +1523,7 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
                a terminator at surface_id[5] before atoi, and tests the world
                geometry without a null check on its owner. */
             if (surface_id[0] == 0) {
-                if (world->m_owned_04c->geometry_index_00 != 0) {
+                if (world->game_data->geometry_index_00 != 0) {
                     surface_id[5] = 0;
                     id = atoi(surface_id + 1);
                 }
@@ -1693,9 +1693,9 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
             trigger->flags_0a0 |= W8_TRIGGER_PLANE;
         trigger->m_pacRecipients = new char[strlen(recipients) + 1];
         strcpy(trigger->m_pacRecipients, recipients);
-        if ((trigger->flags_0a0 & W8_TRIGGER_PLANE) != 0 && world->m_owned_04c != 0 &&
-            world->m_owned_04c->geometry_index_00 != 0) {
-            world->m_owned_04c->AddTriggerPlane(trigger->representation_vectors_0cc, trigger);
+        if ((trigger->flags_0a0 & W8_TRIGGER_PLANE) != 0 && world->game_data != 0 &&
+            world->game_data->geometry_index_00 != 0) {
+            world->game_data->AddTriggerPlane(trigger->representation_vectors_0cc, trigger);
         }
         if (trigger->initial_action_22a == 0x34 && trigger->m_pacRecipients[0] == 0) {
             trigger->range_minimum_0a4 = 0.0f;
@@ -2030,9 +2030,9 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
             }
         }
 
-        if (representation_kind == 2 && world->m_owned_04c != 0 &&
-            world->m_owned_04c->geometry_index_00 != 0) {
-            world->m_owned_04c->AddTriggerPlane(trigger->representation_vectors_0cc, trigger);
+        if (representation_kind == 2 && world->game_data != 0 &&
+            world->game_data->geometry_index_00 != 0) {
+            world->game_data->AddTriggerPlane(trigger->representation_vectors_0cc, trigger);
         }
         if (trigger->initial_action_22a == 0x34 && trigger->m_pacRecipients == 0) {
             trigger->range_minimum_0a4 = 0.0f;
@@ -2791,8 +2791,8 @@ void Trigger::Run(int source)
 
             m_pProp->SetRepresentationActive(1, true);
             state_index = 1;
-            if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && surface_id >= 0) {
-                m_pWorld->m_owned_04c->SetInterfaceState(surface_id, 1);
+            if (m_pWorld != 0 && m_pWorld->game_data != 0 && surface_id >= 0) {
+                m_pWorld->game_data->SetInterfaceState(surface_id, 1);
             }
             flags_0a0 |= W8_TRIGGER_RUNNING;
             if (action_data != 0) {
@@ -2832,8 +2832,8 @@ void Trigger::Run(int source)
             }
             state_index = state_index == 1 ? 0 : 1;
             m_pProp->SetRepresentationActive(state_index, true);
-            if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && surface_id >= 0) {
-                m_pWorld->m_owned_04c->SetInterfaceState(surface_id, state_index);
+            if (m_pWorld != 0 && m_pWorld->game_data != 0 && surface_id >= 0) {
+                m_pWorld->game_data->SetInterfaceState(surface_id, state_index);
             }
             flags_0a0 |= W8_TRIGGER_RUNNING;
             if (m_pActionData != 0 && m_pActionData->type_004 == 10) {
@@ -2867,8 +2867,8 @@ void Trigger::Run(int source)
             was_active = m_pProp->Rep()->animation_playing_06d;
             m_pProp->SetRepresentationActive(!was_active, true);
             state_index = state_index == 0;
-            if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && surface_id >= 0) {
-                m_pWorld->m_owned_04c->SetInterfaceState(surface_id, state_index);
+            if (m_pWorld != 0 && m_pWorld->game_data != 0 && surface_id >= 0) {
+                m_pWorld->game_data->SetInterfaceState(surface_id, state_index);
             }
             if (!was_active) {
                 flags_0a0 |= W8_TRIGGER_RUNNING;
@@ -3095,8 +3095,8 @@ void Trigger::Run(int source)
     toggle_item_prop:
         m_pProp->SetRepresentationActive(!was_active, true);
         state_index = state_index == 0;
-        if (m_pWorld->m_owned_04c != 0 && surface_id >= 0) {
-            m_pWorld->m_owned_04c->SetInterfaceState(surface_id, state_index);
+        if (m_pWorld->game_data != 0 && surface_id >= 0) {
+            m_pWorld->game_data->SetInterfaceState(surface_id, state_index);
         }
         if (!was_active) {
             flags_0a0 |= W8_TRIGGER_RUNNING;
@@ -3117,8 +3117,8 @@ void Trigger::Run(int source)
         }
         m_pProp->SetRepresentationActive(action_230 == 0x32, true);
         state_index = state_index == 0;
-        if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && surface_id >= 0) {
-            m_pWorld->m_owned_04c->SetInterfaceState(surface_id, state_index);
+        if (m_pWorld != 0 && m_pWorld->game_data != 0 && surface_id >= 0) {
+            m_pWorld->game_data->SetInterfaceState(surface_id, state_index);
         }
         if (action_230 == 0x32) {
             flags_0a0 |= W8_TRIGGER_RUNNING;
@@ -3283,8 +3283,8 @@ void Trigger::Run(int source)
         }
         m_pProp->SetRepresentationActive(m_pProp->Rep()->animation_playing_06d == 0, true);
         state_index = state_index == 0;
-        if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && surface_id >= 0) {
-            m_pWorld->m_owned_04c->SetInterfaceState(surface_id, state_index);
+        if (m_pWorld != 0 && m_pWorld->game_data != 0 && surface_id >= 0) {
+            m_pWorld->game_data->SetInterfaceState(surface_id, state_index);
         }
         break;
 
@@ -3294,8 +3294,8 @@ void Trigger::Run(int source)
         }
         m_pProp->SetRepresentationActive(m_pProp->Rep()->animation_playing_06d == 0, true);
         state_index = state_index == 0;
-        if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && surface_id >= 0) {
-            m_pWorld->m_owned_04c->SetInterfaceState(surface_id, state_index);
+        if (m_pWorld != 0 && m_pWorld->game_data != 0 && surface_id >= 0) {
+            m_pWorld->game_data->SetInterfaceState(surface_id, state_index);
         }
         break;
 

@@ -17,6 +17,13 @@ function(wiz8_lint_target target)
     target_link_libraries(${target} PRIVATE wiz8_compile_settings)
     target_include_directories(${target} BEFORE PRIVATE "${PROJECT_SOURCE_DIR}/tools/lint/include")
     target_compile_definitions(${target} PRIVATE WIZ8_CLANG_LINT)
+    if(WIZ8_ANALYSIS_X64)
+        target_compile_options(${target} PRIVATE
+            -Wpointer-to-int-cast
+            -Wint-to-pointer-cast
+            -Wshorten-64-to-32
+        )
+    endif()
 
     # Unavoidable Clang/VC6 driver and language-model compatibility. These are
     # not reconstruction diagnostics; recovered and vendor targets share them.

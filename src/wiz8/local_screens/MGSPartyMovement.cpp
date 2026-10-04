@@ -45,7 +45,7 @@ W8TextBuffer* g_party_movement_caption;
 unsigned int g_party_movement_animation_frame;
 
 // GLOBAL: WIZ8 0x005EECD0
-const float g_float_005eecd0 = 0.0004f;
+const float g_movement_fatigue_tick_scale = 0.0004f;
 
 void DrawPartyMovementGauge(short right, short image, bool panel_live, int caption);
 
@@ -388,7 +388,7 @@ unsigned char HandlePartyMovement(float* real_elapsed, float* frame_elapsed)
         }
         row->movement_fatigue = multiplier * amount + row->movement_fatigue;
         if (row->movement_fatigue > g_position_height_epsilon) {
-            ticks = static_cast<unsigned int>(row->movement_fatigue * g_float_005eecd0);
+            ticks = static_cast<unsigned int>(row->movement_fatigue * g_movement_fatigue_tick_scale);
             FatigueCharacter(party_slot, ticks, 0, 0);
             row->movement_fatigue = row->movement_fatigue - (ticks * 0x9c4);
         }

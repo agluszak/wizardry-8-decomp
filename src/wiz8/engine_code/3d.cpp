@@ -91,7 +91,7 @@ void DetachWorldItemMeshes(W8World* world)
 // FUNCTION: WIZ8 0x0046e4a0
 void DestroyWorldLights(W8World* world)
 {
-    W8PList* lights = &world->m_lights_0a8;
+    W8PList* lights = &world->transient_lights;
 
     while (PLLength(lights) != 0) {
         stLight* light = static_cast<stLight*>(PLGet(lights, 0));
@@ -175,16 +175,12 @@ unsigned char BakeInstanceVertexLighting(stModelInstance* instance, srNode* ligh
         unsigned long count = mesh->vertex_location_count_22c;
 
         srVector3T<float>* world_vertices = vertices;
-        if (rotation.vectors[0].x != g_float_005ebb38 ||
-            rotation.vectors[1].y != g_float_005ebb38 ||
-            rotation.vectors[2].z != g_float_005ebb38 ||
-            rotation.vectors[0].y != g_float_005ebb34 ||
-            rotation.vectors[0].z != g_float_005ebb34 ||
-            rotation.vectors[1].x != g_float_005ebb34 ||
-            rotation.vectors[1].z != g_float_005ebb34 ||
-            rotation.vectors[2].x != g_float_005ebb34 ||
-            rotation.vectors[2].y != g_float_005ebb34 || location.x != g_float_005ebb34 ||
-            location.y != g_float_005ebb34 || location.z != g_float_005ebb34) {
+        if (rotation.vectors[0].x != g_float_one || rotation.vectors[1].y != g_float_one ||
+            rotation.vectors[2].z != g_float_one || rotation.vectors[0].y != g_float_zero ||
+            rotation.vectors[0].z != g_float_zero || rotation.vectors[1].x != g_float_zero ||
+            rotation.vectors[1].z != g_float_zero || rotation.vectors[2].x != g_float_zero ||
+            rotation.vectors[2].y != g_float_zero || location.x != g_float_zero ||
+            location.y != g_float_zero || location.z != g_float_zero) {
             locations_allocated = 1;
             world_vertices =
                 static_cast<srVector3T<float>*>(malloc(count * sizeof(srVector3T<float>)));
@@ -195,18 +191,13 @@ unsigned char BakeInstanceVertexLighting(stModelInstance* instance, srNode* ligh
                 srVectorProcessor::memcopy(world_vertices, vertices,
                                            count * sizeof(srVector3T<float>));
             }
-            if (rotation.vectors[0].x == g_float_005ebb38 &&
-                rotation.vectors[1].y == g_float_005ebb38 &&
-                rotation.vectors[2].z == g_float_005ebb38 &&
-                rotation.vectors[0].y == g_float_005ebb34 &&
-                rotation.vectors[0].z == g_float_005ebb34 &&
-                rotation.vectors[1].x == g_float_005ebb34 &&
-                rotation.vectors[1].z == g_float_005ebb34 &&
-                rotation.vectors[2].x == g_float_005ebb34 &&
-                rotation.vectors[2].y == g_float_005ebb34) {
-                if (count != 0 &&
-                    (location.x != g_float_005ebb34 || location.y != g_float_005ebb34 ||
-                     location.z != g_float_005ebb34)) {
+            if (rotation.vectors[0].x == g_float_one && rotation.vectors[1].y == g_float_one &&
+                rotation.vectors[2].z == g_float_one && rotation.vectors[0].y == g_float_zero &&
+                rotation.vectors[0].z == g_float_zero && rotation.vectors[1].x == g_float_zero &&
+                rotation.vectors[1].z == g_float_zero && rotation.vectors[2].x == g_float_zero &&
+                rotation.vectors[2].y == g_float_zero) {
+                if (count != 0 && (location.x != g_float_zero || location.y != g_float_zero ||
+                                   location.z != g_float_zero)) {
                     srVectorProcessor::add(world_vertices, location, world_vertices,
                                            static_cast<SRDWORD>(count));
                 }
@@ -219,15 +210,11 @@ unsigned char BakeInstanceVertexLighting(stModelInstance* instance, srNode* ligh
         }
 
         srVector3T<float>* world_normals;
-        if (rotation.vectors[0].x == g_float_005ebb38 &&
-            rotation.vectors[1].y == g_float_005ebb38 &&
-            rotation.vectors[2].z == g_float_005ebb38 &&
-            rotation.vectors[0].y == g_float_005ebb34 &&
-            rotation.vectors[0].z == g_float_005ebb34 &&
-            rotation.vectors[1].x == g_float_005ebb34 &&
-            rotation.vectors[1].z == g_float_005ebb34 &&
-            rotation.vectors[2].x == g_float_005ebb34 &&
-            rotation.vectors[2].y == g_float_005ebb34) {
+        if (rotation.vectors[0].x == g_float_one && rotation.vectors[1].y == g_float_one &&
+            rotation.vectors[2].z == g_float_one && rotation.vectors[0].y == g_float_zero &&
+            rotation.vectors[0].z == g_float_zero && rotation.vectors[1].x == g_float_zero &&
+            rotation.vectors[1].z == g_float_zero && rotation.vectors[2].x == g_float_zero &&
+            rotation.vectors[2].y == g_float_zero) {
             world_normals = normals;
         } else {
             world_normals =
@@ -266,9 +253,8 @@ unsigned char BakeInstanceVertexLighting(stModelInstance* instance, srNode* ligh
                             return 0;
                         }
                     }
-                    if (light_position.x == g_float_005ebb34 &&
-                        light_position.y == g_float_005ebb34 &&
-                        light_position.z == g_float_005ebb34) {
+                    if (light_position.x == g_float_zero && light_position.y == g_float_zero &&
+                        light_position.z == g_float_zero) {
                         CopyDwordBuffer(directions, world_vertices, count * 3);
                     } else {
                         srVector3T<float> offset(-light_position.x, -light_position.y,
@@ -283,7 +269,7 @@ unsigned char BakeInstanceVertexLighting(stModelInstance* instance, srNode* ligh
                         if (distance <= range) {
                             direction.Normalize();
                             float facing = DotProduct(direction, world_normals[index]);
-                            if (facing < g_zero_005ebb40) {
+                            if (facing < g_double_zero) {
                                 double contribution =
                                     -facing * intensity * (g_double_005ebc30 - distance / range);
                                 if (vertex_materials != 0) {
@@ -325,15 +311,11 @@ unsigned char BakeInstanceVertexLighting(stModelInstance* instance, srNode* ligh
         if (locations_allocated != 0) {
             free(world_vertices);
         }
-        if (rotation.vectors[0].x != g_float_005ebb38 ||
-            rotation.vectors[1].y != g_float_005ebb38 ||
-            rotation.vectors[2].z != g_float_005ebb38 ||
-            rotation.vectors[0].y != g_float_005ebb34 ||
-            rotation.vectors[0].z != g_float_005ebb34 ||
-            rotation.vectors[1].x != g_float_005ebb34 ||
-            rotation.vectors[1].z != g_float_005ebb34 ||
-            rotation.vectors[2].x != g_float_005ebb34 ||
-            rotation.vectors[2].y != g_float_005ebb34) {
+        if (rotation.vectors[0].x != g_float_one || rotation.vectors[1].y != g_float_one ||
+            rotation.vectors[2].z != g_float_one || rotation.vectors[0].y != g_float_zero ||
+            rotation.vectors[0].z != g_float_zero || rotation.vectors[1].x != g_float_zero ||
+            rotation.vectors[1].z != g_float_zero || rotation.vectors[2].x != g_float_zero ||
+            rotation.vectors[2].y != g_float_zero) {
             free(world_normals);
         }
         if (directions != 0) {
@@ -392,7 +374,7 @@ void SetWorldMeshVertexLightTable(W8World* world, int table)
             model->flags_3a0 |= 2;
         }
     } else {
-        for (unsigned int mesh = 0; mesh < world->octree->m_meshCount_1b4; ++mesh) {
+        for (unsigned int mesh = 0; mesh < world->octree->m_meshCount; ++mesh) {
             srModelInstance* instance = world->psrMeshes[mesh];
             if (instance != 0) {
                 for (stMeshModel* model = static_cast<stMeshModel*>(instance->getModel());
@@ -646,7 +628,7 @@ stLight* CreateWorldLight(W8World* world, const char* name)
     light->enable_flags_194 |= 4;    /* ENABLE_BOUNDING_SPHERE */
 
     if (world != 0) {
-        PLAdoptAppend(&world->m_lights_0a8, light);
+        PLAdoptAppend(&world->transient_lights, light);
     }
     return light;
 }
@@ -678,7 +660,7 @@ stLight* CreateRangedWorldLight(W8World* world, const char* name)
     light->far_end_170 = 1500.0;
     light->safe_range_1d4 = 5000.0f;
     light->setLinearAttenuation(1500.0f, 0.0019569471f);
-    PLAdoptAppend(&world->m_lights_0a8, light);
+    PLAdoptAppend(&world->transient_lights, light);
     return light;
 }
 
@@ -693,7 +675,7 @@ void WorldRemoveLight(W8World* world, stLight* light)
     if (light == 0) {
         srAssertFail("pLight", THREE_D_CPP, 0x279, 0);
     }
-    PListRemove(&world->m_lights_0a8, light);
+    PListRemove(&world->transient_lights, light);
     world->lights_to_update->Remove(light);
     if (light != 0) {
         light->release();
@@ -982,7 +964,7 @@ bool PointInsideFrustum(const srVector3T<float>* point, const W8Plane* planes)
     for (short index = 0; index < 6; ++index) {
         float distance = SignedPlaneDistance(planes[index], *point);
 
-        if (distance < g_float_005ebb34) {
+        if (distance < g_float_zero) {
             return false;
         }
     }
@@ -1119,11 +1101,11 @@ bool BoundsInsideFrustum(const W8OctRegionVolume* volume, const W8BoundingBox* b
             for (short z = 0; z < 2; ++z) {
                 short plane = 0;
                 while (true) {
-                    if ((&bounds->minimum)[x].x * volume->planes_88[plane].normal.x +
-                            (&bounds->minimum)[y].y * volume->planes_88[plane].normal.y +
-                            (&bounds->minimum)[z].z * volume->planes_88[plane].normal.z +
-                            volume->planes_88[plane].w <
-                        g_float_005ebb34) {
+                    if ((&bounds->minimum)[x].x * volume->m_planes[plane].normal.x +
+                            (&bounds->minimum)[y].y * volume->m_planes[plane].normal.y +
+                            (&bounds->minimum)[z].z * volume->m_planes[plane].normal.z +
+                            volume->m_planes[plane].w <
+                        g_float_zero) {
                         break;
                     }
                     if (++plane > 5) {
@@ -1134,7 +1116,7 @@ bool BoundsInsideFrustum(const W8OctRegionVolume* volume, const W8BoundingBox* b
         }
     }
     for (short corner = 0; corner < 8; ++corner) {
-        const srVector3T<float>* point = &volume->points_1c[corner + 1];
+        const srVector3T<float>* point = &volume->m_points[corner + 1];
         if (bounds->minimum.x <= point->x && point->x < bounds->maximum.x &&
             bounds->minimum.y <= point->y && point->y < bounds->maximum.y &&
             bounds->minimum.z <= point->z && point->z < bounds->maximum.z) {

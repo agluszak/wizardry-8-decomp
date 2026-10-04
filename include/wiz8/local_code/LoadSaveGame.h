@@ -27,14 +27,14 @@ struct W8SaveSlot {
     FILETIME local_write_time;
     SYSTEMTIME timestamp;
     int game_time_days;
-    int game_time_ms;
+    unsigned int game_time_ms;
     int level_id;
     unsigned char iron_man;
     unsigned char padding_0a5[3];
     W8SaveScreenshot screenshot;
     int version_major;
-    int version_minor;
-    int version_patch;
+    unsigned int version_minor;
+    unsigned int version_patch;
     bool dev_flagged_263c; /* saved copy of status dev_flagged_49c1 */
     unsigned char padding_263d[3];
 };
@@ -73,9 +73,7 @@ unsigned char LoadLevelStatus(const char* path, int level);
 void BuildLevelStatusPath(char* path, unsigned int level);
 unsigned char LoadStatusHeader(W8Chunk* chunk);
 unsigned char SaveStatusHeader(W8Chunk* chunks);
-/* The per-level section reader behind LoadLevelStatus, and the already-open
-   save scan behind SaveLevelStatus. Both keep their address names until a
-   reviewed body supplies a semantic one. */
+/* The per-level item-section reader and the already-open level-status scan. */
 unsigned char LoadItemStatus(W8Chunk* chunk, int level);
 unsigned char MeasureLevelStatusChunks(W8Chunk* chunk, int level, unsigned int* empty_percent);
 

@@ -6,9 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* Unresolved fragment: all three functions lie in the anchored gap between
-   Party Import.cpp (ends 0x00559BC0) and chunk.cpp (0x0055BE80), the same
-   interval as npc_items.cpp. No proven ownership. */
+/* Original translation-unit ownership is unknown; surrounding anchors do not resolve it. */
 
 /* Read one record: its string table, its entry array, and each entry's
    sub-entries with their own strings. Three levels of dynamic array, each
