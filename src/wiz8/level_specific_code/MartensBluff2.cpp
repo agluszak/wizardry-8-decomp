@@ -145,6 +145,29 @@ void MartensBluff2Setup(void)
     }
 }
 
+static void FireTrapLauncher(const char* name, W8SpellEffectDefinition* effect)
+{
+    srVector3T<float> position;
+    srVector3T<float> offset;
+    srVector3T<float> direction;
+    srMatrix3T<float> rotation;
+    float angle;
+    W8Missile* missile;
+
+    if (FindEntityByName(name, &position, &angle, &direction)) {
+        offset.Set(0.0, 0.0, 15000.0);
+        rotation.SetIdentity();
+        if (angle != 0.0) {
+            rotation.RotateAroundAxis(sin(angle), cos(angle), direction);
+        }
+        offset = position + rotation.Transform(offset);
+        missile = FireMissile(0, &position, &offset, 0, 0, 1, 50000.0f);
+        missile->SetEffectDefinition(effect);
+        CreateAndPlaySoundNode("Data\\Sound\\Combat\\Blow_Gun_Attack_01.wav", position, 1.0f,
+                               15000.0f, 0);
+    }
+}
+
 /* "Arrowtraptrigger": fires a missile from each named launcher entity along
    its facing direction, rotated by the entity's yaw angle. */
 // FUNCTION: WIZ8 0x004DCD40
@@ -162,42 +185,9 @@ bool TriggerArrowTrap(Trigger* pTrigger)
     effect.magnitude.base = 0;
     effect.magnitude.count = 2;
     effect.magnitude.sides = 6;
-    if (FindEntityByName("Arrowlauncher1", &position, &angle, &direction)) {
-        offset.Set(0.0, 0.0, 15000.0);
-        rotation.SetIdentity();
-        if (angle != 0.0) {
-            rotation.RotateAroundAxis(sin(angle), cos(angle), direction);
-        }
-        offset = position + rotation.Transform(offset);
-        missile = FireMissile(0, &position, &offset, 0, 0, 1, 50000.0f);
-        missile->SetEffectDefinition(&effect);
-        CreateAndPlaySoundNode("Data\\Sound\\Combat\\Blow_Gun_Attack_01.wav", position, 1.0f,
-                               15000.0f, 0);
-    }
-    if (FindEntityByName("Arrowlauncher2", &position, &angle, &direction)) {
-        offset.Set(0.0, 0.0, 15000.0);
-        rotation.SetIdentity();
-        if (angle != 0.0) {
-            rotation.RotateAroundAxis(sin(angle), cos(angle), direction);
-        }
-        offset = position + rotation.Transform(offset);
-        missile = FireMissile(0, &position, &offset, 0, 0, 1, 50000.0f);
-        missile->SetEffectDefinition(&effect);
-        CreateAndPlaySoundNode("Data\\Sound\\Combat\\Blow_Gun_Attack_01.wav", position, 1.0f,
-                               15000.0f, 0);
-    }
-    if (FindEntityByName("Arrowlauncher3", &position, &angle, &direction)) {
-        offset.Set(0.0, 0.0, 15000.0);
-        rotation.SetIdentity();
-        if (angle != 0.0) {
-            rotation.RotateAroundAxis(sin(angle), cos(angle), direction);
-        }
-        offset = position + rotation.Transform(offset);
-        missile = FireMissile(0, &position, &offset, 0, 0, 1, 50000.0f);
-        missile->SetEffectDefinition(&effect);
-        CreateAndPlaySoundNode("Data\\Sound\\Combat\\Blow_Gun_Attack_01.wav", position, 1.0f,
-                               15000.0f, 0);
-    }
+    FireTrapLauncher("Arrowlauncher1", &effect);
+    FireTrapLauncher("Arrowlauncher2", &effect);
+    FireTrapLauncher("Arrowlauncher3", &effect);
     if (FindEntityByName("Arrowlauncher4", &position, &angle, &direction)) {
         offset.Set(0.0, 0.0, 15000.0);
         rotation.SetIdentity();
@@ -272,42 +262,9 @@ void MartensBluff2Spikeball(int command)
             effect.magnitude.base = 0;
             effect.magnitude.count = 2;
             effect.magnitude.sides = 6;
-            if (FindEntityByName("Spikeball-launcher1", &position, &angle, &direction)) {
-                offset.Set(0.0, 0.0, 15000.0);
-                rotation.SetIdentity();
-                if (angle != 0.0) {
-                    rotation.RotateAroundAxis(sin(angle), cos(angle), direction);
-                }
-                offset = position + rotation.Transform(offset);
-                missile = FireMissile(0, &position, &offset, 0, 0, 1, 50000.0f);
-                missile->SetEffectDefinition(&effect);
-                CreateAndPlaySoundNode("Data\\Sound\\Combat\\Blow_Gun_Attack_01.wav", position,
-                                       1.0f, 15000.0f, 0);
-            }
-            if (FindEntityByName("Spikeball-launcher2", &position, &angle, &direction)) {
-                offset.Set(0.0, 0.0, 15000.0);
-                rotation.SetIdentity();
-                if (angle != 0.0) {
-                    rotation.RotateAroundAxis(sin(angle), cos(angle), direction);
-                }
-                offset = position + rotation.Transform(offset);
-                missile = FireMissile(0, &position, &offset, 0, 0, 1, 50000.0f);
-                missile->SetEffectDefinition(&effect);
-                CreateAndPlaySoundNode("Data\\Sound\\Combat\\Blow_Gun_Attack_01.wav", position,
-                                       1.0f, 15000.0f, 0);
-            }
-            if (FindEntityByName("Spikeball-launcher3", &position, &angle, &direction)) {
-                offset.Set(0.0, 0.0, 15000.0);
-                rotation.SetIdentity();
-                if (angle != 0.0) {
-                    rotation.RotateAroundAxis(sin(angle), cos(angle), direction);
-                }
-                offset = position + rotation.Transform(offset);
-                missile = FireMissile(0, &position, &offset, 0, 0, 1, 50000.0f);
-                missile->SetEffectDefinition(&effect);
-                CreateAndPlaySoundNode("Data\\Sound\\Combat\\Blow_Gun_Attack_01.wav", position,
-                                       1.0f, 15000.0f, 0);
-            }
+            FireTrapLauncher("Spikeball-launcher1", &effect);
+            FireTrapLauncher("Spikeball-launcher2", &effect);
+            FireTrapLauncher("Spikeball-launcher3", &effect);
             if (FindEntityByName("Spikeball-launcher4", &position, &angle, &direction)) {
                 offset.Set(0.0, 0.0, 15000.0);
                 rotation.SetIdentity();

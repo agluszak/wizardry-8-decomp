@@ -988,6 +988,25 @@ W8LockInteraction::~W8LockInteraction()
     delete m_action_panel;
 }
 
+int W8LockInteraction::ReleaseOwnedTumblers(int slot)
+{
+    int dropped = 0;
+    int i;
+    for (i = 0; i < m_tumbler_count; i++) {
+        if (m_tumbler_owner[i] == slot && m_tumbler_locked[i] != 0) {
+            m_tumbler_owner[i] = -1;
+            m_tumbler_locked[i] = 0;
+            m_tumbler_panel->m_tumblers[i]->m_at_top = 0;
+            m_tumbler_panel->m_tumblers[i]->m_pin_set = 0;
+            m_tumbler_panel->m_tumblers[i]->m_falling = 1;
+            m_tumbler_panel->m_animating = 1;
+            dropped = 1;
+        }
+    }
+    m_tumbler_panel->Invalidate(0);
+    return dropped;
+}
+
 // FUNCTION: WIZ8 0x00586740
 void W8LockInteraction::Process()
 {
@@ -1029,21 +1048,8 @@ void W8LockInteraction::Process()
         AttemptForce();
         return;
     case 3:
-        dropped = 0;
         m_state = 4;
-        slot = g_status.selected_character;
-        for (i = 0; i < m_tumbler_count; i++) {
-            if (m_tumbler_owner[i] == slot && m_tumbler_locked[i] != 0) {
-                m_tumbler_owner[i] = -1;
-                m_tumbler_locked[i] = 0;
-                m_tumbler_panel->m_tumblers[i]->m_at_top = 0;
-                m_tumbler_panel->m_tumblers[i]->m_pin_set = 0;
-                m_tumbler_panel->m_tumblers[i]->m_falling = 1;
-                m_tumbler_panel->m_animating = 1;
-                dropped = 1;
-            }
-        }
-        m_tumbler_panel->Invalidate(0);
+        dropped = ReleaseOwnedTumblers(g_status.selected_character);
         goto lock_release_done;
     case 4:
         m_state = 0;
@@ -1057,21 +1063,8 @@ void W8LockInteraction::Process()
         }
         break;
     case 5:
-        dropped = 0;
         m_state = 6;
-        slot = g_status.selected_character;
-        for (i = 0; i < m_tumbler_count; i++) {
-            if (m_tumbler_owner[i] == slot && m_tumbler_locked[i] != 0) {
-                m_tumbler_owner[i] = -1;
-                m_tumbler_locked[i] = 0;
-                m_tumbler_panel->m_tumblers[i]->m_at_top = 0;
-                m_tumbler_panel->m_tumblers[i]->m_pin_set = 0;
-                m_tumbler_panel->m_tumblers[i]->m_falling = 1;
-                m_tumbler_panel->m_animating = 1;
-                dropped = 1;
-            }
-        }
-        m_tumbler_panel->Invalidate(0);
+        dropped = ReleaseOwnedTumblers(g_status.selected_character);
     lock_release_done:
         if (dropped) {
             SoundPlay(s_lock_pin_falling, 0);

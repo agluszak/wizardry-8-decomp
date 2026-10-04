@@ -395,6 +395,7 @@ public:
     virtual ~W8LockInteraction();                            /* 0x005866A0 */
     virtual void OnTumblerPicked(int index) override;        /* 0x00586B10 */
     virtual void OnPrimary(W8TextControl* control) override; /* 0x00586C00 */
+    int ReleaseOwnedTumblers(int slot);
     void Process();                                          /* 0x00586740 */
     void ResolvePick();                                      /* 0x00586C60 */
     void AttemptForce();                                     /* 0x00586E40 */

@@ -292,6 +292,16 @@ unsigned char AutomapBackgroundRegionEvent(const InputAtom* event, W8Region* reg
     return 1;
 }
 
+static void ClearAutomapNotes()
+{
+    while (g_automap_notes->GetCount() != 0) {
+        W8AutomapNote* note = *g_automap_notes->GetAt(0);
+        free(note->text);
+        delete note;
+        g_automap_notes->RemoveAt(0);
+    }
+}
+
 /* Rebuild the automap view for the level that just loaded: release every
    note, size the query range from the level, seed the cell grid from the
    octree bounds (or a fixed cube when there is no octree), and mark the
@@ -308,12 +318,7 @@ void ResetAutomapView(void)
         }
         memset(g_automap_state, 0, sizeof(W8AutomapState));
     }
-    while (g_automap_notes->GetCount() != 0) {
-        W8AutomapNote* note = *g_automap_notes->GetAt(0);
-        free(note->text);
-        delete note;
-        g_automap_notes->RemoveAt(0);
-    }
+    ClearAutomapNotes();
     g_automap_redraw = true;
     if (g_status.current_level == 0x18 ||
         (g_status.current_level > 0x1a && g_status.current_level <= 0x22)) {
@@ -1388,6 +1393,20 @@ void ResetAutomapLighting(void)
     g_automap_lit_cells->ClearAll();
 }
 
+static srVector3T<float> GetAutomapCellPosition(unsigned int index)
+{
+    srVector3T<float> cell;
+    cell.SetZero();
+    if (g_automap_cell_keys != 0 || index < static_cast<unsigned int>(g_automap_cell_count)) {
+        unsigned int key = g_automap_cell_keys[index];
+        float half = g_automap_grid_cell_size * g_float_005ebc7c;
+        cell.Set((key >> 0x15) * g_automap_grid_cell_size + half,
+                 (key & 0x3ff) * g_automap_grid_cell_size + half,
+                 ((key >> 10) & 0x7ff) * g_automap_grid_cell_size + half);
+    }
+    return cell + g_automap_grid_origin;
+}
+
 /* Light up to `max_count` visited cells that have not yet been processed into
    vertex lights. Returns how many cells were lit; a zero answer means the
    pending set is empty. */
@@ -1408,17 +1427,7 @@ unsigned int LightPendingAutomapCells(unsigned int max_count)
                 }
             }
             if (g_automap_visited_cells->Test(bit) != 0) {
-                srVector3T<float> cell;
-                cell.SetZero();
-                if (g_automap_cell_keys != 0 || bit < static_cast<unsigned int>(g_automap_cell_count)) {
-                    unsigned int key = g_automap_cell_keys[bit];
-                    float half = g_automap_grid_cell_size * g_float_005ebc7c;
-                    cell.Set((key >> 0x15) * g_automap_grid_cell_size + half,
-                             (key & 0x3ff) * g_automap_grid_cell_size + half,
-                             ((key >> 10) & 0x7ff) * g_automap_grid_cell_size + half);
-                }
-                srVector3T<float> position;
-                position = cell + g_automap_grid_origin;
+                srVector3T<float> position = GetAutomapCellPosition(bit);
                 if (g_automap_lit_cells->Test(bit) == 0) {
                     g_automap_lit_cells->Set(bit);
                     LightAutomapCell(&position);
@@ -1472,18 +1481,7 @@ void UpdateAutomapBounds(void)
                     }
                 }
                 if (g_automap_visited_cells->Test(bit) != 0) {
-                    srVector3T<float> cell;
-                    cell.SetZero();
-                    if (g_automap_cell_keys != 0 ||
-                        bit < static_cast<unsigned int>(g_automap_cell_count)) {
-                        unsigned int key = g_automap_cell_keys[bit];
-                        float half = g_automap_grid_cell_size * g_float_005ebc7c;
-                        cell.Set((key >> 0x15) * g_automap_grid_cell_size + half,
-                                 (key & 0x3ff) * g_automap_grid_cell_size + half,
-                                 ((key >> 10) & 0x7ff) * g_automap_grid_cell_size + half);
-                    }
-                    srVector3T<float> position;
-                    position = cell + g_automap_grid_origin;
+                    srVector3T<float> position = GetAutomapCellPosition(bit);
                     if (position.x <= g_automap_bounds_min.x) {
                         g_automap_bounds_min.x = position.x;
                     }
@@ -1816,12 +1814,7 @@ bool SaveAutomapNotes(int handle)
 bool LoadAutomapNotes(int handle)
 {
     int signature = 0;
-    while (g_automap_notes->GetCount() != 0) {
-        W8AutomapNote* note = *g_automap_notes->GetAt(0);
-        free(note->text);
-        delete note;
-        g_automap_notes->RemoveAt(0);
-    }
+    ClearAutomapNotes();
     g_automap_redraw = true;
     if (g_automap_visited_cells != 0 && 1 < g_automap_visited_cells->bit_count) {
         g_automap_visited_cells->Load(handle);

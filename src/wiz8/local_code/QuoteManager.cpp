@@ -549,33 +549,29 @@ void W8CharacterEventQueue::RemoveCharacterEvents(W8Character* character)
     for (index = 0; index < vector1.count; ++index) {
         entry = *vector1.GetAt(index);
         if (entry->character == character) {
-            vector1.RemoveAt(index);
+            vector1.RemoveAtAndDelete(index);
             --index;
-            delete entry;
         }
     }
     for (index = 0; index < pending_events.count; ++index) {
         entry = *pending_events.GetAt(index);
         if (entry->character == character) {
-            pending_events.RemoveAt(index);
+            pending_events.RemoveAtAndDelete(index);
             --index;
-            delete entry;
         }
     }
     for (index = 0; index < vector0.count; ++index) {
         entry = *vector0.GetAt(index);
         if (entry->character == character) {
-            vector0.RemoveAt(index);
+            vector0.RemoveAtAndDelete(index);
             --index;
-            delete entry;
         }
     }
     for (index = 0; index < npc_deferred_events.count; ++index) {
         entry = *npc_deferred_events.GetAt(index);
         if (entry->character == character) {
-            npc_deferred_events.RemoveAt(index);
+            npc_deferred_events.RemoveAtAndDelete(index);
             --index;
-            delete entry;
         }
     }
 }
