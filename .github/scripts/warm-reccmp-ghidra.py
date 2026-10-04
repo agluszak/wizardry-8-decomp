@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Warm the reusable Ghidra project for a comparison target."""
 
 from __future__ import annotations
