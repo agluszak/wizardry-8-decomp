@@ -346,11 +346,15 @@ jobs:
           key: reccmp-ghidra-v1-${{ runner.os }}-${{ hashFiles('uv.lock') }}-${{ github.sha }}
           restore-keys: |
             reccmp-ghidra-v1-${{ runner.os }}-${{ hashFiles('uv.lock') }}-
-      - name: Compare changed WIZ8 functions
-        id: wiz8-compare
+      - name: Warm reusable WIZ8 Ghidra analysis
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: uv run python .github/scripts/warm-reccmp-ghidra.py WIZ8
+      - name: Resolve WIZ8 PR merge base
+        id: wiz8-merge-base
         if: github.event_name == 'pull_request'
-        continue-on-error: true
+        shell: bash
         run: |
+          set -euo pipefail
           base_sha="${{ github.event.pull_request.base.sha }}"
           git fetch --no-tags --depth=2 origin "$GITHUB_SHA" "$base_sha"
           merge_base=""
@@ -363,6 +367,13 @@ jobs:
             echo "Could not resolve PR merge base" >&2
             exit 1
           fi
+          printf 'sha=%s\n' "$merge_base" >> "$GITHUB_OUTPUT"
+      - name: Compare changed WIZ8 functions
+        id: wiz8-compare
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        run: |
+          merge_base="${{ steps.wiz8-merge-base.outputs.sha }}"
           if ! git diff --name-only --diff-filter=d "$merge_base" HEAD | \
             grep -Eq '^(src/wiz8/|src/sgp/|include/wiz8/|include/surrender/).*\.(c|cc|cpp|cxx|h|hpp|hxx)$'; then
             echo 'No changed WIZ8 C/C++ source; skipping function comparison.'
@@ -370,7 +381,7 @@ jobs:
           fi
           # Differences are review material; the step fails only when a
           # comparison did not complete or a changed function is unpaired.
-          uv run wiz8 compare --changed --since "$merge_base" --sxs
+          uv run wiz8 compare --changed --since "$merge_base"
       - name: Capture selected WIZ8 comparison
         if: github.event_name == 'pull_request'
         shell: bash
@@ -404,8 +415,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wiz8-comparison-report
-          # Ghidriff names side-by-side files after C++ symbols, which can
-          # contain colons rejected by the artifact service.
           path: build/reports/compare/wiz8-report.tar.gz
           if-no-files-found: ignore
       - name: Run WIZ8 checks
@@ -446,15 +455,39 @@ jobs:
       - name: Fail if WIZ8 checks failed
         if: steps.wiz8-checks.outcome == 'failure'
         run: exit 1
+      - name: Save completed WIZ8 head analysis
+        if: github.event_name == 'pull_request' && steps.wiz8-analysis-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: build/reccmp-ghidra
+          key: ${{ steps.wiz8-analysis-cache.outputs.cache-primary-key }}
+      - name: Save reusable WIZ8 main analysis
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/cache/save@v4
+        with:
+          path: build/reccmp-ghidra
+          key: reccmp-ghidra-main-v1-${{ runner.os }}-${{ hashFiles('uv.lock') }}-${{ env.GHIDRA_SHA256 }}-${{ github.sha }}
+      - name: Clear WIZ8 head analysis before base restore
+        if: github.event_name == 'pull_request'
+        run: rm -rf build/reccmp-ghidra
+      - name: Restore reusable WIZ8 merge-base analysis
+        if: github.event_name == 'pull_request'
+        uses: actions/cache/restore@v4
+        with:
+          path: build/reccmp-ghidra
+          key: reccmp-ghidra-main-v1-${{ runner.os }}-${{ hashFiles('uv.lock') }}-${{ env.GHIDRA_SHA256 }}-${{ steps.wiz8-merge-base.outputs.sha }}
+          restore-keys: |
+            reccmp-ghidra-main-v1-${{ runner.os }}-${{ hashFiles('uv.lock') }}-${{ env.GHIDRA_SHA256 }}-
       - name: Compare WIZ8 merge base
         if: github.event_name == 'pull_request'
         run: |
           bash .github/scripts/compare-reccmp-base.sh \
             WIZ8 wiz8 match \
             "${{ github.event.pull_request.base.sha }}" "$GITHUB_SHA" wiz8
-      # Preserve completed analysis even if downstream PR-summary reporting fails.
+      # Preserve the rolling cache on non-PR runs. PR head state was saved
+      # before the merge-base cache replaced build/reccmp-ghidra.
       - name: Save completed WIZ8 analysis
-        if: steps.wiz8-analysis-cache.outputs.cache-hit != 'true'
+        if: github.event_name != 'pull_request' && steps.wiz8-analysis-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           path: build/reccmp-ghidra
@@ -562,22 +595,29 @@ jobs:
       - name: Build SURRENDER comparison product
         run: uv run wiz8 build SURRENDER
       - name: Install pinned Ghidra
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
         uses: ./.github/actions/install-ghidra
       - name: Restore reviewed SURRENDER checkpoint
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
         run: uv run wiz8 ghidra restore --program sr.dll
       - name: Restore reccmp Ghidra analysis
-        if: github.event_name == 'pull_request'
-        uses: actions/cache@v4
+        id: surrender-analysis-cache
+        if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+        uses: actions/cache/restore@v4
         with:
           path: build/reccmp-ghidra
           key: reccmp-ghidra-surrender-v1-${{ runner.os }}-${{ hashFiles('uv.lock') }}-${{ github.sha }}
           restore-keys: |
             reccmp-ghidra-surrender-v1-${{ runner.os }}-${{ hashFiles('uv.lock') }}-
-      - name: Compare changed SURRENDER functions
+      - name: Warm reusable SURRENDER Ghidra analysis
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: uv run python .github/scripts/warm-reccmp-ghidra.py SURRENDER
+      - name: Resolve SURRENDER PR merge base
+        id: surrender-merge-base
         if: github.event_name == 'pull_request'
+        shell: bash
         run: |
+          set -euo pipefail
           base_sha="${{ github.event.pull_request.base.sha }}"
           git fetch --no-tags --depth=2 origin "$GITHUB_SHA" "$base_sha"
           merge_base=""
@@ -590,13 +630,17 @@ jobs:
             echo "Could not resolve PR merge base" >&2
             exit 1
           fi
+          printf 'sha=%s\n' "$merge_base" >> "$GITHUB_OUTPUT"
+      - name: Compare changed SURRENDER functions
+        if: github.event_name == 'pull_request'
+        run: |
+          merge_base="${{ steps.surrender-merge-base.outputs.sha }}"
           if ! git diff --name-only --diff-filter=d "$merge_base" HEAD | \
             grep -Eq '^(src/surrender/|include/surrender/).*\.(c|cc|cpp|cxx|h|hpp|hxx)$'; then
             echo 'No changed SURRENDER C/C++ source; skipping function comparison.'
             exit 0
           fi
-          uv run wiz8 compare --changed --since "$merge_base" \
-            --program sr.dll --sxs
+          uv run wiz8 compare --changed --since "$merge_base" --program sr.dll
       - name: Capture selected SURRENDER comparison
         if: github.event_name == 'pull_request'
         shell: bash
@@ -639,6 +683,29 @@ jobs:
           if (( datacmp_status != 0 )); then
             echo "::warning::SURRENDER datacmp reports differences"
           fi
+      - name: Save completed SURRENDER head analysis
+        if: github.event_name == 'pull_request' && steps.surrender-analysis-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: build/reccmp-ghidra
+          key: ${{ steps.surrender-analysis-cache.outputs.cache-primary-key }}
+      - name: Save reusable SURRENDER main analysis
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/cache/save@v4
+        with:
+          path: build/reccmp-ghidra
+          key: reccmp-ghidra-surrender-main-v1-${{ runner.os }}-${{ hashFiles('uv.lock') }}-${{ env.GHIDRA_SHA256 }}-${{ github.sha }}
+      - name: Clear SURRENDER head analysis before base restore
+        if: github.event_name == 'pull_request'
+        run: rm -rf build/reccmp-ghidra
+      - name: Restore reusable SURRENDER merge-base analysis
+        if: github.event_name == 'pull_request'
+        uses: actions/cache/restore@v4
+        with:
+          path: build/reccmp-ghidra
+          key: reccmp-ghidra-surrender-main-v1-${{ runner.os }}-${{ hashFiles('uv.lock') }}-${{ env.GHIDRA_SHA256 }}-${{ steps.surrender-merge-base.outputs.sha }}
+          restore-keys: |
+            reccmp-ghidra-surrender-main-v1-${{ runner.os }}-${{ hashFiles('uv.lock') }}-${{ env.GHIDRA_SHA256 }}-
       - name: Compare SURRENDER merge base
         if: github.event_name == 'pull_request'
         run: |
