@@ -17,54 +17,10 @@ const char* srIOManager::Error::getDescription()
 }
 
 // FUNCTION: SURRENDER 0x1002C890
-srIOManager::srIOManager()
-{
-    Registration* importers = new Registration();
-    this->importers.first = importers;
-    this->importers.sentinel = importers;
-    importers->next = 0;
-    importers->previous = 0;
-    this->importers.count = 0;
-    Registration* exporters = new Registration();
-    this->exporters.first = exporters;
-    this->exporters.sentinel = exporters;
-    exporters->next = 0;
-    exporters->previous = 0;
-    this->exporters.count = 0;
-}
+srIOManager::srIOManager() {}
 
 // FUNCTION: SURRENDER 0x1002C920
-srIOManager::~srIOManager()
-{
-    Registration* node = exporters.first;
-    while (node != exporters.sentinel) {
-        exporters.first = node->next;
-        if (node->previous != 0) {
-            node->previous->next = node->next;
-        }
-        if (node->next != 0) {
-            node->next->previous = node->previous;
-        }
-        delete node;
-        node = exporters.first;
-        --exporters.count;
-    }
-    delete exporters.first;
-    node = importers.first;
-    while (node != importers.sentinel) {
-        importers.first = node->next;
-        if (node->previous != 0) {
-            node->previous->next = node->next;
-        }
-        if (node->next != 0) {
-            node->next->previous = node->previous;
-        }
-        delete node;
-        node = importers.first;
-        --importers.count;
-    }
-    delete importers.first;
-}
+srIOManager::~srIOManager() {}
 
 // FUNCTION: SURRENDER 0x1002D1C0
 const char* srIOManager::getExtension(const char* path)
@@ -175,17 +131,7 @@ void srIOManager::removeImporter(Importer* importer)
             node = node->next;
         }
         delete[] node->extension;
-        if (node == importers.first) {
-            importers.first = node->next;
-        }
-        if (node->previous != 0) {
-            node->previous->next = node->next;
-        }
-        if (node->next != 0) {
-            node->next->previous = node->previous;
-        }
-        delete node;
-        --importers.count;
+        importers.erase(node);
     } while (true);
 }
 
@@ -208,17 +154,7 @@ void srIOManager::removeExporter(Exporter* exporter)
             node = node->next;
         }
         delete[] node->extension;
-        if (node == exporters.first) {
-            exporters.first = node->next;
-        }
-        if (node->previous != 0) {
-            node->previous->next = node->next;
-        }
-        if (node->next != 0) {
-            node->next->previous = node->previous;
-        }
-        delete node;
-        --exporters.count;
+        exporters.erase(node);
     } while (true);
 }
 
