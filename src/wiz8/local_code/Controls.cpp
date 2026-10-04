@@ -149,14 +149,7 @@ void W8Widget::SetPanel(Controls* panel)
     int index;
 
     if (m_pPanel != 0) {
-        W8Widget** cursor = m_pPanel->m_controls.data;
-        for (index = 0; index < m_pPanel->m_controls.count; ++index) {
-            if (*cursor == this) {
-                m_pPanel->m_controls.RemoveAt(index);
-                break;
-            }
-            ++cursor;
-        }
+        m_pPanel->m_controls.Remove(this);
     }
 
     m_pPanel = panel;
@@ -2101,7 +2094,7 @@ void Controls::SetEnabled(bool enable)
     int index;
 
     m_fEnabled = enable;
-    for (index = 0; index < m_controls.count; ++index) {
+    for (index = 0; index < m_controls.GetCount(); ++index) {
         W8Widget* control = ControlAt(index);
 
         control->m_active = enable;
@@ -2128,7 +2121,7 @@ void Controls::RemoveControl(W8Widget* control)
 // FUNCTION: WIZ8 0x004f2df0
 void Controls::DestroyAllControls()
 {
-    int index = m_controls.count;
+    int index = m_controls.GetCount();
 
     if (index > 0) {
         while (--index, index >= 0) {
@@ -2219,7 +2212,7 @@ void Controls::Redraw()
     } else if (!m_fLayoutDirty) {
         return;
     }
-    for (index = 0; index < m_controls.count; ++index) {
+    for (index = 0; index < m_controls.GetCount(); ++index) {
         if (ControlAt(index)->m_active) {
             ControlAt(index)->Redraw(redrawn);
         }
@@ -2238,7 +2231,7 @@ void Controls::SetBounds(int left, int top, int new_right, int new_bottom)
     m_bounds.top = top;
     m_bounds.right = new_right;
     m_bounds.bottom = new_bottom;
-    for (index = 0; index < m_controls.count; ++index) {
+    for (index = 0; index < m_controls.GetCount(); ++index) {
         ControlAt(index)->SetBounds(ControlAt(index)->m_left, ControlAt(index)->m_top,
                                     ControlAt(index)->m_right, ControlAt(index)->m_bottom);
     }

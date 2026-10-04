@@ -732,7 +732,7 @@ void stMeshModel::ApplyAutomapPolygonFilter(const W8GrowableVector<char*>* exclu
                 char name[256];
                 strcpy(name, (*texture)->getName());
                 bool include = true;
-                for (int index = 0; index < excluded_textures->count; ++index) {
+                for (int index = 0; index < excluded_textures->GetCount(); ++index) {
                     if (_stricmp(name, *excluded_textures->GetAt(index)) == 0)
                         include = false;
                 }
@@ -1073,7 +1073,7 @@ unsigned char ReclaimDecompressedBytes(unsigned int needed)
     while (released < needed) {
         stMeshModel* oldest = 0;
         unsigned long oldest_tick = 0xffffffff;
-        for (int index = 0; index < g_mesh_models.count; ++index) {
+        for (int index = 0; index < g_mesh_models.GetCount(); ++index) {
             stMeshModel* model = *g_mesh_models.GetAt(index);
             if (model == 0) {
                 srAssertFail("pstModel", "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp",

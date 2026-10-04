@@ -273,7 +273,7 @@ unsigned char EnumerateSaveSlots(W8GrowableVector<W8SaveSlot*>* slots)
     W8GlobalStatus status;
 
     sprintf(path, "%s\\*.%s", "Saves", g_save_extension);
-    int first = slots->count;
+    int first = slots->GetCount();
     memset(&find_data, 0, sizeof(find_data));
     HANDLE search = FindFirstFileA(path, &find_data);
     if (search != INVALID_HANDLE_VALUE) {
@@ -325,7 +325,7 @@ unsigned char EnumerateSaveSlots(W8GrowableVector<W8SaveSlot*>* slots)
                     slot->iron_man = status.iron_man;
                     slot->game_time_days = status.game_time_days;
                     int position;
-                    for (position = first; position < slots->count; ++position) {
+                    for (position = first; position < slots->GetCount(); ++position) {
                         if (CompareSGPFileTimes(&slot->local_write_time,
                                                 &(*slots->GetAt(position))->local_write_time) > 0) {
                             break;
@@ -477,7 +477,7 @@ bool SaveGame(const char* name, W8SaveScreenshot* screenshot)
     chunks.OpenChunk(0x54584554, 0); /* TEXT */
     SaveMessageStorage(chunks.m_hFile);
     chunks.ReleaseCurrentChunk();
-    if (g_location_variable_values.count != 0) {
+    if (g_location_variable_values.GetCount() != 0) {
         chunks.OpenChunk(0x52415654, 0); /* TVAR */
         SaveLocationVariables(chunks.m_hFile);
         chunks.ReleaseCurrentChunk();

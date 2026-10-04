@@ -397,11 +397,11 @@ void ClearKeywordLists(void)
     int entry_index;
     int word_index;
 
-    for (file_index = 0; file_index < g_keyword_lists.count; ++file_index) {
+    for (file_index = 0; file_index < g_keyword_lists.GetCount(); ++file_index) {
         file = *g_keyword_lists.GetAt(file_index);
-        for (entry_index = 0; entry_index < file->count; ++entry_index) {
+        for (entry_index = 0; entry_index < file->GetCount(); ++entry_index) {
             entry = *file->GetAt(entry_index);
-            for (word_index = 0; word_index < entry->count; ++word_index) {
+            for (word_index = 0; word_index < entry->GetCount(); ++word_index) {
                 free(*entry->GetAt(word_index));
             }
             entry->Clear();
@@ -457,9 +457,9 @@ void TranslateDialogueKeyword(const wchar_t* source, wchar_t* destination)
         return;
     }
     file = *g_keyword_lists.GetAt(1);
-    for (entry_index = 0; entry_index < file->count; ++entry_index) {
+    for (entry_index = 0; entry_index < file->GetCount(); ++entry_index) {
         entry = *file->GetAt(entry_index);
-        for (word_index = 0; word_index < entry->count; ++word_index) {
+        for (word_index = 0; word_index < entry->GetCount(); ++word_index) {
             if (CompareWideTextIgnoreAsciiCase(source, *entry->GetAt(word_index)) == 0) {
                 english = *(*g_keyword_lists.GetAt(0))->GetAt(entry_index);
                 wcscpy(destination, *english->GetAt(word_index));

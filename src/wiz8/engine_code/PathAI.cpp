@@ -159,7 +159,7 @@ void DestroyPathAI(W8PathAI* path)
     if (path != 0) {
         nodes = path->nodes;
         if (nodes != 0) {
-            while (nodes->count != 0) {
+            while (nodes->GetCount() != 0) {
                 srHeap.free(nodes->RemoveAt(nodes->GetCount() - 1));
                 nodes = path->nodes;
             }
@@ -190,7 +190,7 @@ void DestroyOwnedPathAI(W8PathAI* path)
     if (path != 0 && path->kind == W8_AI_RECORD_PATH) {
         nodes = path->nodes;
         if (nodes != 0) {
-            while (nodes->count != 0) {
+            while (nodes->GetCount() != 0) {
                 srHeap.free(nodes->RemoveAt(nodes->GetCount() - 1));
                 nodes = path->nodes;
             }
@@ -307,7 +307,7 @@ void PathAIClearOwned(W8PathAI* path)
     if (path != 0) {
         nodes = path->nodes;
         if (nodes != 0) {
-            while (nodes->count != 0) {
+            while (nodes->GetCount() != 0) {
                 srHeap.free(nodes->RemoveAt(nodes->GetCount() - 1));
                 nodes = path->nodes;
             }

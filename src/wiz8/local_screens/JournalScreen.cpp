@@ -153,7 +153,7 @@ void SaveFactJournal(int file)
     if (g_fact_journal_entries == 0) {
         InitializeFactJournal();
     }
-    count = g_fact_journal_entries->count;
+    count = g_fact_journal_entries->GetCount();
     FileWrite(file, &format, 4, 0);
     FileWrite(file, &count, 4, 0);
     for (index = 0; index < count; ++index) {
@@ -219,7 +219,7 @@ void DrawJournalLine(const wchar_t* text, int column, int y, int palette, bool c
 void W8JournalPanel::Refresh()
 {
     if (!m_alternate_mode) {
-        int last_page = (g_journal_entries->count - 1) / 12;
+        int last_page = (g_journal_entries->GetCount() - 1) / 12;
         int page_count = last_page + 1;
         if (page_count != g_journal_page_count || g_journal_page < 0 ||
             g_journal_page >= page_count) {
@@ -238,8 +238,8 @@ void W8JournalPanel::Refresh()
 
         int first = g_journal_page * 12;
         int last = first + 11;
-        if (last >= g_journal_entries->count) {
-            last = g_journal_entries->count - 1;
+        if (last >= g_journal_entries->GetCount()) {
+            last = g_journal_entries->GetCount() - 1;
         }
         int previous_level = -1;
         int y = 0x39;
@@ -368,7 +368,7 @@ void W8JournalPanel::OnPrimary(W8TextControl* control)
             Refresh();
         }
     } else if (control == m_next) {
-        if (g_journal_page < (g_journal_entries->count - 1) / 12) {
+        if (g_journal_page < (g_journal_entries->GetCount() - 1) / 12) {
             ++g_journal_page;
             Refresh();
         }
@@ -443,7 +443,7 @@ unsigned char JournalScreenEnter(void)
     }
 
     g_journal_entries->Clear();
-    for (index = 0; index < g_fact_journal_entries->count; ++index) {
+    for (index = 0; index < g_fact_journal_entries->GetCount(); ++index) {
         W8JournalEntry entry = *g_fact_journal_entries->GetAt(index);
         const W8FactDatabaseRecord* fact = &g_fact_records[entry.fact];
         const wchar_t* description =
@@ -490,7 +490,7 @@ void JournalScreenFrame(void)
                 --g_journal_page;
                 g_journal_panel->Refresh();
             } else if (input.usParam == 0x27 &&
-                       g_journal_page < (g_journal_entries->count - 1) / 12) {
+                       g_journal_page < (g_journal_entries->GetCount() - 1) / 12) {
                 ++g_journal_page;
                 g_journal_panel->Refresh();
             }

@@ -89,7 +89,7 @@ void W8Searchable::Reveal()
 // FUNCTION: WIZ8 0x00516ba0
 W8SearchableView* CollectSearchablesInView(void)
 {
-    int total = g_searchables.count;
+    int total = g_searchables.GetCount();
     srVector3T<float> camera;
     GetCameraPosition(&camera);
     g_search_view.items.Clear();
@@ -149,7 +149,7 @@ void RegisterSearchableTrigger(Trigger* trigger)
 // FUNCTION: WIZ8 0x00516fe0
 void UnregisterSearchableTrigger(Trigger* trigger)
 {
-    for (int index = 0; index < g_searchables.count; ++index) {
+    for (int index = 0; index < g_searchables.GetCount(); ++index) {
         W8Searchable* searchable = *g_searchables.GetAt(index);
         if (searchable->trigger == trigger) {
             g_searchables.Remove(searchable);

@@ -869,7 +869,7 @@ void ApplyEnvironmentColour(W8World* world, float intensity, const EnvironmentCo
         world->environment_colour = *colour;
         world->environment_intensity = intensity;
     }
-    for (int index = 0; index < g_environment_lights.count; ++index) {
+    for (int index = 0; index < g_environment_lights.GetCount(); ++index) {
         stLight* light = *g_environment_lights.GetAt(index);
         srVector3T<float> scaled(colour->x, colour->y, colour->z);
 
