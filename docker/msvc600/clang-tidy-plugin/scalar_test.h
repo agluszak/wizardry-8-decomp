@@ -33,3 +33,7 @@ struct FixtureReceiver : FixtureReceiverBase {
     void external();
 };
 void fixture_receiver_escape(FixtureReceiver* receiver);
+
+typedef long (*FixturePatchCallback)(long);
+long FixturePatchImplementation(long value);
+extern FixturePatchCallback fixture_patch_callback;

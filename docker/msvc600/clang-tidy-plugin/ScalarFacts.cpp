@@ -187,9 +187,10 @@ public:
 
     bool VisitUnaryOperator(UnaryOperator* unary)
     {
-        if (unary->getOpcode() == UO_AddrOf)
-            escape(unary->getSubExpr(), "address taken", unary->getOperatorLoc());
-        else
+        if (unary->getOpcode() == UO_AddrOf) {
+            if (!callback_addresses_.count(unary))
+                escape(unary->getSubExpr(), "address taken", unary->getOperatorLoc());
+        } else
             use(unary->getSubExpr(), UnaryOperator::getOpcodeStr(unary->getOpcode()).str(),
                 unary->getOperatorLoc());
         return true;
@@ -456,6 +457,7 @@ private:
     void declare(const NamedDecl* declaration)
     {
         if (const auto* array = array_type(declaration)) {
+            source_span(declaration);
             if (const auto* variable = dyn_cast<VarDecl>(declaration))
                 declaration = variable->getCanonicalDecl();
             const auto key = owner_key(declaration);
@@ -474,6 +476,7 @@ private:
                     source_span(declaration);
                 }
             }
+            callback_signature(declaration, declaration->getLocation());
             // Keep legacy fixed-byte-array declarations for the unchanged bool client.
             writer_.declaration(declaration);
             return;
@@ -483,6 +486,7 @@ private:
             writer_.declaration(candidate);
             type_fact(node_key(candidate), node_type(candidate));
         }
+        callback_signature(declaration, declaration->getLocation());
     }
 
     void source_span(const NamedDecl* declaration)
@@ -494,22 +498,71 @@ private:
             node_declaration(declaration) == nullptr)
             return;
         TypeLoc type = declarator->getTypeSourceInfo()->getTypeLoc();
+        std::string component = isa<ParmVarDecl>(declaration) ? "parameter-type" : "type";
         if (isa<FunctionDecl>(declarator)) {
             auto function = type.getAs<FunctionTypeLoc>();
             if (function.isNull())
                 return;
             type = function.getReturnLoc();
+            component = "return-type";
         }
-        type = type.getUnqualifiedLoc();
-        if (auto array = type.getAs<ArrayTypeLoc>(); !array.isNull())
-            type = array.getElementLoc().getUnqualifiedLoc();
-        if (auto pointer = type.getAs<PointerTypeLoc>(); !pointer.isNull())
-            type = pointer.getPointeeLoc().getUnqualifiedLoc();
-        // Only replace a type atom. Complex declarators, macros, callback
-        // signatures and record/array boundaries need their own recovery proof.
-        if (type.getAs<BuiltinTypeLoc>().isNull() && type.getAs<TypedefTypeLoc>().isNull())
+        component_span(node_key(declaration), type, component);
+    }
+
+    void component_span(const std::string& key, TypeLoc type, const std::string& component)
+    {
+        if (key.empty() || type.isNull())
             return;
-        auto range = type.getSourceRange();
+        type = type.getUnqualifiedLoc();
+        if (auto attributed = type.getAs<AttributedTypeLoc>(); !attributed.isNull()) {
+            component_span(key, attributed.getModifiedLoc(), component);
+            return;
+        }
+        if (auto elaborated = type.getAs<ElaboratedTypeLoc>(); !elaborated.isNull()) {
+            component_span(key, elaborated.getNamedTypeLoc(), component);
+            return;
+        }
+        if (auto paren = type.getAs<ParenTypeLoc>(); !paren.isNull()) {
+            component_span(key, paren.getInnerLoc(), component);
+            return;
+        }
+        if (auto array = type.getAs<ArrayTypeLoc>(); !array.isNull()) {
+            if (const auto* size = array.getSizeExpr())
+                protected_span(key, "array-extent", size->getSourceRange());
+            component_span(key, array.getElementLoc(), "array-element");
+            return;
+        }
+        if (auto alias = type.getAs<TypedefTypeLoc>();
+            !alias.isNull() && callback_type(type.getType()) != nullptr) {
+            // All collected uses of this typedef own the same protected atoms.
+            // The patcher rejects a change unless every owner agrees.
+            const auto* info = alias.getTypedefNameDecl()->getTypeSourceInfo();
+            if (info != nullptr)
+                component_span(key, info->getTypeLoc(), component);
+            return;
+        }
+        if (auto pointer = type.getAs<PointerTypeLoc>(); !pointer.isNull()) {
+            component_span(key, pointer.getPointeeLoc(), component + ":pointee");
+            return;
+        }
+        if (auto function = type.getAs<FunctionProtoTypeLoc>(); !function.isNull()) {
+            component_span(key + "::callback-return", function.getReturnLoc(), "callback-return");
+            for (unsigned index = 0; index < function.getNumParams(); ++index) {
+                const auto* parameter = function.getParam(index);
+                if (parameter != nullptr && parameter->getTypeSourceInfo() != nullptr)
+                    component_span(key + "::callback-arg#" + std::to_string(index),
+                                   parameter->getTypeSourceInfo()->getTypeLoc(),
+                                   "callback-param#" + std::to_string(index));
+            }
+            return;
+        }
+        if (!type.getAs<BuiltinTypeLoc>().isNull() || !type.getAs<TypedefTypeLoc>().isNull() ||
+            !type.getAs<EnumTypeLoc>().isNull())
+            protected_span(key, component, type.getSourceRange());
+    }
+
+    void protected_span(const std::string& key, const std::string& component, SourceRange range)
+    {
         auto& sources = context_.getSourceManager();
         if (range.getBegin().isMacroID() || range.getEnd().isMacroID())
             return;
@@ -528,7 +581,7 @@ private:
                 reinterpret_cast<const uint8_t*>(buffer.data()), buffer.size()));
             hash = source_hashes_.emplace(file_id, llvm::toHex(digest, true)).first;
         }
-        writer_.fact({"L", node_key(declaration), point.file, std::to_string(offset),
+        writer_.fact({"L", key, component, point.file, std::to_string(offset),
                       std::to_string(length), buffer.substr(offset, length).str(), hash->second});
     }
 
@@ -661,15 +714,23 @@ private:
         if (prototype == nullptr)
             return false;
         const Expr* expression = value->IgnoreParenImpCasts();
+        const UnaryOperator* callback_address = nullptr;
         if (const auto* address = dyn_cast<UnaryOperator>(expression)) {
-            if (address->getOpcode() == UO_AddrOf)
+            if (address->getOpcode() == UO_AddrOf) {
+                callback_address = address;
                 expression = address->getSubExpr()->IgnoreParenImpCasts();
+            }
         }
         const auto* reference = dyn_cast<DeclRefExpr>(expression);
         const auto* function =
             reference == nullptr ? nullptr : dyn_cast<FunctionDecl>(reference->getDecl());
         if (function == nullptr || function->getType()->getAs<FunctionProtoType>() == nullptr)
             return false;
+        // This exact expression is represented by the callback ABI graph.
+        // Other address-taking/reference sites still escape the implementation.
+        direct_callees_.insert(reference);
+        if (callback_address != nullptr)
+            callback_addresses_.insert(callback_address);
         callback_signature(target, location);
         declare(function);
         const auto point =
@@ -873,6 +934,7 @@ private:
     FactWriter& writer_;
     FunctionDecl* function_ = nullptr;
     llvm::SmallPtrSet<const DeclRefExpr*, 32> direct_callees_;
+    llvm::SmallPtrSet<const UnaryOperator*, 32> callback_addresses_;
     llvm::SmallPtrSet<const NamedDecl*, 32> span_declarations_;
     std::unordered_map<unsigned, std::string> source_hashes_;
     std::unordered_set<std::string> typed_nodes_;

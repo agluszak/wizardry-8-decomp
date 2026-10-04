@@ -69,7 +69,7 @@
         "reason": "The retained implementation independently spells this clock sample INT32; preserve the original conversion boundary."
       },
       "selector": {
-        "file": "src/sgp/mousesystem.c",
+        "file": "src/sgp/mousesystem.cpp",
         "kind": "variable",
         "name": "iLastClock"
       }
@@ -83,7 +83,7 @@
         "reason": "The retained implementation independently spells this clock sample INT32; a clock API producer does not authorize rewriting the independently evidenced ancestor declaration."
       },
       "selector": {
-        "file": "src/sgp/mousesystem.c",
+        "file": "src/sgp/mousesystem.cpp",
         "kind": "variable",
         "name": "iCurrentClock"
       }
