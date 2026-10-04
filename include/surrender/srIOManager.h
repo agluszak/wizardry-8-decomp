@@ -2,6 +2,8 @@
 
 #include "srHeap.h"
 
+#include <string.h>
+
 /* Provider exports include copy construction, assignment and the vftable. The
    reconstruction uses class-level export and memberwise copying; original
    declaration spelling is unresolved. */
@@ -99,6 +101,26 @@ private:
             --count;
         }
 
+        Importer* find(const char* extension) const
+        {
+            for (Registration* node = first; node != sentinel; node = node->next) {
+                if (strcmp(node->extension_00, extension) == 0) {
+                    return node->importer_04;
+                }
+            }
+            return 0;
+        }
+
+        Registration* find(Importer* entry) const
+        {
+            for (Registration* node = first; node != sentinel; node = node->next) {
+                if (node->importer_04 == entry) {
+                    return node;
+                }
+            }
+            return 0;
+        }
+
         unsigned long count;
         Registration* first;
         Registration* sentinel;
@@ -136,6 +158,26 @@ private:
             }
             delete node;
             --count;
+        }
+
+        Exporter* find(const char* extension) const
+        {
+            for (Registration* node = first; node != sentinel; node = node->next) {
+                if (strcmp(node->extension_00, extension) == 0) {
+                    return node->exporter_04;
+                }
+            }
+            return 0;
+        }
+
+        Registration* find(Exporter* entry) const
+        {
+            for (Registration* node = first; node != sentinel; node = node->next) {
+                if (node->exporter_04 == entry) {
+                    return node;
+                }
+            }
+            return 0;
         }
 
         unsigned long count;

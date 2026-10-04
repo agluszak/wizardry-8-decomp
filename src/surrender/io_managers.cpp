@@ -47,14 +47,7 @@ srIOManager::Importer* srIOManager::findImporter(const char* extension)
             upper[index] = (char)toupper(upper[index]);
         }
     }
-    Importer* result = 0;
-    for (Registration* node = importers.first; node != importers.sentinel;
-         node = node->next) {
-        if (strcmp(node->extension, upper) == 0) {
-            result = node->importer;
-            break;
-        }
-    }
+    Importer* result = importers.find(upper);
     delete[] upper;
     return result;
 }
@@ -72,14 +65,7 @@ srIOManager::Exporter* srIOManager::findExporter(const char* extension)
             upper[index] = (char)toupper(upper[index]);
         }
     }
-    Exporter* result = 0;
-    for (Registration* node = exporters.first; node != exporters.sentinel;
-         node = node->next) {
-        if (strcmp(node->extension, upper) == 0) {
-            result = node->exporter;
-            break;
-        }
-    }
+    Exporter* result = exporters.find(upper);
     delete[] upper;
     return result;
 }
@@ -119,20 +105,10 @@ void srIOManager::removeImporter(Importer* importer)
         return;
     }
     Registration* node;
-    do {
-        node = importers.first;
-        while (true) {
-            if (node == importers.sentinel) {
-                return;
-            }
-            if (node->importer == importer) {
-                break;
-            }
-            node = node->next;
-        }
+    while ((node = importers.find(importer)) != 0) {
         delete[] node->extension;
         importers.erase(node);
-    } while (true);
+    }
 }
 
 // FUNCTION: SURRENDER 0x1002D090
@@ -142,20 +118,10 @@ void srIOManager::removeExporter(Exporter* exporter)
         return;
     }
     Registration* node;
-    do {
-        node = exporters.first;
-        while (true) {
-            if (node == exporters.sentinel) {
-                return;
-            }
-            if (node->exporter == exporter) {
-                break;
-            }
-            node = node->next;
-        }
+    while ((node = exporters.find(exporter)) != 0) {
         delete[] node->extension;
         exporters.erase(node);
-    } while (true);
+    }
 }
 
 // FUNCTION: SURRENDER 0x1002D100
