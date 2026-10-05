@@ -23,3 +23,13 @@ runs:
         mkdir -p "$(dirname "$GHIDRA_INSTALL_DIR")"
         unzip -q "$archive" -d "$(dirname "$GHIDRA_INSTALL_DIR")"
         test -x "$GHIDRA_INSTALL_DIR/support/analyzeHeadless"
+
+    - name: Build pinned native inline fixes
+      shell: bash
+      run: |
+        set -euo pipefail
+        revision=acc74ac07b331f54a42fafe1b51c708f6741b5e1
+        installer="$RUNNER_TEMP/buildPatchedDecompiler.sh"
+        curl --fail --location --retry 3 --output "$installer" \
+          "https://raw.githubusercontent.com/agluszak/ghidra/$revision/support/buildPatchedDecompiler.sh"
+        bash "$installer" "$GHIDRA_INSTALL_DIR"

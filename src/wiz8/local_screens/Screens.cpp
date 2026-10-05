@@ -254,7 +254,7 @@ void UpdateHeldItemCursor(void)
 void ApplyCurrentCursor(void)
 {
     if (gXStatus.iCurrentCursor == W8_CURSOR_NONE) {
-        srAssertFail("gXStatus.iCurrentCursor != W8_CURSOR_NONE",
+        srAssertFail("gXStatus.iCurrentCursor != -1",
                      "C:\\Projects\\Wizardry 8\\Local Screens\\Screens.cpp", 0x18d, 0);
     }
     if (g_main_game_resource_slots[gXStatus.iCurrentCursor].object != 0) {

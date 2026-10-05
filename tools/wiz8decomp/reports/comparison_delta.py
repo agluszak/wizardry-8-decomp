@@ -419,6 +419,7 @@ def pr_comparison_report(
     policy_keys = (
         "normalization_key",
         "ghidra_version",
+        "decompiler_sha256",
         "decompiler_timeout",
         "threaded",
         "max_ram_percent",
