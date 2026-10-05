@@ -578,7 +578,7 @@ bool LoadSpellVisualResource(const W8GrCycleLoadContext* context, const char* na
         int frame;
         int index;
         int i;
-        int sound_type;
+        W8SoundEventKind sound_type;
         float intensity;
         float duration;
         float distance;
@@ -622,11 +622,11 @@ bool LoadSpellVisualResource(const W8GrCycleLoadContext* context, const char* na
                 continue;
             }
 
-            sound_type = 0;
+            sound_type = W8_SOUND_EVENT_NONE;
             if (_stricmp(pac_name, "SOUND_FRAME") == 0) {
-                sound_type = 1;
+                sound_type = W8_SOUND_EVENT_FRAME;
             } else if (_stricmp(pac_name, "SOUND_CYCLE") == 0) {
-                sound_type = 2;
+                sound_type = W8_SOUND_EVENT_CYCLE;
             } else {
                 if (_stricmp(pac_name, "SHAKE_FRAME") == 0) {
                     intensity = 1.0f;

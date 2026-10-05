@@ -1,6 +1,7 @@
 #pragma once
 
 #include "wiz8/attack_modes.h"
+#include "wiz8/monster_cycles.h"
 #include "wiz8/dice.h"
 
 struct W8CombatSlot;
@@ -106,7 +107,7 @@ void GetCharacterHandDamageDice(const W8Character* character, int hand, W8Dice* 
 int GetCharacterHandDamageBonus(const W8Character* character, int hand);
 
 int GetHandAttackValue(int party_slot, unsigned int hand);
-int NormalizeAttackMode(int attack_mode);
+W8MonsterCycle NormalizeMonsterCycle(W8MonsterCycle attack_mode);
 W8AttackMode ChooseAttackMode(unsigned int attack_modes);
 
 /* 0x005459B0: how much of a hit a monster actually takes - its own adjustment

@@ -14,6 +14,10 @@ extern srTimer* g_shared_timer_base;
 void PauseSharedGameTimers(void);
 void ResumeSharedGameTimers(void);
 
+/* Mode 1 samples the saved game-day/millisecond clock. Mode 0 samples the
+   shared srTimer; its separate raw-time flag controls pause adjustment. */
+enum W8TimerClock { W8_TIMER_CLOCK_SHARED = 0, W8_TIMER_CLOCK_GAME = 1 };
+
 class W8GameTimer {
 public:
     W8GameTimer();
@@ -22,8 +26,10 @@ public:
     int ReadClock() const
     {
         switch (m_clock_mode) {
-        case 1:
+        case W8_TIMER_CLOCK_GAME:
             return (g_status.game_time_days * 86400000 + g_status.game_time_ms) * 10;
+        default:
+            break;
         }
         if ((m_flags & 1) == 0) {
             if (g_shared_timer_paused != 0) {
@@ -34,7 +40,7 @@ public:
         return m_shared->getUTime(srTimer::TIMER_READ_DEFAULT);
     }
     int GetTime();
-    void SetMode(int mode);
+    void SetMode(W8TimerClock mode);
     void SetDuration(float duration);
     void Restart();
     float GetProgress();
@@ -44,7 +50,7 @@ public:
     BOOLEAN Load(int handle);
     float GetElapsedSeconds();
 
-    int m_clock_mode;         /* 0x04: 1 reads the game clock */
+    W8TimerClock m_clock_mode; /* 0x04: 1 reads the game clock */
     unsigned short m_flags;   /* 0x08: bit 0 reads the timer raw */
     srTimer* m_shared;        /* 0x0c */
     int m_start;              /* 0x10 */

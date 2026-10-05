@@ -72,9 +72,9 @@ static unsigned char CheckFootstepPaths()
     /* The >= CLIMB_LADDER single-file bypass never assigns the anti-repeat
        global; the ordinary variant path always does. That makes the branch
        observable regardless of which footstep waves SOUND.SLF carries. */
-    unsigned char saved_option = GetRenderOptionState(15);
+    unsigned char saved_option = GetRenderOptionState(static_cast<W8RenderOption>(15));
     int saved_variant = g_previous_ambient_footstep_variant;
-    SetRenderOption(15, 1);
+    SetRenderOption(static_cast<W8RenderOption>(15), 1);
     g_previous_ambient_footstep_variant = 0;
     PlayFootstep(W8_FOOTSTEP_SURFACE_MEDIUM_ROOM, W8_FOOTSTEP_MATERIAL_CLIMB_LADDER,
                  W8_FOOTSTEP_KIND_STEP);
@@ -85,7 +85,7 @@ static unsigned char CheckFootstepPaths()
     int variant =
         g_previous_ambient_footstep_variant >= 1 && g_previous_ambient_footstep_variant <= 4;
     g_previous_ambient_footstep_variant = saved_variant;
-    SetRenderOption(15, saved_option);
+    SetRenderOption(static_cast<W8RenderOption>(15), saved_option);
 
     return step | (jump << 1) | (scuff << 2) | (vocabulary << 3) | ((bypass & variant) << 4);
 }

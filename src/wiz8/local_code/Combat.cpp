@@ -1648,8 +1648,10 @@ bool AnyCombatMonsterBusy(void)
                 if (g_combat_state->pActionMonsterInfo != monster_info) {
                     return true;
                 }
-                if (NormalizeAttackMode(attack_mode) != 6) {
-                    if (NormalizeAttackMode(attack_mode) != 7) {
+                if (NormalizeMonsterCycle(static_cast<W8MonsterCycle>(attack_mode)) !=
+                    W8_MONSTER_CYCLE_ATTACK_CLOSE) {
+                    if (NormalizeMonsterCycle(static_cast<W8MonsterCycle>(attack_mode)) !=
+                        W8_MONSTER_CYCLE_ATTACK_RANGED) {
                         return true;
                     }
                     return monster_info->fMissileReleased == 0;

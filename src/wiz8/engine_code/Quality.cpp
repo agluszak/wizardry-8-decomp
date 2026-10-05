@@ -44,7 +44,7 @@ void DestroyRenderQuality(void)
 }
 
 // FUNCTION: WIZ8 0x0047b590
-void EnableRenderOption(int option)
+void EnableRenderOption(W8RenderOption option)
 {
     if (option < W8_RENDER_OPTION_COUNT) {
         SetRenderOption(option, 1);
@@ -52,9 +52,11 @@ void EnableRenderOption(int option)
 }
 
 // FUNCTION: WIZ8 0x0047b630
-void SetRenderOption(int option, int enabled)
+void SetRenderOption(W8RenderOption option, int enabled)
 {
-    switch (option) {
+    /* The option record also contains unnamed internal slots. Keep their
+       numeric dispatch while the public option ids retain their enum type. */
+    switch (static_cast<int>(option)) {
     case 6:
         g_render_brightness = enabled ? 1.0f : 0.8f;
         break;
@@ -112,7 +114,7 @@ void SetRenderOption(int option, int enabled)
 }
 
 // FUNCTION: WIZ8 0x0047b5b0
-void DisableRenderOption(int option)
+void DisableRenderOption(W8RenderOption option)
 {
     if (option < W8_RENDER_OPTION_COUNT) {
         SetRenderOption(option, 0);
@@ -125,7 +127,7 @@ void DisableAllRenderOptions(void)
     int option = 0;
 
     do {
-        SetRenderOption(option, 0);
+        SetRenderOption(static_cast<W8RenderOption>(option), 0);
         ++option;
     } while (option < W8_RENDER_OPTION_COUNT);
 }
@@ -140,13 +142,13 @@ void DisableAllRenderOptions(void)
 void EnableAllRenderOptions(void)
 {
     for (int option = 0; option < W8_RENDER_OPTION_COUNT; ++option) {
-        SetRenderOption(option, 1);
+        SetRenderOption(static_cast<W8RenderOption>(option), 1);
     }
 }
 
 /* Out-of-range reads report zero rather than indexing past the block. */
 // FUNCTION: WIZ8 0x0047b610
-unsigned char GetRenderOptionState(int option)
+unsigned char GetRenderOptionState(W8RenderOption option)
 {
     if (option >= W8_RENDER_OPTION_COUNT) {
         return 0;
@@ -170,7 +172,7 @@ unsigned char LoadRenderOptions(int handle)
     }
     option = 0;
     do {
-        SetRenderOption(option, options[option] != 0);
+        SetRenderOption(static_cast<W8RenderOption>(option), options[option] != 0);
         ++option;
     } while (option < W8_RENDER_OPTION_COUNT);
     return 1;

@@ -685,7 +685,7 @@ int GetMonsterCycleFallbackValue(unsigned int monster_species)
     if (FindFirstGrCycleByName(record->cycle_name) != 0) {
         return 0;
     }
-    if (GetRenderOptionState(0xe) != 0) {
+    if (GetRenderOptionState(W8_RENDER_OPTION_ADDITIONAL_ANIMATIONS) != 0) {
         return record->alternate_model_index;
     }
     return record->model_index;

@@ -12,6 +12,8 @@ template <class T> class W8GrowableVector;
    UpdateSoundEvents iterates the caller's mask one bit at a time, so a kind
    is both a classification and a single-bit mask. */
 enum W8SoundEventKind {
+    W8_SOUND_EVENT_UNRECOGNIZED = -1,
+    W8_SOUND_EVENT_NONE = 0,
     W8_SOUND_EVENT_FRAME = 0x1,
     W8_SOUND_EVENT_CYCLE = 0x2,
     W8_SOUND_EVENT_FOOTSTEP = 0x100,
@@ -30,7 +32,7 @@ class W8SoundEvent {
 public:
     W8SoundEvent()
     {
-        kind = 0;
+        kind = W8_SOUND_EVENT_NONE;
         cycle = -1;
         frame = -1;
         subcycle = 0;
@@ -54,7 +56,7 @@ public:
     unsigned char Play(unsigned int mask, const srVector3T<float>* position, int cycle,
                        unsigned int frame, int subcycle); /* 0x004D5A10 */
 
-    int kind;                  /* 0x00: W8SoundEventKind bit */
+    W8SoundEventKind kind;     /* 0x00: W8SoundEventKind bit */
     int cycle;                 /* 0x04: bound animation cycle, -1 = any */
     int frame;                 /* 0x08: bound animation frame */
     int subcycle;              /* 0x0c: bound subcycle (script value minus one) */
@@ -74,8 +76,8 @@ public:
 
 static_assert(sizeof(W8SoundEvent) == 0x38, "W8SoundEvent_must_be_0x38");
 
-W8SoundEvent* CreateSoundEvent(int kind, int cycle, int frame, int subcycle, const char* wave_name,
-                               bool looping); /* 0x004D57A0 */
+W8SoundEvent* CreateSoundEvent(W8SoundEventKind kind, int cycle, int frame, int subcycle,
+                               const char* wave_name, bool looping); /* 0x004D57A0 */
 
 unsigned char UpdateSoundEvents(W8GrowableVector<W8SoundEvent*>* events,
                                 const srVector3T<float>* position, unsigned int event_mask,

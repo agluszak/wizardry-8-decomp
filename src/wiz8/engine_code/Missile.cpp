@@ -512,7 +512,7 @@ unsigned char LoadMissileCycle(W8GrCycleLoadContext* context, const char* name,
     bool align_explosion;
     float velocity;
     int handle;
-    int sound_kind;
+    W8SoundEventKind sound_kind;
     int frame;
     int cycle;
     int index;
@@ -602,7 +602,7 @@ unsigned char LoadMissileCycle(W8GrCycleLoadContext* context, const char* name,
                         }
                     }
                     if (_stricmp(pacName, "SOUND_FRAME") == 0) {
-                        sound_kind = 1;
+                        sound_kind = W8_SOUND_EVENT_FRAME;
                     } else {
                         if (_stricmp(pacName, "SOUND_CYCLE") != 0) {
                             if (_stricmp(pacName, "SHAKE_FRAME") == 0) {
@@ -638,7 +638,7 @@ unsigned char LoadMissileCycle(W8GrCycleLoadContext* context, const char* name,
                             }
                             goto next_line;
                         }
-                        sound_kind = 2;
+                        sound_kind = W8_SOUND_EVENT_CYCLE;
                     }
                     memcpy(pacLoop, &g_empty_ambient_name, 2);
                     memset(pacLoop + 2, 0, sizeof(pacLoop) - 2);

@@ -3353,7 +3353,7 @@ void Trigger::Run(int source)
                 m_pEvent->timer.SetDuration(m_lData2 * 720.0f);
                 m_pEvent->timer.Restart();
                 m_pEvent->trigger = this;
-                m_pEvent->timer.SetMode(1);
+                m_pEvent->timer.SetMode(W8_TIMER_CLOCK_GAME);
                 g_timed_events.Add(m_pEvent);
             }
         }

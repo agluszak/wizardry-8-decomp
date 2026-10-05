@@ -619,8 +619,8 @@ unsigned char AutomapScreenEnter(void)
     g_automap_saved_far_clip = static_cast<float>(WorldGetFarClip(g_world));
     g_automap_saved_world_value = WorldGetRenderRange(g_world);
     g_automap_saved_sky = g_sky_enabled;
-    g_automap_saved_render_flags[0] = GetRenderOptionState(11);
-    g_automap_saved_render_flags[1] = GetRenderOptionState(10);
+    g_automap_saved_render_flags[0] = GetRenderOptionState(W8_RENDER_OPTION_HIGH_TEXTURE_DETAIL);
+    g_automap_saved_render_flags[1] = GetRenderOptionState(W8_RENDER_OPTION_MESH_SKY);
     g_automap_saved_render_flags[2] = g_monster_shadow_updates_enabled;
     g_automap_saved_render_flags[3] = g_world_render_enabled;
     g_automap_saved_texture_policy = g_resident_texture_policy;
@@ -629,7 +629,7 @@ unsigned char AutomapScreenEnter(void)
     SetLightDirection(&direction);
     SetWorldEnvironmentColour(g_world, EnvironmentColour(0.0, 0.0, 0.0));
     DisableSky();
-    DisableRenderOption(10);
+    DisableRenderOption(W8_RENDER_OPTION_MESH_SKY);
     g_monster_shadow_updates_enabled = 1;
     g_world_render_enabled = 1;
     DisableSky();
@@ -1006,8 +1006,8 @@ void RestoreAutomapWorldSettings(void)
     WorldSetRenderRange(g_world, g_automap_saved_world_value);
     if (g_automap_saved_sky)
         EnableSky();
-    SetRenderOption(11, g_automap_saved_render_flags[0]);
-    SetRenderOption(10, g_automap_saved_render_flags[1]);
+    SetRenderOption(W8_RENDER_OPTION_HIGH_TEXTURE_DETAIL, g_automap_saved_render_flags[0]);
+    SetRenderOption(W8_RENDER_OPTION_MESH_SKY, g_automap_saved_render_flags[1]);
     g_monster_shadow_updates_enabled = g_automap_saved_render_flags[2];
     g_world_render_enabled = g_automap_saved_render_flags[3];
     g_world->camera->setRotation(0.0, 0.0, 0.0);

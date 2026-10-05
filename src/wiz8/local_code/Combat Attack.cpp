@@ -118,26 +118,27 @@ void ClearAttackBlock(W8SpellEffectDefinition* block)
     memset(block, 0, 0x30);
 }
 
-/* Fold the attack modes that share a resolution onto the mode that resolves
-   them. Seven of the eighteen collapse onto one mode and two onto another;
-   the rest answer for themselves. */
+/* Fold specific melee animation cycles onto ATTACK_CLOSE, and the throw
+   and shoot cycles onto ATTACK_RANGED. Other cycles retain their identity. */
 // FUNCTION: WIZ8 0x005430c0
-int NormalizeAttackMode(int attack_mode)
+W8MonsterCycle NormalizeMonsterCycle(W8MonsterCycle cycle)
 {
-    switch (attack_mode) {
-    case 9:
-    case 10:
-    case 11:
-    case 12:
-    case 14:
-    case 15:
-    case 16:
-        return 6;
-    case 13:
-    case 17:
-        return 7;
+    switch (cycle) {
+    case W8_MONSTER_CYCLE_ATTACK_SWING:
+    case W8_MONSTER_CYCLE_ATTACK_THRUST:
+    case W8_MONSTER_CYCLE_ATTACK_BASH:
+    case W8_MONSTER_CYCLE_ATTACK_MELEE:
+    case W8_MONSTER_CYCLE_ATTACK_PUNCH:
+    case W8_MONSTER_CYCLE_ATTACK_KICK:
+    case W8_MONSTER_CYCLE_ATTACK_LASH:
+        return W8_MONSTER_CYCLE_ATTACK_CLOSE;
+    case W8_MONSTER_CYCLE_ATTACK_THROW:
+    case W8_MONSTER_CYCLE_ATTACK_SHOOT:
+        return W8_MONSTER_CYCLE_ATTACK_RANGED;
+    default:
+        break;
     }
-    return attack_mode;
+    return cycle;
 }
 
 /* Pick one of the attack modes a mask allows, at random. The walk wraps round

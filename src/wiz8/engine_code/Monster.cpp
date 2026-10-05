@@ -596,14 +596,14 @@ unsigned char ReadOrCloneMonsterCycles(const W8GrCycleLoadContext* context,
                 }
                 signed char subcycle;
                 int cycle = ParseMonsterCycleName(command, &subcycle);
-                if (cycle != -1) {
+                if (cycle != W8_MONSTER_CYCLE_NONE) {
                     if (_strnicmp(argument, "gib", 3) != 0 || g_monster_gib_option != 0) {
-                        if (GetRenderOptionState(0xe) == 0) {
-                            cycle = NormalizeAttackMode(cycle);
+                        if (GetRenderOptionState(W8_RENDER_OPTION_ADDITIONAL_ANIMATIONS) == 0) {
+                            cycle = NormalizeMonsterCycle(static_cast<W8MonsterCycle>(cycle));
                         }
                         if (*monster == 0 ||
                             (*monster)->IsCycleSupported(static_cast<signed char>(cycle)) == 0 ||
-                            GetRenderOptionState(0xe) != 0) {
+                            GetRenderOptionState(W8_RENDER_OPTION_ADDITIONAL_ANIMATIONS) != 0) {
                             float animation_scale = -1.0f;
                             sscanf(line, "%s %s %f", command, argument, &animation_scale);
                             W8GrCycle* loaded = *monster;
@@ -631,7 +631,7 @@ unsigned char ReadOrCloneMonsterCycles(const W8GrCycleLoadContext* context,
                         }
                     }
                 } else {
-                    int sound_type = -1;
+                    W8SoundEventKind sound_type = W8_SOUND_EVENT_UNRECOGNIZED;
                     if (_stricmp(command, "SOUND_FRAME") == 0)
                         sound_type = W8_SOUND_EVENT_FRAME;
                     else if (_stricmp(command, "SOUND_CYCLE") == 0)
@@ -639,19 +639,19 @@ unsigned char ReadOrCloneMonsterCycles(const W8GrCycleLoadContext* context,
                     else if (_stricmp(command, "SOUND_FOOTSTEP") == 0)
                         sound_type = W8_SOUND_EVENT_FOOTSTEP;
 
-                    if (sound_type != -1) {
+                    if (sound_type != W8_SOUND_EVENT_UNRECOGNIZED) {
                         char cycle_name[256];
                         char wave_name[256];
                         char loop_name[64];
                         int frame = 0;
                         cycle_name[0] = wave_name[0] = loop_name[0] = '\0';
-                        if (sound_type == 0x100) {
+                        if (sound_type == W8_SOUND_EVENT_FOOTSTEP) {
                             sscanf(line, "%s %s %d", command, cycle_name, &frame);
                         } else {
                             sscanf(line, "%s %s %d %s %s", command, cycle_name, &frame, wave_name,
                                    loop_name);
                         }
-                        int sound_cycle = ParseMonsterCycleName(cycle_name, &subcycle);
+                        W8MonsterCycle sound_cycle = ParseMonsterCycleName(cycle_name, &subcycle);
                         char wave_path[256];
                         wave_path[0] = '\0';
                         if (sound_type != W8_SOUND_EVENT_FOOTSTEP) {
@@ -681,7 +681,7 @@ unsigned char ReadOrCloneMonsterCycles(const W8GrCycleLoadContext* context,
                         float value = 10.0f;
                         sscanf(line, "%s %s %d %f %f %f", command, cycle_name, &frame, &duration,
                                &intensity, &value);
-                        int shake_cycle = ParseMonsterCycleName(cycle_name, &subcycle);
+                        W8MonsterCycle shake_cycle = ParseMonsterCycleName(cycle_name, &subcycle);
                         W8CameraShakeEffect* effect = new W8CameraShakeEffect(
                             duration, 1, intensity, value * g_world_scale, 0);
                         if (effect != 0) {
@@ -959,29 +959,29 @@ void W8Monster::RandomizeAppearanceAndMotion()
 }
 
 // FUNCTION: WIZ8 0x004C2010
-int ParseMonsterCycleName(const char* name, signed char* subcycle)
+W8MonsterCycle ParseMonsterCycleName(const char* name, signed char* subcycle)
 {
-    int cycle;
+    W8MonsterCycle cycle;
     int index;
 
     if (name == 0) {
         srAssertFail("pacName", MONSTER_CPP, 1937, 0);
     }
 
-    cycle = -1;
+    cycle = W8_MONSTER_CYCLE_NONE;
     for (index = 0; index < W8_MONSTER_CYCLE_COUNT; ++index) {
         if (strncmp(name, g_cycle_names[index].name, g_cycle_names[index].prefix_length) == 0) {
-            cycle = index;
+            cycle = static_cast<W8MonsterCycle>(index);
             break;
         }
     }
 
     /* The model format retains these older names for the first two cycles. */
-    if (cycle == -1) {
+    if (cycle == W8_MONSTER_CYCLE_NONE) {
         if (strncmp(name, "FLY", 3) == 0) {
-            cycle = 0;
+            cycle = W8_MONSTER_CYCLE_BIRTH;
         } else if (strncmp(name, "EXPLODE", 7) == 0) {
-            cycle = 1;
+            cycle = W8_MONSTER_CYCLE_IDLE;
         }
     }
 
@@ -1029,11 +1029,11 @@ unsigned char W8MonsterRep::ReadCycleData(W8ReadLevelInfo* info, W8Monster* mons
 
     animation = CreateAnimObj();
     success = AnimObjReadFromFile(info, animation, load_all, lights, 0);
-    if (cycle_index == -1) {
+    if (cycle_index == W8_MONSTER_CYCLE_NONE) {
         cycle_index = static_cast<signed char>(animation->cycle);
     }
     cycle = static_cast<signed char>(cycle_index);
-    if (cycle < 0 || cycle >= W8_MONSTER_CYCLE_COUNT) {
+    if (cycle < W8_MONSTER_CYCLE_BIRTH || cycle >= W8_MONSTER_CYCLE_COUNT) {
         srAssertFail("bCycle>=CYCLE_FIRST && bCycle<=CYCLE_LAST",
                      "C:\\Projects\\Wizardry 8\\Engine Code\\Monster.cpp", 0xc35, 0);
     }
@@ -1107,7 +1107,7 @@ W8MonsterRep::W8MonsterRep(const W8MonsterRep& other)
         objects[index] = 0;
     }
     icon_count = 0;
-    for (cycle = 0; cycle < W8_MONSTER_CYCLE_COUNT; ++cycle) {
+    for (cycle = W8_MONSTER_CYCLE_BIRTH; cycle < W8_MONSTER_CYCLE_COUNT; ++cycle) {
         CopyCycle(cycle, &other, cycle);
     }
     if (other.monster_light != 0) {
@@ -1128,7 +1128,7 @@ W8MonsterRep::~W8MonsterRep()
     int cycle;
     int index;
 
-    for (cycle = 0; cycle < W8_MONSTER_CYCLE_COUNT; ++cycle) {
+    for (cycle = W8_MONSTER_CYCLE_BIRTH; cycle < W8_MONSTER_CYCLE_COUNT; ++cycle) {
         int count = animations[cycle].GetCount();
         for (index = 0; index < count; ++index) {
             W8AnimObj* animation = *animations[cycle].GetAt(index);
@@ -1140,7 +1140,7 @@ W8MonsterRep::~W8MonsterRep()
     for (index = 0; index < 8; ++index) {
         delete objects[index];
     }
-    for (cycle = 0; cycle < W8_MONSTER_CYCLE_COUNT; ++cycle) {
+    for (cycle = W8_MONSTER_CYCLE_BIRTH; cycle < W8_MONSTER_CYCLE_COUNT; ++cycle) {
         int count = light_lists[cycle].GetCount();
         for (index = 0; index < count; ++index) {
             DestroyLightVector(*light_lists[cycle].GetAt(index));
@@ -1473,8 +1473,8 @@ void W8Monster::Update()
     }
 
     cycle = Query(6);
-    SetGroundShadowVisible(cycle != 0 && cycle != 0x15 && fade_state == 0 &&
-                           (flags1 & W8_MONSTER_FADED_OUT) == 0);
+    SetGroundShadowVisible(cycle != W8_MONSTER_CYCLE_BIRTH && cycle != W8_MONSTER_CYCLE_DIE &&
+                           fade_state == 0 && (flags1 & W8_MONSTER_FADED_OUT) == 0);
 
     {
         unsigned int monster_index =
@@ -1485,8 +1485,8 @@ void W8Monster::Update()
     }
 
     if (IsMipeActive() == 0) {
-        if ((cycle == 1 || cycle == 2) && m_pRep->pending_cycle == -1 &&
-            movement_stopped == 0 && halted == 0) {
+        if ((cycle == W8_MONSTER_CYCLE_IDLE || cycle == W8_MONSTER_CYCLE_SPICE) &&
+            m_pRep->pending_cycle == -1 && movement_stopped == 0 && halted == 0) {
             flags |= 0x100000;
         }
 
@@ -1497,14 +1497,14 @@ void W8Monster::Update()
                              monster_info->uiCondition[5] != 0);
         }
 
-        if (cycle != 0x15 && script != 0 && gXStatus.fCombatMode == 0) {
+        if (cycle != W8_MONSTER_CYCLE_DIE && script != 0 && gXStatus.fCombatMode == 0) {
             ProcessScript();
             cycle = Query(6);
         }
 
         if ((flags1 & W8_MONSTER_SCRIPT_WAIT) == 0 && m_pRep->pending_cycle == -1) {
             switch (cycle) {
-            case 0x18:
+            case W8_MONSTER_CYCLE_TALK:
                 if (Query(7) != 0) {
                     if (talk_duration < GetTickCount() - talk_start &&
                         IsCycleSupported(0x17) != 0) {
@@ -1519,7 +1519,7 @@ void W8Monster::Update()
                     m_pRep->pending_subcycle = 0;
                 }
                 break;
-            case 0x17:
+            case W8_MONSTER_CYCLE_TALK_SPICE:
                 if (Query(7) != 0) {
                     if (talking != 0) {
                         talk_state = 0x17;
@@ -1536,7 +1536,7 @@ void W8Monster::Update()
                     m_pRep->pending_subcycle = 0;
                 }
                 break;
-            case 0x19:
+            case W8_MONSTER_CYCLE_SPELL:
                 if (Query(7) != 0) {
                     m_pRep->pending_cycle = 1;
                     m_pRep->frame_direction = 1;
@@ -1546,7 +1546,7 @@ void W8Monster::Update()
                     m_pRep->pending_subcycle = 0;
                 }
                 break;
-            case 4:
+            case W8_MONSTER_CYCLE_WALK:
                 if (movement_stopped != 0 || halted != 0) {
                     bool transition = Query(2) != 0 || wrapped != 0;
                     if (!transition && m_pRep->special_movement == 0) {
@@ -1574,8 +1574,8 @@ void W8Monster::Update()
                     }
                 }
                 break;
-            case 1:
-            case 2:
+            case W8_MONSTER_CYCLE_IDLE:
+            case W8_MONSTER_CYCLE_SPICE:
                 if (movement_stopped == 0 && halted == 0 &&
                     (Query(2) != 0 || wrapped != 0)) {
                     flags &= ~0x100000;
@@ -1592,7 +1592,7 @@ void W8Monster::Update()
                     m_pRep->timer = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
                 }
                 break;
-            case 3:
+            case W8_MONSTER_CYCLE_TRANSITION:
                 if (Query(7) != 0) {
                     if (m_pRep->frame_direction == 3) {
                         m_pRep->frame_direction = 1;
@@ -1606,7 +1606,7 @@ void W8Monster::Update()
                     m_pRep->pending_subcycle = 0;
                 }
                 break;
-            case 0:
+            case W8_MONSTER_CYCLE_BIRTH:
                 if (Query(7) != 0) {
                     m_pRep->pending_cycle = 1;
                     m_pRep->animation_playing = 1;
@@ -1627,7 +1627,7 @@ void W8Monster::Update()
     cycle = Query(6);
     if (gfKeyState[0x11] && g_combat_state != 0 &&
         (g_combat_state->round_active != 0 || gXStatus.fPartyMovementMode != 0) &&
-        (cycle == 1 || cycle == 2) &&
+        (cycle == W8_MONSTER_CYCLE_IDLE || cycle == W8_MONSTER_CYCLE_SPICE) &&
         (m_pRep->pending_cycle == -1 || m_pRep->pending_cycle == 1 || m_pRep->pending_cycle == 2) &&
         (g_combat_state->eCombatActionStatus != 2 || g_combat_state->pActionMonsterInfo == 0 ||
          g_combat_state->pActionMonsterInfo->location_id != location_id)) {
@@ -1772,11 +1772,11 @@ unsigned char W8Monster::GetProjectilePosition(srVector3T<float>* position)
                      MONSTER_CPP, 0x18b1, 0);
     }
     if (IsCycleSupported(0x0d) != 0) {
-        cycle = 0x0d;
+        cycle = W8_MONSTER_CYCLE_ATTACK_THROW;
     } else if (IsCycleSupported(0x11) != 0) {
-        cycle = 0x11;
+        cycle = W8_MONSTER_CYCLE_ATTACK_SHOOT;
     } else if (IsCycleSupported(7) != 0) {
-        cycle = 7;
+        cycle = W8_MONSTER_CYCLE_ATTACK_RANGED;
     } else {
         return 0;
     }
@@ -1827,7 +1827,7 @@ unsigned char W8Monster::GetCycleMappedPosition(signed char cycle, int mapped_in
     int subcycle;
     int dispatch_value;
 
-    if (cycle == -1) {
+    if (cycle == W8_MONSTER_CYCLE_NONE) {
         cycle = m_pRep->current_cycle;
         subcycle = m_pRep->current_subcycle;
     } else {
@@ -2053,7 +2053,7 @@ void W8Monster::ProcessScript()
                 token = strtok(0, " \t");
                 if (token != 0) {
                     int cycle = ParseMonsterCycleName(token, &subcycle);
-                    if (cycle != -1) {
+                    if (cycle != W8_MONSTER_CYCLE_NONE) {
                         m_pRep->pending_cycle = static_cast<signed char>(cycle);
                         m_pRep->animation_playing = 1;
                         m_pRep->timer =
@@ -3106,7 +3106,8 @@ unsigned char W8Monster::CanEnterCycle(signed char cycle)
         return 0;
     }
     if (m_pRep->animation_playing == 0) {
-        if (cycle != 0x14 && cycle != 0x15 && cycle != 0 && monster_info->fMotionless != 0) {
+        if (cycle != W8_MONSTER_CYCLE_GET_HIT && cycle != W8_MONSTER_CYCLE_DIE &&
+            cycle != W8_MONSTER_CYCLE_BIRTH && monster_info->fMotionless != 0) {
             if (g_dev_mode == 0) {
                 return 0;
             }
@@ -3117,7 +3118,8 @@ unsigned char W8Monster::CanEnterCycle(signed char cycle)
         if (IsCycleInterruptable(static_cast<signed char>(Query(6))) == 0 && Query(7) == 0) {
             return 0;
         }
-        if (cycle == 0x15 && monster_info->monster_species == 0x199 && Query(2) == 0) {
+        if (cycle == W8_MONSTER_CYCLE_DIE && monster_info->monster_species == 0x199 &&
+            Query(2) == 0) {
             return 0;
         }
     }
@@ -3149,7 +3151,7 @@ unsigned char W8Monster::IsCycleInterruptable(signed char cycle)
             } else {
                 current_name = "";
             }
-            if (cycle != -1) {
+            if (cycle != W8_MONSTER_CYCLE_NONE) {
                 requested_name = g_cycle_names[cycle].name;
             } else {
                 requested_name = "";
@@ -3166,12 +3168,12 @@ unsigned char W8Monster::IsCycleInterruptable(signed char cycle)
     }
 
     switch (cycle) {
-    case -1:
-    case 1:
-    case 2:
-    case 3:
-    case 4:
-    case 0x16:
+    case W8_MONSTER_CYCLE_NONE:
+    case W8_MONSTER_CYCLE_IDLE:
+    case W8_MONSTER_CYCLE_SPICE:
+    case W8_MONSTER_CYCLE_TRANSITION:
+    case W8_MONSTER_CYCLE_WALK:
+    case W8_MONSTER_CYCLE_TURN:
         return 1;
     }
     return 0;
@@ -3459,7 +3461,7 @@ void W8Monster::SetCycle(signed char cycle)
     int count;
     int index;
 
-    if (cycle < 0 || cycle >= W8_MONSTER_CYCLE_COUNT) {
+    if (cycle < W8_MONSTER_CYCLE_BIRTH || cycle >= W8_MONSTER_CYCLE_COUNT) {
         srAssertFail("bCycle >= CYCLE_FIRST && bCycle <= CYCLE_LAST", MONSTER_CPP, 0xb14, 0);
     }
 
@@ -3587,7 +3589,7 @@ void W8Monster::SetCycle(signed char cycle)
         model->light_scale = current_scale;
     }
 
-    if (cycle == 0x15) {
+    if (cycle == W8_MONSTER_CYCLE_DIE) {
         srVector4T<float> empty;
         empty = 0.0f;
         srModelInstance* instance;
@@ -3611,7 +3613,7 @@ signed char W8Monster::GetTotalAnimationCount()
     signed char total = 0;
     int cycle;
 
-    for (cycle = 0; cycle < W8_MONSTER_CYCLE_COUNT; ++cycle) {
+    for (cycle = W8_MONSTER_CYCLE_BIRTH; cycle < W8_MONSTER_CYCLE_COUNT; ++cycle) {
         total += static_cast<signed char>(m_pRep->animations[cycle].GetCount());
     }
     return total;
@@ -4826,7 +4828,7 @@ void W8Monster::CollectModelInstances(W8GrowableVector<stModelInstance*>* instan
     int cycle;
 
     GetTotalAnimationCount();
-    for (cycle = 0; cycle < W8_MONSTER_CYCLE_COUNT; ++cycle) {
+    for (cycle = W8_MONSTER_CYCLE_BIRTH; cycle < W8_MONSTER_CYCLE_COUNT; ++cycle) {
         int subcycle;
 
         for (subcycle = 0; subcycle < m_pRep->GetNumSubsPerCycle(static_cast<signed char>(cycle));
@@ -5198,7 +5200,7 @@ void W8Monster::ApplyRepresentationScale()
     SetScale(m_pRep->scale);
     for (int cycle = 0; cycle < W8_MONSTER_CYCLE_COUNT; ++cycle) {
         float scale = m_pRep->scale;
-        if (cycle == 21) {
+        if (cycle == W8_MONSTER_CYCLE_DIE) {
             scale = m_pRep->death_scale * m_pRep->scale;
         }
         float x_scale = scale;
