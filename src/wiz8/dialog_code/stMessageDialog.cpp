@@ -341,7 +341,7 @@ unsigned char W8MessageDialogBase::HandleInput(const InputAtom* input)
         int key = toupper(input->usParam);
         if (key == ESC) {
             close_result = 0;
-            is_open = 0;
+            is_open = false;
             return 0;
         }
         if (key != '\r') {
@@ -350,7 +350,7 @@ unsigned char W8MessageDialogBase::HandleInput(const InputAtom* input)
     }
 
     close_result = 1;
-    is_open = 0;
+    is_open = false;
     return 0;
 }
 
@@ -407,7 +407,7 @@ void MessageDialogConfirmCallback(GUI_BUTTON* button, int reason)
     } else if (reason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
         if (button->uiFlags & 2) {
             dialog->close_result = 1;
-            dialog->is_open = 0;
+            dialog->is_open = false;
             button->uiFlags &= ~2u;
             dialog->m_dirty_flags |= 1;
         }
@@ -436,7 +436,7 @@ void MessageDialogCancelCallback(GUI_BUTTON* button, int reason)
     } else if (reason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
         if (button->uiFlags & 2) {
             dialog->close_result = 0;
-            dialog->is_open = 0;
+            dialog->is_open = false;
             button->uiFlags &= ~2u;
             dialog->m_dirty_flags |= 1;
         }

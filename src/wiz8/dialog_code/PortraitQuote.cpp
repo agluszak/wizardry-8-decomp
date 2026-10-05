@@ -641,7 +641,7 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
         BltVideoObject(bubble->surface, object, 7, width_px - 0x10, height_px - 0x10, 2, 0);
         if (background_index == 0) {
             colour = 0xd0;
-            foreground = 0;
+            foreground = false;
         }
         if (bubble->palette != 0xffffffff) {
             colour = static_cast<unsigned char>(bubble->palette);

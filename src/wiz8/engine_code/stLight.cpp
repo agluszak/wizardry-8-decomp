@@ -47,7 +47,7 @@ const float g_float_005ec1e4 = 3.0518509447574615e-05f;
 // FUNCTION: WIZ8 0x0049C2C0
 stLight::stLight(srNode* parent)
 {
-    m_save_marked = 0;
+    m_save_marked = false;
     m_prop = 0;
     if (parent != 0) {
         setParent(parent, 0);

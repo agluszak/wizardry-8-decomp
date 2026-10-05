@@ -338,7 +338,7 @@ char AddTextInputField(int left, int top, int width, int height, int priority, c
     }
     field->fUserField = false;
     field->fEnabled = 1;
-    field->fBlockMouseCallbacks = 0;
+    field->fBlockMouseCallbacks = false;
     MSYS_DefineRegion(&field->region, static_cast<unsigned short>(left), static_cast<unsigned short>(top),
                       static_cast<unsigned short>(left + width), static_cast<unsigned short>(top + height),
                       static_cast<signed char>(priority), MSYS_NO_CURSOR, MouseMovedInTextRegionCallback,

@@ -448,7 +448,7 @@ bool FormatCharacterQuoteText(W8Character* character, unsigned int event_type,
     bool has_npc;
 
     if (event_type >= 0x92) {
-        return 0;
+        return false;
     }
     if (metadata != 0) {
         *metadata = 0xffffffff;
@@ -468,7 +468,7 @@ bool FormatCharacterQuoteText(W8Character* character, unsigned int event_type,
                 (character->voice != 0) + 1);
         if (!FileExists(path)) {
             g_character_text[0] = 0;
-            return 0;
+            return false;
         }
         GetStringFromStringDatabase(path, event_type, g_character_text, 0, metadata);
         /* Retail does not test the reader result or length before storing
@@ -478,16 +478,16 @@ bool FormatCharacterQuoteText(W8Character* character, unsigned int event_type,
         W8NpcState* npc = GetNpcState(npc_index);
         if (GetNpcQuoteText(npc, event_type, g_character_text) == 0) {
             g_character_text[0] = 0;
-            return 0;
+            return false;
         }
     }
 
     if (wcslen(g_character_text) == 0) {
-        return 0;
+        return false;
     }
     swprintf(text, L"\"%s\"", g_character_text);
     wcscpy(g_character_text, text);
-    return 1;
+    return true;
 }
 
 /* The quote text builder fills the shared wide buffer; the final character
@@ -599,7 +599,7 @@ void W8CharacterEvent::Complete()
     slot->active_character_event = 0;
     if (sound_was_active) {
         if (SoundIsPlaying(slot->voice_sound_handle) != 0) {
-            sound_end_handled = 1;
+            sound_end_handled = true;
             SoundStop(slot->voice_sound_handle);
         }
         SetPartyPortraitEventState(party_slot, false, -1, 0, 1);
@@ -669,16 +669,16 @@ static bool CanDispatchCharacterEvent(unsigned int party_slot, unsigned int even
 
     (void)flags;
     if (party_slot >= 8) {
-        return 0;
+        return false;
     }
     if (event_type >= g_normal_event_count) {
         if (event_type < g_first_remapped_event ||
             event_type >= g_remapped_event_count + g_first_remapped_event) {
-            return 0;
+            return false;
         }
     }
     if (!g_status.buffers.XChar[party_slot].fOccupied) {
-        return 0;
+        return false;
     }
     character = &g_status.buffers.Char[party_slot];
     if (character->highest_condition > W8_CONDITION_WEBBED) {
@@ -687,23 +687,23 @@ static bool CanDispatchCharacterEvent(unsigned int party_slot, unsigned int even
             g_special_event16 != 0) {
             if (character->uiCondition[W8_CONDITION_UNCONSCIOUS] != 0 ||
                 character->uiCondition[W8_CONDITION_MISSING] != 0) {
-                return 0;
+                return false;
             }
         } else {
             if (character->highest_condition != W8_CONDITION_UNCONSCIOUS &&
                 character->highest_condition != W8_CONDITION_ASLEEP) {
-                return 0;
+                return false;
             }
             if (event_type != static_cast<unsigned int>(g_special_event11) &&
                 event_type != static_cast<unsigned int>(g_special_event12) &&
                 event_type != static_cast<unsigned int>(g_special_event4)) {
-                return 0;
+                return false;
             }
         }
     }
     if (character->hp_current == 0 &&
         event_type != static_cast<unsigned int>(g_special_event9)) {
-        return 0;
+        return false;
     }
     mapped_event_type = event_type;
     if (mapped_event_type >= g_first_remapped_event) {
@@ -903,15 +903,15 @@ void SetPartyPortraitEventState(unsigned int party_slot, bool active,
         return;
     }
     if (!active) {
-        record->portrait_event_active = 0;
+        record->portrait_event_active = false;
         if (gfCapturingVideo != 0) {
             return;
         }
         record->previous_portrait_frame = record->portrait_frame;
         record->portrait_frame = 6;
-        record->portrait_frame_dirty = 1;
+        record->portrait_frame_dirty = true;
         int pc_slot = RPCPtrToPCSlot(record);
-        record->portrait_pose_animation_active = 0;
+        record->portrait_pose_animation_active = false;
         W8Condition highest_condition = g_status.buffers.Char[pc_slot].highest_condition;
         if (highest_condition < W8_CONDITION_ASLEEP && !gXStatus.fSurprisePossible) {
             if (record->target_portrait_pose != 1) {
@@ -957,7 +957,7 @@ void SetPartyPortraitEventState(unsigned int party_slot, bool active,
         if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
             RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_PANEL);
             RequestRedrawParty();
-            record->portrait_event_active = 0;
+            record->portrait_event_active = false;
             return;
         }
         if (g_current_screen_state.id == W8_SCREEN_CAMP) {
@@ -967,13 +967,13 @@ void SetPartyPortraitEventState(unsigned int party_slot, bool active,
         return;
     }
 
-    record->portrait_event_active = 1;
+    record->portrait_event_active = true;
     if (gfCapturingVideo != 0) {
         return;
     }
     record->previous_portrait_frame = record->portrait_frame;
     record->portrait_frame = 7;
-    record->portrait_frame_dirty = 1;
+    record->portrait_frame_dirty = true;
     record->portrait_frame_clock = SetCountdownClock(0x78);
     int pose_category;
     if (static_cast<int>(g_normal_event_count) < static_cast<int>(event_type)) {
@@ -986,7 +986,7 @@ void SetPartyPortraitEventState(unsigned int party_slot, bool active,
         pose_category = g_character_event_descriptors[mapped_event].portrait_pose_category;
     }
     int pc_slot = RPCPtrToPCSlot(record);
-    record->portrait_pose_animation_active = 0;
+    record->portrait_pose_animation_active = false;
     W8Condition highest_condition = g_status.buffers.Char[pc_slot].highest_condition;
     if (highest_condition < W8_CONDITION_ASLEEP && !gXStatus.fSurprisePossible) {
         if (record->target_portrait_pose != pose_category) {
@@ -998,25 +998,25 @@ void SetPartyPortraitEventState(unsigned int party_slot, bool active,
     if (quote_text == 0 || show_quote == 0) {
         quote->quote_handle = -1;
     } else {
-        bool layout_quote = 0;
-        bool use_modal_gate = 0;
+        bool layout_quote = false;
+        bool use_modal_gate = false;
         if (static_cast<int>(g_normal_event_count) < static_cast<int>(event_type)) {
-            use_modal_gate = 1;
+            use_modal_gate = true;
         } else {
             unsigned int mapped_event = event_type;
             if (g_first_remapped_event <= event_type) {
                 mapped_event = g_normal_event_count - g_first_remapped_event + event_type;
             }
             if (g_character_event_descriptors[mapped_event].defer_outside_main_game != 0) {
-                use_modal_gate = 1;
+                use_modal_gate = true;
             } else if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
-                use_modal_gate = 1;
+                use_modal_gate = true;
             } else {
-                layout_quote = 1;
+                layout_quote = true;
             }
         }
         if (use_modal_gate && g_current_screen_state.id == W8_SCREEN_MAIN_GAME && !IsModalOpen()) {
-            layout_quote = 1;
+            layout_quote = true;
         }
         if (!layout_quote || g_settings.pc_subtitles == 0) {
             quote->quote_handle = -1;
@@ -1059,7 +1059,7 @@ void SetPartyPortraitEventState(unsigned int party_slot, bool active,
         g_level_block->portrait_refresh_pending[party_slot] == 0 &&
         event_type != static_cast<unsigned int>(g_special_event17)) {
         RefreshSelectedPartyPortrait(party_slot);
-        record->auto_portrait_refresh = 1;
+        record->auto_portrait_refresh = true;
         record->portrait_event_active = active;
         return;
     }
@@ -1436,7 +1436,7 @@ void SetPortraitTargetPose(W8MonsterManagerEntry* slot, int pose)
 {
     int party_slot = RPCPtrToPCSlot(slot);
 
-    slot->portrait_pose_animation_active = 0;
+    slot->portrait_pose_animation_active = false;
     if (g_status.buffers.Char[party_slot].highest_condition < W8_CONDITION_ASLEEP &&
         !gXStatus.fSurprisePossible) {
         if (slot->target_portrait_pose != pose) {
@@ -1482,11 +1482,11 @@ void QueuePartyDeathReaction(unsigned int party_slot)
     unsigned int selected[1];
     unsigned int remaining;
     unsigned int index;
-    bool skip_first_two = 0;
+    bool skip_first_two = false;
     int effect;
 
     if (party_slot < 2) {
-        skip_first_two = 1;
+        skip_first_two = true;
         effect = g_effect12;
     } else {
         effect = g_effect10;
@@ -1843,7 +1843,7 @@ int UpdateCharacterEventState(void)
                         if (record->voice_time_remaining_ms < 120) {
                             record->previous_portrait_frame = record->portrait_frame;
                             record->portrait_frame = 6;
-                            record->portrait_frame_dirty = 1;
+                            record->portrait_frame_dirty = true;
                             record->voice_time_remaining_ms = 0;
                         } else {
                             int direction = ChooseDifferentMonsterDirection(
@@ -1855,7 +1855,7 @@ int UpdateCharacterEventState(void)
                             }
                             record->previous_portrait_frame = record->portrait_frame;
                             record->portrait_frame = direction;
-                            record->portrait_frame_dirty = 1;
+                            record->portrait_frame_dirty = true;
                             record->portrait_frame_clock = SetCountdownClock(120);
                             record->voice_time_remaining_ms -= 120;
                         }
@@ -1863,7 +1863,7 @@ int UpdateCharacterEventState(void)
                 } else {
                     record->previous_portrait_frame = record->portrait_frame;
                     record->portrait_frame = 6;
-                    record->portrait_frame_dirty = 1;
+                    record->portrait_frame_dirty = true;
                 }
             }
         }
@@ -1890,7 +1890,7 @@ int UpdateCharacterEventState(void)
                 if (record->portrait_pose == record->target_portrait_pose) {
                     if (record->portrait_pose == 1 &&
                         ClockIsTicking(record->portrait_idle_clock) == 0) {
-                        record->portrait_pose_animation_active = 1;
+                        record->portrait_pose_animation_active = true;
                         record->portrait_idle_clock = SetCountdownClock(Random(5000) + 5000);
                     }
                 } else if (ClockIsTicking(record->portrait_pose_clock) == 0) {
@@ -1898,7 +1898,7 @@ int UpdateCharacterEventState(void)
                     record->previous_portrait_pose = pose;
                     record->portrait_pose =
                         g_portrait_pose_transition[pose - 1][record->target_portrait_pose - 1];
-                    record->portrait_pose_animation_active = 1;
+                    record->portrait_pose_animation_active = true;
                     record->portrait_pose_clock = SetCountdownClock(Random(50) + 50);
                 }
             } else if (ClockIsTicking(record->portrait_pose_clock) == 0) {
@@ -1906,11 +1906,11 @@ int UpdateCharacterEventState(void)
                 if (pose != 2) {
                     record->previous_portrait_pose = pose;
                     record->portrait_pose = g_portrait_pose_transition[pose - 1][2 - 1];
-                    record->portrait_pose_animation_active = 1;
+                    record->portrait_pose_animation_active = true;
                     record->portrait_pose_clock = SetCountdownClock(Random(50) + 50);
                 }
                 if (record->portrait_pose == 2) {
-                    record->portrait_pose_animation_active = 0;
+                    record->portrait_pose_animation_active = false;
                 }
             }
             if ((record->portrait_pose_dirty || record->portrait_frame_dirty) &&
@@ -1982,7 +1982,7 @@ bool BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int 
             RenderPartyPortrait(portrait, left, top, flags, 0, party_slot);
         }
         if (g_status.buffers.Char[party_slot].hp_current == 0) {
-            return 1;
+            return true;
         }
         DrawCatalogImage(-0xe, 0x12, portrait, state->portrait_pose, left, top, flags | 0x200, 0);
         drawn = true;
@@ -1998,12 +1998,12 @@ bool BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int 
         }
         InvalidateScreenRects(&rect, 1, 0);
         state->previous_portrait_pose = state->portrait_pose;
-        state->portrait_pose_dirty = 0;
+        state->portrait_pose_dirty = false;
     }
     if (!state->portrait_frame_dirty && state->portrait_frame == state->previous_portrait_frame &&
         (!animate || state->portrait_frame == 6)) {
         if (!drawn) {
-            return 0;
+            return false;
         }
     } else {
         GetCatalogImageSize(0x12, portrait, state->portrait_frame, &width, &height);
@@ -2033,7 +2033,7 @@ bool BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int 
         }
         InvalidateScreenRects(&rect, 1, 0);
         state->previous_portrait_frame = state->portrait_frame;
-        state->portrait_frame_dirty = 0;
+        state->portrait_frame_dirty = false;
     }
     if (((gXStatus.fCombatMode && g_combat_state->characters[party_slot].dead) ||
          gXStatus.fSurprisePossible) ||

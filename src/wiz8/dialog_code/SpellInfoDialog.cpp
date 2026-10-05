@@ -99,7 +99,8 @@ int W8SpellInfoDialog::CreateControls()
     m_scroll_bar.m_owner = this;
 
     m_button.Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 0, 1, 4, 2,
-                       DialogCloseButtonCallback, 0, false, 0x7f, -1, 0, 0);
+                       DialogCloseButtonCallback, BUTTON_NO_CALLBACK, false, MSYS_PRIORITY_HIGHEST,
+                       W8_DIALOG_BUTTON_NO_TOOLTIP, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
     m_button.SetPosition(m_x + 0x11a, m_y + 0x104);
     m_button.m_owner = this;
     return 0;

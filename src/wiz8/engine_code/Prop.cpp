@@ -332,10 +332,10 @@ bool ResolvePickedProp(W8World* world)
     g_selected_prop_index = -1;
     selected = GetPickedModelInstance();
     if (selected == 0) {
-        return 0;
+        return false;
     }
 
-    valid = 1;
+    valid = true;
     GetCameraPosition(&camera_position);
     prop_count = PLLength(world->plsProps);
     for (prop_index = 0; prop_index < static_cast<int>(prop_count); ++prop_index) {
@@ -345,7 +345,7 @@ bool ResolvePickedProp(W8World* world)
         int instance_index;
 
         if (!valid) {
-            return 0;
+            return false;
         }
         if (g_selected_prop_trigger != 0) {
             return valid;
@@ -402,7 +402,7 @@ bool ResolvePickedProp(W8World* world)
                     }
                 }
             }
-            valid = 0;
+            valid = false;
             SetPickedModelInstance(0);
             g_selected_prop_trigger = 0;
             g_selected_prop_index = -1;
@@ -734,7 +734,7 @@ void W8Prop::AdvanceAnimationValue(int frames, char total)
                 if (trigger != 0) {
                     trigger->RunLinkedTriggers();
                 }
-                gXStatus.sight_refresh_pending = 1;
+                gXStatus.sight_refresh_pending = true;
             }
         } else if (rep->frame_direction == W8_ANIMATION_REVERSE) {
             if (static_cast<int>(frame) - frames > start) {
@@ -746,7 +746,7 @@ void W8Prop::AdvanceAnimationValue(int frames, char total)
                 if (trigger != 0) {
                     trigger->RunLinkedTriggers();
                 }
-                gXStatus.sight_refresh_pending = 1;
+                gXStatus.sight_refresh_pending = true;
             }
         }
     } else {
@@ -1735,7 +1735,7 @@ bool W8PropRepresentation::LoadProp(W8ReadLevelInfo* info, W8Prop* prop)
                 unsigned int path_count;
                 unsigned int path_i;
 
-                this->animation_running = 1;
+                this->animation_running = true;
                 if (AnimationIsRunning(this->animation) == 1) {
                     path_count = AnimObjListCount(this->animation, 2);
                     for (path_i = 0; path_i < path_count; ++path_i) {
@@ -1771,7 +1771,7 @@ bool W8PropRepresentation::LoadProp(W8ReadLevelInfo* info, W8Prop* prop)
         if (extra != 0) {
             if (result && (success = FileRead(hFile, &this->footstep_surface, 1, 0), success) &&
                 (success = FileRead(hFile, &this->footstep_material, 1, 0), success)) {
-                result = 1;
+                result = true;
             } else {
                 result = false;
             }
@@ -1788,7 +1788,7 @@ bool W8PropRepresentation::LoadProp(W8ReadLevelInfo* info, W8Prop* prop)
 
 fail:
     srAssertFail("fSuccess", PROP_CPP, fail_line, 0);
-    return 0;
+    return false;
 
 fail_with_result:
     srAssertFail("fSuccess", PROP_CPP, fail_line, 0);
@@ -1963,13 +1963,13 @@ bool ActivateSelectedProp(void)
 {
     if (GetPickedModelInstance() == 0) {
         g_selected_prop_trigger = 0;
-        return 0;
+        return false;
     }
     if (g_selected_prop_trigger != 0) {
-        g_trigger_feedback = 0;
+        g_trigger_feedback = false;
         g_selected_prop_trigger->Run(-1);
         g_selected_prop_trigger->PrintNothingHappenedOrSpecialItemRequired();
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }

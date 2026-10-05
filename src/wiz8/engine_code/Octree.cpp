@@ -156,7 +156,7 @@ bool g_render_untextured;
 // FUNCTION: WIZ8 0x0042bc00
 void NoOct(void)
 {
-    g_octree_disabled = 1;
+    g_octree_disabled = true;
 }
 
 // GLOBAL: WIZ8 0x005ec02c
@@ -243,7 +243,7 @@ void W8Octree::UpdateVisibility()
     int bit;
 
     if (m_reset_visibility) {
-        m_reset_visibility = 0;
+        m_reset_visibility = false;
         for (mesh_index = 0; mesh_index < m_meshCount; ++mesh_index) {
             if (g_world->psrMeshes[mesh_index] != 0) {
                 m_pSubmeshes[static_cast<stModelInstance*>(g_world->psrMeshes[mesh_index])
@@ -712,10 +712,10 @@ unsigned char W8Octree::CollectVisibleRegions(srVector3T<float>* location, srVec
             (((&location->x)[axis] - (&box_min.x)[axis]) / m_spatial.m_region_grid_cell));
         if ((&location->x)[axis] < (&box_min.x)[axis]) {
             --(&cells->x)[axis];
-            inside = 0;
+            inside = false;
         }
         if ((&location->x)[axis] > (&box_max.x)[axis]) {
-            inside = 0;
+            inside = false;
         }
         if (depth != 0) {
             (&depth->x)[axis] =
@@ -970,26 +970,26 @@ bool W8Octree::LoadPointFiles(const char* level_name)
     strcat(name, g_octree_point_extension);
 
     FindNextLevelFile(0);
-    bool first = 1;
+    bool first = true;
     unsigned char read_ok = 0;
     while (FindNextLevelFile(name) != 0) {
         if (first) {
-            first = 0;
+            first = false;
         } else {
-            m_points_dirty = 1;
+            m_points_dirty = true;
         }
         int file = FileOpen(name, 1, 0);
         if (file == 0) {
-            return 0;
+            return false;
         }
         if (FileRead(file, &m_point_count, 4, 0) == 0) {
             FileClose(file);
-            return 0;
+            return false;
         }
         m_sample_points = new srVector3T<float>[m_point_count + 1];
         if (m_sample_points == 0) {
             FileClose(file);
-            return 0;
+            return false;
         }
         read_ok = FileRead(file, m_sample_points, m_point_count * sizeof(srVector3T<float>), 0);
         FileClose(file);
@@ -999,7 +999,7 @@ bool W8Octree::LoadPointFiles(const char* level_name)
     }
     delete[] m_sample_points;
     m_point_count = 0;
-    return 0;
+    return false;
 }
 
 /* Write the octree's point array to a companion file.
@@ -1045,7 +1045,7 @@ bool W8Octree::ReadRegionLinkFile(const char* level_name)
     unsigned int* keys = 0;
     unsigned short* values = 0;
     int file = 0;
-    bool result = 0;
+    bool result = false;
     char name[256];
 
     strcpy(name, level_name);
@@ -1055,14 +1055,14 @@ bool W8Octree::ReadRegionLinkFile(const char* level_name)
     }
     strcat(name, g_region_link_extension);
     if (FileExists(name) == 0) {
-        return 0;
+        return false;
     }
     file = FileOpen(name, 1, 0);
     if (file == 0) {
-        return 0;
+        return false;
     }
     if (FileRead(file, &count, 4, 0) == 0) {
-        return 0;
+        return false;
     }
 
     keys = static_cast<unsigned int*>(malloc(count * sizeof(unsigned int)));
@@ -1071,13 +1071,13 @@ bool W8Octree::ReadRegionLinkFile(const char* level_name)
         FileClose(file);
         free(keys);
         free(values);
-        return 0;
+        return false;
     }
     if (FileRead(file, keys, count * 4, 0) == 0 || FileRead(file, values, count * 2, 0) == 0) {
         FileClose(file);
         free(keys);
         free(values);
-        return 0;
+        return false;
     }
     if (m_pRegionLinks == 0) {
         m_pRegionLinks = new W8HashTable<unsigned int, unsigned short>;
@@ -1086,12 +1086,12 @@ bool W8Octree::ReadRegionLinkFile(const char* level_name)
         m_pRegionLinks->Remove(&keys[index], &values[index]);
         m_pRegionLinks->Insert(&keys[index], &values[index]);
     }
-    result = 1;
+    result = true;
     FileClose(file);
     free(keys);
     free(values);
     if (result) {
-        m_region_links_ready = 1;
+        m_region_links_ready = true;
     }
     return result;
 }
@@ -1386,10 +1386,10 @@ void W8Octree::BuildRegionLinks(bool rebuild_all)
     world->camera->getLocation(saved_location);
     world->camera->getRotation(saved_rotation);
     g_light_update_flags &= ~1u;
-    g_render_untextured = 1;
+    g_render_untextured = true;
     SetCameraLightMode(2);
-    g_render_unlit = 1;
-    g_render_cull_front = 1;
+    g_render_unlit = true;
+    g_render_cull_front = true;
     double saved_width = world->camera->getHorizontalFOV();
     double saved_height = world->camera->getVerticalFOV();
     world->camera->setViewPlane(2.094395102, 2.094395102);
@@ -1463,7 +1463,7 @@ void W8Octree::BuildRegionLinks(bool rebuild_all)
             }
         }
     }
-    g_render_untextured = 0;
+    g_render_untextured = false;
     EnableAllRenderOptions();
     W8HashTable<unsigned int, unsigned short>* stale;
     if (!rebuild_all) {
@@ -1512,12 +1512,12 @@ void W8Octree::BuildRegionLinks(bool rebuild_all)
     world->camera->setRotation(saved_rotation);
     g_light_update_flags |= 1u;
     SetCameraLightMode(3);
-    g_render_unlit = 0;
-    g_render_cull_front = 0;
+    g_render_unlit = false;
+    g_render_cull_front = false;
     SetWorldScaledViewport(0, 0, 0x280, 0x1e0);
-    m_region_links_dirty = 1;
-    m_region_links_ready = 1;
-    m_reset_visibility = 1;
+    m_region_links_dirty = true;
+    m_region_links_ready = true;
+    m_reset_visibility = true;
     unsigned int elapsed = static_cast<unsigned int>(static_cast<int>(difftime(time(0), started)));
     unsigned int minutes = elapsed / 60;
     unsigned int hours = 0;
@@ -1799,7 +1799,7 @@ void W8Octree::ToggleUpdateSuspension(W8World* world)
     if (!g_octree_update_suspended) {
         g_octree_trace_node->setFlag(srNode::FLAG_DISABLE);
         g_octree_trace_node->setFlag(srNode::FLAG_TERMINATE);
-        m_reset_visibility = 1;
+        m_reset_visibility = true;
         MarkRendererReady();
         return;
     }
@@ -1914,16 +1914,16 @@ bool __stdcall IsNavigatorAtTarget(W8NavigatorMovementState* movement)
         W8NavigatorAttachment* attachment = movement->attachment;
         if (attachment->path_cursor < attachment->path_position_index ||
             (attachment->flags & W8_NAV_ATTACHMENT_START_WAYPOINT) != 0) {
-            return 0;
+            return false;
         }
         attachment->GetNextPosition(&target);
     } else {
         target = movement->target_position;
     }
     if (movement->movement_scale * g_world_scale < (target - movement->position).Length()) {
-        return 0;
+        return false;
     }
-    return 1;
+    return true;
 }
 
 // FUNCTION: WIZ8 0x00434880
@@ -2102,7 +2102,7 @@ float W8Octree::SettleToGround(srVector3T<float>* position, bool* out_hit, char 
                     }
                 }
             }
-            g_octree_game_data->trace_flag4_gate = 1;
+            g_octree_game_data->trace_flag4_gate = true;
             if (ProbeCellForTrace(&cell) == 0) {
                 goto descend;
             }
@@ -2121,7 +2121,7 @@ float W8Octree::SettleToGround(srVector3T<float>* position, bool* out_hit, char 
             } else if (prop_hit) {
                 current_prop = -1;
             }
-            g_octree_game_data->trace_flag4_gate = 0;
+            g_octree_game_data->trace_flag4_gate = false;
         } while (-1 < cell.y);
         if (hit) {
         done:
@@ -2277,7 +2277,7 @@ short W8Octree::TraceLineOfSight(const srVector3T<float>* from, srVector3T<float
     srVector3T<int> step;
 
     bool blocked = false;
-    bool previous = 0;
+    bool previous = false;
     int span;
     int error_0;
     int error_1;
@@ -2324,7 +2324,7 @@ short W8Octree::TraceLineOfSight(const srVector3T<float>* from, srVector3T<float
             index = 0;
             error_1 = walk.error1;
             error_0 = walk.error0;
-            previous = 0;
+            previous = false;
             if (walk.count > 0) {
                 do {
                     blocked = previous;
@@ -2644,7 +2644,7 @@ unsigned char W8OctreeObjectRegistry::UnregisterObject(W8OctreeObjectKind kind, 
         unsigned int cell_key = static_cast<unsigned int>(by_object->entries[slot].value);
         by_object->RemoveAt(slot);
         by_cell->Remove(&cell_key, &object_value);
-        removed = 1;
+        removed = true;
         // Retail traverses from the removed slot after its link became a free-list link.
         slot = by_object->FindNextEntry(&object_key, slot);
     }
@@ -3205,21 +3205,21 @@ bool W8Octree::SetPathStem(const char* path)
 {
     size_t name_length = strlen(path);
     if (name_length == 0) {
-        return 0;
+        return false;
     }
     if (m_owned_0c0 != 0) {
         free(m_owned_0c0);
     }
     m_owned_0c0 = static_cast<char*>(malloc(name_length + 1));
     if (m_owned_0c0 == 0) {
-        return 0;
+        return false;
     }
     strcpy(m_owned_0c0, path);
     char* extension = strrchr(m_owned_0c0, '.');
     if (extension != 0 && extension - m_owned_0c0 > static_cast<int>(name_length) - 6) {
         *extension = '\0';
     }
-    return 1;
+    return true;
 }
 
 /* Read one .oct file into a fresh octree.
@@ -3797,7 +3797,7 @@ void W8Octree::Reset()
     m_region_cell = 0;
     m_path_clearance = 0;
     pathing = 0;
-    m_fAccumulating = 0;
+    m_fAccumulating = false;
     m_pusMeshParticleLookup = 0;
     m_pusMeshParticles = 0;
     m_usMeshParticlesLen = 0;
@@ -3843,7 +3843,7 @@ void W8Octree::Reset()
     m_unknown_27c[4] = 0;
     m_unknown_27c[5] = 0;
     m_visibility_suspended = false;
-    m_reset_visibility = 0;
+    m_reset_visibility = false;
     m_projected_regions_valid = false;
     m_region_links_ready = false;
     m_region_links_dirty = false;
@@ -3954,7 +3954,7 @@ void W8Octree::Initialize(const W8OctFileHeader* header)
                          0x36a, "InitOctree: Couldn't allocate m_pfRegsVisited.");
         }
         memset(m_pfRegsVisited, 0, visited_size);
-        m_reset_visibility = 1;
+        m_reset_visibility = true;
     }
 
     m_aulGDObjs = static_cast<unsigned long*>(malloc(40000));
@@ -4558,7 +4558,7 @@ srVector3T<int>* W8Octree::WorldPositionToCell(const srVector3T<float>* position
 
         if ((&position->x)[axis] < (&m_spatial.m_minimum.x)[axis] ||
             (&position->x)[axis] > (&m_spatial.m_maximum.x)[axis]) {
-            inside = 0;
+            inside = false;
         }
     }
     return inside ? point : 0;
@@ -4621,7 +4621,7 @@ unsigned int W8Octree::AdvanceNavigator(W8NavigatorMovementState* movement, floa
     if (step >= distance) {
         step = distance;
     } else {
-        reached = 0;
+        reached = false;
     }
     if (((vecDir.x * vecDir.x + vecDir.z * vecDir.z)) != g_double_zero) {
         vecDir.SetLength(step);
@@ -4839,23 +4839,23 @@ char GrowBoundsByPoint(const srVector3T<float>* point, srVector3T<float>* minimu
     bool changed = false;
     if (minimum->x > point->x) {
         minimum->x = point->x;
-        changed = 1;
+        changed = true;
     }
     if (minimum->y > point->z) {
         minimum->y = point->y;
-        changed = 1;
+        changed = true;
     }
     if (minimum->z > point->z) {
         minimum->z = point->z;
-        changed = 1;
+        changed = true;
     }
     if (maximum->x < point->x) {
         maximum->x = point->x;
-        changed = 1;
+        changed = true;
     }
     if (maximum->y < point->y) {
         maximum->y = point->y;
-        changed = 1;
+        changed = true;
     }
     if (maximum->z < point->z) {
         maximum->z = point->z;

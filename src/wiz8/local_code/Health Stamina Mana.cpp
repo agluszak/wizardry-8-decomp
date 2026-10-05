@@ -1010,10 +1010,10 @@ void FatigueCharacter(int party_slot, int amount, bool scale_by_load,
         if (!character->deep_fatigue_applied) {
             QueueCharacterEvent(character, g_effect4, 0, g_character_event_no_flags,
                                 g_character_event_full_volume);
-            character->deep_fatigue_applied = 1;
+            character->deep_fatigue_applied = true;
         }
         if (static_cast<unsigned int>(character->fatigue_band) < W8_FATIGUE_BAND_RECOVERED) {
-            character->deep_fatigue_applied = 0;
+            character->deep_fatigue_applied = false;
         }
     }
 }
@@ -1161,7 +1161,7 @@ void CharacterDies(int party_slot)
         }
         row->pending_action = W8_ACTION_NONE;
         g_combat_state->characters[party_slot].phase = 0;
-        g_combat_state->characters[party_slot].dead = 1;
+        g_combat_state->characters[party_slot].dead = true;
         DropCharacterFromRound(party_slot);
     }
 

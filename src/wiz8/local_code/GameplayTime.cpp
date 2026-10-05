@@ -77,10 +77,10 @@ static void BeginPartyCamping()
         ResumeMainGameWorld();
     }
     if (!AnyCharacterEngaged()) {
-        gXStatus.surprise_unengaged = 1;
+        gXStatus.surprise_unengaged = true;
         ShowNotice(0xc, gppStringList[0x794], -1, 0xffffffff, false);
     } else {
-        gXStatus.surprise_unengaged = 0;
+        gXStatus.surprise_unengaged = false;
         ShowNoticef(0xc, gppStringList[0x790], 8);
     }
     SetNpcQuoteBubbleVisible(false, 0, 0, -1, 0xffffffff);
@@ -348,7 +348,7 @@ void EndSurprise(void)
             text = gppStringList[0x792];
         }
     } else {
-        gXStatus.surprise_unengaged = 0;
+        gXStatus.surprise_unengaged = false;
         text = AnyCharacterEngaged() ? gppStringList[0x795] : gppStringList[0x792];
     }
     ShowNotice(0xc, text, -1, 0xffffffff, false);
@@ -373,7 +373,7 @@ void EndSurprise(void)
 void RestoreSurpriseView(void)
 {
     gXStatus.fSurprisePossible = false;
-    gXStatus.surprise_unengaged = 0;
+    gXStatus.surprise_unengaged = false;
     ResetSight();
     DestroySurpriseFade();
 }
@@ -412,7 +412,7 @@ void ResolveSurpriseWake(void)
         if (Random(2) != 0) {
             entry->portrait_idle_clock = SetCountdownClock(Random(5000) + 5000);
         }
-        entry->portrait_pose_dirty = 1;
+        entry->portrait_pose_dirty = true;
         RequestRedraw(1 << slot);
     }
     EnableMenuButtonBanks();

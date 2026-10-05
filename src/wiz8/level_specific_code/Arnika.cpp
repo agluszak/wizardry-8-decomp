@@ -142,15 +142,15 @@ bool ArnikaLazerScanner(Trigger* pTrigger)
 {
     g_lazer_prop = pTrigger->GetProp();
     if (g_lazer_prop->Rep()->animation_playing != 0) {
-        return 0;
+        return false;
     }
     if (GetLocationVarIDByName("HLLDoorOpen") != -1) {
-        return 0;
+        return false;
     }
     g_laser_scanning = 1;
     BeginScriptedWorldAction();
     g_master_functions->Add(ArnikaLaserScanMaster);
-    return 1;
+    return true;
 }
 
 /* Laser-scan master: a positive command re-arms the scan, -1 persists the
@@ -191,12 +191,12 @@ void ArnikaLaserScanMaster(int command)
 bool ArnikaScannerDoor(Trigger* pTrigger)
 {
     if (!FindItemOnParty(0x27b, 0, 0, 2, 0)) {
-        return 0;
+        return false;
     }
     if (GetLocationVarIDByName("HLLDoorOpen") == -1) {
         CreateLocationVar("HLLDoorOpen", 1);
     }
-    return 1;
+    return true;
 }
 
 /* Warning-sound master: a positive command starts the ULLspawn alarm for
@@ -275,15 +275,15 @@ bool ArnikaMookholo(Trigger* pTrigger)
     int location_id;
 
     if (gXStatus.fCombatMode) {
-        return 0;
+        return false;
     }
     if (GetLocationVarIDByName("ScregActive") != -1 &&
         GetLocationVarValueByName("ScregActive") != 0) {
-        return 0;
+        return false;
     }
     if (GetLocationVarIDByName("MookDoorOpen") != -1 &&
         GetLocationVarValueByName("MookDoorOpen") != 0) {
-        return 0;
+        return false;
     }
     if (FindEntityByName("Mookholo", &position, 0, 0)) {
         group = SpawnMonsters(0xb, 1, &position, 0, true, false, false);
@@ -306,7 +306,7 @@ bool ArnikaMookholo(Trigger* pTrigger)
                                  0, -1, false, 0);
         }
     }
-    return 1;
+    return true;
 }
 
 /* Mookholo watch: the 0xEFFFFFFF toggle re-arms the wait, and a zero tick
@@ -348,7 +348,7 @@ bool ArnikaMookFrontDoor(Trigger* pTrigger)
     } else {
         CreateLocationVar("MookDoorOpen", 1);
     }
-    return 1;
+    return true;
 }
 
 /* YellowButton trigger: raises the "nothing happened" flag, spawns the
@@ -360,7 +360,7 @@ bool ArnikaYellowButton(Trigger* pTrigger)
     W8MonsterGroup* group;
     W8MonsterInfo* info;
 
-    g_trigger_feedback = 1;
+    g_trigger_feedback = true;
     if (FindEntityByName("Bguards", &position, 0, 0)) {
         group = SpawnMonsters(0xc, 6, &position, 1, true, false, false);
         if (group != 0) {
@@ -369,7 +369,7 @@ bool ArnikaYellowButton(Trigger* pTrigger)
             info->p3D->SetScript("guard.msf", true);
         }
     }
-    return 1;
+    return true;
 }
 
 /* Vaultalarmdoor trigger: raises the "nothing happened" flag, plays the
@@ -379,7 +379,7 @@ bool ArnikaVaultAlarmDoor(Trigger* pTrigger)
 {
     W8MonsterGroup* group;
 
-    g_trigger_feedback = 1;
+    g_trigger_feedback = true;
     SoundPlay("Data\\Sound\\Ambients\\VaultAlarm.wav", 0);
     group = FindNextExistingMonsterByID(0xc, 0);
     while (group != 0) {
@@ -387,7 +387,7 @@ bool ArnikaVaultAlarmDoor(Trigger* pTrigger)
         group = FindNextExistingMonsterByID(0xc, group);
     }
     SetFact(W8_FACT_ARNIKA_VAULT_ENTERED, 1, false);
-    return 1;
+    return true;
 }
 
 /* Exitbutton trigger: caches the exit-door trigger and prop, toggles the
@@ -409,10 +409,10 @@ bool ArnikaExitButton(Trigger* pTrigger)
         CreateLocationVar("Teleporting", 1);
         g_master_functions->Add(ArnikaTeleportWatch);
     }
-    g_trigger_feedback = 1;
+    g_trigger_feedback = true;
     SetFact(W8_FACT_ARNIKA_VAULT_TELEPORT, 1, false);
     SetFact(W8_FACT_ARNIKA_VAULT_ENTERED, 1, false);
-    return 1;
+    return true;
 }
 
 /* Teleport watch: once the exit-door prop's rep finishes animating, runs
@@ -438,13 +438,13 @@ bool ArnikaGenVaultDoor(Trigger* pTrigger)
 
     if (FindEntityByName("Golem", &position, 0, 0)) {
         if (GetLocationVarIDByName("GolemSpawned") != -1) {
-            return 0;
+            return false;
         }
         CreateLocationVar("GolemSpawned", 1);
         SpawnMonsters(0x31, 1, &position, 1, true, false, false);
         SoundPlay("Data\\Sound\\Ambients\\Temp Transporting.wav", 0);
     }
-    return 1;
+    return true;
 }
 
 /* Elevator-1 setup: resolves the seven triggers, restores El01State,
@@ -544,19 +544,19 @@ bool ArnikaRedButton(Trigger* pTrigger)
     if (gEl01.button_down != 0) {
         return false;
     }
-    g_red_button_armed = 0;
+    g_red_button_armed = false;
     SetFact(W8_FACT_ARNIKA_SAFETY_DEPOSIT_OPEN, 1, false);
-    g_red_button_armed = 1;
-    g_trigger_feedback = 1;
+    g_red_button_armed = true;
+    g_trigger_feedback = true;
     if (gEl01.state != 3) {
         if (gEl01.button_down == 2) {
-            g_trigger_feedback = 1;
-            g_red_button_armed = 1;
+            g_trigger_feedback = true;
+            g_red_button_armed = true;
             return false;
         }
         if (gEl01.state != 1 && gEl01.state != 7) {
-            g_trigger_feedback = 1;
-            g_red_button_armed = 1;
+            g_trigger_feedback = true;
+            g_red_button_armed = true;
             return false;
         }
         ArnikaElevatorAdvance(1);
@@ -613,7 +613,7 @@ void ArnikaEl1Button(int command)
 // FUNCTION: WIZ8 0x004E1930
 bool ArnikaEl1TopButtons(Trigger* pTrigger)
 {
-    g_trigger_feedback = 1;
+    g_trigger_feedback = true;
     if (gEl01.button_down != 2 && (gEl01.state == 1 || gEl01.state == 3 || gEl01.state == 7)) {
         ArnikaElevatorAdvance(1);
     }
@@ -624,7 +624,7 @@ bool ArnikaEl1TopButtons(Trigger* pTrigger)
 // FUNCTION: WIZ8 0x004E1970
 bool ArnikaEl1BottomButtons(Trigger* pTrigger)
 {
-    g_trigger_feedback = 1;
+    g_trigger_feedback = true;
     if (gEl01.button_down != 2 && (gEl01.state == 1 || gEl01.state == 3 || gEl01.state == 7)) {
         ArnikaElevatorAdvance(1);
     }
@@ -753,7 +753,7 @@ bool ArnikaGreenButton(Trigger* pTrigger)
         return false;
     }
     SetFactionDispositionBand(0xa, W8_FACTION_HOSTILE);
-    g_trigger_feedback = 1;
+    g_trigger_feedback = true;
     if (gEl02.state != 3) {
         gEl02.pElevator->Run(-1);
     }
@@ -1091,7 +1091,7 @@ bool ArnikaBallSlot(Trigger* pTrigger)
         ReplaceOrCreateItem(&item, 0x240, true, true, false);
         QueueNpcScriptNotice(npc, &item, -1, false, 0);
     }
-    g_trigger_feedback = 1;
+    g_trigger_feedback = true;
     return true;
 }
 
@@ -1107,7 +1107,7 @@ bool ArnikaFlightRecorder(Trigger* pTrigger)
     if (gXStatus.fNpcDialogueMode) {
         return false;
     }
-    g_trigger_feedback = 1;
+    g_trigger_feedback = true;
     npc = GetNpcStateByKind(0x14);
     item = 0;
     if (g_status.item_in_cursor) {

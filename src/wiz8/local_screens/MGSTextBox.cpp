@@ -202,7 +202,7 @@ void ResetEditorStatusLine(short line)
     g_level_block->selected_text_lines[line] = -1;
     g_level_block->text_content_region = 0x56;
     g_level_block->dialogue_content_region = 0x59;
-    g_level_block->dialogue_text_input_open = 0;
+    g_level_block->dialogue_text_input_open = false;
     RedrawTextBox();
 }
 
@@ -969,7 +969,7 @@ void AdvanceNoticeLine(short text_box)
                    !gXStatus.fItemSelectMode && !gXStatus.fCampMode) {
             if (gXStatus.fCombatMode && g_combat_state->notice_scroll_pending) {
                 ScrollTextBoxTo(shown);
-                g_combat_state->notice_scroll_pending = 0;
+                g_combat_state->notice_scroll_pending = false;
             } else if (shown == 350) {
                 unsigned int scroll = g_level_block->text_lines[text_box];
                 if (scroll >= 344) {
@@ -1218,7 +1218,7 @@ void RedrawDialogueTextInput(void)
                                  g_status.text_box_lines_shown[text_box];
                 }
                 DrawDialogueTextInputLines(g_level_block->text_box_left, y, first_line);
-                input->dirty = 0;
+                input->dirty = false;
                 DrawDialogueTextCursor(g_level_block->text_box_left, y);
             }
 
@@ -1295,7 +1295,7 @@ void ReleaseDialogueTextInput(void)
 // FUNCTION: WIZ8 0x0058DF60
 void InvalidateDialogueTextCursor(void)
 {
-    g_level_block->dialogue_text_input->dirty = 1;
+    g_level_block->dialogue_text_input->dirty = true;
     RequestRedraw(W8_MAIN_REDRAW_FRAME);
 
     W8ControlsRect bounds;
@@ -1397,7 +1397,7 @@ static void InsertDialogueTextCharacter(wchar_t character)
         ScrollTextBoxTo(shown - 8 + line);
     }
 
-    bool joins_previous_line = 0;
+    bool joins_previous_line = false;
     if (character == L' ') {
         joins_previous_line = DialogueCursorJoinsPreviousLine();
     }
@@ -1784,7 +1784,7 @@ unsigned char HandleDialogueTextInput(const InputAtom* input_event)
         if (input->completion_callback != 0) {
             input->completion_callback();
         }
-        g_level_block->dialogue_text_input_open = 0;
+        g_level_block->dialogue_text_input_open = false;
         g_level_block->text_lines[input->text_box] = input->saved_scroll_line;
         if (input->text[0] != 0) {
             ShowNotice(input->notice_channel, input->text, input->text_box, input->wrap_width,
@@ -2160,7 +2160,7 @@ void RedrawTextBoxScrollChrome(void)
                      0x1c1, 0);
     RedrawTextBoxBody(false);
     if (g_level_block->dialogue_text_input_open && g_level_block->dialogue_text_input != 0) {
-        g_level_block->dialogue_text_input->dirty = 1;
+        g_level_block->dialogue_text_input->dirty = true;
     }
     SetClippingRect(&saved_clip);
 }
@@ -2257,7 +2257,7 @@ void SetKnockKnockTarget(int target, int /*flag*/, int /*backfire*/)
     }
     screen->m_target_difficulty = target;
     screen->m_status_panel->m_target = target;
-    screen->m_text_panel->m_target_changed = 1;
+    screen->m_text_panel->m_target_changed = true;
 }
 
 // FUNCTION: WIZ8 0x0058F6B0

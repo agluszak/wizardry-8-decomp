@@ -52,11 +52,11 @@ void EnsureTrynnie2KilledVar(void)
 bool Trynnie2GoodaVineA(Trigger* pTrigger)
 {
     if (g_status.item_in_cursor) {
-        return 0;
+        return false;
     }
     ReplaceOrCreateItem(&g_status.item_in_hand, 0x16d, true, true, false);
     SetItemCursor(0);
-    return 1;
+    return true;
 }
 
 /* "GoodaVine_B": place the second vine item on the cursor, refusing while the
@@ -65,11 +65,11 @@ bool Trynnie2GoodaVineA(Trigger* pTrigger)
 bool Trynnie2GoodaVineB(Trigger* pTrigger)
 {
     if (g_status.item_in_cursor) {
-        return 0;
+        return false;
     }
     ReplaceOrCreateItem(&g_status.item_in_hand, 0x16e, true, true, false);
     SetItemCursor(0);
-    return 1;
+    return true;
 }
 
 /* "Give_Zulu": place item 0x1b3 on the cursor, refusing while the cursor
@@ -78,11 +78,11 @@ bool Trynnie2GoodaVineB(Trigger* pTrigger)
 bool Trynnie2GiveZulu(Trigger* pTrigger)
 {
     if (g_status.item_in_cursor) {
-        return 0;
+        return false;
     }
     ReplaceOrCreateItem(&g_status.item_in_hand, 0x1b3, true, true, false);
     SetItemCursor(0);
-    return 1;
+    return true;
 }
 
 /* "Meat_Maker": spawn the meat item at the Meat_Position entity. */
@@ -100,7 +100,7 @@ bool Trynnie2MeatMaker(Trigger* pTrigger)
             ActivateItem(item);
         }
     }
-    return 1;
+    return true;
 }
 
 /* "Meat_Box": feeding Hogar (monster 0x1d4) plain meat starts MoveHogar.msf;
@@ -117,17 +117,17 @@ bool Trynnie2MeatBox(Trigger* pTrigger)
     group = FindFirstMonsterByID(0x1d4);
     if (group == 0 || !g_status.item_in_cursor) {
         ShowNotice(0xf, gppStringList[0x964]);
-        return 1;
+        return true;
     }
     item_id = GetItemInHand();
     if (item_id != 0x1b4 && item_id != 0x1c2) {
         ShowNotice(0xf, gppStringList[0x964]);
-        return 1;
+        return true;
     }
     index = MonsterGetIndexByLocationID(0x68, TRYNNIE2_CPP, group->leader_location_id, true);
     info = MonsterGetScriptPartByLocationIndex(index);
     if (info->highest_condition >= W8_CONDITION_ASLEEP) {
-        return 1;
+        return true;
     }
     if (item_id == 0x1b4) {
         info->p3D->SetScript("MoveHogar.msf", true);
@@ -140,7 +140,7 @@ bool Trynnie2MeatBox(Trigger* pTrigger)
     }
     ClearHeldItemDisplay();
     BeginScriptedWorldAction();
-    return 1;
+    return true;
 }
 
 /* Use-item action for the Zulu (0x1b3) and item 0x1c3: hand the use to the
@@ -158,11 +158,11 @@ bool Trynnie2UseItem(W8ItemInstance* item)
     W8ItemInstance destination;
 
     if (item->iItemNo != 0x1b3 && item->iItemNo != 0x1c3) {
-        return 0;
+        return false;
     }
     if (DispatchWorldCursorNodeCommand(0, 8, 0) == 0) {
         ShowString(gppStringList[0x966]);
-        return 1;
+        return true;
     }
     if (item->iItemNo == 0x1b3) {
         ShowString(gppStringList[0x968]);
@@ -179,7 +179,7 @@ bool Trynnie2UseItem(W8ItemInstance* item)
     }
     destination.iItemNo = -1;
     CopyItemInstance(&destination, item, 0, true);
-    return 1;
+    return true;
 }
 
 /* "URN_Trigger_01..04": once more than two of the four urn variables are set
@@ -210,8 +210,8 @@ bool Trynnie2UrnTrigger(Trigger* pTrigger)
             generator->generation_enabled = 0;
         }
         ShowLevelMessage(0x14);
-        return 1;
+        return true;
     }
     ShowLevelMessage(0x13);
-    return 1;
+    return true;
 }

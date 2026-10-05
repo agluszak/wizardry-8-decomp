@@ -78,7 +78,7 @@ void AppendSkillIncreaseNoticeText(wchar_t* text, unsigned int* length, int part
     *length += 1;
     text[*length] = 0xb4; /* font glyph */
     *length += 1;
-    text[*length] = GetTable647CCCEntry(
+    text[*length] = GetPartyOrderTextColor(
         static_cast<signed char>(g_status.buffers.XChar[party_slot].party_order_index));
     *length += 1;
     text[*length] = L' ';
@@ -109,7 +109,7 @@ void FlushDeferredSkillNotices(void)
     unsigned int length;
 
     count = 0;
-    have_line = 0;
+    have_line = false;
     length = 0;
     if (!gXStatus.deferred_skill_notices) {
         return;
@@ -132,7 +132,7 @@ void FlushDeferredSkillNotices(void)
             ++count;
             AppendSkillIncreaseNoticeText(text, &length, slot, have_line,
                                           static_cast<W8Skill>(skill_id));
-            have_line = 1;
+            have_line = true;
             if (count == 8) {
                 extra->count = 8;
                 W8MessageBoxPayload skill_notices_payload;
@@ -143,7 +143,7 @@ void FlushDeferredSkillNotices(void)
                                   skill_notices_extra);
                 count = 0;
                 length = 0;
-                have_line = 0;
+                have_line = false;
                 text = new wchar_t[0x200];
                 memset(text, 0, 0x400);
                 extra = new W8SkillNoticePayload;
@@ -164,7 +164,7 @@ void FlushDeferredSkillNotices(void)
     for (slot = 0; slot < 8; ++slot) {
         memset(&gXStatus.monster_manager_entries[slot].skill_notice_pending[0], 0, W8_SKILL_COUNT);
     }
-    gXStatus.deferred_skill_notices = 0;
+    gXStatus.deferred_skill_notices = false;
 }
 
 // FUNCTION: WIZ8 0x00558610
@@ -563,7 +563,7 @@ void ApplyAttributeChange(W8Character* character, W8Attribute attribute)
 
     if (character->attributes[attribute].value >= 0x64) {
         if (!character->skills[skill_id].active) {
-            character->skills[skill_id].active = 1;
+            character->skills[skill_id].active = true;
             if (g_current_screen_state.id == W8_SCREEN_CHARACTER) {
                 ResetCharacterScreenSkill(static_cast<W8Skill>(skill_id));
             }
@@ -578,7 +578,7 @@ void ApplyAttributeChange(W8Character* character, W8Attribute attribute)
         }
     } else {
         if (character->skills[skill_id].active) {
-            character->skills[skill_id].active = 0;
+            character->skills[skill_id].active = false;
             if (g_current_screen_state.id == W8_SCREEN_CHARACTER) {
                 RefundCharacterScreenSkill(static_cast<W8Skill>(skill_id));
             }
@@ -632,11 +632,11 @@ void RefreshCharacterSkillAvailability(W8Character* character)
     int index;
 
     for (index = 0; index < 8; ++index) {
-        expert_realm_flags[index] = 0;
+        expert_realm_flags[index] = false;
     }
     for (index = 0; index < 0x72; ++index) {
         if (character->spell_learned[index + 1] == -1 || character->spell_learned[index + 1] == 2) {
-            expert_realm_flags[g_spell_records[index].realm] = 1;
+            expert_realm_flags[g_spell_records[index].realm] = true;
         }
     }
     for (index = 0; index < 0x29; ++index) {
@@ -644,13 +644,13 @@ void RefreshCharacterSkillAvailability(W8Character* character)
             IsCharacterSkillAvailable(character, static_cast<W8Skill>(index), expert_realm_flags);
         if (!available) {
             if (character->skills[index].active) {
-                character->skills[index].active = 0;
+                character->skills[index].active = false;
                 if (g_current_screen_state.id == W8_SCREEN_CHARACTER) {
                     RefundCharacterScreenSkill(static_cast<W8Skill>(index));
                 }
             }
         } else if (!character->skills[index].active) {
-            character->skills[index].active = 1;
+            character->skills[index].active = true;
             if (g_current_screen_state.id == W8_SCREEN_CHARACTER) {
                 ResetCharacterScreenSkill(static_cast<W8Skill>(index));
             }
@@ -694,7 +694,7 @@ void PracticeCharacterSkill(W8Character* character, W8Skill skill_id, int usage_
             if (!IsCharacterSkillAvailable(character, skill_id, NULL)) {
                 return;
             }
-            skill->active = 1;
+            skill->active = true;
             if (g_current_screen_state.id == W8_SCREEN_CHARACTER) {
                 ResetCharacterScreenSkill(skill_id);
             }
@@ -714,7 +714,7 @@ void PracticeCharacterSkill(W8Character* character, W8Skill skill_id, int usage_
                         if (skill->practice_count >= 8) {
                             ++skill->points;
                             skill->practice_count = 0;
-                            skill->improved = 1;
+                            skill->improved = true;
                             improved = true;
                         }
                     }
@@ -745,8 +745,8 @@ void PracticeCharacterSkill(W8Character* character, W8Skill skill_id, int usage_
                                       skill_notices_extra);
                     return;
                 }
-                gXStatus.monster_manager_entries[slot].skill_notice_pending[skill_id] = 1;
-                gXStatus.deferred_skill_notices = 1;
+                gXStatus.monster_manager_entries[slot].skill_notice_pending[skill_id] = true;
+                gXStatus.deferred_skill_notices = true;
             }
         }
     }

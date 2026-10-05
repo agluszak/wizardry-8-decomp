@@ -373,7 +373,7 @@ void ResetCombatEffects(void)
 
     for (i = 0; i < 9; ++i) {
         if (g_combat_state->effect_slots[i].active) {
-            g_combat_state->effect_slots[i].active = 0;
+            g_combat_state->effect_slots[i].active = false;
             g_combat_state->effect_slots[i].effect_id = 0;
             g_combat_state->effect_slots[i].amount = 0;
             g_combat_state->effect_slots[i].duration = 0;
@@ -391,7 +391,7 @@ void ResetCombatEffects(void)
                                             g_effect_visual_table[slot->effect_id].monster_icon,
                                             false);
                     }
-                    slot->active = 0;
+                    slot->active = false;
                     slot->effect_id = 0;
                     slot->amount = 0;
                     slot->duration = 0;
@@ -402,7 +402,7 @@ void ResetCombatEffects(void)
     }
     for (i = 0; i < 6; ++i) {
         if (g_combat_state->effect_slots0[i].active) {
-            g_combat_state->effect_slots0[i].active = 0;
+            g_combat_state->effect_slots0[i].active = false;
             g_combat_state->effect_slots0[i].effect_id = 0;
             g_combat_state->effect_slots0[i].amount = 0;
             g_combat_state->effect_slots0[i].duration = 0;
@@ -420,7 +420,7 @@ void ResetCombatEffects(void)
                                             g_effect_visual_table[slot->effect_id].monster_icon,
                                             false);
                     }
-                    slot->active = 0;
+                    slot->active = false;
                     slot->effect_id = 0;
                     slot->amount = 0;
                     slot->duration = 0;
@@ -531,7 +531,7 @@ bool TargetResistsCondition(W8CombatSlot* target, W8SpellRealm realm, unsigned i
         highest_condition = character->highest_condition;
     }
     if (highest_condition >= W8_CONDITION_DEAD) {
-        return 1;
+        return true;
     }
 
     chance = (level - power_level) * 3 + g_condition_resist_base[condition_id] + resistance;
@@ -548,9 +548,9 @@ bool TargetResistsCondition(W8CombatSlot* target, W8SpellRealm realm, unsigned i
                 PracticeCharacterSkill(character, W8_SKILL_IRON_WILL, 2, false);
             }
         }
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 /* Land a condition the target failed to resist. The magnitude, cut down by
@@ -871,7 +871,7 @@ void ApplyInsanityEffect(W8SpellEffectEntry* effect)
                         SetMonsterSpellIcon(summon->p3D,
                                             g_effect_visual_table[spell_id].monster_icon, true);
                     }
-                    effect_slot->active = 1;
+                    effect_slot->active = true;
                     effect_slot->effect_id = spell_id;
                     effect_slot->amount = attack_block.duration_scale;
                     effect_slot->duration = duration;
@@ -1053,7 +1053,7 @@ bool ResolveAttackOnTarget(const W8TargetSource* source, W8CombatSlot* target,
         monster_info = MonsterInfoFromID(0xdc9, MAGIC_EFFECTS_CPP, target->iMonsterID, true);
         monster = GetMonsterDataForInfo(monster_info);
         if (monster->instant_death_immune != 0 && condition_id == W8_CONDITION_DEAD) {
-            return 1;
+            return true;
         }
         W8ConditionImmunity* immunity = g_condition_immunities;
         for (; immunity < g_condition_immunities + 3; ++immunity) {
@@ -1062,7 +1062,7 @@ bool ResolveAttackOnTarget(const W8TargetSource* source, W8CombatSlot* target,
             }
             for (index = 0; index < W8_CONDITION_COUNT; ++index) {
                 if (condition_id == immunity->conditions[index]) {
-                    return 1;
+                    return true;
                 }
             }
         }
@@ -1070,14 +1070,14 @@ bool ResolveAttackOnTarget(const W8TargetSource* source, W8CombatSlot* target,
     }
 
     if (highest_condition >= W8_CONDITION_DEAD) {
-        return 1;
+        return true;
     }
     if (condition_id == W8_CONDITION_MISSING) {
         if (target->iType == W8_TARGET_KIND_MONSTER) {
-            return 1;
+            return true;
         }
         if (g_status.buffers.Char[target->iChar].uiCondition[W8_CONDITION_MISSING] != 0) {
-            return 1;
+            return true;
         }
     }
 
@@ -1092,7 +1092,7 @@ bool ResolveAttackOnTarget(const W8TargetSource* source, W8CombatSlot* target,
                     if (announce_resistance != 0) {
                         PostCharacterNotice(target->iChar, gppStringList[0x180]);
                     }
-                    return 1;
+                    return true;
                 }
             case W8_CONDITION_DISEASED:
             case W8_CONDITION_IRRITATED:
@@ -1100,7 +1100,7 @@ bool ResolveAttackOnTarget(const W8TargetSource* source, W8CombatSlot* target,
             case W8_CONDITION_POISONED:
             case W8_CONDITION_ASLEEP:
                 if (CharacterHasTrait(character, static_cast<W8Trait>(0x1e))) {
-                    return 1;
+                    return true;
                 }
                 break;
             case W8_CONDITION_INSANE:
@@ -1114,7 +1114,7 @@ bool ResolveAttackOnTarget(const W8TargetSource* source, W8CombatSlot* target,
                             target->iChar, gppStringList[0x181],
                             gppStringList[g_condition_notices[condition_id * 4] * 4]);
                     }
-                    return 1;
+                    return true;
                 }
                 break;
             default:
@@ -1379,7 +1379,7 @@ char RestoreTargetsStamina(W8SpellEffectEntry* effect)
     int index;
 
     verbose = g_settings.verbose_combat_messages;
-    all_full = 1;
+    all_full = true;
     total = 0;
     count = 0;
     for (index = 0; index < effect->target_indices.GetCount(); ++index) {
@@ -1397,12 +1397,12 @@ char RestoreTargetsStamina(W8SpellEffectEntry* effect)
                 }
                 RestoreCharacterStamina(character_index, restored, verbose);
                 if (character->stamina < character->uiStaminaMax) {
-                    all_full = 0;
+                    all_full = false;
                 }
                 if (verbose == 0) {
                     total += restored;
                     ++count;
-                    target_is_character = 1;
+                    target_is_character = true;
                     target_id = character_index;
                 }
             }
@@ -1425,13 +1425,13 @@ char RestoreTargetsStamina(W8SpellEffectEntry* effect)
                 RestoreMonsterStamina(monster_info, restored, true);
                 if (static_cast<unsigned int>(monster_info->stamina) <
                     static_cast<unsigned int>(monster_info->stamina_max)) {
-                    all_full = 0;
+                    all_full = false;
                 }
                 if (verbose == 0) {
                     total += restored;
                     ++count;
                     target_id = monster_info->location_id;
-                    target_is_character = 0;
+                    target_is_character = false;
                 }
             }
         }
@@ -1483,7 +1483,7 @@ char HealTargets(W8SpellEffectEntry* effect)
     int index;
 
     verbose = g_settings.verbose_combat_messages;
-    all_full = 1;
+    all_full = true;
     count = 0;
     total = 0;
     for (index = 0; index < effect->target_indices.GetCount(); ++index) {
@@ -1500,12 +1500,12 @@ char HealTargets(W8SpellEffectEntry* effect)
             }
             HealCharacter(character_index, healed, verbose);
             if (character->hp_current < static_cast<unsigned int>(character->uiHPMax)) {
-                all_full = 0;
+                all_full = false;
             }
             if (verbose == 0) {
                 total += healed;
                 ++count;
-                target_is_character = 1;
+                target_is_character = true;
                 target_id = character_index;
             }
         }
@@ -1525,13 +1525,13 @@ char HealTargets(W8SpellEffectEntry* effect)
             }
             HealMonster(monster_info, healed, verbose);
             if (monster_info->hp_current < static_cast<unsigned int>(monster_info->uiHPMax)) {
-                all_full = 0;
+                all_full = false;
             }
             if (verbose == 0) {
                 total += healed;
                 ++count;
                 target_id = monster_info->location_id;
-                target_is_character = 0;
+                target_is_character = false;
             }
         }
     }
@@ -1756,7 +1756,7 @@ char TryCureConditionOnTargets(W8SpellEffectEntry* effect, W8Condition condition
     int index;
 
     power = effect->definition.duration_scale * effect->definition.duration_scale;
-    all_cured = 1;
+    all_cured = true;
     remaining_count = 0;
     AdjustIntegerByPercent(&power, effect->definition.percent);
     for (index = 0; index < effect->target_indices.GetCount(); ++index) {
@@ -1803,7 +1803,7 @@ char TryCureConditionOnTargets(W8SpellEffectEntry* effect, W8Condition condition
                                             g_character_event_full_volume);
                     }
                 } else {
-                    all_cured = 0;
+                    all_cured = false;
                 }
             } else {
                 TickCharacterCondition(character_index, condition, power);
@@ -1811,7 +1811,7 @@ char TryCureConditionOnTargets(W8SpellEffectEntry* effect, W8Condition condition
                     effect->reported = true;
                 } else {
                     ++remaining_count;
-                    all_cured = 0;
+                    all_cured = false;
                     if (g_settings.verbose_combat_messages != 0) {
                         PostCharacterNotice(character_index, gppStringList[0x1b1],
                                             gppStringList[g_condition_notices[condition * 4 + 3]]);
@@ -1843,12 +1843,12 @@ char TryCureConditionOnTargets(W8SpellEffectEntry* effect, W8Condition condition
                     ClearMonsterCondition(monster_info->location_id, condition);
                     effect->applied = true;
                 } else {
-                    all_cured = 0;
+                    all_cured = false;
                 }
             } else {
                 monster_info->uiCondition[condition] = turns - power;
                 ++remaining_count;
-                all_cured = 0;
+                all_cured = false;
                 effect->applied = true;
             }
         }
@@ -2051,7 +2051,7 @@ void ApplyBeingEffectSlot(W8SpellEffectEntry* effect)
     }
     if (effect->target_indices.GetCount() != 0) {
         slot = &g_status.effect_slots[slot_index];
-        slot->active = 1;
+        slot->active = true;
         slot->effect_id = effect->kind;
         slot->amount = effect->definition.duration_scale;
         slot->duration = duration;
@@ -2071,7 +2071,7 @@ void ApplyBeingEffectSlot(W8SpellEffectEntry* effect)
             SetMonsterSpellIcon(monster_info->p3D, g_effect_visual_table[effect->kind].monster_icon,
                                 true);
         }
-        slot->active = 1;
+        slot->active = true;
         slot->effect_id = effect->kind;
         slot->amount = effect->definition.duration_scale;
         slot->duration = duration;
@@ -2180,7 +2180,7 @@ void ApplyCombatEffectSlot(W8SpellEffectEntry* effect)
     } else {
         if (effect->target_indices.GetCount() != 0) {
             slot = &g_combat_state->effect_slots[slot_index];
-            slot->active = 1;
+            slot->active = true;
             slot->effect_id = spell_id;
             slot->amount = effect->definition.duration_scale;
             slot->duration = duration;
@@ -2208,7 +2208,7 @@ void ApplyCombatEffectSlot(W8SpellEffectEntry* effect)
                 SetMonsterSpellIcon(monster_info->p3D, g_effect_visual_table[spell_id].monster_icon,
                                     true);
             }
-            slot->active = 1;
+            slot->active = true;
             slot->effect_id = spell_id;
             slot->amount = effect->definition.duration_scale;
             slot->duration = duration;
@@ -2263,7 +2263,7 @@ void ApplyDefenseEffectSlot(W8SpellEffectEntry* effect)
     }
     if (effect->target_indices.GetCount() != 0) {
         slot = &g_combat_state->effect_slots0[slot_index];
-        slot->active = 1;
+        slot->active = true;
         slot->effect_id = spell_id;
         slot->amount = effect->definition.duration_scale;
         slot->duration = duration;
@@ -2290,7 +2290,7 @@ void ApplyDefenseEffectSlot(W8SpellEffectEntry* effect)
             SetMonsterSpellIcon(monster_info->p3D, g_effect_visual_table[spell_id].monster_icon,
                                 true);
         }
-        slot->active = 1;
+        slot->active = true;
         slot->effect_id = spell_id;
         slot->amount = effect->definition.duration_scale;
         slot->duration = duration;
@@ -2357,13 +2357,13 @@ void ResolveAfflictionAgainstTargets(W8SpellEffectEntry* effect)
             bool resisted;
             magnitude = RollEffectMagnitude(&effect->definition);
             ReduceMagnitudeByResistance(&magnitude, &target, realm, power_level);
-            resisted = 0;
+            resisted = false;
             if (magnitude == 0) {
                 if (verbose == 0) {
                     continue;
                 }
                 AnnounceEffectResisted(&target);
-                resisted = 1;
+                resisted = true;
             }
             if (!resisted) {
                 result = verbose == 0 ? &effect->result : 0;
@@ -2389,13 +2389,13 @@ void ResolveAfflictionAgainstTargets(W8SpellEffectEntry* effect)
             bool resisted;
             magnitude = RollEffectMagnitude(&effect->definition);
             ReduceMagnitudeByResistance(&magnitude, &target, realm, power_level);
-            resisted = 0;
+            resisted = false;
             if (magnitude == 0) {
                 if (verbose == 0) {
                     continue;
                 }
                 AnnounceEffectResisted(&target);
-                resisted = 1;
+                resisted = true;
             }
             if (!resisted) {
                 result = verbose == 0 ? &effect->result : 0;
@@ -2860,7 +2860,7 @@ void ReduceCombatEffectDurations(W8SpellEffectEntry* effect)
                     if (static_cast<unsigned int>(reduce) < slot->duration) {
                         slot->duration -= reduce;
                     } else {
-                        slot->active = 0;
+                        slot->active = false;
                         slot->effect_id = 0;
                         slot->amount = 0;
                         slot->duration = 0;
@@ -2888,7 +2888,7 @@ void ReduceCombatEffectDurations(W8SpellEffectEntry* effect)
                                     monster_info->p3D,
                                     g_effect_visual_table[slot->effect_id].monster_icon, false);
                             }
-                            slot->active = 0;
+                            slot->active = false;
                             slot->effect_id = 0;
                             slot->amount = 0;
                             slot->duration = 0;
@@ -3135,11 +3135,11 @@ void TickCombatEffectSlots(W8EffectSlot* effect_slots, W8CombatSlot* target)
             case 0x51:
                 dice = g_spell_records[spell_id].effect_dice;
                 dice.count = static_cast<char>(power) * dice.count;
-                rolls_damage = 1;
+                rolls_damage = true;
                 sleep_type = false;
                 break;
             case 0x5d:
-                rolls_damage = 0;
+                rolls_damage = false;
                 sleep_type = true;
                 break;
             default:
@@ -3604,7 +3604,7 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
         world = GetWorld();
         GetWorldCameraState(world, camera_state);
         g_status.buffers.Char[effect->Source.iChar].saved_level = g_status.current_level;
-        g_status.buffers.Char[effect->Source.iChar].has_saved_location = 1;
+        g_status.buffers.Char[effect->Source.iChar].has_saved_location = true;
         effect->applied = true;
         break;
     case 0x4e:
@@ -3745,7 +3745,7 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
             slot = g_status.effect_slots;
             do {
                 if (slot->active) {
-                    slot->active = 0;
+                    slot->active = false;
                     slot->effect_id = 0;
                     slot->amount = 0;
                     slot->duration = 0;

@@ -442,7 +442,7 @@ unsigned char W8PathingService::ReadWaypointFile()
             }
         }
     }
-    waypoints_dirty = 1;
+    waypoints_dirty = true;
     return success;
 }
 
@@ -751,11 +751,11 @@ void W8PathingService::SetConditionalPathFrame(unsigned int path_handle, unsigne
 {
     W8HashTable<unsigned int, unsigned int>* index = m_pPathValues;
     unsigned int lookup_index = path_handle;
-    bool frame_missing = 1;
+    bool frame_missing = true;
 
     while (m_pulCondLookup[lookup_index] != 0 && frame_missing) {
         if (m_pusCondNodeFrames[lookup_index] == frame) {
-            frame_missing = 0;
+            frame_missing = false;
         }
         ++lookup_index;
     }
@@ -1059,7 +1059,7 @@ unsigned char W8PathingService::TestAttachmentHopDoor(W8NavigatorAttachment* att
                 break;
             }
             if (m_pEdges[edge_index].destination == destination) {
-                found = 1;
+                found = true;
             } else {
                 edge_index = m_pEdges[edge_index].next;
             }
@@ -1877,7 +1877,7 @@ unsigned char W8PathingService::CanReachSearchNode(const srVector3T<float>* posi
         if (static_cast<unsigned short>(node_index) == 0 ||
             (m_search_nodes[node_index & 0xffff].flags & 0x100) != 0 ||
             m_search_nodes[node_index & 0xffff].clearance <= clearance) {
-            blocked = 1;
+            blocked = true;
         } else {
             probe.x += step_x;
             probe.z += step_z;
@@ -2116,7 +2116,7 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
 {
     float diagonal_step = grid_scale * g_path_cardinal_scale;
     unsigned short result = 0;
-    bool stop_search = 0;
+    bool stop_search = false;
 
     if (!m_trace_configured) {
         trace_offset.Set(0.0f, 500.0f, 0.0f);
@@ -2312,7 +2312,7 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
                 continue;
             }
             if (collision == 3 && (m_search_nodes[best_node].flags & 0x0100) == 0) {
-                stop_search = 1;
+                stop_search = true;
                 result = 1;
                 m_probe_cell_key = node_index;
                 continue;
@@ -2325,11 +2325,11 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
             float distance = node_delta.Length();
             if (!explicit_target) {
                 if (distance < diagonal_step || distance < separation) {
-                    stop_search = 1;
+                    stop_search = true;
                     result = 1;
                 }
             } else if (separation < distance) {
-                stop_search = 1;
+                stop_search = true;
                 result = 1;
             }
 
@@ -2369,7 +2369,7 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
         return result;
     }
 
-    bool direct_path = 0;
+    bool direct_path = false;
     unsigned short direct_visibility_node = 0;
     if (m_probe_cell_key != 0) {
         unsigned short walk = static_cast<unsigned short>(m_probe_cell_key);
@@ -2405,7 +2405,7 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
             short trace =
                 g_octree->TraceLineOfSight(&trace_source, &trace_target, true, -3, -3, true, 0);
             if (trace == 0) {
-                direct_path = 1;
+                direct_path = true;
             } else {
                 m_search_nodes[walk].flags |= 4;
             }
@@ -2527,10 +2527,10 @@ unsigned short W8PathingService::PlanMovementToPosition(W8NavigatorMovementState
                                                         const srVector3T<float>* target,
                                                         float radius, float separation)
 {
-    explicit_target = 1;
+    explicit_target = true;
     movement->target_position = *target;
     unsigned short result = PlanMovement(movement, radius, separation);
-    explicit_target = 0;
+    explicit_target = false;
     return result;
 }
 
@@ -2655,17 +2655,17 @@ unsigned short W8PathingService::ResolveSearchNodeCollisions(W8NavigatorMovement
                 continue;
             }
 
-            bool adjust = 0;
+            bool adjust = false;
             if ((node->flags & 0x0200) == 0 && threshold <= distance + g_float_005ec020) {
                 if (result == 3) {
                     srVector3T<float> direction = delta;
                     direction.Normalize();
                     float dot = DotProduct(direction, blocking_direction);
                     if (dot <= g_float_005ec3d0 || g_float_005ec3c8 <= dot) {
-                        adjust = 1;
+                        adjust = true;
                     }
                 } else if (result != 1) {
-                    adjust = 1;
+                    adjust = true;
                 }
             }
 
@@ -2743,7 +2743,7 @@ unsigned short W8PathingService::ConfigureMovementSearch(
     m_trace_max_distance = maximum_distance;
     this->trace_offset = trace_offset;
     m_trace_mode = requested_trace_mode;
-    m_trace_configured = 1;
+    m_trace_configured = true;
     trace_height_offset = target_height_offset;
     m_trace_target_yaw = target_yaw;
     if (target_location == 0) {
@@ -2770,7 +2770,7 @@ unsigned short W8PathingService::ConfigureMovementSearch(
         if (horizontal_clearance - target_radius <= separation &&
             TestSearchPositionVisibility(&movement->position, movement) != 0) {
             attachment->InitializeSegment(&movement->position, &movement->position);
-            m_trace_configured = 0;
+            m_trace_configured = false;
             if (probe_result != 0) {
                 *probe_result = 0;
             }
@@ -2789,7 +2789,7 @@ unsigned short W8PathingService::ConfigureMovementSearch(
         result = PlanMovement(movement, radius, separation);
     }
 
-    m_trace_configured = 0;
+    m_trace_configured = false;
     return result;
 }
 
@@ -2914,7 +2914,7 @@ unsigned char W8PathingService::GetNeighborSlideDirection(const srVector3T<float
     bool in_range;
 
     range = cell_count * 2;
-    in_range = 0;
+    in_range = false;
     height = static_cast<int>((position->y - level_bounds.minimum.y) / span) + 1;
     key = PositionToPathKey(this, position, &cell);
     index = m_pPathValues;
@@ -2928,7 +2928,7 @@ unsigned char W8PathingService::GetNeighborSlideDirection(const srVector3T<float
         value = index->entries[slot].value;
         int difference = height - static_cast<int>(value & 0xffff);
         if (-range < difference && difference < range) {
-            in_range = 1;
+            in_range = true;
         } else {
             slot = index->FindNextEntry(&key, slot);
         }
@@ -3211,7 +3211,7 @@ unsigned int W8PathingService::StepMonsterAlongPath(W8NavigatorMovementState* mo
         MonsterGetIndexByLocationID(0x2a95, OCTPATH_CPP, movement->location_id, true));
     W8MonsterGroup* group = GetMonsterGroupByListIndex(
         GetMonsterGroupIndexByID(0x2a96, OCTPATH_CPP, monster_info->monster_group_id, true));
-    monster_info->p3D->group_linked = 1;
+    monster_info->p3D->group_linked = true;
     float remaining = g_rate * g_game_time_accumulator->GetFrameDelta();
     do {
         if (remaining <= g_float_zero) {
@@ -3346,14 +3346,14 @@ W8PathingService::W8PathingService()
     m_pPathValues = 0;
     m_pVisitedCells = 0;
     level_name = 0;
-    m_probe_bounded = 0;
+    m_probe_bounded = false;
     path_heap = 0;
     m_path_cost_limit = 1.0e10f;
     m_waypoint_editing = false;
     flag1 = false;
     flag2 = false;
-    search_visualization = 0;
-    waypoints_dirty = 0;
+    search_visualization = false;
+    waypoints_dirty = false;
     path_flags1 = 4;
     link_flags = 0;
     start_waypoint = 0;
@@ -3362,8 +3362,8 @@ W8PathingService::W8PathingService()
     m_search_nodes = new W8PathSearchNode[g_path_reserve + 0x14];
     m_search_node_count = 0;
     m_search_node_capacity = 0;
-    explicit_target = 0;
-    m_trace_configured = 0;
+    explicit_target = false;
+    m_trace_configured = false;
     m_trace_target_location = 0;
     m_trace_max_distance = 0;
     trace_offset.SetZero();
@@ -3556,7 +3556,7 @@ unsigned char W8PathingService::SnapWaypointPosition(srVector3T<float>* position
         int delta = static_cast<int>(height - matched_height);
 
         if (-vertical_window < delta && delta < vertical_window) {
-            found = 1;
+            found = true;
             break;
         }
         slot = index->FindNextEntry(&key, slot);
@@ -3597,7 +3597,7 @@ unsigned char W8PathingService::TestPathCellClearance(srVector3T<float>* positio
         int delta = static_cast<int>(height - matched_height);
 
         if ((packed & 0x10000000) == 0 && -vertical_window < delta && delta < vertical_window) {
-            found = 1;
+            found = true;
             break;
         }
         slot = index->FindNextEntry(&key, slot);
@@ -3645,7 +3645,7 @@ unsigned char W8PathingService::SnapToLowerPathCell(srVector3T<float>* position,
             int delta = static_cast<int>(height - candidate_height);
 
             if (delta >= 0 && delta < nearest) {
-                found = 1;
+                found = true;
                 nearest = delta;
                 matched_height = candidate_height;
             }
@@ -3673,14 +3673,14 @@ unsigned char W8PathingService::ProbeAttachmentPath(W8NavigatorAttachment* attac
         return 0;
     }
 
-    m_probe_bounded = 0;
+    m_probe_bounded = false;
     W8OctreeIndex* visited = static_cast<W8OctreeIndex*>(m_pVisitedCells);
     visited->Clear();
 
     m_probe_cell_key = 0;
     m_probe_limit = 0;
     ProbeWaypointArc(&attachment->position0, &attachment->position1);
-    m_probe_bounded = 0;
+    m_probe_bounded = false;
     m_probe_limit = 0xffffffff;
     ProbeWaypointArc(&attachment->position1, &attachment->position0);
 
@@ -3705,7 +3705,7 @@ void W8PathingService::ProbeWaypointArc(const srVector3T<float>* from, const srV
     srVector3T<float> direction;
     srVector3T<float> arc;
     float radius;
-    bool passed_forward = 0;
+    bool passed_forward = false;
     unsigned int iteration;
 
     direction = *to - *from;
@@ -3728,7 +3728,7 @@ void W8PathingService::ProbeWaypointArc(const srVector3T<float>* from, const srV
 
         dot = DotProduct(direction, arc);
         if (dot > g_float_005ec390) {
-            passed_forward = 1;
+            passed_forward = true;
         } else if (!passed_forward) {
             continue;
         }
@@ -3887,7 +3887,7 @@ unsigned char W8PathingService::ProbeWaypointSegment(const srVector3T<float>* fr
         unsigned int visited = visited_index->Lookup(&cell_key);
 
         if (bounded_probe && (visited & 0xffff) != 0xffff) {
-            bounded_probe = 0;
+            bounded_probe = false;
         }
 
         unsigned int direction_mask = 0;
@@ -3907,14 +3907,14 @@ unsigned char W8PathingService::ProbeWaypointSegment(const srVector3T<float>* fr
                     if ((path_value & 0x01000000) != 0) {
                         direction_mask = path_value >> 16 & 0xff;
                     }
-                    found = 1;
+                    found = true;
                     height = path_value & 0xffff;
                 }
                 slot = path_index->FindNextEntry(&cell_key, slot);
             }
 
             if (!found) {
-                blocked = 1;
+                blocked = true;
             } else if (!bounded_probe && ((m_probe_limit == 0 && visited == 0) ||
                                           (m_probe_limit != 0 && (visited & 0xffff) != 0 &&
                                            (visited & 0xffff0000) == 0))) {
@@ -3948,7 +3948,7 @@ unsigned char W8PathingService::ProbeWaypointSegment(const srVector3T<float>* fr
                 }
             }
         } else {
-            blocked = 1;
+            blocked = true;
         }
 
         unsigned int direction;
@@ -3963,7 +3963,7 @@ unsigned char W8PathingService::ProbeWaypointSegment(const srVector3T<float>* fr
             error += walk.error_reset0;
         }
         if (direction_mask != 0 && (direction_mask & 1 << (direction & 0x1f)) == 0) {
-            blocked = 1;
+            blocked = true;
         }
         ++iteration;
     }
@@ -4013,7 +4013,7 @@ unsigned int W8PathingService::ComputeWaypointNeighborMask(const srVector2i* cel
                 int height_delta = (path_value & 0xffff) - (candidate & 0xffff);
                 if ((candidate & 0x10000000) == 0 && -cell_count < height_delta &&
                     height_delta < cell_count) {
-                    found = 1;
+                    found = true;
                     break;
                 }
                 slot = index->FindNextEntry(&key, slot);
@@ -4055,7 +4055,7 @@ unsigned char W8PathingService::TestWaypointSpan(const srVector3T<float>* source
         return 0;
     }
 
-    span_blocked = 0;
+    span_blocked = false;
     srVector2i cell;
     unsigned int cell_key = PositionToPathKey(this, source, &cell);
     unsigned int destination_key = PositionToPathKey(this, destination, 0);
@@ -4077,7 +4077,7 @@ unsigned char W8PathingService::TestWaypointSpan(const srVector3T<float>* source
             if ((value & 0x10000000) == 0 && -cell_count < difference &&
                 difference < cell_count) {
                 source_value = value;
-                found = 1;
+                found = true;
             }
             slot = path_index->FindNextEntry(&cell_key, slot);
         }
@@ -4090,7 +4090,7 @@ unsigned char W8PathingService::TestWaypointSpan(const srVector3T<float>* source
                      static_cast<int>(((destination->y - level_bounds.minimum.y) / span))) +
                  1;
         slot = path_index->FindNextEntry(&cell_key, -1);
-        found = 0;
+        found = false;
         unsigned int destination_value;
 
         while (slot >= 0 && !found) {
@@ -4099,7 +4099,7 @@ unsigned char W8PathingService::TestWaypointSpan(const srVector3T<float>* source
             if ((value & 0x10000000) == 0 && -cell_count < difference &&
                 difference < cell_count) {
                 destination_value = value;
-                found = 1;
+                found = true;
             }
             slot = path_index->FindNextEntry(&cell_key, slot);
         }
@@ -4140,12 +4140,12 @@ unsigned char W8PathingService::TestWaypointSpan(const srVector3T<float>* source
                     if ((path_value & 0x01000000) != 0) {
                         direction_mask = path_value >> 16 & 0xff;
                     }
-                    found = 1;
+                    found = true;
                     height = path_value & 0xffff;
                     previous_key = cell_key;
                     previous_value = path_value;
                 } else {
-                    span_blocked = 1;
+                    span_blocked = true;
                 }
             }
             slot = path_index->FindNextEntry(&cell_key, slot);
@@ -4164,11 +4164,11 @@ unsigned char W8PathingService::TestWaypointSpan(const srVector3T<float>* source
                 mask_cell.y = mask_key >> 16;
                 m_waypoint_neighbor_mask = ComputeWaypointNeighborMask(&mask_cell, mask_value);
             }
-            blocked = 1;
+            blocked = true;
         }
 
         if ((previous_value & 0x04000000) != 0) {
-            span_blocked = 1;
+            span_blocked = true;
         }
 
         unsigned int direction = directions[0];
@@ -4218,7 +4218,7 @@ unsigned char W8PathingService::TestWaypointSpan(const srVector3T<float>* source
                 mask_cell.y = mask_key >> 16;
                 m_waypoint_neighbor_mask = ComputeWaypointNeighborMask(&mask_cell, mask_value);
             }
-            blocked = 1;
+            blocked = true;
         }
 
         cell_key = cell.y * 0x10000 + cell.x;
@@ -4231,7 +4231,7 @@ unsigned char W8PathingService::TestWaypointSpan(const srVector3T<float>* source
                 static_cast<int>((destination->y - level_bounds.minimum.y) / span) + 1;
             int difference = destination_height - height;
             if (difference < -cell_count || cell_count < difference) {
-                blocked = 1;
+                blocked = true;
             }
         }
     } else if (previous_key == 0) {
@@ -4381,7 +4381,7 @@ float W8PathingService::MeasureDirectionalPath(const srVector2i* cell, int direc
             int difference = (path_value & 0xffff) - height;
             if ((path_value & 0x10000000) == 0 && -cell_count < difference &&
                 difference < cell_count) {
-                found = 1;
+                found = true;
                 height = path_value & 0xffff;
                 break;
             }
@@ -4393,7 +4393,7 @@ float W8PathingService::MeasureDirectionalPath(const srVector2i* cell, int direc
         }
         if (!found || ((path_value & 0x01000000) != 0 &&
                        (path_value & 1 << ((direction + 16) & 0x1f)) == 0)) {
-            stopped = 1;
+            stopped = true;
             break;
         }
     }
@@ -4484,7 +4484,7 @@ unsigned short W8PathingService::FindWaypoint(const srVector3T<float>* position,
         W8OctreeIndex* visited = static_cast<W8OctreeIndex*>(m_pVisitedCells);
         visited->Clear();
         start_waypoint = 0;
-        m_probe_bounded = 0;
+        m_probe_bounded = false;
 
         for (index = 0; index < count; ++index) {
             if (start_waypoint != 0) {
@@ -4493,7 +4493,7 @@ unsigned short W8PathingService::FindWaypoint(const srVector3T<float>* position,
 
             bool saved_flag = m_probe_bounded;
             visited = static_cast<W8OctreeIndex*>(m_pVisitedCells);
-            m_probe_bounded = 0;
+            m_probe_bounded = false;
             visited->Clear();
 
             m_probe_cell_key = 0;
@@ -5533,21 +5533,21 @@ void W8PathingService::RemoveWaypointLink(unsigned short edge_index)
         for (index = 1; index < m_ulNumWayPoints && !found; ++index) {
             if (m_pSurfaces[index].first_edge == edge_index) {
                 m_pSurfaces[index].first_edge = m_pEdges[edge_index].next;
-                found = 1;
+                found = true;
             }
         }
 
         for (index = 1; index < m_ulNumWayPtLinks && !found; ++index) {
             if (m_pEdges[index].next == edge_index) {
                 m_pEdges[index].next = m_pEdges[edge_index].next;
-                found = 1;
+                found = true;
             }
         }
 
         memset(&m_pEdges[edge_index], 0, sizeof(W8PathEdge));
         ++m_removed_edge_count;
         MarkRendererReady();
-        waypoints_dirty = 1;
+        waypoints_dirty = true;
     }
 }
 
@@ -5567,7 +5567,7 @@ unsigned char W8PathingService::PreparePathVisualization(const srVector3T<float>
     srVector3T<float> offset;
 
     destination_waypoint = 0;
-    path_direction_valid = 0;
+    path_direction_valid = false;
     source_waypoint = FindWaypoint(source, false);
     source_surface = &m_pSurfaces[source_waypoint];
 
@@ -5594,7 +5594,7 @@ unsigned char W8PathingService::PreparePathVisualization(const srVector3T<float>
 
         if (best_alignment > g_float_005ec38c) {
             destination_waypoint = best_waypoint;
-            path_direction_valid = 1;
+            path_direction_valid = true;
             start_waypoint = source_waypoint;
             return 1;
         }
@@ -5630,7 +5630,7 @@ unsigned char W8PathingService::PreparePathVisualization(const srVector3T<float>
             destination_waypoint = best_waypoint;
             if (TestWaypointSpan(&source_surface->position, &m_pSurfaces[best_waypoint].position,
                                  false, false) != 0) {
-                path_direction_valid = 1;
+                path_direction_valid = true;
             }
             start_waypoint = source_waypoint;
             return 1;
@@ -5900,7 +5900,7 @@ void W8PathingService::EditTeleportalLink(const srVector3T<float>* destination,
     m_pEdges[edge_index].flags |= 0x01000000;
     m_pEdges[edge_index].distance = 0.0f;
     MarkRendererReady();
-    waypoints_dirty = 1;
+    waypoints_dirty = true;
 }
 
 /* Modal waypoint-link flag editor: renders the link's direction, movement,
@@ -6313,7 +6313,7 @@ void W8PathParameters::InitializeSteeringContext(W8NavigatorMovementState* movem
     perpendicular.Set(direction.z, 0.0, -direction.x);
     force.SetZero();
     blocked = false;
-    nearby_queried = 0;
+    nearby_queried = false;
 }
 
 // FUNCTION: WIZ8 0x004cafc0
@@ -6327,7 +6327,7 @@ unsigned char W8PathParameters::QueryNearbyNavigators()
         return nearby_count != 0;
     }
     extent = radius * g_float_005ebc28;
-    nearby_queried = 1;
+    nearby_queried = true;
     lower.Set(movement->position.x - extent, movement->position.y - extent,
               movement->position.z - extent);
     upper.Set(extent + movement->position.x, extent + movement->position.y,
@@ -6386,7 +6386,7 @@ void W8PathParameters::IntegrateSteering()
             direction = g_octree->pathing->GetNeighborSlideDirection(&movement->position,
                                                                          &delta, &slide);
             if (direction == 0) {
-                blocked = 1;
+                blocked = true;
             } else {
                 scale = DotProduct(slide, delta);
                 delta += slide * scale;

@@ -124,9 +124,9 @@ static bool RunSearchModeSemanticTest(void)
     g_level_block = &level;
     /* The loading screen accepts notices without advancing the live game UI. */
     g_current_screen_state.id = W8_SCREEN_PLEASE_WAIT;
-    gXStatus.fCombatMode = 0;
-    gXStatus.fCampMode = 0;
-    gXStatus.fNpcDialogueMode = 0;
+    gXStatus.fCombatMode = false;
+    gXStatus.fCampMode = false;
+    gXStatus.fNpcDialogueMode = false;
     g_status.search_mode = 0;
     g_search_pulse_clock = 0;
     ToggleSearchMode();
@@ -138,7 +138,7 @@ static bool RunSearchModeSemanticTest(void)
     bool off = g_status.search_mode == 0 && g_status.text_box_lines_used[0] == used[0] + 2 &&
                wcscmp(g_message_storage[0][used[0] + 1].wString,
                       gppStringList[W8_NOTICE_SEARCH_MODE_OFF]) == 0;
-    gXStatus.fCombatMode = 1;
+    gXStatus.fCombatMode = true;
     unsigned int clock = g_search_pulse_clock;
     ToggleSearchMode();
     int combat_box = IsMipeActive() ? 0 : 1;
@@ -355,7 +355,7 @@ static void ResetNpcStateOnGameThread(void* opaque)
         context->result = -1;
         return;
     }
-    g_npc_scripting.restore_staged_session = 1;
+    g_npc_scripting.restore_staged_session = true;
     g_npc_scripting.voice_handle = 7;
     g_npc_scripting.staging_restore.current_quote_index = 0x1234;
     g_npc_scripting.gap_track.mouth_open = 1;
@@ -894,7 +894,7 @@ static void QueueVoiceEventOnGameThread(void* opaque)
     character->gender = W8_GENDER_FEMALE;
     character->personality = 0;
     character->voice = 0;
-    g_status.greeting_pending = 0;
+    g_status.greeting_pending = false;
     result->queued = QueueCharacterEvent(character, 4, 0, W8_EVENT_BYPASS_CHECKS, 0x7f) != 0;
 }
 

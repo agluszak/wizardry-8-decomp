@@ -296,7 +296,7 @@ bool NpcLeadHasNameStyle(W8NpcId kind)
         }
         if (npc->name_style == kind &&
             g_status.buffers.Char[0].highest_condition < W8_CONDITION_ASLEEP) {
-            return 1;
+            return true;
         }
     }
     if (g_status.buffers.XChar[1].fOccupied) {
@@ -314,10 +314,10 @@ bool NpcLeadHasNameStyle(W8NpcId kind)
         }
         if (npc->name_style == kind &&
             g_status.buffers.Char[1].highest_condition < W8_CONDITION_ASLEEP) {
-            return 1;
+            return true;
         }
     }
-    return 0;
+    return false;
 }
 
 /* The monster standing in the world for this NPC, if one is. */
@@ -365,10 +365,10 @@ W8Character* GetNpcGroupCharacter(W8NpcState* npc)
 bool WillNpcTradeForItem(W8NpcState* npc, W8ItemInstance* item)
 {
     if (npc->record->kind == W8_NPC_KIND_NO_TRADE) {
-        return 0;
+        return false;
     }
     if (item->iItemNo == W8_NPC_ALWAYS_TRADED_ITEM) {
-        return 1;
+        return true;
     }
     return GetItemStackValue(item) >= W8_NPC_MINIMUM_TRADE_VALUE;
 }
@@ -448,13 +448,13 @@ bool NpcWantsItem(W8NpcState* npc, W8ItemInstance* item)
         }
     }
     if (index == 3) {
-        return 0;
+        return false;
     }
     if (npc->is_grouped &&
         CountItemOnCharacter(&g_status.buffers.Char[npc->group_index], item->iItemNo, 0, 2) > 1) {
-        return 0;
+        return false;
     }
-    return 1;
+    return true;
 }
 
 // FUNCTION: WIZ8 0x0050ddc0
@@ -548,7 +548,7 @@ int DismissNpcFromParty(int party_slot, int /*unused*/, bool skip_spawn, bool ne
             }
             if (neutral) {
                 SetMonsterGroupHostility(group, 0, false);
-                group->forced_neutral = 1;
+                group->forced_neutral = true;
             }
         }
     }
@@ -634,7 +634,7 @@ bool RecruitNpcIntoParty(W8NpcState* npc)
     npc->is_grouped = true;
     npc->is_present = false;
     npc->event_pending = 0;
-    npc->pending_restore = 0;
+    npc->pending_restore = false;
     ReleaseNpcScriptFile(npc->script_file);
     npc->script_file = 0;
     ReloadNpcScriptResources(npc);
@@ -788,30 +788,30 @@ bool CanNpcJoinParty(W8NpcState* npc)
     unsigned int average;
 
     if (npc->record->has_group == 0) {
-        return 0;
+        return false;
     }
     /* The service ids are the GetLevelBand region numbering: an NPC who offers
        the current region's service stays on duty and refuses to join. */
     if (NpcOffersService(npc, GetLevelBand(g_status.current_level))) {
-        return 0;
+        return false;
     }
     if (npc->name_style == W8_NPC_GLUMPH && GetFact(W8_FACT_UMISSION_SCUBA_DONE) != 0) {
-        return 0;
+        return false;
     }
     if (npc->name_style == W8_NPC_SEXUS && GetFact(W8_FACT_SEXUS_PAID) == 0) {
-        return 0;
+        return false;
     }
     /* Retail performs the identical Madras check twice in a row - the second
        test is dead but genuinely present, kept faithful. */
     if (npc->name_style == W8_NPC_MADRAS && GetFact(W8_FACT_TRYNNIE_MADRAS_WILL_JOIN) == 0) {
-        return 0;
+        return false;
     }
     if (npc->name_style == W8_NPC_MADRAS && GetFact(W8_FACT_TRYNNIE_MADRAS_WILL_JOIN) == 0) {
-        return 0;
+        return false;
     }
     if ((npc->name_style == W8_NPC_DRAZIC || npc->name_style == W8_NPC_RODAN) &&
         GetFact(W8_FACT_PEACE_ACHIEVED) != 0) {
-        return 0;
+        return false;
     }
     if (npc->record->min_party_level > 0) {
         total = 0;
@@ -829,10 +829,10 @@ bool CanNpcJoinParty(W8NpcState* npc)
             average = total / count;
         }
         if (average < npc->record->min_party_level) {
-            return 0;
+            return false;
         }
     }
-    return 1;
+    return true;
 }
 
 /* Whether the NPC offers one service. The service id is looked up in a table
@@ -931,12 +931,12 @@ void AdvanceNpcTimers(unsigned int elapsed)
             if (npc->talk_cooldown_active &&
                 static_cast<unsigned int>(g_status.world_clock - npc->talk_cooldown_clock) >
                     0xa8c0) {
-                npc->talk_cooldown_active = 0;
+                npc->talk_cooldown_active = false;
             }
             if (npc->trade_cooldown_active &&
                 static_cast<unsigned int>(g_status.world_clock - npc->trade_cooldown_clock) >
                     0xa8c0) {
-                npc->trade_cooldown_active = 0;
+                npc->trade_cooldown_active = false;
             }
         }
     }
@@ -968,7 +968,7 @@ void ProcessNpcPendingEvents(void)
                 }
             }
             if (flagged) {
-                g_status.infatuation_pending = 0;
+                g_status.infatuation_pending = false;
             } else {
                 char band = GetLevelBand(g_status.current_level);
                 if (band != 9 && band != 0xa) {
@@ -981,7 +981,7 @@ void ProcessNpcPendingEvents(void)
                     }
                     SetCharacterCondition(g_status.sedexus_party_slot, W8_CONDITION_INFATUATED,
                                           9999, 0, 0, 1);
-                    g_status.infatuation_pending = 0;
+                    g_status.infatuation_pending = false;
                     SetFact(W8_FACT_QUEST_KILL_ALSEDEXUS, 1, false);
                 }
             }
@@ -994,7 +994,7 @@ void ProcessNpcPendingEvents(void)
                        static_cast<unsigned int>(GetLevelBand(g_status.current_level))) {
                     ++service;
                     if (g_npc_services[service].service_id == 0xffffffff) {
-                        g_status.binding_reset_pending = 0;
+                        g_status.binding_reset_pending = false;
                         return;
                     }
                 }
@@ -1075,7 +1075,7 @@ void ProcessNpcPendingEvents(void)
                     return;
                 }
             }
-            g_status.binding_reset_pending = 0;
+            g_status.binding_reset_pending = false;
         }
     }
 }
@@ -1102,7 +1102,7 @@ void ChooseNewGameStartLocation(int* level, int* entrance)
     }
     *level = start_level;
     *entrance = 0;
-    g_status.greeting_pending = 1;
+    g_status.greeting_pending = true;
 
     value = GetFact(W8_FACT_VIRGIN);
     if (value != 0) {
@@ -1364,10 +1364,10 @@ W8NpcState* CreateNpcRuntimeNode(int npc_id)
     }
     InitializeNpcItemTable(npc);
     npc->location_id = 0;
-    npc->is_present = 0;
+    npc->is_present = false;
     npc->disposition = g_npc_records[npc_id].disposition;
     npc->gold = g_npc_records[npc_id].gold;
-    npc->greeting_pending = 1;
+    npc->greeting_pending = true;
     npc->trade_pool = g_npc_records[npc_id].trade_pool;
 
     for (index = 0; index < g_npc_states->count; ++index) {
@@ -1584,7 +1584,7 @@ void ReleaseNpcBinding(int value)
     } else {
         npc = g_npc_states->data[0];
     }
-    npc->has_monster = 0;
+    npc->has_monster = false;
     ReleaseNpcScriptFile(npc->script_file);
     npc->script_file = 0;
     if (npc->record->monster_bound != 0) {
@@ -1654,11 +1654,11 @@ void LoadNpcStates(W8Chunk* chunks)
         npc = *g_npc_states->GetAt(loaded);
 
         npc->script_file = 0;
-        npc->has_monster = 0;
+        npc->has_monster = false;
         npc->record = &g_npc_records[npc->name_style];
         if (npc->is_grouped) {
-            npc->is_present = 0;
-            npc->has_monster = 1;
+            npc->is_present = false;
+            npc->has_monster = true;
             npc->level_band = GetLevelBand(g_status.current_level);
             npc->bound_level = g_status.current_level;
             ReloadNpcScriptResources(npc);
@@ -1817,7 +1817,7 @@ void ApplyNpcInteraction(W8NpcState* npc, int kind, int value, W8ItemInstance* i
         int level;
         int delta;
 
-        npc->talk_cooldown_active = 1;
+        npc->talk_cooldown_active = true;
         npc->talk_cooldown_clock = g_status.world_clock;
         if (scale < 1) {
             level = static_cast<int>(GetBestPartySkillLevel(W8_SKILL_COMMUNICATION, &kind));
@@ -1845,7 +1845,7 @@ void ApplyNpcInteraction(W8NpcState* npc, int kind, int value, W8ItemInstance* i
         int delta;
         int index;
 
-        npc->trade_cooldown_active = 1;
+        npc->trade_cooldown_active = true;
         npc->trade_cooldown_clock = g_status.world_clock;
         if (!npc->has_monster || !npc->is_present) {
             monster_info = 0;
@@ -2078,15 +2078,15 @@ bool ProbeNpcPlacementNearParty(int /*party_slot*/, int /*mode*/, srVector3T<flo
     yaw = GetCameraYawRadians() + g_float_005ec29c;
     if (g_octree->FindNavigatorPosition(&party_position, yaw, 1000.0f, 1, position_out, true, false,
                                         true, 10, false) > 0) {
-        return 1;
+        return true;
     }
     if (g_octree->FindNavigatorPosition(&party_position, yaw, 1000.0f, 1, position_out, true, false,
                                         true, 20, false) > 0) {
-        return 1;
+        return true;
     }
     g_octree->FindNavigatorPosition(&party_position, yaw, 1000.0f, 1, position_out, true, false,
                                     true, 30, false);
-    return 0;
+    return false;
 }
 
 /* The frame-0x10 callback the 0x1b6 NPC cycle installs: mark the monster,
@@ -2137,7 +2137,7 @@ void UpdateNpcEvents(void)
         if (GetFact(W8_FACT_ALIGNMENT_UMPANI) != 0 && Random(100) < 6) {
             SetFact(W8_FACT_TRANG_YOU_ARE_BUSTED, 1, false);
         }
-        g_status.trang_check_pending = 0;
+        g_status.trang_check_pending = false;
     }
     if (g_status.savant_hack_tick != 0 &&
         static_cast<unsigned int>(GetTickCount() - g_status.savant_hack_tick) > 0x32) {
@@ -2170,7 +2170,7 @@ void UpdateNpcEvents(void)
         for (int slot = 0; slot < g_npc_states->GetCount(); ++slot) {
             npc = *g_npc_states->GetAt(slot);
             if (npc->binding_unavailable != 0 || !npc->restored) {
-                g_status.npc_restore_pending = 0;
+                g_status.npc_restore_pending = false;
                 continue;
             }
             unsigned int kind = npc->name_style;
@@ -2184,7 +2184,7 @@ void UpdateNpcEvents(void)
                 }
             }
             if (!partner->has_monster) {
-                g_status.npc_restore_pending = 0;
+                g_status.npc_restore_pending = false;
                 continue;
             }
             if (partner->is_present) {
@@ -2198,7 +2198,7 @@ void UpdateNpcEvents(void)
                 }
             }
             ReleaseNpcBinding(partner->partner_index);
-            g_status.npc_restore_pending = 0;
+            g_status.npc_restore_pending = false;
         }
     }
 
@@ -2260,11 +2260,11 @@ void UpdateNpcEvents(void)
 
     if (g_status.fact_b8_pending &&
         static_cast<unsigned int>(g_status.world_clock - g_status.fact_b8_clock) > 0x2a300) {
-        g_status.fact_b8_pending = 0;
+        g_status.fact_b8_pending = false;
         SetFact(W8_FACT_MOOK_CHAOS_STOLEN, 1, false);
     }
     if (g_status.greeting_pending && (g_status.world_clock - g_status.binding_reset_clock) > 0x3c) {
-        g_status.greeting_pending = 0;
+        g_status.greeting_pending = false;
         SelectStartNpcGreeting();
     }
 }
@@ -2279,7 +2279,7 @@ void UpdateNpcEvents(void)
 void ResetNpcBindingsForParty(void)
 {
     g_status.binding_reset_clock = g_status.world_clock;
-    g_status.binding_reset_pending = 1;
+    g_status.binding_reset_pending = true;
     for (int party_slot = 0; party_slot < 2; ++party_slot) {
         W8PartySlotRow* row = &g_status.buffers.XChar[party_slot];
         W8Character* character = &g_status.buffers.Char[party_slot];
@@ -2339,7 +2339,7 @@ void RestoreNamedNpcAtLevel(int kind, char level, const char* entity_name)
         npc->restored = false;
         return;
     }
-    npc->pending_restore = 1;
+    npc->pending_restore = true;
     strcpy(npc->restore_entity_name, entity_name);
     npc->pending_restore_level = level;
 }
@@ -2364,7 +2364,7 @@ void ClearPendingNpcLevelFlags(void)
             if (npc->pending_restore && npc->binding_unavailable == 0 &&
                 npc->pending_restore_level == g_status.current_level) {
                 if (RestoreNpcMonster(npc, npc->restore_entity_name) != 0) {
-                    npc->pending_restore = 0;
+                    npc->pending_restore = false;
                 }
             }
             count = g_npc_states->count;
@@ -2430,7 +2430,7 @@ void ReleaseNpcMonsterBinding(W8NpcState* npc, char level)
         W8NpcState* companion = GetNpcStateByKind(npc->name_style);
         ReleaseNpcCompanionMonster(companion);
     } else {
-        npc->pending_release = 1;
+        npc->pending_release = true;
         npc->pending_release_level = level;
     }
 }
@@ -2576,7 +2576,7 @@ void HandleMarkedNpcEvent(W8NpcState* npc, char mode)
         ReleaseNpcCompanionMonster(companion);
     } else {
         npc->restored = true;
-        g_status.npc_restore_pending = 1;
+        g_status.npc_restore_pending = true;
     }
     if (npc->restore_done == 0) {
         if (npc->name_style == W8_NPC_MYLES && GetFact(W8_FACT_RAPAX_MYLES_IN_JAIL) != 0) {
@@ -2664,7 +2664,7 @@ void RebindNpcLevelTriggers(void)
 
             if (npc->has_monster && (npc->record->merchant != 0 ||
                                      (npc->record->voice_script != 0 && !npc->is_present))) {
-                npc->has_monster = 0;
+                npc->has_monster = false;
                 ReleaseNpcScriptFile(npc->script_file);
                 npc->script_file = 0;
                 if (npc->record->monster_bound != 0) {
@@ -2693,11 +2693,11 @@ void RebindNpcLevelTriggers(void)
             if (trigger != 0) {
                 trigger->activation_callback = NotifyNpcTriggerActivation;
                 trigger->m_lData1 = static_cast<int>(npc_index);
-                npc->has_monster = 1;
+                npc->has_monster = true;
                 npc->level_band = static_cast<unsigned char>(GetLevelBand(g_status.current_level));
                 npc->bound_level = static_cast<unsigned char>(g_status.current_level);
                 ReloadNpcScriptResources(npc);
-                npc->is_present = 0;
+                npc->is_present = false;
             }
         }
         count = g_npc_states->count;

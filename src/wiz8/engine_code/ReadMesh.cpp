@@ -75,11 +75,11 @@ bool IsTextureInReadMeshScratch(const srTextureIFace* texture)
     if (g_read_mesh_textures != 0 && g_read_mesh_scratch_count != 0) {
         for (short index = 0; index < g_read_mesh_scratch_count; ++index) {
             if (g_read_mesh_textures[index] == texture) {
-                return 1;
+                return true;
             }
         }
     }
-    return 0;
+    return false;
 }
 
 // FUNCTION: WIZ8 0x00489AC0
@@ -88,11 +88,11 @@ bool IsReadMeshMaterial(const srClass* material)
     if (g_read_mesh_materials != 0 && g_read_mesh_scratch_count != 0) {
         for (short index = 0; index < g_read_mesh_scratch_count; ++index) {
             if (g_read_mesh_materials[index] == material) {
-                return 1;
+                return true;
             }
         }
     }
-    return 0;
+    return false;
 }
 // GLOBAL: WIZ8 0x0065B9E4
 static unsigned int g_read_mesh_index;

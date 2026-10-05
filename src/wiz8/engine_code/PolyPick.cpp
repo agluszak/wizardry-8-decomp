@@ -189,9 +189,9 @@ bool PointInsideBounds(const srVector3T<float>* point, const srVector3T<float>* 
 {
     if (point->x >= minimum->x && point->x <= maximum->x && point->y >= minimum->y &&
         point->y <= maximum->y && point->z >= minimum->z && point->z <= maximum->z) {
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 /* Per-axis overlap test for two axis-aligned bounds. */
@@ -204,9 +204,9 @@ bool BoundsOverlap(const srVector3T<float>* first_minimum,
     if (first_maximum->x >= second_minimum->x && second_maximum->x >= first_minimum->x &&
         first_maximum->y >= second_minimum->y && second_maximum->y >= first_minimum->y &&
         first_maximum->z >= second_minimum->z && second_maximum->z >= first_minimum->z) {
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 /* Project one world point through the active world's camera and report

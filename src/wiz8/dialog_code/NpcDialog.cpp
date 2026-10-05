@@ -53,9 +53,9 @@ W8NpcDialog::W8NpcDialog(W8NpcQuoteEntry* message, int aux_data)
     char opcode = message->kind;
     if (opcode == 5) {
         if (message->sub_entry_count == 2) {
-            m_compact_options = 0;
+            m_compact_options = false;
         } else {
-            m_compact_options = 1;
+            m_compact_options = true;
         }
         for (index = 0; index < message->sub_entry_count; ++index) {
             swprintf(line, g_format_S, message->sub_entries[index].text);
@@ -67,7 +67,7 @@ W8NpcDialog::W8NpcDialog(W8NpcQuoteEntry* message, int aux_data)
         m_text_width = max_width + 6;
         width = (m_text_width + 0xa) * message->sub_entry_count + 0x1e;
     } else if (opcode == 18 || opcode == 30) {
-        m_compact_options = 0;
+        m_compact_options = false;
         short length = StringPixLength(gppStringList[0x7df], g_wiz_text_mono_font);
         height = 0x50;
         m_text_width = length + 6;

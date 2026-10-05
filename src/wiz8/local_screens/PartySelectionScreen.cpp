@@ -1018,7 +1018,7 @@ void W8PartySelectionCharacterSummaryPanel::Redraw()
     if (!m_fEnabled || !m_fDirty) {
         return;
     }
-    m_fDirty = 0;
+    m_fDirty = false;
 
     DrawCatalogImageAndInvalidate(-14, 0xfc, 0, 0, 0x7f, 0xc5, 2, 0);
     if (!m_character) {

@@ -132,12 +132,12 @@ unsigned char stScript::Load(const char* path)
         if (token[length - 1] == ':') {
             token[length - 1] = 0;
             int index;
-            bool add_label = 1;
+            bool add_label = true;
             for (index = 0; index < labels.GetCount(); ++index) {
                 stScriptLabel* existing = *labels.GetAt(index);
                 if (_strnicmp(existing->name, token, 0x1f) == 0) {
                     if (existing->line != -1) {
-                        add_label = 0;
+                        add_label = false;
                     }
                     break;
                 }

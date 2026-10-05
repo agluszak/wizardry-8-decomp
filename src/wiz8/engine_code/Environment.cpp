@@ -75,7 +75,7 @@ unsigned long g_environment_transition_tick;
 // GLOBAL: WIZ8 0x0060a3ac
 int g_last_light_phase = -1;
 // GLOBAL: WIZ8 0x0060a395
-bool g_environment_colour_refresh = 1;
+bool g_environment_colour_refresh = true;
 
 /* The mapper starts its scroll rate at 0.002 texture units per second on x
    only and reseeds the shared frame clock, so the first scrolled frame uses
@@ -202,11 +202,11 @@ void AdvanceEnvironmentTime(int elapsed)
 void SetEnvironmentTimeEnabled(bool enabled)
 {
     if (!enabled) {
-        g_environment_time_enabled = 0;
+        g_environment_time_enabled = false;
         return;
     }
 
-    g_environment_time_enabled = 1;
+    g_environment_time_enabled = true;
     g_tick = GetTickCount();
     if (g_environment_time_enabled) {
         unsigned long now = GetTickCount();
@@ -469,7 +469,7 @@ bool IsFogEnabled(void)
 void EnableSky(void)
 {
     SetSkyEnabled(true);
-    g_sky_enabled = 1;
+    g_sky_enabled = true;
     UpdateEnvironmentLight();
 }
 
@@ -558,7 +558,7 @@ void BeginWorldLightingFade(float duration)
         g_environment_transition_rate = 0.0f;
         g_world_render_enabled = 1;
         g_monster_shadow_updates_enabled = 1;
-        g_world_blacked_out = 0;
+        g_world_blacked_out = false;
         g_monster_light_scale = 1.0f;
 
         world = g_world;
@@ -642,7 +642,7 @@ void UpdateEnvironmentLighting(void)
         g_environment_lighting_mode = 0;
         g_world_render_enabled = 0;
         g_monster_shadow_updates_enabled = 0;
-        g_world_blacked_out = 1;
+        g_world_blacked_out = true;
         g_environment_transition_rate = 0.0f;
         g_environment_transition_tick = now;
         return;
@@ -651,12 +651,12 @@ void UpdateEnvironmentLighting(void)
         g_environment_lighting_mode = 2;
         g_world_render_enabled = 1;
         g_monster_shadow_updates_enabled = 1;
-        g_world_blacked_out = 0;
+        g_world_blacked_out = false;
         g_environment_transition_rate = 0.0f;
         g_environment_transition_tick = now;
         return;
     }
-    g_world_blacked_out = 0;
+    g_world_blacked_out = false;
     g_environment_transition_tick = now;
     g_environment_lighting_mode = 1;
     g_world_render_enabled = 1;
@@ -667,7 +667,7 @@ void UpdateEnvironmentLighting(void)
 void DisableSky(void)
 {
     SetSkyEnabled(false);
-    g_sky_enabled = 0;
+    g_sky_enabled = false;
 }
 
 // FUNCTION: WIZ8 0x00482f80

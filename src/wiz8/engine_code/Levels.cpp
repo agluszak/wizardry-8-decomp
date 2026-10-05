@@ -169,7 +169,7 @@ unsigned char FindGameDataPath(char* path, int cd_number)
         UINT previous_mode = SetErrorMode(1);
         if (GetVolumeInformationA(path, volume_name, 32, 0, 0, 0, 0, 0) != 0 &&
             _stricmp(expected_label, volume_name) == 0) {
-            found = 1;
+            found = true;
             g_cd_index = cd_number;
         }
         SetErrorMode(previous_mode);
@@ -484,7 +484,7 @@ bool LevelBuildInfoByID(int level, W8LevelInfo* info)
     strcpy(pvl_path, info->level_path);
     strcpy(pvl_path + strlen(pvl_path) - 3, "pvl");
     if (!FileExists(info->level_path) && (!FileExists(oct_path) || !FileExists(pvl_path))) {
-        return 0;
+        return false;
     }
 
     sprintf(info->sky_path, "%s\\%s", info->sky_folder, info->sky_file_name);
@@ -495,13 +495,13 @@ bool LevelBuildInfoByID(int level, W8LevelInfo* info)
             sprintf(info->sky_bitmap_folder, "%s\\Bitmaps", info->sky_folder);
             sprintf(info->sky_path, "%s\\%s", info->sky_folder, info->sky_file_name);
             if (!FileExists(info->sky_path)) {
-                return 0;
+                return false;
             }
         }
     } else if (!FileExists(info->sky_path)) {
         info->sky_file_name[0] = '\0';
     }
-    return 1;
+    return true;
 }
 
 /* Build the complete live level around the current world. The subordinate
@@ -514,7 +514,7 @@ unsigned char LoadLevel(int requested_level, int entrance, bool restoring_game)
     int level = NormalizeMasterFunctionValue(requested_level);
     W8LevelInfo level_info;
     int previous_level;
-    bool first_visit = 0;
+    bool first_visit = false;
     char path[260];
     char music_path[260];
 
@@ -564,9 +564,9 @@ unsigned char LoadLevel(int requested_level, int entrance, bool restoring_game)
     ResetAutomapView();
     if (!LoadLevelStatus("Saves\\CurrentGame.SAV", level)) {
         BuildLevelStatusPath(path, level);
-        g_level_status_loading = 1;
+        g_level_status_loading = true;
         LoadLevelStatus(path, level);
-        g_level_status_loading = 0;
+        g_level_status_loading = false;
     }
 
     if (!restoring_game && entrance != -1) {
@@ -614,8 +614,8 @@ unsigned char LoadLevel(int requested_level, int entrance, bool restoring_game)
     if (level < W8_LEVEL_COUNT && !g_status.level_progress[level].visited) {
         ResetMonsterGroupTurnState();
         RebindMonsterGroupScripts();
-        g_status.level_progress[level].visited = 1;
-        first_visit = 1;
+        g_status.level_progress[level].visited = true;
+        first_visit = true;
     }
 
     sprintf(path, "%s\\%s.%s", level_info.level_folder, level_info.level_file_name,
@@ -624,7 +624,7 @@ unsigned char LoadLevel(int requested_level, int entrance, bool restoring_game)
     if (!g_environment_load_flag) {
         ResetCurrentEnvironment();
     }
-    g_camera_path_active = 0;
+    g_camera_path_active = false;
     InitializeLevelEnvironment();
     InitializeLevelMasterFunctions(level);
     RebindNpcLevelTriggers();
@@ -763,12 +763,12 @@ unsigned char ReloadLevelPreservingCamera(int level, int entrance)
     W8CameraAngleRecord saved_angle;
     W8CameraAngleRecord saved_pitch;
     srVector3T<float> saved_position;
-    bool restore = 0;
+    bool restore = false;
 
     if (entrance == -1 && level == g_status.current_level) {
         GetCameraOrientation(saved_angle, saved_pitch);
         WorldGetCameraLocationOrZero(GetWorld(), &saved_position);
-        restore = 1;
+        restore = true;
     }
     if (g_status.current_level != -1) {
         if (UnloadLevel("Saves") == 0) {

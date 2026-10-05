@@ -381,7 +381,7 @@ unsigned char InitializeVideoManager(HINSTANCE instance, unsigned short show_com
             ResumeMainGameWorld();
         }
         if (ghWindow && g_gerd) {
-            g_video_active = 1;
+            g_video_active = true;
             ShowWindow(ghWindow, 9);
             if (g_gerd->isWindowOpen() == 0) {
                 if (!OpenRendererWindow()) {
@@ -941,7 +941,7 @@ void SuspendVideoManager(void)
 {
     if (g_video_active) {
         PauseMainGameWorld();
-        g_video_active = 0;
+        g_video_active = false;
         if (g_gerd) {
             g_flush_pending = false;
             g_gerd->closeWindow(static_cast<srGERD::e_closeHint>(0));
@@ -964,7 +964,7 @@ unsigned char RestoreVideoManager(void)
         ResumeMainGameWorld();
     }
     if (ghWindow && g_gerd) {
-        g_video_active = 1;
+        g_video_active = true;
         ShowWindow(ghWindow, SW_RESTORE);
         if (g_gerd->isWindowOpen() != 0 || OpenRendererWindow()) {
             OpenIcon(ghWindow);
@@ -1267,12 +1267,12 @@ void RenderFrame(void)
 
     if (g_screenshot_pending) {
         SaveJpegScreenshot();
-        g_screenshot_pending = 0;
+        g_screenshot_pending = false;
     }
     if (g_auto_capture) {
         now = GetTickCount();
         if (now < g_last_capture_tick || g_last_capture_tick + g_frame_reset_interval < now) {
-            g_screenshot_pending = 1;
+            g_screenshot_pending = true;
             g_last_capture_tick = now;
         }
     }
@@ -1427,9 +1427,9 @@ bool RendererBufferIsLockable(void)
     srColorSurfaceIFace* surface = g_gerd->lockBuffer();
     if (surface != 0) {
         g_gerd->unlockBuffer();
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 // FUNCTION: WIZ8 0x00427830
@@ -2042,7 +2042,7 @@ static void InvalidateDirtyTile(int cell, unsigned int flags)
         ((g_viewport.top <= top && top <= g_viewport.bottom) ||
          (g_viewport.top <= bottom && bottom <= g_viewport.bottom))) {
         g_tile_dirty_flags[cell] = state | 3;
-        g_viewport_tiles_dirty = 1;
+        g_viewport_tiles_dirty = true;
     }
 }
 
@@ -2243,7 +2243,7 @@ char g_video_config_file[260] = "3DVideo.CFG";
 // FUNCTION: WIZ8 0x004229d0
 void PrintScreen(void)
 {
-    g_screenshot_pending = 1;
+    g_screenshot_pending = true;
 }
 
 /* The debug stats readout drawn over the primary surface: a black band plus
@@ -2330,7 +2330,7 @@ void DrawVideoInspector(int left, unsigned int top)
 // FUNCTION: WIZ8 0x004277d0
 void VideoInspectorEnable(void)
 {
-    g_video_inspector_enabled = 1;
+    g_video_inspector_enabled = true;
 }
 
 // GLOBAL: WIZ8 0x006548a0
@@ -2629,14 +2629,14 @@ void SetPickedModelInstance(srModelInstance* value)
 // FUNCTION: WIZ8 0x00428010
 unsigned char DisableCursorScene(void)
 {
-    g_cursor_scene_enabled = 0;
+    g_cursor_scene_enabled = false;
     return 1;
 }
 
 // FUNCTION: WIZ8 0x00428020
 unsigned char EnableCursorScene(void)
 {
-    g_cursor_scene_enabled = 1;
+    g_cursor_scene_enabled = true;
     return 1;
 }
 

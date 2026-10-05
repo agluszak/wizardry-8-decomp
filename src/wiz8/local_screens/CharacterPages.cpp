@@ -150,10 +150,10 @@ void W8CharacterPageEntry::Redraw()
         m_label->RenderToTarget(0, 1, -14);
         m_first_text->RenderToTarget(0, 1, -14);
         m_second_text->RenderToTarget(0, 1, -14);
-        m_dirty = 0;
+        m_dirty = false;
     } else if (!m_draw_background && m_dirty) {
         m_label->RenderToTarget(0, 1, -14);
-        m_dirty = 0;
+        m_dirty = false;
     }
 }
 
@@ -168,7 +168,7 @@ void W8CharacterPageEntry::MarkDirty()
 {
     m_decrement->Invalidate(false);
     m_increment->Invalidate(false);
-    m_dirty = 1;
+    m_dirty = true;
 }
 
 // FUNCTION: WIZ8 0x005afd10
@@ -274,8 +274,8 @@ void W8CharacterPage::Invalidate(const W8ControlsRect* rect)
 void W8CharacterPage::Prepare()
 {
     Invalidate(0);
-    m_dirty = 1;
-    m_prepared = 1;
+    m_dirty = true;
+    m_prepared = true;
 }
 
 // FUNCTION: WIZ8 0x005affc0

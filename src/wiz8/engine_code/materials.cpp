@@ -157,13 +157,13 @@ stMaterial::~stMaterial()
    build state is TU-private .bss. */
 
 // GLOBAL: WIZ8 0x0060AC70
-static bool g_option_pathing = 1;
+static bool g_option_pathing = true;
 // GLOBAL: WIZ8 0x0060AC71
-static bool g_option_shadow_test = 1;
+static bool g_option_shadow_test = true;
 // GLOBAL: WIZ8 0x0060AC72
-static bool g_option_logging = 1;
+static bool g_option_logging = true;
 // GLOBAL: WIZ8 0x0060AC73
-static bool g_option_mesh_linking = 1;
+static bool g_option_mesh_linking = true;
 // GLOBAL: WIZ8 0x0060AC74
 static float g_option_path_node_spacing = 500.0f;
 // GLOBAL: WIZ8 0x0060AC78
@@ -177,9 +177,9 @@ static int g_option_max_path_nodes = 64;
 // GLOBAL: WIZ8 0x0060AC88
 static int g_option_max_leaf_count = 20000;
 // GLOBAL: WIZ8 0x0060AC8C
-static bool g_status_scroll = 1;
+static bool g_status_scroll = true;
 // GLOBAL: WIZ8 0x0060AC8D
-static bool g_status_buffers_freed = 1;
+static bool g_status_buffers_freed = true;
 
 // GLOBAL: WIZ8 0x0065BAB0
 static srVector3T<float> g_weld_min;
@@ -395,7 +395,7 @@ static unsigned char PreprocessLevel(int handle, char* stem)
                 vertices[i].position.Set(source.x * g_world_scale, source.y * g_world_scale,
                                             source.z * g_world_scale);
                 vertices[i].m_original_position.Set(source.x, source.y, source.z);
-                vertices[i].m_visited = 0;
+                vertices[i].m_visited = false;
                 for (j = 0; j < 3; ++j) {
                     float v = (&vertices[i].position.x)[j];
                     if (v <= (&maximum.x)[j]) {
@@ -416,14 +416,14 @@ static unsigned char PreprocessLevel(int handle, char* stem)
             g_weld_stride_x = static_cast<unsigned int>(sqrt(static_cast<double>(g_weld_stride_y)));
             ReportStartupMessage("Welding vertices and discarding redundant vertices.\n");
             mark = 0;
-            report = 1;
+            report = true;
             if (1 < mesh->num_vertices) {
                 i = 1;
                 do {
                     percent =
                         static_cast<unsigned int>((i * g_octree_cell_scale / mesh->num_vertices));
                     if (mark + 10 < percent) {
-                        report = 1;
+                        report = true;
                         mark += 10;
                     }
                     lit = WeldVertex(&weld, vertices, i, 0xffffffff);
@@ -436,8 +436,8 @@ static unsigned char PreprocessLevel(int handle, char* stem)
                                 redundant);
                         ReportStartupMessage(message);
                     }
-                    report = 0;
-                    vertices[i - 1].m_visited = 0;
+                    report = false;
+                    vertices[i - 1].m_visited = false;
                 } while (i < mesh->num_vertices);
             }
             sprintf(message, "\n\nNumber of Verticies: %d   Number of polygons: %d\n",
@@ -466,7 +466,7 @@ static unsigned char PreprocessLevel(int handle, char* stem)
                 if (build_tree != 0) {
                     build_tree->LoadRegionFile(stem, &minimum, &maximum);
                     if (!g_option_mesh_linking) {
-                        build_tree->mesh_linking = 0;
+                        build_tree->mesh_linking = false;
                     }
                     build_tree->spatial.m_region_grid_cell = g_option_auto_region_size;
                     int alpha_polys = BuildRegionPolygons(level, &geometry, classify);
@@ -599,7 +599,7 @@ static unsigned char PreprocessLevel(int handle, char* stem)
                        surrounding loops compare it signed. */
                     unsigned int index;
                     for (index = 0; index < geometry.vertex_count; ++index) {
-                        vertices[index].m_visited = 0;
+                        vertices[index].m_visited = false;
                     }
                     for (index = 0; index < geometry.m_polygon_count; ++index) {
                         geometry.m_polygons[index].visited = false;
@@ -960,13 +960,13 @@ void ReportStartupMessage(const char* message)
     int index;
     int top;
 
-    scrolled = 0;
+    scrolled = false;
     if (message == 0) {
         if (!g_status_buffers_freed) {
             for (index = 0; index < 6; ++index) {
                 delete g_status_lines[index];
             }
-            g_status_buffers_freed = 1;
+            g_status_buffers_freed = true;
         }
         PublishLightDirection(&s_saved_colour);
         return;
@@ -983,7 +983,7 @@ void ReportStartupMessage(const char* message)
         }
         GetWorldColour(&s_saved_colour);
         PublishLightDirection(&s_black);
-        g_status_buffers_freed = 0;
+        g_status_buffers_freed = false;
     }
     if (g_status_cursor < 6) {
         index = g_status_cursor;
@@ -997,11 +997,11 @@ void ReportStartupMessage(const char* message)
                 g_status_lines[index] = g_status_lines[index + 1];
             }
             g_status_lines[5] = oldest;
-            scrolled = 1;
+            scrolled = true;
             line = oldest;
         }
     }
-    scroll = 1;
+    scroll = true;
     length = 0;
     while (*message != '\0') {
         if (*message > '\x1f') {
@@ -1009,7 +1009,7 @@ void ReportStartupMessage(const char* message)
             ++length;
         }
         if (*message == '\r' && message[1] == '\0') {
-            scroll = 0;
+            scroll = false;
         }
         ++message;
     }
@@ -1066,7 +1066,7 @@ static int WeldVertex(W8HashTable<unsigned int, int>* table, W8OctPreTreeVertex*
     W8OctPreTreeVertex* candidate;
 
     matched = false;
-    found = 0;
+    found = false;
     if (link == 0xffffffff) {
         vertex = index;
     }
@@ -1110,7 +1110,7 @@ static int WeldVertex(W8HashTable<unsigned int, int>* table, W8OctPreTreeVertex*
                                 vertices[index].m_vertex_index = match_index;
                                 vertices[index].flags |= 1;
                             }
-                            found = 1;
+                            found = true;
                         }
                     }
                     slot = table->FindNextEntry(&scan_key, slot);
@@ -1267,7 +1267,7 @@ static int BuildRegionPolygons(W8LevelFile* level, W8OctPreTreeGeometry* geometr
                 }
                 polygon->plane.w = offset;
                 polygon->flags = axis;
-                opposing = 0;
+                opposing = false;
                 for (corner = 0; corner < 3; ++corner) {
                     current = vertices + vertex_index[corner];
                     if (current->m_normal_count != 0) {
@@ -1276,7 +1276,7 @@ static int BuildRegionPolygons(W8LevelFile* level, W8OctPreTreeGeometry* geometr
                                 (current->m_normal.y / length) * normal.y +
                                 (current->m_normal.x / length) * normal.x <
                             g_float_005ecbbc) {
-                            opposing = 1;
+                            opposing = true;
                         }
                     }
                 }
@@ -1288,7 +1288,7 @@ static int BuildRegionPolygons(W8LevelFile* level, W8OctPreTreeGeometry* geometr
                     }
                 }
                 if ((materials[face->material_index].shader_flags & 1) != 0) {
-                    opposing = 1;
+                    opposing = true;
                 }
                 polygon->visited = false;
                 if (face->material_index == 0) {
@@ -1399,7 +1399,7 @@ static unsigned char SplitVerticesByMaterial(W8OctPreTreeGeometry* geometry)
     }
     memset(split, 0, geometry->vertex_count * 4 * sizeof(W8OctPreTreeVertex));
     for (source = 1; source < geometry->vertex_count; ++source) {
-        geometry->m_vertices[source].m_visited = 0;
+        geometry->m_vertices[source].m_visited = false;
     }
     next = 1;
     for (source = 1; source < geometry->vertex_count; ++source, ++next) {
@@ -1407,7 +1407,7 @@ static unsigned char SplitVerticesByMaterial(W8OctPreTreeGeometry* geometry)
         record = split + next;
         *record = geometry->m_vertices[source];
         record->m_vertex_index = next;
-        record->m_visited = 1;
+        record->m_visited = true;
         faces = geometry->m_vertices[source].face_indices;
         remaining = geometry->m_vertices[source].face_count - 1;
         polygon = geometry->m_polygons + *faces;
@@ -1423,7 +1423,7 @@ static unsigned char SplitVerticesByMaterial(W8OctPreTreeGeometry* geometry)
         while (remaining != 0) {
             ++faces;
             polygon = geometry->m_polygons + *faces;
-            fresh = 1;
+            fresh = true;
             slot = first;
             candidate = split + first;
             while (slot <= next) {
@@ -1436,7 +1436,7 @@ static unsigned char SplitVerticesByMaterial(W8OctPreTreeGeometry* geometry)
                         (*corner_vertex)->m_visited == 0 &&
                         candidate->m_material == static_cast<int>(polygon->material)) {
                         *corner_vertex = candidate;
-                        fresh = 0;
+                        fresh = false;
                     }
                 }
                 ++slot;
@@ -1447,7 +1447,7 @@ static unsigned char SplitVerticesByMaterial(W8OctPreTreeGeometry* geometry)
                 record = split + next;
                 *record = geometry->m_vertices[source];
                 record->m_vertex_index = next;
-                record->m_visited = 1;
+                record->m_visited = true;
                 record->m_material = polygon->material;
                 record->m_kind = polygon->kind;
                 for (corner = 0; corner < 3; ++corner) {
@@ -1996,19 +1996,19 @@ void W8Octree::OctBuildOptions(char* stem)
                 case 0x4c:
                     if (!g_option_logging) {
                         strcpy(log_state, "ON ");
-                        g_option_logging = 1;
+                        g_option_logging = true;
                     } else {
                         strcpy(log_state, "OFF");
-                        g_option_logging = 0;
+                        g_option_logging = false;
                     }
                     break;
                 case 0x4d:
                     if (!g_option_mesh_linking) {
                         strcpy(mesh_state, "ON ");
-                        g_option_mesh_linking = 1;
+                        g_option_mesh_linking = true;
                     } else {
                         strcpy(mesh_state, "OFF");
-                        g_option_mesh_linking = 0;
+                        g_option_mesh_linking = false;
                     }
                     break;
                 case 0x4e:
@@ -2017,19 +2017,19 @@ void W8Octree::OctBuildOptions(char* stem)
                 case 0x50:
                     if (!g_option_pathing) {
                         strcpy(pathing_state, "ON ");
-                        g_option_pathing = 1;
+                        g_option_pathing = true;
                     } else {
                         strcpy(pathing_state, "OFF");
-                        g_option_pathing = 0;
+                        g_option_pathing = false;
                     }
                     break;
                 case 0x52:
                     if (!g_option_rename_alphas) {
                         strcpy(rename_state, "ON ");
-                        g_option_rename_alphas = 1;
+                        g_option_rename_alphas = true;
                     } else {
                         strcpy(rename_state, "OFF");
-                        g_option_rename_alphas = 0;
+                        g_option_rename_alphas = false;
                     }
                     break;
                 case 0x53:
@@ -2049,7 +2049,7 @@ void W8Octree::OctBuildOptions(char* stem)
             }
         }
         if (edit_mode == 0) {
-            done = 1;
+            done = true;
         } else if (edit_mode == 1) {
             g_option_path_node_spacing = static_cast<float>(atof(edit_buffer)) * g_world_scale;
         } else if (edit_mode == 2) {
@@ -2142,13 +2142,13 @@ unsigned char LoadMaterial(const char* bitmap_folder, const W8MaterialRecord* so
 
         if ((*texture)->getClassID() == stTextureFile::CLASS_ID &&
             static_cast<stTextureFile*>(*texture)->hasAlpha()) {
-            has_alpha = 1;
+            has_alpha = true;
         }
         if ((*texture)->getClassID() == stTextureAnim::CLASS_ID) {
             stTextureAnim* animation = static_cast<stTextureAnim*>(*texture);
 
             if (animation->Prepare()) {
-                has_alpha = 1;
+                has_alpha = true;
             }
             if (source->version > 3 && source->texture_modes[texture_index] > 0.0f) {
                 float mode = source->texture_modes[texture_index];

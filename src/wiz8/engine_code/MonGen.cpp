@@ -394,7 +394,7 @@ unsigned char MonGen::GenerateEncounter(const srVector3T<float>* position)
     for (index = 0; index < 2; ++index) {
         companion_records[index] = record->companions[index];
         if (companion_records[index].species > 0 && Chance(companion_records[index].chance)) {
-            companion_active[index] = 1;
+            companion_active[index] = true;
             encounter_weight += GetMonsterCycleFallbackValue(companion_records[index].species);
         }
     }
@@ -415,7 +415,7 @@ unsigned char MonGen::GenerateEncounter(const srVector3T<float>* position)
     }
 
     group = CreateGroup(species, count, &spawn_position, false, false, true);
-    group->encounter_registered = 1;
+    group->encounter_registered = true;
     SetMonsterGroupFormation(group, &this->spawn_position);
     if (group != 0 && group->encounter_registered && g_active_groups.IndexOf(group) == -1) {
         g_active_groups.Add(group);
@@ -452,7 +452,7 @@ unsigned char MonGen::GenerateEncounter(const srVector3T<float>* position)
         companion_count += companion_group_count;
         W8MonsterGroup* companion_group = CreateGroup(companion_species, companion_group_count,
                                                       &spawn_position, false, false, true);
-        companion_group->encounter_registered = 1;
+        companion_group->encounter_registered = true;
         SetMonsterGroupFormation(companion_group, &this->spawn_position);
         LinkMonsterGroupToLeader(group, companion_group);
     }

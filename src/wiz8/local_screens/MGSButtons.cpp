@@ -271,10 +271,13 @@ unsigned char CreateSubMenuScrollButtons(void)
         }
     }
     g_submenu_scroll_buttons[0]->Configure("Data\\Main Interface\\main_scroll_arrows.sti", 3, 0, 1,
-                                           2, 2, SubMenuScrollArrowUp, 0, false, 0x7f, 0x4b, 0, 0);
+                                           2, 2, SubMenuScrollArrowUp, BUTTON_NO_CALLBACK, false,
+                                           MSYS_PRIORITY_HIGHEST, 0x4b, BUTTON_NO_CALLBACK,
+                                           BUTTON_NO_CALLBACK);
     g_submenu_scroll_buttons[1]->Configure("Data\\Main Interface\\main_scroll_arrows.sti", 7, 4, 5,
-                                           6, 6, SubMenuScrollArrowDown, 0, false, 0x7f, 0x4c, 0,
-                                           0);
+                                           6, 6, SubMenuScrollArrowDown, BUTTON_NO_CALLBACK, false,
+                                           MSYS_PRIORITY_HIGHEST, 0x4c, BUTTON_NO_CALLBACK,
+                                           BUTTON_NO_CALLBACK);
     for (i = 0; i < 2; ++i) {
         g_submenu_scroll_buttons[i]->SetPosition(g_scroll_button_positions[i].x,
                                                  g_scroll_button_positions[i].y);
@@ -317,9 +320,13 @@ unsigned char CreateSubMenuPanelButtons(void)
         }
     }
     g_submenu_panel_buttons[0]->Configure(g_submenu_icons_path, 0x21, 0x1e, 0x1f, 0x20, 0x22,
-                                          SubMenuPanelCloseButton, 0, false, 0x7f, 0x4d, 0, 0);
+                                          SubMenuPanelCloseButton, BUTTON_NO_CALLBACK, false,
+                                          MSYS_PRIORITY_HIGHEST, 0x4d, BUTTON_NO_CALLBACK,
+                                          BUTTON_NO_CALLBACK);
     g_submenu_panel_buttons[1]->Configure(g_submenu_icons_path, 0x26, 0x23, 0x24, 0x25, 0x27,
-                                          SubMenuPanelFormationButton, 0, true, 0x7f, 0x4e, 0, 0);
+                                          SubMenuPanelFormationButton, BUTTON_NO_CALLBACK, true,
+                                          MSYS_PRIORITY_HIGHEST, 0x4e, BUTTON_NO_CALLBACK,
+                                          BUTTON_NO_CALLBACK);
     for (index = 0; index < 2; ++index) {
         g_submenu_panel_buttons[index]->SetPosition(g_submenu_panel_button_positions[index].x,
                                                     g_submenu_panel_button_positions[index].y);
@@ -345,7 +352,8 @@ unsigned char CreateOptionsDiskButton(void)
         return 0;
     }
     g_options_disk_button->Configure(g_options_disk_path, 3, 0, 1, 2, 2, MainGameOptionsDiskButton,
-                                     0, false, 0x7f, 0x41, 0, 0);
+                                     BUTTON_NO_CALLBACK, false, MSYS_PRIORITY_HIGHEST, 0x41,
+                                     BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
     g_options_disk_button->SetPosition(g_options_disk_position.x, g_options_disk_position.y);
     g_options_disk_button->m_owner = 0;
     return 1;
@@ -362,9 +370,9 @@ void RedrawOptionsDiskButton(void)
     g_options_disk_button->m_dirty = true;
     if (!gXStatus.fNpcDialogueMode && !gXStatus.fLockInteractMode && !gXStatus.fTrapInteractMode &&
         !gXStatus.fCampMode && !gXStatus.fLockInteract && !gXStatus.fTrapInteract) {
-        enabled = 1;
+        enabled = true;
     } else {
-        enabled = 0;
+        enabled = false;
     }
     g_options_disk_button->SetEnabled(enabled);
     g_options_disk_button->Draw();
@@ -402,9 +410,9 @@ void UpdateCombatStanceButtons(void)
         g_combat_stance_buttons[index]->SetVisible(index == stance);
     }
     if (!gXStatus.fSpellCastMode && !gXStatus.fItemSelectMode && !gXStatus.fReviewCharacterMode) {
-        enabled = 1;
+        enabled = true;
     } else {
-        enabled = 0;
+        enabled = false;
     }
     g_combat_stance_buttons[stance]->SetEnabled(enabled);
     g_combat_stance_buttons[stance]->Draw();
@@ -466,21 +474,21 @@ unsigned char CreateCombatStanceButtons(void)
             return 0;
         }
     }
-    g_combat_stance_buttons[0]->Configure(g_attack_confirm_path, 3, 0, 1, 2, 2,
-                                          MainGameCombatConfirmButton, 0, false, 0x7f, 0x4f,
-                                          MainGameCombatStanceSecondary, 0);
-    g_combat_stance_buttons[1]->Configure(g_combat_stop_path, 3, 0, 1, 2, 2,
-                                          MainGameCombatConfirmButton, 0, false, 0x7f, 0x50,
-                                          MainGameCombatStanceSecondary, 0);
-    g_combat_stance_buttons[2]->Configure(g_cont_start_path, 3, 0, 1, 2, 2,
-                                          MainGameCombatConfirmButton, 0, false, 0x7f, 0x4f,
-                                          MainGameCombatStanceSecondary, 0);
-    g_combat_stance_buttons[3]->Configure(g_cont_toggle_path, 3, 0, 1, 2, 2,
-                                          MainGameCombatConfirmButton, 0, false, 0x7f, 0x51,
-                                          MainGameCombatStanceSecondary, 0);
-    g_combat_stance_buttons[4]->Configure(g_cont_pending_path, 3, 0, 1, 2, 2,
-                                          MainGameCombatConfirmButton, 0, false, 0x7f, 0x50,
-                                          MainGameCombatStanceSecondary, 0);
+    g_combat_stance_buttons[0]->Configure(
+        g_attack_confirm_path, 3, 0, 1, 2, 2, MainGameCombatConfirmButton, BUTTON_NO_CALLBACK,
+        false, MSYS_PRIORITY_HIGHEST, 0x4f, MainGameCombatStanceSecondary, BUTTON_NO_CALLBACK);
+    g_combat_stance_buttons[1]->Configure(
+        g_combat_stop_path, 3, 0, 1, 2, 2, MainGameCombatConfirmButton, BUTTON_NO_CALLBACK, false,
+        MSYS_PRIORITY_HIGHEST, 0x50, MainGameCombatStanceSecondary, BUTTON_NO_CALLBACK);
+    g_combat_stance_buttons[2]->Configure(
+        g_cont_start_path, 3, 0, 1, 2, 2, MainGameCombatConfirmButton, BUTTON_NO_CALLBACK, false,
+        MSYS_PRIORITY_HIGHEST, 0x4f, MainGameCombatStanceSecondary, BUTTON_NO_CALLBACK);
+    g_combat_stance_buttons[3]->Configure(
+        g_cont_toggle_path, 3, 0, 1, 2, 2, MainGameCombatConfirmButton, BUTTON_NO_CALLBACK, false,
+        MSYS_PRIORITY_HIGHEST, 0x51, MainGameCombatStanceSecondary, BUTTON_NO_CALLBACK);
+    g_combat_stance_buttons[4]->Configure(
+        g_cont_pending_path, 3, 0, 1, 2, 2, MainGameCombatConfirmButton, BUTTON_NO_CALLBACK, false,
+        MSYS_PRIORITY_HIGHEST, 0x50, MainGameCombatStanceSecondary, BUTTON_NO_CALLBACK);
     for (index = 0; index < 5; ++index) {
         g_combat_stance_buttons[index]->SetPosition(g_combat_stance_positions[index].x,
                                                     g_combat_stance_positions[index].y);
@@ -527,12 +535,15 @@ unsigned char CreateRoofButtons(void)
             return 0;
         }
     }
-    g_roof_buttons[0]->Configure(g_roof_buttons_path, 9, 0, 6, 3, 6, MainGameRoofButton0, 0, true,
-                                 0x7f, 0x38, 0, 0);
-    g_roof_buttons[1]->Configure(g_roof_buttons_path, 10, 1, 7, 4, 7, MainGameRoofButton1, 0, true,
-                                 0x7f, 0x39, 0, 0);
-    g_roof_buttons[2]->Configure(g_roof_buttons_path, 0xb, 2, 8, 5, 8, MainGameRoofButton2, 0, true,
-                                 0x7f, 0x3a, 0, 0);
+    g_roof_buttons[0]->Configure(g_roof_buttons_path, 9, 0, 6, 3, 6, MainGameRoofButton0,
+                                 BUTTON_NO_CALLBACK, true, MSYS_PRIORITY_HIGHEST, 0x38,
+                                 BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
+    g_roof_buttons[1]->Configure(g_roof_buttons_path, 10, 1, 7, 4, 7, MainGameRoofButton1,
+                                 BUTTON_NO_CALLBACK, true, MSYS_PRIORITY_HIGHEST, 0x39,
+                                 BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
+    g_roof_buttons[2]->Configure(g_roof_buttons_path, 0xb, 2, 8, 5, 8, MainGameRoofButton2,
+                                 BUTTON_NO_CALLBACK, true, MSYS_PRIORITY_HIGHEST, 0x3a,
+                                 BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
     if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS) {
         g_roof_buttons[0]->SetPressed(true);
     } else if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_FORMATION) {
@@ -573,17 +584,17 @@ void UpdateRoofButtons(void)
 
     if (!gXStatus.fNpcDialogueMode && !gXStatus.fSpellCastMode && !gXStatus.fItemSelectMode &&
         !gXStatus.fLockInteractMode && !gXStatus.fTrapInteractMode) {
-        visible = 1;
+        visible = true;
     } else {
-        visible = 0;
+        visible = false;
     }
     g_roof_buttons[2]->SetVisible(visible);
     if (!gXStatus.fNpcDialogueMode && !gXStatus.fCampMode) {
         g_roof_buttons[0]->SetEnabled(true);
-        enabled = 1;
+        enabled = true;
     } else {
         g_roof_buttons[0]->SetEnabled(false);
-        enabled = 0;
+        enabled = false;
     }
     g_roof_buttons[1]->SetEnabled(enabled);
     SyncRoofButtonPressedState();
@@ -790,20 +801,30 @@ unsigned char CreateLayoutArrowButtons(void)
             return 0;
         }
     }
-    g_layout_arrow_buttons[0]->Configure(g_layout_arrows_path, 6, 0, 1, -1, 2,
-                                         MainGameLayoutRadarButton, 0, false, 0x7f, 0x3e, 0, 0);
-    g_layout_arrow_buttons[1]->Configure(g_layout_arrows_path, 0xe, 8, 9, -1, 10,
-                                         MainGameLayoutActionPanelButton, 0, false, 0x7f, 0x3f, 0,
-                                         0);
-    g_layout_arrow_buttons[2]->Configure(g_layout_arrows_path, 0x16, 0x10, 0x11, -1, 0x12,
-                                         MainGameLayoutFormationButton, 0, false, 0x7f, 0x40, 0, 0);
-    g_layout_arrow_buttons[3]->Configure(g_layout_arrows_path, 7, 3, 4, -1, 5,
-                                         MainGameLayoutRadarButton, 0, false, 0x7f, 0x3b, 0, 0);
-    g_layout_arrow_buttons[4]->Configure(g_layout_arrows_path, 0xf, 0xb, 0xc, -1, 0xd,
-                                         MainGameLayoutActionPanelButton, 0, false, 0x7f, 0x3c, 0,
-                                         0);
-    g_layout_arrow_buttons[5]->Configure(g_layout_arrows_path, 0x17, 0x13, 0x14, -1, 0x15,
-                                         MainGameLayoutFormationButton, 0, false, 0x7f, 0x3d, 0, 0);
+    g_layout_arrow_buttons[0]->Configure(g_layout_arrows_path, 6, 0, 1, BUTTON_NO_IMAGE, 2,
+                                         MainGameLayoutRadarButton, BUTTON_NO_CALLBACK, false,
+                                         MSYS_PRIORITY_HIGHEST, 0x3e, BUTTON_NO_CALLBACK,
+                                         BUTTON_NO_CALLBACK);
+    g_layout_arrow_buttons[1]->Configure(g_layout_arrows_path, 0xe, 8, 9, BUTTON_NO_IMAGE, 10,
+                                         MainGameLayoutActionPanelButton, BUTTON_NO_CALLBACK, false,
+                                         MSYS_PRIORITY_HIGHEST, 0x3f, BUTTON_NO_CALLBACK,
+                                         BUTTON_NO_CALLBACK);
+    g_layout_arrow_buttons[2]->Configure(g_layout_arrows_path, 0x16, 0x10, 0x11, BUTTON_NO_IMAGE,
+                                         0x12, MainGameLayoutFormationButton, BUTTON_NO_CALLBACK,
+                                         false, MSYS_PRIORITY_HIGHEST, 0x40, BUTTON_NO_CALLBACK,
+                                         BUTTON_NO_CALLBACK);
+    g_layout_arrow_buttons[3]->Configure(g_layout_arrows_path, 7, 3, 4, BUTTON_NO_IMAGE, 5,
+                                         MainGameLayoutRadarButton, BUTTON_NO_CALLBACK, false,
+                                         MSYS_PRIORITY_HIGHEST, 0x3b, BUTTON_NO_CALLBACK,
+                                         BUTTON_NO_CALLBACK);
+    g_layout_arrow_buttons[4]->Configure(g_layout_arrows_path, 0xf, 0xb, 0xc, BUTTON_NO_IMAGE, 0xd,
+                                         MainGameLayoutActionPanelButton, BUTTON_NO_CALLBACK, false,
+                                         MSYS_PRIORITY_HIGHEST, 0x3c, BUTTON_NO_CALLBACK,
+                                         BUTTON_NO_CALLBACK);
+    g_layout_arrow_buttons[5]->Configure(g_layout_arrows_path, 0x17, 0x13, 0x14, BUTTON_NO_IMAGE,
+                                         0x15, MainGameLayoutFormationButton, BUTTON_NO_CALLBACK,
+                                         false, MSYS_PRIORITY_HIGHEST, 0x3d, BUTTON_NO_CALLBACK,
+                                         BUTTON_NO_CALLBACK);
     for (index = 0; index < 6; ++index) {
         g_layout_arrow_buttons[index]->SetPosition(g_layout_arrow_positions[index].x,
                                                    g_layout_arrow_positions[index].y);
@@ -1120,7 +1141,7 @@ void UpdateSubMenuPanelButtons(void)
         gXStatus.fLockInteractMode || gXStatus.fTrapInteractMode || gXStatus.fNpcDialogueMode ||
         gXStatus.fSpellCastMode || gXStatus.fItemSelectMode ||
         g_level_block->combat_end_notification != -1) {
-        enabled = 0;
+        enabled = false;
     } else {
         enabled = AnyCharacterEngaged();
     }
@@ -1728,7 +1749,7 @@ W8SubMenuEntryState GetSubMenuEntryState(short menu, short item, int party_slot)
     }
     g_level_block->selection_kind = W8_ACTION_NONE;
     g_level_block->pending_action = -1;
-    g_level_block->selection_settled = 0;
+    g_level_block->selection_settled = false;
     return state;
 }
 

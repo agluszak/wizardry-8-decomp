@@ -111,7 +111,7 @@ public:
         render_state.position_x = 0;
         render_state.position_y = 0;
         render_state.display_state = 0;
-        render_state.glow_enabled = 0;
+        render_state.glow_enabled = false;
         glow_color_base = 0;
         glow_color_peak = 0;
         m_pGlowMaterial = 0;

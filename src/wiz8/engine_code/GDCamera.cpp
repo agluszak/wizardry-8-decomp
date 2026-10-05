@@ -166,7 +166,7 @@ GDCamera::GDCamera()
     m_target_pitch = 0.0f;
     m_position.SetZero();
     m_position.y = g_default_world_height;
-    m_transition_active = 0;
+    m_transition_active = false;
 
     pitch = 0.0f;
     if (pitch > g_camera_pitch_upper) {
@@ -199,8 +199,8 @@ GDCamera::GDCamera()
     MarkRendererReady();
 
     m_frame_elapsed = 0.0f;
-    m_transition_active = 0;
-    m_forced_transition = 0;
+    m_transition_active = false;
+    m_forced_transition = false;
     m_target_angle = 0.0f;
     m_target_pitch = 0.0f;
     m_start_angle = 0.0f;
@@ -250,8 +250,8 @@ srCamera* GDCamera::CreateOrAttachCamera(srNode* parent, srCamera* camera)
         g_game_camera->setRotation(0.0, 0.0, 0.0);
     }
 
-    m_transition_active = 0;
-    m_forced_transition = 0;
+    m_transition_active = false;
+    m_forced_transition = false;
     g_game_camera->setRotation(m_rotation);
     return g_game_camera;
 }
@@ -372,7 +372,7 @@ void GDCamera::SetOrientationImmediate(float pitch, float angle)
     m_target_pitch = pitch;
     m_target_angle = angle;
     m_state = 0x80;
-    m_transition_active = 0;
+    m_transition_active = false;
     SetYaw(angle);
     SetPitch(pitch);
     m_pitch_velocity = 0.0f;
@@ -508,7 +508,7 @@ unsigned char GDCamera::BeginOrientationTransition(float target_pitch, float tar
     m_target_pitch = target_pitch;
     m_target_angle = target_angle;
     m_forced_transition = force;
-    m_transition_active = 0;
+    m_transition_active = false;
 
     float speed = g_camera_transition_speed;
     if (force) {
@@ -533,7 +533,7 @@ unsigned char GDCamera::BeginOrientationTransition(float target_pitch, float tar
     m_pitch_distance = static_cast<float>(fabs(target_pitch - m_pitch));
     if (m_angle_distance + m_pitch_distance > g_camera_transition_epsilon) {
         m_start_pitch = m_pitch;
-        m_transition_active = 1;
+        m_transition_active = true;
         m_start_angle = m_yaw;
 
         if (m_angle_distance <= m_pitch_distance) {
@@ -635,7 +635,7 @@ void GDCamera::Update(float elapsed)
             m_state &= ~0x40UL;
         }
         m_pitch_velocity = 0.0f;
-        m_transition_active = 0;
+        m_transition_active = false;
         m_state &= ~0x20UL;
     }
 
@@ -650,22 +650,22 @@ void GDCamera::ApplyYawInput(float input)
         if (!gXStatus.fNpcDialogueMode && g_status.world_cursor_gate == 0) {
             m_state |= 1;
             m_manual_input_timer->Arm();
-            m_transition_active = 0;
+            m_transition_active = false;
         } else {
             m_state &= ~1UL;
         }
     }
 
     if (!m_transition_active || (m_state & 0x20) != 0) {
-        bool decelerating_negative = 0;
-        bool decelerating_positive = 0;
+        bool decelerating_negative = false;
+        bool decelerating_positive = false;
         if (input == g_float_zero) {
             if (m_angle_velocity < g_float_zero) {
                 input = CAMERA_TURN_RATE;
-                decelerating_negative = 1;
+                decelerating_negative = true;
             } else if (m_angle_velocity > g_float_zero) {
                 input = -CAMERA_TURN_RATE;
-                decelerating_positive = 1;
+                decelerating_positive = true;
             } else {
                 m_angle_velocity = 0.0f;
                 m_state &= ~0x40UL;
@@ -707,7 +707,7 @@ void GDCamera::ApplyPitchInput(float input)
     if (input != g_float_zero && !gXStatus.fNpcDialogueMode && g_status.world_cursor_gate == 0) {
         m_state |= 1;
         m_manual_input_timer->Arm();
-        m_transition_active = 0;
+        m_transition_active = false;
     } else {
         m_state &= ~1UL;
     }
@@ -721,15 +721,15 @@ void GDCamera::ApplyPitchInput(float input)
         return;
     }
 
-    bool decelerating_negative = 0;
-    bool decelerating_positive = 0;
+    bool decelerating_negative = false;
+    bool decelerating_positive = false;
     if (input == g_float_zero) {
         if (m_pitch_velocity < g_camera_negative_velocity_epsilon) {
             input = CAMERA_TURN_RATE;
-            decelerating_negative = 1;
+            decelerating_negative = true;
         } else if (m_pitch_velocity > g_camera_transition_epsilon) {
             input = -CAMERA_TURN_RATE;
-            decelerating_positive = 1;
+            decelerating_positive = true;
         } else {
             m_pitch_velocity = 0.0f;
             return;
@@ -908,7 +908,7 @@ void GDCamera::SetManualControlActive(bool enabled)
     if (enabled && !gXStatus.fNpcDialogueMode && g_status.world_cursor_gate == 0) {
         m_state |= 1;
         m_manual_input_timer->Arm();
-        m_transition_active = 0;
+        m_transition_active = false;
         return;
     }
     m_state &= ~1UL;

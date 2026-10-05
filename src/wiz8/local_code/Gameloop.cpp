@@ -160,7 +160,7 @@ void GameLoop(void)
         }
         state = W8_SCREEN_NONE;
         g_current_screen_state.id = state;
-        g_screen_return_requested = 0;
+        g_screen_return_requested = false;
     }
     if (g_pending_screen_state.id != W8_SCREEN_NONE && g_pending_screen_state.id != state) {
         /* Retail tests only the low byte of the count. */

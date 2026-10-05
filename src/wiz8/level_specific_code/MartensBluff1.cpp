@@ -68,7 +68,7 @@ void MartensBluff1Setup(void)
     g_door_controller = FindTriggerByName("J-Doorcontroller");
     g_gas_sound0 = 0;
     g_gas_sound1 = 0;
-    g_teleport_running = 0;
+    g_teleport_running = false;
     if (g_door_controller != 0 && GetLocationVarIDByName("DialState") == -1) {
         Random(8);
         Random(8);
@@ -132,7 +132,7 @@ bool MartensBluff1FHandlock(Trigger* pTrigger)
     SetDice(&dice, 2, 4, 1);
     ApplyRolledHealthChangeToParty(&dice, 0, 1);
     SoundPlay("Data\\Sound\\Ambients\\Electricity 04.wav", 0);
-    g_trigger_feedback = 1;
+    g_trigger_feedback = true;
     return false;
 }
 
@@ -240,7 +240,7 @@ bool MartensBluff1JDoorController(Trigger* pTrigger)
     if ((state & 0xf000) != 0) {
         return false;
     }
-    g_trigger_feedback = 1;
+    g_trigger_feedback = true;
     particle = FindRegisteredParticle("GasSpray-00");
     if (particle != 0) {
         particle->SetActive(1);
@@ -271,7 +271,7 @@ bool MartensBluff1Controller(Trigger* pTrigger)
     } else {
         SetFact(W8_FACT_NARGISST_MONITOR_OVERFLOW_ON, 0, false);
     }
-    g_trigger_feedback = 1;
+    g_trigger_feedback = true;
     return true;
 }
 
@@ -416,7 +416,7 @@ bool MartensBluff1ButtonGigas(Trigger* pTrigger)
     if (!g_teleport_running) {
         return MartensBluff1TeleportState(1);
     }
-    g_trigger_feedback = 1;
+    g_trigger_feedback = true;
     return true;
 }
 
@@ -427,7 +427,7 @@ bool MartensBluff1ButtonTrang(Trigger* pTrigger)
     if (!g_teleport_running) {
         return MartensBluff1TeleportState(2);
     }
-    g_trigger_feedback = 1;
+    g_trigger_feedback = true;
     return true;
 }
 
@@ -438,7 +438,7 @@ bool MartensBluff1ButtonRift(Trigger* pTrigger)
     if (!g_teleport_running) {
         return MartensBluff1TeleportState(3);
     }
-    g_trigger_feedback = 1;
+    g_trigger_feedback = true;
     return true;
 }
 
@@ -449,7 +449,7 @@ bool MartensBluff1ButtonMaten(Trigger* pTrigger)
     if (!g_teleport_running) {
         return MartensBluff1TeleportState(4);
     }
-    g_trigger_feedback = 1;
+    g_trigger_feedback = true;
     return true;
 }
 
@@ -480,7 +480,7 @@ bool MartensBluff1TeleportState(int new_state)
     if (state == new_state) {
         return false;
     }
-    g_teleport_running = 1;
+    g_teleport_running = true;
     switch (state - 1) {
     case 0:
         pOldButtonTrigger = FindTriggerByName("ButtonGigas");
@@ -516,7 +516,7 @@ bool MartensBluff1TeleportState(int new_state)
     pOldButtonTrigger->Run(-1);
 set_state:
     SetTriggerVariableByName("TeleporterState", new_state);
-    g_teleport_running = 0;
+    g_teleport_running = false;
     return true;
 }
 
@@ -528,7 +528,7 @@ bool MartensBluff1WireTrigger(Trigger* pTrigger)
 {
     Trigger* pTelTrigger;
 
-    g_trigger_feedback = 1;
+    g_trigger_feedback = true;
     pTelTrigger = FindTriggerByName("MR109");
     if (pTelTrigger == 0) {
         srAssertFail("pTelTrigger", MARTENSBLUFF1_CPP, 0x329,
@@ -542,14 +542,14 @@ bool MartensBluff1WireTrigger(Trigger* pTrigger)
         }
         SetTriggerVariableByName("TeleporterState", 1);
     }
-    g_teleport_running = 1;
+    g_teleport_running = true;
     pTelTrigger = FindTriggerByName("ButtonGigas");
     if (pTelTrigger == 0) {
         srAssertFail("pTelTrigger", MARTENSBLUFF1_CPP, 0x336,
                      "Missing trigger 'ButtonGigas'! It's not in the LVL file!");
     }
     pTelTrigger->Run(-1);
-    g_teleport_running = 0;
+    g_teleport_running = false;
     return true;
 }
 

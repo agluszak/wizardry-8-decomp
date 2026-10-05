@@ -376,19 +376,19 @@ bool AutomapHasCellAt(const srVector3T<float>* position)
     int cell = g_automap_cell_index->Lookup(&key);
     if (cell > 1) {
         if (!g_automap_visited_cells->Set(cell - 1)) {
-            return 1;
+            return true;
         }
-        return 0;
+        return false;
     }
     relative.y = position->y + g_automap_grid_cell_size - g_automap_grid_origin.y;
     key = AutomapNodeKey(&relative);
     cell = g_automap_cell_index->Lookup(&key);
     if (cell > 1) {
         if (!g_automap_visited_cells->Set(cell - 1)) {
-            return 1;
+            return true;
         }
     }
-    return 0;
+    return false;
 }
 
 // FUNCTION: WIZ8 0x0057E490
@@ -402,10 +402,10 @@ bool CanUseCurrentAutomapTool(void)
         case 18:
         case 23:
         case 29:
-            return 0;
+            return false;
         }
     }
-    return 1;
+    return true;
 }
 
 // FUNCTION: WIZ8 0x00584210
@@ -2631,7 +2631,7 @@ bool AutomapLevelIsLarge(void)
 {
     if (g_status.current_level == 0x18 ||
         (g_status.current_level > 0x1a && g_status.current_level <= 0x22)) {
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }

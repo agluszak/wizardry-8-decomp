@@ -141,7 +141,7 @@ bool MoveMonsterGroupToPosition(W8MonsterGroup* group, const srVector3T<float>* 
         W8MonsterInfo* member = MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(0x6d5, MONSTER_GROUP_CPP, location_id, true));
         member->p3D->SetAngles(yaw);
-        member->p3D->position_dirty = 1;
+        member->p3D->position_dirty = true;
         if (location_id == group->leader_location_id) {
             member->p3D->SetPositionInternal(&target);
         } else {
@@ -178,10 +178,10 @@ bool MonsterGroupAllMembersDying(W8MonsterGroup* monster_group)
             0x830, "C:\\Projects\\Wizardry 8\\Local Code\\MonsterGroup.cpp", location_id, true);
         monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
         if (monster_info != 0 && !monster_info->p3D->IsDying()) {
-            return 0;
+            return false;
         }
     }
-    return 1;
+    return true;
 }
 
 /* How a monster group starts out disposed towards the party.
@@ -457,7 +457,7 @@ unsigned char RemoveAllGroupMembers(W8MonsterGroup* monster_group)
         }
 
         location_id = IListGetAt(monster_group->monsters, index);
-        removed = 1;
+        removed = true;
         removed = RemoveMonster(
             MonsterGetIndexByLocationID(0x119, MONSTER_GROUP_CPP, location_id, true), removed);
     } while (removed);
@@ -538,7 +538,7 @@ void RefreshMonsterGroupAndAllies(W8MonsterGroup* monster_group)
 void DetachMonsterGroup(W8MonsterGroup* monster_group)
 {
     SetTargetToGroup(monster_group->group_id, false);
-    monster_group->members_active = 0;
+    monster_group->members_active = false;
 }
 
 /* Whether a group is live: loaded, still flagged, and with members left. A
@@ -550,11 +550,11 @@ bool IsMonsterGroupLive(W8MonsterGroup* monster_group)
     if (monster_group->members_active && monster_group->fInCombat &&
         monster_group->member_count > 0) {
         if (monster_group->ubDisposition != W8_DISPOSITION_HOSTILE && !CombatAllowsLiveGroups()) {
-            return 0;
+            return false;
         }
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 /* Walk plsMonsterGroupList and return the Nth live combat group. */
@@ -664,15 +664,15 @@ void RetireMonsterGroupAndAllies(W8MonsterGroup* monster_group)
     }
     if (monster_group->encounter_registered) {
         UnregisterActiveEncounterGroup(monster_group);
-        monster_group->encounter_registered = 0;
-        monster_group->encounter_ended = 1;
+        monster_group->encounter_registered = false;
+        monster_group->encounter_ended = true;
         for (index = 0; index < W8_MONSTER_GROUP_ALLY_COUNT; ++index) {
             if (monster_group->allied_group_ids[index] != 0) {
                 ally = GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
                     0x564, MONSTER_GROUP_CPP, monster_group->allied_group_ids[index], true));
                 UnregisterActiveEncounterGroup(ally);
-                ally->encounter_registered = 0;
-                ally->encounter_ended = 1;
+                ally->encounter_registered = false;
+                ally->encounter_ended = true;
             }
         }
     }
@@ -768,7 +768,7 @@ void LoadMonsterGroupMembers(W8MonsterGroup* monster_group)
             ActivateMonsterInWorld(monster_info);
         }
     }
-    monster_group->members_active = 1;
+    monster_group->members_active = true;
 }
 
 /* Clears the per-turn scratch on every loaded group and every monster entry.
@@ -1050,13 +1050,13 @@ W8MonsterGroup* CreateGroup(unsigned int monster_id, unsigned int count,
     group->active_member_count = 0;
     group->monster_id = monster_id;
     group->centre = *position;
-    group->members_active = 0;
+    group->members_active = false;
     group->fInCombat = false;
     group->unknown_2b = 3;
     if (use_alternate_name || (record->flags & W8_MONSTER_FLAG_ALTERNATE_NAME) != 0) {
-        group->alternate_name = 1;
+        group->alternate_name = true;
     } else {
-        group->alternate_name = 0;
+        group->alternate_name = false;
     }
     group->group_state[0] = 0;
     group->group_state[1] = 0;
@@ -1105,7 +1105,7 @@ W8MonsterGroup* CreateGroup(unsigned int monster_id, unsigned int count,
         ++index;
     }
 
-    group->members_active = 1;
+    group->members_active = true;
     yaw = GetCameraFacingYaw(position);
     MoveMonsterGroupToPosition(group, position, yaw, false, false, false, false);
     RefreshMonsterGroup(group);
@@ -1463,7 +1463,7 @@ void MonsterGroupEnterCombat(W8MonsterGroup* monster_group)
                 MonsterInfoEnterCombat(member_info);
                 ++index;
             }
-            monster_group->fInCombat = 1;
+            monster_group->fInCombat = true;
             if (monster_group->ubDisposition == W8_DISPOSITION_HOSTILE && gXStatus.fCombatMode &&
                 g_combat_state->round_count != 0) {
                 unsigned int live_groups = 0;
@@ -1497,7 +1497,7 @@ void MonsterGroupEnterCombat(W8MonsterGroup* monster_group)
                             MonsterInfoEnterCombat(member_info);
                             ++index;
                         }
-                        ally->fInCombat = 1;
+                        ally->fInCombat = true;
                     }
                 }
             }

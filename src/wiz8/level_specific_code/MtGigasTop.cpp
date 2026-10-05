@@ -67,7 +67,7 @@ bool OnEwaxxTopDoor2Activated(Trigger* trigger)
         item = &g_status.item_in_hand;
     }
     QueueNpcScriptNotice(npc, item, -1, false, 0);
-    g_trigger_feedback = 1;
+    g_trigger_feedback = true;
     return false;
 }
 

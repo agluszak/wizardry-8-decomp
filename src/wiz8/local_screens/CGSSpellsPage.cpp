@@ -258,8 +258,8 @@ void W8CharacterSpellsPage::Activate()
     for (int realm = 0; realm < 6; ++realm) {
         m_realms[realm]->m_range->EnableRegionSet(true);
     }
-    m_dirty = 1;
-    m_prepared = 1;
+    m_dirty = true;
+    m_prepared = true;
 }
 
 // FUNCTION: WIZ8 0x005c8570
@@ -277,11 +277,11 @@ void W8CharacterSpellsPage::Deactivate()
 void W8CharacterSpellsPage::Accept()
 {
     for (int index = 0; index < 0x72; ++index) {
-        m_SpellData[index].selected = 0;
+        m_SpellData[index].selected = false;
     }
     ResetSpellSelections(m_character, m_creation_state);
     Invalidate(0);
-    m_dirty = 1;
+    m_dirty = true;
     m_screen->UpdateNavigation(this);
 }
 
@@ -315,7 +315,7 @@ void W8CharacterSpellsPage::Redraw()
         text.SetLayoutBounds(&bounds, true, true);
         text.SetText(gppStringList[0xf4], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
-        m_prepared = 0;
+        m_prepared = false;
     }
 
     if (m_dirty) {
@@ -330,7 +330,7 @@ void W8CharacterSpellsPage::Redraw()
                                       m_creation_state->spell_points_total),
                      g_options_detail_font);
         text.RenderToTarget(0, 1, -14);
-        m_dirty = 0;
+        m_dirty = false;
     }
 
     if (redraw) {
@@ -417,7 +417,7 @@ void W8CharacterSpellsPage::UpdateSpellLists()
                         if (pass == 0) {
                             m_SpellData[entry].realm = static_cast<W8SpellRealm>(realm);
                             m_SpellData[entry].spell = spell;
-                            m_SpellData[entry].fSelectable = 1;
+                            m_SpellData[entry].fSelectable = true;
                             m_SpellData[entry].selected =
                                 m_character->spell_learned[spell] == 2;
                             ++entry;
@@ -427,8 +427,8 @@ void W8CharacterSpellsPage::UpdateSpellLists()
                         if (pass == 1) {
                             m_SpellData[entry].realm = static_cast<W8SpellRealm>(realm);
                             m_SpellData[entry].spell = spell;
-                            m_SpellData[entry].fSelectable = 0;
-                            m_SpellData[entry].selected = 0;
+                            m_SpellData[entry].fSelectable = false;
+                            m_SpellData[entry].selected = false;
                             ++entry;
                         }
                         break;
@@ -459,26 +459,26 @@ void W8CharacterSpellsPage::SelectSpell(unsigned int uiSelected)
                      "C:\\Projects\\Wizardry 8\\Local Screens\\CGSSpellsPage.cpp", 0x252, 0);
     }
     if (m_SpellData[uiSelected].selected) {
-        m_SpellData[uiSelected].selected = 0;
+        m_SpellData[uiSelected].selected = false;
         DeselectCreationSpell(m_character, m_creation_state, m_SpellData[uiSelected].spell);
     } else {
         if (m_creation_state->spell_points_remaining == 0) {
             for (unsigned int index = 0; index < 0x72; ++index) {
                 if (m_SpellData[index].selected &&
                     (index != m_last_selected || m_creation_state->spell_points_total == 1)) {
-                    m_SpellData[index].selected = 0;
+                    m_SpellData[index].selected = false;
                     DeselectCreationSpell(m_character, m_creation_state,
                                           m_SpellData[index].spell);
                     break;
                 }
             }
         }
-        m_SpellData[uiSelected].selected = 1;
+        m_SpellData[uiSelected].selected = true;
         SelectCreationSpell(m_character, m_creation_state, m_SpellData[uiSelected].spell);
         m_last_selected = uiSelected;
     }
     UpdateSpellLists();
-    m_dirty = 1;
+    m_dirty = true;
     m_screen->UpdateNavigation(this);
     Invalidate(0);
 }

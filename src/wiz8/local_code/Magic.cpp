@@ -233,7 +233,7 @@ bool SpellUsableNow(int spell_id, bool allow_out_of_combat)
 
     if (g_current_screen_state.id == W8_SCREEN_CAMP && !gXStatus.fCombatMode &&
         gXStatus.fCampMode && (spell_id == 0x17 || spell_id == 0x3a)) {
-        return 1;
+        return true;
     }
 
     lock_or_trap = gXStatus.fLockInteract || gXStatus.fTrapInteract;
@@ -243,17 +243,17 @@ bool SpellUsableNow(int spell_id, bool allow_out_of_combat)
         break;
     case W8_SPELL_USABLE_IN_COMBAT:
         if (!gXStatus.fCombatMode && !allow_out_of_combat) {
-            return 0;
+            return false;
         }
         break;
     case W8_SPELL_USABLE_OUT_OF_COMBAT:
         if (gXStatus.fCombatMode) {
-            return 0;
+            return false;
         }
         break;
     case W8_SPELL_USABLE_WHILE_CAMPED:
         if (!gXStatus.fCampMode) {
-            return 0;
+            return false;
         }
         return !lock_or_trap;
     case W8_SPELL_USABLE_ON_LOCK_OR_TRAP:
@@ -261,7 +261,7 @@ bool SpellUsableNow(int spell_id, bool allow_out_of_combat)
             return spell_id == 0x12 ? gXStatus.fTrapInteract : 0;
         }
         if (gXStatus.fLockInteract) {
-            return 1;
+            return true;
         }
         return gXStatus.fTrapInteract;
     default:
@@ -272,7 +272,7 @@ bool SpellUsableNow(int spell_id, bool allow_out_of_combat)
     if (!gXStatus.fCampMode) {
         return !lock_or_trap;
     }
-    return 0;
+    return false;
 }
 
 /* What the interface has to ask the player to pick before a friendly spell can
@@ -356,9 +356,9 @@ W8TargetNeed GetTargetNeededForSpellHostile(int spell_id)
 bool CanPartySlotReBreathe(int party_slot)
 {
     if (!CanCharReBreathe(party_slot)) {
-        return 0;
+        return false;
     }
-    return 1;
+    return true;
 }
 
 /* One queued spell effect. Each entry counts down a turn at a time and is
@@ -641,15 +641,15 @@ void UpdateSpellEffects(void)
                         SpawnSpellEffect(&position, g_spell_records[effect->kind].resource_name,
                                          missile->definition.duration_scale, 0, 0);
                     if (visual != 0) {
-                        visual->auto_release = 0;
+                        visual->auto_release = false;
                         effect->spell_visuals.Add(visual);
                         alive = false;
                     }
                 }
-                effect->missiles_pending = 0;
+                effect->missiles_pending = false;
                 handled = true;
             } else {
-                effect->targets_resolved = 1;
+                effect->targets_resolved = true;
                 if (MonsterCanAimSpell(effect->kind) && !effect->Source.fBackfire &&
                     !effect->Source.fReflection) {
                     ProvokeListedMonsterGroups(&effect->Source, &effect->monster_ids);
@@ -697,9 +697,9 @@ void UpdateSpellEffects(void)
         for (int release_visual = 0; release_visual < effect->spell_visuals.GetCount();
              ++release_visual) {
             W8SpellVisual* visual = *effect->spell_visuals.GetAt(release_visual);
-            visual->auto_release = 1;
+            visual->auto_release = true;
             if (effect->sustained) {
-                visual->finished = 1;
+                visual->finished = true;
             }
         }
         for (int release_missile = 0; release_missile < effect->missiles.GetCount();
@@ -1039,10 +1039,10 @@ bool CharacterHasCastableSpell(W8Character* character)
         if (spell_id != 0 && character->spell_learned[spell_id] == 1 &&
             g_spell_records[spell_id].spell_point_cost <=
                 character->iSPLeft[g_spell_records[spell_id].realm]) {
-            return 1;
+            return true;
         }
     }
-    return 0;
+    return false;
 }
 
 /* Learned, and the remaining points in the spell's realm cover its cost. */
@@ -1052,9 +1052,9 @@ bool CanCharacterCastSpell(W8Character* character, int spell_id)
     if (spell_id != 0 && character->spell_learned[spell_id] == 1 &&
         g_spell_records[spell_id].spell_point_cost <=
             character->iSPLeft[g_spell_records[spell_id].realm]) {
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 /* Whether a character is far enough along to take one spell on. Their whole
@@ -1494,13 +1494,13 @@ int PointCastSpell(srVector3T<float> position, int spell_id, unsigned int power_
         break;
     case W8_TARGET_TYPE_RADIUS:
     case W8_TARGET_TYPE_POINT:
-        sight_probe = 1;
+        sight_probe = true;
         target.iType = W8_TARGET_KIND_PARTY;
         ResolveTargetPoint(&target, sight_probe);
         target.iType = W8_TARGET_KIND_PLACE;
         break;
     case W8_TARGET_TYPE_CONE:
-        sight_probe = 0;
+        sight_probe = false;
         target.iType = W8_TARGET_KIND_PARTY;
         ResolveTargetPoint(&target, sight_probe);
         target.iType = W8_TARGET_KIND_PLACE;
@@ -2115,14 +2115,14 @@ void SpawnLureEffects(W8SpellEffectEntry* owner, int argument, W8CombatSlot* tar
     effect =
         SpawnSpellEffect(&position, g_spell_records[W8_SPELL_LURE].resource_name, argument, 0, 0);
     if (effect != 0) {
-        effect->auto_release = 0;
+        effect->auto_release = false;
         owner->spell_visuals.Add(effect);
     }
 
     position = target->point;
     effect = SpawnSpellEffect(&position, "hyp_lure2", argument, 0, 0);
     if (effect != 0) {
-        effect->auto_release = 0;
+        effect->auto_release = false;
         effect->host->pending_behaviour = 3;
         owner->spell_visuals.Add(effect);
     }
@@ -2630,13 +2630,13 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
     case 1:
         if (!gXStatus.fCombatMode && power_level == 8) {
             recast = true;
-            clamp_power = 0;
+            clamp_power = false;
             break;
         }
         // fall through
     case 0:
         recast = false;
-        clamp_power = 1;
+        clamp_power = true;
         break;
     case 2:
         recast = false;
@@ -2645,7 +2645,7 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
     case 3:
         power_level = 1;
         recast = false;
-        clamp_power = 0;
+        clamp_power = false;
         break;
     default:
         clamp_power = continue_cast;
@@ -2871,7 +2871,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
     } else {
         caster_slot = -1;
     }
-    source->fBackfire = 0;
+    source->fBackfire = false;
     if (g_force_spell_failure && spell_id != 0x76) {
         forced = true;
         failure_chance = 100;
@@ -2902,7 +2902,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
         CombatLog("");
         if (roll < backfire_chance) {
             PrepareSpellTarget(spell_id, source, target);
-            source->fBackfire = 1;
+            source->fBackfire = true;
             recast = false;
             SoundPlay("Data\\Sound\\Misc\\Spell Backfire.wav", 0);
         } else {
@@ -3036,7 +3036,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                 if (missile != 0) {
                     owner->missiles.Add(missile);
                 }
-                owner->missiles_pending = 1;
+                owner->missiles_pending = true;
             } else {
                 memcpy(block.condition_chances,
                        g_missile_table[missile_index].condition_chances, 0x10);
@@ -3097,7 +3097,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                                               power_level, 0, 0);
                 }
                 if (visual != 0) {
-                    visual->auto_release = 0;
+                    visual->auto_release = false;
                     owner->spell_visuals.Add(visual);
                 }
                 break;
@@ -3106,8 +3106,8 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                     visual = CreateAttachedSpellEffect(g_spell_records[spell_id].resource_name,
                                                        power_level, 0, 0, 0);
                     if (visual != 0) {
-                        visual->auto_release = 0;
-                        visual->fixed_transform = 1;
+                        visual->auto_release = false;
+                        visual->fixed_transform = true;
                         owner->spell_visuals.Add(visual);
                     }
                 } else {
@@ -3129,7 +3129,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                                                         power_level, &origin, &local_90, 0, 0);
                     }
                     if (visual != 0) {
-                        visual->auto_release = 0;
+                        visual->auto_release = false;
                         owner->spell_visuals.Add(visual);
                     }
                 }
@@ -3145,7 +3145,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                     visual = SpawnSpellEffect(&point, g_spell_records[spell_id].resource_name,
                                               power_level, 0, 0);
                     if (visual != 0) {
-                        visual->auto_release = 0;
+                        visual->auto_release = false;
                         owner->spell_visuals.Add(visual);
                     }
                 }
@@ -3159,7 +3159,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                         visual = CreateMonsterSpellEffect(g_spell_records[spell_id].resource_name,
                                                           power_level, monster, 0, 0);
                         if (visual != 0) {
-                            visual->auto_release = 0;
+                            visual->auto_release = false;
                             owner->spell_visuals.Add(visual);
                         }
                     }
@@ -3179,7 +3179,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                     visual = SpawnCameraSpellEffect(g_spell_records[spell_id].resource_name,
                                                     power_level, 0, 0);
                     if (visual != 0) {
-                        visual->auto_release = 0;
+                        visual->auto_release = false;
                         owner->spell_visuals.Add(visual);
                     }
                 }
@@ -3198,7 +3198,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                     visual = SpawnSpellEffect(&point, g_spell_records[0x62].resource_name,
                                               power_level, 0, 0);
                     if (visual != 0) {
-                        visual->auto_release = 0;
+                        visual->auto_release = false;
                         owner->spell_visuals.Add(visual);
                     }
                     break;
@@ -3208,7 +3208,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                     visual = CreateMonsterSpellEffect(g_spell_records[spell_id].resource_name,
                                                       power_level, monster, 0, 0);
                     if (visual != 0) {
-                        visual->auto_release = 0;
+                        visual->auto_release = false;
                         owner->spell_visuals.Add(visual);
                     }
                 }
@@ -3216,7 +3216,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                     visual = SpawnCameraSpellEffect(g_spell_records[spell_id].resource_name,
                                                     power_level, 0, 0);
                     if (visual != 0) {
-                        visual->auto_release = 0;
+                        visual->auto_release = false;
                         owner->spell_visuals.Add(visual);
                     }
                 }
@@ -3225,7 +3225,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                 visual = SpawnCameraSpellEffect(g_spell_records[spell_id].resource_name,
                                                 power_level, 0, 0);
                 if (visual != 0) {
-                    visual->auto_release = 0;
+                    visual->auto_release = false;
                     owner->spell_visuals.Add(visual);
                 }
                 break;
@@ -3247,7 +3247,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
         owner->target_indices = party_markers;
         owner->recast = recast;
         if (spell_id == 0x26) {
-            owner->sustained = 1;
+            owner->sustained = true;
             owner->turns_remaining = RollEffectDuration(&owner->definition);
             for (index = 0; index < g_spell_effects.GetCount(); ++index) {
                 W8SpellEffectEntry* previous = *g_spell_effects.GetAt(index);
@@ -3280,12 +3280,12 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
         PointCameraAtCombatTarget(source, target);
         if (source->fBackfire) {
             if (quiet) {
-                owner->reported = 1;
+                owner->reported = true;
             } else if (g_settings.verbose_combat_messages != 0) {
                 ShowNotice(0xc, FormatWideString(gppStringList[0x197]));
             } else {
                 AppendToLastTextLine(FormatWideString(L" -- %s", gppStringList[0x197]), -1);
-                owner->reported = 1;
+                owner->reported = true;
             }
             if (caster_slot != -1) {
                 if (Random(2) == 0) {

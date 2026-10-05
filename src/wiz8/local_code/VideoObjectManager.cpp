@@ -790,7 +790,7 @@ void ReleaseLoadedVideoFrames(void)
                 srAssertFail("fReturnCode", VIDEO_OBJECT_MANAGER_CPP, 0x85, 0);
             }
             frame->handle = 0;
-            frame->loaded = 0;
+            frame->loaded = false;
         }
     }
 }
@@ -868,7 +868,7 @@ void EnsureCatalogFrameLoaded(int object, int frame)
                                       record->path, record->storage_kind));
         }
         record->handle = handle;
-        record->loaded = 1;
+        record->loaded = true;
     }
 }
 

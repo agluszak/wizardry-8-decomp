@@ -212,7 +212,7 @@ unsigned char DispatchWorldCursorNodeCommand(W8MonsterInfo* info, int command, .
     unsigned char result;
 
     result = 0;
-    handled = 0;
+    handled = false;
     // Retail callers use both two and three arguments. Non-4 commands only
     // forward the optional argument slot's address; handlers do not read it.
     va_list arguments;
@@ -275,7 +275,7 @@ unsigned char DispatchWorldCursorNodeCommand(W8MonsterInfo* info, int command, .
             break;
         }
         if (result != 0) {
-            handled = 1;
+            handled = true;
         }
         node = FindWorldCursorNodeAtPoint(node, &position);
     } while (node != 0);
@@ -299,7 +299,7 @@ static unsigned char WorldCursorNodeShowMessageOnce(int command, W8WorldCursorNo
     char path[512];
     wchar_t text[2048];
 
-    result = 0;
+    result = false;
     message_id = GetWorldCursorNodeParameter(node, 0);
     folder = GetLevelFolderName(GetLoadedLevelID());
     type = GetWorldCursorNodeParameter(node, 2);
@@ -319,7 +319,7 @@ command_check:
         return 0;
     }
     if (type == 0) {
-        result = 1;
+        result = true;
         GetWorldCursorNodeUserdata(node, &shown, 0);
         if (shown == 0) {
             SetWorldCursorNodeUserdataSize(node, 1);

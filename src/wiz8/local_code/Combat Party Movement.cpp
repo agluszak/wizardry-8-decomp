@@ -268,7 +268,7 @@ void CompletePartyMovementTurns(void)
             CatchUpCombatActor(combat_row);
             continue;
         }
-        combat_row->dead = 1;
+        combat_row->dead = true;
         combat_row->phase = 0;
         party_row->pending_event_type = static_cast<unsigned int>(-1);
     }
@@ -438,7 +438,7 @@ void InterruptActivePartyMovement(void)
         }
         row->phase_clock_stamp = g_combat_state->round_counter;
         if (row->phase > W8_PHASES_PER_ROUND) {
-            row->dead = 1;
+            row->dead = true;
             row->phase = 0;
             party_row->pending_event_type = static_cast<unsigned int>(-1);
             RequestRedraw((1 << party_slot) | W8_MAIN_REDRAW_COMBAT_PROGRESS);

@@ -95,7 +95,7 @@ W8SplitItemDialog::W8SplitItemDialog(int kind, W8ItemInstance* item, int count)
     m_item = item;
     split_result = 0;
     m_active_input = 0;
-    m_first_draw = 0;
+    m_first_draw = false;
 }
 
 // FUNCTION: WIZ8 0x005DD030
@@ -150,7 +150,7 @@ void W8SplitItemDialog::DestroyTextBuffers()
 int W8SplitItemDialog::CreateControls()
 {
     W8DialogBase::CreateControls();
-    m_first_draw = 1;
+    m_first_draw = true;
     split_result = 0;
     if (!CreateButtons()) {
         m_error = 7;
@@ -204,29 +204,45 @@ unsigned char W8SplitItemDialog::CreateButtons()
         }
     }
     m_buttons[0]->Configure("Data\\Dialogs\\popup_splititem.sti", 0xc, 9, 10, 0xd, 0xb,
-                            OnSplitDecrement, 0, false, 0x7f, -1, OnSplitDecrementMany, 0);
+                            OnSplitDecrement, BUTTON_NO_CALLBACK, false, MSYS_PRIORITY_HIGHEST,
+                            W8_DIALOG_BUTTON_NO_TOOLTIP, OnSplitDecrementMany, BUTTON_NO_CALLBACK);
     m_buttons[1]->Configure("Data\\Dialogs\\popup_splititem.sti", 7, 4, 5, 8, 6, OnSplitIncrement,
-                            0, false, 0x7f, -1, OnSplitIncrementMany, 0);
-    m_buttons[2]->Configure("Data\\Dialogs\\popup_splititem.sti", -1, 3, -1, 3, -1, 0, 0, false, 0,
-                            -1, 0, 0);
-    m_buttons[3]->Configure("Data\\Dialogs\\popup_splititem.sti", -1, 3, -1, 3, -1,
-                            OnCountFieldClick, 0, false, 0x7f, -1, 0, 0);
-    m_buttons[4]->Configure("Data\\Dialogs\\popup_splititem.sti", -1, 3, -1, 3, -1, 0, 0, false, 0,
-                            -1, 0, 0);
-    m_buttons[5]->Configure("Data\\Dialogs\\popup_splititem.sti", -1, 3, -1, 3, -1, 0, 0, false, 0,
-                            -1, 0, 0);
+                            BUTTON_NO_CALLBACK, false, MSYS_PRIORITY_HIGHEST,
+                            W8_DIALOG_BUTTON_NO_TOOLTIP, OnSplitIncrementMany, BUTTON_NO_CALLBACK);
+    m_buttons[2]->Configure("Data\\Dialogs\\popup_splititem.sti", BUTTON_NO_IMAGE, 3,
+                            BUTTON_NO_IMAGE, 3, BUTTON_NO_IMAGE, BUTTON_NO_CALLBACK,
+                            BUTTON_NO_CALLBACK, false, MSYS_PRIORITY_LOWEST,
+                            W8_DIALOG_BUTTON_NO_TOOLTIP, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
+    m_buttons[3]->Configure("Data\\Dialogs\\popup_splititem.sti", BUTTON_NO_IMAGE, 3,
+                            BUTTON_NO_IMAGE, 3, BUTTON_NO_IMAGE, OnCountFieldClick,
+                            BUTTON_NO_CALLBACK, false, MSYS_PRIORITY_HIGHEST,
+                            W8_DIALOG_BUTTON_NO_TOOLTIP, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
+    m_buttons[4]->Configure("Data\\Dialogs\\popup_splititem.sti", BUTTON_NO_IMAGE, 3,
+                            BUTTON_NO_IMAGE, 3, BUTTON_NO_IMAGE, BUTTON_NO_CALLBACK,
+                            BUTTON_NO_CALLBACK, false, MSYS_PRIORITY_LOWEST,
+                            W8_DIALOG_BUTTON_NO_TOOLTIP, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
+    m_buttons[5]->Configure("Data\\Dialogs\\popup_splititem.sti", BUTTON_NO_IMAGE, 3,
+                            BUTTON_NO_IMAGE, 3, BUTTON_NO_IMAGE, BUTTON_NO_CALLBACK,
+                            BUTTON_NO_CALLBACK, false, MSYS_PRIORITY_LOWEST,
+                            W8_DIALOG_BUTTON_NO_TOOLTIP, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
     m_buttons[6]->Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 0, 1, 4, 2, OnAccept,
-                            0, false, 0x7f, -1, 0, 0);
+                            BUTTON_NO_CALLBACK, false, MSYS_PRIORITY_HIGHEST,
+                            W8_DIALOG_BUTTON_NO_TOOLTIP, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
     m_buttons[7]->Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 5, 6, 9, 7, OnCancel,
-                            0, false, 0x7f, -1, 0, 0);
+                            BUTTON_NO_CALLBACK, false, MSYS_PRIORITY_HIGHEST,
+                            W8_DIALOG_BUTTON_NO_TOOLTIP, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
     if (m_kind == 1 || m_kind == 2) {
-        m_buttons[8]->Configure("Data\\Dialogs\\popup_splititem.sti", -1, 3, -1, 3, -1, 0, 0, false,
-                                0, -1, 0, 0);
-        m_buttons[9]->Configure("Data\\Dialogs\\popup_splititem.sti", -1, 3, -1, 3, -1, 0, 0, false,
-                                0, -1, 0, 0);
+        m_buttons[8]->Configure(
+            "Data\\Dialogs\\popup_splititem.sti", BUTTON_NO_IMAGE, 3, BUTTON_NO_IMAGE, 3,
+            BUTTON_NO_IMAGE, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK, false, MSYS_PRIORITY_LOWEST,
+            W8_DIALOG_BUTTON_NO_TOOLTIP, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
+        m_buttons[9]->Configure(
+            "Data\\Dialogs\\popup_splititem.sti", BUTTON_NO_IMAGE, 3, BUTTON_NO_IMAGE, 3,
+            BUTTON_NO_IMAGE, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK, false, MSYS_PRIORITY_LOWEST,
+            W8_DIALOG_BUTTON_NO_TOOLTIP, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
     }
-    m_buttons[0]->m_fires_on_press = 1;
-    m_buttons[1]->m_fires_on_press = 1;
+    m_buttons[0]->m_fires_on_press = true;
+    m_buttons[1]->m_fires_on_press = true;
     for (index = 0; index < count; ++index) {
         m_buttons[index]->SetPosition(g_split_button_offsets[index].x + m_x,
                                           g_split_button_offsets[index].y + m_y);
@@ -331,7 +347,7 @@ void W8SplitItemDialog::Draw()
         if (!m_initialized) {
             CreateControls();
         }
-        m_first_draw = 1;
+        m_first_draw = true;
         for (index = 0; index < button_count; ++index) {
             m_buttons[index]->m_dirty = true;
         }
@@ -346,7 +362,7 @@ void W8SplitItemDialog::Draw()
         DrawCatalogImageAndInvalidate(
             -0xe, g_item_video_objects.GetOrCreateVideoObject(m_item->iItemNo), 0, 0,
             m_x + 0x18, m_y + 0xe, 2, 0);
-        m_first_draw = 0;
+        m_first_draw = false;
     }
     if (m_buttons[3]->m_dirty) {
         m_count_input->m_dirty = true;

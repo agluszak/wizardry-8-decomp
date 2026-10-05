@@ -883,7 +883,7 @@ bool SelectWorldCursorNode(void)
 
                 delta -= camera_location;
                 if (delta.Length() < g_double_005ecac8) {
-                    return 1;
+                    return true;
                 }
             }
         }
@@ -898,12 +898,12 @@ bool SelectWorldCursorNode(void)
                 delta -= camera_location;
                 if (delta.Length() < g_double_005ecac8) {
                     g_cursor_node_index = index;
-                    return 1;
+                    return true;
                 }
             }
         }
     }
-    return 0;
+    return false;
 }
 
 /* Release every node the cursor table still holds: free its scratch buffer,

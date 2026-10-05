@@ -56,7 +56,7 @@ void PlayCombatSound(char* sound_name, unsigned int variant_count, bool store_ha
     }
     if (handle != 0xffffffff && g_combat_state != 0 && store_handle) {
         g_combat_state->hit_sound = handle;
-        g_combat_state->hit_sound_active = 1;
+        g_combat_state->hit_sound_active = true;
     }
 }
 

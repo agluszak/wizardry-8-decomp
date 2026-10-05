@@ -104,10 +104,10 @@ struct W8SpellEffectEntry {
         memset(&Source, 0, sizeof(Source));
         memset(&target, 0, sizeof(target));
         memset(&definition, 0, sizeof(definition));
-        recast = 0;
-        sustained = 0;
-        missiles_pending = 0;
-        targets_resolved = 0;
+        recast = false;
+        sustained = false;
+        missiles_pending = false;
+        targets_resolved = false;
         reported = false;
         applied = false;
         /* The retail rep-stosd zeroes the whole result block, including the

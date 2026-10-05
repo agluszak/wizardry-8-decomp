@@ -514,15 +514,15 @@ bool AniMeshRadius(W8AniMesh* mesh, float* radius)
         if ((mesh->flags & W8_ANI_MESH_RADIUS_LOADED) == 0) {
             if (LoadAniMesh(0, mesh, true) == 0) {
                 srAssertFail("0", ANI_MESH_CPP, 0x350, 0);
-                return 0;
+                return false;
             }
         }
         *radius = mesh->radius;
         mesh->last_used = g_animesh_cache_stamp;
         ++g_animesh_cache_stamp;
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 // FUNCTION: WIZ8 0x004b6860

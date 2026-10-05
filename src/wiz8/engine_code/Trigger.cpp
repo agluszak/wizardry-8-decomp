@@ -90,7 +90,7 @@ W8GrowableVector<char*> g_location_variable_names;
 W8GrowableVector<int> g_location_variable_values;
 
 // GLOBAL: WIZ8 0x00606994
-bool g_trigger_feedback = 1;
+bool g_trigger_feedback = true;
 
 // GLOBAL: WIZ8 0x0068c520
 int g_container_event_alt = g_first_remapped_event + 13;
@@ -304,7 +304,7 @@ bool LoadTriggerRuntimeStates(int handle)
     FileRead(handle, &saved_count, sizeof(saved_count), 0);
     FileRead(handle, &restoring, sizeof(restoring), 0);
     if (saved_count < 1) {
-        return 1;
+        return true;
     }
     for (;;) {
         char name[0x80];
@@ -417,7 +417,7 @@ bool LoadTriggerRuntimeStates(int handle)
         }
         ++index;
         if (saved_count <= index) {
-            return 1;
+            return true;
         }
     }
 }
@@ -654,7 +654,7 @@ bool Trigger::Load(int hFile, char version)
                         }
                         m_pEvent->timer.SetDuration(duration);
                         m_pEvent->timer.Restart();
-                        m_pEvent->repeat = 1;
+                        m_pEvent->repeat = true;
                     }
                     m_pEvent->timer.SetProgress(progress_delay * g_float_005ec128);
                     if (g_timed_events.IndexOf(m_pEvent) == -1) {
@@ -809,7 +809,7 @@ bool LoadTriggerActionData(int handle)
     FileRead(handle, &version, sizeof(version), 0);
     FileRead(handle, &saved_count, sizeof(saved_count), 0);
     if (saved_count < 1) {
-        return 1;
+        return true;
     }
     for (;;) {
         char name[0x80];
@@ -825,7 +825,7 @@ bool LoadTriggerActionData(int handle)
         }
         ++index;
         if (saved_count <= index) {
-            return 1;
+            return true;
         }
     }
 }
@@ -890,7 +890,7 @@ void UpdateWorldTriggers(W8World* world)
                     dialog->m_destroy_callback_context = trigger;
                     dialog->SetItemGroup(trigger->world_item_group);
                     dialog->m_destroy_callback = OnItemDialogClosed;
-                    gXStatus.item_pick_pending = 0;
+                    gXStatus.item_pick_pending = false;
                     g_modal_owner = dialog;
                 }
             }
@@ -992,7 +992,7 @@ bool CreateTriggerShakeEvent(int intensity, float duration, float countdown_dura
         srAssertFail("pEvent", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x1372,
                      "Out of memory creating shake camera event.");
     }
-    pEvent->repeat = 1;
+    pEvent->repeat = true;
     pEvent->intensity = intensity;
     if (pEvent->m_pCountdown != 0) {
         delete pEvent->m_pCountdown;
@@ -1008,7 +1008,7 @@ bool CreateTriggerShakeEvent(int intensity, float duration, float countdown_dura
     pEvent->timer.Restart();
     pEvent->reverse = reverse;
     g_timed_events.Add(pEvent);
-    return 1;
+    return true;
 }
 
 // FUNCTION: WIZ8 0x004447F0
@@ -1034,9 +1034,9 @@ void Trigger::Activate()
         (static_cast<W8DoorTriggerActionData*>(action_data)->door_flags & W8_DOOR_KEY_REQUIRED) ==
             0) {
         if ((static_cast<W8DoorTriggerActionData*>(action_data)->door_flags & W8_DOOR_OPEN) == 0) {
-            running = 1;
+            running = true;
             Run(-1);
-            running = 0;
+            running = false;
         } else {
             W8TriggerEvent* event = m_pEvent;
             if (event != 0 && g_timed_events.IndexOf(event) != -1) {
@@ -1082,7 +1082,7 @@ bool Trigger::HasActorWithinRadius(float radius, bool include_party)
             if (monster_info != 0 && monster_info->p3D != 0) {
                 srVector3T<float> monster_position = monster_info->p3D->GetPosition();
                 if ((monster_position - center).Length() <= radius) {
-                    return 1;
+                    return true;
                 }
             }
         }
@@ -1091,10 +1091,10 @@ bool Trigger::HasActorWithinRadius(float radius, bool include_party)
     if (include_party) {
         srVector3T<float> party_position = g_startup_world->GetPosition();
         if ((party_position - center).Length() <= radius) {
-            return 1;
+            return true;
         }
     }
-    return 0;
+    return false;
 }
 
 // FUNCTION: WIZ8 0x004457c0
@@ -1111,7 +1111,7 @@ bool Trigger::PlayActionSound(const char* sound_name, int volume)
             memset(&options, -1, sizeof(options));
             options.uiVolume = (g_settings.sound_effects_volume * volume) / 0x7f;
             SoundPlay((STR)sound_name, &options);
-            return 0;
+            return false;
         }
         m_pProp->GetCenterPosition(&position);
     } else {
@@ -1125,11 +1125,11 @@ bool Trigger::PlayActionSound(const char* sound_name, int volume)
         sound->volume = volume;
         sound->setLocation(sound_position);
         if (sound->Play(false, true) != 0) {
-            return 1;
+            return true;
         }
         sound->release();
     }
-    return 0;
+    return false;
 }
 
 /* Timed actions pause their private timer with the game clock, then dispatch
@@ -1236,7 +1236,7 @@ void W8TriggerEvent::Update()
             }
             stParticle* particle = FindParticleByName(g_world, buffer);
             if (particle != 0) {
-                particle->persisted = 1;
+                particle->persisted = true;
                 particle->SetActive(0);
             }
         }
@@ -2147,7 +2147,7 @@ Trigger::Trigger()
     world_item_group = 0;
     items_generated = 0;
     activation_callback = 0;
-    running = 0;
+    running = false;
 
     surface_id = -1;
     sound_volume = -1;
@@ -2264,7 +2264,7 @@ void Trigger::FinishAction()
 
                 stLight* light = FindLightByName(g_trigger_parse_buffer, 0);
                 if (light != 0) {
-                    light->m_save_marked = 1;
+                    light->m_save_marked = true;
                     if (light->testFlag(srNode::FLAG_DISABLE) == 0) {
                         light->setFlag(srNode::FLAG_DISABLE);
                     } else {
@@ -2791,7 +2791,7 @@ void Trigger::Run(int source)
                 m_pEvent->timer.SetDuration(m_lData1 < 0 ? 10.0f
                                                              : static_cast<float>(m_lData1));
                 m_pEvent->timer.Restart();
-                m_pEvent->repeat = 1;
+                m_pEvent->repeat = true;
                 g_timed_events.Add(m_pEvent);
             }
             goto commit_action;
@@ -2933,7 +2933,7 @@ void Trigger::Run(int source)
         while (recipient != 0) {
             stLight* light = FindLightByName(NextTriggerRecipient(&recipient), 0);
             if (light != 0) {
-                light->m_save_marked = 1;
+                light->m_save_marked = true;
                 if (action == 4) {
                     if (light->testFlag(srNode::FLAG_DISABLE) == 0) {
                         light->setFlag(srNode::FLAG_DISABLE);
@@ -3012,14 +3012,14 @@ void Trigger::Run(int source)
                     }
                     ItemInfoAddToGroup(world_item_group, item);
                 }
-                g_trigger_feedback = 1;
+                g_trigger_feedback = true;
                 return;
             }
             if ((flags & W8_TRIGGER_ITEM_PICKER) != 0) {
                 return;
             }
 
-            g_trigger_feedback = 1;
+            g_trigger_feedback = true;
             if (items_generated == 0) {
                 GenerateItemGroup();
             }
@@ -3041,7 +3041,7 @@ void Trigger::Run(int source)
                     item = item->next;
                 }
                 if (contained_items > 1) {
-                    gXStatus.item_pick_pending = 1;
+                    gXStatus.item_pick_pending = true;
                 }
 
                 if (gold != 0) {
@@ -3187,14 +3187,14 @@ void Trigger::Run(int source)
             return;
         }
 
-        group->members_active = 1;
+        group->members_active = true;
         monster_info->p3D->m_pRep->animation_playing = 1;
         monster_info->p3D->m_pRep->animation_playing = 1;
         monster_info->p3D->m_pRep->timer =
             g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
         monster_info->p3D->ResetRepresentation();
         monster_info->p3D->ResetPathAI();
-        monster_info->p3D->reactivated = 1;
+        monster_info->p3D->reactivated = true;
         return;
     }
 
@@ -3226,7 +3226,7 @@ void Trigger::Run(int source)
                 event->m_pCountdown->SetDuration(abs(m_lData3) * 0.001f);
                 event->m_pCountdown->Restart();
                 if (m_lData3 < 0) {
-                    event->reverse = 1;
+                    event->reverse = true;
                 }
             }
         } else {
@@ -3413,7 +3413,7 @@ void Trigger::Run(int source)
             m_pEvent->timer.SetDuration(m_lData1 * 0.001f);
             m_pEvent->timer.Restart();
             m_pEvent->trigger = this;
-            m_pEvent->repeat = 1;
+            m_pEvent->repeat = true;
         } else {
             if (g_timed_events.IndexOf(m_pEvent) != -1) {
                 srAssertFail("glsTimedEvents.Find(m_pEvent) == -1",
@@ -3495,7 +3495,7 @@ void Trigger::Run(int source)
         while (recipient != 0) {
             stParticle* particle = FindParticleByName(g_world, NextTriggerRecipient(&recipient));
             if (particle != 0) {
-                particle->persisted = 1;
+                particle->persisted = true;
                 if (action == 0x44) {
                     particle->SetActive(1);
                 } else if (action == 0x45) {
@@ -3522,7 +3522,7 @@ void Trigger::Run(int source)
         while (recipient != 0) {
             stParticle* particle = FindParticleByName(g_world, NextTriggerRecipient(&recipient));
             if (particle != 0) {
-                particle->persisted = 1;
+                particle->persisted = true;
                 particle->SetActive(1);
                 action_succeeded = true;
             }
@@ -3547,7 +3547,7 @@ void Trigger::Run(int source)
         }
         m_pEvent->m_pCountdown->SetDuration(m_lData1 == -1 ? 10.0f : m_lData1 * 0.001f);
         m_pEvent->m_pCountdown->Restart();
-        m_pEvent->repeat = 1;
+        m_pEvent->repeat = true;
         break;
     }
 
@@ -3620,7 +3620,7 @@ void Trigger::Run(int source)
 
 commit_action:
     if (!running) {
-        g_trigger_feedback = 1;
+        g_trigger_feedback = true;
     }
     CommitActionResult(apply_state_changes);
 }
@@ -3631,7 +3631,7 @@ bool Trigger::CanRunLinkedTriggers()
     char* recipient;
 
     if (m_pProp != 0 && m_pProp->Rep()->animation_playing != 0) {
-        return 0;
+        return false;
     }
     recipient = m_pacRecipients;
     while (recipient != 0) {
@@ -3663,14 +3663,14 @@ bool Trigger::SelectAction()
     if (g_combat_inactive == 0 && m_pActionData != 0 &&
         m_pActionData->type == W8_TRIGGER_PAYLOAD_DOOR &&
         (static_cast<W8DoorTriggerActionData*>(m_pActionData)->door_flags & W8_DOOR_OPEN) != 0) {
-        return 0;
+        return false;
     }
 
     if (((flags & W8_TRIGGER_RUNNING) != 0 && action != 0x39) ||
         (flags & W8_TRIGGER_ON) == 0 ||
         ((flags & W8_TRIGGER_ONCE) != 0 && (flags & W8_TRIGGER_FIRED) != 0)) {
         action_state = 1;
-        return 0;
+        return false;
     }
 
     if (m_pacRequiredStates != 0) {
@@ -3758,16 +3758,16 @@ bool Trigger::SelectAction()
 
         if (linked_trigger_blocked) {
             if (m_pEvent == 0 || g_timed_events.IndexOf(m_pEvent) == -1) {
-                return 0;
+                return false;
             }
             m_pEvent->timer.Restart();
             if (m_pEvent->m_pCountdown != 0) {
                 m_pEvent->m_pCountdown->Restart();
             }
             if (!running) {
-                g_trigger_feedback = 1;
+                g_trigger_feedback = true;
             }
-            return 0;
+            return false;
         }
 
         if ((action_data->door_flags & W8_DOOR_KEY_REQUIRED) != 0 && action_data->item != -1) {
@@ -3789,7 +3789,7 @@ bool Trigger::SelectAction()
                     if (linked_trigger != 0) {
                         linked_trigger->Run(-1);
                         if (!running) {
-                            g_trigger_feedback = 1;
+                            g_trigger_feedback = true;
                         }
                     }
                 }
@@ -3799,14 +3799,14 @@ bool Trigger::SelectAction()
 
     if (lock_state.lock_type != 0 && lock_state.device_state.completed == 0 && !running) {
         if (lock_state.lock_type == 1) {
-            g_trigger_feedback = 1;
+            g_trigger_feedback = true;
             OpenLockInteraction(this);
-            return 0;
+            return false;
         }
         if (lock_state.lock_type == 2) {
-            g_trigger_feedback = 1;
+            g_trigger_feedback = true;
             OpenTrapInteraction(this);
-            return 0;
+            return false;
         }
     }
 
@@ -3826,7 +3826,7 @@ bool Trigger::SelectAction()
         }
     } else if (action == 0) {
         action_state = 1;
-        return 0;
+        return false;
     }
     return result;
 }
@@ -4080,7 +4080,7 @@ bool AnyPropTriggerInView(W8World* world)
         W8Prop* prop = GetWorldProp(world, s_last_prop_index);
 
         if (prop->IsTriggerInView(&position)) {
-            return 1;
+            return true;
         }
     }
     for (index = 0; index < static_cast<int>(prop_count); ++index) {
@@ -4088,8 +4088,8 @@ bool AnyPropTriggerInView(W8World* world)
 
         if (prop->IsTriggerInView(&position)) {
             s_last_prop_index = index;
-            return 1;
+            return true;
         }
     }
-    return 0;
+    return false;
 }

@@ -218,7 +218,7 @@ unsigned char LoadWorld(W8World* world, char* level_file_name, const char* level
             delete world->octree;
             world->octree = 0;
         } else if (world->octree != 0) {
-            use_octree = 0;
+            use_octree = false;
         }
     }
 

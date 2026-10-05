@@ -69,7 +69,7 @@ unsigned char InitializeEnvironmentColours(void)
     }
     g_sky_gradient_animations[0] = 0;
     g_sky_gradient_animations[1] = 0;
-    g_environment_time_enabled = 0;
+    g_environment_time_enabled = false;
     g_sun_prop = 0;
     g_moon_prop = 0;
     g_environment_lights.Clear();

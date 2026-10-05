@@ -30,7 +30,7 @@ W8AnimRepBase::W8AnimRepBase()
     highlight_colour.Set(0.0f, 0.0f, 0.0f, 0.0f);
     instance_scale = 1.0f;
     flag = false;
-    apply_instance_scale = 0;
+    apply_instance_scale = false;
 }
 
 // FUNCTION: WIZ8 0x004b55c0

@@ -51,16 +51,16 @@ bool LoadPathAI(W8PathAI** output, int handle)
     int index;
 
     if (output == 0) {
-        return 0;
+        return false;
     }
     if (!FileRead(handle, &version, 1, 0) || version != 0) {
-        return 0;
+        return false;
     }
 
     point_count = 0;
     path = static_cast<W8PathAI*>(malloc(sizeof(W8PathAI)));
     if (path == 0) {
-        return 0;
+        return false;
     }
     memset(path, 0, sizeof(W8PathAI));
     path->nodes = new W8Vector<srVector3T<float>*>(5);
@@ -117,7 +117,7 @@ bool LoadPathAI(W8PathAI** output, int handle)
     }
 
     *output = path;
-    return 1;
+    return true;
 }
 
 // FUNCTION: WIZ8 0x004a9720
@@ -390,9 +390,9 @@ bool PathAIIsComplete(W8PathAI* path)
     if (path != 0 && path->nodes != 0 &&
         (path->point_index < static_cast<unsigned int>(path->nodes->GetCount()) ||
          path->looping != 0)) {
-        return 0;
+        return false;
     }
-    return 1;
+    return true;
 }
 
 // FUNCTION: WIZ8 0x004a9f20

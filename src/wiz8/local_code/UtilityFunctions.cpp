@@ -398,7 +398,7 @@ unsigned int GetRandomPartySlots(int require_primary, int require_secondary,
         claimed[index] = 0;
     }
     if (count != 0) {
-        for (relaxed = 0; !relaxed;) {
+        for (relaxed = false; !relaxed;) {
             for (slot = skip_first_two ? 2u : 0u; slot < 8; ++slot) {
                 W8Character* character = &g_status.buffers.Char[slot];
                 if (g_status.buffers.XChar[slot].fOccupied && slot != excluded_slot &&
@@ -417,7 +417,7 @@ unsigned int GetRandomPartySlots(int require_primary, int require_secondary,
             } else if (require_primary == 1) {
                 require_primary = 2;
             } else {
-                relaxed = 1;
+                relaxed = true;
             }
         }
         if (found > count) {
@@ -702,7 +702,7 @@ void CloseMessageBox(void)
     if (g_message_box_state == 2) {
         ReleaseMessageBoxControls();
         g_message_box_state = 3;
-        g_message_box_accepted = 0;
+        g_message_box_accepted = false;
     }
 }
 
@@ -724,7 +724,7 @@ void MessageBoxAcceptClickCallback(GUI_BUTTON* button, INT32 reason)
     } else if (reason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
         if (button->uiFlags & BUTTON_CLICKED_ON) {
             g_message_box_state = 1;
-            g_message_box_accepted = 1;
+            g_message_box_accepted = true;
         }
     }
 }
@@ -747,7 +747,7 @@ void MessageBoxCancelClickCallback(GUI_BUTTON* button, INT32 reason)
     } else if (reason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
         if (button->uiFlags & BUTTON_CLICKED_ON) {
             g_message_box_state = 1;
-            g_message_box_accepted = 0;
+            g_message_box_accepted = false;
         }
     }
 }
@@ -812,7 +812,7 @@ void ProcessMessageBoxInput(void)
             case ' ':
             case 'Y':
                 g_message_box_state = 1;
-                g_message_box_accepted = 1;
+                g_message_box_accepted = true;
                 break;
             case 27:
             case 'N':

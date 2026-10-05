@@ -58,6 +58,6 @@ unsigned char GetCursorPositionInViewport(srVector3T<float>* position);
 void GetCursorScaledPosition(srVector3T<float>* position);
 void UpdateHeldItemCursor(void);
 void ClearHeldItemDisplay(void);
-void SetItemCursor(int item_id); /* 0x0055F160 */
+void SetItemCursor(int overlay_video_object); /* 0x0055F160 */
 
 #endif

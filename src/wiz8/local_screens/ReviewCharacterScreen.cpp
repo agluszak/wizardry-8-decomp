@@ -99,7 +99,7 @@ int giReviewCharSlot = -1;
 // GLOBAL: WIZ8 0x0069c0f8
 W8Character* g_review_character;
 // GLOBAL: WIZ8 0x0069c0fc
-W8Character* g_camp_entry_parameter; /* gpIdentifyingPC */
+W8Character* g_camp_identifying_character; /* gpIdentifyingPC */
 // GLOBAL: WIZ8 0x0069c100
 W8Character* g_camp_character;
 // GLOBAL: WIZ8 0x0069c104
@@ -575,7 +575,7 @@ void DrawCampCharacterInfo(void)
     SGPRect clip;
     SGPRect previous_clip;
 
-    if (state->item_mode != 0) {
+    if (state->info_page != W8_CAMP_INFO_PAGE_ITEMS) {
         state->character_info->Invalidate(0);
         InvalidateCampPanel();
         return;
@@ -605,11 +605,11 @@ void DrawCampCharacterInfo(void)
                 g_W8TextBufferAlignLeft | g_W8TextBufferAlignMiddle);
     DrawRcsText(gppStringList[0x91d], 0x15e, 0x26, 0x65,
                 g_W8TextBufferAlignLeft | g_W8TextBufferAlignMiddle);
-    FormatUnsignedIntegerWithCommas(state->caption, character->experience);
-    DrawRcsText(state->caption, 0x1c0, 0x18, 0x67,
+    FormatUnsignedIntegerWithCommas(state->text_buffer, character->experience);
+    DrawRcsText(state->text_buffer, 0x1c0, 0x18, 0x67,
                 g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
-    FormatUnsignedIntegerWithCommas(state->caption, character->experience_goal);
-    DrawRcsText(state->caption, 0x1c0, 0x26, 0x67,
+    FormatUnsignedIntegerWithCommas(state->text_buffer, character->experience_goal);
+    DrawRcsText(state->text_buffer, 0x1c0, 0x26, 0x67,
                 g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
     DrawRcsText(gppStringList[0x91e], 0x144, 0x3a, 0x45,
                 g_W8TextBufferAlignLeft | g_W8TextBufferAlignMiddle);
@@ -617,25 +617,25 @@ void DrawCampCharacterInfo(void)
                 g_W8TextBufferAlignLeft | g_W8TextBufferAlignMiddle);
     DrawRcsText(gppStringList[0x920], 0x144, 0x56, 0x45,
                 g_W8TextBufferAlignLeft | g_W8TextBufferAlignMiddle);
-    swprintf(state->caption, g_format_d_slash_d, character->hp_current, character->uiHPMax);
-    DrawRcsText(state->caption, 0x18d, 0x3a, 0x2c,
+    swprintf(state->text_buffer, g_format_d_slash_d, character->hp_current, character->uiHPMax);
+    DrawRcsText(state->text_buffer, 0x18d, 0x3a, 0x2c,
                 g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
-    swprintf(state->caption, g_format_d_slash_d, character->stamina, character->uiStaminaMax);
-    DrawRcsText(state->caption, 0x18d, 0x48, 0x2c,
+    swprintf(state->text_buffer, g_format_d_slash_d, character->stamina, character->uiStaminaMax);
+    DrawRcsText(state->text_buffer, 0x18d, 0x48, 0x2c,
                 g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
     if (character->load_category != 0) {
         SetFontObjectPalette16BPP(
             g_wiz_text_font_secondary,
             g_font_state_palettes[g_load_category_palettes[character->load_category]]);
     }
-    swprintf(state->caption, g_format_d_slash_d, character->total_carried_weight / 10,
+    swprintf(state->text_buffer, g_format_d_slash_d, character->total_carried_weight / 10,
              character->carrying_capacity / 10);
-    DrawRcsTextJustified(state->caption, 0x18d, 0x56, 0x2c, 0xc,
+    DrawRcsTextJustified(state->text_buffer, 0x18d, 0x56, 0x2c, 0xc,
                          g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
-    swprintf(state->caption, g_format_s_colon_d_s_colon_d, gppStringList[0x8c0],
+    swprintf(state->text_buffer, g_format_s_colon_d_s_colon_d, gppStringList[0x8c0],
              character->inventory_weight / 10, gppStringList[0x8c1],
              character->party_weight_share / 10);
-    g_camp_help_text->SetRegionHelp(state->caption);
+    g_camp_help_text->SetRegionHelp(state->text_buffer);
     SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_wiz_text_font_secondary_palette);
     DrawRcsText(gppStringList[0x921], 0x144, 0x72, 0x75,
                 g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
@@ -643,8 +643,8 @@ void DrawCampCharacterInfo(void)
     for (index = 0; index < 7; ++index) {
         DrawRcsText(gppStringList[g_attribute_label_ids[index]], 0x1c2, top, 0x4c,
                     g_W8TextBufferAlignLeft | g_W8TextBufferAlignMiddle);
-        swprintf(state->caption, g_format_d, character->attributes[index].effective);
-        DrawRcsText(state->caption, 0x212, top, 0x14,
+        swprintf(state->text_buffer, g_format_d, character->attributes[index].effective);
+        DrawRcsText(state->text_buffer, 0x212, top, 0x14,
                     g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
         top += 0xe;
     }
@@ -654,10 +654,10 @@ void DrawCampCharacterInfo(void)
         if (character->sp_max[realm] == 0) {
             frame = g_spell_realm_animations[realm].frame_count;
         } else {
-            swprintf(state->caption, g_format_d_slash_d,
+            swprintf(state->text_buffer, g_format_d_slash_d,
                      GetCharacterRealmSpellPoints(character, static_cast<W8SpellRealm>(realm)),
                      character->sp_max[realm]);
-            DrawTallRcsText(state->caption, 0x242, top, 0x32,
+            DrawTallRcsText(state->text_buffer, 0x242, top, 0x32,
                             g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
             frame = g_spell_realm_animations[realm].initial_frame;
         }
@@ -667,13 +667,13 @@ void DrawCampCharacterInfo(void)
     }
     DrawRcsText(gppStringList[0x922], 0x144, 0x80, 0x45,
                 g_W8TextBufferAlignLeft | g_W8TextBufferAlignMiddle);
-    swprintf(state->caption, g_format_d, character->armor_class_total);
-    DrawRcsText(state->caption, 0x18d, 0x80, 0x2c,
+    swprintf(state->text_buffer, g_format_d, character->armor_class_total);
+    DrawRcsText(state->text_buffer, 0x18d, 0x80, 0x2c,
                 g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
     DrawRcsText(gppStringList[0x923], 0x144, 0x8e, 0x45,
                 g_W8TextBufferAlignLeft | g_W8TextBufferAlignMiddle);
-    swprintf(state->caption, g_format_d, character->armor_class_average);
-    DrawRcsText(state->caption, 0x18d, 0x8e, 0x2c,
+    swprintf(state->text_buffer, g_format_d, character->armor_class_average);
+    DrawRcsText(state->text_buffer, 0x18d, 0x8e, 0x2c,
                 g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
     InvalidateCampPanel();
 }
@@ -725,7 +725,8 @@ void DrawCampBackpackItems(void)
             DrawCatalogImage(-14, 0x115, 0, 0x32, left, top, 2, 0);
         }
         if (state->hover_region == slot + 0xf4 &&
-            (item_id != -1 || (g_status.item_in_cursor && state->entry_mode != 1))) {
+            (item_id != -1 ||
+             (g_status.item_in_cursor && state->item_action != W8_CAMP_ITEM_ACTION_MOVE))) {
             DrawCatalogImage(-14, 0x115, 0, 0x30, left, top, 2, 0);
         }
     }
@@ -780,16 +781,16 @@ void DrawCampEquipmentItems(void)
             }
         }
         switch (slot) {
-        case 0:
+        case W8_EQUIP_SLOT_HEAD:
             frame = 0;
             break;
-        case 4:
+        case W8_EQUIP_SLOT_TORSO:
             frame = 1;
             break;
-        case 5:
+        case W8_EQUIP_SLOT_HANDS:
             frame = 3;
             break;
-        case 10:
+        case W8_EQUIP_SLOT_LEGS:
             frame = 2;
             break;
         case 0xb:
@@ -798,9 +799,9 @@ void DrawCampEquipmentItems(void)
         default:
             goto no_armor_label;
         }
-        swprintf(state->caption, g_format_d, character->armor_class_by_location[frame]);
+        swprintf(state->text_buffer, g_format_d, character->armor_class_by_location[frame]);
         DrawCatalogImageAndInvalidate(-14, 0x11c, 0, 0, region->x + 2, region->y + 1, 2, 0);
-        DrawRcsText(state->caption, region->x + 2, region->y + 2, 0x11,
+        DrawRcsText(state->text_buffer, region->x + 2, region->y + 2, 0x11,
                     g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
     no_armor_label:
         DrawCatalogImageAndInvalidate(-14, 0x115, 0, region->frame + 3, region->x - 2,
@@ -815,11 +816,11 @@ void DrawCampEquipmentItems(void)
                 if (character->EquippedItem[slot].iItemNo == -1) {
                     continue;
                 }
-            } else if (state->entry_mode == 1 ||
+            } else if (state->item_action == W8_CAMP_ITEM_ACTION_MOVE ||
                        !CanEquipItemInSlot(character, g_status.item_in_hand.iItemNo,
                                            static_cast<unsigned char>(slot), true) ||
                        !CanCharacterUseItem(character, g_status.item_in_hand.iItemNo)) {
-                if (!g_status.item_in_cursor || state->entry_mode != 1) {
+                if (!g_status.item_in_cursor || state->item_action != W8_CAMP_ITEM_ACTION_MOVE) {
                     continue;
                 }
                 if (character->EquippedItem[slot].iItemNo == -1) {
@@ -828,7 +829,7 @@ void DrawCampEquipmentItems(void)
             }
             frame = region->frame;
         } else {
-            if (!g_status.item_in_cursor || state->entry_mode == 1 ||
+            if (!g_status.item_in_cursor || state->item_action == W8_CAMP_ITEM_ACTION_MOVE ||
                 !IsPartySlotEligible(giReviewCharSlot) ||
                 !CanEquipItemInSlot(character, g_status.item_in_hand.iItemNo,
                                     static_cast<unsigned char>(slot), true) ||
@@ -868,8 +869,8 @@ void DrawCampItemPool(void)
     if ((state->item_redraw_flags & W8_CAMP_ITEM_REDRAW_POOL_HEADER) != 0) {
         DrawRcsBoldText(gppStringList[0x92c], 0x1e6, 0xae, 0x8d,
                         g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
-        FormatUnsignedIntegerWithCommas(state->caption, g_status.party_gold);
-        DrawRcsText(state->caption, 0x229, 0x1a9, 0x30,
+        FormatUnsignedIntegerWithCommas(state->text_buffer, g_status.party_gold);
+        DrawRcsText(state->text_buffer, 0x229, 0x1a9, 0x30,
                     g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
     }
     for (i = 0;; ++i) {
@@ -919,7 +920,7 @@ void DrawCampItemPool(void)
                 InvalidateRegion(left, top, right, bottom, 0);
                 BlitCatalogSurfaceRectTo16BPP(-14, left, top, right, bottom, 0x1b6, 0, 0);
                 if (state->hover_region == region_id && g_status.item_in_cursor &&
-                    state->entry_mode != 1) {
+                    state->item_action != W8_CAMP_ITEM_ACTION_MOVE) {
                     DrawCatalogImage(-14, 0x115, 0, 0x30, left, top, 2, 0);
                 }
             }
@@ -941,8 +942,8 @@ void DrawCampItemQuantity(W8ItemInstance* item, int left, int top, int width)
     switch (g_item_records[item->iItemNo].quantity_kind) {
     case W8_ITEM_QUANTITY_STACK:
         if (item->stack_count > 1) {
-            swprintf(state->caption, g_format_d, item->stack_count);
-            DrawRcsText(state->caption, left, top, width,
+            swprintf(state->text_buffer, g_format_d, item->stack_count);
+            DrawRcsText(state->text_buffer, left, top, width,
                         g_W8TextBufferAlignMiddle | g_W8TextBufferAlignRight);
         }
         break;
@@ -950,19 +951,19 @@ void DrawCampItemQuantity(W8ItemInstance* item, int left, int top, int width)
     case W8_ITEM_QUANTITY_USES:
         SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_font_state_palettes[3]);
         if (!item->identified) {
-            swprintf(state->caption, L"?");
+            swprintf(state->text_buffer, L"?");
         } else {
-            swprintf(state->caption, g_format_d, item->uses_or_charges);
+            swprintf(state->text_buffer, g_format_d, item->uses_or_charges);
         }
         height = GetFontHeight(g_wiz_text_font_secondary);
-        DrawRcsTextJustified(state->caption, left, top, width, height,
+        DrawRcsTextJustified(state->text_buffer, left, top, width, height,
                              g_W8TextBufferAlignMiddle | g_W8TextBufferAlignRight);
         break;
     case W8_ITEM_QUANTITY_SHOTS:
         SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_font_state_palettes[5]);
-        swprintf(state->caption, g_format_d, item->uses_or_charges);
+        swprintf(state->text_buffer, g_format_d, item->uses_or_charges);
         height = GetFontHeight(g_wiz_text_font_secondary);
-        DrawRcsTextJustified(state->caption, left, top, width, height,
+        DrawRcsTextJustified(state->text_buffer, left, top, width, height,
                              g_W8TextBufferAlignMiddle | g_W8TextBufferAlignRight);
         break;
     }
@@ -973,7 +974,7 @@ void DrawCampItemQuantity(W8ItemInstance* item, int left, int top, int width)
 W8CampCharacterInfo::W8CampCharacterInfo() : Controls(0x136, 0, 0x280, 0xa5, 0x122, 0, 0)
 {
     AcquireRegionSet(&g_camp_character_info_region_set);
-    m_combat_view = 1;
+    m_combat_view = true;
     m_stats_tab = new W8TextControl(this, -1, 8, 0x8b, 0, 0, 0x121, 0, 15, 16, 17, 19, 18);
     m_stats_tab->m_listener = this;
     m_stats_tab->EnableRegionHelp(0x960);
@@ -1042,21 +1043,21 @@ void W8CampCharacterInfo::Redraw()
     InvalidateCampPanel();
     DrawRcsText(gppStringList[0x935], 0x15e, 0x84, 0x4e,
                 g_W8TextBufferAlignMiddle | g_W8TextBufferAlignLeft);
-    swprintf(g_camp_screen->caption, L"%d", g_review_character->kill_count);
-    DrawRcsText(g_camp_screen->caption, 0x1ae, 0x84, 0x20,
+    swprintf(g_camp_screen->text_buffer, L"%d", g_review_character->kill_count);
+    DrawRcsText(g_camp_screen->text_buffer, 0x1ae, 0x84, 0x20,
                 g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
     DrawRcsText(gppStringList[0x936], 0x15e, 0x92, 0x4e,
                 g_W8TextBufferAlignMiddle | g_W8TextBufferAlignLeft);
-    swprintf(g_camp_screen->caption, L"%d", g_review_character->death_count);
-    DrawRcsText(g_camp_screen->caption, 0x1ae, 0x92, 0x20,
+    swprintf(g_camp_screen->text_buffer, L"%d", g_review_character->death_count);
+    DrawRcsText(g_camp_screen->text_buffer, 0x1ae, 0x92, 0x20,
                 g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
     if (m_combat_view) {
         DrawRcsText(gppStringList[0x8b0], 0x15b, 10, 0x11d,
                     g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
         DrawRcsText(gppStringList[0x8b1], 0x15e, 0x30, 0x4e,
                     g_W8TextBufferAlignMiddle | g_W8TextBufferAlignLeft);
-        swprintf(g_camp_screen->caption, L"%d", g_review_character->initiative);
-        DrawRcsText(g_camp_screen->caption, 0x1ae, 0x30, 0x20,
+        swprintf(g_camp_screen->text_buffer, L"%d", g_review_character->initiative);
+        DrawRcsText(g_camp_screen->text_buffer, 0x1ae, 0x30, 0x20,
                     g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
         if (g_review_character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].iItemNo == -1 &&
             g_review_character->EquippedItem[W8_EQUIP_SLOT_SECONDARY_WEAPON].iItemNo == -1) {
@@ -1102,18 +1103,18 @@ void W8CampCharacterInfo::Redraw()
                     DrawRcsText(L"?", x, 0x30 + row * 14, 0x20,
                                 g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
                 }
-                wcscpy(g_camp_screen->caption, gppStringList[0x95c]);
-                wcscat(g_camp_screen->caption, L"?");
-                wcscat(g_camp_screen->caption, gppStringList[0x95b]);
-                wcscat(g_camp_screen->caption, L"?");
-                wcscat(g_camp_screen->caption, gppStringList[0x95a]);
-                wcscat(g_camp_screen->caption, L"?");
-                m_values[hand + 2]->SetRegionHelp(g_camp_screen->caption);
-                wcscpy(g_camp_screen->caption, gppStringList[0x959]);
-                wcscat(g_camp_screen->caption, L"?");
-                wcscat(g_camp_screen->caption, gppStringList[0x95a]);
-                wcscat(g_camp_screen->caption, L"?");
-                m_values[hand]->SetRegionHelp(g_camp_screen->caption);
+                wcscpy(g_camp_screen->text_buffer, gppStringList[0x95c]);
+                wcscat(g_camp_screen->text_buffer, L"?");
+                wcscat(g_camp_screen->text_buffer, gppStringList[0x95b]);
+                wcscat(g_camp_screen->text_buffer, L"?");
+                wcscat(g_camp_screen->text_buffer, gppStringList[0x95a]);
+                wcscat(g_camp_screen->text_buffer, L"?");
+                m_values[hand + 2]->SetRegionHelp(g_camp_screen->text_buffer);
+                wcscpy(g_camp_screen->text_buffer, gppStringList[0x959]);
+                wcscat(g_camp_screen->text_buffer, L"?");
+                wcscat(g_camp_screen->text_buffer, gppStringList[0x95a]);
+                wcscat(g_camp_screen->text_buffer, L"?");
+                m_values[hand]->SetRegionHelp(g_camp_screen->text_buffer);
                 continue;
             }
             W8Dice dice;
@@ -1130,44 +1131,44 @@ void W8CampCharacterInfo::Redraw()
             int skill_bonus =
                 (attack->attack_score < 0 ? attack->attack_score - 2 : attack->attack_score + 2) /
                 5;
-            swprintf(g_camp_screen->caption, L"%+d",
+            swprintf(g_camp_screen->text_buffer, L"%+d",
                      attack->damage_bonus + g_review_character->bonus.damage_bonus);
-            DrawRcsText(g_camp_screen->caption, x, 0x30, 0x20,
+            DrawRcsText(g_camp_screen->text_buffer, x, 0x30, 0x20,
                         g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
-            swprintf(g_camp_screen->caption, L"%d-%d", minimum, maximum);
-            DrawRcsText(g_camp_screen->caption, x, 0x3e, 0x20,
+            swprintf(g_camp_screen->text_buffer, L"%d-%d", minimum, maximum);
+            DrawRcsText(g_camp_screen->text_buffer, x, 0x3e, 0x20,
                         g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
-            wcscpy(g_camp_screen->caption, gppStringList[0x95c]);
-            wcscat(g_camp_screen->caption, FormatWideString(L" %d, ", dice.base + dice.count));
-            wcscat(g_camp_screen->caption, gppStringList[0x95b]);
-            wcscat(g_camp_screen->caption,
+            wcscpy(g_camp_screen->text_buffer, gppStringList[0x95c]);
+            wcscat(g_camp_screen->text_buffer, FormatWideString(L" %d, ", dice.base + dice.count));
+            wcscat(g_camp_screen->text_buffer, gppStringList[0x95b]);
+            wcscat(g_camp_screen->text_buffer,
                    FormatWideString(L" %d, ", dice.base + dice.count * dice.sides));
-            wcscat(g_camp_screen->caption, gppStringList[0x95a]);
-            wcscat(g_camp_screen->caption, FormatWideString(L" %+d%%", damage_bonus));
-            m_values[hand + 2]->SetRegionHelp(g_camp_screen->caption);
-            swprintf(g_camp_screen->caption, L"%d", skill_bonus + hit_bonus);
-            DrawRcsText(g_camp_screen->caption, x, 0x4c, 0x20,
+            wcscat(g_camp_screen->text_buffer, gppStringList[0x95a]);
+            wcscat(g_camp_screen->text_buffer, FormatWideString(L" %+d%%", damage_bonus));
+            m_values[hand + 2]->SetRegionHelp(g_camp_screen->text_buffer);
+            swprintf(g_camp_screen->text_buffer, L"%d", skill_bonus + hit_bonus);
+            DrawRcsText(g_camp_screen->text_buffer, x, 0x4c, 0x20,
                         g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
-            wcscpy(g_camp_screen->caption, gppStringList[0x959]);
-            wcscat(g_camp_screen->caption, FormatWideString(L" %d, ", skill_bonus));
-            wcscat(g_camp_screen->caption, gppStringList[0x95a]);
-            wcscat(g_camp_screen->caption, FormatWideString(L" %+d", hit_bonus));
-            m_values[hand]->SetRegionHelp(g_camp_screen->caption);
-            swprintf(g_camp_screen->caption, L"%d", attack->attacks);
-            DrawRcsText(g_camp_screen->caption, x, 0x5a, 0x20,
+            wcscpy(g_camp_screen->text_buffer, gppStringList[0x959]);
+            wcscat(g_camp_screen->text_buffer, FormatWideString(L" %d, ", skill_bonus));
+            wcscat(g_camp_screen->text_buffer, gppStringList[0x95a]);
+            wcscat(g_camp_screen->text_buffer, FormatWideString(L" %+d", hit_bonus));
+            m_values[hand]->SetRegionHelp(g_camp_screen->text_buffer);
+            swprintf(g_camp_screen->text_buffer, L"%d", attack->attacks);
+            DrawRcsText(g_camp_screen->text_buffer, x, 0x5a, 0x20,
                         g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
-            swprintf(g_camp_screen->caption, L"%d", attack->swings);
-            DrawRcsText(g_camp_screen->caption, x, 0x68, 0x20,
+            swprintf(g_camp_screen->text_buffer, L"%d", attack->swings);
+            DrawRcsText(g_camp_screen->text_buffer, x, 0x68, 0x20,
                         g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
-            swprintf(g_camp_screen->caption, L"%+d", hit_bonus);
-            DrawRcsText(g_camp_screen->caption, x, 0x76, 0x20,
+            swprintf(g_camp_screen->text_buffer, L"%+d", hit_bonus);
+            DrawRcsText(g_camp_screen->text_buffer, x, 0x76, 0x20,
                         g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
-            swprintf(g_camp_screen->caption, L"%+d",
+            swprintf(g_camp_screen->text_buffer, L"%+d",
                      attack->attack_bonus + g_review_character->bonus.attack_bonus);
-            DrawRcsText(g_camp_screen->caption, x, 0x84, 0x20,
+            DrawRcsText(g_camp_screen->text_buffer, x, 0x84, 0x20,
                         g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
-            swprintf(g_camp_screen->caption, L"%+d%%", damage_bonus);
-            DrawRcsText(g_camp_screen->caption, x, 0x92, 0x20,
+            swprintf(g_camp_screen->text_buffer, L"%+d%%", damage_bonus);
+            DrawRcsText(g_camp_screen->text_buffer, x, 0x92, 0x20,
                         g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
         }
     } else {
@@ -1184,15 +1185,15 @@ void W8CampCharacterInfo::Redraw()
                         g_W8TextBufferAlignMiddle | g_W8TextBufferAlignLeft);
             int value = g_review_character->armor_class_components[component];
             if (value) {
-                swprintf(g_camp_screen->caption, L"%+d", value);
-                DrawRcsText(g_camp_screen->caption, value_x, y, 0x20,
+                swprintf(g_camp_screen->text_buffer, L"%+d", value);
+                DrawRcsText(g_camp_screen->text_buffer, value_x, y, 0x20,
                             g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
             }
         }
         DrawRcsText(gppStringList[0x8bf], 0x1da, 0x84, 0x7c,
                     g_W8TextBufferAlignMiddle | g_W8TextBufferAlignLeft);
-        swprintf(g_camp_screen->caption, L"%d%%", g_review_character->damage_reduction);
-        DrawRcsText(g_camp_screen->caption, 600, 0x84, 0x20,
+        swprintf(g_camp_screen->text_buffer, L"%d%%", g_review_character->damage_reduction);
+        DrawRcsText(g_camp_screen->text_buffer, 600, 0x84, 0x20,
                     g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
     }
 }
@@ -1303,19 +1304,19 @@ unsigned char CampScreenEnter(void)
     ClearPrimarySurface();
     g_review_character = static_cast<W8Character*>(g_current_screen_state.parameter_3);
     giReviewCharSlot = g_current_screen_state.parameter_2;
-    unsigned char entry_mode;
+    unsigned char initial_item_action;
     if (g_current_screen_state.parameter_4 == 0) {
-        g_camp_entry_parameter = 0;
-        entry_mode = 0;
+        g_camp_identifying_character = 0;
+        initial_item_action = W8_CAMP_ITEM_ACTION_NONE;
     } else {
-        g_camp_entry_parameter = g_current_screen_state.parameter_4;
-        entry_mode = 2;
+        g_camp_identifying_character = g_current_screen_state.parameter_4;
+        initial_item_action = W8_CAMP_ITEM_ACTION_IDENTIFY_SPELL;
         SoundPlay(s_general_magic_sound, 0);
         SetTargetingMode(W8_TARGET_NEED_ITEM);
     }
-    gXStatus.item_drag_active = 0;
+    gXStatus.item_drag_active = false;
     gXStatus.dragged_item = 0;
-    gXStatus.dragged_item_origin = 0xff;
+    gXStatus.dragged_item_origin = W8_ITEM_ORIGIN_NONE;
     gXStatus.dragged_character_slot = -1;
     if (!g_camp_screen) {
         g_camp_screen = static_cast<W8CampScreenState*>(malloc(sizeof(W8CampScreenState)));
@@ -1330,7 +1331,7 @@ unsigned char CampScreenEnter(void)
         memset(g_camp_screen, 0, sizeof(W8CampScreenState));
     }
     SetClippingRegionAndImageWidth(0x500, 0, 0, 0x280, 0x1e0);
-    g_camp_screen->entry_mode = entry_mode;
+    g_camp_screen->item_action = initial_item_action;
     MSYS_Init();
     for (unsigned int filter = 0; filter < W8_CAMP_ITEM_FILTER_COUNT; ++filter) {
         g_camp_screen->item_filters[filter] = 0;
@@ -1343,8 +1344,8 @@ unsigned char CampScreenEnter(void)
     CreateCampSecondaryPanel();
     CreateRcsLevelUpPanel();
     CreateRcsDismissPanel();
-    g_camp_screen->page = 0;
-    g_camp_screen->item_mode = 0;
+    g_camp_screen->page = W8_CAMP_PAGE_ITEMS;
+    g_camp_screen->info_page = W8_CAMP_INFO_PAGE_ITEMS;
     g_camp_screen->item_range = new W8CampItemRange;
     for (int range_index = 0; range_index < 6; ++range_index) {
         g_camp_screen->spell_ranges[range_index] =
@@ -1352,7 +1353,7 @@ unsigned char CampScreenEnter(void)
     }
     g_camp_screen->effect_list = 0;
     g_camp_screen->effect_items_only = 1;
-    g_camp_screen->effect_filter = 0;
+    g_camp_screen->effect_filter = W8_CAMP_EFFECT_FILTER_ALL;
     g_camp_screen->stats_range = new W8CampStatsRange;
     g_camp_screen->stats_controls = new W8CampStatsControls;
     g_camp_screen->character_info = new W8CampCharacterInfo;
@@ -1368,7 +1369,7 @@ unsigned char CampScreenEnter(void)
             for (int slot = 0; slot < 8; ++slot) {
                 if (g_status.buffers.XChar[slot].fOccupied && IsPartySlotEligible(slot) &&
                     g_status.buffers.XChar[slot].pending_action == W8_ACTION_EQUIP) {
-                    swprintf(g_camp_screen->caption, L"%s %s", g_status.buffers.Char[slot].name,
+                    swprintf(g_camp_screen->text_buffer, L"%s %s", g_status.buffers.Char[slot].name,
                              gppStringList[0x919]);
                     goto show_equip_message;
                 }
@@ -1380,17 +1381,18 @@ unsigned char CampScreenEnter(void)
                     g_status.buffers.XChar[slot].pending_action == W8_ACTION_EQUIP) {
                     ++count;
                     if (count == 1) {
-                        swprintf(g_camp_screen->caption, L"%s", g_status.buffers.Char[slot].name);
+                        swprintf(g_camp_screen->text_buffer, L"%s",
+                                 g_status.buffers.Char[slot].name);
                     } else {
                         if (count == g_combat_state->equip_pending) {
-                            wcscat(g_camp_screen->caption, L" ");
-                            wcscat(g_camp_screen->caption,
+                            wcscat(g_camp_screen->text_buffer, L" ");
+                            wcscat(g_camp_screen->text_buffer,
                                    FormatWideString(gppStringList[0x918],
                                                     g_status.buffers.Char[slot].name));
                             goto show_equip_message;
                         }
-                        wcscat(g_camp_screen->caption, L", ");
-                        wcscat(g_camp_screen->caption, g_status.buffers.Char[slot].name);
+                        wcscat(g_camp_screen->text_buffer, L", ");
+                        wcscat(g_camp_screen->text_buffer, g_status.buffers.Char[slot].name);
                     }
                 }
             }
@@ -1399,7 +1401,7 @@ unsigned char CampScreenEnter(void)
                      "C:\\Projects\\Wizardry 8\\Local Screens\\ReviewCharacterScreen.cpp", 0x16f,
                      0);
     show_equip_message:
-        ShowCampNoticeLine(g_camp_screen->caption, 0, 1, 0);
+        ShowCampNoticeLine(g_camp_screen->text_buffer, 0, 1, 0);
     }
     g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;
     ResetTransientRenderScenes();
@@ -1437,7 +1439,8 @@ void CampScreenFrame(void)
     while (DequeueEvent(&input) == 1) {
         if (!DispatchRegionInput(&input) && input.usEvent == KEY_DOWN) {
             if (input.usParam == ESC) {
-                if (!g_camp_screen->entry_mode || g_camp_screen->page != 0) {
+                if (g_camp_screen->item_action == W8_CAMP_ITEM_ACTION_NONE ||
+                    g_camp_screen->page != W8_CAMP_PAGE_ITEMS) {
                     if (!g_camp_character_pending) {
                         if (IsMessageBoxActive()) {
                             CloseMessageBox();
@@ -1457,7 +1460,7 @@ void CampScreenFrame(void)
                         }
                     }
                 } else {
-                    SetCampItemActionMode(0);
+                    SetCampItemActionMode(W8_CAMP_ITEM_ACTION_NONE);
                 }
             } else if (input.usParam == 'P') {
                 if (g_status.game_started) {
@@ -1469,7 +1472,8 @@ void CampScreenFrame(void)
             }
         }
     }
-    if (g_camp_screen->page == 3 && !ClockIsTicking(g_camp_screen->animation_timer)) {
+    if (g_camp_screen->page == W8_CAMP_PAGE_SPELLS &&
+        !ClockIsTicking(g_camp_screen->animation_timer)) {
         for (unsigned int realm = 0; realm < 6; ++realm) {
             ++g_camp_screen->animation_frames[realm];
             if (g_camp_screen->animation_frames[realm] ==
@@ -1480,12 +1484,12 @@ void CampScreenFrame(void)
         g_camp_screen->animation_timer = SetCountdownClock(50);
         g_camp_screen->redraw_flags |= 0x10000;
     }
-    if (g_camp_screen->page == 0 && g_camp_screen->item_timer_active &&
+    if (g_camp_screen->page == W8_CAMP_PAGE_ITEMS && g_camp_screen->item_timer_active &&
         !g_camp_screen->item_timer_expired && !ClockIsTicking(g_camp_screen->item_timer)) {
         g_camp_screen->item_timer_expired = true;
         g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_EQUIPMENT;
     }
-    if (!g_camp_screen->input_mode) {
+    if (g_camp_screen->header_mode == W8_CAMP_HEADER_SUMMARY) {
         gXStatus.character_event_queue->ProcessDeferredCharacterEvents();
         UpdateCharacterEventState();
     }
@@ -1522,7 +1526,7 @@ unsigned char CampScreenLeave(int)
     MSYS_Shutdown();
     ResetRegions();
     if (gXStatus.fCampMode) {
-        gXStatus.dialogue_sync_pending = 1;
+        gXStatus.dialogue_sync_pending = true;
     }
     return 1;
 }
@@ -1577,19 +1581,19 @@ void DrawCampScreen(void)
         }
         DrawCampHeader();
         switch (state->page) {
-        case 0:
+        case W8_CAMP_PAGE_ITEMS:
             RedrawCampItemsPage();
             break;
-        case 1:
+        case W8_CAMP_PAGE_STATS:
             DrawCampStatsPage();
             break;
-        case 2:
+        case W8_CAMP_PAGE_SKILLS:
             DrawCampSkillsPage();
             break;
-        case 3:
+        case W8_CAMP_PAGE_SPELLS:
             DrawCampSpellPages();
             break;
-        case 4:
+        case W8_CAMP_PAGE_REGENERATION:
             DrawCampRegenStats();
             break;
         }
@@ -1606,7 +1610,7 @@ void DrawCampScreen(void)
         }
     }
     state->character_info->Redraw();
-    if (state->page == 0) {
+    if (state->page == W8_CAMP_PAGE_ITEMS) {
         RefreshCampActionPanel(false);
         RefreshItemsTabPanel(false);
         RefreshCampSecondaryPanel(false);
@@ -1615,10 +1619,10 @@ void DrawCampScreen(void)
             DrawCampItemIcons();
             state->item_icons_drawn = true;
         }
-    } else if (state->page == 1) {
+    } else if (state->page == W8_CAMP_PAGE_STATS) {
         state->stats_range->UpdateRange(false);
         state->stats_controls->Redraw();
-    } else if (state->page == 3) {
+    } else if (state->page == W8_CAMP_PAGE_SPELLS) {
         for (index = 0; index < 6; ++index) {
             state->spell_ranges[index]->UpdateRange(false);
         }
@@ -1659,7 +1663,7 @@ void SyncReviewCharInputRegion(void)
 /* Switch the active camp page: tear the old page down, record the new index,
    bring it up and repaint the whole character block. */
 // FUNCTION: WIZ8 0x005a4540
-void SwitchCampPage(int page)
+void SwitchCampPage(W8CampPage page)
 {
     DeactivateCampPage();
     g_camp_screen->page = page;
@@ -1677,8 +1681,8 @@ void ActivateCampPage(void)
     unsigned int index;
 
     RegionSetEnable(0x29);
-    if (state->page != 0) {
-        SetCampItemActionMode(0);
+    if (state->page != W8_CAMP_PAGE_ITEMS) {
+        SetCampItemActionMode(W8_CAMP_ITEM_ACTION_NONE);
     }
     if (giReviewCharSlot == -1) {
         for (index = 0; index < 8; ++index) {
@@ -1689,15 +1693,15 @@ void ActivateCampPage(void)
     } else {
         DisableRegionInput(0xf2);
     }
-    state->input_mode = 0;
+    state->header_mode = W8_CAMP_HEADER_SUMMARY;
     state->redraw_flags |= 0x7ff;
     switch (state->page) {
-    case 0:
+    case W8_CAMP_PAGE_ITEMS:
         RegionSetEnable(0x2a);
         EnableCampActionButtons();
         UpdateCampItemFilters();
         EnableCampSecondaryPanel();
-        SetCampInfoPageMode(state->item_mode);
+        SetCampInfoPageMode(state->info_page);
         state->item_range->m_range->EnableRegionSet(true);
         if (g_status.game_started) {
             RegionSetEnable(0x2b);
@@ -1706,21 +1710,23 @@ void ActivateCampPage(void)
             return;
         }
         break;
-    case 1:
+    case W8_CAMP_PAGE_STATS:
         RebuildCampEffectList();
         state->stats_range->m_range->EnableRegionSet(true);
         state->stats_controls->EnableRegionSet(true);
         state->character_info->SetEnabled(true);
         return;
-    case 2:
+    case W8_CAMP_PAGE_SKILLS:
         CreateCampSkillRegions();
         return;
-    case 3:
+    case W8_CAMP_PAGE_SPELLS:
         RegionSetEnable(0x2c);
         BuildLearnedSpellState(&state->learned_spells, g_review_character);
         RefreshCampSpellRanges();
         gXStatus.fSpellCastMode = false;
         state->selected_spell_row = -1;
+        break;
+    default:
         break;
     }
 }
@@ -1735,7 +1741,7 @@ void DeactivateCampPage(void)
     unsigned int index;
 
     switch (state->page) {
-    case 0:
+    case W8_CAMP_PAGE_ITEMS:
         RegionSetDisable(0x2a);
         DisableItemsRealmTabs();
         DisableCampActionButtons();
@@ -1747,7 +1753,7 @@ void DeactivateCampPage(void)
             return;
         }
         break;
-    case 1:
+    case W8_CAMP_PAGE_STATS:
         state->stats_range->m_range->EnableRegionSet(false);
         state->stats_controls->EnableRegionSet(false);
         state->character_info->SetEnabled(false);
@@ -1757,15 +1763,17 @@ void DeactivateCampPage(void)
             return;
         }
         break;
-    case 2:
+    case W8_CAMP_PAGE_SKILLS:
         DisableCampSkillRegions();
         for (index = 0; index < 0x29; ++index) {
-            g_review_character->skills[index].improved = 0;
+            g_review_character->skills[index].improved = false;
         }
         return;
-    case 3:
+    case W8_CAMP_PAGE_SPELLS:
         RegionSetDisable(0x2c);
         SetCampSpellRangesEnabled(false);
+        break;
+    default:
         break;
     }
 }
@@ -1862,9 +1870,9 @@ void RebuildCampItemList(void)
 }
 
 // FUNCTION: WIZ8 0x005a4bc0
-void SetCampInputMode(int mode)
+void SetCampHeaderMode(W8CampHeaderMode mode)
 {
-    g_camp_screen->input_mode = mode;
+    g_camp_screen->header_mode = mode;
     g_camp_screen->redraw_flags |= 0x7ff;
 }
 
@@ -1889,7 +1897,7 @@ void ShowCampNoticeLine(const wchar_t* text, W8DialogDestroyCallback callback, i
 
 /* The shared click handler for the camp item regions: a backpack slot arrives
    with origin 0, a worn slot with origin 1 and a party-pool row with origin
-   2. The screen's entry_mode picks the interpretation - plain handling,
+   2. The screen's item_action picks the interpretation - plain handling,
    identify, stack split, use, use held item on item - and the held item can
    merge onto the clicked stack, swap with it, or drop into the pool. */
 static void SelectPendingCampCharacter()
@@ -1905,15 +1913,15 @@ static void SelectPendingCampCharacter()
 }
 
 // FUNCTION: WIZ8 0x005a4c70
-void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned int origin)
+void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, W8ItemOrigin origin)
 {
     W8CombatSlot target;
     short related_kind;
     bool changed = false;
     bool merged = false;
     unsigned char partially_merged = 0;
-    bool merge_tried = 0;
-    bool same_kind = 0;
+    bool merge_tried = false;
+    bool same_kind = false;
     bool choose_character;
     unsigned int index;
     unsigned int old_pool_count;
@@ -1932,7 +1940,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                      "C:\\Projects\\Wizardry 8\\Local Screens\\ReviewCharacterScreen.cpp", 0x4e5,
                      0);
     }
-    if (origin >= 3) {
+    if (static_cast<unsigned int>(origin) >= W8_ITEM_ORIGIN_COUNT) {
         srAssertFail("uiSlotType < SLOT_TYPE_COUNT",
                      "C:\\Projects\\Wizardry 8\\Local Screens\\ReviewCharacterScreen.cpp", 0x4e6,
                      0);
@@ -1943,12 +1951,13 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
     if (g_status.item_in_cursor && item->iItemNo != -1 &&
         GetItemMergeKind(item->iItemNo, &related_kind) != 0 &&
         g_item_records[g_status.item_in_hand.iItemNo].unidentified_name_index == related_kind) {
-        same_kind = 1;
+        same_kind = true;
     }
     if (item->iItemNo == -1 && !g_status.item_in_cursor) {
         return;
     }
-    if (origin == 1 && g_status.item_in_cursor && g_camp_screen->entry_mode != 1) {
+    if (origin == W8_ITEM_ORIGIN_EQUIPPED && g_status.item_in_cursor &&
+        g_camp_screen->item_action != W8_CAMP_ITEM_ACTION_MOVE) {
         if (!same_kind && !CanEquipItemInSlot(g_review_character, g_status.item_in_hand.iItemNo,
                                               slot_index, true)) {
             return;
@@ -1957,7 +1966,8 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
             return;
         }
     }
-    if (g_camp_screen->entry_mode == 7 || g_camp_screen->entry_mode == 9) {
+    if (g_camp_screen->item_action == W8_CAMP_ITEM_ACTION_CAST_SPELL ||
+        g_camp_screen->item_action == W8_CAMP_ITEM_ACTION_USE_ON_CHARACTER) {
         return;
     }
     if (!g_status.game_started) {
@@ -1966,23 +1976,27 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
         return;
     }
     character = &g_status.buffers.Char[giReviewCharSlot];
-    if (character->uiCondition[W8_CONDITION_MISSING] != 0 && (origin == 1 || origin == 0)) {
+    if (character->uiCondition[W8_CONDITION_MISSING] != 0 &&
+        (origin == W8_ITEM_ORIGIN_EQUIPPED || origin == W8_ITEM_ORIGIN_BACKPACK)) {
         text = gppStringList[0x907];
         ShowCampNoticeLine(text, 0, 1, 0);
         return;
     }
-    if (character->uiCondition[W8_CONDITION_WEBBED] != 0 && (origin == 1 || origin == 0)) {
+    if (character->uiCondition[W8_CONDITION_WEBBED] != 0 &&
+        (origin == W8_ITEM_ORIGIN_EQUIPPED || origin == W8_ITEM_ORIGIN_BACKPACK)) {
         text = gppStringList[0x908];
         ShowCampNoticeLine(text, 0, 1, 0);
         return;
     }
-    if (character->uiCondition[W8_CONDITION_TURNCOAT] != 0 && (origin == 1 || origin == 0)) {
+    if (character->uiCondition[W8_CONDITION_TURNCOAT] != 0 &&
+        (origin == W8_ITEM_ORIGIN_EQUIPPED || origin == W8_ITEM_ORIGIN_BACKPACK)) {
         text = gppStringList[0x909];
         ShowCampNoticeLine(text, 0, 1, 0);
         return;
     }
-    if (character->highest_condition >= W8_CONDITION_TURNCOAT && origin != 2 &&
-        g_status.item_in_cursor && gXStatus.held_item_source != giReviewCharSlot) {
+    if (character->highest_condition >= W8_CONDITION_TURNCOAT &&
+        origin != W8_ITEM_ORIGIN_PARTY_POOL && g_status.item_in_cursor &&
+        gXStatus.held_item_source != giReviewCharSlot) {
         text = gppStringList[0x901];
         ShowCampNoticeLine(text, 0, 1, 0);
         return;
@@ -1992,20 +2006,21 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
        it only touches a weapon-class slot or folds into the same-kind merge.
        A weapon or shield being moved onto a slot it cannot pair with stays
        gated as well. */
-    bool gated = 1;
-    if (gXStatus.fCombatMode && origin != 2) {
+    bool gated = true;
+    if (gXStatus.fCombatMode && origin != W8_ITEM_ORIGIN_PARTY_POOL) {
         if (!g_status.item_in_cursor ||
             ((g_item_records[g_status.item_in_hand.iItemNo].equip_class ==
                   W8_ITEM_EQUIP_CLASS_THROWN_WEAPON ||
               g_item_records[g_status.item_in_hand.iItemNo].equip_class ==
                   W8_ITEM_EQUIP_CLASS_AMMUNITION) &&
              gXStatus.held_item_source == giReviewCharSlot &&
-             (origin != 1 || HeldItemFitsPairedSlot(giReviewCharSlot, equip_slot)))) {
+             (origin != W8_ITEM_ORIGIN_EQUIPPED ||
+              HeldItemFitsPairedSlot(giReviewCharSlot, equip_slot)))) {
             if (item->iItemNo == -1 ||
                 g_item_records[item->iItemNo].equip_class == W8_ITEM_EQUIP_CLASS_THROWN_WEAPON ||
                 g_item_records[item->iItemNo].equip_class == W8_ITEM_EQUIP_CLASS_AMMUNITION ||
                 same_kind) {
-                gated = 0;
+                gated = false;
             }
         }
     }
@@ -2016,20 +2031,20 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
         TakeItemUnitToHand(item, slot_index, origin);
         return;
     }
-    if (g_camp_screen->entry_mode == 2) {
-        party_slot = CharacterPointerToPartySlot(g_camp_entry_parameter);
+    if (g_camp_screen->item_action == W8_CAMP_ITEM_ACTION_IDENTIFY_SPELL) {
+        party_slot = CharacterPointerToPartySlot(g_camp_identifying_character);
         if (!CanItemLeaveItsSlot(item)) {
             QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_character_event_kind2,
                                 0, g_character_event_no_flags, g_character_event_full_volume);
             return;
         }
-        if (g_camp_entry_parameter == 0) {
+        if (g_camp_identifying_character == 0) {
             srAssertFail("gpIdentifyingPC != NULL",
                          "C:\\Projects\\Wizardry 8\\Local Screens\\ReviewCharacterScreen.cpp",
                          0x553, 0);
         }
         old_pool_count = g_status.party_item_count;
-        reidentify = 0;
+        reidentify = false;
         ResetCombatSlot(&target);
         target.iType = W8_TARGET_KIND_ITEM;
         target.pPCItem = item;
@@ -2038,13 +2053,14 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
         if (row->pending_action == W8_ACTION_USE_ITEM &&
             g_item_records[row->pending_action_detail.item_use.item->iItemNo].spell_id ==
                 0x17) {
-            reidentify = 1;
+            reidentify = true;
             result = CommitPartySlotItemUse(party_slot,
                                             row->pending_action_detail.item_use.item, &target);
         } else {
             result = CommitPartySlotSpell(party_slot, 0x17, 8, &target);
         }
-        if (origin == 2 && reidentify && old_pool_count != g_status.party_item_count) {
+        if (origin == W8_ITEM_ORIGIN_PARTY_POOL && reidentify &&
+            old_pool_count != g_status.party_item_count) {
             item = &g_status.party_item_pool[g_status.party_item_count - old_pool_count +
                                                   slot_index];
             RebuildCampItemList();
@@ -2061,31 +2077,31 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                                     g_character_event_full_volume);
             }
         }
-        SetCampItemActionMode(0);
+        SetCampItemActionMode(W8_CAMP_ITEM_ACTION_NONE);
         return;
     }
-    if (g_camp_screen->entry_mode == 8) {
+    if (g_camp_screen->item_action == W8_CAMP_ITEM_ACTION_USE_ON_ITEM) {
         UseHeldItemOnItem(item);
         return;
     }
-    if (g_camp_screen->entry_mode == 3) {
+    if (g_camp_screen->item_action == W8_CAMP_ITEM_ACTION_IDENTIFY) {
         IdentifyAndOpenItemInfo(item);
         return;
     }
-    if (g_camp_screen->entry_mode == 4) {
+    if (g_camp_screen->item_action == W8_CAMP_ITEM_ACTION_SPLIT_STACK) {
         if (item->iItemNo != -1) {
             OpenSplitStackDialog(item);
             return;
         }
-    } else if (g_camp_screen->entry_mode == 5) {
+    } else if (g_camp_screen->item_action == W8_CAMP_ITEM_ACTION_USE) {
         if (CanCharacterUseItemEntry(g_review_character, item) != 0) {
             UseCampItem(item);
         }
         return;
-    } else if (g_camp_screen->entry_mode == 1) {
+    } else if (g_camp_screen->item_action == W8_CAMP_ITEM_ACTION_MOVE) {
         if (g_status.item_in_cursor) {
             if (item->iItemNo == -1) {
-                SetCampItemActionMode(0);
+                SetCampItemActionMode(W8_CAMP_ITEM_ACTION_NONE);
                 return;
             }
             if (g_camp_character_pending) {
@@ -2096,14 +2112,14 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
             return;
         }
         if (item->iItemNo == -1) {
-            SetCampItemActionMode(0);
+            SetCampItemActionMode(W8_CAMP_ITEM_ACTION_NONE);
             return;
         }
     }
 
     /* Equipped items that may not be removed get one warning dialog and a
        bound mark; the next click then unequips them. */
-    if (item->iItemNo != -1 && origin == 1) {
+    if (item->iItemNo != -1 && origin == W8_ITEM_ORIGIN_EQUIPPED) {
         if (!CanUnequipSlotItem(g_review_character, equip_slot)) {
             text = gppStringList[0x90b];
             ShowCampNoticeLine(text, 0, 1, 0);
@@ -2118,15 +2134,15 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
 
     if (same_kind) {
         MergeItemUses(&g_status.buffers.Char[giReviewCharSlot], item, &g_status.item_in_hand);
-        SetCampItemActionMode(0);
-        changed = 1;
-        if (origin == 1) {
+        SetCampItemActionMode(W8_CAMP_ITEM_ACTION_NONE);
+        changed = true;
+        if (origin == W8_ITEM_ORIGIN_EQUIPPED) {
             RebuildEquipmentAndDerivedStatsForSlot(giReviewCharSlot);
             if (GetPairedEquipSlot(equip_slot) != -1) {
-                g_status.buffers.XChar[giReviewCharSlot].weapon_swap_pending = 0;
+                g_status.buffers.XChar[giReviewCharSlot].weapon_swap_pending = false;
             }
             RebuildCampItemList();
-        } else if (origin == 0) {
+        } else if (origin == W8_ITEM_ORIGIN_BACKPACK) {
             RecalculateCharacterDerivedStats(&g_status.buffers.Char[giReviewCharSlot]);
         } else {
             RebuildCampItemList();
@@ -2138,25 +2154,25 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
             g_item_records[g_status.item_in_hand.iItemNo].quantity_kind == W8_ITEM_QUANTITY_STACK) {
             if (item->iItemNo != -1 && item->iItemNo == g_status.item_in_hand.iItemNo) {
                 merged = MergeItemStacks(item, &g_status.item_in_hand, &partially_merged);
-                merge_tried = 1;
+                merge_tried = true;
             }
-            if (!merged && origin == 2) {
+            if (!merged && origin == W8_ITEM_ORIGIN_PARTY_POOL) {
                 for (index = 0; index < g_status.party_item_count; ++index) {
                     if (MergeItemStacks(&g_status.party_item_pool[index], &g_status.item_in_hand,
                                         &partially_merged)) {
-                        merged = 1;
+                        merged = true;
                         break;
                     }
                 }
             }
         }
-        if (origin == 2) {
+        if (origin == W8_ITEM_ORIGIN_PARTY_POOL) {
             if (!merged) {
                 if (g_status.item_in_cursor) {
                     if (g_camp_character_pending) {
                         SelectPendingCampCharacter();
                     } else if (InsertItemIntoPartyPool(&g_status.item_in_hand, slot_index) != 0) {
-                        changed = 1;
+                        changed = true;
                         RebuildCampItemList();
                     } else {
                         text = gppStringList[0x90c];
@@ -2165,11 +2181,11 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                 } else if (slot_index < g_status.party_item_count) {
                     /* An empty hand picks the clicked pool row up. */
                     CopyItemInstance(&g_status.item_in_hand, item, 0, true);
-                    changed = 1;
-                    if (g_camp_screen->entry_mode == 6) {
+                    changed = true;
+                    if (g_camp_screen->item_action == W8_CAMP_ITEM_ACTION_DROP) {
                         DropHeldCampItem();
                         RebuildCampItemList();
-                    } else if (g_camp_screen->entry_mode == 1) {
+                    } else if (g_camp_screen->item_action == W8_CAMP_ITEM_ACTION_MOVE) {
                         SetHandCursors(0);
                         RebuildCampItemList();
                     } else {
@@ -2181,11 +2197,11 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
             if (!merge_tried && ((!g_status.item_in_cursor && item->iItemNo != -1) ||
                                  (g_status.item_in_cursor && !merged))) {
                 if (!g_camp_character_pending || g_camp_character == g_review_character) {
-                    g_camp_character_pending = 0;
+                    g_camp_character_pending = false;
                     if (item->iItemNo != -1 && (giReviewCharSlot == 0 || giReviewCharSlot == 1)) {
                         npc = GetNpcState(g_status.buffers.XChar[giReviewCharSlot].npc_index);
                         if (npc != 0 && NpcWantsItem(npc, item)) {
-                            g_camp_character_pending = 1;
+                            g_camp_character_pending = true;
                             g_camp_character = g_review_character;
                         }
                     }
@@ -2194,7 +2210,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                         DeliverExceptionalItemReaction(&g_status.item_in_hand,
                                                        choose_character, g_review_character);
                     }
-                    if (origin == 1 && g_status.item_in_cursor &&
+                    if (origin == W8_ITEM_ORIGIN_EQUIPPED && g_status.item_in_cursor &&
                         !HeldItemFitsPairedSlot(giReviewCharSlot, equip_slot)) {
                         paired_slot = GetPairedEquipSlot(equip_slot);
                         paired = &g_review_character->EquippedItem[paired_slot];
@@ -2211,23 +2227,23 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                         if (item->iItemNo == -1) {
                             SwapItemInstances(item, &g_status.item_in_hand, g_review_character,
                                               true);
-                            g_camp_character_pending = 0;
+                            g_camp_character_pending = false;
                             if (paired->iItemNo != -1 &&
                                 (giReviewCharSlot == 0 || giReviewCharSlot == 1)) {
                                 npc =
                                     GetNpcState(g_status.buffers.XChar[giReviewCharSlot].npc_index);
                                 if (npc != 0 && NpcWantsItem(npc, paired)) {
-                                    g_camp_character_pending = 1;
+                                    g_camp_character_pending = true;
                                     g_camp_character = g_review_character;
                                 }
                             }
                             SwapItemInstances(paired, &g_status.item_in_hand, g_review_character,
                                               true);
-                            changed = 1;
+                            changed = true;
                         } else if (AddItemToCharacter(g_review_character, paired, 0, 0, true)) {
                             SwapItemInstances(item, &g_status.item_in_hand, g_review_character,
                                               true);
-                            changed = 1;
+                            changed = true;
                         } else {
                             if (giReviewCharSlot == 0 || giReviewCharSlot == 1) {
                                 if (NpcWantsItem(
@@ -2246,12 +2262,13 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                             }
                             SwapItemInstances(item, &g_status.item_in_hand, g_review_character,
                                               true);
-                            changed = 1;
+                            changed = true;
                         }
                     } else {
                         SwapItemInstances(item, &g_status.item_in_hand, g_review_character, true);
-                        changed = 1;
-                        if (origin == 0 && g_review_character->backpack[slot_index].iItemNo != -1 &&
+                        changed = true;
+                        if (origin == W8_ITEM_ORIGIN_BACKPACK &&
+                            g_review_character->backpack[slot_index].iItemNo != -1 &&
                             Random(100) < 5) {
                             QueueCharacterEvent(g_review_character, g_special_event14, 0,
                                                 g_character_event_no_flags,
@@ -2262,19 +2279,20 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                     SelectPendingCampCharacter();
                 }
             }
-            if (g_camp_screen->entry_mode == 6 && g_status.item_in_cursor) {
+            if (g_camp_screen->item_action == W8_CAMP_ITEM_ACTION_DROP && g_status.item_in_cursor) {
                 DropHeldCampItem();
-            } else if (g_camp_screen->entry_mode == 1 && g_status.item_in_cursor) {
+            } else if (g_camp_screen->item_action == W8_CAMP_ITEM_ACTION_MOVE &&
+                       g_status.item_in_cursor) {
                 SetHandCursors(0);
             }
             if (changed) {
-                if (origin == 1) {
+                if (origin == W8_ITEM_ORIGIN_EQUIPPED) {
                     RebuildEquipmentAndDerivedStatsForSlot(giReviewCharSlot);
                     if (GetPairedEquipSlot(equip_slot) != -1) {
-                        g_status.buffers.XChar[giReviewCharSlot].weapon_swap_pending = 0;
+                        g_status.buffers.XChar[giReviewCharSlot].weapon_swap_pending = false;
                     }
                     RebuildCampItemList();
-                } else if (origin == 0) {
+                } else if (origin == W8_ITEM_ORIGIN_BACKPACK) {
                     RecalculateCharacterDerivedStats(&g_status.buffers.Char[giReviewCharSlot]);
                 } else {
                     RebuildCampItemList();
@@ -2292,14 +2310,14 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
     if (gfKeyState[0x11]) {
         g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;
     } else {
-        if (origin == 0) {
+        if (origin == W8_ITEM_ORIGIN_BACKPACK) {
             if (partially_merged != 0 || merged) {
                 g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_BACKPACK;
             } else {
                 g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_BACKPACK_CELL_FIRST
                                                     << slot_index;
             }
-        } else if (origin == 1) {
+        } else if (origin == W8_ITEM_ORIGIN_EQUIPPED) {
             if (partially_merged != 0 || merged) {
                 g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_EQUIPMENT_CELL_FIRST
                                                     << slot_index;
@@ -2307,7 +2325,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                 g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_CHARACTER_INFO;
                 g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_PORTRAIT;
             }
-        } else if (origin == 2) {
+        } else if (origin == W8_ITEM_ORIGIN_PARTY_POOL) {
             g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_POOL;
         }
         g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_EQUIPMENT_CELLS;
@@ -2319,12 +2337,12 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
 }
 
 // FUNCTION: WIZ8 0x005a5da0
-void TakeItemUnitToHand(W8ItemInstance* item, unsigned short slot, unsigned int origin)
+void TakeItemUnitToHand(W8ItemInstance* item, unsigned short slot, W8ItemOrigin origin)
 {
     W8ItemInstance single;
     bool moved = false;
 
-    if (g_camp_screen->entry_mode != 0) {
+    if (g_camp_screen->item_action != W8_CAMP_ITEM_ACTION_NONE) {
         return;
     }
     if (item->iItemNo == -1) {
@@ -2337,7 +2355,7 @@ void TakeItemUnitToHand(W8ItemInstance* item, unsigned short slot, unsigned int 
         single = *item;
         single.stack_count = 1;
         --item->stack_count;
-        if (origin == 1 || origin == 0) {
+        if (origin == W8_ITEM_ORIGIN_EQUIPPED || origin == W8_ITEM_ORIGIN_BACKPACK) {
             CopyItemInstance(&g_status.item_in_hand, &single,
                              &g_status.buffers.Char[giReviewCharSlot], true);
             gXStatus.held_item_origin = origin;
@@ -2345,13 +2363,13 @@ void TakeItemUnitToHand(W8ItemInstance* item, unsigned short slot, unsigned int 
         } else {
             CopyItemInstance(&g_status.item_in_hand, &single, 0, true);
         }
-        moved = 1;
+        moved = true;
     } else if (item->iItemNo == g_status.item_in_hand.iItemNo &&
                g_status.item_in_hand.stack_count <
                    g_item_records[g_status.item_in_hand.iItemNo].maximum_quantity) {
         ++g_status.item_in_hand.stack_count;
         --item->stack_count;
-        moved = 1;
+        moved = true;
     }
     if (item->stack_count == 0) {
         EmptyItemRecord(item, g_review_character, true);
@@ -2382,13 +2400,13 @@ bool ResolvePendingCampCharacter(bool force)
         if (IsPartySlotEligible(giReviewCharSlot)) {
             QueueCharacterEvent(g_camp_character, g_effect36, 0, g_effect_argument0,
                                 g_character_event_full_volume);
-            return 0;
+            return false;
         }
         text = FormatWideString(gppStringList[0x931], g_camp_character->name);
         ShowCampNoticeLine(text, 0, 1, 0);
-        return 0;
+        return false;
     }
-    return 1;
+    return true;
 }
 
 /* When the reviewed slot is one of the two companion slots and its bound NPC
@@ -2399,11 +2417,11 @@ void MarkCampCharacterPending(W8ItemInstance* item)
 {
     W8NpcState* npc;
 
-    g_camp_character_pending = 0;
+    g_camp_character_pending = false;
     if (item->iItemNo != -1 && (giReviewCharSlot == 0 || giReviewCharSlot == 1)) {
         npc = GetNpcState(g_status.buffers.XChar[giReviewCharSlot].npc_index);
         if (npc != 0 && NpcWantsItem(npc, item)) {
-            g_camp_character_pending = 1;
+            g_camp_character_pending = true;
             g_camp_character = g_review_character;
         }
     }
@@ -2420,7 +2438,7 @@ bool IsCampActionAllowed(int party_slot)
     W8Character* character;
 
     if (!gXStatus.fCombatMode) {
-        return 1;
+        return true;
     }
     character = &g_status.buffers.Char[party_slot];
     if (character->uiCondition[W8_CONDITION_DEAD] != 0 ||
@@ -2428,7 +2446,7 @@ bool IsCampActionAllowed(int party_slot)
         character->uiCondition[W8_CONDITION_PARALYZED] != 0 ||
         character->uiCondition[W8_CONDITION_ASLEEP] != 0) {
         if (g_combat_state->equip_phase != 0) {
-            return 1;
+            return true;
         }
         message = gppStringList[0x90a];
     } else {
@@ -2449,7 +2467,7 @@ bool IsCampActionAllowed(int party_slot)
             }
         } else {
             if (row->pending_action == W8_ACTION_EQUIP) {
-                return 1;
+                return true;
             }
             if (row->action == W8_ACTION_EQUIP) {
                 message = gppStringList[0x904];
@@ -2459,7 +2477,7 @@ bool IsCampActionAllowed(int party_slot)
         }
     }
     ShowCampNoticeLine(message, 0, 1, 0);
-    return 0;
+    return false;
 }
 
 // FUNCTION: WIZ8 0x005A6310
@@ -2468,9 +2486,9 @@ bool IsEquippableItemClass(W8ItemInstance* item)
     char equip_class = g_item_records[item->iItemNo].equip_class;
     if (equip_class != W8_ITEM_EQUIP_CLASS_THROWN_WEAPON &&
         equip_class != W8_ITEM_EQUIP_CLASS_AMMUNITION) {
-        return 0;
+        return false;
     }
-    return 1;
+    return true;
 }
 
 /* Books a party slot's spell cast: stamps the row's cast-spell action with
@@ -2552,22 +2570,22 @@ void BeginEndgameSequence(void)
 {
     int fade_to_black = 0;
     int fade_code = 0x5dc;
-    bool endgame_variant = 0;
+    bool endgame_variant = false;
 
-    g_status.endgame_started = 1;
+    g_status.endgame_started = true;
     UpdateHeldItemCursor();
     if (GetFact(W8_FACT_ENDING_BOFFO_ONE) != 0) {
         fade_to_black = 1;
     } else if (GetFact(W8_FACT_ENDGAME_JOIN_SAVANT) != 0) {
         fade_code = 1;
-        endgame_variant = 1;
+        endgame_variant = true;
     }
     MSYS_Init();
     ResetRegions();
     ActivateDialogRegion(0x138);
     VideoRemoveToolTip();
-    g_level_block->transition_pending = 1;
-    g_level_block->review_transition_active = 1;
+    g_level_block->transition_pending = true;
+    g_level_block->review_transition_active = true;
     BeginScreenFade(fade_to_black, 0, fade_code, ShowEndingScreen, true, endgame_variant);
 }
 
@@ -2587,7 +2605,7 @@ void BeginScreenFade(int fade_to_black, int fade_out, int duration, void (*callb
     g_fade_out = fade_out;
     g_fade_callback = callback;
     g_fade_flag = arg_6;
-    g_level_block->review_transition_done = 1;
+    g_level_block->review_transition_done = true;
     if (flag) {
         SetFullscreenSceneLast(1);
     }
@@ -2629,7 +2647,7 @@ unsigned char UpdateScreenFade(void)
     }
     unsigned long elapsed = GetTickCount() - g_fade_tick_base;
     if (g_fade_duration < elapsed) {
-        g_level_block->review_transition_done = 0;
+        g_level_block->review_transition_done = false;
         if (g_fade_out == 0) {
             static_cast<srMaterial*>(static_cast<srMeshModel*>(g_fade_overlay->getModel())
                                          ->getMaterial(0, srMeshModel::SIDE_FRONT))
@@ -2682,9 +2700,9 @@ void BeginPartyDeath(void)
     ResetRegions();
     ActivateDialogRegion(0x138);
     VideoRemoveToolTip();
-    g_level_block->transition_pending = 1;
+    g_level_block->transition_pending = true;
     BeginScreenFade(1, 0, 0x7d0, DrawPartyDeathScreen, true, 0);
-    g_level_block->review_transition_active = 1;
+    g_level_block->review_transition_active = true;
 }
 
 /* Pump the post-fade review/death state: on the first tick an armed ending
@@ -2707,7 +2725,7 @@ void PumpReviewTransition(void)
             SetMainMenuMessage(
                 FormatWideString(L"%s %S.%S", gppStringList[0x78b], name, g_save_extension));
         }
-        g_ending_autosave = 0;
+        g_ending_autosave = false;
     }
     if (g_status.current_level != -1) {
         LoadCurrentLevelData();
@@ -2766,10 +2784,10 @@ void EndReviewTransition(void)
     }
     g_world_render_enabled = 1;
     ResetMainGameMode();
-    g_level_block->review_transition_active = 0;
+    g_level_block->review_transition_active = false;
     if (g_ending_screen) {
         SetPendingScreenState(W8_SCREEN_CREDITS);
-        g_ending_screen = 0;
+        g_ending_screen = false;
         return;
     }
     StopMusicPlaylist(true);
@@ -2795,8 +2813,8 @@ void ShowEndingScreen(void)
     fade_to_black = 0;
     schedule_fade = true;
     music = "EndCredit.MPL";
-    g_ending_screen = 1;
-    g_ending_autosave = 1;
+    g_ending_screen = true;
+    g_ending_autosave = true;
     if (GetFact(W8_FACT_ENDGAME_JOIN_SAVANT) != 0) {
         image = 0x1e1;
         schedule_fade = false;
@@ -2816,8 +2834,8 @@ void ShowEndingScreen(void)
         wcscpy(text, gppStringList[0x78a]);
         sound = "Data\\Sound\\NPCs\\VOC_ENDGAME4\\VOC_ENDGAME4_000.mp3";
         music = "CombatLose.MPL";
-        g_ending_screen = 0;
-        g_ending_autosave = 0;
+        g_ending_screen = false;
+        g_ending_autosave = false;
     } else {
         image = 0x1df;
         sound = "";

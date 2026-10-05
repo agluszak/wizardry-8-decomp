@@ -140,7 +140,7 @@ void SyncPartyPortraitVitalsBars(void)
                 spell_bar != static_cast<unsigned int>(entry->cached_spell_bar) ||
                 (g_settings.numeric_hit_points != 0 &&
                  static_cast<int>(character->hp_current) != entry->cached_hp)) {
-                entry->portrait_stats_dirty = 1;
+                entry->portrait_stats_dirty = true;
                 RequestRedraw(W8_MAIN_REDRAW_FRAME);
             }
         }
@@ -168,17 +168,17 @@ void RecordCharacterDamage(int party_slot, unsigned int amount)
     W8MonsterManagerEntry* entry = &gXStatus.monster_manager_entries[party_slot];
     if (!entry->damage_splat_active) {
         entry->damage_splat_amount = amount;
-        entry->damage_splat_active = 1;
+        entry->damage_splat_active = true;
         if (Random(2) == 0) {
             entry->damage_splat_catalog = 0x90;
         } else {
             entry->damage_splat_catalog = 0x91;
         }
         if (g_status.buffers.Char[party_slot].hp_current == 0) {
-            entry->damage_splat_death_variant = 1;
+            entry->damage_splat_death_variant = true;
             entry->damage_splat_end_frame = 0x1e;
         } else {
-            entry->damage_splat_death_variant = 0;
+            entry->damage_splat_death_variant = false;
             entry->damage_splat_end_frame = 8;
         }
         entry->damage_splat_frame = 0;
@@ -186,7 +186,7 @@ void RecordCharacterDamage(int party_slot, unsigned int amount)
         if (g_settings.main_ui_mode != W8_MAIN_UI_MODE_PORTRAITS &&
             g_level_block->portrait_refresh_pending[party_slot] == 0) {
             RefreshSelectedPartyPortrait(party_slot);
-            entry->auto_portrait_refresh = 1;
+            entry->auto_portrait_refresh = true;
             entry->damage_splat_frame = -1;
         }
     } else {
@@ -194,7 +194,7 @@ void RecordCharacterDamage(int party_slot, unsigned int amount)
         entry->damage_splat_frame = 0;
         if (g_status.buffers.Char[party_slot].hp_current == 0 &&
             !entry->damage_splat_death_variant) {
-            entry->damage_splat_death_variant = 1;
+            entry->damage_splat_death_variant = true;
             entry->damage_splat_end_frame = 0x1e;
         }
     }
@@ -251,7 +251,7 @@ static void DrawDamageSplatOverlay(unsigned int party_slot)
             splat_text.RenderToTarget(0, 0, -0xe);
         }
         if (gXStatus.fCombatMode) {
-            entry->combat_portrait_dirty = 1;
+            entry->combat_portrait_dirty = true;
         }
     }
 }
@@ -308,23 +308,23 @@ void TickPartyPortraitFx(void)
         if (entry->damage_splat_active) {
             if (clock_expired) {
                 ++entry->damage_splat_frame;
-                dirty = 1;
+                dirty = true;
             }
             if (entry->damage_splat_frame == entry->damage_splat_end_frame) {
-                entry->damage_splat_active = 0;
-                entry->damage_splat_death_variant = 0;
+                entry->damage_splat_active = false;
+                entry->damage_splat_death_variant = false;
             } else if (entry->damage_splat_death_variant && entry->damage_splat_frame == 0xd &&
                        !entry->dead_portrait_revealed) {
-                entry->dead_portrait_revealed = 1;
+                entry->dead_portrait_revealed = true;
             }
         }
         if (entry->effect_icon_active) {
             if (clock_expired) {
                 ++entry->effect_icon_frame;
-                dirty = 1;
+                dirty = true;
             }
             if (entry->effect_icon_frame == entry->effect_icon_end_frame) {
-                entry->effect_icon_active = 0;
+                entry->effect_icon_active = false;
             }
         }
         if (clock_expired) {
@@ -350,12 +350,12 @@ void ResetPartyPortraitFx(void)
         if (!g_status.buffers.XChar[slot].fOccupied) {
             continue;
         }
-        entry->effect_icon_active = 0;
+        entry->effect_icon_active = false;
         entry->effect_icon_frame = -1;
         entry->effect_icon_catalog = -1;
-        entry->damage_splat_active = 0;
-        entry->damage_splat_death_variant = 0;
-        entry->dead_portrait_revealed = 0;
+        entry->damage_splat_active = false;
+        entry->damage_splat_death_variant = false;
+        entry->dead_portrait_revealed = false;
         entry->damage_splat_frame = -1;
         entry->portrait_fx_clock = SetCountdownClock(0);
     }
@@ -415,7 +415,7 @@ void RedrawCombatPortraits(void)
                 g_status.buffers.XChar[party_row->target_in_combat.iChar].party_order_index,
                 badge_x, row_y + 0x38, 2, 0);
         }
-        entry->combat_portrait_dirty = 0;
+        entry->combat_portrait_dirty = false;
     }
 }
 
@@ -608,7 +608,7 @@ void RedrawPartyPortraitBars(unsigned int party_slot, bool slot_enabled)
         }
     }
 
-    entry->portrait_stats_dirty = 0;
+    entry->portrait_stats_dirty = false;
 }
 
 // FUNCTION: WIZ8 0x0059AF40
@@ -618,7 +618,7 @@ void StageMonsterCastIcon(unsigned int party_slot, W8SpellRealm realm, bool alte
         return;
     }
     W8MonsterManagerEntry* entry = &gXStatus.monster_manager_entries[party_slot];
-    entry->effect_icon_active = 1;
+    entry->effect_icon_active = true;
     entry->effect_icon_frame = 0;
     int catalog;
     switch (realm) {
@@ -653,7 +653,7 @@ void StageMonsterCastIcon(unsigned int party_slot, W8SpellRealm realm, bool alte
     if (g_settings.main_ui_mode != W8_MAIN_UI_MODE_PORTRAITS &&
         g_level_block->portrait_refresh_pending[party_slot] == 0) {
         RefreshSelectedPartyPortrait(party_slot);
-        entry->auto_portrait_refresh = 1;
+        entry->auto_portrait_refresh = true;
         entry->effect_icon_frame = -1;
     }
     if (!entry->keyboard_menu_open) {
@@ -671,7 +671,7 @@ bool PreparePartyPortraitOverlay(unsigned int party_slot, unsigned int left, uns
 {
     if (gXStatus.fNpcDialogueMode && (party_slot & 1) != 0 &&
         IsPortraitObscuredByNpcDialogue(party_slot)) {
-        return 0;
+        return false;
     }
     if ((g_level_block == 0 ||
          (g_settings.main_ui_mode != W8_MAIN_UI_MODE_FORMATION &&
@@ -690,11 +690,11 @@ bool PreparePartyPortraitOverlay(unsigned int party_slot, unsigned int left, uns
                 ((gXStatus.fCombatMode && g_combat_state->characters[party_slot].dead) ||
                  gXStatus.fSurprisePossible ||
                  character->highest_condition == W8_CONDITION_MISSING)) {
-                return 1;
+                return true;
             }
         }
     }
-    return 0;
+    return false;
 }
 
 /* Repaint one party-slot portrait band: frame, live or dead portrait, item
@@ -776,10 +776,10 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, bool highlighted, bool 
                 main_hand_item_id = character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].iItemNo;
                 if (main_hand_item_id == -1 ||
                     (g_item_records[main_hand_item_id].flags & W8_ITEM_FLAG_TWO_HANDED) == 0) {
-                    show_off_hand_row = 0;
+                    show_off_hand_row = false;
                     hp_bar_frame = 0;
                 } else {
-                    show_off_hand_row = 1;
+                    show_off_hand_row = true;
                     hp_bar_frame = 2;
                 }
                 DrawCatalogImage(-14, 0x80, 0, static_cast<short>(hp_bar_frame), band_menu_edge,
@@ -879,7 +879,7 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, bool highlighted, bool 
             SetObjectShade(g_wiz_text_font_secondary_object, 4);
 
             if (gXStatus.fCombatMode) {
-                entry->combat_portrait_dirty = 1;
+                entry->combat_portrait_dirty = true;
             }
             g_condition_buttons[party_slot]->Invalidate(false);
         }

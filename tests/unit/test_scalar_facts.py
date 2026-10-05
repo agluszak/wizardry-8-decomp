@@ -1902,3 +1902,49 @@ def test_boolean_literal_patch_blocks_shared_nonbool_owner(scalar, tmp_path):
         facts, [], tmp_path, tmp_path / "recovery.patch", boolean_expressions=True
     )
     assert report["changed_expressions"] == []
+
+
+@pytest.mark.parametrize(
+    "kind,text,column,expected",
+    [
+        ("field", "obj.flag = 1;\n", 10, "obj.flag = true;"),
+        ("function", "return 0;\n", 1, "return false;"),
+        ("variable", "bool flag = 1;\n", 6, "bool flag = true;"),
+    ],
+)
+def test_boolean_literal_patch_understands_producer_locations(
+    scalar, tmp_path, kind, text, column, expected
+):
+    facts = boolean_expression_facts(scalar, tmp_path, text, [])
+    value = int("1" in text)
+    facts.declarations["flag"] = scalar.DeclarationFact(
+        "flag", "owner.h", 1, 1, kind, "flag", False, False, 8, "unsigned", "bool", "bool"
+    )
+    facts.constant_locations.add(("flag", value, "src/wiz8/test.cpp", 1, column))
+    report = scalar.write_recovery_patch(
+        facts, [], tmp_path, tmp_path / "recovery.patch", boolean_expressions=True
+    )
+    assert len(report["changed_expressions"]) == 1
+    assert "+" + expected in (tmp_path / "recovery.patch").read_text()
+
+
+@pytest.mark.parametrize("text", ["obj.flag = 1 + 0;\n", "obj.flag = ONE;\n", "return (0);\n"])
+def test_boolean_producer_patch_leaves_nonliteral_expressions(scalar, tmp_path, text):
+    facts = boolean_expression_facts(scalar, tmp_path, text, [])
+    kind = "function" if text.startswith("return") else "field"
+    facts.declarations["flag"] = scalar.DeclarationFact(
+        "flag", "owner.h", 1, 1, kind, "flag", False, False, 8, "unsigned", "bool", "bool"
+    )
+    facts.constant_locations.add(
+        (
+            "flag",
+            int(not text.startswith("return")),
+            "src/wiz8/test.cpp",
+            1,
+            1 if kind == "function" else 10,
+        )
+    )
+    report = scalar.write_recovery_patch(
+        facts, [], tmp_path, tmp_path / "recovery.patch", boolean_expressions=True
+    )
+    assert report["changed_expressions"] == []

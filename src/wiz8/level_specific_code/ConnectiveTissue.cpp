@@ -27,7 +27,7 @@ bool ConnectiveTissueLiche(Trigger* pTrigger)
 
     if (GetItemInHand() != 0x15d && pTrigger->action == 0) {
         ShowLevelMessage(6);
-        g_trigger_feedback = 1;
+        g_trigger_feedback = true;
         return false;
     }
     ShowLevelMessage(7);

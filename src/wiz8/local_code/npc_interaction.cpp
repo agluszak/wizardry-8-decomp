@@ -35,17 +35,17 @@ bool IsPartySlotEligible(int slot)
     bool eligible;
 
     if (slot < 0) {
-        return 0;
+        return false;
     }
     if (slot >= 8) {
-        return 0;
+        return false;
     }
     if (!g_status.buffers.XChar[slot].fOccupied) {
-        return 0;
+        return false;
     }
     character = &g_status.buffers.Char[slot];
     if (character->hp_current == 0) {
-        return 0;
+        return false;
     }
     eligible = character->highest_condition < W8_CONDITION_TURNCOAT;
     return eligible;

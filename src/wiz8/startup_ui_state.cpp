@@ -18,7 +18,7 @@ unsigned char InitializeRegionHelpState(void)
     g_current_region_index = 0;
     g_captured_region_index = 0;
     g_hover_region_index = 0;
-    g_region_help_force_enabled = 0;
+    g_region_help_force_enabled = false;
     if (g_default_help_text) {
         delete[] g_default_help_text;
     }

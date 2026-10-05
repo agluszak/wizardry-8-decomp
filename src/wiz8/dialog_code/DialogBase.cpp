@@ -40,7 +40,7 @@ W8DialogBase::W8DialogBase()
     m_destroy_callback = 0;
     m_destroy_callback_context = 0;
     ++g_live_dialog_count;
-    m_right_button_down = 0;
+    m_right_button_down = false;
 }
 
 // FUNCTION: WIZ8 0x005dc860
@@ -268,7 +268,7 @@ void W8DialogBase::OnNumericInputChanged(int) {}
 // FUNCTION: WIZ8 0x005ad270
 void W8DialogBase::OnRightButtonDown()
 {
-    m_right_button_down = 1;
+    m_right_button_down = true;
 }
 
 // FUNCTION: WIZ8 0x005b1bf0

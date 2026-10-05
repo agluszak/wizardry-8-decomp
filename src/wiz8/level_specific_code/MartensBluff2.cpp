@@ -252,7 +252,7 @@ void MartensBluff2Spikeball(int command)
             g_master_functions->Add(MartensBluff2Spikeball);
         }
     }
-    g_remove_current_master_function = 0;
+    g_remove_current_master_function = false;
     if (g_spikeball_count < 0x10) {
         if (g_spikeball_count == 0 || g_spikeball_gate->IsFinished() ||
             (g_spikeball_gate->PollElapsedIntervals(), g_spikeball_gate->IsFinished())) {
@@ -348,7 +348,7 @@ bool MartensBluff2PerfumeBox(Trigger* pTrigger)
     if (GetItemInHand() != 0x2ea) {
         return false;
     }
-    g_trigger_feedback = 1;
+    g_trigger_feedback = true;
     ClearHeldItemDisplay();
     pTrigger->flags &= ~W8_TRIGGER_ENABLED;
     quest_state = 2;

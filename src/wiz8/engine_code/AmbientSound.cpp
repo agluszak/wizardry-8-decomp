@@ -91,7 +91,7 @@ unsigned char W8AmbientSound::IsInsideRegion(const srVector3T<float>* listener)
 // FUNCTION: WIZ8 0x00479350
 void W8AmbientSound::UpdatePosition(const srVector3T<float>* listener)
 {
-    bool handed_off = 0;
+    bool handed_off = false;
 
     if (stopped != 0) {
         return;
@@ -129,7 +129,7 @@ void W8AmbientSound::UpdatePosition(const srVector3T<float>* listener)
                                     match->fade_timer.GetTime() - match->fade_timer.m_start;
                                 match->fade_timer.SetDuration(-1.0f);
                                 sound_handle = -1;
-                                handed_off = 1;
+                                handed_off = true;
                             }
                         }
                         match = FindNextMatching(config.wave_name, match);

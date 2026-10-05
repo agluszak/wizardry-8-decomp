@@ -7,6 +7,20 @@
 struct Controls;
 class W8TextControl;
 
+/* Button order differs from W8CampItemAction's byte values. */
+enum W8CampItemActionButton {
+    W8_CAMP_ACTION_BUTTON_NONE = -1,
+    W8_CAMP_ACTION_BUTTON_IDENTIFY = 0,
+    W8_CAMP_ACTION_BUTTON_MOVE = 1,
+    W8_CAMP_ACTION_BUTTON_SPLIT_STACK = 2,
+    W8_CAMP_ACTION_BUTTON_USE = 3,
+    W8_CAMP_ACTION_BUTTON_DROP = 4,
+    W8_CAMP_ACTION_BUTTON_CAST_SPELL = 5,
+    W8_CAMP_ACTION_BUTTON_USE_ON_ITEM = 6,
+    W8_CAMP_ACTION_BUTTON_USE_ON_CHARACTER = 7,
+    W8_CAMP_ACTION_BUTTON_COUNT = 8
+};
+
 void DrawCampHeader(void);
 void DrawCampVitals(void);
 void DrawCampHands(void);
@@ -29,7 +43,7 @@ extern W8TextControl* g_dismiss_button;
 /* Five bottom page buttons created with the item-action strip by
    CreateCampButtonPanel (Items/Skills/...). */
 extern W8TextControl* g_camp_page_buttons[5];
-extern W8TextControl* g_item_action_controls[8];
+extern W8TextControl* g_item_action_controls[W8_CAMP_ACTION_BUTTON_COUNT];
 /* 0x0069C404: the bottom Controls panel CreateCampButtonPanel parents
    the page and item-action strips to. */
 extern Controls* g_item_actions_panel;
@@ -40,7 +54,8 @@ unsigned char CampPortraitSlotRegionEvent(const InputAtom* event,
                                           W8Region* region); /* 0x005B5F10 */
 unsigned char CampOpenCharacterScreenRegionEvent(const InputAtom* event,
                                                  W8Region* region);                /* 0x005B61A0 */
-unsigned char CampNameEditRegionEvent(const InputAtom* event, W8Region* region);   /* 0x005B6220 */
+unsigned char CampProfessionHistoryRegionEvent(const InputAtom* event,
+                                               W8Region* region);                  /* 0x005B6220 */
 unsigned char CampPageButtonRegionEvent(const InputAtom* event, W8Region* region); /* 0x005B62C0 */
 unsigned char CampItemActionRegionEvent(const InputAtom* event, W8Region* region); /* 0x005B6360 */
 unsigned char CampLevelUpButtonRegionEvent(const InputAtom* event,

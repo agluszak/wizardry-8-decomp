@@ -90,7 +90,7 @@ void SetPendingScreenState(W8ScreenId value)
 // FUNCTION: WIZ8 0x0055ec60
 void RequestScreenTransition(void)
 {
-    g_screen_return_requested = 1;
+    g_screen_return_requested = true;
 }
 
 // FUNCTION: WIZ8 0x0055EC70
@@ -134,7 +134,8 @@ void RefreshPartySlotDisplay(unsigned int party_slot)
         RefreshPartySelectionPortrait(party_slot);
         break;
     case W8_SCREEN_CAMP:
-        if (giReviewCharSlot == static_cast<int>(party_slot) && g_camp_screen->input_mode == 0) {
+        if (giReviewCharSlot == static_cast<int>(party_slot) &&
+            g_camp_screen->header_mode == W8_CAMP_HEADER_SUMMARY) {
             if (g_camp_screen->portrait_hovered[0] != 0) {
                 g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_PORTRAIT;
                 return;
@@ -171,16 +172,16 @@ void RefreshPartySlotDisplay(unsigned int party_slot)
             }
             overlay_ready =
                 PreparePartyPortraitOverlay(party_slot, (party_slot & 1) << 9 | 0x14, top);
-            highlighted = 0;
+            highlighted = false;
             if (party_slot == static_cast<unsigned int>(g_level_block->highlight_override) ||
                 party_slot ==
                     static_cast<unsigned int>(g_level_block->formation_highlight_party_slot) ||
                 party_slot == static_cast<unsigned int>(g_level_block->held_item_display)) {
-                highlighted = 1;
+                highlighted = true;
             }
             RedrawPartyPortraitOverlay(party_slot, highlighted, overlay_ready,
                                        g_level_block->portrait_refresh_pending[party_slot] == 0);
-            gXStatus.monster_manager_entries[party_slot].combat_portrait_dirty = 1;
+            gXStatus.monster_manager_entries[party_slot].combat_portrait_dirty = true;
             InvalidatePortraitControl(party_slot);
             return;
         }
@@ -291,22 +292,21 @@ void ClearHeldItemDisplay(void)
     }
 }
 
-/* The item-cursor state: the string index table the camp screens read through
-   GetTable647CCCEntry, and the held-item cursor bookkeeping. */
+/* Inline text colors selected by party order for skill and level-up notices. */
 
 // GLOBAL: WIZ8 0x00647ccc
-static unsigned char g_table0[8] = {7, 4, 6, 2, 5, 8, 9, 3};
+static unsigned char g_party_order_text_colors[8] = {7, 4, 6, 2, 5, 8, 9, 3};
 
 // FUNCTION: WIZ8 0x0055F2B0
-unsigned char GetTable647CCCEntry(signed char index)
+unsigned char GetPartyOrderTextColor(signed char party_order)
 {
-    return g_table0[index];
+    return g_party_order_text_colors[party_order];
 }
 
-/* Point the mouse cursor at an item's video object, blitting it down as well.
-   A negative held item id means the cursor keeps whatever it has. */
+/* Draw the held item as the cursor, then blit the supplied catalog video
+   object over it. A negative held item id leaves the cursor unchanged. */
 // FUNCTION: WIZ8 0x0055F160
-void SetItemCursor(int item_id)
+void SetItemCursor(int overlay_video_object)
 {
     int object;
     unsigned short y_offset;
@@ -318,8 +318,8 @@ void SetItemCursor(int item_id)
         y_offset = GetCatalogVideoObjectYOffset(object);
         handle = GetCatalogVideoObjectHandle(object, 0);
         SetMouseCursorFromVideoObject(handle, y_offset, 0, 0);
-        y_offset = GetCatalogVideoObjectYOffset(item_id);
-        handle = GetCatalogVideoObjectHandle(item_id, 0);
+        y_offset = GetCatalogVideoObjectYOffset(overlay_video_object);
+        handle = GetCatalogVideoObjectHandle(overlay_video_object, 0);
         BlitToMouseCursor(handle, y_offset, 0, 0);
         RefreshMouseCursorTexture();
         gXStatus.iCurrentCursor = W8_CURSOR_INVALID_TARGET;
@@ -354,10 +354,10 @@ void InitializeMainGameLevelBlock(void)
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
         g_level_block->redraw_flags = static_cast<unsigned int>(-1);
     }
-    g_level_block->transition_pending = 0;
+    g_level_block->transition_pending = false;
     g_level_block->camera_mode = 7;
     g_level_block->message_box_pending = IsMessageBoxActive();
-    g_level_block->portrait_strip_dirty = 0;
+    g_level_block->portrait_strip_dirty = false;
     g_level_block->flag3 = false;
     g_level_block->value_194 = -1;
     g_level_block->highlight_override = -1;
@@ -400,9 +400,9 @@ void InitializeMainGameLevelBlock(void)
     g_level_block->countdown1 = SetCountdownClock(0);
     g_level_block->countdown2 = SetCountdownClock(0xfa);
     g_level_block->flag4 = true;
-    g_level_block->text_box_visible = 1;
-    g_level_block->dialogue_text_input_open = 0;
-    g_level_block->mipe_editing = 0;
+    g_level_block->text_box_visible = true;
+    g_level_block->dialogue_text_input_open = false;
+    g_level_block->mipe_editing = false;
     g_level_block->dialogue_text_input = 0;
     g_level_block->value_278 = 0;
     g_level_block->tick = GetTickCount();
@@ -431,21 +431,21 @@ void InitializeMainGameLevelBlock(void)
     g_level_block->palette = g_wiz_text_font_secondary_palette;
     g_level_block->selection_kind = W8_ACTION_NONE;
     g_level_block->pending_action = -1;
-    g_level_block->selection_settled = 0;
+    g_level_block->selection_settled = false;
     g_level_block->tooltip_since = 0;
     g_level_block->tooltip_pending = false;
     g_level_block->tooltip_subject = -1;
     g_level_block->tooltip_kind = -1;
     g_level_block->countdown3 = SetCountdownClock(0);
     g_level_block->combat_slot = -1;
-    g_level_block->keyboard_menu_open = 0;
+    g_level_block->keyboard_menu_open = false;
     g_level_block->hover_combat_slot = -1;
     g_level_block->cursor_grace = 0;
     g_level_block->countdown4 = SetCountdownClock(0);
     g_level_block->portrait_right_hold_armed = false;
     g_level_block->formation_board_alternate = 0;
     g_level_block->radar_map_alternate = 0;
-    g_level_block->review_transition_active = 0;
+    g_level_block->review_transition_active = false;
     g_level_block->countdown5 = SetCountdownClock(0);
     ResetMessageStorage();
 }

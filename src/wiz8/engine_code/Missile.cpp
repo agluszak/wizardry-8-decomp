@@ -173,7 +173,7 @@ unsigned char UpdateMissileAI(W8AIMissile* record)
         }
         return 1;
     }
-    missile->flight_done = 1;
+    missile->flight_done = true;
     if (missile->missile_table_index == 0x23 &&
         (g_combat_state == 0 || g_combat_state->missile_hit_result != 2)) {
         missile->DetonateMissileSpell();
@@ -324,10 +324,10 @@ bool W8Missile::BlocksEndingCombat()
 {
     if (!flight_done) {
         if (GetAnimationState(6) != 1) {
-            return 1;
+            return true;
         }
     }
-    return 0;
+    return false;
 }
 
 // FUNCTION: WIZ8 0x004A57B0
@@ -472,7 +472,7 @@ W8Missile* AllocateMissile(int missile_table_index)
     }
     missile->missile_table_index = missile_table_index;
     missile->m_pRep->pending_cycle = 0;
-    missile->flight_done = 0;
+    missile->flight_done = false;
     if (missile->flight_done) {
         if (missile->missile_table_index == 0x23 &&
             (g_combat_state == 0 || g_combat_state->missile_hit_result != 2)) {
@@ -482,12 +482,12 @@ W8Missile* AllocateMissile(int missile_table_index)
             AbsorbMissileDamage(missile);
         }
     }
-    missile->impacting = 0;
+    missile->impacting = false;
     g_world->missiles->Add(missile);
     minimum = -125.0;
     maximum = 125.0;
     missile->SetBounds(&minimum, &maximum);
-    missile->active = 1;
+    missile->active = true;
     return missile;
 }
 
@@ -550,10 +550,10 @@ unsigned char LoadMissileCycle(W8GrCycleLoadContext* context, const char* name,
     PauseSharedGameTimers();
     more = 1;
     loaded = true;
-    gravity = 0;
-    align_camera = 0;
-    explode_ground = 0;
-    align_explosion = 0;
+    gravity = false;
+    align_camera = false;
+    explode_ground = false;
+    align_explosion = false;
     velocity = 15000.0f;
     sprintf(path, "data\\Missiles\\%s.mls", name);
     handle = FileOpen(path, 0x41, 0);
@@ -571,11 +571,11 @@ unsigned char LoadMissileCycle(W8GrCycleLoadContext* context, const char* name,
             sscanf(line, "%s %s", pacName, pacFileName);
             if (_stricmp("align_camera", pacName) != 0) {
                 if (_stricmp("explode_ground", pacName) == 0) {
-                    explode_ground = 1;
+                    explode_ground = true;
                 } else if (_stricmp("align_explosion", pacName) == 0) {
-                    align_explosion = 1;
+                    align_explosion = true;
                 } else if (_stricmp("gravity", pacName) == 0) {
-                    gravity = 1;
+                    gravity = true;
                 } else if (strcmp("velocity", pacName) == 0) {
                     sscanf(line, "%s %f", pacName, &velocity);
                 } else {
@@ -666,7 +666,7 @@ unsigned char LoadMissileCycle(W8GrCycleLoadContext* context, const char* name,
                     }
                 }
             } else {
-                align_camera = 1;
+                align_camera = true;
             }
         next_line:;
         }
@@ -1059,7 +1059,7 @@ void W8Missile::StartIfHostActive()
         }
         W8GrCycle::TickAnimation(1.0f);
     } else {
-        flight_done = 1;
+        flight_done = true;
         if (missile_table_index == 0x23 &&
             (g_combat_state == 0 || g_combat_state->missile_hit_result != 2)) {
             DetonateMissileSpell();
@@ -1350,13 +1350,13 @@ void W8Missile::EnterImpactCycle()
             srVector3T<float> position = representation->location;
             representation->pending_cycle = 1;
             representation->pending_behaviour = 1;
-            impacting = 1;
+            impacting = true;
             if (explode_ground) {
                 representation->location.y = SettlePositionToGround(&position, 0);
             }
         }
     } else {
-        flight_done = 1;
+        flight_done = true;
         if (missile_table_index == 0x23 &&
             (g_combat_state == 0 || g_combat_state->missile_hit_result != 2)) {
             DetonateMissileSpell();
@@ -1450,7 +1450,7 @@ bool W8Missile::OnCollision(W8Navigator* other)
         ResolveMissileHit(this, hit_result == 2);
     }
     EnterImpactCycle();
-    active = 0;
+    active = false;
     return true;
 
 miss:

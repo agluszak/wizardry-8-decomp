@@ -26,7 +26,7 @@ stTextureAnim::stTextureAnim()
     frame_tick = GetTickCount();
     trigger_mode = 0;
     probability = -1.0f;
-    running = 0;
+    running = false;
     textures = new W8Vector<srTextureIFace*>;
 }
 
@@ -107,7 +107,7 @@ void stTextureAnim::UpdateFrame()
 
     if (trigger_mode == 2) {
         if (!running && rand() / static_cast<float>(RAND_MAX) < probability) {
-            running = 1;
+            running = true;
             direction = 0;
             this->frame = 0;
             frame_tick = GetTickCount();
@@ -125,7 +125,7 @@ void stTextureAnim::UpdateFrame()
         int frame = (direction * elapsed_frames) % textures->GetCount();
         if (frame < this->frame) {
             this->frame = 0;
-            running = 0;
+            running = false;
             return;
         }
         this->frame = frame;
@@ -135,7 +135,7 @@ void stTextureAnim::UpdateFrame()
             this->frame = textures->GetCount() - elapsed_frames % textures->GetCount() - 1;
         } else {
             if (direction == -1) {
-                running = 0;
+                running = false;
                 return;
             }
             direction = 1;
@@ -143,7 +143,7 @@ void stTextureAnim::UpdateFrame()
         }
     } else if (animation_mode == 2) {
         if (elapsed_frames >= textures->GetCount()) {
-            running = 0;
+            running = false;
             this->frame = textures->GetCount() - 1 < 0 ? 0 : textures->GetCount() - 1;
         } else {
             this->frame = elapsed_frames;

@@ -410,7 +410,7 @@ bool SaveGame(const char* name, W8SaveScreenshot* screenshot)
         _chmod(path, _S_IREAD | _S_IWRITE);
     }
     if (chunks.OpenWrite(path) == 0) {
-        return 0;
+        return false;
     }
     if (_stricmp(name, "CurrentGame") != 0 &&
         current_game.OpenRead("Saves\\CurrentGame.SAV") != 0) {
@@ -485,7 +485,7 @@ bool SaveGame(const char* name, W8SaveScreenshot* screenshot)
     chunks.OpenChunk(0x4943504e, 0); /* NPCI */
     if (SaveNpcDialogueTranscript(chunks.m_hFile) == 0) {
         chunks.ReleaseCurrentChunk();
-        return 0;
+        return false;
     }
     chunks.ReleaseCurrentChunk();
     chunks.OpenChunk(0x5443504e, 0); /* NPCT */
@@ -506,10 +506,10 @@ bool SaveGame(const char* name, W8SaveScreenshot* screenshot)
         chunks.ReleaseCurrentChunk();
     }
     if (SaveStatusHeader(&chunks) == 0) {
-        return 0;
+        return false;
     }
     chunks.Close();
-    return 1;
+    return true;
 }
 
 /* Build the level-specific status path the save code falls back to when the
@@ -916,7 +916,7 @@ unsigned char LoadItemStatus(W8Chunk* chunk, int level)
 {
     unsigned int file_level;
     W8Chunk* stream = chunk;
-    bool result = 0;
+    bool result = false;
     int outer_count = stream->ChunkCount();
     unsigned int index;
 
@@ -937,7 +937,7 @@ unsigned char LoadItemStatus(W8Chunk* chunk, int level)
                     if (!g_level_status_loading) {
                         LoadDefaultLevelStatus(level);
                     }
-                    result = 1;
+                    result = true;
                     for (int inner = stream->ChunkCount(); inner > 0; --inner) {
                         stream->OpenChunk(0, 0);
                         if (stream->CurrentChunkAtEnd() == 0) {
@@ -1121,7 +1121,7 @@ unsigned char LoadMonsterGroup(W8Chunk* chunk)
         stream->Read(&is_encounter, 1, 0);
     }
     if (group->version < 3) {
-        group->forced_neutral = 0;
+        group->forced_neutral = false;
     }
     record = MonsterDBFromSpecies(group->monster_id);
     if (record == 0) {
@@ -1136,7 +1136,7 @@ unsigned char LoadMonsterGroup(W8Chunk* chunk)
         }
         group->member_count = 0;
         group->active_member_count = 0;
-        group->members_active = 0;
+        group->members_active = false;
         group->fInCombat = false;
         if (is_encounter) {
             index = PLAdoptAppend(gXStatus.plsMonsterGroupEncounterList, group);
@@ -1212,7 +1212,7 @@ unsigned char LoadMonster(W8Chunk* chunk)
             script_conditions.Add(value);
         }
     }
-    monster_info->fActive = 0;
+    monster_info->fActive = false;
     monster_info->p3D = 0;
     monster_info->fInCombat = false;
     monster_info->pCombat = 0;
@@ -1472,7 +1472,7 @@ W8WorldItem* LoadItem(int handle, bool add_to_list)
             return 0;
         }
         item->sector_id = -2;
-        item->fActive = 0;
+        item->fActive = false;
         item->p3D = 0;
         if (ItemHasFlags(item, 1)) {
             RegisterSearchableWorldItem(item);
@@ -1504,13 +1504,13 @@ bool SaveGameExists(void)
     char path[260];
     bool found;
 
-    found = 0;
+    found = false;
     memset(&find, 0, sizeof(find));
     sprintf(path, "%s\\*.%s", "Saves", g_save_extension);
     if (GetFileFirst(path, &find)) {
         sprintf(path, "%s\\%s", "Saves", find.zFileName);
         if (strcmp(path, "Saves\\CurrentGame.SAV") != 0 || GetFileNext(&find)) {
-            found = 1;
+            found = true;
         }
     }
     GetFileClose(&find);
@@ -1871,7 +1871,7 @@ void ProcessMainGameAutoSave(void)
         }
         saved = SaveGame(name, 0);
     } else {
-        saved = 1;
+        saved = true;
     }
     if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME) {
         return;
@@ -2048,7 +2048,7 @@ unsigned char MeasureLevelStatusChunks(W8Chunk* chunk, int level, unsigned int* 
                 chunk->OpenGroup();
                 chunk->Read(&stored_level, 4, 0);
                 if (stored_level == level) {
-                    found = 1;
+                    found = true;
                     chunk->SetCurrentChunkAtEnd();
                 }
                 chunk->SkipCurrentChunk();
@@ -2210,7 +2210,7 @@ unsigned char LoadSavedLevelItems(int level, W8GrowableVector<W8WorldItem*>* ite
                 chunk.OpenGroup();
                 chunk.Read(&file_level, 4, 0);
                 if (level == static_cast<int>(file_level)) {
-                    found = 1;
+                    found = true;
                     for (inner = chunk.ChunkCount(); inner > 0; --inner) {
                         chunk.OpenChunk(0, 0);
                         if (chunk.CurrentChunkAtEnd() == 0 &&

@@ -39,7 +39,7 @@ void MtGigas1Setup(void)
     W8Prop* prop;
 
     g_plate_prop = 0;
-    g_plate_down = 0;
+    g_plate_down = false;
     pTrigger = FindTriggerByName("plate");
     if (pTrigger != 0) {
         prop = pTrigger->GetProp();
@@ -52,7 +52,7 @@ void MtGigas1Setup(void)
         return;
     }
     if (GetLocationVarValueByName("PPlateDown") != 0) {
-        g_plate_down = 1;
+        g_plate_down = true;
     }
 }
 
@@ -71,7 +71,7 @@ bool MtGigas1Lift1(Trigger* pTrigger)
         item = &g_status.item_in_hand;
     }
     QueueNpcScriptNotice(npc, item, -1, false, 0);
-    g_trigger_feedback = 1;
+    g_trigger_feedback = true;
     return false;
 }
 
@@ -90,7 +90,7 @@ bool MtGigas1Lift2(Trigger* pTrigger)
         item = &g_status.item_in_hand;
     }
     QueueNpcScriptNotice(npc, item, -1, false, 0);
-    g_trigger_feedback = 1;
+    g_trigger_feedback = true;
     return false;
 }
 
@@ -114,11 +114,11 @@ bool MtGigas1PressurePlate(Trigger* pTrigger)
     position.x = static_cast<float>(camera_position.x);
     position.z = static_cast<float>(camera_position.z);
     g_plate_prop->ComputeBounds(&minimum, &maximum);
-    g_plate_contact = 0;
+    g_plate_contact = false;
     if ((position.x >= minimum.x && position.x <= maximum.x && position.z >= minimum.z &&
          position.z <= maximum.z) ||
         g_plate_prop->HasListEntries() != 0) {
-        g_plate_contact = 1;
+        g_plate_contact = true;
         if (g_plate_down) {
             return false;
         }
@@ -138,7 +138,7 @@ bool MtGigas1PressurePlate(Trigger* pTrigger)
                 prop->SetAnimationDirection(W8_ANIMATION_FORWARD);
             }
         }
-        g_plate_down = 1;
+        g_plate_down = true;
         SetTriggerVariableByName("PPlateDown", 1);
         SoundPlay("Data\\Sound\\Ambients\\Door Stone Open.wav", 0);
         SoundPlay("Data\\Sound\\Ambients\\Amb Rumble Very Low.wav", 0);
@@ -163,7 +163,7 @@ bool MtGigas1PressurePlate(Trigger* pTrigger)
             prop->SetAnimationDirection(W8_ANIMATION_REVERSE);
         }
     }
-    g_plate_down = 0;
+    g_plate_down = false;
     SetTriggerVariableByName("PPlateDown", 0);
     SoundPlay("Data\\Sound\\Ambients\\Door Stone Close 01.wav", 0);
     SoundPlay("Data\\Sound\\Ambients\\Amb Rumble Very Low.wav", 0);

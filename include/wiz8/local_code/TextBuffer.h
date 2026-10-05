@@ -57,7 +57,7 @@ public:
     }
     void SetGeometryDirty()
     {
-        m_geometryDirty = 1;
+        m_geometryDirty = true;
     }
     void SetRenderMode(int mode)
     {
@@ -69,7 +69,7 @@ public:
     }
     void MarkGeometryDirty(int mode)
     {
-        m_geometryDirty = 1;
+        m_geometryDirty = true;
         m_layoutMode = mode;
     }
 
