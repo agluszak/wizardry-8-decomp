@@ -742,7 +742,7 @@ unsigned char SetCharacterCondition(int party_slot, W8Condition condition, int d
     case W8_CONDITION_NAUSEATED:
     case W8_CONDITION_POISONED:
     case W8_CONDITION_ASLEEP:
-        if (CharacterHasTrait(character, 0x1e) != 0) {
+        if (CharacterHasTrait(character, static_cast<W8Trait>(0x1e)) != 0) {
             return 0;
         }
         break;

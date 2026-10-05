@@ -38,7 +38,7 @@
 // GLOBAL: WIZ8 0x0061ec94
 static wchar_t g_format_s_possessive[] = L"%s's";
 
-unsigned int GetCharacterSkillNoticeValue(W8Character* character, int skill_id)
+unsigned int GetCharacterSkillNoticeValue(W8Character* character, W8Skill skill_id)
 {
     unsigned int value = character->skills[skill_id].points;
     if (skill_id == g_profession_bonus_skills[character->iProfession]) {
@@ -51,7 +51,7 @@ void PostSkillIncreaseNotices(const W8SkillNoticePayload* notices)
 {
     for (int index = 0; index < notices->count; ++index) {
         int slot = notices->party_slots[index];
-        int skill = notices->skills[index];
+        W8Skill skill = static_cast<W8Skill>(notices->skills[index]);
         W8Character* character = &g_status.buffers.Char[slot];
         unsigned int value = GetCharacterSkillNoticeValue(character, skill);
         PostCharacterNotice(slot, gppStringList[0x1d9],
@@ -182,17 +182,45 @@ void InvalidateAndRecalculateCharacterClassData(W8Character* character)
    trait. */
 // GLOBAL: WIZ8 0x0061507C
 W8ProfessionAbilitySet g_profession_abilities[15] = {
-    {{0, 19, 20}},  {{1, -1, -1}},  {{2, -1, -1}},  {{4, 12, -1}}, {{3, 16, -1}},
-    {{5, 21, -1}},  {{6, 7, -1}},   {{9, -1, -1}},  {{8, -1, -1}}, {{10, -1, -1}},
-    {{11, 17, -1}}, {{18, -1, -1}}, {{13, 17, -1}}, {{3, 14, -1}}, {{15, -1, -1}},
+    {{W8_TRAIT_STAMINA_REGENERATION, W8_TRAIT_KNOCKOUT, W8_TRAIT_BERSERK}},
+    {{W8_TRAIT_HEALTH_REGENERATION, W8_TRAIT_NONE, W8_TRAIT_NONE}},
+    {{W8_TRAIT_CHEAT_DEATH, W8_TRAIT_NONE, W8_TRAIT_NONE}},
+    {{W8_TRAIT_RANGED_CRITICALS, W8_TRAIT_SEARCH, W8_TRAIT_NONE}},
+    {{W8_TRAIT_FEARLESS, W8_TRAIT_LIGHTNING_STRIKE, W8_TRAIT_NONE}},
+    {{W8_TRAIT_THROWN_CRITICALS, W8_TRAIT_THROWN_AUTO_PENETRATE, W8_TRAIT_NONE}},
+    {{W8_TRAIT_MONK_DAMAGE_RESISTANCE, W8_TRAIT_EFFECTIVE_WHILE_BLIND, W8_TRAIT_NONE}},
+    {{W8_TRAIT_BACKSTAB, W8_TRAIT_NONE, W8_TRAIT_NONE}},
+    {{W8_TRAIT_MERGE_GADGETS, W8_TRAIT_NONE, W8_TRAIT_NONE}},
+    {{W8_TRAIT_CAMP_RECOVERY_BONUS, W8_TRAIT_NONE, W8_TRAIT_NONE}},
+    {{W8_TRAIT_PRAY, W8_TRAIT_TURN_UNDEAD, W8_TRAIT_NONE}},
+    {{W8_TRAIT_MAKE_POTIONS, W8_TRAIT_NONE, W8_TRAIT_NONE}},
+    {{W8_TRAIT_REMOVE_CURSED_ITEMS, W8_TRAIT_TURN_UNDEAD, W8_TRAIT_NONE}},
+    {{W8_TRAIT_FEARLESS, W8_TRAIT_MENTAL_CONDITION_IMMUNITY, W8_TRAIT_NONE}},
+    {{W8_TRAIT_MAGIC_RESISTANCE_BONUS, W8_TRAIT_NONE, W8_TRAIT_NONE}},
 };
 
 // GLOBAL: WIZ8 0x00615130
 W8RaceAbilitySet g_race_abilities[16] = {
-    {{-1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1}}, {{29, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1}},
-    {{-1, -1, -1, -1, -1}}, {{22, 26, 23, 25, 24}}, {{27, -1, -1, -1, -1}}, {{28, -1, -1, -1, -1}},
-    {{-1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1}},
-    {{-1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1}}, {{30, 31, -1, -1, -1}},
+    {{W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE}},
+    {{W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE}},
+    {{W8_TRAIT_DWARF_DAMAGE_RESISTANCE, W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE,
+      W8_TRAIT_NONE}},
+    {{W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE}},
+    {{W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE}},
+    {{W8_TRAIT_FAERIE_BASE_ARMOR_CLASS, static_cast<W8Trait>(26), static_cast<W8Trait>(23),
+      static_cast<W8Trait>(25), W8_TRAIT_FAERIE_REDUCED_CARRY_CAPACITY}},
+    {{W8_TRAIT_LIZARDMAN_SLOW_MAGIC_RECOVERY, W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE,
+      W8_TRAIT_NONE}},
+    {{W8_TRAIT_BREATHE, W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE}},
+    {{W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE}},
+    {{W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE}},
+    {{W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE}},
+    {{W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE}},
+    {{W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE}},
+    {{W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE}},
+    {{W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE}},
+    {{static_cast<W8Trait>(30), W8_TRAIT_CANNOT_LEARN, W8_TRAIT_NONE, W8_TRAIT_NONE,
+      W8_TRAIT_NONE}},
 };
 
 // GLOBAL: WIZ8 0x00615270
@@ -220,7 +248,7 @@ W8RaceResistanceProfile g_race_resistance_profiles[16] = {
    -1 both mean absent and skip their tables. Read-only, so callers agree
    on a const character. */
 // FUNCTION: WIZ8 0x00547940
-bool CharacterHasTrait(const W8Character* character, int trait)
+bool CharacterHasTrait(const W8Character* character, W8Trait trait)
 {
     unsigned int index;
 
@@ -228,7 +256,7 @@ bool CharacterHasTrait(const W8Character* character, int trait)
         return false;
     }
     if (character->iProfession != -1) {
-        const int* abilities = g_profession_abilities[character->iProfession].ability_ids;
+        const W8Trait* abilities = g_profession_abilities[character->iProfession].ability_ids;
         for (index = 0; index < 3; ++index) {
             if (abilities[index] == trait) {
                 return true;
@@ -236,14 +264,14 @@ bool CharacterHasTrait(const W8Character* character, int trait)
         }
     }
     if (character->iRace != -1) {
-        const int* abilities = g_race_abilities[character->iRace].ability_ids;
+        const W8Trait* abilities = g_race_abilities[character->iRace].ability_ids;
         for (index = 0; index < 5; ++index) {
             if (abilities[index] == trait) {
                 return true;
             }
         }
     }
-    if (trait == 0x1c && character->enchantments[1].turns != 0) {
+    if (trait == W8_TRAIT_BREATHE && character->enchantments[1].turns != 0) {
         return true;
     }
     return false;
@@ -389,7 +417,7 @@ bool IsCharacterSkillAvailable(W8Character* character, W8Skill skill_id,
     if (g_profession_skill_availability[skill_id][character->iProfession] == 0) {
         return false;
     }
-    if (CharacterHasTrait(character, 0x1f)) {
+    if (CharacterHasTrait(character, static_cast<W8Trait>(0x1f))) {
         if (static_cast<unsigned int>(skill_id) >= W8_SKILL_SPELLBOOK_WIZARDRY &&
             static_cast<unsigned int>(skill_id) <= W8_SKILL_SPELLBOOK_PSIONICS) {
             return false;

@@ -14,27 +14,7 @@ struct W8ItemDatabaseRecord;
 struct W8NpcState;
 struct W8CombatSlot;
 
-/* W8Character::equipment index domain. The five body-location slots are fixed
-   by CalcArmorClasses' {0,4,10,5,11} location table and the per-location hit
-   weights; GetItemDefaultEquipSlot independently fixes the torso/legs/head/
-   hands/feet classes. The inventory paper-doll regions identify the two
-   stacked accessory cells and the cloak cell, while the four weapon cells are
-   already established by the hand-pairing code. */
-enum W8EquipSlot {
-    W8_EQUIP_SLOT_HEAD = 0,
-    W8_EQUIP_SLOT_MISC_1 = 1,
-    W8_EQUIP_SLOT_MISC_2 = 2,
-    W8_EQUIP_SLOT_CLOAK = 3,
-    W8_EQUIP_SLOT_TORSO = 4,
-    W8_EQUIP_SLOT_HANDS = 5,
-    W8_EQUIP_SLOT_PRIMARY_WEAPON = 6,
-    W8_EQUIP_SLOT_SECONDARY_WEAPON = 7,
-    W8_EQUIP_SLOT_ALTERNATE_PRIMARY_WEAPON = 8,
-    W8_EQUIP_SLOT_ALTERNATE_SECONDARY_WEAPON = 9,
-    W8_EQUIP_SLOT_LEGS = 10,
-    W8_EQUIP_SLOT_FEET = 11,
-    W8_EQUIP_SLOT_COUNT = 12
-};
+#include "wiz8/equipment_slots.h"
 
 bool CanCharacterActivateItem(W8Character* character, const W8ItemInstance* item);
 
@@ -45,11 +25,11 @@ extern W8Skill g_item_spell_presentation[11];
 extern int g_equip_slot_icons[12];
 int GetItemInHand(void);
 
-void SetHandType(W8Character* character, unsigned int equip_slot);
+void SetHandType(W8Character* character, W8EquipSlot equip_slot);
 unsigned int GetEquipmentBindingDifficulty(int character_index);
 bool CompatiblePartnerItems(int weapon_item_id, int off_hand_item_id); /* 0x0051C8F0 */
 bool ItemUsesShots(int item_id);
-int GetPairedEquipSlot(int equip_slot);
+W8EquipSlot GetPairedEquipSlot(W8EquipSlot equip_slot);
 wchar_t* GetItemDisplayName(const W8ItemInstance* item);
 
 bool ItemHasSingledOutGenericName(int item_id);
@@ -100,7 +80,7 @@ bool EveryCharacterHasItem(int item_id, int include_backpack);
 unsigned int GetItemUnitWeight(const W8ItemInstance* item);
 unsigned int GetItemStackWeight(const W8ItemInstance* item);
 unsigned char GetItemEquipClass(const W8ItemInstance* item);
-int GetItemDefaultEquipSlot(int item_id);
+W8EquipSlot GetItemDefaultEquipSlot(int item_id);
 W8Skill GetItemSpellPresentation(const W8ItemDatabaseRecord* record);
 unsigned short GetItemEquipSlotMask(int item_id, bool primary_off_hand_free,
                                     bool alternate_off_hand_free, bool primary_main_hand_free,
@@ -138,8 +118,8 @@ bool CanItemLeaveItsSlot(const W8ItemInstance* item);                           
 bool IsItemWornByCharacter(W8Character* character, const W8ItemInstance* item);    /* 0x00520F20 */
 bool IsItemCarriedByCharacter(W8Character* character, const W8ItemInstance* item); /* 0x00520F60 */
 bool DropItemInHand(int arg_1);                                                    /* 0x0051BE50 */
-void BindEquippedItem(W8Character* character, int equip_slot);                     /* 0x0051D0D0 */
-bool CanUnequipSlotItem(const W8Character* character, int equip_slot);             /* 0x0051D1C0 */
+void BindEquippedItem(W8Character* character, W8EquipSlot equip_slot);             /* 0x0051D0D0 */
+bool CanUnequipSlotItem(const W8Character* character, W8EquipSlot equip_slot);     /* 0x0051D1C0 */
 bool AreAllHandSlotsEmpty(const W8Character* character);                           /* 0x0051F8D0 */
 bool CanEquipItemInSlot(W8Character* character, int item_id, unsigned char equip_slot,
                         bool ignore_worn_items); /* 0x0051CEA0 */
@@ -203,15 +183,15 @@ bool CanUseItemForAction(int party_slot, const W8ItemInstance* item);
 /* Camp item operations: paired hand compatibility, merge-kind lookup, and
    insertion into the party's item pool. */
 char GetItemMergeKind(int item_id, short* related_kind);
-bool HeldItemFitsPairedSlot(int party_slot, unsigned int equip_slot);
+bool HeldItemFitsPairedSlot(int party_slot, W8EquipSlot equip_slot);
 char InsertItemIntoPartyPool(W8ItemInstance* item, int index);
-int ChooseCharacterEquipSlot(W8Character* character, int item_id);
+W8EquipSlot ChooseCharacterEquipSlot(W8Character* character, int item_id);
 
 /* 0x0051EB90: fill an equipment slot from the item that pairs with the given
    one - the alternate hand when its own item is compatible, otherwise the
    named item found anywhere on the character. */
 void EquipMatchingPartnerItem(W8Character* character, W8ItemInstance* item, int item_id,
-                              int equip_slot);
+                              W8EquipSlot equip_slot);
 void MergeMatchingPartnerItem(W8Character* character, W8ItemInstance* item); /* 0x0051EA90 */
 
 /* 0x0051BC00: hand one item to a party member, preferring the character or the
@@ -238,7 +218,7 @@ int CastItemSpell(W8Character* character, W8ItemInstance* item, unsigned int pow
 
 void AimItemUseAtCurrentTarget(W8Character* character, W8ItemInstance* item);
 unsigned char SwapWeaponSetSlots(int party_slot, char announce, bool refresh);
-void SplitThrowableStackBetweenHands(W8Character* character, int equip_slot);
+void SplitThrowableStackBetweenHands(W8Character* character, W8EquipSlot equip_slot);
 void RemovePartyPoolEntry(unsigned int index);
 unsigned char FindItemByDatabaseKindOnParty(unsigned short item_kind, W8ItemInstance** found,
                                             W8Character** found_character, int include_backpack);

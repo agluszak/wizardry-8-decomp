@@ -1072,12 +1072,12 @@ void DrawSubMenuCharacterAction(void)
         case 0:
             swprintf(text, L"%s - ", gppStringList[g_action_kind_message_ids[0]]);
             if (character->Hand[0].in_play != 0) {
-                if (character->EquippedItem[6].iItemNo == -1) {
+                if (character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].iItemNo == -1) {
                     wcscat(text, gppStringList[0x5b8]);
                 } else {
                     wcscat(text,
                            gppStringList[g_generic_item_name_notice[GetItemUnidentifiedNameIndex(
-                               &character->EquippedItem[6])]]);
+                               &character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON])]]);
                 }
             }
             if (character->Hand[1].in_play == 0) {
@@ -1085,12 +1085,12 @@ void DrawSubMenuCharacterAction(void)
                     wcscat(text, gppStringList[0x5b8]);
                 }
             } else {
-                if (character->EquippedItem[7].iItemNo == -1) {
+                if (character->EquippedItem[W8_EQUIP_SLOT_SECONDARY_WEAPON].iItemNo == -1) {
                     swprintf(second, L"%s", gppStringList[0x5b8]);
                 } else {
                     swprintf(second, L"%s",
                              gppStringList[g_generic_item_name_notice[GetItemUnidentifiedNameIndex(
-                                 &character->EquippedItem[7])]]);
+                                 &character->EquippedItem[W8_EQUIP_SLOT_SECONDARY_WEAPON])]]);
                 }
                 if (character->Hand[0].in_play == 0) {
                     wcscat(text, second);

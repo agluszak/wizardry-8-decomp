@@ -762,7 +762,9 @@ void DrawCampEquipmentItems(void)
         item_id = character->EquippedItem[slot].iItemNo;
         if (item_id == -1) {
             if (slot == 7 || slot == 9) {
-                int paired = character->EquippedItem[GetPairedEquipSlot(slot)].iItemNo;
+                int paired =
+                    character->EquippedItem[GetPairedEquipSlot(static_cast<W8EquipSlot>(slot))]
+                        .iItemNo;
                 if (paired != -1 && (g_item_records[paired].flags & W8_ITEM_FLAG_TWO_HANDED) != 0) {
                     DrawCatalogImageAndInvalidate(-14, 0x146, 0, 0, region->x, region->y, 2, 0);
                 }
@@ -1005,7 +1007,7 @@ void W8CampCharacterInfo::SetCombatView(bool enabled)
     m_values[3]->SetActive(enabled);
     if (enabled) {
         m_renderArg1 = 0;
-    } else if (g_review_character->armor_class_components[11] > 0) {
+    } else if (g_review_character->armor_class_components[W8_AC_COMPONENT_REFLEXTION] > 0) {
         m_renderArg1 = 2;
     } else {
         m_renderArg1 = 1;
@@ -1028,8 +1030,10 @@ void W8CampCharacterInfo::Redraw()
 {
     bool redraw = m_fEnabled && m_fDirty;
     if (!m_combat_view &&
-        ((g_review_character->armor_class_components[11] > 0 && m_renderArg1 != 2) ||
-         (g_review_character->armor_class_components[11] <= 0 && m_renderArg1 == 2))) {
+        ((g_review_character->armor_class_components[W8_AC_COMPONENT_REFLEXTION] > 0 &&
+          m_renderArg1 != 2) ||
+         (g_review_character->armor_class_components[W8_AC_COMPONENT_REFLEXTION] <= 0 &&
+          m_renderArg1 == 2))) {
         SetCombatView(0);
     }
     Controls::Redraw();
@@ -1054,8 +1058,8 @@ void W8CampCharacterInfo::Redraw()
         swprintf(g_camp_screen->caption, L"%d", g_review_character->initiative);
         DrawRcsText(g_camp_screen->caption, 0x1ae, 0x30, 0x20,
                     g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
-        if (g_review_character->EquippedItem[6].iItemNo == -1 &&
-            g_review_character->EquippedItem[7].iItemNo == -1) {
+        if (g_review_character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].iItemNo == -1 &&
+            g_review_character->EquippedItem[W8_EQUIP_SLOT_SECONDARY_WEAPON].iItemNo == -1) {
             DrawRcsText(gppStringList[0x8b5], 0x1d6, 0x22, 0x50,
                         g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
             DrawRcsText(gppStringList[0x8b4], 0x228, 0x22, 0x50,
@@ -1083,8 +1087,9 @@ void W8CampCharacterInfo::Redraw()
         DrawRcsText(gppStringList[0x8b9], 0x1f8, 0x92, 0x5e,
                     g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
         bool unknown_partner =
-            ItemHasSingledOutGenericName(g_review_character->EquippedItem[6].iItemNo) &&
-            !g_review_character->EquippedItem[7].identified;
+            ItemHasSingledOutGenericName(
+                g_review_character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].iItemNo) &&
+            !g_review_character->EquippedItem[W8_EQUIP_SLOT_SECONDARY_WEAPON].identified;
         for (unsigned int hand = 0; hand < 2; ++hand) {
             W8HandAttack* attack = &g_review_character->Hand[hand];
             if (!attack->in_play)
@@ -1169,7 +1174,8 @@ void W8CampCharacterInfo::Redraw()
         DrawRcsText(gppStringList[0x8be], 0x15b, 10, 0x11d,
                     g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle);
         for (unsigned int component = 0; component < 12; ++component) {
-            if (component == 11 && g_review_character->armor_class_components[11] == 0)
+            if (component == 11 &&
+                g_review_character->armor_class_components[W8_AC_COMPONENT_REFLEXTION] == 0)
                 continue;
             int y = (component % 6) * 14 + 0x22;
             int label_x = component / 6 ? 0x1ef : 0x15e;
@@ -1903,7 +1909,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
     unsigned int old_pool_count;
     int result;
     int party_slot;
-    int paired_slot;
+    W8EquipSlot paired_slot;
     bool reidentify;
     W8ItemInstance* paired;
     W8Character* character;
@@ -1984,7 +1990,8 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
               g_item_records[g_status.item_in_hand.iItemNo].equip_class ==
                   W8_ITEM_EQUIP_CLASS_AMMUNITION) &&
              gXStatus.held_item_source == giReviewCharSlot &&
-             (origin != 1 || HeldItemFitsPairedSlot(giReviewCharSlot, slot_index) != 0))) {
+             (origin != 1 || HeldItemFitsPairedSlot(giReviewCharSlot,
+                                                    static_cast<W8EquipSlot>(slot_index)) != 0))) {
             if (item->iItemNo == -1 ||
                 g_item_records[item->iItemNo].equip_class == W8_ITEM_EQUIP_CLASS_THROWN_WEAPON ||
                 g_item_records[item->iItemNo].equip_class == W8_ITEM_EQUIP_CLASS_AMMUNITION ||
@@ -2095,13 +2102,13 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
     /* Equipped items that may not be removed get one warning dialog and a
        bound mark; the next click then unequips them. */
     if (item->iItemNo != -1 && origin == 1) {
-        if (CanUnequipSlotItem(g_review_character, slot_index) == 0) {
+        if (CanUnequipSlotItem(g_review_character, static_cast<W8EquipSlot>(slot_index)) == 0) {
             text = gppStringList[0x90b];
             ShowCampNoticeLine(text, 0, 1, 0);
             if (item->bound) {
                 return;
             }
-            BindEquippedItem(g_review_character, slot_index);
+            BindEquippedItem(g_review_character, static_cast<W8EquipSlot>(slot_index));
             return;
         }
         item->bound = true;
@@ -2113,7 +2120,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
         changed = 1;
         if (origin == 1) {
             RebuildEquipmentAndDerivedStatsForSlot(giReviewCharSlot);
-            if (GetPairedEquipSlot(slot_index) != -1) {
+            if (GetPairedEquipSlot(static_cast<W8EquipSlot>(slot_index)) != -1) {
                 g_status.buffers.XChar[giReviewCharSlot].weapon_swap_pending = 0;
             }
             RebuildCampItemList();
@@ -2195,8 +2202,9 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                                                        choose_character, g_review_character);
                     }
                     if (origin == 1 && g_status.item_in_cursor &&
-                        HeldItemFitsPairedSlot(giReviewCharSlot, slot_index) == 0) {
-                        paired_slot = GetPairedEquipSlot(slot_index);
+                        HeldItemFitsPairedSlot(giReviewCharSlot,
+                                               static_cast<W8EquipSlot>(slot_index)) == 0) {
+                        paired_slot = GetPairedEquipSlot(static_cast<W8EquipSlot>(slot_index));
                         paired = &g_review_character->EquippedItem[paired_slot];
                         if (CanUnequipSlotItem(g_review_character, paired_slot) == 0) {
                             text = gppStringList[0x916];
@@ -2278,7 +2286,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
             if (changed != 0) {
                 if (origin == 1) {
                     RebuildEquipmentAndDerivedStatsForSlot(giReviewCharSlot);
-                    if (GetPairedEquipSlot(slot_index) != -1) {
+                    if (GetPairedEquipSlot(static_cast<W8EquipSlot>(slot_index)) != -1) {
                         g_status.buffers.XChar[giReviewCharSlot].weapon_swap_pending = 0;
                     }
                     RebuildCampItemList();

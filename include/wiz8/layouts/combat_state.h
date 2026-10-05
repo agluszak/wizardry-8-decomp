@@ -2,6 +2,7 @@
 #define WIZ8_LAYOUTS_COMBAT_STATE_H
 
 #include "wiz8/character_skills.h"
+#include "wiz8/equipment_slots.h"
 #include "timer.h"
 #include "wiz8/gameplay_modifiers.h"
 #include "wiz8/layouts/character.h"
@@ -128,10 +129,10 @@ struct W8CombatCharacterRow {
     W8CombatHandRecord hand_records[2];
     unsigned int uiSwingsRemaining; /* 0x68: exact name from the attack assertions */
     int current_hand;               /* 0x6c: indexes the slot row's attack modes */
-    int current_equip_slot;         /* 0x70: indexes the character's equipment */
+    W8EquipSlot current_equip_slot; /* 0x70: indexes the character's equipment */
     /* 0x74: the paired weapon slot GetPairedEquipSlot answered for
        current_equip_slot, -1 when nothing is paired with it. */
-    int paired_equip_slot;
+    W8EquipSlot paired_equip_slot;
     /* 0x78/0x7c: the item record indexes of the weapon in the attacking hand
        and of the paired weapon (the primary's own when nothing is paired). */
     int weapon_item_id;

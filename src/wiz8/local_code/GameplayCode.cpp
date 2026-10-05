@@ -514,7 +514,7 @@ void CalcAttacks(W8Character* character)
     int load_penalty = 0;
 
     for (hand = 0; hand < 2; ++hand) {
-        SetHandType(character, hand + 6);
+        SetHandType(character, static_cast<W8EquipSlot>(hand + W8_EQUIP_SLOT_PRIMARY_WEAPON));
         attacks[hand] = &character->Hand[hand];
         equipment[hand] = &character->EquippedItem[hand + 6];
         if (equipment[hand]->iItemNo == -1) {
@@ -811,29 +811,30 @@ void CalcArmorClasses(W8Character* character)
 
     if (character->highest_condition <= W8_CONDITION_UNCONSCIOUS) {
         if (CharacterHasTrait(character, W8_TRAIT_FAERIE_BASE_ARMOR_CLASS)) {
-            character->armor_class_components[0] += 2;
+            character->armor_class_components[W8_AC_COMPONENT_RACE] += 2;
         }
         unsigned int speed = character->attributes[W8_ATTRIBUTE_SPEED].effective;
         if (speed > 79) {
-            ++character->armor_class_components[1];
+            ++character->armor_class_components[W8_AC_COMPONENT_SPEED];
         }
         if (speed > 89) {
-            ++character->armor_class_components[1];
+            ++character->armor_class_components[W8_AC_COMPONENT_SPEED];
         }
         if (speed < 20) {
-            --character->armor_class_components[1];
+            --character->armor_class_components[W8_AC_COMPONENT_SPEED];
         }
         if (speed < 10) {
-            --character->armor_class_components[1];
+            --character->armor_class_components[W8_AC_COMPONENT_SPEED];
         }
 
-        character->armor_class_components[2] += character->skills[W8_SKILL_STEALTH].level / 10;
+        character->armor_class_components[W8_AC_COMPONENT_STEALTH] +=
+            character->skills[W8_SKILL_STEALTH].level / 10;
         if (character->skills[W8_SKILL_REFLEXTION].active) {
-            character->armor_class_components[11] +=
+            character->armor_class_components[W8_AC_COMPONENT_REFLEXTION] +=
                 character->skills[W8_SKILL_REFLEXTION].level / 20 + 1;
         }
 
-        int shield = character->armor_class_components[3];
+        int shield = character->armor_class_components[W8_AC_COMPONENT_SHIELD];
         if (shield > 0) {
             int skill_bonus = defensive_action
                                   ? static_cast<int>(character->skills[W8_SKILL_SHIELD].level / 15)
@@ -842,29 +843,33 @@ void CalcArmorClasses(W8Character* character)
             if (skill_bonus > ceiling) {
                 skill_bonus = ceiling;
             }
-            character->armor_class_components[3] += skill_bonus;
+            character->armor_class_components[W8_AC_COMPONENT_SHIELD] += skill_bonus;
         }
 
-        character->armor_class_components[5] += character->bonus.armor_flat;
-        character->armor_class_components[8] += character->bonus.armor_class_adjustment;
+        character->armor_class_components[W8_AC_COMPONENT_MAGIC_SPELLS] +=
+            character->bonus.armor_flat;
+        character->armor_class_components[W8_AC_COMPONENT_CONDITIONS] +=
+            character->bonus.armor_class_adjustment;
         if (defensive_action) {
-            character->armor_class_components[10] += 2;
+            character->armor_class_components[W8_AC_COMPONENT_DEFENSIVE_ACTION] += 2;
         }
         switch (character->load_category) {
         case W8_LOAD_MEDIUM:
-            character->armor_class_components[7] -= 1;
+            character->armor_class_components[W8_AC_COMPONENT_ENCUMBRANCE] -= 1;
             break;
         case W8_LOAD_HEAVY:
-            character->armor_class_components[7] -= 2;
+            character->armor_class_components[W8_AC_COMPONENT_ENCUMBRANCE] -= 2;
             break;
         case W8_LOAD_EXTREME:
-            character->armor_class_components[7] -= 4;
+            character->armor_class_components[W8_AC_COMPONENT_ENCUMBRANCE] -= 4;
             break;
         default:
             break;
         }
-        character->armor_class_components[9] -= FatigueArmorPenalty(character->fatigue_band) / 10;
-        character->armor_class_components[6] += character->bonus.armor_matchup;
+        character->armor_class_components[W8_AC_COMPONENT_FATIGUE] -=
+            FatigueArmorPenalty(character->fatigue_band) / 10;
+        character->armor_class_components[W8_AC_COMPONENT_VS_PENETRATION] +=
+            character->bonus.armor_matchup;
     }
 
     character->armor_class_total = 0;
@@ -880,7 +885,8 @@ void CalcArmorClasses(W8Character* character)
     int weighted_total = 0;
     for (index = 0; index < 5; ++index) {
         character->armor_class_by_location[index] = character->armor_class_total;
-        character->armor_class_by_location[index] += character->armor_class_components[6];
+        character->armor_class_by_location[index] +=
+            character->armor_class_components[W8_AC_COMPONENT_VS_PENETRATION];
         switch (index) {
         case 0:
             location_slot = 0;

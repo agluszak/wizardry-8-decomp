@@ -364,7 +364,8 @@ unsigned char W8AssayDialog::PopulateText()
             m_text_area.AddEntry(
                 gppStringList[0x8df],
                 FormatWideString(L"%+d, %+d %s", record->armor_class_bonus,
-                                 m_character->armor_class_components[3] - record->armor_class_bonus,
+                                 m_character->armor_class_components[W8_AC_COMPONENT_SHIELD] -
+                                     record->armor_class_bonus,
                                  gppStringList[0x428]),
                 10, 0xf, 0);
         } else if (record->armor_class_bonus != 0) {

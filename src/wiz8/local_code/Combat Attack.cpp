@@ -89,16 +89,16 @@ void GetCharacterHandDamageDice(const W8Character* character, int hand, W8Dice* 
         *dice = character->Hand[hand].damage_dice;
         return;
     }
-    int slot;
+    W8EquipSlot slot;
     if (hand == 0) {
-        slot = 6;
-        if (ItemHasSingledOutGenericName(character->EquippedItem[6].iItemNo)) {
-            int partner = GetPairedEquipSlot(6);
-            if (partner != -1)
+        slot = W8_EQUIP_SLOT_PRIMARY_WEAPON;
+        if (ItemHasSingledOutGenericName(character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].iItemNo)) {
+            W8EquipSlot partner = GetPairedEquipSlot(W8_EQUIP_SLOT_PRIMARY_WEAPON);
+            if (partner != W8_EQUIP_SLOT_NONE)
                 slot = partner;
         }
     } else {
-        slot = 7;
+        slot = W8_EQUIP_SLOT_SECONDARY_WEAPON;
     }
     *dice = g_item_records[character->EquippedItem[slot].iItemNo].damage_dice;
 }
@@ -1136,11 +1136,11 @@ int GetTargetArmorClassModifier(W8CombatSlot* target, unsigned int attack_mode)
         } else {
             int component;
             if (g_combat_state->unaware != 0 || g_combat_state->natural_attack != 0) {
-                component = character->armor_class_components[1];
+                component = character->armor_class_components[W8_AC_COMPONENT_SPEED];
                 if (component > 0) {
                     modifier = -component;
                 }
-                component = character->armor_class_components[3];
+                component = character->armor_class_components[W8_AC_COMPONENT_SHIELD];
                 if (component > 0) {
                     modifier -= component;
                 }
@@ -1339,13 +1339,13 @@ bool BlockedForSpecialReason(int weapon_class, W8CombatSlot* target, int attack_
         W8Character* character = &g_status.buffers.Char[target->iChar];
         int shield = 0;
         if (g_combat_state->unaware == 0 && g_combat_state->natural_attack == 0) {
-            shield = character->armor_class_components[3] * 5;
+            shield = character->armor_class_components[W8_AC_COMPONENT_SHIELD] * 5;
         }
         if (difference > shield) {
             return 0;
         }
-        if (character->EquippedItem[7].iItemNo != -1) {
-            material = g_item_records[character->EquippedItem[7].iItemNo].material;
+        if (character->EquippedItem[W8_EQUIP_SLOT_SECONDARY_WEAPON].iItemNo != -1) {
+            material = g_item_records[character->EquippedItem[W8_EQUIP_SLOT_SECONDARY_WEAPON].iItemNo].material;
         } else {
             material = 2;
         }
@@ -1680,7 +1680,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
             g_combat_state->characters[entry_target.iChar].skill_use_flags[W8_SKILL_STEALTH] = 1;
         }
         if (defender->skills[W8_SKILL_SHIELD].active != 0 && g_combat_state->unaware == 0 &&
-            g_combat_state->natural_attack == 0 && defender->armor_class_components[3] > 0) {
+            g_combat_state->natural_attack == 0 && defender->armor_class_components[W8_AC_COMPONENT_SHIELD] > 0) {
             g_combat_state->characters[entry_target.iChar].skill_use_flags[W8_SKILL_SHIELD] = 1;
         }
         if (defender->skills[W8_SKILL_REFLEXTION].active != 0) {
@@ -2593,7 +2593,7 @@ int ResolveCharacterAttackDamage(int party_slot, int hand, unsigned int attack_m
             srAssertFail("pPC->Hand[uiHand].uiHolds == HOLDS_NOTHING", COMBAT_ATTACK_CPP, 0xc55, 0);
         }
         if (pPC->Hand[1].uiHolds != HOLDS_NOTHING) {
-            dice = g_item_records[pPC->EquippedItem[7].iItemNo].damage_dice;
+            dice = g_item_records[pPC->EquippedItem[W8_EQUIP_SLOT_SECONDARY_WEAPON].iItemNo].damage_dice;
         } else {
             dice = pPC->Hand[1].damage_dice;
         }
@@ -2603,12 +2603,12 @@ int ResolveCharacterAttackDamage(int party_slot, int hand, unsigned int attack_m
             srAssertFail("pPC->Hand[uiHand].uiHolds == HOLDS_NOTHING", COMBAT_ATTACK_CPP, 0xc50, 0);
         }
         if (pPC->Hand[0].uiHolds != HOLDS_NOTHING) {
-            int paired = -1;
-            if (ItemHasSingledOutGenericName(pPC->EquippedItem[6].iItemNo) != 0 &&
-                (paired = GetPairedEquipSlot(6)) != -1) {
+            W8EquipSlot paired = W8_EQUIP_SLOT_NONE;
+            if (ItemHasSingledOutGenericName(pPC->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].iItemNo) != 0 &&
+                (paired = GetPairedEquipSlot(W8_EQUIP_SLOT_PRIMARY_WEAPON)) != W8_EQUIP_SLOT_NONE) {
                 dice = g_item_records[pPC->EquippedItem[paired].iItemNo].damage_dice;
             } else {
-                dice = g_item_records[pPC->EquippedItem[6].iItemNo].damage_dice;
+                dice = g_item_records[pPC->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].iItemNo].damage_dice;
             }
         } else {
             dice = pPC->Hand[0].damage_dice;
@@ -2623,15 +2623,15 @@ int ResolveCharacterAttackDamage(int party_slot, int hand, unsigned int attack_m
         } else {
             int item_id;
             if (hand == 0) {
-                int paired = -1;
-                if (ItemHasSingledOutGenericName(pPC->EquippedItem[6].iItemNo) != 0 &&
-                    (paired = GetPairedEquipSlot(6)) != -1) {
+                W8EquipSlot paired = W8_EQUIP_SLOT_NONE;
+                if (ItemHasSingledOutGenericName(pPC->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].iItemNo) != 0 &&
+                    (paired = GetPairedEquipSlot(W8_EQUIP_SLOT_PRIMARY_WEAPON)) != W8_EQUIP_SLOT_NONE) {
                     item_id = pPC->EquippedItem[paired].iItemNo;
                 } else {
-                    item_id = pPC->EquippedItem[6].iItemNo;
+                    item_id = pPC->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].iItemNo;
                 }
             } else {
-                item_id = pPC->EquippedItem[7].iItemNo;
+                item_id = pPC->EquippedItem[W8_EQUIP_SLOT_SECONDARY_WEAPON].iItemNo;
             }
             dice = g_item_records[item_id].damage_dice;
         }
@@ -3714,15 +3714,15 @@ char StartCharacterAttack(int party_slot, int attack_mode)
         return 0;
     }
     if (hand == 0) {
-        row->current_equip_slot = 6;
-        if (ItemHasSingledOutGenericName(character->EquippedItem[6].iItemNo)) {
+        row->current_equip_slot = W8_EQUIP_SLOT_PRIMARY_WEAPON;
+        if (ItemHasSingledOutGenericName(character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].iItemNo)) {
             row->paired_equip_slot = GetPairedEquipSlot(row->current_equip_slot);
         } else {
-            row->paired_equip_slot = -1;
+            row->paired_equip_slot = W8_EQUIP_SLOT_NONE;
         }
     } else {
-        row->current_equip_slot = 7;
-        row->paired_equip_slot = -1;
+        row->current_equip_slot = W8_EQUIP_SLOT_SECONDARY_WEAPON;
+        row->paired_equip_slot = W8_EQUIP_SLOT_NONE;
     }
     row->uiSwingsRemaining = Random(character->Hand[hand].swings) + 1;
     range = GetCharAttackRange(character, hand);
@@ -3749,7 +3749,7 @@ char StartCharacterAttack(int party_slot, int attack_mode)
         row->extra_swings[0] = 0;
     }
     row->weapon_item_id = character->EquippedItem[row->current_equip_slot].iItemNo;
-    if (row->paired_equip_slot == -1) {
+    if (row->paired_equip_slot == W8_EQUIP_SLOT_NONE) {
         row->paired_item_id = row->weapon_item_id;
     } else {
         row->paired_item_id = character->EquippedItem[row->paired_equip_slot].iItemNo;
@@ -3764,8 +3764,8 @@ char StartCharacterAttack(int party_slot, int attack_mode)
         wcscpy(g_combat_state->attack_message, gppStringList[0x204]);
         wcscat(g_combat_state->attack_message, L" ");
     } else {
-        if (hand == 1 && character->EquippedItem[6].iItemNo != -1 &&
-            g_item_records[character->EquippedItem[6].iItemNo].equip_class ==
+        if (hand == 1 && character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].iItemNo != -1 &&
+            g_item_records[character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].iItemNo].equip_class ==
                 W8_ITEM_EQUIP_CLASS_RANGED_WEAPON) {
             verb = gppStringList[g_attack_flag_name_ids[8][1]];
         } else {
@@ -3988,7 +3988,7 @@ int ResolveCharacterAttack(int party_slot)
             }
             if (defender->skills[W8_SKILL_SHIELD].active != 0 &&
                 g_combat_state->unaware == 0 && g_combat_state->natural_attack == 0 &&
-                defender->armor_class_components[3] > 0) {
+                defender->armor_class_components[W8_AC_COMPONENT_SHIELD] > 0) {
                 g_combat_state->characters[target.iChar].skill_use_flags[W8_SKILL_SHIELD] = 1;
             }
             if (defender->skills[W8_SKILL_REFLEXTION].active != 0) {

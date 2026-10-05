@@ -972,7 +972,7 @@ void W8CharacterStatsPage::Redraw()
             unsigned char available[0x20];
             unsigned int available_count = 0;
             for (int trait = 0; trait < 0x20; ++trait) {
-                if (CharacterHasTrait(m_character, trait)) {
+                if (CharacterHasTrait(m_character, static_cast<W8Trait>(trait))) {
                     available[trait] = 1;
                     ++available_count;
                 } else {

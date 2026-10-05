@@ -246,8 +246,8 @@ unsigned char W8ProfessionInfoDialog::PopulateText()
     m_text_area.AddEntry(gppStringList[0x14d], &g_empty_wide_string, 10, 0xf, 0);
     unsigned int index;
     for (index = 0; index < 3; ++index) {
-        int ability = g_profession_abilities[m_uiIndex].ability_ids[index];
-        if (ability == -1) {
+        W8Trait ability = g_profession_abilities[m_uiIndex].ability_ids[index];
+        if (ability == W8_TRAIT_NONE) {
             break;
         }
         m_text_area.AddEntry(0, gppStringList[g_character_trait_name_ids[ability]], 10, 0xf, 0);
@@ -331,8 +331,8 @@ unsigned char W8RaceInfoDialog::PopulateText()
     m_text_area.AddEntry(gppStringList[0x14d], &g_empty_wide_string, 10, 0xf, 0);
     bool listed = 0;
     for (unsigned int index = 0; index < 5; ++index) {
-        int ability = g_race_abilities[m_uiIndex].ability_ids[index];
-        if (ability == -1) {
+        W8Trait ability = g_race_abilities[m_uiIndex].ability_ids[index];
+        if (ability == W8_TRAIT_NONE) {
             if (!listed) {
                 m_text_area.AddEntry(0, gppStringList[0x154], 10, 0xf, 0);
             }
