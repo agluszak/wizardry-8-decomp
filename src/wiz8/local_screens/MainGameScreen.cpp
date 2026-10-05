@@ -196,7 +196,7 @@ bool g_mouselook_active;
 static POINT g_mouselook_cursor_pos;
 
 // GLOBAL: WIZ8 0x0068eddc
-int g_main_game_mode;
+W8MainGameMode g_main_game_mode;
 
 // GLOBAL: WIZ8 0x00648278
 W8MainGameResourceSlot g_main_game_resource_slots[17] = {
@@ -3125,7 +3125,7 @@ void BeginLevelTransition(void)
     g_pending_screen_state.mode = 3;
     g_pending_screen_state.parameter = g_level_block->pending_level;
     g_pending_screen_state.parameter_2 = g_level_block->pending_entry_id;
-    SetMainGameMode(0);
+    SetMainGameMode(W8_MAIN_GAME_DEFAULT);
     SetPendingScreenState(W8_SCREEN_PLEASE_WAIT);
 }
 
@@ -3163,24 +3163,26 @@ void TickAmbientFollowUpIdle(unsigned char input_handled)
    highlight sprite then clears and dirties the dialogue rectangle when it
    crosses the viewport band. The new mode is stored last. */
 // FUNCTION: WIZ8 0x00568390
-void SetMainGameMode(int mode)
+void SetMainGameMode(W8MainGameMode mode)
 {
     switch (g_main_game_mode) {
-    case 3:
+    case W8_MAIN_GAME_NPC_DIALOGUE:
         CloseNpcDialogueIfActive();
         break;
-    case 5:
+    case W8_MAIN_GAME_MODAL:
         CloseMessageBox();
         break;
-    case 6:
+    case W8_MAIN_GAME_HIGHLIGHT_OVERLAY:
         if (g_level_block->highlight_graphic != 0) {
             ReleaseObject(g_level_block->highlight_graphic);
             g_level_block->highlight_graphic = 0;
-            if (g_main_game_mode != 6) {
+            if (g_main_game_mode != W8_MAIN_GAME_HIGHLIGHT_OVERLAY) {
                 break;
             }
         }
         ClearHighlightOverlayRegion();
+        break;
+    default:
         break;
     }
     g_main_game_mode = mode;
@@ -3559,7 +3561,7 @@ unsigned char MainGameScreenLeave(int leaving)
 {
     int index;
 
-    SetMainGameMode(0);
+    SetMainGameMode(W8_MAIN_GAME_DEFAULT);
 
     if (g_mouselook_active) {
         EnableCursorScene();
@@ -4315,11 +4317,11 @@ void RefreshSelectedPartyPortrait(unsigned int party_slot)
         RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_PANEL);
     }
 
-    if (g_main_game_mode == 3) {
+    if (g_main_game_mode == W8_MAIN_GAME_NPC_DIALOGUE) {
         CloseNpcDialogueIfActive();
-    } else if (g_main_game_mode == 5) {
+    } else if (g_main_game_mode == W8_MAIN_GAME_MODAL) {
         CloseMessageBox();
-    } else if (g_main_game_mode == 6) {
+    } else if (g_main_game_mode == W8_MAIN_GAME_HIGHLIGHT_OVERLAY) {
         if (g_level_block->highlight_graphic != 0) {
             ReleaseObject(g_level_block->highlight_graphic);
             g_level_block->highlight_graphic = 0;
@@ -4332,7 +4334,7 @@ void RefreshSelectedPartyPortrait(unsigned int party_slot)
                          g_level_block->dialogue_y + g_level_block->dialogue_height, 0);
     }
 
-    g_main_game_mode = 4;
+    g_main_game_mode = W8_MAIN_GAME_PORTRAIT_REFRESH;
     g_level_block->highlight_override = -1;
     g_level_block->portrait_refresh_pending[party_slot] = 1;
     g_level_block->portrait_strip_dirty = true;
@@ -4358,7 +4360,7 @@ void DismissHighlightOverlay(void)
         g_level_block->highlight_graphic = 0;
     }
     ClearHighlightOverlayRegion();
-    g_main_game_mode = 0;
+    g_main_game_mode = W8_MAIN_GAME_DEFAULT;
 }
 
 static void DrawHighlightFrameRow(int left, int right, int y, unsigned int tiles)
@@ -4381,7 +4383,7 @@ static void DrawHighlightFrameRow(int left, int right, int y, unsigned int tiles
 // FUNCTION: WIZ8 0x00563FC0
 void DrawHighlightOverlay(unsigned int party_slot, int row_count, unsigned int min_width)
 {
-    SetMainGameMode(6);
+    SetMainGameMode(W8_MAIN_GAME_HIGHLIGHT_OVERLAY);
 
     wchar_t* name = g_status.buffers.Char[party_slot].name;
     int width = StringPixLength(name, g_wiz_text_font);
@@ -4834,7 +4836,7 @@ void ShowMainGameNoticeLine(wchar_t* text, W8DialogDestroyCallback callback, boo
 {
     W8MessageDialogBase* dialog;
 
-    SetMainGameMode(5);
+    SetMainGameMode(W8_MAIN_GAME_MODAL);
     dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(W8_DIALOG_MESSAGE));
     dialog->SetClientExtent(0xfa, 200);
     dialog->SetMessage(text, 1, 0x32, confirmation, cancel, true, true, 0, 0x15e);
@@ -5053,7 +5055,7 @@ void RequestLevelTransition(int level, int entry, unsigned char flag)
             WorldSetCameraLocation(g_world, &g_trigger_camera);
             return;
         }
-        SetMainGameMode(5);
+        SetMainGameMode(W8_MAIN_GAME_MODAL);
         W8MessageDialogBase* dialog =
             static_cast<W8MessageDialogBase*>(CreateDialogByKind(W8_DIALOG_MESSAGE));
         dialog->SetClientExtent(0xfa, 0xc8);
@@ -5659,11 +5661,11 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                     g_level_block->portrait_overlay_party_slot = -1;
                     DismissHighlightOverlay();
                     if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME) {
-                        g_main_game_mode = 0;
+                        g_main_game_mode = W8_MAIN_GAME_DEFAULT;
                         return 1;
                     }
                     if (g_level_block == 0) {
-                        g_main_game_mode = 0;
+                        g_main_game_mode = W8_MAIN_GAME_DEFAULT;
                         return 1;
                     }
                     RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_PANEL);
@@ -6247,15 +6249,15 @@ unsigned char RadarMapButtonRegionEvent(const InputAtom* event, W8Region* region
             return 0;
         }
         if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
-            if (g_main_game_mode == 3) {
+            if (g_main_game_mode == W8_MAIN_GAME_NPC_DIALOGUE) {
                 CloseNpcDialogueIfActive();
-            } else if (g_main_game_mode == 5) {
+            } else if (g_main_game_mode == W8_MAIN_GAME_MODAL) {
                 CloseMessageBox();
-            } else if (g_main_game_mode == 6) {
+            } else if (g_main_game_mode == W8_MAIN_GAME_HIGHLIGHT_OVERLAY) {
                 if (g_level_block->highlight_graphic != 0) {
                     ReleaseObject(g_level_block->highlight_graphic);
                     g_level_block->highlight_graphic = 0;
-                    if (g_main_game_mode != 6) {
+                    if (g_main_game_mode != W8_MAIN_GAME_HIGHLIGHT_OVERLAY) {
                         goto open_automap;
                     }
                 }
@@ -6277,7 +6279,7 @@ unsigned char RadarMapButtonRegionEvent(const InputAtom* event, W8Region* region
                 }
             }
         open_automap:
-            g_main_game_mode = 0;
+            g_main_game_mode = W8_MAIN_GAME_DEFAULT;
             SetPendingScreenState(W8_SCREEN_AUTOMAP);
             return 1;
         }
@@ -6731,7 +6733,7 @@ bool IsScreenIdle(void)
 // FUNCTION: WIZ8 0x00561480
 void OpenAutomapScreen(void)
 {
-    SetMainGameMode(0);
+    SetMainGameMode(W8_MAIN_GAME_DEFAULT);
     SetPendingScreenState(W8_SCREEN_AUTOMAP);
 }
 
@@ -7746,7 +7748,7 @@ void OpenCharacterScreenForPartySlot(unsigned int party_slot, bool flag)
     g_pending_screen_state.parameter_3 = g_status.buffers.Char + party_slot;
     g_pending_screen_state.parameter_4 =
         flag ? static_cast<W8Character*>(g_pending_screen_state.parameter_3) : 0;
-    SetMainGameMode(0);
+    SetMainGameMode(W8_MAIN_GAME_DEFAULT);
     SetPendingScreenState(W8_SCREEN_CAMP);
     UpdateScreenOverlays(1);
     SetPrimarySurfaceTextureHint2Enabled(false);
@@ -7827,7 +7829,7 @@ void CloseMainGameOverlays(void)
 // FUNCTION: WIZ8 0x00563DD0
 void ClearHighlightOverlayRegion(void)
 {
-    if (g_main_game_mode == 6) {
+    if (g_main_game_mode == W8_MAIN_GAME_HIGHLIGHT_OVERLAY) {
         ClearSurfaceRect(g_level_block->dialogue_x, g_level_block->dialogue_y,
                          g_level_block->dialogue_x + g_level_block->dialogue_width,
                          g_level_block->dialogue_y + g_level_block->dialogue_height);
@@ -8051,10 +8053,10 @@ void ShowNpcTradeItemNotice(W8ItemInstance* item)
     W8NpcTradeMode mode = g_npc_interaction_state->trade_mode;
     unsigned int font_palette = 0xf;
     unsigned int price;
-    int sell_mode = 0;
+    W8TradePriceKind price_kind = W8_TRADE_PRICE_PARTY_SELLS;
 
     if (mode == W8_NPC_TRADE_BUY || mode == W8_NPC_TRADE_SHOPLIFT) {
-        sell_mode = 1;
+        price_kind = W8_TRADE_PRICE_PARTY_BUYS;
     }
     if (mode == W8_NPC_TRADE_BUY || mode == W8_NPC_TRADE_SHOPLIFT || mode == W8_NPC_TRADE_SELL) {
         unsigned char stack_count;
@@ -8064,7 +8066,7 @@ void ShowNpcTradeItemNotice(W8ItemInstance* item)
             stack_count = 1;
         }
         price = CalculateNpcTradeStackPrice(g_npc_interaction_state->dialogue_npc, item->iItemNo,
-                                            sell_mode, stack_count, item->identified);
+                                            price_kind, stack_count, item->identified);
     } else {
         price = GetItemStackValue(item);
     }
@@ -8141,8 +8143,9 @@ static void ShowNpcPlayerTradeItem(W8ItemInstance* item, bool acceptable, unsign
             g_item_records[item->iItemNo].equip_class == W8_ITEM_EQUIP_CLASS_AMMUNITION
                 ? item->stack_count
                 : 1;
-        int price = CalculateNpcTradeStackPrice(g_npc_interaction_state->dialogue_npc,
-                                                item->iItemNo, 0, count, item->identified);
+        int price =
+            CalculateNpcTradeStackPrice(g_npc_interaction_state->dialogue_npc, item->iItemNo,
+                                        W8_TRADE_PRICE_PARTY_SELLS, count, item->identified);
         if (acceptable) {
             swprintf(g_level_block->text_paint_scratch, L"%d%s", price, gppStringList[0x797]);
         } else {
@@ -8242,16 +8245,16 @@ void OpenNpcTradeQuantityDialog(void)
         return;
     }
     if (g_npc_interaction_state->trade_mode == W8_NPC_TRADE_SELL) {
-        dialog =
-            new W8SplitItemDialog(g_split_dialog_sell_kind, g_npc_interaction_state->trade_item,
-                                  g_npc_interaction_state->trade_quantity);
+        dialog = new W8SplitItemDialog(g_item_split_sell_mode, g_npc_interaction_state->trade_item,
+                                       g_npc_interaction_state->trade_quantity);
     } else if (g_npc_interaction_state->trade_mode == W8_NPC_TRADE_BUY ||
                g_npc_interaction_state->trade_mode == W8_NPC_TRADE_SHOPLIFT) {
-        dialog = new W8SplitItemDialog(g_split_dialog_buy_kind, g_npc_interaction_state->trade_item,
+        dialog = new W8SplitItemDialog(g_item_split_buy_mode, g_npc_interaction_state->trade_item,
                                        g_npc_interaction_state->trade_quantity);
     } else {
-        dialog = new W8SplitItemDialog(g_split_dialog_kind, g_npc_interaction_state->trade_item,
-                                       g_npc_interaction_state->trade_quantity);
+        dialog =
+            new W8SplitItemDialog(g_item_split_inventory_mode, g_npc_interaction_state->trade_item,
+                                  g_npc_interaction_state->trade_quantity);
     }
     dialog->SetText(&g_empty_wide_string);
     dialog->SetOrigin(g_split_dialog_x, g_split_dialog_y);
@@ -8277,7 +8280,7 @@ void NpcTradeSplitDialogResult(W8DialogBase* dialog)
 {
     W8SplitItemDialog* split = static_cast<W8SplitItemDialog*>(dialog);
 
-    if (split->split_result == g_split_result_kind) {
+    if (split->split_result == g_item_split_confirm_result) {
         int count = split->split_count;
         if (count != 0) {
             int slot = GetSelectedTextLine(2);
@@ -8308,7 +8311,7 @@ bool ValidateNpcTradeSelection(void)
             return false;
         }
         unsigned int price = CalculateNpcTradeStackPrice(
-            g_npc_interaction_state->dialogue_npc, item->iItemNo, 1,
+            g_npc_interaction_state->dialogue_npc, item->iItemNo, W8_TRADE_PRICE_PARTY_BUYS,
             static_cast<unsigned char>(g_npc_interaction_state->trade_quantity), item->identified);
         if (g_status.party_gold < price) {
             QueueNpcScriptLine(0x14, false, false, false);
@@ -8327,7 +8330,7 @@ bool AttemptNpcItemTrade(W8ItemInstance* item, unsigned char quantity, int index
 
     result = AttemptNpcItemTheft(character, g_npc_interaction_state->dialogue_npc, item->iItemNo,
                                  quantity);
-    if (result == 0) {
+    if (result == W8_ITEM_THEFT_SUCCEEDED) {
         swprintf(text, gppStringList[0x74d], character->name, GetItemDisplayName(item));
         DisplayNpcQuote(text, true);
         if (g_item_records[item->iItemNo].identify_difficulty != 0 && quantity == 1) {
@@ -8356,14 +8359,14 @@ bool AttemptNpcItemTrade(W8ItemInstance* item, unsigned char quantity, int index
         }
         return true;
     }
-    if (result == 1) {
+    if (result == W8_ITEM_THEFT_FAILED) {
         swprintf(text, gppStringList[0x74f], character->name);
         DisplayNpcQuote(text, false);
         return false;
     }
-    if (result == 2) {
+    if (result == W8_ITEM_THEFT_CAUGHT) {
         QueueNpcScriptLine(0x17, false, false, false);
-        SetNpcDispositionBand(g_npc_interaction_state->dialogue_npc, 1);
+        SetNpcDispositionBand(g_npc_interaction_state->dialogue_npc, W8_NPC_BAND_NEUTRAL);
         ApplyFactionChange(3, g_npc_interaction_state->dialogue_npc->record->faction, 1, -5);
         CloseNpcDialogueOptionLayout();
         ShowNpcDialogueTopicMenu();
@@ -8527,7 +8530,7 @@ static stModelInstance2D* g_surprise_fade_node;
 // FUNCTION: WIZ8 0x00560C60
 void ResetMainGameMode(void)
 {
-    SetMainGameMode(0);
+    SetMainGameMode(W8_MAIN_GAME_DEFAULT);
     if (IsMessageBoxActive()) {
         CloseMessageBox();
     }

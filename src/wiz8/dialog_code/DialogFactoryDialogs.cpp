@@ -640,7 +640,7 @@ W8SplitAmountDialog::W8SplitAmountDialog()
     m_remaining = 0;
     m_taken = 0;
     m_total = 0;
-    m_result = 0;
+    m_result = W8_SPLIT_RESULT_PENDING;
     m_active_field = 0;
 }
 
@@ -661,7 +661,7 @@ W8SplitAmountDialog::W8SplitAmountDialog(int total)
     m_remaining = total;
     m_total = total;
     m_taken = 0;
-    m_result = 0;
+    m_result = W8_SPLIT_RESULT_PENDING;
     m_active_field = 0;
 }
 
@@ -704,7 +704,7 @@ int W8SplitAmountDialog::CreateControls()
     int index;
 
     W8DialogBase::CreateControls();
-    m_result = 0;
+    m_result = W8_SPLIT_RESULT_PENDING;
     if (!CreateButtons()) {
         m_error = 7;
         return 7;
@@ -1091,7 +1091,7 @@ void W8SplitAmountDialog::SplitAccept(W8DialogButton* button)
 {
     if (button != 0) {
         W8SplitAmountDialog* dialog = static_cast<W8SplitAmountDialog*>(button->m_owner);
-        dialog->m_result = 1;
+        dialog->m_result = W8_SPLIT_RESULT_CONFIRMED;
         dialog->m_keep_open = false;
     }
 }
@@ -1101,7 +1101,7 @@ void W8SplitAmountDialog::SplitCancel(W8DialogButton* button)
 {
     if (button != 0) {
         W8SplitAmountDialog* dialog = static_cast<W8SplitAmountDialog*>(button->m_owner);
-        dialog->m_result = 2;
+        dialog->m_result = W8_SPLIT_RESULT_CANCELLED;
         dialog->m_keep_open = false;
     }
 }

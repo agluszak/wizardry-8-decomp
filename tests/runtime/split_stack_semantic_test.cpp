@@ -82,7 +82,7 @@ static bool RunSplitStackBody(SplitStackSemanticResult* result, bool fail_early)
     /* The constructor picks the split count: half the stack for stacks whose
        record allows more than ten, one for small-capacity stacks. */
     expected_split = g_item_records[item_id].maximum_quantity <= 0xa ? 1 : 3;
-    dialog = new W8SplitItemDialog(0, &source, -1);
+    dialog = new W8SplitItemDialog(W8_ITEM_SPLIT_INVENTORY, &source, -1);
     if (dialog == 0) {
         return false;
     }
@@ -98,7 +98,7 @@ static bool RunSplitStackBody(SplitStackSemanticResult* result, bool fail_early)
     delete dialog;
 
     /* An explicit count splits exactly that many off the stack. */
-    dialog = new W8SplitItemDialog(0, &source, 2);
+    dialog = new W8SplitItemDialog(W8_ITEM_SPLIT_INVENTORY, &source, 2);
     if (dialog != 0) {
         result->explicit_count_applied = dialog->split_count == 2 && dialog->m_remaining == 4;
         delete dialog;
@@ -107,9 +107,9 @@ static bool RunSplitStackBody(SplitStackSemanticResult* result, bool fail_early)
     /* A cancelled dialog must leave the stack untouched; the result callback
        is the real RCSItemsPage destroy callback. */
     g_split_item_source = &source;
-    cancel_dialog = new W8SplitItemDialog(0, &source, -1);
+    cancel_dialog = new W8SplitItemDialog(W8_ITEM_SPLIT_INVENTORY, &source, -1);
     if (cancel_dialog != 0) {
-        cancel_dialog->split_result = g_split_result_kind + 1;
+        cancel_dialog->split_result = W8_SPLIT_RESULT_CANCELLED;
         SplitStackDialogResult(cancel_dialog);
         result->cancel_leaves_stack =
             source.stack_count == 6 && g_status.item_in_hand.iItemNo == -1;

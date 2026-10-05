@@ -13,6 +13,14 @@ struct W8WorldItem;
 struct W8ItemInstance;
 class Trigger;
 
+enum W8ItemSplitMode { W8_ITEM_SPLIT_INVENTORY = 0, W8_ITEM_SPLIT_SELL = 1, W8_ITEM_SPLIT_BUY = 2 };
+
+enum W8SplitDialogResult {
+    W8_SPLIT_RESULT_PENDING = 0,
+    W8_SPLIT_RESULT_CONFIRMED = 1,
+    W8_SPLIT_RESULT_CANCELLED = 2
+};
+
 /* The small numeric entry field embedded by the factory dialogs. Constructor
    initialization at 0x005E1460 fills 0x30 bytes; its value, active flag and
    backing button are what the owning dialog reads and writes. The other
@@ -189,7 +197,7 @@ private:
     int m_remaining; /* 0x080: total minus the field value */
     int m_taken;     /* 0x084: the field value */
     int m_total;     /* 0x088 */
-    int m_result;    /* 0x08c: 1 confirms, 2 cancels */
+    W8SplitDialogResult m_result; /* 0x08c: 1 confirms, 2 cancels */
 }; /* 0x90 */
 
 static_assert(sizeof(W8ListBoxDialog) == 0xfc, "W8ListBoxDialog005CBB40_must_be_0xfc");
@@ -280,7 +288,7 @@ static_assert(sizeof(W8TriggerItemPickerDialog) == 0xb0, "W8TriggerItemPickerDia
 // VTABLE: WIZ8 0x005efb78
 class W8SplitItemDialog : public W8DialogBase {
 public:
-    W8SplitItemDialog(int kind, W8ItemInstance* item, int count); /* 0x005DCED0 */
+    W8SplitItemDialog(W8ItemSplitMode mode, W8ItemInstance* item, int count); /* 0x005DCED0 */
     virtual ~W8SplitItemDialog() override;                        /* 0x005DD030 */
     virtual int CreateControls() override;                        /* 0x005DD130 */
     virtual void DestroyControls() override;                      /* 0x005DD3C0 */
@@ -327,13 +335,19 @@ public:
     int m_remaining; /* 0x0bc: the count left in the source stack */
     int split_count;
     int m_stack_total; /* 0x0c4: stack_count when the dialog opened */
-    int split_result;
+    W8SplitDialogResult split_result;
 
 private:
-    unsigned int m_kind;        /* 0x0cc: 0 inventory, 1 and 2 trade modes */
+    W8ItemSplitMode m_mode;     /* 0x0cc: 0 inventory, 1 and 2 trade modes */
     W8ItemInstance* m_item;     /* 0x0d0 */
     bool m_first_draw; /* 0x0d4: draw the item icon once */
     unsigned char padding_0d5[3];
 };
 
 static_assert(sizeof(W8SplitItemDialog) == 0xd8, "W8SplitItemDialog_must_be_0xd8");
+
+extern const W8SplitDialogResult g_amount_split_confirm_result;
+extern const W8SplitDialogResult g_item_split_confirm_result;
+extern const W8ItemSplitMode g_item_split_inventory_mode;
+extern const W8ItemSplitMode g_item_split_sell_mode;
+extern const W8ItemSplitMode g_item_split_buy_mode;

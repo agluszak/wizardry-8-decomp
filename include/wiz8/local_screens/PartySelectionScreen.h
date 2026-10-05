@@ -1,5 +1,28 @@
 #pragma once
 
+enum W8PartySelectionMode {
+    W8_PARTY_SELECT_CHARACTERS = 0,
+    W8_PARTY_SELECT_IMPORT = 1,
+    W8_PARTY_SELECT_OPTIONS = 2,
+    W8_PARTY_SELECT_CREATION_NOTICE = 3,
+    W8_PARTY_SELECT_SAVE_NAME = 4
+};
+
+enum W8PartyCreationPage {
+    W8_PARTY_CREATION_OPTIONS = 0,
+    W8_PARTY_CREATION_NOTICE = 1,
+    W8_PARTY_CREATION_SAVE_NAME = 2
+};
+
+enum W8PartyConfirmationAction {
+    W8_PARTY_CONFIRM_NONE = 0,
+    W8_PARTY_CONFIRM_DELETE_CHARACTER = 1,
+    W8_PARTY_CONFIRM_START_WITH_SAVE_NAME = 2,
+    W8_PARTY_CONFIRM_PROCEED_TO_OPTIONS = 3,
+    W8_PARTY_CONFIRM_IMPORT = 4,
+    W8_PARTY_CONFIRM_LEAVE = 5
+};
+
 /* Region-set slots the party-selection party builder shares between its panels.
    A panel acquires a slot by address; an unused slot is zero, so the caller
    allocates from the static region catalog on first use. */

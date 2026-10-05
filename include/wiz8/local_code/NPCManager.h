@@ -4,6 +4,26 @@
 #include "surrender/srMath.h"
 #include "wiz8/layouts/npc_state.h"
 
+enum W8NpcPickpocketResult {
+    W8_PICKPOCKET_ITEM_TAKEN = 0,
+    W8_PICKPOCKET_GOLD_TAKEN = 1,
+    W8_PICKPOCKET_FAILED = 2,
+    W8_PICKPOCKET_CAUGHT = 3,
+    W8_PICKPOCKET_EMPTY = 4
+};
+
+enum W8NpcItemTheftResult {
+    W8_ITEM_THEFT_SUCCEEDED = 0,
+    W8_ITEM_THEFT_FAILED = 1,
+    W8_ITEM_THEFT_CAUGHT = 2
+};
+
+enum W8NpcDispositionBand {
+    W8_NPC_BAND_FRIENDLY = 0,
+    W8_NPC_BAND_NEUTRAL = 1,
+    W8_NPC_BAND_HOSTILE = 2
+};
+
 struct W8Chunk;
 class W8Monster;
 class Trigger;
@@ -130,8 +150,8 @@ void AddNpcTopic(W8NpcState* npc, int topic);
 /* 0x0050BC90: resolve one pickpocket attempt; the taken item goes to
    item_out and the taken gold to gold_out. Result codes feed the
    0x00576D80 dispatch. */
-int AttemptNpcPickpocket(W8Character* character, W8NpcState* npc, W8ItemInstance* item_out,
-                         unsigned int* gold_out);
+W8NpcPickpocketResult AttemptNpcPickpocket(W8Character* character, W8NpcState* npc,
+                                           W8ItemInstance* item_out, unsigned int* gold_out);
 /* 0x0050E4B0: clear the npc's item_ids slots matching the item the quote
    entry just handed out. */
 void ClearNpcItemId(W8NpcState* npc, int item_id);

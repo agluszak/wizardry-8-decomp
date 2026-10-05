@@ -3,6 +3,7 @@
 void InitializeItemVideoObjects(void);
 void ReleaseGenericItemNames(void);
 
+#include "wiz8/npc_trade_price.h"
 #include "wiz8/character_skills.h"
 #include <wchar.h>
 
@@ -160,9 +161,10 @@ char FindCharacterItemByDatabaseKind(W8Character* character, short item_kind, W8
    unidentified ("Uncursed item" style) display name. */
 unsigned short GetItemUnidentifiedNameIndex(const W8ItemInstance* item);
 
-/* Gold price of a stack in the active trade context. The mode argument
-   selects the pricing direction (0 for the buy side, 1 for the sell side). */
-int CalculateTradeStackPrice(W8NpcState* npc, W8ItemInstance* item, char mode); /* 0x0055B5E0 */
+/* Gold price of a stack in the active trade context. price_kind uses
+   W8TradePriceKind values; the retail callee consumes a byte. */
+int CalculateTradeStackPrice(W8NpcState* npc, W8ItemInstance* item,
+                             char price_kind); /* 0x0055B5E0 */
 /* 0x0051D7A0: whether any occupied, conscious party member can use the item. */
 bool AnyPartyMemberCanUseItem(int item_id);
 

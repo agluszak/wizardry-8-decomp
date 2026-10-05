@@ -61,17 +61,17 @@ static int g_split_text_string_ids[14] = {
 static W8ScreenRect g_split_count_field_bounds = {0xbc, 0x6f, 0xef, 0x7b};
 
 // FUNCTION: WIZ8 0x005DCED0
-W8SplitItemDialog::W8SplitItemDialog(int kind, W8ItemInstance* item, int count)
+W8SplitItemDialog::W8SplitItemDialog(W8ItemSplitMode mode, W8ItemInstance* item, int count)
 {
     int index;
 
     SetExtent(0x142, 0xbd);
-    if (kind == 1 || kind == 2) {
+    if (mode == W8_ITEM_SPLIT_SELL || mode == W8_ITEM_SPLIT_BUY) {
         SetBackground("Data\\Dialogs\\popup_splititem.sti", 0);
-    } else if (kind == 0) {
+    } else if (mode == W8_ITEM_SPLIT_INVENTORY) {
         SetBackground("Data\\Dialogs\\popup_splititem.sti", 1);
     }
-    m_kind = kind;
+    m_mode = mode;
     for (index = 0; index < 10; ++index) {
         m_buttons[index] = 0;
     }
@@ -93,7 +93,7 @@ W8SplitItemDialog::W8SplitItemDialog(int kind, W8ItemInstance* item, int count)
         m_remaining = item->stack_count - count;
     }
     m_item = item;
-    split_result = 0;
+    split_result = W8_SPLIT_RESULT_PENDING;
     m_active_input = 0;
     m_first_draw = false;
 }
@@ -112,9 +112,9 @@ void W8SplitItemDialog::DestroyButtons()
     int index;
 
     count = 0;
-    if (m_kind == 0) {
+    if (m_mode == W8_ITEM_SPLIT_INVENTORY) {
         count = 8;
-    } else if (m_kind <= 2) {
+    } else if (static_cast<unsigned int>(m_mode) <= W8_ITEM_SPLIT_BUY) {
         count = 10;
     }
     for (index = 0; index < count; ++index) {
@@ -133,9 +133,9 @@ void W8SplitItemDialog::DestroyTextBuffers()
     int index;
 
     count = 0;
-    if (m_kind == 0) {
+    if (m_mode == W8_ITEM_SPLIT_INVENTORY) {
         count = 10;
-    } else if (m_kind <= 2) {
+    } else if (static_cast<unsigned int>(m_mode) <= W8_ITEM_SPLIT_BUY) {
         count = 14;
     }
     for (index = 0; index < count; ++index) {
@@ -151,7 +151,7 @@ int W8SplitItemDialog::CreateControls()
 {
     W8DialogBase::CreateControls();
     m_first_draw = true;
-    split_result = 0;
+    split_result = W8_SPLIT_RESULT_PENDING;
     if (!CreateButtons()) {
         m_error = 7;
         return 7;
@@ -191,9 +191,9 @@ bool W8SplitItemDialog::CreateButtons()
     int index;
 
     count = 0;
-    if (m_kind == 0) {
+    if (m_mode == W8_ITEM_SPLIT_INVENTORY) {
         count = 8;
-    } else if (m_kind <= 2) {
+    } else if (static_cast<unsigned int>(m_mode) <= W8_ITEM_SPLIT_BUY) {
         count = 10;
     }
     for (index = 0; index < count; ++index) {
@@ -231,7 +231,7 @@ bool W8SplitItemDialog::CreateButtons()
     m_buttons[7]->Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 5, 6, 9, 7, OnCancel,
                             BUTTON_NO_CALLBACK, false, MSYS_PRIORITY_HIGHEST,
                             W8_DIALOG_BUTTON_NO_TOOLTIP, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK);
-    if (m_kind == 1 || m_kind == 2) {
+    if (m_mode == W8_ITEM_SPLIT_SELL || m_mode == W8_ITEM_SPLIT_BUY) {
         m_buttons[8]->Configure(
             "Data\\Dialogs\\popup_splititem.sti", BUTTON_NO_IMAGE, 3, BUTTON_NO_IMAGE, 3,
             BUTTON_NO_IMAGE, BUTTON_NO_CALLBACK, BUTTON_NO_CALLBACK, false, MSYS_PRIORITY_LOWEST,
@@ -260,9 +260,9 @@ bool W8SplitItemDialog::CreateTextBuffers()
     W8ControlsRect bounds;
 
     count = 0;
-    if (m_kind == 0) {
+    if (m_mode == W8_ITEM_SPLIT_INVENTORY) {
         count = 10;
-    } else if (m_kind <= 2) {
+    } else if (static_cast<unsigned int>(m_mode) <= W8_ITEM_SPLIT_BUY) {
         count = 14;
     }
     for (index = 0; index < count; ++index) {
@@ -281,10 +281,10 @@ bool W8SplitItemDialog::CreateTextBuffers()
     m_texts[2]->SetLayoutMode(g_W8TextBufferAlignRight | g_W8TextBufferAlignMiddle);
     m_texts[7]->SetLayoutMode(g_W8TextBufferAlignRight | g_W8TextBufferAlignMiddle);
     m_texts[9]->SetLayoutMode(g_W8TextBufferAlignRight | g_W8TextBufferAlignMiddle);
-    if (m_kind == 1 || m_kind == 2) {
+    if (m_mode == W8_ITEM_SPLIT_SELL || m_mode == W8_ITEM_SPLIT_BUY) {
         m_texts[11]->SetLayoutMode(g_W8TextBufferAlignRight | g_W8TextBufferAlignMiddle);
         m_texts[13]->SetLayoutMode(g_W8TextBufferAlignRight | g_W8TextBufferAlignMiddle);
-        if (m_kind == 1) {
+        if (m_mode == W8_ITEM_SPLIT_SELL) {
             m_texts[1]->SetText(gppStringList[274], g_wiz_text_font_secondary);
             header = gppStringList[268];
         } else {
@@ -332,15 +332,15 @@ void W8SplitItemDialog::Draw()
     int text_count;
 
     button_count = 0;
-    if (m_kind == 0) {
+    if (m_mode == W8_ITEM_SPLIT_INVENTORY) {
         button_count = 8;
-    } else if (m_kind <= 2) {
+    } else if (static_cast<unsigned int>(m_mode) <= W8_ITEM_SPLIT_BUY) {
         button_count = 10;
     }
     text_count = 0;
-    if (m_kind == 0) {
+    if (m_mode == W8_ITEM_SPLIT_INVENTORY) {
         text_count = 10;
-    } else if (m_kind <= 2) {
+    } else if (static_cast<unsigned int>(m_mode) <= W8_ITEM_SPLIT_BUY) {
         text_count = 14;
     }
     if ((m_dirty_flags & W8_DIALOG_DIRTY_REDRAW) != 0) {
@@ -392,38 +392,38 @@ void W8SplitItemDialog::UpdateCostLabels()
     int split_price;
 
     stack = *m_item;
-    if (m_kind == 0) {
+    if (m_mode == W8_ITEM_SPLIT_INVENTORY) {
         return;
     }
-    if (m_kind == 1) {
+    if (m_mode == W8_ITEM_SPLIT_SELL) {
         stack.stack_count = static_cast<unsigned char>(split_count);
         if (split_count == 0) {
             split_price = 0;
         } else {
-            split_price =
-                CalculateTradeStackPrice(g_npc_interaction_state->dialogue_npc, &stack, 0);
+            split_price = CalculateTradeStackPrice(g_npc_interaction_state->dialogue_npc, &stack,
+                                                   W8_TRADE_PRICE_PARTY_SELLS);
         }
         stack.stack_count = static_cast<unsigned char>(m_remaining);
         if (m_remaining == 0) {
             remaining_price = 0;
         } else {
-            remaining_price =
-                CalculateTradeStackPrice(g_npc_interaction_state->dialogue_npc, &stack, 0);
+            remaining_price = CalculateTradeStackPrice(g_npc_interaction_state->dialogue_npc,
+                                                       &stack, W8_TRADE_PRICE_PARTY_SELLS);
         }
-    } else if (m_kind == 2) {
+    } else if (m_mode == W8_ITEM_SPLIT_BUY) {
         stack.stack_count = static_cast<unsigned char>(split_count);
         if (split_count == 0) {
             split_price = 0;
         } else {
-            split_price =
-                CalculateTradeStackPrice(g_npc_interaction_state->dialogue_npc, &stack, 1);
+            split_price = CalculateTradeStackPrice(g_npc_interaction_state->dialogue_npc, &stack,
+                                                   W8_TRADE_PRICE_PARTY_BUYS);
         }
         stack.stack_count = static_cast<unsigned char>(m_remaining);
         if (m_remaining == 0) {
             remaining_price = 0;
         } else {
-            remaining_price =
-                CalculateTradeStackPrice(g_npc_interaction_state->dialogue_npc, &stack, 1);
+            remaining_price = CalculateTradeStackPrice(g_npc_interaction_state->dialogue_npc,
+                                                       &stack, W8_TRADE_PRICE_PARTY_BUYS);
         }
     } else {
         remaining_price = GetItemStackValue(m_item);
@@ -467,18 +467,22 @@ void W8SplitItemDialog::UpdateAcceptButton()
     stack = *m_item;
     stack.stack_count = static_cast<unsigned char>(split_count);
     can_accept = split_count != 0;
-    switch (m_kind) {
-    case 1:
-        if (g_status.party_gold < static_cast<unsigned int>(CalculateTradeStackPrice(
-                                      g_npc_interaction_state->dialogue_npc, &stack, 0))) {
+    switch (m_mode) {
+    case W8_ITEM_SPLIT_SELL:
+        if (g_status.party_gold <
+            static_cast<unsigned int>(CalculateTradeStackPrice(
+                g_npc_interaction_state->dialogue_npc, &stack, W8_TRADE_PRICE_PARTY_SELLS))) {
             can_accept = false;
         }
         break;
-    case 2:
-        if (g_status.party_gold < static_cast<unsigned int>(CalculateTradeStackPrice(
-                                      g_npc_interaction_state->dialogue_npc, &stack, 1))) {
+    case W8_ITEM_SPLIT_BUY:
+        if (g_status.party_gold <
+            static_cast<unsigned int>(CalculateTradeStackPrice(
+                g_npc_interaction_state->dialogue_npc, &stack, W8_TRADE_PRICE_PARTY_BUYS))) {
             can_accept = false;
         }
+        break;
+    default:
         break;
     }
     if (can_accept) {
@@ -546,7 +550,7 @@ bool W8SplitItemDialog::HandleInputEvent(const InputAtom* input)
     if (input->usEvent == KEY_DOWN || input->usEvent == KEY_REPEAT) {
         int key = toupper(input->usParam);
         if (key == '\r') {
-            split_result = 1;
+            split_result = W8_SPLIT_RESULT_CONFIRMED;
             m_keep_open = false;
         } else if (key == 0x1b) {
             m_keep_open = false;
@@ -666,7 +670,7 @@ void W8SplitItemDialog::OnAccept(W8DialogButton* button)
         return;
     }
     dialog = static_cast<W8SplitItemDialog*>(button->m_owner);
-    dialog->split_result = 1;
+    dialog->split_result = W8_SPLIT_RESULT_CONFIRMED;
     dialog->m_keep_open = false;
 }
 
@@ -679,7 +683,7 @@ void W8SplitItemDialog::OnCancel(W8DialogButton* button)
         return;
     }
     dialog = static_cast<W8SplitItemDialog*>(button->m_owner);
-    dialog->split_result = 2;
+    dialog->split_result = W8_SPLIT_RESULT_CANCELLED;
     dialog->m_keep_open = false;
 }
 

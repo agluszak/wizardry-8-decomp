@@ -268,7 +268,7 @@ void OpenSplitStackDialog(W8ItemInstance* item)
         (g_item_records[item->iItemNo].flags & W8_ITEM_FLAG_NO_DISCARD) == 0 &&
         g_item_records[item->iItemNo].quantity_kind == W8_ITEM_QUANTITY_STACK) {
         g_split_item_source = item;
-        dialog = new W8SplitItemDialog(g_split_dialog_kind, item, -1);
+        dialog = new W8SplitItemDialog(g_item_split_inventory_mode, item, -1);
         dialog->SetText(&g_empty_wide_string);
         dialog->SetOrigin(g_split_dialog_x, g_split_dialog_y);
         dialog->m_destroy_callback = SplitStackDialogResult;
@@ -452,7 +452,7 @@ void SplitStackDialogResult(W8DialogBase* dialog)
     unsigned char remaining;
     unsigned char carried;
 
-    if (static_cast<W8SplitItemDialog*>(dialog)->split_result != g_split_result_kind) {
+    if (static_cast<W8SplitItemDialog*>(dialog)->split_result != g_item_split_confirm_result) {
         return;
     }
     count = static_cast<W8SplitItemDialog*>(dialog)->split_count;

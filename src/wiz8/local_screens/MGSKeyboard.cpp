@@ -495,7 +495,7 @@ void DispatchMGSCommand(W8MGSCommand command)
             strcpy(g_pending_screen_state.name, slot_name);
             g_pending_screen_state.parameter = GetSaveGameLevel(g_pending_screen_state.name);
             CloseMainGameOverlays();
-            SetMainGameMode(0);
+            SetMainGameMode(W8_MAIN_GAME_DEFAULT);
             SetPendingScreenState(W8_SCREEN_PLEASE_WAIT);
         } else {
             ShowNotice(0xc, gppStringList[0x786], -1, -1, false);

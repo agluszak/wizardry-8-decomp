@@ -88,14 +88,9 @@ extern const unsigned int g_remapped_event_count;
 extern const unsigned int g_first_remapped_event;
 extern const int g_info_dialog_x;
 extern const int g_info_dialog_y;
-extern const int g_split_dialog_confirm;
 extern const int g_split_dialog_origin_x;
 extern const int g_split_dialog_origin_y;
-extern const int g_split_result_kind;
 extern const int g_split_dialog_x;
 extern const int g_split_dialog_y;
-extern const int g_split_dialog_kind;
-extern const int g_split_dialog_sell_kind;
-extern const int g_split_dialog_buy_kind;
 
 #endif
