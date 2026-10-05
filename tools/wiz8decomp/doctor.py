@@ -10,9 +10,11 @@ from typing import Any
 
 from .config import (
     REQUIRED_GHIDRA_RELEASE,
+    REQUIRED_GHIDRA_REVISION,
     REQUIRED_GHIDRA_VERSION,
     REQUIRED_PYGHIDRA_VERSION,
     Settings,
+    ghidra_properties,
     ghidra_version,
 )
 from .repository import validate_repository_hygiene
@@ -168,6 +170,15 @@ def validate_environment(settings: Settings) -> dict[str, Any]:
             "expected": f"{REQUIRED_GHIDRA_VERSION} {REQUIRED_GHIDRA_RELEASE}",
             "actual": f"{version} {release}",
             "path": str(settings.ghidra_install_dir),
+        }
+    )
+    revision = ghidra_properties(settings.ghidra_install_dir).get("application.fork.revision")
+    checks.append(
+        {
+            "name": "ghidra-fork-revision",
+            "ok": revision == REQUIRED_GHIDRA_REVISION,
+            "expected": REQUIRED_GHIDRA_REVISION,
+            "actual": revision,
         }
     )
     try:

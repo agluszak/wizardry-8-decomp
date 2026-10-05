@@ -12,9 +12,11 @@ from typing import Any
 
 from ..config import (
     REQUIRED_GHIDRA_RELEASE,
+    REQUIRED_GHIDRA_REVISION,
     REQUIRED_GHIDRA_VERSION,
     REQUIRED_PYGHIDRA_VERSION,
     Settings,
+    ghidra_properties,
     ghidra_version,
 )
 
@@ -26,6 +28,12 @@ def validate_environment(settings: Settings) -> dict[str, str]:
             f"Ghidra {REQUIRED_GHIDRA_VERSION} {REQUIRED_GHIDRA_RELEASE} is required; "
             f"found {version or 'missing'} {release or 'missing'} at {settings.ghidra_install_dir}"
         )
+    revision = ghidra_properties(settings.ghidra_install_dir).get("application.fork.revision")
+    if revision != REQUIRED_GHIDRA_REVISION:
+        raise RuntimeError(
+            f"Ghidra fork revision {REQUIRED_GHIDRA_REVISION} is required; "
+            f"found {revision or 'missing'} at {settings.ghidra_install_dir}"
+        )
     os.environ["GHIDRA_INSTALL_DIR"] = str(settings.ghidra_install_dir)
     import pyghidra
 
@@ -36,6 +44,7 @@ def validate_environment(settings: Settings) -> dict[str, str]:
     return {
         "ghidra_version": version,
         "ghidra_release": release,
+        "ghidra_revision": revision,
         "pyghidra_version": pyghidra.__version__,
     }
 

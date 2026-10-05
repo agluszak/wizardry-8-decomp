@@ -93,6 +93,22 @@ Set the absolute paths in `.env`, including Ghidra, the local game-input directo
 checkout-specific `WIZ8_WORK_DIR`. Point `gog-media` in `config/local-inputs.yml` at the GOG
 installer.
 
+Use Java 25 and the Linux distribution built from our pinned Ghidra fork. CI and
+local installation use the same fork-owned installer; no release-source patches
+are applied. After setting `GHIDRA_INSTALL_DIR` to a new directory in `.env`:
+
+```sh
+set -a
+source .env
+set +a
+revision=$(sed -n 's/^  GHIDRA_REVISION: //p' .github/workflows/ci.yml)
+checksum=$(sed -n 's/^  GHIDRA_SHA256: //p' .github/workflows/ci.yml)
+curl -fsSL "https://raw.githubusercontent.com/agluszak/ghidra/$revision/support/installForkDistribution.sh" -o /tmp/installForkDistribution.sh
+bash /tmp/installForkDistribution.sh "$revision" "$checksum" "$GHIDRA_INSTALL_DIR"
+```
+
+`doctor` checks the fork revision as well as the Ghidra and PyGhidra versions.
+
 Bootstrap the environment and prepare the canonical game input:
 
 ```sh

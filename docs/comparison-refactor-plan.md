@@ -223,3 +223,34 @@ all 19 focused inline/prototype integration tests pass against released 12.1.4
 using the published installer. Formatting runs on Python 3.15; changed Python
 owners pass lint and typing checks. CI pins the Ghidra installer at `81a8bd9f`
 and reccmp at `00bf5625`. Whole-image current-main results remain CI validation.
+
+## Complete fork distribution
+
+Replace released 12.1.4 plus native patches with the complete Linux distribution
+built from our synced Ghidra fork. Ghidra owns publishing an immutable commit-tagged
+archive and its PyGhidra wheel, and one checksum-verified installer serves both
+Wizardry and reccmp. Wizardry requires 12.3 DEV, Java 25, PyGhidra 3.3.0 and the
+exact fork revision stamped into application.properties. The obsolete patch
+installer is removed from the fork. Native executable fingerprints continue to
+invalidate cached analysis and comparisons. Archive and wheel pins are immutable;
+no upstream pull requests or separate comparison modes are introduced.
+
+The upgrade also fixes the fork's Python API-stub generator: Java dollar names
+are dynamically accessible and cannot be emitted as Python declarations or
+invented underscore aliases; unnameable types remain Any. Java permits redundant
+interface ancestors, which must be removed from Python base lists to preserve a
+valid C3 order and inherited methods. Regression fixtures cover both cases;
+release publication parses every generated stub. Exporter versions in reviewed
+GZF records remain historical provenance. Current runtime identity is checked
+separately, and Ghidra owns archive format compatibility. Ghidriff drops its
+obsolete release warning; it does not own the project's distribution pin.
+
+The distribution is pinned at `7de63e440dffd1c96c22fdebd9a59d974df8a543`,
+reccmp at `a6ec5861d4863e52edcc3ed52d20d21e3460a190`, and Ghidriff at
+`a1ddd07630bfb4ac9b56057a24808e92acc6ab97`. The complete distribution build
+passes its Doclet fixtures and generated-stub syntax gate. Against its published
+stub wheel, reccmp's Python 3.15 mypy check passes all 208 source files. The
+synced native decompiler passes 777 assertions; the existing full reccmp suite
+passes 1,010 tests. Whole-image product comparison remains CI validation.
+The final installed archive passes Wizardry's runtime doctor, all 19 native
+inline/prototype integration tests, publication checks and merge-preservation.

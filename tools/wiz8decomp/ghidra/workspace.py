@@ -6,9 +6,6 @@ from pathlib import Path
 from typing import Any
 
 from ..config import (
-    REQUIRED_GHIDRA_RELEASE,
-    REQUIRED_GHIDRA_VERSION,
-    REQUIRED_PYGHIDRA_VERSION,
     Settings,
 )
 from ..paths import atomic_json, sha256_file
@@ -90,21 +87,8 @@ def seed_record(
     record = next(
         record for record in seed_records(settings) if record.get("program") == program_name
     )
-    expected_runtime = (
-        REQUIRED_GHIDRA_VERSION,
-        REQUIRED_GHIDRA_RELEASE,
-        REQUIRED_PYGHIDRA_VERSION,
-    )
-    actual_runtime = (
-        record.get("ghidra_version"),
-        record.get("ghidra_release"),
-        record.get("pyghidra_version"),
-    )
-    if actual_runtime != expected_runtime:
-        raise RuntimeError(
-            "GZF seed runtime differs from the pinned runtime: "
-            f"seed={actual_runtime}, required={expected_runtime}"
-        )
+    # Exporter versions are historical provenance. The current runtime is
+    # validated before opening; Ghidra owns archive format compatibility.
     archive = settings.repo_dir / str(record["path"])
     resolved = {**record, "archive": archive}
     if validate_archive:

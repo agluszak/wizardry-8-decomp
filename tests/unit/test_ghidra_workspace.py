@@ -259,3 +259,23 @@ def test_compiler_projection_stale_when_pdb_hash_changes(tmp_path: Path) -> None
     result = workspace.source_projection_freshness(settings, "wiz8-program")
     assert result["status"] == "current"
     assert result["compiler_status"] == "stale"
+
+
+def test_seed_record_preserves_historical_exporter_versions(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    record = {
+        "program": "wiz8-program",
+        "path": "vendor/seed.gzf",
+        "sha256": "reviewed-seed-hash",
+        "ghidra_version": "12.1.4",
+        "ghidra_release": "PUBLIC",
+        "pyghidra_version": "3.1.0",
+    }
+    monkeypatch.setattr(workspace, "resolve_seed_program", lambda *_args: "wiz8-program")
+    monkeypatch.setattr(workspace, "seed_records", lambda *_args: [record])
+    settings = _settings(tmp_path)
+
+    resolved = workspace.seed_record(settings, validate_archive=False)
+
+    assert resolved == {**record, "archive": settings.repo_dir / "vendor/seed.gzf"}

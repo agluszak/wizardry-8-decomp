@@ -13,7 +13,7 @@ dependencies = [
   "pefile>=2024.8.26",
   "pydantic>=2.11,<3",
   "pygdbmi==0.11.0.0",
-  "pyghidra==3.1.0",
+  "pyghidra @ https://github.com/agluszak/ghidra/releases/download/wizardry-7de63e440dffd1c96c22fdebd9a59d974df8a543/pyghidra-3.3.0-py3-none-any.whl",
   "python-dotenv>=1.1,<2",
   "pyyaml>=6.0.2,<7",
   "rich>=14,<15",
@@ -61,4 +61,7 @@ exclude = [
 typeCheckingMode = "basic"
 
 [tool.uv.sources]
-reccmp = { git = "https://github.com/agluszak/reccmp", rev = "00bf5625ad9f54cd0690867b9e9bcdc7e835df14" }
+reccmp = { git = "https://github.com/agluszak/reccmp", rev = "a6ec5861d4863e52edcc3ed52d20d21e3460a190" }
+
+[tool.hatch.metadata]
+allow-direct-references = true
