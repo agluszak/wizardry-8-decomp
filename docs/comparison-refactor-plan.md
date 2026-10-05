@@ -8,6 +8,7 @@ normalization modes, rule registry, compatibility aliases or equivalence engine.
 
 | Owner | Responsibilities |
 | --- | --- |
+| Ghidra | Native decompilation, control flow and inline expansion. |
 | Ghidriff | Generic decompiler spelling normalization, declaration/body splitting, text diffs and similarity. |
 | reccmp | Pairing and identity, reference-aware address normalization, Ghidra preparation, referenced data, analysis diagnostics and comparison-pass selection. |
 | Wizardry | Reviewed project facts, products and source selections, emission gates, CI orchestration and presentation. |
@@ -151,3 +152,36 @@ different, 81.69% average similarity; SURRENDER 2,245 analyzed, 1,532 clean, 713
 different, 88.22% average similarity. Both had zero analysis failures. These
 historical averages still mix ordinary scores with inline outcomes and are not
 the acceptance criterion for this refactor.
+
+## Native replay and baseline audit follow-up
+
+Ghidra owns the native hard-inline fixes: continuation lookup uses control flow
+instead of raw-op order, and CALL_RETURN expansion removes its synthetic return.
+The fork's release-source installer is pinned in CI at `acc74ac07b`. reccmp
+`08e428ac` applies temporary tail-call overrides with rollback, corrects the
+legacy x86 MSVCRT swprintf import ABI, and fingerprints the native executable in
+analysis and completed-comparison identities using Ghidra's own module resolver.
+The installer respects Ghidra's preference for `build/os` over `os`, which caught
+a stale executable in the native CI image. Delta reports reject mismatched
+native executables. Ghidriff `b1b7f11` owns lexical export-annotation removal and
+same-width int/uint zero-load tests. reccmp owns displayed pointer identity at
+exact paired-data offsets, including constants adjusted by Ghidra.
+
+The saved #910-versus-#877 baseline contains 12 body differences removed by these
+normalization/identity corrections: 9 Wizardry and 3 SurRender. Fresh focused
+native replay confirms six Wizardry baseline functions clean. Navigator and
+cursor inline failures disappear, while remaining body differences stay visible.
+The NPC replay no longer interprets code bytes as a UTF-16 format string.
+Validation: 18 native Ghidra assertions, 34 Ghidriff tests, 74 focused reccmp tests
+including native fixtures, 12 cache tests after native analysis invalidation,
+and 22 Wizardry delta tests. CI follow-up fixtures pass 49 focused tests; the
+local reccmp fast suite passes 923 tests with 231 unavailable integrations skipped.
+The pinned installer was exercised against released
+12.1.4 source. All PR #919 checks passed before the executable-selection
+follow-up; its 20 focused native/cache tests pass both locally and in the exact
+CI container. Updated pins require a fresh CI result.
+
+Do not normalize counted-versus-pointer loops, raw boolean values, signed
+ordering, arbitrary pointer/integer casts or floating-point reassociation into
+equality. Repeated branching-callee replay and suspicious inferred template
+parameter types still need owner-level investigation.

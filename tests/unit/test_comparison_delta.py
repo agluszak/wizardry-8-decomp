@@ -50,6 +50,7 @@ def _summary(*rows: dict) -> dict:
             "orig": {"sha256": "fixture-original"},
             "normalization_key": "fixture-policy",
             "ghidra_version": "12.1.4",
+            "decompiler_sha256": "native-fixture",
             "decompiler_timeout": 60,
             "threaded": True,
             "max_ram_percent": 60,
@@ -397,10 +398,11 @@ def test_declaration_findings_do_not_reduce_body_quality() -> None:
     assert metrics["average_similarity"] == 0.95
 
 
-def test_pr_delta_rejects_different_comparison_policies(tmp_path: Path):
+@pytest.mark.parametrize("key", ["normalization_key", "decompiler_sha256"])
+def test_pr_delta_rejects_different_comparison_policies(tmp_path: Path, key: str):
     head = _summary(_row(1, "no-differences"))
     base = _summary(_row(1, "no-differences"))
-    base["inputs"]["normalization_key"] = "older-policy"
+    base["inputs"][key] = "older-policy"
     paths = {}
     for name, value in {
         "head_summary": head,
@@ -411,5 +413,5 @@ def test_pr_delta_rejects_different_comparison_policies(tmp_path: Path):
         path = tmp_path / f"{name}.json"
         path.write_text(json.dumps(value))
         paths[f"{name}_path"] = path
-    with pytest.raises(ValueError, match="Comparison policies differ: normalization_key"):
+    with pytest.raises(ValueError, match=f"Comparison policies differ: {key}"):
         pr_comparison_report("WIZ8", **paths)
