@@ -1,3 +1,4 @@
+#include "wiz8/fonts.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/integer_constants.h"
 #include "wiz8/layouts/character.h"
@@ -485,10 +486,10 @@ void ReturnDismissedNpcItems(W8NpcState* npc, W8Character* character)
         }
     }
     if (returned) {
-        ShowNoticef(0, gppStringList[0x1fd], npc->record->source_name);
+        ShowNoticef(W8_FONT_PALETTE_RED, gppStringList[0x1fd], npc->record->source_name);
     }
     if (dropped) {
-        ShowNoticef(0, gppStringList[0x1fe], npc->record->source_name);
+        ShowNoticef(W8_FONT_PALETTE_RED, gppStringList[0x1fe], npc->record->source_name);
     }
 }
 
@@ -573,7 +574,7 @@ void UpdateNpcPartyMember(int party_slot)
     srVector3T<float> position;
 
     if (character->highest_condition == W8_CONDITION_DEAD) {
-        ShowNoticef(0, gppStringList[0x7d4], character->name);
+        ShowNoticef(W8_FONT_PALETTE_RED, gppStringList[0x7d4], character->name);
         StashDepartingCharacterItems(character);
         RemoveCharacterFromParty(party_slot, false);
         return;
@@ -583,7 +584,7 @@ void UpdateNpcPartyMember(int party_slot)
         return;
     }
     if (!ProbeNpcPlacementNearParty(party_slot, 0, &position)) {
-        ShowNoticef(0, gppStringList[0x7d5]);
+        ShowNoticef(W8_FONT_PALETTE_RED, gppStringList[0x7d5]);
         return;
     }
     if (NpcOffersService(npc, GetLevelBand(g_status.current_level))) {

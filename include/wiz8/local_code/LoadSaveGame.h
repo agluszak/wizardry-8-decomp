@@ -29,7 +29,7 @@ struct W8SaveSlot {
     int game_time_days;
     unsigned int game_time_ms;
     int level_id;
-    unsigned char iron_man;
+    bool iron_man;
     unsigned char padding_0a5[3];
     W8SaveScreenshot screenshot;
     int version_major;

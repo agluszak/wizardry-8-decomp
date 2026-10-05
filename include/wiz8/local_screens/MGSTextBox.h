@@ -5,6 +5,7 @@ class Trigger;
 #include <wchar.h>
 #include "input.h"
 #include "timer.h"
+#include "wiz8/fonts.h"
 #include "wiz8/dialog_code/DialogBase.h"
 
 #include "wiz8/3d_code/PList.h"
@@ -156,8 +157,13 @@ void ResetMessageStorage(void);                                        /* 0x0058
 unsigned char SaveMessageStorage(int file);
 /* 0x0058FC30: rebuild the four message runs from the open TEXT chunk. */
 unsigned char LoadMessageStorage(int file);
-void ShowNotice(unsigned int font_palette, const wchar_t* text, short text_box = -1,
-                unsigned int wrap_width = ~0U, bool force_dialog = false);
+/* Defaults select the live mode's text box and its available line width. */
+const short W8_NOTICE_TEXT_BOX_AUTOMATIC = -1;
+const unsigned int W8_NOTICE_WRAP_AUTOMATIC = ~0U;
+
+void ShowNotice(unsigned int font_palette, const wchar_t* text,
+                short text_box = W8_NOTICE_TEXT_BOX_AUTOMATIC,
+                unsigned int wrap_width = W8_NOTICE_WRAP_AUTOMATIC, bool force_dialog = false);
 /* 0x0058AAD0: vswprintf the format into a scratch buffer and ShowNotice it,
    choosing the text-box slot from the current dialogue/camp/combat mode. */
 void ShowNoticef(unsigned int font_palette, const wchar_t* format, ...);

@@ -294,7 +294,8 @@ void DrawCampSpellPages(void)
         top = (realm / 3) * 0x8c + 0xaa;
         if (character->skill_unlocks[0x1c + realm] != 0) {
             DrawCatalogImageAndInvalidate(-14, 0x140, 0, 3, left, top, 2, 0);
-            SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_font_state_palettes[1]);
+            SetFontObjectPalette16BPP(g_wiz_text_font_secondary,
+                                      g_font_state_palettes[W8_FONT_PALETTE_GREEN]);
             gprintf(left + 0x1b, top + 8, Wiz8ToSgpWideText(g_format_s0),
                     gppStringList[0x8c7]);
             gprintf(left + 0x72, top + 8, gppStringList[0x8c9]);
@@ -322,13 +323,13 @@ void DrawCampSpellPages(void)
                                            [g_camp_screen->learned_spells.scroll[realm] + row];
                 if (g_camp_screen->hover_region == static_cast<unsigned int>(realm + 0x119) &&
                     g_camp_screen->selected_spell_row == row) {
-                    palette = g_font_state_palettes[5];
+                    palette = g_font_state_palettes[W8_FONT_PALETTE_YELLOW];
                 } else if (g_spell_records[spell_id].spell_point_cost <=
                                character->iSPLeft[realm] &&
                            SpellUsableNow(spell_id, false)) {
                     palette = g_wiz_text_font_secondary_palette;
                 } else {
-                    palette = g_font_state_palettes[0];
+                    palette = g_font_state_palettes[W8_FONT_PALETTE_RED];
                 }
                 SetFontObjectPalette16BPP(g_wiz_text_font_secondary, palette);
                 width =
@@ -949,7 +950,8 @@ void DrawCampItemQuantity(W8ItemInstance* item, int left, int top, int width)
         break;
     case W8_ITEM_QUANTITY_CHARGES:
     case W8_ITEM_QUANTITY_USES:
-        SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_font_state_palettes[3]);
+        SetFontObjectPalette16BPP(g_wiz_text_font_secondary,
+                                  g_font_state_palettes[W8_FONT_PALETTE_BLUE]);
         if (!item->identified) {
             swprintf(state->text_buffer, L"?");
         } else {
@@ -960,7 +962,8 @@ void DrawCampItemQuantity(W8ItemInstance* item, int left, int top, int width)
                              g_W8TextBufferAlignMiddle | g_W8TextBufferAlignRight);
         break;
     case W8_ITEM_QUANTITY_SHOTS:
-        SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_font_state_palettes[5]);
+        SetFontObjectPalette16BPP(g_wiz_text_font_secondary,
+                                  g_font_state_palettes[W8_FONT_PALETTE_YELLOW]);
         swprintf(state->text_buffer, g_format_d, item->uses_or_charges);
         height = GetFontHeight(g_wiz_text_font_secondary);
         DrawRcsTextJustified(state->text_buffer, left, top, width, height,
@@ -2688,7 +2691,7 @@ void BeginPartyDeath(void)
     if (g_level_block->review_transition_active) {
         return;
     }
-    if (g_status.iron_man != 0 && !gXStatus.party_moving) {
+    if (g_status.iron_man && !gXStatus.party_moving) {
         DeleteCurrentSaveFiles();
     }
     if (gXStatus.fSurprisePossible) {

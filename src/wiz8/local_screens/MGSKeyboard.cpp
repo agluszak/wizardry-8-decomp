@@ -1,3 +1,4 @@
+#include "wiz8/fonts.h"
 #include <stdio.h>
 #include "wiz8/local_screens/MGSKeyboard.h"
 #include "input.h"
@@ -293,13 +294,13 @@ void DispatchMGSCommand(W8MGSCommand command)
         VideoFullScreen(VideoIsFullScreen() == 0);
         break;
     case W8_MGS_COMMAND_LOAD_OPTIONS:
-        if (IsScreenInputBlocked() == 0 && IsLevelDataFlag4EffectivelySet() != 0) {
+        if (IsScreenInputBlocked() == 0 && CanInterruptLevelMovement()) {
             g_pending_screen_state.mode = 1;
             SetPendingScreenState(W8_SCREEN_OPTIONS);
         }
         break;
     case W8_MGS_COMMAND_SAVE_OPTIONS:
-        if (IsScreenInputBlocked() == 0 && IsLevelDataFlag4EffectivelySet() != 0) {
+        if (IsScreenInputBlocked() == 0 && CanInterruptLevelMovement()) {
             g_pending_screen_state.mode = 2;
             SetPendingScreenState(W8_SCREEN_OPTIONS);
         }
@@ -313,9 +314,10 @@ void DispatchMGSCommand(W8MGSCommand command)
                 delay += 0xfa - delay % 0xfa;
             }
             g_settings.combat_delay_ms = delay;
-            ShowNoticef(0xc, L"%s %d", gppStringList[0x7ba], 0x14 - delay / 0xfa);
+            ShowNoticef(W8_FONT_PALETTE_BEIGE, L"%s %d", gppStringList[0x7ba], 0x14 - delay / 0xfa);
         } else {
-            ShowNoticef(0xc, L"%s (%d)", gppStringList[0x7bb], 0x14 - delay / 0xfa);
+            ShowNoticef(W8_FONT_PALETTE_BEIGE, L"%s (%d)", gppStringList[0x7bb],
+                        0x14 - delay / 0xfa);
         }
         break;
     }
@@ -328,9 +330,10 @@ void DispatchMGSCommand(W8MGSCommand command)
                 delay -= delay % 0xfa;
             }
             g_settings.combat_delay_ms = delay;
-            ShowNoticef(0xc, L"%s %d", gppStringList[0x7ba], 0x14 - delay / 0xfa);
+            ShowNoticef(W8_FONT_PALETTE_BEIGE, L"%s %d", gppStringList[0x7ba], 0x14 - delay / 0xfa);
         } else {
-            ShowNoticef(0xc, L"%s (%d)", gppStringList[0x7bc], 0x14 - delay / 0xfa);
+            ShowNoticef(W8_FONT_PALETTE_BEIGE, L"%s (%d)", gppStringList[0x7bc],
+                        0x14 - delay / 0xfa);
         }
         break;
     }
@@ -343,9 +346,10 @@ void DispatchMGSCommand(W8MGSCommand command)
                 delay += 0xfa - delay % 0xfa;
             }
             g_settings.text_display_delay_ms = delay;
-            ShowNoticef(0xc, L"%s %d", gppStringList[0x7b7], 0x14 - delay / 0xfa);
+            ShowNoticef(W8_FONT_PALETTE_BEIGE, L"%s %d", gppStringList[0x7b7], 0x14 - delay / 0xfa);
         } else {
-            ShowNoticef(0xc, L"%s (%d)", gppStringList[0x7b8], 0x14 - delay / 0xfa);
+            ShowNoticef(W8_FONT_PALETTE_BEIGE, L"%s (%d)", gppStringList[0x7b8],
+                        0x14 - delay / 0xfa);
         }
         break;
     }
@@ -358,16 +362,17 @@ void DispatchMGSCommand(W8MGSCommand command)
                 delay -= delay % 0xfa;
             }
             g_settings.text_display_delay_ms = delay;
-            ShowNoticef(0xc, L"%s %d", gppStringList[0x7b7], 0x14 - delay / 0xfa);
+            ShowNoticef(W8_FONT_PALETTE_BEIGE, L"%s %d", gppStringList[0x7b7], 0x14 - delay / 0xfa);
         } else {
-            ShowNoticef(0xc, L"%s (%d)", gppStringList[0x7b9], 0x14 - delay / 0xfa);
+            ShowNoticef(W8_FONT_PALETTE_BEIGE, L"%s (%d)", gppStringList[0x7b9],
+                        0x14 - delay / 0xfa);
         }
         break;
     }
     case W8_MGS_COMMAND_SHOW_VERSION: {
         char version_text[0x40];
         FormatVersionBanner(version_text, true, true, true);
-        ShowNotice(0xc, ConvertStringToWide(version_text), -1, -1, false);
+        ShowNotice(W8_FONT_PALETTE_BEIGE, ConvertStringToWide(version_text));
         break;
     }
     case W8_MGS_COMMAND_LOOK_LEVEL:
@@ -412,7 +417,7 @@ void DispatchMGSCommand(W8MGSCommand command)
             gXStatus.fTrapInteract) {
             break;
         }
-        if (IsLevelDataFlag4EffectivelySet() == 0) {
+        if (!CanInterruptLevelMovement()) {
             break;
         }
         ClearScreenWait();
@@ -455,27 +460,27 @@ void DispatchMGSCommand(W8MGSCommand command)
         break;
     case W8_MGS_COMMAND_QUICK_SAVE: {
         char slot_name[0x100];
-        if (IsScreenInputBlocked() != 0 || IsLevelDataFlag4EffectivelySet() == 0) {
+        if (IsScreenInputBlocked() != 0 || !CanInterruptLevelMovement()) {
             break;
         }
-        if (g_status.iron_man != 0 && !g_dev_mode) {
-            ShowNotice(0xc, gppStringList[0x82c], -1, -1, false);
+        if (g_status.iron_man && !g_dev_mode) {
+            ShowNotice(W8_FONT_PALETTE_BEIGE, gppStringList[0x82c]);
             break;
         }
         if (gXStatus.fCombatMode) {
             if (g_dev_mode) {
-                EndCombat(0);
+                EndCombat(false);
             } else {
-                ShowNotice(0xc, gppStringList[0x774], -1, -1, false);
+                ShowNotice(W8_FONT_PALETTE_BEIGE, gppStringList[0x774]);
                 break;
             }
         }
         SelectQuickSaveSlotForWrite(slot_name);
         if (SaveGame(slot_name, 0)) {
             SetLastSaveName(ConvertStringToWide(slot_name));
-            ShowNotice(0xc, gppStringList[0x6f5], -1, -1, false);
+            ShowNotice(W8_FONT_PALETTE_BEIGE, gppStringList[0x6f5]);
         } else {
-            ShowNotice(0xc, gppStringList[0x6f6], -1, -1, false);
+            ShowNotice(W8_FONT_PALETTE_BEIGE, gppStringList[0x6f6]);
         }
         break;
     }
@@ -484,8 +489,8 @@ void DispatchMGSCommand(W8MGSCommand command)
         if (IsScreenInputBlocked() != 0) {
             break;
         }
-        if (g_status.iron_man != 0 && !g_dev_mode) {
-            ShowNotice(0xc, gppStringList[0x82c], -1, -1, false);
+        if (g_status.iron_man && !g_dev_mode) {
+            ShowNotice(W8_FONT_PALETTE_BEIGE, gppStringList[0x82c]);
             break;
         }
         if (FindStartupQuickSave(slot_name)) {
@@ -498,7 +503,7 @@ void DispatchMGSCommand(W8MGSCommand command)
             SetMainGameMode(W8_MAIN_GAME_DEFAULT);
             SetPendingScreenState(W8_SCREEN_PLEASE_WAIT);
         } else {
-            ShowNotice(0xc, gppStringList[0x786], -1, -1, false);
+            ShowNotice(W8_FONT_PALETTE_BEIGE, gppStringList[0x786]);
         }
         break;
     }
@@ -633,9 +638,8 @@ void DispatchMGSCommand(W8MGSCommand command)
         break;
     case W8_MGS_COMMAND_TOGGLE_AUTO_ADVANCE:
         g_settings.auto_advance_character ^= 1;
-        ShowNotice(0xc,
-                   gppStringList[g_settings.auto_advance_character != 0 ? 0x1f68 / 4 : 0x1f6c / 4],
-                   -1, -1, false);
+        ShowNotice(W8_FONT_PALETTE_BEIGE,
+                   gppStringList[g_settings.auto_advance_character != 0 ? 0x1f68 / 4 : 0x1f6c / 4]);
         break;
     case W8_MGS_COMMAND_TEXTBOX_SCROLL_UP:
         ScrollTextBoxUp(1);

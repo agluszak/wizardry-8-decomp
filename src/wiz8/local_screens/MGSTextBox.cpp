@@ -101,7 +101,7 @@ static unsigned char g_text_box_mode;
 // GLOBAL: WIZ8 0x0069b7bc
 int g_notice_line_count;
 // GLOBAL: WIZ8 0x0064bd54
-static int g_text_box_value = 12;
+static int g_text_box_value = W8_FONT_PALETTE_BEIGE;
 /* 0x0068F2D4: the screen the text box belongs to; its two panels sit at 0x0c
    and 0x14. */
 
@@ -211,7 +211,7 @@ void ResetEditorStatusLine(short line)
    numbers pass through unchanged. */
 static short ResolveNoticeTextBox(short text_box)
 {
-    if (text_box == -1) {
+    if (text_box == W8_NOTICE_TEXT_BOX_AUTOMATIC) {
         if ((gXStatus.fNpcDialogueMode && !CanOpenNpcDialogue()) || gXStatus.fCampMode) {
             return IsNpcDialogueTextBoxActive() ? 0 : 2;
         }
@@ -350,10 +350,10 @@ void ShowNotice(unsigned int font_palette, const wchar_t* text, short text_box,
                                (g_current_screen_state.id == W8_SCREEN_CAMP && !force_dialog) ||
                                g_current_screen_state.id == W8_SCREEN_PLEASE_WAIT ||
                                g_current_screen_state.id == W8_SCREEN_CHARACTER)) {
-        if (font_palette >= 16) {
+        if (font_palette >= W8_FONT_PALETTE_COUNT) {
             srAssertFail("uiFontPaletteIndex <= FONT_PALETTE_COUNT", MGS_TEXT_BOX_CPP, 0x15c, 0);
         }
-        if (wrap_width == ~0U) {
+        if (wrap_width == W8_NOTICE_WRAP_AUTOMATIC) {
             wrap_width = g_level_block->text_box_right - g_level_block->text_box_left - 10;
         }
         text_box = ResolveNoticeTextBox(text_box);
@@ -605,7 +605,7 @@ void FormatNotice(int channel, short text_box, const wchar_t* format, ...)
     va_end(arguments);
 
     text_box = ResolveNoticeTextBox(text_box);
-    ShowNotice(channel, text, text_box, -1, false);
+    ShowNotice(channel, text, text_box);
 }
 
 // FUNCTION: WIZ8 0x0058aad0
@@ -620,7 +620,7 @@ void ShowNoticef(unsigned int font_palette, const wchar_t* format, ...)
     va_end(arguments);
 
     text_box = ResolveNoticeTextBox(-1);
-    ShowNotice(font_palette, text, text_box, -1, false);
+    ShowNotice(font_palette, text, text_box);
 }
 
 /* The font the main-game text box measures and draws with. */
@@ -783,7 +783,7 @@ void AppendToLastTextLine(const wchar_t* text, short text_box)
         return;
     }
     if (g_text_box_mode == 0) {
-        ShowNotice(g_text_box_value, text, text_box, -1, false);
+        ShowNotice(g_text_box_value, text, text_box);
         return;
     }
     text_box = ResolveNoticeTextBox(text_box);
@@ -816,7 +816,7 @@ void AppendToLastTextLine(const wchar_t* text, short text_box)
         --g_status.text_box_lines_shown[text_box];
     }
     --*lines_used;
-    ShowNotice(channel, merged, text_box, -1, false);
+    ShowNotice(channel, merged, text_box);
     if (color != 0xff) {
         HighlightTextBoxRange(color, start, stop, text_box);
     }
@@ -881,7 +881,8 @@ static void PostCharacterNoticeText(int party_slot, int context, const wchar_t* 
     wchar_t separator[2];
     wcscpy(separator,
            (text[0] == L'\'' || text[0] == L':') ? &g_empty_wide_string : g_W8TextSeparator);
-    FormatNotice(8, context, L"%s%s%s", g_status.buffers.Char[party_slot].name, separator, text);
+    FormatNotice(W8_FONT_PALETTE_WHITE, context, L"%s%s%s", g_status.buffers.Char[party_slot].name,
+                 separator, text);
     int stop = wcslen(g_status.buffers.Char[party_slot].name);
     if (text[0] == L'\'') {
         ++stop;
@@ -946,7 +947,7 @@ bool CurrentDialogueLineHasContent(void)
 // FUNCTION: WIZ8 0x0058b5f0
 void AdvanceNoticeLine(short text_box)
 {
-    if (text_box == -1) {
+    if (text_box == W8_NOTICE_TEXT_BOX_AUTOMATIC) {
         text_box = g_status.text_line_cursor;
     }
     if (g_status.text_box_lines_shown[text_box] >= 350) {
@@ -1788,8 +1789,7 @@ unsigned char HandleDialogueTextInput(const InputAtom* input_event)
         g_level_block->dialogue_text_input_open = false;
         g_level_block->text_lines[input->text_box] = input->saved_scroll_line;
         if (input->text[0] != 0) {
-            ShowNotice(input->notice_channel, input->text, input->text_box, input->wrap_width,
-                       false);
+            ShowNotice(input->notice_channel, input->text, input->text_box, input->wrap_width);
         }
         ReleaseDialogueTextInput();
         RedrawTextBox();
@@ -1893,17 +1893,17 @@ static void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, bool hov
         return;
     }
 
-    palette = g_font_state_palettes[3];
+    palette = g_font_state_palettes[W8_FONT_PALETTE_BLUE];
     if (!selected_line) {
         if (hovered_line) {
-            palette = g_font_state_palettes[0];
+            palette = g_font_state_palettes[W8_FONT_PALETTE_RED];
             if (static_cast<char>(line->font_palette) != 5) {
-                palette = g_font_state_palettes[5];
+                palette = g_font_state_palettes[W8_FONT_PALETTE_YELLOW];
             }
             SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
             DrawMessageLineText(line, x, y);
         } else if (line->highlight_color == 0xff) {
-            if (line->font_palette < 0xf) {
+            if (line->font_palette < W8_FONT_PALETTE_TEXT_BOX) {
                 palette = g_font_state_palettes[line->font_palette];
             } else {
                 palette = g_level_block->palette;
@@ -1913,7 +1913,7 @@ static void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, bool hov
         } else {
             draw_x = x;
             if (line->highlight_start != 0) {
-                if (line->font_palette < 0xf) {
+                if (line->font_palette < W8_FONT_PALETTE_TEXT_BOX) {
                     palette = g_font_state_palettes[line->font_palette];
                 } else {
                     palette = g_level_block->palette;
@@ -2253,7 +2253,7 @@ void SetKnockKnockTarget(int target, int /*flag*/, int /*backfire*/)
     W8MainGameScreen* screen = g_main_game_screen;
 
     if (!gXStatus.fTrapInteractMode) {
-        ShowNotice(0xc, L"You can't cast Knock Knock here!", -1, -1, false);
+        ShowNotice(W8_FONT_PALETTE_BEIGE, L"You can't cast Knock Knock here!");
         return;
     }
     screen->m_target_difficulty = target;
@@ -2354,8 +2354,8 @@ static void DrawNoticeWordOverlays(W8MessageStorageRecord* line, int x, int y)
         W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(line->entries, i));
         if (word->keyword != W8_NOTICE_WORD_NORMAL) {
             unsigned short* palette = word->keyword == W8_NOTICE_WORD_SELECTED
-                                          ? g_font_state_palettes[3]
-                                          : g_font_state_palettes[5];
+                                          ? g_font_state_palettes[W8_FONT_PALETTE_BLUE]
+                                          : g_font_state_palettes[W8_FONT_PALETTE_YELLOW];
             SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
             memset(word_text, 0, sizeof(word_text));
             wcsncpy(word_text, line->wString + word->start, word->end - word->start + 1);
@@ -2365,7 +2365,7 @@ static void DrawNoticeWordOverlays(W8MessageStorageRecord* line, int x, int y)
         }
         if (word->redraw) {
             unsigned short* palette;
-            if (line->font_palette < 0xf) {
+            if (line->font_palette < W8_FONT_PALETTE_TEXT_BOX) {
                 palette = g_font_state_palettes[line->font_palette];
             } else {
                 palette = g_level_block->palette;
@@ -2506,7 +2506,8 @@ void PostMonsterNotice(W8MonsterInfo* monster_info, const wchar_t* format, ...)
 
     wcscpy(separator,
            text[0] == L'\'' || text[0] == L':' ? &g_empty_wide_string : g_W8TextSeparator);
-    ShowNoticef(9, L"%s%s%s", GetMonsterName(monster_info, 0, 0), separator, text);
+    ShowNoticef(W8_FONT_PALETTE_RUST, L"%s%s%s", GetMonsterName(monster_info, 0, 0), separator,
+                text);
 }
 
 /* Re-show the last wrapped entry of `mode`'s message run as a notice line;

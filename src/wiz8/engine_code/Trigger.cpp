@@ -1,3 +1,4 @@
+#include "wiz8/fonts.h"
 #include "soundman.h"
 #include "wiz8/integer_constants.h"
 #include "wiz8/engine_code/AmbientSound.h"
@@ -2550,10 +2551,10 @@ void Trigger::PrintNothingHappenedOrSpecialItemRequired()
         return;
     }
     if (required_item_id != -1) {
-        ShowNotice(0xf, gppStringList[0x96b], -1, -1, false);
+        ShowNotice(W8_FONT_PALETTE_TEXT_BOX, gppStringList[0x96b]);
         return;
     }
-    ShowNotice(0xf, gppStringList[0x964], -1, -1, false);
+    ShowNotice(W8_FONT_PALETTE_TEXT_BOX, gppStringList[0x964]);
 }
 
 /* Execute the selected Trigger action. The original keeps the three trigger
@@ -2760,7 +2761,7 @@ void Trigger::Run(int source)
             if (action_data != 0 && (action_data->door_flags & W8_DOOR_KEY_REQUIRED) != 0 &&
                 action_data->item != -1) {
                 if (!FindItemOnParty(action_data->item, 0, 0, 2, 0)) {
-                    ShowNoticef(3, L"Your party doesn't have required key.");
+                    ShowNoticef(W8_FONT_PALETTE_BLUE, L"Your party doesn't have required key.");
                     break;
                 }
                 action_data->door_flags &= ~W8_DOOR_KEY_REQUIRED;
@@ -2835,7 +2836,7 @@ void Trigger::Run(int source)
             if (action_data != 0 && (action_data->door_flags & W8_DOOR_KEY_REQUIRED) != 0 &&
                 action_data->item != -1) {
                 if (!FindItemOnParty(action_data->item, 0, 0, 2, 0)) {
-                    ShowNoticef(3, L"Your party doesn't have required key.");
+                    ShowNoticef(W8_FONT_PALETTE_BLUE, L"Your party doesn't have required key.");
                     break;
                 }
                 action_data->door_flags &= ~W8_DOOR_KEY_REQUIRED;

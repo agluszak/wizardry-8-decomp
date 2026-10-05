@@ -1,3 +1,4 @@
+#include "wiz8/fonts.h"
 #include "soundman.h"
 #include "wiz8/integer_constants.h"
 #include "wiz8/local_code/character_events.h"
@@ -1702,7 +1703,7 @@ void StashDepartingCharacterItems(W8Character* character)
              character->uiCondition[W8_CONDITION_DEAD] != 0) &&
             !AddItemToParty(item, 0, false)) {
             DropUnstoredCharacterItem(item);
-            ShowNoticef(0, gppStringList[0x7d3], &g_item_records[item_id]);
+            ShowNoticef(W8_FONT_PALETTE_RED, gppStringList[0x7d3], &g_item_records[item_id]);
         }
     }
 
@@ -1711,7 +1712,7 @@ void StashDepartingCharacterItems(W8Character* character)
         item_id = character->EquippedItem[slot].iItemNo;
         if (item_id != -1 && !AddItemToParty(item, 0, false)) {
             DropUnstoredCharacterItem(item);
-            ShowNoticef(0, gppStringList[0x7d3], &g_item_records[item_id]);
+            ShowNoticef(W8_FONT_PALETTE_RED, gppStringList[0x7d3], &g_item_records[item_id]);
         }
     }
 }
@@ -2046,7 +2047,7 @@ void BindEquippedItem(W8Character* character, W8EquipSlot equip_slot)
     }
     if (g_equip_slot_icons[equip_slot] != -1 && !item->bound) {
         item->bound = true;
-        ShowNoticef(8, gppStringList[0x1ea], FormatItemDisplayName(item, true));
+        ShowNoticef(W8_FONT_PALETTE_WHITE, gppStringList[0x1ea], FormatItemDisplayName(item, true));
     }
 }
 
@@ -2607,7 +2608,7 @@ void BindEveryPartyItem(void)
     unsigned int party_slot;
 
     if (gXStatus.fCombatMode && !g_combat_state->round_active && !gXStatus.fPartyMovementMode) {
-        ShowNotice(0xc, gppStringList[0x1f6], -1, -1, false);
+        ShowNotice(W8_FONT_PALETTE_BEIGE, gppStringList[W8_NOTICE_WEAPON_SWAP_BLOCKED_COMBAT]);
         return;
     }
     for (party_slot = 0; party_slot < 8; ++party_slot) {
@@ -2615,7 +2616,7 @@ void BindEveryPartyItem(void)
             BindCharacterItems(party_slot, 0);
         }
     }
-    ShowNotice(8, gppStringList[0x1ed], -1, -1, false);
+    ShowNotice(W8_FONT_PALETTE_WHITE, gppStringList[0x1ed]);
 }
 
 /* Order two pool entries. Both have to hold something - the two assertions say
@@ -3391,7 +3392,7 @@ bool AddItemToParty(W8ItemInstance* item, unsigned char announce, bool skip_stac
         g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_POOL;
     }
     if (announce) {
-        ShowNoticef(8, gppStringList[0x1e9], display_name);
+        ShowNoticef(W8_FONT_PALETTE_WHITE, gppStringList[0x1e9], display_name);
     }
     W8ItemInstance* stored_item = &g_status.party_item_pool[index];
     UpdateFactsAfterAcquiringItem(stored_item);
@@ -3812,7 +3813,7 @@ int CastItemSpell(W8Character* character, W8ItemInstance* item, unsigned int pow
 
     if (effect == 1) {
         if (g_settings.verbose_combat_messages != 0 || !item->identified) {
-            FormatNotice(8, -1, gppStringList[0x1f4], GetItemDisplayName(item),
+            FormatNotice(W8_FONT_PALETTE_WHITE, -1, gppStringList[0x1f4], GetItemDisplayName(item),
                          g_spell_records[spell_id].display_name, power);
             if (g_settings.verbose_combat_messages == 0) {
                 SetTextBoxMode(1, -1);
@@ -4220,13 +4221,14 @@ void BindCharacterItems(int party_slot, int arg_2)
 {
     if (gXStatus.fCombatMode) {
         if (!g_combat_state->round_active && !gXStatus.fPartyMovementMode) {
-            ShowNotice(0xc, gppStringList[0x1f6], -1, 0xffffffff, false);
+            ShowNotice(W8_FONT_PALETTE_BEIGE, gppStringList[W8_NOTICE_WEAPON_SWAP_BLOCKED_COMBAT]);
             return;
         }
         if (g_combat_state->iActionChar == party_slot && g_combat_state->eCombatActionStatus == 2 &&
             (g_status.buffers.XChar[party_slot].pending_action == W8_ACTION_ATTACK ||
              g_status.buffers.XChar[party_slot].pending_action == W8_ACTION_BERSERK)) {
-            ShowNoticef(8, gppStringList[0x1f7], g_status.buffers.Char[party_slot].name);
+            ShowNoticef(W8_FONT_PALETTE_WHITE, gppStringList[0x1f7],
+                        g_status.buffers.Char[party_slot].name);
             return;
         }
     }

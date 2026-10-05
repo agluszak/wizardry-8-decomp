@@ -1,3 +1,4 @@
+#include "wiz8/fonts.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/local_code/Sight.h"
 #include "wiz8/local_code/MonsterGroup.h"
@@ -462,8 +463,8 @@ unsigned char MonGen::GenerateEncounter(const srVector3T<float>* position)
         const wchar_t* group_name =
             group->member_count == 1 ? group_record->name0 : group_record->name1;
         const wchar_t* companion_word = companion_count == 1 ? L"chum" : L"chums";
-        ShowNoticef(7, L"MonGen (%S): spawned %d %s & %d %s (lvl %d)", name, group->member_count,
-                    group_name, companion_count, companion_word,
+        ShowNoticef(W8_FONT_PALETTE_BROWN, L"MonGen (%S): spawned %d %s & %d %s (lvl %d)", name,
+                    group->member_count, group_name, companion_count, companion_word,
                     *table->challenge_level.GetAt(selected_index));
     }
     return 1;

@@ -419,7 +419,7 @@ W8GrCycle::W8GrCycle()
     m_plsParticles = 0;
     wrapped = false;
     enabled = true;
-    mirror_x = 0;
+    mirror_x = false;
     aim_set = false;
     m_ground_shadow = 0;
     frame_fraction = 0;

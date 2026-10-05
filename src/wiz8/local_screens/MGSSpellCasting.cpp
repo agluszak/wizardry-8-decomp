@@ -623,7 +623,7 @@ static void RebuildSpellCastingList(int spell_id)
                             swprintf(line, g_format_s_space_s,
                                      g_spell_target_parentheticals[GetSpellTargetType(id, false)],
                                      spell->display_name);
-                            ShowNotice(0xf, line, 2, -1, false);
+                            ShowNotice(W8_FONT_PALETTE_TEXT_BOX, line, 2);
                             AppendTextBoxLine(FormatWideString(g_format_d, spell->spell_point_cost),
                                               2);
                             SetSpellListLineColor(gpSCSV->uiSpellsInList - 1, 4);
@@ -637,7 +637,7 @@ static void RebuildSpellCastingList(int spell_id)
                             swprintf(line, g_format_s_space_s,
                                      g_spell_target_parentheticals[GetSpellTargetType(id, false)],
                                      spell->display_name);
-                            ShowNotice(0xf, line, 2, -1, false);
+                            ShowNotice(W8_FONT_PALETTE_TEXT_BOX, line, 2);
                             AppendTextBoxLine(FormatWideString(g_format_d, spell->spell_point_cost),
                                               2);
                         }
@@ -657,7 +657,7 @@ static void RebuildSpellCastingList(int spell_id)
                     swprintf(line, g_format_s_space_s,
                              g_spell_target_parentheticals[GetSpellTargetType(id, false)],
                              spell->display_name);
-                    ShowNotice(0xf, line, 2, -1, false);
+                    ShowNotice(W8_FONT_PALETTE_TEXT_BOX, line, 2);
                     AppendTextBoxLine(FormatWideString(g_format_d, spell->spell_point_cost), 2);
                     SetSpellListLineColor(gpSCSV->uiSpellsInList - 1, 0);
                 }

@@ -649,7 +649,7 @@ void W8OptionsSaveRow::Redraw(unsigned char full_redraw)
         gprintf(text_x, y + 0x16, L"%s", gppStringList[0x831]);
     }
     gprintf(text_x, y + 0x34, L"%s", m_save->name);
-    if (m_save->iron_man != 0) {
+    if (m_save->iron_man) {
         gprintf(x + 0x156, y + 9, L"%s", gppStringList[0x827]);
     }
 }
@@ -966,7 +966,7 @@ W8OptionsPanel* CreateOptionsPanel(int panel, unsigned char* compact,
     case 10:
         return new W8OptionsKeyboardPanel(panel);
     case 11:
-        if (g_status.game_started && g_status.iron_man != 0) {
+        if (g_status.game_started && g_status.iron_man) {
             *hide_navigation = 1;
             return new W8OptionsUnavailablePanel(0x82c);
         }
@@ -974,7 +974,7 @@ W8OptionsPanel* CreateOptionsPanel(int panel, unsigned char* compact,
         return new W8OptionsSaveLoadPanel(11);
     case 12:
         if (g_status.game_started) {
-            if (g_status.iron_man != 0) {
+            if (g_status.iron_man) {
                 *hide_navigation = 1;
                 return new W8OptionsUnavailablePanel(0x82c);
             }
@@ -1024,7 +1024,7 @@ void W8OptionsMousePanel::Populate()
     AddCheckbox(0x809, &g_options_values.autotarget_spells);
     AddCheckbox(0x804, &g_options_values.auto_advance_character);
     AddCheckbox(0x808, &g_options_values.autoswap_weapons);
-    if (!g_status.game_started || g_status.iron_man == 0) {
+    if (!g_status.game_started || !g_status.iron_man) {
         AddCheckbox(0x80d, &g_options_values.auto_save);
     }
 }
@@ -2046,7 +2046,7 @@ unsigned char OptionsScreenEnter()
                 if (gXStatus.fCombatMode) {
                     selected = 4;
                 }
-                if (g_status.iron_man != 0) {
+                if (g_status.iron_man) {
                     selected = 0;
                 }
             }

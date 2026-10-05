@@ -1,3 +1,4 @@
+#include "wiz8/fonts.h"
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/local_code/Sight.h"
 #include "wiz8/local_screens/MGSPartyMovement.h"
@@ -372,7 +373,7 @@ void EndPartyMovementPhase(void)
         return;
     }
     if (!IsLevelMovementStopped()) {
-        ShowNotice(8, gppStringList[0x21c], -1, -1, false);
+        ShowNotice(W8_FONT_PALETTE_WHITE, gppStringList[0x21c]);
     }
     ResetLevelDataVectors();
     DisableFreeTurnButton();
@@ -457,7 +458,7 @@ void FinishPartyMovementAction(void)
     }
     if (IsLevelMovementStopped() &&
         g_combat_state->uiCurrentPartyActionStatus == W8_PARTY_ACTION_PHASE_ENDED) {
-        ShowNotice(8, gppStringList[0x21d], -1, -1, false);
+        ShowNotice(W8_FONT_PALETTE_WHITE, gppStringList[0x21d]);
     }
     SoundPlay("Data\\Sound\\Misc\\Movement_Bar_Pop_Up.wav", 0);
     ClearLevelMovementStopped();
@@ -479,7 +480,7 @@ void BeginPartyMovementPhase(void)
     if (g_combat_state->uiCurrentPartyAction == W8_PARTY_ACTION_WALK ||
         g_combat_state->uiCurrentPartyAction == W8_PARTY_ACTION_RUN) {
         gXStatus.fPartyMovementMode = true;
-        ShowNotice(8, gppStringList[0x21b], -1, -1, false);
+        ShowNotice(W8_FONT_PALETTE_WHITE, gppStringList[0x21b]);
         gXStatus.party_move_distance = 0.0f;
     }
     FinishPartyMovementAction();

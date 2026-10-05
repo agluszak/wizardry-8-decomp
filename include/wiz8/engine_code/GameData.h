@@ -320,7 +320,7 @@ unsigned char LoadSurfaceVertices(srVector3T<float>* output, const int* vertex_i
 
 void ClearLevelMovementStopped(void);
 void ResetLevelDataVectors(void);
-int IsLevelDataFlag4EffectivelySet(void);
+bool CanInterruptLevelMovement(void);
 bool HasLevelWalkableContact(void);          /* 0x0041F070 */
 bool IsLevelFastMovement(void);              /* 0x0041EFB0 */
 void ClearLevelFastMovement(void);           /* 0x0041EFD0 */

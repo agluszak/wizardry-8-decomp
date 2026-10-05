@@ -1,3 +1,4 @@
+#include "wiz8/fonts.h"
 #include "wiz8/engine_code/Camera.h"
 #include "wiz8/integer_constants.h"
 #ifdef WIZ8_RUNTIME_TESTS
@@ -932,9 +933,9 @@ void SetPartyPortraitEventState(unsigned int party_slot, bool active,
             const wchar_t* character_name = g_status.buffers.Char[party_slot].name;
             swprintf(formatted, L"%s", character_name);
             int scroll_range = GetTextBoxScrollRange();
-            ShowNotice(1, formatted, 3, scroll_range, false);
+            ShowNotice(W8_FONT_PALETTE_GREEN, formatted, 3, scroll_range);
             const wchar_t* suffix = GetPortraitQuoteText(quote->quote_handle);
-            ShowNotice(0xf, suffix);
+            ShowNotice(W8_FONT_PALETTE_TEXT_BOX, suffix);
         } else {
             if (g_first_remapped_event <= mapped_event) {
                 mapped_event = g_normal_event_count - g_first_remapped_event + mapped_event;

@@ -1,3 +1,4 @@
+#include "wiz8/fonts.h"
 #include "Types.h"
 #include "mousesystem.h"
 #include "wiz8/regions.h"
@@ -298,7 +299,7 @@ void PleaseWaitScreenFrame(void)
         break;
     case 2: {
         bool saved = SaveGame(g_load_descriptor->name, g_load_descriptor->save_payload);
-        ShowNotice(0xc, saved ? gppStringList[0x6f4] : gppStringList[0x6f6], -1, -1, false);
+        ShowNotice(W8_FONT_PALETTE_BEIGE, saved ? gppStringList[0x6f4] : gppStringList[0x6f6]);
         if (g_load_descriptor->save_payload) {
             delete g_load_descriptor->save_payload;
         }

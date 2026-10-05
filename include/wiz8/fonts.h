@@ -58,4 +58,25 @@ extern unsigned short* g_font_palette_wiz_text_bold;
 extern unsigned short* g_font_palette_smfnt;
 extern unsigned short* g_font_palette_wiz_text;
 extern unsigned short* g_font_palette_calligraphy_shadow;
+/* Frames of the notice palette catalog (Data\Fonts\Palette*.sti). */
+enum W8FontPaletteIndex {
+    W8_FONT_PALETTE_RED = 0,
+    W8_FONT_PALETTE_GREEN = 1,
+    W8_FONT_PALETTE_PURPLE = 2,
+    W8_FONT_PALETTE_BLUE = 3,
+    W8_FONT_PALETTE_ORANGE = 4,
+    W8_FONT_PALETTE_YELLOW = 5,
+    W8_FONT_PALETTE_PINK = 6,
+    W8_FONT_PALETTE_BROWN = 7,
+    W8_FONT_PALETTE_WHITE = 8,
+    W8_FONT_PALETTE_RUST = 9,
+    W8_FONT_PALETTE_BRONZE = 10,
+    W8_FONT_PALETTE_GRAY = 11,
+    W8_FONT_PALETTE_BEIGE = 12,
+    W8_FONT_PALETTE_OPTIONS_GREEN = 13,
+    W8_FONT_PALETTE_OPTIONS_WHITE = 14,
+    W8_FONT_PALETTE_TEXT_BOX = 15,
+    W8_FONT_PALETTE_COUNT = 16
+};
+
 extern unsigned short* g_font_state_palettes[15];

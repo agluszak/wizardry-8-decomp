@@ -1,3 +1,4 @@
+#include "wiz8/fonts.h"
 #include <string.h>
 
 #include "wiz8/local_screens/Screens.h"
@@ -564,7 +565,8 @@ void SetMonsterCondition(int location_id, W8Condition condition, int duration, i
     }
     if (announce != 0 && (gXStatus.fCombatMode || monster_info->party_threat.visible_to_player)) {
         wchar_t* name = GetMonsterName(monster_info, 0, 0);
-        ShowNoticef(9, L"%s %s!", name, gppStringList[g_condition_notices[condition * 4 + 1]]);
+        ShowNoticef(W8_FONT_PALETTE_RUST, L"%s %s!", name,
+                    gppStringList[g_condition_notices[condition * 4 + 1]]);
     }
     if (monster_info->p3D->IsCycleInterruptable(monster_info->p3D->m_pRep->pending_cycle)) {
         StartMonsterCycle(monster_info, 0x14, 1);
@@ -599,7 +601,8 @@ void ClearMonsterCondition(int location_id, W8Condition condition)
             SetMonsterHostility(monster_info, monster_group->ubDisposition);
         }
         if (gXStatus.fCombatMode || monster_info->party_threat.visible_to_player) {
-            ShowNoticef(9, gppStringList[0x244], GetMonsterName(monster_info, 0, 0),
+            ShowNoticef(W8_FONT_PALETTE_RUST, gppStringList[0x244],
+                        GetMonsterName(monster_info, 0, 0),
                         gppStringList[g_condition_notices[condition * 4]]);
         }
         monster_info->uiCondition[condition] = 0;
@@ -636,7 +639,7 @@ void ClearMonsterCondition(int location_id, W8Condition condition)
             return;
         case W8_CONDITION_AFRAID:
             if (monster_info->fInCombat) {
-                monster_info->pCombat->advancing = 0;
+                monster_info->pCombat->advancing = false;
             }
             break;
         default:

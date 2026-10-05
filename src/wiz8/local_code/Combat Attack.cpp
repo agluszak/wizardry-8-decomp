@@ -1,3 +1,4 @@
+#include "wiz8/fonts.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/integer_constants.h"
 #include "wiz8/local_code/MonsterAI.h"
@@ -949,12 +950,12 @@ void ResolveMissileHit(W8Missile* missile, bool deflected)
     target_stop = wcslen(text);
     source_color = GetSourceNoticeColor(source);
     target_color = GetTargetNoticeColor(source, target);
-    ShowNotice(source_color, text, -1, -1, false);
+    ShowNotice(source_color, text);
     if (target_color != source_color) {
         HighlightTextBoxRange(target_color, target_start, target_stop, -1);
     }
     if (deflected) {
-        ShowNotice(source_color, gppStringList[0x214], -1, -1, false);
+        ShowNotice(source_color, gppStringList[0x214]);
         return;
     }
 
@@ -1502,14 +1503,14 @@ void ReportCharacterAttackResult(int party_slot, W8SpellEffectResult* report)
     } else {
         if (report->count == 0) {
             if (report->missed) {
-                ShowNotice(8, gppStringList[0x20b], -1, -1, false);
+                ShowNotice(W8_FONT_PALETTE_WHITE, gppStringList[0x20b]);
                 return;
             }
-            ShowNotice(8, gppStringList[0x209], -1, -1, false);
+            ShowNotice(W8_FONT_PALETTE_WHITE, gppStringList[0x209]);
             return;
         }
         if (report->amount == 0) {
-            ShowNotice(8, gppStringList[0x20e], -1, -1, false);
+            ShowNotice(W8_FONT_PALETTE_WHITE, gppStringList[0x20e]);
         } else if (report->count == 1) {
             PostCharacterNotice(party_slot, gppStringList[0x265], report->amount);
         } else if (report->count > 1) {
@@ -1530,13 +1531,13 @@ void ReportCharacterAttackResult(int party_slot, W8SpellEffectResult* report)
         }
         if (condition_turns[W8_CONDITION_DEAD] == 0) {
             if (report->notice_values[0] > 0) {
-                ShowNoticef(8, gppStringList[0x1a6], report->notice_values[0]);
+                ShowNoticef(W8_FONT_PALETTE_WHITE, gppStringList[0x1a6], report->notice_values[0]);
             }
             if (report->notice_values[1] > 0) {
-                ShowNoticef(8, gppStringList[0x264], report->notice_values[1]);
+                ShowNoticef(W8_FONT_PALETTE_WHITE, gppStringList[0x264], report->notice_values[1]);
             }
             if (report->notice_values[2] > 0) {
-                ShowNoticef(8, gppStringList[0x261], report->notice_values[2]);
+                ShowNoticef(W8_FONT_PALETTE_WHITE, gppStringList[0x261], report->notice_values[2]);
             }
             if (report->notice_values[5] > 0) {
                 if (g_status.buffers.Char[party_slot].hp_current ==
@@ -1551,8 +1552,8 @@ void ReportCharacterAttackResult(int party_slot, W8SpellEffectResult* report)
                 if (report->condition_counts[condition] > 0 && notice != g_condition_notices + 5 &&
                     notice != g_condition_notices + 0x4d) {
                     if (report->target.iType == W8_TARGET_KIND_MONSTER) {
-                        ShowNoticef(9, L"%s %s!", GetMonsterName(monster_info, NULL, 0),
-                                    gppStringList[*notice]);
+                        ShowNoticef(W8_FONT_PALETTE_RUST, L"%s %s!",
+                                    GetMonsterName(monster_info, NULL, 0), gppStringList[*notice]);
                     } else if (report->target.iType == W8_TARGET_KIND_CHARACTER) {
                         PostCharacterNotice(report->target.iChar, g_format_s_bang,
                                             gppStringList[*notice]);
@@ -1568,7 +1569,8 @@ void ReportCharacterAttackResult(int party_slot, W8SpellEffectResult* report)
                 PostCharacterNotice(entry->value, g_format_s_bang,
                                     gppStringList[g_condition_notices[0x49]]);
             } else if (entry->kind == 3) {
-                ShowNoticef(9, L"%s %s!", entry->text, gppStringList[g_condition_notices[0x49]]);
+                ShowNoticef(W8_FONT_PALETTE_RUST, L"%s %s!", entry->text,
+                            gppStringList[g_condition_notices[0x49]]);
             }
             free(entry);
         }
@@ -1723,7 +1725,8 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
             srAssertFail("pMonsterInfo->fMissileReleased", COMBAT_ATTACK_CPP, 0x80b,
                          FormatString("ContinueMonsterAttack: ERROR - Missile not released, ID %d, "
                                       "cycle %d, pending %d",
-                                      monster_info->location_id, MonsterQuery(monster_info->p3D, 6),
+                                      monster_info->location_id,
+                                      MonsterQuery(monster_info->p3D, W8_MONSTER_QUERY_CYCLE),
                                       monster_info->p3D->m_pRep->pending_cycle));
         }
         if (g_combat_state->missile_hit_result == 1) {
@@ -1743,14 +1746,14 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
     }
     if (swing_missed) {
         if (g_settings.verbose_combat_messages != 0) {
-            ShowNotice(9, gppStringList[0x209], -1, -1, false);
+            ShowNotice(W8_FONT_PALETTE_RUST, gppStringList[0x209]);
         }
         ResetCombatSlot(&g_combat_state->TargetHit);
     } else if (deflected) {
         if (g_settings.verbose_combat_messages == 0) {
             report->missed = true;
         } else {
-            ShowNotice(9, gppStringList[0x20a], -1, -1, false);
+            ShowNotice(W8_FONT_PALETTE_RUST, gppStringList[0x20a]);
         }
         ResetCombatSlot(&g_combat_state->TargetHit);
     } else {
@@ -1808,7 +1811,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
             if (!BlockedForSpecialReason(attack->weapon_class, &g_combat_state->TargetHit, roll,
                                          to_hit, 9)) {
                 if (verbose != 0) {
-                    ShowNoticef(9, gppStringList[0x209]);
+                    ShowNoticef(W8_FONT_PALETTE_RUST, gppStringList[0x209]);
                 }
                 if (TryPanicWoundedCharacter(&g_combat_state->TargetHit) == 0 &&
                     g_combat_state->TargetHit.iType == W8_TARGET_KIND_CHARACTER &&
@@ -1821,7 +1824,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                                         g_character_event_full_volume);
                 }
                 if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER &&
-                    static_cast<char>(target_info->p3D->IsFacingMonster(monster_info->p3D)) != 0 &&
+                    target_info->p3D->IsFacingMonster(monster_info->p3D) != 0 &&
                     !target_info->fMotionless) {
                     StartMonsterCycle(target_info, 0x13, 1);
                 }
@@ -1830,7 +1833,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
             if (g_settings.verbose_combat_messages == 0) {
                 report->target = g_combat_state->TargetHit;
             } else {
-                ShowNoticef(9, gppStringList[0x20c], location_name);
+                ShowNoticef(W8_FONT_PALETTE_RUST, gppStringList[0x20c], location_name);
             }
             queued_fatigue = 2;
             int penetration = (monster_info->modifiers.attack_bonus +
@@ -1889,7 +1892,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                     if (fumbled) {
                         damage = CapAttackDamageByTargetHealth(damage);
                     } else if (dice_count > 1 && verbose != 0) {
-                        ShowNoticef(9, gppStringList[0x20d], dice_count);
+                        ShowNoticef(W8_FONT_PALETTE_RUST, gppStringList[0x20d], dice_count);
                     }
                     MakeMonsterHitSound(attack, &g_combat_state->TargetHit, hit_location, -1);
                     if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_CHARACTER) {
@@ -1931,7 +1934,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                 if (verbose == 0) {
                     ++report->count;
                 } else {
-                    ShowNoticef(9, gppStringList[message_id]);
+                    ShowNoticef(W8_FONT_PALETTE_RUST, gppStringList[message_id]);
                 }
             }
             if (range < W8_RANGE_LONG) {
@@ -1973,7 +1976,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
     if (combat->uiSwingsRemaining != 0) {
         if (record->attack_multiple_targets != 0 && range < W8_RANGE_LONG) {
             repick_target = monster_info->Target;
-            if (ChooseRandomMonsterAction(monster_info, 0, 1, false) == 0 ||
+            if (!ChooseRandomMonsterAction(monster_info, false, true, false) ||
                 monster_info->action_kind != W8_MONSTER_ACTION_ATTACK) {
                 combat->uiSwingsRemaining = 0;
             } else {
@@ -2045,14 +2048,14 @@ void ReportMonsterAttackResult(W8MonsterInfo* monster_info, W8SpellEffectResult*
     } else {
         if (report->count == 0) {
             if (report->missed) {
-                ShowNotice(9, gppStringList[0x20b], -1, -1, false);
+                ShowNotice(W8_FONT_PALETTE_RUST, gppStringList[0x20b]);
                 return;
             }
-            ShowNotice(9, gppStringList[0x209], -1, -1, false);
+            ShowNotice(W8_FONT_PALETTE_RUST, gppStringList[0x209]);
             return;
         }
         if (report->amount == 0) {
-            ShowNotice(9, gppStringList[0x20e], -1, -1, false);
+            ShowNotice(W8_FONT_PALETTE_RUST, gppStringList[0x20e]);
         } else if (report->count == 1) {
             PostMonsterNotice(monster_info, gppStringList[0x265], report->amount);
         } else if (report->count > 1) {
@@ -2073,13 +2076,13 @@ void ReportMonsterAttackResult(W8MonsterInfo* monster_info, W8SpellEffectResult*
         }
         if (condition_turns[W8_CONDITION_DEAD] == 0) {
             if (report->notice_values[0] > 0) {
-                ShowNoticef(9, gppStringList[0x1a6], report->notice_values[0]);
+                ShowNoticef(W8_FONT_PALETTE_RUST, gppStringList[0x1a6], report->notice_values[0]);
             }
             if (report->notice_values[1] > 0) {
-                ShowNoticef(9, gppStringList[0x264], report->notice_values[1]);
+                ShowNoticef(W8_FONT_PALETTE_RUST, gppStringList[0x264], report->notice_values[1]);
             }
             if (report->notice_values[2] > 0) {
-                ShowNoticef(9, gppStringList[0x261], report->notice_values[2]);
+                ShowNoticef(W8_FONT_PALETTE_RUST, gppStringList[0x261], report->notice_values[2]);
             }
             for (condition = 0; condition < W8_CONDITION_COUNT; ++condition) {
                 if (report->condition_counts[condition] > 0 && condition != 1) {
@@ -2090,7 +2093,8 @@ void ReportMonsterAttackResult(W8MonsterInfo* monster_info, W8SpellEffectResult*
                                                 gppStringList[0x1d5]);
                         }
                     } else if (report->target.iType == W8_TARGET_KIND_MONSTER) {
-                        ShowNoticef(9, L"%s %s!", GetMonsterName(monster_info, NULL, 0),
+                        ShowNoticef(W8_FONT_PALETTE_RUST, L"%s %s!",
+                                    GetMonsterName(monster_info, NULL, 0),
                                     gppStringList[g_condition_notices[condition * 4 + 1]]);
                     } else if (report->target.iType == W8_TARGET_KIND_CHARACTER) {
                         PostCharacterNotice(report->target.iChar, g_format_s_bang,
@@ -2107,7 +2111,8 @@ void ReportMonsterAttackResult(W8MonsterInfo* monster_info, W8SpellEffectResult*
                 PostCharacterNotice(entry->value, g_format_s_bang,
                                     gppStringList[g_condition_notices[0x49]]);
             } else if (entry->kind == 3) {
-                ShowNoticef(9, L"%s %s!", entry->text, gppStringList[g_condition_notices[0x49]]);
+                ShowNoticef(W8_FONT_PALETTE_RUST, L"%s %s!", entry->text,
+                            gppStringList[g_condition_notices[0x49]]);
             }
             free(entry);
         }
@@ -2366,7 +2371,7 @@ void AnnounceMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record,
         wcscat(g_combat_state->attack_message,
                FormatWideString(L" %dx", combat->uiSwingsRemaining));
     }
-    ShowNotice(9, g_combat_state->attack_message, -1, 0xffffffff, false);
+    ShowNotice(W8_FONT_PALETTE_RUST, g_combat_state->attack_message);
     if (palette != 9) {
         HighlightTextBoxRange(palette, highlight_start, highlight_end, -1);
     }
@@ -2963,7 +2968,7 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                                                      0, W8_CONDITION_INDEFINITE, verbose, 0, 0);
                     if (!resisted) {
                         if (source->iType == W8_TARGET_SOURCE_CHARACTER) {
-                            ShowNoticef(8, gppStringList[0x17f]);
+                            ShowNoticef(W8_FONT_PALETTE_WHITE, gppStringList[0x17f]);
                             if (Random(100) < 0x32) {
                                 QueueCharacterEvent(&g_status.buffers.Char[source->iChar],
                                                     g_learn_sound, 0, g_character_event_no_flags,
@@ -2977,7 +2982,7 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                                 event->dispatch_delay_start = GetTickCount();
                             }
                         } else {
-                            ShowNoticef(9, gppStringList[0x17f]);
+                            ShowNoticef(W8_FONT_PALETTE_RUST, gppStringList[0x17f]);
                         }
                         if (target->iType == W8_TARGET_KIND_CHARACTER) {
                             PostCharacterNotice(
@@ -3324,7 +3329,7 @@ void AnnounceAccidentalStrike(W8TargetSource* source, W8CombatSlot* target)
     if (!TargetSourceIsCharacter(source, 0)) {
         highlight_stop = static_cast<unsigned char>(wcslen(message));
     }
-    ShowNotice(source_color, message, -1, -1, false);
+    ShowNotice(source_color, message);
     if (source_color != color) {
         HighlightTextBoxRange(color, highlight_start, highlight_stop, -1);
     }
@@ -3927,7 +3932,7 @@ int ResolveCharacterAttack(int party_slot)
             if (verbose == 0) {
                 report->missed = true;
             } else {
-                ShowNotice(8, gppStringList[0x20a], -1, -1, false);
+                ShowNotice(W8_FONT_PALETTE_WHITE, gppStringList[0x20a]);
             }
             ResetCombatSlot(&g_combat_state->TargetHit);
             outcome = 1;
@@ -4021,7 +4026,7 @@ int ResolveCharacterAttack(int party_slot)
         }
         if (swing_missed) {
             if (g_settings.verbose_combat_messages != 0) {
-                ShowNotice(8, gppStringList[0x209], -1, -1, false);
+                ShowNotice(W8_FONT_PALETTE_WHITE, gppStringList[0x209]);
             }
             ResetCombatSlot(&g_combat_state->TargetHit);
         } else if (!staged_miss) {
@@ -4082,7 +4087,7 @@ int ResolveCharacterAttack(int party_slot)
                 if (!BlockedForSpecialReason(weapon_class, &g_combat_state->TargetHit, roll, to_hit,
                                              8)) {
                     if (g_settings.verbose_combat_messages != 0) {
-                        ShowNoticef(8, gppStringList[0x209]);
+                        ShowNoticef(W8_FONT_PALETTE_WHITE, gppStringList[0x209]);
                     }
                     if (character->hp_current / static_cast<float>(character->uiHPMax) <
                         g_navigator_mode3_scale) {
@@ -4097,8 +4102,7 @@ int ResolveCharacterAttack(int party_slot)
                                             g_character_event_full_volume);
                     }
                     if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER &&
-                        static_cast<char>(monster_info->p3D->IsFacingPlayer()) != 0 &&
-                        !monster_info->fMotionless) {
+                        monster_info->p3D->IsFacingPlayer() != 0 && !monster_info->fMotionless) {
                         StartMonsterCycle(monster_info, 0x13, 1);
                     }
                 }
@@ -4106,7 +4110,7 @@ int ResolveCharacterAttack(int party_slot)
                 if (g_settings.verbose_combat_messages == 0) {
                     report->target = g_combat_state->TargetHit;
                 } else {
-                    ShowNoticef(8, gppStringList[0x20c], location_name);
+                    ShowNoticef(W8_FONT_PALETTE_WHITE, gppStringList[0x20c], location_name);
                 }
                 outcome = 2;
                 queued_fatigue = 2;
@@ -4133,7 +4137,8 @@ int ResolveCharacterAttack(int party_slot)
                             damage = CapAttackDamageByTargetHealth(damage);
                         } else if (dice_count > 1) {
                             if (verbose != 0) {
-                                ShowNoticef(8, gppStringList[0x20d], dice_count);
+                                ShowNoticef(W8_FONT_PALETTE_WHITE, gppStringList[0x20d],
+                                            dice_count);
                             }
                             outcome = 5;
                         }
@@ -4281,7 +4286,7 @@ int ResolveCharacterAttack(int party_slot)
                 if (verbose == 0) {
                     ++report->count;
                 } else {
-                    ShowNoticef(8, gppStringList[message_id]);
+                    ShowNoticef(W8_FONT_PALETTE_WHITE, gppStringList[message_id]);
                 }
             }
             if (range < W8_RANGE_LONG) {
@@ -4315,7 +4320,7 @@ int ResolveCharacterAttack(int party_slot)
             if (verbose == 0) {
                 report->missed = true;
             } else {
-                ShowNotice(8, gppStringList[0x20a], -1, -1, false);
+                ShowNotice(W8_FONT_PALETTE_WHITE, gppStringList[0x20a]);
             }
             ResetCombatSlot(&g_combat_state->TargetHit);
         }

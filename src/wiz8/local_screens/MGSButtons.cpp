@@ -338,7 +338,7 @@ unsigned char CreateSubMenuPanelButtons(void)
 // FUNCTION: WIZ8 0x00597B70
 static void MainGameOptionsDiskButton(W8DialogButton* button)
 {
-    if (IsLevelDataFlag4EffectivelySet() != 0) {
+    if (CanInterruptLevelMovement()) {
         g_pending_screen_state.mode = 3;
         SetPendingScreenState(W8_SCREEN_OPTIONS);
     }

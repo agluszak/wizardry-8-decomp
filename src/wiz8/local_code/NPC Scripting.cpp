@@ -1,3 +1,4 @@
+#include "wiz8/fonts.h"
 #include "wiz8/cursor.h"
 #include "wiz8/bink_video.h"
 #include "wiz8/integer_constants.h"
@@ -675,7 +676,7 @@ static void SpeakNpcSubquote(W8NpcScriptQuote* quote, unsigned char subquote_ind
             g_npc_scripting.message_started_at = GetTickCount();
             return;
         }
-        ShowNotice(0xf, display_text, 0, GetTextBoxScrollRange(), false);
+        ShowNotice(W8_FONT_PALETTE_TEXT_BOX, display_text, 0, GetTextBoxScrollRange());
         return;
     }
 
@@ -816,7 +817,7 @@ static void SpeakNpcSubquote(W8NpcScriptQuote* quote, unsigned char subquote_ind
     }
     swprintf(prefixed_text, L"%s: %s", g_npc_scripting.npc->record->source_name, display_text);
     wcscpy(display_text, prefixed_text);
-    ShowNotice(0xf, display_text, 0, GetTextBoxScrollRange(), false);
+    ShowNotice(W8_FONT_PALETTE_TEXT_BOX, display_text, 0, GetTextBoxScrollRange());
 }
 
 // FUNCTION: WIZ8 0x00525C50
@@ -2466,7 +2467,7 @@ void AuditNpcScriptQuotes(void)
                         _stricmp(text, "BLANK") != 0 && _stricmp(text, "UNKNOWN") != 0 &&
                         _stricmp(text, "CLASSIFIED") != 0) {
                         swprintf(display, L" \"%S\"", text);
-                        ShowNotice(0, display, 0, GetTextBoxScrollRange(), false);
+                        ShowNotice(W8_FONT_PALETTE_RED, display, 0, GetTextBoxScrollRange());
                         if (g_status.long_quote != 0) {
                             sprintf(line, "Long Quote: #%d, subquote: #%d, script file: %s \n",
                                     record_index, sub_index, find.zFileName);
@@ -2490,8 +2491,8 @@ void AuditNpcScriptQuotes(void)
         }
         found = GetFileNext(&find);
     }
-    ShowNotice(0, L"Quote test complete. See log file for results", -1, GetTextBoxScrollRange(),
-               false);
+    ShowNotice(W8_FONT_PALETTE_RED, L"Quote test complete. See log file for results",
+               W8_NOTICE_TEXT_BOX_AUTOMATIC, GetTextBoxScrollRange());
     fprintf(file, "Total lines: %d\nTotal Quotes: %d\nTotal Scripts: %d", total_lines, total_quotes,
             total_scripts);
     fclose(file);

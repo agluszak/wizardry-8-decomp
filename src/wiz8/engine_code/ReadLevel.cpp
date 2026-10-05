@@ -681,7 +681,7 @@ unsigned char ReadMonsterPaths(W8ReadLevelInfo* pInfo, W8World* pWorld)
         location_id = IListGetAt(group->monsters, 0);
         monster_index = MonsterGetIndexByLocationID(0x315, READ_LEVEL_CPP, location_id, true);
         monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-        ActivateMonster(monster_info, 0);
+        ActivateMonster(monster_info, W8_MONSTER_LOAD_ALL_CYCLES);
         monster = monster_info->p3D;
 
         {

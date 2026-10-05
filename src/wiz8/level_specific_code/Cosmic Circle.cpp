@@ -39,7 +39,7 @@ bool CosmicCircleTriggerPlane1Hedra(Trigger* pTrigger)
     W8NpcState* pNPC;
 
     if (gXStatus.fCombatMode) {
-        EndCombat(1);
+        EndCombat(true);
     }
     BeginScriptedWorldAction();
     pNPC = GetNpcStateByKind(0x85);

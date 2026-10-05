@@ -1,3 +1,4 @@
+#include "wiz8/fonts.h"
 #include "wiz8/local_code/FormationAndFacing.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/local_code/Strings.h"
@@ -241,7 +242,7 @@ void RestoreCombatFormation(void)
                sizeof(W8PartyFormationState));
         RefreshFormationBoard();
         RefreshRadarMap();
-        ShowNotice(8, gppStringList[0x24b], 0, -1, false);
+        ShowNotice(W8_FONT_PALETTE_WHITE, gppStringList[0x24b], 0);
     }
 }
 

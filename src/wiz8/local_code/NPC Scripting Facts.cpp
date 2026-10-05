@@ -1,3 +1,4 @@
+#include "wiz8/fonts.h"
 #include "wiz8/fact_state.h"
 #include "wiz8/integer_constants.h"
 #include "wiz8/local_screens/MGSTextBox.h"
@@ -1094,8 +1095,8 @@ unsigned char GetFact(W8FactId fact_id)
         } else {
             wcscpy(display_value, L"FALSE");
         }
-        ShowNoticef(5, L"Checking fact %S which is %s", g_fact_records[fact_id].symbolic_name,
-                    display_value);
+        ShowNoticef(W8_FONT_PALETTE_YELLOW, L"Checking fact %S which is %s",
+                    g_fact_records[fact_id].symbolic_name, display_value);
     }
     return value;
 }
@@ -1133,7 +1134,8 @@ void SetFact(W8FactId fact_id, unsigned char value, bool suppress_side_effects)
             } else {
                 wcscpy(display_value, L"FALSE");
             }
-            ShowNoticef(5, L"%S set to %s", g_fact_records[fact_id].symbolic_name, display_value);
+            ShowNoticef(W8_FONT_PALETTE_YELLOW, L"%S set to %s",
+                        g_fact_records[fact_id].symbolic_name, display_value);
         }
     }
 }

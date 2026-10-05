@@ -120,9 +120,11 @@ void W8CharacterSpellList::Redraw(unsigned char force)
             if (!m_entries[index].fSelectable) {
                 SetObjectShade(g_wiz_text_font_secondary_object, 6);
             } else if (m_entries[index].selected) {
-                SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_font_state_palettes[3]);
+                SetFontObjectPalette16BPP(g_wiz_text_font_secondary,
+                                          g_font_state_palettes[W8_FONT_PALETTE_BLUE]);
             } else if (index == m_hovered_entry) {
-                SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_font_state_palettes[5]);
+                SetFontObjectPalette16BPP(g_wiz_text_font_secondary,
+                                          g_font_state_palettes[W8_FONT_PALETTE_YELLOW]);
             }
             gprintf(left + 2, y, g_format_s, g_spell_records[m_entries[index].spell].display_name);
             wchar_t cost[6];

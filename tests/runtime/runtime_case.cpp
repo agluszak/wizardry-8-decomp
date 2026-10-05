@@ -295,7 +295,7 @@ void CheckGameplayReadyOnGameThread(void* opaque)
     check->level_data_present = g_level_data != 0;
     check->blocked = IsScreenInputBlocked();
     check->flags = g_level_data != 0 ? g_level_data->flags : 0;
-    check->flag4_effective = IsLevelDataFlag4EffectivelySet();
+    check->flag4_effective = CanInterruptLevelMovement();
     /* GetCameraPosition dereferences the camera record unconditionally; it
        does not exist until the world does. */
     srVector3T<float> camera;

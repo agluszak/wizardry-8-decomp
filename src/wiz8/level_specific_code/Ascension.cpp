@@ -435,7 +435,7 @@ bool AscensionPath1Camera(Trigger* pTrigger)
         }
     }
     if (gXStatus.fCombatMode) {
-        EndCombat(1);
+        EndCombat(true);
     }
     BeginScriptedWorldAction();
     pTrigger->flags &= ~W8_TRIGGER_ON;

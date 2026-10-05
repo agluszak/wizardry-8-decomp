@@ -1,3 +1,4 @@
+#include "wiz8/fonts.h"
 #include "wiz8/engine_code/Camera.h"
 #include "wiz8/integer_constants.h"
 #include "wiz8/local_screens/Screens.h"
@@ -132,7 +133,7 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, bool qu
         if (detailed) {
             PostCharacterNotice(party_slot, gppStringList[0x268], amount);
         } else if (short_notice) {
-            ShowNoticef(9, gppStringList[0x254], amount);
+            ShowNoticef(W8_FONT_PALETTE_RUST, gppStringList[0x254], amount);
         } else {
             PostCharacterNotice(party_slot, gppStringList[0x255], amount,
                                 quiet ? gppStringList[0x257] : &g_empty_wide_string);
@@ -456,9 +457,11 @@ void HealMonster(W8MonsterInfo* monster_info, unsigned int amount, char announce
 
     if (announce) {
         if (monster_info->hp_current == static_cast<unsigned int>(monster_info->uiHPMax)) {
-            ShowNoticef(9, gppStringList[0x259], GetMonsterName(monster_info, 0, 0));
+            ShowNoticef(W8_FONT_PALETTE_RUST, gppStringList[0x259],
+                        GetMonsterName(monster_info, 0, 0));
         } else {
-            ShowNoticef(9, gppStringList[0x25b], GetMonsterName(monster_info, 0, 0), amount);
+            ShowNoticef(W8_FONT_PALETTE_RUST, gppStringList[0x25b],
+                        GetMonsterName(monster_info, 0, 0), amount);
         }
     }
 }
@@ -701,7 +704,7 @@ void DrainCharacterSpellPoints(int party_slot, unsigned int amount, char announc
             }
             SpendCharacterSpellPoints(party_slot, realm, taken);
             if (announce) {
-                ShowNoticef(8, gppStringList[0x263], amount,
+                ShowNoticef(W8_FONT_PALETTE_WHITE, gppStringList[0x263], amount,
                             gppStringList[g_realm_message_offsets[realm]]);
             }
             remaining = amount - taken;
@@ -790,7 +793,7 @@ void DamageCharacter(int party_slot, unsigned int damage, char announce)
     if (character->uiHPMax != 0 && character->hp_current != 0) {
         FatigueCharacter(party_slot, (damage * 2) / 3, false, 0);
         if (announce) {
-            ShowNoticef(8, gppStringList[0x1c4], damage);
+            ShowNoticef(W8_FONT_PALETTE_WHITE, gppStringList[0x1c4], damage);
         }
         character->hp_adjustment -= damage;
         RecalculateCharacterHitPoints(character);
@@ -873,9 +876,11 @@ void RestoreMonsterStamina(W8MonsterInfo* monster_info, int amount, bool announc
     }
     if (announce) {
         if (static_cast<unsigned int>(monster_info->stamina) == stamina_max) {
-            ShowNoticef(9, gppStringList[0x25d], GetMonsterName(monster_info, 0, 0));
+            ShowNoticef(W8_FONT_PALETTE_RUST, gppStringList[0x25d],
+                        GetMonsterName(monster_info, 0, 0));
         } else {
-            ShowNoticef(9, gppStringList[0x25f], GetMonsterName(monster_info, 0, 0), amount);
+            ShowNoticef(W8_FONT_PALETTE_RUST, gppStringList[0x25f],
+                        GetMonsterName(monster_info, 0, 0), amount);
         }
     }
 
@@ -1118,7 +1123,8 @@ void DrainCharacterRealmSpellPoints(int party_slot, W8SpellRealm realm, unsigned
     }
     SpendCharacterSpellPoints(party_slot, realm, amount);
     if (announce) {
-        ShowNoticef(8, gppStringList[0x263], amount, gppStringList[g_realm_message_offsets[realm]]);
+        ShowNoticef(W8_FONT_PALETTE_WHITE, gppStringList[0x263], amount,
+                    gppStringList[g_realm_message_offsets[realm]]);
     }
 }
 

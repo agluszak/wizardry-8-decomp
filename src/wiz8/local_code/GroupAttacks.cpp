@@ -1,3 +1,4 @@
+#include "wiz8/fonts.h"
 #include "wiz8/local_code/GroupAttacks.h"
 #include "wiz8/layouts/character.h"
 #include "wiz8/character_skills.h"
@@ -516,7 +517,7 @@ void SpawnSummonedMonsterGroup(int special_attack_kind, W8TargetSource* pSource,
     }
     if (!placed) {
         RemoveAllGroupMembers(group);
-        ShowNotice(9, gppStringList[0x26a], -1, -1, false);
+        ShowNotice(W8_FONT_PALETTE_RUST, gppStringList[0x26a]);
         return;
     }
     RefreshAllSight();

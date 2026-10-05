@@ -178,7 +178,7 @@ public:
     bool wrapped;
     bool enabled;
     /* 0x1be: mirror the model on X (the left-handed strike pick). */
-    unsigned char mirror_x;
+    bool mirror_x;
     /* 0x1bf: m_axis holds an aim point; mode-3 particles orient along it. */
     bool aim_set;
     /* The axis 0x004A7E50 aims a mode-three particle along. */

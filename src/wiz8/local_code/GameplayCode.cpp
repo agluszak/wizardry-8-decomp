@@ -1,3 +1,4 @@
+#include "wiz8/fonts.h"
 #include "wiz8/layouts/character.h"
 #include "wiz8/character_skills.h"
 #include "wiz8/character_event_queue.h"
@@ -399,7 +400,7 @@ void HandleLevelOverride(float fall)
         SOUNDPARMS sound_parms;
         memset(&sound_parms, 0xff, sizeof(sound_parms));
         sound_parms.uiVolume = g_settings.sound_effects_volume;
-        ShowNotice(8, gppStringList[0x252]);
+        ShowNotice(W8_FONT_PALETTE_WHITE, gppStringList[0x252]);
         SoundPlay(s_fall_impact_wav, &sound_parms);
         W8Dice dice;
         SetDice(&dice, static_cast<unsigned char>(count), 6, 0);

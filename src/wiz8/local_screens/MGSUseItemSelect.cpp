@@ -629,7 +629,7 @@ static bool AppendUseItemListEntry(W8ItemInstance* item, W8ItemInstance* select,
         } else {
             color = 4;
         }
-        ShowNotice(color, FormatItemDisplayName(item, true), 2, 0xffffffff, false);
+        ShowNotice(color, FormatItemDisplayName(item, true), 2);
         ++g_use_item_list_count;
         return true;
     }
@@ -651,8 +651,7 @@ static bool AppendUseItemListEntry(W8ItemInstance* item, W8ItemInstance* select,
         if (!item->identified) {
             ShowNotice(
                 0xf,
-                FormatWideString(g_format_s_paren_question, FormatItemDisplayName(item, false)), 2,
-                0xffffffff, false);
+                FormatWideString(g_format_s_paren_question, FormatItemDisplayName(item, false)), 2);
             ++g_use_item_list_count;
             return true;
         }
@@ -664,7 +663,7 @@ static bool AppendUseItemListEntry(W8ItemInstance* item, W8ItemInstance* select,
         count = item->uses_or_charges;
         break;
     default:
-        ShowNotice(0xf, FormatItemDisplayName(item, false), 2, 0xffffffff, false);
+        ShowNotice(W8_FONT_PALETTE_TEXT_BOX, FormatItemDisplayName(item, false), 2);
         ++g_use_item_list_count;
         return true;
     }
@@ -675,7 +674,7 @@ static bool AppendUseItemListEntry(W8ItemInstance* item, W8ItemInstance* select,
     } else {
         text = FormatItemDisplayName(item, false);
     }
-    ShowNotice(0xf, text, 2, 0xffffffff, false);
+    ShowNotice(W8_FONT_PALETTE_TEXT_BOX, text, 2);
     ++g_use_item_list_count;
     return true;
 }

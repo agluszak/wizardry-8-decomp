@@ -12,7 +12,7 @@ void ChooseCombatAction(int party_slot, W8TargetingContext context, W8ActionKind
                         W8ActionDetailBlock** out_detail); /* 0x004E77B0 */
 void SetCharacterCombatAction(int party_slot, W8ActionKind action_kind, int action_detail,
                               const W8ActionDetailBlock* data, int notify); /* 0x004E8000 */
-void EndCombat(unsigned char mode);                                                   /* 0x004EA310 */
+void EndCombat(bool forced_cleanup);                                        /* 0x004EA310 */
 void BeginCombatExecution(void);
 void AssignCombatPhases(void);
 void UpdateCombat(void);                            /* 0x004E8EA0 */
