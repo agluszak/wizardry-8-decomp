@@ -233,14 +233,14 @@ void UpdateHeldItemCursor(void)
             BlitToMouseCursor(GetCatalogVideoObjectHandle(0, 0), GetCatalogVideoObjectYOffset(0), 0,
                               0);
             RefreshMouseCursorTexture();
-            gXStatus.iCurrentCursor = 7;
+            gXStatus.iCurrentCursor = W8_CURSOR_INVALID_TARGET;
             return;
         }
-    } else if (gXStatus.iCurrentCursor != -1) {
+    } else if (gXStatus.iCurrentCursor != W8_CURSOR_NONE) {
         SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(0, 0),
                                       GetCatalogVideoObjectYOffset(0), 0, 0);
         RefreshMouseCursorTexture();
-        gXStatus.iCurrentCursor = -1;
+        gXStatus.iCurrentCursor = W8_CURSOR_NONE;
         gXStatus.current_cursor_frame = 0;
         gXStatus.current_cursor_time = 0;
     }
@@ -253,8 +253,8 @@ void UpdateHeldItemCursor(void)
 // FUNCTION: WIZ8 0x0055F080
 void ApplyCurrentCursor(void)
 {
-    if (gXStatus.iCurrentCursor == -1) {
-        srAssertFail("gXStatus.iCurrentCursor != -1",
+    if (gXStatus.iCurrentCursor == W8_CURSOR_NONE) {
+        srAssertFail("gXStatus.iCurrentCursor != W8_CURSOR_NONE",
                      "C:\\Projects\\Wizardry 8\\Local Screens\\Screens.cpp", 0x18d, 0);
     }
     if (g_main_game_resource_slots[gXStatus.iCurrentCursor].object != 0) {
@@ -281,11 +281,11 @@ void ClearHeldItemDisplay(void)
     g_status.item_in_cursor = false;
     g_status.item_in_hand.iItemNo = -1;
 
-    if (gXStatus.iCurrentCursor != -1) {
+    if (gXStatus.iCurrentCursor != W8_CURSOR_NONE) {
         SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(0, 0),
                                       GetCatalogVideoObjectYOffset(0), 0, 0);
         RefreshMouseCursorTexture();
-        gXStatus.iCurrentCursor = -1;
+        gXStatus.iCurrentCursor = W8_CURSOR_NONE;
         gXStatus.current_cursor_frame = 0;
         gXStatus.current_cursor_time = 0;
     }
@@ -322,7 +322,7 @@ void SetItemCursor(int item_id)
         handle = GetCatalogVideoObjectHandle(item_id, 0);
         BlitToMouseCursor(handle, y_offset, 0, 0);
         RefreshMouseCursorTexture();
-        gXStatus.iCurrentCursor = 7;
+        gXStatus.iCurrentCursor = W8_CURSOR_INVALID_TARGET;
     }
 }
 
@@ -429,7 +429,7 @@ void InitializeMainGameLevelBlock(void)
     g_level_block->unknown_2e4[0] = 0;
     g_level_block->text_box_font = g_wiz_text_font_secondary;
     g_level_block->palette = g_wiz_text_font_secondary_palette;
-    g_level_block->selection_kind = -1;
+    g_level_block->selection_kind = W8_ACTION_NONE;
     g_level_block->pending_action = -1;
     g_level_block->selection_settled = 0;
     g_level_block->tooltip_since = 0;

@@ -609,7 +609,7 @@ void UpdateWorldCursor(void)
         position.SetZero();
     }
     if (gfLeftButtonState == 0) {
-        if (gp3DCursor->left_held != 0 && gXStatus.iTargetingMode == 3) {
+        if (gp3DCursor->left_held != 0 && gXStatus.iTargetingMode == W8_TARGET_NEED_PLACE) {
             GetCameraPosition(&camera);
             if (ResolveWorldCursorTarget(&resolved) != 0 &&
                 g_octree->TraceLineOfSight(&camera, &resolved, 1, -3, -3, 1, 0) == 0) {
@@ -635,7 +635,7 @@ void UpdateWorldCursor(void)
             position.y += g_float_005ecb08;
             PointCameraAtTarget(&position, 1, 0);
         }
-        if (gXStatus.iTargetingMode == 3) {
+        if (gXStatus.iTargetingMode == W8_TARGET_NEED_PLACE) {
             RefreshTargetMarker();
         }
     }

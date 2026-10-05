@@ -1110,7 +1110,7 @@ void W8OptionsAudioPanel::Populate()
             }
             break;
         case 2:
-            if (GetRenderOptionState(static_cast<W8RenderOption>(15)) == 0) {
+            if (GetRenderOptionState(W8_RENDER_OPTION_FOOTSTEP_SOUND) == 0) {
                 muted = true;
             }
             volume = g_settings.footstep_volume;
@@ -1222,9 +1222,9 @@ void W8OptionsAudioPanel::OnPrimary(W8TextControl* control)
         break;
     case 2:
         if (muted != 0) {
-            DisableRenderOption(static_cast<W8RenderOption>(15));
+            DisableRenderOption(W8_RENDER_OPTION_FOOTSTEP_SOUND);
         } else {
-            EnableRenderOption(static_cast<W8RenderOption>(15));
+            EnableRenderOption(W8_RENDER_OPTION_FOOTSTEP_SOUND);
         }
         break;
     case 3:
@@ -1445,7 +1445,7 @@ unsigned char W8OptionsScreen::ProcessInput(const InputAtom* input)
                 HandleTextInput(input);
                 return 0;
             }
-            SetTargetCursor(-1);
+            SetTargetCursor(W8_CURSOR_NONE);
             if (editor->m_listener != 0) {
                 editor->m_listener->OnTextEditComplete(editor, input->usParam == VK_ESCAPE);
             }

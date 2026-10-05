@@ -525,8 +525,8 @@ void BeginCombatExecution(void)
             ReopenSubMenuPanel();
         }
     }
-    if (g_settings.continuous_combat == 0 && gXStatus.iTargetingMode != 0) {
-        SetTargetingMode(0);
+    if (g_settings.continuous_combat == 0 && gXStatus.iTargetingMode != W8_TARGET_NEED_NONE) {
+        SetTargetingMode(W8_TARGET_NEED_NONE);
     }
     g_combat_state->execution_active = 1;
     g_combat_state->pending_death_count = 0;
@@ -858,7 +858,7 @@ const float g_movement_speed_step = 0.009999999776482582f;
 int GetCharacterTurnValue(int party_slot)
 {
     W8CombatCharacterRow* row = &g_combat_state->characters[party_slot];
-    int chosen;
+    W8ActionKind chosen;
     int total = 0;
     unsigned int hand;
     int value;
@@ -867,7 +867,7 @@ int GetCharacterTurnValue(int party_slot)
                        row->dead == 0 ? W8_TARGETING_CONTEXT_IN_COMBAT
                                       : W8_TARGETING_CONTEXT_OUT_OF_COMBAT,
                        &chosen, 0, 0, 0);
-    if (chosen != 0 && chosen != 1) {
+    if (chosen != W8_ACTION_ATTACK && chosen != W8_ACTION_BERSERK) {
         return 1;
     }
 
@@ -1083,7 +1083,7 @@ void EndCombat(unsigned char mode)
     }
     RequestRedrawCombatBar();
     ClearAllMonsterHighlights();
-    SetTargetingMode(0);
+    SetTargetingMode(W8_TARGET_NEED_NONE);
     RemoveConditionFromEveryone(W8_CONDITION_SLOWED);
     RemoveConditionFromParty(W8_CONDITION_TURNCOAT);
     RemoveAllEnchantments();
@@ -1266,11 +1266,11 @@ void ApplyPartyCombatAction(int party_slot, W8ActionKind action, int detail,
     }
     if (gXStatus.fPartyMovementUi == 0) {
         CreatePartyMovementPanel();
-        SetTargetingMode(0);
+        SetTargetingMode(W8_TARGET_NEED_NONE);
         return;
     }
     InvalidatePartyMovementPanel();
-    SetTargetingMode(0);
+    SetTargetingMode(W8_TARGET_NEED_NONE);
 }
 
 /* Record the chosen in-combat action on the slot row, copy its detail block,
@@ -1287,7 +1287,7 @@ void SetCharacterCombatAction(int party_slot, W8ActionKind action_kind, int acti
     W8TargetSource source;
     W8CombatCharacterRow* row = &g_combat_state->characters[party_slot];
     SetTargetSourceToCharacter(party_slot, &source);
-    if (action_kind > 0xb) {
+    if (action_kind > W8_ACTION_RUN) {
         srAssertFail("iAction < CHAR_ACTION_COUNT",
                      "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp", 0x484, 0);
     }
@@ -1339,11 +1339,12 @@ void SetCharacterCombatAction(int party_slot, W8ActionKind action_kind, int acti
 /* Ask the slot's currently selected action which context its outputs hold:
    the chosen action kind plus three context-dependent words. */
 // FUNCTION: WIZ8 0x004e77b0
-void ChooseCombatAction(int party_slot, W8TargetingContext context, int* out_kind, int* out_action,
-                        W8CombatSlot** out_target, W8ActionDetailBlock** out_detail)
+void ChooseCombatAction(int party_slot, W8TargetingContext context, W8ActionKind* out_kind,
+                        int* out_action, W8CombatSlot** out_target,
+                        W8ActionDetailBlock** out_detail)
 {
     W8PartySlotRow* row = &g_status.buffers.XChar[party_slot];
-    int kind;
+    W8ActionKind kind;
     int value_a;
     W8CombatSlot* target;
     W8ActionDetailBlock* detail;
@@ -1419,7 +1420,8 @@ void ChooseCombatAction(int party_slot, W8TargetingContext context, int* out_kin
             party_slot); // reinterpret-ok: retail stores the party-slot word into the pointer output after the FALSE assert
         detail = reinterpret_cast<W8ActionDetailBlock*>(
             party_slot); // reinterpret-ok: retail stores the party-slot word into the pointer output after the FALSE assert
-        kind = party_slot;
+        kind =
+            static_cast<W8ActionKind>(party_slot); // retail keeps this word after the FALSE assert
         break;
     }
     if (CanPartySlotParticipate(party_slot) == 0 && kind != W8_ACTION_WALK &&
@@ -1451,7 +1453,7 @@ bool CharacterCanSwitchTo(int party_slot, W8TargetingContext context, unsigned c
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
 
-    if (gXStatus.iTargetingMode == 0 && IsScreenIdle() != 0) {
+    if (gXStatus.iTargetingMode == W8_TARGET_NEED_NONE && IsScreenIdle() != 0) {
         for (unsigned int slot = 0; slot < 8; ++slot) {
             if (IsPartySlotEligible(slot) != 0) {
                 return 1;
@@ -1468,11 +1470,11 @@ bool CharacterCanSwitchTo(int party_slot, W8TargetingContext context, unsigned c
     if (context == W8_TARGETING_CONTEXT_CURRENT) {
         context = GetCombatActionContext(party_slot);
     }
-    int chosen;
+    W8ActionKind chosen;
     int value_a;
     W8ActionDetailBlock* detail;
     ChooseCombatAction(party_slot, context, &chosen, &value_a, 0, &detail);
-    if (chosen == -1) {
+    if (chosen == W8_ACTION_NONE) {
         return 0;
     }
     switch (chosen) {
@@ -1554,6 +1556,8 @@ bool CharacterCanSwitchTo(int party_slot, W8TargetingContext context, unsigned c
         break;
     case W8_ACTION_DEFEND:
         return 1;
+    default:
+        break;
     }
     if (arg_3 == 0) {
         W8TargetingContext validated = GetValidatedTargetingContext(party_slot, context);
@@ -1632,26 +1636,26 @@ bool AnyCombatMonsterBusy(void)
     for (unsigned int monster_index = 0; monster_index < monster_count; ++monster_index) {
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
         W8Monster* monster = monster_info->p3D;
-        int attack_mode = MonsterQuery(monster, 6);
-        if (attack_mode == 0x15 && GetMonsterDataForInfo(monster_info)->record_id == 0x234) {
+        W8MonsterCycle cycle = static_cast<W8MonsterCycle>(MonsterQuery(monster, 6));
+        if (cycle == W8_MONSTER_CYCLE_DIE &&
+            GetMonsterDataForInfo(monster_info)->record_id == 0x234) {
             return true;
         }
         if (monster_info->fInCombat != 0) {
             if (MonsterHasPendingCycle(monster) != 0 || MonsterIsScalingY(monster) != 0) {
                 return true;
             }
-            if (MonsterIsAnimating(monster) != 0 && attack_mode != 1 && attack_mode != 2 &&
-                attack_mode != 4 && attack_mode != 0x15) {
+            if (MonsterIsAnimating(monster) != 0 && cycle != W8_MONSTER_CYCLE_IDLE &&
+                cycle != W8_MONSTER_CYCLE_SPICE && cycle != W8_MONSTER_CYCLE_WALK &&
+                cycle != W8_MONSTER_CYCLE_DIE) {
                 if (g_combat_state->eCombatActionStatus != 2) {
                     return true;
                 }
                 if (g_combat_state->pActionMonsterInfo != monster_info) {
                     return true;
                 }
-                if (NormalizeMonsterCycle(static_cast<W8MonsterCycle>(attack_mode)) !=
-                    W8_MONSTER_CYCLE_ATTACK_CLOSE) {
-                    if (NormalizeMonsterCycle(static_cast<W8MonsterCycle>(attack_mode)) !=
-                        W8_MONSTER_CYCLE_ATTACK_RANGED) {
+                if (NormalizeMonsterCycle(cycle) != W8_MONSTER_CYCLE_ATTACK_CLOSE) {
+                    if (NormalizeMonsterCycle(cycle) != W8_MONSTER_CYCLE_ATTACK_RANGED) {
                         return true;
                     }
                     return monster_info->fMissileReleased == 0;
@@ -1678,7 +1682,7 @@ bool AnyCombatMonsterBusy(void)
 void AutoAdvanceSelectedCharacter(void)
 {
     if (g_settings.auto_advance_character == 0 || g_level_block->pick_changed != 0 ||
-        g_combat_state->round_active == 0 || gXStatus.iTargetingMode != 0 ||
+        g_combat_state->round_active == 0 || gXStatus.iTargetingMode != W8_TARGET_NEED_NONE ||
         gXStatus.fSpellCastMode != 0 || gXStatus.fItemSelectMode != 0) {
         return;
     }
@@ -2228,7 +2232,7 @@ void ExecuteCharacterAction(int party_slot)
         MakeTargetGroupHostile(&enemy_source, &slot->target_out_of_combat);
     }
     switch (action) {
-    case 7: {
+    case W8_ACTION_CAST_SPELL: {
         unsigned int power = slot->pending_action_detail.spell.power_level;
         int step_cost;
         int step;
@@ -2245,16 +2249,16 @@ void ExecuteCharacterAction(int party_slot)
                      character->iSPLeft[g_spell_records[detail].realm]);
         break;
     }
-    case 2:
+    case W8_ACTION_BREATHE:
         result = CreateCharacterBreathEffect(party_slot);
         break;
-    case 6:
+    case W8_ACTION_PRAY:
         fatigue_cost = CharacterPrayAction(party_slot);
         if (fatigue_cost == 0) {
             result = 0;
         }
         break;
-    case 3:
+    case W8_ACTION_TURN_UNDEAD:
         if (gXStatus.hostile_monster_count == 0) {
             result = 0;
         } else {
@@ -2264,30 +2268,30 @@ void ExecuteCharacterAction(int party_slot)
             }
         }
         break;
-    case 0:
+    case W8_ACTION_ATTACK:
         result = StartCharacterAttack(party_slot, W8_ATTACK_MODE_NONE);
         break;
-    case -1:
+    case W8_ACTION_NONE:
         result = 0;
         break;
-    case 1:
+    case W8_ACTION_BERSERK:
         result = StartCharacterAttack(party_slot, W8_ATTACK_MODE_BERSERK);
         break;
-    case 4:
+    case W8_ACTION_DEFEND:
         if (g_combat_state->characters[party_slot].defend_switched != 0 &&
             g_settings.verbose_combat_messages != 0) {
             PostCharacterNotice(party_slot, gppStringList[0x234]);
         }
         break;
-    case 5:
+    case W8_ACTION_PROTECT:
         result = CanCharacterAttackItsTarget(party_slot);
         break;
-    case 8:
+    case W8_ACTION_USE_ITEM:
         if (UseItem(character, slot->pending_action_detail.item_use.item, &fatigue_cost) == 0) {
             result = 0;
         }
         break;
-    case 9:
+    case W8_ACTION_EQUIP:
         break;
     default:
         FormatDebugMessage(1, "ERROR: Char %d executed %ls as a character action for char %d",
@@ -2341,7 +2345,8 @@ void ComputeCharacterActionPhase(int party_slot)
 {
     W8CombatCharacterRow* row = &g_combat_state->characters[party_slot];
     W8ActionKind action = g_status.buffers.XChar[party_slot].pending_action;
-    if ((action == 0 || action == 1) && CanAnyHandReachTarget(party_slot) != 0 &&
+    if ((action == W8_ACTION_ATTACK || action == W8_ACTION_BERSERK) &&
+        CanAnyHandReachTarget(party_slot) != 0 &&
         TargetIsInPlay(party_slot, 2, W8_TARGETING_CONTEXT_OUT_OF_COMBAT) != 0) {
         W8Character* character = &g_status.buffers.Char[party_slot];
         int current = row->current_hand;
@@ -3218,9 +3223,9 @@ void UpdateCombat(void)
         }
         W8ActionKind pending_action = g_status.buffers.XChar[slot].pending_action;
         int result;
-        if (pending_action < 0) {
+        if (pending_action < W8_ACTION_ATTACK) {
             result = 3;
-        } else if (pending_action < 2) {
+        } else if (pending_action < W8_ACTION_BREATHE) {
             result = ResolveCharacterAttack(slot);
         } else if (pending_action == W8_ACTION_BREATHE) {
             result = ExecuteCharacterSpecialAttack(slot);
@@ -3239,10 +3244,10 @@ void UpdateCombat(void)
             if (g_combat_state->characters[slot].action_changed == 0) {
                 W8PartySlotRow* row = &g_status.buffers.XChar[slot];
                 switch (row->action) {
-                case 0:
-                case 1:
-                case 4:
-                case 5:
+                case W8_ACTION_ATTACK:
+                case W8_ACTION_BERSERK:
+                case W8_ACTION_DEFEND:
+                case W8_ACTION_PROTECT:
                     break;
                 default:
                     if (GetCurrentTargetingContext(slot) != W8_TARGETING_CONTEXT_SHARED) {
@@ -3389,7 +3394,7 @@ void ScheduleCombatActor(void)
                         context = W8_TARGETING_CONTEXT_OUT_OF_COMBAT;
                     }
                     if ((action == W8_ACTION_DEFEND || action == W8_ACTION_PROTECT ||
-                         action == -1) &&
+                         action == W8_ACTION_NONE) &&
                         (g_settings.continuous_combat == 0 ||
                          CharacterCanSwitchTo(slot, context, 0, 0) != 0)) {
                         interruptible = true;
@@ -3492,7 +3497,7 @@ short GetCombatActionProgress(int* out_total)
                 W8CombatCharacterRow* row = &g_combat_state->characters[party_slot];
                 if (row->dead != 0) {
                     int swings = 0;
-                    int kind;
+                    W8ActionKind kind;
                     ChooseCombatAction(party_slot, W8_TARGETING_CONTEXT_OUT_OF_COMBAT, &kind, 0, 0,
                                        0);
                     if (kind == W8_ACTION_ATTACK || kind == W8_ACTION_BERSERK) {

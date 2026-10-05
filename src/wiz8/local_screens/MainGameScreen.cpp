@@ -3093,7 +3093,7 @@ unsigned char MainGameScreenEnter(void)
     } else {
         ClearHeldItemDisplay();
     }
-    SetTargetingMode(0);
+    SetTargetingMode(W8_TARGET_NEED_NONE);
     SetPrimarySurfaceTextureHint2Enabled(1);
     if (gXStatus.fLockInteract) {
         OpenLockInteraction(0);
@@ -3459,7 +3459,8 @@ render_world:
         if (g_settings.main_ui_mode != W8_MAIN_UI_MODE_PORTRAITS) {
             UpdateFormationPortraitRefresh();
         }
-        if (gXStatus.iCurrentCursor != -1 && gXStatus.iCurrentCursor != 7 &&
+        if (gXStatus.iCurrentCursor != W8_CURSOR_NONE &&
+            gXStatus.iCurrentCursor != W8_CURSOR_INVALID_TARGET &&
             g_main_game_resource_slots[gXStatus.iCurrentCursor].frame_count > 1 &&
             !ClockIsTicking(gXStatus.current_cursor_time) && !IsWorldCursorVisible() &&
             !g_mouselook_active) {
@@ -3523,11 +3524,12 @@ render_world:
             g_level_block->combat_panel_timer = SetCountdownClock(500);
             g_level_block->refresh_combat_panel = 0;
         }
-        if (gXStatus.iTargetingMode == 4) {
+        if (gXStatus.iTargetingMode == W8_TARGET_NEED_CONE) {
             RefreshSpellTargetHighlightsAtRange();
-        } else if (gXStatus.iTargetingMode == 3 && IsWorldCursorVisible()) {
+        } else if (gXStatus.iTargetingMode == W8_TARGET_NEED_PLACE && IsWorldCursorVisible()) {
             UpdateTargetMarkerHighlight();
-        } else if (gXStatus.iTargetingMode != 5 && g_level_block->refresh_party_panel) {
+        } else if (gXStatus.iTargetingMode != W8_TARGET_NEED_GROUP &&
+                   g_level_block->refresh_party_panel) {
             UpdateAllMonsterHighlights(g_status.selected_character,
                                        g_level_block->highlighted_item);
             g_level_block->refresh_party_panel = 0;
@@ -4303,7 +4305,7 @@ void SelectPartyCharacter(int party_slot)
     if (g_level_block->keyboard_menu_open != 0 && party_slot != GetSelectedPartySlot()) {
         CloseKeyboardMenu();
     }
-    SetTargetingMode(0);
+    SetTargetingMode(W8_TARGET_NEED_NONE);
     RequestRedraw(1 << (party_slot & 0x1f) | 0x201000);
     g_level_block->pick_changed = 1;
 }
@@ -4901,7 +4903,7 @@ void FallbackFromUnreachableAction(int party_slot)
             (g_combat_state->round_active != 0 || gXStatus.fPartyMovementMode != 0)) {
             SelectPartyCharacter(party_slot);
             if (party_slot == g_status.selected_character) {
-                SetTargetingMode(2);
+                SetTargetingMode(W8_TARGET_NEED_ENEMY);
                 return;
             }
         }
@@ -4913,9 +4915,9 @@ void FallbackFromUnreachableAction(int party_slot)
                 if (gXStatus.fPartyMovementMode != 0 &&
                     (SelectPartyCharacter(party_slot), party_slot == g_status.selected_character)) {
                     int spell_id = row->action_detail0;
-                    unsigned int needed_kind =
+                    W8TargetNeed needed_kind =
                         GetTargetNeededForSpellFriendly(spell_id, 0, W8_TARGETING_CONTEXT_CURRENT);
-                    ConfigureSpellTargetFilter(GetSpellTargetType(spell_id, 0), needed_kind);
+                    ConfigureSpellTargetFilter(GetSpellTargetType(spell_id, false), needed_kind);
                     return;
                 }
             } else {
@@ -4934,9 +4936,9 @@ void FallbackFromUnreachableAction(int party_slot)
                 if (gXStatus.fPartyMovementMode != 0 &&
                     (SelectPartyCharacter(party_slot), party_slot == g_status.selected_character)) {
                     int spell_id = GetItemSpell(row->action_detail1.item_use.item);
-                    unsigned int needed_kind =
+                    W8TargetNeed needed_kind =
                         GetTargetNeededForSpellFriendly(spell_id, 0, W8_TARGETING_CONTEXT_CURRENT);
-                    ConfigureSpellTargetFilter(GetSpellTargetType(spell_id, 0), needed_kind);
+                    ConfigureSpellTargetFilter(GetSpellTargetType(spell_id, false), needed_kind);
                     return;
                 }
             } else {
@@ -4954,7 +4956,7 @@ void FallbackFromUnreachableAction(int party_slot)
             (g_combat_state->round_active != 0 || gXStatus.fPartyMovementMode != 0)) {
             SelectPartyCharacter(party_slot);
             if (party_slot == g_status.selected_character) {
-                SetTargetingMode(1);
+                SetTargetingMode(W8_TARGET_NEED_ALLY);
                 return;
             }
         }
@@ -4964,7 +4966,7 @@ void FallbackFromUnreachableAction(int party_slot)
             (g_combat_state->round_active != 0 || gXStatus.fPartyMovementMode != 0)) {
             SelectPartyCharacter(party_slot);
             if (party_slot == g_status.selected_character) {
-                SetTargetingMode(4);
+                SetTargetingMode(W8_TARGET_NEED_CONE);
             }
         }
         break;
@@ -5643,8 +5645,8 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
     bool targeting = 0;
     bool aim_ok = 0;
     bool front_rank = 0;
-    int needed;
-    int action_kind;
+    W8TargetNeed needed;
+    W8ActionKind action_kind;
     unsigned int us_event;
     const wchar_t* help_text;
 
@@ -5653,14 +5655,15 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
     }
 
     needed = GetTargetNeededForCurrentAction(g_status.selected_character);
-    if (gXStatus.iTargetingMode == 1 || (needed == 1 && (event->usKeyState & CTRL_DOWN) != 0)) {
+    if (gXStatus.iTargetingMode == W8_TARGET_NEED_ALLY ||
+        (needed == W8_TARGET_NEED_ALLY && (event->usKeyState & CTRL_DOWN) != 0)) {
         targeting = 1;
         if (CanPartySlotParticipate(slot) != 0) {
             front_rank = 0;
             ChooseCombatAction(g_status.selected_character, W8_TARGETING_CONTEXT_CURRENT,
                                &action_kind, 0, 0, 0);
             aim_ok = 1;
-            if (action_kind == 5) {
+            if (action_kind == W8_ACTION_PROTECT) {
                 if (g_status.selected_character == static_cast<int>(slot)) {
                     front_rank = 0;
                     aim_ok = 0;
@@ -5670,8 +5673,9 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                 }
             }
         }
-    } else if (gXStatus.iTargetingMode == 7 ||
-               (needed == 7 && (event->usKeyState & CTRL_DOWN) != 0)) {
+    } else if (gXStatus.iTargetingMode == W8_TARGET_NEED_CHARACTER_INDIRECT ||
+               (needed == W8_TARGET_NEED_CHARACTER_INDIRECT &&
+                (event->usKeyState & CTRL_DOWN) != 0)) {
         targeting = 1;
         IsDeadCharacterTargetable(slot);
     }
@@ -5749,7 +5753,8 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                                                 g_character_event_no_flags,
                                                 g_character_event_full_volume);
                         }
-                    } else if (!g_status.item_in_cursor || gXStatus.iCurrentCursor != 7 ||
+                    } else if (!g_status.item_in_cursor ||
+                               gXStatus.iCurrentCursor != W8_CURSOR_INVALID_TARGET ||
                                gXStatus.dragged_item == &g_status.item_in_hand) {
                         if (g_settings.main_ui_mode != W8_MAIN_UI_MODE_PORTRAITS) {
                             RefreshSelectedPartyPortrait(slot);
@@ -5809,7 +5814,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                 if ((region->flags & W8_REGION_MOUSE_ENTER) == 0) {
                     if (IsNpcDialogueCursorActive() == 0) {
                         if (targeting != 0 && aim_ok != 0) {
-                            if (gXStatus.iTargetingMode == 0) {
+                            if (gXStatus.iTargetingMode == W8_TARGET_NEED_NONE) {
                                 RevalidateSelectedTarget(g_status.selected_character);
                             }
                             SetTargetCursor(4);
@@ -5819,7 +5824,8 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                     }
                 } else {
                     if (g_level_block->portrait_refresh_pending[slot] == 0) {
-                        if (!g_status.item_in_cursor || gXStatus.iCurrentCursor != 7 ||
+                        if (!g_status.item_in_cursor ||
+                            gXStatus.iCurrentCursor != W8_CURSOR_INVALID_TARGET ||
                             gXStatus.dragged_item == &g_status.item_in_hand) {
                             help_text = gppStringList[0x1d];
                         } else {
@@ -5838,7 +5844,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                             g_level_block->tooltip_subject = slot;
                             g_level_block->tooltip_kind = 0;
                         }
-                        if (gXStatus.iTargetingMode == 0) {
+                        if (gXStatus.iTargetingMode == W8_TARGET_NEED_NONE) {
                             UpdateSlotMonsterHighlights(slot, 1);
                             return 0;
                         }
@@ -5855,7 +5861,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                         g_level_block->tooltip_kind = 0;
                     }
                     SetTargetCursor(GetTargetingCursorForState(0));
-                    if (gXStatus.iTargetingMode == 0) {
+                    if (gXStatus.iTargetingMode == W8_TARGET_NEED_NONE) {
                         UpdateSlotMonsterHighlights(slot, 0);
                     }
                 }
@@ -6368,7 +6374,7 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
     POINT cursor_pos;
     int cursor_x;
     int cursor_y;
-    int needed;
+    W8TargetNeed needed;
     int slot;
     unsigned int us_event;
 
@@ -6406,8 +6412,9 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
             UpdateMipeSelection();
         } else {
             int hover;
-            if (gXStatus.fNpcDialogueMode == 0 && gXStatus.iTargetingMode != 3 &&
-                gXStatus.iTargetingMode != 4 && gXStatus.iTargetingMode != 6 &&
+            if (gXStatus.fNpcDialogueMode == 0 && gXStatus.iTargetingMode != W8_TARGET_NEED_PLACE &&
+                gXStatus.iTargetingMode != W8_TARGET_NEED_CONE &&
+                gXStatus.iTargetingMode != W8_TARGET_NEED_ITEM &&
                 gXStatus.active_monster_count != 0 && IsWorldCursorVisible() == 0 &&
                 g_mouselook_active == 0) {
                 hover = PickNearestMonsterUnderCursor(cursor_x, cursor_y);
@@ -6513,7 +6520,8 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
     if (FinishNpcVoiceIfSessionActive()) {
         return 1;
     }
-    if (gXStatus.iTargetingMode == 3 || (needed == 3 && (event->usKeyState & CTRL_DOWN) != 0)) {
+    if (gXStatus.iTargetingMode == W8_TARGET_NEED_PLACE ||
+        (needed == W8_TARGET_NEED_PLACE && (event->usKeyState & CTRL_DOWN) != 0)) {
         if (IsWorldCursorVisible() == 0) {
             InitializeWorldCursor();
         }
@@ -6537,8 +6545,8 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
                         static_cast<float>(g_world_cursor_extent_table[extent_index * 6 + 5]));
             SetWorldCursorExtents(&minimum, &maximum);
         }
-    } else if (gXStatus.iTargetingMode == 4 ||
-               (needed == 4 && (event->usKeyState & CTRL_DOWN) != 0)) {
+    } else if (gXStatus.iTargetingMode == W8_TARGET_NEED_CONE ||
+               (needed == W8_TARGET_NEED_CONE && (event->usKeyState & CTRL_DOWN) != 0)) {
         AimAtGroundTarget(g_status.selected_character);
     } else if (g_level_block->highlighted_item == -1) {
         if (g_status.item_in_cursor && ForwardSelectedPropIndex(GetWorld(), GetAtomCursorX(event),
@@ -6551,7 +6559,7 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
                 InteractWithWorldItem(g_level_block->selected_item) != 0) {
                 g_level_block->selected_item = -1;
                 VideoRemoveToolTip();
-                SetTargetingMode(0);
+                SetTargetingMode(W8_TARGET_NEED_NONE);
             }
         } else if (gXStatus.world_update_blocked == 0) {
             ForwardActivateSelectedProp(GetWorld(), 2, GetAtomCursorX(event),
@@ -6563,9 +6571,11 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
         bool assign = 1;
         if (gXStatus.fCombatMode == 0) {
-            if (needed != 2 && needed != 1 && needed != 5) {
+            if (needed != W8_TARGET_NEED_ENEMY && needed != W8_TARGET_NEED_ALLY &&
+                needed != W8_TARGET_NEED_GROUP) {
                 assign = 0;
-                if ((gXStatus.iCurrentCursor == 6 || g_status.item_in_cursor) &&
+                if ((gXStatus.iCurrentCursor == W8_CURSOR_VALID_TARGET ||
+                     g_status.item_in_cursor) &&
                     g_status.selected_character != -1 &&
                     CanPartyMemberAimAtMonster(g_status.selected_character, 2, monster_info,
                                                W8_TARGETING_CONTEXT_CURRENT, 0) != 0) {
@@ -6624,8 +6634,9 @@ unsigned char MonsterListRegionEvent(const InputAtom* event, W8Region* region)
     int group_id = -1;
 
     if ((region->flags & W8_REGION_MOUSE_LEAVE) == 0 && gXStatus.fNpcDialogueMode == 0 &&
-        gXStatus.iTargetingMode != 3 && gXStatus.iTargetingMode != 4 &&
-        gXStatus.iTargetingMode != 6 && gXStatus.active_monster_count != 0 &&
+        gXStatus.iTargetingMode != W8_TARGET_NEED_PLACE &&
+        gXStatus.iTargetingMode != W8_TARGET_NEED_CONE &&
+        gXStatus.iTargetingMode != W8_TARGET_NEED_ITEM && gXStatus.active_monster_count != 0 &&
         IsWorldCursorVisible() == 0 && g_mouselook_active == 0) {
         row = (GetAtomCursorY(event) - region->y1) / 0xb;
         group = GetLiveMonsterGroupAtIndex(row);
@@ -6679,14 +6690,14 @@ void ClearCombatSelection(void)
    checks whether its trigger takes the in-cursor item or shows a message;
    otherwise the cursor comes from the current targeting state. */
 // FUNCTION: WIZ8 0x0056a5d0
-void UpdateWorldViewCursor(const InputAtom* event, int target_needed)
+void UpdateWorldViewCursor(const InputAtom* event, W8TargetNeed target_needed)
 {
     int cursor = gXStatus.iCurrentCursor;
     if (cursor == W8_CURSOR_INVALID_TARGET) {
         return;
     }
     if (g_level_block->highlighted_item == -1) {
-        if (gXStatus.iTargetingMode == 0) {
+        if (gXStatus.iTargetingMode == W8_TARGET_NEED_NONE) {
             if (g_level_block->selected_item != -1) {
                 if (gXStatus.world_update_blocked == 0) {
                     SetTargetCursor(5);
@@ -6725,9 +6736,10 @@ void UpdateWorldViewCursor(const InputAtom* event, int target_needed)
             SetTargetCursor(cursor);
             return;
         }
-        if (target_needed == 0 && gXStatus.fCombatMode == 0 && gXStatus.fSpellCastMode == 0 &&
-            gXStatus.fItemSelectMode == 0 && gXStatus.fNpcDialogueMode == 0 &&
-            gXStatus.fLockInteractMode == 0 && gXStatus.fTrapInteractMode == 0) {
+        if (target_needed == W8_TARGET_NEED_NONE && gXStatus.fCombatMode == 0 &&
+            gXStatus.fSpellCastMode == 0 && gXStatus.fItemSelectMode == 0 &&
+            gXStatus.fNpcDialogueMode == 0 && gXStatus.fLockInteractMode == 0 &&
+            gXStatus.fTrapInteractMode == 0) {
             SetTargetCursor(W8_CURSOR_VALID_TARGET);
             return;
         }
@@ -7029,10 +7041,10 @@ void SetCombatSelection(int value)
         return;
     }
     if (current != -1) {
-        if (GetTargetNeededForCurrentAction(g_status.selected_character) == 5) {
+        if (GetTargetNeededForCurrentAction(g_status.selected_character) == W8_TARGET_NEED_GROUP) {
             W8MonsterInfo* monster_info =
                 MonsterInfoFromID(0x1cf9, MAIN_GAME_SCREEN_CPP, g_level_block->highlighted_item, 1);
-            ModifyGroupColor(monster_info->monster_group_id, 0);
+            ModifyGroupColor(monster_info->monster_group_id, W8_TARGET_HIGHLIGHT_NONE);
         } else {
             HighlightMonsterAsTarget(g_level_block->highlighted_item, g_status.selected_character,
                                      0);
@@ -7057,11 +7069,14 @@ void SetCombatSelection(int value)
             g_level_block->highlighted_item = value;
             g_level_block->target_highlight_ok[0] =
                 HighlightMonsterAsTarget(value, g_status.selected_character, 1);
-            if (GetTargetNeededForCurrentAction(g_status.selected_character) == 5) {
+            if (GetTargetNeededForCurrentAction(g_status.selected_character) ==
+                W8_TARGET_NEED_GROUP) {
                 W8MonsterInfo* monster_info =
                     MonsterInfoFromID(0x1d19, MAIN_GAME_SCREEN_CPP, value, 1);
                 ModifyGroupColor(monster_info->monster_group_id,
-                                 (g_level_block->target_highlight_ok[0] == 0) + 1);
+                                 g_level_block->target_highlight_ok[0] == 0
+                                     ? W8_TARGET_HIGHLIGHT_RED
+                                     : W8_TARGET_HIGHLIGHT_GREEN);
             }
             CanTargetMonster(g_status.selected_character, value, 1, 0);
         }
@@ -7143,7 +7158,7 @@ void SetCombatAction(int value)
         return;
     }
     if (current != -1) {
-        ModifyGroupColor(current, 0);
+        ModifyGroupColor(current, W8_TARGET_HIGHLIGHT_NONE);
     }
     g_level_block->action_group = value;
     if (value == -1) {
@@ -7154,8 +7169,10 @@ void SetCombatAction(int value)
 
         g_level_block->target_highlight_ok[0] =
             CanTargetMonsterGroup(g_status.selected_character, group);
-        int tint = (g_level_block->target_highlight_ok[0] == 0) + 1;
-        if (GetTargetNeededForCurrentAction(g_status.selected_character) == 5) {
+        W8TargetHighlight tint = g_level_block->target_highlight_ok[0] == 0
+                                     ? W8_TARGET_HIGHLIGHT_RED
+                                     : W8_TARGET_HIGHLIGHT_GREEN;
+        if (GetTargetNeededForCurrentAction(g_status.selected_character) == W8_TARGET_NEED_GROUP) {
             ModifyGroupColor(g_level_block->action_group, tint);
         } else {
             HighlightPickedGroupMember(g_status.selected_character, group, tint);

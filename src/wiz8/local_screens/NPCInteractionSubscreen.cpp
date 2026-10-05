@@ -1246,7 +1246,7 @@ void EndNpcDialogueSession(bool param_1)
     ResumeMainGameWorld();
     if (param_1 == 0) {
         if (g_npc_interaction_state->held_item_pending == 0) {
-            SetTargetCursor(-1);
+            SetTargetCursor(W8_CURSOR_NONE);
         } else {
             g_status.item_in_hand = g_npc_interaction_state->pending_item;
             SetItemCursor(0);
@@ -4404,7 +4404,7 @@ void OpenNpcDialog(W8NpcQuoteEntry* request, int aux_data)
             g_npc_interaction_state->price_check_skip_fact = 1;
         }
     }
-    SetTargetCursor(-1);
+    SetTargetCursor(W8_CURSOR_NONE);
 }
 
 // FUNCTION: WIZ8 0x00576030
@@ -4824,7 +4824,7 @@ void CloseNpcDialogueForCamp(void)
         SetItemCursor(0);
         return;
     }
-    SetTargetCursor(-1);
+    SetTargetCursor(W8_CURSOR_NONE);
 }
 
 // FUNCTION: WIZ8 0x00577220

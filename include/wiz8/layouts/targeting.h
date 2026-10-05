@@ -76,6 +76,34 @@ enum W8TargetKind {
     W8_TARGET_KIND_COUNT = 10 /* TARGET_TYPE_COUNT in PrepareSpellTarget's assert */
 };
 
+/* What a spell or action asks the interface to select, independently of the
+   recorded target's W8TargetKind. Retail GetTargetNeededForSpellFriendly
+   (0x005010f0), GetTargetNeededForSpellHostile (0x005011c0) and
+   TargetMatchesNeeded (0x00537160) establish the values and admitted targets.
+   INDIRECT uses the character-indirect target for spell 0x58; UNSET is the
+   temporary value used before a combat action supplies its requirement. */
+enum W8TargetNeed {
+    W8_TARGET_NEED_UNSET = -1,
+    W8_TARGET_NEED_NONE = 0,
+    W8_TARGET_NEED_ALLY = 1,
+    W8_TARGET_NEED_ENEMY = 2,
+    W8_TARGET_NEED_PLACE = 3,
+    W8_TARGET_NEED_CONE = 4,
+    W8_TARGET_NEED_GROUP = 5,
+    W8_TARGET_NEED_ITEM = 6,
+    W8_TARGET_NEED_CHARACTER_INDIRECT = 7,
+    W8_TARGET_NEED_CASTER = 8
+};
+
+/* Targeting.cpp's three highlight-color selectors. Retail 0x00539480,
+   0x005392e0 and 0x00538510 set clear, green and red RGBA values respectively.
+   Highlight masks and the on/off target marker flag are separate domains. */
+enum W8TargetHighlight {
+    W8_TARGET_HIGHLIGHT_NONE = 0,
+    W8_TARGET_HIGHLIGHT_GREEN = 1,
+    W8_TARGET_HIGHLIGHT_RED = 2
+};
+
 /* The shorter form a combatant carries inline, with one more field reset to
    -1 and no room for the tail. */
 struct W8CombatSlot {

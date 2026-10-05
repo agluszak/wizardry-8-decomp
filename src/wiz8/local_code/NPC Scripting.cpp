@@ -1,3 +1,4 @@
+#include "wiz8/cursor.h"
 #include "wiz8/bink_video.h"
 #include "wiz8/integer_constants.h"
 
@@ -445,13 +446,13 @@ void UpdateNpcDialogueVoiceAndCursor(void)
         }
         if (g_npc_scripting.quote_active == 0) {
             if (g_npc_scripting.message_lines.GetCount() < 1) {
-                if (gXStatus.iCurrentCursor != 8) {
-                    SetTargetCursor(-1);
+                if (gXStatus.iCurrentCursor != W8_CURSOR_TEXT_INPUT) {
+                    SetTargetCursor(W8_CURSOR_NONE);
                     return;
                 }
             }
         } else if (gXStatus.scripted_scene == 0) {
-            SetTargetCursor(9);
+            SetTargetCursor(W8_CURSOR_MAP_LOAD);
         }
     }
 }
@@ -2592,7 +2593,7 @@ void BeginNpcScriptedScene(void)
     SetScriptedSceneActive();
     ResetLevelDataVectors();
     gXStatus.scripted_scene = 1;
-    SetTargetingMode(1);
+    SetTargetingMode(W8_TARGET_NEED_ALLY);
     for (party_slot = 0; party_slot < 8; ++party_slot) {
         if (g_status.buffers.XChar[party_slot].fOccupied != 0) {
             RegionSetEnable(party_slot + 7);
@@ -2624,7 +2625,7 @@ void EndScriptedPortraitPick(int party_slot)
     if (gXStatus.fCombatMode == 0 || gXStatus.fPartyMovementMode != 0) {
         ClearLevelDataFlag6();
     }
-    SetTargetingMode(0);
+    SetTargetingMode(W8_TARGET_NEED_NONE);
     for (slot = 0; slot < 8; ++slot) {
         if (g_status.buffers.XChar[slot].fOccupied != 0) {
             RegionSetDisable(slot + 7);

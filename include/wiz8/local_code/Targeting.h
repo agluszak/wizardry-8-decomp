@@ -65,7 +65,7 @@ void ClearTargetHighlights(int party_slot, const W8CombatSlot* target);
 void ClearPartySlotMonsterHighlights(unsigned int party_slot);
 void SetTargetToCharacter(int character_slot, bool in_combat);
 
-void SetTargetingMode(int state);
+void SetTargetingMode(W8TargetNeed state);
 void SetMonsterHighlight(int party_slot, int location_id, bool on);
 void SetGroupHighlight(int party_slot, int group_id, bool on);
 /* Location id of the nearest hovered live monster, or -1. */
@@ -80,7 +80,7 @@ unsigned int GetActionSpellLikeId(int party_slot, W8TargetingContext context);
 void ResetTargetSource(W8TargetSource* source);
 void SetTargetSourceToMonster(const W8MonsterInfo* monster_info, W8TargetSource* source);
 W8TargetingContext ResolveTargetingContext(int party_slot, W8TargetingContext context);
-bool TargetMatchesNeeded(W8CombatSlot* target, int needed);
+bool TargetMatchesNeeded(W8CombatSlot* target, W8TargetNeed needed);
 bool SpellHasAnyValidTarget(int party_slot, int spell_id, bool normalize);
 void SetTargetToMonster(int monster_id, bool in_combat);
 void SetTargetToGroup(int group_id, bool in_combat);
@@ -114,7 +114,7 @@ bool IsItemTargetOfNeededKind(int party_slot, const W8ItemInstance* item); /* 0x
 /* 0x0053AF40: select the party slot the spell-casting view is casting for. */
 void SelectSpellCastingPartySlot(int party_slot);
 /* 0x0053A440: set the targeting filter for the spell being aimed. */
-void ConfigureSpellTargetFilter(W8SpellTargetType target_type, unsigned int needed_kind);
+void ConfigureSpellTargetFilter(W8SpellTargetType target_type, W8TargetNeed needed_kind);
 /* 0x0053A830: commit the chosen spell target. */
 void CommitSelectedSpellTarget(void);
 void RefreshMonsterTargetCounts(void);
@@ -134,10 +134,10 @@ bool IsMonsterVisibleWithinDistance(W8Monster* monster, const srVector3T<float>*
                                     float max_distance);
 /* 0x00538510: pick the next targetable member of `group` and paint it with the
    `color` highlight (0 clears, 1 green, 2 red). */
-void HighlightPickedGroupMember(int party_slot, W8MonsterGroup* group, int color);
+void HighlightPickedGroupMember(int party_slot, W8MonsterGroup* group, W8TargetHighlight color);
 /* 0x005392E0: apply a highlight tint (0 clears, 1 green, 2 red) to every member
    of the group - the debug message names it ModifyGroupColor. */
-void ModifyGroupColor(int group_id, int color);
+void ModifyGroupColor(int group_id, W8TargetHighlight color);
 /* 0x00539B70: whether `target` lies within the combined radii of `eye` and
    `bonus`, inside the heading and elevation arcs. */
 bool TargetInRangeAndArcs(const srVector3T<float>* target, float bonus,
@@ -168,12 +168,13 @@ W8TargetingContext GetValidatedTargetingContext(int party_slot,
 void SetTargetSourceToCharacter(int party_slot, W8TargetSource* source);     /* 0x0053BE00 */
 /* 0x00536A20: what the interface has to ask the player to pick for one
    action - a fixed kind for most, the spell's answer for casts and item use. */
-int GetTargetNeededForAction(int action, int spell_id, const W8ActionDetailBlock* detail_block);
+W8TargetNeed GetTargetNeededForAction(W8ActionKind action, int spell_id,
+                                      const W8ActionDetailBlock* detail_block);
 /* 0x00537380: the target kind the slot's current action needs in the effective
    targeting context, with the main-screen selection state folded in. */
-int GetTargetNeededForCurrentAction(int party_slot);
-int GetTargetNeededForItem(const W8ItemInstance* item);    /* 0x00537330 */
-void TintHighlightedMonster(W8Monster* monster, int tint); /* 0x00539480 */
+W8TargetNeed GetTargetNeededForCurrentAction(int party_slot);
+W8TargetNeed GetTargetNeededForItem(const W8ItemInstance* item);         /* 0x00537330 */
+void TintHighlightedMonster(W8Monster* monster, W8TargetHighlight tint); /* 0x00539480 */
 /* 0x00537540: after the selected character's action changes, drop back to no
    targeting when its recorded target still fits, or enter the mode the action
    now needs. */

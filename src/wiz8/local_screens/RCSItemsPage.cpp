@@ -538,7 +538,7 @@ void UpdateItemCursorForState(int flag, W8ItemInstance* item, int slot)
         return;
     }
     switch (gXStatus.iTargetingMode) {
-    case 1:
+    case W8_TARGET_NEED_ALLY:
         if ((g_camp_screen->entry_mode == 7 || g_camp_screen->entry_mode == 9) &&
             g_status.buffers.XChar[slot].fOccupied != 0 &&
             g_status.buffers.Char[slot].uiCondition[0x13] == 0) {
@@ -549,7 +549,7 @@ void UpdateItemCursorForState(int flag, W8ItemInstance* item, int slot)
             SetTargetCursor(GetTargetingCursorForState(flag));
         }
         return;
-    case 6:
+    case W8_TARGET_NEED_ITEM:
         if (item == 0) {
             srAssertFail("pItem", "C:\\Projects\\Wizardry 8\\Local Screens\\RCSItemsPage.cpp",
                          0x763, 0);
@@ -606,7 +606,7 @@ void UpdateItemCursorForState(int flag, W8ItemInstance* item, int slot)
         SetTargetCursor(0xe);
         SetItemCursor(0xf);
         return;
-    case 7:
+    case W8_TARGET_NEED_CHARACTER_INDIRECT:
         if (IsDeadCharacterTargetable(slot) != 0) {
             SetTargetCursor(GetTargetingCursorForState(flag));
         }

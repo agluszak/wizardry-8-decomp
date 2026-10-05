@@ -595,11 +595,11 @@ unsigned char ReadOrCloneMonsterCycles(const W8GrCycleLoadContext* context,
                     continue;
                 }
                 signed char subcycle;
-                int cycle = ParseMonsterCycleName(command, &subcycle);
+                W8MonsterCycle cycle = ParseMonsterCycleName(command, &subcycle);
                 if (cycle != W8_MONSTER_CYCLE_NONE) {
                     if (_strnicmp(argument, "gib", 3) != 0 || g_monster_gib_option != 0) {
                         if (GetRenderOptionState(W8_RENDER_OPTION_ADDITIONAL_ANIMATIONS) == 0) {
-                            cycle = NormalizeMonsterCycle(static_cast<W8MonsterCycle>(cycle));
+                            cycle = NormalizeMonsterCycle(cycle);
                         }
                         if (*monster == 0 ||
                             (*monster)->IsCycleSupported(static_cast<signed char>(cycle)) == 0 ||
@@ -2052,7 +2052,7 @@ void W8Monster::ProcessScript()
                 signed char subcycle;
                 token = strtok(0, " \t");
                 if (token != 0) {
-                    int cycle = ParseMonsterCycleName(token, &subcycle);
+                    W8MonsterCycle cycle = ParseMonsterCycleName(token, &subcycle);
                     if (cycle != W8_MONSTER_CYCLE_NONE) {
                         m_pRep->pending_cycle = static_cast<signed char>(cycle);
                         m_pRep->animation_playing = 1;

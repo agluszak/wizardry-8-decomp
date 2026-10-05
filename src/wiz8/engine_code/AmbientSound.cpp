@@ -480,7 +480,7 @@ int PlayFootstep(signed char surface, signed char material, W8FootstepKind kind)
     int attempts = 0;
     int index;
 
-    if (GetRenderOptionState(static_cast<W8RenderOption>(0xf)) == 0) {
+    if (GetRenderOptionState(W8_RENDER_OPTION_FOOTSTEP_SOUND) == 0) {
         return -1;
     }
     selected_surface = surface;

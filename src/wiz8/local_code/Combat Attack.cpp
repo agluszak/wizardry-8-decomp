@@ -1991,7 +1991,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
         if (combat->uiSwingsRemaining != 0) {
             if ((memcmp(&entry_target, &monster_info->Target, sizeof(W8CombatSlot)) == 0 ||
                  repicked != 0) &&
-                TargetMatchesNeeded(&monster_info->Target, 2) != 0) {
+                TargetMatchesNeeded(&monster_info->Target, W8_TARGET_NEED_ENEMY) != 0) {
                 if (repicked == 0) {
                     StartMonsterAttackCycle(monster_info, action_detail);
                 }
@@ -2147,7 +2147,7 @@ char StartMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
     if (RateMonsterAttack(monster_info, record, attack, 0, 0) != 0) {
         return 0;
     }
-    if (TargetMatchesNeeded(&monster_info->Target, 2) == 0 ||
+    if (TargetMatchesNeeded(&monster_info->Target, W8_TARGET_NEED_ENEMY) == 0 ||
         MonsterActionReachesTarget(monster_info, record, attack, &monster_info->Target) == 0) {
         if (ClearMonsterCombatSlot(monster_info) == 0) {
             return 0;

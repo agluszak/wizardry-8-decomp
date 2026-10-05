@@ -321,7 +321,7 @@ unsigned char CampPortraitSlotRegionEvent(const InputAtom* event, W8Region* regi
         }
         if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0 &&
             g_status.buffers.XChar[target_slot].fOccupied != 0) {
-            if (gXStatus.iTargetingMode == 1) {
+            if (gXStatus.iTargetingMode == W8_TARGET_NEED_ALLY) {
                 if (g_camp_screen->page != 0 ||
                     (g_camp_screen->entry_mode != 7 && g_camp_screen->entry_mode != 9)) {
                     if (!CanPartySlotParticipate(static_cast<int>(target_slot))) {
@@ -345,7 +345,7 @@ unsigned char CampPortraitSlotRegionEvent(const InputAtom* event, W8Region* regi
                     return 1;
                 }
             } else {
-                if (gXStatus.iTargetingMode == 7) {
+                if (gXStatus.iTargetingMode == W8_TARGET_NEED_CHARACTER_INDIRECT) {
                     if (IsDeadCharacterTargetable(static_cast<int>(target_slot)) == 0) {
                         QueueCharacterEvent(&g_status.buffers.Char[giReviewCharSlot],
                                             g_character_event_kind2, 0,
@@ -1397,7 +1397,7 @@ void SetCampItemActionMode(char mode)
 {
     int index;
     short selected = -1;
-    int targeting;
+    W8TargetNeed targeting;
     W8TextControl** control;
 
     for (control = g_item_action_controls, index = 8; index != 0; ++control, --index) {
@@ -1410,39 +1410,39 @@ void SetCampItemActionMode(char mode)
     switch (mode) {
     case 2:
     case 8:
-        targeting = 6;
+        targeting = W8_TARGET_NEED_ITEM;
         selected = 6;
         break;
     case 3:
-        targeting = 6;
+        targeting = W8_TARGET_NEED_ITEM;
         selected = 0;
         break;
     case 1:
-        targeting = 6;
+        targeting = W8_TARGET_NEED_ITEM;
         selected = 1;
         break;
     case 4:
-        targeting = 6;
+        targeting = W8_TARGET_NEED_ITEM;
         selected = 2;
         break;
     case 5:
-        targeting = 6;
+        targeting = W8_TARGET_NEED_ITEM;
         selected = 3;
         break;
     case 6:
-        targeting = 6;
+        targeting = W8_TARGET_NEED_ITEM;
         selected = 4;
         break;
     case 7:
-        targeting = 1;
+        targeting = W8_TARGET_NEED_ALLY;
         selected = 5;
         break;
     case 9:
-        targeting = 1;
+        targeting = W8_TARGET_NEED_ALLY;
         selected = 7;
         break;
     default:
-        targeting = 0;
+        targeting = W8_TARGET_NEED_NONE;
         break;
     }
     SetTargetingMode(targeting);

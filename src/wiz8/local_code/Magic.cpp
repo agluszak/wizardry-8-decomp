@@ -280,28 +280,28 @@ bool SpellUsableNow(int spell_id, bool allow_out_of_combat)
    the selection owner only needs a pick when there is nothing selected already
    and the caller is not in one of the two contexts that supply it. */
 // FUNCTION: WIZ8 0x005010f0
-int GetTargetNeededForSpellFriendly(int spell_id, bool normalize,
-                                    W8TargetingContext context)
+W8TargetNeed GetTargetNeededForSpellFriendly(int spell_id, bool normalize,
+                                             W8TargetingContext context)
 {
     if (spell_id != 0) {
         switch (GetSpellTargetType(spell_id, normalize)) {
         case W8_TARGET_TYPE_ALLY:
-            return spell_id != 0x58 ? 1 : 7;
+            return spell_id != 0x58 ? W8_TARGET_NEED_ALLY : W8_TARGET_NEED_CHARACTER_INDIRECT;
         case W8_TARGET_TYPE_CASTER:
-            return 8;
+            return W8_TARGET_NEED_CASTER;
         case W8_TARGET_TYPE_ENEMY:
-            return 2;
+            return W8_TARGET_NEED_ENEMY;
         case W8_TARGET_TYPE_ENEMY_GROUP:
-            return 5;
+            return W8_TARGET_NEED_GROUP;
         case W8_TARGET_TYPE_CONE:
-            return 4;
+            return W8_TARGET_NEED_CONE;
         case W8_TARGET_TYPE_RADIUS:
         case W8_TARGET_TYPE_POINT:
-            return 3;
+            return W8_TARGET_NEED_PLACE;
         case W8_TARGET_TYPE_ITEM:
             if (g_level_block == 0 || context == W8_TARGETING_CONTEXT_SPELL ||
                 context == W8_TARGETING_CONTEXT_ITEM) {
-                return 6;
+                return W8_TARGET_NEED_ITEM;
             }
             break;
         case W8_TARGET_TYPE_PARTY:
@@ -316,23 +316,23 @@ int GetTargetNeededForSpellFriendly(int spell_id, bool normalize,
             break;
         }
     }
-    return 0;
+    return W8_TARGET_NEED_NONE;
 }
 
 /* The same question for a hostile spell, which has fewer answers because a
    hostile spell never targets the party's own belongings. */
 // FUNCTION: WIZ8 0x005011c0
-int GetTargetNeededForSpellHostile(int spell_id)
+W8TargetNeed GetTargetNeededForSpellHostile(int spell_id)
 {
     switch (GetSpellTargetType(spell_id, 0)) {
     case W8_TARGET_TYPE_ALLY:
-        return spell_id != 0x58 ? 1 : 7;
+        return spell_id != 0x58 ? W8_TARGET_NEED_ALLY : W8_TARGET_NEED_CHARACTER_INDIRECT;
     case W8_TARGET_TYPE_ENEMY:
-        return 2;
+        return W8_TARGET_NEED_ENEMY;
     case W8_TARGET_TYPE_CASTER:
-        return 8;
+        return W8_TARGET_NEED_CASTER;
     case W8_TARGET_TYPE_ENEMY_GROUP:
-        return 5;
+        return W8_TARGET_NEED_GROUP;
     case W8_TARGET_TYPE_PARTY:
     case W8_TARGET_TYPE_CONE:
     case W8_TARGET_TYPE_RADIUS:
@@ -346,7 +346,7 @@ int GetTargetNeededForSpellHostile(int spell_id)
                          spell_id));
         break;
     }
-    return 0;
+    return W8_TARGET_NEED_NONE;
 }
 
 /* Forwarder that narrows CanCharReBreathe's answer to a flag. Its argument is
@@ -511,8 +511,8 @@ void SetCharacterSpell(const W8Character* character, int spell_id, int power_lev
 // FUNCTION: WIZ8 0x00501530
 bool PartySlotSpellTargetStillValid(int party_slot)
 {
-    char needed = GetTargetNeededForSpellFriendly(g_status.buffers.XChar[party_slot].spell_id, 0,
-                                                  W8_TARGETING_CONTEXT_CURRENT);
+    W8TargetNeed needed = GetTargetNeededForSpellFriendly(
+        g_status.buffers.XChar[party_slot].spell_id, 0, W8_TARGETING_CONTEXT_CURRENT);
 
     if (!TargetMatchesNeeded(GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_SPELL),
                              needed)) {

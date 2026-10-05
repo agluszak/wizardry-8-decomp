@@ -225,7 +225,7 @@ void CloseUseItemSelectView(void)
         DisableRegionInput(0x55);
         RegionSetDisable(0x14);
         g_level_block->action_panel_visible = 0;
-        SetTargetingMode(0);
+        SetTargetingMode(W8_TARGET_NEED_NONE);
         ResetEditorStatusLine(-1);
         g_level_block->text_box_visible = 1;
         SelectTextBox(gXStatus.fCombatMode != 0);
@@ -949,7 +949,7 @@ void SelectUseItemLine(int iTextLine)
         // c-style-cast-ok: the assertion text itself spells (INT32)
         srAssertFail("iTextLine < (INT32) guiNumItemsInList", MGSUSEITEMSELECT_CPP, 0x61e, 0);
     }
-    SetTargetingMode(0);
+    SetTargetingMode(W8_TARGET_NEED_NONE);
     UpdateUseItemDetailPanel(g_use_item_list[iTextLine]);
     if (ValidateItemSpellUse(g_use_item_owner_index, g_use_item_list[iTextLine],
                              SpellCastingNoticeClosed) != 0) {

@@ -2,6 +2,7 @@
 
 #include "timer.h"
 #include "wiz8/geometry.h"
+#include "wiz8/layouts/targeting.h"
 
 class stTextureAnim;
 class stModelInstance2D;
@@ -211,7 +212,7 @@ struct W8LevelRuntimeBlock {
     unsigned char unknown_2e4[4];
     int text_box_font; /* 0x2e8: g_wiz_text_font_secondary while the main text box is live */
     unsigned short* palette; /* 0x2ec */
-    int selection_kind;
+    W8ActionKind selection_kind;
     int pending_action; /* 0x2f4 */
     bool selection_settled;
     unsigned char padding_2f9[3];

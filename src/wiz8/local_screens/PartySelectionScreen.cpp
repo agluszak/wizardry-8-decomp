@@ -1189,7 +1189,7 @@ unsigned char W8PartySelectionInputHandler::HandleInput(const InputAtom* input)
         }
     }
 
-    SetTargetCursor(-1);
+    SetTargetCursor(W8_CURSOR_NONE);
     if (m_listener) {
         m_listener->OnDecision(this, input->usParam == VK_ESCAPE);
     }

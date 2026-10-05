@@ -501,7 +501,7 @@ void AutomapZoomOutButton(void)
                                               GetCatalogVideoObjectYOffset(tool + 0x14b),
                                               static_cast<short>(g_automap_cursor_offsets[tool].x),
                                               static_cast<short>(g_automap_cursor_offsets[tool].y));
-                gXStatus.iCurrentCursor = 7;
+                gXStatus.iCurrentCursor = W8_CURSOR_INVALID_TARGET;
                 RefreshMouseCursorTexture();
             } else {
                 g_automap_zoom = g_automap_top_y - g_automap_bounds_min.y;
@@ -529,7 +529,7 @@ void AutomapSelectNoteToolButton(void)
                                   GetCatalogVideoObjectYOffset(0x14d),
                                   static_cast<short>(g_automap_cursor_offsets[2].x),
                                   static_cast<short>(g_automap_cursor_offsets[2].y));
-    gXStatus.iCurrentCursor = 7;
+    gXStatus.iCurrentCursor = W8_CURSOR_INVALID_TARGET;
     RefreshMouseCursorTexture();
 }
 
@@ -544,7 +544,7 @@ void AutomapSelectEraseToolButton(void)
                                   GetCatalogVideoObjectYOffset(0x14e),
                                   static_cast<short>(g_automap_cursor_offsets[3].x),
                                   static_cast<short>(g_automap_cursor_offsets[3].y));
-    gXStatus.iCurrentCursor = 7;
+    gXStatus.iCurrentCursor = W8_CURSOR_INVALID_TARGET;
     RefreshMouseCursorTexture();
 }
 
@@ -844,7 +844,7 @@ void AutomapScreenFrame(void)
                     GetCatalogVideoObjectYOffset(g_automap_tool + 0x14b),
                     g_automap_cursor_offsets[g_automap_tool].x,
                     g_automap_cursor_offsets[g_automap_tool].y);
-                gXStatus.iCurrentCursor = 7;
+                gXStatus.iCurrentCursor = W8_CURSOR_INVALID_TARGET;
                 RefreshMouseCursorTexture();
             }
             POINT point;
@@ -882,7 +882,7 @@ void AutomapScreenFrame(void)
                                           GetCatalogVideoObjectYOffset(cursor + 0x14b),
                                           g_automap_cursor_offsets[cursor].x,
                                           g_automap_cursor_offsets[cursor].y);
-            gXStatus.iCurrentCursor = 7;
+            gXStatus.iCurrentCursor = W8_CURSOR_INVALID_TARGET;
             RefreshMouseCursorTexture();
         }
         if (input.usEvent == LEFT_BUTTON_UP) {
@@ -1160,7 +1160,7 @@ void SetAutomapToolCursor(int tool)
     SetMouseCursorFromVideoObject(
         GetCatalogVideoObjectHandle(tool + 0x14b, 0), GetCatalogVideoObjectYOffset(tool + 0x14b),
         g_automap_cursor_offsets[tool].x, g_automap_cursor_offsets[tool].y);
-    gXStatus.iCurrentCursor = 7;
+    gXStatus.iCurrentCursor = W8_CURSOR_INVALID_TARGET;
     RefreshMouseCursorTexture();
 }
 
@@ -1270,7 +1270,7 @@ void ResetAutomapZoom(void)
                                   GetCatalogVideoObjectYOffset(tool + 0x14b),
                                   static_cast<short>(g_automap_cursor_offsets[tool].x),
                                   static_cast<short>(g_automap_cursor_offsets[tool].y));
-    gXStatus.iCurrentCursor = 7;
+    gXStatus.iCurrentCursor = W8_CURSOR_INVALID_TARGET;
     RefreshMouseCursorTexture();
     if (g_automap_buttons != 0) {
         g_automap_buttons[0]->SetEnabled(1);
@@ -1348,7 +1348,7 @@ unsigned char ZoomAutomapIn(const srVector3T<float>* point)
                                   GetCatalogVideoObjectYOffset(tool + 0x14b),
                                   static_cast<short>(g_automap_cursor_offsets[tool].x),
                                   static_cast<short>(g_automap_cursor_offsets[tool].y));
-    gXStatus.iCurrentCursor = 7;
+    gXStatus.iCurrentCursor = W8_CURSOR_INVALID_TARGET;
     RefreshMouseCursorTexture();
     return 1;
 }
@@ -2373,7 +2373,7 @@ unsigned char HandleAutomapNoteInput(const InputAtom* input)
                                               GetCatalogVideoObjectYOffset(0x14b),
                                               static_cast<short>(g_automap_cursor_offsets[0].x),
                                               static_cast<short>(g_automap_cursor_offsets[0].y));
-                gXStatus.iCurrentCursor = 7;
+                gXStatus.iCurrentCursor = W8_CURSOR_INVALID_TARGET;
                 RefreshMouseCursorTexture();
             }
             g_automap_editing_note = 0;
@@ -2393,7 +2393,7 @@ unsigned char HandleAutomapNoteInput(const InputAtom* input)
                                               GetCatalogVideoObjectYOffset(0x14b),
                                               static_cast<short>(g_automap_cursor_offsets[0].x),
                                               static_cast<short>(g_automap_cursor_offsets[0].y));
-                gXStatus.iCurrentCursor = 7;
+                gXStatus.iCurrentCursor = W8_CURSOR_INVALID_TARGET;
                 RefreshMouseCursorTexture();
             }
         }
@@ -2408,7 +2408,7 @@ unsigned char HandleAutomapNoteInput(const InputAtom* input)
                                       GetCatalogVideoObjectYOffset(0x14b),
                                       static_cast<short>(g_automap_cursor_offsets[0].x),
                                       static_cast<short>(g_automap_cursor_offsets[0].y));
-        gXStatus.iCurrentCursor = 7;
+        gXStatus.iCurrentCursor = W8_CURSOR_INVALID_TARGET;
         RefreshMouseCursorTexture();
     }
     return 1;
@@ -2475,7 +2475,7 @@ unsigned char HandleAutomapKey(const InputAtom* input)
                                       GetCatalogVideoObjectYOffset(tool + 0x14b),
                                       static_cast<short>(g_automap_cursor_offsets[tool].x),
                                       static_cast<short>(g_automap_cursor_offsets[tool].y));
-        gXStatus.iCurrentCursor = 7;
+        gXStatus.iCurrentCursor = W8_CURSOR_INVALID_TARGET;
         RefreshMouseCursorTexture();
         return 1;
     case 0x20:
@@ -2516,7 +2516,7 @@ unsigned char HandleAutomapKey(const InputAtom* input)
             GetCatalogVideoObjectHandle(tool, 0), GetCatalogVideoObjectYOffset(tool),
             static_cast<short>(g_automap_cursor_offsets[g_automap_tool].x),
             static_cast<short>(g_automap_cursor_offsets[g_automap_tool].y));
-        gXStatus.iCurrentCursor = 7;
+        gXStatus.iCurrentCursor = W8_CURSOR_INVALID_TARGET;
         RefreshMouseCursorTexture();
         return 1;
     case 0x31:

@@ -24,9 +24,9 @@ extern int g_learn_sound;
    retail caller pushes only these two arguments. */
 bool SpellUsableNow(int spell_id, bool allow_out_of_combat);
 
-int GetTargetNeededForSpellFriendly(int spell_id, bool normalize,
-                                    W8TargetingContext context);
-int GetTargetNeededForSpellHostile(int spell_id);
+W8TargetNeed GetTargetNeededForSpellFriendly(int spell_id, bool normalize,
+                                             W8TargetingContext context);
+W8TargetNeed GetTargetNeededForSpellHostile(int spell_id);
 /* 0x004FB1D0: whether the monster's spellcasting-blocked condition stops it
    casting this spell - everything except alchemy, and alchemy only for the
    monster kinds that keep it. */
