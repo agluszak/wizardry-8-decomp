@@ -423,8 +423,8 @@ void InitializeMainGameLevelBlock(void)
         g_level_block->text_lines[line] = 0;
     }
     for (int slot_index = 0; slot_index < 4; ++slot_index) {
-        g_level_block->text_slots0[slot_index] = -1;
-        g_level_block->text_slots1[slot_index] = -1;
+        g_level_block->hovered_text_lines[slot_index] = -1;
+        g_level_block->selected_text_lines[slot_index] = -1;
     }
     g_level_block->unknown_2e4[0] = 0;
     g_level_block->text_box_font = g_wiz_text_font_secondary;

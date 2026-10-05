@@ -239,7 +239,7 @@ void RedistributePartyEncumbrance(void)
 
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
         if (gXStatus.fNpcDialogueMode == 0) {
-            RequestRedraw(0xff);
+            RequestRedraw(W8_MAIN_REDRAW_PORTRAITS);
             gXStatus.fEncumbranceDirty = false;
             return;
         }

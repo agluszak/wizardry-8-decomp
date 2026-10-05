@@ -240,7 +240,7 @@ void OpenSubMenuPanel(short notification)
     SetSubMenuButtonTooltips(0);
     g_submenu_clock = SetCountdownClock(0);
     g_submenu_close_pending = false;
-    RequestRedraw(0x200);
+    RequestRedraw(W8_MAIN_REDRAW_LAYOUT);
 }
 
 // FUNCTION: WIZ8 0x00596CF0
@@ -497,21 +497,21 @@ unsigned char CreateCombatStanceButtons(void)
 static void MainGameRoofButton0(W8DialogButton* button)
 {
     ApplyMainGameModeFlag(W8_MAIN_UI_MODE_PORTRAITS, 1);
-    RequestRedraw(0x300);
+    RequestRedraw(W8_MAIN_REDRAW_ROOF_AND_SPELL_ICONS | W8_MAIN_REDRAW_LAYOUT);
 }
 
 // FUNCTION: WIZ8 0x00598290
 static void MainGameRoofButton1(W8DialogButton* button)
 {
     ApplyMainGameModeFlag(W8_MAIN_UI_MODE_FORMATION, 1);
-    RequestRedraw(0x300);
+    RequestRedraw(W8_MAIN_REDRAW_ROOF_AND_SPELL_ICONS | W8_MAIN_REDRAW_LAYOUT);
 }
 
 // FUNCTION: WIZ8 0x005982B0
 static void MainGameRoofButton2(W8DialogButton* button)
 {
     ApplyMainGameModeFlag(W8_MAIN_UI_MODE_RADAR, 1);
-    RequestRedraw(0x300);
+    RequestRedraw(W8_MAIN_REDRAW_ROOF_AND_SPELL_ICONS | W8_MAIN_REDRAW_LAYOUT);
 }
 
 // FUNCTION: WIZ8 0x00597EE0
@@ -562,7 +562,7 @@ void RedrawRoofButtons(void)
         g_roof_buttons[index]->m_dirty = true;
     }
     UpdateRoofButtons();
-    RequestRedraw(0x100000);
+    RequestRedraw(W8_MAIN_REDRAW_COMBAT_PROGRESS);
 }
 
 /* Visibility and enablement for the three roof buttons, then Draw. The third
@@ -959,7 +959,7 @@ unsigned char SubMenuRowRegionEvent(const InputAtom* event, W8Region* region)
     if (g_level_block->combat_end_notification == -1) {
         return 0;
     }
-    RequestRedraw(0x80000000);
+    RequestRedraw(W8_MAIN_REDRAW_FRAME);
     switch (event->usEvent) {
     case RIGHT_BUTTON_DOWN:
         g_submenu_rows[region->callback_id]->OnRightButtonDown(0);
@@ -1290,7 +1290,7 @@ done:
     SelectPartyCharacter(selected);
     RequestRedraw(1 << current);
     RequestRedraw(1 << g_status.selected_character);
-    RequestRedraw(0x200000);
+    RequestRedraw(W8_MAIN_REDRAW_CHARACTER_ACTION);
 }
 
 // FUNCTION: WIZ8 0x005990F0

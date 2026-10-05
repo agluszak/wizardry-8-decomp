@@ -552,7 +552,7 @@ int DismissNpcFromParty(int party_slot, int /*unused*/, bool skip_spawn, bool ne
             }
         }
     }
-    RequestRedraw(~0U);
+    RequestRedraw(W8_MAIN_REDRAW_ALL);
     ReturnDismissedNpcItems(npc, npc->character);
     npc->dismissed_flag = true;
     memset(&npc->dismissed_timer, 0, sizeof(npc->dismissed_timer));

@@ -95,7 +95,7 @@ void ReleasePartyMovement(void)
         ClearSurfaceRect(0xb1, 0x13f, 0x1cf, 0x153);
         InvalidateRegion(0xb1, 0x13f, 0x1cf, 0x153, 0);
     }
-    RequestRedraw(0x8000);
+    RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_PANEL);
     RegionSetDisable(0x1c);
     for (W8TextControl** button = g_party_movement_buttons; button != g_party_movement_buttons + 2;
          ++button) {

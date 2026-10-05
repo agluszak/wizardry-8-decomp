@@ -335,7 +335,7 @@ void OpenFormationPanel(void)
         g_formation_drag_clock = SetCountdownClock(0);
         gXStatus.fReviewCharacterMode = true;
         RegionSetEnable(0x1b);
-        RequestRedraw(0x1000);
+        RequestRedraw(W8_MAIN_REDRAW_SUBMENU_BUTTONS);
         CopyPartyFormationState(&gXStatus.edited_formation, &g_status.formation);
         PauseMainGameWorld();
         UpdateFormationCells();
@@ -712,7 +712,7 @@ void CloseFormationPanel(void)
     gXStatus.fReviewCharacterMode = false;
     UpdateHeldItemCursor();
     RegionSetDisable(0x1b);
-    RequestRedraw(0x200);
+    RequestRedraw(W8_MAIN_REDRAW_LAYOUT);
     ClearSurfaceRect(0xd6, 0x3c, 0x1ab, 0x12f);
     InvalidateRegion(0xd6, 0x3c, 0x1ab, 0x12f, 0);
     ResumeMainGameWorld();

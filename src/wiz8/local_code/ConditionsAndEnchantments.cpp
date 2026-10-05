@@ -355,8 +355,8 @@ void RecomputeCharacterHighestCondition(int party_slot)
     SetPortraitTargetPose(&gXStatus.monster_manager_entries[party_slot], pose);
 done:
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
-        RequestRedraw(0x200000);
-        RequestRedraw(0x8000);
+        RequestRedraw(W8_MAIN_REDRAW_CHARACTER_ACTION);
+        RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_PANEL);
     }
 }
 
@@ -389,8 +389,8 @@ void ApplyCharacterCondition(int party_slot, W8EnchantmentSlot slot, int argumen
         }
         RequestPartySlotRedraw(party_slot);
         if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
-            RequestRedraw(0x200000);
-            RequestRedraw(0x8000);
+            RequestRedraw(W8_MAIN_REDRAW_CHARACTER_ACTION);
+            RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_PANEL);
         }
         if (slot == W8_ENCHANTMENT_SUPERMAN) {
             gXStatus.sight_refresh_pending = 1;
@@ -879,8 +879,8 @@ void ClearCharacterEnchantmentSlot(int party_slot, W8EnchantmentSlot slot)
 
     RequestPartySlotRedraw(party_slot);
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
-        RequestRedraw(0x200000);
-        RequestRedraw(0x8000);
+        RequestRedraw(W8_MAIN_REDRAW_CHARACTER_ACTION);
+        RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_PANEL);
     }
     RebuildConditionsAndDerivedStats(party_slot);
     if (slot == W8_ENCHANTMENT_SUPERMAN) {
@@ -1040,8 +1040,8 @@ void RemoveAllEnchantments(void)
                 } while (top > -1);
                 RequestPartySlotRedraw(party_slot);
                 if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
-                    RequestRedraw(0x200000);
-                    RequestRedraw(0x8000);
+                    RequestRedraw(W8_MAIN_REDRAW_CHARACTER_ACTION);
+                    RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_PANEL);
                 }
                 RebuildConditionsAndDerivedStats(party_slot);
                 if (enchantment == W8_ENCHANTMENT_SUPERMAN) {

@@ -272,7 +272,10 @@ void CompletePartyMovementTurns(void)
         combat_row->phase = 0;
         party_row->pending_event_type = static_cast<unsigned int>(-1);
     }
-    RequestRedraw(0x1000ff);
+    RequestRedraw(
+        W8_MAIN_REDRAW_PORTRAIT_0 | W8_MAIN_REDRAW_PORTRAIT_1 | W8_MAIN_REDRAW_PORTRAIT_2 |
+        W8_MAIN_REDRAW_PORTRAIT_3 | W8_MAIN_REDRAW_PORTRAIT_4 | W8_MAIN_REDRAW_PORTRAIT_5 |
+        W8_MAIN_REDRAW_PORTRAIT_6 | W8_MAIN_REDRAW_PORTRAIT_7 | W8_MAIN_REDRAW_COMBAT_PROGRESS);
 }
 
 /* Choose the party's phase from the best living character initiative, with
@@ -354,7 +357,7 @@ void StartPartyMovementAction(W8PartyAction move_kind)
     }
     AlignCombatantsToPartyMovementPhase();
     RoundPhaseToStep(&g_combat_state->round_counter, g_combat_state->round_counter);
-    RequestRedraw(0x100000);
+    RequestRedraw(W8_MAIN_REDRAW_COMBAT_PROGRESS);
 }
 
 /* End the party's movement phase. Outside the two combat modes there is
@@ -438,7 +441,7 @@ void InterruptActivePartyMovement(void)
             row->dead = 1;
             row->phase = 0;
             party_row->pending_event_type = static_cast<unsigned int>(-1);
-            RequestRedraw((1 << party_slot) | 0x100000);
+            RequestRedraw((1 << party_slot) | W8_MAIN_REDRAW_COMBAT_PROGRESS);
         }
     }
     UpdatePartyMovementControl();

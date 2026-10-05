@@ -1356,7 +1356,7 @@ void TogglePartyCombatStance(void)
     }
     ShowNotice(0xc, message, -1, -1, 0);
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
-        RequestRedraw(0x80000);
+        RequestRedraw(W8_MAIN_REDRAW_COMBAT_STANCE);
     }
 }
 

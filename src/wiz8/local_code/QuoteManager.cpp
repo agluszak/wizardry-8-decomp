@@ -955,7 +955,7 @@ void SetPartyPortraitEventState(unsigned int party_slot, bool active,
         RegionSetDisable(party_slot + 0x1d);
         DisableRegionSetInput(party_slot + 0x1d);
         if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
-            RequestRedraw(0x8000);
+            RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_PANEL);
             RequestRedrawParty();
             record->portrait_event_active = 0;
             return;

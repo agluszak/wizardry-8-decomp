@@ -241,7 +241,7 @@ void BeginSurprise(void)
         }
     }
     DisableMenuButtonBanks();
-    RequestRedraw(0xff);
+    RequestRedraw(W8_MAIN_REDRAW_PORTRAITS);
 }
 
 /* Advance the surprise fade/hold/resolve sequence while the party is locked
@@ -574,7 +574,7 @@ void AdvanceTimedEffects(unsigned int minutes)
         RequestRedrawCombatBar();
     }
     if (combat_changed) {
-        RequestRedraw(0x8000);
+        RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_PANEL);
     }
     for (unsigned int remaining = minutes; remaining != 0; --remaining) {
         TickSpellEffects();

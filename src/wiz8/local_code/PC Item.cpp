@@ -445,7 +445,7 @@ int W8ItemVideoObjectCache::GetOrCreateVideoObject(int item_id)
     if (strstr(g_video_frames[object].path, ".sti") == 0) {
         strcat(g_video_frames[object].path, ".sti");
     }
-    g_video_frames[object].mode = 0;
+    g_video_frames[object].storage_kind = W8_VIDEO_STORAGE_OBJECT;
     g_video_frames[object].loaded = 0;
     g_video_frames[object].handle = 0;
     g_video_slots[frame].first_frame = object;
@@ -4235,5 +4235,5 @@ void BindCharacterItems(int party_slot, int arg_2)
             g_status.buffers.XChar[party_slot].weapon_swap_pending = 0;
         }
     }
-    RequestRedraw(0x200000);
+    RequestRedraw(W8_MAIN_REDRAW_CHARACTER_ACTION);
 }
