@@ -86,7 +86,7 @@ void DrawFormationSlotMarkers(int target)
         int image;
         int order_image;
 
-        if (row->fOccupied == 0 || position->bQuadrant == -1) {
+        if (!row->fOccupied || position->bQuadrant == -1) {
             continue;
         }
         left = g_formation_marker_offsets[position->bQuadrant * 3 + position->bQuadrantSlot].x;
@@ -114,7 +114,7 @@ void RefreshFormationBoard(void)
     if (g_status.selected_character != -1) {
         FaceCameraToSelection(g_status.selected_character);
     }
-    if (g_level_block->formation_board_visible == 0) {
+    if (!g_level_block->formation_board_visible) {
         return;
     }
     ReleaseFormationBoard();
@@ -183,8 +183,7 @@ unsigned char FormationBoardRegionEvent(const InputAtom* event, W8Region* region
         region->flags |= W8_REGION_LEFT_BUTTON_HELD;
         return 1;
     case LEFT_BUTTON_UP:
-        if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0 &&
-            gXStatus.fReviewCharacterMode == 0) {
+        if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0 && !gXStatus.fReviewCharacterMode) {
             OpenFormationPanel();
         }
         return 1;
@@ -218,7 +217,7 @@ unsigned char FormationBoardHoverRegionEvent(const InputAtom*, W8Region* region)
         W8PartyFormationPosition* position = &g_status.formation.positions[slot];
         int cell;
 
-        if (row->fOccupied == 0 || position->bQuadrant == -1) {
+        if (!row->fOccupied || position->bQuadrant == -1) {
             continue;
         }
         cell = position->bQuadrant * 3 + position->bQuadrantSlot;
@@ -361,7 +360,7 @@ static void UpdateFormationCells(void)
         W8TextControl* overlay;
         int sprite;
 
-        if (row->fOccupied != 0 && position->bQuadrant != -1) {
+        if (row->fOccupied && position->bQuadrant != -1) {
             cell = position->bQuadrant * 3 + position->bQuadrantSlot;
             primary = g_formation_cell_controls[cell];
             overlay = g_formation_cell_overlays[cell];
@@ -437,13 +436,13 @@ static void AcceptFormationChanges(void)
     unsigned int slot;
 
     for (slot = 0; slot < 8; ++slot) {
-        if (g_status.buffers.XChar[slot].fOccupied != 0 && CanHoldFormationPlace(slot) &&
+        if (g_status.buffers.XChar[slot].fOccupied && CanHoldFormationPlace(slot) &&
             gXStatus.edited_formation.positions[slot].bQuadrant !=
                 g_status.formation.positions[slot].bQuadrant) {
             StartBreathCycle(slot, 0);
         }
     }
-    if (gXStatus.fCombatMode == 0) {
+    if (!gXStatus.fCombatMode) {
         ReconcilePartyFormation(&gXStatus.edited_formation, &g_status.formation);
     } else if (memcmp(&g_status.formation, &gXStatus.edited_formation,
                       sizeof(W8PartyFormationState)) != 0) {
@@ -472,7 +471,7 @@ static void DropFormationSlot(int cell);
 // FUNCTION: WIZ8 0x005b29d0
 unsigned char FormationCellRegionEvent(const InputAtom* event, W8Region* region)
 {
-    if (gXStatus.fReviewCharacterMode == 0) {
+    if (!gXStatus.fReviewCharacterMode) {
         return 0;
     }
     if (g_formation_cell_slots[region->callback_id] == -1) {
@@ -554,7 +553,7 @@ unsigned char FormationCellRegionEvent(const InputAtom* event, W8Region* region)
 // FUNCTION: WIZ8 0x005b2cb0
 unsigned char FormationActionRegionEvent(const InputAtom* event, W8Region* region)
 {
-    if (gXStatus.fReviewCharacterMode == 0) {
+    if (!gXStatus.fReviewCharacterMode) {
         return 0;
     }
     switch (event->usEvent) {
@@ -587,7 +586,7 @@ unsigned char FormationActionRegionEvent(const InputAtom* event, W8Region* regio
 unsigned char FormationBackgroundRegionEvent(const InputAtom* event, W8Region*)
 {
     POINT point;
-    if (gXStatus.fReviewCharacterMode == 0) {
+    if (!gXStatus.fReviewCharacterMode) {
         return 0;
     }
     PushButtonSoundScheme(0, 1);

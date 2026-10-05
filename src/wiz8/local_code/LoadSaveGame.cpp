@@ -311,7 +311,7 @@ unsigned char EnumerateSaveSlots(W8GrowableVector<W8SaveSlot*>* slots)
                     chunks.ReleaseCurrentChunk();
                 }
                 chunks.Close();
-                if (status.flag == 0 && status.endgame_started == 0) {
+                if (!status.flag && !status.endgame_started) {
                     char* extension = strrchr(find_data.cFileName, '.');
                     if (extension != 0) {
                         *extension = 0;
@@ -453,7 +453,7 @@ bool SaveGame(const char* name, W8SaveScreenshot* screenshot)
     chunks.Write(&version_patch, 4, 0);
     chunks.ReleaseCurrentChunk();
     generated = screenshot == 0;
-    if (generated != 0) {
+    if (generated) {
         screenshot = new W8SaveScreenshot;
         screenshot->version = 1.0f;
         bounds.left = 0;
@@ -471,7 +471,7 @@ bool SaveGame(const char* name, W8SaveScreenshot* screenshot)
     chunks.OpenChunk(0x544f4853, 0); /* SHOT */
     chunks.Write(screenshot, 0x2588, 0);
     chunks.ReleaseCurrentChunk();
-    if (generated != 0) {
+    if (generated) {
         delete screenshot;
     }
     chunks.OpenChunk(0x54584554, 0); /* TEXT */
@@ -825,7 +825,7 @@ static unsigned char SaveMonsterRecord(W8Chunk* chunks, unsigned int index)
 
     info = MonsterGetScriptPartByLocationIndex(index);
     chunks->Write(&record_version, 4, 0);
-    if (info->fActive != 0) {
+    if (info->fActive) {
         MonsterGetLocation(info->p3D, &location);
         location.y = SettlePositionToGround(&location, 0);
         info->position = location;
@@ -921,7 +921,7 @@ unsigned char LoadItemStatus(W8Chunk* chunk, int level)
     unsigned int index;
 
     for (int outer = 0; outer < outer_count; ++outer) {
-        if (result != 0) {
+        if (result) {
             return result;
         }
         stream->OpenChunk(0, 0);
@@ -934,7 +934,7 @@ unsigned char LoadItemStatus(W8Chunk* chunk, int level)
                 stream->OpenGroup();
                 stream->Read(&file_level, 4, 0);
                 if (level == static_cast<int>(file_level)) {
-                    if (g_level_status_loading == 0) {
+                    if (!g_level_status_loading) {
                         LoadDefaultLevelStatus(level);
                     }
                     result = 1;
@@ -974,15 +974,15 @@ unsigned char LoadItemStatus(W8Chunk* chunk, int level)
                                     }
                                 }
                             } else if (chunk_id == 0x45425543) { /* CUBE */
-                                if (g_level_status_loading == 0) {
+                                if (!g_level_status_loading) {
                                     ReleaseWorldCursorNodes();
                                 }
                                 LoadWorldCursorNodes(stream->m_hFile);
-                                if (g_level_status_loading != 0) {
+                                if (g_level_status_loading) {
                                     LoadWorldCursorNodeStates(stream->m_hFile);
                                 }
                             } else if (chunk_id == 0x474e4f4d) { /* MONG */
-                                if (g_level_status_loading == 0) {
+                                if (!g_level_status_loading) {
                                     DestroyMonsterGenerators();
                                 }
                                 MonGen::LoadAll(stream->m_hFile);
@@ -1148,7 +1148,7 @@ unsigned char LoadMonsterGroup(W8Chunk* chunk)
             return 0;
         }
         ActivateGroupMembers(group, 0);
-        if (group->encounter_registered != 0 && group->leader_group_id == 0) {
+        if (group->encounter_registered && group->leader_group_id == 0) {
             RegisterActiveEncounterGroup(group);
         }
     }
@@ -1433,13 +1433,13 @@ unsigned char SaveItemFile(int handle, W8WorldItem* item_info)
 
     while (item != 0) {
         item->saved_marker = 1;
-        if (item->fActive != 0) {
+        if (item->fActive) {
             srVector3T<float> position;
             item->p3D->m_pRep->GetLocation(&position);
             item->position = position;
             item->entity_flags = static_cast<W8ItemRep*>(item_info->p3D->m_pRep)->flags;
         }
-        if (g_level_status_loading != 0) {
+        if (g_level_status_loading) {
             item_info->entity_flags &= ~8;
         }
         if (!FileWrite(handle, item, sizeof(W8WorldItem), &bytes_written)) {
@@ -1481,7 +1481,7 @@ W8WorldItem* LoadItem(int handle, bool add_to_list)
         } else if (add_to_list && PLAdoptAppend(gXStatus.plsItemList, item) == -1) {
             return 0;
         }
-        if (g_level_status_loading != 0) {
+        if (g_level_status_loading) {
             item->entity_flags &= ~8;
         }
         previous = item;
@@ -1544,7 +1544,7 @@ unsigned char SaveCharacter(W8Character* character, int slot, bool report_failur
 
     character->record_version = 1;
     sprintf(file_name, "%ls.%s", character->name, "CHR");
-    if (g_status.game_started == 0) {
+    if (!g_status.game_started) {
         strcpy(directory, slot != -1 ? "Saves\\NPCs" : "Saves\\Characters");
         sprintf(path, "%s\\%s", directory, file_name);
     } else if (slot == -1 || g_status.flags[slot] != 0) {
@@ -1553,7 +1553,7 @@ unsigned char SaveCharacter(W8Character* character, int slot, bool report_failur
         sprintf(path, "%s\\%s", "Saves\\NPCs", file_name);
     }
 
-    if (g_status.game_started == 0) {
+    if (!g_status.game_started) {
         if (FileExists(path) && (FileGetAttributes(path) & FILE_IS_READONLY) != 0 &&
             FileClearAttributes(path) == 0) {
             saved = false;
@@ -1766,10 +1766,10 @@ unsigned char AutoSaveIfAllowed(bool forced)
 
     gXStatus.save_notice_shown = false;
     if (g_status.world_cursor_gate == 0 && !AnyMonsterDying() &&
-        ((g_settings.auto_save != 0 && forced == 0) || g_status.iron_man != 0) &&
-        gXStatus.fCombatMode == 0 && !IsSightRangeOverridden() &&
-        IsLevelDataFlag4EffectivelySet() != 0 && gXStatus.fNpcDialogueMode == 0 &&
-        gXStatus.fCampMode == 0) {
+        ((g_settings.auto_save != 0 && !forced) || g_status.iron_man != 0) &&
+        !gXStatus.fCombatMode && !IsSightRangeOverridden() &&
+        IsLevelDataFlag4EffectivelySet() != 0 && !gXStatus.fNpcDialogueMode &&
+        !gXStatus.fCampMode) {
         strcpy(name,
                g_status.iron_man != 0 ? ConvertWideStringToString(GetLastSaveName()) : "AutoSave");
         return SaveGame(name, 0);
@@ -1804,7 +1804,7 @@ unsigned char SaveSlotFileExists(const char* slot_name)
 // FUNCTION: WIZ8 0x00515ac0
 void ReportSaveFailed(bool quiet)
 {
-    if (quiet == 0 || g_status.iron_man != 0) {
+    if (!quiet || g_status.iron_man != 0) {
         gXStatus.save_notice_shown = true;
         if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
             ShowNotice(0xc, gppStringList[0x783], -1, -1, 0);
@@ -1832,7 +1832,7 @@ void ProcessMainGameAutoSave(void)
     if (g_settings.auto_save == 0 && g_status.iron_man == 0) {
         return;
     }
-    if (gXStatus.fCombatMode != 0) {
+    if (gXStatus.fCombatMode) {
         return;
     }
     if (IsSightRangeOverridden()) {
@@ -1841,13 +1841,13 @@ void ProcessMainGameAutoSave(void)
     if (IsLevelDataFlag4EffectivelySet() == 0) {
         return;
     }
-    if (gXStatus.fNpcDialogueMode != 0) {
+    if (gXStatus.fNpcDialogueMode) {
         return;
     }
-    if (gXStatus.fCampMode != 0) {
+    if (gXStatus.fCampMode) {
         return;
     }
-    if (gXStatus.save_notice_shown == 0) {
+    if (!gXStatus.save_notice_shown) {
         if (gXStatus.gameplay_timer->GetProgress() <= g_float_one) {
             return;
         }
@@ -1860,9 +1860,9 @@ void ProcessMainGameAutoSave(void)
     }
     gXStatus.save_notice_shown = false;
     if (g_status.world_cursor_gate == 0 && !AnyMonsterDying() &&
-        (g_settings.auto_save != 0 || g_status.iron_man != 0) && gXStatus.fCombatMode == 0 &&
+        (g_settings.auto_save != 0 || g_status.iron_man != 0) && !gXStatus.fCombatMode &&
         !IsSightRangeOverridden() && IsLevelDataFlag4EffectivelySet() != 0 &&
-        gXStatus.fNpcDialogueMode == 0 && gXStatus.fCampMode == 0) {
+        !gXStatus.fNpcDialogueMode && !gXStatus.fCampMode) {
         if (g_status.iron_man != 0) {
             strcpy(name, ConvertWideStringToString(GetLastSaveName()));
         } else {
@@ -1875,7 +1875,7 @@ void ProcessMainGameAutoSave(void)
     if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME) {
         return;
     }
-    if (saved == 0) {
+    if (!saved) {
         ShowNotice(0xc, gppStringList[0x785], -1, -1, 0);
         return;
     }
@@ -2134,7 +2134,7 @@ void LoadGameStatus(W8Chunk* chunks, W8GlobalStatus* status)
             W8ItemInstance* item = 0;
             signed char origin = static_cast<signed char>(party_row->item_origin);
             short item_slot = static_cast<short>(party_row->item_slot);
-            if (party_row->fOccupied != 0 && party_row->pending_action == W8_ACTION_USE_ITEM &&
+            if (party_row->fOccupied && party_row->pending_action == W8_ACTION_USE_ITEM &&
                 origin != -1 && item_slot != -1) {
                 item = FindCharacterItemAt(slot, static_cast<unsigned char>(origin),
                                            static_cast<unsigned short>(item_slot));
@@ -2196,7 +2196,7 @@ unsigned char LoadSavedLevelItems(int level, W8GrowableVector<W8WorldItem*>* ite
     }
     outer_count = chunk.ChunkCount();
     for (outer = 0; outer < outer_count; ++outer) {
-        if (found != 0) {
+        if (found) {
             break;
         }
         chunk.OpenChunk(0, 0);

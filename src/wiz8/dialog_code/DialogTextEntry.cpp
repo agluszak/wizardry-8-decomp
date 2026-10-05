@@ -49,7 +49,7 @@ void W8DialogTextEntry::Draw(bool force)
 {
     int width = m_layoutBounds.right - m_layoutBounds.left;
     int prefix_remaining = m_prefix_length;
-    if (m_buffer == 0 || (force == 0 && m_geometryDirty == 0)) {
+    if (m_buffer == 0 || (!force && !m_geometryDirty)) {
         return;
     }
     wchar_t* copy = new wchar_t[wcslen(m_buffer) + 5];

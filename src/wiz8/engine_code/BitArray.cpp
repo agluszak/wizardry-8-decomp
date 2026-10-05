@@ -388,7 +388,7 @@ int BitArray::CountSetBits()
 // FUNCTION: WIZ8 0x0043b660
 int BitArray::NextSetBit(bool restart)
 {
-    if (restart != 0) {
+    if (restart) {
         if (puiIndex == 0) {
             return -1;
         }

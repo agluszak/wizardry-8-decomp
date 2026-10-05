@@ -157,7 +157,7 @@ unsigned char LoadWizardry7ImportFile(char* path)
                 FileClose(file);
                 g_import_character_count = party_block[0x25];
                 g_import_ending_record = party_block[0] == -1;
-                if (g_import_ending_record != 0) {
+                if (g_import_ending_record) {
                     switch (g_imported_characters[0].party_tag & 0xf0) {
                     case 0x10:
                         g_wiz7_ending = 0;

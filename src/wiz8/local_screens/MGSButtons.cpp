@@ -121,7 +121,7 @@ void RefreshSubMenuPanel(bool invalidate)
     if (gpSubMenuPanel == 0) {
         srAssertFail("gpSubMenuPanel", MGSBUTTONS_CPP, 0x64f, 0);
     }
-    if (invalidate != 0) {
+    if (invalidate) {
         gpSubMenuPanel->Invalidate(0);
     }
     gpSubMenuPanel->Redraw();
@@ -293,7 +293,7 @@ static void SubMenuPanelCloseButton(W8DialogButton* button)
 // FUNCTION: WIZ8 0x00597A10
 static void SubMenuPanelFormationButton(W8DialogButton* button)
 {
-    if (gXStatus.fReviewCharacterMode == 0) {
+    if (!gXStatus.fReviewCharacterMode) {
         OpenFormationPanel();
     } else {
         CloseFormationPanel();
@@ -362,9 +362,8 @@ void RedrawOptionsDiskButton(void)
 
     DrawCatalogImageAndInvalidate(-0xe, 0x7e, 0, 2, 0, 0x1c2, 2, 0);
     g_options_disk_button->m_dirty = true;
-    if (gXStatus.fNpcDialogueMode == 0 && gXStatus.fLockInteractMode == 0 &&
-        gXStatus.fTrapInteractMode == 0 && gXStatus.fCampMode == 0 && gXStatus.fLockInteract == 0 &&
-        gXStatus.fTrapInteract == 0) {
+    if (!gXStatus.fNpcDialogueMode && !gXStatus.fLockInteractMode && !gXStatus.fTrapInteractMode &&
+        !gXStatus.fCampMode && !gXStatus.fLockInteract && !gXStatus.fTrapInteract) {
         enabled = 1;
     } else {
         enabled = 0;
@@ -383,7 +382,7 @@ void UpdateCombatStanceButtons(void)
     bool enabled;
     W8DialogButton** button;
 
-    if (gXStatus.fCombatMode == 0) {
+    if (!gXStatus.fCombatMode) {
         for (button = g_combat_stance_buttons; button < &g_combat_stance_buttons[5];
              ++button) {
             (*button)->SetVisible(0);
@@ -395,8 +394,8 @@ void UpdateCombatStanceButtons(void)
         stance = g_combat_state->execution_active != 0 ? 3U : 0U;
     } else if ((ClockIsTicking(g_combat_state->combat_ui_timer) == 0 &&
                 CombatMayAdvanceContinuously()) ||
-               g_combat_state->party_surprised != 0) {
-        stance = g_combat_state->round_active != 0 ? 1U : 4U;
+               g_combat_state->party_surprised) {
+        stance = g_combat_state->round_active ? 1U : 4U;
     } else {
         stance = 2;
     }
@@ -404,8 +403,7 @@ void UpdateCombatStanceButtons(void)
     for (index = 0; index < 5; ++index) {
         g_combat_stance_buttons[index]->SetVisible(index == stance);
     }
-    if (gXStatus.fSpellCastMode == 0 && gXStatus.fItemSelectMode == 0 &&
-        gXStatus.fReviewCharacterMode == 0) {
+    if (!gXStatus.fSpellCastMode && !gXStatus.fItemSelectMode && !gXStatus.fReviewCharacterMode) {
         enabled = 1;
     } else {
         enabled = 0;
@@ -428,7 +426,7 @@ void RedrawCombatStanceButtons(void)
 // FUNCTION: WIZ8 0x00597E70
 static void MainGameCombatConfirmButton(W8DialogButton* button)
 {
-    if (gXStatus.fCombatMode == 0) {
+    if (!gXStatus.fCombatMode) {
         return;
     }
     if (g_combat_state->execution_active != 0) {
@@ -448,7 +446,7 @@ static void MainGameCombatConfirmButton(W8DialogButton* button)
 // FUNCTION: WIZ8 0x00597ED0
 static void MainGameCombatStanceSecondary(W8DialogButton* button)
 {
-    if (gXStatus.fCombatMode != 0) {
+    if (gXStatus.fCombatMode) {
         TogglePartyCombatStance();
     }
 }
@@ -575,15 +573,14 @@ void UpdateRoofButtons(void)
     bool enabled;
     W8DialogButton** button;
 
-    if (gXStatus.fNpcDialogueMode == 0 && gXStatus.fSpellCastMode == 0 &&
-        gXStatus.fItemSelectMode == 0 && gXStatus.fLockInteractMode == 0 &&
-        gXStatus.fTrapInteractMode == 0) {
+    if (!gXStatus.fNpcDialogueMode && !gXStatus.fSpellCastMode && !gXStatus.fItemSelectMode &&
+        !gXStatus.fLockInteractMode && !gXStatus.fTrapInteractMode) {
         visible = 1;
     } else {
         visible = 0;
     }
     g_roof_buttons[2]->SetVisible(visible);
-    if (gXStatus.fNpcDialogueMode == 0 && gXStatus.fCampMode == 0) {
+    if (!gXStatus.fNpcDialogueMode && !gXStatus.fCampMode) {
         g_roof_buttons[0]->SetEnabled(1);
         enabled = 1;
     } else {
@@ -639,8 +636,7 @@ void SyncRoofButtonPressedState(void)
 static void MainGameLayoutRadarButton(W8DialogButton* button)
 {
     if (g_level_block->radar_map_visible != 0) {
-        if (g_level_block->formation_board_visible == 0 &&
-            g_level_block->action_panel_visible == 0) {
+        if (!g_level_block->formation_board_visible && g_level_block->action_panel_visible == 0) {
             ApplyMainGameModeFlag(W8_MAIN_UI_MODE_RADAR, 1);
             return;
         }
@@ -663,8 +659,7 @@ static void MainGameLayoutActionPanelButton(W8DialogButton* button)
 {
     if (g_level_block->action_panel_visible != 0) {
         if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_FORMATION) {
-            if (g_level_block->radar_map_visible == 0 &&
-                g_level_block->formation_board_visible == 0) {
+            if (g_level_block->radar_map_visible == 0 && !g_level_block->formation_board_visible) {
                 ApplyMainGameModeFlag(W8_MAIN_UI_MODE_RADAR, 1);
             }
             g_settings.formation_action_panel_preference = 0;
@@ -696,7 +691,7 @@ static void MainGameLayoutActionPanelButton(W8DialogButton* button)
 // FUNCTION: WIZ8 0x005987A0
 static void MainGameLayoutFormationButton(W8DialogButton* button)
 {
-    if (g_level_block->formation_board_visible != 0) {
+    if (g_level_block->formation_board_visible) {
         if (g_level_block->radar_map_visible == 0 && g_level_block->action_panel_visible == 0) {
             ApplyMainGameModeFlag(W8_MAIN_UI_MODE_RADAR, 1);
             return;
@@ -730,9 +725,8 @@ void RedrawLayoutArrowButtons(void)
          ++button) {
         (*button)->m_dirty = true;
     }
-    if (gXStatus.fNpcDialogueMode != 0 || gXStatus.fSpellCastMode != 0 ||
-        gXStatus.fItemSelectMode != 0 || gXStatus.fLockInteractMode != 0 ||
-        gXStatus.fTrapInteractMode != 0) {
+    if (gXStatus.fNpcDialogueMode || gXStatus.fSpellCastMode || gXStatus.fItemSelectMode ||
+        gXStatus.fLockInteractMode || gXStatus.fTrapInteractMode) {
         for (button = g_layout_arrow_buttons; button < &g_layout_arrow_buttons[6];
              ++button) {
             (*button)->SetVisible(0);
@@ -770,7 +764,7 @@ void RedrawLayoutArrowButtons(void)
     }
     draw_button->Draw();
 
-    if (g_level_block->formation_board_visible != 0) {
+    if (g_level_block->formation_board_visible) {
         g_layout_arrow_buttons[2]->SetVisible(1);
         g_layout_arrow_buttons[5]->SetVisible(0);
         g_layout_arrow_buttons[2]->Draw();
@@ -1037,7 +1031,7 @@ void DrawSubMenuCharacterAction(void)
              gppStringList[g_profession_name_message_ids[character->iProfession]]);
     gprintf((0xb9 - StringPixLength(text, g_smfnt_font)) / 2 + 0x157, 0x1c6,
             Wiz8ToSgpWideText(g_format_s), text);
-    if (gXStatus.fCombatMode != 1) {
+    if (!gXStatus.fCombatMode) {
         if (character->highest_condition == W8_CONDITION_NONE) {
             return;
         }
@@ -1058,7 +1052,7 @@ void DrawSubMenuCharacterAction(void)
             break;
         case W8_ACTION_ATTACK:
             swprintf(text, L"%s - ", gppStringList[g_action_kind_message_ids[0]]);
-            if (character->Hand[0].in_play != 0) {
+            if (character->Hand[0].in_play) {
                 if (character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].iItemNo == -1) {
                     wcscat(text, gppStringList[0x5b8]);
                 } else {
@@ -1067,8 +1061,8 @@ void DrawSubMenuCharacterAction(void)
                                &character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON])]]);
                 }
             }
-            if (character->Hand[1].in_play == 0) {
-                if (character->Hand[0].in_play == 0) {
+            if (!character->Hand[1].in_play) {
+                if (!character->Hand[0].in_play) {
                     wcscat(text, gppStringList[0x5b8]);
                 }
             } else {
@@ -1079,7 +1073,7 @@ void DrawSubMenuCharacterAction(void)
                              gppStringList[g_generic_item_name_notice[GetItemUnidentifiedNameIndex(
                                  &character->EquippedItem[W8_EQUIP_SLOT_SECONDARY_WEAPON])]]);
                 }
-                if (character->Hand[0].in_play == 0) {
+                if (!character->Hand[0].in_play) {
                     wcscat(text, second);
                 } else {
                     width = StringPixLength(text, g_smfnt_font);
@@ -1126,10 +1120,9 @@ void UpdateSubMenuPanelButtons(void)
     bool enabled;
     W8DialogButton** button;
 
-    if (gXStatus.fCombatMode == 0 || g_combat_state->round_active == 0 ||
-        gXStatus.fSurprisePossible != 0 || gXStatus.fLockInteractMode != 0 ||
-        gXStatus.fTrapInteractMode != 0 || gXStatus.fNpcDialogueMode != 0 ||
-        gXStatus.fSpellCastMode != 0 || gXStatus.fItemSelectMode != 0 ||
+    if (!gXStatus.fCombatMode || !g_combat_state->round_active || gXStatus.fSurprisePossible ||
+        gXStatus.fLockInteractMode || gXStatus.fTrapInteractMode || gXStatus.fNpcDialogueMode ||
+        gXStatus.fSpellCastMode || gXStatus.fItemSelectMode ||
         g_level_block->combat_end_notification != -1) {
         enabled = 0;
     } else {
@@ -1137,12 +1130,11 @@ void UpdateSubMenuPanelButtons(void)
     }
     g_submenu_panel_buttons[0]->SetEnabled(enabled);
 
-    if (gXStatus.fSurprisePossible == 0 && gXStatus.fLockInteractMode == 0 &&
-        gXStatus.fTrapInteractMode == 0 && gXStatus.fNpcDialogueMode == 0 &&
-        gXStatus.fSpellCastMode == 0 && gXStatus.fItemSelectMode == 0 &&
+    if (!gXStatus.fSurprisePossible && !gXStatus.fLockInteractMode && !gXStatus.fTrapInteractMode &&
+        !gXStatus.fNpcDialogueMode && !gXStatus.fSpellCastMode && !gXStatus.fItemSelectMode &&
         g_level_block->combat_end_notification == -1 && AnyCharacterEngaged()) {
         g_submenu_panel_buttons[1]->SetEnabled(1);
-        if (gXStatus.fReviewCharacterMode == 0) {
+        if (!gXStatus.fReviewCharacterMode) {
             if (g_submenu_panel_buttons[1]->IsPressed() != 0) {
                 g_submenu_panel_buttons[1]->SetPressed(0);
             }
@@ -1163,8 +1155,8 @@ static void UpdateSubMenuScrollButtons()
 {
     W8DialogButton** button;
 
-    if (g_level_block->combat_end_notification == -1 && gXStatus.fNpcDialogueMode == 0 &&
-        gXStatus.fCampMode == 0) {
+    if (g_level_block->combat_end_notification == -1 && !gXStatus.fNpcDialogueMode &&
+        !gXStatus.fCampMode) {
         for (button = g_submenu_scroll_buttons; button < &g_submenu_scroll_buttons[2];
              ++button) {
             (*button)->SetEnabled(1);
@@ -1191,7 +1183,7 @@ void RedrawSubMenuButtons(void)
     int frame;
 
     DrawCatalogImageAndInvalidate(-0xe, 0x7e, 0, 4, 0x1e, 0x1c2, 2, 0);
-    frame = gXStatus.fCombatMode == 0 ? 8 : 9;
+    frame = !gXStatus.fCombatMode ? 8 : 9;
     DrawCatalogImageAndInvalidate(-0xe, 0x7e, 0, frame, 0xc4, 0x1c2, 2, 0);
 
     for (button = g_submenu_buttons; button < &g_submenu_buttons[9]; ++button) {
@@ -1329,9 +1321,9 @@ void UpdateMainGameButtons(void)
     }
     UpdateSubMenuScrollButtons();
     UpdateSubMenuPanelButtons();
-    enabled = gXStatus.fNpcDialogueMode == 0 && gXStatus.fLockInteractMode == 0 &&
-              gXStatus.fTrapInteractMode == 0 && gXStatus.fCampMode == 0 &&
-              gXStatus.fLockInteract == 0 && gXStatus.fTrapInteract == 0;
+    enabled = !gXStatus.fNpcDialogueMode && !gXStatus.fLockInteractMode &&
+              !gXStatus.fTrapInteractMode && !gXStatus.fCampMode && !gXStatus.fLockInteract &&
+              !gXStatus.fTrapInteract;
     g_options_disk_button->SetEnabled(enabled);
     g_options_disk_button->Draw();
     UpdateCombatStanceButtons();
@@ -1367,7 +1359,7 @@ void UpdateSubMenuAutoClose(void)
     if (!IsCursorInRectangle(left, gpSubMenuPanel->m_bounds.top, right,
                              gpSubMenuPanel->m_bounds.top + 0x1c)) {
     check_clock:
-        if (g_submenu_close_pending == 0) {
+        if (!g_submenu_close_pending) {
             g_submenu_clock = SetCountdownClock(500);
             g_submenu_close_pending = true;
             return;
@@ -1375,7 +1367,7 @@ void UpdateSubMenuAutoClose(void)
         if (ClockIsTicking(g_submenu_clock) == 0) {
             DestroySubMenuControls();
         }
-    } else if (g_submenu_close_pending != 0) {
+    } else if (g_submenu_close_pending) {
         g_submenu_clock = SetCountdownClock(0);
         g_submenu_close_pending = false;
     }
@@ -1651,7 +1643,7 @@ W8SubMenuEntryState CheckSubMenuActionUsable(int party_slot)
 
     matches = 0;
     if (g_level_block->selection_kind == g_status.buffers.XChar[party_slot].action &&
-        g_level_block->selection_settled == 0) {
+        !g_level_block->selection_settled) {
         matches = 1;
     }
     if (CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_CURRENT, 1, 0) &&
@@ -1705,7 +1697,7 @@ W8SubMenuEntryState GetSubMenuEntryState(short menu, short item, int party_slot)
         break;
     case W8_SUBMENU_ITEMS:
         if (item == 0) {
-            if (gXStatus.fCombatMode != 0) {
+            if (gXStatus.fCombatMode) {
                 state = CheckSubMenuActionUsable(party_slot);
             }
         } else if (item == 1) {

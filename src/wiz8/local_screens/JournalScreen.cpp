@@ -109,7 +109,7 @@ void RecordFactChangeForJournal(W8FactId fact_id)
     entry.alternate_text = GetFact(fact_id);
     g_fact_journal_entries->Add(entry);
 
-    if (g_fact_notifications_suppressed != 0) {
+    if (g_fact_notifications_suppressed) {
         return;
     }
     int visibility;
@@ -132,7 +132,7 @@ void RecordFactChangeForJournal(W8FactId fact_id)
     if (*description == 0 || g_level_block == 0) {
         return;
     }
-    if (gXStatus.fNpcDialogueMode != 0) {
+    if (gXStatus.fNpcDialogueMode) {
         QueueNpcMessageLine(W8_NPC_MSG_JOURNAL_QUOTE, 0);
         return;
     }

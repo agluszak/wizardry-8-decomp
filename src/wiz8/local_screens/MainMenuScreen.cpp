@@ -227,7 +227,7 @@ void MainMenuScreenFrame()
     POINT point;
     InputAtom input;
 
-    if (g_dev_mode != 0) {
+    if (g_dev_mode) {
         RequestExitScreen();
     }
     if (g_main_menu_dialog != 0) {
@@ -253,7 +253,7 @@ void MainMenuScreenFrame()
         while (DequeueEvent(&input) == 1) {
             if (!DispatchRegionInput(&input) && input.usEvent == KEY_DOWN) {
                 if (HandleDeveloperModeKey(&input)) {
-                    if (g_dev_mode != 0) {
+                    if (g_dev_mode) {
                         SetFont(g_wiz_text_font_secondary);
                         SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_wiz_text_font_secondary_palette);
                         gprintfDirty(5, 5, L"Developer mode enabled.");
@@ -275,7 +275,7 @@ void MainMenuScreenFrame()
                             break;
                         case 2:
                             DrawMainMenuItem(g_main_menu_selected_item, 2);
-                            if (g_main_menu_has_save_games != 0) {
+                            if (g_main_menu_has_save_games) {
                                 g_pending_screen_state.mode = 1;
                                 SetPendingScreenState(W8_SCREEN_OPTIONS);
                             }
@@ -328,7 +328,7 @@ void MainMenuScreenFrame()
                         DrawMainMenuItem(g_main_menu_selected_item, 1);
                         break;
                     case 'L':
-                        if (g_main_menu_has_save_games != 0) {
+                        if (g_main_menu_has_save_games) {
                             g_pending_screen_state.mode = 1;
                             SetPendingScreenState(W8_SCREEN_OPTIONS);
                         }
@@ -346,11 +346,11 @@ void MainMenuScreenFrame()
     }
 
     NoOp();
-    if (g_main_menu_redraw != 0 || IsMessageBoxActive() || g_main_menu_dialog != 0) {
+    if (g_main_menu_redraw || IsMessageBoxActive() || g_main_menu_dialog != 0) {
         if (g_main_menu_dialog != 0) {
             DrawDialog(g_main_menu_dialog);
         }
-        if (g_main_menu_overlay_enabled != 0) {
+        if (g_main_menu_overlay_enabled) {
             BltVideoSurface(-14, g_main_menu_overlay_surface, 0, 0, 0x1d1, 6, 0);
         }
         RenderMessageBox();

@@ -283,7 +283,7 @@ void CheckGameplayReadyOnGameThread(void* opaque)
                    g_pending_screen_state.id == -1 && g_mgs_keyboard != 0 && g_level_block != 0 &&
                    !g_level_block->review_transition_done &&
                    !g_level_block->review_transition_active && g_level_data != 0 &&
-                   !IsScreenInputBlocked() && gXStatus.world_update_blocked == 0;
+                   !IsScreenInputBlocked() && !gXStatus.world_update_blocked;
     check->screen = g_current_screen_state.id;
     check->pending = g_pending_screen_state.id;
     check->keyboard_present = g_mgs_keyboard != 0;
@@ -344,8 +344,8 @@ void ReadGameplaySnapshotOnGameThread(void* opaque)
     }
     s->screen = g_current_screen_state.id;
     s->pending = g_pending_screen_state.id;
-    s->combat = gXStatus.fCombatMode != 0;
-    s->movement_ui = gXStatus.fPartyMovementUi != 0;
+    s->combat = gXStatus.fCombatMode;
+    s->movement_ui = gXStatus.fPartyMovementUi;
     s->movement_budget = g_level_block != 0 ? g_level_block->move_percent : 0;
     s->round_active = g_combat_state != 0 ? g_combat_state->execution_active : 0;
     s->round_count = g_combat_state != 0 ? g_combat_state->round_count : 0;

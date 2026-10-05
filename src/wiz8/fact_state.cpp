@@ -108,7 +108,7 @@ unsigned char EvaluateFact(W8FactId fact_id)
             return CountLeadingPartySlots() == 2;
         case W8_FACT_MOOK_MOOK_IN_PARTY: {
             unsigned int slot = 0;
-            while (g_status.buffers.XChar[slot].fOccupied == 0 ||
+            while (!g_status.buffers.XChar[slot].fOccupied ||
                    g_status.buffers.Char[slot].iRace != W8_RACE_MOOK ||
                    g_status.buffers.Char[slot].highest_condition > W8_CONDITION_WEBBED) {
                 if (slot >= 7) {
@@ -147,7 +147,7 @@ unsigned char EvaluateFact(W8FactId fact_id)
             }
             return 0;
         case W8_FACT_UMISSION_TRAIN_COVERT_DONE:
-            if (g_status.fact_88_latch == 0) {
+            if (!g_status.fact_88_latch) {
                 if (CountItemOnParty(0x1c4, 0, 0, 2) < 5) {
                     return 0;
                 }
@@ -207,10 +207,10 @@ unsigned char EvaluateFact(W8FactId fact_id)
         case W8_FACT_MYLES_IN_PARTY:
             return NpcLeadHasNameStyle(7);
         case W8_FACT_FATHER_IN_PARTY:
-            if (g_status.rpc_active != 0) {
+            if (g_status.rpc_active) {
                 unsigned int slot = 0;
                 do {
-                    if (g_status.buffers.XChar[slot].fOccupied != 0 &&
+                    if (g_status.buffers.XChar[slot].fOccupied &&
                         slot == static_cast<unsigned int>(g_status.sedexus_party_slot)) {
                         return 1;
                     }

@@ -162,7 +162,7 @@ static void SwampGasFireItemDrop(int command)
         return;
     }
     g_remove_current_master_function = false;
-    if (g_npc_dialogue_closed != 0) {
+    if (g_npc_dialogue_closed) {
         g_remove_current_master_function = true;
         if (g_swamp_spawned_monster != 0) {
             position = g_swamp_spawned_monster->GetPosition();

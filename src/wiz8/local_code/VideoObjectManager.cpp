@@ -846,7 +846,7 @@ void EnsureCatalogFrameLoaded(int object, int frame)
         }
     }
     record = &g_video_frames[g_video_slots[object].first_frame + frame];
-    if (record->loaded == 0) {
+    if (!record->loaded) {
         if (!gfVideoObjectsInit) {
             srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0xdd, 0);
         }

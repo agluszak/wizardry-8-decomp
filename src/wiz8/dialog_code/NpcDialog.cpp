@@ -72,12 +72,12 @@ W8NpcDialog::W8NpcDialog(W8NpcQuoteEntry* message, int aux_data)
         height = 0x50;
         m_text_width = length + 6;
         width = m_text_width * 2 + 0x32;
-    } else if (opcode == 19 || m_compact_options == 0) {
+    } else if (opcode == 19 || !m_compact_options) {
         width = 200;
     }
     /* A computed width under 200 only sticks when the compact flag is set,
        so a two-option list keeps the narrow width. */
-    if (width < 200 && m_compact_options == 0) {
+    if (width < 200 && !m_compact_options) {
         width = 200;
     }
     SetOrigin((0x280 - width) / 2, 0xb8);
@@ -187,7 +187,7 @@ void W8NpcDialog::Draw()
 {
     int index;
     if ((m_dirty_flags & 1) != 0) {
-        if (m_initialized == 0) {
+        if (!m_initialized) {
             CreateControls();
         }
         for (index = 0; index < 2; ++index) {

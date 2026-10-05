@@ -109,7 +109,7 @@ void W8ProfRaceInfoDialogBase::DestroyControls()
 void W8ProfRaceInfoDialogBase::Draw()
 {
     if ((m_dirty_flags & 1) != 0) {
-        if (m_initialized == 0) {
+        if (!m_initialized) {
             CreateControls();
         }
         m_text_area.m_dirty = true;

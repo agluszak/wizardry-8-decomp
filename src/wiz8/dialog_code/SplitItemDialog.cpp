@@ -328,7 +328,7 @@ void W8SplitItemDialog::Draw()
         text_count = 14;
     }
     if ((m_dirty_flags & 1) != 0) {
-        if (m_initialized == 0) {
+        if (!m_initialized) {
             CreateControls();
         }
         m_first_draw = 1;
@@ -342,7 +342,7 @@ void W8SplitItemDialog::Draw()
         m_count_input->m_button->m_dirty = true;
         W8DialogBase::Draw();
     }
-    if (m_first_draw != 0) {
+    if (m_first_draw) {
         DrawCatalogImageAndInvalidate(
             -0xe, g_item_video_objects.GetOrCreateVideoObject(m_item->iItemNo), 0, 0,
             m_x + 0x18, m_y + 0xe, 2, 0);
@@ -465,7 +465,7 @@ void W8SplitItemDialog::UpdateAcceptButton()
         }
         break;
     }
-    if (can_accept != 0) {
+    if (can_accept) {
         m_buttons[6]->SetEnabled(1);
     } else {
         m_buttons[6]->SetEnabled(0);

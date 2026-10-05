@@ -161,7 +161,7 @@ void W8CampStatsRange::OnRangeChanged(W8RangeControl*)
 // FUNCTION: WIZ8 0x005c4510
 void W8CampRangeListener::UpdateRange(bool range_changed)
 {
-    if (range_changed != 0) {
+    if (range_changed) {
         m_range->Invalidate(0);
     }
     m_range->Redraw();
@@ -417,7 +417,7 @@ unsigned int CountEquipItemPenalties(int slot)
     if (record->modifier_0b1_index != -1 && record->modifier_0b1_value < 0) {
         ++count;
     }
-    if (record->binds_on_equip != 0 && g_review_character->EquippedItem[slot].bound != 0) {
+    if (record->binds_on_equip != 0 && g_review_character->EquippedItem[slot].bound) {
         ++count;
     }
     return count;
@@ -540,7 +540,7 @@ void FilterCampEffectList(void)
             }
             screen->effect_last_visible = pos;
         }
-        if (entry.visible != 0) {
+        if (entry.visible) {
             screen->effect_visible_lines += entry.lines + 1;
         }
         StoreListNode(screen->effect_list, &entry, pos);
@@ -579,7 +579,7 @@ void DrawCampEffectList(void)
         if (PeekList(screen->effect_list, &entry, pos) == 0) {
             return;
         }
-        if (entry.visible != 0) {
+        if (entry.visible) {
             if (line + entry.lines < 0) {
                 line += entry.lines + 1;
             } else {
@@ -807,7 +807,7 @@ void DrawCampSkillsPage(void)
         bool has_fifth = false;
         int skill;
         for (skill = 0; skill < 0x29; ++skill) {
-            if ((g_review_character->skills[skill].active != 0 ||
+            if ((g_review_character->skills[skill].active ||
                  g_review_character->skills[skill].level != 0) &&
                 g_skill_attributes[skill].category == 4) {
                 has_fifth = true;
@@ -833,7 +833,7 @@ void DrawCampSkillsPage(void)
         int category_count[5] = {0, 0, 0, 0, 0};
         for (skill = 0; skill < 0x29; ++skill) {
             W8CharacterSkill* value = &g_review_character->skills[skill];
-            if (value->active != 0 || value->points != 0 || value->level != 0) {
+            if (value->active || value->points != 0 || value->level != 0) {
                 int category = g_skill_attributes[skill].category;
                 int left = g_camp_skill_category_positions[category].x;
                 int top = g_camp_skill_category_positions[category].y;
@@ -885,7 +885,7 @@ void DrawCampSkillsPage(void)
                 unsigned short* palette;
                 if (!g_status.game_started || value->level == 0) {
                     palette = g_font_state_palettes[11];
-                    if (value->active != 0) {
+                    if (value->active) {
                         palette = g_wiz_text_font_secondary_palette;
                     }
                 } else {
@@ -899,12 +899,12 @@ void DrawCampSkillsPage(void)
                     }
                     if (!best) {
                         palette = g_font_state_palettes[11];
-                        if (value->active != 0) {
+                        if (value->active) {
                             palette = g_wiz_text_font_secondary_palette;
                         }
                     } else {
                         palette = g_font_state_palettes[12];
-                        if (value->active != 0) {
+                        if (value->active) {
                             palette = g_font_state_palettes[5];
                         }
                     }
@@ -915,7 +915,7 @@ void DrawCampSkillsPage(void)
                 gprintf((0x6b - width) / 2 + 2 + left, top + 1, Wiz8ToSgpWideText(g_format_s),
                         gppStringList[g_character_skill_name_ids[skill]]);
                 palette = g_wiz_text_font_secondary_palette;
-                if (value->improved != 0) {
+                if (value->improved) {
                     palette = g_font_state_palettes[1];
                 }
                 SetFontObjectPalette16BPP(g_wiz_text_font_secondary, palette);
@@ -944,7 +944,7 @@ unsigned char CampSkillListRegionHandler(const InputAtom* event, W8Region* regio
     int occurrence = 0;
     for (int index = 0; index < 0x29; ++index) {
         if (g_skill_attributes[index].category == static_cast<int>(region->callback_id) &&
-            (g_review_character->skills[index].active != 0 ||
+            (g_review_character->skills[index].active ||
              g_review_character->skills[index].level != 0)) {
             if (occurrence == row) {
                 skill = index;
@@ -982,7 +982,7 @@ unsigned char CampSkillListRegionHandler(const InputAtom* event, W8Region* regio
             }
         }
         W8SkillInfoDialog* dialog = new W8SkillInfoDialog(
-            static_cast<W8Skill>(skill), best, g_review_character->skills[skill].active == 0,
+            static_cast<W8Skill>(skill), best, !g_review_character->skills[skill].active,
             skill == g_profession_bonus_skills[g_review_character->iProfession]);
         DisplayCampDialog(dialog);
     }
@@ -1161,7 +1161,7 @@ void W8CharacterPersonalityPage::Refresh()
 // FUNCTION: WIZ8 0x005c6b70
 void W8CharacterPersonalityPage::Redraw()
 {
-    if (m_animation_active != 0) {
+    if (m_animation_active) {
         int elapsed = static_cast<int>(anim_timer.GetProgress());
         if (elapsed > 0) {
             m_animation_frame = (m_animation_frame + elapsed) % 3;

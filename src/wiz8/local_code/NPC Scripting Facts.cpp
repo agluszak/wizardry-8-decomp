@@ -222,7 +222,7 @@ void HandleFactChange(W8FactId fact_id, unsigned char value)
         if (value != 0) {
             for (slot = 0; slot < 8; ++slot) {
                 character = &g_status.buffers.Char[slot];
-                if (g_status.buffers.XChar[slot].fOccupied != 0 &&
+                if (g_status.buffers.XChar[slot].fOccupied &&
                     character->highest_condition < W8_CONDITION_DEAD &&
                     g_profession_skill_availability[7][character->iProfession] != 0 &&
                     character->skills[W8_SKILL_MODERN_WEAPONS].points < 10) {
@@ -506,7 +506,7 @@ void HandleFactChange(W8FactId fact_id, unsigned char value)
         }
         for (slot = 0; slot < 8; ++slot) {
             character = &g_status.buffers.Char[slot];
-            if (g_status.buffers.XChar[slot].fOccupied != 0 && character->hp_current != 0 &&
+            if (g_status.buffers.XChar[slot].fOccupied && character->hp_current != 0 &&
                 character->highest_condition < W8_CONDITION_DEAD) {
                 added = 100 - character->attributes[W8_ATTRIBUTE_INTELLIGENCE].value;
                 if (added > 5) {
@@ -839,7 +839,7 @@ void HandleFactChange(W8FactId fact_id, unsigned char value)
         if (npc == 0) {
             return;
         }
-        if (npc->greeting_pending != 0) {
+        if (npc->greeting_pending) {
             return;
         }
         ReleaseNpcMonsterByKind(0x57);
@@ -971,7 +971,7 @@ void HandleScriptedNpcDeath(unsigned int monster_list_index)
     int pick;
     for (slot = 0; slot < 8; ++slot) {
         W8Character* character = &g_status.buffers.Char[slot];
-        if (g_status.buffers.XChar[slot].fOccupied != 0 && character->hp_current != 0 &&
+        if (g_status.buffers.XChar[slot].fOccupied && character->hp_current != 0 &&
             character->highest_condition < W8_CONDITION_ASLEEP) {
             eligible_slots[eligible_count] = slot;
             ++eligible_count;
@@ -994,7 +994,7 @@ void HandleScriptedNpcDeath(unsigned int monster_list_index)
     }
     for (slot = 0; slot < 8; ++slot) {
         W8Character* character = &g_status.buffers.Char[slot];
-        if (g_status.buffers.XChar[slot].fOccupied != 0 && character->hp_current != 0 &&
+        if (g_status.buffers.XChar[slot].fOccupied && character->hp_current != 0 &&
             character->highest_condition < W8_CONDITION_ASLEEP) {
             QueueCharacterEvent(character, g_effect28, g_character_event_no_npc_defer,
                                 g_character_event_no_flags, g_character_event_full_volume);
@@ -1049,7 +1049,7 @@ void MonsterKilled(int record_id, int killer_party_slot)
             if (value != 0) {
                 SetFact(W8_FACT_QUEST_KILL_ALSEDEXUS, 0, 0);
             }
-            if (g_status.rpc_active != 0) {
+            if (g_status.rpc_active) {
                 if (g_status.buffers.Char[g_status.sedexus_party_slot]
                         .uiCondition[W8_CONDITION_INFATUATED] > 0) {
                     RemoveCharacterCondition(g_status.sedexus_party_slot, W8_CONDITION_INFATUATED,

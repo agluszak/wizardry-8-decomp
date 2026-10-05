@@ -93,13 +93,13 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, bool qu
     unsigned int absorbed;
     unsigned int applied;
 
-    if (g_status.buffers.XChar[party_slot].fOccupied == 0) {
+    if (!g_status.buffers.XChar[party_slot].fOccupied) {
         srAssertFail("fCHAR_OCCUPIED(uiChar)", HEALTH_STAMINA_MANA_CPP, 403, 0);
     }
     if (character->hp_current == 0) {
         return 0;
     }
-    if (g_status.world_suspended != 0) {
+    if (g_status.world_suspended) {
         PostCharacterNotice(party_slot, gppStringList[0x253], amount);
         return 0;
     }
@@ -107,7 +107,7 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, bool qu
     if (character->enchantments[W8_ENCHANTMENT_GUARDIAN_ANGEL].turns != 0) {
         absorbed = character->enchantments[W8_ENCHANTMENT_GUARDIAN_ANGEL].magnitude;
         if (amount <= absorbed) {
-            PostCharacterNotice(party_slot, gppStringList[0x193 - (quiet != 0)], amount);
+            PostCharacterNotice(party_slot, gppStringList[0x193 - (quiet)], amount);
             character->enchantments[W8_ENCHANTMENT_GUARDIAN_ANGEL].magnitude =
                 static_cast<unsigned short>(absorbed - amount);
             if (result_stats != 0) {
@@ -116,7 +116,7 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, bool qu
             return 0;
         }
 
-        PostCharacterNotice(party_slot, gppStringList[0x193 - (quiet != 0)], absorbed);
+        PostCharacterNotice(party_slot, gppStringList[0x193 - (quiet)], absorbed);
         amount -= absorbed;
         ClearCharacterEnchantmentSlot(party_slot, W8_ENCHANTMENT_GUARDIAN_ANGEL);
         PostCharacterNotice(party_slot, gppStringList[0x194]);
@@ -128,14 +128,14 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, bool qu
         ++result_stats->count;
     }
 
-    if (announce != 0) {
-        if (detailed != 0) {
+    if (announce) {
+        if (detailed) {
             PostCharacterNotice(party_slot, gppStringList[0x268], amount);
-        } else if (short_notice != 0) {
+        } else if (short_notice) {
             ShowNoticef(9, gppStringList[0x254], amount);
         } else {
             PostCharacterNotice(party_slot, gppStringList[0x255], amount,
-                                quiet != 0 ? gppStringList[0x257] : &g_empty_wide_string);
+                                quiet ? gppStringList[0x257] : &g_empty_wide_string);
         }
     }
 
@@ -155,7 +155,7 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, bool qu
     character->hp_current = applied - amount;
     RecordCharacterDamage(party_slot, amount);
     if (character->hp_current != 0) {
-        if (gXStatus.fSurprisePossible == 0) {
+        if (!gXStatus.fSurprisePossible) {
             QueueDamageReactionEvents(character);
         }
     } else {
@@ -173,7 +173,7 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, bool qu
                               result_stats == 0);
     }
 
-    if (character->uiCondition[W8_CONDITION_ASLEEP] != 0 && quiet == 0 &&
+    if (character->uiCondition[W8_CONDITION_ASLEEP] != 0 && !quiet &&
         Random(100) < (character->attributes[W8_ATTRIBUTE_SENSES].effective >> 1) + 0x32) {
         RemoveCharacterCondition(party_slot, W8_CONDITION_ASLEEP, 1);
     }
@@ -204,7 +204,7 @@ void ApplyRolledHealthChangeToParty(const W8Dice* dice, W8SpellEffectResult* res
     int party_slot;
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_status.buffers.XChar[party_slot].fOccupied != 0 &&
+        if (g_status.buffers.XChar[party_slot].fOccupied &&
             g_status.buffers.Char[party_slot].highest_condition < W8_CONDITION_DEAD) {
             ApplyDamageToCharacter(party_slot, RollDice(dice), 0, arg_3, 0, result, 0);
         }
@@ -224,7 +224,7 @@ void HealPartyByDice(unsigned char count, unsigned char sides, short base)
     dice.count = count;
     dice.sides = sides;
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_status.buffers.XChar[party_slot].fOccupied != 0) {
+        if (g_status.buffers.XChar[party_slot].fOccupied) {
             HealCharacter(party_slot, RollDice(&dice), 1);
         }
     }
@@ -241,7 +241,7 @@ void RestorePartyStaminaByDice(unsigned char count, unsigned char sides, short b
     dice.count = count;
     dice.sides = sides;
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_status.buffers.XChar[party_slot].fOccupied != 0) {
+        if (g_status.buffers.XChar[party_slot].fOccupied) {
             RestoreCharacterStamina(party_slot, RollDice(&dice), 0);
         }
     }
@@ -286,7 +286,7 @@ void DrainPartySpellPoints(int arg_1, int arg_2)
     unsigned int party_slot;
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_status.buffers.XChar[party_slot].fOccupied != 0) {
+        if (g_status.buffers.XChar[party_slot].fOccupied) {
             DrainCharacterSpellPoints(party_slot, arg_1, arg_2);
         }
     }
@@ -302,7 +302,7 @@ void RestorePartySpellPoints(int amount)
     int granted;
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_status.buffers.XChar[party_slot].fOccupied != 0 &&
+        if (g_status.buffers.XChar[party_slot].fOccupied &&
             g_status.buffers.Char[party_slot].highest_condition < W8_CONDITION_DEAD &&
             g_status.buffers.Char[party_slot].hp_current != 0) {
             granted = amount;
@@ -333,7 +333,7 @@ void DamageMonstersInRadius(const srVector3T<float>& center, float radius, const
 
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
-        if (monster_info->fActive != 0) {
+        if (monster_info->fActive) {
             MonsterGetLocation(monster_info->p3D, &location);
             offset = srVector3T<float>(center.x - location.x, center.y - location.y,
                                        center.z - location.z);
@@ -366,7 +366,7 @@ unsigned int ApplyDamageToMonster(W8MonsterInfo* monster_info, unsigned int amou
     if (monster_info->enchantments[W8_ENCHANTMENT_GUARDIAN_ANGEL].turns != 0) {
         absorbed = monster_info->enchantments[W8_ENCHANTMENT_GUARDIAN_ANGEL].magnitude;
         if (amount <= absorbed) {
-            PostMonsterNotice(monster_info, gppStringList[0x193 - (quiet != 0)], amount);
+            PostMonsterNotice(monster_info, gppStringList[0x193 - (quiet)], amount);
             monster_info->enchantments[W8_ENCHANTMENT_GUARDIAN_ANGEL].magnitude =
                 static_cast<unsigned short>(absorbed - amount);
             if (result_stats != 0) {
@@ -374,7 +374,7 @@ unsigned int ApplyDamageToMonster(W8MonsterInfo* monster_info, unsigned int amou
             }
             return 0;
         }
-        PostMonsterNotice(monster_info, gppStringList[0x193 - (quiet != 0)], absorbed);
+        PostMonsterNotice(monster_info, gppStringList[0x193 - (quiet)], absorbed);
         amount -= absorbed;
         ClearMonsterEnchantmentSlot(monster_info->location_id, W8_ENCHANTMENT_GUARDIAN_ANGEL);
     }
@@ -383,14 +383,14 @@ unsigned int ApplyDamageToMonster(W8MonsterInfo* monster_info, unsigned int amou
         ++result_stats->count;
     }
     if (amount != 0) {
-        if (gXStatus.fCombatMode != 0 || monster_info->party_threat.visible_to_player != 0) {
+        if (gXStatus.fCombatMode || monster_info->party_threat.visible_to_player) {
             PointCameraAtMonster(monster_info, 0, 1);
             category = 9;
             if (TargetSourceIsCharacter(source, 0) && source->iChar != -1) {
                 category = 8;
             }
             if (in_combat != 0) {
-                if (c != 0) {
+                if (c) {
                     ShowNoticef(category, FormatWideString(g_format_s_space_s,
                                                            GetMonsterName(monster_info, 0, 0),
                                                            gppStringList[0x268], amount));
@@ -398,14 +398,13 @@ unsigned int ApplyDamageToMonster(W8MonsterInfo* monster_info, unsigned int amou
                     ShowNoticef(category, gppStringList[0x254], amount);
                 } else {
                     ShowNoticef(category, gppStringList[0x256], GetMonsterName(monster_info, 0, 0),
-                                amount, quiet != 0 ? g_poison_suffix : &g_empty_wide_string);
+                                amount, quiet ? g_poison_suffix : &g_empty_wide_string);
                 }
             }
         }
-        if (source->fBackfire == 0 && source->fReflection == 0 && source->target_diverted == 0 &&
-            quiet == 0) {
+        if (!source->fBackfire && !source->fReflection && source->target_diverted == 0 && !quiet) {
             monster_info->condition_target = *source;
-            if (monster_info->fInCombat != 0 && TargetSourceIsCharacter(source, 0) &&
+            if (monster_info->fInCombat && TargetSourceIsCharacter(source, 0) &&
                 source->iChar != -1) {
                 monster_info->pCombat->character_hate[source->iChar] += amount;
             }
@@ -586,7 +585,7 @@ void HealCharacter(int party_slot, int amount, char announce)
     unsigned int hp_max;
     unsigned int fraction;
 
-    if (g_status.buffers.XChar[party_slot].fOccupied == 0) {
+    if (!g_status.buffers.XChar[party_slot].fOccupied) {
         srAssertFail("fCHAR_OCCUPIED(uiChar)", HEALTH_STAMINA_MANA_CPP, 661, 0);
     }
 
@@ -689,7 +688,7 @@ void DrainCharacterSpellPoints(int party_slot, unsigned int amount, char announc
     if (character->hp_current == 0) {
         return;
     }
-    if (g_status.world_suspended != 0) {
+    if (g_status.world_suspended) {
         PostCharacterNotice(party_slot, gppStringList[0x260], amount);
         return;
     }
@@ -785,7 +784,7 @@ void DamageCharacter(int party_slot, unsigned int damage, char announce)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
 
-    if (g_status.buffers.XChar[party_slot].fOccupied == 0) {
+    if (!g_status.buffers.XChar[party_slot].fOccupied) {
         srAssertFail("fCHAR_OCCUPIED(uiChar)", HEALTH_STAMINA_MANA_CPP, 1186, 0);
     }
 
@@ -901,7 +900,7 @@ void MonsterReactsToBeingStruck(W8MonsterInfo* monster_info, W8TargetSource* att
 {
     StartMonsterCycle(monster_info, 0x14, 1);
 
-    if (monster_info->uiCondition[W8_CONDITION_ASLEEP] != 0 && quiet == 0 &&
+    if (monster_info->uiCondition[W8_CONDITION_ASLEEP] != 0 && !quiet &&
         Random(100) < static_cast<unsigned int>(
                           (monster_info->attributes[W8_MONSTER_ATTRIBUTE_SENSES] >> 1) + 0x32)) {
         ClearMonsterCondition(monster_info->location_id, W8_CONDITION_ASLEEP);
@@ -913,8 +912,8 @@ void MonsterReactsToBeingStruck(W8MonsterInfo* monster_info, W8TargetSource* att
     if (!TargetSourceIsCharacter(attacker, 0) && !TargetSourceIsMonster(attacker, 0)) {
         return;
     }
-    if (attacker->fBackfire == 0 && attacker->fReflection == 0 && attacker->target_diverted == 0 &&
-        quiet == 0 && monster_info->uiCondition[W8_CONDITION_TURNCOAT] != 0) {
+    if (!attacker->fBackfire && !attacker->fReflection && attacker->target_diverted == 0 &&
+        !quiet && monster_info->uiCondition[W8_CONDITION_TURNCOAT] != 0) {
         if (TargetSourceIsCharacter(attacker, 0)) {
             if (MonsterVsCharDisposition(attacker->iChar, monster_info) == 2) {
                 TickMonsterCondition(monster_info->location_id, W8_CONDITION_TURNCOAT, 1);
@@ -1102,7 +1101,7 @@ void DrainCharacterRealmSpellPoints(int party_slot, W8SpellRealm realm, unsigned
         return;
     }
 
-    if (g_status.world_suspended != 0) {
+    if (g_status.world_suspended) {
         PostCharacterNotice(party_slot, gppStringList[0x262], amount,
                             gppStringList[g_realm_message_offsets[realm]]);
         return;
@@ -1135,7 +1134,7 @@ void CharacterDies(int party_slot)
     unsigned int condition;
     int animation;
 
-    if (row->fOccupied == 0) {
+    if (!row->fOccupied) {
         srAssertFail("fCHAR_OCCUPIED(uiChar)", HEALTH_STAMINA_MANA_CPP, 561, 0);
     }
 
@@ -1150,13 +1149,13 @@ void CharacterDies(int party_slot)
 
     ResetCombatSlot(&row->target_out_of_combat);
     ResetCombatSlot(&row->target_in_combat);
-    if (gXStatus.fCombatMode != 0) {
+    if (gXStatus.fCombatMode) {
         RecordCharacterDeath(party_slot);
     }
     QueuePartyDeathReaction(party_slot);
     SoundPlay("Data\\Sound\\Misc\\CharacterDead.wav", 0);
 
-    if (gXStatus.fCombatMode != 0) {
+    if (gXStatus.fCombatMode) {
         if (g_combat_state->iActionChar == party_slot) {
             g_combat_state->eCombatActionStatus = 0;
             g_combat_state->iActionChar = -1;
@@ -1371,7 +1370,7 @@ unsigned int FindPartySlotWithLowestHitPoints(void)
 
     for (unsigned int slot = 0; slot < 8; ++slot) {
         W8Character* character = &g_status.buffers.Char[slot];
-        if (g_status.buffers.XChar[slot].fOccupied != 0 &&
+        if (g_status.buffers.XChar[slot].fOccupied &&
             character->highest_condition < W8_CONDITION_DEAD) {
             unsigned int percent =
                 (character->hp_current * 100) / static_cast<unsigned int>(character->uiHPMax);
@@ -1395,7 +1394,7 @@ unsigned int FindPartySlotWithLowestSpellPoints(void)
 
     for (unsigned int slot = 0; slot < 8; ++slot) {
         W8Character* character = &g_status.buffers.Char[slot];
-        if (g_status.buffers.XChar[slot].fOccupied != 0 &&
+        if (g_status.buffers.XChar[slot].fOccupied &&
             character->highest_condition < W8_CONDITION_DEAD) {
             unsigned int pool_max = SumCharacterSpellPoints(character);
             if (pool_max > 0) {
@@ -1436,7 +1435,7 @@ W8Character* FindPartyMemberWithLowestResistance4(void)
     int selected = 0;
     for (int party_slot = 0; party_slot < 8; ++party_slot) {
         W8Character* character = &g_status.buffers.Char[party_slot];
-        if (g_status.buffers.XChar[party_slot].fOccupied != 0 &&
+        if (g_status.buffers.XChar[party_slot].fOccupied &&
             character->highest_condition < W8_CONDITION_DEAD &&
             character->resistances[4].total < lowest) {
             selected = party_slot;

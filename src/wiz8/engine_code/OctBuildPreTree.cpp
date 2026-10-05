@@ -531,7 +531,7 @@ unsigned char OctBuildPreTree::UpdateRegionMap(const W8OctSpatialState* arg_spat
 
                     W8OctBuildNode* parent = arg_spatial->m_root;
                     child.m_root = parent->children[child_index];
-                    if (intersects != 0 && child.m_root != 0) {
+                    if (intersects && child.m_root != 0) {
                         W8OctBuildNode* node = child.m_root;
                         unsigned short region = node->region;
                         if (region != 0) {
@@ -951,7 +951,7 @@ unsigned short OctBuildPreTree::SplitSharedPolygon(W8OctPreTreeGeometry* geometr
     unsigned short found = 0;
     for (int corner = 0; corner != 3; ++corner) {
         W8OctPreTreeVertex* vertex = polygon->vertices[corner];
-        if (vertex->m_visited == 0) {
+        if (!vertex->m_visited) {
             vertex->m_visited = 1;
             int* face = vertex->face_indices;
             for (unsigned int n = vertex->face_count; n != 0; --n) {
@@ -1718,7 +1718,7 @@ unsigned char OctBuildPreTree::BuildParticleRegions(const W8LevelFileParticleSys
 unsigned char OctBuildPreTree::BuildGeometryRegions(const W8LevelFileProp* records,
                                                     int record_count, int base_index, bool finalize)
 {
-    if (finalize == 0) {
+    if (!finalize) {
         overlap_region_map = new W8HashTable<unsigned short, short>;
         g_region_id_list = static_cast<unsigned short*>(malloc(10000));
         g_region_id_list[0] = 0;
@@ -1778,7 +1778,7 @@ unsigned char OctBuildPreTree::BuildGeometryRegions(const W8LevelFileProp* recor
         }
     }
 
-    if (finalize != 0) {
+    if (finalize) {
         if (g_region_id_count == 0) {
             g_region_id_count = 1;
         } else {

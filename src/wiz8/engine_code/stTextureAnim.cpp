@@ -106,13 +106,13 @@ void stTextureAnim::UpdateFrame()
     }
 
     if (trigger_mode == 2) {
-        if (running == 0 && rand() / static_cast<float>(RAND_MAX) < probability) {
+        if (!running && rand() / static_cast<float>(RAND_MAX) < probability) {
             running = 1;
             direction = 0;
             this->frame = 0;
             frame_tick = GetTickCount();
         }
-        if (running == 0 || textures->GetCount() == 0) {
+        if (!running || textures->GetCount() == 0) {
             return;
         }
     } else if (textures->GetCount() == 0) {

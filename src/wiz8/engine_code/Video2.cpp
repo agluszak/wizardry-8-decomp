@@ -1335,16 +1335,16 @@ unsigned char RenderWorldToSurface(srColorSurface* target, W8ScreenRect* rect,
         GetWorldLightValue(g_world, &clear_color);
     }
     gerd->setClearColor(clear_color.x, clear_color.y, clear_color.z, 1.0f);
-    if (g_inverted_depth_render != 0) {
+    if (g_inverted_depth_render) {
         gerd->setClearDepth(0.0);
     }
     gerd->clear(srFlags<srGERD::e_buffer>(srGERD::BUFFER_COLOR | srGERD::BUFFER_DEPTH));
-    if (render_secondary != 0 && g_render_mesh_sky != 0 && g_secondary_world != 0) {
+    if (render_secondary && g_render_mesh_sky && g_secondary_world != 0) {
         g_secondary_world->static_scene->render(*gerd, g_secondary_world->camera);
     }
     g_world->static_scene->render(*gerd, g_world->camera);
     gerd->endFrame();
-    if (g_inverted_depth_render != 0) {
+    if (g_inverted_depth_render) {
         gerd->setClearDepth(1.0);
     }
     gerd->flushRenderers();
@@ -1836,7 +1836,7 @@ void SyncSystemCursor(void)
         ClientToScreen(ghWindow, &bottom_right);
         if (cursor.x < top_left.x || cursor.x >= bottom_right.x || cursor.y < top_left.y ||
             cursor.y >= bottom_right.y) {
-            if (g_system_cursor_visible != 1) {
+            if (!g_system_cursor_visible) {
                 g_system_cursor_visible = true;
                 ShowCursor(TRUE);
             }
@@ -1847,7 +1847,7 @@ void SyncSystemCursor(void)
         if (cursor.x != g_cursor_width || cursor.y != g_cursor_height) {
             PositionMouseCursor(cursor.x, cursor.y, 1);
         }
-        if (g_system_cursor_visible != 0) {
+        if (g_system_cursor_visible) {
             g_system_cursor_visible = false;
             ShowCursor(FALSE);
         }
@@ -2372,7 +2372,7 @@ srNode* VideoMakePoster(srColorSurfaceIFace* surface, float width, float height,
     texture->setSurfacePtr(surface);
     texture->setWrapS(srTextureIFace::WRAP_CLAMP);
     texture->setWrapT(srTextureIFace::WRAP_CLAMP);
-    if (additive == 0) {
+    if (!additive) {
         hint = srTextureIFace::HINT_NO_ALPHA;
     } else {
         hint = srTextureIFace::HINT_ONE_BIT_ALPHA;
@@ -2855,7 +2855,7 @@ void SaveJpegScreenshot(void)
         char filename[32];
         srSurfaceIOManager::ExportInfo options;
 
-        if (g_auto_capture != 0) {
+        if (g_auto_capture) {
             int screenshot_index = g_screenshot_index++;
             options.unknown_00 = 0;
             options.unknown_04 = 1;
@@ -2915,7 +2915,7 @@ void PositionToolTipNode(srNode* node, int x, int y, bool positional)
     double position_x = x * g_double_005ebe90;
     double position_y = y * g_double_005ebe88;
 
-    if (positional != 0 && g_gerd != 0) {
+    if (positional && g_gerd != 0) {
         double whole;
         long width = g_gerd->getWidth();
         double fraction = modf(width * position_x, &whole);
@@ -3122,7 +3122,7 @@ stModelInstance2D* CreateColoredPolygonSprite(int width, int height, const srVec
     instance->render_state.width = static_cast<unsigned short>(width);
     instance->render_state.height = static_cast<unsigned short>(height);
     SetModelInstance2DDisplayState(instance, 3);
-    if (a4 != 0) {
+    if (a4) {
         instance->setParent(g_scene_fullscreen, 1);
     }
     return instance;
@@ -3697,7 +3697,7 @@ srNode* MakePosterQuad(srTextureIFace* texture, float width, float height, bool 
     g_modeler->discard();
 
     shader.value = 0x100a013;
-    if (additive != 0) {
+    if (additive) {
         shader.value = 0x100c0b3;
         model->enable(srMeshModel::CONTROL_STARTUP);
     }

@@ -540,7 +540,7 @@ static void DeleteHighlightedText(unsigned char first, unsigned char last)
 unsigned int HandleTextInput(const InputAtom* input)
 {
     gfHorizontalKey = false;
-    if (gfTextInputMode == 0 || gfEditingText == 0 || gpActive == 0 ||
+    if (!gfTextInputMode || !gfEditingText || gpActive == 0 ||
         (input->usEvent != KEY_DOWN && input->usEvent != KEY_REPEAT) || input->usParam == 0x1b ||
         input->usParam == 0x0d || input->usParam == 9 || (input->usKeyState & ALT_DOWN) != 0 ||
         ((input->usKeyState & CTRL_DOWN) != 0 && input->usParam != 0x2e && input->usParam != 0x27 &&
@@ -554,7 +554,7 @@ unsigned int HandleTextInput(const InputAtom* input)
     case 0x25: /* Left */
         gfHorizontalKey = true;
         if ((input->usKeyState & SHIFT_DOWN) != 0) {
-            if (gfHiliteMode == 0) {
+            if (!gfHiliteMode) {
                 gfHiliteMode = true;
                 gubStartHilite = gubCursorPos;
             }
@@ -567,7 +567,7 @@ unsigned int HandleTextInput(const InputAtom* input)
             gubEndHilite = gubCursorPos;
             return 1;
         }
-        if (gfHiliteMode != 0) {
+        if (gfHiliteMode) {
             gubCursorPos = gubStartHilite;
             gfHiliteMode = false;
             gubParkingPos = CalculateCursorPos(
@@ -586,7 +586,7 @@ unsigned int HandleTextInput(const InputAtom* input)
     case 0x27: /* Right */
         gfHorizontalKey = true;
         if ((input->usKeyState & SHIFT_DOWN) != 0) {
-            if (gfHiliteMode == 0) {
+            if (!gfHiliteMode) {
                 gfHiliteMode = true;
                 gubStartHilite = gubCursorPos;
             }
@@ -599,7 +599,7 @@ unsigned int HandleTextInput(const InputAtom* input)
             gubEndHilite = gubCursorPos;
             return 1;
         }
-        if (gfHiliteMode != 0) {
+        if (gfHiliteMode) {
             gubCursorPos = selection_end;
             gfHiliteMode = false;
             gubParkingPos = CalculateCursorPos(
@@ -617,7 +617,7 @@ unsigned int HandleTextInput(const InputAtom* input)
 
     case 0x23: /* End */
         if ((input->usKeyState & SHIFT_DOWN) != 0) {
-            if (gfHiliteMode == 0) {
+            if (!gfHiliteMode) {
                 gfHiliteMode = true;
                 gubStartHilite = gubCursorPos;
             }
@@ -634,7 +634,7 @@ unsigned int HandleTextInput(const InputAtom* input)
 
     case 0x24: /* Home */
         if ((input->usKeyState & SHIFT_DOWN) != 0) {
-            if (gfHiliteMode == 0) {
+            if (!gfHiliteMode) {
                 gfHiliteMode = true;
                 gubStartHilite = gubCursorPos;
             }
@@ -660,7 +660,7 @@ unsigned int HandleTextInput(const InputAtom* input)
             SetTextInputCursor(0);
             return 1;
         }
-        if (gfHiliteMode == 0) {
+        if (!gfHiliteMode) {
             /* 0x005D5D0C returns from inside the guard without repositioning the
                cursor, so gParkingPos keeps the value it had for the longer
                string. The retail's one SetTextInputCursor call in this function
@@ -682,7 +682,7 @@ unsigned int HandleTextInput(const InputAtom* input)
         return 1;
 
     case 8:
-        if (gfHiliteMode == 0) {
+        if (!gfHiliteMode) {
             if (gubCursorPos != 0) {
                 --gubCursorPos;
                 gubParkingPos = CalculateCursorPos(
@@ -710,7 +710,7 @@ unsigned int HandleTextInput(const InputAtom* input)
         if (character == 0x25 || character == 0x5c)
             return 0;
 
-        if (gfHiliteMode != 0) {
+        if (gfHiliteMode) {
             gfHiliteMode = false;
             if (gubStartHilite != gubEndHilite) {
                 DeleteHighlightedText(gubStartHilite, gubEndHilite);
@@ -1063,13 +1063,13 @@ void RenderBackgroundField(TEXTINPUTNODE* field)
     int right = field->region.RegionBottomRightX;
     int bottom = field->region.RegionBottomRightY;
 
-    if (style->fBevelling != 0) {
+    if (style->fBevelling) {
         ColorFillVideoSurfaceArea(-14, left, top, right, bottom, style->usDarkerColor);
         ColorFillVideoSurfaceArea(-14, left + 1, top + 1, right, bottom, style->usBrighterColor);
     }
 
     unsigned short colour;
-    if (field->fEnabled == 0 && style->fUseDisabledAutoShade == 0)
+    if (field->fEnabled == 0 && !style->fUseDisabledAutoShade)
         colour = style->usDisabledTextFieldColor;
     else
         colour = style->usTextFieldColor;
@@ -1095,7 +1095,7 @@ void RenderActiveTextField(void)
                     field->region.RegionBottomRightX - field->region.RegionTopLeftX - 10,
                     gubCursorPos, field->szString, &gsCursorX, &guiVisibleCount);
             }
-            if (gfHiliteMode != 0)
+            if (gfHiliteMode)
                 gubStartHilite = gubVisibleStart;
         } else if (field->region.RegionBottomRightX < static_cast<int>(gusMouseXPos)) {
             if (gubCursorPos < field->ubStrLen) {
@@ -1104,7 +1104,7 @@ void RenderActiveTextField(void)
                     field->region.RegionBottomRightX - field->region.RegionTopLeftX - 10,
                     gubCursorPos, field->szString, &gsCursorX, &guiVisibleCount);
             }
-            if (gfHiliteMode != 0)
+            if (gfHiliteMode)
                 gubEndHilite = static_cast<unsigned char>(guiVisibleCount + gubVisibleStart);
         }
     }
@@ -1127,7 +1127,7 @@ void RenderActiveTextField(void)
     escaped[escaped_length] = L'\0';
     wcscpy(visible, escaped + gubParkingPos);
 
-    bool has_selection = gfHiliteMode != 0 && gubStartHilite != gubEndHilite;
+    bool has_selection = gfHiliteMode && gubStartHilite != gubEndHilite;
     unsigned char selection_first = gubEndHilite;
     unsigned char selection_last = gubStartHilite;
     if (gubStartHilite < gubEndHilite) {
@@ -1158,7 +1158,7 @@ void RenderActiveTextField(void)
         }
     }
 
-    if (gfEditingText != 0 && field->szString != 0 && gfLeftButtonState == 0 &&
+    if (gfEditingText && field->szString != 0 && gfLeftButtonState == 0 &&
         GetTickCount() % 1000 < 500) {
         int left = field->region.RegionTopLeftX + gsCursorX;
         int top = field->region.RegionTopLeftY + vertical_offset;
@@ -1176,7 +1176,7 @@ void RenderInactiveTextFieldNode(TEXTINPUTNODE* field)
 
     SaveFontSettings();
     SetFont(pColors->usFont);
-    bool disabled = field->fEnabled == 0 && pColors->fUseDisabledAutoShade != 0;
+    bool disabled = field->fEnabled == 0 && pColors->fUseDisabledAutoShade;
     unsigned char shadow;
     if (disabled) {
         SetFontForeground(pColors->ubDisabledForeColor);

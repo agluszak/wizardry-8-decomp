@@ -667,7 +667,7 @@ bool RunOctFileSemanticTests(OctFileSemanticResult* result)
     /* The W8GameData constructor deletes g_environ and
        g_level_data when they are set, so the scenario requires a
        state where no level is loaded - which the main menu provides. */
-    if (g_octree_disabled == 0 && g_level_data == 0 && g_environ == 0) {
+    if (!g_octree_disabled && g_level_data == 0 && g_environ == 0) {
         result->octree_io_enabled = 1;
         RunOctFileRoundTrip(result);
     }

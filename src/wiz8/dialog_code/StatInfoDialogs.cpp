@@ -92,7 +92,7 @@ void W8StatInfoDialogBase::DestroyControls()
 void W8StatInfoDialogBase::Draw()
 {
     if ((m_dirty_flags & 1) != 0) {
-        if (m_initialized == 0) {
+        if (!m_initialized) {
             CreateControls();
         }
         textarea.m_dirty = true;
@@ -221,15 +221,15 @@ unsigned char W8SkillInfoDialog::PopulateText()
         textarea.AddEntry(
             0, gppStringList[g_character_description_first_ids[skill->attribute_2]], 10, 0xf, 0);
     }
-    if (m_first != 0) {
+    if (m_first) {
         textarea.AddEntry(0, &g_empty_wide_string, 10, 0xf, 0);
         textarea.AddEntry(0, gppStringList[0x157], 10, 5, 0);
     }
-    if (m_second != 0) {
+    if (m_second) {
         textarea.AddEntry(0, &g_empty_wide_string, 10, 0xf, 0);
         textarea.AddEntry(0, gppStringList[0x158], 10, 0xb, 0);
     }
-    if (m_bonus != 0) {
+    if (m_bonus) {
         textarea.AddEntry(0, &g_empty_wide_string, 10, 0xf, 0);
         textarea.AddEntry(0, FormatWideString(gppStringList[0x159], 0x19), 10, 3, 0);
     }

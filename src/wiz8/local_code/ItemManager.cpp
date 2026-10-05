@@ -657,7 +657,7 @@ void ActivateItem(W8WorldItem* item)
     if (item == 0) {
         srAssertFail("pItemInfo != NULL", ITEM_MANAGER_CPP, 0x1d4, 0);
     }
-    if (item->fActive != 0) {
+    if (item->fActive) {
         srAssertFail("!pItemInfo->fActive", ITEM_MANAGER_CPP, 0x1d5, 0);
     }
 
@@ -732,7 +732,7 @@ void DeactivateWorldItem(W8WorldItem* item)
     if (item == 0) {
         srAssertFail("pItemInfo != NULL", ITEM_MANAGER_CPP, 554, 0);
     }
-    if (item->fActive == 0) {
+    if (!item->fActive) {
         srAssertFail("pItemInfo->fActive", ITEM_MANAGER_CPP, 555, 0);
     }
     if (item->p3D == 0) {
@@ -767,7 +767,7 @@ void SetWorldItemHighlight(int runtime_id, bool on)
         srAssertFail("pItem", ITEM_MANAGER_CPP, 627, 0);
     }
     W8ItemRep* rep = static_cast<W8ItemRep*>(world_item->m_pRep);
-    if (on != 0) {
+    if (on) {
         rep->flags |= 0x10;
         world_item->SetHighlight(true);
         return;
@@ -792,7 +792,7 @@ int PickNearestItemUnderCursor(int cursor_x, int cursor_y, float max_distance)
         W8WorldItem* item = ItemInfo(index);
         float distance;
 
-        if (item->fActive == 0) {
+        if (!item->fActive) {
             continue;
         }
         if (static_cast<W8ItemRep*>(item->p3D->m_pRep)->flags & 4) {
@@ -832,9 +832,9 @@ void UpdateNearbyWorldItems(void)
         if (ItemHasFlags(item, 2)) {
             AdvanceFallingWorldItem(item);
         }
-        if (item->fActive == 0) {
+        if (!item->fActive) {
             if (DistanceBetweenPoints(&item->position, &camera) < g_float_005ed7b8) {
-                if (g_hide_invisible_items != 0) {
+                if (g_hide_invisible_items) {
                     if (item == 0) {
                         srAssertFail("pItemInfo != NULL", ITEM_MANAGER_CPP, 0x3e6, 0);
                     }
@@ -947,7 +947,7 @@ static void OnItemPickerDialogDestroyed(W8DialogBase* dialog)
     if (item->sector_id > -1) {
         RemoveItemFromSector(item->sector_id, item);
     }
-    if (item->fActive != 0) {
+    if (item->fActive) {
         DeactivateWorldItem(item);
     }
     FreeWorldItemGroup(item);
@@ -991,7 +991,7 @@ unsigned char InteractWithWorldItem(int runtime_id)
     if (item->sector_id > -1) {
         RemoveItemFromSector(item->sector_id, item);
     }
-    if (item->fActive != 0) {
+    if (item->fActive) {
         DeactivateWorldItem(item);
     }
     FreeWorldItemGroup(item);
@@ -1031,7 +1031,7 @@ unsigned char ReleaseItemLists(void)
         if (item->sector_id >= 0) {
             RemoveItemFromSector(item->sector_id, item);
         }
-        if (item->fActive != 0) {
+        if (item->fActive) {
             DeactivateWorldItem(item);
         }
         while (item != 0) {
@@ -1157,7 +1157,7 @@ unsigned char AdvanceFallingWorldItem(W8WorldItem* item)
     }
 
     ground = g_octree->SettleToGround(&probe, &hit, 1, 250.0f);
-    if (hit == 0 || fabs(ground - previous_y) < g_camera_snap_epsilon) {
+    if (!hit || fabs(ground - previous_y) < g_camera_snap_epsilon) {
         item->flags &= ~2u;
         item->vertical_velocity = 0.0f;
         return 0;
@@ -1209,7 +1209,7 @@ unsigned char SettleWorldItem(W8WorldItem* item)
     item->vertical_velocity = 0.0f;
 
     g_octree->SettleToGround(&start, &hit, 1, 250.0f);
-    if (hit == 0) {
+    if (!hit) {
         return 0;
     }
 

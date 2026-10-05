@@ -430,7 +430,7 @@ unsigned char UnloadAniMesh(W8AniMesh* mesh, bool force)
         srAssertFail("pAniMesh", ANI_MESH_CPP, 0x28a, 0);
         return 0;
     }
-    if (force == 0 && (mesh->flags & W8_ANI_MESH_KEEP_LOADED) == 0) {
+    if (!force && (mesh->flags & W8_ANI_MESH_KEEP_LOADED) == 0) {
         return 0;
     }
     if ((mesh->flags & W8_ANI_MESH_SINGLE_INSTANCE) != 0) {
@@ -531,7 +531,7 @@ void SetAniMeshCacheProtected(W8AniMesh* mesh, bool enabled)
     if (mesh == 0) {
         srAssertFail("pAniMesh", ANI_MESH_CPP, 0x3b7, 0);
     }
-    if (enabled != 0) {
+    if (enabled) {
         mesh->flags |= W8_ANI_MESH_CACHE_PROTECTED;
         return;
     }

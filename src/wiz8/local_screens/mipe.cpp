@@ -106,11 +106,11 @@ int FindCategoryItemTable(unsigned int category, int ordinal);
 // FUNCTION: WIZ8 0x0057d740
 void ToggleMipePanel(void)
 {
-    if (g_mipe_active != 0) {
+    if (g_mipe_active) {
         g_level_block->text_box_visible = 1;
         g_level_block->mipe_editing = 0;
         ResetEditorStatusLine(-1);
-        if (gXStatus.fCombatMode != 0) {
+        if (gXStatus.fCombatMode) {
             SelectTextBox(1);
         }
         ReleaseWorldCursor();
@@ -124,7 +124,7 @@ void ToggleMipePanel(void)
              monster_list_index < PLLength(gXStatus.plsMonsterList); ++monster_list_index) {
             W8MonsterInfo* monster =
                 GetMonsterListEntry(monster_list_index);
-            if (monster != 0 && monster->fInCombat != 0) {
+            if (monster != 0 && monster->fInCombat) {
                 SetMonsterHighlight(0, monster->location_id, 0);
             }
         }
@@ -214,7 +214,7 @@ void ToggleMipePanel(void)
     while (monster_index < static_cast<int>(gXStatus.uiMonstersInDatabase)) {
         W8MipeMonsterEntry* entry =
             static_cast<W8MipeMonsterEntry*>(PLGet(g_mipe_monster_entries, monster_index));
-        if (entry->kind == g_mipe_category && entry->selectable != 0) {
+        if (entry->kind == g_mipe_category && entry->selectable) {
             if (visible == selection) {
                 break;
             }
@@ -311,7 +311,7 @@ static void ShowMipeItemStatus(void)
     ShowNoticef(6, L"OR type C to change what item to place.  ");
     ShowNoticef(3, L"How many: %d", g_mipe_count);
     ShowNoticef(0xf, &g_empty_wide_string);
-    if (g_hide_invisible_items == 0) {
+    if (!g_hide_invisible_items) {
         line = L"A - All invisible items  will be blue.";
         palette = 3;
     } else {
@@ -319,7 +319,7 @@ static void ShowMipeItemStatus(void)
         palette = 8;
     }
     ShowNoticef(palette, line);
-    if (g_mipe_item_hidden == 0) {
+    if (!g_mipe_item_hidden) {
         line = L"H - Item will be visible.";
         palette = 5;
     } else {
@@ -366,7 +366,7 @@ void ShowMipeChooseMenu(void)
     ShowNoticef(0xf, &g_empty_wide_string);
     ShowNoticef(0xf, &g_empty_wide_string);
     ShowNoticef(0xf, &g_empty_wide_string);
-    if (g_mipe_choose_group != 0) {
+    if (g_mipe_choose_group) {
         ShowNoticef(0xf, L"Choosing: Group");
         return;
     }
@@ -413,8 +413,8 @@ static void ShowMipeTriggerMenu(void)
     ShowNoticef(0xf, L"2) Delete trigger.");
     ShowNoticef(0xf, L"3) ");
     ShowNoticef(0xf, L"4) Select trigger.");
-    ShowNoticef(0xf, g_mipe_trigger_display == 0 ? L"5) Toggle trigger display [now off]."
-                                                 : L"5) Toggle trigger display [now on].");
+    ShowNoticef(0xf, !g_mipe_trigger_display ? L"5) Toggle trigger display [now off]."
+                                             : L"5) Toggle trigger display [now on].");
     ShowNoticef(0xf, L"6) Volume Triggers.");
     if (g_mipe_state->trigger == 0) {
         if (g_mipe_state->selecting == 0) {
@@ -515,7 +515,7 @@ void ShowMonsterGeneratorStatus(void)
     ShowNoticef(0xf, L"1) Create 2) Delete");
     ShowNoticef(0xf, L"3) Edit   4) Select");
     state = "On";
-    if (g_mipe_mongen_visible == 0) {
+    if (!g_mipe_mongen_visible) {
         state = "Off";
     }
     ShowNoticef(0xf, L"5) Toggle Display [%s]", state);
@@ -628,7 +628,7 @@ static unsigned int FindMipeVisibleMonster(int visible)
     if (0 < static_cast<int>(gXStatus.uiMonstersInDatabase)) {
         do {
             entry = static_cast<W8MipeMonsterEntry*>(PLGet(g_mipe_monster_entries, monster_index));
-            if (entry->kind == g_mipe_category && entry->selectable != 0) {
+            if (entry->kind == g_mipe_category && entry->selectable) {
                 if (index == visible) {
                     break;
                 }
@@ -660,7 +660,7 @@ unsigned char HandleMipeMonsterCreateKey(unsigned short key)
             PListClear(list);
             for (index = 0; index < static_cast<int>(gXStatus.uiMonstersInDatabase); ++index) {
                 entry = static_cast<W8MipeMonsterEntry*>(PLGet(g_mipe_monster_entries, index));
-                if (entry->kind == g_mipe_category && entry->selectable != 0) {
+                if (entry->kind == g_mipe_category && entry->selectable) {
                     PLAdoptAppend(list, entry);
                 }
             }
@@ -769,7 +769,7 @@ static void RebuildMipeMonsterCategory(W8PList* list)
         for (int index = 0; index < static_cast<int>(gXStatus.uiMonstersInDatabase); ++index) {
             W8MipeMonsterEntry* entry =
                 static_cast<W8MipeMonsterEntry*>(PLGet(g_mipe_monster_entries, index));
-            if (entry->kind == g_mipe_category && entry->selectable != 0) {
+            if (entry->kind == g_mipe_category && entry->selectable) {
                 PLAdoptAppend(list, entry);
             }
         }
@@ -934,11 +934,11 @@ unsigned char HandleMipeItemCreateKey(unsigned short key)
         ShowMipeItemStatus();
         break;
     case 0x48:
-        g_mipe_item_hidden = g_mipe_item_hidden == 0;
+        g_mipe_item_hidden = !g_mipe_item_hidden;
         ShowMipeItemStatus();
         break;
     case 0x41:
-        show_invisible = g_hide_invisible_items == 0;
+        show_invisible = !g_hide_invisible_items;
         g_hide_invisible_items = show_invisible;
         for (item_index = 0; item_index < PLLength(gXStatus.plsItemList); ++item_index) {
             world_item = ItemInfo(item_index);
@@ -964,11 +964,11 @@ unsigned char HandleMipeItemCreateKey(unsigned short key)
         if (g_mipe_count != 0) {
             do {
                 int flags = 3;
-                if (g_mipe_item_hidden != 0) {
+                if (g_mipe_item_hidden) {
                     flags = 0x83;
                 }
                 spawned = SpawnItem(item_index & 0xffff, &anchor, flags, 1);
-                if (g_mipe_item_hidden != 0) {
+                if (g_mipe_item_hidden) {
                     SetItemFlags(spawned, 1, 1);
                     RegisterSearchableWorldItem(spawned);
                 }
@@ -1768,7 +1768,7 @@ static int HandleMonsterGeneratorKey(unsigned short key)
         ShowMonsterGeneratorStatus();
         return 1;
     case 0x35: {
-        bool visible = g_mipe_mongen_visible == 0;
+        bool visible = !g_mipe_mongen_visible;
         count = GetMonsterGeneratorCount();
         for (index = 0; index < count; ++index) {
             GetMonsterGenerator(index)->SetActive(visible, 0);
@@ -2401,7 +2401,7 @@ unsigned char HandleMipeKey(const InputAtom* event)
     int shown;
 
     handled = 0;
-    if (g_mipe_state->dragging != 0) {
+    if (g_mipe_state->dragging) {
         return 1;
     }
     key = static_cast<unsigned short>(event->usParam);
@@ -2748,7 +2748,7 @@ unsigned char HandleMipeKey(const InputAtom* event)
             ShowNoticef(0xf, &g_empty_wide_string);
             ShowNoticef(0xf, &g_empty_wide_string);
             ShowNoticef(0xf, &g_empty_wide_string);
-            ShowNoticef(0xf, g_mipe_choose_group == 0 ? L"Choosing: One" : L"Choosing: Group");
+            ShowNoticef(0xf, !g_mipe_choose_group ? L"Choosing: One" : L"Choosing: Group");
             g_mipe_mode = 4;
             g_mipe_state->selecting = 1;
             HideWorldCursor();
@@ -2757,7 +2757,7 @@ unsigned char HandleMipeKey(const InputAtom* event)
         break;
     case 4:
         if (key == 0x43) {
-            g_mipe_choose_group = g_mipe_choose_group == 0;
+            g_mipe_choose_group = !g_mipe_choose_group;
             if (g_mipe_state != 0) {
                 IListClear(&g_mipe_state->monster_ids);
             }
@@ -2768,7 +2768,7 @@ unsigned char HandleMipeKey(const InputAtom* event)
             ShowNoticef(0xf, &g_empty_wide_string);
             ShowNoticef(0xf, &g_empty_wide_string);
             ShowNoticef(0xf, &g_empty_wide_string);
-            ShowNoticef(0xf, g_mipe_choose_group == 0 ? L"Choosing: One" : L"Choosing: Group");
+            ShowNoticef(0xf, !g_mipe_choose_group ? L"Choosing: One" : L"Choosing: Group");
             return handled;
         }
         break;
@@ -2789,7 +2789,7 @@ unsigned char HandleMipeKey(const InputAtom* event)
         return handled;
     case 9:
         if (key == 0x43) {
-            g_mipe_choose_group = g_mipe_choose_group == 0;
+            g_mipe_choose_group = !g_mipe_choose_group;
             if (g_mipe_state != 0) {
                 IListClear(&g_mipe_state->monster_ids);
             }
@@ -2800,7 +2800,7 @@ unsigned char HandleMipeKey(const InputAtom* event)
             ShowNoticef(0xf, &g_empty_wide_string);
             ShowNoticef(0xf, &g_empty_wide_string);
             ShowNoticef(0xf, &g_empty_wide_string);
-            ShowNoticef(0xf, g_mipe_choose_group == 0 ? L"Choosing: One" : L"Choosing: Group");
+            ShowNoticef(0xf, !g_mipe_choose_group ? L"Choosing: One" : L"Choosing: Group");
             return handled;
         }
         break;
@@ -2816,7 +2816,7 @@ unsigned char HandleMipeKey(const InputAtom* event)
             ShowMipeTriggerMenu();
             return handled;
         case 0x35:
-            g_mipe_trigger_display = g_mipe_trigger_display == 0;
+            g_mipe_trigger_display = !g_mipe_trigger_display;
             SetWorldCursorNodesVisible(g_mipe_trigger_display);
             ShowMipeTriggerMenu();
             return handled;
@@ -3026,7 +3026,7 @@ void UpdateMipeSelection(void)
         ShowMonsterGeneratorStatus();
     }
     location_id = PickNearestMonsterUnderCursor(point.x, point.y);
-    if (g_mipe_choose_group != 0) {
+    if (g_mipe_choose_group) {
         if (location_id == -1) {
             group_id = W8_MIPE_NO_GROUP;
         } else {
@@ -3041,14 +3041,14 @@ void UpdateMipeSelection(void)
             int listed = IListGetAt(&g_mipe_state->monster_ids, index);
             info = MonsterGetScriptPartByLocationIndex(
                 MonsterGetIndexByLocationID(0x10cd, MIPE_CPP, listed, 1));
-            if (info->fActive != 0) {
+            if (info->fActive) {
                 SetMonsterHighlight(0, listed, 0);
             }
         }
         IListClear(&g_mipe_state->monster_ids);
         for (index = 0; index < static_cast<int>(PLLength(gXStatus.plsMonsterList)); ++index) {
             info = GetMonsterListEntry(index);
-            if (info->fActive != 0 && info->monster_group_id == group_id) {
+            if (info->fActive && info->monster_group_id == group_id) {
                 SetMonsterHighlight(0, info->location_id, 1);
                 IListAdd(&g_mipe_state->monster_ids, info->location_id);
             }
@@ -3192,7 +3192,7 @@ bool MipeWorldViewEvent(int event, const POINT* point)
         }
         break;
     case MOUSE_POS:
-        if (g_mipe_state->dragging != 0) {
+        if (g_mipe_state->dragging) {
             if (g_mipe_mode == 4) {
                 DragSelectionWithCursor();
                 result = 1;

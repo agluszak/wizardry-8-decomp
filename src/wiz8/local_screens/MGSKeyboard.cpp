@@ -168,7 +168,7 @@ unsigned char MGSKeyboard::Load(int handle, bool clear)
 {
     int count;
 
-    if (clear != 0) {
+    if (clear) {
         Clear();
     }
     FileRead(handle, &count, sizeof(count), 0);
@@ -225,13 +225,12 @@ unsigned char HandleMainGameInputEvent(const InputAtom* input)
         static_cast<char>(HandleTextInput(input)) != 0) {
         return 1;
     }
-    if ((input->usEvent == KEY_DOWN || input->usEvent == KEY_REPEAT) &&
-        gXStatus.fNpcDialogueMode != 0) {
+    if ((input->usEvent == KEY_DOWN || input->usEvent == KEY_REPEAT) && gXStatus.fNpcDialogueMode) {
         HandleNpcDialogueKeyEvent(input);
         return 1;
     }
     if ((input->usEvent == KEY_DOWN || input->usEvent == KEY_REPEAT) &&
-        gXStatus.fTrapInteractMode != 0 && TextBoxHandleKey(input) != 0) {
+        gXStatus.fTrapInteractMode && TextBoxHandleKey(input) != 0) {
         return 1;
     }
     if (IsMipeActive() && HandleMipeKey(input) != 0) {
@@ -255,26 +254,26 @@ void DispatchMGSCommand(W8MGSCommand command)
     case W8_MGS_COMMAND_CANCEL:
         if (IsWorldCursorVisible()) {
             ToggleWorldCursor();
-        } else if (gXStatus.fSurprisePossible != 0) {
+        } else if (gXStatus.fSurprisePossible) {
             AcknowledgeSurprise();
-        } else if (gXStatus.fSpellCastMode != 0) {
+        } else if (gXStatus.fSpellCastMode) {
             ResetSpellCastingSelection();
-        } else if (gXStatus.fLockInteractMode != 0) {
+        } else if (gXStatus.fLockInteractMode) {
             EndLockInteractMode(0);
-        } else if (gXStatus.fItemSelectMode != 0) {
+        } else if (gXStatus.fItemSelectMode) {
             CloseUseItemSelection();
         } else if (gXStatus.iTargetingMode != W8_TARGET_NEED_NONE) {
             SetTargetingMode(W8_TARGET_NEED_NONE);
-        } else if (gXStatus.fReviewCharacterMode != 0) {
+        } else if (gXStatus.fReviewCharacterMode) {
             CloseFormationPanel();
         } else if (IsNpcScriptSessionActive()) {
             TryFinishNpcVoicePlayback(1);
         } else if (gXStatus.character_event_queue->HasActiveEvents()) {
             gXStatus.character_event_queue->CompleteFirstActiveEvent();
         } else {
-            if (gXStatus.fCombatMode != 0) {
+            if (gXStatus.fCombatMode) {
                 ToggleCombatMode();
-                if (gXStatus.fCombatMode == 0) {
+                if (!gXStatus.fCombatMode) {
                     InvalidateRegion(0xa8, 0x16e, 0x1c4, 0x1ba, 0);
                     return;
                 }
@@ -382,7 +381,7 @@ void DispatchMGSCommand(W8MGSCommand command)
         ToggleMainGamePause();
         break;
     case W8_MGS_COMMAND_NEXT_LAYOUT:
-        if (gXStatus.fNpcDialogueMode != 0 || gXStatus.fCampMode != 0) {
+        if (gXStatus.fNpcDialogueMode || gXStatus.fCampMode) {
             break;
         }
         if (IsScreenInputBlocked() != 0) {
@@ -408,9 +407,9 @@ void DispatchMGSCommand(W8MGSCommand command)
         }
         break;
     case W8_MGS_COMMAND_OPTIONS:
-        if (gXStatus.fNpcDialogueMode != 0 || CanOpenNpcDialogue() ||
-            gXStatus.fLockInteractMode != 0 || gXStatus.fTrapInteractMode != 0 ||
-            gXStatus.fCampMode != 0 || gXStatus.fLockInteract != 0 || gXStatus.fTrapInteract != 0) {
+        if (gXStatus.fNpcDialogueMode || CanOpenNpcDialogue() || gXStatus.fLockInteractMode ||
+            gXStatus.fTrapInteractMode || gXStatus.fCampMode || gXStatus.fLockInteract ||
+            gXStatus.fTrapInteract) {
             break;
         }
         if (IsLevelDataFlag4EffectivelySet() == 0) {
@@ -422,8 +421,8 @@ void DispatchMGSCommand(W8MGSCommand command)
         TryMGSActionKey(W8_MGS_ACTION_JOURNAL);
         break;
     case W8_MGS_COMMAND_INVENTORY:
-        if (CanOpenNpcDialogue() || gXStatus.fCampMode != 0 || g_status.selected_character == -1 ||
-            (gXStatus.fNpcDialogueMode != 0 &&
+        if (CanOpenNpcDialogue() || gXStatus.fCampMode || g_status.selected_character == -1 ||
+            (gXStatus.fNpcDialogueMode &&
              g_npc_interaction_state->dialogue_layout == W8_DIALOGUE_LAYOUT_TRANSCRIPT)) {
             break;
         }
@@ -459,12 +458,12 @@ void DispatchMGSCommand(W8MGSCommand command)
         if (IsScreenInputBlocked() != 0 || IsLevelDataFlag4EffectivelySet() == 0) {
             break;
         }
-        if (g_status.iron_man != 0 && g_dev_mode == 0) {
+        if (g_status.iron_man != 0 && !g_dev_mode) {
             ShowNotice(0xc, gppStringList[0x82c], -1, -1, 0);
             break;
         }
-        if (gXStatus.fCombatMode != 0) {
-            if (g_dev_mode != 0) {
+        if (gXStatus.fCombatMode) {
+            if (g_dev_mode) {
                 EndCombat(0);
             } else {
                 ShowNotice(0xc, gppStringList[0x774], -1, -1, 0);
@@ -485,7 +484,7 @@ void DispatchMGSCommand(W8MGSCommand command)
         if (IsScreenInputBlocked() != 0) {
             break;
         }
-        if (g_status.iron_man != 0 && g_dev_mode == 0) {
+        if (g_status.iron_man != 0 && !g_dev_mode) {
             ShowNotice(0xc, gppStringList[0x82c], -1, -1, 0);
             break;
         }
@@ -530,7 +529,7 @@ void DispatchMGSCommand(W8MGSCommand command)
     case W8_MGS_COMMAND_SELECT_PC_5:
     case W8_MGS_COMMAND_SELECT_PC_6: {
         int slot = command - W8_MGS_COMMAND_SELECT_RECRUITED_1;
-        if (g_status.buffers.XChar[slot].fOccupied == 0) {
+        if (!g_status.buffers.XChar[slot].fOccupied) {
             break;
         }
         if (g_status.selected_character != slot) {
@@ -561,18 +560,17 @@ void DispatchMGSCommand(W8MGSCommand command)
         ScrollDialogueTextBoxToLine();
         break;
     case W8_MGS_COMMAND_TEXTBOX_CLEAR:
-        if (gXStatus.fSpellCastMode == 0 && gXStatus.fItemSelectMode == 0) {
+        if (!gXStatus.fSpellCastMode && !gXStatus.fItemSelectMode) {
             ResetEditorStatusLine(-1);
         }
         break;
     case W8_MGS_COMMAND_START_COMBAT_ROUND:
-        if (gXStatus.fCombatMode == 0 || gXStatus.fSpellCastMode != 0 ||
-            gXStatus.fItemSelectMode != 0) {
+        if (!gXStatus.fCombatMode || gXStatus.fSpellCastMode || gXStatus.fItemSelectMode) {
             break;
         }
         if (g_combat_state->execution_active == 0) {
             BeginCombatExecution();
-        } else if (gXStatus.fPartyMovementUi != 0 && !CanPartyMove() && !IsLevelMovementStopped()) {
+        } else if (gXStatus.fPartyMovementUi && !CanPartyMove() && !IsLevelMovementStopped()) {
             BeginFreeTurnPhase();
         }
         break;
@@ -721,7 +719,7 @@ void CloseKeyboardMenu(void)
     g_level_block->hover_combat_slot = g_selected_party_slot;
     g_level_block->cursor_grace = 0;
     RefreshPartySlotRegions();
-    if (gXStatus.fCombatMode != 0) {
+    if (gXStatus.fCombatMode) {
         EnableMainRegionSet();
     } else {
         DisableMainRegionSet();
@@ -963,7 +961,7 @@ void AssignKeyboardMenuCallback(short menu, short item, W8TextControl* row)
 // FUNCTION: WIZ8 0x005936F0
 void RedrawKeyboardMenuPanel(bool invalidate)
 {
-    if (invalidate != 0) {
+    if (invalidate) {
         g_keyboard_menu_panel->Invalidate(0);
     }
     g_keyboard_menu_panel->Redraw();
@@ -1030,7 +1028,7 @@ static void KeyboardMenuOpenSpellView(void)
 {
 
     CloseKeyboardMenu();
-    if (gXStatus.fSpellCastMode == 0) {
+    if (!gXStatus.fSpellCastMode) {
         OpenSpellCastingView(g_selected_party_slot);
     }
 }
@@ -1058,7 +1056,7 @@ static void KeyboardMenuOpenUseItemView(void)
 {
 
     CloseKeyboardMenu();
-    if (gXStatus.fItemSelectMode == 0) {
+    if (!gXStatus.fItemSelectMode) {
         OpenUseItemSelectView(g_selected_party_slot);
     }
 }
@@ -1156,7 +1154,7 @@ unsigned char KeyboardMenuRowRegionEvent(const InputAtom* event, W8Region* regio
 // FUNCTION: WIZ8 0x005949A0
 unsigned char KeyboardMenuBackgroundRegionEvent(const InputAtom* event, W8Region*)
 {
-    if (g_level_block->keyboard_menu_open == 0) {
+    if (!g_level_block->keyboard_menu_open) {
         return 0;
     }
     if (event->usEvent != RIGHT_BUTTON_UP) {
@@ -1169,7 +1167,7 @@ unsigned char KeyboardMenuBackgroundRegionEvent(const InputAtom* event, W8Region
 // FUNCTION: WIZ8 0x005929d0
 void HandleManualCameraHotkeys(void)
 {
-    if (g_modal_owner == 0 && gXStatus.fNpcDialogueMode == 0) {
+    if (g_modal_owner == 0 && !gXStatus.fNpcDialogueMode) {
         if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_CAMERA_LOCK)) {
             BeginManualCameraControl();
         }

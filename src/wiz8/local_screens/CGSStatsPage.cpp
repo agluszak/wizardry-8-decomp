@@ -646,7 +646,7 @@ void W8CharacterStatsPage::AdjustEntry(W8CharacterPageEntry* entry, int delta)
     if (m_character->attributes[entry->m_id].value >= 100) {
         for (int skill = 0x22; skill < 0x29; ++skill) {
             if (g_skill_attributes[skill].attribute_1 == static_cast<int>(entry->m_id) &&
-                m_character->skills[skill].active != 0) {
+                m_character->skills[skill].active) {
                 m_screen->ShowDescription(entry->m_id, skill);
             }
         }

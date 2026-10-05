@@ -153,11 +153,11 @@ bool RunNpcDialogueSemanticTest(NpcDialogueSemanticResult* result)
     result->spacer_consumed_inertly = g_npc_scripting.message_lines.GetCount() == 3;
 
     ProcessMessageBoxQueue(); /* CLOSE_DIALOGUE */
-    result->close_flag_set = g_npc_dialogue_closed != 0 && gXStatus.fNpcDialogueMode == 0;
+    result->close_flag_set = g_npc_dialogue_closed && !gXStatus.fNpcDialogueMode;
 
     ProcessMessageBoxQueue(); /* DISPATCH_PENDING_NOTICE */
     result->notice_dispatched =
-        g_pending_notice_queued == 0 && gXStatus.fNpcDialogueMode != 0 && fake_screen->scripted_dialogue != 0;
+        !g_pending_notice_queued && gXStatus.fNpcDialogueMode && fake_screen->scripted_dialogue;
     tail = 0;
     if (g_npc_scripting.message_lines.GetCount() == 2) {
         tail = *g_npc_scripting.message_lines.GetAt(1);
@@ -172,8 +172,7 @@ bool RunNpcDialogueSemanticTest(NpcDialogueSemanticResult* result)
 
     ProcessMessageBoxQueue(); /* the notice's requeued quote */
     ProcessMessageBoxQueue(); /* empties the queue and restores the idle flag */
-    result->queue_drained =
-        g_npc_scripting.message_lines.GetCount() == 0 && g_message_queue_idle != 0;
+    result->queue_drained = g_npc_scripting.message_lines.GetCount() == 0 && g_message_queue_idle;
 
     /* SetNpcDialogueLayoutMode: with the dialogue cursor down, a zero value
        retires the current layout into previous_dialogue_layout and parks dialogue_layout on NONE,

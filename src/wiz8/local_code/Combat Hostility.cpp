@@ -253,7 +253,7 @@ void MakeTargetGroupHostile(W8TargetSource* source, W8CombatSlot* target)
             GetMonsterGroupIndexByID(0x167, COMBAT_HOSTILITY_CPP, group_id, 1);
         group = GetMonsterGroupByListIndex(group_list_index);
         SetMonsterGroupHostility(group, hostility, 1);
-        if (group->fInCombat == 0) {
+        if (!group->fInCombat) {
             MonsterGroupEnterCombat(group);
         }
     }
@@ -363,7 +363,7 @@ bool MonsterCanAimSpell(int spell_id)
 // FUNCTION: WIZ8 0x00547510
 bool CombatAllowsLiveGroups(void)
 {
-    return gXStatus.fCombatMode != 0 && g_combat_state->enemies_engaged == 0 &&
+    return gXStatus.fCombatMode && !g_combat_state->enemies_engaged &&
            g_combat_state->round_count <= 1;
 }
 
@@ -933,7 +933,7 @@ void AlertSameFactionGroups(W8MonsterGroup* monster_group)
             W8MonsterGroup* other = GetMonsterGroupByListIndex(index);
             W8MonsterRecord* other_record = MonsterGroupGetRecord(other);
             if (other != monster_group &&
-                ((other_record->flags & W8_MONSTER_FLAG_NPC) == 0 || other->forced_neutral == 0) &&
+                ((other_record->flags & W8_MONSTER_FLAG_NPC) == 0 || !other->forced_neutral) &&
                 record->faction_id == other_record->faction_id &&
                 MonsterGroupCanSeeGroup(other, monster_group)) {
                 SetMonsterGroupHostility(other, monster_group->ubDisposition, 0);

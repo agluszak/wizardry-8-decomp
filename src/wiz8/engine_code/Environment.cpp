@@ -208,7 +208,7 @@ void SetEnvironmentTimeEnabled(bool enabled)
 
     g_environment_time_enabled = 1;
     g_tick = GetTickCount();
-    if (g_environment_time_enabled != 0) {
+    if (g_environment_time_enabled) {
         unsigned long now = GetTickCount();
         unsigned long elapsed = now < g_tick ? now - g_tick - 1 : now - g_tick;
         if (elapsed != 0) {
@@ -231,14 +231,14 @@ void UpdateEnvironment(void)
         UpdateEnvironmentLighting();
         return;
     }
-    if (g_environment_time_enabled == 0) {
+    if (!g_environment_time_enabled) {
         return;
     }
     if (g_environment_lighting_mode == 2) {
-        if (g_sky_enabled != 0) {
+        if (g_sky_enabled) {
             UpdateEnvironmentLight();
         }
-        if (g_environment_colour_refresh != 0) {
+        if (g_environment_colour_refresh) {
             RefreshEnvironment();
         }
     } else {
@@ -361,7 +361,7 @@ void BuildLightColourRamp(void)
 // FUNCTION: WIZ8 0x004834B0
 void UpdateEnvironmentLight(void)
 {
-    if (g_environment_time_enabled != 0) {
+    if (g_environment_time_enabled) {
         unsigned long now = GetTickCount();
         unsigned long elapsed = now < g_tick ? now - g_tick - 1 : now - g_tick;
         if (elapsed != 0) {
@@ -383,7 +383,7 @@ void UpdateEnvironmentLight(void)
 // FUNCTION: WIZ8 0x00483750
 void SetSkyEnabled(bool enabled)
 {
-    if (enabled != 0) {
+    if (enabled) {
         if (g_world == 0 || g_world->dynamic_scene == 0 || g_environment_object0 != 0) {
             return;
         }
@@ -481,7 +481,7 @@ int g_last_environment_colour_phase = -1;
 // FUNCTION: WIZ8 0x00483560
 void RefreshEnvironment(void)
 {
-    if (g_environment_time_enabled != 0) {
+    if (g_environment_time_enabled) {
         unsigned long now = GetTickCount();
         unsigned long elapsed = now < g_tick ? now - g_tick - 1 : now - g_tick;
         if (elapsed != 0) {
@@ -992,7 +992,7 @@ void InitializeLevelEnvironment(void)
             }
         }
     }
-    if (g_environment_time_enabled != 0) {
+    if (g_environment_time_enabled) {
         unsigned int now = GetTickCount();
         unsigned int elapsed;
 

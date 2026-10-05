@@ -150,7 +150,7 @@ bool OctPreTree::SegmentClear(const srVector3T<float>* from, const srVector3T<fl
         int error_a = walk.error0;
         int error_b = walk.error1;
         for (int index = 0; index < walk.count; ++index) {
-            if (blocked != 0) {
+            if (blocked) {
                 break;
             }
             CollectLeafPolygons(&cell);
@@ -197,7 +197,7 @@ bool OctPreTree::SegmentClear(const srVector3T<float>* from, const srVector3T<fl
             error_b -= walk.error_delta1;
         }
     }
-    return blocked == 0;
+    return !blocked;
 }
 
 /* Tests the collected region polygons' planes against the trace segment.  A
@@ -212,7 +212,7 @@ bool OctPreTree::TestCollectedPolygons(W8OctreeTrace* trace)
     bool blocked = false;
 
     for (unsigned long index = 0; index < m_gd_result_count; ++index) {
-        if (blocked != 0) {
+        if (blocked) {
             break;
         }
         W8OctRegionPolygon* polygon = &game_data->m_polygons[m_aulGDObjs[index]];
@@ -249,7 +249,7 @@ bool OctPreTree::TestCollectedPolygons(W8OctreeTrace* trace)
             }
         }
     }
-    return blocked != 0;
+    return blocked;
 }
 
 /* Serializes the finished octree to NewLevel.oct: the 0xf5-byte header, then
@@ -1357,8 +1357,8 @@ char OctPreTree::PathNodeObstructed(const srVector3T<float>* node)
                 if (current_prop >= 0) {
                     corner.y = bounds_min.y + g_world_scale;
                     probe = SnapToGround(&corner, 0);
-                    if (probe == 0 || clearance * static_cast<float>(g_double_005ebe80) <
-                                          fabsf(node->y - corner.y)) {
+                    if (!probe || clearance * static_cast<float>(g_double_005ebe80) <
+                                      fabsf(node->y - corner.y)) {
                         for (int b = 0; b < m_lNumBlocks && result != 1; ++b) {
                             if (current_prop == m_lBlocks[b])
                                 result = 1;
@@ -1792,7 +1792,7 @@ unsigned char TestSpatialTriangle(const srVector3T<float>* bounds,
             g_float_005ec410;
     }
 
-    if (near_axis == 0) {
+    if (!near_axis) {
         bool negative = 0;
         bool positive = 0;
         for (int x = 0; x != 2; ++x) {
@@ -1811,7 +1811,7 @@ unsigned char TestSpatialTriangle(const srVector3T<float>* bounds,
                 }
             }
         }
-        if (negative == 0 || positive == 0) {
+        if (!negative || !positive) {
             return 0;
         }
     }

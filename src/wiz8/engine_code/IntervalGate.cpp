@@ -39,7 +39,7 @@ void W8IntervalGate::Arm()
 // FUNCTION: WIZ8 0x0043A5D0
 unsigned int W8IntervalGate::PollElapsedIntervals()
 {
-    if (m_finished != 0) {
+    if (m_finished) {
         return 1;
     }
     unsigned int intervals = static_cast<unsigned int>(ReadClock() - m_start) /
@@ -83,7 +83,7 @@ BOOLEAN W8IntervalGate::Save(int handle)
         saved |= FileWrite(handle, &m_duration_scale, sizeof(m_duration_scale), 0);
         return saved;
     }
-    if (m_finished != 0) {
+    if (m_finished) {
         elapsed = 0.0f;
     } else {
         elapsed = GetElapsedSeconds();

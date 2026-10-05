@@ -543,7 +543,7 @@ void W8OptionsSaveLoadPanel::LoadSelectedSave()
     W8SaveSlot* slot = *g_options_screen->m_save_slots.GetAt(selected_slot);
     if (slot->version_major + slot->version_minor * 0.1f + slot->version_patch * 0.01f <= 1.24f) {
         SetLastSaveName(slot->name);
-        if (g_status.game_started != 0) {
+        if (g_status.game_started) {
             ClearHeldItemDisplay();
         }
         RequestScreenTransition();
@@ -657,7 +657,7 @@ void W8OptionsSaveRow::Redraw(unsigned char full_redraw)
 // FUNCTION: WIZ8 0x005a7b10
 void W8OptionsSaveRow::OnLeftButtonUp(int event)
 {
-    if (m_active && m_enabled && m_editing == 0 &&
+    if (m_active && m_enabled && !m_editing &&
         (m_stateFlags & g_W8TextControlStateSecondary) != 0) {
         POINT point;
         SGPMouseGetPos(&point);
@@ -673,7 +673,7 @@ void W8OptionsSaveRow::OnLeftButtonUp(int event)
 // FUNCTION: WIZ8 0x005a7bb0
 void W8OptionsSaveRow::OnLeftButtonDoubleClick(int event)
 {
-    if (m_active && m_enabled && m_editing == 0 &&
+    if (m_active && m_enabled && !m_editing &&
         (m_stateFlags & g_W8TextControlStateSecondary) != 0 && m_save_listener != 0) {
         m_save_listener->OnActivateSave(this);
     }
@@ -966,19 +966,19 @@ W8OptionsPanel* CreateOptionsPanel(int panel, unsigned char* compact,
     case 10:
         return new W8OptionsKeyboardPanel(panel);
     case 11:
-        if (g_status.game_started != 0 && g_status.iron_man != 0) {
+        if (g_status.game_started && g_status.iron_man != 0) {
             *hide_navigation = 1;
             return new W8OptionsUnavailablePanel(0x82c);
         }
         *compact = 1;
         return new W8OptionsSaveLoadPanel(11);
     case 12:
-        if (g_status.game_started != 0) {
+        if (g_status.game_started) {
             if (g_status.iron_man != 0) {
                 *hide_navigation = 1;
                 return new W8OptionsUnavailablePanel(0x82c);
             }
-            if (gXStatus.fCombatMode != 0) {
+            if (gXStatus.fCombatMode) {
                 *hide_navigation = 1;
                 return new W8OptionsUnavailablePanel(0x82b);
             }
@@ -1024,7 +1024,7 @@ void W8OptionsMousePanel::Populate()
     AddCheckbox(0x809, &g_options_values.autotarget_spells);
     AddCheckbox(0x804, &g_options_values.auto_advance_character);
     AddCheckbox(0x808, &g_options_values.autoswap_weapons);
-    if (g_status.game_started == 0 || g_status.iron_man == 0) {
+    if (!g_status.game_started || g_status.iron_man == 0) {
         AddCheckbox(0x80d, &g_options_values.auto_save);
     }
 }
@@ -1043,7 +1043,7 @@ void W8OptionsInterfacePanel::Populate()
     W8TextControl* button = AddChoiceButton(0x80f);
     button->EnableRegionHelp(0x810);
     button->m_listener = this;
-    if (g_settings.tooltips_enabled == 0) {
+    if (!g_settings.tooltips_enabled) {
         button->EnableSecondaryState(0);
         m_tooltip_delay->SetEnabled(0);
     }
@@ -1286,7 +1286,7 @@ W8OptionsScreen::W8OptionsScreen()
     }
     W8SaveSlot* current = new W8SaveSlot;
     m_save_slots.Add(current);
-    if (g_status.game_started != 0) {
+    if (g_status.game_started) {
         FillCurrentSaveSlot(current);
     }
     EnumerateSaveSlots(&m_save_slots);
@@ -1385,7 +1385,7 @@ void W8OptionsScreen::SelectPanel(int selected, bool notify)
         }
         m_menu_set->UpdateMenuSet();
     }
-    if (notify != 0) {
+    if (notify) {
         m_menu_selection->SetSelected(m_selected_panel);
     }
     if (m_selected_panel >= 0) {
@@ -1452,7 +1452,7 @@ unsigned char W8OptionsScreen::ProcessInput(const InputAtom* input)
 // FUNCTION: WIZ8 0x005a95f0
 void W8OptionsScreen::Redraw()
 {
-    if (m_redraw_pending != 0) {
+    if (m_redraw_pending) {
         ClearPrimarySurface();
         ClearSurfaceRect(0, 0, 640, 480);
         DrawCatalogImageAndInvalidate(-14, 0xee, 0, 0, 0, 0, 2, 0);
@@ -1628,8 +1628,7 @@ void W8OptionsCheckbox::OnLeftButtonUp(int event)
 }
 
 W8OptionsSlider::W8OptionsSlider(Controls* owner, int top, float* value, bool alternate)
-    : W8HorizontalRangeThumb(owner, 0xffffffff, 0xc9, top - 2, 0xf5, 0, alternate != 0 ? 4 : 0, 1,
-                             2, 3),
+    : W8HorizontalRangeThumb(owner, 0xffffffff, 0xc9, top - 2, 0xf5, 0, alternate ? 4 : 0, 1, 2, 3),
       m_value(value)
 {
     if (m_value != 0) {
@@ -1956,7 +1955,7 @@ void W8OptionsMenuSet::OnPrimary(W8TextControl* control)
 void W8OptionsScreen::OnDialogClosed(unsigned char reason, int)
 {
     if (reason != 0) {
-        if (g_status.game_started != 0 && gXStatus.fCombatMode == 0 && AnyCharacterActive()) {
+        if (g_status.game_started && !gXStatus.fCombatMode && AnyCharacterActive()) {
             AutoSaveIfAllowed(1);
         }
         RequestExitScreen();
@@ -2042,7 +2041,7 @@ unsigned char OptionsScreenEnter()
         } else {
             selected = g_last_options_panel;
             if (g_last_options_panel == 5) {
-                if (gXStatus.fCombatMode != 0) {
+                if (gXStatus.fCombatMode) {
                     selected = 4;
                 }
                 if (g_status.iron_man != 0) {
@@ -2088,7 +2087,7 @@ void OptionsScreenFrame()
     W8MessageDialogBase** active_modal = &screen->m_active_modal;
     if (*active_modal != 0) {
         if ((*active_modal)->ProcessInput() == 0) {
-            if (screen->m_modal_closing == 0) {
+            if (!screen->m_modal_closing) {
                 delete *active_modal;
                 *active_modal = 0;
             }
@@ -2113,7 +2112,7 @@ void OptionsScreenFrame()
         }
     }
     screen->Redraw();
-    if (g_options_first_frame != 0) {
+    if (g_options_first_frame) {
         SetRendererAutoFlipEnabled(0);
         RenderFrame();
         SetRendererAutoFlipEnabled(1);

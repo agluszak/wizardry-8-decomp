@@ -231,7 +231,7 @@ unsigned char W8OctBuildTree::InsertSurface(W8GDSurface* surface, unsigned long 
     }
 
     if (spatial.m_root == 0) {
-        if (use_owned_nodes == 0) {
+        if (!use_owned_nodes) {
             spatial.m_root = new W8OctBuildNode;
         } else {
             spatial.m_root = new W8CountedOctBuildNode;
@@ -287,7 +287,7 @@ unsigned char W8OctBuildTree::InsertSurfaceRecursive(W8OctSpatialState* working,
                                             plane_point) != 0) {
                         W8OctBuildNode* node = working->m_root;
                         if (node->children[octant] == 0) {
-                            if (use_owned_nodes == 0) {
+                            if (!use_owned_nodes) {
                                 node->children[octant] = new W8OctBuildNode;
                             } else {
                                 node->children[octant] = new W8CountedOctBuildNode;
@@ -405,7 +405,7 @@ int W8OctBuildTree::CollectRecursive(W8OctSpatialState* state, const srVector3T<
     box[0] = state->m_minimum;
     box[1] = state->m_maximum;
     int verdict = ClassifyBoxBounds(box, bounds, leaf);
-    if (verdict == 2 || (verdict == 1 && leaf != 0)) {
+    if (verdict == 2 || (verdict == 1 && leaf)) {
         collected = CollectLeaf(state->m_root, state->m_depth, kind);
     } else if (verdict == 1) {
         short octant = 0;
@@ -578,14 +578,14 @@ int W8OctBuildTree::ClassifyBoxBounds(const srVector3T<float>* box, const srVect
                     }
                 } else {
                     inside = 1;
-                    if (all_inside == 0 || leaf != 0) {
+                    if (!all_inside || leaf) {
                         x = y = z = 2;
                     }
                 }
             }
         }
     }
-    if (all_inside != 0) {
+    if (all_inside) {
         return 2;
     }
     if (inside == 0) {

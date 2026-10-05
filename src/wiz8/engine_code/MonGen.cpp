@@ -417,7 +417,7 @@ unsigned char MonGen::GenerateEncounter(const srVector3T<float>* position)
     group = CreateGroup(species, count, &spawn_position, 0, 0, 1);
     group->encounter_registered = 1;
     SetMonsterGroupFormation(group, &this->spawn_position);
-    if (group != 0 && group->encounter_registered != 0 && g_active_groups.IndexOf(group) == -1) {
+    if (group != 0 && group->encounter_registered && g_active_groups.IndexOf(group) == -1) {
         g_active_groups.Add(group);
     }
 
@@ -427,7 +427,7 @@ unsigned char MonGen::GenerateEncounter(const srVector3T<float>* position)
     }
 
     for (index = 0; index < 2; ++index) {
-        if (companion_active[index] == 0) {
+        if (!companion_active[index]) {
             continue;
         }
 
@@ -457,8 +457,7 @@ unsigned char MonGen::GenerateEncounter(const srVector3T<float>* position)
         LinkMonsterGroupToLeader(group, companion_group);
     }
 
-    if (g_dev_mode != 0 && gfCapturingVideo == 0 &&
-        g_current_screen_state.id != W8_SCREEN_PLEASE_WAIT) {
+    if (g_dev_mode && gfCapturingVideo == 0 && g_current_screen_state.id != W8_SCREEN_PLEASE_WAIT) {
         W8MonsterRecord* group_record = MonsterGroupGetRecord(group);
         const wchar_t* group_name =
             group->member_count == 1 ? group_record->name0 : group_record->name1;
@@ -480,9 +479,8 @@ unsigned char MonGen::CanGenerateEncounter(bool force)
     srVector3T<float> camera;
     float distance;
 
-    if (g_generator_save_flag != 0 || gXStatus.world_update_blocked != 0 ||
-        gXStatus.fCombatMode != 0 || gXStatus.fNpcDialogueMode != 0 || IsMipeActive() ||
-        generation_enabled == 0) {
+    if (g_generator_save_flag != 0 || gXStatus.world_update_blocked || gXStatus.fCombatMode ||
+        gXStatus.fNpcDialogueMode || IsMipeActive() || generation_enabled == 0) {
         return 0;
     }
 
@@ -490,7 +488,7 @@ unsigned char MonGen::CanGenerateEncounter(bool force)
     srVector3T<float> delta = spawn_position - camera;
     distance = delta.Length();
 
-    if (force == 0 && g_status.world_suspended == 0) {
+    if (!force && !g_status.world_suspended) {
         if (distance > 200000.0f || distance < 35000.0f) {
             return 0;
         }
@@ -506,7 +504,7 @@ unsigned char MonGen::CanGenerateEncounter(bool force)
         }
     }
 
-    if (force != 0) {
+    if (force) {
         return 1;
     }
 
@@ -544,7 +542,7 @@ void UpdateRandomEncounterBudget(bool reset_budget)
     int elapsed;
     int index;
 
-    if (reset_budget == 0) {
+    if (!reset_budget) {
         elapsed =
             g_status.world_clock - g_status.level_progress[g_status.current_level].sight_clock;
         g_random_encounter_budget +=
@@ -638,8 +636,7 @@ void CullExpiredEncounters(void)
             position = monster->GetPosition();
             srVector3T<float> delta = position - party;
 
-            if (g_encounter_culling_distance < delta.Length() ||
-                g_status.world_suspended != 0) {
+            if (g_encounter_culling_distance < delta.Length() || g_status.world_suspended) {
                 DespawnMonsterGroup(group);
             }
         }
@@ -835,11 +832,11 @@ void RunMonsterGenerators(void)
 // FUNCTION: WIZ8 0x0048c670
 void UnregisterActiveEncounterGroup(W8MonsterGroup* group)
 {
-    if (group == 0 || group->encounter_registered == 0) {
+    if (group == 0 || !group->encounter_registered) {
         return;
     }
     unsigned char removed = g_active_groups.Remove(group);
-    if (gXStatus.fCombatMode == 0 || removed == 0) {
+    if (!gXStatus.fCombatMode || removed == 0) {
         return;
     }
 
@@ -856,7 +853,7 @@ void UnregisterActiveEncounterGroup(W8MonsterGroup* group)
 // FUNCTION: WIZ8 0x0048c750
 void RegisterActiveEncounterGroup(W8MonsterGroup* group)
 {
-    if (group == 0 || group->encounter_registered == 0 || g_active_groups.IndexOf(group) != -1) {
+    if (group == 0 || !group->encounter_registered || g_active_groups.IndexOf(group) != -1) {
         return;
     }
     g_active_groups.Add(group);

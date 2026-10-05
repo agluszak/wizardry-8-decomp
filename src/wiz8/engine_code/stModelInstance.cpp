@@ -322,7 +322,7 @@ void stModelInstance2D::process(const ProcessInfo& info, e_processType)
     srMeshModel* model = static_cast<srMeshModel*>(getModel());
     model->getTriMesh(mesh);
 
-    if (render_state.glow_enabled != 0) {
+    if (render_state.glow_enabled) {
         if (m_pGlowMaterial == 0) {
             m_pGlowMaterial = new stMaterial;
             if (m_pGlowMaterial == 0) {
@@ -362,7 +362,7 @@ render_mesh:
 // FUNCTION: WIZ8 0x00480EB0
 void stModelInstance2D::SetGlowEnabled(bool enable)
 {
-    if (enable == 0 && m_pGlowMaterial != 0) {
+    if (!enable && m_pGlowMaterial != 0) {
         m_pGlowMaterial->release();
         m_pGlowMaterial = 0;
     }
@@ -549,7 +549,7 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
     ambient_color = ambient.xyz();
 
     srVector4T<float> light;
-    if (model->vertex_lighting_ready == 0) {
+    if (!model->vertex_lighting_ready) {
         light.w = 1.0f;
         light.x =
             (ambient_color.x * light_scale.x + g_environment_offset.x) * g_monster_light_scale;
@@ -581,7 +581,7 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
     while (model != 0) {
         model->SetAmbientColor(ambient_color);
         model->getTriMesh(mesh);
-        if (((render_flags >> 3) & 1) != 0 && first_pass != 0) {
+        if (((render_flags >> 3) & 1) != 0 && first_pass) {
             RenderShadow(renderer, mesh);
         }
 
@@ -595,14 +595,14 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
             poly_normals = 0;
         }
 
-        if (g_render_untextured != 0) {
+        if (g_render_untextured) {
             mesh.shaders[0].value &= 0xffff73ff;
             mesh.poly_shaders[0] = 0;
             mesh.poly_textures[0][0] = 0;
             mesh.poly_uv[0] = 0;
             mesh.texcoords[0][0] = 0;
         }
-        if (g_render_unlit != 0) {
+        if (g_render_unlit) {
             mesh.dig[0] = 0;
         }
         srPtr<srTextureIFace>*(*poly_textures)[2] = mesh.poly_textures;
@@ -627,13 +627,13 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
              (highlight_colour.z == g_float_zero) &&
              (highlight_colour.w == g_float_zero)) ||
             (highlight_pass_mode != 1)) {
-            if (diffuse_scale_enabled != 0) {
+            if (diffuse_scale_enabled) {
                 g_material_diffuse_scale = diffuse_scale;
                 mesh.shaders[0].value = (mesh.shaders[0].value & 0xffffd7bf) | 0x44a0;
                 mesh.control_flags |= 0x40;
                 g_material_diffuse_scale_enabled = 1;
             }
-            if (emissive_override_enabled != 0) {
+            if (emissive_override_enabled) {
                 g_material_emissive_override = emissive_override;
                 g_material_emissive_override_enabled = 1;
             }
@@ -661,10 +661,10 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
         } else {
             model = 0;
         }
-        if (diffuse_scale_enabled != 0) {
+        if (diffuse_scale_enabled) {
             g_material_diffuse_scale_enabled = 0;
         }
-        if (emissive_override_enabled != 0) {
+        if (emissive_override_enabled) {
             g_material_emissive_override_enabled = 0;
         }
     }

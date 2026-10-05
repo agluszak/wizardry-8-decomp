@@ -129,7 +129,7 @@ void W8DialogButton::SetVisible(bool visible)
 void W8DialogButton::SetTooltipEnabled(unsigned char enabled)
 {
     if (enabled) {
-        if (m_tooltip_index != -1 && g_settings.tooltips_enabled != 0) {
+        if (m_tooltip_index != -1 && g_settings.tooltips_enabled) {
             SetButtonFastHelpText(m_button,
 
                                   gppStringList[m_tooltip_index]);
@@ -144,7 +144,7 @@ void W8DialogButton::SetTooltipIndex(int tooltip_index)
 {
     if (m_button != -1) {
         m_tooltip_index = tooltip_index;
-        if (g_settings.tooltips_enabled != 0) {
+        if (g_settings.tooltips_enabled) {
             SetButtonFastHelpText(m_button,
 
                                   gppStringList[tooltip_index]);
@@ -285,7 +285,7 @@ unsigned char W8DialogButton::Configure(const char* image_path, int gray_frame,
         m_double_click_callback = double_click_callback;
         m_left_toggles = left_toggles;
         m_tooltip_index = tooltip_index;
-        if (tooltip_index != -1 && g_settings.tooltips_enabled != 0) {
+        if (tooltip_index != -1 && g_settings.tooltips_enabled) {
             SetButtonFastHelpText(m_button,
 
                                   gppStringList[tooltip_index]);
@@ -339,10 +339,10 @@ void DialogButtonCallback(GUI_BUTTON* button, INT32 reason)
                             if ((reason & MSYS_CALLBACK_REASON_GAIN_MOUSE) != 0) {
                                 button->Area.uiFlags |= MSYS_MOUSE_IN_AREA;
                                 self->m_dirty = true;
-                                if (self->hover_silent != 0) {
+                                if (self->hover_silent) {
                                     return;
                                 }
-                                if (self->silent != 0) {
+                                if (self->silent) {
                                     return;
                                 }
                                 PlayButtonSound(0);
@@ -361,10 +361,10 @@ void DialogButtonCallback(GUI_BUTTON* button, INT32 reason)
                                         self->m_dirty = true;
                                     }
                                 }
-                                if (self->hover_silent != 0) {
+                                if (self->hover_silent) {
                                     return;
                                 }
-                                if (self->silent != 0) {
+                                if (self->silent) {
                                     return;
                                 }
                                 PlayButtonSound(1);
@@ -398,7 +398,7 @@ void DialogButtonCallback(GUI_BUTTON* button, INT32 reason)
                         }
                         button->uiFlags &= ~BUTTON_CLICKED_ON;
                         self->m_dirty = true;
-                        if (self->m_fires_on_press != 0 && self->press_armed != 0) {
+                        if (self->m_fires_on_press != 0 && self->press_armed) {
                             self->press_armed = false;
                             return;
                         }
@@ -440,7 +440,7 @@ void DialogButtonCallback(GUI_BUTTON* button, INT32 reason)
         }
         button->uiFlags &= ~BUTTON_CLICKED_ON;
         self->m_dirty = true;
-        if (self->m_fires_on_press != 0 && self->press_armed != 0) {
+        if (self->m_fires_on_press != 0 && self->press_armed) {
             self->press_armed = false;
             return;
         }
@@ -452,7 +452,7 @@ void DialogButtonCallback(GUI_BUTTON* button, INT32 reason)
             }
             button->uiFlags |= BUTTON_CLICKED_ON;
             self->m_dirty = true;
-            if (self->silent != 0) {
+            if (self->silent) {
                 return;
             }
             PlayButtonSound(2);
@@ -466,7 +466,7 @@ void DialogButtonCallback(GUI_BUTTON* button, INT32 reason)
         left_callback(self);
     }
 play_click:
-    if (self->silent != 0) {
+    if (self->silent) {
         return;
     }
     PlayButtonSound(3);

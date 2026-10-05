@@ -212,13 +212,13 @@ void ResetEditorStatusLine(short line)
 static short ResolveNoticeTextBox(short text_box)
 {
     if (text_box == -1) {
-        if ((gXStatus.fNpcDialogueMode != 0 && !CanOpenNpcDialogue()) || gXStatus.fCampMode != 0) {
+        if ((gXStatus.fNpcDialogueMode && !CanOpenNpcDialogue()) || gXStatus.fCampMode) {
             return IsNpcDialogueTextBoxActive() ? 0 : 2;
         }
         if (IsMipeActive()) {
             return 0;
         }
-        return gXStatus.fCombatMode != 0;
+        return gXStatus.fCombatMode;
     }
     return text_box;
 }
@@ -693,11 +693,10 @@ void ScrollDialogueTextBoxToLine(void)
     if (g_level_block->dialogue_text_input_open &&
         (input = g_level_block->dialogue_text_input) != 0 &&
         g_status.text_line_cursor == input->text_box) {
-        if (gXStatus.fNpcDialogueMode != 0) {
-            offset = g_npc_interaction_state->text_box_collapsed != 0 ? 1 : 7;
+        if (gXStatus.fNpcDialogueMode) {
+            offset = g_npc_interaction_state->text_box_collapsed ? 1 : 7;
         } else {
-            offset = gXStatus.fSpellCastMode == 0 && gXStatus.fItemSelectMode == 0 &&
-                             gXStatus.fCampMode == 0
+            offset = !gXStatus.fSpellCastMode && !gXStatus.fItemSelectMode && !gXStatus.fCampMode
                          ? 1
                          : 7;
         }
@@ -705,13 +704,11 @@ void ScrollDialogueTextBoxToLine(void)
                         input->line_count - offset);
         return;
     }
-    if (gXStatus.fNpcDialogueMode != 0) {
-        offset = g_npc_interaction_state->text_box_collapsed != 0 ? 1 : 7;
+    if (gXStatus.fNpcDialogueMode) {
+        offset = g_npc_interaction_state->text_box_collapsed ? 1 : 7;
     } else {
         offset =
-            gXStatus.fSpellCastMode == 0 && gXStatus.fItemSelectMode == 0 && gXStatus.fCampMode == 0
-                ? 1
-                : 7;
+            !gXStatus.fSpellCastMode && !gXStatus.fItemSelectMode && !gXStatus.fCampMode ? 1 : 7;
     }
     ScrollTextBoxTo(g_status.text_box_lines_shown[g_status.text_line_cursor] - offset);
 }
@@ -844,7 +841,7 @@ void AppendToLastTextLine(const wchar_t* text, short text_box)
 // FUNCTION: WIZ8 0x0058d7c0
 unsigned char GetOpenDialogueFlag(void)
 {
-    if (g_level_block->dialogue_text_input_open != 0 && g_level_block->dialogue_text_input != 0) {
+    if (g_level_block->dialogue_text_input_open && g_level_block->dialogue_text_input != 0) {
         return g_level_block->dialogue_text_input->dirty;
     }
     return 0;
@@ -867,13 +864,12 @@ static unsigned int FindDialogueTextLine(const W8DialogueTextState* input)
 int GetTextBoxVisibleLineCount(void)
 {
     bool dialogue = gXStatus.fNpcDialogueMode;
-    if (dialogue != 0) {
-        if (g_npc_interaction_state->text_box_collapsed != 0) {
+    if (dialogue) {
+        if (g_npc_interaction_state->text_box_collapsed) {
             return 1;
         }
     }
-    if (gXStatus.fSpellCastMode == 0 && dialogue == 0 && gXStatus.fItemSelectMode == 0 &&
-        gXStatus.fCampMode == 0) {
+    if (!gXStatus.fSpellCastMode && !dialogue && !gXStatus.fItemSelectMode && !gXStatus.fCampMode) {
         return 1;
     }
     return 7;
@@ -927,7 +923,7 @@ void PostCharacterNoticeInContext(int party_slot, int context, const wchar_t* fo
 static unsigned int GetTextBoxLineCount(short text_box)
 {
     unsigned int count = g_status.text_box_lines_shown[text_box];
-    if (g_level_block->dialogue_text_input_open != 0 && g_level_block->dialogue_text_input != 0 &&
+    if (g_level_block->dialogue_text_input_open && g_level_block->dialogue_text_input != 0 &&
         g_level_block->dialogue_text_input->text_box == text_box) {
         count += g_level_block->dialogue_text_input->line_count;
     }
@@ -997,7 +993,7 @@ void ScrollTextBoxTo(int line)
 {
     short text_box = g_status.text_line_cursor;
     unsigned int input_lines;
-    if (g_level_block->dialogue_text_input_open == 0 || g_level_block->dialogue_text_input == 0 ||
+    if (!g_level_block->dialogue_text_input_open || g_level_block->dialogue_text_input == 0 ||
         g_level_block->dialogue_text_input->text_box != text_box) {
         input_lines = 0;
     } else {
@@ -1196,7 +1192,7 @@ void DrawDialogueTextInputLines(int x, int y, unsigned int first_line)
 void RedrawDialogueTextInput(void)
 {
     W8DialogueTextState* input = g_level_block->dialogue_text_input;
-    if ((input->dirty != 0 || input->cursor_dirty != 0)) {
+    if ((input->dirty || input->cursor_dirty != 0)) {
         short text_box = g_status.text_line_cursor;
         int offset =
             g_status.text_box_lines_shown[text_box] - g_level_block->text_lines[text_box];
@@ -1211,7 +1207,7 @@ void RedrawDialogueTextInput(void)
             if (y < g_level_block->text_box_top) {
                 y = g_level_block->text_box_top;
             }
-            if (input->dirty == 0) {
+            if (!input->dirty) {
                 if (input->cursor_dirty != 0) {
                     DrawDialogueTextCursor(g_level_block->text_box_left, y);
                 }
@@ -1235,7 +1231,7 @@ void RedrawDialogueTextInput(void)
 // FUNCTION: WIZ8 0x0058D7E0
 bool GrowDialogueTextBuffer(void)
 {
-    if (g_level_block->dialogue_text_input_open == 0) {
+    if (!g_level_block->dialogue_text_input_open) {
         return false;
     }
     if (g_level_block->dialogue_text_input == 0) {
@@ -1262,7 +1258,7 @@ bool GrowDialogueTextBuffer(void)
 // FUNCTION: WIZ8 0x0058D890
 bool GrowDialogueLineOffsets(void)
 {
-    if (g_level_block->dialogue_text_input_open == 0) {
+    if (!g_level_block->dialogue_text_input_open) {
         return false;
     }
     if (g_level_block->dialogue_text_input == 0) {
@@ -1379,7 +1375,7 @@ static bool DialogueCursorJoinsPreviousLine()
 // FUNCTION: WIZ8 0x0058D9C0
 static void InsertDialogueTextCharacter(wchar_t character)
 {
-    if (g_level_block->dialogue_text_input_open == 0) {
+    if (!g_level_block->dialogue_text_input_open) {
         return;
     }
     if (g_level_block->dialogue_text_input == 0) {
@@ -1412,7 +1408,7 @@ static void InsertDialogueTextCharacter(wchar_t character)
             g_level_block->dialogue_text_input->text[index];
     }
 
-    if (joins_previous_line != 0) {
+    if (joins_previous_line) {
         g_level_block->dialogue_text_input->text[g_level_block->dialogue_text_input->cursor++] =
             character;
         RewrapDialogueTextFromLine(--line);
@@ -1453,7 +1449,7 @@ void DeleteDialogueTextCharacter(unsigned int key)
                     g_level_block->dialogue_text_input->text[index];
             }
             --g_level_block->dialogue_text_input->cursor;
-            if (joins_previous_line != 0) {
+            if (joins_previous_line) {
                 RewrapDialogueTextFromLine(--line);
             } else if (line != g_level_block->dialogue_text_input->line_count) {
                 RewrapDialogueTextFromLine(line);
@@ -1468,7 +1464,7 @@ void DeleteDialogueTextCharacter(unsigned int key)
                 g_level_block->dialogue_text_input->text[index] =
                     g_level_block->dialogue_text_input->text[index + 1];
             }
-            if (joins_previous_line != 0) {
+            if (joins_previous_line) {
                 RewrapDialogueTextFromLine(--line);
             } else if (line != g_level_block->dialogue_text_input->line_count) {
                 RewrapDialogueTextFromLine(line);
@@ -1689,8 +1685,8 @@ unsigned char TextBoxBodyRegionEvent(const InputAtom* event, W8Region* region)
                 }
             }
         }
-        if (gXStatus.fNpcDialogueMode == 0) {
-            if (gXStatus.fItemSelectMode != 0) {
+        if (!gXStatus.fNpcDialogueMode) {
+            if (gXStatus.fItemSelectMode) {
                 UseItemSelectTextBoxWheelAt(static_cast<short>(event->uiParam),
                                             static_cast<unsigned short>(event->uiParam >> 16), 1);
             }
@@ -1700,11 +1696,11 @@ unsigned char TextBoxBodyRegionEvent(const InputAtom* event, W8Region* region)
                                   static_cast<unsigned short>(event->uiParam >> 16), 1);
         return 1;
     }
-    if (gXStatus.fNpcDialogueMode != 0) {
+    if (gXStatus.fNpcDialogueMode) {
         return NpcDialogueTextBoxRegionEvent(event, region);
     }
-    if (gXStatus.fSpellCastMode == 0) {
-        if (gXStatus.fItemSelectMode == 0) {
+    if (!gXStatus.fSpellCastMode) {
+        if (!gXStatus.fItemSelectMode) {
             return 0;
         }
         return UseItemSelectTextBoxRegionEvent(event, region);
@@ -1767,7 +1763,7 @@ unsigned char TextBoxMuteRegionEvent(const InputAtom*, W8Region*)
 // FUNCTION: WIZ8 0x0058F250
 unsigned char HandleDialogueTextInput(const InputAtom* input_event)
 {
-    if (g_level_block->dialogue_text_input_open == 0 ||
+    if (!g_level_block->dialogue_text_input_open ||
         (input_event->usKeyState & (CTRL_DOWN | ALT_DOWN)) != 0) {
         return 0;
     }
@@ -1889,14 +1885,14 @@ static void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, bool hov
     if (line->wString == 0) {
         srAssertFail("pTextLine->wString != NULL", MGS_TEXT_BOX_CPP, 0x584, 0);
     }
-    if (skip_invalidate != 0) {
+    if (skip_invalidate) {
         DrawNoticeWordOverlays(line, x, y);
         return;
     }
 
     palette = g_font_state_palettes[3];
-    if (selected_line == 0) {
-        if (hovered_line != 0) {
+    if (!selected_line) {
+        if (hovered_line) {
             palette = g_font_state_palettes[0];
             if (static_cast<char>(line->font_palette) != 5) {
                 palette = g_font_state_palettes[5];
@@ -2010,7 +2006,7 @@ void RedrawTextBoxBody(bool skip_invalidate)
     W8MessageStorageRecord* line;
     bool can_scroll_down;
 
-    if (skip_invalidate == 0) {
+    if (!skip_invalidate) {
         InvalidateRegion(g_level_block->text_box_left, g_level_block->text_box_top,
                          g_level_block->text_box_right, g_level_block->text_box_bottom, 0);
     }
@@ -2021,7 +2017,7 @@ void RedrawTextBoxBody(bool skip_invalidate)
         return;
     }
 
-    if (g_level_block->dialogue_text_input_open == 0 || g_level_block->dialogue_text_input == 0 ||
+    if (!g_level_block->dialogue_text_input_open || g_level_block->dialogue_text_input == 0 ||
         g_level_block->dialogue_text_input->text_box != text_box) {
         editor_lines = 0;
     } else {
@@ -2040,7 +2036,7 @@ void RedrawTextBoxBody(bool skip_invalidate)
         rows = 7;
     }
 
-    if (g_level_block->action_panel_visible == 0 && g_level_block->mipe_editing == 0) {
+    if (g_level_block->action_panel_visible == 0 && !g_level_block->mipe_editing) {
         can_scroll_down = scroll + static_cast<unsigned int>(GetTextBoxVisibleLineCount()) <
                           GetTextBoxLineCount(text_box);
         if (!can_scroll_down &&
@@ -2064,7 +2060,7 @@ void RedrawTextBoxBody(bool skip_invalidate)
                 srAssertFail("pTextLine->wString != NULL", MGS_TEXT_BOX_CPP, 0x43d, 0);
             }
             if (line->wString != 0) {
-                if (text_box == 3 || g_level_block->text_box_visible == 0) {
+                if (text_box == 3 || !g_level_block->text_box_visible) {
                     x = g_level_block->text_box_left;
                 } else {
                     x = g_level_block->text_box_left +
@@ -2161,7 +2157,7 @@ void RedrawTextBoxScrollChrome(void)
     InvalidateRegion(g_level_block->text_box_right + 5, 0x16b, g_level_block->text_box_right + 0x1e,
                      0x1c1, 0);
     RedrawTextBoxBody(0);
-    if (g_level_block->dialogue_text_input_open != 0 && g_level_block->dialogue_text_input != 0) {
+    if (g_level_block->dialogue_text_input_open && g_level_block->dialogue_text_input != 0) {
         g_level_block->dialogue_text_input->dirty = 1;
     }
     SetClippingRect(&saved_clip);
@@ -2253,7 +2249,7 @@ void SetKnockKnockTarget(int target, int /*flag*/, int /*backfire*/)
 {
     W8MainGameScreen* screen = g_main_game_screen;
 
-    if (gXStatus.fTrapInteractMode == 0) {
+    if (!gXStatus.fTrapInteractMode) {
         ShowNotice(0xc, L"You can't cast Knock Knock here!", -1, -1, 0);
         return;
     }
@@ -2274,7 +2270,7 @@ void SelectTextBox(short text_box)
     }
 
     bool can_scroll;
-    if (g_level_block->dialogue_text_input_open == 0 || g_level_block->dialogue_text_input == 0 ||
+    if (!g_level_block->dialogue_text_input_open || g_level_block->dialogue_text_input == 0 ||
         g_level_block->dialogue_text_input->text_box != text_box) {
         can_scroll = g_level_block->text_lines[text_box] + GetTextBoxVisibleLineCount() <
                      g_status.text_box_lines_shown[text_box];
@@ -2287,7 +2283,7 @@ void SelectTextBox(short text_box)
         g_level_block->dialogue_content_region = 0x5a;
         return;
     }
-    if (g_level_block->dialogue_text_input_open == 0 || g_level_block->dialogue_text_input == 0 ||
+    if (!g_level_block->dialogue_text_input_open || g_level_block->dialogue_text_input == 0 ||
         g_level_block->dialogue_text_input->text_box != text_box) {
         can_scroll = g_level_block->text_lines[text_box] + GetTextBoxVisibleLineCount() <
                      g_status.text_box_lines_shown[text_box];
@@ -2364,7 +2360,7 @@ static void DrawNoticeWordOverlays(W8MessageStorageRecord* line, int x, int y)
                          Wiz8ToSgpWideText(word_text));
             word->redraw = false;
         }
-        if (word->redraw != 0) {
+        if (word->redraw) {
             unsigned short* palette;
             if (line->font_palette < 0xf) {
                 palette = g_font_state_palettes[line->font_palette];
@@ -2396,7 +2392,7 @@ static void ClearNoticeWordState(int text_box, bool selected, bool redraw)
             }
         }
     }
-    if (redraw != 0) {
+    if (redraw) {
         RedrawTextBoxBody(1);
     }
 }
@@ -2416,7 +2412,7 @@ void ClearNoticeWordHover(int text_box, bool redraw)
 static int GetNoticeLineLeft(int text_box, int line)
 {
     int x_base;
-    if (g_status.text_line_cursor == 3 || g_level_block->text_box_visible == 0) {
+    if (g_status.text_line_cursor == 3 || !g_level_block->text_box_visible) {
         x_base = g_level_block->text_box_left;
     } else {
         x_base = g_level_block->text_box_left +
@@ -2531,9 +2527,9 @@ void RefreshTextBoxMode(unsigned short mode)
         return;
     }
     if (mode == 0xffff) {
-        if ((gXStatus.fNpcDialogueMode == 0 || CanOpenNpcDialogue()) && gXStatus.fCampMode == 0) {
+        if ((!gXStatus.fNpcDialogueMode || CanOpenNpcDialogue()) && !gXStatus.fCampMode) {
             if (!IsMipeActive()) {
-                mode = gXStatus.fCombatMode != 0;
+                mode = gXStatus.fCombatMode;
             } else {
                 mode = 0;
             }

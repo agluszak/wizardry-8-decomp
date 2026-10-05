@@ -169,7 +169,7 @@ bool Trynnie2UseItem(W8ItemInstance* item)
     } else {
         ShowString(gppStringList[0x967]);
     }
-    if (g_status.use_item_latch == 0) {
+    if (!g_status.use_item_latch) {
         g_status.use_item_latch = true;
     } else {
         ShowString(gppStringList[0x969]);

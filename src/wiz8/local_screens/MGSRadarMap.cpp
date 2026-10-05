@@ -114,7 +114,7 @@ static void ResetRadarBlips()
 void EnableRadarMap(bool enable)
 {
     g_radar_map_enabled = enable;
-    if (enable == 0) {
+    if (!enable) {
         ResetRadarBlips();
     }
 }
@@ -155,7 +155,7 @@ static stModelInstance2D* AcquireRadarBlip(int sector, bool lit)
         icon->setParent(0, 1);
         icon->setParent(g_scene_square, 1);
         icon->overlay_scene_flag |= 1;
-        if (lit == 0) {
+        if (!lit) {
             icon->SetGlowEnabled(0);
         } else {
             srVector4T<float> first;
@@ -214,7 +214,7 @@ void RefreshRadarMap(void)
 {
     int sector;
 
-    if (g_radar_map_enabled == 0) {
+    if (!g_radar_map_enabled) {
         return;
     }
     if (g_radar_map != 0) {
@@ -247,7 +247,7 @@ void RefreshRadarMap(void)
 
     unsigned int map_surface;
     unsigned int handle;
-    if (g_radar_zoomed == 0) {
+    if (!g_radar_zoomed) {
         handle = GetCatalogVideoObjectHandle(0xa4, 0);
         if (handle == 0) {
             return;
@@ -263,7 +263,7 @@ void RefreshRadarMap(void)
             W8PartySlotRow* row = &g_status.buffers.XChar[slot];
             W8PartyFormationPosition* position = &g_status.formation.positions[slot];
 
-            if (row->fOccupied != 0 && position->bQuadrant != -1) {
+            if (row->fOccupied && position->bQuadrant != -1) {
                 int cell = position->bQuadrant * 3 + position->bQuadrantSlot;
                 DrawCatalogImage(static_cast<int>(map_surface), 0xa5, 0, row->party_order_index,
                                  g_radar_cell_offsets[cell].x, g_radar_cell_offsets[cell].y, 2, 0);
@@ -326,7 +326,7 @@ void UpdateRadarBlips(void)
     bool detect_all;
 
     ResetRadarBlips();
-    if (g_radar_map_enabled == 0 || gXStatus.fSurprisePossible != 0) {
+    if (!g_radar_map_enabled || gXStatus.fSurprisePossible) {
         return;
     }
     if (g_radar_compass != 0) {
@@ -354,7 +354,7 @@ void UpdateRadarBlips(void)
                 position += center;
                 party = g_startup_world->GetPosition();
                 delta = position - party;
-                if ((detect_all != 0 || ((rep->flags >> 3) & 1) != 0 ||
+                if ((detect_all || ((rep->flags >> 3) & 1) != 0 ||
                      HasCameraLineOfSight(&position)) &&
                     delta.Length() <= g_radar_outer_radius) {
                     if (PlaceRadarBlip(&delta, 4, item->IsRadarBlipLit()) != 0) {
@@ -370,17 +370,17 @@ void UpdateRadarBlips(void)
     while (info != 0) {
         W8Monster* monster = info->p3D;
 
-        if (monster != 0 && info->fActive != 0 && info->within_viewing_distance != 0 &&
-            (monster->disabled == 0 || detect_all != 0)) {
+        if (monster != 0 && info->fActive && info->within_viewing_distance != 0 &&
+            (!monster->disabled || detect_all)) {
             bool hostile = false;
 
-            if (gXStatus.fCombatMode != 0 && g_status.selected_character != -1 &&
+            if (gXStatus.fCombatMode && g_status.selected_character != -1 &&
                 g_status.buffers.XChar[g_status.selected_character].fOccupied != 0 &&
                 (static_cast<unsigned char>(1 << g_status.selected_character) &
                  MonsterGetHighlightMask(monster)) != 0) {
                 hostile = 1;
             }
-            if (monster->IsRenderable(1) == 0 && detect_all == 0) {
+            if (monster->IsRenderable(1) == 0 && !detect_all) {
                 if (info->party_threat.sight_state == W8_SIGHT_RECENT) {
                     monster->GetAnimationBounds(&bounds_min, &bounds_max);
                     center.Set((bounds_min.x + bounds_max.x) * g_double_005ebe80,
@@ -439,7 +439,7 @@ void UpdateRadarBlips(void)
 
     W8Missile* missile = NextMissile(1);
     while (missile != 0) {
-        if (missile->impacting == 0) {
+        if (!missile->impacting) {
             missile->GetAnimationBounds(&bounds_min, &bounds_max);
             center.Set((bounds_min.x + bounds_max.x) * g_double_005ebe80,
                        (bounds_min.y + bounds_max.y) * g_double_005ebe80,
@@ -515,7 +515,7 @@ static unsigned char PlaceRadarBlip(srVector3T<float>* delta, int group, bool li
 // FUNCTION: WIZ8 0x005a3360
 void ToggleRadarMapZoom(void)
 {
-    if (g_radar_zoomed == 0) {
+    if (!g_radar_zoomed) {
         float radius = g_startup_world->radius;
 
         g_radar_zoomed = true;

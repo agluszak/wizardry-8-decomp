@@ -289,7 +289,7 @@ void W8SpellVisual::UpdateRepresentation(W8World* world)
         }
     } else if (mode == W8_SPELL_VISUAL_CONE) {
         GetCurrentModelInstance();
-        if (fixed_transform == 0) {
+        if (!fixed_transform) {
             GetCameraPosition(&camera_position);
             if (location_id == 0) {
                 SetCyclePosition(&camera_position);
@@ -322,7 +322,7 @@ void W8SpellVisual::UpdateRepresentation(W8World* world)
         host->SetRotation(&rotation);
     }
 
-    if (host->billboard != 0) {
+    if (host->billboard) {
         srMatrix3T<float> billboard;
         srVector3T<float> visual_position = GetPosition();
         float angle;
@@ -363,7 +363,7 @@ void UpdateWorldSpellVisuals(W8World* world)
         W8SpellVisual* visual = *world->spell_visuals->GetAt(index);
         if (visual != 0) {
             visual->DetachRepresentation(world);
-            if (visual->finished == 0 || visual->auto_release == 0) {
+            if (!visual->finished || !visual->auto_release) {
                 visual->StartIfHostActive();
                 visual->UpdateRepresentation(world);
                 visual->UpdateNavigation(0, 0);
@@ -579,7 +579,7 @@ bool LoadSpellVisualResource(const W8GrCycleLoadContext* context, const char* na
         W8SoundEvent* event;
         W8CameraShakeEffect* effect;
 
-        while (more != 0 && success != 0) {
+        while (more != 0 && success) {
             ReadTextLine(handle, line, sizeof(line), &more);
             sscanf(line, "%s %s", pac_name, pac_value);
             if (strlen(line) <= 2) {
@@ -1086,7 +1086,7 @@ W8SpellVisual* CreateAimedSpellEffect(const char* mls_name, int power_level,
 // FUNCTION: WIZ8 0x004add30
 void SetTargetConeEnabled(bool enabled)
 {
-    if (enabled != 0) {
+    if (enabled) {
         if (g_target_cone_visual == 0) {
             g_target_cone_visual = CreateAttachedSpellEffect("TargetCone", 1, 0, 0, 0);
             if (g_target_cone_visual != 0) {
@@ -1246,7 +1246,7 @@ void SetMonsterSpellIcon(W8Monster* pMonster, W8MonsterSpellIconId iIcon, bool a
         srAssertFail("iIcon != SPELL_ICON_NONE",
                      "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp", 0x82f, 0);
     }
-    if (add == 0) {
+    if (!add) {
         if (ppl == 0) {
             return;
         }
@@ -1356,7 +1356,7 @@ unsigned char stSound3D::Play(bool loop, bool release_when_done)
     }
     GetCameraPosition(&listener);
     BuildSoundOptions(&listener, &options);
-    if (loop != 0) {
+    if (loop) {
         options.uiLoop = 0;
     }
     sound_handle = Sound3DPlay(wave_name, &options);
@@ -1446,7 +1446,7 @@ void Update3DSounds()
                 if (SoundIsPlaying(sound->sound_handle) == 0) {
                     bool dead = sound->auto_release;
                     sound->sound_handle = -1;
-                    if (dead != 0) {
+                    if (dead) {
                         sound->release();
                         --count;
                         --index;
@@ -1604,7 +1604,7 @@ unsigned char InitializeSpellDatabase(void)
                      0);
     }
     for (index = 0; index < static_cast<unsigned int>(allocation_count); ++index) {
-        if (ok == 0) {
+        if (!ok) {
             goto discard;
         }
         ok = 0;
@@ -1613,7 +1613,7 @@ unsigned char InitializeSpellDatabase(void)
             ok = 1;
         }
     }
-    if (ok == 0) {
+    if (!ok) {
     discard:
         delete[] g_spell_records;
         g_spell_records = 0;

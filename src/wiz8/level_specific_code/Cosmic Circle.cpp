@@ -38,7 +38,7 @@ bool CosmicCircleTriggerPlane1Hedra(Trigger* pTrigger)
 {
     W8NpcState* pNPC;
 
-    if (gXStatus.fCombatMode != 0) {
+    if (gXStatus.fCombatMode) {
         EndCombat(1);
     }
     BeginScriptedWorldAction();
@@ -72,7 +72,7 @@ void CosmicCircleSetup(void)
     int uiMonsterID;
     unsigned int index;
 
-    if (g_status.world_suspended == 0 && g_status.cc_arena_spawned == 0) {
+    if (!g_status.world_suspended && !g_status.cc_arena_spawned) {
         if (FindEntityByName("NP_ALTHEIDESARENA", &positionAltheides, 0, 0)) {
             group = SpawnMonsters(0x1b3, 1, &positionAltheides, 0, 1, 0, 0);
             uiMonsterID = IListGetAt(group->monsters, 0);

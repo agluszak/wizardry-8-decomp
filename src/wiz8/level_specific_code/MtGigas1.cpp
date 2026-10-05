@@ -61,7 +61,7 @@ void MtGigas1Setup(void)
 // FUNCTION: WIZ8 0x004DBB50
 bool MtGigas1Lift1(Trigger* pTrigger)
 {
-    if (gXStatus.fNpcDialogueMode != 0) {
+    if (gXStatus.fNpcDialogueMode) {
         return false;
     }
     W8NpcState* npc = GetNpcStateByKind(0x5d);
@@ -80,7 +80,7 @@ bool MtGigas1Lift1(Trigger* pTrigger)
 // FUNCTION: WIZ8 0x004DBB90
 bool MtGigas1Lift2(Trigger* pTrigger)
 {
-    if (gXStatus.fNpcDialogueMode != 0) {
+    if (gXStatus.fNpcDialogueMode) {
         return false;
     }
     W8NpcState* npc = GetNpcStateByKind(0x5e);
@@ -119,7 +119,7 @@ bool MtGigas1PressurePlate(Trigger* pTrigger)
          position.z <= maximum.z) ||
         g_plate_prop->HasListEntries() != 0) {
         g_plate_contact = 1;
-        if (g_plate_down != 0) {
+        if (g_plate_down) {
             return false;
         }
         pPlateTrigger = FindTriggerByName("secretDoor-01");
@@ -144,7 +144,7 @@ bool MtGigas1PressurePlate(Trigger* pTrigger)
         SoundPlay("Data\\Sound\\Ambients\\Amb Rumble Very Low.wav", 0);
         return false;
     }
-    if (g_plate_down == 0) {
+    if (!g_plate_down) {
         return false;
     }
     pPlateTrigger = FindTriggerByName("secretDoor-01");

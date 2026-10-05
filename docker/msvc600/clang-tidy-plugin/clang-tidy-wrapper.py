@@ -556,6 +556,11 @@ def main() -> None:
             action="store_true",
             help="also remove explicit padding members that natural layout reproduces",
         )
+        parser.add_argument(
+            "--boolean-expressions",
+            action="store_true",
+            help="simplify comparisons of AST-resolved bool objects in the patch",
+        )
         options = parser.parse_args(sys.argv[2:])
         report = write_integer_report(
             options.facts,
@@ -574,6 +579,7 @@ def main() -> None:
                 options.patch,
                 padding=options.padding,
                 propagate_enums=options.propagate_enum,
+                boolean_expressions=options.boolean_expressions,
             )
             options.output.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
         return

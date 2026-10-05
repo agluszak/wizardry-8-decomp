@@ -431,7 +431,7 @@ static unsigned char PreprocessLevel(int handle, char* stem)
                     if (lit != i) {
                         ++redundant;
                     }
-                    if (report != 0) {
+                    if (report) {
                         sprintf(message, "  %d%% Complete:  %d Redundant Vertices  \r", mark,
                                 redundant);
                         ReportStartupMessage(message);
@@ -465,7 +465,7 @@ static unsigned char PreprocessLevel(int handle, char* stem)
                                         g_option_max_path_nodes, g_option_max_leaf_count, 0);
                 if (build_tree != 0) {
                     build_tree->LoadRegionFile(stem, &minimum, &maximum);
-                    if (g_option_mesh_linking == 0) {
+                    if (!g_option_mesh_linking) {
                         build_tree->mesh_linking = 0;
                     }
                     build_tree->spatial.m_region_grid_cell = g_option_auto_region_size;
@@ -748,7 +748,7 @@ static unsigned char PreprocessLevel(int handle, char* stem)
                                     static_cast<int>(
                                         (tree->GetMeshCount() - tree->m_kind1_submesh_count)));
                             ReportBuildStatus(6, message);
-                            if (g_option_pathing != 0) {
+                            if (g_option_pathing) {
                                 tree->m_region_cell = g_option_path_node_spacing;
                                 /* Retail copies the head-room float's bits
                                    into the unsigned-long field. */
@@ -880,7 +880,7 @@ void ReportBuildStatus(short channel, const char* message)
             }
             if (*message != '\0') {
                 strcpy(g_log_path, message);
-                if (g_option_logging != 0) {
+                if (g_option_logging) {
                     g_log_file = fopen(message, "w");
                     return;
                 }
@@ -962,7 +962,7 @@ void ReportStartupMessage(const char* message)
 
     scrolled = 0;
     if (message == 0) {
-        if (g_status_buffers_freed == 0) {
+        if (!g_status_buffers_freed) {
             for (index = 0; index < 6; ++index) {
                 delete g_status_lines[index];
             }
@@ -971,7 +971,7 @@ void ReportStartupMessage(const char* message)
         PublishLightDirection(&s_saved_colour);
         return;
     }
-    if (g_status_buffers_freed != 0) {
+    if (g_status_buffers_freed) {
         for (index = 0; index < 6; ++index) {
             unsigned short* buffer = new unsigned short[0x100];
             g_status_lines[index] = buffer;
@@ -991,7 +991,7 @@ void ReportStartupMessage(const char* message)
         line = g_status_lines[index];
     } else {
         line = g_status_lines[5];
-        if (g_status_scroll != 0) {
+        if (g_status_scroll) {
             unsigned short* oldest = g_status_lines[0];
             for (index = 0; index < 5; ++index) {
                 g_status_lines[index] = g_status_lines[index + 1];
@@ -1017,7 +1017,7 @@ void ReportStartupMessage(const char* message)
     SetFont(g_smfnt_font);
     SetRGBFontShadow(0, 0, 0);
     SetFontObjectPalette16BPP(g_smfnt_font, g_font_state_palettes[5]);
-    if (scrolled != 0) {
+    if (scrolled) {
         ClearSurfaceRect(0, 400, 0x27f, 0x1df);
         index = 0x191;
         for (top = 0; top < 6; ++top) {
@@ -1098,7 +1098,7 @@ static int WeldVertex(W8HashTable<unsigned int, int>* table, W8OctPreTreeVertex*
                 slot = table->FindNextEntry(&scan_key, -1);
                 while (slot != -1) {
                     match_index = table->entries[slot].value - 1;
-                    if (match_index >= 0 && matched == 0) {
+                    if (match_index >= 0 && !matched) {
                         candidate = vertices + match_index;
                         if (fabs(current->position.x - candidate->position.x) <
                                 g_float_005ecbb8 &&
@@ -1118,7 +1118,7 @@ static int WeldVertex(W8HashTable<unsigned int, int>* table, W8OctPreTreeVertex*
             }
         }
     }
-    if (found != 0) {
+    if (found) {
         return match_index + 1;
     }
     int vertex_id = index + 1;
@@ -1280,7 +1280,7 @@ static int BuildRegionPolygons(W8LevelFile* level, W8OctPreTreeGeometry* geometr
                         }
                     }
                 }
-                if (opposing == 0) {
+                if (!opposing) {
                     for (corner = 0; corner < 3; ++corner) {
                         current = vertices + vertex_index[corner];
                         current->m_normal = normal + current->m_normal;
@@ -1297,7 +1297,7 @@ static int BuildRegionPolygons(W8LevelFile* level, W8OctPreTreeGeometry* geometr
                     polygon->kind = classify[face->material_index];
                 }
                 ++kind_counts[polygon->kind];
-                if (ordinal < poly_total && opposing != 0) {
+                if (ordinal < poly_total && opposing) {
                     for (corner = 0; corner < 3; ++corner) {
                         int found = WeldVertex(&weld_table, vertices, mesh->num_vertices,
                                                vertex_index[corner]);
@@ -1427,7 +1427,7 @@ static unsigned char SplitVerticesByMaterial(W8OctPreTreeGeometry* geometry)
             slot = first;
             candidate = split + first;
             while (slot <= next) {
-                if (fresh == 0) {
+                if (!fresh) {
                     break;
                 }
                 for (corner = 0; corner < 3; ++corner) {
@@ -1442,7 +1442,7 @@ static unsigned char SplitVerticesByMaterial(W8OctPreTreeGeometry* geometry)
                 ++slot;
                 ++candidate;
             }
-            if (fresh != 0) {
+            if (fresh) {
                 ++next;
                 record = split + next;
                 *record = geometry->m_vertices[source];
@@ -1518,7 +1518,7 @@ static int AccumulateVertexLight(OctPreTree* tree, W8OctPreTreeVertex* vertex, s
                       (delta.z / distance) * vertex->m_normal.z;
                 if (g_float_zero < dot) {
                     ++g_lights_facing;
-                    if (g_option_shadow_test != 0) {
+                    if (g_option_shadow_test) {
                         if (!tree->SegmentClear(&light->position, &vertex->position)) {
                             goto next_light;
                         }
@@ -1649,7 +1649,7 @@ static unsigned char* ClassifyTextures(W8MaterialRecord* textures, int count, ch
                 }
             } else {
                 strcpy(texture, record->texture_names[0]);
-                if (opaque != 0) {
+                if (opaque) {
                     goto probe;
                 }
                 kind = 1;
@@ -1886,7 +1886,7 @@ void W8Octree::OctBuildOptions(char* stem)
         memset(wide[index], 0, 0x200);
     }
     strcpy(log_state, "OFF");
-    if (g_option_pathing == 0) {
+    if (!g_option_pathing) {
         strcpy(pathing_state, "OFF");
     } else {
         strcpy(pathing_state, "ON");
@@ -1895,13 +1895,13 @@ void W8Octree::OctBuildOptions(char* stem)
     strcpy(mesh_state, "ON ");
     strcpy(spare_state, "OFF");
     strcpy(edit_buffer, "");
-    while (done == 0) {
+    while (!done) {
         edit_mode = 0;
         for (;;) {
             const char* prompt;
             sprintf(lines[0], "OCTBUILD VERSION %d -- OPTIONS: ", 0x22);
             sprintf(lines[1], "(L)og %s               ", log_state);
-            if (g_option_pathing == 0) {
+            if (!g_option_pathing) {
                 sprintf(lines[2], "(P)athing %s                                         ",
                         pathing_state);
             } else {
@@ -1984,17 +1984,17 @@ void W8Octree::OctBuildOptions(char* stem)
                     edit_mode = 4;
                     break;
                 case 0x44:
-                    if (g_option_pathing != 0) {
+                    if (g_option_pathing) {
                         edit_mode = 6;
                     }
                     break;
                 case 0x48:
-                    if (g_option_pathing != 0) {
+                    if (g_option_pathing) {
                         edit_mode = 5;
                     }
                     break;
                 case 0x4c:
-                    if (g_option_logging == 0) {
+                    if (!g_option_logging) {
                         strcpy(log_state, "ON ");
                         g_option_logging = 1;
                     } else {
@@ -2003,7 +2003,7 @@ void W8Octree::OctBuildOptions(char* stem)
                     }
                     break;
                 case 0x4d:
-                    if (g_option_mesh_linking == 0) {
+                    if (!g_option_mesh_linking) {
                         strcpy(mesh_state, "ON ");
                         g_option_mesh_linking = 1;
                     } else {
@@ -2015,7 +2015,7 @@ void W8Octree::OctBuildOptions(char* stem)
                     edit_mode = 1;
                     break;
                 case 0x50:
-                    if (g_option_pathing == 0) {
+                    if (!g_option_pathing) {
                         strcpy(pathing_state, "ON ");
                         g_option_pathing = 1;
                     } else {
@@ -2024,7 +2024,7 @@ void W8Octree::OctBuildOptions(char* stem)
                     }
                     break;
                 case 0x52:
-                    if (g_option_rename_alphas == 0) {
+                    if (!g_option_rename_alphas) {
                         strcpy(rename_state, "ON ");
                         g_option_rename_alphas = 1;
                     } else {
@@ -2344,7 +2344,7 @@ srTexture* LoadTextureFromFolder(const char* folder, const char* name, bool requ
         registry->find(node, name, static_cast<const srRuntimeClass*>(0)));
     if (texture == 0) {
         strcat(extension, "tga");
-        if (required != 0) {
+        if (required) {
             texture = new stTextureFile(path, g_texture_cache_enabled);
             if (texture == 0) {
                 srAssertFail("psrTexture", MATERIALS_CPP, 0x191, 0);

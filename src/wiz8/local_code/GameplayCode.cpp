@@ -111,7 +111,7 @@ bool AnyMonsterEngaged(void)
 
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
-        if (monster_info->fInCombat != 0 && monster_info->ubDisposition == W8_DISPOSITION_HOSTILE &&
+        if (monster_info->fInCombat && monster_info->ubDisposition == W8_DISPOSITION_HOSTILE &&
             monster_info->hp_current != 0 &&
             monster_info->highest_condition < W8_CONDITION_WEBBED) {
             return true;
@@ -128,7 +128,7 @@ int CountActiveCharacters(void)
     int party_slot;
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_status.buffers.XChar[party_slot].fOccupied != 0 &&
+        if (g_status.buffers.XChar[party_slot].fOccupied &&
             g_status.buffers.Char[party_slot].hp_current != 0 &&
             g_status.buffers.Char[party_slot].highest_condition < W8_CONDITION_DEAD) {
             ++count;
@@ -236,7 +236,7 @@ void RefreshLevelUpReadyNotices(void)
 {
     int party_slot;
 
-    if (g_status.greeting_pending != 0 || GetLevelBand(g_status.current_level) == 0xe) {
+    if (g_status.greeting_pending || GetLevelBand(g_status.current_level) == 0xe) {
         return;
     }
 
@@ -246,7 +246,7 @@ void RefreshLevelUpReadyNotices(void)
         bool* ready_flag = &gXStatus.monster_manager_entries[party_slot].level_up_ready;
         W8Character* character = &g_status.buffers.Char[party_slot];
 
-        if (row->fOccupied == 0) {
+        if (!row->fOccupied) {
             if (character->hp_current != 0) {
                 if (*ready_flag != 0) {
                     RequestPartySlotRedraw(party_slot);
@@ -315,7 +315,7 @@ bool IsCharacterReadyToAdvance(int party_slot)
 {
     const W8Character* character = &g_status.buffers.Char[party_slot];
 
-    if (g_status.buffers.XChar[party_slot].fOccupied == 0) {
+    if (!g_status.buffers.XChar[party_slot].fOccupied) {
         return false;
     }
     if (character->hp_current == 0) {
@@ -334,7 +334,7 @@ unsigned int FindFreePartySlot(unsigned int first, unsigned int last)
     unsigned int slot;
 
     for (slot = first; slot < last; ++slot) {
-        if (g_status.buffers.XChar[slot].fOccupied == 0) {
+        if (!g_status.buffers.XChar[slot].fOccupied) {
             return slot;
         }
     }
@@ -474,7 +474,7 @@ void CalcInitiative(W8Character* character)
                             character->attributes[W8_ATTRIBUTE_SENSES].effective / 5 - 10 +
                             character->attributes[W8_ATTRIBUTE_SPEED].effective / 5;
 
-    if (character->skills[W8_SKILL_SNAKESPEED].active != 0) {
+    if (character->skills[W8_SKILL_SNAKESPEED].active) {
         character->initiative += character->skills[W8_SKILL_SNAKESPEED].level / 10 + 1;
     }
     character->initiative += character->bonus.damage_bonus;
@@ -974,9 +974,8 @@ void EnsureUniquePartyVoice(W8Character* character)
         slot = 0;
         other = g_status.buffers.Char;
         for (;;) {
-            if (other->fInParty != 0 && other != character && other->gender == character->gender &&
-                other->personality == character->personality &&
-                other->voice == character->voice) {
+            if (other->fInParty && other != character && other->gender == character->gender &&
+                other->personality == character->personality && other->voice == character->voice) {
                 break;
             }
             ++slot;
@@ -1004,7 +1003,7 @@ unsigned int GetAveragePartyLevel(void)
     int slot;
 
     for (slot = 0; slot < 8; ++slot) {
-        if (g_status.buffers.XChar[slot].fOccupied != 0) {
+        if (g_status.buffers.XChar[slot].fOccupied) {
             total_level += g_status.buffers.Char[slot].uiExpLevel;
             ++occupied_slots;
         }
@@ -1023,7 +1022,7 @@ int AddCharacterToParty(W8Character* character, int slot_kind)
 
     if (slot_kind == -1) {
         slot = 2;
-        while (g_status.buffers.XChar[slot].fOccupied != 0) {
+        while (g_status.buffers.XChar[slot].fOccupied) {
             ++slot;
             if (slot > 7) {
                 return -1;
@@ -1031,7 +1030,7 @@ int AddCharacterToParty(W8Character* character, int slot_kind)
         }
     } else {
         slot = 0;
-        while (g_status.buffers.XChar[slot].fOccupied != 0) {
+        while (g_status.buffers.XChar[slot].fOccupied) {
             ++slot;
             if (slot > 1) {
                 return -1;
@@ -1060,7 +1059,7 @@ int AddCharacterToParty(W8Character* character, int slot_kind)
     PlaceCharacterInFormation(&g_status.formation, slot);
     g_status.formation.positions[slot].bOldQuadrant = 0xff;
 
-    if (g_status.game_started != 0) {
+    if (g_status.game_started) {
         gXStatus.edited_formation.positions[slot].bOldQuadrant = 0xff;
         PostCharacterNotice(slot, gppStringList[0x250]);
     }
@@ -1088,12 +1087,12 @@ unsigned char RemoveCharacterFromParty(int party_slot, bool save_character_data)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
 
-    if (save_character_data != 0 && g_status.buffers.XChar[party_slot].npc_index == -1) {
+    if (save_character_data && g_status.buffers.XChar[party_slot].npc_index == -1) {
         srAssertFail("!fSaveCharData || fCHAR_NPC(uiSlot)", GAMEPLAY_CODE_CPP, 0x895, 0);
     }
     gXStatus.character_event_queue->RemoveCharacterEvents(character);
     character->fInParty = false;
-    if (save_character_data != 0) {
+    if (save_character_data) {
         RebuildCharacterModifierBlock(character);
         RecalculateCharacterDerivedStats(character);
         if (SaveCharacter(character, g_status.buffers.XChar[party_slot].npc_index, 1, 0) == 0) {
@@ -1107,11 +1106,11 @@ unsigned char RemoveCharacterFromParty(int party_slot, bool save_character_data)
     character->highest_condition = W8_CONDITION_NONE;
     character->enchantment_top = W8_ENCHANTMENT_NONE;
     SetFormationPosition(&g_status.formation, party_slot, -1, -1, 0, 1, 1);
-    if (gXStatus.fCombatMode != 0) {
+    if (gXStatus.fCombatMode) {
         SetFormationPosition(&gXStatus.edited_formation, party_slot, -1, -1, 0, 1, 1);
         SetFormationPosition(&g_combat_state->saved_formation, party_slot, -1, -1, 0, 1, 1);
     }
-    if (g_status.game_started != 0) {
+    if (g_status.game_started) {
         PostCharacterNotice(party_slot, gppStringList[0x251]);
     }
     g_status.party_order_slots[g_status.buffers.XChar[party_slot].party_order_index] = -1;
@@ -1172,7 +1171,7 @@ unsigned char RecruitCharacterIntoParty(W8Character* character, W8Character* rec
     ++g_status.regular_member_count;
     RebuildCharacterModifierBlock(character);
     RecalculateCharacterDerivedStats(character);
-    if (buy_equipment != 0) {
+    if (buy_equipment) {
         unsigned int cost = ComputeStartingEquipmentCost(character);
         if (g_status.party_gold < cost) {
             srAssertFail("uiValue <= gStatus.uiPartyGold", GAMEPLAY_CODE_CPP, 0x922, 0);

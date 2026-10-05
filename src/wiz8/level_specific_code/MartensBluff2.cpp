@@ -319,7 +319,7 @@ bool MartensBluff2DummyLever(Trigger* pTrigger)
 // FUNCTION: WIZ8 0x004DDD80
 bool MartensBluff2Dummy(Trigger* pTrigger)
 {
-    if (g_running_trigger_from_script == 0) {
+    if (!g_running_trigger_from_script) {
         Trigger* pPerfumeBox = FindTriggerByName("PerfumeBox");
         if (pPerfumeBox != 0) {
             pPerfumeBox->flags |= W8_TRIGGER_ENABLED;
@@ -400,7 +400,7 @@ bool MartensBluff2DoorControls(Trigger* pTrigger)
 // FUNCTION: WIZ8 0x004DDF20
 bool MartensBluff2SquisherControls(Trigger* pTrigger)
 {
-    if (g_crusher_active == 0) {
+    if (!g_crusher_active) {
         MartensBluff2MonsterCrusher(static_cast<int>(0xEFFFFFFF));
         return true;
     }
@@ -543,7 +543,7 @@ void MartensBluff2MonsterCrusher(int command)
         index = MonsterGetIndexByLocationID(0x28d, MARTENSBLUFF2_CPP, location_ids[i], 1);
         info = MonsterGetScriptPartByLocationIndex(index);
         if (info != 0 && info->p3D != 0 &&
-            (g_crusher_excluded_flag == 0 || info->p3D != g_crusher_excluded) &&
+            (!g_crusher_excluded_flag || info->p3D != g_crusher_excluded) &&
             info->p3D->flags != 0x200000) {
             monster = info->p3D;
             position = monster->GetPosition();
@@ -597,7 +597,7 @@ bool MartensBluff2StoneIdol(Trigger* pTrigger)
 // FUNCTION: WIZ8 0x004DE620
 bool MartensBluff2BlueFlowers(Trigger* pTrigger)
 {
-    if (g_running_trigger_from_script == 0) {
+    if (!g_running_trigger_from_script) {
         if (g_status.item_in_cursor) {
             return false;
         }
@@ -629,7 +629,7 @@ void MartensBluff2IdolGas(int command)
         return;
     }
     g_remove_current_master_function = false;
-    if (g_idol_gas_armed == 0) {
+    if (!g_idol_gas_armed) {
         g_remove_current_master_function = true;
         if (g_idol_gas_gate != 0) {
             delete g_idol_gas_gate;
@@ -675,7 +675,7 @@ void MartensBluff2IdolGasVictim(void)
 
     lowest = 10;
     for (slot = 0; slot < 8; slot++) {
-        if (g_status.buffers.XChar[slot].fOccupied == 0 || slot < 2) {
+        if (!g_status.buffers.XChar[slot].fOccupied || slot < 2) {
             severities[slot] = 10;
         } else {
             switch (g_status.buffers.Char[slot].iProfession) {
@@ -709,7 +709,7 @@ void MartensBluff2IdolGasVictim(void)
         }
         if (count == 0) {
             slot = 0;
-            while (g_status.buffers.XChar[slot].fOccupied == 0 ||
+            while (!g_status.buffers.XChar[slot].fOccupied ||
                    g_status.buffers.Char[slot].highest_condition != W8_CONDITION_DEAD) {
                 slot++;
                 if (slot > 7) {

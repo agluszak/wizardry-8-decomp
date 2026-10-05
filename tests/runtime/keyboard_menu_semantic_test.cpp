@@ -181,8 +181,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     }
 
     RefreshKeyboardMenuRows();
-    result->entry_initially_enabled =
-        rows[0] != 0 && rows[0]->m_enabled != 0 && rows[0]->m_active != 0;
+    result->entry_initially_enabled = rows[0] != 0 && rows[0]->m_enabled && rows[0]->m_active;
     saved_normal_sprite = rows[0]->m_normalSprite;
     saved_alternate_sprite = rows[0]->m_alternateNormalSprite;
 
@@ -192,11 +191,11 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     g_status.buffers.Char[0].iSPLeft[realm] = 0;
     RefreshKeyboardMenuRows();
 
-    result->entry_disabled_after_transition = rows[0]->m_enabled == 0;
+    result->entry_disabled_after_transition = !rows[0]->m_enabled;
     result->sprites_untouched_after_transition =
         rows[0]->m_normalSprite == saved_normal_sprite &&
         rows[0]->m_alternateNormalSprite == saved_alternate_sprite;
-    result->other_row_still_enabled = rows[1] != 0 && rows[1]->m_enabled != 0;
+    result->other_row_still_enabled = rows[1] != 0 && rows[1]->m_enabled;
 
     /* CloseKeyboardMenu: the open-menu state as its callers leave it - the
        slot's monster-entry flag raised, keyboard_menu_open set, combat and
@@ -216,8 +215,8 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     g_level_block->cursor_grace = 1;
     g_level_block->portrait_refresh_pending[0] = 1;
     CloseKeyboardMenu();
-    result->close_cleared_open_flag = g_level_block->keyboard_menu_open == 0;
-    result->close_cleared_slot_flag = gXStatus.monster_manager_entries[0].keyboard_menu_open == 0;
+    result->close_cleared_open_flag = !g_level_block->keyboard_menu_open;
+    result->close_cleared_slot_flag = !gXStatus.monster_manager_entries[0].keyboard_menu_open;
     result->close_deleted_rows = g_keyboard_menu_rows[0] == 0 && g_keyboard_menu_rows[11] == 0;
     result->close_reset_combat_slot =
         g_level_block->combat_slot == -1 && g_level_block->hover_combat_slot == 0;
@@ -256,7 +255,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     result->select_moved_selection = g_status.selected_character == 1;
     result->select_flagged_refresh =
         g_level_block->portrait_flash != 0 && g_level_block->refresh_combat_panel != 0 &&
-        g_level_block->refresh_party_panel != 0 && g_level_block->pick_changed != 0;
+        g_level_block->refresh_party_panel != 0 && g_level_block->pick_changed;
 
     /* MapSubMenuSelection: an attack entry lands as the unsettled action
        while the recorded-spell entry settles it, both through the level
@@ -267,10 +266,10 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
 
     MapSubMenuSelection(W8_SUBMENU_ATTACK, 1);
     result->submenu_maps_action =
-        g_level_block->selection_kind == W8_ACTION_BERSERK && g_level_block->selection_settled == 0;
+        g_level_block->selection_kind == W8_ACTION_BERSERK && !g_level_block->selection_settled;
     MapSubMenuSelection(W8_SUBMENU_SPELLS, 1);
-    result->submenu_settles_recorded = g_level_block->selection_kind == W8_ACTION_CAST_SPELL &&
-                                       g_level_block->selection_settled != 0;
+    result->submenu_settles_recorded =
+        g_level_block->selection_kind == W8_ACTION_CAST_SPELL && g_level_block->selection_settled;
 
     /* Recorded item: slot zero's backpack gains a usable consumable whose
        record is rewritten permissive - open masks, no requirements, a

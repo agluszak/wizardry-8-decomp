@@ -513,7 +513,11 @@ def test_scalar_campaign_owns_fresh_complete_corpus_and_rejects_partial_runs(
             assert not list(output.glob("scalar-campaigns/*/report.json"))
     else:
         first = build.scalar_campaign(
-            settings, evidence=evidence, patch=True, propagate_enums=["W8Condition"]
+            settings,
+            evidence=evidence,
+            patch=True,
+            propagate_enums=["W8Condition"],
+            boolean_expressions=True,
         )
         second = build.scalar_campaign(settings, evidence=evidence, patch=True)
         assert first["artifacts"] != second["artifacts"]
@@ -525,6 +529,9 @@ def test_scalar_campaign_owns_fresh_complete_corpus_and_rejects_partial_runs(
         assert manifest["evidence_sha256"]
         assert manifest["image"] == "sha256:fixture"
         assert manifest["propagate_source_enums"] == ["W8Condition"]
+        assert manifest["simplify_boolean_expressions"]
+        assert "--boolean-expressions" in calls[1]
+        assert "--boolean-expressions" not in calls[3]
         assert manifest["solver_sha256"]
         assert calls[1][calls[1].index("--propagate-enum") + 1] == "W8Condition"
         assert "/repo/docker/msvc600/clang-tidy-plugin/clang-tidy-wrapper.py" in calls[1]

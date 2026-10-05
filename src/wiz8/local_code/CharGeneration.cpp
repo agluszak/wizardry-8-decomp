@@ -48,10 +48,10 @@ int ComputeRealmSkillDebt(W8Character* original, W8Character* edited)
         int index;
 
         for (index = 0x18; index <= 0x1b; ++index) {
-            if (original->skills[index].active == 0) {
+            if (!original->skills[index].active) {
                 continue;
             }
-            if (edited->skills[index].active != 0) {
+            if (edited->skills[index].active) {
                 continue;
             }
             total += original->skill_costs[index - 0x18];
@@ -65,7 +65,7 @@ int ComputeRealmSkillDebt(W8Character* original, W8Character* edited)
         int index;
 
         for (index = 0x18; index <= 0x1b; ++index) {
-            if (original->skills[index].active == 0) {
+            if (!original->skills[index].active) {
                 continue;
             }
             total += original->skill_costs[index - 0x18];
@@ -520,7 +520,7 @@ void RecomputeSkillLimits(W8Character* character, W8CharacterCreationState* crea
     creation_state->skill_step_limit = step;
 
     for (int index = 0; index < 0x29; ++index) {
-        if (character->skills[index].active == 0) {
+        if (!character->skills[index].active) {
             creation_state->skill_limits[index] = 0;
             continue;
         }
@@ -608,7 +608,7 @@ void FinalizeSpellPointPool(W8Character* character, W8CharacterCreationState* cr
         int total = 0;
         if (GetProfessionCasterLevel(character, W8_PROFESSION_NONE) > 0) {
             for (unsigned int realm = 0x18; realm < 0x1c; ++realm) {
-                if (character->skills[realm].active != 0) {
+                if (character->skills[realm].active) {
                     total += character->skill_costs[realm - 0x18];
                 }
             }
@@ -1136,7 +1136,7 @@ void FinalizeCreatedCharacter(W8Character* character, W8CharacterCreationState* 
         character->magic_bonus_pool += creation_state->magic_skill_bonus;
     } else {
         for (realm = 0x18; realm <= 0x1b; ++realm) {
-            if (character->skills[realm].active != 0) {
+            if (character->skills[realm].active) {
                 character->skill_costs[realm - 0x18] += creation_state->magic_skill_bonus;
                 break;
             }
@@ -1170,8 +1170,7 @@ void FinalizeCreatedCharacter(W8Character* character, W8CharacterCreationState* 
                     continue;
                 break;
             }
-            if (character->skills[realm].active != 0 &&
-                character->skill_costs[realm - 0x18] > 0) {
+            if (character->skills[realm].active && character->skill_costs[realm - 0x18] > 0) {
                 --character->skill_costs[realm - 0x18];
                 goto spell_done;
             }
@@ -1180,8 +1179,7 @@ void FinalizeCreatedCharacter(W8Character* character, W8CharacterCreationState* 
             --character->magic_bonus_pool;
         } else if (character->iProfession == W8_PROFESSION_BISHOP) {
             for (realm = 0x18; realm <= 0x1b; ++realm) {
-                if (character->skills[realm].active != 0 &&
-                    character->skill_costs[realm - 0x18] > 0) {
+                if (character->skills[realm].active && character->skill_costs[realm - 0x18] > 0) {
                     --character->skill_costs[realm - 0x18];
                     break;
                 }

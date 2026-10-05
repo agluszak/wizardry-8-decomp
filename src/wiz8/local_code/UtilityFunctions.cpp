@@ -398,10 +398,10 @@ unsigned int GetRandomPartySlots(int require_primary, int require_secondary,
         claimed[index] = 0;
     }
     if (count != 0) {
-        for (relaxed = 0; relaxed == 0;) {
-            for (slot = skip_first_two != 0 ? 2u : 0u; slot < 8; ++slot) {
+        for (relaxed = 0; !relaxed;) {
+            for (slot = skip_first_two ? 2u : 0u; slot < 8; ++slot) {
                 W8Character* character = &g_status.buffers.Char[slot];
-                if (g_status.buffers.XChar[slot].fOccupied != 0 && slot != excluded_slot &&
+                if (g_status.buffers.XChar[slot].fOccupied && slot != excluded_slot &&
                     claimed[slot] == 0 && (character->hp_current != 0 || require_primary == 2) &&
                     (character->highest_condition < W8_CONDITION_DEAD || require_secondary == 2)) {
                     eligible[found] = slot;
@@ -460,8 +460,7 @@ retry:
     slot = 0;
     do {
         matched = false;
-        if (g_status.buffers.XChar[slot].fOccupied != 0 &&
-            static_cast<int>(slot) != excluded_slot) {
+        if (g_status.buffers.XChar[slot].fOccupied && static_cast<int>(slot) != excluded_slot) {
             character = &g_status.buffers.Char[slot];
             if ((character->hp_current > 0 && character->highest_condition < W8_CONDITION_DEAD) ||
                 require_primary == 2) {
@@ -513,7 +512,7 @@ retry:
     scanned = 0;
 
     do {
-        if (rows[slot].fOccupied != 0) {
+        if (rows[slot].fOccupied) {
             W8Character* character = &characters[slot];
 
             if ((character->hp_current > 0 && character->highest_condition < W8_CONDITION_DEAD) ||
@@ -783,7 +782,7 @@ void RenderMessageBox(void)
         RenderButtons();
     } else if (g_message_box_state == 3) {
         g_message_box_state = 0;
-        if (g_message_box_accepted == 1 && g_message_box_callback != 0) {
+        if (g_message_box_accepted && g_message_box_callback != 0) {
             void (*callback)(void) = g_message_box_callback;
             g_message_box_callback = 0;
             callback();

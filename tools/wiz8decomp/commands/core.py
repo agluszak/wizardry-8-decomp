@@ -542,6 +542,9 @@ def scalar_facts_command(
             help="Propagate an accepted source enum through pure local copies (repeatable)."
         ),
     ] = None,
+    boolean_expressions: Annotated[
+        bool, typer.Option(help="Simplify comparisons of established bool objects in the patch.")
+    ] = False,
 ) -> None:
     """Collect the complete configured corpus and solve shared type constraints."""
     from .. import command_support as cli
@@ -554,6 +557,7 @@ def scalar_facts_command(
             patch=patch,
             padding=padding,
             propagate_enums=propagate_enum,
+            boolean_expressions=boolean_expressions,
         )
     )
 

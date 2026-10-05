@@ -110,7 +110,7 @@ int AnalyzeMusicPlaylist(stScript* playlist, int* total_weight)
         }
 
         ++playable_count;
-        if (found_unweighted == 0) {
+        if (!found_unweighted) {
             const char* weight = strchr(line, '(');
             if (weight != 0) {
                 *total_weight += atoi(weight + 1);
@@ -128,7 +128,7 @@ void ServiceMusicPlaylist(void)
 {
     int failures = 0;
 
-    if (g_music_playlist_active == 0) {
+    if (!g_music_playlist_active) {
         return;
     }
     if (g_music_sample_handle != -1 && SoundIsPlaying(g_music_sample_handle) != 0) {
@@ -138,7 +138,7 @@ void ServiceMusicPlaylist(void)
         return;
     }
 
-    if (g_music_force_next == 0 && gXStatus.fCombatMode == 0 &&
+    if (!g_music_force_next && !gXStatus.fCombatMode &&
         Random(100) <= static_cast<unsigned int>(g_music_pause_chance_percent)) {
         g_music_playlist_tick = GetTickCount() + g_music_pause_min_seconds * 1000 +
                                 Random(g_music_pause_max_seconds * 1000 - g_music_pause_min_seconds * 1000);
@@ -196,7 +196,7 @@ unsigned char StartMusicResource(const char* resource, int fade, unsigned char r
     if (resource == 0) {
         return 0;
     }
-    if (g_dev_mode != 0) {
+    if (g_dev_mode) {
         RequestExitScreen();
     }
 
@@ -205,7 +205,7 @@ unsigned char StartMusicResource(const char* resource, int fade, unsigned char r
     g_music_fade = static_cast<unsigned char>(fade);
 
     if (strstr(path, ".MPL") == 0) {
-        if (g_music_playlist_active == 0) {
+        if (!g_music_playlist_active) {
             g_music_playlist->setName("");
         }
 
@@ -269,7 +269,7 @@ unsigned char StartMusicResource(const char* resource, int fade, unsigned char r
 // FUNCTION: WIZ8 0x0048FF00
 void StopMusicPlaylist(bool fade)
 {
-    if (fade != 0) {
+    if (fade) {
         if (g_music_sample_handle != -1) {
             SoundSetFadeVolume(g_music_sample_handle, 0, 2000, 1);
             g_music_sample_handle = -1;

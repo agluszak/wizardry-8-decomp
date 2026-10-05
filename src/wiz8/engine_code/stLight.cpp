@@ -426,7 +426,7 @@ void SaveLightStates(int handle)
     stLight* light = static_cast<stLight*>(srCore.getRegistry()->find(
         stLight::sGetClassNode(), static_cast<const srRuntimeClass*>(0)));
     while (light != 0) {
-        if (light->m_save_marked != 0) {
+        if (light->m_save_marked) {
             ++count;
         }
         light = static_cast<stLight*>(srCore.getRegistry()->find(stLight::sGetClassNode(), light));
@@ -437,7 +437,7 @@ void SaveLightStates(int handle)
     light = static_cast<stLight*>(srCore.getRegistry()->find(
         stLight::sGetClassNode(), static_cast<const srRuntimeClass*>(0)));
     while (light != 0) {
-        if (light->m_save_marked != 0) {
+        if (light->m_save_marked) {
             strcpy(name, light->getName());
             FileWrite(handle, name, sizeof(name), 0);
             unsigned char enabled = light->testFlag(srNode::FLAG_DISABLE) == 0;

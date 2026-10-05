@@ -96,7 +96,7 @@ void RequestScreenTransition(void)
 // FUNCTION: WIZ8 0x0055EC70
 bool IsScreenTransitionPending(void)
 {
-    if (g_pending_screen_state.id == W8_SCREEN_NONE && g_screen_return_requested == 0) {
+    if (g_pending_screen_state.id == W8_SCREEN_NONE && !g_screen_return_requested) {
         return false;
     }
     return true;

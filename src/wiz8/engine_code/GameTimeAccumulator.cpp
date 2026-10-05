@@ -58,8 +58,8 @@ void W8GameTimeAccumulator::ResetDurationScale()
 // FUNCTION: WIZ8 0x0043aad0
 float W8GameTimeAccumulator::Update()
 {
-    if ((m_flags & 8) != 0 || (g_shared_timer_paused != 0 && (m_flags & 1) == 0) ||
-        g_shared_timer_flag0 != 0) {
+    if ((m_flags & 8) != 0 || (g_shared_timer_paused && (m_flags & 1) == 0) ||
+        g_shared_timer_flag0) {
         m_frame_delta = 0.0f;
     } else {
         int sample = ReadClock();
@@ -74,7 +74,7 @@ float W8GameTimeAccumulator::Update()
         }
         m_elapsed += m_frame_delta;
     }
-    if (g_shared_timer_flag1 != 0 && (m_flags & 1) == 0) {
+    if (g_shared_timer_flag1 && (m_flags & 1) == 0) {
         return 0.0f;
     }
     return m_frame_delta;

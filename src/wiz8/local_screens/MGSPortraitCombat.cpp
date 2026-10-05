@@ -176,35 +176,34 @@ void UpdateSubMenuButton(int index)
     case 5:
     case 6:
     case 8:
-        g_submenu_buttons[index]->SetVisible(gXStatus.fCombatMode != 0);
+        g_submenu_buttons[index]->SetVisible(gXStatus.fCombatMode);
         break;
     case 7:
-        g_submenu_buttons[index]->SetVisible(gXStatus.fCombatMode == 0);
+        g_submenu_buttons[index]->SetVisible(!gXStatus.fCombatMode);
         break;
     }
-    if (gXStatus.fNpcDialogueMode != 0 &&
+    if (gXStatus.fNpcDialogueMode &&
         (index != 0 || IsNpcDialogueCursorActive() != 0 || CanOpenNpcDialogue())) {
         g_submenu_buttons[index]->SetEnabled(0);
         return;
     }
-    if (gXStatus.fLockInteractMode != 0 || gXStatus.fTrapInteractMode != 0 ||
-        gXStatus.fReviewCharacterMode != 0) {
+    if (gXStatus.fLockInteractMode || gXStatus.fTrapInteractMode || gXStatus.fReviewCharacterMode) {
         g_submenu_buttons[index]->SetEnabled(0);
         return;
     }
-    if (gXStatus.fItemSelectMode != 0 && index != 3) {
+    if (gXStatus.fItemSelectMode && index != 3) {
         g_submenu_buttons[index]->SetEnabled(0);
         return;
     }
-    if (gXStatus.fSpellCastMode != 0 && index != 4) {
+    if (gXStatus.fSpellCastMode && index != 4) {
         g_submenu_buttons[index]->SetEnabled(0);
         return;
     }
-    if (gXStatus.fSurprisePossible != 0 || gXStatus.fCampMode != 0) {
+    if (gXStatus.fSurprisePossible || gXStatus.fCampMode) {
         g_submenu_buttons[index]->SetEnabled(0);
         return;
     }
-    if (gXStatus.fCombatMode != 0 && g_combat_state->round_active == 0) {
+    if (gXStatus.fCombatMode && !g_combat_state->round_active) {
         g_submenu_buttons[index]->SetEnabled(0);
         return;
     }
@@ -214,21 +213,21 @@ void UpdateSubMenuButton(int index)
     }
     switch (index) {
     case 0:
-        if (gXStatus.fCombatMode != 0) {
+        if (gXStatus.fCombatMode) {
             g_submenu_buttons[0]->SetEnabled(0);
         } else {
             g_submenu_buttons[0]->SetEnabled(1);
         }
         break;
     case 1:
-        if (gXStatus.fCombatMode != 0) {
+        if (gXStatus.fCombatMode) {
             g_submenu_buttons[1]->SetEnabled(0);
         } else {
             g_submenu_buttons[1]->SetEnabled(1);
         }
         break;
     case 2:
-        if (gXStatus.fCombatMode != 0) {
+        if (gXStatus.fCombatMode) {
             g_submenu_buttons[2]->SetEnabled(0);
         } else {
             g_submenu_buttons[2]->SetEnabled(1);
@@ -256,7 +255,7 @@ void UpdateSubMenuButton(int index)
         g_submenu_buttons[3]->SetEnabled(1);
         /* As case 2, with fItemSelectMode: 0x00594F07/0x00594F1C then
            0x00594F23/0x00594F38. */
-        if (gXStatus.fItemSelectMode != 0) {
+        if (gXStatus.fItemSelectMode) {
             if (g_submenu_buttons[3]->IsPressed() == 0) {
                 g_submenu_buttons[3]->SetPressed(1);
             }
@@ -273,7 +272,7 @@ void UpdateSubMenuButton(int index)
         /* As case 2, with fSpellCastMode: 0x00594FA0/0x00594FB5 then
            0x00594FBC/0x00594FCD. This case's SetEnabled stays a single call -
            the retail's `? :` collapses into one at 0x00594F8C. */
-        if (gXStatus.fSpellCastMode != 0) {
+        if (gXStatus.fSpellCastMode) {
             if (g_submenu_buttons[4]->IsPressed() == 0) {
                 g_submenu_buttons[4]->SetPressed(1);
             }
@@ -285,20 +284,20 @@ void UpdateSubMenuButton(int index)
         break;
     case 5:
     case 6:
-        g_submenu_buttons[index]->SetEnabled(gXStatus.fCombatMode != 0);
+        g_submenu_buttons[index]->SetEnabled(gXStatus.fCombatMode);
         if (!IsPartySlotEligible(g_status.selected_character)) {
             g_submenu_buttons[index]->SetEnabled(0);
         }
         break;
     case 7:
-        if (gXStatus.fCombatMode != 0) {
+        if (gXStatus.fCombatMode) {
             g_submenu_buttons[7]->SetEnabled(0);
         } else {
             g_submenu_buttons[7]->SetEnabled(1);
         }
         break;
     case 8:
-        if (gXStatus.fCombatMode != 0) {
+        if (gXStatus.fCombatMode) {
             g_submenu_buttons[8]->SetEnabled(1);
         } else {
             g_submenu_buttons[8]->SetEnabled(0);
@@ -312,7 +311,7 @@ static void SubMenuButtonPendingScreen(W8DialogButton* button)
 {
     button->SetPressed(0);
     button->m_dirty = true;
-    if (gXStatus.fNpcDialogueMode != 0) {
+    if (gXStatus.fNpcDialogueMode) {
         gXStatus.fCampMode = true;
     }
     SetPendingScreenState(W8_SCREEN_JOURNAL);
@@ -338,11 +337,11 @@ static void SubMenuButtonToggleFlag(W8DialogButton* button)
 // FUNCTION: WIZ8 0x00595110
 static void SubMenuButtonUseItem(W8DialogButton* button)
 {
-    if (gXStatus.fItemSelectMode != 0) {
+    if (gXStatus.fItemSelectMode) {
         CloseUseItemSelectView();
         return;
     }
-    if (gXStatus.fCombatMode != 0) {
+    if (gXStatus.fCombatMode) {
         OpenSubMenuPanel(3);
         ResetClickedMode();
         return;
@@ -354,7 +353,7 @@ static void SubMenuButtonUseItem(W8DialogButton* button)
 static void SubMenuButtonSpellView(W8DialogButton* button)
 {
     if (CharacterHasCastableSpell(&g_status.buffers.Char[g_status.selected_character])) {
-        if (gXStatus.fSpellCastMode != 0) {
+        if (gXStatus.fSpellCastMode) {
             CloseSpellCastingView();
         } else {
             OpenSpellCastingView(g_status.selected_character);

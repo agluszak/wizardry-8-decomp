@@ -604,7 +604,7 @@ void W8TextBuffer::RenderText(unsigned char* buffer, unsigned int pitch, int x_o
                               bool force)
 {
     wchar_t* line = m_buffer;
-    if (line == 0 || (force == 0 && m_geometryDirty == 0)) {
+    if (line == 0 || (!force && !m_geometryDirty)) {
         return;
     }
 
@@ -2082,7 +2082,7 @@ void Controls::SetEnabled(bool enable)
 
         control->m_active = enable;
         if (control->m_region != -1) {
-            if (enable == 0) {
+            if (!enable) {
                 DisableRegionInput(control->m_region);
             } else {
                 EnableRegionInput(control->m_region);

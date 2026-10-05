@@ -131,7 +131,7 @@ void stLevel::process(const ProcessInfo& info, e_processType)
 
             srMeshModel::TriMesh mesh;
             model->getTriMesh(mesh);
-            if (g_render_untextured != 0) {
+            if (g_render_untextured) {
                 mesh.shaders[0].value &= 0xffff7fff;
                 mesh.poly_shaders[0] = 0;
             }
@@ -306,11 +306,11 @@ static unsigned char ReadWorldLights(W8World* world, int hFile)
                     definition->intensity_to = swap;
                 }
             }
-            if (record.visible == 0) {
+            if (!record.visible) {
                 light->setFlag(srNode::FLAG_DISABLE);
             }
             light->setGroupMask(2);
-        } else if (record.version < 2 || record.visible != 0) {
+        } else if (record.version < 2 || record.visible) {
             record.visible = 1;
             if (record.version < 2) {
                 strcpy(name, "Static Point Light");
@@ -1125,7 +1125,7 @@ unsigned char ReadLevel(W8World* world, int handle, bool use_octree, const char*
     }
     CHECK_PVL_OFFSET("Wrong offset in .pvl file after Clipping Planes.");
 
-    if (use_octree != 0) {
+    if (use_octree) {
         srMeshModel* model = static_cast<srMeshModel*>(level_mesh->getModel());
         model->getBoundingBox(minimum, maximum);
         world->quads = BuildWorldQuad(level_mesh, 0, minimum.x, minimum.y, minimum.z, maximum.x,

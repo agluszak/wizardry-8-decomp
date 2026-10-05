@@ -66,7 +66,7 @@ static void ProvokeHostileEncounterOnGameThread(void* opaque)
             fprintf(stderr, "runtime-test pathing: party snap=%d y=%f\n", snap, probe.y);
             for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
                 W8MonsterInfo* mi = MonsterGetScriptPartByLocationIndex(i);
-                if (mi != 0 && mi->fActive != 0 && mi->p3D != 0) {
+                if (mi != 0 && mi->fActive && mi->p3D != 0) {
                     srVector3T<float> mp = mi->p3D->GetPosition();
                     unsigned char msnap = pathing->SnapWaypointPosition(&mp, 0);
                     fprintf(stderr,
@@ -82,7 +82,7 @@ static void ProvokeHostileEncounterOnGameThread(void* opaque)
     float melee_distance = 1e30f;
     for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
         W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
-        if (info != 0 && info->fActive != 0 && info->p3D != 0 && info->monster_group_id != 0 &&
+        if (info != 0 && info->fActive && info->p3D != 0 && info->monster_group_id != 0 &&
             info->uiCondition[13] == 0) {
             float dist = (info->p3D->GetPosition() - party_position).Length();
             if (dist < provoked_distance) {
@@ -211,7 +211,7 @@ static void ProvokeHostileEncounterOnGameThread(void* opaque)
             provoked_info = 0;
             for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
                 W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
-                if (info != 0 && info->fActive != 0 && info->p3D != 0 &&
+                if (info != 0 && info->fActive && info->p3D != 0 &&
                     info->monster_group_id == provoked_group_id) {
                     provoked_info = info;
                     break;
@@ -255,7 +255,7 @@ static void ReadHostileEngagementOnGameThread(void* opaque)
     party_position.y -= g_environ != 0 ? g_environ->world_height : g_default_world_height;
     s->screen = g_current_screen_state.id;
     s->pending = g_pending_screen_state.id;
-    s->combat_mode = gXStatus.fCombatMode != 0;
+    s->combat_mode = gXStatus.fCombatMode;
     s->hostile_count = gXStatus.hostile_monster_count;
     s->nearest_engaged_distance = 1e30f;
     s->provoked_hp = -1;
@@ -269,13 +269,13 @@ static void ReadHostileEngagementOnGameThread(void* opaque)
     if (gXStatus.plsMonsterList != 0) {
         for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
             W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
-            if (info == 0 || info->fActive == 0 || info->p3D == 0)
+            if (info == 0 || !info->fActive || info->p3D == 0)
                 continue;
             ++s->active_monsters;
             float distance = (info->p3D->GetPosition() - party_position).Length();
             if (info->uiCondition[W8_CONDITION_TURNCOAT] != 0)
                 ++s->hostile_condition_monsters;
-            if (info->fInCombat != 0) {
+            if (info->fInCombat) {
                 ++s->engaged_hostiles;
                 if (distance < s->nearest_engaged_distance)
                     s->nearest_engaged_distance = distance;
@@ -304,7 +304,7 @@ static void ReadHostileEngagementOnGameThread(void* opaque)
     if (g_status.buffers.Char != 0) {
         for (int slot = 0; slot < 8; ++slot) {
             const W8Character* character = &g_status.buffers.Char[slot];
-            if (character->fInParty != 0) {
+            if (character->fInParty) {
                 s->party_hp_total += character->hp_current;
                 if (character->hp_current == 0 ||
                     character->highest_condition >= W8_CONDITION_UNCONSCIOUS)
@@ -317,7 +317,7 @@ static void ReadHostileEngagementOnGameThread(void* opaque)
         s->first_target_monster = -1;
         for (int slot = 0; slot < 8; ++slot) {
             const W8PartySlotRow* row = &g_status.buffers.XChar[slot];
-            if (row->fOccupied != 0 && row->action == W8_ACTION_ATTACK) {
+            if (row->fOccupied && row->action == W8_ACTION_ATTACK) {
                 ++s->queued_attacks;
                 if (s->first_target_type < 0) {
                     s->first_target_type = row->target_in_combat.iType;
@@ -362,7 +362,7 @@ static void QueuePartyAttacksOnGameThread(void* opaque)
         GetCameraPosition(&camera);
         for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
             W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
-            if (info == 0 || info->fActive == 0 || info->fInCombat == 0 || info->p3D == 0 ||
+            if (info == 0 || !info->fActive || !info->fInCombat || info->p3D == 0 ||
                 info->hp_current == 0 || info->uiCondition[W8_CONDITION_DEAD] != 0) {
                 continue;
             }
@@ -387,7 +387,7 @@ static void QueuePartyAttacksOnGameThread(void* opaque)
     for (int slot = 0; slot < 8; ++slot) {
         W8PartySlotRow* row = &g_status.buffers.XChar[slot];
         W8Character* character = &g_status.buffers.Char[slot];
-        if (row->fOccupied == 0 || character->hp_current == 0 ||
+        if (!row->fOccupied || character->hp_current == 0 ||
             character->highest_condition >= W8_CONDITION_DEAD) {
             continue;
         }
@@ -472,7 +472,7 @@ static void QueuePartySpellsOnGameThread(void* opaque)
         bool alive = false;
         for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
             W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
-            if (info != 0 && info->fActive != 0 && info->fInCombat != 0 && info->hp_current != 0 &&
+            if (info != 0 && info->fActive && info->fInCombat && info->hp_current != 0 &&
                 info->uiCondition[W8_CONDITION_DEAD] == 0 && info->location_id == aim_location_id) {
                 alive = true;
                 break;
@@ -484,7 +484,7 @@ static void QueuePartySpellsOnGameThread(void* opaque)
             GetCameraPosition(&camera);
             for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
                 W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
-                if (info == 0 || info->fActive == 0 || info->fInCombat == 0 || info->p3D == 0 ||
+                if (info == 0 || !info->fActive || !info->fInCombat || info->p3D == 0 ||
                     info->hp_current == 0 || info->uiCondition[W8_CONDITION_DEAD] != 0) {
                     continue;
                 }
@@ -510,7 +510,7 @@ static void QueuePartySpellsOnGameThread(void* opaque)
     for (int slot = 0; slot < 8; ++slot) {
         W8PartySlotRow* row = &g_status.buffers.XChar[slot];
         W8Character* character = &g_status.buffers.Char[slot];
-        if (row->fOccupied == 0 || character->hp_current == 0 ||
+        if (!row->fOccupied || character->hp_current == 0 ||
             character->highest_condition >= W8_CONDITION_DEAD) {
             continue;
         }
@@ -575,7 +575,7 @@ static void QueuePartyDefendOnGameThread(void* opaque)
     for (int slot = 0; slot < 8; ++slot) {
         W8PartySlotRow* row = &g_status.buffers.XChar[slot];
         W8Character* character = &g_status.buffers.Char[slot];
-        if (row->fOccupied == 0 || character->fInParty == 0 || character->hp_current == 0 ||
+        if (!row->fOccupied || !character->fInParty || character->hp_current == 0 ||
             character->highest_condition >= W8_CONDITION_DEAD) {
             continue;
         }
@@ -603,7 +603,7 @@ static void QueuePartyFleeOnGameThread(void* opaque)
     for (int slot = 0; slot < 8; ++slot) {
         W8PartySlotRow* row = &g_status.buffers.XChar[slot];
         W8Character* character = &g_status.buffers.Char[slot];
-        if (row->fOccupied == 0 || character->fInParty == 0 || character->hp_current == 0 ||
+        if (!row->fOccupied || !character->fInParty || character->hp_current == 0 ||
             character->highest_condition >= W8_CONDITION_DEAD) {
             continue;
         }
@@ -627,7 +627,7 @@ static void WeakenPartyOnGameThread(void* opaque)
     for (int slot = 0; slot < 8; ++slot) {
         W8PartySlotRow* row = &g_status.buffers.XChar[slot];
         W8Character* character = &g_status.buffers.Char[slot];
-        if (row->fOccupied == 0 || character->fInParty == 0 || character->hp_current == 0 ||
+        if (!row->fOccupied || !character->fInParty || character->hp_current == 0 ||
             character->highest_condition >= W8_CONDITION_DEAD) {
             continue;
         }
@@ -657,7 +657,7 @@ static void TeleportPartyNearEngagedOnGameThread(void* opaque)
     }
     for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
         W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
-        if (info == 0 || info->fActive == 0 || info->p3D == 0 || info->fInCombat == 0) {
+        if (info == 0 || !info->fActive || info->p3D == 0 || !info->fInCombat) {
             continue;
         }
         float distance = (info->p3D->GetPosition() - camera).Length();
@@ -721,7 +721,7 @@ struct CombatModeRequest {
 static void RequestCombatModeOnGameThread(void* opaque)
 {
     CombatModeRequest* request = static_cast<CombatModeRequest*>(opaque);
-    request->achieved = (gXStatus.fCombatMode != 0) == request->enabled;
+    request->achieved = (gXStatus.fCombatMode) == request->enabled;
     request->waiting_on_ground = false;
     request->input_blocked = IsScreenInputBlocked() != 0;
     if (request->achieved || request->input_blocked) {
@@ -732,7 +732,7 @@ static void RequestCombatModeOnGameThread(void* opaque)
         return;
     }
     DispatchMGSCommand(W8_MGS_COMMAND_TOGGLE_COMBAT);
-    request->achieved = (gXStatus.fCombatMode != 0) == request->enabled;
+    request->achieved = (gXStatus.fCombatMode) == request->enabled;
 }
 
 int EngageHostile(RuntimeCase& test)
@@ -1003,7 +1003,7 @@ static bool MovePartyInCombat(RuntimeCase& test, W8MGSCommand command)
 
 static bool CombatMovementUiShown(const GameplaySnapshot& state, void*)
 {
-    return state.movement_ui != 0;
+    return state.movement_ui;
 }
 
 static bool RoundInactive(const GameplaySnapshot& state, void*)
@@ -1231,7 +1231,7 @@ bool CombatAttackCase(RuntimeCase& test)
    transition never arrived on failure. */
 static void EndSpellFixtureCombatOnGameThread(void*)
 {
-    if (g_combat_state != 0 && gXStatus.fCombatMode != 0) {
+    if (g_combat_state != 0 && gXStatus.fCombatMode) {
         EndCombat(0);
     }
     gfProgramIsRunning = 0;
