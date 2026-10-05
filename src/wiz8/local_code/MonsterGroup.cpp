@@ -65,9 +65,6 @@ enum { W8_ENCOUNTER_GROUP_INDEX_BIAS = 10000 };
    form, which is the second entry of each name set. */
 enum { W8_MONSTER_GROUP_SINGULAR = 1, W8_MONSTER_NAME_STRIDE = 24 };
 
-/* A member counts as active while its highest condition is below HOSTILE and
-   it is not under the control state the group excludes. */
-enum { W8_MONSTER_CONTROL_EXCLUDED = 1 };
 enum { W8_MONSTER_GROUP_ALLY_COUNT = 4 };
 
 // FUNCTION: WIZ8 0x00510cc0
@@ -303,7 +300,7 @@ void RefreshMonsterGroupHostility(W8MonsterGroup* monster_group)
         (record->flags & W8_MONSTER_FLAG_NPC) == 0 && record->faction_id == 0 &&
         record->hostility_radius != 0 && record->hostility_radius != -1 &&
         GetGroupNearestDistance(monster_group) <= record->hostility_radius * g_world_scale &&
-        MonsterGroupHasVisibleTarget(monster_group, 1, 3, 0)) {
+        MonsterGroupHasVisibleTarget(monster_group, 1, W8_VISIBLE_TARGET_ANY, 0)) {
         SetMonsterGroupHostility(monster_group, W8_DISPOSITION_HOSTILE, false);
     }
     cooldown = IntegerPower(record->attribute_values[W8_MONSTER_ATTRIBUTE_INTELLIGENCE], 2) * 0x3c;
@@ -426,7 +423,7 @@ void RecountActiveMonsterGroupMembers(W8MonsterGroup* monster_group)
         monster_info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
             0x412, MONSTER_GROUP_CPP, IListGetAt(monster_group->monsters, index), true));
         if (monster_info->highest_condition < W8_CONDITION_TURNCOAT &&
-            monster_info->control_state != W8_MONSTER_CONTROL_EXCLUDED) {
+            monster_info->control_state != W8_MONSTER_CONTROL_LURED) {
             ++active;
         }
     }
@@ -730,7 +727,7 @@ void MonsterGroupLeaveCombat(W8MonsterGroup* monster_group)
     monster_group->fInCombat = false;
     RequestRedrawParty();
     lead = MonsterInfoFromID(0x1fd, MONSTER_GROUP_CPP, monster_group->leader_location_id, true);
-    lead->ai_mode |= 0x80;
+    lead->ai_mode |= W8_MONSTER_AI_REAPPLY_MODE;
 }
 
 /* Removes a group and everything allied to it from the world. Each ally is
@@ -810,7 +807,7 @@ void RebindMonsterGroupScripts(void)
 /* Writes a control state onto every live member of the group; the Lure
    effect uses it to flip a whole out-of-combat group at once. */
 // FUNCTION: WIZ8 0x005117D0
-void SetMonsterGroupControlState(W8MonsterGroup* monster_group, int control_state)
+void SetMonsterGroupControlState(W8MonsterGroup* monster_group, W8MonsterControlState control_state)
 {
     for (unsigned int index = 0; index < ILLength(monster_group->monsters); ++index) {
         int location_id = IListGetAt(monster_group->monsters, index);

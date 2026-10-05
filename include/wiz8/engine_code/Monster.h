@@ -2,6 +2,7 @@
 #define WIZ8_ENGINE_CODE_MONSTER_H
 
 #include "wiz8/monster_spell_icons.h"
+#include "wiz8/monster_actions.h"
 #include <stddef.h>
 
 #include "surrender/srMath.h"
@@ -331,7 +332,7 @@ public:
     srVector3T<float> formation;
     unsigned char defining_orders;
     unsigned char orders_finished;
-    signed char order_mode;
+    W8MonsterOrderMode order_mode;
     unsigned char deaf;
     unsigned char face_party;
     unsigned char stay_home;

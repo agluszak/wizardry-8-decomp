@@ -124,9 +124,20 @@ void StartCharacterItemUse(int party_slot); /* 0x00501790 */
 /* 0x00501860: one-line forwarder narrowing CanCharReBreathe to a flag. */
 bool CanPartySlotReBreathe(int party_slot);
 void StartCharacterBreathAttack(int party_slot);
+/* Sprite bands: automatic power, then failure chance >40, <=40, <=15, <=5 and zero. */
+enum W8SpellCastRating {
+    W8_CAST_RATING_AUTOMATIC = 0,
+    W8_CAST_RATING_HIGH_RISK = 1,
+    W8_CAST_RATING_MODERATE_RISK = 2,
+    W8_CAST_RATING_LOW_RISK = 3,
+    W8_CAST_RATING_MINIMAL_RISK = 4,
+    W8_CAST_RATING_NO_FAILURE = 5
+};
+
 /* 0x004FF4B0: the spell screen's one-to-five safety rating for one cast at a
    power level; zero for the as-affordable request. */
-unsigned int GetSpellCastRating(W8Character* character, int spell_id, unsigned int power_level);
+W8SpellCastRating GetSpellCastRating(W8Character* character, int spell_id,
+                                     unsigned int power_level);
 /* 0x004FF410: the same chance for a bare skill figure rather than a caster,
    which is what an item-use attempt has. */
 unsigned int GetSpellFailureChance(unsigned int skill, int spell_id, int factor);

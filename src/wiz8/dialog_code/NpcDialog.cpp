@@ -51,7 +51,7 @@ W8NpcDialog::W8NpcDialog(W8NpcQuoteEntry* message, int aux_data)
     m_aux_data = aux_data;
 
     char opcode = message->kind;
-    if (opcode == 5) {
+    if (opcode == W8_NPC_ENTRY_OPTIONS) {
         if (message->sub_entry_count == 2) {
             m_compact_options = false;
         } else {
@@ -66,13 +66,13 @@ W8NpcDialog::W8NpcDialog(W8NpcQuoteEntry* message, int aux_data)
         }
         m_text_width = max_width + 6;
         width = (m_text_width + 0xa) * message->sub_entry_count + 0x1e;
-    } else if (opcode == 18 || opcode == 30) {
+    } else if (opcode == W8_NPC_ENTRY_PRICE_CHECK || opcode == W8_NPC_ENTRY_ALWAYS_PRICE_CHECK) {
         m_compact_options = false;
         short length = StringPixLength(gppStringList[0x7df], g_wiz_text_mono_font);
         height = 0x50;
         m_text_width = length + 6;
         width = m_text_width * 2 + 0x32;
-    } else if (opcode == 19 || !m_compact_options) {
+    } else if (opcode == W8_NPC_ENTRY_KEYWORD_INPUT || !m_compact_options) {
         width = 200;
     }
     /* A computed width under 200 only sticks when the compact flag is set,
@@ -98,7 +98,7 @@ int W8NpcDialog::CreateControls()
     W8ControlsRect bounds;
 
     W8DialogBase::CreateControls();
-    if (m_message->kind == 5) {
+    if (m_message->kind == W8_NPC_ENTRY_OPTIONS) {
         int x =
             (m_width - static_cast<short>((m_text_width + 10) * m_message->sub_entry_count - 10)) /
             2;
@@ -117,7 +117,8 @@ int W8NpcDialog::CreateControls()
         m_text_buffers[0] =
             new W8TextBuffer(&bounds, gppStringList[0x7e4], g_wiz_text_font_secondary,
                              g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter, 4);
-    } else if (m_message->kind == 18 || m_message->kind == 30) {
+    } else if (m_message->kind == W8_NPC_ENTRY_PRICE_CHECK ||
+               m_message->kind == W8_NPC_ENTRY_ALWAYS_PRICE_CHECK) {
         short x = static_cast<short>((m_width - static_cast<short>((m_text_width + 5) * 2)) / 2);
         m_buttons[0] = new W8DialogButton;
         m_buttons[0]->ConfigureTextButton(
@@ -144,7 +145,7 @@ int W8NpcDialog::CreateControls()
         m_text_buffers[1] =
             new W8TextBuffer(&bounds, line, g_wiz_text_font_secondary,
                              g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter, 4);
-    } else if (m_message->kind == 19) {
+    } else if (m_message->kind == W8_NPC_ENTRY_KEYWORD_INPUT) {
         SetTextInputScheme(1);
         m_input_field = AddTextInputField(m_x + (m_width - 0x8c) / 2, m_y + 0x23, 0x8c, 0x10, 0x7f,
                                           &g_empty_wide_string, 0x28, 0xf, 1);
@@ -177,7 +178,7 @@ void W8NpcDialog::DestroyControls()
             m_text_buffers[index] = 0;
         }
     }
-    if (m_message->kind == 19) {
+    if (m_message->kind == W8_NPC_ENTRY_KEYWORD_INPUT) {
         RemoveTextInputField(m_input_field);
     }
 }
@@ -225,7 +226,8 @@ bool W8NpcDialog::ProcessInput()
     while (DequeueEvent(&input) == TRUE) {
         if ((input.usEvent != KEY_DOWN && input.usEvent != KEY_REPEAT) ||
             static_cast<char>(HandleTextInput(&input)) == 0) {
-            if (input.usEvent == KEY_DOWN && input.usParam == 0xd && m_message->kind == 19) {
+            if (input.usEvent == KEY_DOWN && input.usParam == 0xd &&
+                m_message->kind == W8_NPC_ENTRY_KEYWORD_INPUT) {
                 Get16BitStringFromField(m_input_field, m_input_text);
                 g_npc_dialog->m_keep_open = false;
                 return true;

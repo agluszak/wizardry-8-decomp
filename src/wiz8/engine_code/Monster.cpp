@@ -1283,7 +1283,7 @@ W8Monster::W8Monster(const W8Monster& rhs)
 
     defining_orders = 0;
     orders_finished = 0;
-    order_mode = -1;
+    order_mode = W8_MONSTER_ORDER_NONE;
     deaf = 0;
     face_party = 0;
     stay_home = 0;
@@ -1905,15 +1905,15 @@ void W8Monster::ProcessScript()
     monster_index = MonsterGetIndexByLocationID(0x1a4a, MONSTER_CPP, location_id, true);
     monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
     if (orders_finished != 0) {
-        if (monster_info == 0 || (monster_info->ai_mode & 0x10) == 0) {
+        if (monster_info == 0 || (monster_info->ai_mode & W8_MONSTER_AI_RESTORE_SCRIPT) == 0) {
             return;
         }
-        monster_info->ai_mode &= ~0x10;
+        monster_info->ai_mode &= ~W8_MONSTER_AI_RESTORE_SCRIPT;
         return;
     }
 
-    if (monster_info != 0 && (monster_info->ai_mode & 0x10) != 0) {
-        monster_info->ai_mode &= ~0x10;
+    if (monster_info != 0 && (monster_info->ai_mode & W8_MONSTER_AI_RESTORE_SCRIPT) != 0) {
+        monster_info->ai_mode &= ~W8_MONSTER_AI_RESTORE_SCRIPT;
         if (script_wait == MONSCR_WALKTO && movement_stopped) {
             if (script_line > 0) {
                 --script_line;
@@ -2295,7 +2295,7 @@ void W8Monster::ProcessScript()
                             QueueNpcScriptNotice(npc, 0, 6, false, 0);
                         monster_info = MonsterGetScriptPartByLocationIndex(
                             MonsterGetIndexByLocationID(0x14b3, MONSTER_CPP, location_id, true));
-                        if (monster_info->control_state != 1) {
+                        if (monster_info->control_state != W8_MONSTER_CONTROL_LURED) {
                             srVector3T<float> party;
                             GetCameraPosition(&party);
                             AimAtPosition(&party);
@@ -2374,7 +2374,7 @@ void W8Monster::ProcessScript()
                     }
                     if (direction != -1) {
                         double angle = (direction - MONSCR_EAST) * g_monster_script_direction_step;
-                        order_mode = 4;
+                        order_mode = W8_MONSTER_ORDER_FACE_DIRECTION;
                         direction_x = static_cast<float>(cos(angle) * g_double_005ec150);
                         direction_y = 0.0f;
                         direction_z = static_cast<float>(sin(angle) * g_double_005ec150);
@@ -2392,7 +2392,7 @@ void W8Monster::ProcessScript()
                     token = strtok(0, " \t");
                     if (token != 0) {
                         patrol_variation = static_cast<float>(atof(token)) * g_world_scale;
-                        order_mode = 1;
+                        order_mode = W8_MONSTER_ORDER_PATROL;
                     }
                 }
                 break;
@@ -2426,9 +2426,11 @@ void W8Monster::ProcessScript()
                 }
                 if (command == MONSCR_GUARD && added != 0) {
                     orders_finished = 0;
-                    order_mode = 0;
+                    order_mode = W8_MONSTER_ORDER_GUARD;
                 } else if (added != 0) {
-                    order_mode = command == MONSCR_POINTPATROL ? 2 : 3;
+                    order_mode = command == MONSCR_POINTPATROL
+                                     ? W8_MONSTER_ORDER_POINT_PATROL
+                                     : W8_MONSTER_ORDER_RANDOM_POINT_PATROL;
                 }
                 break;
             }
@@ -2902,7 +2904,7 @@ void W8Monster::StopTalking()
         if (model != 0) {
             mouth = static_cast<stModelInstance*>(model)->FindMouthTexture();
             if (mouth != 0) {
-                mouth->animation_mode = 3;
+                mouth->animation_mode = W8_TEXTURE_ANIM_MANUAL;
                 mouth->SetFrame(0);
             }
         }
@@ -2936,9 +2938,10 @@ unsigned char W8Monster::GetPatrolPoint(srVector3T<float>* point)
         vector.Add(formation);
     }
 
-    if (order_mode == 0) {
+    if (order_mode == W8_MONSTER_ORDER_GUARD) {
         patrol_point = vector.GetAt(0);
-    } else if (order_mode > 1 && order_mode < 4) {
+    } else if (order_mode > W8_MONSTER_ORDER_PATROL &&
+               order_mode < W8_MONSTER_ORDER_FACE_DIRECTION) {
         patrol_point = vector.GetAt(patrol_index);
     } else {
         return 0;
@@ -3291,7 +3294,7 @@ void W8Monster::UpdateRepresentation(W8World* world)
             model = GetCurrentModelInstance();
             if (model != 0 &&
                 (mouth = static_cast<stModelInstance*>(model)->FindMouthTexture()) != 0) {
-                mouth->animation_mode = 3;
+                mouth->animation_mode = W8_TEXTURE_ANIM_MANUAL;
                 mouth->SetFrame(0);
             }
         } else if (GetTickCount() - mouth_frame_clock > 120) {
@@ -3307,7 +3310,7 @@ void W8Monster::UpdateRepresentation(W8World* world)
             model = GetCurrentModelInstance();
             if (model != 0 &&
                 (mouth = static_cast<stModelInstance*>(model)->FindMouthTexture()) != 0) {
-                mouth->animation_mode = 3;
+                mouth->animation_mode = W8_TEXTURE_ANIM_MANUAL;
                 mouth->SetFrame(frame);
             }
         }
@@ -4771,7 +4774,7 @@ void MonsterForwardReferencePosition(W8Monster* monster, char alternate)
     if (monster != 0) {
         monster_info = MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(0x14b3, MONSTER_CPP, monster->location_id, true));
-        if (monster_info->control_state != 1) {
+        if (monster_info->control_state != W8_MONSTER_CONTROL_LURED) {
             GetCameraPosition(&position);
             if (alternate != 0) {
                 monster->SetFacingToward(&position);
@@ -4795,7 +4798,7 @@ void MonsterAimAtMonster(W8Monster* monster, W8Monster* target, bool alternate)
     if (monster != 0 && target != 0) {
         monster_info = MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(0x14c7, MONSTER_CPP, monster->location_id, true));
-        if (monster_info->control_state != 1) {
+        if (monster_info->control_state != W8_MONSTER_CONTROL_LURED) {
             target_position = target->GetPosition();
             position = target_position;
             if (alternate) {

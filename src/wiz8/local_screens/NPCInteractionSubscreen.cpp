@@ -4561,7 +4561,8 @@ void OpenNpcDialog(W8NpcQuoteEntry* request, int aux_data)
     dialog->m_destroy_callback = OnNpcDialogClosed;
     OpenModal(dialog);
     g_npc_interaction_state->script_busy = 1;
-    if (request->kind == 0x12 || request->kind == 0x1e) {
+    if (request->kind == W8_NPC_ENTRY_PRICE_CHECK ||
+        request->kind == W8_NPC_ENTRY_ALWAYS_PRICE_CHECK) {
         g_npc_interaction_state->pending_fact = aux_data;
         g_npc_interaction_state->price_check_pending = true;
         g_npc_interaction_state->pending_price = request->operand0;
@@ -4580,7 +4581,7 @@ void OpenNpcDialog(W8NpcQuoteEntry* request, int aux_data)
             g_npc_interaction_state->pending_price =
                 (g_npc_interaction_state->pending_price * 10 + 9) / 10;
         }
-        if (request->kind == 0x1e) {
+        if (request->kind == W8_NPC_ENTRY_ALWAYS_PRICE_CHECK) {
             g_npc_interaction_state->price_check_skip_fact = true;
         }
     }
@@ -4593,13 +4594,15 @@ void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuot
 {
     W8MessageBoxPayload payload;
     payload.text = 0;
-    SetNpcQuoteBubbleVisible(visible, text, quote, quote_id, font_palette, 0, payload, -1);
+    SetNpcQuoteBubbleVisible(visible, text, quote, quote_id, font_palette, W8_QUOTE_NOTICE_TEXT,
+                             payload, -1);
 }
 
 // FUNCTION: WIZ8 0x00576060
 void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuote* quote,
-                              int quote_id, unsigned int font_palette, unsigned char notice_kind,
-                              W8MessageBoxPayload payload, int npc_kind)
+                              int quote_id, unsigned int font_palette,
+                              W8NpcQuoteNoticeKind notice_kind, W8MessageBoxPayload payload,
+                              int npc_kind)
 {
     if (visible == g_npc_interaction_state->quote_visible) {
         return;
@@ -4647,7 +4650,7 @@ void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuot
         RegionSetEnable(0x25);
         EnableRegionSetInput(0x25);
         g_npc_interaction_state->quote_visible = true;
-        if (notice_kind == 0) {
+        if (notice_kind == W8_QUOTE_NOTICE_TEXT) {
             W8PendingNoticeLine* line = new W8PendingNoticeLine;
             line->text = static_cast<wchar_t*>(malloc((wcslen(normalized) + 1) * sizeof(wchar_t)));
             line->npc_kind = npc_kind;
@@ -4656,7 +4659,7 @@ void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuot
         }
         g_npc_interaction_state->quote_notice_kind = notice_kind;
         g_npc_interaction_state->quote_notice_payload = payload;
-        if (g_npc_interaction_state->quote_notice_kind == 3) {
+        if (g_npc_interaction_state->quote_notice_kind == W8_QUOTE_NOTICE_LEVEL_UP) {
             SoundPlay(reinterpret_cast<STR>(const_cast<char*>( // reinterpret-ok: SGP text ABI
                           "Data\\Sound\\Misc\\GainLevel.wav")),
                       0);
@@ -4664,10 +4667,10 @@ void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuot
         return;
     }
 
-    bool flush_notices =
-        (quote_id == 0x12 || quote_id < 0) && g_npc_interaction_state->quote_notice_kind == 0;
+    bool flush_notices = (quote_id == 0x12 || quote_id < 0) &&
+                         g_npc_interaction_state->quote_notice_kind == W8_QUOTE_NOTICE_TEXT;
     switch (g_npc_interaction_state->quote_notice_kind) {
-    case 1: {
+    case W8_QUOTE_NOTICE_EXPERIENCE: {
         W8ExperienceNoticePayload* experience =
             g_npc_interaction_state->quote_notice_payload.experience;
         FormatNotice(0xc, 0, gppStringList[experience->alternate_message ? 0x231 : 0x232],
@@ -4675,13 +4678,13 @@ void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuot
         delete experience;
         break;
     }
-    case 2: {
+    case W8_QUOTE_NOTICE_SKILL_INCREASE: {
         W8SkillNoticePayload* skills = g_npc_interaction_state->quote_notice_payload.skill_notices;
         PostSkillIncreaseNotices(skills);
         delete skills;
         break;
     }
-    case 3: {
+    case W8_QUOTE_NOTICE_LEVEL_UP: {
         int* slot = g_npc_interaction_state->quote_notice_payload.level_up_slot;
         PostCharacterNotice(*slot, gppStringList[0x773]);
         delete slot;
@@ -4695,7 +4698,8 @@ void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuot
            jle 0x00576543). An unsigned index would make the comparison
            unsigned and lose that. */
         for (int index = 0; index < quote->entry_count; ++index) {
-            if (quote->entries[index].kind == 0x13 || quote->entries[index].kind == 5) {
+            if (quote->entries[index].kind == W8_NPC_ENTRY_KEYWORD_INPUT ||
+                quote->entries[index].kind == W8_NPC_ENTRY_OPTIONS) {
                 flush_notices = true;
             }
         }
@@ -4970,7 +4974,7 @@ void OnNpcDialogClosed(W8DialogBase* dialog)
         CloseNpcDialogueOptionLayout();
         OpenNpcDialogueTranscriptLayout();
     }
-    if (request->kind == 5) {
+    if (request->kind == W8_NPC_ENTRY_OPTIONS) {
         for (index = 0; index < request->sub_entry_count; ++index) {
             if (index == npc_dialog->m_selected_option) {
                 swprintf(entry_text, L"%S", request->sub_entries[index].text);
@@ -4986,7 +4990,8 @@ void OnNpcDialogClosed(W8DialogBase* dialog)
                 break;
             }
         }
-    } else if (request->kind == 0x12 || request->kind == 0x1e) {
+    } else if (request->kind == W8_NPC_ENTRY_PRICE_CHECK ||
+               request->kind == W8_NPC_ENTRY_ALWAYS_PRICE_CHECK) {
         if (npc_dialog->m_selected_option == 0) {
             wcscpy(entry_text, gppStringList[0x7df]);
         } else {
@@ -5001,7 +5006,7 @@ void OnNpcDialogClosed(W8DialogBase* dialog)
             SetInputFieldStringWith16BitString(0, entry_text);
             HandleNpcDialogueInput();
         }
-    } else if (request->kind == 0x13) {
+    } else if (request->kind == W8_NPC_ENTRY_KEYWORD_INPUT) {
         if (!gXStatus.fNpcDialogueMode || g_npc_interaction_state->scripted_dialogue) {
             HandleNpcDialogueReply(npc_dialog->m_input_text, false);
         } else {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "surrender/srMaterial.h"
+#include "wiz8/texture_animation.h"
 
 class srMaterialIFace;
 class srMeshModel;
@@ -63,7 +64,7 @@ struct W8MaterialRecord {
     float opacity;                /* 0x0fd */
     float emission;               /* 0x101 */
     unsigned char padding_105[8];     /* 0x105 */
-    unsigned char animation_mode; /* 0x10d */
+    W8TextureAnimationMode animation_mode; /* 0x10d */
     int animation_frame;          /* 0x10e */
     float animation_rate;         /* 0x112 */
     unsigned long shader_flags;   /* 0x116 */

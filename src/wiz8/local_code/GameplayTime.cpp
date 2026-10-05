@@ -1086,7 +1086,7 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, unsigned
                 monster_info->movement_stall_ticks = 0;
             }
             if (flags_cleared) {
-                monster_info->ai_mode = 0;
+                monster_info->ai_mode = W8_RT_AI_IDLE;
                 monster_info->pathing_cooldown = 0;
             }
         }

@@ -987,7 +987,7 @@ void InitializeLevelEnvironment(void)
 
                 g_sky_gradient_animations[index] = animation;
                 if (animation != 0) {
-                    animation->animation_mode = 3;
+                    animation->animation_mode = W8_TEXTURE_ANIM_MANUAL;
                 }
             }
         }

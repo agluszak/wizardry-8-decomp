@@ -2638,12 +2638,13 @@ void ApplyMonsterControlToNearbyMonsters(W8SpellEffectEntry* effect)
         if (!g_octree->HasLineOfSight(&eye, &center, true)) {
             continue;
         }
-        if (monster_info->control_state < 0 || monster_info->control_state >= 2) {
+        if (monster_info->control_state < W8_MONSTER_CONTROL_NONE ||
+            monster_info->control_state >= W8_MONSTER_CONTROL_RESISTED) {
             continue;
         }
         if (monster_info->uiCondition[W8_CONDITION_BLIND] != 0 ||
             monster_info->highest_condition >= W8_CONDITION_ASLEEP) {
-            SetMonsterControlState(monster_info, 0);
+            SetMonsterControlState(monster_info, W8_MONSTER_CONTROL_NONE);
             continue;
         }
         ResetCombatSlot(&target);
@@ -2651,22 +2652,22 @@ void ApplyMonsterControlToNearbyMonsters(W8SpellEffectEntry* effect)
         target.iMonsterID = monster_info->location_id;
         if (!MonsterResistsSpellEffect(&target, effect->definition.power_level)) {
             if (gXStatus.fCombatMode) {
-                SetMonsterControlState(monster_info, 1);
+                SetMonsterControlState(monster_info, W8_MONSTER_CONTROL_LURED);
             } else {
                 SetMonsterGroupControlState(
                     GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
                         0xcbb, MAGIC_EFFECTS_CPP, monster_info->monster_group_id, true)),
-                    1);
+                    W8_MONSTER_CONTROL_LURED);
             }
             effect->applied = true;
         } else {
             if (gXStatus.fCombatMode) {
-                SetMonsterControlState(monster_info, 2);
+                SetMonsterControlState(monster_info, W8_MONSTER_CONTROL_RESISTED);
             } else {
                 SetMonsterGroupControlState(
                     GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
                         0xcaf, MAGIC_EFFECTS_CPP, monster_info->monster_group_id, true)),
-                    2);
+                    W8_MONSTER_CONTROL_RESISTED);
             }
         }
     }

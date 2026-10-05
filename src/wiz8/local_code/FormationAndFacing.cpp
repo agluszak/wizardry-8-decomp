@@ -327,7 +327,8 @@ void FaceCameraToSelection(int party_slot)
 {
     unsigned int heading;
 
-    if (g_settings.camera_rotation_mode != 0 || g_status.selected_character != party_slot) {
+    if (g_settings.camera_rotation_mode != W8_CAMERA_ROTATION_SELECTED_CHARACTER ||
+        g_status.selected_character != party_slot) {
         return;
     }
     heading = g_status.party_facing +

@@ -261,7 +261,7 @@ bool W8MonsterInfoDialog::PopulateText()
             }
         }
     }
-    if (monster_info->control_state == 1) {
+    if (monster_info->control_state == W8_MONSTER_CONTROL_LURED) {
         if (count > 0) {
             wcscat(text, g_comma_space);
         }

@@ -427,7 +427,7 @@ void TickSpellEffects(void)
                      ++monster_index) {
                     monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
                     if (monster_info != 0 && !monster_info->p3D->IsDying()) {
-                        SetMonsterControlState(monster_info, 0);
+                        SetMonsterControlState(monster_info, W8_MONSTER_CONTROL_NONE);
                     }
                 }
             }
@@ -1255,7 +1255,8 @@ bool CanPartySlotCastRecordedSpell(int party_slot)
         return false;
     }
     if (row->spell_detail.spell.power_level == W8_SPELL_POWER_AS_AFFORDABLE &&
-        g_spell_records[spell_id].power_class == 1 && gXStatus.fCombatMode) {
+        g_spell_records[spell_id].power_class == W8_SPELL_POWER_REPEAT_OUT_OF_COMBAT &&
+        gXStatus.fCombatMode) {
         return false;
     }
 
@@ -1298,7 +1299,8 @@ int GetAffordableSpellPowerLevel(int party_slot)
         return 0;
     }
     if (row->spell_detail.spell.power_level == W8_SPELL_POWER_AS_AFFORDABLE &&
-        g_spell_records[spell_id].power_class == 1 && gXStatus.fCombatMode) {
+        g_spell_records[spell_id].power_class == W8_SPELL_POWER_REPEAT_OUT_OF_COMBAT &&
+        gXStatus.fCombatMode) {
         return 0;
     }
     if (!SpellUsableNow(spell_id, false)) {
@@ -1623,7 +1625,7 @@ W8Skill GetBestSpellbookSkillForSpell(W8Character* character, int spell_id, bool
    level, so it has no rating of its own. The power-level choosers carry the
    unbanded percentage inline (GetCastFailureChance) rather than calling this. */
 // FUNCTION: WIZ8 0x004ff4b0
-unsigned int GetSpellCastRating(W8Character* character, int spell_id, unsigned int power_level)
+W8SpellCastRating GetSpellCastRating(W8Character* character, int spell_id, unsigned int power_level)
 {
     W8Skill skill;
     int party_slot;
@@ -1632,7 +1634,7 @@ unsigned int GetSpellCastRating(W8Character* character, int spell_id, unsigned i
     int shortfall;
 
     if (power_level == W8_SPELL_POWER_AS_AFFORDABLE) {
-        return 0;
+        return W8_CAST_RATING_AUTOMATIC;
     }
 
     skill = GetBestSpellbookSkillForSpell(character, spell_id, true, true, power_level);
@@ -1648,18 +1650,18 @@ unsigned int GetSpellCastRating(W8Character* character, int spell_id, unsigned i
     }
     ScaleByCombatPace(party_slot, &chance);
     if (chance == 0) {
-        return 5;
+        return W8_CAST_RATING_NO_FAILURE;
     }
     if (chance <= 5) {
-        return 4;
+        return W8_CAST_RATING_MINIMAL_RISK;
     }
     if (chance <= 15) {
-        return 3;
+        return W8_CAST_RATING_LOW_RISK;
     }
     if (chance <= 40) {
-        return 2;
+        return W8_CAST_RATING_MODERATE_RISK;
     }
-    return 1;
+    return W8_CAST_RATING_HIGH_RISK;
 }
 
 /* The average of one dice expression, taken as the midpoint of what it can
@@ -2627,22 +2629,22 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
     sp_cost = record->spell_point_cost;
     *out_points = 0;
     switch (record->power_class) {
-    case 1:
+    case W8_SPELL_POWER_REPEAT_OUT_OF_COMBAT:
         if (!gXStatus.fCombatMode && power_level == 8) {
             recast = true;
             clamp_power = false;
             break;
         }
         // fall through
-    case 0:
+    case W8_SPELL_POWER_SELECTABLE:
         recast = false;
         clamp_power = true;
         break;
-    case 2:
+    case W8_SPELL_POWER_MAXIMUM:
         recast = false;
         clamp_power = power_level != 8;
         break;
-    case 3:
+    case W8_SPELL_POWER_FIXED:
         power_level = 1;
         recast = false;
         clamp_power = false;
@@ -3258,7 +3260,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                              ++monster_index) {
                             monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
                             if (monster_info != 0 && !monster_info->p3D->IsDying()) {
-                                SetMonsterControlState(monster_info, 0);
+                                SetMonsterControlState(monster_info, W8_MONSTER_CONTROL_NONE);
                             }
                         }
                     }

@@ -111,12 +111,12 @@ void UpdateCameraPathState(W8World* world, W8CameraPath* path, int active)
                 PointCameraAtMonster(monster_info, true, true);
                 position = monster_info->p3D->GetPosition();
                 target = position;
-                if (g_settings.camera_rotation_mode == 1) {
-                    if (g_settings.camera_rotation_style == 0) {
+                if (g_settings.camera_rotation_mode == W8_CAMERA_ROTATION_ALL_TARGETS) {
+                    if (g_settings.camera_rotation_style == W8_CAMERA_ROTATION_SNAP) {
                         if (g_gd_camera->ComputeTrackingOrientation(&target, &angle, &pitch) == 0) {
                             CameraSnapToTarget(&target);
                         }
-                    } else if (g_settings.camera_rotation_style == 1 &&
+                    } else if (g_settings.camera_rotation_style == W8_CAMERA_ROTATION_SMOOTH &&
                                g_gd_camera->ComputeTrackingOrientation(&target, &angle, &pitch) ==
                                    0) {
                         g_gd_camera->BeginOrientationTransition(pitch, angle, false);
@@ -170,13 +170,13 @@ void PointCameraAtMonster(W8MonsterInfo* monster_info, bool force, bool animate)
     W8Monster* monster;
     bool track;
 
-    if (g_settings.camera_rotation_mode == 0 &&
+    if (g_settings.camera_rotation_mode == W8_CAMERA_ROTATION_SELECTED_CHARACTER &&
         monster_info->Target.iType == W8_TARGET_KIND_CHARACTER &&
         monster_info->Target.iChar == g_status.selected_character) {
         track = true;
     } else {
         track = force;
-        if (!track && g_settings.camera_rotation_mode != 1) {
+        if (!track && g_settings.camera_rotation_mode != W8_CAMERA_ROTATION_ALL_TARGETS) {
             return;
         }
     }
@@ -204,14 +204,14 @@ void PointCameraAtMonster(W8MonsterInfo* monster_info, bool force, bool animate)
         }
         return;
     }
-    if (g_settings.camera_rotation_mode != 1) {
+    if (g_settings.camera_rotation_mode != W8_CAMERA_ROTATION_ALL_TARGETS) {
         return;
     }
-    if (g_settings.camera_rotation_style == 1) {
+    if (g_settings.camera_rotation_style == W8_CAMERA_ROTATION_SMOOTH) {
         if (g_gd_camera->ComputeTrackingOrientation(&position, &angle, &pitch) == 0) {
             g_gd_camera->BeginOrientationTransition(pitch, angle, false);
         }
-    } else if (g_settings.camera_rotation_style == 0 &&
+    } else if (g_settings.camera_rotation_style == W8_CAMERA_ROTATION_SNAP &&
                g_gd_camera->ComputeTrackingOrientation(&position, &pitch, &angle) == 0) {
         CameraSnapToTarget(&position);
     }
@@ -237,16 +237,16 @@ void PointCameraAtTarget(srVector3T<float>* position, bool force, bool animate)
         }
         return;
     }
-    if (g_settings.camera_rotation_mode != 1) {
+    if (g_settings.camera_rotation_mode != W8_CAMERA_ROTATION_ALL_TARGETS) {
         return;
     }
     switch (g_settings.camera_rotation_style) {
-    case 1:
+    case W8_CAMERA_ROTATION_SMOOTH:
         if (g_gd_camera->ComputeTrackingOrientation(position, &angle, &pitch) == 0) {
             g_gd_camera->BeginOrientationTransition(pitch, angle, false);
         }
         break;
-    case 0:
+    case W8_CAMERA_ROTATION_SNAP:
         if (g_gd_camera->ComputeTrackingOrientation(position, &pitch, &angle) == 0) {
             CameraSnapToTarget(position);
         }

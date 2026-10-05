@@ -1325,10 +1325,10 @@ unsigned char LoadMonster(W8Chunk* chunk)
             chunk->Read(&value, 1, 0);
             monster->stay_home = value;
         }
-        monster_info->ai_mode |= 0x80;
+        monster_info->ai_mode |= W8_MONSTER_AI_REAPPLY_MODE;
     }
     if (script_name[0] != '\0') {
-        monster_info->ai_mode |= 0x10;
+        monster_info->ai_mode |= W8_MONSTER_AI_RESTORE_SCRIPT;
         monster->SetScript(script_name, false);
         monster->script_wait = script_wait;
         monster->script_line = script_line;

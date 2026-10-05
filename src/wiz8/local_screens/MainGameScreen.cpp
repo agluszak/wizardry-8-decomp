@@ -7555,7 +7555,7 @@ void LoadMainGameCursorResources(void)
                                           static_cast<unsigned short>(slot->frame_count), true);
             slot->object = animation;
             animation->addReference();
-            animation->animation_mode = 3;
+            animation->animation_mode = W8_TEXTURE_ANIM_MANUAL;
         }
     }
 }

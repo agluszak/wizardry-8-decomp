@@ -316,7 +316,7 @@ void W8SpellInfoDialog::DrawLabels()
     text = gppStringList[0x118];
     width = StringPixLength(text, g_wiz_text_font_secondary);
     gprintf(m_x + 0x25 + (0x53 - width) / 2, m_y + 0x24, g_format_s, text);
-    if (record->power_class == 3) {
+    if (record->power_class == W8_SPELL_POWER_FIXED) {
         text = gppStringList[0x11a];
     } else {
         text = gppStringList[0x119];

@@ -509,8 +509,8 @@ void ResetGameplaySettings(void)
     g_settings.text_display_delay_ms = 0x9c4;
     g_settings.combat_delay_ms = 1000;
     g_settings.continuous_combat_start_delay_ms = 5000;
-    g_settings.camera_rotation_mode = 1;
-    g_settings.camera_rotation_style = 1;
+    g_settings.camera_rotation_mode = W8_CAMERA_ROTATION_ALL_TARGETS;
+    g_settings.camera_rotation_style = W8_CAMERA_ROTATION_SMOOTH;
     g_settings.tooltip_delay_ms = 600;
     g_settings.music_volume = 0x1f;
     g_settings.footstep_volume = 0x13;

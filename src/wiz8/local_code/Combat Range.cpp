@@ -1115,7 +1115,8 @@ float MonsterChooseTarget(W8MonsterInfo* monster_info, W8CombatSlot* out, int ki
             W8MonsterInfo* other = MonsterGetScriptPartByLocationIndex(index);
 
             if (other != monster_info && other->fActive && other->hp_current != 0 &&
-                other->fInCombat && MonsterHostility(monster_info, other) == 1) {
+                other->fInCombat &&
+                MonsterHostility(monster_info, other) == W8_DISPOSITION_HOSTILE) {
                 W8VisibilityRecord* row = FindMonToMonVisibility(monster_info, other);
                 if (IsVisibleUnderConditions(monster_info, row, kind)) {
                     float distance = monster_info->p3D->GetDistanceToMonster(other->p3D);
