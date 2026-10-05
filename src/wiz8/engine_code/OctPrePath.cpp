@@ -245,7 +245,7 @@ unsigned char PrePathing::LinkPathNodes()
             if (target != 0) {
                 while (link_height < fabsf(target->y - node->y)) {
                     target = target->next;
-                    if (target == 0 || (target->level_flags & 0x10000000) != 0) {
+                    if (target == 0 || (target->level_flags & W8_PATH_CELL_INACTIVE) != 0) {
                         goto next_direction;
                     }
                 }
@@ -262,8 +262,9 @@ unsigned char PrePathing::LinkPathNodes()
     for (i = 1; i < static_cast<unsigned int>(path_node_count); ++i) {
         W8PrePathNode* edge = path_node_list[i];
         edge->level_flags &= 0xfffffff;
-        if ((edge->level_flags & 0xff0000) != 0xff0000) {
-            edge->level_flags |= 0x1000000;
+        if ((edge->level_flags & W8_PATH_CELL_NEIGHBOR_OR_DEPTH_MASK) !=
+            W8_PATH_CELL_NEIGHBOR_OR_DEPTH_MASK) {
+            edge->level_flags |= W8_PATH_CELL_HAS_DIRECTIONS;
         }
     }
     last_percent = 1;
@@ -275,7 +276,7 @@ unsigned char PrePathing::LinkPathNodes()
             ReportStartupMessage(message);
         }
         W8PrePathNode* edge = path_node_list[i];
-        if ((edge->level_flags & 0x1000000) != 0) {
+        if ((edge->level_flags & W8_PATH_CELL_HAS_DIRECTIONS) != 0) {
             PropagatePathNodeClearance(edge, 0);
         }
     }
@@ -286,7 +287,7 @@ unsigned char PrePathing::LinkPathNodes()
 void PrePathing::PropagatePathNodeClearance(W8PrePathNode* node, unsigned int depth)
 {
     if (depth == 0) {
-        if ((node->level_flags & 0x1000000) == 0) {
+        if ((node->level_flags & W8_PATH_CELL_HAS_DIRECTIONS) == 0) {
             return;
         }
     } else {
@@ -294,13 +295,13 @@ void PrePathing::PropagatePathNodeClearance(W8PrePathNode* node, unsigned int de
             return;
         }
         unsigned int flags = node->level_flags;
-        if ((flags & 0x1000000) != 0) {
+        if ((flags & W8_PATH_CELL_HAS_DIRECTIONS) != 0) {
             return;
         }
         if (((flags >> 0x10) & 0xff) <= depth) {
             return;
         }
-        node->level_flags = (flags & 0xff00ffff) | (depth << 0x10);
+        node->level_flags = (flags & ~W8_PATH_CELL_NEIGHBOR_OR_DEPTH_MASK) | (depth << 0x10);
         ++depth;
     }
     ++depth;
@@ -336,9 +337,9 @@ unsigned int PrePathing::DeleteUnreachableAreas()
         }
         minimum = static_cast<unsigned int>(path_node_count * min_component_percent) / 100;
     }
-    m_visible_waypoints = new BitArray(path_node_count);
-    m_rendered_waypoints = new BitArray(path_node_count);
-    m_collected_waypoints = new BitArray(path_node_count);
+    m_marked_path_nodes = new BitArray(path_node_count);
+    m_visited_path_nodes = new BitArray(path_node_count);
+    m_collected_path_nodes = new BitArray(path_node_count);
     ReportBuildStatus(6, "Deleting Unreacheable Areas.\n");
     ReportBuildStatus(6, "Deleting Nodes: \t");
     for (unsigned int i = 1; i < static_cast<unsigned int>(path_node_count); ++i) {
@@ -349,19 +350,19 @@ unsigned int PrePathing::DeleteUnreachableAreas()
                     deleted);
             ReportStartupMessage(message);
         }
-        if (m_rendered_waypoints->Test(i)) {
+        if (m_visited_path_nodes->Test(i)) {
             continue;
         }
         int component_size = 0;
-        m_visible_waypoints->ClearAll();
-        m_collected_waypoints->ClearAll();
+        m_marked_path_nodes->ClearAll();
+        m_collected_path_nodes->ClearAll();
         int pending = i + 1;
         while (pending != 0) {
             do {
                 unsigned int index = pending - 1;
                 if (path_node_list[index] != 0) {
-                    m_visible_waypoints->Clear(index);
-                    m_collected_waypoints->Set(index);
+                    m_marked_path_nodes->Clear(index);
+                    m_collected_path_nodes->Set(index);
                     ++component_size;
                     for (int direction = 0; direction < 8; ++direction) {
                         W8PrePathNode* node = path_node_list[index];
@@ -388,7 +389,8 @@ unsigned int PrePathing::DeleteUnreachableAreas()
                                 float height_diff =
                                     fabsf(neighbor->y - path_node_list[index]->y);
                                 if (link_height <= height_diff) {
-                                    if (first_probe || (neighbor->level_flags & 0x10000000) == 0) {
+                                    if (first_probe ||
+                                        (neighbor->level_flags & W8_PATH_CELL_INACTIVE) == 0) {
                                         ++next_index;
                                         first_probe = false;
                                     } else {
@@ -397,28 +399,28 @@ unsigned int PrePathing::DeleteUnreachableAreas()
                                     }
                                 } else {
                                     scanning = false;
-                                    if ((neighbor->level_flags & 0x40000000) != 0) {
+                                    if ((neighbor->level_flags & W8_PREPATH_NODE_PRUNED) != 0) {
                                         neighbor = 0;
                                     }
                                 }
                             }
                         }
-                        if (neighbor != 0 && !m_collected_waypoints->Test(next_index)) {
-                            if (!m_rendered_waypoints->Test(next_index)) {
-                                m_visible_waypoints->Set(next_index);
+                        if (neighbor != 0 && !m_collected_path_nodes->Test(next_index)) {
+                            if (!m_visited_path_nodes->Test(next_index)) {
+                                m_marked_path_nodes->Set(next_index);
                             } else {
                                 component_size = minimum + 1;
                             }
                         }
                     }
                 }
-                pending = m_visible_waypoints->NextSetBit(false);
+                pending = m_marked_path_nodes->NextSetBit(false);
             } while (pending != 0);
-            pending = m_visible_waypoints->NextSetBit(true);
+            pending = m_marked_path_nodes->NextSetBit(true);
         }
         if (component_size < static_cast<int>(minimum)) {
             bool clear_of_named = true;
-            pending = m_collected_waypoints->NextSetBit(true);
+            pending = m_collected_path_nodes->NextSetBit(true);
             if (pending != 0) {
                 do {
                     if (!clear_of_named) {
@@ -439,27 +441,27 @@ unsigned int PrePathing::DeleteUnreachableAreas()
                             clear_of_named = false;
                         }
                     }
-                    pending = m_collected_waypoints->NextSetBit(false);
+                    pending = m_collected_path_nodes->NextSetBit(false);
                 } while (pending != 0);
                 if (!clear_of_named) {
                     goto component_done;
                 }
             }
-            pending = m_collected_waypoints->NextSetBit(true);
+            pending = m_collected_path_nodes->NextSetBit(true);
             while (pending != 0) {
-                path_node_list[pending - 1]->level_flags |= 0x40000000;
+                path_node_list[pending - 1]->level_flags |= W8_PREPATH_NODE_PRUNED;
                 ++deleted;
-                pending = m_collected_waypoints->NextSetBit(false);
+                pending = m_collected_path_nodes->NextSetBit(false);
             }
         }
     component_done:
-        m_rendered_waypoints->UnionWith(*m_collected_waypoints);
+        m_visited_path_nodes->UnionWith(*m_collected_path_nodes);
     }
     cell_map->Clear();
     int kept = 1;
     for (unsigned int j = 1; j < static_cast<unsigned int>(path_node_count); ++j) {
         W8PrePathNode* node = path_node_list[j];
-        if ((node->level_flags & 0x40000000) == 0) {
+        if ((node->level_flags & W8_PREPATH_NODE_PRUNED) == 0) {
             path_node_list[kept] = node;
             cell_map->Insert(&node->cell, &kept);
             if (j != static_cast<unsigned int>(kept)) {
@@ -468,12 +470,12 @@ unsigned int PrePathing::DeleteUnreachableAreas()
             ++kept;
         }
     }
-    delete m_visible_waypoints;
-    m_visible_waypoints = 0;
-    delete m_rendered_waypoints;
-    m_rendered_waypoints = 0;
-    delete m_collected_waypoints;
-    m_collected_waypoints = 0;
+    delete m_marked_path_nodes;
+    m_marked_path_nodes = 0;
+    delete m_visited_path_nodes;
+    m_visited_path_nodes = 0;
+    delete m_collected_path_nodes;
+    m_collected_path_nodes = 0;
     sprintf(message, "Nodes Deleted: %d\n", path_node_count - kept);
     ReportBuildStatus(6, message);
     path_node_count = kept;
@@ -497,7 +499,7 @@ int PrePathing::CreatePathNodeArray()
         do {
             W8PrePathNode* node = path_node_list[i];
             unsigned int flags = node->level_flags;
-            if ((flags & 0x1000000) != 0) {
+            if ((flags & W8_PATH_CELL_HAS_DIRECTIONS) != 0) {
                 path_log->MarkPathNode(node);
                 ++edge_node_count;
             }
@@ -543,7 +545,7 @@ unsigned char PrePathing::CreateAutomapNodes(W8LevelFile* level)
             W8PrePathNode* node = path_node_list[i];
             srVector3T<float> position;
             position.Set((node->cell & 0xffff) * grid_scale,
-                         (node->level_flags & 0xffff) * span,
+                         (node->level_flags & W8_PATH_CELL_HEIGHT_MASK) * span,
                          (node->cell >> 0x10) * grid_scale);
             unsigned int key = AutomapNodeKey(&position);
             if (used_keys.FindNextEntry(&key, -1) == -1) {
@@ -669,7 +671,8 @@ void W8PathingService::LinkCollideableProps(int lNumProps, W8PreProp* pPreProps,
             }
         }
         if (ppCondPaths[i] != 0) {
-            if ((pProp->num_stop_meshes == 1) && ((pProp->pStopMeshes[0].m_flags & 1) != 0)) {
+            if ((pProp->num_stop_meshes == 1) &&
+                ((pProp->pStopMeshes[0].m_flags & W8_GD_PROP_ALWAYS_BLOCKS_PATH) != 0)) {
                 aiLookup[m_ulNumCondFrames + 1] = aiLookup[m_ulNumCondFrames];
                 ausFrames[m_ulNumCondFrames] = pProp->pStopMeshes[0].last_frame;
                 ++m_ulNumCondFrames;

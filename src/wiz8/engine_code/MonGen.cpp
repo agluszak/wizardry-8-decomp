@@ -475,14 +475,14 @@ unsigned char MonGen::GenerateEncounter(const srVector3T<float>* position)
    or over the active-encounter budget. A forced roll bypasses the spatial and
    chance tests but not the global-mode and budget gates. */
 // FUNCTION: WIZ8 0x0048B200
-unsigned char MonGen::CanGenerateEncounter(bool force)
+bool MonGen::CanGenerateEncounter(bool force)
 {
     srVector3T<float> camera;
     float distance;
 
     if (g_generator_save_flag != 0 || gXStatus.world_update_blocked || gXStatus.fCombatMode ||
         gXStatus.fNpcDialogueMode || IsMipeActive() || generation_enabled == 0) {
-        return 0;
+        return false;
     }
 
     GetCameraPosition(&camera);
@@ -491,22 +491,22 @@ unsigned char MonGen::CanGenerateEncounter(bool force)
 
     if (!force && !g_status.world_suspended) {
         if (distance > 200000.0f || distance < 35000.0f) {
-            return 0;
+            return false;
         }
         if (g_octree != 0 && g_octree->HasLineOfSight(&camera, &spawn_position, true)) {
-            return 0;
+            return false;
         }
     }
 
     if (g_active_groups.GetCount() >= g_random_encounter_limit) {
         CullExpiredEncounters();
         if (g_active_groups.GetCount() >= g_random_encounter_limit) {
-            return 0;
+            return false;
         }
     }
 
     if (force) {
-        return 1;
+        return true;
     }
 
     if (g_encounter_culling_scale_fast == 1.0f) {
@@ -516,7 +516,7 @@ unsigned char MonGen::CanGenerateEncounter(bool force)
                                 spawn_position.z + 5000.0f);
         unsigned long* locations = 0;
         if (g_octree->QueryLocationsInBox(&locations, &lower, &upper, 0) > 0) {
-            return 0;
+            return false;
         }
     }
 
@@ -819,7 +819,7 @@ void RunMonsterGenerators(void)
     for (index = 0; index < count; ++index) {
         generator = *g_world->monster_generators->GetAt(index);
         if (generator->m_pTimer != 0 && generator->m_pTimer->PollElapsedIntervals() != 0) {
-            if (generator->CanGenerateEncounter(false) != 0) {
+            if (generator->CanGenerateEncounter(false)) {
                 generator->GenerateEncounter(&generator->spawn_position);
             }
             generator->Reset();
@@ -1103,7 +1103,7 @@ void RollRandomEncounters(void)
 
     for (int index = 0; index < count; ++index) {
         MonGen* generator = *generators.GetAt(index);
-        if (generator->CanGenerateEncounter(true) != 0) {
+        if (generator->CanGenerateEncounter(true)) {
             generator->GenerateEncounter(&generator->spawn_position);
         }
     }

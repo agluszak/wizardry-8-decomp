@@ -16,6 +16,17 @@
 #include <string.h>
 #include <wchar.h>
 
+enum {
+    WRAPPED_TEXT_LEFT = 0x01,
+    WRAPPED_TEXT_CENTER = 0x02,
+    WRAPPED_TEXT_RIGHT = 0x04,
+    WRAPPED_TEXT_SHADOW_RECT = 0x08,
+    WRAPPED_TEXT_INVALIDATE = 0x10,
+    WRAPPED_TEXT_MEASURE_ONLY = 0x20
+};
+
+enum { QUOTE_BUBBLE_FLAT_BACKGROUND = 1 };
+
 /* The NPC quote bubble record, allocated with operator new inside
    LayoutPortraitQuoteBubble. Offset 0 is the rendered text surface; 0x0c and
    0x10 are the popup background surface and border object the bubble is
@@ -74,20 +85,20 @@ static int DrawWrappedTextLine(UINT16* text, int x, int top, int width, int font
     short draw_x = static_cast<short>(x);
     short draw_y = static_cast<short>(top);
 
-    if (flags & 0x20) {
+    if (flags & WRAPPED_TEXT_MEASURE_ONLY) {
         return 1;
     }
     if (flags == 0) {
-        flags = 1;
+        flags = WRAPPED_TEXT_LEFT;
     }
-    if (flags & 1) {
+    if (flags & WRAPPED_TEXT_LEFT) {
         draw_x = static_cast<short>(x);
         draw_y = static_cast<short>(top);
-    } else if (flags & 2) {
+    } else if (flags & WRAPPED_TEXT_CENTER) {
         VarFindFontCenterCoordinates(static_cast<short>(x), static_cast<short>(top),
                                      static_cast<short>(width), GetFontHeight(font), font, &draw_x,
                                      &draw_y, text);
-    } else if (flags & 4) {
+    } else if (flags & WRAPPED_TEXT_RIGHT) {
         VarFindFontRightCoordinates(static_cast<short>(x), static_cast<short>(top),
                                     static_cast<short>(width), GetFontHeight(font), font, &draw_x,
                                     &draw_y, text);
@@ -96,7 +107,7 @@ static int DrawWrappedTextLine(UINT16* text, int x, int top, int width, int font
     SetFont(font);
     SetFontForeground(foreground);
     SetFontBackground(background);
-    if (flags & 8) {
+    if (flags & WRAPPED_TEXT_SHADOW_RECT) {
         ShadowVideoSurfaceRect(0xfffffff2, static_cast<unsigned short>(draw_x - 1),
                                static_cast<unsigned short>(draw_y - 1),
                                static_cast<unsigned short>(draw_x - 1) +
@@ -107,10 +118,10 @@ static int DrawWrappedTextLine(UINT16* text, int x, int top, int width, int font
         gprintfDirty(draw_x, draw_y, text);
     }
     mprintf(draw_x, draw_y, text);
-    if (flags & 0x20) {
+    if (flags & WRAPPED_TEXT_MEASURE_ONLY) {
         SetFontShadow(2);
     }
-    if (flags & 0x10) {
+    if (flags & WRAPPED_TEXT_INVALIDATE) {
         InvalidateRegion(draw_x, draw_y, draw_x + StringPixLength(text, font),
                          draw_y + GetFontHeight(font), 0);
     }
@@ -149,13 +160,13 @@ int DrawWrappedText(int x, int y, unsigned int wrap_width, int line_spacing, int
             word[word_length++] = L' ';
             word[word_length] = L'\0';
             if ((wrap_width & 0xffff) < word_width + line_width) {
-                if (flags & 0x20) {
+                if (flags & WRAPPED_TEXT_MEASURE_ONLY) {
                     SetFontShadow(0);
                 }
                 DrawWrappedTextLine(line, draw_x, draw_y, remaining_width, active_font,
                                     active_colour, static_cast<unsigned char>(background),
                                     section != 0, flags);
-                if (flags & 0x20) {
+                if (flags & WRAPPED_TEXT_MEASURE_ONLY) {
                     SetFontShadow(2);
                 }
                 draw_y += GetFontHeight(active_font) + (line_spacing & 0xff);
@@ -171,13 +182,13 @@ int DrawWrappedText(int x, int y, unsigned int wrap_width, int line_spacing, int
             word_length = 0;
         } else {
             if (word[0] == L'\n') {
-                if (flags & 0x20) {
+                if (flags & WRAPPED_TEXT_MEASURE_ONLY) {
                     SetFontShadow(0);
                 }
                 DrawWrappedTextLine(line, draw_x, draw_y, remaining_width, active_font,
                                     active_colour, static_cast<unsigned char>(background),
                                     section != 0, flags);
-                if (flags & 0x20) {
+                if (flags & WRAPPED_TEXT_MEASURE_ONLY) {
                     SetFontShadow(2);
                 }
                 draw_y += GetFontHeight(active_font) + (line_spacing & 0xff);
@@ -189,13 +200,13 @@ int DrawWrappedText(int x, int y, unsigned int wrap_width, int line_spacing, int
                 remaining_width = wrap_width;
                 draw_x = x;
             } else if (word[0] == 0xb2) {
-                if (flags & 0x20) {
+                if (flags & WRAPPED_TEXT_MEASURE_ONLY) {
                     SetFontShadow(0);
                 }
                 DrawWrappedTextLine(line, draw_x, draw_y, remaining_width, active_font,
                                     active_colour, static_cast<unsigned char>(background),
                                     section != 0, flags);
-                if (flags & 0x20) {
+                if (flags & WRAPPED_TEXT_MEASURE_ONLY) {
                     SetFontShadow(2);
                 }
                 if (alternate) {
@@ -220,13 +231,13 @@ int DrawWrappedText(int x, int y, unsigned int wrap_width, int line_spacing, int
                 }
             } else if (word[0] == 0xb3) {
                 if (section == 2) {
-                    if (flags & 0x20) {
+                    if (flags & WRAPPED_TEXT_MEASURE_ONLY) {
                         SetFontShadow(0);
                     }
                     DrawWrappedTextLine(line, draw_x, draw_y, remaining_width, active_font,
                                         active_colour, static_cast<unsigned char>(background), true,
                                         flags);
-                    if (flags & 0x20) {
+                    if (flags & WRAPPED_TEXT_MEASURE_ONLY) {
                         SetFontShadow(2);
                     }
                     section = 1;
@@ -245,13 +256,13 @@ int DrawWrappedText(int x, int y, unsigned int wrap_width, int line_spacing, int
                     line_width = 0;
                 }
             } else if (word[0] == 0xb4 || word[0] == 0xb5) {
-                if (flags & 0x20) {
+                if (flags & WRAPPED_TEXT_MEASURE_ONLY) {
                     SetFontShadow(0);
                 }
                 DrawWrappedTextLine(line, draw_x, draw_y, remaining_width, active_font,
                                     active_colour, static_cast<unsigned char>(background),
                                     section != 0, flags);
-                if (flags & 0x20) {
+                if (flags & WRAPPED_TEXT_MEASURE_ONLY) {
                     SetFontShadow(2);
                 }
                 if (word[0] == 0xb4 && word[1] != L' ' && word[1] < 0x100) {
@@ -272,12 +283,12 @@ int DrawWrappedText(int x, int y, unsigned int wrap_width, int line_spacing, int
         ++position;
         if (ch == L'\0') {
             wcscat(line, &g_empty_wide_string);
-            if (flags & 0x20) {
+            if (flags & WRAPPED_TEXT_MEASURE_ONLY) {
                 SetFontShadow(0);
             }
             DrawWrappedTextLine(line, draw_x, draw_y, remaining_width, active_font, active_colour,
                                 static_cast<unsigned char>(background), section != 0, flags);
-            if (flags & 0x20) {
+            if (flags & WRAPPED_TEXT_MEASURE_ONLY) {
                 SetFontShadow(2);
             }
             return (GetFontHeight(font) + (line_spacing & 0xff)) * line_count;
@@ -417,10 +428,10 @@ unsigned char DrawPortraitQuoteBubble(int quote_handle, short x, short y, unsign
     if (bubble == 0) {
         return 0;
     }
-    if ((bubble->flags & 1) == 0) {
-        blt_flags = 4;
+    if ((bubble->flags & QUOTE_BUBBLE_FLAT_BACKGROUND) == 0) {
+        blt_flags = VS_BLT_FAST;
     } else {
-        blt_flags = 6;
+        blt_flags = VS_BLT_FAST | VS_BLT_USECOLORKEY;
     }
     g_current_portrait_quote = bubble;
     BltVideoSurface(surface, bubble->surface, 0, x, y, blt_flags, 0);
@@ -606,7 +617,7 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
         *out_height = static_cast<unsigned short>(height);
         rect.iRight = width_px;
         rect.iBottom = height_px;
-        if (bubble->flags & 1) {
+        if (bubble->flags & QUOTE_BUBBLE_FLAT_BACKGROUND) {
             SetVideoSurfaceTransparency(bubble->surface, 0xffff);
             pixels = reinterpret_cast<UINT16*>( // reinterpret-ok: raw locked pixel memory
                 LockVideoSurface(bubble->surface, &pitch));

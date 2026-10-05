@@ -16,6 +16,7 @@ struct W8OctPreTreeVertex;
 struct W8OctPreTreeGeometry;
 
 struct W8OctRegionPolygon {
+    enum { AXIS_MASK = 3u, MULTIPLE_REGIONS = 4u, CENTER_IN_REGION = 8u };
     /* & 3 selects the axis the plane test uses; bit2 marks a vertex shared
        across regions (cleared with bit3 after the duplicate pass). */
     unsigned long flags;
@@ -47,8 +48,8 @@ struct W8OctRegionPolygon {
 
     /* Tests the polygon's representative point against six frustum planes;
        inside means every plane distance is non-negative. */
-    unsigned char InsideFrustumPlanes(const W8Plane* planes) const;
-    unsigned char ContainsPoint(const srVector3T<float>* bounds) const;
+    bool InsideFrustumPlanes(const W8Plane* planes) const;
+    bool ContainsPoint(const srVector3T<float>* bounds) const;
 };
 
 static_assert(sizeof(W8OctRegionPolygon) == 0x74, "W8OctRegionPolygon_must_be_0x74");

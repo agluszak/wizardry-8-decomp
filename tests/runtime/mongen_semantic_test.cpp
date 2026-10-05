@@ -87,16 +87,16 @@ bool RunMonGenSemanticTest(void)
     generator.flags = 0;
     disabled = disabled && generator.GenerateEncounter(&position) == 0;
     generator.generation_enabled = 0;
-    disabled = disabled && generator.CanGenerateEncounter(true) == 0;
+    disabled = disabled && !generator.CanGenerateEncounter(true);
     generator.generation_enabled = 1;
 
     bool gates_clear = !g_generator_save_flag && !gXStatus.world_update_blocked &&
                        !gXStatus.fCombatMode && !gXStatus.fNpcDialogueMode && !IsMipeActive() &&
                        !g_status.world_suspended;
     GetCameraPosition(&generator.spawn_position);
-    bool range = gates_clear && generator.CanGenerateEncounter(false) == 0;
+    bool range = gates_clear && !generator.CanGenerateEncounter(false);
     generator.spawn_position.x += 200001.0f;
-    range = range && generator.CanGenerateEncounter(false) == 0;
+    range = range && !generator.CanGenerateEncounter(false);
 
     unsigned int saved_time = g_status.game_time_ms;
     g_status.game_time_ms = 36000000;

@@ -1983,7 +1983,7 @@ def test_boolean_patch_handles_ast_resolved_no_argument_calls(
     "text,domain",
     [
         ("if (BytePredicate() != 0) {}\n", "character"),
-        ("if (BoolPredicate(argument) != 0) {}\n", "bool"),
+        ('if (BoolPredicate("argument") != 0) {}\n', "bool"),
         ("if (BoolPredicate() != 0 + extra) {}\n", "bool"),
     ],
 )
@@ -1998,3 +1998,45 @@ def test_boolean_call_patch_keeps_nonbool_and_unfamiliar_expressions(
         facts, lambda file, digest: (tmp_path / file).read_bytes()
     )
     assert edits == []
+
+
+@pytest.mark.parametrize(
+    "text,operation,value,expected",
+    [
+        ("if (obj.Contains(point) != 0) {}\n", "!=", 0, "obj.Contains(point)"),
+        ("if (CanReach(&nodes[i++].position, target, radius) == 0) {}\n", "==", 0,
+         "!CanReach(&nodes[i++].position, target, radius)"),
+        ("if ((obj.Contains(GetPosition(index))) == 1) {}\n", "==", 1,
+         "(obj.Contains(GetPosition(index)))"),
+        ("if (0 == obj.Contains(GetPosition(index))) {}\n", "rhs:==", 0,
+         "!obj.Contains(GetPosition(index))"),
+        ("if (obj.Contains(static_cast<int>(value)) != 0) {}\n", "!=", 0,
+         "obj.Contains(static_cast<int>(value))"),
+    ],
+)
+def test_boolean_patch_preserves_arguments_of_resolved_calls(
+    scalar, tmp_path, text, operation, value, expected
+):
+    from dataclasses import replace
+
+    facts = boolean_expression_facts(
+        scalar, tmp_path, text, [("predicate", "bool", operation.removeprefix("rhs:"), value, 0)]
+    )
+    facts.declarations["predicate"] = replace(facts.declarations["predicate"], kind="function")
+    if operation.startswith("rhs:"):
+        facts.operands = {
+            (key, operation, val, file, line, col) for key, _, val, file, line, col in facts.operands
+        }
+    edits = scalar.boolean_expression_edits(facts, lambda file, digest: (tmp_path / file).read_bytes())
+    assert len(edits) == 1
+    assert edits[0][-1].decode() == expected
+
+
+@pytest.mark.parametrize("arguments", ["/* comment */ point", "{1, 2}", "a / b", '"text"'])
+def test_boolean_call_patch_rejects_unmodeled_argument_syntax(scalar, tmp_path, arguments):
+    from dataclasses import replace
+
+    text = f"if (BoolPredicate({arguments}) != 0) {{}}\n"
+    facts = boolean_expression_facts(scalar, tmp_path, text, [("predicate", "bool", "!=", 0, 0)])
+    facts.declarations["predicate"] = replace(facts.declarations["predicate"], kind="function")
+    assert scalar.boolean_expression_edits(facts, lambda file, digest: (tmp_path / file).read_bytes()) == []

@@ -25,6 +25,7 @@ struct W8LevelFileScaledPathNode;
 enum {
     W8_GD_PROP_ALWAYS_BLOCKS_PATH = 0x01u,
     W8_GD_PROP_DOOR = 0x02u,
+    W8_GD_PROP_UNATTACHED = 0x04u,
     W8_GD_PROP_DOOR_USABLE = 0x08u
 };
 
@@ -67,7 +68,7 @@ public:
            unsigned char footstep_surface, unsigned char footstep_material); /* 0x004B6E00 */
     ~GDProp();                                                               /* 0x004B6ED0 */
     void BindTrigger(Trigger* owner);
-    unsigned char ContainsPathCoordinate(unsigned short x, unsigned short y) const;
+    bool ContainsPathCoordinate(unsigned short x, unsigned short y) const;
     bool HasSupportedItems();
     /* Rebuilds m_pVertices/m_pGDSurfaces for the given animation frame of the
        level prop's transforms. */

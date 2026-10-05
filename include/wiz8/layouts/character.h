@@ -37,13 +37,9 @@ struct W8Enchantment {
    records and manipulated through the CRT wide-string functions. Under VC6
    wchar_t is unsigned short, so the two spellings are one type. */
 
-/* One attribute record. The array is indexed by skill id biased by 0x22, so the
-   seven attribute ids sit at the top of the skill numbering; only the leading
-   value, which IsCharacterSkillAvailable tests against 100, is established. */
+/* Base attributes and their effective values after equipment and effects. */
 struct W8CharacterAttribute {
-    unsigned int value; /* 0x00 */
-    /* 0x04: the value after equipment and effects. Resistance recalculation
-       reads this one, not the base, and only above a threshold of 0x50. */
+    unsigned int base; /* 0x00 */
     unsigned int effective;
     int change_counter;
     unsigned char unknown_0c[8];

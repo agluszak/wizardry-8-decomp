@@ -354,7 +354,7 @@ unsigned char GetAniMeshBounds(W8AniMesh* mesh, srVector3T<float>* minimum,
         srAssertFail("pAniMesh", ANI_MESH_CPP, 0x317, 0);
         return 0;
     }
-    if ((mesh->flags & 4) == 0) {
+    if ((mesh->flags & W8_ANI_MESH_RADIUS_LOADED) == 0) {
         if (LoadAniMesh(0, mesh, true) == 0) {
             srAssertFail("0", ANI_MESH_CPP, 0x31f, 0);
             return 0;

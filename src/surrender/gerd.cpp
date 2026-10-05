@@ -249,7 +249,7 @@ srGERD& srGERD::operator=(const srGERD& other)
 // FUNCTION: SURRENDER 0x10017920
 srDD* srGERD::getDD() const
 {
-    statistics.value_68++;
+    statistics.device_calls++;
     return device.dd;
 }
 
@@ -320,36 +320,36 @@ long srGERD::getDisplayMode(unsigned long width, unsigned long height, unsigned 
 void srGERD::getStatistics(Statistics& statistics)
 {
     srCriticalSectionAccess access(renderers_section);
-    this->statistics.value_34 = 0;
-    this->statistics.value_3c = 0;
-    this->statistics.value_30 = 0;
-    this->statistics.value_38 = 0;
-    this->statistics.value_64 = 0;
+    this->statistics.input_triangles = 0;
+    this->statistics.input_vertices = 0;
+    this->statistics.triangle_chunks = 0;
+    this->statistics.sorted_triangles = 0;
+    this->statistics.clipped_triangles = 0;
     for (RendererEntry* entry = renderers; entry != 0; entry = entry->next) {
         Renderer* renderer = entry->renderer;
         if (renderer != 0) {
             unsigned long renderer_stats[7];
             renderer->getStatistics(renderer_stats);
-            this->statistics.value_34 += renderer_stats[1];
-            this->statistics.value_64 += renderer_stats[2];
-            this->statistics.value_3c += renderer_stats[3];
-            this->statistics.value_30 += renderer_stats[0];
+            this->statistics.input_triangles += renderer_stats[1];
+            this->statistics.clipped_triangles += renderer_stats[2];
+            this->statistics.input_vertices += renderer_stats[3];
+            this->statistics.triangle_chunks += renderer_stats[0];
             if (renderer->sorted == 1) {
-                this->statistics.value_38 += renderer_stats[6];
+                this->statistics.sorted_triangles += renderer_stats[6];
             }
         }
     }
     srDD::Statistics device;
     memset(&device, 0, sizeof(device));
     getDD()->getStatistics(device);
-    this->statistics.value_08 = device.value_00;
-    this->statistics.value_0c = device.value_04;
-    this->statistics.value_10 = device.value_08;
+    this->statistics.texture_transfer_low = device.value_00;
+    this->statistics.texture_transfer_high = device.value_04;
+    this->statistics.pixels_drawn = device.pixels_drawn;
     this->statistics.value_18 = device.value_10;
     this->statistics.value_1c = device.value_14;
-    this->statistics.value_20 = device.value_18;
-    this->statistics.value_24 = device.value_1c;
-    this->statistics.value_28 = device.value_20;
+    this->statistics.device_triangles = device.triangles_received;
+    this->statistics.device_vertices = device.vertices_transferred;
+    this->statistics.device_vertex_indices = device.vertex_indices;
     statistics = this->statistics;
     statistics.elapsed =
         srCore.getTimer()->getTime(srTimer::TIMER_READ_DEFAULT) - statistics.elapsed;
@@ -3387,8 +3387,8 @@ bound:
     texture_slots[stage] = found;
     if (previous != found) {
         getDD()->bindTexture(stage, found->device);
-        if (found != texture_default && found->device.resident == 0 &&
-            found->surface_data != 0 && (device.info.flags & 0x20) != 0) {
+        if (found != texture_default && found->device.resident == 0 && found->surface_data != 0 &&
+            (device.info.flags & srDD::Info::RELEASE_SURFACE_AFTER_BIND) != 0) {
             releaseTextureSurfaceData(*found);
         }
         ++statistics.texture_binds;
@@ -3630,21 +3630,22 @@ void srGERD::dump(std::ostream& stream, const srFlags<e_info>& info)
             stream << "Frames                          : "
                    << statistics.frames / statistics.elapsed << '\n';
             stream << "Triangle chunks rendered        : "
-                   << statistics.value_30 / statistics.elapsed << '\n';
+                   << statistics.triangle_chunks / statistics.elapsed << '\n';
             stream << "Triangles in                    : "
-                   << statistics.value_34 / statistics.elapsed << '\n';
+                   << statistics.input_triangles / statistics.elapsed << '\n';
             stream << "Vertices in                     : "
-                   << statistics.value_3c / statistics.elapsed << '\n';
-            if (statistics.value_34 != 0) {
+                   << statistics.input_vertices / statistics.elapsed << '\n';
+            if (statistics.input_triangles != 0) {
                 stream << "Input vertex/triangle ratio     : "
-                       << statistics.value_3c / static_cast<float>(statistics.value_34) << '\n';
+                       << statistics.input_vertices / static_cast<float>(statistics.input_triangles)
+                       << '\n';
             }
             stream << "DD triangles received           : "
-                   << statistics.value_20 / statistics.elapsed << '\n';
+                   << statistics.device_triangles / statistics.elapsed << '\n';
             stream << "DD vertices transfered          : "
-                   << statistics.value_24 / statistics.elapsed << '\n';
+                   << statistics.device_vertices / statistics.elapsed << '\n';
             stream << "DD vertex indices specified     : "
-                   << statistics.value_28 / statistics.elapsed << '\n';
+                   << statistics.device_vertex_indices / statistics.elapsed << '\n';
             if (statistics.sphere_tests != 0) {
                 stream << "Objects bounding sphere tested  : "
                        << statistics.sphere_tests / statistics.elapsed << std::endl;
@@ -3663,9 +3664,9 @@ void srGERD::dump(std::ostream& stream, const srFlags<e_info>& info)
             }
             stream << std::endl;
             stream << "Triangles sorted                : "
-                   << statistics.value_38 / statistics.elapsed << '\n';
+                   << statistics.sorted_triangles / statistics.elapsed << '\n';
             stream << "Triangles removed by clipping   : "
-                   << statistics.value_64 / statistics.elapsed << '\n';
+                   << statistics.clipped_triangles / statistics.elapsed << '\n';
             stream << "View state changes              : "
                    << statistics.view_state_applies / statistics.elapsed << '\n';
             stream << "Matrix changes/classifications  : "
@@ -3685,20 +3686,20 @@ void srGERD::dump(std::ostream& stream, const srFlags<e_info>& info)
             stream << std::endl;
             stream << "DD draw commands                : "
                    << statistics.draw_calls / statistics.elapsed << '\n';
-            if ((device.info.flags & 0x10) != 0) {
+            if ((device.info.flags & srDD::Info::PIXEL_TEXTURE_STATISTICS) != 0) {
                 stream << "DD pixels drawn          (M/s)  : "
-                       << statistics.value_10 * 1e-06 / statistics.elapsed << '\n';
+                       << statistics.pixels_drawn * 1e-06 / statistics.elapsed << '\n';
                 /* reinterpret-ok: the device stats mirror stores the
                    transfer counter's double bits as a dword pair. */
                 stream << "DD Texture data transfer (Mb/s) : "
-                       << *reinterpret_cast<const double*>(&statistics.value_08) *
+                       << *reinterpret_cast<const double*>(&statistics.texture_transfer_low) *
                               9.5367431640625e-07 / statistics.elapsed
                        << '\n';
             } else {
                 stream << "DD doesn't support pixel/texture statistics" << std::endl;
             }
             stream << "Function calls to DD            : "
-                   << statistics.value_68 / statistics.elapsed << std::endl;
+                   << statistics.device_calls / statistics.elapsed << std::endl;
         }
         if ((info.value & INFO_DEBUG_DD) != 0 && (enable_flags.value & 0x20) != 0 &&
             device.debug_dd != 0) {
@@ -4199,10 +4200,9 @@ srGERD::e_error srGERD::openWindowInternal(const OpenInfo& info)
         if (srWindow::isWindow(device.window) == 0) {
             return ERROR_INVALID_WHANDLE;
         }
-        if (info.display_mode < -1 ||
-            device.display_mode_count <= info.display_mode ||
-            device.info.unknown_00_ < (unsigned long)info.width ||
-            device.info.unknown_04_ < (unsigned long)info.height) {
+        if (info.display_mode < -1 || device.display_mode_count <= info.display_mode ||
+            device.info.max_back_buffer_width < (unsigned long)info.width ||
+            device.info.max_back_buffer_height < (unsigned long)info.height) {
             return ERROR_INVALID_VALUE;
         }
         memset(&device.open_info, 0, sizeof(device.open_info));

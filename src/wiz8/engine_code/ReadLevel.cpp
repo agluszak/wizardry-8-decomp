@@ -50,7 +50,7 @@ stLevel::stLevel(srNode* parent)
     if (parent != 0) {
         setParent(parent, 1);
     }
-    m_active = 0;
+    m_render_exclusion_mask = 0;
 }
 
 // FUNCTION: WIZ8 0x004BA3D0
@@ -80,15 +80,15 @@ void stLevel::process(const ProcessInfo& info, e_processType)
     applyWorldSpaceMatrix(renderer);
 
     unsigned long old_exclusion_mask = 0;
-    if (m_active != 0) {
+    if (m_render_exclusion_mask != 0) {
         old_exclusion_mask = renderer.getExclusionMask();
-        renderer.setExclusionMask(m_active | old_exclusion_mask);
+        renderer.setExclusionMask(m_render_exclusion_mask | old_exclusion_mask);
     }
 
     srVector4T<float> ambient;
     renderer.getAmbientLight(ambient);
     srVector3T<float> ambient_color(ambient.x, ambient.y, ambient.z);
-    m_positional = 0;
+    m_submitted_polygons = 0;
 
     for (srNode* child = first_child_; child != 0; child = child->next_sibling_) {
         stModelInstance* instance = static_cast<stModelInstance*>(child);
@@ -117,9 +117,9 @@ void stLevel::process(const ProcessInfo& info, e_processType)
         srNode* linked_child = child;
         while (model != 0) {
             if (model->getActivePolygonTable(0) != 0) {
-                m_positional += model->getActivePolygonCount();
+                m_submitted_polygons += model->getActivePolygonCount();
             } else {
-                m_positional += model->polygon_count;
+                m_submitted_polygons += model->polygon_count;
             }
 
             if (model->vertex_lighting_ready) {
@@ -145,7 +145,7 @@ void stLevel::process(const ProcessInfo& info, e_processType)
                 }
             }
 
-            if ((model->flags & 1) != 0 && !renderer.isPickStackEmpty()) {
+            if ((model->flags & W8_MESH_SORTED_RENDERING) != 0 && !renderer.isPickStackEmpty()) {
                 srGERD::Pick pick;
                 renderer.popPick(pick);
                 model->renderTriMesh(renderer, mesh);
@@ -167,7 +167,7 @@ void stLevel::process(const ProcessInfo& info, e_processType)
         }
     }
 
-    if (m_active != 0) {
+    if (m_render_exclusion_mask != 0) {
         renderer.setExclusionMask(old_exclusion_mask);
     }
     renderer.popMatrix();

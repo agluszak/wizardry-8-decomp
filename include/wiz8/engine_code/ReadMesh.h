@@ -44,6 +44,12 @@ BuildSingleLevelMesh(int face_count, W8ReadMeshFace* faces, int vertex_count, in
                      unsigned int* mesh_count, int*** vertex_maps, unsigned int* vertex_map_count,
                      W8GrowableVector<short>* mapped_values, W8GrowableVector<short>* mapped_keys);
 
+enum {
+    W8_MESH_ORDER_POLYGONS = 1UL,
+    W8_MESH_ORDER_VERTICES = 2UL,
+    W8_MESH_ORDER_TRIANGLE_STRIPS = 4UL
+};
+
 void OptimizeMeshOrder(srMeshModel* model, unsigned long flags);
 
 void ClearMaterialRecordPadding(W8MaterialRecord* material);

@@ -6,6 +6,25 @@
 #include "wiz8/engine_code/IntervalGate.h"
 #include "wiz8/wiz8_windows.h"
 
+/* Current-level movement state. Contact is refreshed by walkable-surface
+   response; movement can stop at its distance limit or through a reset.
+   Fast movement selects the running stamina/noise path. */
+
+enum {
+    W8_LEVEL_FLAG_PROP_CONTACT = 0x001,
+    W8_LEVEL_FLAG_PROP_NORMAL_MISMATCH = 0x002,
+    W8_LEVEL_FLAG_NEGLIGIBLE_MOTION = 0x004,
+    W8_LEVEL_FLAG_NO_SOUND_ENVIRONMENT = 0x008,
+    W8_LEVEL_FLAG_WALKABLE_CONTACT = 0x010,
+    W8_LEVEL_FLAG_MOVEMENT_ACTIVE = 0x020,
+    W8_LEVEL_FLAG_MOVEMENT_STOPPED = 0x040,
+    W8_LEVEL_FLAG_MOVEMENT_RESET = 0x080,
+    W8_LEVEL_MOVEMENT_STATE_MASK = W8_LEVEL_FLAG_MOVEMENT_ACTIVE | W8_LEVEL_FLAG_MOVEMENT_STOPPED |
+                                   W8_LEVEL_FLAG_MOVEMENT_RESET,
+    W8_LEVEL_FLAG_FAST_MOVEMENT = 0x100,
+    W8_LEVEL_FLAG_MOVED_THIS_UPDATE = 0x200
+};
+
 extern bool g_shared_timers_paused;
 
 enum { TIMER_SUSPEND = 1, TIMER_RESUME = 8 };
@@ -75,7 +94,7 @@ struct W8LevelDataRecord {
     /* 0x0041FF00: toggle setting-6e props referenced by primary_contact_prop_id/secondary_contact_prop_id. */
     unsigned char ToggleBoundProps();
     /* 0x00420470: integrate camera_motion_velocity into motion_velocity/integrated_motion. */
-    unsigned char IntegrateCameraForward();
+    bool IntegrateCameraForward();
     /* 0x00420810: rotate motion_input by the saved yaw matrix and refresh
        motion_displacement; returns the updated fast-move latch. */
     unsigned char ApplySavedMotionMatrix(unsigned char prior_fast, bool fast_move,
@@ -83,7 +102,7 @@ struct W8LevelDataRecord {
     /* 0x0041FF90: advance movement progress / footstep state for one tick. */
     void UpdateMotionProgress(unsigned char fast_move, unsigned char moved);
     /* 0x00420A60: accumulate footstep distance and optionally play a step. */
-    unsigned char UpdateFootstepFromMotion();
+    bool UpdateFootstepFromMotion();
 };
 
 struct W8OctBuildTree;

@@ -654,9 +654,9 @@ void GameTurnsPassedChar(int party_slot, unsigned int minutes)
             }
             case 1: {
                 unsigned int attribute = Random(7);
-                if (1 < character->attributes[attribute].value) {
-                    character->attributes[attribute].value =
-                        character->attributes[attribute].value - 1;
+                if (1 < character->attributes[attribute].base) {
+                    character->attributes[attribute].base =
+                        character->attributes[attribute].base - 1;
                     ++character->attributes[attribute].change_counter;
                     ApplyAttributeChange(character, static_cast<W8Attribute>(attribute));
                     PostCharacterNotice(

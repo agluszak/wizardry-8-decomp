@@ -36,9 +36,11 @@ public:
     enum e_control {
         CONTROL_FRONT = 0,
         CONTROL_BACK = 1,
+        CONTROL_REUSE_FRONT_MATERIAL = 2,
+        CONTROL_NO_FRONT_CULL = 3,
         CONTROL_SKIP_AUTO_BOX = 4,
         CONTROL_SKIP_AUTO_SPHERE = 5,
-        CONTROL_STARTUP = 6
+        CONTROL_SORTED_RENDERING = 6
     };
     /* The four per-pass table slots cap t.passes, as verify() asserts. */
     enum { MAX_PASSES = 4 };

@@ -1069,19 +1069,19 @@ void W8PartySelectionCharacterSummaryPanel::Redraw()
     gprintf((0xbf - width) / 2 + 0x82, 0x10b, g_format_s, personality);
 
     gprintf(0x96, 0x127, gppStringList[0x6ba]);
-    gprintf(0xbf, 0x127, g_format_d, character->attributes[W8_ATTRIBUTE_STRENGTH].value);
+    gprintf(0xbf, 0x127, g_format_d, character->attributes[W8_ATTRIBUTE_STRENGTH].base);
     gprintf(0x96, 0x135, gppStringList[0x6bb]);
-    gprintf(0xbf, 0x135, g_format_d, character->attributes[W8_ATTRIBUTE_INTELLIGENCE].value);
+    gprintf(0xbf, 0x135, g_format_d, character->attributes[W8_ATTRIBUTE_INTELLIGENCE].base);
     gprintf(0x96, 0x143, gppStringList[0x6bc]);
-    gprintf(0xbf, 0x143, g_format_d, character->attributes[W8_ATTRIBUTE_PIETY].value);
+    gprintf(0xbf, 0x143, g_format_d, character->attributes[W8_ATTRIBUTE_PIETY].base);
     gprintf(0x96, 0x151, gppStringList[0x6bd]);
-    gprintf(0xbf, 0x151, g_format_d, character->attributes[W8_ATTRIBUTE_VITALITY].value);
+    gprintf(0xbf, 0x151, g_format_d, character->attributes[W8_ATTRIBUTE_VITALITY].base);
     gprintf(0x96, 0x15f, gppStringList[0x6be]);
-    gprintf(0xbf, 0x15f, g_format_d, character->attributes[W8_ATTRIBUTE_DEXTERITY].value);
+    gprintf(0xbf, 0x15f, g_format_d, character->attributes[W8_ATTRIBUTE_DEXTERITY].base);
     gprintf(0x96, 0x16d, gppStringList[0x6bf]);
-    gprintf(0xbf, 0x16d, g_format_d, character->attributes[W8_ATTRIBUTE_SPEED].value);
+    gprintf(0xbf, 0x16d, g_format_d, character->attributes[W8_ATTRIBUTE_SPEED].base);
     gprintf(0x96, 0x17b, gppStringList[0x6c0]);
-    gprintf(0xbf, 0x17b, g_format_d, character->attributes[W8_ATTRIBUTE_SENSES].value);
+    gprintf(0xbf, 0x17b, g_format_d, character->attributes[W8_ATTRIBUTE_SENSES].base);
 
     gprintf(0xe3, 0x127, gppStringList[0x6c1]);
     gprintf(0x115, 0x127, g_format_d, character->uiHPMax);

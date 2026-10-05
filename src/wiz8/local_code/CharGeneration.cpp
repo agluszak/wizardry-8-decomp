@@ -248,8 +248,7 @@ void RecomputeAttributeLimits(W8Character* character, W8CharacterCreationState* 
     for (index = 0; index < 7; ++index) {
         int limit = step - creation_state->attribute_baselines[index];
         int cap =
-            (creation_state->attribute_values[index] - character->attributes[index].value) +
-            100;
+            (creation_state->attribute_values[index] - character->attributes[index].base) + 100;
         int value = limit;
         if (cap <= limit) {
             value = cap;
@@ -300,7 +299,7 @@ void ClampAttributesToBudget(W8Character* character, W8CharacterCreationState* c
         while (creation_state->attribute_points_total < total) {
             if (creation_state->attribute_values[index] > 0) {
                 --creation_state->attribute_values[index];
-                --character->attributes[index].value;
+                --character->attributes[index].base;
                 --total;
             }
             if (++index == 7) {
@@ -324,7 +323,7 @@ void ApplyProfessionMinimumAttributes(W8Character* character,
     character->attribute_point_deficit = 0;
     for (index = 0; index < 7; ++index) {
         int deficit = g_profession_attribute_minimums[character->iProfession].values[index] -
-                      character->attributes[index].value;
+                      character->attributes[index].base;
         deficits[index] = deficit;
         if (deficit > 0) {
             character->attribute_point_deficit -= deficit;
@@ -344,7 +343,7 @@ void ApplyProfessionMinimumAttributes(W8Character* character,
             if (character->uiExpLevel > 1) {
                 int minimum = g_profession_attribute_minimums[character->iProfession].values[index];
                 int value = creation_state->attribute_values[index];
-                while (character->attributes[index].value - value <
+                while (character->attributes[index].base - value <
                        static_cast<unsigned int>(minimum)) {
                     creation_state->attribute_values[index] = value - 1;
                     --creation_state->attribute_points_total;
@@ -353,7 +352,7 @@ void ApplyProfessionMinimumAttributes(W8Character* character,
                 }
             }
         } else {
-            character->attributes[index].value += deficit;
+            character->attributes[index].base += deficit;
             character->attributes[index].effective += deficit;
             creation_state->attribute_points_total -= deficit;
             if (character->uiExpLevel > 1) {
@@ -378,8 +377,8 @@ void PayDownAttributeDebt(W8Character* character, W8CharacterCreationState* crea
         unsigned int minimum =
             g_profession_attribute_minimums[character->iProfession].values[index];
         int deficit = 0;
-        if (character->attributes[index].value < minimum) {
-            deficit = minimum - character->attributes[index].value;
+        if (character->attributes[index].base < minimum) {
+            deficit = minimum - character->attributes[index].base;
         }
         deficits[index][0] = deficit;
         deficits[index][1] = index;
@@ -397,7 +396,7 @@ void PayDownAttributeDebt(W8Character* character, W8CharacterCreationState* crea
             index = (index + 1) % 7;
         } else {
             int attribute = deficits[index][1];
-            ++character->attributes[attribute].value;
+            ++character->attributes[attribute].base;
             ++character->attributes[attribute].effective;
             total = deficits[index][0];
             ++character->attribute_point_deficit;
@@ -438,7 +437,7 @@ void DetermineEligibleProfessions(W8Character* character, W8CharacterCreationSta
             int deficit = 0;
             for (attribute = 0; attribute < 7; ++attribute) {
                 int difference = g_profession_attribute_minimums[profession].values[attribute] -
-                                 character->attributes[attribute].value;
+                                 character->attributes[attribute].base;
                 if (difference > 0) {
                     deficit -= difference;
                 }
@@ -449,7 +448,7 @@ void DetermineEligibleProfessions(W8Character* character, W8CharacterCreationSta
             for (attribute = 0; attribute < 7; ++attribute) {
                 if (static_cast<unsigned int>(creation_state->attribute_limits[attribute] -
                                               creation_state->attribute_values[attribute]) +
-                        character->attributes[attribute].value <
+                        character->attributes[attribute].base <
                     static_cast<unsigned int>(
                         g_profession_attribute_minimums[profession].values[attribute])) {
                     eligibility[profession] = 0;
@@ -479,7 +478,7 @@ void AdjustAllocatedAttribute(W8Character* character, W8CharacterCreationState* 
     if (value + modifier > creation_state->attribute_limits[attribute]) {
         modifier = creation_state->attribute_limits[attribute] - value;
     }
-    character->attributes[attribute].value += modifier;
+    character->attributes[attribute].base += modifier;
     character->attributes[attribute].effective += modifier;
     creation_state->attribute_points_remaining -= modifier;
     creation_state->attribute_values[attribute] += modifier;
@@ -945,7 +944,7 @@ void RebuildLevelUpPoolsForProfession(W8Character* character,
         for (index = 0; index < 7; ++index) {
             int baseline = creation_state->attribute_baselines[index];
             if (baseline > 0) {
-                character->attributes[index].value -= baseline;
+                character->attributes[index].base -= baseline;
                 character->attributes[index].effective -= baseline;
                 creation_state->attribute_points_total += baseline;
                 creation_state->attribute_baselines[index] = 0;
@@ -1009,7 +1008,7 @@ void ApplyRaceProfessionTables(W8Character* character, W8CharacterCreationState*
             for (index = 0; index < 7; ++index) {
                 unsigned int minimum =
                     g_profession_attribute_minimums[character->iProfession].values[index];
-                character->attributes[index].value = minimum;
+                character->attributes[index].base = minimum;
                 character->attributes[index].effective = minimum;
             }
         }
@@ -1017,7 +1016,7 @@ void ApplyRaceProfessionTables(W8Character* character, W8CharacterCreationState*
         if (character->uiExpLevel == 1) {
             for (index = 0; index < 7; ++index) {
                 unsigned int minimum = g_race_attribute_minimums[character->iRace].values[index];
-                character->attributes[index].value = minimum;
+                character->attributes[index].base = minimum;
                 character->attributes[index].effective = minimum;
             }
         }
@@ -1034,8 +1033,7 @@ void ApplyRaceProfessionTables(W8Character* character, W8CharacterCreationState*
                 ApplyProfessionMinimumAttributes(character, creation_state);
                 CalcCharacterLevelBand(character);
                 for (index = 0; index < 7; ++index) {
-                    character->attributes[index].value +=
-                        creation_state->attribute_values[index];
+                    character->attributes[index].base += creation_state->attribute_values[index];
                 }
             } else {
                 ApplyProfessionMinimumAttributes(character, creation_state);
@@ -1049,7 +1047,7 @@ void ApplyRaceProfessionTables(W8Character* character, W8CharacterCreationState*
         }
         if (character->uiExpLevel == 1) {
             for (index = 0; index < 7; ++index) {
-                character->attributes[index].effective = character->attributes[index].value;
+                character->attributes[index].effective = character->attributes[index].base;
             }
         }
         RecalculateCharacterHitPoints(character);

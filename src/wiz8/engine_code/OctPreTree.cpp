@@ -101,7 +101,7 @@ void OctPreTree::CollectLeafPolygons(const srVector3T<int>* cell)
             m_polygon_index_stream + m_leaves[leaf_index].polygon_offset;
         for (int remaining = *stream; remaining != 0; --remaining) {
             ++stream;
-            if (m_visited_polygon_bits->Set(*stream) == 0) {
+            if (!m_visited_polygon_bits->Set(*stream)) {
                 m_aulGDObjs[m_gd_result_count] = *stream;
                 ++m_gd_result_count;
             }
@@ -243,7 +243,8 @@ bool OctPreTree::TestCollectedPolygons(W8OctreeTrace* trace)
                 vertices[0] = polygon->vertices[0]->position;
                 vertices[1] = polygon->vertices[1]->position;
                 vertices[2] = polygon->vertices[2]->position;
-                if (PointInsideTriangle(vertices, polygon->flags & 3, &contact)) {
+                if (PointInsideTriangle(vertices, polygon->flags & W8OctRegionPolygon::AXIS_MASK,
+                                        &contact)) {
                     blocked = true;
                 }
             }
@@ -1248,12 +1249,12 @@ unsigned char OctPreTree::BuildPathLists(W8GameData* game_data, W8LevelFile* lev
                             1;
                         if (InsertConditionalNodes(&cond_map, cell, record->level_flags, preprops,
                                                    prop_count)) {
-                            record->level_flags |= 0x4000000;
+                            record->level_flags |= W8_PATH_CELL_CONDITIONAL;
                         }
                         int slot = node_map.FindNextEntry(&cell, -1);
                         if (slot == -1 || node_map.entries[slot].value == 0) {
                             node_map.Insert(&cell, &path_node_count);
-                            record->level_flags |= 0x10000000;
+                            record->level_flags |= W8_PATH_CELL_INACTIVE;
                         }
                         ++path_node_count;
                     }
@@ -1270,9 +1271,8 @@ unsigned char OctPreTree::BuildPathLists(W8GameData* game_data, W8LevelFile* lev
         if (pre_pathing == 0) {
             ReportBuildStatus(7, "Could not create PrePathing object\n");
         }
-        pre_pathing->ConfigureForLevel(path_node_count, m_region_cell,
-                                           static_cast<int>(m_path_clearance), &m_spatial.m_minimum,
-                                           m_owned_0c0);
+        pre_pathing->ConfigureForLevel(path_node_count, m_region_cell, m_path_clearance,
+                                       &m_spatial.m_minimum, m_owned_0c0);
         /* Verified retail behavior: this early return runs only the two
            local hash-table destructors.  preprops (and its pStopMeshes
            arrays), object_registry and g_octree_game_data are all
@@ -1310,10 +1310,7 @@ char OctPreTree::PathNodeObstructed(const srVector3T<float>* node)
     char result;
     bool probe;
 
-    /* The serialized +0x17c header word is a float the pathing code reads
-       bit-wise: the probe-box height above the node. */
-    float clearance;
-    memcpy(&clearance, &m_path_clearance, sizeof(clearance));
+    float clearance = m_path_clearance;
     bounds_min.y = node->y + clearance * g_navigator_mode3_scale;
     bounds_max.y = bounds_min.y + clearance;
     float half = m_region_cell * g_float_005ebc7c;
@@ -1455,7 +1452,7 @@ unsigned char OctPreTree::InsertConditionalNodes(W8HashTable<unsigned int, CondP
                         "pCondNode", OCTPRETREE_CPP, 0x7fc,
                         "InsertConditionalNodes: Could not allocate CondPathNode stucture.");
                 }
-                cond_node->value = node | 0x2000000;
+                cond_node->value = node | W8_PATH_CELL_BLOCKING_FRAME;
                 cond_node->cell = cell;
                 nodes->Insert(&key, &cond_node);
                 found = true;
@@ -1535,7 +1532,7 @@ int OctPreTree::CreatePathProps(W8LevelFile* level, W8PreProp** preprops)
         for (int i = 0; i < count; ++i) {
             W8LevelFileProp* prop = level->pProps + i;
             W8PreProp* record = records + i;
-            if ((prop->flags & 1) == 0)
+            if ((prop->flags & W8_PROP_COLLIDABLE) == 0)
                 continue;
             if (prop->num_frame_pos == 0) {
                 record->num_stop_meshes = PropFramesDiffer(&prop->anim_obj, 0, 0xffff) ? 2 : 1;

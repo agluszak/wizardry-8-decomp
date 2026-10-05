@@ -453,21 +453,21 @@ public:
         /* Device texture byte count mirrored from srDD::Statistics +0x00 as
            two dwords; dump reinterprets the pair as a double for the
            "DD Texture data transfer (Mb/s)" line. */
-        unsigned long value_08;
-        unsigned long value_0c;
-        double value_10;
+        unsigned long texture_transfer_low;
+        unsigned long texture_transfer_high;
+        double pixels_drawn;
         unsigned long value_18;
         unsigned long value_1c;
-        unsigned long value_20;
-        unsigned long value_24;
-        unsigned long value_28;
+        unsigned long device_triangles;
+        unsigned long device_vertices;
+        unsigned long device_vertex_indices;
         /* Frames presented: flipFrame increments once per call. */
         unsigned long frames;
-        unsigned long value_30;
-        unsigned long value_34;
+        unsigned long triangle_chunks;
+        unsigned long input_triangles;
         /* getStatistics accumulates this only for sorted renderers. */
-        unsigned long value_38;
-        unsigned long value_3c;
+        unsigned long sorted_triangles;
+        unsigned long input_vertices;
         /* applyViewStateChanges increments this counter on every apply. */
         unsigned long view_state_applies;
         /* applyDrawStateChanges increments this counter on every apply. */
@@ -487,8 +487,8 @@ public:
         unsigned long shader_sets;
         /* drawArrays/drawElements increment this draw-call count. */
         unsigned long draw_calls;
-        unsigned long value_64;
-        unsigned long value_68;
+        unsigned long clipped_triangles;
+        unsigned long device_calls;
         /* testBoundingSphere call count / visible-result count. */
         unsigned long sphere_tests;
         unsigned long sphere_visible;

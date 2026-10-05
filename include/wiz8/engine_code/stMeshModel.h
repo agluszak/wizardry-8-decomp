@@ -14,7 +14,11 @@ enum W8MeshFrameData {
     W8_MESH_FRAME_POLYGON_NORMALS = 4
 };
 
-enum W8MeshModelFlag { W8_MESH_VERTEX_LIGHTING_DIRTY = 2, W8_MESH_HAS_FRAME_STORAGE = 4 };
+enum W8MeshModelFlag {
+    W8_MESH_SORTED_RENDERING = 1,
+    W8_MESH_VERTEX_LIGHTING_DIRTY = 2,
+    W8_MESH_HAS_FRAME_STORAGE = 4
+};
 
 // VTABLE: WIZ8 0x005ec454 stMeshModel
 // VTABLE: WIZ8 0x005ec4b0 srClassSupport<stMeshModel, srMeshModel, 0, 65539>

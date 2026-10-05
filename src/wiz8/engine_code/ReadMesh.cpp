@@ -116,7 +116,8 @@ namespace {
 bool ReadMeshFaceNeedsSplit(const W8ReadMeshFace& face, srMaterialIFace** materials)
 {
     return (face.flags & 4) != 0 ||
-           (static_cast<stMaterial*>(materials[face.material_index])->m_shader_flags & 1) != 0;
+           (static_cast<stMaterial*>(materials[face.material_index])->m_surface_flags &
+            W8_MATERIAL_TWO_SIDED) != 0;
 }
 
 } // namespace
@@ -296,7 +297,7 @@ static W8MeshOrder* ComputeMeshOrder(W8MeshOrderInfo* info, unsigned long flags)
     for (index = 0; index < static_cast<unsigned long>(info->vertex_count); ++index) {
         order->vertices[index] = index;
     }
-    if ((flags & 1) == 0 && (flags & 2) == 0) {
+    if ((flags & W8_MESH_ORDER_POLYGONS) == 0 && (flags & W8_MESH_ORDER_VERTICES) == 0) {
         return order;
     }
 
@@ -305,7 +306,7 @@ static W8MeshOrder* ComputeMeshOrder(W8MeshOrderInfo* info, unsigned long flags)
     memset(polygon_groups, 0, info->polygon_count * sizeof(unsigned long));
     memset(vertex_groups, 0, info->vertex_count * sizeof(unsigned long));
 
-    if ((flags & 1) != 0) {
+    if ((flags & W8_MESH_ORDER_POLYGONS) != 0) {
         if (info->polygon_key_count != 0) {
             unsigned long* keys = new unsigned long[info->polygon_count];
             for (unsigned int table = 0; table < info->polygon_key_count; ++table) {
@@ -319,7 +320,7 @@ static W8MeshOrder* ComputeMeshOrder(W8MeshOrderInfo* info, unsigned long flags)
             delete[] keys;
         }
 
-        if ((flags & 4) != 0) {
+        if ((flags & W8_MESH_ORDER_TRIANGLE_STRIPS) != 0) {
             for (unsigned int start = 0; start < static_cast<unsigned long>(info->polygon_count);) {
                 unsigned int end = start;
                 while (end < static_cast<unsigned long>(info->polygon_count) &&
@@ -373,7 +374,7 @@ static W8MeshOrder* ComputeMeshOrder(W8MeshOrderInfo* info, unsigned long flags)
         }
     }
 
-    if ((flags & 2) != 0) {
+    if ((flags & W8_MESH_ORDER_VERTICES) != 0) {
         if (info->vertex_key_count != 0) {
             unsigned long* keys = new unsigned long[info->vertex_count];
             for (unsigned int table = 0; table < info->vertex_key_count; ++table) {
@@ -710,10 +711,10 @@ BuildSingleLevelMesh(int face_count, W8ReadMeshFace* faces, int vertex_count, in
 
         model->setDirtyAll();
         if ((polygon_types.GetAt(type)->value & 0x6000) == 0x4000) {
-            model->flags |= 1;
-            model->enable(srMeshModel::CONTROL_STARTUP);
+            model->flags |= W8_MESH_SORTED_RENDERING;
+            model->enable(srMeshModel::CONTROL_SORTED_RENDERING);
         } else {
-            model->flags &= ~1U;
+            model->flags &= ~W8_MESH_SORTED_RENDERING;
         }
         if (previous_model != 0) {
             previous_model->LinkTo(model);
@@ -909,7 +910,7 @@ unsigned char ReadSingleLevelMeshBody(W8ReadLevelInfo* info, srModelInstance** i
         return 0;
     }
 
-    if ((flags & 1) == 0) {
+    if ((flags & W8_LEVEL_MESH_LOD_VERTICES) == 0) {
         vertices = static_cast<srVector3T<float>*>(malloc(vertex_count * sizeof(*vertices)));
         if (vertices == 0) {
             srAssertFail("pstVertices", "C:\\Projects\\Wizardry 8\\Engine Code\\ReadMesh.cpp",
@@ -930,7 +931,7 @@ unsigned char ReadSingleLevelMeshBody(W8ReadLevelInfo* info, srModelInstance** i
         if (compression_type == 2) {
             FileRead(file, &compression_scale, sizeof(compression_scale), 0);
         }
-        if ((flags & 2) == 0) {
+        if ((flags & W8_LEVEL_MESH_SHORT_LOD_VERTICES) == 0) {
             srAssertFail("FALSE", "C:\\Projects\\Wizardry 8\\Engine Code\\ReadMesh.cpp", 0x131,
                          "Uncompressed mesh, please re-export level with newer plugin");
         } else {
@@ -960,7 +961,7 @@ unsigned char ReadSingleLevelMeshBody(W8ReadLevelInfo* info, srModelInstance** i
     if (faces == 0) {
         srAssertFail("pstFaces", "C:\\Projects\\Wizardry 8\\Engine Code\\ReadMesh.cpp", 0x148, 0);
     }
-    if ((flags & 4) == 0) {
+    if ((flags & W8_LEVEL_MESH_COMPRESSED_FACES) == 0) {
         success = FileRead(file, faces, face_count * sizeof(*faces), &bytes_read);
         if (success == 0) {
             srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\ReadMesh.cpp", 0x166,
@@ -1023,7 +1024,7 @@ unsigned char ReadSingleLevelMeshBody(W8ReadLevelInfo* info, srModelInstance** i
         first_model->duplicate_on_reuse = MeshHasAnimatedTexture(first_model) ? 0 : 1;
     }
 
-    if ((flags & 1) == 0) {
+    if ((flags & W8_LEVEL_MESH_LOD_VERTICES) == 0) {
         int mesh_index = 0;
         for (stMeshModel* model = first_model; model != 0; model = model->next, ++mesh_index) {
             srVector3T<float>* model_vertices = model->getVertexLoc();
@@ -1252,7 +1253,7 @@ unsigned char SkipSingleLevelMesh(W8ReadLevelInfo* info)
                      FILE_SEEK_FROM_CURRENT);
         }
     }
-    if ((flags & 1) == 0) {
+    if ((flags & W8_LEVEL_MESH_LOD_VERTICES) == 0) {
         vertex_count *= 0xc;
     } else {
         unsigned char ignored;
@@ -1260,14 +1261,14 @@ unsigned char SkipSingleLevelMesh(W8ReadLevelInfo* info)
 
         FileRead(info->hFile, &ignored, 1, 0);
         FileRead(info->hFile, &group_count, 2, 0);
-        if ((flags & 2) == 0) {
+        if ((flags & W8_LEVEL_MESH_SHORT_LOD_VERTICES) == 0) {
             vertex_count = group_count * vertex_count * 0xc;
         } else {
             vertex_count = group_count * vertex_count * 6;
         }
     }
     FileSeek(info->hFile, vertex_count, FILE_SEEK_FROM_CURRENT);
-    if ((flags & 4) == 0) {
+    if ((flags & W8_LEVEL_MESH_COMPRESSED_FACES) == 0) {
         face_count *= 0x29;
     } else {
         face_count *= 0x21;
@@ -1282,7 +1283,7 @@ unsigned char SkipSingleLevelMesh(W8ReadLevelInfo* info)
             }
         }
     }
-    if ((flags & 1) != 0) {
+    if ((flags & W8_LEVEL_MESH_LOD_VERTICES) != 0) {
         success = 2;
     }
     return success;

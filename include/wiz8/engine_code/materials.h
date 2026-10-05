@@ -12,6 +12,9 @@ class srTextureIFace;
 class srShader;
 class stTextureAnim;
 
+/* Combinable flags in level materials; distinct from srShader's packed word. */
+enum { W8_MATERIAL_TWO_SIDED = 1u, W8_MATERIAL_NORMAL_TEXCOORD_MASK = 0x1feu };
+
 /* The materials.cpp assertions name the pointer ppstMaterial. The constructor
    at 0x004925B0 has unresolved TU ownership and registers the class with
    SurRender's registry under the literal "stMaterial" and the class id
@@ -42,7 +45,7 @@ protected:
     virtual ~stMaterial() override;
 
 public:
-    int m_shader_flags; /* 0x78 */
+    int m_surface_flags; /* 0x78 */
 };
 
 static_assert((sizeof(stMaterial) == 0x7C), "stMaterial_must_be_0x7c");
@@ -67,7 +70,7 @@ struct W8MaterialRecord {
     W8TextureAnimationMode animation_mode; /* 0x10d */
     int animation_frame;          /* 0x10e */
     float animation_rate;         /* 0x112 */
-    unsigned long shader_flags;   /* 0x116 */
+    unsigned long surface_flags;  /* 0x116 */
     float texture_modes[4];       /* 0x11a */
 };
 

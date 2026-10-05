@@ -539,15 +539,13 @@ struct W8LevelFileParticleSystem { /* 0x226 */
 };
 
 /* Serialized form of W8NamedPosition: one version byte precedes the runtime
-   record's name, position and trailing scalar fields. */
+   record's name, position, angle and direction. */
 struct W8LevelFileNamedPosition { /* 0x9d */
     unsigned char version;
     char name[0x80];
     srVector3T<float> position;
-    int value_08d;
-    float value_091;
-    float value_095;
-    float value_099;
+    float angle;
+    srVector3T<float> direction;
 };
 
 /* The serialized environment block gated by has_block, between the

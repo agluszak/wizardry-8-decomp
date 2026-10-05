@@ -165,7 +165,7 @@ unsigned char BakeInstanceVertexLighting(stModelInstance* instance, srNode* ligh
 
         srVector3T<float>* vertices;
         srVector3T<float>* normals;
-        if ((mesh->flags & 4) != 0) {
+        if ((mesh->flags & W8_MESH_HAS_FRAME_STORAGE) != 0) {
             vertices = mesh->GetVertexLocations(0, true, 0.0f);
             normals = mesh->GetVertexNormals(0, true);
         } else {
@@ -790,7 +790,7 @@ void SetSceneMeshShaderBit3(srNode* node, int argument)
             for (stMeshModel* mesh = static_cast<stMeshModel*>(instance->getModel()); mesh != 0;
                  mesh = mesh->next) {
                 srShader* polygon_shader = mesh->getPolyShader(0, 0);
-                bool clear = argument == 0 || (mesh->flags & 1) != 0;
+                bool clear = argument == 0 || (mesh->flags & W8_MESH_SORTED_RENDERING) != 0;
 
                 if (polygon_shader == 0) {
                     shader = mesh->getShader(0);
@@ -828,7 +828,7 @@ void SetSceneMeshShaderLowBits(srNode* node, int argument)
             stModelInstance* instance = static_cast<stModelInstance*>(node);
             for (stMeshModel* mesh = static_cast<stMeshModel*>(instance->getModel()); mesh != 0;
                  mesh = mesh->next) {
-                if ((mesh->flags & 1) != 0) {
+                if ((mesh->flags & W8_MESH_SORTED_RENDERING) != 0) {
                     continue;
                 }
                 srShader* polygon_shader = mesh->getPolyShader(0, 0);

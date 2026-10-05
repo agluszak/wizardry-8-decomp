@@ -2263,7 +2263,13 @@ _BOOL_INDEX = r"(?:\[\s*(?:[A-Za-z_]\w*|[0-9]+)(?:\+\+|--)?\s*\])?"
 _BOOL_OBJECT = r"[A-Za-z_]\w*" + _BOOL_INDEX + r"(?:(?:\.|->|::)[A-Za-z_]\w*" + _BOOL_INDEX + r")*"
 _BOOL_LEFT = re.compile(r"(?P<value>" + _BOOL_OBJECT + r"|\(\s*" + _BOOL_OBJECT + r"\s*\))\s*$")
 _BOOL_RIGHT = re.compile(r"\s*(?P<value>" + _BOOL_OBJECT + r"|\(\s*" + _BOOL_OBJECT + r"\s*\))")
-_BOOL_CALL = _BOOL_OBJECT + r"\(\s*\)"
+# The AST establishes the whole operand as a direct bool-returning call.
+# Bound balanced argument syntax rather than finding an arbitrary inner call;
+# strings, comments, braced initializers and deeper nesting stay unchanged.
+_BOOL_ARGUMENTS = r"[^(){};\"'\\/]*"
+for _depth in range(4):
+    _BOOL_ARGUMENTS = r"(?:[^(){};\"'\\/]|\(" + _BOOL_ARGUMENTS + r"\))*"
+_BOOL_CALL = _BOOL_OBJECT + r"\(" + _BOOL_ARGUMENTS + r"\)"
 _BOOL_CALL_LEFT = re.compile(r"(?P<value>" + _BOOL_CALL + r"|\(\s*" + _BOOL_CALL + r"\s*\))\s*$")
 _BOOL_CALL_RIGHT = re.compile(r"\s*(?P<value>" + _BOOL_CALL + r"|\(\s*" + _BOOL_CALL + r"\s*\))")
 _BOOL_LITERAL = r"(?:[01][uUlL]*|false|true)\b"
@@ -2273,7 +2279,7 @@ def boolean_expression_edits(facts: ScalarFacts, source):
     """Simplify AST-resolved bool objects and calls, without inferring source types.
 
     Operand observations bind the operator to its canonical declaration. Restrict
-    source spelling to direct objects/member paths and calls without arguments.
+    source spelling to direct objects/member paths and balanced direct calls.
     Unfamiliar expressions and macros remain unchanged. A same-named byte/int declaration is never an anchor.
     """
     hashes = defaultdict(set)

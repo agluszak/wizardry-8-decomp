@@ -4410,7 +4410,7 @@ void W8Monster::GetMappedPosition(srVector3T<float>* position)
 
             if (index >= 0) {
                 srVector3T<float>* vertices;
-                if ((mesh->flags & 4) == 0) {
+                if ((mesh->flags & W8_MESH_HAS_FRAME_STORAGE) == 0) {
                     vertices = mesh->getVertexLoc();
                 } else {
                     vertices = mesh->GetVertexLocations(0, true, 0.0f);
@@ -4811,7 +4811,7 @@ void W8Monster::CollectModelInstances(W8GrowableVector<stModelInstance*>* instan
                     if (mesh != 0) {
                         int frame_count = AniMeshValue(mesh);
 
-                        if ((mesh->flags & 0x20) != 0) {
+                        if ((mesh->flags & W8_ANI_MESH_SINGLE_INSTANCE) != 0) {
                             instances->Add(GetAniMeshFrame(mesh, 0));
                         } else {
                             int frame;

@@ -434,7 +434,7 @@ static void ReadMenuChecksOnGameThread(void* opaque)
 static bool OctFileInvariant(void* ctx)
 {
     OctFileSemanticResult* result = static_cast<OctFileSemanticResult*>(ctx);
-    bool ok = RunOctFileSemanticTests(result) != 0;
+    bool ok = RunOctFileSemanticTests(result);
     PrintOctFileSemanticResults(result);
     return ok;
 }
@@ -449,7 +449,7 @@ static bool OctFileCase(RuntimeCase& test)
 static bool SightInvariant(void* ctx)
 {
     SightSemanticResult* result = static_cast<SightSemanticResult*>(ctx);
-    bool ok = RunSightSemanticTests(result) != 0;
+    bool ok = RunSightSemanticTests(result);
     PrintSightSemanticResults(result);
     return ok;
 }
@@ -464,7 +464,7 @@ static bool SightThresholdCase(RuntimeCase& test)
 static bool SplitStackInvariant(void* ctx)
 {
     SplitStackSemanticResult* result = static_cast<SplitStackSemanticResult*>(ctx);
-    bool ok = RunSplitStackSemanticTest(result) != 0;
+    bool ok = RunSplitStackSemanticTest(result);
     PrintSplitStackSemanticResults(result);
     return ok;
 }
@@ -479,7 +479,7 @@ static bool SplitStackCase(RuntimeCase& test)
 static bool PartyMovementInvariant(void* ctx)
 {
     PartyMovementSemanticResult* result = static_cast<PartyMovementSemanticResult*>(ctx);
-    bool ok = RunPartyMovementSemanticTest(result) != 0;
+    bool ok = RunPartyMovementSemanticTest(result);
     PrintPartyMovementSemanticResults(result);
     return ok;
 }
@@ -494,7 +494,7 @@ static bool PartyMovementCase(RuntimeCase& test)
 static bool AudioInvariant(void* ctx)
 {
     AudioSemanticResult* result = static_cast<AudioSemanticResult*>(ctx);
-    bool ok = RunAudioSemanticTests(result) != 0;
+    bool ok = RunAudioSemanticTests(result);
     PrintAudioSemanticResults(result);
     return ok;
 }
@@ -509,7 +509,7 @@ static bool AudioSemanticsCase(RuntimeCase& test)
 static bool KeyboardMenuInvariant(void* ctx)
 {
     KeyboardMenuSemanticResult* result = static_cast<KeyboardMenuSemanticResult*>(ctx);
-    bool ok = RunKeyboardMenuSemanticTest(result) != 0;
+    bool ok = RunKeyboardMenuSemanticTest(result);
     PrintKeyboardMenuSemanticResults(result);
     return ok;
 }
@@ -524,7 +524,7 @@ static bool KeyboardMenuCase(RuntimeCase& test)
 static bool MouthGapInvariant(void* ctx)
 {
     MouthGapSemanticResult* result = static_cast<MouthGapSemanticResult*>(ctx);
-    bool ok = RunMouthGapSemanticTest(result) != 0;
+    bool ok = RunMouthGapSemanticTest(result);
     PrintMouthGapSemanticResults(result);
     return ok;
 }
@@ -539,7 +539,7 @@ static bool MouthGapCase(RuntimeCase& test)
 static bool NpcDialogueInvariant(void* ctx)
 {
     NpcDialogueSemanticResult* result = static_cast<NpcDialogueSemanticResult*>(ctx);
-    bool ok = RunNpcDialogueSemanticTest(result) != 0;
+    bool ok = RunNpcDialogueSemanticTest(result);
     PrintNpcDialogueSemanticResults(result);
     return ok;
 }
@@ -554,7 +554,7 @@ static bool NpcDialogueCase(RuntimeCase& test)
 static bool LockDeviceInvariant(void* ctx)
 {
     LockDeviceSemanticResult* result = static_cast<LockDeviceSemanticResult*>(ctx);
-    bool ok = RunLockDeviceSemanticTest(result) != 0;
+    bool ok = RunLockDeviceSemanticTest(result);
     PrintLockDeviceSemanticResults(result);
     return ok;
 }

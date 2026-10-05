@@ -128,9 +128,9 @@ void GDProp::Initialize(srModelInstance* instance, bool attach, unsigned short p
                         unsigned char footstep_surface, unsigned char footstep_material)
 {
     if (!attach) {
-        m_flags |= 4;
+        m_flags |= W8_GD_PROP_UNATTACHED;
     } else {
-        m_flags &= 0xfffb;
+        m_flags &= 0xffffu & ~W8_GD_PROP_UNATTACHED;
         m_prop_number = prop_number;
     }
 
@@ -178,7 +178,7 @@ void GDProp::Initialize(srModelInstance* instance, bool attach, unsigned short p
             surface->footstep_surface = footstep_surface;
             surface->footstep_material = footstep_material;
             surface->hit_plane = 0;
-            if ((mesh_flags & 1) != 0) {
+            if ((mesh_flags & W8_MESH_SORTED_RENDERING) != 0) {
                 surface->flags |= W8_GD_SURFACE_SKIP_FILTERED_TRACE;
             }
 
@@ -306,13 +306,13 @@ void GDProp::ComputeBounds(srVector3T<float>* minimum, srVector3T<float>* maximu
 /* The pathing record supplies inclusive unsigned coordinate bounds at
    +0x4c..+0x52. */
 // FUNCTION: WIZ8 0x004B75F0
-unsigned char GDProp::ContainsPathCoordinate(unsigned short x, unsigned short y) const
+bool GDProp::ContainsPathCoordinate(unsigned short x, unsigned short y) const
 {
     if (x >= m_path_bounds.min_x && x <= m_path_bounds.max_x && y >= m_path_bounds.min_z &&
         y <= m_path_bounds.max_z) {
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 /* Box overlap test against every surface triangle: the query bounds are

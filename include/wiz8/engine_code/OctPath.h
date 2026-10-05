@@ -333,8 +333,8 @@ public:
     unsigned char MatchesPathProbe(unsigned int tag, const float* radius,
                                    const srVector3T<float>* position);
     unsigned short AllocateSearchNode();
-    unsigned char CanReachSearchNode(const srVector3T<float>* position, unsigned short target_node,
-                                     float clearance);
+    bool CanReachSearchNode(const srVector3T<float>* position, unsigned short target_node,
+                            float clearance);
     void AdjustFinalPathEndpoint(W8NavigatorMovementState* movement, float radius,
                                  float separation);
     void UpdateConditionalPathFlags(unsigned int path_handle, unsigned short frame,
@@ -435,7 +435,7 @@ public:
     void AddWaypointLink(unsigned short source, unsigned short destination, unsigned int flags);
     unsigned char UpdateWaypointLink(unsigned short source, unsigned short destination,
                                      unsigned int flags);
-    unsigned char HasDirectionalWaypointLink(unsigned short source, unsigned short destination);
+    bool HasDirectionalWaypointLink(unsigned short source, unsigned short destination);
     unsigned char TestWaypointSpan(const srVector3T<float>* source, srVector3T<float>* destination,
                                    bool adjust_destination, bool diagonal_steps);
     /* `range` carries the walk budget in and the path cost back out; `hops`
@@ -452,7 +452,7 @@ public:
                             const srVector3T<float>* source); /* 0x0045F2D0 */
     /* Takes the size, two loose values, the bounds block out of the octree
        header, and the level name the octree already owns. */
-    void ConfigureForLevel(int size, float grid_scale, int path_clearance,
+    void ConfigureForLevel(int size, float grid_scale, float path_clearance,
                            const srVector3T<float>* bounds, const char* name); /* 0x00458A50 */
     unsigned char ReadPathNodes(int handle);                                  /* 0x00458CE0 */
     unsigned char WritePathNodes(unsigned int handle);
@@ -483,9 +483,9 @@ public:
     float span;       /* 0x20 */
     short cell_count; /* 0x24 */
     unsigned short m_padding_026;
-    /* Path probe-clearance height, raw float bits from the octree
-       header word; only ConfigureForLevel writes it. */
-    int path_clearance; /* 0x28 */
+    /* Path probe-clearance height from the octree
+       header; only ConfigureForLevel writes it. */
+    float path_clearance;       /* 0x28 */
     W8BoundingBox level_bounds; /* 0x2c: minimum/maximum pair */
     /* Four malloc'd tables and one polymorphic object, all released by
        0x00457B10 - the first four with free, the last through its own
@@ -497,9 +497,9 @@ public:
     W8PathEdge* m_pEdges;              /* 0x4c */
     W8FileWaypoint* m_pFileWayPoints;      /* 0x50 */
     stModelInstance* m_path_visualization; /* 0x54 */
-    BitArray* m_visible_waypoints;       /* 0x58 */
-    BitArray* m_rendered_waypoints;      /* 0x5c */
-    BitArray* m_collected_waypoints;     /* 0x60 */
+    BitArray* m_marked_path_nodes;         /* 0x58 */
+    BitArray* m_visited_path_nodes;        /* 0x5c */
+    BitArray* m_collected_path_nodes;      /* 0x60 */
     /* Two hash indexes the loader builds and 0x00457B10 destroys. The path
        value words are bitfields (height in the low half, state flags in the
        high bits), so 0x64 takes unsigned values; 0x74 is the visited-cell set
@@ -605,6 +605,9 @@ struct W8PrePathNode {
 static_assert(sizeof(W8PrePathNode) == 0x10, "W8PrePathNode_must_be_0x10");
 
 enum { W8_PREPATH_NODES_PER_CHUNK = 1000 };
+
+/* Build-only mark removed before path cells are serialized. */
+enum { W8_PREPATH_NODE_PRUNED = 0x40000000u };
 
 /* OctPrePath.cpp's 0x1204-byte build-time pathing service ("PrePathing" in its
    own assertions): its constructor runs the W8PathingService constructor then

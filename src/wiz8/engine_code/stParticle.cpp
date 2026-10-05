@@ -983,11 +983,11 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
     if (colors != 0) {
         pipeline->current_record->colors = colors;
         pipeline->current_record->color_format = 1;
-        pipeline->current_record->flags |= 1;
+        pipeline->current_record->flags |= srVertexPipe::Record::HAS_COLORS;
     }
     if (alphas != 0) {
         pipeline->current_record->alphas = alphas;
-        pipeline->current_record->flags |= 8;
+        pipeline->current_record->flags |= srVertexPipe::Record::HAS_ALPHA;
     }
 
     /* The particle material reaches
@@ -999,7 +999,7 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
 
     if (texcoords != 0) {
         pipeline->current_record->st0 = texcoords;
-        pipeline->current_record->flags |= 0x10;
+        pipeline->current_record->flags |= srVertexPipe::Record::HAS_TEXCOORD0;
     }
 
     if (texture_frames != 0) {

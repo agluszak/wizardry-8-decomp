@@ -457,7 +457,7 @@ bool IsCharacterSkillAvailable(W8Character* character, W8Skill skill_id,
         }
         if (static_cast<unsigned int>(skill_id) >= W8_SKILL_POWER_STRIKE &&
             static_cast<unsigned int>(skill_id) <= W8_SKILL_EAGLE_EYE) {
-            return character->attributes[skill_id - 0x22].value >= 100;
+            return character->attributes[skill_id - 0x22].base >= 100;
         }
         /* The canonical emits a byte index table over 0x00..0x1b, placed after
            the body, with three groups: default for 0x00..0x09 and 0x12, a
@@ -511,7 +511,7 @@ void ResetCharacterAttributes(W8Character* character)
 
     for (index = 0; index < 7; ++index) {
         int value =
-            character->bonus.attribute_adjustments[index] + character->attributes[index].value;
+            character->bonus.attribute_adjustments[index] + character->attributes[index].base;
         ClampInteger(&value, 1, 0x7d);
         character->attributes[index].effective = value;
         UnequipUnusableItems(character);
@@ -561,7 +561,7 @@ void ApplyAttributeChange(W8Character* character, W8Attribute attribute)
 {
     int skill_id = attribute + 0x22;
 
-    if (character->attributes[attribute].value >= 0x64) {
+    if (character->attributes[attribute].base >= 0x64) {
         if (!character->skills[skill_id].active) {
             character->skills[skill_id].active = true;
             if (g_current_screen_state.id == W8_SCREEN_CHARACTER) {
@@ -585,7 +585,7 @@ void ApplyAttributeChange(W8Character* character, W8Attribute attribute)
         }
     }
     int effective = character->bonus.attribute_adjustments[attribute] +
-                    static_cast<int>(character->attributes[attribute].value);
+                    static_cast<int>(character->attributes[attribute].base);
     ClampInteger(&effective, 1, 0x7d);
     character->attributes[attribute].effective = effective;
     UnequipUnusableItems(character);
@@ -618,7 +618,7 @@ void InitializeSkillBaseLevels(W8Character* character)
         W8Attribute first = g_skill_attributes[index].attribute_1;
         W8Attribute second = g_skill_attributes[index].attribute_2;
         character->skills[index].base_level =
-            (character->attributes[first].value + character->attributes[second].value) >> 1;
+            (character->attributes[first].base + character->attributes[second].base) >> 1;
     }
 }
 

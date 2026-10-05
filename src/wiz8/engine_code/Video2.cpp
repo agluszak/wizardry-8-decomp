@@ -1637,7 +1637,7 @@ BOOLEAN ResizeMouseCursorSurface(int width, int height)
     g_cursor_node->setName("MouseResize");
     PositionMouseCursor(g_cursor_width, g_cursor_height, false);
     g_cursor_model = static_cast<srMeshModel*>(g_cursor_node->getModel());
-    g_cursor_model->enable(srMeshModel::CONTROL_STARTUP);
+    g_cursor_model->enable(srMeshModel::CONTROL_SORTED_RENDERING);
     g_cursor_model->setSortBias(-100000.0f);
     g_cursor_model->setName("Mouse Cursor Mesh");
     g_cursor_texture = static_cast<srTexture*>(g_cursor_model->getTexture(0, 0));
@@ -1937,7 +1937,7 @@ unsigned char InitializeMouseCursorScene(void)
     if (g_cursor_node) {
         g_cursor_node->setName("MouseInit");
         g_cursor_model = static_cast<srMeshModel*>(g_cursor_node->getModel());
-        g_cursor_model->enable(srMeshModel::CONTROL_STARTUP);
+        g_cursor_model->enable(srMeshModel::CONTROL_SORTED_RENDERING);
         g_cursor_model->setSortBias(-100000.0f);
         g_cursor_texture = static_cast<srTexture*>(g_cursor_model->getTexture(0, 0));
         g_cursor_texture->setWrapS(srTextureIFace::WRAP_CLAMP);
@@ -2290,14 +2290,15 @@ void DrawVideoInspector(int left, unsigned int top)
         SetFontObjectPalette16BPP(g_smfnt_font, g_font_state_palettes[W8_FONT_PALETTE_YELLOW]);
         gprintfDirty(left, top, L"FR: %4.1f", g_frames_per_second);
         if (g_video_inspector_mode == 2) {
-            gprintfDirty(left, top + 0xa, L"OC: %d", g_world->level->m_positional);
-            gprintfDirty(left, top + 0x14, L"PI: %d", statistics.value_34);
-            gprintfDirty(left, top + 0x1e, L"PO: %d", statistics.value_20);
-            gprintfDirty(left, top + 0x28, L"VI: %d", statistics.value_3c);
-            gprintfDirty(left, top + 0x32, L"VO: %d", statistics.value_24);
-            gprintfDirty(left, top + 0x3c, L"DD: %d", statistics.value_68);
+            gprintfDirty(left, top + 0xa, L"OC: %d", g_world->level->m_submitted_polygons);
+            gprintfDirty(left, top + 0x14, L"PI: %d", statistics.input_triangles);
+            gprintfDirty(left, top + 0x1e, L"PO: %d", statistics.device_triangles);
+            gprintfDirty(left, top + 0x28, L"VI: %d", statistics.input_vertices);
+            gprintfDirty(left, top + 0x32, L"VO: %d", statistics.device_vertices);
+            gprintfDirty(left, top + 0x3c, L"DD: %d", statistics.device_calls);
             gprintfDirty(left, top + 0x46, L"TC: %d", statistics.texture_binds);
-            gprintfDirty(left, top + 0x50, L"TT: %d", statistics.value_08, statistics.value_0c);
+            gprintfDirty(left, top + 0x50, L"TT: %d", statistics.texture_transfer_low,
+                         statistics.texture_transfer_high);
             gprintfDirty(left, top + 0x5a, L"RM: %dK", g_gerd->getResidentTextureMemUsed() >> 10);
             gprintfDirty(left, top + 0x64, L"TM: %dK", g_gerd->getTextureCacheUsed());
             gprintfDirty(left, top + 0x6e, L"DR: %3d", GetCameraYawAndRotation(0));
@@ -3558,7 +3559,7 @@ unsigned int MeasureNodeRenderWithoutPositionalOption(srNode* node)
     if (g_gerd != 0 && !g_gerd->isEnabled(srGERD::ENABLE_AUTO_FLIP)) {
         g_gerd->toggle(srGERD::ENABLE_AUTO_FLIP);
     }
-    return static_cast<unsigned int>(statistics.value_10);
+    return static_cast<unsigned int>(statistics.pixels_drawn);
 }
 
 /* Open the render-probe pass: force renderer option 4 off, reset the frame
@@ -3597,7 +3598,7 @@ unsigned int MeasureNodeRender(srNode* node)
     g_gerd->endFrame();
     g_gerd->flushRenderers();
     g_gerd->getStatistics(statistics);
-    return static_cast<unsigned int>(statistics.value_10);
+    return static_cast<unsigned int>(statistics.pixels_drawn);
 }
 
 /* Close the render-probe pass: restore renderer option 4 and present. */
@@ -3699,7 +3700,7 @@ srNode* MakePosterQuad(srTextureIFace* texture, float width, float height, bool 
     shader.value = 0x100a013;
     if (additive) {
         shader.value = 0x100c0b3;
-        model->enable(srMeshModel::CONTROL_STARTUP);
+        model->enable(srMeshModel::CONTROL_SORTED_RENDERING);
     }
     model->setMaterial(g_blit_material, 0, srMeshModel::SIDE_FRONT);
     model->setTexture(texture, 0, 0);

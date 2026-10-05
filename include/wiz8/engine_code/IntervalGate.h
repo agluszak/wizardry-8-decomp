@@ -20,6 +20,8 @@ public:
     BOOLEAN Save(int handle);
 
 private:
+    enum { ONE_SHOT = 2 };
+
     bool m_finished; /* 0x024 */
     unsigned char m_padding_025[3];
 };

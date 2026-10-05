@@ -1118,7 +1118,7 @@ void W8GrCycle::UpdateParticleAttachments()
         } else {
             srVector3T<float>* locations;
 
-            if ((pMeshModel->flags >> 2 & 1) == 0) {
+            if ((pMeshModel->flags & W8_MESH_HAS_FRAME_STORAGE) == 0) {
                 locations = pMeshModel->getVertexLoc();
             } else {
                 locations = pMeshModel->GetVertexLocations(pRep->subcycle, true, 0);

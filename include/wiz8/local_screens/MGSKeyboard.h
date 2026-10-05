@@ -33,7 +33,7 @@ public:
     /* Match a live InputAtom against the binding table; returns command or -1. */
     W8MGSCommand FindCommandForEvent(const InputAtom* event) const; /* 0x0055D2A0 */
     MGSKeyBinding* GetBinding(int index) const;
-    unsigned char IsCommandPressed(W8MGSCommand command) const;
+    bool IsCommandPressed(W8MGSCommand command) const;
     void Clear();
     unsigned char Load(int handle, bool clear);
     unsigned char Save(int handle) const;

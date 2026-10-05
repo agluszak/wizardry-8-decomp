@@ -511,11 +511,11 @@ void HandleFactChange(W8FactId fact_id, unsigned char value)
             character = &g_status.buffers.Char[slot];
             if (g_status.buffers.XChar[slot].fOccupied && character->hp_current != 0 &&
                 character->highest_condition < W8_CONDITION_DEAD) {
-                added = 100 - character->attributes[W8_ATTRIBUTE_INTELLIGENCE].value;
+                added = 100 - character->attributes[W8_ATTRIBUTE_INTELLIGENCE].base;
                 if (added > 5) {
                     added = 5;
                 }
-                character->attributes[W8_ATTRIBUTE_INTELLIGENCE].value += added;
+                character->attributes[W8_ATTRIBUTE_INTELLIGENCE].base += added;
                 ApplyAttributeChange(character, W8_ATTRIBUTE_INTELLIGENCE);
             }
         }

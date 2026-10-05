@@ -26,6 +26,7 @@ enum {
    depth otherwise. The low half stores the height level. */
 enum {
     W8_PATH_CELL_HEIGHT_MASK = 0x0000ffffu,
+    W8_PATH_CELL_NEIGHBOR_OR_DEPTH_MASK = 0x00ff0000u,
     W8_PATH_CELL_HAS_DIRECTIONS = 0x01000000u,
     W8_PATH_CELL_BLOCKING_FRAME = 0x02000000u,
     W8_PATH_CELL_CONDITIONAL = 0x04000000u,
@@ -39,4 +40,15 @@ enum {
     W8_WAYPOINT_IN_HEAP = 0x0010u,
     W8_WAYPOINT_DISABLED = 0x0020u,
     W8_WAYPOINT_CONDITIONAL = 0x0040u
+};
+
+/* W8PathSearchNode::flags; these are separate from waypoint and edge flags. */
+enum {
+    W8_PATH_SEARCH_ROUTE = 0x0002u,
+    W8_PATH_SEARCH_EXPANDED = 0x0004u,
+    W8_PATH_SEARCH_BLOCKED = 0x0100u,
+    W8_PATH_SEARCH_DISPLACED = 0x0200u,
+    W8_PATH_SEARCH_INACTIVE_CELL = 0x0800u,
+    W8_PATH_SEARCH_CONDITIONAL_CELL = 0x1000u,
+    W8_PATH_SEARCH_PROBE_OVERLAP = 0x2000u
 };

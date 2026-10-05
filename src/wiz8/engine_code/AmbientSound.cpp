@@ -51,7 +51,7 @@ W8AmbientSound::W8AmbientSound()
    listener into region-center space, un-apply the per-axis scale, rotate back
    around the configured axis, then test against the min/max bounds. */
 // FUNCTION: WIZ8 0x004790d0
-unsigned char W8AmbientSound::IsInsideRegion(const srVector3T<float>* listener)
+bool W8AmbientSound::IsInsideRegion(const srVector3T<float>* listener)
 {
     srVector3T<float> relative;
     float scale_x;
