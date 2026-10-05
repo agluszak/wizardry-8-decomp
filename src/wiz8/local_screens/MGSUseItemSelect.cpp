@@ -533,12 +533,7 @@ static void RebuildUseItemSelectList(int mode, W8ItemInstance* select)
     ClearTextSlot1E8(2);
     g_use_item_selected = 0;
     g_use_item_detail_item = 0;
-    g_use_item_select_controls[0]->m_imageObject = -1;
-    g_use_item_select_controls[0]->m_measured_w = -1;
-    g_use_item_select_controls[0]->m_measured_h = -1;
-    g_use_item_select_controls[0]->m_imageFrame = -1;
-    g_use_item_select_controls[0]->m_normalSprite = -1;
-    g_use_item_select_controls[0]->m_pressedSprite = -1;
+    g_use_item_select_controls[0]->ClearImage();
     g_use_item_select_controls[0]->m_textBuffer.SetText(g_dialogue_empty_text, 0);
     g_use_item_select_controls[0]->Invalidate(1);
     SelectSpellCastingPartySlot(g_status.selected_character);
@@ -999,13 +994,8 @@ void UpdateUseItemDetailPanel(W8ItemInstance* item)
     short count;
     bool charges = false;
 
-    g_use_item_select_controls[0]->m_imageObject =
-        g_item_video_objects.GetOrCreateVideoObject(item->iItemNo);
-    g_use_item_select_controls[0]->m_measured_w = -1;
-    g_use_item_select_controls[0]->m_measured_h = -1;
-    g_use_item_select_controls[0]->m_imageFrame = 0;
-    g_use_item_select_controls[0]->m_normalSprite = 0;
-    g_use_item_select_controls[0]->m_pressedSprite = 0;
+    g_use_item_select_controls[0]->SetImage(
+        g_item_video_objects.GetOrCreateVideoObject(item->iItemNo));
     count = 0;
     switch (g_item_records[item->iItemNo].quantity_kind) {
     case 1:

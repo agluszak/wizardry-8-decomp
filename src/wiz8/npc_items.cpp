@@ -25,6 +25,17 @@
 
 /* Original translation-unit ownership is unknown; surrounding anchors do not resolve it. */
 
+static W8NpcItemEntry* CreateNpcItemEntry(int item_id)
+{
+    W8NpcItemEntry* entry = new W8NpcItemEntry;
+    if (entry != 0) {
+        memset(entry, 0, sizeof(*entry));
+        ReplaceOrCreateItem(&entry->item, item_id, 1, 1, 0);
+    }
+    entry->item.stack_count = 0;
+    return entry;
+}
+
 /* Add stock to an NPC's item list. Equipment, which is equip_class four, never
    merges: it takes one fresh entry per requested unit and a fixed stock count.
    Anything else merges into the existing entry for that item when there is one,
@@ -76,12 +87,7 @@ int AddNpcItem(W8NpcState* npc, int item_id, unsigned int quantity)
             }
         }
         if (index == -1) {
-            entry = new W8NpcItemEntry;
-            if (entry != 0) {
-                memset(entry, 0, sizeof(*entry));
-                ReplaceOrCreateItem(&entry->item, item_id, 1, 1, 0);
-            }
-            entry->item.stack_count = 0;
+            entry = CreateNpcItemEntry(item_id);
             index = PLAdoptAppend(npc->items, entry);
         } else {
             entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, index));
@@ -415,12 +421,7 @@ int AddNpcItemFromInstance(W8NpcState* npc, const W8ItemInstance* item, char qua
     }
     if (index == -1) {
         item_id = item->iItemNo;
-        entry = new W8NpcItemEntry;
-        if (entry != 0) {
-            memset(entry, 0, sizeof(*entry));
-            ReplaceOrCreateItem(&entry->item, item_id, 1, 1, 0);
-        }
-        entry->item.stack_count = 0;
+        entry = CreateNpcItemEntry(item_id);
         index = PLAdoptAppend(npc->items, entry);
     } else {
         entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, index));

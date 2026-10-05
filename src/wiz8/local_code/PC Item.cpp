@@ -1677,6 +1677,30 @@ void GetOriginOfCharacterItem(int character_index, W8ItemInstance* item, unsigne
     *slot = 0xffff;
 }
 
+static void DropUnstoredCharacterItem(W8ItemInstance* item)
+{
+    W8ItemInstance saved_hand;
+    bool was_in_cursor;
+
+    was_in_cursor = g_status.item_in_cursor != 0;
+    if (was_in_cursor) {
+        saved_hand = g_status.item_in_hand;
+    }
+    gXStatus.held_item_source = -1;
+    gXStatus.held_item_origin = 0xff;
+    gXStatus.held_item_slot = 0xffff;
+    ClearHeldItemDisplay();
+    CopyItemInstance(&g_status.item_in_hand, item, 0, 1);
+    if ((g_item_records[g_status.item_in_hand.iItemNo].flags & 2) == 0) {
+        DropHeldItem(0);
+    } else {
+        ShowNoticeLine(gppStringList[0x4ef], 0, 1, 0);
+    }
+    if (was_in_cursor) {
+        g_status.item_in_hand = saved_hand;
+    }
+}
+
 /* Empty a departing character into the party pool. Equipment that is bound
    to its slot stays with the body unless the binding was announced, the slot
    has no cursor icon, or the character is dead. What the pool cannot take is
@@ -1687,8 +1711,6 @@ void GetOriginOfCharacterItem(int character_index, W8ItemInstance* item, unsigne
 void StashDepartingCharacterItems(W8Character* character)
 {
     int item_id;
-    W8ItemInstance saved_hand;
-    bool was_in_cursor;
 
     for (int equip_slot = 0; equip_slot < 12; ++equip_slot) {
         W8ItemInstance* item = &character->EquippedItem[equip_slot];
@@ -1698,23 +1720,7 @@ void StashDepartingCharacterItems(W8Character* character)
              g_equip_slot_icons[equip_slot] == -1 ||
              character->uiCondition[W8_CONDITION_DEAD] != 0) &&
             AddItemToParty(item, 0, 0) == 0) {
-            was_in_cursor = g_status.item_in_cursor != 0;
-            if (was_in_cursor) {
-                saved_hand = g_status.item_in_hand;
-            }
-            gXStatus.held_item_source = -1;
-            gXStatus.held_item_origin = 0xff;
-            gXStatus.held_item_slot = 0xffff;
-            ClearHeldItemDisplay();
-            CopyItemInstance(&g_status.item_in_hand, item, 0, 1);
-            if ((g_item_records[g_status.item_in_hand.iItemNo].flags & 2) == 0) {
-                DropHeldItem(0);
-            } else {
-                ShowNoticeLine(gppStringList[0x4ef], 0, 1, 0);
-            }
-            if (was_in_cursor) {
-                g_status.item_in_hand = saved_hand;
-            }
+            DropUnstoredCharacterItem(item);
             ShowNoticef(0, gppStringList[0x7d3], &g_item_records[item_id]);
         }
     }
@@ -1723,23 +1729,7 @@ void StashDepartingCharacterItems(W8Character* character)
         W8ItemInstance* item = &character->backpack[slot];
         item_id = character->EquippedItem[slot].iItemNo;
         if (item_id != -1 && AddItemToParty(item, 0, 0) == 0) {
-            was_in_cursor = g_status.item_in_cursor != 0;
-            if (was_in_cursor) {
-                saved_hand = g_status.item_in_hand;
-            }
-            gXStatus.held_item_source = -1;
-            gXStatus.held_item_origin = 0xff;
-            gXStatus.held_item_slot = 0xffff;
-            ClearHeldItemDisplay();
-            CopyItemInstance(&g_status.item_in_hand, item, 0, 1);
-            if ((g_item_records[g_status.item_in_hand.iItemNo].flags & 2) == 0) {
-                DropHeldItem(0);
-            } else {
-                ShowNoticeLine(gppStringList[0x4ef], 0, 1, 0);
-            }
-            if (was_in_cursor) {
-                g_status.item_in_hand = saved_hand;
-            }
+            DropUnstoredCharacterItem(item);
             ShowNoticef(0, gppStringList[0x7d3], &g_item_records[item_id]);
         }
     }

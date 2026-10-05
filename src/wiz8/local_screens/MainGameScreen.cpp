@@ -8002,8 +8002,6 @@ void ConfirmNpcTradeItem(void)
     W8Character* trading;
     W8NpcState* npc;
     bool wants;
-    unsigned int count;
-    unsigned int i;
     int selected;
     int npc_kind;
     int moved;
@@ -8109,19 +8107,7 @@ void ConfirmNpcTradeItem(void)
         break;
     case W8_NPC_TRADE_BUY:
         slot = GetTextSlot1E8(2);
-        count = GetNpcItemCount(g_npc_interaction_state->dialogue_npc);
-        shown = 0;
-        index = -1;
-        for (i = 0; i < count; ++i) {
-            entry = GetNpcItemAt(g_npc_interaction_state->dialogue_npc, i);
-            if (entry != 0 && !NpcTradeItemAllowed(&entry->item) && entry->available_at == 0) {
-                if (shown == slot) {
-                    index = i;
-                    break;
-                }
-                ++shown;
-            }
-        }
+        index = ResolveNpcTradeStockIndex(slot);
         if (index != -1 && CompleteNpcItemPurchase(
                                g_npc_interaction_state->dialogue_npc, index,
                                static_cast<unsigned char>(g_npc_interaction_state->trade_quantity),
@@ -8135,19 +8121,7 @@ void ConfirmNpcTradeItem(void)
         break;
     case W8_NPC_TRADE_SHOPLIFT:
         slot = GetTextSlot1E8(2);
-        count = GetNpcItemCount(g_npc_interaction_state->dialogue_npc);
-        shown = 0;
-        index = -1;
-        for (i = 0; i < count; ++i) {
-            entry = GetNpcItemAt(g_npc_interaction_state->dialogue_npc, i);
-            if (entry != 0 && !NpcTradeItemAllowed(&entry->item) && entry->available_at == 0) {
-                if (shown == slot) {
-                    index = i;
-                    break;
-                }
-                ++shown;
-            }
-        }
+        index = ResolveNpcTradeStockIndex(slot);
         if (index != -1) {
             entry = GetNpcItemAt(g_npc_interaction_state->dialogue_npc, index);
             AttemptNpcItemTrade(&entry->item,

@@ -1780,16 +1780,27 @@ void NpcDialogueTextBoxDoubleClick(int x, int y)
             ConfirmNpcTradeItem();
         }
     }
-    if (g_npc_interaction_state->dialogue_layout == W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX &&
-        y >= g_level_block->text_box_top && y <= g_level_block->text_box_bottom) {
-        line = (y - g_level_block->text_box_top) / 11;
-        ClearTextSlot1D8(2);
-        if (line < static_cast<int>(g_status.text_box_lines_shown[2])) {
-            SelectTextSlot1D8(g_level_block->text_lines[2] + line, 2);
-        }
-        RedrawTextBox();
-        g_npc_interaction_state->hovered_text_line = line;
-    }
+    NpcDialogueTextBoxWheelAt(0, static_cast<unsigned short>(y), true);
+}
+
+static void ShowNpcTradeGold()
+{
+    wchar_t text[0x20];
+
+    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_37])
+        ->SetEnabled(1);
+    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_37])
+        ->m_textBuffer.SetFontStateIndex(1);
+    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_37])
+        ->m_textBuffer.SetGeometryDirty();
+    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_31])
+        ->SetEnabled(1);
+    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_36])
+        ->m_textBuffer.SetText(gppStringList[0x72d], g_wiz_text_font_secondary);
+    swprintf(text, L"%dg", g_npc_interaction_state->trade_gold);
+    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_35])
+        ->m_textBuffer.SetText(text, g_wiz_text_font_secondary);
+    g_npc_interaction_state->dialogue_panels[5]->Invalidate(0);
 }
 
 /* Select the item slot under the text-box cursor and refresh the item preview
@@ -1877,16 +1888,7 @@ void UpdateNpcTradeSelection(int index, int increment, int commit)
         return;
     }
     if (g_npc_interaction_state->trade_mode == W8_NPC_TRADE_GIVE && index == 0) {
-        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_37])->SetEnabled(1);
-        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_37])->m_textBuffer.SetFontStateIndex(1);
-        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_37])->m_textBuffer.SetGeometryDirty();
-        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_31])->SetEnabled(1);
-        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_36])->m_textBuffer.SetText(gppStringList[0x72d],
-                                                                         g_wiz_text_font_secondary);
-        swprintf(price_text, L"%dg", g_npc_interaction_state->trade_gold);
-        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_35])->m_textBuffer.SetText(price_text,
-                                                                         g_wiz_text_font_secondary);
-        g_npc_interaction_state->dialogue_panels[5]->Invalidate(0);
+        ShowNpcTradeGold();
     }
 }
 
@@ -1898,12 +1900,8 @@ void ResetNpcDialogueItemEditor(void)
     ClearTextSlot1E8(2);
     g_npc_interaction_state->trade_item = 0;
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_37])->SetEnabled(0);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_imageObject = -1;
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_measured_w = -1;
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_measured_h = -1;
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_imageFrame = -1;
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_normalSprite = -1;
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_pressedSprite = -1;
+    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])
+        ->ClearImage();
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_textBuffer.SetText(g_dialogue_empty_text, 0);
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->Invalidate(1);
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_35])->m_textBuffer.SetText(&g_empty_wide_string,
@@ -2858,22 +2856,28 @@ void OpenNpcGoldAmountDialog(void)
 // FUNCTION: WIZ8 0x00572870
 void OnNpcTradeSplitDialogDestroy(W8DialogBase* dialog)
 {
-    wchar_t text[0x20];
-
     if (static_cast<W8SplitAmountDialog*>(dialog)->m_result != g_split_dialog_confirm) {
         return;
     }
     g_npc_interaction_state->trade_gold = static_cast<W8SplitAmountDialog*>(dialog)->m_taken;
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_37])->SetEnabled(1);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_37])->m_textBuffer.SetFontStateIndex(1);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_37])->m_textBuffer.SetGeometryDirty();
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_31])->SetEnabled(1);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_36])->m_textBuffer.SetText(gppStringList[0x72d],
-                                                                     g_wiz_text_font_secondary);
-    swprintf(text, L"%dg", g_npc_interaction_state->trade_gold);
-    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_35])->m_textBuffer.SetText(text,
-                                                                     g_wiz_text_font_secondary);
-    g_npc_interaction_state->dialogue_panels[5]->Invalidate(0);
+    ShowNpcTradeGold();
+}
+
+static void HighlightNpcTradeQuantity()
+{
+    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])
+        ->m_textBuffer.m_highlighted = true;
+    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])
+        ->m_textBuffer.SetGeometryDirty();
+    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])
+        ->Invalidate(0);
+    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_35])
+        ->m_textBuffer.m_highlighted = true;
+    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_35])
+        ->m_textBuffer.SetGeometryDirty();
+    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_35])
+        ->Invalidate(0);
+    g_trade_highlight_tick = GetTickCount();
 }
 
 /* Resolve and select one trade-list row. trade_mode picks the pool: mode 2's
@@ -2901,12 +2905,9 @@ W8ItemInstance* ResolveNpcTradeRow(int index, bool pick, char decrement, char co
             g_npc_interaction_state->trade_gold = 0;
             if (index == 0) {
                 g_npc_interaction_state->trade_gold = g_status.party_gold;
-                static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_imageObject = 0x1ac;
-                static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_measured_w = -1;
-                static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_measured_h = -1;
-                static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_imageFrame = 0;
-                static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_normalSprite = 0;
-                static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_pressedSprite = 0;
+                static_cast<W8TextControl*>(
+                    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])
+                    ->SetImage(0x1ac);
                 static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_textBuffer.SetText(
                     g_dialogue_empty_text, g_wiz_text_font_secondary);
                 return 0;
@@ -2959,12 +2960,9 @@ W8ItemInstance* ResolveNpcTradeRow(int index, bool pick, char decrement, char co
                             }
                             image = g_item_video_objects.GetOrCreateVideoObject(
                                 g_status.party_item_pool[i].iItemNo);
-                            static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_imageObject = image;
-                            static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_measured_w = -1;
-                            static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_measured_h = -1;
-                            static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_imageFrame = 0;
-                            static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_normalSprite = 0;
-                            static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_pressedSprite = 0;
+                            static_cast<W8TextControl*>(
+                                g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])
+                                ->SetImage(image);
                             if (g_status.party_item_pool[i].stack_count < 2) {
                                 text = g_dialogue_empty_text;
                             } else {
@@ -3026,12 +3024,9 @@ W8ItemInstance* ResolveNpcTradeRow(int index, bool pick, char decrement, char co
                         }
                         image = g_item_video_objects.GetOrCreateVideoObject(
                             character->backpack[i].iItemNo);
-                        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_imageObject = image;
-                        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_measured_w = -1;
-                        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_measured_h = -1;
-                        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_imageFrame = 0;
-                        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_normalSprite = 0;
-                        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_pressedSprite = 0;
+                        static_cast<W8TextControl*>(
+                            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])
+                            ->SetImage(image);
                         if (character->backpack[i].stack_count < 2) {
                             text = g_dialogue_empty_text;
                         } else {
@@ -3068,13 +3063,7 @@ W8ItemInstance* ResolveNpcTradeRow(int index, bool pick, char decrement, char co
                     if (entry->item.stack_count < g_npc_interaction_state->trade_quantity) {
                         g_npc_interaction_state->trade_quantity = entry->item.stack_count;
                     } else if (entry->item.stack_count != 0) {
-                        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_textBuffer.m_highlighted = true;
-                        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_textBuffer.SetGeometryDirty();
-                        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->Invalidate(0);
-                        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_35])->m_textBuffer.m_highlighted = true;
-                        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_35])->m_textBuffer.SetGeometryDirty();
-                        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_35])->Invalidate(0);
-                        g_trade_highlight_tick = GetTickCount();
+                        HighlightNpcTradeQuantity();
                     }
                 }
             } else {
@@ -3082,13 +3071,7 @@ W8ItemInstance* ResolveNpcTradeRow(int index, bool pick, char decrement, char co
                 if (g_npc_interaction_state->trade_quantity == 0) {
                     g_npc_interaction_state->trade_quantity = 1;
                 } else if (entry->item.stack_count != 0) {
-                    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_textBuffer.m_highlighted = true;
-                    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_textBuffer.SetGeometryDirty();
-                    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->Invalidate(0);
-                    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_35])->m_textBuffer.m_highlighted = true;
-                    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_35])->m_textBuffer.SetGeometryDirty();
-                    static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_35])->Invalidate(0);
-                    g_trade_highlight_tick = GetTickCount();
+                    HighlightNpcTradeQuantity();
                 }
             }
         } else {
@@ -3101,12 +3084,9 @@ W8ItemInstance* ResolveNpcTradeRow(int index, bool pick, char decrement, char co
             SoundPlay(g_button_click_1, 0);
         }
         image = g_item_video_objects.GetOrCreateVideoObject(entry->item.iItemNo);
-        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_imageObject = image;
-        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_measured_w = -1;
-        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_measured_h = -1;
-        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_imageFrame = 0;
-        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_normalSprite = 0;
-        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_pressedSprite = 0;
+        static_cast<W8TextControl*>(
+            g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])
+            ->SetImage(image);
         if (entry->item.stack_count < 2) {
             text = g_dialogue_empty_text;
         } else {
@@ -3560,12 +3540,9 @@ W8ItemInstance* GetNpcTradeSlotItem(int index)
             if (index == hit) {
                 image = g_item_video_objects.GetOrCreateVideoObject(
                     character->EquippedItem[slot].iItemNo);
-                static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_imageObject = image;
-                static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_measured_w = -1;
-                static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_measured_h = -1;
-                static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_imageFrame = 0;
-                static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_normalSprite = 0;
-                static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_pressedSprite = 0;
+                static_cast<W8TextControl*>(
+                    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])
+                    ->SetImage(image);
                 if (character->EquippedItem[slot].stack_count < 2) {
                     text = g_dialogue_empty_text;
                 } else {
@@ -3586,12 +3563,9 @@ W8ItemInstance* GetNpcTradeSlotItem(int index)
             if (index == hit) {
                 image =
                     g_item_video_objects.GetOrCreateVideoObject(character->backpack[slot].iItemNo);
-                static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_imageObject = image;
-                static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_measured_w = -1;
-                static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_measured_h = -1;
-                static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_imageFrame = 0;
-                static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_normalSprite = 0;
-                static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])->m_pressedSprite = 0;
+                static_cast<W8TextControl*>(
+                    g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])
+                    ->SetImage(image);
                 if (character->backpack[slot].stack_count < 2) {
                     text = g_dialogue_empty_text;
                 } else {
@@ -3891,8 +3865,6 @@ void HandleNpcDialogueKeyEvent(const InputAtom* event)
 {
     W8NpcInteractionState* state;
     int command;
-    int line;
-    int y;
 
     if (ShouldDeferCharacterEventForNpcScript(0)) {
         return;
@@ -3907,42 +3879,14 @@ void HandleNpcDialogueKeyEvent(const InputAtom* event)
             return;
         }
         ScrollTextBoxUp(1);
-        state = g_npc_interaction_state;
-        if (state->dialogue_layout != W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX) {
-            return;
-        }
-        y = (event->uiParam >> 16) & 0xffff;
-        if (y < g_level_block->text_box_top || y > g_level_block->text_box_bottom) {
-            return;
-        }
-        line = (y - g_level_block->text_box_top) / 11;
-        ClearTextSlot1D8(2);
-        if (line < static_cast<int>(g_status.text_box_lines_shown[2])) {
-            SelectTextSlot1D8(g_level_block->text_lines[2] + line, 2);
-        }
-        RedrawTextBox();
-        state->hovered_text_line = line;
+        NpcDialogueTextBoxWheelAt(0, static_cast<unsigned short>(event->uiParam >> 16), true);
         return;
     case 0x28:
         if (state->dialogue_layout != W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX) {
             return;
         }
         ScrollTextBoxDown(1);
-        state = g_npc_interaction_state;
-        if (state->dialogue_layout != W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX) {
-            return;
-        }
-        y = (event->uiParam >> 16) & 0xffff;
-        if (y < g_level_block->text_box_top || y > g_level_block->text_box_bottom) {
-            return;
-        }
-        line = (y - g_level_block->text_box_top) / 11;
-        ClearTextSlot1D8(2);
-        if (line < static_cast<int>(g_status.text_box_lines_shown[2])) {
-            SelectTextSlot1D8(g_level_block->text_lines[2] + line, 2);
-        }
-        RedrawTextBox();
-        state->hovered_text_line = line;
+        NpcDialogueTextBoxWheelAt(0, static_cast<unsigned short>(event->uiParam >> 16), true);
         return;
     case 0x1b:
         if (state->dialogue_hidden != 0) {
