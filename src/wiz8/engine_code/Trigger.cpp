@@ -3004,7 +3004,8 @@ void Trigger::Run(int source)
             if (g_status.item_in_cursor) {
                 srVector3T<float> item_position;
                 W8WorldItem* item =
-                    CreateWorldItem(&g_status.item_in_hand, &item_position, 3, false);
+                    CreateWorldItem(&g_status.item_in_hand, &item_position,
+                                    W8_ITEM_ENTITY_PULSE | W8_ITEM_ENTITY_ROTATE, false);
 
                 if (item != 0) {
                     if (world_item_group == 0) {

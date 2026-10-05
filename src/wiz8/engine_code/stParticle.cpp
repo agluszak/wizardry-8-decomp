@@ -225,7 +225,7 @@ stParticle::stParticle(srNode* parent, int count)
 
     emitting = 1;
     traversal_enabled = true;
-    retained = 0;
+    material = 0;
     emission_limit = 0;
     release_when_done = false;
     replace_when_full = false;
@@ -303,8 +303,8 @@ stParticle::stParticle(const stParticle& other)
     requires_sorted_renderer = other.requires_sorted_renderer;
     particle_size = other.particle_size;
     texture_frames = 0;
-    retained = other.retained;
-    retained->addReference();
+    material = other.material;
+    material->addReference();
     SetRenderFlags(other.GetRenderFlags());
 
     particle_positions =
@@ -990,10 +990,10 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
         pipeline->current_record->flags |= 8;
     }
 
-    /* The retained object is the batch's material: the same pointer reaches
+    /* The particle material reaches
        both the pipeline and the record it is about to submit. */
-    pipeline->material = retained;
-    pipeline->current_record->material = retained;
+    pipeline->material = material;
+    pipeline->current_record->material = material;
 
     pipeline->SetFlags(render_flags);
 
@@ -1052,8 +1052,8 @@ stParticle::~stParticle()
     if (alphas != 0) {
         delete[] alphas;
     }
-    if (retained != 0) {
-        retained->release();
+    if (material != 0) {
+        material->release();
     }
     if (velocities != 0) {
         srHeap.free(velocities);
@@ -1134,14 +1134,14 @@ unsigned char stParticle::ReplaceTexture(const char* old_name, srTextureIFace* r
 }
 
 // FUNCTION: WIZ8 0x0049ACA0
-void stParticle::SetRetainedObject(srMaterialIFace* material)
+void stParticle::SetMaterial(srMaterialIFace* new_material)
 {
-    if (retained != 0) {
-        retained->release();
-    }
-    retained = material;
     if (material != 0) {
-        material->addReference();
+        material->release();
+    }
+    material = new_material;
+    if (new_material != 0) {
+        new_material->addReference();
     }
 }
 

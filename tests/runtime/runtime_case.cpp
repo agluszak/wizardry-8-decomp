@@ -339,8 +339,8 @@ void ReadGameplaySnapshotOnGameThread(void* opaque)
         GetCameraPosition(&s->position);
         GetCameraOrientation(yaw, pitch);
         s->yaw = yaw[0];
-        s->input_motion = g_level_data->vector2.Length();
-        s->world_motion = g_level_data->vector8.Length();
+        s->input_motion = g_level_data->motion_input.Length();
+        s->world_motion = g_level_data->motion_displacement.Length();
     }
     s->screen = g_current_screen_state.id;
     s->pending = g_pending_screen_state.id;
@@ -356,7 +356,7 @@ void ReadGameplaySnapshotOnGameThread(void* opaque)
                             : -1;
     s->modal_owner_present = g_modal_owner != 0;
     s->world_update_blocked = gXStatus.world_update_blocked;
-    s->world_render_flags = g_level_block != 0 ? g_level_block->world_render_flags : 0;
+    s->camera_motion_flags = g_level_block != 0 ? g_level_block->camera_motion_flags : 0;
     s->held_key = request->held_key;
     s->held_key_down = request->held_key != 0 && gfKeyState[request->held_key] != 0;
     s->application_active = gfApplicationActive != 0;
@@ -572,9 +572,9 @@ bool RuntimeCase::fail(const char* step, const char* reason)
                 "os_key_down=%u keypad_left=%u snapshot_age_ms=%lu\n",
                 name_, s.screen, s.pending, s.position.x, s.position.y, s.position.z, s.yaw,
                 s.combat ? 1u : 0u, s.movement_ui ? 1u : 0u, s.movement_budget, s.input_motion,
-                s.world_motion, s.modal_owner_present, s.world_update_blocked, s.world_render_flags,
-                s.held_key, s.held_key_down, s.application_active, s.window_has_focus,
-                s.round_active, s.round_count, s.string_input_active ? 1u : 0u,
+                s.world_motion, s.modal_owner_present, s.world_update_blocked,
+                s.camera_motion_flags, s.held_key, s.held_key_down, s.application_active,
+                s.window_has_focus, s.round_active, s.round_count, s.string_input_active ? 1u : 0u,
                 s.os_key_down ? 1u : 0u, s.keypad_left_down ? 1u : 0u, GetTickCount() - s.taken_ms);
     } else {
         fprintf(stderr, "runtime-case %s: observed none\n", name_);

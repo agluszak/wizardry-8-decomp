@@ -153,7 +153,7 @@ void InitializeWorldCursor(void)
                 colour.Set(0.0f, 0.0f, 0.0f, 1.0f);
                 material->setEmissive(colour);
                 material->setDiffuse(colour);
-                gp3DCursor->particle->SetRetainedObject(material);
+                gp3DCursor->particle->SetMaterial(material);
                 gp3DCursor->particle->SetTexture(
                     LoadTextureFromFolder("Data\\Monsters\\Bitmaps\\", "particle.tga", true));
                 shader.value = 0x100c433;

@@ -20,6 +20,8 @@ class stTextureAnim;
 // VTABLE: WIZ8 0x005ec804 srClassSupport<stModelInstance,srModelInstance,0,65540>::srModel::Client
 class stModelInstance : public srClassSupport<stModelInstance, srModelInstance, false, 0x10004> {
 public:
+    enum { RENDER_LIGHTING_BAKED = 0x02u, RENDER_SHADOW = 0x08u, RENDER_NO_PICK = 0x10u };
+
     static const char* sGetClassName()
     {
         return "stModelInstance";
@@ -53,7 +55,7 @@ public:
     srVector4T<float> highlight_colour;
     /* Lazily built highlight material; RenderMeshes fills it from the
        render-state RGBA and installs it as the pass material. */
-    srMaterial* retained;
+    srMaterial* highlight_material;
     unsigned long render_flags;
     long mesh_index;
     unsigned int frame_index;

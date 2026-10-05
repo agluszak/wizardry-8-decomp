@@ -30,7 +30,7 @@ struct GameplaySnapshot {
        used to be live reads in MoveParty's failure print. */
     unsigned char modal_owner_present;
     unsigned int world_update_blocked;
-    unsigned char world_render_flags;
+    unsigned char camera_motion_flags;
     /* gfKeyState[held_key] sampled on the game thread when held_key != 0. */
     unsigned short held_key;
     unsigned char held_key_down;

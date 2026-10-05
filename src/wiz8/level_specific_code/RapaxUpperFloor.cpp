@@ -57,7 +57,8 @@ bool RapaxUpperFloorAirBox(Trigger* pTrigger)
             if (var_id == -1 || GetLocationVarValueByName("TdoorOpen") == 0) {
                 if (FindEntityByName("NP_SlipItem", &entity_position, 0, 0)) {
                     position = entity_position;
-                    world_item = SpawnItem(item_id, &position, 3, true);
+                    world_item = SpawnItem(item_id, &position,
+                                           W8_ITEM_ENTITY_PULSE | W8_ITEM_ENTITY_ROTATE, true);
                     if (world_item != 0) {
                         ActivateItem(world_item);
                     }
@@ -112,7 +113,8 @@ bool RapaxUpperFloorDoorDone(Trigger* pTrigger)
                     item_id = GetLocationVarValueByName("TMakeTreasureNumber");
                     if (FindEntityByName("NP_SlipItem", &entity_position, 0, 0)) {
                         position = entity_position;
-                        world_item = SpawnItem(item_id, &position, 3, true);
+                        world_item = SpawnItem(item_id, &position,
+                                               W8_ITEM_ENTITY_PULSE | W8_ITEM_ENTITY_ROTATE, true);
                         if (world_item != 0) {
                             ActivateItem(world_item);
                         }

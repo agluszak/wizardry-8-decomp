@@ -49,20 +49,20 @@ public:
     virtual void traverse(TraverseInfo& info) override;
     virtual void process(const ProcessInfo& info, e_processType type) override;
 
-    /* Rebase the tile texture coordinates by the scale delta over the tile
+    /* Rebase the tile texture texture_coordinates by the scale delta over the tile
        size, then store the new scale. Called by SetSurfaceScale. */
     void setScale(float scale); /* 0x0047E560 */
     /* The ortho tile render pass; process() forwards the renderer to it. */
     void DrawTiles(srGERD* renderer); /* 0x0047E100 */
-    void enableRendererFlag(unsigned int flag);
-    void setTextureHint2Enabled(bool enabled);
+    void enableTextureUpdateFlags(unsigned int flag);
+    void setAlphaTestEnabled(bool enabled);
     void invalidateTiles();
     void updateRectangle(srGERD* renderer, void* pixels, long pitch, int left, int top, int right,
                          int bottom);
 
     srColorSurfaceIFace* source_surface; /* 0x138 */
-    int state;                           /* 0x13c */
-    unsigned int flags;                  /* 0x140 */
+    int vertex_array_mask;               /* 0x13c */
+    unsigned int shader_bits;            /* 0x140 */
     int tile_size;                       /* 0x144 */
     int columns;                         /* 0x148 */
     int rows;                            /* 0x14c */
@@ -74,7 +74,7 @@ public:
     float tile_v;                        /* 0x164 */
     int field_168;
     float field_16c;
-    float coordinates[8]; /* 0x170 */
+    float texture_coordinates[8]; /* 0x170 */
     float scale;          /* 0x190 */
     int texture_update_flags;
 };

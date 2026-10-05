@@ -953,7 +953,7 @@ unsigned char HandleMipeItemCreateKey(unsigned short key)
         g_hide_invisible_items = show_invisible;
         for (item_index = 0; item_index < PLLength(gXStatus.plsItemList); ++item_index) {
             world_item = ItemInfo(item_index);
-            if (ItemHasFlags(world_item, 1)) {
+            if (ItemHasFlags(world_item, W8_WORLD_ITEM_HIDDEN)) {
                 if (show_invisible) {
                     if (world_item->fActive) {
                         DeactivateWorldItem(world_item);
@@ -974,13 +974,14 @@ unsigned char HandleMipeItemCreateKey(unsigned short key)
         spawned_index = 0;
         if (g_mipe_count != 0) {
             do {
-                int flags = 3;
+                int flags = W8_ITEM_ENTITY_PULSE | W8_ITEM_ENTITY_ROTATE;
                 if (g_mipe_item_hidden) {
-                    flags = 0x83;
+                    flags = W8_ITEM_ENTITY_PULSE | W8_ITEM_ENTITY_ROTATE |
+                            W8_ITEM_ENTITY_HIGHLIGHT_BLUE;
                 }
                 spawned = SpawnItem(item_index & 0xffff, &anchor, flags, true);
                 if (g_mipe_item_hidden) {
-                    SetItemFlags(spawned, 1, true);
+                    SetItemFlags(spawned, W8_WORLD_ITEM_HIDDEN, true);
                     RegisterSearchableWorldItem(spawned);
                 }
                 ++spawned_index;

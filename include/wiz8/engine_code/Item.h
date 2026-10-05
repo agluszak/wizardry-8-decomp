@@ -13,6 +13,19 @@ struct W8ReadLevelInfo;
 struct W8Item;
 class Trigger;
 
+/* Bit masks in W8ItemRep::flags and the saved W8WorldItem::entity_flags.
+   The world item's own flags are a separate domain. */
+enum {
+    W8_ITEM_ENTITY_PULSE = 0x01u,
+    W8_ITEM_ENTITY_ROTATE = 0x02u,
+    W8_ITEM_ENTITY_NO_PICKUP = 0x04u,
+    W8_ITEM_ENTITY_RADAR_SEEN = 0x08u,
+    W8_ITEM_ENTITY_HIGHLIGHT_GREEN = 0x10u,
+    W8_ITEM_ENTITY_PULSE_INCREASING = 0x20u,
+    W8_ITEM_ENTITY_MESH_LOADED = 0x40u,
+    W8_ITEM_ENTITY_HIGHLIGHT_BLUE = 0x80u
+};
+
 /* Engine Code\Item.cpp. The assertion expressions establish the original
    m_pRep and m_psrMesh names; the bodies establish their offsets. */
 struct W8ItemRep : public W8AnimRepBase {

@@ -60,21 +60,24 @@ bool RapaxMainFloorPlatform(Trigger* pTrigger)
 
     if (FindEntityByName("NP_CRobe", &entity_position, 0, 0)) {
         position = entity_position;
-        world_item = SpawnItem(0x1fd, &position, 3, true);
+        world_item =
+            SpawnItem(0x1fd, &position, W8_ITEM_ENTITY_PULSE | W8_ITEM_ENTITY_ROTATE, true);
         if (world_item != 0) {
             ActivateItem(world_item);
         }
     }
     if (FindEntityByName("NP_CHelm", &entity_position, 0, 0)) {
         position = entity_position;
-        world_item = SpawnItem(0x1fe, &position, 3, true);
+        world_item =
+            SpawnItem(0x1fe, &position, W8_ITEM_ENTITY_PULSE | W8_ITEM_ENTITY_ROTATE, true);
         if (world_item != 0) {
             ActivateItem(world_item);
         }
     }
     if (FindEntityByName("NP_CDagger", &entity_position, 0, 0)) {
         position = entity_position;
-        world_item = SpawnItem(0x1ff, &position, 3, true);
+        world_item =
+            SpawnItem(0x1ff, &position, W8_ITEM_ENTITY_PULSE | W8_ITEM_ENTITY_ROTATE, true);
         if (world_item != 0) {
             ActivateItem(world_item);
         }

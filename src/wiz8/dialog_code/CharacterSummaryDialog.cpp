@@ -31,9 +31,9 @@ static W8ControlsRect g_character_summary_quote_bounds[1] = {
 
 // FUNCTION: WIZ8 0x005e0320
 W8CharacterSummaryDialog::W8CharacterSummaryDialog(W8Character* character)
-    : m_voice_started(0), m_quote_text(0), m_numeric_input(0), m_field_060(0),
-      m_remaining(0), m_taken(0), m_total(0), m_field_070(0),
-      m_character(character), m_field_1af8(0), m_portrait_clock_started(0)
+    : m_voice_started(0), m_quote_text(0), m_numeric_input(0), m_field_060(0), m_remaining(0),
+      m_taken(0), m_total(0), m_field_070(0), m_character(character), m_use_original_character(0),
+      m_portrait_clock_started(0)
 {
     SetExtent(0x171, 0x60);
     SetBackground("Data\\Dialogs\\popup_quote.sti", 0);
@@ -50,7 +50,7 @@ int W8CharacterSummaryDialog::CreateControls()
 {
     W8DialogBase::CreateControls();
     m_field_070 = 0;
-    m_field_1af8 = 0;
+    m_use_original_character = 0;
     memcpy(&m_saved_character, g_status.buffers.Char, sizeof(m_saved_character));
     memcpy(&m_saved_monster_entry,
            &gXStatus.monster_manager_entries[0],
@@ -75,7 +75,7 @@ void W8CharacterSummaryDialog::DestroyControls()
     delete m_quote_text;
     m_quote_text = 0;
     gXStatus.character_event_queue->CompleteAllActiveEvents();
-    if (!m_field_1af8) {
+    if (!m_use_original_character) {
         memcpy(g_status.buffers.Char, &m_saved_character, sizeof(m_saved_character));
         memcpy(&gXStatus.monster_manager_entries[0],
                &m_saved_monster_entry,
@@ -94,7 +94,7 @@ bool W8CharacterSummaryDialog::CreateQuoteText()
                                    g_character_summary_quote_bounds[index].top + m_y,
                                    g_character_summary_quote_bounds[index].right + m_x,
                                    g_character_summary_quote_bounds[index].bottom + m_y};
-        W8Character* character = m_field_1af8 ? m_character : g_status.buffers.Char;
+        W8Character* character = m_use_original_character ? m_character : g_status.buffers.Char;
         W8CharacterEvent* event =
             new W8CharacterEvent(character, g_effect0, 0, g_character_event_no_flags,
                                  g_character_event_full_volume);
@@ -181,7 +181,7 @@ bool W8CharacterSummaryDialog::ProcessInput()
     MSYS_SGP_Mouse_Handler_Hook(MOUSE_POS, mouse.x, mouse.y, gfLeftButtonState, gfRightButtonState);
     if (!m_voice_started && m_portrait_clock + 750 < GetClock()) {
         m_voice_started = true;
-        W8Character* character = m_field_1af8 ? m_character : g_status.buffers.Char;
+        W8Character* character = m_use_original_character ? m_character : g_status.buffers.Char;
         QueueCharacterEvent(character, g_effect0, 0, g_character_event_no_flags,
                             g_character_event_full_volume);
     }

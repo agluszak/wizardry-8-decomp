@@ -345,7 +345,7 @@ void UpdateRadarBlips(void)
 
         if (item != 0) {
             W8ItemRep* rep = static_cast<W8ItemRep*>(item->m_pRep);
-            if ((rep->flags & 4) == 0) {
+            if ((rep->flags & W8_ITEM_ENTITY_NO_PICKUP) == 0) {
                 rep->GetLocation(&position);
                 item->GetCachedLocalBounds(&bounds_min, &bounds_max);
                 center.Set((bounds_min.x + bounds_max.x) * g_double_005ebe80,
@@ -354,11 +354,11 @@ void UpdateRadarBlips(void)
                 position += center;
                 party = g_startup_world->GetPosition();
                 delta = position - party;
-                if ((detect_all || ((rep->flags >> 3) & 1) != 0 ||
+                if ((detect_all || (rep->flags & W8_ITEM_ENTITY_RADAR_SEEN) != 0 ||
                      HasCameraLineOfSight(&position)) &&
                     delta.Length() <= g_radar_outer_radius) {
                     if (PlaceRadarBlip(&delta, 4, item->IsRadarBlipLit()) != 0) {
-                        rep->flags |= 8;
+                        rep->flags |= W8_ITEM_ENTITY_RADAR_SEEN;
                     }
                 }
             }

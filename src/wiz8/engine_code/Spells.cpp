@@ -340,7 +340,7 @@ void W8SpellVisual::UpdateRepresentation(W8World* world)
 
     srModelInstance* instance = GetCurrentModelInstance();
     if (instance != 0) {
-        static_cast<stModelInstance*>(instance)->render_flags |= 0x10;
+        static_cast<stModelInstance*>(instance)->render_flags |= stModelInstance::RENDER_NO_PICK;
     }
     W8GrCycle::UpdateRepresentation(world);
 }

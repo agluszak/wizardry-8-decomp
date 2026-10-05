@@ -1,5 +1,7 @@
 #pragma once
 
+#include "wiz8/camera_motion.h"
+
 void SetRendererReady(void);
 
 #include "surrender/srMath.h"

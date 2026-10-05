@@ -60,7 +60,7 @@ bool Monastery2MicroDoor2(Trigger* pTrigger)
     W8WorldItem* item;
 
     position.Set(13085.0f, -80.0f, -49440.0f);
-    item = SpawnItem(0x2d7, &position, 3, true);
+    item = SpawnItem(0x2d7, &position, W8_ITEM_ENTITY_PULSE | W8_ITEM_ENTITY_ROTATE, true);
     if (item != 0) {
         ActivateItem(item);
     }

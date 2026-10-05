@@ -1175,49 +1175,49 @@ void HandleManualCameraHotkeys(void)
         if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_CAMERA_LOCK)) {
             BeginManualCameraControl();
         }
-        ApplyWorldRenderHotkeys();
+        ApplyCameraMotionHotkeys();
     }
 }
 
 // FUNCTION: WIZ8 0x00592a10
-void ApplyWorldRenderHotkeys(void)
+void ApplyCameraMotionHotkeys(void)
 {
     if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_TURN_LEFT) ||
         g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_TURN_LEFT_ALT)) {
-        g_level_block->world_render_flags |= 0x100;
+        g_level_block->camera_motion_flags |= W8_CAMERA_MOTION_TURN_LEFT;
     }
     if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_TURN_RIGHT) ||
         g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_TURN_RIGHT_ALT)) {
-        g_level_block->world_render_flags |= 0x200;
+        g_level_block->camera_motion_flags |= W8_CAMERA_MOTION_TURN_RIGHT;
     }
     if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_MOVE_FORWARD)) {
-        g_level_block->world_render_flags |= 4;
+        g_level_block->camera_motion_flags |= W8_CAMERA_MOTION_FORWARD;
     }
     if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_MOVE_FORWARD_RUN)) {
-        g_level_block->world_render_flags |= 0x84;
+        g_level_block->camera_motion_flags |= W8_CAMERA_MOTION_FORWARD | W8_CAMERA_MOTION_FAST;
     }
     if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_MOVE_BACKWARD)) {
-        g_level_block->world_render_flags |= 8;
+        g_level_block->camera_motion_flags |= W8_CAMERA_MOTION_BACKWARD;
     }
     if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_MOVE_BACKWARD_RUN)) {
-        g_level_block->world_render_flags |= 0x88;
+        g_level_block->camera_motion_flags |= W8_CAMERA_MOTION_BACKWARD | W8_CAMERA_MOTION_FAST;
     }
     if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_LOOK_UP)) {
-        g_level_block->world_render_flags |= 0x400;
+        g_level_block->camera_motion_flags |= W8_CAMERA_MOTION_LOOK_UP;
     }
     if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_LOOK_DOWN)) {
-        g_level_block->world_render_flags |= 0x800;
+        g_level_block->camera_motion_flags |= W8_CAMERA_MOTION_LOOK_DOWN;
     }
     if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_STRAFE_LEFT)) {
-        g_level_block->world_render_flags |= 1;
+        g_level_block->camera_motion_flags |= W8_CAMERA_MOTION_STRAFE_LEFT;
     }
     if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_STRAFE_RIGHT)) {
-        g_level_block->world_render_flags |= 2;
+        g_level_block->camera_motion_flags |= W8_CAMERA_MOTION_STRAFE_RIGHT;
     }
     if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_STRAFE_LEFT_RUN)) {
-        g_level_block->world_render_flags |= 0x81;
+        g_level_block->camera_motion_flags |= W8_CAMERA_MOTION_STRAFE_LEFT | W8_CAMERA_MOTION_FAST;
     }
     if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_STRAFE_RIGHT_RUN)) {
-        g_level_block->world_render_flags |= 0x82;
+        g_level_block->camera_motion_flags |= W8_CAMERA_MOTION_STRAFE_RIGHT | W8_CAMERA_MOTION_FAST;
     }
 }

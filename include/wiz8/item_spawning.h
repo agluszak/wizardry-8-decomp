@@ -8,6 +8,13 @@
 #include "wiz8/vector.h"
 #include "surrender/srMath.h"
 
+/* Bit masks in W8WorldItem::flags; preserve combinations in unsigned int. */
+enum {
+    W8_WORLD_ITEM_HIDDEN = 0x01u,
+    W8_WORLD_ITEM_FALLING = 0x02u,
+    W8_WORLD_ITEM_RADAR_BLIP_LIT = 0x04u
+};
+
 #pragma pack(push, 1)
 
 struct W8WorldItem {
@@ -17,10 +24,9 @@ struct W8WorldItem {
     W8ItemInstance item; /* 0x09 */
     srVector3T<float> position; /* 0x15 */
     unsigned char unknown_21[4];
-    /* 0x25 is a second flag word: the save and load paths clear bit 3 of it
-       while a level restore is in progress. */
+    /* Saved W8ItemRep flag word; level restore clears RADAR_SEEN. */
     int entity_flags;
-    unsigned int flags; /* 0x29: tested by mask by 0x004F8130 */
+    unsigned int flags; /* 0x29: W8_WORLD_ITEM_* masks */
     /* Both established by the LoadSaveGame.cpp serializers: the marker is set
        to 1 before each record is written, and the chain is walked and rebuilt
        through the link. The link is written to the file and reloaded with the

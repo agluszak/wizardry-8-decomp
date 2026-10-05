@@ -253,17 +253,17 @@ void W8GameData::ApplyCameraMotionFlags(unsigned int flags, srMatrix3T<float>* r
         level = g_level_data;
         if (!AnyCharacterEngaged() || ((level_flags = level->flags) & 0xc0) != 0) {
             level_flags = level->flags;
-            flags &= 0xff00;
+            flags &= W8_CAMERA_MOTION_HIGH_BYTE_MASK;
             if ((level_flags & W8_LEVEL_FLAG_MOVEMENT_ACTIVE) == 0) {
                 level->flags = level_flags & ~W8_LEVEL_FLAG_FAST_MOVEMENT;
             }
         } else if ((level_flags & W8_LEVEL_FLAG_MOVEMENT_ACTIVE) != 0) {
             if ((level_flags & W8_LEVEL_FLAG_FAST_MOVEMENT) != 0) {
-                flags |= 0x80u;
+                flags |= W8_CAMERA_MOTION_FAST;
             } else {
-                flags &= ~0x80u;
+                flags &= ~W8_CAMERA_MOTION_FAST;
             }
-        } else if ((flags & 0x80) != 0) {
+        } else if ((flags & W8_CAMERA_MOTION_FAST) != 0) {
             level->flags = level_flags | W8_LEVEL_FLAG_FAST_MOVEMENT;
         } else {
             level->flags = level_flags & ~W8_LEVEL_FLAG_FAST_MOVEMENT;
@@ -272,17 +272,17 @@ void W8GameData::ApplyCameraMotionFlags(unsigned int flags, srMatrix3T<float>* r
 
     pitch_input = 0.0f;
     yaw_input = 0.0f;
-    if ((flags & 0x800) != 0) {
+    if ((flags & W8_CAMERA_MOTION_LOOK_DOWN) != 0) {
         pitch_input = 0.1745329350233078f;
-    } else if ((flags & 0x400) != 0) {
+    } else if ((flags & W8_CAMERA_MOTION_LOOK_UP) != 0) {
         pitch_input = -0.1745329350233078f;
     }
-    if ((flags & 0x100) != 0) {
+    if ((flags & W8_CAMERA_MOTION_TURN_LEFT) != 0) {
         yaw_input = -0.1745329350233078f;
-    } else if ((flags & 0x200) != 0) {
+    } else if ((flags & W8_CAMERA_MOTION_TURN_RIGHT) != 0) {
         yaw_input = 0.1745329350233078f;
     }
-    if ((flags & 0x2000) != 0) {
+    if ((flags & W8_CAMERA_MOTION_SLOW_TURN) != 0) {
         g_camera_max_yaw_velocity = 0.116355285f;
         yaw_input *= g_float_005ebc3c;
     } else {
@@ -299,7 +299,7 @@ void W8GameData::ApplyCameraMotionFlags(unsigned int flags, srMatrix3T<float>* r
     g_gd_camera->ApplyPitchInput(pitch_input);
     g_gd_camera->ApplyYawInput(yaw_input);
     g_gd_camera->Update(g_game_time_accumulator->GetFrameDelta());
-    if ((flags & 0x1000) == 0) {
+    if ((flags & W8_CAMERA_MOTION_KEEP_ROTATION) == 0) {
         g_gd_camera->GetRotationMatrix(rotation);
     }
     *saved = g_gd_camera->m_yaw_rotation;
@@ -379,21 +379,21 @@ unsigned char W8GameData::ApplyCameraMotion(unsigned int flags, srVector3T<float
 
     if (!AnyCharacterEngaged() || ((level_flags = level->flags) & 0xc0) != 0) {
         level_flags = level->flags;
-        flags &= 0xff00;
+        flags &= W8_CAMERA_MOTION_HIGH_BYTE_MASK;
         if ((level_flags & W8_LEVEL_FLAG_MOVEMENT_ACTIVE) == 0) {
             level_flags &= ~W8_LEVEL_FLAG_FAST_MOVEMENT;
             level->flags = level_flags;
         }
     } else if ((level_flags & W8_LEVEL_FLAG_MOVEMENT_ACTIVE) == 0) {
-        if ((flags & 0x80) == 0) {
+        if ((flags & W8_CAMERA_MOTION_FAST) == 0) {
             level->flags = level_flags & ~W8_LEVEL_FLAG_FAST_MOVEMENT;
         } else {
             level->flags = level_flags | W8_LEVEL_FLAG_FAST_MOVEMENT;
         }
     } else if ((level_flags & W8_LEVEL_FLAG_FAST_MOVEMENT) == 0) {
-        flags &= ~0x80u;
+        flags &= ~W8_CAMERA_MOTION_FAST;
     } else {
-        flags |= 0x80u;
+        flags |= W8_CAMERA_MOTION_FAST;
     }
 
     level = g_level_data;
@@ -401,9 +401,9 @@ unsigned char W8GameData::ApplyCameraMotion(unsigned int flags, srVector3T<float
     level->flags &= 0xffffffec;
     level->camera_scale = g_game_time_accumulator->GetFrameDelta();
     level->camera_position = *position;
-    level->vector4.SetZero();
-    level->vector8.SetZero();
-    level->vector2.SetZero();
+    level->motion_velocity.SetZero();
+    level->motion_displacement.SetZero();
+    level->motion_input.SetZero();
     level->sound_environment = -1;
     level->sound_environment_alt = -1;
 
@@ -412,84 +412,84 @@ unsigned char W8GameData::ApplyCameraMotion(unsigned int flags, srVector3T<float
     }
 
     if (flags == 0) {
-        g_level_data->vector2.SetZero();
-        level->vector5.SetZero();
+        g_level_data->motion_input.SetZero();
+        level->integrated_motion.SetZero();
     }
 
     delta->SetZero();
     level = g_level_data;
-    if ((flags & 4) != 0) {
-        component = forward_scale + g_level_data->vector2.z;
-        g_level_data->vector2.z = component;
+    if ((flags & W8_CAMERA_MOTION_FORWARD) != 0) {
+        component = forward_scale + g_level_data->motion_input.z;
+        g_level_data->motion_input.z = component;
         if (component > g_camera_motion_clamp) {
-            level->vector2.z = g_camera_motion_clamp;
+            level->motion_input.z = g_camera_motion_clamp;
         } else if (component < -g_camera_motion_clamp) {
-            level->vector2.z = -g_camera_motion_clamp;
+            level->motion_input.z = -g_camera_motion_clamp;
         }
     }
     level = g_level_data;
-    if ((flags & 8) != 0) {
-        component = g_level_data->vector2.z - forward_scale;
-        g_level_data->vector2.z = component;
+    if ((flags & W8_CAMERA_MOTION_BACKWARD) != 0) {
+        component = g_level_data->motion_input.z - forward_scale;
+        g_level_data->motion_input.z = component;
         if (component > g_camera_motion_clamp) {
-            level->vector2.z = g_camera_motion_clamp;
+            level->motion_input.z = g_camera_motion_clamp;
         } else if (component < -g_camera_motion_clamp) {
-            level->vector2.z = -g_camera_motion_clamp;
+            level->motion_input.z = -g_camera_motion_clamp;
         }
     }
     level = g_level_data;
-    if ((flags & 1) != 0) {
-        component = g_level_data->vector2.x - forward_scale;
-        g_level_data->vector2.x = component;
+    if ((flags & W8_CAMERA_MOTION_STRAFE_LEFT) != 0) {
+        component = g_level_data->motion_input.x - forward_scale;
+        g_level_data->motion_input.x = component;
         if (component > g_camera_motion_clamp) {
-            level->vector2.x = g_camera_motion_clamp;
+            level->motion_input.x = g_camera_motion_clamp;
         } else if (component < -g_camera_motion_clamp) {
-            level->vector2.x = -g_camera_motion_clamp;
+            level->motion_input.x = -g_camera_motion_clamp;
         }
     }
     level = g_level_data;
-    if ((flags & 2) != 0) {
-        component = forward_scale + g_level_data->vector2.x;
-        g_level_data->vector2.x = component;
+    if ((flags & W8_CAMERA_MOTION_STRAFE_RIGHT) != 0) {
+        component = forward_scale + g_level_data->motion_input.x;
+        g_level_data->motion_input.x = component;
         if (component > g_camera_motion_clamp) {
-            level->vector2.x = g_camera_motion_clamp;
+            level->motion_input.x = g_camera_motion_clamp;
         } else if (component < -g_camera_motion_clamp) {
-            level->vector2.x = -g_camera_motion_clamp;
+            level->motion_input.x = -g_camera_motion_clamp;
         }
     }
     level = g_level_data;
-    if ((flags & 0x10) != 0 && (g_environment_load_flag == 0 || g_environ == 0)) {
-        component = forward_scale + g_level_data->vector2.y;
-        g_level_data->vector2.y = component;
+    if ((flags & W8_CAMERA_MOTION_UP) != 0 && (g_environment_load_flag == 0 || g_environ == 0)) {
+        component = forward_scale + g_level_data->motion_input.y;
+        g_level_data->motion_input.y = component;
         if (component > g_camera_motion_clamp) {
-            level->vector2.y = g_camera_motion_clamp;
+            level->motion_input.y = g_camera_motion_clamp;
         } else if (component < -g_camera_motion_clamp) {
-            level->vector2.y = -g_camera_motion_clamp;
+            level->motion_input.y = -g_camera_motion_clamp;
         }
     }
     level = g_level_data;
-    if ((flags & 0x20) != 0 && g_environment_load_flag == 0) {
-        component = g_level_data->vector2.y - forward_scale;
-        g_level_data->vector2.y = component;
+    if ((flags & W8_CAMERA_MOTION_DOWN) != 0 && g_environment_load_flag == 0) {
+        component = g_level_data->motion_input.y - forward_scale;
+        g_level_data->motion_input.y = component;
         if (component > g_camera_motion_clamp) {
-            level->vector2.y = g_camera_motion_clamp;
+            level->motion_input.y = g_camera_motion_clamp;
         } else if (component < -g_camera_motion_clamp) {
-            level->vector2.y = -g_camera_motion_clamp;
+            level->motion_input.y = -g_camera_motion_clamp;
         }
     }
 
     fast_move = false;
-    if ((flags & 0x80) != 0) {
+    if ((flags & W8_CAMERA_MOTION_FAST) != 0) {
         fast_move = true;
     }
-    if (g_level_data->vector2.Length() > g_camera_motion_clamp) {
-        g_level_data->vector2.SetLength(g_camera_motion_clamp);
+    if (g_level_data->motion_input.Length() > g_camera_motion_clamp) {
+        g_level_data->motion_input.SetLength(g_camera_motion_clamp);
     }
     g_level_motion_fast =
         g_level_data->ApplySavedMotionMatrix(g_level_motion_fast, fast_move, saved);
 
     if (g_environment_load_flag == 0) {
-        *delta = g_level_data->vector8;
+        *delta = g_level_data->motion_displacement;
         moved = static_cast<float>(g_motion_delta_epsilon) < delta->Length();
         g_level_data->UpdateMotionProgress(g_level_motion_fast, moved);
         if (moved == 0) {
@@ -498,7 +498,7 @@ unsigned char W8GameData::ApplyCameraMotion(unsigned int flags, srVector3T<float
     } else {
         moved = AdvanceEnvironmentMotion();
         g_level_data->UpdateMotionProgress(g_level_motion_fast, moved);
-        *delta = g_level_data->vector8;
+        *delta = g_level_data->motion_displacement;
         if (delta->Length() <= static_cast<float>(g_motion_delta_epsilon)) {
             if (moved == 0) {
                 goto after_move;
@@ -519,7 +519,7 @@ after_move:
     if (g_environ->airborne == 0) {
         g_level_footstep_pending = true;
     } else if (g_level_footstep_pending) {
-        if (g_level_data->vector4.y <= g_footstep_fall_threshold) {
+        if (g_level_data->motion_velocity.y <= g_footstep_fall_threshold) {
             PlayFootstep(g_level_data->sound_environment, g_level_data->sound_environment_alt,
                          W8_FOOTSTEP_KIND_JUMP);
             g_level_data->footstep_accumulator = 0;
@@ -569,22 +569,22 @@ unsigned char W8LevelDataRecord::ClampCameraToBounds(const srVector3T<float>* mi
 
     if (camera_position.y < minimum->y) {
         if (g_status.world_suspended) {
-            vector8.y = maximum->y - minimum->y;
+            motion_displacement.y = maximum->y - minimum->y;
         }
         clamped = true;
         below_min_y = true;
     }
     if (camera_position.x < minimum->x) {
         clamped = true;
-        vector8.x = maximum->x - minimum->x;
+        motion_displacement.x = maximum->x - minimum->x;
     }
     if (camera_position.z < minimum->z) {
         clamped = true;
-        vector8.z = maximum->z - minimum->z;
+        motion_displacement.z = maximum->z - minimum->z;
     }
     if (maximum->x < camera_position.x) {
         clamped = true;
-        vector8.x = minimum->x - maximum->x;
+        motion_displacement.x = minimum->x - maximum->x;
     }
     if (camera_position.z <= maximum->z) {
         if (!clamped) {
@@ -592,7 +592,7 @@ unsigned char W8LevelDataRecord::ClampCameraToBounds(const srVector3T<float>* mi
         }
     } else {
         clamped = true;
-        vector8.z = minimum->z - maximum->z;
+        motion_displacement.z = minimum->z - maximum->z;
     }
 
     g_environ->vector.SetZero();
@@ -729,11 +729,11 @@ W8GDSurface* W8GameData::ProbePropsAlongMotion(srVector3T<float>* direction,
         }
         if ((level->flags & 1) == 0 || level->residual_contact_length < residual_length) {
             level->flags |= 1;
-            level->vector6 = projected;
+            level->contact_motion = projected;
             level->residual_contact_length = residual_length;
             *direction += along_normal - residual;
-            level->vector7 = residual;
-            level->vector3 = residual / static_cast<double>(level->camera_scale);
+            level->contact_displacement = residual;
+            level->contact_velocity = residual / static_cast<double>(level->camera_scale);
         }
         if (level->contact_facing < facing) {
             level->contact_facing = facing;
@@ -877,11 +877,11 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
 
     level = g_level_data;
     level->flags &= ~3u;
-    level->vector4 += level->vector3;
-    level->vector7.Set(level->vector3.x * level->camera_scale,
-                         level->vector3.y * level->camera_scale,
-                         level->vector3.z * level->camera_scale);
-    level->vector8 += level->vector7;
+    level->motion_velocity += level->contact_velocity;
+    level->contact_displacement.Set(level->contact_velocity.x * level->camera_scale,
+                                    level->contact_velocity.y * level->camera_scale,
+                                    level->contact_velocity.z * level->camera_scale);
+    level->motion_displacement += level->contact_displacement;
     level->residual_contact_length = 0.0f;
     level->contact_facing = 0.0f;
 
@@ -889,7 +889,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
     camera_position = level->camera_position;
     adjusted_position = camera_position;
     if (geometry_index == 0 && octree == 0) {
-        if (static_cast<float>(g_motion_delta_epsilon) < level->vector8.Length()) {
+        if (static_cast<float>(g_motion_delta_epsilon) < level->motion_displacement.Length()) {
             return 1;
         }
         return 0;
@@ -897,7 +897,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
 
     g_environ_ground_latch = g_environ->ground_latch;
     g_environment_motion_active = 1;
-    if (level->vector4.Length() <= static_cast<float>(g_motion_vector_epsilon)) {
+    if (level->motion_velocity.Length() <= static_cast<float>(g_motion_vector_epsilon)) {
         level->flags &= ~4u;
     } else {
         level->flags |= 4u;
@@ -914,15 +914,16 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
     if (g_camera_motion_divisor < environ_record->vector.Length()) {
         environ_record->vector.SetLength(g_camera_motion_divisor);
     }
-    environ_record->AddScaledMotion(&level->vector8);
+    environ_record->AddScaledMotion(&level->motion_displacement);
 
     if (level->camera_scale == g_float_zero) {
-        level->vector4.SetZero();
+        level->motion_velocity.SetZero();
     } else {
-        level->vector4 = level->vector8 / static_cast<double>(level->camera_scale);
+        level->motion_velocity =
+            level->motion_displacement / static_cast<double>(level->camera_scale);
     }
 
-    environ_delta = level->vector8;
+    environ_delta = level->motion_displacement;
     camera_position.Set(adjusted_position.x,
                         (g_world_scale - g_environ->world_height) + adjusted_position.y,
                         adjusted_position.z);
@@ -1120,9 +1121,9 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
             }
 
             scale = static_cast<float>(g_double_005ebc30) / g_level_data->camera_scale;
-            level->vector4.Set(environ_delta.x * scale, environ_delta.y * scale,
-                                 environ_delta.z * scale);
-            level->vector8 = environ_delta;
+            level->motion_velocity.Set(environ_delta.x * scale, environ_delta.y * scale,
+                                       environ_delta.z * scale);
+            level->motion_displacement = environ_delta;
             if (g_environment_motion_active == 0) {
                 if ((g_level_data->flags & 4) != 0 && !forced_exit) {
                     g_environ_ground_latch = true;
@@ -2100,8 +2101,8 @@ unsigned char W8GDSurface::ApplyEnvironContact(srVector3T<float>* direction)
 {
     W8LevelDataRecord* level = g_level_data;
     if ((flags & 4) == 0) {
-        level->vector2 = 0.0f;
-        level->vector5.SetZero();
+        level->motion_input = 0.0f;
+        level->integrated_motion.SetZero();
         return 0;
     }
     level->flags |= W8_LEVEL_FLAG_WALKABLE_CONTACT;
@@ -2161,8 +2162,8 @@ void ResetLevelMovement(float movement_limit, bool reset, bool fast_move)
         level->real_elapsed = 0.0f;
         level->frame_elapsed = 0.0f;
         level->movement_progress = 0.0f;
-        level->camera_forward.SetZero();
-        level->scaled_camera_forward.SetZero();
+        level->camera_motion_velocity.SetZero();
+        level->camera_motion_displacement.SetZero();
         level->flags |= W8_LEVEL_FLAG_MOVEMENT_ACTIVE;
         if (reset) {
             level->flags |= W8_LEVEL_FLAG_MOVEMENT_RESET;
@@ -2183,12 +2184,12 @@ void ResetInactiveLevelDataVectors(void)
     W8LevelDataRecord* data = g_level_data;
 
     if (data != 0 && (data->flags & W8_LEVEL_FLAG_0) == 0) {
-        data->vector2.SetZero();
-        data->camera_forward.SetZero();
-        data->scaled_camera_forward.SetZero();
-        data->vector4.SetZero();
-        data->vector5.SetZero();
-        data->vector8.SetZero();
+        data->motion_input.SetZero();
+        data->camera_motion_velocity.SetZero();
+        data->camera_motion_displacement.SetZero();
+        data->motion_velocity.SetZero();
+        data->integrated_motion.SetZero();
+        data->motion_displacement.SetZero();
     }
 }
 
@@ -2307,9 +2308,9 @@ bool HasLevelDataVector(void)
         return false;
     }
     if ((g_level_data->flags & W8_LEVEL_FLAG_0) != 0 &&
-        (g_level_data->vector6.x != g_float_zero ||
-         g_level_data->vector6.y != g_float_zero ||
-         g_level_data->vector6.z != g_float_zero)) {
+        (g_level_data->contact_motion.x != g_float_zero ||
+         g_level_data->contact_motion.y != g_float_zero ||
+         g_level_data->contact_motion.z != g_float_zero)) {
         return true;
     }
     return false;
@@ -2417,12 +2418,12 @@ void ResetLevelDataVectors(void)
     if (g_level_data != 0) {
         g_level_data->flags |= W8_LEVEL_FLAG_MOVEMENT_STOPPED;
         if ((g_level_data->flags & 1) == 0) {
-            g_level_data->vector2.SetZero();
-            g_level_data->camera_forward.SetZero();
-            g_level_data->vector4.SetZero();
-            g_level_data->vector5.SetZero();
-            g_level_data->scaled_camera_forward.SetZero();
-            g_level_data->vector8.SetZero();
+            g_level_data->motion_input.SetZero();
+            g_level_data->camera_motion_velocity.SetZero();
+            g_level_data->motion_velocity.SetZero();
+            g_level_data->integrated_motion.SetZero();
+            g_level_data->camera_motion_displacement.SetZero();
+            g_level_data->motion_displacement.SetZero();
         }
         g_level_data->flags &= ~W8_LEVEL_FLAG_FAST_MOVEMENT;
     }
@@ -2685,15 +2686,15 @@ W8LevelDataRecord::W8LevelDataRecord() : interval_gate()
     primary_contact_prop_id = -1;
     secondary_contact_prop_id = -1;
     camera_position.SetZero();
-    vector2.SetZero();
-    camera_forward.SetZero();
-    vector3.SetZero();
-    vector4.SetZero();
-    vector5.SetZero();
-    scaled_camera_forward.SetZero();
-    vector6.SetZero();
-    vector7.SetZero();
-    vector8.SetZero();
+    motion_input.SetZero();
+    camera_motion_velocity.SetZero();
+    contact_velocity.SetZero();
+    motion_velocity.SetZero();
+    integrated_motion.SetZero();
+    camera_motion_displacement.SetZero();
+    contact_motion.SetZero();
+    contact_displacement.SetZero();
+    motion_displacement.SetZero();
     contact_normal.SetZero();
     /* 0x0041FDEF clears the whole 12-byte group from contact_normal_scale
        through unknown_bc in one run before raising the scale, so the scale's own
@@ -2715,15 +2716,15 @@ unsigned char W8LevelDataRecord::IntegrateCameraForward()
     srVector3T<float> combined;
 
     cleared_vector = false;
-    forward_length = camera_forward.Length();
+    forward_length = camera_motion_velocity.Length();
     limit = g_environ->motion_limit * camera_scale;
-    if (limit <= vector2.Length()) {
-        adjustment = camera_forward;
-        if (g_float_005ebc58 < vector5.LengthSquared()) {
-            adjustment =
-                vector5 * (DotProduct(adjustment, vector5) / vector5.LengthSquared());
+    if (limit <= motion_input.Length()) {
+        adjustment = camera_motion_velocity;
+        if (g_float_005ebc58 < integrated_motion.LengthSquared()) {
+            adjustment = integrated_motion * (DotProduct(adjustment, integrated_motion) /
+                                              integrated_motion.LengthSquared());
         }
-        adjustment -= camera_forward;
+        adjustment -= camera_motion_velocity;
         delta_length = adjustment.Length();
         limit = g_environ->motion_factor * limit;
         if (delta_length <= limit) {
@@ -2734,29 +2735,31 @@ unsigned char W8LevelDataRecord::IntegrateCameraForward()
             adjustment.SetLength(limit);
         }
         scale = g_environ->momentum_scale * g_environ->motion_factor;
-        vector5 *= scale;
+        integrated_motion *= scale;
     } else {
         if (forward_length < limit) {
-            vector4.SetZero();
+            motion_velocity.SetZero();
             return 0;
         }
         limit = g_environ->motion_factor * limit;
-        adjustment.Set(-camera_forward.x, -camera_forward.y, -camera_forward.z);
+        adjustment.Set(-camera_motion_velocity.x, -camera_motion_velocity.y,
+                       -camera_motion_velocity.z);
         if (limit < forward_length) {
             adjustment.SetLength(limit);
         }
-        vector5.SetZero();
+        integrated_motion.SetZero();
         cleared_vector = true;
     }
 
-    combined.Set(camera_forward.x + vector5.x, camera_forward.y + vector5.y,
-                 camera_forward.z + vector5.z);
+    combined.Set(camera_motion_velocity.x + integrated_motion.x,
+                 camera_motion_velocity.y + integrated_motion.y,
+                 camera_motion_velocity.z + integrated_motion.z);
     combined.Set(combined.x + adjustment.x, combined.y + adjustment.y, combined.z + adjustment.z);
-    vector4 = combined;
-    vector5 = combined;
+    motion_velocity = combined;
+    integrated_motion = combined;
     if (cleared_vector) {
-        if (DotProduct(vector2, adjustment) > g_camera_transition_epsilon) {
-            vector4.SetZero();
+        if (DotProduct(motion_input, adjustment) > g_camera_transition_epsilon) {
+            motion_velocity.SetZero();
             return 0;
         }
     }
@@ -2773,29 +2776,30 @@ unsigned char W8LevelDataRecord::ApplySavedMotionMatrix(unsigned char prior_fast
     float vertical;
 
     if (prior_fast != 0 && !fast_move) {
-        vector2.SetZero();
-        vector5.SetZero();
+        motion_input.SetZero();
+        integrated_motion.SetZero();
     }
-    vector2 = saved->Transform(vector2);
-    vector5.Set(vector2.x * camera_scale, vector2.y * camera_scale,
-                  vector2.z * camera_scale);
+    motion_input = saved->Transform(motion_input);
+    integrated_motion.Set(motion_input.x * camera_scale, motion_input.y * camera_scale,
+                          motion_input.z * camera_scale);
     if (IntegrateCameraForward() == 0) {
         return 0;
     }
 
-    horizontal = sqrtf(vector4.z * vector4.z + vector4.x * vector4.x);
+    horizontal =
+        sqrtf(motion_velocity.z * motion_velocity.z + motion_velocity.x * motion_velocity.x);
     if (!fast_move) {
         clamp_scale = g_camera_level_forward_scale;
         if (prior_fast == 0) {
             if (clamp_scale < horizontal) {
-                vector4.x = (clamp_scale / horizontal) * vector4.x;
-                vector4.z = (clamp_scale / horizontal) * vector4.z;
+                motion_velocity.x = (clamp_scale / horizontal) * motion_velocity.x;
+                motion_velocity.z = (clamp_scale / horizontal) * motion_velocity.z;
             }
         } else if (g_camera_level_forward_scale < horizontal) {
             clamp_scale = g_camera_default_forward_scale;
             if (clamp_scale < horizontal) {
-                vector4.x = (clamp_scale / horizontal) * vector4.x;
-                vector4.z = (clamp_scale / horizontal) * vector4.z;
+                motion_velocity.x = (clamp_scale / horizontal) * motion_velocity.x;
+                motion_velocity.z = (clamp_scale / horizontal) * motion_velocity.z;
             }
         } else {
             prior_fast = 0;
@@ -2804,29 +2808,29 @@ unsigned char W8LevelDataRecord::ApplySavedMotionMatrix(unsigned char prior_fast
         prior_fast = 1;
         clamp_scale = g_camera_default_forward_scale;
         if (clamp_scale < horizontal) {
-            vector4.x = (clamp_scale / horizontal) * vector4.x;
-            vector4.z = (clamp_scale / horizontal) * vector4.z;
+            motion_velocity.x = (clamp_scale / horizontal) * motion_velocity.x;
+            motion_velocity.z = (clamp_scale / horizontal) * motion_velocity.z;
         }
     }
 
     if (g_environment_load_flag == 0) {
-        vertical = vector4.y;
+        vertical = motion_velocity.y;
         if (vertical > g_camera_level_forward_scale) {
             vertical = g_camera_level_forward_scale;
         } else if (vertical < -g_camera_level_forward_scale) {
             vertical = -g_camera_level_forward_scale;
         }
     } else {
-        vertical = vector4.y;
+        vertical = motion_velocity.y;
         if (vertical > g_camera_forward_scale) {
             vertical = g_camera_forward_scale;
         } else if (vertical < -g_camera_forward_scale) {
             vertical = -g_camera_forward_scale;
         }
     }
-    vector4.y = vertical;
-    vector8.Set(vector4.x * camera_scale, vector4.y * camera_scale,
-                  vector4.z * camera_scale);
+    motion_velocity.y = vertical;
+    motion_displacement.Set(motion_velocity.x * camera_scale, motion_velocity.y * camera_scale,
+                            motion_velocity.z * camera_scale);
     return prior_fast;
 }
 
@@ -2840,13 +2844,13 @@ unsigned char W8LevelDataRecord::UpdateFootstepFromMotion()
     bool large_radius;
 
     if ((flags & W8_LEVEL_FLAG_0) == 0) {
-        dx = scaled_camera_forward.x;
-        dy = scaled_camera_forward.y;
-        dz = scaled_camera_forward.z;
+        dx = camera_motion_displacement.x;
+        dy = camera_motion_displacement.y;
+        dz = camera_motion_displacement.z;
     } else {
-        dx = scaled_camera_forward.x - vector6.x;
-        dy = scaled_camera_forward.y - vector6.y;
-        dz = scaled_camera_forward.z - vector6.z;
+        dx = camera_motion_displacement.x - contact_motion.x;
+        dy = camera_motion_displacement.y - contact_motion.y;
+        dz = camera_motion_displacement.z - contact_motion.z;
     }
     if ((flags & W8_LEVEL_FLAG_NO_SOUND_ENVIRONMENT) != 0 ||
         (flags & W8_LEVEL_FLAG_WALKABLE_CONTACT) == 0) {
@@ -2910,20 +2914,22 @@ void W8LevelDataRecord::UpdateMotionProgress(unsigned char fast_move, unsigned c
 
     allow_override = true;
     if ((flags & W8_LEVEL_FLAG_0) == 0) {
-        vector3.SetZero();
-        vector7.SetZero();
-        if (g_float_zero < vector4.y) {
-            length = vector4.Length();
+        contact_velocity.SetZero();
+        contact_displacement.SetZero();
+        if (g_float_zero < motion_velocity.y) {
+            length = motion_velocity.Length();
             if (fast_move == 0) {
                 if (g_camera_level_forward_scale < length) {
-                    vector4.SetLength(g_camera_level_forward_scale);
-                    vector8.Set(vector4.x * camera_scale, vector4.y * camera_scale,
-                                  vector4.z * camera_scale);
+                    motion_velocity.SetLength(g_camera_level_forward_scale);
+                    motion_displacement.Set(motion_velocity.x * camera_scale,
+                                            motion_velocity.y * camera_scale,
+                                            motion_velocity.z * camera_scale);
                 }
             } else if (g_camera_default_forward_scale < length) {
-                vector4.SetLength(g_camera_default_forward_scale);
-                vector8.Set(vector4.x * camera_scale, vector4.y * camera_scale,
-                              vector4.z * camera_scale);
+                motion_velocity.SetLength(g_camera_default_forward_scale);
+                motion_displacement.Set(motion_velocity.x * camera_scale,
+                                        motion_velocity.y * camera_scale,
+                                        motion_velocity.z * camera_scale);
             }
         }
     }
@@ -2932,33 +2938,33 @@ void W8LevelDataRecord::UpdateMotionProgress(unsigned char fast_move, unsigned c
             (flags & W8_LEVEL_FLAG_WALKABLE_CONTACT) == 0) {
             allow_override = false;
         }
-        camera_forward.SetZero();
-        scaled_camera_forward.SetZero();
+        camera_motion_velocity.SetZero();
+        camera_motion_displacement.SetZero();
         footstep_accumulator = 1800.0f;
     } else {
-        camera_forward = vector4 - vector3;
-        scaled_camera_forward.Set(camera_forward.x * camera_scale,
-                                     camera_forward.y * camera_scale,
-                                     camera_forward.z * camera_scale);
+        camera_motion_velocity = motion_velocity - contact_velocity;
+        camera_motion_displacement.Set(camera_motion_velocity.x * camera_scale,
+                                       camera_motion_velocity.y * camera_scale,
+                                       camera_motion_velocity.z * camera_scale);
         allow_override = UpdateFootstepFromMotion() != 0;
-        camera_forward -= g_environ->vector;
-        projected = vector3;
+        camera_motion_velocity -= g_environ->vector;
+        projected = contact_velocity;
         gravity.Set(g_environ->gravity_x, g_environ->gravity_y, g_environ->gravity_z);
         ProjectVectorOntoVector(&projected, &gravity);
         environ_vector = g_environ->vector;
         if (environ_vector.Length() < projected.Length()) {
             g_environ->vector = projected;
         }
-        vector2.SetZero();
-        vector5.SetZero();
+        motion_input.SetZero();
+        integrated_motion.SetZero();
     }
 
-    vector4 = vector8 * (static_cast<float>(g_double_005ebc30) / camera_scale);
-    speed = vector8.Length();
+    motion_velocity = motion_displacement * (static_cast<float>(g_double_005ebc30) / camera_scale);
+    speed = motion_displacement.Length();
     if (speed < g_camera_transition_epsilon) {
         speed = 0;
-        vector8.SetZero();
-        vector4.SetZero();
+        motion_displacement.SetZero();
+        motion_velocity.SetZero();
     }
     if ((flags & W8_LEVEL_FLAG_MOVEMENT_ACTIVE) == 0) {
         if ((flags & W8_LEVEL_FLAG_FAST_MOVEMENT) == 0) {
@@ -2975,8 +2981,8 @@ void W8LevelDataRecord::UpdateMotionProgress(unsigned char fast_move, unsigned c
         scale = movement_progress;
         movement_progress = speed + scale;
         if (movement_limit < speed + scale) {
-            camera_forward.SetZero();
-            scaled_camera_forward.SetZero();
+            camera_motion_velocity.SetZero();
+            camera_motion_displacement.SetZero();
             footstep_accumulator = 2000.0f;
             flags |= W8_LEVEL_FLAG_MOVEMENT_STOPPED;
             if (gXStatus.fPartyMovementMode) {
@@ -2993,7 +2999,7 @@ void W8LevelDataRecord::UpdateMotionProgress(unsigned char fast_move, unsigned c
         } else if (allow_override && g_float_005ebcd8 < vertical_motion) {
             HandleLevelOverride(vertical_motion);
         }
-        vertical_motion = -(vector4.y / g_camera_motion_divisor);
+        vertical_motion = -(motion_velocity.y / g_camera_motion_divisor);
         return;
     }
     vertical_motion = 0;
@@ -3009,8 +3015,9 @@ void UpdateLevelMovementAudio(void)
     }
     if (((g_gd_camera->m_state >> 6) & 1) == 0 ||
         (g_level_data->flags & W8_LEVEL_FLAG_WALKABLE_CONTACT) == 0 ||
-        g_level_data->vector4.x != g_float_zero || g_level_data->vector4.y != g_float_zero ||
-        g_level_data->vector4.z != g_float_zero) {
+        g_level_data->motion_velocity.x != g_float_zero ||
+        g_level_data->motion_velocity.y != g_float_zero ||
+        g_level_data->motion_velocity.z != g_float_zero) {
         if (g_level_footstep_sound != -1) {
             SoundSetFadeVolume(g_level_footstep_sound, 0, 500, 1);
             g_level_footstep_sound = -1;

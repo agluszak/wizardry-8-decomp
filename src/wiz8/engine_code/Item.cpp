@@ -86,7 +86,7 @@ void W8Item::AttachMesh(W8World* world)
     if (world == 0) {
         srAssertFail("pWorld", "C:\\Projects\\Wizardry 8\\Engine Code\\Item.cpp", 0x211, 0);
     }
-    if ((static_cast<W8ItemRep*>(m_pRep)->flags & 0x40) == 0) {
+    if ((static_cast<W8ItemRep*>(m_pRep)->flags & W8_ITEM_ENTITY_MESH_LOADED) == 0) {
         return;
     }
     mesh = static_cast<W8ItemRep*>(m_pRep)->m_psrMesh;
@@ -152,7 +152,7 @@ W8ItemRep::W8ItemRep()
 {
     flags = 0;
     pulse_level = static_cast<float>(Random(20) * 0.05);
-    flags |= 0x20;
+    flags |= W8_ITEM_ENTITY_PULSE_INCREASING;
 }
 
 // FUNCTION: WIZ8 0x0049F120
@@ -179,10 +179,10 @@ bool W8ItemRep::ReadFromFile(W8ReadLevelInfo* info, W8Item* item, bool anonymous
         srAssertFail("fSuccess && psrMesh", ITEM_CPP, 0x8c, 0);
     }
     mesh->setName("ItemRep::ReadFromFile");
-    static_cast<stModelInstance*>(mesh)->render_flags |= 8;
+    static_cast<stModelInstance*>(mesh)->render_flags |= stModelInstance::RENDER_SHADOW;
     SetModelInstanceChainExclusionMask(mesh, 4);
     info->bitmap_folder = bitmap_folder;
-    flags |= 0x40;
+    flags |= W8_ITEM_ENTITY_MESH_LOADED;
     m_psrMesh = mesh;
     RefreshBounds();
     return success;
@@ -268,10 +268,10 @@ void W8Item::UpdateAnimation()
         srAssertFail("m_pRep", ITEM_CPP, 0x1ca, 0);
     }
     W8ItemRep* rep = static_cast<W8ItemRep*>(m_pRep);
-    if ((rep->flags & 0x40) == 0) {
+    if ((rep->flags & W8_ITEM_ENTITY_MESH_LOADED) == 0) {
         return;
     }
-    if ((rep->flags & 2) != 0 && gfKeyState[0x11] == 0) {
+    if ((rep->flags & W8_ITEM_ENTITY_ROTATE) != 0 && gfKeyState[0x11] == 0) {
         srMatrix3T<float> rotation;
         m_pRep->GetRotation(&rotation);
         double cosine = cos(-0.1963495375);
@@ -289,18 +289,18 @@ void W8Item::UpdateAnimation()
     }
 
     rep = static_cast<W8ItemRep*>(m_pRep);
-    if ((rep->flags & 1) != 0) {
-        if ((rep->flags & 0x20) != 0) {
+    if ((rep->flags & W8_ITEM_ENTITY_PULSE) != 0) {
+        if ((rep->flags & W8_ITEM_ENTITY_PULSE_INCREASING) != 0) {
             rep->pulse_level += 0.05f;
             if (rep->pulse_level >= 1.0f) {
                 rep->pulse_level = 1.0f;
-                rep->flags &= ~0x20u;
+                rep->flags &= ~W8_ITEM_ENTITY_PULSE_INCREASING;
             }
         } else {
             rep->pulse_level -= 0.05f;
             if (rep->pulse_level <= 0.25f) {
                 rep->pulse_level = 0.25f;
-                rep->flags |= 0x20;
+                rep->flags |= W8_ITEM_ENTITY_PULSE_INCREASING;
             }
         }
         SetHighlight(true);
@@ -373,10 +373,10 @@ void W8Item::SetHighlight(bool enabled)
     float blue = 0.0f;
     float alpha = 0.0f;
     if (enabled) {
-        if ((rep->flags & 0x80) != 0) {
+        if ((rep->flags & W8_ITEM_ENTITY_HIGHLIGHT_BLUE) != 0) {
             blue = 1.0f;
             alpha = 1.0f;
-        } else if ((rep->flags & 0x10) != 0) {
+        } else if ((rep->flags & W8_ITEM_ENTITY_HIGHLIGHT_GREEN) != 0) {
             green = 1.0f;
             alpha = 1.0f;
         }

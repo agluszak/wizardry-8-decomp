@@ -1,5 +1,7 @@
 #pragma once
 
+#include "wiz8/camera_motion.h"
+
 #include "timer.h"
 #include "wiz8/geometry.h"
 #include "wiz8/layouts/targeting.h"
@@ -186,7 +188,7 @@ struct W8LevelRuntimeBlock {
        slots change. */
     stModelInstance2D* highlight_graphic; /* 0x240 */
     unsigned int world_update_flags;      /* 0x244 */
-    unsigned int world_render_flags;      /* 0x248 */
+    unsigned int camera_motion_flags;     /* 0x248 */
     /* 0x24c: mouselook debug overlay; draws the pending pitch/yaw readout. */
     unsigned char mouselook_debug;
     /* 0x24d: video inspector overlay enabled when no modal mode owns input. */

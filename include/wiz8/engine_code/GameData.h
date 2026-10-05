@@ -1,5 +1,7 @@
 #pragma once
 
+#include "wiz8/camera_motion.h"
+
 #include "Types.h"
 #include "wiz8/engine_code/IntervalGate.h"
 #include "wiz8/wiz8_windows.h"
@@ -44,15 +46,15 @@ struct W8LevelDataRecord {
     float movement_limit;
     float movement_progress;
     srVector3T<float> camera_position;       /* 0x34 */
-    srVector3T<float> vector2;                /* 0x40 */
-    srVector3T<float> camera_forward;        /* 0x4c */
-    srVector3T<float> vector3;                /* 0x58 */
-    srVector3T<float> vector4;                /* 0x64 */
-    srVector3T<float> vector5;                /* 0x70 */
-    srVector3T<float> scaled_camera_forward; /* 0x7c */
-    srVector3T<float> vector6;                /* 0x88 */
-    srVector3T<float> vector7;                /* 0x94 */
-    srVector3T<float> vector8;                /* 0xa0 */
+    srVector3T<float> motion_input;          /* 0x40 */
+    srVector3T<float> camera_motion_velocity;     /* 0x4c */
+    srVector3T<float> contact_velocity;           /* 0x58 */
+    srVector3T<float> motion_velocity;            /* 0x64 */
+    srVector3T<float> integrated_motion;          /* 0x70 */
+    srVector3T<float> camera_motion_displacement; /* 0x7c */
+    srVector3T<float> contact_motion;             /* 0x88 */
+    srVector3T<float> contact_displacement;       /* 0x94 */
+    srVector3T<float> motion_displacement;        /* 0xa0 */
     /* 0xac: contact surface normal; 0xb8: scalar stored beside it (retail
        constructor writes 1.0f). Remaining 8 bytes stay unresolved. */
     srVector3T<float> contact_normal; /* 0xac */
@@ -66,16 +68,16 @@ struct W8LevelDataRecord {
 
     W8LevelDataRecord(); /* 0x0041FD10 */
     /* 0x0041FE20: when the camera sits outside the game-data AABB, push
-       vector8 toward the box, clear environ vector, and optionally start
+       motion_displacement toward the box, clear environ vector, and optionally start
        party movement; returns non-zero when a clamp fired. */
     unsigned char ClampCameraToBounds(const srVector3T<float>* minimum,
                                       const srVector3T<float>* maximum);
     /* 0x0041FF00: toggle setting-6e props referenced by primary_contact_prop_id/secondary_contact_prop_id. */
     unsigned char ToggleBoundProps();
-    /* 0x00420470: integrate camera_forward into vector4/vector5. */
+    /* 0x00420470: integrate camera_motion_velocity into motion_velocity/integrated_motion. */
     unsigned char IntegrateCameraForward();
-    /* 0x00420810: rotate vector2 by the saved yaw matrix and refresh
-       vector8; returns the updated fast-move latch. */
+    /* 0x00420810: rotate motion_input by the saved yaw matrix and refresh
+       motion_displacement; returns the updated fast-move latch. */
     unsigned char ApplySavedMotionMatrix(unsigned char prior_fast, bool fast_move,
                                          const srMatrix3T<float>* saved);
     /* 0x0041FF90: advance movement progress / footstep state for one tick. */

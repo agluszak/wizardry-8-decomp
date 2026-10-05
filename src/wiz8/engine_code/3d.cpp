@@ -353,8 +353,8 @@ unsigned char BakeInstanceVertexLightingIfNeeded(stModelInstance* instance, srNo
 {
     srNode* lights = dynamic_scene->first_child_;
 
-    if ((instance->render_flags & 2) == 0) {
-        instance->render_flags |= 2;
+    if ((instance->render_flags & stModelInstance::RENDER_LIGHTING_BAKED) == 0) {
+        instance->render_flags |= stModelInstance::RENDER_LIGHTING_BAKED;
         SetModelInstanceChainExclusionMask(instance, 1);
         BakeInstanceVertexLighting(instance, lights, true);
     }
