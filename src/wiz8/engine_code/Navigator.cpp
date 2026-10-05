@@ -1683,31 +1683,7 @@ void W8Navigator::ResetMovementAndGroupState()
                                                            &movement.position);
             SetMovementStopped();
         }
-        if (g_combat_inactive != 0) {
-            linked_update_time = 0;
-            g_navigator_group.Clear();
-            CollectGroupNavigators(&g_navigator_group);
-            for (int index = 0; index < g_navigator_group.GetCount(); ++index) {
-                W8Navigator* navigator = *g_navigator_group.GetAt(index);
-                navigator->movement.attachment->CopyPathFrom(movement.attachment);
-                navigator->position5 = position5;
-                navigator->movement.attachment->flags &= 0xff7effff;
-                navigator->linked_update_time = 0;
-            }
-        }
-        if (movement_stopped == 0) {
-            movement_stopped = 0;
-            if (g_combat_inactive == 0) {
-                return;
-            }
-            if (linked_navigator == 0) {
-                g_navigator_group.Clear();
-                CollectGroupNavigators(&g_navigator_group);
-                for (int index = 0; index < g_navigator_group.GetCount(); ++index) {
-                    (*g_navigator_group.GetAt(index))->movement_stopped = 0;
-                }
-            }
-        }
+        PropagateGroupPosition();
     }
     if (g_combat_inactive != 0) {
         movement.attachment->flags &= ~W8_NAV_ATTACHMENT_FOLLOW_PATH;

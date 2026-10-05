@@ -190,6 +190,16 @@ public:
     Value Lookup(const Key* key) const;
     int FindNextEntry(const Key* key, int previous) const;
     void Insert(const Key* key, const Value* value);
+    void InsertUnique(const Key* key, const Value* value)
+    {
+        int entry = -1;
+        while ((entry = FindNextEntry(key, entry)) != -1) {
+            if (entries[entry].value == *value) {
+                return;
+            }
+        }
+        Insert(key, value);
+    }
     void Remove(const Key* key, const Value* value);
     void Remove(const Key* key);
     void RemoveAt(int slot);

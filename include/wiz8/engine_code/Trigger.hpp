@@ -5,6 +5,7 @@ class stLight;
 #include "surrender/srMath.h"
 #include "surrender/srTypeRegistry.h"
 #include "wiz8/dice.h"
+#include "wiz8/sr_api.h"
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/integer_constants.h"
 
@@ -188,6 +189,15 @@ public:
     virtual srClass* vInstance() override;
 
     static Trigger* CreateAndLoadLevelTrigger(int handle, W8World* world);
+
+    W8Prop* GetProp() const
+    {
+        if (m_bRepType != 2) {
+            srAssertFail("m_bRepType == TRIGGER_REP_PROP", "..\\Engine Code\\Include\\Trigger.hpp",
+                         0x3ed, 0);
+        }
+        return m_pProp;
+    }
 
     bool HasActorWithinRadius(float radius, bool include_party);
     bool PlayActionSound(const char* sound_name, int volume);

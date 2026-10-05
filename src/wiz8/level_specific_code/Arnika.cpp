@@ -104,11 +104,7 @@ void ArnikaLevelSetup(void)
         GetLocationVarValueByName("LaserScanning") != 0) {
         pTrigger = FindTriggerByName("LazerScanner");
         if (pTrigger != 0) {
-            if (pTrigger->m_bRepType != 2) {
-                srAssertFail("m_bRepType == TRIGGER_REP_PROP",
-                             "..\\Engine Code\\Include\\Trigger.hpp", 0x3ed, 0);
-            }
-            g_lazer_prop = pTrigger->m_pProp;
+            g_lazer_prop = pTrigger->GetProp();
             g_laser_scanning = 1;
             BeginScriptedWorldAction();
             g_master_functions->Add(ArnikaLaserScanMaster);
@@ -144,11 +140,7 @@ void ArnikaLevelSetup(void)
 // FUNCTION: WIZ8 0x004E0880
 bool ArnikaLazerScanner(Trigger* pTrigger)
 {
-    if (pTrigger->m_bRepType != 2) {
-        srAssertFail("m_bRepType == TRIGGER_REP_PROP", "..\\Engine Code\\Include\\Trigger.hpp",
-                     0x3ed, 0);
-    }
-    g_lazer_prop = pTrigger->m_pProp;
+    g_lazer_prop = pTrigger->GetProp();
     if (g_lazer_prop->Rep()->animation_playing != 0) {
         return 0;
     }
@@ -405,11 +397,7 @@ bool ArnikaVaultAlarmDoor(Trigger* pTrigger)
 bool ArnikaExitButton(Trigger* pTrigger)
 {
     g_exit_door_trigger = pTrigger;
-    if (pTrigger->m_bRepType != 2) {
-        srAssertFail("m_bRepType == TRIGGER_REP_PROP", "..\\Engine Code\\Include\\Trigger.hpp",
-                     0x3ed, 0);
-    }
-    g_exit_door_prop = pTrigger->m_pProp;
+    g_exit_door_prop = pTrigger->GetProp();
     if (GetLocationVarIDByName("Teleporting") != -1) {
         if (GetLocationVarValueByName("Teleporting") == 0) {
             SetTriggerVariableByName("Teleporting", 1);
@@ -524,27 +512,15 @@ void ArnikaElevator1Setup(void)
         switch (gEl01.state) {
         case 1:
         case 5:
-            if (gEl01.pLift->m_bRepType != 2) {
-                srAssertFail("m_bRepType == TRIGGER_REP_PROP",
-                             "..\\Engine Code\\Include\\Trigger.hpp", 0x3ed, 0);
-            }
-            gEl01.pProp = gEl01.pLift->m_pProp;
+            gEl01.pProp = gEl01.pLift->GetProp();
             break;
         case 2:
         case 4:
-            if (gEl01.pTopDoor->m_bRepType != 2) {
-                srAssertFail("m_bRepType == TRIGGER_REP_PROP",
-                             "..\\Engine Code\\Include\\Trigger.hpp", 0x3ed, 0);
-            }
-            gEl01.pProp = gEl01.pTopDoor->m_pProp;
+            gEl01.pProp = gEl01.pTopDoor->GetProp();
             break;
         case 6:
         case 8:
-            if (gEl01.pBottomDoor->m_bRepType != 2) {
-                srAssertFail("m_bRepType == TRIGGER_REP_PROP",
-                             "..\\Engine Code\\Include\\Trigger.hpp", 0x3ed, 0);
-            }
-            gEl01.pProp = gEl01.pBottomDoor->m_pProp;
+            gEl01.pProp = gEl01.pBottomDoor->GetProp();
             break;
         }
         g_master_functions->Add(ArnikaEl1Moving);
@@ -601,11 +577,7 @@ void ArnikaEl1Button(int command)
             SetTriggerVariableByName("RedButtonDown", gEl01.button_down);
             return;
         }
-        if (gEl01.pButton->m_bRepType != 2) {
-            srAssertFail("m_bRepType == TRIGGER_REP_PROP", "..\\Engine Code\\Include\\Trigger.hpp",
-                         0x3ed, 0);
-        }
-        g_el01_button_prop = gEl01.pButton->m_pProp;
+        g_el01_button_prop = gEl01.pButton->GetProp();
         if (g_el01_button_prop == 0) {
             return;
         }
@@ -750,27 +722,15 @@ void ArnikaElevator2Setup(void)
         switch (gEl02.state) {
         case 1:
         case 5:
-            if (gEl02.pLift->m_bRepType != 2) {
-                srAssertFail("m_bRepType == TRIGGER_REP_PROP",
-                             "..\\Engine Code\\Include\\Trigger.hpp", 0x3ed, 0);
-            }
-            gEl02.pProp = gEl02.pLift->m_pProp;
+            gEl02.pProp = gEl02.pLift->GetProp();
             break;
         case 2:
         case 4:
-            if (gEl02.pTopDoor->m_bRepType != 2) {
-                srAssertFail("m_bRepType == TRIGGER_REP_PROP",
-                             "..\\Engine Code\\Include\\Trigger.hpp", 0x3ed, 0);
-            }
-            gEl02.pProp = gEl02.pTopDoor->m_pProp;
+            gEl02.pProp = gEl02.pTopDoor->GetProp();
             break;
         case 6:
         case 8:
-            if (gEl02.pBottomDoor->m_bRepType != 2) {
-                srAssertFail("m_bRepType == TRIGGER_REP_PROP",
-                             "..\\Engine Code\\Include\\Trigger.hpp", 0x3ed, 0);
-            }
-            gEl02.pProp = gEl02.pBottomDoor->m_pProp;
+            gEl02.pProp = gEl02.pBottomDoor->GetProp();
             break;
         }
         g_master_functions->Add(ArnikaEl2Moving);
@@ -811,11 +771,7 @@ void ArnikaEl2Button(int command)
             SetTriggerVariableByName("GreenButtonDown", gEl02.button_down);
             return;
         }
-        if (gEl02.pButton->m_bRepType != 2) {
-            srAssertFail("m_bRepType == TRIGGER_REP_PROP", "..\\Engine Code\\Include\\Trigger.hpp",
-                         0x3ed, 0);
-        }
-        g_el02_button_prop = gEl02.pButton->m_pProp;
+        g_el02_button_prop = gEl02.pButton->GetProp();
         if (g_el02_button_prop == 0) {
             return;
         }
@@ -902,11 +858,7 @@ void ArnikaElevatorAdvance(int which)
        for the out-prop slot, which is not authored source. */
     switch (el->state) {
     case 1:
-        if (el->pTopDoor->m_bRepType != 2) {
-            srAssertFail("m_bRepType == TRIGGER_REP_PROP", "..\\Engine Code\\Include\\Trigger.hpp",
-                         0x3ed, 0);
-        }
-        prop = el->pTopDoor->m_pProp;
+        prop = el->pTopDoor->GetProp();
         el->pTopDoor->Run(-1);
         el->pTopDoorCollide->Run(-1);
         el->state = 2;
@@ -916,30 +868,18 @@ void ArnikaElevatorAdvance(int which)
         el->state = 3;
         break;
     case 3:
-        if (el->pTopDoor->m_bRepType != 2) {
-            srAssertFail("m_bRepType == TRIGGER_REP_PROP", "..\\Engine Code\\Include\\Trigger.hpp",
-                         0x3ed, 0);
-        }
-        prop = el->pTopDoor->m_pProp;
+        prop = el->pTopDoor->GetProp();
         el->pTopDoor->Run(-1);
         el->pTopDoorCollide->Run(-1);
         el->state = 4;
         break;
     case 4:
-        if (el->pLift->m_bRepType != 2) {
-            srAssertFail("m_bRepType == TRIGGER_REP_PROP", "..\\Engine Code\\Include\\Trigger.hpp",
-                         0x3ed, 0);
-        }
-        prop = el->pLift->m_pProp;
+        prop = el->pLift->GetProp();
         el->pLift->Run(-1);
         el->state = 5;
         break;
     case 5:
-        if (el->pBottomDoor->m_bRepType != 2) {
-            srAssertFail("m_bRepType == TRIGGER_REP_PROP", "..\\Engine Code\\Include\\Trigger.hpp",
-                         0x3ed, 0);
-        }
-        prop = el->pBottomDoor->m_pProp;
+        prop = el->pBottomDoor->GetProp();
         el->pBottomDoor->Run(-1);
         el->pBottomDoorCollide->Run(-1);
         el->state = 6;
@@ -949,21 +889,13 @@ void ArnikaElevatorAdvance(int which)
         el->state = 7;
         break;
     case 7:
-        if (el->pBottomDoor->m_bRepType != 2) {
-            srAssertFail("m_bRepType == TRIGGER_REP_PROP", "..\\Engine Code\\Include\\Trigger.hpp",
-                         0x3ed, 0);
-        }
-        prop = el->pBottomDoor->m_pProp;
+        prop = el->pBottomDoor->GetProp();
         el->pBottomDoor->Run(-1);
         el->pBottomDoorCollide->Run(-1);
         el->state = 8;
         break;
     case 8:
-        if (el->pLift->m_bRepType != 2) {
-            srAssertFail("m_bRepType == TRIGGER_REP_PROP", "..\\Engine Code\\Include\\Trigger.hpp",
-                         0x3ed, 0);
-        }
-        prop = el->pLift->m_pProp;
+        prop = el->pLift->GetProp();
         el->pLift->Run(-1);
         el->state = 1;
         break;

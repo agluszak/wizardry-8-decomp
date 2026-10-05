@@ -1616,17 +1616,7 @@ unsigned char OctBuildPreTree::BuildParticleRegions(const W8LevelFileParticleSys
             W8OctRegionVolume* volume = spatial.m_region_volumes + region_index;
             if (volume->ContainsPoint(&position) != 0) {
                 unsigned short region = volume->m_region;
-                bool present = false;
-                int entry = -1;
-                while ((entry = inside_region_map->FindNextEntry(&region, entry)) != -1) {
-                    if (inside_region_map->entries[entry].value == particle_value) {
-                        present = true;
-                        break;
-                    }
-                }
-                if (!present) {
-                    inside_region_map->Insert(&region, &particle_value);
-                }
+                inside_region_map->InsertUnique(&region, &particle_value);
                 mapped = true;
             }
         }
@@ -1666,19 +1656,7 @@ unsigned char OctBuildPreTree::BuildParticleRegions(const W8LevelFileParticleSys
                                     spatial.m_region_volumes + region_index;
                                 if (volume->ContainsPoint(&corner) != 0) {
                                     unsigned short region = volume->m_region;
-                                    bool present = false;
-                                    int entry = -1;
-                                    while ((entry = inside_region_map->FindNextEntry(
-                                                &region, entry)) != -1) {
-                                        if (inside_region_map->entries[entry].value ==
-                                            particle_value) {
-                                            present = true;
-                                            break;
-                                        }
-                                    }
-                                    if (!present) {
-                                        inside_region_map->Insert(&region, &particle_value);
-                                    }
+                                    inside_region_map->InsertUnique(&region, &particle_value);
                                     corner_mapped = true;
                                     mapped = true;
                                 }
@@ -1766,18 +1744,7 @@ unsigned char OctBuildPreTree::BuildGeometryRegions(const W8LevelFileProp* recor
                                        bounds[z].z * g_world_scale);
                             if (volume->ContainsPoint(&corner) != 0) {
                                 unsigned short region = volume->m_region;
-                                bool present = false;
-                                int entry = -1;
-                                while ((entry = overlap_region_map->FindNextEntry(
-                                            &region, entry)) != -1) {
-                                    if (overlap_region_map->entries[entry].value == value) {
-                                        present = true;
-                                        break;
-                                    }
-                                }
-                                if (!present) {
-                                    overlap_region_map->Insert(&region, &value);
-                                }
+                                overlap_region_map->InsertUnique(&region, &value);
                                 mapped = true;
                             }
                         }

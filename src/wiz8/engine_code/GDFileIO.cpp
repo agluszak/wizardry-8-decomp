@@ -1283,6 +1283,24 @@ static void LinkSurfaceEdge(int polygon, int edge, W8HashTable<unsigned int, int
 /* Welds duplicate vertices through a spatial hash, repacks the surface array
    collision-flag faces first, fills the shared build vertex/polygon arrays
    and stitches polygon edge links. */
+static void InitializeCompiledSurface(W8GDSurface* compiled, const W8GDSurface* surface,
+                                      int polygon_count)
+{
+    *compiled = *surface;
+    compiled->edge_link[2] = -1;
+    compiled->edge_link[1] = -1;
+    compiled->edge_link[0] = -1;
+    compiled->hit_plane = 0;
+    W8OctRegionPolygon* polygon = g_gd_polygons + polygon_count;
+    polygon->ordinal = polygon_count;
+    polygon->plane = compiled->plane;
+    polygon->degenerate = 0;
+    polygon->visited = false;
+    polygon->vertices[0] = g_gd_vertices + compiled->vertex_indices[0];
+    polygon->vertices[1] = g_gd_vertices + compiled->vertex_indices[1];
+    polygon->vertices[2] = g_gd_vertices + compiled->vertex_indices[2];
+}
+
 // FUNCTION: WIZ8 0x00449D10
 void W8GameData::CompileGameData()
 {
@@ -1439,19 +1457,7 @@ void W8GameData::CompileGameData()
             (surface->flags & 4) != 0) {
             surface->index = polygon_count;
             W8GDSurface* compiled = new_surfaces + polygon_count;
-            *compiled = *surface;
-            compiled->edge_link[2] = -1;
-            compiled->edge_link[1] = -1;
-            compiled->edge_link[0] = -1;
-            compiled->hit_plane = 0;
-            W8OctRegionPolygon* polygon = g_gd_polygons + polygon_count;
-            polygon->ordinal = polygon_count;
-            polygon->plane = compiled->plane;
-            polygon->degenerate = 0;
-            polygon->visited = false;
-            polygon->vertices[0] = g_gd_vertices + compiled->vertex_indices[0];
-            polygon->vertices[1] = g_gd_vertices + compiled->vertex_indices[1];
-            polygon->vertices[2] = g_gd_vertices + compiled->vertex_indices[2];
+            InitializeCompiledSurface(compiled, surface, polygon_count);
             for (j = 0; j < 3; ++j) {
                 LinkSurfaceEdge(polygon_count, j, &edge_table, new_surfaces, multiplier,
                                 new_vertices);
@@ -1475,19 +1481,7 @@ void W8GameData::CompileGameData()
             surface->index = polygon_count;
             surface->slope = 0;
             W8GDSurface* compiled = new_surfaces + polygon_count;
-            *compiled = *surface;
-            compiled->edge_link[2] = -1;
-            compiled->edge_link[1] = -1;
-            compiled->edge_link[0] = -1;
-            compiled->hit_plane = 0;
-            W8OctRegionPolygon* polygon = g_gd_polygons + polygon_count;
-            polygon->ordinal = polygon_count;
-            polygon->plane = compiled->plane;
-            polygon->degenerate = 0;
-            polygon->visited = false;
-            polygon->vertices[0] = g_gd_vertices + compiled->vertex_indices[0];
-            polygon->vertices[1] = g_gd_vertices + compiled->vertex_indices[1];
-            polygon->vertices[2] = g_gd_vertices + compiled->vertex_indices[2];
+            InitializeCompiledSurface(compiled, surface, polygon_count);
             for (j = 0; j < 3; ++j) {
                 LinkSurfaceEdge(polygon_count, j, &edge_table, new_surfaces, multiplier,
                                 new_vertices);

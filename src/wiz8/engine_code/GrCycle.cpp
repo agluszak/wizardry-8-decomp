@@ -1326,6 +1326,34 @@ void W8GrCycle::SetBehaviour(signed char bBehaviour)
     target->animation_behaviour = bBehaviour;
 }
 
+void W8GrCycle::DetachCycleLights(W8GrowableVector<stLight*>* lights)
+{
+    if (lights != 0) {
+        for (int index = 0; index < lights->GetCount(); ++index) {
+            stLight* light = *lights->GetAt(index);
+
+            light->setParent(0, 1);
+            if (light->definition() != 0) {
+                g_world->lights_to_update->Remove(light);
+            }
+        }
+    }
+}
+
+void W8GrCycle::AttachCycleLights(W8GrowableVector<stLight*>* lights)
+{
+    if (g_render_missile_lights != 0 && lights != 0) {
+        for (int index = 0; index < lights->GetCount(); ++index) {
+            stLight* light = *lights->GetAt(index);
+
+            light->setParent(g_world->dynamic_scene, 1);
+            if (light->definition() != 0) {
+                g_world->lights_to_update->Add(light);
+            }
+        }
+    }
+}
+
 // FUNCTION: WIZ8 0x004a84c0
 void W8GrCycle::SetLights(W8GrowableVector<stLight*>* lights)
 {

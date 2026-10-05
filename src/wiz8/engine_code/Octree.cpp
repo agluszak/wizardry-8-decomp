@@ -2965,20 +2965,25 @@ int W8Octree::ProbeCellForBlockers(const srVector3T<int>* cell)
     if (leaf_index != 0 && m_leaves[leaf_index].polygon_offset != 0) {
         const unsigned long* stream =
             m_polygon_index_stream + m_leaves[leaf_index].polygon_offset;
-        for (int remaining = *stream; remaining != 0; --remaining) {
-            ++stream;
-            if (m_visited_polygon_bits->Set(*stream) == 0) {
-                if (9999 < m_gd_result_count) {
-                    break;
-                }
-                unsigned int key = m_aulPolyLookup[*stream];
-                m_aulGDObjs[m_gd_result_count] = key;
-                ++m_gd_result_count;
-                m_current_regions->Set(key >> 0x10);
-            }
-        }
+        AppendBlockerStream(stream);
     }
     return m_gd_result_count;
+}
+
+void W8Octree::AppendBlockerStream(const unsigned long* stream)
+{
+    for (int remaining = *stream; remaining != 0; --remaining) {
+        ++stream;
+        if (m_visited_polygon_bits->Set(*stream) == 0) {
+            if (9999 < m_gd_result_count) {
+                break;
+            }
+            unsigned int key = m_aulPolyLookup[*stream];
+            m_aulGDObjs[m_gd_result_count] = key;
+            ++m_gd_result_count;
+            m_current_regions->Set(key >> 0x10);
+        }
+    }
 }
 
 // FUNCTION: WIZ8 0x00435da0
@@ -2988,18 +2993,7 @@ int W8Octree::ProbeCellForBlockersAppend(const srVector3T<int>* cell)
     if (leaf_index != 0 && m_leaves[leaf_index].polygon_offset != 0) {
         const unsigned long* stream =
             m_polygon_index_stream + m_leaves[leaf_index].polygon_offset;
-        for (int remaining = *stream; remaining != 0; --remaining) {
-            ++stream;
-            if (m_visited_polygon_bits->Set(*stream) == 0) {
-                if (9999 < m_gd_result_count) {
-                    break;
-                }
-                unsigned int key = m_aulPolyLookup[*stream];
-                m_aulGDObjs[m_gd_result_count] = key;
-                ++m_gd_result_count;
-                m_current_regions->Set(key >> 0x10);
-            }
-        }
+        AppendBlockerStream(stream);
     }
     return m_gd_result_count;
 }

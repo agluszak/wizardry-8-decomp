@@ -203,16 +203,7 @@ void W8SpellVisual::SetCycle(signed char cycle)
     }
 
     lights = *host->light_lists[host->current_cycle].GetAt(0);
-    if (lights != 0) {
-        for (index = 0; index < lights->GetCount(); ++index) {
-            stLight* light = *lights->GetAt(index);
-
-            light->setParent(0, 1);
-            if (light->definition() != 0) {
-                g_world->lights_to_update->Remove(light);
-            }
-        }
-    }
+    DetachCycleLights(lights);
 
     host->current_cycle = cycle;
     animation = host->emitters[cycle];
@@ -232,16 +223,7 @@ void W8SpellVisual::SetCycle(signed char cycle)
 
     lights = *host->light_lists[cycle].GetAt(0);
     SetLights(lights);
-    if (g_render_missile_lights != 0 && lights != 0) {
-        for (index = 0; index < lights->GetCount(); ++index) {
-            stLight* light = *lights->GetAt(index);
-
-            light->setParent(g_world->dynamic_scene, 1);
-            if (light->definition() != 0) {
-                g_world->lights_to_update->Add(light);
-            }
-        }
-    }
+    AttachCycleLights(lights);
 
     if (m_plsParticles != 0) {
         for (index = 0; index < m_plsParticles->GetCount(); ++index) {

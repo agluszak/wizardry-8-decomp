@@ -269,8 +269,7 @@ unsigned int RollEffectMagnitude(W8SpellEffectDefinition* definition)
     return magnitude;
 }
 
-static unsigned int RollEffectDuration(unsigned int per_power, unsigned int scale,
-                                       unsigned int base, unsigned int percent)
+static unsigned int RollEffectDuration(int per_power, int scale, int base, unsigned int percent)
 {
     unsigned int duration = per_power * scale + base;
 

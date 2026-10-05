@@ -147,6 +147,8 @@ public:
     void SetSubCycle(unsigned char subcycle);
     void SetBehaviour(signed char bBehaviour);
     void SetLights(W8GrowableVector<stLight*>* lights);
+    void DetachCycleLights(W8GrowableVector<stLight*>* lights);
+    void AttachCycleLights(W8GrowableVector<stLight*>* lights);
     void AddShakeEffect(W8CameraShakeEffect* effect);
     void CreateGroundShadow(float width, float depth);
     void SetGroundShadowVisible(bool visible);

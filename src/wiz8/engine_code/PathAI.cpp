@@ -185,28 +185,8 @@ void DestroyPathAI(W8PathAI* path)
 // FUNCTION: WIZ8 0x004a9110
 void DestroyOwnedPathAI(W8PathAI* path)
 {
-    W8GrowableVector<srVector3T<float>*>* nodes;
-
     if (path != 0 && path->kind == W8_AI_RECORD_PATH) {
-        nodes = path->nodes;
-        if (nodes != 0) {
-            while (nodes->count != 0) {
-                srHeap.free(nodes->RemoveAt(nodes->GetCount() - 1));
-                nodes = path->nodes;
-            }
-            if (path->rotations != 0) {
-                free(path->rotations);
-                path->rotations = 0;
-            }
-            delete path->nodes;
-        }
-        if (path->rotations != 0) {
-            free(path->rotations);
-        }
-        if (path->scales != 0) {
-            delete[] path->scales;
-        }
-        free(path);
+        DestroyPathAI(path);
     }
 }
 

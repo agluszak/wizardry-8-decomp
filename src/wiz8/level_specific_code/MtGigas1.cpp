@@ -42,11 +42,7 @@ void MtGigas1Setup(void)
     g_plate_down = 0;
     pTrigger = FindTriggerByName("plate");
     if (pTrigger != 0) {
-        if (pTrigger->m_bRepType != 2) {
-            srAssertFail("m_bRepType == TRIGGER_REP_PROP", "..\\Engine Code\\Include\\Trigger.hpp",
-                         0x3ed, 0);
-        }
-        prop = pTrigger->m_pProp;
+        prop = pTrigger->GetProp();
         if (prop != 0) {
             g_plate_prop = prop->m_gd_prop;
         }

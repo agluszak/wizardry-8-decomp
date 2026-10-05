@@ -364,6 +364,7 @@ public:
     /* Reset vs append variants collecting one cell's leaf polygon references
        (mapped through m_aulPolyLookup into (mesh<<16)|polygon keys). */
     int ProbeCellForBlockers(const srVector3T<int>* cell);       /* 0x00435C40 */
+    void AppendBlockerStream(const unsigned long* stream);
     int ProbeCellForBlockersAppend(const srVector3T<int>* cell); /* 0x00435DA0 */
     /* Test every buffered (mesh<<16)|polygon key's triangle against the trace
        ray; on a closer hit, end returns the contact point. */
