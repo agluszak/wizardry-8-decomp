@@ -69,6 +69,10 @@ outcome. Inferred declaration changes are separate `signature_diff` findings wit
 ABI equivalence. Raw decompilations and leading warnings remain in Ghidriff's artifacts.
 `code_change_kind: scalar-signedness` tags exact `int`/`uint` body substitutions for triage;
 these still count as code differences. The tag does not prove enum provenance or equivalence.
+Generic text normalization and declaration/body diff construction have one owner in Ghidriff.
+reccmp adds paired address identity and referenced-data evidence. Identifier normalization preserves
+quoted literals and multiline comments. The consolidation work and its remaining batches are recorded
+in [the comparison plan](../../../../docs/comparison-refactor-plan.md).
 
 ## Inspect saved results
 
