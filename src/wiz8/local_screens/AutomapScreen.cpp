@@ -1740,8 +1740,8 @@ bool SaveAutomapNotes(int handle)
         W8AutomapNote* note = *g_automap_notes->GetAt(index);
         if (note != 0) {
             bool ok = FileWrite(handle, &note->position.x, 4, 0) != 0 &&
-                               FileWrite(handle, &note->position.y, 4, 0) != 0 &&
-                               FileWrite(handle, &note->layer, 4, 0) != 0;
+                      FileWrite(handle, &note->position.y, 4, 0) != 0 &&
+                      FileWrite(handle, &note->layer, 4, 0) != 0;
             int length = wcslen(note->text) + 1;
             if (!ok) {
                 return false;
@@ -1783,9 +1783,9 @@ bool LoadAutomapNotes(int handle)
                 /* Retail fed `length` to malloc even when the FileRead chain
                    short-circuited before filling it; the recovery keeps that read. */
                 bool ok = FileRead(handle, &position.x, 4, 0) != 0 &&
-                                   FileRead(handle, &position.y, 4, 0) != 0 &&
-                                   FileRead(handle, &layer, 4, 0) != 0 &&
-                                   FileRead(handle, &length, 4, 0) != 0;
+                          FileRead(handle, &position.y, 4, 0) != 0 &&
+                          FileRead(handle, &layer, 4, 0) != 0 &&
+                          FileRead(handle, &length, 4, 0) != 0;
                 wchar_t* text = static_cast<wchar_t*>(malloc(length * 2));
                 if (!ok) {
                     return false;
@@ -2587,8 +2587,8 @@ unsigned char ReadAutomapNodes(int hFile)
         g_automap_visited_cells = 0;
         return 0;
     }
-    g_automap_cell_keys = static_cast<unsigned int*>(
-        malloc(g_automap_cell_count * sizeof(*g_automap_cell_keys)));
+    g_automap_cell_keys =
+        static_cast<unsigned int*>(malloc(g_automap_cell_count * sizeof(*g_automap_cell_keys)));
     if (g_automap_cell_keys == 0) {
         if (g_automap_visited_cells != 0) {
             delete g_automap_visited_cells;

@@ -11,7 +11,6 @@
 // VTABLE: SURRENDER 0x100776B0 srVP_generic
 class srVP_generic : public srVP {
 public:
-
     virtual const char* getName() override;
 
     virtual int _memcmp(const void* source_0, const void* source_1, SRDWORD bytes) override;

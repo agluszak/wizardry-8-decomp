@@ -171,7 +171,7 @@ W8OctBuildTree::W8OctBuildTree(float leaf_size, srVector3T<float>* minimum,
 
         spatial.m_cell_size = spatial.m_node_extent * g_float_005ec188;
         spatial.m_maximum.Set(minimum->x + spatial.m_extent, minimum->y + spatial.m_extent,
-                                 minimum->z + spatial.m_extent);
+                              minimum->z + spatial.m_extent);
         g_oct_build_scratch = static_cast<W8GDSurface**>(malloc(40000));
         spatial.m_polygon_count = 1;
         spatial.m_item_count = 0;
@@ -520,10 +520,9 @@ int W8OctBuildTree::CollectLeaf(W8OctBuildNode* node, short depth, short kind)
                4, so the read is of ushort region-index storage; retained as
                the observed retail read of dead code. */
             // reinterpret-ok: dead kind-10 path reads the proven ushort region-index pair at +0x2c as a link head
-            for (link = *reinterpret_cast<W8OctBuildLink**>(&node->provisional_region);
-                 link != 0; link = link->next) {
-                if (CollectSurfacePredicate(static_cast<W8GDSurface*>(link->surface), 0xb) !=
-                    0) {
+            for (link = *reinterpret_cast<W8OctBuildLink**>(&node->provisional_region); link != 0;
+                 link = link->next) {
+                if (CollectSurfacePredicate(static_cast<W8GDSurface*>(link->surface), 0xb) != 0) {
                     g_oct_build_scratch[g_oct_build_count] =
                         static_cast<W8GDSurface*>(link->surface);
                     ++g_oct_build_count;
@@ -534,8 +533,7 @@ int W8OctBuildTree::CollectLeaf(W8OctBuildNode* node, short depth, short kind)
         }
         for (link = node->links[kind]; link != 0; link = link->next) {
             if (CollectSurfacePredicate(static_cast<W8GDSurface*>(link->surface), kind) != 0) {
-                g_oct_build_scratch[g_oct_build_count] =
-                    static_cast<W8GDSurface*>(link->surface);
+                g_oct_build_scratch[g_oct_build_count] = static_cast<W8GDSurface*>(link->surface);
                 ++g_oct_build_count;
                 ++collected;
             }

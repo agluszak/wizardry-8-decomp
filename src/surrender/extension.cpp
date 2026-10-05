@@ -16,8 +16,8 @@ void srExtension::dumpAll(std::ostream& stream)
     srStreamPrintf(stream, "Handle      Extension Name        Description\n");
     srStreamPrintf(stream, "------------------------------------------------------------------\n");
     for (srExtension* extension = firstExt; extension != 0; extension = extension->next) {
-        srStreamPrintf(stream, "%08x    %-20s  %s\n", extension->module,
-                       extension->getName(), extension->getDescription());
+        srStreamPrintf(stream, "%08x    %-20s  %s\n", extension->module, extension->getName(),
+                       extension->getDescription());
     }
 }
 
@@ -69,8 +69,7 @@ void srExtension::releaseAll()
 }
 
 // FUNCTION: SURRENDER 0x10013990
-srExtension::srExtension(const char* name)
-    : module(0), previous(0), next(firstExt)
+srExtension::srExtension(const char* name) : module(0), previous(0), next(firstExt)
 {
     if (firstExt != 0) {
         firstExt->previous = this;
@@ -80,8 +79,7 @@ srExtension::srExtension(const char* name)
     if (name != 0 && *name != '\0') {
         this->name = new char[strlen(name) + 1];
         strcpy(this->name, name);
-    }
-    else {
+    } else {
         this->name = 0;
     }
     plugin = 0;
@@ -103,7 +101,10 @@ srExtension::~srExtension()
     delete plugin;
     if (module != 0 && !srDynamicLibrary::free(module)) {
         char message[512];
-        sprintf(message, "srExtension::~srExtension() -- call to srDynamicLibrary::free() failed for extension '%s'!!\n", getName());
+        sprintf(message,
+                "srExtension::~srExtension() -- call to srDynamicLibrary::free() failed for "
+                "extension '%s'!!\n",
+                getName());
         srDebugPrintf(0, message);
     }
     if (name != 0) {
@@ -134,44 +135,51 @@ srExtension* srExtension::load(const char* name, const char* path)
     char filename[512];
     if (path != 0) {
         sprintf(filename, "%s/srEXT_%s", path, name);
-    }
-    else {
+    } else {
         sprintf(filename, "srEXT_%s", name);
     }
     srDynamicLibrary::Compatibility compatibility = srDynamicLibrary::checkCompatibility(filename);
     if (compatibility == srDynamicLibrary::COMPATIBILITY_0 ||
         compatibility == srDynamicLibrary::COMPATIBILITY_1) {
         char message[512];
-        sprintf(message, compatibility == srDynamicLibrary::COMPATIBILITY_0
-                    ? "srExtension::load() -- cannot load extension file '%s'\n"
-                    : "srExtension::load() -- incompatible version number for extension file '%s'\n",
-                filename);
+        sprintf(
+            message,
+            compatibility == srDynamicLibrary::COMPATIBILITY_0
+                ? "srExtension::load() -- cannot load extension file '%s'\n"
+                : "srExtension::load() -- incompatible version number for extension file '%s'\n",
+            filename);
         srDebugPrintf(0, message);
         return 0;
     }
     void* module = srDynamicLibrary::load(filename);
     if (module == 0) {
         char message[512];
-        sprintf(message, "srExtension::load() -- srDynamicLibrary::load() failed for file '%s'\n", filename);
+        sprintf(message, "srExtension::load() -- srDynamicLibrary::load() failed for file '%s'\n",
+                filename);
         srDebugPrintf(0, message);
         return 0;
     }
     srInitPluginCdeclFn init_plugin = reinterpret_cast<srInitPluginCdeclFn>(
         srDynamicLibrary::getFunction(module, "srInitPlugin"));
     if (init_plugin == 0) {
-        srDebugPrintf(0, "srExtension::load() -- getProcAddress('srInitPlugin') failed for file '%s' -- not a valid SurRender plugin DLL!!\n", filename);
+        srDebugPrintf(0,
+                      "srExtension::load() -- getProcAddress('srInitPlugin') failed for file '%s' "
+                      "-- not a valid SurRender plugin DLL!!\n",
+                      filename);
         srDynamicLibrary::free(module);
         return 0;
     }
     srPlugin* plugin = init_plugin();
     if (plugin == 0) {
-        srDebugPrintf(0, "srExtension::load() -  extension initialization failed for file '%s'\n", filename);
+        srDebugPrintf(0, "srExtension::load() -  extension initialization failed for file '%s'\n",
+                      filename);
         srDynamicLibrary::free(module);
         return 0;
     }
     extension = new srExtension(name);
     extension->plugin = plugin;
     extension->module = static_cast<HMODULE>(module);
-    srDebugPrintf(5, "srExtension::load() -- SurRender extension '%s' initialized.\n", extension->getName());
+    srDebugPrintf(5, "srExtension::load() -- SurRender extension '%s' initialized.\n",
+                  extension->getName());
     return extension;
 }

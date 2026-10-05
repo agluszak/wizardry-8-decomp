@@ -196,10 +196,8 @@ bool PointInsideBounds(const srVector3T<float>* point, const srVector3T<float>* 
 
 /* Per-axis overlap test for two axis-aligned bounds. */
 // FUNCTION: WIZ8 0x004BE8D0
-bool BoundsOverlap(const srVector3T<float>* first_minimum,
-                            const srVector3T<float>* first_maximum,
-                            const srVector3T<float>* second_minimum,
-                            const srVector3T<float>* second_maximum)
+bool BoundsOverlap(const srVector3T<float>* first_minimum, const srVector3T<float>* first_maximum,
+                   const srVector3T<float>* second_minimum, const srVector3T<float>* second_maximum)
 {
     if (first_maximum->x >= second_minimum->x && second_maximum->x >= first_minimum->x &&
         first_maximum->y >= second_minimum->y && second_maximum->y >= first_minimum->y &&

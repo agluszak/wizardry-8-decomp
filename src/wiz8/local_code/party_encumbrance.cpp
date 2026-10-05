@@ -23,7 +23,6 @@
 #include "wiz8/local_code/Gameloop.h"
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
 
-
 /* Party encumbrance redistribution. Live query: 0x004ED9D0 is a gap between
    Local Code\Combat.cpp (upper 0x004ED390) and Local Code\GameplayCode.cpp
    (lower 0x004EE000). Not a Combat tail and not an invisible named unit. */
@@ -90,8 +89,8 @@ void RecalculateCharacterDerivedStats(W8Character* character)
     }
     character->total_carried_weight = character->party_weight_share + character->inventory_weight;
 
-    unsigned int load =
-        static_cast<unsigned int>(character->total_carried_weight * 100) / character->carrying_capacity;
+    unsigned int load = static_cast<unsigned int>(character->total_carried_weight * 100) /
+                        character->carrying_capacity;
     if (load < 0x32) {
         character->load_category = W8_LOAD_NONE;
     } else if (load < 0x46) {

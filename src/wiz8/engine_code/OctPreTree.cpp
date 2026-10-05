@@ -97,8 +97,7 @@ void OctPreTree::CollectLeafPolygons(const srVector3T<int>* cell)
     m_gd_result_count = 0;
     unsigned int leaf_index = LeafIndexForCell(cell);
     if (leaf_index != 0 && m_leaves[leaf_index].polygon_offset != 0) {
-        const unsigned long* stream =
-            m_polygon_index_stream + m_leaves[leaf_index].polygon_offset;
+        const unsigned long* stream = m_polygon_index_stream + m_leaves[leaf_index].polygon_offset;
         for (int remaining = *stream; remaining != 0; --remaining) {
             ++stream;
             if (!m_visited_polygon_bits->Set(*stream)) {
@@ -590,8 +589,7 @@ OctMeshModel* OctPreTree::CreateSubMeshes(W8OctPreTreeGeometry* geometry)
                                 geometry->m_polygons[id].plane.normal.y;
                             model->m_poly_equations[polygon].z =
                                 geometry->m_polygons[id].plane.normal.z;
-                            model->m_poly_equations[polygon].w =
-                                geometry->m_polygons[id].plane.w;
+                            model->m_poly_equations[polygon].w = geometry->m_polygons[id].plane.w;
                         }
                         model->m_material_index =
                             geometry->m_vertices[record->m_vertex_ids[0]].m_material;
@@ -1197,7 +1195,7 @@ unsigned char OctPreTree::BuildPathLists(W8GameData* game_data, W8LevelFile* lev
     m_visited_object_bits = new BitArray(m_spatial.m_item_count + 0x14);
     pre_pathing = new PrePathing;
     pre_pathing->SnapNamedPositions(level->pNamedPositions, level->nNamedPositions,
-                                        min_component_percent, this);
+                                    min_component_percent, this);
     ReportBuildStatus(6, "\nBuilding Path Lists:\n=======================\n");
     path_node_extent = m_region_cell + m_region_cell;
     float level_height = (m_spatial.m_maximum.y - m_spatial.m_minimum.y) * g_path_span_scale;
@@ -1408,8 +1406,7 @@ unsigned char OctPreTree::InsertConditionalNodes(W8HashTable<unsigned int, CondP
         bool found = false;
         for (int p = 0; p < preprop_count && !found; ++p) {
             W8PreProp* pp = preprops + p;
-            if (pp->num_stop_meshes != 0 &&
-                static_cast<int>(pp->first_prop_number) <= prop_id &&
+            if (pp->num_stop_meshes != 0 && static_cast<int>(pp->first_prop_number) <= prop_id &&
                 prop_id < static_cast<int>(pp->first_prop_number + pp->num_stop_meshes)) {
                 unsigned int key =
                     (static_cast<unsigned int>(
@@ -1438,8 +1435,7 @@ unsigned char OctPreTree::InsertConditionalNodes(W8HashTable<unsigned int, CondP
         bool found = false;
         for (int p2 = 0; p2 < preprop_count && !found; ++p2) {
             W8PreProp* pp = preprops + p2;
-            if (pp->num_stop_meshes != 0 &&
-                static_cast<int>(pp->first_prop_number) <= prop_id &&
+            if (pp->num_stop_meshes != 0 && static_cast<int>(pp->first_prop_number) <= prop_id &&
                 prop_id < static_cast<int>(pp->first_prop_number + pp->num_stop_meshes)) {
                 unsigned int key =
                     (static_cast<unsigned int>(

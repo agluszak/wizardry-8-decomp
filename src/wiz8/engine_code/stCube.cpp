@@ -255,8 +255,8 @@ void MoveWorldCursorNode(W8WorldCursorNode* entry, srVector3T<float>* position)
     }
     if (entry->node != 0) {
         entry->node->setLocation(srVector3T<double>(static_cast<double>(location.x),
-                                                       static_cast<double>(location.y),
-                                                       static_cast<double>(location.z)));
+                                                    static_cast<double>(location.y),
+                                                    static_cast<double>(location.z)));
     }
 }
 

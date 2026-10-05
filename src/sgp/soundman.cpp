@@ -3,6 +3,7 @@
    Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
    Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
    Restore the Wizardry fade-volume and music-flag bookkeeping when samples start.
+   Formatting normalized for the Wizardry 8 reconstruction, 2026-10-06.
    Distributed under the accompanying SFI Source Code license agreement. */
 /*********************************************************************************
 * SGP Digital Sound Module
@@ -24,163 +25,154 @@
 // Uncomment this to disable the startup of sound hardware
 //#define SOUND_DISABLE
 
-#pragma pack(push,1)
+#pragma pack(push, 1)
 
 // WAV file chunk definitions
 typedef struct {
-				// General chunk header
-				CHAR8				cTag[4];
-				UINT32			uiChunkSize;
-				} WAVCHUNK;
+    // General chunk header
+    CHAR8 cTag[4];
+    UINT32 uiChunkSize;
+} WAVCHUNK;
 
 typedef struct {
-				// WAV header
-				CHAR8				cRiff[4];				// "RIFF"
-				UINT32			uiChunkSize;		// Chunk length
-				CHAR8				cFileType[4];		// "WAVE"
-				} WAVRIFF;
+    // WAV header
+    CHAR8 cRiff[4];     // "RIFF"
+    UINT32 uiChunkSize; // Chunk length
+    CHAR8 cFileType[4]; // "WAVE"
+} WAVRIFF;
 
 typedef struct {
-				// FMT chunk
-				CHAR8				cFormat[4];			// "FMT "
-				UINT32			uiChunkSize;		// Chunk length
-				UINT16			uiStereo;				// 1 if stereo, 0 if mono (Not reliable, use channels instead)
-				UINT16			uiChannels;			// number of channels used 1=mono, 2=stereo, etc.
-				UINT32			uiSpeed;				// Sampling Rate (speed)
-				UINT32			uiBytesSec;			// Number of bytes per sec
-				UINT16			uiBytesSample;	// Number of bytes per sample (1 = 8 bit mono,
-																		// 2 = 8 bit stereo or 16 bit mono, 4 = 16 bit stereo
-				UINT16			uiBitsSample;		// bits per sample
-				} WAVFMT;
+    // FMT chunk
+    CHAR8 cFormat[4];     // "FMT "
+    UINT32 uiChunkSize;   // Chunk length
+    UINT16 uiStereo;      // 1 if stereo, 0 if mono (Not reliable, use channels instead)
+    UINT16 uiChannels;    // number of channels used 1=mono, 2=stereo, etc.
+    UINT32 uiSpeed;       // Sampling Rate (speed)
+    UINT32 uiBytesSec;    // Number of bytes per sec
+    UINT16 uiBytesSample; // Number of bytes per sample (1 = 8 bit mono,
+                          // 2 = 8 bit stereo or 16 bit mono, 4 = 16 bit stereo
+    UINT16 uiBitsSample;  // bits per sample
+} WAVFMT;
 
 typedef struct {
-				// Data chunk
-				CHAR8				cName[4];				// "DATA"
-				UINT32			uiChunkSize;		// Chunk length
-				} WAVDATA;
+    // Data chunk
+    CHAR8 cName[4];     // "DATA"
+    UINT32 uiChunkSize; // Chunk length
+} WAVDATA;
 
 #pragma pack(pop)
 
-#define	WAV_CHUNK_RIFF					0
-#define	WAV_CHUNK_FMT						1
-#define WAV_CHUNK_DATA					2
+#define WAV_CHUNK_RIFF 0
+#define WAV_CHUNK_FMT 1
+#define WAV_CHUNK_DATA 2
 
-#define NUM_WAV_CHUNKS	3
+#define NUM_WAV_CHUNKS 3
 
-CHAR8	*cWAVChunks[3]={"RIFF", "FMT ", "DATA"};
-
+CHAR8* cWAVChunks[3] = {"RIFF", "FMT ", "DATA"};
 
 // global settings
-#define		SOUND_MAX_CACHED			128						// number of cache slots
+#define SOUND_MAX_CACHED 128 // number of cache slots
 
-#define		SOUND_MAX_CHANNELS		32						// number of mixer channels
+#define SOUND_MAX_CHANNELS 32 // number of mixer channels
 
 #pragma message("TEMP!")
 
-#define		SOUND_DEFAULT_MEMORY	(8048*1024)		// default memory limit
-#define		SOUND_DEFAULT_THRESH	(256*8024)		// size for sample to be double-buffered
-#define		SOUND_DEFAULT_STREAM	(64*1024)			// double-buffered buffer size
+#define SOUND_DEFAULT_MEMORY (8048 * 1024) // default memory limit
+#define SOUND_DEFAULT_THRESH (256 * 8024)  // size for sample to be double-buffered
+#define SOUND_DEFAULT_STREAM (64 * 1024)   // double-buffered buffer size
 
 /*#define		SOUND_DEFAULT_MEMORY	(2048*1024)		// default memory limit
 #define		SOUND_DEFAULT_THRESH	(256*1024)		// size for sample to be double-buffered
 #define		SOUND_DEFAULT_STREAM	(64*1024)			// double-buffered buffer size
 */
 // playing/random value to indicate default
-#define		SOUND_PARMS_DEFAULT		0xffffffff
+#define SOUND_PARMS_DEFAULT 0xffffffff
 
 // Sound status flags
-#define		SOUND_CALLBACK				0x00000008
-
+#define SOUND_CALLBACK 0x00000008
 
 // Local Function Prototypes
-BOOLEAN		SoundInitCache(void);
-UINT32		SoundLoadSample(STR pFilename);
-UINT32		SoundGetCached(STR pFilename);
-UINT32		SoundLoadDisk(STR pFilename);
+BOOLEAN SoundInitCache(void);
+UINT32 SoundLoadSample(STR pFilename);
+UINT32 SoundGetCached(STR pFilename);
+UINT32 SoundLoadDisk(STR pFilename);
 
 // Low level
-UINT32		SoundGetEmptySample(void);
-UINT32		SoundFreeSampleIndex(UINT32 uiSample);
-UINT32		SoundGetIndexByID(UINT32 uiSoundID);
+UINT32 SoundGetEmptySample(void);
+UINT32 SoundFreeSampleIndex(UINT32 uiSample);
+UINT32 SoundGetIndexByID(UINT32 uiSoundID);
 static HDIGDRIVER SoundInitDriver(UINT32 uiRate, UINT16 uiBits, UINT16 uiChans);
-BOOLEAN		SoundInitHardware(void);
-BOOLEAN		SoundGetDriverName(HDIGDRIVER DIG, CHAR8 *cBuf);
-UINT32		SoundGetFreeChannel(void);
-UINT32		SoundStartSample(UINT32 uiSample, UINT32 uiChannel, SOUNDPARMS *pParms);
-UINT32		SoundStartStream(STR pFilename, UINT32 uiChannel, SOUNDPARMS *pParms);
-UINT32		SoundGetUniqueID(void);
-BOOLEAN		SoundPlayStreamed(STR pFilename);
+BOOLEAN SoundInitHardware(void);
+BOOLEAN SoundGetDriverName(HDIGDRIVER DIG, CHAR8* cBuf);
+UINT32 SoundGetFreeChannel(void);
+UINT32 SoundStartSample(UINT32 uiSample, UINT32 uiChannel, SOUNDPARMS* pParms);
+UINT32 SoundStartStream(STR pFilename, UINT32 uiChannel, SOUNDPARMS* pParms);
+UINT32 SoundGetUniqueID(void);
+BOOLEAN SoundPlayStreamed(STR pFilename);
 void SoundResetChannel(UINT32 channel);
-BOOLEAN		SoundCleanCache(void);
-BOOLEAN		SoundSampleIsPlaying(UINT32 uiSample);
-BOOLEAN		SoundIndexIsPlaying(UINT32 uiSound);
-BOOLEAN		SoundStopIndex(UINT32 uiSound);
-UINT32		SoundGetVolumeIndex(UINT32 uiChannel);
-BOOLEAN		SoundSetVolumeIndex(UINT32 uiChannel, UINT32 uiVolume);
+BOOLEAN SoundCleanCache(void);
+BOOLEAN SoundSampleIsPlaying(UINT32 uiSample);
+BOOLEAN SoundIndexIsPlaying(UINT32 uiSound);
+BOOLEAN SoundStopIndex(UINT32 uiSound);
+UINT32 SoundGetVolumeIndex(UINT32 uiChannel);
+BOOLEAN SoundSetVolumeIndex(UINT32 uiChannel, UINT32 uiVolume);
 
 // Global variables
 // GLOBAL: WIZ8 0x005ff644
-UINT32		guiSoundDefaultVolume = 127;
+UINT32 guiSoundDefaultVolume = 127;
 // GLOBAL: WIZ8 0x005ff648
-UINT32		guiSoundMemoryLimit=SOUND_DEFAULT_MEMORY;			// Maximum memory used for sounds
+UINT32 guiSoundMemoryLimit = SOUND_DEFAULT_MEMORY; // Maximum memory used for sounds
 // GLOBAL: WIZ8 0x00650e4c
-UINT32		guiSoundMemoryUsed=0;													// Memory currently in use
+UINT32 guiSoundMemoryUsed = 0; // Memory currently in use
 // GLOBAL: WIZ8 0x005ff64c
-UINT32		guiSoundCacheThreshold=SOUND_DEFAULT_THRESH;	// Double-buffered threshold
+UINT32 guiSoundCacheThreshold = SOUND_DEFAULT_THRESH; // Double-buffered threshold
 
 // GLOBAL: WIZ8 0x006e4104
-HDIGDRIVER hSoundDriver;																// Sound driver handle
+HDIGDRIVER hSoundDriver; // Sound driver handle
 // GLOBAL: WIZ8 0x005ff650
-BOOLEAN		fDirectSound=TRUE;														// Using Direct Sound
+BOOLEAN fDirectSound = TRUE; // Using Direct Sound
 
 // Local module variables
 // GLOBAL: WIZ8 0x00650e50
-BOOLEAN		fSoundSystemInit=FALSE;												// Startup called T/F
+BOOLEAN fSoundSystemInit = FALSE; // Startup called T/F
 // GLOBAL: WIZ8 0x005ff651
-BOOLEAN		gfEnableStartup=TRUE;													// Allow hardware to starup
+BOOLEAN gfEnableStartup = TRUE; // Allow hardware to starup
 
 // Sample cache list for files loaded
 // GLOBAL: WIZ8 0x006e4aa0
-SAMPLETAG	pSampleList[SOUND_MAX_CACHED];
+SAMPLETAG pSampleList[SOUND_MAX_CACHED];
 // Sound channel list for output channels
 // GLOBAL: WIZ8 0x006e4120
-SOUNDTAG	pSoundList[SOUND_MAX_CHANNELS];
+SOUNDTAG pSoundList[SOUND_MAX_CHANNELS];
 
 // 3D sound globals
 // GLOBAL: WIZ8 0x00650e54
-CHAR8				*gpProviderName=NULL;
+CHAR8* gpProviderName = NULL;
 // GLOBAL: WIZ8 0x00650e58
-HPROVIDER		gh3DProvider=0;
+HPROVIDER gh3DProvider = 0;
 // GLOBAL: WIZ8 0x00650e5c
-H3DPOBJECT	gh3DListener=0;
+H3DPOBJECT gh3DListener = 0;
 // GLOBAL: WIZ8 0x005ff652
-BOOLEAN			gfUsingEAX=TRUE;
+BOOLEAN gfUsingEAX = TRUE;
 // GLOBAL: WIZ8 0x00650e60
-UINT32			guiRoomTypeIndex=0;
+UINT32 guiRoomTypeIndex = 0;
 
 // GLOBAL: WIZ8 0x005ff654
-CHAR8* pEAXRoomTypes[EAXROOMTYPE_NUM_TYPES] =
-{
-	// None
-	"PLAIN",
+CHAR8* pEAXRoomTypes[EAXROOMTYPE_NUM_TYPES] = {
+    // None
+    "PLAIN",
 
-	// S,M,L Cave
-	"STONECORRIDOR",
-	"CAVE",
-	"CONCERTHALL",
+    // S,M,L Cave
+    "STONECORRIDOR", "CAVE", "CONCERTHALL",
 
-	// S,M,L Room
-	"LIVINGROOM",
-	"ROOM",
-	"AUDITORIUM",
+    // S,M,L Room
+    "LIVINGROOM", "ROOM", "AUDITORIUM",
 
-	// Flat open, valley
-	"CITY",
-	"MOUNTAINS",
+    // Flat open, valley
+    "CITY", "MOUNTAINS",
 
-	// Swimming
-	"UNDERWATER"
-};
+    // Swimming
+    "UNDERWATER"};
 
 //*******************************************************************************
 // High Level Interface
@@ -197,9 +189,8 @@ CHAR8* pEAXRoomTypes[EAXROOMTYPE_NUM_TYPES] =
 // FUNCTION: WIZ8 0x004086c0
 void SoundEnableSound(BOOLEAN fEnable)
 {
-	gfEnableStartup=fEnable;
+    gfEnableStartup = fEnable;
 }
-
 
 //*******************************************************************************
 // InitializeSoundManager
@@ -213,25 +204,25 @@ void SoundEnableSound(BOOLEAN fEnable)
 BOOLEAN InitializeSoundManager(void)
 {
 
-	if(fSoundSystemInit)
-		ShutdownSoundManager();
+    if (fSoundSystemInit)
+        ShutdownSoundManager();
 
-	memset(pSoundList, 0, sizeof(pSoundList));
+    memset(pSoundList, 0, sizeof(pSoundList));
 
 #ifndef SOUND_DISABLE
-	if(gfEnableStartup && SoundInitHardware())
-		fSoundSystemInit=TRUE;
+    if (gfEnableStartup && SoundInitHardware())
+        fSoundSystemInit = TRUE;
 #endif
 
-	guiSoundMemoryLimit=SOUND_DEFAULT_MEMORY;
-	SoundInitCache();
-	guiSoundMemoryUsed=0;
-	guiSoundCacheThreshold=SOUND_DEFAULT_THRESH;
+    guiSoundMemoryLimit = SOUND_DEFAULT_MEMORY;
+    SoundInitCache();
+    guiSoundMemoryUsed = 0;
+    guiSoundCacheThreshold = SOUND_DEFAULT_THRESH;
 
-	if(gpProviderName && !gh3DProvider)
-		Sound3DInitProvider(gpProviderName);
+    if (gpProviderName && !gh3DProvider)
+        Sound3DInitProvider(gpProviderName);
 
-	return(TRUE);
+    return (TRUE);
 }
 
 //*******************************************************************************
@@ -265,54 +256,45 @@ void ShutdownSoundManager(void)
 //*******************************************************************************
 
 // FUNCTION: WIZ8 0x00408860
-UINT32 SoundPlay(STR pFilename, SOUNDPARMS *pParms)
+UINT32 SoundPlay(STR pFilename, SOUNDPARMS* pParms)
 {
-	UINT32 uiSample, uiChannel;
-	CHAR8 filename[260];
+    UINT32 uiSample, uiChannel;
+    CHAR8 filename[260];
 
-	if( fSoundSystemInit )
-	{
-		if( !SoundPlayStreamed(pFilename) )
-		{
-			strcpy(filename, pFilename);
-			strupr(filename);
-			if (!FileExists(filename))
-			{
-				if (strstr(filename, ".WAV"))
-				{
-					filename[strlen(filename) - 4] = 0;
-					strcat(filename, ".MP3");
-				}
-				else if (strstr(filename, ".MP3"))
-				{
-					filename[strlen(filename) - 4] = 0;
-					strcat(filename, ".WAV");
-				}
-			}
-			if((uiSample=SoundLoadSample(filename))!=NO_SAMPLE)
-			{
-				if((uiChannel=SoundGetFreeChannel())!=SOUND_ERROR)
-				{
-					return(SoundStartSample(uiSample, uiChannel, pParms));
-				}
-			}
-		}
-		else
-		{
-			//Trying to play a sound which is bigger then the 'guiSoundCacheThreshold'
+    if (fSoundSystemInit) {
+        if (!SoundPlayStreamed(pFilename)) {
+            strcpy(filename, pFilename);
+            strupr(filename);
+            if (!FileExists(filename)) {
+                if (strstr(filename, ".WAV")) {
+                    filename[strlen(filename) - 4] = 0;
+                    strcat(filename, ".MP3");
+                } else if (strstr(filename, ".MP3")) {
+                    filename[strlen(filename) - 4] = 0;
+                    strcat(filename, ".WAV");
+                }
+            }
+            if ((uiSample = SoundLoadSample(filename)) != NO_SAMPLE) {
+                if ((uiChannel = SoundGetFreeChannel()) != SOUND_ERROR) {
+                    return (SoundStartSample(uiSample, uiChannel, pParms));
+                }
+            }
+        } else {
+            //Trying to play a sound which is bigger then the 'guiSoundCacheThreshold'
 
-			// This line was causing a page fault in the Wiz 8 project, so
-			// I changed it to the second line, which works OK. -- DB
+            // This line was causing a page fault in the Wiz 8 project, so
+            // I changed it to the second line, which works OK. -- DB
 
-			//DebugMsg( TOPIC_JA2, DBG_LEVEL_3, String("\n*******\nSoundPlay():  ERROR:  trying to play %s which is bigger then the 'guiSoundCacheThreshold', use SoundPlayStreamedFile() instead\n", pFilename ) );
+            //DebugMsg( TOPIC_JA2, DBG_LEVEL_3, String("\n*******\nSoundPlay():  ERROR:  trying to play %s which is bigger then the 'guiSoundCacheThreshold', use SoundPlayStreamedFile() instead\n", pFilename ) );
 
-			FastDebugMsg(String("SoundPlay: ERROR: Trying to play %s sound is too lardge to load into cache, use SoundPlayStreamedFile() instead\n", pFilename ) );
-		}
-	}
+            FastDebugMsg(String("SoundPlay: ERROR: Trying to play %s sound is too lardge to load "
+                                "into cache, use SoundPlayStreamedFile() instead\n",
+                                pFilename));
+        }
+    }
 
-	return(SOUND_ERROR);
+    return (SOUND_ERROR);
 }
-
 
 //*******************************************************************************
 // SoundPlayStreamedFile
@@ -328,76 +310,71 @@ UINT32 SoundPlay(STR pFilename, SOUNDPARMS *pParms)
 //
 //*******************************************************************************
 // FUNCTION: WIZ8 0x00408ad0
-UINT32	SoundPlayStreamedFile( STR pFilename, SOUNDPARMS *pParms )
+UINT32 SoundPlayStreamedFile(STR pFilename, SOUNDPARMS* pParms)
 {
-	UINT32	uiChannel;
-	HANDLE	hRealFileHandle;
-	CHAR8		pFileHandlefileName[ 128 ];
-	CHAR8 filename[260];
-	HWFILE	hFile;
-	UINT32	uiRetVal=FALSE;
+    UINT32 uiChannel;
+    HANDLE hRealFileHandle;
+    CHAR8 pFileHandlefileName[128];
+    CHAR8 filename[260];
+    HWFILE hFile;
+    UINT32 uiRetVal = FALSE;
 
-	if( fSoundSystemInit )
-	{
-		if((uiChannel=SoundGetFreeChannel())!=SOUND_ERROR)
-		{
-			strcpy(filename, pFilename);
-			strupr(filename);
-			if (!FileExists(filename))
-			{
-				if (strstr(filename, ".WAV"))
-				{
-					filename[strlen(filename) - 4] = 0;
-					strcat(filename, ".MP3");
-				}
-				else if (strstr(filename, ".MP3"))
-				{
-					filename[strlen(filename) - 4] = 0;
-					strcat(filename, ".WAV");
-				}
-			}
-			//Open the file
-			hFile = FileOpen( filename, FILE_ACCESS_READ | FILE_OPEN_EXISTING, FALSE );
-			if( !hFile )
-			{
-				FastDebugMsg(String("\n*******\nSoundPlayStreamedFile():  ERROR:  Couldnt open '%s' in SoundPlayStreamedFile()\n", pFilename ) );
-				return( SOUND_ERROR );
-			}
+    if (fSoundSystemInit) {
+        if ((uiChannel = SoundGetFreeChannel()) != SOUND_ERROR) {
+            strcpy(filename, pFilename);
+            strupr(filename);
+            if (!FileExists(filename)) {
+                if (strstr(filename, ".WAV")) {
+                    filename[strlen(filename) - 4] = 0;
+                    strcat(filename, ".MP3");
+                } else if (strstr(filename, ".MP3")) {
+                    filename[strlen(filename) - 4] = 0;
+                    strcat(filename, ".WAV");
+                }
+            }
+            //Open the file
+            hFile = FileOpen(filename, FILE_ACCESS_READ | FILE_OPEN_EXISTING, FALSE);
+            if (!hFile) {
+                FastDebugMsg(String("\n*******\nSoundPlayStreamedFile():  ERROR:  Couldnt open "
+                                    "'%s' in SoundPlayStreamedFile()\n",
+                                    pFilename));
+                return (SOUND_ERROR);
+            }
 
-			// MSS cannot determine which provider to play if you don't give it a real filename
-			// so if the file isn't in a library, play it normally
-			if(DB_EXTRACT_LIBRARY(hFile) == REAL_FILE_LIBRARY_ID)
-			{
-				FileClose(hFile);
-				return(SoundStartStream( filename, uiChannel, pParms));
-			}
+            // MSS cannot determine which provider to play if you don't give it a real filename
+            // so if the file isn't in a library, play it normally
+            if (DB_EXTRACT_LIBRARY(hFile) == REAL_FILE_LIBRARY_ID) {
+                FileClose(hFile);
+                return (SoundStartStream(filename, uiChannel, pParms));
+            }
 
-			//Get the real file handle of the file
-			hRealFileHandle = OpenLibraryStream( hFile );
-			FileClose( hFile );
-			if( hRealFileHandle == INVALID_HANDLE_VALUE )
-			{
-				FastDebugMsg(String("\n*******\nSoundPlayStreamedFile():  ERROR:  Couldnt get a real file handle for '%s' in SoundPlayStreamedFile()\n", pFilename ) );
-				return( SOUND_ERROR );
-			}
+            //Get the real file handle of the file
+            hRealFileHandle = OpenLibraryStream(hFile);
+            FileClose(hFile);
+            if (hRealFileHandle == INVALID_HANDLE_VALUE) {
+                FastDebugMsg(String("\n*******\nSoundPlayStreamedFile():  ERROR:  Couldnt get a "
+                                    "real file handle for '%s' in SoundPlayStreamedFile()\n",
+                                    pFilename));
+                return (SOUND_ERROR);
+            }
 
-			//Convert the file handle into a 'name'
-			sprintf( pFileHandlefileName, "\\\\\\\\%d", hRealFileHandle );
+            //Convert the file handle into a 'name'
+            sprintf(pFileHandlefileName, "\\\\\\\\%d", hRealFileHandle);
 
-			//Start the sound stream
-			uiRetVal = SoundStartStream( pFileHandlefileName, uiChannel, pParms);
+            //Start the sound stream
+            uiRetVal = SoundStartStream(pFileHandlefileName, uiChannel, pParms);
 
-			//if it succeeded, record the file handle
-			if( uiRetVal != SOUND_ERROR )
-				pSoundList[uiChannel].hFile = (HWFILE)hRealFileHandle;
-			else
-				CloseHandle( hRealFileHandle );
+            //if it succeeded, record the file handle
+            if (uiRetVal != SOUND_ERROR)
+                pSoundList[uiChannel].hFile = (HWFILE)hRealFileHandle;
+            else
+                CloseHandle(hRealFileHandle);
 
-			return( uiRetVal );
-		}
-	}
+            return (uiRetVal);
+        }
+    }
 
-	return(SOUND_ERROR);
+    return (SOUND_ERROR);
 }
 
 //*******************************************************************************
@@ -417,69 +394,69 @@ UINT32	SoundPlayStreamedFile( STR pFilename, SOUNDPARMS *pParms )
 //
 //*******************************************************************************
 // FUNCTION: WIZ8 0x00408d60
-UINT32 SoundPlayRandom(STR pFilename, RANDOMPARMS *pParms)
+UINT32 SoundPlayRandom(STR pFilename, RANDOMPARMS* pParms)
 {
-UINT32 uiSample, uiTicks;
+    UINT32 uiSample, uiTicks;
 
-	if(fSoundSystemInit)
-	{
-		if((uiSample=SoundLoadSample(pFilename))!=NO_SAMPLE)
-		{
-			pSampleList[uiSample].uiFlags|=(SAMPLE_RANDOM|SAMPLE_LOCKED);
+    if (fSoundSystemInit) {
+        if ((uiSample = SoundLoadSample(pFilename)) != NO_SAMPLE) {
+            pSampleList[uiSample].uiFlags |= (SAMPLE_RANDOM | SAMPLE_LOCKED);
 
-			if(pParms->uiTimeMin==SOUND_PARMS_DEFAULT)
-				return(SOUND_ERROR);
-			else
-				pSampleList[uiSample].uiTimeMin=pParms->uiTimeMin;
+            if (pParms->uiTimeMin == SOUND_PARMS_DEFAULT)
+                return (SOUND_ERROR);
+            else
+                pSampleList[uiSample].uiTimeMin = pParms->uiTimeMin;
 
-			if(pParms->uiTimeMax==SOUND_PARMS_DEFAULT)
-				pSampleList[uiSample].uiTimeMax=pParms->uiTimeMin;
-			else
-				pSampleList[uiSample].uiTimeMax=pParms->uiTimeMax;
+            if (pParms->uiTimeMax == SOUND_PARMS_DEFAULT)
+                pSampleList[uiSample].uiTimeMax = pParms->uiTimeMin;
+            else
+                pSampleList[uiSample].uiTimeMax = pParms->uiTimeMax;
 
-			pSampleList[uiSample].uiSpeedMin=pParms->uiSpeedMin;
+            pSampleList[uiSample].uiSpeedMin = pParms->uiSpeedMin;
 
-			pSampleList[uiSample].uiSpeedMax=pParms->uiSpeedMax;
+            pSampleList[uiSample].uiSpeedMax = pParms->uiSpeedMax;
 
-			if(pParms->uiVolMin==SOUND_PARMS_DEFAULT)
-				pSampleList[uiSample].uiVolMin=guiSoundDefaultVolume;
-			else
-				pSampleList[uiSample].uiVolMin=pParms->uiVolMin;
+            if (pParms->uiVolMin == SOUND_PARMS_DEFAULT)
+                pSampleList[uiSample].uiVolMin = guiSoundDefaultVolume;
+            else
+                pSampleList[uiSample].uiVolMin = pParms->uiVolMin;
 
-			if(pParms->uiVolMax==SOUND_PARMS_DEFAULT)
-				pSampleList[uiSample].uiVolMax=guiSoundDefaultVolume;
-			else
-				pSampleList[uiSample].uiVolMax=pParms->uiVolMax;
+            if (pParms->uiVolMax == SOUND_PARMS_DEFAULT)
+                pSampleList[uiSample].uiVolMax = guiSoundDefaultVolume;
+            else
+                pSampleList[uiSample].uiVolMax = pParms->uiVolMax;
 
-			if(pParms->uiPanMin==SOUND_PARMS_DEFAULT)
-				pSampleList[uiSample].uiPanMin=64;
-			else
-				pSampleList[uiSample].uiPanMin=pParms->uiPanMin;
+            if (pParms->uiPanMin == SOUND_PARMS_DEFAULT)
+                pSampleList[uiSample].uiPanMin = 64;
+            else
+                pSampleList[uiSample].uiPanMin = pParms->uiPanMin;
 
-			if(pParms->uiPanMax==SOUND_PARMS_DEFAULT)
-				pSampleList[uiSample].uiPanMax=64;
-			else
-				pSampleList[uiSample].uiPanMax=pParms->uiPanMax;
+            if (pParms->uiPanMax == SOUND_PARMS_DEFAULT)
+                pSampleList[uiSample].uiPanMax = 64;
+            else
+                pSampleList[uiSample].uiPanMax = pParms->uiPanMax;
 
-			if(pParms->uiMaxInstances==SOUND_PARMS_DEFAULT)
-				pSampleList[uiSample].uiMaxInstances=1;
-			else
-				pSampleList[uiSample].uiMaxInstances=pParms->uiMaxInstances;
+            if (pParms->uiMaxInstances == SOUND_PARMS_DEFAULT)
+                pSampleList[uiSample].uiMaxInstances = 1;
+            else
+                pSampleList[uiSample].uiMaxInstances = pParms->uiMaxInstances;
 
-			if(pParms->uiPriority==SOUND_PARMS_DEFAULT)
-				pSampleList[uiSample].uiPriority=PRIORITY_RANDOM;
-			else
-				pSampleList[uiSample].uiPriority=pParms->uiPriority;
+            if (pParms->uiPriority == SOUND_PARMS_DEFAULT)
+                pSampleList[uiSample].uiPriority = PRIORITY_RANDOM;
+            else
+                pSampleList[uiSample].uiPriority = pParms->uiPriority;
 
-			pSampleList[uiSample].uiInstances=0;
+            pSampleList[uiSample].uiInstances = 0;
 
-			uiTicks=GetTickCount();
-			pSampleList[uiSample].uiTimeNext=GetTickCount()+pSampleList[uiSample].uiTimeMin+Random(pSampleList[uiSample].uiTimeMax-pSampleList[uiSample].uiTimeMin);
-			return(uiSample);
-		}
-	}
+            uiTicks = GetTickCount();
+            pSampleList[uiSample].uiTimeNext =
+                GetTickCount() + pSampleList[uiSample].uiTimeMin +
+                Random(pSampleList[uiSample].uiTimeMax - pSampleList[uiSample].uiTimeMin);
+            return (uiSample);
+        }
+    }
 
-	return(SOUND_ERROR);
+    return (SOUND_ERROR);
 }
 
 //*******************************************************************************
@@ -491,18 +468,16 @@ UINT32 uiSample, uiTicks;
 // FUNCTION: WIZ8 0x00408ef0
 BOOLEAN SoundIsPlaying(UINT32 uiSoundID)
 {
-UINT32 uiSound;
+    UINT32 uiSound;
 
-	if(fSoundSystemInit)
-	{
-		uiSound=SoundGetIndexByID(uiSoundID);
-		if(uiSound!=NO_SAMPLE)
-			return(SoundIndexIsPlaying(uiSound));
-	}
+    if (fSoundSystemInit) {
+        uiSound = SoundGetIndexByID(uiSoundID);
+        if (uiSound != NO_SAMPLE)
+            return (SoundIndexIsPlaying(uiSound));
+    }
 
-	return(FALSE);
+    return (FALSE);
 }
-
 
 //*****************************************************************************************
 // SoundIndexIsPlaying
@@ -517,23 +492,22 @@ UINT32 uiSound;
 //*****************************************************************************************
 BOOLEAN SoundIndexIsPlaying(UINT32 uiSound)
 {
-INT32 iStatus=SMP_DONE;
+    INT32 iStatus = SMP_DONE;
 
-	if(fSoundSystemInit)
-	{
-		if(pSoundList[uiSound].hMSS!=NULL)
-			iStatus = AIL_sample_status(pSoundList[uiSound].hMSS);
+    if (fSoundSystemInit) {
+        if (pSoundList[uiSound].hMSS != NULL)
+            iStatus = AIL_sample_status(pSoundList[uiSound].hMSS);
 
-		if(pSoundList[uiSound].hMSSStream!=NULL)
-			iStatus = AIL_stream_status(pSoundList[uiSound].hMSSStream);
+        if (pSoundList[uiSound].hMSSStream != NULL)
+            iStatus = AIL_stream_status(pSoundList[uiSound].hMSSStream);
 
-		if(pSoundList[uiSound].hM3D!=NULL)
-			iStatus = AIL_3D_sample_status(pSoundList[uiSound].hM3D);
+        if (pSoundList[uiSound].hM3D != NULL)
+            iStatus = AIL_3D_sample_status(pSoundList[uiSound].hM3D);
 
-		return((iStatus!=SMP_DONE) && (iStatus!=SMP_STOPPED));
-	}
+        return ((iStatus != SMP_DONE) && (iStatus != SMP_STOPPED));
+    }
 
-	return(FALSE);
+    return (FALSE);
 }
 
 //*******************************************************************************
@@ -548,21 +522,18 @@ INT32 iStatus=SMP_DONE;
 // FUNCTION: WIZ8 0x00408f70
 BOOLEAN SoundStop(UINT32 uiSoundID)
 {
-UINT32 uiSound;
+    UINT32 uiSound;
 
-	if(fSoundSystemInit)
-	{
-		if(SoundIsPlaying(uiSoundID))
-		{
-			uiSound=SoundGetIndexByID(uiSoundID);
-			if(uiSound!=NO_SAMPLE)
-			{
-				SoundStopIndex(uiSound);
-				return(TRUE);
-			}
-		}
-	}
-	return(FALSE);
+    if (fSoundSystemInit) {
+        if (SoundIsPlaying(uiSoundID)) {
+            uiSound = SoundGetIndexByID(uiSoundID);
+            if (uiSound != NO_SAMPLE) {
+                SoundStopIndex(uiSound);
+                return (TRUE);
+            }
+        }
+    }
+    return (FALSE);
 }
 
 //*******************************************************************************
@@ -577,28 +548,23 @@ UINT32 uiSound;
 // FUNCTION: WIZ8 0x00409020
 BOOLEAN SoundStopGroup(UINT32 uiPriority)
 {
-UINT32 uiCount;
-BOOLEAN fStopped=FALSE;
+    UINT32 uiCount;
+    BOOLEAN fStopped = FALSE;
 
-	if(fSoundSystemInit)
-	{
-		for(uiCount=0; uiCount < SOUND_MAX_CHANNELS; uiCount++)
-		{
-			if((pSoundList[uiCount].hMSS!=NULL) || (pSoundList[uiCount].hMSSStream!=NULL) || (pSoundList[uiCount].hM3D!=NULL))
-			{
-				if(pSoundList[uiCount].uiPriority==uiPriority)
-				{
-					SoundStop(pSoundList[uiCount].uiSoundID);
-					fStopped=TRUE;
-				}
-			}
-		}
-	}
+    if (fSoundSystemInit) {
+        for (uiCount = 0; uiCount < SOUND_MAX_CHANNELS; uiCount++) {
+            if ((pSoundList[uiCount].hMSS != NULL) || (pSoundList[uiCount].hMSSStream != NULL) ||
+                (pSoundList[uiCount].hM3D != NULL)) {
+                if (pSoundList[uiCount].uiPriority == uiPriority) {
+                    SoundStop(pSoundList[uiCount].uiSoundID);
+                    fStopped = TRUE;
+                }
+            }
+        }
+    }
 
-	return(fStopped);
+    return (fStopped);
 }
-
-
 
 //*****************************************************************************************
 // SoundSetDefaultVolume
@@ -614,12 +580,8 @@ BOOLEAN fStopped=FALSE;
 // FUNCTION: WIZ8 0x00409120
 void SoundSetDefaultVolume(UINT32 uiVolume)
 {
-	guiSoundDefaultVolume=__min(uiVolume, 127);
+    guiSoundDefaultVolume = __min(uiVolume, 127);
 }
-
-
-
-
 
 //*****************************************************************************************
 // SoundSetFadeVolume
@@ -638,29 +600,27 @@ void SoundSetDefaultVolume(UINT32 uiVolume)
 // FUNCTION: WIZ8 0x00409140
 BOOLEAN SoundSetFadeVolume(UINT32 uiSoundID, UINT32 uiVolume, UINT32 uiRate, BOOLEAN fStopAtZero)
 {
-UINT32 uiSound, uiVolCap, uiVolumeDiff;
+    UINT32 uiSound, uiVolCap, uiVolumeDiff;
 
-	if(fSoundSystemInit)
-	{
-		uiVolCap=__min(uiVolume, 127);
+    if (fSoundSystemInit) {
+        uiVolCap = __min(uiVolume, 127);
 
-		if((uiSound=SoundGetIndexByID(uiSoundID))!=NO_SAMPLE)
-		{
-			uiVolumeDiff = abs(uiVolCap - SoundGetVolumeIndex(uiSound));
+        if ((uiSound = SoundGetIndexByID(uiSoundID)) != NO_SAMPLE) {
+            uiVolumeDiff = abs(uiVolCap - SoundGetVolumeIndex(uiSound));
 
-			if(!uiVolumeDiff)
-				return(FALSE);
+            if (!uiVolumeDiff)
+                return (FALSE);
 
-			pSoundList[uiSound].uiFadeVolume = uiVolCap;
-			pSoundList[uiSound].fStopAtZero = fStopAtZero;
-			pSoundList[uiSound].uiFadeRate = uiRate / uiVolumeDiff;
-			pSoundList[uiSound].uiFadeTime = GetTickCount();
+            pSoundList[uiSound].uiFadeVolume = uiVolCap;
+            pSoundList[uiSound].fStopAtZero = fStopAtZero;
+            pSoundList[uiSound].uiFadeRate = uiRate / uiVolumeDiff;
+            pSoundList[uiSound].uiFadeTime = GetTickCount();
 
-			return(TRUE);
-		}
-	}
+            return (TRUE);
+        }
+    }
 
-	return(FALSE);
+    return (FALSE);
 }
 
 //*******************************************************************************
@@ -675,22 +635,19 @@ UINT32 uiSound, uiVolCap, uiVolumeDiff;
 // FUNCTION: WIZ8 0x00409210
 BOOLEAN SoundSetVolume(UINT32 uiSoundID, UINT32 uiVolume)
 {
-UINT32 uiSound, uiVolCap;
+    UINT32 uiSound, uiVolCap;
 
-	if(fSoundSystemInit)
-	{
-		uiVolCap=__min(uiVolume, 127);
+    if (fSoundSystemInit) {
+        uiVolCap = __min(uiVolume, 127);
 
-		if((uiSound=SoundGetIndexByID(uiSoundID))!=NO_SAMPLE)
-		{
-			pSoundList[uiSound].uiFadeVolume = uiVolume;
-			return(SoundSetVolumeIndex(uiSound, uiVolume));
-		}
-	}
+        if ((uiSound = SoundGetIndexByID(uiSoundID)) != NO_SAMPLE) {
+            pSoundList[uiSound].uiFadeVolume = uiVolume;
+            return (SoundSetVolumeIndex(uiSound, uiVolume));
+        }
+    }
 
-	return(FALSE);
+    return (FALSE);
 }
-
 
 //*****************************************************************************************
 // SoundSetVolumeIndex
@@ -706,25 +663,24 @@ UINT32 uiSound, uiVolCap;
 //*****************************************************************************************
 BOOLEAN SoundSetVolumeIndex(UINT32 uiChannel, UINT32 uiVolume)
 {
-UINT32 uiVolCap;
+    UINT32 uiVolCap;
 
-	if(fSoundSystemInit)
-	{
-		uiVolCap=__min(uiVolume, 127);
+    if (fSoundSystemInit) {
+        uiVolCap = __min(uiVolume, 127);
 
-		if(pSoundList[uiChannel].hMSS!=NULL)
-			AIL_set_sample_volume(pSoundList[uiChannel].hMSS, uiVolCap);
+        if (pSoundList[uiChannel].hMSS != NULL)
+            AIL_set_sample_volume(pSoundList[uiChannel].hMSS, uiVolCap);
 
-		if(pSoundList[uiChannel].hMSSStream!=NULL)
-			AIL_set_stream_volume(pSoundList[uiChannel].hMSSStream, uiVolCap);
+        if (pSoundList[uiChannel].hMSSStream != NULL)
+            AIL_set_stream_volume(pSoundList[uiChannel].hMSSStream, uiVolCap);
 
-		if(pSoundList[uiChannel].hM3D!=NULL)
-			AIL_set_3D_sample_volume(pSoundList[uiChannel].hM3D, uiVolCap);
+        if (pSoundList[uiChannel].hM3D != NULL)
+            AIL_set_3D_sample_volume(pSoundList[uiChannel].hM3D, uiVolCap);
 
-		return(TRUE);
-	}
+        return (TRUE);
+    }
 
-	return(FALSE);
+    return (FALSE);
 }
 
 //*******************************************************************************
@@ -737,17 +693,15 @@ UINT32 uiVolCap;
 // FUNCTION: WIZ8 0x004092a0
 UINT32 SoundGetVolume(UINT32 uiSoundID)
 {
-UINT32 uiSound;
+    UINT32 uiSound;
 
-	if(fSoundSystemInit)
-	{
-		if((uiSound=SoundGetIndexByID(uiSoundID))!=NO_SAMPLE)
-			return(SoundGetVolumeIndex(uiSound));
-	}
+    if (fSoundSystemInit) {
+        if ((uiSound = SoundGetIndexByID(uiSoundID)) != NO_SAMPLE)
+            return (SoundGetVolumeIndex(uiSound));
+    }
 
-	return(SOUND_ERROR);
+    return (SOUND_ERROR);
 }
-
 
 //*****************************************************************************************
 // SoundGetVolumeIndex
@@ -762,19 +716,18 @@ UINT32 uiSound;
 //*****************************************************************************************
 UINT32 SoundGetVolumeIndex(UINT32 uiChannel)
 {
-	if(fSoundSystemInit)
-	{
-		if(pSoundList[uiChannel].hMSS!=NULL)
-			return((UINT32)AIL_sample_volume(pSoundList[uiChannel].hMSS));
+    if (fSoundSystemInit) {
+        if (pSoundList[uiChannel].hMSS != NULL)
+            return ((UINT32)AIL_sample_volume(pSoundList[uiChannel].hMSS));
 
-		if(pSoundList[uiChannel].hMSSStream!=NULL)
-			return((UINT32)AIL_stream_volume(pSoundList[uiChannel].hMSSStream));
+        if (pSoundList[uiChannel].hMSSStream != NULL)
+            return ((UINT32)AIL_stream_volume(pSoundList[uiChannel].hMSSStream));
 
-		if(pSoundList[uiChannel].hM3D!=NULL)
-			return((UINT32)AIL_3D_sample_volume(pSoundList[uiChannel].hM3D));
-	}
+        if (pSoundList[uiChannel].hM3D != NULL)
+            return ((UINT32)AIL_3D_sample_volume(pSoundList[uiChannel].hM3D));
+    }
 
-	return(SOUND_ERROR);
+    return (SOUND_ERROR);
 }
 
 //*******************************************************************************
@@ -793,15 +746,15 @@ UINT32 SoundGetVolumeIndex(UINT32 uiChannel)
 // FUNCTION: WIZ8 0x00409310
 BOOLEAN SoundServiceRandom(void)
 {
-UINT32 uiCount;
+    UINT32 uiCount;
 
-	for(uiCount=0; uiCount < SOUND_MAX_CACHED; uiCount++)
-	{
-		if(!(pSampleList[uiCount].uiFlags&SAMPLE_RANDOM_MANUAL) && SoundRandomShouldPlay(uiCount))
-			SoundStartRandom(uiCount);
-	}
+    for (uiCount = 0; uiCount < SOUND_MAX_CACHED; uiCount++) {
+        if (!(pSampleList[uiCount].uiFlags & SAMPLE_RANDOM_MANUAL) &&
+            SoundRandomShouldPlay(uiCount))
+            SoundStartRandom(uiCount);
+    }
 
-	return(FALSE);
+    return (FALSE);
 }
 
 //*******************************************************************************
@@ -815,15 +768,15 @@ UINT32 uiCount;
 // FUNCTION: WIZ8 0x00409360
 BOOLEAN SoundRandomShouldPlay(UINT32 uiSample)
 {
-UINT32 uiTicks;
+    UINT32 uiTicks;
 
-	uiTicks=GetTickCount();
-	if(pSampleList[uiSample].uiFlags&SAMPLE_RANDOM)
-		if(pSampleList[uiSample].uiTimeNext <= GetTickCount())
-			if(pSampleList[uiSample].uiInstances < pSampleList[uiSample].uiMaxInstances)
-				return(TRUE);
+    uiTicks = GetTickCount();
+    if (pSampleList[uiSample].uiFlags & SAMPLE_RANDOM)
+        if (pSampleList[uiSample].uiTimeNext <= GetTickCount())
+            if (pSampleList[uiSample].uiInstances < pSampleList[uiSample].uiMaxInstances)
+                return (TRUE);
 
-	return(FALSE);
+    return (FALSE);
 }
 
 //*******************************************************************************
@@ -837,27 +790,29 @@ UINT32 uiTicks;
 // FUNCTION: WIZ8 0x004093b0
 UINT32 SoundStartRandom(UINT32 uiSample)
 {
-UINT32 uiChannel, uiSoundID;
-SOUNDPARMS spParms;
+    UINT32 uiChannel, uiSoundID;
+    SOUNDPARMS spParms;
 
-	if((uiChannel=SoundGetFreeChannel())!=SOUND_ERROR)
-	{
-		memset(&spParms, 0xff, sizeof(SOUNDPARMS));
+    if ((uiChannel = SoundGetFreeChannel()) != SOUND_ERROR) {
+        memset(&spParms, 0xff, sizeof(SOUNDPARMS));
 
-//		spParms.uiSpeed=pSampleList[uiSample].uiSpeedMin+Random(pSampleList[uiSample].uiSpeedMax-pSampleList[uiSample].uiSpeedMin);
-		spParms.uiVolume=pSampleList[uiSample].uiVolMin+Random(pSampleList[uiSample].uiVolMax-pSampleList[uiSample].uiVolMin);
-		spParms.uiPan=pSampleList[uiSample].uiPanMin+Random(pSampleList[uiSample].uiPanMax-pSampleList[uiSample].uiPanMin);
-		spParms.uiLoop=1;
-		spParms.uiPriority=pSampleList[uiSample].uiPriority;
+        //		spParms.uiSpeed=pSampleList[uiSample].uiSpeedMin+Random(pSampleList[uiSample].uiSpeedMax-pSampleList[uiSample].uiSpeedMin);
+        spParms.uiVolume = pSampleList[uiSample].uiVolMin +
+                           Random(pSampleList[uiSample].uiVolMax - pSampleList[uiSample].uiVolMin);
+        spParms.uiPan = pSampleList[uiSample].uiPanMin +
+                        Random(pSampleList[uiSample].uiPanMax - pSampleList[uiSample].uiPanMin);
+        spParms.uiLoop = 1;
+        spParms.uiPriority = pSampleList[uiSample].uiPriority;
 
-		if((uiSoundID=SoundStartSample(uiSample, uiChannel, &spParms))!=SOUND_ERROR)
-		{
-			pSampleList[uiSample].uiTimeNext=GetTickCount()+pSampleList[uiSample].uiTimeMin+Random(pSampleList[uiSample].uiTimeMax-pSampleList[uiSample].uiTimeMin);
-			pSampleList[uiSample].uiInstances++;
-			return(uiSoundID);
-		}
-	}
-	return(NO_SAMPLE);
+        if ((uiSoundID = SoundStartSample(uiSample, uiChannel, &spParms)) != SOUND_ERROR) {
+            pSampleList[uiSample].uiTimeNext =
+                GetTickCount() + pSampleList[uiSample].uiTimeMin +
+                Random(pSampleList[uiSample].uiTimeMax - pSampleList[uiSample].uiTimeMin);
+            pSampleList[uiSample].uiInstances++;
+            return (uiSoundID);
+        }
+    }
+    return (NO_SAMPLE);
 }
 
 //*******************************************************************************
@@ -876,30 +831,27 @@ SOUNDPARMS spParms;
 // FUNCTION: WIZ8 0x00409550
 BOOLEAN SoundStopAllRandom(void)
 {
-UINT32 uiChannel, uiSample;
+    UINT32 uiChannel, uiSample;
 
-	// Stop all currently playing random sounds
-	for(uiChannel=0; uiChannel < SOUND_MAX_CHANNELS; uiChannel++)
-	{
-		if((pSoundList[uiChannel].hMSS!=NULL) || (pSoundList[uiChannel].hM3D!=NULL))
-		{
-			uiSample=pSoundList[uiChannel].uiSample;
+    // Stop all currently playing random sounds
+    for (uiChannel = 0; uiChannel < SOUND_MAX_CHANNELS; uiChannel++) {
+        if ((pSoundList[uiChannel].hMSS != NULL) || (pSoundList[uiChannel].hM3D != NULL)) {
+            uiSample = pSoundList[uiChannel].uiSample;
 
-			// if this was a random sample, decrease the iteration count
-			if(pSampleList[uiSample].uiFlags&SAMPLE_RANDOM)
-				SoundStopIndex(uiChannel);
-		}
-	}
+            // if this was a random sample, decrease the iteration count
+            if (pSampleList[uiSample].uiFlags & SAMPLE_RANDOM)
+                SoundStopIndex(uiChannel);
+        }
+    }
 
-	// Unlock all random sounds so they can be dumped from the cache, and
-	// take the random flag off so they won't be serviced/played
-	for(uiSample=0; uiSample < SOUND_MAX_CACHED; uiSample++)
-	{
-		if(pSampleList[uiSample].uiFlags & SAMPLE_RANDOM)
-			pSampleList[uiSample].uiFlags &= (~(SAMPLE_RANDOM | SAMPLE_LOCKED));
-	}
+    // Unlock all random sounds so they can be dumped from the cache, and
+    // take the random flag off so they won't be serviced/played
+    for (uiSample = 0; uiSample < SOUND_MAX_CACHED; uiSample++) {
+        if (pSampleList[uiSample].uiFlags & SAMPLE_RANDOM)
+            pSampleList[uiSample].uiFlags &= (~(SAMPLE_RANDOM | SAMPLE_LOCKED));
+    }
 
-	return(FALSE);
+    return (FALSE);
 }
 
 //*******************************************************************************
@@ -918,64 +870,58 @@ UINT32 uiChannel, uiSample;
 // FUNCTION: WIZ8 0x004095b0
 BOOLEAN SoundServiceStreams(void)
 {
-UINT32 uiCount, uiSpeed, uiBuffLen, uiBytesPerSample;
-UINT8		*pBuffer;
-void		*pData;
+    UINT32 uiCount, uiSpeed, uiBuffLen, uiBytesPerSample;
+    UINT8* pBuffer;
+    void* pData;
 
+    if (fSoundSystemInit) {
+        for (uiCount = 0; uiCount < SOUND_MAX_CHANNELS; uiCount++) {
+            if (pSoundList[uiCount].hMSSStream != NULL) {
+                if (AIL_service_stream(pSoundList[uiCount].hMSSStream, 0)) {
+                    if (pSoundList[uiCount].uiFlags & SOUND_CALLBACK) {
+                        uiSpeed = pSoundList[uiCount].hMSSStream->datarate;
+                        uiBuffLen = pSoundList[uiCount].hMSSStream->bufsize;
+                        pBuffer = pSoundList[uiCount]
+                                      .hMSSStream->bufs[pSoundList[uiCount].hMSSStream->buf1];
+                        uiBytesPerSample = pSoundList[uiCount].hMSSStream->samp->format;
+                        pData = pSoundList[uiCount].pData;
+                        pSoundList[uiCount].pCallback(pBuffer, uiBuffLen, uiSpeed, uiBytesPerSample,
+                                                      pData);
+                    }
+                }
+            }
 
-	if(fSoundSystemInit)
-	{
-		for(uiCount=0; uiCount < SOUND_MAX_CHANNELS; uiCount++)
-		{
-			if(pSoundList[uiCount].hMSSStream!=NULL)
-			{
-				if(AIL_service_stream(pSoundList[uiCount].hMSSStream, 0))
-				{
-					if(pSoundList[uiCount].uiFlags&SOUND_CALLBACK)
-					{
-						uiSpeed=pSoundList[uiCount].hMSSStream->datarate;
-						uiBuffLen=pSoundList[uiCount].hMSSStream->bufsize;
-						pBuffer=pSoundList[uiCount].hMSSStream->bufs[pSoundList[uiCount].hMSSStream->buf1];
-						uiBytesPerSample=pSoundList[uiCount].hMSSStream->samp->format;
-						pData=pSoundList[uiCount].pData;
-						pSoundList[uiCount].pCallback(pBuffer, uiBuffLen, uiSpeed, uiBytesPerSample, pData);
-					}
-				}
-			}
+            if (pSoundList[uiCount].hMSS || pSoundList[uiCount].hMSSStream ||
+                pSoundList[uiCount].hM3D) {
+                // If a sound has a handle, but isn't playing, stop it and free up the handle
+                if (!SoundIsPlaying(pSoundList[uiCount].uiSoundID))
+                    SoundStopIndex(uiCount);
+                else { // Check the volume fades on currently playing sounds
+                    UINT32 uiVolume = SoundGetVolumeIndex(uiCount);
+                    UINT32 uiTime = GetTickCount();
 
-			if(pSoundList[uiCount].hMSS || pSoundList[uiCount].hMSSStream || pSoundList[uiCount].hM3D)
-			{
-				// If a sound has a handle, but isn't playing, stop it and free up the handle
-				if(!SoundIsPlaying(pSoundList[uiCount].uiSoundID))
-					SoundStopIndex(uiCount);
-				else
-				{ // Check the volume fades on currently playing sounds
-					UINT32 uiVolume = SoundGetVolumeIndex(uiCount);
-					UINT32 uiTime = GetTickCount();
+                    if ((uiVolume != pSoundList[uiCount].uiFadeVolume) &&
+                        (uiTime >=
+                         (pSoundList[uiCount].uiFadeTime + pSoundList[uiCount].uiFadeRate))) {
+                        if (uiVolume < pSoundList[uiCount].uiFadeVolume)
+                            SoundSetVolumeIndex(uiCount, ++uiVolume);
+                        else if (uiVolume > pSoundList[uiCount].uiFadeVolume) {
+                            uiVolume--;
+                            if (!uiVolume && pSoundList[uiCount].fStopAtZero)
+                                SoundStopIndex(uiCount);
+                            else
+                                SoundSetVolumeIndex(uiCount, uiVolume);
+                        }
 
-					if((uiVolume != pSoundList[uiCount].uiFadeVolume) && (uiTime >= (pSoundList[uiCount].uiFadeTime + pSoundList[uiCount].uiFadeRate)) )
-					{
-						if(uiVolume < pSoundList[uiCount].uiFadeVolume)
-							SoundSetVolumeIndex(uiCount, ++uiVolume);
-						else if(uiVolume > pSoundList[uiCount].uiFadeVolume)
-						{
-							uiVolume--;
-							if(!uiVolume && pSoundList[uiCount].fStopAtZero)
-								SoundStopIndex(uiCount);
-							else
-								SoundSetVolumeIndex(uiCount, uiVolume);
-						}
+                        pSoundList[uiCount].uiFadeTime = uiTime;
+                    }
+                }
+            }
+        }
+    }
 
-						pSoundList[uiCount].uiFadeTime = uiTime;
-					}
-				}
-			}
-		}
-	}
-
-	return(TRUE);
+    return (TRUE);
 }
-
 
 //*******************************************************************************
 // SoundGetPosition
@@ -991,14 +937,12 @@ void		*pData;
 // FUNCTION: WIZ8 0x004097f0
 UINT32 SoundGetPosition(UINT32 uiSoundID)
 {
-//UINT32 uiSound, uiFreq=0, uiPosition=0, uiBytesPerSample=0, uiFormat=0;
-UINT32 uiSound, uiTime, uiPosition;
+    //UINT32 uiSound, uiFreq=0, uiPosition=0, uiBytesPerSample=0, uiFormat=0;
+    UINT32 uiSound, uiTime, uiPosition;
 
-	if(fSoundSystemInit)
-	{
-		if((uiSound=SoundGetIndexByID(uiSoundID))!=NO_SAMPLE)
-		{
-/*			if(pSoundList[uiSound].hMSSStream!=NULL)
+    if (fSoundSystemInit) {
+        if ((uiSound = SoundGetIndexByID(uiSoundID)) != NO_SAMPLE) {
+            /*			if(pSoundList[uiSound].hMSSStream!=NULL)
 			{
 				uiPosition=(UINT32)AIL_stream_position(pSoundList[uiSound].hMSSStream);
 				uiFreq=(UINT32)pSoundList[uiSound].hMSSStream->samp->playback_rate;
@@ -1031,18 +975,18 @@ UINT32 uiSound, uiTime, uiPosition;
 		}
 	}
 */
-			uiTime=GetTickCount();
-			// check for rollover
-			if(uiTime < pSoundList[uiSound].uiTimeStamp)
-				uiPosition=(0-pSoundList[uiSound].uiTimeStamp)+uiTime;
-			else
-				uiPosition=(uiTime-pSoundList[uiSound].uiTimeStamp);
+            uiTime = GetTickCount();
+            // check for rollover
+            if (uiTime < pSoundList[uiSound].uiTimeStamp)
+                uiPosition = (0 - pSoundList[uiSound].uiTimeStamp) + uiTime;
+            else
+                uiPosition = (uiTime - pSoundList[uiSound].uiTimeStamp);
 
-			return(uiPosition);
-		}
-	}
+            return (uiPosition);
+        }
+    }
 
-	return(0);
+    return (0);
 }
 
 //*****************************************************************************************
@@ -1060,32 +1004,31 @@ UINT32 uiSound, uiTime, uiPosition;
 //
 //*****************************************************************************************
 // FUNCTION: WIZ8 0x00409840
-BOOLEAN SoundGetMilliSecondPosition(UINT32 uiSoundID, UINT32 *puiTotalMilliseconds, UINT32 *puiCurrentMilliseconds)
+BOOLEAN SoundGetMilliSecondPosition(UINT32 uiSoundID, UINT32* puiTotalMilliseconds,
+                                    UINT32* puiCurrentMilliseconds)
 {
-UINT32 uiSound;
+    UINT32 uiSound;
 
-	if(fSoundSystemInit)
-	{
-		uiSound=SoundGetIndexByID(uiSoundID);
-		if(uiSound!=NO_SAMPLE)
-		{
-			if(pSoundList[uiSound].hMSS!=NULL)
-			{
-				AIL_sample_ms_position(pSoundList[uiSound].hMSS, (S32 *)puiTotalMilliseconds, (S32 *)puiCurrentMilliseconds);
-				return TRUE;
-			}
+    if (fSoundSystemInit) {
+        uiSound = SoundGetIndexByID(uiSoundID);
+        if (uiSound != NO_SAMPLE) {
+            if (pSoundList[uiSound].hMSS != NULL) {
+                AIL_sample_ms_position(pSoundList[uiSound].hMSS, (S32*)puiTotalMilliseconds,
+                                       (S32*)puiCurrentMilliseconds);
+                return TRUE;
+            }
 
-			if(pSoundList[uiSound].hMSSStream!=NULL)
-			{
-				AIL_stream_ms_position(pSoundList[uiSound].hMSSStream, (S32 *)puiTotalMilliseconds, (S32 *)puiCurrentMilliseconds);
-				return TRUE;
-			}
-		}
-	}
+            if (pSoundList[uiSound].hMSSStream != NULL) {
+                AIL_stream_ms_position(pSoundList[uiSound].hMSSStream, (S32*)puiTotalMilliseconds,
+                                       (S32*)puiCurrentMilliseconds);
+                return TRUE;
+            }
+        }
+    }
 
-	*puiTotalMilliseconds = 0;
-	*puiCurrentMilliseconds = 0;
-	return FALSE;
+    *puiTotalMilliseconds = 0;
+    *puiCurrentMilliseconds = 0;
+    return FALSE;
 }
 
 //*******************************************************************************
@@ -1101,9 +1044,9 @@ UINT32 uiSound;
 BOOLEAN SoundInitCache(void)
 {
 
-	memset(pSampleList, 0, sizeof(pSampleList));
+    memset(pSampleList, 0, sizeof(pSampleList));
 
-	return(TRUE);
+    return (TRUE);
 }
 
 //*******************************************************************************
@@ -1118,12 +1061,12 @@ BOOLEAN SoundInitCache(void)
 // FUNCTION: WIZ8 0x004098d0
 BOOLEAN SoundSetCacheThreshhold(UINT32 uiThreshold)
 {
-	if(uiThreshold==0)
-		guiSoundCacheThreshold=SOUND_DEFAULT_THRESH;
-	else
-		guiSoundCacheThreshold=uiThreshold;
+    if (uiThreshold == 0)
+        guiSoundCacheThreshold = SOUND_DEFAULT_THRESH;
+    else
+        guiSoundCacheThreshold = uiThreshold;
 
-	return(TRUE);
+    return (TRUE);
 }
 
 //*******************************************************************************
@@ -1137,23 +1080,20 @@ BOOLEAN SoundSetCacheThreshhold(UINT32 uiThreshold)
 // FUNCTION: WIZ8 0x004098f0
 BOOLEAN SoundEmptyCache(void)
 {
-UINT32 uiCount;
+    UINT32 uiCount;
 
-    if (fSoundSystemInit)
-    {
-        for (uiCount = 0; uiCount < SOUND_MAX_CHANNELS; ++uiCount)
-        {
+    if (fSoundSystemInit) {
+        for (uiCount = 0; uiCount < SOUND_MAX_CHANNELS; ++uiCount) {
             if (!pSoundList[uiCount].fMusic)
                 SoundStopIndex(uiCount);
         }
     }
 
-	for(uiCount=0; uiCount < SOUND_MAX_CACHED; uiCount++)
-		SoundFreeSampleIndex(uiCount);
+    for (uiCount = 0; uiCount < SOUND_MAX_CACHED; uiCount++)
+        SoundFreeSampleIndex(uiCount);
 
-	return(TRUE);
+    return (TRUE);
 }
-
 
 //*******************************************************************************
 // SoundLoadSample
@@ -1165,12 +1105,12 @@ UINT32 uiCount;
 //*******************************************************************************
 UINT32 SoundLoadSample(STR pFilename)
 {
-UINT32 uiSample=NO_SAMPLE;
+    UINT32 uiSample = NO_SAMPLE;
 
-	if((uiSample=SoundGetCached(pFilename))!=NO_SAMPLE)
-		return(uiSample);
+    if ((uiSample = SoundGetCached(pFilename)) != NO_SAMPLE)
+        return (uiSample);
 
-	return(SoundLoadDisk(pFilename));
+    return (SoundLoadDisk(pFilename));
 }
 
 //*******************************************************************************
@@ -1185,15 +1125,14 @@ UINT32 uiSample=NO_SAMPLE;
 //*******************************************************************************
 UINT32 SoundGetCached(STR pFilename)
 {
-UINT32 uiCount;
+    UINT32 uiCount;
 
-	for(uiCount=0; uiCount < SOUND_MAX_CACHED; uiCount++)
-	{
-		if(_stricmp(pSampleList[uiCount].pName, pFilename)==0)
-			return(uiCount);
-	}
+    for (uiCount = 0; uiCount < SOUND_MAX_CACHED; uiCount++) {
+        if (_stricmp(pSampleList[uiCount].pName, pFilename) == 0)
+            return (uiCount);
+    }
 
-	return(NO_SAMPLE);
+    return (NO_SAMPLE);
 }
 
 //*******************************************************************************
@@ -1210,73 +1149,70 @@ UINT32 uiCount;
 // FUNCTION: WIZ8 0x00409970
 UINT32 SoundLoadDisk(STR pFilename)
 {
-HWFILE	hFile;
-UINT32	uiSize, uiSample;
-BOOLEAN fRemoved=TRUE;
+    HWFILE hFile;
+    UINT32 uiSize, uiSample;
+    BOOLEAN fRemoved = TRUE;
 
-	Assert(pFilename!=NULL);
+    Assert(pFilename != NULL);
 
-	if((hFile=FileOpen(pFilename, FILE_ACCESS_READ, FALSE))!=0)
-	{
-		uiSize=FileGetSize(hFile);
+    if ((hFile = FileOpen(pFilename, FILE_ACCESS_READ, FALSE)) != 0) {
+        uiSize = FileGetSize(hFile);
 
-		// if insufficient memory, start unloading old samples until either
-		// there's nothing left to unload, or we fit
-		fRemoved=TRUE;
-		while(((uiSize + guiSoundMemoryUsed) > guiSoundMemoryLimit) && (fRemoved))
-			fRemoved=SoundCleanCache();
+        // if insufficient memory, start unloading old samples until either
+        // there's nothing left to unload, or we fit
+        fRemoved = TRUE;
+        while (((uiSize + guiSoundMemoryUsed) > guiSoundMemoryLimit) && (fRemoved))
+            fRemoved = SoundCleanCache();
 
-		// if we still don't fit
-		if((uiSize + guiSoundMemoryUsed) > guiSoundMemoryLimit)
-		{
-			FastDebugMsg(String("SoundLoadDisk:  ERROR:  trying to play %s, not enough memory\n", pFilename ) );
-			FileClose(hFile);
-			return(NO_SAMPLE);
-		}
+        // if we still don't fit
+        if ((uiSize + guiSoundMemoryUsed) > guiSoundMemoryLimit) {
+            FastDebugMsg(String("SoundLoadDisk:  ERROR:  trying to play %s, not enough memory\n",
+                                pFilename));
+            FileClose(hFile);
+            return (NO_SAMPLE);
+        }
 
-		// if all the sample slots are full, unloading one
-		if((uiSample=SoundGetEmptySample())==NO_SAMPLE)
-		{
-			SoundCleanCache();
-			uiSample=SoundGetEmptySample();
-		}
+        // if all the sample slots are full, unloading one
+        if ((uiSample = SoundGetEmptySample()) == NO_SAMPLE) {
+            SoundCleanCache();
+            uiSample = SoundGetEmptySample();
+        }
 
-		// if we still don't have a sample slot
-		if(uiSample==NO_SAMPLE)
-		{
-			FastDebugMsg(String("SoundLoadDisk:  ERROR: Trying to play %s, sound channels are full\n", pFilename ) );
-			FileClose(hFile);
-			return(NO_SAMPLE);
-		}
+        // if we still don't have a sample slot
+        if (uiSample == NO_SAMPLE) {
+            FastDebugMsg(String(
+                "SoundLoadDisk:  ERROR: Trying to play %s, sound channels are full\n", pFilename));
+            FileClose(hFile);
+            return (NO_SAMPLE);
+        }
 
-		memset(&pSampleList[uiSample], 0, sizeof(SAMPLETAG));
+        memset(&pSampleList[uiSample], 0, sizeof(SAMPLETAG));
 
-		if((pSampleList[uiSample].pData=AIL_mem_alloc_lock(uiSize))==NULL)
-		{
-			FastDebugMsg(String("SoundLoadDisk:  ERROR: Trying to play %s, AIL channels are full\n", pFilename ) );
-			FileClose(hFile);
-			return(NO_SAMPLE);
-		}
+        if ((pSampleList[uiSample].pData = AIL_mem_alloc_lock(uiSize)) == NULL) {
+            FastDebugMsg(String("SoundLoadDisk:  ERROR: Trying to play %s, AIL channels are full\n",
+                                pFilename));
+            FileClose(hFile);
+            return (NO_SAMPLE);
+        }
 
-		guiSoundMemoryUsed+=uiSize;
+        guiSoundMemoryUsed += uiSize;
 
-		FileRead(hFile, pSampleList[uiSample].pData, uiSize, NULL);
-		FileClose(hFile);
+        FileRead(hFile, pSampleList[uiSample].pData, uiSize, NULL);
+        FileClose(hFile);
 
+        strcpy(pSampleList[uiSample].pName, pFilename);
+        strupr(pSampleList[uiSample].pName);
+        pSampleList[uiSample].uiSize = uiSize;
+        pSampleList[uiSample].uiFlags |= SAMPLE_ALLOCATED;
 
-		strcpy(pSampleList[uiSample].pName, pFilename);
-		strupr(pSampleList[uiSample].pName);
-		pSampleList[uiSample].uiSize=uiSize;
-		pSampleList[uiSample].uiFlags|=SAMPLE_ALLOCATED;
-
-/*		if(!strstr(pFilename, ".MP3"))
+        /*		if(!strstr(pFilename, ".MP3"))
 			SoundProcessWAVHeader(uiSample);
-*/		return(uiSample);
-	}
+*/
+        return (uiSample);
+    }
 
-	return(NO_SAMPLE);
+    return (NO_SAMPLE);
 }
-
 
 //*******************************************************************************
 // SoundCleanCache
@@ -1288,31 +1224,27 @@ BOOLEAN fRemoved=TRUE;
 //*******************************************************************************
 BOOLEAN SoundCleanCache(void)
 {
-UINT32 uiCount, uiLowestHits=NO_SAMPLE, uiLowestHitsCount=0;
+    UINT32 uiCount, uiLowestHits = NO_SAMPLE, uiLowestHitsCount = 0;
 
-	for(uiCount=0; uiCount < SOUND_MAX_CACHED; uiCount++)
-	{
-		if((pSampleList[uiCount].uiFlags&SAMPLE_ALLOCATED) &&
-			!(pSampleList[uiCount].uiFlags&SAMPLE_LOCKED))
-		{
-			if((uiLowestHits==NO_SAMPLE) || (uiLowestHitsCount < pSampleList[uiCount].uiCacheHits))
-			{
-				if(!SoundSampleIsPlaying(uiCount))
-				{
-					uiLowestHits=uiCount;
-					uiLowestHitsCount=pSampleList[uiCount].uiCacheHits;
-				}
-			}
-		}
-	}
+    for (uiCount = 0; uiCount < SOUND_MAX_CACHED; uiCount++) {
+        if ((pSampleList[uiCount].uiFlags & SAMPLE_ALLOCATED) &&
+            !(pSampleList[uiCount].uiFlags & SAMPLE_LOCKED)) {
+            if ((uiLowestHits == NO_SAMPLE) ||
+                (uiLowestHitsCount < pSampleList[uiCount].uiCacheHits)) {
+                if (!SoundSampleIsPlaying(uiCount)) {
+                    uiLowestHits = uiCount;
+                    uiLowestHitsCount = pSampleList[uiCount].uiCacheHits;
+                }
+            }
+        }
+    }
 
-	if(uiLowestHits!=NO_SAMPLE)
-	{
-		SoundFreeSampleIndex(uiLowestHits);
-		return(TRUE);
-	}
+    if (uiLowestHits != NO_SAMPLE) {
+        SoundFreeSampleIndex(uiLowestHits);
+        return (TRUE);
+    }
 
-	return(FALSE);
+    return (FALSE);
 }
 
 //*******************************************************************************
@@ -1327,15 +1259,14 @@ UINT32 uiCount, uiLowestHits=NO_SAMPLE, uiLowestHitsCount=0;
 //*******************************************************************************
 BOOLEAN SoundSampleIsPlaying(UINT32 uiSample)
 {
-UINT32 uiCount;
+    UINT32 uiCount;
 
-	for(uiCount=0; uiCount < SOUND_MAX_CHANNELS; uiCount++)
-	{
-		if(pSoundList[uiCount].uiSample==uiSample)
-			return(TRUE);
-	}
+    for (uiCount = 0; uiCount < SOUND_MAX_CHANNELS; uiCount++) {
+        if (pSoundList[uiCount].uiSample == uiSample)
+            return (TRUE);
+    }
 
-	return(FALSE);
+    return (FALSE);
 }
 
 //*******************************************************************************
@@ -1348,15 +1279,14 @@ UINT32 uiCount;
 //*******************************************************************************
 UINT32 SoundGetEmptySample(void)
 {
-UINT32 uiCount;
+    UINT32 uiCount;
 
-	for(uiCount=0; uiCount < SOUND_MAX_CACHED; uiCount++)
-	{
-		if(!(pSampleList[uiCount].uiFlags&SAMPLE_ALLOCATED))
-			return(uiCount);
-	}
+    for (uiCount = 0; uiCount < SOUND_MAX_CACHED; uiCount++) {
+        if (!(pSampleList[uiCount].uiFlags & SAMPLE_ALLOCATED))
+            return (uiCount);
+    }
 
-	return(NO_SAMPLE);
+    return (NO_SAMPLE);
 }
 
 //*******************************************************************************
@@ -1369,19 +1299,17 @@ UINT32 uiCount;
 //*******************************************************************************
 UINT32 SoundFreeSampleIndex(UINT32 uiSample)
 {
-	if(pSampleList[uiSample].uiFlags&SAMPLE_ALLOCATED)
-	{
-		if(pSampleList[uiSample].pData!=NULL)
-		{
-			guiSoundMemoryUsed-=pSampleList[uiSample].uiSize;
-			AIL_mem_free_lock(pSampleList[uiSample].pData);
-		}
+    if (pSampleList[uiSample].uiFlags & SAMPLE_ALLOCATED) {
+        if (pSampleList[uiSample].pData != NULL) {
+            guiSoundMemoryUsed -= pSampleList[uiSample].uiSize;
+            AIL_mem_free_lock(pSampleList[uiSample].pData);
+        }
 
-		memset(&pSampleList[uiSample], 0, sizeof(SAMPLETAG));
-		return(uiSample);
-	}
+        memset(&pSampleList[uiSample], 0, sizeof(SAMPLETAG));
+        return (uiSample);
+    }
 
-	return(NO_SAMPLE);
+    return (NO_SAMPLE);
 }
 
 //*******************************************************************************
@@ -1394,15 +1322,14 @@ UINT32 SoundFreeSampleIndex(UINT32 uiSample)
 //*******************************************************************************
 UINT32 SoundGetIndexByID(UINT32 uiSoundID)
 {
-UINT32 uiCount;
+    UINT32 uiCount;
 
-	for(uiCount=0; uiCount < SOUND_MAX_CHANNELS; uiCount++)
-	{
-		if(pSoundList[uiCount].uiSoundID==uiSoundID)
-			return(uiCount);
-	}
+    for (uiCount = 0; uiCount < SOUND_MAX_CHANNELS; uiCount++) {
+        if (pSoundList[uiCount].uiSoundID == uiSoundID)
+            return (uiCount);
+    }
 
-	return(NO_SAMPLE);
+    return (NO_SAMPLE);
 }
 
 //*******************************************************************************
@@ -1417,76 +1344,70 @@ UINT32 uiCount;
 // FUNCTION: WIZ8 0x00409c50
 BOOLEAN SoundInitHardware(void)
 {
-CHAR8	cDriverName[128];
+    CHAR8 cDriverName[128];
 
-	// Try to start up the Miles Sound System
-	if(!AIL_startup())
-		return(FALSE);
+    // Try to start up the Miles Sound System
+    if (!AIL_startup())
+        return (FALSE);
 
-	// Initialize the driver handle
-	hSoundDriver = NULL;
+    // Initialize the driver handle
+    hSoundDriver = NULL;
 
-	// Set up preferences, to try to use DirectSound and to set the
-	// maximum number of handles that we are allowed to allocate. Note
-	// that this is not the number we may have playing at one time--
-	// that number is set by SOUND_MAX_CHANNELS
-	AIL_set_preference(DIG_MIXER_CHANNELS, SOUND_MAX_CHANNELS);
+    // Set up preferences, to try to use DirectSound and to set the
+    // maximum number of handles that we are allowed to allocate. Note
+    // that this is not the number we may have playing at one time--
+    // that number is set by SOUND_MAX_CHANNELS
+    AIL_set_preference(DIG_MIXER_CHANNELS, SOUND_MAX_CHANNELS);
 
+    fDirectSound = TRUE;
 
-	fDirectSound=TRUE;
+    AIL_set_preference(DIG_USE_WAVEOUT, NO);
+    // startup with DirectSound
+    if (hSoundDriver == NULL)
+        hSoundDriver = SoundInitDriver(44100, 16, 2);
+    if (hSoundDriver == NULL)
+        hSoundDriver = SoundInitDriver(44100, 8, 2);
+    if (hSoundDriver == NULL)
+        hSoundDriver = SoundInitDriver(22050, 8, 2);
+    if (hSoundDriver == NULL)
+        hSoundDriver = SoundInitDriver(11025, 8, 1);
 
-	AIL_set_preference(DIG_USE_WAVEOUT,NO);
-	// startup with DirectSound
-	if (hSoundDriver == NULL)
-		hSoundDriver = SoundInitDriver(44100, 16, 2);
-	if (hSoundDriver == NULL)
-		hSoundDriver = SoundInitDriver(44100, 8, 2);
-	if (hSoundDriver == NULL)
-		hSoundDriver = SoundInitDriver(22050, 8, 2);
-	if (hSoundDriver == NULL)
-		hSoundDriver = SoundInitDriver(11025, 8, 1);
+    if (hSoundDriver) {
+        // Detect if the driver is emulated or not
+        SoundGetDriverName(hSoundDriver, cDriverName);
+        _strlwr(cDriverName);
+        // If it is, we don't want to use it, since the extra
+        // code layer can slow us down by up to 40% under NT
+        if (strstr(cDriverName, "emulated")) {
+            AIL_close_digital_driver(hSoundDriver);
+            hSoundDriver = NULL;
+        }
+    }
 
+    // nothing in DirectSound worked, so try waveOut
+    if (hSoundDriver == NULL) {
+        fDirectSound = FALSE;
+        AIL_set_preference(DIG_USE_WAVEOUT, YES);
+    }
 
-	if(hSoundDriver)
-	{
-		// Detect if the driver is emulated or not
-		SoundGetDriverName(hSoundDriver, cDriverName);
-		_strlwr(cDriverName);
-		// If it is, we don't want to use it, since the extra
-		// code layer can slow us down by up to 40% under NT
-		if(strstr(cDriverName, "emulated"))
-		{
-			AIL_close_digital_driver(hSoundDriver);
-			hSoundDriver=NULL;
-		}
-	}
+    if (hSoundDriver == NULL)
+        hSoundDriver = SoundInitDriver(44100, 16, 2);
+    if (hSoundDriver == NULL)
+        hSoundDriver = SoundInitDriver(44100, 8, 2);
+    if (hSoundDriver == NULL)
+        hSoundDriver = SoundInitDriver(22050, 8, 2);
+    if (hSoundDriver == NULL)
+        hSoundDriver = SoundInitDriver(11025, 8, 1);
 
-	// nothing in DirectSound worked, so try waveOut
-	if (hSoundDriver == NULL)
-	{
-		fDirectSound=FALSE;
-		AIL_set_preference(DIG_USE_WAVEOUT,YES);
-	}
+    if (hSoundDriver != NULL) {
+        memset(pSoundList, 0, sizeof(pSoundList));
 
-	if (hSoundDriver == NULL)
-		hSoundDriver = SoundInitDriver(44100, 16, 2);
-	if (hSoundDriver == NULL)
-		hSoundDriver = SoundInitDriver(44100, 8, 2);
-	if (hSoundDriver == NULL)
-		hSoundDriver = SoundInitDriver(22050, 8, 2);
-	if (hSoundDriver == NULL)
-		hSoundDriver = SoundInitDriver(11025, 8, 1);
+        return (TRUE);
+    }
 
-	if (hSoundDriver!=NULL)
-	{
-		memset(pSoundList, 0, sizeof(pSoundList));
+    return (FALSE);
 
-		return(TRUE);
-	}
-
-	return(FALSE);
-
-/*
+    /*
 	// midi startup
 	if (hSoundDriver!=NULL)
 	{
@@ -1534,16 +1455,14 @@ static HDIGDRIVER SoundInitDriver(UINT32 uiRate, UINT16 uiBits, UINT16 uiChans)
 //	Returns:	TRUE or FALSE if the string was filled.
 //
 //*******************************************************************************
-BOOLEAN SoundGetDriverName(HDIGDRIVER DIG, CHAR8 *cBuf)
+BOOLEAN SoundGetDriverName(HDIGDRIVER DIG, CHAR8* cBuf)
 {
-	if(DIG)
-	{
-		cBuf[0]='\0';
-		AIL_digital_configuration(DIG, NULL, NULL, cBuf);
-		return(TRUE);
-	}
-	else
-		return(FALSE);
+    if (DIG) {
+        cBuf[0] = '\0';
+        AIL_digital_configuration(DIG, NULL, NULL, cBuf);
+        return (TRUE);
+    } else
+        return (FALSE);
 }
 
 //*******************************************************************************
@@ -1581,23 +1500,21 @@ void SoundResetChannel(UINT32 channel)
 
 UINT32 SoundGetFreeChannel(void)
 {
-UINT32 uiCount;
+    UINT32 uiCount;
 
-	for(uiCount=0; uiCount < SOUND_MAX_CHANNELS; uiCount++)
-	{
-		if(!SoundIsPlaying(pSoundList[uiCount].uiSoundID))
-		{
-			SoundStopIndex(uiCount);
-		}
+    for (uiCount = 0; uiCount < SOUND_MAX_CHANNELS; uiCount++) {
+        if (!SoundIsPlaying(pSoundList[uiCount].uiSoundID)) {
+            SoundStopIndex(uiCount);
+        }
 
-		if((pSoundList[uiCount].hMSS==NULL) && (pSoundList[uiCount].hMSSStream==NULL) && (pSoundList[uiCount].hM3D==NULL))
-		{
-			SoundResetChannel(uiCount);
-			return(uiCount);
-		}
-	}
+        if ((pSoundList[uiCount].hMSS == NULL) && (pSoundList[uiCount].hMSSStream == NULL) &&
+            (pSoundList[uiCount].hM3D == NULL)) {
+            SoundResetChannel(uiCount);
+            return (uiCount);
+        }
+    }
 
-	return(SOUND_ERROR);
+    return (SOUND_ERROR);
 }
 
 //*******************************************************************************
@@ -1611,113 +1528,105 @@ UINT32 uiCount;
 //
 //*******************************************************************************
 // FUNCTION: WIZ8 0x00409fe0
-UINT32 SoundStartSample(UINT32 uiSample, UINT32 uiChannel, SOUNDPARMS *pParms)
+UINT32 SoundStartSample(UINT32 uiSample, UINT32 uiChannel, SOUNDPARMS* pParms)
 {
-UINT32 uiSoundID, uiVolume;
-CHAR8 AILString[200];
+    UINT32 uiSoundID, uiVolume;
+    CHAR8 AILString[200];
 
-	if(!fSoundSystemInit)
-		return(SOUND_ERROR);
+    if (!fSoundSystemInit)
+        return (SOUND_ERROR);
 
-	if((pSoundList[uiChannel].hMSS = AIL_allocate_sample_handle(hSoundDriver))==NULL)
-	{
-		sprintf(AILString, "Sample Error: %s", AIL_last_error());
-		FastDebugMsg(AILString);
-		return(SOUND_ERROR);
-	}
+    if ((pSoundList[uiChannel].hMSS = AIL_allocate_sample_handle(hSoundDriver)) == NULL) {
+        sprintf(AILString, "Sample Error: %s", AIL_last_error());
+        FastDebugMsg(AILString);
+        return (SOUND_ERROR);
+    }
 
-	AIL_init_sample(pSoundList[uiChannel].hMSS);
+    AIL_init_sample(pSoundList[uiChannel].hMSS);
 
-	if(!AIL_set_named_sample_file(pSoundList[uiChannel].hMSS, pSampleList[uiSample].pName, pSampleList[uiSample].pData, pSampleList[uiSample].uiSize, 0))
-	{
-		AIL_release_sample_handle(pSoundList[uiChannel].hMSS);
-		pSoundList[uiChannel].hMSS=NULL;
+    if (!AIL_set_named_sample_file(pSoundList[uiChannel].hMSS, pSampleList[uiSample].pName,
+                                   pSampleList[uiSample].pData, pSampleList[uiSample].uiSize, 0)) {
+        AIL_release_sample_handle(pSoundList[uiChannel].hMSS);
+        pSoundList[uiChannel].hMSS = NULL;
 
-		sprintf(AILString, "AIL Set Sample Error: %s", AIL_last_error());
-		DbgMessage(TOPIC_GAME, DBG_LEVEL_0, AILString);
-		return(SOUND_ERROR);
-	}
+        sprintf(AILString, "AIL Set Sample Error: %s", AIL_last_error());
+        DbgMessage(TOPIC_GAME, DBG_LEVEL_0, AILString);
+        return (SOUND_ERROR);
+    }
 
-	// Store the natural playback rate before we modify it below
-	pSampleList[uiSample].uiSpeed=AIL_sample_playback_rate(pSoundList[uiChannel].hMSS);
+    // Store the natural playback rate before we modify it below
+    pSampleList[uiSample].uiSpeed = AIL_sample_playback_rate(pSoundList[uiChannel].hMSS);
 
-	if(pSampleList[uiSample].uiFlags & SAMPLE_RANDOM)
-	{
-		if((pSampleList[uiSample].uiSpeedMin != SOUND_PARMS_DEFAULT) && (pSampleList[uiSample].uiSpeedMin != SOUND_PARMS_DEFAULT))
-		{
-			UINT32 uiSpeed = pSampleList[uiSample].uiSpeedMin+Random(pSampleList[uiSample].uiSpeedMax-pSampleList[uiSample].uiSpeedMin);
+    if (pSampleList[uiSample].uiFlags & SAMPLE_RANDOM) {
+        if ((pSampleList[uiSample].uiSpeedMin != SOUND_PARMS_DEFAULT) &&
+            (pSampleList[uiSample].uiSpeedMin != SOUND_PARMS_DEFAULT)) {
+            UINT32 uiSpeed =
+                pSampleList[uiSample].uiSpeedMin +
+                Random(pSampleList[uiSample].uiSpeedMax - pSampleList[uiSample].uiSpeedMin);
 
-			AIL_set_sample_playback_rate(pSoundList[uiChannel].hMSS, uiSpeed);
-		}
-	}
-	else
-	{
-		if((pParms!=NULL) && (pParms->uiSpeed!=SOUND_PARMS_DEFAULT))
-		{
-			Assert((pParms->uiSpeed > 0) && (pParms->uiSpeed <= 60000));
-			AIL_set_sample_playback_rate(pSoundList[uiChannel].hMSS, pParms->uiSpeed);
-		}
-	}
+            AIL_set_sample_playback_rate(pSoundList[uiChannel].hMSS, uiSpeed);
+        }
+    } else {
+        if ((pParms != NULL) && (pParms->uiSpeed != SOUND_PARMS_DEFAULT)) {
+            Assert((pParms->uiSpeed > 0) && (pParms->uiSpeed <= 60000));
+            AIL_set_sample_playback_rate(pSoundList[uiChannel].hMSS, pParms->uiSpeed);
+        }
+    }
 
-	if((pParms!=NULL) && (pParms->uiPitchBend!=SOUND_PARMS_DEFAULT))
-	{
-		UINT32 uiRate = AIL_sample_playback_rate(pSoundList[uiChannel].hMSS);
-		UINT32 uiBend = uiRate * pParms->uiPitchBend/100;
-		AIL_set_sample_playback_rate(pSoundList[uiChannel].hMSS, uiRate + (Random(uiBend*2)-uiBend));
-	}
+    if ((pParms != NULL) && (pParms->uiPitchBend != SOUND_PARMS_DEFAULT)) {
+        UINT32 uiRate = AIL_sample_playback_rate(pSoundList[uiChannel].hMSS);
+        UINT32 uiBend = uiRate * pParms->uiPitchBend / 100;
+        AIL_set_sample_playback_rate(pSoundList[uiChannel].hMSS,
+                                     uiRate + (Random(uiBend * 2) - uiBend));
+    }
 
-	if((pParms!=NULL) && (pParms->uiVolume!=SOUND_PARMS_DEFAULT))
-		uiVolume=pParms->uiVolume;
-	else
-		uiVolume=guiSoundDefaultVolume;
+    if ((pParms != NULL) && (pParms->uiVolume != SOUND_PARMS_DEFAULT))
+        uiVolume = pParms->uiVolume;
+    else
+        uiVolume = guiSoundDefaultVolume;
 
-	AIL_set_sample_volume(pSoundList[uiChannel].hMSS, uiVolume);
-	pSoundList[uiChannel].uiFadeVolume=uiVolume;
+    AIL_set_sample_volume(pSoundList[uiChannel].hMSS, uiVolume);
+    pSoundList[uiChannel].uiFadeVolume = uiVolume;
 
-	if((pParms!=NULL) && (pParms->uiLoop!=SOUND_PARMS_DEFAULT))
-	{
-		AIL_set_sample_loop_count(pSoundList[uiChannel].hMSS, pParms->uiLoop);
+    if ((pParms != NULL) && (pParms->uiLoop != SOUND_PARMS_DEFAULT)) {
+        AIL_set_sample_loop_count(pSoundList[uiChannel].hMSS, pParms->uiLoop);
 
-		// If looping infinately, lock the sample so it can't be unloaded
-		// and mark it as a looping sound
-		if(pParms->uiLoop==0)
-		{
-			pSampleList[uiSample].uiFlags|=SAMPLE_LOCKED;
-			pSoundList[uiChannel].fLooping=TRUE;
-		}
-	}
+        // If looping infinately, lock the sample so it can't be unloaded
+        // and mark it as a looping sound
+        if (pParms->uiLoop == 0) {
+            pSampleList[uiSample].uiFlags |= SAMPLE_LOCKED;
+            pSoundList[uiChannel].fLooping = TRUE;
+        }
+    }
 
-	if((pParms!=NULL) && (pParms->uiPan!=SOUND_PARMS_DEFAULT))
-		AIL_set_sample_pan(pSoundList[uiChannel].hMSS, pParms->uiPan);
+    if ((pParms != NULL) && (pParms->uiPan != SOUND_PARMS_DEFAULT))
+        AIL_set_sample_pan(pSoundList[uiChannel].hMSS, pParms->uiPan);
 
-	if((pParms!=NULL) && (pParms->uiPriority!=SOUND_PARMS_DEFAULT))
-		pSoundList[uiChannel].uiPriority=pParms->uiPriority;
-	else
-		pSoundList[uiChannel].uiPriority=PRIORITY_MAX;
+    if ((pParms != NULL) && (pParms->uiPriority != SOUND_PARMS_DEFAULT))
+        pSoundList[uiChannel].uiPriority = pParms->uiPriority;
+    else
+        pSoundList[uiChannel].uiPriority = PRIORITY_MAX;
 
-	if((pParms!=NULL) && ((UINT32)pParms->EOSCallback!=SOUND_PARMS_DEFAULT))
-	{
-		pSoundList[uiChannel].EOSCallback=pParms->EOSCallback;
-		pSoundList[uiChannel].pCallbackData=pParms->pCallbackData;
-	}
-	else
-	{
-		pSoundList[uiChannel].EOSCallback=NULL;
-		pSoundList[uiChannel].pCallbackData=NULL;
-	}
+    if ((pParms != NULL) && ((UINT32)pParms->EOSCallback != SOUND_PARMS_DEFAULT)) {
+        pSoundList[uiChannel].EOSCallback = pParms->EOSCallback;
+        pSoundList[uiChannel].pCallbackData = pParms->pCallbackData;
+    } else {
+        pSoundList[uiChannel].EOSCallback = NULL;
+        pSoundList[uiChannel].pCallbackData = NULL;
+    }
 
-	uiSoundID=SoundGetUniqueID();
-	pSoundList[uiChannel].uiSoundID=uiSoundID;
-	pSoundList[uiChannel].uiSample=uiSample;
-	pSoundList[uiChannel].uiTimeStamp=GetTickCount();
-	pSoundList[uiChannel].uiFadeVolume = SoundGetVolumeIndex(uiChannel);
+    uiSoundID = SoundGetUniqueID();
+    pSoundList[uiChannel].uiSoundID = uiSoundID;
+    pSoundList[uiChannel].uiSample = uiSample;
+    pSoundList[uiChannel].uiTimeStamp = GetTickCount();
+    pSoundList[uiChannel].uiFadeVolume = SoundGetVolumeIndex(uiChannel);
 
-	pSoundList[uiChannel].fMusic=FALSE;
-	pSampleList[uiSample].uiCacheHits++;
+    pSoundList[uiChannel].fMusic = FALSE;
+    pSampleList[uiSample].uiCacheHits++;
 
-	AIL_start_sample(pSoundList[uiChannel].hMSS);
+    AIL_start_sample(pSoundList[uiChannel].hMSS);
 
-	return(uiSoundID);
+    return (uiSoundID);
 }
 
 //*******************************************************************************
@@ -1731,78 +1640,73 @@ CHAR8 AILString[200];
 //
 //*******************************************************************************
 // FUNCTION: WIZ8 0x0040a2e0
-UINT32 SoundStartStream(STR pFilename, UINT32 uiChannel, SOUNDPARMS *pParms)
+UINT32 SoundStartStream(STR pFilename, UINT32 uiChannel, SOUNDPARMS* pParms)
 {
-UINT32 uiSoundID, uiSpeed;
-CHAR8	AILString[200];
+    UINT32 uiSoundID, uiSpeed;
+    CHAR8 AILString[200];
 
-	if(!fSoundSystemInit)
-		return(SOUND_ERROR);
+    if (!fSoundSystemInit)
+        return (SOUND_ERROR);
 
-	if((pSoundList[uiChannel].hMSSStream=AIL_open_stream(hSoundDriver, pFilename, SOUND_DEFAULT_STREAM))==NULL)
-	{
-		SoundCleanCache();
-		pSoundList[uiChannel].hMSSStream=AIL_open_stream(hSoundDriver, pFilename, SOUND_DEFAULT_STREAM);
-	}
+    if ((pSoundList[uiChannel].hMSSStream =
+             AIL_open_stream(hSoundDriver, pFilename, SOUND_DEFAULT_STREAM)) == NULL) {
+        SoundCleanCache();
+        pSoundList[uiChannel].hMSSStream =
+            AIL_open_stream(hSoundDriver, pFilename, SOUND_DEFAULT_STREAM);
+    }
 
-	if(pSoundList[uiChannel].hMSSStream==NULL)
-	{
-		sprintf(AILString, "Stream Error: %s", AIL_last_error());
-		DbgMessage(TOPIC_GAME, DBG_LEVEL_0, AILString);
-		return(SOUND_ERROR);
-	}
+    if (pSoundList[uiChannel].hMSSStream == NULL) {
+        sprintf(AILString, "Stream Error: %s", AIL_last_error());
+        DbgMessage(TOPIC_GAME, DBG_LEVEL_0, AILString);
+        return (SOUND_ERROR);
+    }
 
-	if((pParms!=NULL) && (pParms->uiSpeed!=SOUND_PARMS_DEFAULT))
-		uiSpeed=pParms->uiSpeed;
-	else
-		uiSpeed=AIL_stream_playback_rate(pSoundList[uiChannel].hMSSStream);
+    if ((pParms != NULL) && (pParms->uiSpeed != SOUND_PARMS_DEFAULT))
+        uiSpeed = pParms->uiSpeed;
+    else
+        uiSpeed = AIL_stream_playback_rate(pSoundList[uiChannel].hMSSStream);
 
-	if((pParms!=NULL) && (pParms->uiPitchBend!=SOUND_PARMS_DEFAULT))
-	{
-		UINT32 uiBend = uiSpeed * pParms->uiPitchBend/100;
-		uiSpeed+=(Random(uiBend*2)-uiBend);
-	}
+    if ((pParms != NULL) && (pParms->uiPitchBend != SOUND_PARMS_DEFAULT)) {
+        UINT32 uiBend = uiSpeed * pParms->uiPitchBend / 100;
+        uiSpeed += (Random(uiBend * 2) - uiBend);
+    }
 
-	AIL_set_stream_playback_rate(pSoundList[uiChannel].hMSSStream, uiSpeed);
+    AIL_set_stream_playback_rate(pSoundList[uiChannel].hMSSStream, uiSpeed);
 
-	if((pParms!=NULL) && (pParms->uiVolume!=SOUND_PARMS_DEFAULT))
-		AIL_set_stream_volume(pSoundList[uiChannel].hMSSStream, pParms->uiVolume);
-	else
-		AIL_set_stream_volume(pSoundList[uiChannel].hMSSStream, guiSoundDefaultVolume);
+    if ((pParms != NULL) && (pParms->uiVolume != SOUND_PARMS_DEFAULT))
+        AIL_set_stream_volume(pSoundList[uiChannel].hMSSStream, pParms->uiVolume);
+    else
+        AIL_set_stream_volume(pSoundList[uiChannel].hMSSStream, guiSoundDefaultVolume);
 
-	if( pParms!=NULL )
-	{
-		if (pParms->uiLoop!=SOUND_PARMS_DEFAULT )
-			AIL_set_stream_loop_count(pSoundList[uiChannel].hMSSStream, pParms->uiLoop);
-	}
+    if (pParms != NULL) {
+        if (pParms->uiLoop != SOUND_PARMS_DEFAULT)
+            AIL_set_stream_loop_count(pSoundList[uiChannel].hMSSStream, pParms->uiLoop);
+    }
 
-	if((pParms!=NULL) && (pParms->uiPan!=SOUND_PARMS_DEFAULT))
-		AIL_set_stream_pan(pSoundList[uiChannel].hMSSStream, pParms->uiPan);
+    if ((pParms != NULL) && (pParms->uiPan != SOUND_PARMS_DEFAULT))
+        AIL_set_stream_pan(pSoundList[uiChannel].hMSSStream, pParms->uiPan);
 
-	AIL_start_stream(pSoundList[uiChannel].hMSSStream);
+    AIL_start_stream(pSoundList[uiChannel].hMSSStream);
 
-	uiSoundID=SoundGetUniqueID();
-	pSoundList[uiChannel].uiSoundID=uiSoundID;
-	if(pParms)
-		pSoundList[uiChannel].uiPriority=pParms->uiPriority;
-	else
-		pSoundList[uiChannel].uiPriority=SOUND_PARMS_DEFAULT;
+    uiSoundID = SoundGetUniqueID();
+    pSoundList[uiChannel].uiSoundID = uiSoundID;
+    if (pParms)
+        pSoundList[uiChannel].uiPriority = pParms->uiPriority;
+    else
+        pSoundList[uiChannel].uiPriority = SOUND_PARMS_DEFAULT;
 
-	if((pParms!=NULL) && ((UINT32)pParms->EOSCallback!=SOUND_PARMS_DEFAULT))
-	{
-		pSoundList[uiChannel].EOSCallback=pParms->EOSCallback;
-		pSoundList[uiChannel].pCallbackData=pParms->pCallbackData;
-	}
-	else
-	{
-		pSoundList[uiChannel].EOSCallback=NULL;
-		pSoundList[uiChannel].pCallbackData=NULL;
-	}
+    if ((pParms != NULL) && ((UINT32)pParms->EOSCallback != SOUND_PARMS_DEFAULT)) {
+        pSoundList[uiChannel].EOSCallback = pParms->EOSCallback;
+        pSoundList[uiChannel].pCallbackData = pParms->pCallbackData;
+    } else {
+        pSoundList[uiChannel].EOSCallback = NULL;
+        pSoundList[uiChannel].pCallbackData = NULL;
+    }
 
-	pSoundList[uiChannel].uiTimeStamp=GetTickCount();
-	pSoundList[uiChannel].uiFadeVolume = SoundGetVolumeIndex(uiChannel);
+    pSoundList[uiChannel].uiTimeStamp = GetTickCount();
+    pSoundList[uiChannel].uiFadeVolume = SoundGetVolumeIndex(uiChannel);
 
-	return(uiSoundID);
+    return (uiSoundID);
 }
 
 //*******************************************************************************
@@ -1814,12 +1718,12 @@ CHAR8	AILString[200];
 //*******************************************************************************
 UINT32 SoundGetUniqueID(void)
 {
-static UINT32 uiNextID=0;
+    static UINT32 uiNextID = 0;
 
-	if(uiNextID==SOUND_ERROR)
-		uiNextID++;
+    if (uiNextID == SOUND_ERROR)
+        uiNextID++;
 
-	return(uiNextID++);
+    return (uiNextID++);
 }
 
 //*******************************************************************************
@@ -1834,17 +1738,16 @@ static UINT32 uiNextID=0;
 //*******************************************************************************
 BOOLEAN SoundPlayStreamed(STR pFilename)
 {
-HWFILE hDisk;
-UINT32 uiFilesize;
+    HWFILE hDisk;
+    UINT32 uiFilesize;
 
-	if((hDisk=FileOpen(pFilename, FILE_ACCESS_READ, FALSE))!=0)
-	{
-		uiFilesize=FileGetSize(hDisk);
-		FileClose(hDisk);
-		return(uiFilesize >= guiSoundCacheThreshold);
-	}
+    if ((hDisk = FileOpen(pFilename, FILE_ACCESS_READ, FALSE)) != 0) {
+        uiFilesize = FileGetSize(hDisk);
+        FileClose(hDisk);
+        return (uiFilesize >= guiSoundCacheThreshold);
+    }
 
-	return(FALSE);
+    return (FALSE);
 }
 
 //*******************************************************************************
@@ -1861,76 +1764,70 @@ UINT32 uiFilesize;
 // FUNCTION: WIZ8 0x0040a5c0
 BOOLEAN SoundStopIndex(UINT32 uiChannel)
 {
-UINT32 uiSample;
+    UINT32 uiSample;
 
-	if(fSoundSystemInit)
-	{
-		if(uiChannel!=NO_SAMPLE)
-		{
-				if(pSoundList[uiChannel].hMSS!=NULL)
-				{
-					AIL_stop_sample(pSoundList[uiChannel].hMSS);
-					AIL_release_sample_handle(pSoundList[uiChannel].hMSS);
-					pSoundList[uiChannel].hMSS=NULL;
-					uiSample=pSoundList[uiChannel].uiSample;
+    if (fSoundSystemInit) {
+        if (uiChannel != NO_SAMPLE) {
+            if (pSoundList[uiChannel].hMSS != NULL) {
+                AIL_stop_sample(pSoundList[uiChannel].hMSS);
+                AIL_release_sample_handle(pSoundList[uiChannel].hMSS);
+                pSoundList[uiChannel].hMSS = NULL;
+                uiSample = pSoundList[uiChannel].uiSample;
 
-					// if this was a random sample, decrease the iteration count
-					if(pSampleList[uiSample].uiFlags&SAMPLE_RANDOM)
-						pSampleList[uiSample].uiInstances--;
+                // if this was a random sample, decrease the iteration count
+                if (pSampleList[uiSample].uiFlags & SAMPLE_RANDOM)
+                    pSampleList[uiSample].uiInstances--;
 
-					if(pSoundList[uiChannel].EOSCallback!=NULL)
-						pSoundList[uiChannel].EOSCallback(pSoundList[uiChannel].pCallbackData);
+                if (pSoundList[uiChannel].EOSCallback != NULL)
+                    pSoundList[uiChannel].EOSCallback(pSoundList[uiChannel].pCallbackData);
 
-					if(pSoundList[uiChannel].fLooping && !SoundSampleIsInUse(uiChannel))
-						SoundRemoveSampleFlags(uiSample, SAMPLE_LOCKED);
+                if (pSoundList[uiChannel].fLooping && !SoundSampleIsInUse(uiChannel))
+                    SoundRemoveSampleFlags(uiSample, SAMPLE_LOCKED);
 
-					pSoundList[uiChannel].uiSample=NO_SAMPLE;
-				}
+                pSoundList[uiChannel].uiSample = NO_SAMPLE;
+            }
 
-				if(pSoundList[uiChannel].hMSSStream!=NULL)
-				{
-					AIL_close_stream(pSoundList[uiChannel].hMSSStream);
-					pSoundList[uiChannel].hMSSStream=NULL;
-					if(pSoundList[uiChannel].EOSCallback!=NULL)
-						pSoundList[uiChannel].EOSCallback(pSoundList[uiChannel].pCallbackData);
+            if (pSoundList[uiChannel].hMSSStream != NULL) {
+                AIL_close_stream(pSoundList[uiChannel].hMSSStream);
+                pSoundList[uiChannel].hMSSStream = NULL;
+                if (pSoundList[uiChannel].EOSCallback != NULL)
+                    pSoundList[uiChannel].EOSCallback(pSoundList[uiChannel].pCallbackData);
 
-					pSoundList[uiChannel].uiSample=NO_SAMPLE;
-				}
+                pSoundList[uiChannel].uiSample = NO_SAMPLE;
+            }
 
-				if(pSoundList[uiChannel].hM3D!=NULL)
-				{
-					AIL_stop_3D_sample(pSoundList[uiChannel].hM3D);
-					AIL_release_3D_sample_handle(pSoundList[uiChannel].hM3D);
-					pSoundList[uiChannel].hM3D=NULL;
-					uiSample=pSoundList[uiChannel].uiSample;
+            if (pSoundList[uiChannel].hM3D != NULL) {
+                AIL_stop_3D_sample(pSoundList[uiChannel].hM3D);
+                AIL_release_3D_sample_handle(pSoundList[uiChannel].hM3D);
+                pSoundList[uiChannel].hM3D = NULL;
+                uiSample = pSoundList[uiChannel].uiSample;
 
-					// if this was a random sample, decrease the iteration count
-					if(pSampleList[uiSample].uiFlags&SAMPLE_RANDOM)
-						pSampleList[uiSample].uiInstances--;
+                // if this was a random sample, decrease the iteration count
+                if (pSampleList[uiSample].uiFlags & SAMPLE_RANDOM)
+                    pSampleList[uiSample].uiInstances--;
 
-					if(pSoundList[uiChannel].EOSCallback!=NULL)
-						pSoundList[uiChannel].EOSCallback(pSoundList[uiChannel].pCallbackData);
+                if (pSoundList[uiChannel].EOSCallback != NULL)
+                    pSoundList[uiChannel].EOSCallback(pSoundList[uiChannel].pCallbackData);
 
-					if(pSoundList[uiChannel].fLooping && !SoundSampleIsInUse(uiChannel))
-						SoundRemoveSampleFlags(uiSample, SAMPLE_LOCKED);
+                if (pSoundList[uiChannel].fLooping && !SoundSampleIsInUse(uiChannel))
+                    SoundRemoveSampleFlags(uiSample, SAMPLE_LOCKED);
 
-					pSoundList[uiChannel].uiSample=NO_SAMPLE;
-				}
+                pSoundList[uiChannel].uiSample = NO_SAMPLE;
+            }
 
-				if( pSoundList[uiChannel].hFile != (HWFILE)INVALID_HANDLE_VALUE )
-				{
-					CloseHandle((HANDLE)pSoundList[uiChannel].hFile);
-					pSoundList[uiChannel].hFile = (HWFILE)INVALID_HANDLE_VALUE;
+            if (pSoundList[uiChannel].hFile != (HWFILE)INVALID_HANDLE_VALUE) {
+                CloseHandle((HANDLE)pSoundList[uiChannel].hFile);
+                pSoundList[uiChannel].hFile = (HWFILE)INVALID_HANDLE_VALUE;
 
-					pSoundList[uiChannel].uiSample=NO_SAMPLE;
-				}
+                pSoundList[uiChannel].uiSample = NO_SAMPLE;
+            }
 
-				pSoundList[uiChannel].fMusic=FALSE;
-			return(TRUE);
-		}
-	}
+            pSoundList[uiChannel].fMusic = FALSE;
+            return (TRUE);
+        }
+    }
 
-	return(FALSE);
+    return (FALSE);
 }
 
 //*******************************************************************************
@@ -1942,30 +1839,28 @@ UINT32 uiSample;
 // FUNCTION: WIZ8 0x0040a8a0
 HDIGDRIVER SoundGetDriverHandle(void)
 {
-	return(hSoundDriver);
+    return (hSoundDriver);
 }
 
 // FUNCTIONS TO SET / RESET SAMPLE FLAGS
 // FUNCTION: WIZ8 0x0040a8b0
-void SoundSetSampleFlags( UINT32 uiSample, UINT32 uiFlags )
+void SoundSetSampleFlags(UINT32 uiSample, UINT32 uiFlags)
 {
-	// CHECK FOR VALUE SAMPLE
-	if((pSampleList[ uiSample ].uiFlags&SAMPLE_ALLOCATED) )
-	{
-		// SET
-		pSampleList[uiSample].uiFlags |= uiFlags;
-	}
+    // CHECK FOR VALUE SAMPLE
+    if ((pSampleList[uiSample].uiFlags & SAMPLE_ALLOCATED)) {
+        // SET
+        pSampleList[uiSample].uiFlags |= uiFlags;
+    }
 }
 
 // FUNCTION: WIZ8 0x0040a8e0
-void SoundRemoveSampleFlags( UINT32 uiSample, UINT32 uiFlags )
+void SoundRemoveSampleFlags(UINT32 uiSample, UINT32 uiFlags)
 {
-	// CHECK FOR VALID SAMPLE
-	if((pSampleList[ uiSample ].uiFlags&SAMPLE_ALLOCATED) )
-	{
-		//REMOVE
-		pSampleList[uiSample].uiFlags &= (~uiFlags);
-	}
+    // CHECK FOR VALID SAMPLE
+    if ((pSampleList[uiSample].uiFlags & SAMPLE_ALLOCATED)) {
+        //REMOVE
+        pSampleList[uiSample].uiFlags &= (~uiFlags);
+    }
 }
 
 //*******************************************************************************
@@ -1976,17 +1871,15 @@ void SoundRemoveSampleFlags( UINT32 uiSample, UINT32 uiFlags )
 //*******************************************************************************
 BOOLEAN SoundSampleIsInUse(UINT32 uiSample)
 {
-UINT32 uiCount;
+    UINT32 uiCount;
 
-	for(uiCount=0; uiCount < SOUND_MAX_CHANNELS; uiCount++)
-	{
-		if((pSoundList[uiCount].uiSample==uiSample) && SoundIsPlaying(uiCount))
-			return(TRUE);
-	}
+    for (uiCount = 0; uiCount < SOUND_MAX_CHANNELS; uiCount++) {
+        if ((pSoundList[uiCount].uiSample == uiSample) && SoundIsPlaying(uiCount))
+            return (TRUE);
+    }
 
-	return(FALSE);
+    return (FALSE);
 }
-
 
 //*****************************************************************************************
 // SoundFileIsPlaying
@@ -2001,23 +1894,19 @@ UINT32 uiCount;
 // Created:  2/24/00 Derek Beland
 //*****************************************************************************************
 // FUNCTION: WIZ8 0x0040a910
-BOOLEAN SoundFileIsPlaying(CHAR8 *pFilename)
+BOOLEAN SoundFileIsPlaying(CHAR8* pFilename)
 {
-UINT32 uiCount;
+    UINT32 uiCount;
 
-	for(uiCount=0; uiCount < SOUND_MAX_CHANNELS; uiCount++)
-	{
-		if(SoundIndexIsPlaying(uiCount))
-		{
-			if(stricmp(pSampleList[pSoundList[uiCount].uiSample].pName, pFilename)==0)
-				return(TRUE);
-		}
-	}
+    for (uiCount = 0; uiCount < SOUND_MAX_CHANNELS; uiCount++) {
+        if (SoundIndexIsPlaying(uiCount)) {
+            if (stricmp(pSampleList[pSoundList[uiCount].uiSample].pName, pFilename) == 0)
+                return (TRUE);
+        }
+    }
 
-	return(FALSE);
+    return (FALSE);
 }
-
-
 
 //*****************************************************************************************
 // SoundSetMusic
@@ -2033,12 +1922,11 @@ UINT32 uiCount;
 // FUNCTION: WIZ8 0x0040a9a0
 void SoundSetMusic(UINT32 uiSoundID)
 {
-UINT32 uiSound=SoundGetIndexByID(uiSoundID);
+    UINT32 uiSound = SoundGetIndexByID(uiSoundID);
 
-	if(uiSound!=NO_SAMPLE)
-		pSoundList[uiSound].fMusic=TRUE;
+    if (uiSound != NO_SAMPLE)
+        pSoundList[uiSound].fMusic = TRUE;
 }
-
 
 //*****************************************************************************************
 // SoundStopMusic
@@ -2052,25 +1940,22 @@ UINT32 uiSound=SoundGetIndexByID(uiSoundID);
 // FUNCTION: WIZ8 0x0040a9d0
 BOOLEAN SoundStopMusic(void)
 {
-UINT32 uiCount;
-BOOLEAN fStopped=FALSE;
+    UINT32 uiCount;
+    BOOLEAN fStopped = FALSE;
 
-	if(fSoundSystemInit)
-	{
-		for(uiCount=0; uiCount < SOUND_MAX_CHANNELS; uiCount++)
-		{
-			if((pSoundList[uiCount].hMSS!=NULL) || (pSoundList[uiCount].hMSSStream!=NULL) || (pSoundList[uiCount].hM3D!=NULL))
-			{
-				if(pSoundList[uiCount].fMusic)
-				{
-					SoundStop(pSoundList[uiCount].uiSoundID);
-					fStopped=TRUE;
-				}
-			}
-		}
-	}
+    if (fSoundSystemInit) {
+        for (uiCount = 0; uiCount < SOUND_MAX_CHANNELS; uiCount++) {
+            if ((pSoundList[uiCount].hMSS != NULL) || (pSoundList[uiCount].hMSSStream != NULL) ||
+                (pSoundList[uiCount].hM3D != NULL)) {
+                if (pSoundList[uiCount].fMusic) {
+                    SoundStop(pSoundList[uiCount].uiSoundID);
+                    fStopped = TRUE;
+                }
+            }
+        }
+    }
 
-	return(fStopped);
+    return (fStopped);
 }
 
 //*****************************************************************************************
@@ -2085,11 +1970,6 @@ BOOLEAN fStopped=FALSE;
 //
 //*****************************************************************************************
 
-
-
-
-
-
 //*****************************************************************************************
 // Sound3DSetProvider
 //
@@ -2102,17 +1982,15 @@ BOOLEAN fStopped=FALSE;
 // Created:  8/17/99 Derek Beland
 //*****************************************************************************************
 // FUNCTION: WIZ8 0x0040aad0
-void Sound3DSetProvider(CHAR8 *pProviderName)
+void Sound3DSetProvider(CHAR8* pProviderName)
 {
-	Assert(pProviderName);
+    Assert(pProviderName);
 
-	if(pProviderName)
-	{
-		gpProviderName = (CHAR8 *)MemAlloc(strlen(pProviderName)+1);
-		strcpy(gpProviderName, pProviderName);
-	}
+    if (pProviderName) {
+        gpProviderName = (CHAR8*)MemAlloc(strlen(pProviderName) + 1);
+        strcpy(gpProviderName, pProviderName);
+    }
 }
-
 
 //*****************************************************************************************
 // Sound3DInitProvider
@@ -2125,60 +2003,52 @@ void Sound3DSetProvider(CHAR8 *pProviderName)
 //
 // Created:  8/17/99 Derek Beland
 //*****************************************************************************************
-BOOLEAN Sound3DInitProvider(CHAR8 *pProviderName)
+BOOLEAN Sound3DInitProvider(CHAR8* pProviderName)
 {
-HPROENUM hEnum=HPROENUM_FIRST;
-HPROVIDER hProvider=0;
-BOOLEAN fDone=FALSE;
-CHAR8 *pName;
-INT32 iResult;
+    HPROENUM hEnum = HPROENUM_FIRST;
+    HPROVIDER hProvider = 0;
+    BOOLEAN fDone = FALSE;
+    CHAR8* pName;
+    INT32 iResult;
 
-	// 3D sound providers depend on the 2D sound system being initialized first
-	if(!fSoundSystemInit || !pProviderName)
-		return(FALSE);
+    // 3D sound providers depend on the 2D sound system being initialized first
+    if (!fSoundSystemInit || !pProviderName)
+        return (FALSE);
 
-	// We're already booted up
-	if(gh3DProvider)
-		return(TRUE);
+    // We're already booted up
+    if (gh3DProvider)
+        return (TRUE);
 
-	while(!fDone)
-	{
-		if(!AIL_enumerate_3D_providers(&hEnum, &hProvider, &pName))
-			fDone=TRUE;
-		else if(hProvider)
-		{
-			if(strcmp(pProviderName, pName)==0)
-			{
-				fDone=TRUE;
-				if(AIL_open_3D_provider(hProvider)==M3D_NOERR)
-				{
-					gh3DProvider = hProvider;
+    while (!fDone) {
+        if (!AIL_enumerate_3D_providers(&hEnum, &hProvider, &pName))
+            fDone = TRUE;
+        else if (hProvider) {
+            if (strcmp(pProviderName, pName) == 0) {
+                fDone = TRUE;
+                if (AIL_open_3D_provider(hProvider) == M3D_NOERR) {
+                    gh3DProvider = hProvider;
 
-					// Create a "listener" which represents our position in space
-					gh3DListener = AIL_open_3D_listener(gh3DProvider);
-					if(!gh3DListener)
-					{
-						AIL_close_3D_provider(gh3DProvider);
-						return(FALSE);
-					}
-					Sound3DSetListener(0.0f, 0.0f, 0.0f);
+                    // Create a "listener" which represents our position in space
+                    gh3DListener = AIL_open_3D_listener(gh3DProvider);
+                    if (!gh3DListener) {
+                        AIL_close_3D_provider(gh3DProvider);
+                        return (FALSE);
+                    }
+                    Sound3DSetListener(0.0f, 0.0f, 0.0f);
 
-			    AIL_3D_provider_attribute(gh3DProvider, "EAX environment selection", &iResult);
-					if(iResult!=(-1))
-						gfUsingEAX = TRUE;
+                    AIL_3D_provider_attribute(gh3DProvider, "EAX environment selection", &iResult);
+                    if (iResult != (-1))
+                        gfUsingEAX = TRUE;
 
-					return(TRUE);
-				}
+                    return (TRUE);
+                }
+            }
+        }
+    }
 
-			}
-		}
-	}
-
-	// We didn't find a provider with a matching name that would boot up
-	return(FALSE);
+    // We didn't find a provider with a matching name that would boot up
+    return (FALSE);
 }
-
-
 
 //*****************************************************************************************
 // Sound3DSetPosition
@@ -2197,20 +2067,16 @@ INT32 iResult;
 // FUNCTION: WIZ8 0x0040ab20
 void Sound3DSetPosition(UINT32 uiSample, FLOAT flX, FLOAT flY, FLOAT flZ)
 {
-UINT32 uiChannel;
+    UINT32 uiChannel;
 
-	if(fSoundSystemInit && gh3DProvider)
-	{
-		if((uiChannel=SoundGetIndexByID(uiSample))!=NO_SAMPLE)
-		{
-			if(pSoundList[uiChannel].hM3D!=NULL)
-			{
-				AIL_set_3D_position(pSoundList[uiChannel].hM3D, flX, flY, flZ);
-			}
-		}
-	}
+    if (fSoundSystemInit && gh3DProvider) {
+        if ((uiChannel = SoundGetIndexByID(uiSample)) != NO_SAMPLE) {
+            if (pSoundList[uiChannel].hM3D != NULL) {
+                AIL_set_3D_position(pSoundList[uiChannel].hM3D, flX, flY, flZ);
+            }
+        }
+    }
 }
-
 
 //*****************************************************************************************
 // Sound3DSetListener
@@ -2227,10 +2093,9 @@ UINT32 uiChannel;
 //*****************************************************************************************
 void Sound3DSetListener(FLOAT flX, FLOAT flY, FLOAT flZ)
 {
-	if(fSoundSystemInit && gh3DListener)
-		AIL_set_3D_position(gh3DListener, flX, flY, flZ);
+    if (fSoundSystemInit && gh3DListener)
+        AIL_set_3D_position(gh3DListener, flX, flY, flZ);
 }
-
 
 //*****************************************************************************************
 // Sound3DSetDirection
@@ -2251,24 +2116,20 @@ void Sound3DSetListener(FLOAT flX, FLOAT flY, FLOAT flZ)
 // Created:  8/17/99 Derek Beland
 //*****************************************************************************************
 // FUNCTION: WIZ8 0x0040ab80
-void Sound3DSetDirection(UINT32 uiSample, FLOAT flXFace, FLOAT flYFace, FLOAT flZFace, FLOAT flXUp, FLOAT flYUp, FLOAT flZUp)
+void Sound3DSetDirection(UINT32 uiSample, FLOAT flXFace, FLOAT flYFace, FLOAT flZFace, FLOAT flXUp,
+                         FLOAT flYUp, FLOAT flZUp)
 {
-UINT32 uiChannel;
+    UINT32 uiChannel;
 
-	if(fSoundSystemInit && gh3DProvider)
-	{
-		if((uiChannel=SoundGetIndexByID(uiSample))!=NO_SAMPLE)
-		{
-			if(pSoundList[uiChannel].hM3D!=NULL)
-			{
-				AIL_set_3D_orientation(pSoundList[uiChannel].hM3D, flXFace, flYFace, flZFace, flXUp, flYUp, flZUp);
-			}
-		}
-	}
+    if (fSoundSystemInit && gh3DProvider) {
+        if ((uiChannel = SoundGetIndexByID(uiSample)) != NO_SAMPLE) {
+            if (pSoundList[uiChannel].hM3D != NULL) {
+                AIL_set_3D_orientation(pSoundList[uiChannel].hM3D, flXFace, flYFace, flZFace, flXUp,
+                                       flYUp, flZUp);
+            }
+        }
+    }
 }
-
-
-
 
 //*****************************************************************************************
 // Sound3DSetEnvironment
@@ -2285,16 +2146,14 @@ UINT32 uiChannel;
 // FUNCTION: WIZ8 0x0040b210
 void Sound3DSetEnvironment(INT32 iEnvironment)
 {
-CHAR8 cRoomName[128];
+    CHAR8 cRoomName[128];
 
-	if(gh3DProvider && gfUsingEAX && guiRoomTypeIndex != iEnvironment)
-	{
-		sprintf(cRoomName, "EAX_ENVIRONMENT_%s", pEAXRoomTypes[iEnvironment]);
-		AIL_set_3D_provider_preference(gh3DProvider, cRoomName, &iEnvironment);
-		guiRoomTypeIndex = iEnvironment;
-	}
+    if (gh3DProvider && gfUsingEAX && guiRoomTypeIndex != iEnvironment) {
+        sprintf(cRoomName, "EAX_ENVIRONMENT_%s", pEAXRoomTypes[iEnvironment]);
+        AIL_set_3D_provider_preference(gh3DProvider, cRoomName, &iEnvironment);
+        guiRoomTypeIndex = iEnvironment;
+    }
 }
-
 
 //*****************************************************************************************
 // Sound3DPlay
@@ -2309,26 +2168,21 @@ CHAR8 cRoomName[128];
 // Created:  8/17/99 Derek Beland
 //*****************************************************************************************
 // FUNCTION: WIZ8 0x0040abf0
-UINT32 Sound3DPlay(STR pFilename, SOUND3DPARMS *pParms)
+UINT32 Sound3DPlay(STR pFilename, SOUND3DPARMS* pParms)
 {
-	UINT32 uiSample, uiChannel;
+    UINT32 uiSample, uiChannel;
 
-	if(fSoundSystemInit && gh3DProvider)
-	{
-		if((uiSample=SoundLoadSample(pFilename))!=NO_SAMPLE)
-		{
-			if((uiChannel=SoundGetFreeChannel())!=SOUND_ERROR)
-			{
-				return(Sound3DStartSample(uiSample, uiChannel, pParms));
-			}
-		}
-		else
-		{
-			FastDebugMsg(String("Sound3DPlay: ERROR: Failed loading sample %s\n", pFilename ) );
-		}
-	}
+    if (fSoundSystemInit && gh3DProvider) {
+        if ((uiSample = SoundLoadSample(pFilename)) != NO_SAMPLE) {
+            if ((uiChannel = SoundGetFreeChannel()) != SOUND_ERROR) {
+                return (Sound3DStartSample(uiSample, uiChannel, pParms));
+            }
+        } else {
+            FastDebugMsg(String("Sound3DPlay: ERROR: Failed loading sample %s\n", pFilename));
+        }
+    }
 
-	return(SOUND_ERROR);
+    return (SOUND_ERROR);
 }
 
 //*******************************************************************************
@@ -2342,117 +2196,111 @@ UINT32 Sound3DPlay(STR pFilename, SOUND3DPARMS *pParms)
 //
 //*******************************************************************************
 // FUNCTION: WIZ8 0x0040ad40
-UINT32 Sound3DStartSample(UINT32 uiSample, UINT32 uiChannel, SOUND3DPARMS *pParms)
+UINT32 Sound3DStartSample(UINT32 uiSample, UINT32 uiChannel, SOUND3DPARMS* pParms)
 {
-UINT32 uiSoundID, uiVolume;
-CHAR8 AILString[200];
+    UINT32 uiSoundID, uiVolume;
+    CHAR8 AILString[200];
 
-	if(!fSoundSystemInit || !gh3DProvider)
-		return(SOUND_ERROR);
+    if (!fSoundSystemInit || !gh3DProvider)
+        return (SOUND_ERROR);
 
-	// Stereo samples have no purpose in 3D, nor MP3 files
-	if(pSampleList[uiSample].fStereo || strstr(pSampleList[uiSample].pName, ".MP3"))
-		return(SOUND_ERROR);
+    // Stereo samples have no purpose in 3D, nor MP3 files
+    if (pSampleList[uiSample].fStereo || strstr(pSampleList[uiSample].pName, ".MP3"))
+        return (SOUND_ERROR);
 
-	if((pSoundList[uiChannel].hM3D = AIL_allocate_3D_sample_handle(gh3DProvider))==NULL)
-	{
-		sprintf(AILString, "AIL3D Error: %s", AIL_last_error());
-		DbgMessage(TOPIC_GAME, DBG_LEVEL_0, AILString);
-		return(SOUND_ERROR);
-	}
+    if ((pSoundList[uiChannel].hM3D = AIL_allocate_3D_sample_handle(gh3DProvider)) == NULL) {
+        sprintf(AILString, "AIL3D Error: %s", AIL_last_error());
+        DbgMessage(TOPIC_GAME, DBG_LEVEL_0, AILString);
+        return (SOUND_ERROR);
+    }
 
-	if(!AIL_set_3D_sample_file(pSoundList[uiChannel].hM3D, pSampleList[uiSample].pData))
-	{
-		AIL_release_3D_sample_handle(pSoundList[uiChannel].hM3D);
-		pSoundList[uiChannel].hM3D=NULL;
+    if (!AIL_set_3D_sample_file(pSoundList[uiChannel].hM3D, pSampleList[uiSample].pData)) {
+        AIL_release_3D_sample_handle(pSoundList[uiChannel].hM3D);
+        pSoundList[uiChannel].hM3D = NULL;
 
-		sprintf(AILString, "AIL3D Set Sample Error: %s", AIL_last_error());
-		DbgMessage(TOPIC_GAME, DBG_LEVEL_0, AILString);
-		return(SOUND_ERROR);
-	}
+        sprintf(AILString, "AIL3D Set Sample Error: %s", AIL_last_error());
+        DbgMessage(TOPIC_GAME, DBG_LEVEL_0, AILString);
+        return (SOUND_ERROR);
+    }
 
-	// Store the natural playback rate before we modify it below
-	pSampleList[uiSample].uiSpeed=AIL_3D_sample_playback_rate(pSoundList[uiChannel].hM3D);
+    // Store the natural playback rate before we modify it below
+    pSampleList[uiSample].uiSpeed = AIL_3D_sample_playback_rate(pSoundList[uiChannel].hM3D);
 
-	if(pSampleList[uiSample].uiFlags & SAMPLE_RANDOM)
-	{
-		if((pSampleList[uiSample].uiSpeedMin != SOUND_PARMS_DEFAULT) && (pSampleList[uiSample].uiSpeedMax != SOUND_PARMS_DEFAULT))
-		{
-			UINT32 uiSpeed = pSampleList[uiSample].uiSpeedMin+Random(pSampleList[uiSample].uiSpeedMax-pSampleList[uiSample].uiSpeedMin);
+    if (pSampleList[uiSample].uiFlags & SAMPLE_RANDOM) {
+        if ((pSampleList[uiSample].uiSpeedMin != SOUND_PARMS_DEFAULT) &&
+            (pSampleList[uiSample].uiSpeedMax != SOUND_PARMS_DEFAULT)) {
+            UINT32 uiSpeed =
+                pSampleList[uiSample].uiSpeedMin +
+                Random(pSampleList[uiSample].uiSpeedMax - pSampleList[uiSample].uiSpeedMin);
 
-			AIL_set_3D_sample_playback_rate(pSoundList[uiChannel].hM3D, uiSpeed);
-		}
-	}
-	else
-	{
-		if((pParms!=NULL) && (pParms->uiSpeed!=SOUND_PARMS_DEFAULT))
-			AIL_set_3D_sample_playback_rate(pSoundList[uiChannel].hM3D, pParms->uiSpeed);
-	}
+            AIL_set_3D_sample_playback_rate(pSoundList[uiChannel].hM3D, uiSpeed);
+        }
+    } else {
+        if ((pParms != NULL) && (pParms->uiSpeed != SOUND_PARMS_DEFAULT))
+            AIL_set_3D_sample_playback_rate(pSoundList[uiChannel].hM3D, pParms->uiSpeed);
+    }
 
-	if((pParms!=NULL) && (pParms->uiPitchBend!=SOUND_PARMS_DEFAULT))
-	{
-		UINT32 uiRate = AIL_3D_sample_playback_rate(pSoundList[uiChannel].hM3D);
-		UINT32 uiBend = uiRate * pParms->uiPitchBend/100;
-		AIL_set_3D_sample_playback_rate(pSoundList[uiChannel].hM3D,	uiRate + (Random(uiBend*2)-uiBend));
-	}
+    if ((pParms != NULL) && (pParms->uiPitchBend != SOUND_PARMS_DEFAULT)) {
+        UINT32 uiRate = AIL_3D_sample_playback_rate(pSoundList[uiChannel].hM3D);
+        UINT32 uiBend = uiRate * pParms->uiPitchBend / 100;
+        AIL_set_3D_sample_playback_rate(pSoundList[uiChannel].hM3D,
+                                        uiRate + (Random(uiBend * 2) - uiBend));
+    }
 
-	if((pParms!=NULL) && (pParms->uiVolume!=SOUND_PARMS_DEFAULT))
-		uiVolume=pParms->uiVolume;
-	else
-		uiVolume=guiSoundDefaultVolume;
+    if ((pParms != NULL) && (pParms->uiVolume != SOUND_PARMS_DEFAULT))
+        uiVolume = pParms->uiVolume;
+    else
+        uiVolume = guiSoundDefaultVolume;
 
-	AIL_set_3D_sample_volume(pSoundList[uiChannel].hM3D, uiVolume);
-	pSoundList[uiChannel].uiFadeVolume=uiVolume;
+    AIL_set_3D_sample_volume(pSoundList[uiChannel].hM3D, uiVolume);
+    pSoundList[uiChannel].uiFadeVolume = uiVolume;
 
-	if((pParms!=NULL) && (pParms->uiLoop!=SOUND_PARMS_DEFAULT))
-	{
-		AIL_set_3D_sample_loop_count(pSoundList[uiChannel].hM3D, pParms->uiLoop);
+    if ((pParms != NULL) && (pParms->uiLoop != SOUND_PARMS_DEFAULT)) {
+        AIL_set_3D_sample_loop_count(pSoundList[uiChannel].hM3D, pParms->uiLoop);
 
-		// If looping infinately, lock the sample so it can't be unloaded
-		// and mark it as a looping sound
-		if(pParms->uiLoop==0)
-		{
-			pSampleList[uiSample].uiFlags|=SAMPLE_LOCKED;
-			pSoundList[uiChannel].fLooping=TRUE;
-		}
-	}
+        // If looping infinately, lock the sample so it can't be unloaded
+        // and mark it as a looping sound
+        if (pParms->uiLoop == 0) {
+            pSampleList[uiSample].uiFlags |= SAMPLE_LOCKED;
+            pSoundList[uiChannel].fLooping = TRUE;
+        }
+    }
 
-	if((pParms!=NULL) && (pParms->uiPriority!=SOUND_PARMS_DEFAULT))
-		pSoundList[uiChannel].uiPriority=pParms->uiPriority;
-	else
-		pSoundList[uiChannel].uiPriority=PRIORITY_MAX;
+    if ((pParms != NULL) && (pParms->uiPriority != SOUND_PARMS_DEFAULT))
+        pSoundList[uiChannel].uiPriority = pParms->uiPriority;
+    else
+        pSoundList[uiChannel].uiPriority = PRIORITY_MAX;
 
-	if((pParms!=NULL) && ((UINT32)pParms->EOSCallback!=SOUND_PARMS_DEFAULT))
-	{
-		pSoundList[uiChannel].EOSCallback=pParms->EOSCallback;
-		pSoundList[uiChannel].pCallbackData=pParms->pCallbackData;
-	}
-	else
-	{
-		pSoundList[uiChannel].EOSCallback=NULL;
-		pSoundList[uiChannel].pCallbackData=NULL;
-	}
+    if ((pParms != NULL) && ((UINT32)pParms->EOSCallback != SOUND_PARMS_DEFAULT)) {
+        pSoundList[uiChannel].EOSCallback = pParms->EOSCallback;
+        pSoundList[uiChannel].pCallbackData = pParms->pCallbackData;
+    } else {
+        pSoundList[uiChannel].EOSCallback = NULL;
+        pSoundList[uiChannel].pCallbackData = NULL;
+    }
 
+    AIL_set_3D_position(pSoundList[uiChannel].hM3D, pParms->Pos.flX, pParms->Pos.flY,
+                        pParms->Pos.flZ);
+    AIL_set_3D_velocity_vector(pSoundList[uiChannel].hM3D, pParms->Pos.flVelX, pParms->Pos.flVelY,
+                               pParms->Pos.flVelZ);
+    AIL_set_3D_orientation(pSoundList[uiChannel].hM3D, pParms->Pos.flFaceX, pParms->Pos.flFaceY,
+                           pParms->Pos.flFaceZ, pParms->Pos.flUpX, pParms->Pos.flUpY,
+                           pParms->Pos.flUpZ);
+    //	AIL_set_3D_sample_distances(pSoundList[uiChannel].hM3D, pParms->Pos.flFalloffMax, pParms->Pos.flFalloffMin);
+    AIL_set_3D_sample_distances(pSoundList[uiChannel].hM3D, 99999999.9f, 99999999.9f);
 
-	AIL_set_3D_position(pSoundList[uiChannel].hM3D, pParms->Pos.flX, pParms->Pos.flY, pParms->Pos.flZ);
-	AIL_set_3D_velocity_vector(pSoundList[uiChannel].hM3D, pParms->Pos.flVelX, pParms->Pos.flVelY, pParms->Pos.flVelZ);
-	AIL_set_3D_orientation(pSoundList[uiChannel].hM3D, pParms->Pos.flFaceX, pParms->Pos.flFaceY, pParms->Pos.flFaceZ, pParms->Pos.flUpX, pParms->Pos.flUpY, pParms->Pos.flUpZ);
-//	AIL_set_3D_sample_distances(pSoundList[uiChannel].hM3D, pParms->Pos.flFalloffMax, pParms->Pos.flFalloffMin);
-	AIL_set_3D_sample_distances(pSoundList[uiChannel].hM3D, 99999999.9f, 99999999.9f);
+    uiSoundID = SoundGetUniqueID();
+    pSoundList[uiChannel].uiSoundID = uiSoundID;
+    pSoundList[uiChannel].uiSample = uiSample;
+    pSoundList[uiChannel].uiTimeStamp = GetTickCount();
 
-	uiSoundID=SoundGetUniqueID();
-	pSoundList[uiChannel].uiSoundID=uiSoundID;
-	pSoundList[uiChannel].uiSample=uiSample;
-	pSoundList[uiChannel].uiTimeStamp=GetTickCount();
+    pSoundList[uiChannel].fMusic = FALSE;
+    pSampleList[uiSample].uiCacheHits++;
 
-	pSoundList[uiChannel].fMusic=FALSE;
-	pSampleList[uiSample].uiCacheHits++;
+    AIL_start_3D_sample(pSoundList[uiChannel].hM3D);
 
-	AIL_start_3D_sample(pSoundList[uiChannel].hM3D);
-
-	return(uiSoundID);
+    return (uiSoundID);
 }
-
 
 //*******************************************************************************
 // Sound3DStartRandom
@@ -2463,55 +2311,50 @@ CHAR8 AILString[200];
 //
 //*******************************************************************************
 // FUNCTION: WIZ8 0x0040b040
-UINT32 Sound3DStartRandom(UINT32 uiSample, SOUND3DPOS *pPos)
+UINT32 Sound3DStartRandom(UINT32 uiSample, SOUND3DPOS* pPos)
 {
-UINT32 uiChannel, uiSoundID;
-SOUND3DPARMS sp3DParms;
+    UINT32 uiChannel, uiSoundID;
+    SOUND3DPARMS sp3DParms;
 
-	if(pPos && ((uiChannel=SoundGetFreeChannel())!=SOUND_ERROR))
-	{
-		memset(&sp3DParms, 0xff, sizeof(SOUND3DPARMS));
+    if (pPos && ((uiChannel = SoundGetFreeChannel()) != SOUND_ERROR)) {
+        memset(&sp3DParms, 0xff, sizeof(SOUND3DPARMS));
 
-//		sp3DParms.uiSpeed=pSampleList[uiSample].uiSpeedMin+Random(pSampleList[uiSample].uiSpeedMax-pSampleList[uiSample].uiSpeedMin);
-		sp3DParms.uiLoop=1;
-		sp3DParms.uiPriority=pSampleList[uiSample].uiPriority;
+        //		sp3DParms.uiSpeed=pSampleList[uiSample].uiSpeedMin+Random(pSampleList[uiSample].uiSpeedMax-pSampleList[uiSample].uiSpeedMin);
+        sp3DParms.uiLoop = 1;
+        sp3DParms.uiPriority = pSampleList[uiSample].uiPriority;
 
-//		memcpy(&sp3DParms.Pos, pPos, sizeof(SOUND3DPOS));
+        //		memcpy(&sp3DParms.Pos, pPos, sizeof(SOUND3DPOS));
 
-		sp3DParms.Pos.flX=pPos->flX;
-		sp3DParms.Pos.flY=pPos->flY;
-		sp3DParms.Pos.flZ=pPos->flZ;
+        sp3DParms.Pos.flX = pPos->flX;
+        sp3DParms.Pos.flY = pPos->flY;
+        sp3DParms.Pos.flZ = pPos->flZ;
 
-		sp3DParms.Pos.flVelX=pPos->flVelX;
-		sp3DParms.Pos.flVelY=pPos->flVelY;
-		sp3DParms.Pos.flVelZ=pPos->flVelZ;
+        sp3DParms.Pos.flVelX = pPos->flVelX;
+        sp3DParms.Pos.flVelY = pPos->flVelY;
+        sp3DParms.Pos.flVelZ = pPos->flVelZ;
 
-		sp3DParms.Pos.flFaceX=pPos->flFaceX;
-		sp3DParms.Pos.flFaceY=pPos->flFaceY;
-		sp3DParms.Pos.flFaceZ=pPos->flFaceZ;
+        sp3DParms.Pos.flFaceX = pPos->flFaceX;
+        sp3DParms.Pos.flFaceY = pPos->flFaceY;
+        sp3DParms.Pos.flFaceZ = pPos->flFaceZ;
 
-		sp3DParms.Pos.flUpX=pPos->flUpX;
-		sp3DParms.Pos.flUpY=pPos->flUpY;
-		sp3DParms.Pos.flUpZ=pPos->flUpZ;
+        sp3DParms.Pos.flUpX = pPos->flUpX;
+        sp3DParms.Pos.flUpY = pPos->flUpY;
+        sp3DParms.Pos.flUpZ = pPos->flUpZ;
 
-		sp3DParms.Pos.flFalloffMax=pPos->flFalloffMax;
-		sp3DParms.Pos.flFalloffMin=pPos->flFalloffMin;
+        sp3DParms.Pos.flFalloffMax = pPos->flFalloffMax;
+        sp3DParms.Pos.flFalloffMin = pPos->flFalloffMin;
 
-		sp3DParms.Pos.uiVolume=pPos->uiVolume;
-		sp3DParms.uiVolume=pPos->uiVolume;
+        sp3DParms.Pos.uiVolume = pPos->uiVolume;
+        sp3DParms.uiVolume = pPos->uiVolume;
 
-		if((uiSoundID=Sound3DStartSample(uiSample, uiChannel, &sp3DParms))!=SOUND_ERROR)
-		{
-			pSampleList[uiSample].uiTimeNext=GetTickCount()+pSampleList[uiSample].uiTimeMin+Random(pSampleList[uiSample].uiTimeMax-pSampleList[uiSample].uiTimeMin);
-			pSampleList[uiSample].uiInstances++;
-			return(uiSoundID);
-		}
-	}
+        if ((uiSoundID = Sound3DStartSample(uiSample, uiChannel, &sp3DParms)) != SOUND_ERROR) {
+            pSampleList[uiSample].uiTimeNext =
+                GetTickCount() + pSampleList[uiSample].uiTimeMin +
+                Random(pSampleList[uiSample].uiTimeMax - pSampleList[uiSample].uiTimeMin);
+            pSampleList[uiSample].uiInstances++;
+            return (uiSoundID);
+        }
+    }
 
-	return(NO_SAMPLE);
+    return (NO_SAMPLE);
 }
-
-
-
-
-

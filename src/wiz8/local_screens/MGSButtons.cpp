@@ -389,8 +389,7 @@ void UpdateCombatStanceButtons(void)
     W8DialogButton** button;
 
     if (!gXStatus.fCombatMode) {
-        for (button = g_combat_stance_buttons; button < &g_combat_stance_buttons[5];
-             ++button) {
+        for (button = g_combat_stance_buttons; button < &g_combat_stance_buttons[5]; ++button) {
             (*button)->SetVisible(false);
         }
         return;
@@ -730,14 +729,12 @@ void RedrawLayoutArrowButtons(void)
     W8DialogButton* draw_button;
 
     DrawCatalogImageAndInvalidate(-0xe, 0x7e, 0, 0, 0, 0x166, 2, 0);
-    for (button = g_layout_arrow_buttons; button < &g_layout_arrow_buttons[6];
-         ++button) {
+    for (button = g_layout_arrow_buttons; button < &g_layout_arrow_buttons[6]; ++button) {
         (*button)->m_dirty = true;
     }
     if (gXStatus.fNpcDialogueMode || gXStatus.fSpellCastMode || gXStatus.fItemSelectMode ||
         gXStatus.fLockInteractMode || gXStatus.fTrapInteractMode) {
-        for (button = g_layout_arrow_buttons; button < &g_layout_arrow_buttons[6];
-             ++button) {
+        for (button = g_layout_arrow_buttons; button < &g_layout_arrow_buttons[6]; ++button) {
             (*button)->SetVisible(false);
         }
         return;
@@ -1062,10 +1059,10 @@ void DrawSubMenuCharacterAction(void)
                      row->action_detail1.spell.power_level);
             break;
         case W8_ACTION_USE_ITEM:
-            swprintf(text, L"%s - %s", gppStringList[g_action_kind_message_ids[8]],
-                     g_spell_records[g_item_records[row->action_detail1.item_use.item->iItemNo]
-                                         .spell_id]
-                         .display_name);
+            swprintf(
+                text, L"%s - %s", gppStringList[g_action_kind_message_ids[8]],
+                g_spell_records[g_item_records[row->action_detail1.item_use.item->iItemNo].spell_id]
+                    .display_name);
             break;
         case W8_ACTION_ATTACK:
             swprintf(text, L"%s - ", gppStringList[g_action_kind_message_ids[0]]);
@@ -1112,8 +1109,7 @@ void DrawSubMenuCharacterAction(void)
                                                             row->target_in_combat.iMonsterID, true);
                 monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
                 name = GetMonsterName(monster_info, 0, 0);
-                swprintf(text, L"%s - %s", gppStringList[g_action_kind_message_ids[5]],
-                         name);
+                swprintf(text, L"%s - %s", gppStringList[g_action_kind_message_ids[5]], name);
             } else {
                 swprintf(text, L"%s ", gppStringList[g_action_kind_message_ids[5]]);
             }
@@ -1162,8 +1158,7 @@ void UpdateSubMenuPanelButtons(void)
         g_submenu_panel_buttons[1]->SetEnabled(false);
     }
 
-    for (button = g_submenu_panel_buttons; button < &g_submenu_panel_buttons[2];
-         ++button) {
+    for (button = g_submenu_panel_buttons; button < &g_submenu_panel_buttons[2]; ++button) {
         (*button)->Draw();
     }
 }
@@ -1174,18 +1169,15 @@ static void UpdateSubMenuScrollButtons()
 
     if (g_level_block->combat_end_notification == -1 && !gXStatus.fNpcDialogueMode &&
         !gXStatus.fCampMode) {
-        for (button = g_submenu_scroll_buttons; button < &g_submenu_scroll_buttons[2];
-             ++button) {
+        for (button = g_submenu_scroll_buttons; button < &g_submenu_scroll_buttons[2]; ++button) {
             (*button)->SetEnabled(true);
         }
     } else {
-        for (button = g_submenu_scroll_buttons; button < &g_submenu_scroll_buttons[2];
-             ++button) {
+        for (button = g_submenu_scroll_buttons; button < &g_submenu_scroll_buttons[2]; ++button) {
             (*button)->SetEnabled(false);
         }
     }
-    for (button = g_submenu_scroll_buttons; button < &g_submenu_scroll_buttons[2];
-         ++button) {
+    for (button = g_submenu_scroll_buttons; button < &g_submenu_scroll_buttons[2]; ++button) {
         (*button)->Draw();
     }
 }
@@ -1206,15 +1198,13 @@ void RedrawSubMenuButtons(void)
     for (button = g_submenu_buttons; button < &g_submenu_buttons[9]; ++button) {
         (*button)->m_dirty = true;
     }
-    for (index = 0, button = g_submenu_buttons; button < &g_submenu_buttons[9];
-         ++button, ++index) {
+    for (index = 0, button = g_submenu_buttons; button < &g_submenu_buttons[9]; ++button, ++index) {
         UpdateSubMenuButton(index);
         (*button)->Draw();
     }
 
     DrawCatalogImageAndInvalidate(-0xe, 0x7e, 0, 7, 0x210, 0x1c2, 2, 0);
-    for (button = g_submenu_panel_buttons; button < &g_submenu_panel_buttons[2];
-         ++button) {
+    for (button = g_submenu_panel_buttons; button < &g_submenu_panel_buttons[2]; ++button) {
         (*button)->m_dirty = true;
     }
     UpdateSubMenuPanelButtons();
@@ -1225,8 +1215,7 @@ void RedrawSubMenuButtons(void)
         DrawSubMenuCharacterAction();
     }
 
-    for (button = g_submenu_scroll_buttons; button < &g_submenu_scroll_buttons[2];
-         ++button) {
+    for (button = g_submenu_scroll_buttons; button < &g_submenu_scroll_buttons[2]; ++button) {
         (*button)->m_dirty = true;
     }
     UpdateSubMenuScrollButtons();
@@ -1331,8 +1320,7 @@ void UpdateMainGameButtons(void)
     int index;
     bool enabled;
 
-    for (index = 0, button = g_submenu_buttons; button < &g_submenu_buttons[9];
-         ++button, ++index) {
+    for (index = 0, button = g_submenu_buttons; button < &g_submenu_buttons[9]; ++button, ++index) {
         UpdateSubMenuButton(index);
         (*button)->Draw();
     }

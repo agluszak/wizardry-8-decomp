@@ -198,10 +198,10 @@ stParticle::stParticle(srNode* parent, int count)
 
     vertex_count = count * 4;
     texture_frame_count = count * 2;
-    texcoords = static_cast<srVector2T<float>*>(
-        srHeap.allocate(vertex_count * sizeof(srVector2T<float>)));
-    vertex_positions = static_cast<srVector3T<float>*>(
-        srHeap.allocate(vertex_count * sizeof(srVector3T<float>)));
+    texcoords =
+        static_cast<srVector2T<float>*>(srHeap.allocate(vertex_count * sizeof(srVector2T<float>)));
+    vertex_positions =
+        static_cast<srVector3T<float>*>(srHeap.allocate(vertex_count * sizeof(srVector3T<float>)));
     triangles = static_cast<srVector3i*>(srHeap.allocate(count * 2 * sizeof(srVector3i)));
     alphas = new float[vertex_count];
     texture_frames = 0;
@@ -323,18 +323,17 @@ stParticle::stParticle(const stParticle& other)
     vertex_count = count * 4;
     texture_frame_count = count * 2;
     SetTexture(other.texture);
-    texcoords = static_cast<srVector2T<float>*>(
-        srHeap.allocate(vertex_count * sizeof(srVector2T<float>)));
+    texcoords =
+        static_cast<srVector2T<float>*>(srHeap.allocate(vertex_count * sizeof(srVector2T<float>)));
     if (texcoords == 0) {
         srAssertFail("vUV", ST_PARTICLE_CPP, 0xe4, 0);
     }
-    vertex_positions = static_cast<srVector3T<float>*>(
-        srHeap.allocate(vertex_count * sizeof(srVector3T<float>)));
+    vertex_positions =
+        static_cast<srVector3T<float>*>(srHeap.allocate(vertex_count * sizeof(srVector3T<float>)));
     if (vertex_positions == 0) {
         srAssertFail("vLoc", ST_PARTICLE_CPP, 0xe5, 0);
     }
-    triangles =
-        static_cast<srVector3i*>(srHeap.allocate(texture_frame_count * sizeof(srVector3i)));
+    triangles = static_cast<srVector3i*>(srHeap.allocate(texture_frame_count * sizeof(srVector3i)));
     if (triangles == 0) {
         srAssertFail("pVertex", ST_PARTICLE_CPP, 0xe7, 0);
     }
@@ -439,8 +438,7 @@ unsigned char stParticle::ActivateParticle(unsigned int* out_index, bool replace
         unsigned int oldest = 0;
         unsigned int candidate;
         for (candidate = 0; candidate < particle_count; ++candidate) {
-            if (birth_ticks[candidate] < birth_ticks[oldest] &&
-                particle_active[candidate] != 0) {
+            if (birth_ticks[candidate] < birth_ticks[oldest] && particle_active[candidate] != 0) {
                 oldest = candidate;
             }
         }
@@ -456,8 +454,7 @@ unsigned char stParticle::ActivateParticle(unsigned int* out_index, bool replace
     if (speed_mode == W8_PARTICLE_SPEED_FIXED) {
         magnitude = initial_speed;
     } else if (speed_mode == W8_PARTICLE_SPEED_RANDOM) {
-        magnitude =
-            (speed_max - speed_min) * (rand() & 0x7fff) * g_float_005ec438 + speed_min;
+        magnitude = (speed_max - speed_min) * (rand() & 0x7fff) * g_float_005ec438 + speed_min;
     }
     magnitude *= size_scale;
 
@@ -623,13 +620,11 @@ void stParticle::Update()
 
             if (bounds_mode == W8_PARTICLE_BOUNDS_SPHERE) {
                 double distance;
-                if (bounds_origin.x == g_float_zero &&
-                    bounds_origin.y == g_float_zero &&
+                if (bounds_origin.x == g_float_zero && bounds_origin.y == g_float_zero &&
                     bounds_origin.z == g_float_zero) {
                     distance = (candidate - node_location).Length();
                 } else {
-                    srVector3T<float> center =
-                        rotation.Transform(bounds_origin) + node_location;
+                    srVector3T<float> center = rotation.Transform(bounds_origin) + node_location;
                     srVector3T<float> difference = candidate - center;
                     distance = difference.Length();
                 }
@@ -683,8 +678,7 @@ void stParticle::Update()
         last_emission_tick = now;
         return;
     }
-    if (emission_mode != W8_PARTICLE_EMISSION_CATCH_UP ||
-        emission_elapsed <= emission_interval) {
+    if (emission_mode != W8_PARTICLE_EMISSION_CATCH_UP || emission_elapsed <= emission_interval) {
         return;
     }
 
@@ -697,7 +691,8 @@ void stParticle::Update()
         }
 
         if (has_acceleration == 1) {
-            srVector3T<float> acceleration = (this->acceleration * static_cast<double>(lag)) / 1000.0;
+            srVector3T<float> acceleration =
+                (this->acceleration * static_cast<double>(lag)) / 1000.0;
             velocities[particle_index] += acceleration;
         }
 
@@ -909,8 +904,7 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
 
         const srVector3T<float>& extent = bounds_origin;
 
-        if (extent.x == g_float_zero && extent.y == g_float_zero &&
-            extent.z == g_float_zero) {
+        if (extent.x == g_float_zero && extent.y == g_float_zero && extent.z == g_float_zero) {
             visibility = renderer->testBoundingSphere(position, size_scale * bounds_radius);
         } else {
             getRotation(rotation);
@@ -954,8 +948,7 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
     view.Invert();
     PrepareRenderer(view);
 
-    if (requires_sorted_renderer != 0 &&
-        !renderer->isEnabled(srGERD::ENABLE_SORTED_RENDERING)) {
+    if (requires_sorted_renderer != 0 && !renderer->isEnabled(srGERD::ENABLE_SORTED_RENDERING)) {
         renderer->toggle(srGERD::ENABLE_SORTED_RENDERING);
     }
     renderer->setCullMode(srGERD::CULL_NONE);

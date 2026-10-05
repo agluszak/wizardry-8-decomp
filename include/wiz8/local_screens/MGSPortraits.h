@@ -45,8 +45,7 @@ public:
     int m_ui_slot; /* 0xc0: party slot the button tracks */
 };
 static_assert(sizeof(W8ConditionButton) == 0xc4, "W8ConditionButton_size");
-static_assert(offsetof(W8ConditionButton, m_condition) == 0xb8,
-              "W8ConditionButton_condition_b8");
+static_assert(offsetof(W8ConditionButton, m_condition) == 0xb8, "W8ConditionButton_condition_b8");
 static_assert(offsetof(W8ConditionButton, m_image_object) == 0xbc,
               "W8ConditionButton_image_object_bc");
 static_assert(offsetof(W8ConditionButton, m_ui_slot) == 0xc0, "W8ConditionButton_ui_slot_c0");

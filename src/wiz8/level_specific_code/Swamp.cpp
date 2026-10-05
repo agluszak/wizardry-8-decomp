@@ -109,16 +109,15 @@ static bool SwampGasFireSpawn(Trigger* pTrigger)
     }
     SetFact(W8_FACT_SAVANT_PARTY_SWAMP_MEET, 1, false);
     ResetInactiveLevelDataVectors();
-    center.Set(
-        (pTrigger->representation_vectors[0].x + pTrigger->representation_vectors[1].x +
-         pTrigger->representation_vectors[2].x + pTrigger->representation_vectors[3].x) *
-            g_double_005ec980,
-        (pTrigger->representation_vectors[0].y + pTrigger->representation_vectors[1].y +
-         pTrigger->representation_vectors[2].y + pTrigger->representation_vectors[3].y) *
-            g_double_005ec980,
-        (pTrigger->representation_vectors[0].z + pTrigger->representation_vectors[1].z +
-         pTrigger->representation_vectors[2].z + pTrigger->representation_vectors[3].z) *
-            g_double_005ec980);
+    center.Set((pTrigger->representation_vectors[0].x + pTrigger->representation_vectors[1].x +
+                pTrigger->representation_vectors[2].x + pTrigger->representation_vectors[3].x) *
+                   g_double_005ec980,
+               (pTrigger->representation_vectors[0].y + pTrigger->representation_vectors[1].y +
+                pTrigger->representation_vectors[2].y + pTrigger->representation_vectors[3].y) *
+                   g_double_005ec980,
+               (pTrigger->representation_vectors[0].z + pTrigger->representation_vectors[1].z +
+                pTrigger->representation_vectors[2].z + pTrigger->representation_vectors[3].z) *
+                   g_double_005ec980);
     position = center;
     group = SpawnMonsters(0x1b5, 1, &position, 0, true, false, false);
     index = IListGetAt(group->monsters, 0);

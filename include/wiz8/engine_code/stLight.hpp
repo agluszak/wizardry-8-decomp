@@ -236,8 +236,8 @@ public:
        form VC6 emits for a class type's memberwise assignment, not through three
        independent displacement loads. */
     srVector3T<float> m_position;    /* 0x228 */
-    stLightDefinition* m_definition;     /* 0x234: owned */
-    unsigned char m_unknown_238;         /* 0x238 */
+    stLightDefinition* m_definition; /* 0x234: owned */
+    unsigned char m_unknown_238;     /* 0x238 */
     /* Oscillation direction: zero sweeps intensity down, nonzero sweeps up. */
     unsigned char m_direction;
     /* Raised by light-toggle triggers; the save path serializes the names of

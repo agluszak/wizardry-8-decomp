@@ -134,8 +134,7 @@ unsigned char InitializeMenuFonts(void)
 
 #define LOAD_FONT(destination, filename)                                                           \
     strcpy(path, filename);                                                                        \
-    destination = LoadFontFile(                                                                    \
-        Wiz8ToSgpText(path))
+    destination = LoadFontFile(Wiz8ToSgpText(path))
 
     LOAD_FONT(g_large_font, "Data\\Fonts\\LargeFont.sti");
     LOAD_FONT(g_small_font, "Data\\Fonts\\SmallFont.sti");

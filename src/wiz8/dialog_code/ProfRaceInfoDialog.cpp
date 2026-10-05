@@ -88,7 +88,7 @@ int W8ProfRaceInfoDialogBase::CreateControls()
     m_scroll_bar.CreateControls(&resources);
     int x = m_x;
     m_scroll_bar.SetLayout(x + 0x159, m_y + 0x29, m_text_area.GetTotalLineCount(), 0,
-                               m_text_area.GetLineHeight(), 0xb8);
+                           m_text_area.GetLineHeight(), 0xb8);
     m_scroll_bar.m_owner = this;
 
     m_button.Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 0, 1, 4, 2,

@@ -122,9 +122,9 @@ public:
        dirty. The original SurRender declaration therefore exposed this
        state to clients; keeping it protected would force a fabricated wrapper. */
     srVertexProcessor::MaterialInfo parms; /* 0x18 */
-    srFlags<e_oper> operations;         /* 0x6c */
-    srVertexProcessor* mapper;          /* 0x70 */
-    int dirty;                          /* 0x74 */
+    srFlags<e_oper> operations;            /* 0x6c */
+    srVertexProcessor* mapper;             /* 0x70 */
+    int dirty;                             /* 0x74 */
 };
 
 static_assert((sizeof(srMaterial) == 0x78), "srMaterial_must_be_0x78");

@@ -351,7 +351,8 @@ void GetCharacterProjectilePosition(unsigned int character_index, srVector3T<flo
         position->x = -75.0f;
     }
     rotation.SetIdentity();
-    position->y = g_character_projectile_height - character_index * g_float_005ebc7c * g_character_projectile_height_step;
+    position->y = g_character_projectile_height -
+                  character_index * g_float_005ebc7c * g_character_projectile_height_step;
     angle = GetCameraYawRadians() - g_monster_rotation_offset;
     if (angle != 0.0) {
         cosine = cos(angle);
@@ -641,8 +642,7 @@ unsigned char LoadMissileCycle(W8GrCycleLoadContext* context, const char* name,
                     }
                     memcpy(pacLoop, &g_empty_ambient_name, 2);
                     memset(pacLoop + 2, 0, sizeof(pacLoop) - 2);
-                    sscanf(line, "%s %s %d %s %s", pacToken, pacName, &frame, pacFileName,
-                           pacLoop);
+                    sscanf(line, "%s %s %d %s %s", pacToken, pacName, &frame, pacFileName, pacLoop);
                     /* Retail asserts the array address; always true. */
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wtautological-compare"
@@ -766,8 +766,7 @@ W8Missile* CreateMissile(unsigned int missile_table_index, srVector3T<float>* so
             ai->kind = W8_AI_RECORD_MISSILE;
             ai->gravity = missile->gravity;
             ai->limit = limit;
-            ai->last_half_tick =
-                g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT) >> 1;
+            ai->last_half_tick = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT) >> 1;
             ai->missile = missile;
         }
         missile->m_pAI = ai;
@@ -948,10 +947,9 @@ unsigned char W8MissileRep::ReadCycleData(W8ReadLevelInfo* info, W8Missile* miss
    ordering is preserved because it is present explicitly in the product. */
 // FUNCTION: WIZ8 0x004A3C10
 W8Missile::W8Missile()
-    : missile_table_index(-1), flight_done(0), impacting(0), block_released(1),
-      gravity(0), align_camera(0), explode_ground(0), align_explosion(0),
-      flag(1), value_1e8(0), value_1ec(0), lifetime(15000.0f), flags0(0),
-      retargeted(false)
+    : missile_table_index(-1), flight_done(0), impacting(0), block_released(1), gravity(0),
+      align_camera(0), explode_ground(0), align_explosion(0), flag(1), value_1e8(0), value_1ec(0),
+      lifetime(15000.0f), flags0(0), retargeted(false)
 {
     W8GrObject::kind = 1;
     radius = 1.0f;
@@ -987,11 +985,10 @@ W8Missile::W8Missile()
 // FUNCTION: WIZ8 0x004A3E50
 W8Missile::W8Missile(const W8Missile& other)
     : W8GrCycle(other), missile_table_index(other.missile_table_index), flight_done(0),
-      impacting(0), block_released(other.block_released),
-      gravity(other.gravity), align_camera(other.align_camera),
-      explode_ground(other.explode_ground), align_explosion(other.align_explosion),
-      flag(other.flag), value_1e8(other.value_1e8), value_1ec(other.value_1ec),
-      lifetime(other.lifetime), flags0(other.flags0), duration(0.0f),
+      impacting(0), block_released(other.block_released), gravity(other.gravity),
+      align_camera(other.align_camera), explode_ground(other.explode_ground),
+      align_explosion(other.align_explosion), flag(other.flag), value_1e8(other.value_1e8),
+      value_1ec(other.value_1ec), lifetime(other.lifetime), flags0(other.flags0), duration(0.0f),
       retargeted(false)
 {
     W8GrObject::kind = 1;
@@ -1407,8 +1404,7 @@ bool W8Missile::OnCollision(W8Navigator* other)
         if (monster_info->hp_current == 0) {
             goto miss;
         }
-        if (combat_slot.iType != W8_TARGET_KIND_MONSTER ||
-            combat_slot.iMonsterID != location_id) {
+        if (combat_slot.iType != W8_TARGET_KIND_MONSTER || combat_slot.iMonsterID != location_id) {
             if (g_missile_table[missile_table_index].spell_missile) {
                 goto miss;
             }
@@ -1427,8 +1423,7 @@ bool W8Missile::OnCollision(W8Navigator* other)
     hit_result = 1;
     if (!g_missile_table[missile_table_index].spell_missile) {
         if (combat_slot.iType == W8_TARGET_KIND_CHARACTER) {
-            deflect_chance =
-                g_status.buffers.Char[combat_slot.iChar].bonus.missile_deflect_chance;
+            deflect_chance = g_status.buffers.Char[combat_slot.iChar].bonus.missile_deflect_chance;
         } else {
             W8MonsterInfo* monster_info =
                 MonsterInfoFromID(0x676, MISSILE_CPP, combat_slot.iMonsterID, true);

@@ -415,8 +415,8 @@ int srTriangleCuller::cull(Output& output, const Input& input)
                 }
             }
             unsigned long shared = 0;
-            if (setClipFlagsObjectSpace(clip_flags, input.vertices, planes, plane_bits,
-                                        plane_count, input.vertex_count, shared) == 0) {
+            if (setClipFlagsObjectSpace(clip_flags, input.vertices, planes, plane_bits, plane_count,
+                                        input.vertex_count, shared) == 0) {
                 return 0;
             }
             clipped = shared != 0;
@@ -427,21 +427,20 @@ int srTriangleCuller::cull(Output& output, const Input& input)
     if (input.active_triangles == 0) {
         if (clipped != 0) {
             if (input.cull_mode == 2) {
-                output.triangle_count = clip(output.indices, clip_flags, input.triangles,
-                                                input.triangle_count);
+                output.triangle_count =
+                    clip(output.indices, clip_flags, input.triangles, input.triangle_count);
             } else {
                 output.triangle_count =
-                    cullClip(output.indices, clip_flags, input.projected_vertices,
-                             input.triangles, constant, input.triangle_count);
+                    cullClip(output.indices, clip_flags, input.projected_vertices, input.triangles,
+                             constant, input.triangle_count);
             }
         } else {
             if (input.cull_mode == 2) {
                 setupLinearArray(output.indices, input.triangle_count);
                 output.triangle_count = input.triangle_count;
             } else {
-                output.triangle_count =
-                    cullNoClip(output.indices, input.projected_vertices, constant,
-                               input.triangle_count);
+                output.triangle_count = cullNoClip(output.indices, input.projected_vertices,
+                                                   constant, input.triangle_count);
             }
         }
     } else {
@@ -456,15 +455,13 @@ int srTriangleCuller::cull(Output& output, const Input& input)
             }
             output.triangle_count = active_count;
         } else {
-            output.triangle_count =
-                cullNoClipAPT(output.indices, input.active_triangles,
-                              input.projected_vertices, constant, active_count);
+            output.triangle_count = cullNoClipAPT(output.indices, input.active_triangles,
+                                                  input.projected_vertices, constant, active_count);
         }
     }
     if (output.triangle_count != 0) {
-        output.vertex_count =
-            buildAVT(output.avt, clip_flags, output.indices, input.triangles,
-                     output.triangle_count, input.vertex_count);
+        output.vertex_count = buildAVT(output.avt, clip_flags, output.indices, input.triangles,
+                                       output.triangle_count, input.vertex_count);
         return 1;
     }
     return 0;

@@ -410,8 +410,7 @@ unsigned char CombatLeftEffectIconRegionEvent(const InputAtom* event, W8Region* 
                 ShowCombatLeftEffectIconHelp(slot_index);
                 return 1;
             }
-            if (g_effect_icon_help_duration !=
-                g_combat_state->effect_slots[slot_index].duration) {
+            if (g_effect_icon_help_duration != g_combat_state->effect_slots[slot_index].duration) {
                 ShowCombatLeftEffectIconHelp(slot_index);
                 ResetRegionHelp(false);
             }
@@ -453,8 +452,7 @@ unsigned char CombatRightEffectIconRegionEvent(const InputAtom* event, W8Region*
                 ShowCombatRightEffectIconHelp(slot_index);
                 return 1;
             }
-            if (g_effect_icon_help_duration !=
-                g_combat_state->effect_slots0[slot_index].duration) {
+            if (g_effect_icon_help_duration != g_combat_state->effect_slots0[slot_index].duration) {
                 ShowCombatRightEffectIconHelp(slot_index);
                 ResetRegionHelp(false);
             }

@@ -649,8 +649,7 @@ W8PartySelectionController* g_party_selection_controller;
 // FUNCTION: WIZ8 0x005C33C0
 void RefreshPartySelectionPortrait(unsigned int party_slot)
 {
-    W8TextControl** buttons =
-        g_party_selection_controller->m_control1->m_control.m_lsButtons.data;
+    W8TextControl** buttons = g_party_selection_controller->m_control1->m_control.m_lsButtons.data;
     if (static_cast<int>(party_slot - 2) <
         g_party_selection_controller->m_control1->m_control.m_lsButtons.count) {
         buttons += party_slot - 2;
@@ -1063,8 +1062,7 @@ void W8PartySelectionCharacterSummaryPanel::Redraw()
     width = StringPixLength(race_line, g_wiz_text_font_secondary);
     gprintf((0xbf - width) / 2 + 0x7f, 0xfd, g_format_s_space_s, gender, race);
 
-    const wchar_t* personality =
-        gppStringList[g_personality_message_ids[character->personality]];
+    const wchar_t* personality = gppStringList[g_personality_message_ids[character->personality]];
     width = StringPixLength(const_cast<wchar_t*>(personality), g_wiz_text_font_secondary);
     gprintf((0xbf - width) / 2 + 0x82, 0x10b, g_format_s, personality);
 
@@ -1129,7 +1127,8 @@ W8PartySelectionOptionPanel::W8PartySelectionOptionPanel()
     m_options.SetSelected(g_settings.difficulty);
 
     top += 0x16;
-    npc_interact_toggle = new W8TextControl(this, 0xffffffff, 0x15b, top, 0, 0, 0xf1, 0, 2, 0, 3, 1, -1);
+    npc_interact_toggle =
+        new W8TextControl(this, 0xffffffff, 0x15b, top, 0, 0, 0xf1, 0, 2, 0, 3, 1, -1);
     npc_interact_toggle->AddLayoutFlags(g_W8TextControlLayoutLatchedImage |
                                         g_W8TextControlLayoutToggle);
     if (g_settings.simplified_npc_interaction) {
@@ -1140,8 +1139,7 @@ W8PartySelectionOptionPanel::W8PartySelectionOptionPanel()
     m_toggle->AddLayoutFlags(g_W8TextControlLayoutLatchedImage | g_W8TextControlLayoutToggle);
 
     GetCatalogImageSize(0x102, 0, 1, &m_image_width, &m_image_height);
-    m_render_left =
-        m_bounds.left + 0x18 + (0x160 - static_cast<unsigned short>(m_image_width)) / 2;
+    m_render_left = m_bounds.left + 0x18 + (0x160 - static_cast<unsigned short>(m_image_width)) / 2;
     m_render_top = m_bounds.top + 0x80;
 }
 
@@ -1219,22 +1217,22 @@ void W8PartySelectionOptionPanel::SetOptionPanelMode(W8PartyCreationPage page)
 
     if (page == W8_PARTY_CREATION_OPTIONS) {
         m_entries.Add(new W8TextBuffer(&bounds, gppStringList[0x7f7], g_options_detail_font,
-                                          g_W8TextBufferAlignTop | g_W8TextBufferAlignLeft, 4));
+                                       g_W8TextBufferAlignTop | g_W8TextBufferAlignLeft, 4));
 
         bounds.right = m_bounds.left + 0x155;
         m_entries.Add(new W8TextBuffer(&bounds, gppStringList[0x7f8], g_options_detail_font,
-                                          g_W8TextBufferAlignRight | g_W8TextBufferAlignTop, 4));
+                                       g_W8TextBufferAlignRight | g_W8TextBufferAlignTop, 4));
         bounds.top += 0x16;
         m_entries.Add(new W8TextBuffer(&bounds, gppStringList[0x7f9], g_options_detail_font,
-                                          g_W8TextBufferAlignRight | g_W8TextBufferAlignTop, 4));
+                                       g_W8TextBufferAlignRight | g_W8TextBufferAlignTop, 4));
         bounds.top += 0x16;
         m_entries.Add(new W8TextBuffer(&bounds, gppStringList[0x7fa], g_options_detail_font,
-                                          g_W8TextBufferAlignRight | g_W8TextBufferAlignTop, 4));
+                                       g_W8TextBufferAlignRight | g_W8TextBufferAlignTop, 4));
 
         bounds.right = m_bounds.left + 0x16e;
         bounds.top += 0x2c;
         m_entries.Add(new W8TextBuffer(&bounds, gppStringList[0x80b], g_options_detail_font,
-                                          g_W8TextBufferAlignTop | g_W8TextBufferAlignLeft, 4));
+                                       g_W8TextBufferAlignTop | g_W8TextBufferAlignLeft, 4));
 
         bounds.top += 0x2c;
         W8TextBuffer* text =
@@ -1245,7 +1243,7 @@ void W8PartySelectionOptionPanel::SetOptionPanelMode(W8PartyCreationPage page)
 
         bounds.top += 0x42;
         m_entries.Add(new W8TextBuffer(&bounds, gppStringList[0x6ce], g_options_detail_font,
-                                          g_W8TextBufferAlignTop | g_W8TextBufferAlignLeft, 4));
+                                       g_W8TextBufferAlignTop | g_W8TextBufferAlignLeft, 4));
 
         bounds.top += 0x2c;
         text = new W8TextBuffer(&bounds, gppStringList[0x6cf], g_options_detail_font,
@@ -1313,18 +1311,22 @@ void W8PartySelectionController::Setup()
 
     m_left_panel = new Controls(0x145, 0x137, 0, 0, -1, -1, -1);
     m_left_panel->AcquireRegionSet(&g_party_selection_left_action_region_set);
-    m_create_button = new W8TextControl(m_left_panel, 0xffffffff, 0, 0, 0, 0, 0xfe, 0, 0, 2, 1, 2, 3);
+    m_create_button =
+        new W8TextControl(m_left_panel, 0xffffffff, 0, 0, 0, 0, 0xfe, 0, 0, 2, 1, 2, 3);
     m_create_button->m_textBuffer.SetText(gppStringList[0x6c5], g_wiz_text_bold_font);
     m_create_button->m_listener = this;
 
-    m_add_remove_button = new W8TextControl(m_left_panel, 0xffffffff, 0, 0x1a, 0, 0, 0xfe, 0, 0, 2, 1, 2, 3);
+    m_add_remove_button =
+        new W8TextControl(m_left_panel, 0xffffffff, 0, 0x1a, 0, 0, 0xfe, 0, 0, 2, 1, 2, 3);
     m_add_remove_button->m_listener = this;
 
-    m_delete_button = new W8TextControl(m_left_panel, 0xffffffff, 0, 0x34, 0, 0, 0xfe, 0, 0, 2, 1, 2, 3);
+    m_delete_button =
+        new W8TextControl(m_left_panel, 0xffffffff, 0, 0x34, 0, 0, 0xfe, 0, 0, 2, 1, 2, 3);
     m_delete_button->m_textBuffer.SetText(gppStringList[0x6c8], g_wiz_text_bold_font);
     m_delete_button->m_listener = this;
 
-    m_review_button = new W8TextControl(m_left_panel, 0xffffffff, 0, 0x4e, 0, 0, 0xfe, 0, 0, 2, 1, 2, 3);
+    m_review_button =
+        new W8TextControl(m_left_panel, 0xffffffff, 0, 0x4e, 0, 0, 0xfe, 0, 0, 2, 1, 2, 3);
     m_review_button->m_textBuffer.SetText(gppStringList[0x6c9], g_wiz_text_bold_font);
     m_review_button->m_listener = this;
 
@@ -1335,16 +1337,18 @@ void W8PartySelectionController::Setup()
 
     m_bottom_panel = new Controls(0x84, 0x1b5, 0, 0, -1, -1, -1);
     m_bottom_panel->AcquireRegionSet(&g_party_selection_bottom_action_region_set);
-    m_back_button = new W8TextControl(m_bottom_panel, 0xffffffff, 0x14c, 0, 0, 0, 0x106, 0, 4, 6, 5, 6, 7);
+    m_back_button =
+        new W8TextControl(m_bottom_panel, 0xffffffff, 0x14c, 0, 0, 0, 0x106, 0, 4, 6, 5, 6, 7);
     m_back_button->EnableRegionHelp(0x6ca);
     m_back_button->m_listener = this;
 
-    m_confirm_button = new W8TextControl(m_bottom_panel, 0xffffffff, 0x120, 0, 0, 0, 0x106, 0, 0, 2, 1, 2, 3);
+    m_confirm_button =
+        new W8TextControl(m_bottom_panel, 0xffffffff, 0x120, 0, 0, 0, 0x106, 0, 0, 2, 1, 2, 3);
     m_confirm_button->EnableRegionHelp(0x6cb);
     m_confirm_button->m_listener = this;
 
-    m_reset_button = new W8TextControl(m_bottom_panel, 0xffffffff, 0xf4, 0, 0, 0, 0x106, 0, 0x18, 0x1a, 0x19,
-                                  0x1c, 0x1b);
+    m_reset_button = new W8TextControl(m_bottom_panel, 0xffffffff, 0xf4, 0, 0, 0, 0x106, 0, 0x18,
+                                       0x1a, 0x19, 0x1c, 0x1b);
     m_reset_button->AddLayoutFlags(g_W8TextControlLayoutLatchedImage | g_W8TextControlLayoutToggle);
     m_reset_button->EnableRegionHelp(0x6cc);
     m_reset_button->m_listener = this;
@@ -1495,8 +1499,7 @@ void W8PartySelectionController::SetMode(W8PartySelectionMode mode)
         m_import_panel->EnableRegionSet(true);
 
         m_range->m_listener = m_list;
-        int maximum =
-            g_party_selection_character_collection->names.count - m_list->m_visible_rows;
+        int maximum = g_party_selection_character_collection->names.count - m_list->m_visible_rows;
         if (maximum < 0) {
             maximum = 0;
         }
@@ -1547,8 +1550,7 @@ void W8PartySelectionController::SetMode(W8PartySelectionMode mode)
 }
 
 // FUNCTION: WIZ8 0x005c1680
-void W8PartySelectionController::SetSelection(int selection, bool party_slot,
-                                              bool refresh_other)
+void W8PartySelectionController::SetSelection(int selection, bool party_slot, bool refresh_other)
 {
     if (!party_slot) {
         if (m_mode == W8_PARTY_SELECT_CHARACTERS) {
@@ -1599,8 +1601,7 @@ void W8PartySelectionController::SetSelection(int selection, bool party_slot,
 
     m_control2->m_character = m_character;
     m_control2->Invalidate(0);
-    wchar_t* text =
-        gppStringList[((!m_character || !m_character->fInParty) ? 0x1b18 : 0x1b1c) / 4];
+    wchar_t* text = gppStringList[((!m_character || !m_character->fInParty) ? 0x1b18 : 0x1b1c) / 4];
     m_add_remove_button->m_textBuffer.SetText(text, g_wiz_text_font_secondary);
     bool have_character = m_character != 0;
     m_add_remove_button->SetEnabled(have_character);
@@ -2130,8 +2131,7 @@ void PartySelectionScreenFrame(void)
     UpdateRegionMousePosition(point.x, point.y);
     while (DequeueEvent(&input) == 1) {
         if (!DispatchRegionInput(&input) &&
-            (!controller->m_input_handler ||
-             !controller->m_input_handler->HandleInput(&input)) &&
+            (!controller->m_input_handler || !controller->m_input_handler->HandleInput(&input)) &&
             (input.usEvent == KEY_DOWN || input.usEvent == KEY_REPEAT)) {
             switch (input.usParam) {
             case VK_RETURN:

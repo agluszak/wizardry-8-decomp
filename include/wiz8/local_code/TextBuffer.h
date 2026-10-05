@@ -33,8 +33,7 @@ public:
     void UpdateLayout(); /* 0x004F35B0 */
     void SetLayoutMode(unsigned int layout_mode);
     void SetText(const wchar_t* text, int font);
-    void SetLayoutBounds(const W8ControlsRect* bounds, bool copy_pending,
-                         bool update_layout);
+    void SetLayoutBounds(const W8ControlsRect* bounds, bool copy_pending, bool update_layout);
 
     void SetLayoutBounds(int left, int top, int right, int bottom)
     {

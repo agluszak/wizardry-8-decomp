@@ -74,27 +74,27 @@ void RenderPartyPortrait(int portrait, int left, int top, int flags, unsigned ch
 bool BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int party_slot,
                                 bool animate);
 
-void SetPartyPortraitEventState(unsigned int party_slot, bool active,
-                                unsigned int event_type, const wchar_t* quote_text, int show_quote);
+void SetPartyPortraitEventState(unsigned int party_slot, bool active, unsigned int event_type,
+                                const wchar_t* quote_text, int show_quote);
 /* 0x00590A40: the notice the weapon-set swap paths post, between the two variadic
    formatters. Its middle argument is the context the notices are posted under -
    zero while the NPC dialogue owns the screens, -1 otherwise. */
 void PostCharacterNoticeInContext(int party_slot, int context, const wchar_t* format, ...);
-extern int g_special_event2;   /* 0x0068C50C */
-extern unsigned int g_event_range_max; /* 0x0068C554 */
-extern int g_special_event18;   /* 0x0068C56C: one of the three melee
+extern int g_special_event2;            /* 0x0068C50C */
+extern unsigned int g_event_range_max;  /* 0x0068C554 */
+extern int g_special_event18;           /* 0x0068C56C: one of the three melee
                                          swing event ids StartCharacterAttack
                                          rolls between */
-extern int g_special_event15;   /* 0x0068C560: one of the three blocked-hit
+extern int g_special_event15;           /* 0x0068C560: one of the three blocked-hit
                                         reaction ids ContinueMonsterAttack rolls
                                         between, with 0x68c570 and 0x68c574 */
-extern int g_special_event19;   /* 0x0068C570 */
-extern int g_special_event20;   /* 0x0068C574 */
-extern unsigned int g_event_range_min; /* 0x0068C57C */
-extern int g_special_event5;   /* 0x0068C524 */
-extern int g_special_event6;   /* 0x0068C528 */
-extern int g_event_target_out_of_range;   /* 0x0068C530: emitted when a slot's action
+extern int g_special_event19;           /* 0x0068C570 */
+extern int g_special_event20;           /* 0x0068C574 */
+extern unsigned int g_event_range_min;  /* 0x0068C57C */
+extern int g_special_event5;            /* 0x0068C524 */
+extern int g_special_event6;            /* 0x0068C528 */
+extern int g_event_target_out_of_range; /* 0x0068C530: emitted when a slot's action
                                         cannot reach a monster group */
-extern int g_event_sight_blocked;   /* 0x0068C518: emitted when the selected
+extern int g_event_sight_blocked;       /* 0x0068C518: emitted when the selected
                                         sight line is blocked */
-extern int g_special_event8;   /* 0x0068C534 */
+extern int g_special_event8;            /* 0x0068C534 */

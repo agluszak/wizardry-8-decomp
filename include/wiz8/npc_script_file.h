@@ -67,7 +67,7 @@ enum {
    fact id and the expected value. */
 struct W8NpcQuoteSubEntry {
     int operand; /* 0x00: fact id on even slots, the expected value on odd */
-    char* text;     /* 0x04 */
+    char* text;  /* 0x04 */
 }; /* 0x08 */
 
 /* One 0x12-byte entry. Byte 0 is the kind discriminator read by 0x00576060;

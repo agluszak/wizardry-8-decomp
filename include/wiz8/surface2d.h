@@ -75,7 +75,7 @@ public:
     int field_168;
     float field_16c;
     float texture_coordinates[8]; /* 0x170 */
-    float scale;          /* 0x190 */
+    float scale;                  /* 0x190 */
     int texture_update_flags;
 };
 

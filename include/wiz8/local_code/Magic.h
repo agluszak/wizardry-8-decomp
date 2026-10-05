@@ -117,10 +117,10 @@ void SetCharacterSpell(const W8Character* character, int spell_id, int power_lev
    cast at; zero means the cast cannot happen at all. */
 int GetAffordableSpellPowerLevel(int party_slot);
 bool CanPartySlotCastRecordedSpell(int party_slot); /* 0x005012E0 */
-bool CanPartySlotUseRecordedItem(int party_slot); /* 0x00501660 */
+bool CanPartySlotUseRecordedItem(int party_slot);   /* 0x00501660 */
 /* Queue the slot's recorded spell cast; zero keeps the recorded power. */
 void StartCharacterSpellCast(int party_slot, int power_level); /* 0x00501590 */
-void StartCharacterItemUse(int party_slot); /* 0x00501790 */
+void StartCharacterItemUse(int party_slot);                    /* 0x00501790 */
 /* 0x00501860: one-line forwarder narrowing CanCharReBreathe to a flag. */
 bool CanPartySlotReBreathe(int party_slot);
 void StartCharacterBreathAttack(int party_slot);
@@ -151,7 +151,7 @@ void ScaleByCombatPace(int party_slot, unsigned int* value);
 bool ValidateSpellTarget(int party_slot, int spell_id, unsigned int power, bool item_cast,
                          bool skip_world_cursor);
 bool SpellAffectedTarget(W8Character* character, int spell_id, W8CombatSlot* aim,
-                                  unsigned int power);
+                         unsigned int power);
 void TrackItemSpellSource(W8Character* character, int spell_id);
 bool IsTeleportCastMissingAnchor(W8Character* character, int spell_id); /* 0x00501D00 */
 extern unsigned short g_realm_message_offsets[W8_SPELL_REALM_COUNT];

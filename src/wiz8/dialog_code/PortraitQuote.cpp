@@ -33,18 +33,18 @@ enum { QUOTE_BUBBLE_FLAT_BACKGROUND = 1 };
    composited from. The byte at 0x14 is set once those two resources exist;
    the byte at 0x15 is set once the whole bubble has been created. */
 struct W8PortraitQuoteBubble {
-    UINT32 surface;                    /* 0x00 */
-    unsigned short width;              /* 0x04 */
-    unsigned short height;             /* 0x06 */
+    UINT32 surface;                 /* 0x00 */
+    unsigned short width;           /* 0x04 */
+    unsigned short height;          /* 0x06 */
     unsigned char background_index; /* 0x08 */
     unsigned char object_index;     /* 0x09 */
-    UINT32 background_surface;         /* 0x0c */
-    UINT32 object;                     /* 0x10 */
+    UINT32 background_surface;      /* 0x0c */
+    UINT32 object;                  /* 0x10 */
     bool has_resources;             /* 0x14 */
     bool created;                   /* 0x15 */
-    UINT32 flags;                      /* 0x18: bit 0 selects the flat fill */
-    wchar_t* text;                     /* 0x1c */
-    UINT32 palette;                    /* 0x20 */
+    UINT32 flags;                   /* 0x18: bit 0 selects the flat fill */
+    wchar_t* text;                  /* 0x1c */
+    UINT32 palette;                 /* 0x20 */
 };
 
 static_assert(sizeof(W8PortraitQuoteBubble) == 0x24, "W8PortraitQuoteBubble_size");

@@ -119,9 +119,9 @@ extern bool g_message_queue_idle; /* 0x0068C501 */
 
 void TryFinishNpcVoicePlayback(bool force); /* 0x00525D90 */
 int FindNpcScriptQuoteByKeyword(wchar_t* keyword, short* entry_index,
-                                short* sub_entry_index);               /* 0x00525E80 */
+                                short* sub_entry_index);      /* 0x00525E80 */
 void RunNpcScriptLine(int script_line, bool force_npc_voice); /* 0x00525FA0 */
-void ProcessMessageBoxQueue(void);                                     /* 0x00526E90 */
+void ProcessMessageBoxQueue(void);                            /* 0x00526E90 */
 /* 0x00526810: execute a queued quote entry's deferred effect; the
    continuation quote is handed to the modal-dialog kinds (5/0x13 force -1). */
 void ProcessNpcQuoteEntry(W8NpcQuoteEntry* entry, int continuation_quote);
@@ -153,9 +153,9 @@ void RestoreCurrentNpcQuoteBubble(void);         /* 0x00529510 */
 void RunNpcQuoteDeclineActions(int quote_index); /* 0x00529610 */
 void QueueNpcScriptLine(int quote, bool mark_pending, bool prepend,
                         bool suppress_entries); /* 0x00528830 */
-void BeginNpcScriptedScene(void);                        /* 0x00529BE0 */
-void SetScriptedSceneActive(void);                       /* 0x00529BC0 */
-void ClearScriptedSceneActive(void);                     /* 0x00529BD0 */
+void BeginNpcScriptedScene(void);               /* 0x00529BE0 */
+void SetScriptedSceneActive(void);              /* 0x00529BC0 */
+void ClearScriptedSceneActive(void);            /* 0x00529BD0 */
 /* 0x00529C40: end a scripted portrait pick against the chosen party slot. */
 void EndScriptedPortraitPick(int party_slot);
 void BeginSedexusCapture(void); /* 0x00529EF0 */

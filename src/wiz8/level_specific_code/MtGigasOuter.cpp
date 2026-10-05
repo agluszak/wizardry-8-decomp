@@ -234,7 +234,8 @@ void ControlCampAlarm(int command)
                 SetTriggerVariableByName("UmpaniCampAlarm", 0);
             } else {
                 SetTriggerVariableByName(
-                    "UmpaniCampAlarm", static_cast<int>(g_mt_gigas_outer_alarm_gate->GetElapsedSeconds()));
+                    "UmpaniCampAlarm",
+                    static_cast<int>(g_mt_gigas_outer_alarm_gate->GetElapsedSeconds()));
             }
             return;
         }

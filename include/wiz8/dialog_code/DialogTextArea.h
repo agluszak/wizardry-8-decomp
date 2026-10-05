@@ -56,13 +56,13 @@ public:
     void SetFirstVisibleEntry(unsigned int index);
 
 private:
-    W8ControlsRect m_bounds;                          /* 0x00: passed to entry construction */
-    int m_font;                                       /* 0x10 */
-    int m_first_visible_entry;                        /* 0x14 */
-    int m_first_visible_line;                         /* 0x18 */
+    W8ControlsRect m_bounds;                      /* 0x00: passed to entry construction */
+    int m_font;                                   /* 0x10 */
+    int m_first_visible_entry;                    /* 0x14 */
+    int m_first_visible_line;                     /* 0x18 */
     W8Vector<W8DialogTextEntry*> m_all_lines;     /* owns entries */
     W8Vector<W8DialogTextEntry*> m_visible_lines; /* non-owning view */
-    bool m_layout_initialized;                        /* 0x3c */
+    bool m_layout_initialized;                    /* 0x3c */
 public:
     /* Owning dialogs raise this before Draw, the same way they dirty the
        contained button and scrollbar. */
@@ -70,14 +70,14 @@ public:
 private:
     bool m_selection_dirty; /* repaint after a selection change */
     unsigned char unknown_03f;
-    int m_entry_spacing;             /* 0x40 */
-    int m_behavior_flags;            /* 0x44 */
-    int m_line_height_override;      /* 0x48 */
-    int m_selected_visible_entry;    /* 0x4c */
-    int m_highlighted_entry;         /* 0x50: visible entry index, -1 when clear */
-    bool m_relayout_needed; /* 0x54 */
-    signed char m_category_filter;   /* 0x55 */
-    bool m_sorted;                   /* 0x56 */
+    int m_entry_spacing;           /* 0x40 */
+    int m_behavior_flags;          /* 0x44 */
+    int m_line_height_override;    /* 0x48 */
+    int m_selected_visible_entry;  /* 0x4c */
+    int m_highlighted_entry;       /* 0x50: visible entry index, -1 when clear */
+    bool m_relayout_needed;        /* 0x54 */
+    signed char m_category_filter; /* 0x55 */
+    bool m_sorted;                 /* 0x56 */
     unsigned char unknown_057;
 };
 static_assert(sizeof(W8DialogTextArea) == 0x58, "W8DialogTextArea_size");

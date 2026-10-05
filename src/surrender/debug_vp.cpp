@@ -455,8 +455,7 @@ void srDebugVP::_copyInterleaved(void* destination, const void* source, SRDWORD 
 {
     ScopeTimer scope_timer(this, width * count, COMMAND_COPY_INTERLEAVED, destination, source, 0,
                            0);
-    processor->_copyInterleaved(destination, source, destination_pitch, source_pitch, width,
-                                    count);
+    processor->_copyInterleaved(destination, source, destination_pitch, source_pitch, width, count);
 }
 
 // FUNCTION: SURRENDER 0x1006A660
@@ -1543,7 +1542,7 @@ void srDebugVP::_axpy(srVector4* destination, const srVector4& add_constant,
         this, count, COMMAND_AXPY_VEC4_ARRAY_VEC4_CONSTANT_VEC4_CONSTANT_FLOAT_ARRAY_FLOAT_ARRAY,
         destination, multiply_source_0, multiply_source_1, 0);
     processor->_axpy(destination, add_constant, multiply_constant, multiply_source_0,
-                         multiply_source_1, count);
+                     multiply_source_1, count);
 }
 
 // FUNCTION: SURRENDER 0x1006EBF0
@@ -1555,7 +1554,7 @@ void srDebugVP::_axpy(srVector4* destination, const srVector4* add_source,
                            COMMAND_AXPY_VEC4_ARRAY_VEC4_ARRAY_VEC4_CONSTANT_FLOAT_ARRAY_FLOAT_ARRAY,
                            destination, add_source, multiply_source_0, multiply_source_1);
     processor->_axpy(destination, add_source, multiply_constant, multiply_source_0,
-                         multiply_source_1, count);
+                     multiply_source_1, count);
 }
 
 // FUNCTION: SURRENDER 0x1006EC90

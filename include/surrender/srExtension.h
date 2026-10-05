@@ -7,11 +7,11 @@
 
 class
 #if defined(SURRENDER_BUILD)
-__declspec(dllexport)
+    __declspec(dllexport)
 #else
-SR_DLL_IMPORT
+    SR_DLL_IMPORT
 #endif
-srExtension {
+    srExtension {
 public:
     srExtension(const char* name);
     ~srExtension();
@@ -39,5 +39,4 @@ private:
     srExtension* next;
 };
 
-static_assert(sizeof(srExtension) == 0x14,
-              "srExtension_must_be_0x14");
+static_assert(sizeof(srExtension) == 0x14, "srExtension_must_be_0x14");

@@ -54,8 +54,8 @@ W8PortraitDescriptor g_portrait_descriptors[80] = {
 
 // FUNCTION: WIZ8 0x005af690
 W8CharacterPageEntry::W8CharacterPageEntry(Controls* owner, int x, int y, bool compact)
-    : m_listener(0), m_first(0), m_second(0), m_third(0), m_id(-1),
-      m_draw_background(compact), m_dirty(1), m_enabled(0), m_increment_allowed(1)
+    : m_listener(0), m_first(0), m_second(0), m_third(0), m_id(-1), m_draw_background(compact),
+      m_dirty(1), m_enabled(0), m_increment_allowed(1)
 {
     m_x = owner->m_bounds.left + x;
     m_y = owner->m_bounds.top + y;
@@ -73,21 +73,21 @@ W8CharacterPageEntry::W8CharacterPageEntry(Controls* owner, int x, int y, bool c
     m_second_text->SetLayoutMode(g_W8TextBufferAlignRight);
 
     int relative_split = split - owner->m_bounds.left;
-    m_decrement = new W8TextControl(owner, 0xffffffff, relative_split + 0x1b, y + 1, 0, 0,
-                                        0x10a, 0, 0x19, 0x1b, 0x1a, 0x1d, 0x1c);
+    m_decrement = new W8TextControl(owner, 0xffffffff, relative_split + 0x1b, y + 1, 0, 0, 0x10a, 0,
+                                    0x19, 0x1b, 0x1a, 0x1d, 0x1c);
     m_decrement->AddLayoutFlags(0x100);
     m_decrement->SetEnabled(false);
     m_decrement->SetActive(false);
     m_decrement->m_listener = this;
 
-    m_increment = new W8TextControl(owner, 0xffffffff, relative_split + 0x3d, y + 1, 0, 0,
-                                        0x10a, 0, 0x1e, 0x20, 0x1f, 0x22, 0x21);
+    m_increment = new W8TextControl(owner, 0xffffffff, relative_split + 0x3d, y + 1, 0, 0, 0x10a, 0,
+                                    0x1e, 0x20, 0x1f, 0x22, 0x21);
     m_increment->AddLayoutFlags(0x100);
     m_increment->SetActive(false);
     m_increment->m_listener = this;
 
-    m_help = new W8TextControl(owner, 0xffffffff, x, y, relative_split, y + 0xc, -1, -1, -1, -1,
-                                   -1, -1, -1);
+    m_help = new W8TextControl(owner, 0xffffffff, x, y, relative_split, y + 0xc, -1, -1, -1, -1, -1,
+                               -1, -1);
     m_help->SetActive(false);
     m_help->m_listener = this;
 }
@@ -141,10 +141,8 @@ void W8CharacterPageEntry::Redraw()
         if (m_draw_background) {
             DrawCatalogImageAndInvalidate(-14, 0x108, 0, 2, m_x, m_y, 2, 0);
         }
-        m_first_text->SetText(FormatWideString(g_format_d, *m_first),
-                                  g_wiz_text_font_secondary);
-        m_second_text->SetText(FormatWideString(g_format_d, *m_second),
-                                   g_wiz_text_font_secondary);
+        m_first_text->SetText(FormatWideString(g_format_d, *m_first), g_wiz_text_font_secondary);
+        m_second_text->SetText(FormatWideString(g_format_d, *m_second), g_wiz_text_font_secondary);
         m_first_text->FillBounds(0x8000);
         m_second_text->FillBounds(0x8000);
         m_label->RenderToTarget(0, true, -14);

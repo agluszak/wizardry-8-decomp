@@ -860,8 +860,7 @@ unsigned char ReadWorldParticles(W8ReadLevelInfo* pInfo, srNode* pScene,
             record.expiry_mode != 0 ? W8_PARTICLE_EXPIRY_TEXTURE : W8_PARTICLE_EXPIRY_TIMED;
         particle->lifetime_ms = record.lifetime;
         particle->los_check_enabled = record.los_check != 0;
-        particle->emission_interval =
-            record.emission_interval < 2 ? 1 : record.emission_interval;
+        particle->emission_interval = record.emission_interval < 2 ? 1 : record.emission_interval;
         particle->start_frame = record.start_frame;
         particle->end_frame = record.end_frame;
 

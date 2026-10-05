@@ -47,7 +47,7 @@ bool MonsterGroupCanEngage(W8MonsterGroup* monster_group); /* 0x00531920 */
    and `within_reach` also requires the target inside engagement range. */
 bool MonsterHasVisibleTarget(W8MonsterInfo* monster_info, bool party_only,
                              W8VisibleTargetFilter hostility, bool within_reach); /* 0x00534850 */
-float GetGroupNearestDistance(W8MonsterGroup* group); /* 0x005324B0 */
+float GetGroupNearestDistance(W8MonsterGroup* group);                             /* 0x005324B0 */
 
 /* MonsterAI.cpp GLOBAL at 0x0061EEFC: two dwords per special attack kind. */
 extern int g_special_attack_table[32][2];
@@ -60,7 +60,7 @@ bool MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id,
 /* Whether the spell's area effect would catch a disposition-neutral monster,
    which vetoes it - the AI does not turn neutrals hostile by accident. */
 bool SpellAreaHitsNeutralMonster(W8MonsterInfo* monster_info, int spell_id,
-                                          W8CombatSlot* combat_slot); /* 0x005330E0 */
+                                 W8CombatSlot* combat_slot); /* 0x005330E0 */
 /* Whether the spell's markers catch at least one party member when cast at
    `slot`. */
 bool MonsterSpellHasPartyTarget(W8MonsterInfo* monster_info, int spell_id,
@@ -139,5 +139,5 @@ void BuildMonsterActionQueue(W8MonsterInfo* monster_info, bool target_locked,
 /* Build the monster's list of possible actions and take one of them at
    random into its action fields and target. */
 bool ChooseRandomMonsterAction(W8MonsterInfo* monster_info, bool target_locked, bool attack_locked,
-                               bool set_attack_rate);          /* 0x005323F0 */
-void UpdateAllMonsterAI(void);                                 /* 0x005314F0 */
+                               bool set_attack_rate); /* 0x005323F0 */
+void UpdateAllMonsterAI(void);                        /* 0x005314F0 */

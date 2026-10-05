@@ -200,10 +200,10 @@ W8MonsterInfo* CreateMonsterInfo(W8MonsterGroup* group, W8MonsterRecord* record,
    tie-break so equal decisions do not always resolve the same way. */
 struct W8MonsterAction {
     W8MonsterActionKind action_kind; /* 0x00 */
-    int action_detail;       /* 0x04 */
-    int attack_index;        /* 0x08 */
-    W8CombatSlot target;     /* 0x0c */
-    unsigned char tie_break; /* 0x2c */
+    int action_detail;               /* 0x04 */
+    int attack_index;                /* 0x08 */
+    W8CombatSlot target;             /* 0x0c */
+    unsigned char tie_break;         /* 0x2c */
 }; /* 0x30 */
 
 enum { W8_MONSTER_ATTR_COUNT = 5 };
@@ -251,7 +251,7 @@ struct W8MonsterCombatState {
        W8MonsterAction each. The AI owns the list and destroys it outright. */
     W8PList* plsCombatActionList;
     int character_hate[9];
-    W8EffectSlot combat_effects[9]; /* 0x03e .. 0x0d7 */
+    W8EffectSlot combat_effects[9];   /* 0x03e .. 0x0d7 */
     W8EffectSlot combat_effects_2[6]; /* 0x0d7 .. 0x13d */
     /* 0x13d: how many times the monster already rolled to notice an attacker
        this round, the same scheme as the character row's spot_attempts. */
@@ -326,8 +326,8 @@ static_assert(sizeof(W8PartyThreatRecord) == 0x30, "W8PartyThreatRecord_size");
    the observer's position at 0x10 and the observed entity's at 0x1c as
    ordinary floats. The reset zeroes exactly its 0x31 bytes. */
 struct W8VisibilityRecord {
-    int about_location_id;        /* 0x00; always zero in the party record */
-    W8SightState sight_state;     /* 0x04: W8SightState */
+    int about_location_id;    /* 0x00; always zero in the party record */
+    W8SightState sight_state; /* 0x04: W8SightState */
     /* 0x05: two sight-flag pairs - GetMonsterSightFlags writes [0]/[2], and
        the missile/spell vertex traces overwrite [1]/[3]. */
     bool los_flags[4];
@@ -339,7 +339,7 @@ struct W8VisibilityRecord {
     srVector3T<float> subject_position; /* 0x10: the observer */
     srVector3T<float> target_position;  /* 0x1c: the observed */
     bool line_of_sight;                 /* 0x28 */
-    unsigned char unknown_29[8];           /* 0x29 */
+    unsigned char unknown_29[8];        /* 0x29 */
 }; /* 0x31 */
 static_assert(sizeof(W8VisibilityRecord) == 0x31, "W8VisibilityRecord_size");
 
@@ -399,16 +399,16 @@ struct W8MonsterInfo {
     int condition_argument;
     W8EffectSlot effect_slots[12];
     W8GameplayModifierBlock modifiers; /* 0x1db */
-    int fatigue_band;                      /* 0x242: derived from stamina */
+    int fatigue_band;                  /* 0x242: derived from stamina */
     /* 0x246: countdown set on pathing failure (0x14) or after a long stall
        (0x1e); each AI tick decrements it, and reaching zero clears
        heard_noise_margin. Also gates the face-party proximity check. */
     unsigned char pathing_cooldown;
     unsigned char attributes[W8_MONSTER_ATTR_COUNT]; /* 0x247: values clamped to 1..125 */
     unsigned char condition_binding_mask;
-    bool within_viewing_distance;      /* 0x24d: cycle-2 eligibility gate */
-    bool fMotionless;                  /* 0x24e: fMotionless in the demo diagnostic */
-    float scale;                       /* 0x24f: HP-dependent live Monster scale */
+    bool within_viewing_distance; /* 0x24d: cycle-2 eligibility gate */
+    bool fMotionless;             /* 0x24e: fMotionless in the demo diagnostic */
+    float scale;                  /* 0x24f: HP-dependent live Monster scale */
     /* 0x253: set once the non-forced death path has run MonsterDies; gates
        the death notice and skips repeat processing. */
     bool death_processed;
@@ -486,12 +486,10 @@ struct W8MonsterInfo {
 #pragma pack(pop)
 
 static_assert(sizeof(W8MonsterInfo) == 0x425, "W8MonsterInfo_size_must_be_0x425");
-static_assert(offsetof(W8MonsterInfo, modifiers) == 0x1db,
-              "W8MonsterInfo_modifiers_offset");
+static_assert(offsetof(W8MonsterInfo, modifiers) == 0x1db, "W8MonsterInfo_modifiers_offset");
 static_assert(offsetof(W8MonsterInfo, heard_noise_margin) == 0x2f5,
               "W8MonsterInfo_heard_noise_margin_offset");
-static_assert(offsetof(W8MonsterInfo, spell_points) == 0x2f9,
-              "W8MonsterInfo_spell_points_offset");
+static_assert(offsetof(W8MonsterInfo, spell_points) == 0x2f9, "W8MonsterInfo_spell_points_offset");
 
 W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_index);
 bool InitializeMonsterManagerState(void);

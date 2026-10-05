@@ -51,8 +51,8 @@ public:
     /* 0xa6: a forced subcycle pick; -1 means none, consumed once
        by the cycle-selection path then reset. */
     signed char forced_subcycle;
-    signed char pending_cycle;  /* 0xa7 */
-    float animation_radius; /* 0xa8: filled by GetAnimationRadius */
+    signed char pending_cycle; /* 0xa7 */
+    float animation_radius;    /* 0xa8: filled by GetAnimationRadius */
 }; /* 0xac */
 
 static_assert(sizeof(W8EmitterHost) == 0xac, "W8EmitterHost_size_must_be_0xac");

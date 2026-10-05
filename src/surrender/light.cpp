@@ -127,14 +127,14 @@ void srLight::dump(std::ostream& stream)
     stream.width(0x20);
     stream << "  Intensity: " << intensity << '\n';
     stream.width(0x20);
-    stream << "  Ambient coeff.: {" << ambient.x << ',' << ambient.y << ',' << ambient.z
-           << '}' << '\n';
+    stream << "  Ambient coeff.: {" << ambient.x << ',' << ambient.y << ',' << ambient.z << '}'
+           << '\n';
     stream.width(0x20);
-    stream << "  Diffuse coeff.: {" << diffuse.x << ',' << diffuse.y << ',' << diffuse.z
-           << '}' << '\n';
+    stream << "  Diffuse coeff.: {" << diffuse.x << ',' << diffuse.y << ',' << diffuse.z << '}'
+           << '\n';
     stream.width(0x20);
-    stream << "  Specular coeff.: {" << specular.x << ',' << specular.y << ','
-           << specular.z << '}' << '\n';
+    stream << "  Specular coeff.: {" << specular.x << ',' << specular.y << ',' << specular.z << '}'
+           << '\n';
     stream.width(0x20);
     stream << "  Spot direction: {" << spot_direction.x << ',' << spot_direction.y << ','
            << spot_direction.z << '}' << '\n';
@@ -149,8 +149,8 @@ void srLight::dump(std::ostream& stream)
     if (attenuation_model == ATTENUATION_OPENGL) {
         stream << "OpenGL" << '\n';
         stream.width(0x20);
-        stream << "  Attenuation fact.: {" << opengl_attenuation.x << ','
-               << opengl_attenuation.y << ',' << opengl_attenuation.z << '}' << '\n';
+        stream << "  Attenuation fact.: {" << opengl_attenuation.x << ',' << opengl_attenuation.y
+               << ',' << opengl_attenuation.z << '}' << '\n';
     } else if (attenuation_model == ATTENUATION_3DSTUDIO_MAX) {
         stream << "3DStudio Max" << '\n';
         stream.width(0x20);
@@ -228,11 +228,11 @@ void srLight::process(const ProcessInfo& info, e_processType type)
                                    inverse.vectors[1].x * spot_direction.y +
                                    inverse.vectors[2].x * spot_direction.z;
             spot_direction_eye.y = inverse.vectors[0].y * spot_direction.x +
-                                       inverse.vectors[1].y * spot_direction.y +
-                                       inverse.vectors[2].y * spot_direction.z;
+                                   inverse.vectors[1].y * spot_direction.y +
+                                   inverse.vectors[2].y * spot_direction.z;
             spot_direction_eye.z = inverse.vectors[0].z * spot_direction.x +
-                                       inverse.vectors[1].z * spot_direction.y +
-                                       inverse.vectors[2].z * spot_direction.z;
+                                   inverse.vectors[1].z * spot_direction.y +
+                                   inverse.vectors[2].z * spot_direction.z;
             float length_squared = spot_direction_eye.LengthSquared();
             if (length_squared != 0.0f) {
                 double scale = 1.0 / sqrt(length_squared);
@@ -310,8 +310,7 @@ int srLight::isActive(srVertexPipe& pipe)
         float dz = input->eye_center.z - eye_location.z;
         float distance_squared = dx * dx + dy * dy + dz * dz;
         if (radius * radius < distance_squared &&
-            (dx * spot_direction_eye.x + dy * spot_direction_eye.y +
-             dz * spot_direction_eye.z) /
+            (dx * spot_direction_eye.x + dy * spot_direction_eye.y + dz * spot_direction_eye.z) /
                         sqrtf(distance_squared) +
                     radius / sqrtf(radius * radius + distance_squared) <
                 spot_cutoff) {
@@ -397,15 +396,13 @@ void srLight::process(srVertexPipe& pipe)
                                       -spot_direction_eye.z);
             srVectorProcessor::dot(spot_factors, negated, directions, count);
             srVectorProcessor::add(spot_factors, -spot_cutoff, spot_factors, count);
-            srVectorProcessor::mul(spot_factors, 1.0f / (1.0f - spot_cutoff), spot_factors,
-                                   count);
+            srVectorProcessor::mul(spot_factors, 1.0f / (1.0f - spot_cutoff), spot_factors, count);
             srVectorProcessor::clampMin(spot_factors, spot_factors, 0.0f, count);
             if (srVectorProcessor::isZero(spot_factors, count)) {
                 return;
             }
             if (spot_exponent != 1.0f) {
-                srVectorProcessor::srSpecularPow(spot_factors, spot_factors, spot_exponent,
-                                                 count);
+                srVectorProcessor::srSpecularPow(spot_factors, spot_factors, spot_exponent, count);
             }
             if (attenuation != 0) {
                 srVectorProcessor::mul(attenuation, attenuation, spot_factors, count);
@@ -474,8 +471,7 @@ void srLight::process(srVertexPipe& pipe)
                 // reinterpret-ok: the scalar broadcast fills the v3 array as
                 // flat dwords.
                 srVectorProcessor::copy(reinterpret_cast<SRDWORD*>(directions),
-                                        *reinterpret_cast<SRDWORD*>(&eye_location.x),
-                                        count * 3);
+                                        *reinterpret_cast<SRDWORD*>(&eye_location.x), count * 3);
             }
         } else {
             srVectorProcessor::copy(directions, eye_location, count);
@@ -498,8 +494,7 @@ void srLight::process(srVertexPipe& pipe)
     srVectorProcessor::dot(distances, scratch->normals + pipe.sub_batch_offset, directions, count);
     srVectorProcessor::clampMin(distances, distances, 0.0f, count);
     if (pipe.material_info.shininess > 1.0f) {
-        srVectorProcessor::srSpecularPow(distances, distances, pipe.material_info.shininess,
-                                         count);
+        srVectorProcessor::srSpecularPow(distances, distances, pipe.material_info.shininess, count);
     }
     srVectorProcessor::mul(distances, distances, dots, count);
     srVector4T<float> specular;

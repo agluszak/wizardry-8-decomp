@@ -64,8 +64,8 @@ struct W8LevelDataRecord {
     float frame_elapsed;
     float movement_limit;
     float movement_progress;
-    srVector3T<float> camera_position;       /* 0x34 */
-    srVector3T<float> motion_input;          /* 0x40 */
+    srVector3T<float> camera_position;            /* 0x34 */
+    srVector3T<float> motion_input;               /* 0x40 */
     srVector3T<float> camera_motion_velocity;     /* 0x4c */
     srVector3T<float> contact_velocity;           /* 0x58 */
     srVector3T<float> motion_velocity;            /* 0x64 */
@@ -78,10 +78,10 @@ struct W8LevelDataRecord {
        constructor writes 1.0f). Remaining 8 bytes stay unresolved. */
     srVector3T<float> contact_normal; /* 0xac */
     float contact_normal_scale;       /* 0xb8 */
-    unsigned char unknown_bc[8];         /* 0xbc */
+    unsigned char unknown_bc[8];      /* 0xbc */
     W8IntervalGate interval_gate;     /* 0xc4 */
-    bool flag5;                        /* 0xec */
-    bool flag6;                        /* 0xed */
+    bool flag5;                       /* 0xec */
+    bool flag6;                       /* 0xed */
     unsigned char pad_ee[2];
     float vertical_motion; /* 0xf0 */
 
@@ -342,12 +342,12 @@ unsigned char LoadSurfaceVertices(srVector3T<float>* output, const int* vertex_i
 void ClearLevelMovementStopped(void);
 void ResetLevelDataVectors(void);
 bool CanInterruptLevelMovement(void);
-bool HasLevelWalkableContact(void);          /* 0x0041F070 */
-bool IsLevelFastMovement(void);              /* 0x0041EFB0 */
-void ClearLevelFastMovement(void);           /* 0x0041EFD0 */
-void SetLevelFastMovement(void);             /* 0x0041EFE0 */
-bool LevelMovedThisUpdate(void);             /* 0x0041EFF0 */
-bool HasLevelDataVector(void);         /* 0x0041F010 */
+bool HasLevelWalkableContact(void); /* 0x0041F070 */
+bool IsLevelFastMovement(void);     /* 0x0041EFB0 */
+void ClearLevelFastMovement(void);  /* 0x0041EFD0 */
+void SetLevelFastMovement(void);    /* 0x0041EFE0 */
+bool LevelMovedThisUpdate(void);    /* 0x0041EFF0 */
+bool HasLevelDataVector(void);      /* 0x0041F010 */
 void ResetCurrentEnvironment(void);
 unsigned char SetEnvironmentLoadFlag(unsigned char flag); /* 0x0041AAE0 */
 void BeginCameraSway(void);

@@ -339,9 +339,10 @@ char AddTextInputField(int left, int top, int width, int height, int priority, c
     field->fUserField = false;
     field->fEnabled = 1;
     field->fBlockMouseCallbacks = false;
-    MSYS_DefineRegion(&field->region, static_cast<unsigned short>(left), static_cast<unsigned short>(top),
-                      static_cast<unsigned short>(left + width), static_cast<unsigned short>(top + height),
-                      static_cast<signed char>(priority), MSYS_NO_CURSOR, MouseMovedInTextRegionCallback,
+    MSYS_DefineRegion(&field->region, static_cast<unsigned short>(left),
+                      static_cast<unsigned short>(top), static_cast<unsigned short>(left + width),
+                      static_cast<unsigned short>(top + height), static_cast<signed char>(priority),
+                      MSYS_NO_CURSOR, MouseMovedInTextRegionCallback,
                       MouseClickedInTextRegionCallback);
     MSYS_SetRegionUserData(&field->region, 0, field->ubID);
     field->fUseInactiveTextFieldColor = use_inactive_text_field_color;
@@ -748,7 +749,8 @@ unsigned int HandleTextInput(const InputAtom* input)
                 return 1;
             }
         }
-        if ((input_type & 8) != 0 && IsPunctuationWideChar(static_cast<unsigned short>(character)) != 0) {
+        if ((input_type & 8) != 0 &&
+            IsPunctuationWideChar(static_cast<unsigned short>(character)) != 0) {
             AddChar(static_cast<unsigned short>(character));
         }
         return 1;
@@ -1138,7 +1140,8 @@ void RenderActiveTextField(void)
     for (size_t index = 0; index < guiVisibleCount; ++index) {
         short prefix = StringPixLengthArg(pColors->usFont, index, visible);
         unsigned char background;
-        if (has_selection && static_cast<int>(selection_first - gubParkingPos) <= static_cast<int>(index) &&
+        if (has_selection &&
+            static_cast<int>(selection_first - gubParkingPos) <= static_cast<int>(index) &&
             static_cast<int>(index) < static_cast<int>(selection_last - gubParkingPos)) {
             SetFontForeground(pColors->ubHiForeColor);
             SetFontShadow(pColors->ubHiShadowColor);

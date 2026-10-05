@@ -111,8 +111,7 @@ void srMemoryPool::defrag(Entry* entry)
         entry = cursor;
         cursor = cursor->previous;
     }
-    for (Entry* next = entry->next;
-         next != 0 && entry->offset + entry->size == next->offset;
+    for (Entry* next = entry->next; next != 0 && entry->offset + entry->size == next->offset;
          next = next->next) {
         entry->size += next->size;
         next->size = -1;
@@ -135,14 +134,12 @@ void srMemoryPool::dump()
 {
     srPrintf("Free blocks:\n\n");
     for (Entry* entry = first_free; entry != 0; entry = entry->next) {
-        srPrintf("%08p %06d\n", static_cast<char*>(memory) + entry->offset,
-                 entry->size);
+        srPrintf("%08p %06d\n", static_cast<char*>(memory) + entry->offset, entry->size);
     }
     srPrintf("\nUsed blocks:\n\n");
     for (unsigned long i = 0; i < 256; i++) {
         for (Entry* entry = allocations[i]; entry != 0; entry = entry->next) {
-            srPrintf("%08p %06d (%03d)\n",
-                     static_cast<char*>(memory) + entry->offset, entry->size,
+            srPrintf("%08p %06d (%03d)\n", static_cast<char*>(memory) + entry->offset, entry->size,
                      hashVal(entry->offset));
         }
     }
@@ -158,8 +155,7 @@ void srMemoryPool::dump()
 srMemoryPool::Entry* srMemoryPool::find(long offset) const
 {
     if (offset >= 0 && offset < size) {
-        for (Entry* entry = allocations[hashVal(offset)]; entry != 0;
-             entry = entry->next) {
+        for (Entry* entry = allocations[hashVal(offset)]; entry != 0; entry = entry->next) {
             if (entry->offset == offset) {
                 return entry;
             }
@@ -212,8 +208,7 @@ srMemoryPool::Entry* srMemoryPool::findFirstFit(long size) const
 srMemoryPool::Entry* srMemoryPool::findPlacing(long offset) const
 {
     Entry* previous = 0;
-    for (Entry* entry = first_free; entry != 0 && entry->offset <= offset;
-         entry = entry->next) {
+    for (Entry* entry = first_free; entry != 0 && entry->offset <= offset; entry = entry->next) {
         previous = entry;
     }
     return previous;

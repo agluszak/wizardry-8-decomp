@@ -140,8 +140,9 @@ void ServiceMusicPlaylist(void)
 
     if (!g_music_force_next && !gXStatus.fCombatMode &&
         Random(100) <= static_cast<unsigned int>(g_music_pause_chance_percent)) {
-        g_music_playlist_tick = GetTickCount() + g_music_pause_min_seconds * 1000 +
-                                Random(g_music_pause_max_seconds * 1000 - g_music_pause_min_seconds * 1000);
+        g_music_playlist_tick =
+            GetTickCount() + g_music_pause_min_seconds * 1000 +
+            Random(g_music_pause_max_seconds * 1000 - g_music_pause_min_seconds * 1000);
         return;
     }
 

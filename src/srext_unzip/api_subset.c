@@ -8,17 +8,13 @@
 jmp_buf dll_error_return;
 
 // FUNCTION: SREXT_UNZIP 0x10001000
-void setFileNotFound(__G)
-    __GDEF
+void setFileNotFound(__G) __GDEF
 {
     G.filenotfound++;
 }
 
 // FUNCTION: SREXT_UNZIP 0x10001010
-int unzipToMemory(
-    __GPRO__ char* archive,
-    char* member,
-    UzpBuffer* result)
+int unzipToMemory(__GPRO__ char* archive, char* member, UzpBuffer* result)
 {
     int status;
     char* included_names[2];
@@ -42,8 +38,7 @@ int unzipToMemory(
 }
 
 // FUNCTION: SREXT_UNZIP 0x10001080
-int redirect_outfile(__G)
-    __GDEF
+int redirect_outfile(__G) __GDEF
 {
     if (G.redirect_size != 0 || G.redirect_buffer != NULL) {
         return FALSE;
@@ -52,9 +47,7 @@ int redirect_outfile(__G)
 #ifndef NO_SLIDE_REDIR
     G.redirect_slide = !G.pInfo->textmode;
 #endif
-    G.redirect_size = G.pInfo->textmode
-        ? G.lrec.ucsize * lenEOL
-        : G.lrec.ucsize;
+    G.redirect_size = G.pInfo->textmode ? G.lrec.ucsize * lenEOL : G.lrec.ucsize;
     G.redirect_pointer = G.redirect_buffer = malloc(G.redirect_size + 1);
     if (G.redirect_buffer == NULL) {
         return FALSE;
@@ -74,14 +67,12 @@ int writeToMemory(__GPRO__ uch* raw_buffer, ulg size)
 }
 
 // FUNCTION: SREXT_UNZIP 0x10001160
-int close_redirect(__G)
-    __GDEF
+int close_redirect(__G) __GDEF
 {
     if (G.pInfo->textmode) {
         *G.redirect_pointer = '\0';
         G.redirect_size = G.redirect_pointer - G.redirect_buffer;
-        G.redirect_buffer =
-            realloc(G.redirect_buffer, G.redirect_size + 1);
+        G.redirect_buffer = realloc(G.redirect_buffer, G.redirect_size + 1);
         if (G.redirect_buffer == NULL) {
             G.redirect_size = 0;
             return EOF;

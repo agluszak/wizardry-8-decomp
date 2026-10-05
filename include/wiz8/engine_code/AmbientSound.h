@@ -28,9 +28,9 @@ public:
 
     W8AmbientSound* FindNextMatching(const char* match_name, W8AmbientSound* previous);
 
-    char* pacSoundName;              /* 0x000: assertion-backed at 0x47A790 */
+    char* pacSoundName;          /* 0x000: assertion-backed at 0x47A790 */
     W8AmbientSoundConfig config; /* 0x004: wave filename; shared sounds match on it */
-    unsigned char stopped;           /* 0x084: script-stopped via the ByName commands */
+    unsigned char stopped;       /* 0x084: script-stopped via the ByName commands */
     unsigned char padding_085[3];
     srVector3T<float> position;  /* 0x088: emitter world position */
     unsigned int volume_min;     /* 0x094 */

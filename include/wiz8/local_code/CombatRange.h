@@ -39,7 +39,7 @@ bool MonsterAttackReachesMonster(W8MonsterInfo* monster_info, W8MonsterRecord* r
 /* Whether the monster's attack `attack` reaches anyone at all; `hostile_only`
    counts only those it is hostile to. */
 bool MonsterAttackReachesAnyone(W8MonsterInfo* monster_info, unsigned int attack,
-                                         char hostile_only); /* 0x00519C00 */
+                                char hostile_only); /* 0x00519C00 */
 /* The base missile speed a range category grants `source`, in world units. */
 float CalcRangeDistance(W8RangeCategory range_category, W8TargetSource* source); /* 0x0051AA30 */
 /* The sight-condition slot a range band needs the observer's sight flags
@@ -47,8 +47,7 @@ float CalcRangeDistance(W8RangeCategory range_category, W8TargetSource* source);
 bool RangeCategoryUsesSightCondition(const W8MonsterInfo* monster,
                                      W8RangeCategory range_category); /* 0x00519BE0 */
 bool MonsterActionReachesTarget(W8MonsterInfo* monster_info, W8MonsterRecord* record,
-                                         unsigned int attack,
-                                         W8CombatSlot* target); /* 0x00519F80 */
+                                unsigned int attack, W8CombatSlot* target); /* 0x00519F80 */
 /* The location id of the nearest live, in-combat group member the monster can
    see under check `kind`, or -1 when none qualify. */
 int FindNearestVisibleGroupMonster(W8MonsterInfo* monster_info, int group_id,

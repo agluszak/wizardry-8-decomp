@@ -26,9 +26,9 @@ public:
     unsigned char GetLocation(srVector3T<float>* position);
     srNode* node; /* 0x04 */
     unsigned int value_08;
-    int parameters[3];      /* 0x0c, 0x10, 0x14 */
-    void* pUserdata;        /* 0x18 */
-    int userdata_size;      /* 0x1c */
+    int parameters[3];   /* 0x0c, 0x10, 0x14 */
+    void* pUserdata;     /* 0x18 */
+    int userdata_size;   /* 0x1c */
     unsigned long color; /* 0x20 */
     char name[0x20];
 };

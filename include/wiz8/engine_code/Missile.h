@@ -99,7 +99,7 @@ public:
 
     unsigned long GetAnimationState(int mode);
     void DetonateMissileSpell();
-    void DestroyMissile(); /* 0x004A4180 */
+    void DestroyMissile();          /* 0x004A4180 */
     void AnnounceCollisionTarget(); /* 0x004A4AC0 */
     /* Switch the representation to its impact cycle, or end the flight when the
        missile has no such cycle. */
@@ -173,7 +173,7 @@ struct W8MissileTableRecord {
     /* 0x100: the GrCycle resource name the launcher loads through the
        "Data\\Missiles" script path. */
     char cycle_name[0x40];
-    float radius;    /* 0x140: replaces the launched effect's radius */
+    float radius;             /* 0x140: replaces the launched effect's radius */
     W8AttackMode attack_mode; /* 0x144: the attack mode the hit is resolved with */
     unsigned char unknown_148[8];
     /* 0x150: copied into the launched effect block's magnitude_base. */

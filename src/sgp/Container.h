@@ -1,5 +1,6 @@
 /* Modified for the Wizardry 8 reconstruction, 2026-10-03.
    Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
+   Formatting normalized for the Wizardry 8 reconstruction, 2026-10-06.
    Distributed under the accompanying SFI Source Code license agreement. */
 //***********************************************
 //
@@ -28,12 +29,12 @@
 //  Defines and typedefs
 //
 //***********************************************
-#define ORDLIST_ERROR                 -1
-#define ORDLIST_EQUAL                 0
-#define ORDLIST_LEFT_LESS             1
-#define ORDLIST_RIGHT_LESS            2
+#define ORDLIST_ERROR -1
+#define ORDLIST_EQUAL 0
+#define ORDLIST_LEFT_LESS 1
+#define ORDLIST_RIGHT_LESS 2
 
-typedef void * HCONTAINER;
+typedef void* HCONTAINER;
 typedef HCONTAINER HSTACK;
 typedef HCONTAINER HQUEUE;
 typedef HCONTAINER HLIST;
@@ -62,12 +63,12 @@ extern void ShutdownContainers(void);
 // DeleteStack deletes the stack container
 // StackSize returns size of stack
 
-extern HSTACK CreateStack(UINT32 num_of_elem , UINT32 siz_of_each);
-extern HSTACK Push(HSTACK hStack, void *data);
-extern BOOLEAN Pop(HSTACK hStack, void *data);
+extern HSTACK CreateStack(UINT32 num_of_elem, UINT32 siz_of_each);
+extern HSTACK Push(HSTACK hStack, void* data);
+extern BOOLEAN Pop(HSTACK hStack, void* data);
 extern UINT32 StackSize(HSTACK hStack);
 extern BOOLEAN DeleteStack(HSTACK hStack);
-extern BOOLEAN PeekStack(HSTACK hStack, void *data);
+extern BOOLEAN PeekStack(HSTACK hStack, void* data);
 
 // Queue Functions
 // CreateQueue(estimated number of items in queue, size of each item
@@ -93,12 +94,12 @@ extern BOOLEAN PeekStack(HSTACK hStack, void *data);
 // ListSize(handle to the list) returns the list size
 // DeleteList(handle to the list) Delete the list container
 
-extern HLIST   CreateList(UINT32 num_of_elem, UINT32 siz_of_each);
-extern HLIST   AddtoList(HLIST hList, void *data, UINT32 position);
-extern BOOLEAN PeekList(HLIST hList, void *data, UINT32 position);
-extern UINT32  ListSize(HLIST hList);
+extern HLIST CreateList(UINT32 num_of_elem, UINT32 siz_of_each);
+extern HLIST AddtoList(HLIST hList, void* data, UINT32 position);
+extern BOOLEAN PeekList(HLIST hList, void* data, UINT32 position);
+extern UINT32 ListSize(HLIST hList);
 extern BOOLEAN DeleteList(HLIST hList);
-extern BOOLEAN StoreListNode(HLIST hList, void *pdata, UINT32 uiPos);
+extern BOOLEAN StoreListNode(HLIST hList, void* pdata, UINT32 uiPos);
 
 // Ordered List Functions
 // CreateOrdList(estimated number of items in ordered list, size of each item,

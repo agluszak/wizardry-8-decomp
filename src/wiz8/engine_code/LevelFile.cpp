@@ -961,8 +961,7 @@ BOOLEAN ReadTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
                         okRecord &=
                             FileRead(hFile, pRecord->vertices, sizeof(pRecord->vertices), 0);
                         okRecord &= FileRead(hFile, &pRecord->linked_face, 2, 0);
-                        g_level_file->linked_records[g_level_file->num_linked_records] =
-                            pRecord;
+                        g_level_file->linked_records[g_level_file->num_linked_records] = pRecord;
                         ++g_level_file->num_linked_records;
                         pInvis->pRecord = pRecord;
                     }
@@ -976,8 +975,7 @@ BOOLEAN ReadTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
                 }
             }
         }
-        g_level_file->invisible_planes[g_level_file->num_invisible_planes] =
-            pInvis->pPlane;
+        g_level_file->invisible_planes[g_level_file->num_invisible_planes] = pInvis->pPlane;
         ++g_level_file->num_invisible_planes;
         pTrigger->pData = pInvis;
         return fSuccess;
@@ -1260,8 +1258,7 @@ BOOLEAN ReadSuperTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
                 return FALSE;
             }
             fSuccess &= FileRead(hFile, pSuper->pPlane, sizeof(W8LevelFilePlane), 0);
-            g_level_file->invisible_planes[g_level_file->num_invisible_planes] =
-                pSuper->pPlane;
+            g_level_file->invisible_planes[g_level_file->num_invisible_planes] = pSuper->pPlane;
             ++g_level_file->num_invisible_planes;
         }
         if (!fSuccess) {

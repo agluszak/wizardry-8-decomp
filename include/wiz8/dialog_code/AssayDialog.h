@@ -34,8 +34,8 @@ private:
     bool CreateTextBuffers();                  /* 0x005D8FB0 */
     void SetProfessionIconsVisible(bool show); /* 0x005D9330 */
     void SetRaceIconsVisible(bool show);       /* 0x005D9460 */
-    void ShowPrimaryTab();                    /* 0x005D9620 */
-    void ShowSecondaryTab();                  /* 0x005D96A0 */
+    void ShowPrimaryTab();                     /* 0x005D9620 */
+    void ShowSecondaryTab();                   /* 0x005D96A0 */
     static void PrimaryTabCallback(W8DialogButton* button);
     static void SecondaryTabCallback(W8DialogButton* button);
 

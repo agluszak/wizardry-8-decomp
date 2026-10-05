@@ -806,8 +806,7 @@ static void SpeakNpcSubquote(W8NpcScriptQuote* quote, unsigned char subquote_ind
                 g_status.buffers.XChar[g_npc_scripting.npc->group_index].pending_event_type =
                     g_npc_scripting.staging_restore.current_quote_index;
                 entry->pending_event_type = g_npc_scripting.staging_restore.current_quote_index;
-                g_npc_interaction_state->last_notice_npc_kind =
-                    g_npc_scripting.npc->partner_index;
+                g_npc_interaction_state->last_notice_npc_kind = g_npc_scripting.npc->partner_index;
             } else {
                 LoadMouthGapTrack(voice_path, &g_npc_scripting.gap_track);
             }
@@ -1791,9 +1790,8 @@ void ProcessMessageBoxQueue(void)
                 if (g_status.buffers.XChar[party_slot].fOccupied &&
                     character->iRace == W8_RACE_MOOK &&
                     character->highest_condition < W8_CONDITION_ASLEEP) {
-                    QueueCharacterEvent(character, g_effect31,
-                                        g_character_event_no_npc_defer, g_character_event_no_flags,
-                                        g_character_event_full_volume);
+                    QueueCharacterEvent(character, g_effect31, g_character_event_no_npc_defer,
+                                        g_character_event_no_flags, g_character_event_full_volume);
                     break;
                 }
             }

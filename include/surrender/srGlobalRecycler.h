@@ -45,5 +45,4 @@ private:
     CriticalSection critical_section;
 };
 
-static_assert(sizeof(srGlobalRecycler) == 0xa4,
-              "srGlobalRecycler_must_be_0xa4");
+static_assert(sizeof(srGlobalRecycler) == 0xa4, "srGlobalRecycler_must_be_0xa4");

@@ -65,8 +65,7 @@ float W8GameTimeAccumulator::Update()
         int sample = ReadClock();
         m_elapsed_ticks = static_cast<unsigned int>(sample - m_start);
         m_start = sample;
-        m_frame_delta =
-            m_elapsed_ticks / static_cast<float>(static_cast<unsigned int>(m_duration));
+        m_frame_delta = m_elapsed_ticks / static_cast<float>(static_cast<unsigned int>(m_duration));
         if (m_frame_delta > m_max_frame_delta) {
             m_frame_delta = m_max_frame_delta;
             m_elapsed_ticks = static_cast<unsigned int>(static_cast<unsigned int>(m_duration) *

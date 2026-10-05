@@ -65,8 +65,8 @@ public:
         float scale;
 
         align_axis = axis;
-        length_squared = align_axis.z * align_axis.z + align_axis.y * align_axis.y +
-                         align_axis.x * align_axis.x;
+        length_squared =
+            align_axis.z * align_axis.z + align_axis.y * align_axis.y + align_axis.x * align_axis.x;
         if (length_squared != 0.0) {
             scale = static_cast<float>(1.0 / sqrt(length_squared));
             align_axis *= scale;

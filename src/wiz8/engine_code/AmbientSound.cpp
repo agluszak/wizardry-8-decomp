@@ -181,7 +181,7 @@ void W8AmbientSound::UpdatePosition(const srVector3T<float>* listener)
                 } else {
                     volume = static_cast<unsigned int>(
                         (g_float_one - (distance - radius * g_navigator_mode3_scale) /
-                                                (radius * g_float_005ec5a8)) *
+                                           (radius * g_float_005ec5a8)) *
                         current_volume);
                 }
                 SoundSetVolume(sound_handle, volume);
@@ -286,7 +286,7 @@ void W8AmbientSound::Service(bool entered)
                 } else {
                     pos.uiVolume = static_cast<unsigned int>(
                         (g_float_one - (distance - radius * g_navigator_mode3_scale) /
-                                                (radius * g_float_005ec5a8)) *
+                                           (radius * g_float_005ec5a8)) *
                         current_volume);
                 }
                 sound_handle = Sound3DStartRandom(sample_handle, &pos);

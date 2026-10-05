@@ -124,9 +124,8 @@ W8CharacterScreen* g_character_screen;
 
 // FUNCTION: WIZ8 0x005b0040
 W8CharacterScreen::W8CharacterScreen(int mode, W8Character* character)
-    : m_mode(mode), m_original(character), m_block_advance(0),
-      m_confirm_profession(0), m_force_transition(0), m_dialog(0),
-      m_capture_dialog_result(0)
+    : m_mode(mode), m_original(character), m_block_advance(0), m_confirm_profession(0),
+      m_force_transition(0), m_dialog(0), m_capture_dialog_result(0)
 {
     if (character != 0) {
         memcpy(&m_character, character, sizeof(m_character));
@@ -152,28 +151,26 @@ void W8CharacterScreen::BuildControls()
     m_controls = new Controls(0, 0x1c2, 0, 0, 0x107, 0, 4);
     m_controls->AcquireRegionSet(&g_character_screen_region_set);
 
-    m_next =
-        new W8TextControl(m_controls, 0xffffffff, 0x254, 0, 0, 0, 0x106, 0, 8, 10, 9, 10, 0xb);
+    m_next = new W8TextControl(m_controls, 0xffffffff, 0x254, 0, 0, 0, 0x106, 0, 8, 10, 9, 10, 0xb);
     m_next->EnableRegionHelp(0xdc);
     m_next->m_listener = this;
 
-    m_previous = new W8TextControl(m_controls, 0xffffffff, 0x228, 0, 0, 0, 0x106, 0, 0xc,
-                                        0xe, 0xd, 0xe, 0xf);
+    m_previous = new W8TextControl(m_controls, 0xffffffff, 0x228, 0, 0, 0, 0x106, 0, 0xc, 0xe, 0xd,
+                                   0xe, 0xf);
     m_previous->EnableRegionHelp(0xdd);
     m_previous->m_listener = this;
 
-    m_exit = new W8TextControl(m_controls, 0xffffffff, 0x1fc, 0, 0, 0, 0x106, 0, 0x14,
-                                    0x16, 0x15, 0x16, 0x17);
+    m_exit = new W8TextControl(m_controls, 0xffffffff, 0x1fc, 0, 0, 0, 0x106, 0, 0x14, 0x16, 0x15,
+                               0x16, 0x17);
     m_exit->EnableRegionHelp(0xde);
     m_exit->m_listener = this;
 
-    m_accept =
-        new W8TextControl(m_controls, 0xffffffff, 0x1d0, 0, 0, 0, 0x106, 0, 4, 6, 5, 6, 7);
+    m_accept = new W8TextControl(m_controls, 0xffffffff, 0x1d0, 0, 0, 0, 0x106, 0, 4, 6, 5, 6, 7);
     m_accept->EnableRegionHelp(0xdf);
     m_accept->m_listener = this;
 
-    m_reset = new W8TextControl(m_controls, 0xffffffff, 0, 0, 0, 0, 0x106, 0, 0x1d, 0x1f,
-                                     0x1e, 0x1f, 0x20);
+    m_reset = new W8TextControl(m_controls, 0xffffffff, 0, 0, 0, 0, 0x106, 0, 0x1d, 0x1f, 0x1e,
+                                0x1f, 0x20);
     m_reset->EnableRegionHelp(0xe1);
     m_reset->m_listener = this;
 
@@ -361,8 +358,7 @@ void W8CharacterScreen::AdvancePage(bool forward)
 {
     if (!forward || (m_page_index != 3 && m_next->m_enabled)) {
         int index = m_page_index;
-        if (index == 1 && m_creation_state.spell_points_remaining > 0 &&
-            !m_block_advance) {
+        if (index == 1 && m_creation_state.spell_points_remaining > 0 && !m_block_advance) {
             ShowMessage(gppStringList[0xc4], 1, 3);
             return;
         }
@@ -374,20 +370,16 @@ void W8CharacterScreen::AdvancePage(bool forward)
                     ShowMessage(
                         FormatWideString(
                             gppStringList[0xdb],
-                            gppStringList
-                                [g_profession_name_message_ids[m_original->iProfession]],
-                            gppStringList
-                                [g_profession_name_message_ids[m_character.iProfession]],
+                            gppStringList[g_profession_name_message_ids[m_original->iProfession]],
+                            gppStringList[g_profession_name_message_ids[m_character.iProfession]],
                             value),
                         1, 4);
                 } else {
                     ShowMessage(
                         FormatWideString(
                             gppStringList[0xda],
-                            gppStringList
-                                [g_profession_name_message_ids[m_original->iProfession]],
-                            gppStringList
-                                [g_profession_name_message_ids[m_character.iProfession]]),
+                            gppStringList[g_profession_name_message_ids[m_original->iProfession]],
+                            gppStringList[g_profession_name_message_ids[m_character.iProfession]]),
                         1, 4);
                 }
                 return;
@@ -404,8 +396,7 @@ void W8CharacterScreen::AdvancePage(bool forward)
         } else if (!m_force_transition) {
             if (CommitCharacter()) {
                 RequestScreenTransition();
-                if (m_mode == 2 &&
-                    m_character.experience_goal <= m_character.experience) {
+                if (m_mode == 2 && m_character.experience_goal <= m_character.experience) {
                     g_pending_screen_state.mode = 3;
                     g_pending_screen_state.parameter_3 = m_original;
                     SetPendingScreenState(W8_SCREEN_CHARACTER);
@@ -505,16 +496,14 @@ void W8CharacterScreen::DrawHeader()
     DrawCatalogImageAndInvalidate(-14, 0x107, 0, 0, 0xc3, 0, 2, 0);
     W8ControlsRect bounds = {0xc3, 0, 0x285, 0x2c};
     text.SetLayoutBounds(&bounds, true, true);
-    text.SetText(gppStringList[g_character_page_title_ids[m_page_index]],
-                 g_options_detail_font);
+    text.SetText(gppStringList[g_character_page_title_ids[m_page_index]], g_options_detail_font);
     text.RenderToTarget(0, true, -14);
     DrawCatalogImageAndInvalidate(-14, 0x107, 0, 1, 0, 0, 2, 0);
 
     if (m_mode == 0) {
         DrawCatalogImage(-14, 0x107, 0, 2, 10, 0xc, 2, 0);
     } else {
-        int frame =
-            m_original == 0 ? m_character.portrait_index : m_original->portrait_index;
+        int frame = m_original == 0 ? m_character.portrait_index : m_original->portrait_index;
         DrawCatalogImage(-14, 0x11, frame, 0, 10, 0xc, 2, 0);
     }
 
@@ -533,11 +522,10 @@ void W8CharacterScreen::DrawHeader()
         }
         bounds.top += 0xe;
         text.SetLayoutBounds(&bounds, true, true);
-        text.SetText(
-            FormatWideString(L"%s %s",
-                             gppStringList[g_gender_name_message_rows[m_character.gender][0]],
-                             gppStringList[g_race_name_message_ids[m_character.iRace]]),
-            g_wiz_text_font_secondary);
+        text.SetText(FormatWideString(
+                         L"%s %s", gppStringList[g_gender_name_message_rows[m_character.gender][0]],
+                         gppStringList[g_race_name_message_ids[m_character.iRace]]),
+                     g_wiz_text_font_secondary);
         text.RenderToTarget(0, true, -14);
         bounds.top += 0xe;
         text.SetLayoutBounds(&bounds, true, true);

@@ -88,7 +88,7 @@ struct W8DialogueTextState {
     short unknown_22;              /* 0x22: never consumed by the retail cluster */
     unsigned int wrap_width;       /* 0x24: pixel budget and notice width */
     unsigned int cursor;           /* 0x28: insertion point in text */
-    unsigned char cursor_dirty; /* 0x2c: repaint just the dialogue cursor */
+    unsigned char cursor_dirty;    /* 0x2c: repaint just the dialogue cursor */
     bool dirty;                    /* 0x2d: cursor/text redraw pending */
     unsigned char padding_2e[2];
     unsigned int saved_scroll_line; /* 0x30: restored when input closes */
@@ -105,9 +105,9 @@ struct W8LevelRuntimeBlock {
        pass consumes this copy while the live word may still change. */
     unsigned int saved_redraw_flags;           /* 0x0f8 */
     W8MainUiMode main_ui_mode;                 /* 0x0fc: portraits / formation / radar */
-    int camera_mode;                       /* 0x100 */
+    int camera_mode;                           /* 0x100 */
     unsigned int hover_region;                 /* 0x104 */
-    bool portrait_strip_dirty;             /* 0x108: portrait strip needs a redraw */
+    bool portrait_strip_dirty;                 /* 0x108: portrait strip needs a redraw */
     unsigned char portrait_refresh_pending[8]; /* 0x109 */
     unsigned char padding_111[3];
     int portrait_refresh_image[8]; /* 0x114 */
@@ -129,18 +129,18 @@ struct W8LevelRuntimeBlock {
     int portrait_y_shift;
     int portrait_layout_inset;
     int action_panel_layout_inset;
-    int highlight_override; /* 0x16c */
-    int condition_hover_party_slot; /* 0x170 */
-    int enchantment_hover_party_slot; /* 0x174 */
-    int name_hover_party_slot; /* 0x178 */
-    int vitals_hover_party_slot; /* 0x17c */
+    int highlight_override;             /* 0x16c */
+    int condition_hover_party_slot;     /* 0x170 */
+    int enchantment_hover_party_slot;   /* 0x174 */
+    int name_hover_party_slot;          /* 0x178 */
+    int vitals_hover_party_slot;        /* 0x17c */
     int combat_action_hover_party_slot; /* 0x180 */
-    int assay_hover_party_slot; /* 0x184 */
+    int assay_hover_party_slot;         /* 0x184 */
     /* 0x188: PortraitAssaySidebarRegionEvent hover zone — 1 upper weapon
        row, 2 lower, 3 assayable item; Screens resets it to 0. */
     int portrait_assay_hover_mode;
     int formation_highlight_party_slot; /* 0x18c */
-    int held_item_display;          /* 0x190 */
+    int held_item_display;              /* 0x190 */
     int value_194;
     int value_198;
     int value_19c;
@@ -165,7 +165,7 @@ struct W8LevelRuntimeBlock {
     int condition_orb_party_slot;
     int enchantment_orb_party_slot;
     int condition_highlight_party_slot; /* 0x20c: -1 while untracked */
-    bool flag3;                      /* 0x210 */
+    bool flag3;                         /* 0x210 */
     unsigned char padding_211[3];
     TIMER clock;                  /* 0x214 */
     unsigned char portrait_flash; /* 0x218: 500ms highlight pulse on clock */
@@ -196,8 +196,8 @@ struct W8LevelRuntimeBlock {
     unsigned char padding_24e[2];
     TIMER character_update_timer; /* 0x250 */
     TIMER world_update_timer;     /* 0x254 */
-    TIMER countdown0;          /* 0x258 */
-    TIMER countdown1;          /* 0x25c */
+    TIMER countdown0;             /* 0x258 */
+    TIMER countdown1;             /* 0x25c */
     bool transition_active;       /* 0x260 */
     bool transition_pending;      /* 0x261 */
     unsigned char padding_262[2];
@@ -211,7 +211,7 @@ struct W8LevelRuntimeBlock {
     bool mipe_editing; /* 0x272: MIPE edit session owns the hidden action panel */
     unsigned char padding_273;
     unsigned int tick; /* 0x274 */
-    int value_278;         /* 0x278 */
+    int value_278;     /* 0x278 */
     int pending_level;
     int pending_entry_id;
     int group_list_rows;  /* 0x284 */
@@ -245,7 +245,7 @@ struct W8LevelRuntimeBlock {
     int move_percent;
     int move_percent_shown;
     unsigned char unknown_2e4[4];
-    int text_box_font; /* 0x2e8: g_wiz_text_font_secondary while the main text box is live */
+    int text_box_font;       /* 0x2e8: g_wiz_text_font_secondary while the main text box is live */
     unsigned short* palette; /* 0x2ec */
     W8ActionKind selection_kind;
     int pending_action; /* 0x2f4 */
@@ -257,7 +257,7 @@ struct W8LevelRuntimeBlock {
     int tooltip_subject;
     int tooltip_kind;
     TIMER countdown3; /* 0x30c */
-    int combat_slot;     /* 0x310 */
+    int combat_slot;  /* 0x310 */
     /* 0x314: the keyboard-action menu is open; set before BuildKeyboardMenu,
        cleared by CloseKeyboardMenu. */
     bool keyboard_menu_open;

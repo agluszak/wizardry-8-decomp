@@ -479,8 +479,7 @@ void* srHeap::allocate(unsigned long size)
                 }
                 current_block_offset = 0xf;
             }
-            char* chunk =
-                static_cast<char*>(current_block->allocation) + current_block_offset;
+            char* chunk = static_cast<char*>(current_block->allocation) + current_block_offset;
             *chunk = static_cast<char>(index);
             current_block_offset += (size | 0xf) + 1;
             lock->releaseAccess();
@@ -553,8 +552,7 @@ srMemoryAllocator::Block* srMemoryAllocator::align(void* allocation)
        rounded up to alignment. */
     // reinterpret-ok: block alignment is computed on the raw allocation bits.
     return reinterpret_cast<Block*>(
-        ((reinterpret_cast<unsigned long>(allocation) + alignment + 0x1f) &
-         ~(alignment - 1)) -
+        ((reinterpret_cast<unsigned long>(allocation) + alignment + 0x1f) & ~(alignment - 1)) -
         0x20);
 }
 

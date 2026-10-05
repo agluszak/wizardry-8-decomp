@@ -148,6 +148,18 @@ Common development commands:
 
 Use `uv run wiz8 --help` for the complete command set.
 
+`wiz8 check` enforces clang-format 21.1.8 on reconstructed C/C++, runtime tests and local
+analysis headers. `wiz8decomp.build.cpp_format_files` defines the shared ownership list;
+imported SDK headers, vendored source and released source oracles are excluded. Normalize
+the complete owned tree with the same list:
+
+```sh
+uv run python -c 'from pathlib import Path; import subprocess; from wiz8decomp.build import cpp_format_files; subprocess.run(["clang-format", "-i", *cpp_format_files(Path.cwd())], check=True)'
+```
+
+Keep retail diagnostic line constants explicit where evidenced, as SGP's `ATTEMPT_AT`
+does. Formatting must not depend on historical whitespace or decompiler-shaped source.
+
 `uv run wiz8 prepare` downloads and verifies the pinned umu-launcher and GE-Proton runtime under
 `WIZ8_WORK_DIR/runtime-toolchain`. umu's Steam Runtime and cache are kept there as well instead of
 using the user's Steam/XDG directories. The default renderer is Glide2x at 800×600. CI

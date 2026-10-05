@@ -218,14 +218,14 @@ static_assert(sizeof(GDPropCondPaths) == 0x44, "GDPropCondPaths_must_be_0x44");
 struct W8PathGridWalk {
     srVector3T<int> cell; /* 0x00: destination X/Z cells; third component zero */
     srVector3T<int> step; /* 0x0c: +1 or -1 per active axis; third component zero */
-    int major_axis;  /* 0x18: 0 for X, 1 for Z */
-    int minor_axis0;  /* 0x1c: (major + 1) % 2 */
-    int minor_axis1;  /* 0x20: unused second secondary axis, zero */
-    int count;       /* 0x24: cells to visit */
-    int error_delta0; /* 0x28 */
-    int error0;       /* 0x2c */
-    int error_reset0; /* 0x30: cell size */
-    int error_delta1; /* 0x34: unused second error channel, zero */
+    int major_axis;       /* 0x18: 0 for X, 1 for Z */
+    int minor_axis0;      /* 0x1c: (major + 1) % 2 */
+    int minor_axis1;      /* 0x20: unused second secondary axis, zero */
+    int count;            /* 0x24: cells to visit */
+    int error_delta0;     /* 0x28 */
+    int error0;           /* 0x2c */
+    int error_reset0;     /* 0x30: cell size */
+    int error_delta1;     /* 0x34: unused second error channel, zero */
     int error1;
     int error_reset1;
 };
@@ -233,10 +233,8 @@ struct W8PathGridWalk {
 static_assert(sizeof(W8PathGridWalk) == 0x40, "W8PathGridWalk_must_be_0x40");
 static_assert(offsetof(W8PathGridWalk, step) == 0x0c, "W8PathGridWalk_step_offset");
 static_assert(offsetof(W8PathGridWalk, minor_axis1) == 0x20, "W8PathGridWalk_second_axis_offset");
-static_assert(offsetof(W8PathGridWalk, error_delta1) == 0x34,
-              "W8PathGridWalk_second_error_offset");
-static_assert(offsetof(W8PathGridWalk, error_reset1) == 0x3c,
-              "W8PathGridWalk_second_reset_offset");
+static_assert(offsetof(W8PathGridWalk, error_delta1) == 0x34, "W8PathGridWalk_second_error_offset");
+static_assert(offsetof(W8PathGridWalk, error_reset1) == 0x3c, "W8PathGridWalk_second_reset_offset");
 
 /* One of the fixed probe volumes assembled by 0x004656A0. The outer radius
    is the navigator's collision radius; the inner bound is its distance from
@@ -345,8 +343,8 @@ public:
     unsigned short PlanMovementToPosition(W8NavigatorMovementState* movement,
                                           const srVector3T<float>* target, float radius,
                                           float separation);
-    float UpdateSearchNodeScore(unsigned short node, const srVector3T<float>* position, float minimum,
-                                float maximum);
+    float UpdateSearchNodeScore(unsigned short node, const srVector3T<float>* position,
+                                float minimum, float maximum);
     unsigned short ResolveSearchNodeCollisions(W8NavigatorMovementState* movement,
                                                unsigned short node, float radius, float separation);
     srVector3T<float> GetSearchTraceOffset(float bearing);
@@ -454,7 +452,7 @@ public:
        header, and the level name the octree already owns. */
     void ConfigureForLevel(int size, float grid_scale, float path_clearance,
                            const srVector3T<float>* bounds, const char* name); /* 0x00458A50 */
-    unsigned char ReadPathNodes(int handle);                                  /* 0x00458CE0 */
+    unsigned char ReadPathNodes(int handle);                                   /* 0x00458CE0 */
     unsigned char WritePathNodes(unsigned int handle);
     unsigned char SaveWaypointSnapshot(bool force);
     unsigned char WriteWaypointFile();
@@ -493,8 +491,8 @@ public:
     W8FilePathNode* file_path_nodes; /* 0x44: serialized cell/height-state records */
     /* Surfaces are 0x28 bytes apart, edges 0xe; an edge names two surfaces by
        index in its two shorts at +4 and +6. */
-    W8PathSurface* m_waypoints;        /* 0x48 */
-    W8PathEdge* m_pEdges;              /* 0x4c */
+    W8PathSurface* m_waypoints;            /* 0x48 */
+    W8PathEdge* m_pEdges;                  /* 0x4c */
     W8FileWaypoint* m_pFileWayPoints;      /* 0x50 */
     stModelInstance* m_path_visualization; /* 0x54 */
     BitArray* m_marked_path_nodes;         /* 0x58 */
@@ -507,14 +505,14 @@ public:
        template only copies and compares values, so the two instantiations are
        body-equivalent and retail's linker folds them. */
     W8HashTable<unsigned int, unsigned int>* m_pPathValues; /* 0x64 */
-    const char* level_name;                                     /* 0x68 */
+    const char* level_name;                                 /* 0x68 */
     W8PathHeapHandle* path_heap;                            /* 0x6c */
-    float m_path_cost_limit;                                  /* 0x70: starts 1.0e10f */
+    float m_path_cost_limit;                                /* 0x70: starts 1.0e10f */
     W8HashTable<unsigned int, int>* m_pVisitedCells;        /* 0x74 */
-    unsigned int m_probe_cell_key;                            /* 0x78 */
-    srVector3T<float> m_probe_position;                       /* 0x7c */
-    unsigned int m_probe_limit;                               /* 0x88 */
-    bool m_probe_bounded;                                     /* 0x8c */
+    unsigned int m_probe_cell_key;                          /* 0x78 */
+    srVector3T<float> m_probe_position;                     /* 0x7c */
+    unsigned int m_probe_limit;                             /* 0x88 */
+    bool m_probe_bounded;                                   /* 0x8c */
     unsigned char m_padding_08d[3];
     unsigned int planner_location;
     unsigned int m_path_candidate_count;

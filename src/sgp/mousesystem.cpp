@@ -3,6 +3,7 @@
    Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
    Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
    Remove the unused product font include; fast-help rendering delegates to VideoToolTip, 2026-10-04.
+   Formatting normalized for the Wizardry 8 reconstruction, 2026-10-06.
    Distributed under the accompanying SFI Source Code license agreement. */
 
 //=================================================================================================
@@ -26,72 +27,65 @@
 #include "memman.h"
 #include "line.h"
 #include "video2.h"
-#define BASE_REGION_FLAGS		MSYS_REGION_ENABLED				// Wiz doesn't ever want MSYS_SET_CURSOR to be on...
+#define BASE_REGION_FLAGS MSYS_REGION_ENABLED // Wiz doesn't ever want MSYS_SET_CURSOR to be on...
 #include "english.h"
-	// Include mouse system defs and macros
+// Include mouse system defs and macros
 #include "mousesystem.h"
 #include "Cursor Control.h"
 #include "Button System.h"
 
-
-
-
 //Kris:	Nov 31, 1999 -- Added support for double clicking
 //
 //Max double click delay (in milliseconds) to be considered a double click
-#define MSYS_DOUBLECLICK_DELAY		400
+#define MSYS_DOUBLECLICK_DELAY 400
 //
 //Records and stores the last place the user clicked.  These values are compared to the current
 //click to determine if a double click event has been detected.
 // GLOBAL: WIZ8 0x00650E6C
-MOUSE_REGION	*gpRegionLastLButtonDown = NULL;
+MOUSE_REGION* gpRegionLastLButtonDown = NULL;
 // GLOBAL: WIZ8 0x00650E70
-MOUSE_REGION	*gpRegionLastLButtonUp = NULL;
+MOUSE_REGION* gpRegionLastLButtonUp = NULL;
 // GLOBAL: WIZ8 0x00650E74
-UINT32				guiRegionLastLButtonDownTime = 0;
-
-
-
+UINT32 guiRegionLastLButtonDownTime = 0;
 
 // number of lines in height help text will be
 
-
 // GLOBAL: WIZ8 0x00650e78
-INT32 MSYS_ScanForID=FALSE;
+INT32 MSYS_ScanForID = FALSE;
 // GLOBAL: WIZ8 0x00650e7c
-INT32 MSYS_CurrentID=MSYS_ID_SYSTEM;
+INT32 MSYS_CurrentID = MSYS_ID_SYSTEM;
 
 // GLOBAL: WIZ8 0x00650e80
-INT16 MSYS_CurrentMX=0;
+INT16 MSYS_CurrentMX = 0;
 // GLOBAL: WIZ8 0x00650e82
-INT16 MSYS_CurrentMY=0;
+INT16 MSYS_CurrentMY = 0;
 // GLOBAL: WIZ8 0x00650e84
-INT16 MSYS_CurrentButtons=0;
+INT16 MSYS_CurrentButtons = 0;
 // GLOBAL: WIZ8 0x00650e86
-INT16 MSYS_Action=0;
+INT16 MSYS_Action = 0;
 
 // GLOBAL: WIZ8 0x00650e88
-BOOLEAN	MSYS_SystemInitialized=FALSE;
+BOOLEAN MSYS_SystemInitialized = FALSE;
 // GLOBAL: WIZ8 0x00650e89
-BOOLEAN MSYS_UseMouseHandlerHook=FALSE;
+BOOLEAN MSYS_UseMouseHandlerHook = FALSE;
 
 // GLOBAL: WIZ8 0x00650e8a
-BOOLEAN MSYS_Mouse_Grabbed=FALSE;
+BOOLEAN MSYS_Mouse_Grabbed = FALSE;
 // GLOBAL: WIZ8 0x00650e8c
-MOUSE_REGION *MSYS_GrabRegion = NULL;
+MOUSE_REGION* MSYS_GrabRegion = NULL;
 
 // GLOBAL: WIZ8 0x006e4100
-UINT16				gusClickedIDNumber;
+UINT16 gusClickedIDNumber;
 // GLOBAL: WIZ8 0x00650e90
-BOOLEAN				gfClickedModeOn = FALSE;
+BOOLEAN gfClickedModeOn = FALSE;
 
 // GLOBAL: WIZ8 0x00650e94
-MOUSE_REGION *MSYS_RegList = NULL;
+MOUSE_REGION* MSYS_RegList = NULL;
 
 // GLOBAL: WIZ8 0x00650e98
-MOUSE_REGION *MSYS_PrevRegion = NULL;
+MOUSE_REGION* MSYS_PrevRegion = NULL;
 // GLOBAL: WIZ8 0x00650e9c
-MOUSE_REGION *MSYS_CurrRegion = NULL;
+MOUSE_REGION* MSYS_CurrRegion = NULL;
 
 //When set, the fast help text will be instantaneous, if consecutive regions with help text are
 //hilighted.  It is set, whenever the timer for the first help button expires, and the mode is
@@ -99,26 +93,42 @@ MOUSE_REGION *MSYS_CurrRegion = NULL;
 BOOLEAN gfPersistantFastHelpMode;
 
 // GLOBAL: WIZ8 0x005ff7c8
-INT16   gsFastHelpDelay = 600; // In timer ticks
+INT16 gsFastHelpDelay = 600; // In timer ticks
 // GLOBAL: WIZ8 0x005ff7ca
-BOOLEAN gfShowFastHelp  = TRUE;
+BOOLEAN gfShowFastHelp = TRUE;
 
 // help text is done, now execute callback, if there is one
-
 
 //Kris:
 //NOTE:  This doesn't really need to be here, however, it is a good indication that
 //when an error appears here, that you need to go below to the init code and initialize the
 //values there as well.  That's the only reason why I left this here.
 // GLOBAL: WIZ8 0x005ff7d0
-MOUSE_REGION MSYS_SystemBaseRegion = {
-								MSYS_ID_SYSTEM, MSYS_PRIORITY_SYSTEM, BASE_REGION_FLAGS,
-								-32767, -32767, 32767, 32767, 0, 0, 0, 0, 0, 0,
-								MSYS_NO_CALLBACK, MSYS_NO_CALLBACK, { 0,0,0,0 },
-								0, 0, -1, MSYS_NO_CALLBACK, NULL, NULL };
+MOUSE_REGION MSYS_SystemBaseRegion = {MSYS_ID_SYSTEM,
+                                      MSYS_PRIORITY_SYSTEM,
+                                      BASE_REGION_FLAGS,
+                                      -32767,
+                                      -32767,
+                                      32767,
+                                      32767,
+                                      0,
+                                      0,
+                                      0,
+                                      0,
+                                      0,
+                                      0,
+                                      MSYS_NO_CALLBACK,
+                                      MSYS_NO_CALLBACK,
+                                      {0, 0, 0, 0},
+                                      0,
+                                      0,
+                                      -1,
+                                      MSYS_NO_CALLBACK,
+                                      NULL,
+                                      NULL};
 
 // GLOBAL: WIZ8 0x00650ea0
-BOOLEAN					gfRefreshUpdate = FALSE;
+BOOLEAN gfRefreshUpdate = FALSE;
 
 //Kris:  December 3, 1997
 //Special internal debugging utilities that will ensure that you don't attempt to delete
@@ -138,68 +148,66 @@ BOOLEAN gfIgnoreShutdownAssertions;
 // FUNCTION: WIZ8 0x0040b290
 INT32 MSYS_Init(void)
 {
-	RegisterDebugTopic(TOPIC_MOUSE_SYSTEM, "Mouse Region System");
+    RegisterDebugTopic(TOPIC_MOUSE_SYSTEM, "Mouse Region System");
 
 #ifdef MOUSESYSTEM_DEBUGGING
-		gfIgnoreShutdownAssertions = FALSE;
+    gfIgnoreShutdownAssertions = FALSE;
 #endif
-	if(MSYS_RegList!=NULL)
-		MSYS_TrashRegList();
+    if (MSYS_RegList != NULL)
+        MSYS_TrashRegList();
 
-	MSYS_CurrentID = MSYS_ID_SYSTEM;
-	MSYS_ScanForID = FALSE;
+    MSYS_CurrentID = MSYS_ID_SYSTEM;
+    MSYS_ScanForID = FALSE;
 
-	MSYS_CurrentMX = 0;
-	MSYS_CurrentMY = 0;
-	MSYS_CurrentButtons = 0;
-	MSYS_Action=MSYS_NO_ACTION;
+    MSYS_CurrentMX = 0;
+    MSYS_CurrentMY = 0;
+    MSYS_CurrentButtons = 0;
+    MSYS_Action = MSYS_NO_ACTION;
 
-	MSYS_PrevRegion = NULL;
-	MSYS_SystemInitialized = TRUE;
-	MSYS_UseMouseHandlerHook = FALSE;
+    MSYS_PrevRegion = NULL;
+    MSYS_SystemInitialized = TRUE;
+    MSYS_UseMouseHandlerHook = FALSE;
 
-	MSYS_Mouse_Grabbed=FALSE;
-	MSYS_GrabRegion = NULL;
+    MSYS_Mouse_Grabbed = FALSE;
+    MSYS_GrabRegion = NULL;
 
-	// Setup the system's background region
-	MSYS_SystemBaseRegion.IDNumber						= MSYS_ID_SYSTEM;
-	MSYS_SystemBaseRegion.PriorityLevel				= MSYS_PRIORITY_SYSTEM;
-	MSYS_SystemBaseRegion.uiFlags								= BASE_REGION_FLAGS;
-	MSYS_SystemBaseRegion.RegionTopLeftX			= -32767;
-	MSYS_SystemBaseRegion.RegionTopLeftY			= -32767;
-	MSYS_SystemBaseRegion.RegionBottomRightX	= 32767;
-	MSYS_SystemBaseRegion.RegionBottomRightY	= 32767;
-	MSYS_SystemBaseRegion.MouseXPos						= 0;
-	MSYS_SystemBaseRegion.MouseYPos						= 0;
-	MSYS_SystemBaseRegion.RelativeXPos				= 0;
-	MSYS_SystemBaseRegion.RelativeYPos				= 0;
-	MSYS_SystemBaseRegion.ButtonState					= 0;
-	MSYS_SystemBaseRegion.Cursor							= 0;
-	MSYS_SystemBaseRegion.UserData[0]					= 0;
-	MSYS_SystemBaseRegion.UserData[1]					= 0;
-	MSYS_SystemBaseRegion.UserData[2]					= 0;
-	MSYS_SystemBaseRegion.UserData[3]					= 0;
-	MSYS_SystemBaseRegion.MovementCallback		= MSYS_NO_CALLBACK;
-	MSYS_SystemBaseRegion.ButtonCallback			= MSYS_NO_CALLBACK;
+    // Setup the system's background region
+    MSYS_SystemBaseRegion.IDNumber = MSYS_ID_SYSTEM;
+    MSYS_SystemBaseRegion.PriorityLevel = MSYS_PRIORITY_SYSTEM;
+    MSYS_SystemBaseRegion.uiFlags = BASE_REGION_FLAGS;
+    MSYS_SystemBaseRegion.RegionTopLeftX = -32767;
+    MSYS_SystemBaseRegion.RegionTopLeftY = -32767;
+    MSYS_SystemBaseRegion.RegionBottomRightX = 32767;
+    MSYS_SystemBaseRegion.RegionBottomRightY = 32767;
+    MSYS_SystemBaseRegion.MouseXPos = 0;
+    MSYS_SystemBaseRegion.MouseYPos = 0;
+    MSYS_SystemBaseRegion.RelativeXPos = 0;
+    MSYS_SystemBaseRegion.RelativeYPos = 0;
+    MSYS_SystemBaseRegion.ButtonState = 0;
+    MSYS_SystemBaseRegion.Cursor = 0;
+    MSYS_SystemBaseRegion.UserData[0] = 0;
+    MSYS_SystemBaseRegion.UserData[1] = 0;
+    MSYS_SystemBaseRegion.UserData[2] = 0;
+    MSYS_SystemBaseRegion.UserData[3] = 0;
+    MSYS_SystemBaseRegion.MovementCallback = MSYS_NO_CALLBACK;
+    MSYS_SystemBaseRegion.ButtonCallback = MSYS_NO_CALLBACK;
 
-	MSYS_SystemBaseRegion.FastHelpTimer				= 0;
-	MSYS_SystemBaseRegion.FastHelpText				= 0;
-	MSYS_SystemBaseRegion.FastHelpRect				= -1;
+    MSYS_SystemBaseRegion.FastHelpTimer = 0;
+    MSYS_SystemBaseRegion.FastHelpText = 0;
+    MSYS_SystemBaseRegion.FastHelpRect = -1;
 
-	MSYS_SystemBaseRegion.next								= NULL;
-	MSYS_SystemBaseRegion.prev								= NULL;
+    MSYS_SystemBaseRegion.next = NULL;
+    MSYS_SystemBaseRegion.prev = NULL;
 
-	// Add the base region to the list
-	MSYS_AddRegionToList(&MSYS_SystemBaseRegion);
+    // Add the base region to the list
+    MSYS_AddRegionToList(&MSYS_SystemBaseRegion);
 
 #ifdef _MOUSE_SYSTEM_HOOK_
-	MSYS_UseMouseHandlerHook = TRUE;
+    MSYS_UseMouseHandlerHook = TRUE;
 #endif
 
-	return(1);
+    return (1);
 }
-
-
 
 //======================================================================================================
 //	MSYS_Shutdown
@@ -210,15 +218,13 @@ INT32 MSYS_Init(void)
 void MSYS_Shutdown(void)
 {
 #ifdef MOUSESYSTEM_DEBUGGING
-		gfIgnoreShutdownAssertions = TRUE;
+    gfIgnoreShutdownAssertions = TRUE;
 #endif
-	MSYS_SystemInitialized = FALSE;
-	MSYS_UseMouseHandlerHook = FALSE;
-	MSYS_TrashRegList();
-	UnRegisterDebugTopic(TOPIC_MOUSE_SYSTEM, "Mouse Region System");
+    MSYS_SystemInitialized = FALSE;
+    MSYS_UseMouseHandlerHook = FALSE;
+    MSYS_TrashRegList();
+    UnRegisterDebugTopic(TOPIC_MOUSE_SYSTEM, "Mouse Region System");
 }
-
-
 
 //======================================================================================================
 //	MSYS_SGP_Mouse_Handler_Hook
@@ -226,102 +232,95 @@ void MSYS_Shutdown(void)
 //	Hook to the SGP's mouse handler
 //
 // FUNCTION: WIZ8 0x0040b510
-void MSYS_SGP_Mouse_Handler_Hook(UINT16 Type,UINT16 Xcoord, UINT16 Ycoord, BOOLEAN LeftButton, BOOLEAN RightButton)
+void MSYS_SGP_Mouse_Handler_Hook(UINT16 Type, UINT16 Xcoord, UINT16 Ycoord, BOOLEAN LeftButton,
+                                 BOOLEAN RightButton)
 {
-	// If the mouse system isn't initialized, get out o' here
-	if(!MSYS_SystemInitialized)
-			return;
+    // If the mouse system isn't initialized, get out o' here
+    if (!MSYS_SystemInitialized)
+        return;
 
-	// If we're not using the handler stuff, ignore this call
-	if(!MSYS_UseMouseHandlerHook)
-			return;
+    // If we're not using the handler stuff, ignore this call
+    if (!MSYS_UseMouseHandlerHook)
+        return;
 
-	MSYS_Action=MSYS_NO_ACTION;
-	switch(Type)
-	{
-		case LEFT_BUTTON_DOWN:
-		case LEFT_BUTTON_UP:
-		case RIGHT_BUTTON_DOWN:
-		case RIGHT_BUTTON_UP:
-			//MSYS_Action|=MSYS_DO_BUTTONS;
-			if(Type == LEFT_BUTTON_DOWN)
-				MSYS_Action |= MSYS_DO_LBUTTON_DWN;
-			else if(Type == LEFT_BUTTON_UP)
-			{
-				MSYS_Action |= MSYS_DO_LBUTTON_UP;
-				//Kris:
-				//Used only if applicable.  This is used for that special button that is locked with the
-				//mouse press -- just like windows.  When you release the button, the previous state
-				//of the button is restored if you released the mouse outside of it's boundaries.  If
-				//you release inside of the button, the action is selected -- but later in the code.
-				//NOTE:  It has to be here, because the mouse can be released anywhere regardless of
-				//regions, buttons, etc.
-			}
-			else if(Type == RIGHT_BUTTON_DOWN)
-				MSYS_Action |= MSYS_DO_RBUTTON_DWN;
-			else if(Type == RIGHT_BUTTON_UP)
-				MSYS_Action |= MSYS_DO_RBUTTON_UP;
+    MSYS_Action = MSYS_NO_ACTION;
+    switch (Type) {
+    case LEFT_BUTTON_DOWN:
+    case LEFT_BUTTON_UP:
+    case RIGHT_BUTTON_DOWN:
+    case RIGHT_BUTTON_UP:
+        //MSYS_Action|=MSYS_DO_BUTTONS;
+        if (Type == LEFT_BUTTON_DOWN)
+            MSYS_Action |= MSYS_DO_LBUTTON_DWN;
+        else if (Type == LEFT_BUTTON_UP) {
+            MSYS_Action |= MSYS_DO_LBUTTON_UP;
+            //Kris:
+            //Used only if applicable.  This is used for that special button that is locked with the
+            //mouse press -- just like windows.  When you release the button, the previous state
+            //of the button is restored if you released the mouse outside of it's boundaries.  If
+            //you release inside of the button, the action is selected -- but later in the code.
+            //NOTE:  It has to be here, because the mouse can be released anywhere regardless of
+            //regions, buttons, etc.
+        } else if (Type == RIGHT_BUTTON_DOWN)
+            MSYS_Action |= MSYS_DO_RBUTTON_DWN;
+        else if (Type == RIGHT_BUTTON_UP)
+            MSYS_Action |= MSYS_DO_RBUTTON_UP;
 
-			if(LeftButton)
-				MSYS_CurrentButtons|=MSYS_LEFT_BUTTON;
-			else
-				MSYS_CurrentButtons&=(~MSYS_LEFT_BUTTON);
+        if (LeftButton)
+            MSYS_CurrentButtons |= MSYS_LEFT_BUTTON;
+        else
+            MSYS_CurrentButtons &= (~MSYS_LEFT_BUTTON);
 
-			if(RightButton)
-				MSYS_CurrentButtons|=MSYS_RIGHT_BUTTON;
-			else
-				MSYS_CurrentButtons&=(~MSYS_RIGHT_BUTTON);
+        if (RightButton)
+            MSYS_CurrentButtons |= MSYS_RIGHT_BUTTON;
+        else
+            MSYS_CurrentButtons &= (~MSYS_RIGHT_BUTTON);
 
-			if((Xcoord != MSYS_CurrentMX) || (Ycoord != MSYS_CurrentMY))
-			{
-				MSYS_Action|=MSYS_DO_MOVE;
-				MSYS_CurrentMX = Xcoord;
-				MSYS_CurrentMY = Ycoord;
-			}
+        if ((Xcoord != MSYS_CurrentMX) || (Ycoord != MSYS_CurrentMY)) {
+            MSYS_Action |= MSYS_DO_MOVE;
+            MSYS_CurrentMX = Xcoord;
+            MSYS_CurrentMY = Ycoord;
+        }
 
-			MSYS_UpdateMouseRegion();
-			break;
+        MSYS_UpdateMouseRegion();
+        break;
 
-		// ATE: Checks here for mouse button repeats.....
-		// Call mouse region with new reason
-		case LEFT_BUTTON_REPEAT:
-		case RIGHT_BUTTON_REPEAT:
+    // ATE: Checks here for mouse button repeats.....
+    // Call mouse region with new reason
+    case LEFT_BUTTON_REPEAT:
+    case RIGHT_BUTTON_REPEAT:
 
-			if(Type == LEFT_BUTTON_REPEAT)
-				MSYS_Action |= MSYS_DO_LBUTTON_REPEAT;
-			else if(Type == RIGHT_BUTTON_REPEAT)
-				MSYS_Action |= MSYS_DO_RBUTTON_REPEAT;
+        if (Type == LEFT_BUTTON_REPEAT)
+            MSYS_Action |= MSYS_DO_LBUTTON_REPEAT;
+        else if (Type == RIGHT_BUTTON_REPEAT)
+            MSYS_Action |= MSYS_DO_RBUTTON_REPEAT;
 
-			if((Xcoord != MSYS_CurrentMX) || (Ycoord != MSYS_CurrentMY))
-			{
-				MSYS_Action|=MSYS_DO_MOVE;
-				MSYS_CurrentMX = Xcoord;
-				MSYS_CurrentMY = Ycoord;
-			}
+        if ((Xcoord != MSYS_CurrentMX) || (Ycoord != MSYS_CurrentMY)) {
+            MSYS_Action |= MSYS_DO_MOVE;
+            MSYS_CurrentMX = Xcoord;
+            MSYS_CurrentMY = Ycoord;
+        }
 
-			MSYS_UpdateMouseRegion();
-			break;
+        MSYS_UpdateMouseRegion();
+        break;
 
-		case MOUSE_POS:
-			if((Xcoord != MSYS_CurrentMX) || (Ycoord != MSYS_CurrentMY) || gfRefreshUpdate )
-			{
-				MSYS_Action|=MSYS_DO_MOVE;
-				MSYS_CurrentMX = Xcoord;
-				MSYS_CurrentMY = Ycoord;
+    case MOUSE_POS:
+        if ((Xcoord != MSYS_CurrentMX) || (Ycoord != MSYS_CurrentMY) || gfRefreshUpdate) {
+            MSYS_Action |= MSYS_DO_MOVE;
+            MSYS_CurrentMX = Xcoord;
+            MSYS_CurrentMY = Ycoord;
 
-				gfRefreshUpdate = FALSE;
+            gfRefreshUpdate = FALSE;
 
-				MSYS_UpdateMouseRegion();
-			}
-			break;
+            MSYS_UpdateMouseRegion();
+        }
+        break;
 
-		default:
-		  DbgMessage(TOPIC_MOUSE_SYSTEM, DBG_LEVEL_0, "ERROR -- MSYS 2 SGP Mouse Hook got bad type");
-			break;
-	}
+    default:
+        DbgMessage(TOPIC_MOUSE_SYSTEM, DBG_LEVEL_0, "ERROR -- MSYS 2 SGP Mouse Hook got bad type");
+        break;
+    }
 }
-
-
 
 //======================================================================================================
 //	MSYS_GetNewID
@@ -331,45 +330,39 @@ void MSYS_SGP_Mouse_Handler_Hook(UINT16 Type,UINT16 Xcoord, UINT16 Ycoord, BOOLE
 //
 INT32 MSYS_GetNewID(void)
 {
-	INT32 retID;
-	INT32 Current,found,done;
-	MOUSE_REGION *node;
+    INT32 retID;
+    INT32 Current, found, done;
+    MOUSE_REGION* node;
 
-	retID = MSYS_CurrentID;
-	MSYS_CurrentID++;
+    retID = MSYS_CurrentID;
+    MSYS_CurrentID++;
 
-	// Crapy scan for an unused ID
-	if((MSYS_CurrentID >= MSYS_ID_MAX) || MSYS_ScanForID)
-	{
-		MSYS_ScanForID = TRUE;
-		Current = MSYS_ID_BASE;
-		done=found=FALSE;
-		while(!done)
-		{
-			found=FALSE;
-			node=MSYS_RegList;
-			while(node!=NULL && !found)
-			{
-				if(node->IDNumber == Current)
-					found=TRUE;
-			}
+    // Crapy scan for an unused ID
+    if ((MSYS_CurrentID >= MSYS_ID_MAX) || MSYS_ScanForID) {
+        MSYS_ScanForID = TRUE;
+        Current = MSYS_ID_BASE;
+        done = found = FALSE;
+        while (!done) {
+            found = FALSE;
+            node = MSYS_RegList;
+            while (node != NULL && !found) {
+                if (node->IDNumber == Current)
+                    found = TRUE;
+            }
 
-			if(found && Current < MSYS_ID_MAX)	// Current ID is in use, and their are more to scan
-				Current++;
-			else
-			{
-				done=TRUE;						// Got an ID to use.
-				if(found)
-					Current=MSYS_ID_MAX;		// Ooops, ran out of IDs, use MAX value!
-			}
-		}
-		MSYS_CurrentID = Current;
-	}
+            if (found && Current < MSYS_ID_MAX) // Current ID is in use, and their are more to scan
+                Current++;
+            else {
+                done = TRUE; // Got an ID to use.
+                if (found)
+                    Current = MSYS_ID_MAX; // Ooops, ran out of IDs, use MAX value!
+            }
+        }
+        MSYS_CurrentID = Current;
+    }
 
-	return(retID);
+    return (retID);
 }
-
-
 
 //======================================================================================================
 //	MSYS_TrashRegList
@@ -378,20 +371,14 @@ INT32 MSYS_GetNewID(void)
 //
 void MSYS_TrashRegList(void)
 {
-	while( MSYS_RegList )
-	{
-		if( MSYS_RegList->uiFlags & MSYS_REGION_EXISTS )
-		{
-			MSYS_RemoveRegion(MSYS_RegList);
-		}
-		else
-		{
-			MSYS_RegList = MSYS_RegList->next;
-		}
-	}
+    while (MSYS_RegList) {
+        if (MSYS_RegList->uiFlags & MSYS_REGION_EXISTS) {
+            MSYS_RemoveRegion(MSYS_RegList);
+        } else {
+            MSYS_RegList = MSYS_RegList->next;
+        }
+    }
 }
-
-
 
 //======================================================================================================
 //	MSYS_AddRegionToList
@@ -400,91 +387,77 @@ void MSYS_TrashRegList(void)
 //	have the same priority level, then the latest to enter the list gets the higher priority.
 //
 // FUNCTION: WIZ8 0x0040b720
-void MSYS_AddRegionToList(MOUSE_REGION *region)
+void MSYS_AddRegionToList(MOUSE_REGION* region)
 {
-	MOUSE_REGION *curr;
-	INT32 done;
+    MOUSE_REGION* curr;
+    INT32 done;
 
+    // If region seems to already be in list, delete it so we can
+    // re-insert the region.
+    if (region->next || region->prev) { // if it wasn't actually there, then call does nothing!
+        MSYS_DeleteRegionFromList(region);
+    }
 
-	// If region seems to already be in list, delete it so we can
-	// re-insert the region.
-	if( region->next || region->prev )
-	{ // if it wasn't actually there, then call does nothing!
-		MSYS_DeleteRegionFromList(region);
-	}
+    // Set an ID number!
+    region->IDNumber = (UINT16)MSYS_GetNewID();
 
-	// Set an ID number!
-	region->IDNumber = (UINT16)MSYS_GetNewID();
+    region->next = NULL;
+    region->prev = NULL;
 
-	region->next = NULL;
-	region->prev = NULL;
+    if (!MSYS_RegList) { // Null list, so add it straight up.
+        MSYS_RegList = region;
+    } else {
+        // Walk down list until we find place to insert (or at end of list)
+        curr = MSYS_RegList;
+        done = FALSE;
+        while ((curr->next != NULL) && !done) {
+            if (curr->PriorityLevel <= region->PriorityLevel)
+                done = TRUE;
+            else
+                curr = curr->next;
+        }
 
-	if( !MSYS_RegList )
-	{ // Null list, so add it straight up.
-		MSYS_RegList = region;
-	}
-	else
-	{
-		// Walk down list until we find place to insert (or at end of list)
-		curr=MSYS_RegList;
-		done=FALSE;
-		while((curr->next != NULL) && !done)
-		{
-			if(curr->PriorityLevel <= region->PriorityLevel)
-				done=TRUE;
-			else
-				curr = curr->next;
-		}
+        if (curr->PriorityLevel > region->PriorityLevel) {
+            // Add after curr node
+            region->next = curr->next;
+            curr->next = region;
+            region->prev = curr;
+            if (region->next != NULL)
+                region->next->prev = region;
+        } else {
+            // Add before curr node
+            region->next = curr;
+            region->prev = curr->prev;
 
-		if(curr->PriorityLevel > region->PriorityLevel)
-		{
-			// Add after curr node
-			region->next = curr->next;
-			curr->next = region;
-			region->prev = curr;
-			if(region->next != NULL)
-				region->next->prev = region;
-		}
-		else
-		{
-			// Add before curr node
-			region->next = curr;
-			region->prev = curr->prev;
+            curr->prev = region;
+            if (region->prev != NULL)
+                region->prev->next = region;
 
-			curr->prev = region;
-			if(region->prev != NULL)
-				region->prev->next = region;
-
-			if(MSYS_RegList==curr)	// Make sure if adding at start, to adjust the list pointer
-				MSYS_RegList=region;
-		}
-	}
+            if (MSYS_RegList == curr) // Make sure if adding at start, to adjust the list pointer
+                MSYS_RegList = region;
+        }
+    }
 }
-
-
 
 //======================================================================================================
 //	MSYS_RegionInList
 //
 //	Scan region list for presence of a node with the same region ID number
 //
-INT32 MSYS_RegionInList( MOUSE_REGION *region )
+INT32 MSYS_RegionInList(MOUSE_REGION* region)
 {
-	MOUSE_REGION *Current;
-	INT32 found;
+    MOUSE_REGION* Current;
+    INT32 found;
 
-	found = FALSE;
-	Current = MSYS_RegList;
-	while( Current && !found )
-	{
-		if(Current->IDNumber == region->IDNumber)
-			found=TRUE;
-		Current = Current->next;
-	}
-	return(found);
+    found = FALSE;
+    Current = MSYS_RegList;
+    while (Current && !found) {
+        if (Current->IDNumber == region->IDNumber)
+            found = TRUE;
+        Current = Current->next;
+    }
+    return (found);
 }
-
-
 
 //======================================================================================================
 //	MSYS_DeleteRegionFromList
@@ -492,60 +465,50 @@ INT32 MSYS_RegionInList( MOUSE_REGION *region )
 //	Removes a region from the current list.
 //
 // FUNCTION: WIZ8 0x0040b830
-void MSYS_DeleteRegionFromList(MOUSE_REGION *region)
+void MSYS_DeleteRegionFromList(MOUSE_REGION* region)
 {
-	// If no list present, there's nothin' to do.
-	if( !MSYS_RegList )
-		return;
+    // If no list present, there's nothin' to do.
+    if (!MSYS_RegList)
+        return;
 
-	// Check if region in list
-	if(!MSYS_RegionInList(region))
-		return;
+    // Check if region in list
+    if (!MSYS_RegionInList(region))
+        return;
 
-	// Remove a node from the list
-	if(MSYS_RegList == region)
-	{ // First node on list, adjust main pointer.
-		MSYS_RegList = region->next;
-		if(MSYS_RegList!=NULL)
-			MSYS_RegList->prev = NULL;
-		region->next = region->prev = NULL;
-	}
-	else
-	{
-		if(region->prev)
-			region->prev->next = region->next;
-		// If not last node in list, adjust following node's ->prev entry.
-		if( region->next )
-			region->next->prev = region->prev;
-		region->prev = region->next = NULL;
-	}
+    // Remove a node from the list
+    if (MSYS_RegList == region) { // First node on list, adjust main pointer.
+        MSYS_RegList = region->next;
+        if (MSYS_RegList != NULL)
+            MSYS_RegList->prev = NULL;
+        region->next = region->prev = NULL;
+    } else {
+        if (region->prev)
+            region->prev->next = region->next;
+        // If not last node in list, adjust following node's ->prev entry.
+        if (region->next)
+            region->next->prev = region->prev;
+        region->prev = region->next = NULL;
+    }
 
-	// Did we delete a grabbed region?
-	if(MSYS_Mouse_Grabbed)
-	{
-		if(MSYS_GrabRegion == region)
-		{
-			MSYS_Mouse_Grabbed = FALSE;
-			MSYS_GrabRegion = NULL;
-		}
-	}
+    // Did we delete a grabbed region?
+    if (MSYS_Mouse_Grabbed) {
+        if (MSYS_GrabRegion == region) {
+            MSYS_Mouse_Grabbed = FALSE;
+            MSYS_GrabRegion = NULL;
+        }
+    }
 
-	// Is only the system background region remaining?
-	if(MSYS_RegList == &MSYS_SystemBaseRegion)
-	{
-		// Yup, so let's reset the ID values!
-		MSYS_CurrentID = MSYS_ID_BASE;
-		MSYS_ScanForID = FALSE;
-	}
-	else if(MSYS_RegList == NULL)
-	{
-		// Ack, we actually emptied the list, so let's reset for re-init possibilities
-		MSYS_CurrentID = MSYS_ID_SYSTEM;
-		MSYS_ScanForID = FALSE;
-	}
+    // Is only the system background region remaining?
+    if (MSYS_RegList == &MSYS_SystemBaseRegion) {
+        // Yup, so let's reset the ID values!
+        MSYS_CurrentID = MSYS_ID_BASE;
+        MSYS_ScanForID = FALSE;
+    } else if (MSYS_RegList == NULL) {
+        // Ack, we actually emptied the list, so let's reset for re-init possibilities
+        MSYS_CurrentID = MSYS_ID_SYSTEM;
+        MSYS_ScanForID = FALSE;
+    }
 }
-
-
 
 //======================================================================================================
 //	MSYS_UpdateMouseRegion
@@ -556,289 +519,253 @@ void MSYS_DeleteRegionFromList(MOUSE_REGION *region)
 // FUNCTION: WIZ8 0x0040b900
 void MSYS_UpdateMouseRegion(void)
 {
-	INT32 found;
-	UINT32 ButtonReason;
-  MOUSE_REGION *pTempRegion;
-	BOOLEAN fFound=FALSE;
-	found=FALSE;
+    INT32 found;
+    UINT32 ButtonReason;
+    MOUSE_REGION* pTempRegion;
+    BOOLEAN fFound = FALSE;
+    found = FALSE;
 
-	// Check previous region!
-	if(MSYS_Mouse_Grabbed)
-	{
-		MSYS_CurrRegion = MSYS_GrabRegion;
-		found = TRUE;
-	}
-	if(!found)
-		MSYS_CurrRegion = MSYS_RegList;
+    // Check previous region!
+    if (MSYS_Mouse_Grabbed) {
+        MSYS_CurrRegion = MSYS_GrabRegion;
+        found = TRUE;
+    }
+    if (!found)
+        MSYS_CurrRegion = MSYS_RegList;
 
-	while( !found && MSYS_CurrRegion )
-	{
-		if( MSYS_CurrRegion->uiFlags & (MSYS_REGION_ENABLED | MSYS_ALLOW_DISABLED_FASTHELP) &&
-		   (MSYS_CurrRegion->RegionTopLeftX <= MSYS_CurrentMX) &&		// Check boundaries
-		   (MSYS_CurrRegion->RegionTopLeftY <= MSYS_CurrentMY) &&
-		   (MSYS_CurrRegion->RegionBottomRightX >= MSYS_CurrentMX) &&
-		   (MSYS_CurrRegion->RegionBottomRightY >= MSYS_CurrentMY))
-		{
-			// We got the right region. We don't need to check for priorities 'cause
-			// the whole list is sorted the right way!
-			found=TRUE;
-		}
-		else
-			MSYS_CurrRegion = MSYS_CurrRegion->next;
-	}
+    while (!found && MSYS_CurrRegion) {
+        if (MSYS_CurrRegion->uiFlags & (MSYS_REGION_ENABLED | MSYS_ALLOW_DISABLED_FASTHELP) &&
+            (MSYS_CurrRegion->RegionTopLeftX <= MSYS_CurrentMX) && // Check boundaries
+            (MSYS_CurrRegion->RegionTopLeftY <= MSYS_CurrentMY) &&
+            (MSYS_CurrRegion->RegionBottomRightX >= MSYS_CurrentMX) &&
+            (MSYS_CurrRegion->RegionBottomRightY >= MSYS_CurrentMY)) {
+            // We got the right region. We don't need to check for priorities 'cause
+            // the whole list is sorted the right way!
+            found = TRUE;
+        } else
+            MSYS_CurrRegion = MSYS_CurrRegion->next;
+    }
 
-	if( MSYS_PrevRegion )
-	{
-		MSYS_PrevRegion->uiFlags &= (~MSYS_MOUSE_IN_AREA);
+    if (MSYS_PrevRegion) {
+        MSYS_PrevRegion->uiFlags &= (~MSYS_MOUSE_IN_AREA);
 
-		if ( MSYS_PrevRegion != MSYS_CurrRegion )
-		{
-			//Remove the help text for the previous region if one is currently being displayed.
-			if( MSYS_PrevRegion->FastHelpText )
-			{
-				//ExecuteMouseHelpEndCallBack( MSYS_PrevRegion );
+        if (MSYS_PrevRegion != MSYS_CurrRegion) {
+            //Remove the help text for the previous region if one is currently being displayed.
+            if (MSYS_PrevRegion->FastHelpText) {
+                //ExecuteMouseHelpEndCallBack( MSYS_PrevRegion );
 
-				MSYS_PrevRegion->uiFlags &= (~MSYS_GOT_BACKGROUND);
-				MSYS_PrevRegion->uiFlags &= (~MSYS_FASTHELP_RESET);
+                MSYS_PrevRegion->uiFlags &= (~MSYS_GOT_BACKGROUND);
+                MSYS_PrevRegion->uiFlags &= (~MSYS_FASTHELP_RESET);
 
-					// dirty buttons, need a re-render
-//DEF: Nov 30 98
-//				PausedMarkButtonsDirty( );
+                // dirty buttons, need a re-render
+                //DEF: Nov 30 98
+                //				PausedMarkButtonsDirty( );
 
-				//if( region->uiFlags & MSYS_REGION_ENABLED )
-				//	region->uiFlags |= BUTTON_DIRTY;
-							VideoRemoveToolTip();
-			}
+                //if( region->uiFlags & MSYS_REGION_ENABLED )
+                //	region->uiFlags |= BUTTON_DIRTY;
+                VideoRemoveToolTip();
+            }
 
-			MSYS_CurrRegion->FastHelpTimer = gsFastHelpDelay;
+            MSYS_CurrRegion->FastHelpTimer = gsFastHelpDelay;
 
-			// Force a callbacks to happen on previous region to indicate that
-			// the mouse has left the old region
-			if ( MSYS_PrevRegion->uiFlags & MSYS_MOVE_CALLBACK && MSYS_PrevRegion->uiFlags & MSYS_REGION_ENABLED )
-				(*(MSYS_PrevRegion->MovementCallback))(MSYS_PrevRegion,MSYS_CALLBACK_REASON_LOST_MOUSE);
-		}
-	}
+            // Force a callbacks to happen on previous region to indicate that
+            // the mouse has left the old region
+            if (MSYS_PrevRegion->uiFlags & MSYS_MOVE_CALLBACK &&
+                MSYS_PrevRegion->uiFlags & MSYS_REGION_ENABLED)
+                (*(MSYS_PrevRegion->MovementCallback))(MSYS_PrevRegion,
+                                                       MSYS_CALLBACK_REASON_LOST_MOUSE);
+        }
+    }
 
-	// If a region was found in the list, update it's data
-	if(found)
-	{
-		if(MSYS_CurrRegion != MSYS_PrevRegion)
-		{
-			//Kris -- October 27, 1997
-			//Implemented gain mouse region
-			if ( MSYS_CurrRegion->uiFlags & MSYS_MOVE_CALLBACK )
-			{
-				if( MSYS_CurrRegion->FastHelpText && !( MSYS_CurrRegion->uiFlags & MSYS_FASTHELP_RESET ) )
-				{
-				  //ExecuteMouseHelpEndCallBack( MSYS_CurrRegion );
-					MSYS_CurrRegion->FastHelpTimer = gsFastHelpDelay;
-					MSYS_CurrRegion->uiFlags &= (~MSYS_GOT_BACKGROUND);
-					MSYS_CurrRegion->uiFlags |= MSYS_FASTHELP_RESET;
+    // If a region was found in the list, update it's data
+    if (found) {
+        if (MSYS_CurrRegion != MSYS_PrevRegion) {
+            //Kris -- October 27, 1997
+            //Implemented gain mouse region
+            if (MSYS_CurrRegion->uiFlags & MSYS_MOVE_CALLBACK) {
+                if (MSYS_CurrRegion->FastHelpText &&
+                    !(MSYS_CurrRegion->uiFlags & MSYS_FASTHELP_RESET)) {
+                    //ExecuteMouseHelpEndCallBack( MSYS_CurrRegion );
+                    MSYS_CurrRegion->FastHelpTimer = gsFastHelpDelay;
+                    MSYS_CurrRegion->uiFlags &= (~MSYS_GOT_BACKGROUND);
+                    MSYS_CurrRegion->uiFlags |= MSYS_FASTHELP_RESET;
 
-							VideoRemoveToolTip();
+                    VideoRemoveToolTip();
 
-					//if( b->uiFlags & BUTTON_ENABLED )
-					//	b->uiFlags |= BUTTON_DIRTY;
-				}
-				if( MSYS_CurrRegion->uiFlags & MSYS_REGION_ENABLED )
-				{
-					(*(MSYS_CurrRegion->MovementCallback))(MSYS_CurrRegion,MSYS_CALLBACK_REASON_GAIN_MOUSE);
-				}
-			}
+                    //if( b->uiFlags & BUTTON_ENABLED )
+                    //	b->uiFlags |= BUTTON_DIRTY;
+                }
+                if (MSYS_CurrRegion->uiFlags & MSYS_REGION_ENABLED) {
+                    (*(MSYS_CurrRegion->MovementCallback))(MSYS_CurrRegion,
+                                                           MSYS_CALLBACK_REASON_GAIN_MOUSE);
+                }
+            }
 
-			// if the cursor is set and is not set to no cursor
-      if( MSYS_CurrRegion->uiFlags & MSYS_REGION_ENABLED &&
-					MSYS_CurrRegion->uiFlags & MSYS_SET_CURSOR &&
-					MSYS_CurrRegion->Cursor != MSYS_NO_CURSOR )
-			{
-				MSYS_SetCurrentCursor(MSYS_CurrRegion->Cursor);
-			}
-			else
-			{
-	     // Addition Oct 10/1997 Carter, patch for mouse cursor
-			 // start at region and find another region encompassing
-			 pTempRegion=MSYS_CurrRegion->next;
-			 while((pTempRegion!=NULL)&&(!fFound))
-			 {
-        if((pTempRegion->uiFlags & MSYS_REGION_ENABLED) &&
-		       (pTempRegion->RegionTopLeftX <= MSYS_CurrentMX) &&
-		       (pTempRegion->RegionTopLeftY <= MSYS_CurrentMY) &&
-		       (pTempRegion->RegionBottomRightX >= MSYS_CurrentMX) &&
-		       (pTempRegion->RegionBottomRightY >= MSYS_CurrentMY)&&(pTempRegion->uiFlags & MSYS_SET_CURSOR))
-				{
-	  	   fFound=TRUE;
-				 if( pTempRegion->Cursor != MSYS_NO_CURSOR )
-				 {
-					 MSYS_SetCurrentCursor(pTempRegion->Cursor);
-				 }
-				}
-        pTempRegion=pTempRegion->next;
-			 }
-      }
-		}
+            // if the cursor is set and is not set to no cursor
+            if (MSYS_CurrRegion->uiFlags & MSYS_REGION_ENABLED &&
+                MSYS_CurrRegion->uiFlags & MSYS_SET_CURSOR &&
+                MSYS_CurrRegion->Cursor != MSYS_NO_CURSOR) {
+                MSYS_SetCurrentCursor(MSYS_CurrRegion->Cursor);
+            } else {
+                // Addition Oct 10/1997 Carter, patch for mouse cursor
+                // start at region and find another region encompassing
+                pTempRegion = MSYS_CurrRegion->next;
+                while ((pTempRegion != NULL) && (!fFound)) {
+                    if ((pTempRegion->uiFlags & MSYS_REGION_ENABLED) &&
+                        (pTempRegion->RegionTopLeftX <= MSYS_CurrentMX) &&
+                        (pTempRegion->RegionTopLeftY <= MSYS_CurrentMY) &&
+                        (pTempRegion->RegionBottomRightX >= MSYS_CurrentMX) &&
+                        (pTempRegion->RegionBottomRightY >= MSYS_CurrentMY) &&
+                        (pTempRegion->uiFlags & MSYS_SET_CURSOR)) {
+                        fFound = TRUE;
+                        if (pTempRegion->Cursor != MSYS_NO_CURSOR) {
+                            MSYS_SetCurrentCursor(pTempRegion->Cursor);
+                        }
+                    }
+                    pTempRegion = pTempRegion->next;
+                }
+            }
+        }
 
-		// OK, if we do not have a button down, any button is game!
-		if ( !gfClickedModeOn || ( gfClickedModeOn && gusClickedIDNumber == MSYS_CurrRegion->IDNumber ) )
-		{
-			MSYS_CurrRegion->uiFlags |= MSYS_MOUSE_IN_AREA;
+        // OK, if we do not have a button down, any button is game!
+        if (!gfClickedModeOn ||
+            (gfClickedModeOn && gusClickedIDNumber == MSYS_CurrRegion->IDNumber)) {
+            MSYS_CurrRegion->uiFlags |= MSYS_MOUSE_IN_AREA;
 
-			MSYS_CurrRegion->MouseXPos = MSYS_CurrentMX;
-			MSYS_CurrRegion->MouseYPos = MSYS_CurrentMY;
-			MSYS_CurrRegion->RelativeXPos = MSYS_CurrentMX - MSYS_CurrRegion->RegionTopLeftX;
-			MSYS_CurrRegion->RelativeYPos = MSYS_CurrentMY - MSYS_CurrRegion->RegionTopLeftY;
+            MSYS_CurrRegion->MouseXPos = MSYS_CurrentMX;
+            MSYS_CurrRegion->MouseYPos = MSYS_CurrentMY;
+            MSYS_CurrRegion->RelativeXPos = MSYS_CurrentMX - MSYS_CurrRegion->RegionTopLeftX;
+            MSYS_CurrRegion->RelativeYPos = MSYS_CurrentMY - MSYS_CurrRegion->RegionTopLeftY;
 
-			MSYS_CurrRegion->ButtonState = MSYS_CurrentButtons;
+            MSYS_CurrRegion->ButtonState = MSYS_CurrentButtons;
 
-			if( MSYS_CurrRegion->uiFlags & MSYS_REGION_ENABLED &&
-					MSYS_CurrRegion->uiFlags & MSYS_MOVE_CALLBACK && MSYS_Action & MSYS_DO_MOVE )
-			{
-				(*(MSYS_CurrRegion->MovementCallback))(MSYS_CurrRegion,MSYS_CALLBACK_REASON_MOVE);
-			}
+            if (MSYS_CurrRegion->uiFlags & MSYS_REGION_ENABLED &&
+                MSYS_CurrRegion->uiFlags & MSYS_MOVE_CALLBACK && MSYS_Action & MSYS_DO_MOVE) {
+                (*(MSYS_CurrRegion->MovementCallback))(MSYS_CurrRegion, MSYS_CALLBACK_REASON_MOVE);
+            }
 
-			//ExecuteMouseHelpEndCallBack( MSYS_CurrRegion );
-			//MSYS_CurrRegion->FastHelpTimer = gsFastHelpDelay;
+            //ExecuteMouseHelpEndCallBack( MSYS_CurrRegion );
+            //MSYS_CurrRegion->FastHelpTimer = gsFastHelpDelay;
 
-			MSYS_Action &= (~MSYS_DO_MOVE);
+            MSYS_Action &= (~MSYS_DO_MOVE);
 
-			if((MSYS_CurrRegion->uiFlags & MSYS_BUTTON_CALLBACK) && (MSYS_Action & MSYS_DO_BUTTONS))
-			{
-				if( MSYS_CurrRegion->uiFlags & MSYS_REGION_ENABLED )
-				{
-					ButtonReason=MSYS_CALLBACK_REASON_NONE;
-					if(MSYS_Action & MSYS_DO_LBUTTON_DWN)
-					{
-						ButtonReason|=MSYS_CALLBACK_REASON_LBUTTON_DWN;
-						gfClickedModeOn = TRUE;
-						// Set global ID
-						gusClickedIDNumber = MSYS_CurrRegion->IDNumber;
-					}
+            if ((MSYS_CurrRegion->uiFlags & MSYS_BUTTON_CALLBACK) &&
+                (MSYS_Action & MSYS_DO_BUTTONS)) {
+                if (MSYS_CurrRegion->uiFlags & MSYS_REGION_ENABLED) {
+                    ButtonReason = MSYS_CALLBACK_REASON_NONE;
+                    if (MSYS_Action & MSYS_DO_LBUTTON_DWN) {
+                        ButtonReason |= MSYS_CALLBACK_REASON_LBUTTON_DWN;
+                        gfClickedModeOn = TRUE;
+                        // Set global ID
+                        gusClickedIDNumber = MSYS_CurrRegion->IDNumber;
+                    }
 
-					if(MSYS_Action & MSYS_DO_LBUTTON_UP )
-					{
-						ButtonReason|=MSYS_CALLBACK_REASON_LBUTTON_UP;
-						gfClickedModeOn = FALSE;
-					}
+                    if (MSYS_Action & MSYS_DO_LBUTTON_UP) {
+                        ButtonReason |= MSYS_CALLBACK_REASON_LBUTTON_UP;
+                        gfClickedModeOn = FALSE;
+                    }
 
-					if(MSYS_Action & MSYS_DO_RBUTTON_DWN)
-					{
-						ButtonReason|=MSYS_CALLBACK_REASON_RBUTTON_DWN;
-						gfClickedModeOn = TRUE;
-						// Set global ID
-						gusClickedIDNumber = MSYS_CurrRegion->IDNumber;
-					}
+                    if (MSYS_Action & MSYS_DO_RBUTTON_DWN) {
+                        ButtonReason |= MSYS_CALLBACK_REASON_RBUTTON_DWN;
+                        gfClickedModeOn = TRUE;
+                        // Set global ID
+                        gusClickedIDNumber = MSYS_CurrRegion->IDNumber;
+                    }
 
-					if(MSYS_Action & MSYS_DO_RBUTTON_UP  )
-					{
-						ButtonReason|=MSYS_CALLBACK_REASON_RBUTTON_UP;
-						gfClickedModeOn = FALSE;
-					}
+                    if (MSYS_Action & MSYS_DO_RBUTTON_UP) {
+                        ButtonReason |= MSYS_CALLBACK_REASON_RBUTTON_UP;
+                        gfClickedModeOn = FALSE;
+                    }
 
-					// ATE: Added repeat resons....
-					if(MSYS_Action & MSYS_DO_LBUTTON_REPEAT  )
-					{
-						ButtonReason|=MSYS_CALLBACK_REASON_LBUTTON_REPEAT;
-					}
+                    // ATE: Added repeat resons....
+                    if (MSYS_Action & MSYS_DO_LBUTTON_REPEAT) {
+                        ButtonReason |= MSYS_CALLBACK_REASON_LBUTTON_REPEAT;
+                    }
 
-					if(MSYS_Action & MSYS_DO_RBUTTON_REPEAT  )
-					{
-						ButtonReason|=MSYS_CALLBACK_REASON_RBUTTON_REPEAT;
-					}
+                    if (MSYS_Action & MSYS_DO_RBUTTON_REPEAT) {
+                        ButtonReason |= MSYS_CALLBACK_REASON_RBUTTON_REPEAT;
+                    }
 
-					if( ButtonReason != MSYS_CALLBACK_REASON_NONE )
-					{
-						if( MSYS_CurrRegion->uiFlags & MSYS_FASTHELP )
-						{
-							// Button was clicked so remove any FastHelp text
-							MSYS_CurrRegion->uiFlags &= (~MSYS_FASTHELP);
-							MSYS_CurrRegion->uiFlags &= (~MSYS_GOT_BACKGROUND);
+                    if (ButtonReason != MSYS_CALLBACK_REASON_NONE) {
+                        if (MSYS_CurrRegion->uiFlags & MSYS_FASTHELP) {
+                            // Button was clicked so remove any FastHelp text
+                            MSYS_CurrRegion->uiFlags &= (~MSYS_FASTHELP);
+                            MSYS_CurrRegion->uiFlags &= (~MSYS_GOT_BACKGROUND);
 
-							//ExecuteMouseHelpEndCallBack( MSYS_CurrRegion );
-							MSYS_CurrRegion->FastHelpTimer = gsFastHelpDelay;
-							MSYS_CurrRegion->uiFlags &= (~MSYS_FASTHELP_RESET);
+                            //ExecuteMouseHelpEndCallBack( MSYS_CurrRegion );
+                            MSYS_CurrRegion->FastHelpTimer = gsFastHelpDelay;
+                            MSYS_CurrRegion->uiFlags &= (~MSYS_FASTHELP_RESET);
 
-							//if( b->uiFlags & BUTTON_ENABLED )
-							//	b->uiFlags |= BUTTON_DIRTY;
-							VideoRemoveToolTip();
-						}
+                            //if( b->uiFlags & BUTTON_ENABLED )
+                            //	b->uiFlags |= BUTTON_DIRTY;
+                            VideoRemoveToolTip();
+                        }
 
-						//Kris: Nov 31, 1999 -- Added support for double click events.
-						//This is where double clicks are checked and passed down.
-						if( ButtonReason == MSYS_CALLBACK_REASON_LBUTTON_DWN )
-						{
-							UINT32 uiCurrTime = GetClock();
-							if( gpRegionLastLButtonDown == MSYS_CurrRegion &&
-									gpRegionLastLButtonUp == MSYS_CurrRegion &&
-									uiCurrTime <= guiRegionLastLButtonDownTime + MSYS_DOUBLECLICK_DELAY )
-							{ //Sequential left click on same button within the maximum time allowed for a double click
-								//Double click check succeeded, set flag and reset double click globals.
-								ButtonReason |= MSYS_CALLBACK_REASON_LBUTTON_DOUBLECLICK;
-								gpRegionLastLButtonDown = NULL;
-								gpRegionLastLButtonUp = NULL;
-								guiRegionLastLButtonDownTime = 0;
-							}
-							else
-							{ //First click, record time and region pointer (to check if 2nd click detected later)
-								gpRegionLastLButtonDown = MSYS_CurrRegion;
-								guiRegionLastLButtonDownTime = GetClock();
-							}
-						}
-						else if( ButtonReason == MSYS_CALLBACK_REASON_LBUTTON_UP )
-						{
-							UINT32 uiCurrTime = GetClock();
-							if( gpRegionLastLButtonDown == MSYS_CurrRegion &&
-									uiCurrTime <= guiRegionLastLButtonDownTime + MSYS_DOUBLECLICK_DELAY )
-							{ //Double click is Left down, then left up, then left down.  We have just detected the left up here (step 2).
-								gpRegionLastLButtonUp = MSYS_CurrRegion;
-							}
-							else
-							{ //User released mouse outside of current button, so kill any chance of a double click happening.
-								gpRegionLastLButtonDown = NULL;
-								gpRegionLastLButtonUp = NULL;
-								guiRegionLastLButtonDownTime = 0;
-							}
-						}
+                        //Kris: Nov 31, 1999 -- Added support for double click events.
+                        //This is where double clicks are checked and passed down.
+                        if (ButtonReason == MSYS_CALLBACK_REASON_LBUTTON_DWN) {
+                            UINT32 uiCurrTime = GetClock();
+                            if (gpRegionLastLButtonDown == MSYS_CurrRegion &&
+                                gpRegionLastLButtonUp == MSYS_CurrRegion &&
+                                uiCurrTime <=
+                                    guiRegionLastLButtonDownTime +
+                                        MSYS_DOUBLECLICK_DELAY) { //Sequential left click on same button within the maximum time allowed for a double click
+                                //Double click check succeeded, set flag and reset double click globals.
+                                ButtonReason |= MSYS_CALLBACK_REASON_LBUTTON_DOUBLECLICK;
+                                gpRegionLastLButtonDown = NULL;
+                                gpRegionLastLButtonUp = NULL;
+                                guiRegionLastLButtonDownTime = 0;
+                            } else { //First click, record time and region pointer (to check if 2nd click detected later)
+                                gpRegionLastLButtonDown = MSYS_CurrRegion;
+                                guiRegionLastLButtonDownTime = GetClock();
+                            }
+                        } else if (ButtonReason == MSYS_CALLBACK_REASON_LBUTTON_UP) {
+                            UINT32 uiCurrTime = GetClock();
+                            if (gpRegionLastLButtonDown == MSYS_CurrRegion &&
+                                uiCurrTime <=
+                                    guiRegionLastLButtonDownTime +
+                                        MSYS_DOUBLECLICK_DELAY) { //Double click is Left down, then left up, then left down.  We have just detected the left up here (step 2).
+                                gpRegionLastLButtonUp = MSYS_CurrRegion;
+                            } else { //User released mouse outside of current button, so kill any chance of a double click happening.
+                                gpRegionLastLButtonDown = NULL;
+                                gpRegionLastLButtonUp = NULL;
+                                guiRegionLastLButtonDownTime = 0;
+                            }
+                        }
 
-						(*(MSYS_CurrRegion->ButtonCallback))(MSYS_CurrRegion,ButtonReason);
-					}
-				}
-			}
+                        (*(MSYS_CurrRegion->ButtonCallback))(MSYS_CurrRegion, ButtonReason);
+                    }
+                }
+            }
 
-			MSYS_Action &= (~MSYS_DO_BUTTONS);
-		}
-		else if( MSYS_CurrRegion->uiFlags & MSYS_REGION_ENABLED )
-		{
-			// OK here, if we have release a button, UNSET LOCK wherever you are....
-			// Just don't give this button the message....
-			if(MSYS_Action & MSYS_DO_RBUTTON_UP  )
-			{
-				gfClickedModeOn = FALSE;
-			}
-			if(MSYS_Action & MSYS_DO_LBUTTON_UP  )
-			{
-				gfClickedModeOn = FALSE;
-			}
+            MSYS_Action &= (~MSYS_DO_BUTTONS);
+        } else if (MSYS_CurrRegion->uiFlags & MSYS_REGION_ENABLED) {
+            // OK here, if we have release a button, UNSET LOCK wherever you are....
+            // Just don't give this button the message....
+            if (MSYS_Action & MSYS_DO_RBUTTON_UP) {
+                gfClickedModeOn = FALSE;
+            }
+            if (MSYS_Action & MSYS_DO_LBUTTON_UP) {
+                gfClickedModeOn = FALSE;
+            }
 
-			// OK, you still want move messages however....
-			MSYS_CurrRegion->uiFlags |= MSYS_MOUSE_IN_AREA;
-			MSYS_CurrRegion->MouseXPos = MSYS_CurrentMX;
-			MSYS_CurrRegion->MouseYPos = MSYS_CurrentMY;
-			MSYS_CurrRegion->RelativeXPos = MSYS_CurrentMX - MSYS_CurrRegion->RegionTopLeftX;
-			MSYS_CurrRegion->RelativeYPos = MSYS_CurrentMY - MSYS_CurrRegion->RegionTopLeftY;
+            // OK, you still want move messages however....
+            MSYS_CurrRegion->uiFlags |= MSYS_MOUSE_IN_AREA;
+            MSYS_CurrRegion->MouseXPos = MSYS_CurrentMX;
+            MSYS_CurrRegion->MouseYPos = MSYS_CurrentMY;
+            MSYS_CurrRegion->RelativeXPos = MSYS_CurrentMX - MSYS_CurrRegion->RegionTopLeftX;
+            MSYS_CurrRegion->RelativeYPos = MSYS_CurrentMY - MSYS_CurrRegion->RegionTopLeftY;
 
-			if((MSYS_CurrRegion->uiFlags & MSYS_MOVE_CALLBACK) && (MSYS_Action & MSYS_DO_MOVE))
-			{
-				(*(MSYS_CurrRegion->MovementCallback))(MSYS_CurrRegion,MSYS_CALLBACK_REASON_MOVE);
-			}
+            if ((MSYS_CurrRegion->uiFlags & MSYS_MOVE_CALLBACK) && (MSYS_Action & MSYS_DO_MOVE)) {
+                (*(MSYS_CurrRegion->MovementCallback))(MSYS_CurrRegion, MSYS_CALLBACK_REASON_MOVE);
+            }
 
-			MSYS_Action &= (~MSYS_DO_MOVE);
-		}
-		MSYS_PrevRegion = MSYS_CurrRegion;
-	}
-	else
-		MSYS_PrevRegion = NULL;
+            MSYS_Action &= (~MSYS_DO_MOVE);
+        }
+        MSYS_PrevRegion = MSYS_CurrRegion;
+    } else
+        MSYS_PrevRegion = NULL;
 }
-
-
 
 //=================================================================================================
 //	MSYS_DefineRegion
@@ -846,72 +773,66 @@ void MSYS_UpdateMouseRegion(void)
 //	Inits a MOUSE_REGION structure for use with the mouse system
 //
 // FUNCTION: WIZ8 0x0040be10
-void MSYS_DefineRegion(MOUSE_REGION *region,UINT16 tlx,UINT16 tly,UINT16 brx,UINT16 bry,INT8 priority,
-					   UINT16 crsr,MOUSE_CALLBACK movecallback,MOUSE_CALLBACK buttoncallback)
+void MSYS_DefineRegion(MOUSE_REGION* region, UINT16 tlx, UINT16 tly, UINT16 brx, UINT16 bry,
+                       INT8 priority, UINT16 crsr, MOUSE_CALLBACK movecallback,
+                       MOUSE_CALLBACK buttoncallback)
 {
 #ifdef MOUSESYSTEM_DEBUGGING
-		if( region->uiFlags & MSYS_REGION_EXISTS )
-			AssertMsg( 0, "Attempting to define a region that already exists." );
+    if (region->uiFlags & MSYS_REGION_EXISTS)
+        AssertMsg(0, "Attempting to define a region that already exists.");
 #endif
 
-	region->IDNumber = MSYS_ID_BASE;
+    region->IDNumber = MSYS_ID_BASE;
 
-	if(priority == MSYS_PRIORITY_AUTO)
-		priority = MSYS_PRIORITY_BASE;
-	else if(priority <= MSYS_PRIORITY_LOWEST)
-		priority = MSYS_PRIORITY_LOWEST;
-	else if(priority >= MSYS_PRIORITY_HIGHEST)
-		priority = MSYS_PRIORITY_HIGHEST;
+    if (priority == MSYS_PRIORITY_AUTO)
+        priority = MSYS_PRIORITY_BASE;
+    else if (priority <= MSYS_PRIORITY_LOWEST)
+        priority = MSYS_PRIORITY_LOWEST;
+    else if (priority >= MSYS_PRIORITY_HIGHEST)
+        priority = MSYS_PRIORITY_HIGHEST;
 
-	region->PriorityLevel = priority;
+    region->PriorityLevel = priority;
 
-	region->uiFlags = MSYS_NO_FLAGS;
+    region->uiFlags = MSYS_NO_FLAGS;
 
-	region->MovementCallback = movecallback;
-	if(movecallback != MSYS_NO_CALLBACK)
-		region->uiFlags |= MSYS_MOVE_CALLBACK;
+    region->MovementCallback = movecallback;
+    if (movecallback != MSYS_NO_CALLBACK)
+        region->uiFlags |= MSYS_MOVE_CALLBACK;
 
-	region->ButtonCallback = buttoncallback;
-	if(buttoncallback != MSYS_NO_CALLBACK)
-		region->uiFlags |= MSYS_BUTTON_CALLBACK;
+    region->ButtonCallback = buttoncallback;
+    if (buttoncallback != MSYS_NO_CALLBACK)
+        region->uiFlags |= MSYS_BUTTON_CALLBACK;
 
-	region->Cursor = crsr;
-	if(crsr != MSYS_NO_CURSOR)
-		region->uiFlags |= MSYS_SET_CURSOR;
+    region->Cursor = crsr;
+    if (crsr != MSYS_NO_CURSOR)
+        region->uiFlags |= MSYS_SET_CURSOR;
 
-	region->RegionTopLeftX = tlx;
-	region->RegionTopLeftY = tly;
-	region->RegionBottomRightX = brx;
-	region->RegionBottomRightY = bry;
+    region->RegionTopLeftX = tlx;
+    region->RegionTopLeftY = tly;
+    region->RegionBottomRightX = brx;
+    region->RegionBottomRightY = bry;
 
-	region->MouseXPos = 0;
-	region->MouseYPos = 0;
-	region->RelativeXPos = 0;
-	region->RelativeYPos = 0;
-	region->ButtonState	= 0;
+    region->MouseXPos = 0;
+    region->MouseYPos = 0;
+    region->RelativeXPos = 0;
+    region->RelativeYPos = 0;
+    region->ButtonState = 0;
 
-	//Init fasthelp
-	region->FastHelpText = NULL;
-	region->FastHelpTimer = 0;
+    //Init fasthelp
+    region->FastHelpText = NULL;
+    region->FastHelpTimer = 0;
 
-	region->next = NULL;
-	region->prev = NULL;
-	region->HelpDoneCallback = NULL;
+    region->next = NULL;
+    region->prev = NULL;
+    region->HelpDoneCallback = NULL;
 
-	//Add region to system list
-	MSYS_AddRegionToList(region);
-	region->uiFlags|= MSYS_REGION_ENABLED | MSYS_REGION_EXISTS;
+    //Add region to system list
+    MSYS_AddRegionToList(region);
+    region->uiFlags |= MSYS_REGION_ENABLED | MSYS_REGION_EXISTS;
 
-
-	// Dirty our update flag
-	gfRefreshUpdate = TRUE;
+    // Dirty our update flag
+    gfRefreshUpdate = TRUE;
 }
-
-
-
-
-
-
 
 //=================================================================================================
 //	MSYS_RemoveRegion
@@ -920,58 +841,51 @@ void MSYS_DefineRegion(MOUSE_REGION *region,UINT16 tlx,UINT16 tly,UINT16 brx,UIN
 //	de-initialization.
 //
 // FUNCTION: WIZ8 0x0040bee0
-void MSYS_RemoveRegion(MOUSE_REGION *region)
+void MSYS_RemoveRegion(MOUSE_REGION* region)
 {
-	if( !region )
-	{
+    if (!region) {
 #ifdef MOUSESYSTEM_DEBUGGING
-		if( gfIgnoreShutdownAssertions )
+        if (gfIgnoreShutdownAssertions)
 #endif
-			return;
-		AssertMsg( 0, "Attempting to remove a NULL region.");
-	}
+            return;
+        AssertMsg(0, "Attempting to remove a NULL region.");
+    }
 #ifdef MOUSESYSTEM_DEBUGGING
-	if( !(region->uiFlags & MSYS_REGION_EXISTS) )
-		AssertMsg( 0, "Attempting to remove an already removed region." );
+    if (!(region->uiFlags & MSYS_REGION_EXISTS))
+        AssertMsg(0, "Attempting to remove an already removed region.");
 #endif
 
+    // Get rid of the FastHelp text (if applicable)
+    if (region->FastHelpText) {
+        if (region->uiFlags & MSYS_FASTHELP)
+            VideoRemoveToolTip();
+        MemFree(region->FastHelpText);
+    }
+    region->FastHelpText = NULL;
 
-	// Get rid of the FastHelp text (if applicable)
-	if( region->FastHelpText )
-	{
-		if(region->uiFlags & MSYS_FASTHELP)
-			VideoRemoveToolTip();
-		MemFree( region->FastHelpText );
-	}
-	region->FastHelpText = NULL;
+    MSYS_DeleteRegionFromList(region);
 
-	MSYS_DeleteRegionFromList(region);
+    //if the previous region is the one that we are deleting, reset the previous region
+    if (MSYS_PrevRegion == region)
+        MSYS_PrevRegion = NULL;
+    //if the current region is the one that we are deleting, then clear it.
+    if (MSYS_CurrRegion == region)
+        MSYS_CurrRegion = NULL;
 
-	//if the previous region is the one that we are deleting, reset the previous region
-	if ( MSYS_PrevRegion == region )
-		MSYS_PrevRegion = NULL;
-	//if the current region is the one that we are deleting, then clear it.
-	if( MSYS_CurrRegion == region )
-		MSYS_CurrRegion = NULL;
+    //dirty our update flag
+    gfRefreshUpdate = TRUE;
 
-	//dirty our update flag
-	gfRefreshUpdate = TRUE;
+    // Check if this is a locked region, and unlock if so
+    if (gfClickedModeOn) {
+        // Set global ID
+        if (gusClickedIDNumber == region->IDNumber) {
+            gfClickedModeOn = FALSE;
+        }
+    }
 
-	// Check if this is a locked region, and unlock if so
-	if ( gfClickedModeOn )
-	{
-		// Set global ID
-		if ( gusClickedIDNumber == region->IDNumber )
-		{
-			gfClickedModeOn = FALSE;
-		}
-	}
-
-	//clear all internal values (including the region exists flag)
-	memset( region, 0, sizeof( MOUSE_REGION ) );
+    //clear all internal values (including the region exists flag)
+    memset(region, 0, sizeof(MOUSE_REGION));
 }
-
-
 
 //=================================================================================================
 //	MSYS_EnableRegion
@@ -979,12 +893,10 @@ void MSYS_RemoveRegion(MOUSE_REGION *region)
 //	Enables a mouse region.
 //
 // FUNCTION: WIZ8 0x0040bf60
-void MSYS_EnableRegion(MOUSE_REGION *region)
+void MSYS_EnableRegion(MOUSE_REGION* region)
 {
-	region->uiFlags |= MSYS_REGION_ENABLED;
+    region->uiFlags |= MSYS_REGION_ENABLED;
 }
-
-
 
 //=================================================================================================
 //	MSYS_DisableRegion
@@ -992,11 +904,10 @@ void MSYS_EnableRegion(MOUSE_REGION *region)
 //	Disables a mouse region without removing it from the system list.
 //
 // FUNCTION: WIZ8 0x0040bf70
-void MSYS_DisableRegion(MOUSE_REGION *region)
+void MSYS_DisableRegion(MOUSE_REGION* region)
 {
-	region->uiFlags &= (~MSYS_REGION_ENABLED);
+    region->uiFlags &= (~MSYS_REGION_ENABLED);
 }
-
 
 //=================================================================================================
 //	MSYS_SetCurrentCursor
@@ -1005,12 +916,8 @@ void MSYS_DisableRegion(MOUSE_REGION *region)
 //
 void MSYS_SetCurrentCursor(UINT16 Cursor)
 {
-	SetCurrentCursorFromDatabase( Cursor );
+    SetCurrentCursorFromDatabase(Cursor);
 }
-
-
-
-
 
 //=================================================================================================
 //	MSYS_SetRegionUserData
@@ -1018,22 +925,19 @@ void MSYS_SetCurrentCursor(UINT16 Cursor)
 //	Sets one of the four user data entries in a mouse region
 //
 // FUNCTION: WIZ8 0x0040bf80
-void MSYS_SetRegionUserData(MOUSE_REGION *region,INT32 index,INT32 userdata)
+void MSYS_SetRegionUserData(MOUSE_REGION* region, INT32 index, INT32 userdata)
 {
-	if(index < 0 || index > 3)
-	{
-		CHAR8 str[80];
+    if (index < 0 || index > 3) {
+        CHAR8 str[80];
 #ifdef MOUSESYSTEM_DEBUGGING
-		if( gfIgnoreShutdownAssertions )
+        if (gfIgnoreShutdownAssertions)
 #endif
-			return;
-		sprintf( str, "Attempting MSYS_SetRegionUserData() with out of range index %d.", index );
-		AssertMsg( 0, str );
-	}
-	region->UserData[index]=userdata;
+            return;
+        sprintf(str, "Attempting MSYS_SetRegionUserData() with out of range index %d.", index);
+        AssertMsg(0, str);
+    }
+    region->UserData[index] = userdata;
 }
-
-
 
 //=================================================================================================
 //	MSYS_GetRegionUserData
@@ -1041,22 +945,19 @@ void MSYS_SetRegionUserData(MOUSE_REGION *region,INT32 index,INT32 userdata)
 //	Retrieves one of the four user data entries in a mouse region
 //
 // FUNCTION: WIZ8 0x0040bfa0
-INT32 MSYS_GetRegionUserData(MOUSE_REGION *region,INT32 index)
+INT32 MSYS_GetRegionUserData(MOUSE_REGION* region, INT32 index)
 {
-	if(index < 0 || index > 3)
-	{
-		CHAR8 str[80];
+    if (index < 0 || index > 3) {
+        CHAR8 str[80];
 #ifdef MOUSESYSTEM_DEBUGGING
-		if( gfIgnoreShutdownAssertions )
+        if (gfIgnoreShutdownAssertions)
 #endif
-			return 0;
-		sprintf( str, "Attempting MSYS_GetRegionUserData() with out of range index %d", index );
-		AssertMsg( 0, str );
-	}
-	return(region->UserData[index]);
+            return 0;
+        sprintf(str, "Attempting MSYS_GetRegionUserData() with out of range index %d", index);
+        AssertMsg(0, str);
+    }
+    return (region->UserData[index]);
 }
-
-
 
 //=================================================================================================
 //	MSYS_GrabMouse
@@ -1065,20 +966,18 @@ INT32 MSYS_GetRegionUserData(MOUSE_REGION *region,INT32 index)
 //	control.
 //
 // FUNCTION: WIZ8 0x0040bfc0
-INT32 MSYS_GrabMouse(MOUSE_REGION *region)
+INT32 MSYS_GrabMouse(MOUSE_REGION* region)
 {
-	if(!MSYS_RegionInList(region))
-		return(MSYS_REGION_NOT_IN_LIST);
+    if (!MSYS_RegionInList(region))
+        return (MSYS_REGION_NOT_IN_LIST);
 
-	if(MSYS_Mouse_Grabbed == TRUE)
-		return(MSYS_ALREADY_GRABBED);
+    if (MSYS_Mouse_Grabbed == TRUE)
+        return (MSYS_ALREADY_GRABBED);
 
-	MSYS_Mouse_Grabbed = TRUE;
-	MSYS_GrabRegion = region;
-	return(MSYS_GRABBED_OK);
+    MSYS_Mouse_Grabbed = TRUE;
+    MSYS_GrabRegion = region;
+    return (MSYS_GRABBED_OK);
 }
-
-
 
 //=================================================================================================
 //	MSYS_ReleaseMouse
@@ -1086,19 +985,17 @@ INT32 MSYS_GrabMouse(MOUSE_REGION *region)
 //	Releases a previously grabbed mouse region
 //
 // FUNCTION: WIZ8 0x0040c010
-void MSYS_ReleaseMouse(MOUSE_REGION *region)
+void MSYS_ReleaseMouse(MOUSE_REGION* region)
 {
-	if(MSYS_GrabRegion != region)
-		return;
+    if (MSYS_GrabRegion != region)
+        return;
 
-	if(MSYS_Mouse_Grabbed == TRUE)
-	{
-		MSYS_Mouse_Grabbed = FALSE;
-		MSYS_GrabRegion = NULL;
-		MSYS_UpdateMouseRegion();
-	}
+    if (MSYS_Mouse_Grabbed == TRUE) {
+        MSYS_Mouse_Grabbed = FALSE;
+        MSYS_GrabRegion = NULL;
+        MSYS_UpdateMouseRegion();
+    }
 }
-
 
 /* ==================================================================================
    MSYS_MoveMouseRegionTo( MOUSE_REGION *region, INT16 sX, INT16 sY)
@@ -1114,156 +1011,135 @@ void MSYS_ReleaseMouse(MOUSE_REGION *region)
 
 */
 
-
 // FUNCTION: WIZ8 0x0040c040
-void SetRegionFastHelpText( MOUSE_REGION *region, UINT16 *szText )
+void SetRegionFastHelpText(MOUSE_REGION* region, UINT16* szText)
 {
-	Assert( region );
+    Assert(region);
 
-	if( region->FastHelpText )
-		MemFree( region->FastHelpText );
+    if (region->FastHelpText)
+        MemFree(region->FastHelpText);
 
-	region->FastHelpText = NULL;
-//	region->FastHelpTimer = 0;
-	if( !(region->uiFlags & MSYS_REGION_EXISTS) )
-	{
-		return;
-		//AssertMsg( 0, String( "Attempting to set fast help text, \"%S\" to an inactive region.", szText ) );
-	}
+    region->FastHelpText = NULL;
+    //	region->FastHelpTimer = 0;
+    if (!(region->uiFlags & MSYS_REGION_EXISTS)) {
+        return;
+        //AssertMsg( 0, String( "Attempting to set fast help text, \"%S\" to an inactive region.", szText ) );
+    }
 
-	if( !szText || !wcslen( szText ) )
-		return; //blank (or clear)
+    if (!szText || !wcslen(szText))
+        return; //blank (or clear)
 
-	// Allocate memory for the button's FastHelp text string...
-	region->FastHelpText = (UINT16*)MemAlloc( (wcslen( szText ) + 1) * sizeof(UINT16) );
-	Assert( region->FastHelpText );
+    // Allocate memory for the button's FastHelp text string...
+    region->FastHelpText = (UINT16*)MemAlloc((wcslen(szText) + 1) * sizeof(UINT16));
+    Assert(region->FastHelpText);
 
-	wcscpy( region->FastHelpText, szText );
+    wcscpy(region->FastHelpText, szText);
 
-  // ATE: We could be replacing already existing, active text
-  // so let's remove the region so it be rebuilt...
+    // ATE: We could be replacing already existing, active text
+    // so let's remove the region so it be rebuilt...
 
+    region->uiFlags &= (~MSYS_GOT_BACKGROUND);
+    region->uiFlags &= (~MSYS_FASTHELP_RESET);
 
-
-  region->uiFlags &= (~MSYS_GOT_BACKGROUND);
-  region->uiFlags &= (~MSYS_FASTHELP_RESET);
-
-
-	//region->FastHelpTimer = gsFastHelpDelay;
+    //region->FastHelpTimer = gsFastHelpDelay;
 }
-
-
-
 
 // **********Wiz8 Versions**************************************************************************
 
-void DisplayFastHelp( MOUSE_REGION *region )
+void DisplayFastHelp(MOUSE_REGION* region)
 {
-	INT32 iX,iY,iW,iH;
+    INT32 iX, iY, iW, iH;
 
-	if ( region->uiFlags & MSYS_FASTHELP )
-	{
-		VideoToolTip(region->FastHelpText);
+    if (region->uiFlags & MSYS_FASTHELP) {
+        VideoToolTip(region->FastHelpText);
 
-		iW = VideoGetToolTipWidth();
-		iH = VideoGetToolTipHeight();
+        iW = VideoGetToolTipWidth();
+        iH = VideoGetToolTipHeight();
 
-		iX = (INT32)region->RegionTopLeftX + 10;
+        iX = (INT32)region->RegionTopLeftX + 10;
 
-		if (iX < 0)
-			iX = 0;
+        if (iX < 0)
+            iX = 0;
 
-		if ( (iX + iW) >= SCREEN_WIDTH )
-			iX = (SCREEN_WIDTH - iW - 4);
+        if ((iX + iW) >= SCREEN_WIDTH)
+            iX = (SCREEN_WIDTH - iW - 4);
 
-		iY = (INT32)region->RegionTopLeftY - (iH * 3 / 4);
-		if (iY < 0)
-			iY = 0;
+        iY = (INT32)region->RegionTopLeftY - (iH * 3 / 4);
+        if (iY < 0)
+            iY = 0;
 
-		if ( (iY + iH) >= SCREEN_HEIGHT )
-			iY = (SCREEN_HEIGHT - iH - 15);
+        if ((iY + iH) >= SCREEN_HEIGHT)
+            iY = (SCREEN_HEIGHT - iH - 15);
 
-		VideoPositionToolTip(iX, iY);
-	}
+        VideoPositionToolTip(iX, iY);
+    }
 }
 
 // FUNCTION: WIZ8 0x0040c0b0
 void RenderFastHelp()
 {
-	// GLOBAL: WIZ8 0x00650e68
-	static INT32 iLastClock;
-	INT32 iTimeDifferential, iCurrentClock;
+    // GLOBAL: WIZ8 0x00650e68
+    static INT32 iLastClock;
+    INT32 iTimeDifferential, iCurrentClock;
 
-	if( !gfRenderHilights )
-		return;
+    if (!gfRenderHilights)
+        return;
 
-	iCurrentClock = GetClock();
-	iTimeDifferential = iCurrentClock - iLastClock;
-	if (iTimeDifferential < 0)
-		iTimeDifferential += 0x7fffffff;
-	iLastClock = iCurrentClock;
+    iCurrentClock = GetClock();
+    iTimeDifferential = iCurrentClock - iLastClock;
+    if (iTimeDifferential < 0)
+        iTimeDifferential += 0x7fffffff;
+    iLastClock = iCurrentClock;
 
-	if( MSYS_CurrRegion && MSYS_CurrRegion->FastHelpText && gfShowFastHelp )
-	{
-		if( !MSYS_CurrRegion->FastHelpTimer )
-		{
-			if( MSYS_CurrRegion->uiFlags & ( MSYS_ALLOW_DISABLED_FASTHELP | MSYS_REGION_ENABLED ) )
-			{
-				if( MSYS_CurrRegion->uiFlags & MSYS_MOUSE_IN_AREA )
-				{
-					MSYS_CurrRegion->uiFlags |= MSYS_FASTHELP;
-					DisplayFastHelp( MSYS_CurrRegion );
-				}
-				else
-				{
-					MSYS_CurrRegion->uiFlags &= ( ~( MSYS_FASTHELP | MSYS_FASTHELP_RESET ) );
-					VideoRemoveToolTip();
-				}
-			}
-		}
-		else
-		{
-			if( MSYS_CurrRegion->uiFlags & ( MSYS_ALLOW_DISABLED_FASTHELP | MSYS_REGION_ENABLED ) )
-			{
-				if ( MSYS_CurrRegion->uiFlags & MSYS_MOUSE_IN_AREA &&
-						!MSYS_CurrRegion->ButtonState)// & (MSYS_LEFT_BUTTON|MSYS_RIGHT_BUTTON)) )
-				{
-					MSYS_CurrRegion->FastHelpTimer -= (INT16)max( iTimeDifferential, 0 );
+    if (MSYS_CurrRegion && MSYS_CurrRegion->FastHelpText && gfShowFastHelp) {
+        if (!MSYS_CurrRegion->FastHelpTimer) {
+            if (MSYS_CurrRegion->uiFlags & (MSYS_ALLOW_DISABLED_FASTHELP | MSYS_REGION_ENABLED)) {
+                if (MSYS_CurrRegion->uiFlags & MSYS_MOUSE_IN_AREA) {
+                    MSYS_CurrRegion->uiFlags |= MSYS_FASTHELP;
+                    DisplayFastHelp(MSYS_CurrRegion);
+                } else {
+                    MSYS_CurrRegion->uiFlags &= (~(MSYS_FASTHELP | MSYS_FASTHELP_RESET));
+                    VideoRemoveToolTip();
+                }
+            }
+        } else {
+            if (MSYS_CurrRegion->uiFlags & (MSYS_ALLOW_DISABLED_FASTHELP | MSYS_REGION_ENABLED)) {
+                if (MSYS_CurrRegion->uiFlags & MSYS_MOUSE_IN_AREA &&
+                    !MSYS_CurrRegion->ButtonState) // & (MSYS_LEFT_BUTTON|MSYS_RIGHT_BUTTON)) )
+                {
+                    MSYS_CurrRegion->FastHelpTimer -= (INT16)max(iTimeDifferential, 0);
 
-					if( MSYS_CurrRegion->FastHelpTimer < 0 )
-					{
-						MSYS_CurrRegion->FastHelpTimer = 0;
-					}
-				}
-			}
-		}
-	}
+                    if (MSYS_CurrRegion->FastHelpTimer < 0) {
+                        MSYS_CurrRegion->FastHelpTimer = 0;
+                    }
+                }
+            }
+        }
+    }
 }
 
 // new stuff to allow mouse callbacks when help text finishes displaying
 
-
-
 // FUNCTION: WIZ8 0x0040c1f0
-void SetFastHelpDelay( INT16 sFastHelpDelay )
+void SetFastHelpDelay(INT16 sFastHelpDelay)
 {
-  gsFastHelpDelay = sFastHelpDelay;
+    gsFastHelpDelay = sFastHelpDelay;
 }
 
 // FUNCTION: WIZ8 0x0040c200
-void EnableMouseFastHelp( void )
+void EnableMouseFastHelp(void)
 {
-  gfShowFastHelp = TRUE;
+    gfShowFastHelp = TRUE;
 }
 
 // FUNCTION: WIZ8 0x0040c210
-void DisableMouseFastHelp( void )
+void DisableMouseFastHelp(void)
 {
-  gfShowFastHelp = FALSE;
+    gfShowFastHelp = FALSE;
 }
 
 // FUNCTION: WIZ8 0x0040c220
 void ResetClickedMode(void)
 {
-	gfClickedModeOn = FALSE;
+    gfClickedModeOn = FALSE;
 }

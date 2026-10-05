@@ -23,7 +23,6 @@ class
 #endif
     __declspec(novtable) srHierarchyIOManager::HierarchyExporter : public srIOManager::Exporter {
 public:
-
     /* Exported lifecycle bodies are consistent with ordinary base-only operations. */
 
     /* exportHierarchy's call site dispatches through vtable slot 2. */
@@ -36,7 +35,6 @@ class
 #endif
     __declspec(novtable) srModelIOManager::ModelExporter : public srIOManager::Exporter {
 public:
-
     /* Exported lifecycle bodies are consistent with ordinary base-only operations. */
 
     /* exportModel's call site dispatches through vtable slot 2. */

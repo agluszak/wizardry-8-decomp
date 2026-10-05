@@ -12,14 +12,10 @@ public:
     public:
         // FUNCTION: SURRENDER 0x10032680
         // ??0Opener@srIStreamOpener@@QAE@XZ
-        SR_DLL_EXPORT Opener()
-        {
-        }
+        SR_DLL_EXPORT Opener() {}
         // FUNCTION: SURRENDER 0x10032690
         // ??1Opener@srIStreamOpener@@UAE@XZ
-        virtual SR_DLL_EXPORT ~Opener()
-        {
-        }
+        virtual SR_DLL_EXPORT ~Opener() {}
         SR_DLL_IMPORT Opener& operator=(const Opener& other);
 
         virtual srBinIStream* open(const char* path) = 0;

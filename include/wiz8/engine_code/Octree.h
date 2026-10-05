@@ -211,16 +211,16 @@ public:
 struct W8OctreeWalk {
     srVector3T<int> cell; /* 0x00: the cell the walk starts in */
     srVector3T<int> step; /* 0x0c: +1 or -1 per axis */
-    int major_axis;  /* 0x18 */
-    int minor_axis0;  /* 0x1c: (major + 1) % 3 */
-    int minor_axis1;  /* 0x20: (major + 2) % 3 */
-    int count;       /* 0x24: cells to visit */
-    int error_delta0; /* 0x28 */
-    int error0;       /* 0x2c */
-    int error_reset0; /* 0x30 */
-    int error_delta1; /* 0x34 */
-    int error1;       /* 0x38 */
-    int error_reset1; /* 0x3c */
+    int major_axis;       /* 0x18 */
+    int minor_axis0;      /* 0x1c: (major + 1) % 3 */
+    int minor_axis1;      /* 0x20: (major + 2) % 3 */
+    int count;            /* 0x24: cells to visit */
+    int error_delta0;     /* 0x28 */
+    int error0;           /* 0x2c */
+    int error_reset0;     /* 0x30 */
+    int error_delta1;     /* 0x34 */
+    int error1;           /* 0x38 */
+    int error_reset1;     /* 0x3c */
 };
 
 static_assert(sizeof(W8OctreeWalk) == 0x40, "W8OctreeWalk_must_be_0x40");
@@ -363,7 +363,7 @@ public:
     int ProbeCellForTrace(const srVector3T<int>* cell); /* 0x00435B00 */
     /* Reset vs append variants collecting one cell's leaf polygon references
        (mapped through m_aulPolyLookup into (mesh<<16)|polygon keys). */
-    int ProbeCellForBlockers(const srVector3T<int>* cell);       /* 0x00435C40 */
+    int ProbeCellForBlockers(const srVector3T<int>* cell); /* 0x00435C40 */
     void AppendBlockerStream(const unsigned long* stream);
     int ProbeCellForBlockersAppend(const srVector3T<int>* cell); /* 0x00435DA0 */
     /* Test every buffered (mesh<<16)|polygon key's triangle against the trace

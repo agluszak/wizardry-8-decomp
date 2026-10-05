@@ -7,10 +7,8 @@
 #include "plugin_classes.h"
 
 // FUNCTION: SREXT_JPEGIMPORTER 0x10014E60
-int srJPEGImporter::getSurfaceDesc(
-    srColorSurfaceIFace::SurfaceDesc& description,
-    srBinIStream& stream,
-    const srSurfaceIOManager::ImportInfo&)
+int srJPEGImporter::getSurfaceDesc(srColorSurfaceIFace::SurfaceDesc& description,
+                                   srBinIStream& stream, const srSurfaceIOManager::ImportInfo&)
 {
     srJPEG_active_input_stream = &stream;
     if (!readHeader(0)) {
@@ -20,16 +18,13 @@ int srJPEGImporter::getSurfaceDesc(
     memset(&description, 0, sizeof(description));
     switch (codec_.components) {
     case 1:
-        srPixelConvert::mapPixelFormat(
-            srPixelConvert::SURFACE_L8, description.pixel_format);
+        srPixelConvert::mapPixelFormat(srPixelConvert::SURFACE_L8, description.pixel_format);
         break;
     case 3:
-        srPixelConvert::mapPixelFormat(
-            srPixelConvert::SURFACE_BGR24, description.pixel_format);
+        srPixelConvert::mapPixelFormat(srPixelConvert::SURFACE_BGR24, description.pixel_format);
         break;
     case 4:
-        srPixelConvert::mapPixelFormat(
-            srPixelConvert::SURFACE_BGRA32, description.pixel_format);
+        srPixelConvert::mapPixelFormat(srPixelConvert::SURFACE_BGRA32, description.pixel_format);
         break;
     default:
         return 0;
@@ -41,9 +36,8 @@ int srJPEGImporter::getSurfaceDesc(
 }
 
 // FUNCTION: SREXT_JPEGIMPORTER 0x10014F30
-srColorSurfaceIFace* srJPEGImporter::importSurface(
-    srBinIStream& stream,
-    const srSurfaceIOManager::ImportInfo&)
+srColorSurfaceIFace* srJPEGImporter::importSurface(srBinIStream& stream,
+                                                   const srSurfaceIOManager::ImportInfo&)
 {
     srJPEG_active_input_stream = &stream;
     if (!readHeader(0)) {
@@ -56,16 +50,13 @@ srColorSurfaceIFace* srJPEGImporter::importSurface(
     srColorSurface* surface;
     switch (components) {
     case 1:
-        surface = SR_NEW(srColorSurface)(
-            srPixelConvert::SURFACE_L8, width, height);
+        surface = SR_NEW(srColorSurface)(srPixelConvert::SURFACE_L8, width, height);
         break;
     case 3:
-        surface = SR_NEW(srColorSurface)(
-            srPixelConvert::SURFACE_BGR24, width, height);
+        surface = SR_NEW(srColorSurface)(srPixelConvert::SURFACE_BGR24, width, height);
         break;
     case 4:
-        surface = SR_NEW(srColorSurface)(
-            srPixelConvert::SURFACE_BGRA32, width, height);
+        surface = SR_NEW(srColorSurface)(srPixelConvert::SURFACE_BGRA32, width, height);
         break;
     default:
         return 0;
@@ -88,8 +79,7 @@ srColorSurfaceIFace* srJPEGImporter::importSurface(
     const unsigned char* source_row = decoded;
     for (unsigned long y = 0; y < height; ++y) {
         unsigned char* destination =
-            static_cast<unsigned char*>(surface->getDataPtr())
-            + surface->getPitch() * y;
+            static_cast<unsigned char*>(surface->getDataPtr()) + surface->getPitch() * y;
         switch (components) {
         case 1:
             memcpy(destination, source_row, width);
@@ -106,15 +96,12 @@ srColorSurfaceIFace* srJPEGImporter::importSurface(
             break;
         }
         case 4: {
-            const unsigned long* source =
-                reinterpret_cast<const unsigned long*>(source_row);
-            unsigned long* destination_pixel =
-                reinterpret_cast<unsigned long*>(destination);
+            const unsigned long* source = reinterpret_cast<const unsigned long*>(source_row);
+            unsigned long* destination_pixel = reinterpret_cast<unsigned long*>(destination);
             for (unsigned long x = 0; x < width; ++x) {
                 const unsigned long pixel = *source++;
-                *destination_pixel++ =
-                    (((pixel & 0x00ff0000UL) | (pixel >> 16)) >> 8)
-                    | (((pixel << 16) | (pixel & 0x0000ff00UL)) << 8);
+                *destination_pixel++ = (((pixel & 0x00ff0000UL) | (pixel >> 16)) >> 8) |
+                                       (((pixel << 16) | (pixel & 0x0000ff00UL)) << 8);
             }
             break;
         }
@@ -138,10 +125,8 @@ static void initializeExportOptions(JpegExportOptions32* options)
 }
 
 // FUNCTION: SREXT_JPEGIMPORTER 0x10015200
-void srJPEGImporter::exportSurface(
-    srBinOStream& stream,
-    srColorSurfaceIFace& source,
-    const srSurfaceIOManager::ExportInfo& options)
+void srJPEGImporter::exportSurface(srBinOStream& stream, srColorSurfaceIFace& source,
+                                   const srSurfaceIOManager::ExportInfo& options)
 {
     srJPEG_active_output_stream = &stream;
     stream.seek(0, srBinStream::SR_SEEK_BEGIN);
@@ -169,12 +154,10 @@ void srJPEGImporter::exportSurface(
                 double normalized_quality = atof(quality);
                 if (normalized_quality < 0.0) {
                     normalized_quality = 0.0;
-                }
-                else if (normalized_quality > 1.0) {
+                } else if (normalized_quality > 1.0) {
                     normalized_quality = 1.0;
                 }
-                export_options_.quality = static_cast<unsigned char>(
-                    normalized_quality * 100.0);
+                export_options_.quality = static_cast<unsigned char>(normalized_quality * 100.0);
             }
         }
         delete[] option_string;

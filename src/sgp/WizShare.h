@@ -1,3 +1,6 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-10-06.
+   Normalize formatting of the reconstructed source.
+   Distributed under the accompanying SFI Source Code license agreement. */
 //**************************************************************************
 //
 // Filename :	WizShare.h
@@ -28,7 +31,7 @@
 //**************************************************************************
 
 #define MAX_MSG_LENGTH 128
-#define NUM_MESSAGES   100
+#define NUM_MESSAGES 100
 
 //**************************************************************************
 //
@@ -38,15 +41,14 @@
 
 #pragma pack(push, 1)
 
-typedef struct WizSharedtag
-{
-	BOOLEAN	fMessage;
+typedef struct WizSharedtag {
+    BOOLEAN fMessage;
 
-	INT32		iMessageIndex;		// index to 1st message
-	INT32		iNumMessages;		// # messages
-	INT32		iLastIndex;
+    INT32 iMessageIndex; // index to 1st message
+    INT32 iNumMessages;  // # messages
+    INT32 iLastIndex;
 
-	CHAR		cMessages[NUM_MESSAGES][MAX_MSG_LENGTH];
+    CHAR cMessages[NUM_MESSAGES][MAX_MSG_LENGTH];
 } WizShared;
 
 #pragma pack(pop)

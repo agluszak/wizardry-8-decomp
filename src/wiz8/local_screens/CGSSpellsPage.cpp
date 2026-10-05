@@ -327,8 +327,7 @@ void W8CharacterSpellsPage::Redraw()
         bounds.bottom = 0x18a;
         DrawCatalogImage(-14, 0x107, 0, 5, 0x8f, 0x173, 2, 0);
         text.SetLayoutBounds(&bounds, true, true);
-        text.SetText(FormatWideString(g_format_d_slash_d,
-                                      m_creation_state->spell_points_remaining,
+        text.SetText(FormatWideString(g_format_d_slash_d, m_creation_state->spell_points_remaining,
                                       m_creation_state->spell_points_total),
                      g_options_detail_font);
         text.RenderToTarget(0, true, -14);
@@ -352,9 +351,8 @@ void W8CharacterSpellsPage::Redraw()
             text.RenderToTarget(0, false, -14);
             text.SetFontStateIndex(-1);
             text.SetLayoutMode(g_W8TextBufferAlignRight | g_W8TextBufferAlignMiddle);
-            text.SetText(
-                FormatWideString(g_format_d, m_character->skills[0x1c + realm].points),
-                g_wiz_text_font_secondary);
+            text.SetText(FormatWideString(g_format_d, m_character->skills[0x1c + realm].points),
+                         g_wiz_text_font_secondary);
             text.RenderToTarget(0, false, -14);
 
             text.SetLayoutMode(g_W8TextBufferAlignLeft | g_W8TextBufferAlignMiddle);
@@ -385,8 +383,7 @@ void W8CharacterSpellsPage::Redraw()
                     (m_animation_frames[realm] + elapsed) % animation.frame_count;
             }
             if (!m_screen->HasDialog() || realm < 2) {
-                DrawCatalogImageAndInvalidate(-14, animation.image, 0,
-                                              m_animation_frames[realm],
+                DrawCatalogImageAndInvalidate(-14, animation.image, 0, m_animation_frames[realm],
                                               m_bounds.left + 0x0f + (realm % 2) * 0xd7,
                                               m_bounds.top + 0x0a + (realm / 2) * 0x82, 2, 0);
             }
@@ -420,8 +417,7 @@ void W8CharacterSpellsPage::UpdateSpellLists()
                             m_SpellData[entry].realm = static_cast<W8SpellRealm>(realm);
                             m_SpellData[entry].spell = spell;
                             m_SpellData[entry].fSelectable = true;
-                            m_SpellData[entry].selected =
-                                m_character->spell_learned[spell] == 2;
+                            m_SpellData[entry].selected = m_character->spell_learned[spell] == 2;
                             ++entry;
                         }
                         break;
@@ -447,8 +443,7 @@ void W8CharacterSpellsPage::UpdateSpellLists()
 void W8CharacterSpellsPage::GetNavigationState(bool* next_enabled, bool* exit_enabled)
 {
     *next_enabled = 1;
-    *exit_enabled =
-        m_creation_state->spell_points_remaining < m_creation_state->spell_points_total;
+    *exit_enabled = m_creation_state->spell_points_remaining < m_creation_state->spell_points_total;
 }
 
 /* Retail emits this with the W8CharacterSpellListListener-adjusted `this`
@@ -469,8 +464,7 @@ void W8CharacterSpellsPage::SelectSpell(unsigned int uiSelected)
                 if (m_SpellData[index].selected &&
                     (index != m_last_selected || m_creation_state->spell_points_total == 1)) {
                     m_SpellData[index].selected = false;
-                    DeselectCreationSpell(m_character, m_creation_state,
-                                          m_SpellData[index].spell);
+                    DeselectCreationSpell(m_character, m_creation_state, m_SpellData[index].spell);
                     break;
                 }
             }

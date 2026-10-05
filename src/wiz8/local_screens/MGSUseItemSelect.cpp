@@ -80,11 +80,11 @@ static bool g_use_item_commit_active;
 // GLOBAL: WIZ8 0x0064C7DC
 static wchar_t g_format_s_paren_question[] = L"%s (?)";
 
-void UpdateUseItemScrollButtons(void);                           /* 0x0059D070 */
+void UpdateUseItemScrollButtons(void);                                  /* 0x0059D070 */
 static void RebuildUseItemSelectList(int mode, W8ItemInstance* select); /* 0x0059D230 */
 static bool AppendUseItemListEntry(W8ItemInstance* item, W8ItemInstance* select,
-                            unsigned char pass); /* 0x0059D450 */
-bool IsUseItemFilteredOut(W8ItemInstance* item); /* 0x0059D6B0 */
+                                   unsigned char pass); /* 0x0059D450 */
+bool IsUseItemFilteredOut(W8ItemInstance* item);        /* 0x0059D6B0 */
 static void UseItemSelectScrollUp(void);                /* 0x0059D790 */
 static void UseItemSelectScrollDown(void);              /* 0x0059D7E0 */
 static void UseItemSelectFilterToggle(void);            /* 0x0059D830 */
@@ -497,7 +497,8 @@ void CommitSelectedItemUse(void)
 {
     W8Character* character;
 
-    if (g_use_item_selected != 0 && CanUseItemForAction(g_status.selected_character, g_use_item_selected) &&
+    if (g_use_item_selected != 0 &&
+        CanUseItemForAction(g_status.selected_character, g_use_item_selected) &&
         IsItemTargetOfNeededKind(g_status.selected_character, g_use_item_selected)) {
         character = &g_status.buffers.Char[g_status.selected_character];
         if (g_use_item_selected != 0) {
@@ -953,9 +954,8 @@ void SelectUseItemLine(int iTextLine)
     UpdateUseItemDetailPanel(g_use_item_list[iTextLine]);
     if (ValidateItemSpellUse(g_use_item_owner_index, g_use_item_list[iTextLine],
                              SpellCastingNoticeClosed) != 0) {
-        QueueCharacterEvent(&g_status.buffers.Char[g_use_item_owner_index],
-                            g_character_event_kind2, 0,
-                            g_character_event_flags_mask | g_character_event_no_flags,
+        QueueCharacterEvent(&g_status.buffers.Char[g_use_item_owner_index], g_character_event_kind2,
+                            0, g_character_event_flags_mask | g_character_event_no_flags,
                             g_character_event_full_volume);
         return;
     }
@@ -970,16 +970,17 @@ void SelectUseItemLine(int iTextLine)
         return;
     }
     if (CanCastFromItem(&g_status.buffers.Char[g_status.selected_character], g_use_item_selected)) {
-        LearnSpellFromItem(&g_status.buffers.Char[g_status.selected_character], g_use_item_selected);
+        LearnSpellFromItem(&g_status.buffers.Char[g_status.selected_character],
+                           g_use_item_selected);
         CloseUseItemSelectView();
         return;
     }
     SetSelectedTextLine(iTextLine, 2);
     ClearHoveredTextLine(2);
     RedrawTextBox();
-    target_type =
-        GetSpellTargetType(GetItemSpell(g_use_item_selected),
-                           ItemClassNormalizesTarget(&g_item_records[g_use_item_selected->iItemNo]));
+    target_type = GetSpellTargetType(
+        GetItemSpell(g_use_item_selected),
+        ItemClassNormalizesTarget(&g_item_records[g_use_item_selected->iItemNo]));
     ConfigureSpellTargetFilter(target_type, GetTargetNeededForItem(g_use_item_selected));
 }
 

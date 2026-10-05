@@ -78,8 +78,7 @@ bool MoveMonsterGroupToPosition(W8MonsterGroup* group, const srVector3T<float>* 
     }
     W8MonsterInfo* leader = MonsterGetScriptPartByLocationIndex(
         MonsterGetIndexByLocationID(0x67c, MONSTER_GROUP_CPP, group->leader_location_id, true));
-    float radius =
-        alternate_radius ? leader->p3D->movement.alternate_radius : leader->p3D->radius;
+    float radius = alternate_radius ? leader->p3D->movement.alternate_radius : leader->p3D->radius;
     int location_ids[45];
     srVector3T<float> positions[45];
     unsigned int count = group->member_count;
@@ -95,9 +94,8 @@ bool MoveMonsterGroupToPosition(W8MonsterGroup* group, const srVector3T<float>* 
                 W8MonsterInfo* ally_leader =
                     MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
                         0x693, MONSTER_GROUP_CPP, ally->leader_location_id, true));
-                float ally_radius = alternate_radius
-                                        ? ally_leader->p3D->movement.alternate_radius
-                                        : ally_leader->p3D->radius;
+                float ally_radius = alternate_radius ? ally_leader->p3D->movement.alternate_radius
+                                                     : ally_leader->p3D->radius;
                 if (radius < ally_radius) {
                     radius = ally_radius;
                 }
@@ -1476,8 +1474,7 @@ void MonsterGroupEnterCombat(W8MonsterGroup* monster_group)
                     ++group_list_index;
                 }
                 if (live_groups > 1) {
-                    ApplyItemEffectToRandomCharacter(g_effect21, -1, 0,
-                                                     g_character_event_no_flags);
+                    ApplyItemEffectToRandomCharacter(g_effect21, -1, 0, g_character_event_no_flags);
                 }
             }
             int* allies = monster_group->allied_group_ids;
@@ -1521,8 +1518,7 @@ const float g_monster_scatter_heading_bias = 0.8f;
    centred just off the camera's back, widened to the largest allied member
    radius. `yaw` is read by the prototype but the body never uses it. */
 // FUNCTION: WIZ8 0x00511050
-bool PositionMonsterGroupNearCamera(W8MonsterGroup* group, float distance, float yaw,
-                                    bool flag)
+bool PositionMonsterGroupNearCamera(W8MonsterGroup* group, float distance, float yaw, bool flag)
 {
     srVector3T<float> camera;
     srVector3T<float> target;
@@ -1539,7 +1535,8 @@ bool PositionMonsterGroupNearCamera(W8MonsterGroup* group, float distance, float
     }
     member_info = MonsterGetScriptPartByLocationIndex(
         MonsterGetIndexByLocationID(0x719, MONSTER_GROUP_CPP, group->leader_location_id, true));
-    angle = NormalizeAngle(GetCameraYawRadians() + Random(1000) * g_monster_scatter_heading_random_scale +
+    angle = NormalizeAngle(GetCameraYawRadians() +
+                           Random(1000) * g_monster_scatter_heading_random_scale +
                            g_monster_rotation_offset - g_monster_scatter_heading_bias);
     radius = member_info->p3D->radius;
     for (index = 0; index < W8_MONSTER_GROUP_ALLY_COUNT; ++index) {

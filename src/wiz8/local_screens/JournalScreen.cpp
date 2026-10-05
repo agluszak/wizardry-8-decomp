@@ -306,8 +306,8 @@ void W8JournalPanel::Refresh()
 
 // FUNCTION: WIZ8 0x005bd530
 W8JournalPanel::W8JournalPanel(unsigned int* region_set)
-    : Controls(0x66, 0x1bb, 0, 0, 0xf3, 0, 0), m_next(0), m_previous(0), m_close(0),
-      m_mode(0), m_page_text(0), m_alternate_mode(0)
+    : Controls(0x66, 0x1bb, 0, 0, 0xf3, 0, 0), m_next(0), m_previous(0), m_close(0), m_mode(0),
+      m_page_text(0), m_alternate_mode(0)
 {
     short width;
     short height;
@@ -325,7 +325,7 @@ W8JournalPanel::W8JournalPanel(unsigned int* region_set)
 
     W8ControlsRect bounds = {m_bounds.left, m_bounds.top, m_bounds.right, m_bounds.bottom};
     m_page_text = new W8TextBuffer(&bounds, &g_empty_wide_string, g_options_detail_font,
-                                       g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter, 4);
+                                   g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter, 4);
 
     m_mode = new W8TextControl(this, 0xffffffff, 0x1b0, -2, 0, 0, 0x1bb, 0, 0, 2, 1, 2, 3);
     m_mode->AddLayoutFlags(g_W8TextControlLayoutToggle);
@@ -402,8 +402,7 @@ void W8JournalPanel::OnPrimary(W8TextControl* control)
 // FUNCTION: WIZ8 0x005bddd0
 unsigned char JournalScreenInitialize(void)
 {
-    g_journal_font =
-        LoadFontFile(Wiz8ToSgpText("Data\\Journal\\journal_font.sti"));
+    g_journal_font = LoadFontFile(Wiz8ToSgpText("Data\\Journal\\journal_font.sti"));
     g_journal_font_original_palette = GetFontObjectPalette16BPP(g_journal_font);
     g_journal_font_palette = CopyCatalogImagePalette16BPP(0x1b9, 0);
     return 1;
@@ -449,8 +448,7 @@ unsigned char JournalScreenEnter(void)
         const W8FactDatabaseRecord* fact = &g_fact_records[entry.fact];
         const wchar_t* description =
             entry.alternate_text ? fact->alternate_description : fact->description;
-        if ((g_journal_show_all || fact->visibility <= maximum_visibility) &&
-            *description != 0) {
+        if ((g_journal_show_all || fact->visibility <= maximum_visibility) && *description != 0) {
             g_journal_entries->Add(entry);
         }
     }

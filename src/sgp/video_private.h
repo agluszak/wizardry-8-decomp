@@ -1,3 +1,6 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-10-06.
+   Normalize formatting of the reconstructed source.
+   Distributed under the accompanying SFI Source Code license agreement. */
 #ifndef __VIDEO_PRIVATE_
 #define __VIDEO_PRIVATE_
 
@@ -9,13 +12,12 @@
 //
 // ***********************************************************************
 
+LPDIRECTDRAW2 GetDirectDraw2Object();
+LPDIRECTDRAWSURFACE2 GetPrimarySurfaceInterface();
+LPDIRECTDRAWSURFACE2 GetBackbufferInterface();
 
-LPDIRECTDRAW2 GetDirectDraw2Object( );
-LPDIRECTDRAWSURFACE2 GetPrimarySurfaceInterface( );
-LPDIRECTDRAWSURFACE2 GetBackbufferInterface( );
-
-BOOLEAN SetDirectDraw2Object( LPDIRECTDRAW2 pDirectDraw );
-BOOLEAN SetPrimarySurfaceInterface( LPDIRECTDRAWSURFACE2 pSurface );
-BOOLEAN SetBackbufferInterface(  LPDIRECTDRAWSURFACE2 pSurface );
+BOOLEAN SetDirectDraw2Object(LPDIRECTDRAW2 pDirectDraw);
+BOOLEAN SetPrimarySurfaceInterface(LPDIRECTDRAWSURFACE2 pSurface);
+BOOLEAN SetBackbufferInterface(LPDIRECTDRAWSURFACE2 pSurface);
 
 #endif

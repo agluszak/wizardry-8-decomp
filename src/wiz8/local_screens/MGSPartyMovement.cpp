@@ -384,7 +384,8 @@ unsigned char HandlePartyMovement(float* real_elapsed, float* frame_elapsed)
         }
         row->movement_fatigue = multiplier * amount + row->movement_fatigue;
         if (row->movement_fatigue > g_position_height_epsilon) {
-            ticks = static_cast<unsigned int>(row->movement_fatigue * g_movement_fatigue_tick_scale);
+            ticks =
+                static_cast<unsigned int>(row->movement_fatigue * g_movement_fatigue_tick_scale);
             FatigueCharacter(party_slot, ticks, false, 0);
             row->movement_fatigue = row->movement_fatigue - (ticks * 0x9c4);
         }

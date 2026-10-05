@@ -45,8 +45,7 @@ GDProp::GDProp(srModelInstance* instance, const char* path_name, unsigned short 
     m_path_bounds.min_x = 0;
 
     if (g_octree != 0 && g_octree->pathing != 0) {
-        m_path_handle =
-            g_octree->pathing->FindPathHandle(path_name, &m_path_bounds, &m_path_range);
+        m_path_handle = g_octree->pathing->FindPathHandle(path_name, &m_path_bounds, &m_path_range);
     }
 
     if (instance != 0) {

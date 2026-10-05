@@ -34,7 +34,8 @@ void W8ListBoxDialog::TextAreaButtonCallback(GUI_BUTTON* button, INT32 reason)
             GetButtonArea(dialog->m_area_button, &area);
             top = area.iTop;
         }
-        int line = (cursor.y - top) / static_cast<int>(static_cast<unsigned int>(GetFontHeight(g_dialog_interface_font))) +
+        int line = (cursor.y - top) / static_cast<int>(static_cast<unsigned int>(
+                                          GetFontHeight(g_dialog_interface_font))) +
                    dialog->m_first_visible_line;
         if (line == dialog->m_selected_line) {
             dialog->m_keep_open = false;

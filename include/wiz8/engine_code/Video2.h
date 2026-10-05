@@ -24,7 +24,6 @@
 #define MAX_CURSOR_HEIGHT 64
 #define VIDEO_NO_CURSOR 0xFFFF
 
-
 extern HWND ghWindow;
 
 extern BOOLEAN InitializeVideoManager(HINSTANCE hInstance, UINT16 usCommandShow, void* WindowProc);
@@ -81,7 +80,6 @@ bool HasScreenTransitionObjects(void); /* 0x004297D0 */
 /* 0x00422EC0: invalidate each rectangle in a run. */
 struct W8ScreenRect;
 void InvalidateScreenRects(W8ScreenRect* rects, unsigned int count, int flags);
-
 
 /* Renderer state and helpers shared by the product C++ consumers. */
 extern bool g_auto_capture;
@@ -179,9 +177,7 @@ void BeginRenderProbe(void);
 unsigned int MeasureNodeRender(srNode* node);
 void EndRenderProbe(void);
 
-
 void WarpSystemCursor(int x, int y); /* 0x004280C0: fullscreen-safe */
-
 
 class srColorSurface;
 class srCamera;
@@ -302,8 +298,6 @@ srModelInstance* GetPickedModelInstance(void);
 void SetPickedModelInstance(srModelInstance* value);
 bool IsCursorInsideViewport(void);      /* 0x00428070 */
 bool IsCursorImageInsideViewport(void); /* 0x00428030 */
-
-
 
 void SetDisplayGamma(float value);
 unsigned int GetTotalPhysicalMemory(void);

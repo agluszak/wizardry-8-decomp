@@ -596,8 +596,7 @@ unsigned char LoadLevel(int requested_level, int entrance, bool restoring_game)
                 axis = trigger->direction;
                 rotation.SetIdentity();
                 if (trigger->angle != 0.0f) {
-                    rotation.RotateAroundAxis(sin(trigger->angle), cos(trigger->angle),
-                                              axis);
+                    rotation.RotateAroundAxis(sin(trigger->angle), cos(trigger->angle), axis);
                 }
                 ApplyCameraRotation(&rotation);
             }

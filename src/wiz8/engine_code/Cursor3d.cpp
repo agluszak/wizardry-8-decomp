@@ -188,8 +188,8 @@ void InitializeWorldCursor(void)
             ClearCombatSelection();
             gp3DCursor->monster->GetAnimationBounds(&minimum, &maximum);
             gp3DCursor->probe_center.Set((maximum.x + minimum.x) * g_double_005ebe80,
-                                            (minimum.y + maximum.y) * g_double_005ebe80,
-                                            (minimum.z + maximum.z) * g_double_005ebe80);
+                                         (minimum.y + maximum.y) * g_double_005ebe80,
+                                         (minimum.z + maximum.z) * g_double_005ebe80);
             gp3DCursor->probe_offsets[0] = maximum;
             gp3DCursor->probe_offsets[1].Set(minimum.x, maximum.y, maximum.z);
             gp3DCursor->probe_offsets[2].Set(minimum.x, maximum.y, minimum.z);
@@ -388,8 +388,7 @@ void ApplyWorldCursorInput(void)
         }
         delta = rotation.Transform(delta);
         delta += gp3DCursor->position;
-        if (gp3DCursor->range > g_float_zero &&
-            gp3DCursor->range < (camera - delta).Length()) {
+        if (gp3DCursor->range > g_float_zero && gp3DCursor->range < (camera - delta).Length()) {
             clamped = delta - camera;
             clamped.SetLength(gp3DCursor->range);
             delta = camera + clamped;

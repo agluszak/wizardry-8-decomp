@@ -1,5 +1,6 @@
 /* Modified for the Wizardry 8 reconstruction, 2026-10-03.
    Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
+   Formatting normalized for the Wizardry 8 reconstruction, 2026-10-06.
    Distributed under the accompanying SFI Source Code license agreement. */
 // *****************************************************************************
 //
@@ -48,17 +49,16 @@ extern "C" {
 
 // *****************************************************************************
 
-void SetClippingRegionAndImageWidth(
-	int iImageWidth,
-	int iClipStartX, int iClipStartY,
-	int iClipWidth,  int iClipHeight );
+void SetClippingRegionAndImageWidth(int iImageWidth, int iClipStartX, int iClipStartY,
+                                    int iClipWidth, int iClipHeight);
 
 // NOTE:
 //	Don't send fClip==TRUE to LineDraw if you don't have to. So if you know
 //  that your line will be within the region you want it to be in, set
 //	fClip == FALSE.
-void LineDraw( BOOL fClip, int XStart, int YStart, int XEnd, int YEnd, short Color, char *ScreenPtr);
-void RectangleDraw( BOOL fClip, int XStart, int YStart, int XEnd, int YEnd, short Color, char *ScreenPtr);
+void LineDraw(BOOL fClip, int XStart, int YStart, int XEnd, int YEnd, short Color, char* ScreenPtr);
+void RectangleDraw(BOOL fClip, int XStart, int YStart, int XEnd, int YEnd, short Color,
+                   char* ScreenPtr);
 // *****************************************************************************
 
 #ifdef __cplusplus

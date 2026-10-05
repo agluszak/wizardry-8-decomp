@@ -71,7 +71,7 @@ int W8StatInfoDialogBase::CreateControls()
     resources.on_scroll = ScrollCallback;
     scrollbar.CreateControls(&resources);
     scrollbar.SetLayout(m_x + 299, m_y + 0x26, textarea.GetTotalLineCount(), 0,
-                            textarea.GetLineHeight(), 0xb9);
+                        textarea.GetLineHeight(), 0xb9);
     scrollbar.m_owner = this;
 
     button.Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 0, 1, 4, 2,
@@ -216,11 +216,11 @@ bool W8SkillInfoDialog::PopulateText()
     W8StatInfoDialogBase::PopulateText();
     textarea.AddEntry(gppStringList[0x156], &g_empty_wide_string, 10, 0xf, 0);
     W8SkillAttributes* skill = &g_skill_attributes[m_skill];
-    textarea.AddEntry(
-        0, gppStringList[g_character_description_first_ids[skill->attribute_1]], 10, 0xf, 0);
+    textarea.AddEntry(0, gppStringList[g_character_description_first_ids[skill->attribute_1]], 10,
+                      0xf, 0);
     if (skill->attribute_1 != skill->attribute_2) {
-        textarea.AddEntry(
-            0, gppStringList[g_character_description_first_ids[skill->attribute_2]], 10, 0xf, 0);
+        textarea.AddEntry(0, gppStringList[g_character_description_first_ids[skill->attribute_2]],
+                          10, 0xf, 0);
     }
     if (m_first) {
         textarea.AddEntry(0, &g_empty_wide_string, 10, 0xf, 0);

@@ -56,22 +56,22 @@ static_assert((sizeof(stMaterial) == 0x7C), "stMaterial_must_be_0x7c");
    level particles and animated-texture descriptors. The four 40-byte texture
    names and the unaligned tail fields are fixed by 0x004B8A70/0x004B98F0. */
 struct W8MaterialRecord {
-    unsigned char version;         /* 0x000 */
-    char texture_name[0x28];      /* 0x001 */
-    char texture_names[4][0x28];  /* 0x029 */
-    srVector3T<float> ambient;    /* 0x0c9 */
-    srVector3T<float> diffuse;    /* 0x0d5 */
-    srVector3T<float> emissive_colour; /* 0x0e1 */
-    srVector3T<float> specular;        /* 0x0ed */
-    float shininess;              /* 0x0f9 */
-    float opacity;                /* 0x0fd */
-    float emission;               /* 0x101 */
-    unsigned char padding_105[8];     /* 0x105 */
+    unsigned char version;                 /* 0x000 */
+    char texture_name[0x28];               /* 0x001 */
+    char texture_names[4][0x28];           /* 0x029 */
+    srVector3T<float> ambient;             /* 0x0c9 */
+    srVector3T<float> diffuse;             /* 0x0d5 */
+    srVector3T<float> emissive_colour;     /* 0x0e1 */
+    srVector3T<float> specular;            /* 0x0ed */
+    float shininess;                       /* 0x0f9 */
+    float opacity;                         /* 0x0fd */
+    float emission;                        /* 0x101 */
+    unsigned char padding_105[8];          /* 0x105 */
     W8TextureAnimationMode animation_mode; /* 0x10d */
-    int animation_frame;          /* 0x10e */
-    float animation_rate;         /* 0x112 */
-    unsigned long surface_flags;  /* 0x116 */
-    float texture_modes[4];       /* 0x11a */
+    int animation_frame;                   /* 0x10e */
+    float animation_rate;                  /* 0x112 */
+    unsigned long surface_flags;           /* 0x116 */
+    float texture_modes[4];                /* 0x11a */
 };
 
 #pragma pack(pop)

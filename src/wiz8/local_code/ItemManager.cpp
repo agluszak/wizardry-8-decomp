@@ -693,7 +693,8 @@ void ActivateItem(W8WorldItem* item)
     }
     position = item->position;
     item->p3D->SetLocation(&position);
-    item->p3D->SetYaw(static_cast<float>(Random(0x168) * 2 * g_camera_pi * g_inverse_full_turn_degrees));
+    item->p3D->SetYaw(
+        static_cast<float>(Random(0x168) * 2 * g_camera_pi * g_inverse_full_turn_degrees));
     static_cast<W8ItemRep*>(item->p3D->m_pRep)->flags |= item->entity_flags;
     item->p3D->AttachMesh(GetWorld());
     AddItemToWorld(GetWorld(), item->p3D);
@@ -1378,8 +1379,7 @@ void DropMonsterLoot(W8MonsterInfo* monster_info, int value)
                     pick = Random(40);
                     if (npc->item_ids[pick] != -1 &&
                         static_cast<short>(Random(total_weight)) <=
-                            static_cast<short>(
-                                static_cast<signed char>(npc->item_weights[pick]))) {
+                            static_cast<short>(static_cast<signed char>(npc->item_weights[pick]))) {
                         item = SpawnItem(npc->item_ids[pick], &position,
                                          W8_ITEM_ENTITY_PULSE | W8_ITEM_ENTITY_ROTATE, false);
                         if (item != 0) {

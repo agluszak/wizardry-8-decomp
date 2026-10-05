@@ -9,7 +9,6 @@ struct W8MonsterInfo;
 void CopyCharacterConditionsToTarget(const W8Character* character, const int* target);
 void CopyMonsterConditionsToCharacter(W8Character* character, const W8MonsterInfo* monster_info);
 
-
 #pragma pack(push, 2)
 struct W8ConditionImmunity {
     unsigned char kind;
@@ -70,7 +69,7 @@ unsigned char SetCharacterCondition(int party_slot, W8Condition condition, int d
 
 void RemoveConditionFromEveryone(W8Condition condition); /* 0x005244A0 */
 void RemoveConditionFromParty(W8Condition condition);    /* 0x005246C0 */
-void RemoveAllEnchantments(void);                /* 0x00524540 */
+void RemoveAllEnchantments(void);                        /* 0x00524540 */
 
 void NormalizeItemQuantityKind(W8ItemInstance* item);
 /* 0x00522EF0: the post-load repair LoadGame runs - unequip unusable items on

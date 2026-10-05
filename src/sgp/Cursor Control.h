@@ -1,6 +1,7 @@
 /* Modified for the Wizardry 8 reconstruction, 2026-10-03.
    Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
    Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
+   Formatting normalized for the Wizardry 8 reconstruction, 2026-10-06.
    Distributed under the accompanying SFI Source Code license agreement. */
 #ifndef __CURSOR_DATABASE_
 #define __CURSOR_DATABASE_
@@ -15,33 +16,32 @@
 extern "C" {
 #endif
 
-extern UINT32		GetCursorHandle(UINT32 uiCursorIndex);
-extern void     UnloadCursorData(UINT32 uiCursorIndex);
-extern UINT16		GetCursorSubIndex(UINT32 uiCursorIndex);
-extern BOOLEAN  SetCurrentCursorFromDatabase( UINT32 uiCursorIndex  );
+extern UINT32 GetCursorHandle(UINT32 uiCursorIndex);
+extern void UnloadCursorData(UINT32 uiCursorIndex);
+extern UINT16 GetCursorSubIndex(UINT32 uiCursorIndex);
+extern BOOLEAN SetCurrentCursorFromDatabase(UINT32 uiCursorIndex);
 
-#define ANIMATED_CURSOR							0x02
-#define	USE_EXTERN_VO_CURSOR				0x04
-#define USE_OUTLINE_BLITTER					0x08
+#define ANIMATED_CURSOR 0x02
+#define USE_EXTERN_VO_CURSOR 0x04
+#define USE_OUTLINE_BLITTER 0x08
 
-#define	EXTERN_CURSOR				0xFFF0
-#define	EXTERN2_CURSOR			0xFFE0
-#define	MAX_COMPOSITES			5
-#define	CENTER_SUBCURSOR		31000
-#define	HIDE_SUBCURSOR			32000
+#define EXTERN_CURSOR 0xFFF0
+#define EXTERN2_CURSOR 0xFFE0
+#define MAX_COMPOSITES 5
+#define CENTER_SUBCURSOR 31000
+#define HIDE_SUBCURSOR 32000
 
-#define	CENTER_CURSOR					32000
-#define	RIGHT_CURSOR					32001
-#define	LEFT_CURSOR						32002
-#define	TOP_CURSOR						32003
-#define	BOTTOM_CURSOR					32004
+#define CENTER_CURSOR 32000
+#define RIGHT_CURSOR 32001
+#define LEFT_CURSOR 32002
+#define TOP_CURSOR 32003
+#define BOTTOM_CURSOR 32004
 
-#define CURSOR_TO_FLASH								0x01
-#define CURSOR_TO_FLASH2							0x02
-#define CURSOR_TO_SUB_CONDITIONALLY		0x04
-#define	DELAY_START_CURSOR						0x08
-#define CURSOR_TO_PLAY_SOUND          0x10
-
+#define CURSOR_TO_FLASH 0x01
+#define CURSOR_TO_FLASH2 0x02
+#define CURSOR_TO_SUB_CONDITIONALLY 0x04
+#define DELAY_START_CURSOR 0x08
+#define CURSOR_TO_PLAY_SOUND 0x10
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -49,60 +49,55 @@ extern BOOLEAN  SetCurrentCursorFromDatabase( UINT32 uiCursorIndex  );
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct
-{
-  UINT8			ubFilename[MAX_FILENAME_LEN];
-  BOOLEAN		fLoaded;
-  UINT32		uiIndex;
-	UINT8			ubFlags;
-	UINT8			ubNumberOfFrames;
-	HVOBJECT	hVObject;
+typedef struct {
+    UINT8 ubFilename[MAX_FILENAME_LEN];
+    BOOLEAN fLoaded;
+    UINT32 uiIndex;
+    UINT8 ubFlags;
+    UINT8 ubNumberOfFrames;
+    HVOBJECT hVObject;
 
 } CursorFileData;
 
-typedef struct
-{
-  UINT32 uiFileIndex;
-  UINT16 uiSubIndex;
-	UINT32 uiCurrentFrame;
-	INT16 usPosX;
-	INT16 usPosY;
+typedef struct {
+    UINT32 uiFileIndex;
+    UINT16 uiSubIndex;
+    UINT32 uiCurrentFrame;
+    INT16 usPosX;
+    INT16 usPosY;
 
 } CursorImage;
 
-typedef struct
-{
-	CursorImage	Composites[ MAX_COMPOSITES ];
-	UINT16			usNumComposites;
-	INT16			  sOffsetX;
-	INT16			  sOffsetY;
-	UINT16			usHeight;
-	UINT16			usWidth;
-	UINT8				bFlags;
-	UINT8				bFlashIndex;
+typedef struct {
+    CursorImage Composites[MAX_COMPOSITES];
+    UINT16 usNumComposites;
+    INT16 sOffsetX;
+    INT16 sOffsetY;
+    UINT16 usHeight;
+    UINT16 usWidth;
+    UINT8 bFlags;
+    UINT8 bFlashIndex;
 
 } CursorData;
 
-extern INT16					 gsGlobalCursorYOffset;
+extern INT16 gsGlobalCursorYOffset;
 
 // Globals for cursor database offset values
-extern INT16					 gsCurMouseOffsetX;
-extern INT16 				 gsCurMouseOffsetY;
-extern UINT16				 gsCurMouseHeight;
-extern UINT16				 gsCurMouseWidth;
+extern INT16 gsCurMouseOffsetX;
+extern INT16 gsCurMouseOffsetY;
+extern UINT16 gsCurMouseHeight;
+extern UINT16 gsCurMouseWidth;
 
-extern UINT32				 guiExternVo;
-extern UINT16				 gusExternVoSubIndex;
-extern UINT32 				 guiExtern2Vo;
-extern UINT16				 gusExtern2VoSubIndex;
-extern BOOLEAN				 gfExternUse2nd;
+extern UINT32 guiExternVo;
+extern UINT16 gusExternVoSubIndex;
+extern UINT32 guiExtern2Vo;
+extern UINT16 gusExtern2VoSubIndex;
+extern BOOLEAN gfExternUse2nd;
 
-typedef void (*MOUSEBLT_HOOK)( void );
-
+typedef void (*MOUSEBLT_HOOK)(void);
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif
-

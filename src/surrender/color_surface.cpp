@@ -652,7 +652,8 @@ void srColorSurfaceIFace::flipRectangle(const Rectangle& rectangle)
         y_lo = rectangle.bottom;
         y_hi = rectangle.top;
     }
-    if ((flip_x || flip_y) && x_lo >= 0 && y_lo >= 0 && x_hi <= this->width && y_hi <= this->height) {
+    if ((flip_x || flip_y) && x_lo >= 0 && y_lo >= 0 && x_hi <= this->width &&
+        y_hi <= this->height) {
         long width = x_hi - x_lo;
         long height = y_hi - y_lo;
         if (width != 0 && height != 0) {
@@ -988,8 +989,7 @@ void srColorSurfaceIFace::getChannelStatistics(srStat& statistics, srARGB::e_ind
         statistics.mean = statistics.mean / statistics.count;
         for (i = 0; i < 0x100; ++i) {
             double difference = i - statistics.mean;
-            statistics.deviation =
-                histogram[i] * difference * difference + statistics.deviation;
+            statistics.deviation = histogram[i] * difference * difference + statistics.deviation;
         }
         statistics.deviation = sqrt(statistics.deviation / statistics.count);
         long running = 0;
@@ -1188,7 +1188,8 @@ srColorSurface& srColorSurface::operator=(const srColorSurface& other)
 
 // FUNCTION: SURRENDER 0x1005BAC0
 srColorSurface::srColorSurface(const srPixelConvert::PixelFormat& format, void* data,
-                               unsigned long arg_width, unsigned long arg_height, unsigned long arg_pitch)
+                               unsigned long arg_width, unsigned long arg_height,
+                               unsigned long arg_pitch)
 {
     surface_flags = 0;
     init(format, arg_width, arg_height, arg_pitch);
@@ -1919,7 +1920,8 @@ void srColorSurface::flipRectangle(const Rectangle& rectangle)
         y_lo = rectangle.bottom;
         y_hi = rectangle.top;
     }
-    if ((flip_x || flip_y) && x_lo >= 0 && y_lo >= 0 && x_hi <= this->width && y_hi <= this->height) {
+    if ((flip_x || flip_y) && x_lo >= 0 && y_lo >= 0 && x_hi <= this->width &&
+        y_hi <= this->height) {
         unsigned long width = x_hi - x_lo;
         unsigned long height = y_hi - y_lo;
         if (width != 0 && height != 0) {
@@ -2557,8 +2559,7 @@ void srColorSurfaceIFace::scaleHorizontal(srColorSurfaceIFace& source)
                 long first = (long)ceil(center - scaled_support);
                 long last = (long)floor(center + scaled_support);
                 for (; first <= last; first++) {
-                    double weight =
-                        source.filter->getWeight((center - first) / inverse) / inverse;
+                    double weight = source.filter->getWeight((center - first) / inverse) / inverse;
                     if (0.0 < weight) {
                         long index = source.getClampedX(first);
                         long* slot = (long*)entry[1] + entry[0] * 2;
@@ -2677,8 +2678,7 @@ void srColorSurfaceIFace::scaleVertical(srColorSurfaceIFace& source)
                 long first = (long)ceil(center - scaled_support);
                 long last = (long)floor(center + scaled_support);
                 for (; first <= last; first++) {
-                    double weight =
-                        source.filter->getWeight((center - first) / inverse) / inverse;
+                    double weight = source.filter->getWeight((center - first) / inverse) / inverse;
                     if (0.0 < weight) {
                         long index = source.getClampedY(first);
                         long* slot = (long*)entry[1] + entry[0] * 2;

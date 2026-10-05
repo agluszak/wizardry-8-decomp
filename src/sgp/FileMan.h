@@ -1,5 +1,6 @@
 /* Modified for the Wizardry 8 reconstruction, 2026-10-03.
    Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
+   Formatting normalized for the Wizardry 8 reconstruction, 2026-10-06.
    Distributed under the accompanying SFI Source Code license agreement. */
 //**************************************************************************
 //
@@ -32,46 +33,44 @@
 //
 //**************************************************************************
 
-#define MAX_FILENAME_LEN        48
+#define MAX_FILENAME_LEN 48
 
-#define FILE_ACCESS_READ	      0x01
-#define FILE_ACCESS_WRITE	      0x02
-#define FILE_ACCESS_READWRITE		0x03
+#define FILE_ACCESS_READ 0x01
+#define FILE_ACCESS_WRITE 0x02
+#define FILE_ACCESS_READWRITE 0x03
 
-#define FILE_CREATE_NEW				0x0010	// create new file. fail if exists
-#define FILE_CREATE_ALWAYS			0x0020	// create new file. overwrite existing
-#define FILE_OPEN_EXISTING			0x0040	// open a file. fail if doesn't exist
-#define FILE_OPEN_ALWAYS			0x0080	// open a file, create if doesn't exist
-#define FILE_TRUNCATE_EXISTING	0x0100	// open a file, truncate to size 0. fail if no exist
+#define FILE_CREATE_NEW 0x0010        // create new file. fail if exists
+#define FILE_CREATE_ALWAYS 0x0020     // create new file. overwrite existing
+#define FILE_OPEN_EXISTING 0x0040     // open a file. fail if doesn't exist
+#define FILE_OPEN_ALWAYS 0x0080       // open a file, create if doesn't exist
+#define FILE_TRUNCATE_EXISTING 0x0100 // open a file, truncate to size 0. fail if no exist
 
-#define FILE_SEEK_FROM_START		0x01	// keep in sync with dbman.h
-#define FILE_SEEK_FROM_END			0x02	// keep in sync with dbman.h
-#define FILE_SEEK_FROM_CURRENT	0x04	// keep in sync with dbman.h
+#define FILE_SEEK_FROM_START 0x01   // keep in sync with dbman.h
+#define FILE_SEEK_FROM_END 0x02     // keep in sync with dbman.h
+#define FILE_SEEK_FROM_CURRENT 0x04 // keep in sync with dbman.h
 
 // GetFile file attributes
-#define FILE_IS_READONLY				1
-#define FILE_IS_DIRECTORY				2
-#define FILE_IS_HIDDEN					4
-#define FILE_IS_NORMAL					8
-#define FILE_IS_ARCHIVE					16
-#define FILE_IS_SYSTEM					32
-#define FILE_IS_TEMPORARY				64
-#define FILE_IS_COMPRESSED			128
-#define FILE_IS_OFFLINE					256
-
-
+#define FILE_IS_READONLY 1
+#define FILE_IS_DIRECTORY 2
+#define FILE_IS_HIDDEN 4
+#define FILE_IS_NORMAL 8
+#define FILE_IS_ARCHIVE 16
+#define FILE_IS_SYSTEM 32
+#define FILE_IS_TEMPORARY 64
+#define FILE_IS_COMPRESSED 128
+#define FILE_IS_OFFLINE 256
 
 //File Attributes settings
-#define FILE_ATTRIBUTES_ARCHIVE				FILE_ATTRIBUTE_ARCHIVE
-#define FILE_ATTRIBUTES_HIDDEN				FILE_ATTRIBUTE_HIDDEN
-#define FILE_ATTRIBUTES_NORMAL				FILE_ATTRIBUTE_NORMAL
-#define FILE_ATTRIBUTES_OFFLINE				FILE_ATTRIBUTE_OFFLINE
-#define FILE_ATTRIBUTES_READONLY			FILE_ATTRIBUTE_READONLY
-#define FILE_ATTRIBUTES_SYSTEM				FILE_ATTRIBUTE_SYSTEM
-#define FILE_ATTRIBUTES_TEMPORARY			FILE_ATTRIBUTE_TEMPORARY
-#define FILE_ATTRIBUTES_DIRECTORY			FILE_ATTRIBUTE_DIRECTORY
+#define FILE_ATTRIBUTES_ARCHIVE FILE_ATTRIBUTE_ARCHIVE
+#define FILE_ATTRIBUTES_HIDDEN FILE_ATTRIBUTE_HIDDEN
+#define FILE_ATTRIBUTES_NORMAL FILE_ATTRIBUTE_NORMAL
+#define FILE_ATTRIBUTES_OFFLINE FILE_ATTRIBUTE_OFFLINE
+#define FILE_ATTRIBUTES_READONLY FILE_ATTRIBUTE_READONLY
+#define FILE_ATTRIBUTES_SYSTEM FILE_ATTRIBUTE_SYSTEM
+#define FILE_ATTRIBUTES_TEMPORARY FILE_ATTRIBUTE_TEMPORARY
+#define FILE_ATTRIBUTES_DIRECTORY FILE_ATTRIBUTE_DIRECTORY
 
-typedef	FILETIME				SGP_FILETIME;
+typedef FILETIME SGP_FILETIME;
 
 //**************************************************************************
 //
@@ -83,69 +82,62 @@ typedef	FILETIME				SGP_FILETIME;
 extern "C" {
 #endif
 
+extern BOOLEAN InitializeFileManager(STR strIndexFilename);
+extern void ShutdownFileManager(void);
+extern BOOLEAN FileExists(STR strFilename);
+extern BOOLEAN FileExistsNoDB(STR strFilename);
+extern BOOLEAN FileDelete(STR strFilename);
+extern HWFILE FileOpen(STR strFilename, UINT32 uiOptions, BOOLEAN fDeleteOnClose);
+extern void FileClose(HWFILE);
 
-extern BOOLEAN	InitializeFileManager(  STR strIndexFilename );
-extern void		ShutdownFileManager( void );
-extern BOOLEAN	FileExists( STR strFilename );
-extern BOOLEAN	FileExistsNoDB( STR strFilename );
-extern BOOLEAN	FileDelete( STR strFilename );
-extern HWFILE	FileOpen( STR strFilename, UINT32 uiOptions, BOOLEAN fDeleteOnClose );
-extern void		FileClose( HWFILE );
+extern BOOLEAN FileRead(HWFILE hFile, PTR pDest, UINT32 uiBytesToRead, UINT32* puiBytesRead);
+extern BOOLEAN FileWrite(HWFILE hFile, PTR pDest, UINT32 uiBytesToWrite, UINT32* puiBytesWritten);
+extern BOOLEAN FileSeek(HWFILE, UINT32 uiDistance, UINT8 uiHow);
+extern INT32 FileGetPos(HWFILE);
 
-extern BOOLEAN	FileRead( HWFILE hFile, PTR pDest, UINT32 uiBytesToRead, UINT32 *puiBytesRead );
-extern BOOLEAN	FileWrite( HWFILE hFile, PTR pDest, UINT32 uiBytesToWrite, UINT32 *puiBytesWritten );
-extern BOOLEAN	FileSeek( HWFILE, UINT32 uiDistance, UINT8 uiHow );
-extern INT32	FileGetPos( HWFILE );
+extern UINT32 FileGetSize(HWFILE);
+BOOLEAN GetExecutableDirectory(STRING512 pcDirectory);
 
-extern UINT32	FileGetSize( HWFILE );
-BOOLEAN GetExecutableDirectory( STRING512 pcDirectory );
-
-BOOLEAN DirectoryExists( STRING512 pcDirectory );
-BOOLEAN MakeFileManDirectory( STRING512 pcDirectory );
+BOOLEAN DirectoryExists(STRING512 pcDirectory);
+BOOLEAN MakeFileManDirectory(STRING512 pcDirectory);
 
 // WARNING: THESE DELETE ALL FILES IN THE DIRECTORY ( and all subdirectories if fRecursive is TRUE!! )
 typedef struct _GETFILESTRUCT_TAG {
-	INT32 iFindHandle;
-	CHAR8 zFileName[ 260 ];			// changed from UINT16, Alex Meduna, Mar-20'98
-	UINT32 uiFileSize;
-	UINT32 uiFileAttribs;
+    INT32 iFindHandle;
+    CHAR8 zFileName[260]; // changed from UINT16, Alex Meduna, Mar-20'98
+    UINT32 uiFileSize;
+    UINT32 uiFileAttribs;
 } GETFILESTRUCT;
 
-BOOLEAN GetFileFirst( CHAR8 *pSpec, GETFILESTRUCT *pGFStruct );
-BOOLEAN GetFileNext( GETFILESTRUCT *pGFStruct );
-void GetFileClose( GETFILESTRUCT *pGFStruct );
+BOOLEAN GetFileFirst(CHAR8* pSpec, GETFILESTRUCT* pGFStruct);
+BOOLEAN GetFileNext(GETFILESTRUCT* pGFStruct);
+void GetFileClose(GETFILESTRUCT* pGFStruct);
 
 BOOLEAN FileCopy(STR strSrcFile, STR strDstFile, BOOLEAN fFailIfExists);
 //Added by Kris Morness
-UINT32	FileGetAttributes( STR filename );
-BOOLEAN FileClearAttributes( STR filename );
+UINT32 FileGetAttributes(STR filename);
+BOOLEAN FileClearAttributes(STR filename);
 
 //returns true if at end of file, else false
-BOOLEAN	FileCheckEndOfFile( HWFILE hFile );
+BOOLEAN FileCheckEndOfFile(HWFILE hFile);
 
-
-
-BOOLEAN GetFileManFileTime( HWFILE hFile, SGP_FILETIME	*pCreationTime, SGP_FILETIME *pLastAccessedTime, SGP_FILETIME *pLastWriteTime );
-
-
-
-
+BOOLEAN GetFileManFileTime(HWFILE hFile, SGP_FILETIME* pCreationTime,
+                           SGP_FILETIME* pLastAccessedTime, SGP_FILETIME* pLastWriteTime);
 
 // CompareSGPFileTimes() returns...
 // -1 if the First file time is less than second file time. ( first file is older )
 // 0 First file time is equal to second file time.
 // +1 First file time is greater than second file time ( first file is newer ).
-INT32	CompareSGPFileTimes( SGP_FILETIME	*pFirstFileTime, SGP_FILETIME *pSecondFileTime );
+INT32 CompareSGPFileTimes(SGP_FILETIME* pFirstFileTime, SGP_FILETIME* pSecondFileTime);
 
 // One call comparison of file times, allowing for a certain leeway in cases where
 // files times may be slightly different due to SourceSafe of copying
-BOOLEAN FileIsOlderThanFile(CHAR8 *pcFileName1, CHAR8 *pcFileName2, UINT32 ulNumSeconds);
+BOOLEAN FileIsOlderThanFile(CHAR8* pcFileName1, CHAR8* pcFileName2, UINT32 ulNumSeconds);
 
 //	Pass in the Fileman file handle of an OPEN file and it will return..
 //		if its a Real File, the return will be the handle of the REAL file
 //		if its a LIBRARY file, the return will be the handle of the LIBRARY
-BOOLEAN AddSubdirectoryToPath(CHAR8 *pDirectory);
-
+BOOLEAN AddSubdirectoryToPath(CHAR8* pDirectory);
 
 //Gets the amount of free space on the hard drive that the main executeablt is runnning from
 //Gets the free hard drive space from the drive letter passed in.  It has to be the root dir.  ( eg. c:\ )
@@ -153,6 +145,5 @@ BOOLEAN AddSubdirectoryToPath(CHAR8 *pDirectory);
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif

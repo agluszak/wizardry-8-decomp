@@ -80,7 +80,7 @@ public:
     float scale0;
     int location_id;
     int effect_value; /* 0x1f0: spawn `value` payload */
-    int flags0;        /* 0x1f4 */
+    int flags0;       /* 0x1f4 */
 };
 
 static_assert(sizeof(W8SpellVisual) == 0x1f8, "W8SpellVisual_size_must_be_0x1f8");

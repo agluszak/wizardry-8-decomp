@@ -83,7 +83,7 @@ private:
     HWND parent;               /* 0x68 */
     HWND edit_window;          /* 0x6c */
     HWND frame_window;         /* 0x70 */
-    unsigned long field_74;       /* 0x74 */
+    unsigned long field_74;    /* 0x74 */
     HFONT font;                /* 0x78 */
     HMENU menu;                /* 0x7c */
     HMENU file_menu;           /* 0x80 */
@@ -150,8 +150,8 @@ long __stdcall srWindowOutStreamBuf::windowProc(HWND window, unsigned int messag
                 return DefWindowProcA(window, message, wparam, lparam);
             }
         } else if (message == WM_SIZE && self != 0 && self->edit_window != 0) {
-            MoveWindow(self->edit_window, 0, 0, lparam & 0xffff, static_cast<unsigned long>(lparam) >> 0x10,
-                       1);
+            MoveWindow(self->edit_window, 0, 0, lparam & 0xffff,
+                       static_cast<unsigned long>(lparam) >> 0x10, 1);
             return DefWindowProcA(window, message, wparam, lparam);
         }
     } else if (message == WM_KEYDOWN) {
@@ -364,9 +364,9 @@ srWindowOutStreamBuf::srWindowOutStreamBuf(unsigned long instance, unsigned long
                         (HWND)parent, 0, (HINSTANCE)instance, 0);
     SetWindowLongA(frame_window, GWL_USERDATA, (long)this);
     edit_window = CreateWindowExA(0, "RichEdit", "",
-                                     WS_CHILD | WS_VISIBLE | WS_VSCROLL | WS_HSCROLL | ES_READONLY |
-                                         ES_AUTOHSCROLL | ES_AUTOVSCROLL | ES_MULTILINE,
-                                     0, 0, 400, 400, frame_window, 0, (HINSTANCE)instance, 0);
+                                  WS_CHILD | WS_VISIBLE | WS_VSCROLL | WS_HSCROLL | ES_READONLY |
+                                      ES_AUTOHSCROLL | ES_AUTOVSCROLL | ES_MULTILINE,
+                                  0, 0, 400, 400, frame_window, 0, (HINSTANCE)instance, 0);
     RECT client;
     GetClientRect(frame_window, &client);
     MoveWindow(edit_window, 0, 0, client.right - client.left, client.bottom - client.top, 1);

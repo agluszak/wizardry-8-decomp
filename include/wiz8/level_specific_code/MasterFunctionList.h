@@ -38,7 +38,6 @@ unsigned char ShowLevelMessage(int message_id);
 
 void InitializeLevelMasterFunctions(int level);
 W8MonsterGroup* SpawnMonsters(int monster_id, int count, srVector3T<float>* position, int hostility,
-                              bool settle, bool a,
-                              bool b); /* 0x004D8F00 */
+                              bool settle, bool a, bool b); /* 0x004D8F00 */
 stSound3D* CreateAndPlaySoundNode(char* sound_name, srVector3T<float> position, float volume,
                                   float scale, bool play_flag); /* 0x004D8F80 */

@@ -9,12 +9,8 @@
 #include "windll/structs.h"
 
 /* FUNCTION: SREXT_UNZIP 0x1000DA10 */
-int WINAPI srWizUnzipToMemory(
-    char* archive,
-    char* member,
-    LPUSERFUNCTIONS callbacks,
-    UzpBuffer* result,
-    int case_insensitive)
+int WINAPI srWizUnzipToMemory(char* archive, char* member, LPUSERFUNCTIONS callbacks,
+                              UzpBuffer* result, int case_insensitive)
 {
     int extracted;
 

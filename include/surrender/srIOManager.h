@@ -201,7 +201,10 @@ public:
        every throw site. */
     // FUNCTION: SURRENDER 0x1002CB00
     // ??0Error@srIOManager@@QAE@PBD@Z
-    Error(const char* description) { this->description = description; }
+    Error(const char* description)
+    {
+        this->description = description;
+    }
     SR_DLL_IMPORT const char* getDescription();
 
     /* The emitted body is consistent with memberwise assignment. */
@@ -218,7 +221,6 @@ class
 #endif
     __declspec(novtable) srIOManager::Importer {
 public:
-
     virtual const char* getTypeName() const = 0;
 
     // FUNCTION: SURRENDER 0x1002CC50
@@ -242,7 +244,6 @@ class
 #endif
     __declspec(novtable) srIOManager::Exporter {
 public:
-
     virtual const char* getTypeName() const = 0;
 
     // FUNCTION: SURRENDER 0x1002CC60

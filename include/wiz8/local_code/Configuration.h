@@ -22,7 +22,6 @@ void SetMusicMuted(unsigned char muted);
    block at 0x006850C8. Difficulty is stored as this int; the options list
    labels it Novice/Normal/Expert. */
 
-
 #pragma pack(push, 1)
 struct W8GameSettings {
     unsigned char field_000;

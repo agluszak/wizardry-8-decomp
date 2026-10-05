@@ -291,14 +291,16 @@ srZipAdapter::srZipAdapter()
     /* The adapter password bridge carries an extra srZipAdapter* after the
        four Info-ZIP arguments; the service slot reuses the two-argument
        print body. Retail stores both pointers as-is. */
-    // clang-format off
-    callbacks_->password = reinterpret_cast<DLLPASSWORD*>(noteArchive); /* reinterpret-ok: Info-ZIP password slot cannot express the adapter argument */
+
+    callbacks_->password = reinterpret_cast<DLLPASSWORD*>(
+        noteArchive); /* reinterpret-ok: Info-ZIP password slot cannot express the adapter argument */
     callbacks_->print = discardPrintOrService;
     callbacks_->sound = 0;
     callbacks_->replace = discardReplace;
     callbacks_->SendApplicationMessage = discardMessage;
-    callbacks_->ServCallBk = reinterpret_cast<DLLSERVICE*>(discardPrintOrService); /* reinterpret-ok: Info-ZIP service slot reuses the print body */
-    // clang-format on
+    callbacks_->ServCallBk = reinterpret_cast<DLLSERVICE*>(
+        discardPrintOrService); /* reinterpret-ok: Info-ZIP service slot reuses the print body */
+
 #pragma clang diagnostic pop
     callbacks_->adapter = this;
 }

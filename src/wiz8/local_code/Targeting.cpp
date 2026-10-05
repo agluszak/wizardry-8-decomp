@@ -557,9 +557,8 @@ void ApplyTarget(W8CombatSlot* target, bool in_combat)
             }
         }
         if (memcmp(&row->target_out_of_combat, target, sizeof(W8CombatSlot)) == 0) {
-            action_targets_enemies =
-                CharacterActionTargetsEnemies(character, row->pending_action, row->attack_mode[0],
-                                              &row->pending_action_detail);
+            action_targets_enemies = CharacterActionTargetsEnemies(
+                character, row->pending_action, row->attack_mode[0], &row->pending_action_detail);
             if (ShouldClearAimForAppliedTarget(&source, target, in_combat,
                                                action_targets_enemies)) {
                 RepickActionTarget(party_slot, W8_TARGETING_CONTEXT_OUT_OF_COMBAT, 0);
@@ -3203,8 +3202,7 @@ int CollectConeMonsterTargets(const W8TargetSource* source, const srVector3T<flo
                 W8Monster* monster = monster_info->p3D;
                 srVector3T<float> point;
                 point.Set(monster->movement.position.x,
-                          monster->movement.position.y +
-                              monster->movement.height_offset,
+                          monster->movement.position.y + monster->movement.height_offset,
                           monster->movement.position.z);
                 if (TargetInRangeAndArcs(&point, monster->radius, eye, radius, heading,
                                          elevation) &&

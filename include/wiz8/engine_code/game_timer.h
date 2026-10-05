@@ -58,13 +58,13 @@ public:
     float GetElapsedSeconds();
 
     W8TimerClock m_clock_mode; /* 0x04: 1 reads the game clock */
-    unsigned short m_flags;   /* 0x08: bit 0 reads the timer raw */
-    srTimer* m_shared;        /* 0x0c */
-    int m_start;              /* 0x10 */
-    int m_end;                /* 0x14: start + duration */
-    int m_duration;           /* 0x18: 10000 */
-    float m_duration_seconds; /* 0x1c */
-    float m_duration_scale;   /* 0x20 */
+    unsigned short m_flags;    /* 0x08: bit 0 reads the timer raw */
+    srTimer* m_shared;         /* 0x0c */
+    int m_start;               /* 0x10 */
+    int m_end;                 /* 0x14: start + duration */
+    int m_duration;            /* 0x18: 10000 */
+    float m_duration_seconds;  /* 0x1c */
+    float m_duration_scale;    /* 0x20 */
 };
 
 W8GameTimer* CreateGameTimer(float duration, unsigned char raw_time);

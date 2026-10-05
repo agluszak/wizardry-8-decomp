@@ -23,11 +23,11 @@
    the clear path drops. ApplyPartyEffectSlots scales the amount at +0x05 by
    the percentage at +0x09 before accumulating it. */
 struct W8EffectSlot {
-    bool active;              /* 0x00 */
-    int effect_id;            /* 0x01 */
-    int amount;               /* 0x05: dword magnitude - ApplyCombatEffectSlot and the
+    bool active;           /* 0x00 */
+    int effect_id;         /* 0x01 */
+    int amount;            /* 0x05: dword magnitude - ApplyCombatEffectSlot and the
                              0x3e detonation pass read and write it as one dword */
-    unsigned int percent;     /* 0x09 */
+    unsigned int percent;  /* 0x09 */
     unsigned int duration; /* 0x0d: remaining lifetime, aged down in whole
                                   minutes by AgeMonsterSight */
 }; /* 0x11 */
@@ -50,8 +50,8 @@ struct W8GameplayModifierBlock {
     signed char hit_bonus;      /* 0x01: added to the hand attack hit bonus */
     signed char attack_bonus;   /* 0x02: added to the hand attack score term */
     signed char damage_percent; /* 0x03: added to the hand attack damage bonus */
-    signed char armor_flat;    /* 0x04 */
-    signed char armor_matchup;    /* 0x05 */
+    signed char armor_flat;     /* 0x04 */
+    signed char armor_matchup;  /* 0x05 */
     signed char damage_reduction_adjustment; /* 0x06: added to damage reduction */
     signed char resistance_bonus_all;        /* 0x07: added to every resistance */
     /* 0x08: flat damage applied once per elapsed minute. The character and
@@ -64,7 +64,7 @@ struct W8GameplayModifierBlock {
     signed char stamina_regen_adjustment;
     signed char spell_regen_adjustment;
     signed char attribute_adjustments[7]; /* 0x0c .. 0x12 */
-    signed char skill_bonus[0x29];     /* 0x13 .. 0x3b: one per skill id */
+    signed char skill_bonus[0x29];        /* 0x13 .. 0x3b: one per skill id */
     signed char resistance_bonus[6];      /* 0x3c .. 0x41 */
     /* 0x42..0x44: independent +50% regeneration-rate latches. */
     unsigned char boost_health_regen;

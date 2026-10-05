@@ -19,21 +19,13 @@
 HANDLE hInst;
 int fNoPrinting = 0;
 
-static int UZ_EXP DllMessagePrint(
-    zvoid* pG, uch* buffer, ulg size, int flag);
+static int UZ_EXP DllMessagePrint(zvoid* pG, uch* buffer, ulg size, int flag);
 static void WINAPI DummySound(void);
-static int UZ_EXP Wiz_StatReportCB(
-    zvoid* pG,
-    int function_flag,
-    ZCONST char* archive_name,
-    ZCONST char* entry_name,
-    ZCONST zvoid* details);
+static int UZ_EXP Wiz_StatReportCB(zvoid* pG, int function_flag, ZCONST char* archive_name,
+                                   ZCONST char* entry_name, ZCONST zvoid* details);
 
 // FUNCTION: SREXT_UNZIP 0x1000D830
-BOOL WINAPI DllMain(
-    HINSTANCE instance,
-    DWORD reason,
-    LPVOID reserved)
+BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved)
 {
     BOOL result = TRUE;
     switch (reason) {
@@ -57,9 +49,7 @@ BOOL WINAPI Wiz_Init(zvoid* pG, LPUSERFUNCTIONS callbacks)
         callbacks->sound = DummySound;
     }
     G.lpUserFunctions = callbacks;
-    return callbacks->print != NULL &&
-           callbacks->sound != NULL &&
-           callbacks->replace != NULL;
+    return callbacks->print != NULL && callbacks->sound != NULL && callbacks->replace != NULL;
 }
 
 // FUNCTION: SREXT_UNZIP 0x1000D8B0
@@ -75,8 +65,7 @@ int win_fprintf(zvoid* pG, FILE* file, unsigned int size, char far* buffer)
 }
 
 // FUNCTION: SREXT_UNZIP 0x1000D910
-static int UZ_EXP DllMessagePrint(
-    zvoid* pG, uch* buffer, ulg size, int flag)
+static int UZ_EXP DllMessagePrint(zvoid* pG, uch* buffer, ulg size, int flag)
 {
     if (!fNoPrinting) {
         return G.lpUserFunctions->print((LPSTR)buffer, size);
@@ -85,13 +74,8 @@ static int UZ_EXP DllMessagePrint(
 }
 
 // FUNCTION: SREXT_UNZIP 0x1000D940
-int UZ_EXP UzpPassword(
-    zvoid* pG,
-    int* retry_count,
-    char* password,
-    int size,
-    ZCONST char* archive_name,
-    ZCONST char* entry_name)
+int UZ_EXP UzpPassword(zvoid* pG, int* retry_count, char* password, int size,
+                       ZCONST char* archive_name, ZCONST char* entry_name)
 {
 #if CRYPT
     LPSTR message;
@@ -99,8 +83,7 @@ int UZ_EXP UzpPassword(
     if (*retry_count == 0) {
         *retry_count = 2;
         message = "Enter password for: ";
-    }
-    else {
+    } else {
         --*retry_count;
         message = "Password incorrect--reenter: ";
     }
@@ -117,17 +100,11 @@ void WINAPI Wiz_NoPrinting(int disabled)
 }
 
 // FUNCTION: SREXT_UNZIP 0x1000D9A0
-static void WINAPI DummySound(void)
-{
-}
+static void WINAPI DummySound(void) {}
 
 // FUNCTION: SREXT_UNZIP 0x1000D9B0
-static int UZ_EXP Wiz_StatReportCB(
-    zvoid* pG,
-    int function_flag,
-    ZCONST char* archive_name,
-    ZCONST char* entry_name,
-    ZCONST zvoid* details)
+static int UZ_EXP Wiz_StatReportCB(zvoid* pG, int function_flag, ZCONST char* archive_name,
+                                   ZCONST char* entry_name, ZCONST zvoid* details)
 {
     int result = UZ_ST_CONTINUE;
 
@@ -139,8 +116,7 @@ static int UZ_EXP Wiz_StatReportCB(
         break;
     case UZ_ST_FINISH_MEMBER:
         if (G.lpUserFunctions->ServCallBk != NULL &&
-            G.lpUserFunctions->ServCallBk(
-                entry_name, *((unsigned long*)details))) {
+            G.lpUserFunctions->ServCallBk(entry_name, *((unsigned long*)details))) {
             result = UZ_ST_BREAK;
         }
         break;

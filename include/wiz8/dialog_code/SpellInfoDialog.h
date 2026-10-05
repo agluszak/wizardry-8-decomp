@@ -21,8 +21,8 @@ public:
     virtual void OnMouseWheel(int delta) override;
 
 private:
-    bool PopulateText();          /* 0x005DBEE0 */
-    void DrawLabels();            /* 0x005DC490 */
+    bool PopulateText(); /* 0x005DBEE0 */
+    void DrawLabels();   /* 0x005DC490 */
     static void ScrollCallback(W8DialogScrollBar* scroll_bar, int first_visible_entry);
 
     unsigned int m_spell;           /* 0x054 */
@@ -30,7 +30,7 @@ private:
     W8DialogButton m_button;        /* 0x0a4 */
     W8DialogTextArea m_text_area;   /* 0x0ec */
     W8GameTimer m_timer;            /* 0x144 */
-    unsigned int m_animation_frame;     /* 0x168 */
+    unsigned int m_animation_frame; /* 0x168 */
 };
 static_assert(sizeof(W8SpellInfoDialog) == 0x16c, "W8SpellInfoDialog_size");
 

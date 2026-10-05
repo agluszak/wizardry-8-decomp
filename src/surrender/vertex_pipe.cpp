@@ -89,8 +89,8 @@ unsigned long srVertexPipe::scanChangeIndexed(const unsigned long* table, unsign
 
 // FUNCTION: SURRENDER 0x1002AC10
 srVertexPipe::srVertexPipe()
-    : processor_heap(0), processor_heap_capacity(0), channel_mask(0),
-      lazy_setup_mask(0), material_info()
+    : processor_heap(0), processor_heap_capacity(0), channel_mask(0), lazy_setup_mask(0),
+      material_info()
 {
     scratch = static_cast<Scratch*>(::operator new(sizeof(Scratch)));
     if (scratch != 0) {
@@ -153,8 +153,7 @@ void srVertexPipe::processVertexBuffer()
         if ((lazy_setup_mask & (1 << srVertexProcessor::CHANNEL_Q0)) == 0) {
             mask &= 0xffffff7f;
         }
-        srCore.getStatisticsManager()->statistics.texture_coordinate_operations +=
-            vertex_count;
+        srCore.getStatisticsManager()->statistics.texture_coordinate_operations += vertex_count;
         if ((lazy_setup_mask & (1 << srVertexProcessor::CHANNEL_ST0)) == 0) {
             setupST(0);
         }
@@ -169,8 +168,7 @@ void srVertexPipe::processVertexBuffer()
         if ((lazy_setup_mask & (1 << srVertexProcessor::CHANNEL_Q1)) == 0) {
             mask &= 0xfffffeff;
         }
-        srCore.getStatisticsManager()->statistics.texture_coordinate_operations +=
-            vertex_count;
+        srCore.getStatisticsManager()->statistics.texture_coordinate_operations += vertex_count;
         if ((lazy_setup_mask & (1 << srVertexProcessor::CHANNEL_ST1)) == 0) {
             setupST(1);
         }
@@ -251,12 +249,12 @@ void srVertexPipe::process(const Input& input)
         scratch->flags = 0;
         if (this->input->direct_vertex_indices == 0) {
             vector_processor->_transformIndexed(eye_space_locations + batch_base,
-                                                   this->input->positions, avt,
-                                                   *this->input->model_view, batch_count);
+                                                this->input->positions, avt,
+                                                *this->input->model_view, batch_count);
         } else {
             vector_processor->_transform(eye_space_locations + batch_base,
-                                            this->input->positions + batch_base,
-                                            *this->input->model_view, batch_count);
+                                         this->input->positions + batch_base,
+                                         *this->input->model_view, batch_count);
         }
         unsigned long record_index;
         for (record_index = 0; record_index < input.record_count; ++record_index) {
@@ -287,8 +285,7 @@ void srVertexPipe::process(const Input& input)
                             (unsigned long)
                                 material /* c-style-cast-ok: scanChangeIndexed compares the material pointer as a dword value */
                             ,
-                            avt + 1 + sub_batch_offset,
-                            batch_count - sub_batch_offset - 1) +
+                            avt + 1 + sub_batch_offset, batch_count - sub_batch_offset - 1) +
                         1;
                     processVertexBuffer();
                     sub_batch_offset += this->vertex_count;
@@ -315,7 +312,7 @@ void srVertexPipe::process(const Input& input)
 void srVertexPipe::finishDiffuseAlpha()
 {
     if ((channel_mask & ((1 << srVertexProcessor::CHANNEL_DIFFUSE) |
-                            (1 << srVertexProcessor::CHANNEL_ALPHA))) == 0) {
+                         (1 << srVertexProcessor::CHANNEL_ALPHA))) == 0) {
         return;
     }
     srVector4T<float>* diffuse = vertex_array->diffuse + batch_base + sub_batch_offset;
@@ -325,12 +322,9 @@ void srVertexPipe::finishDiffuseAlpha()
           (srVertexPipe::Record::HAS_COLORS | srVertexPipe::Record::HAS_ALPHA)) == 0)) {
         srCore.getStatisticsManager()->statistics.diffuse_operations += vertex_count;
         srVector4T<float> color;
-        color.x =
-            input->ambient_light.x * material_info.ambient.x + material_info.emissive.x;
-        color.y =
-            input->ambient_light.y * material_info.ambient.y + material_info.emissive.y;
-        color.z =
-            input->ambient_light.z * material_info.ambient.z + material_info.emissive.z;
+        color.x = input->ambient_light.x * material_info.ambient.x + material_info.emissive.x;
+        color.y = input->ambient_light.y * material_info.ambient.y + material_info.emissive.y;
+        color.z = input->ambient_light.z * material_info.ambient.z + material_info.emissive.z;
         color.w = material_info.diffuse.w;
         if (color.x <= 0.0f) {
             color.x = 0.0f;
@@ -354,7 +348,7 @@ void srVertexPipe::finishDiffuseAlpha()
         }
         if ((current_record->flags & srVertexPipe::Record::HAS_DIFFUSE_MULTIPLIERS) != 0) {
             vector_processor->_mulIndexed(diffuse, color, current_record->spec_for_diffuse,
-                                             avt + sub_batch_offset, vertex_count);
+                                          avt + sub_batch_offset, vertex_count);
             return;
         }
         if (vertex_count != 0) {
@@ -492,8 +486,7 @@ void srVertexPipe::finishSpecularFog()
     }
     if (((current_record->flags & srVertexPipe::Record::HAS_SPECULAR_MULTIPLIERS) != 0) &&
         (vertex_count != 0)) {
-        srVectorProcessor::mulIndexed(destination, destination,
-                                      current_record->spec_for_specular,
+        srVectorProcessor::mulIndexed(destination, destination, current_record->spec_for_specular,
                                       avt + sub_batch_offset, vertex_count);
     }
 }
@@ -508,8 +501,8 @@ void srVertexPipe::setupEyeSpaceNormal()
         constant.Set(0.0f, 0.0f, -1.0f);
         vector_processor->_copy(scratch->normals, constant, batch_count);
     } else if (input->direct_vertex_indices == 0) {
-        vector_processor->_transformIndexed(scratch->normals, normals, avt,
-                                               *input->normal_matrix, batch_count);
+        vector_processor->_transformIndexed(scratch->normals, normals, avt, *input->normal_matrix,
+                                            batch_count);
     } else {
         vector_processor->_transform(scratch->normals, normals + batch_base, *input->normal_matrix,
                                      batch_count);
@@ -698,21 +691,17 @@ void srVertexPipe::setupDiffuse()
     if ((lazy_setup_mask & (1UL << srVertexProcessor::CHANNEL_DIFFUSE)) == 0) {
         srVector4T<float> color;
         color.x = input->ambient_light.x * material_info.ambient.x + material_info.emissive.x;
-        color.y =
-            input->ambient_light.y * material_info.ambient.y + material_info.emissive.y;
-        color.z =
-            input->ambient_light.z * material_info.ambient.z + material_info.emissive.z;
-        color.w =
-            input->ambient_light.w * material_info.ambient.w + material_info.emissive.w;
-        srVector4T<float>* diffuse =
-            vertex_array->diffuse + batch_base + sub_batch_offset;
+        color.y = input->ambient_light.y * material_info.ambient.y + material_info.emissive.y;
+        color.z = input->ambient_light.z * material_info.ambient.z + material_info.emissive.z;
+        color.w = input->ambient_light.w * material_info.ambient.w + material_info.emissive.w;
+        srVector4T<float>* diffuse = vertex_array->diffuse + batch_base + sub_batch_offset;
         if ((current_record->flags & srVertexPipe::Record::HAS_COLORS) == 0) {
             if (vertex_count != 0) {
                 srVectorProcessor::copy(diffuse, color, vertex_count);
             }
         } else {
-            current_record->color_source.copyDiffuseColors(
-                diffuse, avt + sub_batch_offset, vertex_count);
+            current_record->color_source.copyDiffuseColors(diffuse, avt + sub_batch_offset,
+                                                           vertex_count);
             if ((((color.x != 0.0f) || (color.y != 0.0f)) ||
                  ((color.z != 0.0f) || (color.w != 0.0f))) &&
                 (vertex_count != 0)) {

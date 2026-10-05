@@ -337,8 +337,8 @@ bool MonsterResistsSpellEffect(const W8CombatSlot* target, int power)
     if (monster_info->highest_condition >= W8_CONDITION_DEAD) {
         return true;
     }
-    score = (monster->effective_level - power) * 3 +
-            monster_info->modifiers.resistance_bonus[4] + monster->resistances[4];
+    score = (monster->effective_level - power) * 3 + monster_info->modifiers.resistance_bonus[4] +
+            monster->resistances[4];
     ClampInteger(&score, 5, 0x5f);
     return static_cast<int>(Random(100)) < score;
 }
@@ -475,8 +475,7 @@ void ReduceMagnitudeByResistance(unsigned int* magnitude, W8CombatSlot* target, 
         monster_info = MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(0xf18, MAGIC_EFFECTS_CPP, target->iMonsterID, true));
         monster = GetMonsterDataForInfo(monster_info);
-        resistance =
-            monster_info->modifiers.resistance_bonus[realm] + monster->resistances[realm];
+        resistance = monster_info->modifiers.resistance_bonus[realm] + monster->resistances[realm];
         level = monster->effective_level;
     } else {
         character = &g_status.buffers.Char[target->iChar];
@@ -515,8 +514,7 @@ bool TargetResistsCondition(W8CombatSlot* target, W8SpellRealm realm, unsigned i
         monster_info = MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(0xec6, MAGIC_EFFECTS_CPP, target->iMonsterID, true));
         monster = GetMonsterDataForInfo(monster_info);
-        resistance =
-            monster_info->modifiers.resistance_bonus[realm] + monster->resistances[realm];
+        resistance = monster_info->modifiers.resistance_bonus[realm] + monster->resistances[realm];
         level = monster->effective_level;
         highest_condition = monster_info->highest_condition;
     } else {
@@ -1014,10 +1012,12 @@ void RecalculateCharacterResistances(W8Character* character)
     }
 
     if (character->attributes[W8_ATTRIBUTE_INTELLIGENCE].effective > 0x50) {
-        character->resistances[4].base += (character->attributes[W8_ATTRIBUTE_INTELLIGENCE].effective - 0x50) >> 1;
+        character->resistances[4].base +=
+            (character->attributes[W8_ATTRIBUTE_INTELLIGENCE].effective - 0x50) >> 1;
     }
     if (character->attributes[W8_ATTRIBUTE_PIETY].effective > 0x50) {
-        character->resistances[5].base += (character->attributes[W8_ATTRIBUTE_PIETY].effective - 0x50) >> 1;
+        character->resistances[5].base +=
+            (character->attributes[W8_ATTRIBUTE_PIETY].effective - 0x50) >> 1;
     }
 
     for (index = 0; index < W8_RESISTANCE_COUNT; ++index) {
@@ -1251,13 +1251,12 @@ void ReportSpellEffectResult(W8SpellEffectEntry* effect)
             SetTextBoxMode(1, -1);
         }
         if (effect->target_indices.GetCount() + effect->monster_ids.GetCount() == 1) {
-            AppendToLastTextLine(
-                FormatWideString(gppStringList[0x19a], effect->result.amount, -1), -1);
+            AppendToLastTextLine(FormatWideString(gppStringList[0x19a], effect->result.amount, -1),
+                                 -1);
         } else {
-            AppendToLastTextLine(
-                FormatWideString(gppStringList[0x199], effect->result.count,
-                                 effect->result.amount / effect->result.count, -1),
-                -1);
+            AppendToLastTextLine(FormatWideString(gppStringList[0x199], effect->result.count,
+                                                  effect->result.amount / effect->result.count, -1),
+                                 -1);
         }
         SetTextBoxMode(1, -1);
         effect->reported = true;
@@ -2230,8 +2229,7 @@ void ApplyCombatEffectSlot(W8SpellEffectEntry* effect)
             AppendToLastTextLine(!effect->reported ? L" -- " : L", ", -1);
             SetTextBoxMode(1, -1);
         }
-        AppendToLastTextLine(FormatWideString(gppStringList[0x1a4], effect->result.count, -1),
-                             -1);
+        AppendToLastTextLine(FormatWideString(gppStringList[0x1a4], effect->result.count, -1), -1);
         effect->reported = true;
     }
 }
@@ -2570,8 +2568,7 @@ void DestroyConsumablesOnTargets(W8SpellEffectEntry* effect)
         }
     }
     if (effect->target_indices.GetCount() > 0) {
-        for (index = 0; static_cast<unsigned int>(index) < g_status.party_item_count;
-             ++index) {
+        for (index = 0; static_cast<unsigned int>(index) < g_status.party_item_count; ++index) {
             item = &g_status.party_item_pool[index];
             DestroyItemConsumables(item, 0, chance, totals);
         }
@@ -2745,7 +2742,9 @@ void ApplyCharmToMonsterTarget(W8SpellEffectEntry* effect)
     monster_info = MonsterInfoFromID(0xad1, MAGIC_EFFECTS_CPP, target->iMonsterID, true);
     if (effect->Source.fBackfire) {
         monster = GetMonsterDataForInfo(monster_info);
-        if (Random(100) < (monster->attribute_values[W8_MONSTER_ATTRIBUTE_SENSES] + monster->attribute_values[W8_MONSTER_ATTRIBUTE_INTELLIGENCE]) / 2) {
+        if (Random(100) < (monster->attribute_values[W8_MONSTER_ATTRIBUTE_SENSES] +
+                           monster->attribute_values[W8_MONSTER_ATTRIBUTE_INTELLIGENCE]) /
+                              2) {
             QueueNpcScriptLine(0x16, false, false, false);
         }
         return;
@@ -2804,7 +2803,9 @@ void ResolveCharmRefusal(W8SpellEffectEntry* effect)
         QueueDialogueNpcRefusal();
     } else {
         monster = GetMonsterDataForInfo(monster_info);
-        if (Random(100) < (monster->attribute_values[W8_MONSTER_ATTRIBUTE_SENSES] + monster->attribute_values[W8_MONSTER_ATTRIBUTE_INTELLIGENCE]) / 2) {
+        if (Random(100) < (monster->attribute_values[W8_MONSTER_ATTRIBUTE_SENSES] +
+                           monster->attribute_values[W8_MONSTER_ATTRIBUTE_INTELLIGENCE]) /
+                              2) {
             QueueNpcScriptLine(0x16, false, false, false);
             return;
         }
@@ -3230,8 +3231,7 @@ void TickCombatEffectSlots(W8EffectSlot* effect_slots, W8CombatSlot* target)
                         ApplyDamageToMonster(monster_info, amount, &source, false, 1, 0, 0, false);
                         if (spell_id == 0x50) {
                             FatigueMonster(monster_info, amount, 0);
-                            monster_info->spell_points =
-                                monster_info->spell_points - (amount >> 1);
+                            monster_info->spell_points = monster_info->spell_points - (amount >> 1);
                         }
                     }
                 }

@@ -30,10 +30,10 @@ struct W8PathAI : W8AIRecord {
     unsigned char version;
     unsigned char padding_02[2];
     /* Normalized for interpolated movement, point units in discrete mode. */
-    float position;                         /* 0x04 */
-    unsigned int unknown_08;                /* 0x08: serialized */
+    float position;                      /* 0x04 */
+    unsigned int unknown_08;             /* 0x08: serialized */
     W8Vector<srVector3T<float>*>* nodes; /* 0x0c */
-    int entry_index; /* 0x10: level camera/path entry index, assigned at load */
+    int entry_index;                     /* 0x10: level camera/path entry index, assigned at load */
     /* 0x004A98C0 sizes both from the node count: 0x24 a record here, and a
        srVector3T<float> each in the render array. */
     srMatrix3T<float>* rotations; /* 0x14 */
@@ -47,8 +47,8 @@ struct W8PathAI : W8AIRecord {
     float distance_travelled;      /* 0x30 */
     float total_length;            /* 0x34 */
     unsigned char looping;         /* 0x38 */
-    unsigned char step_by_node; /* 0x39 */
-    unsigned char animated;     /* 0x3a */
+    unsigned char step_by_node;    /* 0x39 */
+    unsigned char animated;        /* 0x3a */
     /* When set the emitter target is pitched upright (rotateX pi/2); camera
        paths raise it. */
     unsigned char upright;

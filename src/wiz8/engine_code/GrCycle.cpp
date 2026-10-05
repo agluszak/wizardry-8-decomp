@@ -73,11 +73,9 @@ W8GameTimer* g_shake_timer;
    is seeded from the source's speed rather than its remaining time. */
 // FUNCTION: WIZ8 0x004ae000
 W8CameraShakeEffect::W8CameraShakeEffect(const W8CameraShakeEffect& other)
-    : flags(other.flags), intensity(other.intensity),
-      distance_cap(other.distance_cap), position(other.position),
-      timer(other.timer.m_duration_seconds, 0), cycle(other.cycle),
-      frame(other.frame), subcycle(other.subcycle),
-      completion_callback(other.completion_callback)
+    : flags(other.flags), intensity(other.intensity), distance_cap(other.distance_cap),
+      position(other.position), timer(other.timer.m_duration_seconds, 0), cycle(other.cycle),
+      frame(other.frame), subcycle(other.subcycle), completion_callback(other.completion_callback)
 {
     flags &= ~W8_SHAKE_ACTIVE;
 }
@@ -89,8 +87,8 @@ W8CameraShakeEffect::W8CameraShakeEffect(const W8CameraShakeEffect& other)
 // FUNCTION: WIZ8 0x004aded0
 W8CameraShakeEffect::W8CameraShakeEffect(float duration, bool preset, float intensity,
                                          float distance_cap, const srVector3T<float>* position)
-    : flags(0), intensity(intensity), distance_cap(distance_cap), timer(duration, 0),
-      cycle(0), frame(0), subcycle(0), completion_callback(0)
+    : flags(0), intensity(intensity), distance_cap(distance_cap), timer(duration, 0), cycle(0),
+      frame(0), subcycle(0), completion_callback(0)
 {
     if (g_shake_effects == 0) {
         g_shake_effects = new W8Vector<W8CameraShakeEffect*>(5);
@@ -625,8 +623,7 @@ void W8GrCycle::TickAnimation(float scale)
                     if (m_plsSoundEvents != 0) {
                         UpdateSoundEvents(m_plsSoundEvents, &position,
                                           W8_SOUND_EVENT_FRAME | W8_SOUND_EVENT_FOOTSTEP,
-                                          representation->current_cycle,
-                                          representation->subcycle,
+                                          representation->current_cycle, representation->subcycle,
                                           representation->current_subcycle);
                     }
                     if (m_plsShakeEvents != 0) {
@@ -657,8 +654,7 @@ unsigned char W8GrCycle::ApplyPendingCycle()
         representation->pending_cycle = -1;
 
         if (representation->pending_subcycle != 0xffff) {
-            unsigned char subcycle =
-                static_cast<unsigned char>(representation->pending_subcycle);
+            unsigned char subcycle = static_cast<unsigned char>(representation->pending_subcycle);
             signed char subcycle_count = GetNumSubCycles();
             W8EmitterHost* current = GetRepresentation();
 
@@ -751,7 +747,8 @@ void W8GrCycle::UpdateLights()
 }
 
 // FUNCTION: WIZ8 0x004a7dd0
-unsigned char W8GrCycle::GetAnimationBounds(srVector3T<float>* arg_minimum, srVector3T<float>* arg_maximum)
+unsigned char W8GrCycle::GetAnimationBounds(srVector3T<float>* arg_minimum,
+                                            srVector3T<float>* arg_maximum)
 {
     W8AnimObj* animation = GetCurrentAnimation();
     W8EmitterHost* representation = GetRepresentation();

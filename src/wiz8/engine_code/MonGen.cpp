@@ -945,12 +945,11 @@ unsigned char MonGen::Load(int handle)
         ok = ok && FileRead(handle, name, 0x20, 0);
         ok = ok && FileRead(handle, &generation_enabled, 1, 0);
     }
-    loaded = ok && FileRead(handle, &flags, 4, 0) && FileRead(handle, &custom_spawn_chance, 1, 0) &&
-             FileRead(handle, &custom_interval_seconds, 2, 0) &&
-             FileRead(handle, &unknown_08, 2, 0) && FileRead(handle, &spawn_position.x, 4, 0) &&
-             FileRead(handle, &spawn_position.y, 4, 0) &&
-             FileRead(handle, &spawn_position.z, 4, 0) &&
-             FileRead(handle, &encounter_table_index, 4, 0);
+    loaded =
+        ok && FileRead(handle, &flags, 4, 0) && FileRead(handle, &custom_spawn_chance, 1, 0) &&
+        FileRead(handle, &custom_interval_seconds, 2, 0) && FileRead(handle, &unknown_08, 2, 0) &&
+        FileRead(handle, &spawn_position.x, 4, 0) && FileRead(handle, &spawn_position.y, 4, 0) &&
+        FileRead(handle, &spawn_position.z, 4, 0) && FileRead(handle, &encounter_table_index, 4, 0);
     Reset();
     if (static_cast<signed char>(version) > 1) {
         m_pTimer->Load(handle);

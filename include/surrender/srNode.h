@@ -217,8 +217,8 @@ private:
        const updateTransformation/getter family. */
     mutable srMatrix4x3T<double> world_transform0; /* 0x090: cached affine world transform */
     mutable srMatrix4x3T<float> world_transform1;  /* 0x0f0 */
-    mutable srFlags<e_notify> notifications;     /* 0x120 */
-    srFlags<e_flag> flags;                       /* 0x124 */
+    mutable srFlags<e_notify> notifications;       /* 0x120 */
+    srFlags<e_flag> flags;                         /* 0x124 */
 
 public:
     /* The hierarchy links are read directly by derived traversals and by

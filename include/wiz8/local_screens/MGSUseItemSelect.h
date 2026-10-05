@@ -44,7 +44,7 @@ unsigned char UseItemSelectTextBoxRegionEvent(const InputAtom* event,
                                               W8Region* region); /* 0x0059DB40 */
 /* Text-box wheel helper while use-item select is active. */
 void UseItemSelectTextBoxWheelAt(short x, unsigned short y, bool flag); /* 0x0059DD30 */
-W8ItemInstance* GetSelectedOrFallbackValue(void);                                /* 0x0059E0D0 */
+W8ItemInstance* GetSelectedOrFallbackValue(void);                       /* 0x0059E0D0 */
 void SelectCurrentUseItemLine(void);
 void SetUseItemSelectOverrideItem(W8ItemInstance* value);
 

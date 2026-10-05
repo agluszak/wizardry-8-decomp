@@ -146,8 +146,7 @@ unsigned char stModelInstance::ReplaceDamageStageTexture(int stage, const char* 
     }
 
     for (; mesh != 0; mesh = mesh->next) {
-        srPtr<srTextureIFace>* textures =
-            mesh->GetTextureTable(damage_stage_tables.data[stage]);
+        srPtr<srTextureIFace>* textures = mesh->GetTextureTable(damage_stage_tables.data[stage]);
         if (textures == 0) {
             continue;
         }
@@ -233,11 +232,13 @@ stModelInstance2D& stModelInstance2D::operator=(const stModelInstance2D& other)
     render_state.glow_enabled = other.render_state.glow_enabled;
     render_state.render_depth = other.render_state.render_depth;
     if (other.glow_color_base != 0) {
-        glow_color_base = static_cast<srVector4T<float>*>(srHeap.allocate(sizeof(srVector4T<float>)));
+        glow_color_base =
+            static_cast<srVector4T<float>*>(srHeap.allocate(sizeof(srVector4T<float>)));
         *glow_color_base = *other.glow_color_base;
     }
     if (other.glow_color_peak != 0) {
-        glow_color_peak = static_cast<srVector4T<float>*>(srHeap.allocate(sizeof(srVector4T<float>)));
+        glow_color_peak =
+            static_cast<srVector4T<float>*>(srHeap.allocate(sizeof(srVector4T<float>)));
         *glow_color_peak = *other.glow_color_peak;
     }
     return *this;
@@ -349,7 +350,7 @@ void stModelInstance2D::process(const ProcessInfo& info, e_processType)
         m_pGlowMaterial->setEmissive(emissive);
         mesh.materials[0][0] = m_pGlowMaterial;
         mesh.shaders[0].value = (mesh.shaders[0].value & ~srShader::MASK_GRADIENT_MODULATE) |
-                                   srShader::MASK_GRADIENT_ADD;
+                                srShader::MASK_GRADIENT_ADD;
     }
 
 render_mesh:
@@ -401,11 +402,13 @@ unsigned short stModelInstance2D::GetScaledHeight()
 void stModelInstance2D::SetGlowColors(srVector4T<float>* first, srVector4T<float>* second)
 {
     if (glow_color_base == 0) {
-        glow_color_base = static_cast<srVector4T<float>*>(srHeap.allocate(sizeof(srVector4T<float>)));
+        glow_color_base =
+            static_cast<srVector4T<float>*>(srHeap.allocate(sizeof(srVector4T<float>)));
     }
     *glow_color_base = *first;
     if (glow_color_peak == 0) {
-        glow_color_peak = static_cast<srVector4T<float>*>(srHeap.allocate(sizeof(srVector4T<float>)));
+        glow_color_peak =
+            static_cast<srVector4T<float>*>(srHeap.allocate(sizeof(srVector4T<float>)));
     }
     *glow_color_peak = *second;
 }
@@ -623,8 +626,7 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
         }
 
         if (((highlight_colour.x == g_float_zero) && (highlight_colour.y == g_float_zero) &&
-             (highlight_colour.z == g_float_zero) &&
-             (highlight_colour.w == g_float_zero)) ||
+             (highlight_colour.z == g_float_zero) && (highlight_colour.w == g_float_zero)) ||
             (highlight_pass_mode != 1)) {
             if (diffuse_scale_enabled) {
                 g_material_diffuse_scale = diffuse_scale;
@@ -746,8 +748,7 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
                             reinterpret_cast<float*>(g_vertex_scratch->data),
                             reinterpret_cast<const float*>(g_vertex_scratch->data),
                             // reinterpret-ok: float lanes of the mesh positions.
-                            reinterpret_cast<const float*>(mesh.positions),
-                            mesh.vertex_count * 3);
+                            reinterpret_cast<const float*>(mesh.positions), mesh.vertex_count * 3);
                     }
                     mesh.positions = g_vertex_scratch->data;
                     mesh.control_flags |= (1UL << srMeshModel::CONTROL_SORTED_RENDERING);

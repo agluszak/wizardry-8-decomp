@@ -288,8 +288,7 @@ void CheckGameplayReadyOnGameThread(void* opaque)
     check->pending = g_pending_screen_state.id;
     check->keyboard_present = g_mgs_keyboard != 0;
     check->level_block_present = g_level_block != 0;
-    check->review_transition_done =
-        g_level_block != 0 ? g_level_block->review_transition_done : -1;
+    check->review_transition_done = g_level_block != 0 ? g_level_block->review_transition_done : -1;
     check->review_transition_active =
         g_level_block != 0 ? g_level_block->review_transition_active : -1;
     check->level_data_present = g_level_data != 0;

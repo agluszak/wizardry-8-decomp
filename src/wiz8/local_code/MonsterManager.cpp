@@ -134,8 +134,7 @@ W8MonsterInfo* CreateMonsterInfo(W8MonsterGroup* group, W8MonsterRecord* record,
     monster_info->insanity_summon = -1;
     monster_info->movement_watch_position.SetZero();
 
-    if (PLAdoptAppend(record->unborn != 0 ? gXStatus.plsUnbornMonsterList
-                                              : gXStatus.plsMonsterList,
+    if (PLAdoptAppend(record->unborn != 0 ? gXStatus.plsUnbornMonsterList : gXStatus.plsMonsterList,
                       monster_info) == -1) {
         free(monster_info);
         return 0;
@@ -812,8 +811,7 @@ static void DestroyMonsterListEntry(unsigned int index)
         DeleteMonster(monster_info->p3D);
         monster_info->p3D = 0;
     }
-    g_octree->UnregisterLocationObjects(
-        static_cast<unsigned short>(monster_info->location_id));
+    g_octree->UnregisterLocationObjects(static_cast<unsigned short>(monster_info->location_id));
     ReleaseNpcBinding(monster_info->bound_npc_index);
     void* removed = PLRemoveAt(gXStatus.plsMonsterList, index);
     if (removed != 0) {
@@ -1001,8 +999,7 @@ float CalculateMonsterScale(W8MonsterInfo* monster_info)
     }
     W8MonsterRecord* record = MonsterDBFromSpecies(monster_info->monster_species);
     int minimum_hp = record->hit_points.base + record->hit_points.count;
-    int maximum_hp =
-        record->hit_points.base + record->hit_points.count * record->hit_points.sides;
+    int maximum_hp = record->hit_points.base + record->hit_points.count * record->hit_points.sides;
     float scale =
         ((maximum - minimum) * (static_cast<unsigned int>(monster_info->uiHPMax) - minimum_hp)) /
             (maximum_hp - minimum_hp) +
@@ -1716,11 +1713,11 @@ void DetectMonsterGroups(void)
                     character->uiCondition[W8_CONDITION_BLIND] != 0) {
                     continue;
                 }
-                int score = (character->monster_awareness[group->monster_id] -
-                             record->effective_level) *
-                                3 +
-                            character->attributes[W8_ATTRIBUTE_INTELLIGENCE].effective / 10 +
-                            character->skills[W8_SKILL_MYTHOLOGY].level;
+                int score =
+                    (character->monster_awareness[group->monster_id] - record->effective_level) *
+                        3 +
+                    character->attributes[W8_ATTRIBUTE_INTELLIGENCE].effective / 10 +
+                    character->skills[W8_SKILL_MYTHOLOGY].level;
                 int roll = Random(100);
                 if (roll >= score) {
                     continue;

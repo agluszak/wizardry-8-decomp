@@ -27,7 +27,7 @@ const float g_prepath_link_height = 1.1f;
 class OctPrePathLog {
 public:
     OctPrePathLog(float scale, const W8BoundingBox* bounds); /* 0x004CCE00 */
-    void MarkPathNode(W8PrePathNode* node);          /* 0x004CCF50 */
+    void MarkPathNode(W8PrePathNode* node);                  /* 0x004CCF50 */
 
     int width;
     int rows;
@@ -150,8 +150,8 @@ int PrePathing::SnapNamedPositions(W8LevelFileNamedPosition* positions, int coun
         named_positions = new srVector3T<float>[count];
         for (int i = 0; i < named_position_count; ++i) {
             named_positions[i].Set(positions[i].position.x * g_world_scale,
-                                       positions[i].position.y * g_world_scale,
-                                       positions[i].position.z * g_world_scale);
+                                   positions[i].position.y * g_world_scale,
+                                   positions[i].position.z * g_world_scale);
             octree->SnapToGround(&named_positions[i], 0);
         }
     }
@@ -171,8 +171,7 @@ W8PrePathNode* PrePathing::GetPathNode()
         if (node_chunks[chunk_index] == 0) {
             ReportBuildStatus(7, "PrePathing::GetPathNode -- Could not allocate path nodes.");
         }
-        memset(node_chunks[chunk_index], 0,
-               W8_PREPATH_NODES_PER_CHUNK * sizeof(W8PrePathNode));
+        memset(node_chunks[chunk_index], 0, W8_PREPATH_NODES_PER_CHUNK * sizeof(W8PrePathNode));
         chunk_node_count = 0;
     }
     W8PrePathNode* node = node_chunks[chunk_index] + chunk_node_count;
@@ -386,8 +385,7 @@ unsigned int PrePathing::DeleteUnreachableAreas()
                                 neighbor = 0;
                                 scanning = false;
                             } else {
-                                float height_diff =
-                                    fabsf(neighbor->y - path_node_list[index]->y);
+                                float height_diff = fabsf(neighbor->y - path_node_list[index]->y);
                                 if (link_height <= height_diff) {
                                     if (first_probe ||
                                         (neighbor->level_flags & W8_PATH_CELL_INACTIVE) == 0) {
@@ -429,10 +427,10 @@ unsigned int PrePathing::DeleteUnreachableAreas()
                     W8PrePathNode* node = path_node_list[pending - 1];
                     unsigned int cell = node->cell;
                     float world_y = node->y;
-                    float world_x = ((cell & 0xffff) + g_float_005ebc7c) * grid_scale +
-                                    level_bounds.minimum.x;
-                    float world_z = ((cell >> 0x10) + g_float_005ebc7c) * grid_scale +
-                                    level_bounds.minimum.z;
+                    float world_x =
+                        ((cell & 0xffff) + g_float_005ebc7c) * grid_scale + level_bounds.minimum.x;
+                    float world_z =
+                        ((cell >> 0x10) + g_float_005ebc7c) * grid_scale + level_bounds.minimum.z;
                     for (int n = 0; n < named_position_count && clear_of_named; ++n) {
                         float dx = world_x - named_positions[n].x;
                         float dy = world_y - named_positions[n].y;
@@ -640,8 +638,7 @@ void W8PathingService::LinkCollideableProps(int lNumProps, W8PreProp* pPreProps,
                             }
                             if (!bWroteFrame) {
                                 aiLookup[m_ulNumCondFrames + 1] = m_ulNumCondNodes;
-                                ausFrames[m_ulNumCondFrames] =
-                                    pProp->pStopMeshes[j].m_prop_number;
+                                ausFrames[m_ulNumCondFrames] = pProp->pStopMeshes[j].m_prop_number;
                                 ++m_ulNumCondFrames;
                                 if (m_ulNumCondFrames >= 10000) {
                                     srAssertFail("m_ulNumCondFrames < 10000", OCTPREPATH_CPP, 1077,

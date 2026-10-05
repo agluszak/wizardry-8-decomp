@@ -635,10 +635,11 @@ void CalcAttacks(W8Character* character)
             dual_penalty = 0;
         }
 
-        attack->attack_score = (dual_penalty + character->attributes[W8_ATTRIBUTE_DEXTERITY].effective / 2 +
-                                attack->combined_skill * 2 + physical_experience) /
-                                   3 +
-                               60;
+        attack->attack_score =
+            (dual_penalty + character->attributes[W8_ATTRIBUTE_DEXTERITY].effective / 2 +
+             attack->combined_skill * 2 + physical_experience) /
+                3 +
+            60;
         if (character->fInParty && character->iRace == W8_RACE_ANDROID) {
             unsigned int party_slot = CharacterPointerToPartySlot(character);
             W8NpcState* npc = GetNpcState(g_status.buffers.XChar[party_slot].npc_index);
@@ -648,7 +649,9 @@ void CalcAttacks(W8Character* character)
             }
         }
 
-        score = (((character->attributes[W8_ATTRIBUTE_SPEED].effective + character->attributes[W8_ATTRIBUTE_DEXTERITY].effective) >> 1) +
+        score = (((character->attributes[W8_ATTRIBUTE_SPEED].effective +
+                   character->attributes[W8_ATTRIBUTE_DEXTERITY].effective) >>
+                  1) +
                  dual_penalty + physical_experience + load_penalty + attack->combined_skill) /
                 3;
         attack->attacks = 1;
@@ -663,8 +666,8 @@ void CalcAttacks(W8Character* character)
             attack->attacks = 2;
         }
 
-        score = (character->attributes[W8_ATTRIBUTE_SPEED].effective + attack->swings * 10 + dual_penalty +
-                 physical_experience + load_penalty + attack->combined_skill) /
+        score = (character->attributes[W8_ATTRIBUTE_SPEED].effective + attack->swings * 10 +
+                 dual_penalty + physical_experience + load_penalty + attack->combined_skill) /
                 3;
         attack->swings = 1;
         if (score > 66) {
@@ -726,18 +729,24 @@ void CalcAttacks(W8Character* character)
         }
 
         if (character->attributes[W8_ATTRIBUTE_STRENGTH].effective < 50) {
-            attack->hit_bonus -= (50 - character->attributes[W8_ATTRIBUTE_STRENGTH].effective) / (divisor * 10);
-            attack->damage_percent -= (50 - character->attributes[W8_ATTRIBUTE_STRENGTH].effective) / divisor;
+            attack->hit_bonus -=
+                (50 - character->attributes[W8_ATTRIBUTE_STRENGTH].effective) / (divisor * 10);
+            attack->damage_percent -=
+                (50 - character->attributes[W8_ATTRIBUTE_STRENGTH].effective) / divisor;
         } else if (character->attributes[W8_ATTRIBUTE_STRENGTH].effective > 50) {
             divisor *= hand + 1;
-            attack->hit_bonus += (character->attributes[W8_ATTRIBUTE_STRENGTH].effective - 50) / (divisor * 10);
-            attack->damage_percent += (character->attributes[W8_ATTRIBUTE_STRENGTH].effective * 2 - 100) / divisor;
+            attack->hit_bonus +=
+                (character->attributes[W8_ATTRIBUTE_STRENGTH].effective - 50) / (divisor * 10);
+            attack->damage_percent +=
+                (character->attributes[W8_ATTRIBUTE_STRENGTH].effective * 2 - 100) / divisor;
         }
 
         if (character->attributes[W8_ATTRIBUTE_DEXTERITY].effective < 50) {
-            attack->hit_bonus -= (50 - character->attributes[W8_ATTRIBUTE_DEXTERITY].effective) / 10;
+            attack->hit_bonus -=
+                (50 - character->attributes[W8_ATTRIBUTE_DEXTERITY].effective) / 10;
         } else if (character->attributes[W8_ATTRIBUTE_DEXTERITY].effective > 50) {
-            attack->hit_bonus += (character->attributes[W8_ATTRIBUTE_DEXTERITY].effective - 50) / 10;
+            attack->hit_bonus +=
+                (character->attributes[W8_ATTRIBUTE_DEXTERITY].effective - 50) / 10;
         }
         if (character->attributes[W8_ATTRIBUTE_SENSES].effective < 30) {
             attack->hit_bonus -= (30 - character->attributes[W8_ATTRIBUTE_SENSES].effective) / 10;
@@ -771,10 +780,12 @@ void CalcAttacks(W8Character* character)
             load_penalty /= 2;
         }
         attack->hit_bonus += load_penalty;
-        if (character->skills[W8_SKILL_EAGLE_EYE].active && attack->combat_skill == W8_SKILL_RANGED_COMBAT) {
+        if (character->skills[W8_SKILL_EAGLE_EYE].active &&
+            attack->combat_skill == W8_SKILL_RANGED_COMBAT) {
             attack->hit_bonus += character->skills[W8_SKILL_EAGLE_EYE].level / 20 + 1;
         }
-        if (character->skills[W8_SKILL_POWER_STRIKE].active && attack->combat_skill == W8_SKILL_CLOSE_COMBAT) {
+        if (character->skills[W8_SKILL_POWER_STRIKE].active &&
+            attack->combat_skill == W8_SKILL_CLOSE_COMBAT) {
             attack->hit_bonus += character->skills[W8_SKILL_POWER_STRIKE].level / 20 + 1;
         }
     }

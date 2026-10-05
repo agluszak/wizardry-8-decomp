@@ -148,8 +148,7 @@ static bool RunSearchModeSemanticTest(void)
                    wcscmp(g_message_storage[combat_box][combat_index].wString,
                           gppStringList[W8_NOTICE_SEARCH_BLOCKED_COMBAT]) == 0;
     for (int box = 0; box < 4; ++box) {
-        for (unsigned int index = used[box]; index < g_status.text_box_lines_used[box];
-             ++index) {
+        for (unsigned int index = used[box]; index < g_status.text_box_lines_used[box]; ++index) {
             W8MessageStorageRecord* record = &g_message_storage[box][index];
             free(record->wString);
             if (record->entries) {
@@ -708,11 +707,10 @@ static bool PrepareMainGameFixture(RuntimeCase& test, int party_size)
                 "timer_flags=%02x paused=%d d1=%d d2=%d scale=%.3f latch=%d "
                 "world_blocked=%u ready_calls=%u\n",
                 last.screen, last.pending, last.keyboard_present, last.level_block_present,
-                last.review_transition_done, last.review_transition_active,
-                last.level_data_present, last.flags, last.flag4_effective, last.blocked,
-                last.camera_x, last.camera_y, last.camera_z, last.timer_flags, last.timer_paused,
-                last.timer_d1, last.timer_d2, last.timer_scale, last.ground_latch,
-                last.world_update_blocked, last.calls);
+                last.review_transition_done, last.review_transition_active, last.level_data_present,
+                last.flags, last.flag4_effective, last.blocked, last.camera_x, last.camera_y,
+                last.camera_z, last.timer_flags, last.timer_paused, last.timer_d1, last.timer_d2,
+                last.timer_scale, last.ground_latch, last.world_update_blocked, last.calls);
         FailScenario("main-game-fixture", "main-game-not-ready");
         return false;
     }
@@ -907,7 +905,8 @@ static void CheckVoiceCompletionOnGameThread(void* opaque)
     }
     result->playing = SoundIsPlaying(result->sound_handle) != 0;
     result->event_active = record->active_character_event != 0;
-    result->event_queued = gXStatus.character_event_queue->active_events.IndexOf(result->event) >= 0;
+    result->event_queued =
+        gXStatus.character_event_queue->active_events.IndexOf(result->event) >= 0;
     result->portrait_active = record->portrait_event_active;
 }
 
@@ -969,16 +968,14 @@ static bool VoicePortraitSyncCase(RuntimeCase& test)
     RT_REQUIRE(test, voice_handle != static_cast<unsigned int>(-1) && voice_total_ms != 0);
 
     VoiceCompletionResult completion = {0, voice_handle, true, true, true, true};
-    RT_REQUIRE(test,
-               test.on_game_thread("voice-event-active", CheckVoiceCompletionOnGameThread,
-                                   &completion, 5000));
+    RT_REQUIRE(test, test.on_game_thread("voice-event-active", CheckVoiceCompletionOnGameThread,
+                                         &completion, 5000));
     voice_event = completion.event;
     RT_REQUIRE(test, voice_event != 0 && completion.playing && completion.event_active &&
                          completion.event_queued && completion.portrait_active);
     RT_REQUIRE(test, test.wait_for_event(RUNTIME_VOICE_FINISHED, voice_total_ms + 5000));
-    RT_REQUIRE(test,
-               test.on_game_thread("voice-event-finished", CheckVoiceCompletionOnGameThread,
-                                   &completion, 5000));
+    RT_REQUIRE(test, test.on_game_thread("voice-event-finished", CheckVoiceCompletionOnGameThread,
+                                         &completion, 5000));
     RT_REQUIRE(test, !completion.playing && !completion.event_active && !completion.event_queued &&
                          !completion.portrait_active);
     test.observe("voice_total_ms", voice_total_ms);

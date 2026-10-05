@@ -38,8 +38,8 @@ bool FindEntityByName(const char* name, srVector3T<float>* position, float* angl
                       srVector3T<float>* direction);
 unsigned char AdjustWorldCollisionPosition(float radius, srVector3T<float>* position,
                                            bool check_items, bool check_monsters);
-unsigned char FindNearbyFreePosition(float radius, srVector3T<float>* position,
-                                     bool check_items, bool check_monsters);
+unsigned char FindNearbyFreePosition(float radius, srVector3T<float>* position, bool check_items,
+                                     bool check_monsters);
 
 static_assert(sizeof(W8World) == 0xdc, "W8World_must_be_0xdc");
 

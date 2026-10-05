@@ -469,14 +469,13 @@ bool CombatHasCondition(int effect_id)
            The first six occupy effect_slots0; the rest overlap
            engaged_missile and TargetHit. Retail does that overlapping
            walk; it is a raw stride, not a typed array of nine. */
-        // clang-format off
+
         for (index = 0; index < W8_COMBAT_CONDITION_SLOTS; ++index) {
             slot = g_combat_state->effect_slots0 + index;
             if (slot->active && slot->effect_id == effect_id) {
                 return true;
             }
         }
-        // clang-format on
     }
     return false;
 }
@@ -2156,13 +2155,11 @@ void ReportSpellResult(W8SpellEffectEntry* effect)
     }
     if (effect->result.amount != 0) {
         if (effect->result.count == 1) {
-            AppendToLastTextLine(FormatWideString(gppStringList[0x19a], effect->result.amount),
-                                 -1);
+            AppendToLastTextLine(FormatWideString(gppStringList[0x19a], effect->result.amount), -1);
         } else {
-            AppendToLastTextLine(
-                FormatWideString(gppStringList[0x199], effect->result.count,
-                                 effect->result.amount / effect->result.count, -1),
-                -1);
+            AppendToLastTextLine(FormatWideString(gppStringList[0x199], effect->result.count,
+                                                  effect->result.amount / effect->result.count, -1),
+                                 -1);
             SetTextBoxMode(1, -1);
         }
         SetTextBoxMode(1, -1);
@@ -2298,7 +2295,7 @@ static bool CheckAndRestartSpellCooldown(int spell_id)
    per-spell rules the cast path checks before it spends the points. */
 // FUNCTION: WIZ8 0x004F9AE0
 bool SpellAffectedTarget(W8Character* character, int spell_id, W8CombatSlot* aim,
-                                  unsigned int power)
+                         unsigned int power)
 {
     unsigned int duration;
     unsigned int index;
@@ -2308,8 +2305,8 @@ bool SpellAffectedTarget(W8Character* character, int spell_id, W8CombatSlot* aim
     const W8Character* target;
     bool affected;
 
-    duration = g_spell_records[spell_id].duration * power +
-               g_spell_records[spell_id].duration_per_level;
+    duration =
+        g_spell_records[spell_id].duration * power + g_spell_records[spell_id].duration_per_level;
     affected = true;
     if (duration != 9999) {
         duration += 1;
@@ -2324,9 +2321,9 @@ bool SpellAffectedTarget(W8Character* character, int spell_id, W8CombatSlot* aim
         } else {
             for (index = 0; index < 12; ++index) {
                 if (g_being_effect_slot_spells[index] == spell_id) {
-                    affected = g_status.effect_slots[index].duration /
-                                   static_cast<float>(duration) <=
-                               g_navigator_vertical_phase_step;
+                    affected =
+                        g_status.effect_slots[index].duration / static_cast<float>(duration) <=
+                        g_navigator_vertical_phase_step;
                     break;
                 }
             }
@@ -2912,8 +2909,8 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
             fizzled = true;
             SoundPlay("Data\\Sound\\Misc\\Spell Fizzle 01.wav", 0);
             if (caster_slot != -1 && Random(100) < 0x46) {
-                QueueCharacterEvent(&g_status.buffers.Char[caster_slot], g_special_event13,
-                                    0, g_character_event_no_flags, g_character_event_full_volume);
+                QueueCharacterEvent(&g_status.buffers.Char[caster_slot], g_special_event13, 0,
+                                    g_character_event_no_flags, g_character_event_full_volume);
             }
         }
     }
@@ -2975,8 +2972,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
             monster_index = MonsterGetIndexByLocationID(0x6ad, MAGIC_CPP, source->iMonsterID, true);
             monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
             record_data = GetMonsterDataForInfo(monster_info);
-            caster_figure =
-                GetSpellDifficulty(record_data->effective_level, spell_id, power_level);
+            caster_figure = GetSpellDifficulty(record_data->effective_level, spell_id, power_level);
         } else {
             if (source->iType != W8_TARGET_SOURCE_INDIRECT) {
                 srAssertFail("pSource->iType == SOURCE_TYPE_3D_POINT", MAGIC_CPP, 0x6b2, 0);
@@ -3041,8 +3037,8 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                 }
                 owner->missiles_pending = true;
             } else {
-                memcpy(block.condition_chances,
-                       g_missile_table[missile_index].condition_chances, 0x10);
+                memcpy(block.condition_chances, g_missile_table[missile_index].condition_chances,
+                       0x10);
                 block.magnitude_base = g_missile_table[missile_index].magnitude_base;
                 for (index = 0; index < monster_markers.GetCount(); ++index) {
                     ResetCombatSlot(&point_target);
@@ -3292,9 +3288,8 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
             }
             if (caster_slot != -1) {
                 if (Random(2) == 0) {
-                    QueueCharacterEvent(&g_status.buffers.Char[caster_slot],
-                                        g_item_message0, 0, g_character_event_no_flags,
-                                        g_character_event_full_volume);
+                    QueueCharacterEvent(&g_status.buffers.Char[caster_slot], g_item_message0, 0,
+                                        g_character_event_no_flags, g_character_event_full_volume);
                 } else {
                     ApplyItemEffectToRandomCharacter(g_item_message1, caster_slot, 0,
                                                      g_character_event_no_flags);

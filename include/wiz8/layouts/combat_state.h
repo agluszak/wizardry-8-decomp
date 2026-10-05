@@ -242,9 +242,9 @@ struct W8CombatState {
     struct W8MonsterInfo* pActionMonsterInfo; /* 0x7b8 */
     unsigned int hit_sound;
     bool hit_sound_active;
-    W8EffectSlot effect_slots[9];     /* 0x7c1, 0x11 stride */
+    W8EffectSlot effect_slots[9];  /* 0x7c1, 0x11 stride */
     W8EffectSlot effect_slots0[6]; /* 0x85a..0x8bf */
-    W8Missile* engaged_missile;       /* 0x8c0: live missile that blocks ending combat */
+    W8Missile* engaged_missile;    /* 0x8c0: live missile that blocks ending combat */
     /* 0x8c4: staged hit result of the in-flight missile (0 = pending, 1 = hit, 2 = deflected) */
     char missile_hit_result;
     /* 0x8c5: exact name from the attack assertions; the slot is unaligned
@@ -254,9 +254,9 @@ struct W8CombatState {
     int pending_deaths[8];   /* 0x8e8 */
     int pending_death_count; /* 0x908 */
     /* 0x90c: the party-action fields the movement assertions pin. */
-    W8PartyAction uiNextPartyAction;         /* 0x90c */
-    W8PartyAction uiCurrentPartyAction;      /* 0x910 */
-    unsigned int uiPartyActionPhase;         /* 0x914 */
+    W8PartyAction uiNextPartyAction;                /* 0x90c */
+    W8PartyAction uiCurrentPartyAction;             /* 0x910 */
+    unsigned int uiPartyActionPhase;                /* 0x914 */
     W8PartyActionStatus uiCurrentPartyActionStatus; /* 0x918 */
     /* 0x91c: countdown used to pace synthetic movement progress when
        continuous combat is enabled and the world did not advance this frame. */
@@ -322,7 +322,7 @@ struct W8CombatState {
     /* 0xa61: remembered search-mode state; the combat teardown toggles search
        mode back on when it reads nonzero. */
     unsigned char search_mode_saved;
-    bool combat_ready;     /* 0xa62: party combat-ready bit */
+    bool combat_ready;         /* 0xa62: party combat-ready bit */
     unsigned char padding_a63; /* 0xa63: the allocation is 0xa64 bytes */
 }; /* 0xa64 */
 

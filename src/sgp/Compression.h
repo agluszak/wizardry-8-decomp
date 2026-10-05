@@ -1,7 +1,8 @@
 /* Modified for the Wizardry 8 reconstruction, 2026-10-03.
    Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
+   Formatting normalized for the Wizardry 8 reconstruction, 2026-10-06.
    Distributed under the accompanying SFI Source Code license agreement. */
-#if !defined( COMPRESSION_H )
+#if !defined(COMPRESSION_H)
 
 #define COMPRESSION_H
 
@@ -26,9 +27,9 @@
 //
 // 3) call DecompressFini() with the decompression pointer when you're done
 
-PTR DecompressInit( BYTE * pCompressedData, UINT32 uiDataSize );
-UINT32 Decompress( PTR pDecompPtr, BYTE * pBuffer, UINT32 uiBufferLen );
-void DecompressFini( PTR pDecompPtr );
+PTR DecompressInit(BYTE* pCompressedData, UINT32 uiDataSize);
+UINT32 Decompress(PTR pDecompPtr, BYTE* pBuffer, UINT32 uiBufferLen);
+void DecompressFini(PTR pDecompPtr);
 
 // To compress:
 //

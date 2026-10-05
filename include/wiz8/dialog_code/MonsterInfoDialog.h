@@ -26,7 +26,7 @@ private:
     bool PopulateText(); /* 0x005D6160 */
     static void ScrollCallback(W8DialogScrollBar* scroll_bar, int first_visible_entry);
 
-    int m_location_id;                 /* 0x54 */
+    int m_location_id;              /* 0x54 */
     W8DialogScrollBar m_scroll_bar; /* 0x58 */
     W8DialogButton m_button;        /* 0xa4 */
     W8DialogTextArea m_text_area;   /* 0xec */

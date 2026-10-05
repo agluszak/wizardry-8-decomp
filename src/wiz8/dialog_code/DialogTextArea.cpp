@@ -64,8 +64,7 @@ void W8DialogTextArea::Draw(bool force)
         for (int index = m_first_visible_entry; index < m_visible_lines.count; ++index) {
             if (m_relayout_needed) {
                 unsigned int height = GetLineHeight();
-                bounds.bottom =
-                    bounds.top + (*m_visible_lines.GetAt(index))->m_lineCount * height;
+                bounds.bottom = bounds.top + (*m_visible_lines.GetAt(index))->m_lineCount * height;
                 (*m_visible_lines.GetAt(index))->SetLayoutBounds(&bounds, false, false);
                 bounds.top = bounds.bottom + m_entry_spacing;
             }
@@ -217,8 +216,7 @@ bool W8DialogTextArea::UpdateSelectionFromPoint(int, int y)
     for (unsigned int index = m_first_visible_entry;
          index < static_cast<unsigned int>(m_visible_lines.count); ++index) {
         for (unsigned int line = m_first_visible_line;
-             line < (*m_visible_lines.GetAt(index))->m_lineCount + spacing;
-             ++line, ++position) {
+             line < (*m_visible_lines.GetAt(index))->m_lineCount + spacing; ++line, ++position) {
             if (position == target)
                 return SelectEntry(index);
         }

@@ -892,63 +892,54 @@ void srNode::updateTransformation() const
         if ((parent->notifications.value & 2) != 0) {
             parent->updateTransformation();
         }
-        world_transform0.rows[0].x =
-            (parent->world_transform0.rows[0].x * rotation.vectors[0].x +
-             parent->world_transform0.rows[0].y * rotation.vectors[1].x +
-             parent->world_transform0.rows[0].z * rotation.vectors[2].x) *
-            scale.x;
-        world_transform0.rows[1].x =
-            (parent->world_transform0.rows[1].x * rotation.vectors[0].x +
-             parent->world_transform0.rows[1].y * rotation.vectors[1].x +
-             parent->world_transform0.rows[1].z * rotation.vectors[2].x) *
-            scale.x;
-        world_transform0.rows[2].x =
-            (parent->world_transform0.rows[2].x * rotation.vectors[0].x +
-             parent->world_transform0.rows[2].y * rotation.vectors[1].x +
-             parent->world_transform0.rows[2].z * rotation.vectors[2].x) *
-            scale.x;
-        world_transform0.rows[0].y =
-            (parent->world_transform0.rows[0].x * rotation.vectors[0].y +
-             parent->world_transform0.rows[0].y * rotation.vectors[1].y +
-             parent->world_transform0.rows[0].z * rotation.vectors[2].y) *
-            scale.y;
-        world_transform0.rows[1].y =
-            (parent->world_transform0.rows[1].x * rotation.vectors[0].y +
-             parent->world_transform0.rows[1].y * rotation.vectors[1].y +
-             parent->world_transform0.rows[1].z * rotation.vectors[2].y) *
-            scale.y;
-        world_transform0.rows[2].y =
-            (parent->world_transform0.rows[2].x * rotation.vectors[0].y +
-             parent->world_transform0.rows[2].y * rotation.vectors[1].y +
-             parent->world_transform0.rows[2].z * rotation.vectors[2].y) *
-            scale.y;
-        world_transform0.rows[0].z =
-            (parent->world_transform0.rows[0].x * rotation.vectors[0].z +
-             parent->world_transform0.rows[0].y * rotation.vectors[1].z +
-             parent->world_transform0.rows[0].z * rotation.vectors[2].z) *
-            scale.z;
-        world_transform0.rows[1].z =
-            (parent->world_transform0.rows[1].x * rotation.vectors[0].z +
-             parent->world_transform0.rows[1].y * rotation.vectors[1].z +
-             parent->world_transform0.rows[1].z * rotation.vectors[2].z) *
-            scale.z;
-        world_transform0.rows[2].z =
-            (parent->world_transform0.rows[2].x * rotation.vectors[0].z +
-             parent->world_transform0.rows[2].y * rotation.vectors[1].z +
-             parent->world_transform0.rows[2].z * rotation.vectors[2].z) *
-            scale.z;
+        world_transform0.rows[0].x = (parent->world_transform0.rows[0].x * rotation.vectors[0].x +
+                                      parent->world_transform0.rows[0].y * rotation.vectors[1].x +
+                                      parent->world_transform0.rows[0].z * rotation.vectors[2].x) *
+                                     scale.x;
+        world_transform0.rows[1].x = (parent->world_transform0.rows[1].x * rotation.vectors[0].x +
+                                      parent->world_transform0.rows[1].y * rotation.vectors[1].x +
+                                      parent->world_transform0.rows[1].z * rotation.vectors[2].x) *
+                                     scale.x;
+        world_transform0.rows[2].x = (parent->world_transform0.rows[2].x * rotation.vectors[0].x +
+                                      parent->world_transform0.rows[2].y * rotation.vectors[1].x +
+                                      parent->world_transform0.rows[2].z * rotation.vectors[2].x) *
+                                     scale.x;
+        world_transform0.rows[0].y = (parent->world_transform0.rows[0].x * rotation.vectors[0].y +
+                                      parent->world_transform0.rows[0].y * rotation.vectors[1].y +
+                                      parent->world_transform0.rows[0].z * rotation.vectors[2].y) *
+                                     scale.y;
+        world_transform0.rows[1].y = (parent->world_transform0.rows[1].x * rotation.vectors[0].y +
+                                      parent->world_transform0.rows[1].y * rotation.vectors[1].y +
+                                      parent->world_transform0.rows[1].z * rotation.vectors[2].y) *
+                                     scale.y;
+        world_transform0.rows[2].y = (parent->world_transform0.rows[2].x * rotation.vectors[0].y +
+                                      parent->world_transform0.rows[2].y * rotation.vectors[1].y +
+                                      parent->world_transform0.rows[2].z * rotation.vectors[2].y) *
+                                     scale.y;
+        world_transform0.rows[0].z = (parent->world_transform0.rows[0].x * rotation.vectors[0].z +
+                                      parent->world_transform0.rows[0].y * rotation.vectors[1].z +
+                                      parent->world_transform0.rows[0].z * rotation.vectors[2].z) *
+                                     scale.z;
+        world_transform0.rows[1].z = (parent->world_transform0.rows[1].x * rotation.vectors[0].z +
+                                      parent->world_transform0.rows[1].y * rotation.vectors[1].z +
+                                      parent->world_transform0.rows[1].z * rotation.vectors[2].z) *
+                                     scale.z;
+        world_transform0.rows[2].z = (parent->world_transform0.rows[2].x * rotation.vectors[0].z +
+                                      parent->world_transform0.rows[2].y * rotation.vectors[1].z +
+                                      parent->world_transform0.rows[2].z * rotation.vectors[2].z) *
+                                     scale.z;
         world_transform0.rows[0].w = parent->world_transform0.rows[0].x * location.x +
-                                       parent->world_transform0.rows[0].y * location.y +
-                                       parent->world_transform0.rows[0].z * location.z +
-                                       parent->world_transform0.rows[0].w;
+                                     parent->world_transform0.rows[0].y * location.y +
+                                     parent->world_transform0.rows[0].z * location.z +
+                                     parent->world_transform0.rows[0].w;
         world_transform0.rows[1].w = parent->world_transform0.rows[1].x * location.x +
-                                       parent->world_transform0.rows[1].y * location.y +
-                                       parent->world_transform0.rows[1].z * location.z +
-                                       parent->world_transform0.rows[1].w;
+                                     parent->world_transform0.rows[1].y * location.y +
+                                     parent->world_transform0.rows[1].z * location.z +
+                                     parent->world_transform0.rows[1].w;
         world_transform0.rows[2].w = parent->world_transform0.rows[2].x * location.x +
-                                       parent->world_transform0.rows[2].y * location.y +
-                                       parent->world_transform0.rows[2].z * location.z +
-                                       parent->world_transform0.rows[2].w;
+                                     parent->world_transform0.rows[2].y * location.y +
+                                     parent->world_transform0.rows[2].z * location.z +
+                                     parent->world_transform0.rows[2].w;
     } else {
         parent->getWorldSpaceMatrix(world_transform0);
     }
@@ -1356,12 +1347,12 @@ void srNode::setWorldSpaceMatrix(const srMatrix4T<double>& matrix)
     srVector3T<double> column_x;
     srVector3T<double> column_y;
     srVector3T<double> column_z;
-    column_z = srVector3T<double>(rotation.vectors[0].z, rotation.vectors[1].z,
-                                  rotation.vectors[2].z);
-    column_y = srVector3T<double>(rotation.vectors[0].y, rotation.vectors[1].y,
-                                  rotation.vectors[2].y);
-    column_x = srVector3T<double>(rotation.vectors[0].x, rotation.vectors[1].x,
-                                  rotation.vectors[2].x);
+    column_z =
+        srVector3T<double>(rotation.vectors[0].z, rotation.vectors[1].z, rotation.vectors[2].z);
+    column_y =
+        srVector3T<double>(rotation.vectors[0].y, rotation.vectors[1].y, rotation.vectors[2].y);
+    column_x =
+        srVector3T<double>(rotation.vectors[0].x, rotation.vectors[1].x, rotation.vectors[2].x);
     scale.Set(column_x.Length(), column_y.Length(), column_z.Length());
     srVector3T<double> inverse_scale;
     inverse_scale.Set(1.0 / scale.x, 1.0 / scale.y, 1.0 / scale.z);

@@ -245,7 +245,7 @@ bool W8SplitItemDialog::CreateButtons()
     m_buttons[1]->m_fires_on_press = true;
     for (index = 0; index < count; ++index) {
         m_buttons[index]->SetPosition(g_split_button_offsets[index].x + m_x,
-                                          g_split_button_offsets[index].y + m_y);
+                                      g_split_button_offsets[index].y + m_y);
         m_buttons[index]->m_owner = this;
     }
     return true;
@@ -270,9 +270,9 @@ bool W8SplitItemDialog::CreateTextBuffers()
         bounds.top = g_split_text_bounds[index].top + m_y;
         bounds.right = g_split_text_bounds[index].right + m_x;
         bounds.bottom = g_split_text_bounds[index].bottom + m_y;
-        m_texts[index] = new W8TextBuffer(
-            &bounds, gppStringList[g_split_text_string_ids[index]], g_wiz_text_font_secondary,
-            g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter, 4);
+        m_texts[index] = new W8TextBuffer(&bounds, gppStringList[g_split_text_string_ids[index]],
+                                          g_wiz_text_font_secondary,
+                                          g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter, 4);
         if (m_texts[index] == 0) {
             DestroyTextBuffers();
             return false;
@@ -312,8 +312,8 @@ bool W8SplitItemDialog::CreateNumericInput()
     bounds.top = g_split_count_field_bounds.top + m_y;
     bounds.right = g_split_count_field_bounds.right + m_x;
     bounds.bottom = g_split_count_field_bounds.bottom + m_y;
-    m_count_input = new W8DialogNumericInput(0, &bounds, split_count,
-                                                 g_wiz_text_font_secondary, this, m_buttons[3]);
+    m_count_input = new W8DialogNumericInput(0, &bounds, split_count, g_wiz_text_font_secondary,
+                                             this, m_buttons[3]);
     if (m_count_input == 0) {
         NoOp();
         delete m_count_input;
@@ -359,9 +359,9 @@ void W8SplitItemDialog::Draw()
         W8DialogBase::Draw();
     }
     if (m_first_draw) {
-        DrawCatalogImageAndInvalidate(
-            -0xe, g_item_video_objects.GetOrCreateVideoObject(m_item->iItemNo), 0, 0,
-            m_x + 0x18, m_y + 0xe, 2, 0);
+        DrawCatalogImageAndInvalidate(-0xe,
+                                      g_item_video_objects.GetOrCreateVideoObject(m_item->iItemNo),
+                                      0, 0, m_x + 0x18, m_y + 0xe, 2, 0);
         m_first_draw = false;
     }
     if (m_buttons[3]->m_dirty) {
@@ -509,14 +509,12 @@ void W8SplitItemDialog::UpdateTotals()
     m_count_input->m_dirty = true;
     m_count_input->m_button->m_dirty = true;
     swprintf(text, g_assay_format,
-             static_cast<double>(GetItemUnitWeight(m_item) * m_remaining) *
-                 g_float_005ed8b8);
+             static_cast<double>(GetItemUnitWeight(m_item) * m_remaining) * g_float_005ed8b8);
     m_texts[7]->SetText(text, g_wiz_text_font_secondary);
     m_buttons[4]->m_dirty = true;
     m_texts[7]->SetGeometryDirty();
     swprintf(text, g_assay_format,
-             static_cast<double>(GetItemUnitWeight(m_item) * split_count) *
-                 g_float_005ed8b8);
+             static_cast<double>(GetItemUnitWeight(m_item) * split_count) * g_float_005ed8b8);
     m_texts[9]->SetText(text, g_wiz_text_font_secondary);
     m_buttons[5]->m_dirty = true;
     m_texts[9]->SetGeometryDirty();

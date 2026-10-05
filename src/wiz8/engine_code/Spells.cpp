@@ -1482,10 +1482,9 @@ void Update3DSounds()
                         Sound3DSetDirection(sound->sound_handle, -transformed.x, -transformed.y,
                                             -transformed.z, 0.0f, g_float_one, 0.0f);
                         volume = (sound->volume * g_settings.sound_effects_volume) / 0x7f;
-                        SoundSetVolume(
-                            sound->sound_handle,
-                            static_cast<UINT32>((g_float_one - distance / sound->falloff) *
-                                                volume));
+                        SoundSetVolume(sound->sound_handle,
+                                       static_cast<UINT32>(
+                                           (g_float_one - distance / sound->falloff) * volume));
                     }
                 }
             }
