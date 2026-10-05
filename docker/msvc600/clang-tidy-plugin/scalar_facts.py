@@ -2263,15 +2263,18 @@ _BOOL_INDEX = r"(?:\[\s*(?:[A-Za-z_]\w*|[0-9]+)(?:\+\+|--)?\s*\])?"
 _BOOL_OBJECT = r"[A-Za-z_]\w*" + _BOOL_INDEX + r"(?:(?:\.|->|::)[A-Za-z_]\w*" + _BOOL_INDEX + r")*"
 _BOOL_LEFT = re.compile(r"(?P<value>" + _BOOL_OBJECT + r"|\(\s*" + _BOOL_OBJECT + r"\s*\))\s*$")
 _BOOL_RIGHT = re.compile(r"\s*(?P<value>" + _BOOL_OBJECT + r"|\(\s*" + _BOOL_OBJECT + r"\s*\))")
+_BOOL_CALL = _BOOL_OBJECT + r"\(\s*\)"
+_BOOL_CALL_LEFT = re.compile(r"(?P<value>" + _BOOL_CALL + r"|\(\s*" + _BOOL_CALL + r"\s*\))\s*$")
+_BOOL_CALL_RIGHT = re.compile(r"\s*(?P<value>" + _BOOL_CALL + r"|\(\s*" + _BOOL_CALL + r"\s*\))")
 _BOOL_LITERAL = r"(?:[01][uUlL]*|false|true)\b"
 
 
 def boolean_expression_edits(facts: ScalarFacts, source):
-    """Simplify AST-resolved bool objects, without inferring any source types.
+    """Simplify AST-resolved bool objects and calls, without inferring source types.
 
     Operand observations bind the operator to its canonical declaration. Restrict
-    source spelling to direct objects/member paths; unfamiliar expressions and
-    macros remain unchanged. A same-named byte/int declaration is never an anchor.
+    source spelling to direct objects/member paths and calls without arguments.
+    Unfamiliar expressions and macros remain unchanged. A same-named byte/int declaration is never an anchor.
     """
     hashes = defaultdict(set)
     for _, _, file, _, _, _, digest in facts.spans:
@@ -2283,7 +2286,6 @@ def boolean_expression_edits(facts: ScalarFacts, source):
         if (
             declaration is None
             or declaration.domain != "bool"
-            or declaration.kind == "function"
             or key in facts.inconsistent
             or operation not in {"==", "!=", "rhs:==", "rhs:!="}
             or value not in {0, 1}
@@ -2300,9 +2302,11 @@ def boolean_expression_edits(facts: ScalarFacts, source):
         if original[offset : offset + 2] != operator.encode():
             continue
         before, after = original[:offset].decode(), original[offset + 2 :].decode()
+        left = _BOOL_CALL_LEFT if declaration.kind == "function" else _BOOL_LEFT
+        right = _BOOL_CALL_RIGHT if declaration.kind == "function" else _BOOL_RIGHT
         if operation.startswith("rhs:"):
             literal = re.search(r"(?<![\w.])" + _BOOL_LITERAL + r"\s*$", before)
-            operand = _BOOL_RIGHT.match(after)
+            operand = right.match(after)
             if literal is None or operand is None:
                 continue
             prefix = before[: literal.start()].rstrip()
@@ -2313,7 +2317,7 @@ def boolean_expression_edits(facts: ScalarFacts, source):
                 offset + 2 + len(after[: operand.end()].encode()),
             )
         else:
-            operand = _BOOL_LEFT.search(before)
+            operand = left.search(before)
             literal = re.match(r"\s*" + _BOOL_LITERAL, after)
             if operand is None or literal is None:
                 continue

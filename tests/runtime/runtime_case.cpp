@@ -309,7 +309,7 @@ void CheckGameplayReadyOnGameThread(void* opaque)
     check->timer_flags = g_game_time_accumulator != 0 ? g_game_time_accumulator->m_flags : 0;
     check->timer_paused = g_shared_timer_paused;
     check->timer_d1 = g_shared_timer_flag0;
-    check->timer_d2 = g_shared_timer_flag1;
+    check->timer_d2 = g_level_motion_resume_pending;
     check->timer_scale =
         g_game_time_accumulator != 0 ? g_game_time_accumulator->GetFrameDelta() : -1.0f;
     check->ground_latch = g_environ_ground_latch;

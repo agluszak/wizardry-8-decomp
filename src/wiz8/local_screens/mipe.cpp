@@ -1214,7 +1214,7 @@ void HandleMonsterDebugKey(unsigned short key)
                         if (monster->m_pRep->GetNumSubsPerCycle(cycle) != 0) {
                             monster->SetCycle(cycle);
                             monster->SetForcedSubcycle(0);
-                            monster->flags1 |= 0x10;
+                            monster->runtime_flags |= W8_MONSTER_KEEP_SUBCYCLE;
                             goto cycle_done;
                         }
                     scan_wrap:

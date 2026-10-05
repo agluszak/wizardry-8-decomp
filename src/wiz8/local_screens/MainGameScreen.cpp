@@ -1611,7 +1611,7 @@ W8MainGameTextEntry::W8MainGameTextEntry(Controls* panel, int index)
     m_bottom = m_measured_h + top;
     m_top = top;
     SetPanel(panel);
-    AddLayoutFlags(g_W8TextControlMask | g_W8TextControlLayoutToggle);
+    AddLayoutFlags(g_W8TextControlLayoutLatchedImage | g_W8TextControlLayoutToggle);
 }
 
 // FUNCTION: WIZ8 0x005883c0

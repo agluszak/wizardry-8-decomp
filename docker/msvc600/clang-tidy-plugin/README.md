@@ -141,12 +141,13 @@ clang-tidy --wiz8-scalar-report /out/scalar-facts \
   --output /out/scalar-report.json
 ```
 
-## Simplify established boolean objects
+## Simplify established boolean expressions
 
 `uv run wiz8 analyze scalar-facts --patch --boolean-expressions` also emits
 reviewable comparison edits for fields, globals, locals, parameters and indexed
-storage whose canonical AST type is already `bool`. It replaces direct comparisons
-with zero/one or false/true by the object or its negation. It also replaces numeric
+storage whose canonical AST type is already `bool`, plus direct calls without
+arguments whose canonical return type is `bool`. It replaces direct comparisons
+with zero/one or false/true by the expression or its negation. It also replaces numeric
 zero/one literals at established bool arguments, assignments, initializers and
 returns using the existing producer-location facts. Operand facts select the
 exact declaration, so a same-named byte or integer stays unchanged. This mode does

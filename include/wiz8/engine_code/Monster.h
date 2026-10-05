@@ -30,7 +30,7 @@ struct W8MonsterRep;
 
 #include "wiz8/monster_cycles.h"
 
-/* W8Monster::flags1 bits, named from their recovered readers and writers:
+/* W8Monster::runtime_flags bits, named from their recovered readers and writers:
    - KEEP_FRAME_DIRECTION: the next SetCycle keeps the queued frame direction
      (a reversed cycle) instead of resetting it to forward.
    - TEXTURE_CHECKED / ANIMATED_TEXTURE: the cached result of probing the
@@ -264,7 +264,7 @@ public:
 #if defined(__clang__)
 #pragma clang diagnostic pop
 #endif
-    unsigned int flags1;
+    unsigned int runtime_flags;
     int value_1e0;
     /* 0x1e4: the monster's location id, stored by MonsterSetLocationId and
        used throughout for MonsterInfo lookups. */

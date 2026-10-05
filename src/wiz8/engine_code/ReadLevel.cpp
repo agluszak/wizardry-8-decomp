@@ -842,8 +842,8 @@ unsigned char ReadWorldParticles(W8ReadLevelInfo* pInfo, srNode* pScene,
             center = record.bounds_origin * g_world_scale;
             extent = record.bounds_extent * 250.0f;
             particle->bounds_mode = W8_PARTICLE_BOUNDS_BOX;
-            particle->minimum1 = center - extent;
-            particle->maximum1 = center + extent;
+            particle->lifetime_minimum = center - extent;
+            particle->lifetime_maximum = center + extent;
         } else if (record.bounds_mode == W8_PARTICLE_BOUNDS_SPHERE && record.bounds_radius > 0.0f) {
             particle->bounds_mode = W8_PARTICLE_BOUNDS_SPHERE;
             particle->bounds_origin = record.bounds_origin * g_world_scale;
@@ -876,9 +876,10 @@ unsigned char ReadWorldParticles(W8ReadLevelInfo* pInfo, srNode* pScene,
             particle->emission_mode = W8_PARTICLE_EMISSION_SINGLE;
         } else {
             particle->emission_mode = W8_PARTICLE_EMISSION_CATCH_UP;
-            particle->minimum0.Set(-record.spread.x * 250.0f, -record.spread.y * 250.0f, 0.0f);
-            particle->maximum0.Set(record.spread.x * 250.0f, record.spread.y * 250.0f,
-                                      record.spread.z * g_world_scale);
+            particle->emission_minimum.Set(-record.spread.x * 250.0f, -record.spread.y * 250.0f,
+                                           0.0f);
+            particle->emission_maximum.Set(record.spread.x * 250.0f, record.spread.y * 250.0f,
+                                           record.spread.z * g_world_scale);
         }
 
         if (record.direction_mode == W8_PARTICLE_DIRECTION_STATIONARY) {

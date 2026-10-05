@@ -903,14 +903,14 @@ void W8SplitAmountDialog::UpdateButtonStates()
     if (m_taken == 0) {
         m_buttons[0]->SetEnabled(false);
         m_buttons[0]->m_dirty = true;
-    } else if (m_buttons[0]->IsEnabled() == 0) {
+    } else if (!m_buttons[0]->IsEnabled()) {
         m_buttons[0]->SetEnabled(true);
         m_buttons[0]->m_dirty = true;
     }
     if (m_remaining == 0) {
         m_buttons[1]->SetEnabled(false);
         m_buttons[1]->m_dirty = true;
-    } else if (m_buttons[1]->IsEnabled() == 0) {
+    } else if (!m_buttons[1]->IsEnabled()) {
         m_buttons[1]->SetEnabled(true);
         m_buttons[1]->m_dirty = true;
     }

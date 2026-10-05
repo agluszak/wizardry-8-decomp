@@ -11,8 +11,15 @@ extern const unsigned int g_W8TextControlLayoutToggle;
 extern const unsigned int g_W8TextControlLayoutTextBesideImage;
 extern const unsigned int g_W8TextControlLayoutImageLeft;
 extern const unsigned int g_W8TextControlLayoutStayLatched;
-extern const unsigned int g_W8TextControlMask;
+extern const unsigned int g_W8TextControlLayoutLatchedImage;
 extern const unsigned int g_W8TextControlLayoutImageAtOrigin;
+extern const unsigned int g_W8TextControlSilentHover;
+
+enum W8TextControlInputFlag {
+    W8_TEXT_CONTROL_SILENT = 0x20u,
+    W8_TEXT_CONTROL_ACTIVATE_WHILE_HELD = 0x100u
+};
+enum { W8_TEXT_CONTROL_ACTIVATED_WHILE_HELD = 0x04u };
 
 // VTABLE: WIZ8 0x005ed604
 class W8TextControl : public W8Widget {
@@ -81,7 +88,7 @@ public:
        controls' state words.  This is observed storage access, not an accessor
        API inferred for convenience. */
     unsigned int m_stateFlags;            /* 0x34: paired state masks */
-    unsigned int m_flags;              /* 0x38: 0x02 builds layout, 0x04 pins left */
+    unsigned int m_layoutFlags;           /* 0x38: layout and input behavior masks */
     unsigned char m_alternateTextEnabled; /* 0x3c: alternate text-selection flag */
     unsigned char pad_3d[3];
     int m_imageObject;

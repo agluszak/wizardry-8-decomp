@@ -833,7 +833,7 @@ void DestroyUngroupedMonsters(void)
             W8Monster* monster = monster_info->p3D;
 
             if (monster != 0) {
-                if ((monster->flags1 & W8_MONSTER_REMOVE_AFTER_FADE) != 0 &&
+                if ((monster->runtime_flags & W8_MONSTER_REMOVE_AFTER_FADE) != 0 &&
                     monster->removal_state != W8_MONSTER_REMOVAL_NONE) {
                     monster->ApplyRemovalStateEffects();
                 }
@@ -1027,7 +1027,7 @@ void TryStartMonsterCycle2(W8MonsterInfo* monster_info, W8Monster* monster, int 
         int result = MonsterQuery(monster, W8_MONSTER_QUERY_AT_PLAYBACK_END);
 
         if (result != 0 && !monster_info->fMotionless) {
-            monster->flags1 |= 0x80;
+            monster->runtime_flags |= 0x80;
             if (MonsterIsCycleSupported(monster, 2)) {
                 signed char cycle = monster->m_pRep->pending_cycle;
 
@@ -1493,7 +1493,7 @@ void ProcessMonsterManagerFrame(void)
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
         W8Monster* monster = monster_info->p3D;
 
-        if ((monster->flags1 & W8_MONSTER_REMOVE_AFTER_FADE) != 0) {
+        if ((monster->runtime_flags & W8_MONSTER_REMOVE_AFTER_FADE) != 0) {
             if (monster->fade_state == W8_MONSTER_FADE_IDLE) {
                 if (monster->removal_state != W8_MONSTER_REMOVAL_NONE) {
                     monster->ApplyRemovalStateEffects();
@@ -1501,11 +1501,11 @@ void ProcessMonsterManagerFrame(void)
                 DestroyMonsterListEntry(monster_list_index);
                 --monster_list_index;
             }
-        } else if ((monster->flags1 & W8_MONSTER_REMOVE_NOW) != 0) {
+        } else if ((monster->runtime_flags & W8_MONSTER_REMOVE_NOW) != 0) {
             RemoveMonster(monster_list_index, true);
             --monster_list_index;
-        } else if ((monster->flags1 & W8_MONSTER_SCRIPT_WAIT) == 0) {
-            if ((monster->flags1 & W8_MONSTER_PARKED) == 0) {
+        } else if ((monster->runtime_flags & W8_MONSTER_SCRIPT_WAIT) == 0) {
+            if ((monster->runtime_flags & W8_MONSTER_PARKED) == 0) {
                 int query_state = MonsterQuery(monster, W8_MONSTER_QUERY_CYCLE);
                 TryStartMonsterCycle2(monster_info, monster, query_state);
                 if (MonsterQuery(monster, W8_MONSTER_QUERY_CYCLE_COMPLETE) != 0) {
@@ -1520,7 +1520,7 @@ void ProcessMonsterManagerFrame(void)
                     case 0x18:
                         break;
                     case 0x15:
-                        if ((monster->flags1 & W8_MONSTER_REMOVE_AFTER_FADE) == 0) {
+                        if ((monster->runtime_flags & W8_MONSTER_REMOVE_AFTER_FADE) == 0) {
                             monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
                             HandleScriptedNpcDeath(monster_list_index);
                             if (monster_info->monster_group_id != 0) {

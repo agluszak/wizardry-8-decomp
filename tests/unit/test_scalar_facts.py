@@ -1948,3 +1948,53 @@ def test_boolean_producer_patch_leaves_nonliteral_expressions(scalar, tmp_path, 
         facts, [], tmp_path, tmp_path / "recovery.patch", boolean_expressions=True
     )
     assert report["changed_expressions"] == []
+
+
+@pytest.mark.parametrize(
+    "text,operator,value,expected",
+    [
+        ("if (prop->HasSupportedItems() != 0) {}\n", "!=", 0, "prop->HasSupportedItems()"),
+        ("if (IsReady() == 0) {}\n", "==", 0, "!IsReady()"),
+        ("if ((obj.IsReady()) == 1) {}\n", "==", 1, "(obj.IsReady())"),
+        ("if (0 == obj.IsReady()) {}\n", "rhs:==", 0, "!obj.IsReady()"),
+    ],
+)
+def test_boolean_patch_handles_ast_resolved_no_argument_calls(
+    scalar, tmp_path, text, operator, value, expected
+):
+    from dataclasses import replace
+
+    facts = boolean_expression_facts(
+        scalar, tmp_path, text, [("predicate", "bool", operator.removeprefix("rhs:"), value, 0)]
+    )
+    facts.declarations["predicate"] = replace(facts.declarations["predicate"], kind="function")
+    if operator.startswith("rhs:"):
+        facts.operands = {
+            (key, operator, val, file, line, col) for key, _, val, file, line, col in facts.operands
+        }
+    edits = scalar.boolean_expression_edits(
+        facts, lambda file, digest: (tmp_path / file).read_bytes()
+    )
+    assert len(edits) == 1
+    assert edits[0][-1].decode() == expected
+
+
+@pytest.mark.parametrize(
+    "text,domain",
+    [
+        ("if (BytePredicate() != 0) {}\n", "character"),
+        ("if (BoolPredicate(argument) != 0) {}\n", "bool"),
+        ("if (BoolPredicate() != 0 + extra) {}\n", "bool"),
+    ],
+)
+def test_boolean_call_patch_keeps_nonbool_and_unfamiliar_expressions(
+    scalar, tmp_path, text, domain
+):
+    from dataclasses import replace
+
+    facts = boolean_expression_facts(scalar, tmp_path, text, [("predicate", domain, "!=", 0, 0)])
+    facts.declarations["predicate"] = replace(facts.declarations["predicate"], kind="function")
+    edits = scalar.boolean_expression_edits(
+        facts, lambda file, digest: (tmp_path / file).read_bytes()
+    )
+    assert edits == []

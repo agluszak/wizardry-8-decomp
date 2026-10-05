@@ -20,8 +20,8 @@ public:
     }
 
 private:
-    float m_scale;
-    /* 0x28: elapsed ticks scaled into duration units, clamped to m_scale. */
+    float m_max_frame_delta;
+    /* 0x28: elapsed ticks scaled into duration units, clamped to m_max_frame_delta. */
     float m_frame_delta;
     unsigned int m_elapsed_ticks;
     /* 0x30: running total of the scaled deltas. */

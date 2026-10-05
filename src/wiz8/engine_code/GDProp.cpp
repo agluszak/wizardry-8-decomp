@@ -468,12 +468,12 @@ void RemoveItemFromSector(int sector, W8WorldItem* item)
 
 /* Whether the optional owned list currently contains an entry. */
 // FUNCTION: WIZ8 0x004B7BA0
-unsigned char GDProp::HasSupportedItems()
+bool GDProp::HasSupportedItems()
 {
     if (m_supported_items != 0 && static_cast<int>(PLLength(m_supported_items)) > 0) {
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 /* The array-element ctor for `new GDPreProp[n]`; the base default runs

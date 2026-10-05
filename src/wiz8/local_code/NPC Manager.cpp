@@ -2098,7 +2098,7 @@ void TriggerBelaVoice(W8Monster* monster)
 {
     srVector3T<float> position;
 
-    monster->flags1 |= W8_MONSTER_PARKED;
+    monster->runtime_flags |= W8_MONSTER_PARKED;
     position.SetZero();
     monster->SetPosition(&position);
 
