@@ -925,11 +925,7 @@ void W8Monster::RandomizeAppearanceAndMotion()
                                                   m_pRep->name, g_cycle_names[1].name,
                                                   animation_index));
             }
-            if (animation_index < m_pRep->animations[1].GetCount()) {
-                animation = *m_pRep->animations[1].GetAt(animation_index);
-            } else {
-                animation = *m_pRep->animations[1].GetAt(0);
-            }
+            animation = *m_pRep->animations[1].GetAt(animation_index);
             if (scale < g_float_one) {
                 scale = g_float_one;
             }
@@ -2954,11 +2950,7 @@ unsigned char W8Monster::GetPatrolPoint(srVector3T<float>* point)
     if (order_mode == 0) {
         patrol_point = vector.GetAt(0);
     } else if (order_mode > 1 && order_mode < 4) {
-        if (patrol_index < vector.GetCount()) {
-            patrol_point = vector.GetAt(patrol_index);
-        } else {
-            patrol_point = vector.GetAt(0);
-        }
+        patrol_point = vector.GetAt(patrol_index);
     } else {
         return 0;
     }
@@ -3234,11 +3226,7 @@ srModelInstance* W8MonsterRep::SetCycleFrameLod(signed char cycle, signed char f
     W8AnimObj** animation_slot;
     W8AnimObj* animation;
 
-    if (subcycle < selected_cycle->GetCount()) {
-        animation_slot = selected_cycle->data + subcycle;
-    } else {
-        animation_slot = selected_cycle->data;
-    }
+    animation_slot = selected_cycle->GetAt(subcycle);
     animation = *animation_slot;
     if (animation->path_lists == 0) {
         return AnimObjDispatch(animation, lod, frame);
@@ -3425,11 +3413,7 @@ unsigned int W8MonsterRep::ApplyEmitterSetting(signed char cycle)
     W8AnimObj** animation_slot;
     W8AnimObj* animation;
 
-    if (current_subcycle < selected_cycle->GetCount()) {
-        animation_slot = selected_cycle->data + current_subcycle;
-    } else {
-        animation_slot = selected_cycle->data;
-    }
+    animation_slot = selected_cycle->GetAt(current_subcycle);
     animation = *animation_slot;
     if (animation == 0) {
         srAssertFail("pao", "C:\\Projects\\Wizardry 8\\Engine Code\\Monster.cpp", 0x2de, 0);
@@ -3443,12 +3427,8 @@ signed char W8Monster::GetNumSubCycles()
     W8MonsterRep* representation = m_pRep;
     W8GrowableVector<W8AnimObj*>* cycle =
         &representation->animations[representation->current_cycle];
-    W8AnimObj** slot = cycle->data;
     int subcycle = representation->current_subcycle;
-
-    if (subcycle < cycle->count) {
-        slot += subcycle;
-    }
+    W8AnimObj** slot = cycle->GetAt(subcycle);
 
     return static_cast<signed char>(AnimObjValue(*slot, representation->m_bLOD));
 }
@@ -3538,10 +3518,7 @@ void W8Monster::SetCycle(signed char cycle)
 
                 light->setParent(0, 1);
                 if (light->definition() != 0) {
-                    int world_index = g_world->lights_to_update->IndexOf(light);
-                    if (world_index != -1) {
-                        g_world->lights_to_update->RemoveAt(world_index);
-                    }
+                    g_world->lights_to_update->Remove(light);
                 }
             }
         }
@@ -3835,8 +3812,7 @@ void W8Monster::UpdateAttachedObjects()
                 poster->setLocation(location);
                 ++poster_index;
             } else {
-                representation->linked_runtime_objects.RemoveAt(
-                    representation->linked_runtime_objects.IndexOf(poster));
+                representation->linked_runtime_objects.Remove(poster);
                 delete poster;
                 --poster_count;
             }

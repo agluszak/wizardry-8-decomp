@@ -42,20 +42,44 @@ public:
                 count = 0;
             }
 
+            /* The existing child-list owner retains non-owning ClassNode*
+               values; destruction removes only the allocated links. */
+            void pushFront(ClassNode* node)
+            {
+                ChildLink* link = new ChildLink;
+                link->next = first;
+                link->node = node;
+                link->previous = first->previous;
+                if (link->previous == 0) {
+                    first = link;
+                } else {
+                    link->previous->next = link;
+                }
+                if (link->next != 0) {
+                    link->next->previous = link;
+                }
+                ++count;
+            }
+
+            void removeFirst()
+            {
+                ChildLink* link = first;
+                first = link->next;
+                if (link->previous != 0) {
+                    link->previous->next = link->next;
+                }
+                if (link->next != 0) {
+                    link->next->previous = link->previous;
+                }
+                delete link;
+                --count;
+            }
+
             // FUNCTION: SURRENDER 0x10010780
             ~ChildList()
             {
                 while (first != last) {
-                    ChildLink* link = first;
-                    first = link->next;
-                    if (link->previous != 0) {
-                        link->previous->next = link->next;
-                    }
-                    if (link->next != 0) {
-                        link->next->previous = link->previous;
-                    }
-                    delete link;
-                    --count;
+                    removeFirst();
                 }
                 delete first;
             }

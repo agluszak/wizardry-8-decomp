@@ -34,10 +34,14 @@ private:
     };
 
     struct QueueEntry {
+        /* queue writes 0, dispatch writes 1, and retirement writes 2.
+           These descriptive states retain the retail four-byte field. */
+        enum State { QUEUED = 0, EXECUTING = 1, FINISHED = 2 };
+
         Job* job;
         QueueEntry* next;
         QueueEntry* previous;
-        long state;
+        State state;
     };
 
     static_assert(sizeof(WorkerSlot) == 0x08, "srScheduler_WorkerSlot_must_be_0x08");
@@ -47,6 +51,22 @@ private:
     /* starts a worker thread on the first idle slot when queued
        jobs outnumber busy workers. */
     void wakeWorker();
+    /* Expanded in finish, removeQueueEntry and executeNextJob. Hash
+       removal, locking, job count and deletion belong to those callers. */
+    void unlinkQueueEntry(QueueEntry* entry)
+    {
+        if (entry->previous == 0) {
+            first_job = entry->next;
+        } else {
+            entry->previous->next = entry->next;
+        }
+        if (entry->next == 0) {
+            last_job = entry->previous;
+        } else {
+            entry->next->previous = entry->previous;
+        }
+    }
+
     void removeQueueEntry(QueueEntry* entry);
     void waitForJob(Job* job);
     /* pops the head job, executes it and retires its entry;

@@ -174,13 +174,20 @@ struct srConfig::Index {
         return 0;
     }
 
-    void add(Entry* entry)
+    /* Shared free-slot allocation expanded by add and resize. */
+    NameEntry* allocateEntry()
     {
         if (free == 0) {
             resize(bucket_count * 2);
         }
-        NameEntry* node = free;
-        free = node->next;
+        NameEntry* entry = free;
+        free = entry->next;
+        return entry;
+    }
+
+    void add(Entry* entry)
+    {
+        NameEntry* node = allocateEntry();
         node->next = 0;
         unsigned long bucket = hashName(entry->name) & (bucket_count - 1);
         node->bucket = bucket;
@@ -194,6 +201,40 @@ struct srConfig::Index {
         buckets[bucket] = node;
         by_entry.insert(entry, node);
         ++count;
+    }
+
+    /* Name-based removal unlinks every matching bucket entry before
+       applying the existing quarter-full shrink rule. */
+    void remove(const char* name)
+    {
+        if (name != 0) {
+            unsigned long bucket = hashName(name) & (bucket_count - 1);
+            NameEntry* node = buckets[bucket];
+            while (node != 0) {
+                NameEntry* next = node->next;
+                if (namesEqual(name, node->name) && node != 0) {
+                    by_entry.erase(node->entry);
+                    if (node->previous == 0) {
+                        buckets[node->bucket] = node->next;
+                    } else {
+                        node->previous->next = node->next;
+                    }
+                    if (node->next != 0) {
+                        node->next->previous = node->previous;
+                    }
+                    node->next = free;
+                    node->previous = 0;
+                    node->name = 0;
+                    node->entry = 0;
+                    free = node;
+                    --count;
+                }
+                node = next;
+            }
+            if (bucket_count > 7 && count <= bucket_count / 4) {
+                resize(bucket_count / 2);
+            }
+        }
     }
 
     void resize(long bucket_count);
@@ -288,30 +329,7 @@ void srConfig::set(const char* name, const char* value)
         removeEntry(node->entry);
     }
 
-    if (entry_pool.free_entries == 0) {
-        long count = entry_pool.entry_count < 2 ? 1 : entry_pool.entry_count;
-        if (count > 0xff) {
-            count = 0x100;
-        }
-        Entry* block = static_cast<Entry*>(srHeap.allocate(count * sizeof(Entry)));
-        unsigned long block_index = entry_pool.entry_block_count;
-        entry_pool.free_entries = block;
-        entry_pool.entry_block_count = block_index + 1;
-        entry_pool.entry_blocks[block_index] = block;
-        Entry* free_entry = block;
-        for (unsigned long index_ = count; index_ != 0; --index_) {
-            // reinterpret-ok: free pool entries thread the next-free pointer
-            // through the name field.
-            free_entry->name = reinterpret_cast<char*>(free_entry + 1);
-            ++free_entry;
-        }
-        block[count - 1].name = 0;
-    }
-
-    Entry* entry = entry_pool.free_entries;
-    // reinterpret-ok: the free list link lives in the name pointer.
-    entry_pool.free_entries = reinterpret_cast<Entry*>(entry->name);
-    ++entry_pool.entry_count;
+    Entry* entry = entry_pool.allocate();
     entry->previous = 0;
     entry->next = first_entry;
     if (first_entry != 0) {
@@ -361,43 +379,10 @@ void srConfig::removeEntry(Entry* entry)
     }
     char* name = entry->name;
     Index* index = getIndex();
-    if (name != 0) {
-        unsigned long bucket = hashName(name) & (index->bucket_count - 1);
-        Index::NameEntry* node = index->buckets[bucket];
-        while (node != 0) {
-            Index::NameEntry* next = node->next;
-            if (index->namesEqual(name, node->name) && node != 0) {
-                index->by_entry.erase(node->entry);
-                if (node->previous == 0) {
-                    index->buckets[node->bucket] = node->next;
-                } else {
-                    node->previous->next = node->next;
-                }
-                if (node->next != 0) {
-                    node->next->previous = node->previous;
-                }
-                node->next = index->free;
-                node->previous = 0;
-                node->name = 0;
-                node->entry = 0;
-                index->free = node;
-                --index->count;
-            }
-            node = next;
-        }
-        if (index->bucket_count > 7 && index->count <= index->bucket_count / 4) {
-            index->resize(index->bucket_count / 2);
-        }
-    }
+    index->remove(name);
     delete[] entry->name;
     delete[] entry->value;
-    --entry_pool.entry_count;
-    // reinterpret-ok: the free list link lives in the name pointer.
-    entry->name = reinterpret_cast<char*>(entry_pool.free_entries);
-    entry_pool.free_entries = entry;
-    if (entry_pool.entry_count == 0) {
-        entry_pool.release();
-    }
+    entry_pool.free(entry);
 }
 
 // FUNCTION: SURRENDER 0x10012850
@@ -485,15 +470,7 @@ void srInlineString::reset()
 srInlineString operator+(const srInlineString& left, const srInlineString& right)
 {
     srInlineString result(left);
-    if (right.data_ != 0 && *right.data_ != '\0') {
-        unsigned long combined_size = result.size_ + strlen(right.data_);
-        char* combined = static_cast<char*>(srHeap.allocate(combined_size));
-        strcpy(combined, result.data_);
-        strcpy(combined + result.size_ - 1, right.data_);
-        result.reset();
-        result.size_ = combined_size;
-        result.data_ = combined;
-    }
+    result += right.data_;
     return result;
 }
 
@@ -528,11 +505,7 @@ int srConfig::Index::EntryMap::allocRecord()
 // FUNCTION: SURRENDER 0x10013340
 void srConfig::Index::EntryMap::insert(Entry*& key, NameEntry*& value)
 {
-    if (free == -1) {
-        resize();
-    }
-    int record = free;
-    free = records[record].next;
+    int record = allocRecord();
     records[record].key = key;
     records[record].value_08 = value;
     unsigned long bucket = srHashValue(key) & (count - 1);
@@ -591,16 +564,12 @@ void srConfig::Index::resize(long bucket_count)
 
         if (this->buckets != 0 && old_bucket_count != 0) {
             for (long index = 0; index < old_bucket_count; ++index) {
-                for (NameEntry* old_node = this->buckets[index]; old_node != 0;
+                for (NameEntry* old_node = buckets[index]; old_node != 0;
                      old_node = old_node->next) {
                     char* name = old_node->name;
-                    if (free == 0) {
-                        resize(this->bucket_count * 2);
-                    }
-                    NameEntry* node = free;
-                    free = node->next;
+                    NameEntry* node = allocateEntry();
                     node->next = 0;
-                    unsigned long bucket = hashName(name) & (this->bucket_count - 1);
+                    unsigned long bucket = hashName(name) & (bucket_count - 1);
                     node->bucket = bucket;
                     node->name = name;
                     node->entry = old_node->entry;
@@ -611,13 +580,7 @@ void srConfig::Index::resize(long bucket_count)
                     }
                     buckets[bucket] = node;
 
-                    int record = by_entry.allocRecord();
-                    unsigned long sub_bucket =
-                        srHashValue(old_node->entry) & (by_entry.count - 1);
-                    by_entry.records[record].key = old_node->entry;
-                    by_entry.records[record].value_08 = node;
-                    by_entry.records[record].next = by_entry.heads[sub_bucket];
-                    by_entry.heads[sub_bucket] = record;
+                    by_entry.insert(old_node->entry, node);
                 }
             }
         }

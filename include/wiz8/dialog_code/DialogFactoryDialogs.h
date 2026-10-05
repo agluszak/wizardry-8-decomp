@@ -223,6 +223,11 @@ private:
     /* Sync the four scroll buttons' pressed/visible state with the scroll
        offset and the per-item enable flags. */
     void RefreshScrollButtons();
+    /* Descriptive names for selection operations expanded in the row,
+       select-all and keyboard handlers; original spellings are unknown. */
+    bool IsItemSelected(int index);
+    void SetItemSelected(int index, bool selected);
+    void ToggleItem(int index, W8DialogButton* button);
     /* Move every flagged item to the destination: -1 copies it into the shared
        party pool, any other value gives it to that party slot's character.
        Each successful transfer unlinks the item and its flag; a failure plays
@@ -287,8 +292,10 @@ private:
     /* 0x005DD480: create and place the arrow, frame, accept and cancel
        buttons; eight for inventory splits, ten in trade modes. */
     unsigned char CreateButtons();
+    void DestroyButtons();
     /* 0x005DD750: create the label text buffers and fill the item-name rows. */
     unsigned char CreateTextBuffers();
+    void DestroyTextBuffers();
     /* 0x005DDA60: create the count entry field over its backing button. */
     unsigned char CreateNumericInput();
     /* 0x005DCC00: refresh the two trade-price labels in trade modes. */

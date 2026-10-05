@@ -471,6 +471,8 @@ public:
     virtual void SelectPartyMemberRow(int row) override;
     virtual void OpenCampForSelectedMember(int row) override;
     virtual void AdjustPartyMemberRange(int amount) override;
+    /* Descriptive name for the visible character-row refresh operation. */
+    void RefreshVisibleRows();
     void SetSelectedRow(int selection);
 
     W8ControlSelection m_control;
@@ -719,6 +721,18 @@ void W8PartySelectionCharacterRow::OnLeftButtonDoubleClick(int event)
     W8TextControl::OnLeftButtonDoubleClick(event);
 }
 
+void W8PartySelectionCharacterPanel::RefreshVisibleRows()
+{
+    for (int index = 0; index < m_controls.count; ++index) {
+        W8PartySelectionCharacterRow* row =
+            static_cast<W8PartySelectionCharacterRow*>(ControlAt(index));
+        row->m_character_index = g_party_selection_character_collection->first_visible + row->m_row;
+        row->SetActive(row->m_character_index <
+                       g_party_selection_character_collection->characters.count);
+        row->Invalidate(0);
+    }
+}
+
 // FUNCTION: WIZ8 0x005bebc0
 W8PartySelectionCharacterPanel::W8PartySelectionCharacterPanel()
     : Controls(), m_range(0), m_selected_row(0)
@@ -741,14 +755,7 @@ W8PartySelectionCharacterPanel::W8PartySelectionCharacterPanel()
     }
     m_control.SetSelected(selection);
     m_control.m_selectionListener = this;
-    for (int index = 0; index < m_controls.count; ++index) {
-        W8PartySelectionCharacterRow* row =
-            static_cast<W8PartySelectionCharacterRow*>(ControlAt(index));
-        row->m_character_index = g_party_selection_character_collection->first_visible + row->m_row;
-        row->SetActive(row->m_character_index <
-                       g_party_selection_character_collection->characters.count);
-        row->Invalidate(0);
-    }
+    RefreshVisibleRows();
 }
 
 // FUNCTION: WIZ8 0x005bedf0
@@ -778,14 +785,7 @@ void W8PartySelectionCharacterPanel::OnRangeChanged(W8RangeControl* control)
     }
     m_control.SetSelected(selection);
     m_control.m_selectionListener = this;
-    for (int index = 0; index < m_controls.count; ++index) {
-        W8PartySelectionCharacterRow* row =
-            static_cast<W8PartySelectionCharacterRow*>(ControlAt(index));
-        row->m_character_index = g_party_selection_character_collection->first_visible + row->m_row;
-        row->SetActive(row->m_character_index <
-                       g_party_selection_character_collection->characters.count);
-        row->Invalidate(0);
-    }
+    RefreshVisibleRows();
 }
 
 // FUNCTION: WIZ8 0x005bef60
@@ -812,14 +812,7 @@ void W8PartySelectionCharacterPanel::SetSelectedRow(int selection)
     }
     m_control.SetSelected(visible);
     m_control.m_selectionListener = this;
-    for (int index = 0; index < m_controls.count; ++index) {
-        W8PartySelectionCharacterRow* row =
-            static_cast<W8PartySelectionCharacterRow*>(ControlAt(index));
-        row->m_character_index = g_party_selection_character_collection->first_visible + row->m_row;
-        row->SetActive(row->m_character_index <
-                       g_party_selection_character_collection->characters.count);
-        row->Invalidate(0);
-    }
+    RefreshVisibleRows();
 }
 
 // FUNCTION: WIZ8 0x005bf0c0

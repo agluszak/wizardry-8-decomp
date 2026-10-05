@@ -202,17 +202,7 @@ void srInlineString::reset()
 srInlineString operator+(const srInlineString& left, const srInlineString& right)
 {
     srInlineString result(left);
-    if (right.data() == 0 || *right.data() == 0) {
-        return result;
-    }
-
-    const unsigned long combined_size = result.size() + strlen(right.data());
-    char* combined = static_cast<char*>(srHeap.allocate(combined_size));
-    strcpy(combined, result.data());
-    strcpy(combined + result.size() - 1, right.data());
-    result.release();
-    result.size_ = combined_size;
-    result.data_ = combined;
+    result += right.data();
     return result;
 }
 

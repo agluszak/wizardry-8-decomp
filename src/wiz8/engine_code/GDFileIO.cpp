@@ -465,6 +465,27 @@ int W8GameData::FindPointerByName(const char* name)
     return -1;
 }
 
+void W8GameData::AddTriggerTriangle(int trigger_index, int vertex_0, int vertex_1, int vertex_2)
+{
+    W8GDSurface* surface = &m_pTrigSurfaces[m_iNumTrigSurfaces];
+    surface->flags = 0x80;
+    surface->index = m_iNumSurfaces + m_iNumTrigSurfaces;
+    surface->trigger_index = trigger_index;
+    surface->contact_margin = 1.1f;
+    surface->vertex_indices[0] = vertex_0;
+    surface->vertex_indices[1] = vertex_1;
+    surface->vertex_indices[2] = vertex_2;
+    ClassifySurfacePlane(m_pTrigVertices, surface);
+    for (int index = 0; index < 3; ++index) {
+        surface->vertex_indices[index] += m_iNumVertices;
+    }
+    surface->edge_link[0] = -1;
+    surface->edge_link[1] = -1;
+    surface->edge_link[2] = -1;
+    surface->hit_plane = 0;
+    ++m_iNumTrigSurfaces;
+}
+
 // FUNCTION: WIZ8 0x00448310
 void W8GameData::AddTriggerPlane(const srVector3T<float>* trigger_vertices, Trigger* trigger)
 {
@@ -526,41 +547,11 @@ void W8GameData::AddTriggerPlane(const srVector3T<float>* trigger_vertices, Trig
         m_pTrigVertices[m_iNumTrigVertices++] = trigger_vertices[index];
     }
 
-    W8GDSurface* surface = &m_pTrigSurfaces[m_iNumTrigSurfaces];
-    surface->flags = 0x80;
-    surface->index = m_iNumSurfaces + m_iNumTrigSurfaces;
-    surface->trigger_index = trigger_index;
-    surface->contact_margin = 1.1f;
-    surface->vertex_indices[0] = m_iNumTrigVertices - 4;
-    surface->vertex_indices[1] = m_iNumTrigVertices - 3;
-    surface->vertex_indices[2] = m_iNumTrigVertices - 2;
-    ClassifySurfacePlane(m_pTrigVertices, surface);
-    for (index = 0; index < 3; ++index) {
-        surface->vertex_indices[index] += m_iNumVertices;
-    }
-    surface->edge_link[0] = -1;
-    surface->edge_link[1] = -1;
-    surface->edge_link[2] = -1;
-    surface->hit_plane = 0;
-    ++m_iNumTrigSurfaces;
+    AddTriggerTriangle(trigger_index, m_iNumTrigVertices - 4, m_iNumTrigVertices - 3,
+                       m_iNumTrigVertices - 2);
 
-    surface = &m_pTrigSurfaces[m_iNumTrigSurfaces];
-    surface->flags = 0x80;
-    surface->index = m_iNumSurfaces + m_iNumTrigSurfaces;
-    surface->trigger_index = trigger_index;
-    surface->contact_margin = 1.1f;
-    surface->vertex_indices[0] = m_iNumTrigVertices - 2;
-    surface->vertex_indices[1] = m_iNumTrigVertices - 1;
-    surface->vertex_indices[2] = m_iNumTrigVertices - 4;
-    ClassifySurfacePlane(m_pTrigVertices, surface);
-    for (index = 0; index < 3; ++index) {
-        surface->vertex_indices[index] += m_iNumVertices;
-    }
-    surface->edge_link[0] = -1;
-    surface->edge_link[1] = -1;
-    surface->edge_link[2] = -1;
-    surface->hit_plane = 0;
-    ++m_iNumTrigSurfaces;
+    AddTriggerTriangle(trigger_index, m_iNumTrigVertices - 2, m_iNumTrigVertices - 1,
+                       m_iNumTrigVertices - 4);
 }
 
 /* Registers a level-file plane's two triangles (vertices 0,1,2 and 2,3,0) as
@@ -602,41 +593,11 @@ void W8GameData::AddLevelPlane(W8LevelFilePlane* plane)
         ++m_iNumTrigVertices;
     }
 
-    W8GDSurface* surface = &m_pTrigSurfaces[m_iNumTrigSurfaces];
-    surface->flags = 0x80;
-    surface->index = m_iNumSurfaces + m_iNumTrigSurfaces;
-    surface->trigger_index = m_iNumTriggers;
-    surface->contact_margin = 1.1f;
-    surface->vertex_indices[0] = m_iNumTrigVertices - 4;
-    surface->vertex_indices[1] = m_iNumTrigVertices - 3;
-    surface->vertex_indices[2] = m_iNumTrigVertices - 2;
-    ClassifySurfacePlane(m_pTrigVertices, surface);
-    for (index = 0; index < 3; ++index) {
-        surface->vertex_indices[index] += m_iNumVertices;
-    }
-    surface->edge_link[0] = -1;
-    surface->edge_link[1] = -1;
-    surface->edge_link[2] = -1;
-    surface->hit_plane = 0;
-    ++m_iNumTrigSurfaces;
+    AddTriggerTriangle(m_iNumTriggers, m_iNumTrigVertices - 4, m_iNumTrigVertices - 3,
+                       m_iNumTrigVertices - 2);
 
-    surface = &m_pTrigSurfaces[m_iNumTrigSurfaces];
-    surface->flags = 0x80;
-    surface->index = m_iNumSurfaces + m_iNumTrigSurfaces;
-    surface->trigger_index = m_iNumTriggers;
-    surface->contact_margin = 1.1f;
-    surface->vertex_indices[0] = m_iNumTrigVertices - 2;
-    surface->vertex_indices[1] = m_iNumTrigVertices - 1;
-    surface->vertex_indices[2] = m_iNumTrigVertices - 4;
-    ClassifySurfacePlane(m_pTrigVertices, surface);
-    for (index = 0; index < 3; ++index) {
-        surface->vertex_indices[index] += m_iNumVertices;
-    }
-    surface->edge_link[0] = -1;
-    surface->edge_link[1] = -1;
-    surface->edge_link[2] = -1;
-    surface->hit_plane = 0;
-    ++m_iNumTrigSurfaces;
+    AddTriggerTriangle(m_iNumTriggers, m_iNumTrigVertices - 2, m_iNumTrigVertices - 1,
+                       m_iNumTrigVertices - 4);
     ++m_iNumTriggers;
 }
 

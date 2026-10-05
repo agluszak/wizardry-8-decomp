@@ -130,201 +130,65 @@ void RefreshSubMenuPanel(bool invalidate)
 // FUNCTION: WIZ8 0x00596430
 void SubMenuSelectAttack(void)
 {
-    int index;
-
     ChooseAction(g_status.selected_character, W8_ACTION_ATTACK, -1, 0, 0, 1);
     DrawSubMenuCharacterAction();
-    SetSubMenuButtonTooltips(1);
-    g_level_block->combat_end_notification = -1;
-    g_submenu_entry_count = 0;
-    RegionSetDisable(0x27);
-    DisableRegionSetInput(0x27);
-    if (gpSubMenuPanel != 0) {
-        delete gpSubMenuPanel;
-        gpSubMenuPanel = 0;
-    }
-    for (index = 0; index < 5; ++index) {
-        if (g_submenu_rows[index] != 0) {
-            delete g_submenu_rows[index];
-            g_submenu_rows[index] = 0;
-        }
-    }
-    RequestRedraw(0x200);
+    DestroySubMenuControls();
 }
 
 // FUNCTION: WIZ8 0x005964D0
 void SubMenuSelectBerserk(void)
 {
-    int index;
-
     ChooseAction(g_status.selected_character, W8_ACTION_BERSERK, -1, 0, 0, 1);
     DrawSubMenuCharacterAction();
-    SetSubMenuButtonTooltips(1);
-    g_level_block->combat_end_notification = -1;
-    g_submenu_entry_count = 0;
-    RegionSetDisable(0x27);
-    DisableRegionSetInput(0x27);
-    if (gpSubMenuPanel != 0) {
-        delete gpSubMenuPanel;
-        gpSubMenuPanel = 0;
-    }
-    for (index = 0; index < 5; ++index) {
-        if (g_submenu_rows[index] != 0) {
-            delete g_submenu_rows[index];
-            g_submenu_rows[index] = 0;
-        }
-    }
-    RequestRedraw(0x200);
+    DestroySubMenuControls();
 }
 
 // FUNCTION: WIZ8 0x00596570
 void SubMenuSelectBreathe(void)
 {
-    int index;
-
     ChooseAction(g_status.selected_character, W8_ACTION_BREATHE, -1, 0, 0, 1);
     DrawSubMenuCharacterAction();
-    SetSubMenuButtonTooltips(1);
-    g_level_block->combat_end_notification = -1;
-    g_submenu_entry_count = 0;
-    RegionSetDisable(0x27);
-    DisableRegionSetInput(0x27);
-    if (gpSubMenuPanel != 0) {
-        delete gpSubMenuPanel;
-        gpSubMenuPanel = 0;
-    }
-    for (index = 0; index < 5; ++index) {
-        if (g_submenu_rows[index] != 0) {
-            delete g_submenu_rows[index];
-            g_submenu_rows[index] = 0;
-        }
-    }
-    RequestRedraw(0x200);
+    DestroySubMenuControls();
 }
 
 // FUNCTION: WIZ8 0x00596610
 void SubMenuSelectTurnUndead(void)
 {
-    int index;
-
     ChooseAction(g_status.selected_character, W8_ACTION_TURN_UNDEAD, -1, 0, 0, 1);
     DrawSubMenuCharacterAction();
-    SetSubMenuButtonTooltips(1);
-    g_level_block->combat_end_notification = -1;
-    g_submenu_entry_count = 0;
-    RegionSetDisable(0x27);
-    DisableRegionSetInput(0x27);
-    if (gpSubMenuPanel != 0) {
-        delete gpSubMenuPanel;
-        gpSubMenuPanel = 0;
-    }
-    for (index = 0; index < 5; ++index) {
-        if (g_submenu_rows[index] != 0) {
-            delete g_submenu_rows[index];
-            g_submenu_rows[index] = 0;
-        }
-    }
-    RequestRedraw(0x200);
+    DestroySubMenuControls();
 }
 
 // FUNCTION: WIZ8 0x005966B0
 void SubMenuSelectPray(void)
 {
-    int index;
-
     ChooseAction(g_status.selected_character, W8_ACTION_PRAY, -1, 0, 0, 1);
     DrawSubMenuCharacterAction();
-    SetSubMenuButtonTooltips(1);
-    g_level_block->combat_end_notification = -1;
-    g_submenu_entry_count = 0;
-    RegionSetDisable(0x27);
-    DisableRegionSetInput(0x27);
-    if (gpSubMenuPanel != 0) {
-        delete gpSubMenuPanel;
-        gpSubMenuPanel = 0;
-    }
-    for (index = 0; index < 5; ++index) {
-        if (g_submenu_rows[index] != 0) {
-            delete g_submenu_rows[index];
-            g_submenu_rows[index] = 0;
-        }
-    }
-    RequestRedraw(0x200);
+    DestroySubMenuControls();
 }
 
 // FUNCTION: WIZ8 0x00596750
 void SubMenuSelectDefend(void)
 {
-    int index;
-
     ChooseAction(g_status.selected_character, W8_ACTION_DEFEND, -1, 0, 0, 1);
     DrawSubMenuCharacterAction();
-    SetSubMenuButtonTooltips(1);
-    g_level_block->combat_end_notification = -1;
-    g_submenu_entry_count = 0;
-    RegionSetDisable(0x27);
-    DisableRegionSetInput(0x27);
-    if (gpSubMenuPanel != 0) {
-        delete gpSubMenuPanel;
-        gpSubMenuPanel = 0;
-    }
-    for (index = 0; index < 5; ++index) {
-        if (g_submenu_rows[index] != 0) {
-            delete g_submenu_rows[index];
-            g_submenu_rows[index] = 0;
-        }
-    }
-    RequestRedraw(0x200);
+    DestroySubMenuControls();
 }
 
 // FUNCTION: WIZ8 0x00596800
 void SubMenuSelectProtect(void)
 {
-    int index;
-
     ChooseAction(g_status.selected_character, W8_ACTION_PROTECT, -1, 0, 0, 1);
     DrawSubMenuCharacterAction();
-    SetSubMenuButtonTooltips(1);
-    g_level_block->combat_end_notification = -1;
-    g_submenu_entry_count = 0;
-    RegionSetDisable(0x27);
-    DisableRegionSetInput(0x27);
-    if (gpSubMenuPanel != 0) {
-        delete gpSubMenuPanel;
-        gpSubMenuPanel = 0;
-    }
-    for (index = 0; index < 5; ++index) {
-        if (g_submenu_rows[index] != 0) {
-            delete g_submenu_rows[index];
-            g_submenu_rows[index] = 0;
-        }
-    }
-    RequestRedraw(0x200);
+    DestroySubMenuControls();
 }
 
 // FUNCTION: WIZ8 0x005968A0
 void SubMenuSelectEquip(void)
 {
-    int index;
-
     ChooseAction(g_status.selected_character, W8_ACTION_EQUIP, -1, 0, 0, 1);
     DrawSubMenuCharacterAction();
-    SetSubMenuButtonTooltips(1);
-    g_level_block->combat_end_notification = -1;
-    g_submenu_entry_count = 0;
-    RegionSetDisable(0x27);
-    DisableRegionSetInput(0x27);
-    if (gpSubMenuPanel != 0) {
-        delete gpSubMenuPanel;
-        gpSubMenuPanel = 0;
-    }
-    for (index = 0; index < 5; ++index) {
-        if (g_submenu_rows[index] != 0) {
-            delete g_submenu_rows[index];
-            g_submenu_rows[index] = 0;
-        }
-    }
-    RequestRedraw(0x200);
+    DestroySubMenuControls();
 }
 
 // FUNCTION: WIZ8 0x00596940
@@ -358,56 +222,37 @@ void SubMenuCastRecordedSpell(void)
 // FUNCTION: WIZ8 0x00596B90
 void SubMenuSelectRun(void)
 {
-    int index;
-
     if (AnyCharacterEngaged() == 0) {
         return;
     }
     ChooseAction(g_status.selected_character, W8_ACTION_RUN, -1, 0, 0, 1);
     DrawSubMenuCharacterAction();
-    SetSubMenuButtonTooltips(1);
-    g_level_block->combat_end_notification = -1;
-    g_submenu_entry_count = 0;
-    RegionSetDisable(0x27);
-    DisableRegionSetInput(0x27);
-    if (gpSubMenuPanel != 0) {
-        delete gpSubMenuPanel;
-        gpSubMenuPanel = 0;
-    }
-    for (index = 0; index < 5; ++index) {
-        if (g_submenu_rows[index] != 0) {
-            delete g_submenu_rows[index];
-            g_submenu_rows[index] = 0;
-        }
-    }
-    RequestRedraw(0x200);
+    DestroySubMenuControls();
 }
 
 // FUNCTION: WIZ8 0x00596C40
 void SubMenuSelectWalk(void)
 {
-    int index;
-
     if (AnyCharacterEngaged() == 0) {
         return;
     }
     ChooseAction(g_status.selected_character, W8_ACTION_WALK, -1, 0, 0, 1);
     DrawSubMenuCharacterAction();
-    SetSubMenuButtonTooltips(1);
-    g_level_block->combat_end_notification = -1;
-    g_submenu_entry_count = 0;
-    RegionSetDisable(0x27);
-    DisableRegionSetInput(0x27);
-    if (gpSubMenuPanel != 0) {
-        delete gpSubMenuPanel;
-        gpSubMenuPanel = 0;
+    DestroySubMenuControls();
+}
+
+void OpenSubMenuPanel(short notification)
+{
+    if (g_level_block->combat_end_notification != -1) {
+        DestroySubMenuControls();
     }
-    for (index = 0; index < 5; ++index) {
-        if (g_submenu_rows[index] != 0) {
-            delete g_submenu_rows[index];
-            g_submenu_rows[index] = 0;
-        }
+    UpdateScreenOverlays(0);
+    if (BuildSubMenuPanel(notification) == 0) {
+        DestroySubMenuControls();
     }
+    SetSubMenuButtonTooltips(0);
+    g_submenu_clock = SetCountdownClock(0);
+    g_submenu_close_pending = false;
     RequestRedraw(0x200);
 }
 
@@ -415,22 +260,10 @@ void SubMenuSelectWalk(void)
 void ResetSubMenuPanel(void)
 {
     short saved_notification;
-    char rebuilt;
 
     saved_notification = g_level_block->combat_end_notification;
     DestroySubMenuControls();
-    if (g_level_block->combat_end_notification != -1) {
-        DestroySubMenuControls();
-    }
-    UpdateScreenOverlays(0);
-    rebuilt = BuildSubMenuPanel(saved_notification);
-    if (rebuilt == 0) {
-        DestroySubMenuControls();
-    }
-    SetSubMenuButtonTooltips(0);
-    g_submenu_clock = SetCountdownClock(0);
-    g_submenu_close_pending = false;
-    RequestRedraw(0x200);
+    OpenSubMenuPanel(saved_notification);
 }
 
 // FUNCTION: WIZ8 0x00596EC0
@@ -467,49 +300,7 @@ unsigned char CreateSubMenuScrollButtons(void)
 // FUNCTION: WIZ8 0x005978D0
 static void SubMenuPanelCloseButton(W8DialogButton* button)
 {
-    int index;
-
-    if (g_level_block->combat_end_notification != -1) {
-        SetSubMenuButtonTooltips(1);
-        g_level_block->combat_end_notification = -1;
-        g_submenu_entry_count = 0;
-        RegionSetDisable(0x27);
-        DisableRegionSetInput(0x27);
-        if (gpSubMenuPanel != 0) {
-            delete gpSubMenuPanel;
-            gpSubMenuPanel = 0;
-        }
-        for (index = 0; index < 5; ++index) {
-            if (g_submenu_rows[index] != 0) {
-                delete g_submenu_rows[index];
-                g_submenu_rows[index] = 0;
-            }
-        }
-        RequestRedraw(0x200);
-    }
-    UpdateScreenOverlays(0);
-    if (BuildSubMenuPanel(9) == 0) {
-        SetSubMenuButtonTooltips(1);
-        g_level_block->combat_end_notification = -1;
-        g_submenu_entry_count = 0;
-        RegionSetDisable(0x27);
-        DisableRegionSetInput(0x27);
-        if (gpSubMenuPanel != 0) {
-            delete gpSubMenuPanel;
-            gpSubMenuPanel = 0;
-        }
-        for (index = 0; index < 5; ++index) {
-            if (g_submenu_rows[index] != 0) {
-                delete g_submenu_rows[index];
-                g_submenu_rows[index] = 0;
-            }
-        }
-        RequestRedraw(0x200);
-    }
-    SetSubMenuButtonTooltips(0);
-    g_submenu_clock = SetCountdownClock(0);
-    g_submenu_close_pending = false;
-    RequestRedraw(0x200);
+    OpenSubMenuPanel(9);
 }
 
 // FUNCTION: WIZ8 0x00597A10
@@ -1149,7 +940,6 @@ void DisableMenuButtonBanks(void)
 unsigned char SubMenuBackgroundRegionEvent(const InputAtom* event, W8Region* region)
 {
     unsigned short us_event;
-    W8TextControl** row;
 
     if (g_level_block->combat_end_notification == -1) {
         return 0;
@@ -1159,24 +949,7 @@ unsigned char SubMenuBackgroundRegionEvent(const InputAtom* event, W8Region* reg
         return 1;
     }
     if (us_event == RIGHT_BUTTON_UP) {
-        SetSubMenuButtonTooltips(1);
-        g_level_block->combat_end_notification = -1;
-        g_submenu_entry_count = 0;
-        RegionSetDisable(0x27);
-        DisableRegionSetInput(0x27);
-        if (gpSubMenuPanel != 0) {
-            delete gpSubMenuPanel;
-            gpSubMenuPanel = 0;
-        }
-        row = g_submenu_rows;
-        do {
-            if (*row != 0) {
-                delete *row;
-                *row = 0;
-            }
-            ++row;
-        } while (row < &g_submenu_rows[5]);
-        RequestRedraw(0x200);
+        DestroySubMenuControls();
         return 1;
     }
     if (us_event != MOUSE_POS) {
@@ -1594,7 +1367,6 @@ void UpdateSubMenuAutoClose(void)
 {
     int left;
     int right;
-    W8TextControl** row;
 
     left = gpSubMenuPanel->m_bounds.left;
     switch (g_submenu_entry_count) {
@@ -1622,24 +1394,7 @@ void UpdateSubMenuAutoClose(void)
             return;
         }
         if (ClockIsTicking(g_submenu_clock) == 0) {
-            SetSubMenuButtonTooltips(1);
-            g_level_block->combat_end_notification = -1;
-            g_submenu_entry_count = 0;
-            RegionSetDisable(0x27);
-            DisableRegionSetInput(0x27);
-            if (gpSubMenuPanel != 0) {
-                delete gpSubMenuPanel;
-                gpSubMenuPanel = 0;
-            }
-            row = g_submenu_rows;
-            do {
-                if (*row != 0) {
-                    delete *row;
-                    *row = 0;
-                }
-                ++row;
-            } while (row < &g_submenu_rows[5]);
-            RequestRedraw(0x200);
+            DestroySubMenuControls();
         }
     } else if (g_submenu_close_pending != 0) {
         g_submenu_clock = SetCountdownClock(0);
@@ -1676,7 +1431,6 @@ unsigned char BuildSubMenuPanel(short notification)
     short state;
     int base;
     W8TextControl* row;
-    int i;
 
     if (gpSubMenuPanel != 0) {
         gpSubMenuPanel = 0;
@@ -1814,16 +1568,7 @@ unsigned char BuildSubMenuPanel(short notification)
             gpSubMenuPanel, index + 0xc2, index * 19 + 5, 5, index * 19 + 0x17, 0x17, 0x89, 0,
             message, message, message + icon_delta, message + icon_delta, -1);
         if (g_submenu_rows[index] == 0) {
-            if (gpSubMenuPanel != 0) {
-                delete gpSubMenuPanel;
-                gpSubMenuPanel = 0;
-            }
-            for (i = 0; i < 5; ++i) {
-                if (g_submenu_rows[i] != 0) {
-                    delete g_submenu_rows[i];
-                    g_submenu_rows[i] = 0;
-                }
-            }
+            DestroySubMenuPanel();
             return 0;
         }
         AssignSubMenuCallback(g_submenu_rows[index], menu, entry);
@@ -1834,16 +1579,7 @@ unsigned char BuildSubMenuPanel(short notification)
         new W8TextControl(gpSubMenuPanel, built + 0xc1, built * 19 - 14, 5, built * 19 - 2, 0x17,
                           0x89, 0, 0xbd, 0xbd, 0xbf, 0xbf, -1);
     if (g_submenu_rows[built - 1] == 0) {
-        if (gpSubMenuPanel != 0) {
-            delete gpSubMenuPanel;
-            gpSubMenuPanel = 0;
-        }
-        for (i = 0; i < 5; ++i) {
-            if (g_submenu_rows[i] != 0) {
-                delete g_submenu_rows[i];
-                g_submenu_rows[i] = 0;
-            }
-        }
+        DestroySubMenuPanel();
         return 0;
     }
     g_submenu_rows[built - 1]->m_primaryActivationCallback = DestroySubMenuControls;

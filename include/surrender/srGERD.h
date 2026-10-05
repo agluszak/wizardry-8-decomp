@@ -209,6 +209,7 @@ public:
             }
             void alloc(srVertexArray& arrays, unsigned long count);
             void bind(srVertexArray& arrays, unsigned long base);
+            void reset(int release);
         };
 
         Renderer(const Parameters& parameters);
@@ -1004,6 +1005,8 @@ private:
            zeroes the record; the indexed free goes through srArray's
            growing operator[] the way retail inlines it. */
         void release();
+        Texture* allocate();
+        void release(Texture* texture);
 
         unsigned long count;
         Texture* free;

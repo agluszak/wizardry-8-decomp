@@ -2,6 +2,8 @@
 
 #include "srHeap.h"
 
+#include <string.h>
+
 /* Provider exports include copy construction, assignment and the vftable. The
    reconstruction uses class-level export and memberwise copying; original
    declaration spelling is unresolved. */
@@ -67,6 +69,58 @@ private:
        0x1002D360) as __thiscall on the {count, first, sentinel} triple at
        +0x04/+0x10: two distinct typed list objects, not flat fields. */
     struct ImporterList {
+        ImporterList() : first(new Registration()), sentinel(first)
+        {
+            first->next = 0;
+            first->previous = 0;
+            count = 0;
+        }
+
+        ~ImporterList()
+        {
+            while (first != sentinel) {
+                erase(first);
+            }
+            delete first;
+        }
+
+        /* The list owns registration nodes. Extension strings are released
+           by removeImporter/removeExporter before unlinking, as in retail. */
+        void erase(Registration* node)
+        {
+            if (node == first) {
+                first = node->next;
+            }
+            if (node->previous != 0) {
+                node->previous->next = node->next;
+            }
+            if (node->next != 0) {
+                node->next->previous = node->previous;
+            }
+            delete node;
+            --count;
+        }
+
+        Importer* find(const char* extension) const
+        {
+            for (Registration* node = first; node != sentinel; node = node->next) {
+                if (strcmp(node->extension, extension) == 0) {
+                    return node->importer;
+                }
+            }
+            return 0;
+        }
+
+        Registration* find(Importer* entry) const
+        {
+            for (Registration* node = first; node != sentinel; node = node->next) {
+                if (node->importer == entry) {
+                    return node;
+                }
+            }
+            return 0;
+        }
+
         unsigned long count;
         Registration* first;
         Registration* sentinel;
@@ -74,6 +128,58 @@ private:
     };
 
     struct ExporterList {
+        ExporterList() : first(new Registration()), sentinel(first)
+        {
+            first->next = 0;
+            first->previous = 0;
+            count = 0;
+        }
+
+        ~ExporterList()
+        {
+            while (first != sentinel) {
+                erase(first);
+            }
+            delete first;
+        }
+
+        /* The list owns registration nodes. Extension strings are released
+           by removeImporter/removeExporter before unlinking, as in retail. */
+        void erase(Registration* node)
+        {
+            if (node == first) {
+                first = node->next;
+            }
+            if (node->previous != 0) {
+                node->previous->next = node->next;
+            }
+            if (node->next != 0) {
+                node->next->previous = node->previous;
+            }
+            delete node;
+            --count;
+        }
+
+        Exporter* find(const char* extension) const
+        {
+            for (Registration* node = first; node != sentinel; node = node->next) {
+                if (strcmp(node->extension, extension) == 0) {
+                    return node->exporter;
+                }
+            }
+            return 0;
+        }
+
+        Registration* find(Exporter* entry) const
+        {
+            for (Registration* node = first; node != sentinel; node = node->next) {
+                if (node->exporter == entry) {
+                    return node;
+                }
+            }
+            return 0;
+        }
+
         unsigned long count;
         Registration* first;
         Registration* sentinel;

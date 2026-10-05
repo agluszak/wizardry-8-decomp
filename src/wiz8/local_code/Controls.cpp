@@ -149,14 +149,7 @@ void W8Widget::SetPanel(Controls* panel)
     int index;
 
     if (m_pPanel != 0) {
-        W8Widget** cursor = m_pPanel->m_controls.data;
-        for (index = 0; index < m_pPanel->m_controls.count; ++index) {
-            if (*cursor == this) {
-                m_pPanel->m_controls.RemoveAt(index);
-                break;
-            }
-            ++cursor;
-        }
+        m_pPanel->m_controls.Remove(this);
     }
 
     m_pPanel = panel;
@@ -2118,11 +2111,7 @@ void Controls::SetEnabled(bool enable)
 // FUNCTION: WIZ8 0x004f2da0
 void Controls::RemoveControl(W8Widget* control)
 {
-    int index = m_controls.IndexOf(control);
-
-    if (index != -1) {
-        m_controls.RemoveAt(index);
-    }
+    m_controls.Remove(control);
 }
 
 // FUNCTION: WIZ8 0x004f2df0

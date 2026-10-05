@@ -17,54 +17,10 @@ const char* srIOManager::Error::getDescription()
 }
 
 // FUNCTION: SURRENDER 0x1002C890
-srIOManager::srIOManager()
-{
-    Registration* importers = new Registration();
-    this->importers.first = importers;
-    this->importers.sentinel = importers;
-    importers->next = 0;
-    importers->previous = 0;
-    this->importers.count = 0;
-    Registration* exporters = new Registration();
-    this->exporters.first = exporters;
-    this->exporters.sentinel = exporters;
-    exporters->next = 0;
-    exporters->previous = 0;
-    this->exporters.count = 0;
-}
+srIOManager::srIOManager() {}
 
 // FUNCTION: SURRENDER 0x1002C920
-srIOManager::~srIOManager()
-{
-    Registration* node = exporters.first;
-    while (node != exporters.sentinel) {
-        exporters.first = node->next;
-        if (node->previous != 0) {
-            node->previous->next = node->next;
-        }
-        if (node->next != 0) {
-            node->next->previous = node->previous;
-        }
-        delete node;
-        node = exporters.first;
-        --exporters.count;
-    }
-    delete exporters.first;
-    node = importers.first;
-    while (node != importers.sentinel) {
-        importers.first = node->next;
-        if (node->previous != 0) {
-            node->previous->next = node->next;
-        }
-        if (node->next != 0) {
-            node->next->previous = node->previous;
-        }
-        delete node;
-        node = importers.first;
-        --importers.count;
-    }
-    delete importers.first;
-}
+srIOManager::~srIOManager() {}
 
 // FUNCTION: SURRENDER 0x1002D1C0
 const char* srIOManager::getExtension(const char* path)
@@ -91,14 +47,7 @@ srIOManager::Importer* srIOManager::findImporter(const char* extension)
             upper[index] = (char)toupper(upper[index]);
         }
     }
-    Importer* result = 0;
-    for (Registration* node = importers.first; node != importers.sentinel;
-         node = node->next) {
-        if (strcmp(node->extension, upper) == 0) {
-            result = node->importer;
-            break;
-        }
-    }
+    Importer* result = importers.find(upper);
     delete[] upper;
     return result;
 }
@@ -116,14 +65,7 @@ srIOManager::Exporter* srIOManager::findExporter(const char* extension)
             upper[index] = (char)toupper(upper[index]);
         }
     }
-    Exporter* result = 0;
-    for (Registration* node = exporters.first; node != exporters.sentinel;
-         node = node->next) {
-        if (strcmp(node->extension, upper) == 0) {
-            result = node->exporter;
-            break;
-        }
-    }
+    Exporter* result = exporters.find(upper);
     delete[] upper;
     return result;
 }
@@ -163,30 +105,10 @@ void srIOManager::removeImporter(Importer* importer)
         return;
     }
     Registration* node;
-    do {
-        node = importers.first;
-        while (true) {
-            if (node == importers.sentinel) {
-                return;
-            }
-            if (node->importer == importer) {
-                break;
-            }
-            node = node->next;
-        }
+    while ((node = importers.find(importer)) != 0) {
         delete[] node->extension;
-        if (node == importers.first) {
-            importers.first = node->next;
-        }
-        if (node->previous != 0) {
-            node->previous->next = node->next;
-        }
-        if (node->next != 0) {
-            node->next->previous = node->previous;
-        }
-        delete node;
-        --importers.count;
-    } while (true);
+        importers.erase(node);
+    }
 }
 
 // FUNCTION: SURRENDER 0x1002D090
@@ -196,30 +118,10 @@ void srIOManager::removeExporter(Exporter* exporter)
         return;
     }
     Registration* node;
-    do {
-        node = exporters.first;
-        while (true) {
-            if (node == exporters.sentinel) {
-                return;
-            }
-            if (node->exporter == exporter) {
-                break;
-            }
-            node = node->next;
-        }
+    while ((node = exporters.find(exporter)) != 0) {
         delete[] node->extension;
-        if (node == exporters.first) {
-            exporters.first = node->next;
-        }
-        if (node->previous != 0) {
-            node->previous->next = node->next;
-        }
-        if (node->next != 0) {
-            node->next->previous = node->previous;
-        }
-        delete node;
-        --exporters.count;
-    } while (true);
+        exporters.erase(node);
+    }
 }
 
 // FUNCTION: SURRENDER 0x1002D100

@@ -430,7 +430,7 @@ void UpdateWorldMissiles(W8World* world)
                 missile->UpdateRepresentation(world);
                 missile->UpdateNavigation(0, 0);
             } else {
-                world->missiles->RemoveAt(world->missiles->IndexOf(missile));
+                world->missiles->Remove(missile);
                 missile->DestroyMissile();
                 --index;
                 --count;
@@ -1102,7 +1102,7 @@ void DestroyAllMissiles(W8World* world)
         if (missile == 0) {
             srAssertFail("pMissile", MISSILE_CPP, 0x4ab, 0);
         }
-        g_world->missiles->RemoveAt(g_world->missiles->IndexOf(missile));
+        g_world->missiles->Remove(missile);
         missile->DestroyMissile();
     }
 }
@@ -1238,10 +1238,7 @@ void W8Missile::SetCycle(signed char cycle)
 
             light->setParent(0, 1);
             if (light->definition() != 0) {
-                int world_index = g_world->lights_to_update->IndexOf(light);
-                if (world_index != -1) {
-                    g_world->lights_to_update->RemoveAt(world_index);
-                }
+                g_world->lights_to_update->Remove(light);
             }
         }
     }

@@ -361,6 +361,32 @@ void W8CharacterStatsRow::SetValue(int index)
     }
 }
 
+void W8CharacterStatsRow::Collapse()
+{
+    m_subpanel->SetEnabled(0);
+    m_subpanel->EnableRegionSet(0);
+    m_value_control->DisableSecondaryState(1);
+    if (m_listener != 0) {
+        m_listener->OnRowCollapsed(this);
+    }
+}
+
+void W8CharacterStatsRow::CollapseIfNotHovered()
+{
+    if (m_subpanel != 0 && m_subpanel->m_fEnabled) {
+        int index = 0;
+        while (index < m_count) {
+            if (m_subpanel_entries[index]->m_alternateTextEnabled) {
+                return;
+            }
+            ++index;
+        }
+        if (!m_value_control->m_alternateTextEnabled) {
+            Collapse();
+        }
+    }
+}
+
 // FUNCTION: WIZ8 0x005c9760
 void W8CharacterStatsRow::OnPrimary(W8TextControl* control)
 {
@@ -450,24 +476,14 @@ void W8CharacterStatsRow::OnPrimary(W8TextControl* control)
                 m_listener->OnRowExpanded(this);
             }
         } else {
-            m_subpanel->SetEnabled(0);
-            m_subpanel->EnableRegionSet(0);
-            m_value_control->DisableSecondaryState(1);
-            if (m_listener != 0) {
-                m_listener->OnRowCollapsed(this);
-            }
+            Collapse();
         }
     } else {
         for (int index = 0; index < m_count; ++index) {
             if (control == m_subpanel_entries[index]) {
                 control->OnMouseLeave(0);
                 SetValue(index);
-                m_subpanel->SetEnabled(0);
-                m_subpanel->EnableRegionSet(0);
-                m_value_control->DisableSecondaryState(1);
-                if (m_listener != 0) {
-                    m_listener->OnRowCollapsed(this);
-                }
+                Collapse();
             }
         }
     }
@@ -550,17 +566,7 @@ void W8CharacterStatsPage::UpdateRowValues()
 
     W8Profession profession = m_character->iProfession;
     W8CharacterStatsRow* row = m_profession_row;
-    if (profession == -1) {
-        row->m_value_control->SetRecord(0);
-    } else {
-        row->m_value_control->SetRecord(&row->m_table[profession]);
-    }
-    int previous = row->m_index;
-    row->m_index = profession;
-    row->m_value_control->Invalidate(1);
-    if (row->m_listener != 0 && previous != profession) {
-        row->m_listener->OnRowValueChanged(row, profession);
-    }
+    row->SetValue(profession);
     row->m_decrement->Invalidate(0);
     row->m_increment->Invalidate(0);
     row->m_value_control->Invalidate(0);
@@ -570,17 +576,7 @@ void W8CharacterStatsPage::UpdateRowValues()
 
     int race = m_character->iRace;
     row = m_race_row;
-    if (race == -1) {
-        row->m_value_control->SetRecord(0);
-    } else {
-        row->m_value_control->SetRecord(&row->m_table[race]);
-    }
-    previous = row->m_index;
-    row->m_index = race;
-    row->m_value_control->Invalidate(1);
-    if (row->m_listener != 0 && previous != race) {
-        row->m_listener->OnRowValueChanged(row, race);
-    }
+    row->SetValue(race);
     row->m_decrement->Invalidate(0);
     row->m_increment->Invalidate(0);
     row->m_value_control->Invalidate(0);
@@ -590,17 +586,7 @@ void W8CharacterStatsPage::UpdateRowValues()
 
     W8Gender gender = m_character->gender;
     row = m_gender_row;
-    if (gender == -1) {
-        row->m_value_control->SetRecord(0);
-    } else {
-        row->m_value_control->SetRecord(&row->m_table[gender]);
-    }
-    previous = row->m_index;
-    row->m_index = gender;
-    row->m_value_control->Invalidate(1);
-    if (row->m_listener != 0 && previous != gender) {
-        row->m_listener->OnRowValueChanged(row, gender);
-    }
+    row->SetValue(gender);
     row->m_decrement->Invalidate(0);
     row->m_increment->Invalidate(0);
     row->m_value_control->Invalidate(0);
@@ -667,62 +653,9 @@ void W8CharacterStatsPage::HandleInput(InputAtom* input)
     if (input->usEvent != LEFT_BUTTON_DOWN && input->usEvent != RIGHT_BUTTON_DOWN) {
         return;
     }
-    W8CharacterStatsRow* row = m_profession_row;
-    if (row->m_subpanel != 0 && row->m_subpanel->m_fEnabled) {
-        int index = 0;
-        while (index < row->m_count) {
-            if (row->m_subpanel_entries[index]->m_alternateTextEnabled) {
-                goto next_profession;
-            }
-            ++index;
-        }
-        if (!row->m_value_control->m_alternateTextEnabled) {
-            row->m_subpanel->SetEnabled(0);
-            row->m_subpanel->EnableRegionSet(0);
-            row->m_value_control->DisableSecondaryState(1);
-            if (row->m_listener != 0) {
-                row->m_listener->OnRowCollapsed(row);
-            }
-        }
-    }
-next_profession:
-    row = m_race_row;
-    if (row->m_subpanel != 0 && row->m_subpanel->m_fEnabled) {
-        int index = 0;
-        while (index < row->m_count) {
-            if (row->m_subpanel_entries[index]->m_alternateTextEnabled) {
-                goto next_race;
-            }
-            ++index;
-        }
-        if (!row->m_value_control->m_alternateTextEnabled) {
-            row->m_subpanel->SetEnabled(0);
-            row->m_subpanel->EnableRegionSet(0);
-            row->m_value_control->DisableSecondaryState(1);
-            if (row->m_listener != 0) {
-                row->m_listener->OnRowCollapsed(row);
-            }
-        }
-    }
-next_race:
-    row = m_gender_row;
-    if (row->m_subpanel != 0 && row->m_subpanel->m_fEnabled) {
-        int index = 0;
-        while (index < row->m_count) {
-            if (row->m_subpanel_entries[index]->m_alternateTextEnabled) {
-                return;
-            }
-            ++index;
-        }
-        if (!row->m_value_control->m_alternateTextEnabled) {
-            row->m_subpanel->SetEnabled(0);
-            row->m_subpanel->EnableRegionSet(0);
-            row->m_value_control->DisableSecondaryState(1);
-            if (row->m_listener != 0) {
-                row->m_listener->OnRowCollapsed(row);
-            }
-        }
-    }
+    m_profession_row->CollapseIfNotHovered();
+    m_race_row->CollapseIfNotHovered();
+    m_gender_row->CollapseIfNotHovered();
 }
 
 /* One attribute entry was adjusted: apply the point through the shared

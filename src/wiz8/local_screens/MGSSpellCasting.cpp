@@ -392,6 +392,22 @@ void RestoreSpellCastingRegions(void)
     DisableRegionInput(0x58);
 }
 
+/* Shared choice reset for caster/realm changes and a cancelled dialog.
+   This descriptive helper keeps the view open and retains callback order. */
+static void ClearSpellCastingChoice()
+{
+    gpSCSV->uiSpellToCast = 0;
+    gpSCSV->iSpellPowerClass = -1;
+    gpSCSV->uiSpellIndex = -1;
+    SelectSpellCastingRow(-1);
+    gpSCSV->uiPowerLevels = 0;
+    SelectSpellPowerLevel(-1);
+    gpSCSV->dialog_confirmed = false;
+    UpdateSpellPowerPips();
+    SelectSpellCastingPartySlot(g_status.selected_character);
+    RequestRedraw(0x200);
+}
+
 /* Points the view at a new caster: rebuilds the learned-spell buckets and the
    realm/power displays, then either restores the pending cast's realm and
    list or clears a realm the new caster has no spell points in. */
@@ -409,16 +425,7 @@ void SelectSpellCastingCharacter(int party_slot)
     gpSCSV->caster = &g_status.buffers.Char[party_slot];
     BuildLearnedSpellState(&gpSCSV->learned, gpSCSV->caster);
     UpdateSpellRealmPointDisplays();
-    gpSCSV->uiSpellToCast = 0;
-    gpSCSV->iSpellPowerClass = -1;
-    gpSCSV->uiSpellIndex = -1;
-    SelectSpellCastingRow(-1);
-    gpSCSV->uiPowerLevels = 0;
-    SelectSpellPowerLevel(-1);
-    gpSCSV->dialog_confirmed = false;
-    UpdateSpellPowerPips();
-    SelectSpellCastingPartySlot(g_status.selected_character);
-    RequestRedraw(0x200);
+    ClearSpellCastingChoice();
     if (GetAffordableSpellPowerLevel(party_slot) != 0) {
         int spell_id = g_status.buffers.XChar[party_slot].spell_id;
         SelectSpellCastingRealm(g_spell_records[spell_id].realm);
@@ -883,16 +890,7 @@ static void SelectSpellCastingRealm(int realm)
         gpSCSV->realm_icons[gpSCSV->iSpellRealm]->Invalidate(0);
         gpSCSV->realm_anim_timer = SetCountdownClock(0x32);
         RebuildSpellCastingList(0);
-        gpSCSV->uiSpellToCast = 0;
-        gpSCSV->iSpellPowerClass = -1;
-        gpSCSV->uiSpellIndex = -1;
-        SelectSpellCastingRow(-1);
-        gpSCSV->uiPowerLevels = 0;
-        SelectSpellPowerLevel(-1);
-        gpSCSV->dialog_confirmed = false;
-        UpdateSpellPowerPips();
-        SelectSpellCastingPartySlot(g_status.selected_character);
-        RequestRedraw(0x200);
+        ClearSpellCastingChoice();
     }
     if (realm != -1) {
         gpSCSV->realm_buttons[realm]->EnableSecondaryState(0);
@@ -1105,16 +1103,7 @@ static void SpellCastingDialogResult(W8DialogBase* dialog)
         gpSCSV->dialog_confirmed = true;
         return;
     }
-    gpSCSV->uiSpellToCast = 0;
-    gpSCSV->iSpellPowerClass = -1;
-    gpSCSV->uiSpellIndex = -1;
-    SelectSpellCastingRow(-1);
-    gpSCSV->uiPowerLevels = 0;
-    SelectSpellPowerLevel(-1);
-    gpSCSV->dialog_confirmed = false;
-    UpdateSpellPowerPips();
-    SelectSpellCastingPartySlot(g_status.selected_character);
-    RequestRedraw(0x200);
+    ClearSpellCastingChoice();
     SetSpellListLineColor(index, -1);
 }
 

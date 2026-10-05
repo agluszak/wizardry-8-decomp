@@ -102,7 +102,7 @@ void DestroyWorldLights(W8World* world)
             srAssertFail("pLight", THREE_D_CPP, 0x279, 0);
         }
         PListRemove(lights, light);
-        world->lights_to_update->RemoveAt(world->lights_to_update->IndexOf(light));
+        world->lights_to_update->Remove(light);
         if (light != 0) {
             light->release();
         }

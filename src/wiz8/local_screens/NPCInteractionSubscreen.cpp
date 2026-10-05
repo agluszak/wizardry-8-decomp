@@ -1157,6 +1157,35 @@ void ServiceNpcDialogue(void)
 /* Close the NPC dialogue: retire the active layout, release the panels and
    text controls, restore the held item or target cursor, queue the parting
    character event and hand control back to the world. */
+/* Close the current dialogue layout before ending, switching or returning
+   from trade. The name is descriptive; the shared dispatch retains each
+   layout's existing teardown API. */
+static void CloseActiveNpcDialogueLayout()
+{
+    switch (g_npc_interaction_state->dialogue_layout) {
+    case W8_DIALOGUE_LAYOUT_SERVICES:
+        CloseNpcDialogueMode1Layout();
+        break;
+    case W8_DIALOGUE_LAYOUT_TOPIC_MENU:
+        CloseNpcDialogueLayout();
+        break;
+    case W8_DIALOGUE_LAYOUT_TRANSCRIPT:
+        CloseNpcDialogueTranscriptLayout();
+        break;
+    case W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX:
+        CloseNpcDialogueOptionLayout();
+        break;
+    case W8_DIALOGUE_LAYOUT_TRADE:
+        CloseNpcDialogueMode5Layout();
+        break;
+    case W8_DIALOGUE_LAYOUT_BARE:
+        SetNpcDialogueLayoutMode(W8_DIALOGUE_LAYOUT_NONE);
+        break;
+    default:
+        break;
+    }
+}
+
 // FUNCTION: WIZ8 0x0056E800
 void EndNpcDialogueSession(bool param_1)
 {
@@ -1188,34 +1217,7 @@ void EndNpcDialogueSession(bool param_1)
     DisableRegionInput(0x53);
     DisableRegionInput(0x54);
     DisableRegionInput(0x55);
-    switch (g_npc_interaction_state->dialogue_layout) {
-    case W8_DIALOGUE_LAYOUT_SERVICES:
-        CloseNpcDialogueMode1Layout();
-        break;
-    case W8_DIALOGUE_LAYOUT_TOPIC_MENU:
-        CloseNpcDialogueLayout();
-        break;
-    case W8_DIALOGUE_LAYOUT_TRANSCRIPT:
-        CloseNpcDialogueTranscriptLayout();
-        break;
-    case W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX:
-        CloseNpcDialogueOptionLayout();
-        break;
-    case W8_DIALOGUE_LAYOUT_TRADE:
-        RegionSetDisable(0x18);
-        RegionSetDisable(0x17);
-        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_31])->SetEnabled(1);
-        static_cast<W8NpcDialogueOptionsPanel*>(g_npc_interaction_state->dialogue_panels[0])->SetEnabled(0);
-        g_npc_interaction_state->dialogue_panels[1]->SetEnabled(0);
-        g_npc_interaction_state->dialogue_panels[5]->SetEnabled(0);
-        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1])->SetEnabled(1);
-        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2])->SetEnabled(1);
-    case W8_DIALOGUE_LAYOUT_BARE:
-        SetNpcDialogueLayoutMode(W8_DIALOGUE_LAYOUT_NONE);
-        break;
-    default:
-        break;
-    }
+    CloseActiveNpcDialogueLayout();
     RegionSetDisable(0x18);
     SelectTextBox(0);
     g_level_block->text_box_visible = 1;
@@ -1251,13 +1253,14 @@ void EndNpcDialogueSession(bool param_1)
             g_npc_interaction_state->held_item_pending = 0;
         }
         W8NpcState* npc = g_npc_interaction_state->dialogue_npc;
-        if (g_npc_interaction_state->suppress_parting_reaction == 0 &&
-            npc->record->merchant == 0 && npc->is_grouped == 0 && GetNpcMonsterInfo(npc) != 0) {
+        if (g_npc_interaction_state->suppress_parting_reaction == 0 && npc->record->merchant == 0 &&
+            npc->is_grouped == 0 && GetNpcMonsterInfo(npc) != 0) {
             int slot = GetRandomCharacter(1, 1, -1, -1);
             if (slot != -1) {
-                W8CharacterEvent* event = QueueCharacterEvent(
-                    &g_status.buffers.Char[slot], g_special_event8, g_character_event_no_preempt,
-                    g_character_event_no_flags, g_character_event_full_volume);
+                W8CharacterEvent* event =
+                    QueueCharacterEvent(&g_status.buffers.Char[slot], g_special_event8,
+                                        g_character_event_no_preempt, g_character_event_no_flags,
+                                        g_character_event_full_volume);
                 if (event != 0) {
                     event->dispatch_delay_ms = 1000;
                     event->dispatch_delay_start = GetTickCount();
@@ -1959,28 +1962,7 @@ void BackOutNpcDialogue(void)
 // FUNCTION: WIZ8 0x00570120
 void SwitchNpcDialogueLayout(int interact_id)
 {
-    switch (g_npc_interaction_state->dialogue_layout) {
-    case W8_DIALOGUE_LAYOUT_SERVICES:
-        CloseNpcDialogueMode1Layout();
-        break;
-    case W8_DIALOGUE_LAYOUT_TOPIC_MENU:
-        CloseNpcDialogueLayout();
-        break;
-    case W8_DIALOGUE_LAYOUT_TRANSCRIPT:
-        CloseNpcDialogueTranscriptLayout();
-        break;
-    case W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX:
-        CloseNpcDialogueOptionLayout();
-        break;
-    case W8_DIALOGUE_LAYOUT_TRADE:
-        CloseNpcDialogueMode5Layout();
-        break;
-    case W8_DIALOGUE_LAYOUT_BARE:
-        SetNpcDialogueLayoutMode(W8_DIALOGUE_LAYOUT_NONE);
-        break;
-    default:
-        break;
-    }
+    CloseActiveNpcDialogueLayout();
     switch (interact_id) {
     case W8_DIALOGUE_LAYOUT_SERVICES:
         OpenNpcDialogueMode1Layout();
@@ -4193,34 +4175,7 @@ void OnNpcTradeDialogClosed(W8DialogBase* dialog)
         return;
     }
     ConfirmNpcTradePurchase();
-    switch (g_npc_interaction_state->dialogue_layout) {
-    case W8_DIALOGUE_LAYOUT_SERVICES:
-        CloseNpcDialogueMode1Layout();
-        break;
-    case W8_DIALOGUE_LAYOUT_TOPIC_MENU:
-        CloseNpcDialogueLayout();
-        break;
-    case W8_DIALOGUE_LAYOUT_TRANSCRIPT:
-        CloseNpcDialogueTranscriptLayout();
-        break;
-    case W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX:
-        CloseNpcDialogueOptionLayout();
-        break;
-    case W8_DIALOGUE_LAYOUT_TRADE:
-        RegionSetDisable(0x18);
-        RegionSetDisable(0x17);
-        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_31])->SetEnabled(1);
-        static_cast<W8NpcDialogueOptionsPanel*>(g_npc_interaction_state->dialogue_panels[0])->SetEnabled(0);
-        g_npc_interaction_state->dialogue_panels[1]->SetEnabled(0);
-        g_npc_interaction_state->dialogue_panels[5]->SetEnabled(0);
-        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1])->SetEnabled(1);
-        static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2])->SetEnabled(1);
-    case W8_DIALOGUE_LAYOUT_BARE:
-        SetNpcDialogueLayoutMode(W8_DIALOGUE_LAYOUT_NONE);
-        break;
-    default:
-        break;
-    }
+    CloseActiveNpcDialogueLayout();
     if (GetNpcDispositionBand(g_npc_interaction_state->dialogue_npc) == 0) {
         OpenNpcDialogueTranscriptLayout();
     } else {

@@ -63,22 +63,28 @@ struct srRegistry::ClassNode::NameIndex {
         return case_sensitive != 0 ? strcmp(first, second) == 0 : _stricmp(first, second) == 0;
     }
 
+    /* Shared free-slot allocation expanded by add and resize. */
+    NameEntry* allocateEntry()
+    {
+        if (free == 0) {
+            resize(bucket_count * 2);
+        }
+        NameEntry* entry = free;
+        free = entry->next;
+        return entry;
+    }
+
     void add(srRuntimeClass* instance)
     {
         const char* name = instance->getName();
         if (name == 0) {
             return;
         }
-        if (free == 0) {
-            resize(bucket_count * 2);
-        }
-
-        NameEntry* entry = free;
-        free = entry->next;
+        NameEntry* entry = allocateEntry();
         /* Retail clears the popped entry's link before reconfiguring it
            (0x1000F97B), even though the bucket push below overwrites it. */
         entry->next = 0;
-        unsigned long bucket = hashName(name) & (bucket_count - 1);
+        unsigned long bucket = bucketIndex(name);
         entry->bucket = bucket;
         entry->name = name;
         entry->instance = instance;
@@ -177,15 +183,11 @@ private:
             free = entries;
             if (this->buckets != 0 && old_bucket_count != 0) {
                 for (unsigned long bucket = 0; bucket < old_bucket_count; ++bucket) {
-                    for (NameEntry* entry = this->buckets[bucket]; entry != 0;
+                    for (NameEntry* entry = buckets[bucket]; entry != 0;
                          entry = entry->next) {
                         const char* name = entry->name;
-                        if (free == 0) {
-                            resize(this->bucket_count * 2);
-                        }
-                        NameEntry* reused = free;
-                        free = reused->next;
-                        unsigned long new_bucket = hashName(name) & (this->bucket_count - 1);
+                        NameEntry* reused = allocateEntry();
+                        unsigned long new_bucket = bucketIndex(name);
                         reused->bucket = new_bucket;
                         reused->name = name;
                         reused->instance = entry->instance;
@@ -284,22 +286,8 @@ struct srRegistry::ClassNode::IDIndex {
             return;
         }
         by_id.Remove(&id);
-        if (link->previous == 0) {
-            first = link->next;
-        } else {
-            link->previous->next = link->next;
-        }
-        if (link->next == 0) {
-            last = link->previous;
-        } else {
-            link->next->previous = link->previous;
-        }
-        --active_count;
-        link->free = free;
-        free = link;
-        if (active_count == 0) {
-            clearBlocks();
-        }
+        unlink(link);
+        recycle(link);
         --list_count;
     }
 
@@ -332,6 +320,32 @@ private:
     /* Retail emits insert as a callable body (0x100107E0), so its definition
        sits out-of-line below the struct. */
     InstanceLink* insert(InstanceLink* after, srRuntimeClass*& instance);
+
+    /* remove and clearLinks share the same list unlink and pool return.
+       Keep list_count updates and clearLinks' null guard at their callers. */
+    void unlink(InstanceLink* link)
+    {
+        if (link->previous == 0) {
+            first = link->next;
+        } else {
+            link->previous->next = link->next;
+        }
+        if (link->next == 0) {
+            last = link->previous;
+        } else {
+            link->next->previous = link->previous;
+        }
+    }
+
+    void recycle(InstanceLink* link)
+    {
+        --active_count;
+        link->free = free;
+        free = link;
+        if (active_count == 0) {
+            clearBlocks();
+        }
+    }
 
     void allocateBlock()
     {
@@ -430,25 +444,11 @@ void srRegistry::ClassNode::IDIndex::clearLinks()
 {
     while (first != 0) {
         InstanceLink* link = first;
-        if (link->previous == 0) {
-            first = link->next;
-        } else {
-            link->previous->next = link->next;
-        }
-        if (link->next == 0) {
-            last = link->previous;
-        } else {
-            link->next->previous = link->previous;
-        }
+        unlink(link);
         /* Retail guards the unlink bookkeeping with link != 0 even though
            link was just taken from the non-null first. */
         if (link != 0) {
-            --active_count;
-            link->free = free;
-            free = link;
-            if (active_count == 0) {
-                clearBlocks();
-            }
+            recycle(link);
         }
         --list_count;
     }
@@ -1163,19 +1163,7 @@ void srRegistry::ClassNode::initialize(ClassNode* parent, const char* class_name
     inherited_instances_by_id = 0;
     instance_count = 0;
     if (parent != 0) {
-        ChildLink* link = new ChildLink;
-        link->next = parent->children.first;
-        link->node = this;
-        link->previous = parent->children.first->previous;
-        if (link->previous == 0) {
-            parent->children.first = link;
-        } else {
-            link->previous->next = link;
-        }
-        if (link->next != 0) {
-            link->next->previous = link;
-        }
-        ++parent->children.count;
+        parent->children.pushFront(this);
         inherited_named_instances = parent->getNameIndex();
         inherited_instances_by_id = parent->getIDIndex();
     }

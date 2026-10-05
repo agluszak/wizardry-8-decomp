@@ -92,6 +92,21 @@ struct W8NavigatorAttachment {
 
     void RecordPosition(const srVector3T<float>* position);
     void GrowPathStorage();
+    /* Descriptive name for route append, expanded in the path-building users.
+       Read the position after growth, retaining retail's pointer lifetime. */
+    void AppendPathPosition(const srVector3T<float>* position, unsigned short value)
+    {
+        if (static_cast<unsigned int>(capacity) <=
+            static_cast<unsigned int>(path_position_index + 1)) {
+            GrowPathStorage();
+        }
+        srVector3T<float>* slot = position7 + path_position_index;
+        *slot = *position;
+        path_values[path_position_index] = value;
+        ++path_position_index;
+        flags &= ~W8_NAV_ATTACHMENT_PATH_LENGTH_CACHED;
+    }
+
     void CopyPathFrom(const W8NavigatorAttachment* other);
     void GetNextPosition(srVector3T<float>* position);
     void InitializeSegment(const srVector3T<float>* source, const srVector3T<float>* destination);
@@ -323,6 +338,7 @@ public:
     void SetHeightRange(float minimum, float maximum); /* 0x00453EF0 */
     void SetHalted(bool value);                        /* 0x004531F0 */
     void SetMovementStopped();                         /* 0x00453880 */
+    void ClearMovementStopped();
     /* Save the presence-gated movement state LoadMovementState
        consumes: the flag byte, then for an ungrouped navigator with flag
        0x20000000 set the height bounds, position and movement target. */

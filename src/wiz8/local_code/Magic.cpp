@@ -734,10 +734,7 @@ void DetachMissileReferences(W8Missile* missile)
 {
     for (int index = 0; index < g_spell_effects.GetCount(); ++index) {
         W8SpellEffectEntry* effect = *g_spell_effects.GetAt(index);
-        int missile_index = effect->missiles.IndexOf(missile);
-
-        if (missile_index != -1) {
-            effect->missiles.RemoveAt(missile_index);
+        if (effect->missiles.Remove(missile)) {
             return;
         }
     }
@@ -2348,6 +2345,23 @@ bool ValidateSpellTarget(int party_slot, int spell_id, unsigned int power, bool 
 // GLOBAL: WIZ8 0x00616E34
 int g_cooldown_gated_spells[14] = {30, 38, 75, 73, 32, 33, 17, 20, 8, 40, 26, 45, 64, 58};
 
+/* Descriptive name for the cooldown operation expanded in SpellAffectedTarget.
+   A failed check still restarts the slot, as in retail. */
+static bool CheckAndRestartSpellCooldown(int spell_id)
+{
+    bool affected = true;
+    for (unsigned int index = 0; index < 14; ++index) {
+        if (g_cooldown_gated_spells[index] == spell_id) {
+            if (ClockIsTicking(gXStatus.spell_cooldown_clocks[index]) != 0) {
+                affected = false;
+            }
+            gXStatus.spell_cooldown_clocks[index] = SetCountdownClock(180000);
+            break;
+        }
+    }
+    return affected;
+}
+
 /* Whether the spell's current target would actually be affected by it - the
    per-spell rules the cast path checks before it spends the points. */
 // FUNCTION: WIZ8 0x004F9AE0
@@ -2374,16 +2388,7 @@ bool SpellAffectedTarget(W8Character* character, int spell_id, W8CombatSlot* aim
     case 0x20:
     case 0x28:
         if (gXStatus.fCombatMode == 0) {
-            affected = true;
-            for (index = 0; index < 14; ++index) {
-                if (g_cooldown_gated_spells[index] == spell_id) {
-                    if (ClockIsTicking(gXStatus.spell_cooldown_clocks[index]) != 0) {
-                        affected = false;
-                    }
-                    gXStatus.spell_cooldown_clocks[index] = SetCountdownClock(180000);
-                    break;
-                }
-            }
+            affected = CheckAndRestartSpellCooldown(spell_id);
         } else {
             for (index = 0; index < 12; ++index) {
                 if (g_being_effect_slot_spells[index] == spell_id) {
@@ -2620,16 +2625,7 @@ bool SpellAffectedTarget(W8Character* character, int spell_id, W8CombatSlot* aim
     case 0x40:
     case 0x49:
     case 0x4b:
-        affected = true;
-        for (index = 0; index < 14; ++index) {
-            if (g_cooldown_gated_spells[index] == spell_id) {
-                if (ClockIsTicking(gXStatus.spell_cooldown_clocks[index]) != 0) {
-                    affected = false;
-                }
-                gXStatus.spell_cooldown_clocks[index] = SetCountdownClock(180000);
-                break;
-            }
-        }
+        affected = CheckAndRestartSpellCooldown(spell_id);
         break;
     case 0x17:
         if (aim->pPCItem->identified != 0) {
@@ -2638,16 +2634,7 @@ bool SpellAffectedTarget(W8Character* character, int spell_id, W8CombatSlot* aim
         break;
     case 0x3a:
         if (gXStatus.fCombatMode == 0) {
-            affected = true;
-            for (index = 0; index < 14; ++index) {
-                if (g_cooldown_gated_spells[index] == spell_id) {
-                    if (ClockIsTicking(gXStatus.spell_cooldown_clocks[index]) != 0) {
-                        affected = false;
-                    }
-                    gXStatus.spell_cooldown_clocks[index] = SetCountdownClock(180000);
-                    break;
-                }
-            }
+            affected = CheckAndRestartSpellCooldown(spell_id);
             if (!affected) {
                 return false;
             }

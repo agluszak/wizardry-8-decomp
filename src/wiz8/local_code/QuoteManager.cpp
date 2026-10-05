@@ -398,10 +398,7 @@ static void CharacterEventSoundEndCallback(void* callback_data)
     RuntimeObserve(RUNTIME_VOICE_FINISHED, CharacterPointerToPartySlot(entry->character),
                    entry->event_type, 0);
 #endif
-    int index = queue->active_events.IndexOf(entry);
-    if (index >= 0) {
-        queue->active_events.RemoveAt(index);
-    }
+    queue->active_events.Remove(entry);
     queue->RestartFollowUpClock(entry);
     entry->Complete();
     delete entry;
@@ -598,7 +595,7 @@ void W8CharacterEventQueue::CompleteFirstActiveEvent()
 
     if (active_events.count > 0) {
         entry = *active_events.GetAt(0);
-        active_events.RemoveAt(active_events.IndexOf(entry));
+        active_events.Remove(entry);
         RestartFollowUpClock(entry);
         entry->Complete();
         delete entry;
@@ -795,6 +792,18 @@ unsigned char W8CharacterEvent::PlayEventSound()
     return 1;
 }
 
+void W8CharacterEventQueue::RecordDispatchedEvent(unsigned int event_type, unsigned int party_slot)
+{
+    if (event_type > 1 && (event_type < 4 || event_type == 0x1c)) {
+        SetEventCharacterMask(event_type, party_slot, 1);
+    }
+    if (event_type != 10) {
+        active_event_type = event_type;
+        active_party_slot = party_slot;
+    }
+    recent_event_clock = SetCountdownClock(5000);
+}
+
 // FUNCTION: WIZ8 0x0052CA60
 unsigned char W8CharacterEvent::Dispatch()
 {
@@ -863,26 +872,12 @@ unsigned char W8CharacterEvent::Dispatch()
                 ReloadNpcScriptResources(npc);
             }
             slot->active_character_event = this;
-            if (event_type > 1 && (event_type < 4 || event_type == 0x1c)) {
-                gXStatus.character_event_queue->SetEventCharacterMask(event_type, party_slot, 1);
-            }
-            if (event_type != 10) {
-                gXStatus.character_event_queue->active_event_type = event_type;
-                gXStatus.character_event_queue->active_party_slot = party_slot;
-            }
-            gXStatus.character_event_queue->recent_event_clock = SetCountdownClock(5000);
+            gXStatus.character_event_queue->RecordDispatchedEvent(event_type, party_slot);
             return 1;
         }
         has_quote = FormatCharacterQuoteText(character, event_type, &metadata);
         if (PlayEventSound() != 0) {
-            if (event_type > 1 && (event_type < 4 || event_type == 0x1c)) {
-                gXStatus.character_event_queue->SetEventCharacterMask(event_type, party_slot, 1);
-            }
-            if (event_type != 10) {
-                gXStatus.character_event_queue->active_event_type = event_type;
-                gXStatus.character_event_queue->active_party_slot = party_slot;
-            }
-            gXStatus.character_event_queue->recent_event_clock = SetCountdownClock(5000);
+            gXStatus.character_event_queue->RecordDispatchedEvent(event_type, party_slot);
             if (event_type < 0x92) {
                 SetPartyPortraitEventState(party_slot, 1, event_type, g_character_text,
                                            1 - ((flags & g_character_event_flags_mask) != 0));
@@ -899,14 +894,7 @@ unsigned char W8CharacterEvent::Dispatch()
         if (has_quote == 0) {
             return 0;
         }
-        if (event_type > 1 && (event_type < 4 || event_type == 0x1c)) {
-            gXStatus.character_event_queue->SetEventCharacterMask(event_type, party_slot, 1);
-        }
-        if (event_type != 10) {
-            gXStatus.character_event_queue->active_event_type = event_type;
-            gXStatus.character_event_queue->active_party_slot = party_slot;
-        }
-        gXStatus.character_event_queue->recent_event_clock = SetCountdownClock(5000);
+        gXStatus.character_event_queue->RecordDispatchedEvent(event_type, party_slot);
         gXStatus.character_event_queue->RestartFollowUpClock(this);
         return 0;
     }
@@ -1447,11 +1435,7 @@ W8CharacterEvent* QueueCharacterEvent(W8Character* character, int event_type, un
 // FUNCTION: WIZ8 0x0052D8D0
 void W8CharacterEventQueue::CompleteActiveEvent(W8CharacterEvent* entry)
 {
-    int index = active_events.IndexOf(entry);
-
-    if (index >= 0) {
-        active_events.RemoveAt(index);
-    }
+    active_events.Remove(entry);
     RestartFollowUpClock(entry);
     entry->Complete();
     delete entry;

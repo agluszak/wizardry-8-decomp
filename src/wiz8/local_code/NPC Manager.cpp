@@ -1221,6 +1221,19 @@ void InitializeNpcStates(void)
     }
 }
 
+/* Descriptive name for the complete state teardown expanded in reset,
+   shutdown and load. Stock ownership remains with the database record. */
+static void DestroyNpcState(W8NpcState* npc)
+{
+    ReleaseNpcScriptFile(npc->script_file);
+    npc->script_file = 0;
+    if (npc->record != 0 && npc->record->owns_stock != 0) {
+        ClearNpcItems(npc);
+    }
+    delete npc->character;
+    delete npc;
+}
+
 /* Empty the shared vector: release every state's monster binding and character,
    hand its stock to the item-list teardown, and delete the state itself. Then
    rebuild a runtime node for every database record that is not flagged at
@@ -1235,13 +1248,7 @@ void ResetNpcStates(void)
         for (index = 0; index < g_npc_states->count; ++index) {
             W8NpcState* npc = *g_npc_states->GetAt(index);
 
-            ReleaseNpcScriptFile(npc->script_file);
-            npc->script_file = 0;
-            if (npc->record != 0 && npc->record->owns_stock != 0) {
-                ClearNpcItems(npc);
-            }
-            delete npc->character;
-            delete npc;
+            DestroyNpcState(npc);
         }
         g_npc_states->Clear();
     }
@@ -1263,13 +1270,7 @@ void ReleaseNpcStates(void)
         for (index = 0; index < g_npc_states->count; ++index) {
             W8NpcState* npc = *g_npc_states->GetAt(index);
             if (g_npc_states != 0) {
-                ReleaseNpcScriptFile(npc->script_file);
-                npc->script_file = 0;
-                if (npc->record != 0 && npc->record->owns_stock != 0) {
-                    ClearNpcItems(npc);
-                }
-                delete npc->character;
-                delete npc;
+                DestroyNpcState(npc);
             }
         }
         g_npc_states->Clear();
@@ -1580,9 +1581,6 @@ void InitializeNpcItemTable(W8NpcState* npc)
 void ReleaseNpcBinding(int value)
 {
     W8NpcState* npc;
-    W8NpcDatabaseRecord* record;
-    unsigned char flag;
-    W8NpcScriptFile* file;
 
     if (value == -1) {
         return;
@@ -1598,13 +1596,10 @@ void ReleaseNpcBinding(int value)
     } else {
         npc = g_npc_states->data[0];
     }
-    file = npc->script_file;
     npc->has_monster = 0;
-    record = npc->record;
+    ReleaseNpcScriptFile(npc->script_file);
     npc->script_file = 0;
-    flag = record->monster_bound;
-    ReleaseNpcScriptFile(file);
-    if (flag != 0) {
+    if (npc->record->monster_bound != 0) {
         npc->binding_unavailable = 1;
     }
 }
@@ -1638,13 +1633,7 @@ void LoadNpcStates(W8Chunk* chunks)
         for (index = 0; index < g_npc_states->count; ++index) {
             npc = *g_npc_states->GetAt(index);
 
-            ReleaseNpcScriptFile(npc->script_file);
-            npc->script_file = 0;
-            if (npc->record != 0 && npc->record->owns_stock != 0) {
-                ClearNpcItems(npc);
-            }
-            delete npc->character;
-            delete npc;
+            DestroyNpcState(npc);
         }
         g_npc_states->Clear();
     }
@@ -2260,16 +2249,7 @@ void UpdateNpcEvents(void)
                     RemoveMonster(index, 1);
                 }
             }
-            int partner_index = partner->partner_index;
-            if (partner_index != -1 && partner_index <= g_npc_states->GetCount()) {
-                W8NpcState* released = *g_npc_states->GetAt(partner_index);
-                released->has_monster = 0;
-                ReleaseNpcScriptFile(released->script_file);
-                released->script_file = 0;
-                if (released->record->monster_bound != 0) {
-                    released->binding_unavailable = 1;
-                }
-            }
+            ReleaseNpcBinding(partner->partner_index);
             g_status.npc_restore_pending = 0;
         }
     }
@@ -2502,21 +2482,7 @@ void ReleaseNpcMonsterBindings(void)
                         RemoveMonster(monster_index, destroy);
                     }
                 }
-                {
-                    int partner_index = companion->partner_index;
-
-                    if (partner_index != -1 && partner_index >= 0 &&
-                        partner_index <= g_npc_states->GetCount()) {
-                        W8NpcState* target = *g_npc_states->GetAt(partner_index);
-
-                        target->has_monster = 0;
-                        ReleaseNpcScriptFile(target->script_file);
-                        target->script_file = 0;
-                        if (target->record->monster_bound != 0) {
-                            target->binding_unavailable = 1;
-                        }
-                    }
-                }
+                ReleaseNpcBinding(companion->partner_index);
             }
         }
         count = g_npc_states->count;
@@ -2556,19 +2522,7 @@ void ReleaseNpcMonsterBinding(W8NpcState* npc, char level)
                                   1);
                 }
             }
-            int partner_index = companion->partner_index;
-
-            if (partner_index != -1 && partner_index >= 0 &&
-                partner_index <= g_npc_states->GetCount()) {
-                W8NpcState* target = *g_npc_states->GetAt(partner_index);
-
-                target->has_monster = 0;
-                ReleaseNpcScriptFile(target->script_file);
-                target->script_file = 0;
-                if (target->record->monster_bound != 0) {
-                    target->binding_unavailable = 1;
-                }
-            }
+            ReleaseNpcBinding(companion->partner_index);
         }
     } else {
         npc->pending_release = 1;
@@ -2601,17 +2555,7 @@ void ReleaseNpcMonsterByKind(int kind)
                               1);
             }
         }
-        unsigned int partner_index = npc->partner_index;
-        if (partner_index != 0xffffffff && static_cast<int>(partner_index) <= g_npc_states->count) {
-            W8NpcState* target = *g_npc_states->GetAt(partner_index);
-
-            target->has_monster = 0;
-            ReleaseNpcScriptFile(target->script_file);
-            target->script_file = 0;
-            if (target->record->monster_bound != 0) {
-                target->binding_unavailable = 1;
-            }
-        }
+        ReleaseNpcBinding(npc->partner_index);
     }
 }
 
@@ -2769,18 +2713,7 @@ void HandleMarkedNpcEvent(W8NpcState* npc, char mode)
                         1);
                 }
             }
-            int partner_index = companion->partner_index;
-
-            if (partner_index != -1 && partner_index >= 0 && partner_index <= g_npc_states->count) {
-                W8NpcState* target = *g_npc_states->GetAt(partner_index);
-
-                target->has_monster = 0;
-                ReleaseNpcScriptFile(target->script_file);
-                target->script_file = 0;
-                if (target->record->monster_bound != 0) {
-                    target->binding_unavailable = 1;
-                }
-            }
+            ReleaseNpcBinding(companion->partner_index);
         }
     } else {
         npc->restored = true;
@@ -2856,21 +2789,7 @@ void ReleaseMarkedNpcBindings(void)
                             RemoveMonster(monster_index, destroy);
                         }
                     }
-                    {
-                        int partner_index = companion->partner_index;
-
-                        if (partner_index != -1 && partner_index >= 0 &&
-                            partner_index <= g_npc_states->GetCount()) {
-                            W8NpcState* target = *g_npc_states->GetAt(partner_index);
-
-                            target->has_monster = 0;
-                            ReleaseNpcScriptFile(target->script_file);
-                            target->script_file = 0;
-                            if (target->record->monster_bound != 0) {
-                                target->binding_unavailable = 1;
-                            }
-                        }
-                    }
+                    ReleaseNpcBinding(companion->partner_index);
                 }
             }
         }

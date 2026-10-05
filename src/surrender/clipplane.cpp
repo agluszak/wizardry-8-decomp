@@ -39,28 +39,21 @@ void srClipPlane::traverse(TraverseInfo& info)
     if (testFlag(FLAG_TERMINATE) == 0) {
         if (testFlag(FLAG_DISABLE) == 0) {
             if (testFlag(FLAG_GLOBAL) == 0) {
-                if (info.entries.capacity <= info.entry_count) {
-                    info.entries.setCapacity(info.entries.capacity + 8 + info.entry_count);
-                }
-                info.entries.data[info.entry_count].node = this;
-                info.entries.data[info.entry_count].value = 1;
+                TraverseInfo::Entry& entry = info.entries[info.entry_count];
+                entry.node = this;
+                entry.value = 1;
                 info.entry_count++;
             } else {
-                if (info.nodes.capacity <= info.node_count) {
-                    info.nodes.setCapacity(info.nodes.capacity + 8 + info.node_count);
-                }
-                info.nodes.data[info.node_count] = this;
+                info.nodes[info.node_count] = this;
                 info.node_count++;
             }
             if (first_child_ != 0) {
                 first_child_->traverse(info);
             }
             if (testFlag(FLAG_GLOBAL) == 0) {
-                if (info.entries.capacity <= info.entry_count) {
-                    info.entries.setCapacity(info.entries.capacity + 8 + info.entry_count);
-                }
-                info.entries.data[info.entry_count].node = this;
-                info.entries.data[info.entry_count].value = 2;
+                TraverseInfo::Entry& entry = info.entries[info.entry_count];
+                entry.node = this;
+                entry.value = 2;
                 info.entry_count++;
             }
         } else if (first_child_ != 0) {

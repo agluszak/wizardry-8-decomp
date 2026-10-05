@@ -1389,11 +1389,7 @@ unsigned char CampScreenEnter(void)
                      "C:\\Projects\\Wizardry 8\\Local Screens\\ReviewCharacterScreen.cpp", 0x16f,
                      0);
     show_equip_message:
-        W8MessageDialogBase* dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
-        dialog->SetClientExtent(250, 200);
-        dialog->SetMessage(g_camp_screen->caption, 1, 50, 1, 0, 1, 1, 0, 350);
-        SetDialogDestroyCallback(dialog, 0);
-        DisplayCampDialog(dialog);
+        ShowCampNoticeLine(g_camp_screen->caption, 0, 1, 0);
     }
     g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;
     ResetTransientRenderScenes();
@@ -1443,12 +1439,7 @@ void CampScreenFrame(void)
                         if (!IsPartySlotEligible(giReviewCharSlot)) {
                             wchar_t* text =
                                 FormatWideString(gppStringList[0x931], g_camp_character->name);
-                            W8MessageDialogBase* dialog =
-                                static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
-                            dialog->SetClientExtent(250, 200);
-                            dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
-                            SetDialogDestroyCallback(dialog, 0);
-                            DisplayCampDialog(dialog);
+                            ShowCampNoticeLine(text, 0, 1, 0);
                         } else {
                             QueueCharacterEvent(g_camp_character, g_effect36, 0,
                                                 g_effect_argument0,
@@ -1464,12 +1455,7 @@ void CampScreenFrame(void)
                 }
             } else if (input.usParam == 'X' && gfKeyState[0x12] && !gfKeyState[0x11] &&
                        !gfKeyState[0x10]) {
-                W8MessageDialogBase* dialog =
-                    static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
-                dialog->SetClientExtent(250, 200);
-                dialog->SetMessage(gppStringList[0x832], 1, 50, 1, 1, 1, 1, 0, 350);
-                SetDialogDestroyCallback(dialog, OnQuitGameDialogClosed);
-                DisplayCampDialog(dialog);
+                ShowCampNoticeLine(gppStringList[0x832], OnQuitGameDialogClosed, 1, 1);
             }
         }
     }
@@ -1546,11 +1532,7 @@ void DismissSelectedPartyCharacter(void)
             return;
         }
         wchar_t* text = FormatWideString(gppStringList[0x931], g_camp_character->name);
-        W8MessageDialogBase* dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
-        dialog->SetClientExtent(250, 200);
-        dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
-        SetDialogDestroyCallback(dialog, 0);
-        DisplayCampDialog(dialog);
+        ShowCampNoticeLine(text, 0, 1, 0);
         return;
     }
     if (IsMessageBoxActive()) {
@@ -1923,7 +1905,6 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
     W8ItemInstance* paired;
     W8Character* character;
     W8NpcState* npc;
-    W8MessageDialogBase* dialog;
     wchar_t* text;
 
     if (item == 0) {
@@ -1963,49 +1944,29 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
     }
     if (g_status.game_started == 0) {
         text = gppStringList[0x900];
-        dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
-        dialog->SetClientExtent(250, 200);
-        dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
-        SetDialogDestroyCallback(dialog, 0);
-        DisplayCampDialog(dialog);
+        ShowCampNoticeLine(text, 0, 1, 0);
         return;
     }
     character = &g_status.buffers.Char[giReviewCharSlot];
     if (character->uiCondition[0x13] != 0 && (origin == 1 || origin == 0)) {
         text = gppStringList[0x907];
-        dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
-        dialog->SetClientExtent(250, 200);
-        dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
-        SetDialogDestroyCallback(dialog, 0);
-        DisplayCampDialog(dialog);
+        ShowCampNoticeLine(text, 0, 1, 0);
         return;
     }
     if (character->uiCondition[0xe] != 0 && (origin == 1 || origin == 0)) {
         text = gppStringList[0x908];
-        dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
-        dialog->SetClientExtent(250, 200);
-        dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
-        SetDialogDestroyCallback(dialog, 0);
-        DisplayCampDialog(dialog);
+        ShowCampNoticeLine(text, 0, 1, 0);
         return;
     }
     if (character->uiCondition[W8_CONDITION_HOSTILE] != 0 && (origin == 1 || origin == 0)) {
         text = gppStringList[0x909];
-        dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
-        dialog->SetClientExtent(250, 200);
-        dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
-        SetDialogDestroyCallback(dialog, 0);
-        DisplayCampDialog(dialog);
+        ShowCampNoticeLine(text, 0, 1, 0);
         return;
     }
     if (character->highest_condition >= W8_CONDITION_HOSTILE && origin != 2 &&
         g_status.item_in_cursor != 0 && gXStatus.held_item_source != giReviewCharSlot) {
         text = gppStringList[0x901];
-        dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
-        dialog->SetClientExtent(250, 200);
-        dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
-        SetDialogDestroyCallback(dialog, 0);
-        DisplayCampDialog(dialog);
+        ShowCampNoticeLine(text, 0, 1, 0);
         return;
     }
 
@@ -2112,11 +2073,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                                         g_effect_argument0, g_character_event_full_volume);
                 } else {
                     text = FormatWideString(gppStringList[0x931], g_camp_character->name);
-                    dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
-                    dialog->SetClientExtent(250, 200);
-                    dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
-                    SetDialogDestroyCallback(dialog, 0);
-                    DisplayCampDialog(dialog);
+                    ShowCampNoticeLine(text, 0, 1, 0);
                 }
                 return;
             }
@@ -2134,11 +2091,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
     if (item->iItemNo != -1 && origin == 1) {
         if (CanUnequipSlotItem(g_review_character, slot_index) == 0) {
             text = gppStringList[0x90b];
-            dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
-            dialog->SetClientExtent(250, 200);
-            dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
-            SetDialogDestroyCallback(dialog, 0);
-            DisplayCampDialog(dialog);
+            ShowCampNoticeLine(text, 0, 1, 0);
             if (item->bound != 0) {
                 return;
             }
@@ -2193,11 +2146,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                                                 g_character_event_full_volume);
                         } else {
                             text = FormatWideString(gppStringList[0x931], g_camp_character->name);
-                            dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
-                            dialog->SetClientExtent(250, 200);
-                            dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
-                            SetDialogDestroyCallback(dialog, 0);
-                            DisplayCampDialog(dialog);
+                            ShowCampNoticeLine(text, 0, 1, 0);
                         }
                     } else if (InsertItemIntoPartyPool(&g_status.item_in_hand, slot_index) !=
                                0) {
@@ -2205,11 +2154,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                         RebuildCampItemList();
                     } else {
                         text = gppStringList[0x90c];
-                        dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
-                        dialog->SetClientExtent(250, 200);
-                        dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
-                        SetDialogDestroyCallback(dialog, 0);
-                        DisplayCampDialog(dialog);
+                        ShowCampNoticeLine(text, 0, 1, 0);
                     }
                 } else if (slot_index < g_status.party_item_count) {
                     /* An empty hand picks the clicked pool row up. */
@@ -2249,11 +2194,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                         paired = &g_review_character->EquippedItem[paired_slot];
                         if (CanUnequipSlotItem(g_review_character, paired_slot) == 0) {
                             text = gppStringList[0x916];
-                            dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
-                            dialog->SetClientExtent(250, 200);
-                            dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
-                            SetDialogDestroyCallback(dialog, 0);
-                            DisplayCampDialog(dialog);
+                            ShowCampNoticeLine(text, 0, 1, 0);
                             if (paired->bound != 0) {
                                 return;
                             }
@@ -2288,22 +2229,13 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                                             g_status.buffers.XChar[giReviewCharSlot].npc_index),
                                         paired) != 0) {
                                     text = gppStringList[0x90c];
-                                    dialog =
-                                        static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
-                                    dialog->SetClientExtent(250, 200);
-                                    dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
-                                    SetDialogDestroyCallback(dialog, 0);
-                                    DisplayCampDialog(dialog);
+                                    ShowCampNoticeLine(text, 0, 1, 0);
                                     return;
                                 }
                             }
                             if (AddItemToParty(paired, 0, 1) == 0) {
                                 text = gppStringList[0x90c];
-                                dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
-                                dialog->SetClientExtent(250, 200);
-                                dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
-                                SetDialogDestroyCallback(dialog, 0);
-                                DisplayCampDialog(dialog);
+                                ShowCampNoticeLine(text, 0, 1, 0);
                                 return;
                             }
                             SwapItemInstances(item, &g_status.item_in_hand, g_review_character,
@@ -2328,11 +2260,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                                             g_character_event_full_volume);
                     } else {
                         text = FormatWideString(gppStringList[0x931], g_camp_character->name);
-                        dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
-                        dialog->SetClientExtent(250, 200);
-                        dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
-                        SetDialogDestroyCallback(dialog, 0);
-                        DisplayCampDialog(dialog);
+                        ShowCampNoticeLine(text, 0, 1, 0);
                     }
                 }
             }
@@ -2449,7 +2377,6 @@ bool ResolvePendingCampCharacter(bool force)
 {
     unsigned int slot;
     wchar_t* text;
-    W8MessageDialogBase* dialog;
 
     if (g_camp_character_pending != 0 && (g_camp_character != g_review_character || force != 0)) {
         slot = CharacterPointerToPartySlot(g_camp_character);
@@ -2460,11 +2387,7 @@ bool ResolvePendingCampCharacter(bool force)
             return 0;
         }
         text = FormatWideString(gppStringList[0x931], g_camp_character->name);
-        dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
-        dialog->SetClientExtent(0xfa, 200);
-        dialog->SetMessage(text, 1, 0x32, 1, 0, 1, 1, 0, 0x15e);
-        SetDialogDestroyCallback(dialog, 0);
-        DisplayCampDialog(dialog);
+        ShowCampNoticeLine(text, 0, 1, 0);
         return 0;
     }
     return 1;
@@ -2495,7 +2418,6 @@ void MarkCampCharacterPending(W8ItemInstance* item)
 bool IsCampActionAllowed(int party_slot)
 {
     const wchar_t* message;
-    W8MessageDialogBase* dialog;
     W8PartySlotRow* row;
     W8Character* character;
 
@@ -2538,11 +2460,7 @@ bool IsCampActionAllowed(int party_slot)
             }
         }
     }
-    dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
-    dialog->SetClientExtent(0xfa, 200);
-    dialog->SetMessage(message, 1, 0x32, 1, 0, 1, 1, 0, 0x15e);
-    SetDialogDestroyCallback(dialog, 0);
-    DisplayCampDialog(dialog);
+    ShowCampNoticeLine(message, 0, 1, 0);
     return 0;
 }
 

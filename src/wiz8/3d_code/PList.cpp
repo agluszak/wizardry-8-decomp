@@ -74,26 +74,29 @@ unsigned char PListFreeData(W8PList* ppl)
     return 1;
 }
 
+/* Descriptive name for the shared five-slot storage growth operation. */
+static void GrowPListStorage(W8PList* ppl)
+{
+    if (!ppl) {
+        srAssertFail("ppl", PLIST_CPP, 0x1d6, 0);
+    }
+    void** pTemp = static_cast<void**>(malloc((ppl->capacity + 5) * sizeof(void*)));
+    if (!pTemp) {
+        srAssertFail("pTemp", PLIST_CPP, 0x1d9, 0);
+    }
+    for (int index = 0; index < ppl->iNumUsed; ++index) {
+        pTemp[index] = ppl->data[index];
+    }
+    free(ppl->data);
+    ppl->data = pTemp;
+    ppl->capacity += 5;
+}
+
 // FUNCTION: WIZ8 0x005e2480
 int PLAdoptAppend(W8PList* ppl, void* pEntry)
 {
-    void** pTemp;
-    int index;
-
     if (ppl->iNumUsed >= ppl->capacity) {
-        if (!ppl) {
-            srAssertFail("ppl", PLIST_CPP, 0x1d6, 0);
-        }
-        pTemp = static_cast<void**>(malloc((ppl->capacity + 5) * sizeof(void*)));
-        if (!pTemp) {
-            srAssertFail("pTemp", PLIST_CPP, 0x1d9, 0);
-        }
-        for (index = 0; index < ppl->iNumUsed; ++index) {
-            pTemp[index] = ppl->data[index];
-        }
-        free(ppl->data);
-        ppl->data = pTemp;
-        ppl->capacity += 5;
+        GrowPListStorage(ppl);
     }
     ppl->data[ppl->iNumUsed] = pEntry;
     ++ppl->iNumUsed;
@@ -103,7 +106,6 @@ int PLAdoptAppend(W8PList* ppl, void* pEntry)
 // FUNCTION: WIZ8 0x005e2530
 int PListInsert(W8PList* ppl, int position, void* pEntry)
 {
-    void** pTemp;
     int index;
 
     if (!ppl) {
@@ -113,19 +115,7 @@ int PListInsert(W8PList* ppl, int position, void* pEntry)
         return PLAdoptAppend(ppl, pEntry);
     }
     if (ppl->iNumUsed >= ppl->capacity) {
-        if (!ppl) {
-            srAssertFail("ppl", PLIST_CPP, 0x1d6, 0);
-        }
-        pTemp = static_cast<void**>(malloc((ppl->capacity + 5) * sizeof(void*)));
-        if (!pTemp) {
-            srAssertFail("pTemp", PLIST_CPP, 0x1d9, 0);
-        }
-        for (index = 0; index < ppl->iNumUsed; ++index) {
-            pTemp[index] = ppl->data[index];
-        }
-        free(ppl->data);
-        ppl->data = pTemp;
-        ppl->capacity += 5;
+        GrowPListStorage(ppl);
     }
     for (index = ppl->iNumUsed; index > position; --index) {
         ppl->data[index] = ppl->data[index - 1];

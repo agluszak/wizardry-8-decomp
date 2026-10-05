@@ -781,6 +781,20 @@ void SelectCampRealmTab(int tab)
 /* Region reason values are bit codes set by the region manager: 0x8 left
    release, 0x10 left down, 0x40 right press, 0x80 right release, 0x100
    double-click/activate, 0x400 enter/leave transition, 0x800 mouse wheel. */
+/* Descriptive name for the right-click identify/show operation shared by
+   backpack, equipment and party-pool slots. */
+static void ShowCampItemInfo(W8ItemInstance* item)
+{
+    g_camp_entry_parameter = g_review_character;
+    if (CanItemLeaveItsSlot(item) != 0 && PartyAttemptsToIdentifyItem(item, 0) != 0 &&
+        g_camp_screen->realm_flags[1] != 0) {
+        RebuildCampItemList();
+        g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;
+    }
+    OpenItemInfoDialog(item, 0);
+    SetCampItemActionMode(0);
+}
+
 // FUNCTION: WIZ8 0x005BB350
 unsigned char BackpackRegionHandler(const InputAtom* event, W8Region* region)
 {
@@ -819,14 +833,7 @@ unsigned char BackpackRegionHandler(const InputAtom* event, W8Region* region)
     if (event->usEvent == 0x100) {
         if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0 && item->iItemNo != -1 &&
             g_camp_screen->entry_mode != 3) {
-            g_camp_entry_parameter = g_review_character;
-            if (CanItemLeaveItsSlot(item) != 0 && PartyAttemptsToIdentifyItem(item, 0) != 0 &&
-                g_camp_screen->realm_flags[1] != 0) {
-                RebuildCampItemList();
-                g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;
-            }
-            OpenItemInfoDialog(item, 0);
-            SetCampItemActionMode(0);
+            ShowCampItemInfo(item);
         }
         return 1;
     }
@@ -944,14 +951,7 @@ unsigned char EquipSlotRegionHandler(const InputAtom* event, W8Region* region)
         }
         if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0 && item->iItemNo != -1 &&
             g_camp_screen->entry_mode != 3) {
-            g_camp_entry_parameter = g_review_character;
-            if (CanItemLeaveItsSlot(item) != 0 && PartyAttemptsToIdentifyItem(item, 0) != 0 &&
-                g_camp_screen->realm_flags[1] != 0) {
-                RebuildCampItemList();
-                g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;
-            }
-            OpenItemInfoDialog(item, 0);
-            SetCampItemActionMode(0);
+            ShowCampItemInfo(item);
         }
     }
     return 1;
@@ -982,14 +982,7 @@ unsigned char ItemPoolRegionHandler(const InputAtom* event, W8Region* region)
         if (event->usEvent == 0x100) {
             if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0 &&
                 pool_index < g_status.party_item_count && g_camp_screen->entry_mode != 3) {
-                g_camp_entry_parameter = g_review_character;
-                if (CanItemLeaveItsSlot(item) != 0 && PartyAttemptsToIdentifyItem(item, 0) != 0 &&
-                    g_camp_screen->realm_flags[1] != 0) {
-                    RebuildCampItemList();
-                    g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;
-                }
-                OpenItemInfoDialog(item, 0);
-                SetCampItemActionMode(0);
+                ShowCampItemInfo(item);
             }
             return 1;
         }

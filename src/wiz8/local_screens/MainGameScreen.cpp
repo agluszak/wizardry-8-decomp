@@ -5829,27 +5829,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                 return 0;
             }
             if (IsNpcDialogueCursorActive() == 0 && gXStatus.scripted_scene == 0) {
-                if (gXStatus.fNpcDialogueMode != 0) {
-                    CloseNpcDialogueForCamp();
-                }
-                g_pending_screen_state.parameter_3 = &g_status.buffers.Char[slot];
-                g_pending_screen_state.parameter_4 = 0;
-                if (g_main_game_mode == 3) {
-                    g_pending_screen_state.parameter_2 = slot;
-                    CloseNpcDialogueIfActive();
-                } else if (g_main_game_mode == 5) {
-                    g_pending_screen_state.parameter_2 = slot;
-                    CloseMessageBox();
-                } else {
-                    g_pending_screen_state.parameter_2 = slot;
-                    if (g_main_game_mode == 6) {
-                        DismissHighlightOverlay();
-                    }
-                }
-                g_main_game_mode = 0;
-                SetPendingScreenState(W8_SCREEN_CAMP);
-                UpdateScreenOverlays(1);
-                SetPrimarySurfaceTextureHint2Enabled(0);
+                OpenCharacterScreenForPartySlot(slot, false);
                 return 1;
             }
         }
@@ -5868,27 +5848,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
             if (g_level_block->portrait_right_hold_armed != 0 &&
                 ClockIsTicking(g_level_block->countdown4) == 0) {
                 g_level_block->portrait_right_hold_armed = false;
-                if (gXStatus.fNpcDialogueMode != 0) {
-                    CloseNpcDialogueForCamp();
-                }
-                g_pending_screen_state.parameter_3 = &g_status.buffers.Char[slot];
-                g_pending_screen_state.parameter_4 = 0;
-                if (g_main_game_mode == 3) {
-                    g_pending_screen_state.parameter_2 = slot;
-                    CloseNpcDialogueIfActive();
-                } else if (g_main_game_mode == 5) {
-                    g_pending_screen_state.parameter_2 = slot;
-                    CloseMessageBox();
-                } else {
-                    g_pending_screen_state.parameter_2 = slot;
-                    if (g_main_game_mode == 6) {
-                        DismissHighlightOverlay();
-                    }
-                }
-                g_main_game_mode = 0;
-                SetPendingScreenState(W8_SCREEN_CAMP);
-                UpdateScreenOverlays(1);
-                SetPrimarySurfaceTextureHint2Enabled(0);
+                OpenCharacterScreenForPartySlot(slot, false);
             }
             if ((region->flags & W8_REGION_MOUSE_LEAVE) == 0) {
                 if ((region->flags & W8_REGION_MOUSE_ENTER) == 0) {
@@ -5963,27 +5923,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
             IsNpcDialogueCursorActive() == 0 && gXStatus.scripted_scene == 0) {
             g_level_block->portrait_right_hold_armed = false;
             if (g_status.item_in_cursor == 0 || gfKeyState[0x11]) {
-                if (gXStatus.fNpcDialogueMode != 0) {
-                    CloseNpcDialogueForCamp();
-                }
-                g_pending_screen_state.parameter_3 = &g_status.buffers.Char[slot];
-                g_pending_screen_state.parameter_4 = 0;
-                if (g_main_game_mode == 3) {
-                    g_pending_screen_state.parameter_2 = slot;
-                    CloseNpcDialogueIfActive();
-                } else if (g_main_game_mode == 5) {
-                    g_pending_screen_state.parameter_2 = slot;
-                    CloseMessageBox();
-                } else {
-                    g_pending_screen_state.parameter_2 = slot;
-                    if (g_main_game_mode == 6) {
-                        DismissHighlightOverlay();
-                    }
-                }
-                g_main_game_mode = 0;
-                SetPendingScreenState(W8_SCREEN_CAMP);
-                UpdateScreenOverlays(1);
-                SetPrimarySurfaceTextureHint2Enabled(0);
+                OpenCharacterScreenForPartySlot(slot, false);
                 return 1;
             }
             GiveHeldItemToCharacterOrParty(slot, 1);
@@ -7331,43 +7271,7 @@ void SetRadarMapVisible(bool visible)
         RequestRedraw(0x8200);
     }
     if (visible != g_radar_panel_shown) {
-        if (gXStatus.fSpellCastMode == 0) {
-            if ((gXStatus.fNpcDialogueMode == 0 || CanOpenNpcDialogue() != 0) &&
-                gXStatus.fLockInteractMode == 0 && gXStatus.fTrapInteractMode == 0 &&
-                gXStatus.fItemSelectMode == 0 && g_level_block->action_panel_visible == 0 &&
-                g_level_block->formation_board_visible != 0 &&
-                g_level_block->radar_map_visible != 0 &&
-                g_settings.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS) {
-                SetViewportMode(4);
-                g_radar_panel_shown = visible;
-                return;
-            }
-            if (gXStatus.fSpellCastMode == 0 &&
-                (gXStatus.fNpcDialogueMode == 0 || CanOpenNpcDialogue() != 0) &&
-                gXStatus.fLockInteractMode == 0 && gXStatus.fTrapInteractMode == 0 &&
-                gXStatus.fItemSelectMode == 0 &&
-                (g_level_block->formation_board_visible == 0 ||
-                 g_level_block->radar_map_visible == 0 ||
-                 g_level_block->action_panel_visible == 0)) {
-                SetViewportMode(0);
-                g_radar_panel_shown = visible;
-                return;
-            }
-        }
-        switch (g_settings.main_ui_mode) {
-        case W8_MAIN_UI_MODE_RADAR:
-            SetViewportMode(0);
-            g_radar_panel_shown = visible;
-            return;
-        case W8_MAIN_UI_MODE_FORMATION:
-            SetViewportMode(1);
-            g_radar_panel_shown = visible;
-            return;
-        case W8_MAIN_UI_MODE_PORTRAITS:
-        default:
-            SetViewportMode(2);
-            break;
-        }
+        SetViewportMode(GetMainGameViewportMode());
     }
     g_radar_panel_shown = visible;
 }
@@ -7397,43 +7301,7 @@ void SetActionPanelVisible(bool visible)
         RequestRedraw(0x8200);
     }
     if (visible != g_action_panel_shown) {
-        if (gXStatus.fSpellCastMode == 0) {
-            if ((gXStatus.fNpcDialogueMode == 0 || CanOpenNpcDialogue() != 0) &&
-                gXStatus.fLockInteractMode == 0 && gXStatus.fTrapInteractMode == 0 &&
-                gXStatus.fItemSelectMode == 0 && g_level_block->action_panel_visible == 0 &&
-                g_level_block->formation_board_visible != 0 &&
-                g_level_block->radar_map_visible != 0 &&
-                g_settings.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS) {
-                SetViewportMode(4);
-                g_action_panel_shown = visible;
-                return;
-            }
-            if (gXStatus.fSpellCastMode == 0 &&
-                (gXStatus.fNpcDialogueMode == 0 || CanOpenNpcDialogue() != 0) &&
-                gXStatus.fLockInteractMode == 0 && gXStatus.fTrapInteractMode == 0 &&
-                gXStatus.fItemSelectMode == 0 &&
-                (g_level_block->formation_board_visible == 0 ||
-                 g_level_block->radar_map_visible == 0 ||
-                 g_level_block->action_panel_visible == 0)) {
-                SetViewportMode(0);
-                g_action_panel_shown = visible;
-                return;
-            }
-        }
-        switch (g_settings.main_ui_mode) {
-        case W8_MAIN_UI_MODE_RADAR:
-            SetViewportMode(0);
-            g_action_panel_shown = visible;
-            return;
-        case W8_MAIN_UI_MODE_FORMATION:
-            SetViewportMode(1);
-            g_action_panel_shown = visible;
-            return;
-        case W8_MAIN_UI_MODE_PORTRAITS:
-        default:
-            SetViewportMode(2);
-            break;
-        }
+        SetViewportMode(GetMainGameViewportMode());
     }
     g_action_panel_shown = visible;
 }
@@ -7455,43 +7323,7 @@ void SetFormationBoardVisible(bool visible)
     }
     RequestRedraw(0x8200);
     if (visible != g_formation_panel_shown) {
-        if (gXStatus.fSpellCastMode == 0) {
-            if ((gXStatus.fNpcDialogueMode == 0 || CanOpenNpcDialogue() != 0) &&
-                gXStatus.fLockInteractMode == 0 && gXStatus.fTrapInteractMode == 0 &&
-                gXStatus.fItemSelectMode == 0 && g_level_block->action_panel_visible == 0 &&
-                g_level_block->formation_board_visible != 0 &&
-                g_level_block->radar_map_visible != 0 &&
-                g_settings.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS) {
-                SetViewportMode(4);
-                g_formation_panel_shown = visible;
-                return;
-            }
-            if (gXStatus.fSpellCastMode == 0 &&
-                (gXStatus.fNpcDialogueMode == 0 || CanOpenNpcDialogue() != 0) &&
-                gXStatus.fLockInteractMode == 0 && gXStatus.fTrapInteractMode == 0 &&
-                gXStatus.fItemSelectMode == 0 &&
-                (g_level_block->formation_board_visible == 0 ||
-                 g_level_block->radar_map_visible == 0 ||
-                 g_level_block->action_panel_visible == 0)) {
-                SetViewportMode(0);
-                g_formation_panel_shown = visible;
-                return;
-            }
-        }
-        switch (g_settings.main_ui_mode) {
-        case W8_MAIN_UI_MODE_RADAR:
-            SetViewportMode(0);
-            g_formation_panel_shown = visible;
-            return;
-        case W8_MAIN_UI_MODE_FORMATION:
-            SetViewportMode(1);
-            g_formation_panel_shown = visible;
-            return;
-        case W8_MAIN_UI_MODE_PORTRAITS:
-        default:
-            SetViewportMode(2);
-            break;
-        }
+        SetViewportMode(GetMainGameViewportMode());
     }
     g_formation_panel_shown = visible;
 }

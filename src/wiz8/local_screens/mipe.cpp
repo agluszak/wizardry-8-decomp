@@ -1394,8 +1394,6 @@ void HandleMipePropEditKey(unsigned short key)
     int found;
     int count;
     int table_index;
-    int row;
-    unsigned int palette;
 
     g_mipe_count = 0;
     world = GetWorld();
@@ -1482,27 +1480,25 @@ void HandleMipePropEditKey(unsigned short key)
                 }
                 g_mipe_menu_active = 0;
                 g_mipe_mode = 0x1d;
-                ResetEditorStatusLine(-1);
-                ShowNoticef(6, L"Category: %S",
-                            g_item_table_category_names[g_mipe_category & 0xff]);
-                if (g_mipe_category_list != 0) {
-                    row = 0;
-                    do {
-                        table = static_cast<W8ItemTableRecord*>(
-                            PLGet(g_mipe_category_list, g_mipe_table_base + row));
-                        if (table == 0) {
-                            ShowNoticef(0xf, &g_empty_wide_string);
-                        } else {
-                            palette = row == g_mipe_table_row ? 3 : 0xf;
-                            ShowNoticef(palette, L"    %S", table->name);
-                        }
-                        ++row;
-                    } while (row < 6);
-                    return;
-                }
+                ShowMipeItemTableCategory();
+                return;
             }
         }
     }
+}
+
+/* Shared volume-cube menu expanded in editor key/mouse handlers. The
+   helper name is descriptive; no original standalone spelling survives. */
+static void ShowMipeCubeMenu()
+{
+    ResetEditorStatusLine(-1);
+    ShowNoticef(6, L"Choose an action:");
+    ShowNoticef(0xf, L"1) Create cube.");
+    ShowNoticef(0xf, L"2) Delete cube.");
+    ShowNoticef(0xf, L"3) Edit cube parameters.");
+    ShowNoticef(0xf, L"4) Move cube.");
+    ShowNoticef(0xf, L"5) Scale cube.");
+    ShowNoticef(0xf, L"6) Select cube.");
 }
 
 /* The volume cube top menu: create, delete, edit parameters, move, scale and
@@ -1519,14 +1515,7 @@ int HandleCubeMenuKey(unsigned int key)
 
     switch (key & 0xffff) {
     case 0x20:
-        ResetEditorStatusLine(-1);
-        ShowNoticef(6, L"Choose an action:");
-        ShowNoticef(0xf, L"1) Create cube.");
-        ShowNoticef(0xf, L"2) Delete cube.");
-        ShowNoticef(0xf, L"3) Edit cube parameters.");
-        ShowNoticef(0xf, L"4) Move cube.");
-        ShowNoticef(0xf, L"5) Scale cube.");
-        ShowNoticef(0xf, L"6) Select cube.");
+        ShowMipeCubeMenu();
         return 1;
     default:
         return 0;
@@ -1620,14 +1609,7 @@ int HandleCubeParameterKey(unsigned int key)
 
     switch (key & 0xffff) {
     case 0x20:
-        ResetEditorStatusLine(-1);
-        ShowNoticef(6, L"Choose an action:");
-        ShowNoticef(0xf, L"1) Create cube.");
-        ShowNoticef(0xf, L"2) Delete cube.");
-        ShowNoticef(0xf, L"3) Edit cube parameters.");
-        ShowNoticef(0xf, L"4) Move cube.");
-        ShowNoticef(0xf, L"5) Scale cube.");
-        ShowNoticef(0xf, L"6) Select cube.");
+        ShowMipeCubeMenu();
         return 1;
     case 0x26:
         if (0 < g_mipe_cube_param) {
@@ -2024,8 +2006,6 @@ void HandleMipeGeneratorTableKey(unsigned short key)
     int wraps;
     int count;
     unsigned int table_index;
-    int row;
-    unsigned int palette;
 
     count = g_encounter_tables.count;
     switch (key) {
@@ -2053,24 +2033,8 @@ void HandleMipeGeneratorTableKey(unsigned short key)
         g_mipe_mode = 0x16;
         return;
     case 0x20:
-        ResetEditorStatusLine(-1);
-        ShowNoticef(6, L"Category: %S", *g_encounter_names.GetAt(g_mipe_category & 0xff));
-        if (g_mipe_category_list != 0) {
-            row = 0;
-            do {
-                entry = static_cast<W8EncounterTableRuntime*>(
-                    PLGet(g_mipe_category_list, g_mipe_table_base + row));
-                if (entry == 0) {
-                    ShowNoticef(0xf, &g_empty_wide_string);
-                } else {
-                    palette = row == g_mipe_table_row ? 3 : 0xf;
-                    ShowNoticef(palette, L"    %S", entry->name);
-                }
-                ++row;
-            } while (row < 6);
-            return;
-        }
-        break;
+        ShowMipeEncounterCategory();
+        return;
     case 0x21:
         if (g_mipe_table_base == 0) {
             return;
@@ -2129,24 +2093,8 @@ void HandleMipeGeneratorTableKey(unsigned short key)
                 }
             }
         } while (PLLength(g_mipe_category_list) == 0 && wraps < 2);
-        ResetEditorStatusLine(-1);
-        ShowNoticef(6, L"Category: %S", *g_encounter_names.GetAt(g_mipe_category & 0xff));
-        if (g_mipe_category_list != 0) {
-            row = 0;
-            do {
-                entry = static_cast<W8EncounterTableRuntime*>(
-                    PLGet(g_mipe_category_list, g_mipe_table_base + row));
-                if (entry == 0) {
-                    ShowNoticef(0xf, &g_empty_wide_string);
-                } else {
-                    palette = row == g_mipe_table_row ? 3 : 0xf;
-                    ShowNoticef(palette, L"    %S", entry->name);
-                }
-                ++row;
-            } while (row < 6);
-            return;
-        }
-        break;
+        ShowMipeEncounterCategory();
+        return;
     case 0x26:
         if (g_mipe_table_row == 0) {
             if (g_mipe_table_base != 0) {
@@ -2155,24 +2103,8 @@ void HandleMipeGeneratorTableKey(unsigned short key)
         } else {
             --g_mipe_table_row;
         }
-        ResetEditorStatusLine(-1);
-        ShowNoticef(6, L"Category: %S", *g_encounter_names.GetAt(g_mipe_category & 0xff));
-        if (g_mipe_category_list != 0) {
-            row = 0;
-            do {
-                entry = static_cast<W8EncounterTableRuntime*>(
-                    PLGet(g_mipe_category_list, g_mipe_table_base + row));
-                if (entry == 0) {
-                    ShowNoticef(0xf, &g_empty_wide_string);
-                } else {
-                    palette = row == g_mipe_table_row ? 3 : 0xf;
-                    ShowNoticef(palette, L"    %S", entry->name);
-                }
-                ++row;
-            } while (row < 6);
-            return;
-        }
-        break;
+        ShowMipeEncounterCategory();
+        return;
     case 0x27:
         g_mipe_table_row = 0;
         g_mipe_table_base = 0;
@@ -2200,24 +2132,8 @@ void HandleMipeGeneratorTableKey(unsigned short key)
                 }
             }
         } while (PLLength(g_mipe_category_list) == 0 && wraps < 2);
-        ResetEditorStatusLine(-1);
-        ShowNoticef(6, L"Category: %S", *g_encounter_names.GetAt(g_mipe_category & 0xff));
-        if (g_mipe_category_list != 0) {
-            row = 0;
-            do {
-                entry = static_cast<W8EncounterTableRuntime*>(
-                    PLGet(g_mipe_category_list, g_mipe_table_base + row));
-                if (entry == 0) {
-                    ShowNoticef(0xf, &g_empty_wide_string);
-                } else {
-                    palette = row == g_mipe_table_row ? 3 : 0xf;
-                    ShowNoticef(palette, L"    %S", entry->name);
-                }
-                ++row;
-            } while (row < 6);
-            return;
-        }
-        break;
+        ShowMipeEncounterCategory();
+        return;
     case 0x28:
         if (g_mipe_table_row < 5 && g_mipe_table_base + g_mipe_table_row <
                                         static_cast<int>(PLLength(g_mipe_category_list) - 1)) {
@@ -2412,8 +2328,6 @@ void HandleMipeItemTableKey(unsigned short key)
     unsigned int table_index;
     int wraps;
     int index;
-    int row;
-    unsigned int palette;
 
     switch (key) {
     case 0xd:
@@ -2429,47 +2343,16 @@ void HandleMipeItemTableKey(unsigned short key)
         g_mipe_mode = 0xd;
         return;
     case 0x20:
-        ResetEditorStatusLine(-1);
-        ShowNoticef(6, L"Category: %S", g_item_table_category_names[g_mipe_category & 0xff]);
-        if (g_mipe_category_list != 0) {
-            row = 0;
-            do {
-                table = static_cast<W8ItemTableRecord*>(
-                    PLGet(g_mipe_category_list, g_mipe_table_base + row));
-                if (table == 0) {
-                    ShowNoticef(0xf, &g_empty_wide_string);
-                } else {
-                    palette = row == g_mipe_table_row ? 3 : 0xf;
-                    ShowNoticef(palette, L"    %S", table->name);
-                }
-                ++row;
-            } while (row < 6);
-            return;
-        }
-        break;
+        ShowMipeItemTableCategory();
+        return;
     case 0x21:
         if (g_mipe_table_base != 0) {
             g_mipe_table_base -= 6;
             if (g_mipe_table_base < 0) {
                 g_mipe_table_base = 0;
             }
-            ResetEditorStatusLine(-1);
-            ShowNoticef(6, L"Category: %S", g_item_table_category_names[g_mipe_category & 0xff]);
-            if (g_mipe_category_list != 0) {
-                row = 0;
-                do {
-                    table = static_cast<W8ItemTableRecord*>(
-                        PLGet(g_mipe_category_list, g_mipe_table_base + row));
-                    if (table == 0) {
-                        ShowNoticef(0xf, &g_empty_wide_string);
-                    } else {
-                        palette = row == g_mipe_table_row ? 3 : 0xf;
-                        ShowNoticef(palette, L"    %S", table->name);
-                    }
-                    ++row;
-                } while (row < 6);
-                return;
-            }
+            ShowMipeItemTableCategory();
+            return;
         }
         break;
     case 0x22:
@@ -2513,24 +2396,8 @@ void HandleMipeItemTableKey(unsigned short key)
                 }
             }
         } while (PLLength(g_mipe_category_list) == 0 && wraps < 2);
-        ResetEditorStatusLine(-1);
-        ShowNoticef(6, L"Category: %S", g_item_table_category_names[g_mipe_category & 0xff]);
-        if (g_mipe_category_list != 0) {
-            row = 0;
-            do {
-                table = static_cast<W8ItemTableRecord*>(
-                    PLGet(g_mipe_category_list, g_mipe_table_base + row));
-                if (table == 0) {
-                    ShowNoticef(0xf, &g_empty_wide_string);
-                } else {
-                    palette = row == g_mipe_table_row ? 3 : 0xf;
-                    ShowNoticef(palette, L"    %S", table->name);
-                }
-                ++row;
-            } while (row < 6);
-            return;
-        }
-        break;
+        ShowMipeItemTableCategory();
+        return;
     case 0x26:
         if (g_mipe_table_row == 0) {
             if (g_mipe_table_base != 0) {
@@ -2539,24 +2406,8 @@ void HandleMipeItemTableKey(unsigned short key)
         } else {
             --g_mipe_table_row;
         }
-        ResetEditorStatusLine(-1);
-        ShowNoticef(6, L"Category: %S", g_item_table_category_names[g_mipe_category & 0xff]);
-        if (g_mipe_category_list != 0) {
-            row = 0;
-            do {
-                table = static_cast<W8ItemTableRecord*>(
-                    PLGet(g_mipe_category_list, g_mipe_table_base + row));
-                if (table == 0) {
-                    ShowNoticef(0xf, &g_empty_wide_string);
-                } else {
-                    palette = row == g_mipe_table_row ? 3 : 0xf;
-                    ShowNoticef(palette, L"    %S", table->name);
-                }
-                ++row;
-            } while (row < 6);
-            return;
-        }
-        break;
+        ShowMipeItemTableCategory();
+        return;
     case 0x27:
         wraps = 0;
         g_mipe_table_row = 0;
@@ -2580,24 +2431,8 @@ void HandleMipeItemTableKey(unsigned short key)
                 }
             }
         } while (PLLength(g_mipe_category_list) == 0 && wraps < 2);
-        ResetEditorStatusLine(-1);
-        ShowNoticef(6, L"Category: %S", g_item_table_category_names[g_mipe_category & 0xff]);
-        if (g_mipe_category_list != 0) {
-            row = 0;
-            do {
-                table = static_cast<W8ItemTableRecord*>(
-                    PLGet(g_mipe_category_list, g_mipe_table_base + row));
-                if (table == 0) {
-                    ShowNoticef(0xf, &g_empty_wide_string);
-                } else {
-                    palette = row == g_mipe_table_row ? 3 : 0xf;
-                    ShowNoticef(palette, L"    %S", table->name);
-                }
-                ++row;
-            } while (row < 6);
-            return;
-        }
-        break;
+        ShowMipeItemTableCategory();
+        return;
     case 0x28:
         if (g_mipe_table_row < 5 && g_mipe_table_base + g_mipe_table_row <
                                         static_cast<int>(PLLength(g_mipe_category_list) - 1)) {
@@ -2744,14 +2579,7 @@ unsigned char HandleMipeKey(const InputAtom* event)
                                 } else {
                                     ShowWorldCursor();
                                     g_mipe_state->selecting = 0;
-                                    ResetEditorStatusLine(-1);
-                                    ShowNoticef(6, L"Choose an action:");
-                                    ShowNoticef(0xf, L"1) Create cube.");
-                                    ShowNoticef(0xf, L"2) Delete cube.");
-                                    ShowNoticef(0xf, L"3) Edit cube parameters.");
-                                    ShowNoticef(0xf, L"4) Move cube.");
-                                    ShowNoticef(0xf, L"5) Scale cube.");
-                                    ShowNoticef(0xf, L"6) Select cube.");
+                                    ShowMipeCubeMenu();
                                 }
                             } else {
                                 if (g_mipe_mode != 0x10) {
@@ -2761,26 +2589,12 @@ unsigned char HandleMipeKey(const InputAtom* event)
                                         HideWorldCursor();
                                         g_mipe_state->dragging = false;
                                         g_mipe_menu_active = 1;
-                                        ResetEditorStatusLine(-1);
-                                        ShowNoticef(6, L"Choose an action:");
-                                        ShowNoticef(0xf, L"1) Create cube.");
-                                        ShowNoticef(0xf, L"2) Delete cube.");
-                                        ShowNoticef(0xf, L"3) Edit cube parameters.");
-                                        ShowNoticef(0xf, L"4) Move cube.");
-                                        ShowNoticef(0xf, L"5) Scale cube.");
-                                        ShowNoticef(0xf, L"6) Select cube.");
+                                        ShowMipeCubeMenu();
                                         return 1;
                                     }
                                     if (g_mipe_mode == 0x12 || g_mipe_mode == 0x13) {
                                         g_mipe_mode = 0xf;
-                                        ResetEditorStatusLine(-1);
-                                        ShowNoticef(6, L"Choose an action:");
-                                        ShowNoticef(0xf, L"1) Create cube.");
-                                        ShowNoticef(0xf, L"2) Delete cube.");
-                                        ShowNoticef(0xf, L"3) Edit cube parameters.");
-                                        ShowNoticef(0xf, L"4) Move cube.");
-                                        ShowNoticef(0xf, L"5) Scale cube.");
-                                        ShowNoticef(0xf, L"6) Select cube.");
+                                        ShowMipeCubeMenu();
                                         g_mipe_state->selecting = 0;
                                     } else if (g_mipe_mode == 0x18) {
                                         g_mipe_mode = 0x15;
@@ -2834,14 +2648,7 @@ unsigned char HandleMipeKey(const InputAtom* event)
                                     }
                                 } else {
                                     g_mipe_mode = 0xf;
-                                    ResetEditorStatusLine(-1);
-                                    ShowNoticef(6, L"Choose an action:");
-                                    ShowNoticef(0xf, L"1) Create cube.");
-                                    ShowNoticef(0xf, L"2) Delete cube.");
-                                    ShowNoticef(0xf, L"3) Edit cube parameters.");
-                                    ShowNoticef(0xf, L"4) Move cube.");
-                                    ShowNoticef(0xf, L"5) Scale cube.");
-                                    ShowNoticef(0xf, L"6) Select cube.");
+                                    ShowMipeCubeMenu();
                                     g_mipe_menu_active = 1;
                                 }
                             }
@@ -2923,14 +2730,7 @@ unsigned char HandleMipeKey(const InputAtom* event)
             HideWorldCursor();
             g_mipe_mode = 0xf;
             g_mipe_menu_active = 1;
-            ResetEditorStatusLine(-1);
-            ShowNoticef(6, L"Choose an action:");
-            ShowNoticef(0xf, L"1) Create cube.");
-            ShowNoticef(0xf, L"2) Delete cube.");
-            ShowNoticef(0xf, L"3) Edit cube parameters.");
-            ShowNoticef(0xf, L"4) Move cube.");
-            ShowNoticef(0xf, L"5) Scale cube.");
-            ShowNoticef(0xf, L"6) Select cube.");
+            ShowMipeCubeMenu();
             SetWorldCursorNodesVisible(1);
             return handled;
         }
@@ -3110,14 +2910,7 @@ unsigned char HandleMipeKey(const InputAtom* event)
         case 0x36:
             g_mipe_mode = 0xf;
             HideWorldCursor();
-            ResetEditorStatusLine(-1);
-            ShowNoticef(6, L"Choose an action:");
-            ShowNoticef(0xf, L"1) Create cube.");
-            ShowNoticef(0xf, L"2) Delete cube.");
-            ShowNoticef(0xf, L"3) Edit cube parameters.");
-            ShowNoticef(0xf, L"4) Move cube.");
-            ShowNoticef(0xf, L"5) Scale cube.");
-            ShowNoticef(0xf, L"6) Select cube.");
+            ShowMipeCubeMenu();
             g_mipe_menu_active = 1;
             SetWorldCursorNodesVisible(1);
             return handled;
@@ -3482,14 +3275,7 @@ bool MipeWorldViewEvent(int event, const POINT* point)
             HideWorldCursor();
             g_mipe_state->dragging = false;
             g_mipe_menu_active = 1;
-            ResetEditorStatusLine(-1);
-            ShowNoticef(6, L"Choose an action:");
-            ShowNoticef(0xf, L"1) Create cube.");
-            ShowNoticef(0xf, L"2) Delete cube.");
-            ShowNoticef(0xf, L"3) Edit cube parameters.");
-            ShowNoticef(0xf, L"4) Move cube.");
-            ShowNoticef(0xf, L"5) Scale cube.");
-            ShowNoticef(0xf, L"6) Select cube.");
+            ShowMipeCubeMenu();
         }
         break;
     case MOUSE_POS:

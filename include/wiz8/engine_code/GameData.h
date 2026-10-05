@@ -242,6 +242,8 @@ struct W8GameData {
     bool trace_flag4_gate;
     unsigned char pad_89[3];
 
+    /* Descriptive name for appending a plane's classified trigger triangle. */
+    void AddTriggerTriangle(int trigger_index, int vertex_0, int vertex_1, int vertex_2);
     void IntegrateTriggers();
     void AddTriggerPlane(const srVector3T<float>* vertices, Trigger* trigger);
     /* Registers a linked record's twelve generated surfaces; the `face`-indexed

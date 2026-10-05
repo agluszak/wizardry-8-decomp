@@ -65,6 +65,27 @@ public:
        evaluateTexturePixelFormat fill it from the interface's Dimensions;
        allocTextureData lays out per-level data pointers in levels. */
     struct Texture {
+        /* Shared initialization in GERD allocation/deletion. reset is a
+           descriptive name; format, deleted and resident are set separately. */
+        void reset()
+        {
+            flags = 0;
+            size = 0;
+            last_use = 0;
+            priority = 0.5f;
+            resident_data = 0;
+            width = 0;
+            height = 0;
+            first_level = 0;
+            last_level = 0;
+            format_index = 0;
+            parameter = 0;
+            resident_size = 0;
+            for (long level = 0; level < 12; ++level) {
+                levels[level] = 0;
+            }
+        }
+
         unsigned long flags;
         PixelFormat format;
         float priority;
