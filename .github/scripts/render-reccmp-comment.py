@@ -132,6 +132,26 @@ if comparison_rows:
 
 if comparison_rows:
     print()
+    print("#### Declaration and scalar signedness findings")
+    print()
+    print(
+        "_Inferred declaration changes are separate from body quality. Scalar signedness "
+        "findings remain code differences; they are exact int/uint spelling deltas, "
+        "not equivalence claims or necessarily enum changes._"
+    )
+    print()
+    print("| Target | Declaration differences | Scalar signedness differences |")
+    print("| --- | ---: | ---: |")
+    for target, comparison in comparison_rows:
+        head, delta = comparison["head"], comparison["delta"]
+        print(
+            f"| `{target}` "
+            f"| {count_with_delta(head.get('signature_differences'), delta.get('signature_differences'))} "
+            f"| {count_with_delta(head.get('scalar_signedness_differences'), delta.get('scalar_signedness_differences'))} |"
+        )
+
+if comparison_rows:
+    print()
     print("#### Inline normalization")
     print()
     print(

@@ -427,7 +427,7 @@ def _run_reccmp(
 
 def _function_row(repository: Path, target: str, row: dict[str, Any]) -> dict[str, Any]:
     """Keep both comparison passes available without printing their whole diffs."""
-    diff_fields = {"code_diff", "normal_diff", "inline_normalized_diff"}
+    diff_fields = {"code_diff", "normal_diff", "inline_normalized_diff", "signature_diff"}
     result = {key: value for key, value in row.items() if key not in diff_fields}
     for key in sorted(diff_fields & row.keys()):
         diff = row[key]
@@ -436,6 +436,8 @@ def _function_row(repository: Path, target: str, row: dict[str, Any]) -> dict[st
                 result[key] = diff
             continue
         suffix = ".normal" if key == "normal_diff" and row.get("inline_callees") else ""
+        if key == "signature_diff":
+            suffix = ".signature"
         path = (
             report_directory(repository, target).resolve()
             / f"{int(row['orig'], 16):08x}{suffix}.diff"

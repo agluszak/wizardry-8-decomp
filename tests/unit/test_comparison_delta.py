@@ -354,3 +354,17 @@ def test_pr_report_cli_fails_on_new_export_debt(tmp_path: Path, added: bool):
     report = json.loads(result.stdout)
     assert report["ok"] is (not added)
     assert report["exports"]["added"] == (["new"] if added else [])
+
+
+def test_declaration_findings_do_not_reduce_body_quality() -> None:
+    declaration = {**_row(1, "no-differences"), "signature_diff": ["-uint", "+int"]}
+    signedness = {
+        **_row(2, "differences", code=True),
+        "code_change_kind": "scalar-signedness",
+    }
+    metrics = comparison_metrics(_summary(declaration, signedness), _ghidriff((2, 0.9)))
+    assert metrics["clean"] == 1
+    assert metrics["code_differences"] == 1
+    assert metrics["signature_differences"] == 1
+    assert metrics["scalar_signedness_differences"] == 1
+    assert metrics["average_similarity"] == 0.95

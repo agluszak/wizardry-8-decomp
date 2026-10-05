@@ -231,6 +231,10 @@ def comparison_metrics(summary: dict[str, Any], ghidriff: dict[str, Any]) -> dic
         "code_differences": sum(
             bool(row.get("code_diff")) for row in functions if row.get("outcome") in _ANALYZED
         ),
+        "signature_differences": sum(bool(row.get("signature_diff")) for row in functions),
+        "scalar_signedness_differences": sum(
+            row.get("code_change_kind") == "scalar-signedness" for row in functions
+        ),
         "data_differences": sum(
             bool(row.get("data")) for row in functions if row.get("outcome") in _ANALYZED
         ),
