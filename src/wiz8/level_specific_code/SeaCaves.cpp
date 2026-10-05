@@ -97,7 +97,7 @@ bool SeaCavesDoorTomb(Trigger* pTrigger)
     if (monster_info->p3D == 0) {
         return true;
     }
-    if (MonsterQuery(monster_info->p3D, 6) != 0) {
+    if (MonsterQuery(monster_info->p3D, W8_MONSTER_QUERY_CYCLE) != W8_MONSTER_CYCLE_BIRTH) {
         return true;
     }
     group = GetMonsterGroupByListIndex(

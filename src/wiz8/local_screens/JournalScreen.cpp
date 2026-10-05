@@ -137,7 +137,7 @@ void RecordFactChangeForJournal(W8FactId fact_id)
         return;
     }
     int range = GetTextBoxScrollRange();
-    ShowNotice(3, gppStringList[0x74a], 2, range, false);
+    ShowNotice(W8_FONT_PALETTE_BLUE, gppStringList[0x74a], 2, range);
     SoundPlay("Data\\Sound\\Misc\\Journal Entry.wav", 0);
 }
 

@@ -680,7 +680,7 @@ void W8TextBuffer::RenderToTarget(int offset, bool force, int target)
         SetFontObjectPalette16BPP(m_font, g_font_state_palettes[m_fontStateIndex]);
     }
     if (m_highlighted) {
-        SetFontObjectPalette16BPP(m_font, g_font_state_palettes[1]);
+        SetFontObjectPalette16BPP(m_font, g_font_state_palettes[W8_FONT_PALETTE_GREEN]);
     }
 
     int y = GetVerticalPosition();

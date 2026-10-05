@@ -1,3 +1,4 @@
+#include "wiz8/fonts.h"
 #include "wiz8/local_code/Search.h"
 #include "wiz8/integer_constants.h"
 
@@ -212,7 +213,7 @@ void RunSearchPulse(void)
             !gXStatus.fSurprisePossible && !gXStatus.fLockInteractMode && !gXStatus.fLockInteract &&
             !gXStatus.fTrapInteractMode && !gXStatus.fTrapInteract) {
             if ((g_level_data->flags & 0x100) != 0 && g_status.search_mode != 0) {
-                ShowNotice(0xc, gppStringList[W8_NOTICE_SEARCH_SPECIAL_LEVEL], -1, -1, false);
+                ShowNotice(W8_FONT_PALETTE_BEIGE, gppStringList[W8_NOTICE_SEARCH_SPECIAL_LEVEL]);
             }
             W8SearchableView* view = CollectSearchablesInView();
             bool found = false;
@@ -382,15 +383,15 @@ void ToggleSearchMode(void)
 {
     if (g_status.search_mode != 0) {
         g_status.search_mode = 0;
-        ShowNotice(0xc, gppStringList[W8_NOTICE_SEARCH_MODE_OFF], -1, -1, false);
+        ShowNotice(W8_FONT_PALETTE_BEIGE, gppStringList[W8_NOTICE_SEARCH_MODE_OFF]);
         return;
     }
     if (!gXStatus.fCombatMode) {
         g_status.search_mode = 1;
-        ShowNotice(0xc, gppStringList[W8_NOTICE_SEARCH_MODE_ON], -1, -1, false);
+        ShowNotice(W8_FONT_PALETTE_BEIGE, gppStringList[W8_NOTICE_SEARCH_MODE_ON]);
         g_search_pulse_clock = SetCountdownClock(0x1f4);
         ClearActiveWorldCursorNode();
     } else {
-        ShowNotice(0xc, gppStringList[W8_NOTICE_SEARCH_BLOCKED_COMBAT], -1, -1, false);
+        ShowNotice(W8_FONT_PALETTE_BEIGE, gppStringList[W8_NOTICE_SEARCH_BLOCKED_COMBAT]);
     }
 }

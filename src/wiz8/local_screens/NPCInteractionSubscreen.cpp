@@ -799,7 +799,7 @@ unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item, bool f
     RequestRedraw(W8_MAIN_REDRAW_LAYOUT);
     g_npc_interaction_state->text_box_collapsed = true;
     swprintf(space, L" ");
-    ShowNotice(5, space, 3, -1, false);
+    ShowNotice(W8_FONT_PALETTE_YELLOW, space, 3);
     return 1;
 }
 
@@ -2387,7 +2387,7 @@ void RequestNpcJoinParty(void)
 {
     unsigned int slot;
 
-    ShowNotice(0xa, gppStringList[0x748], 3, GetTextBoxScrollRange(), false);
+    ShowNotice(W8_FONT_PALETTE_BRONZE, gppStringList[0x748], 3, GetTextBoxScrollRange());
     if (g_npc_interaction_state->dialogue_hidden != 0) {
         SetNpcDialogueHidden(0);
     }
@@ -2410,7 +2410,7 @@ void RequestNpcJoinParty(void)
 // FUNCTION: WIZ8 0x005715A0
 void ShowNpcDialogueNotice(void)
 {
-    ShowNotice(0xa, gppStringList[0x749], 3, GetTextBoxScrollRange(), false);
+    ShowNotice(W8_FONT_PALETTE_BRONZE, gppStringList[0x749], 3, GetTextBoxScrollRange());
     SetNpcDialogueHidden(1);
 }
 
@@ -3741,7 +3741,7 @@ void HandleNpcDialogueReply(wchar_t* text, bool echo)
         }
         if (echo) {
             swprintf(notice, L"%s...", text);
-            ShowNotice(0xa, notice, 3, GetTextBoxScrollRange(), false);
+            ShowNotice(W8_FONT_PALETTE_BRONZE, notice, 3, GetTextBoxScrollRange());
         }
         g_npc_interaction_state->script_busy = 0;
     }
@@ -3964,9 +3964,9 @@ void HandleNpcDialogueInput(void)
             text = gppStringList[g_dialogue_fallback_ids1[roll]];
         }
         swprintf(notice, fmt, text, field_text);
-        ShowNotice(0xa, notice, 3, GetTextBoxScrollRange(), false);
+        ShowNotice(W8_FONT_PALETTE_BRONZE, notice, 3, GetTextBoxScrollRange());
     } else {
-        ShowNotice(0xa, field_text, 3, GetTextBoxScrollRange(), false);
+        ShowNotice(W8_FONT_PALETTE_BRONZE, field_text, 3, GetTextBoxScrollRange());
     }
     if (quote_id == -1) {
         QueueNpcScriptLine(Random(2) + 0x23, false, false, false);
@@ -4638,7 +4638,7 @@ void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuot
             }
             g_npc_interaction_state->quote_bubble =
                 LayoutPortraitQuoteBubble(-1, 0, 0, error_text, 300, 0, 0, 0, &width, &height, -1);
-            ShowNotice(0xc, error_text, 0, GetTextBoxScrollRange(), false);
+            ShowNotice(W8_FONT_PALETTE_BEIGE, error_text, 0, GetTextBoxScrollRange());
         }
         g_npc_interaction_state->quote_width = width;
         g_npc_interaction_state->quote_height = height;
@@ -4673,7 +4673,8 @@ void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuot
     case W8_QUOTE_NOTICE_EXPERIENCE: {
         W8ExperienceNoticePayload* experience =
             g_npc_interaction_state->quote_notice_payload.experience;
-        FormatNotice(0xc, 0, gppStringList[experience->alternate_message ? 0x231 : 0x232],
+        FormatNotice(W8_FONT_PALETTE_BEIGE, 0,
+                     gppStringList[experience->alternate_message ? 0x231 : 0x232],
                      experience->amount);
         delete experience;
         break;
@@ -4767,11 +4768,11 @@ void FlushPendingNoticeLines(void)
             W8NpcState* npc = GetNpcState(line->npc_kind);
             if (npc != 0) {
                 swprintf(npc_name, L"%s", npc->record->source_name);
-                ShowNotice(1, npc_name, 3, -1, false);
+                ShowNotice(W8_FONT_PALETTE_GREEN, npc_name, 3);
                 g_npc_interaction_state->last_notice_npc_kind = line->npc_kind;
             }
         }
-        ShowNotice(line->npc_kind == -1 ? 0xb : 0xf, line->text, 3, GetTextBoxScrollRange(), false);
+        ShowNotice(line->npc_kind == -1 ? 0xb : 0xf, line->text, 3, GetTextBoxScrollRange());
     }
     while (g_npc_interaction_state->pending_notice_lines.GetCount() > 0) {
         W8PendingNoticeLine* line = g_npc_interaction_state->pending_notice_lines.RemoveAt(0);

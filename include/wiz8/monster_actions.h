@@ -137,3 +137,6 @@ enum W8MonsterSummonKind {
     W8_MONSTER_SUMMON_FRIENDLY = 1,
     W8_MONSTER_SUMMON_HOSTILE = 2
 };
+
+/* Representation loading policy, independent of the monster's active flag. */
+enum W8MonsterActivationMode { W8_MONSTER_LOAD_ALL_CYCLES = 0, W8_MONSTER_LOAD_STARTUP_CYCLE = 1 };

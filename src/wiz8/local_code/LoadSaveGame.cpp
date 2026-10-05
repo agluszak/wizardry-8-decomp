@@ -429,7 +429,7 @@ bool SaveGame(const char* name, W8SaveScreenshot* screenshot)
     SaveMasterFunctions();
     g_status.buffers.save_version = 1.1f;
     g_status.difficulty = g_settings.difficulty;
-    if (g_status.iron_man != 0) {
+    if (g_status.iron_man) {
         GetFileManFileTime(chunks.m_hFile, &creation_time, &access_time, &write_time);
         g_status.save_filetime_xor[0] = creation_time.dwLowDateTime ^ g_save_filetime_xor_low;
         g_status.save_filetime_xor[1] =
@@ -1148,7 +1148,7 @@ unsigned char LoadMonsterGroup(W8Chunk* chunk)
             free(group);
             return 0;
         }
-        ActivateGroupMembers(group, 0);
+        ActivateGroupMembers(group, W8_MONSTER_LOAD_ALL_CYCLES);
         if (group->encounter_registered && group->leader_group_id == 0) {
             RegisterActiveEncounterGroup(group);
         }
@@ -1255,7 +1255,7 @@ unsigned char LoadMonster(W8Chunk* chunk)
             ++monster_group->active_member_count;
         }
     }
-    ActivateMonster(monster_info, 0);
+    ActivateMonster(monster_info, W8_MONSTER_LOAD_ALL_CYCLES);
     ActivateMonsterInWorld(monster_info);
     monster = monster_info->p3D;
     if (monster_info->highest_condition != W8_CONDITION_NONE) {
@@ -1769,12 +1769,10 @@ unsigned char AutoSaveIfAllowed(bool forced)
 
     gXStatus.save_notice_shown = false;
     if (g_status.world_cursor_gate == 0 && !AnyMonsterDying() &&
-        ((g_settings.auto_save != 0 && !forced) || g_status.iron_man != 0) &&
-        !gXStatus.fCombatMode && !IsSightRangeOverridden() &&
-        IsLevelDataFlag4EffectivelySet() != 0 && !gXStatus.fNpcDialogueMode &&
+        ((g_settings.auto_save != 0 && !forced) || g_status.iron_man) && !gXStatus.fCombatMode &&
+        !IsSightRangeOverridden() && CanInterruptLevelMovement() && !gXStatus.fNpcDialogueMode &&
         !gXStatus.fCampMode) {
-        strcpy(name,
-               g_status.iron_man != 0 ? ConvertWideStringToString(GetLastSaveName()) : "AutoSave");
+        strcpy(name, g_status.iron_man ? ConvertWideStringToString(GetLastSaveName()) : "AutoSave");
         return SaveGame(name, 0);
     }
     return 1;
@@ -1807,10 +1805,10 @@ unsigned char SaveSlotFileExists(const char* slot_name)
 // FUNCTION: WIZ8 0x00515ac0
 void ReportSaveFailed(bool quiet)
 {
-    if (!quiet || g_status.iron_man != 0) {
+    if (!quiet || g_status.iron_man) {
         gXStatus.save_notice_shown = true;
         if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
-            ShowNotice(0xc, gppStringList[0x783], -1, -1, false);
+            ShowNotice(W8_FONT_PALETTE_BEIGE, gppStringList[0x783]);
         }
     }
 }
@@ -1832,7 +1830,7 @@ void ProcessMainGameAutoSave(void)
     if (AnyMonsterDying()) {
         return;
     }
-    if (g_settings.auto_save == 0 && g_status.iron_man == 0) {
+    if (g_settings.auto_save == 0 && !g_status.iron_man) {
         return;
     }
     if (gXStatus.fCombatMode) {
@@ -1841,7 +1839,7 @@ void ProcessMainGameAutoSave(void)
     if (IsSightRangeOverridden()) {
         return;
     }
-    if (IsLevelDataFlag4EffectivelySet() == 0) {
+    if (!CanInterruptLevelMovement()) {
         return;
     }
     if (gXStatus.fNpcDialogueMode) {
@@ -1856,17 +1854,17 @@ void ProcessMainGameAutoSave(void)
         }
         gXStatus.save_notice_shown = true;
         if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
-            ShowNotice(0xc, gppStringList[0x783], -1, -1, false);
+            ShowNotice(W8_FONT_PALETTE_BEIGE, gppStringList[0x783]);
         }
         gXStatus.gameplay_timer->Restart();
         return;
     }
     gXStatus.save_notice_shown = false;
     if (g_status.world_cursor_gate == 0 && !AnyMonsterDying() &&
-        (g_settings.auto_save != 0 || g_status.iron_man != 0) && !gXStatus.fCombatMode &&
-        !IsSightRangeOverridden() && IsLevelDataFlag4EffectivelySet() != 0 &&
-        !gXStatus.fNpcDialogueMode && !gXStatus.fCampMode) {
-        if (g_status.iron_man != 0) {
+        (g_settings.auto_save != 0 || g_status.iron_man) && !gXStatus.fCombatMode &&
+        !IsSightRangeOverridden() && CanInterruptLevelMovement() && !gXStatus.fNpcDialogueMode &&
+        !gXStatus.fCampMode) {
+        if (g_status.iron_man) {
             strcpy(name, ConvertWideStringToString(GetLastSaveName()));
         } else {
             strcpy(name, "AutoSave");
@@ -1879,10 +1877,10 @@ void ProcessMainGameAutoSave(void)
         return;
     }
     if (!saved) {
-        ShowNotice(0xc, gppStringList[0x785], -1, -1, false);
+        ShowNotice(W8_FONT_PALETTE_BEIGE, gppStringList[0x785]);
         return;
     }
-    ShowNotice(0xc, gppStringList[0x784], -1, -1, false);
+    ShowNotice(W8_FONT_PALETTE_BEIGE, gppStringList[0x784]);
 }
 
 /* Serialize the live monster-control effect into the open HYPN chunk. The

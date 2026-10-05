@@ -1,3 +1,4 @@
+#include "wiz8/fonts.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/integer_constants.h"
 #include "wiz8/local_code/CombatHostility.h"
@@ -300,7 +301,7 @@ void RefreshMonsterGroupHostility(W8MonsterGroup* monster_group)
         (record->flags & W8_MONSTER_FLAG_NPC) == 0 && record->faction_id == 0 &&
         record->hostility_radius != 0 && record->hostility_radius != -1 &&
         GetGroupNearestDistance(monster_group) <= record->hostility_radius * g_world_scale &&
-        MonsterGroupHasVisibleTarget(monster_group, 1, W8_VISIBLE_TARGET_ANY, 0)) {
+        MonsterGroupHasVisibleTarget(monster_group, true, W8_VISIBLE_TARGET_ANY, false)) {
         SetMonsterGroupHostility(monster_group, W8_DISPOSITION_HOSTILE, false);
     }
     cooldown = IntegerPower(record->attribute_values[W8_MONSTER_ATTRIBUTE_INTELLIGENCE], 2) * 0x3c;
@@ -464,7 +465,7 @@ unsigned char RemoveAllGroupMembers(W8MonsterGroup* monster_group)
 /* Brings every member of a group into the world. Front to back, and the list
    length is re-read each time because activation can add to it. */
 // FUNCTION: WIZ8 0x0050f6a0
-void ActivateGroupMembers(W8MonsterGroup* monster_group, int mode)
+void ActivateGroupMembers(W8MonsterGroup* monster_group, W8MonsterActivationMode mode)
 {
     unsigned int index;
 
@@ -1111,8 +1112,8 @@ W8MonsterGroup* CreateGroup(unsigned int monster_id, unsigned int count,
     if (announce_spawn && g_dev_mode) {
         int registry_after = GetUsedPageFileBytes();
         const wchar_t* verb = count == 1 ? L"appears" : L"appear";
-        ShowNoticef(9, L"%d %s %s nearby! (%dK)", count, GetMonsterGroupName(group), verb,
-                    (registry_after - registry_before) >> 10);
+        ShowNoticef(W8_FONT_PALETTE_RUST, L"%d %s %s nearby! (%dK)", count,
+                    GetMonsterGroupName(group), verb, (registry_after - registry_before) >> 10);
     }
 
     return group;
@@ -1499,7 +1500,7 @@ void MonsterGroupEnterCombat(W8MonsterGroup* monster_group)
                 }
             }
             RequestRedrawParty();
-            SetMonsterGroupEngagementState(monster_group->group_id, 0);
+            SetMonsterGroupEngagementState(monster_group->group_id, false);
             return;
         }
         monster_group = GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
@@ -1591,13 +1592,13 @@ void ShowMonsterGroupInfoNotice(int group_id)
     } else {
         name = record->name2 + name_form * W8_MONSTER_NAME_STRIDE;
     }
-    ShowNoticef(0xc, g_format_d_s, group->member_count, name);
+    ShowNoticef(W8_FONT_PALETTE_BEIGE, g_format_d_s, group->member_count, name);
     if (!group->alternate_name) {
-        ShowNotice(0xc, gppStringList[0x1c5], -1, 0xffffffff, false);
+        ShowNotice(W8_FONT_PALETTE_BEIGE, gppStringList[0x1c5]);
     }
-    ShowNoticef(0xc, gppStringList[0x1c6], group->active_member_count);
-    ShowNoticef(0xc, gppStringList[0x1c7], group->selectable_member_count);
-    ShowNoticef(0xc, gppStringList[0x1c8], group->visible_member_count);
+    ShowNoticef(W8_FONT_PALETTE_BEIGE, gppStringList[0x1c6], group->active_member_count);
+    ShowNoticef(W8_FONT_PALETTE_BEIGE, gppStringList[0x1c7], group->selectable_member_count);
+    ShowNoticef(W8_FONT_PALETTE_BEIGE, gppStringList[0x1c8], group->visible_member_count);
 }
 
 /* Flags every live member of the group for removal, then recurses into each
@@ -1695,21 +1696,21 @@ W8MonsterGroup* ReplaceMonsterGroupSpecies(W8MonsterGroup* group, unsigned int m
    four allied groups; while the byte is set each call ticks the counter beside
    it. The two special record kinds ignore a set. */
 // FUNCTION: WIZ8 0x00511BE0
-void SetMonsterGroupEngagementState(int group_id, unsigned char state)
+void SetMonsterGroupEngagementState(int group_id, bool state)
 {
     W8MonsterGroup* group;
     int ally_index;
 
     group = GetMonsterGroupByListIndex(
         GetMonsterGroupIndexByID(0x914, MONSTER_GROUP_CPP, group_id, true));
-    if ((group->monster_id == 0x1b6 || group->monster_id == 0x234) && state == 1) {
+    if ((group->monster_id == 0x1b6 || group->monster_id == 0x234) && state) {
         return;
     }
     if (group->engagement != state) {
         group->engagement = state;
         group->engagement_ticks = 0;
     }
-    if (group->engagement != 0) {
+    if (group->engagement) {
         ++group->engagement_ticks;
     }
     for (ally_index = 0; ally_index < W8_MONSTER_GROUP_ALLY_COUNT; ++ally_index) {
@@ -1720,7 +1721,7 @@ void SetMonsterGroupEngagementState(int group_id, unsigned char state)
                 group->engagement = state;
                 group->engagement_ticks = 0;
             }
-            if (group->engagement != 0) {
+            if (group->engagement) {
                 ++group->engagement_ticks;
             }
         }
@@ -1728,7 +1729,7 @@ void SetMonsterGroupEngagementState(int group_id, unsigned char state)
 }
 
 // FUNCTION: WIZ8 0x00511CB0
-unsigned char GetMonsterGroupEngagementState(int group_id)
+bool GetMonsterGroupEngagementState(int group_id)
 {
     return GetMonsterGroupByListIndex(
                GetMonsterGroupIndexByID(0x946, MONSTER_GROUP_CPP, group_id, true))

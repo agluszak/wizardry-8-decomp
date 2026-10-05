@@ -82,7 +82,7 @@ struct W8MonsterGroup {
     unsigned int version; /* 0xc4 */
     /* 0xc8: group engagement state; 0xc9 ticks spent in it (reset on change,
        the AI checks < 3 for "just engaged"). */
-    unsigned char engagement;
+    bool engagement;
     unsigned char engagement_ticks;
     /* 0xca: set when a script/NPC pass forces the group neutral; cleared on
        load and when hostility is recomputed. Older saves never wrote it. */
@@ -103,7 +103,7 @@ struct W8MonsterGroup {
 unsigned int GetMonsterGroupIndexByID(int caller_line, const char* caller_file, int group_id,
                                       bool assert_on_failure);
 W8MonsterGroup* GetMonsterGroupByListIndex(unsigned int group_list_index);
-unsigned char GetMonsterGroupEngagementState(int group_id); /* 0x00511CB0 */
+bool GetMonsterGroupEngagementState(int group_id); /* 0x00511CB0 */
 unsigned char ApplyToMonsterGroupLeader(W8MonsterGroup* monster_group,
                                         const srVector3T<float>* position,
                                         bool follow_leader); /* 0x0050FBA0 */
@@ -121,7 +121,7 @@ bool MonsterGroupHasRenderableMember(W8MonsterGroup* monster_group,
 /* Write `state` into the group's engagement byte and propagate it to its four
    allied groups; while the byte is set, each call ticks the counter beside
    it. The record kinds the special encounter ids carry ignore a set. */
-void SetMonsterGroupEngagementState(int group_id, unsigned char state); /* 0x00511BE0 */
+void SetMonsterGroupEngagementState(int group_id, bool state); /* 0x00511BE0 */
 bool MoveMonsterGroupToPosition(W8MonsterGroup* group, const srVector3T<float>* position, float yaw,
                                 bool proximity_check, bool include_allies, bool flatten_y,
                                 bool alternate_radius); /* 0x00510CC0 */
@@ -147,7 +147,7 @@ void ResetMonsterGroupTurnState(void);
 void RebindMonsterGroupScripts(void);
 
 void DespawnMonsterGroup(W8MonsterGroup* monster_group);
-void ActivateGroupMembers(W8MonsterGroup* monster_group, int mode);
+void ActivateGroupMembers(W8MonsterGroup* monster_group, W8MonsterActivationMode mode);
 wchar_t* GetMonsterGroupName(W8MonsterGroup* monster_group);
 void RefreshMonsterGroupAndAllies(W8MonsterGroup* monster_group);
 

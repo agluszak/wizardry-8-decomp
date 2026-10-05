@@ -1,6 +1,7 @@
 #pragma once
 
 #include "wiz8/monster_actions.h"
+#include "wiz8/sight_state.h"
 
 /* Disposition matches plus two wildcard selectors used by visibility scans. */
 enum W8VisibleTargetFilter {
@@ -24,7 +25,7 @@ void UpdateMonsterSight(void); /* 0x00530110 */
    fifth of the list at a time with a full-distance pass every 20 frames. */
 void UpdateMonsterGroups(bool staggered); /* 0x00530150 */
 /* The group's party-sight aggregate DoMonsterRTAI reads as its alert level. */
-unsigned char GetMonsterGroupPartySightState(W8MonsterGroup* monster_group); /* 0x00530470 */
+W8SightState GetMonsterGroupPartySightState(W8MonsterGroup* monster_group); /* 0x00530470 */
 /* The real-time AI decision pass; `engage` calls may trigger the ambush and
    group-alert paths a routine tick cannot. The original name is proven by the
    "DoMonsterRTAI: ERROR - Invalid disposition" assertion. */
@@ -32,7 +33,7 @@ void DoMonsterRTAI(W8MonsterInfo* monster_info, bool engage); /* 0x00530560 */
 /* The orders-driven half of DoMonsterRTAI: investigate a fresh heard noise or
    let the monster's scripted order_mode pick the next mode. `decision`
    receives the mode; nonzero return means applying it is worthwhile. */
-char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision);   /* 0x005308C0 */
+bool ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision);   /* 0x005308C0 */
 void ApplyMonsterRTAIDecision(W8MonsterInfo* monster_info, unsigned char decision); /* 0x00530F10 */
 /* 0x00617AE8: 125000, the cap on how far a monster will walk to investigate a
    heard noise. */
@@ -44,8 +45,8 @@ bool MonsterGroupCanEngage(W8MonsterGroup* monster_group); /* 0x00531920 */
 /* Whether the monster has a living target it can see; `party_only` skips the
    monster scan, `hostility` selects the class (three and four are wildcards),
    and `within_reach` also requires the target inside engagement range. */
-bool MonsterHasVisibleTarget(W8MonsterInfo* monster_info, int party_only,
-                             W8VisibleTargetFilter hostility, int within_reach); /* 0x00534850 */
+bool MonsterHasVisibleTarget(W8MonsterInfo* monster_info, bool party_only,
+                             W8VisibleTargetFilter hostility, bool within_reach); /* 0x00534850 */
 float GetGroupNearestDistance(W8MonsterGroup* group); /* 0x005324B0 */
 
 /* MonsterAI.cpp GLOBAL at 0x0061EEFC: two dwords per special attack kind. */
@@ -66,9 +67,9 @@ bool MonsterSpellHasPartyTarget(W8MonsterInfo* monster_info, int spell_id,
                                 W8CombatSlot* slot); /* 0x005353E0 */
 /* Whether any live member of the group has a visible target; the arguments
    forward to MonsterHasVisibleTarget. */
-bool MonsterGroupHasVisibleTarget(W8MonsterGroup* monster_group, int party_only,
+bool MonsterGroupHasVisibleTarget(W8MonsterGroup* monster_group, bool party_only,
                                   W8VisibleTargetFilter hostility,
-                                  int within_reach); /* 0x005347A0 */
+                                  bool within_reach); /* 0x005347A0 */
 /* The out-of-combat sweep: refreshes sight, alerts same-faction groups of
    groups already fighting, and enters combat for the groups that should. */
 void CheckMonsterGroupsEnterCombat(void); /* 0x005354E0 */
@@ -91,8 +92,7 @@ bool CanMonsterFlee(W8MonsterInfo* monster_info, W8MonsterRecord* record,
                     bool exclude_special); /* 0x00534A40 */
 /* Pick the direction a fleeing monster runs; returns whether a heading was
    found. */
-unsigned char AimFleeingMonster(W8MonsterInfo* monster_info,
-                                const W8MonsterRecord* record); /* 0x00534CB0 */
+bool AimFleeingMonster(W8MonsterInfo* monster_info, const W8MonsterRecord* record); /* 0x00534CB0 */
 /* Whether the monster may cast `spell_id` now; `needs_target` also demands
    something to aim it at. */
 bool IsSpellUsableByMonster(W8MonsterInfo* monster_info, int spell_id,
@@ -108,7 +108,7 @@ int ChooseMonsterSpell(W8MonsterInfo* monster_info, W8MonsterRecord* record); /*
 /* Whether the monster sees no living enemy: a set threat flag answers at
    once, a hostile party member in play counts, and `party_only` zero also
    scans the monsters it is hostile to that it can see. */
-bool MonsterHasNoVisibleEnemy(W8MonsterInfo* monster_info, int party_only); /* 0x00534690 */
+bool MonsterHasNoVisibleEnemy(W8MonsterInfo* monster_info, bool party_only); /* 0x00534690 */
 /* Fill `targets` with the combat slots `spell_id` may be cast at by this
    monster; the monster's action fields carry the spell while the probe runs
    and are restored after. */
@@ -134,10 +134,10 @@ bool ShouldMonsterGroupEnterCombat(W8MonsterGroup* monster_group); /* 0x005355D0
    attack-mode bit for every target the attack can reach. `target_locked`
    restricts the sweep to the stored target, `attack_locked` to the committed
    attack index. */
-void BuildMonsterActionQueue(W8MonsterInfo* monster_info, char target_locked,
-                             char attack_locked); /* 0x00531CE0 */
+void BuildMonsterActionQueue(W8MonsterInfo* monster_info, bool target_locked,
+                             bool attack_locked); /* 0x00531CE0 */
 /* Build the monster's list of possible actions and take one of them at
    random into its action fields and target. */
-unsigned char ChooseRandomMonsterAction(W8MonsterInfo* monster_info, int arg_2, int arg_3,
-                                        bool set_attack_rate); /* 0x005323F0 */
+bool ChooseRandomMonsterAction(W8MonsterInfo* monster_info, bool target_locked, bool attack_locked,
+                               bool set_attack_rate);          /* 0x005323F0 */
 void UpdateAllMonsterAI(void);                                 /* 0x005314F0 */

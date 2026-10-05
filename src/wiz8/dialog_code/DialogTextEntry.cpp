@@ -58,12 +58,12 @@ void W8DialogTextEntry::Draw(bool force)
         ShortenTextToWidth(copy, m_buffer, width - 5, m_font);
     }
     SetFont(m_font);
-    unsigned short* palette = g_font_state_palettes[5];
+    unsigned short* palette = g_font_state_palettes[W8_FONT_PALETTE_YELLOW];
     if (!m_entry_highlighted) {
         if (m_marked) {
-            palette = g_font_state_palettes[1];
+            palette = g_font_state_palettes[W8_FONT_PALETTE_GREEN];
         } else if (m_selected) {
-            palette = g_font_state_palettes[8];
+            palette = g_font_state_palettes[W8_FONT_PALETTE_WHITE];
         } else {
             palette = g_wiz_text_font_secondary_palette;
             if (m_prefix_length == 0) {

@@ -171,7 +171,8 @@ unsigned char MainMenuScreenEnter(void)
     FormatVersionBanner(text, false, false, false);
     wcscpy(wide, ConvertStringToWide(text));
     SetFont(g_wiz_text_font_secondary);
-    SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_font_state_palettes[8]);
+    SetFontObjectPalette16BPP(g_wiz_text_font_secondary,
+                              g_font_state_palettes[W8_FONT_PALETTE_WHITE]);
     measured = StringPixLength(wide, g_wiz_text_font_secondary);
     gprintf(0x27b - measured, 5, wide);
     SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_wiz_text_font_secondary_palette);

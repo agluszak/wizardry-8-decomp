@@ -299,7 +299,8 @@ void W8SpellVisual::UpdateRepresentation(W8World* world)
                 W8Monster* monster = GetMonsterByLocationID(location_id);
 
                 if (monster != 0) {
-                    if (monster->Query(6) == 0x19 && monster->GetSpellPosition(&position)) {
+                    if (monster->Query(W8_MONSTER_QUERY_CYCLE) == W8_MONSTER_CYCLE_SPELL &&
+                        monster->GetSpellPosition(&position)) {
                         SetCyclePosition(&position);
                     }
 

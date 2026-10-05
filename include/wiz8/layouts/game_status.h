@@ -111,7 +111,7 @@ struct W8GlobalStatus {
     unsigned int item_recharge_ms;
     W8PartyFormationState formation;
     int game_time_days;
-    unsigned char iron_man;
+    bool iron_man;
     /* 0x242a: world-clock stamp of the last NPC-binding reset; the event
        pass waits 0x3c ticks past it. */
     int binding_reset_clock;

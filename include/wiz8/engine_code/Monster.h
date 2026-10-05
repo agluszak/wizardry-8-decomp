@@ -196,7 +196,7 @@ public:
     virtual bool GetAnimationCenter(srVector3T<float>* center);
     virtual void SetPosition(const srVector3T<float>* position) override;
 
-    int Query(int query);                        /* 0x004C4660 */
+    int Query(W8MonsterQueryKind query);         /* 0x004C4660 */
     void SetForcedSubcycle(signed char value);   /* 0x004C6C00 */
     void SpawnDamageNumber(unsigned int amount); /* 0x004C6C30 */
     bool IsDying();                              /* 0x004CA4C0 */
@@ -402,8 +402,8 @@ bool MonsterIsCycleSupported(W8Monster* monster, signed char cycle);
 unsigned char MonsterReplacePath(W8Monster* monster, W8PathAI* path);
 unsigned char MonsterGetAnimationRadius(W8Monster* monster, float* radius);
 void MonsterSetFacing(W8Monster* monster, float angle);
-unsigned char MonsterGetMirrorX(W8Monster* monster);
-void MonsterSetMirrorX(W8Monster* monster, unsigned char state);
+bool MonsterGetMirrorX(W8Monster* monster);
+void MonsterSetMirrorX(W8Monster* monster, bool state);
 float MonsterGetScale(W8Monster* monster);
 void MonsterSetScale(W8Monster* monster, float scale);
 void MonsterGetScaleRange(W8Monster* monster, float* minimum, float* maximum);
@@ -467,7 +467,7 @@ unsigned char MonsterIsAnimating(W8Monster* monster);
 bool MonsterHasPendingCycle(W8Monster* monster); /* 0x004C5710 */
 bool MonsterIsScalingY(W8Monster* monster);      /* 0x004C5EE0 */
 void MonsterSetPendingCycle(W8Monster* monster, int cycle);
-int MonsterQuery(W8Monster* monster, int query);
+int MonsterQuery(W8Monster* monster, W8MonsterQueryKind query);
 void MonsterClearMovement(W8Monster* monster);
 void MonsterSetRuntimeBehaviour(W8Monster* monster, signed char behaviour);
 void MonsterSubmitTargetValue(W8Monster* monster);

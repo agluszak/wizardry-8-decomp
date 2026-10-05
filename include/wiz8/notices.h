@@ -4,6 +4,7 @@
 
 /* Entries in the localized notice table at 0x0068C09C. */
 enum W8NoticeId {
+    W8_NOTICE_WEAPON_SWAP_BLOCKED_COMBAT = 0x1f6,
     W8_NOTICE_MONSTER_SLAIN = 0x74c / 4,
     W8_NOTICE_CHARACTER_SAVE_FAILED = 0x780 / 4,
     W8_NOTICE_CHARACTER_LOAD_FAILED = 0x784 / 4,

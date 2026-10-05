@@ -1420,7 +1420,7 @@ void W8Monster::Update()
         }
     }
 
-    cycle = Query(6);
+    cycle = Query(W8_MONSTER_QUERY_CYCLE);
     SetGroundShadowVisible(cycle != W8_MONSTER_CYCLE_BIRTH && cycle != W8_MONSTER_CYCLE_DIE &&
                            fade_state == W8_MONSTER_FADE_IDLE &&
                            (flags1 & W8_MONSTER_FADED_OUT) == 0);
@@ -1448,13 +1448,13 @@ void W8Monster::Update()
 
         if (cycle != W8_MONSTER_CYCLE_DIE && script != 0 && !gXStatus.fCombatMode) {
             ProcessScript();
-            cycle = Query(6);
+            cycle = Query(W8_MONSTER_QUERY_CYCLE);
         }
 
         if ((flags1 & W8_MONSTER_SCRIPT_WAIT) == 0 && m_pRep->pending_cycle == -1) {
             switch (cycle) {
             case W8_MONSTER_CYCLE_TALK:
-                if (Query(7) != 0) {
+                if (Query(W8_MONSTER_QUERY_CYCLE_COMPLETE) != 0) {
                     if (talk_duration < GetTickCount() - talk_start && IsCycleSupported(0x17)) {
                         m_pRep->pending_cycle = 0x17;
                     } else {
@@ -1468,7 +1468,7 @@ void W8Monster::Update()
                 }
                 break;
             case W8_MONSTER_CYCLE_TALK_SPICE:
-                if (Query(7) != 0) {
+                if (Query(W8_MONSTER_QUERY_CYCLE_COMPLETE) != 0) {
                     if (talking) {
                         talk_state = 0x17;
                         talk_start = GetTickCount();
@@ -1485,7 +1485,7 @@ void W8Monster::Update()
                 }
                 break;
             case W8_MONSTER_CYCLE_SPELL:
-                if (Query(7) != 0) {
+                if (Query(W8_MONSTER_QUERY_CYCLE_COMPLETE) != 0) {
                     m_pRep->pending_cycle = 1;
                     m_pRep->frame_direction = W8_ANIMATION_FORWARD;
                     m_pRep->animation_playing = 1;
@@ -1496,9 +1496,10 @@ void W8Monster::Update()
                 break;
             case W8_MONSTER_CYCLE_WALK:
                 if (movement_stopped || halted) {
-                    bool transition = Query(2) != 0 || wrapped;
+                    bool transition = Query(W8_MONSTER_QUERY_AT_PLAYBACK_END) != 0 || wrapped;
                     if (!transition && !m_pRep->special_movement) {
-                        transition = Query(4) < Query(0) / 2;
+                        transition =
+                            Query(W8_MONSTER_QUERY_FRAME) < Query(W8_MONSTER_QUERY_FRAME_COUNT) / 2;
                     }
                     if (transition) {
                         while (values.GetCount() != 0) {
@@ -1512,8 +1513,8 @@ void W8Monster::Update()
                             m_pRep->pending_cycle = 3;
                             m_pRep->frame_direction = W8_ANIMATION_REVERSE;
                             m_pRep->pending_behaviour = 1;
-                            m_pRep->pending_subcycle =
-                                static_cast<unsigned short>(Query(0) - 1);
+                            m_pRep->pending_subcycle = static_cast<unsigned short>(
+                                Query(W8_MONSTER_QUERY_FRAME_COUNT) - 1);
                             flags1 |= W8_MONSTER_KEEP_FRAME_DIRECTION;
                         }
                         m_pRep->animation_playing = 1;
@@ -1524,7 +1525,8 @@ void W8Monster::Update()
                 break;
             case W8_MONSTER_CYCLE_IDLE:
             case W8_MONSTER_CYCLE_SPICE:
-                if (!movement_stopped && !halted && (Query(2) != 0 || wrapped)) {
+                if (!movement_stopped && !halted &&
+                    (Query(W8_MONSTER_QUERY_AT_PLAYBACK_END) != 0 || wrapped)) {
                     flags &= ~0x100000;
                     if (!IsCycleSupported(3)) {
                         m_pRep->pending_behaviour = 3;
@@ -1540,7 +1542,7 @@ void W8Monster::Update()
                 }
                 break;
             case W8_MONSTER_CYCLE_TRANSITION:
-                if (Query(7) != 0) {
+                if (Query(W8_MONSTER_QUERY_CYCLE_COMPLETE) != 0) {
                     if (m_pRep->frame_direction == W8_ANIMATION_REVERSE) {
                         m_pRep->frame_direction = W8_ANIMATION_FORWARD;
                         m_pRep->pending_cycle = 1;
@@ -1554,7 +1556,7 @@ void W8Monster::Update()
                 }
                 break;
             case W8_MONSTER_CYCLE_BIRTH:
-                if (Query(7) != 0) {
+                if (Query(W8_MONSTER_QUERY_CYCLE_COMPLETE) != 0) {
                     m_pRep->pending_cycle = 1;
                     m_pRep->animation_playing = 1;
                     m_pRep->timer = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
@@ -1571,7 +1573,7 @@ void W8Monster::Update()
     }
 
     UpdateAttachedObjects();
-    cycle = Query(6);
+    cycle = Query(W8_MONSTER_QUERY_CYCLE);
     if (gfKeyState[0x11] && g_combat_state != 0 &&
         (g_combat_state->round_active || gXStatus.fPartyMovementMode) &&
         (cycle == W8_MONSTER_CYCLE_IDLE || cycle == W8_MONSTER_CYCLE_SPICE) &&
@@ -1582,9 +1584,13 @@ void W8Monster::Update()
     }
 
     if (monster_info != 0 && monster_info->uiCondition[W8_CONDITION_SLOWED] != 0) {
-        TickAnimation(Query(6) == 4 ? movement.movement_speed * g_float_005ebc7c : 0.5f);
+        TickAnimation(Query(W8_MONSTER_QUERY_CYCLE) == W8_MONSTER_CYCLE_WALK
+                          ? movement.movement_speed * g_float_005ebc7c
+                          : 0.5f);
     } else {
-        TickAnimation(Query(6) == 4 ? movement.movement_speed : 1.0f);
+        TickAnimation(Query(W8_MONSTER_QUERY_CYCLE) == W8_MONSTER_CYCLE_WALK
+                          ? movement.movement_speed
+                          : 1.0f);
     }
     InitializeAnimatedTexture();
 
@@ -2460,7 +2466,7 @@ bool W8Monster::CanContinueScript()
         }
         break;
     case MONSCR_CYCLE:
-        if (Query(2) == 0) {
+        if (Query(W8_MONSTER_QUERY_AT_PLAYBACK_END) == 0) {
             return false;
         }
         flags1 &= ~W8_MONSTER_SCRIPT_WAIT;
@@ -3058,11 +3064,12 @@ unsigned char W8Monster::CanEnterCycle(signed char cycle)
             return 0;
         }
     } else {
-        if (!IsCycleInterruptable(static_cast<signed char>(Query(6))) && Query(7) == 0) {
+        if (!IsCycleInterruptable(static_cast<signed char>(Query(W8_MONSTER_QUERY_CYCLE))) &&
+            Query(W8_MONSTER_QUERY_CYCLE_COMPLETE) == 0) {
             return 0;
         }
         if (cycle == W8_MONSTER_CYCLE_DIE && monster_info->monster_species == 0x199 &&
-            Query(2) == 0) {
+            Query(W8_MONSTER_QUERY_AT_PLAYBACK_END) == 0) {
             return 0;
         }
     }
@@ -3085,7 +3092,7 @@ bool W8Monster::IsCycleInterruptable(signed char cycle)
         return true;
     }
     if (m_pRep->animation_playing == 0) {
-        current_cycle = static_cast<signed char>(Query(6));
+        current_cycle = static_cast<signed char>(Query(W8_MONSTER_QUERY_CYCLE));
         pending_cycle = m_pRep->pending_cycle;
         if (pending_cycle != -1 && CanEnterCycle(pending_cycle) != 0) {
             pending_name = g_cycle_names[pending_cycle].name;
@@ -3768,19 +3775,19 @@ void W8Monster::UpdateAttachedObjects()
    interface used by MonsterManager and the animation driver; selector eight is
    intentionally unsupported and returns -1 with out-of-range selectors. */
 // FUNCTION: WIZ8 0x004c4660
-int W8Monster::Query(int query)
+int W8Monster::Query(W8MonsterQueryKind query)
 {
     int result = -1;
     unsigned int animation_value;
 
     switch (query) {
-    case 0:
+    case W8_MONSTER_QUERY_FRAME_COUNT:
         result = m_pRep->ApplyEmitterSetting(m_pRep->current_cycle);
         break;
-    case 1:
+    case W8_MONSTER_QUERY_ANIMATION_COUNT:
         result = GetTotalAnimationCount();
         break;
-    case 2:
+    case W8_MONSTER_QUERY_AT_PLAYBACK_END:
         if (m_pRep->frame_direction != W8_ANIMATION_FORWARD &&
             m_pRep->frame_direction != W8_ANIMATION_FORWARD_COMPLETE) {
             result = m_pRep->subcycle == 0;
@@ -3789,7 +3796,7 @@ int W8Monster::Query(int query)
         animation_value = m_pRep->ApplyEmitterSetting(m_pRep->current_cycle);
         result = m_pRep->subcycle == animation_value - 1;
         break;
-    case 3:
+    case W8_MONSTER_QUERY_AT_PLAYBACK_START:
         if (m_pRep->frame_direction == W8_ANIMATION_FORWARD ||
             m_pRep->frame_direction == W8_ANIMATION_FORWARD_COMPLETE) {
             result = m_pRep->subcycle == 0;
@@ -3798,20 +3805,20 @@ int W8Monster::Query(int query)
         animation_value = m_pRep->ApplyEmitterSetting(m_pRep->current_cycle);
         result = m_pRep->subcycle == animation_value - 1;
         break;
-    case 4:
+    case W8_MONSTER_QUERY_FRAME:
         result = m_pRep->subcycle;
         break;
-    case 5:
+    case W8_MONSTER_QUERY_HAS_FRAMES:
         result =
             m_pRep->ApplyEmitterSetting(m_pRep->current_cycle) != static_cast<unsigned int>(-1);
         break;
-    case 6:
+    case W8_MONSTER_QUERY_CYCLE:
         result = m_pRep->current_cycle;
         break;
-    case 9:
+    case W8_MONSTER_QUERY_SUBCYCLE:
         result = m_pRep->current_subcycle;
         break;
-    case 7:
+    case W8_MONSTER_QUERY_CYCLE_COMPLETE:
         result = 0;
         if (m_pRep->animation_behaviour == 3) {
             if (m_pRep->animation_playing == 0) {
@@ -3828,6 +3835,8 @@ int W8Monster::Query(int query)
             m_pRep->frame_direction == W8_ANIMATION_FORWARD_COMPLETE) {
             result = 1;
         }
+        break;
+    default:
         break;
     }
     return result;
@@ -4253,13 +4262,13 @@ void MonsterSetCycle(W8Monster* monster, signed char cycle)
 /* Cycle 17's third state byte is preserved by ActivateMonster while the live
    engine object is rebuilt, then restored into the replacement. */
 // FUNCTION: WIZ8 0x004c57f0
-unsigned char MonsterGetMirrorX(W8Monster* monster)
+bool MonsterGetMirrorX(W8Monster* monster)
 {
     return monster->mirror_x;
 }
 
 // FUNCTION: WIZ8 0x004c5800
-void MonsterSetMirrorX(W8Monster* monster, unsigned char state)
+void MonsterSetMirrorX(W8Monster* monster, bool state)
 {
     monster->mirror_x = state;
 }
@@ -4368,7 +4377,7 @@ void MonsterSetActive(W8Monster* monster, bool state)
 /* Named by the MonsterManager assertions. A null monster answers -1 rather than
    forwarding, which is how the callers tell "no monster" from a real result. */
 // FUNCTION: WIZ8 0x004c5b40
-int MonsterQuery(W8Monster* monster, int query)
+int MonsterQuery(W8Monster* monster, W8MonsterQueryKind query)
 {
     if (monster != NULL) {
         return monster->Query(query);
@@ -4379,7 +4388,8 @@ int MonsterQuery(W8Monster* monster, int query)
 // FUNCTION: WIZ8 0x004ca4c0
 bool W8Monster::IsDying()
 {
-    bool dying = Query(6) == 0x15 || m_pRep->pending_cycle == 0x15;
+    bool dying =
+        Query(W8_MONSTER_QUERY_CYCLE) == W8_MONSTER_CYCLE_DIE || m_pRep->pending_cycle == 0x15;
 
     return dying;
 }
@@ -4457,7 +4467,7 @@ void W8Monster::SetForcedSubcycle(signed char value)
 // FUNCTION: WIZ8 0x004c5ad0
 void MonsterSetHighlightColour(W8Monster* monster, srVector4T<float> block)
 {
-    if (monster != 0 && monster->Query(6) != 0x15) {
+    if (monster != 0 && monster->Query(W8_MONSTER_QUERY_CYCLE) != W8_MONSTER_CYCLE_DIE) {
         monster->m_pRep->highlight_colour = block;
     }
 }
@@ -5148,7 +5158,7 @@ void W8Monster::ApplyRepresentationScale()
             scale = m_pRep->death_scale * m_pRep->scale;
         }
         float x_scale = scale;
-        if (mirror_x != 0) {
+        if (mirror_x) {
             x_scale = scale * -1.0f;
         }
         int animation_count = m_pRep->animations[cycle].GetCount();
@@ -5169,7 +5179,7 @@ void W8Monster::ApplyRepresentationScale()
         for (int index = 0; index < m_plsParticles->GetCount(); ++index) {
             stParticle* particle = (*m_plsParticles->GetAt(index))->m_pstParticles;
             particle->SetParticleScale(m_pRep->scale);
-            if (mirror_x != 0) {
+            if (mirror_x) {
                 (*m_plsParticles->GetAt(index))->position.x *= -1.0f;
                 particle->setScale(srVector3T<double>(-1.0, 1.0, 1.0));
             }

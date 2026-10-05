@@ -1,3 +1,4 @@
+#include "wiz8/fonts.h"
 #include "wiz8/local_code/Traps.h"
 #include "wiz8/integer_constants.h"
 #include "wiz8/engine_code/Trigger.hpp"
@@ -136,12 +137,12 @@ void ApplyRecordModeLine(void)
         ResetEditorStatusLine(-1);
         strcpy(message, s_log_file_deleted);
     }
-    ShowNoticef(6, ConvertStringToWide(message));
+    ShowNoticef(W8_FONT_PALETTE_PINK, ConvertStringToWide(message));
     g_record_mode_line[g_record_mode_length] = 0;
     g_record_mode_length = 0;
     g_record_mode_active = false;
     strcpy(message, s_exiting_record_mode);
-    ShowNoticef(6, ConvertStringToWide(message));
+    ShowNoticef(W8_FONT_PALETTE_PINK, ConvertStringToWide(message));
 }
 
 /* The per-key prompt callback: clears the status line and shows the record
@@ -153,7 +154,7 @@ void PromptRecordModeEntry(void)
 
     ResetEditorStatusLine(-1);
     strcpy(message, s_record_mode_prompt);
-    ShowNoticef(6, ConvertStringToWide(message));
+    ShowNoticef(W8_FONT_PALETTE_PINK, ConvertStringToWide(message));
 }
 
 /* Local Code\Traps.cpp. The three bodies at 0x5E35F0-0x5E3730 sit in the
@@ -215,7 +216,7 @@ char HandleRecordModeKey(const InputAtom* input, void (*prompt)(void))
     if (prompt != 0) {
         prompt();
     }
-    ShowNoticef(0xf, ConvertStringToWide(g_record_mode_line));
+    ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, ConvertStringToWide(g_record_mode_line));
     return 0;
 }
 

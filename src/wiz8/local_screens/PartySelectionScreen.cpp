@@ -366,11 +366,11 @@ void W8PartySelectionListControl::Redraw(unsigned char full_redraw)
         top += 1;
         SetFont(g_wiz_text_font_secondary);
         for (int row = m_first_visible; row < end; ++row) {
-            unsigned short* colour = g_font_state_palettes[3];
+            unsigned short* colour = g_font_state_palettes[W8_FONT_PALETTE_BLUE];
             if (row != m_selection) {
                 colour = g_wiz_text_font_secondary_palette;
                 if (row == m_hovered) {
-                    colour = g_font_state_palettes[5];
+                    colour = g_font_state_palettes[W8_FONT_PALETTE_YELLOW];
                 }
             }
             SetFontObjectPalette16BPP(g_wiz_text_font_secondary, colour);

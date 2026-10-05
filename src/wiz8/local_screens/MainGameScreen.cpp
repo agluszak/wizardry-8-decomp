@@ -1064,7 +1064,7 @@ void W8LockInteraction::Process()
             }
         }
         SoundPlay(s_lock_picking_success, 0);
-        ShowNotice(0xc, gppStringList[0x7ac]);
+        ShowNotice(W8_FONT_PALETTE_BEIGE, gppStringList[0x7ac]);
         BeginUnlock();
         break;
     }
@@ -1193,7 +1193,7 @@ void W8LockInteraction::ResolvePick()
         }
     }
     SoundPlay(s_lock_picking_success, 0);
-    ShowNotice(0xc, gppStringList[0x7ac]);
+    ShowNotice(W8_FONT_PALETTE_BEIGE, gppStringList[0x7ac]);
     BeginUnlock();
 }
 
@@ -1399,7 +1399,7 @@ void CastSpellAtLockInteraction(unsigned int level, int flag, int backfire)
         return;
     }
     if (!gXStatus.fLockInteractMode) {
-        ShowNotice(0xc, gppStringList[0x7af], -1, -1, false);
+        ShowNotice(W8_FONT_PALETTE_BEIGE, gppStringList[0x7af]);
         return;
     }
     g_lock_interaction->ApplyKnockKnock(level, flag, backfire);
@@ -1457,9 +1457,9 @@ void W8MainGameTextKeyHandler::Redraw(unsigned char full_redraw)
     top += 1;
     for (line = m_first_visible_line; line < last; ++line) {
         if (line == m_selected_line) {
-            colour = g_font_state_palettes[3];
+            colour = g_font_state_palettes[W8_FONT_PALETTE_BLUE];
         } else if (line == m_hover_line) {
-            colour = g_font_state_palettes[5];
+            colour = g_font_state_palettes[W8_FONT_PALETTE_YELLOW];
         } else {
             colour = g_wiz_text_font_secondary_palette;
         }
@@ -3035,7 +3035,7 @@ unsigned char MainGameScreenEnter(void)
         DisableSky();
     }
     if (TakePendingSaveFlag()) {
-        ShowNotice(0xc, gppStringList[0x782], -1, -1, false);
+        ShowNotice(W8_FONT_PALETTE_BEIGE, gppStringList[0x782]);
     }
     if (g_settings.difficulty != difficulty) {
         g_settings.difficulty = difficulty;
@@ -3050,7 +3050,7 @@ unsigned char MainGameScreenEnter(void)
             display_mode = 0x7fa;
             break;
         }
-        ShowNoticef(0xc, gppStringList[0x78c], gppStringList[display_mode]);
+        ShowNoticef(W8_FONT_PALETTE_BEIGE, gppStringList[0x78c], gppStringList[display_mode]);
     }
     ResetTransientRenderScenes();
     MoveTimer(4);
@@ -3298,21 +3298,7 @@ update_screen:
     SyncPartyPortraitVitalsBars();
     if (g_modal_owner) {
         if (!gXStatus.world_update_blocked) {
-            gXStatus.world_update_blocked = true;
-            if (gXStatus.fPartyMovementUi) {
-                DisablePartyMovementRegions();
-            }
-            if (!gXStatus.fCombatMode) {
-                if (gXStatus.world_paused) {
-                    MoveTimer(1);
-                    EnableRegionInput(0x137);
-                    ActivateDialogRegion(0x137);
-                }
-                SetEnvironmentTimeEnabled(false);
-                MonsterStopAllNavigators();
-                ResetLevelDataVectors();
-            }
-            RequestRedraw(W8_MAIN_REDRAW_PORTRAIT_PANEL);
+            PauseMainGameWorld();
         }
         if (!ProcessDialogInput(g_modal_owner)) {
             ClearActiveRegionIfMatches(0x138);
@@ -3458,7 +3444,7 @@ render_world:
                 ClearSurfaceRect(0x122, 0x159, 0x226, 0x168);
                 SetFont(g_wiz_text_font_secondary);
                 unsigned char frame = monster->m_pRep->subcycle;
-                const char* cycle = g_cycle_names[monster->Query(6)].name;
+                const char* cycle = g_cycle_names[monster->Query(W8_MONSTER_QUERY_CYCLE)].name;
                 unsigned char subcycles = static_cast<unsigned char>(monster->GetNumSubCycles());
                 gprintfDirty(0x122, 0x159, const_cast<UINT16*>(L"%2d/%2d %hs"), frame, subcycles,
                              cycle);
@@ -4168,12 +4154,12 @@ void RedrawCombatMonsterList(void)
                         }
                     }
                     if (is_action_group) {
-                        palette = g_font_state_palettes[0];
+                        palette = g_font_state_palettes[W8_FONT_PALETTE_RED];
                         if (g_level_block->target_highlight_ok[0] != 0) {
-                            palette = g_font_state_palettes[1];
+                            palette = g_font_state_palettes[W8_FONT_PALETTE_GREEN];
                         }
                     } else {
-                        palette = g_font_state_palettes[3];
+                        palette = g_font_state_palettes[W8_FONT_PALETTE_BLUE];
                         if (!is_target_group) {
                             palette = g_wiz_text_font_secondary_palette;
                         }
@@ -5689,7 +5675,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                                         &g_status.buffers.Char[g_status.selected_character],
                                         g_character_event_kind2, 0,
                                         g_character_event_no_flags, g_character_event_full_volume);
-                                    ShowNotice(0xc, gppStringList[0x7dc], -1, -1, false);
+                                    ShowNotice(W8_FONT_PALETTE_BEIGE, gppStringList[0x7dc]);
                                 } else {
                                     AimAtCharacter(g_status.selected_character, slot,
                                                    W8_TARGETING_CONTEXT_CURRENT);
@@ -6519,7 +6505,7 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
                     CanPartyMemberAimAtMonster(g_status.selected_character, 2, monster_info,
                                                W8_TARGETING_CONTEXT_CURRENT, 0)) {
                     if ((GetMonsterDataForInfo(monster_info)->flags & W8_MONSTER_FLAG_NPC) == 0) {
-                        ShowNotice(0xc, gppStringList[0x7de], -1, -1, false);
+                        ShowNotice(W8_FONT_PALETTE_BEIGE, gppStringList[0x7de]);
                     } else {
                         W8ItemInstance* item = 0;
                         if (g_status.item_in_cursor) {
@@ -6532,13 +6518,13 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
                             QueueNpcScriptNotice(npc, item, -1, false, 0);
                             SetCombatSelection(-1);
                         } else {
-                            ShowNotice(0xc, gppStringList[0x7de], -1, -1, false);
+                            ShowNotice(W8_FONT_PALETTE_BEIGE, gppStringList[0x7de]);
                         }
                     }
                 }
             }
         } else if (!g_combat_state->round_active && !gXStatus.fPartyMovementMode) {
-            ShowNotice(0xc, gppStringList[0x7dd], -1, -1, false);
+            ShowNotice(W8_FONT_PALETTE_BEIGE, gppStringList[0x7dd]);
             assign = false;
         } else if (gfKeyState[0x10] != 0) {
             for (slot = 0; slot < 8; ++slot) {
@@ -8076,14 +8062,13 @@ void ShowNpcTradeItemNotice(W8ItemInstance* item)
     }
     mode = g_npc_interaction_state->trade_mode;
     if (mode != W8_NPC_TRADE_SELL && mode != W8_NPC_TRADE_BUY && mode != W8_NPC_TRADE_SHOPLIFT) {
-        ShowNotice(font_palette, FormatItemDisplayName(item, true), 2, 0xffffffff, false);
+        ShowNotice(font_palette, FormatItemDisplayName(item, true), 2);
         return;
     }
     swprintf(g_level_block->text_paint_scratch, L"%d%s", price, gppStringList[0x797]);
     ShowNotice(font_palette, FormatItemDisplayName(item, true), 2,
                GetTextBoxScrollRange() -
-                   StringPixLength(g_level_block->text_paint_scratch, GetTextBoxFont()),
-               false);
+                   StringPixLength(g_level_block->text_paint_scratch, GetTextBoxFont()));
     AppendTextBoxLine(g_level_block->text_paint_scratch, 2);
 }
 
@@ -8153,11 +8138,10 @@ static void ShowNpcPlayerTradeItem(W8ItemInstance* item, bool acceptable, unsign
         }
         ShowNotice(font_palette, FormatItemDisplayName(item, true), 2,
                    GetTextBoxScrollRange() -
-                       StringPixLength(g_level_block->text_paint_scratch, GetTextBoxFont()),
-                   false);
+                       StringPixLength(g_level_block->text_paint_scratch, GetTextBoxFont()));
         AppendTextBoxLine(g_level_block->text_paint_scratch, 2);
     } else {
-        ShowNotice(font_palette, FormatItemDisplayName(item, true), 2, 0xffffffff, false);
+        ShowNotice(font_palette, FormatItemDisplayName(item, true), 2);
     }
 }
 
@@ -8173,10 +8157,9 @@ void PopulateNpcTradeList(void)
     if (g_npc_interaction_state->trade_mode == W8_NPC_TRADE_GIVE) {
         swprintf(g_level_block->text_paint_scratch, L"%d%s", g_status.party_gold,
                  gppStringList[0x797]);
-        ShowNotice(0xf, gppStringList[0x72d], 2,
+        ShowNotice(W8_FONT_PALETTE_TEXT_BOX, gppStringList[0x72d], 2,
                    GetTextBoxScrollRange() -
-                       StringPixLength(g_level_block->text_paint_scratch, GetTextBoxFont()),
-                   false);
+                       StringPixLength(g_level_block->text_paint_scratch, GetTextBoxFont()));
         AppendTextBoxLine(g_level_block->text_paint_scratch, 2);
     }
     if ((static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_5])->m_stateFlags &
@@ -8535,7 +8518,7 @@ void ResetMainGameMode(void)
         CloseMessageBox();
     }
     if (gXStatus.fCombatMode) {
-        EndCombat(1);
+        EndCombat(true);
     } else if (AnyCharacterActive() && !gXStatus.party_moving) {
         AutoSaveIfAllowed(true);
     }

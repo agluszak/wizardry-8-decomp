@@ -347,7 +347,7 @@ void RunNewGameOpeningSequence(bool notify, const wchar_t* target)
 {
     g_status.game_started = true;
     if (target) {
-        g_status.iron_man = 1;
+        g_status.iron_man = true;
         SetLastSaveName(target);
     }
     g_status.difficulty = g_settings.difficulty;

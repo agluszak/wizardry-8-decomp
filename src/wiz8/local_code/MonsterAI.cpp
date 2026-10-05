@@ -254,21 +254,21 @@ void UpdateMonsterGroups(bool staggered)
    best state a live member reports is two. Members with no live entry, a
    dying body, no hit points or a condition at 0x0c or higher do not count. */
 // FUNCTION: WIZ8 0x00530470
-unsigned char GetMonsterGroupPartySightState(W8MonsterGroup* monster_group)
+W8SightState GetMonsterGroupPartySightState(W8MonsterGroup* monster_group)
 {
     W8MonsterInfo* monster_info;
     W8MonsterRecord* record;
     unsigned int index;
-    unsigned char result;
+    W8SightState result;
 
-    result = 0;
+    result = W8_SIGHT_UNSEEN;
     if (g_status.world_suspended || IsMipeActive()) {
-        return 0;
+        return W8_SIGHT_UNSEEN;
     }
     monster_info = MonsterInfoFromID(0xf0, MONSTER_AI_CPP, monster_group->leader_location_id, true);
     record = GetMonsterDataForInfo(monster_info);
     if (record != 0 && record->untargetable != 0) {
-        return 0;
+        return W8_SIGHT_UNSEEN;
     }
     for (index = 0; index < ILLength(monster_group->monsters); ++index) {
         int location_id;
@@ -278,10 +278,10 @@ unsigned char GetMonsterGroupPartySightState(W8MonsterGroup* monster_group)
         if (monster_info->fActive && !monster_info->p3D->IsDying() &&
             monster_info->hp_current != 0 && monster_info->highest_condition < W8_CONDITION_BLIND) {
             if (monster_info->player_visibility.sight_state == W8_SIGHT_SEEN) {
-                return 1;
+                return W8_SIGHT_SEEN;
             }
             if (monster_info->player_visibility.sight_state == W8_SIGHT_RECENT) {
-                result = 2;
+                result = W8_SIGHT_RECENT;
             }
         }
     }
@@ -298,10 +298,10 @@ unsigned char GetMonsterGroupPartySightState(W8MonsterGroup* monster_group)
 // FUNCTION: WIZ8 0x00530560
 void DoMonsterRTAI(W8MonsterInfo* monster_info, bool engage)
 {
-    char update;
+    bool update;
     unsigned char decision;
 
-    update = 0;
+    update = false;
     decision = W8_RT_AI_IDLE;
     if (engage && IsSightRangeOverridden() && monster_info->ai_mode == W8_RT_AI_CHARGE_PARTY) {
         W8MonsterRecord* record;
@@ -348,21 +348,21 @@ void DoMonsterRTAI(W8MonsterInfo* monster_info, bool engage)
         if (monster_info->control_state == W8_MONSTER_CONTROL_LURED) {
             decision = W8_RT_AI_FOLLOW_LURE;
         } else {
-            unsigned char alert;
+            W8SightState alert;
 
-            alert = 0;
+            alert = W8_SIGHT_UNSEEN;
             if (engage) {
                 alert = GetMonsterGroupPartySightState(
                     GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
                         0x14b, MONSTER_AI_CPP, monster_info->monster_group_id, true)));
             }
-            if (alert == 0) {
+            if (alert == W8_SIGHT_UNSEEN) {
                 if (!monster_info->p3D->orders_finished) {
                     decision = W8_RT_AI_IDLE;
                 } else {
                     update = ChooseMonsterRTAIMode(monster_info, &decision);
                 }
-            } else if (alert <= 2) {
+            } else if (alert <= W8_SIGHT_RECENT) {
                 switch (monster_info->ubDisposition) {
                 case W8_DISPOSITION_NEUTRAL:
                     if (!monster_info->p3D->orders_finished) {
@@ -376,7 +376,7 @@ void DoMonsterRTAI(W8MonsterInfo* monster_info, bool engage)
                                    monster_info->hp_current * 100 / monster_info->uiHPMax <= 0x14) +
                                1;
                     if (monster_info->p3D->movement_stopped) {
-                        update = 1;
+                        update = true;
                     }
                     break;
                 case W8_DISPOSITION_FRIENDLY:
@@ -406,12 +406,12 @@ void DoMonsterRTAI(W8MonsterInfo* monster_info, bool engage)
             monster_info->ai_mode &= ~W8_MONSTER_AI_REAPPLY_MODE;
         }
         if (decision <= W8_RT_AI_LINK_TO_PARTY || decision == W8_RT_AI_FOLLOW_LURE) {
-            update = 1;
+            update = true;
         }
     }
     if (monster_info->ubDisposition == W8_DISPOSITION_HOSTILE ||
         monster_info->p3D->script_wait != MONSCR_WALKTO || decision != W8_RT_AI_IDLE) {
-        if (decision != monster_info->ai_mode || update != 0) {
+        if (decision != monster_info->ai_mode || update) {
             if (!engage && decision == W8_RT_AI_CHARGE_PARTY) {
                 srAssertFail("ubAIDecision != RT_AI_MODE_CHARGE_PARTY", MONSTER_AI_CPP, 0x1c9, 0);
             }
@@ -426,7 +426,7 @@ void DoMonsterRTAI(W8MonsterInfo* monster_info, bool engage)
    point is reached, a fresh look-around delay just counts down, and a heard
    noise is investigated while the path to it still looks cheap enough. */
 // FUNCTION: WIZ8 0x005308C0
-char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
+bool ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
 {
     W8Monster* monster;
     bool changed;
@@ -448,12 +448,12 @@ char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
             position = monster->GetPosition();
             *decision = W8_RT_AI_FACE_DIRECTION;
             monster->move_direction = camera - position;
-            return 1;
+            return true;
         }
     }
     if (MonsterGroupHasIncapacitatedMember(monster_info->monster_group_id)) {
         *decision = W8_RT_AI_IDLE;
-        return 0;
+        return false;
     }
     if ((monster_info->ai_mode & W8_MONSTER_AI_REAPPLY_MODE) != 0) {
         if (monster->order_mode == W8_MONSTER_ORDER_POINT_PATROL ||
@@ -465,11 +465,11 @@ char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
             delta = patrol - monster->GetPosition();
             if (delta.Length() >= g_double_005ee768) {
                 *decision = monster_info->ai_mode;
-                return 1;
+                return true;
             }
         } else {
             *decision = monster_info->ai_mode;
-            return 1;
+            return true;
         }
     }
     if (monster_info->pathing_cooldown != 0) {
@@ -477,7 +477,7 @@ char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
         if (monster_info->pathing_cooldown == 0) {
             monster_info->heard_noise_margin = 0;
         }
-        return 0;
+        return false;
     }
     if (monster_info->ai_mode == W8_RT_AI_FACE_NOISE &&
         fabsf(monster->movement.target_yaw - monster->movement.yaw) >=
@@ -914,7 +914,7 @@ void UpdateMonsterAI(W8MonsterInfo* monster_info)
             } else {
                 monster_info->action_kind = W8_MONSTER_ACTION_RETURN_TO_START;
             }
-        } else if (!ChooseRandomMonsterAction(monster_info, 0, 0, true)) {
+        } else if (!ChooseRandomMonsterAction(monster_info, false, false, true)) {
             monster_info->action_kind = W8_MONSTER_ACTION_WAIT;
         }
     }
@@ -953,7 +953,7 @@ bool MonsterGroupCanEngage(W8MonsterGroup* monster_group)
             member = GetGroupMemberInfo(monster_group, index);
             if (member->fActive && member->hp_current != 0 &&
                 member->highest_condition < W8_CONDITION_DEAD &&
-                MonsterHasVisibleTarget(member, 1, W8_VISIBLE_TARGET_HOSTILE, 1)) {
+                MonsterHasVisibleTarget(member, true, W8_VISIBLE_TARGET_HOSTILE, true)) {
                 goto members;
             }
         }
@@ -1033,12 +1033,12 @@ unsigned int MonsterAdvanceChance(W8MonsterInfo* monster_info, W8MonsterRecord* 
         monster_info->ubDisposition != W8_DISPOSITION_HOSTILE && hp_percent <= 33) {
         return 100;
     }
-    if (monster_info->pCombat->advancing != 0) {
+    if (monster_info->pCombat->advancing) {
         distance = MonsterChooseTarget(monster_info, &chosen, 2);
         if (CalcRangeDistance(W8_RANGE_SHORT) < distance) {
             result = 100;
         } else {
-            monster_info->pCombat->advancing = 0;
+            monster_info->pCombat->advancing = false;
         }
     } else if (record->advance_chance != 0) {
         result = record->advance_chance;
@@ -1060,7 +1060,7 @@ unsigned int MonsterAdvanceChance(W8MonsterInfo* monster_info, W8MonsterRecord* 
    but flags the slot, and each flagged slot may practice that skill at the
    end. */
 // FUNCTION: WIZ8 0x00531CE0
-void BuildMonsterActionQueue(W8MonsterInfo* monster_info, char target_locked, char attack_locked)
+void BuildMonsterActionQueue(W8MonsterInfo* monster_info, bool target_locked, bool attack_locked)
 {
     W8MonsterInfo* other;
     W8MonsterRecord* record;
@@ -1089,7 +1089,7 @@ void BuildMonsterActionQueue(W8MonsterInfo* monster_info, char target_locked, ch
     if (monster_info->pCombat->plsCombatActionList == 0) {
         srAssertFail("pMonsterInfo->pCombat->plsCombatActionList != NULL", MONSTER_AI_CPP, 1385, 0);
     }
-    if (target_locked == 0 && attack_locked == 0) {
+    if (!target_locked && !attack_locked) {
         if (CanMonsterProtect(monster_info) &&
             Random(100) < monster_info->attributes[W8_MONSTER_ATTRIBUTE_INTELLIGENCE]) {
             monster_info->action_kind = W8_MONSTER_ACTION_PROTECT;
@@ -1124,14 +1124,14 @@ void BuildMonsterActionQueue(W8MonsterInfo* monster_info, char target_locked, ch
         }
     }
     monster_info->action_kind = W8_MONSTER_ACTION_ATTACK;
-    if (attack_locked == 0) {
+    if (!attack_locked) {
         attack_lo = 0;
         attack_hi = W8_MAX_MONSTER_ATTACKS;
     } else {
         attack_lo = monster_info->pCombat->attack_index;
         attack_hi = attack_lo + 1;
     }
-    if (target_locked == 0 || attack_locked != 0 || monster_info->pCombat->berserk ||
+    if (!target_locked || attack_locked || monster_info->pCombat->berserk ||
         monster_info->attributes[W8_MONSTER_ATTRIBUTE_DEXTERITY] >= 0x4b) {
         char_lo = 0;
         char_hi = 8;
@@ -1259,23 +1259,23 @@ static void QueueMonsterAction(W8MonsterInfo* monster_info, W8MonsterActionKind 
    commits its attack index and, when asked, restages the round's attack
    counts; a wait action keeps only its detail word. */
 // FUNCTION: WIZ8 0x005323F0
-unsigned char ChooseRandomMonsterAction(W8MonsterInfo* monster_info, int arg_2, int arg_3,
-                                        bool set_attack_rate)
+bool ChooseRandomMonsterAction(W8MonsterInfo* monster_info, bool target_locked, bool attack_locked,
+                               bool set_attack_rate)
 {
     W8MonsterAction* entry;
     W8MonsterRecord* record;
     unsigned int count;
 
     record = GetMonsterDataForInfo(monster_info);
-    BuildMonsterActionQueue(monster_info, arg_2, arg_3);
+    BuildMonsterActionQueue(monster_info, target_locked, attack_locked);
     count = PLLength(monster_info->pCombat->plsCombatActionList);
     if (count == 0) {
-        return 0;
+        return false;
     }
     entry = static_cast<W8MonsterAction*>(
         PLGet(monster_info->pCombat->plsCombatActionList, static_cast<int>(Random(count))));
     if (entry == 0) {
-        return 0;
+        return false;
     }
     monster_info->action_kind = entry->action_kind;
     switch (entry->action_kind) {
@@ -1294,7 +1294,7 @@ unsigned char ChooseRandomMonsterAction(W8MonsterInfo* monster_info, int arg_2, 
         break;
     }
     monster_info->Target = entry->target;
-    return 1;
+    return true;
 }
 
 /* Whether the monster may cast the spell now: the record allows monsters to
@@ -2092,15 +2092,14 @@ void CheckMonsterGroupsLeaveCombat(void)
                 0xc0b, MONSTER_AI_CPP, IListGetAt(group->monsters, index), true));
             if (!member->fActive || member->hp_current == 0 ||
                 member->highest_condition >= W8_CONDITION_DEAD ||
-                MonsterHasNoVisibleEnemy(member, 0)) {
+                MonsterHasNoVisibleEnemy(member, false)) {
                 continue;
             }
             if (group->ubDisposition != W8_DISPOSITION_HOSTILE) {
                 break;
             }
             leader = MonsterInfoFromID(0xbcd, MONSTER_AI_CPP, group->leader_location_id, true);
-            if (GetMonsterGroupEngagementState(group->group_id) != 0 && leader != 0 &&
-                leader->fActive) {
+            if (GetMonsterGroupEngagementState(group->group_id) && leader != 0 && leader->fActive) {
                 nearest = GetGroupNearestDistance(group);
                 reach = CalcRangeDistance(GetMonsterBestRangeCategory(leader, true, &sight)) +
                         GetMonsterCombatMoveRange(leader) * g_float_005ebc64;
@@ -2121,7 +2120,7 @@ void CheckMonsterGroupsLeaveCombat(void)
                     0xc0b, MONSTER_AI_CPP, IListGetAt(group->monsters, member_index), true));
                 if (other->fActive && other->hp_current != 0 &&
                     other->highest_condition < W8_CONDITION_DEAD &&
-                    !MonsterHasNoVisibleEnemy(other, 1)) {
+                    !MonsterHasNoVisibleEnemy(other, true)) {
                     ++engaged;
                     break;
                 }
@@ -2147,7 +2146,7 @@ void CheckMonsterGroupsLeaveCombat(void)
    answers at once; a visible hostile party member counts, and `party_only`
    zero also scans the monsters it is hostile to that it can see. */
 // FUNCTION: WIZ8 0x00534690
-bool MonsterHasNoVisibleEnemy(W8MonsterInfo* monster_info, int party_only)
+bool MonsterHasNoVisibleEnemy(W8MonsterInfo* monster_info, bool party_only)
 {
     unsigned int index;
     W8MonsterInfo* other;
@@ -2166,7 +2165,7 @@ bool MonsterHasNoVisibleEnemy(W8MonsterInfo* monster_info, int party_only)
             }
         }
     }
-    if (party_only == 0) {
+    if (!party_only) {
         for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
             other = MonsterGetScriptPartByLocationIndex(index);
             if (other != monster_info && other->fActive && other->hp_current != 0 &&
@@ -2184,8 +2183,8 @@ bool MonsterHasNoVisibleEnemy(W8MonsterInfo* monster_info, int party_only)
 /* Whether any live member of the group has a visible target; the arguments
    forward to MonsterHasVisibleTarget. */
 // FUNCTION: WIZ8 0x005347A0
-bool MonsterGroupHasVisibleTarget(W8MonsterGroup* monster_group, int party_only,
-                                  W8VisibleTargetFilter hostility, int within_reach)
+bool MonsterGroupHasVisibleTarget(W8MonsterGroup* monster_group, bool party_only,
+                                  W8VisibleTargetFilter hostility, bool within_reach)
 {
     unsigned int index;
     W8MonsterInfo* member;
@@ -2209,8 +2208,8 @@ bool MonsterGroupHasVisibleTarget(W8MonsterGroup* monster_group, int party_only,
    four anything non-neutral - and `within_reach` also requires the target
    inside the engagement range computed from the monster's best attack. */
 // FUNCTION: WIZ8 0x00534850
-bool MonsterHasVisibleTarget(W8MonsterInfo* monster_info, int party_only,
-                             W8VisibleTargetFilter hostility, int within_reach)
+bool MonsterHasVisibleTarget(W8MonsterInfo* monster_info, bool party_only,
+                             W8VisibleTargetFilter hostility, bool within_reach)
 {
     float reach;
     int sight;
@@ -2219,7 +2218,7 @@ bool MonsterHasVisibleTarget(W8MonsterInfo* monster_info, int party_only,
     W8VisibilityRecord* record;
     char disposition;
 
-    if (within_reach != 0) {
+    if (within_reach) {
         reach = CalcRangeDistance(GetMonsterBestRangeCategory(monster_info, true, &sight)) +
                 GetMonsterCombatMoveRange(monster_info) * g_float_005ebc64;
         if (reach <= GetMonsterEngagementRange() + g_monster_engagement_range_floor) {
@@ -2228,7 +2227,7 @@ bool MonsterHasVisibleTarget(W8MonsterInfo* monster_info, int party_only,
     }
     if (monster_info->player_visibility.sight_state == W8_SIGHT_SEEN &&
         monster_info->player_visibility.los_flags[2] &&
-        (within_reach == 0 || monster_info->p3D->GetDistanceToPlayer() <= reach)) {
+        (!within_reach || monster_info->p3D->GetDistanceToPlayer() <= reach)) {
         for (index = 0; index < W8_PARTY_SLOT_COUNT; ++index) {
             if (g_status.buffers.XChar[index].fOccupied &&
                 g_status.buffers.Char[index].hp_current > 0 &&
@@ -2247,7 +2246,7 @@ bool MonsterHasVisibleTarget(W8MonsterInfo* monster_info, int party_only,
             }
         }
     }
-    if (party_only == 0) {
+    if (!party_only) {
         for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
             other = MonsterGetScriptPartByLocationIndex(index);
             if (other != monster_info && other->fActive && other->hp_current != 0 &&
@@ -2259,7 +2258,7 @@ bool MonsterHasVisibleTarget(W8MonsterInfo* monster_info, int party_only,
                     record = FindMonToMonVisibility(monster_info, other);
                     if (record != 0 && record->sight_state == W8_SIGHT_SEEN &&
                         record->los_flags[2]) {
-                        if (within_reach == 0 ||
+                        if (!within_reach ||
                             monster_info->p3D->GetDistanceToMonster(other->p3D) <= reach) {
                             return true;
                         }
@@ -2327,7 +2326,7 @@ bool CanMonsterFlee(W8MonsterInfo* monster_info, W8MonsterRecord* record, bool e
 /* Aim a monster that wants to get away. A summoning special-attack row aims
    at the monster's own position. */
 // FUNCTION: WIZ8 0x00534cb0
-unsigned char AimFleeingMonster(W8MonsterInfo* monster_info, const W8MonsterRecord* record)
+bool AimFleeingMonster(W8MonsterInfo* monster_info, const W8MonsterRecord* record)
 {
     srVector3T<float> position;
 
@@ -2337,7 +2336,7 @@ unsigned char AimFleeingMonster(W8MonsterInfo* monster_info, const W8MonsterReco
         ResetCombatSlot(&monster_info->Target);
         monster_info->Target.iType = W8_TARGET_KIND_PLACE;
         monster_info->Target.point = position;
-        return 1;
+        return true;
     }
     return AimMonsterAtSpellTarget(monster_info, W8_AI_SPELL_PLACE);
 }
@@ -2709,7 +2708,7 @@ bool ShouldMonsterGroupEnterCombat(W8MonsterGroup* monster_group)
             member = GetGroupMemberInfo(monster_group, index);
             if (member->fActive && member->hp_current != 0 &&
                 member->highest_condition < W8_CONDITION_DEAD &&
-                MonsterHasVisibleTarget(member, 0, W8_VISIBLE_TARGET_NON_NEUTRAL, 1)) {
+                MonsterHasVisibleTarget(member, false, W8_VISIBLE_TARGET_NON_NEUTRAL, true)) {
                 reach = CalcRangeDistance(GetMonsterBestRangeCategory(leader, true, &sight)) +
                         GetMonsterCombatMoveRange(leader) * g_float_005ebc64;
                 minimum = GetMonsterEngagementRange() + g_monster_engagement_range_floor;

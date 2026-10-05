@@ -4,6 +4,7 @@
 #include <stddef.h>
 
 #include "wiz8/monster_actions.h"
+#include "wiz8/sight_state.h"
 
 #include "timer.h"
 
@@ -271,7 +272,7 @@ struct W8MonsterCombatState {
     /* 0x14b: the monster is committed to advancing on the party. Set when the
        action executor starts the advance and cleared when an enemy is inside
        short range or when the forcing condition is removed. */
-    unsigned char advancing;
+    bool advancing;
     /* 0x14c: combat ticks since the member last acted; the AI treats a value
        under three as still settling. */
     int settle_ticks;
@@ -289,11 +290,6 @@ struct W8MonsterCombatState {
 
 /* The sight state both visibility records carry: unseen, seen this pass, or
    seen within the decay window since last_seen_clock. Stored as a byte. */
-enum W8SightState {
-    W8_SIGHT_UNSEEN = 0,
-    W8_SIGHT_SEEN = 1,
-    W8_SIGHT_RECENT = 2,
-};
 
 /* 0x286: the party-side sight record for one monster. The live-threat gate,
    the clock and two position triples the player-sight pass stamps, the
@@ -303,7 +299,7 @@ struct W8PartyThreatRecord {
     int about_location_id; /* 0x286: zero in the party-side visibility record */
     /* 0x28a: W8SightState - live-threat gate for the group sight query;
        combat, radar, automap and AI read it. */
-    unsigned char sight_state;
+    W8SightState sight_state;
     /* 0x28b: the sight-flag pair GetPlayerToMonsterSightFlags writes;
        CanPartyMemberAimAtMonster indexes it by the resolved action's
        ranged flag. */
@@ -331,7 +327,7 @@ static_assert(sizeof(W8PartyThreatRecord) == 0x30, "W8PartyThreatRecord_size");
    ordinary floats. The reset zeroes exactly its 0x31 bytes. */
 struct W8VisibilityRecord {
     int about_location_id;        /* 0x00; always zero in the party record */
-    unsigned char sight_state; /* 0x04: W8SightState */
+    W8SightState sight_state;     /* 0x04: W8SightState */
     /* 0x05: two sight-flag pairs - GetMonsterSightFlags writes [0]/[2], and
        the missile/spell vertex traces overwrite [1]/[3]. */
     bool los_flags[4];
@@ -467,7 +463,7 @@ struct W8MonsterInfo {
        database base, and group attacks drain it. */
     unsigned int spell_points;
     W8MonsterControlState control_state; /* 0x2fd: Lure success/resistance state */
-    unsigned char cycle17_state;
+    bool saved_mirror_x;
     /* 0x302/0x303: the two alternating look-around timers the aging pass
        counts down and rearms from the monster's look frequency/duration. */
     unsigned char look_time;
@@ -500,7 +496,7 @@ static_assert(offsetof(W8MonsterInfo, spell_points) == 0x2f9,
 W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_index);
 bool InitializeMonsterManagerState(void);
 void ActivateMonsterInWorld(W8MonsterInfo* monster_info);
-void ActivateMonster(W8MonsterInfo* monster_info, int mode);
+void ActivateMonster(W8MonsterInfo* monster_info, W8MonsterActivationMode mode);
 void ClearMonsterPathAndResume(W8MonsterInfo* monster_info);
 void MonsterStartsDying(W8MonsterInfo* monster_info, char display_message);
 W8MonsterRecord* GetMonsterDataForInfo(W8MonsterInfo* monster_info);
@@ -515,7 +511,7 @@ void UpdateMonsterDamageAppearance(W8MonsterInfo* monster_info);
 W8MonsterInfo* GetNextMonsterInfo(bool reset_iterator);
 int GetMonsterQuadrant(W8MonsterInfo* monster_info);
 int GetMonsterCycleFallbackValue(unsigned int monster_species);
-void ProcessMonstersAtCombatEnd(unsigned char forced_cleanup);
+void ProcessMonstersAtCombatEnd(bool forced_cleanup);
 void ConvertMonsterAttributes(W8MonsterInfo* monster_info);
 W8MonsterInfo* FindMonsterInfoBySpecies(unsigned int monster_species);
 void ResetLivingMonstersAfterCombat(void);

@@ -1,3 +1,4 @@
+#include "wiz8/fonts.h"
 #include "wiz8/local_code/ConditionsAndEnchantments.h"
 #include "wiz8/integer_constants.h"
 #include "wiz8/local_code/HealthStaminaMana.h"
@@ -2072,12 +2073,12 @@ unsigned int MonsterCastsSpell(W8MonsterInfo* monster_info, int spell_id, unsign
     SetTargetSourceToMonster(monster_info, &source);
 
     if (g_settings.verbose_combat_messages == 0) {
-        ShowNoticef(9, gppStringList[W8_MESSAGE_MONSTER_CAST / 4],
+        ShowNoticef(W8_FONT_PALETTE_RUST, gppStringList[W8_MESSAGE_MONSTER_CAST / 4],
                     GetMonsterName(monster_info, record, 0), g_spell_records[spell_id].display_name,
                     SpellTargetString(&source, &monster_info->Target));
         SetTextBoxMode(1, 9);
     } else {
-        ShowNoticef(9, gppStringList[W8_MESSAGE_MONSTER_CAST_VERBOSE / 4],
+        ShowNoticef(W8_FONT_PALETTE_RUST, gppStringList[W8_MESSAGE_MONSTER_CAST_VERBOSE / 4],
                     GetMonsterName(monster_info, record, 0), g_spell_records[spell_id].display_name,
                     power_level, SpellTargetString(&source, &monster_info->Target));
     }
@@ -2215,7 +2216,7 @@ void ReportSpellResult(W8SpellEffectEntry* effect)
                 effect->reported = true;
             } else if (report->kind == 3) {
                 SetTextBoxMode(0, -1);
-                ShowNoticef(9, L"%s %s!", report->text,
+                ShowNoticef(W8_FONT_PALETTE_RUST, L"%s %s!", report->text,
                             gppStringList[g_spell_condition_text[W8_CONDITION_UNCONSCIOUS * 4]]);
                 effect->reported = true;
             }
@@ -3284,7 +3285,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
             if (quiet) {
                 owner->reported = true;
             } else if (g_settings.verbose_combat_messages != 0) {
-                ShowNotice(0xc, FormatWideString(gppStringList[0x197]));
+                ShowNotice(W8_FONT_PALETTE_BEIGE, FormatWideString(gppStringList[0x197]));
             } else {
                 AppendToLastTextLine(FormatWideString(L" -- %s", gppStringList[0x197]), -1);
                 owner->reported = true;
@@ -3324,7 +3325,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
             break;
         default:
             if (g_settings.verbose_combat_messages != 0) {
-                ShowNotice(0xc, FormatWideString(gppStringList[0x196]));
+                ShowNotice(W8_FONT_PALETTE_BEIGE, FormatWideString(gppStringList[0x196]));
             } else {
                 AppendToLastTextLine(FormatWideString(L" -- %s", gppStringList[0x196]), -1);
             }

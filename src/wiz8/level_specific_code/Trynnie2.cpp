@@ -1,3 +1,4 @@
+#include "wiz8/fonts.h"
 #include "wiz8/level_specific_code/Trynnie2.h"
 #include "wiz8/level_specific_code/Trynnie1.h"
 #include "wiz8/level_specific_code/MasterFunctionList.h"
@@ -116,12 +117,12 @@ bool Trynnie2MeatBox(Trigger* pTrigger)
 
     group = FindFirstMonsterByID(0x1d4);
     if (group == 0 || !g_status.item_in_cursor) {
-        ShowNotice(0xf, gppStringList[0x964]);
+        ShowNotice(W8_FONT_PALETTE_TEXT_BOX, gppStringList[0x964]);
         return true;
     }
     item_id = GetItemInHand();
     if (item_id != 0x1b4 && item_id != 0x1c2) {
-        ShowNotice(0xf, gppStringList[0x964]);
+        ShowNotice(W8_FONT_PALETTE_TEXT_BOX, gppStringList[0x964]);
         return true;
     }
     index = MonsterGetIndexByLocationID(0x68, TRYNNIE2_CPP, group->leader_location_id, true);

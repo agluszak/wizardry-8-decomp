@@ -1,3 +1,4 @@
+#include "wiz8/fonts.h"
 #include "wiz8/local_screens/MGSFormation.h"
 
 #include "wiz8/local_screens/MainGameScreen.h"
@@ -446,7 +447,7 @@ static void AcceptFormationChanges(void)
         ReconcilePartyFormation(&gXStatus.edited_formation, &g_status.formation);
     } else if (memcmp(&g_status.formation, &gXStatus.edited_formation,
                       sizeof(W8PartyFormationState)) != 0) {
-        ShowNotice(8, gppStringList[0x7d9], -1, -1, false);
+        ShowNotice(W8_FONT_PALETTE_WHITE, gppStringList[0x7d9]);
     }
     RefreshFormationBoard();
     RefreshRadarMap();

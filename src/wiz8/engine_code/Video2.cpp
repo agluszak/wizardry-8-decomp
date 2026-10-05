@@ -2287,7 +2287,7 @@ void DrawVideoInspector(int left, unsigned int top)
     if (g_gerd != 0) {
         g_gerd->getStatistics(statistics);
         SetFont(g_smfnt_font);
-        SetFontObjectPalette16BPP(g_smfnt_font, g_font_state_palettes[5]);
+        SetFontObjectPalette16BPP(g_smfnt_font, g_font_state_palettes[W8_FONT_PALETTE_YELLOW]);
         gprintfDirty(left, top, L"FR: %4.1f", g_frames_per_second);
         if (g_video_inspector_mode == 2) {
             gprintfDirty(left, top + 0xa, L"OC: %d", g_world->level->m_positional);

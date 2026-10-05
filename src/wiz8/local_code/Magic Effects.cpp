@@ -1,3 +1,4 @@
+#include "wiz8/fonts.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/integer_constants.h"
 #include "wiz8/engine_code/Spells.h"
@@ -602,7 +603,8 @@ char InflictConditionOnTarget(W8CombatSlot* target, W8Condition condition_id, W8
                         magnitude = remaining;
                     } else {
                         if (announce != 0) {
-                            ShowNoticef(9, L"%s %s!", GetMonsterName(monster_info, 0, 0),
+                            ShowNoticef(W8_FONT_PALETTE_RUST, L"%s %s!",
+                                        GetMonsterName(monster_info, 0, 0),
                                         gppStringList[g_condition_notices[5 * 4 + 1]]);
                         }
                         return 1;
@@ -1291,7 +1293,8 @@ void ReportSpellEffectResult(W8SpellEffectEntry* effect)
                 PostCharacterNotice(report->value, L"%s!",
                                     gppStringList[g_condition_notices[0x49]]);
             } else if (report->kind == 3) {
-                ShowNoticef(9, L"%s %s!", report->text, gppStringList[g_condition_notices[0x49]]);
+                ShowNoticef(W8_FONT_PALETTE_RUST, L"%s %s!", report->text,
+                            gppStringList[g_condition_notices[0x49]]);
             }
             free(report);
         }
@@ -2490,7 +2493,7 @@ void DamageTargetsAndReport(W8SpellEffectEntry* effect)
                     PostCharacterNotice(report->value, L"%s!",
                                         gppStringList[g_condition_notices[0x49]]);
                 } else if (report->kind == 3) {
-                    ShowNoticef(9, L"%s %s!", report->text,
+                    ShowNoticef(W8_FONT_PALETTE_RUST, L"%s %s!", report->text,
                                 gppStringList[g_condition_notices[0x49]]);
                 }
                 free(report);
@@ -2861,14 +2864,7 @@ void ReduceCombatEffectDurations(W8SpellEffectEntry* effect)
                     if (static_cast<unsigned int>(reduce) < slot->duration) {
                         slot->duration -= reduce;
                     } else {
-                        slot->active = false;
-                        slot->effect_id = 0;
-                        slot->amount = 0;
-                        slot->duration = 0;
-                        RebuildPartyEffectBlock();
-                        InvalidateMainGameEffectHud();
-                        RequestRedraw(W8_MAIN_REDRAW_ROOF_AND_SPELL_ICONS |
-                                      W8_MAIN_REDRAW_COMBAT_EFFECTS);
+                        ResetPartyEffectBlock(slot);
                     }
                     effect->applied = true;
                 }
@@ -3015,7 +3011,8 @@ void TickRadiusBlastEffectSlots(W8EffectSlot* effect_slots)
     remaining = 9;
     do {
         if (effect_slots->active && effect_slots->effect_id == 0x3e) {
-            ShowNoticef(8, gppStringList[0x1ae], g_spell_records[62].display_name);
+            ShowNoticef(W8_FONT_PALETTE_WHITE, gppStringList[0x1ae],
+                        g_spell_records[62].display_name);
             SetTextBoxMode(1, -1);
             {
                 float reach = CalcRangeDistance(W8_RANGE_SHORT);
@@ -3068,7 +3065,7 @@ void TickRadiusBlastEffectSlots(W8EffectSlot* effect_slots)
                             PostCharacterNotice(report->value, L"%s!",
                                                 gppStringList[g_condition_notices[0x49]]);
                         } else if (report->kind == 3) {
-                            ShowNoticef(9, L"%s %s!", report->text,
+                            ShowNoticef(W8_FONT_PALETTE_RUST, L"%s %s!", report->text,
                                         gppStringList[g_condition_notices[0x49]]);
                         }
                         free(report);
@@ -3150,7 +3147,8 @@ void TickCombatEffectSlots(W8EffectSlot* effect_slots, W8CombatSlot* target)
                 hit_count = 0;
                 resisted_total = 0;
                 if (verbose != 0 && !sleep_type) {
-                    ShowNoticef(0xc, gppStringList[0x1ae], g_spell_records[spell_id].display_name);
+                    ShowNoticef(W8_FONT_PALETTE_BEIGE, gppStringList[0x1ae],
+                                g_spell_records[spell_id].display_name);
                 }
                 do {
                     if (g_status.buffers.XChar[party_slot].fOccupied &&
@@ -3216,8 +3214,9 @@ void TickCombatEffectSlots(W8EffectSlot* effect_slots, W8CombatSlot* target)
                     ++party_slot;
                 } while (party_slot < 8);
                 if (verbose == 0 && hit_count != 0) {
-                    ShowNoticef(0xc, gppStringList[0x1af], g_spell_records[spell_id].display_name,
-                                hit_count, resisted_total / hit_count);
+                    ShowNoticef(W8_FONT_PALETTE_BEIGE, gppStringList[0x1af],
+                                g_spell_records[spell_id].display_name, hit_count,
+                                resisted_total / hit_count);
                 }
             } else if (target->iType == W8_TARGET_KIND_MONSTER) {
                 monster_info =
@@ -3746,14 +3745,7 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
             slot = g_status.effect_slots;
             do {
                 if (slot->active) {
-                    slot->active = false;
-                    slot->effect_id = 0;
-                    slot->amount = 0;
-                    slot->duration = 0;
-                    RebuildPartyEffectBlock();
-                    InvalidateMainGameEffectHud();
-                    RequestRedraw(W8_MAIN_REDRAW_ROOF_AND_SPELL_ICONS |
-                                  W8_MAIN_REDRAW_COMBAT_EFFECTS);
+                    ResetPartyEffectBlock(slot);
                 }
                 ++slot;
             } while (slot < g_status.effect_slots + 12);
@@ -3772,7 +3764,7 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
         ApplyDamageToTargets(effect);
         break;
     default:
-        ShowNoticef(7, L"%s - spell effect not implemented",
+        ShowNoticef(W8_FONT_PALETTE_BROWN, L"%s - spell effect not implemented",
                     g_spell_records[spell_id].display_name);
         break;
     }

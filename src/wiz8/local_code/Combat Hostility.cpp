@@ -434,19 +434,7 @@ void SetMonsterGroupHostility(W8MonsterGroup* group, unsigned int hostility, boo
             hostility, false);
     }
     if (recurse) {
-        W8MonsterRecord* record = MonsterGroupGetRecord(group);
-        if (record->faction_id != 0) {
-            for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterGroupList); ++index) {
-                W8MonsterGroup* other = GetMonsterGroupByListIndex(index);
-                W8MonsterRecord* other_record = MonsterGroupGetRecord(other);
-                if (other != group &&
-                    ((other_record->flags & W8_MONSTER_FLAG_NPC) == 0 || !other->forced_neutral) &&
-                    record->faction_id == other_record->faction_id &&
-                    MonsterGroupCanSeeGroup(other, group)) {
-                    SetMonsterGroupHostility(other, group->ubDisposition, false);
-                }
-            }
-        }
+        AlertSameFactionGroups(group);
     }
     RequestRedrawParty();
 }

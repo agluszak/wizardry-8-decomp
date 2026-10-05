@@ -898,7 +898,8 @@ void DrawCampHeader(void)
         SetFont(g_wiz_text_bold_font);
         SetObjectShade(g_wiz_text_bold_font_object, 4);
         if (state->hover_region == 0xf2) {
-            SetFontObjectPalette16BPP(g_wiz_text_bold_font, g_font_state_palettes[1]);
+            SetFontObjectPalette16BPP(g_wiz_text_bold_font,
+                                      g_font_state_palettes[W8_FONT_PALETTE_GREEN]);
         }
         wcscpy(state->text_buffer, character->name);
         gprintfDirty((0xba - StringPixLength(state->text_buffer, g_wiz_text_bold_font)) / 2 + 0x74,
@@ -913,7 +914,8 @@ void DrawCampHeader(void)
                          0x74,
                      0x6f, Wiz8ToSgpWideText(g_format_s), state->text_buffer);
         if (state->hover_region == 0xf3) {
-            SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_font_state_palettes[1]);
+            SetFontObjectPalette16BPP(g_wiz_text_font_secondary,
+                                      g_font_state_palettes[W8_FONT_PALETTE_GREEN]);
         }
         wcscpy(state->text_buffer,
                gppStringList[g_profession_name_message_ids[character->iProfession]]);

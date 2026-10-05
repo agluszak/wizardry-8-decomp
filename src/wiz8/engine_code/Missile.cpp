@@ -1335,7 +1335,7 @@ void W8Missile::AnnounceCollisionTarget()
     target_color = GetTargetNoticeColor(&m_Source, &combat_slot);
     wcscat(text, L" ");
     wcscat(text, gppStringList[0x1c0]);
-    ShowNotice(source_color, text, -1, -1, false);
+    ShowNotice(source_color, text);
     if (target_color != source_color) {
         HighlightTextBoxRange(target_color, target_start, target_stop, -1);
     }

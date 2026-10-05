@@ -5658,7 +5658,8 @@ void W8PathingService::AddWaypointLink(unsigned short source, unsigned short des
     W8PathEdge* edge;
 
     if (source == 0 || destination == 0 || source == destination) {
-        ShowNoticef(0xf, L"Cannot Link: Tried to link WayPt %d to WayPt %d. ", source, destination);
+        ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, L"Cannot Link: Tried to link WayPt %d to WayPt %d. ",
+                    source, destination);
         return;
     }
 
@@ -5666,7 +5667,7 @@ void W8PathingService::AddWaypointLink(unsigned short source, unsigned short des
     destination_surface = &m_pSurfaces[destination];
     if ((IsZeroVector(&source_surface->position) != 0) ||
         (IsZeroVector(&destination_surface->position) != 0)) {
-        ShowNoticef(0xf, L"Cannot Link: WayPt %d is at (0, 0, 0). ", source);
+        ShowNoticef(W8_FONT_PALETTE_TEXT_BOX, L"Cannot Link: WayPt %d is at (0, 0, 0). ", source);
         return;
     }
 
@@ -5937,7 +5938,7 @@ unsigned int W8PathingService::EditWaypointLinkFlags(const char* title, unsigned
     PublishLightDirection(&colour_saved);
     SetFont(g_smfnt_font);
     SetRGBFontShadow(0, 0, 0);
-    SetFontObjectPalette16BPP(g_smfnt_font, g_font_state_palettes[5]);
+    SetFontObjectPalette16BPP(g_smfnt_font, g_font_state_palettes[W8_FONT_PALETTE_YELLOW]);
     if (direction == 0 || (path_flags1 & 2) != 0) {
         direction = 3;
     }

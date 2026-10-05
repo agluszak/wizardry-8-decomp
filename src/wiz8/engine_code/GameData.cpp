@@ -2284,18 +2284,18 @@ unsigned char ConsumeLevelElapsedTime(float* real_elapsed, float* frame_elapsed)
     return elapsed;
 }
 
-/* Bit four again, but with a global override: with the bit down, the override
-   being set is what withholds the answer. */
+/* Options and save/load may interrupt motion while grounded or before
+   the falling-state override has latched. Without a loaded level, it is refused. */
 // FUNCTION: WIZ8 0x0041f090
-int IsLevelDataFlag4EffectivelySet(void)
+bool CanInterruptLevelMovement(void)
 {
     if (g_level_data == 0) {
-        return 0;
+        return false;
     }
     if ((g_level_data->flags & W8_LEVEL_FLAG_WALKABLE_CONTACT) == 0 && g_level_override) {
-        return 0;
+        return false;
     }
-    return 1;
+    return true;
 }
 
 /* Whether the level has a live vector at 0x88: bit zero has to be up and at

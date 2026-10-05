@@ -1232,7 +1232,7 @@ bool CombatAttackCase(RuntimeCase& test)
 static void EndSpellFixtureCombatOnGameThread(void*)
 {
     if (g_combat_state != 0 && gXStatus.fCombatMode) {
-        EndCombat(0);
+        EndCombat(false);
     }
     gfProgramIsRunning = 0;
 }

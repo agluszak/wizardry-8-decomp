@@ -674,7 +674,7 @@ unsigned char LoadLevel(int requested_level, int entrance, bool restoring_game)
 unsigned char UnloadLevel(const char* save_directory)
 {
     if (gXStatus.fCombatMode) {
-        EndCombat(1);
+        EndCombat(true);
     }
 
     if (g_status.current_level < W8_LEVEL_COUNT) {

@@ -1,3 +1,4 @@
+#include "wiz8/fonts.h"
 #include "wiz8/layouts/character.h"
 #include "wiz8/integer_constants.h"
 #include "wiz8/character_event_queue.h"
@@ -78,10 +79,10 @@ static void BeginPartyCamping()
     }
     if (!AnyCharacterEngaged()) {
         gXStatus.surprise_unengaged = true;
-        ShowNotice(0xc, gppStringList[0x794], -1, 0xffffffff, false);
+        ShowNotice(W8_FONT_PALETTE_BEIGE, gppStringList[0x794]);
     } else {
         gXStatus.surprise_unengaged = false;
-        ShowNoticef(0xc, gppStringList[0x790], 8);
+        ShowNoticef(W8_FONT_PALETTE_BEIGE, gppStringList[0x790], 8);
     }
     SetNpcQuoteBubbleVisible(false, 0, 0, -1, 0xffffffff);
     BeginSurprise();
@@ -209,7 +210,7 @@ void RequestCamp(void)
         return;
     }
     if (gXStatus.fCombatMode) {
-        ShowNotice(0xc, gppStringList[0x774], -1, 0xffffffff, false);
+        ShowNotice(W8_FONT_PALETTE_BEIGE, gppStringList[0x774]);
         return;
     }
     if (!HasLevelDataVector() && HasLevelWalkableContact()) {
@@ -222,7 +223,7 @@ void RequestCamp(void)
         BeginPartyCamping();
         return;
     }
-    ShowNotice(0xc, gppStringList[0x796], -1, 0xffffffff, false);
+    ShowNotice(W8_FONT_PALETTE_BEIGE, gppStringList[0x796]);
 }
 
 /* Complete the pending character events, reset the occupied slots' portrait
@@ -305,7 +306,7 @@ void UpdateSurpriseMode(void)
 void AcknowledgeSurprise(void)
 {
     if (gXStatus.surprise_unengaged && !gXStatus.fCombatMode) {
-        ShowNotice(0xc, gppStringList[0x794], -1, 0xffffffff, false);
+        ShowNotice(W8_FONT_PALETTE_BEIGE, gppStringList[0x794]);
         return;
     }
     ResolveSurpriseHold();
@@ -351,7 +352,7 @@ void EndSurprise(void)
         gXStatus.surprise_unengaged = false;
         text = AnyCharacterEngaged() ? gppStringList[0x795] : gppStringList[0x792];
     }
-    ShowNotice(0xc, text, -1, 0xffffffff, false);
+    ShowNotice(W8_FONT_PALETTE_BEIGE, text);
 
     if (g_status.condition13_clock != 0 &&
         0x15180 <
@@ -494,7 +495,8 @@ static bool AgePartyEffectSlot(W8EffectSlot* slot, unsigned int minutes)
         slot->duration -= minutes;
         return false;
     }
-    ShowNoticef(0xc, gppStringList[0x1b4], g_spell_records[slot->effect_id].display_name);
+    ShowNoticef(W8_FONT_PALETTE_BEIGE, gppStringList[0x1b4],
+                g_spell_records[slot->effect_id].display_name);
     if (GetViewDistance() != g_encounter_culling_rate) {
         SoundPlay("Data\\Sound\\Misc\\Spell Expiry.wav", 0);
     }
@@ -1326,7 +1328,7 @@ void UpdateCampFatigue(int ticks)
             }
             if (!g_status.party_fatigued) {
                 g_status.party_fatigued = true;
-                ShowNotice(8, gppStringList[0x1da], -1, 0xffffffff, false);
+                ShowNotice(W8_FONT_PALETTE_WHITE, gppStringList[0x1da]);
             }
         }
     }
