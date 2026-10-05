@@ -40,7 +40,7 @@ struct srConfig::Index {
         struct Record {
             int next;
             Entry* key;
-            NameEntry* value_08;
+            NameEntry* name_entry;
         };
 
         EntryMap() : heads(0), records(0), free(-1), count(0)
@@ -99,7 +99,7 @@ struct srConfig::Index {
                     for (int old = this->heads[bucket]; old != -1; old = this->records[old].next) {
                         records[used].key = this->records[old].key;
                         int next_bucket = srHashValue(records[used].key) & (count - 1);
-                        records[used].value_08 = this->records[old].value_08;
+                        records[used].name_entry = this->records[old].name_entry;
                         records[used].next = heads[next_bucket];
                         heads[next_bucket] = used++;
                     }
@@ -507,7 +507,7 @@ void srConfig::Index::EntryMap::insert(Entry*& key, NameEntry*& value)
 {
     int record = allocRecord();
     records[record].key = key;
-    records[record].value_08 = value;
+    records[record].name_entry = value;
     unsigned long bucket = srHashValue(key) & (count - 1);
     records[record].next = heads[bucket];
     heads[bucket] = record;

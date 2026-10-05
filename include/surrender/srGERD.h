@@ -38,13 +38,13 @@ public:
            viewport-space coordinates, z is the fixed 1.0 far value. */
         srVector3T<float> position;
         srModelInstance* selected_model;
-        unsigned long value_10;
+        unsigned long triangle_index;
     };
 
     struct ClipPlanes {
         srVector4T<float> planes[32];
         unsigned long mask;
-        unsigned long value_204;
+        unsigned long mode1_mask;
     };
 
     /* pushEnvironment/popEnvironment record: {minimum, maximum, scale,
@@ -335,6 +335,7 @@ public:
     enum e_enable {
         ENABLE_POSITIONAL_0 = 0,
         ENABLE_SORTED_RENDERING = 1,
+        ENABLE_REVERSE_NORMALS = 3,
         ENABLE_AUTO_FLIP = 4,
         ENABLE_DEBUG_DD = 5,
         ENABLE_CLEAR_ON_OPEN = 6
@@ -760,7 +761,7 @@ public:
     {
         if (state.cull_mode != mode) {
             state.cull_mode = mode;
-            dirty |= 0x2000;
+            dirty |= DIRTY_CULLING;
         }
     }
 
@@ -772,7 +773,7 @@ public:
     {
         if (this->shader.value != shader.value) {
             this->shader = shader;
-            dirty |= 0x1000;
+            dirty |= DIRTY_SHADER;
         }
     }
 
@@ -781,7 +782,7 @@ public:
     void setVertexArrayMask(srFlags<srRendererDefs::e_vertexArray> mask)
     {
         vertex_arrays.mask = mask;
-        vertex_arrays_dirty |= 1;
+        vertex_arrays_dirty |= DIRTY_VERTEX_ARRAY_INFO;
     }
 
     // FUNCTION: SURRENDER 0x1001BEE0 SYMBOL
@@ -811,7 +812,7 @@ public:
         vertex_arrays.types[index] = type;
         vertex_arrays.strides[index] = stride;
         vertex_arrays.arrays[index] = values;
-        vertex_arrays_dirty |= 1;
+        vertex_arrays_dirty |= DIRTY_VERTEX_ARRAY_INFO;
     }
 
     // FUNCTION: SURRENDER 0x1001BE90 SYMBOL
@@ -824,7 +825,7 @@ public:
         vertex_arrays.types[0] = type;
         vertex_arrays.strides[0] = stride;
         vertex_arrays.arrays[0] = values;
-        vertex_arrays_dirty |= 1;
+        vertex_arrays_dirty |= DIRTY_VERTEX_ARRAY_INFO;
     }
 
 private:
@@ -1062,7 +1063,7 @@ private:
         srDD::DriverInfo driver_info;
         srPixelConvert::PixelFormat* texture_formats;
         long texture_format_count;
-        unsigned long* display_modes;
+        srDD::WindowInfo* display_modes;
         long display_mode_count;
         /* setHint/getHint index this by e_hint. */
         e_hintMode hints[1];
@@ -1202,7 +1203,41 @@ private:
     srCriticalSection* state_section;
     unsigned long owner_thread;
     srFlags<e_enable> enable_flags;
+    enum {
+        DIRTY_FRAME_ENABLE = 0x1UL,
+        DIRTY_GAMMA = 0x2UL,
+        DIRTY_SWAP_INTERVAL = 0x4UL,
+        DIRTY_ANTIALIAS = 0x8UL,
+        DIRTY_SCISSOR = 0x10UL,
+        DIRTY_MATRIX_SHIFT = 5,
+        DIRTY_MODELVIEW = 0x20UL,
+        DIRTY_PROJECTION = 0x40UL,
+        DIRTY_VIEWPORT = 0x80UL,
+        DIRTY_DEPTH_RANGE = 0x100UL,
+        DIRTY_FOG_COLOR = 0x200UL,
+        DIRTY_TEXTURE_SHIFT = 10,
+        DIRTY_TEXTURE0 = 0x400UL,
+        DIRTY_TEXTURE1 = 0x800UL,
+        DIRTY_SHADER = 0x1000UL,
+        DIRTY_CULLING = 0x2000UL,
+        DIRTY_POLYGON_MODE = 0x4000UL,
+        DIRTY_POLYGON_OFFSET = 0x8000UL,
+        DIRTY_CLIP_PLANES = 0x10000UL,
+        DIRTY_FRAME_STATE =
+            DIRTY_FRAME_ENABLE | DIRTY_GAMMA | DIRTY_SWAP_INTERVAL | DIRTY_ANTIALIAS,
+        DIRTY_VIEW_STATE =
+            DIRTY_SCISSOR | DIRTY_MODELVIEW | DIRTY_PROJECTION | DIRTY_VIEWPORT | DIRTY_DEPTH_RANGE,
+        DIRTY_DRAW_STATE = DIRTY_FOG_COLOR | DIRTY_TEXTURE0 | DIRTY_TEXTURE1 | DIRTY_SHADER |
+                           DIRTY_CULLING | DIRTY_POLYGON_MODE | DIRTY_POLYGON_OFFSET
+    };
     unsigned long dirty;
+    enum {
+        STATE_CONTEXT_CREATED = 0x01u,
+        STATE_WINDOW_OPEN = 0x02u,
+        STATE_FRAME_STARTED = 0x04u,
+        STATE_FRAME_FLIPPED = 0x08u,
+        STATE_CLOSING_WINDOW = 0x10u
+    };
     unsigned long state_flags;
     e_error last_error;
     /* getPrev reads this list link; first is the global head. */
@@ -1286,6 +1321,7 @@ private:
     EnvironmentState environment_state;
     VertexProcessors vertex_processors;
     unsigned long exclusion_mask;
+    enum { DIRTY_VERTEX_ARRAY_INFO = 0x01u };
     unsigned long vertex_arrays_dirty;
     srRendererDefs::VertexArrayInfo vertex_arrays;
     /* performPickTest's w-normalized {x,y,z,sign(w)} scratch per vertex;

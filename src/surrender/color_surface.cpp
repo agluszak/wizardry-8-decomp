@@ -119,7 +119,7 @@ int srColorSurfaceIFace::changePixelFormat(const srPixelConvert::PixelFormat& fo
 long srColorSurfaceIFace::getClampedX(long x) const
 {
     long width = this->width;
-    if ((clamp_modes & 1) != 0) {
+    if ((clamp_modes & CLAMP_HORIZONTAL) != 0) {
         if (x < 0) {
             return 0;
         }
@@ -141,7 +141,7 @@ long srColorSurfaceIFace::getClampedX(long x) const
 long srColorSurfaceIFace::getClampedY(long y) const
 {
     long height = this->height;
-    if ((clamp_modes & 2) != 0) {
+    if ((clamp_modes & CLAMP_VERTICAL) != 0) {
         if (height <= y) {
             return height - 1;
         }
@@ -214,7 +214,7 @@ long srColorSurfaceIFace::getGreenBits() const
 // FUNCTION: SURRENDER 0x100598E0
 int srColorSurfaceIFace::getHClampMode() const
 {
-    return clamp_modes & 1;
+    return clamp_modes & CLAMP_HORIZONTAL;
 }
 
 // FUNCTION: SURRENDER 0x100599D0
@@ -245,20 +245,20 @@ int srColorSurfaceIFace::isPaletted() const
 void srColorSurfaceIFace::setHClampMode(int enabled)
 {
     if (enabled != 0) {
-        clamp_modes = clamp_modes | 1;
+        clamp_modes = clamp_modes | CLAMP_HORIZONTAL;
         return;
     }
-    clamp_modes = clamp_modes & ~1;
+    clamp_modes = clamp_modes & ~CLAMP_HORIZONTAL;
 }
 
 // FUNCTION: SURRENDER 0x1005A020
 void srColorSurfaceIFace::setVClampMode(int enabled)
 {
     if (enabled != 0) {
-        clamp_modes = clamp_modes | 2;
+        clamp_modes = clamp_modes | CLAMP_VERTICAL;
         return;
     }
-    clamp_modes = clamp_modes & ~2;
+    clamp_modes = clamp_modes & ~CLAMP_VERTICAL;
 }
 
 // FUNCTION: SURRENDER 0x1005A0D0
@@ -288,16 +288,16 @@ void srColorSurfaceIFace::setSurfaceDesc(const SurfaceDesc& description)
 void srColorSurfaceIFace::copySurfaceParameters(const srColorSurfaceIFace& source)
 {
     filter = source.filter;
-    if ((source.clamp_modes & 1) != 0) {
-        clamp_modes = clamp_modes | 1;
+    if ((source.clamp_modes & CLAMP_HORIZONTAL) != 0) {
+        clamp_modes = clamp_modes | CLAMP_HORIZONTAL;
     } else {
-        clamp_modes = clamp_modes & ~1;
+        clamp_modes = clamp_modes & ~CLAMP_HORIZONTAL;
     }
-    if ((source.clamp_modes & 2) != 0) {
-        clamp_modes = clamp_modes | 2;
+    if ((source.clamp_modes & CLAMP_VERTICAL) != 0) {
+        clamp_modes = clamp_modes | CLAMP_VERTICAL;
         return;
     }
-    clamp_modes = clamp_modes & ~2;
+    clamp_modes = clamp_modes & ~CLAMP_VERTICAL;
 }
 
 // FUNCTION: SURRENDER 0x10057810
@@ -1072,7 +1072,7 @@ void srColorSurfaceIFace::dump(std::ostream& stream)
                << "not defined" << '\n';
     }
     stream.width(0x20);
-    stream << "  Horizontal clamp mode: " << (clamp_modes & 1) << '\n';
+    stream << "  Horizontal clamp mode: " << (clamp_modes & CLAMP_HORIZONTAL) << '\n';
     stream.width(0x20);
     stream << "  Vertical clamp mode: " << (clamp_modes >> 1 & 1) << '\n';
     stream.width(0x20);

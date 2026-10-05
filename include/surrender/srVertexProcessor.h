@@ -37,7 +37,7 @@ class srVertexProcessor {
 public:
     struct MaterialInfo {
         // FUNCTION: WIZ8 0x00424A80
-        inline MaterialInfo() : flags(0) {}
+        inline MaterialInfo() : disabled_channels(0) {}
 
         srVector4T<float> diffuse;  /* 0x00 */
         srVector4T<float> ambient;  /* 0x10 */
@@ -46,8 +46,8 @@ public:
         float shininess;            /* 0x34 */
         float value_38;             /* 0x38 */
         srVector4T<float> emissive; /* 0x3c */
-        float value;             /* 0x4c */
-        unsigned long flags;        /* 0x50 */
+        float fog_scale;            /* 0x4c */
+        unsigned long disabled_channels; /* 0x50 */
     };
 
     /* Bit indices for enableChannel/getChannelMask. setupDiffuse enables 1,

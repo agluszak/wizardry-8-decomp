@@ -17,11 +17,11 @@ void srEnvironmentMapper::process(srVertexPipe& pipe)
 {
     unsigned long count = pipe.vertex_count;
     srVertexPipe::Scratch* scratch = pipe.scratch;
-    if ((scratch->flags & 1) == 0) {
+    if ((scratch->flags & srVertexPipe::Scratch::READY_EYE_DIRECTION) == 0) {
         pipe.setupEyeSpaceDirAndDist();
     }
     const srVector3T<float>* directions = scratch->dir + pipe.sub_batch_offset;
-    if ((scratch->flags & 8) == 0) {
+    if ((scratch->flags & srVertexPipe::Scratch::READY_EYE_NORMALS) == 0) {
         pipe.setupEyeSpaceNormal();
     }
     const srVector3T<float>* normals = scratch->normals + pipe.sub_batch_offset;

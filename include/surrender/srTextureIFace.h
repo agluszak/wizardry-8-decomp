@@ -53,6 +53,19 @@ public:
     /* getTextureParms copies eight bytes: packed filter/wrap/mipmap state
        from srTexture+0x18 and mipmap bias from +0x1c. */
     struct Parameters {
+        enum {
+            CORRECTION_MASK = 0x0003u,
+            MAG_FILTER_SHIFT = 4,
+            MAG_FILTER_MASK = 0x0070u,
+            MIN_FILTER_SHIFT = 7,
+            MIN_FILTER_MASK = 0x0380u,
+            MIPMAP_SHIFT = 10,
+            MIPMAP_MASK = 0x0c00u,
+            WRAP_S_SHIFT = 12,
+            WRAP_S_MASK = 0x1000u,
+            WRAP_T_SHIFT = 13,
+            WRAP_T_MASK = 0x2000u
+        };
         unsigned long packed_state;
         float mipmap_bias;
     };
@@ -76,7 +89,9 @@ public:
         HINT_NO_ALPHA = 1,
         HINT_ONE_BIT_ALPHA = 2,
         HINT_NO_MIPMAPS = 3,
-        HINT_POSITIONAL_6 = 6
+        HINT_RESIDENT = 5,
+        HINT_POSITIONAL_6 = 6,
+        HINT_NO_REDUCTION = 7
     };
     /* Dump prints REPEAT then CLAMP for wrap S/T. Wizardry requests 1. */
     enum e_wrap { WRAP_REPEAT = 0, WRAP_CLAMP = 1 };

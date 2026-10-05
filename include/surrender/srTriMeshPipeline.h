@@ -26,7 +26,11 @@ class srTriMeshPipeline {
 public:
     enum { FRUSTUM_CLIPPING = 1u, LIMIT_VERTEX_BATCHES = 2u };
     struct Record {
-        inline Record() : flags(0), disable_mask(0), colors(0), color_format(2) {}
+        inline Record()
+            : flags(0), disable_mask(0), colors(0),
+              color_format(srVertexPipe::Record::ColorSource::FORMAT_VECTOR4)
+        {
+        }
 
         unsigned long flags;
         unsigned long disable_mask;
@@ -34,7 +38,7 @@ public:
         /* Bit 0: DIG or particle colors (+0x0c) with format at +0x10.
            Bit 1: DCG at +0x14. Bit 2: SCG at +0x18. */
         void* colors;
-        unsigned long color_format;
+        srVertexPipe::Record::ColorSource::e_format color_format;
         srVector4T<float>* dcg;
         srVector4T<float>* scg;
         /* Optional per-vertex arrays, each gated by its own flags bit:

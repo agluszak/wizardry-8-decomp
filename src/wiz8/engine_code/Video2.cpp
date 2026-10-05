@@ -1224,11 +1224,11 @@ void RenderFrame(void)
                 (g_cursor_hotspot_x - half_width - g_viewport.left + g_cursor_width) /
                 static_cast<float>(half_width);
             pick.position.y = -static_cast<float>(g_cursor_hotspot_y - half_height -
-                                                     g_viewport.top + g_cursor_height) /
-                                 half_height;
+                                                  g_viewport.top + g_cursor_height) /
+                              half_height;
             pick.position.z = 1.0f;
             pick.selected_model = 0;
-            pick.value_10 = 0;
+            pick.triangle_index = 0;
             g_gerd->setPickKey(0);
             g_gerd->pushPick(pick);
             RenderScene(g_world->static_scene, g_world->camera, &g_viewport.left, true);

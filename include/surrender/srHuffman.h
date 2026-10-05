@@ -175,7 +175,7 @@ public:
 
     private:
         struct Symbol {
-            unsigned long value_00;
+            unsigned long symbol;
             Symbol* children[2];
         };
 

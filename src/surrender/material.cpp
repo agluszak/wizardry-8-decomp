@@ -97,18 +97,18 @@ void srMaterial::verify(srRuntimeClass::e_verify mode)
 // FUNCTION: SURRENDER 0x100339B0
 void srMaterial::updateParms()
 {
-    parms.flags = 0;
+    parms.disabled_channels = 0;
     if (parms.diffuse.x == 0.0f && parms.diffuse.y == 0.0f && parms.diffuse.z == 0.0f) {
-        parms.flags = 0x400;
+        parms.disabled_channels = (1UL << srVertexProcessor::CHANNEL_LIGHT_DIFFUSE);
     }
     if (parms.ambient.x == 0.0f && parms.ambient.y == 0.0f && parms.ambient.z == 0.0f) {
-        parms.flags |= 0x200;
+        parms.disabled_channels |= (1UL << srVertexProcessor::CHANNEL_LIGHT_AMBIENT);
     }
     if (parms.specular.x == 0.0f && parms.specular.y == 0.0f && parms.specular.z == 0.0f) {
-        parms.flags |= 4;
+        parms.disabled_channels |= (1UL << srVertexProcessor::CHANNEL_SPECULAR);
     }
-    if (parms.value == 0.0f) {
-        parms.flags |= 0x10;
+    if (parms.fog_scale == 0.0f) {
+        parms.disabled_channels |= (1UL << srVertexProcessor::CHANNEL_FOG);
     }
     dirty = 0;
 }
@@ -185,16 +185,16 @@ void srMaterial::postProcess(srVertexPipe& pipe)
                     goto channels_done;
                 }
                 if (blend != 0) {
-                    if ((pipe.scratch->flags & 0x10) == 0) {
+                    if ((pipe.scratch->flags & srVertexPipe::Scratch::READY_DEPTH_CUE) == 0) {
                         pipe.setupDepthCue();
                     }
                     srCore.getStatisticsManager()->statistics.specular_operations +=
                         pipe.vertex_count;
-                    if ((pipe.lazy_setup_mask & 4) == 0) {
+                    if ((pipe.lazy_setup_mask & (1UL << srVertexProcessor::CHANNEL_SPECULAR)) ==
+                        0) {
                         pipe.setupSpecular();
                     }
-                    color = pipe.vertex_array->specular + pipe.batch_base +
-                            pipe.sub_batch_offset;
+                    color = pipe.vertex_array->specular + pipe.batch_base + pipe.sub_batch_offset;
                     if (vertex_count != 0) {
                         srVectorProcessor::vp->_mul(
                             color, color, pipe.scratch->depth_cue + pipe.sub_batch_offset,
@@ -206,16 +206,15 @@ void srMaterial::postProcess(srVertexPipe& pipe)
                 pipe.enableChannel(srVertexProcessor::CHANNEL_DIFFUSE);
             } else {
                 if (blend != 0) {
-                    if ((pipe.scratch->flags & 0x10) == 0) {
+                    if ((pipe.scratch->flags & srVertexPipe::Scratch::READY_DEPTH_CUE) == 0) {
                         pipe.setupDepthCue();
                     }
                     srCore.getStatisticsManager()->statistics.diffuse_operations +=
                         pipe.vertex_count;
-                    if ((pipe.lazy_setup_mask & 2) == 0) {
+                    if ((pipe.lazy_setup_mask & (1UL << srVertexProcessor::CHANNEL_DIFFUSE)) == 0) {
                         pipe.setupDiffuse();
                     }
-                    color = pipe.vertex_array->diffuse + pipe.batch_base +
-                            pipe.sub_batch_offset;
+                    color = pipe.vertex_array->diffuse + pipe.batch_base + pipe.sub_batch_offset;
                     if (vertex_count != 0) {
                         srVectorProcessor::vp->_mul(
                             color, color, pipe.scratch->depth_cue + pipe.sub_batch_offset,
@@ -232,34 +231,29 @@ void srMaterial::postProcess(srVertexPipe& pipe)
     }
 channels_done:
     if (blend != 0) {
-        if ((pipe.channel_mask & 2) != 0) {
-            if ((pipe.scratch->flags & 0x10) == 0) {
+        if ((pipe.channel_mask & (1UL << srVertexProcessor::CHANNEL_DIFFUSE)) != 0) {
+            if ((pipe.scratch->flags & srVertexPipe::Scratch::READY_DEPTH_CUE) == 0) {
                 pipe.setupDepthCue();
             }
-            srCore.getStatisticsManager()->statistics.diffuse_operations +=
-                pipe.vertex_count;
-            if ((pipe.lazy_setup_mask & 2) == 0) {
+            srCore.getStatisticsManager()->statistics.diffuse_operations += pipe.vertex_count;
+            if ((pipe.lazy_setup_mask & (1UL << srVertexProcessor::CHANNEL_DIFFUSE)) == 0) {
                 pipe.setupDiffuse();
             }
-            color =
-                pipe.vertex_array->diffuse + pipe.batch_base + pipe.sub_batch_offset;
+            color = pipe.vertex_array->diffuse + pipe.batch_base + pipe.sub_batch_offset;
             if (vertex_count != 0) {
                 srVectorProcessor::vp->_mul(
-                    color, color, pipe.scratch->depth_cue + pipe.sub_batch_offset,
-                    vertex_count);
+                    color, color, pipe.scratch->depth_cue + pipe.sub_batch_offset, vertex_count);
             }
         }
-        if ((pipe.channel_mask & 4) != 0) {
-            if ((pipe.scratch->flags & 0x10) == 0) {
+        if ((pipe.channel_mask & (1UL << srVertexProcessor::CHANNEL_SPECULAR)) != 0) {
+            if ((pipe.scratch->flags & srVertexPipe::Scratch::READY_DEPTH_CUE) == 0) {
                 pipe.setupDepthCue();
             }
-            srCore.getStatisticsManager()->statistics.specular_operations +=
-                pipe.vertex_count;
-            if ((pipe.lazy_setup_mask & 4) == 0) {
+            srCore.getStatisticsManager()->statistics.specular_operations += pipe.vertex_count;
+            if ((pipe.lazy_setup_mask & (1UL << srVertexProcessor::CHANNEL_SPECULAR)) == 0) {
                 pipe.setupSpecular();
             }
-            color =
-                pipe.vertex_array->specular + pipe.batch_base + pipe.sub_batch_offset;
+            color = pipe.vertex_array->specular + pipe.batch_base + pipe.sub_batch_offset;
             if (vertex_count != 0) {
                 srVectorProcessor::vp->_mul(
                     color, color, pipe.scratch->depth_cue + pipe.sub_batch_offset,
@@ -267,12 +261,13 @@ channels_done:
             }
         }
     }
-    if ((this->operations.value & (1UL << OPER_ALPHA)) != 0 && (pipe.channel_mask & 8) != 0) {
-        if ((pipe.scratch->flags & 0x10) == 0) {
+    if ((this->operations.value & (1UL << OPER_ALPHA)) != 0 &&
+        (pipe.channel_mask & (1UL << srVertexProcessor::CHANNEL_ALPHA)) != 0) {
+        if ((pipe.scratch->flags & srVertexPipe::Scratch::READY_DEPTH_CUE) == 0) {
             pipe.setupDepthCue();
         }
         srCore.getStatisticsManager()->statistics.alpha_operations += pipe.vertex_count;
-        if ((pipe.lazy_setup_mask & 8) == 0) {
+        if ((pipe.lazy_setup_mask & (1UL << srVertexProcessor::CHANNEL_ALPHA)) == 0) {
             pipe.setupAlpha();
         }
         channel = pipe.scratch->alpha + pipe.sub_batch_offset;
@@ -293,7 +288,7 @@ void srMaterial::reset()
     parms.emissive.Set(0.0f, 0.0f, 0.0f, 1.0f);
     parms.shininess = 1.0f;
     parms.translucency = 0.0f;
-    parms.flags = 0;
+    parms.disabled_channels = 0;
     parms.value_38 = 0.0f;
     dirty = 1;
     operations.value = 0;
@@ -560,7 +555,7 @@ std::ostream& operator<<(std::ostream& stream, const srShader& shader)
         break;
     }
     stream << '/';
-    switch ((shader.value >> 0x3) & 0x1) {
+    switch ((shader.value >> srShader::DEPTH_WRITE_SHIFT) & 0x1) {
     case srShader::DEPTH_WRITE_DISABLE:
         stream << "DEPTH_WRITE_DISABLE";
         break;
@@ -569,7 +564,7 @@ std::ostream& operator<<(std::ostream& stream, const srShader& shader)
         break;
     }
     stream << '/';
-    switch ((shader.value >> 0x4) & 0x1) {
+    switch ((shader.value >> srShader::COLOR_WRITE_SHIFT) & 0x1) {
     case srShader::COLOR_WRITE_DISABLE:
         stream << "COLOR_WRITE_DISABLE";
         break;
@@ -668,7 +663,7 @@ std::ostream& operator<<(std::ostream& stream, const srShader& shader)
         break;
     }
     stream << '/';
-    switch ((shader.value >> 0x17) & 0x1) {
+    switch ((shader.value >> srShader::ALPHATEST_SHIFT) & 0x1) {
     case srShader::ALPHATEST_DISABLE:
         stream << "ALPHATEST_DISABLE";
         break;
@@ -677,7 +672,7 @@ std::ostream& operator<<(std::ostream& stream, const srShader& shader)
         break;
     }
     stream << '/';
-    switch ((shader.value >> 0x18) & 0x1) {
+    switch ((shader.value >> srShader::DITHER_SHIFT) & 0x1) {
     case srShader::DITHER_DISABLE:
         stream << "DITHER_DISABLE";
         break;
@@ -737,7 +732,7 @@ std::ostream& operator<<(std::ostream& stream, const srShader& shader)
         break;
     }
     stream << '/';
-    switch ((shader.value >> 0xa) & 0x3) {
+    switch ((shader.value >> srShader::GRADIENT_SHIFT) & 0x3) {
     case srShader::GRADIENT_DISABLE:
         stream << "GRADIENT_DISABLE";
         break;
@@ -749,7 +744,7 @@ std::ostream& operator<<(std::ostream& stream, const srShader& shader)
         break;
     }
     stream << '/';
-    switch ((shader.value >> 0xc) & 0x1) {
+    switch ((shader.value >> srShader::SECONDARY_GRADIENT_SHIFT) & 0x1) {
     case srShader::SECONDARY_GRADIENT_DISABLE:
         stream << "SECONDARY_GRADIENT_DISABLE";
         break;
@@ -758,7 +753,7 @@ std::ostream& operator<<(std::ostream& stream, const srShader& shader)
         break;
     }
     stream << '/';
-    switch ((shader.value >> 0xf) & 0x1) {
+    switch ((shader.value >> srShader::TEXTURING_SHIFT) & 0x1) {
     case srShader::TEXTURING_DISABLE:
         stream << "TEXTURING_DISABLE";
         break;

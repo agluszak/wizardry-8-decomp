@@ -1982,8 +1982,8 @@ void srMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
                 material_side = side;
                 if (side == 1) {
                     renderer.setCullMode(srGERD::CULL_FRONT);
-                    if (!renderer.isEnabled(static_cast<srGERD::e_enable>(3))) {
-                        renderer.toggle(static_cast<srGERD::e_enable>(3));
+                    if (!renderer.isEnabled(srGERD::ENABLE_REVERSE_NORMALS)) {
+                        renderer.toggle(srGERD::ENABLE_REVERSE_NORMALS);
                     }
                     if ((mesh.control_flags & (1UL << srMeshModel::CONTROL_REUSE_FRONT_MATERIAL)) !=
                         0) {
@@ -1995,8 +1995,8 @@ void srMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
                     } else {
                         renderer.setCullMode(srGERD::CULL_NONE);
                     }
-                    if (renderer.isEnabled(static_cast<srGERD::e_enable>(3))) {
-                        renderer.toggle(static_cast<srGERD::e_enable>(3));
+                    if (renderer.isEnabled(srGERD::ENABLE_REVERSE_NORMALS)) {
+                        renderer.toggle(srGERD::ENABLE_REVERSE_NORMALS);
                     }
                 }
 
@@ -2008,7 +2008,8 @@ void srMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
 
                     if (mesh.dig[pass] != 0) {
                         pipeline->current_record->colors = mesh.dig[pass];
-                        pipeline->current_record->color_format = 1;
+                        pipeline->current_record->color_format =
+                            srVertexPipe::Record::ColorSource::FORMAT_VECTOR3;
                         pipeline->current_record->flags |= srVertexPipe::Record::HAS_COLORS;
                     }
                     if (mesh.dcg[pass] != 0) {

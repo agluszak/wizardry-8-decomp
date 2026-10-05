@@ -82,21 +82,34 @@ public:
        ADD=0x800). Detail color/alpha 0 sit at bits 16–22; unit 1 at 25–31. */
     enum {
         PASS_MASK = 7,
+        DEPTH_WRITE_SHIFT = 3,
         MASK_DEPTH_WRITE = 0x8,
+        COLOR_WRITE_SHIFT = 4,
         MASK_COLOR_WRITE = 0x10,
         DSTBLEND_SHIFT = 5,
         FOG_SHIFT = 8,
+        MASK_FOG = 0x300,
+        GRADIENT_SHIFT = 10,
+        MASK_GRADIENT = 0xc00,
         MASK_GRADIENT_MODULATE = 0x400,
         MASK_GRADIENT_ADD = 0x800,
+        SECONDARY_GRADIENT_SHIFT = 12,
         MASK_SECONDARY_GRADIENT = 0x1000,
         SRCBLEND_SHIFT = 13,
+        TEXTURING_SHIFT = 15,
         MASK_TEXTURING = 0x8000,
         DETAILCOLOR0_SHIFT = 16,
+        MASK_DETAILCOLOR0 = 0x000f0000,
         DETAILALPHA0_SHIFT = 20,
+        MASK_DETAILALPHA0 = 0x00700000,
+        ALPHATEST_SHIFT = 23,
         MASK_ALPHATEST = 0x800000,
+        DITHER_SHIFT = 24,
         MASK_DITHER = 0x1000000,
         DETAILCOLOR1_SHIFT = 25,
-        DETAILALPHA1_SHIFT = 29
+        MASK_DETAILCOLOR1 = 0x1e000000,
+        DETAILALPHA1_SHIFT = 29,
+        MASK_DETAILALPHA1 = 0xe0000000
     };
 
     /* Packed-field range test; srMeshModel::verify asserts it on shader
@@ -104,17 +117,19 @@ public:
        over-maximum tests — no out-of-line emission exists. */
     int isValid() const
     {
-        return !(
-            (value & 0x7) > PASS_ALWAYS || (value >> 0x3 & 0x1) > 1 || (value >> 0x4 & 0x1) > 1 ||
-            (value >> DSTBLEND_SHIFT & 0x7) > DSTBLEND_ONE_MINUS_SRC_ALPHA ||
-            (value >> FOG_SHIFT & 0x3) > FOG_WHITE || (value >> 0xa & 0x3) > GRADIENT_ADD ||
-            (value >> 0xc & 0x1) > 1 ||
-            (value >> SRCBLEND_SHIFT & 0x3) > SRCBLEND_ONE_MINUS_SRC_ALPHA ||
-            (value >> 0xf & 0x1) > 1 ||
-            (value >> DETAILCOLOR0_SHIFT & 0xf) > DETAILCOLOR_DETAILBLEND ||
-            (value >> DETAILALPHA0_SHIFT & 0x7) > DETAILALPHA_INVSCALE ||
-            (value >> 0x17 & 0x1) > 1 || (value >> 0x18 & 0x1) > 1 ||
-            (value >> DETAILCOLOR1_SHIFT & 0xf) > 0x8 || (value >> DETAILALPHA1_SHIFT & 0x7) > 0x3);
+        return !((value & PASS_MASK) > PASS_ALWAYS || (value >> DEPTH_WRITE_SHIFT & 0x1) > 1 ||
+                 (value >> COLOR_WRITE_SHIFT & 0x1) > 1 ||
+                 (value >> DSTBLEND_SHIFT & 0x7) > DSTBLEND_ONE_MINUS_SRC_ALPHA ||
+                 (value >> FOG_SHIFT & 0x3) > FOG_WHITE ||
+                 (value >> GRADIENT_SHIFT & 0x3) > GRADIENT_ADD ||
+                 (value >> SECONDARY_GRADIENT_SHIFT & 0x1) > 1 ||
+                 (value >> SRCBLEND_SHIFT & 0x3) > SRCBLEND_ONE_MINUS_SRC_ALPHA ||
+                 (value >> TEXTURING_SHIFT & 0x1) > 1 ||
+                 (value >> DETAILCOLOR0_SHIFT & 0xf) > DETAILCOLOR_DETAILBLEND ||
+                 (value >> DETAILALPHA0_SHIFT & 0x7) > DETAILALPHA_INVSCALE ||
+                 (value >> ALPHATEST_SHIFT & 0x1) > 1 || (value >> DITHER_SHIFT & 0x1) > 1 ||
+                 (value >> DETAILCOLOR1_SHIFT & 0xf) > DETAILCOLOR_DETAILBLEND ||
+                 (value >> DETAILALPHA1_SHIFT & 0x7) > DETAILALPHA_INVSCALE);
     }
 
     unsigned long value;

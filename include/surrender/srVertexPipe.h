@@ -91,7 +91,7 @@ public:
        bit0 vertex colors present, bit1 indexed specular into diffuse,
        bit2 indexed specular into specular, bit3 indexed alpha, bits4/5
        indexed ST0/ST1, bit6 per-vertex material table. channels is the
-       shader's channel-disable mask; color_source.kind selects the
+       shader's channel-disable mask; color_source.format selects the
        ARGB/vector3/vector4 copyIndexed source for color_source.colors. */
     struct Record {
         enum {
@@ -106,11 +106,12 @@ public:
         unsigned long flags;
         unsigned long channels;
         srMaterialIFace* material;
-        /* The colors/kind pair is a member object: copyDiffuseColors is a
+        /* The colors/format pair is a member object: copyDiffuseColors is a
            member call (retail loads ECX = record+0xc at the call site). */
         struct ColorSource {
+            enum e_format { FORMAT_ARGB = 0, FORMAT_VECTOR3 = 1, FORMAT_VECTOR4 = 2 };
             const void* colors;
-            unsigned long kind;
+            e_format format;
 
             void copyDiffuseColors(srVector4T<float>* destination, const unsigned long* indices,
                                    unsigned long count) const;
@@ -162,6 +163,13 @@ private:
     /* Getter/setup/process bodies in sr.dll. Scratch is operator_new(0xb04)
        with a flags dword at +0xb00. */
     struct Scratch {
+        enum {
+            READY_EYE_DIRECTION = 0x01u,
+            READY_EYE_DISTANCE = 0x02u,
+            READY_EYE_Z_DISTANCE = 0x04u,
+            READY_EYE_NORMALS = 0x08u,
+            READY_DEPTH_CUE = 0x10u
+        };
         srVector3T<float> dir[0x40];
         srVector3T<float> normals[0x40];
         float dist[0x40];
@@ -179,10 +187,10 @@ private:
     unsigned long processor_heap_capacity;         /* 0x08 */
     unsigned long channel_mask;                    /* 0x0c */
     unsigned long lazy_setup_mask;                 /* 0x10 */
-    srVertexProcessor::MaterialInfo material_info; /* 0x14 through 0x67; flags at +0x64 */
-    srMaterialIFace* material;                     /* 0x68 */
-    const Input* input;                            /* 0x6c */
-    const unsigned long* avt;                      /* 0x70 */
+    srVertexProcessor::MaterialInfo material_info; /* 0x14 through 0x67 */
+    srMaterialIFace* material; /* 0x68 */
+    const Input* input;        /* 0x6c */
+    const unsigned long* avt;  /* 0x70 */
     const Record* current_record;                  /* 0x74 */
     srVertexArray* vertex_array;                   /* 0x78 */
     srVector4T<float>* eye_space_locations;        /* 0x7c */

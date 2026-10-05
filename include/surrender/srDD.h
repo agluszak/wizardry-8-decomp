@@ -215,6 +215,7 @@ public:
         unsigned long height;
         unsigned long depth;
     };
+    static_assert(sizeof(WindowInfo) == 0x0c, "WindowInfo_must_be_0x0c");
     struct WindowInfoList {
         long count;
         WindowInfo* entries;
@@ -262,6 +263,12 @@ public:
        a constant 1.0f, swap interval, antialias mode and enable bit 0 into
        this 0x20-byte block and passes it to update(). */
     struct Update {
+        enum {
+            UPDATE_ENABLE = 0x01u,
+            UPDATE_SWAP_INTERVAL = 0x02u,
+            UPDATE_GAMMA = 0x04u,
+            UPDATE_ANTIALIAS = 0x08u
+        };
         unsigned long flags;
         srVector3T<float> gamma;
         float value_10;
