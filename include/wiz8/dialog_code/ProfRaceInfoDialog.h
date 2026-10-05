@@ -73,23 +73,23 @@ protected:
 // VTABLE: WIZ8 0x005efbfc
 class W8ProfessionInfoDialog : public W8ProfRaceInfoDialogBase {
 public:
-    W8ProfessionInfoDialog(unsigned int uiIndex);
+    W8ProfessionInfoDialog(W8Profession uiIndex);
 
 private:
     virtual unsigned char PopulateText() override;
 
-    unsigned int m_uiIndex; /* 0x170 */
+    W8Profession m_uiIndex; /* 0x170 */
 };
 
 // VTABLE: WIZ8 0x005efc38
 class W8RaceInfoDialog : public W8ProfRaceInfoDialogBase {
 public:
-    W8RaceInfoDialog(unsigned int uiIndex);
+    W8RaceInfoDialog(W8Race uiIndex);
 
 private:
     virtual unsigned char PopulateText() override;
 
-    unsigned int m_uiIndex; /* 0x170 */
+    W8Race m_uiIndex; /* 0x170 */
 };
 
 static_assert(sizeof(W8AttributeMinimums) == 0x1c, "W8AttributeMinimums_must_be_0x1c");

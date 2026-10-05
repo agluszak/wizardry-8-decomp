@@ -1105,8 +1105,8 @@ void DrawCampHands(void)
     DrawCatalogImage(-14, 0x80, 0, hand_image, 0x81, 0xb, 2, 0);
     item_id = g_review_character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].iItemNo;
     if (item_id == -1) {
-        DrawCatalogImage(-14, g_empty_hand_catalog_ids[g_review_character->iRace * 2], 0, 0, 0x85,
-                         0x22, 2, 0);
+        DrawCatalogImage(-14, g_empty_hand_catalog_ids[g_review_character->iRace * W8_RACE_DWARF],
+                         0, 0, 0x85, 0x22, 2, 0);
     } else {
         DrawCatalogImage(-14, g_item_video_objects.GetOrCreateVideoObject(item_id), 0, 2, 0x84,
                          0x22, 2, 0);
@@ -1122,8 +1122,9 @@ void DrawCampHands(void)
     if (!two_handed) {
         item_id = g_review_character->EquippedItem[W8_EQUIP_SLOT_SECONDARY_WEAPON].iItemNo;
         if (item_id == -1) {
-            DrawCatalogImage(-14, g_empty_hand_catalog_ids[g_review_character->iRace * 2 + 1], 0, 0,
-                             0x85, 0x3a, 2, 0);
+            DrawCatalogImage(
+                -14, g_empty_hand_catalog_ids[g_review_character->iRace * W8_RACE_DWARF + 1], 0, 0,
+                0x85, 0x3a, 2, 0);
         } else {
             DrawCatalogImage(-14, g_item_video_objects.GetOrCreateVideoObject(item_id), 0, 2, 0x84,
                              0x3a, 2, 0);

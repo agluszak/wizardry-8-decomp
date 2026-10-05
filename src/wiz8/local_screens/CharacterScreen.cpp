@@ -258,7 +258,7 @@ void W8CharacterScreen::ShowSpellInfo(int value)
 }
 
 // FUNCTION: WIZ8 0x005b06a0
-void W8CharacterScreen::ShowProfessionInfo(unsigned int profession)
+void W8CharacterScreen::ShowProfessionInfo(W8Profession profession)
 {
     m_dialog_response = 0;
     m_dialog = new W8ProfessionInfoDialog(profession);
@@ -267,7 +267,7 @@ void W8CharacterScreen::ShowProfessionInfo(unsigned int profession)
 }
 
 // FUNCTION: WIZ8 0x005b0730
-void W8CharacterScreen::ShowRaceInfo(unsigned int race)
+void W8CharacterScreen::ShowRaceInfo(W8Race race)
 {
     m_dialog_response = 0;
     m_dialog = new W8RaceInfoDialog(race);

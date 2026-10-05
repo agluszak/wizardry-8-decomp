@@ -41,6 +41,31 @@ enum W8Profession {
     W8_PROFESSION_NONE = -1
 };
 
+/* Race labels 644..659 in retail StringData.DAT are indexed by the table at
+   0x0061e3d0. The first eleven are selectable player races; all sixteen occur
+   in the race tables and NPC character records. NONE is an unselected race. */
+enum W8Race {
+    W8_RACE_NONE = -1,
+    W8_RACE_HUMAN = 0,
+    W8_RACE_ELF = 1,
+    W8_RACE_DWARF = 2,
+    W8_RACE_GNOME = 3,
+    W8_RACE_HOBBIT = 4,
+    W8_RACE_FAERIE = 5,
+    W8_RACE_LIZARDMAN = 6,
+    W8_RACE_DRACON = 7,
+    W8_RACE_FELPURR = 8,
+    W8_RACE_RAWULF = 9,
+    W8_RACE_MOOK = 10,
+    W8_RACE_TRYNNIE = 11,
+    W8_RACE_T_RANG = 12,
+    W8_RACE_UMPANI = 13,
+    W8_RACE_RAPAX = 14,
+    W8_RACE_ANDROID = 15,
+    W8_RACE_PLAYABLE_COUNT = 11,
+    W8_RACE_COUNT = 16
+};
+
 /* A character's sex. Zero is male and one is female, which is what the quote
    lookup, the item record's sex mask and the female-only profession all agree
    on. A character or template that has not been assigned one carries UNSET. */
@@ -260,7 +285,7 @@ struct W8NpcCharacterTemplate {
     unsigned char unknown_01a[0x44];
     W8Profession
         profession;     /* 0x064, record 0x128: index into profession_levels[W8_PROFESSION_COUNT] */
-    int race;           /* 0x068, record 0x12c */
+    W8Race race;        /* 0x068, record 0x12c */
     int table_value;    /* 0x06c, record 0x130: the value 0x004EF950 otherwise computes */
     unsigned int level; /* 0x070, record 0x134: starting profession level */
     int attributes[7];  /* 0x074, record 0x138: W8CharacterAttribute::value per attribute */

@@ -630,7 +630,7 @@ static void PrepareMainGameFixtureOnGameThread(void* opaque)
     W8Character character;
     W8CharacterCreationState creation;
     InitializeCharacterCreation(&character, &creation);
-    SetCharacterRace(&character, &creation, 0);
+    SetCharacterRace(&character, &creation, W8_RACE_HUMAN);
     SetCharacterGender(&character, &creation, W8_GENDER_MALE);
     RebuildLevelUpPoolsForProfession(&character, &creation, W8_PROFESSION_FIGHTER);
     for (int attribute = 0; attribute < 7; ++attribute) {

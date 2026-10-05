@@ -38,7 +38,8 @@ void RecalculateCharacterDerivedStats(W8Character* character)
 {
     int index;
 
-    if (character->iProfession >= 0xf || character->iRace >= 0x10 || character->gender == -1) {
+    if (character->iProfession >= 0xf || character->iRace >= 0x10 ||
+        character->gender == W8_GENDER_UNSET) {
         return;
     }
     if (character->uiExpLevel > 0x32) {

@@ -4007,7 +4007,7 @@ int ResolveCharacterAttack(int party_slot)
             BuildCharacterTargetList(party_slot, hand, fumble_list);
             int redirect_chance = GetTargetAttackAttributes(party_slot, hand, attack_mode, 1);
             int fumble_chance = GetCombatFumbleChance(fumble_list, redirect_chance);
-            if (character->iRace == 0xf) {
+            if (character->iRace == W8_RACE_ANDROID) {
                 W8NpcState* npc_state = GetNpcState(
                     g_status.buffers.XChar[CharacterPointerToPartySlot(character)].npc_index);
                 if (npc_state != NULL && npc_state->name_style == ' ' &&
