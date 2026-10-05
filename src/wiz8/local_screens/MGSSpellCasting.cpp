@@ -102,7 +102,7 @@ static void RefreshSpellPowerPip(int pip);
 static void RebuildSpellCastingList(int spell_id);
 static void SetSpellListLineColor(int index, char color);
 static void SelectSpellCastingRow(int index);
-static void SelectSpellCastingRealm(int realm);
+static void SelectSpellCastingRealm(W8SpellRealm realm);
 static void SelectSpellCastingListRow(int index);
 void TryCommitSpellCast(void);
 void ShowSpellCastingError(int spell_id);
@@ -309,7 +309,7 @@ unsigned char OpenSpellCastingView(int party_slot)
     ResetEditorStatusLine(-1);
     g_level_block->text_box_visible = 0;
     SetTextBoxRegionBounds(0xea, 0x16e, 0x18c, 0x1ba);
-    gpSCSV->iSpellRealm = -1;
+    gpSCSV->iSpellRealm = W8_SPELL_REALM_NONE;
     SelectSpellCastingPartySlot(party_slot);
     gpSCSV->selected_spell_index = -1;
     SelectSpellCastingCharacter(party_slot);
@@ -413,7 +413,7 @@ static void ClearSpellCastingChoice()
 // FUNCTION: WIZ8 0x0059F490
 void SelectSpellCastingCharacter(int party_slot)
 {
-    int realm;
+    W8SpellRealm realm;
 
     if (CharacterHasCastableSpell(&g_status.buffers.Char[party_slot]) == 0 ||
         IsPartySlotEligible(party_slot) == 0) {
@@ -436,13 +436,13 @@ void SelectSpellCastingCharacter(int party_slot)
         return;
     }
     realm = gpSCSV->iSpellRealm;
-    if (realm == -1) {
+    if (realm == W8_SPELL_REALM_NONE) {
         return;
     }
     if (gpSCSV->caster->sp_max[realm] == 0) {
         gpSCSV->realm_icons[realm]->m_normalSprite = g_spell_realm_animations[realm].initial_frame;
         gpSCSV->realm_icons[gpSCSV->iSpellRealm]->Invalidate(0);
-        gpSCSV->iSpellRealm = -1;
+        gpSCSV->iSpellRealm = W8_SPELL_REALM_NONE;
         ResetEditorStatusLine(-1);
         return;
     }
@@ -461,9 +461,10 @@ void UpdateSpellRealmPointDisplays(void)
         gpSCSV->realm_buttons[realm]->SetEnabled(has_realm);
         gpSCSV->realm_icons[realm]->SetEnabled(has_realm);
         gpSCSV->realm_buttons[realm]->m_textBuffer.SetText(
-            FormatWideString(g_format_d_slash_d,
-                             GetCharacterRealmSpellPoints(gpSCSV->caster, realm),
-                             gpSCSV->caster->sp_max[realm]),
+            FormatWideString(
+                g_format_d_slash_d,
+                GetCharacterRealmSpellPoints(gpSCSV->caster, static_cast<W8SpellRealm>(realm)),
+                gpSCSV->caster->sp_max[realm]),
             g_wiz_text_font_secondary);
     }
 }
@@ -581,7 +582,7 @@ static void RefreshSpellPowerPip(int pip)
 static void RebuildSpellCastingList(int spell_id)
 {
     int index;
-    int realm;
+    W8SpellRealm realm;
     int selected;
     unsigned char pass;
     W8SpellRuntimeRecord* spell;
@@ -742,7 +743,7 @@ static void SelectSpellCastingRow(int index)
 // FUNCTION: WIZ8 0x005A0110
 void BeginSpellCast(int spell_id, int location_id, int interact_id)
 {
-    int realm;
+    W8SpellRealm realm;
 
     if (gXStatus.fNpcDialogueMode == 0) {
         if (gXStatus.fLockInteractMode != 0) {
@@ -759,7 +760,7 @@ void BeginSpellCast(int spell_id, int location_id, int interact_id)
     if (CanCharacterCastSpell(&g_status.buffers.Char[g_status.selected_character], spell_id) == 0) {
         return;
     }
-    realm = -1;
+    realm = W8_SPELL_REALM_NONE;
     switch (g_spell_records[spell_id].realm) {
     case W8_SPELL_REALM_FIRE:
         SelectSpellCastingRealm(W8_SPELL_REALM_FIRE);
@@ -871,13 +872,13 @@ static void SelectDivineSpellRealm(void)
    first frame and the new one starts its frame timer, then the whole
    selection state resets. */
 // FUNCTION: WIZ8 0x005A0380
-static void SelectSpellCastingRealm(int realm)
+static void SelectSpellCastingRealm(W8SpellRealm realm)
 {
-    int previous;
+    W8SpellRealm previous;
 
     previous = gpSCSV->iSpellRealm;
     if (previous != realm) {
-        if (previous != -1) {
+        if (previous != W8_SPELL_REALM_NONE) {
             gpSCSV->realm_icons[previous]->m_normalSprite =
                 g_spell_realm_animations[previous].initial_frame;
             gpSCSV->realm_icons[gpSCSV->iSpellRealm]->Invalidate(0);
@@ -891,7 +892,7 @@ static void SelectSpellCastingRealm(int realm)
         RebuildSpellCastingList(0);
         ClearSpellCastingChoice();
     }
-    if (realm != -1) {
+    if (realm != W8_SPELL_REALM_NONE) {
         gpSCSV->realm_buttons[realm]->EnableSecondaryState(0);
         gpSCSV->realm_buttons[realm]->Invalidate(0);
     }
@@ -1121,7 +1122,7 @@ void ResetSpellCastingSelection(void)
 // FUNCTION: WIZ8 0x005A0BC0
 void CommitSpellCastingSelection(void)
 {
-    if (gpSCSV->iSpellRealm != -1) {
+    if (gpSCSV->iSpellRealm != W8_SPELL_REALM_NONE) {
         if (ClockIsTicking(gpSCSV->realm_anim_timer) == 0) {
             ++gpSCSV->realm_anim_frame;
             if (gpSCSV->realm_anim_frame ==
@@ -1247,7 +1248,7 @@ unsigned char SpellCastTextBoxRegionEvent(const InputAtom* event, W8Region* regi
     if (g_status.selected_character == -1) {
         return 0;
     }
-    if (gpSCSV->iSpellRealm == -1) {
+    if (gpSCSV->iSpellRealm == W8_SPELL_REALM_NONE) {
         return 0;
     }
     line = g_level_block->text_lines[g_status.text_line_cursor] +
@@ -1332,7 +1333,7 @@ static void SelectSpellCastingListRow(int index)
     color = gpSCSV->alt_colors[index];
     if (color == 0 || color == 4) {
         gpSCSV->uiSpellIndex = -1;
-        ConfigureSpellTargetFilter(-1, 0);
+        ConfigureSpellTargetFilter(W8_TARGET_TYPE_NONE, 0);
         ShowSpellCastingError(spell_id);
         QueueCharacterEvent(&g_status.buffers.Char[g_status.selected_character],
                             g_character_event_kind2, 0,

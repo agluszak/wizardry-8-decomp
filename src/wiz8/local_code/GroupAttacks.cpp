@@ -52,8 +52,15 @@ static W8Condition g_special_attack_condition_table[32][2] = {
 /* The per-special-attack realm/effect id handed to ApplyEffectAndAnnounce and the
    realm drain. */
 // GLOBAL: WIZ8 0x0061F0FC
-static int g_special_attack_realm_table[32] = {
-    0, 1, 1, 5, 1, 4, 5, 4, 0, 0, 4, 5, 4, 3, 2, 3, 2, 4, 3, 1, 1, 2, 1, 3, 0, 0, 0, 0, 0, 0, 1, 0,
+static W8SpellRealm g_special_attack_realm_table[32] = {
+    W8_SPELL_REALM_FIRE,   W8_SPELL_REALM_WATER,  W8_SPELL_REALM_WATER,  W8_SPELL_REALM_DIVINE,
+    W8_SPELL_REALM_WATER,  W8_SPELL_REALM_MENTAL, W8_SPELL_REALM_DIVINE, W8_SPELL_REALM_MENTAL,
+    W8_SPELL_REALM_FIRE,   W8_SPELL_REALM_FIRE,   W8_SPELL_REALM_MENTAL, W8_SPELL_REALM_DIVINE,
+    W8_SPELL_REALM_MENTAL, W8_SPELL_REALM_EARTH,  W8_SPELL_REALM_AIR,    W8_SPELL_REALM_EARTH,
+    W8_SPELL_REALM_AIR,    W8_SPELL_REALM_MENTAL, W8_SPELL_REALM_EARTH,  W8_SPELL_REALM_WATER,
+    W8_SPELL_REALM_WATER,  W8_SPELL_REALM_AIR,    W8_SPELL_REALM_WATER,  W8_SPELL_REALM_EARTH,
+    W8_SPELL_REALM_FIRE,   W8_SPELL_REALM_FIRE,   W8_SPELL_REALM_FIRE,   W8_SPELL_REALM_FIRE,
+    W8_SPELL_REALM_FIRE,   W8_SPELL_REALM_FIRE,   W8_SPELL_REALM_WATER,  W8_SPELL_REALM_FIRE,
 };
 
 /* Whether a special attack kind still fires while the attacker's spellcasting

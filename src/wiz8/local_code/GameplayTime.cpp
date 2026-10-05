@@ -786,11 +786,13 @@ void GameTurnsPassedChar(int party_slot, unsigned int minutes)
         signed char spell_mod = character->bonus.spell_regen_adjustment;
         if (spell_mod > 0) {
             if (character->iSPLeft[realm] < character->sp_max[realm]) {
-                RestoreCharacterRealmSpellPoints(
-                    party_slot, realm, static_cast<int>(spell_mod) * static_cast<int>(minutes));
+                RestoreCharacterRealmSpellPoints(party_slot, static_cast<W8SpellRealm>(realm),
+                                                 static_cast<int>(spell_mod) *
+                                                     static_cast<int>(minutes));
             }
         } else if (spell_mod < 0) {
-            DrainCharacterRealmSpellPoints(party_slot, realm, -static_cast<int>(spell_mod), 1);
+            DrainCharacterRealmSpellPoints(party_slot, static_cast<W8SpellRealm>(realm),
+                                           -static_cast<int>(spell_mod), 1);
         }
     }
 
@@ -861,7 +863,7 @@ void GameTurnsPassedChar(int party_slot, unsigned int minutes)
                     minutes * character->spell_regen_rates[realm * 2] * spell_scale +
                     character->spell_regen_rates[realm * 2 + 1];
                 RestoreCharacterRealmSpellPoints(
-                    party_slot, realm,
+                    party_slot, static_cast<W8SpellRealm>(realm),
                     static_cast<int>(character->spell_regen_rates[realm * 2 + 1]));
                 character->spell_regen_rates[realm * 2 + 1] =
                     character->spell_regen_rates[realm * 2 + 1] -

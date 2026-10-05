@@ -366,7 +366,8 @@ void W8CharacterSpellsPage::Redraw()
             text.SetFontStateIndex(-1);
             text.SetLayoutMode(g_W8TextBufferAlignRight | g_W8TextBufferAlignMiddle);
             text.SetText(FormatWideString(g_format_d_slash_d,
-                                          GetCharacterRealmSpellPoints(m_character, realm),
+                                          GetCharacterRealmSpellPoints(
+                                              m_character, static_cast<W8SpellRealm>(realm)),
                                           m_character->sp_max[realm]),
                          g_wiz_text_font_secondary);
             text.RenderToTarget(0, 0, -14);

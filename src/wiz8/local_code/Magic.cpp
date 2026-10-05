@@ -2651,7 +2651,7 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
     unsigned int skill_score;
     W8Skill realm_skill;
     int slot;
-    int realm;
+    W8SpellRealm realm;
     int level_index;
     int caster_level;
     int minimum_level;
@@ -2881,7 +2881,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
     unsigned int roll;
     int caster_slot;
     int index;
-    int target_type;
+    W8SpellTargetType target_type;
     int missile_index;
     W8GrowableVector<int> monster_markers;
     W8GrowableVector<int> party_markers;
@@ -2924,7 +2924,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
         forced = true;
         failure_chance = 100;
     }
-    if (g_spell_records[spell_id].realm == 0 && g_camera_sway_active) {
+    if (g_spell_records[spell_id].realm == W8_SPELL_REALM_FIRE && g_camera_sway_active) {
         failure_chance = 100;
     }
     if (quiet && g_force_spell_failure == 0) {
@@ -2934,7 +2934,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
     CombatLog("");
     if (failure_chance != 0 && (roll = Random(100)) < failure_chance) {
         backfire_chance = failure_chance;
-        if (g_spell_records[spell_id].realm == 0 && g_camera_sway_active) {
+        if (g_spell_records[spell_id].realm == W8_SPELL_REALM_FIRE && g_camera_sway_active) {
             backfire_chance = 0;
         } else if (!quiet && !forced) {
             if (backfire_chance < 6) {
@@ -2964,7 +2964,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
     }
     if (!fizzled) {
         if (source->fBackfire == 0 && source->auto_cast == 0 && source->fReflection == 0 &&
-            g_spell_records[spell_id].realm != 4 && spell_id != 0x83) {
+            g_spell_records[spell_id].realm != W8_SPELL_REALM_MENTAL && spell_id != 0x83) {
             CheckSpellBackfire(spell_id, source, target);
         }
         if (party_targets == 0) {
@@ -3118,10 +3118,10 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
         } else {
             target_type = GetSpellTargetType(spell_id, 0);
             if (spell_id == 0x31) {
-                target_type = 3;
+                target_type = W8_TARGET_TYPE_ENEMY;
             }
             switch (target_type) {
-            case 6:
+            case W8_TARGET_TYPE_RADIUS:
                 if (spell_id == 0x76) {
                     if (party_markers.GetCount() == 0) {
                         point.y = target->point.y - g_float_005ebc64;
@@ -3149,7 +3149,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                     owner->spell_visuals.Add(visual);
                 }
                 break;
-            case 5:
+            case W8_TARGET_TYPE_CONE:
                 if (TargetSourceIsCharacter(source, 0)) {
                     visual = CreateAttachedSpellEffect(g_spell_records[spell_id].resource_name,
                                                        power_level, 0, 0, 0);
@@ -3182,7 +3182,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                     }
                 }
                 break;
-            case 8:
+            case W8_TARGET_TYPE_POINT:
                 if (spell_id == 0x26) {
                     SpawnLureEffects(owner, power_level, target);
                 } else {
@@ -3198,9 +3198,9 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                     }
                 }
                 break;
-            case 0:
-            case 1:
-            case 3:
+            case W8_TARGET_TYPE_CASTER:
+            case W8_TARGET_TYPE_ALLY:
+            case W8_TARGET_TYPE_ENEMY:
                 if (spell_id != 0x4b && spell_id != 0x49) {
                     for (index = 0; index < monster_markers.GetCount(); ++index) {
                         monster = GetMonsterByLocationID(*monster_markers.GetAt(index));
@@ -3232,9 +3232,9 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                     }
                 }
                 break;
-            case 2:
-            case 4:
-            case 7:
+            case W8_TARGET_TYPE_PARTY:
+            case W8_TARGET_TYPE_ENEMY_GROUP:
+            case W8_TARGET_TYPE_ALL_ENEMIES:
                 if (spell_id == 0x5f) {
                     break;
                 }
@@ -3269,7 +3269,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                     }
                 }
                 break;
-            case 10:
+            case W8_TARGET_TYPE_LOCK_OR_TRAP:
                 visual = SpawnCameraSpellEffect(g_spell_records[spell_id].resource_name,
                                                 power_level, 0, 0);
                 if (visual != 0) {
@@ -3281,7 +3281,9 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                 SpawnCameraSpellEffect("Default", 0, 0, 0);
                 SoundPlay("Data\\Sound\\Misc\\GeneralMagic.wav", 0);
                 break;
-            case 9:
+            case W8_TARGET_TYPE_ITEM:
+            case W8_TARGET_TYPE_NONE:
+            case W8_TARGET_TYPE_COUNT:
                 break;
             }
         }

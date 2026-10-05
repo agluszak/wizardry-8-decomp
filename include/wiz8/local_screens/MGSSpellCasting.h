@@ -3,6 +3,7 @@
 #include "input.h"
 #include "timer.h"
 #include "wiz8/layouts/learned_spells.h"
+#include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/layouts/main_game_screen.h"
 
 class W8TextControl;
@@ -22,7 +23,7 @@ enum {
 struct W8SpellCastingView {
     unsigned char unknown_000[0xf8];
     W8Character* caster;             /* 0x0f8 */
-    int iSpellRealm;                 /* 0x0fc: selected realm, -1 when none */
+    W8SpellRealm iSpellRealm;        /* 0x0fc: selected realm, -1 when none */
     int uiSpellToCast;               /* 0x100 */
     int override_spell;          /* 0x104: detail/commit override spell */
     int iSpellPower;                 /* 0x108: chosen power index, -1 when unset */

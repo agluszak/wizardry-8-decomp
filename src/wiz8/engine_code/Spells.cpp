@@ -1649,6 +1649,7 @@ bool CanSpellBackfire(int spell_id)
         return spell_id == 39;
     case W8_TARGET_TYPE_POINT:
     case W8_TARGET_TYPE_ITEM:
+    case W8_TARGET_TYPE_NONE:
     case W8_TARGET_TYPE_COUNT:
         break;
     }

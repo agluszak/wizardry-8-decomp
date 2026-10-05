@@ -1,5 +1,7 @@
 #pragma once
 
+#include "wiz8/layouts/gameplay_databases.h"
+
 #include <wchar.h>
 
 #include "surrender/srMath.h"
@@ -20,7 +22,7 @@ void HealCharacter(int party_slot, int amount, char announce);
 void RestoreCharacterStamina(int party_slot, int amount, char announce);
 void DrainCharacterSpellPoints(int party_slot, unsigned int amount, char announce);
 void RestoreCharacterSpellPointsEvenly(int party_slot, int amount);
-void RestoreCharacterRealmSpellPoints(int party_slot, int realm, int amount);
+void RestoreCharacterRealmSpellPoints(int party_slot, W8SpellRealm realm, int amount);
 void FatigueCharacter(int party_slot, int amount, bool scale_by_load,
                       W8SpellEffectResult* report_to);
 /* 0x0052C500: run one queued fatigue op. The op is a combat slot: a
@@ -30,13 +32,13 @@ void FatigueCharacter(int party_slot, int amount, bool scale_by_load,
 void ApplyQueuedFatigue(W8CombatSlot* op, unsigned int amount, int arg_3);
 unsigned int CharacterActionFatigueCost(int party_slot, W8ActionKind action_kind);
 void DamageCharacter(int party_slot, unsigned int damage, char announce); /* 0x0052B7E0 */
-void DrainCharacterRealmSpellPoints(int party_slot, int realm, unsigned int amount,
+void DrainCharacterRealmSpellPoints(int party_slot, W8SpellRealm realm, unsigned int amount,
                                     bool announce);        /* 0x0052B6D0 */
 void DrainPartySpellPoints(int arg_1, int arg_2);          /* 0x0052B550 */
 int CalculateMonsterFatigueBand(int current, int maximum); /* 0x0052A780 */
 unsigned int FatigueArmorPenalty(int fatigue_band);
 int SpellCastFatigueCost(int spell_id, int result);
-void SpendCharacterSpellPoints(int party_slot, int realm, int amount); /* 0x0052B480 */
+void SpendCharacterSpellPoints(int party_slot, W8SpellRealm realm, int amount); /* 0x0052B480 */
 int MonsterActionFatigueCost(const W8MonsterInfo* monster_info);
 void FatigueMonster(W8MonsterInfo* monster_info, unsigned int amount,
                     W8SpellEffectResult* report_to);
@@ -80,7 +82,7 @@ void RecalculateCharacterHitPoints(W8Character* character);
 int __cdecl CompareSpellPointDeficits(const void* first, const void* second); /* 0x0052B8E0 */
 int SumCharacterSpellPoints(const W8Character* character);
 int SumCharacterSpellPointsLeft(const W8Character* character);
-int GetCharacterRealmSpellPoints(const W8Character* character, int realm);
+int GetCharacterRealmSpellPoints(const W8Character* character, W8SpellRealm realm);
 void RecalculateCharacterStamina(W8Character* character);
 void RecalculateRealmSpellPoints(W8Character* character);
 int RebuildRealmSpellPointCeilings(W8Character* character);

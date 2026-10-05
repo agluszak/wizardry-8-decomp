@@ -448,7 +448,7 @@ int g_condition_resist_base[W8_CONDITION_COUNT] = {0, 1,  2,  3,  4,  4,  5,  6,
    the magnitude reduction both start from it, with the target's level set
    against the effect's power level three points a level. */
 // FUNCTION: WIZ8 0x00552250
-void ReduceMagnitudeByResistance(unsigned int* magnitude, W8CombatSlot* target, int realm,
+void ReduceMagnitudeByResistance(unsigned int* magnitude, W8CombatSlot* target, W8SpellRealm realm,
                                  int power_level)
 {
     W8MonsterInfo* monster_info;
@@ -492,7 +492,7 @@ void ReduceMagnitudeByResistance(unsigned int* magnitude, W8CombatSlot* target, 
    scaled for difficulty and held between 5 and 95. A character who knows the
    resistance skill practises it on a success. */
 // FUNCTION: WIZ8 0x005520d0
-bool TargetResistsCondition(W8CombatSlot* target, int realm, unsigned int power_level,
+bool TargetResistsCondition(W8CombatSlot* target, W8SpellRealm realm, unsigned int power_level,
                             W8Condition condition_id)
 {
     W8MonsterInfo* monster_info;
@@ -553,7 +553,7 @@ bool TargetResistsCondition(W8CombatSlot* target, int realm, unsigned int power_
    raised to two. Monsters always count as hit; a character's answer comes from
    SetCharacterCondition. */
 // FUNCTION: WIZ8 0x00551eb0
-char InflictConditionOnTarget(W8CombatSlot* target, W8Condition condition_id, int realm,
+char InflictConditionOnTarget(W8CombatSlot* target, W8Condition condition_id, W8SpellRealm realm,
                               unsigned int power_level, int argument, unsigned int magnitude,
                               int source_character, int duration, char announce)
 {
@@ -636,7 +636,8 @@ void AnnounceEffectResisted(W8CombatSlot* target)
 /* Apply an effect and say so if it did not take. Only a zero result counts as
    shrugged off. */
 // FUNCTION: WIZ8 0x00552340
-void ApplyEffectAndAnnounce(unsigned int* result, W8CombatSlot* target, int realm, int power_level)
+void ApplyEffectAndAnnounce(unsigned int* result, W8CombatSlot* target, W8SpellRealm realm,
+                            int power_level)
 {
     ReduceMagnitudeByResistance(result, target, realm, power_level);
     if (*result == 0) {
@@ -1022,7 +1023,7 @@ void RecalculateCharacterResistances(W8Character* character)
 
 // FUNCTION: WIZ8 0x00551BA0
 bool ResolveAttackOnTarget(const W8TargetSource* source, W8CombatSlot* target,
-                           W8Condition condition_id, int realm, unsigned int power_level,
+                           W8Condition condition_id, W8SpellRealm realm, unsigned int power_level,
                            int argument, int magnitude, char announce_resistance,
                            char announce_condition, int duration)
 {
@@ -2734,13 +2735,15 @@ void ApplyCharmToMonsterTarget(W8SpellEffectEntry* effect)
         }
         return;
     }
-    if (TargetResistsCondition(target, 4, effect->definition.power_level, W8_CONDITION_NONE) != 0) {
+    if (TargetResistsCondition(target, W8_SPELL_REALM_MENTAL, effect->definition.power_level,
+                               W8_CONDITION_NONE) != 0) {
         AnnounceEffectResisted(target);
         return;
     }
     magnitude = effect->definition.duration_scale * 7;
     AdjustIntegerByPercent(&magnitude, effect->definition.percent);
-    ReduceMagnitudeByResistance(&magnitude, target, 4, effect->definition.power_level);
+    ReduceMagnitudeByResistance(&magnitude, target, W8_SPELL_REALM_MENTAL,
+                                effect->definition.power_level);
     if (static_cast<char>(magnitude) <= static_cast<char>(monster_info->effect)) {
         return;
     }
@@ -3150,8 +3153,9 @@ void TickCombatEffectSlots(W8EffectSlot* effect_slots, W8CombatSlot* target)
                                 ++hit_count;
                                 if (spell_id == 0x50) {
                                     for (realm = 0; realm < 6; ++realm) {
-                                        DrainCharacterRealmSpellPoints(party_slot, realm, amount,
-                                                                       1);
+                                        DrainCharacterRealmSpellPoints(
+                                            party_slot, static_cast<W8SpellRealm>(realm), amount,
+                                            1);
                                     }
                                     FatigueCharacter(party_slot, amount, 0, 0);
                                 }
