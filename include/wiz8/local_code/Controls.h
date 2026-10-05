@@ -69,4 +69,7 @@ struct Controls {
     {
         return *m_controls.GetAt(index);
     }
+
+protected:
+    void RedrawControls(bool full_redraw);
 };

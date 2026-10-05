@@ -603,6 +603,30 @@ char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
     return changed;
 }
 
+static void HandleMonsterPatrolFailure(W8MonsterInfo* monster_info)
+{
+    W8MonsterGroup* monster_group = GetMonsterGroupByListIndex(
+        GetMonsterGroupIndexByID(0x2de, MONSTER_AI_CPP, monster_info->monster_group_id, 1));
+    if (monster_group->encounter_registered != 0) {
+        if (g_dev_mode != 0 && gfCapturingVideo == 0) {
+            FormatDebugMessage(0,
+                               "Monster %d and associated monsters killed because it "
+                               "couldn't patrol",
+                               monster_info->location_id);
+        }
+        MarkMonsterGroupForRemoval(monster_info->monster_group_id);
+    } else {
+        if (g_dev_mode != 0 && gfCapturingVideo == 0) {
+            FormatDebugMessage(0, "%S %d can't path!", GetMonsterName(monster_info, 0, 0),
+                               monster_info->location_id);
+        }
+        monster_info->pathing_cooldown = 0x14;
+        if (monster_info->movement_stall_ticks < 2) {
+            monster_info->movement_stall_ticks = 2;
+        }
+    }
+}
+
 /* Carry out the real-time mode ChooseMonsterRTAIMode picked. Each case does
    the movement or aiming that mode needs; when a mode cannot run the decision
    is folded back to zero so ai_mode records what actually happened. Bit 0x80
@@ -676,26 +700,7 @@ void ApplyMonsterRTAIDecision(W8MonsterInfo* monster_info, unsigned char decisio
                                  monster->patrol_variation)) {
             break;
         }
-        monster_group = GetMonsterGroupByListIndex(
-            GetMonsterGroupIndexByID(0x2de, MONSTER_AI_CPP, monster_info->monster_group_id, 1));
-        if (monster_group->encounter_registered != 0) {
-            if (g_dev_mode != 0 && gfCapturingVideo == 0) {
-                FormatDebugMessage(0,
-                                   "Monster %d and associated monsters killed because it "
-                                   "couldn't patrol",
-                                   monster_info->location_id);
-            }
-            MarkMonsterGroupForRemoval(monster_info->monster_group_id);
-        } else {
-            if (g_dev_mode != 0 && gfCapturingVideo == 0) {
-                FormatDebugMessage(0, "%S %d can't path!", GetMonsterName(monster_info, 0, 0),
-                                   monster_info->location_id);
-            }
-            monster_info->pathing_cooldown = 0x14;
-            if (monster_info->movement_stall_ticks < 2) {
-                monster_info->movement_stall_ticks = 2;
-            }
-        }
+        HandleMonsterPatrolFailure(monster_info);
         decision = 0;
         break;
     case 7:
@@ -716,26 +721,7 @@ void ApplyMonsterRTAIDecision(W8MonsterInfo* monster_info, unsigned char decisio
                 break;
             }
         }
-        monster_group = GetMonsterGroupByListIndex(
-            GetMonsterGroupIndexByID(0x2de, MONSTER_AI_CPP, monster_info->monster_group_id, 1));
-        if (monster_group->encounter_registered != 0) {
-            if (g_dev_mode != 0 && gfCapturingVideo == 0) {
-                FormatDebugMessage(0,
-                                   "Monster %d and associated monsters killed because it "
-                                   "couldn't patrol",
-                                   monster_info->location_id);
-            }
-            MarkMonsterGroupForRemoval(monster_info->monster_group_id);
-        } else {
-            if (g_dev_mode != 0 && gfCapturingVideo == 0) {
-                FormatDebugMessage(0, "%S %d can't path!", GetMonsterName(monster_info, 0, 0),
-                                   monster_info->location_id);
-            }
-            monster_info->pathing_cooldown = 0x14;
-            if (monster_info->movement_stall_ticks < 2) {
-                monster_info->movement_stall_ticks = 2;
-            }
-        }
+        HandleMonsterPatrolFailure(monster_info);
         decision = 0;
         break;
     case 8:

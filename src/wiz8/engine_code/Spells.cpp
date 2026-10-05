@@ -1015,19 +1015,9 @@ placed:
     return visual;
 }
 
-/* Create a CONE spell visual attached to a monster — its position comes from
-   the monster's spell socket (or mapped position) and its scale from the
-   monster's animation bounds. Without a parent it anchors at the camera with
-   the camera's rotation. Falls back to the Generic resource like above. The
-   power level picks the CONE row. */
-// FUNCTION: WIZ8 0x004ad8a0
-W8SpellVisual* CreateAttachedSpellEffect(const char* mls_name, int power_level, W8Monster* parent,
-                                         int value, int flags)
+static W8SpellVisual* CreateConeSpellVisual(const char* mls_name, int power_level, int value,
+                                            int flags)
 {
-    if (mls_name == 0 || strlen(mls_name) == 0) {
-        srAssertFail("pMLS && strlen(pMLS)", "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp",
-                     0x93f, 0);
-    }
     W8GrCycleLoadContext context;
     context.world = g_world;
     context.directory = "Data\\Spells\\Bitmaps";
@@ -1046,7 +1036,7 @@ W8SpellVisual* CreateAttachedSpellEffect(const char* mls_name, int power_level, 
     if (visual != 0) {
         cycle = visual->FindSupportedCycle(W8_SPELL_VISUAL_CONE, power_level - 1);
         if (cycle != -1) {
-            goto placed;
+            goto selected;
         }
         delete visual;
     }
@@ -1061,14 +1051,33 @@ W8SpellVisual* CreateAttachedSpellEffect(const char* mls_name, int power_level, 
         visual = 0;
     }
     cycle = visual->FindSupportedCycle(W8_SPELL_VISUAL_CONE, power_level - 1);
-placed:
+selected:
     if (visual != 0) {
-        srVector3T<float> position;
-
         visual->mode = W8_SPELL_VISUAL_CONE;
         visual->host->pending_cycle = static_cast<signed char>(cycle);
         visual->effect_value = value;
         visual->flags0 = flags;
+    }
+    return visual;
+}
+
+/* Create a CONE spell visual attached to a monster — its position comes from
+   the monster's spell socket (or mapped position) and its scale from the
+   monster's animation bounds. Without a parent it anchors at the camera with
+   the camera's rotation. Falls back to the Generic resource like above. The
+   power level picks the CONE row. */
+// FUNCTION: WIZ8 0x004ad8a0
+W8SpellVisual* CreateAttachedSpellEffect(const char* mls_name, int power_level, W8Monster* parent,
+                                         int value, int flags)
+{
+    if (mls_name == 0 || strlen(mls_name) == 0) {
+        srAssertFail("pMLS && strlen(pMLS)", "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp",
+                     0x93f, 0);
+    }
+    W8SpellVisual* visual = CreateConeSpellVisual(mls_name, power_level, value, flags);
+    if (visual != 0) {
+        srVector3T<float> position;
+
         if (parent != 0) {
             srVector3T<float> minimum;
             srVector3T<float> maximum;
@@ -1112,45 +1121,8 @@ W8SpellVisual* CreateAimedSpellEffect(const char* mls_name, int power_level,
         srAssertFail("pMLS && strlen(pMLS)", "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp",
                      0x991, 0);
     }
-    W8GrCycleLoadContext context;
-    context.world = g_world;
-    context.directory = "Data\\Spells\\Bitmaps";
-    W8SpellVisual* visual = 0;
-    W8SpellVisual* generic;
-    int cycle = -1;
-
-    if (mls_name != 0) {
-        if (LoadSpellVisualResource(&context, mls_name, W8_SPELL_VISUAL_CONE, &visual, 1) != 0) {
-            visual->SetNavigationMode(4);
-            visual->active = 0;
-            visual->SetPitchRollEnabled(1, 1);
-            g_world->spell_visuals->Add(visual);
-        }
-    }
+    W8SpellVisual* visual = CreateConeSpellVisual(mls_name, power_level, value, flags);
     if (visual != 0) {
-        cycle = visual->FindSupportedCycle(W8_SPELL_VISUAL_CONE, power_level - 1);
-        if (cycle != -1) {
-            goto placed;
-        }
-        delete visual;
-    }
-    generic = 0;
-    if (LoadSpellVisualResource(&context, "Generic", W8_SPELL_VISUAL_CONE, &generic, 1) != 0) {
-        generic->SetNavigationMode(4);
-        generic->active = 0;
-        generic->SetPitchRollEnabled(1, 1);
-        g_world->spell_visuals->Add(generic);
-        visual = generic;
-    } else {
-        visual = 0;
-    }
-    cycle = visual->FindSupportedCycle(W8_SPELL_VISUAL_CONE, power_level - 1);
-placed:
-    if (visual != 0) {
-        visual->mode = W8_SPELL_VISUAL_CONE;
-        visual->host->pending_cycle = static_cast<signed char>(cycle);
-        visual->effect_value = value;
-        visual->flags0 = flags;
         visual->SetCyclePosition(position);
         visual->host->SetRotation(rotation);
         visual->fixed_transform = 1;

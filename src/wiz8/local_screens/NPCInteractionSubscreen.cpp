@@ -201,7 +201,6 @@ void W8NpcTypedDialoguePanel::SetEnabled(bool enable)
 void W8NpcTypedDialoguePanel::Redraw()
 {
     int redrawn = 0;
-    int index;
 
     if (!m_fEnabled) {
         return;
@@ -213,27 +212,11 @@ void W8NpcTypedDialoguePanel::Redraw()
         }
         DrawCatalogImage(-14, 0x1a9, 0, 0x10, 0x1df,
                          g_npc_interaction_state->where_is_query ? 0x19b : 0x18b, 2, 0);
-        if (m_fWholeAreaDirty) {
-            if (m_renderTarget != -1) {
-                InvalidateCatalogImageRect(m_renderTarget, m_renderArg0, m_renderArg1,
-                                           m_bounds.left, m_bounds.top, 2);
-            }
-        } else {
-            InvalidateRegion(m_dirtyRect.left, m_dirtyRect.top, m_dirtyRect.right,
-                             m_dirtyRect.bottom, 2);
-        }
-        m_fDirty = 0;
-        m_dirtyRect.left = -1;
         redrawn = 1;
     } else if (!m_fLayoutDirty) {
         return;
     }
-    for (index = 0; index < m_controls.count; ++index) {
-        if (ControlAt(index)->m_active) {
-            ControlAt(index)->Redraw(redrawn);
-        }
-    }
-    m_fLayoutDirty = 0;
+    RedrawControls(redrawn != 0);
 }
 /* Unlike the base, the six option buttons stay inactive while the expanded
    NPC dialogue layout (dialogue_layout == W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX) is not up. */
@@ -264,7 +247,6 @@ void W8NpcDialogueOptionsPanel::SetEnabled(bool enable)
 void W8NpcDialogueOptionsPanel::Redraw()
 {
     int redrawn = 0;
-    int index;
 
     if (!m_fEnabled) {
         return;
@@ -278,27 +260,11 @@ void W8NpcDialogueOptionsPanel::Redraw()
                                  : m_renderArg1,
                              m_bounds.left, m_bounds.top, 2, 0);
         }
-        if (m_fWholeAreaDirty) {
-            if (m_renderTarget != -1) {
-                InvalidateCatalogImageRect(m_renderTarget, m_renderArg0, m_renderArg1,
-                                           m_bounds.left, m_bounds.top, 2);
-            }
-        } else {
-            InvalidateRegion(m_dirtyRect.left, m_dirtyRect.top, m_dirtyRect.right,
-                             m_dirtyRect.bottom, 2);
-        }
-        m_fDirty = 0;
-        m_dirtyRect.left = -1;
         redrawn = 1;
     } else if (!m_fLayoutDirty) {
         return;
     }
-    for (index = 0; index < m_controls.count; ++index) {
-        if (ControlAt(index)->m_active) {
-            ControlAt(index)->Redraw(redrawn);
-        }
-    }
-    m_fLayoutDirty = 0;
+    RedrawControls(redrawn != 0);
 }
 
 /* Copy the next '/'-terminated field of a keyword line into the caller's

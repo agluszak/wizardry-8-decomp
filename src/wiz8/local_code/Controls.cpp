@@ -2159,23 +2159,9 @@ void Controls::InvalidateLayout()
     RequestRedraw(0x80000000);
 }
 
-/* Flushes pending panel drawing, then asks each enabled child to redraw. A
-   full panel request uses the target-backed path when one exists; a bounded
-   request uses the accumulated rectangle. */
-// FUNCTION: WIZ8 0x004f2f10
-void Controls::Redraw()
+void Controls::RedrawControls(bool full_redraw)
 {
-    int redrawn = 0;
-    int index;
-
-    if (!m_fEnabled) {
-        return;
-    }
-    if (m_fDirty) {
-        if (m_renderTarget != -1) {
-            DrawCatalogImage(-14, m_renderTarget, m_renderArg0, m_renderArg1, m_bounds.left,
-                             m_bounds.top, 2, 0);
-        }
+    if (full_redraw) {
         if (m_fWholeAreaDirty) {
             if (m_renderTarget != -1) {
                 InvalidateCatalogImageRect(m_renderTarget, m_renderArg0, m_renderArg1,
@@ -2187,16 +2173,36 @@ void Controls::Redraw()
         }
         m_fDirty = 0;
         m_dirtyRect.left = -1;
+    }
+    for (int index = 0; index < m_controls.count; ++index) {
+        if (ControlAt(index)->m_active) {
+            ControlAt(index)->Redraw(full_redraw);
+        }
+    }
+    m_fLayoutDirty = 0;
+}
+
+/* Flushes pending panel drawing, then asks each enabled child to redraw. A
+   full panel request uses the target-backed path when one exists; a bounded
+   request uses the accumulated rectangle. */
+// FUNCTION: WIZ8 0x004f2f10
+void Controls::Redraw()
+{
+    int redrawn = 0;
+
+    if (!m_fEnabled) {
+        return;
+    }
+    if (m_fDirty) {
+        if (m_renderTarget != -1) {
+            DrawCatalogImage(-14, m_renderTarget, m_renderArg0, m_renderArg1, m_bounds.left,
+                             m_bounds.top, 2, 0);
+        }
         redrawn = 1;
     } else if (!m_fLayoutDirty) {
         return;
     }
-    for (index = 0; index < m_controls.count; ++index) {
-        if (ControlAt(index)->m_active) {
-            ControlAt(index)->Redraw(redrawn);
-        }
-    }
-    m_fLayoutDirty = 0;
+    RedrawControls(redrawn != 0);
 }
 
 /* Replaces the panel bounds and forwards each child's existing relative

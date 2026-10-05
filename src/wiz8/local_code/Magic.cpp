@@ -1572,32 +1572,15 @@ W8Skill GetBestSpellbookSkillForSpell(W8Character* character, int spell_id, bool
         if (pricing != 0) {
             unsigned int failure;
             int shortfall;
-            int band;
             unsigned int skill_figure;
-            unsigned int needed;
 
             party_slot = CharacterPointerToPartySlot(character);
-            band = g_spell_records[spell_id].spell_point_cost / 2 +
-                   g_spell_records[spell_id].spell_level;
             skill_figure =
                 (character->skills[unlocked_skill].level +
                  character->skills[W8_SKILL_FIRE_MAGIC + g_spell_records[spell_id].realm].level *
                      4) /
                 5;
-            if (band > 16) {
-                band = 16;
-            }
-            needed = (g_combat_effect_slot_spells_and_cast_success[6 + band] * power_level) / 7;
-            if (skill_figure < needed) {
-                failure = (needed * 70 - skill_figure * 70) / needed;
-                if (static_cast<int>(failure) < 0) {
-                    failure = 0;
-                } else if (static_cast<int>(failure) > 100) {
-                    failure = 100;
-                }
-            } else {
-                failure = 0;
-            }
+            failure = GetSpellFailureChance(skill_figure, spell_id, static_cast<int>(power_level));
 
             shortfall = GetMinimumCasterLevelForSpell(spell_id) -
                         GetTotalCasterLevel(character, book, 1) - 1 + power_level;
@@ -1715,45 +1698,18 @@ static unsigned int GetCastFailureChance(W8Character* character, int spell_id,
     const W8SpellRuntimeRecord* record = &g_spell_records[spell_id];
     W8Skill skill = GetBestSpellbookSkillForSpell(character, spell_id, 1, 1, power_level);
     int party_slot = CharacterPointerToPartySlot(character);
-    unsigned int skill_figure = (character->skills[skill].level +
-                                 character->skills[W8_SKILL_FIRE_MAGIC + record->realm].level * 4) /
-                                5;
-    int band = record->spell_point_cost / 2 + record->spell_level;
-    unsigned int needed;
+    unsigned int skill_figure =
+        (character->skills[skill].level +
+         character->skills[W8_SKILL_FIRST_REALM + record->realm].level * 4) /
+        5;
     unsigned int chance;
     unsigned char book;
     int caster_level;
-    int profession;
-    int level;
     int shortfall;
 
-    if (band > 16) {
-        band = 16;
-    }
-    needed = (g_combat_effect_slot_spells_and_cast_success[6 + band] * power_level) / 7;
-    if (skill_figure < needed) {
-        chance = (needed * 70 - skill_figure * 70) / needed;
-        if (static_cast<int>(chance) < 0) {
-            chance = 0;
-        } else if (static_cast<int>(chance) > 100) {
-            chance = 100;
-        }
-    } else {
-        chance = 0;
-    }
-
-    book = (record->psionics_spell != 0 ? 8 : 0) | (record->divinity_spell != 0 ? 2 : 0) |
-           (record->wizardry_spell != 0 ? 1 : 0) | (record->alchemy_spell != 0 ? 4 : 0);
-    caster_level = GetProfessionCasterLevel(character, W8_PROFESSION_NONE);
-    for (profession = 0; profession < W8_PROFESSION_COUNT; ++profession) {
-        if (character->profession_levels[profession] != 0 && profession != character->iProfession &&
-            (g_profession_spellbooks[profession] & book) != 0) {
-            level = GetProfessionCasterLevel(character, static_cast<W8Profession>(profession));
-            if (level > 0) {
-                caster_level += level;
-            }
-        }
-    }
+    chance = GetSpellFailureChance(skill_figure, spell_id, static_cast<int>(power_level));
+    book = SpellbookMaskForSpell(spell_id);
+    caster_level = GetTotalCasterLevel(character, book, true);
     shortfall = GetMinimumCasterLevelForSpell(spell_id) - caster_level - 1 + power_level;
     if (shortfall > 0) {
         chance += record->spell_level * shortfall;

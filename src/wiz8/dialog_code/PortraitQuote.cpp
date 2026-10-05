@@ -431,6 +431,24 @@ unsigned char DrawPortraitQuoteBubble(int quote_handle, short x, short y, unsign
     return 1;
 }
 
+static short MeasurePortraitQuoteLine(wchar_t* text)
+{
+    short width = 0;
+    size_t remaining = wcslen(text);
+    if (static_cast<int>(remaining) > 0) {
+        do {
+            wchar_t ch = *text;
+            if ((static_cast<unsigned short>(ch) < 0xb2 ||
+                 static_cast<unsigned short>(ch) > 0xb5) &&
+                static_cast<unsigned short>(ch) > 10) {
+                width += StringPixLengthArg(g_font12point1, 1, text);
+            }
+            ++text;
+        } while (--remaining != 0);
+    }
+    return width;
+}
+
 // FUNCTION: WIZ8 0x005cf6c0
 int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
                               unsigned char edge_index, const wchar_t* text, unsigned int max_width,
@@ -445,9 +463,7 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
     VOBJECT_DESC object_desc;
     wchar_t line[0x800];
     const wchar_t* read;
-    wchar_t* write;
     size_t remaining;
-    size_t length;
     int position;
     short line_width;
     int index;
@@ -537,20 +553,7 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
                 line[position] = *read;
                 ++position;
             } else {
-                line_width = 0;
-                length = wcslen(line);
-                if (static_cast<int>(length) > 0) {
-                    write = line;
-                    do {
-                        wchar_t ch = *write;
-                        if ((static_cast<unsigned short>(ch) < 0xb2 ||
-                             static_cast<unsigned short>(ch) > 0xb5) &&
-                            static_cast<unsigned short>(ch) > 10) {
-                            line_width += StringPixLengthArg(g_font12point1, 1, write);
-                        }
-                        ++write;
-                    } while (--length != 0);
-                }
+                line_width = MeasurePortraitQuoteLine(line);
                 if (line_width > static_cast<int>(max_line)) {
                     max_line = line_width;
                 }
@@ -560,20 +563,7 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
             ++read;
         } while (--remaining != 0);
     }
-    line_width = 0;
-    length = wcslen(line);
-    if (static_cast<int>(length) > 0) {
-        write = line;
-        do {
-            wchar_t ch = *write;
-            if ((static_cast<unsigned short>(ch) < 0xb2 ||
-                 static_cast<unsigned short>(ch) > 0xb5) &&
-                static_cast<unsigned short>(ch) > 10) {
-                line_width += StringPixLengthArg(g_font12point1, 1, write);
-            }
-            ++write;
-        } while (--length != 0);
-    }
+    line_width = MeasurePortraitQuoteLine(line);
     if (line_width > static_cast<int>(max_line)) {
         max_line = line_width;
     }

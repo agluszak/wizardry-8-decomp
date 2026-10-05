@@ -127,68 +127,59 @@ void RefreshSubMenuPanel(bool invalidate)
     gpSubMenuPanel->Redraw();
 }
 
+static void ChooseSubMenuAction(W8ActionKind action)
+{
+    ChooseAction(g_status.selected_character, action, -1, 0, 0, 1);
+    DrawSubMenuCharacterAction();
+    DestroySubMenuControls();
+}
+
 // FUNCTION: WIZ8 0x00596430
 void SubMenuSelectAttack(void)
 {
-    ChooseAction(g_status.selected_character, W8_ACTION_ATTACK, -1, 0, 0, 1);
-    DrawSubMenuCharacterAction();
-    DestroySubMenuControls();
+    ChooseSubMenuAction(W8_ACTION_ATTACK);
 }
 
 // FUNCTION: WIZ8 0x005964D0
 void SubMenuSelectBerserk(void)
 {
-    ChooseAction(g_status.selected_character, W8_ACTION_BERSERK, -1, 0, 0, 1);
-    DrawSubMenuCharacterAction();
-    DestroySubMenuControls();
+    ChooseSubMenuAction(W8_ACTION_BERSERK);
 }
 
 // FUNCTION: WIZ8 0x00596570
 void SubMenuSelectBreathe(void)
 {
-    ChooseAction(g_status.selected_character, W8_ACTION_BREATHE, -1, 0, 0, 1);
-    DrawSubMenuCharacterAction();
-    DestroySubMenuControls();
+    ChooseSubMenuAction(W8_ACTION_BREATHE);
 }
 
 // FUNCTION: WIZ8 0x00596610
 void SubMenuSelectTurnUndead(void)
 {
-    ChooseAction(g_status.selected_character, W8_ACTION_TURN_UNDEAD, -1, 0, 0, 1);
-    DrawSubMenuCharacterAction();
-    DestroySubMenuControls();
+    ChooseSubMenuAction(W8_ACTION_TURN_UNDEAD);
 }
 
 // FUNCTION: WIZ8 0x005966B0
 void SubMenuSelectPray(void)
 {
-    ChooseAction(g_status.selected_character, W8_ACTION_PRAY, -1, 0, 0, 1);
-    DrawSubMenuCharacterAction();
-    DestroySubMenuControls();
+    ChooseSubMenuAction(W8_ACTION_PRAY);
 }
 
 // FUNCTION: WIZ8 0x00596750
 void SubMenuSelectDefend(void)
 {
-    ChooseAction(g_status.selected_character, W8_ACTION_DEFEND, -1, 0, 0, 1);
-    DrawSubMenuCharacterAction();
-    DestroySubMenuControls();
+    ChooseSubMenuAction(W8_ACTION_DEFEND);
 }
 
 // FUNCTION: WIZ8 0x00596800
 void SubMenuSelectProtect(void)
 {
-    ChooseAction(g_status.selected_character, W8_ACTION_PROTECT, -1, 0, 0, 1);
-    DrawSubMenuCharacterAction();
-    DestroySubMenuControls();
+    ChooseSubMenuAction(W8_ACTION_PROTECT);
 }
 
 // FUNCTION: WIZ8 0x005968A0
 void SubMenuSelectEquip(void)
 {
-    ChooseAction(g_status.selected_character, W8_ACTION_EQUIP, -1, 0, 0, 1);
-    DrawSubMenuCharacterAction();
-    DestroySubMenuControls();
+    ChooseSubMenuAction(W8_ACTION_EQUIP);
 }
 
 // FUNCTION: WIZ8 0x00596940
@@ -225,9 +216,7 @@ void SubMenuSelectRun(void)
     if (AnyCharacterEngaged() == 0) {
         return;
     }
-    ChooseAction(g_status.selected_character, W8_ACTION_RUN, -1, 0, 0, 1);
-    DrawSubMenuCharacterAction();
-    DestroySubMenuControls();
+    ChooseSubMenuAction(W8_ACTION_RUN);
 }
 
 // FUNCTION: WIZ8 0x00596C40
@@ -236,9 +225,7 @@ void SubMenuSelectWalk(void)
     if (AnyCharacterEngaged() == 0) {
         return;
     }
-    ChooseAction(g_status.selected_character, W8_ACTION_WALK, -1, 0, 0, 1);
-    DrawSubMenuCharacterAction();
-    DestroySubMenuControls();
+    ChooseSubMenuAction(W8_ACTION_WALK);
 }
 
 void OpenSubMenuPanel(short notification)

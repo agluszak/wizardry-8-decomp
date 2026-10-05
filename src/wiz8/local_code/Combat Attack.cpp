@@ -484,6 +484,38 @@ static unsigned char g_low_fatigue_attack_verbs[0x12] = {
     0x32, 0x34, 0x35, 0x36, 0x38, 0x3b, 0x55, 0x56, 0x57,
 };
 
+static int GetCharacterProtectionScore(W8Character* character)
+{
+    int armed = 0;
+    if (character->Hand[0].in_play != 0) {
+        armed = character->Hand[0].hit_bonus * 5 + character->Hand[0].attack_score;
+    }
+    unsigned int penalty = FatigueArmorPenalty(character->fatigue_band);
+    if (character->Hand[0].weapon_skill == W8_SKILL_MODERN_WEAPONS) {
+        penalty >>= 1;
+    }
+    return character->attributes[W8_ATTRIBUTE_SPEED].effective - penalty + armed +
+           character->bonus.hit_bonus * 5;
+}
+
+static int GetMonsterProtectionScore(W8MonsterInfo* monster)
+{
+    W8MonsterRecord* record = GetMonsterDataForInfo(monster);
+    int armed = 0;
+    if (record->attacks[0].fHasAttack != 0) {
+        armed = record->attacks[0].attack_score;
+    }
+    unsigned int penalty = FatigueArmorPenalty(monster->fatigue_band);
+    for (int index = 0; index < 0x12; ++index) {
+        if (record->attacks[0].ubWeaponNameIndex == g_low_fatigue_attack_verbs[index]) {
+            penalty >>= 1;
+            break;
+        }
+    }
+    return monster->attributes[W8_MONSTER_ATTRIBUTE_SPEED] - penalty + armed +
+           monster->modifiers.hit_bonus * 5;
+}
+
 /* Guardian interception: every party member and combat monster protecting the
    struck target rolls its defense score against the attacker's, and a success
    replaces the target with the guardian. Answers whether the target was
@@ -550,65 +582,21 @@ int ResolveGuardianInterception(W8TargetSource* source, W8CombatSlot* target)
         W8TargetSource* candidate = candidates.GetAt(i);
         if (candidate->iType == W8_TARGET_SOURCE_CHARACTER) {
             W8Character* defender = &g_status.buffers.Char[candidate->iChar];
-            int armed = 0;
-            if (defender->Hand[0].in_play != 0) {
-                armed = defender->Hand[0].hit_bonus * 5 + defender->Hand[0].attack_score;
-            }
-            unsigned int penalty = FatigueArmorPenalty(defender->fatigue_band);
-            if (defender->Hand[0].weapon_skill == W8_SKILL_MODERN_WEAPONS) {
-                penalty >>= 1;
-            }
-            guardian_score = defender->attributes[W8_ATTRIBUTE_SPEED].effective - penalty + armed +
-                             defender->bonus.hit_bonus * 5;
+            guardian_score = GetCharacterProtectionScore(defender);
         } else if (candidate->iType == W8_TARGET_SOURCE_MONSTER) {
             W8MonsterInfo* defender = MonsterGetScriptPartByLocationIndex(
                 MonsterGetIndexByLocationID(0x182b, COMBAT_ATTACK_CPP, candidate->iMonsterID, 1));
-            W8MonsterRecord* record = GetMonsterDataForInfo(defender);
-            int armed = 0;
-            if (record->attacks[0].fHasAttack != 0) {
-                armed = record->attacks[0].attack_score;
-            }
-            unsigned int penalty = FatigueArmorPenalty(defender->fatigue_band);
-            for (int j = 0; j < 0x12; ++j) {
-                if (record->attacks[0].ubWeaponNameIndex == g_low_fatigue_attack_verbs[j]) {
-                    penalty >>= 1;
-                    break;
-                }
-            }
-            guardian_score = defender->attributes[W8_MONSTER_ATTRIBUTE_SPEED] - penalty + armed +
-                             defender->modifiers.hit_bonus * 5;
+            guardian_score = GetMonsterProtectionScore(defender);
         } else {
             srAssertFail("FALSE", COMBAT_ATTACK_CPP, 0x182f, 0);
         }
         if (source->iType == W8_TARGET_SOURCE_CHARACTER) {
             W8Character* attacker = &g_status.buffers.Char[source->iChar];
-            int armed = 0;
-            if (attacker->Hand[0].in_play != 0) {
-                armed = attacker->Hand[0].hit_bonus * 5 + attacker->Hand[0].attack_score;
-            }
-            unsigned int penalty = FatigueArmorPenalty(attacker->fatigue_band);
-            if (attacker->Hand[0].weapon_skill == W8_SKILL_MODERN_WEAPONS) {
-                penalty >>= 1;
-            }
-            attacker_score = attacker->attributes[W8_ATTRIBUTE_SPEED].effective - penalty + armed +
-                             attacker->bonus.hit_bonus * 5;
+            attacker_score = GetCharacterProtectionScore(attacker);
         } else if (source->iType == W8_TARGET_SOURCE_MONSTER) {
             W8MonsterInfo* attacker = MonsterGetScriptPartByLocationIndex(
                 MonsterGetIndexByLocationID(0x1839, COMBAT_ATTACK_CPP, source->iMonsterID, 1));
-            W8MonsterRecord* record = GetMonsterDataForInfo(attacker);
-            int armed = 0;
-            if (record->attacks[0].fHasAttack != 0) {
-                armed = record->attacks[0].attack_score;
-            }
-            unsigned int penalty = FatigueArmorPenalty(attacker->fatigue_band);
-            for (int j = 0; j < 0x12; ++j) {
-                if (record->attacks[0].ubWeaponNameIndex == g_low_fatigue_attack_verbs[j]) {
-                    penalty >>= 1;
-                    break;
-                }
-            }
-            attacker_score = attacker->attributes[W8_ATTRIBUTE_VITALITY] - penalty + armed +
-                             attacker->modifiers.hit_bonus * 5;
+            attacker_score = GetMonsterProtectionScore(attacker);
         } else {
             srAssertFail("FALSE", COMBAT_ATTACK_CPP, 0x183d, 0);
         }

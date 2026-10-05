@@ -3714,27 +3714,7 @@ unsigned char AddItemToPartyOrDrop(W8ItemInstance* item, bool announce)
         return stored;
     }
 
-    bool hand_was_holding = g_status.item_in_cursor;
-    W8ItemInstance set_aside;
-    if (hand_was_holding) {
-        set_aside = g_status.item_in_hand;
-    }
-
-    gXStatus.held_item_source = -1;
-    gXStatus.held_item_origin = 0xff;
-    gXStatus.held_item_slot = 0xffff;
-    ClearHeldItemDisplay();
-    CopyItemInstance(&g_status.item_in_hand, item, 0, 1);
-    if ((g_item_records[g_status.item_in_hand.iItemNo].flags & W8_ITEM_FLAG_NO_DISCARD) ==
-        0) {
-        DropHeldItem(0);
-    } else {
-        ShowNoticeLine(gppStringList[0x4ef], 0, 1, 0);
-    }
-
-    if (hand_was_holding) {
-        g_status.item_in_hand = set_aside;
-    }
+    DropUnstoredCharacterItem(item);
     return stored;
 }
 

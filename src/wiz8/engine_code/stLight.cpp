@@ -179,6 +179,24 @@ void stLight::SetDefinitionTime(float time)
    texture at a per-update probability. Any owned path advances once the
    elapsed seconds times the path rate exceed one whole step, wrapping or
    ping-ponging at the ends. */
+void stParametricLightDefinition::GetInterpolatedColor(float blend, srVector3T<float>* out) const
+{
+    float inverse = g_float_one - blend;
+    float red = blend * color_to.x + inverse * color.x;
+    float green = blend * color_to.y + inverse * color.y;
+    float blue = blend * color_to.z + inverse * color.z;
+    if (g_float_one < red) {
+        red = 1.0f;
+    }
+    if (g_float_one < green) {
+        green = 1.0f;
+    }
+    if (g_float_one < blue) {
+        blue = 1.0f;
+    }
+    out->Set(red, green, blue);
+}
+
 // FUNCTION: WIZ8 0x0049C960
 void stLight::Update()
 {
@@ -285,20 +303,7 @@ void stLight::Update()
             if ((definition->flags & 8) == 0) {
                 m_level_time = seconds;
             } else {
-                float inverse = g_float_one - blend;
-                float red = blend * definition->color_to.x + inverse * definition->color.x;
-                float green = blend * definition->color_to.y + inverse * definition->color.y;
-                float blue = blend * definition->color_to.z + inverse * definition->color.z;
-                if (g_float_one < red) {
-                    red = 1.0f;
-                }
-                if (g_float_one < green) {
-                    green = 1.0f;
-                }
-                if (g_float_one < blue) {
-                    blue = 1.0f;
-                }
-                diffuse.Set(red, green, blue);
+                definition->GetInterpolatedColor(blend, &diffuse);
                 m_level_time = seconds;
             }
         }
@@ -312,23 +317,7 @@ void stLight::Update()
                                 definition->intensity;
                 m_level = level;
                 if ((definition->flags & 8) != 0) {
-                    float inverse = g_float_one - blend;
-                    float red =
-                        blend * definition->color_to.x + inverse * definition->color.x;
-                    float green =
-                        blend * definition->color_to.y + inverse * definition->color.y;
-                    float blue =
-                        blend * definition->color_to.z + inverse * definition->color.z;
-                    if (g_float_one < red) {
-                        red = 1.0f;
-                    }
-                    if (g_float_one < green) {
-                        green = 1.0f;
-                    }
-                    if (g_float_one < blue) {
-                        blue = 1.0f;
-                    }
-                    diffuse.Set(red, green, blue);
+                    definition->GetInterpolatedColor(blend, &diffuse);
                 }
                 m_level_time = seconds;
             }

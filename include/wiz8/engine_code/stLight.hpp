@@ -69,6 +69,8 @@ public:
         return false;
     }
 
+    void GetInterpolatedColor(float blend, srVector3T<float>* out) const;
+
     /* flags bits 0-1 select the update mode (0 oscillating intensity, 1
        flicker, 3 one-way ramp); bit 3 lerps diffuse toward the target color,
        bit 5 ping-pongs the path direction at the ends. */

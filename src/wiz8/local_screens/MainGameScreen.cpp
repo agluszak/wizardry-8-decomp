@@ -4389,6 +4389,17 @@ void DismissHighlightOverlay(void)
     g_main_game_mode = 0;
 }
 
+static void DrawHighlightFrameRow(int left, int right, int y, unsigned int tiles)
+{
+    DrawCatalogImage(-0xe, 0x70, 0, 3, left, y, 2, 0);
+    int inner = left + 6;
+    for (unsigned int tile = tiles; tile != 0; --tile) {
+        DrawCatalogImage(-0xe, 0x70, 0, 8, inner, y, 2, 0);
+        inner += 6;
+    }
+    DrawCatalogImage(-0xe, 0x70, 0, 4, right, y, 2, 0);
+}
+
 /* Build the mode-6 hover panel over a portrait: the framed plate carrying the
    character's name and `row_count` content rows, plus the lazily created 0x72
    highlight sprite pinned to highlight_row. An active mode-3 NPC dialogue,
@@ -4469,13 +4480,7 @@ void DrawHighlightOverlay(unsigned int party_slot, int row_count, unsigned int m
     DrawCatalogImage(-0xe, 0x70, 0, 2, right, top, 2, 0);
     int row_y_pos = top + 6;
     for (row = 0; row < 2; ++row) {
-        DrawCatalogImage(-0xe, 0x70, 0, 3, left, row_y_pos, 2, 0);
-        inner = left + 6;
-        for (tile = tiles; tile != 0; --tile) {
-            DrawCatalogImage(-0xe, 0x70, 0, 8, inner, row_y_pos, 2, 0);
-            inner += 6;
-        }
-        DrawCatalogImage(-0xe, 0x70, 0, 4, right, row_y_pos, 2, 0);
+        DrawHighlightFrameRow(left, right, row_y_pos, tiles);
         row_y_pos += 6;
     }
 
@@ -4505,13 +4510,7 @@ void DrawHighlightOverlay(unsigned int party_slot, int row_count, unsigned int m
     row_y_pos += 6;
     g_level_block->dialogue_row_y = row_y_pos + 6;
     for (row = row_count * 3 + 1; row != 0; --row) {
-        DrawCatalogImage(-0xe, 0x70, 0, 3, left, row_y_pos, 2, 0);
-        inner = left + 6;
-        for (tile = tiles; tile != 0; --tile) {
-            DrawCatalogImage(-0xe, 0x70, 0, 8, inner, row_y_pos, 2, 0);
-            inner += 6;
-        }
-        DrawCatalogImage(-0xe, 0x70, 0, 4, right, row_y_pos, 2, 0);
+        DrawHighlightFrameRow(left, right, row_y_pos, tiles);
         row_y_pos += 6;
     }
     DrawCatalogImage(-0xe, 0x70, 0, 5, left, row_y_pos, 2, 0);
@@ -8205,6 +8204,30 @@ void RebuildNpcTradeItemList(bool scroll_to_top)
     }
 }
 
+static void ShowNpcPlayerTradeItem(W8ItemInstance* item, bool acceptable, unsigned int font_palette)
+{
+    if (g_npc_interaction_state->trade_mode == W8_NPC_TRADE_SELL) {
+        unsigned char count =
+            g_item_records[item->iItemNo].equip_class == W8_ITEM_EQUIP_CLASS_AMMUNITION
+                ? item->stack_count
+                : 1;
+        int price = CalculateNpcTradeStackPrice(g_npc_interaction_state->dialogue_npc,
+                                                item->iItemNo, 0, count, item->identified);
+        if (acceptable) {
+            swprintf(g_level_block->text_paint_scratch, L"%d%s", price, gppStringList[0x797]);
+        } else {
+            swprintf(g_level_block->text_paint_scratch, L"---");
+        }
+        ShowNotice(font_palette, FormatItemDisplayName(item, 1), 2,
+                   GetTextBoxScrollRange() -
+                       StringPixLength(g_level_block->text_paint_scratch, GetTextBoxFont()),
+                   false);
+        AppendTextBoxLine(g_level_block->text_paint_scratch, 2);
+    } else {
+        ShowNotice(font_palette, FormatItemDisplayName(item, 1), 2, 0xffffffff, false);
+    }
+}
+
 // FUNCTION: WIZ8 0x005ADBE0
 void PopulateNpcTradeList(void)
 {
@@ -8248,32 +8271,7 @@ void PopulateNpcTradeList(void)
                 if (shown > 0x15d) {
                     break;
                 }
-                if (g_npc_interaction_state->trade_mode == W8_NPC_TRADE_SELL) {
-                    unsigned char stack_count;
-                    if (g_item_records[item->iItemNo].equip_class ==
-                        W8_ITEM_EQUIP_CLASS_AMMUNITION) {
-                        stack_count = item->stack_count;
-                    } else {
-                        stack_count = 1;
-                    }
-                    int price = CalculateNpcTradeStackPrice(g_npc_interaction_state->dialogue_npc,
-                                                            item->iItemNo, 0, stack_count,
-                                                            item->identified);
-                    if (acceptable) {
-                        swprintf(g_level_block->text_paint_scratch, L"%d%s", price,
-                                 gppStringList[0x797]);
-                    } else {
-                        swprintf(g_level_block->text_paint_scratch, L"---");
-                    }
-                    ShowNotice(font_palette, FormatItemDisplayName(item, 1), 2,
-                               GetTextBoxScrollRange() -
-                                   StringPixLength(g_level_block->text_paint_scratch,
-                                                   GetTextBoxFont()),
-                               false);
-                    AppendTextBoxLine(g_level_block->text_paint_scratch, 2);
-                } else {
-                    ShowNotice(font_palette, FormatItemDisplayName(item, 1), 2, 0xffffffff, false);
-                }
+                ShowNpcPlayerTradeItem(item, acceptable, font_palette);
             }
         }
     } else {
@@ -8298,31 +8296,7 @@ void PopulateNpcTradeList(void)
             } else {
                 font_palette = 0xf;
             }
-            if (g_npc_interaction_state->trade_mode == W8_NPC_TRADE_SELL) {
-                unsigned char stack_count;
-                if (g_item_records[item->iItemNo].equip_class == W8_ITEM_EQUIP_CLASS_AMMUNITION) {
-                    stack_count = item->stack_count;
-                } else {
-                    stack_count = 1;
-                }
-                int price =
-                    CalculateNpcTradeStackPrice(g_npc_interaction_state->dialogue_npc,
-                                                item->iItemNo, 0, stack_count, item->identified);
-                if (acceptable) {
-                    swprintf(g_level_block->text_paint_scratch, L"%d%s", price,
-                             gppStringList[0x797]);
-                } else {
-                    swprintf(g_level_block->text_paint_scratch, L"---");
-                }
-                ShowNotice(
-                    font_palette, FormatItemDisplayName(item, 1), 2,
-                    GetTextBoxScrollRange() -
-                        StringPixLength(g_level_block->text_paint_scratch, GetTextBoxFont()),
-                    false);
-                AppendTextBoxLine(g_level_block->text_paint_scratch, 2);
-            } else {
-                ShowNotice(font_palette, FormatItemDisplayName(item, 1), 2, 0xffffffff, false);
-            }
+            ShowNpcPlayerTradeItem(item, acceptable, font_palette);
         }
     }
     g_npc_interaction_state->dialogue_panels[1]->Invalidate(0);

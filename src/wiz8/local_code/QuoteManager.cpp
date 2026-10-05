@@ -533,6 +533,17 @@ void W8CharacterEventQueue::DestroyAllEvents()
     }
 }
 
+static void DeleteQueuedCharacterEvents(W8Vector<W8CharacterEvent*>& events, W8Character* character)
+{
+    for (int index = 0; index < events.count; ++index) {
+        W8CharacterEvent* entry = *events.GetAt(index);
+        if (entry->character == character) {
+            events.RemoveAtAndDelete(index);
+            --index;
+        }
+    }
+}
+
 // FUNCTION: WIZ8 0x0052D970
 void W8CharacterEventQueue::RemoveCharacterEvents(W8Character* character)
 {
@@ -547,34 +558,10 @@ void W8CharacterEventQueue::RemoveCharacterEvents(W8Character* character)
             entry->Complete();
         }
     }
-    for (index = 0; index < vector1.count; ++index) {
-        entry = *vector1.GetAt(index);
-        if (entry->character == character) {
-            vector1.RemoveAtAndDelete(index);
-            --index;
-        }
-    }
-    for (index = 0; index < pending_events.count; ++index) {
-        entry = *pending_events.GetAt(index);
-        if (entry->character == character) {
-            pending_events.RemoveAtAndDelete(index);
-            --index;
-        }
-    }
-    for (index = 0; index < vector0.count; ++index) {
-        entry = *vector0.GetAt(index);
-        if (entry->character == character) {
-            vector0.RemoveAtAndDelete(index);
-            --index;
-        }
-    }
-    for (index = 0; index < npc_deferred_events.count; ++index) {
-        entry = *npc_deferred_events.GetAt(index);
-        if (entry->character == character) {
-            npc_deferred_events.RemoveAtAndDelete(index);
-            --index;
-        }
-    }
+    DeleteQueuedCharacterEvents(vector1, character);
+    DeleteQueuedCharacterEvents(pending_events, character);
+    DeleteQueuedCharacterEvents(vector0, character);
+    DeleteQueuedCharacterEvents(npc_deferred_events, character);
 }
 
 // FUNCTION: WIZ8 0x0052DB30

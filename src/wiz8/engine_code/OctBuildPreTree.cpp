@@ -136,6 +136,23 @@ int W8OctBuildNode::CollectSurfaceArray(short mode)
     return g_poly_list_count;
 }
 
+static unsigned long CompactBuildSurfaceList()
+{
+    unsigned long unique_count = 0;
+    for (unsigned long source = 0; source < g_poly_list_count; ++source) {
+        bool found = false;
+        for (unsigned long existing = 0; existing < source && !found; ++existing) {
+            if (g_poly_list[source] == g_poly_list[existing]) {
+                found = true;
+            }
+        }
+        if (!found) {
+            g_poly_list[unique_count++] = g_poly_list[source];
+        }
+    }
+    return unique_count;
+}
+
 /* Consume the counted build nodes into the compact arrays owned by the
    runtime pre-tree.  Leaf polygon pointers are deduplicated before their
    persistent surface indices are appended; branch children are converted and
@@ -151,18 +168,7 @@ unsigned long W8OctBuildNode::ConvertToOctPreTree(unsigned short depth, OctPreTr
         g_poly_list_count = 0;
         CollectSurfaceArray(2);
         if (g_poly_list_count != 0) {
-            unsigned long unique_count = 0;
-            for (unsigned long source = 0; source < g_poly_list_count; ++source) {
-                bool found = false;
-                for (unsigned long existing = 0; existing < source && !found; ++existing) {
-                    if (g_poly_list[source] == g_poly_list[existing]) {
-                        found = true;
-                    }
-                }
-                if (!found) {
-                    g_poly_list[unique_count++] = g_poly_list[source];
-                }
-            }
+            unsigned long unique_count = CompactBuildSurfaceList();
             g_poly_list_count = unique_count;
             tree->m_polygon_index_stream[tree->polygon_cursor] = unique_count;
             tree->m_leaves[node_index].polygon_offset = tree->polygon_cursor;
@@ -178,18 +184,7 @@ unsigned long W8OctBuildNode::ConvertToOctPreTree(unsigned short depth, OctPreTr
         g_poly_list_count = 0;
         CollectSurfaceArray(3);
         if (g_poly_list_count != 0) {
-            unsigned long unique_count = 0;
-            for (unsigned long source = 0; source < g_poly_list_count; ++source) {
-                bool found = false;
-                for (unsigned long existing = 0; existing < source && !found; ++existing) {
-                    if (g_poly_list[source] == g_poly_list[existing]) {
-                        found = true;
-                    }
-                }
-                if (!found) {
-                    g_poly_list[unique_count++] = g_poly_list[source];
-                }
-            }
+            unsigned long unique_count = CompactBuildSurfaceList();
             g_poly_list_count = unique_count;
             tree->m_gd_surface_index_stream[tree->m_gd_surface_stream_len] = unique_count;
             tree->m_leaves[node_index].gd_polygon_offset = tree->m_gd_surface_stream_len;
@@ -1125,18 +1120,7 @@ void OctBuildPreTree::AssignInitialRegions(const W8OctSpatialState* arg_spatial)
         W8OctBuildNode* node = arg_spatial->m_root;
         node->CollectLinkedSurfaces(this->spatial.m_leaf_level, this->spatial.m_depth, 2);
 
-        unsigned long unique_count = 0;
-        for (unsigned long source = 0; source < g_poly_list_count; ++source) {
-            bool found = false;
-            for (unsigned long existing = 0; existing < source && !found; ++existing) {
-                if (g_poly_list[source] == g_poly_list[existing]) {
-                    found = true;
-                }
-            }
-            if (!found) {
-                g_poly_list[unique_count++] = g_poly_list[source];
-            }
-        }
+        unsigned long unique_count = CompactBuildSurfaceList();
         g_poly_list_count = unique_count;
 
         int contained_count = 0;
@@ -1465,18 +1449,7 @@ void OctBuildPreTree::AssignRegionFromSurfaces(const W8OctSpatialState* arg_spat
     g_poly_list_count = 0;
     node->CollectLinkedSurfaces(this->spatial.m_leaf_level, this->spatial.m_depth, 2);
 
-    unsigned long unique_count = 0;
-    for (unsigned long source = 0; source < g_poly_list_count; ++source) {
-        bool present = false;
-        for (unsigned long previous = 0; previous < source && !present; ++previous) {
-            if (g_poly_list[source] == g_poly_list[previous]) {
-                present = true;
-            }
-        }
-        if (!present) {
-            g_poly_list[unique_count++] = g_poly_list[source];
-        }
-    }
+    unsigned long unique_count = CompactBuildSurfaceList();
 
     unsigned short regions[20] = {0};
     unsigned short counts[20] = {0};

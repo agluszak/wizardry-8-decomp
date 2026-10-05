@@ -171,6 +171,8 @@ void CreateFormationBoardOverlay(void)
     }
 }
 
+unsigned char FormationBoardHoverRegionEvent(const InputAtom*, W8Region* region);
+
 /* Board callback: opens the formation panel on release, hit-tests the cell
    markers for tooltips, and switches board art on hover transitions. */
 // FUNCTION: WIZ8 0x005b2020
@@ -197,40 +199,7 @@ unsigned char FormationBoardRegionEvent(const InputAtom* event, W8Region* region
         return 0;
     }
 
-    int slot;
-    int hit;
-
-    hit = -1;
-    for (slot = 0; slot < 8; ++slot) {
-        W8PartySlotRow* row = &g_status.buffers.XChar[slot];
-        W8PartyFormationPosition* position = &g_status.formation.positions[slot];
-        int cell;
-
-        if (row->fOccupied == 0 || position->bQuadrant == -1) {
-            continue;
-        }
-        cell = position->bQuadrant * 3 + position->bQuadrantSlot;
-        if (IsCursorInRectangle(g_formation_marker_offsets[cell].x + 0x207,
-                                g_formation_marker_offsets[cell].y + 0x167,
-                                g_formation_marker_offsets[cell].x + 0x211,
-                                g_formation_marker_offsets[cell].y + 0x171)) {
-            hit = slot;
-            break;
-        }
-    }
-    if (hit != g_level_block->formation_highlight_party_slot) {
-        SetTooltipSubject(6, hit);
-    }
-    if ((region->flags & W8_REGION_MOUSE_ENTER) == 0) {
-        if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
-            g_level_block->formation_board_alternate = 0;
-            RefreshFormationBoard();
-        }
-    } else {
-        g_level_block->formation_board_alternate = 1;
-        RefreshFormationBoard();
-    }
-    return 0;
+    return FormationBoardHoverRegionEvent(event, region);
 }
 
 /* The board region's second handler: just the hover half - hit-tests the

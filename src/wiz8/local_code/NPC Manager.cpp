@@ -1778,6 +1778,43 @@ W8NpcState* GetNpcStateForMonsterInfo(W8MonsterInfo* monster_info, bool allow_un
     return 0;
 }
 
+static void AdjustNpcDisposition(W8NpcState* npc, char delta)
+{
+    int sum = npc->disposition + delta;
+    if (sum > 99) {
+        npc->disposition = 99;
+    } else if (sum < 0) {
+        npc->disposition = 0;
+    } else {
+        npc->disposition += delta;
+    }
+}
+
+static void DebitNpcTradePool(W8NpcState* npc, unsigned int price)
+{
+    int level = static_cast<int>(GetBestPartySkillLevel(W8_SKILL_COMMUNICATION, 0));
+    unsigned int adjusted = price + level * (static_cast<int>(price & 0xffff) / 5) / 100;
+    if (static_cast<int>(npc->trade_pool - (adjusted & 0xffff)) < 0) {
+        npc->trade_pool = 0;
+    } else {
+        npc->trade_pool = static_cast<unsigned short>(npc->trade_pool - adjusted);
+    }
+    if (npc->trade_pool != 0) {
+        return;
+    }
+    GetNpcDisposition(npc);
+    level = GetNpcDisposition(npc);
+    if (level < W8_NPC_DISPOSITION_HOSTILE) {
+        level = 2;
+    } else {
+        level = level < W8_NPC_DISPOSITION_FRIENDLY;
+    }
+    if (level != 0) {
+        npc->disposition = 0x4b;
+    }
+    npc->trade_pool = g_npc_records[npc->name_style].trade_pool;
+}
+
 /* One dialogue interaction against an NPC. The action kind selects the path:
    talking and the level-scaled charm shift disposition through the record's
    signed scale bytes, paying gold and selling an item draw the record's trade
@@ -1795,7 +1832,6 @@ void ApplyNpcInteraction(W8NpcState* npc, int kind, int value, W8ItemInstance* i
         int quotient;
         int level;
         int delta;
-        int sum;
 
         npc->talk_cooldown_active = 1;
         npc->talk_cooldown_clock = g_status.world_clock;
@@ -1807,14 +1843,7 @@ void ApplyNpcInteraction(W8NpcState* npc, int kind, int value, W8ItemInstance* i
             quotient = scale / 5;
         }
         delta = scale + level * quotient / 100;
-        sum = npc->disposition + static_cast<char>(delta);
-        if (sum > 99) {
-            npc->disposition = 99;
-        } else if (sum < 0) {
-            npc->disposition = 0;
-        } else {
-            npc->disposition += static_cast<char>(delta);
-        }
+        AdjustNpcDisposition(npc, static_cast<char>(delta));
         PracticeCharacterSkill(&g_status.buffers.Char[kind], W8_SKILL_COMMUNICATION, 8, 0);
         GetNpcDisposition(npc);
         return;
@@ -1830,7 +1859,6 @@ void ApplyNpcInteraction(W8NpcState* npc, int kind, int value, W8ItemInstance* i
         int quotient;
         int level;
         int delta;
-        int sum;
         int index;
 
         npc->trade_cooldown_active = 1;
@@ -1871,84 +1899,24 @@ void ApplyNpcInteraction(W8NpcState* npc, int kind, int value, W8ItemInstance* i
         if (delta > 0) {
             delta = static_cast<int>(average_level * delta / monster_level);
         }
-        sum = npc->disposition + static_cast<char>(delta);
-        if (sum > 99) {
-            npc->disposition = 99;
-        } else if (sum < 0) {
-            npc->disposition = 0;
-        } else {
-            npc->disposition += static_cast<char>(delta);
-        }
+        AdjustNpcDisposition(npc, static_cast<char>(delta));
         PracticeCharacterSkill(&g_status.buffers.Char[value], W8_SKILL_COMMUNICATION, 5, 0);
         GetNpcDisposition(npc);
         return;
     }
     case 4: {
-        int sum = npc->disposition + static_cast<char>(gold);
-        if (sum > 99) {
-            npc->disposition = 99;
-        } else if (sum < 0) {
-            npc->disposition = 0;
-        } else {
-            npc->disposition += static_cast<char>(gold);
-        }
+        AdjustNpcDisposition(npc, static_cast<char>(gold));
         GetNpcDisposition(npc);
         return;
     }
     case 2: {
-        int level;
-        unsigned int adjusted;
-
         SpendPartyGold(gold);
-        level = static_cast<int>(GetBestPartySkillLevel(W8_SKILL_COMMUNICATION, 0));
-        adjusted = gold + level * (static_cast<int>(gold & 0xffff) / 5) / 100;
-        if (static_cast<int>(npc->trade_pool - (adjusted & 0xffff)) < 0) {
-            npc->trade_pool = 0;
-        } else {
-            npc->trade_pool = static_cast<unsigned short>(npc->trade_pool - adjusted);
-        }
-        if (npc->trade_pool != 0) {
-            break;
-        }
-        GetNpcDisposition(npc);
-        level = GetNpcDisposition(npc);
-        if (level < W8_NPC_DISPOSITION_HOSTILE) {
-            level = 2;
-        } else {
-            level = level < W8_NPC_DISPOSITION_FRIENDLY;
-        }
-        if (level != 0) {
-            npc->disposition = 0x4b;
-        }
-        npc->trade_pool = g_npc_records[npc->name_style].trade_pool;
+        DebitNpcTradePool(npc, gold);
         break;
     }
     case 3: {
         unsigned int price = GetItemStackValue(item);
-        int level;
-        unsigned int adjusted;
-
-        level = static_cast<int>(GetBestPartySkillLevel(W8_SKILL_COMMUNICATION, 0));
-        adjusted = price + level * (static_cast<int>(price & 0xffff) / 5) / 100;
-        if (static_cast<int>(npc->trade_pool - (adjusted & 0xffff)) < 0) {
-            npc->trade_pool = 0;
-        } else {
-            npc->trade_pool = static_cast<unsigned short>(npc->trade_pool - adjusted);
-        }
-        if (npc->trade_pool != 0) {
-            break;
-        }
-        GetNpcDisposition(npc);
-        level = GetNpcDisposition(npc);
-        if (level < W8_NPC_DISPOSITION_HOSTILE) {
-            level = 2;
-        } else {
-            level = level < W8_NPC_DISPOSITION_FRIENDLY;
-        }
-        if (level != 0) {
-            npc->disposition = 0x4b;
-        }
-        npc->trade_pool = g_npc_records[npc->name_style].trade_pool;
+        DebitNpcTradePool(npc, price);
         break;
     }
     default:

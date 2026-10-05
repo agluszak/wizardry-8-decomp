@@ -724,7 +724,6 @@ W8TargetNeed GetTargetNeededForAction(W8ActionKind action, int spell_id,
 W8TargetNeed GetTargetNeededForCurrentAction(int party_slot)
 {
     W8ActionDetailBlock* detail_block;
-    const W8ItemDatabaseRecord* record;
     W8TargetingContext context;
     W8ActionKind action;
     int detail;
@@ -735,30 +734,7 @@ W8TargetNeed GetTargetNeededForCurrentAction(int party_slot)
     }
     ChooseCombatAction(party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0,
                        &detail_block);
-    switch (action) {
-    case W8_ACTION_ATTACK:
-    case W8_ACTION_BERSERK:
-        return W8_TARGET_NEED_ENEMY;
-    case W8_ACTION_CAST_SPELL:
-        return GetTargetNeededForSpellFriendly(detail, 0, W8_TARGETING_CONTEXT_CURRENT);
-    case W8_ACTION_BREATHE:
-        return W8_TARGET_NEED_CONE;
-    case W8_ACTION_PROTECT:
-        return W8_TARGET_NEED_ALLY;
-    case W8_ACTION_USE_ITEM:
-        if (detail_block->item_use.item != 0 && detail_block->item_use.item->iItemNo != -1) {
-            record = &g_item_records[detail_block->item_use.item->iItemNo];
-            if (record->spell_id != 0) {
-                return GetTargetNeededForSpellFriendly(record->spell_id,
-                                                       ItemClassNormalizesTarget(record),
-                                                       W8_TARGETING_CONTEXT_CURRENT);
-            }
-        }
-        break;
-    default:
-        break;
-    }
-    return W8_TARGET_NEED_NONE;
+    return GetTargetNeededForAction(action, detail, detail_block);
 }
 
 /* Whether a slot's recorded target suits the item it would be used with. An
@@ -2164,7 +2140,6 @@ bool RepickActionTarget(int party_slot, W8TargetingContext context, int arg)
     W8CombatSlot* target;
     W8CombatSlot* target_2;
     W8CombatSlot new_target;
-    W8ItemDatabaseRecord* record;
     W8MonsterInfo* monster_info;
     W8TargetingContext action_context;
     W8TargetingContext resolved;
@@ -2192,33 +2167,7 @@ bool RepickActionTarget(int party_slot, W8TargetingContext context, int arg)
     if (target == 0) {
         srAssertFail("pTarget", TARGETING_CPP, 0xfc, 0);
     }
-    switch (kind) {
-    case W8_ACTION_ATTACK:
-    case W8_ACTION_BERSERK:
-        needed = W8_TARGET_NEED_ENEMY;
-        break;
-    case W8_ACTION_BREATHE:
-        needed = W8_TARGET_NEED_CONE;
-        break;
-    case W8_ACTION_PROTECT:
-        needed = W8_TARGET_NEED_ALLY;
-        break;
-    case W8_ACTION_CAST_SPELL:
-        needed = GetTargetNeededForSpellFriendly(action, 0, W8_TARGETING_CONTEXT_CURRENT);
-        break;
-    case W8_ACTION_USE_ITEM:
-        if (detail_block->item_use.item != 0 && detail_block->item_use.item->iItemNo != -1 &&
-            (record = &g_item_records[detail_block->item_use.item->iItemNo],
-             record->spell_id != 0)) {
-            needed = GetTargetNeededForSpellFriendly(
-                record->spell_id, ItemClassNormalizesTarget(record), W8_TARGETING_CONTEXT_CURRENT);
-            break;
-        }
-        /* fall through */
-    default:
-        needed = W8_TARGET_NEED_NONE;
-        break;
-    }
+    needed = GetTargetNeededForAction(kind, action, detail_block);
     previous_kind = target->iType;
     if (gXStatus.fCombatMode != 0) {
         if (resolved == W8_TARGETING_CONTEXT_OUT_OF_COMBAT) {
@@ -2294,7 +2243,6 @@ bool TargetIsInPlay(int party_slot, int hand, W8TargetingContext context)
 {
     W8TargetingContext resolved;
     W8ActionDetailBlock* detail_block;
-    W8ItemDatabaseRecord* record;
     W8CombatSlot* target;
     W8ActionKind kind;
     int action;
@@ -2302,33 +2250,7 @@ bool TargetIsInPlay(int party_slot, int hand, W8TargetingContext context)
 
     resolved = ResolveTargetingContext(party_slot, context);
     ChooseCombatAction(party_slot, resolved, &kind, &action, &target, &detail_block);
-    switch (kind) {
-    case W8_ACTION_ATTACK:
-    case W8_ACTION_BERSERK:
-        needed = W8_TARGET_NEED_ENEMY;
-        break;
-    case W8_ACTION_BREATHE:
-        needed = W8_TARGET_NEED_CONE;
-        break;
-    case W8_ACTION_PROTECT:
-        needed = W8_TARGET_NEED_ALLY;
-        break;
-    case W8_ACTION_CAST_SPELL:
-        needed = GetTargetNeededForSpellFriendly(action, 0, W8_TARGETING_CONTEXT_CURRENT);
-        break;
-    case W8_ACTION_USE_ITEM:
-        if (detail_block->item_use.item != 0 && detail_block->item_use.item->iItemNo != -1 &&
-            (record = &g_item_records[detail_block->item_use.item->iItemNo],
-             record->spell_id != 0)) {
-            needed = GetTargetNeededForSpellFriendly(
-                record->spell_id, ItemClassNormalizesTarget(record), W8_TARGETING_CONTEXT_CURRENT);
-            break;
-        }
-        /* fall through */
-    default:
-        needed = W8_TARGET_NEED_NONE;
-        break;
-    }
+    needed = GetTargetNeededForAction(kind, action, detail_block);
     if (TargetMatchesNeeded(target, needed) == 0) {
         return 0;
     }

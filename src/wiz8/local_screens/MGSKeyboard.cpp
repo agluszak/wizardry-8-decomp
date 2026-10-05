@@ -998,67 +998,60 @@ void RedrawKeyboardMenuPanel(bool invalidate)
     g_keyboard_menu_panel->Redraw();
 }
 
+static void ChooseKeyboardMenuAction(W8ActionKind action)
+{
+    ChooseAction(g_selected_party_slot, action, -1, 0, 0, 1);
+    RequestRedraw(0x200000);
+    CloseKeyboardMenu();
+}
+
 // FUNCTION: WIZ8 0x00593710
 static void KeyboardMenuSelectAttack(void)
 {
 
-    ChooseAction(g_selected_party_slot, W8_ACTION_ATTACK, -1, 0, 0, 1);
-    RequestRedraw(0x200000);
-    CloseKeyboardMenu();
+    ChooseKeyboardMenuAction(W8_ACTION_ATTACK);
 }
 
 // FUNCTION: WIZ8 0x00593860
 static void KeyboardMenuSelectBerserk(void)
 {
 
-    ChooseAction(g_selected_party_slot, W8_ACTION_BERSERK, -1, 0, 0, 1);
-    RequestRedraw(0x200000);
-    CloseKeyboardMenu();
+    ChooseKeyboardMenuAction(W8_ACTION_BERSERK);
 }
 
 // FUNCTION: WIZ8 0x005939B0
 static void KeyboardMenuSelectBreathe(void)
 {
 
-    ChooseAction(g_selected_party_slot, W8_ACTION_BREATHE, -1, 0, 0, 1);
-    RequestRedraw(0x200000);
-    CloseKeyboardMenu();
+    ChooseKeyboardMenuAction(W8_ACTION_BREATHE);
 }
 
 // FUNCTION: WIZ8 0x00593B00
 static void KeyboardMenuSelectTurnUndead(void)
 {
 
-    ChooseAction(g_selected_party_slot, W8_ACTION_TURN_UNDEAD, -1, 0, 0, 1);
-    RequestRedraw(0x200000);
-    CloseKeyboardMenu();
+    ChooseKeyboardMenuAction(W8_ACTION_TURN_UNDEAD);
 }
 
 // FUNCTION: WIZ8 0x00593C50
 static void KeyboardMenuSelectPray(void)
 {
 
-    ChooseAction(g_selected_party_slot, W8_ACTION_PRAY, -1, 0, 0, 1);
-    RequestRedraw(0x200000);
-    CloseKeyboardMenu();
+    ChooseKeyboardMenuAction(W8_ACTION_PRAY);
 }
 
 // FUNCTION: WIZ8 0x00593DA0
 static void KeyboardMenuSelectDefend(void)
 {
 
-    ChooseAction(g_selected_party_slot, W8_ACTION_DEFEND, -1, 0, 0, 1);
-    RequestRedraw(0x200000);
-    CloseKeyboardMenu();
+    ChooseKeyboardMenuAction(W8_ACTION_DEFEND);
 }
 
 // FUNCTION: WIZ8 0x00593EF0
 static void KeyboardMenuSelectProtect(void)
 {
 
-    ChooseAction(g_selected_party_slot, W8_ACTION_PROTECT, -1, 0, 0, 1);
-    RequestRedraw(0x200000);
-    CloseKeyboardMenu();
+    ChooseKeyboardMenuAction(W8_ACTION_PROTECT);
 }
 
 // FUNCTION: WIZ8 0x00594040
@@ -1086,9 +1079,7 @@ static void KeyboardMenuCastRecordedSpell(void)
 static void KeyboardMenuSelectEquip(void)
 {
 
-    ChooseAction(g_selected_party_slot, W8_ACTION_EQUIP, -1, 0, 0, 1);
-    RequestRedraw(0x200000);
-    CloseKeyboardMenu();
+    ChooseKeyboardMenuAction(W8_ACTION_EQUIP);
 }
 
 // FUNCTION: WIZ8 0x005944E0
