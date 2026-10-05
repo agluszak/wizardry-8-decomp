@@ -60,11 +60,9 @@ void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x, unsigne
 // GLOBAL: WIZ8 0x00689b34
 wchar_t g_empty_wide_string;
 
-/* Layout flag handed to every row-registered child text control.  No other
-   recovered site reads it yet; ownership stays with this constant until a
-   writer shows a wider family. */
+/* Suppress hover sounds on the registered options-row children. */
 // GLOBAL: WIZ8 0x005ed590
-extern const unsigned int g_W8TextControlLayoutMask = 0x40;
+extern const unsigned int g_W8TextControlSilentHover = 0x40;
 
 // GLOBAL: WIZ8 0x0069c1c8
 static bool g_options_first_frame;
@@ -592,7 +590,7 @@ W8OptionsKeyButton::W8OptionsKeyButton(Controls* owner, int top, W8MGSCommand pr
     : W8OptionsButton(owner, 100, top, 0x15e, top + 22, &g_empty_wide_string),
       m_primary_binding(primary_binding), m_secondary_binding(secondary_binding)
 {
-    AddLayoutFlags(g_W8TextControlMask | g_W8TextControlLayoutToggle);
+    AddLayoutFlags(g_W8TextControlLayoutLatchedImage | g_W8TextControlLayoutToggle);
     m_textBuffer.SetLayoutMode(g_W8TextBufferNoWrap | g_W8TextBufferAlignRight |
                                g_W8TextBufferAlignTop);
 }
@@ -602,7 +600,7 @@ W8OptionsSaveRow::W8OptionsSaveRow(Controls* owner, int top, unsigned char save_
                     -1, -1, 4),
       m_save_mode(save_mode), m_editing(0), m_save(0), m_save_listener(0)
 {
-    AddLayoutFlags(g_W8TextControlMask | g_W8TextControlLayoutToggle);
+    AddLayoutFlags(g_W8TextControlLayoutLatchedImage | g_W8TextControlLayoutToggle);
 }
 
 // FUNCTION: WIZ8 0x005a77b0
@@ -1592,7 +1590,7 @@ W8OptionsMenuButton::W8OptionsMenuButton(Controls* owner, const W8OptionsMenuRow
             m_pPanel, 0xffffffff, row->child_bounds[0].left, row->child_bounds[0].top,
             row->child_bounds[0].right, row->child_bounds[0].bottom, -1, -1, -1, -1, -1, -1, -1);
         control->m_listener = this;
-        control->AddLayoutFlags(g_W8TextControlLayoutMask);
+        control->AddLayoutFlags(g_W8TextControlSilentHover);
     }
 
     if (row->child_bounds[1].left != -1) {
@@ -1600,7 +1598,7 @@ W8OptionsMenuButton::W8OptionsMenuButton(Controls* owner, const W8OptionsMenuRow
             m_pPanel, 0xffffffff, row->child_bounds[1].left, row->child_bounds[1].top,
             row->child_bounds[1].right, row->child_bounds[1].bottom, -1, -1, -1, -1, -1, -1, -1);
         control->m_listener = this;
-        control->AddLayoutFlags(g_W8TextControlLayoutMask);
+        control->AddLayoutFlags(g_W8TextControlSilentHover);
     }
 }
 
@@ -1616,7 +1614,7 @@ W8OptionsCheckbox::W8OptionsCheckbox(Controls* owner, int top, int* value)
     : W8TextControl(owner, 0xffffffff, 0x14d, top - 2, 0, 0, 0xf1, 0, 2, 0, 3, 1, -1),
       m_value(value)
 {
-    AddLayoutFlags(g_W8TextControlMask | g_W8TextControlLayoutToggle);
+    AddLayoutFlags(g_W8TextControlLayoutLatchedImage | g_W8TextControlLayoutToggle);
     if (*m_value != 0) {
         EnableSecondaryState(false);
     }
@@ -1719,7 +1717,7 @@ W8TextControl* W8OptionsPanel::AddChoiceButton(int label)
     m_text_buffers.Add(text);
     W8TextControl* button = new W8TextControl(this, 0xffffffff, 0x151, m_content_top + 1, 0, 0,
                                               0xf1, 0, 4, 6, 5, 7, -1);
-    button->AddLayoutFlags(g_W8TextControlMask | g_W8TextControlLayoutToggle);
+    button->AddLayoutFlags(g_W8TextControlLayoutLatchedImage | g_W8TextControlLayoutToggle);
     m_content_top += 22;
     return button;
 }

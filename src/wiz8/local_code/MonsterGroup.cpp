@@ -1277,7 +1277,7 @@ void ElectGroupLeaderMember(W8MonsterGroup* monster_group)
             W8MonsterInfo* member_info = MonsterGetScriptPartByLocationIndex(
                 MonsterGetIndexByLocationID(0x443, MONSTER_GROUP_CPP, member_id, true));
             if (member_info->highest_condition < W8_CONDITION_TURNCOAT &&
-                (member->flags1 & W8_MONSTER_REMOVE_NOW) == 0 &&
+                (member->runtime_flags & W8_MONSTER_REMOVE_NOW) == 0 &&
                 best < static_cast<unsigned int>(member->movement.leadership_rank)) {
                 best = member->movement.leadership_rank;
                 leader_id = member_id;
@@ -1428,7 +1428,7 @@ void MonsterGroupEnterCombat(W8MonsterGroup* monster_group)
             int member_id = IListGetAt(monster_group->monsters, index);
             W8MonsterInfo* member_info = MonsterGetScriptPartByLocationIndex(
                 MonsterGetIndexByLocationID(0x8ce, MONSTER_GROUP_CPP, member_id, true));
-            if ((member_info->p3D->flags1 & W8_MONSTER_SCRIPT_WAIT) != 0) {
+            if ((member_info->p3D->runtime_flags & W8_MONSTER_SCRIPT_WAIT) != 0) {
                 return;
             }
             ++index;
@@ -1617,7 +1617,7 @@ void MarkMonsterGroupForRemoval(int group_id)
         member_info =
             MonsterInfoFromID(0x854, MONSTER_GROUP_CPP, IListGetAt(group->monsters, index), true);
         if (member_info != 0 && !member_info->p3D->IsDying()) {
-            member_info->p3D->flags1 |= W8_MONSTER_REMOVE_NOW;
+            member_info->p3D->runtime_flags |= W8_MONSTER_REMOVE_NOW;
         }
     }
     for (ally_index = 0; ally_index < W8_MONSTER_GROUP_ALLY_COUNT; ++ally_index) {

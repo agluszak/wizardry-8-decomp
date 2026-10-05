@@ -68,7 +68,7 @@ public:
     ~GDProp();                                                               /* 0x004B6ED0 */
     void BindTrigger(Trigger* owner);
     unsigned char ContainsPathCoordinate(unsigned short x, unsigned short y) const;
-    unsigned char HasSupportedItems();
+    bool HasSupportedItems();
     /* Rebuilds m_pVertices/m_pGDSurfaces for the given animation frame of the
        level prop's transforms. */
     void ApplyAnimFrame(unsigned short frame, W8LevelFileAnimObj* anim);

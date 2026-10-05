@@ -5,7 +5,7 @@
 
 struct W8World;
 
-/* One world-cursor node: the scene node at +0x04, the three label numbers at
+/* One world-cursor node: the scene node at +0x04, the three label parameters at
    +0x0c/+0x10/+0x14, the text scratch buffer at +0x18 and its length at +0x1c,
    the packed fill colour at +0x20. The 0x0048E6D0 save body writes the 0x20
    bytes at +0x24 and then that buffer and length. The TU name stCube.cpp and
@@ -18,7 +18,7 @@ public:
     W8WorldCursorNode()
     {
         pUserdata = 0;
-        size = 0;
+        userdata_size = 0;
     }
     virtual ~W8WorldCursorNode() {}
     /* 0x0048D050: copy the node's world location out; answers 0 when the node
@@ -26,9 +26,9 @@ public:
     unsigned char GetLocation(srVector3T<float>* position);
     srNode* node; /* 0x04 */
     unsigned int value_08;
-    int numbers[3];      /* 0x0c, 0x10, 0x14 */
+    int parameters[3];      /* 0x0c, 0x10, 0x14 */
     void* pUserdata;        /* 0x18 */
-    int size;            /* 0x1c */
+    int userdata_size;      /* 0x1c */
     unsigned long color; /* 0x20 */
     char name[0x20];
 };

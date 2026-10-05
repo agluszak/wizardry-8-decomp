@@ -2736,7 +2736,7 @@ void NpcScriptHenchmanArrives(W8Monster* monster)
     }
     origin.SetZero();
     monster->SetPosition(&origin);
-    monster->flags1 |= W8_MONSTER_PARKED;
+    monster->runtime_flags |= W8_MONSTER_PARKED;
 }
 
 /* Cycle-0x12 departure callback: park the monster at the origin and flag its
@@ -2746,7 +2746,7 @@ void NpcScriptHenchmanDeparted(W8Monster* monster)
 {
     srVector3T<float> origin;
 
-    monster->flags1 |= W8_MONSTER_PARKED;
+    monster->runtime_flags |= W8_MONSTER_PARKED;
     origin.SetZero();
     monster->SetPosition(&origin);
 }

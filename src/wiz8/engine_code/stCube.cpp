@@ -217,7 +217,7 @@ W8WorldCursorNode* CreateWorldCursorCube(void)
     SetWorldCursorNodeColor(entry, packed);
     DrawWorldCursorNodeLabel(entry);
     entry->pUserdata = 0;
-    entry->size = 0;
+    entry->userdata_size = 0;
     entry->name[0] = 0;
 
     g_world_cursor_nodes.Add(entry);
@@ -232,7 +232,7 @@ void DestroyWorldCursorCube(W8WorldCursorNode* entry)
             free(entry->pUserdata);
             entry->pUserdata = 0;
         }
-        entry->size = 0;
+        entry->userdata_size = 0;
         entry->node->setParent(0, 1);
         entry->node->release();
         g_world_cursor_nodes.Remove(entry);
@@ -266,7 +266,7 @@ void RefreshWorldCursorNodeLabel(W8WorldCursorNode* entry)
     DrawWorldCursorNodeLabel(entry);
 }
 
-/* Paint the three cube numbers onto the model's first texture using the menu
+/* Paint the three cube parameters onto the model's first texture using the menu
    small font. */
 // FUNCTION: WIZ8 0x0048dcb0
 void DrawWorldCursorNodeLabel(W8WorldCursorNode* entry)
@@ -297,7 +297,7 @@ void DrawWorldCursorNodeLabel(W8WorldCursorNode* entry)
         SetFontObjectPalette16BPP(g_smfnt_font, g_font_palette_smfnt);
         for (int index = 0; index < 3; ++index) {
             wchar_t text[20];
-            swprintf(text, g_format_d, entry->numbers[index]);
+            swprintf(text, g_format_d, entry->parameters[index]);
             gprintf_buffer(data, surface->getPitch(), g_smfnt_font, 0,
                            GetFontHeight(g_smfnt_font) * index, text);
         }
@@ -409,13 +409,13 @@ void DrawWorldBox(W8World* world, srVector3T<float> minimum, srVector3T<float> m
     DrawBufferLine(screen[3][0], screen[3][1], screen[7][0], screen[7][1], &color);
 }
 
-/* The three label numbers double as generic per-node parameters; the world
+/* The three label parameters double as generic per-node parameters; the world
    cursor and the master-function table index into them by slot. */
 // FUNCTION: WIZ8 0x0048E2B0
 int GetWorldCursorNodeParameter(W8WorldCursorNode* entry, int index)
 {
     if (entry != 0) {
-        return entry->numbers[index];
+        return entry->parameters[index];
     }
     return -1;
 }
@@ -426,12 +426,12 @@ int GetWorldCursorNodeParameter(W8WorldCursorNode* entry, int index)
 void SetWorldCursorNodeParameter(W8WorldCursorNode* entry, int index, int value)
 {
     if (entry != 0) {
-        entry->numbers[index] = value;
+        entry->parameters[index] = value;
         if (entry->pUserdata != 0) {
             free(entry->pUserdata);
             entry->pUserdata = 0;
         }
-        entry->size = 0;
+        entry->userdata_size = 0;
     }
 }
 
@@ -468,7 +468,7 @@ W8WorldCursorNode* PickWorldCursorNodeAtScreenPoint(int x, int y)
     return FindNearestWorldCursorNode(x, y);
 }
 
-/* Store the packed fill colour and repaint the cube numbers. */
+/* Store the packed fill colour and repaint the cube parameters. */
 // FUNCTION: WIZ8 0x0048e400
 void SetWorldCursorNodeColor(W8WorldCursorNode* entry, unsigned long color)
 {
@@ -526,18 +526,18 @@ unsigned int LoadWorldCursorNodeStates(int handle)
             }
         }
 
-        if (success && FileRead(handle, &cube->size, 4, 0)) {
+        if (success && FileRead(handle, &cube->userdata_size, 4, 0)) {
             success = true;
         } else {
             success = false;
         }
-        if (cube->size != 0) {
-            cube->pUserdata = malloc(cube->size);
+        if (cube->userdata_size != 0) {
+            cube->pUserdata = malloc(cube->userdata_size);
             if (cube->pUserdata == 0) {
                 srAssertFail("pCube->pUserdata", ST_CUBE_CPP, 0x3c8, 0);
             }
-            memset(cube->pUserdata, 0, cube->size);
-            if (success && FileRead(handle, cube->pUserdata, cube->size, 0)) {
+            memset(cube->pUserdata, 0, cube->userdata_size);
+            if (success && FileRead(handle, cube->pUserdata, cube->userdata_size, 0)) {
                 success = true;
             } else {
                 success = false;
@@ -548,7 +548,7 @@ unsigned int LoadWorldCursorNodeStates(int handle)
                 free(cube->pUserdata);
                 cube->pUserdata = 0;
             }
-            cube->size = 0;
+            cube->userdata_size = 0;
             delete cube;
         }
     }
@@ -574,9 +574,9 @@ unsigned char SaveWorldCursorNodeStates(int handle)
     for (index = 0; index < count && ok; ++index) {
         node = *g_world_cursor_nodes.GetAt(index);
         ok = FileWrite(handle, node->name, sizeof(node->name), 0) &&
-             FileWrite(handle, &node->size, 4, 0);
-        if (node->size != 0) {
-            ok = ok && FileWrite(handle, node->pUserdata, node->size, 0);
+             FileWrite(handle, &node->userdata_size, 4, 0);
+        if (node->userdata_size != 0) {
+            ok = ok && FileWrite(handle, node->pUserdata, node->userdata_size, 0);
         }
     }
     return ok;
@@ -620,7 +620,7 @@ unsigned int LoadWorldCursorNodes(int handle)
             sprintf(cube->name, "Cube%d", index);
         }
         for (component = 0; component < 3; ++component) {
-            if (success && FileRead(handle, &cube->numbers[component], 4, 0)) {
+            if (success && FileRead(handle, &cube->parameters[component], 4, 0)) {
                 success = true;
             } else {
                 success = false;
@@ -704,7 +704,7 @@ unsigned char SaveWorldCursorNodes(int handle)
         node = *g_world_cursor_nodes.GetAt(index);
         FileWrite(handle, node->name, sizeof(node->name), 0);
         for (component = 0; component < 3 && ok; ++component) {
-            ok = FileWrite(handle, &node->numbers[component], 4, 0);
+            ok = FileWrite(handle, &node->parameters[component], 4, 0);
         }
         node->node->getLocalBounds(bounds);
         location = node->node->getLocation();
@@ -825,7 +825,7 @@ void GetWorldCursorNodeUserdata(W8WorldCursorNode* entry, char** buffer, int* si
             *buffer = static_cast<char*>(entry->pUserdata);
         }
         if (size != 0) {
-            *size = entry->size;
+            *size = entry->userdata_size;
         }
     } else {
         if (buffer != 0) {
@@ -855,7 +855,7 @@ void SetWorldCursorNodeUserdataSize(W8WorldCursorNode* entry, int size)
                 entry->pUserdata = 0;
             }
         }
-        entry->size = size;
+        entry->userdata_size = size;
     }
 }
 

@@ -37,19 +37,17 @@ struct W8PathAI;
 
 void DestroyLightVector(W8GrowableVector<stLight*>* vector); /* 0x004A8C50 */
 
-/* Engine Code\GrCycle.cpp's camera-shake effect. 0x004AE080 allocates 0x4c and
-   hands it to the constructor at 0x004ADED0.
+/* Live-list membership and ownership are independent: Trigger retains its
+   effect and clears LIST_OWNS before the live updater can release it. */
+enum W8CameraShakeFlag {
+    W8_SHAKE_ACTIVE = 0x01u,
+    W8_SHAKE_LIST_OWNS = 0x02u,
+    W8_SHAKE_LIMIT_DISTANCE = 0x04u,
+    W8_SHAKE_QUADRATIC_FALLOFF = 0x08u,
+    W8_SHAKE_FADE_OUT = 0x10u,
+    W8_SHAKE_FADE_IN = 0x20u
+};
 
-   One class, two consumers. GrCycle keeps a vector of them in m_plsShakeEvents
-   and fires the ones whose cycle/frame/subcycle key matches; Trigger.cpp's shake
-   event creates one directly. Trigger clears bit 1 so the effect is not released
-   by the live list and deletes it itself - the same bit 0x004AE270 tests before
-   deleting. That shared ownership bit, the shared factory and the shared 0x4c
-   allocation are what prove the two are one class rather than two of a size.
-
-   flags: bit 0 says the effect is in the live list, bit 1 that the live list
-   owns it. Bits 2, 3 and 4 are set together by the constructor's own flag, and
-   Trigger sets bit 4 on its own to reverse the shake. */
 class W8CameraShakeEffect {
 public:
     W8CameraShakeEffect(float duration, bool preset, float intensity, float distance_cap,
@@ -61,7 +59,7 @@ public:
 
     unsigned int flags;         /* 0x00 */
     float intensity;            /* 0x04 */
-    float distance_cap;         /* 0x08: distance cap for bit-2 effects */
+    float distance_cap;         /* 0x08: radius for LIMIT_DISTANCE effects */
     srVector3T<float> position; /* 0x0c */
     W8GameTimer timer;          /* 0x18 */
     /* The key 0x004AE170 matches an animation event against. */

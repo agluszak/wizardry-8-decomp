@@ -1130,13 +1130,14 @@ W8PartySelectionOptionPanel::W8PartySelectionOptionPanel()
 
     top += 0x16;
     npc_interact_toggle = new W8TextControl(this, 0xffffffff, 0x15b, top, 0, 0, 0xf1, 0, 2, 0, 3, 1, -1);
-    npc_interact_toggle->AddLayoutFlags(g_W8TextControlMask | g_W8TextControlLayoutToggle);
+    npc_interact_toggle->AddLayoutFlags(g_W8TextControlLayoutLatchedImage |
+                                        g_W8TextControlLayoutToggle);
     if (g_settings.simplified_npc_interaction) {
         npc_interact_toggle->EnableSecondaryState(false);
     }
 
     m_toggle = new W8TextControl(this, 0xffffffff, 0x15b, 0xd6, 0, 0, 0xf1, 0, 2, 0, 3, 1, -1);
-    m_toggle->AddLayoutFlags(g_W8TextControlMask | g_W8TextControlLayoutToggle);
+    m_toggle->AddLayoutFlags(g_W8TextControlLayoutLatchedImage | g_W8TextControlLayoutToggle);
 
     GetCatalogImageSize(0x102, 0, 1, &m_image_width, &m_image_height);
     m_render_left =
@@ -1344,7 +1345,7 @@ void W8PartySelectionController::Setup()
 
     m_reset_button = new W8TextControl(m_bottom_panel, 0xffffffff, 0xf4, 0, 0, 0, 0x106, 0, 0x18, 0x1a, 0x19,
                                   0x1c, 0x1b);
-    m_reset_button->AddLayoutFlags(g_W8TextControlMask | g_W8TextControlLayoutToggle);
+    m_reset_button->AddLayoutFlags(g_W8TextControlLayoutLatchedImage | g_W8TextControlLayoutToggle);
     m_reset_button->EnableRegionHelp(0x6cc);
     m_reset_button->m_listener = this;
 

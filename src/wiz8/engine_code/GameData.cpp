@@ -232,21 +232,21 @@ void W8GameData::ApplyCameraMotionFlags(unsigned int flags, srMatrix3T<float>* r
     }
 
     timer_flags = g_game_time_accumulator->m_flags;
-    if ((timer_flags & 8) != 0) {
+    if ((timer_flags & W8_TIMER_PAUSED) != 0) {
         return;
     }
-    if (g_shared_timer_paused && (timer_flags & 1) == 0) {
+    if (g_shared_timer_paused && (timer_flags & W8_TIMER_RAW_TIME) == 0) {
         return;
     }
     if (g_shared_timer_flag0) {
         return;
     }
-    if ((timer_flags & 0x10) != 0) {
+    if ((timer_flags & W8_TIMER_SLOW_SCALE) != 0) {
         return;
     }
 
-    if ((g_gd_camera->m_state & 0x80) != 0) {
-        g_gd_camera->m_state &= ~0x80u;
+    if ((g_gd_camera->m_orientation_flags & W8_CAMERA_ORIENTATION_SNAPPED) != 0) {
+        g_gd_camera->m_orientation_flags &= ~W8_CAMERA_ORIENTATION_SNAPPED;
         MarkRendererReady();
     }
 
@@ -351,20 +351,20 @@ unsigned char W8GameData::ApplyCameraMotion(unsigned int flags, srVector3T<float
             ShutdownWithErrorBox("TrackMovement: Could not allocate gpMovement.\n");
         }
         PauseSharedGameTimers();
-        g_shared_timer_flag1 = true;
+        g_level_motion_resume_pending = true;
         g_level_motion_fast = 0;
     }
 
     timer_flags = g_game_time_accumulator->m_flags;
-    if ((timer_flags & 8) != 0 || (g_shared_timer_paused && (timer_flags & 1) == 0) ||
-        g_shared_timer_flag0) {
-        if (!g_shared_timer_flag1) {
+    if ((timer_flags & W8_TIMER_PAUSED) != 0 ||
+        (g_shared_timer_paused && (timer_flags & W8_TIMER_RAW_TIME) == 0) || g_shared_timer_flag0) {
+        if (!g_level_motion_resume_pending) {
             return 0;
         }
-        if ((timer_flags & 1) != 0) {
+        if ((timer_flags & W8_TIMER_RAW_TIME) != 0) {
             return 0;
         }
-        g_shared_timer_flag1 = false;
+        g_level_motion_resume_pending = false;
         if (!g_shared_timer_flag0) {
             ResumeSharedGameTimers();
         }
@@ -375,7 +375,7 @@ unsigned char W8GameData::ApplyCameraMotion(unsigned int flags, srVector3T<float
     if ((((level_flags & W8_LEVEL_FLAG_MOVEMENT_STOPPED) != 0 &&
           (level_flags & W8_LEVEL_FLAG_WALKABLE_CONTACT) != 0) &&
          ((level_flags & W8_LEVEL_FLAG_PROP_CONTACT) == 0 && !g_animated_prop_present)) ||
-        (g_game_time_accumulator->m_flags & 0x10) != 0) {
+        (g_game_time_accumulator->m_flags & W8_TIMER_SLOW_SCALE) != 0) {
         return 0;
     }
 
@@ -3019,7 +3019,7 @@ void UpdateLevelMovementAudio(void)
     if (g_level_data == 0) {
         return;
     }
-    if (((g_gd_camera->m_state >> 6) & 1) == 0 ||
+    if ((g_gd_camera->m_orientation_flags & W8_CAMERA_YAW_MOVING) == 0 ||
         (g_level_data->flags & W8_LEVEL_FLAG_WALKABLE_CONTACT) == 0 ||
         g_level_data->motion_velocity.x != g_float_zero ||
         g_level_data->motion_velocity.y != g_float_zero ||

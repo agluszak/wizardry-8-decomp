@@ -78,12 +78,12 @@ void stParticle::SetParticleScale(float scale)
 {
     float inverse_scale = 1.0f / size_scale;
     // Retail uses the extent as its offset, not the midpoint of the bounds.
-    srVector3T<float> offset = maximum1 - minimum1;
-    minimum1 = (minimum1 - offset) * inverse_scale + offset;
-    maximum1 = (maximum1 - offset) * inverse_scale + offset;
+    srVector3T<float> offset = lifetime_maximum - lifetime_minimum;
+    lifetime_minimum = (lifetime_minimum - offset) * inverse_scale + offset;
+    lifetime_maximum = (lifetime_maximum - offset) * inverse_scale + offset;
     size_scale = scale;
-    minimum1 = (minimum1 - offset) * scale + offset;
-    maximum1 = (maximum1 - offset) * scale + offset;
+    lifetime_minimum = (lifetime_minimum - offset) * scale + offset;
+    lifetime_maximum = (lifetime_maximum - offset) * scale + offset;
 }
 
 // FUNCTION: WIZ8 0x0049B150
@@ -248,8 +248,8 @@ stParticle::stParticle(srNode* parent, int count)
     lifetime_ms = 1500;
     bounds_mode = W8_PARTICLE_BOUNDS_SPHERE;
     speed_mode = W8_PARTICLE_SPEED_RANDOM;
-    minimum0 = -250.0f;
-    maximum0 = 250.0f;
+    emission_minimum = -250.0f;
+    emission_maximum = 250.0f;
     direction.Set(0.0f, -1.0f, 0.0f);
     initial_speed = 500.0f;
     acceleration.Set(0.0f, -4905.0f, 0.0f);
@@ -261,8 +261,8 @@ stParticle::stParticle(srNode* parent, int count)
     cone_yaw = 0.39269906f;
     cone_pitch = 0.39269906f;
     speed_min = 1000.0f;
-    minimum1 = -1000.0f;
-    maximum1 = 1000.0f;
+    lifetime_minimum = -1000.0f;
+    lifetime_maximum = 1000.0f;
     bounds_origin.SetZero();
     bounds_radius = 2000.0f;
     update_flags = 0;
@@ -381,8 +381,8 @@ stParticle::stParticle(const stParticle& other)
     SetFlutter(other.flutter_mode);
     emission_interval = other.emission_interval;
     lifetime_ms = other.lifetime_ms;
-    minimum0 = other.minimum0;
-    maximum0 = other.maximum0;
+    emission_minimum = other.emission_minimum;
+    emission_maximum = other.emission_maximum;
     direction = other.direction;
     acceleration = other.acceleration;
     cone_yaw = other.cone_yaw;
@@ -390,8 +390,8 @@ stParticle::stParticle(const stParticle& other)
     initial_speed = other.initial_speed;
     speed_min = other.speed_min;
     speed_max = other.speed_max;
-    minimum1 = other.minimum1;
-    maximum1 = other.maximum1;
+    lifetime_minimum = other.lifetime_minimum;
+    lifetime_maximum = other.lifetime_maximum;
     bounds_origin = other.bounds_origin;
     bounds_radius = other.bounds_radius;
     update_flags = W8_PARTICLE_ACTIVE_TRIANGLES_DIRTY;
@@ -645,7 +645,7 @@ void stParticle::Update()
                 srVector4T<float> transformed = transform.Transform(local);
                 srVector3T<float> local_point;
                 local_point = transformed.xyz();
-                if (!PointInsideBounds(&local_point, &minimum1, &maximum1)) {
+                if (!PointInsideBounds(&local_point, &lifetime_minimum, &lifetime_maximum)) {
                     particle_active[index] = 0;
                     update_flags |= W8_PARTICLE_ACTIVE_TRIANGLES_DIRTY;
                     --active_particle_count;
@@ -717,12 +717,12 @@ void stParticle::Update()
 // FUNCTION: WIZ8 0x0049A990
 void stParticle::InitializeParticlePosition(srVector3T<float>* output)
 {
-    output->x =
-        (maximum0.x - minimum0.x) * (rand() & 0x7fff) * g_float_005ec438 + minimum0.x;
-    output->y =
-        (maximum0.y - minimum0.y) * (rand() & 0x7fff) * g_float_005ec438 + minimum0.y;
-    output->z =
-        (maximum0.z - minimum0.z) * (rand() & 0x7fff) * g_float_005ec438 + minimum0.z;
+    output->x = (emission_maximum.x - emission_minimum.x) * (rand() & 0x7fff) * g_float_005ec438 +
+                emission_minimum.x;
+    output->y = (emission_maximum.y - emission_minimum.y) * (rand() & 0x7fff) * g_float_005ec438 +
+                emission_minimum.y;
+    output->z = (emission_maximum.z - emission_minimum.z) * (rand() & 0x7fff) * g_float_005ec438 +
+                emission_minimum.z;
 
     *output *= size_scale;
 
@@ -924,8 +924,8 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
 
     if (bounds_mode == W8_PARTICLE_BOUNDS_BOX) {
         getRotation(rotation);
-        srVector3T<float> minimum = rotation.Transform(minimum1) + position;
-        srVector3T<float> maximum = rotation.Transform(maximum1) + position;
+        srVector3T<float> minimum = rotation.Transform(lifetime_minimum) + position;
+        srVector3T<float> maximum = rotation.Transform(lifetime_maximum) + position;
 
         srGERD::e_visibility visibility = renderer->testBoundingBox(minimum, maximum);
         if (visibility == srGERD::VISIBILITY_OUTSIDE) {

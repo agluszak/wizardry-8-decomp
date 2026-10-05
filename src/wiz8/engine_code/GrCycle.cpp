@@ -79,7 +79,7 @@ W8CameraShakeEffect::W8CameraShakeEffect(const W8CameraShakeEffect& other)
       frame(other.frame), subcycle(other.subcycle),
       completion_callback(other.completion_callback)
 {
-    flags &= ~1u;
+    flags &= ~W8_SHAKE_ACTIVE;
 }
 
 /* The first effect built also builds the shared live list and its timer; every
@@ -98,7 +98,7 @@ W8CameraShakeEffect::W8CameraShakeEffect(float duration, bool preset, float inte
         g_shake_timer->Restart();
     }
     if (preset) {
-        flags |= 0x1c;
+        flags |= (W8_SHAKE_LIMIT_DISTANCE | W8_SHAKE_QUADRATIC_FALLOFF | W8_SHAKE_FADE_OUT);
     }
     if (position != 0) {
         this->position = *position;
@@ -115,7 +115,7 @@ W8CameraShakeEffect* CreateCameraShakeEffect(float duration, bool preset, float 
     W8CameraShakeEffect* effect =
         new W8CameraShakeEffect(duration, preset, intensity, distance_cap, position);
 
-    effect->flags |= 3;
+    effect->flags |= (W8_SHAKE_ACTIVE | W8_SHAKE_LIST_OWNS);
     effect->timer.Restart();
     g_shake_effects->Add(effect);
     return effect;
@@ -134,11 +134,11 @@ void TriggerShakeEffects(W8GrowableVector<W8CameraShakeEffect*>* effects, int cy
 
         if (effect->cycle == cycle && effect->frame == static_cast<int>(frame) &&
             effect->subcycle == subcycle) {
-            if ((effect->flags & 1) == 0) {
+            if ((effect->flags & W8_SHAKE_ACTIVE) == 0) {
                 g_shake_effects->Add(effect);
             }
             effect->position = *position;
-            effect->flags |= 1;
+            effect->flags |= W8_SHAKE_ACTIVE;
             effect->timer.Restart();
         }
     }
@@ -155,13 +155,13 @@ void StopShakeEffects(W8GrowableVector<W8CameraShakeEffect*>* effects)
     for (index = 0; index < effects->GetCount(); ++index) {
         W8CameraShakeEffect* effect = *effects->GetAt(index);
 
-        if ((effect->flags & 1) != 0) {
+        if ((effect->flags & W8_SHAKE_ACTIVE) != 0) {
             unsigned int flags;
 
             g_shake_effects->Remove(effect);
             flags = effect->flags;
-            effect->flags = flags & ~1u;
-            if ((flags >> 1 & 1) != 0 && effect != 0) {
+            effect->flags = flags & ~W8_SHAKE_ACTIVE;
+            if ((flags & W8_SHAKE_LIST_OWNS) != 0 && effect != 0) {
                 delete effect;
             }
         }
@@ -190,11 +190,11 @@ void UpdateShakeEffects()
             if (effect->Evaluate(&camera, &amount) == 0) {
                 g_shake_effects->RemoveAt(index);
                 --index;
-                effect->flags &= ~1u;
+                effect->flags &= ~W8_SHAKE_ACTIVE;
                 if (effect->completion_callback != 0) {
                     effect->completion_callback();
                 }
-                if ((effect->flags >> 1 & 1) != 0 && effect != 0) {
+                if ((effect->flags & W8_SHAKE_LIST_OWNS) != 0 && effect != 0) {
                     delete effect;
                 }
             } else {
@@ -224,14 +224,14 @@ unsigned char W8CameraShakeEffect::Evaluate(const srVector3T<float>* position, f
     if (g_float_one <= progress) {
         return 0;
     }
-    if ((flags >> 2 & 1) != 0) {
+    if ((flags & W8_SHAKE_LIMIT_DISTANCE) != 0) {
         float dx = this->position.x - position->x;
         float dy = this->position.y - position->y;
         float dz = this->position.z - position->z;
         float distance = sqrtf(dx * dx + dy * dy + dz * dz);
         if (distance_cap < distance) {
             *out_amount = 0.0f;
-        } else if ((flags >> 3 & 1) != 0) {
+        } else if ((flags & W8_SHAKE_QUADRATIC_FALLOFF) != 0) {
             float weight = distance / distance_cap - g_float_one;
             *out_amount = weight * weight;
         } else {
@@ -240,11 +240,11 @@ unsigned char W8CameraShakeEffect::Evaluate(const srVector3T<float>* position, f
     } else {
         *out_amount = 1.0f;
     }
-    if ((flags >> 4 & 1) != 0) {
+    if ((flags & W8_SHAKE_FADE_OUT) != 0) {
         *out_amount = (g_float_one - progress) * *out_amount;
         return 1;
     }
-    if ((flags >> 5 & 1) != 0) {
+    if ((flags & W8_SHAKE_FADE_IN) != 0) {
         *out_amount = progress * *out_amount;
     }
     return 1;

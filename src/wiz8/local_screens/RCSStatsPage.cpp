@@ -172,15 +172,15 @@ W8CampStatsControls::W8CampStatsControls()
 {
     AcquireRegionSet(&g_camp_stats_controls_region_set);
     m_buttons[0] = new W8TextControl(this, -1, 0x13c, 0xbe, 0, 0, 0x145, 0, 0, 1, 2, 4, 3);
-    m_buttons[0]->AddLayoutFlags(g_W8TextControlMask | g_W8TextControlLayoutToggle);
+    m_buttons[0]->AddLayoutFlags(g_W8TextControlLayoutLatchedImage | g_W8TextControlLayoutToggle);
     m_buttons[0]->m_listener = this;
     m_buttons[0]->EnableRegionHelp(0x954);
     m_buttons[1] = new W8TextControl(this, -1, 0x13c, 0xd6, 0, 0, 0x145, 0, 5, 6, 7, 9, 8);
-    m_buttons[1]->AddLayoutFlags(g_W8TextControlMask | g_W8TextControlLayoutToggle);
+    m_buttons[1]->AddLayoutFlags(g_W8TextControlLayoutLatchedImage | g_W8TextControlLayoutToggle);
     m_buttons[1]->m_listener = this;
     m_buttons[1]->EnableRegionHelp(0x955);
     m_buttons[2] = new W8TextControl(this, -1, 0x13c, 0xf3, 0, 0, 0x145, 0, 10, 15, 12, 17, 13);
-    m_buttons[2]->AddLayoutFlags(g_W8TextControlMask | g_W8TextControlLayoutToggle);
+    m_buttons[2]->AddLayoutFlags(g_W8TextControlLayoutLatchedImage | g_W8TextControlLayoutToggle);
     m_buttons[2]->m_listener = this;
     m_buttons[2]->EnableRegionHelp(0x956);
     if (g_camp_screen->effect_items_only) {

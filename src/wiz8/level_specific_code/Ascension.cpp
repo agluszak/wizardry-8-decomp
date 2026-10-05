@@ -209,9 +209,9 @@ void AscensionLandShaker(int command)
         g_avalanche_gate = new W8IntervalGate(1.0f, false, true);
         return;
     }
-    if (g_avalanche_gate->IsFinished() == 0) {
+    if (!g_avalanche_gate->IsFinished()) {
         g_avalanche_gate->PollElapsedIntervals();
-        if (g_avalanche_gate->IsFinished() == 0) {
+        if (!g_avalanche_gate->IsFinished()) {
             return;
         }
     }

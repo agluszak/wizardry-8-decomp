@@ -568,7 +568,7 @@ static bool LockDeviceCase(RuntimeCase& test)
 
 static bool SearchModeInvariant(void*)
 {
-    return RunSearchModeSemanticTest() != 0;
+    return RunSearchModeSemanticTest();
 }
 
 static bool SearchModeCase(RuntimeCase& test)
@@ -579,7 +579,7 @@ static bool SearchModeCase(RuntimeCase& test)
 
 static bool MonGenInvariant(void*)
 {
-    return RunMonGenSemanticTest() != 0;
+    return RunMonGenSemanticTest();
 }
 
 static bool MonGenCase(RuntimeCase& test)

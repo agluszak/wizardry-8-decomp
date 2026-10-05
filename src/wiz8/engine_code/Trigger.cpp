@@ -963,13 +963,13 @@ void W8TriggerShakeEvent::Update()
             intensity = g_float_one;
         }
         effect = CreateCameraShakeEffect(m_pCountdown->m_duration_seconds, false, intensity, 0, 0);
-        effect->flags &= ~2;
+        effect->flags &= ~W8_SHAKE_LIST_OWNS;
         if (reverse) {
-            effect->flags |= 0x10;
+            effect->flags |= W8_SHAKE_FADE_OUT;
         }
     }
 
-    if ((effect->flags & 1) == 0) {
+    if ((effect->flags & W8_SHAKE_ACTIVE) == 0) {
         delete effect;
         effect = 0;
         if (trigger != 0) {
@@ -1142,17 +1142,18 @@ void W8TriggerEvent::Update()
         unsigned short flags = timer.m_flags;
 
         if (g_combat_inactive == 0) {
-            if ((flags & 8) != 0 || (g_shared_timer_paused && (flags & 1) == 0) ||
+            if ((flags & W8_TIMER_PAUSED) != 0 ||
+                (g_shared_timer_paused && (flags & W8_TIMER_RAW_TIME) == 0) ||
                 g_shared_timer_flag0) {
                 return;
             }
-            timer.m_flags = flags | 8;
+            timer.m_flags = flags | W8_TIMER_PAUSED;
             timer.m_start = timer.GetTime() - timer.m_start;
             return;
         }
-        if ((flags & 8) != 0 || (g_shared_timer_paused && (flags & 1) == 0) ||
-            g_shared_timer_flag0) {
-            timer.m_flags = flags & ~8;
+        if ((flags & W8_TIMER_PAUSED) != 0 ||
+            (g_shared_timer_paused && (flags & W8_TIMER_RAW_TIME) == 0) || g_shared_timer_flag0) {
+            timer.m_flags = flags & ~W8_TIMER_PAUSED;
             timer.m_start = timer.GetTime() - timer.m_start;
             timer.SetDuration(-1.0f);
         }

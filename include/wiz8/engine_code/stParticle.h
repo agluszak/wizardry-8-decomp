@@ -108,8 +108,8 @@ public:
     unsigned int emission_interval;
     /* Lifetime added to each absolute unsigned birth tick. */
     unsigned int lifetime_ms;
-    srVector3T<float> minimum0;
-    srVector3T<float> maximum0;
+    srVector3T<float> emission_minimum;
+    srVector3T<float> emission_maximum;
     srVector3T<float> direction;
     srVector3T<float> acceleration;
     float flutter_amplitude;
@@ -120,8 +120,8 @@ public:
     float initial_speed;
     float speed_min;
     float speed_max;
-    srVector3T<float> minimum1;
-    srVector3T<float> maximum1;
+    srVector3T<float> lifetime_minimum;
+    srVector3T<float> lifetime_maximum;
     srVector3T<float> bounds_origin;
     float bounds_radius;
     /* Added to the camera position when camera_relative selects camera-relative

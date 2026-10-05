@@ -495,8 +495,8 @@ struct W8LevelParticleRecord {
     srVector3T<float> rotation_axis;    /* 0x050 */
     unsigned char positional[0x0c]; /* 0x05c */
     unsigned int particle_count;        /* 0x068 */
-    /* 0x06c-0x074: emission spread extents; x/y bound both minimum0
-       and maximum0 symmetrically, z only the maximum. */
+    /* 0x06c-0x074: emission spread extents; x/y bound both emission_minimum
+       and emission_maximum symmetrically, z only the maximum. */
     srVector3T<float> spread;
     int has_acceleration;            /* 0x078 */
     srVector3T<float> acceleration;  /* 0x07c */

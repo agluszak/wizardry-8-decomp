@@ -117,7 +117,7 @@ bool MtGigas1PressurePlate(Trigger* pTrigger)
     g_plate_contact = false;
     if ((position.x >= minimum.x && position.x <= maximum.x && position.z >= minimum.z &&
          position.z <= maximum.z) ||
-        g_plate_prop->HasSupportedItems() != 0) {
+        g_plate_prop->HasSupportedItems()) {
         g_plate_contact = true;
         if (g_plate_down) {
             return false;

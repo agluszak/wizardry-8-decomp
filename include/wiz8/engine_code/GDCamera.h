@@ -18,6 +18,17 @@ static_assert(sizeof(srMatrix3T<float>) == 0x24, "srMatrix3T_float_must_be_0x24"
    constructor allocation proves the complete 0xC0-byte extent. Positional
    members remain named by offset until consumers establish their original
    roles. */
+/* Camera controller flags; keep combinations in the original unsigned long. */
+enum W8CameraOrientationFlag {
+    W8_CAMERA_MANUAL_INPUT = 0x01UL,
+    W8_CAMERA_PITCH_LOWER_LIMIT = 0x04UL,
+    W8_CAMERA_PITCH_UPPER_LIMIT = 0x08UL,
+    W8_CAMERA_BRAKING_PITCH = 0x10UL,
+    W8_CAMERA_LEVELING = 0x20UL,
+    W8_CAMERA_YAW_MOVING = 0x40UL,
+    W8_CAMERA_ORIENTATION_SNAPPED = 0x80UL
+};
+
 class GDCamera {
 public:
     GDCamera(); /* 0x00476140 */
@@ -45,10 +56,7 @@ public:
     void GetForwardPoint(float distance, srVector3T<float>* output); /* 0x00478CE0 */
     void SetManualControlActive(bool enabled);              /* 0x00478E00 */
 
-    /* 0x000: camera state bits: bit0 manual-input control latch, bit5
-       orientation-transition keep, bit6 level-movement audio, bit7
-       orientation snapped (renderer marked ready next update). */
-    unsigned long m_state;
+    unsigned long m_orientation_flags;
     float m_yaw;                        /* 0x004 */
     float m_pitch;                      /* 0x008 */
     srMatrix3T<float> m_pitch_rotation; /* 0x00c */
@@ -60,13 +68,13 @@ public:
     bool m_forced_transition;  /* 0x089 */
     unsigned char m_padding_08a[2];
     srVector3T<float> m_position;     /* 0x08c */
-    float m_target_angle;             /* 0x098 */
+    float m_target_yaw;               /* 0x098 */
     float m_target_pitch;             /* 0x09c */
-    float m_start_angle;              /* 0x0a0 */
+    float m_start_yaw;                /* 0x0a0 */
     float m_start_pitch;              /* 0x0a4 */
-    float m_angle_velocity;           /* 0x0a8 */
+    float m_yaw_velocity;             /* 0x0a8 */
     float m_pitch_velocity;           /* 0x0ac */
-    float m_angle_distance;           /* 0x0b0 */
+    float m_yaw_distance;             /* 0x0b0 */
     float m_pitch_distance;           /* 0x0b4 */
     float m_transition_duration;      /* 0x0b8 */
     W8IntervalGate* m_manual_input_timer; /* 0x0bc */
