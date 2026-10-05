@@ -27,7 +27,7 @@ class W8Monster;
 
 struct W8MonsterRep;
 
-enum { W8_MONSTER_CYCLE_COUNT = 27 };
+#include "wiz8/monster_cycles.h"
 
 /* W8Monster::flags1 bits, named from their recovered readers and writers:
    - KEEP_FRAME_DIRECTION: the next SetCycle keeps the queued frame direction
@@ -378,7 +378,7 @@ public:
     W8GrowableVector<int> values;
 };
 
-int ParseMonsterCycleName(const char* name, signed char* subcycle = 0);
+W8MonsterCycle ParseMonsterCycleName(const char* name, signed char* subcycle = 0);
 unsigned char ReadOrCloneMonsterCycles(const W8GrCycleLoadContext* context,
                                        const char* monster_name, W8Monster** monster,
                                        int load_value, int location_id);

@@ -1,4 +1,6 @@
 #pragma once
+
+#include "wiz8/engine_code/Quality.h"
 #include "wiz8/mgs_commands.h"
 #include "wiz8/layouts/screen_state.h"
 
@@ -67,7 +69,7 @@ static_assert(sizeof(W8OptionsSaveRow) == 0xc4, "W8OptionsSaveRow_size");
 struct W8OptionsValues {
     void TransferSettings();
     void TransferByte(int* value, unsigned char* setting);
-    void TransferRenderOption(int* value, int option);
+    void TransferRenderOption(int* value, W8RenderOption option);
 
     int mouselook_toggle;
     int mouselook_smoothing;

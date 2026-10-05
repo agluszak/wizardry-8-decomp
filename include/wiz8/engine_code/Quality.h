@@ -43,12 +43,12 @@ extern W8RenderQuality* g_render_options;
 
 void InitializeRenderQuality(void);
 void DestroyRenderQuality(void);
-void SetRenderOption(int option, int enabled);
-void EnableRenderOption(int option);
-void DisableRenderOption(int option);
+void SetRenderOption(W8RenderOption option, int enabled);
+void EnableRenderOption(W8RenderOption option);
+void DisableRenderOption(W8RenderOption option);
 void DisableAllRenderOptions(void);
 void EnableAllRenderOptions(void);
-unsigned char GetRenderOptionState(int option);
+unsigned char GetRenderOptionState(W8RenderOption option);
 unsigned char LoadRenderOptions(int handle);
 bool SaveRenderOptions(int handle);
 

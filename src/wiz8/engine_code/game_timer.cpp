@@ -47,7 +47,7 @@ void PauseSharedGameTimers(void)
     if (g_game_time_accumulator != 0 && (g_game_time_accumulator->m_flags & 8) == 0) {
         unsigned short flags = g_game_time_accumulator->m_flags;
         g_game_time_accumulator->m_flags = flags | 8;
-        if (g_game_time_accumulator->m_clock_mode != 1) {
+        if (g_game_time_accumulator->m_clock_mode != W8_TIMER_CLOCK_GAME) {
             if ((flags & 1) != 0) {
                 g_game_time_accumulator->m_start =
                     g_game_time_accumulator->m_shared->getUTime(srTimer::TIMER_READ_DEFAULT) -
@@ -123,7 +123,7 @@ int W8GameTimer::GetTime()
 // FUNCTION: WIZ8 0x00439550
 W8GameTimer::W8GameTimer()
 {
-    m_clock_mode = 0;
+    m_clock_mode = W8_TIMER_CLOCK_SHARED;
     m_flags = 0;
     m_shared = 0;
     m_start = 0;
@@ -176,7 +176,7 @@ W8GameTimer::W8GameTimer()
 // FUNCTION: WIZ8 0x004397f0
 W8GameTimer::W8GameTimer(float duration, unsigned char raw_time)
 {
-    m_clock_mode = 0;
+    m_clock_mode = W8_TIMER_CLOCK_SHARED;
     m_flags = raw_time ? 1 : 0;
     m_shared = 0;
     m_start = 0;
@@ -216,7 +216,7 @@ void W8GameTimer::SetDuration(float duration)
 }
 
 // FUNCTION: WIZ8 0x00439ad0
-void W8GameTimer::SetMode(int mode)
+void W8GameTimer::SetMode(W8TimerClock mode)
 {
     m_clock_mode = mode;
     Restart();

@@ -800,7 +800,6 @@ void UpdateAllMonsterAI(void)
 }
 
 /* The cycle a monster must have to cast at all. */
-enum { W8_MONSTER_CYCLE_SPELL = 0x19 };
 
 /* Reported once, so a monster missing its spell cycle does not flood the log. */
 // GLOBAL: WIZ8 0x0068d524

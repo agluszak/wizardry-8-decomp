@@ -538,10 +538,10 @@ void ResetGameplaySettings(void)
     g_settings.simplified_npc_interaction = 1;
     EnableAllRenderOptions();
     if (GetTotalPhysicalMemory() <= 0x4000000) {
-        DisableRenderOption(0xb);
-        DisableRenderOption(0xc);
+        DisableRenderOption(W8_RENDER_OPTION_HIGH_TEXTURE_DETAIL);
+        DisableRenderOption(W8_RENDER_OPTION_HIGH_TEXTURE_CACHE);
     }
     if (GetRendererFamily() != 1) {
-        DisableRenderOption(0x10);
+        DisableRenderOption(W8_RENDER_OPTION_CORRECT_BLURRED_TEXT);
     }
 }

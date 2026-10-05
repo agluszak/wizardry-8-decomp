@@ -1110,7 +1110,7 @@ void W8OptionsAudioPanel::Populate()
             }
             break;
         case 2:
-            if (GetRenderOptionState(15) == 0) {
+            if (GetRenderOptionState(static_cast<W8RenderOption>(15)) == 0) {
                 muted = true;
             }
             volume = g_settings.footstep_volume;
@@ -1222,9 +1222,9 @@ void W8OptionsAudioPanel::OnPrimary(W8TextControl* control)
         break;
     case 2:
         if (muted != 0) {
-            DisableRenderOption(15);
+            DisableRenderOption(static_cast<W8RenderOption>(15));
         } else {
-            EnableRenderOption(15);
+            EnableRenderOption(static_cast<W8RenderOption>(15));
         }
         break;
     case 3:
@@ -1498,7 +1498,7 @@ void W8OptionsValues::TransferByte(int* value, unsigned char* setting)
 }
 
 // FUNCTION: WIZ8 0x005a7320
-void W8OptionsValues::TransferRenderOption(int* value, int option)
+void W8OptionsValues::TransferRenderOption(int* value, W8RenderOption option)
 {
     if (applying == 0) {
         *value = GetRenderOptionState(option);
@@ -1552,15 +1552,15 @@ void W8OptionsValues::TransferSettings()
     } else {
         g_settings.difficulty = static_cast<W8Difficulty>(difficulty);
     }
-    TransferRenderOption(&render_options[0], 4);
-    TransferRenderOption(&render_options[1], 9);
-    TransferRenderOption(&render_options[2], 5);
-    TransferRenderOption(&render_options[3], 10);
-    TransferRenderOption(&render_options[4], 13);
-    TransferRenderOption(&render_options[5], 14);
-    TransferRenderOption(&render_options[6], 11);
-    TransferRenderOption(&render_options[7], 12);
-    TransferRenderOption(&render_options[8], 16);
+    TransferRenderOption(&render_options[0], W8_RENDER_OPTION_MIP_MAPPING);
+    TransferRenderOption(&render_options[1], W8_RENDER_OPTION_MISSILE_LIGHTS);
+    TransferRenderOption(&render_options[2], W8_RENDER_OPTION_DITHER);
+    TransferRenderOption(&render_options[3], W8_RENDER_OPTION_MESH_SKY);
+    TransferRenderOption(&render_options[4], W8_RENDER_OPTION_VIDEO_SYNC);
+    TransferRenderOption(&render_options[5], W8_RENDER_OPTION_ADDITIONAL_ANIMATIONS);
+    TransferRenderOption(&render_options[6], W8_RENDER_OPTION_HIGH_TEXTURE_DETAIL);
+    TransferRenderOption(&render_options[7], W8_RENDER_OPTION_HIGH_TEXTURE_CACHE);
+    TransferRenderOption(&render_options[8], W8_RENDER_OPTION_CORRECT_BLURRED_TEXT);
     TransferByte(&monster_shadows, &g_settings.monster_shadows);
     TransferByte(&smooth_monster_animations, &g_settings.smooth_monster_animations);
     TransferByte(&smooth_world_animations, &g_settings.smooth_world_animations);
