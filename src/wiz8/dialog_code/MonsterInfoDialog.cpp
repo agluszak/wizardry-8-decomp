@@ -376,7 +376,7 @@ unsigned char W8MonsterInfoDialog::PopulateText()
                     if (count > 0) {
                         wcscat(text, g_comma_space);
                     }
-                    wcscat(text, gppStringList[g_damage_type_name_ids[index]]);
+                    wcscat(text, gppStringList[g_attack_effect_name_ids[index]]);
                     ++count;
                     any_shown = true;
                 }

@@ -1,6 +1,7 @@
 #ifndef WIZ8_LOCAL_CODE_SPELL_EFFECT_H
 #define WIZ8_LOCAL_CODE_SPELL_EFFECT_H
 
+#include "wiz8/attack_modes.h"
 #include "wiz8/dice.h"
 #include "wiz8/layouts/character.h"
 #include "wiz8/layouts/targeting.h"
@@ -46,7 +47,7 @@ struct W8SpellEffectDefinition {
     W8Dice magnitude; /* 0x04 */
     /* 0x08: the percentage chance of each condition the effect can inflict,
        rolled by ApplyEffectConditions. */
-    unsigned char condition_chances[0x10];
+    unsigned char condition_chances[W8_ATTACK_EFFECT_COUNT];
     int power_level; /* 0x18 */
     /* 0x1c: flat base added to the effect dice (SetDice's `base`); sourced
        from the attack's missile_magnitude, the item's missile_magnitude, or

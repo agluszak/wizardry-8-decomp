@@ -324,7 +324,7 @@ unsigned char W8AssayDialog::PopulateText()
                 } else if (wcslen(g_assay_entry_text) + 1 + wcslen(g_comma_space) < 0x101) {
                     wcscat(g_assay_entry_text, g_comma_space);
                 }
-                text = gppStringList[g_damage_type_name_ids[index]];
+                text = gppStringList[g_attack_effect_name_ids[index]];
                 if (wcslen(text) + 1 + wcslen(g_assay_entry_text) < 0x101) {
                     wcscat(g_assay_entry_text, text);
                 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "wiz8/attack_modes.h"
 #include "wiz8/dice.h"
 
 struct W8CombatSlot;
@@ -25,9 +26,9 @@ extern unsigned short g_pc_hit_location_labels[5][2];
 extern unsigned short g_monster_hit_location_labels[W8_MONSTER_HIT_LOCATIONS]
                                                          [W8_MONSTER_BODY_TYPES];
 
-/* 0x0061E9CC: gppStringList indices naming the sixteen damage channels the
+/* 0x0061E9CC: gppStringList indices naming the sixteen secondary hit effects the
    missile_values arrays on monster attacks and item records carry. */
-extern unsigned short g_damage_type_name_ids[0x10];
+extern unsigned short g_attack_effect_name_ids[W8_ATTACK_EFFECT_COUNT];
 /* Paired label ids for the nine W8ItemDatabaseRecord::attack_flags bits;
    AssayDialog reads the first of each pair, combat logging the second. */
 extern unsigned short g_attack_flag_name_ids[9][2];
@@ -54,7 +55,7 @@ void ResolveMissileHit(W8Missile* missile, bool deflected);
 void ResolveSpellMissileHit(W8Missile* missile);
 /* 0x00542FC0: the armour class a hit at one location must beat, for the
    attack mode used. */
-int TargetArmorClassAtLocation(W8CombatSlot* target, int attack_mode, int hit_location);
+int TargetArmorClassAtLocation(W8CombatSlot* target, W8AttackMode attack_mode, int hit_location);
 /* 0x00543270: roll the effect definition's condition chances against the
    target and apply the ones that take, reporting into `result` when one is
    given. */
@@ -106,7 +107,7 @@ int GetCharacterHandDamageBonus(const W8Character* character, int hand);
 
 int GetHandAttackValue(int party_slot, unsigned int hand);
 int NormalizeAttackMode(int attack_mode);
-unsigned int ChooseAttackMode(unsigned int attack_modes);
+W8AttackMode ChooseAttackMode(unsigned int attack_modes);
 
 /* 0x005459B0: how much of a hit a monster actually takes - its own adjustment
    and the record's reduction add, the remainder is taken as a percentage
@@ -119,22 +120,23 @@ int ApplyCharacterDamageReduction(W8Character* character, int damage);
 
 int ChooseCharacterAttackHand(int party_slot);                                   /* 0x0053D390 */
 void PrepareCharacterAttacks(int party_slot);                                    /* 0x0053D680 */
-int GetTargetArmorClassModifier(W8CombatSlot* target, unsigned int attack_mode); /* 0x005468D0 */
-unsigned int CharChooseHandAttackMode(W8Character* character, int hand);         /* 0x00542CA0 */
+int GetTargetArmorClassModifier(W8CombatSlot* target, W8AttackMode attack_mode); /* 0x005468D0 */
+W8AttackMode CharChooseHandAttackMode(W8Character* character, int hand);         /* 0x00542CA0 */
 wchar_t* SpellTargetString(W8TargetSource* source, W8CombatSlot* target);        /* 0x00546B40 */
-int GetTargetArmorClass(W8CombatSlot* target, int attack_mode);                  /* 0x00542EE0 */
+int GetTargetArmorClass(W8CombatSlot* target, W8AttackMode attack_mode);         /* 0x00542EE0 */
 bool BlockedForSpecialReason(int weapon_class, W8CombatSlot* target, int attack_value,
                                       int armor_value, unsigned int palette);  /* 0x00543110 */
 unsigned int CapAttackDamageByTargetHealth(unsigned int damage);               /* 0x00545A00 */
-void StartMonsterAttackCycle(W8MonsterInfo* monster_info, int action_detail);  /* 0x0053FFE0 */
+void StartMonsterAttackCycle(W8MonsterInfo* monster_info,
+                             W8AttackMode action_detail);                      /* 0x0053FFE0 */
 void ReportCharacterAttackResult(int party_slot, W8SpellEffectResult* report); /* 0x0053FB00 */
 void ReportMonsterAttackResult(W8MonsterInfo* monster_info,
                                W8SpellEffectResult* report); /* 0x005412B0 */
 /* 0x00542720: the monster side of the attack-score pipeline - the attack's
    own score plus modifier, mode, surprise, armour and attribute terms; arg_4
    selects the fumble-redirect variant. */
-int GetMonsterAttackScore(W8MonsterInfo* monster_info, W8MonsterAttack* attack, int attack_mode,
-                          char arg_4);
+int GetMonsterAttackScore(W8MonsterInfo* monster_info, W8MonsterAttack* attack,
+                          W8AttackMode attack_mode, char arg_4);
 /* 0x00542960: roll the running monster attack's damage dice and reduce them
    by the target's damage reduction, reporting the dice count. */
 int ResolveMonsterAttackDamage(W8MonsterInfo* monster_info, W8MonsterAttack* attack,
@@ -166,7 +168,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record);
 /* Start one of the character's attacks for the round: validates the hand and
    target, rolls the swings, announces the attack and dispatches the missile or
    melee event. */
-char StartCharacterAttack(int party_slot, int attack_mode); /* 0x0053D870 */
+char StartCharacterAttack(int party_slot, W8AttackMode attack_mode); /* 0x0053D870 */
 /* 0x0053E250: resolve one of the character's queued swings - plays the
    attack sound on the first pass, rolls fumble redirection and guardian
    interception, picks the hit location, rolls penetration, applies damage

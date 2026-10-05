@@ -649,7 +649,7 @@ void DrawCampEffectEntry(W8CampEffectEntry* entry, int* line_out)
         for (index = 0; index < 0x10; ++index) {
             if (record->missile_values[index] != 0) {
                 wcscpy(g_camp_screen->caption, &g_empty_wide_string);
-                wcscat(g_camp_screen->caption, gppStringList[g_damage_type_name_ids[index]]);
+                wcscat(g_camp_screen->caption, gppStringList[g_attack_effect_name_ids[index]]);
                 wcscat(g_camp_screen->caption, L" ");
                 swprintf(value_text, g_format_d_percent, record->missile_values[index]);
                 wcscat(g_camp_screen->caption, value_text);
