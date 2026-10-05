@@ -129,7 +129,8 @@ from source changes in reported results.
   Direct tail-only callees now participate in binary-derived parameter inference;
   focused, larger and repeated-state native fixtures recover the ECX argument.
   This fixes a demonstrated preparation gap; the full #877 portrait result still
-  needs CI comparison. Fork revision: reccmp `ee66e5b5`; 79 focused tests passed,
+  needs CI comparison. Fork revisions: reccmp `ee66e5b5`, then `b6268d6a` fixing
+  the CI-discovered absent recomp address in unpaired-row warning collection; 79 focused tests passed,
   including six native Ghidra cases, and focused typing/lint checks passed.
 - Batch 3: started with a prerequisite for the new result format. CI freezes the
   head comparison package before adopting baseline source and passes the product
