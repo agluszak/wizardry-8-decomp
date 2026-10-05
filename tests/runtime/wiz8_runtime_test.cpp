@@ -364,7 +364,7 @@ static void ResetNpcStateOnGameThread(void* opaque)
     context->result =
         g_npc_scripting.message_lines.GetCount() == 0 &&
                 g_npc_scripting.pending_script_values.GetCount() == 0 &&
-                g_npc_scripting.restore_staged_session == 0 && g_npc_scripting.voice_handle == 0 &&
+                !g_npc_scripting.restore_staged_session && g_npc_scripting.voice_handle == 0 &&
                 g_npc_scripting.staging_restore.current_quote_index == 0 &&
                 g_npc_scripting.gap_track.mouth_open == 0 && g_npc_scripting.last_tick == 0
             ? 1
@@ -908,7 +908,7 @@ static void CheckVoiceCompletionOnGameThread(void* opaque)
     result->playing = SoundIsPlaying(result->sound_handle) != 0;
     result->event_active = record->active_character_event != 0;
     result->event_queued = gXStatus.character_event_queue->active_events.IndexOf(result->event) >= 0;
-    result->portrait_active = record->portrait_event_active != 0;
+    result->portrait_active = record->portrait_event_active;
 }
 
 static bool VoicePortraitSyncCase(RuntimeCase& test)

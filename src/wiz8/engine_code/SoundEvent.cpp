@@ -27,7 +27,7 @@ W8SoundEvent::~W8SoundEvent()
     if (m_pacWaveName != 0) {
         delete[] m_pacWaveName;
     }
-    if (looping != 0 && sound_handle != -1) {
+    if (looping && sound_handle != -1) {
         SoundStop(sound_handle);
     }
 }
@@ -165,7 +165,7 @@ unsigned char W8SoundEvent::Play(unsigned int mask, const srVector3T<float>* pos
             track_sound = true;
             if (location_id != 0) {
                 monster = GetMonsterByLocationID(location_id);
-                if (gXStatus.fCombatMode != 0 || monster->nearest_to_party != 0) {
+                if (gXStatus.fCombatMode || monster->nearest_to_party != 0) {
                     base_volume = footstep_combat_volume;
                 }
             }
@@ -198,7 +198,7 @@ unsigned char W8SoundEvent::Play(unsigned int mask, const srVector3T<float>* pos
         event_volume = (GetSoundEffectsVolume() * event_volume) / 0x7f;
         if (event_volume != 0) {
             options.uiVolume = event_volume;
-            options.uiLoop = (looping == 0);
+            options.uiLoop = (!looping);
             options.Pos.flX = x;
             options.Pos.flY = y;
             options.Pos.flZ = z;

@@ -53,12 +53,12 @@ void RebuildPartyEffectBlock(void)
 {
     memset(&g_status.party_modifiers, 0, sizeof(W8GameplayModifierBlock));
     ApplyPartyEffectSlots(g_status.effect_slots, &g_status.party_modifiers);
-    if (gXStatus.fCombatMode != 0) {
+    if (gXStatus.fCombatMode) {
         unsigned char value = g_status.party_modifiers.armor_matchup;
 
         for (int index = 0; index < 9; ++index) {
             W8EffectSlot* slot = &g_combat_state->effect_slots[index];
-            if (slot->active != 0 && slot->effect_id == 0x31) {
+            if (slot->active && slot->effect_id == 0x31) {
                 value -= slot->amount;
                 g_status.party_modifiers.armor_matchup = value;
             }
@@ -69,7 +69,7 @@ void RebuildPartyEffectBlock(void)
     unsigned int slot_byte = 0;
     while (slot_byte <= 0x82f) {
         W8Character* character = &g_status.buffers.Char[active];
-        if (g_status.buffers.XChar[active].fOccupied != 0 && character->hp_current != 0 &&
+        if (g_status.buffers.XChar[active].fOccupied && character->hp_current != 0 &&
             character->highest_condition == W8_CONDITION_NONE &&
             CharacterHasTrait(character, W8_TRAIT_CAMP_RECOVERY_BONUS)) {
             break;
@@ -83,7 +83,7 @@ void RebuildPartyEffectBlock(void)
         g_status.party_modifiers.boost_spell_regen = 1;
     }
     for (int party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_status.buffers.XChar[party_slot].fOccupied != 0) {
+        if (g_status.buffers.XChar[party_slot].fOccupied) {
             W8Character* character = &g_status.buffers.Char[party_slot];
             RebuildCharacterModifierBlock(character);
             RecalculateCharacterDerivedStats(character);
@@ -210,7 +210,7 @@ void ApplyPartyEffectSlots(const W8EffectSlot* source, W8GameplayModifierBlock* 
     const W8EffectSlot* slot = source;
 
     for (int index = 0; index < 12; ++index, ++slot) {
-        if (slot->active != 0) {
+        if (slot->active) {
             unsigned char amount = static_cast<unsigned char>(slot->amount);
             unsigned int percent = slot->percent;
             unsigned char adjusted = amount;
@@ -262,7 +262,7 @@ void ApplyCombatEffectSlots(const W8EffectSlot* source, W8GameplayModifierBlock*
     const W8EffectSlot* slot = source;
 
     for (int index = 0; index < 6; ++index, ++slot) {
-        if (slot->active != 0) {
+        if (slot->active) {
             unsigned char adjusted;
             unsigned int percent = slot->percent;
 
@@ -300,7 +300,7 @@ void RebuildCharacterModifierBlock(W8Character* character)
     memset(&character->bonus, 0, sizeof(W8GameplayModifierBlock));
     ApplyModifierBlock(&character->bonus, &character->equipment_bonus);
     ApplyModifierBlock(&character->bonus, &character->condition_modifiers);
-    if (character->fInParty != 0) {
+    if (character->fInParty) {
         ApplyModifierBlock(&character->bonus, &g_status.party_modifiers);
     }
 }
@@ -360,10 +360,10 @@ void RebuildMonsterDerivedStats(int location_id)
                             modifiers);
     ApplyEnchantmentModifiers(monster_info->enchantments, modifiers);
     ApplyPartyEffectSlots(monster_info->effect_slots, modifiers);
-    if (monster_info->fInCombat != 0) {
+    if (monster_info->fInCombat) {
         W8EffectSlot* slot = monster_info->pCombat->combat_effects;
         for (int index = 9; index != 0; --index, ++slot) {
-            if (slot->active != 0 && slot->effect_id == 0x31) {
+            if (slot->active && slot->effect_id == 0x31) {
                 modifiers->armor_matchup -= slot->amount;
             }
         }

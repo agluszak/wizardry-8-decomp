@@ -561,7 +561,7 @@ void W8Prop::SetRepresentationActive(unsigned char active, bool update_animation
     }
 
     m_pTimer->Restart();
-    if (update_animation == 0) {
+    if (!update_animation) {
         return;
     }
 
@@ -618,10 +618,10 @@ void W8Prop::UpdatePropAnimation()
         }
         rep->pending_subcycle = 0xffff;
     }
-    if (static_cast<int>(total) < 2 || rep->animation_running != 0) {
+    if (static_cast<int>(total) < 2 || rep->animation_running) {
         return;
     }
-    if (rep->animation_playing == 0 && rep->random_play != 0 &&
+    if (rep->animation_playing == 0 && rep->random_play &&
         rand() * (1.0f / RAND_MAX) < rep->play_chance) {
         if (rep->frame_direction == W8_ANIMATION_FORWARD_COMPLETE) {
             rep->subcycle = rep->first_frame;

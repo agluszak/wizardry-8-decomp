@@ -145,11 +145,11 @@ int W8AssayDialog::CreateControls()
             return 7;
         }
         if (CreateTextBuffers() != 0) {
-            m_buttons[0]->SetVisible(gXStatus.assay_professions_tab != 0);
+            m_buttons[0]->SetVisible(gXStatus.assay_professions_tab);
             SetProfessionIconsVisible(gXStatus.assay_professions_tab);
-            m_buttons[1]->SetVisible(gXStatus.assay_professions_tab == 0);
-            SetRaceIconsVisible(gXStatus.assay_professions_tab == 0);
-            if (gXStatus.assay_professions_tab != 0) {
+            m_buttons[1]->SetVisible(!gXStatus.assay_professions_tab);
+            SetRaceIconsVisible(!gXStatus.assay_professions_tab);
+            if (gXStatus.assay_professions_tab) {
                 m_buttons[2]->SetPressed(true);
                 return 0;
             }
@@ -611,7 +611,7 @@ void W8AssayDialog::Draw()
     int index;
 
     if ((m_dirty_flags & 1) != 0) {
-        if (m_initialized == 0) {
+        if (!m_initialized) {
             CreateControls();
         }
         m_item_portrait_dirty = true;
@@ -625,7 +625,7 @@ void W8AssayDialog::Draw()
         }
         W8DialogBase::Draw();
     }
-    if (m_item_portrait_dirty != 0) {
+    if (m_item_portrait_dirty) {
         DrawCatalogImageAndInvalidate(-0xe,
                                       g_item_video_objects.GetOrCreateVideoObject(m_item->iItemNo),
                                       0, 0, m_x + 0x45, m_y + 0xe, 2, 0);

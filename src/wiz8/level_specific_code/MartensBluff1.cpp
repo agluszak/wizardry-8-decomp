@@ -123,7 +123,7 @@ bool MartensBluff1FHandlock(Trigger* pTrigger)
 {
     W8Dice dice;
 
-    if (pTrigger->running != 0) {
+    if (pTrigger->running) {
         return true;
     }
     if (g_status.item_in_cursor && GetItemInHand() == 0x26f) {
@@ -230,7 +230,7 @@ bool MartensBluff1JDoorController(Trigger* pTrigger)
     stParticle* particle;
     int state;
 
-    if (g_door_controller == 0 || pTrigger->running != 0) {
+    if (g_door_controller == 0 || pTrigger->running) {
         return false;
     }
     state = GetLocationVarValueByName("DialState");
@@ -291,7 +291,7 @@ bool MartensBluff1TransportSpawn(void)
     if (GetFact(W8_FACT_TRANG_TELEPORTER_TOAST)) {
         return false;
     }
-    if (gXStatus.fCombatMode != 0) {
+    if (gXStatus.fCombatMode) {
         return true;
     }
     if (!FindEntityByName("ANTRHACAX1", &position_a, 0, 0)) {
@@ -413,7 +413,7 @@ bool MartensBluff1Teleporter(Trigger* pTrigger)
 // FUNCTION: WIZ8 0x004DF540
 bool MartensBluff1ButtonGigas(Trigger* pTrigger)
 {
-    if (g_teleport_running == 0) {
+    if (!g_teleport_running) {
         return MartensBluff1TeleportState(1);
     }
     g_trigger_feedback = 1;
@@ -424,7 +424,7 @@ bool MartensBluff1ButtonGigas(Trigger* pTrigger)
 // FUNCTION: WIZ8 0x004DF560
 bool MartensBluff1ButtonTrang(Trigger* pTrigger)
 {
-    if (g_teleport_running == 0) {
+    if (!g_teleport_running) {
         return MartensBluff1TeleportState(2);
     }
     g_trigger_feedback = 1;
@@ -435,7 +435,7 @@ bool MartensBluff1ButtonTrang(Trigger* pTrigger)
 // FUNCTION: WIZ8 0x004DF580
 bool MartensBluff1ButtonRift(Trigger* pTrigger)
 {
-    if (g_teleport_running == 0) {
+    if (!g_teleport_running) {
         return MartensBluff1TeleportState(3);
     }
     g_trigger_feedback = 1;
@@ -446,7 +446,7 @@ bool MartensBluff1ButtonRift(Trigger* pTrigger)
 // FUNCTION: WIZ8 0x004DF5A0
 bool MartensBluff1ButtonMaten(Trigger* pTrigger)
 {
-    if (g_teleport_running == 0) {
+    if (!g_teleport_running) {
         return MartensBluff1TeleportState(4);
     }
     g_trigger_feedback = 1;

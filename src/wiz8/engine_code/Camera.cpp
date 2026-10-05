@@ -70,7 +70,7 @@ void UpdateCameraPathState(W8World* world, W8CameraPath* path, int active)
     float angle;
     float pitch;
 
-    if (path->active == 0 && active != 0) {
+    if (!path->active && active != 0) {
         g_camera_path_active = 1;
         path->active = 1;
         PathAISetValue(path->path, 0.0f);
@@ -80,7 +80,7 @@ void UpdateCameraPathState(W8World* world, W8CameraPath* path, int active)
         g_saved_environment_flag = SetEnvironmentLoadFlag(0);
         return;
     }
-    if (path->active == 0 || active != 0) {
+    if (!path->active || active != 0) {
         return;
     }
     g_camera_path_active = 0;
@@ -176,7 +176,7 @@ void PointCameraAtMonster(W8MonsterInfo* monster_info, bool force, bool animate)
         track = 1;
     } else {
         track = force;
-        if (track == 0 && g_settings.camera_rotation_mode != 1) {
+        if (!track && g_settings.camera_rotation_mode != 1) {
             return;
         }
     }
@@ -194,8 +194,8 @@ void PointCameraAtMonster(W8MonsterInfo* monster_info, bool force, bool animate)
         position = monster->movement.position;
         position.y += monster->movement.height_offset;
     }
-    if (track != 0) {
-        if (animate == 0) {
+    if (track) {
+        if (!animate) {
             CameraSnapToTarget(&position);
             return;
         }
@@ -227,8 +227,8 @@ void PointCameraAtTarget(srVector3T<float>* position, bool force, bool animate)
     float angle;
     float pitch;
 
-    if (force != 0) {
-        if (animate == 0) {
+    if (force) {
+        if (!animate) {
             CameraSnapToTarget(position);
             return;
         }

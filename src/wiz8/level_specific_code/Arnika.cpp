@@ -274,7 +274,7 @@ bool ArnikaMookholo(Trigger* pTrigger)
     W8MonsterInfo* info;
     int location_id;
 
-    if (gXStatus.fCombatMode != 0) {
+    if (gXStatus.fCombatMode) {
         return 0;
     }
     if (GetLocationVarIDByName("ScregActive") != -1 &&
@@ -323,7 +323,7 @@ void ArnikaMookholoWatch(int command)
         return;
     }
     g_remove_current_master_function = false;
-    if (g_npc_dialogue_closed != 0) {
+    if (g_npc_dialogue_closed) {
         g_remove_current_master_function = true;
         if (g_mookholo_monster != 0) {
             g_mookholo_monster->BeginFadeOutAndRemove(3);
@@ -535,7 +535,7 @@ void ArnikaElevator1Setup(void)
 // FUNCTION: WIZ8 0x004E1740
 bool ArnikaRedButton(Trigger* pTrigger)
 {
-    if (g_red_button_armed == 0) {
+    if (!g_red_button_armed) {
         return false;
     }
     if (gEl01.button_down == 2) {
@@ -921,7 +921,7 @@ void ArnikaElevatorAdvance(int which)
 // FUNCTION: WIZ8 0x004E2340
 bool ArnikaChaosMolori(Trigger* pTrigger)
 {
-    if (g_running_trigger_from_script == 0 && g_status.item_in_cursor) {
+    if (!g_running_trigger_from_script && g_status.item_in_cursor) {
         return false;
     }
     return true;
@@ -949,7 +949,7 @@ bool ArnikaMaddmook(Trigger* pTrigger)
 // FUNCTION: WIZ8 0x004E23C0
 bool ArnikaAstralDominae(Trigger* pTrigger)
 {
-    if (g_running_trigger_from_script == 0 && g_status.item_in_cursor) {
+    if (!g_running_trigger_from_script && g_status.item_in_cursor) {
         return false;
     }
     pTrigger = FindTriggerByName("CMBox");
@@ -970,7 +970,7 @@ bool ArnikaCMbox(Trigger* pTrigger)
     int previous = -1;
     int item;
 
-    if (g_running_trigger_from_script != 0) {
+    if (g_running_trigger_from_script) {
         return false;
     }
     item = ArnikaPedestalItem(&previous);
@@ -1104,7 +1104,7 @@ bool ArnikaFlightRecorder(Trigger* pTrigger)
     W8ItemInstance* item;
     W8NpcState* npc;
 
-    if (gXStatus.fNpcDialogueMode != 0) {
+    if (gXStatus.fNpcDialogueMode) {
         return false;
     }
     g_trigger_feedback = 1;

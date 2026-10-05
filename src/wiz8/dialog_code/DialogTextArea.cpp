@@ -247,7 +247,7 @@ unsigned char W8DialogTextArea::HighlightVisibleEntry(int index)
 {
     if (m_visible_lines.count != 0 && !(*m_visible_lines.GetAt(index))->m_entry_highlighted) {
         W8DialogTextEntry* entry = *m_visible_lines.GetAt(index);
-        if (entry->m_entry_highlighted != 1) {
+        if (!entry->m_entry_highlighted) {
             entry->m_entry_highlighted = 1;
             entry->SetGeometryDirty();
         }

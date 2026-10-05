@@ -231,28 +231,28 @@ bool SpellUsableNow(int spell_id, bool allow_out_of_combat)
         srAssertFail("uiSpellUsableWhen < SPELL_USAGE_COUNT", MAGIC_CPP, 4182, 0);
     }
 
-    if (g_current_screen_state.id == W8_SCREEN_CAMP && gXStatus.fCombatMode == 0 &&
-        gXStatus.fCampMode != 0 && (spell_id == 0x17 || spell_id == 0x3a)) {
+    if (g_current_screen_state.id == W8_SCREEN_CAMP && !gXStatus.fCombatMode &&
+        gXStatus.fCampMode && (spell_id == 0x17 || spell_id == 0x3a)) {
         return 1;
     }
 
-    lock_or_trap = gXStatus.fLockInteract != 0 || gXStatus.fTrapInteract != 0;
+    lock_or_trap = gXStatus.fLockInteract || gXStatus.fTrapInteract;
 
     switch (usable_when) {
     case W8_SPELL_USABLE_ANY_TIME:
         break;
     case W8_SPELL_USABLE_IN_COMBAT:
-        if (gXStatus.fCombatMode != 1 && allow_out_of_combat == 0) {
+        if (!gXStatus.fCombatMode && !allow_out_of_combat) {
             return 0;
         }
         break;
     case W8_SPELL_USABLE_OUT_OF_COMBAT:
-        if (gXStatus.fCombatMode != 0) {
+        if (gXStatus.fCombatMode) {
             return 0;
         }
         break;
     case W8_SPELL_USABLE_WHILE_CAMPED:
-        if (gXStatus.fCampMode == 0) {
+        if (!gXStatus.fCampMode) {
             return 0;
         }
         return !lock_or_trap;
@@ -260,16 +260,16 @@ bool SpellUsableNow(int spell_id, bool allow_out_of_combat)
         if (spell_id != 0x27) {
             return spell_id == 0x12 ? gXStatus.fTrapInteract : 0;
         }
-        if (gXStatus.fLockInteract != 0) {
+        if (gXStatus.fLockInteract) {
             return 1;
         }
-        return gXStatus.fTrapInteract != 0;
+        return gXStatus.fTrapInteract;
     default:
         srAssertFail("FALSE", MAGIC_CPP, 4228, "SpellUsableNow: ERROR - Invalid uiSpellUsableWhen");
         return allow_out_of_combat;
     }
 
-    if (gXStatus.fCampMode == 0) {
+    if (!gXStatus.fCampMode) {
         return !lock_or_trap;
     }
     return 0;
@@ -440,7 +440,7 @@ bool PartyHasCondition(int effect_id)
 {
     W8EffectSlot* slot = g_status.effect_slots;
 
-    while (slot->active == 0 || slot->effect_id != effect_id) {
+    while (!slot->active || slot->effect_id != effect_id) {
         ++slot;
         if (slot > &g_status.effect_slots[W8_PARTY_CONDITION_SLOTS - 1]) {
             return false;
@@ -460,7 +460,7 @@ bool CombatHasCondition(int effect_id)
     if (g_combat_state != 0) {
         slot = g_combat_state->effect_slots;
         for (index = 0; index < W8_COMBAT_CONDITION_SLOTS; ++index, ++slot) {
-            if (slot->active != 0 && slot->effect_id == effect_id) {
+            if (slot->active && slot->effect_id == effect_id) {
                 return true;
             }
         }
@@ -471,7 +471,7 @@ bool CombatHasCondition(int effect_id)
         // clang-format off
         for (index = 0; index < W8_COMBAT_CONDITION_SLOTS; ++index) {
             slot = g_combat_state->effect_slots0 + index;
-            if (slot->active != 0 && slot->effect_id == effect_id) {
+            if (slot->active && slot->effect_id == effect_id) {
                 return true;
             }
         }
@@ -600,32 +600,32 @@ void UpdateSpellEffects(void)
         for (int visual_index = 0; visual_index < effect->spell_visuals.GetCount() && alive;
              ++visual_index) {
             W8SpellVisual* visual = *effect->spell_visuals.GetAt(visual_index);
-            if (visual->finished == 0) {
+            if (!visual->finished) {
                 alive = false;
             }
         }
         for (int missile_index = 0; missile_index < effect->missiles.GetCount() && alive;
              ++missile_index) {
             W8Missile* missile = *effect->missiles.GetAt(missile_index);
-            if (missile->flight_done == 0) {
+            if (!missile->flight_done) {
                 alive = false;
             }
         }
         for (int monster_index = 0; monster_index < effect->target_indices.GetCount() && alive;
              ++monster_index) {
             int entry = *effect->target_indices.GetAt(monster_index);
-            if (gXStatus.monster_manager_entries[entry].effect_icon_active != 0) {
+            if (gXStatus.monster_manager_entries[entry].effect_icon_active) {
                 alive = false;
             }
         }
 
-        bool process = ((g_spell_records[effect->kind].missile_delivered == 0 &&
-                         effect->missiles_pending == 0) ||
-                        effect->sustained != 0 || alive) &&
-                       effect->targets_resolved == 0;
+        bool process =
+            ((g_spell_records[effect->kind].missile_delivered == 0 && !effect->missiles_pending) ||
+             effect->sustained || alive) &&
+            !effect->targets_resolved;
         if (process) {
 
-            if (effect->missiles_pending != 0) {
+            if (effect->missiles_pending) {
                 W8Missile* missile = 0;
 
                 for (int missile_index = 0; missile_index < effect->missiles.GetCount();
@@ -650,8 +650,8 @@ void UpdateSpellEffects(void)
                 handled = true;
             } else {
                 effect->targets_resolved = 1;
-                if (MonsterCanAimSpell(effect->kind) && effect->Source.fBackfire == 0 &&
-                    effect->Source.fReflection == 0) {
+                if (MonsterCanAimSpell(effect->kind) && !effect->Source.fBackfire &&
+                    !effect->Source.fReflection) {
                     ProvokeListedMonsterGroups(&effect->Source, &effect->monster_ids);
                 }
                 ProcessSpellEffectTargets(effect);
@@ -663,7 +663,7 @@ void UpdateSpellEffects(void)
                         0x1505, MAGIC_CPP, effect->OrigSource.iMonsterID, 1);
                     W8MonsterInfo* monster_info =
                         MonsterGetScriptPartByLocationIndex(monster_list_index);
-                    if (gXStatus.fCombatMode != 0 && g_combat_state->eCombatActionStatus != 0 &&
+                    if (gXStatus.fCombatMode && g_combat_state->eCombatActionStatus != 0 &&
                         g_combat_state->pActionMonsterInfo != 0 &&
                         g_combat_state->pActionMonsterInfo->location_id ==
                             monster_info->location_id) {
@@ -673,11 +673,11 @@ void UpdateSpellEffects(void)
             }
         }
 
-        if (effect->sustained != 0) {
+        if (effect->sustained) {
             if (effect->turns_remaining != 0) {
                 continue;
             }
-        } else if (!alive || effect->targets_resolved == 0) {
+        } else if (!alive || !effect->targets_resolved) {
             continue;
         }
 
@@ -698,7 +698,7 @@ void UpdateSpellEffects(void)
              ++release_visual) {
             W8SpellVisual* visual = *effect->spell_visuals.GetAt(release_visual);
             visual->auto_release = 1;
-            if (effect->sustained != 0) {
+            if (effect->sustained) {
                 visual->finished = 1;
             }
         }
@@ -836,7 +836,7 @@ void ScaleByCombatPace(int party_slot, unsigned int* value)
     unsigned int pace;
     unsigned int phase_clock;
 
-    if (gXStatus.fCombatMode == 0) {
+    if (!gXStatus.fCombatMode) {
         return;
     }
 
@@ -910,7 +910,7 @@ void StartCharacterSpellCast(int party_slot, int power_level)
     W8ActionDetailBlock named;
     const W8ActionDetailBlock* target;
 
-    if (gXStatus.fCombatMode == 0) {
+    if (!gXStatus.fCombatMode) {
         AimAtTarget(party_slot, &row->spell_target, W8_TARGETING_CONTEXT_CURRENT);
     }
 
@@ -940,7 +940,7 @@ void StartCharacterItemUse(int party_slot)
     W8PartySlotRow* row = &g_status.buffers.XChar[party_slot];
     W8CombatSlot saved_target = row->item_target;
 
-    if (gXStatus.fCombatMode == 0) {
+    if (!gXStatus.fCombatMode) {
         AimAtTarget(party_slot, &row->item_target, W8_TARGETING_CONTEXT_CURRENT);
     }
     ChooseAction(party_slot, W8_ACTION_USE_ITEM, -1, &row->item_detail, 0, 1);
@@ -977,7 +977,7 @@ int GetTotalCasterLevel(const W8Character* character, int spellbook, bool includ
         total =
             character->profession_levels[profession] + g_profession_magic_level_offsets[profession];
     }
-    if (total < 1 && include_all == 0) {
+    if (total < 1 && !include_all) {
         return total;
     }
 
@@ -1155,7 +1155,7 @@ void LearnSpell(W8Character* character, int spell_id, bool announce)
     ++character->skill_unlocks[W8_SKILL_FIRE_MAGIC + realm];
     character->skill_unlocks[W8_SKILL_IRON_WILL] = RebuildRealmSpellPointCeilings(character);
 
-    if (announce == 0) {
+    if (!announce) {
         return;
     }
 
@@ -1255,7 +1255,7 @@ bool CanPartySlotCastRecordedSpell(int party_slot)
         return false;
     }
     if (row->spell_detail.spell.power_level == W8_SPELL_POWER_AS_AFFORDABLE &&
-        g_spell_records[spell_id].power_class == 1 && gXStatus.fCombatMode != 0) {
+        g_spell_records[spell_id].power_class == 1 && gXStatus.fCombatMode) {
         return false;
     }
 
@@ -1269,7 +1269,7 @@ bool CanPartySlotCastRecordedSpell(int party_slot)
     if (!SpellUsableNow(spell_id, 0)) {
         return false;
     }
-    if (gXStatus.fCombatMode == 0 &&
+    if (!gXStatus.fCombatMode &&
         !IsSpellTargetStillValidIn(party_slot, spell_id, W8_TARGETING_CONTEXT_SPELL)) {
         return false;
     }
@@ -1298,13 +1298,13 @@ int GetAffordableSpellPowerLevel(int party_slot)
         return 0;
     }
     if (row->spell_detail.spell.power_level == W8_SPELL_POWER_AS_AFFORDABLE &&
-        g_spell_records[spell_id].power_class == 1 && gXStatus.fCombatMode != 0) {
+        g_spell_records[spell_id].power_class == 1 && gXStatus.fCombatMode) {
         return 0;
     }
     if (!SpellUsableNow(spell_id, 0)) {
         return 0;
     }
-    if (gXStatus.fCombatMode == 0 &&
+    if (!gXStatus.fCombatMode &&
         !IsSpellTargetStillValidIn(party_slot, spell_id, W8_TARGETING_CONTEXT_SPELL)) {
         return 0;
     }
@@ -1346,7 +1346,7 @@ bool CanPartySlotUseRecordedItem(int party_slot)
     item = FindCharacterItemAt(party_slot, row->item_origin, row->item_slot);
     row->item_detail.item_use.item = item;
 
-    if (row->item_origin == W8_ITEM_ORIGIN_PARTY_POOL && gXStatus.fCombatMode != 0) {
+    if (row->item_origin == W8_ITEM_ORIGIN_PARTY_POOL && gXStatus.fCombatMode) {
         return false;
     }
     if (item == 0 || item->iItemNo == -1 || item->iItemNo != row->item_id) {
@@ -1368,7 +1368,7 @@ bool CanPartySlotUseRecordedItem(int party_slot)
     if (!SpellUsableNow(spell_id, 0)) {
         return false;
     }
-    if (gXStatus.fCombatMode == 0 &&
+    if (!gXStatus.fCombatMode &&
         !IsSpellTargetStillValidIn(party_slot, spell_id, W8_TARGETING_CONTEXT_ITEM)) {
         return false;
     }
@@ -1553,7 +1553,7 @@ W8Skill GetBestSpellbookSkillForSpell(W8Character* character, int spell_id, bool
     unsigned int level;
     int party_slot;
 
-    if (pricing != 0 && character->uiCondition[W8_CONDITION_SILENCED] != 0 &&
+    if (pricing && character->uiCondition[W8_CONDITION_SILENCED] != 0 &&
         g_spell_records[spell_id].alchemy_spell != 0) {
         return W8_SKILL_SPELLBOOK_ALCHEMY;
     }
@@ -1566,7 +1566,7 @@ W8Skill GetBestSpellbookSkillForSpell(W8Character* character, int spell_id, bool
                 best_skill = static_cast<W8Skill>(skill_id);
                 best_level = level;
             }
-            if (prefer_unlocked != 0 && character->skills[skill_id].active != 0 &&
+            if (prefer_unlocked && character->skills[skill_id].active &&
                 static_cast<int>(unlocked_level) < static_cast<int>(level)) {
                 unlocked_skill = static_cast<W8Skill>(skill_id);
                 unlocked_level = level;
@@ -1575,8 +1575,8 @@ W8Skill GetBestSpellbookSkillForSpell(W8Character* character, int spell_id, bool
         probe = static_cast<unsigned char>(probe << 1);
     }
 
-    if (prefer_unlocked != 0 && unlocked_skill != W8_SKILL_NONE && best_skill != unlocked_skill) {
-        if (pricing != 0) {
+    if (prefer_unlocked && unlocked_skill != W8_SKILL_NONE && best_skill != unlocked_skill) {
+        if (pricing) {
             unsigned int failure;
             int shortfall;
             unsigned int skill_figure;
@@ -2148,7 +2148,7 @@ void ReportSpellResult(W8SpellEffectEntry* effect)
     const unsigned short* condition_text = g_spell_condition_text;
 
     if (GetTextBoxMode() != 0) {
-        AppendToLastTextLine(effect->reported == 0 ? L" -- " : L", ", -1);
+        AppendToLastTextLine(!effect->reported ? L" -- " : L", ", -1);
         SetTextBoxMode(1, -1);
     }
     if (effect->result.amount != 0) {
@@ -2169,7 +2169,7 @@ void ReportSpellResult(W8SpellEffectEntry* effect)
 
     do {
         if (*condition_count != 0) {
-            if (effect->reported != 0 && GetTextBoxMode() != 0) {
+            if (effect->reported && GetTextBoxMode() != 0) {
                 AppendToLastTextLine(L", ", -1);
                 SetTextBoxMode(1, -1);
             }
@@ -2220,7 +2220,7 @@ void ReportSpellResult(W8SpellEffectEntry* effect)
             free(report);
         }
     }
-    if (effect->reported == 0) {
+    if (!effect->reported) {
         AppendToLastTextLine(gppStringList[0x1a5], -1);
     }
 }
@@ -2316,7 +2316,7 @@ bool SpellAffectedTarget(W8Character* character, int spell_id, W8CombatSlot* aim
     case 0x1a:
     case 0x20:
     case 0x28:
-        if (gXStatus.fCombatMode == 0) {
+        if (!gXStatus.fCombatMode) {
             affected = CheckAndRestartSpellCooldown(spell_id);
         } else {
             for (index = 0; index < 12; ++index) {
@@ -2333,7 +2333,7 @@ bool SpellAffectedTarget(W8Character* character, int spell_id, W8CombatSlot* aim
     case 0x35:
     case 0x3b:
     case 0x3e:
-        if (gXStatus.fCombatMode != 0 && gXStatus.hostile_monster_count > 0) {
+        if (gXStatus.fCombatMode && gXStatus.hostile_monster_count > 0) {
             for (index = 0; index < 9; ++index) {
                 if (g_combat_effect_slot_spells_and_cast_success[index] == spell_id) {
                     affected = g_combat_state->effect_slots0[index].duration /
@@ -2352,7 +2352,7 @@ bool SpellAffectedTarget(W8Character* character, int spell_id, W8CombatSlot* aim
     case 0x36:
     case 0x3d:
     case 0x41:
-        if (gXStatus.fCombatMode != 0 && gXStatus.hostile_monster_count > 0) {
+        if (gXStatus.fCombatMode && gXStatus.hostile_monster_count > 0) {
             if (aim->iType == W8_TARGET_KIND_CHARACTER) {
                 enchantments = g_status.buffers.Char[aim->iChar].enchantments;
             } else {
@@ -2367,7 +2367,7 @@ bool SpellAffectedTarget(W8Character* character, int spell_id, W8CombatSlot* aim
         affected = false;
         break;
     case 0x38:
-        if (gXStatus.fCombatMode != 0 && gXStatus.hostile_monster_count > 0) {
+        if (gXStatus.fCombatMode && gXStatus.hostile_monster_count > 0) {
             if (aim->iType != W8_TARGET_KIND_PARTY) {
                 return true;
             }
@@ -2408,7 +2408,7 @@ bool SpellAffectedTarget(W8Character* character, int spell_id, W8CombatSlot* aim
         }
         return false;
     case 0xd:
-        if (gXStatus.fCombatMode != 0) {
+        if (gXStatus.fCombatMode) {
             if (aim->iType != W8_TARGET_KIND_CHARACTER) {
                 monster_info = MonsterInfoFromID(0x1fc, MAGIC_CPP, aim->iMonsterID, 1);
                 return monster_info->stamina != monster_info->stamina_max;
@@ -2420,7 +2420,7 @@ bool SpellAffectedTarget(W8Character* character, int spell_id, W8CombatSlot* aim
         break;
     case 0x2c:
         affected = false;
-        if (gXStatus.fCombatMode != 0) {
+        if (gXStatus.fCombatMode) {
             for (index = 0; index < 8; ++index) {
                 target = &g_status.buffers.Char[index];
                 if (g_status.buffers.XChar[index].fOccupied &&
@@ -2536,7 +2536,7 @@ bool SpellAffectedTarget(W8Character* character, int spell_id, W8CombatSlot* aim
         affected = false;
         if (g_combat_state != 0) {
             for (index = 0; index < 9; ++index) {
-                if (g_combat_state->effect_slots[index].active != 0) {
+                if (g_combat_state->effect_slots[index].active) {
                     return true;
                 }
             }
@@ -2564,7 +2564,7 @@ bool SpellAffectedTarget(W8Character* character, int spell_id, W8CombatSlot* aim
         }
         break;
     case 0x3a:
-        if (gXStatus.fCombatMode == 0) {
+        if (!gXStatus.fCombatMode) {
             affected = CheckAndRestartSpellCooldown(spell_id);
             if (!affected) {
                 return false;
@@ -2628,7 +2628,7 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
     *out_points = 0;
     switch (record->power_class) {
     case 1:
-        if (gXStatus.fCombatMode == 0 && power_level == 8) {
+        if (!gXStatus.fCombatMode && power_level == 8) {
             recast = true;
             clamp_power = 0;
             break;
@@ -2651,7 +2651,7 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
         clamp_power = continue_cast;
         break;
     }
-    if (clamp_power != 0) {
+    if (clamp_power) {
         sp_needed = sp_cost * power_level;
         if (sp_needed > character->iSPLeft[realm]) {
             power_level = character->iSPLeft[realm] / sp_cost;
@@ -2672,7 +2672,7 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
         return 0;
     }
     SetTargetSourceToCharacter(party_slot, &source);
-    if (character->skills[W8_SKILL_POWER_CAST].active == 0) {
+    if (!character->skills[W8_SKILL_POWER_CAST].active) {
         power_cast_bonus = 0;
     } else {
         power_cast_bonus = (character->skills[W8_SKILL_POWER_CAST].level >> 2) + 1;
@@ -2689,7 +2689,7 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
     }
     aim = &g_status.buffers.XChar[party_slot].target_out_of_combat;
     if (g_settings.verbose_combat_messages == 0) {
-        if (continue_cast == 0) {
+        if (!continue_cast) {
             PostCharacterNotice(party_slot, gppStringList[0x18c], record->display_name,
                                 SpellTargetString(&source, aim));
             SetTextBoxMode(1, 8);
@@ -2740,7 +2740,7 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
     if (0 < index) {
         chance += record->spell_level * index;
     }
-    if (gXStatus.fCombatMode != 0) {
+    if (gXStatus.fCombatMode) {
         if (g_settings.difficulty == W8_DIFFICULTY_NOVICE) {
             morale = 0x50;
         } else if (g_settings.difficulty == W8_DIFFICULTY_NORMAL) {
@@ -2773,7 +2773,7 @@ finish_difficulty_adjustment:
     } while (index < 0x72);
     ++g_status.spell_usage[spell_id - 1].cast_count;
     affected = SpellAffectedTarget(character, spell_id, aim, power_level);
-    if (continue_cast == 0) {
+    if (!continue_cast) {
         if (Random(2) != 0) {
             index = g_special_event6;
         } else {
@@ -2786,14 +2786,14 @@ finish_difficulty_adjustment:
                                  recast, &cast_result, 0, 0, 0);
     if (cast_result != 0) {
         SpendCharacterSpellPoints(party_slot, realm, cast_result * sp_cost);
-        if (affected != 0) {
+        if (affected) {
             index = record->spell_level + cast_result;
             if (index < 2) {
                 srAssertFail("uiUsagePoints >= 2", MAGIC_CPP, 0x3d5, 0);
             }
             PracticeCharacterSkill(character, best_skill, (index + 2) >> 2, 0);
             PracticeCharacterSkill(character, realm_skill, index, 0);
-            if (character->skills[W8_SKILL_POWER_CAST].active != 0) {
+            if (character->skills[W8_SKILL_POWER_CAST].active) {
                 PracticeCharacterSkill(character, W8_SKILL_POWER_CAST, (index + 2) >> 2, 0);
             }
         }
@@ -2872,14 +2872,14 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
         caster_slot = -1;
     }
     source->fBackfire = 0;
-    if (g_force_spell_failure != 0 && spell_id != 0x76) {
+    if (g_force_spell_failure && spell_id != 0x76) {
         forced = true;
         failure_chance = 100;
     }
     if (g_spell_records[spell_id].realm == W8_SPELL_REALM_FIRE && g_camera_sway_active) {
         failure_chance = 100;
     }
-    if (quiet && g_force_spell_failure == 0) {
+    if (quiet && !g_force_spell_failure) {
         failure_chance /= 2;
     }
     CombatLog("Chance of FAILURE: %d", failure_chance);
@@ -2915,7 +2915,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
         }
     }
     if (!fizzled) {
-        if (source->fBackfire == 0 && source->auto_cast == 0 && source->fReflection == 0 &&
+        if (!source->fBackfire && source->auto_cast == 0 && !source->fReflection &&
             g_spell_records[spell_id].realm != W8_SPELL_REALM_MENTAL && spell_id != 0x83) {
             CheckSpellBackfire(spell_id, source, target);
         }
@@ -2928,8 +2928,8 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                     target->point.y = ground_point.y;
                     ground_point.x = target->point.x;
                     ground_point.z = target->point.z;
-                    if ((TargetSourceIsCharacter(source, 0) && source->fBackfire == 0) ||
-                        (!TargetSourceIsCharacter(source, 0) && source->fBackfire != 0)) {
+                    if ((TargetSourceIsCharacter(source, 0) && !source->fBackfire) ||
+                        (!TargetSourceIsCharacter(source, 0) && source->fBackfire)) {
                         disposition = 2;
                     } else {
                         disposition = 1;
@@ -3045,7 +3045,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                     ResetCombatSlot(&point_target);
                     point_target.iType = W8_TARGET_KIND_MONSTER;
                     point_target.iMonsterID = *monster_markers.GetAt(index);
-                    if (source->fBackfire == 0 && source->fReflection == 0) {
+                    if (!source->fBackfire && !source->fReflection) {
                         MakeTargetGroupHostile(source, &point_target);
                     }
                     missile =
@@ -3166,9 +3166,9 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                     if (party_markers.GetCount() != 0) {
                         for (index = 0; index < party_markers.GetCount(); ++index) {
                             if (MonsterCanAimSpell(spell_id)) {
-                                icon_flag = source->fBackfire != 0;
+                                icon_flag = source->fBackfire;
                             } else {
-                                icon_flag = source->fBackfire == 0;
+                                icon_flag = !source->fBackfire;
                             }
                             StageMonsterCastIcon(*party_markers.GetAt(index),
                                                  g_spell_records[spell_id].realm, icon_flag,
@@ -3266,19 +3266,19 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                 }
             }
         }
-        if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && gXStatus.fNpcDialogueMode == 0 &&
-            gXStatus.fCampMode == 0) {
+        if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && !gXStatus.fNpcDialogueMode &&
+            !gXStatus.fCampMode) {
             g_spell_effects.Add(owner);
         } else {
             ProcessSpellEffectTargets(owner);
-            if (gXStatus.fNpcDialogueMode != 0 || gXStatus.fCampMode != 0) {
+            if (gXStatus.fNpcDialogueMode || gXStatus.fCampMode) {
                 for (index = 0; index < owner->spell_visuals.GetCount(); ++index) {
                     (*owner->spell_visuals.GetAt(index))->auto_release = '\x01';
                 }
             }
         }
         PointCameraAtCombatTarget(source, target);
-        if (source->fBackfire != 0) {
+        if (source->fBackfire) {
             if (quiet) {
                 owner->reported = 1;
             } else if (g_settings.verbose_combat_messages != 0) {
@@ -3340,7 +3340,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
             monster_index =
                 MonsterGetIndexByLocationID(0x1505, MAGIC_CPP, owner->Source.iMonsterID, 1);
             monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-            if (gXStatus.fCombatMode != 0 && g_combat_state->eCombatActionStatus != 0 &&
+            if (gXStatus.fCombatMode && g_combat_state->eCombatActionStatus != 0 &&
                 g_combat_state->pActionMonsterInfo != 0 &&
                 g_combat_state->pActionMonsterInfo->location_id == monster_info->location_id) {
                 g_combat_state->eCombatActionStatus = 3;
@@ -3349,7 +3349,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
         delete owner;
         return 2;
     }
-    if (source->fBackfire == 0) {
+    if (!source->fBackfire) {
         return 1;
     }
     return 3;
@@ -3369,7 +3369,7 @@ void RedirectBackfiredSpellTarget(W8TargetSource* source, W8CombatSlot* target)
     unsigned int list_index;
     int slot;
 
-    if (source->fBackfire != 0) {
+    if (source->fBackfire) {
         srAssertFail("!pSource->fBackfire", MAGIC_CPP, 0xbf7, 0);
     }
     source_copy = *source;
@@ -3386,7 +3386,7 @@ void RedirectBackfiredSpellTarget(W8TargetSource* source, W8CombatSlot* target)
         break;
     case W8_TARGET_KIND_PARTY:
         for (slot = 0; slot < 8; ++slot) {
-            if (g_status.buffers.XChar[slot].fOccupied != 0 &&
+            if (g_status.buffers.XChar[slot].fOccupied &&
                 g_status.buffers.Char[slot].hp_current != 0 &&
                 g_status.buffers.Char[slot].highest_condition < W8_CONDITION_DEAD) {
                 break;
@@ -3465,7 +3465,7 @@ void PrepareSpellTarget(int spell_id, W8TargetSource* source, W8CombatSlot* targ
         srAssertFail("(pTarget->iType > TARGET_TYPE_NONE) && (pTarget->iType < TARGET_TYPE_COUNT)",
                      MAGIC_CPP, 0xc79, 0);
     }
-    if (source->fBackfire != 0) {
+    if (source->fBackfire) {
         srAssertFail("!pSource->fBackfire", MAGIC_CPP, 0xc7c, 0);
     }
     monster_info = 0;
@@ -3555,7 +3555,7 @@ int PickBackfireTarget(int spell_id, W8TargetSource* source, W8CombatSlot* targe
 
     candidates = 0;
     for (slot = 0; slot < 8; ++slot) {
-        if (g_status.buffers.XChar[slot].fOccupied != 0 &&
+        if (g_status.buffers.XChar[slot].fOccupied &&
             (!TargetSourceIsCharacter(source, 0) || source->iChar != slot)) {
             ++candidates;
         }
@@ -3563,8 +3563,7 @@ int PickBackfireTarget(int spell_id, W8TargetSource* source, W8CombatSlot* targe
     index = 0;
     while (PLLength(gXStatus.plsMonsterList) != 0 && index < PLLength(gXStatus.plsMonsterList)) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
-        if (monster_info->fActive != 0 && monster_info->fInCombat != 0 &&
-            monster_info->hp_current != 0 &&
+        if (monster_info->fActive && monster_info->fInCombat && monster_info->hp_current != 0 &&
             (!TargetSourceIsMonster(source, 0) ||
              source->iMonsterID != monster_info->location_id)) {
             ++candidates;
@@ -3576,7 +3575,7 @@ int PickBackfireTarget(int spell_id, W8TargetSource* source, W8CombatSlot* targe
     }
     pick = Random(candidates) + 1;
     for (slot = 0; slot < 8; ++slot) {
-        if (g_status.buffers.XChar[slot].fOccupied != 0 &&
+        if (g_status.buffers.XChar[slot].fOccupied &&
             (!TargetSourceIsCharacter(source, 0) || source->iChar != slot) && (--pick == 0)) {
             if (GetSpellTargetType(spell_id, 0) == 4) {
                 target->iType = W8_TARGET_KIND_PARTY;
@@ -3590,8 +3589,7 @@ int PickBackfireTarget(int spell_id, W8TargetSource* source, W8CombatSlot* targe
     index = 0;
     while (PLLength(gXStatus.plsMonsterList) != 0 && index < PLLength(gXStatus.plsMonsterList)) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
-        if (monster_info->fActive != 0 && monster_info->fInCombat != 0 &&
-            monster_info->hp_current != 0 &&
+        if (monster_info->fActive && monster_info->fInCombat && monster_info->hp_current != 0 &&
             (!TargetSourceIsMonster(source, 0) ||
              source->iMonsterID != monster_info->location_id) &&
             (--pick == 0)) {
@@ -3759,8 +3757,7 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
     marked = false;
     monster_info = 0;
     sight_flag = 0;
-    if (source->fBackfire == 0 && source->fReflection == 0 &&
-        !SourceActionReachesTarget(source, target)) {
+    if (!source->fBackfire && !source->fReflection && !SourceActionReachesTarget(source, target)) {
         return;
     }
     player_pos = g_startup_world->GetPosition();
@@ -3787,7 +3784,7 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
     } else if (TargetSourceIsMonster(source, 0)) {
         centre = monster->GetPosition();
         fVertextAvail = 0;
-        if (source->point_source == 0 && spell_id != 0x77 && monster_info->has_spell_origin != 0) {
+        if (source->point_source == 0 && spell_id != 0x77 && monster_info->has_spell_origin) {
             fVertextAvail = monster->GetSpellPosition(&eye);
             if (fVertextAvail == 0) {
                 srAssertFail("fVertextAvail", MAGIC_CPP, 0x951, 0);
@@ -3942,7 +3939,7 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
             }
         } else {
             side = 3;
-            if (source->fBackfire != 0 || source->fReflection != 0) {
+            if (source->fBackfire || source->fReflection) {
                 if (source->iChar != -1) {
                     side = 2;
                 } else if (source->iMonsterID != -1) {
@@ -3963,7 +3960,7 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
         CollectConeMonsterTargets(source, &eye, heading, elevation, monster_markers,
                                   static_cast<unsigned char>(side), sight_flag);
         if (monster_markers->count == 0 &&
-            (g_combat_state == 0 || g_combat_state->enemies_engaged == 0) &&
+            (g_combat_state == 0 || !g_combat_state->enemies_engaged) &&
             TargetSourceIsCharacter(source, 0) && static_cast<char>(side) == 1 &&
             !AnyMonsterEngaged()) {
             CollectConeMonsterTargets(source, &eye, heading, elevation, monster_markers, 3,
@@ -3976,7 +3973,7 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
                   g_spell_records[spell_id].effect_radius) *
                  g_world_scale;
         if (TargetSourceIsCharacter(source, 1)) {
-            side = (source->fBackfire != 0 || source->fReflection != 0) ? 1 : 2;
+            side = (source->fBackfire || source->fReflection) ? 1 : 2;
         } else if (TargetSourceIsMonster(source, 1)) {
             if (monster_info->ubDisposition != W8_DISPOSITION_FRIENDLY &&
                 monster_info->ubDisposition != W8_DISPOSITION_HOSTILE) {
@@ -3988,7 +3985,7 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
                                    source->iType, source->iChar, source->iMonsterID);
                 return;
             }
-            side = (source->fBackfire != 0 || source->fReflection != 0) ? 1 : 2;
+            side = (source->fBackfire || source->fReflection) ? 1 : 2;
         } else {
             side = 3;
         }
@@ -4004,7 +4001,7 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
         CollectMonstersWithinRadius(&trace, &target_point, monster_markers, radius,
                                     static_cast<char>(side), static_cast<char>(highlighting));
         if (monster_markers->count == 0 &&
-            (g_combat_state == 0 || g_combat_state->enemies_engaged == 0) &&
+            (g_combat_state == 0 || !g_combat_state->enemies_engaged) &&
             TargetSourceIsCharacter(source, 0) && static_cast<char>(side) == 1 &&
             !AnyMonsterEngaged()) {
             CollectMonstersWithinRadius(&trace, &target_point, monster_markers, radius, 3,
@@ -4017,9 +4014,9 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
         if (TargetSourceIsCharacter(source, 1) ||
             (TargetSourceIsMonster(source, 1) &&
              monster_info->ubDisposition == W8_DISPOSITION_FRIENDLY)) {
-            side = (source->fBackfire != 0 || source->fReflection != 0) ? 2 : 1;
+            side = (source->fBackfire || source->fReflection) ? 2 : 1;
         } else if (TargetSourceIsMonster(source, 1)) {
-            side = (source->fBackfire != 0 || source->fReflection != 0) ? 1 : 2;
+            side = (source->fBackfire || source->fReflection) ? 1 : 2;
         } else {
             side = 3;
         }
@@ -4035,7 +4032,7 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
         CollectMonstersWithinRadius(&centre, &eye, monster_markers, radius, static_cast<char>(side),
                                     static_cast<char>(highlighting));
         if (monster_markers->count == 0 &&
-            (g_combat_state == 0 || g_combat_state->enemies_engaged == 0) &&
+            (g_combat_state == 0 || !g_combat_state->enemies_engaged) &&
             TargetSourceIsCharacter(source, 0) && static_cast<char>(side) == 1 &&
             !AnyMonsterEngaged()) {
             CollectMonstersWithinRadius(&centre, &eye, monster_markers, radius, 3,
@@ -4047,7 +4044,7 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
     }
     if (marked && spell_id != 0x16 && spell_id != 0x4d) {
         for (slot = 0; slot < 8; ++slot) {
-            if (g_status.buffers.XChar[slot].fOccupied != 0 &&
+            if (g_status.buffers.XChar[slot].fOccupied &&
                 g_status.buffers.Char[slot].hp_current != 0 &&
                 g_status.buffers.Char[slot].highest_condition < W8_CONDITION_DEAD &&
                 (g_status.buffers.Char[slot].uiCondition[W8_CONDITION_TURNCOAT] == 0 ||
@@ -4072,7 +4069,7 @@ void PruneSpellTargetMarkers(int spell_id, W8GrowableVector<int>* monster_marker
         monster_info = MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(0x1595, MAGIC_CPP, *monster_markers->GetAt(index), 1));
         record = GetMonsterDataForInfo(monster_info);
-        if (monster_info->fActive == 0 || monster_info->hp_current == 0 ||
+        if (!monster_info->fActive || monster_info->hp_current == 0 ||
             monster_info->uiCondition[W8_CONDITION_DEAD] > 0 || record->untargetable != 0) {
             monster_markers->RemoveAt(index);
             continue;

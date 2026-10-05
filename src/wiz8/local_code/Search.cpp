@@ -208,10 +208,9 @@ void RunSearchPulse(void)
 {
     if (ClockIsTicking(g_search_pulse_clock) == 0) {
         g_search_pulse_clock = SetCountdownClock(500);
-        if (GetEnvironmentFlag() != 0 && gXStatus.world_update_blocked == 0 &&
-            gXStatus.fSurprisePossible == 0 && gXStatus.fLockInteractMode == 0 &&
-            gXStatus.fLockInteract == 0 && gXStatus.fTrapInteractMode == 0 &&
-            gXStatus.fTrapInteract == 0) {
+        if (GetEnvironmentFlag() != 0 && !gXStatus.world_update_blocked &&
+            !gXStatus.fSurprisePossible && !gXStatus.fLockInteractMode && !gXStatus.fLockInteract &&
+            !gXStatus.fTrapInteractMode && !gXStatus.fTrapInteract) {
             if ((g_level_data->flags & 0x100) != 0 && g_status.search_mode != 0) {
                 ShowNotice(0xc, gppStringList[W8_NOTICE_SEARCH_SPECIAL_LEVEL], -1, -1, 0);
             }
@@ -286,7 +285,7 @@ void RunSearchPulse(void)
                    Scouting skill and then discards the result. */
                 for (int slot = 0; slot < W8_PARTY_SLOT_COUNT; ++slot) {
                     W8Character* character = &g_status.buffers.Char[slot];
-                    if (g_status.buffers.XChar[slot].fOccupied != 0 && character->hp_current != 0 &&
+                    if (g_status.buffers.XChar[slot].fOccupied && character->hp_current != 0 &&
                         character->highest_condition < W8_CONDITION_TURNCOAT &&
                         character->skills[W8_SKILL_SCOUTING].level != 0) {
                         break;
@@ -315,7 +314,7 @@ int W8Searchable::PickBestSearcher()
     bool earned = false;
     for (int slot = 0; slot < W8_PARTY_SLOT_COUNT; ++slot) {
         W8Character* character = &g_status.buffers.Char[slot];
-        if (g_status.buffers.XChar[slot].fOccupied == 0 || character->hp_current == 0 ||
+        if (!g_status.buffers.XChar[slot].fOccupied || character->hp_current == 0 ||
             character->highest_condition >= W8_CONDITION_TURNCOAT) {
             continue;
         }
@@ -386,7 +385,7 @@ void ToggleSearchMode(void)
         ShowNotice(0xc, gppStringList[W8_NOTICE_SEARCH_MODE_OFF], -1, -1, 0);
         return;
     }
-    if (gXStatus.fCombatMode == 0) {
+    if (!gXStatus.fCombatMode) {
         g_status.search_mode = 1;
         ShowNotice(0xc, gppStringList[W8_NOTICE_SEARCH_MODE_ON], -1, -1, 0);
         g_search_pulse_clock = SetCountdownClock(0x1f4);

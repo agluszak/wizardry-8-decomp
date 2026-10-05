@@ -32,7 +32,7 @@ public:
             break;
         }
         if ((m_flags & 1) == 0) {
-            if (g_shared_timer_paused != 0) {
+            if (g_shared_timer_paused) {
                 return g_shared_timer_pause_time;
             }
             return m_shared->getUTime(srTimer::TIMER_READ_DEFAULT) - g_shared_timer_pause_base;

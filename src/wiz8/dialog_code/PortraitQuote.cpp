@@ -516,9 +516,9 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
     } else {
         bubble = g_portrait_quotes[quote_handle];
         g_current_portrait_quote = bubble;
-        if (background_index != bubble->background_index ||
-            edge_index != bubble->object_index || bubble->has_resources == 0) {
-            if (bubble != 0 && bubble->has_resources != 0) {
+        if (background_index != bubble->background_index || edge_index != bubble->object_index ||
+            !bubble->has_resources) {
+            if (bubble != 0 && bubble->has_resources) {
                 DeleteVideoSurfaceFromIndex(bubble->background_surface);
                 DeleteVideoObjectFromIndex(g_current_portrait_quote->object);
                 g_current_portrait_quote->has_resources = false;
@@ -691,7 +691,7 @@ unsigned char ReleasePortraitQuoteBubble(int quote_handle)
 
     if (quote_handle != -1 && (quote = g_portrait_quotes[quote_handle]) != 0 &&
         (g_current_portrait_quote = quote) != 0) {
-        if (g_current_portrait_quote->created != 0) {
+        if (g_current_portrait_quote->created) {
             for (int index = 0; index < 10; ++index) {
                 if (g_portrait_quotes[index] == quote) {
                     g_portrait_quotes[index] = 0;
@@ -700,7 +700,7 @@ unsigned char ReleasePortraitQuoteBubble(int quote_handle)
             }
             DeleteVideoSurfaceFromIndex(quote->surface);
             free(g_current_portrait_quote->text);
-            if (g_current_portrait_quote != 0 && g_current_portrait_quote->has_resources != 0) {
+            if (g_current_portrait_quote != 0 && g_current_portrait_quote->has_resources) {
                 DeleteVideoSurfaceFromIndex(g_current_portrait_quote->background_surface);
                 DeleteVideoObjectFromIndex(g_current_portrait_quote->object);
                 g_current_portrait_quote->has_resources = false;

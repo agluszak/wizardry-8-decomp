@@ -394,7 +394,7 @@ bool AutomapHasCellAt(const srVector3T<float>* position)
 // FUNCTION: WIZ8 0x0057E490
 bool CanUseCurrentAutomapTool(void)
 {
-    if (g_mipe_active != 0) {
+    if (g_mipe_active) {
         switch (g_mipe_mode) {
         case 6:
         case 7:
@@ -1250,7 +1250,7 @@ void ResetAutomapZoom(void)
     position.y = g_automap_top_y;
     SetAutomapCameraPoint(&position);
     int tool = g_automap_tool;
-    if (g_automap_tool == 0 && g_automap_cursor_inside != 0) {
+    if (g_automap_tool == 0 && g_automap_cursor_inside) {
         tool = g_float_005ec360 < g_automap_zoom ? 1 : 4;
     }
     SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(tool + 0x14b, 0),
@@ -1304,7 +1304,7 @@ unsigned char ZoomAutomapIn(const srVector3T<float>* point)
     position.y = height;
     SetAutomapCameraPoint(&position);
     int tool = g_automap_tool;
-    if (g_automap_tool == 0 && g_automap_cursor_inside != 0) {
+    if (g_automap_tool == 0 && g_automap_cursor_inside) {
         tool = g_float_005ec360 < g_automap_zoom ? 1 : 4;
     }
     SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(tool + 0x14b, 0),
@@ -1410,7 +1410,7 @@ void UpdateAutomapBounds(void)
     W8Vector<stModelInstance*> models(5);
     PartyHasCondition(0x40);
     if (g_world->octree != 0) {
-        if (g_automap_bounds_dirty != 0) {
+        if (g_automap_bounds_dirty) {
             ResetAutomapLighting();
             g_automap_bounds_dirty = false;
         }
@@ -1495,7 +1495,7 @@ void LightAutomapCell(const srVector3T<float>* position)
                 srVector3T<float>* lights = model->GetVertexLights(1, -1);
                 srVector3T<float>* source = model->getVertexLoc();
                 int count = model->vertex_location_count;
-                if (inside != 0) {
+                if (inside) {
                     float light_value = 1.0f;
                     // reinterpret-ok: vertex-light floats filled via dword fill.
                     srVectorProcessor::copy(reinterpret_cast<SRDWORD*>(lights),
@@ -1567,11 +1567,11 @@ void LightAutomapCell(const srVector3T<float>* position)
 // FUNCTION: WIZ8 0x00581030
 void RenderAutomapFrame(void)
 {
-    if (g_automap_redraw != 0) {
-        if (g_automap_surface_mode == 0) {
+    if (g_automap_redraw) {
+        if (!g_automap_surface_mode) {
             RenderAutomapMarkers();
         } else {
-            if (g_automap_overlay_redraw != 0) {
+            if (g_automap_overlay_redraw) {
                 SetResidentTexturePolicy(3);
                 float half = g_automap_zoom * g_float_005ebc7c;
                 srCamera::Rect view;
@@ -1743,7 +1743,7 @@ bool SaveAutomapNotes(int handle)
                                FileWrite(handle, &note->position.y, 4, 0) != 0 &&
                                FileWrite(handle, &note->layer, 4, 0) != 0;
             int length = wcslen(note->text) + 1;
-            if (ok == 0) {
+            if (!ok) {
                 return false;
             }
             if (FileWrite(handle, &length, 4, 0) == 0) {
@@ -1787,7 +1787,7 @@ bool LoadAutomapNotes(int handle)
                                    FileRead(handle, &layer, 4, 0) != 0 &&
                                    FileRead(handle, &length, 4, 0) != 0;
                 wchar_t* text = static_cast<wchar_t*>(malloc(length * 2));
-                if (ok == 0) {
+                if (!ok) {
                     return false;
                 }
                 if (FileRead(handle, text, length * 2, 0) == 0) {
@@ -2009,8 +2009,8 @@ void RenderAutomapMarkers(void)
                 break;
             }
         }
-        if (g_automap_show_all_monsters != 0 || detect_all != 0 ||
-            (monster->disabled == 0 && info->party_threat.sight_state == W8_SIGHT_SEEN)) {
+        if (g_automap_show_all_monsters || detect_all ||
+            (!monster->disabled && info->party_threat.sight_state == W8_SIGHT_SEEN)) {
             left = g_automap_position.x - g_automap_zoom * g_float_005ebc7c;
             top = g_automap_position.z - g_automap_zoom * g_float_005ebc7c;
             if (location.x < left || left + g_automap_zoom < location.x || location.z < top ||
@@ -2056,7 +2056,7 @@ void RenderAutomapMarkers(void)
             }
         }
         if ((static_cast<W8ItemRep*>(item->m_pRep)->flags & 4) == 0 &&
-            (detect_all != 0 || ((static_cast<W8ItemRep*>(item->m_pRep)->flags >> 3) & 1) != 0 ||
+            (detect_all || ((static_cast<W8ItemRep*>(item->m_pRep)->flags >> 3) & 1) != 0 ||
              HasCameraLineOfSight(&location)) &&
             layer - 1 == g_automap_layer) {
             left = g_automap_position.x - g_automap_zoom * g_float_005ebc7c;
@@ -2476,7 +2476,7 @@ unsigned char HandleAutomapKey(const InputAtom* input)
         return 1;
     case 0x41:
         /* Developer: reveal the whole map. */
-        if (g_dev_mode != 0) {
+        if (g_dev_mode) {
             g_automap_visited_cells->SetAll();
             g_automap_bounds_dirty = true;
             g_automap_redraw = true;
@@ -2499,7 +2499,7 @@ unsigned char HandleAutomapKey(const InputAtom* input)
         break;
     case 0x43:
         /* Developer: forget the whole map. */
-        if (g_dev_mode != 0) {
+        if (g_dev_mode) {
             g_automap_visited_cells->ClearAll();
             g_automap_bounds_dirty = true;
             UpdateAutomapBounds();
@@ -2507,21 +2507,21 @@ unsigned char HandleAutomapKey(const InputAtom* input)
         }
         break;
     case 0x49:
-        if (g_dev_mode != 0) {
-            g_flag_64b90d = g_flag_64b90d == 0;
+        if (g_dev_mode) {
+            g_flag_64b90d = !g_flag_64b90d;
             g_automap_redraw = true;
             return 1;
         }
         break;
     case 0x53:
-        if (g_dev_mode != 0) {
+        if (g_dev_mode) {
             g_automap_redraw = true;
-            g_automap_show_all_monsters = g_automap_show_all_monsters == 0;
+            g_automap_show_all_monsters = !g_automap_show_all_monsters;
             return 1;
         }
         break;
     case 0x70:
-        if (g_dev_mode != 0) {
+        if (g_dev_mode) {
             g_automap_saved_camera.position = g_automap_position;
             ResetCurrentEnvironment();
             ResetCurrentEnvironment();
@@ -2529,7 +2529,7 @@ unsigned char HandleAutomapKey(const InputAtom* input)
         }
         break;
     case 0x79:
-        if (g_dev_mode != 0) {
+        if (g_dev_mode) {
             g_automap_state->blink_enabled = !g_automap_state->blink_enabled;
             return 1;
         }

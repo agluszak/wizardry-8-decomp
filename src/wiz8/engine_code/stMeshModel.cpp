@@ -291,7 +291,7 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
     srVector3T<float> scaled;
     srVector3T<float> ambient_rgb;
 
-    if ((flags & W8_MESH_VERTEX_LIGHTING_DIRTY) != 0 && g_render_unlit == 0) {
+    if ((flags & W8_MESH_VERTEX_LIGHTING_DIRTY) != 0 && !g_render_unlit) {
         lights = vertex_lights[vertex_light_table].data;
         sunlight = vertex_sunlight.data;
         if (lights != 0 && sunlight != 0) {
@@ -454,12 +454,12 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
 
     if (mesh.polygon_count != 0 && mesh.vertex_count != 0) {
         renderer.pushEnable();
-        if ((g_inverted_depth_render != 0 || (mesh.control_flags & 0x40) != 0) &&
+        if ((g_inverted_depth_render || (mesh.control_flags & 0x40) != 0) &&
             !renderer.isEnabled(srGERD::ENABLE_SORTED_RENDERING)) {
             renderer.toggle(srGERD::ENABLE_SORTED_RENDERING);
         }
 
-        if (g_render_cull_front != 0) {
+        if (g_render_cull_front) {
             renderer.setCullMode(srGERD::CULL_NONE);
         } else if (arg_poly_equations != 0) {
             renderer.setCullMode(srGERD::CULL_NONE);
@@ -608,7 +608,7 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
 
                     if (mesh.poly_shaders[pass] == 0) {
                         shader.value = mesh.shaders[pass].value;
-                        if (g_inverted_depth_render != 0) {
+                        if (g_inverted_depth_render) {
                             shader.value = (shader.value & 0xfffffffeUL) | 6UL;
                         }
                         pipeline->SetFlags(shader);
@@ -794,7 +794,7 @@ unsigned long* stMeshModel::GetActivePolygons(long* count_out, int table, bool f
     if (list != 0) {
         return list;
     }
-    if (checked != 0 || flag == 0) {
+    if (checked != 0 || !flag) {
         *count_out = 0;
         return 0;
     }
@@ -1349,7 +1349,7 @@ srVector3T<float>* stMeshModel::GetVertexLocations(unsigned int frame, bool load
     }
     if (m_pVertexLoc[frame] == 0) {
         AllocateFrameBuffers(frame, W8_MESH_FRAME_LOCATIONS);
-        if (load != 0 && m_pVertexLoc[frame] != 0) {
+        if (load && m_pVertexLoc[frame] != 0) {
             DecompressFrame(frame, W8_MESH_FRAME_LOCATIONS, m_pVertexLoc[frame]);
         }
     }
@@ -1366,7 +1366,7 @@ srVector3T<float>* stMeshModel::GetVertexNormals(unsigned int frame, bool load)
     }
     if (m_pVertexNormal[frame] == 0) {
         AllocateFrameBuffers(frame, W8_MESH_FRAME_VERTEX_NORMALS);
-        if (load != 0 && m_pVertexNormal[frame] != 0) {
+        if (load && m_pVertexNormal[frame] != 0) {
             DecompressFrame(frame, W8_MESH_FRAME_VERTEX_NORMALS, m_pVertexNormal[frame]);
         }
     }
@@ -1381,7 +1381,7 @@ srVector3T<float>* stMeshModel::GetPolygonNormals(unsigned int frame, bool load)
     }
     if (m_pPolyNormal[frame] == 0) {
         AllocateFrameBuffers(frame, W8_MESH_FRAME_POLYGON_NORMALS);
-        if (load != 0 && m_pPolyNormal[frame] != 0) {
+        if (load && m_pPolyNormal[frame] != 0) {
             DecompressFrame(frame, W8_MESH_FRAME_POLYGON_NORMALS, m_pPolyNormal[frame]);
         }
     }

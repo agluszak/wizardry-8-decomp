@@ -181,10 +181,9 @@ void W8CharacterScreen::BuildControls()
     m_controls->EnableRegionSet(1);
     m_controls->Invalidate(0);
     m_reset->SetActive(0);
-    if (m_mode == 1 && g_status.game_started != 0 &&
-        CharacterPointerToPartySlot(m_original) > 1) {
+    if (m_mode == 1 && g_status.game_started && CharacterPointerToPartySlot(m_original) > 1) {
         m_reset->SetActive(1);
-        if (gXStatus.fCombatMode != 0) {
+        if (gXStatus.fCombatMode) {
             m_reset->SetEnabled(0);
         }
     }

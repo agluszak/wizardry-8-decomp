@@ -67,7 +67,7 @@ void RecalculateCharacterDerivedStats(W8Character* character)
         character->damage_reduction += static_cast<int>(
             ScaleValueByProfessionLevel(character, W8_TRAIT_MONK_DAMAGE_RESISTANCE, 15.0f));
     }
-    if (character->skills[W8_SKILL_IRON_SKIN].active != 0) {
+    if (character->skills[W8_SKILL_IRON_SKIN].active) {
         character->damage_reduction += (character->skills[W8_SKILL_IRON_SKIN].level >> 2) + 5;
     }
     character->damage_reduction += character->bonus.damage_reduction_adjustment;
@@ -83,7 +83,7 @@ void RecalculateCharacterDerivedStats(W8Character* character)
     bool changed = previous_capacity != capacity;
     character->carrying_capacity = capacity;
     bool recalculated = RecalculateCarriedWeight(character);
-    if (g_status.game_started == 0) {
+    if (!g_status.game_started) {
         character->party_weight_share = 0;
     } else if (changed || recalculated) {
         RedistributePartyEncumbrance();
@@ -107,7 +107,7 @@ void RecalculateCharacterDerivedStats(W8Character* character)
     CalcInitiative(character);
     CalcAttacks(character);
     CalcArmorClasses(character);
-    if (character->fInParty != 0 && g_current_screen_state.id != W8_SCREEN_CHARACTER) {
+    if (character->fInParty && g_current_screen_state.id != W8_SCREEN_CHARACTER) {
         RequestPartySlotRedraw(CharacterPointerToPartySlot(character));
     }
 }
@@ -179,7 +179,7 @@ void RedistributePartyEncumbrance(void)
     for (slot = 0; slot < 8; ++slot) {
         W8Character* character = &characters[slot];
         character->party_weight_share = 0;
-        if (active[slot].fOccupied != 0 && character->highest_condition < W8_CONDITION_DEAD) {
+        if (active[slot].fOccupied && character->highest_condition < W8_CONDITION_DEAD) {
             capacity[slot] = character->carrying_capacity;
             unassigned[slot] = capacity[slot] - character->inventory_weight;
             load_ratio[slot] = unassigned[slot] * 100.0f / capacity[slot];
@@ -196,7 +196,7 @@ void RedistributePartyEncumbrance(void)
         float best_ratio = -999999.0f;
         for (slot = 0; slot < 8; ++slot) {
             W8Character* character = &characters[slot];
-            if (active[slot].fOccupied != 0 && character->highest_condition < W8_CONDITION_DEAD &&
+            if (active[slot].fOccupied && character->highest_condition < W8_CONDITION_DEAD &&
                 load_ratio[slot] > best_ratio) {
                 best_ratio = load_ratio[slot];
                 best_slot = slot;
@@ -212,7 +212,7 @@ void RedistributePartyEncumbrance(void)
     }
 
     for (slot = 0; slot < 8; ++slot) {
-        if (active[slot].fOccupied == 0) {
+        if (!active[slot].fOccupied) {
             continue;
         }
         W8Character* character = &characters[slot];
@@ -238,7 +238,7 @@ void RedistributePartyEncumbrance(void)
     }
 
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
-        if (gXStatus.fNpcDialogueMode == 0) {
+        if (!gXStatus.fNpcDialogueMode) {
             RequestRedraw(W8_MAIN_REDRAW_PORTRAITS);
             gXStatus.fEncumbranceDirty = false;
             return;

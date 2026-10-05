@@ -52,7 +52,7 @@ void PauseSharedGameTimers(void)
                 g_game_time_accumulator->m_start =
                     g_game_time_accumulator->m_shared->getUTime(srTimer::TIMER_READ_DEFAULT) -
                     g_game_time_accumulator->m_start;
-            } else if (g_shared_timer_paused != 0) {
+            } else if (g_shared_timer_paused) {
                 g_game_time_accumulator->m_start =
                     g_shared_timer_pause_time - g_game_time_accumulator->m_start;
             } else {
@@ -266,8 +266,8 @@ float W8GameTimer::GetProgress()
         m_end = m_start + m_duration;
     }
 
-    if ((m_flags & 8) == 0 && (g_shared_timer_paused == 0 || (m_flags & 1) != 0) &&
-        g_shared_timer_flag0 == 0 && (g_shared_timer_flag1 == 0 || (m_flags & 1) != 0)) {
+    if ((m_flags & 8) == 0 && (!g_shared_timer_paused || (m_flags & 1) != 0) &&
+        !g_shared_timer_flag0 && (!g_shared_timer_flag1 || (m_flags & 1) != 0)) {
         return progress;
     }
     return 0.0f;

@@ -208,7 +208,7 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                         pSource, &target, g_special_attack_condition_table[special_attack_kind][i],
                         g_special_attack_realm_table[special_attack_kind], uiMinRoll, extra,
                         uiDamage, announce, announce, 0);
-                    if (resolved == 0 && announce == 0) {
+                    if (!resolved && announce == 0) {
                         ++uiHits[i];
                     }
                     break;
@@ -317,7 +317,7 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                         pSource, &target, g_special_attack_condition_table[special_attack_kind][i],
                         g_special_attack_realm_table[special_attack_kind], uiMinRoll, extra,
                         uiBound, announce, announce, 0);
-                    if (resolved == 0 && announce == 0) {
+                    if (!resolved && announce == 0) {
                         ++uiHits[i];
                     }
                     break;
@@ -502,17 +502,17 @@ void SpawnSummonedMonsterGroup(int special_attack_kind, W8TargetSource* pSource,
     SetMonsterGroupHostility(group, disposition, 0);
     if (monster_info->player_visibility.sight_state == W8_SIGHT_SEEN) {
         placed = PositionMonsterGroupNearCamera(group, 0.0f, 0.0f, 1);
-        if (placed == 0) {
+        if (!placed) {
             placed = PositionMonsterGroupNearCamera(group, 1500.0f, 0.0f, 1);
         }
-        if (placed == 0) {
+        if (!placed) {
             placed = PositionMonsterGroupNearCamera(group, 3000.0f, 0.0f, 1);
         }
     } else {
         yaw = GetCameraFacingYaw(position);
         placed = MoveMonsterGroupToPosition(group, position, yaw, 1, 0, 0, 0);
     }
-    if (placed == 0) {
+    if (!placed) {
         RemoveAllGroupMembers(group);
         ShowNotice(9, gppStringList[0x26a], -1, -1, 0);
         return;

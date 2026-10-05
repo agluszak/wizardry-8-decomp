@@ -46,7 +46,7 @@ void W8DialogNumericInput::SetValue(int value)
 void W8DialogNumericInput::SetActive(bool active)
 {
     m_active = active;
-    if (active == 0) {
+    if (!active) {
         m_caret = -1;
         m_dialog->m_field_4c = 0;
         m_dirty = true;
@@ -58,7 +58,7 @@ void W8DialogNumericInput::SetActive(bool active)
 void W8DialogNumericInput::SetActive(bool active, const POINT* point)
 {
     m_active = active;
-    if (active == 0) {
+    if (!active) {
         m_caret = -1;
         m_dialog->m_field_4c = 0;
         m_dirty = true;
@@ -87,7 +87,7 @@ void W8DialogNumericInput::SetActive(bool active, const POINT* point)
 // FUNCTION: WIZ8 0x005e15c0
 void W8DialogNumericInput::Draw(bool force)
 {
-    if (force == 0 && m_dirty == 0) {
+    if (!force && !m_dirty) {
         return;
     }
     swprintf(g_numeric_input_text, g_format_d, m_value);
@@ -107,7 +107,7 @@ void W8DialogNumericInput::Draw(bool force)
         text_x = m_bounds.left;
     }
     gprintfDirty(text_x, text_y, Wiz8ToSgpWideText(g_format_s), g_numeric_input_text);
-    if (m_active != 0 && m_caret != -1) {
+    if (m_active && m_caret != -1) {
         int caret_x =
             m_bounds.right - StringPixLength(g_numeric_input_text + length - m_caret, m_font) - 1;
         font_height = GetFontHeight(m_font);
@@ -128,7 +128,7 @@ void W8DialogNumericInput::Draw(bool force)
 // FUNCTION: WIZ8 0x005e17a0
 void W8DialogNumericInput::TypeDigit(wchar_t digit)
 {
-    if (m_active != 0) {
+    if (m_active) {
         swprintf(g_numeric_input_text, g_format_d, m_value);
         size_t length = wcslen(g_numeric_input_text);
         if (length < 10) {
@@ -152,7 +152,7 @@ void W8DialogNumericInput::TypeDigit(wchar_t digit)
 // FUNCTION: WIZ8 0x005e1840
 void W8DialogNumericInput::DeleteForward()
 {
-    if (m_active != 0 && m_caret != 0) {
+    if (m_active && m_caret != 0) {
         swprintf(g_numeric_input_text, g_format_d, m_value);
         size_t length = wcslen(g_numeric_input_text);
         unsigned int position = length - m_caret;
@@ -180,7 +180,7 @@ void W8DialogNumericInput::DeleteForward()
 // FUNCTION: WIZ8 0x005e18f0
 void W8DialogNumericInput::Backspace()
 {
-    if (m_active != 0) {
+    if (m_active) {
         swprintf(g_numeric_input_text, g_format_d, m_value);
         size_t length = wcslen(g_numeric_input_text);
         if (length != 0 && m_caret != static_cast<int>(length)) {
@@ -226,7 +226,7 @@ unsigned char W8DialogNumericInput::HandleInput(const InputAtom* input)
     case 0x37:
     case 0x38:
     case 0x39:
-        if (m_active != 0 && m_caret != -1) {
+        if (m_active && m_caret != -1) {
             TypeDigit(static_cast<wchar_t>(input->usParam));
             return 1;
         }
@@ -241,25 +241,25 @@ unsigned char W8DialogNumericInput::HandleInput(const InputAtom* input)
     case 0x67:
     case 0x68:
     case 0x69:
-        if (m_active != 0 && m_caret != -1) {
+        if (m_active && m_caret != -1) {
             TypeDigit(static_cast<wchar_t>(input->usParam - 0x30));
             return 1;
         }
         break;
     case 0x2e:
-        if (m_active != 0 && m_caret != -1) {
+        if (m_active && m_caret != -1) {
             DeleteForward();
             return 1;
         }
         break;
     case 8:
-        if (m_active != 0 && m_caret != -1) {
+        if (m_active && m_caret != -1) {
             Backspace();
             return 1;
         }
         break;
     case 0x27:
-        if (m_active != 0 && m_caret != -1) {
+        if (m_active && m_caret != -1) {
             int next = m_caret - 1;
             m_dirty = true;
             m_caret = next < 0 ? 0 : next;
@@ -268,7 +268,7 @@ unsigned char W8DialogNumericInput::HandleInput(const InputAtom* input)
         }
         break;
     case 0x25:
-        if (m_active != 0 && m_caret != -1) {
+        if (m_active && m_caret != -1) {
             swprintf(g_numeric_input_text, g_format_d, m_value);
             size_t length = wcslen(g_numeric_input_text);
             unsigned int next = m_caret + 1;

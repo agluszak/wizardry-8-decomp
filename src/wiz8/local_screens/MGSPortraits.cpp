@@ -93,7 +93,7 @@ void SyncPartyPortraitVitalsBars(void)
         unsigned int spell_bar = 0;
         W8Character* character;
 
-        if (g_status.buffers.XChar[slot].fOccupied == 0) {
+        if (!g_status.buffers.XChar[slot].fOccupied) {
             continue;
         }
 
@@ -162,11 +162,11 @@ void RecordCharacterDamage(int party_slot, unsigned int amount)
 {
     bool splat_started = false;
 
-    if (gXStatus.fSurprisePossible != 0) {
+    if (gXStatus.fSurprisePossible) {
         return;
     }
     W8MonsterManagerEntry* entry = &gXStatus.monster_manager_entries[party_slot];
-    if (entry->damage_splat_active == 0) {
+    if (!entry->damage_splat_active) {
         entry->damage_splat_amount = amount;
         entry->damage_splat_active = 1;
         if (Random(2) == 0) {
@@ -193,15 +193,15 @@ void RecordCharacterDamage(int party_slot, unsigned int amount)
         entry->damage_splat_amount += amount;
         entry->damage_splat_frame = 0;
         if (g_status.buffers.Char[party_slot].hp_current == 0 &&
-            entry->damage_splat_death_variant == 0) {
+            !entry->damage_splat_death_variant) {
             entry->damage_splat_death_variant = 1;
             entry->damage_splat_end_frame = 0x1e;
         }
     }
-    if (entry->keyboard_menu_open == 0) {
+    if (!entry->keyboard_menu_open) {
         RequestRedraw(1u << party_slot);
     }
-    if (entry->effect_icon_active != 0 && splat_started) {
+    if (entry->effect_icon_active && splat_started) {
         entry->damage_splat_frame = -1;
         return;
     }
@@ -237,7 +237,7 @@ static void DrawDamageSplatOverlay(unsigned int party_slot)
             break;
         }
         unsigned int object =
-            entry->damage_splat_death_variant == 0 ? entry->damage_splat_catalog : 0x92;
+            !entry->damage_splat_death_variant ? entry->damage_splat_catalog : 0x92;
         DrawCatalogImage(-0xe, object, 0, static_cast<short>(frame), left, top, 2, 0);
         if (entry->damage_splat_frame < 6) {
             W8ControlsRect bounds;
@@ -250,7 +250,7 @@ static void DrawDamageSplatOverlay(unsigned int party_slot)
                                g_wiz_text_bold_font);
             splat_text.RenderToTarget(0, 0, -0xe);
         }
-        if (gXStatus.fCombatMode != 0) {
+        if (gXStatus.fCombatMode) {
             entry->combat_portrait_dirty = 1;
         }
     }
@@ -300,26 +300,26 @@ void TickPartyPortraitFx(void)
         bool clock_expired;
         bool dirty = false;
 
-        if (g_status.buffers.XChar[slot].fOccupied == 0) {
+        if (!g_status.buffers.XChar[slot].fOccupied) {
             continue;
         }
 
         clock_expired = ClockIsTicking(entry->portrait_fx_clock) == 0;
-        if (entry->damage_splat_active != 0) {
-            if (clock_expired != 0) {
+        if (entry->damage_splat_active) {
+            if (clock_expired) {
                 ++entry->damage_splat_frame;
                 dirty = 1;
             }
             if (entry->damage_splat_frame == entry->damage_splat_end_frame) {
                 entry->damage_splat_active = 0;
                 entry->damage_splat_death_variant = 0;
-            } else if (entry->damage_splat_death_variant != 0 && entry->damage_splat_frame == 0xd &&
-                       entry->dead_portrait_revealed == 0) {
+            } else if (entry->damage_splat_death_variant && entry->damage_splat_frame == 0xd &&
+                       !entry->dead_portrait_revealed) {
                 entry->dead_portrait_revealed = 1;
             }
         }
-        if (entry->effect_icon_active != 0) {
-            if (clock_expired != 0) {
+        if (entry->effect_icon_active) {
+            if (clock_expired) {
                 ++entry->effect_icon_frame;
                 dirty = 1;
             }
@@ -327,10 +327,10 @@ void TickPartyPortraitFx(void)
                 entry->effect_icon_active = 0;
             }
         }
-        if (clock_expired != 0) {
+        if (clock_expired) {
             entry->portrait_fx_clock = SetCountdownClock(100);
         }
-        if (dirty != 0 && entry->keyboard_menu_open == 0) {
+        if (dirty && !entry->keyboard_menu_open) {
             RequestRedraw(1u << (slot & 0x1f));
         }
     }
@@ -347,7 +347,7 @@ void ResetPartyPortraitFx(void)
     for (slot = 0; slot < 8; ++slot) {
         W8MonsterManagerEntry* entry = &gXStatus.monster_manager_entries[slot];
 
-        if (g_status.buffers.XChar[slot].fOccupied == 0) {
+        if (!g_status.buffers.XChar[slot].fOccupied) {
             continue;
         }
         entry->effect_icon_active = 0;
@@ -381,9 +381,9 @@ void RedrawCombatPortraits(void)
         W8MonsterManagerEntry* entry = &gXStatus.monster_manager_entries[slot];
         W8CombatCharacterRow* combat_row = &g_combat_state->characters[slot];
 
-        if (party_row->fOccupied == 0 || character->hp_current == 0 ||
+        if (!party_row->fOccupied || character->hp_current == 0 ||
             character->highest_condition >= W8_CONDITION_DEAD || combat_row->portrait_image == -1 ||
-            entry->combat_portrait_dirty == 0 || slot == g_level_block->combat_slot) {
+            !entry->combat_portrait_dirty || slot == g_level_block->combat_slot) {
             continue;
         }
         if ((slot & 1) == 0) {
@@ -623,22 +623,22 @@ void StageMonsterCastIcon(unsigned int party_slot, W8SpellRealm realm, bool alte
     int catalog;
     switch (realm) {
     case 0:
-        catalog = 0xac - (alternate != 0);
+        catalog = 0xac - (alternate);
         break;
     case 1:
-        catalog = 0xae - (alternate != 0);
+        catalog = 0xae - (alternate);
         break;
     case 2:
-        catalog = 0xb0 - (alternate != 0);
+        catalog = 0xb0 - (alternate);
         break;
     case 3:
-        catalog = 0xb2 - (alternate != 0);
+        catalog = 0xb2 - (alternate);
         break;
     case 4:
-        catalog = 0xb4 - (alternate != 0);
+        catalog = 0xb4 - (alternate);
         break;
     case 5:
-        catalog = 0xb6 - (alternate != 0);
+        catalog = 0xb6 - (alternate);
         break;
     default:
         catalog = 0xaa;
@@ -656,10 +656,10 @@ void StageMonsterCastIcon(unsigned int party_slot, W8SpellRealm realm, bool alte
         entry->auto_portrait_refresh = 1;
         entry->effect_icon_frame = -1;
     }
-    if (entry->keyboard_menu_open == 0) {
+    if (!entry->keyboard_menu_open) {
         RequestRedraw(1 << (party_slot & 0x1f));
     }
-    if (entry->damage_splat_active == 0) {
+    if (!entry->damage_splat_active) {
         entry->portrait_fx_clock = SetCountdownClock(100);
         return;
     }
@@ -669,7 +669,7 @@ void StageMonsterCastIcon(unsigned int party_slot, W8SpellRealm realm, bool alte
 // FUNCTION: WIZ8 0x005993A0
 bool PreparePartyPortraitOverlay(unsigned int party_slot, unsigned int left, unsigned int top)
 {
-    if (gXStatus.fNpcDialogueMode != 0 && (party_slot & 1) != 0 &&
+    if (gXStatus.fNpcDialogueMode && (party_slot & 1) != 0 &&
         IsPortraitObscuredByNpcDialogue(party_slot)) {
         return 0;
     }
@@ -677,7 +677,7 @@ bool PreparePartyPortraitOverlay(unsigned int party_slot, unsigned int left, uns
          (g_settings.main_ui_mode != W8_MAIN_UI_MODE_FORMATION &&
           g_settings.main_ui_mode != W8_MAIN_UI_MODE_RADAR) ||
          g_level_block->portrait_refresh_pending[party_slot] != 0) &&
-        g_status.buffers.XChar[party_slot].fOccupied != 0) {
+        g_status.buffers.XChar[party_slot].fOccupied) {
         W8Character* character = &g_status.buffers.Char[party_slot];
         if (character->hp_current != 0) {
             int portrait = character->portrait_index;
@@ -687,8 +687,8 @@ bool PreparePartyPortraitOverlay(unsigned int party_slot, unsigned int left, uns
                 flags = 0x1002;
             }
             if (BlitPartyPortraitAnimation(portrait, left, top, flags, party_slot, 0) &&
-                ((gXStatus.fCombatMode != 0 && g_combat_state->characters[party_slot].dead != 0) ||
-                 gXStatus.fSurprisePossible != 0 ||
+                ((gXStatus.fCombatMode && g_combat_state->characters[party_slot].dead) ||
+                 gXStatus.fSurprisePossible ||
                  character->highest_condition == W8_CONDITION_MISSING)) {
                 return 1;
             }
@@ -727,7 +727,7 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, bool highlighted, bool 
     bool show_off_hand_row;
     unsigned short hp_bar_frame;
 
-    if (gXStatus.fNpcDialogueMode != 0 && (party_slot & 1) != 0) {
+    if (gXStatus.fNpcDialogueMode && (party_slot & 1) != 0) {
         IsPortraitObscuredByNpcDialogue(party_slot);
     }
 
@@ -738,17 +738,17 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, bool highlighted, bool 
     character = &g_status.buffers.Char[party_slot];
     entry = &gXStatus.monster_manager_entries[party_slot];
 
-    if (party_row->fOccupied == 0) {
+    if (!party_row->fOccupied) {
         DrawCatalogImage(-14, 0x31, 0, 0, menu_x + 0x14, menu_y, 2, 0);
     }
 
-    if (overlay_ready != 0) {
-        if (party_row->fOccupied == 0) {
+    if (overlay_ready) {
+        if (!party_row->fOccupied) {
             portrait_catalog = 0x34;
             portrait_flags = 2;
             DrawCatalogImage(-14, portrait_catalog, 0, 0, menu_x + 0x14, menu_y, portrait_flags, 0);
         } else if (character->hp_current == 0 &&
-                   (entry->damage_splat_death_variant == 0 || entry->dead_portrait_revealed != 0)) {
+                   (!entry->damage_splat_death_variant || entry->dead_portrait_revealed)) {
             portrait_catalog = g_dead_portrait_catalog_ids[character->iRace][1];
             portrait_flags = (party_slot & 1) == 0 ? 2 : 0x1002;
             DrawCatalogImage(-14, portrait_catalog, 0, 0, menu_x + 0x14, menu_y, portrait_flags, 0);
@@ -769,8 +769,8 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, bool highlighted, bool 
 
     DrawCatalogImage(-14, 0x82, 0, 0x10, menu_x + 0x17, menu_y, 2, 0);
 
-    if (party_row->fOccupied != 0) {
-        if (overlay_ready != 0) {
+    if (party_row->fOccupied) {
+        if (overlay_ready) {
             if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS ||
                 g_level_block->portrait_refresh_pending[party_slot] != 0) {
                 main_hand_item_id = character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].iItemNo;
@@ -806,7 +806,7 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, bool highlighted, bool 
                     }
                 }
 
-                if (show_off_hand_row == 0) {
+                if (!show_off_hand_row) {
                     off_hand_item_id =
                         character->EquippedItem[W8_EQUIP_SLOT_SECONDARY_WEAPON].iItemNo;
                     if (off_hand_item_id == -1) {
@@ -878,7 +878,7 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, bool highlighted, bool 
                     Wiz8ToSgpWideText(g_format_s), character->name);
             SetObjectShade(g_wiz_text_font_secondary_object, 4);
 
-            if (gXStatus.fCombatMode != 0) {
+            if (gXStatus.fCombatMode) {
                 entry->combat_portrait_dirty = 1;
             }
             g_condition_buttons[party_slot]->Invalidate(0);
@@ -892,8 +892,7 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, bool highlighted, bool 
             int highlight_y;
             int highlight_catalog;
 
-            if (highlighted == 0 || gfLeftButtonState != 0 ||
-                g_level_block->portrait_flash != 0) {
+            if (!highlighted || gfLeftButtonState != 0 || g_level_block->portrait_flash != 0) {
                 if (g_status.selected_character != static_cast<int>(party_slot)) {
                     goto draw_condition_icons;
                 }
@@ -912,8 +911,7 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, bool highlighted, bool 
             int highlight_catalog;
 
             highlight_y = menu_y;
-            if (highlighted == 0 ||
-                (gfLeftButtonState != 0 && gXStatus.fReviewCharacterMode == 0) ||
+            if (!highlighted || (gfLeftButtonState != 0 && !gXStatus.fReviewCharacterMode) ||
                 (g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
                  g_level_block->portrait_flash != 0)) {
                 if (g_status.selected_character != static_cast<int>(party_slot)) {
@@ -952,7 +950,7 @@ draw_condition_icons:
     }
     DrawCatalogImage(-14, enchantment_frame, 0, 0, right_condition_x, menu_y + 3, 2, 0);
 
-    if (party_row->fOccupied != 0 && g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
+    if (party_row->fOccupied && g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
         if (g_level_block->condition_hover_party_slot == static_cast<int>(party_slot)) {
             DrawCatalogImage(-14, 0x60, 0, 0, left_condition_x - 1, menu_y + 2, 2, 0);
         } else if (character->highest_condition != W8_CONDITION_NONE) {
@@ -994,10 +992,10 @@ draw_condition_icons:
     }
 
 portrait_fx:
-    if (entry->damage_splat_active != 0) {
+    if (entry->damage_splat_active) {
         DrawDamageSplatOverlay(party_slot);
     }
-    if (entry->effect_icon_active != 0) {
+    if (entry->effect_icon_active) {
         DrawPortraitEffectIcon(party_slot);
     }
 
@@ -1018,7 +1016,7 @@ portrait_fx:
         DrawCatalogImage(-14, hp_overlay_catalog, 0, 0, hp_overlay_x, hp_overlay_y, 2, 0);
     }
 
-    if (gXStatus.fCombatMode == 0 && party_slot < 8 && party_row->fOccupied != 0) {
+    if (!gXStatus.fCombatMode && party_slot < 8 && party_row->fOccupied) {
         g_portrait_controls[party_slot]->Invalidate(0);
     }
 
@@ -1042,12 +1040,12 @@ portrait_fx:
         RefreshTrackedPortraitOverlay();
     }
 
-    if (overlay_ready != 0 && gXStatus.fNpcDialogueMode != 0 &&
+    if (overlay_ready && gXStatus.fNpcDialogueMode &&
         g_npc_interaction_state->dialogue_layout == W8_DIALOGUE_LAYOUT_TRANSCRIPT &&
-        g_npc_interaction_state->scripted_dialogue == 0 &&
-        g_npc_interaction_state->dialogue_panel_hidden == 0 &&
+        !g_npc_interaction_state->scripted_dialogue &&
+        !g_npc_interaction_state->dialogue_panel_hidden &&
         g_npc_interaction_state->script_busy == 0 &&
-        g_npc_interaction_state->dialogue_hidden == 0 && gXStatus.scripted_scene == 0) {
+        g_npc_interaction_state->dialogue_hidden == 0 && !gXStatus.scripted_scene) {
         SetNpcDialoguePanelVisible(1);
     }
 }
@@ -1189,7 +1187,7 @@ void UpdatePortraitAdvanceButtons(void)
 
     for (slot = 0, control = g_portrait_controls; control < &g_portrait_controls[8];
          ++slot, ++control) {
-        if (IsCharacterReadyToAdvance(slot) && gXStatus.fNpcDialogueMode == 0 &&
+        if (IsCharacterReadyToAdvance(slot) && !gXStatus.fNpcDialogueMode &&
             g_status.buffers.XChar[slot].portrait_advance != 0) {
             if (!(*control)->m_active) {
                 (*control)->SetActive(true);
@@ -1210,7 +1208,7 @@ static void OnLevelButtonActivate(void)
     if (slot == -1 || slot >= 8) {
         return;
     }
-    if (g_status.buffers.XChar[slot].fOccupied == 0) {
+    if (!g_status.buffers.XChar[slot].fOccupied) {
         srAssertFail("fCHAR_OCCUPIED(giLevelUpChar)",
                      "C:\\Projects\\Wizardry 8\\Local Screens\\MGSPortraits.cpp", 0x988, 0);
     }
@@ -1411,8 +1409,8 @@ void UpdateConditionButtons(void)
         W8ConditionButton* button = g_condition_buttons[slot];
         W8MonsterManagerEntry* entry = &gXStatus.monster_manager_entries[slot];
         image = 0;
-        if (g_status.buffers.XChar[slot].fOccupied != 0 &&
-            g_level_block->portrait_refresh_pending[slot] == 0 && entry->keyboard_menu_open == 0) {
+        if (g_status.buffers.XChar[slot].fOccupied &&
+            g_level_block->portrait_refresh_pending[slot] == 0 && !entry->keyboard_menu_open) {
             image = g_status.buffers.Char[slot].highest_condition;
             if (image == 0) {
                 image = g_status.buffers.Char[slot].enchantment_top;
@@ -1442,7 +1440,7 @@ void UpdateConditionButtons(void)
                 button->SetActive(false);
                 button->Invalidate(0);
                 if (g_level_block->portrait_refresh_pending[slot] == 0 &&
-                    entry->keyboard_menu_open == 0) {
+                    !entry->keyboard_menu_open) {
                     ClearSurfaceRect(button->m_left + g_condition_buttons_panel->m_bounds.left,
                                      button->m_top + g_condition_buttons_panel->m_bounds.top,
                                      button->m_right + g_condition_buttons_panel->m_bounds.left,

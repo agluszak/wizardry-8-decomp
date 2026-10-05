@@ -27,7 +27,7 @@ int NoiseHearingMargin(int radius, int range, int hops)
 // FUNCTION: WIZ8 0x004F0E80
 void AlertMonsterGroupsToNoise(const srVector3T<float>* position, int radius, int flag)
 {
-    if (g_status.world_suspended != 0) {
+    if (g_status.world_suspended) {
         return;
     }
     srVector3T<float> noise_position = *position;
@@ -40,7 +40,7 @@ void AlertMonsterGroupsToNoise(const srVector3T<float>* position, int radius, in
             continue;
         }
         if (flag == 1) {
-            if (gXStatus.fCombatMode != 0 && group->fInCombat != 0) {
+            if (gXStatus.fCombatMode && group->fInCombat) {
                 continue;
             }
         } else if (flag == 0 && info->ubDisposition != W8_DISPOSITION_HOSTILE) {
@@ -65,7 +65,7 @@ void AlertMonsterGroupsToNoise(const srVector3T<float>* position, int radius, in
                 continue;
             }
         }
-        if (flag == 1 && gXStatus.fCombatMode != 0) {
+        if (flag == 1 && gXStatus.fCombatMode) {
             float range = static_cast<float>(radius);
             int hops;
             if (g_octree->TestNoiseLineOfSight(&monster_position, &noise_position, &range, &hops) ==
@@ -99,9 +99,9 @@ void AlertWorldNoise(void)
 // FUNCTION: WIZ8 0x004F1150
 void AlertCombatNoise(bool large_radius)
 {
-    if (g_status.world_suspended != 0) {
+    if (g_status.world_suspended) {
         return;
     }
     srVector3T<float> position = g_startup_world->GetPosition();
-    AlertMonsterGroupsToNoise(&position, large_radius != 0 ? 0x927c : 25000, 0);
+    AlertMonsterGroupsToNoise(&position, large_radius ? 0x927c : 25000, 0);
 }

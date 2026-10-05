@@ -941,7 +941,7 @@ void UpdateTimedTriggerEvents(void)
     for (int index = 0; index < g_timed_events.GetCount(); ++index) {
         W8TriggerEvent* event = *g_timed_events.GetAt(index);
         event->Update();
-        if (event->completed != 0) {
+        if (event->completed) {
             g_timed_events.RemoveAt(index);
             --index;
             if (event->trigger != 0) {
@@ -963,7 +963,7 @@ void W8TriggerShakeEvent::Update()
         }
         effect = CreateCameraShakeEffect(m_pCountdown->m_duration_seconds, 0, intensity, 0, 0);
         effect->flags &= ~2;
-        if (reverse != 0) {
+        if (reverse) {
             effect->flags |= 0x10;
         }
     }
@@ -974,7 +974,7 @@ void W8TriggerShakeEvent::Update()
         if (trigger != 0) {
             trigger->FinishAction();
         }
-        if (repeat != 0) {
+        if (repeat) {
             completed = true;
         }
     }
@@ -1141,16 +1141,16 @@ void W8TriggerEvent::Update()
         unsigned short flags = timer.m_flags;
 
         if (g_combat_inactive == 0) {
-            if ((flags & 8) != 0 || (g_shared_timer_paused != 0 && (flags & 1) == 0) ||
-                g_shared_timer_flag0 != 0) {
+            if ((flags & 8) != 0 || (g_shared_timer_paused && (flags & 1) == 0) ||
+                g_shared_timer_flag0) {
                 return;
             }
             timer.m_flags = flags | 8;
             timer.m_start = timer.GetTime() - timer.m_start;
             return;
         }
-        if ((flags & 8) != 0 || (g_shared_timer_paused != 0 && (flags & 1) == 0) ||
-            g_shared_timer_flag0 != 0) {
+        if ((flags & 8) != 0 || (g_shared_timer_paused && (flags & 1) == 0) ||
+            g_shared_timer_flag0) {
             timer.m_flags = flags & ~8;
             timer.m_start = timer.GetTime() - timer.m_start;
             timer.SetDuration(-1.0f);
@@ -1256,7 +1256,7 @@ void W8TriggerEvent::Update()
         break;
     }
 
-    if (repeat != 0) {
+    if (repeat) {
         completed = true;
     }
 }
@@ -2303,7 +2303,7 @@ finish_linked_triggers:
     }
 
 reactivate_linked_triggers:
-    if (was_running != 0 && (flags & W8_TRIGGER_ON) != 0 &&
+    if (was_running && (flags & W8_TRIGGER_ON) != 0 &&
         (flags & W8_TRIGGER_REACTIVATE_LINKED) != 0) {
         recipient = m_pacRecipients;
         while (recipient != 0) {
@@ -2350,8 +2350,7 @@ void Trigger::CommitActionResult(bool apply_state_changes)
                 bool was_running = ((flags & W8_TRIGGER_RUNNING) != 0);
                 flags |= W8_TRIGGER_RUNNING;
                 trigger->Run(m_lData1);
-                flags =
-                    (flags & ~W8_TRIGGER_RUNNING) | (was_running != 0 ? W8_TRIGGER_RUNNING : 0);
+                flags = (flags & ~W8_TRIGGER_RUNNING) | (was_running ? W8_TRIGGER_RUNNING : 0);
             }
         }
     }
@@ -2536,7 +2535,7 @@ W8WorldItem* Trigger::GetOrCreateItemGroup(bool create)
 {
     srVector3T<float> position;
 
-    if (create != 0 && world_item_group == 0) {
+    if (create && world_item_group == 0) {
         world_item_group = SpawnItem(0x23c, &position, 0, 0);
     }
     return world_item_group;
@@ -2547,7 +2546,7 @@ W8WorldItem* Trigger::GetOrCreateItemGroup(bool create)
 // FUNCTION: WIZ8 0x004456E0
 void Trigger::PrintNothingHappenedOrSpecialItemRequired()
 {
-    if (g_trigger_feedback != 0) {
+    if (g_trigger_feedback) {
         return;
     }
     if (required_item_id != -1) {
@@ -3120,8 +3119,7 @@ void Trigger::Run(int source)
                 bool was_running = ((flags & W8_TRIGGER_RUNNING) != 0);
                 flags |= W8_TRIGGER_RUNNING;
                 target->Run(m_lData1);
-                flags =
-                    (flags & ~W8_TRIGGER_RUNNING) | (was_running != 0 ? W8_TRIGGER_RUNNING : 0);
+                flags = (flags & ~W8_TRIGGER_RUNNING) | (was_running ? W8_TRIGGER_RUNNING : 0);
                 action_succeeded = true;
             }
         }
@@ -3621,7 +3619,7 @@ void Trigger::Run(int source)
     }
 
 commit_action:
-    if (running == 0) {
+    if (!running) {
         g_trigger_feedback = 1;
     }
     CommitActionResult(apply_state_changes);
@@ -3766,7 +3764,7 @@ bool Trigger::SelectAction()
             if (m_pEvent->m_pCountdown != 0) {
                 m_pEvent->m_pCountdown->Restart();
             }
-            if (running == 0) {
+            if (!running) {
                 g_trigger_feedback = 1;
             }
             return 0;
@@ -3790,7 +3788,7 @@ bool Trigger::SelectAction()
                     linked_trigger = FindTriggerByName(action_data->linked_trigger);
                     if (linked_trigger != 0) {
                         linked_trigger->Run(-1);
-                        if (running == 0) {
+                        if (!running) {
                             g_trigger_feedback = 1;
                         }
                     }
@@ -3799,7 +3797,7 @@ bool Trigger::SelectAction()
         }
     }
 
-    if (lock_state.lock_type != 0 && lock_state.device_state.completed == 0 && running == 0) {
+    if (lock_state.lock_type != 0 && lock_state.device_state.completed == 0 && !running) {
         if (lock_state.lock_type == 1) {
             g_trigger_feedback = 1;
             OpenLockInteraction(this);

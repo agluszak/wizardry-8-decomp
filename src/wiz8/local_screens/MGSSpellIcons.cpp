@@ -145,7 +145,7 @@ void RebuildSpellIconHudRows(void)
     g_spell_icon_count = 0;
     for (slot = 0; slot < 12; ++slot) {
         effect = &g_status.effect_slots[slot];
-        if (effect->active != 0) {
+        if (effect->active) {
             icon = g_effect_visual_table[effect->effect_id].hud_icon;
             if (icon == -1) {
                 ReportAssertion("iSpellIcon != BAD_INDEX", MGSSPELLICONS_CPP, 0x108);
@@ -169,7 +169,7 @@ void RebuildSpellIconHudRows(void)
 void RefreshCombatEffectHud(void)
 {
     DestroyCombatEffectHudRows();
-    if (gXStatus.fCombatMode == 0) {
+    if (!gXStatus.fCombatMode) {
         return;
     }
     RebuildCombatEffectHudRows();
@@ -207,7 +207,7 @@ static void RebuildCombatEffectHudRows(void)
     g_combat_effect_left_count = 0;
     for (slot = 0; slot < 9; ++slot) {
         effect = &g_combat_state->effect_slots[slot];
-        if (effect->active != 0) {
+        if (effect->active) {
             icon = g_effect_visual_table[effect->effect_id].hud_icon;
             if (icon == -1) {
                 ReportAssertion("iSpellIcon != BAD_INDEX", MGSSPELLICONS_CPP, 0x228);
@@ -229,7 +229,7 @@ static void RebuildCombatEffectHudRows(void)
     g_combat_effect_right_count = 0;
     for (slot = 0; slot < 6; ++slot) {
         effect = &g_combat_state->effect_slots0[slot];
-        if (effect->active != 0) {
+        if (effect->active) {
             icon = g_effect_visual_table[effect->effect_id].hud_icon;
             if (icon == -1) {
                 ReportAssertion("iSpellIcon != BAD_INDEX", MGSSPELLICONS_CPP, 0x25e);
@@ -336,7 +336,7 @@ unsigned char PartyEffectIconRegionEvent(const InputAtom* event, W8Region* regio
     PushButtonSoundScheme(0, 1);
     slot = g_status.effect_slots;
     do {
-        if (slot->active != 0) {
+        if (slot->active) {
             if (match == region->callback_id) {
                 break;
             }
@@ -386,13 +386,13 @@ unsigned char CombatLeftEffectIconRegionEvent(const InputAtom* event, W8Region* 
     unsigned int slot_index;
     W8EffectSlot* slot;
 
-    if (gXStatus.fCombatMode != 0) {
+    if (gXStatus.fCombatMode) {
         PushButtonSoundScheme(0, 1);
         match = 0;
         slot_index = 0;
         slot = g_combat_state->effect_slots;
         do {
-            if (slot->active != 0) {
+            if (slot->active) {
                 if (match == region->callback_id) {
                     break;
                 }
@@ -429,13 +429,13 @@ unsigned char CombatRightEffectIconRegionEvent(const InputAtom* event, W8Region*
     unsigned int slot_index;
     W8EffectSlot* slot;
 
-    if (gXStatus.fCombatMode != 0) {
+    if (gXStatus.fCombatMode) {
         PushButtonSoundScheme(0, 1);
         match = 0;
         slot_index = 0;
         slot = g_combat_state->effect_slots0;
         do {
-            if (slot->active != 0) {
+            if (slot->active) {
                 if (match == region->callback_id) {
                     break;
                 }

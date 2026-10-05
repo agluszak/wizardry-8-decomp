@@ -222,8 +222,7 @@ unsigned char MaintainNpcStock(W8NpcState* npc, bool force)
         }
     }
 
-    if (static_cast<unsigned int>(g_status.world_clock - npc->restock_clock) > 0xa8c0 ||
-        force != 0) {
+    if (static_cast<unsigned int>(g_status.world_clock - npc->restock_clock) > 0xa8c0 || force) {
         npc->restock_clock = g_status.world_clock;
         count = PLLength(npc->record->item_stock_rules);
         for (rule_index = 0; rule_index < count; ++rule_index) {
@@ -248,7 +247,7 @@ unsigned char MaintainNpcStock(W8NpcState* npc, bool force)
     }
 
     if (static_cast<unsigned int>(g_status.world_clock - npc->maintenance_clock) < 0x15180 &&
-        force == 0) {
+        !force) {
         return 0;
     }
     DecayNpcInventory(npc);
@@ -594,7 +593,7 @@ unsigned char SellItemToNpc(W8NpcState* npc, W8ItemInstance* item, unsigned char
             ReplaceOrCreateItem(&stack, item->iItemNo, 0, item->identified, 0);
             stack.stack_count = quantity;
             amount = CalculateTradeStackPrice(npc, &stack, 0);
-            if (suppress_payment == 0) {
+            if (!suppress_payment) {
                 AddPartyGold(amount, 0);
             }
             SoundPlay(g_sound_cash_transaction, 0);
@@ -863,7 +862,7 @@ bool CompleteNpcItemPurchase(W8NpcState* npc, int index, unsigned char quantity,
             if (ConsumeNpcItemQuantity(npc, index, moved) == 0) {
                 return 0;
             }
-            if (no_payment == 0) {
+            if (!no_payment) {
                 SpendPartyGold(price);
             }
             if (remaining_out != 0) {

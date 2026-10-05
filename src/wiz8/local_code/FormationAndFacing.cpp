@@ -80,7 +80,7 @@ void ReconcilePartyFormation(W8PartyFormationState* edited, W8PartyFormationStat
         signed char row;
         bool row_changed;
 
-        if (g_status.buffers.XChar[slot].fOccupied == 0 || character->hp_current <= 0 ||
+        if (!g_status.buffers.XChar[slot].fOccupied || character->hp_current <= 0 ||
             character->highest_condition >= W8_CONDITION_TURNCOAT) {
             continue;
         }
@@ -103,7 +103,7 @@ void ReconcilePartyFormation(W8PartyFormationState* edited, W8PartyFormationStat
         W8PartyFormationPosition* live_position = &live->positions[slot];
         W8PartyFormationPosition* edited_position = &edited->positions[slot];
 
-        if (g_status.buffers.XChar[slot].fOccupied == 0 ||
+        if (!g_status.buffers.XChar[slot].fOccupied ||
             (character->hp_current > 0 && character->highest_condition < W8_CONDITION_TURNCOAT)) {
             continue;
         }
@@ -220,7 +220,7 @@ bool CanHoldFormationPlace(int party_slot)
 // FUNCTION: WIZ8 0x00554a20
 void SaveCombatFormation(void)
 {
-    if (gXStatus.fCombatMode == 0) {
+    if (!gXStatus.fCombatMode) {
         srAssertFail("gXStatus.fCombatMode", FORMATION_CPP, 258, 0);
     }
     memcpy(&g_combat_state->saved_formation, &g_status.formation, sizeof(W8PartyFormationState));
@@ -231,7 +231,7 @@ void SaveCombatFormation(void)
 // FUNCTION: WIZ8 0x00554a60
 void RestoreCombatFormation(void)
 {
-    if (gXStatus.fCombatMode == 0) {
+    if (!gXStatus.fCombatMode) {
         srAssertFail("gXStatus.fCombatMode", FORMATION_CPP, 266, 0);
     }
 
@@ -260,7 +260,7 @@ void SyncPartyFacingFromCamera(void)
 
     yaw = static_cast<unsigned int>(GetCameraYawDegrees()) % W8_DEGREES_PER_TURN;
     movement_stopped = IsLevelMovementStopped();
-    if ((gXStatus.fCombatMode == 0 || g_combat_preserve_party_facing == 0) && !movement_stopped) {
+    if ((!gXStatus.fCombatMode || !g_combat_preserve_party_facing) && !movement_stopped) {
         g_status.party_facing = static_cast<int>(yaw);
         if (yaw != g_status.party_heading) {
             g_status.party_heading = yaw;
@@ -574,7 +574,7 @@ void SetFormationPosition(W8PartyFormationState* formation, int slot, signed cha
         }
         *occupant = static_cast<signed char>(slot);
         ++formation->ubQuadrantOccupants[new_row];
-        if (update_facing != 0) {
+        if (update_facing) {
             switch (new_row) {
             case 0:
             case 4:
@@ -592,16 +592,16 @@ void SetFormationPosition(W8PartyFormationState* formation, int slot, signed cha
             }
         }
     }
-    if (detach != 0 && old_row != -1) {
+    if (detach && old_row != -1) {
         CompactFormationRow(formation, old_row);
     }
-    if (g_status.game_started != 0 && gXStatus.fNpcDialogueMode == 0) {
+    if (g_status.game_started && !gXStatus.fNpcDialogueMode) {
         if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
             g_settings.main_ui_mode != W8_MAIN_UI_MODE_RADAR && formation == &g_status.formation) {
             RefreshFormationBoard();
             RefreshRadarMap();
         }
-        if (announce != 0) {
+        if (announce) {
             if (new_row != -1) {
                 PostCharacterNotice(slot, gppStringList[0x24c], &g_formation_row_names[new_row][0]);
                 return;
@@ -726,8 +726,7 @@ void RebuildPartyStatus(W8PartyFormationState* status)
 {
     unsigned int slot;
     for (slot = 0; slot < 8; ++slot) {
-        if (g_status.buffers.XChar[slot].fOccupied == 0 &&
-            status->positions[slot].bQuadrant != -1 &&
+        if (!g_status.buffers.XChar[slot].fOccupied && status->positions[slot].bQuadrant != -1 &&
             status->positions[slot].bQuadrantSlot != -1) {
             SetFormationPosition(status, slot, -1, -1, 0, 1, 1);
         }

@@ -73,7 +73,7 @@
 
 static void BeginPartyCamping()
 {
-    if (gXStatus.world_update_blocked != 0) {
+    if (gXStatus.world_update_blocked) {
         ResumeMainGameWorld();
     }
     if (!AnyCharacterEngaged()) {
@@ -107,7 +107,7 @@ void UpdateGameClock(int elapsed)
 
     g_status.aging_accumulator += elapsed;
     unsigned int aging_ticks;
-    if (gXStatus.item_drag_active == 0) {
+    if (!gXStatus.item_drag_active) {
         aging_ticks = g_status.aging_accumulator / 120000;
         if (aging_ticks != 0) {
             g_status.aging_accumulator %= 120000;
@@ -121,7 +121,7 @@ void UpdateGameClock(int elapsed)
         g_status.item_recharge_ms %= 3600000;
         for (unsigned int slot = 0; slot < 8; ++slot) {
             char uses = static_cast<char>(hours);
-            if (g_status.buffers.XChar[slot].fOccupied == 0) {
+            if (!g_status.buffers.XChar[slot].fOccupied) {
                 continue;
             }
             W8Character* character = &g_status.buffers.Char[slot];
@@ -149,8 +149,8 @@ void UpdateGameClock(int elapsed)
         }
     }
 
-    if ((gXStatus.fCombatMode == 0 || aging_ticks != 0) && g_camera_sway_active != 0) {
-        if (gXStatus.fCombatMode != 0) {
+    if ((!gXStatus.fCombatMode || aging_ticks != 0) && g_camera_sway_active) {
+        if (gXStatus.fCombatMode) {
             if (aging_ticks == 0) {
                 srAssertFail("uiTurnsElapsed > 0", GAMEPLAYTIME_CPP, 0x6d, 0);
             }
@@ -170,7 +170,7 @@ void UpdateGameClock(int elapsed)
         g_status.camp_fatigue_count = 0;
     }
 
-    if (gXStatus.fCombatMode != 0) {
+    if (gXStatus.fCombatMode) {
         g_status.stamina_tick_ms = 0;
     } else {
         g_status.stamina_tick_ms += elapsed;
@@ -180,17 +180,17 @@ void UpdateGameClock(int elapsed)
             UpdatePartyStamina(static_cast<int>(stamina_ticks));
         }
 
-        if (gXStatus.fSurprisePossible == 0 && !AnyCharacterEngaged() && AnyCharacterActive() &&
-            g_status.party_fatigued == 0 && !HasLevelDataVector() && HasLevelWalkableContact() &&
+        if (!gXStatus.fSurprisePossible && !AnyCharacterEngaged() && AnyCharacterActive() &&
+            !g_status.party_fatigued && !HasLevelDataVector() && HasLevelWalkableContact() &&
             IsScreenIdle()) {
             BeginPartyCamping();
         }
     }
 
-    if (gXStatus.fSurprisePossible == 0) {
+    if (!gXStatus.fSurprisePossible) {
         return;
     }
-    if (gXStatus.surprise_unengaged != 0 && AnyCharacterEngaged() && gXStatus.surprise_phase == 1) {
+    if (gXStatus.surprise_unengaged && AnyCharacterEngaged() && gXStatus.surprise_phase == 1) {
         ResetSight();
         ReverseSurpriseFade();
         gXStatus.surprise_phase = 2;
@@ -205,10 +205,10 @@ void UpdateGameClock(int elapsed)
 // FUNCTION: WIZ8 0x00502460
 void RequestCamp(void)
 {
-    if (gXStatus.fSurprisePossible != 0) {
+    if (gXStatus.fSurprisePossible) {
         return;
     }
-    if (gXStatus.fCombatMode != 0) {
+    if (gXStatus.fCombatMode) {
         ShowNotice(0xc, gppStringList[0x774], -1, 0xffffffff, 0);
         return;
     }
@@ -236,7 +236,7 @@ void BeginSurprise(void)
 
     gXStatus.character_event_queue->CompleteAllActiveEvents();
     for (i = 0; i < W8_PARTY_SLOT_COUNT; ++i) {
-        if (g_status.buffers.XChar[i].fOccupied != 0) {
+        if (g_status.buffers.XChar[i].fOccupied) {
             SetPortraitTargetPose(&gXStatus.monster_manager_entries[i], 2);
         }
     }
@@ -256,7 +256,7 @@ void UpdateSurpriseMode(void)
     float scale;
     float level_scale;
 
-    if (gXStatus.fSurprisePossible == 0) {
+    if (!gXStatus.fSurprisePossible) {
         return;
     }
     switch (gXStatus.surprise_phase) {
@@ -274,7 +274,7 @@ void UpdateSurpriseMode(void)
         }
         break;
     case 1:
-        if (gXStatus.surprise_unengaged == 0 &&
+        if (!gXStatus.surprise_unengaged &&
             static_cast<unsigned int>(g_status.world_clock) >= gXStatus.surprise_deadline_turns) {
             ResetSight();
             UpdateEnvironmentLight();
@@ -288,7 +288,7 @@ void UpdateSurpriseMode(void)
     case 2:
         if (UpdateSurpriseFade() != 0) {
             EndSurprise();
-            if (gXStatus.fCombatMode != 0) {
+            if (gXStatus.fCombatMode) {
                 MonsterStopAllNavigators();
             }
         }
@@ -304,7 +304,7 @@ void UpdateSurpriseMode(void)
 // FUNCTION: WIZ8 0x00502790
 void AcknowledgeSurprise(void)
 {
-    if (gXStatus.surprise_unengaged != 0 && gXStatus.fCombatMode == 0) {
+    if (gXStatus.surprise_unengaged && !gXStatus.fCombatMode) {
         ShowNotice(0xc, gppStringList[0x794], -1, 0xffffffff, 0);
         return;
     }
@@ -338,7 +338,7 @@ void EndSurprise(void)
     DisableRegionInput(0x137);
 
     const wchar_t* text;
-    if (gXStatus.surprise_unengaged == 0) {
+    if (!gXStatus.surprise_unengaged) {
         if (gXStatus.surprise_deadline_turns == 0) {
             text = gppStringList[0x793];
         } else if (gXStatus.surprise_deadline_turns <
@@ -385,10 +385,10 @@ void RestoreSurpriseView(void)
 // FUNCTION: WIZ8 0x005029e0
 void ResolveSurpriseWake(void)
 {
-    if (g_combat_state != 0 && g_combat_state->party_surprised != 0) {
+    if (g_combat_state != 0 && g_combat_state->party_surprised) {
         for (unsigned int slot = 0; slot < 8; ++slot) {
             W8Character* character = &g_status.buffers.Char[slot];
-            if (g_status.buffers.XChar[slot].fOccupied == 0 ||
+            if (!g_status.buffers.XChar[slot].fOccupied ||
                 character->highest_condition >= W8_CONDITION_DEAD) {
                 continue;
             }
@@ -404,7 +404,7 @@ void ResolveSurpriseWake(void)
     }
 
     for (unsigned int slot = 0; slot < 8; ++slot) {
-        if (g_status.buffers.XChar[slot].fOccupied == 0) {
+        if (!g_status.buffers.XChar[slot].fOccupied) {
             continue;
         }
         W8MonsterManagerEntry* entry = &gXStatus.monster_manager_entries[slot];
@@ -487,7 +487,7 @@ void RebuildMonsterRegenRates(W8MonsterInfo* monster_info)
    ticks queued spell effects once per minute and runs the NPC-side passes. */
 static bool AgePartyEffectSlot(W8EffectSlot* slot, unsigned int minutes)
 {
-    if (slot->active == 0) {
+    if (!slot->active) {
         return false;
     }
     if (minutes < slot->duration) {
@@ -522,7 +522,7 @@ void AdvanceTimedEffects(unsigned int minutes)
 
     for (unsigned int slot = 0; slot < 8; ++slot) {
         W8Character* character = &g_status.buffers.Char[slot];
-        if (g_status.buffers.XChar[slot].fOccupied != 0 &&
+        if (g_status.buffers.XChar[slot].fOccupied &&
             (character->highest_condition < W8_CONDITION_DEAD ||
              (character->uiCondition[W8_CONDITION_DEAD] == 0 &&
               GetConditionRecordFlag(slot, 1) != 0))) {
@@ -530,7 +530,7 @@ void AdvanceTimedEffects(unsigned int minutes)
         }
     }
 
-    if (gXStatus.fCombatMode != 0) {
+    if (gXStatus.fCombatMode) {
         W8CombatSlot target;
         ResetCombatSlot(&target);
         target.iType = W8_TARGET_KIND_PARTY;
@@ -555,7 +555,7 @@ void AdvanceTimedEffects(unsigned int minutes)
         }
     }
 
-    if (gXStatus.fCombatMode != 0) {
+    if (gXStatus.fCombatMode) {
         for (i = 0; i < 9; ++i) {
             W8EffectSlot* slot = &g_combat_state->effect_slots[i];
             if (AgePartyEffectSlot(slot, minutes)) {
@@ -586,7 +586,7 @@ void AdvanceTimedEffects(unsigned int minutes)
     if (party_changed || combat_changed) {
         SoundPlay("Data\\Sound\\Misc\\GeneralMagic.wav", 0);
     }
-    if (gXStatus.fSurprisePossible == 0) {
+    if (!gXStatus.fSurprisePossible) {
         DetectMonsterGroups();
     }
     AdvanceNpcTimers(minutes * 10);
@@ -608,7 +608,7 @@ void GameTurnsPassedChar(int party_slot, unsigned int minutes)
     unsigned int damage = character->bonus.damage_per_minute;
     if (damage != 0) {
         damage *= minutes;
-        if (g_status.wait_state != 3 || gXStatus.fCombatMode != 0) {
+        if (g_status.wait_state != 3 || gXStatus.fCombatMode) {
             damage += damage >> 1;
         }
         ApplyDamageToCharacter(party_slot, damage, 1, 1, 0, static_cast<W8SpellEffectResult*>(0),
@@ -785,9 +785,9 @@ void GameTurnsPassedChar(int party_slot, unsigned int minutes)
     }
 
     float health_scale;
-    if (gXStatus.fSurprisePossible != 0) {
+    if (gXStatus.fSurprisePossible) {
         health_scale = g_float_one;
-    } else if (g_status.wait_state == 3 && gXStatus.fCombatMode == 0) {
+    } else if (g_status.wait_state == 3 && !gXStatus.fCombatMode) {
         health_scale = g_float_005ebc7c;
     } else {
         health_scale = g_float_zero;
@@ -812,7 +812,7 @@ void GameTurnsPassedChar(int party_slot, unsigned int minutes)
                 health_scale;
         }
     }
-    if (CharacterHasTrait(character, W8_TRAIT_STAMINA_REGENERATION) && gXStatus.fCombatMode != 0) {
+    if (CharacterHasTrait(character, W8_TRAIT_STAMINA_REGENERATION) && gXStatus.fCombatMode) {
         stamina_scale = ScaleValueByProfessionLevel(character, W8_TRAIT_STAMINA_REGENERATION, 3.3f);
     }
     if (CharacterHasTrait(character, static_cast<W8Trait>(0x1a)) && spell_scale > g_float_zero) {
@@ -889,7 +889,7 @@ void GameTurnsPassedChar(int party_slot, unsigned int minutes)
     }
 
     if (CharacterHasTrait(character, W8_TRAIT_MAKE_POTIONS)) {
-        if (gXStatus.fSurprisePossible != 0) {
+        if (gXStatus.fSurprisePossible) {
             if (character->potion_brew_cooldown == 0) {
                 BrewAlchemistPotion(character);
             }
@@ -916,7 +916,7 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, unsigned
     bool frost_condition = false;
 
     record = GetMonsterDataForInfo(monster_info);
-    if (monster_info->fInCombat != 0) {
+    if (monster_info->fInCombat) {
         W8CombatSlot target;
         target.iType = static_cast<W8TargetKind>(3);
         target.iMonsterID = monster_info->location_id;
@@ -966,8 +966,8 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, unsigned
     if (GetViewDistance() != g_sight_default) {
         goto after_early;
     }
-    if ((monster->linked_navigator == 0 && monster->halted == 0) &&
-        (monster_info->movement_stall_ticks > 1 || monster->movement_stopped == 0)) {
+    if ((monster->linked_navigator == 0 && !monster->halted) &&
+        (monster_info->movement_stall_ticks > 1 || !monster->movement_stopped)) {
         srVector3T<float> location;
         srVector3T<float> previous;
         srVector3T<float> delta;
@@ -991,7 +991,7 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, unsigned
                     srVector3T<float> navigator_position = monster->GetPosition();
 
                     if (g_pathing->SnapWaypointPosition(&navigator_position, 0) == 0 &&
-                        monster_info->party_threat.visible_to_player == 0) {
+                        !monster_info->party_threat.visible_to_player) {
                         srVector3T<float> next_position;
 
                         monster->movement.attachment->GetNextPosition(&next_position);
@@ -1129,7 +1129,7 @@ after_early: {
         W8TargetSource source;
 
         amount *= minutes;
-        if (monster_info->fInCombat != 0) {
+        if (monster_info->fInCombat) {
             amount += amount >> 1;
         }
         ResetTargetSource(&source);
@@ -1172,8 +1172,8 @@ after_early: {
     {
         float heal_scale;
 
-        if (gXStatus.fSurprisePossible == 0 && arg_3 == 0) {
-            if (monster_info->fInCombat == 0) {
+        if (!gXStatus.fSurprisePossible && arg_3 == 0) {
+            if (!monster_info->fInCombat) {
                 heal_scale = 0.5f;
             } else {
                 heal_scale = 0.0f;
@@ -1235,7 +1235,7 @@ after_early: {
         W8EffectSlot* slot = monster_info->effect_slots;
 
         for (int owned_index = 0; owned_index < 0xc; ++owned_index) {
-            if (slot->active != 0) {
+            if (slot->active) {
                 if (minutes < slot->duration) {
                     slot->duration -= minutes;
                 } else if (monster_info == 0) {
@@ -1247,11 +1247,11 @@ after_early: {
             ++slot;
         }
     }
-    if (monster_info->fInCombat != 0) {
+    if (monster_info->fInCombat) {
         for (int combat_index = 0; combat_index < 9; ++combat_index) {
             W8EffectSlot* slot = &monster_info->pCombat->combat_effects[combat_index];
 
-            if (slot->active != 0) {
+            if (slot->active) {
                 if (minutes < slot->duration) {
                     slot->duration -= minutes;
                 } else if (monster_info == 0) {
@@ -1264,7 +1264,7 @@ after_early: {
         for (int d7_index = 0; d7_index < 6; ++d7_index) {
             W8EffectSlot* slot = &monster_info->pCombat->combat_effects_2[d7_index];
 
-            if (slot->active != 0) {
+            if (slot->active) {
                 if (minutes < slot->duration) {
                     slot->duration -= minutes;
                 } else if (monster_info == 0) {
@@ -1284,13 +1284,13 @@ after_early: {
 // FUNCTION: WIZ8 0x005044d0
 void UpdateCampFatigue(int ticks)
 {
-    if (g_status.world_suspended != 0) {
+    if (g_status.world_suspended) {
         return;
     }
     bool any_rolled = false;
     for (unsigned int slot = 0; slot < 8; ++slot) {
         W8Character* character = &g_status.buffers.Char[slot];
-        if (g_status.buffers.XChar[slot].fOccupied != 0 && character->hp_current != 0 &&
+        if (g_status.buffers.XChar[slot].fOccupied && character->hp_current != 0 &&
             character->highest_condition < W8_CONDITION_DEAD &&
             character->iRace != W8_RACE_ANDROID &&
             !FindItemOnCharacter(character, 0x1e5, static_cast<W8ItemInstance**>(0), 0,
@@ -1309,8 +1309,7 @@ void UpdateCampFatigue(int ticks)
                         FatigueCharacter(slot, stamina, 0, static_cast<W8SpellEffectResult*>(0));
                     }
                     bool announce =
-                        gXStatus.fCombatMode == 0 || g_settings.verbose_combat_messages == 0 ? 0
-                                                                                             : 1;
+                        !gXStatus.fCombatMode || g_settings.verbose_combat_messages == 0 ? 0 : 1;
                     ApplyDamageToCharacter(slot, amount, 0, announce, 0,
                                            static_cast<W8SpellEffectResult*>(0), 0);
                 } else {
@@ -1318,7 +1317,7 @@ void UpdateCampFatigue(int ticks)
                                      static_cast<W8SpellEffectResult*>(0));
                 }
             }
-            if (g_status.party_fatigued == 0) {
+            if (!g_status.party_fatigued) {
                 g_status.party_fatigued = true;
                 ShowNotice(8, gppStringList[0x1da], -1, 0xffffffff, 0);
             }
@@ -1346,7 +1345,7 @@ void UpdatePartyStamina(int ticks)
     }
 
     for (unsigned int slot = 0; slot < 8; ++slot) {
-        if (g_status.buffers.XChar[slot].fOccupied == 0) {
+        if (!g_status.buffers.XChar[slot].fOccupied) {
             continue;
         }
         W8Character* character = &g_status.buffers.Char[slot];
@@ -1355,7 +1354,7 @@ void UpdatePartyStamina(int ticks)
              GetConditionRecordFlag(slot, 1) == 0)) {
             continue;
         }
-        if (g_status.party_fatigued != 0 &&
+        if (g_status.party_fatigued &&
             !FindItemOnCharacter(character, 0x1e5, static_cast<W8ItemInstance**>(0), 0,
                                  static_cast<W8ItemInstance*>(0))) {
             continue;
@@ -1384,7 +1383,7 @@ void RegenCharacterStamina(int party_slot, unsigned int elapsed)
     }
 
     float scale = g_float_one;
-    if (gXStatus.fSurprisePossible == 0) {
+    if (!gXStatus.fSurprisePossible) {
         scale = g_float_005ebc7c;
         if (g_status.wait_state != 3) {
             scale = g_float_005ebc3c;
@@ -1398,7 +1397,7 @@ void RegenCharacterStamina(int party_slot, unsigned int elapsed)
     }
     if (CharacterHasTrait(character, W8_TRAIT_STAMINA_REGENERATION)) {
         if (scale == g_float_zero) {
-            if (gXStatus.fCombatMode != 0) {
+            if (gXStatus.fCombatMode) {
                 scale = ScaleValueByProfessionLevel(character, W8_TRAIT_STAMINA_REGENERATION, 3.3f);
             }
         } else {

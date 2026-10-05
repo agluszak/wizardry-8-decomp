@@ -173,7 +173,7 @@ unsigned char FindGameDataPath(char* path, int cd_number)
             g_cd_index = cd_number;
         }
         SetErrorMode(previous_mode);
-        if (found != 0) {
+        if (found) {
             return 1;
         }
     }
@@ -672,7 +672,7 @@ unsigned char LoadLevel(int requested_level, int entrance, bool restoring_game)
 // FUNCTION: WIZ8 0x0042ACE0
 unsigned char UnloadLevel(const char* save_directory)
 {
-    if (gXStatus.fCombatMode != 0) {
+    if (gXStatus.fCombatMode) {
         EndCombat(1);
     }
 
@@ -680,7 +680,7 @@ unsigned char UnloadLevel(const char* save_directory)
         g_status.level_progress[g_status.current_level].sight_clock = g_status.world_clock;
     }
 
-    if (g_world_cleanup_flag != 0) {
+    if (g_world_cleanup_flag) {
         RenderFrame();
     }
 
@@ -689,7 +689,7 @@ unsigned char UnloadLevel(const char* save_directory)
         SaveLevelStatus("Saves\\CurrentGame.SAV");
     }
 
-    if (g_world_cleanup_flag != 0) {
+    if (g_world_cleanup_flag) {
         RenderFrame();
     }
 
@@ -697,26 +697,26 @@ unsigned char UnloadLevel(const char* save_directory)
         if (ReleaseItemLists() == 0) {
             return 0;
         }
-        if (g_world_cleanup_flag != 0) {
+        if (g_world_cleanup_flag) {
             RenderFrame();
         }
         if (ShutdownMonsterManager() == 0) {
             return 0;
         }
-        if (g_world_cleanup_flag != 0) {
+        if (g_world_cleanup_flag) {
             RenderFrame();
         }
         if (ScreenLifecycleSuccess() == 0) {
             return 0;
         }
-        if (g_world_cleanup_flag != 0) {
+        if (g_world_cleanup_flag) {
             RenderFrame();
         }
     }
 
     ReleaseWorldCursorNodes();
     ClearSearchables();
-    if (g_world_cleanup_flag != 0) {
+    if (g_world_cleanup_flag) {
         RenderFrame();
     }
 
@@ -729,7 +729,7 @@ unsigned char UnloadLevel(const char* save_directory)
     }
     ReleaseRetainedMaterials();
 
-    if (g_world_cleanup_flag != 0) {
+    if (g_world_cleanup_flag) {
         RenderFrame();
     }
 
@@ -777,7 +777,7 @@ unsigned char ReloadLevelPreservingCamera(int level, int entrance)
     if (LoadLevel(level, entrance, 0) == 0) {
         return 0;
     }
-    if (restore != 0) {
+    if (restore) {
         RestoreWorldCameraOrientation(saved_angle, saved_pitch, GetWorld());
         SetWorldScenePosition(GetWorld(), &saved_position);
     }

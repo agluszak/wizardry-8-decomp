@@ -138,7 +138,7 @@ void DrawPartyMovementPanel(void)
     short right;
     int image;
 
-    if (gXStatus.fCombatMode == 0) {
+    if (!gXStatus.fCombatMode) {
         srAssertFail("gXStatus.fCombatMode", PARTY_MOVEMENT_CPP, 0xf6, 0);
     }
     if ((g_combat_state->uiCurrentPartyAction == W8_PARTY_ACTION_NONE ||
@@ -149,26 +149,25 @@ void DrawPartyMovementPanel(void)
                      "(gpCombat->uiNextPartyAction != PARTY_ACTION_NONE)",
                      PARTY_MOVEMENT_CPP, 0xfb, 0);
     }
-    panel_live =
-        g_party_movement_panel->m_fEnabled != 0 &&
-        (g_party_movement_panel->m_fDirty != 0 || g_party_movement_panel->m_fLayoutDirty != 0);
+    panel_live = g_party_movement_panel->m_fEnabled &&
+                 (g_party_movement_panel->m_fDirty || g_party_movement_panel->m_fLayoutDirty);
     if (!CanPartyMove()) {
-        if (g_party_movement_buttons[0]->m_active == 0) {
+        if (!g_party_movement_buttons[0]->m_active) {
             g_party_movement_buttons[0]->SetActive(1);
             g_party_movement_buttons[0]->Invalidate(0);
         }
-        if (g_party_movement_buttons[1]->m_active != 0) {
+        if (g_party_movement_buttons[1]->m_active) {
             g_party_movement_buttons[1]->SetActive(0);
         }
     } else {
-        if (g_party_movement_buttons[1]->m_active == 0) {
+        if (!g_party_movement_buttons[1]->m_active) {
             g_party_movement_buttons[1]->SetActive(1);
             g_party_movement_buttons[1]->Invalidate(0);
         }
-        if (g_party_movement_buttons[0]->m_active != 0) {
+        if (g_party_movement_buttons[0]->m_active) {
             g_party_movement_buttons[0]->SetActive(0);
         }
-        if (g_combat_state->round_active == 0) {
+        if (!g_combat_state->round_active) {
             g_party_movement_buttons[1]->SetEnabled(0);
         } else {
             g_party_movement_buttons[1]->SetEnabled(1);
@@ -192,7 +191,7 @@ void DrawPartyMovementPanel(void)
             caption = (g_combat_state->uiNextPartyAction != W8_PARTY_ACTION_RUN) + 0x77b;
         }
     }
-    if (panel_live != 0) {
+    if (panel_live) {
         GetClippingRect(&previous);
         clip.iLeft = right;
         clip.iTop = 0;
@@ -203,7 +202,7 @@ void DrawPartyMovementPanel(void)
         SetClippingRect(&previous);
     }
     DrawPartyMovementGauge(right, image, panel_live, caption);
-    if (panel_live != 0) {
+    if (panel_live) {
         RefreshTrackedPortraitOverlay();
     }
 }
@@ -254,7 +253,7 @@ void DrawPartyMovementGauge(short right, short image, bool panel_live, int capti
     if (rearm) {
         g_party_movement_animation_clock = SetCountdownClock(timer_length);
     }
-    if (panel_live == 0) {
+    if (!panel_live) {
         if (advanced) {
             g_party_movement_panel->Invalidate(0);
         }
@@ -288,7 +287,7 @@ unsigned char FreeTurnButtonRegionEvent(const InputAtom* event, W8Region* region
     int us_event;
     unsigned int callback_id;
 
-    if (gXStatus.fPartyMovementUi == 0) {
+    if (!gXStatus.fPartyMovementUi) {
         return 0;
     }
     us_event = event->usEvent;
@@ -349,12 +348,12 @@ unsigned char HandlePartyMovement(float* real_elapsed, float* frame_elapsed)
     for (party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
         W8PartySlotRow* row = &g_status.buffers.XChar[party_slot];
         W8Character* character = &g_status.buffers.Char[party_slot];
-        if (row->fOccupied == 0 || character->stamina <= 0 ||
+        if (!row->fOccupied || character->stamina <= 0 ||
             character->highest_condition >= W8_CONDITION_ASLEEP) {
             continue;
         }
         amount = *frame_elapsed;
-        if (g_status.search_mode != 0 || gXStatus.fCombatMode != 0) {
+        if (g_status.search_mode != 0 || gXStatus.fCombatMode) {
             amount = *real_elapsed * g_float_005ebc7c + amount;
         }
         switch (character->load_category) {
@@ -377,7 +376,7 @@ unsigned char HandlePartyMovement(float* real_elapsed, float* frame_elapsed)
             srAssertFail("FALSE", PARTY_MOVEMENT_CPP, 0x2a9,
                          "HandlePartyMovement: ERROR - Invalid load category");
         }
-        if (gXStatus.fCombatMode != 0) {
+        if (gXStatus.fCombatMode) {
             multiplier += multiplier;
         }
         if (character->uiCondition[W8_CONDITION_DISEASED] != 0) {

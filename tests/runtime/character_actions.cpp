@@ -110,7 +110,7 @@ static void ReadCharacterFlowOnGameThread(void* opaque)
     W8CharacterPersonalityPage* final_page =
         static_cast<W8CharacterPersonalityPage*>(screen->m_pages[3]);
     if (state->page_present[3] && final_page != 0) {
-        state->final_prepared = final_page->m_prepared != 0;
+        state->final_prepared = final_page->m_prepared;
     }
 }
 

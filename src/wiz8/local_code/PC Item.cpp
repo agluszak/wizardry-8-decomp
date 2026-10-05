@@ -950,8 +950,7 @@ bool AnyPartyMemberCanUseItem(int item_id)
     int slot;
 
     for (slot = 0; slot < 8; ++slot) {
-        if (g_status.buffers.XChar[slot].fOccupied != 0 &&
-            g_status.buffers.Char[slot].hp_current > 0 &&
+        if (g_status.buffers.XChar[slot].fOccupied && g_status.buffers.Char[slot].hp_current > 0 &&
             g_status.buffers.Char[slot].highest_condition < W8_CONDITION_DEAD) {
             if (CanCharacterUseItem(&g_status.buffers.Char[slot], item_id)) {
                 return true;
@@ -1237,7 +1236,7 @@ unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_use
         if (record->equip_class == W8_ITEM_EQUIP_CLASS_POTION ||
             (record->equip_class > W8_ITEM_EQUIP_CLASS_SCROLL &&
              record->equip_class < W8_ITEM_EQUIP_CLASS_KEY)) {
-            if (gXStatus.fCombatMode == 0) {
+            if (!gXStatus.fCombatMode) {
                 W8CombatSlot* aimed = &g_status.buffers.XChar[party_slot].target_out_of_combat;
                 if (aimed->iType == W8_TARGET_KIND_CHARACTER) {
                     SetTargetSourceToCharacter(aimed->iChar, &target);
@@ -1766,7 +1765,7 @@ unsigned char GiveHeldItemToCharacterOrParty(int uiChar, unsigned char party_fir
     if (!item->identified) {
         for (slot = 0; slot < 8; ++slot) {
             W8Character* character = &g_status.buffers.Char[slot];
-            if (g_status.buffers.XChar[slot].fOccupied == 0) {
+            if (!g_status.buffers.XChar[slot].fOccupied) {
                 continue;
             }
             /* 0xb is the index the body bounds the sweep at: a member past it is
@@ -1774,7 +1773,7 @@ unsigned char GiveHeldItemToCharacterOrParty(int uiChar, unsigned char party_fir
             if (character->hp_current == 0 || character->highest_condition >= W8_CONDITION_INSANE) {
                 continue;
             }
-            if (identified == 0) {
+            if (!identified) {
                 identified = TryIdentifyItemFor(character, item);
             } else {
                 TryIdentifyItemFor(character, item);
@@ -1782,7 +1781,7 @@ unsigned char GiveHeldItemToCharacterOrParty(int uiChar, unsigned char party_fir
         }
     }
 
-    if (g_status.game_started == 0) {
+    if (!g_status.game_started) {
         srAssertFail("gStatus.fGameStarted", PC_ITEM_CPP, 0x194, 0);
     }
     if (!g_status.buffers.XChar[uiChar].fOccupied) {
@@ -1825,7 +1824,7 @@ unsigned char GiveItemToCharacterOrParty(int uiChar, W8ItemInstance* item,
 {
     bool stored;
 
-    if (g_status.game_started == 0) {
+    if (!g_status.game_started) {
         srAssertFail("gStatus.fGameStarted", PC_ITEM_CPP, 0x194, 0);
     }
     if (!g_status.buffers.XChar[uiChar].fOccupied) {
@@ -2081,10 +2080,10 @@ char PartyAttemptsToIdentifyItem(W8ItemInstance* item, int argument_2)
         return 0;
     }
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_status.buffers.XChar[party_slot].fOccupied != 0 &&
+        if (g_status.buffers.XChar[party_slot].fOccupied &&
             g_status.buffers.Char[party_slot].hp_current != 0 &&
             g_status.buffers.Char[party_slot].highest_condition < W8_CONDITION_INSANE) {
-            if (result == 0) {
+            if (!result) {
                 result = TryIdentifyItemFor(&g_status.buffers.Char[party_slot], item);
             } else {
                 TryIdentifyItemFor(&g_status.buffers.Char[party_slot], item);
@@ -2368,7 +2367,7 @@ bool FindItemOnParty(int item_id, W8ItemInstance** found, W8Character** found_ch
     }
 
     for (int party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_status.buffers.XChar[party_slot].fOccupied != 0 &&
+        if (g_status.buffers.XChar[party_slot].fOccupied &&
             FindItemOnCharacter(&g_status.buffers.Char[party_slot], item_id, found,
                                 include_backpack, resume_after)) {
             if (found_character != 0) {
@@ -2463,7 +2462,7 @@ unsigned int CountItemOnParty(int item_id, W8ItemInstance** found, W8Character**
     }
 
     for (unsigned int party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_status.buffers.XChar[party_slot].fOccupied != 0) {
+        if (g_status.buffers.XChar[party_slot].fOccupied) {
             int count = CountItemOnCharacter(&g_status.buffers.Char[party_slot], item_id, found,
                                              include_backpack);
             if (count != 0) {
@@ -2497,7 +2496,7 @@ bool EveryCharacterHasItem(int item_id, int include_backpack)
     unsigned int party_slot;
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_status.buffers.XChar[party_slot].fOccupied != 0) {
+        if (g_status.buffers.XChar[party_slot].fOccupied) {
             if (!FindItemOnCharacter(&g_status.buffers.Char[party_slot], item_id, 0,
                                      include_backpack, 0)) {
                 return false;
@@ -2606,13 +2605,12 @@ void BindEveryPartyItem(void)
 {
     unsigned int party_slot;
 
-    if (gXStatus.fCombatMode != 0 && g_combat_state->round_active == 0 &&
-        gXStatus.fPartyMovementMode == 0) {
+    if (gXStatus.fCombatMode && !g_combat_state->round_active && !gXStatus.fPartyMovementMode) {
         ShowNotice(0xc, gppStringList[0x1f6], -1, -1, 0);
         return;
     }
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_status.buffers.XChar[party_slot].item_action_pending == 0) {
+        if (!g_status.buffers.XChar[party_slot].item_action_pending) {
             BindCharacterItems(party_slot, 0);
         }
     }
@@ -2686,7 +2684,7 @@ int __cdecl CompareItemsForPool(const void* first, const void* second)
 // FUNCTION: WIZ8 0x005205b0
 void SortPartyItemPool(void)
 {
-    if (g_status.game_started == 0) {
+    if (!g_status.game_started) {
         srAssertFail("gStatus.fGameStarted", PC_ITEM_CPP, 3795, 0);
     }
     if (g_status.party_item_count > 1) {
@@ -3227,8 +3225,8 @@ bool CanUseItemForAction(int party_slot, const W8ItemInstance* item)
 
     if (record->equip_class == W8_ITEM_EQUIP_CLASS_KEY ||
         record->equip_class == W8_ITEM_EQUIP_CLASS_OTHER || CanCastFromItem(character, item)) {
-        return gXStatus.fCombatMode == 0 && gXStatus.fCampMode == 0 &&
-               gXStatus.fLockInteract == 0 && gXStatus.fTrapInteract == 0;
+        return !gXStatus.fCombatMode && !gXStatus.fCampMode && !gXStatus.fLockInteract &&
+               !gXStatus.fTrapInteract;
     }
     if (character->uiCondition[W8_CONDITION_SILENCED] != 0 &&
         record->equip_class == W8_ITEM_EQUIP_CLASS_INSTRUMENT) {
@@ -3239,7 +3237,7 @@ bool CanUseItemForAction(int party_slot, const W8ItemInstance* item)
     usable =
         SpellHasAnyValidTarget(party_slot, record->spell_id, ItemClassNormalizesTarget(record));
     SetUseItemSelectOverrideItem(0);
-    if (usable == 0) {
+    if (!usable) {
         return 0;
     }
     return SpellUsableNow(record->spell_id, 0);
@@ -3257,8 +3255,8 @@ char ValidateItemSpellUse(int character_index, W8ItemInstance* item,
 
     if (record->equip_class == W8_ITEM_EQUIP_CLASS_KEY ||
         record->equip_class == W8_ITEM_EQUIP_CLASS_OTHER || CanCastFromItem(character, item)) {
-        if (gXStatus.fCombatMode != 0 || gXStatus.fCampMode != 0 || gXStatus.fLockInteract != 0 ||
-            gXStatus.fTrapInteract != 0) {
+        if (gXStatus.fCombatMode || gXStatus.fCampMode || gXStatus.fLockInteract ||
+            gXStatus.fTrapInteract) {
             ShowNoticeLine(gppStringList[0x7a6], callback, 1, 0);
             return 1;
         }
@@ -3269,12 +3267,12 @@ char ValidateItemSpellUse(int character_index, W8ItemInstance* item,
         ShowNoticeLine(gppStringList[0x7a7], callback, 1, 0);
         return 1;
     }
-    if (gXStatus.fItemSelectMode != 0) {
+    if (gXStatus.fItemSelectMode) {
         SetUseItemSelectOverrideItem(item);
         has_target = SpellHasAnyValidTarget(character_index, record->spell_id,
                                             ItemClassNormalizesTarget(record));
         SetUseItemSelectOverrideItem(0);
-        if (has_target == 0) {
+        if (!has_target) {
             ShowNoticeLine(gppStringList[0x7a8], callback, 1, 0);
             return 1;
         }
@@ -3482,7 +3480,7 @@ void UnequipUnusableItems(W8Character* character)
 W8EquipSlot ChooseCharacterEquipSlot(W8Character* character, int item_id)
 {
     W8EquipSlot slot = GetItemDefaultEquipSlot(item_id);
-    if (g_status.game_started != 0 ||
+    if (g_status.game_started ||
         (slot != W8_EQUIP_SLOT_PRIMARY_WEAPON && slot != W8_EQUIP_SLOT_SECONDARY_WEAPON)) {
         return slot;
     }
@@ -3718,7 +3716,7 @@ void MergeMatchingPartnerItem(W8Character* character, W8ItemInstance* item)
 unsigned char AddItemToPartyOrDrop(W8ItemInstance* item, bool announce)
 {
     bool stored = AddItemToParty(item, announce, false);
-    if (stored != 0) {
+    if (stored) {
         return stored;
     }
 
@@ -3952,7 +3950,7 @@ unsigned char FindItemByDatabaseKindOnParty(unsigned short item_kind, W8ItemInst
     }
 
     for (unsigned int slot = 0; slot < 8; ++slot) {
-        if (g_status.buffers.XChar[slot].fOccupied == 0) {
+        if (!g_status.buffers.XChar[slot].fOccupied) {
             continue;
         }
         W8Character* character = &g_status.buffers.Char[slot];
@@ -4103,7 +4101,7 @@ unsigned char RemovePartyItemByID(int item_id, bool remove_all)
 
     W8ItemInstance* pool = g_status.party_item_pool;
     for (unsigned int slot = 0; slot < 8; ++slot) {
-        if (g_status.buffers.XChar[slot].fOccupied == 0) {
+        if (!g_status.buffers.XChar[slot].fOccupied) {
             continue;
         }
         W8Character* character = &g_status.buffers.Char[slot];
@@ -4144,7 +4142,7 @@ unsigned char RemovePartyItemByID(int item_id, bool remove_all)
 unsigned char SwapWeaponSetSlots(int party_slot, char announce, bool refresh)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
-    int notice_context = gXStatus.fNpcDialogueMode != 0 ? 0 : -1;
+    int notice_context = gXStatus.fNpcDialogueMode ? 0 : -1;
     bool blocked_primary = false;
     bool blocked_alternate = false;
     int primary_right_item;
@@ -4217,8 +4215,8 @@ unsigned char SwapWeaponSetSlots(int party_slot, char announce, bool refresh)
 // FUNCTION: WIZ8 0x0051d2c0
 void BindCharacterItems(int party_slot, int arg_2)
 {
-    if (gXStatus.fCombatMode != 0) {
-        if (g_combat_state->round_active == 0 && gXStatus.fPartyMovementMode == 0) {
+    if (gXStatus.fCombatMode) {
+        if (!g_combat_state->round_active && !gXStatus.fPartyMovementMode) {
             ShowNotice(0xc, gppStringList[0x1f6], -1, 0xffffffff, 0);
             return;
         }

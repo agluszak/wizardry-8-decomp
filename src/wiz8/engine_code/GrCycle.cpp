@@ -97,7 +97,7 @@ W8CameraShakeEffect::W8CameraShakeEffect(float duration, bool preset, float inte
         g_shake_timer = new W8GameTimer(g_float_005ecf98, 0);
         g_shake_timer->Restart();
     }
-    if (preset != 0) {
+    if (preset) {
         flags |= 0x1c;
     }
     if (position != 0) {
@@ -176,7 +176,7 @@ void StopShakeEffects(W8GrowableVector<W8CameraShakeEffect*>* effects)
 // FUNCTION: WIZ8 0x004ae310
 void UpdateShakeEffects()
 {
-    if (g_camera_shake_enabled == 0 || g_shake_effects == 0 ||
+    if (!g_camera_shake_enabled || g_shake_effects == 0 ||
         g_shake_timer->GetProgress() < g_float_one) {
         return;
     }
@@ -298,7 +298,7 @@ bool LoadGrCycle(const W8GrCycleLoadContext* context, const char* mon_name, W8Gr
     }
 
     FileClose(handle);
-    if (success == 0) {
+    if (!success) {
         srAssertFail(
             "fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x198,
             FormatString("GrCycle::Read: ERROR - Read %s in %s failed", mon_path, bitmap_path));
@@ -453,7 +453,7 @@ W8GrCycle::W8GrCycle(const W8GrCycle& other) : W8GrObject(other), W8Navigator(ot
     scale = other.scale;
     m_ground_shadow = 0;
     frame_fraction = 0;
-    if (other.m_plsLights != 0 && other.m_plsLights->GetCount() != 0 && m_fDeleteLights != 0) {
+    if (other.m_plsLights != 0 && other.m_plsLights->GetCount() != 0 && m_fDeleteLights) {
         count = other.m_plsLights->GetCount();
         m_plsLights = new W8Vector<stLight*>(5);
         for (index = 0; index < count; ++index) {
@@ -533,7 +533,7 @@ W8GrCycle::~W8GrCycle()
     int index;
 
     UnregisterGrCycle(this);
-    if (m_plsLights != 0 && m_fDeleteLights != 0) {
+    if (m_plsLights != 0 && m_fDeleteLights) {
         DestroyLightVector(m_plsLights);
         m_plsLights = 0;
     }
@@ -735,7 +735,7 @@ void W8GrCycle::UpdateLights()
                 }
             }
         } else if (definition->kind == W8_LIGHT_DEFINITION_KEYFRAMED) {
-            if (representation->subcycle == 0 || wrapped != 0) {
+            if (representation->subcycle == 0 || wrapped) {
                 light->Reset();
             }
             light->SetDefinitionTime(representation->subcycle + frame_fraction);
@@ -888,7 +888,7 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
                              0);
             }
             psrMesh->highlight_colour = pRep->highlight_colour;
-            if (pRep->apply_instance_scale != 0) {
+            if (pRep->apply_instance_scale) {
                 if (pRep->instance_scale == g_float_one) {
                     psrMesh->diffuse_scale_enabled = 0;
                 } else {
@@ -922,7 +922,7 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
         }
         SetAniMeshCacheProtected(pRep->GetEmitterAniMesh(pRep->current_cycle), 1);
         psrMesh->highlight_colour = pRep->highlight_colour;
-        if (pRep->apply_instance_scale != 0) {
+        if (pRep->apply_instance_scale) {
             if (pRep->instance_scale == g_float_one) {
                 psrMesh->diffuse_scale_enabled = 0;
             } else {
@@ -1137,7 +1137,7 @@ void W8GrCycle::UpdateParticleAttachments()
         anchor.SetFromDouble(&location);
         placed += anchor;
 
-        if (aim_set != 0 && particle->direction_mode == W8_PARTICLE_DIRECTION_CONE) {
+        if (aim_set && particle->direction_mode == W8_PARTICLE_DIRECTION_CONE) {
             target.SetFromFloat(&placed);
             axis.SetFromFloat(&m_axis);
             particle->setRotation(axis, target, 0.0);
@@ -1173,48 +1173,48 @@ void W8GrCycle::SelectLOD(const srVector3T<float>* position)
     bool has_lod_1 = pRep->SetCycleFrameLod(pRep->current_cycle, 0, 1) != 0;
     bool has_lod_0 = pRep->SetCycleFrameLod(pRep->current_cycle, 0, 0) != 0;
 
-    if (has_lod_2 == 0 && has_lod_1 == 0 && has_lod_0 == 0) {
+    if (!has_lod_2 && !has_lod_1 && !has_lod_0) {
         ShutdownWithErrorBox("Monster has no valid LODs!");
     }
     if (g_render_brightness * pRep->lod_near > distance) {
-        if (has_lod_2 != 0) {
+        if (has_lod_2) {
             pRep->m_bLOD = 2;
-        } else if (has_lod_1 != 0) {
+        } else if (has_lod_1) {
             pRep->m_bLOD = 1;
         } else {
             pRep->m_bLOD = 0;
         }
     } else if (g_render_brightness * pRep->lod_far > distance) {
-        if (has_lod_1 != 0) {
+        if (has_lod_1) {
             pRep->m_bLOD = 1;
-        } else if (has_lod_2 != 0) {
+        } else if (has_lod_2) {
             pRep->m_bLOD = 2;
         } else {
             pRep->m_bLOD = 0;
         }
     } else {
-        if (has_lod_0 != 0) {
+        if (has_lod_0) {
             pRep->m_bLOD = 0;
-        } else if (has_lod_1 != 0) {
+        } else if (has_lod_1) {
             pRep->m_bLOD = 1;
         } else {
             pRep->m_bLOD = 2;
         }
     }
     if (g_render_fog_distance <= g_float_005ebc3c && pRep->m_bLOD != 2) {
-        if (has_lod_2 != 0) {
+        if (has_lod_2) {
             pRep->m_bLOD = 2;
         }
         return;
     }
     if ((g_render_fog_distance <= g_float_005ec5c0 && pRep->m_bLOD == 0) ||
         (g_render_fog_distance >= g_float_005ec5c4 && pRep->m_bLOD == 2)) {
-        if (has_lod_1 != 0) {
+        if (has_lod_1) {
             pRep->m_bLOD = 1;
         }
         return;
     }
-    if (g_render_fog_distance >= g_float_005ec390 && pRep->m_bLOD != 0 && has_lod_0 != 0) {
+    if (g_render_fog_distance >= g_float_005ec390 && pRep->m_bLOD != 0 && has_lod_0) {
         pRep->m_bLOD = 0;
     }
 }
@@ -1341,7 +1341,7 @@ void W8GrCycle::DetachCycleLights(W8GrowableVector<stLight*>* lights)
 
 void W8GrCycle::AttachCycleLights(W8GrowableVector<stLight*>* lights)
 {
-    if (g_render_missile_lights != 0 && lights != 0) {
+    if (g_render_missile_lights && lights != 0) {
         for (int index = 0; index < lights->GetCount(); ++index) {
             stLight* light = *lights->GetAt(index);
 

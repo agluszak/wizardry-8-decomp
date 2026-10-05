@@ -90,7 +90,7 @@ bool Trynnie1FountRandomFX(Trigger* pTrigger)
         return 1;
     } else if (roll < 75) {
         for (i = 0; i < W8_PARTY_SLOT_COUNT; ++i) {
-            if (g_status.buffers.XChar[i].fOccupied != 0) {
+            if (g_status.buffers.XChar[i].fOccupied) {
                 HealCharacter(i, 100, 0);
             }
         }
@@ -98,7 +98,7 @@ bool Trynnie1FountRandomFX(Trigger* pTrigger)
         return 1;
     } else {
         for (i = 0; i < W8_PARTY_SLOT_COUNT; ++i) {
-            if (g_status.buffers.XChar[i].fOccupied != 0) {
+            if (g_status.buffers.XChar[i].fOccupied) {
                 RestoreCharacterStamina(i, 100, 0);
             }
         }
@@ -121,7 +121,7 @@ void KillTrynnieGroups(void)
 
     for (index = 0; index < static_cast<int>(PLLength(gXStatus.plsMonsterGroupList)); ++index) {
         group = GetMonsterGroupByListIndex(index);
-        if (group != 0 && group->members_active != 0 &&
+        if (group != 0 && group->members_active &&
             (record = MonsterGroupGetRecord(group), record->faction_id == 0xd) &&
             ReplaceMonsterGroupSpecies(group, 0x1be) != 0) {
             RemoveAllGroupMembers(group);

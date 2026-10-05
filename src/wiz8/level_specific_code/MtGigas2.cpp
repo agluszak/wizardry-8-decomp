@@ -106,7 +106,7 @@ bool MtGigas2Train(Trigger* pTrigger)
     int item_id;
     int value;
 
-    if (gXStatus.fNpcDialogueMode != 0) {
+    if (gXStatus.fNpcDialogueMode) {
         return false;
     }
     npc = GetNpcStateByKind(0x5b);
@@ -242,7 +242,7 @@ static void MtGigas2WireShock(void)
 // FUNCTION: WIZ8 0x004DB650
 bool MtGigas2Lift3(Trigger* pTrigger)
 {
-    if (gXStatus.fNpcDialogueMode != 0) {
+    if (gXStatus.fNpcDialogueMode) {
         return false;
     }
     W8NpcState* npc = GetNpcStateByKind(0x5c);
@@ -261,7 +261,7 @@ bool MtGigas2Lift3(Trigger* pTrigger)
 // FUNCTION: WIZ8 0x004DB690
 bool MtGigas2TopDoor1(Trigger* pTrigger)
 {
-    if (gXStatus.fNpcDialogueMode != 0) {
+    if (gXStatus.fNpcDialogueMode) {
         return false;
     }
     W8NpcState* npc = GetNpcStateByKind(0x5f);
@@ -285,7 +285,7 @@ bool MtGigas2Officer1(Trigger* pTrigger)
     W8NpcState* npc;
     W8ItemInstance* item;
 
-    if (gXStatus.fNpcDialogueMode != 0) {
+    if (gXStatus.fNpcDialogueMode) {
         return false;
     }
     doors = 0;
@@ -319,7 +319,7 @@ bool MtGigas2Officer2(Trigger* pTrigger)
     W8NpcState* npc;
     W8ItemInstance* item;
 
-    if (gXStatus.fNpcDialogueMode != 0) {
+    if (gXStatus.fNpcDialogueMode) {
         return false;
     }
     doors = 0;

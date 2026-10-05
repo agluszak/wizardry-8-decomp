@@ -114,7 +114,7 @@ int GetPhaseStep(void)
 // FUNCTION: WIZ8 0x004f0520
 void SetPendingMoveKind(W8ActionKind kind)
 {
-    if (gXStatus.fCombatMode == 0) {
+    if (!gXStatus.fCombatMode) {
         srAssertFail("gXStatus.fCombatMode", COMBAT_MOVEMENT_CPP, 435, 0);
     }
     g_combat_state->uiNextPartyAction =
@@ -127,7 +127,7 @@ void SetPendingMoveKind(W8ActionKind kind)
 // FUNCTION: WIZ8 0x004f0560
 void ClearPendingPartyMovement(int excluded_party_slot)
 {
-    if (gXStatus.fCombatMode == 0) {
+    if (!gXStatus.fCombatMode) {
         srAssertFail("gXStatus.fCombatMode", COMBAT_MOVEMENT_CPP, 470, 0);
     }
     g_combat_state->uiNextPartyAction = W8_PARTY_ACTION_NONE;
@@ -166,7 +166,7 @@ bool CanPartyMove(void)
 {
     W8PartyActionStatus status;
 
-    if (gXStatus.fCombatMode == 0) {
+    if (!gXStatus.fCombatMode) {
         srAssertFail("gXStatus.fCombatMode", COMBAT_MOVEMENT_CPP, 613, 0);
     }
     status = g_combat_state->uiCurrentPartyActionStatus;
@@ -198,7 +198,7 @@ unsigned char GetPartyHasteSteps(unsigned int* out_steps)
     for (party_slot = 0; party_slot < 8; ++party_slot) {
         W8Character* character;
 
-        if (g_status.buffers.XChar[party_slot].fOccupied == 0) {
+        if (!g_status.buffers.XChar[party_slot].fOccupied) {
             continue;
         }
         character = &g_status.buffers.Char[party_slot];
@@ -259,12 +259,12 @@ void CompletePartyMovementTurns(void)
     for (int party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
         W8PartySlotRow* party_row = &g_status.buffers.XChar[party_slot];
         W8Character* character = &g_status.buffers.Char[party_slot];
-        if (party_row->fOccupied == 0 || character->hp_current == 0 ||
+        if (!party_row->fOccupied || character->hp_current == 0 ||
             character->highest_condition >= W8_CONDITION_ASLEEP) {
             continue;
         }
         W8CombatCharacterRow* combat_row = &g_combat_state->characters[party_slot];
-        if (combat_row->dead == 0 && Random(100) < remaining) {
+        if (!combat_row->dead && Random(100) < remaining) {
             CatchUpCombatActor(combat_row);
             continue;
         }
@@ -289,7 +289,7 @@ void InitializePartyMovementPhase(void)
     for (int party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
         W8PartySlotRow* row = &g_status.buffers.XChar[party_slot];
         W8Character* character = &g_status.buffers.Char[party_slot];
-        if (row->fOccupied != 0 && character->hp_current != 0) {
+        if (row->fOccupied && character->hp_current != 0) {
             int initiative = character->initiative + Random(4);
             if (initiative < minimum_initiative) {
                 minimum_initiative = initiative;
@@ -318,16 +318,16 @@ void AlignCombatantsToPartyMovementPhase(void)
     RoundPhaseToStep(&g_combat_state->uiPartyActionPhase, g_combat_state->round_counter);
     for (int party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
         W8CombatCharacterRow* row = &g_combat_state->characters[party_slot];
-        if (row->phase >= g_combat_state->round_counter && row->dead == 0) {
+        if (row->phase >= g_combat_state->round_counter && !row->dead) {
             RoundPhaseToStep(&row->phase, g_combat_state->round_counter);
         }
     }
     unsigned int monster_count = PLLength(gXStatus.plsMonsterList);
     for (unsigned int monster_index = 0; monster_index < monster_count; ++monster_index) {
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-        if (monster_info->fInCombat != 0 &&
+        if (monster_info->fInCombat &&
             monster_info->pCombat->phase >= g_combat_state->round_counter &&
-            monster_info->pCombat->active == 0) {
+            !monster_info->pCombat->active) {
             RoundPhaseToStep(&monster_info->pCombat->phase, g_combat_state->round_counter);
         }
         monster_count = PLLength(gXStatus.plsMonsterList);
@@ -401,7 +401,7 @@ void BeginFreeTurnPhase(void)
 // FUNCTION: WIZ8 0x004f0860
 void CancelPartyMovement(void)
 {
-    if (gXStatus.fCombatMode == 0) {
+    if (!gXStatus.fCombatMode) {
         srAssertFail("gXStatus.fCombatMode", COMBAT_MOVEMENT_CPP, 0x283, 0);
     }
     if (g_combat_state->uiCurrentPartyAction != W8_PARTY_ACTION_NONE &&
@@ -423,17 +423,17 @@ void CancelPartyMovement(void)
 // FUNCTION: WIZ8 0x004f0990
 void InterruptActivePartyMovement(void)
 {
-    if (gXStatus.fCombatMode == 0) {
+    if (!gXStatus.fCombatMode) {
         srAssertFail("gXStatus.fCombatMode", COMBAT_MOVEMENT_CPP, 674, 0);
     }
     g_combat_state->uiCurrentPartyAction = W8_PARTY_ACTION_NONE;
     for (int party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
         W8PartySlotRow* party_row = &g_status.buffers.XChar[party_slot];
-        if (party_row->fOccupied == 0) {
+        if (!party_row->fOccupied) {
             continue;
         }
         W8CombatCharacterRow* row = &g_combat_state->characters[party_slot];
-        if (row->phase < g_combat_state->round_counter && row->dead == 0) {
+        if (row->phase < g_combat_state->round_counter && !row->dead) {
             row->phase = g_combat_state->round_counter;
         }
         row->phase_clock_stamp = g_combat_state->round_counter;
@@ -493,7 +493,7 @@ bool PartyMovementReachedPhaseLimit(void)
         srAssertFail("gpCombat->uiCurrentPartyActionStatus == ACTION_STATUS_IN_PROGRESS",
                      COMBAT_MOVEMENT_CPP, 0x112, 0);
     }
-    if (gXStatus.fPartyMovementMode == 0) {
+    if (!gXStatus.fPartyMovementMode) {
         srAssertFail("gXStatus.fPartyMovementMode", COMBAT_MOVEMENT_CPP, 0x113, 0);
     }
     if (gXStatus.flPartyMoveDistLimit <= 0.0f) {

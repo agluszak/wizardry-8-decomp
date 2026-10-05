@@ -472,7 +472,7 @@ void W8ListBoxDialog::Draw()
     }
     ResizeButton(m_area_button, static_cast<short>(width), static_cast<short>(height));
     DrawButton(m_area_button);
-    if (m_scrollable != 0) {
+    if (m_scrollable) {
         SetButtonPosition(m_up_button, m_x + dx + 4 + width, m_y + 4 + dy);
         SetButtonPosition(m_down_button, m_x + dx + 4 + width,
                           m_y + dy + height - GetButtonHeight(m_down_button) - 4);
@@ -825,7 +825,7 @@ void W8SplitAmountDialog::Draw()
     int index;
 
     if ((m_dirty_flags & 1) != 0) {
-        if (m_initialized == 0) {
+        if (!m_initialized) {
             CreateControls();
         }
         for (index = 0; index < 6; ++index) {
@@ -1308,7 +1308,7 @@ void W8TriggerItemPickerDialog::TransferSelectedItems(int destination)
             } else {
                 added = AddItemToCharacter(&g_status.buffers.Char[destination], instance, 0, 1, 0);
             }
-            if (added != 0) {
+            if (added) {
                 items.RemoveAt(index);
                 flags.RemoveAt(index);
                 --index;
@@ -1318,7 +1318,7 @@ void W8TriggerItemPickerDialog::TransferSelectedItems(int destination)
             }
         }
     }
-    if (failed != 0) {
+    if (failed) {
         /* "\\b" in the original literal: retail stores a backspace, not a separator. */
         SoundPlay("Data\\Sound\\Misc\beep2.wav", 0);
     }
@@ -1340,14 +1340,14 @@ void W8TriggerItemPickerDialog::ToggleAllItems(W8DialogButton* button)
         bool all_selected = true;
 
         for (index = 0; index < dialog->items.GetCount(); ++index) {
-            if (all_selected == 0) {
+            if (!all_selected) {
                 break;
             }
             if (*dialog->flags.GetAt(index) == 0) {
                 all_selected = false;
             }
         }
-        bool selected = all_selected == 0;
+        bool selected = !all_selected;
         for (index = 0; index < dialog->items.GetCount(); ++index) {
             dialog->SetItemSelected(index, selected);
         }
@@ -1752,10 +1752,10 @@ void W8TriggerItemPickerDialog::Draw()
         visible_rows = count;
     }
 
-    if (m_initialized == 0) {
+    if (!m_initialized) {
         CreateControls();
     }
-    if (gXStatus.fCombatMode != 0) {
+    if (gXStatus.fCombatMode) {
         m_buttons[2]->SetEnabled(0);
     }
     if ((m_dirty_flags & 1) != 0) {

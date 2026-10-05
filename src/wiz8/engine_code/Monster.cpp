@@ -597,7 +597,7 @@ unsigned char ReadOrCloneMonsterCycles(const W8GrCycleLoadContext* context,
                 signed char subcycle;
                 W8MonsterCycle cycle = ParseMonsterCycleName(command, &subcycle);
                 if (cycle != W8_MONSTER_CYCLE_NONE) {
-                    if (_strnicmp(argument, "gib", 3) != 0 || g_monster_gib_option != 0) {
+                    if (_strnicmp(argument, "gib", 3) != 0 || g_monster_gib_option) {
                         if (GetRenderOptionState(W8_RENDER_OPTION_ADDITIONAL_ANIMATIONS) == 0) {
                             cycle = NormalizeMonsterCycle(cycle);
                         }
@@ -744,7 +744,7 @@ unsigned char ReadOrCloneMonsterCycles(const W8GrCycleLoadContext* context,
         (*monster)->movement.secondary_height_offset = camera_height * g_world_scale;
     }
 
-    if (random_idle_range == 0) {
+    if (!random_idle_range) {
         idle_fps_start = -3.0f;
         idle_fps_end = 3.0f;
     }
@@ -765,7 +765,7 @@ unsigned char ReadOrCloneMonsterCycles(const W8GrCycleLoadContext* context,
         (*monster)->missile_frame = missile_start;
     if (spell_start > 0)
         (*monster)->spell_frame = spell_start;
-    if (has_lod_range != 0) {
+    if (has_lod_range) {
         representation->lod_near = lod_range_start * g_world_scale;
         representation->lod_far = lod_range_end * g_world_scale;
     }
@@ -795,10 +795,9 @@ unsigned char ReadOrCloneMonsterCycles(const W8GrCycleLoadContext* context,
         (*monster)->CreateGroundShadow(shadow_width * g_world_scale, shadow_depth * g_world_scale);
     }
     representation->left_handed = left_handed;
-    representation->special_movement =
-        (flies != 0 || swims != 0 || full_transition != 0) ? 1 : 0;
+    representation->special_movement = (flies || swims || full_transition) ? 1 : 0;
 
-    if (has_light != 0 && representation->monster_light == 0) {
+    if (has_light && representation->monster_light == 0) {
         representation->monster_light = new MonsterLight(
             g_world->dynamic_scene, light_pulsing,
             (*monster)->movement.collision_radius * 3.0f, &light_first, &light_second);
@@ -819,16 +818,16 @@ unsigned char ReadOrCloneMonsterCycles(const W8GrCycleLoadContext* context,
     (*monster)->SetTurnRate(rotation_rate * static_cast<float>(g_double_005ec318));
 
     int navigation_mode = 1;
-    if (flies != 0)
+    if (flies)
         navigation_mode = 2;
-    else if (swims != 0)
+    else if (swims)
         navigation_mode = 3;
-    else if (quadruped != 0)
+    else if (quadruped)
         navigation_mode = 5;
-    else if (crawls != 0)
+    else if (crawls)
         navigation_mode = 6;
     (*monster)->SetNavigationMode(navigation_mode);
-    if (spice_monster != 0) {
+    if (spice_monster) {
         (*monster)->hostility_preserved = 1;
         (*monster)->owned_object = 0;
         (*monster)->movement.pitch_enabled = 0;
@@ -905,7 +904,7 @@ void W8Monster::RandomizeAppearanceAndMotion()
         m_pRep->scale = (maximum - minimum) * random_value * g_float_005ec128 + minimum;
     }
 
-    if (m_pRep->random_idle != 0) {
+    if (m_pRep->random_idle) {
         int subcycle;
         float playback_scale = (m_pRep->random_idle_fps_max - m_pRep->random_idle_fps_min) *
                                    Random(1000) * g_float_005ec128 +
@@ -1386,8 +1385,7 @@ void W8Monster::Update()
         move_dirty = true;
     }
 
-    if (g_monster_shadow_updates_enabled != 0 &&
-        (move_dirty != 0 || UpdateTrackedPosition() != 0)) {
+    if (g_monster_shadow_updates_enabled != 0 && (move_dirty || UpdateTrackedPosition() != 0)) {
         move_dirty = false;
         if (distance < WorldGetRenderRange(g_world)) {
             srNode* sun = static_cast<srNode*>(
@@ -1486,7 +1484,7 @@ void W8Monster::Update()
 
     if (!IsMipeActive()) {
         if ((cycle == W8_MONSTER_CYCLE_IDLE || cycle == W8_MONSTER_CYCLE_SPICE) &&
-            m_pRep->pending_cycle == -1 && movement_stopped == 0 && halted == 0) {
+            m_pRep->pending_cycle == -1 && !movement_stopped && !halted) {
             flags |= 0x100000;
         }
 
@@ -1497,7 +1495,7 @@ void W8Monster::Update()
                              monster_info->uiCondition[W8_CONDITION_SLOWED] != 0);
         }
 
-        if (cycle != W8_MONSTER_CYCLE_DIE && script != 0 && gXStatus.fCombatMode == 0) {
+        if (cycle != W8_MONSTER_CYCLE_DIE && script != 0 && !gXStatus.fCombatMode) {
             ProcessScript();
             cycle = Query(6);
         }
@@ -1520,7 +1518,7 @@ void W8Monster::Update()
                 break;
             case W8_MONSTER_CYCLE_TALK_SPICE:
                 if (Query(7) != 0) {
-                    if (talking != 0) {
+                    if (talking) {
                         talk_state = 0x17;
                         talk_start = GetTickCount();
                         talk_duration = Random(2000) + 2000;
@@ -1546,9 +1544,9 @@ void W8Monster::Update()
                 }
                 break;
             case W8_MONSTER_CYCLE_WALK:
-                if (movement_stopped != 0 || halted != 0) {
-                    bool transition = Query(2) != 0 || wrapped != 0;
-                    if (!transition && m_pRep->special_movement == 0) {
+                if (movement_stopped || halted) {
+                    bool transition = Query(2) != 0 || wrapped;
+                    if (!transition && !m_pRep->special_movement) {
                         transition = Query(4) < Query(0) / 2;
                     }
                     if (transition) {
@@ -1575,8 +1573,7 @@ void W8Monster::Update()
                 break;
             case W8_MONSTER_CYCLE_IDLE:
             case W8_MONSTER_CYCLE_SPICE:
-                if (movement_stopped == 0 && halted == 0 &&
-                    (Query(2) != 0 || wrapped != 0)) {
+                if (!movement_stopped && !halted && (Query(2) != 0 || wrapped)) {
                     flags &= ~0x100000;
                     if (!IsCycleSupported(3)) {
                         m_pRep->pending_behaviour = 3;
@@ -1625,7 +1622,7 @@ void W8Monster::Update()
     UpdateAttachedObjects();
     cycle = Query(6);
     if (gfKeyState[0x11] && g_combat_state != 0 &&
-        (g_combat_state->round_active != 0 || gXStatus.fPartyMovementMode != 0) &&
+        (g_combat_state->round_active || gXStatus.fPartyMovementMode) &&
         (cycle == W8_MONSTER_CYCLE_IDLE || cycle == W8_MONSTER_CYCLE_SPICE) &&
         (m_pRep->pending_cycle == -1 || m_pRep->pending_cycle == 1 || m_pRep->pending_cycle == 2) &&
         (g_combat_state->eCombatActionStatus != 2 || g_combat_state->pActionMonsterInfo == 0 ||
@@ -1690,10 +1687,10 @@ unsigned char W8Monster::EvaluateScriptCondition(const char* expression)
 
         srVector3T<float> current_position = GetPosition();
         monster_position = current_position;
-        if (g_status.world_suspended == 0 &&
+        if (!g_status.world_suspended &&
             (party_position - monster_position).Length() < *parameters.GetAt(0) * g_world_scale &&
-            MonsterInfoFromID(7533, MONSTER_CPP, location_id, 1)
-                    ->player_visibility.line_of_sight != 0) {
+            MonsterInfoFromID(7533, MONSTER_CPP, location_id, 1)->player_visibility.line_of_sight !=
+                0) {
             return 1;
         }
     } else if (_strnicmp(buffer, "RANDOM", 6) == 0) {
@@ -1730,7 +1727,7 @@ unsigned char W8Monster::SetScript(const char* script_name, bool reset_orders)
         sound->release();
         sound = 0;
     }
-    if (reset_orders != 0) {
+    if (reset_orders) {
         orders_finished = 0;
     }
 
@@ -1781,8 +1778,8 @@ unsigned char W8Monster::GetProjectilePosition(srVector3T<float>* position)
     }
 
     result = GetCycleMappedPosition(cycle, 5, position);
-    if (result == 0 && missile_point_warned == 0) {
-        if (g_dev_mode != 0) {
+    if (result == 0 && !missile_point_warned) {
+        if (g_dev_mode) {
             W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(
                 MonsterGetIndexByLocationID(0x18c3, MONSTER_CPP, location_id, 1));
             FormatDebugMessage(0, "WARNING: %ls does not have a MISSILE vertex marked --> Lee!",
@@ -1804,8 +1801,8 @@ unsigned char W8Monster::GetSpellPosition(srVector3T<float>* position)
         return 0;
     }
     found = GetCycleMappedPosition(0x19, 6, position);
-    if (found == 0 && spell_vertex_warned == 0) {
-        if (g_dev_mode != 0) {
+    if (found == 0 && !spell_vertex_warned) {
+        if (g_dev_mode) {
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(
                 MonsterGetIndexByLocationID(0x18e4, MONSTER_CPP, location_id, 1));
             W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
@@ -1917,7 +1914,7 @@ void W8Monster::ProcessScript()
 
     if (monster_info != 0 && (monster_info->ai_mode & 0x10) != 0) {
         monster_info->ai_mode &= ~0x10;
-        if (script_wait == MONSCR_WALKTO && movement_stopped != 0) {
+        if (script_wait == MONSCR_WALKTO && movement_stopped) {
             if (script_line > 0) {
                 --script_line;
             }
@@ -1931,7 +1928,7 @@ void W8Monster::ProcessScript()
     script_wait = -1;
     stop = 0;
     command_count = 0;
-    while (script != 0 && script_wait == -1 && stop == 0) {
+    while (script != 0 && script_wait == -1 && !stop) {
         char line[256];
         char* token;
         int command;
@@ -2147,7 +2144,7 @@ void W8Monster::ProcessScript()
                     token = strtok(0, " \t");
                 }
                 value = EvaluateScriptCondition(token);
-                script_conditions.InsertAt(0, invert != 0 ? value == 0 : value != 0);
+                script_conditions.InsertAt(0, invert ? value == 0 : value != 0);
                 break;
             }
             case MONSCR_ELSE:
@@ -2495,7 +2492,7 @@ bool W8Monster::CanContinueScript()
 {
     switch (script_wait) {
     case 1:
-        if (movement_stopped == 0) {
+        if (!movement_stopped) {
             return 0;
         }
         break;
@@ -2517,7 +2514,7 @@ bool W8Monster::CanContinueScript()
         flags1 &= ~W8_MONSTER_SCRIPT_WAIT;
         return 1;
     case 0x0e:
-        if (gXStatus.fNpcDialogueMode == 1) {
+        if (gXStatus.fNpcDialogueMode) {
             return 0;
         }
         break;
@@ -2629,7 +2626,7 @@ unsigned char W8Monster::IsVisibleToPlayer(bool use_bounds)
     srVector3T<float> player_position;
 
     GetCameraPosition(&player_position);
-    if (use_bounds != 0) {
+    if (use_bounds) {
         srVector3T<float> minimum;
         srVector3T<float> maximum;
 
@@ -3094,13 +3091,13 @@ unsigned char W8Monster::CanEnterCycle(signed char cycle)
         MonsterGetIndexByLocationID(0x969, MONSTER_CPP, location_id, 1);
     W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
 
-    if (gXStatus.fCombatMode != 0 && IsCameraTransitionActive()) {
+    if (gXStatus.fCombatMode && IsCameraTransitionActive()) {
         return 0;
     }
     if (m_pRep->animation_playing == 0) {
         if (cycle != W8_MONSTER_CYCLE_GET_HIT && cycle != W8_MONSTER_CYCLE_DIE &&
             cycle != W8_MONSTER_CYCLE_BIRTH && monster_info->fMotionless != 0) {
-            if (g_dev_mode == 0) {
+            if (!g_dev_mode) {
                 return 0;
             }
             srAssertFail("FALSE", MONSTER_CPP, 0x97f, 0);
@@ -3290,7 +3287,7 @@ void W8Monster::UpdateRepresentation(W8World* world)
         this->scale_y -= g_float_005ebc3c;
     }
 
-    if (talking != 0 && animate_mouth != 0) {
+    if (talking && animate_mouth != 0) {
         if (mouth_open != 0) {
             model = GetCurrentModelInstance();
             if (model != 0 &&
@@ -3317,7 +3314,7 @@ void W8Monster::UpdateRepresentation(W8World* world)
         }
     }
 
-    if (position_dirty != 0 || movement.position_adjusted != 0) {
+    if (position_dirty || movement.position_adjusted) {
         g_octree->UpdateMonsterLocation(static_cast<unsigned short>(location_id), &position);
     }
 
@@ -3332,7 +3329,7 @@ void W8Monster::UpdateRepresentation(W8World* world)
         if (m_pRep->monster_light != 0) {
             m_pRep->monster_light->Update(&position);
         }
-        if (enabled == 0) {
+        if (!enabled) {
             enabled = true;
             SetShakeEventVisibility(m_pRep->current_cycle);
             lights = *m_pRep->light_lists[m_pRep->current_cycle].GetAt(m_pRep->current_subcycle);
@@ -3345,7 +3342,7 @@ void W8Monster::UpdateRepresentation(W8World* world)
                 m_pRep->monster_light->SetVisible(1);
             }
         }
-    } else if (enabled != 0) {
+    } else if (enabled) {
         enabled = false;
         SetShakeEventVisibility(m_pRep->current_cycle);
         lights = *m_pRep->light_lists[m_pRep->current_cycle].GetAt(m_pRep->current_subcycle);
@@ -3376,8 +3373,7 @@ void W8Monster::SetShakeEventVisibility(signed char cycle)
     for (index = 0; index < count; ++index) {
         W8GrCycleParticleAttachment* event = *m_plsParticles->GetAt(index);
 
-        if (event->cycle == cycle && event->subcycle == m_pRep->current_subcycle &&
-            enabled != 0) {
+        if (event->cycle == cycle && event->subcycle == m_pRep->current_subcycle && enabled) {
             W8AnimObj* animation =
                 *m_pRep->animations[m_pRep->current_cycle].GetAt(m_pRep->current_subcycle);
 
@@ -3563,7 +3559,7 @@ void W8Monster::SetCycle(signed char cycle)
     if (lights != 0) {
         count = lights->GetCount();
         for (index = 0; index < count; ++index) {
-            if (enabled != 0) {
+            if (enabled) {
                 (*lights->GetAt(index))->clearFlag(srNode::FLAG_DISABLE);
             } else {
                 (*lights->GetAt(index))->setFlag(srNode::FLAG_DISABLE);
@@ -3696,7 +3692,7 @@ void W8Monster::UpdateAttachedObjects()
     GetCameraPosition(&party_position);
     party_position -= base_position;
     distance_scale = party_position.Length() * g_monster_attachment_distance_scale;
-    if (target_highlighted == 0 && distance_scale > g_float_one) {
+    if (!target_highlighted && distance_scale > g_float_one) {
         distance_scale = g_float_one;
     }
 
@@ -3929,7 +3925,7 @@ void W8Monster::HandleAnimationFrame(unsigned char previous_frame)
     if (m_pRep->current_cycle == 25 && ((spell_frame > 0 && previous_frame < spell_frame &&
                                          spell_frame <= m_pRep->subcycle) ||
                                         (spell_frame == 0 && m_pRep->subcycle == 1))) {
-        if (spell_effect_armed != 0) {
+        if (spell_effect_armed) {
             spell_effect_armed = false;
             CreateAttachedSpellEffect(g_spell_records[g_spell_index].resource_name,
                                       g_spell_effect_frame, this, 0, 0);
@@ -3973,7 +3969,7 @@ void W8Monster::HandleAnimationThreshold()
     record = GetMonsterDataForInfo(monster_info);
     SetTargetSourceToMonster(monster_info, &source);
 
-    if (gXStatus.fCombatMode != 0 && g_combat_state->eCombatActionStatus == 2 &&
+    if (gXStatus.fCombatMode && g_combat_state->eCombatActionStatus == 2 &&
         g_combat_state->pActionMonsterInfo == monster_info) {
         attack_index = monster_info->pCombat->attack_index;
         selected_attack = true;
@@ -4021,7 +4017,7 @@ prepare_attack:
     attack_block.power_level = monster_value + (monster_value < 15 ? monster_value : 15);
     attack_block.magnitude_base = attack->missile_magnitude;
 
-    if (selected_attack != 0) {
+    if (selected_attack) {
         accuracy = GetMonsterAttackScore(monster_info, attack,
                                          static_cast<W8AttackMode>(monster_info->action_detail), 0);
         CombatLog("TO HIT (MISSILE ACCURACY): Chance %d", accuracy);
@@ -4032,7 +4028,7 @@ prepare_attack:
 fire_missile:
     monster_info->fMissileReleased = true;
     FireMissileSourceToTarget(missile_type, &source, &monster_info->Target, &attack_block,
-                              selected_attack == 0, range_category, accuracy);
+                              !selected_attack, range_category, accuracy);
 }
 
 // FUNCTION: WIZ8 0x004c3620
@@ -4089,12 +4085,11 @@ void W8Monster::UpdateShakeEvents(unsigned char previous_frame)
         }
 
         particle = event->m_pstParticles;
-        if (animation_has_range != 0 &&
+        if (animation_has_range &&
             (particle->start_frame == -1 || particle->end_frame == -1 ||
              particle->start_frame == particle->end_frame) &&
-            previous_frame < animation->start_frame &&
-            animation->start_frame <= m_pRep->subcycle) {
-            if (enabled != 0) {
+            previous_frame < animation->start_frame && animation->start_frame <= m_pRep->subcycle) {
+            if (enabled) {
                 particle->SetActive(1);
                 particle->emission_count = 0;
                 if (index == 0) {
@@ -4127,7 +4122,7 @@ void W8Monster::UpdateShakeEvents(unsigned char previous_frame)
             particle->start_frame != particle->end_frame) {
             if (static_cast<unsigned int>(previous_frame) ==
                 static_cast<unsigned int>(particle->start_frame)) {
-                if (enabled != 0) {
+                if (enabled) {
                     particle->SetActive(1);
                     particle->emission_count = 0;
                 }
@@ -4804,7 +4799,7 @@ void MonsterAimAtMonster(W8Monster* monster, W8Monster* target, bool alternate)
         if (monster_info->control_state != 1) {
             target_position = target->GetPosition();
             position = target_position;
-            if (alternate != 0) {
+            if (alternate) {
                 monster->SetFacingToward(&position);
             } else {
                 monster->AimAtPosition(&position);
@@ -4912,7 +4907,7 @@ unsigned char W8Monster::ReplaceSkinTexture(int stage, const char* old_name, con
         }
     }
 
-    if (replaced == 0 && m_plsParticles != 0) {
+    if (!replaced && m_plsParticles != 0) {
         for (int index = 0; index < m_plsParticles->GetCount(); ++index) {
             W8GrCycleParticleAttachment* event = *m_plsParticles->GetAt(index);
             if (event->m_pstParticles->ReplaceTexture(old_name, texture) != 0) {
@@ -5105,7 +5100,7 @@ unsigned char W8Monster::IsRenderable(bool alternate)
     W8MonsterInfo* monster_info;
     W8MonsterRecord* record;
 
-    if (disabled != 0) {
+    if (disabled) {
         return 0;
     }
     if (inactive != 0) {
@@ -5127,7 +5122,7 @@ unsigned char W8Monster::IsRenderable(bool alternate)
     if (record->camouflage0 > 0) {
         return monster_info->party_threat.party_detected;
     }
-    if (alternate != 0) {
+    if (alternate) {
         return monster_info->party_threat.visible_to_player;
     }
     return monster_info->within_viewing_distance;

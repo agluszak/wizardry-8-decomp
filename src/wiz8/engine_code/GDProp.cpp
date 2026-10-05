@@ -127,7 +127,7 @@ void GDProp::PrepareGeometry(srModelInstance* instance)
 void GDProp::Initialize(srModelInstance* instance, bool attach, unsigned short prop_number,
                         unsigned char footstep_surface, unsigned char footstep_material)
 {
-    if (attach == 0) {
+    if (!attach) {
         m_flags |= 4;
     } else {
         m_flags &= 0xfffb;
@@ -200,7 +200,7 @@ void GDProp::Initialize(srModelInstance* instance, bool attach, unsigned short p
 
     W8PathingService* pathing = g_octree->pathing;
     if (m_path_handle != 0 && pathing != 0) {
-        if (attach == 0) {
+        if (!attach) {
             if (m_prop_number != 0xffff) {
                 m_prop_number = 0xffff;
                 pathing->SetConditionalPathFrame(m_path_handle, 0xffff);
@@ -217,7 +217,7 @@ void GDProp::Initialize(srModelInstance* instance, bool attach, unsigned short p
     }
 
     Trigger* owner = m_owner;
-    if (owner != 0 && attach != 0) {
+    if (owner != 0 && attach) {
         W8TriggerActionData* action = owner->m_pActionData;
         if (action != 0 && action->type == W8_TRIGGER_PAYLOAD_DOOR) {
             unsigned int flags = 0x08000000;
@@ -407,7 +407,7 @@ unsigned char GDProp::RegisterPathVertex(unsigned int index, const srVector2i* p
             found = true;
         }
     }
-    if (found == 0) {
+    if (!found) {
         return 0;
     }
 

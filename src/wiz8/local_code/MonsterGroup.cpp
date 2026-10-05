@@ -75,7 +75,7 @@ bool MoveMonsterGroupToPosition(W8MonsterGroup* group, const srVector3T<float>* 
                                 bool proximity_check, bool include_allies, bool flatten_y,
                                 bool alternate_radius)
 {
-    if (group->members_active == 0) {
+    if (!group->members_active) {
         return false;
     }
     W8MonsterInfo* leader = MonsterGetScriptPartByLocationIndex(
@@ -391,7 +391,7 @@ unsigned int GetMonsterGroupIndexByID(int caller_line, const char* caller_file, 
         }
     }
 
-    if (assert_on_failure != 0) {
+    if (assert_on_failure) {
         srAssertFail("FALSE", MONSTER_GROUP_CPP, 0x3b2,
                      FormatString("GroupIndex: ID %d not found (%s line %d)", group_id, caller_file,
                                   caller_line));
@@ -458,7 +458,7 @@ unsigned char RemoveAllGroupMembers(W8MonsterGroup* monster_group)
         removed = 1;
         removed = RemoveMonster(
             MonsterGetIndexByLocationID(0x119, MONSTER_GROUP_CPP, location_id, 1), removed);
-    } while (removed != 0);
+    } while (removed);
     return 0;
 }
 
@@ -545,7 +545,7 @@ void DetachMonsterGroup(W8MonsterGroup* monster_group)
 // FUNCTION: WIZ8 0x00510b30
 bool IsMonsterGroupLive(W8MonsterGroup* monster_group)
 {
-    if (monster_group->members_active != 0 && monster_group->fInCombat != 0 &&
+    if (monster_group->members_active && monster_group->fInCombat &&
         monster_group->member_count > 0) {
         if (monster_group->ubDisposition != W8_DISPOSITION_HOSTILE && !CombatAllowsLiveGroups()) {
             return 0;
@@ -588,7 +588,7 @@ unsigned char ApplyToMonsterGroupLeader(W8MonsterGroup* monster_group,
                                         const srVector3T<float>* position, bool follow_leader)
 {
     if (monster_group != 0) {
-        while (follow_leader != 0 && monster_group->leader_group_id != 0) {
+        while (follow_leader && monster_group->leader_group_id != 0) {
             monster_group = GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
                 0x21b, MONSTER_GROUP_CPP, monster_group->leader_group_id, 1));
             if (monster_group == 0) {
@@ -660,7 +660,7 @@ void RetireMonsterGroupAndAllies(W8MonsterGroup* monster_group)
         monster_group = GetMonsterGroupByListIndex(
             GetMonsterGroupIndexByID(0x553, MONSTER_GROUP_CPP, monster_group->leader_group_id, 1));
     }
-    if (monster_group->encounter_registered != 0) {
+    if (monster_group->encounter_registered) {
         UnregisterActiveEncounterGroup(monster_group);
         monster_group->encounter_registered = 0;
         monster_group->encounter_ended = 1;
@@ -698,7 +698,7 @@ wchar_t* GetMonsterGroupName(W8MonsterGroup* monster_group)
                  g_status.buffers.Char[g_status.sedexus_party_slot].name);
         return g_status.monster_name_buffer;
     }
-    if (monster_group->alternate_name != 0) {
+    if (monster_group->alternate_name) {
         return record->name0 + name_form * W8_MONSTER_NAME_STRIDE;
     }
     return record->name2 + name_form * W8_MONSTER_NAME_STRIDE;
@@ -715,10 +715,10 @@ void MonsterGroupLeaveCombat(W8MonsterGroup* monster_group)
     unsigned int index;
     W8MonsterInfo* lead;
 
-    if (gXStatus.fCombatMode == 0) {
+    if (!gXStatus.fCombatMode) {
         srAssertFail("gXStatus.fCombatMode", MONSTER_GROUP_CPP, 0x1eb, 0);
     }
-    if (monster_group->fInCombat == 0) {
+    if (!monster_group->fInCombat) {
         srAssertFail("pMonsterGroup->fInCombat", MONSTER_GROUP_CPP, 0x1ec, 0);
     }
     for (index = 0; index < ILLength(monster_group->monsters); ++index) {
@@ -762,7 +762,7 @@ void LoadMonsterGroupMembers(W8MonsterGroup* monster_group)
     for (index = 0; index < ILLength(monster_group->monsters); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
             0x12d, MONSTER_GROUP_CPP, IListGetAt(monster_group->monsters, index), 1));
-        if (monster_info->fActive == 0) {
+        if (!monster_info->fActive) {
             ActivateMonsterInWorld(monster_info);
         }
     }
@@ -823,14 +823,14 @@ void SetMonsterGroupControlState(W8MonsterGroup* monster_group, int control_stat
 // FUNCTION: WIZ8 0x00511B40
 bool MonsterGroupHasRenderableMember(W8MonsterGroup* monster_group, bool require_threat)
 {
-    if (monster_group->members_active == 0) {
+    if (!monster_group->members_active) {
         return false;
     }
     for (unsigned int index = 0; index < ILLength(monster_group->monsters); ++index) {
         W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
             0x8e6, MONSTER_GROUP_CPP, IListGetAt(monster_group->monsters, index), 1));
         if (info->p3D->IsWithinWorldRange() && info->p3D->IsRenderable(1) != 0 &&
-            (require_threat == 0 || info->party_threat.los_flags[1] != 0)) {
+            (!require_threat || info->party_threat.los_flags[1])) {
             return true;
         }
     }
@@ -881,7 +881,7 @@ void GetMonsterGroupCentre(W8MonsterGroup* monster_group, srVector3T<float>* cen
     if (monster_group == 0) {
         return;
     }
-    if (monster_group->members_active != 0) {
+    if (monster_group->members_active) {
         monster_group->centre.SetZero();
         count = ILLength(monster_group->monsters);
         for (index = 0; index < count; ++index) {
@@ -982,7 +982,7 @@ unsigned char LinkMonsterGroupToLeader(W8MonsterGroup* leader, W8MonsterGroup* m
     if (leader != 0 && leader->group_id == monster_group->group_id) {
         return 0;
     }
-    if (monster_group->encounter_registered != 0 && monster_group->leader_group_id == 0) {
+    if (monster_group->encounter_registered && monster_group->leader_group_id == 0) {
         UnregisterActiveEncounterGroup(monster_group);
     }
     RefreshMonsterGroup(UnlinkMonsterGroupFromLeader(monster_group));
@@ -998,7 +998,7 @@ unsigned char LinkMonsterGroupToLeader(W8MonsterGroup* leader, W8MonsterGroup* m
         }
         return 0;
     }
-    if (monster_group->encounter_registered != 0) {
+    if (monster_group->encounter_registered) {
         RegisterActiveEncounterGroup(monster_group);
     }
     return 1;
@@ -1051,7 +1051,7 @@ W8MonsterGroup* CreateGroup(unsigned int monster_id, unsigned int count,
     group->members_active = 0;
     group->fInCombat = false;
     group->unknown_2b = 3;
-    if (use_alternate_name != 0 || (record->flags & W8_MONSTER_FLAG_ALTERNATE_NAME) != 0) {
+    if (use_alternate_name || (record->flags & W8_MONSTER_FLAG_ALTERNATE_NAME) != 0) {
         group->alternate_name = 1;
     } else {
         group->alternate_name = 0;
@@ -1097,7 +1097,7 @@ W8MonsterGroup* CreateGroup(unsigned int monster_id, unsigned int count,
             MonsterGetIndexByLocationID(0x12d, MONSTER_GROUP_CPP, location_id, 1);
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
 
-        if (monster_info->fActive == 0) {
+        if (!monster_info->fActive) {
             ActivateMonsterInWorld(monster_info);
         }
         ++index;
@@ -1109,7 +1109,7 @@ W8MonsterGroup* CreateGroup(unsigned int monster_id, unsigned int count,
     RefreshMonsterGroup(group);
     SetMonsterGroupHostility(group, MonsterGroupCalcDefaultDisposition(group), 0);
 
-    if (announce_spawn != 0 && g_dev_mode != 0) {
+    if (announce_spawn && g_dev_mode) {
         int registry_after = GetUsedPageFileBytes();
         const wchar_t* verb = count == 1 ? L"appears" : L"appear";
         ShowNoticef(9, L"%d %s %s nearby! (%dK)", count, GetMonsterGroupName(group), verb,
@@ -1134,11 +1134,11 @@ bool DestroyMonsterGroup(W8MonsterGroup* monster_group, W8MonsterInfo* monster_i
     W8PList* list;
     void* removed;
 
-    if (monster_group->members_active != 0) {
+    if (monster_group->members_active) {
         DetachMonsterGroup(monster_group);
     }
     if (monster_group->leader_group_id == 0) {
-        if (monster_group->encounter_registered != 0) {
+        if (monster_group->encounter_registered) {
             UnregisterActiveEncounterGroup(monster_group);
         }
         ElectAlliedLeaderGroup(monster_group, monster_info);
@@ -1178,7 +1178,7 @@ void ApplyDefaultMonsterGroupSounds(void)
     for (group_list_index = 0; group_list_index < count; ++group_list_index) {
         monster_group = GetMonsterGroupByListIndex(group_list_index);
         lead = MonsterInfoFromID(0x501, MONSTER_GROUP_CPP, monster_group->leader_location_id, 1);
-        if (monster_group->encounter_registered != 0 && lead->p3D->script == 0) {
+        if (monster_group->encounter_registered && lead->p3D->script == 0) {
             lead->p3D->SetScript("Default.MSF", 1);
         }
     }
@@ -1387,14 +1387,14 @@ void ElectAlliedLeaderGroup(W8MonsterGroup* monster_group, W8MonsterInfo* leader
 void MonsterGroupEnterCombat(W8MonsterGroup* monster_group)
 {
     while (true) {
-        if (g_status.world_suspended != 0 &&
-            monster_group->ubDisposition == W8_DISPOSITION_HOSTILE && gXStatus.fCombatMode == 0) {
+        if (g_status.world_suspended && monster_group->ubDisposition == W8_DISPOSITION_HOSTILE &&
+            !gXStatus.fCombatMode) {
             return;
         }
         if (IsMipeActive()) {
             return;
         }
-        if (monster_group->fInCombat != 0) {
+        if (monster_group->fInCombat) {
             return;
         }
         if (monster_group == 0) {
@@ -1412,12 +1412,12 @@ void MonsterGroupEnterCombat(W8MonsterGroup* monster_group)
             int member_id = IListGetAt(monster_group->monsters, index);
             W8MonsterInfo* member_info = MonsterGetScriptPartByLocationIndex(
                 MonsterGetIndexByLocationID(0x516, MONSTER_GROUP_CPP, member_id, 1));
-            if (member_info->p3D->position_dirty != 0) {
+            if (member_info->p3D->position_dirty) {
                 return;
             }
             ++index;
         }
-        if (g_startup_world->position_dirty != 0) {
+        if (g_startup_world->position_dirty) {
             return;
         }
         if (monster_group == 0) {
@@ -1462,14 +1462,13 @@ void MonsterGroupEnterCombat(W8MonsterGroup* monster_group)
                 ++index;
             }
             monster_group->fInCombat = 1;
-            if (monster_group->ubDisposition == W8_DISPOSITION_HOSTILE &&
-                gXStatus.fCombatMode != 0 && g_combat_state->round_count != 0) {
+            if (monster_group->ubDisposition == W8_DISPOSITION_HOSTILE && gXStatus.fCombatMode &&
+                g_combat_state->round_count != 0) {
                 unsigned int live_groups = 0;
                 unsigned int group_list_index = 0;
                 while (group_list_index < PLLength(gXStatus.plsMonsterGroupList)) {
                     W8MonsterGroup* other = GetMonsterGroupByListIndex(group_list_index);
-                    if (other->members_active != 0 && other->fInCombat != 0 &&
-                        other->member_count != 0 &&
+                    if (other->members_active && other->fInCombat && other->member_count != 0 &&
                         (other->ubDisposition == W8_DISPOSITION_HOSTILE ||
                          CombatAllowsLiveGroups())) {
                         ++live_groups;
@@ -1486,7 +1485,7 @@ void MonsterGroupEnterCombat(W8MonsterGroup* monster_group)
                 if (allies[ally_index] != 0) {
                     W8MonsterGroup* ally = GetMonsterGroupByListIndex(
                         GetMonsterGroupIndexByID(0x1c8, MONSTER_GROUP_CPP, allies[ally_index], 1));
-                    if (ally->fInCombat == 0) {
+                    if (!ally->fInCombat) {
                         index = 0;
                         while (index < ILLength(ally->monsters)) {
                             int member_id = IListGetAt(ally->monsters, index);
@@ -1534,7 +1533,7 @@ bool PositionMonsterGroupNearCamera(W8MonsterGroup* group, float distance, float
     unsigned int index;
 
     camera = g_startup_world->GetPosition();
-    if (flag == 0) {
+    if (!flag) {
         target = camera;
         return MoveMonsterGroupToPosition(group, &target, 0.0f, true, true, false, true);
     }
@@ -1588,13 +1587,13 @@ void ShowMonsterGroupInfoNotice(int group_id)
         swprintf(g_status.monster_name_buffer, g_format_al_s,
                  g_status.buffers.Char[g_status.sedexus_party_slot].name);
         name = g_status.monster_name_buffer;
-    } else if (group->alternate_name != 0) {
+    } else if (group->alternate_name) {
         name = record->name0 + name_form * W8_MONSTER_NAME_STRIDE;
     } else {
         name = record->name2 + name_form * W8_MONSTER_NAME_STRIDE;
     }
     ShowNoticef(0xc, g_format_d_s, group->member_count, name);
-    if (group->alternate_name == 0) {
+    if (!group->alternate_name) {
         ShowNotice(0xc, gppStringList[0x1c5], -1, 0xffffffff, false);
     }
     ShowNoticef(0xc, gppStringList[0x1c6], group->active_member_count);

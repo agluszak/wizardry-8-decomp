@@ -2255,6 +2255,92 @@ def _line_bounds(original: bytes, offset: int, length: int) -> tuple[int, int] |
     return start, end - start
 
 
+_BOOL_INDEX = r"(?:\[\s*(?:[A-Za-z_]\w*|[0-9]+)(?:\+\+|--)?\s*\])?"
+_BOOL_OBJECT = r"[A-Za-z_]\w*" + _BOOL_INDEX + r"(?:(?:\.|->|::)[A-Za-z_]\w*" + _BOOL_INDEX + r")*"
+_BOOL_LEFT = re.compile(r"(?P<value>" + _BOOL_OBJECT + r"|\(\s*" + _BOOL_OBJECT + r"\s*\))\s*$")
+_BOOL_RIGHT = re.compile(r"\s*(?P<value>" + _BOOL_OBJECT + r"|\(\s*" + _BOOL_OBJECT + r"\s*\))")
+_BOOL_LITERAL = r"(?:[01][uUlL]*|false|true)\b"
+
+
+def boolean_expression_edits(facts: ScalarFacts, source):
+    """Simplify AST-resolved bool objects, without inferring any source types.
+
+    Operand observations bind the operator to its canonical declaration. Restrict
+    source spelling to direct objects/member paths; unfamiliar expressions and
+    macros remain unchanged. A same-named byte/int declaration is never an anchor.
+    """
+    hashes = defaultdict(set)
+    for _, _, file, _, _, _, digest in facts.spans:
+        hashes[file].add(digest)
+    edits = []
+    seen = set()
+    for key, operation, value, file, line, column in sorted(facts.operands):
+        declaration = facts.declarations.get(key)
+        if (
+            declaration is None
+            or declaration.domain != "bool"
+            or declaration.kind == "function"
+            or key in facts.inconsistent
+            or operation not in {"==", "!=", "rhs:==", "rhs:!="}
+            or value not in {0, 1}
+            or len(hashes[file]) != 1
+            or not file.startswith(("src/wiz8/", "include/wiz8/", "tests/runtime/"))
+        ):
+            continue
+        original = source(file, next(iter(hashes[file])))
+        lines = original.splitlines(keepends=True)
+        if not 1 <= line <= len(lines):
+            continue
+        offset = sum(map(len, lines[: line - 1])) + column - 1
+        operator = operation.removeprefix("rhs:")
+        if original[offset : offset + 2] != operator.encode():
+            continue
+        before, after = original[:offset].decode(), original[offset + 2 :].decode()
+        if operation.startswith("rhs:"):
+            literal = re.search(r"(?<![\w.])" + _BOOL_LITERAL + r"\s*$", before)
+            operand = _BOOL_RIGHT.match(after)
+            if literal is None or operand is None:
+                continue
+            prefix = before[: literal.start()].rstrip()
+            if prefix and prefix[-1] not in "([{,;?:":
+                continue
+            start, end = (
+                len(before[: literal.start()].encode()),
+                offset + 2 + len(after[: operand.end()].encode()),
+            )
+        else:
+            operand = _BOOL_LEFT.search(before)
+            literal = re.match(r"\s*" + _BOOL_LITERAL, after)
+            if operand is None or literal is None:
+                continue
+            if operand.start() and before[operand.start() - 1] in ".>:])":
+                continue
+            start, end = (
+                len(before[: operand.start()].encode()),
+                offset + 2 + len(after[: literal.end()].encode()),
+            )
+        expression = operand["value"]
+        # Literal macros and continued member expressions aren't editable atoms.
+        literal_value = literal[0].strip().rstrip("uUlL")
+        if literal_value not in {"0", "1", "false", "true"}:
+            continue
+        if (literal_value in {"1", "true"}) != bool(value):
+            continue
+        if not operation.startswith("rhs:"):
+            tail = original[end:].lstrip()
+            if tail.startswith((b"+", b"-", b"*", b"/", b"%", b"<<", b">>", b"^")) or (
+                tail.startswith((b"&", b"|")) and not tail.startswith((b"&&", b"||"))
+            ):
+                continue
+        positive = (operator == "!=") == (value == 0)
+        replacement = expression if positive else "!" + expression
+        identity = file, start, end
+        if identity not in seen:
+            seen.add(identity)
+            edits.append((key, file, start, end - start, original[start:end], replacement.encode()))
+    return edits
+
+
 def write_recovery_patch(
     facts: ScalarFacts,
     claims: list[dict],
@@ -2263,6 +2349,7 @@ def write_recovery_patch(
     *,
     padding: bool = False,
     propagate_enums: list[str] | None = None,
+    boolean_expressions: bool = False,
 ) -> dict:
     """Emit reviewable whole-component patches, never mutate source files.
 
@@ -2345,7 +2432,7 @@ def write_recovery_patch(
             raise ValueError(f"stale source facts for {file}; recollect before editing")
         return files[file]
 
-    if propagate_enums and any(changes for _, changes, _, _ in groups):
+    if boolean_expressions or (propagate_enums and any(changes for _, changes, _, _ in groups)):
         # The enum anchors and producer graph are current-source assumptions.
         # Validate the collected corpus, not just files that receive edits: an
         # unchanged local must not be promoted from a stale owner in a header.
@@ -2414,6 +2501,9 @@ def write_recovery_patch(
             if previous is not None and previous != atom:
                 raise ValueError("conflicting shared type atom")
             file_edits[file][offset, length] = atom
+    expressions = boolean_expression_edits(facts, source) if boolean_expressions else []
+    for _, file, offset, length, text, replacement in expressions:
+        file_edits[file][offset, length] = text, replacement
     patch = []
     for file, edits in sorted(file_edits.items()):
         original = files[file]
@@ -2440,5 +2530,9 @@ def write_recovery_patch(
         "changed_declarations": sorted({key for key, _ in proposed}),
         "edits": [{"key": key, "component": kind} for key, kind in sorted(proposed)],
         "rejected": rejected,
+        "changed_expressions": [
+            {"key": key, "file": file, "offset": offset, "length": length}
+            for key, file, offset, length, _, _ in expressions
+        ],
         "coverage": "supplied translation units; review full project/ABI coverage before applying",
     }

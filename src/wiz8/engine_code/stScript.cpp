@@ -142,7 +142,7 @@ unsigned char stScript::Load(const char* path)
                     break;
                 }
             }
-            if (add_label != 0) {
+            if (add_label) {
                 stScriptLabel* label = new stScriptLabel;
                 if (label != 0) {
                     strncpy(label->name, token, 0x1f);

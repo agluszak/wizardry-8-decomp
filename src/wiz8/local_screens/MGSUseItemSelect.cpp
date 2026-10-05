@@ -217,7 +217,7 @@ void CloseUseItemSelectView(void)
     W8TextControl** control;
     Controls** panel;
 
-    if (g_use_item_commit_active == 0) {
+    if (!g_use_item_commit_active) {
         RegionSetDisable(0x1a);
         DisableRegionInput(0x52);
         DisableRegionInput(0x53);
@@ -228,7 +228,7 @@ void CloseUseItemSelectView(void)
         SetTargetingMode(W8_TARGET_NEED_NONE);
         ResetEditorStatusLine(-1);
         g_level_block->text_box_visible = 1;
-        SelectTextBox(gXStatus.fCombatMode != 0);
+        SelectTextBox(gXStatus.fCombatMode);
         for (control = g_use_item_select_scroll_buttons;
              control < g_use_item_select_scroll_buttons + 3; control++) {
             if (*control != 0) {
@@ -256,15 +256,15 @@ void CloseUseItemSelectView(void)
         gXStatus.dragged_item = 0;
         gXStatus.dragged_item_origin = 0xff;
         gXStatus.dragged_character_slot = -1;
-        if (gXStatus.fLockInteract != 0 && !IsScreenTransitionPending()) {
+        if (gXStatus.fLockInteract && !IsScreenTransitionPending()) {
             OpenLockInteraction(0);
             return;
         }
-        if (gXStatus.fTrapInteract != 0 && !IsScreenTransitionPending()) {
+        if (gXStatus.fTrapInteract && !IsScreenTransitionPending()) {
             OpenTrapInteraction(0);
             return;
         }
-        if (gXStatus.fCampMode != 0 && g_pending_screen_state.id != W8_SCREEN_CAMP) {
+        if (gXStatus.fCampMode && g_pending_screen_state.id != W8_SCREEN_CAMP) {
             SyncDialogueNpcState();
         }
     }
@@ -380,9 +380,9 @@ void UpdateUseItemSelect(bool active)
                 g_use_item_select_panels[i]->Invalidate(0);
             }
             if (i == 1) {
-                panel_dirty = g_use_item_select_panels[1]->m_fEnabled != 0 &&
-                              (g_use_item_select_panels[1]->m_fDirty != 0 ||
-                               g_use_item_select_panels[1]->m_fLayoutDirty != 0);
+                panel_dirty = g_use_item_select_panels[1]->m_fEnabled &&
+                              (g_use_item_select_panels[1]->m_fDirty ||
+                               g_use_item_select_panels[1]->m_fLayoutDirty);
             }
             g_use_item_select_panels[i]->Redraw();
             if (panel_dirty) {
@@ -924,7 +924,7 @@ void UseItemSelectTextBoxWheelAt(short x, unsigned short y, bool flag)
         return;
     }
     row = (y - g_level_block->text_box_top) / 0xb;
-    if (row != g_use_item_hover_row || flag != 0) {
+    if (row != g_use_item_hover_row || flag) {
         ClearHoveredTextLine(2);
         if (row < static_cast<int>(g_status.text_box_lines_shown[2])) {
             SetHoveredTextLine(g_level_block->text_lines[2] + row, 2);

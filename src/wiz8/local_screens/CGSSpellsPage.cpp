@@ -454,19 +454,18 @@ void W8CharacterSpellsPage::GetNavigationState(bool* next_enabled, bool* exit_en
 // FUNCTION: WIZ8 0x005c87b0
 void W8CharacterSpellsPage::SelectSpell(unsigned int uiSelected)
 {
-    if (m_SpellData[uiSelected].fSelectable == 0) {
+    if (!m_SpellData[uiSelected].fSelectable) {
         srAssertFail("m_SpellData[uiSelected].fSelectable",
                      "C:\\Projects\\Wizardry 8\\Local Screens\\CGSSpellsPage.cpp", 0x252, 0);
     }
-    if (m_SpellData[uiSelected].selected != 0) {
+    if (m_SpellData[uiSelected].selected) {
         m_SpellData[uiSelected].selected = 0;
         DeselectCreationSpell(m_character, m_creation_state, m_SpellData[uiSelected].spell);
     } else {
         if (m_creation_state->spell_points_remaining == 0) {
             for (unsigned int index = 0; index < 0x72; ++index) {
-                if (m_SpellData[index].selected != 0 &&
-                    (index != m_last_selected ||
-                     m_creation_state->spell_points_total == 1)) {
+                if (m_SpellData[index].selected &&
+                    (index != m_last_selected || m_creation_state->spell_points_total == 1)) {
                     m_SpellData[index].selected = 0;
                     DeselectCreationSpell(m_character, m_creation_state,
                                           m_SpellData[index].spell);

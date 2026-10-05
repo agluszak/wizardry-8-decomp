@@ -98,7 +98,7 @@ void SaveParticleStates(HWFILE handle)
     stParticle* particle = static_cast<stParticle*>(srCore.getRegistry()->find(
         stParticle::sGetClassNode(), static_cast<const srRuntimeClass*>(0)));
     while (particle != 0) {
-        if (particle->persisted != 0) {
+        if (particle->persisted) {
             ++count;
         }
         particle = static_cast<stParticle*>(
@@ -110,7 +110,7 @@ void SaveParticleStates(HWFILE handle)
     particle = static_cast<stParticle*>(srCore.getRegistry()->find(
         stParticle::sGetClassNode(), static_cast<const srRuntimeClass*>(0)));
     while (particle != 0) {
-        if (particle->persisted != 0) {
+        if (particle->persisted) {
             strcpy(name, particle->getName());
             FileWrite(handle, name, sizeof(name), 0);
             FileWrite(handle, &particle->emitting, sizeof(particle->emitting), 0);
@@ -432,7 +432,7 @@ unsigned char stParticle::ActivateParticle(unsigned int* out_index, bool replace
     }
 
     if (index == particle_count) {
-        if (replace_when_full == 0) {
+        if (!replace_when_full) {
             return 0;
         }
 
@@ -750,7 +750,7 @@ void stParticle::traverse(srNode::TraverseInfo& info)
     }
 
     if (!testFlag(FLAG_DISABLE)) {
-        if ((emitting != 0 || active_particle_count != 0) && traversal_enabled != 0) {
+        if ((emitting != 0 || active_particle_count != 0) && traversal_enabled) {
             srNode::TraverseInfo::Entry& entry = info.entries[info.entry_count];
             entry.node = this;
             entry.value = 0;
@@ -768,7 +768,7 @@ void stParticle::traverse(srNode::TraverseInfo& info)
 // FUNCTION: WIZ8 0x00498D90
 void stParticle::SetTraversalEnabled(bool enabled)
 {
-    if (enabled != 0 && traversal_enabled == 0) {
+    if (enabled && !traversal_enabled) {
         last_emission_tick = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
     }
     traversal_enabled = enabled;

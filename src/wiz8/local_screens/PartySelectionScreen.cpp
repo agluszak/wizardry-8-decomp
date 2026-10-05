@@ -215,7 +215,7 @@ void W8PartySelectionCharacterCollection::LoadExternalCharacters()
         } else {
             int slot;
             for (slot = 2; slot < 8; ++slot) {
-                if (g_status.buffers.XChar[slot].fOccupied != 0 &&
+                if (g_status.buffers.XChar[slot].fOccupied &&
                     wcscmp(g_status.buffers.Char[slot].name, character->name) == 0) {
                     break;
                 }

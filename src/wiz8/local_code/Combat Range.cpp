@@ -86,7 +86,7 @@ bool CanPartySlotAttackAnyTarget(int party_slot, W8TargetingContext category, in
     char side;
     int first = party_slot;
 
-    if (gXStatus.fCombatMode == 0 || g_combat_state->characters[party_slot].berserk == 0) {
+    if (!gXStatus.fCombatMode || !g_combat_state->characters[party_slot].berserk) {
         side = hand;
     } else {
         side = 1;
@@ -97,7 +97,7 @@ bool CanPartySlotAttackAnyTarget(int party_slot, W8TargetingContext category, in
         unsigned int index;
         for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
-            if (monster_info->fActive != 0 && monster_info->hp_current != 0 &&
+            if (monster_info->fActive && monster_info->hp_current != 0 &&
                 monster_info->highest_condition < W8_CONDITION_DEAD &&
                 (live_groups || MonsterVsCharDisposition(first, monster_info) == side)) {
                 for (unsigned int reach_hand = 0; reach_hand < 2; ++reach_hand) {
@@ -113,7 +113,7 @@ bool CanPartySlotAttackAnyTarget(int party_slot, W8TargetingContext category, in
         W8Character* character = &g_status.buffers.Char[first];
         for (int slot = 0; slot < W8_PARTY_SLOT_COUNT; ++slot) {
             W8Character* candidate = &g_status.buffers.Char[slot];
-            if (slot != first && g_status.buffers.XChar[slot].fOccupied != 0 &&
+            if (slot != first && g_status.buffers.XChar[slot].fOccupied &&
                 candidate->hp_current != 0 && candidate->highest_condition < W8_CONDITION_DEAD &&
                 CharacterVsCharacterDisposition(first, slot) == side) {
                 for (unsigned int reach_hand = 0; reach_hand < 2; ++reach_hand) {
@@ -277,8 +277,8 @@ bool CanPartyMemberAimAtMonster(int party_slot, int hand, W8MonsterInfo* monster
     if (monster_info->party_threat.sight_state != W8_SIGHT_SEEN) {
         return 0;
     }
-    if (gXStatus.iTargetingMode == W8_TARGET_NEED_NONE && gXStatus.fCombatMode == 0 &&
-        gXStatus.fSpellCastMode == 0 && gXStatus.fItemSelectMode == 0) {
+    if (gXStatus.iTargetingMode == W8_TARGET_NEED_NONE && !gXStatus.fCombatMode &&
+        !gXStatus.fSpellCastMode && !gXStatus.fItemSelectMode) {
         range = W8_RANGE_TOUCH;
         flag = 1;
     } else {
@@ -316,7 +316,7 @@ bool CanPartyMemberAimAtMonster(int party_slot, int hand, W8MonsterInfo* monster
         ChooseCombatAction(party_slot, context, &action, 0, 0, 0);
         flag = action == W8_ACTION_TURN_UNDEAD ||
                (action > W8_ACTION_PROTECT && action < W8_ACTION_EQUIP);
-        if (gXStatus.fCombatMode != 0 && range >= 0 && range < 2) {
+        if (gXStatus.fCombatMode && range >= 0 && range < 2) {
             rows = CountRowsBetween(party_slot, monster_info);
             while (rows != 0) {
                 if (range == W8_RANGE_TOUCH) {
@@ -335,7 +335,7 @@ bool CanPartyMemberAimAtMonster(int party_slot, int hand, W8MonsterInfo* monster
             return 0;
         }
     }
-    if (monster_info->party_threat.los_flags[flag] == 0) {
+    if (!monster_info->party_threat.los_flags[flag]) {
         if (notify_failure != 0) {
             QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_event_sight_blocked, 0,
                                 g_character_event_no_flags, g_character_event_full_volume);
@@ -482,7 +482,7 @@ W8RangeCategory GetCharAttackRange(const W8Character* character, unsigned int ha
         }
         best = W8_RANGE_NONE;
         for (index = 0; index < 2; ++index) {
-            if (character->Hand[index].in_play != 0) {
+            if (character->Hand[index].in_play) {
                 range = GetCharAttackRange(character, index);
                 if (best < range) {
                     best = range;
@@ -491,7 +491,7 @@ W8RangeCategory GetCharAttackRange(const W8Character* character, unsigned int ha
         }
         return best;
     }
-    if (character->Hand[hand].in_play == 0) {
+    if (!character->Hand[hand].in_play) {
         FormatDebugMessage(1,
                            "ERROR: GetCharAttackRange for hand %d which can't attack, uiChar = %d",
                            hand, CharacterPointerToPartySlot(character));
@@ -513,7 +513,7 @@ W8RangeCategory GetBestHandRangeCategory(const W8Character* character)
     unsigned int hand;
 
     for (hand = 0; hand < 2; ++hand) {
-        if (character->Hand[hand].in_play != 0) {
+        if (character->Hand[hand].in_play) {
             category = GetCharAttackRange(character, hand);
             if (category > best) {
                 best = category;
@@ -548,7 +548,7 @@ bool MonsterAttackReachesAnyone(W8MonsterInfo* monster_info, unsigned int attack
     unsigned int count;
     W8MonsterInfo* other;
 
-    if (monster_info->fInCombat == 0 || monster_info->pCombat->berserk == 0) {
+    if (!monster_info->fInCombat || !monster_info->pCombat->berserk) {
         disposition_needed = hostile_only;
     } else {
         disposition_needed = 1;
@@ -558,7 +558,7 @@ bool MonsterAttackReachesAnyone(W8MonsterInfo* monster_info, unsigned int attack
     for (party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
         W8Character* character = &g_status.buffers.Char[party_slot];
 
-        if (g_status.buffers.XChar[party_slot].fOccupied == 0) {
+        if (!g_status.buffers.XChar[party_slot].fOccupied) {
             continue;
         }
         if (character->hp_current == 0) {
@@ -579,8 +579,8 @@ bool MonsterAttackReachesAnyone(W8MonsterInfo* monster_info, unsigned int attack
     for (index = 0; index < count; ++index) {
         other = MonsterGetScriptPartByLocationIndex(index);
         GetMonsterDataForInfo(other);
-        if (other != monster_info && other->fActive != 0 && other->fInCombat != 0 &&
-            other->hp_current != 0 && other->highest_condition < W8_CONDITION_DEAD &&
+        if (other != monster_info && other->fActive && other->fInCombat && other->hp_current != 0 &&
+            other->highest_condition < W8_CONDITION_DEAD &&
             MonsterHostility(monster_info, other) == disposition_needed &&
             MonsterAttackReachesMonster(monster_info, record, attack, other)) {
             return 1;
@@ -615,7 +615,7 @@ static W8RangeCategory GetMonsterPartyTargetRange(W8MonsterInfo* monster_info,
     }
 
     sight_index = GetMonsterActionSightIndex(monster_info, attack);
-    if (monster_info->player_visibility.los_flags[sight_index] == 0) {
+    if (!monster_info->player_visibility.los_flags[sight_index]) {
         return W8_RANGE_NONE;
     }
 
@@ -676,7 +676,7 @@ bool MonsterAttackReachesMonster(W8MonsterInfo* monster_info, W8MonsterRecord* r
     }
 
     sight_index = GetMonsterActionSightIndex(monster_info, attack);
-    if (visibility->los_flags[sight_index] == 0) {
+    if (!visibility->los_flags[sight_index]) {
         return 0;
     }
 
@@ -704,7 +704,8 @@ W8RangeCategory GetBestMonsterAttackRange(const W8MonsterRecord* record, bool cl
     for (attack = 0; attack < W8_MAX_MONSTER_ATTACKS; ++attack) {
         if (record->attacks[attack].fHasAttack != 0) {
             category = record->attacks[attack].range_category;
-            if ((close_quarters_only == 0 || category < W8_RANGE_LONG) && static_cast<int>(category) > best) {
+            if ((!close_quarters_only || category < W8_RANGE_LONG) &&
+                static_cast<int>(category) > best) {
                 best = static_cast<W8RangeCategory>(category);
             }
         }
@@ -736,20 +737,20 @@ W8RangeCategory GetMonsterBestRangeCategory(W8MonsterInfo* monster_info,
         *out_sight = 0;
     }
 
-    if (skip_capability_checks == 0 && record->prefer_ranged_actions != 1) {
+    if (!skip_capability_checks && record->prefer_ranged_actions != 1) {
         return best;
     }
-    if (skip_capability_checks != 0 || record->flee_chance >= 0x50) {
+    if (skip_capability_checks || record->flee_chance >= 0x50) {
         if (record->special_attack_kind != 0 &&
             g_special_attack_table[record->special_attack_kind][0] != 6 &&
-            (skip_capability_checks != 0 || CanMonsterFlee(monster_info, record, 1))) {
+            (skip_capability_checks || CanMonsterFlee(monster_info, record, 1))) {
             if (best < W8_RANGE_LONG) {
                 best = W8_RANGE_LONG;
                 *out_sight = W8_RANGE_LONG;
             }
         }
     }
-    if (skip_capability_checks == 0 &&
+    if (!skip_capability_checks &&
         (record->prefer_ranged_actions != 1 || record->spell_chance < 0x50)) {
         return best;
     }
@@ -760,7 +761,7 @@ W8RangeCategory GetMonsterBestRangeCategory(W8MonsterInfo* monster_info,
         if (!MonsterCanAimSpell(spell_id)) {
             continue;
         }
-        if (skip_capability_checks == 0 &&
+        if (!skip_capability_checks &&
             !IsSpellUsableByMonster(monster_info, static_cast<int>(spell_id), 1)) {
             continue;
         }
@@ -869,7 +870,7 @@ void CloseFormationGap(W8MonsterInfo* monster_info, int party_slot, W8RangeCateg
 {
     char crossable;
 
-    if (gXStatus.fCombatMode == 0) {
+    if (!gXStatus.fCombatMode) {
         return;
     }
     if (*range_category < W8_RANGE_TOUCH || *range_category >= W8_RANGE_LONG) {
@@ -1013,7 +1014,7 @@ int PickReachableSlotByDisposition(int party_slot, char relationship)
     int* next = candidates;
     int count = 0;
     for (int slot = 0; slot < W8_PARTY_SLOT_COUNT; ++slot) {
-        if (slot == party_slot || g_status.buffers.XChar[slot].fOccupied == 0 ||
+        if (slot == party_slot || !g_status.buffers.XChar[slot].fOccupied ||
             g_status.buffers.Char[slot].hp_current == 0 ||
             g_status.buffers.Char[slot].highest_condition >= W8_CONDITION_DEAD ||
             CharacterVsCharacterDisposition(party_slot, slot) != relationship) {
@@ -1107,14 +1108,14 @@ float MonsterChooseTarget(W8MonsterInfo* monster_info, W8CombatSlot* out, int ki
         (best = monster_info->p3D->GetDistanceToPlayer(), best < 999999.0f)) {
         out->iType = W8_TARGET_KIND_CHARACTER;
     }
-    if (out->iType == W8_TARGET_KIND_NONE || monster_info->pCombat->reconsider_action == 0) {
+    if (out->iType == W8_TARGET_KIND_NONE || !monster_info->pCombat->reconsider_action) {
         unsigned int count = PLLength(gXStatus.plsMonsterList);
 
         for (unsigned int index = 0; index < count; ++index) {
             W8MonsterInfo* other = MonsterGetScriptPartByLocationIndex(index);
 
-            if (other != monster_info && other->fActive != 0 && other->hp_current != 0 &&
-                other->fInCombat != 0 && MonsterHostility(monster_info, other) == 1) {
+            if (other != monster_info && other->fActive && other->hp_current != 0 &&
+                other->fInCombat && MonsterHostility(monster_info, other) == 1) {
                 W8VisibilityRecord* row = FindMonToMonVisibility(monster_info, other);
                 if (IsVisibleUnderConditions(monster_info, row, kind)) {
                     float distance = monster_info->p3D->GetDistanceToMonster(other->p3D);
@@ -1185,7 +1186,7 @@ int FindNearestVisibleGroupMonster(W8MonsterInfo* monster_info, int group_id, in
         unsigned int list_index =
             MonsterGetIndexByLocationID(0x525, COMBAT_RANGE_CPP, location_id, 1);
         W8MonsterInfo* target = MonsterGetScriptPartByLocationIndex(list_index);
-        if (target->fActive != 0 && target->hp_current != 0 && target->fInCombat != 0) {
+        if (target->fActive && target->hp_current != 0 && target->fInCombat) {
             W8VisibilityRecord* row = FindMonToMonVisibility(monster_info, target);
             if (IsVisibleUnderConditions(monster_info, row, kind)) {
                 float distance = monster_info->p3D->GetDistanceToMonster(target->p3D);

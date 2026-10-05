@@ -358,7 +358,7 @@ void UseHeldItemOnItem(W8ItemInstance* item)
         srAssertFail("giCasterCharSlot < MAX_CHARS",
                      "C:\\Projects\\Wizardry 8\\Local Screens\\RCSItemsPage.cpp", 0x669, 0);
     }
-    if (g_status.buffers.XChar[giCasterCharSlot].fOccupied == 0) {
+    if (!g_status.buffers.XChar[giCasterCharSlot].fOccupied) {
         srAssertFail("fCHAR_OCCUPIED(giCasterCharSlot)",
                      "C:\\Projects\\Wizardry 8\\Local Screens\\RCSItemsPage.cpp", 0x66a, 0);
     }
@@ -395,7 +395,7 @@ void TargetCharacterWithHeldItem(unsigned int uiTargetChar)
         srAssertFail("uiTargetChar < MAX_CHARS",
                      "C:\\Projects\\Wizardry 8\\Local Screens\\RCSItemsPage.cpp", 0x692, 0);
     }
-    if (g_status.buffers.XChar[uiTargetChar].fOccupied == 0) {
+    if (!g_status.buffers.XChar[uiTargetChar].fOccupied) {
         srAssertFail("fCHAR_OCCUPIED(uiTargetChar)",
                      "C:\\Projects\\Wizardry 8\\Local Screens\\RCSItemsPage.cpp", 0x693, 0);
     }
@@ -407,7 +407,7 @@ void TargetCharacterWithHeldItem(unsigned int uiTargetChar)
         srAssertFail("giCasterCharSlot < MAX_CHARS",
                      "C:\\Projects\\Wizardry 8\\Local Screens\\RCSItemsPage.cpp", 0x695, 0);
     }
-    if (g_status.buffers.XChar[giCasterCharSlot].fOccupied == 0) {
+    if (!g_status.buffers.XChar[giCasterCharSlot].fOccupied) {
         srAssertFail("fCHAR_OCCUPIED(giCasterCharSlot)",
                      "C:\\Projects\\Wizardry 8\\Local Screens\\RCSItemsPage.cpp", 0x696, 0);
     }
@@ -539,7 +539,7 @@ void UpdateItemCursorForState(int flag, W8ItemInstance* item, int slot)
     switch (gXStatus.iTargetingMode) {
     case W8_TARGET_NEED_ALLY:
         if ((g_camp_screen->entry_mode == 7 || g_camp_screen->entry_mode == 9) &&
-            g_status.buffers.XChar[slot].fOccupied != 0 &&
+            g_status.buffers.XChar[slot].fOccupied &&
             g_status.buffers.Char[slot].uiCondition[W8_CONDITION_MISSING] == 0) {
             SetTargetCursor(GetTargetingCursorForState(flag));
             return;
@@ -571,7 +571,7 @@ void UpdateItemCursorForState(int flag, W8ItemInstance* item, int slot)
                 record->quantity_kind != W8_ITEM_QUANTITY_STACK) {
                 return;
             }
-            if (gXStatus.fCombatMode != 0 && !IsEquippableItemClass(item) &&
+            if (gXStatus.fCombatMode && !IsEquippableItemClass(item) &&
                 (g_combat_state->equip_phase == 0 ||
                  g_status.buffers.XChar[giReviewCharSlot].pending_action != W8_ACTION_EQUIP)) {
                 return;
@@ -643,8 +643,8 @@ void UnequipBothHands(void)
 {
     W8Character* character;
 
-    if (gXStatus.fCombatMode != 0 && g_combat_state->round_active == 0 &&
-        gXStatus.fPartyMovementMode == 0 && g_combat_state->equip_phase == 0) {
+    if (gXStatus.fCombatMode && !g_combat_state->round_active && !gXStatus.fPartyMovementMode &&
+        g_combat_state->equip_phase == 0) {
         ShowCampNoticeLine(gppStringList[0x903], 0, 1, 0);
         return;
     }
@@ -1366,9 +1366,9 @@ void EnableCampActionButtons(void)
 {
     g_camp_action_buttons[0]->SetActive(1);
     g_camp_action_buttons[1]->SetActive(1);
-    if (g_status.game_started != 0) {
+    if (g_status.game_started) {
         g_camp_action_buttons[1]->SetEnabled(1);
-        if (g_status.buffers.XChar[giReviewCharSlot].item_action_pending != 0) {
+        if (g_status.buffers.XChar[giReviewCharSlot].item_action_pending) {
             g_camp_action_buttons[1]->EnableSecondaryState(0);
             g_camp_action_buttons[0]->SetEnabled(0);
         } else {
@@ -1391,7 +1391,7 @@ void DisableCampActionButtons(void)
 // FUNCTION: WIZ8 0x005b9330
 void RefreshCampActionPanel(bool invalidate)
 {
-    if (invalidate != 0) {
+    if (invalidate) {
         g_camp_action_panel->Invalidate(0);
     }
     g_camp_action_panel->Redraw();
@@ -1484,7 +1484,7 @@ void UpdateCampItemFilters(void)
     for (index = 0; index < 7; ++index) {
         g_camp_item_filter_buttons[index]->SetActive(1);
     }
-    if (g_status.game_started == 0) {
+    if (!g_status.game_started) {
         for (index = 0; index < 7; ++index) {
             g_camp_item_filter_buttons[index]->SetEnabled(0);
         }
@@ -1533,7 +1533,7 @@ void DisableItemsRealmTabs(void)
 // FUNCTION: WIZ8 0x005b98e0
 void RefreshItemsTabPanel(bool invalidate)
 {
-    if (invalidate != 0) {
+    if (invalidate) {
         g_camp_item_filter_panel->Invalidate(0);
     }
     g_camp_item_filter_panel->Redraw();
@@ -1687,7 +1687,7 @@ void DisableCampSecondaryPanel(void)
 // FUNCTION: WIZ8 0x005b9f90
 void RefreshCampSecondaryPanel(bool invalidate)
 {
-    if (invalidate != 0) {
+    if (invalidate) {
         InvalidateCampPanel();
     }
     g_camp_secondary_panel->Redraw();

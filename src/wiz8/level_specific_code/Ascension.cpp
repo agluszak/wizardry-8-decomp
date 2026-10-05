@@ -91,8 +91,8 @@ unsigned char AscensionPeakInit(void)
         if (GetLocationVarIDByName("AP_SpawnDaughter") == -1) {
             W8NpcState* npc = GetNpcStateByKind(0x31);
 
-            if (npc != 0 && npc->greeting_pending != 0 && npc->spawned == 0 &&
-                npc->party_noticed == 0 && GetFact(W8_FACT_TEMPLAR) != 0) {
+            if (npc != 0 && npc->greeting_pending && npc->spawned == 0 && !npc->party_noticed &&
+                GetFact(W8_FACT_TEMPLAR) != 0) {
                 if (FindEntityByName("NP_Daughter", &position, 0, 0)) {
                     SpawnMonsters(0x18d, 1, &position, 0, 1, 0, 0);
                     SetFact(static_cast<W8FactId>(0x327), 1, 0);
@@ -173,7 +173,7 @@ void AscensionAvalanche(bool command)
     if (avalanche != 0) {
         avalanche->Run(-1);
     }
-    if (command != 0) {
+    if (command) {
         srVector3T<float> position;
         srVector3T<float> trigger_position;
 
@@ -429,12 +429,12 @@ bool AscensionPath1Camera(Trigger* pTrigger)
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(index);
 
-        if (info->fActive != 0 && info->fInCombat != 0 &&
-            info->ubDisposition == W8_DISPOSITION_HOSTILE && !info->p3D->IsDying()) {
+        if (info->fActive && info->fInCombat && info->ubDisposition == W8_DISPOSITION_HOSTILE &&
+            !info->p3D->IsDying()) {
             MonsterStartsDying(info, 1);
         }
     }
-    if (gXStatus.fCombatMode != 0) {
+    if (gXStatus.fCombatMode) {
         EndCombat(1);
     }
     BeginScriptedWorldAction();

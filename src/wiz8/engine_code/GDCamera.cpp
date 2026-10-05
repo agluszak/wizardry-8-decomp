@@ -308,7 +308,7 @@ void GDCamera::ApplyRotationMatrix(srMatrix3T<float>* rotation, W8LevelDataRecor
 // FUNCTION: WIZ8 0x00476950
 void GDCamera::SnapToTarget(const srVector3T<float>* target)
 {
-    if (gXStatus.fNpcDialogueMode == 0) {
+    if (!gXStatus.fNpcDialogueMode) {
         if ((m_state & 1) != 0) {
             return;
         }
@@ -356,7 +356,7 @@ void GDCamera::SnapToTarget(const srVector3T<float>* target)
 // FUNCTION: WIZ8 0x00476C30
 void GDCamera::SetOrientationImmediate(float pitch, float angle)
 {
-    if (gXStatus.fNpcDialogueMode == 0) {
+    if (!gXStatus.fNpcDialogueMode) {
         if ((m_state & 1) != 0) {
             return;
         }
@@ -382,7 +382,7 @@ void GDCamera::SetOrientationImmediate(float pitch, float angle)
 // FUNCTION: WIZ8 0x00476F90
 unsigned char GDCamera::LookAt(const srVector3T<float>* target, bool preserve_pitch)
 {
-    if (gXStatus.fNpcDialogueMode == 0) {
+    if (!gXStatus.fNpcDialogueMode) {
         if ((m_state & 1) != 0) {
             return 0;
         }
@@ -407,7 +407,7 @@ unsigned char GDCamera::LookAt(const srVector3T<float>* target, bool preserve_pi
     float y = direction.y;
     float z = horizontal.y;
     float pitch;
-    if (preserve_pitch != 0) {
+    if (preserve_pitch) {
         pitch = m_pitch;
     } else {
         if (y >= g_float_one) {
@@ -492,7 +492,7 @@ unsigned char GDCamera::ComputeTrackingOrientation(const srVector3T<float>* targ
 unsigned char GDCamera::BeginOrientationTransition(float target_pitch, float target_angle,
                                                    bool force)
 {
-    if (force == 0 && gXStatus.fNpcDialogueMode == 0) {
+    if (!force && !gXStatus.fNpcDialogueMode) {
         if ((m_state & 1) != 0) {
             return 0;
         }
@@ -511,7 +511,7 @@ unsigned char GDCamera::BeginOrientationTransition(float target_pitch, float tar
     m_transition_active = 0;
 
     float speed = g_camera_transition_speed;
-    if (force != 0) {
+    if (force) {
         speed = g_camera_forced_speed;
     }
 
@@ -569,7 +569,7 @@ unsigned char GDCamera::BeginOrientationTransition(float target_pitch, float tar
 void GDCamera::Update(float elapsed)
 {
     m_frame_elapsed = elapsed;
-    if (m_transition_active == 0 && m_forced_transition == 0) {
+    if (!m_transition_active && !m_forced_transition) {
         BrakePitchAtLimit();
         return;
     }
@@ -587,7 +587,7 @@ void GDCamera::Update(float elapsed)
     }
 
     float phase;
-    if (m_forced_transition == 0) {
+    if (!m_forced_transition) {
         float doubled_progress;
         if (m_angle_distance <= m_pitch_distance) {
             doubled_progress = (pitch_traveled + pitch_traveled) / m_pitch_distance;
@@ -610,7 +610,7 @@ void GDCamera::Update(float elapsed)
     float next_time = phase * m_transition_duration + elapsed;
     if (next_time <= m_transition_duration) {
         float step;
-        if (m_forced_transition == 0) {
+        if (!m_forced_transition) {
             float next_weight = static_cast<float>(sin((next_time / m_transition_duration) *
                                                        static_cast<double>(g_camera_half_period)));
             float current_weight =
@@ -647,7 +647,7 @@ void GDCamera::Update(float elapsed)
 void GDCamera::ApplyYawInput(float input)
 {
     if (input != g_float_zero) {
-        if (gXStatus.fNpcDialogueMode == 0 && g_status.world_cursor_gate == 0) {
+        if (!gXStatus.fNpcDialogueMode && g_status.world_cursor_gate == 0) {
             m_state |= 1;
             m_manual_input_timer->Arm();
             m_transition_active = 0;
@@ -656,7 +656,7 @@ void GDCamera::ApplyYawInput(float input)
         }
     }
 
-    if (m_transition_active == 0 || (m_state & 0x20) != 0) {
+    if (!m_transition_active || (m_state & 0x20) != 0) {
         bool decelerating_negative = 0;
         bool decelerating_positive = 0;
         if (input == g_float_zero) {
@@ -674,8 +674,8 @@ void GDCamera::ApplyYawInput(float input)
         }
 
         m_angle_velocity += input * m_frame_elapsed;
-        if ((decelerating_negative != 0 && m_angle_velocity > g_float_zero) ||
-            (decelerating_positive != 0 && m_angle_velocity < g_float_zero)) {
+        if ((decelerating_negative && m_angle_velocity > g_float_zero) ||
+            (decelerating_positive && m_angle_velocity < g_float_zero)) {
             m_angle_velocity = 0.0f;
             m_state &= ~0x40UL;
             return;
@@ -704,15 +704,14 @@ void GDCamera::ApplyYawInput(float input)
 // FUNCTION: WIZ8 0x00477EB0
 void GDCamera::ApplyPitchInput(float input)
 {
-    if (input != g_float_zero && gXStatus.fNpcDialogueMode == 0 &&
-        g_status.world_cursor_gate == 0) {
+    if (input != g_float_zero && !gXStatus.fNpcDialogueMode && g_status.world_cursor_gate == 0) {
         m_state |= 1;
         m_manual_input_timer->Arm();
         m_transition_active = 0;
     } else {
         m_state &= ~1UL;
     }
-    if (m_transition_active != 0) {
+    if (m_transition_active) {
         return;
     }
     if (input > g_float_zero && (m_state & 8) != 0) {
@@ -742,8 +741,8 @@ void GDCamera::ApplyPitchInput(float input)
     }
 
     m_pitch_velocity += input * m_frame_elapsed;
-    if ((decelerating_negative != 0 && m_pitch_velocity > g_float_zero) ||
-        (decelerating_positive != 0 && m_pitch_velocity < g_float_zero)) {
+    if ((decelerating_negative && m_pitch_velocity > g_float_zero) ||
+        (decelerating_positive && m_pitch_velocity < g_float_zero)) {
         m_pitch_velocity = 0.0f;
         return;
     }
@@ -906,7 +905,7 @@ void GDCamera::GetForwardPoint(float distance, srVector3T<float>* output)
 // FUNCTION: WIZ8 0x00478E00
 void GDCamera::SetManualControlActive(bool enabled)
 {
-    if (enabled != 0 && gXStatus.fNpcDialogueMode == 0 && g_status.world_cursor_gate == 0) {
+    if (enabled && !gXStatus.fNpcDialogueMode && g_status.world_cursor_gate == 0) {
         m_state |= 1;
         m_manual_input_timer->Arm();
         m_transition_active = 0;

@@ -117,8 +117,8 @@ unsigned char UpdateMissileAI(W8AIMissile* record)
         return 0;
     }
     missile = record->missile;
-    if (missile->impacting != 0) {
-        if (missile->align_explosion == 0) {
+    if (missile->impacting) {
+        if (!missile->align_explosion) {
             return 1;
         }
         position = missile->GetPosition();
@@ -138,7 +138,7 @@ unsigned char UpdateMissileAI(W8AIMissile* record)
         delta = 0xfa;
     }
     record->last_half_tick = count;
-    if (gXStatus.world_update_blocked != 0) {
+    if (gXStatus.world_update_blocked) {
         return 1;
     }
     advance = AdvanceMissileAI(record, &out, delta);
@@ -154,7 +154,7 @@ unsigned char UpdateMissileAI(W8AIMissile* record)
     }
     record->elapsed = advance + record->elapsed;
     missile->SetCyclePosition(&out);
-    if (missile->CheckNavigatorCollision(&position, &out) == 0 && missile->align_camera != 0) {
+    if (missile->CheckNavigatorCollision(&position, &out) == 0 && missile->align_camera) {
         pitch = ElevationToTargetCPP(&out);
         yaw = HeadingToTargetCPP(&out);
         rotation.SetIdentity();
@@ -219,7 +219,7 @@ float AdvanceMissileAI(W8AIMissile* record, srVector3T<float>* out, unsigned int
         prop = *g_world->collidable_props->GetAt(entity - 1);
         prop->RunMissileTrigger(record);
     }
-    if (record->gravity != 0) {
+    if (record->gravity) {
         float dx;
         float dy;
         float dz;
@@ -322,7 +322,7 @@ void ReleaseMissileDatabase(void)
 // FUNCTION: WIZ8 0x004a5790
 bool W8Missile::BlocksEndingCombat()
 {
-    if (flight_done == 0) {
+    if (!flight_done) {
         if (GetAnimationState(6) != 1) {
             return 1;
         }
@@ -396,7 +396,7 @@ W8Missile* NextMissile(bool restart)
     W8Missile* missile = 0;
 
     if (g_world != 0 && g_world->missiles != 0) {
-        if (restart != 0) {
+        if (restart) {
             g_missile_iterator = 0;
         }
         if (g_missile_iterator < g_world->missiles->GetCount()) {
@@ -425,7 +425,7 @@ void UpdateWorldMissiles(W8World* world)
         W8Missile* missile = *world->missiles->GetAt(index);
         if (missile != 0) {
             missile->DetachRepresentation(world);
-            if (missile->flight_done == 0 || missile->block_released == 0) {
+            if (!missile->flight_done || missile->block_released == 0) {
                 missile->StartIfHostActive();
                 missile->UpdateRepresentation(world);
                 missile->UpdateNavigation(0, 0);
@@ -473,7 +473,7 @@ W8Missile* AllocateMissile(int missile_table_index)
     missile->missile_table_index = missile_table_index;
     missile->m_pRep->pending_cycle = 0;
     missile->flight_done = 0;
-    if (missile->flight_done != 0) {
+    if (missile->flight_done) {
         if (missile->missile_table_index == 0x23 &&
             (g_combat_state == 0 || g_combat_state->missile_hit_result != 2)) {
             missile->DetonateMissileSpell();
@@ -1053,7 +1053,7 @@ void W8Missile::StartIfHostActive()
     if (m_pRep->active == 0) {
         return;
     }
-    if (GetAnimationState(2) == 0 || impacting == 0) {
+    if (GetAnimationState(2) == 0 || !impacting) {
         if (m_pAI != 0) {
             PathAIUpdate(m_pAI, 1);
         }
@@ -1064,7 +1064,7 @@ void W8Missile::StartIfHostActive()
             (g_combat_state == 0 || g_combat_state->missile_hit_result != 2)) {
             DetonateMissileSpell();
         }
-        if (g_missile_table[missile_table_index].spell_missile != 0) {
+        if (g_missile_table[missile_table_index].spell_missile) {
             AbsorbMissileDamage(this);
         }
     }
@@ -1317,7 +1317,7 @@ void W8Missile::AnnounceCollisionTarget()
     unsigned char source_color;
     unsigned char target_color;
 
-    if (gXStatus.fCombatMode == 0) {
+    if (!gXStatus.fCombatMode) {
         return;
     }
     swprintf(text, L"%s ", gppStringList[0x1bf]);
@@ -1351,7 +1351,7 @@ void W8Missile::EnterImpactCycle()
             representation->pending_cycle = 1;
             representation->pending_behaviour = 1;
             impacting = 1;
-            if (explode_ground != 0) {
+            if (explode_ground) {
                 representation->location.y = SettlePositionToGround(&position, 0);
             }
         }
@@ -1361,7 +1361,7 @@ void W8Missile::EnterImpactCycle()
             (g_combat_state == 0 || g_combat_state->missile_hit_result != 2)) {
             DetonateMissileSpell();
         }
-        if (g_missile_table[missile_table_index].spell_missile != 0) {
+        if (g_missile_table[missile_table_index].spell_missile) {
             AbsorbMissileDamage(this);
         }
     }
@@ -1379,7 +1379,7 @@ bool W8Missile::OnCollision(W8Navigator* other)
         }
         if (combat_slot.iType != W8_TARGET_KIND_PARTY &&
             combat_slot.iType != W8_TARGET_KIND_CHARACTER) {
-            if (g_missile_table[missile_table_index].spell_missile != 0) {
+            if (g_missile_table[missile_table_index].spell_missile) {
                 goto miss;
             }
             if (combat_slot.iType != W8_TARGET_KIND_NONE) {
@@ -1388,7 +1388,7 @@ bool W8Missile::OnCollision(W8Navigator* other)
             combat_slot.iType = W8_TARGET_KIND_CHARACTER;
             combat_slot.iChar = GetRandomCharacter(1, 1, -1, -1);
             combat_slot.iMonsterID = -1;
-            if (gXStatus.fCombatMode != 0) {
+            if (gXStatus.fCombatMode) {
                 AnnounceCollisionTarget();
             }
         }
@@ -1409,7 +1409,7 @@ bool W8Missile::OnCollision(W8Navigator* other)
         }
         if (combat_slot.iType != W8_TARGET_KIND_MONSTER ||
             combat_slot.iMonsterID != location_id) {
-            if (g_missile_table[missile_table_index].spell_missile != 0) {
+            if (g_missile_table[missile_table_index].spell_missile) {
                 goto miss;
             }
             if (combat_slot.iType != W8_TARGET_KIND_NONE) {
@@ -1418,14 +1418,14 @@ bool W8Missile::OnCollision(W8Navigator* other)
             combat_slot.iType = W8_TARGET_KIND_MONSTER;
             combat_slot.iChar = -1;
             combat_slot.iMonsterID = location_id;
-            if (gXStatus.fCombatMode != 0) {
+            if (gXStatus.fCombatMode) {
                 AnnounceCollisionTarget();
             }
         }
     }
 
     hit_result = 1;
-    if (g_missile_table[missile_table_index].spell_missile == 0) {
+    if (!g_missile_table[missile_table_index].spell_missile) {
         if (combat_slot.iType == W8_TARGET_KIND_CHARACTER) {
             deflect_chance =
                 g_status.buffers.Char[combat_slot.iChar].bonus.missile_deflect_chance;
@@ -1444,7 +1444,7 @@ bool W8Missile::OnCollision(W8Navigator* other)
     } else if (g_combat_state != 0 && g_combat_state->engaged_missile != 0) {
         g_combat_state->missile_hit_result = hit_result;
         g_combat_state->TargetHit = combat_slot;
-    } else if (g_missile_table[missile_table_index].spell_missile != 0) {
+    } else if (g_missile_table[missile_table_index].spell_missile) {
         ResolveSpellMissileHit(this);
     } else {
         ResolveMissileHit(this, hit_result == 2);

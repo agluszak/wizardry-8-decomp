@@ -84,7 +84,7 @@ void RunMasterFunctions(void)
 
     for (int index = 0; index < count; ++index) {
         (*g_master_functions->GetAt(index))(0);
-        if (g_remove_current_master_function != 0) {
+        if (g_remove_current_master_function) {
             g_master_functions->RemoveAt(index);
             --count;
             --index;
@@ -115,7 +115,7 @@ W8MonsterGroup* SpawnMonsters(int monster_id, int count, srVector3T<float>* posi
     W8MonsterGroup* group;
     srVector3T<float> position_copy;
 
-    if (settle != 0) {
+    if (settle) {
         position->y = SettlePositionToGround(position, 0);
     }
     position_copy = *position;
@@ -307,7 +307,7 @@ static unsigned char WorldCursorNodeShowMessageOnce(int command, W8WorldCursorNo
     if (enabled != 0 && g_status.search_mode == 0 &&
         g_status.party_modifiers.detect_secrets == 0) {
         for (slot = 0; slot < W8_PARTY_SLOT_COUNT; ++slot) {
-            if (g_status.buffers.XChar[slot].fOccupied != 0 &&
+            if (g_status.buffers.XChar[slot].fOccupied &&
                 CharacterHasTrait(g_status.buffers.Char + slot, W8_TRAIT_SEARCH)) {
                 goto command_check;
             }
@@ -415,7 +415,7 @@ static unsigned char WorldCursorNodeMaleCharacterEvent(int command, W8WorldCurso
 {
     W8Character* character;
 
-    if (command == 1 && g_status.rpc_active != 0) {
+    if (command == 1 && g_status.rpc_active) {
         character = g_status.buffers.Char + g_status.sedexus_party_slot;
         if (character->gender == W8_GENDER_MALE) {
             QueueCharacterEvent(character, g_character_event_kind1, 0,

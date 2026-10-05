@@ -107,7 +107,7 @@ void W8AmbientSound::UpdatePosition(const srVector3T<float>* listener)
                 if (shared != 0) {
                     W8AmbientSound* match = FindNextMatching(config.wave_name, 0);
                     while (match != 0) {
-                        if (handed_off != 0) {
+                        if (handed_off) {
                             return;
                         }
                         {
@@ -134,7 +134,7 @@ void W8AmbientSound::UpdatePosition(const srVector3T<float>* listener)
                         }
                         match = FindNextMatching(config.wave_name, match);
                     }
-                    if (handed_off != 0) {
+                    if (handed_off) {
                         return;
                     }
                     target_volume = 0;
@@ -236,12 +236,12 @@ void W8AmbientSound::Service(bool entered)
         if (sample_handle != -1) {
             unsigned char should_play;
 
-            if (entered == 0) {
+            if (!entered) {
                 should_play = SoundRandomShouldPlay(sample_handle);
             } else {
                 should_play = Random(3);
             }
-            if (gXStatus.fCombatMode == 0 && should_play != 0 &&
+            if (!gXStatus.fCombatMode && should_play != 0 &&
                 g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
                 float angle = -GetCameraYawRadians();
                 srVector3T<float> camera;
@@ -506,7 +506,7 @@ int PlayFootstep(signed char surface, signed char material, W8FootstepKind kind)
     }
     memset(&options, -1, sizeof(options));
     options.uiVolume = g_settings.footstep_volume;
-    g_footstep_alternate = g_footstep_alternate == 0;
+    g_footstep_alternate = !g_footstep_alternate;
     return SoundPlay(path, &options);
 }
 

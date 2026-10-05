@@ -1079,6 +1079,7 @@ def scalar_campaign(
     patch: bool = False,
     padding: bool = False,
     propagate_enums: list[str] | None = None,
+    boolean_expressions: bool = False,
 ) -> dict[str, Any]:
     """Collect the complete configured corpus and run the shared recovery clients.
 
@@ -1090,6 +1091,8 @@ def scalar_campaign(
     from .paths import atomic_json, sha256_file
 
     repository = settings.repo_dir
+    if boolean_expressions and not patch:
+        raise ValueError("--boolean-expressions requires --patch")
     if evidence is not None:
         evidence = evidence.resolve(strict=True)
     generate_emissions(repository)
@@ -1113,6 +1116,7 @@ def scalar_campaign(
             repository / "docker/msvc600/clang-tidy-plugin/scalar_facts.py"
         ),
         "propagate_source_enums": propagate_enums or [],
+        "simplify_boolean_expressions": boolean_expressions,
         "coverage": "configured source corpus; source observations and separately reviewed evidence",
     }
     atomic_json(directory / "manifest.json", manifest)
@@ -1170,6 +1174,8 @@ def scalar_campaign(
             replay.extend(("--repository", "/repo", "--patch", f"{container}/recovery.patch"))
             if padding:
                 replay.append("--padding")
+            if boolean_expressions:
+                replay.append("--boolean-expressions")
         run(replay, cwd=repository, log_path=directory / "solve.json")
         report = json.loads((directory / "report.json").read_text(encoding="utf-8"))
         observed = set(report["translation_units"])

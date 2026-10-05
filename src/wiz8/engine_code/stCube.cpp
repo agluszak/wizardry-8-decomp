@@ -737,7 +737,7 @@ W8WorldCursorNode* GetWorldCursorNode(int index)
 void AttachWorldCursorNode(W8WorldCursorNode* entry, bool attached)
 {
     if (entry != 0) {
-        if (attached != 0) {
+        if (attached) {
             entry->node->setParent(g_world->dynamic_scene, 1);
             return;
         }
@@ -767,7 +767,7 @@ void SetWorldCursorNodesVisible(bool visible)
 
         if (entry != 0) {
             srNode* parent = 0;
-            if (visible != 0) {
+            if (visible) {
                 parent = g_world->dynamic_scene;
             }
             entry->node->setParent(parent, 1);

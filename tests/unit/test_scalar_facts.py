@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import importlib
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -1665,3 +1666,147 @@ def test_source_enum_patch_rejects_stale_owner_even_when_local_is_unchanged(scal
         scalar.write_recovery_patch(
             facts, [], tmp_path, tmp_path / "recovery.patch", propagate_enums=["W8Condition"]
         )
+
+
+def boolean_expression_facts(scalar, tmp_path, text, observations, *, owner=None):
+    path = tmp_path / "src/wiz8/test.cpp"
+    path.parent.mkdir(parents=True)
+    path.write_text(text)
+    raw = path.read_bytes()
+    facts = scalar.ScalarFacts()
+    for name, domain, operation, value, occurrence in observations:
+        facts.declarations[name] = scalar.DeclarationFact(
+            name,
+            "owner.h",
+            1,
+            1,
+            "field",
+            name,
+            False,
+            False,
+            8,
+            "irrelevant" if domain == "bool" else "unsigned",
+            domain,
+            "bool" if domain == "bool" else "unsigned char",
+        )
+        offsets = [m.start() for m in re.finditer(operation.encode(), raw)]
+        offset = offsets[occurrence]
+        line = raw[:offset].count(b"\n") + 1
+        column = offset - raw.rfind(b"\n", 0, offset)
+        facts.operands.add((name, operation, value, "src/wiz8/test.cpp", line, column))
+    facts.spans.add(
+        ("snapshot", "type", "src/wiz8/test.cpp", 0, 0, "", hashlib.sha256(raw).hexdigest())
+    )
+    if owner is not None:
+        (tmp_path / "owner.h").write_text(owner)
+        facts.spans.add(
+            ("owner", "type", "owner.h", 0, 4, "bool", hashlib.sha256(owner.encode()).hexdigest())
+        )
+    return facts
+
+
+def test_boolean_patch_uses_canonical_bool_fields_and_globals(scalar, tmp_path):
+    text = "if (gXStatus.fCombatMode == 0 || g_preserve == 0 || bytes.fCombatMode == 0) {}\n"
+    facts = boolean_expression_facts(
+        scalar,
+        tmp_path,
+        text,
+        [
+            ("combat", "bool", "==", 0, 0),
+            ("preserve", "bool", "==", 0, 1),
+            ("byte", "character", "==", 0, 2),
+        ],
+    )
+    patch = tmp_path / "recovery.patch"
+    report = scalar.write_recovery_patch(facts, [], tmp_path, patch, boolean_expressions=True)
+    assert (
+        "+if (!gXStatus.fCombatMode || !g_preserve || bytes.fCombatMode == 0) {}"
+        in patch.read_text()
+    )
+    assert len(report["changed_expressions"]) == 2
+    assert (tmp_path / "src/wiz8/test.cpp").read_text() == text
+
+
+@pytest.mark.parametrize(
+    "operator,literal,value,expected",
+    [
+        ("==", "0", 0, "!obj.flag"),
+        ("!=", "0u", 0, "obj.flag"),
+        ("==", "true", 1, "obj.flag"),
+        ("!=", "1", 1, "!obj.flag"),
+    ],
+)
+def test_boolean_patch_preserves_truth_and_single_evaluation(
+    scalar, tmp_path, operator, literal, value, expected
+):
+    text = f"if (obj.flag {operator} {literal}) {{}}\n"
+    facts = boolean_expression_facts(scalar, tmp_path, text, [("flag", "bool", operator, value, 0)])
+    patch = tmp_path / "recovery.patch"
+    scalar.write_recovery_patch(facts, [], tmp_path, patch, boolean_expressions=True)
+    assert f"+if ({expected}) {{}}" in patch.read_text()
+
+
+def test_boolean_patch_handles_reversed_and_parenthesized_objects(scalar, tmp_path):
+    text = "if (0 == array[i++].flag || (obj.flag) != false) {}\n"
+    facts = boolean_expression_facts(scalar, tmp_path, text, [])
+    facts.declarations["flag"] = scalar.DeclarationFact(
+        "flag", "owner.h", 1, 1, "field", "flag", False, False, 8, "irrelevant", "bool", "bool"
+    )
+    facts.operands.update(
+        {
+            ("flag", "rhs:==", 0, "src/wiz8/test.cpp", 1, 7),
+            ("flag", "!=", 0, "src/wiz8/test.cpp", 1, text.index("!=") + 1),
+        }
+    )
+    patch = tmp_path / "recovery.patch"
+    scalar.write_recovery_patch(facts, [], tmp_path, patch, boolean_expressions=True)
+    assert "+if (!array[i++].flag || (obj.flag)) {}" in patch.read_text()
+
+
+@pytest.mark.parametrize(
+    "text,operation,value",
+    [
+        ("if (obj.flag == 0 * 2) {}\n", "==", 0),
+        ("if (obj.flag == 0 + 1) {}\n", "==", 1),
+        ("if (1 - 1 == obj.flag) {}\n", "rhs:==", 0),
+        ("if (make()->flag == 0) {}\n", "==", 0),
+        ("if (flags[i > 0] == 0) {}\n", "==", 0),
+    ],
+)
+def test_boolean_patch_leaves_arithmetic_and_unfamiliar_spelling(
+    scalar, tmp_path, text, operation, value
+):
+    plain_operator = operation.removeprefix("rhs:")
+    facts = boolean_expression_facts(
+        scalar, tmp_path, text, [("flag", "bool", plain_operator, value, 0)]
+    )
+    if operation.startswith("rhs:"):
+        facts.operands = {
+            (key, operation, v, f, line, col) for key, _, v, f, line, col in facts.operands
+        }
+    patch = tmp_path / "recovery.patch"
+    scalar.write_recovery_patch(facts, [], tmp_path, patch, boolean_expressions=True)
+    assert patch.read_text() == ""
+
+
+def test_boolean_patch_rejects_stale_owner_header(scalar, tmp_path):
+    facts = boolean_expression_facts(
+        scalar,
+        tmp_path,
+        "if (obj.flag == 0) {}\n",
+        [("flag", "bool", "==", 0, 0)],
+        owner="bool flag;\n",
+    )
+    (tmp_path / "owner.h").write_text("unsigned char flag;\n")
+    with pytest.raises(ValueError, match="stale source facts"):
+        scalar.write_recovery_patch(
+            facts, [], tmp_path, tmp_path / "patch", boolean_expressions=True
+        )
+
+
+def test_boolean_patch_ignores_unresolved_operand_identity(scalar, tmp_path):
+    facts = boolean_expression_facts(scalar, tmp_path, "if (obj.flag == 0) {}\n", [])
+    facts.operands.add(("", "==", 0, "src/wiz8/test.cpp", 1, 14))
+    patch = tmp_path / "recovery.patch"
+    scalar.write_recovery_patch(facts, [], tmp_path, patch, boolean_expressions=True)
+    assert patch.read_text() == ""

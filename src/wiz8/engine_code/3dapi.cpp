@@ -326,9 +326,8 @@ W8World* CreateWorld()
 // FUNCTION: WIZ8 0x0044F400
 void UpdateWorlds(void)
 {
-    g_navigator_vertical_enabled =
-        !(gfKeyState[0x11] != 0 && g_combat_state != 0 &&
-          (g_combat_state->round_active != 0 || gXStatus.fPartyMovementMode != 0));
+    g_navigator_vertical_enabled = !(gfKeyState[0x11] != 0 && g_combat_state != 0 &&
+                                     (g_combat_state->round_active || gXStatus.fPartyMovementMode));
 
     {
         int count = g_worlds.GetCount();
@@ -470,7 +469,7 @@ void DestroyWorldCollections(W8World* world)
         PLDestroy(world->plsMonsters);
         world->plsMonsters = 0;
     }
-    if (g_world_cleanup_flag != 0)
+    if (g_world_cleanup_flag)
         RenderFrame();
     if (world->plsItems != 0) {
         while (PLLength(world->plsItems) != 0) {
@@ -481,7 +480,7 @@ void DestroyWorldCollections(W8World* world)
         PLDestroy(world->plsItems);
         world->plsItems = 0;
     }
-    if (g_world_cleanup_flag != 0)
+    if (g_world_cleanup_flag)
         RenderFrame();
     if (world->plsProps != 0) {
         while (PLLength(world->plsProps) != 0) {
@@ -492,7 +491,7 @@ void DestroyWorldCollections(W8World* world)
         PLDestroy(world->plsProps);
         world->plsProps = 0;
     }
-    if (g_world_cleanup_flag != 0)
+    if (g_world_cleanup_flag)
         RenderFrame();
 
     DestroyAllWorldTriggers(world);
@@ -500,7 +499,7 @@ void DestroyWorldCollections(W8World* world)
         delete world->triggers;
         world->triggers = 0;
     }
-    if (g_world_cleanup_flag != 0)
+    if (g_world_cleanup_flag)
         RenderFrame();
 
     if (world->plsCameras != 0) {
@@ -526,7 +525,7 @@ void DestroyWorldCollections(W8World* world)
         PLDestroy(world->plsAmbientSounds);
         world->plsAmbientSounds = 0;
     }
-    if (g_world_cleanup_flag != 0)
+    if (g_world_cleanup_flag)
         RenderFrame();
 
     if (world->particles != 0) {
@@ -582,10 +581,10 @@ void DestroyWorld(W8World* world)
         DestroyWorldQuad(world->quads);
         world->quads = 0;
     }
-    if (g_world_cleanup_flag != 0)
+    if (g_world_cleanup_flag)
         RenderFrame();
     DestroyWorldCollections(world);
-    if (g_world_cleanup_flag != 0)
+    if (g_world_cleanup_flag)
         RenderFrame();
     if (IsWorldCursorVisible())
         HideWorldCursor();
@@ -687,7 +686,7 @@ void UpdateWorldCameraAndPaths(W8World* world, unsigned int flags)
     if (world->plsCameras != 0 && camera_count != 0) {
         for (index = 0; index < camera_count; ++index) {
             camera_path = GetWorldCameraPath(world, index);
-            if (camera_path != 0 && camera_path->active != 0) {
+            if (camera_path != 0 && camera_path->active) {
                 path = camera_path->path;
                 PathAITick(path, 1);
                 PathAIApply(path, world->camera);
@@ -793,7 +792,7 @@ void SetWorldScenePosition(W8World* world, const srVector3T<float>* location)
 // FUNCTION: WIZ8 0x00451020
 void UpdateWorldMeshAfterLoad(void)
 {
-    if (g_renderer_ready != 0 && g_world_mesh_update_enabled != 0) {
+    if (g_renderer_ready && g_world_mesh_update_enabled) {
         if (g_world->octree != 0) {
             UpdateWorldOctree(g_world);
         } else if (g_world->quads != 0) {
@@ -995,7 +994,7 @@ void ApplyWorldUpdateFlags(W8World* world, unsigned int flags)
         g_flag_00609c8c = true;
     }
     if ((flags & 0x40) != 0) {
-        world->m_loaded = world->m_loaded == 0;
+        world->m_loaded = !world->m_loaded;
     }
     if ((flags & 0x100) != 0) {
         SetWorldEnvironmentIntensity(g_world,
@@ -1093,7 +1092,7 @@ unsigned char AdjustWorldCollisionPosition(float radius, srVector3T<float>* posi
         angle += 0.7853981256484985f;
     } while (angle < g_camera_pi);
 
-    if (check_items != 0) {
+    if (check_items) {
         W8WorldItem* item = GetNextWorldItem(1);
         while (item != 0) {
             W8Item* owner = item->p3D;
@@ -1111,7 +1110,7 @@ unsigned char AdjustWorldCollisionPosition(float radius, srVector3T<float>* posi
         }
     }
 
-    if (check_monsters != 0) {
+    if (check_monsters) {
         W8MonsterInfo* info = GetNextMonsterInfo(1);
         while (info != 0) {
             W8Monster* monster = info->p3D;

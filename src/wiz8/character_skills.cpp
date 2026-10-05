@@ -66,7 +66,7 @@ void AppendSkillIncreaseNoticeText(wchar_t* text, unsigned int* length, int part
     unsigned int skill_level;
     W8Character* character = &g_status.buffers.Char[party_slot];
 
-    if (continue_line != 0) {
+    if (continue_line) {
         text[*length] = L' ';
         *length += 1;
         text[*length] = L'\n';
@@ -111,7 +111,7 @@ void FlushDeferredSkillNotices(void)
     count = 0;
     have_line = 0;
     length = 0;
-    if (gXStatus.deferred_skill_notices == 0) {
+    if (!gXStatus.deferred_skill_notices) {
         return;
     }
     text = new wchar_t[0x200];
@@ -119,12 +119,12 @@ void FlushDeferredSkillNotices(void)
     extra = new W8SkillNoticePayload;
     for (slot = 0; slot < 8; ++slot) {
         W8Character* character = &g_status.buffers.Char[slot];
-        if (g_status.buffers.XChar[slot].fOccupied == 0 || character->hp_current == 0 ||
+        if (!g_status.buffers.XChar[slot].fOccupied || character->hp_current == 0 ||
             character->highest_condition >= W8_CONDITION_DEAD) {
             continue;
         }
         for (skill_id = 0; skill_id < W8_SKILL_COUNT; ++skill_id) {
-            if (gXStatus.monster_manager_entries[slot].skill_notice_pending[skill_id] == 0) {
+            if (!gXStatus.monster_manager_entries[slot].skill_notice_pending[skill_id]) {
                 continue;
             }
             extra->party_slots[count] = static_cast<signed char>(slot);
@@ -150,7 +150,7 @@ void FlushDeferredSkillNotices(void)
             }
         }
     }
-    if (have_line == 0) {
+    if (!have_line) {
         delete[] text;
         delete extra;
     } else {
@@ -320,7 +320,7 @@ void CheatDeathRevive(int party_slot)
                                   character, W8_TRAIT_CHEAT_DEATH, g_float_005ebc28)) +
                               7,
                           0, 0, 1);
-    if (g_combat_state != 0 && g_combat_state->characters[party_slot].cheat_death_used == 0) {
+    if (g_combat_state != 0 && !g_combat_state->characters[party_slot].cheat_death_used) {
         character->hp_current =
             (Random(static_cast<unsigned int>(ScaleValueByProfessionLevel(
                  character, W8_TRAIT_CHEAT_DEATH,
@@ -374,7 +374,7 @@ void BrewAlchemistPotion(W8Character* character)
     unsigned int recipes;
     unsigned int pick;
 
-    if (g_status.buffers.XChar[slot].fOccupied != 0 &&
+    if (g_status.buffers.XChar[slot].fOccupied &&
         character->highest_condition < W8_CONDITION_UNCONSCIOUS &&
         CharacterHasTrait(character, W8_TRAIT_MAKE_POTIONS)) {
         alchemy = character->profession_levels[W8_PROFESSION_ALCHEMIST];
@@ -561,7 +561,7 @@ void ApplyAttributeChange(W8Character* character, W8Attribute attribute)
     int skill_id = attribute + 0x22;
 
     if (character->attributes[attribute].value >= 0x64) {
-        if (character->skills[skill_id].active == 0) {
+        if (!character->skills[skill_id].active) {
             character->skills[skill_id].active = 1;
             if (g_current_screen_state.id == W8_SCREEN_CHARACTER) {
                 ResetCharacterScreenSkill(static_cast<W8Skill>(skill_id));
@@ -576,7 +576,7 @@ void ApplyAttributeChange(W8Character* character, W8Attribute attribute)
             }
         }
     } else {
-        if (character->skills[skill_id].active != 0) {
+        if (character->skills[skill_id].active) {
             character->skills[skill_id].active = 0;
             if (g_current_screen_state.id == W8_SCREEN_CHARACTER) {
                 RefundCharacterScreenSkill(static_cast<W8Skill>(skill_id));
@@ -689,7 +689,7 @@ void PracticeCharacterSkill(W8Character* character, W8Skill skill_id, int usage_
         g_profession_skill_availability[skill_id][character->iProfession] != 0) {
         W8CharacterSkill* skill = &character->skills[skill_id];
         skill->available = true;
-        if (skill->active == 0) {
+        if (!skill->active) {
             if (!IsCharacterSkillAvailable(character, skill_id, NULL)) {
                 return;
             }
@@ -725,10 +725,9 @@ void PracticeCharacterSkill(W8Character* character, W8Skill skill_id, int usage_
                 UnequipUnusableItems(character);
                 RecalculateCharacterDerivedStats(character);
                 slot = CharacterPointerToPartySlot(character);
-                if (gXStatus.fCombatMode == 0 && !IsModalOpen() &&
-                    gXStatus.item_pick_pending == 0 &&
+                if (!gXStatus.fCombatMode && !IsModalOpen() && !gXStatus.item_pick_pending &&
                     g_current_screen_state.id == W8_SCREEN_MAIN_GAME && IsScreenIdle() &&
-                    suppress_notification == 0) {
+                    !suppress_notification) {
                     wchar_t* text = new wchar_t[0x200];
                     memset(text, 0, 0x400);
                     unsigned int length = 0;

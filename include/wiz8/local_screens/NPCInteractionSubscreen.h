@@ -478,7 +478,7 @@ void EndNpcDialogueSession(bool);
 // FUNCTION: WIZ8 0x00576b80
 inline void CloseNpcDialogueIfActive(void)
 {
-    if (gXStatus.fNpcDialogueMode != 0) {
+    if (gXStatus.fNpcDialogueMode) {
         EndNpcDialogueSession(0);
     }
 }

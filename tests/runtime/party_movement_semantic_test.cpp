@@ -44,8 +44,8 @@ bool RunPartyMovementSemanticTest(PartyMovementSemanticResult* result)
     BeginFreeTurnPhase();
     result->completion_marks_finished =
         combat.uiCurrentPartyActionStatus == W8_PARTY_ACTION_FINISHED;
-    result->completion_clears_mode = gXStatus.fPartyMovementMode == 0;
-    result->completion_releases_ui = gXStatus.fPartyMovementUi == 0;
+    result->completion_clears_mode = !gXStatus.fPartyMovementMode;
+    result->completion_releases_ui = !gXStatus.fPartyMovementUi;
 
     g_combat_state = saved_combat;
     g_level_block = saved_level;

@@ -102,7 +102,7 @@ void MonsterLight::SetRange(float range)
 // FUNCTION: WIZ8 0x0049D970
 void MonsterLight::SetVisible(bool visible)
 {
-    if (visible != 0) {
+    if (visible) {
         clearFlag(srNode::FLAG_DISABLE);
     } else {
         setFlag(srNode::FLAG_DISABLE);
@@ -114,13 +114,13 @@ void MonsterLight::Update(const srVector3T<float>* position)
 {
     float elapsed = g_game_time_accumulator->GetElapsed() - m_start_time;
 
-    if (m_fade_out != 0) {
+    if (m_fade_out) {
         float fade = elapsed * g_float_005ebc3c;
         if (fade > g_float_one) {
             fade = g_float_one;
         }
         intensity = g_float_one - fade;
-    } else if (m_cycle_color != 0) {
+    } else if (m_cycle_color) {
         float cycle = elapsed * g_monster_light_cycle_rate;
         double whole = floor(cycle);
         float first_weight =

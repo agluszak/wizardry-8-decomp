@@ -252,7 +252,7 @@ unsigned char W8PathingService::WritePathNodes(unsigned int handle)
 // FUNCTION: WIZ8 0x00459400
 unsigned char W8PathingService::SaveWaypointSnapshot(bool force)
 {
-    if (waypoints_dirty == 0 && force == 0) {
+    if (!waypoints_dirty && !force) {
         return 0;
     }
     if (FileExists("cd.rom") != 0) {
@@ -435,7 +435,7 @@ unsigned char W8PathingService::ReadWaypointFile()
                 } else {
                     TestWaypointSpan(&m_pSurfaces[surface].position,
                                      &m_pSurfaces[destination_index].position, 0, 0);
-                    if (span_blocked != 0)
+                    if (span_blocked)
                         edge->flags |= 0x20000000;
                 }
                 edge_index = edge->next;
@@ -476,7 +476,7 @@ void W8PathingService::BuildWaypointFileData()
                         ++removed;
                     }
                 }
-                if (g_dev_mode != 0) {
+                if (g_dev_mode) {
                     if (removed == 0) {
                         FormatDebugMessage(0, "Deleting Isolated WayPt at (%.1f, %.1f, %.1f)",
                                            surface->position.x, surface->position.y,
@@ -753,7 +753,7 @@ void W8PathingService::SetConditionalPathFrame(unsigned int path_handle, unsigne
     unsigned int lookup_index = path_handle;
     bool frame_missing = 1;
 
-    while (m_pulCondLookup[lookup_index] != 0 && frame_missing != 0) {
+    while (m_pulCondLookup[lookup_index] != 0 && frame_missing) {
         if (m_pusCondNodeFrames[lookup_index] == frame) {
             frame_missing = 0;
         }
@@ -780,7 +780,7 @@ void W8PathingService::SetConditionalPathFrame(unsigned int path_handle, unsigne
         return;
     }
 
-    if (frame_missing != 0) {
+    if (frame_missing) {
         unsigned int current_value;
         lookup_index = path_handle;
         while (m_pulCondLookup[lookup_index] != 0) {
@@ -880,7 +880,7 @@ unsigned int W8PathingService::FindConditionalPathValue(unsigned int key, unsign
     int slot = index->FindNextEntry(&key, -1);
     unsigned int found = 0;
     bool searching = true;
-    while (slot >= 0 && searching != 0) {
+    while (slot >= 0 && searching) {
         unsigned int candidate = index->entries[slot].value;
         if (((candidate ^ value) & 0xffff) == 0) {
             searching = false;
@@ -1055,7 +1055,7 @@ unsigned char W8PathingService::TestAttachmentHopDoor(W8NavigatorAttachment* att
         unsigned short edge_index = source_surface->first_edge;
         bool found = false;
         while (edge_index != 0) {
-            if (found != 0) {
+            if (found) {
                 break;
             }
             if (m_pEdges[edge_index].destination == destination) {
@@ -1872,8 +1872,8 @@ unsigned char W8PathingService::CanReachSearchNode(const srVector3T<float>* posi
         unsigned int key = PositionToPathKey(this, &probe, 0);
         unsigned int node_index = visited->Lookup(&key);
 
-        if (static_cast<unsigned short>(node_index) == target_node || blocked != 0) {
-            return blocked == 0;
+        if (static_cast<unsigned short>(node_index) == target_node || blocked) {
+            return !blocked;
         }
         if (static_cast<unsigned short>(node_index) == 0 ||
             (m_search_nodes[node_index & 0xffff].flags & 0x100) != 0 ||
@@ -1899,7 +1899,7 @@ void W8PathingService::AdjustFinalPathEndpoint(W8NavigatorMovementState* movemen
                                                float separation)
 {
     int target_location = movement->target_location_id;
-    if (target_location < 0 || explicit_target != 0) {
+    if (target_location < 0 || explicit_target) {
         return;
     }
 
@@ -2018,7 +2018,7 @@ int W8PathingService::ProcessSearchNodeProps(unsigned short node_index, bool fir
     for (unsigned int index = 0; index < count; ++index) {
         W8Prop* prop = *g_world->collidable_props->GetAt(candidates[index]);
         prop->CanBeUsedFrom(node->cell_x, node->cell_z, 1);
-        if (first_only != 0) {
+        if (first_only) {
             return candidates[index];
         }
     }
@@ -2071,7 +2071,7 @@ unsigned int W8PathingService::CollectPathProbes(W8NavigatorMovementState* movem
         if (monster_index != static_cast<unsigned int>(-1)) {
             monster_index = MonsterGetIndexByLocationID(0x26b1, OCTPATH_CPP, location_id, 1);
             W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(monster_index);
-            if (info != 0 && info->p3D != 0 && info->p3D->active != 0) {
+            if (info != 0 && info->p3D != 0 && info->p3D->active) {
                 W8Monster* monster = info->p3D;
                 srVector3T<float> monster_position = monster->GetPosition();
                 srVector3T<float> monster_delta = monster_position - movement->position;
@@ -2119,7 +2119,7 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
     unsigned short result = 0;
     bool stop_search = 0;
 
-    if (m_trace_configured == 0) {
+    if (!m_trace_configured) {
         trace_offset.Set(0.0f, 500.0f, 0.0f);
         m_trace_mode = 0;
         trace_height_offset = 500.0f;
@@ -2141,7 +2141,7 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
     unsigned char allow_dynamic = static_cast<unsigned char>(movement->movement_flags >> 28 & 1);
     srVector3T<float> start = movement->position;
     srVector3T<float> target;
-    if (explicit_target != 0) {
+    if (explicit_target) {
         target = movement->target_position;
     } else if ((attachment->flags & W8_NAV_ATTACHMENT_START_WAYPOINT) != 0) {
         target = attachment->start_waypoint;
@@ -2221,7 +2221,7 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
     path_heap->root_node = heap->entries[0].node;
 
     unsigned int best_node = path_heap->root_node;
-    while (best_node != 0 && stop_search == 0 && m_search_node_count < g_path_reserve) {
+    while (best_node != 0 && !stop_search && m_search_node_count < g_path_reserve) {
         W8PathSearchNode* current = &m_search_nodes[best_node];
         unsigned short current_x = current->cell_x;
         unsigned short current_z = current->cell_z;
@@ -2324,7 +2324,7 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
 
             srVector3T<float> node_delta = target - node->position;
             float distance = node_delta.Length();
-            if (explicit_target == 0) {
+            if (!explicit_target) {
                 if (distance < diagonal_step || distance < separation) {
                     stop_search = 1;
                     result = 1;
@@ -2362,7 +2362,7 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
     }
 
     if ((attachment->flags & 0x00001000) != 0) {
-        if (stop_search == 0) {
+        if (!stop_search) {
             result = 3;
         }
         attachment->flags &= ~W8_NAV_ATTACHMENT_RESULT_MASK;
@@ -2376,7 +2376,7 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
         unsigned short walk = static_cast<unsigned short>(m_probe_cell_key);
         unsigned short walk_parent = m_search_nodes[walk].parent_node;
         while (walk_parent != 0) {
-            if (explicit_target == 0 && direct_visibility_node == 0) {
+            if (!explicit_target && direct_visibility_node == 0) {
                 srVector3T<float> trace_target = movement->target_position;
                 trace_target.y += trace_height_offset;
                 float bearing =
@@ -2395,7 +2395,7 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
             walk = walk_parent;
             walk_parent = m_search_nodes[walk].parent_node;
         }
-        if (explicit_target == 0 && direct_visibility_node == 0) {
+        if (!explicit_target && direct_visibility_node == 0) {
             srVector3T<float> trace_target = movement->target_position;
             trace_target.y += trace_height_offset;
             float bearing =
@@ -2412,7 +2412,7 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
         }
     }
 
-    if ((m_probe_cell_key == 0 && result == 0) || direct_path != 0) {
+    if ((m_probe_cell_key == 0 && result == 0) || direct_path) {
         attachment->flags |= W8_NAV_ATTACHMENT_POSITION_RECORDED;
         attachment->position6 = movement->position;
         attachment->position7[attachment->path_position_index] = movement->position;
@@ -2420,7 +2420,7 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
         g_octree->RegisterNavigatorCell(movement->location_id, &movement->position);
         g_startup_world->radius = g_startup_world->movement.alternate_radius;
         attachment->flags &= ~W8_NAV_ATTACHMENT_RESULT_MASK;
-        if (search_visualization != 0 && m_pPathModelInstance != 0) {
+        if (search_visualization && m_pPathModelInstance != 0) {
             BuildSearchVisualization();
         }
         return 0;
@@ -2444,7 +2444,7 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
     }
     m_search_nodes[selected].parent_node = 0;
 
-    if (search_visualization != 0 && m_pPathModelInstance != 0) {
+    if (search_visualization && m_pPathModelInstance != 0) {
         BuildSearchVisualization();
     }
 
@@ -2472,7 +2472,7 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
         }
 
         unsigned short next = node->parent_node;
-        if (m_trace_configured != 0) {
+        if (m_trace_configured) {
             if ((node->flags & 4) != 0) {
                 node->flags |= 8;
             } else if (TestSearchPositionVisibility(&node->position, movement) == 0) {
@@ -2510,7 +2510,7 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
         g_octree->RegisterNavigatorCell(movement->location_id,
                                         &m_search_nodes[m_probe_cell_key].position);
     }
-    if (movement->target_location_id >= 0 && explicit_target == 0) {
+    if (movement->target_location_id >= 0 && !explicit_target) {
         AdjustFinalPathEndpoint(movement, radius, separation);
     }
     attachment->flags &= ~W8_NAV_ATTACHMENT_RESULT_MASK;
@@ -2547,14 +2547,14 @@ float W8PathingService::UpdateSearchNodeScore(unsigned short node_index,
     float distance = (*position - node->position).Length();
     node->distance = distance;
 
-    if (explicit_target == 0) {
+    if (!explicit_target) {
         node->score = distance * g_float_005ec3b8 + node->base_score;
     } else {
         node->score = g_float_005ec3c0 - distance;
     }
 
     float gap = maximum - minimum;
-    if (explicit_target == 0) {
+    if (!explicit_target) {
         float adjusted_gap = gap;
         if (distance <= gap) {
             adjusted_gap = (gap - distance) * g_float_005ec390;
@@ -2585,7 +2585,7 @@ unsigned short W8PathingService::ResolveSearchNodeCollisions(W8NavigatorMovement
                                                              float radius, float separation)
 {
     unsigned short result = 0;
-    if (explicit_target != 0) {
+    if (explicit_target) {
         separation = 0.0f;
     }
 
@@ -2600,7 +2600,7 @@ unsigned short W8PathingService::ResolveSearchNodeCollisions(W8NavigatorMovement
     }
 
     if (distance < threshold) {
-        if (movement->target_location_id != 0 || explicit_target != 0) {
+        if (movement->target_location_id != 0 || explicit_target) {
             return 1;
         }
         blocking_direction.Set(player_delta.x, player_delta.y, player_delta.z);
@@ -2634,7 +2634,7 @@ unsigned short W8PathingService::ResolveSearchNodeCollisions(W8NavigatorMovement
 
         monster_index = MonsterGetIndexByLocationID(0x262b, OCTPATH_CPP, location_id, 1);
         W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(monster_index);
-        if (info == 0 || info->p3D == 0 || info->p3D->active == 0) {
+        if (info == 0 || info->p3D == 0 || !info->p3D->active) {
             continue;
         }
 
@@ -2643,12 +2643,12 @@ unsigned short W8PathingService::ResolveSearchNodeCollisions(W8NavigatorMovement
         srVector3T<float> delta = node->position - monster_position;
         float distance = delta.Length();
         threshold = monster->movement.alternate_radius + radius;
-        if (location_id == movement->target_location_id && explicit_target == 0) {
+        if (location_id == movement->target_location_id && !explicit_target) {
             threshold += separation;
         }
 
         if (distance < threshold) {
-            if (location_id == movement->target_location_id && explicit_target == 0) {
+            if (location_id == movement->target_location_id && !explicit_target) {
                 blocking_direction.Set(delta.x, delta.y, delta.z);
                 blocking_direction.Normalize();
                 result = 3;
@@ -2669,7 +2669,7 @@ unsigned short W8PathingService::ResolveSearchNodeCollisions(W8NavigatorMovement
                 }
             }
 
-            if (adjust != 0) {
+            if (adjust) {
                 delta.SetLength(threshold - distance);
                 node->position += delta;
                 node->flags |= 0x0200;
@@ -2678,7 +2678,7 @@ unsigned short W8PathingService::ResolveSearchNodeCollisions(W8NavigatorMovement
                 }
             }
 
-            if (g_flag_00659c5c == 0) {
+            if (!g_flag_00659c5c) {
                 return 1;
             }
             result = 2;
@@ -2921,7 +2921,7 @@ unsigned char W8PathingService::GetNeighborSlideDirection(const srVector3T<float
     value = 0;
     slot = index->FindNextEntry(&key, -1);
     while (slot >= 0) {
-        if (in_range != 0) {
+        if (in_range) {
             unsigned int mask = ComputeWaypointNeighborMask(&cell, value);
             return ComputeFreeDirection(mask, delta, direction);
         }
@@ -3245,7 +3245,7 @@ unsigned int W8PathingService::StepMonsterAlongPath(W8NavigatorMovementState* mo
         if (group->ubDisposition == W8_DISPOSITION_HOSTILE) {
             UpdateMonsterSight(monster_info, 1, 0);
             DoMonsterRTAI(monster_info, 1);
-            if (monster_info->fInCombat != 0) {
+            if (monster_info->fInCombat) {
                 break;
             }
         }
@@ -3518,7 +3518,7 @@ unsigned int W8PathingService::FindPathCell(srVector3T<float>* position,
         }
     }
 
-    if (adjust != 0 && found) {
+    if (adjust && found) {
         position->Set((selected_x + g_float_005ebc7c) * grid_scale + level_bounds.minimum.x,
                       (selected_height - 1) * span + level_bounds.minimum.y,
                       (selected_z + g_float_005ebc7c) * grid_scale + level_bounds.minimum.z);
@@ -3551,7 +3551,7 @@ unsigned char W8PathingService::SnapWaypointPosition(srVector3T<float>* position
     W8HashTable<unsigned int, unsigned int>* index = m_pPathValues;
     int slot = index->FindNextEntry(&key, -1);
 
-    while (slot != -1 && found == 0) {
+    while (slot != -1 && !found) {
         matched_height = index->entries[slot].value & 0xffff;
         int delta = static_cast<int>(height - matched_height);
 
@@ -3562,7 +3562,7 @@ unsigned char W8PathingService::SnapWaypointPosition(srVector3T<float>* position
         slot = index->FindNextEntry(&key, slot);
     }
 
-    if (snap_to_cell != 0 && found != 0) {
+    if (snap_to_cell && found) {
         position->Set((cell.x + g_float_005ebc7c) * grid_scale + level_bounds.minimum.x,
                       (matched_height - 1) * span + level_bounds.minimum.y,
                       (cell.y + g_float_005ebc7c) * grid_scale + level_bounds.minimum.z);
@@ -3591,7 +3591,7 @@ unsigned char W8PathingService::TestPathCellClearance(srVector3T<float>* positio
     W8HashTable<unsigned int, unsigned int>* index = m_pPathValues;
     int slot = index->FindNextEntry(&key, -1);
 
-    while (slot != -1 && found == 0) {
+    while (slot != -1 && !found) {
         packed = index->entries[slot].value;
         matched_height = packed & 0xffff;
         int delta = static_cast<int>(height - matched_height);
@@ -3603,10 +3603,10 @@ unsigned char W8PathingService::TestPathCellClearance(srVector3T<float>* positio
         slot = index->FindNextEntry(&key, slot);
     }
 
-    if (found == 0) {
+    if (!found) {
         return 0;
     }
-    if (snap_to_cell != 0) {
+    if (snap_to_cell) {
         position->Set((cell.x + g_float_005ebc7c) * grid_scale + level_bounds.minimum.x,
                       (matched_height - 1) * span + level_bounds.minimum.y,
                       (cell.y + g_float_005ebc7c) * grid_scale + level_bounds.minimum.z);
@@ -3640,7 +3640,7 @@ unsigned char W8PathingService::SnapToLowerPathCell(srVector3T<float>* position,
     while (slot != -1) {
         W8HashEntry<unsigned int, unsigned int>* entry = &index->entries[slot];
 
-        if (allow_directional != 0 || (entry->value & 0x00ff0000) == 0) {
+        if (allow_directional || (entry->value & 0x00ff0000) == 0) {
             unsigned int candidate_height = entry->value & 0xffff;
             int delta = static_cast<int>(height - candidate_height);
 
@@ -3653,7 +3653,7 @@ unsigned char W8PathingService::SnapToLowerPathCell(srVector3T<float>* position,
         slot = index->FindNextEntry(&key, slot);
     }
 
-    if (found != 0) {
+    if (found) {
         position->Set((cell.x + g_float_005ebc7c) * grid_scale + level_bounds.minimum.x,
                       (matched_height - 1) * span + level_bounds.minimum.y,
                       (cell.y + g_float_005ebc7c) * grid_scale + level_bounds.minimum.z);
@@ -3729,7 +3729,7 @@ void W8PathingService::ProbeWaypointArc(const srVector3T<float>* from, const srV
         dot = DotProduct(direction, arc);
         if (dot > g_float_005ec390) {
             passed_forward = 1;
-        } else if (passed_forward == 0) {
+        } else if (!passed_forward) {
             continue;
         }
         if (dot < g_float_zero) {
@@ -3874,19 +3874,19 @@ unsigned char W8PathingService::ProbeWaypointSegment(const srVector3T<float>* fr
     GetPathGridStepDirections(&walk, directions);
 
     int error = walk.error0;
-    bool bounded_probe = m_probe_bounded != 0 && m_probe_limit != 0;
+    bool bounded_probe = m_probe_bounded && m_probe_limit != 0;
     unsigned int height = static_cast<unsigned int>(
                               static_cast<int>(((from->y - level_bounds.minimum.y) / span))) +
                           1;
     bool blocked = false;
     int iteration = 0;
 
-    while (iteration < walk.count && blocked == 0) {
+    while (iteration < walk.count && !blocked) {
         unsigned int cell_key = cell.y * 0x10000 + cell.x;
         W8OctreeIndex* visited_index = static_cast<W8OctreeIndex*>(m_pVisitedCells);
         unsigned int visited = visited_index->Lookup(&cell_key);
 
-        if (bounded_probe != 0 && (visited & 0xffff) != 0xffff) {
+        if (bounded_probe && (visited & 0xffff) != 0xffff) {
             bounded_probe = 0;
         }
 
@@ -3894,11 +3894,11 @@ unsigned char W8PathingService::ProbeWaypointSegment(const srVector3T<float>* fr
         unsigned int path_value = 0;
         bool found = false;
 
-        if (iteration == 0 || (visited & 0xffff0000) != 0xffff0000 || bounded_probe != 0) {
+        if (iteration == 0 || (visited & 0xffff0000) != 0xffff0000 || bounded_probe) {
             W8HashTable<unsigned int, unsigned int>* path_index = m_pPathValues;
             int slot = path_index->FindNextEntry(&cell_key, -1);
 
-            while (slot >= 0 && found == 0) {
+            while (slot >= 0 && !found) {
                 path_value = path_index->entries[slot].value;
                 int height_delta = (path_value & 0xffff) - height;
 
@@ -3913,11 +3913,11 @@ unsigned char W8PathingService::ProbeWaypointSegment(const srVector3T<float>* fr
                 slot = path_index->FindNextEntry(&cell_key, slot);
             }
 
-            if (found == 0) {
+            if (!found) {
                 blocked = 1;
-            } else if (bounded_probe == 0 && ((m_probe_limit == 0 && visited == 0) ||
-                                              (m_probe_limit != 0 && (visited & 0xffff) != 0 &&
-                                               (visited & 0xffff0000) == 0))) {
+            } else if (!bounded_probe && ((m_probe_limit == 0 && visited == 0) ||
+                                          (m_probe_limit != 0 && (visited & 0xffff) != 0 &&
+                                           (visited & 0xffff0000) == 0))) {
                 srVector3T<float> position;
                 unsigned int initial_cost;
 
@@ -3952,7 +3952,7 @@ unsigned char W8PathingService::ProbeWaypointSegment(const srVector3T<float>* fr
         }
 
         unsigned int direction;
-        if (error >= 0 || blocked != 0) {
+        if (error >= 0 || blocked) {
             direction = directions[0];
             (&cell.x)[walk.major_axis] += (&walk.step.x)[walk.major_axis];
             error -= walk.error_delta0;
@@ -3968,7 +3968,7 @@ unsigned char W8PathingService::ProbeWaypointSegment(const srVector3T<float>* fr
         ++iteration;
     }
 
-    return blocked == 0;
+    return !blocked;
 }
 
 /* Find the directions from one path cell that lead to vertically compatible
@@ -4018,7 +4018,7 @@ unsigned int W8PathingService::ComputeWaypointNeighborMask(const srVector2i* cel
                 }
                 slot = index->FindNextEntry(&key, slot);
             }
-            if (found != 0) {
+            if (found) {
                 result |= 1 << (direction & 0x1f);
             }
         }
@@ -4045,7 +4045,7 @@ unsigned char W8PathingService::TestWaypointSpan(const srVector3T<float>* source
 {
     bool blocked = false;
 
-    if (adjust_destination == 0 &&
+    if (!adjust_destination &&
         (source->x < level_bounds.minimum.x || source->y < level_bounds.minimum.y ||
          source->z < level_bounds.minimum.z || level_bounds.maximum.x < source->x ||
          level_bounds.maximum.y < source->y || level_bounds.maximum.z < source->z ||
@@ -4071,7 +4071,7 @@ unsigned char W8PathingService::TestWaypointSpan(const srVector3T<float>* source
         unsigned int source_value = 0;
         bool found = false;
 
-        while (slot >= 0 && found == 0) {
+        while (slot >= 0 && !found) {
             unsigned int value = path_index->entries[slot].value;
             int difference = (value & 0xffff) - height;
             if ((value & 0x10000000) == 0 && -cell_count < difference &&
@@ -4081,7 +4081,7 @@ unsigned char W8PathingService::TestWaypointSpan(const srVector3T<float>* source
             }
             slot = path_index->FindNextEntry(&cell_key, slot);
         }
-        if (found == 0) {
+        if (!found) {
             return 0;
         }
 
@@ -4093,7 +4093,7 @@ unsigned char W8PathingService::TestWaypointSpan(const srVector3T<float>* source
         found = 0;
         unsigned int destination_value;
 
-        while (slot >= 0 && found == 0) {
+        while (slot >= 0 && !found) {
             unsigned int value = path_index->entries[slot].value;
             int difference = (value & 0xffff) - height;
             if ((value & 0x10000000) == 0 && -cell_count < difference &&
@@ -4103,7 +4103,7 @@ unsigned char W8PathingService::TestWaypointSpan(const srVector3T<float>* source
             }
             slot = path_index->FindNextEntry(&cell_key, slot);
         }
-        return found != 0 && destination_value == source_value;
+        return found && destination_value == source_value;
     }
 
     srVector2T<float> walk_source;
@@ -4125,13 +4125,13 @@ unsigned char W8PathingService::TestWaypointSpan(const srVector3T<float>* source
     unsigned int previous_value;
     int iteration = 0;
 
-    while (iteration < walk.count && blocked == 0) {
+    while (iteration < walk.count && !blocked) {
         int slot = path_index->FindNextEntry(&cell_key, -1);
         unsigned int direction_mask = 0;
         unsigned int path_value;
         bool found = false;
 
-        while (slot >= 0 && found == 0) {
+        while (slot >= 0 && !found) {
             path_value = path_index->entries[slot].value;
             int difference = (path_value & 0xffff) - height;
 
@@ -4151,7 +4151,7 @@ unsigned char W8PathingService::TestWaypointSpan(const srVector3T<float>* source
             slot = path_index->FindNextEntry(&cell_key, slot);
         }
 
-        if (found == 0) {
+        if (!found) {
             unsigned int mask_key = previous_key;
             unsigned int mask_value = previous_value;
             if (previous_key == 0) {
@@ -4172,8 +4172,8 @@ unsigned char W8PathingService::TestWaypointSpan(const srVector3T<float>* source
         }
 
         unsigned int direction = directions[0];
-        if (diagonal_steps == 0) {
-            if (error >= 0 || blocked != 0) {
+        if (!diagonal_steps) {
+            if (error >= 0 || blocked) {
                 (&cell.x)[walk.major_axis] += (&walk.step.x)[walk.major_axis];
                 error -= walk.error_delta0;
             } else {
@@ -4182,7 +4182,7 @@ unsigned char W8PathingService::TestWaypointSpan(const srVector3T<float>* source
                 --iteration;
                 error += walk.error_reset0;
             }
-        } else if (error < 0 && blocked == 0) {
+        } else if (error < 0 && !blocked) {
             (&cell.x)[walk.minor_axis0] += (&walk.step.x)[walk.minor_axis0];
             error += walk.error_reset0;
             if (static_cast<unsigned int>(cell.y * 0x10000 + cell.x) == destination_key) {
@@ -4225,8 +4225,8 @@ unsigned char W8PathingService::TestWaypointSpan(const srVector3T<float>* source
         ++iteration;
     }
 
-    if (adjust_destination == 0) {
-        if (blocked == 0) {
+    if (!adjust_destination) {
+        if (!blocked) {
             int destination_height =
                 static_cast<int>((destination->y - level_bounds.minimum.y) / span) + 1;
             int difference = destination_height - height;
@@ -4237,7 +4237,7 @@ unsigned char W8PathingService::TestWaypointSpan(const srVector3T<float>* source
     } else if (previous_key == 0) {
         *destination = *source;
     } else {
-        if (blocked != 0) {
+        if (blocked) {
             destination->x = ((previous_key & 0xffff) + g_float_005ebc7c) * grid_scale +
                              level_bounds.minimum.x;
             destination->z =
@@ -4246,7 +4246,7 @@ unsigned char W8PathingService::TestWaypointSpan(const srVector3T<float>* source
         destination->y = (height - 1) * span + level_bounds.minimum.y;
     }
 
-    return blocked == 0;
+    return !blocked;
 }
 
 /* Compare clearance along the two compass rays bracketing a horizontal
@@ -4388,17 +4388,17 @@ float W8PathingService::MeasureDirectionalPath(const srVector2i* cell, int direc
             slot = index->FindNextEntry(&key, slot);
         }
 
-        if (found != 0) {
+        if (found) {
             remaining -= grid_scale;
         }
-        if (found == 0 || ((path_value & 0x01000000) != 0 &&
-                           (path_value & 1 << ((direction + 16) & 0x1f)) == 0)) {
+        if (!found || ((path_value & 0x01000000) != 0 &&
+                       (path_value & 1 << ((direction + 16) & 0x1f)) == 0)) {
             stopped = 1;
             break;
         }
     }
 
-    if (stopped == 0) {
+    if (!stopped) {
         return distance;
     }
     return distance - remaining;
@@ -4478,7 +4478,7 @@ unsigned short W8PathingService::FindWaypoint(const srVector3T<float>* position,
         }
     }
 
-    if (result == 0 && exhaustive != 0) {
+    if (result == 0 && exhaustive) {
         m_probe_position.SetZero();
 
         W8OctreeIndex* visited = static_cast<W8OctreeIndex*>(m_pVisitedCells);
@@ -4491,7 +4491,7 @@ unsigned short W8PathingService::FindWaypoint(const srVector3T<float>* position,
                 return result;
             }
 
-            bool saved_flag = m_probe_bounded != 0;
+            bool saved_flag = m_probe_bounded;
             visited = static_cast<W8OctreeIndex*>(m_pVisitedCells);
             m_probe_bounded = 0;
             visited->Clear();
@@ -4587,7 +4587,7 @@ void W8PathingService::ActivateMovementTrigger(W8NavigatorMovementState* movemen
     srVector3T<float> lower;
     srVector3T<float> upper;
 
-    if (use_path_edge == 0) {
+    if (!use_path_edge) {
         if (IsZeroVector(&movement->velocity) != 0) {
             return;
         }
@@ -4697,7 +4697,7 @@ void W8PathingService::UpdatePathVisualization(const srVector3T<float>* source,
     W8World* world = GetWorld();
     srNode* node = m_pPathModelInstance;
 
-    if (m_waypoint_editing != 0) {
+    if (m_waypoint_editing) {
         srVector3T<float> adjusted = *source;
         srVector3T<float> endpoint = *destination;
         g_octree->AdjustPosition(&adjusted, 1);
@@ -4729,7 +4729,7 @@ void W8PathingService::UpdatePathVisualization(const srVector3T<float>* source,
         return;
     }
 
-    if (flag1 == 0 && search_visualization == 0) {
+    if (!flag1 && !search_visualization) {
         DrawPathPosition(*source, 0);
         node = m_pPathModelInstance;
         if (node != 0) {
@@ -4739,7 +4739,7 @@ void W8PathingService::UpdatePathVisualization(const srVector3T<float>* source,
         return;
     }
 
-    if (search_visualization != 0) {
+    if (search_visualization) {
         if (m_pPathModelInstance == 0) {
             EnsurePathVisualization();
             node = m_pPathModelInstance;
@@ -4823,7 +4823,7 @@ stModelInstance* W8PathingService::BuildPathVisualization()
             unsigned short reverse_index = destination->first_edge;
             bool reverse_found = false;
 
-            while (reverse_index != 0 && reverse_found == 0) {
+            while (reverse_index != 0 && !reverse_found) {
                 if (m_pEdges[reverse_index].destination == source_index) {
                     reverse_found = true;
                 } else {
@@ -4862,8 +4862,8 @@ stModelInstance* W8PathingService::BuildPathVisualization()
                 ++marker_count;
             }
 
-            if (source_index < destination_index ||
-                !m_visible_waypoints->Test(destination_index) || reverse_found == 0) {
+            if (source_index < destination_index || !m_visible_waypoints->Test(destination_index) ||
+                !reverse_found) {
                 int base_vertex = 500 + link_count * 6;
                 int base_polygon = 600 + link_count * 6;
                 srVector2T<float> perpendicular(
@@ -4914,14 +4914,12 @@ stModelInstance* W8PathingService::BuildPathVisualization()
                         }
                     }
                 }
-                if (reverse_found != 0 &&
-                    (m_pEdges[reverse_index].flags & 0x80000000) == 0) {
+                if (reverse_found && (m_pEdges[reverse_index].flags & 0x80000000) == 0) {
                     for (index = 3; index < 6; ++index) {
                         colors[base_vertex + index].z = 1.0f;
                     }
                 }
-                if (reverse_found == 0 ||
-                    (m_pEdges[reverse_index].flags & 0x20000000) != 0) {
+                if (!reverse_found || (m_pEdges[reverse_index].flags & 0x20000000) != 0) {
                     for (index = 3; index < 6; ++index) {
                         colors[base_vertex + index].y = 1.0f;
                     }
@@ -5181,7 +5179,7 @@ void W8PathingService::GetWaypointVisualizationColor(unsigned short waypoint,
         color->z = 1.0f;
         return;
     }
-    if (path_direction_valid != 0) {
+    if (path_direction_valid) {
         color->x = 0.0f;
         color->y = 1.0f;
         color->z = 0.0f;
@@ -5318,7 +5316,7 @@ short W8PathingService::CollectPathVisualization(const srVector3T<float>* positi
 
     m_visible_waypoints->ClearAll();
     m_collected_waypoints->ClearAll();
-    if (destination_waypoint != 0 && path_direction_valid == 0) {
+    if (destination_waypoint != 0 && !path_direction_valid) {
         m_visible_waypoints->Set(destination_waypoint);
         m_collected_waypoints->Set(destination_waypoint);
     }
@@ -5532,14 +5530,14 @@ void W8PathingService::RemoveWaypointLink(unsigned short edge_index)
     if (m_ulNumWayPoints > 2) {
         bool found = false;
         unsigned int index;
-        for (index = 1; index < m_ulNumWayPoints && found == 0; ++index) {
+        for (index = 1; index < m_ulNumWayPoints && !found; ++index) {
             if (m_pSurfaces[index].first_edge == edge_index) {
                 m_pSurfaces[index].first_edge = m_pEdges[edge_index].next;
                 found = 1;
             }
         }
 
-        for (index = 1; index < m_ulNumWayPtLinks && found == 0; ++index) {
+        for (index = 1; index < m_ulNumWayPtLinks && !found; ++index) {
             if (m_pEdges[index].next == edge_index) {
                 m_pEdges[index].next = m_pEdges[edge_index].next;
                 found = 1;
@@ -5716,7 +5714,7 @@ void W8PathingService::AddWaypointLink(unsigned short source, unsigned short des
 
     if ((source_surface->flags & 0x40) != 0 || (destination_surface->flags & 0x40) != 0 ||
         (TestWaypointSpan(&source_surface->position, &destination_surface->position, 0, 0),
-         span_blocked != 0)) {
+         span_blocked)) {
         edge->flags |= 0x20000000;
     }
     ++m_ulNumWayPtLinks;
@@ -5808,9 +5806,9 @@ unsigned char W8PathingService::UpdateWaypointLink(unsigned short source,
             edge->flags = flags;
             if ((m_pSurfaces[source].flags & 0x40) != 0 ||
                 (m_pSurfaces[destination].flags & 0x40) != 0 ||
-                (TestWaypointSpan(&m_pSurfaces[source].position,
-                                  &m_pSurfaces[destination].position, 0, 0),
-                 span_blocked != 0)) {
+                (TestWaypointSpan(&m_pSurfaces[source].position, &m_pSurfaces[destination].position,
+                                  0, 0),
+                 span_blocked)) {
                 m_pEdges[m_ulNumWayPtLinks].flags |= 0x20000000;
             }
             return 1;
@@ -5840,7 +5838,7 @@ void W8PathingService::EditTeleportalLink(const srVector3T<float>* destination,
     unsigned short edge_index;
     bool both_existing = true;
 
-    if (m_waypoint_editing == 0) {
+    if (!m_waypoint_editing) {
         return;
     }
 
@@ -5875,7 +5873,7 @@ void W8PathingService::EditTeleportalLink(const srVector3T<float>* destination,
     edge_index = 0;
     link_flags[0] = 0;
     link_flags[1] = 0;
-    if (both_existing != 0) {
+    if (both_existing) {
         edge_index = m_pSurfaces[destination_index].first_edge;
         while (edge_index != 0) {
             if (m_pEdges[edge_index].destination == source_index) {
@@ -6325,7 +6323,7 @@ unsigned char W8PathParameters::QueryNearbyNavigators()
     srVector3T<float> upper;
     float extent;
 
-    if (nearby_queried != 0) {
+    if (nearby_queried) {
         return nearby_count != 0;
     }
     extent = radius * g_float_005ebc28;
@@ -6353,7 +6351,7 @@ void W8PathParameters::IntegrateSteering()
     char direction;
 
     step = g_rate * g_game_time_accumulator->GetFrameDelta();
-    if (blocked == 0) {
+    if (!blocked) {
         force.y = 0.0f;
         if (speed_limit <= g_float_zero) {
             velocity.SetZero();
@@ -6403,7 +6401,7 @@ void W8PathParameters::IntegrateSteering()
                 }
             }
         }
-        if (blocked == 0) {
+        if (!blocked) {
             movement->velocity = velocity;
             movement->position = position;
             return;
@@ -6431,7 +6429,7 @@ void W8PathParameters::UpdateYawSteering(float time_step, bool use_turn_rate)
         remaining = rate;
         direction = g_float_one;
     }
-    if (use_turn_rate == 0) {
+    if (!use_turn_rate) {
         rate = movement->turn_rate;
         angular_velocity = 0.0f;
     } else {
@@ -6469,7 +6467,7 @@ unsigned char W8PathParameters::PredictNavigatorCollision()
     float scale;
 
     found = false;
-    if (this->monster->active == 0) {
+    if (!this->monster->active) {
         return 0;
     }
     if (velocity_length == g_double_zero) {
@@ -6509,7 +6507,7 @@ unsigned char W8PathParameters::PredictNavigatorCollision()
             }
         }
     }
-    if (movement->boundary_enabled != 0) {
+    if (movement->boundary_enabled) {
         position = g_startup_world->GetPosition();
         delta = position - movement->position;
         combined = g_path_party_boundary_radius * g_world_scale;
@@ -6533,7 +6531,7 @@ unsigned char W8PathParameters::PredictNavigatorCollision()
             }
         }
     }
-    if (found == 0) {
+    if (!found) {
         return 0;
     }
     if (scale >= g_float_zero) {
@@ -6764,10 +6762,9 @@ unsigned char W8PathParameters::SteerAroundLeader(bool allow_path_fallback)
             }
         }
     }
-    if (allow_path_fallback != 0 &&
-        static_cast<int>(movement->attachment->path_cursor) <
-            static_cast<int>(leader->movement.attachment->path_cursor) +
-                static_cast<int>(movement->attachment->follow_offset)) {
+    if (allow_path_fallback && static_cast<int>(movement->attachment->path_cursor) <
+                                   static_cast<int>(leader->movement.attachment->path_cursor) +
+                                       static_cast<int>(movement->attachment->follow_offset)) {
         delta = leader->movement.position - movement->position;
         distance = delta.Length() - leader_radius;
         if (g_path_approach_slow_time * speed_limit < distance) {

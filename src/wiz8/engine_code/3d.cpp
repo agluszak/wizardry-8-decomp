@@ -302,13 +302,13 @@ unsigned char BakeInstanceVertexLighting(stModelInstance* instance, srNode* ligh
                     }
                 }
             }
-            if (walk_chain == 0) {
+            if (!walk_chain) {
                 break;
             }
             light_node = light_node->next_sibling_;
         }
 
-        if (locations_allocated != 0) {
+        if (locations_allocated) {
             free(world_vertices);
         }
         if (rotation.vectors[0].x != g_float_one || rotation.vectors[1].y != g_float_one ||
@@ -1000,7 +1000,7 @@ bool PointInsideTriangle(const srVector3T<float>* vertices, short axis,
         if ((first[v] < p[v] && p[v] < second[v]) || (second[v] < p[v] && p[v] < first[v])) {
             if (p[u] <=
                 (p[v] - first[v]) * (second[u] - first[u]) / (second[v] - first[v]) + first[u]) {
-                inside = inside == 0;
+                inside = !inside;
             }
         }
     }
@@ -1085,7 +1085,7 @@ bool SphereInsideFrustum(const srVector3T<float>* point, float radius, const W8P
 {
     bool inside = true;
 
-    for (short plane = 0; plane < 6 && inside != 0; ++plane) {
+    for (short plane = 0; plane < 6 && inside; ++plane) {
         if (DotProduct(*point, planes[plane].normal) + planes[plane].w < -radius) {
             inside = 0;
         }
