@@ -37,13 +37,28 @@ static_assert(sizeof(W8TriggerEvent) == 0x38, "W8TriggerEvent_must_be_0x38");
 
 void UpdateTimedTriggerEvents(void);
 
+/* Payload tags remain signed bytes in the common prefix and on disk. */
+enum W8TriggerPayloadKind {
+    W8_TRIGGER_PAYLOAD_NONE = -1,
+    W8_TRIGGER_PAYLOAD_ENVIRONMENT = 5,
+    W8_TRIGGER_PAYLOAD_STRING = 6,
+    W8_TRIGGER_PAYLOAD_DOOR = 10
+};
+
+/* Only independently identified door bits are named; the other serialized
+   bits retain their original numeric values. */
+enum W8DoorTriggerFlag {
+    W8_DOOR_OPEN = 1,
+    W8_DOOR_KEY_REQUIRED = 4
+};
+
 /* The common polymorphic prefix of the trigger action payload family. */
 class W8TriggerActionData {
 public:
     W8TriggerActionData();
     virtual ~W8TriggerActionData();
 
-    signed char type;
+    signed char type; /* W8TriggerPayloadKind */
 };
 
 static_assert(sizeof(W8TriggerActionData) == 0x08, "W8TriggerActionData_must_be_0x08");

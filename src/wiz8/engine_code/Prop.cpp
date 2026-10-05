@@ -209,13 +209,13 @@ void W8Prop::SetAnimationSpeed(float speed)
 
 /* Four accessors reaching through the owned member at 0x14. */
 // FUNCTION: WIZ8 0x0044d4f0
-unsigned char W8Prop::GetSetting6C()
+unsigned char W8Prop::GetActivationState()
 {
     return this->Rep()->active;
 }
 
 // FUNCTION: WIZ8 0x0044d5b0
-void W8Prop::SetSetting66(char value)
+void W8Prop::SetPendingAnimationSubcycle(char value)
 {
     this->Rep()->pending_subcycle = value;
 }
@@ -255,11 +255,10 @@ Trigger* W8Prop::GetGDPropOwnerTrigger()
     return 0;
 }
 
-/* Write the settings block's byte at 0x6c. Going from zero to anything else
-   costs an extra call first, so zero is the state that has to be left rather
-   than a value like the others. */
+/* Store activation state, restarting the animation clock whenever the old
+   state is inactive. The raw byte is retained by save/load. */
 // FUNCTION: WIZ8 0x0044d4b0
-void W8Prop::SetSetting6C(unsigned char value)
+void W8Prop::SetActivationState(unsigned char value)
 {
     if (Rep()->active == 0) {
         m_pTimer->Restart();
@@ -384,9 +383,10 @@ bool ResolvePickedProp(W8World* world)
                 ((trigger->flags & W8_TRIGGER_ONCE) == 0 ||
                  (trigger->flags & W8_TRIGGER_FIRED) == 0) &&
                 (g_combat_inactive ||
-                 (trigger->m_pActionData != 0 && trigger->m_pActionData->type == 10 &&
-                  (static_cast<W8DoorTriggerActionData*>(trigger->m_pActionData)->door_flags & 1) ==
-                      0)) &&
+                 (trigger->m_pActionData != 0 &&
+                  trigger->m_pActionData->type == W8_TRIGGER_PAYLOAD_DOOR &&
+                  (static_cast<W8DoorTriggerActionData*>(trigger->m_pActionData)->door_flags &
+                   W8_DOOR_OPEN) == 0)) &&
                 representation->active != 0) {
                 srVector3T<float> minimum;
                 srVector3T<float> maximum;
@@ -910,11 +910,12 @@ bool W8Prop::CanBeUsedFrom(int arg_2, int arg_3, bool notify)
     }
 
     action = owner->m_pActionData;
-    if (action == 0 || action->type != 10) {
+    if (action == 0 || action->type != W8_TRIGGER_PAYLOAD_DOOR) {
         action = 0;
     }
     if ((owner->lock_state.lock_type != 0 && owner->lock_state.device_state.completed == 0) ||
-        (static_cast<W8DoorTriggerActionData*>(action)->door_flags & 5) != 0) {
+        (static_cast<W8DoorTriggerActionData*>(action)->door_flags &
+         (W8_DOOR_OPEN | W8_DOOR_KEY_REQUIRED)) != 0) {
         return false;
     }
     if (!m_gd_prop->ContainsPathCoordinate(static_cast<unsigned short>(arg_2),

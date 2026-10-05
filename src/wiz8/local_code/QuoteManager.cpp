@@ -1780,6 +1780,7 @@ unsigned char PartyPortraitEventsIdle(void)
    per-frame state machine: it drains finished owned events, starts the
    incapacitation path when no record is active, advances facing and pose
    clocks, and asks the current screen to redraw a changed slot. */
+
 // FUNCTION: WIZ8 0x0052E750
 int UpdateCharacterEventState(void)
 {
@@ -1822,14 +1823,7 @@ int UpdateCharacterEventState(void)
         }
 
         if (record->portrait_event_active == 0) {
-            unsigned int scan;
-            for (scan = 0; scan < 8; ++scan) {
-                if (g_status.buffers.XChar[scan].fOccupied != 0 &&
-                    gXStatus.monster_manager_entries[scan].portrait_event_active != 0) {
-                    break;
-                }
-            }
-            if (scan == 8) {
+            if (PartyPortraitEventsIdle() != 0) {
                 MaybeStartIncapacitationEvent(party_slot);
             }
         } else {
@@ -1840,14 +1834,7 @@ int UpdateCharacterEventState(void)
                 gXStatus.character_event_queue->CompleteActiveEvent(record->active_character_event);
             }
             if (record->portrait_event_active == 0) {
-                unsigned int scan;
-                for (scan = 0; scan < 8; ++scan) {
-                    if (g_status.buffers.XChar[scan].fOccupied != 0 &&
-                        gXStatus.monster_manager_entries[scan].portrait_event_active != 0) {
-                        break;
-                    }
-                }
-                if (scan == 8) {
+                if (PartyPortraitEventsIdle() != 0) {
                     MaybeStartIncapacitationEvent(party_slot);
                 }
             } else {

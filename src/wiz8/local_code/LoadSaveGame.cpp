@@ -1275,7 +1275,7 @@ unsigned char LoadMonster(W8Chunk* chunk)
                 g_effect_visual_table[monster_info->effect_slots[index].effect_id].monster_icon, 1);
         }
     }
-    if (monster_info->effect > 0) {
+    if (monster_info->charm_strength > 0) {
         SetMonsterSpellIcon(monster, SPELL_ICON_CHARMED, 1);
     }
     if (monster_info->summoned != 0) {

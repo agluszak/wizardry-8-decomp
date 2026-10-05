@@ -267,7 +267,7 @@ unsigned char W8MonsterInfoDialog::PopulateText()
         wcscat(text, gppStringList[0x144]);
         ++count;
     }
-    if (monster_info->effect != 0) {
+    if (monster_info->charm_strength != 0) {
         if (count > 0) {
             wcscat(text, g_comma_space);
         }

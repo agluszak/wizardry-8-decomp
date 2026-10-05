@@ -378,18 +378,18 @@ bool MartensBluff2DoorControls(Trigger* pTrigger)
     if (pTrigger->state_index == 0) {
         Trigger* pDoor = FindTriggerByName("SquisherDoor");
         W8TriggerActionData* action = pDoor->m_pActionData;
-        if (action == 0 || action->type != '\n') {
+        if (action == 0 || action->type != W8_TRIGGER_PAYLOAD_DOOR) {
             action = 0;
         }
-        if ((static_cast<W8DoorTriggerActionData*>(action)->door_flags & 1) != 0) {
+        if ((static_cast<W8DoorTriggerActionData*>(action)->door_flags & W8_DOOR_OPEN) != 0) {
             pDoor->Run(-1);
         }
         pDoor = FindTriggerByName("SquisherDoor1");
         action = pDoor->m_pActionData;
-        if (action == 0 || action->type != '\n') {
+        if (action == 0 || action->type != W8_TRIGGER_PAYLOAD_DOOR) {
             action = 0;
         }
-        if ((static_cast<W8DoorTriggerActionData*>(action)->door_flags & 1) != 0) {
+        if ((static_cast<W8DoorTriggerActionData*>(action)->door_flags & W8_DOOR_OPEN) != 0) {
             pDoor->Run(-1);
         }
     }

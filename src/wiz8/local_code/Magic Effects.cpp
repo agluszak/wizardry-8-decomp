@@ -306,11 +306,11 @@ unsigned int RollEffectDuration(W8SpellEffectDefinition* definition)
 /* Take the named effect off a monster: say so, lower the flag, and drop the
    visual. */
 // FUNCTION: WIZ8 0x005523d0
-void ClearMonsterEffect2DE(W8MonsterInfo* monster_info)
+void ClearMonsterCharm(W8MonsterInfo* monster_info)
 {
-    if (monster_info->effect != 0) {
+    if (monster_info->charm_strength != 0) {
         PostMonsterNotice(monster_info, gppStringList[0x1ad]);
-        monster_info->effect = 0;
+        monster_info->charm_strength = 0;
         SetMonsterSpellIcon(monster_info->p3D, SPELL_ICON_CHARMED, 0);
     }
 }
@@ -2747,13 +2747,13 @@ void ApplyCharmToMonsterTarget(W8SpellEffectEntry* effect)
     AdjustIntegerByPercent(&magnitude, effect->definition.percent);
     ReduceMagnitudeByResistance(&magnitude, target, W8_SPELL_REALM_MENTAL,
                                 effect->definition.power_level);
-    if (static_cast<char>(magnitude) <= static_cast<char>(monster_info->effect)) {
+    if (static_cast<char>(magnitude) <= static_cast<char>(monster_info->charm_strength)) {
         return;
     }
-    if (monster_info->effect == 0) {
+    if (monster_info->charm_strength == 0) {
         SetMonsterSpellIcon(monster_info->p3D, SPELL_ICON_CHARMED, 1);
     }
-    monster_info->effect = static_cast<char>(magnitude);
+    monster_info->charm_strength = static_cast<char>(magnitude);
     if (g_settings.verbose_combat_messages != 0) {
         PostMonsterNotice(monster_info, gppStringList[0x1ac]);
     } else {

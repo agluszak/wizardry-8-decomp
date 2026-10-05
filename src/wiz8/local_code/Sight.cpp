@@ -328,20 +328,18 @@ bool MonsterGroupHasVisibleThreat(W8MonsterGroup* group)
     return false;
 }
 
-/* Which of the two adjacent visibility entries the first lighting condition
-   selects. */
+/* Whether projectile visibility uses the separate launch origin. */
 // FUNCTION: WIZ8 0x00505e60
-bool GetSightCondition37A(const W8MonsterInfo* monster)
+bool MonsterHasProjectileOrigin(const W8MonsterInfo* monster)
 {
-    return monster->has_missile != 0;
+    return monster->has_projectile_origin != 0;
 }
 
-/* The second condition, answered as the entry index it picks rather than as a
-   flag - two or three. */
+/* Spell visibility occupies entry two or three, depending on launch origin. */
 // FUNCTION: WIZ8 0x00505e80
-char GetSightCondition37CIndex(const W8MonsterInfo* monster)
+char GetMonsterSpellSightIndex(const W8MonsterInfo* monster)
 {
-    return (monster->has_spell != 0) + 2;
+    return (monster->has_spell_origin != 0) + 2;
 }
 
 /* Read one flag out of a visibility record. Two of the seven kinds are pairs
@@ -363,9 +361,9 @@ bool IsVisibleUnderConditions(const W8MonsterInfo* monster, const W8VisibilityRe
     case 3:
         return row->los_flags[2];
     case 4:
-        return row->los_flags[monster->has_missile != 0];
+        return row->los_flags[monster->has_projectile_origin != 0];
     case 5:
-        return row->los_flags[2 + (monster->has_spell != 0)];
+        return row->los_flags[2 + (monster->has_spell_origin != 0)];
     default:
         return row->line_of_sight;
     }
@@ -566,7 +564,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, bool direction,
                     } else {
                         monster->GetMonsterSightFlags(other->p3D, entry->los_flags,
                                                       entry->los_flags + 2);
-                        if (monster_info->has_missile != 0) {
+                        if (monster_info->has_projectile_origin != 0) {
                             unsigned char found = monster->GetProjectilePosition(&trace_position);
                             bool clear;
 
@@ -582,7 +580,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, bool direction,
                             }
                             entry->los_flags[1] = clear;
                         }
-                        if (monster_info->has_spell != 0) {
+                        if (monster_info->has_spell_origin != 0) {
                             unsigned char found = monster->GetSpellPosition(&trace_position);
 
                             if (found == 0) {
@@ -691,7 +689,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, bool direction,
     } else {
         monster->GetPlayerSightFlags(monster_info->player_visibility.los_flags,
                                      monster_info->player_visibility.los_flags + 2);
-        if (monster_info->has_missile != 0) {
+        if (monster_info->has_projectile_origin != 0) {
             unsigned char found = monster->GetProjectilePosition(&trace_position);
             bool clear;
 
@@ -706,7 +704,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, bool direction,
             }
             monster_info->player_visibility.los_flags[1] = clear;
         }
-        if (monster_info->has_spell != 0) {
+        if (monster_info->has_spell_origin != 0) {
             unsigned char found = monster->GetSpellPosition(&trace_position);
 
             if (found == 0) {

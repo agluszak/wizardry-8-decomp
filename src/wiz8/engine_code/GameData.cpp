@@ -660,7 +660,7 @@ W8GDSurface* W8GameData::ProbePropsAlongMotion(srVector3T<float>* direction,
         octree->CollectObjectsAlongSegment(&objects, position, direction, 504.0f, 8));
     for (index = 0; index < count; ++index) {
         prop = *g_world->collidable_props->GetAt(objects[index]);
-        if (prop->GetSetting6C() != 0) {
+        if (prop->GetActivationState() != 0) {
             gd_prop = prop->m_gd_prop;
             prop->flags |= 0x10;
             if (gd_prop == 0) {

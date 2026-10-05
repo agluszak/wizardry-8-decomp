@@ -439,11 +439,11 @@ struct W8MonsterInfo {
     /* 0x2da: summon marker - 0 ordinary, 1 friendly summon, 2 hostile summon;
        nonzero raises the summoned spell icon and feeds the slain cleanup. */
     int summoned;
-    /* 0x2de: the monster is under the effect the magic code clears by name;
-       clearing it posts a notice and drops the visual. The NPC price-check
+    /* 0x2de: signed charm strength; clearing it posts a notice and drops the
+       charmed icon. The NPC price-check
        dispatch reads it signed (MOVSX) as a percentage discount on the quoted
        price. */
-    signed char effect;
+    signed char charm_strength;
     /* 0x2df: the committed attack already launched its missile; asserted by
        ContinueMonsterAttack when an out-of-range attack reports no release. */
     bool fMissileReleased;
@@ -482,9 +482,9 @@ struct W8MonsterInfo {
     int insanity_summon;
     W8VisibilityRecord player_visibility; /* 0x348 */
     unsigned char unknown_379;
-    bool has_missile;
+    bool has_projectile_origin;
     unsigned char unknown_37b;
-    bool has_spell;
+    bool has_spell_origin;
     unsigned char unknown_37d[0xa8];
 }; /* 0x425 */
 #pragma pack(pop)
