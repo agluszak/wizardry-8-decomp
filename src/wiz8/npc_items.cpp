@@ -592,7 +592,7 @@ unsigned char SellItemToNpc(W8NpcState* npc, W8ItemInstance* item, unsigned char
         if (NpcAcceptsTradeItemClass(npc, item)) {
             ReplaceOrCreateItem(&stack, item->iItemNo, false, item->identified, false);
             stack.stack_count = quantity;
-            amount = CalculateTradeStackPrice(npc, &stack, 0);
+            amount = CalculateTradeStackPrice(npc, &stack, W8_TRADE_PRICE_PARTY_SELLS);
             if (!suppress_payment) {
                 AddPartyGold(amount, false);
             }
@@ -757,13 +757,13 @@ bool NpcAcceptsTradeItem(W8NpcState* npc, W8ItemInstance* item)
 }
 
 // FUNCTION: WIZ8 0x0055b5a0
-int CalculateNpcTradeStackPrice(W8NpcState* npc, int item_id, int mode, unsigned char stack_count,
-                                bool identified)
+int CalculateNpcTradeStackPrice(W8NpcState* npc, int item_id, W8TradePriceKind price_kind,
+                                unsigned char stack_count, bool identified)
 {
     W8ItemInstance item;
     ReplaceOrCreateItem(&item, item_id, false, identified, false);
     item.stack_count = stack_count;
-    return CalculateTradeStackPrice(npc, &item, mode);
+    return CalculateTradeStackPrice(npc, &item, price_kind);
 }
 
 /* The bargained price of one offered stack: the party's best communication
@@ -774,7 +774,7 @@ int CalculateNpcTradeStackPrice(W8NpcState* npc, int item_id, int mode, unsigned
    the count, everything else prices the whole stack value, unidentified
    merchandise goes at quarter price, and no stack settles below 1. */
 // FUNCTION: WIZ8 0x0055b5e0
-int CalculateTradeStackPrice(W8NpcState* npc, W8ItemInstance* item, char mode)
+int CalculateTradeStackPrice(W8NpcState* npc, W8ItemInstance* item, char price_kind)
 {
     int stack_value = GetItemStackValue(item);
     unsigned int skill = GetBestPartySkillLevel(W8_SKILL_COMMUNICATION, 0);
@@ -784,7 +784,7 @@ int CalculateTradeStackPrice(W8NpcState* npc, W8ItemInstance* item, char mode)
         scale *= 0.5f;
     }
     float price;
-    if (mode != 0) {
+    if (price_kind != W8_TRADE_PRICE_PARTY_SELLS) {
         price = record->sell_price_factor - scale;
     } else {
         price = record->buy_price_factor + scale;
@@ -857,7 +857,7 @@ bool CompleteNpcItemPurchase(W8NpcState* npc, int index, unsigned char quantity,
             }
             ReplaceOrCreateItem(&stack, entry->item.iItemNo, false, true, false);
             stack.stack_count = moved;
-            price = CalculateTradeStackPrice(npc, &stack, 1);
+            price = CalculateTradeStackPrice(npc, &stack, W8_TRADE_PRICE_PARTY_BUYS);
             SoundPlay(g_sound_cash_transaction, 0);
             if (ConsumeNpcItemQuantity(npc, index, moved) == 0) {
                 return false;

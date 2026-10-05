@@ -561,7 +561,7 @@ void BeginNpcDialogueInternal(W8NpcState* npc, W8ItemInstance* item, int quote, 
         return;
     }
     if (npc->record->monster_bound == 0 && npc->record->voice_script == 0) {
-        if (GetNpcDispositionBand(npc) == 2 && npc->record->merchant == 0) {
+        if (GetNpcDispositionBand(npc) == W8_NPC_BAND_HOSTILE && npc->record->merchant == 0) {
             QueueNpcScriptLine(0x18, false, false, false);
             return;
         }
@@ -746,7 +746,8 @@ unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item, bool f
             default:
                 break;
             }
-            if (GetNpcDispositionBand(g_npc_interaction_state->dialogue_npc) == 0) {
+            if (GetNpcDispositionBand(g_npc_interaction_state->dialogue_npc) ==
+                W8_NPC_BAND_FRIENDLY) {
                 OpenNpcDialogueTranscriptLayout();
             } else {
                 ShowNpcDialogueTopicMenu();
@@ -765,10 +766,10 @@ unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item, bool f
                 GetFact(W8_FACT_ALIGNMENT_UMPANI) == 0) {
                 SetFact(W8_FACT_TRANG_YOU_ARE_BUSTED, 0, false);
             }
-            if (band == 0) {
+            if (band == W8_NPC_BAND_FRIENDLY) {
                 HandleNpcDialogueDeparture(1);
                 OpenNpcDialogueTranscriptLayout();
-            } else if (band == 1) {
+            } else if (band == W8_NPC_BAND_NEUTRAL) {
                 QueueNpcScriptLine(2, false, false, false);
                 ShowNpcDialogueTopicMenu();
             }
@@ -1849,17 +1850,19 @@ void UpdateNpcTradeSelection(int index, int increment, int commit)
         static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_37])->m_textBuffer.SetGeometryDirty();
         switch (g_npc_interaction_state->trade_mode) {
         case W8_NPC_TRADE_BUY:
-            if (g_status.party_gold < static_cast<unsigned int>(CalculateNpcTradeStackPrice(
-                                          g_npc_interaction_state->dialogue_npc,
-                                          g_npc_interaction_state->trade_item->iItemNo, 1,
-                                          g_npc_interaction_state->trade_quantity,
-                                          g_npc_interaction_state->trade_item->identified))) {
+            if (g_status.party_gold <
+                static_cast<unsigned int>(CalculateNpcTradeStackPrice(
+                    g_npc_interaction_state->dialogue_npc,
+                    g_npc_interaction_state->trade_item->iItemNo, W8_TRADE_PRICE_PARTY_BUYS,
+                    g_npc_interaction_state->trade_quantity,
+                    g_npc_interaction_state->trade_item->identified))) {
                 static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_37])->m_textBuffer.SetFontStateIndex(0);
                 static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_37])->m_textBuffer.SetGeometryDirty();
             }
             swprintf(price_text, L"%dg",
                      CalculateNpcTradeStackPrice(g_npc_interaction_state->dialogue_npc,
-                                                 g_npc_interaction_state->trade_item->iItemNo, 1,
+                                                 g_npc_interaction_state->trade_item->iItemNo,
+                                                 W8_TRADE_PRICE_PARTY_BUYS,
                                                  g_npc_interaction_state->trade_quantity,
                                                  g_npc_interaction_state->trade_item->identified));
             break;
@@ -1872,7 +1875,7 @@ void UpdateNpcTradeSelection(int index, int increment, int commit)
             }
             int price = CalculateNpcTradeStackPrice(
                 g_npc_interaction_state->dialogue_npc, g_npc_interaction_state->trade_item->iItemNo,
-                0, g_npc_interaction_state->trade_quantity,
+                W8_TRADE_PRICE_PARTY_SELLS, g_npc_interaction_state->trade_quantity,
                 g_npc_interaction_state->trade_item->identified);
             if (wants_item) {
                 swprintf(price_text, L"%dg", price);
@@ -1991,7 +1994,7 @@ void SwitchNpcDialogueLayout(int interact_id)
 void LeaveNpcDialogueLayout(void)
 {
     if (!g_npc_interaction_state->modal_dialog_open) {
-        if (GetNpcDispositionBand(g_npc_interaction_state->dialogue_npc) == 0) {
+        if (GetNpcDispositionBand(g_npc_interaction_state->dialogue_npc) == W8_NPC_BAND_FRIENDLY) {
             g_npc_interaction_state->suppress_parting_reaction = false;
             g_npc_interaction_state->farewell_queued = true;
             QueueNpcScriptLine(0x5c, false, false, false);
@@ -2017,7 +2020,7 @@ void PromptNpcDispositionChange(void)
 void OnNpcDispositionPromptClosed(W8DialogBase* dialog)
 {
     if (GetDialogResult(dialog)) {
-        SetNpcDispositionBand(g_npc_interaction_state->dialogue_npc, 2);
+        SetNpcDispositionBand(g_npc_interaction_state->dialogue_npc, W8_NPC_BAND_HOSTILE);
         QueueNpcScriptLine(0x18, false, false, false);
         QueueNpcMessageLine(W8_NPC_MSG_CLOSE_RESUME_NPC, 0);
     }
@@ -2126,16 +2129,16 @@ void SelectNpcDialogueService(void)
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_1])
         ->SetEnabled(false);
     band = GetNpcDispositionBand(g_npc_interaction_state->dialogue_npc);
-    if (band == 0) {
+    if (band == W8_NPC_BAND_FRIENDLY) {
         QueueNpcScriptLine(4, false, false, false);
         QueueNpcMessageLine(W8_NPC_MSG_REOPEN_TRANSCRIPT, 0);
         return;
     }
-    if (band == 1) {
+    if (band == W8_NPC_BAND_NEUTRAL) {
         QueueNpcScriptLine(6, false, false, false);
         return;
     }
-    SetNpcDispositionBand(g_npc_interaction_state->dialogue_npc, 2);
+    SetNpcDispositionBand(g_npc_interaction_state->dialogue_npc, W8_NPC_BAND_HOSTILE);
     QueueNpcScriptLine(0x18, false, false, false);
     QueueNpcMessageLine(W8_NPC_MSG_CLOSE_RESUME_NPC, 0);
 }
@@ -2153,16 +2156,16 @@ void SelectNpcDialogueTalk(void)
     static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_2])
         ->SetEnabled(false);
     band = GetNpcDispositionBand(g_npc_interaction_state->dialogue_npc);
-    if (band == 0) {
+    if (band == W8_NPC_BAND_FRIENDLY) {
         HandleNpcDialogueDeparture(0);
         OpenNpcDialogueTranscriptLayout();
         return;
     }
-    if (band == 1) {
+    if (band == W8_NPC_BAND_NEUTRAL) {
         QueueNpcScriptLine(3, false, false, false);
         return;
     }
-    SetNpcDispositionBand(g_npc_interaction_state->dialogue_npc, 2);
+    SetNpcDispositionBand(g_npc_interaction_state->dialogue_npc, W8_NPC_BAND_HOSTILE);
     QueueNpcScriptLine(0x18, false, false, false);
     QueueNpcMessageLine(W8_NPC_MSG_CLOSE_RESUME_NPC, 0);
 }
@@ -3023,7 +3026,7 @@ void OpenNpcGoldAmountDialog(void)
 // FUNCTION: WIZ8 0x00572870
 void OnNpcTradeSplitDialogDestroy(W8DialogBase* dialog)
 {
-    if (static_cast<W8SplitAmountDialog*>(dialog)->m_result != g_split_dialog_confirm) {
+    if (static_cast<W8SplitAmountDialog*>(dialog)->m_result != g_amount_split_confirm_result) {
         return;
     }
     g_npc_interaction_state->trade_gold = static_cast<W8SplitAmountDialog*>(dialog)->m_taken;
@@ -4292,7 +4295,7 @@ void OnNpcTradeDialogClosed(W8DialogBase* dialog)
     }
     ConfirmNpcTradePurchase();
     CloseActiveNpcDialogueLayout();
-    if (GetNpcDispositionBand(g_npc_interaction_state->dialogue_npc) == 0) {
+    if (GetNpcDispositionBand(g_npc_interaction_state->dialogue_npc) == W8_NPC_BAND_FRIENDLY) {
         OpenNpcDialogueTranscriptLayout();
     } else {
         ShowNpcDialogueTopicMenu();
@@ -4302,7 +4305,7 @@ void OnNpcTradeDialogClosed(W8DialogBase* dialog)
 // FUNCTION: WIZ8 0x00575710
 void ConfirmNpcTradePurchase(void)
 {
-    if (GetNpcDispositionBand(g_npc_interaction_state->dialogue_npc) == 0) {
+    if (GetNpcDispositionBand(g_npc_interaction_state->dialogue_npc) == W8_NPC_BAND_FRIENDLY) {
         SpendPartyGold(g_npc_interaction_state->trade_gold);
         static_cast<W8TextControl*>(
             g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])
@@ -4318,8 +4321,10 @@ void ConfirmNpcTradePurchase(void)
         static_cast<W8TextControl*>(
             g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_TEXT_24])
             ->Invalidate(true);
-        QueueNpcScriptLine(GetNpcDispositionBand(g_npc_interaction_state->dialogue_npc) == 0 ? 0x10
-                                                                                             : 7,
+        QueueNpcScriptLine(GetNpcDispositionBand(g_npc_interaction_state->dialogue_npc) ==
+                                   W8_NPC_BAND_FRIENDLY
+                               ? 0x10
+                               : 7,
                            false, false, false);
         RebuildNpcTradeItemList(false);
         return;
@@ -4350,7 +4355,7 @@ unsigned char HandleNpcDialogueItem(W8ItemInstance* item)
         OpenModal(dialog);
         return 1;
     }
-    if (GetNpcDispositionBand(g_npc_interaction_state->dialogue_npc) == 0 ||
+    if (GetNpcDispositionBand(g_npc_interaction_state->dialogue_npc) == W8_NPC_BAND_FRIENDLY ||
         g_npc_interaction_state->dialogue_npc->record->voice_script != 0) {
         if (item != 0) {
             fact_result = FindNpcScriptItemQuote(item->iItemNo, 0, &flag);
@@ -4394,9 +4399,11 @@ unsigned char HandleNpcDialogueItem(W8ItemInstance* item)
             if (fact_result == -1) {
                 ApplyNpcInteraction(g_npc_interaction_state->dialogue_npc, 3,
                                     g_npc_interaction_state->dialogue_speaker, item, 0);
-                QueueNpcScriptLine(
-                    GetNpcDispositionBand(g_npc_interaction_state->dialogue_npc) == 0 ? 0x10 : 7,
-                    false, false, false);
+                QueueNpcScriptLine(GetNpcDispositionBand(g_npc_interaction_state->dialogue_npc) ==
+                                           W8_NPC_BAND_FRIENDLY
+                                       ? 0x10
+                                       : 7,
+                                   false, false, false);
             } else {
                 QueueNpcScriptLine(fact_result, false, false, false);
                 result = false;
@@ -4441,7 +4448,7 @@ void HandleNpcDialogueItemChoice(void)
 {
     HandleNpcDialogueItem(g_npc_interaction_state->trade_item);
     if (g_npc_interaction_state->reopen_topics &&
-        GetNpcDispositionBand(g_npc_interaction_state->dialogue_npc) == 0) {
+        GetNpcDispositionBand(g_npc_interaction_state->dialogue_npc) == W8_NPC_BAND_FRIENDLY) {
         CloseNpcDialogueOptionLayout();
         OpenNpcDialogueTranscriptLayout();
         HandleNpcDialogueDeparture(0);
@@ -4891,7 +4898,7 @@ void ResolveNpcPickpocket(int party_slot)
     int slot;
 
     switch (AttemptNpcPickpocket(character, g_npc_interaction_state->dialogue_npc, &item, &gold)) {
-    case 0:
+    case W8_PICKPOCKET_ITEM_TAKEN:
         swprintf(text, gppStringList[0x74d], character->name, GetItemDisplayName(&item));
         for (slot = 0; slot < 8; ++slot) {
             if (character->backpack[slot].iItemNo == -1) {
@@ -4903,23 +4910,23 @@ void ResolveNpcPickpocket(int party_slot)
         AddItemToParty(&item, 0, false);
         DisplayNpcQuote(text, true);
         return;
-    case 1:
+    case W8_PICKPOCKET_GOLD_TAKEN:
         swprintf(text, gppStringList[0x74e], character->name, gold);
         AddPartyGold(gold, false);
         DisplayNpcQuote(text, true);
         return;
-    case 2:
+    case W8_PICKPOCKET_FAILED:
         swprintf(text, gppStringList[0x74f], character->name);
         DisplayNpcQuote(text, false);
         return;
-    case 3:
+    case W8_PICKPOCKET_CAUGHT:
         QueueNpcScriptLine(0x17, false, false, false);
-        SetNpcDispositionBand(g_npc_interaction_state->dialogue_npc, 1);
+        SetNpcDispositionBand(g_npc_interaction_state->dialogue_npc, W8_NPC_BAND_NEUTRAL);
         ApplyFactionChange(3, 1, g_npc_interaction_state->dialogue_npc->record->faction, -5);
         CloseNpcDialogueTranscriptLayout();
         ShowNpcDialogueTopicMenu();
         return;
-    case 4:
+    case W8_PICKPOCKET_EMPTY:
         DisplayNpcQuote(gppStringList[0x750], false);
         return;
     default:

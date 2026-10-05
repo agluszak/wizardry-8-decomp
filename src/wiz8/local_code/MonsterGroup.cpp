@@ -219,12 +219,12 @@ static unsigned char MonsterGroupCalcDefaultDisposition(W8MonsterGroup* monster_
                                       monster_group->monster_id, record));
         } else {
             switch (GetNpcDispositionBand(npc_record)) {
-            case 0:
+            case W8_NPC_BAND_FRIENDLY:
                 disposition = W8_DISPOSITION_FRIENDLY;
                 break;
-            case 1:
+            case W8_NPC_BAND_NEUTRAL:
                 break;
-            case 2:
+            case W8_NPC_BAND_HOSTILE:
                 disposition = W8_DISPOSITION_HOSTILE;
                 break;
             default:

@@ -1,4 +1,5 @@
 #include "wiz8/integer_constants.h"
+#include "wiz8/dialog_code/DialogFactoryDialogs.h"
 
 /* Definitions for integer_constants.h: this unit reads none of them, so no
    user sees an initializer. */
@@ -259,7 +260,7 @@ const int g_info_dialog_y = 0x61;
 /* The split-amount dialog's confirm code and its default origin; only the
    0x572780/0x572870 pair reads them. */
 // GLOBAL: WIZ8 0x005EF9D4
-const int g_split_dialog_confirm = 1;
+const W8SplitDialogResult g_amount_split_confirm_result = W8_SPLIT_RESULT_CONFIRMED;
 
 // GLOBAL: WIZ8 0x005EF9DC
 const int g_split_dialog_origin_x = 0x9f;
@@ -268,7 +269,7 @@ const int g_split_dialog_origin_x = 0x9f;
 const int g_split_dialog_origin_y = 0xb8;
 
 // GLOBAL: WIZ8 0x005EFB44
-const int g_split_result_kind = 1;
+const W8SplitDialogResult g_item_split_confirm_result = W8_SPLIT_RESULT_CONFIRMED;
 
 // GLOBAL: WIZ8 0x005EFB4C
 const int g_split_dialog_x = 0xa1;
@@ -277,12 +278,12 @@ const int g_split_dialog_x = 0xa1;
 const int g_split_dialog_y = 0x94;
 
 // GLOBAL: WIZ8 0x005EFB64
-const int g_split_dialog_kind = 0;
+const W8ItemSplitMode g_item_split_inventory_mode = W8_ITEM_SPLIT_INVENTORY;
 
 /* The trade-mode split-dialog kinds OpenNpcTradeQuantityDialog selects:
-   1 while the party sells to the NPC, 2 while buying or identifying. */
+   1 while the party sells to the NPC, 2 while buying or shoplifting. */
 // GLOBAL: WIZ8 0x005EFB68
-const int g_split_dialog_sell_kind = 1;
+const W8ItemSplitMode g_item_split_sell_mode = W8_ITEM_SPLIT_SELL;
 
 // GLOBAL: WIZ8 0x005EFB6C
-const int g_split_dialog_buy_kind = 2;
+const W8ItemSplitMode g_item_split_buy_mode = W8_ITEM_SPLIT_BUY;

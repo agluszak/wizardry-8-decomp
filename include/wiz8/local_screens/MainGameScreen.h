@@ -539,7 +539,15 @@ extern bool g_formation_panel_shown;
 extern bool g_mouselook_active;
 extern bool g_mouselook_left_held;
 extern bool g_node_cull_pending;
-extern int g_main_game_mode;
+enum W8MainGameMode {
+    W8_MAIN_GAME_DEFAULT = 0,
+    W8_MAIN_GAME_NPC_DIALOGUE = 3,
+    W8_MAIN_GAME_PORTRAIT_REFRESH = 4,
+    W8_MAIN_GAME_MODAL = 5,
+    W8_MAIN_GAME_HIGHLIGHT_OVERLAY = 6
+};
+
+extern W8MainGameMode g_main_game_mode;
 extern int g_selected_party_slot;
 int GetSelectedPartySlot(void); /* 0x00593320 */
 void RequestLevelTransition(int level, int entry, unsigned char flag);
@@ -609,7 +617,7 @@ unsigned char WorldViewRegionEvent(const InputAtom* event,
 /* Help 36: combat monster-list hit rows beside the radar map. */
 unsigned char MonsterListRegionEvent(const InputAtom* event,
                                      struct W8Region* region); /* 0x00568100 */
-void SetMainGameMode(int mode);                                /* 0x00568390 */
+void SetMainGameMode(W8MainGameMode mode);                     /* 0x00568390 */
 void SetFormationBoardVisible(bool visible);                   /* 0x00569390 */
 void ToggleMainGamePause(void);                                /* 0x0056ABE0 */
 /* The numbered action-key space IsMGSActionKeyEnabled, RunMGSActionKey and

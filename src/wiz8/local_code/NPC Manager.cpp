@@ -165,7 +165,7 @@ unsigned char GetNpcDispositionBand(W8NpcState* npc)
     char disposition = GetNpcDisposition(npc);
 
     if (disposition < W8_NPC_DISPOSITION_HOSTILE) {
-        return 2;
+        return W8_NPC_BAND_HOSTILE;
     }
     return disposition < W8_NPC_DISPOSITION_FRIENDLY;
 }
@@ -704,18 +704,18 @@ void SetNpcDispositionBand(W8NpcState* npc, char band)
     GetNpcDisposition(npc);
     current = GetNpcDisposition(npc);
     if (current < W8_NPC_DISPOSITION_HOSTILE) {
-        current = 2;
+        current = W8_NPC_BAND_HOSTILE;
     } else {
         current = current < W8_NPC_DISPOSITION_FRIENDLY;
     }
     if (current == band) {
         return;
     }
-    if (band == 2) {
+    if (band == W8_NPC_BAND_HOSTILE) {
         npc->disposition = 0x19;
         return;
     }
-    npc->disposition = band == 1 ? 0x32 : 0x4b;
+    npc->disposition = band == W8_NPC_BAND_NEUTRAL ? 0x32 : 0x4b;
 }
 
 /* Resume (or leave hostile) the NPC after its scripted pause: clamp the
@@ -1973,8 +1973,8 @@ static void SeedNpcTheftRoll(W8Character* character, W8NpcState* npc)
    suspicion, then either the purse or a random eligible item is scored.
    Results: 0 item taken, 1 gold taken, 2 refused, 3 caught, 4 nothing left. */
 // FUNCTION: WIZ8 0x0050BC90
-int AttemptNpcPickpocket(W8Character* character, W8NpcState* npc, W8ItemInstance* item_out,
-                         unsigned int* gold_out)
+W8NpcPickpocketResult AttemptNpcPickpocket(W8Character* character, W8NpcState* npc,
+                                           W8ItemInstance* item_out, unsigned int* gold_out)
 {
     bool empty_pick = false;
     W8GrowableVector<int> candidates;
@@ -2003,10 +2003,10 @@ int AttemptNpcPickpocket(W8Character* character, W8NpcState* npc, W8ItemInstance
     }
     char roll = static_cast<char>(Random(100));
     if (roll > '_' || score * 2 < roll) {
-        return 3;
+        return W8_PICKPOCKET_CAUGHT;
     }
     if (score <= roll) {
-        return 2;
+        return W8_PICKPOCKET_FAILED;
     }
     if (empty_pick) {
         if (npc->gold != 0) {
@@ -2020,12 +2020,12 @@ int AttemptNpcPickpocket(W8Character* character, W8NpcState* npc, W8ItemInstance
                 npc->gold = 0;
             }
             *gold_out = taken;
-            return 1;
+            return W8_PICKPOCKET_GOLD_TAKEN;
         }
         if (candidates.count == 0) {
-            return 4;
+            return W8_PICKPOCKET_EMPTY;
         }
-        return 2;
+        return W8_PICKPOCKET_FAILED;
     }
     if (npc == 0) {
         srAssertFail("pNPC", NPC_MANAGER_CPP, 0x7a4, 0);
@@ -2038,7 +2038,7 @@ int AttemptNpcPickpocket(W8Character* character, W8NpcState* npc, W8ItemInstance
         npc->item_ids[picked & 0xff] = -1;
         PracticeCharacterSkill(character, W8_SKILL_PICKPOCKET, 5, false);
     }
-    return 0;
+    return W8_PICKPOCKET_ITEM_TAKEN;
 }
 
 /* The trade-screen steal of one offered item, scored by the same pickpocket
@@ -2055,11 +2055,11 @@ char AttemptNpcItemTheft(W8Character* character, W8NpcState* npc, int item_id, i
     if (roll < '`' && roll <= score * 2) {
         if (roll < score) {
             PracticeCharacterSkill(character, W8_SKILL_PICKPOCKET, 5, false);
-            return 0;
+            return W8_ITEM_THEFT_SUCCEEDED;
         }
-        return 1;
+        return W8_ITEM_THEFT_FAILED;
     }
-    return 2;
+    return W8_ITEM_THEFT_CAUGHT;
 }
 
 // GLOBAL: WIZ8 0x005EC29C
