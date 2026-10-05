@@ -581,7 +581,8 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
 
                     if (mesh.dig[pass] != 0) {
                         pipeline->current_record->colors = mesh.dig[pass];
-                        pipeline->current_record->color_format = 1;
+                        pipeline->current_record->color_format =
+                            srVertexPipe::Record::ColorSource::FORMAT_VECTOR3;
                         pipeline->current_record->flags |= srVertexPipe::Record::HAS_COLORS;
                     }
                     if (mesh.dcg[pass] != 0) {

@@ -455,7 +455,7 @@ unsigned long srHuffman::Decompressor::decompressSymbol()
     while (node->children[0] != 0) {
         node = node->children[stream->getBit()];
     }
-    return node->value_00;
+    return node->symbol;
 }
 
 // FUNCTION: SURRENDER 0x10002630
@@ -466,13 +466,13 @@ void srHuffman::Decompressor::setupSymbolTable(Symbol* node)
         if (stream->get(1) != 0) {
             break;
         }
-        node->value_00 = 0xffffffff;
+        node->symbol = 0xffffffff;
         node->children[0] = &symbols[next_node];
         setupSymbolTable(node->children[0]);
         node->children[1] = &symbols[next_node];
         node = node->children[1];
     }
-    node->value_00 = stream->get(code_width);
+    node->symbol = stream->get(code_width);
     node->children[0] = 0;
     node->children[1] = 0;
 }

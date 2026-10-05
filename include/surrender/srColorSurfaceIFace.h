@@ -30,6 +30,8 @@ public:
         Rectangle source;
     };
 
+    enum { CLAMP_HORIZONTAL = 0x01u, CLAMP_VERTICAL = 0x02u };
+
     struct SurfaceDesc {
         unsigned long width;
         unsigned long height;

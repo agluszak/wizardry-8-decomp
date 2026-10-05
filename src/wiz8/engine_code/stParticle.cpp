@@ -982,7 +982,7 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
 
     if (colors != 0) {
         pipeline->current_record->colors = colors;
-        pipeline->current_record->color_format = 1;
+        pipeline->current_record->color_format = srVertexPipe::Record::ColorSource::FORMAT_VECTOR3;
         pipeline->current_record->flags |= srVertexPipe::Record::HAS_COLORS;
     }
     if (alphas != 0) {

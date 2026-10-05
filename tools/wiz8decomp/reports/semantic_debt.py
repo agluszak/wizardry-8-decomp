@@ -37,7 +37,7 @@ _SOURCE_SHAPING_PATTERNS = (
         ),
     ),
 )
-_SOURCE_SHAPING_ROOTS = {
+_SOURCE_ROOTS = {
     "WIZ8": ("src/wiz8", "include/wiz8"),
     "SURRENDER": ("src/surrender", "include/surrender"),
 }
@@ -47,7 +47,7 @@ def _source_shaping_directives(repository: Path, target: str) -> list[dict[str, 
     """Return compiler controls that may encode codegen instead of authored design."""
 
     rows: list[dict[str, Any]] = []
-    for root_name in _SOURCE_SHAPING_ROOTS.get(target.upper(), ()):
+    for root_name in _SOURCE_ROOTS.get(target.upper(), ()):
         root = repository / root_name
         if not root.is_dir():
             continue
@@ -78,13 +78,12 @@ def _source_shaping_directives(repository: Path, target: str) -> list[dict[str, 
     return rows
 
 
-_WIZ8_ROOTS = ("include/wiz8", "src/wiz8")
 _COMMENT = re.compile(r"/\*.*?\*/|//[^\n]*", re.DOTALL)
 _STRING = re.compile(r'"(?:\\.|[^"\\\n])*"')
 _IDENTIFIER = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
 _ADDRESS_STORAGE = re.compile(r"(?:^|_)(?:0x)?[0-9A-Fa-f]{5,8}$")
 _OFFSET_STORAGE = re.compile(
-    r"^(?:m_)?(?:field|offset|off|dword|word|byte|flag|float|ptr)_[0-9A-Fa-f]{1,4}$"
+    r"^(?:m_)?(?:field|offset|off|dword|word|byte|flag|float|ptr|value)_[0-9A-Fa-f]{1,4}$"
 )
 _UNKNOWN_STORAGE = re.compile(r"^(?:m_)?(?:unknown|unk)_[0-9A-Fa-f]+")
 _PADDING_STORAGE = re.compile(r"^(?:m_)?(?:padding|pad)_[0-9A-Fa-f]+")
@@ -94,9 +93,9 @@ _INITIALIZER = r"[:,]\s*"
 _CAST_ESCAPES = ("reinterpret-ok", "c-style-cast-ok")
 
 
-def _wiz8_sources(repository: Path) -> dict[str, str]:
+def _target_sources(repository: Path, target: str) -> dict[str, str]:
     sources: dict[str, str] = {}
-    for root_name in _WIZ8_ROOTS:
+    for root_name in _SOURCE_ROOTS.get(target.upper(), ()):
         root = repository / root_name
         if not root.is_dir():
             continue
@@ -120,7 +119,7 @@ def _code_only(text: str) -> str:
 
 
 class _Usage:
-    """Name-level identifier occurrences in comment-free WIZ8 source.
+    """Name-level identifier occurrences in comment-free selected-product source.
 
     Occurrence counts are by spelling: distinct records sharing one member
     name are aggregated, so counts bound rather than attribute usage."""
@@ -163,11 +162,13 @@ def _storage_kind(name: str) -> str | None:
     return None
 
 
-def _wiz8_path(path: str) -> bool:
-    return path.startswith(tuple(f"{root}/" for root in _WIZ8_ROOTS))
+def _target_path(path: str, target: str) -> bool:
+    return path.startswith(tuple(f"{root}/" for root in _SOURCE_ROOTS.get(target.upper(), ())))
 
 
-def _storage_debt(index: dict[str, Any], usage: _Usage) -> dict[str, list[dict[str, Any]]]:
+def _storage_debt(
+    index: dict[str, Any], usage: _Usage, target: str = "WIZ8"
+) -> dict[str, list[dict[str, Any]]]:
     """Globals and members whose identifiers still encode address/offset/unknown."""
 
     globals_by_name: dict[str, dict[str, Any]] = {}
@@ -175,9 +176,9 @@ def _storage_debt(index: dict[str, Any], usage: _Usage) -> dict[str, list[dict[s
         name = str(variable.get("qualified_name") or "")
         path = str(variable.get("source_file") or "")
         kind = _storage_kind(name)
-        if variable.get("target") != "WIZ8" or "::" in name or kind is None:
+        if variable.get("target") != target.upper() or "::" in name or kind is None:
             continue
-        if not _wiz8_path(path):
+        if not _target_path(path, target):
             continue
         row = globals_by_name.setdefault(
             name,
@@ -201,7 +202,7 @@ def _storage_debt(index: dict[str, Any], usage: _Usage) -> dict[str, list[dict[s
             name = str(field.get("name") or "")
             path = str(field.get("source_file") or "")
             kind = _storage_kind(name)
-            if kind is None or not _wiz8_path(path):
+            if kind is None or not _target_path(path, target):
                 continue
             row = members.setdefault(name, {"name": name, "kind": kind, "fields": []})
             row["fields"].append(
@@ -238,7 +239,7 @@ def _storage_debt(index: dict[str, Any], usage: _Usage) -> dict[str, list[dict[s
     }
 
 
-def _void_storage(index: dict[str, Any]) -> list[dict[str, Any]]:
+def _void_storage(index: dict[str, Any], target: str = "WIZ8") -> list[dict[str, Any]]:
     """Project-owned members typed ``void*``: candidate typed holes."""
 
     rows: list[dict[str, Any]] = []
@@ -251,7 +252,7 @@ def _void_storage(index: dict[str, Any]) -> list[dict[str, Any]]:
         for field in record.get("fields", []):
             path = str(field.get("source_file") or "")
             spelling = re.sub(r"\s+", "", str(field.get("type") or ""))
-            if not _wiz8_path(path) or not spelling.startswith("void*"):
+            if not _target_path(path, target) or not spelling.startswith("void*"):
                 continue
             rows.append(
                 {
@@ -410,7 +411,7 @@ def _narration_candidates(sources: dict[str, str]) -> list[dict[str, Any]]:
 _DUPLICATE_MIN_FIELDS = 3
 
 
-def _duplicate_layouts(index: dict[str, Any]) -> list[dict[str, Any]]:
+def _duplicate_layouts(index: dict[str, Any], target: str = "WIZ8") -> list[dict[str, Any]]:
     """Distinct repository records with identical field type/offset sequences.
 
     Identical layouts are only candidates: two owners may legitimately share a
@@ -424,7 +425,7 @@ def _duplicate_layouts(index: dict[str, Any]) -> list[dict[str, Any]]:
             continue
         name = str(record.get("qualified_name") or "")
         path = str(fields[0].get("source_file") or "")
-        if "<" in name or not _wiz8_path(path):
+        if "<" in name or not _target_path(path, target):
             continue
         key = tuple((field.get("type"), field.get("offset"), field.get("size")) for field in fields)
         groups.setdefault(key, {})[name] = f"{path}:{fields[0].get('line')}"
@@ -605,7 +606,7 @@ def _adjacent_comment(lines: list[str], line: int) -> str:
 
 
 def _known_semantics_bad_spelling(
-    index: dict[str, Any], sources: dict[str, str], usage: _Usage
+    index: dict[str, Any], sources: dict[str, str], usage: _Usage, target: str = "WIZ8"
 ) -> list[dict[str, Any]]:
     """Placeholder-named storage whose adjacent comment already states a meaning."""
 
@@ -613,11 +614,7 @@ def _known_semantics_bad_spelling(
     candidates: dict[tuple[str, str], dict[str, Any]] = {}
 
     def consider(kind: str, owner: str, name: str, path: str, line: int, type_: Any) -> None:
-        if (
-            not _wiz8_path(path)
-            or _PADDING_STORAGE.match(name)
-            or not _placeholder_identifier(name)
-        ):
+        if path not in sources or _PADDING_STORAGE.match(name) or not _placeholder_identifier(name):
             return
         source_lines = lines.get(path, [])
         if _DISCLAIMED_SEMANTICS.search(_adjacent_comment_text(source_lines, line)):
@@ -638,7 +635,7 @@ def _known_semantics_bad_spelling(
 
     for variable in index.get("variables", []):
         name = str(variable.get("qualified_name") or "")
-        if variable.get("target") == "WIZ8" and "::" not in name:
+        if variable.get("target") == target.upper() and "::" not in name:
             consider(
                 "global",
                 "",
@@ -665,7 +662,9 @@ def _known_semantics_bad_spelling(
     return rows
 
 
-def _external_single_unit_definitions(index: dict[str, Any], usage: _Usage) -> list[dict[str, Any]]:
+def _external_single_unit_definitions(
+    index: dict[str, Any], usage: _Usage, target: str = "WIZ8"
+) -> list[dict[str, Any]]:
     """Externally linked free functions/globals referenced only from their defining file.
 
     Static linkage still needs proof that no import/export, marker-established
@@ -680,7 +679,7 @@ def _external_single_unit_definitions(index: dict[str, Any], usage: _Usage) -> l
     ] + [
         (item, "global")
         for item in index.get("variables", [])
-        if item.get("target") == "WIZ8" and item.get("definition_kind") == "definition"
+        if item.get("target") == target.upper() and item.get("definition_kind") == "definition"
     ]
     for item, kind in entities:
         name = str(item.get("qualified_name") or "")
@@ -689,7 +688,8 @@ def _external_single_unit_definitions(index: dict[str, Any], usage: _Usage) -> l
             "::" in name
             or name in seen
             or item.get("linkage") != "external"
-            or not path.startswith("src/wiz8/")
+            or not _target_path(path, target)
+            or not path.startswith("src/")
         ):
             continue
         files = set(usage.counts.get(name, {}))
@@ -705,7 +705,7 @@ _EMPTY_BODY = re.compile(r"\)\s*(?::[^{;]*)?\{\s*\}")
 
 
 def _empty_special_members(index: dict[str, Any], sources: dict[str, str]) -> list[dict[str, Any]]:
-    """Hand-written empty constructors/destructors in WIZ8 source.
+    """Hand-written empty constructors/destructors in the selected source.
 
     An empty authored body is faithful when a declaration requires it; one that
     only claims an implicit emission belongs in binary emission metadata."""
@@ -716,7 +716,6 @@ def _empty_special_members(index: dict[str, Any], sources: dict[str, str]) -> li
         if (
             item.get("semantic_kind") not in {"constructor", "destructor"}
             or not item.get("is_definition")
-            or not _wiz8_path(path)
             or path not in sources
         ):
             continue
@@ -751,7 +750,7 @@ def _explicit_base_assignments(
         name = str(item.get("qualified_name") or "")
         if not name.endswith("::operator=") or not item.get("is_definition"):
             continue
-        if not _wiz8_path(path) or path not in sources:
+        if path not in sources:
             continue
         start, end = int(item.get("line") or 0), int(item.get("end_line") or 0)
         body = _COMMENT.sub(" ", "\n".join(sources[path].split("\n")[start:end]))
@@ -834,7 +833,9 @@ def _candidate_addresses(text: str) -> set[int]:
     return addresses
 
 
-def _stale_recovery_claims(repository: Path, functions: dict[int, Any]) -> list[dict[str, Any]]:
+def _stale_recovery_claims(
+    repository: Path, functions: dict[int, Any], target: str = "WIZ8"
+) -> list[dict[str, Any]]:
     """Flag prose debt claims whose cited address is a defined FUNCTION.
 
     A claim phrase alone is not flagged: plenty of comments legitimately call
@@ -844,7 +845,7 @@ def _stale_recovery_claims(repository: Path, functions: dict[int, Any]) -> list[
     """
 
     rows: list[dict[str, Any]] = []
-    for root_name in ("include/wiz8", "src/wiz8"):
+    for root_name in _SOURCE_ROOTS.get(target.upper(), ()):
         root = repository / root_name
         for path in sorted(root.rglob("*")):
             if not path.is_file() or path.suffix.casefold() not in _SOURCE_SUFFIXES:
@@ -939,7 +940,9 @@ def semantic_debt_report(
     index = load_source_index(repository)
     units = source_unit_records(repository)
     unmapped_paths = [
-        path for path, record in units.items() if record["mapping"] == UNMAPPED_SOURCE
+        path
+        for path, record in units.items()
+        if record["mapping"] == UNMAPPED_SOURCE and _target_path(path, target)
     ]
     functions = source_functions(repository, target)
     suffixed = [
@@ -980,11 +983,11 @@ def semantic_debt_report(
 
     source_shaping = _source_shaping_directives(repository, target)
     unresolved = _unresolved_functions(index, target)
-    stale = _stale_recovery_claims(repository, functions)
-    sources = _wiz8_sources(repository) if target.upper() == "WIZ8" else {}
+    stale = _stale_recovery_claims(repository, functions, target)
+    sources = _target_sources(repository, target)
     usage = _Usage(sources) if sources else None
     storage = (
-        _storage_debt(index, usage)
+        _storage_debt(index, usage, target)
         if usage
         else {
             "address_named_globals": [],
@@ -992,7 +995,7 @@ def semantic_debt_report(
             "accessed_padding_members": [],
         }
     )
-    void_storage = _void_storage(index) if sources else []
+    void_storage = _void_storage(index, target) if sources else []
     owned_types = {
         str(record.get("qualified_name") or "").rpartition("::")[2]
         for record in index.get("classes", [])
@@ -1000,10 +1003,10 @@ def semantic_debt_report(
     cast_escapes = _cast_escapes(sources, owned_types)
     enum_literals = _enum_literal_arguments(index, sources) if sources else []
     narration = _narration_candidates(sources)
-    duplicate_layouts = _duplicate_layouts(index) if sources else []
+    duplicate_layouts = _duplicate_layouts(index, target) if sources else []
     byte_strides = _byte_strides(sources)
-    bad_spelling = _known_semantics_bad_spelling(index, sources, usage) if usage else []
-    single_unit = _external_single_unit_definitions(index, usage) if usage else []
+    bad_spelling = _known_semantics_bad_spelling(index, sources, usage, target) if usage else []
+    single_unit = _external_single_unit_definitions(index, usage, target) if usage else []
     empty_special = _empty_special_members(index, sources) if sources else []
     base_assignments = _explicit_base_assignments(index, sources) if sources else []
     from .portability import portability_queues

@@ -184,21 +184,21 @@ void srLight::process(const ProcessInfo& info, e_processType type)
     derived_flags = 1;
     channel_mask = 0;
     if (ambient.x != 0.0f || ambient.y != 0.0f || ambient.z != 0.0f) {
-        channel_mask |= 0x200;
+        channel_mask |= (1UL << srVertexProcessor::CHANNEL_LIGHT_AMBIENT);
         scaled_ambient.x = ambient.x * intensity;
         scaled_ambient.y = ambient.y * intensity;
         scaled_ambient.z = ambient.z * intensity;
         scaled_ambient.w = 0.0f;
     }
     if (diffuse.x != 0.0f || diffuse.y != 0.0f || diffuse.z != 0.0f) {
-        channel_mask |= 0x400;
+        channel_mask |= (1UL << srVertexProcessor::CHANNEL_LIGHT_DIFFUSE);
         scaled_diffuse.x = diffuse.x * intensity;
         scaled_diffuse.y = diffuse.y * intensity;
         scaled_diffuse.z = diffuse.z * intensity;
         scaled_diffuse.w = 0.0f;
     }
     if (specular.x != 0.0f || specular.y != 0.0f || specular.z != 0.0f) {
-        channel_mask |= 0x4;
+        channel_mask |= (1UL << srVertexProcessor::CHANNEL_SPECULAR);
         scaled_specular.x = specular.x * intensity;
         scaled_specular.y = specular.y * intensity;
         scaled_specular.z = specular.z * intensity;
@@ -415,19 +415,18 @@ void srLight::process(srVertexPipe& pipe)
             }
         }
         if (need_normals != 0) {
-            if ((scratch->flags & 0x8) == 0) {
+            if ((scratch->flags & srVertexPipe::Scratch::READY_EYE_NORMALS) == 0) {
                 pipe.setupEyeSpaceNormal();
             }
-            srVectorProcessor::dot(dots, scratch->normals + pipe.sub_batch_offset,
-                                   directions, count);
+            srVectorProcessor::dot(dots, scratch->normals + pipe.sub_batch_offset, directions,
+                                   count);
             srVectorProcessor::clampMin(dots, dots, 0.0f, count);
         }
     } else if (need_normals != 0) {
-        if ((scratch->flags & 0x8) == 0) {
+        if ((scratch->flags & srVertexPipe::Scratch::READY_EYE_NORMALS) == 0) {
             pipe.setupEyeSpaceNormal();
         }
-        srVectorProcessor::dot(dots, eye_location,
-                               scratch->normals + pipe.sub_batch_offset, count);
+        srVectorProcessor::dot(dots, eye_location, scratch->normals + pipe.sub_batch_offset, count);
         srVectorProcessor::clampUnit(dots, dots, count);
     }
 
@@ -456,7 +455,7 @@ void srLight::process(srVertexPipe& pipe)
         diffuse.z = scaled_diffuse.z * pipe.material_info.diffuse.z;
         diffuse.w = scaled_diffuse.w * pipe.material_info.diffuse.w;
         srCore.getStatisticsManager()->statistics.diffuse_operations += count;
-        if ((pipe.lazy_setup_mask & 0x2) == 0) {
+        if ((pipe.lazy_setup_mask & (1UL << srVertexProcessor::CHANNEL_DIFFUSE)) == 0) {
             pipe.setupDiffuse();
         }
         srVector4T<float>* out =
@@ -483,7 +482,7 @@ void srLight::process(srVertexPipe& pipe)
             srVectorProcessor::copy(directions, eye_location, count);
         }
     }
-    if ((scratch->flags & 0x1) == 0) {
+    if ((scratch->flags & srVertexPipe::Scratch::READY_EYE_DIRECTION) == 0) {
         pipe.setupEyeSpaceDirAndDist();
     }
     if (count * 3 != 0) {
@@ -494,11 +493,10 @@ void srLight::process(srVertexPipe& pipe)
             reinterpret_cast<const float*>(scratch->dir + pipe.sub_batch_offset), count * 3);
     }
     srVectorProcessor::normalize(directions, directions, 1.0f, count);
-    if ((scratch->flags & 0x8) == 0) {
+    if ((scratch->flags & srVertexPipe::Scratch::READY_EYE_NORMALS) == 0) {
         pipe.setupEyeSpaceNormal();
     }
-    srVectorProcessor::dot(distances, scratch->normals + pipe.sub_batch_offset, directions,
-                           count);
+    srVectorProcessor::dot(distances, scratch->normals + pipe.sub_batch_offset, directions, count);
     srVectorProcessor::clampMin(distances, distances, 0.0f, count);
     if (pipe.material_info.shininess > 1.0f) {
         srVectorProcessor::srSpecularPow(distances, distances, pipe.material_info.shininess,
@@ -511,11 +509,10 @@ void srLight::process(srVertexPipe& pipe)
     specular.z = scaled_specular.z * pipe.material_info.specular.z;
     specular.w = scaled_specular.w * pipe.material_info.specular.w;
     srCore.getStatisticsManager()->statistics.specular_operations += count;
-    if ((pipe.lazy_setup_mask & 0x4) == 0) {
+    if ((pipe.lazy_setup_mask & (1UL << srVertexProcessor::CHANNEL_SPECULAR)) == 0) {
         pipe.setupSpecular();
     }
-    srVector4T<float>* out =
-        pipe.vertex_array->specular + pipe.batch_base + pipe.sub_batch_offset;
+    srVector4T<float>* out = pipe.vertex_array->specular + pipe.batch_base + pipe.sub_batch_offset;
     if (attenuation != 0) {
         srVectorProcessor::axpy(out, out, specular, attenuation, distances, count);
     } else {
