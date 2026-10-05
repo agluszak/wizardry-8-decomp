@@ -524,7 +524,7 @@ void ImportEquipment(W8Character* character, const W8Wiz7Character* imported)
     int give;
     const int* starting;
     int item_id;
-    int equip_slot;
+    W8EquipSlot equip_slot;
     W8Profession profession;
 
     memset(&empty_item, 0, sizeof(empty_item));
@@ -617,15 +617,15 @@ void ImportEquipment(W8Character* character, const W8Wiz7Character* imported)
         if (item_id != -1) {
             ReplaceOrCreateItem(&item, item_id, 1, 1, 1);
             equip_slot = GetItemDefaultEquipSlot(item_id);
-            if (equip_slot == -1) {
+            if (equip_slot == W8_EQUIP_SLOT_NONE) {
                 if (FindCharacterItemByDatabaseKind(
                         character, g_item_records[item_id].unidentified_name_index, 0, 2) == 0) {
                     AddItemToCharacter(character, &item, 1, 0, 0);
                 }
             } else {
-                if (equip_slot == 6 &&
+                if (equip_slot == W8_EQUIP_SLOT_PRIMARY_WEAPON &&
                     (g_item_records[item_id].flags & W8_ITEM_FLAG_OFF_HAND_ALLOWED) != 0) {
-                    equip_slot = 7;
+                    equip_slot = W8_EQUIP_SLOT_SECONDARY_WEAPON;
                 }
                 if (character->EquippedItem[equip_slot].iItemNo == -1) {
                     AddItemToCharacter(character, &item, 1, 0, 0);
@@ -634,7 +634,7 @@ void ImportEquipment(W8Character* character, const W8Wiz7Character* imported)
         }
     }
     give = -1;
-    if (character->EquippedItem[6].iItemNo == -1) {
+    if (character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].iItemNo == -1) {
         if (character->iProfession == W8_PROFESSION_FIGHTER) {
             if (character->skills[W8_SKILL_SWORD].level < character->skills[W8_SKILL_AXE].level) {
                 give = 0x12;

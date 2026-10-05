@@ -1094,7 +1094,7 @@ void DrawCampHands(void)
     wchar_t text[4];
     unsigned short* palette;
 
-    item_id = g_review_character->EquippedItem[6].iItemNo;
+    item_id = g_review_character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].iItemNo;
     if (item_id == -1 || (g_item_records[item_id].flags & W8_ITEM_FLAG_TWO_HANDED) == 0) {
         two_handed = false;
         hand_image = 0;
@@ -1103,14 +1103,14 @@ void DrawCampHands(void)
         hand_image = 2;
     }
     DrawCatalogImage(-14, 0x80, 0, hand_image, 0x81, 0xb, 2, 0);
-    item_id = g_review_character->EquippedItem[6].iItemNo;
+    item_id = g_review_character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].iItemNo;
     if (item_id == -1) {
         DrawCatalogImage(-14, g_empty_hand_catalog_ids[g_review_character->iRace * 2], 0, 0, 0x85,
                          0x22, 2, 0);
     } else {
         DrawCatalogImage(-14, g_item_video_objects.GetOrCreateVideoObject(item_id), 0, 2, 0x84,
                          0x22, 2, 0);
-        count = g_review_character->EquippedItem[6].stack_count;
+        count = g_review_character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].stack_count;
         if (count != 0) {
             swprintf(text, g_format_d, count);
             SetFont(g_smfnt_font);
@@ -1120,14 +1120,14 @@ void DrawCampHands(void)
         }
     }
     if (!two_handed) {
-        item_id = g_review_character->EquippedItem[7].iItemNo;
+        item_id = g_review_character->EquippedItem[W8_EQUIP_SLOT_SECONDARY_WEAPON].iItemNo;
         if (item_id == -1) {
             DrawCatalogImage(-14, g_empty_hand_catalog_ids[g_review_character->iRace * 2 + 1], 0, 0,
                              0x85, 0x3a, 2, 0);
         } else {
             DrawCatalogImage(-14, g_item_video_objects.GetOrCreateVideoObject(item_id), 0, 2, 0x84,
                              0x3a, 2, 0);
-            count = g_review_character->EquippedItem[7].stack_count;
+            count = g_review_character->EquippedItem[W8_EQUIP_SLOT_SECONDARY_WEAPON].stack_count;
             if (count != 0) {
                 swprintf(text, g_format_d, count);
                 SetFont(g_smfnt_font);

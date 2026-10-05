@@ -379,11 +379,11 @@ extern W8SkillAttributes g_skill_attributes[0x29];
 /* Profession and race trait sets consulted by CharacterHasTrait. Each entry is
    only its id list: three profession abilities, five race abilities. */
 struct W8ProfessionAbilitySet {
-    int ability_ids[3];
+    W8Trait ability_ids[3];
 };
 
 struct W8RaceAbilitySet {
-    int ability_ids[5];
+    W8Trait ability_ids[5];
 };
 
 extern W8ProfessionAbilitySet g_profession_abilities[W8_PROFESSION_COUNT];

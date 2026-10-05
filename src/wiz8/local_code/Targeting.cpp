@@ -3469,8 +3469,8 @@ int ChooseFallbackMonsterTarget(int party_slot, int group_id, W8TargetingContext
         (g_combat_state->execution_active == 0 ||
          g_combat_state->characters[party_slot].dead == 0 ||
          g_combat_state->characters[party_slot].phase == 0) &&
-        !IsItemBoundToWearer(&character->EquippedItem[8]) &&
-        !IsItemBoundToWearer(&character->EquippedItem[9]) &&
+        !IsItemBoundToWearer(&character->EquippedItem[W8_EQUIP_SLOT_ALTERNATE_PRIMARY_WEAPON]) &&
+        !IsItemBoundToWearer(&character->EquippedItem[W8_EQUIP_SLOT_ALTERNATE_SECONDARY_WEAPON]) &&
         SwapWeaponSetSlots(party_slot, 0, 0) == 1) {
         result = ChooseMonsterTarget(party_slot, group_id, context);
         if (result == -1) {
@@ -3495,8 +3495,10 @@ int ChooseFallbackMonsterTarget(int party_slot, int group_id, W8TargetingContext
             }
         }
         row->weapon_swap_pending ^= 1;
-        RefreshAfterItemRecordChange(&character->EquippedItem[6], character, 1);
-        RefreshAfterItemRecordChange(&character->EquippedItem[7], character, 1);
+        RefreshAfterItemRecordChange(&character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON],
+                                     character, 1);
+        RefreshAfterItemRecordChange(&character->EquippedItem[W8_EQUIP_SLOT_SECONDARY_WEAPON],
+                                     character, 1);
     }
     return result;
 }

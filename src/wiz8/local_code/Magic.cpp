@@ -997,7 +997,6 @@ int GetTotalCasterLevel(const W8Character* character, int spellbook, bool includ
 }
 
 /* The trait that stops a character learning anything at all. */
-enum { W8_TRAIT_CANNOT_LEARN = 0x1f };
 
 /* Which spellbooks a spell belongs to, as the mask the profession table is
    tested against. A spell in no book at all answers nothing, which is what

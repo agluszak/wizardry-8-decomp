@@ -192,7 +192,7 @@ char* GetMaterialImpactSound(int weapon_class, int target_material)
    line-168 assertion. */
 static int PCItemInACSlot(const W8Character* character, int hit_location)
 {
-    int slot = 0;
+    W8EquipSlot slot = W8_EQUIP_SLOT_HEAD;
 
     switch (hit_location) {
     case 0:

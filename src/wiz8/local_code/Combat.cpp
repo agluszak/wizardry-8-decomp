@@ -1481,12 +1481,15 @@ bool CharacterCanSwitchTo(int party_slot, W8TargetingContext context, unsigned c
             if (arg_4 == 0) {
                 return 0;
             }
-            if (character->EquippedItem[6].iItemNo != -1) {
-                if (character->EquippedItem[7].iItemNo == -1) {
-                    EquipMatchingPartnerItem(character, &character->EquippedItem[6], -1, 7);
+            if (character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].iItemNo != -1) {
+                if (character->EquippedItem[W8_EQUIP_SLOT_SECONDARY_WEAPON].iItemNo == -1) {
+                    EquipMatchingPartnerItem(character,
+                                             &character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON],
+                                             -1, W8_EQUIP_SLOT_SECONDARY_WEAPON);
                 }
-                if (character->EquippedItem[6].uses_or_charges == 0) {
-                    MergeMatchingPartnerItem(character, &character->EquippedItem[6]);
+                if (character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].uses_or_charges == 0) {
+                    MergeMatchingPartnerItem(
+                        character, &character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON]);
                 }
             }
             if (CanAnyHandReachTarget(party_slot) == 0) {
@@ -1499,12 +1502,15 @@ bool CharacterCanSwitchTo(int party_slot, W8TargetingContext context, unsigned c
             if (arg_4 == 0) {
                 return 0;
             }
-            if (character->EquippedItem[6].iItemNo != -1) {
-                if (character->EquippedItem[7].iItemNo == -1) {
-                    EquipMatchingPartnerItem(character, &character->EquippedItem[6], -1, 7);
+            if (character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].iItemNo != -1) {
+                if (character->EquippedItem[W8_EQUIP_SLOT_SECONDARY_WEAPON].iItemNo == -1) {
+                    EquipMatchingPartnerItem(character,
+                                             &character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON],
+                                             -1, W8_EQUIP_SLOT_SECONDARY_WEAPON);
                 }
-                if (character->EquippedItem[6].uses_or_charges == 0) {
-                    MergeMatchingPartnerItem(character, &character->EquippedItem[6]);
+                if (character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].uses_or_charges == 0) {
+                    MergeMatchingPartnerItem(
+                        character, &character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON]);
                 }
             }
             if (CanCharacterBerserk(party_slot) == 0) {
@@ -3000,7 +3006,8 @@ int GetConditionInterrupt(W8TargetSource* source)
     if (source->iType == W8_TARGET_SOURCE_CHARACTER) {
         if (!can_attack) {
             if (AreAllHandSlotsEmpty(&g_status.buffers.Char[party_slot]) == 0 &&
-                CanUnequipSlotItem(character, 6) != 0 && CanUnequipSlotItem(character, 7) != 0) {
+                CanUnequipSlotItem(character, W8_EQUIP_SLOT_PRIMARY_WEAPON) != 0 &&
+                CanUnequipSlotItem(character, W8_EQUIP_SLOT_SECONDARY_WEAPON) != 0) {
                 SwapWeaponSetSlots(party_slot, 0, 1);
                 if (CanAnyHandReachTarget(party_slot) != 0 &&
                     CanPartySlotAttackAnyTarget(party_slot, W8_TARGETING_CONTEXT_ATTACK, 1, 0) !=

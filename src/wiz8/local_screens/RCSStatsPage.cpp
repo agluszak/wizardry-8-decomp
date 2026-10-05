@@ -306,7 +306,7 @@ void DrawCampStatsPage(void)
         int trait_count = 0;
         char traits[0x20];
         for (index = 0; index < 0x20; ++index) {
-            if (CharacterHasTrait(g_review_character, index)) {
+            if (CharacterHasTrait(g_review_character, static_cast<W8Trait>(index))) {
                 traits[index] = 1;
                 ++trait_count;
             } else {

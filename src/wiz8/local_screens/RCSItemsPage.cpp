@@ -654,9 +654,10 @@ void UnequipBothHands(void)
         return;
     }
     character = g_status.buffers.Char + giReviewCharSlot;
-    BindEquippedItem(character, 6);
-    BindEquippedItem(character, 7);
-    if (CanUnequipSlotItem(character, 6) != 0 && CanUnequipSlotItem(character, 7) != 0) {
+    BindEquippedItem(character, W8_EQUIP_SLOT_PRIMARY_WEAPON);
+    BindEquippedItem(character, W8_EQUIP_SLOT_SECONDARY_WEAPON);
+    if (CanUnequipSlotItem(character, W8_EQUIP_SLOT_PRIMARY_WEAPON) != 0 &&
+        CanUnequipSlotItem(character, W8_EQUIP_SLOT_SECONDARY_WEAPON) != 0) {
         SwapWeaponSetSlots(giReviewCharSlot, 0, 1);
         g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_EQUIPMENT;
         g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_PORTRAIT;

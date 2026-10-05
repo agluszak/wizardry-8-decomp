@@ -76,7 +76,7 @@ enum W8Skill {
 void PracticeCharacterSkill(W8Character* character, W8Skill skill_id, int usage_points,
                             bool suppress_notification);
 
-unsigned int GetCharacterSkillNoticeValue(W8Character* character, int skill_id);
+unsigned int GetCharacterSkillNoticeValue(W8Character* character, W8Skill skill_id);
 void PostSkillIncreaseNotices(const W8SkillNoticePayload* notices);
 
 /* 0x00554170: append one "race-icon Name's skill +level" clause to a notice
@@ -95,6 +95,8 @@ void FlushDeferredSkillNotices(void);
    resolved multi-ability profession, which also identifies the Fighter and
    Ninja pairs. The three still-unresolved Faerie ids remain unnamed. */
 enum W8Trait {
+    W8_TRAIT_NONE = -1,
+    W8_TRAIT_CANNOT_LEARN = 0x1f,
     W8_TRAIT_STAMINA_REGENERATION = 0x00,          /* Fighter */
     W8_TRAIT_HEALTH_REGENERATION = 0x01,           /* Lord */
     W8_TRAIT_CHEAT_DEATH = 0x02,                   /* Valkyrie */
@@ -149,7 +151,7 @@ void ResetCharacterSkills(W8Character* character);
 bool IsCharacterSkillAvailable(W8Character* character, W8Skill skill_id,
                                const bool* expert_realm_flags);
 void InvalidateAndRecalculateCharacterClassData(W8Character* character);
-bool CharacterHasTrait(const W8Character* character, int trait);
+bool CharacterHasTrait(const W8Character* character, W8Trait trait);
 int RevealCharacterItemBindingsByProfession(int party_slot, unsigned int target_slot);
 /* 0x00553AD0: propagate a changed attribute base value - the at-maximum
    pseudo-skill flag, the effective value, equipment and derived state. */

@@ -828,7 +828,8 @@ void GameTurnsPassedChar(int party_slot, unsigned int minutes)
         gXStatus.fCombatMode != 0) {
         stamina_scale = ScaleValueByProfessionLevel(character, W8_TRAIT_STAMINA_REGENERATION, 3.3f);
     }
-    if (CharacterHasTrait(character, 0x1a) != 0 && spell_scale > g_float_zero) {
+    if (CharacterHasTrait(character, static_cast<W8Trait>(0x1a)) != 0 &&
+        spell_scale > g_float_zero) {
         spell_scale *= g_fast_magic_recovery_scale;
     }
     if (CharacterHasTrait(character, W8_TRAIT_LIZARDMAN_SLOW_MAGIC_RECOVERY) != 0 &&

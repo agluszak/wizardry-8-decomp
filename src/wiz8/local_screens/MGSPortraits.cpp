@@ -828,7 +828,7 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, bool highlighted, bool 
         if (overlay_ready != 0) {
             if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS ||
                 g_level_block->portrait_refresh_pending[party_slot] != 0) {
-                main_hand_item_id = character->EquippedItem[6].iItemNo;
+                main_hand_item_id = character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].iItemNo;
                 if (main_hand_item_id == -1 ||
                     (g_item_records[main_hand_item_id].flags & W8_ITEM_FLAG_TWO_HANDED) == 0) {
                     show_off_hand_row = 0;
@@ -847,9 +847,11 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, bool highlighted, bool 
                     DrawCatalogImage(-14,
                                      g_item_video_objects.GetOrCreateVideoObject(main_hand_item_id),
                                      0, 2, band_menu_edge + 3, menu_y + 0x17, 2, 0);
-                    if (character->EquippedItem[6].stack_count != 0) {
-                        swprintf(text, g_format_d,
-                                 static_cast<int>(character->EquippedItem[6].stack_count));
+                    if (character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].stack_count != 0) {
+                        swprintf(
+                            text, g_format_d,
+                            static_cast<int>(
+                                character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].stack_count));
                         SetFont(g_smfnt_font);
                         SetFontObjectPalette16BPP(g_smfnt_font, g_font_palette_smfnt);
                         text_width = StringPixLength(text, g_smfnt_font);
@@ -859,7 +861,8 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, bool highlighted, bool 
                 }
 
                 if (show_off_hand_row == 0) {
-                    off_hand_item_id = character->EquippedItem[7].iItemNo;
+                    off_hand_item_id =
+                        character->EquippedItem[W8_EQUIP_SLOT_SECONDARY_WEAPON].iItemNo;
                     if (off_hand_item_id == -1) {
                         DrawCatalogImage(-14, g_empty_hand_catalog_ids[character->iRace * 2 + 1], 0,
                                          0, band_menu_edge + 4, menu_y + 0x2f, 2, 0);
@@ -867,9 +870,12 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, bool highlighted, bool 
                         DrawCatalogImage(
                             -14, g_item_video_objects.GetOrCreateVideoObject(off_hand_item_id), 0,
                             2, band_menu_edge + 3, menu_y + 0x2f, 2, 0);
-                        if (character->EquippedItem[7].stack_count != 0) {
+                        if (character->EquippedItem[W8_EQUIP_SLOT_SECONDARY_WEAPON].stack_count !=
+                            0) {
                             swprintf(text, g_format_d,
-                                     static_cast<int>(character->EquippedItem[7].stack_count));
+                                     static_cast<int>(
+                                         character->EquippedItem[W8_EQUIP_SLOT_SECONDARY_WEAPON]
+                                             .stack_count));
                             SetFont(g_smfnt_font);
                             SetFontObjectPalette16BPP(g_smfnt_font, g_font_palette_smfnt);
                             text_width = StringPixLength(text, g_smfnt_font);
