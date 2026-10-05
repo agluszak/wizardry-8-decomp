@@ -130,13 +130,21 @@ from source changes in reported results.
   focused, larger and repeated-state native fixtures recover the ECX argument.
   This fixes a demonstrated preparation gap; the full #877 portrait result still
   needs CI comparison. Fork revisions: reccmp `ee66e5b5`, then `b6268d6a` fixing
-  the CI-discovered absent recomp address in unpaired-row warning collection; 79 focused tests passed,
-  including six native Ghidra cases, and focused typing/lint checks passed.
-- Batch 3: started with a prerequisite for the new result format. CI freezes the
-  head comparison package before adopting baseline source and passes the product
-  repository explicitly. Baseline comparisons therefore use the head report
-  policy and dependency pins. Explicit product/manifest orchestration, complete
-  fingerprints and the remaining CI lifecycle simplification are still pending.
+  the CI-discovered absent recomp address in unpaired-row warning collection. The
+  combined reccmp batch has 87 passing focused tests, including six native Ghidra
+  cases; focused typing and lint checks passed.
+- Batch 3: implemented. Wizardry freezes selections and products in reccmp's
+  canonical manifest; reccmp replays it without rediscovering the current catalog
+  and rejects replaced binaries. One immutable input record supplies completed
+  cache identity and report fingerprints. Reports include source revision, PDB
+  and source-index hashes alongside binary, selection and tooling inputs.
+  CI snapshots the head Python package once, builds baseline source with its own
+  build configuration, and compares using the same head policy and dependencies.
+  The Python baseline lifecycle replaces the shell helper, records failures by
+  stage/revision, retains partial evidence and always attempts head restoration.
+  Delta gates reject different original binaries or comparison policies. Product
+  builds and fresh retail results remain CI validation; no new match-rate claim
+  is made from the local tooling fixtures.
 
 Starting completed CI inventory (#900): WIZ8 5,389 analyzed, 2,657 clean, 2,732
 different, 81.69% average similarity; SURRENDER 2,245 analyzed, 1,532 clean, 713

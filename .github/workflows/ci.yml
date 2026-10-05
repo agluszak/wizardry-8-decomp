@@ -481,9 +481,18 @@ jobs:
       - name: Compare WIZ8 merge base
         if: github.event_name == 'pull_request'
         run: |
-          bash .github/scripts/compare-reccmp-base.sh \
-            WIZ8 wiz8 match \
-            "${{ github.event.pull_request.base.sha }}" "$GITHUB_SHA" wiz8
+          .venv/bin/python .github/scripts/compare-reccmp-base.py \
+            WIZ8 match "${{ steps.wiz8-merge-base.outputs.sha }}" "$GITHUB_SHA" wiz8
+      - name: Upload WIZ8 baseline evidence
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wiz8-baseline-comparison-report
+          path: |
+            ${{ runner.temp }}/wiz8-base-*.json
+            build/reports/compare/wiz8/
+          if-no-files-found: ignore
+
       # Preserve the rolling cache on non-PR runs. PR head state was saved
       # before the merge-base cache replaced build/reccmp-ghidra.
       - name: Save completed WIZ8 analysis
@@ -709,9 +718,18 @@ jobs:
       - name: Compare SURRENDER merge base
         if: github.event_name == 'pull_request'
         run: |
-          bash .github/scripts/compare-reccmp-base.sh \
-            SURRENDER sr.dll SURRENDER \
-            "${{ github.event.pull_request.base.sha }}" "$GITHUB_SHA" surrender
+          .venv/bin/python .github/scripts/compare-reccmp-base.py \
+            SURRENDER SURRENDER "${{ steps.surrender-merge-base.outputs.sha }}" "$GITHUB_SHA" surrender
+      - name: Upload SURRENDER baseline evidence
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surrender-baseline-comparison-report
+          path: |
+            ${{ runner.temp }}/surrender-base-*.json
+            build/reports/compare/surrender/
+          if-no-files-found: ignore
+
       - name: Summarize SURRENDER PR comparison
         id: surrender-pr-status
         if: github.event_name == 'pull_request'

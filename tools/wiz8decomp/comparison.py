@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Any
 
 from reccmp.compare import Compare
+from reccmp.compare.manifest import Manifest, build_manifest
 from reccmp.compare.vtables import SlotStatus, compare_vtable
 from reccmp.project.detect import RecCmpProject, RecCmpTarget
 from reccmp.source import SourceIndexError
@@ -353,6 +354,20 @@ def report_directory(repository: Path, target: str) -> Path:
     return repository / "build" / "reports" / "compare" / target.lower() / "latest"
 
 
+def _comparison_manifest(products: RecCmpTarget, addresses: list[int]) -> Manifest:
+    """Let reccmp freeze identity and pairing before starting analysis."""
+    wanted = frozenset(addresses)
+    ignored = frozenset(products.report_config.ignore_functions)
+    catalog = Compare.from_target(products, orig_addrs=addresses)
+    return build_manifest(
+        catalog,
+        target_id=products.target_id,
+        orig_path=products.original_path,
+        recomp_path=products.recompiled_path,
+        select=lambda entity: entity.orig_addr in wanted and entity.best_name() not in ignored,
+    )
+
+
 def _run_reccmp(
     repository: Path,
     target: str,
@@ -360,6 +375,7 @@ def _run_reccmp(
     ghidra_install_dir: Path,
     *,
     side_by_side: bool,
+    products: RecCmpTarget,
 ) -> tuple[dict[str, Any], dict[str, Any] | None]:
     """Run `reccmp-reccmp` for the selected original addresses.
 
@@ -372,8 +388,8 @@ def _run_reccmp(
         sys.executable,
         "-m",
         "reccmp.tools.compare",
-        "--target",
-        target,
+        "--manifest",
+        output / "manifest.json",
         "--output",
         output,
         "--ghidra-projects",
@@ -392,8 +408,7 @@ def _run_reccmp(
                 "/" + resolve_seed_program(settings, "wiz8"),
             )
         )
-    for address in addresses:
-        argv.extend(("--orig-address", f"{address:x}"))
+    atomic_json(output / "manifest.json", _comparison_manifest(products, addresses).to_json())
     if side_by_side:
         argv.append("--sxs")
     result = run(
@@ -423,6 +438,21 @@ def _run_reccmp(
         [line for line in result.stderr.splitlines()[-20:] if line],
         output / "command.json",
     )
+
+
+def _product_inputs(repository: Path, products: RecCmpTarget) -> dict[str, Any]:
+    """Project-owned source/product provenance alongside reccmp's cache inputs."""
+    revision = run(["git", "rev-parse", "HEAD"], cwd=repository, check=False)
+    index = repository / "build/source-index.json"
+    return {
+        "source_revision": revision.stdout.strip() if revision.exit_status == 0 else None,
+        "wizardry_revision": os.environ.get("GITHUB_SHA") or None,
+        "pdb": {
+            "path": str(products.recompiled_pdb),
+            "sha256": sha256_file(products.recompiled_pdb),
+        },
+        "source_index_sha256": sha256_file(index) if index.is_file() else None,
+    }
 
 
 def _function_row(repository: Path, target: str, row: dict[str, Any]) -> dict[str, Any]:
@@ -473,7 +503,12 @@ def compare_selected(
     recmp_target = comparison_target(repository, target)
     warn_if_build_may_be_stale(repository, target, recmp_target)
     _manifest, summary = _run_reccmp(
-        repository, target, addresses, ghidra_install_dir, side_by_side=side_by_side
+        repository,
+        target,
+        addresses,
+        ghidra_install_dir,
+        side_by_side=side_by_side,
+        products=recmp_target,
     )
     rows = {int(row["orig"], 16): row for row in (summary or {}).get("functions", [])}
 
@@ -603,7 +638,10 @@ def compare_selected(
     result = {
         "target": target,
         "requested": len(functions),
-        "inputs": (summary or {}).get("inputs", {}),
+        "inputs": {
+            **(summary or {}).get("inputs", {}),
+            **_product_inputs(repository, recmp_target),
+        },
         "preparation": (summary or {}).get("preparation", []),
         "ok": counts["analysis-failed"] == 0 and counts["unpaired"] == 0 and counts["missing"] == 0,
         "selected": len(functions),

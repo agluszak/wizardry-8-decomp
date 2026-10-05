@@ -276,6 +276,16 @@ def _products(tmp_path: Path, monkeypatch) -> None:
     for key in ("GHIDRA_INSTALL_DIR", "WIZ8_INPUT_DIR", "WIZ8_WORK_DIR"):
         monkeypatch.setenv(key, str(tmp_path / key.lower()))
     monkeypatch.setattr("wiz8decomp.ghidra.workspace.resolve_seed_program", lambda *_: "fixture")
+    monkeypatch.setattr(
+        comparison,
+        "_comparison_manifest",
+        lambda _products, addresses: SimpleNamespace(
+            to_json=lambda: {
+                "target": "WIZ8",
+                "functions": [{"orig": hex(address)} for address in addresses],
+            }
+        ),
+    )
     (tmp_path / "reccmp-project.yml").write_text("targets:\n  WIZ8:\n    filename: Wiz8.exe\n")
     products = tmp_path / "build/decomp"
     products.mkdir(parents=True)
@@ -294,7 +304,9 @@ def _products(tmp_path: Path, monkeypatch) -> None:
 def _fake_reccmp(monkeypatch, functions: list[dict], *, seen: list | None = None) -> None:
     """Stand in for `reccmp-reccmp`: write its manifest and summary."""
 
-    def run(argv, *, cwd, env, log_path, check):
+    def run(argv, *, cwd, env=None, log_path=None, check):
+        if argv[:2] == ["git", "rev-parse"]:
+            return SimpleNamespace(exit_status=0, stdout="fixture-source-revision\n")
         output = Path(argv[argv.index("--output") + 1])
         output.mkdir(parents=True, exist_ok=True)
         if seen is not None:
@@ -343,7 +355,9 @@ def test_compare_selected_runs_reccmp_for_the_selected_addresses(tmp_path, monke
     result = compare_selected(tmp_path, "WIZ8", [0x401000], Path("/opt/ghidra"), side_by_side=True)
 
     [call] = seen
-    assert call["argv"][call["argv"].index("--orig-address") + 1] == "401000"
+    assert "--orig-address" not in call["argv"]
+    assert "--target" not in call["argv"]
+    assert call["argv"][call["argv"].index("--manifest") + 1].endswith("manifest.json")
     assert "--sxs" in call["argv"]
     assert call["cwd"] == tmp_path / "build/decomp"
     assert call["env"]["GHIDRA_INSTALL_DIR"] == "/opt/ghidra"

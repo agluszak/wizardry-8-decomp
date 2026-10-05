@@ -78,6 +78,27 @@ reccmp adds paired address identity and referenced-data evidence. Identifier nor
 quoted literals and multiline comments. The consolidation work and its remaining batches are recorded
 in [the comparison plan](../../../../docs/comparison-refactor-plan.md).
 
+## Reproducible inputs and CI
+
+Each run saves `manifest.json` with reccmp's selected identities, object extents
+and binary hashes. Native `reccmp-reccmp --manifest PATH` replays that selection
+without consulting the current source catalog and refuses products whose hashes
+have changed. It is an alternative to target discovery, not another comparison
+backend. Keep the recorded products and pinned tooling when replaying a run.
+
+The summary's `inputs` records binary, manifest and selection hashes; analysis,
+preparation, normalization and completed-comparison cache keys; tool versions and
+decompiler settings. Wizardry adds the source/comparison revisions, PDB hash and
+source-index hash. These are provenance and reproducibility facts, not evidence
+that source-projected annotations independently confirm the recovered source.
+
+CI builds baseline source with that revision's build configuration, then uses a
+frozen head Wizardry package and the same installed reccmp/Ghidriff pins for both
+comparisons. `.github/scripts/compare-reccmp-base.py` owns checkout restoration
+and stage/revision failure reporting. Head artifacts are uploaded before baseline
+execution; baseline status and available evidence are uploaded even on failure.
+The delta gate rejects different retail binaries or comparison policies.
+
 ## Inspect saved results
 
 ```sh
