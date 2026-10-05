@@ -145,14 +145,15 @@ public:
        to srDD::getInfo). The nine trailing 0x40-byte strings are the device
        identity fields initDDInfo fills with "Unknown". */
     struct Info {
+        enum { PIXEL_TEXTURE_STATISTICS = 0x10u, RELEASE_SURFACE_AFTER_BIND = 0x20u };
         /* srGERD's constructor emits the single flags zero-store as this
            record's member init (0x68 inside the +0x50 embedding). */
         Info() : flags(0) {}
 
         /* openWindowInternal rejects back-buffer dimensions above these
            maximums. */
-        unsigned long unknown_00_;
-        unsigned long unknown_04_;
+        unsigned long max_back_buffer_width;
+        unsigned long max_back_buffer_height;
         /* initDDInfo defaults: 4. */
         unsigned long unknown_08_;
         /* initDDInfo defaults: 0x10. */
@@ -194,12 +195,12 @@ public:
     struct Statistics {
         unsigned long value_00;
         unsigned long value_04;
-        double value_08;
+        double pixels_drawn;
         unsigned long value_10;
         unsigned long value_14;
-        unsigned long value_18;
-        unsigned long value_1c;
-        unsigned long value_20;
+        unsigned long triangles_received;
+        unsigned long vertices_transferred;
+        unsigned long vertex_indices;
         unsigned long value_24;
     };
     /* getTextureFormats / getWindowList fill {count, pointer} out-records;

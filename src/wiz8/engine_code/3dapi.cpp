@@ -94,7 +94,7 @@ bool g_navigator_vertical_enabled = true;
 bool g_world_mesh_update_enabled = true;
 
 // GLOBAL: WIZ8 0x00609c88
-float g_float_00609c88 = 60.0f;
+float g_mesh_view_half_angle_degrees = 60.0f;
 
 // GLOBAL: WIZ8 0x00609c8c
 bool g_flag_00609c8c = true;
@@ -305,7 +305,7 @@ W8World* CreateWorld()
         return 0;
     }
     world->level->setName("Sir-Tech Level");
-    world->level->m_active = 1;
+    world->level->m_render_exclusion_mask = 1;
 
     world->dynamic_scene = SR_NEW(srNode)(world->static_scene);
     if (world->dynamic_scene == 0) {
@@ -633,7 +633,7 @@ void UpdateWorldCameraAndPaths(W8World* world, unsigned int flags)
     }
     if (world->game_data != 0) {
         if (g_level_flags != 0) {
-            *g_level_flags &= ~0x200u;
+            *g_level_flags &= ~W8_LEVEL_FLAG_MOVED_THIS_UPDATE;
         }
         if (world->game_data != 0 && (flags & W8_CAMERA_MOTION_SKIP) == 0) {
             world->camera->getRotation(rotation);
@@ -966,7 +966,7 @@ void ApplyWorldUpdateFlags(W8World* world, unsigned int flags)
     if (world == 0) {
         srAssertFail("pWorld", THREE_D_API_CPP, 0x321, 0);
     }
-    if ((flags & 1) != 0) {
+    if ((flags & W8_WORLD_INCREASE_FAR_CLIP) != 0) {
         WorldSetFarClip(world,
                         static_cast<float>(WorldGetFarClip(world)) + g_position_height_epsilon);
         scale = 2.0f;
@@ -975,7 +975,7 @@ void ApplyWorldUpdateFlags(W8World* world, unsigned int flags)
         }
         WorldSetRenderRange(world, static_cast<float>(WorldGetFarClip(world)) * scale);
     }
-    if ((flags & 2) != 0) {
+    if ((flags & W8_WORLD_DECREASE_FAR_CLIP) != 0) {
         WorldSetFarClip(world,
                         static_cast<float>(WorldGetFarClip(world)) - g_position_height_epsilon);
         scale = 2.0f;
@@ -984,23 +984,25 @@ void ApplyWorldUpdateFlags(W8World* world, unsigned int flags)
         }
         WorldSetRenderRange(world, static_cast<float>(WorldGetFarClip(world)) * scale);
     }
-    if ((flags & 4) != 0 && g_float_00609c88 < g_float_005ec25c) {
-        g_float_00609c88 += g_float_005ebc88;
+    if ((flags & W8_WORLD_WIDEN_MESH_VIEW) != 0 &&
+        g_mesh_view_half_angle_degrees < g_float_005ec25c) {
+        g_mesh_view_half_angle_degrees += g_float_005ebc88;
     }
-    if ((flags & 8) != 0 && g_float_00609c88 > g_float_005ebc88) {
-        g_float_00609c88 -= g_float_005ebc88;
+    if ((flags & W8_WORLD_NARROW_MESH_VIEW) != 0 &&
+        g_mesh_view_half_angle_degrees > g_float_005ebc88) {
+        g_mesh_view_half_angle_degrees -= g_float_005ebc88;
     }
     if ((flags & 0x10) != 0) {
         g_flag_00609c8c = true;
     }
-    if ((flags & 0x40) != 0) {
+    if ((flags & W8_WORLD_TOGGLE_LOADED) != 0) {
         world->m_loaded = !world->m_loaded;
     }
-    if ((flags & 0x100) != 0) {
+    if ((flags & W8_WORLD_INCREASE_ENVIRONMENT) != 0) {
         SetWorldEnvironmentIntensity(g_world,
                                      GetWorldEnvironmentIntensity(g_world) + g_float_005ec258);
     }
-    if ((flags & 0x200) != 0) {
+    if ((flags & W8_WORLD_DECREASE_ENVIRONMENT) != 0) {
         SetWorldEnvironmentIntensity(g_world,
                                      GetWorldEnvironmentIntensity(g_world) - g_float_005ec258);
     }

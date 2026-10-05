@@ -293,9 +293,9 @@ unsigned char OctBuildPreTree::SortGeometry(W8OctPreTreeGeometry* geometry)
     for (vertex = 1; vertex < geometry->vertex_count; ++vertex) {
         W8OctPreTreeVertex* vert = &geometry->m_vertices[vertex];
         vert->m_normal.Normalize();
-        if ((vert->flags & 1) == 0) {
+        if ((vert->flags & W8OctPreTreeVertex::EXCLUDED) == 0) {
             if (vert->m_normal_count == 0) {
-                vert->flags |= 1;
+                vert->flags |= W8OctPreTreeVertex::EXCLUDED;
             } else {
                 vert->m_vertex_index = next_index;
                 ++next_index;
@@ -315,7 +315,7 @@ unsigned char OctBuildPreTree::SortGeometry(W8OctPreTreeGeometry* geometry)
     W8OctPreTreeVertex* new_vertex = new_vertices + 1;
     for (vertex = 1; vertex < geometry->vertex_count; ++vertex) {
         W8OctPreTreeVertex* vert = &geometry->m_vertices[vertex];
-        if ((vert->flags & 1) == 0) {
+        if ((vert->flags & W8OctPreTreeVertex::EXCLUDED) == 0) {
             ++new_vertex_count;
             *new_vertex = *vert;
             ++new_vertex;
@@ -732,12 +732,12 @@ void OctBuildPreTree::AssignPolygonRegion(W8OctRegionPolygon* polygon)
     unsigned short region = 1;
     if (1 < spatial.m_region_id_bound) {
         do {
-            if (polygon->InsideFrustumPlanes(spatial.m_region_volumes[region].m_planes) != 0) {
+            if (polygon->InsideFrustumPlanes(spatial.m_region_volumes[region].m_planes)) {
                 ++hits;
                 if (polygon->region == 0) {
                     polygon->region = region;
                 }
-                polygon->flags |= 8;
+                polygon->flags |= W8OctRegionPolygon::CENTER_IN_REGION;
             }
             ++region;
         } while (region < spatial.m_region_id_bound);
@@ -746,21 +746,21 @@ void OctBuildPreTree::AssignPolygonRegion(W8OctRegionPolygon* polygon)
         for (int corner = 0; corner != 3; ++corner) {
             W8OctPreTreeVertex* vertex = polygon->vertices[corner];
             short vertex_region = vertex->m_region;
-            if (vertex_region != 0 || (vertex->flags & 4) != 0) {
+            if (vertex_region != 0 || (vertex->flags & W8OctPreTreeVertex::MULTIPLE_REGIONS) != 0) {
                 ++hits;
                 if (polygon->region == 0) {
                     polygon->region = vertex_region;
                 }
-                if ((vertex->flags & 4) != 0) {
-                    polygon->flags |= 4;
+                if ((vertex->flags & W8OctPreTreeVertex::MULTIPLE_REGIONS) != 0) {
+                    polygon->flags |= W8OctRegionPolygon::MULTIPLE_REGIONS;
                 }
             }
         }
     }
     if (1 < hits) {
-        polygon->flags |= 4;
+        polygon->flags |= W8OctRegionPolygon::MULTIPLE_REGIONS;
     }
-    if (polygon->region != 0 && (polygon->flags & 4) == 0) {
+    if (polygon->region != 0 && (polygon->flags & W8OctRegionPolygon::MULTIPLE_REGIONS) == 0) {
         ++spatial.m_region_volumes[polygon->region].m_polygon_count;
     }
 }
@@ -810,7 +810,7 @@ unsigned char OctBuildPreTree::AssignPolygonRegions(W8OctPreTreeGeometry* geomet
                     }
                 }
                 if (1 < hits) {
-                    vert->flags |= 4;
+                    vert->flags |= W8OctPreTreeVertex::MULTIPLE_REGIONS;
                     vert->m_region = 0;
                 }
                 ++vertex;
@@ -822,9 +822,10 @@ unsigned char OctBuildPreTree::AssignPolygonRegions(W8OctPreTreeGeometry* geomet
         }
         for (polygon = 1; polygon < geometry->m_polygon_count; ++polygon) {
             W8OctRegionPolygon* poly = &geometry->m_polygons[polygon];
-            if ((poly->flags & 4) != 0) {
+            if ((poly->flags & W8OctRegionPolygon::MULTIPLE_REGIONS) != 0) {
                 SplitSharedPolygon(geometry, polygon);
-                poly->flags &= ~0xcU;
+                poly->flags &=
+                    ~(W8OctRegionPolygon::MULTIPLE_REGIONS | W8OctRegionPolygon::CENTER_IN_REGION);
             }
         }
         unsigned short bound = spatial.m_region_id_bound;
@@ -940,7 +941,7 @@ void OctBuildPreTree::RemapNodeRegions(W8OctBuildNode* node, int depth)
 unsigned short OctBuildPreTree::SplitSharedPolygon(W8OctPreTreeGeometry* geometry, int index)
 {
     W8OctRegionPolygon* polygon = &geometry->m_polygons[index];
-    if ((polygon->flags & 4) == 0) {
+    if ((polygon->flags & W8OctRegionPolygon::MULTIPLE_REGIONS) == 0) {
         return polygon->region;
     }
     unsigned short regions[20];
@@ -996,7 +997,7 @@ unsigned short OctBuildPreTree::SplitSharedPolygon(W8OctPreTreeGeometry* geometr
     for (unsigned short slot = 0; slot < found; ++slot) {
         unsigned short region = regions[slot];
         unsigned char inside;
-        if ((polygon->flags & 8) == 0) {
+        if ((polygon->flags & W8OctRegionPolygon::CENTER_IN_REGION) == 0) {
             inside = 0;
             for (int corner = 0; corner < 3; ++corner) {
                 if (PointInsideFrustum(&polygon->vertices[corner]->position,
@@ -1009,13 +1010,14 @@ unsigned short OctBuildPreTree::SplitSharedPolygon(W8OctPreTreeGeometry* geometr
             inside = polygon->InsideFrustumPlanes(spatial.m_region_volumes[region].m_planes);
         }
         if (inside != 0) {
-            polygon->flags &= ~0xcU;
+            polygon->flags &=
+                ~(W8OctRegionPolygon::MULTIPLE_REGIONS | W8OctRegionPolygon::CENTER_IN_REGION);
             polygon->region = region;
             ++spatial.m_region_volumes[region].m_polygon_count;
             slot = found;
         }
     }
-    if ((polygon->flags & 4) == 0) {
+    if ((polygon->flags & W8OctRegionPolygon::MULTIPLE_REGIONS) == 0) {
         polygon->visited = false;
     }
     return polygon->region;
@@ -1126,7 +1128,7 @@ void OctBuildPreTree::AssignInitialRegions(const W8OctSpatialState* arg_spatial)
         int contained_count = 0;
         for (unsigned long index = 0; index < g_poly_list_count; ++index) {
             W8OctRegionPolygon* polygon = static_cast<W8OctRegionPolygon*>(g_poly_list[index]);
-            if (polygon->region == 0 && polygon->ContainsPoint(&arg_spatial->m_minimum) != 0) {
+            if (polygon->region == 0 && polygon->ContainsPoint(&arg_spatial->m_minimum)) {
                 ++contained_count;
                 polygon->region = this->spatial.m_region_id_bound;
             }
@@ -1614,7 +1616,7 @@ unsigned char OctBuildPreTree::BuildParticleRegions(const W8LevelFileParticleSys
         for (unsigned short region_index = 1; region_index < spatial.m_region_count;
              ++region_index) {
             W8OctRegionVolume* volume = spatial.m_region_volumes + region_index;
-            if (volume->ContainsPoint(&position) != 0) {
+            if (volume->ContainsPoint(&position)) {
                 unsigned short region = volume->m_region;
                 inside_region_map->InsertUnique(&region, &particle_value);
                 mapped = true;
@@ -1654,7 +1656,7 @@ unsigned char OctBuildPreTree::BuildParticleRegions(const W8LevelFileParticleSys
                                  region_index < spatial.m_region_count; ++region_index) {
                                 W8OctRegionVolume* volume =
                                     spatial.m_region_volumes + region_index;
-                                if (volume->ContainsPoint(&corner) != 0) {
+                                if (volume->ContainsPoint(&corner)) {
                                     unsigned short region = volume->m_region;
                                     inside_region_map->InsertUnique(&region, &particle_value);
                                     corner_mapped = true;
@@ -1742,7 +1744,7 @@ unsigned char OctBuildPreTree::BuildGeometryRegions(const W8LevelFileProp* recor
                             srVector3T<float> corner;
                             corner.Set(bounds[x].x * g_world_scale, bounds[y].y * g_world_scale,
                                        bounds[z].z * g_world_scale);
-                            if (volume->ContainsPoint(&corner) != 0) {
+                            if (volume->ContainsPoint(&corner)) {
                                 unsigned short region = volume->m_region;
                                 overlap_region_map->InsertUnique(&region, &value);
                                 mapped = true;

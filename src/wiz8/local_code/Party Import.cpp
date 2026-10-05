@@ -408,16 +408,16 @@ void ConvertAttribute(W8Character* character, const W8Wiz7Character* imported)
         imported_values[*primary++] += 0x28;
     }
     for (i = 0; i < 7; ++i) {
-        character->attributes[i].value = g_race_attribute_minimums[character->iRace].values[i];
+        character->attributes[i].base = g_race_attribute_minimums[character->iRace].values[i];
     }
     points = 0;
     for (i = 0; i < 7; ++i) {
-        if (character->attributes[i].value <
+        if (character->attributes[i].base <
             static_cast<unsigned int>(
                 g_profession_attribute_minimums[character->iProfession].values[i])) {
             int deficit = g_profession_attribute_minimums[character->iProfession].values[i] -
-                          character->attributes[i].value;
-            character->attributes[i].value += deficit;
+                          character->attributes[i].base;
+            character->attributes[i].base += deficit;
             points += deficit;
         }
     }
@@ -426,12 +426,12 @@ void ConvertAttribute(W8Character* character, const W8Wiz7Character* imported)
         added = 0;
         for (i = 0; i < 7; ++i) {
             add = (points * imported_values[i]) / (total + average + 0x78);
-            cap = 100 - character->attributes[i].value;
+            cap = 100 - character->attributes[i].base;
             if (cap <= add) {
                 add = cap;
             }
             added += add;
-            character->attributes[i].value += add;
+            character->attributes[i].base += add;
         }
         points -= added;
         spins = points * 3;
@@ -440,10 +440,10 @@ void ConvertAttribute(W8Character* character, const W8Wiz7Character* imported)
             attribute = character->attributes;
             do {
                 Random(7);
-                if (attribute->value < 100) {
+                if (attribute->base < 100) {
                     --points;
                     spins -= 3;
-                    attribute->value += 1;
+                    attribute->base += 1;
                     if (points == 0) {
                         return;
                     }
@@ -461,9 +461,9 @@ void ConvertAttribute(W8Character* character, const W8Wiz7Character* imported)
             if (g_profession_attribute_minimums[character->iProfession].values[pick] != 0 &&
                 static_cast<unsigned int>(
                     g_race_attribute_minimums[character->iRace].values[pick]) <
-                    character->attributes[pick].value) {
+                    character->attributes[pick].base) {
                 ++removed;
-                character->attributes[pick].value -= 1;
+                character->attributes[pick].base -= 1;
             }
         } while (removed < -points);
     }

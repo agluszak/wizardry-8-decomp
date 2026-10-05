@@ -566,7 +566,7 @@ public:
     /* Region-link sample cell size read from .oct offset 0xac; the link
        builder strides the x/z grid by it (times three for a sparse pass). */
     float m_region_cell;
-    unsigned long m_path_clearance;
+    float m_path_clearance;
     W8PathingService* pathing;
     int prop_sun_base; /* 0x184: this octree's base index into the shared
                               prop-sunlight bit stream */

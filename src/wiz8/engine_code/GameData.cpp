@@ -111,25 +111,6 @@ float GetGroundSurfaceInfo(const srVector3T<float>* position, char* surface, cha
     return height;
 }
 
-/* Current-level movement state. Contact is refreshed by walkable-surface
-   response; movement can stop at its distance limit or through a reset.
-   Fast movement selects the running stamina/noise path. */
-
-enum {
-    W8_LEVEL_FLAG_PROP_CONTACT = 0x001,
-    W8_LEVEL_FLAG_PROP_NORMAL_MISMATCH = 0x002,
-    W8_LEVEL_FLAG_NEGLIGIBLE_MOTION = 0x004,
-    W8_LEVEL_FLAG_NO_SOUND_ENVIRONMENT = 0x008,
-    W8_LEVEL_FLAG_WALKABLE_CONTACT = 0x010,
-    W8_LEVEL_FLAG_MOVEMENT_ACTIVE = 0x020,
-    W8_LEVEL_FLAG_MOVEMENT_STOPPED = 0x040,
-    W8_LEVEL_FLAG_MOVEMENT_RESET = 0x080,
-    W8_LEVEL_MOVEMENT_STATE_MASK = W8_LEVEL_FLAG_MOVEMENT_ACTIVE | W8_LEVEL_FLAG_MOVEMENT_STOPPED |
-                                   W8_LEVEL_FLAG_MOVEMENT_RESET,
-    W8_LEVEL_FLAG_FAST_MOVEMENT = 0x100,
-    W8_LEVEL_FLAG_MOVED_THIS_UPDATE = 0x200
-};
-
 // GLOBAL: WIZ8 0x00652dba
 static bool g_level_override;
 // GLOBAL: WIZ8 0x00652dce
@@ -687,7 +668,7 @@ W8GDSurface* W8GameData::ProbePropsAlongMotion(srVector3T<float>* direction,
                     test_direction = surface->plane.normal;
                 }
                 if (surface->TestSegment(&probe, &test_direction, &hit_distance,
-                                         gd_prop->m_pVertices) != 0) {
+                                         gd_prop->m_pVertices)) {
                     if (hit_distance < *nearest_distance) {
                         *nearest_distance = hit_distance;
                         hit_point = probe;
@@ -1015,7 +996,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
                     surface->hit_plane = 0;
                     if ((surface->flags & W8_GD_SURFACE_CROSSING_MASK) == 0 &&
                         surface->TestSegment(&probe_position, &motion_delta, &hit_distance,
-                                             m_pVertices) != 0) {
+                                             m_pVertices)) {
                         if (hit_distance < nearest_distance) {
                             nearest_distance = hit_distance;
                             hit_position = probe_position;
@@ -1095,7 +1076,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
                     surface = &m_pSurfaces[octree_hits[index]];
                     if ((surface->flags & W8_GD_SURFACE_CROSSING_MASK) != 0 &&
                         surface->TestSegment(&probe_position, &motion_delta, &hit_distance,
-                                             m_pVertices) != 0) {
+                                             m_pVertices)) {
                         if (0 < crossed_count) {
                             for (int swap = 0; swap < crossed_count; ++swap) {
                                 W8GDSurface* prior = collisions[swap];
@@ -1220,7 +1201,7 @@ bool W8GameData::TestProp(int prop_id, W8OctreeTrace* trace, char skip_flag, cha
     m_pSurfaces = gd_prop->m_pGDSurfaces;
     m_pVertices = gd_prop->m_pVertices;
     if (g_oct_pre_tree == 0) {
-        if (gate == 0 || (gd_prop->m_flags & 4) == 0) {
+        if (gate == 0 || (gd_prop->m_flags & W8_GD_PROP_UNATTACHED) == 0) {
             srVector3T<float> start = trace->start;
             srVector3T<float> end = trace->end;
             srVector3T<float> delta;
@@ -1416,8 +1397,8 @@ void W8GameData::ProcessCrossedSurface(W8GDSurface* surface)
     if (surface->distance < 0.0f) {
         direction = -1;
     }
-    if (m_ppTriggers == 0 || active_trigger_bits->Set(surface->trigger_index) != 0 ||
-        pending_trigger_bits->Set(surface->trigger_index) != 0) {
+    if (m_ppTriggers == 0 || active_trigger_bits->Set(surface->trigger_index) ||
+        pending_trigger_bits->Set(surface->trigger_index)) {
         return;
     }
     trigger = m_ppTriggers[surface->trigger_index];
@@ -1454,7 +1435,7 @@ stModelInstance* W8GameData::CreateTraceModel()
                      "ModelGameData::Read -- Could not create pstMeshModel.\n");
     }
     mesh->autoRelease();
-    mesh->flags &= ~1U;
+    mesh->flags &= ~W8_MESH_SORTED_RENDERING;
     srVector3i* poly_vertices = mesh->getPolyVertex();
     srPtr<srTextureIFace>* poly_textures = mesh->getPolyTexture(0, 0, 1);
     srVector3T<float>* vertex_locs = mesh->getVertexLoc();
@@ -1553,15 +1534,15 @@ bool SegmentCrossesEdge(const srVector3T<float>* seg_start, const srVector3T<flo
    instead test whether the segment crossed the plane, and lift `from` by the
    level-flag-8 camera offset. */
 // FUNCTION: WIZ8 0x0041CF90
-unsigned char W8GDSurface::TestSegment(srVector3T<float>* from, const srVector3T<float>* direction,
-                                       float* hit_distance, srVector3T<float>* vertices)
+bool W8GDSurface::TestSegment(srVector3T<float>* from, const srVector3T<float>* direction,
+                              float* hit_distance, srVector3T<float>* vertices)
 {
     unsigned int flags = this->flags;
     bool special = false;
     bool crossed = false;
     bool inside = false;
     if ((flags & W8_GD_SURFACE_INACTIVE_MASK) != 0) {
-        return 0;
+        return false;
     }
     srVector3T<float> point = *from;
     if ((flags & W8_GD_SURFACE_CROSSING_MASK) != 0) {
@@ -1578,16 +1559,16 @@ unsigned char W8GDSurface::TestSegment(srVector3T<float>* from, const srVector3T
     if (segment_length < g_float_005ebc90) {
         if (!special) {
             g_environment_motion_active = special;
-            return 0;
+            return false;
         }
     } else if (!special && normal.x * unit_dir.x + unit_dir.y * normal.y + unit_dir.z * normal.z >=
                                g_float_zero) {
-        return 0;
+        return false;
     }
     srVector3T<float> end = point + *direction;
     float dist_start = DotProduct(point, plane.normal) + plane.w;
     if (!special && dist_start < g_float_zero) {
-        return 0;
+        return false;
     }
     float limit = contact_margin;
     if ((flags & W8_GD_SURFACE_WALKABLE) == 0 && !special) {
@@ -1597,18 +1578,18 @@ unsigned char W8GDSurface::TestSegment(srVector3T<float>* from, const srVector3T
     if (special) {
         if (dist_end * dist_start > g_camera_snap_epsilon) {
             if (contact_margin < g_float_one || dist_end < g_float_zero) {
-                return 0;
+                return false;
             }
             if (dist_end >= limit + g_float_005ebc88 && dist_start >= limit + g_float_005ebc88) {
-                return 0;
+                return false;
             }
         }
     } else {
         if (limit + g_float_005ebc88 <= dist_end) {
-            return 0;
+            return false;
         }
         if (dist_start - dist_end < g_camera_transition_epsilon) {
-            return 0;
+            return false;
         }
     }
     int axis = flags & W8_GD_SURFACE_AXIS_MASK;
@@ -1657,12 +1638,12 @@ unsigned char W8GDSurface::TestSegment(srVector3T<float>* from, const srVector3T
         fraction = g_float_005ebc80;
     }
     if (fraction > g_float_one) {
-        return 0;
+        return false;
     }
     float hit;
     if (!crossed && !inside) {
         if (special) {
-            return 0;
+            return false;
         }
         srVector3T<float> chosen;
         if (dist_start / t_span <= g_float_one) {
@@ -1670,31 +1651,31 @@ unsigned char W8GDSurface::TestSegment(srVector3T<float>* from, const srVector3T
         } else {
             chosen = end;
         }
-        if (ClampHitToEdge(&chosen, vertices, &limit) == 0) {
-            return 0;
+        if (!ClampHitToEdge(&chosen, vertices, &limit)) {
+            return false;
         }
         fraction = (dist_start - limit) / t_span;
         if (fraction >= g_float_one) {
-            return 0;
+            return false;
         }
         if (fraction < g_float_005ebc80) {
             fraction = g_float_005ebc80;
         }
         hit = fraction * segment_length;
         if (segment_length - hit < g_camera_transition_epsilon) {
-            return 0;
+            return false;
         }
         *hit_distance = hit;
         distance = limit;
         *from = point + unit_dir * hit;
-        return 1;
+        return true;
     }
     hit = fraction * segment_length;
     *hit_distance = hit;
     if (!special) {
         distance = limit;
         *from = point + unit_dir * hit;
-        return 1;
+        return true;
     }
     distance = hit;
     if (dist_start <= g_float_zero) {
@@ -1703,7 +1684,7 @@ unsigned char W8GDSurface::TestSegment(srVector3T<float>* from, const srVector3T
         distance = fabsf(hit);
     }
     *hit_distance = fabsf(*hit_distance);
-    return 1;
+    return true;
 }
 
 /* 2D segment-vs-edge test in the plane perpendicular to `axis`: the projected
@@ -1792,8 +1773,8 @@ bool SegmentCrossesEdge(const srVector3T<float>* seg_start, const srVector3T<flo
    to the remaining in-plane travel before the nearest edge; fails when no
    edge improves it. */
 // FUNCTION: WIZ8 0x0041D9D0
-unsigned char W8GDSurface::ClampHitToEdge(const srVector3T<float>* point,
-                                          const srVector3T<float>* vertices, float* limit)
+bool W8GDSurface::ClampHitToEdge(const srVector3T<float>* point, const srVector3T<float>* vertices,
+                                 float* limit)
 {
     float nearest_dist = 10000000.0f;
     short nearest_edge = 0;
@@ -1807,7 +1788,7 @@ unsigned char W8GDSurface::ClampHitToEdge(const srVector3T<float>* point,
         }
     }
     if (nearest_dist > *limit) {
-        return 0;
+        return false;
     }
     float offset = -(DotProduct(*point, plane.normal) + plane.w);
     srVector3T<float> projected;
@@ -1819,7 +1800,7 @@ unsigned char W8GDSurface::ClampHitToEdge(const srVector3T<float>* point,
     if ((flags & W8_GD_SURFACE_WALKABLE) != 0) {
         float threshold = *limit * g_float_005ebc7c;
         if (threshold < offset) {
-            return 0;
+            return false;
         }
     }
     if ((flags & W8_GD_SURFACE_WALKABLE) == 0) {
@@ -1834,9 +1815,9 @@ unsigned char W8GDSurface::ClampHitToEdge(const srVector3T<float>* point,
     }
     if (edge_dist < *limit) {
         *limit = sqrtf(*limit * *limit - edge_dist * edge_dist);
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 /* Collision response for a hit surface: `origin` advances to `hit_point` and
@@ -1844,9 +1825,8 @@ unsigned char W8GDSurface::ClampHitToEdge(const srVector3T<float>* point,
    continues. The crossed contact planes persist across calls in the statics
    so sequential bounces wedge the slide between them. */
 // FUNCTION: WIZ8 0x0041DC10
-unsigned char W8GDSurface::ResolveCollision(srVector3T<float>* origin,
-                                            const srVector3T<float>* hit_point,
-                                            srVector3T<float>* direction, int collision_index)
+bool W8GDSurface::ResolveCollision(srVector3T<float>* origin, const srVector3T<float>* hit_point,
+                                   srVector3T<float>* direction, int collision_index)
 {
     /* Statics 0x652d50/0x652d68/0x652d80 carry the latched entry direction and
        the first/second contact normals; their atexit thunks are the SYNTHETIC
@@ -1884,7 +1864,7 @@ unsigned char W8GDSurface::ResolveCollision(srVector3T<float>* origin,
     }
     float direction_length = direction->Length();
     if (direction_length == g_float_zero) {
-        return 0;
+        return false;
     }
     /* ProbePropsAlongMotion stores the prop's hit plane here; level surfaces
        leave it zero and use the embedded plane. */
@@ -1909,7 +1889,7 @@ unsigned char W8GDSurface::ResolveCollision(srVector3T<float>* origin,
                     (origin->z + direction->z) * normal.z + adjusted_d);
     distance = depth;
     if (depth < g_float_zero) {
-        return 1;
+        return true;
     }
     srVector3T<float> unit;
     if (collision_index < 1) {
@@ -1931,7 +1911,7 @@ unsigned char W8GDSurface::ResolveCollision(srVector3T<float>* origin,
         g_float_005ebcb4) {
         direction->SetZero();
         g_environ->vector = 0.0f;
-        return 0;
+        return false;
     }
     double inv_length = g_double_005ebc30 / direction_length;
     unit.Set(direction->x * inv_length, direction->y * inv_length, direction->z * inv_length);
@@ -1944,7 +1924,7 @@ unsigned char W8GDSurface::ResolveCollision(srVector3T<float>* origin,
     float approach = DotProduct(slide_unit, s_entry_direction);
     if (fabsf(approach) < g_camera_snap_epsilon) {
         direction->SetZero();
-        return 0;
+        return false;
     }
     if (approach >= g_float_005ebc90) {
         if (s_collision_state != 0) {
@@ -1956,8 +1936,7 @@ unsigned char W8GDSurface::ResolveCollision(srVector3T<float>* origin,
             srVector3T<float> deflect = s_entry_direction - ortho;
             deflect.Normalize();
             if (DotProduct(unit, deflect) < g_float_zero && s_collision_state == 1 &&
-                CentroidsDiverging(s_first_surface, &normal, &s_first_normal) !=
-                    0) {
+                CentroidsDiverging(s_first_surface, &normal, &s_first_normal)) {
                 crossed = true;
             }
         }
@@ -1967,12 +1946,12 @@ unsigned char W8GDSurface::ResolveCollision(srVector3T<float>* origin,
     if (s_collision_state != 0) {
         if (g_float_005ebcb0 < DotProduct(normal, s_first_normal)) {
             if (s_first_limit <= adjusted_d) {
-                return 1;
+                return true;
             }
             s_first_limit = adjusted_d;
             s_first_surface = index;
             *direction = slide;
-            return 1;
+            return true;
         }
         if (crossed) {
             crease_a = CrossProduct(normal, s_first_normal);
@@ -1991,17 +1970,17 @@ unsigned char W8GDSurface::ResolveCollision(srVector3T<float>* origin,
         if (s_collision_state == 2) {
             if (g_float_005ebcb0 < DotProduct(normal, s_second_normal)) {
                 if (s_second_limit <= adjusted_d) {
-                    return 1;
+                    return true;
                 }
                 s_second_limit = adjusted_d;
                 s_second_surface = index;
                 *direction = slide;
-                return 1;
+                return true;
             }
             if (DotProduct(s_second_normal + s_first_normal, normal) <
                 g_camera_snap_epsilon) {
                 direction->SetZero();
-                return 0;
+                return false;
             }
             if (crossed) {
                 srVector3T<float> crease_b = CrossProduct(normal, s_second_normal);
@@ -2012,7 +1991,7 @@ unsigned char W8GDSurface::ResolveCollision(srVector3T<float>* origin,
                 float ahead_b = DotProduct(crease_b, s_entry_direction);
                 if (ahead_a < g_camera_snap_epsilon && ahead_b < g_camera_snap_epsilon) {
                     direction->SetZero();
-                    return 0;
+                    return false;
                 }
                 if (ahead_b <= ahead_a) {
                     float crease_sq = crease_b.LengthSquared();
@@ -2043,7 +2022,7 @@ unsigned char W8GDSurface::ResolveCollision(srVector3T<float>* origin,
         } else if (crossed) {
             if (DotProduct(crease_a, s_entry_direction) < g_camera_snap_epsilon) {
                 direction->SetZero();
-                return 0;
+                return false;
             }
             ProjectVectorOntoVector(&slide, &crease_a);
             s_second_normal = normal;
@@ -2059,17 +2038,17 @@ unsigned char W8GDSurface::ResolveCollision(srVector3T<float>* origin,
     }
     *direction = slide;
     if (direction->Length() >= g_double_005ebca8) {
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 /* Whether `surface_index`'s triangle centroid sits farther from this surface's
    centroid than the from→to normal offset: used to tell genuinely different
    contact planes apart when wedging a slide. */
 // FUNCTION: WIZ8 0x0041E8E0
-unsigned char W8GDSurface::CentroidsDiverging(int surface_index, const srVector3T<float>* from,
-                                              const srVector3T<float>* to)
+bool W8GDSurface::CentroidsDiverging(int surface_index, const srVector3T<float>* from,
+                                     const srVector3T<float>* to)
 {
     const W8GDSurface* other = g_octree_game_data->m_pSurfaces + surface_index;
     const srVector3T<float>* vertices = g_octree_game_data->m_pVertices;
@@ -2092,9 +2071,9 @@ unsigned char W8GDSurface::CentroidsDiverging(int surface_index, const srVector3
     adjust.z = delta.z + (from->z - to->z);
     float adjusted_sq = adjust.LengthSquared();
     if (separation_sq < adjusted_sq) {
-        return 0;
+        return false;
     }
-    return 1;
+    return true;
 }
 
 /* Environment contact response for a flag-4 (walkable) surface hit: pushes
@@ -2103,13 +2082,13 @@ unsigned char W8GDSurface::CentroidsDiverging(int surface_index, const srVector3
    motion to the environ record. Direction tests against the surface normal
    decide whether any correction applies. */
 // FUNCTION: WIZ8 0x0041EA90
-unsigned char W8GDSurface::ApplyEnvironContact(srVector3T<float>* direction)
+bool W8GDSurface::ApplyEnvironContact(srVector3T<float>* direction)
 {
     W8LevelDataRecord* level = g_level_data;
     if ((flags & W8_GD_SURFACE_WALKABLE) == 0) {
         level->motion_input = 0.0f;
         level->integrated_motion.SetZero();
-        return 0;
+        return false;
     }
     level->flags |= W8_LEVEL_FLAG_WALKABLE_CONTACT;
     level->sound_environment = footstep_surface;
@@ -2146,14 +2125,14 @@ unsigned char W8GDSurface::ApplyEnvironContact(srVector3T<float>* direction)
             slide -= residual;
             *direction -= residual * factor;
             g_environ->SetScaledMotion(&slide);
-            return 1;
+            return true;
         }
-        return 0;
+        return false;
     }
     slide = 0.0f;
     g_environ->vector = slide / g_environ->scale;
     g_environ->airborne = 1;
-    return 0;
+    return false;
 }
 
 /* VC6 vector constructor iterator, emitted for an ordinary array construction.
@@ -2711,7 +2690,7 @@ W8LevelDataRecord::W8LevelDataRecord() : interval_gate()
 }
 
 // FUNCTION: WIZ8 0x00420470
-unsigned char W8LevelDataRecord::IntegrateCameraForward()
+bool W8LevelDataRecord::IntegrateCameraForward()
 {
     float forward_length;
     float limit;
@@ -2745,7 +2724,7 @@ unsigned char W8LevelDataRecord::IntegrateCameraForward()
     } else {
         if (forward_length < limit) {
             motion_velocity.SetZero();
-            return 0;
+            return false;
         }
         limit = g_environ->motion_factor * limit;
         adjustment.Set(-camera_motion_velocity.x, -camera_motion_velocity.y,
@@ -2766,10 +2745,10 @@ unsigned char W8LevelDataRecord::IntegrateCameraForward()
     if (cleared_vector) {
         if (DotProduct(motion_input, adjustment) > g_camera_transition_epsilon) {
             motion_velocity.SetZero();
-            return 0;
+            return false;
         }
     }
-    return 1;
+    return true;
 }
 
 // FUNCTION: WIZ8 0x00420810
@@ -2788,7 +2767,7 @@ unsigned char W8LevelDataRecord::ApplySavedMotionMatrix(unsigned char prior_fast
     motion_input = saved->Transform(motion_input);
     integrated_motion.Set(motion_input.x * camera_scale, motion_input.y * camera_scale,
                           motion_input.z * camera_scale);
-    if (IntegrateCameraForward() == 0) {
+    if (!IntegrateCameraForward()) {
         return 0;
     }
 
@@ -2841,7 +2820,7 @@ unsigned char W8LevelDataRecord::ApplySavedMotionMatrix(unsigned char prior_fast
 }
 
 // FUNCTION: WIZ8 0x00420A60
-unsigned char W8LevelDataRecord::UpdateFootstepFromMotion()
+bool W8LevelDataRecord::UpdateFootstepFromMotion()
 {
     float dx;
     float dy;
@@ -2860,7 +2839,7 @@ unsigned char W8LevelDataRecord::UpdateFootstepFromMotion()
     }
     if ((flags & W8_LEVEL_FLAG_NO_SOUND_ENVIRONMENT) != 0 ||
         (flags & W8_LEVEL_FLAG_WALKABLE_CONTACT) == 0) {
-        return 0;
+        return false;
     }
     distance = sqrtf(dx * dx + dy * dy + dz * dz) + footstep_accumulator;
     footstep_accumulator = distance;
@@ -2878,7 +2857,7 @@ unsigned char W8LevelDataRecord::UpdateFootstepFromMotion()
             }
         }
     }
-    return 1;
+    return true;
 }
 
 /* Flip the two props the last motion contact bound: the primary prop toggles
@@ -2952,7 +2931,7 @@ void W8LevelDataRecord::UpdateMotionProgress(unsigned char fast_move, unsigned c
         camera_motion_displacement.Set(camera_motion_velocity.x * camera_scale,
                                        camera_motion_velocity.y * camera_scale,
                                        camera_motion_velocity.z * camera_scale);
-        allow_override = UpdateFootstepFromMotion() != 0;
+        allow_override = UpdateFootstepFromMotion();
         camera_motion_velocity -= g_environ->vector;
         projected = contact_velocity;
         gravity.Set(g_environ->gravity_x, g_environ->gravity_y, g_environ->gravity_z);

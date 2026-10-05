@@ -1110,7 +1110,7 @@ unsigned int W8Octree::RegionKeyForPoint(const srVector3T<float>* point)
             if (region != 0) {
                 return region;
             }
-            if (m_spatial.m_region_volumes[index].ContainsPoint(point) != 0) {
+            if (m_spatial.m_region_volumes[index].ContainsPoint(point)) {
                 region = index;
             }
             ++index;
@@ -2946,7 +2946,7 @@ int W8Octree::ProbeCellForTrace(const srVector3T<int>* cell)
             if (9999 < m_gd_result_count) {
                 break;
             }
-            if (m_visited_object_bits->Set(*stream) == 0) {
+            if (!m_visited_object_bits->Set(*stream)) {
                 m_aulGDObjs[m_gd_result_count] = *stream;
                 ++m_gd_result_count;
             }
@@ -2973,7 +2973,7 @@ void W8Octree::AppendBlockerStream(const unsigned long* stream)
 {
     for (int remaining = *stream; remaining != 0; --remaining) {
         ++stream;
-        if (m_visited_polygon_bits->Set(*stream) == 0) {
+        if (!m_visited_polygon_bits->Set(*stream)) {
             if (9999 < m_gd_result_count) {
                 break;
             }
@@ -4449,7 +4449,7 @@ unsigned int W8Octree::CollectObjectsInCell(const srVector3T<int>* cell, unsigne
                         return found;
                     }
                     ++stream;
-                    if (m_visited_object_bits->Set(*stream) == 0) {
+                    if (!m_visited_object_bits->Set(*stream)) {
                         g_octree_state[m_gd_result_count] = *stream;
                         ++m_gd_result_count;
                     }
@@ -4476,7 +4476,7 @@ unsigned int W8Octree::CollectObjectsInCell(const srVector3T<int>* cell, unsigne
                     short entry_kind = static_cast<short>(OctreeKeyKind(packed));
                     if ((entry_kind == W8_OCTREE_KIND_LOCATION ||
                          entry_kind == W8_OCTREE_KIND_NAVIGATOR) &&
-                        m_visited_object_bits->Set(OctreeKeyId(packed) - 1) == 0) {
+                        !m_visited_object_bits->Set(OctreeKeyId(packed) - 1)) {
                         g_octree_state[m_gd_result_count] = g_octree_query_id - 1;
                         ++m_gd_result_count;
                     }
@@ -4511,7 +4511,7 @@ unsigned int W8Octree::CollectObjectsInCell(const srVector3T<int>* cell, unsigne
             g_octree_query_id = static_cast<unsigned short>(packed);
             while (m_gd_result_count < 10000) {
                 if ((static_cast<unsigned short>(OctreeKeyKind(packed)) == kind) &&
-                    m_visited_object_bits->Set(OctreeKeyId(packed) - 1) == 0) {
+                    !m_visited_object_bits->Set(OctreeKeyId(packed) - 1)) {
                     g_octree_state[m_gd_result_count] = g_octree_query_id - 1;
                     ++m_gd_result_count;
                 }

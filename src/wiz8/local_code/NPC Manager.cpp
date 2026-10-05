@@ -1496,7 +1496,7 @@ unsigned char InitializeNpcCharacter(W8NpcState* npc, W8Character* character)
     character->gender = static_cast<W8Gender>(source->gender);
     character->portrait_index = source->table_value;
     for (index = 0; index < 7; ++index) {
-        character->attributes[index].value = source->attributes[index];
+        character->attributes[index].base = source->attributes[index];
     }
     for (index = 0; index < 0x29; ++index) {
         character->skills[index].points = source->skills[index];

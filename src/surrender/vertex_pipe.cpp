@@ -315,7 +315,9 @@ void srVertexPipe::finishDiffuseAlpha()
         return;
     }
     srVector4T<float>* diffuse = vertex_array->diffuse + batch_base + sub_batch_offset;
-    if (((lazy_setup_mask & 0xa) == 0) && ((current_record->flags & 9) == 0)) {
+    if (((lazy_setup_mask & 0xa) == 0) &&
+        ((current_record->flags &
+          (srVertexPipe::Record::HAS_COLORS | srVertexPipe::Record::HAS_ALPHA)) == 0)) {
         srCore.getStatisticsManager()->statistics.diffuse_operations += vertex_count;
         srVector4T<float> color;
         color.x =
@@ -345,7 +347,7 @@ void srVertexPipe::finishDiffuseAlpha()
         } else if (color.w >= 1.0f) {
             color.w = 1.0f;
         }
-        if ((current_record->flags & 2) != 0) {
+        if ((current_record->flags & srVertexPipe::Record::HAS_DIFFUSE_MULTIPLIERS) != 0) {
             vector_processor->_mulIndexed(diffuse, color, current_record->spec_for_diffuse,
                                              avt + sub_batch_offset, vertex_count);
             return;
@@ -364,7 +366,7 @@ void srVertexPipe::finishDiffuseAlpha()
     float* alpha;
     if ((channel_mask & (1 << srVertexProcessor::CHANNEL_ALPHA)) != 0) {
         srCore.getStatisticsManager()->statistics.alpha_operations += vertex_count;
-        if ((current_record->flags & 8) != 0) {
+        if ((current_record->flags & srVertexPipe::Record::HAS_ALPHA) != 0) {
             alpha = scratch->alpha + sub_batch_offset;
             if ((lazy_setup_mask & 8) == 0) {
                 if (vertex_count != 0) {
@@ -411,7 +413,8 @@ void srVertexPipe::finishDiffuseAlpha()
         srVectorProcessor::clampUnit(reinterpret_cast<float*>(diffuse),
                                      reinterpret_cast<const float*>(diffuse), vertex_count * 4);
     }
-    if (((current_record->flags & 2) != 0) && (vertex_count != 0)) {
+    if (((current_record->flags & srVertexPipe::Record::HAS_DIFFUSE_MULTIPLIERS) != 0) &&
+        (vertex_count != 0)) {
         srVectorProcessor::mulIndexed(diffuse, diffuse, current_record->spec_for_diffuse,
                                       avt + sub_batch_offset, vertex_count);
     }
@@ -481,7 +484,8 @@ void srVertexPipe::finishSpecularFog()
                                          reinterpret_cast<const float*>(destination), dword_count);
         }
     }
-    if (((current_record->flags & 4) != 0) && (vertex_count != 0)) {
+    if (((current_record->flags & srVertexPipe::Record::HAS_SPECULAR_MULTIPLIERS) != 0) &&
+        (vertex_count != 0)) {
         srVectorProcessor::mulIndexed(destination, destination,
                                       current_record->spec_for_specular,
                                       avt + sub_batch_offset, vertex_count);
@@ -698,7 +702,7 @@ void srVertexPipe::setupDiffuse()
             input->ambient_light.w * material_info.ambient.w + material_info.emissive.w;
         srVector4T<float>* diffuse =
             vertex_array->diffuse + batch_base + sub_batch_offset;
-        if ((current_record->flags & 1) == 0) {
+        if ((current_record->flags & srVertexPipe::Record::HAS_COLORS) == 0) {
             if (vertex_count != 0) {
                 srVectorProcessor::copy(diffuse, color, vertex_count);
             }
@@ -820,7 +824,7 @@ void srVertexPipe::setupSpecular()
 // FUNCTION: SURRENDER 0x1002C400
 void srVertexPipe::setupST(unsigned long index)
 {
-    if (((current_record->flags & (1 << (index + 4))) != 0)) {
+    if (((current_record->flags & (srVertexPipe::Record::HAS_TEXCOORD0 << index)) != 0)) {
         const srVector2T<float>* source = current_record->st_source[index];
         if (source != 0) {
             vector_processor->_copyIndexed((&vertex_array->st0)[index] + batch_base +

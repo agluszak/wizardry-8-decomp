@@ -643,7 +643,7 @@ void W8CharacterStatsPage::AdjustEntry(W8CharacterPageEntry* entry, int delta)
                              delta);
     Invalidate(0);
     m_screen->UpdateNavigation(this);
-    if (m_character->attributes[entry->m_id].value >= 100) {
+    if (m_character->attributes[entry->m_id].base >= 100) {
         for (int skill = 0x22; skill < 0x29; ++skill) {
             if (g_skill_attributes[skill].attribute_1 == static_cast<int>(entry->m_id) &&
                 m_character->skills[skill].active) {
@@ -843,7 +843,7 @@ void W8CharacterStatsPage::SetCharacter(W8Character* character,
         entry->m_listener = this;
         entry->SetContent(attribute_index,
                           gppStringList[g_character_description_first_ids[attribute_index]],
-                          &character->attributes[attribute_index].value,
+                          &character->attributes[attribute_index].base,
                           &creation_state->attribute_values[attribute_index],
                           &creation_state->attribute_limits[attribute_index], 0x101);
         entry->SetEnabled(false);

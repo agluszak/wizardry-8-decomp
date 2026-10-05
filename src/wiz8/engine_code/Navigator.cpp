@@ -253,7 +253,9 @@ void SetNavigatorLinkMode(unsigned char mode)
                             group_navigator->movement.attachment->CopyPathFrom(
                                 navigator->movement.attachment);
                             group_navigator->patrol_home = navigator->patrol_home;
-                            group_navigator->movement.attachment->flags &= 0xff7effff;
+                            group_navigator->movement.attachment->flags &=
+                                ~(W8_NAV_ATTACHMENT_IGNORE_LINKED_NAVIGATOR |
+                                  W8_NAV_ATTACHMENT_FOLLOW_PATH);
                             group_navigator->linked_update_time = 0;
                         }
                     }
@@ -697,7 +699,7 @@ unsigned char W8Navigator::LoadMovementState(unsigned int hFile)
     movement.attachment->InitializeSegment(&movement.position, &target);
     movement_target = target;
     flags |= 0x20000000;
-    movement.attachment->flags |= 0x800000;
+    movement.attachment->flags |= W8_NAV_ATTACHMENT_IGNORE_LINKED_NAVIGATOR;
     movement.target_position = patrol_home;
     if (SetMovementTarget(&movement_target, true) == 0) {
         return 0;
@@ -722,7 +724,8 @@ void W8Navigator::PropagateGroupPosition()
             W8Navigator* navigator = *g_navigator_group.GetAt(index);
             navigator->movement.attachment->CopyPathFrom(movement.attachment);
             navigator->patrol_home = patrol_home;
-            navigator->movement.attachment->flags &= 0xff7effff;
+            navigator->movement.attachment->flags &=
+                ~(W8_NAV_ATTACHMENT_IGNORE_LINKED_NAVIGATOR | W8_NAV_ATTACHMENT_FOLLOW_PATH);
             navigator->linked_update_time = 0;
         }
     }
@@ -973,7 +976,7 @@ unsigned char W8Navigator::UpdateLinkedPosition()
         }
     }
     movement.attachment->CopyPathFrom(linked_navigator->movement.attachment);
-    movement.attachment->flags &= 0xff7fffff;
+    movement.attachment->flags &= ~W8_NAV_ATTACHMENT_IGNORE_LINKED_NAVIGATOR;
     movement.yaw = linked_navigator->movement.yaw;
     movement.velocity = linked_navigator->movement.velocity * 0.5;
     SetPosition(&position);
@@ -1692,7 +1695,7 @@ void W8Navigator::ResetMovementAndGroupState()
 unsigned char W8Navigator::ConfigureMovement(float minimum, float maximum)
 {
     flags |= 0x20000000;
-    movement.attachment->flags |= 0x800000;
+    movement.attachment->flags |= W8_NAV_ATTACHMENT_IGNORE_LINKED_NAVIGATOR;
     if (minimum > g_float_zero) {
         minimum_height = minimum;
     }
@@ -1717,7 +1720,8 @@ unsigned char W8Navigator::ConfigureMovement(float minimum, float maximum)
                     navigator->movement.attachment->CopyPathFrom(
                         movement.attachment);
                     navigator->patrol_home = patrol_home;
-                    navigator->movement.attachment->flags &= 0xff7effff;
+                    navigator->movement.attachment->flags &= ~(
+                        W8_NAV_ATTACHMENT_IGNORE_LINKED_NAVIGATOR | W8_NAV_ATTACHMENT_FOLLOW_PATH);
                     navigator->linked_update_time = 0;
                 }
             }
@@ -1768,7 +1772,8 @@ unsigned char W8Navigator::SetMovementTarget(const srVector3T<float>* target, bo
             W8Navigator* navigator = *g_navigator_group.GetAt(index);
             navigator->movement.attachment->CopyPathFrom(movement.attachment);
             navigator->patrol_home = patrol_home;
-            navigator->movement.attachment->flags &= 0xff7effff;
+            navigator->movement.attachment->flags &=
+                ~(W8_NAV_ATTACHMENT_IGNORE_LINKED_NAVIGATOR | W8_NAV_ATTACHMENT_FOLLOW_PATH);
             navigator->linked_update_time = 0;
         }
     }
@@ -2083,7 +2088,7 @@ void W8Navigator::UpdateNavigation(unsigned char skip_movement, bool slowed)
         return;
     }
     if (linked_navigator == 0) {
-        movement.attachment->flags |= 0x800000;
+        movement.attachment->flags |= W8_NAV_ATTACHMENT_IGNORE_LINKED_NAVIGATOR;
     }
 
     if (g_combat_inactive == 0) {

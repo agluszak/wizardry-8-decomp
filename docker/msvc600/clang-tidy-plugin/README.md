@@ -145,7 +145,7 @@ clang-tidy --wiz8-scalar-report /out/scalar-facts \
 
 `uv run wiz8 analyze scalar-facts --patch --boolean-expressions` also emits
 reviewable comparison edits for fields, globals, locals, parameters and indexed
-storage whose canonical AST type is already `bool`, plus direct calls without
+storage whose canonical AST type is already `bool`, plus direct calls with balanced
 arguments whose canonical return type is `bool`. It replaces direct comparisons
 with zero/one or false/true by the expression or its negation. It also replaces numeric
 zero/one literals at established bool arguments, assignments, initializers and

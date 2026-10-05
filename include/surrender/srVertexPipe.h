@@ -94,6 +94,15 @@ public:
        shader's channel-disable mask; color_source.kind selects the
        ARGB/vector3/vector4 copyIndexed source for color_source.colors. */
     struct Record {
+        enum {
+            HAS_COLORS = 0x01u,
+            HAS_DIFFUSE_MULTIPLIERS = 0x02u,
+            HAS_SPECULAR_MULTIPLIERS = 0x04u,
+            HAS_ALPHA = 0x08u,
+            HAS_TEXCOORD0 = 0x10u,
+            HAS_TEXCOORD1 = 0x20u,
+            HAS_VERTEX_MATERIALS = 0x40u
+        };
         unsigned long flags;
         unsigned long channels;
         srMaterialIFace* material;

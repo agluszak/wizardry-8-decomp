@@ -65,6 +65,10 @@ static_assert(offsetof(W8LevelFileParticleSystem, particle.attachment_key) == 0x
 static_assert(sizeof(W8LevelFileNamedPosition) == 0x9d, "W8LevelFileNamedPosition_must_be_0x9d");
 static_assert(offsetof(W8LevelFileNamedPosition, position) == 0x81,
               "W8LevelFileNamedPosition_position_81");
+static_assert(offsetof(W8LevelFileNamedPosition, angle) == 0x8d,
+              "W8LevelFileNamedPosition_angle_8d");
+static_assert(offsetof(W8LevelFileNamedPosition, direction) == 0x91,
+              "W8LevelFileNamedPosition_direction_91");
 static_assert(sizeof(W8LevelFileBlock) == 0x634, "W8LevelFileBlock_must_be_0x634");
 static_assert(sizeof(W8LevelFile) == 0x279d, "W8LevelFile_must_be_0x279d");
 static_assert(offsetof(W8LevelFile, pClippingPlanes) == 0x691, "W8LevelFile_pClippingPlanes");

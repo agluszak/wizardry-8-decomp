@@ -1007,7 +1007,7 @@ void RecalculateCharacterResistances(W8Character* character)
                              .adjustment_or_attribute;
             if (static_cast<int>(adjustment) > W8_RACE_ADJUSTMENT_ATTRIBUTE_BIAS) {
                 adjustment =
-                    character->attributes[adjustment - W8_RACE_ADJUSTMENT_ATTRIBUTE_BIAS].value / 5;
+                    character->attributes[adjustment - W8_RACE_ADJUSTMENT_ATTRIBUTE_BIAS].base / 5;
             }
             character->resistances[channel].base += adjustment;
         }

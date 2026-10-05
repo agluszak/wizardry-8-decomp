@@ -3419,7 +3419,8 @@ render_world:
             }
         }
         ApplyWorldUpdateFlags(g_world, g_level_block->world_update_flags);
-        if (g_secondary_world && (g_level_block->world_update_flags & 3) == 0) {
+        if (g_secondary_world &&
+            (g_level_block->world_update_flags & W8_WORLD_CHANGE_FAR_CLIP) == 0) {
             ApplyWorldUpdateFlags(g_secondary_world, g_level_block->world_update_flags);
         }
         g_level_block->world_update_flags = 0;

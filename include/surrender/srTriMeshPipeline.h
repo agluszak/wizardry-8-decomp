@@ -24,6 +24,7 @@ class srMaterialIFace;
 #pragma pack(push, 4)
 class srTriMeshPipeline {
 public:
+    enum { FRUSTUM_CLIPPING = 1u, LIMIT_VERTEX_BATCHES = 2u };
     struct Record {
         inline Record() : flags(0), disable_mask(0), colors(0), color_format(2) {}
 

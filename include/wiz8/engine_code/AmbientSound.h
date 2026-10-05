@@ -18,7 +18,7 @@ public:
     W8AmbientSound(); /* 0x00479040 */
 
     /* 0x004790D0: true when listener is inside the rotated/scaled min-max region */
-    unsigned char IsInsideRegion(const srVector3T<float>* listener);
+    bool IsInsideRegion(const srVector3T<float>* listener);
     /* 0x00479350: listener-relative range test, group handoff, 3D re-aim, fade retarget */
     void UpdatePosition(const srVector3T<float>* listener);
     /* 0x00479970: per-frame service while in range; 'entered' forces an immediate roll */

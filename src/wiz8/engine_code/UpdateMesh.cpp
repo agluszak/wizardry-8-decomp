@@ -13,11 +13,9 @@
 #include "surrender/srModelInstance.h"
 #include "surrender/srCamera.h"
 
-/* Yaw-spread factor paired with g_float_00609c88 when the two view-triangle
-   edges are rotated off the camera forward vector; retail never writes it, so
-   both rotations collapse to zero and the triangle degenerates to a ray. */
+/* Convert the mesh view half-angle from degrees to radians. */
 // GLOBAL: WIZ8 0x005ED168
-const float g_float_005ed168 = 0.01745329424738884f;
+const float g_mesh_view_degrees_to_radians = 0.01745329424738884f;
 
 /* Camera-visible quad-cell coordinates and count: rows[]/cells[] index pairs
    into W8Quad, filled by CollectViewQuadCells and consumed by
@@ -39,9 +37,8 @@ static void RasterizeQuadTriangle(W8World* world, long x1, long y1, long x2, lon
 
 /* Builds the camera view triangle in quad-cell space: the camera's own cell is
    the apex and the two far points sit view-distance ahead along the camera
-   forward vector, optionally yawed by +/- (g_float_00609c88 * g_float_005ed168).
-   The factor global is never written in retail, so both edges keep the camera
-   forward direction and the rasterized region is a thin wedge. */
+   forward vector, optionally yawed by +/- (g_mesh_view_half_angle_degrees * g_mesh_view_degrees_to_radians).
+   The two far vertices bound the visible wedge around the camera heading. */
 // FUNCTION: WIZ8 0x004BA530
 void CollectViewQuadCells(W8World* world, long* x_list, long* y_list, long* count)
 {
@@ -56,7 +53,7 @@ void CollectViewQuadCells(W8World* world, long* x_list, long* y_list, long* coun
 
     srVector3T<float> direction(0.0f, 0.0f, world->render_range);
     srMatrix3T<float> work = rotation;
-    double angle = -g_float_00609c88 * g_float_005ed168;
+    double angle = -g_mesh_view_half_angle_degrees * g_mesh_view_degrees_to_radians;
     if (angle != 0.0) {
         work.RotateAboutY(sin(angle), cos(angle));
     }
@@ -66,7 +63,7 @@ void CollectViewQuadCells(W8World* world, long* x_list, long* y_list, long* coun
 
     direction.Set(0.0f, 0.0f, world->render_range);
     work = rotation;
-    angle = g_float_00609c88 * g_float_005ed168;
+    angle = g_mesh_view_half_angle_degrees * g_mesh_view_degrees_to_radians;
     if (angle != 0.0) {
         srVector3T<float> first;
         srVector3T<float> second;

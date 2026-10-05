@@ -106,7 +106,7 @@ void W8NormalTexcoordMapper::process(srVertexPipe& pipe)
 // FUNCTION: WIZ8 0x004925B0
 stMaterial::stMaterial()
 {
-    m_shader_flags = 0;
+    m_surface_flags = 0;
 }
 
 // FUNCTION: WIZ8 0x00492D00
@@ -122,7 +122,7 @@ srClass* stMaterial::vClone()
 
     if (this != instance) {
         *static_cast<srMaterial*>(instance) = *this;
-        instance->m_shader_flags = m_shader_flags;
+        instance->m_surface_flags = m_surface_flags;
     }
     return instance;
 }
@@ -750,11 +750,7 @@ static unsigned char PreprocessLevel(int handle, char* stem)
                             ReportBuildStatus(6, message);
                             if (g_option_pathing) {
                                 tree->m_region_cell = g_option_path_node_spacing;
-                                /* Retail copies the head-room float's bits
-                                   into the unsigned-long field. */
-                                tree->m_path_clearance =
-                                    (unsigned long&)/* c-style-cast-ok: float-bit copy */
-                                    g_option_path_head_room;
+                                tree->m_path_clearance = g_option_path_head_room;
                                 tree->BuildPathLists(value, level, g_option_delete_percentage);
                             }
                             if (submeshes == 0) {
@@ -1108,7 +1104,7 @@ static int WeldVertex(W8HashTable<unsigned int, int>* table, W8OctPreTreeVertex*
                                 g_float_005ecbb8) {
                             if (link == 0xffffffff) {
                                 vertices[index].m_vertex_index = match_index;
-                                vertices[index].flags |= 1;
+                                vertices[index].flags |= W8OctPreTreeVertex::EXCLUDED;
                             }
                             found = true;
                         }
@@ -1287,7 +1283,7 @@ static int BuildRegionPolygons(W8LevelFile* level, W8OctPreTreeGeometry* geometr
                         ++current->m_normal_count;
                     }
                 }
-                if ((materials[face->material_index].shader_flags & 1) != 0) {
+                if ((materials[face->material_index].surface_flags & W8_MATERIAL_TWO_SIDED) != 0) {
                     opposing = true;
                 }
                 polygon->visited = false;
@@ -1306,23 +1302,25 @@ static int BuildRegionPolygons(W8LevelFile* level, W8OctPreTreeGeometry* geometr
                             created = vertices + mesh->num_vertices;
                             *created = *current;
                             created->m_vertex_index = mesh->num_vertices;
-                            current->flags |= 2;
+                            current->flags |= W8OctPreTreeVertex::NORMAL_SPLIT;
                             vertex_index[corner] = mesh->num_vertices;
                             ++mesh->num_vertices;
-                            created->flags |= 2;
+                            created->flags |= W8OctPreTreeVertex::NORMAL_SPLIT;
                             created->m_normal.SetZero();
                             created->m_normal_count = 0;
                         } else {
                             vertex_index[corner] = found - 1;
                         }
-                        if ((materials[face->material_index].shader_flags & 1) == 0) {
+                        if ((materials[face->material_index].surface_flags &
+                             W8_MATERIAL_TWO_SIDED) == 0) {
                             polygon->vertices[corner] = vertices + vertex_index[corner];
                         }
                         current = vertices + vertex_index[corner];
                         current->m_normal = normal + current->m_normal;
                         ++current->m_normal_count;
                     }
-                    if ((materials[face->material_index].shader_flags & 1) != 0) {
+                    if ((materials[face->material_index].surface_flags & W8_MATERIAL_TWO_SIDED) !=
+                        0) {
                         back = polygons + mesh->num_faces;
                         *back = *polygon;
                         back->ordinal = mesh->num_faces;
@@ -1790,10 +1788,9 @@ static unsigned char MaterialSort(W8OctPreTreeGeometry* geometry, W8MaterialReco
                 ++texture_count;
             }
             sprintf(name, "Mat:%1.2f %1.2f %1.2f %1.2f %1.2f %1.2f %1.2f %1.2f %1.2f %d %c",
-                    record->diffuse.x, record->diffuse.y, record->diffuse.z,
-                    record->specular.x, record->specular.y, record->specular.z,
-                    record->shininess, record->opacity, record->emission,
-                    static_cast<int>(record->shader_flags), classify[index]);
+                    record->diffuse.x, record->diffuse.y, record->diffuse.z, record->specular.x,
+                    record->specular.y, record->specular.z, record->shininess, record->opacity,
+                    record->emission, static_cast<int>(record->surface_flags), classify[index]);
             for (scan = 0; scan < material_count; ++scan) {
                 if (strcmp(material_names + scan * 0x200, name) == 0) {
                     break;
@@ -2175,11 +2172,10 @@ unsigned char LoadMaterial(const char* bitmap_folder, const W8MaterialRecord* so
     sprintf(material_name,
             "Mt%1.2f%1.2f%1.2f%1.2f%1.2f%1.2f%1.2f%1.2f%1.2f"
             "%1.2f%1.2f%1.2f%1.2f%1.2f%d%c",
-            source->ambient.x, source->ambient.y, source->ambient.z,
-            source->diffuse.x, source->diffuse.y, source->diffuse.z,
-            source->specular.x, source->specular.y, source->specular.z,
-            source->shininess, source->opacity, source->emission, source->emission,
-            source->emission, static_cast<int>(source->shader_flags),
+            source->ambient.x, source->ambient.y, source->ambient.z, source->diffuse.x,
+            source->diffuse.y, source->diffuse.z, source->specular.x, source->specular.y,
+            source->specular.z, source->shininess, source->opacity, source->emission,
+            source->emission, source->emission, static_cast<int>(source->surface_flags),
             /* Retail passes the string's address for %c, so the name ends in
                that address's low byte. */
             reinterpret_cast<int>( // reinterpret-ok: retail formats the pointer
@@ -2234,8 +2230,8 @@ unsigned char LoadMaterial(const char* bitmap_folder, const W8MaterialRecord* so
                                              source->emission, 1.0f);
             }
             concrete->dirty = 1;
-            concrete->m_shader_flags = source->shader_flags;
-            if ((source->shader_flags & 0x1fe) != 0) {
+            concrete->m_surface_flags = source->surface_flags;
+            if ((source->surface_flags & W8_MATERIAL_NORMAL_TEXCOORD_MASK) != 0) {
                 concrete->setMapper(&g_normal_texcoord_mapper);
             }
         }
@@ -2290,7 +2286,7 @@ unsigned char CreateDefaultMaterial(srMaterialIFace** material, srTextureIFace**
     concrete->dirty = 1;
     concrete->parms.emissive = 0.0f;
     concrete->dirty = 1;
-    concrete->m_shader_flags = 0;
+    concrete->m_surface_flags = 0;
     return 1;
 }
 

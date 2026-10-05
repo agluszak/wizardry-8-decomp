@@ -9,29 +9,29 @@
 /* Test the polygon's representative point against six frustum planes; inside
    means every plane distance is non-negative. */
 // FUNCTION: WIZ8 0x004cfae0
-unsigned char W8OctRegionPolygon::InsideFrustumPlanes(const W8Plane* planes) const
+bool W8OctRegionPolygon::InsideFrustumPlanes(const W8Plane* planes) const
 {
     for (short plane = 0; plane < 6; ++plane) {
         float distance = DotProduct(planes[plane].normal, position) + planes[plane].w;
         if (distance < g_float_zero) {
-            return 0;
+            return false;
         }
     }
-    return 1;
+    return true;
 }
 
 /* Test the polygon's representative point against an inclusive axis-aligned
    box. The method's original translation-unit owner is not yet proved. */
 // FUNCTION: WIZ8 0x004cfb30
-unsigned char W8OctRegionPolygon::ContainsPoint(const srVector3T<float>* bounds) const
+bool W8OctRegionPolygon::ContainsPoint(const srVector3T<float>* bounds) const
 {
     for (short axis = 0; axis < 3; ++axis) {
         float value = (&position.x)[axis];
         if (value < (&bounds[0].x)[axis] || (&bounds[1].x)[axis] < value) {
-            return 0;
+            return false;
         }
     }
-    return 1;
+    return true;
 }
 
 /* Grow `*run` to (count + capacity) dwords when count lands on a capacity

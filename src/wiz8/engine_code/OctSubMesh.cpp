@@ -249,9 +249,9 @@ stMeshModel* OctMeshModel::Read(int file, srMaterialIFace** materials, srTexture
     }
     model->autoRelease();
     if (unweighted) {
-        model->flags &= ~1U;
+        model->flags &= ~W8_MESH_SORTED_RENDERING;
     } else {
-        model->flags |= 1;
+        model->flags |= W8_MESH_SORTED_RENDERING;
     }
 
     m_vertex_locations = model->getVertexLoc();
@@ -359,10 +359,10 @@ stMeshModel* OctMeshModel::Read(int file, srMaterialIFace** materials, srTexture
         if (unweighted) {
             ShutdownWithErrorBox("OctMeshModel::Read -- Wrong shader type.\n");
         } else {
-            model->enable(srMeshModel::CONTROL_STARTUP);
+            model->enable(srMeshModel::CONTROL_SORTED_RENDERING);
         }
     } else if (!unweighted) {
-        model->enable(srMeshModel::CONTROL_STARTUP);
+        model->enable(srMeshModel::CONTROL_SORTED_RENDERING);
     }
 
     if (m_link_index >= 0) {

@@ -122,7 +122,7 @@ MGSKeyBinding* MGSKeyboard::GetBinding(int index) const
 }
 
 // FUNCTION: WIZ8 0x0055d320
-unsigned char MGSKeyboard::IsCommandPressed(W8MGSCommand command) const
+bool MGSKeyboard::IsCommandPressed(W8MGSCommand command) const
 {
     unsigned int command_key = command;
     MGSKeyBinding* binding = m_command_index.Lookup(&command_key);
@@ -138,10 +138,10 @@ unsigned char MGSKeyboard::IsCommandPressed(W8MGSCommand command) const
             modifiers |= CTRL_DOWN;
         }
         if (modifiers == binding->modifiers) {
-            return 1;
+            return true;
         }
     }
-    return 0;
+    return false;
 }
 
 /* Discard every queued input atom. MainGameScreenEnter calls this so stale

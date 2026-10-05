@@ -1044,7 +1044,7 @@ void W8Prop::AttachAnimationInstances(W8World* world)
                 instance->frame_interpolation = 0.0f;
             }
             mesh = static_cast<stMeshModel*>(instance->getModel());
-            if (mesh != 0 && (mesh->flags & 1) != 0 && trigger == 0) {
+            if (mesh != 0 && (mesh->flags & W8_MESH_SORTED_RENDERING) != 0 && trigger == 0) {
                 instance->render_flags |= stModelInstance::RENDER_NO_PICK;
             }
             path = AnimObjListEntry(Rep()->animation, 2, static_cast<signed char>(index));
@@ -1111,7 +1111,7 @@ void W8Prop::AttachAnimationInstances(W8World* world)
             instance->frame_interpolation = 0.0f;
         }
         mesh = static_cast<stMeshModel*>(instance->getModel());
-        if (mesh != 0 && (mesh->flags & 1) != 0 && trigger == 0) {
+        if (mesh != 0 && (mesh->flags & W8_MESH_SORTED_RENDERING) != 0 && trigger == 0) {
             instance->render_flags |= stModelInstance::RENDER_NO_PICK;
         }
         if (Rep()->animation->path != 0) {

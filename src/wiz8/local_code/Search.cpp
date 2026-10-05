@@ -212,7 +212,8 @@ void RunSearchPulse(void)
         if (GetEnvironmentFlag() != 0 && !gXStatus.world_update_blocked &&
             !gXStatus.fSurprisePossible && !gXStatus.fLockInteractMode && !gXStatus.fLockInteract &&
             !gXStatus.fTrapInteractMode && !gXStatus.fTrapInteract) {
-            if ((g_level_data->flags & 0x100) != 0 && g_status.search_mode != 0) {
+            if ((g_level_data->flags & W8_LEVEL_FLAG_FAST_MOVEMENT) != 0 &&
+                g_status.search_mode != 0) {
                 ShowNotice(W8_FONT_PALETTE_BEIGE, gppStringList[W8_NOTICE_SEARCH_SPECIAL_LEVEL]);
             }
             W8SearchableView* view = CollectSearchablesInView();
@@ -281,7 +282,8 @@ void RunSearchPulse(void)
                     }
                 }
             }
-            if (g_status.search_mode == 0 || (g_level_data->flags & 0x100) != 0) {
+            if (g_status.search_mode == 0 ||
+                (g_level_data->flags & W8_LEVEL_FLAG_FAST_MOVEMENT) != 0) {
                 /* Retail scans the party for a live member carrying the
                    Scouting skill and then discards the result. */
                 for (int slot = 0; slot < W8_PARTY_SLOT_COUNT; ++slot) {
@@ -293,7 +295,8 @@ void RunSearchPulse(void)
                     }
                 }
             }
-            if (g_status.search_mode != 0 && (g_level_data->flags & 0x100) == 0 && !found &&
+            if (g_status.search_mode != 0 &&
+                (g_level_data->flags & W8_LEVEL_FLAG_FAST_MOVEMENT) == 0 && !found &&
                 Random(100) == 0) {
                 ApplyItemEffectToRandomCharacter(g_container_event, -1, 0,
                                                  g_character_event_no_flags);
@@ -322,11 +325,12 @@ int W8Searchable::PickBestSearcher()
         if (CharacterHasTrait(character, W8_TRAIT_SEARCH) || g_status.search_mode != 0) {
             unsigned int level = character->skills[W8_SKILL_SCOUTING].level;
             unsigned int base = level >> 1;
-            if ((g_level_data->flags & 0x100) != 0) {
+            if ((g_level_data->flags & W8_LEVEL_FLAG_FAST_MOVEMENT) != 0) {
                 base = level >> 2;
             }
             unsigned int score = 0;
-            if (base != 0 || (g_status.search_mode != 0 && (g_level_data->flags & 0x100) == 0)) {
+            if (base != 0 || (g_status.search_mode != 0 &&
+                              (g_level_data->flags & W8_LEVEL_FLAG_FAST_MOVEMENT) == 0)) {
                 unsigned int attribute = character->attributes[W8_ATTRIBUTE_SENSES].effective;
                 if (attribute < 0x33) {
                     score = base + attribute / 5;

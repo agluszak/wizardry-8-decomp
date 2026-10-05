@@ -629,7 +629,7 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
             if (diffuse_scale_enabled) {
                 g_material_diffuse_scale = diffuse_scale;
                 mesh.shaders[0].value = (mesh.shaders[0].value & 0xffffd7bf) | 0x44a0;
-                mesh.control_flags |= 0x40;
+                mesh.control_flags |= (1UL << srMeshModel::CONTROL_SORTED_RENDERING);
                 g_material_diffuse_scale_enabled = true;
             }
             if (emissive_override_enabled) {
@@ -676,7 +676,7 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
         }
         while (model != 0) {
             model->getTriMesh(mesh);
-            if (((model->flags & 1) == 0) || (model == first_model)) {
+            if (((model->flags & W8_MESH_SORTED_RENDERING) == 0) || (model == first_model)) {
                 if (mesh.poly_textures[0][0] != 0 ||
                     ((mesh.textures[0][0] != 0) &&
                      (_strnicmp("blank", mesh.textures[0][0]->getName(), 5) != 0))) {
@@ -750,7 +750,7 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
                             mesh.vertex_count * 3);
                     }
                     mesh.positions = g_vertex_scratch->data;
-                    mesh.control_flags |= 0x40;
+                    mesh.control_flags |= (1UL << srMeshModel::CONTROL_SORTED_RENDERING);
 
                     if ((render_flags & RENDER_NO_PICK) != 0 && !renderer.isPickStackEmpty()) {
                         srGERD::Pick pick;
@@ -809,7 +809,7 @@ static void BuildShadowMesh()
                 material->setEmissive(color);
                 color.Set(1.0f, 1.0f, 1.0f, 0.0f);
                 material->setDiffuse(color);
-                material->m_shader_flags = 0;
+                material->m_surface_flags = 0;
             }
             srVector3i* triangles = static_cast<srVector3i*>(srHeap.allocate(6 * sizeof(long)));
             g_shadow_mesh->poly_vertices = triangles;
@@ -829,9 +829,9 @@ static void BuildShadowMesh()
             positions[5].Set(0.0f, 250.0f, 250.0f);
             g_shadow_mesh->normals = 0;
             g_shadow_mesh->control_flags = 0;
-            g_shadow_mesh->control_flags |= 0x10;
-            g_shadow_mesh->control_flags |= 0x20;
-            g_shadow_mesh->control_flags |= 8;
+            g_shadow_mesh->control_flags |= (1UL << srMeshModel::CONTROL_SKIP_AUTO_BOX);
+            g_shadow_mesh->control_flags |= (1UL << srMeshModel::CONTROL_SKIP_AUTO_SPHERE);
+            g_shadow_mesh->control_flags |= (1UL << srMeshModel::CONTROL_NO_FRONT_CULL);
             g_shadow_mesh->polygon_count = 2;
             g_shadow_mesh->vertex_count = 6;
             g_shadow_mesh->bounds_maximum = 500.0f;

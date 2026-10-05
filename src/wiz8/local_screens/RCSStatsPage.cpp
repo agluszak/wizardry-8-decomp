@@ -249,7 +249,7 @@ void DrawCampStatsPage(void)
                         ((0x7b - StringPixLength(label, g_wiz_text_font_secondary)) >> 1),
                     row_y - 0xa6 + g_camp_stats_origin_y, Wiz8ToSgpWideText(g_format_s), label);
             unsigned int effective = g_review_character->attributes[index].effective;
-            unsigned int base = g_review_character->attributes[index].value;
+            unsigned int base = g_review_character->attributes[index].base;
             int gained;
             int lost;
             unsigned int shown;

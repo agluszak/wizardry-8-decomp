@@ -438,7 +438,7 @@ void CreateAutomapButtons(void)
                 W8DialogButtonCallback callback = reinterpret_cast<W8DialogButtonCallback>(
                     g_automap_button_callbacks[index]); // reinterpret-ok: void() vs button*
                 if (g_automap_buttons[index]->ConfigureVObjButton(object, base_frame, callback,
-                                                                  false) != 0) {
+                                                                  false)) {
                     g_automap_buttons[index]->SetPosition(g_automap_button_positions[index].x,
                                                           g_automap_button_positions[index].y);
                     g_automap_buttons[index]->SetTooltipIndex(g_automap_button_tooltips[index]);
@@ -1893,7 +1893,7 @@ void CreateAutomapMarkerSprites(void)
                                         surface->getHeight() * g_viewport_x_scale, true, true);
             g_automap_party_marker->setParent(g_scene_square, 1);
             static_cast<srMeshModel*>(g_automap_party_marker->getModel())
-                ->enable(srMeshModel::CONTROL_STARTUP);
+                ->enable(srMeshModel::CONTROL_SORTED_RENDERING);
             surface->setFilter(&srBSplineFilter);
             g_automap_party_marker->SetGlowEnabled(true);
             srVector4T<float> first;
@@ -1913,7 +1913,7 @@ void CreateAutomapMarkerSprites(void)
                 CreateSpriteFromTexture(texture, surface->getWidth() * g_viewport_x_scale,
                                         surface->getHeight() * g_viewport_y_scale, true, false);
             static_cast<srMeshModel*>(g_automap_friendly_marker->getModel())
-                ->enable(srMeshModel::CONTROL_STARTUP);
+                ->enable(srMeshModel::CONTROL_SORTED_RENDERING);
             surface->setFilter(&srBSplineFilter);
         }
     }
@@ -1926,7 +1926,7 @@ void CreateAutomapMarkerSprites(void)
                 CreateSpriteFromTexture(texture, surface->getWidth() * g_viewport_x_scale,
                                         surface->getHeight() * g_viewport_y_scale, true, false);
             static_cast<srMeshModel*>(g_automap_neutral_marker->getModel())
-                ->enable(srMeshModel::CONTROL_STARTUP);
+                ->enable(srMeshModel::CONTROL_SORTED_RENDERING);
             surface->setFilter(&srBSplineFilter);
         }
     }
@@ -1939,7 +1939,7 @@ void CreateAutomapMarkerSprites(void)
                 CreateSpriteFromTexture(texture, surface->getWidth() * g_viewport_x_scale,
                                         surface->getHeight() * g_viewport_y_scale, true, false);
             static_cast<srMeshModel*>(g_automap_hostile_marker->getModel())
-                ->enable(srMeshModel::CONTROL_STARTUP);
+                ->enable(srMeshModel::CONTROL_SORTED_RENDERING);
             surface->setFilter(&srBSplineFilter);
         }
     }
@@ -1951,7 +1951,7 @@ void CreateAutomapMarkerSprites(void)
                 CreateSpriteFromTexture(texture, surface->getWidth() * g_viewport_x_scale,
                                         surface->getHeight() * g_viewport_y_scale, true, false);
             static_cast<srMeshModel*>(g_automap_text_marker->getModel())
-                ->enable(srMeshModel::CONTROL_STARTUP);
+                ->enable(srMeshModel::CONTROL_SORTED_RENDERING);
             surface->setFilter(&srBSplineFilter);
         }
     }
@@ -2166,7 +2166,7 @@ stModelInstance2D* CreateAutomapItemMarker(int item_id)
     if (marker == 0) {
         return 0;
     }
-    static_cast<srMeshModel*>(marker->getModel())->enable(srMeshModel::CONTROL_STARTUP);
+    static_cast<srMeshModel*>(marker->getModel())->enable(srMeshModel::CONTROL_SORTED_RENDERING);
     g_automap_markers->Add(marker);
     marker->SetGlowEnabled(true);
     srVector4T<float> first;

@@ -849,10 +849,10 @@ void srMeshModel::updateTriMesh()
         tri_mesh.dcg[pass] = getVertexDCG(pass, 0);
         tri_mesh.scg[pass] = getVertexSCG(pass, 0);
     }
-    if ((tri_mesh.control_flags & 0x10) == 0) {
+    if ((tri_mesh.control_flags & (1UL << srMeshModel::CONTROL_SKIP_AUTO_BOX)) == 0) {
         getBoundingBox(tri_mesh.bounds_minimum, tri_mesh.bounds_maximum);
     }
-    if ((tri_mesh.control_flags & 0x20) == 0) {
+    if ((tri_mesh.control_flags & (1UL << srMeshModel::CONTROL_SKIP_AUTO_SPHERE)) == 0) {
         getBoundingSphere(tri_mesh.bounds_center, tri_mesh.bounds_radius);
     }
     tri_mesh.active_polygons = getActivePolygonTable(0);
@@ -1624,8 +1624,8 @@ void srTriMeshPipeline::Reset(srGERD* renderer)
     slot_count = 0;
     this->renderer = renderer;
     flags = 0;
-    flags |= 1;
-    flags |= 2;
+    flags |= FRUSTUM_CLIPPING;
+    flags |= LIMIT_VERTEX_BATCHES;
     triangle_count = 0;
     active_triangles = 0;
     projected_vertices = 0;
@@ -1731,7 +1731,7 @@ void srTriMeshPipeline::FlushSlots()
     culler_input.inverse_model_view = &inverse_model_view;
     culler_input.scale_type = scale_type;
 
-    if ((this->flags & 1) == 0) {
+    if ((this->flags & FRUSTUM_CLIPPING) == 0) {
         culler_input.clip_mask = 0;
     } else {
         float depth;
@@ -1756,7 +1756,7 @@ void srTriMeshPipeline::FlushSlots()
 
     unsigned long total = active_triangles == 0 ? triangle_count : active_triangle_count;
     unsigned long batch_limit = total;
-    if ((this->flags & 2) != 0) {
+    if ((this->flags & LIMIT_VERTEX_BATCHES) != 0) {
         double ratio = static_cast<double>(vertex_count) / triangle_count;
         if (ratio > 3.0f) {
             ratio = 3.0f;
@@ -1943,7 +1943,7 @@ void srMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
     if (mesh.polygon_count != 0 && mesh.vertex_count != 0) {
         renderer.pushEnable();
 
-        if ((mesh.control_flags & 0x40) != 0 &&
+        if ((mesh.control_flags & (1UL << srMeshModel::CONTROL_SORTED_RENDERING)) != 0 &&
             !renderer.isEnabled(srGERD::ENABLE_SORTED_RENDERING)) {
             renderer.toggle(srGERD::ENABLE_SORTED_RENDERING);
         }
@@ -1966,14 +1966,14 @@ void srMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
                         static_cast<unsigned long>(mesh.active_polygon_count);
                 }
 
-                if ((mesh.control_flags & 0x10) == 0) {
+                if ((mesh.control_flags & (1UL << srMeshModel::CONTROL_SKIP_AUTO_BOX)) == 0) {
                     pipeline->bounds_minimum = mesh.bounds_minimum;
                     pipeline->bounds_maximum = mesh.bounds_maximum;
                     if (pipeline->bounds_state == 0) {
                         pipeline->bounds_state = 2;
                     }
                 }
-                if ((mesh.control_flags & 0x20) == 0) {
+                if ((mesh.control_flags & (1UL << srMeshModel::CONTROL_SKIP_AUTO_SPHERE)) == 0) {
                     pipeline->bounds_center = mesh.bounds_center;
                     pipeline->bounds_radius = mesh.bounds_radius;
                     pipeline->bounds_state = 1;
@@ -1985,11 +1985,12 @@ void srMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
                     if (!renderer.isEnabled(static_cast<srGERD::e_enable>(3))) {
                         renderer.toggle(static_cast<srGERD::e_enable>(3));
                     }
-                    if ((mesh.control_flags & 4) != 0) {
+                    if ((mesh.control_flags & (1UL << srMeshModel::CONTROL_REUSE_FRONT_MATERIAL)) !=
+                        0) {
                         material_side = 0;
                     }
                 } else {
-                    if ((mesh.control_flags & 8) == 0) {
+                    if ((mesh.control_flags & (1UL << srMeshModel::CONTROL_NO_FRONT_CULL)) == 0) {
                         renderer.setCullMode(srGERD::CULL_BACK);
                     } else {
                         renderer.setCullMode(srGERD::CULL_NONE);
@@ -2008,15 +2009,17 @@ void srMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
                     if (mesh.dig[pass] != 0) {
                         pipeline->current_record->colors = mesh.dig[pass];
                         pipeline->current_record->color_format = 1;
-                        pipeline->current_record->flags |= 1;
+                        pipeline->current_record->flags |= srVertexPipe::Record::HAS_COLORS;
                     }
                     if (mesh.dcg[pass] != 0) {
                         pipeline->current_record->dcg = mesh.dcg[pass];
-                        pipeline->current_record->flags |= 2;
+                        pipeline->current_record->flags |=
+                            srVertexPipe::Record::HAS_DIFFUSE_MULTIPLIERS;
                     }
                     if (mesh.scg[pass] != 0) {
                         pipeline->current_record->scg = mesh.scg[pass];
-                        pipeline->current_record->flags |= 4;
+                        pipeline->current_record->flags |=
+                            srVertexPipe::Record::HAS_SPECULAR_MULTIPLIERS;
                     }
 
                     if (mesh.vertex_materials[pass][material_side] == 0) {
@@ -2026,7 +2029,8 @@ void srMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
                     } else {
                         pipeline->current_record->vertex_materials =
                             mesh.vertex_materials[pass][material_side];
-                        pipeline->current_record->flags |= 0x40;
+                        pipeline->current_record->flags |=
+                            srVertexPipe::Record::HAS_VERTEX_MATERIALS;
                     }
 
                     if (mesh.poly_uv[pass] != 0) {
@@ -2041,10 +2045,10 @@ void srMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
 
                     if (mesh.texcoords[pass][0] != 0) {
                         pipeline->current_record->st0 = mesh.texcoords[pass][0];
-                        pipeline->current_record->flags |= 0x10;
+                        pipeline->current_record->flags |= srVertexPipe::Record::HAS_TEXCOORD0;
                     }
                     if (mesh.texcoords[pass][1] != 0) {
-                        pipeline->current_record->flags |= 0x20;
+                        pipeline->current_record->flags |= srVertexPipe::Record::HAS_TEXCOORD1;
                         pipeline->current_record->st1 = mesh.texcoords[pass][1];
                     }
 

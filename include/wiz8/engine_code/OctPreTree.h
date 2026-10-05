@@ -29,7 +29,7 @@ struct W8OctRegionVolume {
     srVector3T<float> m_points[9];
     W8Plane m_planes[6];
 
-    unsigned char ContainsPoint(const srVector3T<float>* point) const;
+    bool ContainsPoint(const srVector3T<float>* point) const;
 };
 
 /* A reusable, non-polymorphic 0x9c spatial record.  Octree.cpp constructs one
@@ -113,8 +113,9 @@ struct W8OctRegionPolygon;
    at +0x1c, normal at +0x24, light at +0x30 and the per-sun light array
    pointer at +0x3c; the driver also clears flag bytes at +0x0a and +0x6a. */
 struct W8OctPreTreeVertex {
-    /* bit0: welded into an earlier vertex - m_vertex_index then holds the
-       redirect; bit1: material-split copy; bit2: sits inside more than one
+    enum { EXCLUDED = 1u, NORMAL_SPLIT = 2u, MULTIPLE_REGIONS = 4u };
+    /* bit0: excluded from compaction (welded or unused); for welded vertices
+       m_vertex_index holds the redirect; bit1: split normal copy; bit2: sits inside more than one
        region volume (m_region zeroed). */
     unsigned long flags;
     /* Ordinal into the geometry vertex array; on welded vertices the merge
@@ -262,10 +263,10 @@ struct W8OctFileHeader {
     unsigned short pad_aa;
     float m_region_cell;
     unsigned long m_edge_node_count;
-    /* Path probe-clearance height, float bits. Retail never assigns this
+    /* Path probe-clearance height. Retail never assigns this
        field - the file carries stack garbage - but the reader still loads
        it into +0x17c and feeds it to ConfigureForLevel. */
-    unsigned long m_path_clearance;
+    float m_path_clearance;
     unsigned char m_prop_sun_bits;
     float m_max_region_radius;
     unsigned long m_prop_count;

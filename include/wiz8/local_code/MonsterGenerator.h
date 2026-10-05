@@ -32,7 +32,7 @@ struct MonGen {
     void Reset();
     /* Tests global encounter gates, range/LOS/occupancy constraints and this
        generator's chance. Retail reads the force argument as one byte. */
-    unsigned char CanGenerateEncounter(bool force); /* 0x0048B200 */
+    bool CanGenerateEncounter(bool force); /* 0x0048B200 */
     /* Selects and spawns the encounter table entry at `position`. */
     unsigned char GenerateEncounter(const srVector3T<float>* position); /* 0x0048AD20 */
     /* Build the candidate-entry list for the current rarity/time/party level. */
