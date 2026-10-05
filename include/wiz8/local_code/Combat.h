@@ -7,7 +7,7 @@ extern wchar_t g_combat_log_format[]; /* 0x00617664 */
 
 void ChooseAction(int party_slot, W8ActionKind action, int detail, const W8ActionDetailBlock* data,
                   bool defer_execution, int notify); /* 0x004E7CC0 */
-void ChooseCombatAction(int party_slot, int context, int* out_kind, int* out_action,
+void ChooseCombatAction(int party_slot, W8TargetingContext context, int* out_kind, int* out_action,
                         W8CombatSlot** out_target,
                         W8ActionDetailBlock** out_detail); /* 0x004E77B0 */
 void SetCharacterCombatAction(int party_slot, W8ActionKind action_kind, int action_detail,

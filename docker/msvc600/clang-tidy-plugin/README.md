@@ -154,7 +154,10 @@ uv run wiz8 analyze scalar-facts --patch \
 The separate `enum_propagation` report starts from current typed declarations.
 These are accepted source owners, not independent historical evidence; they do
 not seed `integer_components` or relax evidence validation. Only builtin locals
-with complete, same-width, same-signedness enum copy producers are patched.
+with complete, same-width, same-signedness enum copy producers or explicit
+casts into accepted enum owners are patched. Casts preserve the input storage
+boundary: a packed byte remains a byte, while its named enum result can propagate.
+Missing or ambiguous cast destinations remain blocked.
 Comparisons, indexing and switches can consume the identity. Numeric writes,
 arithmetic, unknown producers, unseeded cycles, conflicting enums, escapes,
 width-sensitive consumers and incomplete collection block automatic changes.

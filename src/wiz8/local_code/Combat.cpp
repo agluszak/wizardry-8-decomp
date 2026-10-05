@@ -863,7 +863,10 @@ int GetCharacterTurnValue(int party_slot)
     unsigned int hand;
     int value;
 
-    ChooseCombatAction(party_slot, row->dead == 0, &chosen, 0, 0, 0);
+    ChooseCombatAction(party_slot,
+                       row->dead == 0 ? W8_TARGETING_CONTEXT_IN_COMBAT
+                                      : W8_TARGETING_CONTEXT_OUT_OF_COMBAT,
+                       &chosen, 0, 0, 0);
     if (chosen != 0 && chosen != 1) {
         return 1;
     }
@@ -1336,7 +1339,7 @@ void SetCharacterCombatAction(int party_slot, W8ActionKind action_kind, int acti
 /* Ask the slot's currently selected action which context its outputs hold:
    the chosen action kind plus three context-dependent words. */
 // FUNCTION: WIZ8 0x004e77b0
-void ChooseCombatAction(int party_slot, int context, int* out_kind, int* out_action,
+void ChooseCombatAction(int party_slot, W8TargetingContext context, int* out_kind, int* out_action,
                         W8CombatSlot** out_target, W8ActionDetailBlock** out_detail)
 {
     W8PartySlotRow* row = &g_status.buffers.XChar[party_slot];
@@ -1349,62 +1352,62 @@ void ChooseCombatAction(int party_slot, int context, int* out_kind, int* out_act
         context = GetCombatActionContext(party_slot);
     }
     switch (context) {
-    case 0:
+    case W8_TARGETING_CONTEXT_OUT_OF_COMBAT:
         kind = row->pending_action;
         value_a = row->attack_mode[0];
         target = &row->target_out_of_combat;
         detail = &row->pending_action_detail;
         break;
-    case 1:
+    case W8_TARGETING_CONTEXT_IN_COMBAT:
         kind = row->action;
         value_a = row->action_detail0;
         target = &row->target_in_combat;
         detail = &row->action_detail1;
         break;
-    case 2:
+    case W8_TARGETING_CONTEXT_SHARED:
         if (gXStatus.fSpellCastMode == 0) {
             if (gXStatus.fItemSelectMode == 0) {
                 srAssertFail("gXStatus.fItemSelectMode",
                              "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp", 0x2e0, 0);
             }
             gXStatus.shared_action_detail.item_use.item = GetSelectedOrFallbackValue();
-            kind = 8;
+            kind = W8_ACTION_USE_ITEM;
             value_a = -1;
             target = &gXStatus.shared_target;
             detail = &gXStatus.shared_action_detail;
         } else {
-            kind = 7;
+            kind = W8_ACTION_CAST_SPELL;
             value_a = GetSpellCastingSelection();
             target = &gXStatus.shared_target;
             detail = &gXStatus.shared_action_detail;
         }
         break;
-    case 3:
+    case W8_TARGETING_CONTEXT_SPELL:
         value_a = row->spell_id;
-        kind = 7;
+        kind = W8_ACTION_CAST_SPELL;
         target = &row->spell_target;
         detail = &row->spell_detail;
         break;
-    case 4:
+    case W8_TARGETING_CONTEXT_ITEM:
         value_a = -1;
-        kind = 8;
+        kind = W8_ACTION_USE_ITEM;
         target = &row->item_target;
         detail = &row->item_detail;
         break;
-    case 5:
+    case W8_TARGETING_CONTEXT_BREATH:
         value_a = -1;
         target = &row->breath_target;
-        kind = 2;
+        kind = W8_ACTION_BREATHE;
         detail = 0;
         break;
-    case 7:
+    case W8_TARGETING_CONTEXT_DIALOGUE:
         kind = g_level_block->selection_kind;
         value_a = g_level_block->pending_action;
         target = 0;
         detail = 0;
         break;
-    case 8:
-        kind = 0;
+    case W8_TARGETING_CONTEXT_ATTACK:
+        kind = W8_ACTION_ATTACK;
         value_a = -1;
         target = 0;
         detail = 0;
@@ -1421,7 +1424,7 @@ void ChooseCombatAction(int party_slot, int context, int* out_kind, int* out_act
     }
     if (CanPartySlotParticipate(party_slot) == 0 && kind != W8_ACTION_WALK &&
         kind != W8_ACTION_RUN) {
-        kind = -1;
+        kind = W8_ACTION_NONE;
         value_a = -1;
         target = 0;
         detail = 0;
@@ -2930,8 +2933,10 @@ int GetConditionInterrupt(W8TargetSource* source)
         condition_turns = character->uiCondition;
         moving = g_status.buffers.XChar[party_slot].pending_action == W8_ACTION_RUN;
         if (CanAnyHandReachTarget(party_slot)) {
-            can_attack = CanPartySlotAttackAnyTarget(party_slot, 8, 1, 0) != 0;
-            second_hand_attack = CanPartySlotAttackAnyTarget(party_slot, 8, 1, 1) != 0;
+            can_attack =
+                CanPartySlotAttackAnyTarget(party_slot, W8_TARGETING_CONTEXT_ATTACK, 1, 0) != 0;
+            second_hand_attack =
+                CanPartySlotAttackAnyTarget(party_slot, W8_TARGETING_CONTEXT_ATTACK, 1, 1) != 0;
         }
         secondary_flag = g_combat_state->characters[party_slot].berserk;
         attribute = character->attributes[W8_ATTRIBUTE_STRENGTH].effective;
@@ -2998,7 +3003,8 @@ int GetConditionInterrupt(W8TargetSource* source)
                 CanUnequipSlotItem(character, 6) != 0 && CanUnequipSlotItem(character, 7) != 0) {
                 SwapWeaponSetSlots(party_slot, 0, 1);
                 if (CanAnyHandReachTarget(party_slot) != 0 &&
-                    CanPartySlotAttackAnyTarget(party_slot, 8, 1, 0) != 0) {
+                    CanPartySlotAttackAnyTarget(party_slot, W8_TARGETING_CONTEXT_ATTACK, 1, 0) !=
+                        0) {
                     PostCharacterNotice(party_slot, gppStringList[0x23d]);
                     return 9;
                 }
@@ -3478,7 +3484,8 @@ short GetCombatActionProgress(int* out_total)
                 if (row->dead != 0) {
                     int swings = 0;
                     int kind;
-                    ChooseCombatAction(party_slot, 0, &kind, 0, 0, 0);
+                    ChooseCombatAction(party_slot, W8_TARGETING_CONTEXT_OUT_OF_COMBAT, &kind, 0, 0,
+                                       0);
                     if (kind == W8_ACTION_ATTACK || kind == W8_ACTION_BERSERK) {
                         for (int hand = 0; hand < 2; ++hand) {
                             swings +=

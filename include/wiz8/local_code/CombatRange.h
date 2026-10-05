@@ -26,8 +26,8 @@ void CloseFormationGap(W8MonsterInfo* monster_info, int party_slot,
    resolved action's range category (less the rows between in combat), the
    info's aim flag for the action's ranged-ness, and the band distance. A miss
    queues the slot's complaint event when `notify_failure` asks. */
-bool CanPartyMemberAimAtMonster(int party_slot, int hand, W8MonsterInfo* monster_info, int context,
-                                char notify_failure);
+bool CanPartyMemberAimAtMonster(int party_slot, int hand, W8MonsterInfo* monster_info,
+                                W8TargetingContext context, char notify_failure);
 /* Whether the front rank stands between two formation positions. */
 bool FrontRankScreens(unsigned int from_position, unsigned int to_position); /* 0x0051B000 */
 /* Whether the monster's attack `attack` reaches the character in `party_slot`,
@@ -91,7 +91,8 @@ W8RangeCategory GetBestHandRangeCategory(const W8Character* character);
 bool CharacterActionReachesTarget(int party_slot, int hand, W8TargetingContext context);
 /* 0x005197C0: the slot-vs-slot form the target-list builder uses: whether the
    slot's chosen action in `context` can strike `target_slot`. */
-bool CharacterActionReachesSlot(int party_slot, int hand, int target_slot, int context);
+bool CharacterActionReachesSlot(int party_slot, int hand, int target_slot,
+                                W8TargetingContext context);
 /* 0x0051B0A0: collect the party slots the slot could reach and strike under
    `relationship`, and pick one at random; -1 when none qualify. */
 int PickReachableSlotByDisposition(int party_slot, char relationship);
@@ -105,4 +106,4 @@ bool SourceActionReachesTarget(W8TargetSource* source, W8CombatSlot* target);
    valid target in the scanned groups for `hand`; the condition interrupt uses
    it to tell usable attacks from merely reachable ones. `flag` == 1 skips the
    monster scan. */
-bool CanPartySlotAttackAnyTarget(int party_slot, int category, int flag, bool hand);
+bool CanPartySlotAttackAnyTarget(int party_slot, W8TargetingContext category, int flag, bool hand);

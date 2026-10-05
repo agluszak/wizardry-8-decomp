@@ -6567,8 +6567,8 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
                 assign = 0;
                 if ((gXStatus.iCurrentCursor == 6 || g_status.item_in_cursor) &&
                     g_status.selected_character != -1 &&
-                    CanPartyMemberAimAtMonster(g_status.selected_character, 2, monster_info, 6,
-                                               0) != 0) {
+                    CanPartyMemberAimAtMonster(g_status.selected_character, 2, monster_info,
+                                               W8_TARGETING_CONTEXT_CURRENT, 0) != 0) {
                     if ((GetMonsterDataForInfo(monster_info)->flags & W8_MONSTER_FLAG_NPC) == 0) {
                         ShowNotice(0xc, gppStringList[0x7de], -1, -1, 0);
                     } else {
