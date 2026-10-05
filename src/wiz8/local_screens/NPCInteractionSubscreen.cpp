@@ -3867,7 +3867,7 @@ void HandleNpcDialogueInput(void)
 void HandleNpcDialogueKeyEvent(const InputAtom* event)
 {
     W8NpcInteractionState* state;
-    int command;
+    W8MGSCommand command;
 
     if (ShouldDeferCharacterEventForNpcScript(0)) {
         return;
@@ -3955,18 +3955,19 @@ void HandleNpcDialogueKeyEvent(const InputAtom* event)
         return;
     default:
         command = g_mgs_keyboard->FindCommandForEvent(event);
-        if (command == 0x131) {
+        if (command == W8_MGS_COMMAND_JOURNAL) {
             DispatchMGSCommand(command);
             return;
         }
         if (g_npc_interaction_state->dialogue_layout == W8_DIALOGUE_LAYOUT_TRANSCRIPT) {
             return;
         }
-        if (command <= 0x132) {
-            if (command != 0x132 && command != 100) {
+        if (command <= W8_MGS_COMMAND_INVENTORY) {
+            if (command != W8_MGS_COMMAND_INVENTORY && command != W8_MGS_COMMAND_QUIT_GAME) {
                 return;
             }
-        } else if (command < 400 || command > 0x197) {
+        } else if (command < W8_MGS_COMMAND_SELECT_RECRUITED_1 ||
+                   command > W8_MGS_COMMAND_SELECT_PC_6) {
             return;
         }
         DispatchMGSCommand(command);

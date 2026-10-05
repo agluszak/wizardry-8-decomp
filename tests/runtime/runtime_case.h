@@ -1,5 +1,7 @@
 #pragma once
 
+#include "wiz8/mgs_commands.h"
+
 /* Enable the pinned SDK's SendInput declarations for the harness only. */
 #define _WIN32_WINNT 0x0500
 
@@ -44,7 +46,7 @@ struct GameplaySnapshot {
 /* A bound command copied out of MGSKeyboard on the game thread; the driver
    never keeps a pointer into the binding table. */
 struct CommandBinding {
-    int command;
+    W8MGSCommand command;
     unsigned short key;
     unsigned short modifiers;
 };
@@ -88,7 +90,7 @@ typedef bool (*RuntimeConditionFn)(const GameplaySnapshot& now, void* context);
    still down on every exit path. */
 class HeldCommand {
 public:
-    HeldCommand(RuntimeCase& test, int command);
+    HeldCommand(RuntimeCase& test, W8MGSCommand command);
     ~HeldCommand();
 
     bool begin();
@@ -100,7 +102,7 @@ public:
 
 private:
     RuntimeCase& test_;
-    int command_;
+    W8MGSCommand command_;
     CommandBinding binding_;
     bool held_;
     bool consumed_;
@@ -131,8 +133,8 @@ public:
     const GameplaySnapshot& last_snapshot() const;
     bool has_snapshot() const;
 
-    bool resolve_binding(int command, CommandBinding& out, const char* step);
-    bool tap(int command, const char* step);
+    bool resolve_binding(W8MGSCommand command, CommandBinding& out, const char* step);
+    bool tap(W8MGSCommand command, const char* step);
 
     bool wait_until(const char* condition, unsigned long budget_ms, RuntimeConditionFn fn,
                     void* ctx, HeldCommand* held = 0, unsigned long poll_ms = 10);

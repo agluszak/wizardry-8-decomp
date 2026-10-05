@@ -9,12 +9,12 @@ struct RuntimeCheckpoint {
     int quick_slot;
 };
 
-bool MoveUntilDisplaced(RuntimeCase& test, int command, const char* step, float min_distance = 1.0f,
-                        unsigned long budget_ms = 3000);
-bool MoveAwayFrom(RuntimeCase& test, int command, const RuntimeCheckpoint& anchor, const char* step,
-                  float min_distance = 1.0f);
-bool TurnUntilYawChanged(RuntimeCase& test, int command, const char* step, float min_delta = 0.01f,
-                         unsigned long budget_ms = 3000);
+bool MoveUntilDisplaced(RuntimeCase& test, W8MGSCommand command, const char* step,
+                        float min_distance = 1.0f, unsigned long budget_ms = 3000);
+bool MoveAwayFrom(RuntimeCase& test, W8MGSCommand command, const RuntimeCheckpoint& anchor,
+                  const char* step, float min_distance = 1.0f);
+bool TurnUntilYawChanged(RuntimeCase& test, W8MGSCommand command, const char* step,
+                         float min_delta = 0.01f, unsigned long budget_ms = 3000);
 bool WaitCameraSettled(RuntimeCase& test, GameplaySnapshot& settled,
                        unsigned long budget_ms = 2000);
 bool QuickSave(RuntimeCase& test, RuntimeCheckpoint& out);
