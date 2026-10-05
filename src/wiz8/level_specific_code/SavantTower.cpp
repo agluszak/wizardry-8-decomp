@@ -40,7 +40,7 @@ bool SavantTowerShape(Trigger* pTrigger)
 {
     if (GetLocationVarIDByName("DeactivatingBomb") == -1) {
         CreateLocationVar("DeactivatingBomb", 1);
-        QueueNpcScriptNotice(GetNpcStateByKind(0x46), 0, 0, 0, 0);
+        QueueNpcScriptNotice(GetNpcStateByKind(0x46), 0, 0, false, 0);
     }
     return true;
 }
@@ -55,7 +55,7 @@ bool SavantTowerButtonBlocker(Trigger* pTrigger)
     if (blocker != 0) {
         blocker->SetActivationState(1);
     }
-    QueueNpcScriptNotice(GetNpcStateByKind(0x46), 0, 1, 0, 0);
-    SetFact(W8_FACT_DS_BOMB_DEACTIVATED, 1, 0);
+    QueueNpcScriptNotice(GetNpcStateByKind(0x46), 0, 1, false, 0);
+    SetFact(W8_FACT_DS_BOMB_DEACTIVATED, 1, false);
     return true;
 }

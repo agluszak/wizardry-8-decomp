@@ -134,7 +134,7 @@ void W8CharacterSummaryDialog::Draw()
 // FUNCTION: WIZ8 0x005e0830
 void W8CharacterSummaryDialog::DrawPortraitAnimationFrame()
 {
-    BlitPartyPortraitAnimation(m_character->portrait_index, m_x + 11, m_y + 11, 2, 0, 0);
+    BlitPartyPortraitAnimation(m_character->portrait_index, m_x + 11, m_y + 11, 2, 0, false);
 }
 
 // FUNCTION: WIZ8 0x005e0860

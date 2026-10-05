@@ -78,7 +78,7 @@ static void BeginPartyCamping()
     }
     if (!AnyCharacterEngaged()) {
         gXStatus.surprise_unengaged = 1;
-        ShowNotice(0xc, gppStringList[0x794], -1, 0xffffffff, 0);
+        ShowNotice(0xc, gppStringList[0x794], -1, 0xffffffff, false);
     } else {
         gXStatus.surprise_unengaged = 0;
         ShowNoticef(0xc, gppStringList[0x790], 8);
@@ -209,7 +209,7 @@ void RequestCamp(void)
         return;
     }
     if (gXStatus.fCombatMode) {
-        ShowNotice(0xc, gppStringList[0x774], -1, 0xffffffff, 0);
+        ShowNotice(0xc, gppStringList[0x774], -1, 0xffffffff, false);
         return;
     }
     if (!HasLevelDataVector() && HasLevelWalkableContact()) {
@@ -222,7 +222,7 @@ void RequestCamp(void)
         BeginPartyCamping();
         return;
     }
-    ShowNotice(0xc, gppStringList[0x796], -1, 0xffffffff, 0);
+    ShowNotice(0xc, gppStringList[0x796], -1, 0xffffffff, false);
 }
 
 /* Complete the pending character events, reset the occupied slots' portrait
@@ -305,7 +305,7 @@ void UpdateSurpriseMode(void)
 void AcknowledgeSurprise(void)
 {
     if (gXStatus.surprise_unengaged && !gXStatus.fCombatMode) {
-        ShowNotice(0xc, gppStringList[0x794], -1, 0xffffffff, 0);
+        ShowNotice(0xc, gppStringList[0x794], -1, 0xffffffff, false);
         return;
     }
     ResolveSurpriseHold();
@@ -351,7 +351,7 @@ void EndSurprise(void)
         gXStatus.surprise_unengaged = 0;
         text = AnyCharacterEngaged() ? gppStringList[0x795] : gppStringList[0x792];
     }
-    ShowNotice(0xc, text, -1, 0xffffffff, 0);
+    ShowNotice(0xc, text, -1, 0xffffffff, false);
 
     if (g_status.condition13_clock != 0 &&
         0x15180 <
@@ -359,10 +359,10 @@ void EndSurprise(void)
         g_status.condition13_clock = 0;
         g_status.skip_next_condition_reaction = 1;
         int party_slot = g_status.pending_condition_party_slot;
-        RemoveCharacterCondition(party_slot, W8_CONDITION_MISSING, 0);
+        RemoveCharacterCondition(party_slot, W8_CONDITION_MISSING, false);
         QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_effect32, 0,
                             g_character_event_no_flags, g_character_event_full_volume);
-        SetFact(W8_FACT_MOOK_MOOK_PC_SWAP_COMPLETE, 1, 0);
+        SetFact(W8_FACT_MOOK_MOOK_PC_SWAP_COMPLETE, 1, false);
     }
 }
 
@@ -611,8 +611,8 @@ void GameTurnsPassedChar(int party_slot, unsigned int minutes)
         if (g_status.wait_state != 3 || gXStatus.fCombatMode) {
             damage += damage >> 1;
         }
-        ApplyDamageToCharacter(party_slot, damage, 1, 1, 0, static_cast<W8SpellEffectResult*>(0),
-                               0);
+        ApplyDamageToCharacter(party_slot, damage, true, true, false,
+                               static_cast<W8SpellEffectResult*>(0), false);
     }
 
     if (character->uiCondition[W8_CONDITION_DISEASED] != 0) {
@@ -713,7 +713,7 @@ void GameTurnsPassedChar(int party_slot, unsigned int minutes)
         if (GetLevelBand(g_status.current_level) == 9 ||
             GetLevelBand(g_status.current_level) == 0xa) {
             if (character->uiCondition[W8_CONDITION_HEXED] == W8_CONDITION_INDEFINITE) {
-                RemoveCharacterCondition(party_slot, W8_CONDITION_HEXED, 1);
+                RemoveCharacterCondition(party_slot, W8_CONDITION_HEXED, true);
             }
         } else {
             unsigned int hits = 0;
@@ -723,8 +723,8 @@ void GameTurnsPassedChar(int party_slot, unsigned int minutes)
                 }
             }
             if (hits != 0) {
-                ApplyDamageToCharacter(party_slot, hits, 0, 1, 0,
-                                       static_cast<W8SpellEffectResult*>(0), 0);
+                ApplyDamageToCharacter(party_slot, hits, false, true, false,
+                                       static_cast<W8SpellEffectResult*>(0), false);
             }
             if (character->uiCondition[W8_CONDITION_HEXED] == 0) {
                 SetCharacterCondition(party_slot, W8_CONDITION_HEXED, W8_CONDITION_INDEFINITE, 0, 0,
@@ -745,7 +745,7 @@ void GameTurnsPassedChar(int party_slot, unsigned int minutes)
                                       0, 1);
             }
         } else if (character->uiCondition[W8_CONDITION_INSANE] == W8_CONDITION_INDEFINITE) {
-            RemoveCharacterCondition(party_slot, W8_CONDITION_INSANE, 1);
+            RemoveCharacterCondition(party_slot, W8_CONDITION_INSANE, true);
         }
     }
 
@@ -756,8 +756,8 @@ void GameTurnsPassedChar(int party_slot, unsigned int minutes)
         }
     } else if (health_mod < 0) {
         ApplyDamageToCharacter(party_slot,
-                               -static_cast<int>(health_mod) * static_cast<int>(minutes), 0, 1, 0,
-                               static_cast<W8SpellEffectResult*>(0), 0);
+                               -static_cast<int>(health_mod) * static_cast<int>(minutes), false,
+                               true, false, static_cast<W8SpellEffectResult*>(0), false);
     }
 
     signed char stamina_mod = character->bonus.stamina_regen_adjustment;
@@ -766,7 +766,7 @@ void GameTurnsPassedChar(int party_slot, unsigned int minutes)
             RestoreCharacterStamina(party_slot, stamina_mod * static_cast<int>(minutes), 0);
         }
     } else if (stamina_mod < 0) {
-        FatigueCharacter(party_slot, -static_cast<int>(stamina_mod * minutes), 0,
+        FatigueCharacter(party_slot, -static_cast<int>(stamina_mod * minutes), false,
                          static_cast<W8SpellEffectResult*>(0));
     }
 
@@ -780,7 +780,7 @@ void GameTurnsPassedChar(int party_slot, unsigned int minutes)
             }
         } else if (spell_mod < 0) {
             DrainCharacterRealmSpellPoints(party_slot, static_cast<W8SpellRealm>(realm),
-                                           -static_cast<int>(spell_mod), 1);
+                                           -static_cast<int>(spell_mod), true);
         }
     }
 
@@ -943,20 +943,21 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, unsigned
             probe.y += g_float_005ebc64;
             GetCameraPosition(&camera);
             if (ProjectPointThroughCamera(&probe) == 0 &&
-                !g_octree->HasLineOfSight(&camera, &probe, 1)) {
+                !g_octree->HasLineOfSight(&camera, &probe, true)) {
                 srVector3T<float> notify_position = last_seen;
                 unsigned int group_index = GetMonsterGroupIndexByID(
-                    0x4d2, GAMEPLAYTIME_CPP, monster_info->monster_group_id, 1);
+                    0x4d2, GAMEPLAYTIME_CPP, monster_info->monster_group_id, true);
                 W8MonsterGroup* group = GetMonsterGroupByListIndex(group_index);
 
-                MoveMonsterGroupToPosition(group, &notify_position, monster->GetYaw(), 0, 0, 0, 0);
+                MoveMonsterGroupToPosition(group, &notify_position, monster->GetYaw(), false, false,
+                                           false, false);
                 for (int index = 0; index < 4; ++index) {
                     if (group->allied_group_ids[index] != 0) {
-                        group_index = GetMonsterGroupIndexByID(0x4d9, GAMEPLAYTIME_CPP,
-                                                               group->allied_group_ids[index], 1);
+                        group_index = GetMonsterGroupIndexByID(
+                            0x4d9, GAMEPLAYTIME_CPP, group->allied_group_ids[index], true);
                         group = GetMonsterGroupByListIndex(group_index);
-                        MoveMonsterGroupToPosition(group, &notify_position, monster->GetYaw(), 0, 0,
-                                                   0, 0);
+                        MoveMonsterGroupToPosition(group, &notify_position, monster->GetYaw(),
+                                                   false, false, false, false);
                     }
                 }
             }
@@ -990,7 +991,7 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, unsigned
                 if (delta.Length() < 500.0f) {
                     srVector3T<float> navigator_position = monster->GetPosition();
 
-                    if (g_pathing->SnapWaypointPosition(&navigator_position, 0) == 0 &&
+                    if (g_pathing->SnapWaypointPosition(&navigator_position, false) == 0 &&
                         !monster_info->party_threat.visible_to_player) {
                         srVector3T<float> next_position;
 
@@ -1004,22 +1005,24 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, unsigned
 
                             GetCameraPosition(&camera);
                             if (ProjectPointThroughCamera(&probe) == 0 &&
-                                !g_octree->HasLineOfSight(&camera, &probe, 1)) {
+                                !g_octree->HasLineOfSight(&camera, &probe, true)) {
                                 srVector3T<float> notify_position = next_position;
                                 unsigned int group_index = GetMonsterGroupIndexByID(
-                                    0x50f, GAMEPLAYTIME_CPP, monster_info->monster_group_id, 1);
+                                    0x50f, GAMEPLAYTIME_CPP, monster_info->monster_group_id, true);
                                 W8MonsterGroup* group = GetMonsterGroupByListIndex(group_index);
 
                                 MoveMonsterGroupToPosition(group, &notify_position,
-                                                           monster->GetYaw(), 0, 0, 0, 0);
+                                                           monster->GetYaw(), false, false, false,
+                                                           false);
                                 for (int index = 0; index < 4; ++index) {
                                     if (group->allied_group_ids[index] != 0) {
                                         group_index = GetMonsterGroupIndexByID(
                                             0x516, GAMEPLAYTIME_CPP, group->allied_group_ids[index],
-                                            1);
+                                            true);
                                         group = GetMonsterGroupByListIndex(group_index);
                                         MoveMonsterGroupToPosition(group, &notify_position,
-                                                                   monster->GetYaw(), 0, 0, 0, 0);
+                                                                   monster->GetYaw(), false, false,
+                                                                   false, false);
                                     }
                                 }
                                 cleared = true;
@@ -1039,7 +1042,7 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, unsigned
                 probe = location2;
                 probe.y += g_float_005ebc64;
                 if (ProjectPointThroughCamera(&location2) == 0 &&
-                    !g_octree->HasLineOfSight(&camera, &probe, 1)) {
+                    !g_octree->HasLineOfSight(&camera, &probe, true)) {
                     if (monster->formation.x == g_float_zero &&
                         monster->formation.y == g_float_zero &&
                         monster->formation.z == g_float_zero) {
@@ -1048,7 +1051,7 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, unsigned
                     probe = monster->formation;
                     probe.y += g_float_005ebc64;
                     if (ProjectPointThroughCamera(&location2) == 0 &&
-                        !g_octree->HasLineOfSight(&camera, &probe, 1)) {
+                        !g_octree->HasLineOfSight(&camera, &probe, true)) {
                         if (monster->formation.x == g_float_zero &&
                             monster->formation.y == g_float_zero &&
                             monster->formation.z == g_float_zero) {
@@ -1057,18 +1060,20 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, unsigned
                         {
                             srVector3T<float> notify_position = monster->formation;
                             unsigned int group_index = GetMonsterGroupIndexByID(
-                                0x53b, GAMEPLAYTIME_CPP, monster_info->monster_group_id, 1);
+                                0x53b, GAMEPLAYTIME_CPP, monster_info->monster_group_id, true);
                             W8MonsterGroup* group = GetMonsterGroupByListIndex(group_index);
 
                             MoveMonsterGroupToPosition(group, &notify_position, monster->GetYaw(),
-                                                       0, 0, 0, 0);
+                                                       false, false, false, false);
                             for (int index = 0; index < 4; ++index) {
                                 if (group->allied_group_ids[index] != 0) {
                                     group_index = GetMonsterGroupIndexByID(
-                                        0x542, GAMEPLAYTIME_CPP, group->allied_group_ids[index], 1);
+                                        0x542, GAMEPLAYTIME_CPP, group->allied_group_ids[index],
+                                        true);
                                     group = GetMonsterGroupByListIndex(group_index);
                                     MoveMonsterGroupToPosition(group, &notify_position,
-                                                               monster->GetYaw(), 0, 0, 0, 0);
+                                                               monster->GetYaw(), false, false,
+                                                               false, false);
                                 }
                             }
                         }
@@ -1133,7 +1138,8 @@ after_early: {
             amount += amount >> 1;
         }
         ResetTargetSource(&source);
-        ApplyDamageToMonster(monster_info, amount, &source, true, gXStatus.fCombatMode, 0, 0, 0);
+        ApplyDamageToMonster(monster_info, amount, &source, true, gXStatus.fCombatMode, 0, 0,
+                             false);
     }
 }
     if (monster_info->uiCondition[W8_CONDITION_DISEASED] != 0) {
@@ -1150,7 +1156,7 @@ after_early: {
                 W8TargetSource source;
 
                 ResetTargetSource(&source);
-                ApplyDamageToMonster(monster_info, -amount, &source, 0, 0, 0, 0, 0);
+                ApplyDamageToMonster(monster_info, -amount, &source, false, 0, 0, 0, false);
             }
         } else if (monster_info->hp_current < static_cast<unsigned int>(monster_info->uiHPMax)) {
             HealMonster(monster_info, amount, 0);
@@ -1166,7 +1172,7 @@ after_early: {
                 FatigueMonster(monster_info, -amount, 0);
             }
         } else if (monster_info->stamina < monster_info->stamina_max) {
-            RestoreMonsterStamina(monster_info, amount, 0);
+            RestoreMonsterStamina(monster_info, amount, false);
         }
     }
     {
@@ -1200,7 +1206,7 @@ after_early: {
                     monster_info->stamina_regen_accumulator;
                 int restored = static_cast<int>(monster_info->stamina_regen_accumulator);
 
-                RestoreMonsterStamina(monster_info, restored, 0);
+                RestoreMonsterStamina(monster_info, restored, false);
                 monster_info->stamina_regen_accumulator -= static_cast<float>(restored);
             }
         }
@@ -1306,20 +1312,21 @@ void UpdateCampFatigue(int ticks)
                 if (stamina < static_cast<int>(amount)) {
                     if (stamina > 0) {
                         amount -= stamina;
-                        FatigueCharacter(slot, stamina, 0, static_cast<W8SpellEffectResult*>(0));
+                        FatigueCharacter(slot, stamina, false,
+                                         static_cast<W8SpellEffectResult*>(0));
                     }
                     bool announce =
                         !gXStatus.fCombatMode || g_settings.verbose_combat_messages == 0 ? 0 : 1;
-                    ApplyDamageToCharacter(slot, amount, 0, announce, 0,
-                                           static_cast<W8SpellEffectResult*>(0), 0);
+                    ApplyDamageToCharacter(slot, amount, false, announce, false,
+                                           static_cast<W8SpellEffectResult*>(0), false);
                 } else {
-                    FatigueCharacter(slot, static_cast<int>(amount), 0,
+                    FatigueCharacter(slot, static_cast<int>(amount), false,
                                      static_cast<W8SpellEffectResult*>(0));
                 }
             }
             if (!g_status.party_fatigued) {
                 g_status.party_fatigued = true;
-                ShowNotice(8, gppStringList[0x1da], -1, 0xffffffff, 0);
+                ShowNotice(8, gppStringList[0x1da], -1, 0xffffffff, false);
             }
         }
     }
@@ -1375,7 +1382,7 @@ void RegenCharacterStamina(int party_slot, unsigned int elapsed)
     signed char stamina_mod = character->bonus.stamina_regen_adjustment;
     if (stamina_mod < 1) {
         if (stamina_mod < 0) {
-            FatigueCharacter(party_slot, -static_cast<int>(stamina_mod * elapsed), 0,
+            FatigueCharacter(party_slot, -static_cast<int>(stamina_mod * elapsed), false,
                              static_cast<W8SpellEffectResult*>(0));
         }
     } else if (character->stamina < character->uiStaminaMax) {

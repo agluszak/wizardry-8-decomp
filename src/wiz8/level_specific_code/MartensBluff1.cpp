@@ -100,7 +100,7 @@ void MartensBluff1Setup(void)
             } else {
                 particle->getLocation(position);
                 g_gas_sound0 = CreateAndPlaySoundNode(
-                    "Data\\Sound\\Ambients\\Air_Escaping_Loop.wav", position, 0.3f, 30.0f, 1);
+                    "Data\\Sound\\Ambients\\Air_Escaping_Loop.wav", position, 0.3f, 30.0f, true);
             }
         }
         particle = FindRegisteredParticle("GasSpray-01");
@@ -110,7 +110,7 @@ void MartensBluff1Setup(void)
             } else {
                 particle->getLocation(position);
                 g_gas_sound1 = CreateAndPlaySoundNode(
-                    "Data\\Sound\\Ambients\\Air_Escaping_Loop.wav", position, 0.3f, 30.0f, 1);
+                    "Data\\Sound\\Ambients\\Air_Escaping_Loop.wav", position, 0.3f, 30.0f, true);
             }
         }
     }
@@ -246,14 +246,14 @@ bool MartensBluff1JDoorController(Trigger* pTrigger)
         particle->SetActive(1);
         particle->getLocation(position);
         g_gas_sound0 = CreateAndPlaySoundNode("Data\\Sound\\Ambients\\Air_Escaping_Loop.wav",
-                                                position, 0.3f, 30.0f, 1);
+                                              position, 0.3f, 30.0f, true);
     }
     particle = FindRegisteredParticle("GasSpray-01");
     if (particle != 0) {
         particle->SetActive(1);
         particle->getLocation(position);
         g_gas_sound1 = CreateAndPlaySoundNode("Data\\Sound\\Ambients\\Air_Escaping_Loop.wav",
-                                                position, 0.3f, 30.0f, 1);
+                                              position, 0.3f, 30.0f, true);
     }
     position = GetWorld()->camera->getLocation();
     PointCastSpell(position, 0x25, 5);
@@ -267,9 +267,9 @@ bool MartensBluff1JDoorController(Trigger* pTrigger)
 bool MartensBluff1Controller(Trigger* pTrigger)
 {
     if (GetFact(W8_FACT_NARGISST_MONITOR_OVERFLOW_ON) == 0) {
-        SetFact(W8_FACT_NARGISST_MONITOR_OVERFLOW_ON, 1, 0);
+        SetFact(W8_FACT_NARGISST_MONITOR_OVERFLOW_ON, 1, false);
     } else {
-        SetFact(W8_FACT_NARGISST_MONITOR_OVERFLOW_ON, 0, 0);
+        SetFact(W8_FACT_NARGISST_MONITOR_OVERFLOW_ON, 0, false);
     }
     g_trigger_feedback = 1;
     return true;
@@ -301,14 +301,14 @@ bool MartensBluff1TransportSpawn(void)
         return true;
     }
     CreateAndPlaySoundNode("Data\\Sound\\Ambients\\TrangTransporter.wav", position_a, 0.7f, 30.0f,
-                           0);
-    group = SpawnMonsters(0x177, 1, &position_a, 0, 1, 0, 0);
+                           false);
+    group = SpawnMonsters(0x177, 1, &position_a, 0, true, false, false);
     location_id = IListGetAt(group->monsters, 0);
     if (location_id != 0) {
         info = MonsterGetScriptPartByLocationIndex(
-            MonsterGetIndexByLocationID(0x1fd, MARTENSBLUFF1_CPP, location_id, 1));
+            MonsterGetIndexByLocationID(0x1fd, MARTENSBLUFF1_CPP, location_id, true));
         if (info != 0 && info->p3D != 0) {
-            info->p3D->SetScript("M1_Trang_trans.MSF", 1);
+            info->p3D->SetScript("M1_Trang_trans.MSF", true);
         }
     }
     return true;
@@ -333,7 +333,7 @@ void MartensBluff1Transporter(int command)
             if (g_transport_gate != 0) {
                 g_transport_gate->Arm();
             } else {
-                g_transport_gate = new W8IntervalGate(60.0f, 0, 1);
+                g_transport_gate = new W8IntervalGate(60.0f, false, true);
             }
             if (GetLocationVarIDByName("TransportSpawn") != -1) {
                 g_transport_gate->SetProgress(GetLocationVarValueByName("TransportSpawn") *
@@ -557,6 +557,6 @@ bool MartensBluff1WireTrigger(Trigger* pTrigger)
 // FUNCTION: WIZ8 0x004DF7E0
 bool MartensBluff1MartenBook(Trigger* pTrigger)
 {
-    SetFact(W8_FACT_QUEST_MARTEN_DIARY, 1, 0);
+    SetFact(W8_FACT_QUEST_MARTEN_DIARY, 1, false);
     return true;
 }

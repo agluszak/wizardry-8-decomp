@@ -75,7 +75,7 @@ int W8StatInfoDialogBase::CreateControls()
     scrollbar.m_owner = this;
 
     button.Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 0, 1, 4, 2,
-                         DialogCloseButtonCallback, 0, 0, 0x7f, -1, 0, 0);
+                     DialogCloseButtonCallback, 0, false, 0x7f, -1, 0, 0);
     button.SetPosition(m_x + 0x11a, m_y + 0xe6);
     button.m_owner = this;
     return 0;
@@ -102,7 +102,7 @@ void W8StatInfoDialogBase::Draw()
         DrawTitle();
     }
     textarea.Draw(0);
-    scrollbar.Draw(0);
+    scrollbar.Draw(false);
     button.Draw();
 }
 

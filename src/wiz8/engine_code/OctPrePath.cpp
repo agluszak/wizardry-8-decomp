@@ -412,13 +412,13 @@ unsigned int PrePathing::DeleteUnreachableAreas()
                         }
                     }
                 }
-                pending = m_visible_waypoints->NextSetBit(0);
+                pending = m_visible_waypoints->NextSetBit(false);
             } while (pending != 0);
-            pending = m_visible_waypoints->NextSetBit(1);
+            pending = m_visible_waypoints->NextSetBit(true);
         }
         if (component_size < static_cast<int>(minimum)) {
             bool clear_of_named = true;
-            pending = m_collected_waypoints->NextSetBit(1);
+            pending = m_collected_waypoints->NextSetBit(true);
             if (pending != 0) {
                 do {
                     if (!clear_of_named) {
@@ -439,17 +439,17 @@ unsigned int PrePathing::DeleteUnreachableAreas()
                             clear_of_named = false;
                         }
                     }
-                    pending = m_collected_waypoints->NextSetBit(0);
+                    pending = m_collected_waypoints->NextSetBit(false);
                 } while (pending != 0);
                 if (!clear_of_named) {
                     goto component_done;
                 }
             }
-            pending = m_collected_waypoints->NextSetBit(1);
+            pending = m_collected_waypoints->NextSetBit(true);
             while (pending != 0) {
                 path_node_list[pending - 1]->level_flags |= 0x40000000;
                 ++deleted;
-                pending = m_collected_waypoints->NextSetBit(0);
+                pending = m_collected_waypoints->NextSetBit(false);
             }
         }
     component_done:

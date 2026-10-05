@@ -76,7 +76,7 @@ int W8MonsterInfoDialog::CreateControls()
     m_scroll_bar.m_owner = this;
 
     m_button.Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 0, 1, 4, 2,
-                          DialogCloseButtonCallback, 0, 0, 0x7f, -1, 0, 0);
+                       DialogCloseButtonCallback, 0, false, 0x7f, -1, 0, 0);
     m_button.SetPosition(m_x + 0x11a, m_y + 0xe6);
     m_button.m_owner = this;
     return 0;
@@ -133,7 +133,7 @@ unsigned char W8MonsterInfoDialog::PopulateText()
     bounds.bottom = m_y + 0xdf;
 
     monster_info = MonsterGetScriptPartByLocationIndex(
-        MonsterGetIndexByLocationID(0xa0, MONSTER_INFO_DIALOG_CPP, m_location_id, 1));
+        MonsterGetIndexByLocationID(0xa0, MONSTER_INFO_DIALOG_CPP, m_location_id, true));
     record = GetMonsterDataForInfo(monster_info);
     average_level = GetAveragePartyMemberLevel();
     monster_level = record->display_level;
@@ -161,7 +161,7 @@ unsigned char W8MonsterInfoDialog::PopulateText()
 
     if (g_dev_mode) {
         group = GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
-            0xc8, MONSTER_INFO_DIALOG_CPP, monster_info->monster_group_id, 1));
+            0xc8, MONSTER_INFO_DIALOG_CPP, monster_info->monster_group_id, true));
         linked = monster_info->p3D->linked_navigator;
         if (linked == 0) {
             leader_location_id = m_location_id;
@@ -337,7 +337,7 @@ unsigned char W8MonsterInfoDialog::PopulateText()
     m_text_area.AddEntry(gppStringList[0x13f], text, 10, 0xf, 0);
 
     if (0x13 < knowledge) {
-        W8RangeCategory best_range = GetMonsterBestRangeCategory(monster_info, 1, &sight);
+        W8RangeCategory best_range = GetMonsterBestRangeCategory(monster_info, true, &sight);
         if (best_range != W8_RANGE_NONE) {
             m_text_area.AddEntry(gppStringList[0x141],
                                     gppStringList[g_spell_range_name_ids[best_range]], 10, 0xf, 0);
@@ -440,7 +440,7 @@ unsigned char W8MonsterInfoDialog::PopulateText()
                 (monster_info->p3D->GetPosition() - g_startup_world->GetPosition()).Length() *
                     g_world_cursor_scale),
             5, 0xf, 0);
-        leader_info = MonsterInfoFromID(0x1d6, MONSTER_INFO_DIALOG_CPP, leader_location_id, 1);
+        leader_info = MonsterInfoFromID(0x1d6, MONSTER_INFO_DIALOG_CPP, leader_location_id, true);
         script = leader_info->p3D->script;
         m_text_area.AddEntry(L"Leader's Current Script",
                                 FormatWideString(L"<%S>", script != 0 ? script->getName() : 0), 5,
@@ -511,13 +511,13 @@ void W8MonsterInfoDialog::Draw()
         SetFont(g_wiz_text_font_secondary);
         SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_wiz_text_font_secondary_palette);
         unsigned int monster_list_index =
-            MonsterGetIndexByLocationID(0x1f1, MONSTER_INFO_DIALOG_CPP, m_location_id, 1);
+            MonsterGetIndexByLocationID(0x1f1, MONSTER_INFO_DIALOG_CPP, m_location_id, true);
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
         wchar_t* name = GetMonsterName(monster_info, 0, 0);
         INT16 width = StringPixLength(name, g_wiz_text_font_secondary);
         gprintf(m_x + 0xe + (0x112 - width) / 2, m_y + 0x11, g_format_s, name);
     }
     m_text_area.Draw(0);
-    m_scroll_bar.Draw(0);
+    m_scroll_bar.Draw(false);
     m_button.Draw();
 }

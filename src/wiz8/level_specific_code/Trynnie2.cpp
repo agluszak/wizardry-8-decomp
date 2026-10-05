@@ -54,7 +54,7 @@ bool Trynnie2GoodaVineA(Trigger* pTrigger)
     if (g_status.item_in_cursor) {
         return 0;
     }
-    ReplaceOrCreateItem(&g_status.item_in_hand, 0x16d, 1, 1, 0);
+    ReplaceOrCreateItem(&g_status.item_in_hand, 0x16d, true, true, false);
     SetItemCursor(0);
     return 1;
 }
@@ -67,7 +67,7 @@ bool Trynnie2GoodaVineB(Trigger* pTrigger)
     if (g_status.item_in_cursor) {
         return 0;
     }
-    ReplaceOrCreateItem(&g_status.item_in_hand, 0x16e, 1, 1, 0);
+    ReplaceOrCreateItem(&g_status.item_in_hand, 0x16e, true, true, false);
     SetItemCursor(0);
     return 1;
 }
@@ -80,7 +80,7 @@ bool Trynnie2GiveZulu(Trigger* pTrigger)
     if (g_status.item_in_cursor) {
         return 0;
     }
-    ReplaceOrCreateItem(&g_status.item_in_hand, 0x1b3, 1, 1, 0);
+    ReplaceOrCreateItem(&g_status.item_in_hand, 0x1b3, true, true, false);
     SetItemCursor(0);
     return 1;
 }
@@ -95,7 +95,7 @@ bool Trynnie2MeatMaker(Trigger* pTrigger)
 
     if (FindEntityByName("Meat_Position", &entity_position, 0, 0)) {
         position = entity_position;
-        item = SpawnItem(0x1b4, &position, 3, 1);
+        item = SpawnItem(0x1b4, &position, 3, true);
         if (item != 0) {
             ActivateItem(item);
         }
@@ -124,15 +124,15 @@ bool Trynnie2MeatBox(Trigger* pTrigger)
         ShowNotice(0xf, gppStringList[0x964]);
         return 1;
     }
-    index = MonsterGetIndexByLocationID(0x68, TRYNNIE2_CPP, group->leader_location_id, 1);
+    index = MonsterGetIndexByLocationID(0x68, TRYNNIE2_CPP, group->leader_location_id, true);
     info = MonsterGetScriptPartByLocationIndex(index);
     if (info->highest_condition >= W8_CONDITION_ASLEEP) {
         return 1;
     }
     if (item_id == 0x1b4) {
-        info->p3D->SetScript("MoveHogar.msf", 1);
+        info->p3D->SetScript("MoveHogar.msf", true);
     } else {
-        info->p3D->SetScript("MoveHogarDrugged.msf", 1);
+        info->p3D->SetScript("MoveHogarDrugged.msf", true);
         if (GetLocationVarIDByName("HogarDruggedGivenExp") == -1) {
             AwardPartyExperience(500, 0);
             CreateLocationVar("HogarDruggedGivenExp", 1);
@@ -174,11 +174,11 @@ bool Trynnie2UseItem(W8ItemInstance* item)
     } else {
         ShowString(gppStringList[0x969]);
         if (FindEntityByName("NP_MysticalShaman", &position, 0, 0)) {
-            SpawnMonsters(0xec, 1, &position, 0, 1, 0, 0);
+            SpawnMonsters(0xec, 1, &position, 0, true, false, false);
         }
     }
     destination.iItemNo = -1;
-    CopyItemInstance(&destination, item, 0, 1);
+    CopyItemInstance(&destination, item, 0, true);
     return 1;
 }
 

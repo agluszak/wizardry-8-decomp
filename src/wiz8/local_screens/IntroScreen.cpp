@@ -64,7 +64,7 @@ unsigned char IntroScreenEnter(void)
             return 1;
         }
     }
-    StopMusicPlaylist(1);
+    StopMusicPlaylist(true);
     DisableCursorScene();
     gpVideo = new W8BinkVideo();
     if (gpVideo == 0) {
@@ -165,7 +165,7 @@ cleared:
         }
         break;
     case 5:
-        BeginScreenFade(0, 0, 1, ContinueAfterDarkEndingVideo, 1, 1);
+        BeginScreenFade(0, 0, 1, ContinueAfterDarkEndingVideo, true, 1);
         break;
     }
     EnableCursorScene();

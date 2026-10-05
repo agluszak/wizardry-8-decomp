@@ -111,7 +111,7 @@ W8SearchableView* CollectSearchablesInView(void)
                 float ahead = NormalizeAngle(yaw - heading);
                 float behind = NormalizeAngle(heading - yaw);
                 if ((half_cone <= ahead && half_cone <= behind) || g_octree == 0 ||
-                    !g_octree->HasLineOfSight(&camera, &position, 1)) {
+                    !g_octree->HasLineOfSight(&camera, &position, true)) {
                     continue;
                 }
                 g_search_view.items.Add(searchable);
@@ -212,7 +212,7 @@ void RunSearchPulse(void)
             !gXStatus.fSurprisePossible && !gXStatus.fLockInteractMode && !gXStatus.fLockInteract &&
             !gXStatus.fTrapInteractMode && !gXStatus.fTrapInteract) {
             if ((g_level_data->flags & 0x100) != 0 && g_status.search_mode != 0) {
-                ShowNotice(0xc, gppStringList[W8_NOTICE_SEARCH_SPECIAL_LEVEL], -1, -1, 0);
+                ShowNotice(0xc, gppStringList[W8_NOTICE_SEARCH_SPECIAL_LEVEL], -1, -1, false);
             }
             W8SearchableView* view = CollectSearchablesInView();
             bool found = false;
@@ -275,7 +275,7 @@ void RunSearchPulse(void)
                         srVector3T<float> position;
                         searchable->GetPosition(&position);
                         ResetInactiveLevelDataVectors();
-                        PointCameraAtTarget(&position, 1, 1);
+                        PointCameraAtTarget(&position, true, true);
                         searchable->Reveal();
                     }
                 }
@@ -367,7 +367,7 @@ int W8Searchable::PickBestSearcher()
     srVector3T<float> delta = camera - position;
     if (delta.Length() < range) {
         if (earned) {
-            PracticeCharacterSkill(&g_status.buffers.Char[best_slot], W8_SKILL_SCOUTING, 5, 0);
+            PracticeCharacterSkill(&g_status.buffers.Char[best_slot], W8_SKILL_SCOUTING, 5, false);
         }
         return best_slot;
     }
@@ -382,15 +382,15 @@ void ToggleSearchMode(void)
 {
     if (g_status.search_mode != 0) {
         g_status.search_mode = 0;
-        ShowNotice(0xc, gppStringList[W8_NOTICE_SEARCH_MODE_OFF], -1, -1, 0);
+        ShowNotice(0xc, gppStringList[W8_NOTICE_SEARCH_MODE_OFF], -1, -1, false);
         return;
     }
     if (!gXStatus.fCombatMode) {
         g_status.search_mode = 1;
-        ShowNotice(0xc, gppStringList[W8_NOTICE_SEARCH_MODE_ON], -1, -1, 0);
+        ShowNotice(0xc, gppStringList[W8_NOTICE_SEARCH_MODE_ON], -1, -1, false);
         g_search_pulse_clock = SetCountdownClock(0x1f4);
         ClearActiveWorldCursorNode();
     } else {
-        ShowNotice(0xc, gppStringList[W8_NOTICE_SEARCH_BLOCKED_COMBAT], -1, -1, 0);
+        ShowNotice(0xc, gppStringList[W8_NOTICE_SEARCH_BLOCKED_COMBAT], -1, -1, false);
     }
 }

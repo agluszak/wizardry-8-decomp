@@ -90,10 +90,10 @@ void RebuildPartyEffectBlock(void)
         }
     }
     if (g_status.party_modifiers.light == 0) {
-        SetSkyNodeVisible(0);
+        SetSkyNodeVisible(false);
         return;
     }
-    SetSkyNodeVisible(1);
+    SetSkyNodeVisible(true);
     SetCameraLightIntensity(g_status.party_modifiers.light + g_environment_near_scale);
 }
 
@@ -352,7 +352,7 @@ void RebuildConditionsAndDerivedStats(int party_slot)
 void RebuildMonsterDerivedStats(int location_id)
 {
     W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(
-        MonsterGetIndexByLocationID(0xa6, GAMEPLAY_MODS_CPP, location_id, 1));
+        MonsterGetIndexByLocationID(0xa6, GAMEPLAY_MODS_CPP, location_id, true));
     W8GameplayModifierBlock* modifiers = &monster_info->modifiers;
 
     memset(modifiers, 0, sizeof(W8GameplayModifierBlock));
@@ -444,8 +444,8 @@ void ApplyConditionModifiers(W8Character* character, const unsigned int* conditi
                 W8MonsterInfo* bound;
                 if (character->conditions[1].level_acquired == g_status.current_level &&
                     (bound = MonsterInfoFromID(0x16b, GAMEPLAY_MODS_CPP,
-                                               character->conditions[1].source_monster,
-                                               1)) != 0) {
+                                               character->conditions[1].source_monster, true)) !=
+                        0) {
                     W8MonsterRecord* monster = GetMonsterDataForInfo(bound);
                     target->health_regen_adjustment += -1 - (monster->effective_level >> 1);
                 } else {

@@ -144,23 +144,23 @@ unsigned char CreateSubMenuButtons(void)
         }
     }
     g_submenu_buttons[0]->Configure(g_submenu_icons_path, 0x2b, 0x28, 0x29, 0x2a, 0x2c,
-                                           SubMenuButtonPendingScreen, 0, 0, 0x7f, 0x42, 0, 0);
+                                    SubMenuButtonPendingScreen, 0, false, 0x7f, 0x42, 0, 0);
     g_submenu_buttons[1]->Configure(g_submenu_icons_path, 0x3, 0x0, 0x1, 0x2, 0x4,
-                                           SubMenuButtonSurprise, 0, 0, 0x7f, 0x43, 0, 0);
+                                    SubMenuButtonSurprise, 0, false, 0x7f, 0x43, 0, 0);
     g_submenu_buttons[2]->Configure(g_submenu_icons_path, 0x8, 0x5, 0x6, 0x7, 0x9,
-                                           SubMenuButtonToggleFlag, 0, 1, 0x7f, 0x44, 0, 0);
+                                    SubMenuButtonToggleFlag, 0, true, 0x7f, 0x44, 0, 0);
     g_submenu_buttons[3]->Configure(g_submenu_icons_path, 0x17, 0x14, 0x15, 0x16, 0x18,
-                                           SubMenuButtonUseItem, 0, 1, 0x7f, 0x45, 0, 0);
+                                    SubMenuButtonUseItem, 0, true, 0x7f, 0x45, 0, 0);
     g_submenu_buttons[4]->Configure(g_submenu_icons_path, 0x1c, 0x19, 0x1a, 0x1b, 0x1d,
-                                           SubMenuButtonSpellView, 0, 1, 0x7f, 0x46, 0, 0);
+                                    SubMenuButtonSpellView, 0, true, 0x7f, 0x46, 0, 0);
     g_submenu_buttons[5]->Configure(g_submenu_icons_path, 0x12, 0xf, 0x10, 0x11, 0x13,
-                                           SubMenuButtonOpenMenu1, 0, 0, 0x7f, 0x4a, 0, 0);
+                                    SubMenuButtonOpenMenu1, 0, false, 0x7f, 0x4a, 0, 0);
     g_submenu_buttons[6]->Configure(g_submenu_icons_path, 0xd, 0xa, 0xb, 0xc, 0xe,
-                                           SubMenuButtonOpenMenu0, 0, 0, 0x7f, 0x49, 0, 0);
+                                    SubMenuButtonOpenMenu0, 0, false, 0x7f, 0x49, 0, 0);
     g_submenu_buttons[7]->Configure(g_submenu_combat_icons_path, 0x3, 0x0, 0x1, 0x2, 0x2,
-                                           SubMenuButtonToggleCombat, 0, 0, 0x7f, 0x47, 0, 0);
+                                    SubMenuButtonToggleCombat, 0, false, 0x7f, 0x47, 0, 0);
     g_submenu_buttons[8]->Configure(g_submenu_combat_icons_path, 0x7, 0x4, 0x5, 0x6, 0x6,
-                                           SubMenuButtonToggleCombat, 0, 0, 0x7f, 0x48, 0, 0);
+                                    SubMenuButtonToggleCombat, 0, false, 0x7f, 0x48, 0, 0);
     for (index = 0; index < 9; ++index) {
         g_submenu_buttons[index]->SetPosition(g_submenu_button_positions[index].x,
                                               g_submenu_button_positions[index].y);
@@ -184,53 +184,53 @@ void UpdateSubMenuButton(int index)
     }
     if (gXStatus.fNpcDialogueMode &&
         (index != 0 || IsNpcDialogueCursorActive() != 0 || CanOpenNpcDialogue())) {
-        g_submenu_buttons[index]->SetEnabled(0);
+        g_submenu_buttons[index]->SetEnabled(false);
         return;
     }
     if (gXStatus.fLockInteractMode || gXStatus.fTrapInteractMode || gXStatus.fReviewCharacterMode) {
-        g_submenu_buttons[index]->SetEnabled(0);
+        g_submenu_buttons[index]->SetEnabled(false);
         return;
     }
     if (gXStatus.fItemSelectMode && index != 3) {
-        g_submenu_buttons[index]->SetEnabled(0);
+        g_submenu_buttons[index]->SetEnabled(false);
         return;
     }
     if (gXStatus.fSpellCastMode && index != 4) {
-        g_submenu_buttons[index]->SetEnabled(0);
+        g_submenu_buttons[index]->SetEnabled(false);
         return;
     }
     if (gXStatus.fSurprisePossible || gXStatus.fCampMode) {
-        g_submenu_buttons[index]->SetEnabled(0);
+        g_submenu_buttons[index]->SetEnabled(false);
         return;
     }
     if (gXStatus.fCombatMode && !g_combat_state->round_active) {
-        g_submenu_buttons[index]->SetEnabled(0);
+        g_submenu_buttons[index]->SetEnabled(false);
         return;
     }
     if (g_level_block->combat_end_notification != -1) {
-        g_submenu_buttons[index]->SetEnabled(0);
+        g_submenu_buttons[index]->SetEnabled(false);
         return;
     }
     switch (index) {
     case 0:
         if (gXStatus.fCombatMode) {
-            g_submenu_buttons[0]->SetEnabled(0);
+            g_submenu_buttons[0]->SetEnabled(false);
         } else {
-            g_submenu_buttons[0]->SetEnabled(1);
+            g_submenu_buttons[0]->SetEnabled(true);
         }
         break;
     case 1:
         if (gXStatus.fCombatMode) {
-            g_submenu_buttons[1]->SetEnabled(0);
+            g_submenu_buttons[1]->SetEnabled(false);
         } else {
-            g_submenu_buttons[1]->SetEnabled(1);
+            g_submenu_buttons[1]->SetEnabled(true);
         }
         break;
     case 2:
         if (gXStatus.fCombatMode) {
-            g_submenu_buttons[2]->SetEnabled(0);
+            g_submenu_buttons[2]->SetEnabled(false);
         } else {
-            g_submenu_buttons[2]->SetEnabled(1);
+            g_submenu_buttons[2]->SetEnabled(true);
         }
         /* Two armed, not one `IsPressed() != (mode != 0)`. The retail tests the
            mode first and then branches on IsPressed in each arm, giving two
@@ -239,29 +239,29 @@ void UpdateSubMenuButton(int index)
            under its negation). */
         if (g_status.search_mode != 0) {
             if (g_submenu_buttons[2]->IsPressed() == 0) {
-                g_submenu_buttons[2]->SetPressed(1);
+                g_submenu_buttons[2]->SetPressed(true);
             }
         } else {
             if (g_submenu_buttons[2]->IsPressed() != 0) {
-                g_submenu_buttons[2]->SetPressed(0);
+                g_submenu_buttons[2]->SetPressed(false);
             }
         }
         break;
     case 3:
         if (!IsPartySlotEligible(g_status.selected_character)) {
-            g_submenu_buttons[3]->SetEnabled(0);
+            g_submenu_buttons[3]->SetEnabled(false);
             break;
         }
-        g_submenu_buttons[3]->SetEnabled(1);
+        g_submenu_buttons[3]->SetEnabled(true);
         /* As case 2, with fItemSelectMode: 0x00594F07/0x00594F1C then
            0x00594F23/0x00594F38. */
         if (gXStatus.fItemSelectMode) {
             if (g_submenu_buttons[3]->IsPressed() == 0) {
-                g_submenu_buttons[3]->SetPressed(1);
+                g_submenu_buttons[3]->SetPressed(true);
             }
         } else {
             if (g_submenu_buttons[3]->IsPressed() != 0) {
-                g_submenu_buttons[3]->SetPressed(0);
+                g_submenu_buttons[3]->SetPressed(false);
             }
         }
         break;
@@ -274,11 +274,11 @@ void UpdateSubMenuButton(int index)
            the retail's `? :` collapses into one at 0x00594F8C. */
         if (gXStatus.fSpellCastMode) {
             if (g_submenu_buttons[4]->IsPressed() == 0) {
-                g_submenu_buttons[4]->SetPressed(1);
+                g_submenu_buttons[4]->SetPressed(true);
             }
         } else {
             if (g_submenu_buttons[4]->IsPressed() != 0) {
-                g_submenu_buttons[4]->SetPressed(0);
+                g_submenu_buttons[4]->SetPressed(false);
             }
         }
         break;
@@ -286,21 +286,21 @@ void UpdateSubMenuButton(int index)
     case 6:
         g_submenu_buttons[index]->SetEnabled(gXStatus.fCombatMode);
         if (!IsPartySlotEligible(g_status.selected_character)) {
-            g_submenu_buttons[index]->SetEnabled(0);
+            g_submenu_buttons[index]->SetEnabled(false);
         }
         break;
     case 7:
         if (gXStatus.fCombatMode) {
-            g_submenu_buttons[7]->SetEnabled(0);
+            g_submenu_buttons[7]->SetEnabled(false);
         } else {
-            g_submenu_buttons[7]->SetEnabled(1);
+            g_submenu_buttons[7]->SetEnabled(true);
         }
         break;
     case 8:
         if (gXStatus.fCombatMode) {
-            g_submenu_buttons[8]->SetEnabled(1);
+            g_submenu_buttons[8]->SetEnabled(true);
         } else {
-            g_submenu_buttons[8]->SetEnabled(0);
+            g_submenu_buttons[8]->SetEnabled(false);
         }
         break;
     }
@@ -309,7 +309,7 @@ void UpdateSubMenuButton(int index)
 // FUNCTION: WIZ8 0x00595090
 static void SubMenuButtonPendingScreen(W8DialogButton* button)
 {
-    button->SetPressed(0);
+    button->SetPressed(false);
     button->m_dirty = true;
     if (gXStatus.fNpcDialogueMode) {
         gXStatus.fCampMode = true;

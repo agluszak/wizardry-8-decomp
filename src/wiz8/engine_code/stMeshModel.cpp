@@ -1390,7 +1390,7 @@ srVector3T<float>* stMeshModel::GetPolygonNormals(unsigned int frame, bool load)
 
 void stMeshModel::ClearVertexLights()
 {
-    srVector3T<float>* lights = GetVertexLights(1, 1);
+    srVector3T<float>* lights = GetVertexLights(true, 1);
     int count = vertex_location_count * 3;
     if (count != 0) {
         FillDwordBuffer(lights, 0, count);

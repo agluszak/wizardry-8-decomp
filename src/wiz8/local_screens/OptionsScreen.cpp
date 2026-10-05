@@ -272,8 +272,8 @@ void W8OptionsSaveLoadPanel::Populate()
     m_action_button->m_listener = this;
 
     if (m_panel == 11 && g_options_screen->m_save_slots.count == 1) {
-        m_delete_button->SetEnabled(0);
-        m_action_button->SetEnabled(0);
+        m_delete_button->SetEnabled(false);
+        m_action_button->SetEnabled(false);
     }
 
     int page = 0;
@@ -292,10 +292,10 @@ void W8OptionsSaveLoadPanel::Populate()
 }
 
 // FUNCTION: WIZ8 0x005aaac0
-void W8OptionsSaveLoadPanel::SetActive(unsigned char active)
+void W8OptionsSaveLoadPanel::SetActive(bool active)
 {
     W8OptionsPanel::SetActive(active);
-    if (active != 0 && g_options_screen->m_text_editor == 0 && m_panel == 12 &&
+    if (active && g_options_screen->m_text_editor == 0 && m_panel == 12 &&
         m_selection.m_selectedIndex == 0 && m_current == 0) {
         OnEditSaveName(m_rows.data[0]);
     }
@@ -328,13 +328,13 @@ void W8OptionsSaveLoadPanel::SetCurrent(int current)
         W8OptionsSaveRow* row = *m_rows.GetAt(slot - first);
         row->m_save = save;
         row->SetEnabled(save != 0);
-        row->Invalidate(0);
+        row->Invalidate(false);
     }
     for (; limit < first + 5; ++limit) {
         W8OptionsSaveRow* row = *m_rows.GetAt(limit - first);
         row->m_save = 0;
-        row->SetEnabled(0);
-        row->Invalidate(0);
+        row->SetEnabled(false);
+        row->Invalidate(false);
     }
     m_selection.SetSelected(0);
     if (g_options_screen->m_text_editor == 0 && m_panel == 12 && m_selection.m_selectedIndex == 0 &&
@@ -390,7 +390,7 @@ void W8OptionsSaveLoadPanel::OnDialogClosed(unsigned char reason, int value)
             W8OptionsSaveRow* row = *m_rows.GetAt(m_selection.m_selectedIndex);
             row->m_save = *g_options_screen->m_save_slots.GetAt(selected_slot);
             row->SetEnabled(row->m_save != 0);
-            row->Invalidate(0);
+            row->Invalidate(false);
             if (g_options_screen->m_text_editor != 0 || m_panel != 12 ||
                 m_selection.m_selectedIndex != 0) {
                 return;
@@ -437,7 +437,7 @@ void W8OptionsSaveLoadPanel::OnTextEditComplete(W8OptionsTextEditor*, unsigned c
     int selected_slot = m_current * 5 + m_selection.m_selectedIndex;
     (*m_rows.GetAt(m_editing_row))->m_editing = false;
     if (cancelled != 0) {
-        (*m_rows.GetAt(m_selection.m_selectedIndex))->Invalidate(0);
+        (*m_rows.GetAt(m_selection.m_selectedIndex))->Invalidate(false);
         return;
     }
 
@@ -453,7 +453,7 @@ void W8OptionsSaveLoadPanel::OnTextEditComplete(W8OptionsTextEditor*, unsigned c
     W8OptionsSaveRow* row = *m_rows.GetAt(m_selection.m_selectedIndex);
     row->m_save = slot;
     row->SetEnabled(slot != 0);
-    row->Invalidate(0);
+    row->Invalidate(false);
     if (m_current == 0 && m_selection.m_selectedIndex == 0) {
         if (SaveSlotFileExists(ConvertWideStringToString(slot->name)) == 0) {
             SaveSelectedSave();
@@ -514,8 +514,8 @@ void W8OptionsSaveLoadPanel::DeleteSelectedSave()
     if (g_options_screen->m_save_slots.count == 1) {
         selected_slot = -1;
         if (m_panel == 11) {
-            m_delete_button->SetEnabled(0);
-            m_action_button->SetEnabled(0);
+            m_delete_button->SetEnabled(false);
+            m_action_button->SetEnabled(false);
         }
     } else if (selected_slot >= g_options_screen->m_save_slots.count) {
         --selected_slot;
@@ -731,7 +731,7 @@ void W8OptionsKeyButton::SetKey(unsigned short key)
 {
     m_textBuffer.SetFontStateIndex(m_alternateTextEnabled != 0 ? 14 : -1);
     if (key == VK_ESCAPE) {
-        Invalidate(0);
+        Invalidate(false);
         return;
     }
 
@@ -747,7 +747,7 @@ void W8OptionsKeyButton::SetKey(unsigned short key)
         }
     }
     SetKeyText(key);
-    Invalidate(1);
+    Invalidate(true);
 }
 
 // FUNCTION: WIZ8 0x005a7e40
@@ -875,10 +875,10 @@ void W8OptionsKeyboardPanel::RefreshBindingLabels()
 }
 
 // FUNCTION: WIZ8 0x005abd90
-void W8OptionsKeyboardPanel::SetActive(unsigned char active)
+void W8OptionsKeyboardPanel::SetActive(bool active)
 {
     W8OptionsPanel::SetActive(active);
-    if (active != 0) {
+    if (active) {
         RefreshBindingLabels();
     }
     m_selection.SetSelected(-1);
@@ -993,17 +993,17 @@ W8OptionsPanel* CreateOptionsPanel(int panel, unsigned char* compact,
 void W8OptionsGamePanel::Populate()
 {
     m_content_top += 22;
-    W8OptionsSlider* slider = AddSlider(0x805, &g_options_values.combat_speed, 0);
+    W8OptionsSlider* slider = AddSlider(0x805, &g_options_values.combat_speed, false);
     slider->m_minimumPosition = 0.0f;
     slider->m_maximumPosition = 1.0f;
     slider->UpdatePixelPosition();
     m_content_top += 22;
-    slider = AddSlider(0x80c, &g_options_values.text_display_delay_ms, 0);
+    slider = AddSlider(0x80c, &g_options_values.text_display_delay_ms, false);
     slider->m_minimumPosition = 0.0f;
     slider->m_maximumPosition = 5000.0f;
     slider->UpdatePixelPosition();
     m_content_top += 22;
-    slider = AddSlider(0x802, &g_options_values.monster_movement_speed, 1);
+    slider = AddSlider(0x802, &g_options_values.monster_movement_speed, true);
     slider->m_minimumPosition = 1.0f;
     slider->m_maximumPosition = 5.0f;
     slider->UpdatePixelPosition();
@@ -1033,7 +1033,7 @@ void W8OptionsMousePanel::Populate()
 void W8OptionsInterfacePanel::Populate()
 {
     m_content_top += 22;
-    m_tooltip_delay = AddSlider(0x80e, 0, 0);
+    m_tooltip_delay = AddSlider(0x80e, 0, false);
     m_tooltip_delay->m_minimumPosition = 0.0f;
     m_tooltip_delay->m_maximumPosition = 1200.0f;
     m_tooltip_delay->UpdatePixelPosition();
@@ -1044,8 +1044,8 @@ void W8OptionsInterfacePanel::Populate()
     button->EnableRegionHelp(0x810);
     button->m_listener = this;
     if (!g_settings.tooltips_enabled) {
-        button->EnableSecondaryState(0);
-        m_tooltip_delay->SetEnabled(0);
+        button->EnableSecondaryState(false);
+        m_tooltip_delay->SetEnabled(false);
     }
     m_content_top += 22;
     AddCheckbox(0x80b, &g_options_values.simplified_npc_interaction);
@@ -1069,7 +1069,7 @@ void W8OptionsInterfacePanel::OnPrimary(W8TextControl* control)
 {
     g_settings.tooltips_enabled = (control->m_stateFlags & g_W8TextControlStateSecondary) == 0;
     m_tooltip_delay->SetEnabled(g_settings.tooltips_enabled);
-    m_tooltip_delay->Invalidate(0);
+    m_tooltip_delay->Invalidate(false);
 }
 
 // FUNCTION: WIZ8 0x005aa480
@@ -1080,7 +1080,7 @@ void W8OptionsAudioPanel::Populate()
         bool muted = false;
 
         m_content_top += 22;
-        W8OptionsSlider* slider = AddSlider(g_options_audio_labels[index], 0, 0);
+        W8OptionsSlider* slider = AddSlider(g_options_audio_labels[index], 0, false);
         switch (index) {
         case 0:
             if (IsMusicMuted()) {
@@ -1124,8 +1124,8 @@ void W8OptionsAudioPanel::Populate()
         m_mute_buttons[index] = AddChoiceButton(0x822);
         m_mute_buttons[index]->m_listener = this;
         if (muted) {
-            m_sliders[index]->SetEnabled(0);
-            m_mute_buttons[index]->EnableSecondaryState(0);
+            m_sliders[index]->SetEnabled(false);
+            m_mute_buttons[index]->EnableSecondaryState(false);
         }
     }
     m_content_top += 22;
@@ -1221,14 +1221,14 @@ void W8OptionsAudioPanel::OnPrimary(W8TextControl* control)
         break;
     }
     m_sliders[index]->SetEnabled(muted == 0);
-    m_sliders[index]->Invalidate(0);
+    m_sliders[index]->Invalidate(false);
 }
 
 // FUNCTION: WIZ8 0x005aa310
 void W8OptionsGraphicsPanel::Populate()
 {
     m_content_top += 22;
-    W8OptionsSlider* slider = AddSlider(0x811, &g_options_values.gamma, 0);
+    W8OptionsSlider* slider = AddSlider(0x811, &g_options_values.gamma, false);
     slider->m_minimumPosition = 0.1f;
     slider->m_maximumPosition = 1.9f;
     slider->UpdatePixelPosition();
@@ -1315,19 +1315,19 @@ void W8OptionsScreen::CreateControls()
         }
     }
     m_menu_selection->m_selectionListener = this;
-    m_controls->SetEnabled(1);
-    m_controls->EnableRegionSet(1);
+    m_controls->SetEnabled(true);
+    m_controls->EnableRegionSet(true);
     m_controls->Invalidate(0);
     m_menu_set = new W8OptionsMenuSet(&g_options_page_region_set);
-    m_menu_set->SetEnabled(1);
-    m_menu_set->EnableRegionSet(1);
+    m_menu_set->SetEnabled(true);
+    m_menu_set->EnableRegionSet(true);
 }
 
 // FUNCTION: WIZ8 0x005a9200
 W8OptionsScreen::~W8OptionsScreen()
 {
     int index;
-    SelectPanel(-1, 1);
+    SelectPanel(-1, true);
     for (index = m_save_slots.count - 1; index >= 0; --index) {
         m_save_slots.RemoveAtAndDelete(index);
     }
@@ -1354,7 +1354,7 @@ void W8OptionsScreen::SelectPanel(int selected, bool notify)
     }
     if (m_selected_panel != -1) {
         W8OptionsPanelSet* previous = m_panel[m_selected_panel];
-        (*previous->m_panels.GetAt(previous->m_current))->SetActive(0);
+        (*previous->m_panels.GetAt(previous->m_current))->SetActive(false);
         previous->m_active = false;
     }
     m_selected_panel = selected;
@@ -1374,7 +1374,7 @@ void W8OptionsScreen::SelectPanel(int selected, bool notify)
         if (!current->m_active) {
             current->m_current = 0;
         }
-        (*current->m_panels.GetAt(current->m_current))->SetActive(1);
+        (*current->m_panels.GetAt(current->m_current))->SetActive(true);
         current->m_active = true;
         m_menu_set->m_pMenuSet = m_panel[m_selected_panel];
         m_menu_set->UpdateMenuSet();
@@ -1616,7 +1616,7 @@ W8OptionsCheckbox::W8OptionsCheckbox(Controls* owner, int top, int* value)
 {
     AddLayoutFlags(g_W8TextControlMask | g_W8TextControlLayoutToggle);
     if (*m_value != 0) {
-        EnableSecondaryState(0);
+        EnableSecondaryState(false);
     }
 }
 
@@ -1763,7 +1763,7 @@ void W8OptionsMenuButton::Redraw(unsigned char full_redraw)
 }
 
 // FUNCTION: WIZ8 0x005a75e0
-void W8OptionsMenuButton::EnableSecondaryState(unsigned char immediate)
+void W8OptionsMenuButton::EnableSecondaryState(bool immediate)
 {
     W8TextControl::EnableSecondaryState(immediate);
     Invalidate(immediate);
@@ -1841,7 +1841,7 @@ W8OptionsMenuSet::~W8OptionsMenuSet()
 }
 
 // FUNCTION: WIZ8 0x005a8440
-void W8OptionsPanel::SetActive(unsigned char active)
+void W8OptionsPanel::SetActive(bool active)
 {
     EnableRegionSet(active);
     SetEnabled(active);
@@ -1863,10 +1863,10 @@ void W8OptionsPanelSet::Advance()
     if (m_page_count == 0) {
         current = m_current;
         if (current < m_panels.count - 1) {
-            (*m_panels.GetAt(current))->SetActive(0);
+            (*m_panels.GetAt(current))->SetActive(false);
             current = m_current + 1;
             m_current = current;
-            (*m_panels.GetAt(current))->SetActive(1);
+            (*m_panels.GetAt(current))->SetActive(true);
         }
     } else if (m_panels.data[0]->m_current < m_page_count - 1) {
         m_panels.data[0]->SetCurrent(m_panels.data[0]->m_current + 1);
@@ -1881,10 +1881,10 @@ void W8OptionsPanelSet::Retreat()
     if (m_page_count == 0) {
         current = m_current;
         if (current > 0) {
-            (*m_panels.GetAt(current))->SetActive(0);
+            (*m_panels.GetAt(current))->SetActive(false);
             current = m_current - 1;
             m_current = current;
-            (*m_panels.GetAt(current))->SetActive(1);
+            (*m_panels.GetAt(current))->SetActive(true);
         }
     } else if (m_panels.data[0]->m_current > 0) {
         m_panels.data[0]->SetCurrent(m_panels.data[0]->m_current - 1);
@@ -1920,7 +1920,7 @@ void W8OptionsMenuSet::UpdateMenuSet()
     bounds.bottom = height + bounds.top;
     SetBounds(bounds.left, bounds.top, bounds.right, bounds.bottom);
     ++bounds.top;
-    m_page_text->SetLayoutBounds(&bounds, 1, 1);
+    m_page_text->SetLayoutBounds(&bounds, true, true);
     SetEnabled(panel_set->m_hide_navigation == 0 &&
                (panel_set->m_compact_layout != 0 || count > 1));
     if (m_fEnabled) {
@@ -1956,7 +1956,7 @@ void W8OptionsScreen::OnDialogClosed(unsigned char reason, int)
 {
     if (reason != 0) {
         if (g_status.game_started && !gXStatus.fCombatMode && AnyCharacterActive()) {
-            AutoSaveIfAllowed(1);
+            AutoSaveIfAllowed(true);
         }
         RequestExitScreen();
     }
@@ -1968,7 +1968,7 @@ void W8OptionsScreen::OnDialogClosed(unsigned char reason, int)
 // FUNCTION: WIZ8 0x005a98a0
 void W8OptionsScreen::OnSelectionChanged(W8ControlSelection*, int selected)
 {
-    SelectPanel(selected, 0);
+    SelectPanel(selected, false);
 }
 
 /* State 10 first transfers its option values back to the shared settings
@@ -2021,7 +2021,7 @@ unsigned char OptionsScreenEnter()
     int selected;
 
     SetViewport(0, 0, 0x280, 0x1e0);
-    SetPrimarySurfaceTextureHint2Enabled(0);
+    SetPrimarySurfaceTextureHint2Enabled(false);
     MSYS_Init();
     ResetRegions();
     UpdateHeldItemCursor();
@@ -2052,7 +2052,7 @@ unsigned char OptionsScreenEnter()
     } else {
         selected = 0;
     }
-    g_options_screen->SelectPanel(selected, 1);
+    g_options_screen->SelectPanel(selected, true);
     g_options_first_frame = 1;
     return 1;
 }
@@ -2113,9 +2113,9 @@ void OptionsScreenFrame()
     }
     screen->Redraw();
     if (g_options_first_frame) {
-        SetRendererAutoFlipEnabled(0);
+        SetRendererAutoFlipEnabled(false);
         RenderFrame();
-        SetRendererAutoFlipEnabled(1);
+        SetRendererAutoFlipEnabled(true);
         g_options_first_frame = 0;
     }
     RenderFrame();

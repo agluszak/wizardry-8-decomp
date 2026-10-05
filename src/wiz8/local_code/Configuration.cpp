@@ -43,7 +43,7 @@ void LoadGameConfiguration(void)
                     loaded = true;
                 }
             } else if (id == 0x4d59454b) {
-                g_mgs_keyboard->Load(file.m_hFile, 0);
+                g_mgs_keyboard->Load(file.m_hFile, false);
             } else if (id == 0x59544c51) {
                 LoadRenderOptions(file.m_hFile);
             }

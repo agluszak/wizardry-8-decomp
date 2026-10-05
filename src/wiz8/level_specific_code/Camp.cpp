@@ -15,7 +15,7 @@
 // FUNCTION: WIZ8 0x004DA610
 bool CampPrisonDoor06(Trigger* pTrigger)
 {
-    SetFact(W8_FACT_RAPAX_QUEEN_LOCKED_UP, 0, 0);
+    SetFact(W8_FACT_RAPAX_QUEEN_LOCKED_UP, 0, false);
     return true;
 }
 
@@ -23,7 +23,7 @@ bool CampPrisonDoor06(Trigger* pTrigger)
 // FUNCTION: WIZ8 0x004DA630
 bool CampPrisonDoor04(Trigger* pTrigger)
 {
-    SetFact(W8_FACT_RODAN_LOCKED_IN_CAGE, 0, 0);
+    SetFact(W8_FACT_RODAN_LOCKED_IN_CAGE, 0, false);
     return true;
 }
 
@@ -31,6 +31,6 @@ bool CampPrisonDoor04(Trigger* pTrigger)
 // FUNCTION: WIZ8 0x004DA650
 bool CampPrisonDoor03(Trigger* pTrigger)
 {
-    SetFact(W8_FACT_DRAZIC_LOCKED_IN_CAGE, 0, 0);
+    SetFact(W8_FACT_DRAZIC_LOCKED_IN_CAGE, 0, false);
     return true;
 }

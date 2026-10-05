@@ -148,7 +148,7 @@ unsigned char PleaseWaitScreenEnter(void)
     ResetRegions();
     SetClippingRegionAndImageWidth(0x500, 0, 0, 0x280, 0x1e0);
     SetFontDestBuffer(-14, 0, 0, 0x280, 0x1e0, 0);
-    SetPrimarySurfaceTextureHint2Enabled(0);
+    SetPrimarySurfaceTextureHint2Enabled(false);
     DisableCursorScene();
     g_load_descriptor->caption_y = 0;
     g_load_descriptor->entered_tick = GetTickCount();
@@ -280,7 +280,7 @@ void PleaseWaitScreenFrame(void)
             int level;
             int entrance;
             ChooseNewGameStartLocation(&level, &entrance);
-            if (!LoadLevel(level, entrance, 0)) {
+            if (!LoadLevel(level, entrance, false)) {
                 srAssertFail("fVerify", PLEASE_WAIT_SCREEN_CPP, 279, 0);
             }
             PostNewGameLoad();
@@ -291,14 +291,14 @@ void PleaseWaitScreenFrame(void)
             if (!LoadGame(g_load_descriptor->name)) {
                 srAssertFail("fVerify", PLEASE_WAIT_SCREEN_CPP, 293, 0);
             }
-            if (!LoadLevel(g_status.current_level, -1, 1)) {
+            if (!LoadLevel(g_status.current_level, -1, true)) {
                 srAssertFail("fVerify", PLEASE_WAIT_SCREEN_CPP, 296, 0);
             }
         }
         break;
     case 2: {
         bool saved = SaveGame(g_load_descriptor->name, g_load_descriptor->save_payload);
-        ShowNotice(0xc, saved ? gppStringList[0x6f4] : gppStringList[0x6f6], -1, -1, 0);
+        ShowNotice(0xc, saved ? gppStringList[0x6f4] : gppStringList[0x6f6], -1, -1, false);
         if (g_load_descriptor->save_payload) {
             delete g_load_descriptor->save_payload;
         }
@@ -312,7 +312,7 @@ void PleaseWaitScreenFrame(void)
                                              g_load_descriptor->parameter_2)) {
                 srAssertFail("fVerify", PLEASE_WAIT_SCREEN_CPP, 320, 0);
             }
-            AutoSaveIfAllowed(1);
+            AutoSaveIfAllowed(true);
         }
     }
 

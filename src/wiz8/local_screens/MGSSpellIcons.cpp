@@ -153,7 +153,7 @@ void RebuildSpellIconHudRows(void)
             control = new W8TextControl(g_spell_icon_strip, 0xd5 - g_spell_icon_count, left, 0,
                                         right, 0x12, icon, 0, 0, -1, -1, -1, -1);
             g_spell_icon_rows[g_spell_icon_count] = control;
-            control->Invalidate(0);
+            control->Invalidate(false);
             EnableRegionInput(0xd5 - g_spell_icon_count);
             ++g_spell_icon_count;
             right = left - 1;
@@ -216,7 +216,7 @@ static void RebuildCombatEffectHudRows(void)
                 new W8TextControl(g_combat_effect_left_panel, g_combat_effect_left_count + 0xd6,
                                   left, 0, right, 0x14, icon, 0, 0, -1, -1, -1, -1);
             g_combat_effect_left_rows[g_combat_effect_left_count] = control;
-            control->Invalidate(0);
+            control->Invalidate(false);
             EnableRegionInput(g_combat_effect_left_count + 0xd6);
             ++g_combat_effect_left_count;
             left = right + 1;
@@ -238,7 +238,7 @@ static void RebuildCombatEffectHudRows(void)
                 new W8TextControl(g_combat_effect_right_panel, 0xe4 - g_combat_effect_right_count,
                                   left, 0, right, 0x14, icon, 0, 0, -1, -1, -1, -1);
             g_combat_effect_right_rows[g_combat_effect_right_count] = control;
-            control->Invalidate(0);
+            control->Invalidate(false);
             EnableRegionInput(0xe4 - g_combat_effect_right_count);
             ++g_combat_effect_right_count;
             right = left - 1;
@@ -333,7 +333,7 @@ unsigned char PartyEffectIconRegionEvent(const InputAtom* event, W8Region* regio
     int slot_index = 0;
     W8EffectSlot* slot;
 
-    PushButtonSoundScheme(0, 1);
+    PushButtonSoundScheme(0, true);
     slot = g_status.effect_slots;
     do {
         if (slot->active) {
@@ -356,7 +356,7 @@ unsigned char PartyEffectIconRegionEvent(const InputAtom* event, W8Region* regio
         }
         if (g_effect_icon_help_duration != g_status.effect_slots[slot_index].duration) {
             ShowPartyEffectIconHelp(slot_index);
-            ResetRegionHelp(0);
+            ResetRegionHelp(false);
         }
     }
     return 0;
@@ -387,7 +387,7 @@ unsigned char CombatLeftEffectIconRegionEvent(const InputAtom* event, W8Region* 
     W8EffectSlot* slot;
 
     if (gXStatus.fCombatMode) {
-        PushButtonSoundScheme(0, 1);
+        PushButtonSoundScheme(0, true);
         match = 0;
         slot_index = 0;
         slot = g_combat_state->effect_slots;
@@ -413,7 +413,7 @@ unsigned char CombatLeftEffectIconRegionEvent(const InputAtom* event, W8Region* 
             if (g_effect_icon_help_duration !=
                 g_combat_state->effect_slots[slot_index].duration) {
                 ShowCombatLeftEffectIconHelp(slot_index);
-                ResetRegionHelp(0);
+                ResetRegionHelp(false);
             }
         }
     }
@@ -430,7 +430,7 @@ unsigned char CombatRightEffectIconRegionEvent(const InputAtom* event, W8Region*
     W8EffectSlot* slot;
 
     if (gXStatus.fCombatMode) {
-        PushButtonSoundScheme(0, 1);
+        PushButtonSoundScheme(0, true);
         match = 0;
         slot_index = 0;
         slot = g_combat_state->effect_slots0;
@@ -456,7 +456,7 @@ unsigned char CombatRightEffectIconRegionEvent(const InputAtom* event, W8Region*
             if (g_effect_icon_help_duration !=
                 g_combat_state->effect_slots0[slot_index].duration) {
                 ShowCombatRightEffectIconHelp(slot_index);
-                ResetRegionHelp(0);
+                ResetRegionHelp(false);
             }
         }
     }

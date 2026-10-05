@@ -106,9 +106,9 @@ void UpdateCameraPathState(W8World* world, W8CameraPath* path, int active)
             if (group != 0) {
                 index = MonsterGetIndexByLocationID(
                     0x100, "C:\\Projects\\Wizardry 8\\Engine Code\\Camera.cpp",
-                    group->leader_location_id, 1);
+                    group->leader_location_id, true);
                 monster_info = MonsterGetScriptPartByLocationIndex(index);
-                PointCameraAtMonster(monster_info, 1, 1);
+                PointCameraAtMonster(monster_info, true, true);
                 position = monster_info->p3D->GetPosition();
                 target = position;
                 if (g_settings.camera_rotation_mode == 1) {
@@ -119,7 +119,7 @@ void UpdateCameraPathState(W8World* world, W8CameraPath* path, int active)
                     } else if (g_settings.camera_rotation_style == 1 &&
                                g_gd_camera->ComputeTrackingOrientation(&target, &angle, &pitch) ==
                                    0) {
-                        g_gd_camera->BeginOrientationTransition(pitch, angle, 0);
+                        g_gd_camera->BeginOrientationTransition(pitch, angle, false);
                     }
                 }
                 MonsterForwardReferencePosition(monster_info->p3D, 0);
@@ -127,7 +127,7 @@ void UpdateCameraPathState(W8World* world, W8CameraPath* path, int active)
             npc = GetNpcStateByKind(0x34);
         }
         if (npc != 0) {
-            QueueNpcScriptNotice(npc, 0, 0, 1, 0);
+            QueueNpcScriptNotice(npc, 0, 0, true, 0);
         }
         return;
     }
@@ -138,7 +138,7 @@ void UpdateCameraPathState(W8World* world, W8CameraPath* path, int active)
             if (group != 0) {
                 index = MonsterGetIndexByLocationID(
                     0xd0, "C:\\Projects\\Wizardry 8\\Engine Code\\Camera.cpp",
-                    group->leader_location_id, 1);
+                    group->leader_location_id, true);
                 monster_info = MonsterGetScriptPartByLocationIndex(index);
                 MonsterForwardReferencePosition(monster_info->p3D, 0);
                 return;
@@ -181,7 +181,7 @@ void PointCameraAtMonster(W8MonsterInfo* monster_info, bool force, bool animate)
         }
     }
     monster = monster_info->p3D;
-    if (monster->IsRenderable(1) == 0) {
+    if (monster->IsRenderable(true) == 0) {
         return;
     }
     if (monster->movement.height_offset -
@@ -200,7 +200,7 @@ void PointCameraAtMonster(W8MonsterInfo* monster_info, bool force, bool animate)
             return;
         }
         if (g_gd_camera->ComputeTrackingOrientation(&position, &angle, &pitch) == 0) {
-            g_gd_camera->BeginOrientationTransition(pitch, angle, 0);
+            g_gd_camera->BeginOrientationTransition(pitch, angle, false);
         }
         return;
     }
@@ -209,7 +209,7 @@ void PointCameraAtMonster(W8MonsterInfo* monster_info, bool force, bool animate)
     }
     if (g_settings.camera_rotation_style == 1) {
         if (g_gd_camera->ComputeTrackingOrientation(&position, &angle, &pitch) == 0) {
-            g_gd_camera->BeginOrientationTransition(pitch, angle, 0);
+            g_gd_camera->BeginOrientationTransition(pitch, angle, false);
         }
     } else if (g_settings.camera_rotation_style == 0 &&
                g_gd_camera->ComputeTrackingOrientation(&position, &pitch, &angle) == 0) {
@@ -233,7 +233,7 @@ void PointCameraAtTarget(srVector3T<float>* position, bool force, bool animate)
             return;
         }
         if (g_gd_camera->ComputeTrackingOrientation(position, &angle, &pitch) == 0) {
-            g_gd_camera->BeginOrientationTransition(pitch, angle, 0);
+            g_gd_camera->BeginOrientationTransition(pitch, angle, false);
         }
         return;
     }
@@ -243,7 +243,7 @@ void PointCameraAtTarget(srVector3T<float>* position, bool force, bool animate)
     switch (g_settings.camera_rotation_style) {
     case 1:
         if (g_gd_camera->ComputeTrackingOrientation(position, &angle, &pitch) == 0) {
-            g_gd_camera->BeginOrientationTransition(pitch, angle, 0);
+            g_gd_camera->BeginOrientationTransition(pitch, angle, false);
         }
         break;
     case 0:

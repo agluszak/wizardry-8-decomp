@@ -67,7 +67,7 @@ void W8DialogTextArea::Draw(unsigned char force)
                 unsigned int height = GetLineHeight();
                 bounds.bottom =
                     bounds.top + (*m_visible_lines.GetAt(index))->m_lineCount * height;
-                (*m_visible_lines.GetAt(index))->SetLayoutBounds(&bounds, 0, 0);
+                (*m_visible_lines.GetAt(index))->SetLayoutBounds(&bounds, false, false);
                 bounds.top = bounds.bottom + m_entry_spacing;
             }
             (*m_visible_lines.GetAt(index))->Draw(force || m_dirty);
@@ -153,7 +153,7 @@ void W8DialogTextArea::SetLineHeight(unsigned int height)
 unsigned char W8DialogTextArea::SelectEntry(int index)
 {
     if (m_visible_lines.count != 0 && !(*m_visible_lines.GetAt(index))->m_selected) {
-        (*m_visible_lines.GetAt(index))->SetSelected(1);
+        (*m_visible_lines.GetAt(index))->SetSelected(true);
         m_selected_visible_entry = index;
         selection_dirty = 1;
         return 1;
@@ -167,7 +167,7 @@ unsigned char W8DialogTextArea::ClearSelection()
     if (m_visible_lines.count == 0) {
         m_selected_visible_entry = -1;
     } else if (m_selected_visible_entry != -1) {
-        (*m_visible_lines.GetAt(m_selected_visible_entry))->SetSelected(0);
+        (*m_visible_lines.GetAt(m_selected_visible_entry))->SetSelected(false);
         selection_dirty = 1;
         m_selected_visible_entry = -1;
         return 1;

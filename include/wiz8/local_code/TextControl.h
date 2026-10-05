@@ -54,15 +54,15 @@ public:
 
     unsigned char MeasureText();
     void GetTextOrigin(int* px, int* py);
-    void Invalidate(unsigned char immediate);
+    void Invalidate(bool immediate);
     virtual void SetEnabled(bool enabled) override;
     virtual void Redraw(unsigned char full_redraw) override;
     void SetFlaggedRegionBounds(int left, int top, int right);
     virtual void AddLayoutFlags(unsigned int flags) override;
     virtual void SetAlternateTextEnabled(unsigned char enabled) override;
     void RemoveLayoutFlags(unsigned int flags);
-    virtual void EnableSecondaryState(unsigned char immediate);
-    virtual void DisableSecondaryState(unsigned char immediate);
+    virtual void EnableSecondaryState(bool immediate);
+    virtual void DisableSecondaryState(bool immediate);
     virtual void OnMouseEnter(int event) override;
     virtual void OnMouseLeave(int event) override;
     virtual void OnLeftButtonDown(int event) override;
@@ -102,7 +102,7 @@ public:
     Listener* m_listener; /* 0xb4 */
 
 protected:
-    void InvalidateCore(unsigned char immediate);
+    void InvalidateCore(bool immediate);
     void UpdateTextLayout();
     void NotifyPrimaryActivation();
     void NotifySecondaryActivation();

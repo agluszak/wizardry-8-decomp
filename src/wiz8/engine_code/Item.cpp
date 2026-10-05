@@ -174,7 +174,7 @@ bool W8ItemRep::ReadFromFile(W8ReadLevelInfo* info, W8Item* item, bool anonymous
 
     info->bitmap_folder = "Data\\Items3D\\Bitmaps";
     bool success =
-        ReadSingleLevelMesh(info, &mesh, 0, 0, anonymous_mesh ? 0 : info->mesh_filename, 1) != 0;
+        ReadSingleLevelMesh(info, &mesh, 0, 0, anonymous_mesh ? 0 : info->mesh_filename, true) != 0;
     if (!success || mesh == 0) {
         srAssertFail("fSuccess && psrMesh", ITEM_CPP, 0x8c, 0);
     }

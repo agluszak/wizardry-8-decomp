@@ -54,7 +54,7 @@ GDProp::GDProp(srModelInstance* instance, const char* path_name, unsigned short 
             g_octree->pathing->LinkSurfaces(this);
             g_octree->pathing->LinkEdges(this);
         }
-        Initialize(instance, 1, prop_number, footstep_surface, footstep_material);
+        Initialize(instance, true, prop_number, footstep_surface, footstep_material);
     }
 }
 
@@ -240,7 +240,7 @@ void GDProp::Initialize(srModelInstance* instance, bool attach, unsigned short p
             W8WorldItem* item =
                 static_cast<W8WorldItem*>(PLGet(m_list, static_cast<int>(index)));
             if (item != 0) {
-                SetWorldItemFlag02(item, 1);
+                SetWorldItemFlag02(item, true);
             }
         }
     }

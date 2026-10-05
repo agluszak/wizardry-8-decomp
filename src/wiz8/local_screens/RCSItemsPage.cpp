@@ -107,10 +107,10 @@ void SetCampInfoPageMode(char mode)
                      "Info toggle error");
         break;
     case 1:
-        g_camp_page_tabs[0]->DisableSecondaryState(1);
-        g_camp_page_tabs[1]->EnableSecondaryState(1);
+        g_camp_page_tabs[0]->DisableSecondaryState(true);
+        g_camp_page_tabs[1]->EnableSecondaryState(true);
         g_camp_help_text->SetActive(false);
-        g_camp_screen->character_info->SetEnabled(1);
+        g_camp_screen->character_info->SetEnabled(true);
         for (index = 0; index < 7; ++index) {
             g_camp_stat_labels[index]->SetActive(false);
         }
@@ -119,10 +119,10 @@ void SetCampInfoPageMode(char mode)
         }
         break;
     case 0:
-        g_camp_page_tabs[0]->EnableSecondaryState(1);
-        g_camp_page_tabs[1]->DisableSecondaryState(1);
+        g_camp_page_tabs[0]->EnableSecondaryState(true);
+        g_camp_page_tabs[1]->DisableSecondaryState(true);
         g_camp_help_text->SetActive(true);
-        g_camp_screen->character_info->SetEnabled(0);
+        g_camp_screen->character_info->SetEnabled(false);
         for (index = 0; index < 7; ++index) {
             g_camp_stat_labels[index]->SetActive(true);
         }
@@ -238,7 +238,8 @@ void OpenSecondaryAttributeInfoDialog(unsigned int uiIndex)
 void IdentifyAndOpenItemInfo(W8ItemInstance* item)
 {
     if (CanItemLeaveItsSlot(item)) {
-        if (PartyAttemptsToIdentifyItem(item, 0) != 0 && g_camp_screen->item_filters[1] != 0) {
+        if (PartyAttemptsToIdentifyItem(item, 0) != 0 &&
+            g_camp_screen->item_filters[W8_CAMP_ITEM_FILTER_UNIDENTIFIED] != 0) {
             RebuildCampItemList();
             g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;
         }
@@ -250,7 +251,7 @@ void IdentifyAndOpenItemInfo(W8ItemInstance* item)
 // FUNCTION: WIZ8 0x005BA3D0
 void DropHeldCampItem(void)
 {
-    if (ResolvePendingCampCharacter(1)) {
+    if (ResolvePendingCampCharacter(true)) {
         if (DropItemInHand(0)) {
             SetCampItemActionMode(0);
         }
@@ -296,7 +297,7 @@ void UseCampItem(W8ItemInstance* item)
         } else {
             if (!g_status.item_in_cursor) {
                 MarkCampCharacterPending(item);
-                CopyItemInstance(&g_status.item_in_hand, item, g_review_character, 1);
+                CopyItemInstance(&g_status.item_in_hand, item, g_review_character, true);
             }
         }
         DismissSelectedPartyCharacter();
@@ -325,7 +326,7 @@ void ReportCastResult(int party_slot)
     W8Character* character;
     int result;
 
-    StartBreathCycle(giReviewCharSlot, 0);
+    StartBreathCycle(giReviewCharSlot, false);
     result = RevealCharacterItemBindingsByProfession(giReviewCharSlot, party_slot);
     character = g_status.buffers.Char + party_slot;
     if (result == 0) {
@@ -478,7 +479,8 @@ void SplitStackDialogResult(W8DialogBase* dialog)
                 if (character->EquippedItem[static_cast<short>(gXStatus.held_item_slot)].iItemNo ==
                         -1 &&
                     CanEquipItemInSlot(character, g_status.item_in_hand.iItemNo,
-                                       static_cast<unsigned char>(gXStatus.held_item_slot), 0) &&
+                                       static_cast<unsigned char>(gXStatus.held_item_slot),
+                                       false) &&
                     CanCharacterUseItem(character, g_status.item_in_hand.iItemNo)) {
                     destination =
                         character->EquippedItem + static_cast<short>(gXStatus.held_item_slot);
@@ -489,28 +491,27 @@ void SplitStackDialogResult(W8DialogBase* dialog)
             }
         }
         if (destination == 0 &&
-            (character == 0 || !AddItemToCharacter(character, &split, 0, 0, 0)) &&
-            !AddItemToParty(&split, 0, 0)) {
+            (character == 0 || !AddItemToCharacter(character, &split, 0, 0, false)) &&
+            !AddItemToParty(&split, 0, false)) {
             ShowCampNoticeLine(gppStringList[0x915], 0, 1, 0);
             g_status.item_in_hand.stack_count = remaining;
-            if (ResolvePendingCampCharacter(1) && DropItemInHand(0)) {
+            if (ResolvePendingCampCharacter(true) && DropItemInHand(0)) {
                 SetCampItemActionMode(0);
             }
             destination = &g_status.item_in_hand;
         }
         if (destination != 0) {
-            CopyItemInstance(destination, &split, 0, 1);
+            CopyItemInstance(destination, &split, 0, true);
         }
     } else {
         if (count == g_split_item_source->stack_count) {
-            CopyItemInstance(&g_status.item_in_hand, g_split_item_source, g_review_character,
-                             1);
+            CopyItemInstance(&g_status.item_in_hand, g_split_item_source, g_review_character, true);
             carried = g_status.item_in_hand.stack_count;
         } else {
             split = *g_split_item_source;
             split.stack_count = static_cast<unsigned char>(count);
             g_split_item_source->stack_count = remaining;
-            CopyItemInstance(&g_status.item_in_hand, &split, 0, 1);
+            CopyItemInstance(&g_status.item_in_hand, &split, 0, true);
             gXStatus.held_item_source = giReviewCharSlot;
             GetOriginOfCharacterItem(giReviewCharSlot, g_split_item_source,
                                      &gXStatus.held_item_origin, &gXStatus.held_item_slot);
@@ -657,7 +658,7 @@ void UnequipBothHands(void)
     BindEquippedItem(character, W8_EQUIP_SLOT_SECONDARY_WEAPON);
     if (CanUnequipSlotItem(character, W8_EQUIP_SLOT_PRIMARY_WEAPON) &&
         CanUnequipSlotItem(character, W8_EQUIP_SLOT_SECONDARY_WEAPON)) {
-        SwapWeaponSetSlots(giReviewCharSlot, 0, 1);
+        SwapWeaponSetSlots(giReviewCharSlot, 0, true);
         g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_EQUIPMENT;
         g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_PORTRAIT;
         g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_CHARACTER_INFO;
@@ -671,49 +672,49 @@ void TogglePartyRowFlag(void)
 {
     if ((g_camp_action_buttons[1]->m_stateFlags & g_W8TextControlStateSecondary) != 0) {
         g_status.buffers.XChar[giReviewCharSlot].item_action_pending = 1;
-        g_camp_action_buttons[0]->SetEnabled(0);
-        g_camp_action_buttons[0]->Invalidate(0);
+        g_camp_action_buttons[0]->SetEnabled(false);
+        g_camp_action_buttons[0]->Invalidate(false);
         return;
     }
     g_status.buffers.XChar[giReviewCharSlot].item_action_pending = 0;
-    g_camp_action_buttons[0]->SetEnabled(1);
-    g_camp_action_buttons[0]->Invalidate(0);
+    g_camp_action_buttons[0]->SetEnabled(true);
+    g_camp_action_buttons[0]->Invalidate(false);
 }
 
 // FUNCTION: WIZ8 0x005BB1C0
 void ToggleCampHandItemFilter(void)
 {
-    ToggleCampItemFilter(0);
+    ToggleCampItemFilter(W8_CAMP_ITEM_FILTER_BUTTON_HAND);
 }
 
 // FUNCTION: WIZ8 0x005BB1D0
 void ToggleCampBodyItemFilter(void)
 {
-    ToggleCampItemFilter(1);
+    ToggleCampItemFilter(W8_CAMP_ITEM_FILTER_BUTTON_BODY);
 }
 
 // FUNCTION: WIZ8 0x005BB1E0
 void ToggleCampOtherItemFilter(void)
 {
-    ToggleCampItemFilter(2);
+    ToggleCampItemFilter(W8_CAMP_ITEM_FILTER_BUTTON_OTHER);
 }
 
 // FUNCTION: WIZ8 0x005BB1F0
 void ToggleCampAccessoryItemFilter(void)
 {
-    ToggleCampItemFilter(3);
+    ToggleCampItemFilter(W8_CAMP_ITEM_FILTER_BUTTON_ACCESSORY);
 }
 
 // FUNCTION: WIZ8 0x005BB200
 void ToggleCampUsabilityFilter(void)
 {
-    ToggleCampItemFilter(4);
+    ToggleCampItemFilter(W8_CAMP_ITEM_FILTER_BUTTON_USABLE);
 }
 
 // FUNCTION: WIZ8 0x005BB210
 void ToggleCampUnidentifiedItemFilter(void)
 {
-    ToggleCampItemFilter(5);
+    ToggleCampItemFilter(W8_CAMP_ITEM_FILTER_BUTTON_UNIDENTIFIED);
 }
 
 // FUNCTION: WIZ8 0x005BB220
@@ -727,44 +728,44 @@ void SortCampItemPool(void)
 
 /* UI button order differs from the item-filter order. */
 // FUNCTION: WIZ8 0x005BB250
-void ToggleCampItemFilter(int tab)
+void ToggleCampItemFilter(W8CampItemFilterButton tab)
 {
-    int filter;
+    W8CampItemFilter filter;
     int index;
 
     switch (tab) {
-    case 0:
-        filter = 2;
+    case W8_CAMP_ITEM_FILTER_BUTTON_HAND:
+        filter = W8_CAMP_ITEM_FILTER_HAND;
         break;
-    case 1:
-        filter = 3;
+    case W8_CAMP_ITEM_FILTER_BUTTON_BODY:
+        filter = W8_CAMP_ITEM_FILTER_BODY;
         break;
-    case 2:
-        filter = 5;
+    case W8_CAMP_ITEM_FILTER_BUTTON_OTHER:
+        filter = W8_CAMP_ITEM_FILTER_OTHER;
         break;
-    case 3:
-        filter = 4;
+    case W8_CAMP_ITEM_FILTER_BUTTON_ACCESSORY:
+        filter = W8_CAMP_ITEM_FILTER_ACCESSORY;
         break;
-    case 4:
-        filter = 0;
+    case W8_CAMP_ITEM_FILTER_BUTTON_USABLE:
+        filter = W8_CAMP_ITEM_FILTER_USABLE;
         break;
-    case 5:
-        filter = 1;
+    case W8_CAMP_ITEM_FILTER_BUTTON_UNIDENTIFIED:
+        filter = W8_CAMP_ITEM_FILTER_UNIDENTIFIED;
         break;
     default:
-        filter = tab;
+        filter = static_cast<W8CampItemFilter>(tab);
     }
     if ((g_camp_item_filter_buttons[tab]->m_stateFlags & g_W8TextControlStateSecondary) == 0) {
         g_camp_screen->item_filters[filter] = 0;
     } else {
         g_camp_screen->item_filters[filter] = 1;
-        if (filter != 0 && filter != 1) {
+        if (filter != W8_CAMP_ITEM_FILTER_USABLE && filter != W8_CAMP_ITEM_FILTER_UNIDENTIFIED) {
             ClearOtherCampItemGroupFilters(filter);
             index = 0;
             do {
                 if (index != tab && (g_camp_item_filter_buttons[index]->m_stateFlags &
                                      g_W8TextControlStateSecondary) != 0) {
-                    g_camp_item_filter_buttons[index]->DisableSecondaryState(1);
+                    g_camp_item_filter_buttons[index]->DisableSecondaryState(true);
                 }
                 ++index;
             } while (index < 4);
@@ -788,7 +789,7 @@ static void ShowCampItemInfo(W8ItemInstance* item)
 {
     g_camp_entry_parameter = g_review_character;
     if (CanItemLeaveItsSlot(item) && PartyAttemptsToIdentifyItem(item, 0) != 0 &&
-        g_camp_screen->item_filters[1] != 0) {
+        g_camp_screen->item_filters[W8_CAMP_ITEM_FILTER_UNIDENTIFIED] != 0) {
         RebuildCampItemList();
         g_camp_screen->redraw_flags |= W8_CAMP_REDRAW_ALL;
     }
@@ -805,7 +806,7 @@ unsigned char BackpackRegionHandler(const InputAtom* event, W8Region* region)
     slot = region->callback_id;
     item = g_review_character->backpack + slot;
     if (item->iItemNo == -1 && !g_status.item_in_cursor) {
-        PushButtonSoundScheme(0, 1);
+        PushButtonSoundScheme(0, true);
     }
     if (event->usEvent < 0x81) {
         if (event->usEvent == 0x80) {
@@ -824,7 +825,7 @@ unsigned char BackpackRegionHandler(const InputAtom* event, W8Region* region)
             HandleCampItemClick(item, slot, 0);
             if (item->iItemNo != -1) {
                 SetItemTooltip(item, region);
-                SetRegionHelpForceEnabled(1);
+                SetRegionHelpForceEnabled(true);
                 return 1;
             }
         }
@@ -851,7 +852,7 @@ unsigned char BackpackRegionHandler(const InputAtom* event, W8Region* region)
                 }
             } else if (item->iItemNo != -1) {
                 SetItemTooltip(item, region);
-                SetRegionHelpForceEnabled(1);
+                SetRegionHelpForceEnabled(true);
                 return 0;
             }
             DisableRegionHelpFlag(region);
@@ -874,9 +875,9 @@ unsigned char EquipSlotRegionHandler(const InputAtom* event, W8Region* region)
     if (item->iItemNo == -1 &&
         (!g_status.item_in_cursor || g_camp_screen->entry_mode == 1 ||
          !CanEquipItemInSlot(g_review_character, g_status.item_in_hand.iItemNo,
-                             static_cast<unsigned char>(slot), 1) ||
+                             static_cast<unsigned char>(slot), true) ||
          !CanCharacterUseItem(g_review_character, g_status.item_in_hand.iItemNo))) {
-        PushButtonSoundScheme(0, 1);
+        PushButtonSoundScheme(0, true);
     }
     if (event->usEvent < 0x81) {
         if (event->usEvent == 0x80) {
@@ -898,10 +899,10 @@ unsigned char EquipSlotRegionHandler(const InputAtom* event, W8Region* region)
                 delay = 300;
             }
             SetRegionHelpDelay(delay);
-            SetRegionHelpForceEnabled(1);
+            SetRegionHelpForceEnabled(true);
             EnableRegionHelpFlag(region);
             if (item->iItemNo != -1) {
-                name = FormatItemDisplayName(item, 0);
+                name = FormatItemDisplayName(item, false);
                 swprintf(g_camp_screen->caption, L"%s (%s)", name,
                          gppStringList[g_equip_slot_label_ids[slot]]);
                 SetRegionHelpText(g_camp_screen->caption);
@@ -929,12 +930,12 @@ unsigned char EquipSlotRegionHandler(const InputAtom* event, W8Region* region)
                     delay = 300;
                 }
                 SetRegionHelpDelay(delay);
-                SetRegionHelpForceEnabled(1);
+                SetRegionHelpForceEnabled(true);
                 if (item->iItemNo == -1) {
                     swprintf(g_camp_screen->caption, g_format_s,
                              gppStringList[g_equip_slot_label_ids[slot]]);
                 } else {
-                    name = FormatItemDisplayName(item, 0);
+                    name = FormatItemDisplayName(item, false);
                     swprintf(g_camp_screen->caption, L"%s (%s)", name,
                              gppStringList[g_equip_slot_label_ids[slot]]);
                 }
@@ -977,7 +978,7 @@ unsigned char ItemPoolRegionHandler(const InputAtom* event, W8Region* region)
     }
     item = g_status.party_item_pool + pool_index;
     if (item->iItemNo == -1 && !g_status.item_in_cursor) {
-        PushButtonSoundScheme(0, 1);
+        PushButtonSoundScheme(0, true);
     }
     if (event->usEvent < 0x101) {
         if (event->usEvent == 0x100) {
@@ -1133,9 +1134,9 @@ void SetItemTooltip(W8ItemInstance* item, W8Region* region)
         delay = 300;
     }
     SetRegionHelpDelay(delay);
-    SetRegionHelpForceEnabled(1);
+    SetRegionHelpForceEnabled(true);
     EnableRegionHelpFlag(region);
-    name = FormatItemDisplayName(item, 0);
+    name = FormatItemDisplayName(item, false);
     wcscpy(g_camp_screen->caption, name);
     record = g_item_records + item->iItemNo;
     if (record->category == W8_ITEM_CATEGORY_SPELL_SOURCE) {
@@ -1221,7 +1222,7 @@ static void DrawCampItemLabel(W8ItemInstance* item, int left, int top, char flag
     unsigned int pitch;
     char* buffer;
 
-    name = FormatItemDisplayName(item, 0);
+    name = FormatItemDisplayName(item, false);
     wcscpy(g_camp_screen->caption, name);
     bounds.left = left;
     bounds.top = top;
@@ -1236,14 +1237,14 @@ static void DrawCampItemLabel(W8ItemInstance* item, int left, int top, char flag
         if (flag != 0) {
             bounds.right -= width;
             bounds.left -= width;
-            text->SetLayoutBounds(&bounds, 1, 1);
+            text->SetLayoutBounds(&bounds, true, true);
         }
         ColorFillVideoSurfaceArea(0xfffffff2, bounds.left, bounds.top, bounds.left + width,
                                   bounds.top + height, 0x8000);
         buffer = static_cast<char*>(LockPrimarySurface(&pitch));
         if (buffer != 0) {
             // reinterpret-ok: SGP frame-buffer bytes to W8TextBuffer's byte view
-            text->RenderText(reinterpret_cast<unsigned char*>(buffer), pitch, 2, 1, 1);
+            text->RenderText(reinterpret_cast<unsigned char*>(buffer), pitch, 2, 1, true);
             LineDraw(0, bounds.left, bounds.top, bounds.left + width, bounds.top, -0x6613, buffer);
             LineDraw(0, bounds.left + width, bounds.top, bounds.left + width, bounds.top + height,
                      -0x6613, buffer);
@@ -1282,7 +1283,7 @@ public:
    0x005B7CB0. */
 void W8CampInfoLabel::OnLeftButtonDown(int event)
 {
-    PushButtonSoundScheme(0, 1);
+    PushButtonSoundScheme(0, true);
     W8TextControl::OnLeftButtonDown(event);
 }
 
@@ -1290,21 +1291,21 @@ void W8CampInfoLabel::OnLeftButtonDown(int event)
    0x005B7CD0. */
 void W8CampInfoLabel::OnLeftButtonUp(int event)
 {
-    PushButtonSoundScheme(0, 1);
+    PushButtonSoundScheme(0, true);
     W8TextControl::OnLeftButtonUp(event);
 }
 
 // FUNCTION: WIZ8 0x005b7c90
 void W8CampInfoLabel::OnMouseEnter(int event)
 {
-    PushButtonSoundScheme(0, 1);
+    PushButtonSoundScheme(0, true);
     W8TextControl::OnMouseEnter(event);
 }
 
 // FUNCTION: WIZ8 0x005b7cf0
 void W8CampInfoLabel::OnLeftButtonDoubleClick(int event)
 {
-    PushButtonSoundScheme(0, 1);
+    PushButtonSoundScheme(0, true);
     W8TextControl::OnLeftButtonDoubleClick(event);
 }
 
@@ -1336,7 +1337,7 @@ int CreateCampActionPanel(void)
             g_camp_action_buttons[1]->AddLayoutFlags(g_W8TextControlLayoutToggle);
             g_camp_action_buttons[0]->m_primaryActivationCallback = UnequipBothHands;
             g_camp_action_buttons[1]->m_primaryActivationCallback = TogglePartyRowFlag;
-            g_camp_action_panel->SetEnabled(1);
+            g_camp_action_panel->SetEnabled(true);
             return 1;
         }
     }
@@ -1364,28 +1365,28 @@ void ReleaseCampActionPanel(void)
 // FUNCTION: WIZ8 0x005b9270
 void EnableCampActionButtons(void)
 {
-    g_camp_action_buttons[0]->SetActive(1);
-    g_camp_action_buttons[1]->SetActive(1);
+    g_camp_action_buttons[0]->SetActive(true);
+    g_camp_action_buttons[1]->SetActive(true);
     if (g_status.game_started) {
-        g_camp_action_buttons[1]->SetEnabled(1);
+        g_camp_action_buttons[1]->SetEnabled(true);
         if (g_status.buffers.XChar[giReviewCharSlot].item_action_pending) {
-            g_camp_action_buttons[1]->EnableSecondaryState(0);
-            g_camp_action_buttons[0]->SetEnabled(0);
+            g_camp_action_buttons[1]->EnableSecondaryState(false);
+            g_camp_action_buttons[0]->SetEnabled(false);
         } else {
-            g_camp_action_buttons[1]->DisableSecondaryState(0);
-            g_camp_action_buttons[0]->SetEnabled(1);
+            g_camp_action_buttons[1]->DisableSecondaryState(false);
+            g_camp_action_buttons[0]->SetEnabled(true);
         }
     } else {
-        g_camp_action_buttons[0]->SetEnabled(0);
-        g_camp_action_buttons[1]->SetEnabled(0);
+        g_camp_action_buttons[0]->SetEnabled(false);
+        g_camp_action_buttons[1]->SetEnabled(false);
     }
 }
 
 // FUNCTION: WIZ8 0x005b9310
 void DisableCampActionButtons(void)
 {
-    g_camp_action_buttons[0]->SetActive(0);
-    g_camp_action_buttons[1]->SetActive(0);
+    g_camp_action_buttons[0]->SetActive(false);
+    g_camp_action_buttons[1]->SetActive(false);
 }
 
 // FUNCTION: WIZ8 0x005b9330
@@ -1448,7 +1449,7 @@ int CreateItemsTabPanel(void)
             g_camp_item_filter_buttons[5]->m_primaryActivationCallback =
                 ToggleCampUnidentifiedItemFilter;
             g_camp_item_filter_buttons[6]->m_primaryActivationCallback = SortCampItemPool;
-            g_camp_item_filter_panel->SetEnabled(1);
+            g_camp_item_filter_panel->SetEnabled(true);
             return 1;
         }
     }
@@ -1482,40 +1483,40 @@ void UpdateCampItemFilters(void)
     unsigned char flag;
 
     for (index = 0; index < 7; ++index) {
-        g_camp_item_filter_buttons[index]->SetActive(1);
+        g_camp_item_filter_buttons[index]->SetActive(true);
     }
     if (!g_status.game_started) {
         for (index = 0; index < 7; ++index) {
-            g_camp_item_filter_buttons[index]->SetEnabled(0);
+            g_camp_item_filter_buttons[index]->SetEnabled(false);
         }
         return;
     }
     for (index = 0; index < 7; ++index) {
-        g_camp_item_filter_buttons[index]->SetEnabled(1);
+        g_camp_item_filter_buttons[index]->SetEnabled(true);
         switch (index) {
         case 0:
-            flag = g_camp_screen->item_filters[2];
+            flag = g_camp_screen->item_filters[W8_CAMP_ITEM_FILTER_HAND];
             break;
         case 1:
-            flag = g_camp_screen->item_filters[3];
+            flag = g_camp_screen->item_filters[W8_CAMP_ITEM_FILTER_BODY];
             break;
         case 2:
-            flag = g_camp_screen->item_filters[5];
+            flag = g_camp_screen->item_filters[W8_CAMP_ITEM_FILTER_OTHER];
             break;
         case 3:
-            flag = g_camp_screen->item_filters[4];
+            flag = g_camp_screen->item_filters[W8_CAMP_ITEM_FILTER_ACCESSORY];
             break;
         case 4:
-            flag = g_camp_screen->item_filters[0];
+            flag = g_camp_screen->item_filters[W8_CAMP_ITEM_FILTER_USABLE];
             break;
         case 5:
-            flag = g_camp_screen->item_filters[1];
+            flag = g_camp_screen->item_filters[W8_CAMP_ITEM_FILTER_UNIDENTIFIED];
             break;
         default:
             continue;
         }
         if (flag != 0) {
-            g_camp_item_filter_buttons[index]->EnableSecondaryState(0);
+            g_camp_item_filter_buttons[index]->EnableSecondaryState(false);
         }
     }
 }
@@ -1526,7 +1527,7 @@ void DisableItemsRealmTabs(void)
     int index;
 
     for (index = 0; index < 7; ++index) {
-        g_camp_item_filter_buttons[index]->SetActive(0);
+        g_camp_item_filter_buttons[index]->SetActive(false);
     }
 }
 
@@ -1628,7 +1629,7 @@ int CreateCampSecondaryPanel(void)
     g_camp_page_tabs[1]->m_primaryActivationCallback = ShowCampCharacterPage;
     g_camp_page_tabs[0]->EnableRegionHelp(0x95d);
     g_camp_page_tabs[1]->EnableRegionHelp(0x95e);
-    panel->SetEnabled(1);
+    panel->SetEnabled(true);
     return 1;
 }
 
@@ -1661,10 +1662,10 @@ void EnableCampSecondaryPanel(void)
 {
     int index;
 
-    g_camp_secondary_panel->EnableRegionSet(1);
+    g_camp_secondary_panel->EnableRegionSet(true);
     for (index = 0; index < 2; ++index) {
-        g_camp_page_tabs[index]->SetActive(1);
-        g_camp_page_tabs[index]->SetEnabled(1);
+        g_camp_page_tabs[index]->SetActive(true);
+        g_camp_page_tabs[index]->SetEnabled(true);
     }
     if (g_camp_screen->item_mode == 0) {
         SetCampInfoPageMode(0);
@@ -1678,9 +1679,9 @@ void DisableCampSecondaryPanel(void)
 {
     int index;
 
-    g_camp_secondary_panel->EnableRegionSet(0);
+    g_camp_secondary_panel->EnableRegionSet(false);
     for (index = 0; index < 2; ++index) {
-        g_camp_page_tabs[index]->SetActive(0);
+        g_camp_page_tabs[index]->SetActive(false);
     }
 }
 

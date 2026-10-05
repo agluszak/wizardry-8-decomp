@@ -122,7 +122,7 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, bool qu
         PostCharacterNotice(party_slot, gppStringList[0x194]);
     }
 
-    FatigueCharacter(party_slot, (amount * 2) / 3, 0, result_stats);
+    FatigueCharacter(party_slot, (amount * 2) / 3, false, result_stats);
     if (result_stats != 0) {
         result_stats->amount += amount;
         ++result_stats->count;
@@ -175,7 +175,7 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, bool qu
 
     if (character->uiCondition[W8_CONDITION_ASLEEP] != 0 && !quiet &&
         Random(100) < (character->attributes[W8_ATTRIBUTE_SENSES].effective >> 1) + 0x32) {
-        RemoveCharacterCondition(party_slot, W8_CONDITION_ASLEEP, 1);
+        RemoveCharacterCondition(party_slot, W8_CONDITION_ASLEEP, true);
     }
     return amount;
 }
@@ -206,7 +206,7 @@ void ApplyRolledHealthChangeToParty(const W8Dice* dice, W8SpellEffectResult* res
     for (party_slot = 0; party_slot < 8; ++party_slot) {
         if (g_status.buffers.XChar[party_slot].fOccupied &&
             g_status.buffers.Char[party_slot].highest_condition < W8_CONDITION_DEAD) {
-            ApplyDamageToCharacter(party_slot, RollDice(dice), 0, arg_3, 0, result, 0);
+            ApplyDamageToCharacter(party_slot, RollDice(dice), false, arg_3, false, result, false);
         }
     }
 }
@@ -339,7 +339,7 @@ void DamageMonstersInRadius(const srVector3T<float>& center, float radius, const
                                        center.z - location.z);
             if (offset.Length() <= radius) {
                 damage = RollDice(dice);
-                ApplyDamageToMonster(monster_info, damage, source, 0, 1, 0, result, 0);
+                ApplyDamageToMonster(monster_info, damage, source, false, 1, 0, result, false);
             }
         }
     }
@@ -384,7 +384,7 @@ unsigned int ApplyDamageToMonster(W8MonsterInfo* monster_info, unsigned int amou
     }
     if (amount != 0) {
         if (gXStatus.fCombatMode || monster_info->party_threat.visible_to_player) {
-            PointCameraAtMonster(monster_info, 0, 1);
+            PointCameraAtMonster(monster_info, false, true);
             category = 9;
             if (TargetSourceIsCharacter(source, 0) && source->iChar != -1) {
                 category = 8;
@@ -612,16 +612,15 @@ void HealCharacter(int party_slot, int amount, char announce)
     fraction = (character->hp_current * 100) / static_cast<unsigned int>(character->uiHPMax);
     if (fraction >= g_effect_threshold1) {
         if (gXStatus.character_event_queue->HasEventCharacter(g_effect3, party_slot)) {
-            gXStatus.character_event_queue->SetEventCharacterMask(g_effect3, party_slot, 0);
+            gXStatus.character_event_queue->SetEventCharacterMask(g_effect3, party_slot, false);
         }
         if (fraction >= g_effect_threshold0) {
             if (gXStatus.character_event_queue->HasEventCharacter(g_effect2, party_slot)) {
-                gXStatus.character_event_queue->SetEventCharacterMask(g_effect2, party_slot,
-                                                                      0);
+                gXStatus.character_event_queue->SetEventCharacterMask(g_effect2, party_slot, false);
             }
             if (gXStatus.character_event_queue->HasEventCharacter(g_effect17, party_slot)) {
                 gXStatus.character_event_queue->SetEventCharacterMask(g_effect17, party_slot,
-                                                                      0);
+                                                                      false);
             }
         }
     }
@@ -668,7 +667,7 @@ void RestoreCharacterStamina(int party_slot, int amount, char announce)
     }
     if (character->uiCondition[W8_CONDITION_UNCONSCIOUS] == W8_CONDITION_INDEFINITE &&
         character->stamina > W8_STAMINA_TO_SHAKE_OFF_EXHAUSTION) {
-        RemoveCharacterCondition(party_slot, W8_CONDITION_UNCONSCIOUS, 1);
+        RemoveCharacterCondition(party_slot, W8_CONDITION_UNCONSCIOUS, true);
     }
 }
 
@@ -789,7 +788,7 @@ void DamageCharacter(int party_slot, unsigned int damage, char announce)
     }
 
     if (character->uiHPMax != 0 && character->hp_current != 0) {
-        FatigueCharacter(party_slot, (damage * 2) / 3, 0, 0);
+        FatigueCharacter(party_slot, (damage * 2) / 3, false, 0);
         if (announce) {
             ShowNoticef(8, gppStringList[0x1c4], damage);
         }
@@ -919,7 +918,7 @@ void MonsterReactsToBeingStruck(W8MonsterInfo* monster_info, W8TargetSource* att
                 TickMonsterCondition(monster_info->location_id, W8_CONDITION_TURNCOAT, 1);
             }
         } else if (MonsterHostility(
-                       MonsterInfoFromID(1570, HEALTH_STAMINA_MANA_CPP, attacker->iMonsterID, 1),
+                       MonsterInfoFromID(1570, HEALTH_STAMINA_MANA_CPP, attacker->iMonsterID, true),
                        monster_info) == 2) {
             TickMonsterCondition(monster_info->location_id, W8_CONDITION_TURNCOAT, 1);
         }
@@ -1141,7 +1140,7 @@ void CharacterDies(int party_slot)
     ++character->death_count;
     for (condition = 0; condition < W8_CONDITION_CLEARABLE_COUNT; ++condition) {
         if (condition != 10 && character->uiCondition[condition] != 0) {
-            RemoveCharacterCondition(party_slot, static_cast<W8Condition>(condition), 0);
+            RemoveCharacterCondition(party_slot, static_cast<W8Condition>(condition), false);
         }
     }
     character->hp_current = 0;
@@ -1417,12 +1416,12 @@ unsigned int FindPartySlotWithLowestSpellPoints(void)
 void ApplyQueuedFatigue(W8CombatSlot* op, unsigned int amount, int arg_3)
 {
     if (op->iType == W8_TARGET_KIND_CHARACTER) {
-        FatigueCharacter(op->iChar, amount, 0, 0);
+        FatigueCharacter(op->iChar, amount, false, 0);
         return;
     }
     if (op->iType == W8_TARGET_KIND_MONSTER) {
         unsigned int location_index =
-            MonsterGetIndexByLocationID(0x771, HEALTH_STAMINA_MANA_CPP, op->iMonsterID, 1);
+            MonsterGetIndexByLocationID(0x771, HEALTH_STAMINA_MANA_CPP, op->iMonsterID, true);
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(location_index);
         FatigueMonster(monster_info, amount, 0);
     }

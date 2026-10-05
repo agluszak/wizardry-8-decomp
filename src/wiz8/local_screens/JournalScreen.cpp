@@ -137,7 +137,7 @@ void RecordFactChangeForJournal(W8FactId fact_id)
         return;
     }
     int range = GetTextBoxScrollRange();
-    ShowNotice(3, gppStringList[0x74a], 2, range, 0);
+    ShowNotice(3, gppStringList[0x74a], 2, range, false);
     SoundPlay("Data\\Sound\\Misc\\Journal Entry.wav", 0);
 }
 
@@ -233,8 +233,8 @@ void W8JournalPanel::Refresh()
         swprintf(page_text, g_journal_page_format, g_journal_page + 1, page_count);
         m_page_text->SetText(page_text, g_options_detail_font);
         DrawCatalogImageAndInvalidate(-14, 0x1b8, 0, 0, 0, 0, 2, 0);
-        DrawJournalLine(gppStringList[0x6db], 0, 0x19, 0, 1);
-        DrawJournalLine(gppStringList[0x6dc], 1, 0x19, 0, 1);
+        DrawJournalLine(gppStringList[0x6db], 0, 0x19, 0, true);
+        DrawJournalLine(gppStringList[0x6dc], 1, 0x19, 0, true);
 
         int first = g_journal_page * 12;
         int last = first + 11;
@@ -258,18 +258,18 @@ void W8JournalPanel::Refresh()
                 level_name = gppStringList[g_level_name_indices[entry->level]];
             }
             if (entry->level != previous_level) {
-                DrawJournalLine(level_name, 0, y, 0, 1);
+                DrawJournalLine(level_name, 0, y, 0, true);
             }
-            DrawJournalLine(description, 1, y, active, 0);
+            DrawJournalLine(description, 1, y, active, false);
             previous_level = entry->level;
         }
     } else {
-        m_next->SetEnabled(0);
-        m_previous->SetEnabled(0);
+        m_next->SetEnabled(false);
+        m_previous->SetEnabled(false);
         m_page_text->SetText(g_journal_alternate_page, g_options_detail_font);
         DrawCatalogImageAndInvalidate(-14, 0x1b8, 0, 0, 0, 0, 2, 0);
-        DrawJournalLine(gppStringList[0x6de], 0, 0x19, 0, 1);
-        DrawJournalLine(gppStringList[0x6df], 1, 0x19, 0, 1);
+        DrawJournalLine(gppStringList[0x6de], 0, 0x19, 0, true);
+        DrawJournalLine(gppStringList[0x6df], 1, 0x19, 0, true);
 
         int y = 0x39;
         for (int index = 0; index < 11; ++index) {
@@ -289,9 +289,10 @@ void W8JournalPanel::Refresh()
                     break;
                 }
                 if (disposition_name != 0) {
-                    DrawJournalLine(disposition_name, 0, y, 0, 1);
+                    DrawJournalLine(disposition_name, 0, y, 0, true);
                 }
-                DrawJournalLine(gppStringList[g_journal_faction_name_indices[index]], 1, y, 0, 0);
+                DrawJournalLine(gppStringList[g_journal_faction_name_indices[index]], 1, y, 0,
+                                false);
                 y += 0x1e;
             }
         }
@@ -334,12 +335,12 @@ W8JournalPanel::W8JournalPanel(unsigned int* region_set)
         new W8TextControl(this, 0xffffffff, 0x1ea, -2, 0, 0, 0x106, 0, 0x10, -1, 0x11, 0x12, 0x13);
     m_close->m_listener = this;
     m_close->EnableRegionHelp(0x6ed);
-    SetEnabled(1);
-    EnableRegionSet(1);
+    SetEnabled(true);
+    EnableRegionSet(true);
     m_alternate_mode = 0;
     m_mode->EnableRegionHelp(0x6eb);
     if ((m_mode->m_stateFlags & g_W8TextControlStateSecondary) != 0) {
-        m_mode->DisableSecondaryState(1);
+        m_mode->DisableSecondaryState(true);
     }
 }
 
@@ -380,12 +381,12 @@ void W8JournalPanel::OnPrimary(W8TextControl* control)
         if (m_alternate_mode) {
             m_mode->EnableRegionHelp(0x6ec);
             if ((m_mode->m_stateFlags & g_W8TextControlStateSecondary) == 0) {
-                m_mode->EnableSecondaryState(1);
+                m_mode->EnableSecondaryState(true);
             }
         } else {
             m_mode->EnableRegionHelp(0x6eb);
             if ((m_mode->m_stateFlags & g_W8TextControlStateSecondary) != 0) {
-                m_mode->DisableSecondaryState(1);
+                m_mode->DisableSecondaryState(true);
             }
         }
         Refresh();
@@ -423,7 +424,7 @@ unsigned char JournalScreenEnter(void)
     int index;
 
     SetViewport(0, 0, 0x280, 0x1e0);
-    SetPrimarySurfaceTextureHint2Enabled(0);
+    SetPrimarySurfaceTextureHint2Enabled(false);
     MSYS_Init();
     ResetRegions();
     UpdateHeldItemCursor();

@@ -89,13 +89,13 @@ void W8CharacterSpellList::SetEntryCount(int count)
         m_range->m_listener = this;
     }
     m_range->Invalidate(0);
-    m_range->SetEnabled(1);
+    m_range->SetEnabled(true);
     m_entry_count = count;
     if (count > 7) {
         m_range->SetRange(0, count - 7);
-        m_range->SetRangeEnabled(1);
+        m_range->SetRangeEnabled(true);
     } else {
-        m_range->SetRangeEnabled(0);
+        m_range->SetRangeEnabled(false);
     }
 }
 
@@ -142,7 +142,7 @@ void W8CharacterSpellList::Redraw(unsigned char force)
 /* Shared with other widget classes at 0x004F58C0. */
 void W8CharacterSpellList::OnMouseEnter(int)
 {
-    PushButtonSoundScheme(0, 1);
+    PushButtonSoundScheme(0, true);
 }
 
 // FUNCTION: WIZ8 0x005c8100
@@ -162,7 +162,7 @@ void W8CharacterSpellList::OnMouseMove(int)
         entry = -1;
     if (entry != m_hovered_entry) {
         m_hovered_entry = entry;
-        Invalidate(0);
+        Invalidate(false);
     }
 }
 
@@ -173,7 +173,7 @@ void W8CharacterSpellList::OnLeftButtonDown(int)
     SGPMouseGetPos(&mouse);
     int entry = (mouse.y - m_pPanel->m_bounds.top - m_top) / 13 + m_scroll_offset + m_first_entry;
     if (entry >= m_first_entry + m_entry_count) {
-        PushButtonSoundScheme(0, 1);
+        PushButtonSoundScheme(0, true);
     }
 }
 
@@ -184,7 +184,7 @@ void W8CharacterSpellList::OnRightButtonDown(int)
     SGPMouseGetPos(&mouse);
     int entry = (mouse.y - m_pPanel->m_bounds.top - m_top) / 13 + m_scroll_offset + m_first_entry;
     if (entry >= m_first_entry + m_entry_count) {
-        PushButtonSoundScheme(0, 1);
+        PushButtonSoundScheme(0, true);
     }
 }
 
@@ -195,7 +195,7 @@ void W8CharacterSpellList::OnLeftButtonUp(int event)
     SGPMouseGetPos(&mouse);
     int entry = (mouse.y - m_pPanel->m_bounds.top - m_top) / 13 + m_scroll_offset + m_first_entry;
     if (entry >= m_first_entry + m_entry_count) {
-        PushButtonSoundScheme(0, 1);
+        PushButtonSoundScheme(0, true);
         return;
     }
     if (m_entries[entry].fSelectable) {
@@ -212,7 +212,7 @@ void W8CharacterSpellList::OnRightButtonUp(int)
     SGPMouseGetPos(&mouse);
     int entry = (mouse.y - m_pPanel->m_bounds.top - m_top) / 13 + m_scroll_offset + m_first_entry;
     if (entry >= m_first_entry + m_entry_count) {
-        PushButtonSoundScheme(0, 1);
+        PushButtonSoundScheme(0, true);
         return;
     }
     if (m_listener)
@@ -233,7 +233,7 @@ void W8CharacterSpellList::AdjustValue(int steps)
 void W8CharacterSpellList::OnRangeChanged(W8RangeControl* range)
 {
     m_scroll_offset = range->m_value;
-    Invalidate(0);
+    Invalidate(false);
 }
 
 // FUNCTION: WIZ8 0x005c83d0
@@ -253,10 +253,10 @@ void W8CharacterSpellsPage::SetCharacter(W8Character* character,
 // FUNCTION: WIZ8 0x005C8530
 void W8CharacterSpellsPage::Activate()
 {
-    EnableRegionSet(1);
+    EnableRegionSet(true);
     UpdateSpellLists();
     for (int realm = 0; realm < 6; ++realm) {
-        m_realms[realm]->m_range->EnableRegionSet(1);
+        m_realms[realm]->m_range->EnableRegionSet(true);
     }
     m_dirty = 1;
     m_prepared = 1;
@@ -265,9 +265,9 @@ void W8CharacterSpellsPage::Activate()
 // FUNCTION: WIZ8 0x005c8570
 void W8CharacterSpellsPage::Deactivate()
 {
-    EnableRegionSet(0);
+    EnableRegionSet(false);
     for (int realm = 0; realm < 6; ++realm) {
-        m_realms[realm]->m_range->EnableRegionSet(0);
+        m_realms[realm]->m_range->EnableRegionSet(false);
     }
 }
 
@@ -304,7 +304,7 @@ void W8CharacterSpellsPage::Redraw()
         bounds.top = 0xec;
         bounds.right = 0xc2;
         bounds.bottom = 0x173;
-        text.SetLayoutBounds(&bounds, 1, 1);
+        text.SetLayoutBounds(&bounds, true, true);
         text.SetText(gppStringList[m_creation_state->spell_points_total == 0 ? 0xeb : 0xea],
                      g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
@@ -312,7 +312,7 @@ void W8CharacterSpellsPage::Redraw()
         bounds.top = 0x173;
         bounds.bottom = 0x18a;
         bounds.right = 0x8f;
-        text.SetLayoutBounds(&bounds, 1, 1);
+        text.SetLayoutBounds(&bounds, true, true);
         text.SetText(gppStringList[0xf4], g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
         m_prepared = 0;
@@ -324,7 +324,7 @@ void W8CharacterSpellsPage::Redraw()
         bounds.right = 0xbf;
         bounds.bottom = 0x18a;
         DrawCatalogImage(-14, 0x107, 0, 5, 0x8f, 0x173, 2, 0);
-        text.SetLayoutBounds(&bounds, 1, 1);
+        text.SetLayoutBounds(&bounds, true, true);
         text.SetText(FormatWideString(g_format_d_slash_d,
                                       m_creation_state->spell_points_remaining,
                                       m_creation_state->spell_points_total),
@@ -343,7 +343,7 @@ void W8CharacterSpellsPage::Redraw()
             bounds.top = m_bounds.top + 0x0f + (realm / 2) * 0x82;
             bounds.right = bounds.left + 0x3c;
             bounds.bottom = bounds.top + 0x0e;
-            text.SetLayoutBounds(&bounds, 1, 1);
+            text.SetLayoutBounds(&bounds, true, true);
             text.SetFontStateIndex(1);
             text.SetText(FormatWideString(g_format_s0, gppStringList[0xf2]),
                          g_wiz_text_font_secondary);
@@ -358,7 +358,7 @@ void W8CharacterSpellsPage::Redraw()
             text.SetLayoutMode(g_W8TextBufferAlignLeft | g_W8TextBufferAlignMiddle);
             bounds.left += 0x58;
             bounds.right = bounds.left + 0x53;
-            text.SetLayoutBounds(&bounds, 1, 1);
+            text.SetLayoutBounds(&bounds, true, true);
             text.SetFontStateIndex(1);
             text.SetText(FormatWideString(g_format_s0, gppStringList[0xf3]),
                          g_wiz_text_font_secondary);

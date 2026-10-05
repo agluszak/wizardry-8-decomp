@@ -27,7 +27,7 @@ bool OnEwaxxCannon1Activated(Trigger* trigger)
     if (g_status.item_in_cursor) {
         item = &g_status.item_in_hand;
     }
-    QueueNpcScriptNotice(npc, item, -1, 0, 0);
+    QueueNpcScriptNotice(npc, item, -1, false, 0);
     return true;
 }
 
@@ -42,7 +42,7 @@ bool OnEwaxxLandingActivated(Trigger* trigger)
     if (g_status.item_in_cursor) {
         item = &g_status.item_in_hand;
     }
-    QueueNpcScriptNotice(npc, item, -1, 0, 0);
+    QueueNpcScriptNotice(npc, item, -1, false, 0);
     return true;
 }
 
@@ -51,7 +51,7 @@ bool OnEwaxxLandingActivated(Trigger* trigger)
 // FUNCTION: WIZ8 0x004DC710
 bool OnCatchCordActivated(Trigger* trigger)
 {
-    SetFact(W8_FACT_TMISSION_KILL_UMPANI_CORD_SEVERED, 1, 0);
+    SetFact(W8_FACT_TMISSION_KILL_UMPANI_CORD_SEVERED, 1, false);
     return true;
 }
 
@@ -66,7 +66,7 @@ bool OnEwaxxTopDoor2Activated(Trigger* trigger)
     if (g_status.item_in_cursor) {
         item = &g_status.item_in_hand;
     }
-    QueueNpcScriptNotice(npc, item, -1, 0, 0);
+    QueueNpcScriptNotice(npc, item, -1, false, 0);
     g_trigger_feedback = 1;
     return false;
 }

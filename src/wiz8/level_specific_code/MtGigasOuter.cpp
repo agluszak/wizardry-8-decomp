@@ -83,7 +83,7 @@ bool OnCrankTriggerActivated(Trigger* trigger)
     if (GetLocationVarIDByName("FlagPosition") == -1) {
         CreateLocationVar("FlagPosition", 0);
         npc = GetNpcStateByKind(0x2a);
-        QueueNpcScriptNotice(npc, 0, 0x90, 1, 0);
+        QueueNpcScriptNotice(npc, 0, 0x90, true, 0);
         g_trigger_feedback = 1;
         return false;
     }
@@ -92,7 +92,7 @@ bool OnCrankTriggerActivated(Trigger* trigger)
         ControlLiftGate(0xEFFFFFFF);
         trigger->flags &= ~W8_TRIGGER_ENABLED;
         npc = GetNpcStateByKind(0x2a);
-        QueueNpcScriptNotice(npc, 0, 0x16, 1, 0);
+        QueueNpcScriptNotice(npc, 0, 0x16, true, 0);
         return true;
     }
     if (value >= 100 && value < 1000) {
@@ -106,13 +106,13 @@ bool OnCrankTriggerActivated(Trigger* trigger)
         position.y = LIFT_PARKED_Y;
         prop->SetPosition(&position);
         SetTriggerVariableByName("FlagPosition", 1000);
-        ReplaceOrCreateItem(&g_status.item_in_hand, 0x290, 0, 0, 0);
+        ReplaceOrCreateItem(&g_status.item_in_hand, 0x290, false, false, false);
         SetItemCursor(0);
         npc = GetNpcStateByKind(0x2a);
-        QueueNpcScriptNotice(npc, 0, 0x18, 1, 0);
+        QueueNpcScriptNotice(npc, 0, 0x18, true, 0);
         ResumeNpc(npc, 1);
         if (FindEntityByName("NP_catwalk", &position, 0, 0)) {
-            SpawnMonsters(0x14a, 1, &position, 1, 1, 0, 0);
+            SpawnMonsters(0x14a, 1, &position, 1, true, false, false);
         }
         return true;
     }
@@ -162,7 +162,7 @@ void ControlLiftGate(int command)
             if (g_lift_gate != 0) {
                 g_lift_gate->Arm();
             } else {
-                g_lift_gate = new W8IntervalGate(3.0f, 0, 1);
+                g_lift_gate = new W8IntervalGate(3.0f, false, true);
             }
             if (value > 0) {
                 g_lift_gate->SetProgress(value * g_movement_speed_step);
@@ -246,14 +246,14 @@ void ControlCampAlarm(int command)
             g_mt_gigas_outer_alarm_sound->release();
             g_mt_gigas_outer_alarm_sound = 0;
         }
-        g_mt_gigas_outer_alarm_sound =
-            CreateAndPlaySoundNode("Data\\Sound\\Ambients\\Alarm1.wav", position, 1.0f, 75.0f, 1);
+        g_mt_gigas_outer_alarm_sound = CreateAndPlaySoundNode("Data\\Sound\\Ambients\\Alarm1.wav",
+                                                              position, 1.0f, 75.0f, true);
         if (g_mt_gigas_outer_alarm_gate != 0) {
             delete g_mt_gigas_outer_alarm_gate;
             g_mt_gigas_outer_alarm_gate = 0;
         }
         g_mt_gigas_outer_alarm_gate =
-            new W8IntervalGate(static_cast<float>(static_cast<unsigned int>(command)), 0, 1);
+            new W8IntervalGate(static_cast<float>(static_cast<unsigned int>(command)), false, true);
         if (g_mt_gigas_outer_alarm_gate != 0) {
             g_master_functions->Add(ControlCampAlarm);
         }
@@ -287,7 +287,7 @@ bool OnSentryTriggerActivated(Trigger* trigger)
     if (g_status.item_in_cursor) {
         item = &g_status.item_in_hand;
     }
-    QueueNpcScriptNotice(npc, item, -1, 0, 0);
+    QueueNpcScriptNotice(npc, item, -1, false, 0);
     g_trigger_feedback = 1;
     return true;
 }

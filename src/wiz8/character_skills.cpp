@@ -389,11 +389,12 @@ void BrewAlchemistPotion(W8Character* character)
              alchemy < recipe[-1] || (recipe[0] != -1 && recipe[0] < alchemy) || --pick != 0;
              recipe += 3) {
         }
-        ReplaceOrCreateItem(&item, recipe[-2], 0, 1, 1);
+        ReplaceOrCreateItem(&item, recipe[-2], false, true, true);
         if (item.stack_count > 1) {
             item.stack_count = 1;
         }
-        ShowNoticef(slot, gppStringList[0x183], character->name, FormatItemDisplayName(&item, 1));
+        ShowNoticef(slot, gppStringList[0x183], character->name,
+                    FormatItemDisplayName(&item, true));
         StoreItemWithCharacterOrParty(character, &item, 0, 0, 0);
         made = 1;
     }
@@ -731,7 +732,7 @@ void PracticeCharacterSkill(W8Character* character, W8Skill skill_id, int usage_
                     wchar_t* text = new wchar_t[0x200];
                     memset(text, 0, 0x400);
                     unsigned int length = 0;
-                    AppendSkillIncreaseNoticeText(text, &length, slot, 0, skill_id);
+                    AppendSkillIncreaseNoticeText(text, &length, slot, false, skill_id);
                     W8SkillNoticePayload* extra = new W8SkillNoticePayload;
                     extra->count = 1;
                     extra->party_slots[0] = static_cast<signed char>(slot);

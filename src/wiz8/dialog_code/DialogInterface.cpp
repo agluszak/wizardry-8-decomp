@@ -84,7 +84,7 @@ void ConfigureDialogFont(int font, BOOLEAN enabled, unsigned char foreground,
 // FUNCTION: WIZ8 0x005CF4F0
 void SetDialogPrompt(W8MessageDialogBase* dialog, wchar_t* text, int, int)
 {
-    dialog->SetMessage(text, 1, 0x32, 1, 1, 1, 0, 0, 0);
+    dialog->SetMessage(text, 1, 0x32, 1, 1, true, false, 0, 0);
 }
 
 // FUNCTION: WIZ8 0x005cf510

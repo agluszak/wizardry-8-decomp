@@ -204,26 +204,26 @@ unsigned char W8SplitItemDialog::CreateButtons()
         }
     }
     m_buttons[0]->Configure("Data\\Dialogs\\popup_splititem.sti", 0xc, 9, 10, 0xd, 0xb,
-                                OnSplitDecrement, 0, 0, 0x7f, -1, OnSplitDecrementMany, 0);
-    m_buttons[1]->Configure("Data\\Dialogs\\popup_splititem.sti", 7, 4, 5, 8, 6,
-                                OnSplitIncrement, 0, 0, 0x7f, -1, OnSplitIncrementMany, 0);
-    m_buttons[2]->Configure("Data\\Dialogs\\popup_splititem.sti", -1, 3, -1, 3, -1, 0, 0, 0, 0,
-                                -1, 0, 0);
+                            OnSplitDecrement, 0, false, 0x7f, -1, OnSplitDecrementMany, 0);
+    m_buttons[1]->Configure("Data\\Dialogs\\popup_splititem.sti", 7, 4, 5, 8, 6, OnSplitIncrement,
+                            0, false, 0x7f, -1, OnSplitIncrementMany, 0);
+    m_buttons[2]->Configure("Data\\Dialogs\\popup_splititem.sti", -1, 3, -1, 3, -1, 0, 0, false, 0,
+                            -1, 0, 0);
     m_buttons[3]->Configure("Data\\Dialogs\\popup_splititem.sti", -1, 3, -1, 3, -1,
-                                OnCountFieldClick, 0, 0, 0x7f, -1, 0, 0);
-    m_buttons[4]->Configure("Data\\Dialogs\\popup_splititem.sti", -1, 3, -1, 3, -1, 0, 0, 0, 0,
-                                -1, 0, 0);
-    m_buttons[5]->Configure("Data\\Dialogs\\popup_splititem.sti", -1, 3, -1, 3, -1, 0, 0, 0, 0,
-                                -1, 0, 0);
-    m_buttons[6]->Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 0, 1, 4, 2,
-                                OnAccept, 0, 0, 0x7f, -1, 0, 0);
-    m_buttons[7]->Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 5, 6, 9, 7,
-                                OnCancel, 0, 0, 0x7f, -1, 0, 0);
+                            OnCountFieldClick, 0, false, 0x7f, -1, 0, 0);
+    m_buttons[4]->Configure("Data\\Dialogs\\popup_splititem.sti", -1, 3, -1, 3, -1, 0, 0, false, 0,
+                            -1, 0, 0);
+    m_buttons[5]->Configure("Data\\Dialogs\\popup_splititem.sti", -1, 3, -1, 3, -1, 0, 0, false, 0,
+                            -1, 0, 0);
+    m_buttons[6]->Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 0, 1, 4, 2, OnAccept,
+                            0, false, 0x7f, -1, 0, 0);
+    m_buttons[7]->Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 5, 6, 9, 7, OnCancel,
+                            0, false, 0x7f, -1, 0, 0);
     if (m_kind == 1 || m_kind == 2) {
-        m_buttons[8]->Configure("Data\\Dialogs\\popup_splititem.sti", -1, 3, -1, 3, -1, 0, 0, 0,
-                                    0, -1, 0, 0);
-        m_buttons[9]->Configure("Data\\Dialogs\\popup_splititem.sti", -1, 3, -1, 3, -1, 0, 0, 0,
-                                    0, -1, 0, 0);
+        m_buttons[8]->Configure("Data\\Dialogs\\popup_splititem.sti", -1, 3, -1, 3, -1, 0, 0, false,
+                                0, -1, 0, 0);
+        m_buttons[9]->Configure("Data\\Dialogs\\popup_splititem.sti", -1, 3, -1, 3, -1, 0, 0, false,
+                                0, -1, 0, 0);
     }
     m_buttons[0]->m_fires_on_press = 1;
     m_buttons[1]->m_fires_on_press = 1;
@@ -277,7 +277,7 @@ unsigned char W8SplitItemDialog::CreateTextBuffers()
         }
         m_texts[0]->SetText(header, g_wiz_text_font_secondary);
     }
-    m_texts[3]->SetText(FormatItemDisplayName(m_item, 0), g_wiz_text_font_secondary);
+    m_texts[3]->SetText(FormatItemDisplayName(m_item, false), g_wiz_text_font_secondary);
     m_texts[5]->SetText(
         FormatWideString(
             L"%s (%s)", gppStringList[g_equip_class_name_ids[GetItemEquipClass(m_item)]],
@@ -363,7 +363,7 @@ void W8SplitItemDialog::Draw()
         }
     }
     if (m_count_input != 0) {
-        m_count_input->Draw(0);
+        m_count_input->Draw(false);
     }
 }
 
@@ -427,17 +427,17 @@ void W8SplitItemDialog::UpdateCostLabels()
 void W8SplitItemDialog::UpdateArrowStates()
 {
     if (split_count == 0) {
-        m_buttons[0]->SetEnabled(0);
+        m_buttons[0]->SetEnabled(false);
         m_buttons[0]->m_dirty = true;
     } else if (!m_buttons[0]->IsEnabled()) {
-        m_buttons[0]->SetEnabled(1);
+        m_buttons[0]->SetEnabled(true);
         m_buttons[0]->m_dirty = true;
     }
     if (m_remaining == 0) {
-        m_buttons[1]->SetEnabled(0);
+        m_buttons[1]->SetEnabled(false);
         m_buttons[1]->m_dirty = true;
     } else if (!m_buttons[1]->IsEnabled()) {
-        m_buttons[1]->SetEnabled(1);
+        m_buttons[1]->SetEnabled(true);
         m_buttons[1]->m_dirty = true;
     }
 }
@@ -466,9 +466,9 @@ void W8SplitItemDialog::UpdateAcceptButton()
         break;
     }
     if (can_accept) {
-        m_buttons[6]->SetEnabled(1);
+        m_buttons[6]->SetEnabled(true);
     } else {
-        m_buttons[6]->SetEnabled(0);
+        m_buttons[6]->SetEnabled(false);
     }
 }
 
@@ -560,7 +560,7 @@ unsigned char W8SplitItemDialog::ProcessInput()
             break;
         case LEFT_BUTTON_UP:
             if (m_active_input != 0) {
-                m_active_input->SetActive(0);
+                m_active_input->SetActive(false);
             }
             MSYS_SGP_Mouse_Handler_Hook(LEFT_BUTTON_UP, mouse.x, mouse.y, gfLeftButtonState,
                                         gfRightButtonState);
@@ -689,6 +689,6 @@ void W8SplitItemDialog::OnCountFieldClick(W8DialogButton* button)
     }
     point.x -= g_split_count_field_bounds.left;
     point.y -= g_split_count_field_bounds.top;
-    dialog->m_count_input->SetActive(1, &point);
+    dialog->m_count_input->SetActive(true, &point);
     dialog->m_active_input = dialog->m_count_input;
 }

@@ -42,7 +42,7 @@ W8GrObject::W8GrObject(const W8GrObject& other)
             W8SoundEvent* pse = *other.m_plsSoundEvents->GetAt(index);
 
             m_plsSoundEvents->Add(CreateSoundEvent(pse->kind, pse->cycle, pse->frame, pse->subcycle,
-                                                   pse->m_pacWaveName, 0));
+                                                   pse->m_pacWaveName, false));
         }
     } else {
         m_plsSoundEvents = 0;

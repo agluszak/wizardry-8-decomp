@@ -100,7 +100,7 @@ stGroundShadow::stGroundShadow(srNode* parent)
 
     if (g_ground_shadow_texture == 0) {
         g_ground_shadow_texture =
-            LoadTextureFromFolder("Data\\Monsters\\Bitmaps\\", "Shadow.tga", 1);
+            LoadTextureFromFolder("Data\\Monsters\\Bitmaps\\", "Shadow.tga", true);
         g_ground_shadow_texture->addReference();
         g_ground_shadow_texture->setMipmap(srTextureIFace::MIPMAP_NONE);
         g_ground_shadow_texture->setWrapS(srTextureIFace::WRAP_CLAMP);

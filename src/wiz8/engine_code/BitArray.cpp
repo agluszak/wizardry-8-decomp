@@ -157,10 +157,10 @@ unsigned char BitArray::Load(int handle)
     }
 
     set_count = 0;
-    if (NextSetBit(1) != 0) {
+    if (NextSetBit(true) != 0) {
         do {
             ++set_count;
-        } while (NextSetBit(0) != 0);
+        } while (NextSetBit(false) != 0);
     }
     return 1;
 }
@@ -377,10 +377,10 @@ void BitArray::SetToComplementOf(BitArray& other)
 int BitArray::CountSetBits()
 {
     set_count = 0;
-    int bit = NextSetBit(1);
+    int bit = NextSetBit(true);
     while (bit != 0) {
         ++set_count;
-        bit = NextSetBit(0);
+        bit = NextSetBit(false);
     }
     return set_count;
 }

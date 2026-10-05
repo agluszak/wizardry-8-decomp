@@ -586,9 +586,9 @@ static unsigned char PreprocessLevel(int handle, char* stem)
                     ReportBuildStatus(6, "\nInserting props and particles into regions... \n");
                     build_tree->BuildParticleRegions(level->pParticleSystems,
                                                      level->nParticleSystems);
-                    build_tree->BuildGeometryRegions(level->pProps, level->nProps, 0, 0);
+                    build_tree->BuildGeometryRegions(level->pProps, level->nProps, 0, false);
                     build_tree->BuildGeometryRegions(level->pBitmaps, level->nBitmaps,
-                                                     level->nProps, 1);
+                                                     level->nProps, true);
                     build_tree->spatial.m_root->RearrangeNodePolys(
                         0, build_tree->spatial.m_depth);
                     /* Both of these walk their count unsigned - the retail
@@ -2132,9 +2132,9 @@ unsigned char LoadMaterial(const char* bitmap_folder, const W8MaterialRecord* so
         strcat(texture_file, extension);
 
         if (strlen(texture_path) > 3 && _strnicmp(extension, ".IFL", 4) == 0) {
-            *texture = LoadAnimatedTexture(texture_folder, texture_file, source, 1);
+            *texture = LoadAnimatedTexture(texture_folder, texture_file, source, true);
         } else {
-            *texture = LoadTextureFromFolder(texture_folder, texture_file, 1);
+            *texture = LoadTextureFromFolder(texture_folder, texture_file, true);
         }
         if (*texture == 0) {
             return 0;

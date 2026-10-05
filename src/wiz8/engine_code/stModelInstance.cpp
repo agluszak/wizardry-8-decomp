@@ -587,10 +587,9 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
 
         srVector3T<float>* poly_normals;
         if ((model->flags & W8_MESH_HAS_FRAME_STORAGE) != 0) {
-            mesh.positions =
-                model->GetVertexLocations(frame_index, 1, frame_interpolation);
-            mesh.normals = model->GetVertexNormals(frame_index, 1);
-            poly_normals = model->GetPolygonNormals(frame_index, 1);
+            mesh.positions = model->GetVertexLocations(frame_index, true, frame_interpolation);
+            mesh.normals = model->GetVertexNormals(frame_index, true);
+            poly_normals = model->GetPolygonNormals(frame_index, true);
         } else {
             poly_normals = 0;
         }
@@ -612,10 +611,10 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
             if (damage_stage >= 0) {
                 mesh.poly_textures[0][0] =
                     model->GetTextureTable(damage_stage_tables.data[damage_stage]);
-                active = model->GetActivePolygons(
-                    &active_count, damage_stage_tables.data[damage_stage], 1);
+                active = model->GetActivePolygons(&active_count,
+                                                  damage_stage_tables.data[damage_stage], true);
             } else {
-                active = model->GetActivePolygons(&active_count, -1, 1);
+                active = model->GetActivePolygons(&active_count, -1, true);
             }
             if (active != 0) {
                 mesh.active_polygons = active;
@@ -694,9 +693,9 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
                     const srVector3T<float>* poly_normals = 0;
                     if ((model->flags & W8_MESH_HAS_FRAME_STORAGE) != 0) {
                         mesh.dig[0] =
-                            model->GetVertexLocations(frame_index, 1, frame_interpolation);
-                        mesh.dig[1] = model->GetVertexNormals(frame_index, 1);
-                        poly_normals = model->GetPolygonNormals(frame_index, 1);
+                            model->GetVertexLocations(frame_index, true, frame_interpolation);
+                        mesh.dig[1] = model->GetVertexNormals(frame_index, true);
+                        poly_normals = model->GetPolygonNormals(frame_index, true);
                     }
                     srPtr<srTextureIFace>*(*poly_textures)[2] = mesh.poly_textures;
                     if (poly_textures != 0 && mesh.active_polygons == 0) {
@@ -704,9 +703,9 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
                         unsigned long* active;
                         if (damage_stage >= 0) {
                             active = model->GetActivePolygons(
-                                &active_count, damage_stage_tables.data[damage_stage], 1);
+                                &active_count, damage_stage_tables.data[damage_stage], true);
                         } else {
-                            active = model->GetActivePolygons(&active_count, -1, 1);
+                            active = model->GetActivePolygons(&active_count, -1, true);
                         }
                         if (active != 0) {
                             mesh.active_polygons = active;

@@ -158,7 +158,7 @@ void W8AmbientSound::UpdatePosition(const srVector3T<float>* listener)
         }
         if (in_range == 0) {
             in_range = 1;
-            Service(1);
+            Service(true);
         }
         if (shared == 0) {
             if (sound_handle != -1) {
@@ -430,7 +430,7 @@ void UpdateAmbientSounds(W8World* world)
         for (index = 0; index < count; ++index) {
             W8AmbientSound* sound = GetWorldAmbientSound(world, index);
             if (sound != 0) {
-                sound->Service(0);
+                sound->Service(false);
                 sound->UpdateFade();
             }
         }

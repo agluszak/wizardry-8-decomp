@@ -479,7 +479,7 @@ void EndNpcDialogueSession(bool);
 inline void CloseNpcDialogueIfActive(void)
 {
     if (gXStatus.fNpcDialogueMode) {
-        EndNpcDialogueSession(0);
+        EndNpcDialogueSession(false);
     }
 }
 /* Whether an open NPC dialogue transcript covers the party slot's portrait:

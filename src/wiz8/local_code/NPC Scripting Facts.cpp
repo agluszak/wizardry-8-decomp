@@ -78,7 +78,7 @@ static void ClearPotionExplosionSoundFlag(void*)
 // FUNCTION: WIZ8 0x005092d0
 static void ReplayEarthquakeShake(void)
 {
-    CreateCameraShakeEffect(3.0f, 0, 1.0f, 0, 0);
+    CreateCameraShakeEffect(3.0f, false, 1.0f, 0, 0);
     BeginEndgameSequence();
 }
 
@@ -136,7 +136,7 @@ void HandleFactChange(W8FactId fact_id, unsigned char value)
         if (value == 0) {
             return;
         }
-        if (NpcLeadHasNameStyle(7)) {
+        if (NpcLeadHasNameStyle(W8_NPC_MYLES)) {
             return;
         }
         npc = GetNpcStateByKind(7);
@@ -164,11 +164,11 @@ void HandleFactChange(W8FactId fact_id, unsigned char value)
         return;
     case W8_FACT_CROCK_KIDNAPPED_PLAYER:
         if (value != 0 && FindEntityByName("NP_BlueFlowers", &position, 0, 0)) {
-            world_item = SpawnItem(0x2eb, &position, 3, 1);
+            world_item = SpawnItem(0x2eb, &position, 3, true);
             if (world_item != 0) {
                 ActivateItem(world_item);
             }
-            world_item = SpawnItem(0x2eb, &position, 3, 1);
+            world_item = SpawnItem(0x2eb, &position, 3, true);
             if (world_item != 0) {
                 ActivateItem(world_item);
             }
@@ -177,13 +177,13 @@ void HandleFactChange(W8FactId fact_id, unsigned char value)
     case W8_FACT_CROCK_BREKEK_ASSIGN:
         fact_value = GetFact(W8_FACT_CROCK_BREKEK_DEAD);
         if (fact_value == 0 && FindEntityByName("Brekek", &position, 0, 0)) {
-            SpawnMonsters(0x131, 1, &position, 1, 1, 1, 0);
+            SpawnMonsters(0x131, 1, &position, 1, true, true, false);
         }
         return;
     case W8_FACT_CROCK_PLAYER_RETURNED_TO_PARTY:
         if (value != 0 &&
             g_status.buffers.Char[g_status.party_slot].uiCondition[W8_CONDITION_MISSING] != 0) {
-            RemoveCharacterCondition(g_status.party_slot, W8_CONDITION_MISSING, 1);
+            RemoveCharacterCondition(g_status.party_slot, W8_CONDITION_MISSING, true);
         }
         return;
     case W8_FACT_ALIGNMENT_TRANG:
@@ -201,7 +201,7 @@ void HandleFactChange(W8FactId fact_id, unsigned char value)
                 ReloadNpcScriptResources(npc);
                 if (!npc->is_grouped) {
                     CancelNpcDialogue();
-                    QueueNpcScriptLine(0, 0, 0, 0);
+                    QueueNpcScriptLine(0, false, false, false);
                     return;
                 }
                 character = GetNpcGroupCharacter(npc);
@@ -299,7 +299,7 @@ void HandleFactChange(W8FactId fact_id, unsigned char value)
         return;
     case W8_FACT_MOOK_MOOK_PC_SWAP_COMPLETE:
         if (value != 0) {
-            SetFact(W8_FACT_QUEST_MOOK_BUDDY_TELLS_OF_CM, 1, 0);
+            SetFact(W8_FACT_QUEST_MOOK_BUDDY_TELLS_OF_CM, 1, false);
         }
         return;
     case W8_FACT_MOOK_MOOK_PC_REMOVED:
@@ -326,7 +326,7 @@ void HandleFactChange(W8FactId fact_id, unsigned char value)
     case W8_FACT_ARNIKA_MYLES_TROOPERS_HOSTILE:
         group = FindFirstMonsterByID(0x13);
         if (group != 0) {
-            SetMonsterGroupHostility(group, 1, 0);
+            SetMonsterGroupHostility(group, 1, false);
         }
         return;
     case W8_FACT_ARNIKA_SAFETY_DEPOSIT_OPEN:
@@ -370,9 +370,9 @@ void HandleFactChange(W8FactId fact_id, unsigned char value)
         }
         fact_value = GetFact(W8_FACT_MYLES_IN_PARTY);
         if (fact_value != 0) {
-            SetFact(W8_FACT_MYLES_IN_PARTY_WHEN_BANK_DONE, 1, 0);
+            SetFact(W8_FACT_MYLES_IN_PARTY_WHEN_BANK_DONE, 1, false);
         }
-        SetFact(W8_FACT_QUEST_MYLES_BANK_VAULT, 0, 0);
+        SetFact(W8_FACT_QUEST_MYLES_BANK_VAULT, 0, false);
         return;
     case W8_FACT_MYLES_MISSION_RESCUE_VI_ASSIGNED:
         npc = GetNpcStateByKind(7);
@@ -383,7 +383,7 @@ void HandleFactChange(W8FactId fact_id, unsigned char value)
         if (monster_info == 0) {
             return;
         }
-        monster_info->p3D->SetScript("Guard.msf", 1);
+        monster_info->p3D->SetScript("Guard.msf", true);
         return;
     case W8_FACT_MURAL_OPEN:
         if (value != 0) {
@@ -454,7 +454,7 @@ void HandleFactChange(W8FactId fact_id, unsigned char value)
             return;
         }
         MarkNpcOfKind(0x3b);
-        SetFactionFlag(0x10, 1);
+        SetFactionFlag(0x10, true);
         return;
     case W8_FACT_RATTKIN_HAVE_AD:
         if (value == 0) {
@@ -530,7 +530,7 @@ void HandleFactChange(W8FactId fact_id, unsigned char value)
         if (value == 0) {
             return;
         }
-        SetFact(W8_FACT_QUEST_MADRAS_OPEXTERM, 1, 0);
+        SetFact(W8_FACT_QUEST_MADRAS_OPEXTERM, 1, false);
         return;
     case W8_FACT_TRYNNIE_KILL_RATS_ASSIGNED:
         QueueNpcMessageLine(W8_NPC_MSG_MOVE_GARI, 0);
@@ -803,7 +803,7 @@ void HandleFactChange(W8FactId fact_id, unsigned char value)
             return;
         }
         MarkNpcOfKind(0x18);
-        EndNpcDialogueSession(0);
+        EndNpcDialogueSession(false);
         return;
     case W8_FACT_FUZZFAS_BOOM1:
     case W8_FACT_FUZZFAS_BOOM2:
@@ -818,7 +818,7 @@ void HandleFactChange(W8FactId fact_id, unsigned char value)
             particle->start_frame = 0;
             particle->emission_count = 0;
             particle->SetActive(1);
-            particle->SetTraversalEnabled(1);
+            particle->SetTraversalEnabled(true);
         }
         npc = GetNpcStateByKind(0x49);
         if (npc == 0) {
@@ -884,15 +884,15 @@ void HandleFactChange(W8FactId fact_id, unsigned char value)
         g_status.vi_event_stage = 1;
         group = FindFirstMonsterByID(0x234);
         if (group != 0) {
-            SetMonsterGroupHostility(group, 2, 0);
+            SetMonsterGroupHostility(group, 2, false);
         }
         group = FindFirstMonsterByID(0x1b4);
         if (group != 0) {
-            SetMonsterGroupHostility(group, 1, 0);
+            SetMonsterGroupHostility(group, 1, false);
         }
         group = FindFirstMonsterByID(0x1b9);
         if (group != 0) {
-            SetMonsterGroupHostility(group, 1, 0);
+            SetMonsterGroupHostility(group, 1, false);
         }
         GetNpcStateByKind(0x89);
         return;
@@ -910,16 +910,16 @@ void HandleFactChange(W8FactId fact_id, unsigned char value)
         QueueNpcMessageLine(W8_NPC_MSG_BEGIN_ENDGAME, 0);
         return;
     case W8_FACT_ENDGAME_QUE_CONGRAT_FOUR:
-        EndNpcDialogueSession(0);
+        EndNpcDialogueSession(false);
         ResetLevelDataVectors();
         group = FindFirstMonsterByID(0xc2);
         if (group != 0) {
             monster_info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
-                0x4b4, NPC_SCRIPTING_FACTS_CPP, group->leader_location_id, 1));
-            monster_info->p3D->SetScript("MoveSavantBoffo.msf", 1);
+                0x4b4, NPC_SCRIPTING_FACTS_CPP, group->leader_location_id, true));
+            monster_info->p3D->SetScript("MoveSavantBoffo.msf", true);
         }
         SoundPlayStreamedFile("Data\\Sound\\Misc\\Earthquake End.wav", 0);
-        shake = CreateCameraShakeEffect(6.0f, 0, 1.0f, 0, 0);
+        shake = CreateCameraShakeEffect(6.0f, false, 1.0f, 0, 0);
         shake->flags |= 0x20;
         shake->completion_callback = ReplayEarthquakeShake;
         return;
@@ -940,7 +940,7 @@ void HandleScriptedNpcDeath(unsigned int monster_list_index)
         W8NpcState* npc = GetNpcStateByKind(record->npc_kind);
         if (npc != 0) {
             npc->spawned = 1;
-            if (npc->name_style == 0x18) {
+            if (npc->name_style == W8_NPC_VI_DOMINA) {
                 wchar_t display_value[16];
                 unsigned char fact_ok = GetFact(W8_FACT_VI_RESCUED);
                 if (fact_ok == 0) {
@@ -956,7 +956,7 @@ void HandleScriptedNpcDeath(unsigned int monster_list_index)
         return;
     }
     int lead_index = -1;
-    if (NpcLeadHasNameStyle(0x18)) {
+    if (NpcLeadHasNameStyle(W8_NPC_VI_DOMINA)) {
         W8NpcState* lead = GetNpcStateByKind(W8_NPC_VI_DOMINA);
         if (lead != 0) {
             lead_index = lead->group_index;
@@ -1027,11 +1027,11 @@ void MonsterKilled(int record_id, int killer_party_slot)
     unsigned char value;
 
     if (record_id == 0x131) {
-        SetFact(W8_FACT_CROCK_BREKEK_DEAD, 1, 0);
+        SetFact(W8_FACT_CROCK_BREKEK_DEAD, 1, false);
         return;
     }
     if (record_id == 0x1a9) {
-        SetFact(W8_FACT_QUEEN_IS_DEAD, 1, 0);
+        SetFact(W8_FACT_QUEEN_IS_DEAD, 1, false);
         ApplyFactionChange(2, 1, 0x10, 0x14);
         return;
     }
@@ -1041,33 +1041,33 @@ void MonsterKilled(int record_id, int killer_party_slot)
             return;
         }
         SetTriggerVariableByName("NumberRattkinBreedersKilled", 2);
-        SetFact(W8_FACT_TRYNNIE_KILL_RATS_DONE, 1, 0);
+        SetFact(W8_FACT_TRYNNIE_KILL_RATS_DONE, 1, false);
         SetFactionDispositionBand(7, 0);
     } else {
         if (record_id == 0x22b) {
             value = GetFact(W8_FACT_ALSEDEXUS_ATTACK);
             if (value != 0) {
-                SetFact(W8_FACT_QUEST_KILL_ALSEDEXUS, 0, 0);
+                SetFact(W8_FACT_QUEST_KILL_ALSEDEXUS, 0, false);
             }
             if (g_status.rpc_active) {
                 if (g_status.buffers.Char[g_status.sedexus_party_slot]
                         .uiCondition[W8_CONDITION_INFATUATED] > 0) {
                     RemoveCharacterCondition(g_status.sedexus_party_slot, W8_CONDITION_INFATUATED,
-                                             0);
+                                             false);
                 }
                 QueueCharacterEvent(&g_status.buffers.Char[g_status.sedexus_party_slot],
                                     g_effect37, 0, g_character_event_no_flags,
                                     g_character_event_full_volume);
             }
-            SetFact(W8_FACT_RAPAX_ALSEDEXUS_DEAD, 1, 0);
+            SetFact(W8_FACT_RAPAX_ALSEDEXUS_DEAD, 1, false);
             return;
         }
         if (record_id == 0x181) {
-            SetFact(W8_FACT_KING_IS_DEAD, 1, 0);
+            SetFact(W8_FACT_KING_IS_DEAD, 1, false);
             return;
         }
         if (record_id == 0x175 || record_id == 0x222) {
-            SetFact(W8_FACT_LAVALORD_DIE, 1, 0);
+            SetFact(W8_FACT_LAVALORD_DIE, 1, false);
             return;
         }
     }
@@ -1160,33 +1160,33 @@ void InitializeFactState(void)
 {
     /* Retail memsets 1000 of the 1001 bytes - index 1000 stays BSS-zeroed. */
     memset(g_fact_values, 0, 1000);
-    SetFactNotificationsSuppressed(1);
+    SetFactNotificationsSuppressed(true);
     if (g_status.skip_loose_character_check) {
-        SetFact(W8_FACT_IMPORT, 1, 0);
+        SetFact(W8_FACT_IMPORT, 1, false);
         switch (g_wiz7_ending) {
         case 1:
-            SetFact(W8_FACT_IMPORT_UMPANI, 1, 0);
+            SetFact(W8_FACT_IMPORT_UMPANI, 1, false);
             break;
         case 2:
-            SetFact(W8_FACT_IMPORT_TRANG, 1, 0);
+            SetFact(W8_FACT_IMPORT_TRANG, 1, false);
             break;
         default:
-            SetFact(W8_FACT_IMPORT_NOALIGN, 1, 0);
+            SetFact(W8_FACT_IMPORT_NOALIGN, 1, false);
             break;
         }
         if (g_import_flags[0xb]) {
-            SetFact(W8_FACT_BARLONE_WAS_DEAD, 1, 0);
+            SetFact(W8_FACT_BARLONE_WAS_DEAD, 1, false);
         }
         if (g_import_flags[5]) {
-            SetFact(W8_FACT_RODAN_WAS_DEAD, 1, 0);
-            SetFactNotificationsSuppressed(0);
+            SetFact(W8_FACT_RODAN_WAS_DEAD, 1, false);
+            SetFactNotificationsSuppressed(false);
             return;
         }
     } else {
-        SetFact(W8_FACT_VIRGIN, 1, 0);
-        SetFact(W8_FACT_QUEST_VIRGIN_1, 1, 0);
-        SetFact(W8_FACT_QUEST_VIRGIN_2, 1, 0);
-        SetFact(W8_FACT_QUEST_VIRGIN_3, 1, 0);
+        SetFact(W8_FACT_VIRGIN, 1, false);
+        SetFact(W8_FACT_QUEST_VIRGIN_1, 1, false);
+        SetFact(W8_FACT_QUEST_VIRGIN_2, 1, false);
+        SetFact(W8_FACT_QUEST_VIRGIN_3, 1, false);
     }
-    SetFactNotificationsSuppressed(0);
+    SetFactNotificationsSuppressed(false);
 }

@@ -177,14 +177,14 @@ void W8CharacterScreen::BuildControls()
     m_reset->EnableRegionHelp(0xe1);
     m_reset->m_listener = this;
 
-    m_controls->SetEnabled(1);
-    m_controls->EnableRegionSet(1);
+    m_controls->SetEnabled(true);
+    m_controls->EnableRegionSet(true);
     m_controls->Invalidate(0);
-    m_reset->SetActive(0);
+    m_reset->SetActive(false);
     if (m_mode == 1 && g_status.game_started && CharacterPointerToPartySlot(m_original) > 1) {
-        m_reset->SetActive(1);
+        m_reset->SetActive(true);
         if (gXStatus.fCombatMode) {
-            m_reset->SetEnabled(0);
+            m_reset->SetEnabled(false);
         }
     }
 
@@ -239,11 +239,11 @@ void W8CharacterScreen::UpdateNavigation(W8CharacterPage* page)
     }
     if (m_next->m_enabled != next_enabled) {
         m_next->SetEnabled(next_enabled);
-        m_next->Invalidate(0);
+        m_next->Invalidate(false);
     }
     if (m_exit->m_enabled != exit_enabled) {
         m_exit->SetEnabled(exit_enabled);
-        m_exit->Invalidate(0);
+        m_exit->Invalidate(false);
     }
 }
 
@@ -297,9 +297,9 @@ void W8CharacterScreen::ShowSkillInfo(W8Skill value)
 {
     m_dialog_response = 0;
     if (value == g_profession_bonus_skills[m_character.iProfession]) {
-        m_dialog = new W8SkillInfoDialog(value, 0, 0, 1);
+        m_dialog = new W8SkillInfoDialog(value, false, false, true);
     } else {
-        m_dialog = new W8SkillInfoDialog(value, 0, 0, 0);
+        m_dialog = new W8SkillInfoDialog(value, false, false, false);
     }
     m_dialog->SetText(&g_empty_wide_string);
     ActivateDialogRegion(0x138);
@@ -325,14 +325,14 @@ void W8CharacterScreen::OnPrimary(W8TextControl* control)
             SelectPage(index);
         }
     } else if (control == m_next) {
-        AdvancePage(0);
+        AdvancePage(false);
     } else if (control == m_reset) {
         memset(m_page_enabled, 1, sizeof(m_page_enabled));
         m_force_transition = 1;
         InitializeCharacterCreation(&m_character, &m_creation_state);
         m_mode = 0;
         m_pages[3]->m_mode = 0;
-        m_reset->SetActive(0);
+        m_reset->SetActive(false);
         SelectPage(0);
     }
 }
@@ -421,7 +421,7 @@ void W8CharacterScreen::AdvancePage(bool forward)
 void W8CharacterScreen::SelectPage(int index)
 {
     if (m_page_index >= 0) {
-        m_pages[m_page_index]->SetEnabled(0);
+        m_pages[m_page_index]->SetEnabled(false);
         m_pages[m_page_index]->Deactivate();
     }
     SyncCharacterForPage(index);
@@ -448,7 +448,7 @@ void W8CharacterScreen::SelectPage(int index)
     m_page_index = index;
     W8CharacterPage* page = m_pages[index];
     page->Activate();
-    page->SetEnabled(1);
+    page->SetEnabled(true);
 
     int previous = index - 1;
     while (previous >= 0 && !m_page_enabled[previous])
@@ -504,7 +504,7 @@ void W8CharacterScreen::DrawHeader()
     W8TextBuffer text;
     DrawCatalogImageAndInvalidate(-14, 0x107, 0, 0, 0xc3, 0, 2, 0);
     W8ControlsRect bounds = {0xc3, 0, 0x285, 0x2c};
-    text.SetLayoutBounds(&bounds, 1, 1);
+    text.SetLayoutBounds(&bounds, true, true);
     text.SetText(gppStringList[g_character_page_title_ids[m_page_index]],
                  g_options_detail_font);
     text.RenderToTarget(0, 1, -14);
@@ -527,12 +527,12 @@ void W8CharacterScreen::DrawHeader()
         bounds.bottom = 0xdf;
         text.SetLayoutMode(g_W8TextBufferAlignTop | g_W8TextBufferAlignCenter);
         if (m_mode != 0) {
-            text.SetLayoutBounds(&bounds, 1, 1);
+            text.SetLayoutBounds(&bounds, true, true);
             text.SetText(m_character.name, g_wiz_text_font_secondary);
             text.RenderToTarget(0, 1, -14);
         }
         bounds.top += 0xe;
-        text.SetLayoutBounds(&bounds, 1, 1);
+        text.SetLayoutBounds(&bounds, true, true);
         text.SetText(
             FormatWideString(L"%s %s",
                              gppStringList[g_gender_name_message_rows[m_character.gender][0]],
@@ -540,12 +540,12 @@ void W8CharacterScreen::DrawHeader()
             g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
         bounds.top += 0xe;
-        text.SetLayoutBounds(&bounds, 1, 1);
+        text.SetLayoutBounds(&bounds, true, true);
         text.SetText(gppStringList[g_profession_name_message_ids[m_character.iProfession]],
                      g_wiz_text_font_secondary);
         text.RenderToTarget(0, 1, -14);
         bounds.top += 0xe;
-        text.SetLayoutBounds(&bounds, 1, 1);
+        text.SetLayoutBounds(&bounds, true, true);
         text.SetText(
             FormatWideString(
                 L"%s %d (%s)", gppStringList[0x6b9], m_character.uiExpLevel,
@@ -576,7 +576,7 @@ bool W8CharacterScreen::CommitCharacter()
             DeleteFileA(path);
         }
         m_character.fInParty = false;
-        if (!SaveCharacter(&m_character, -1, 0, 0)) {
+        if (!SaveCharacter(&m_character, -1, false, 0)) {
             memcpy(&m_character, &backup, sizeof(m_character));
             ShowMessage(gppStringList[0xd4], 0, 0);
             return false;
@@ -628,8 +628,8 @@ void W8CharacterScreen::ShowMessage(wchar_t* text, int confirmation, int respons
         m_dialog->SetOrigin(0xa0, 100);
         m_dialog->SetBackground("Data\\Dialogs\\DialogBackground.sti", 0);
         static_cast<W8MessageDialogBase*>(m_dialog)->SetClientExtent(0xfa, 200);
-        static_cast<W8MessageDialogBase*>(m_dialog)
-            ->SetMessage(text, 1, 0x32, 1, confirmation, 1, 1, 0, 0x15e);
+        static_cast<W8MessageDialogBase*>(m_dialog)->SetMessage(text, 1, 0x32, 1, confirmation,
+                                                                true, true, 0, 0x15e);
         ActivateDialogRegion(0x138);
         m_capture_dialog_result = 1;
     }
@@ -645,11 +645,11 @@ void W8CharacterScreen::HandleDialogResult(int response, unsigned char accepted)
             break;
         case 3:
             m_block_advance = 1;
-            AdvancePage(0);
+            AdvancePage(false);
             break;
         case 4:
             m_confirm_profession = 1;
-            AdvancePage(0);
+            AdvancePage(false);
             break;
         case 5: {
             int value = ComputeStartingEquipmentCost(&m_character);
@@ -666,19 +666,19 @@ void W8CharacterScreen::HandleDialogResult(int response, unsigned char accepted)
             break;
         }
         case 6:
-            FinalizeCreatedCharacter(&m_character, &m_creation_state, 0);
-            RecruitCharacterIntoParty(m_original, &m_character, 1);
+            FinalizeCreatedCharacter(&m_character, &m_creation_state, false);
+            RecruitCharacterIntoParty(m_original, &m_character, true);
             RequestScreenTransition();
             break;
         case 7:
-            FinalizeCreatedCharacter(&m_character, &m_creation_state, 0);
-            RecruitCharacterIntoParty(m_original, &m_character, 0);
+            FinalizeCreatedCharacter(&m_character, &m_creation_state, false);
+            RecruitCharacterIntoParty(m_original, &m_character, false);
             RequestScreenTransition();
             break;
         }
     } else if (response == 6) {
-        FinalizeCreatedCharacter(&m_character, &m_creation_state, 0);
-        RecruitCharacterIntoParty(m_original, &m_character, 0);
+        FinalizeCreatedCharacter(&m_character, &m_creation_state, false);
+        RecruitCharacterIntoParty(m_original, &m_character, false);
         RequestScreenTransition();
     }
 }
@@ -730,7 +730,7 @@ unsigned char ScreenLifecycleSuccess(void)
 unsigned char CharacterScreenEnter(void)
 {
     SetViewport(0, 0, 0x280, 0x1e0);
-    SetPrimarySurfaceTextureHint2Enabled(0);
+    SetPrimarySurfaceTextureHint2Enabled(false);
     MSYS_Init();
     ResetRegions();
     UpdateHeldItemCursor();
@@ -784,7 +784,7 @@ void CharacterScreenFrame(void)
         screen->m_pages[screen->m_page_index]->HandleInput(&input);
         if (!DispatchRegionInput(&input) && input.usEvent == KEY_DOWN) {
             if (input.usParam == 0xd || input.usParam == 0x27 || input.usParam == 0x4e) {
-                screen->AdvancePage(1);
+                screen->AdvancePage(true);
             } else if (input.usParam == 0x1b) {
                 if (screen->m_mode == 1 && !screen->m_exit->m_enabled) {
                     RequestScreenTransition();

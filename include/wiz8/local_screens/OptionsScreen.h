@@ -172,7 +172,7 @@ public:
     virtual ~W8OptionsPanel();
     virtual void Redraw() override;
     virtual void Populate() = 0;
-    virtual void SetActive(unsigned char active);
+    virtual void SetActive(bool active);
     virtual void SetCurrent(int current);
     W8OptionsCheckbox* AddCheckbox(int label, int* value);
     W8TextControl* AddChoiceButton(int label);
@@ -292,7 +292,7 @@ public:
     explicit W8OptionsKeyboardPanel(int panel);
     virtual void Populate() override;
     virtual void Invalidate(const W8ControlsRect* bounds) override;
-    virtual void SetActive(unsigned char active) override;
+    virtual void SetActive(bool active) override;
     virtual void OnPrimary(W8TextControl* control) override;
     virtual void OnSelectionChanged(W8ControlSelection* selection, int selected) override;
     virtual unsigned char OnKey(unsigned short key, unsigned short modifiers) override;
@@ -327,7 +327,7 @@ class W8OptionsSaveLoadPanel : public W8OptionsPanel,
 public:
     explicit W8OptionsSaveLoadPanel(int panel);
     virtual void Populate() override;
-    virtual void SetActive(unsigned char active) override;
+    virtual void SetActive(bool active) override;
     virtual void SetCurrent(int current) override;
     virtual void OnPrimary(W8TextControl* control) override;
     virtual void OnDialogClosed(unsigned char reason, int value) override;
@@ -395,7 +395,7 @@ class W8OptionsMenuButton : public W8TextControl, public W8TextControl::Listener
 public:
     W8OptionsMenuButton(Controls* owner, const W8OptionsMenuRow* row);
     virtual void Redraw(unsigned char full_redraw) override;
-    virtual void EnableSecondaryState(unsigned char immediate) override;
+    virtual void EnableSecondaryState(bool immediate) override;
     virtual void OnPrimary(W8TextControl* control) override;
 
     int m_item_id;

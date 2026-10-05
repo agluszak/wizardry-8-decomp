@@ -210,7 +210,7 @@ GDCamera::GDCamera()
     m_angle_distance = 0.0f;
     m_pitch_distance = 0.0f;
     m_transition_duration = 0.0f;
-    m_manual_input_timer = new W8IntervalGate(1.0f, 0, 1);
+    m_manual_input_timer = new W8IntervalGate(1.0f, false, true);
 
     m_rotation = *second_matrix;
     m_rotation.MultiplyBy(m_pitch_rotation);
@@ -426,7 +426,7 @@ unsigned char GDCamera::LookAt(const srVector3T<float>* target, bool preserve_pi
     if (x < g_float_zero) {
         angle = g_camera_angle_period - angle;
     }
-    return BeginOrientationTransition(pitch, angle, 0);
+    return BeginOrientationTransition(pitch, angle, false);
 }
 
 // FUNCTION: WIZ8 0x00477180
@@ -887,7 +887,7 @@ void GDCamera::GetRotationMatrix(srMatrix3T<float>* output)
 void GDCamera::BeginLeveling()
 {
     m_state |= 0x20;
-    BeginOrientationTransition(0.0f, m_yaw, 0);
+    BeginOrientationTransition(0.0f, m_yaw, false);
 }
 
 // FUNCTION: WIZ8 0x00478CE0

@@ -313,20 +313,20 @@ void ResetForNewGame(void)
     unsigned int* id;
     unsigned int index;
 
-    ResetGameStatus(1);
+    ResetGameStatus(true);
     ReleaseMessageStorage();
-    EmptyItemRecord(&g_status.item_in_hand, 0, 1);
+    EmptyItemRecord(&g_status.item_in_hand, 0, true);
     slot = g_status.party_item_pool;
     do {
-        EmptyItemRecord(slot, 0, 1);
+        EmptyItemRecord(slot, 0, true);
         ++slot;
     } while (slot < g_status.party_item_pool + 500);
     id = g_starting_item_ids;
     do {
         if (*id != 0xffffffff) {
-            ReplaceOrCreateItem(&item, *id, 1, 1, 1);
+            ReplaceOrCreateItem(&item, *id, true, true, true);
             item.stack_count = 1;
-            AddItemToParty(&item, 0, 0);
+            AddItemToParty(&item, 0, false);
         }
         ++id;
     } while (id < g_starting_item_ids + 6);

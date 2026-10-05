@@ -920,7 +920,7 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
         if (psrMesh == 0) {
             srAssertFail("psrMesh", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x40f, 0);
         }
-        SetAniMeshCacheProtected(pRep->GetEmitterAniMesh(pRep->current_cycle), 1);
+        SetAniMeshCacheProtected(pRep->GetEmitterAniMesh(pRep->current_cycle), true);
         psrMesh->highlight_colour = pRep->highlight_colour;
         if (pRep->apply_instance_scale) {
             if (pRep->instance_scale == g_float_one) {
@@ -1000,7 +1000,7 @@ void W8GrCycle::DetachRepresentation(W8World* world)
             }
             W8AniMesh* ani_mesh = representation->GetEmitterAniMesh(representation->current_cycle);
             if (ani_mesh != 0) {
-                SetAniMeshCacheProtected(ani_mesh, 0);
+                SetAniMeshCacheProtected(ani_mesh, false);
             }
             mesh->setFlag(srNode::FLAG_DISABLE);
             mesh->setParent(0, 1);
@@ -1010,7 +1010,7 @@ void W8GrCycle::DetachRepresentation(W8World* world)
             srAssertFail("pWorld", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x484, 0);
         }
         W8AniMesh* ani_mesh = representation->GetEmitterAniMesh(representation->current_cycle);
-        SetAniMeshCacheProtected(ani_mesh, 0);
+        SetAniMeshCacheProtected(ani_mesh, false);
         current_model_instance->setFlag(srNode::FLAG_DISABLE);
         current_model_instance->setFlag(srNode::FLAG_TERMINATE);
         current_model_instance->setParent(0, 0);
@@ -1121,7 +1121,7 @@ void W8GrCycle::UpdateParticleAttachments()
             if ((pMeshModel->flags >> 2 & 1) == 0) {
                 locations = pMeshModel->getVertexLoc();
             } else {
-                locations = pMeshModel->GetVertexLocations(pRep->subcycle, 1, 0);
+                locations = pMeshModel->GetVertexLocations(pRep->subcycle, true, 0);
             }
             if (vertex >= pMeshModel->vertex_location_count) {
                 vertex = 0;

@@ -88,7 +88,7 @@ unsigned char InitializeGame(void)
         DisableMouseFastHelp();
     }
     SetFastHelpDelay(static_cast<unsigned short>(g_settings.tooltip_delay_ms));
-    ResetGameStatus(0);
+    ResetGameStatus(false);
     InitializeGameplayRuntimeObjects();
     UpdateHeldItemCursor();
     if (!VerifyDataSubdirs()) {

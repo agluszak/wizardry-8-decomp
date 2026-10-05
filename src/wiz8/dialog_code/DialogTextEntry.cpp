@@ -29,7 +29,7 @@ W8DialogTextEntry::W8DialogTextEntry(const wchar_t* prefix, const wchar_t* text,
     m_entry_highlighted = 0;
     m_marked = 0;
     m_category = category;
-    SetLayoutBounds(bounds, 1, 1);
+    SetLayoutBounds(bounds, true, true);
     SetLayoutMode(layout_mode);
     m_shorten = shorten;
     m_prefix_length = prefix ? wcslen(prefix) + 2 : 0;

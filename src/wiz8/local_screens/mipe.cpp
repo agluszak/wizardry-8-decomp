@@ -125,7 +125,7 @@ void ToggleMipePanel(void)
             W8MonsterInfo* monster =
                 GetMonsterListEntry(monster_list_index);
             if (monster != 0 && monster->fInCombat) {
-                SetMonsterHighlight(0, monster->location_id, 0);
+                SetMonsterHighlight(0, monster->location_id, false);
             }
         }
         for (unsigned int entry_index = 0; entry_index < gXStatus.uiMonstersInDatabase;
@@ -717,9 +717,9 @@ unsigned char HandleMipeMonsterCreateKey(unsigned short key)
             LoadMonsterDatabaseRecord(monster_index, &record);
         }
         GetWorldCursorAnchor(&anchor);
-        monster_group = CreateGroup(
-            static_cast<unsigned int>(static_cast<unsigned short>(record.record_id)),
-            static_cast<unsigned int>(g_mipe_count), &anchor, 1, 1, 1);
+        monster_group =
+            CreateGroup(static_cast<unsigned int>(static_cast<unsigned short>(record.record_id)),
+                        static_cast<unsigned int>(g_mipe_count), &anchor, true, true, true);
         if (monster_group == 0) {
             g_mipe_count = 0;
             return 1;
@@ -967,9 +967,9 @@ unsigned char HandleMipeItemCreateKey(unsigned short key)
                 if (g_mipe_item_hidden) {
                     flags = 0x83;
                 }
-                spawned = SpawnItem(item_index & 0xffff, &anchor, flags, 1);
+                spawned = SpawnItem(item_index & 0xffff, &anchor, flags, true);
                 if (g_mipe_item_hidden) {
-                    SetItemFlags(spawned, 1, 1);
+                    SetItemFlags(spawned, 1, true);
                     RegisterSearchableWorldItem(spawned);
                 }
                 ++spawned_index;
@@ -1165,7 +1165,7 @@ void HandleMonsterDebugKey(unsigned short key)
     case 0x34:
         if (ILLength(&g_mipe_state->monster_ids) == 1) {
             info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
-                0x6e3, MIPE_CPP, IListGetAt(&g_mipe_state->monster_ids, 0), 1));
+                0x6e3, MIPE_CPP, IListGetAt(&g_mipe_state->monster_ids, 0), true));
             if (info == 0 || info->p3D == 0) {
                 srAssertFail("pMonsterInfo && pMonsterInfo->p3D", MIPE_CPP, 0x6e5, 0);
             }
@@ -1173,7 +1173,7 @@ void HandleMonsterDebugKey(unsigned short key)
             GetWorldCursorPosition(&position);
             MonsterGetLocation(monster, &location);
             MonsterAddPathPoint(monster, &position);
-            MonsterSetAnimating(monster, 1);
+            MonsterSetAnimating(monster, true);
             MonsterSetCycle(monster, 4);
             MonsterSetPathLooping(monster, 1);
             g_mipe_state->monster = monster;
@@ -1183,7 +1183,7 @@ void HandleMonsterDebugKey(unsigned short key)
     case 0x35:
         if (ILLength(&g_mipe_state->monster_ids) == 1) {
             info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
-                0x703, MIPE_CPP, IListGetAt(&g_mipe_state->monster_ids, 0), 1));
+                0x703, MIPE_CPP, IListGetAt(&g_mipe_state->monster_ids, 0), true));
             if (info == 0) {
                 srAssertFail("pMonsterInfo", MIPE_CPP, 0x705, 0);
             }
@@ -1489,7 +1489,7 @@ int HandleCubeMenuKey(unsigned int key)
         GetCameraForwardPointCopy(2500.0f, &position);
         position.y = SettlePositionToGroundMutable(&position, 0);
         MoveWorldCursorNode(g_mipe_cube, &position);
-        AttachWorldCursorNode(g_mipe_cube, 1);
+        AttachWorldCursorNode(g_mipe_cube, true);
         SetWorldCursorNodeColorComponents(g_mipe_cube, 0.0f, 1.0f, 0.0f);
         serial = gXStatus.mipe_cube_serial;
         ++gXStatus.mipe_cube_serial;
@@ -1725,7 +1725,7 @@ static int HandleMonsterGeneratorKey(unsigned short key)
         }
         position = anchor;
         generator->SetState(&position);
-        generator->Reload(1, 0);
+        generator->Reload(1, false);
         generator->Reset();
         sprintf(name, "MonGen%3.3d", gXStatus.saved_encounter_budget++);
         generator->SetName(name);
@@ -1736,7 +1736,7 @@ static int HandleMonsterGeneratorKey(unsigned short key)
             do {
                 other = GetMonsterGenerator(index);
                 if (other->marker_item != 0) {
-                    static_cast<W8ItemRep*>(other->marker_item->m_pRep)->SetFlags(0x10, 0);
+                    static_cast<W8ItemRep*>(other->marker_item->m_pRep)->SetFlags(0x10, false);
                     other->marker_item->SetHighlight(false);
                 }
                 ++index;
@@ -1745,7 +1745,7 @@ static int HandleMonsterGeneratorKey(unsigned short key)
         }
         g_mipe_state->generator = generator;
         if (generator->marker_item != 0) {
-            static_cast<W8ItemRep*>(generator->marker_item->m_pRep)->SetFlags(0x10, 1);
+            static_cast<W8ItemRep*>(generator->marker_item->m_pRep)->SetFlags(0x10, true);
             generator->marker_item->SetHighlight(true);
         }
         return 1;
@@ -2651,7 +2651,7 @@ unsigned char HandleMipeKey(const InputAtom* event)
             g_mipe_mode = 0xf;
             g_mipe_menu_active = 1;
             ShowMipeCubeMenu();
-            SetWorldCursorNodesVisible(1);
+            SetWorldCursorNodesVisible(true);
             return handled;
         }
         if (key != 0x58) {
@@ -2825,7 +2825,7 @@ unsigned char HandleMipeKey(const InputAtom* event)
             HideWorldCursor();
             ShowMipeCubeMenu();
             g_mipe_menu_active = 1;
-            SetWorldCursorNodesVisible(1);
+            SetWorldCursorNodesVisible(true);
             return handled;
         }
         break;
@@ -3011,15 +3011,15 @@ void UpdateMipeSelection(void)
         for (index = 0; index < GetMonsterGeneratorCount(); ++index) {
             marker = GetMonsterGenerator(index)->marker_item;
             if (marker != 0) {
-                static_cast<W8ItemRep*>(marker->m_pRep)->SetFlags(0x10, 0);
-                marker->SetHighlight(0);
+                static_cast<W8ItemRep*>(marker->m_pRep)->SetFlags(0x10, false);
+                marker->SetHighlight(false);
             }
         }
         if (picked != 0) {
             marker = picked->marker_item;
             if (marker != 0) {
-                static_cast<W8ItemRep*>(marker->m_pRep)->SetFlags(0x10, 1);
-                marker->SetHighlight(1);
+                static_cast<W8ItemRep*>(marker->m_pRep)->SetFlags(0x10, true);
+                marker->SetHighlight(true);
             }
         }
         g_mipe_state->generator = picked;
@@ -3031,7 +3031,7 @@ void UpdateMipeSelection(void)
             group_id = W8_MIPE_NO_GROUP;
         } else {
             group_id = MonsterGetScriptPartByLocationIndex(
-                           MonsterGetIndexByLocationID(0x10bb, MIPE_CPP, location_id, 1))
+                           MonsterGetIndexByLocationID(0x10bb, MIPE_CPP, location_id, true))
                            ->monster_group_id;
         }
         if (group_id == g_mipe_state->selected_group_id) {
@@ -3040,22 +3040,22 @@ void UpdateMipeSelection(void)
         for (index = 0; index < static_cast<int>(ILLength(&g_mipe_state->monster_ids)); ++index) {
             int listed = IListGetAt(&g_mipe_state->monster_ids, index);
             info = MonsterGetScriptPartByLocationIndex(
-                MonsterGetIndexByLocationID(0x10cd, MIPE_CPP, listed, 1));
+                MonsterGetIndexByLocationID(0x10cd, MIPE_CPP, listed, true));
             if (info->fActive) {
-                SetMonsterHighlight(0, listed, 0);
+                SetMonsterHighlight(0, listed, false);
             }
         }
         IListClear(&g_mipe_state->monster_ids);
         for (index = 0; index < static_cast<int>(PLLength(gXStatus.plsMonsterList)); ++index) {
             info = GetMonsterListEntry(index);
             if (info->fActive && info->monster_group_id == group_id) {
-                SetMonsterHighlight(0, info->location_id, 1);
+                SetMonsterHighlight(0, info->location_id, true);
                 IListAdd(&g_mipe_state->monster_ids, info->location_id);
             }
         }
         if (ILLength(&g_mipe_state->monster_ids) == 1) {
             info = MonsterGetScriptPartByLocationIndex(
-                MonsterGetIndexByLocationID(0x10e8, MIPE_CPP, location_id, 1));
+                MonsterGetIndexByLocationID(0x10e8, MIPE_CPP, location_id, true));
             if (info == 0) {
                 srAssertFail("pMonsterInfo", MIPE_CPP, 0x10ea, 0);
             }
@@ -3071,15 +3071,15 @@ void UpdateMipeSelection(void)
     if (ILLength(&g_mipe_state->monster_ids) != 0) {
         int old_id = IListGetAt(&g_mipe_state->monster_ids, 0);
         IListClear(&g_mipe_state->monster_ids);
-        SetMonsterHighlight(0, old_id, 0);
+        SetMonsterHighlight(0, old_id, false);
     }
     if (location_id == -1) {
         return;
     }
-    SetMonsterHighlight(0, location_id, 1);
+    SetMonsterHighlight(0, location_id, true);
     IListAdd(&g_mipe_state->monster_ids, location_id);
     info = MonsterGetScriptPartByLocationIndex(
-        MonsterGetIndexByLocationID(0x110c, MIPE_CPP, location_id, 1));
+        MonsterGetIndexByLocationID(0x110c, MIPE_CPP, location_id, true));
     if (info == 0) {
         srAssertFail("pMonsterInfo", MIPE_CPP, 0x110e, 0);
     }
@@ -3108,7 +3108,7 @@ void DragSelectionWithCursor(void)
     } else {
         for (index = 0; index < static_cast<int>(ILLength(&g_mipe_state->monster_ids)); ++index) {
             info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
-                0x114c, MIPE_CPP, IListGetAt(&g_mipe_state->monster_ids, index), 1));
+                0x114c, MIPE_CPP, IListGetAt(&g_mipe_state->monster_ids, index), true));
             MonsterGetLocalLocation(info->p3D, &position);
             moved.Set(cursor.x - g_mipe_state->drag_anchor.x + position.x,
                       cursor.y - g_mipe_state->drag_anchor.y + position.y,
@@ -3174,8 +3174,8 @@ bool MipeWorldViewEvent(int event, const POINT* point)
                 trigger->flags &= ~0x20u;
                 item = trigger->rep_item;
                 if ((trigger->flags & W8_TRIGGER_ON) != 0 && item != 0) {
-                    static_cast<W8ItemRep*>(item->m_pRep)->SetFlags(0x10, 0);
-                    item->SetHighlight(0);
+                    static_cast<W8ItemRep*>(item->m_pRep)->SetFlags(0x10, false);
+                    item->SetHighlight(false);
                 }
                 g_mipe_state->trigger = 0;
             }

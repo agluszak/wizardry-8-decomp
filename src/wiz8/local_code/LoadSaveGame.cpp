@@ -244,7 +244,7 @@ unsigned char LoadCharacter(const char* name, W8Character* character, int slot, 
     }
     if (report_failure) {
         CreateMessageBox(FormatWideString(gppStringList[W8_NOTICE_CHARACTER_LOAD_FAILED], name),
-                         g_small_font, 1, 1, 0, 0);
+                         g_small_font, 1, true, false, 0);
     }
     return 0;
 }
@@ -462,10 +462,10 @@ bool SaveGame(const char* name, W8SaveScreenshot* screenshot)
         bounds.bottom = 0x1e0;
         surface = new W8ColorSurface(srPixelConvert::SURFACE_ARGB1555, screenshot->pixels, 0x50,
                                      0x3c, 0xa0);
-        SetRendererAutoFlipEnabled(0);
-        screenshot->capture_result = RenderWorldToSurface(surface, &bounds, 1);
+        SetRendererAutoFlipEnabled(false);
+        screenshot->capture_result = RenderWorldToSurface(surface, &bounds, true);
         RenderFrame();
-        SetRendererAutoFlipEnabled(1);
+        SetRendererAutoFlipEnabled(true);
         surface->release();
     }
     chunks.OpenChunk(0x544f4853, 0); /* SHOT */
@@ -969,7 +969,7 @@ unsigned char LoadItemStatus(W8Chunk* chunk, int level)
 
                                 stream->Read(&item_count, 4, 0);
                                 for (index = 0; index < item_count; ++index) {
-                                    if (LoadItem(stream->m_hFile, 1) == 0) {
+                                    if (LoadItem(stream->m_hFile, true) == 0) {
                                         break;
                                     }
                                 }
@@ -1234,8 +1234,8 @@ unsigned char LoadMonster(W8Chunk* chunk)
         return 0;
     }
     if (record->deleted == 0) {
-        monster_group = GetMonsterGroupByListIndex(
-            GetMonsterGroupIndexByID(0x698, LOADSAVEGAME_CPP, monster_info->monster_group_id, 1));
+        monster_group = GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
+            0x698, LOADSAVEGAME_CPP, monster_info->monster_group_id, true));
         if (monster_group == 0) {
             free(monster_info);
             return 0;
@@ -1259,27 +1259,28 @@ unsigned char LoadMonster(W8Chunk* chunk)
     if (monster_info->highest_condition != W8_CONDITION_NONE) {
         for (index = 0; index < W8_CONDITION_COUNT; ++index) {
             if (monster_info->uiCondition[index] != 0) {
-                SetMonsterSpellIcon(monster, static_cast<W8MonsterSpellIconId>(index - 1), 1);
+                SetMonsterSpellIcon(monster, static_cast<W8MonsterSpellIconId>(index - 1), true);
             }
         }
     }
     for (index = 0; index < 8; ++index) {
         if (monster_info->enchantments[index].turns != 0) {
-            SetMonsterSpellIcon(monster, static_cast<W8MonsterSpellIconId>(index + 0x10), 1);
+            SetMonsterSpellIcon(monster, static_cast<W8MonsterSpellIconId>(index + 0x10), true);
         }
     }
     for (index = 0; index < 12; ++index) {
         if (monster_info->effect_slots[index].duration != 0) {
             SetMonsterSpellIcon(
                 monster,
-                g_effect_visual_table[monster_info->effect_slots[index].effect_id].monster_icon, 1);
+                g_effect_visual_table[monster_info->effect_slots[index].effect_id].monster_icon,
+                true);
         }
     }
     if (monster_info->charm_strength > 0) {
-        SetMonsterSpellIcon(monster, SPELL_ICON_CHARMED, 1);
+        SetMonsterSpellIcon(monster, SPELL_ICON_CHARMED, true);
     }
     if (monster_info->summoned != 0) {
-        SetMonsterSpellIcon(monster, SPELL_ICON_SUMMONED, 1);
+        SetMonsterSpellIcon(monster, SPELL_ICON_SUMMONED, true);
     }
     if (record_version >= 2) {
         monster->LoadMovementState(chunk->m_hFile);
@@ -1328,7 +1329,7 @@ unsigned char LoadMonster(W8Chunk* chunk)
     }
     if (script_name[0] != '\0') {
         monster_info->ai_mode |= 0x10;
-        monster->SetScript(script_name, 0);
+        monster->SetScript(script_name, false);
         monster->script_wait = script_wait;
         monster->script_line = script_line;
         while (script_conditions.GetCount() != 0) {
@@ -1337,7 +1338,7 @@ unsigned char LoadMonster(W8Chunk* chunk)
         }
     }
     if (record->deleted != 0) {
-        RemoveMonster(list_index, 1);
+        RemoveMonster(list_index, true);
     } else if (monster_info->hp_current == 0) {
         MonsterStartsDying(monster_info, 1);
     }
@@ -1579,7 +1580,7 @@ unsigned char SaveCharacter(W8Character* character, int slot, bool report_failur
     if (report_failure) {
         CreateMessageBox(
             FormatWideString(gppStringList[W8_NOTICE_CHARACTER_SAVE_FAILED], character->name),
-            g_small_font, 1, 1, 0, continuation);
+            g_small_font, 1, true, false, continuation);
         return 0;
     }
     if (continuation != 0) {
@@ -1705,10 +1706,10 @@ void CaptureSaveScreenshot(W8SaveScreenshot* screenshot)
     rect.bottom = 480;
     surface =
         new srColorSurface(srPixelConvert::SURFACE_ARGB1555, screenshot->pixels, 0x50, 0x3c, 0xa0);
-    SetRendererAutoFlipEnabled(0);
-    screenshot->capture_result = RenderWorldToSurface(surface, &rect, 1);
+    SetRendererAutoFlipEnabled(false);
+    screenshot->capture_result = RenderWorldToSurface(surface, &rect, true);
     RenderFrame();
-    SetRendererAutoFlipEnabled(1);
+    SetRendererAutoFlipEnabled(true);
     surface->release();
 }
 
@@ -1807,7 +1808,7 @@ void ReportSaveFailed(bool quiet)
     if (!quiet || g_status.iron_man != 0) {
         gXStatus.save_notice_shown = true;
         if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
-            ShowNotice(0xc, gppStringList[0x783], -1, -1, 0);
+            ShowNotice(0xc, gppStringList[0x783], -1, -1, false);
         }
     }
 }
@@ -1853,7 +1854,7 @@ void ProcessMainGameAutoSave(void)
         }
         gXStatus.save_notice_shown = true;
         if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
-            ShowNotice(0xc, gppStringList[0x783], -1, -1, 0);
+            ShowNotice(0xc, gppStringList[0x783], -1, -1, false);
         }
         gXStatus.gameplay_timer->Restart();
         return;
@@ -1876,10 +1877,10 @@ void ProcessMainGameAutoSave(void)
         return;
     }
     if (!saved) {
-        ShowNotice(0xc, gppStringList[0x785], -1, -1, 0);
+        ShowNotice(0xc, gppStringList[0x785], -1, -1, false);
         return;
     }
-    ShowNotice(0xc, gppStringList[0x784], -1, -1, 0);
+    ShowNotice(0xc, gppStringList[0x784], -1, -1, false);
 }
 
 /* Serialize the live monster-control effect into the open HYPN chunk. The
@@ -2216,7 +2217,7 @@ unsigned char LoadSavedLevelItems(int level, W8GrowableVector<W8WorldItem*>* ite
                             chunk.CurrentChunkId() == 0x4d455449) { /* ITEM */
                             chunk.Read(&item_count, 4, 0);
                             for (index = 0; index < item_count; ++index) {
-                                W8WorldItem* item = LoadItem(chunk.m_hFile, 0);
+                                W8WorldItem* item = LoadItem(chunk.m_hFile, false);
 
                                 if (item != 0) {
                                     items->Add(item);

@@ -62,13 +62,13 @@ static void ProvokeHostileEncounterOnGameThread(void* opaque)
                 pathing != 0 ? pathing->level_bounds.maximum.z : 0.0f);
         if (pathing != 0) {
             srVector3T<float> probe = party_position;
-            unsigned char snap = pathing->SnapWaypointPosition(&probe, 0);
+            unsigned char snap = pathing->SnapWaypointPosition(&probe, false);
             fprintf(stderr, "runtime-test pathing: party snap=%d y=%f\n", snap, probe.y);
             for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
                 W8MonsterInfo* mi = MonsterGetScriptPartByLocationIndex(i);
                 if (mi != 0 && mi->fActive && mi->p3D != 0) {
                     srVector3T<float> mp = mi->p3D->GetPosition();
-                    unsigned char msnap = pathing->SnapWaypointPosition(&mp, 0);
+                    unsigned char msnap = pathing->SnapWaypointPosition(&mp, false);
                     fprintf(stderr,
                             "runtime-test pathing: monster=%u pos=(%.0f %.0f %.0f) snap=%d y=%f\n",
                             i, mp.x, mp.y, mp.z, msnap, mp.y);
@@ -94,7 +94,7 @@ static void ProvokeHostileEncounterOnGameThread(void* opaque)
                resolve. Anything with SHORT or better reach can stand off at
                ~1800 and chip the party without ever being hit back. */
             W8MonsterRecord* record = MonsterDBFromSpecies(info->monster_species);
-            if (record != 0 && GetBestMonsterAttackRange(record, 0) == W8_RANGE_TOUCH &&
+            if (record != 0 && GetBestMonsterAttackRange(record, false) == W8_RANGE_TOUCH &&
                 dist < melee_distance) {
                 melee_distance = dist;
                 melee_info = info;
@@ -137,8 +137,8 @@ static void ProvokeHostileEncounterOnGameThread(void* opaque)
            reads as a fall death and PumpReviewTransition
            unloads the world before StartCombat ever sees a
            grounded party. */
-        W8MonsterGroup* provoked_group = GetMonsterGroupByListIndex(
-            GetMonsterGroupIndexByID(__LINE__, "runtime-test", provoked_info->monster_group_id, 0));
+        W8MonsterGroup* provoked_group = GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
+            __LINE__, "runtime-test", provoked_info->monster_group_id, false));
         unsigned char placed = 0;
         if (provoked_group != 0) {
             /* Flag clear moves the group straight onto the camera position -
@@ -146,11 +146,11 @@ static void ProvokeHostileEncounterOnGameThread(void* opaque)
                The scatter picks a random heading each call; single spots can
                fail MoveMonsterGroupToPosition, so retry it the way the summon
                path retries its three distances before giving up. */
-            placed = PositionMonsterGroupNearCamera(provoked_group, 0.0f, 0.0f, 0);
+            placed = PositionMonsterGroupNearCamera(provoked_group, 0.0f, 0.0f, false);
             for (int attempt = 0; attempt < 32 && placed == 0; ++attempt) {
                 static const float distances[3] = {0.0f, 1500.0f, 3000.0f};
-                placed =
-                    PositionMonsterGroupNearCamera(provoked_group, distances[attempt % 3], 0.0f, 1);
+                placed = PositionMonsterGroupNearCamera(provoked_group, distances[attempt % 3],
+                                                        0.0f, true);
             }
         }
         fprintf(stderr, "runtime-test drop: group=%p placed=%d\n", (void*)provoked_group, placed);
@@ -177,7 +177,7 @@ static void ProvokeHostileEncounterOnGameThread(void* opaque)
                     srVector3T<float> nav = anchor;
                     nav.x += dirs[d][0] * radii[r];
                     nav.z += dirs[d][1] * radii[r];
-                    if (g_pathing->SnapWaypointPosition(&nav, 0) == 0) {
+                    if (g_pathing->SnapWaypointPosition(&nav, false) == 0) {
                         continue;
                     }
                     nav.y = anchor.y + 2000.0f;
@@ -195,7 +195,7 @@ static void ProvokeHostileEncounterOnGameThread(void* opaque)
         }
         if (provoked_group != 0 && placed != 0) {
             RefreshAllSight();
-            SetMonsterGroupNavigatorDirty(provoked_group, 0);
+            SetMonsterGroupNavigatorDirty(provoked_group, false);
         }
         /* Placement may drop members that found no scatter
            spot; RemoveMonster detaches their monster and frees
@@ -203,7 +203,7 @@ static void ProvokeHostileEncounterOnGameThread(void* opaque)
            back to any surviving member of the same group. */
         {
             unsigned int re_index =
-                MonsterGetIndexByLocationID(__LINE__, "runtime-test", provoked_location_id, 0);
+                MonsterGetIndexByLocationID(__LINE__, "runtime-test", provoked_location_id, false);
             provoked_info =
                 re_index != (unsigned int)-1 ? MonsterGetScriptPartByLocationIndex(re_index) : 0;
         }
@@ -398,7 +398,7 @@ static void QueuePartyAttacksOnGameThread(void* opaque)
            product's own entry point. */
         CalcAttacks(character);
         if (row->action != W8_ACTION_ATTACK) {
-            ChooseAction(slot, W8_ACTION_ATTACK, -1, 0, 0, 1);
+            ChooseAction(slot, W8_ACTION_ATTACK, -1, 0, false, 1);
         }
         /* ChooseAction only records the action; the swing resolves against
            target_in_combat, which the player path fills through AimAtTarget.
@@ -581,7 +581,7 @@ static void QueuePartyDefendOnGameThread(void* opaque)
         }
         ++query->eligible;
         if (row->action != W8_ACTION_DEFEND) {
-            ChooseAction(slot, W8_ACTION_DEFEND, -1, 0, 0, 1);
+            ChooseAction(slot, W8_ACTION_DEFEND, -1, 0, false, 1);
         }
         if (row->action == W8_ACTION_DEFEND) {
             ++query->queued;
@@ -608,7 +608,7 @@ static void QueuePartyFleeOnGameThread(void* opaque)
             continue;
         }
         ++query->eligible;
-        ChooseAction(slot, W8_ACTION_RUN, -1, 0, 0, 1);
+        ChooseAction(slot, W8_ACTION_RUN, -1, 0, false, 1);
         ++query->queued;
     }
 }
@@ -677,7 +677,7 @@ static void TeleportPartyNearEngagedOnGameThread(void* opaque)
             srVector3T<float> nav = anchor;
             nav.x += dirs[d][0] * radii[r];
             nav.z += dirs[d][1] * radii[r];
-            if (g_pathing->SnapWaypointPosition(&nav, 0) == 0) {
+            if (g_pathing->SnapWaypointPosition(&nav, false) == 0) {
                 continue;
             }
             nav.y = anchor.y + 2000.0f;
@@ -1140,7 +1140,7 @@ static bool ObserveTargetDamage(const HostileEngagementSnapshot& state, void* op
 static void IsolateCombatRandomnessOnGameThread(void*)
 {
     /* Playlist selection uses the same rand() stream on frame timing. */
-    StopMusicPlaylist(0);
+    StopMusicPlaylist(false);
     srand(0x57495a38);
 }
 

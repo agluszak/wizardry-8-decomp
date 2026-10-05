@@ -75,16 +75,16 @@ unsigned char AscensionPeakInit(void)
             W8MonsterGroup* group = 0;
             W8MonsterInfo* info;
 
-            AscensionAvalanche(1);
+            AscensionAvalanche(true);
             if (FindEntityByName("NP_Rapax01", &position, 0, 0)) {
-                group = SpawnMonsters(0xb1, 6, &position, 1, 1, 0, 0);
+                group = SpawnMonsters(0xb1, 6, &position, 1, true, false, false);
             }
             if (FindEntityByName("NP_Rapax04", &position, 0, 0)) {
-                SpawnMonsters(0xf, 4, &position, 1, 1, 0, 0);
+                SpawnMonsters(0xf, 4, &position, 1, true, false, false);
             }
             info = MonsterGetScriptPartByLocationIndex(
-                MonsterGetIndexByLocationID(0x17f, ASCENSION_CPP, group->leader_location_id, 1));
-            info->p3D->SetScript("proximitylandslide.msf", 1);
+                MonsterGetIndexByLocationID(0x17f, ASCENSION_CPP, group->leader_location_id, true));
+            info->p3D->SetScript("proximitylandslide.msf", true);
             SpawnAscensionAmbush();
             CreateLocationVar("AP_AtLeast2of3Items", 1);
         }
@@ -94,8 +94,8 @@ unsigned char AscensionPeakInit(void)
             if (npc != 0 && npc->greeting_pending && npc->spawned == 0 && !npc->party_noticed &&
                 GetFact(W8_FACT_TEMPLAR) != 0) {
                 if (FindEntityByName("NP_Daughter", &position, 0, 0)) {
-                    SpawnMonsters(0x18d, 1, &position, 0, 1, 0, 0);
-                    SetFact(static_cast<W8FactId>(0x327), 1, 0);
+                    SpawnMonsters(0x18d, 1, &position, 0, true, false, false);
+                    SetFact(static_cast<W8FactId>(0x327), 1, false);
                 }
                 CreateLocationVar("AP_SpawnDaughter", 1);
             }
@@ -104,7 +104,7 @@ unsigned char AscensionPeakInit(void)
     if (count == 3) {
         if (GetLocationVarIDByName("AP_All3Items") == -1) {
             if (FindEntityByName("NP_Savants01", &position, 0, 0)) {
-                SpawnMonsters(0x1a0, 6, &position, 1, 1, 0, 0);
+                SpawnMonsters(0x1a0, 6, &position, 1, true, false, false);
             }
             if (GetFact(W8_FACT_TMISSION_MEET_ZANT_AT_AP) != 0 ||
                 GetFact(W8_FACT_UMISSION_MEET_AP_ASSIGN) != 0) {
@@ -131,7 +131,7 @@ unsigned char SpawnAlfieChaos(int unused)
         return 0;
     }
     if (FindEntityByName("NP_AlfieChaos", &position, 0, 0)) {
-        SpawnMonsters(0xae, 1, &position, 0, 1, 0, 0);
+        SpawnMonsters(0xae, 1, &position, 0, true, false, false);
     }
     return 1;
 }
@@ -144,7 +144,7 @@ unsigned char SpawnAlfieLife(int unused)
     srVector3T<float> position;
 
     if (FindEntityByName("NP_AlfieLife", &position, 0, 0)) {
-        SpawnMonsters(0xaf, 1, &position, 0, 1, 0, 0);
+        SpawnMonsters(0xaf, 1, &position, 0, true, false, false);
     }
     return 1;
 }
@@ -157,7 +157,7 @@ unsigned char SpawnAlfieKnow(int unused)
     srVector3T<float> position;
 
     if (FindEntityByName("NP_AlfieKnow", &position, 0, 0)) {
-        SpawnMonsters(0xb0, 1, &position, 0, 1, 0, 0);
+        SpawnMonsters(0xb0, 1, &position, 0, true, false, false);
     }
     return 1;
 }
@@ -180,13 +180,13 @@ void AscensionAvalanche(bool command)
         position = GetWorld()->camera->getLocation();
         FindTriggerByName("ASC40")->GetPosition(&trigger_position);
         if ((position - trigger_position).Length() < g_double_005ec030) {
-            SetFact(W8_FACT_LANDSLIDE_RAPAX_SIDE, 1, 0);
-            SetFact(W8_FACT_LANDSLIDE_WILD_SIDE, 0, 0);
+            SetFact(W8_FACT_LANDSLIDE_RAPAX_SIDE, 1, false);
+            SetFact(W8_FACT_LANDSLIDE_WILD_SIDE, 0, false);
         } else {
             FindTriggerByName("ASC30")->GetPosition(&trigger_position);
             if ((position - trigger_position).Length() < g_double_005ec030) {
-                SetFact(W8_FACT_LANDSLIDE_RAPAX_SIDE, 0, 0);
-                SetFact(W8_FACT_LANDSLIDE_WILD_SIDE, 1, 0);
+                SetFact(W8_FACT_LANDSLIDE_RAPAX_SIDE, 0, false);
+                SetFact(W8_FACT_LANDSLIDE_WILD_SIDE, 1, false);
             }
         }
         g_master_functions->Add(AscensionLandShaker);
@@ -206,7 +206,7 @@ void AscensionLandShaker(int command)
     }
     g_remove_current_master_function = false;
     if (g_avalanche_gate == 0) {
-        g_avalanche_gate = new W8IntervalGate(1.0f, 0, 1);
+        g_avalanche_gate = new W8IntervalGate(1.0f, false, true);
         return;
     }
     if (g_avalanche_gate->IsFinished() == 0) {
@@ -232,7 +232,7 @@ bool AscensionRampUp(Trigger* pTrigger)
     srVector3T<float> position;
 
     if (FindEntityByName("NP_DarkSavant", &position, 0, 0)) {
-        SpawnMonsters(0x18d, 1, &position, 0, 1, 0, 0);
+        SpawnMonsters(0x18d, 1, &position, 0, true, false, false);
     }
     return true;
 }
@@ -245,16 +245,16 @@ unsigned char SpawnAscensionAmbush(void)
     srVector3T<float> position;
 
     if (FindEntityByName("NP_Rapax02", &position, 0, 0)) {
-        SpawnMonsters(0xc3, 3, &position, 0, 1, 0, 0);
+        SpawnMonsters(0xc3, 3, &position, 0, true, false, false);
     }
     if (FindEntityByName("NP_Rapax03", &position, 0, 0)) {
-        SpawnMonsters(0xc4, 6, &position, 0, 1, 0, 0);
+        SpawnMonsters(0xc4, 6, &position, 0, true, false, false);
     }
     if (FindEntityByName("NP_Rapax05", &position, 0, 0)) {
-        SpawnMonsters(0xc5, 6, &position, 0, 1, 0, 0);
+        SpawnMonsters(0xc5, 6, &position, 0, true, false, false);
     }
     if (FindEntityByName("NP_Prince", &position, 0, 0)) {
-        SpawnMonsters(0xb2, 1, &position, 0, 1, 0, 0);
+        SpawnMonsters(0xb2, 1, &position, 0, true, false, false);
     }
     return 1;
 }
@@ -403,10 +403,10 @@ bool AscensionDarkSavantSpawn(Trigger* pTrigger)
     srVector3T<float> position;
 
     if (FindEntityByName("NP_DSavant", &position, 0, 0)) {
-        SpawnMonsters(0xc2, 1, &position, 0, 1, 0, 0);
+        SpawnMonsters(0xc2, 1, &position, 0, true, false, false);
     }
     if (FindEntityByName("NP_Bela", &position, 0, 0)) {
-        SpawnMonsters(0x18c, 1, &position, 0, 1, 0, 0);
+        SpawnMonsters(0x18c, 1, &position, 0, true, false, false);
     }
     if (GetLocationVarIDByName("AP_DSSpawned") == -1) {
         CreateLocationVar("AP_DSSpawned", 1);
@@ -453,8 +453,8 @@ void RemoveAletheides(void)
     if (npc != 0) {
         info = GetNpcMonsterInfo(npc);
         if (info != 0) {
-            RemoveMonster(MonsterGetIndexByLocationID(0x2cd, ASCENSION_CPP, info->location_id, 1),
-                          1);
+            RemoveMonster(
+                MonsterGetIndexByLocationID(0x2cd, ASCENSION_CPP, info->location_id, true), true);
             return;
         }
     }
@@ -462,8 +462,8 @@ void RemoveAletheides(void)
     if (npc != 0) {
         info = GetNpcMonsterInfo(npc);
         if (info != 0) {
-            RemoveMonster(MonsterGetIndexByLocationID(0x2da, ASCENSION_CPP, info->location_id, 1),
-                          1);
+            RemoveMonster(
+                MonsterGetIndexByLocationID(0x2da, ASCENSION_CPP, info->location_id, true), true);
             return;
         }
     }
@@ -471,8 +471,8 @@ void RemoveAletheides(void)
     if (npc != 0) {
         info = GetNpcMonsterInfo(npc);
         if (info != 0) {
-            RemoveMonster(MonsterGetIndexByLocationID(0x2e7, ASCENSION_CPP, info->location_id, 1),
-                          1);
+            RemoveMonster(
+                MonsterGetIndexByLocationID(0x2e7, ASCENSION_CPP, info->location_id, true), true);
         }
     }
 }

@@ -393,7 +393,7 @@ void InitializeMainGameLevelBlock(void)
     g_level_block->combat_end_notification = -1;
     previous_mode = g_settings.main_ui_mode;
     g_settings.main_ui_mode = W8_MAIN_UI_MODE_NONE;
-    ApplyMainGameModeFlag(previous_mode, 1);
+    ApplyMainGameModeFlag(previous_mode, true);
     g_level_block->character_update_timer = SetCountdownClock(0);
     g_level_block->world_update_timer = SetCountdownClock(0);
     g_level_block->countdown0 = SetCountdownClock(60000);

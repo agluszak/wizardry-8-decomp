@@ -340,7 +340,8 @@ unsigned char LoadSkyWorld(int level, W8LevelInfo* info)
     if (sky_world == 0) {
         return 0;
     }
-    if (!LoadWorld(sky_world, info->sky_file_name, info->sky_folder, info->sky_bitmap_folder, 0)) {
+    if (!LoadWorld(sky_world, info->sky_file_name, info->sky_folder, info->sky_bitmap_folder,
+                   false)) {
         return 0;
     }
 
@@ -552,14 +553,14 @@ unsigned char LoadLevel(int requested_level, int entrance, bool restoring_game)
     InitializeItemManagerState();
     ResetNextTriggerId();
     if (!ForwardLoadWorld(GetWorld(), level_info.level_file_name, level_info.level_folder,
-                          level_info.level_bitmap_folder, 1)) {
+                          level_info.level_bitmap_folder, true)) {
         /* This is the complete canonical rollback here: restore the level ID.
            The already-installed replacement world is not destroyed. */
         g_status.current_level = previous_level;
         return 0;
     }
 
-    SetSkyNodeVisible(0);
+    SetSkyNodeVisible(false);
     ResetAutomapView();
     if (!LoadLevelStatus("Saves\\CurrentGame.SAV", level)) {
         BuildLevelStatusPath(path, level);
@@ -774,7 +775,7 @@ unsigned char ReloadLevelPreservingCamera(int level, int entrance)
             return 0;
         }
     }
-    if (LoadLevel(level, entrance, 0) == 0) {
+    if (LoadLevel(level, entrance, false) == 0) {
         return 0;
     }
     if (restore) {

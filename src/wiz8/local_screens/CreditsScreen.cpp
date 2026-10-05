@@ -146,7 +146,7 @@ unsigned char CreditsScreenLeave(int)
     ResetRegions();
     EnableCursorScene();
     if (IsCurrentMusicPlaylist("EndCredit.MPL")) {
-        StopMusicPlaylist(1);
+        StopMusicPlaylist(true);
     }
     return 1;
 }
