@@ -1,4 +1,5 @@
 #pragma once
+#include "wiz8/mgs_commands.h"
 #include "wiz8/layouts/screen_state.h"
 
 #include "wiz8/local_code/TextBuffer.h"
@@ -262,13 +263,14 @@ public:
 // VTABLE: WIZ8 0x005eeed0
 class W8OptionsKeyButton : public W8OptionsButton {
 public:
-    W8OptionsKeyButton(Controls* owner, int top, int primary_binding, int secondary_binding);
+    W8OptionsKeyButton(Controls* owner, int top, W8MGSCommand primary_binding,
+                       W8MGSCommand secondary_binding);
 
     void SetKey(unsigned short key);
     void SetKeyText(unsigned short key);
 
-    int m_primary_binding;
-    int m_secondary_binding;
+    W8MGSCommand m_primary_binding;
+    W8MGSCommand m_secondary_binding;
 };
 
 static_assert(sizeof(W8OptionsButton) == 0xb8, "W8OptionsButton_size");

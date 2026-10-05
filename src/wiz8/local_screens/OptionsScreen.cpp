@@ -113,15 +113,15 @@ struct W8OptionsKeyName {
 };
 
 struct W8OptionsKeyRow {
-    int primary_binding;
-    int secondary_binding;
+    W8MGSCommand primary_binding;
+    W8MGSCommand secondary_binding;
     int label;
 };
 
 struct W8OptionsKeyboardPage {
     int title;
-    int first_binding;
-    int last_binding;
+    W8MGSCommand first_binding;
+    W8MGSCommand last_binding;
 };
 
 // GLOBAL: WIZ8 0x0064d2f8
@@ -138,21 +138,66 @@ static W8OptionsKeyName g_options_key_names[] = {
 
 // GLOBAL: WIZ8 0x0064d480
 static W8OptionsKeyRow g_options_key_rows[] = {
-    {200, 201, 2106}, {202, 203, 2107}, {204, 205, 2108}, {206, 207, 2109}, {208, 209, 2110},
-    {210, 211, 2111}, {212, -1, 2112},  {213, -1, 2113},  {214, -1, 2114},  {300, -1, 2115},
-    {301, 302, 2116}, {303, -1, 2117},  {304, -1, 2118},  {307, 308, 2121}, {309, 310, 2122},
-    {306, -1, 2120},  {311, -1, 2123},  {312, -1, 2124},  {313, -1, 2125},  {316, -1, 2127},
-    {314, 315, 2126}, {317, -1, 2128},  {318, 319, 2129}, {305, -1, 2119},  {402, -1, 2130},
-    {403, -1, 2131},  {404, -1, 2132},  {405, -1, 2133},  {406, -1, 2134},  {407, -1, 2135},
-    {400, -1, 2136},  {401, -1, 2137},  {500, -1, 2138},  {501, -1, 2139},  {502, -1, 2140},
-    {503, -1, 2141},  {504, -1, 2142},  {600, -1, 2143},  {601, -1, 2144},  {602, -1, 2145},
-    {603, -1, 2146},  {604, -1, 2147},  {605, -1, 2148},  {606, -1, 2149},  {607, -1, 2150},
-    {608, -1, 2151},  {609, -1, 2152},  {610, -1, 2153},  {611, -1, 2154},  {612, 613, 2155},
-    {614, -1, 2156},  {-1, -1, -1}};
+    {W8_MGS_COMMAND_MOVE_FORWARD, W8_MGS_COMMAND_MOVE_FORWARD_RUN, 2106},
+    {W8_MGS_COMMAND_MOVE_BACKWARD, W8_MGS_COMMAND_MOVE_BACKWARD_RUN, 2107},
+    {W8_MGS_COMMAND_TURN_LEFT, W8_MGS_COMMAND_TURN_LEFT_ALT, 2108},
+    {W8_MGS_COMMAND_TURN_RIGHT, W8_MGS_COMMAND_TURN_RIGHT_ALT, 2109},
+    {W8_MGS_COMMAND_STRAFE_LEFT, W8_MGS_COMMAND_STRAFE_LEFT_RUN, 2110},
+    {W8_MGS_COMMAND_STRAFE_RIGHT, W8_MGS_COMMAND_STRAFE_RIGHT_RUN, 2111},
+    {W8_MGS_COMMAND_LOOK_UP, W8_MGS_COMMAND_NONE, 2112},
+    {W8_MGS_COMMAND_LOOK_DOWN, W8_MGS_COMMAND_NONE, 2113},
+    {W8_MGS_COMMAND_LOOK_LEVEL, W8_MGS_COMMAND_NONE, 2114},
+    {W8_MGS_COMMAND_PAUSE_GAME, W8_MGS_COMMAND_NONE, 2115},
+    {W8_MGS_COMMAND_NEXT_LAYOUT, W8_MGS_COMMAND_PREV_LAYOUT, 2116},
+    {W8_MGS_COMMAND_AUTOMAP, W8_MGS_COMMAND_NONE, 2117},
+    {W8_MGS_COMMAND_OPTIONS, W8_MGS_COMMAND_NONE, 2118},
+    {W8_MGS_COMMAND_USE_ITEM, W8_MGS_COMMAND_USE_LAST_ITEM, 2121},
+    {W8_MGS_COMMAND_CAST_SPELL, W8_MGS_COMMAND_CAST_LAST_SPELL, 2122},
+    {W8_MGS_COMMAND_INVENTORY, W8_MGS_COMMAND_NONE, 2120},
+    {W8_MGS_COMMAND_CAMP, W8_MGS_COMMAND_NONE, 2123},
+    {W8_MGS_COMMAND_TOGGLE_SEARCH, W8_MGS_COMMAND_NONE, 2124},
+    {W8_MGS_COMMAND_TOGGLE_COMBAT, W8_MGS_COMMAND_NONE, 2125},
+    {W8_MGS_COMMAND_RADAR_ZOOM, W8_MGS_COMMAND_NONE, 2127},
+    {W8_MGS_COMMAND_QUICK_SAVE, W8_MGS_COMMAND_QUICK_LOAD, 2126},
+    {W8_MGS_COMMAND_REPLAY_QUOTE, W8_MGS_COMMAND_NONE, 2128},
+    {W8_MGS_COMMAND_SWAP_WEAPONS, W8_MGS_COMMAND_SWAP_ALL_WEAPONS, 2129},
+    {W8_MGS_COMMAND_JOURNAL, W8_MGS_COMMAND_NONE, 2119},
+    {W8_MGS_COMMAND_SELECT_PC_1, W8_MGS_COMMAND_NONE, 2130},
+    {W8_MGS_COMMAND_SELECT_PC_2, W8_MGS_COMMAND_NONE, 2131},
+    {W8_MGS_COMMAND_SELECT_PC_3, W8_MGS_COMMAND_NONE, 2132},
+    {W8_MGS_COMMAND_SELECT_PC_4, W8_MGS_COMMAND_NONE, 2133},
+    {W8_MGS_COMMAND_SELECT_PC_5, W8_MGS_COMMAND_NONE, 2134},
+    {W8_MGS_COMMAND_SELECT_PC_6, W8_MGS_COMMAND_NONE, 2135},
+    {W8_MGS_COMMAND_SELECT_RECRUITED_1, W8_MGS_COMMAND_NONE, 2136},
+    {W8_MGS_COMMAND_SELECT_RECRUITED_2, W8_MGS_COMMAND_NONE, 2137},
+    {W8_MGS_COMMAND_TEXTBOX_PAGE_UP, W8_MGS_COMMAND_NONE, 2138},
+    {W8_MGS_COMMAND_TEXTBOX_PAGE_DOWN, W8_MGS_COMMAND_NONE, 2139},
+    {W8_MGS_COMMAND_TEXTBOX_TOP, W8_MGS_COMMAND_NONE, 2140},
+    {W8_MGS_COMMAND_TEXTBOX_BOTTOM, W8_MGS_COMMAND_NONE, 2141},
+    {W8_MGS_COMMAND_TEXTBOX_CLEAR, W8_MGS_COMMAND_NONE, 2142},
+    {W8_MGS_COMMAND_START_COMBAT_ROUND, W8_MGS_COMMAND_NONE, 2143},
+    {W8_MGS_COMMAND_CONTINUOUS_COMBAT, W8_MGS_COMMAND_NONE, 2144},
+    {W8_MGS_COMMAND_CAMERA_LOCK, W8_MGS_COMMAND_NONE, 2145},
+    {W8_MGS_COMMAND_CYCLE_TARGET, W8_MGS_COMMAND_NONE, 2146},
+    {W8_MGS_COMMAND_ATTACK, W8_MGS_COMMAND_NONE, 2147},
+    {W8_MGS_COMMAND_BERSERK, W8_MGS_COMMAND_NONE, 2148},
+    {W8_MGS_COMMAND_BREATHE, W8_MGS_COMMAND_NONE, 2149},
+    {W8_MGS_COMMAND_TURN_UNDEAD, W8_MGS_COMMAND_NONE, 2150},
+    {W8_MGS_COMMAND_PRAY, W8_MGS_COMMAND_NONE, 2151},
+    {W8_MGS_COMMAND_DEFEND, W8_MGS_COMMAND_NONE, 2152},
+    {W8_MGS_COMMAND_PROTECT, W8_MGS_COMMAND_NONE, 2153},
+    {W8_MGS_COMMAND_EQUIP, W8_MGS_COMMAND_NONE, 2154},
+    {W8_MGS_COMMAND_PARTY_WALK, W8_MGS_COMMAND_PARTY_RUN, 2155},
+    {W8_MGS_COMMAND_REPEAT_ACTION, W8_MGS_COMMAND_NONE, 2156},
+    {W8_MGS_COMMAND_NONE, W8_MGS_COMMAND_NONE, -1}};
 
 // GLOBAL: WIZ8 0x0064d6f0
 static W8OptionsKeyboardPage g_options_keyboard_pages[5] = {
-    {0x835, 200, 214}, {0x836, 300, 305}, {0x837, 402, 401}, {0x838, 500, 504}, {0x839, 600, 614}};
+    {0x835, W8_MGS_COMMAND_MOVE_FORWARD, W8_MGS_COMMAND_LOOK_LEVEL},
+    {0x836, W8_MGS_COMMAND_PAUSE_GAME, W8_MGS_COMMAND_JOURNAL},
+    {0x837, W8_MGS_COMMAND_SELECT_PC_1, W8_MGS_COMMAND_SELECT_RECRUITED_2},
+    {0x838, W8_MGS_COMMAND_TEXTBOX_PAGE_UP, W8_MGS_COMMAND_TEXTBOX_CLEAR},
+    {0x839, W8_MGS_COMMAND_START_COMBAT_ROUND, W8_MGS_COMMAND_REPEAT_ACTION}};
 
 W8OptionsPanelSet::W8OptionsPanelSet()
     : m_page_count(0), m_compact_layout(0), m_hide_navigation(0), m_active(false),
@@ -542,8 +587,8 @@ W8OptionsButton::W8OptionsButton(Controls* owner, int left, int top, int right, 
     m_textBuffer.SetText(text, g_options_detail_font);
 }
 
-W8OptionsKeyButton::W8OptionsKeyButton(Controls* owner, int top, int primary_binding,
-                                       int secondary_binding)
+W8OptionsKeyButton::W8OptionsKeyButton(Controls* owner, int top, W8MGSCommand primary_binding,
+                                       W8MGSCommand secondary_binding)
     : W8OptionsButton(owner, 100, top, 0x15e, top + 22, &g_empty_wide_string),
       m_primary_binding(primary_binding), m_secondary_binding(secondary_binding)
 {
@@ -695,7 +740,7 @@ void W8OptionsKeyButton::SetKey(unsigned short key)
     if (binding != 0) {
         binding->key = key;
     }
-    if (m_secondary_binding != -1) {
+    if (m_secondary_binding != W8_MGS_COMMAND_NONE) {
         binding = g_mgs_keyboard->GetBinding(g_mgs_keyboard->FindBinding(m_secondary_binding));
         if (binding != 0) {
             binding->key = key;
@@ -736,7 +781,7 @@ void W8OptionsKeyButton::SetKeyText(unsigned short key)
         text = character;
     }
 
-    if (m_secondary_binding != -1 && key != 0) {
+    if (m_secondary_binding != W8_MGS_COMMAND_NONE && key != 0) {
         text = FormatWideString(L"(%s) %s", gppStringList[0x89d], text);
     }
     m_textBuffer.SetText(text, g_options_detail_font);
@@ -775,7 +820,7 @@ void W8OptionsKeyboardPanel::Populate()
         m_selection.AddEntry(button);
         m_content_top += 22;
 
-        int binding = row->primary_binding;
+        W8MGSCommand binding = row->primary_binding;
         ++row;
         if (binding == page.last_binding) {
             wchar_t* reset_text = gppStringList[0x833];
@@ -870,7 +915,7 @@ void W8OptionsKeyboardPanel::OnDialogClosed(unsigned char reason, int)
 void W8OptionsKeyboardPanel::ClearDuplicateBinding(unsigned short key)
 {
     int row_index = 0;
-    if (g_options_key_rows[0].primary_binding == -1) {
+    if (g_options_key_rows[0].primary_binding == W8_MGS_COMMAND_NONE) {
         return;
     }
 
@@ -880,7 +925,7 @@ void W8OptionsKeyboardPanel::ClearDuplicateBinding(unsigned short key)
             g_mgs_keyboard->GetBinding(g_mgs_keyboard->FindBinding(row->primary_binding));
         if (binding != 0 && binding->key == key) {
             binding->key = 0;
-            if (g_options_key_rows[row_index].secondary_binding != -1) {
+            if (g_options_key_rows[row_index].secondary_binding != W8_MGS_COMMAND_NONE) {
                 binding = g_mgs_keyboard->GetBinding(
                     g_mgs_keyboard->FindBinding(g_options_key_rows[row_index].secondary_binding));
                 if (binding != 0) {
@@ -902,7 +947,7 @@ void W8OptionsKeyboardPanel::ClearDuplicateBinding(unsigned short key)
 
         ++row_index;
         ++row;
-        if (row->primary_binding == -1) {
+        if (row->primary_binding == W8_MGS_COMMAND_NONE) {
             return;
         }
     }

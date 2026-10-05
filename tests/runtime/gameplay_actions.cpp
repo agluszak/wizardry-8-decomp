@@ -78,8 +78,8 @@ bool AutomapScreenActive(const GameplaySnapshot& now, void*)
 
 } // namespace
 
-bool MoveUntilDisplaced(RuntimeCase& test, int command, const char* step, float min_distance,
-                        unsigned long budget_ms)
+bool MoveUntilDisplaced(RuntimeCase& test, W8MGSCommand command, const char* step,
+                        float min_distance, unsigned long budget_ms)
 {
     GameplaySnapshot before;
     if (!test.snapshot(before, step)) {
@@ -102,8 +102,8 @@ bool MoveUntilDisplaced(RuntimeCase& test, int command, const char* step, float 
     return true;
 }
 
-bool MoveAwayFrom(RuntimeCase& test, int command, const RuntimeCheckpoint& anchor, const char* step,
-                  float min_distance)
+bool MoveAwayFrom(RuntimeCase& test, W8MGSCommand command, const RuntimeCheckpoint& anchor,
+                  const char* step, float min_distance)
 {
     if (!MoveUntilDisplaced(test, command, step, min_distance)) {
         return false;
@@ -119,7 +119,7 @@ bool MoveAwayFrom(RuntimeCase& test, int command, const RuntimeCheckpoint& ancho
     return true;
 }
 
-bool TurnUntilYawChanged(RuntimeCase& test, int command, const char* step, float min_delta,
+bool TurnUntilYawChanged(RuntimeCase& test, W8MGSCommand command, const char* step, float min_delta,
                          unsigned long budget_ms)
 {
     GameplaySnapshot before;

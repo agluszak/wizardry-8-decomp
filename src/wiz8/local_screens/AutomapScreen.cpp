@@ -2422,7 +2422,8 @@ unsigned char HandleAutomapKey(const InputAtom* input)
     if (input->usEvent != KEY_DOWN) {
         return 0;
     }
-    MGSKeyBinding* binding = g_mgs_keyboard->GetBinding(g_mgs_keyboard->FindBinding(0x12f));
+    MGSKeyBinding* binding =
+        g_mgs_keyboard->GetBinding(g_mgs_keyboard->FindBinding(W8_MGS_COMMAND_AUTOMAP));
     if (input->usParam == binding->key && input->usKeyState == binding->modifiers) {
         RequestScreenTransition();
         return 1;

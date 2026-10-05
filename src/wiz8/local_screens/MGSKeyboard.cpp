@@ -73,7 +73,7 @@ MGSKeyboard::~MGSKeyboard()
 }
 
 // FUNCTION: WIZ8 0x0055d260
-int MGSKeyboard::FindBinding(int command) const
+int MGSKeyboard::FindBinding(W8MGSCommand command) const
 {
     int count = m_bindings.GetCount();
     int index = 0;
@@ -90,7 +90,7 @@ int MGSKeyboard::FindBinding(int command) const
 }
 
 // FUNCTION: WIZ8 0x0055d2a0
-int MGSKeyboard::FindCommandForEvent(const InputAtom* event) const
+W8MGSCommand MGSKeyboard::FindCommandForEvent(const InputAtom* event) const
 {
     int count = m_bindings.GetCount();
     int index = 0;
@@ -104,7 +104,7 @@ int MGSKeyboard::FindCommandForEvent(const InputAtom* event) const
             ++index;
         } while (index < count);
     }
-    return -1;
+    return W8_MGS_COMMAND_NONE;
 }
 
 // FUNCTION: WIZ8 0x0055d300
@@ -121,9 +121,10 @@ MGSKeyBinding* MGSKeyboard::GetBinding(int index) const
 }
 
 // FUNCTION: WIZ8 0x0055d320
-unsigned char MGSKeyboard::IsCommandPressed(unsigned int command) const
+unsigned char MGSKeyboard::IsCommandPressed(W8MGSCommand command) const
 {
-    MGSKeyBinding* binding = m_command_index.Lookup(&command);
+    unsigned int command_key = command;
+    MGSKeyBinding* binding = m_command_index.Lookup(&command_key);
     if (binding != 0 && gfKeyState[binding->key] != 0) {
         unsigned short modifiers = 0;
         if (gfKeyState[VK_SHIFT] != 0) {
@@ -248,7 +249,7 @@ unsigned char HandleMainGameInputEvent(const InputAtom* input)
 }
 
 // FUNCTION: WIZ8 0x00591960
-void DispatchMGSCommand(int command)
+void DispatchMGSCommand(W8MGSCommand command)
 {
     switch (command) {
     case W8_MGS_COMMAND_CANCEL:

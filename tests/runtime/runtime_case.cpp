@@ -387,7 +387,7 @@ static void SendBindingKeys(const CommandBinding& binding, unsigned char release
 }
 
 struct BindingQuery {
-    int command;
+    W8MGSCommand command;
     CommandBinding* binding;
 };
 
@@ -407,7 +407,7 @@ static void ReadBindingOnGameThread(void* opaque)
     }
 }
 
-HeldCommand::HeldCommand(RuntimeCase& test, int command)
+HeldCommand::HeldCommand(RuntimeCase& test, W8MGSCommand command)
     : test_(test), command_(command), held_(false), consumed_(false), rearming_(false),
       last_repeat_(0)
 {
@@ -654,7 +654,7 @@ bool RuntimeCase::has_snapshot() const
     return has_snapshot_;
 }
 
-bool RuntimeCase::resolve_binding(int command, CommandBinding& out, const char* step)
+bool RuntimeCase::resolve_binding(W8MGSCommand command, CommandBinding& out, const char* step)
 {
     BindingQuery query;
     query.command = command;
@@ -665,7 +665,7 @@ bool RuntimeCase::resolve_binding(int command, CommandBinding& out, const char* 
     return out.key != 0;
 }
 
-bool RuntimeCase::tap(int command, const char* step)
+bool RuntimeCase::tap(W8MGSCommand command, const char* step)
 {
     CommandBinding binding;
     memset(&binding, 0, sizeof(binding));

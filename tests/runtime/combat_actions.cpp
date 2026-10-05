@@ -957,7 +957,7 @@ bool PartyTookCasualty(const HostileEngagementSnapshot& state)
 /* The held forward key only moves the party while combat movement is
    queued: the combat_move branch of the displaced check also requires the
    movement budget to have been spent. */
-static bool MovePartyInCombat(RuntimeCase& test, int command)
+static bool MovePartyInCombat(RuntimeCase& test, W8MGSCommand command)
 {
     GameplaySnapshot before, now;
     if (!test.snapshot(before, "combat-walk")) {

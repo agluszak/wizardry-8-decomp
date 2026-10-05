@@ -58,7 +58,7 @@ unsigned char MGSKeyboard::LoadDefaults(const char* path)
         if (token == 0 || wcslen(token) == 0 || !iswdigit(*token)) {
             continue;
         }
-        int command = _wtoi(token);
+        W8MGSCommand command = static_cast<W8MGSCommand>(_wtoi(token));
         token = wcstok(0, L" \t\r\n");
         if (token == 0) {
             continue;
@@ -97,12 +97,13 @@ unsigned char MGSKeyboard::LoadDefaults(const char* path)
         binding->command = command;
 
         int old_index = FindBinding(command);
+        unsigned int command_key = command;
         if (old_index != -1) {
             m_bindings.RemoveAtAndDelete(old_index);
-            m_command_index.Remove((const unsigned int*)&command);
+            m_command_index.Remove(&command_key);
         }
         if (m_bindings.Add(binding) != -1) {
-            m_command_index.Insert((const unsigned int*)&command, &binding);
+            m_command_index.Insert(&command_key, &binding);
         }
         loaded_binding = true;
     }

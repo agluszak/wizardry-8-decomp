@@ -8573,7 +8573,7 @@ unsigned char CombatBarRegionEvent(const InputAtom* event, W8Region*)
         }
     }
 
-    if (g_mgs_keyboard->FindCommandForEvent(event) == -1) {
+    if (g_mgs_keyboard->FindCommandForEvent(event) == W8_MGS_COMMAND_NONE) {
         return 0;
     }
 
