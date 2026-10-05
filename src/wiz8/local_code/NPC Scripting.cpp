@@ -2070,7 +2070,7 @@ void ProcessMessageBoxQueue(void)
     case W8_NPC_MSG_RESET_LEVEL_STATE:
         if (gXStatus.fCombatMode == 0 || gXStatus.fPartyMovementMode != 0) {
             if (line->payload.argument == 0) {
-                ClearLevelDataFlag6();
+                ClearLevelMovementStopped();
             } else {
                 ResetLevelDataVectors();
             }
@@ -2491,7 +2491,7 @@ void ShowString(wchar_t* text)
 {
     wchar_t* copy = new wchar_t[0x200];
     wcscpy(copy, text);
-    if (GetLevelDataFlag6() == 0) {
+    if (IsLevelMovementStopped() == 0) {
         W8MessageBoxPayload reset_level_state_payload;
         reset_level_state_payload.argument = 1;
         W8MessageBoxPayload reset_level_state_extra;
@@ -2505,7 +2505,7 @@ void ShowString(wchar_t* text)
     portrait_message_extra.text = 0;
     AddMessageBoxLine(W8_NPC_MSG_PORTRAIT_MESSAGE, portrait_message_payload,
                       portrait_message_extra);
-    if (GetLevelDataFlag6() == 0) {
+    if (IsLevelMovementStopped() == 0) {
         W8MessageBoxPayload reset_level_state_payload;
         reset_level_state_payload.argument = 0;
         W8MessageBoxPayload reset_level_state_extra;
@@ -2565,7 +2565,7 @@ void EndScriptedPortraitPick(int party_slot)
         return;
     }
     if (gXStatus.fCombatMode == 0 || gXStatus.fPartyMovementMode != 0) {
-        ClearLevelDataFlag6();
+        ClearLevelMovementStopped();
     }
     SetTargetingMode(W8_TARGET_NEED_NONE);
     for (slot = 0; slot < 8; ++slot) {

@@ -4532,10 +4532,10 @@ unsigned int W8Octree::CollectObjectsInCell(const srVector3T<int>* cell, unsigne
     return found;
 }
 
-/* Queue one node of the thirteenth kind, with its three coordinates converted
-   from floating point - which is what puts three ftol calls in a row here. */
+/* Register the navigator's world position in the spatial cell registry.
+   Navigator IDs are stored with a one-based bias. */
 // FUNCTION: WIZ8 0x0042e810
-void W8Octree::QueueOctreeKind13(int id, const srVector3T<float>* position)
+void W8Octree::RegisterNavigatorCell(int id, const srVector3T<float>* position)
 {
     srVector3T<int> point;
 

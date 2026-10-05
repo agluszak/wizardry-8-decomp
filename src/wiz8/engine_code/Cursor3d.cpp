@@ -140,7 +140,7 @@ void InitializeWorldCursor(void)
             MonsterSetAdjustedPosition(gp3DCursor->monster, &position);
             PLAdoptAppend(g_world->plsMonsters, gp3DCursor->monster);
             UpdateCycleRepresentation(gp3DCursor->monster, g_world);
-            MonsterSetStateA0(gp3DCursor->monster, false);
+            MonsterSetActive(gp3DCursor->monster, false);
             gp3DCursor->light = CreateRangedWorldLight(g_world, "3D Cursor Light");
             gp3DCursor->light->intensity = 1.0f;
             ConfigureWorldLight(gp3DCursor->light, 2500.0f);

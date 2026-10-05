@@ -177,7 +177,7 @@ void DrawPartyMovementPanel(void)
     g_party_movement_panel->Redraw();
     right = 0x1b9 - g_level_block->move_percent * 0xf6 / 100;
     if (CanPartyMove() == 0) {
-        if (GetLevelDataFlag6() == 0) {
+        if (IsLevelMovementStopped() == 0) {
             image = 1;
             caption = ((g_level_block->move_percent != 100) - 1 & 0x77f) - 1;
         } else {

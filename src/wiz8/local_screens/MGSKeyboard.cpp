@@ -574,7 +574,7 @@ void DispatchMGSCommand(W8MGSCommand command)
         if (g_combat_state->execution_active == 0) {
             BeginCombatExecution();
         } else if (gXStatus.fPartyMovementUi != 0 && CanPartyMove() == 0 &&
-                   GetLevelDataFlag6() == 0) {
+                   IsLevelMovementStopped() == 0) {
             BeginFreeTurnPhase();
         }
         break;

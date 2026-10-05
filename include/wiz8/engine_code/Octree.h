@@ -409,7 +409,7 @@ public:
        world-scale unit lower and keep the settled height on a hit. */
     /* Returns the ground-hit flag in AL; pathing callers test it. */
     bool SnapToGround(srVector3T<float>* position, char mode); /* 0x00431D20 */
-    void QueueOctreeKind13(int id, const srVector3T<float>* position);
+    void RegisterNavigatorCell(int id, const srVector3T<float>* position);
     /* Box query over the shared query buffer: `*objects` carries the
        destination buffer in and out (null selects m_aulGDObjs), `excluded`
        is an object id pre-marked in the dedupe set (-1 = none). Returns the

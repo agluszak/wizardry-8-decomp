@@ -727,7 +727,7 @@ static void RequestCombatModeOnGameThread(void* opaque)
     if (request->achieved || request->input_blocked) {
         return;
     }
-    if (request->enabled && GetLevelDataFlag4() == 0) {
+    if (request->enabled && !HasLevelWalkableContact()) {
         request->waiting_on_ground = true;
         return;
     }

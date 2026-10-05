@@ -328,7 +328,7 @@ public:
                                                 unsigned char* probe_result); /* 0x004529A0 */
     void AddPathPoint(const srVector3T<float>* position);                     /* 0x00453690 */
     void SetPositionInternal(const srVector3T<float>* position);
-    void SetObject68Flag38(char value);                                    /* 0x004537C0 */
+    void SetPathLooping(char value);                                       /* 0x004537C0 */
     unsigned char LinkToNavigator(W8Navigator* target, double separation); /* 0x004527A0 */
     void SetFacingToward(const srVector3T<float>* position);               /* 0x00454040 */
     void AimAtPosition(const srVector3T<float>* position);                 /* 0x00453F30 */

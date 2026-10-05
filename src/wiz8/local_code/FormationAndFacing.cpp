@@ -251,17 +251,17 @@ void RestoreCombatFormation(void)
 static bool g_combat_preserve_party_facing;
 
 /* Sync party facing/heading from the camera yaw and refresh the formation
-   compass. Level-data flag 6 and combat-with-preserve skip writing facing. */
+   compass. Stopped level movement and combat-with-preserve skip writing facing. */
 // FUNCTION: WIZ8 0x005552F0
 void SyncPartyFacingFromCamera(void)
 {
     unsigned int yaw;
-    unsigned int flag6;
+    unsigned int movement_stopped;
 
     yaw = static_cast<unsigned int>(GetCameraYawDegrees()) % W8_DEGREES_PER_TURN;
-    flag6 = GetLevelDataFlag6();
+    movement_stopped = IsLevelMovementStopped();
     if ((gXStatus.fCombatMode == 0 || g_combat_preserve_party_facing == 0) &&
-        static_cast<unsigned char>(flag6) == 0) {
+        static_cast<unsigned char>(movement_stopped) == 0) {
         g_status.party_facing = static_cast<int>(yaw);
         if (yaw != g_status.party_heading) {
             g_status.party_heading = yaw;

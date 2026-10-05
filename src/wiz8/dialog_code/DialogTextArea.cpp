@@ -243,15 +243,15 @@ unsigned char W8DialogTextArea::CopyVisibleEntryText(unsigned int index, wchar_t
 }
 
 // FUNCTION: WIZ8 0x005d2150
-unsigned char W8DialogTextArea::SetEntryState5D(int index)
+unsigned char W8DialogTextArea::HighlightVisibleEntry(int index)
 {
-    if (m_visible_lines.count != 0 && !(*m_visible_lines.GetAt(index))->m_state0) {
+    if (m_visible_lines.count != 0 && !(*m_visible_lines.GetAt(index))->m_entry_highlighted) {
         W8DialogTextEntry* entry = *m_visible_lines.GetAt(index);
-        if (entry->m_state0 != 1) {
-            entry->m_state0 = 1;
+        if (entry->m_entry_highlighted != 1) {
+            entry->m_entry_highlighted = 1;
             entry->SetGeometryDirty();
         }
-        m_state_5d_entry = index;
+        m_highlighted_entry = index;
         selection_dirty = 1;
         return 1;
     }
@@ -259,18 +259,18 @@ unsigned char W8DialogTextArea::SetEntryState5D(int index)
 }
 
 // FUNCTION: WIZ8 0x005d21a0
-unsigned char W8DialogTextArea::ClearEntryState5D()
+unsigned char W8DialogTextArea::ClearEntryHighlight()
 {
     if (m_visible_lines.count == 0) {
-        m_state_5d_entry = -1;
-    } else if (m_state_5d_entry != -1) {
-        W8DialogTextEntry* entry = *m_visible_lines.GetAt(m_state_5d_entry);
-        if (entry->m_state0) {
-            entry->m_state0 = 0;
+        m_highlighted_entry = -1;
+    } else if (m_highlighted_entry != -1) {
+        W8DialogTextEntry* entry = *m_visible_lines.GetAt(m_highlighted_entry);
+        if (entry->m_entry_highlighted) {
+            entry->m_entry_highlighted = 0;
             entry->SetGeometryDirty();
         }
         selection_dirty = 1;
-        m_state_5d_entry = -1;
+        m_highlighted_entry = -1;
         return 1;
     }
     return 0;
@@ -296,11 +296,11 @@ int W8DialogTextArea::GetOwningEntryIndex(int visible_index)
 }
 
 // FUNCTION: WIZ8 0x005d24a0
-void W8DialogTextArea::SetEntryState60(int index, bool state)
+void W8DialogTextArea::SetEntryMarked(int index, bool state)
 {
     W8DialogTextEntry* entry = *m_all_lines.GetAt(index);
-    if (entry->m_state1 != state) {
-        entry->m_state1 = state;
+    if (entry->m_marked != state) {
+        entry->m_marked = state;
         entry->SetGeometryDirty();
     }
     selection_dirty = 1;
@@ -334,8 +334,8 @@ int W8DialogTextArea::AddEntry(const wchar_t* prefix, const wchar_t* text,
 void W8DialogTextArea::RemoveEntry(unsigned int index)
 {
     if (m_all_lines.count != 0 && index < static_cast<unsigned int>(m_all_lines.count)) {
-        if ((*m_all_lines.GetAt(index))->m_state0)
-            m_state_5d_entry = -1;
+        if ((*m_all_lines.GetAt(index))->m_entry_highlighted)
+            m_highlighted_entry = -1;
         if ((*m_all_lines.GetAt(index))->m_selected)
             m_selected_visible_entry = -1;
         m_all_lines.RemoveAtAndDelete(index);
@@ -356,7 +356,7 @@ void W8DialogTextArea::RebuildVisibleEntries()
 {
     wchar_t text[200];
     wchar_t other[200];
-    ClearEntryState5D();
+    ClearEntryHighlight();
     ClearSelection();
     m_visible_lines.Clear();
     for (int index = 0; index < m_all_lines.count; ++index) {
@@ -479,7 +479,7 @@ W8DialogTextArea::W8DialogTextArea()
     invalid = -1;
     m_line_height_override = invalid;
     m_selected_visible_entry = invalid;
-    m_state_5d_entry = invalid;
+    m_highlighted_entry = invalid;
     m_category_filter = invalid;
     m_first_visible_entry = 0;
     m_first_visible_line = 0;

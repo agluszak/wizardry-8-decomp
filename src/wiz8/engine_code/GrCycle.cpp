@@ -921,7 +921,7 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
         if (psrMesh == 0) {
             srAssertFail("psrMesh", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x40f, 0);
         }
-        AniMeshSetFlag10(pRep->GetEmitterAniMesh(pRep->current_cycle), 1);
+        SetAniMeshCacheProtected(pRep->GetEmitterAniMesh(pRep->current_cycle), 1);
         psrMesh->highlight_colour = pRep->highlight_colour;
         if (pRep->apply_instance_scale != 0) {
             if (pRep->instance_scale == g_float_one) {
@@ -1001,7 +1001,7 @@ void W8GrCycle::DetachRepresentation(W8World* world)
             }
             W8AniMesh* ani_mesh = representation->GetEmitterAniMesh(representation->current_cycle);
             if (ani_mesh != 0) {
-                AniMeshSetFlag10(ani_mesh, 0);
+                SetAniMeshCacheProtected(ani_mesh, 0);
             }
             mesh->setFlag(srNode::FLAG_DISABLE);
             mesh->setParent(0, 1);
@@ -1011,7 +1011,7 @@ void W8GrCycle::DetachRepresentation(W8World* world)
             srAssertFail("pWorld", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x484, 0);
         }
         W8AniMesh* ani_mesh = representation->GetEmitterAniMesh(representation->current_cycle);
-        AniMeshSetFlag10(ani_mesh, 0);
+        SetAniMeshCacheProtected(ani_mesh, 0);
         current_model_instance->setFlag(srNode::FLAG_DISABLE);
         current_model_instance->setFlag(srNode::FLAG_TERMINATE);
         current_model_instance->setParent(0, 0);

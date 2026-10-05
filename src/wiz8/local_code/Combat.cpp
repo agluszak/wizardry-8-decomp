@@ -138,7 +138,7 @@ unsigned char StartCombat(int surprise)
     if (AnyCharacterActive() == 0) {
         return 0;
     }
-    if (static_cast<char>(GetLevelDataFlag4()) == 0) {
+    if (static_cast<char>(HasLevelWalkableContact()) == 0) {
         return 0;
     }
     if (g_status.world_cursor_gate != 0) {
@@ -278,8 +278,8 @@ unsigned char StartCombat(int surprise)
     if (g_status.search_mode != 0) {
         ToggleSearchMode();
     }
-    if (GetLevelDataFlag8() != 0) {
-        ClearLevelDataFlag8();
+    if (IsLevelFastMovement() != 0) {
+        ClearLevelFastMovement();
     }
     if (g_settings.continuous_combat != 0 && g_combat_state->party_surprised == 0) {
         g_combat_state->combat_ui_timer =
@@ -1171,7 +1171,7 @@ void EndCombat(unsigned char mode)
     if (gXStatus.world_update_blocked != 0) {
         ResumeMainGameWorld();
     }
-    ClearLevelDataFlags5To7();
+    ClearLevelMovementState();
     RequestRedrawParty();
     ResetWorldCursorRange();
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
@@ -2080,7 +2080,7 @@ void RollCombatSurprise(char arg_1)
             }
         }
         if (g_combat_state->party_surprised == 0) {
-            if (GetLevelDataFlag8() != 0) {
+            if (IsLevelFastMovement() != 0) {
                 if (Random(100) < 0x14) {
                     g_combat_state->party_surprised = true;
                     level_surprise = true;
@@ -3444,7 +3444,7 @@ void ScheduleCombatActor(void)
             }
             if (apply_delay != 0 &&
                 (gXStatus.hostile_monster_count != 0 || gXStatus.hostile_group_count != 0) &&
-                GetLevelDataFlag6() != 0) {
+                IsLevelMovementStopped() != 0) {
                 unsigned int delay = g_settings.combat_delay_ms;
                 if (g_combat_state->pacing_latch != 0 &&
                     (g_settings.continuous_combat == 0 || free_turn == 0) && delay > 0x31f) {

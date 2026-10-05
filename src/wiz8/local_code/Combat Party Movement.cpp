@@ -371,7 +371,7 @@ void EndPartyMovementPhase(void)
         g_combat_state->uiCurrentPartyActionStatus = W8_PARTY_ACTION_PHASE_ENDED;
         return;
     }
-    if (!GetLevelDataFlag6()) {
+    if (!IsLevelMovementStopped()) {
         ShowNotice(8, gppStringList[0x21c], -1, -1, 0);
     }
     ResetLevelDataVectors();
@@ -455,14 +455,14 @@ void FinishPartyMovementAction(void)
         g_combat_state->uiCurrentPartyActionStatus = W8_PARTY_ACTION_IN_PROGRESS;
         return;
     }
-    if (GetLevelDataFlag6() != 0 &&
+    if (IsLevelMovementStopped() != 0 &&
         g_combat_state->uiCurrentPartyActionStatus == W8_PARTY_ACTION_PHASE_ENDED) {
         ShowNotice(8, gppStringList[0x21d], -1, -1, 0);
     }
     SoundPlay("Data\\Sound\\Misc\\Movement_Bar_Pop_Up.wav", 0);
-    ClearLevelDataFlag6();
+    ClearLevelMovementStopped();
     if (g_combat_state->uiCurrentPartyAction == W8_PARTY_ACTION_RUN) {
-        SetLevelDataFlag8();
+        SetLevelFastMovement();
     }
     EnableFreeTurnButton();
     InvalidatePartyMovementPanel();

@@ -829,7 +829,7 @@ static unsigned char SaveMonsterRecord(W8Chunk* chunks, unsigned int index)
         MonsterGetLocation(info->p3D, &location);
         location.y = SettlePositionToGround(&location, 0);
         info->position = location;
-        info->derived = MonsterGetAngleD4(info->p3D);
+        info->derived = MonsterGetYaw(info->p3D);
     }
     record_size = sizeof(*info);
     chunks->Write(&record_size, 4, 0);

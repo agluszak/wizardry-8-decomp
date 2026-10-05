@@ -13,7 +13,7 @@ enum W8AniMeshFlags {
     W8_ANI_MESH_FRAME_COUNT_LOADED = 0x02,
     W8_ANI_MESH_RADIUS_LOADED = 0x04,
     W8_ANI_MESH_KEEP_LOADED = 0x08,
-    W8_ANI_MESH_FLAG_10 = 0x10,
+    W8_ANI_MESH_CACHE_PROTECTED = 0x10, /* excluded from memory-limit eviction */
     W8_ANI_MESH_SINGLE_INSTANCE = 0x20,
 };
 
@@ -60,7 +60,7 @@ unsigned char AniMeshValue(W8AniMesh* mesh);
 bool AniMeshRadius(W8AniMesh* mesh, float* radius);
 /* Two parameters, not three: the retail body reads its flag from the second
    stack slot, and GrCycle's 0x004A7470 pushes exactly the pair. */
-void AniMeshSetFlag10(W8AniMesh* mesh, bool enabled);
+void SetAniMeshCacheProtected(W8AniMesh* mesh, bool enabled);
 void EnforceAniMeshMemoryLimit(W8AniMesh* current);
 
 #endif
