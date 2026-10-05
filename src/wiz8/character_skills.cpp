@@ -255,7 +255,7 @@ bool CharacterHasTrait(const W8Character* character, W8Trait trait)
     if (character == 0) {
         return false;
     }
-    if (character->iProfession != -1) {
+    if (character->iProfession != W8_PROFESSION_NONE) {
         const W8Trait* abilities = g_profession_abilities[character->iProfession].ability_ids;
         for (index = 0; index < 3; ++index) {
             if (abilities[index] == trait) {
@@ -263,7 +263,7 @@ bool CharacterHasTrait(const W8Character* character, W8Trait trait)
             }
         }
     }
-    if (character->iRace != -1) {
+    if (character->iRace != W8_RACE_NONE) {
         const W8Trait* abilities = g_race_abilities[character->iRace].ability_ids;
         for (index = 0; index < 5; ++index) {
             if (abilities[index] == trait) {

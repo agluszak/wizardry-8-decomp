@@ -746,8 +746,8 @@ void DrawCampEquipmentItems(void)
     if ((state->item_redraw_flags & W8_CAMP_ITEM_REDRAW_PAPER_DOLL) != 0) {
         DrawCatalogImageAndInvalidate(-14, 0x114, 0, 2, 0x71, 0xa5, 2, 0);
         DrawCatalogImageAndInvalidate(
-            -14, g_race_portrait_images[character->iRace * 3 + character->gender], 0, 0, 0xc2, 0xa5,
-            2, 0);
+            -14, g_race_portrait_images[character->iRace * W8_RACE_GNOME + character->gender], 0, 0,
+            0xc2, 0xa5, 2, 0);
         state->redraw_flags |= W8_CAMP_REDRAW_ACTION_PANEL;
     }
     for (slot = 0; slot < 12; ++slot) {
@@ -1216,7 +1216,7 @@ void W8CampItemRange::OnRangeChanged(W8RangeControl*)
 }
 
 // FUNCTION: WIZ8 0x005b7090
-W8CampSpellRange::W8CampSpellRange(int realm)
+W8CampSpellRange::W8CampSpellRange(W8SpellRealm realm)
 {
     m_realm = realm;
     int x = (realm % 3) * 0xd5;
@@ -1347,7 +1347,8 @@ unsigned char CampScreenEnter(void)
     g_camp_screen->item_mode = 0;
     g_camp_screen->item_range = new W8CampItemRange;
     for (int range_index = 0; range_index < 6; ++range_index) {
-        g_camp_screen->spell_ranges[range_index] = new W8CampSpellRange(range_index);
+        g_camp_screen->spell_ranges[range_index] =
+            new W8CampSpellRange(static_cast<W8SpellRealm>(range_index));
     }
     g_camp_screen->effect_list = 0;
     g_camp_screen->effect_items_only = 1;

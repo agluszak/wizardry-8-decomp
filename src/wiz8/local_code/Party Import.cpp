@@ -241,7 +241,7 @@ void ImportWizardry7Character(W8Character* character, W8Wiz7Character* imported)
     memset(character, 0, sizeof(W8Character));
     swprintf(character->name, g_combat_log_format, TitleCaseString(imported->name));
     wcscpy(character->name_part_2, character->name);
-    character->iRace = imported->race;
+    character->iRace = static_cast<W8Race>(imported->race);
     character->gender = static_cast<W8Gender>(imported->gender);
     switch (imported->profession) {
     default:
@@ -608,7 +608,7 @@ void ImportEquipment(W8Character* character, const W8Wiz7Character* imported)
         }
     }
     profession = W8_PROFESSION_COUNT;
-    if (character->iRace != 5) {
+    if (character->iRace != W8_RACE_FAERIE) {
         profession = character->iProfession;
     }
     starting = g_starting_equipment[profession];
@@ -860,7 +860,7 @@ unsigned int ConvertSkill(W8Skill skill_id, W8Character* character, const W8Wiz7
         base_value = imported->skills[mapped];
         if (0x17 < static_cast<unsigned int>(skill_id) &&
             static_cast<unsigned int>(skill_id) < W8_SKILL_FIRE_MAGIC) {
-            if (character->iProfession == 0xc &&
+            if (character->iProfession == W8_PROFESSION_BISHOP &&
                 (skill_id == W8_SKILL_SPELLBOOK_ALCHEMY ||
                  skill_id == W8_SKILL_SPELLBOOK_PSIONICS) &&
                 base_value == 0) {

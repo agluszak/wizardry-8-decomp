@@ -762,9 +762,9 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, bool direction,
                             observer_position, target_position, yaw,
                             character->attributes[W8_ATTRIBUTE_SENSES].effective,
                             static_cast<unsigned char>(character->skills[W8_SKILL_SCOUTING].level),
-                            character->uiCondition[12] != 0, character->iProfession == 6,
-                            record->effective_level, npc_fade_flag,
-                            static_cast<int>(monster_info->party_threat.sight_state),
+                            character->uiCondition[12] != 0,
+                            character->iProfession == W8_PROFESSION_MONK, record->effective_level,
+                            npc_fade_flag, static_cast<int>(monster_info->party_threat.sight_state),
                             g_status.party_modifiers.sight_override, distance);
 
                         if (g_status.search_mode != 0) {

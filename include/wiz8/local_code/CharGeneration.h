@@ -39,7 +39,7 @@ void InitializeCharacterCreation(W8Character*, W8CharacterCreationState*);
 void InitializeCharacterLevelUp(W8Character*, W8CharacterCreationState*);
 void ApplyRaceProfessionTables(W8Character*, W8CharacterCreationState*);
 void RebuildLevelUpPoolsForProfession(W8Character*, W8CharacterCreationState*, W8Profession);
-void SetCharacterRace(W8Character*, W8CharacterCreationState*, int);
+void SetCharacterRace(W8Character*, W8CharacterCreationState*, W8Race);
 void SetCharacterGender(W8Character*, W8CharacterCreationState*, W8Gender);
 void PayDownAttributeDebt(W8Character*, W8CharacterCreationState*);
 void DetermineEligibleProfessions(W8Character*, W8CharacterCreationState*, unsigned char*);

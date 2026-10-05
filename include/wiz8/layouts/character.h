@@ -157,7 +157,7 @@ struct W8Character {
     W8Profession original_profession; /* 0x006d */
     /* 0x0071: iRace, spelled by the assertion bounding it against
        PC_RACE_COUNT; indexes the race resistance table. */
-    int iRace;
+    W8Race iRace;
     /* 0x0075: zero is male and one is female. The quote lookup names the
        Data\Quotes\PCs files m_ or f_ from it, the item record's two-bit mask
        admits exactly one sex, and the female-only profession at index two

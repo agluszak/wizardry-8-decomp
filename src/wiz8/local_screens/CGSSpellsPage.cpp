@@ -415,7 +415,7 @@ void W8CharacterSpellsPage::UpdateSpellLists()
                     case -1:
                     case 2:
                         if (pass == 0) {
-                            m_SpellData[entry].realm = realm;
+                            m_SpellData[entry].realm = static_cast<W8SpellRealm>(realm);
                             m_SpellData[entry].spell = spell;
                             m_SpellData[entry].fSelectable = 1;
                             m_SpellData[entry].selected =
@@ -425,7 +425,7 @@ void W8CharacterSpellsPage::UpdateSpellLists()
                         break;
                     case 1:
                         if (pass == 1) {
-                            m_SpellData[entry].realm = realm;
+                            m_SpellData[entry].realm = static_cast<W8SpellRealm>(realm);
                             m_SpellData[entry].spell = spell;
                             m_SpellData[entry].fSelectable = 0;
                             m_SpellData[entry].selected = 0;

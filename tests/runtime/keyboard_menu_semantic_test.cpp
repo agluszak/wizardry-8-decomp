@@ -86,7 +86,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     W8ItemDatabaseRecord saved_item_record;
     W8Profession saved_profession0;
     W8Gender saved_gender0;
-    int saved_race0;
+    W8Race saved_race0;
     int saved_item_id;
     int saved_item_target_char;
     W8SpellTargetType saved_target_type;
@@ -298,7 +298,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     g_status.buffers.Char[0].backpack[0].uses_or_charges = 1;
     g_status.buffers.Char[0].iProfession = static_cast<W8Profession>(0);
     g_status.buffers.Char[0].gender = static_cast<W8Gender>(0);
-    g_status.buffers.Char[0].iRace = 0;
+    g_status.buffers.Char[0].iRace = W8_RACE_HUMAN;
     g_status.buffers.Char[0].uiCondition[W8_CONDITION_SILENCED] = 0;
     g_status.buffers.XChar[0].item_origin = W8_ITEM_ORIGIN_BACKPACK;
     g_status.buffers.XChar[0].item_slot = 0;

@@ -461,7 +461,8 @@ bool FormatCharacterQuoteText(W8Character* character, unsigned int event_type,
         has_npc = npc_index != -1;
     }
     if (!has_npc) {
-        char gender_code = static_cast<char>(((character->gender != 0) - 1U & 7) + 0x66);
+        char gender_code =
+            static_cast<char>(((character->gender != W8_GENDER_MALE) - 1U & 7) + 0x66);
         sprintf(path, "Data\\Quotes\\PCs\\%c_%s%d0.MSG", gender_code,
                 g_quote_personality_names[character->personality],
                 (character->voice != 0) + 1);
@@ -750,7 +751,8 @@ unsigned char W8CharacterEvent::PlayEventSound()
     }
     if (npc_index == -1 || g_status.game_started == 0 ||
         g_current_screen_state.id == W8_SCREEN_CHARACTER) {
-        char gender_code = static_cast<char>(((character->gender != 0) - 1U & 7) + 0x66);
+        char gender_code =
+            static_cast<char>(((character->gender != W8_GENDER_MALE) - 1U & 7) + 0x66);
         sprintf(voice_stem, "%c_%s%d0", gender_code,
                 g_quote_personality_names[character->personality], character->voice + 1);
         sprintf(sound_path, "Data\\Sound\\PCs\\%s\\%s_%03d.wav", voice_stem, voice_stem,
@@ -1501,7 +1503,7 @@ void QueuePartyDeathReaction(unsigned int party_slot)
         effect = g_effect12;
     } else {
         effect = g_effect10;
-        if (g_status.buffers.Char[party_slot].gender != 0) {
+        if (g_status.buffers.Char[party_slot].gender != W8_GENDER_MALE) {
             effect = g_effect11;
         }
     }

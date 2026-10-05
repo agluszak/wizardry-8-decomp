@@ -1832,7 +1832,7 @@ void ProcessMessageBoxQueue(void)
         if (eligible > 1) {
             for (party_slot = 0; party_slot < 8; ++party_slot) {
                 W8Character* character = &g_status.buffers.Char[party_slot];
-                if (g_status.buffers.XChar[party_slot].fOccupied != 0 && character->iRace == 10 &&
+                if (g_status.buffers.XChar[party_slot].fOccupied != 0 && character->iRace == W8_RACE_MOOK &&
                     character->highest_condition < W8_CONDITION_ASLEEP) {
                     QueueCharacterEvent(character, g_effect31,
                                         g_character_event_no_npc_defer, g_character_event_no_flags,

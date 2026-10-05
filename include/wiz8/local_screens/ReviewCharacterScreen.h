@@ -1,5 +1,7 @@
 #pragma once
 
+#include "wiz8/layouts/gameplay_databases.h"
+
 #include "timer.h"
 #include "wiz8/local_code/RangeControl.h"
 #include "wiz8/dialog_code/DialogBase.h"
@@ -37,10 +39,10 @@ public:
 // VTABLE: WIZ8 0x005ef298
 class W8CampSpellRange : public W8CampRangeListener {
 public:
-    explicit W8CampSpellRange(int realm);
+    explicit W8CampSpellRange(W8SpellRealm realm);
     ~W8CampSpellRange();
     virtual void OnRangeChanged(W8RangeControl* control) override;
-    int m_realm;
+    W8SpellRealm m_realm;
 };
 
 // VTABLE: WIZ8 0x005ef278 Controls

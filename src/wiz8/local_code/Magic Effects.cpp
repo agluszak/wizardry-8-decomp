@@ -977,12 +977,12 @@ void RecalculateCharacterResistances(W8Character* character)
         if (character->skills[W8_SKILL_IRON_WILL].active != 0) {
             resistance->base += character->skills[W8_SKILL_IRON_WILL].level / 5 + 5;
         }
-        if (character->iProfession == 14) {
+        if (character->iProfession == W8_PROFESSION_MAGE) {
             resistance->base += 5;
         }
     }
 
-    if (character->iRace != -1) {
+    if (character->iRace != W8_RACE_NONE) {
         for (index = 0; index < W8_RESISTANCE_COUNT; ++index) {
             channel =
                 g_race_resistance_profiles[character->iRace].adjustments[index].resistance_index;

@@ -109,7 +109,7 @@ unsigned char EvaluateFact(W8FactId fact_id)
         case W8_FACT_MOOK_MOOK_IN_PARTY: {
             unsigned int slot = 0;
             while (g_status.buffers.XChar[slot].fOccupied == 0 ||
-                   g_status.buffers.Char[slot].iRace != 10 ||
+                   g_status.buffers.Char[slot].iRace != W8_RACE_MOOK ||
                    g_status.buffers.Char[slot].highest_condition > W8_CONDITION_WEBBED) {
                 if (slot >= 7) {
                     return 0;

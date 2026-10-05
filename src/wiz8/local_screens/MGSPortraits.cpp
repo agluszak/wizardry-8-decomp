@@ -841,8 +841,9 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, bool highlighted, bool 
                                  menu_y, 2, 0);
 
                 if (main_hand_item_id == -1) {
-                    DrawCatalogImage(-14, g_empty_hand_catalog_ids[character->iRace * 2], 0, 0,
-                                     band_menu_edge + 4, menu_y + 0x17, 2, 0);
+                    DrawCatalogImage(-14,
+                                     g_empty_hand_catalog_ids[character->iRace * W8_RACE_DWARF], 0,
+                                     0, band_menu_edge + 4, menu_y + 0x17, 2, 0);
                 } else {
                     DrawCatalogImage(-14,
                                      g_item_video_objects.GetOrCreateVideoObject(main_hand_item_id),
@@ -864,8 +865,9 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, bool highlighted, bool 
                     off_hand_item_id =
                         character->EquippedItem[W8_EQUIP_SLOT_SECONDARY_WEAPON].iItemNo;
                     if (off_hand_item_id == -1) {
-                        DrawCatalogImage(-14, g_empty_hand_catalog_ids[character->iRace * 2 + 1], 0,
-                                         0, band_menu_edge + 4, menu_y + 0x2f, 2, 0);
+                        DrawCatalogImage(
+                            -14, g_empty_hand_catalog_ids[character->iRace * W8_RACE_DWARF + 1], 0,
+                            0, band_menu_edge + 4, menu_y + 0x2f, 2, 0);
                     } else {
                         DrawCatalogImage(
                             -14, g_item_video_objects.GetOrCreateVideoObject(off_hand_item_id), 0,

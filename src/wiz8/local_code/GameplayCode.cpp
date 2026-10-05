@@ -181,32 +181,33 @@ void CalcXPGoal(W8Character* character)
     if (character->uiExpLevel == 0) {
         srAssertFail("pPC->uiExpLevel > 0", GAMEPLAY_CODE_CPP, 0x726, 0);
     }
-    if (character->iProfession < 0 || character->iProfession >= W8_PROFESSION_COUNT) {
+    if (character->iProfession < W8_PROFESSION_FIGHTER ||
+        character->iProfession >= W8_PROFESSION_COUNT) {
         srAssertFail("(pPC->iProfession >= 0) && (pPC->iProfession < PROF_COUNT)",
                      GAMEPLAY_CODE_CPP, 0x727, 0);
     }
     switch (character->iProfession) {
-    case 0:
-    case 7:
-    case 8:
-    case 9:
+    case W8_PROFESSION_FIGHTER:
+    case W8_PROFESSION_ROGUE:
+    case W8_PROFESSION_GADGETEER:
+    case W8_PROFESSION_BARD:
         weight = 1000;
         break;
-    case 10:
-    case 0xb:
-    case 0xd:
-    case 0xe:
+    case W8_PROFESSION_PRIEST:
+    case W8_PROFESSION_ALCHEMIST:
+    case W8_PROFESSION_PSIONIC:
+    case W8_PROFESSION_MAGE:
         weight = 0x4b0;
         break;
-    case 1:
-    case 2:
-    case 3:
-    case 4:
-    case 6:
+    case W8_PROFESSION_LORD:
+    case W8_PROFESSION_VALKYRIE:
+    case W8_PROFESSION_RANGER:
+    case W8_PROFESSION_SAMURAI:
+    case W8_PROFESSION_MONK:
         weight = 0x578;
         break;
-    case 5:
-    case 0xc:
+    case W8_PROFESSION_NINJA:
+    case W8_PROFESSION_BISHOP:
         weight = 0x640;
         break;
     default:
@@ -380,7 +381,7 @@ void CalcCharacterLevelBand(W8Character* character)
 // FUNCTION: WIZ8 0x004ef950
 void CalcCharacterTableValue(W8Character* character)
 {
-    if (character->iRace > 10) {
+    if (character->iRace > W8_RACE_MOOK) {
         srAssertFail("pPC->iRace < PC_RACE_COUNT", GAMEPLAY_CODE_CPP, 2359, 0);
     }
     character->portrait_index =
@@ -421,13 +422,14 @@ int CalcPhysCombatExperience(W8Character* character)
     unsigned int profession;
     int levels;
 
-    if (character->iProfession == -1) {
+    if (character->iProfession == W8_PROFESSION_NONE) {
         return 0;
     }
     if (character == 0) {
         srAssertFail("pPC != NULL", GAMEPLAY_CODE_CPP, 398, 0);
     }
-    if (character->iProfession < 0 || character->iProfession > 14) {
+    if (character->iProfession < W8_PROFESSION_FIGHTER ||
+        character->iProfession > W8_PROFESSION_MAGE) {
         srAssertFail("(pPC->iProfession >= 0) && (pPC->iProfession < PROF_COUNT)",
                      GAMEPLAY_CODE_CPP, 399, 0);
     }
@@ -640,7 +642,7 @@ void CalcAttacks(W8Character* character)
                                 attack->combined_skill * 2 + physical_experience) /
                                    3 +
                                60;
-        if (character->fInParty && character->iRace == 15) {
+        if (character->fInParty && character->iRace == W8_RACE_ANDROID) {
             unsigned int party_slot = CharacterPointerToPartySlot(character);
             W8NpcState* npc = GetNpcState(g_status.buffers.XChar[party_slot].npc_index);
             if (npc != 0 && npc->name_style == W8_NPC_RFS81_A &&
@@ -942,9 +944,9 @@ void DeriveCharacterPersonality(W8Character* character)
         case 1:
         case 3:
         case 7:
-            if (character->iRace == 2) {
+            if (character->iRace == W8_RACE_DWARF) {
                 value = 0x10;
-            } else if (character->iRace == 6) {
+            } else if (character->iRace == W8_RACE_LIZARDMAN) {
                 value = 0x0f;
             }
             break;

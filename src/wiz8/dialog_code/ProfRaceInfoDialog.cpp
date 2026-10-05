@@ -221,7 +221,7 @@ void W8ProfRaceInfoDialogBase::ScrollCallback(W8DialogScrollBar* scroll_bar,
 /* Copies the row straight out of the table: every profession has minimums, so
    there is no per-entry test the way the race dialog needs one. */
 // FUNCTION: WIZ8 0x005df0d0
-W8ProfessionInfoDialog::W8ProfessionInfoDialog(unsigned int uiIndex)
+W8ProfessionInfoDialog::W8ProfessionInfoDialog(W8Profession uiIndex)
 {
     if (uiIndex >= W8_PROFESSION_COUNT) {
         srAssertFail("uiIndex < PROF_COUNT", PROF_RACE_INFO_DIALOG_CPP, 0x123, 0);
@@ -302,7 +302,7 @@ unsigned char W8ProfessionInfoDialog::PopulateText()
    rest show -1, so the copy is a counted loop with the test inside it rather
    than the profession dialog's straight block move. */
 // FUNCTION: WIZ8 0x005df570
-W8RaceInfoDialog::W8RaceInfoDialog(unsigned int uiIndex)
+W8RaceInfoDialog::W8RaceInfoDialog(W8Race uiIndex)
 {
     if (uiIndex >= RACE_COUNT) {
         srAssertFail("uiIndex < RACE_COUNT", PROF_RACE_INFO_DIALOG_CPP, 0x199, 0);

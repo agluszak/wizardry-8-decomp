@@ -233,7 +233,7 @@ static_assert(sizeof(W8CharacterStatsPage) == 0xa0, "W8CharacterStatsPage_size")
 W8_ASSERT_BASE_END(W8CharacterStatsPage, W8TextControl::Listener, m_profession_row, 0x78);
 
 struct W8CharacterSpellEntry {
-    int realm;
+    W8SpellRealm realm;
     unsigned int spell;
     bool fSelectable;
     bool selected;
@@ -393,8 +393,8 @@ class W8CharacterPageHost {
 public:
     virtual void UpdateNavigation(W8CharacterPage* page) = 0;
     virtual void ShowSpellInfo(int value) = 0;
-    virtual void ShowProfessionInfo(unsigned int profession) = 0;
-    virtual void ShowRaceInfo(unsigned int race) = 0;
+    virtual void ShowProfessionInfo(W8Profession profession) = 0;
+    virtual void ShowRaceInfo(W8Race race) = 0;
     virtual void ShowPrimaryAttributeInfo(W8Attribute attribute) = 0;
     virtual void ShowSecondaryAttributeInfo(unsigned int attribute) = 0;
     virtual void ShowSkillInfo(W8Skill value) = 0;
@@ -421,8 +421,8 @@ public:
 
     virtual void UpdateNavigation(W8CharacterPage* page) override;
     virtual void ShowSpellInfo(int value) override;
-    virtual void ShowProfessionInfo(unsigned int profession) override;
-    virtual void ShowRaceInfo(unsigned int race) override;
+    virtual void ShowProfessionInfo(W8Profession profession) override;
+    virtual void ShowRaceInfo(W8Race race) override;
     virtual void ShowPrimaryAttributeInfo(W8Attribute attribute) override;
     virtual void ShowSecondaryAttributeInfo(unsigned int attribute) override;
     virtual void ShowSkillInfo(W8Skill value) override;

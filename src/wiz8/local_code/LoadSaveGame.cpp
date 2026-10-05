@@ -2114,7 +2114,8 @@ void LoadGameStatus(W8Chunk* chunks, W8GlobalStatus* status)
             srAssertFail("uiSize <= sizeof(*&pStatus->Char[uiChar])", LOADSAVEGAME_CPP, 0xce4, 0);
         }
         chunks->Read(character, size, 0);
-        if (character->record_version < 2 && character->original_profession == 0 &&
+        if (character->record_version < 2 &&
+            character->original_profession == W8_PROFESSION_FIGHTER &&
             character->profession_levels[0] == 0) {
             character->original_profession = character->iProfession;
         }

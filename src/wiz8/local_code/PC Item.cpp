@@ -879,14 +879,14 @@ bool CanCharacterUseItem(const W8Character* character, int item_id)
     unsigned int spell_id;
     unsigned int minimum_caster_level;
 
-    if ((record->profession_mask & (1 << character->iProfession)) == 0) {
+    if ((record->profession_mask & (W8_PROFESSION_LORD << character->iProfession)) == 0) {
         return false;
     }
-    if ((record->race_mask & (1 << character->iRace)) == 0) {
+    if ((record->race_mask & (W8_RACE_ELF << character->iRace)) == 0) {
         return false;
     }
     if (record->gender_mask != W8_ITEM_GENDER_MASK_ANY &&
-        (record->gender_mask & (1 << character->gender)) == 0) {
+        (record->gender_mask & (W8_GENDER_FEMALE << character->gender)) == 0) {
         return false;
     }
 
