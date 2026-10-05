@@ -42,7 +42,7 @@ public:
                the flags dword of the embedded pixel format. */
             Info()
             {
-                pixel_format.flags = 0;
+                pixel_format.fourcc = 0;
             }
         };
 

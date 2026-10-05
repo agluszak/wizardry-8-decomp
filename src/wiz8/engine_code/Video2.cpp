@@ -3671,12 +3671,12 @@ srNode* MakePosterQuad(srTextureIFace* texture, float width, float height, bool 
     srPtr<srPalette> palette;
     srTextureIFace::Dimensions dimensions;
     srPixelConvert::PixelFormat format;
-    format.flags = 0;
+    format.fourcc = 0;
     dimensions.width = 64;
     dimensions.height = 64;
     palette = srCore.getPalette();
     srFilter* filter = srCore.getFilter();
-    srPixelConvert::mapPixelFormat(static_cast<srPixelConvert::e_surfaceType>(0xb), format);
+    srPixelConvert::mapPixelFormat(srPixelConvert::SURFACE_ARGB4444, format);
 
     stMeshModel* model = SR_NEW(stMeshModel)(0, 0);
     if (model == 0) {

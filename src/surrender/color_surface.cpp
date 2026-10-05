@@ -184,7 +184,7 @@ double srColorSurfaceIFace::getAspectRatio() const
 // FUNCTION: SURRENDER 0x10059890
 long srColorSurfaceIFace::getBitsPerPixel() const
 {
-    return (pixel_format.bytes_per_pixel_minus_one + 1) * 8;
+    return (pixel_format.pixel_size + 1) * 8;
 }
 
 // FUNCTION: SURRENDER 0x100598A0
@@ -196,7 +196,7 @@ long srColorSurfaceIFace::getBlueBits() const
 // FUNCTION: SURRENDER 0x100598B0
 long srColorSurfaceIFace::getBytesPerPixel() const
 {
-    return pixel_format.bytes_per_pixel_minus_one + 1;
+    return pixel_format.pixel_size + 1;
 }
 
 // FUNCTION: SURRENDER 0x100598C0
@@ -238,7 +238,7 @@ int srColorSurfaceIFace::isAlpha() const
 // FUNCTION: SURRENDER 0x10059A80
 int srColorSurfaceIFace::isPaletted() const
 {
-    return pixel_format.conversion_class == 3;
+    return pixel_format.color_model == srPixelConvert::COLOR_INDEXED;
 }
 
 // FUNCTION: SURRENDER 0x10059AA0
@@ -450,14 +450,14 @@ unsigned long srColorSurfaceIFace::getPixelRaw(long x, long y)
 {
     unsigned long pixel;
     getPixelRowRaw(&pixel, y, x, x + 1);
-    switch (pixel_format.bytes_per_pixel_minus_one) {
-    case 0:
+    switch (pixel_format.pixel_size) {
+    case srPixelConvert::PIXEL_SIZE_8:
         return pixel & 0xff;
-    case 1:
+    case srPixelConvert::PIXEL_SIZE_16:
         return pixel & 0xffff;
-    case 2:
+    case srPixelConvert::PIXEL_SIZE_24:
         return pixel & 0xffffff;
-    case 3:
+    case srPixelConvert::PIXEL_SIZE_32:
         return pixel;
     }
     return 0;
@@ -469,20 +469,20 @@ void srColorSurfaceIFace::setPixelRaw(long x, long y, unsigned long pixel)
     /* reinterpret-ok: the retail setter writes only the pixel word's low bytes
        for each raw format before passing that same word to setPixelRowRaw. */
     unsigned char* bytes = reinterpret_cast<unsigned char*>(&pixel);
-    switch (pixel_format.bytes_per_pixel_minus_one) {
-    case 0:
+    switch (pixel_format.pixel_size) {
+    case srPixelConvert::PIXEL_SIZE_8:
         bytes[0] = static_cast<unsigned char>(pixel);
         break;
-    case 1:
+    case srPixelConvert::PIXEL_SIZE_16:
         /* reinterpret-ok: a two-byte write into the raw pixel word. */
         *reinterpret_cast<unsigned short*>(bytes) = static_cast<unsigned short>(pixel);
         break;
-    case 2:
+    case srPixelConvert::PIXEL_SIZE_24:
         bytes[0] = static_cast<unsigned char>(pixel);
         bytes[1] = static_cast<unsigned char>(pixel >> 8);
         bytes[2] = static_cast<unsigned char>(pixel >> 16);
         break;
-    case 3:
+    case srPixelConvert::PIXEL_SIZE_32:
         break;
     }
     setPixelRowRaw(&pixel, y, x, x + 1);
@@ -509,7 +509,7 @@ void srColorSurfaceIFace::setPixels(const unsigned long* pixels, const srVector2
 void srColorSurfaceIFace::getPixelsRaw(void* pixels, const srVector2i* positions, long count)
 {
     unsigned char* out = (unsigned char*)pixels;
-    long bytes = pixel_format.bytes_per_pixel_minus_one + 1;
+    long bytes = pixel_format.pixel_size + 1;
     for (; count > 0; --count, ++positions, out += bytes) {
         getPixelRowRaw(out, positions->y, positions->x, positions->x + 1);
     }
@@ -519,7 +519,7 @@ void srColorSurfaceIFace::getPixelsRaw(void* pixels, const srVector2i* positions
 void srColorSurfaceIFace::setPixelsRaw(const void* pixels, const srVector2i* positions, long count)
 {
     const unsigned char* in = (const unsigned char*)pixels;
-    long bytes = pixel_format.bytes_per_pixel_minus_one + 1;
+    long bytes = pixel_format.pixel_size + 1;
     for (; count > 0; --count, ++positions, in += bytes) {
         setPixelRowRaw(in, positions->y, positions->x, positions->x + 1);
     }
@@ -622,7 +622,7 @@ void srColorSurfaceIFace::swapPixelRows(long x0, long y0, long x1, long y1, long
                 count = width - x1;
             }
             if (count > 0) {
-                long bytes = (pixel_format.bytes_per_pixel_minus_one + 1) * count;
+                long bytes = (pixel_format.pixel_size + 1) * count;
                 unsigned char* buffer = static_cast<unsigned char*>(::operator new(bytes * 2));
                 unsigned char* second = buffer + bytes;
                 getPixelRowRaw(buffer, y0, x0, x0 + count);
@@ -1076,8 +1076,8 @@ void srColorSurfaceIFace::dump(std::ostream& stream)
     stream.width(0x20);
     stream << "  Vertical clamp mode: " << (clamp_modes >> 1 & 1) << '\n';
     stream.width(0x20);
-    stream << "  Dimensions: " << width << 'x' << height << 'x'
-           << (pixel_format.bytes_per_pixel_minus_one * 8 + 8) << '\n';
+    stream << "  Dimensions: " << width << 'x' << height << 'x' << (pixel_format.pixel_size * 8 + 8)
+           << '\n';
     stream.width(0x20);
     stream << "  Pitch: " << pitch << '\n';
     stream.width(0x20);
@@ -1129,7 +1129,7 @@ srColorSurface::srColorSurface(const srPixelConvert::PixelFormat& format, unsign
                                unsigned long arg_height)
 {
     surface_flags = 0;
-    init(format, arg_width, arg_height, (format.bytes_per_pixel_minus_one + 1) * arg_width);
+    init(format, arg_width, arg_height, (format.pixel_size + 1) * arg_width);
     allocData();
     srPixelConvert::selectFuncs(format, pixel_write, pixel_read);
 }
@@ -1141,22 +1141,23 @@ srColorSurface::srColorSurface(srPixelConvert::e_surfaceType type, unsigned long
     srPixelConvert::PixelFormat format;
     surface_flags = 0;
     srPixelConvert::mapPixelFormat(type, format);
-    init(format, arg_width, arg_height, (format.bytes_per_pixel_minus_one + 1) * arg_width);
+    init(format, arg_width, arg_height, (format.pixel_size + 1) * arg_width);
     allocData();
     srPixelConvert::selectFuncs(format, pixel_write, pixel_read);
 }
 
-/* The data-taking variants adopt caller storage: flag bit 0 marks the
+/* The data-taking variants borrow caller storage: flag bit 0 marks the
    non-owning path and data_size comes straight from pitch*height. */
 // FUNCTION: SURRENDER 0x1005B9C0
-srColorSurface::srColorSurface(srPixelConvert::e_surfaceType type, void* data, unsigned long arg_width,
-                               unsigned long arg_height, unsigned long arg_pitch)
+srColorSurface::srColorSurface(srPixelConvert::e_surfaceType type, void* data,
+                               unsigned long arg_width, unsigned long arg_height,
+                               unsigned long arg_pitch)
 {
     srPixelConvert::PixelFormat format;
     surface_flags = 0;
     srPixelConvert::mapPixelFormat(type, format);
     init(format, arg_width, arg_height, arg_pitch);
-    surface_flags |= 1;
+    surface_flags |= BORROWED_DATA;
     data_size = pitch * height;
     this->data = data;
     srPixelConvert::selectFuncs(format, pixel_write, pixel_read);
@@ -1174,7 +1175,7 @@ srColorSurface& srColorSurface::operator=(const srColorSurface& other)
         surface_flags = other.surface_flags;
         pixel_write = other.pixel_write;
         pixel_read = other.pixel_read;
-        if ((surface_flags & 1) != 0) {
+        if ((surface_flags & BORROWED_DATA) != 0) {
             data_size = other.data_size;
             data = other.data;
             return *this;
@@ -1191,7 +1192,7 @@ srColorSurface::srColorSurface(const srPixelConvert::PixelFormat& format, void* 
 {
     surface_flags = 0;
     init(format, arg_width, arg_height, arg_pitch);
-    surface_flags |= 1;
+    surface_flags |= BORROWED_DATA;
     data_size = pitch * height;
     this->data = data;
     srPixelConvert::selectFuncs(format, pixel_write, pixel_read);
@@ -1230,8 +1231,7 @@ void srColorSurface::setPalette(srPalette* palette)
 // FUNCTION: SURRENDER 0x1005B5B0
 unsigned char* srColorSurface::getAddress(long x, long y)
 {
-    return (unsigned char*)data + pitch * y +
-           (pixel_format.bytes_per_pixel_minus_one + 1) * x;
+    return (unsigned char*)data + pitch * y + (pixel_format.pixel_size + 1) * x;
 }
 
 // FUNCTION: SURRENDER 0x1005B5D0
@@ -1272,7 +1272,7 @@ void srColorSurface::allocData()
 // FUNCTION: SURRENDER 0x1005B680
 void srColorSurface::freeData()
 {
-    if (!(surface_flags & 1) && data != 0) {
+    if (!(surface_flags & BORROWED_DATA) && data != 0) {
         srHeap.free(data);
         data = 0;
     }
@@ -1344,12 +1344,12 @@ int srColorSurface::resize(long arg_width, long arg_height)
         if (arg_width == width && arg_height == height) {
             return 1;
         }
-        if (!(surface_flags & 1)) {
+        if (!(surface_flags & BORROWED_DATA)) {
             freeData();
             SurfaceDesc desc;
             desc.width = arg_width;
             desc.height = arg_height;
-            desc.pitch = (pixel_format.bytes_per_pixel_minus_one + 1) * arg_width;
+            desc.pitch = (pixel_format.pixel_size + 1) * arg_width;
             desc.clamp_modes = clamp_modes;
             desc.filter = filter;
             desc.pixel_format = pixel_format;
@@ -1368,7 +1368,7 @@ int srColorSurface::rescale(long arg_width, long arg_height)
         if (arg_width == width && arg_height == height) {
             return 1;
         }
-        if (!(surface_flags & 1)) {
+        if (!(surface_flags & BORROWED_DATA)) {
             srColorSurface* scaled =
                 new srColorSurface(srPixelConvert::SURFACE_BGRA32, arg_width, arg_height);
             scaled->copySurfaceParameters(*this);
@@ -1385,7 +1385,7 @@ int srColorSurface::rescale(long arg_width, long arg_height)
 // FUNCTION: SURRENDER 0x1005BDE0
 int srColorSurface::changePixelFormat(const srPixelConvert::PixelFormat& format, int preserve)
 {
-    if (surface_flags & 1) {
+    if (surface_flags & BORROWED_DATA) {
         return 0;
     }
     if (!(format == pixel_format)) {
@@ -1396,7 +1396,7 @@ int srColorSurface::changePixelFormat(const srPixelConvert::PixelFormat& format,
         srPalette* palette = getPalette();
         unsigned long flags = surface_flags;
         freeData();
-        init(format, width, height, (format.bytes_per_pixel_minus_one + 1) * width);
+        init(format, width, height, (format.pixel_size + 1) * width);
         allocData();
         srPixelConvert::selectFuncs(format, pixel_write, pixel_read);
         setPalette(palette);
@@ -1416,7 +1416,8 @@ int srColorSurface::isCompatible(srColorSurfaceIFace& source)
         return 0;
     }
     if (pixel_format == source.pixel_format) {
-        if (pixel_format.conversion_class == 3 && source.getPalette() != getPalette()) {
+        if (pixel_format.color_model == srPixelConvert::COLOR_INDEXED &&
+            source.getPalette() != getPalette()) {
             return 0;
         }
         return source.getDataPtr() != 0;
@@ -1428,14 +1429,14 @@ int srColorSurface::isCompatible(srColorSurfaceIFace& source)
 unsigned long srColorSurface::getPixelRaw(long x, long y)
 {
     unsigned char* address = getAddress(x, y);
-    switch (pixel_format.bytes_per_pixel_minus_one) {
-    case 0:
+    switch (pixel_format.pixel_size) {
+    case srPixelConvert::PIXEL_SIZE_8:
         return *address;
-    case 1:
+    case srPixelConvert::PIXEL_SIZE_16:
         return *(unsigned short*)address;
-    case 2:
+    case srPixelConvert::PIXEL_SIZE_24:
         return address[0] | (address[1] << 8) | (address[2] << 0x10);
-    case 3:
+    case srPixelConvert::PIXEL_SIZE_32:
         return *(unsigned long*)address;
     default:
         return 0;
@@ -1446,22 +1447,22 @@ unsigned long srColorSurface::getPixelRaw(long x, long y)
 void srColorSurface::setPixelRaw(long x, long y, unsigned long pixel)
 {
     unsigned char* address = getAddress(x, y);
-    switch (pixel_format.bytes_per_pixel_minus_one) {
-    case 0:
+    switch (pixel_format.pixel_size) {
+    case srPixelConvert::PIXEL_SIZE_8:
         *address = (unsigned char)pixel;
         break;
         break;
-    case 1:
+    case srPixelConvert::PIXEL_SIZE_16:
         *(unsigned short*)address = (unsigned short)pixel;
         break;
         break;
-    case 2:
+    case srPixelConvert::PIXEL_SIZE_24:
         address[0] = (unsigned char)pixel;
         address[1] = (unsigned char)(pixel >> 8);
         address[2] = (unsigned char)(pixel >> 0x10);
         break;
         break;
-    case 3:
+    case srPixelConvert::PIXEL_SIZE_32:
         *(unsigned long*)address = pixel;
         break;
         break;
@@ -1488,7 +1489,7 @@ void srColorSurface::setPixelRow(const unsigned long* pixels, long y, long x_sta
 void srColorSurface::getPixelRowRaw(void* pixels, long y, long x_start, long x_end)
 {
     if (y >= 0 && y < height && x_start >= 0 && x_start < x_end && x_end <= width) {
-        long count = (x_end - x_start) * (pixel_format.bytes_per_pixel_minus_one + 1);
+        long count = (x_end - x_start) * (pixel_format.pixel_size + 1);
         unsigned char* address = getAddress(x_start, y);
         if (count != 0 && pixels != address) {
             srVectorProcessor::memcopy(pixels, address, count);
@@ -1500,7 +1501,7 @@ void srColorSurface::getPixelRowRaw(void* pixels, long y, long x_start, long x_e
 void srColorSurface::setPixelRowRaw(const void* pixels, long y, long x_start, long x_end)
 {
     if (y >= 0 && y < height && x_start >= 0 && x_start < x_end && x_end <= width) {
-        long count = (x_end - x_start) * (pixel_format.bytes_per_pixel_minus_one + 1);
+        long count = (x_end - x_start) * (pixel_format.pixel_size + 1);
         unsigned char* address = getAddress(x_start, y);
         if (count != 0 && address != pixels) {
             srVectorProcessor::memcopy(address, pixels, count);
@@ -1518,8 +1519,8 @@ void srColorSurface::getPixelColumn(unsigned long* pixels, long x, long y_start,
             count = 0x100;
         }
         unsigned char* address = getAddress(x, y_start);
-        switch (pixel_format.bytes_per_pixel_minus_one) {
-        case 0: {
+        switch (pixel_format.pixel_size) {
+        case srPixelConvert::PIXEL_SIZE_8: {
             unsigned long i = 0;
             if (count != 0) {
                 do {
@@ -1530,7 +1531,7 @@ void srColorSurface::getPixelColumn(unsigned long* pixels, long x, long y_start,
             }
             break;
         }
-        case 1: {
+        case srPixelConvert::PIXEL_SIZE_16: {
             if (count != 0) {
                 unsigned char* out = buffer;
                 unsigned long i = count;
@@ -1543,7 +1544,7 @@ void srColorSurface::getPixelColumn(unsigned long* pixels, long x, long y_start,
             }
             break;
         }
-        case 2: {
+        case srPixelConvert::PIXEL_SIZE_24: {
             if (count != 0) {
                 unsigned char* out = buffer;
                 unsigned long i = count;
@@ -1558,7 +1559,7 @@ void srColorSurface::getPixelColumn(unsigned long* pixels, long x, long y_start,
             }
             break;
         }
-        case 3: {
+        case srPixelConvert::PIXEL_SIZE_32: {
             if (count != 0) {
                 unsigned char* out = buffer;
                 unsigned long i = count;
@@ -1588,8 +1589,8 @@ void srColorSurface::setPixelColumn(const unsigned long* pixels, long x, long y_
         }
         convertFromARGB8888(buffer, pixels, count);
         unsigned char* address = getAddress(x, y_start);
-        switch (pixel_format.bytes_per_pixel_minus_one) {
-        case 0: {
+        switch (pixel_format.pixel_size) {
+        case srPixelConvert::PIXEL_SIZE_8: {
             unsigned long i = 0;
             if (count != 0) {
                 do {
@@ -1600,7 +1601,7 @@ void srColorSurface::setPixelColumn(const unsigned long* pixels, long x, long y_
             }
             break;
         }
-        case 1: {
+        case srPixelConvert::PIXEL_SIZE_16: {
             if (count != 0) {
                 const unsigned char* in = buffer;
                 unsigned long i = count;
@@ -1613,7 +1614,7 @@ void srColorSurface::setPixelColumn(const unsigned long* pixels, long x, long y_
             }
             break;
         }
-        case 2: {
+        case srPixelConvert::PIXEL_SIZE_24: {
             if (count != 0) {
                 const unsigned char* in = buffer;
                 unsigned long i = count;
@@ -1628,7 +1629,7 @@ void srColorSurface::setPixelColumn(const unsigned long* pixels, long x, long y_
             }
             break;
         }
-        case 3: {
+        case srPixelConvert::PIXEL_SIZE_32: {
             if (count != 0) {
                 const unsigned char* in = buffer;
                 unsigned long i = count;
@@ -1691,20 +1692,20 @@ void srColorSurface::getPixelsRaw(void* pixels, const srVector2i* positions, lon
 {
     unsigned char* out = (unsigned char*)pixels;
     unsigned long pixel_count = static_cast<unsigned long>(count);
-    switch (pixel_format.bytes_per_pixel_minus_one) {
-    case 0: {
+    switch (pixel_format.pixel_size) {
+    case srPixelConvert::PIXEL_SIZE_8: {
         for (unsigned long i = 0; i < pixel_count; ++i, ++positions, ++out) {
             *out = *getAddress(positions->x, positions->y);
         }
         break;
     }
-    case 1: {
+    case srPixelConvert::PIXEL_SIZE_16: {
         for (unsigned long i = 0; i < pixel_count; ++i, ++positions, out += 2) {
             *(unsigned short*)out = *(unsigned short*)getAddress(positions->x, positions->y);
         }
         break;
     }
-    case 2: {
+    case srPixelConvert::PIXEL_SIZE_24: {
         for (unsigned long i = 0; i < pixel_count; ++i, ++positions, out += 3) {
             const unsigned char* address = getAddress(positions->x, positions->y);
             out[0] = address[0];
@@ -1713,7 +1714,7 @@ void srColorSurface::getPixelsRaw(void* pixels, const srVector2i* positions, lon
         }
         break;
     }
-    case 3: {
+    case srPixelConvert::PIXEL_SIZE_32: {
         for (unsigned long i = 0; i < pixel_count; ++i, ++positions, out += 4) {
             *(unsigned long*)out = *(unsigned long*)getAddress(positions->x, positions->y);
         }
@@ -1727,20 +1728,20 @@ void srColorSurface::setPixelsRaw(const void* pixels, const srVector2i* position
 {
     const unsigned char* in = (const unsigned char*)pixels;
     unsigned long pixel_count = static_cast<unsigned long>(count);
-    switch (pixel_format.bytes_per_pixel_minus_one) {
-    case 0: {
+    switch (pixel_format.pixel_size) {
+    case srPixelConvert::PIXEL_SIZE_8: {
         for (unsigned long i = 0; i < pixel_count; ++i, ++positions, ++in) {
             *getAddress(positions->x, positions->y) = *in;
         }
         break;
     }
-    case 1: {
+    case srPixelConvert::PIXEL_SIZE_16: {
         for (unsigned long i = 0; i < pixel_count; ++i, ++positions, in += 2) {
             *(unsigned short*)getAddress(positions->x, positions->y) = *(const unsigned short*)in;
         }
         break;
     }
-    case 2: {
+    case srPixelConvert::PIXEL_SIZE_24: {
         for (unsigned long i = 0; i < pixel_count; ++i, ++positions, in += 3) {
             unsigned char* address = getAddress(positions->x, positions->y);
             address[0] = in[0];
@@ -1749,7 +1750,7 @@ void srColorSurface::setPixelsRaw(const void* pixels, const srVector2i* position
         }
         break;
     }
-    case 3: {
+    case srPixelConvert::PIXEL_SIZE_32: {
         for (unsigned long i = 0; i < pixel_count; ++i, ++positions, in += 4) {
             *(unsigned long*)getAddress(positions->x, positions->y) = *(const unsigned long*)in;
         }
@@ -1810,8 +1811,8 @@ static void reversePixelTriplets(unsigned char* pixels, unsigned long count)
 void srColorSurface::reversePixels(void* pixels, unsigned long count)
 {
     unsigned char* address = (unsigned char*)pixels;
-    switch (pixel_format.bytes_per_pixel_minus_one) {
-    case 0: {
+    switch (pixel_format.pixel_size) {
+    case srPixelConvert::PIXEL_SIZE_8: {
         unsigned long half = count >> 1;
         unsigned long i = 0;
         for (; i < (half & ~3UL); i += 4) {
@@ -1835,7 +1836,7 @@ void srColorSurface::reversePixels(void* pixels, unsigned long count)
         }
         break;
     }
-    case 1: {
+    case srPixelConvert::PIXEL_SIZE_16: {
         unsigned long half = count >> 1;
         unsigned short* row = (unsigned short*)address;
         unsigned long i = 0;
@@ -1860,10 +1861,10 @@ void srColorSurface::reversePixels(void* pixels, unsigned long count)
         }
         break;
     }
-    case 2:
+    case srPixelConvert::PIXEL_SIZE_24:
         reversePixelTriplets(address, count);
         break;
-    case 3:
+    case srPixelConvert::PIXEL_SIZE_32:
         if (count != 0) {
             srVectorProcessor::reverse((SRDWORD*)address, (const SRDWORD*)address, count);
         }
@@ -1895,7 +1896,7 @@ void srColorSurface::swapPixelRows(long x0, long y0, long x1, long y1, long coun
             }
             if (count > 0) {
                 srVectorProcessor::swap(getAddress(x0, y0), getAddress(x1, y1),
-                                        (pixel_format.bytes_per_pixel_minus_one + 1) * count);
+                                        (pixel_format.pixel_size + 1) * count);
             }
         }
     }
@@ -1922,7 +1923,7 @@ void srColorSurface::flipRectangle(const Rectangle& rectangle)
         unsigned long width = x_hi - x_lo;
         unsigned long height = y_hi - y_lo;
         if (width != 0 && height != 0) {
-            int bpp = pixel_format.bytes_per_pixel_minus_one;
+            int bpp = pixel_format.pixel_size;
             long middle = y_lo + (long)height / 2;
             unsigned char* base = (unsigned char*)data + (bpp + 1) * x_lo;
             unsigned long mirror = height;
@@ -1968,14 +1969,14 @@ void srColorSurface::setHLine(long y, long x_start, long x_end, unsigned long pi
             setPixel(x_start, y, pixel);
             unsigned long raw = getPixelRaw(x_start, y);
             unsigned char* address = getAddress(x_start, y);
-            switch (pixel_format.bytes_per_pixel_minus_one) {
-            case 0:
+            switch (pixel_format.pixel_size) {
+            case srPixelConvert::PIXEL_SIZE_8:
                 if (x_hi - x_start != 0) {
                     srVectorProcessor::memcopy(address, (SRBYTE)raw, x_hi - x_start);
                 }
                 break;
                 break;
-            case 1: {
+            case srPixelConvert::PIXEL_SIZE_16: {
                 unsigned long count = x_hi - x_start;
                 unsigned long half = count >> 1;
                 if (half != 0) {
@@ -1987,7 +1988,7 @@ void srColorSurface::setHLine(long y, long x_start, long x_end, unsigned long pi
                 }
                 break;
             }
-            case 2: {
+            case srPixelConvert::PIXEL_SIZE_24: {
                 unsigned long count = x_hi - x_start;
                 unsigned long i = 0;
                 unsigned long bulk = count & ~3UL;
@@ -2013,7 +2014,7 @@ void srColorSurface::setHLine(long y, long x_start, long x_end, unsigned long pi
                 }
                 break;
             }
-            case 3:
+            case srPixelConvert::PIXEL_SIZE_32:
                 if (x_hi - x_start != 0) {
                     srVectorProcessor::copy((SRDWORD*)address, raw, x_hi - x_start);
                 }
@@ -2048,8 +2049,8 @@ void srColorSurface::setVLine(long x, long y_start, long y_end, unsigned long pi
             unsigned long raw = getPixelRaw(x, y_start);
             unsigned char* address = getAddress(x, y_start);
             unsigned long count = y_hi - y_start;
-            switch (pixel_format.bytes_per_pixel_minus_one) {
-            case 0: {
+            switch (pixel_format.pixel_size) {
+            case srPixelConvert::PIXEL_SIZE_8: {
                 unsigned long i = 0;
                 unsigned long bulk = count & ~1UL;
                 for (; i < bulk; i += 2) {
@@ -2062,7 +2063,7 @@ void srColorSurface::setVLine(long x, long y_start, long y_end, unsigned long pi
                 }
                 break;
             }
-            case 1: {
+            case srPixelConvert::PIXEL_SIZE_16: {
                 unsigned long i = 0;
                 unsigned long bulk = count & ~1UL;
                 for (; i < bulk; i += 2) {
@@ -2075,7 +2076,7 @@ void srColorSurface::setVLine(long x, long y_start, long y_end, unsigned long pi
                 }
                 break;
             }
-            case 2: {
+            case srPixelConvert::PIXEL_SIZE_24: {
                 unsigned long i = 0;
                 unsigned long bulk = count & ~1UL;
                 for (; i < bulk; i += 2) {
@@ -2092,7 +2093,7 @@ void srColorSurface::setVLine(long x, long y_start, long y_end, unsigned long pi
                 }
                 break;
             }
-            case 3: {
+            case srPixelConvert::PIXEL_SIZE_32: {
                 unsigned long i = 0;
                 unsigned long bulk = count & ~1UL;
                 for (; i < bulk; i += 2) {
@@ -2124,7 +2125,7 @@ void srColorSurface::fill(unsigned long pixel)
     unsigned long width = this->width;
     long height = this->height;
     unsigned long rows = static_cast<unsigned long>(height);
-    int bpp = pixel_format.bytes_per_pixel_minus_one;
+    int bpp = pixel_format.pixel_size;
     if (pitch == (long)((bpp + 1) * width)) {
         unsigned long count = height * width;
         switch (bpp) {
@@ -2283,7 +2284,7 @@ void srColorSurface::blit(long x, long y, srColorSurfaceIFace& source, long sour
             if (source_x < x_end && source_y < y_end) {
                 long dest_pitch = pitch;
                 long source_pitch = source.pitch;
-                int bpp = pixel_format.bytes_per_pixel_minus_one + 1;
+                int bpp = pixel_format.pixel_size + 1;
                 unsigned long row_bytes = (x_end - source_x) * bpp;
                 unsigned char* dest = (unsigned char*)getDataPtr() + dest_pitch * y + bpp * x;
                 unsigned char* src =
@@ -2351,12 +2352,12 @@ void srColorSurface::copyNoScaling(srColorSurfaceIFace& source)
             srColorSurfaceIFace::copyNoScaling(source);
             return;
         }
-        if (pixel_format.conversion_class == 0 &&
-            pixel_format.bytes_per_pixel_minus_one == 3 && pixel_format.red_bits == 8 &&
-            pixel_format.green_bits == 8 && pixel_format.blue_bits == 8 &&
-            pixel_format.alpha_bits == 8 && pixel_format.red_shift == 0x10 &&
-            pixel_format.green_shift == 8 && pixel_format.blue_shift == 0 &&
-            pixel_format.alpha_shift == 0x18) {
+        if (pixel_format.color_model == srPixelConvert::COLOR_RGB &&
+            pixel_format.pixel_size == srPixelConvert::PIXEL_SIZE_32 &&
+            pixel_format.red_bits == 8 && pixel_format.green_bits == 8 &&
+            pixel_format.blue_bits == 8 && pixel_format.alpha_bits == 8 &&
+            pixel_format.red_shift == 0x10 && pixel_format.green_shift == 8 &&
+            pixel_format.blue_shift == 0 && pixel_format.alpha_shift == 0x18) {
             unsigned char* dest = (unsigned char*)getDataPtr();
             for (long row = 0; row < height; ++row) {
                 source.getPixelRow((unsigned long*)dest, row, 0, width);
@@ -2365,7 +2366,7 @@ void srColorSurface::copyNoScaling(srColorSurfaceIFace& source)
             return;
         }
         const srPixelConvert::PixelFormat& source_format = source.pixel_format;
-        if (source_format.conversion_class != 0 || source_format.bytes_per_pixel_minus_one != 3 ||
+        if (source_format.color_model != 0 || source_format.pixel_size != 3 ||
             source_format.red_bits != 8 || source_format.green_bits != 8 ||
             source_format.blue_bits != 8 || source_format.alpha_bits != 8 ||
             source_format.red_shift != 0x10 || source_format.green_shift != 8 ||
@@ -2385,14 +2386,13 @@ void srColorSurface::copyNoScaling(srColorSurfaceIFace& source)
     unsigned char* src = (unsigned char*)source.getDataPtr();
     long dest_pitch = pitch;
     long source_pitch = source.pitch;
-    if (dest_pitch == source_pitch &&
-        dest_pitch == (pixel_format.bytes_per_pixel_minus_one + 1) * width) {
+    if (dest_pitch == source_pitch && dest_pitch == (pixel_format.pixel_size + 1) * width) {
         long size = getDataSize();
         if (size != 0 && dest != src) {
             srVectorProcessor::memcopy(dest, src, size);
         }
     } else {
-        long row_bytes = (pixel_format.bytes_per_pixel_minus_one + 1) * width;
+        long row_bytes = (pixel_format.pixel_size + 1) * width;
         for (long row = height; row != 0; --row) {
             if (row_bytes != 0 && dest != src) {
                 srVectorProcessor::memcopy(dest, src, row_bytes);
@@ -2420,7 +2420,7 @@ void srColorSurface::scaleFast(srColorSurfaceIFace& source)
     unsigned char* dest = (unsigned char*)getDataPtr();
     unsigned char* src = (unsigned char*)source.getDataPtr();
     long source_pitch = source.pitch;
-    int bpp = pixel_format.bytes_per_pixel_minus_one;
+    srPixelConvert::e_pixelSize bpp = pixel_format.pixel_size;
     long dest_pitch = pitch;
     double x_ratio = source.width / (double)dest_width;
     double y_ratio = source.height / (double)dest_height;
@@ -2431,7 +2431,7 @@ void srColorSurface::scaleFast(srColorSurfaceIFace& source)
         long source_y = source.getClampedY((long)(row * y_ratio));
         const unsigned char* source_row = src + source_y * source_pitch;
         switch (bpp) {
-        case 0: {
+        case srPixelConvert::PIXEL_SIZE_8: {
             long x = 0;
             for (; x < (dest_width & ~3L); x += 4) {
                 dest[x] = source_row[columns[x]];
@@ -2444,7 +2444,7 @@ void srColorSurface::scaleFast(srColorSurfaceIFace& source)
             }
             break;
         }
-        case 1: {
+        case srPixelConvert::PIXEL_SIZE_16: {
             unsigned short* out = (unsigned short*)dest;
             const unsigned short* in = (const unsigned short*)source_row;
             long x = 0;
@@ -2459,7 +2459,7 @@ void srColorSurface::scaleFast(srColorSurfaceIFace& source)
             }
             break;
         }
-        case 2: {
+        case srPixelConvert::PIXEL_SIZE_24: {
             long x = 0;
             for (; x < (dest_width & ~3L); x += 4) {
                 const unsigned char* pixel = source_row + columns[x] * 3;
@@ -2489,7 +2489,7 @@ void srColorSurface::scaleFast(srColorSurfaceIFace& source)
             }
             break;
         }
-        case 3:
+        case srPixelConvert::PIXEL_SIZE_32:
             srVectorProcessor::copyIndexed((SRDWORD*)dest, (const SRDWORD*)source_row,
                                            (const SRDWORD*)columns, dest_width);
             break;
@@ -3275,7 +3275,7 @@ void srColorSurfaceIFace::minify(srColorSurfaceIFace& source)
         unsigned long* buffer = (unsigned long*)buffer_colors;
         unsigned long* second = buffer + source_width;
         unsigned long* row = buffer + source_width * 2;
-        if ((srCore.getTimer()->m_cpu_features & 0x800000) == 0) {
+        if ((srCore.getTimer()->m_cpu_features & (1UL << srTimer::CPU_FEATURE_MMX)) == 0) {
             for (long y = 0; y < height; y++) {
                 source.getPixelRow(buffer, y * 2, 0, source_width);
                 source.getPixelRow(second, y * 2 + 1, 0, source_width);

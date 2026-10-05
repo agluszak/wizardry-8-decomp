@@ -89,9 +89,11 @@ public:
         HINT_NO_ALPHA = 1,
         HINT_ONE_BIT_ALPHA = 2,
         HINT_NO_MIPMAPS = 3,
+        HINT_ALPHA_ONLY = 4,
         HINT_RESIDENT = 5,
         HINT_POSITIONAL_6 = 6,
-        HINT_NO_REDUCTION = 7
+        HINT_NO_REDUCTION = 7,
+        HINT_INTENSITY = 8
     };
     /* Dump prints REPEAT then CLAMP for wrap S/T. Wizardry requests 1. */
     enum e_wrap { WRAP_REPEAT = 0, WRAP_CLAMP = 1 };

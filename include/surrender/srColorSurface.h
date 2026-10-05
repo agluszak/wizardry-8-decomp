@@ -97,6 +97,7 @@ private:
     srPixelConvert::ConversionFunc pixel_write;
     srPixelConvert::ConversionFunc pixel_read;
     srPtr<srPalette> palette;
+    enum { BORROWED_DATA = 0x01u };
     unsigned long surface_flags;
     long data_size;
     void* data;

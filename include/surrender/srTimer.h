@@ -80,25 +80,26 @@ public:
     unsigned short getCPUFamily() const;
     unsigned short getCPUModel() const;
     unsigned short getCPUStepping() const;
+    enum { CPU_FEATURE_FPU = 0, CPU_FEATURE_RDTSC = 4, CPU_FEATURE_MMX = 23 };
     int getFeature(long feature) const;
     int getCPUIDSupport() const;
     // FUNCTION: SURRENDER 0x100623B0
     // ?getFPUSupport@srTimer@@QBEHXZ
     int getFPUSupport() const
     {
-        return m_cpu_features & 1;
+        return m_cpu_features & (1UL << CPU_FEATURE_FPU);
     }
     // FUNCTION: SURRENDER 0x100623D0
     // ?getMMXSupport@srTimer@@QBEHXZ
     int getMMXSupport() const
     {
-        return m_cpu_features >> 0x17 & 1;
+        return m_cpu_features >> CPU_FEATURE_MMX & 1;
     }
     // FUNCTION: SURRENDER 0x100623C0
     // ?getRDTSCSupport@srTimer@@QBEHXZ
     int getRDTSCSupport() const
     {
-        return m_cpu_features >> 4 & 1;
+        return m_cpu_features >> CPU_FEATURE_RDTSC & 1;
     }
     void getFreq(srQuadWord& out) const;
     // FUNCTION: SURRENDER 0x100621E0

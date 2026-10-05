@@ -7,14 +7,35 @@ class srPalette;
 class srPixelConvert {
 public:
     enum e_surfaceType {
+        SURFACE_AP44 = 0x00,
+        SURFACE_AL44 = 0x01,
         SURFACE_L8 = 0x02,
+        SURFACE_A8 = 0x03,
+        SURFACE_P8 = 0x04,
+        SURFACE_AP88 = 0x05,
+        SURFACE_AL88 = 0x06,
         SURFACE_RGB565 = 0x07,
         SURFACE_RGB555 = 0x08,
         SURFACE_ARGB1555 = 0x09,
+        SURFACE_RGB444 = 0x0a,
+        SURFACE_ARGB4444 = 0x0b,
         SURFACE_BGR24 = 0x0c,
+        SURFACE_BGRX32 = 0x0d,
         SURFACE_BGRA32 = 0x0e,
-        SURFACE_COPY = 0x18
+        SURFACE_Y4U2V2 = 0x0f,
+        SURFACE_A8Y4U2V2 = 0x10,
+        SURFACE_RGB332 = 0x11,
+        SURFACE_BGR565 = 0x13,
+        SURFACE_ARGB32 = 0x14,
+        SURFACE_BGR555 = 0x15,
+        SURFACE_ABGR32 = 0x16,
+        SURFACE_RGBA32 = 0x17,
+        SURFACE_RGB24 = 0x18,
+        SURFACE_INVALID = 0x19
     };
+
+    enum e_colorModel { COLOR_RGB = 0, COLOR_YUV = 1, COLOR_INTENSITY = 2, COLOR_INDEXED = 3 };
+    enum e_pixelSize { PIXEL_SIZE_8 = 0, PIXEL_SIZE_16 = 1, PIXEL_SIZE_24 = 2, PIXEL_SIZE_32 = 3 };
 
     struct PixelFormat {
         unsigned char red_bits;
@@ -25,17 +46,15 @@ public:
         unsigned char blue_shift;
         unsigned char alpha_bits;
         unsigned char alpha_shift;
-        /* Colorspace/conversion class 0..3, not the surface type: getName
-           reads the channel letters "RGBA"/"YUVA"/"IXXA"/"PXXA" by it and
-           selectFuncs dispatches on it. */
-        long conversion_class;
-        long bytes_per_pixel_minus_one;
-        unsigned long flags;
+        /* Generic converter family; pixel_size stores (bits per pixel / 8) - 1. */
+        e_colorModel color_model;
+        e_pixelSize pixel_size;
+        unsigned long fourcc;
 
-        /* The default ctor initializes only flags: retail emits a
-           flags-clearing array-init loop over format_table (0x10007780)
-           and zeroes stack PixelFormat flags in srGERD::lockBuffer. */
-        PixelFormat() : flags(0) {}
+        /* The default ctor initializes only fourcc: retail emits a
+           FourCC-clearing array-init loop over format_table (0x10007780)
+           and zeroes stack PixelFormat FourCCs in srGERD::lockBuffer. */
+        PixelFormat() : fourcc(0) {}
 
         /* Retail exports the standalone copy (param mangles QAD = char* const);
            no recovered caller ODR-uses it, so only provider dllexport keeps

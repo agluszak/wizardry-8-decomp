@@ -41,11 +41,11 @@ srLight::srLight(srNode* parent, e_preset preset)
     near_end = 0.0;
     far_start = 0.0;
     far_end = 1000.0;
-    enable_flags |= 0x10;
+    enable_flags |= (1UL << srLight::ENABLE_RANGE_FAR);
     if (preset == PRESET_DIRECTIONAL) {
-        enable_flags |= 0x12;
+        enable_flags |= ((1UL << srLight::ENABLE_DIRECTIONAL) | (1UL << srLight::ENABLE_RANGE_FAR));
     } else if (preset == PRESET_SPOT) {
-        enable_flags |= 0x1;
+        enable_flags |= (1UL << srLight::ENABLE_SPOT);
     }
     if (parent != 0) {
         setParent(parent, 0);
@@ -171,7 +171,7 @@ void srLight::process(const ProcessInfo& info, e_processType type)
         if (type != PROCESS_POP && type != PROCESS_POP_GLOBAL) {
             return;
         }
-        if ((derived_flags & 0x1) == 0) {
+        if ((derived_flags & srLight::DERIVED_ACTIVE) == 0) {
             return;
         }
         renderer->popVertexProcessor();
@@ -181,7 +181,7 @@ void srLight::process(const ProcessInfo& info, e_processType type)
     srMatrix4T<float> model_view;
     renderer->getMatrix(model_view);
     derived_flags = 0;
-    derived_flags = 1;
+    derived_flags = srLight::DERIVED_ACTIVE;
     channel_mask = 0;
     if (ambient.x != 0.0f || ambient.y != 0.0f || ambient.z != 0.0f) {
         channel_mask |= (1UL << srVertexProcessor::CHANNEL_LIGHT_AMBIENT);
@@ -205,10 +205,10 @@ void srLight::process(const ProcessInfo& info, e_processType type)
         scaled_specular.w = 0.0f;
     }
     if (channel_mask == 0) {
-        derived_flags &= ~0x1;
+        derived_flags &= ~srLight::DERIVED_ACTIVE;
     }
-    if ((enable_flags & 0x2) != 0) {
-        derived_flags |= 0x4;
+    if ((enable_flags & (1UL << srLight::ENABLE_DIRECTIONAL)) != 0) {
+        derived_flags |= srLight::DERIVED_DIRECTIONAL;
         srVector3T<float> direction(-model_view.vectors[0].z, -model_view.vectors[1].z,
                                     -model_view.vectors[2].z);
         float length_squared = direction.LengthSquared();
@@ -218,14 +218,15 @@ void srLight::process(const ProcessInfo& info, e_processType type)
         }
         eye_location = direction;
     } else {
-        if ((enable_flags & 0x1) != 0 && spot_angle > 0.0f && spot_exponent != 0.0f) {
+        if ((enable_flags & (1UL << srLight::ENABLE_SPOT)) != 0 && spot_angle > 0.0f &&
+            spot_exponent != 0.0f) {
             srMatrix4T<float> inverse;
             renderer->getInverseModelViewMatrix(inverse);
-            derived_flags |= 0x2;
+            derived_flags |= srLight::DERIVED_SPOT;
             spot_cutoff = (float)cos(spot_angle);
             spot_direction_eye.x = inverse.vectors[0].x * spot_direction.x +
-                                       inverse.vectors[1].x * spot_direction.y +
-                                       inverse.vectors[2].x * spot_direction.z;
+                                   inverse.vectors[1].x * spot_direction.y +
+                                   inverse.vectors[2].x * spot_direction.z;
             spot_direction_eye.y = inverse.vectors[0].y * spot_direction.x +
                                        inverse.vectors[1].y * spot_direction.y +
                                        inverse.vectors[2].y * spot_direction.z;
@@ -240,14 +241,14 @@ void srLight::process(const ProcessInfo& info, e_processType type)
         }
         if (attenuation_model != ATTENUATION_NONE) {
             if (attenuation_model == ATTENUATION_OPENGL) {
-                derived_flags |= 0x8;
+                derived_flags |= srLight::DERIVED_OPENGL_ATTENUATION;
                 if (fabsf(opengl_attenuation.y) < 5.9604645e-08f &&
                     fabsf(opengl_attenuation.z) < 5.9604645e-08f) {
                     if (opengl_attenuation.x == 1.0f ||
                         fabsf(opengl_attenuation.x) < 5.9604645e-08f) {
-                        derived_flags &= ~0x8;
+                        derived_flags &= ~srLight::DERIVED_OPENGL_ATTENUATION;
                     }
-                    derived_flags |= 0x10;
+                    derived_flags |= srLight::DERIVED_CONSTANT_ATTENUATION;
                 }
             } else {
                 float scale = renderer->getMaxModelViewScale();
@@ -263,16 +264,16 @@ void srLight::process(const ProcessInfo& info, e_processType type)
                 } else {
                     far_attenuation = (float)(1.0 / (scale * (far_end - far_start)));
                 }
-                if ((enable_flags & 0x10) != 0) {
-                    if ((enable_flags & 0x4) != 0) {
+                if ((enable_flags & (1UL << srLight::ENABLE_RANGE_FAR)) != 0) {
+                    if ((enable_flags & (1UL << srLight::ENABLE_BOUNDING_SPHERE)) != 0) {
                         srVector3T<float> origin(0.0f, 0.0f, 0.0f);
-                        if (renderer->testBoundingSphere(origin, safe_range +
-                                                                     (float)far_end) == 0) {
-                            derived_flags &= ~0x1;
+                        if (renderer->testBoundingSphere(origin, safe_range + (float)far_end) ==
+                            0) {
+                            derived_flags &= ~srLight::DERIVED_ACTIVE;
                         }
                     }
                     attenuation_range = scaled_far_end;
-                    derived_flags |= 0x20;
+                    derived_flags |= srLight::DERIVED_RANGE_CULL;
                 }
             }
         }
@@ -281,7 +282,7 @@ void srLight::process(const ProcessInfo& info, e_processType type)
         eye_location.z = model_view.vectors[2].w;
     }
     renderer->popMatrix();
-    if ((derived_flags & 0x1) != 0) {
+    if ((derived_flags & srLight::DERIVED_ACTIVE) != 0) {
         renderer->pushVertexProcessor(*this);
     }
 }
@@ -293,7 +294,7 @@ int srLight::isActive(srVertexPipe& pipe)
     if ((group_mask & input->exclusion_mask) != 0) {
         return 0;
     }
-    if ((derived_flags & 0x20) != 0) {
+    if ((derived_flags & srLight::DERIVED_RANGE_CULL) != 0) {
         float dx = eye_location.x - input->eye_center.x;
         float dy = eye_location.y - input->eye_center.y;
         float dz = eye_location.z - input->eye_center.z;
@@ -302,7 +303,7 @@ int srLight::isActive(srVertexPipe& pipe)
             return 0;
         }
     }
-    if ((derived_flags & 0x2) != 0) {
+    if ((derived_flags & srLight::DERIVED_SPOT) != 0) {
         float radius = input->eye_radius;
         float dx = input->eye_center.x - eye_location.x;
         float dy = input->eye_center.y - eye_location.y;
@@ -327,11 +328,11 @@ void srLight::process(srVertexPipe& pipe)
     if (channels == 0) {
         return;
     }
-    /* 0x400 = 1<<CHANNEL_LIGHT_DIFFUSE; 4 = 1<<CHANNEL_SPECULAR: either needs
-       the normal dot products below. */
-    int need_normals = 0;
-    if ((channels & 0x400) != 0 || (channels & 0x4) != 0) {
-        need_normals = 1;
+    /* Diffuse and specular lighting both need normal dot products. */
+    bool need_normals = false;
+    if ((channels & (1UL << srVertexProcessor::CHANNEL_LIGHT_DIFFUSE)) != 0 ||
+        (channels & (1UL << srVertexProcessor::CHANNEL_SPECULAR)) != 0) {
+        need_normals = true;
     }
     SRDWORD count = pipe.vertex_count;
     /* Retail's stack frame aligns a 0x700-byte work area to 32 bytes: five
@@ -349,21 +350,19 @@ void srLight::process(srVertexPipe& pipe)
     srVertexPipe::Scratch* scratch = pipe.scratch;
     float* attenuation = 0;
 
-    if ((derived_flags & 0x4) == 0) {
+    if ((derived_flags & srLight::DERIVED_DIRECTIONAL) == 0) {
         srVectorProcessor::copy(
-            directions, pipe.eye_space_locations + pipe.batch_base + pipe.sub_batch_offset,
-            count);
+            directions, pipe.eye_space_locations + pipe.batch_base + pipe.sub_batch_offset, count);
         srVectorProcessor::sub(directions, eye_location, directions, count);
         srVectorProcessor::dir(directions, distances, directions, count);
         if (attenuation_model == ATTENUATION_3DSTUDIO_MAX) {
-            if ((enable_flags & 0x8) != 0) {
+            if ((enable_flags & (1UL << srLight::ENABLE_RANGE_NEAR)) != 0) {
                 srVectorProcessor::add(attenuation_bank, -scaled_near_start, distances, count);
-                srVectorProcessor::mul(attenuation_bank, near_attenuation, attenuation_bank,
-                                       count);
+                srVectorProcessor::mul(attenuation_bank, near_attenuation, attenuation_bank, count);
                 srVectorProcessor::clampUnit(attenuation_bank, attenuation_bank, count);
                 attenuation = attenuation_bank;
             }
-            if ((enable_flags & 0x10) != 0) {
+            if ((enable_flags & (1UL << srLight::ENABLE_RANGE_FAR)) != 0) {
                 float* far_bank = attenuation != 0 ? spot_factors : attenuation_bank;
                 srVectorProcessor::sub(far_bank, scaled_far_end, distances, count);
                 srVectorProcessor::mul(far_bank, far_attenuation, far_bank, count);
@@ -378,8 +377,8 @@ void srLight::process(srVertexPipe& pipe)
                 return;
             }
         } else if (attenuation_model == ATTENUATION_OPENGL) {
-            if ((derived_flags & 0x8) != 0) {
-                if ((derived_flags & 0x10) != 0) {
+            if ((derived_flags & srLight::DERIVED_OPENGL_ATTENUATION) != 0) {
+                if ((derived_flags & srLight::DERIVED_CONSTANT_ATTENUATION) != 0) {
                     float constant = 1.0f / opengl_attenuation.x;
                     // reinterpret-ok: retail pushes the float bit pattern into
                     // the SRDWORD fill.
@@ -393,7 +392,7 @@ void srLight::process(srVertexPipe& pipe)
                 attenuation = attenuation_bank;
             }
         }
-        if ((derived_flags & 0x2) != 0) {
+        if ((derived_flags & srLight::DERIVED_SPOT) != 0) {
             srVector3T<float> negated(-spot_direction_eye.x, -spot_direction_eye.y,
                                       -spot_direction_eye.z);
             srVectorProcessor::dot(spot_factors, negated, directions, count);
@@ -414,7 +413,7 @@ void srLight::process(srVertexPipe& pipe)
                 attenuation = spot_factors;
             }
         }
-        if (need_normals != 0) {
+        if (need_normals) {
             if ((scratch->flags & srVertexPipe::Scratch::READY_EYE_NORMALS) == 0) {
                 pipe.setupEyeSpaceNormal();
             }
@@ -422,7 +421,7 @@ void srLight::process(srVertexPipe& pipe)
                                    count);
             srVectorProcessor::clampMin(dots, dots, 0.0f, count);
         }
-    } else if (need_normals != 0) {
+    } else if (need_normals) {
         if ((scratch->flags & srVertexPipe::Scratch::READY_EYE_NORMALS) == 0) {
             pipe.setupEyeSpaceNormal();
         }
@@ -430,7 +429,7 @@ void srLight::process(srVertexPipe& pipe)
         srVectorProcessor::clampUnit(dots, dots, count);
     }
 
-    if ((channels & 0x200) != 0) {
+    if ((channels & (1UL << srVertexProcessor::CHANNEL_LIGHT_AMBIENT)) != 0) {
         srVector4T<float> ambient;
         ambient.x = scaled_ambient.x * pipe.material_info.ambient.x;
         ambient.y = scaled_ambient.y * pipe.material_info.ambient.y;
@@ -442,13 +441,13 @@ void srLight::process(srVertexPipe& pipe)
             pipe.applyDiffuseLight(ambient);
         }
     }
-    if (need_normals == 0) {
+    if (!need_normals) {
         return;
     }
     if (srVectorProcessor::isZero(dots, count)) {
         return;
     }
-    if ((channels & 0x400) != 0) {
+    if ((channels & (1UL << srVertexProcessor::CHANNEL_LIGHT_DIFFUSE)) != 0) {
         srVector4T<float> diffuse;
         diffuse.x = scaled_diffuse.x * pipe.material_info.diffuse.x;
         diffuse.y = scaled_diffuse.y * pipe.material_info.diffuse.y;
@@ -466,10 +465,10 @@ void srLight::process(srVertexPipe& pipe)
             srVectorProcessor::axpy(out, out, diffuse, dots, count);
         }
     }
-    if ((channels & 0x4) == 0) {
+    if ((channels & (1UL << srVertexProcessor::CHANNEL_SPECULAR)) == 0) {
         return;
     }
-    if ((derived_flags & 0x4) != 0 && count != 0) {
+    if ((derived_flags & srLight::DERIVED_DIRECTIONAL) != 0 && count != 0) {
         if (eye_location.x == eye_location.y && eye_location.x == eye_location.z) {
             if (count * 3 != 0) {
                 // reinterpret-ok: the scalar broadcast fills the v3 array as
@@ -572,7 +571,7 @@ void srLight::setLinearAttenuation(float range, float attenuation)
 // FUNCTION: SURRENDER 0x1004E630
 void srLight::enable(e_enable flag)
 {
-    enable_flags |= 1 << flag;
+    enable_flags |= (1UL << srLight::ENABLE_SPOT) << flag;
 }
 
 // FUNCTION: SURRENDER 0x1004E610

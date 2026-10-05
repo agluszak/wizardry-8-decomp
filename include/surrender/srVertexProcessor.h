@@ -12,6 +12,15 @@ class srVertexPipe;
    srTriMeshPipeline's array instantiation advances by the same 0x20 stride.
    Slot order follows getEyeSpaceLocation/getDiffuse/getSpecular/getST/getQ. */
 struct srVertexArray {
+    enum {
+        ATTRIBUTE_DIFFUSE = 0x01u,
+        ATTRIBUTE_SPECULAR = 0x02u,
+        ATTRIBUTE_SPECULAR_ALPHA = 0x04u,
+        ATTRIBUTE_ST0 = 0x08u,
+        ATTRIBUTE_ST1 = 0x10u,
+        ATTRIBUTE_Q0 = 0x20u,
+        ATTRIBUTE_Q1 = 0x40u
+    };
     srVector4T<float>* eye_locations;
     srVector4T<float>* diffuse;
     srVector4T<float>* specular;
@@ -19,7 +28,7 @@ struct srVertexArray {
     srVector2T<float>* st1;
     float* q0;
     float* q1;
-    unsigned char* packed;
+    unsigned char* attributes;
 };
 
 static_assert(sizeof(srVertexArray) == 0x20, "srVertexArray_must_be_0x20");

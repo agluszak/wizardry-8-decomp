@@ -53,20 +53,16 @@ public:
     struct Pass {
         inline Pass()
         {
-            flags.value = 0x0100241b; /* default packed srShader */
+            shader.value = 0x0100241b; /* default packed srShader */
         }
 
-        srTextureIFace* texture0;
-        srTextureIFace* texture;
-        srShader flags;
-        /* Per-stage per-vertex texture tables; the mesh fills both slots of
-           the {0x0c,0x10} pair through (&tex_table_0)[layer]. Writers
-           store srPtr<srTextureIFace> or stTextureAnim frame tables; the
-           renderer only copies each dword entry into the texture-set key. */
-        void* tex_table_0;
-        void* tex_table_1;
+        srTextureIFace* textures[2];
+        srShader shader;
+        /* Borrowed per-stage srPtr<srTextureIFace> or stTextureAnim* tables.
+           The renderer reads pointer-sized entries without owning the tables. */
+        void* texture_tables[2];
         const srShader* shaders;
-        srVector2T<float>* st;
+        srVector2T<float>* texcoords;
         /* The mesh's per-triangle poly-UV corner source table. */
         const srVector3i* poly_uv;
     };
@@ -127,7 +123,8 @@ public:
     srVector3T<float> bounds_maximum;
     srVector3T<float> bounds_center;
     float bounds_radius;
-    unsigned long bounds_state;
+    enum e_boundsSource { BOUNDS_FROM_VERTICES = 0, BOUNDS_SPHERE = 1, BOUNDS_BOX = 2 };
+    e_boundsSource bounds_source;
     unsigned long unknown_70;
     srShader shader;
     srTextureIFace* texture0;

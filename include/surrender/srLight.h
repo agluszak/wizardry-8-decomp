@@ -137,8 +137,16 @@ public:
     srVector3T<float> spot_direction_eye; /* 0x208 */
     float spot_cutoff;                    /* 0x214: cos(spot_angle) */
     float attenuation_range;              /* 0x218: scaled far end */
-    unsigned long derived_flags;          /* 0x21c */
-    unsigned long channel_mask;           /* 0x220 */
+    enum {
+        DERIVED_ACTIVE = 0x01u,
+        DERIVED_SPOT = 0x02u,
+        DERIVED_DIRECTIONAL = 0x04u,
+        DERIVED_OPENGL_ATTENUATION = 0x08u,
+        DERIVED_CONSTANT_ATTENUATION = 0x10u,
+        DERIVED_RANGE_CULL = 0x20u
+    };
+    unsigned long derived_flags; /* 0x21c */
+    unsigned long channel_mask;  /* 0x220 */
 };
 
 static_assert(sizeof(srLight) == 0x228, "srLight_must_be_0x228");

@@ -44,8 +44,8 @@ public:
         unsigned long flags;
     };
     /* Device pixel format written by srGERD::convertPixelFormat: the channel
-       bit/shift bytes, surface type and bytes-per-pixel-minus-one of
-       srPixelConvert::PixelFormat without its trailing flags word. */
+       bit/shift bytes, color model and storage-size index of
+       srPixelConvert::PixelFormat without its trailing FourCC word. */
     struct PixelFormat {
         unsigned char red_bits;
         unsigned char red_shift;
@@ -57,8 +57,8 @@ public:
         unsigned char alpha_shift;
         /* +8 conversion class of srPixelConvert::PixelFormat, copied
            verbatim by convertPixelFormat. */
-        long conversion_class;
-        long bytes_per_pixel_minus_one;
+        srPixelConvert::e_colorModel color_model;
+        srPixelConvert::e_pixelSize pixel_size;
     };
     /* Device texture record embedded at +0x2c of srGERD::Texture and handed
        to bindTexture/deleteTexture. evaluateTextureDimensions and

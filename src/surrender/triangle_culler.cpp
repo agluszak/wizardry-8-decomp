@@ -1,6 +1,7 @@
 #include "surrender/srTriangleCuller.h"
 
 #include "surrender/srVectorProcessor.h"
+#include "surrender/srRendererDefs.h"
 
 // FUNCTION: SURRENDER 0x10029740
 srVector4 srTriangleCuller::transformClipPlane(const srVector4& plane, const srMatrix4& matrix,
@@ -111,27 +112,38 @@ unsigned long srTriangleCuller::getClipMask(const srVector3& center, float radiu
 {
     depth = 0.0f;
     unsigned long clip = 0;
-    if (planes[0].z * center.z + planes[0].x * center.x <= radius) {
-        clip |= 1;
+    if (planes[srRendererDefs::CLIP_LEFT].z * center.z +
+            planes[srRendererDefs::CLIP_LEFT].x * center.x <=
+        radius) {
+        clip |= (1UL << srRendererDefs::CLIP_LEFT);
     }
-    if (planes[1].z * center.z + planes[1].x * center.x <= radius) {
-        clip |= 2;
+    if (planes[srRendererDefs::CLIP_RIGHT].z * center.z +
+            planes[srRendererDefs::CLIP_RIGHT].x * center.x <=
+        radius) {
+        clip |= (1UL << srRendererDefs::CLIP_RIGHT);
     }
-    if (planes[2].z * center.z + planes[2].y * center.y <= radius) {
-        clip |= 4;
+    if (planes[srRendererDefs::CLIP_BOTTOM].z * center.z +
+            planes[srRendererDefs::CLIP_BOTTOM].y * center.y <=
+        radius) {
+        clip |= (1UL << srRendererDefs::CLIP_BOTTOM);
     }
-    if (planes[3].y * center.y + planes[3].z * center.z <= radius) {
-        clip |= 8;
+    if (planes[srRendererDefs::CLIP_TOP].y * center.y +
+            planes[srRendererDefs::CLIP_TOP].z * center.z <=
+        radius) {
+        clip |= (1UL << srRendererDefs::CLIP_TOP);
     }
-    if (planes[4].z * center.z + planes[4].w <= radius) {
-        clip |= 0x10;
+    if (planes[srRendererDefs::CLIP_NEAR].z * center.z + planes[srRendererDefs::CLIP_NEAR].w <=
+        radius) {
+        clip |= (1UL << srRendererDefs::CLIP_NEAR);
     }
-    if (planes[5].z * center.z + planes[5].w <= radius) {
-        clip |= 0x20;
+    if (planes[srRendererDefs::CLIP_FAR].z * center.z + planes[srRendererDefs::CLIP_FAR].w <=
+        radius) {
+        clip |= (1UL << srRendererDefs::CLIP_FAR);
     }
-    unsigned long remaining = mask & 0xffffffc0;
-    const srVector4* plane = planes + 6;
-    for (unsigned long bit = 6; remaining != 0 && bit < 0x20; ++bit, ++plane) {
+    unsigned long remaining = mask & ~srRendererDefs::FRUSTUM_CLIP_MASK;
+    const srVector4* plane = planes + srRendererDefs::FIRST_USER_CLIP_PLANE;
+    for (unsigned long bit = srRendererDefs::FIRST_USER_CLIP_PLANE; remaining != 0 && bit < 0x20;
+         ++bit, ++plane) {
         unsigned long plane_bit = 1 << bit;
         if ((remaining & plane_bit) != 0) {
             if (plane->y * center.y + plane->x * center.x + plane->z * center.z + plane->w <=
@@ -141,23 +153,31 @@ unsigned long srTriangleCuller::getClipMask(const srVector3& center, float radiu
             remaining &= ~plane_bit;
         }
     }
-    if ((clip & 0x3f) == 0) {
+    if ((clip & srRendererDefs::FRUSTUM_CLIP_MASK) == 0) {
         return clip;
     }
     depth = 1.0f;
-    if ((clip & 1) != 0) {
-        depth = (planes[0].z * center.z + planes[0].x * center.x + radius) / (radius + radius);
+    if ((clip & (1UL << srRendererDefs::CLIP_LEFT)) != 0) {
+        depth = (planes[srRendererDefs::CLIP_LEFT].z * center.z +
+                 planes[srRendererDefs::CLIP_LEFT].x * center.x + radius) /
+                (radius + radius);
     }
-    if ((clip & 2) != 0) {
-        depth = ((planes[1].z * center.z + planes[1].x * center.x + radius) / (radius + radius)) *
+    if ((clip & (1UL << srRendererDefs::CLIP_RIGHT)) != 0) {
+        depth = ((planes[srRendererDefs::CLIP_RIGHT].z * center.z +
+                  planes[srRendererDefs::CLIP_RIGHT].x * center.x + radius) /
+                 (radius + radius)) *
                 depth;
     }
-    if ((clip & 4) != 0) {
-        depth = ((planes[2].z * center.z + planes[2].y * center.y + radius) / (radius + radius)) *
+    if ((clip & (1UL << srRendererDefs::CLIP_BOTTOM)) != 0) {
+        depth = ((planes[srRendererDefs::CLIP_BOTTOM].z * center.z +
+                  planes[srRendererDefs::CLIP_BOTTOM].y * center.y + radius) /
+                 (radius + radius)) *
                 depth;
     }
-    if ((clip & 8) != 0) {
-        depth = ((planes[3].y * center.y + planes[3].z * center.z + radius) / (radius + radius)) *
+    if ((clip & (1UL << srRendererDefs::CLIP_TOP)) != 0) {
+        depth = ((planes[srRendererDefs::CLIP_TOP].y * center.y +
+                  planes[srRendererDefs::CLIP_TOP].z * center.z + radius) /
+                 (radius + radius)) *
                 depth;
     }
     depth = 1.0f - depth;
@@ -337,19 +357,19 @@ void srTriangleCuller::setupLinearArray(unsigned long* indices, unsigned long co
 }
 
 // FUNCTION: SURRENDER 0x1002A6C0
-unsigned long srTriangleCuller::buildAVT(unsigned long* avt, unsigned long* clip_flags,
+unsigned long srTriangleCuller::buildAVT(unsigned long* avt, unsigned long* vertex_scratch,
                                          const unsigned long* indices, const srVector3i* triangles,
                                          unsigned long triangle_count, unsigned long vertex_count)
 {
     srVP* processor = srVectorProcessor::vp;
-    processor->_memcopy(clip_flags, 0, vertex_count);
+    processor->_memcopy(vertex_scratch, 0, vertex_count);
     /* reinterpret-ok: the caller-provided flag scratch holds one SRBYTE per
        vertex here and is reused as the dword inverse remap below. */
-    processor->_srSetIndexed(reinterpret_cast<SRBYTE*>(clip_flags), triangles, indices,
+    processor->_srSetIndexed(reinterpret_cast<SRBYTE*>(vertex_scratch), triangles, indices,
                              triangle_count);
     unsigned long count = processor->_srCollectNonZero(
-        avt, reinterpret_cast<const SRBYTE*>(clip_flags), vertex_count);
-    processor->_srRemapInverse(clip_flags, avt, count);
+        avt, reinterpret_cast<const SRBYTE*>(vertex_scratch), vertex_count);
+    processor->_srRemapInverse(vertex_scratch, avt, count);
     return count;
 }
 
@@ -361,7 +381,7 @@ int srTriangleCuller::cull(Output& output, const Input& input)
     }
     unsigned long clip_mask = input.clip_mask;
     const srMatrix4& inverse_model_view = *input.inverse_model_view;
-    unsigned long* clip_flags = output.clip_flags;
+    unsigned long* clip_flags = output.vertex_remap;
     output.linear = 1;
     output.triangle_count = 0;
     output.vertex_count = 0;

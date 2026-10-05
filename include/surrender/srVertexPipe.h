@@ -17,10 +17,10 @@ public:
     struct Input {
         unsigned long record_count;
         unsigned long vertex_count;
-        const unsigned long* indices;
-        int position_is_float3;
+        const unsigned long* active_vertices;
+        int direct_vertex_indices;
         const srVector3T<float>* positions;
-        const srVector3T<float>* values;
+        const srVector3T<float>* normals;
         srVector3T<float> eye_center;
         float eye_radius;
         const srMatrix4T<float>* model_view;
