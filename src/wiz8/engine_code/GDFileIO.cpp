@@ -99,7 +99,7 @@ struct W8GDFaceHeader { /* 0x1c */
 static_assert(sizeof(W8GDFaceHeader) == 0x1c, "W8GDFaceHeader_must_be_0x1c");
 
 /* The WGD face record's tail: classification flag, slope/value pair, footstep
-   selectors, an unused dword, and the trigger index the writer overrode. */
+   selectors, trace chance, and the trigger index the writer overrode. */
 struct W8GDFaceData { /* 0x18 */
     int type;
     float slope;
@@ -266,7 +266,7 @@ unsigned char W8GameData::ReadWGDList(HANDLE file, int poly_type)
                     surface->footstep_material = data.material;
                     surface->footstep_surface = data.surface;
                     if (data.type == 1) {
-                        surface->flags = 0x44;
+                        surface->flags = W8_GD_SURFACE_WALKABLE | W8_GD_SURFACE_PATHFINDING;
                     } else {
                         surface->flags = 0;
                     }
@@ -468,7 +468,7 @@ int W8GameData::FindPointerByName(const char* name)
 void W8GameData::AddTriggerTriangle(int trigger_index, int vertex_0, int vertex_1, int vertex_2)
 {
     W8GDSurface* surface = &m_pTrigSurfaces[m_iNumTrigSurfaces];
-    surface->flags = 0x80;
+    surface->flags = W8_GD_SURFACE_CROSSING;
     surface->index = m_iNumSurfaces + m_iNumTrigSurfaces;
     surface->trigger_index = trigger_index;
     surface->contact_margin = 1.1f;
@@ -746,7 +746,7 @@ void W8GameData::AddTriggerPlane(const srVector3T<float>* vertices, float value,
     }
     for (index = 0; index < 12; ++index) {
         W8GDSurface* surface = &m_pTrigSurfaces[m_iNumTrigSurfaces];
-        surface->flags = 0x1080;
+        surface->flags = W8_GD_SURFACE_CROSSING_MASK;
         surface->index = m_iNumTrigSurfaces + m_iNumSurfaces;
         surface->trigger_index = m_iNumEnvirons;
         surface->vertex_indices[0] = vertex_base;
@@ -1147,7 +1147,7 @@ void ClassifySurfacePlane(const srVector3T<float>* vertices, W8GDSurface* surfac
                        &vertices[surface->vertex_indices[2]]);
 
     unsigned int flags = surface->flags;
-    if ((flags & 0x80) != 0) {
+    if ((flags & W8_GD_SURFACE_CROSSING) != 0) {
         float largest = g_float_zero;
         unsigned int dominant_axis = 0;
         for (int axis = 0; axis < 3; ++axis) {
@@ -1161,36 +1161,38 @@ void ClassifySurfacePlane(const srVector3T<float>* vertices, W8GDSurface* surfac
         surface->flags = flags;
     }
 
-    if ((surface->flags & 4) != 0) {
-        surface->flags |= 0x40;
+    if ((surface->flags & W8_GD_SURFACE_WALKABLE) != 0) {
+        surface->flags |= W8_GD_SURFACE_PATHFINDING;
     }
 
     float upper_value = g_float_one;
     if (g_float_005ebc7c < surface->plane.normal.y) {
-        if ((surface->flags & 4) == 0 && g_float_005ec1a0 < surface->plane.normal.y) {
-            surface->flags |= 4;
+        if ((surface->flags & W8_GD_SURFACE_WALKABLE) == 0 &&
+            g_float_005ec1a0 < surface->plane.normal.y) {
+            surface->flags |= W8_GD_SURFACE_WALKABLE;
             surface->slope = g_float_one;
         }
         if (surface->slope < g_float_zero) {
-            surface->flags |= 0x20;
+            surface->flags |= W8_GD_SURFACE_EXPLICIT_SLOPE;
             surface->slope = g_float_zero;
         }
     } else if (surface->contact_margin < g_float_005ec028 &&
-               g_path_endpoint_scale < surface->contact_margin && (surface->flags & 4) != 0) {
+               g_path_endpoint_scale < surface->contact_margin &&
+               (surface->flags & W8_GD_SURFACE_WALKABLE) != 0) {
         surface->contact_margin = 0.1f;
     }
 
     flags = surface->flags;
     surface->contact_margin *= g_world_scale;
-    if ((flags & 4) == 0) {
+    if ((flags & W8_GD_SURFACE_WALKABLE) == 0) {
         surface->slope = g_float_zero;
-    } else if (surface->slope < g_float_005ebc58 && (flags & 0x20) == 0) {
+    } else if (surface->slope < g_float_005ebc58 && (flags & W8_GD_SURFACE_EXPLICIT_SLOPE) == 0) {
         if (surface->plane.normal.y <= g_float_005ebccc) {
             upper_value = surface->plane.normal.y;
         }
         surface->slope = upper_value;
     }
-    surface->flags = flags & ~8U;
+    surface->flags = flags & ~W8_GD_SURFACE_COLLISION_PROCESSED;
 }
 
 /* Header-visible SetPlaneFromThreePoints. This TU unrolls the three-point
@@ -1454,7 +1456,7 @@ void W8GameData::CompileGameData()
         if (surface->vertex_indices[0] != surface->vertex_indices[1] &&
             surface->vertex_indices[0] != surface->vertex_indices[2] &&
             surface->vertex_indices[1] != surface->vertex_indices[2] &&
-            (surface->flags & 4) != 0) {
+            (surface->flags & W8_GD_SURFACE_WALKABLE) != 0) {
             surface->index = polygon_count;
             W8GDSurface* compiled = new_surfaces + polygon_count;
             InitializeCompiledSurface(compiled, surface, polygon_count);
@@ -1477,7 +1479,7 @@ void W8GameData::CompileGameData()
         if (surface->vertex_indices[0] != surface->vertex_indices[1] &&
             surface->vertex_indices[0] != surface->vertex_indices[2] &&
             surface->vertex_indices[1] != surface->vertex_indices[2] &&
-            (surface->flags & 4) == 0) {
+            (surface->flags & W8_GD_SURFACE_WALKABLE) == 0) {
             surface->index = polygon_count;
             surface->slope = 0;
             W8GDSurface* compiled = new_surfaces + polygon_count;

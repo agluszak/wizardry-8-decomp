@@ -1,5 +1,7 @@
 #pragma once
 
+#include "wiz8/navigation_flags.h"
+
 #include "surrender/srMath.h"
 #include "wiz8/engine_code/BitArray.h"
 #include "wiz8/engine_code/stHeap.hpp"
@@ -143,7 +145,7 @@ struct W8PathSurface {
     unsigned short flags;
     unsigned short index;
     srVector3T<float> position;
-    unsigned short parent;
+    unsigned short search_parent;
     unsigned char padding_12[0x02];
     /* Monotonic visit stamp: patrol selection picks the smallest value, and
        both mover paths write elapsed game time as each waypoint is consumed. */
@@ -151,8 +153,8 @@ struct W8PathSurface {
     /* A* heuristic: distance to the goal scaled by g_float_005ec394, cached by
        FindPath while the surface is open. */
     float heuristic;
-    float cost;
-    float remaining_cost;
+    float path_cost;
+    float estimated_total_cost;
     unsigned short first_edge;
     unsigned short padding_26;
 };
@@ -465,7 +467,7 @@ public:
     /* The active edge-filter mask for patrol/path searches. ConfigureForLevel
        loads it from the octree header; BuildPatrolPath stores its `flags` here
        for FindPatrolPath. */
-    unsigned int path_flags0;
+    unsigned int navigation_filter;
     int path_node_count; /* 0x04 */
     /* PrePathing's CreatePathNodeArray counts edge nodes here starting from
        one, and WriteOctFile serializes it beside the node count. */
@@ -491,10 +493,10 @@ public:
     W8FilePathNode* file_path_nodes; /* 0x44: serialized cell/height-state records */
     /* Surfaces are 0x28 bytes apart, edges 0xe; an edge names two surfaces by
        index in its two shorts at +4 and +6. */
-    W8PathSurface* m_pSurfaces;        /* 0x48 */
+    W8PathSurface* m_waypoints;        /* 0x48 */
     W8PathEdge* m_pEdges;              /* 0x4c */
     W8FileWaypoint* m_pFileWayPoints;      /* 0x50 */
-    stModelInstance* m_pPathModelInstance; /* 0x54 */
+    stModelInstance* m_path_visualization; /* 0x54 */
     BitArray* m_visible_waypoints;       /* 0x58 */
     BitArray* m_rendered_waypoints;      /* 0x5c */
     BitArray* m_collected_waypoints;     /* 0x60 */
@@ -534,12 +536,12 @@ public:
     unsigned int m_path_probe_count;
     W8PathProbeVolume m_path_probes[10];
     bool m_waypoint_editing; /* 0x1c8 */
-    bool flag1;
+    bool draw_waypoints;
     bool flag2;
     bool search_visualization;
     bool waypoints_dirty;
     unsigned char m_padding_1cd;
-    unsigned short path_flags1; /* 0x1ce: starts 4 */
+    unsigned short waypoint_editor_flags; /* 0x1ce: starts 4 */
     int link_flags;
     unsigned short start_waypoint;
     unsigned short destination_waypoint;
@@ -559,7 +561,7 @@ public:
     srVector3T<float> m_patrol_destination;
     unsigned char m_padding_204[0x0c];
     float m_patrol_cost;
-    W8PathParameters* m_path_parameters; /* 0x214 */
+    W8PathParameters* m_steering_context; /* 0x214 */
     W8NavigatorAttachment* m_linked_attachment;
     /* The conditional path tables. ReadPathNodes at 0x00458CE0 asserts on the
        first by name and names the other four in its own failure messages: a

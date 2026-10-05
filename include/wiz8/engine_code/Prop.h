@@ -77,6 +77,15 @@ static_assert(sizeof(W8PropRepresentation) == 0xc4, "W8PropRepresentation_must_b
    allocates operator new(0x90), which proves both the base and the extent.
    m_pRep and m_pTimer are the assertion-backed names; the representation is
    the Prop-owned W8PropRepresentation stored through GrObject's m_pRep slot. */
+/* Combined W8Prop::flags masks; these are distinct from representation flags. */
+enum {
+    W8_PROP_COLLIDABLE = 0x01u,
+    W8_PROP_ACCUMULATE_PATH_FRAMES = 0x02u,
+    W8_PROP_ANIMATION_GEOMETRY_DIRTY = 0x20u,
+    W8_PROP_NO_DIRECT_SUN = 0x40u,
+    W8_PROP_GD_TRIGGER_BOUND = 0x80u
+};
+
 class W8Prop : public W8GrObject {
 public:
     W8Prop();                   /* 0x0044BC00 */
@@ -110,10 +119,10 @@ public:
        position minus the home position into `out`; otherwise `out` is zeroed.
        `point` is accepted but never read. */
     char GetDelta(srVector3T<float>* out, const srVector3T<float>* point); /* 0x0044E130 */
-    /* The prop's position for external queries: position3 while its
+    /* The prop's position for external queries: animation_position while its
        animation runs, else the rep node's location. */
     void GetPosition(srVector3T<float>* out); /* 0x0044E2C0 */
-    /* Mirror of GetPosition: stores `position` in position3 while the
+    /* Mirror of GetPosition: stores `position` in animation_position while the
        animation runs, else moves the rep node through SetLocation. */
     void SetPosition(srVector3T<float>* position); /* 0x0044E310 */
     bool TriggerHasActionMessage();                /* 0x0044E360 */
@@ -158,12 +167,12 @@ public:
        reduces it by the whole-frame count - the fractional remainder. */
     float anim_frame_fraction;
     W8GameTimer* m_pTimer;          /* 0x28 */
-    srVector3T<float> position3; /* 0x2c: written by ApplyAnimationFrame */
+    srVector3T<float> animation_position; /* 0x2c: written by ApplyAnimationFrame */
     GDProp* m_gd_prop;              /* 0x38 */
-    srVector3T<float> position5; /* 0x3c */
+    srVector3T<float> previous_animation_position; /* 0x3c */
     /* Prop::Prop writes two identity bases here as nine floats each. */
-    srMatrix3T<float> rotation0; /* 0x48 */
-    srMatrix3T<float> rotation1; /* 0x6c */
+    srMatrix3T<float> previous_animation_rotation; /* 0x48 */
+    srMatrix3T<float> animation_rotation;          /* 0x6c */
 }; /* 0x90 */
 
 static_assert(sizeof(W8Prop) == 0x90, "W8Prop_must_be_0x90");

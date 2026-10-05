@@ -6,12 +6,23 @@
 
 #include <math.h>
 
-/* Physical-surface flags corroborated by both retail consumers and Cosmic
-   Forge's physical-face editor. Other bits stay unnamed until their retail
-   behavior is independently established. */
+/* Physical-surface masks recovered from retail collision/build consumers.
+   WALKABLE/PATHFINDING also agree with Cosmic Forge's face editor. */
 enum W8GDSurfaceFlags {
-    W8_GD_SURFACE_WALKABLE = 0x00000004,
-    W8_GD_SURFACE_PATHFINDING = 0x00000040,
+    W8_GD_SURFACE_AXIS_MASK = 0x00000003u,
+    W8_GD_SURFACE_WALKABLE = 0x00000004u,
+    W8_GD_SURFACE_COLLISION_PROCESSED = 0x00000008u,
+    W8_GD_SURFACE_CONDITIONAL_DISABLED = 0x00000010u,
+    W8_GD_SURFACE_EXPLICIT_SLOPE = 0x00000020u,
+    W8_GD_SURFACE_PATHFINDING = 0x00000040u,
+    W8_GD_SURFACE_CROSSING = 0x00000080u,
+    W8_GD_SURFACE_PROP_GEOMETRY = 0x00000800u,
+    W8_GD_SURFACE_ENVIRONMENT = 0x00001000u,
+    W8_GD_SURFACE_QUERY_VISITED = 0x00002000u,
+    W8_GD_SURFACE_SKIP_FILTERED_TRACE = 0x00008000u,
+    W8_GD_SURFACE_CROSSING_MASK = W8_GD_SURFACE_CROSSING | W8_GD_SURFACE_ENVIRONMENT,
+    W8_GD_SURFACE_INACTIVE_MASK =
+        W8_GD_SURFACE_COLLISION_PROCESSED | W8_GD_SURFACE_CONDITIONAL_DISABLED
 };
 
 /* Axis-aligned minimum/maximum box used by Wizardry's runtime/build geometry.
@@ -38,6 +49,7 @@ static_assert(sizeof(W8Plane) == 0x10, "W8Plane_must_be_0x10");
 struct W8GDSurface {
     unsigned int flags;
     unsigned int index;
+    /* ENVIRONMENT selects the environment table; other crossing faces select triggers. */
     int trigger_index;
     int edge_link[3];
     int vertex_indices[3];

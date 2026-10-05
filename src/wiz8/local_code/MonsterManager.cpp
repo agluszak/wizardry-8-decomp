@@ -253,7 +253,7 @@ void ActivateMonsterInWorld(W8MonsterInfo* monster_info)
     RequestRefreshPartyState();
     RefreshFlaggedMainGameState();
     if (record->can_open_doors != 0) {
-        monster_info->p3D->movement.movement_flags |= 0x10000000;
+        monster_info->p3D->movement.navigation_filter |= W8_NAV_THROUGH_DOORS;
     }
     BindNpcToMonster(record->npc_kind, true, monster_info->location_id);
 }

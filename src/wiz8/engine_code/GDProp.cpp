@@ -32,12 +32,12 @@ GDProp::GDProp(srModelInstance* instance, const char* path_name, unsigned short 
     m_surface_count = 0;
     m_pGDSurfaces = 0;
     m_pVertices = 0;
-    m_owner = 0;
-    m_link_count = 0;
-    m_waypoint_count = 0;
-    m_links = 0;
-    m_waypoints = 0;
-    m_list = 0;
+    m_trigger = 0;
+    m_path_edge_count = 0;
+    m_path_waypoint_count = 0;
+    m_path_edges = 0;
+    m_path_waypoints = 0;
+    m_supported_items = 0;
     m_path_range.sentinel = -10000000.0f;
     m_path_bounds.max_z = 0;
     m_path_bounds.min_z = 0;
@@ -67,14 +67,14 @@ GDProp::~GDProp()
     if (m_pVertices != 0) {
         delete[] m_pVertices;
     }
-    if (m_links != 0) {
-        free(m_links);
+    if (m_path_edges != 0) {
+        free(m_path_edges);
     }
-    if (m_waypoints != 0) {
-        free(m_waypoints);
+    if (m_path_waypoints != 0) {
+        free(m_path_waypoints);
     }
-    if (m_list != 0) {
-        PLDestroy(m_list);
+    if (m_supported_items != 0) {
+        PLDestroy(m_supported_items);
     }
 }
 
@@ -174,17 +174,17 @@ void GDProp::Initialize(srModelInstance* instance, bool attach, unsigned short p
                     dominant_axis = axis;
                 }
             }
-            surface->flags = dominant_axis + 0x800;
+            surface->flags = dominant_axis + W8_GD_SURFACE_PROP_GEOMETRY;
             surface->footstep_surface = footstep_surface;
             surface->footstep_material = footstep_material;
             surface->hit_plane = 0;
             if ((mesh_flags & 1) != 0) {
-                surface->flags |= 0x8000;
+                surface->flags |= W8_GD_SURFACE_SKIP_FILTERED_TRACE;
             }
 
             if (g_float_005ebc7c <= surface->plane.normal.y) {
                 surface->contact_margin = 500.0f;
-                surface->flags |= 4;
+                surface->flags |= W8_GD_SURFACE_WALKABLE;
                 if (g_float_005ebccc < surface->plane.normal.y) {
                     surface->slope = 1.0f;
                 } else {
@@ -207,26 +207,26 @@ void GDProp::Initialize(srModelInstance* instance, bool attach, unsigned short p
             }
         } else {
             pathing->SetConditionalPathFrame(m_path_handle, m_prop_number);
-            if (m_waypoint_count != 0) {
-                pathing->CheckConditionalWayPtStatus(m_waypoint_count, m_waypoints);
+            if (m_path_waypoint_count != 0) {
+                pathing->CheckConditionalWayPtStatus(m_path_waypoint_count, m_path_waypoints);
             }
-            if (m_link_count != 0) {
-                pathing->CheckConditionalLinkStatus(m_link_count, m_links);
+            if (m_path_edge_count != 0) {
+                pathing->CheckConditionalLinkStatus(m_path_edge_count, m_path_edges);
             }
         }
     }
 
-    Trigger* owner = m_owner;
+    Trigger* owner = m_trigger;
     if (owner != 0 && attach) {
         W8TriggerActionData* action = owner->m_pActionData;
         if (action != 0 && action->type == W8_TRIGGER_PAYLOAD_DOOR) {
-            unsigned int flags = 0x08000000;
+            unsigned int flags = W8_PATH_CELL_DOOR;
             if ((owner->lock_state.lock_type != 0 &&
                  owner->lock_state.device_state.completed == 0) ||
                 ((owner->flags & W8_TRIGGER_ENABLED) == 0 ||
                  (static_cast<W8DoorTriggerActionData*>(action)->door_flags &
                   (W8_DOOR_OPEN | W8_DOOR_KEY_REQUIRED)) != 0)) {
-                flags = 0x28000000;
+                flags = W8_PATH_CELL_DOOR | W8_PATH_CELL_BLOCKED;
             }
             if (pathing != 0) {
                 pathing->UpdateConditionalPathFlags(m_path_handle, m_prop_number, flags);
@@ -234,11 +234,11 @@ void GDProp::Initialize(srModelInstance* instance, bool attach, unsigned short p
         }
     }
 
-    if (m_list != 0) {
-        unsigned int count = PLLength(m_list);
+    if (m_supported_items != 0) {
+        unsigned int count = PLLength(m_supported_items);
         for (unsigned int index = 0; index < count; ++index) {
             W8WorldItem* item =
-                static_cast<W8WorldItem*>(PLGet(m_list, static_cast<int>(index)));
+                static_cast<W8WorldItem*>(PLGet(m_supported_items, static_cast<int>(index)));
             if (item != 0) {
                 SetWorldItemFalling(item, true);
             }
@@ -251,21 +251,21 @@ void GDProp::Initialize(srModelInstance* instance, bool attach, unsigned short p
 // FUNCTION: WIZ8 0x004b7470
 void GDProp::BindTrigger(Trigger* owner)
 {
-    m_owner = owner;
+    m_trigger = owner;
     W8TriggerActionData* action = owner->m_pActionData;
     if (action != 0 && action->type == W8_TRIGGER_PAYLOAD_DOOR) {
         if (action != 0) {
-            m_flags |= 2;
-            unsigned int path_flags = 0x08000000;
+            m_flags |= W8_GD_PROP_DOOR;
+            unsigned int path_flags = W8_PATH_CELL_DOOR;
             if ((owner->lock_state.lock_type == 0 ||
                  owner->lock_state.device_state.completed != 0) &&
                 (owner->flags & W8_TRIGGER_ENABLED) != 0 &&
                 (static_cast<W8DoorTriggerActionData*>(action)->door_flags &
                  (W8_DOOR_OPEN | W8_DOOR_KEY_REQUIRED)) == 0) {
-                m_flags |= 8;
+                m_flags |= W8_GD_PROP_DOOR_USABLE;
             } else {
-                path_flags = 0x28000000;
-                m_flags &= 0xfff7;
+                path_flags = W8_PATH_CELL_DOOR | W8_PATH_CELL_BLOCKED;
+                m_flags &= 0xffffu & ~W8_GD_PROP_DOOR_USABLE;
             }
 
             W8PathingService* pathing = g_octree->pathing;
@@ -351,22 +351,22 @@ unsigned char GDProp::RegisterPathSurface(unsigned int index, const srVector2i* 
         return 0;
     }
 
-    if (m_waypoint_count % 10 == 0) {
+    if (m_path_waypoint_count % 10 == 0) {
         unsigned short* pusNewList = static_cast<unsigned short*>(
-            malloc((m_waypoint_count + 10) * sizeof(unsigned short)));
+            malloc((m_path_waypoint_count + 10) * sizeof(unsigned short)));
         if (pusNewList == 0) {
             srAssertFail("pusNewList", "C:\\Projects\\Wizardry 8\\Engine Code\\GDProp.cpp", 0x242,
                          "CheckConditionalWayPt: Couldn't allocate new waypt list.");
         }
-        memset(pusNewList, 0, (m_waypoint_count + 10) * sizeof(unsigned short));
-        if (m_waypoints != 0) {
-            memcpy(pusNewList, m_waypoints, m_waypoint_count * sizeof(unsigned short));
-            free(m_waypoints);
+        memset(pusNewList, 0, (m_path_waypoint_count + 10) * sizeof(unsigned short));
+        if (m_path_waypoints != 0) {
+            memcpy(pusNewList, m_path_waypoints, m_path_waypoint_count * sizeof(unsigned short));
+            free(m_path_waypoints);
         }
-        m_waypoints = pusNewList;
+        m_path_waypoints = pusNewList;
     }
-    m_waypoints[m_waypoint_count] = static_cast<unsigned short>(index);
-    ++m_waypoint_count;
+    m_path_waypoints[m_path_waypoint_count] = static_cast<unsigned short>(index);
+    ++m_path_waypoint_count;
     return 1;
 }
 
@@ -411,22 +411,22 @@ unsigned char GDProp::RegisterPathVertex(unsigned int index, const srVector2i* p
         return 0;
     }
 
-    if (m_link_count % 10 == 0) {
+    if (m_path_edge_count % 10 == 0) {
         unsigned short* pusNewList =
-            static_cast<unsigned short*>(malloc((m_link_count + 10) * sizeof(unsigned short)));
+            static_cast<unsigned short*>(malloc((m_path_edge_count + 10) * sizeof(unsigned short)));
         if (pusNewList == 0) {
             srAssertFail("pusNewList", "C:\\Projects\\Wizardry 8\\Engine Code\\GDProp.cpp", 0x28d,
                          "CheckConditionalWayPt: Couldn't allocate new waypt list.");
         }
-        memset(pusNewList, 0, (m_link_count + 10) * sizeof(unsigned short));
-        if (m_links != 0) {
-            memcpy(pusNewList, m_links, m_link_count * sizeof(unsigned short));
-            free(m_links);
+        memset(pusNewList, 0, (m_path_edge_count + 10) * sizeof(unsigned short));
+        if (m_path_edges != 0) {
+            memcpy(pusNewList, m_path_edges, m_path_edge_count * sizeof(unsigned short));
+            free(m_path_edges);
         }
-        m_links = pusNewList;
+        m_path_edges = pusNewList;
     }
-    m_links[m_link_count] = static_cast<unsigned short>(index);
-    ++m_link_count;
+    m_path_edges[m_path_edge_count] = static_cast<unsigned short>(index);
+    ++m_path_edge_count;
     return 1;
 }
 
@@ -445,11 +445,11 @@ void AddItemToSector(int sector, W8WorldItem* item)
                 return;
             }
         }
-        if (gd->m_list == 0) {
-            gd->m_list = PLCreate();
+        if (gd->m_supported_items == 0) {
+            gd->m_supported_items = PLCreate();
         }
-        if (gd->m_list != 0 && PListIndexOf(gd->m_list, item) < 0) {
-            PLAdoptAppend(gd->m_list, item);
+        if (gd->m_supported_items != 0 && PListIndexOf(gd->m_supported_items, item) < 0) {
+            PLAdoptAppend(gd->m_supported_items, item);
         }
     }
 }
@@ -460,17 +460,17 @@ void RemoveItemFromSector(int sector, W8WorldItem* item)
 {
     if (item != 0 && sector >= 0) {
         W8Prop* prop = *g_world->collidable_props->GetAt(sector);
-        if (prop != 0 && prop->m_gd_prop != 0 && prop->m_gd_prop->m_list != 0) {
-            PListRemove(prop->m_gd_prop->m_list, item);
+        if (prop != 0 && prop->m_gd_prop != 0 && prop->m_gd_prop->m_supported_items != 0) {
+            PListRemove(prop->m_gd_prop->m_supported_items, item);
         }
     }
 }
 
 /* Whether the optional owned list currently contains an entry. */
 // FUNCTION: WIZ8 0x004B7BA0
-unsigned char GDProp::HasListEntries()
+unsigned char GDProp::HasSupportedItems()
 {
-    if (m_list != 0 && static_cast<int>(PLLength(m_list)) > 0) {
+    if (m_supported_items != 0 && static_cast<int>(PLLength(m_supported_items)) > 0) {
         return 1;
     }
     return 0;
@@ -657,11 +657,11 @@ void GDProp::TransformMeshGeometry(const W8LevelFileScaledPathNode* node, W8Leve
                 dominant_axis = axis;
             }
         }
-        surface->flags = dominant_axis + 0x800;
+        surface->flags = dominant_axis + W8_GD_SURFACE_PROP_GEOMETRY;
         surface->hit_plane = 0;
         if (g_float_005ebc7c <= surface->plane.normal.y) {
             surface->contact_margin = 500.0f;
-            surface->flags |= 4;
+            surface->flags |= W8_GD_SURFACE_WALKABLE;
         } else {
             surface->slope = 0.0f;
             surface->contact_margin = 500.0f;

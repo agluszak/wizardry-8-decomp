@@ -522,12 +522,12 @@ static unsigned char ReadWorldProps(W8ReadLevelInfo* pInfo, W8World* pWorld,
             success = 1;
             if (g_octree != 0) {
                 if (!g_octree->TestPropSunBit(index)) {
-                    prop->flags |= 0x40;
+                    prop->flags |= W8_PROP_NO_DIRECT_SUN;
                 }
                 g_octree->AddLoadedProp(prop);
             }
             PLAdoptAppend(pWorld->plsProps, prop);
-            if ((prop->flags & 1) != 0) {
+            if ((prop->flags & W8_PROP_COLLIDABLE) != 0) {
                 prop->GetBounds(&bounds.minimum, &bounds.maximum);
                 pWorld->collidable_props->Add(prop);
                 if (pWorld->octree != 0) {
@@ -1154,7 +1154,7 @@ unsigned char ReadLevel(W8World* world, int handle, bool use_octree, const char*
         W8Prop* prop = GetWorldProp(world, index);
         W8AnimObj* animation = prop->Rep()->animation;
 
-        if ((prop->flags & 0x40) != 0) {
+        if ((prop->flags & W8_PROP_NO_DIRECT_SUN) != 0) {
             unsigned int animation_count = AnimObjListCount(animation, 2);
             for (unsigned int animation_index = 0; animation_index < animation_count;
                  ++animation_index) {

@@ -380,7 +380,7 @@ int W8OctBuildTree::CollectObjectsAlongSegment(W8GDSurface*** results,
         do {
             W8GDSurface* surface = (*results)[index];
             ++index;
-            surface->flags &= ~0x2000;
+            surface->flags &= ~W8_GD_SURFACE_QUERY_VISITED;
         } while (index < static_cast<unsigned int>(count));
     }
     return count;
@@ -461,8 +461,8 @@ int W8OctBuildTree::CollectLeaf(W8OctBuildNode* node, short depth, short kind)
             link = node->links[3];
             while (link != 0) {
                 surface = static_cast<W8GDSurface*>(link->surface);
-                if ((surface->flags & 0x2000) == 0) {
-                    surface->flags |= 0x2000;
+                if ((surface->flags & W8_GD_SURFACE_QUERY_VISITED) == 0) {
+                    surface->flags |= W8_GD_SURFACE_QUERY_VISITED;
                     g_oct_build_scratch[g_oct_build_count] =
                         static_cast<W8GDSurface*>(link->surface);
                     ++g_oct_build_count;
@@ -625,8 +625,8 @@ char CollectSurfacePredicate(W8GDSurface* surface, short kind)
         }
         result = true;
     } else {
-        if ((surface->flags & 0x2000) == 0) {
-            surface->flags |= 0x2000;
+        if ((surface->flags & W8_GD_SURFACE_QUERY_VISITED) == 0) {
+            surface->flags |= W8_GD_SURFACE_QUERY_VISITED;
             result = true;
         }
     }

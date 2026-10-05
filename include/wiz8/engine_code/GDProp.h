@@ -22,6 +22,12 @@ struct W8LevelFileScaledPathNode;
    constructs it at 0x004B6E00, and owns it at Prop+0x38. Assertions in the
    same-object method at 0x004B6F30 retain the original m_pGDSurfaces and
    m_pVertices member names and establish their offsets. */
+enum {
+    W8_GD_PROP_ALWAYS_BLOCKS_PATH = 0x01u,
+    W8_GD_PROP_DOOR = 0x02u,
+    W8_GD_PROP_DOOR_USABLE = 0x08u
+};
+
 class GDProp {
     friend class W8Prop;
     friend class W8PathingService;
@@ -47,11 +53,11 @@ public:
         m_surface_count = 0;
         m_pGDSurfaces = 0;
         m_pVertices = 0;
-        m_owner = 0;
-        m_links = 0;
-        m_waypoints = 0;
+        m_trigger = 0;
+        m_path_edges = 0;
+        m_path_waypoints = 0;
         m_path_range.sentinel = -10000000.0f;
-        m_list = 0;
+        m_supported_items = 0;
         m_path_bounds.max_z = 0;
         m_path_bounds.min_z = 0;
         m_path_bounds.max_x = 0;
@@ -62,7 +68,7 @@ public:
     ~GDProp();                                                               /* 0x004B6ED0 */
     void BindTrigger(Trigger* owner);
     unsigned char ContainsPathCoordinate(unsigned short x, unsigned short y) const;
-    unsigned char HasListEntries();
+    unsigned char HasSupportedItems();
     /* Rebuilds m_pVertices/m_pGDSurfaces for the given animation frame of the
        level prop's transforms. */
     void ApplyAnimFrame(unsigned short frame, W8LevelFileAnimObj* anim);
@@ -92,22 +98,23 @@ private:
     unsigned short m_flags;           /* 0x00 */
     unsigned short m_prop_number;     /* 0x02 */
     unsigned int m_path_handle;       /* 0x04 */
-    unsigned short m_link_count;      /* 0x08 */
-    unsigned short m_waypoint_count;  /* 0x0a */
-    unsigned short* m_links;          /* 0x0c; released by CRT free */
-    unsigned short* m_waypoints;      /* 0x10; released by CRT free */
+    unsigned short m_path_edge_count; /* 0x08 */
+    unsigned short m_path_waypoint_count; /* 0x0a */
+    unsigned short* m_path_edges;         /* 0x0c; released by CRT free */
+    unsigned short* m_path_waypoints;     /* 0x10; released by CRT free */
     int m_surface_count;              /* 0x14; m_pGDSurfaces count */
     int m_vertex_count;               /* 0x18; m_pVertices count */
     W8GDSurface* m_pGDSurfaces;          /* 0x1c */
     srVector3T<float>* m_pVertices;      /* 0x20 */
-    Trigger* m_owner;                 /* 0x24: installed by 0x004B7470 */
+    Trigger* m_trigger;                  /* 0x24: installed by 0x004B7470 */
     W8PathVerticalRange m_path_range; /* 0x28 */
     /* Vertex AABB cached by ComputeBounds and tested by
        BoundsOverlap. */
     srVector3T<float> m_bound_min;  /* 0x34 */
     srVector3T<float> m_bound_max;  /* 0x40 */
     W8PathGridBounds m_path_bounds; /* 0x4c */
-    W8PList* m_list;                /* 0x54 */
+    /* Owns the list buffer; item records belong to the world item list. */
+    W8PList* m_supported_items; /* 0x54 */
 }; /* 0x58 */
 
 /* OctPreTree.cpp's per-prop path record element: the GDProp plus the frame
