@@ -321,18 +321,18 @@ unsigned char LoadSurfaceVertices(srVector3T<float>* output, const int* vertex_i
 void ClearLevelMovementStopped(void);
 void ResetLevelDataVectors(void);
 int IsLevelDataFlag4EffectivelySet(void);
-unsigned char HasLevelWalkableContact(void); /* 0x0041F070 */
-unsigned char IsLevelFastMovement(void);     /* 0x0041EFB0 */
+bool HasLevelWalkableContact(void);          /* 0x0041F070 */
+bool IsLevelFastMovement(void);              /* 0x0041EFB0 */
 void ClearLevelFastMovement(void);           /* 0x0041EFD0 */
 void SetLevelFastMovement(void);             /* 0x0041EFE0 */
-unsigned char LevelMovedThisUpdate(void);    /* 0x0041EFF0 */
+bool LevelMovedThisUpdate(void);             /* 0x0041EFF0 */
 bool HasLevelDataVector(void);         /* 0x0041F010 */
 void ResetCurrentEnvironment(void);
 unsigned char SetEnvironmentLoadFlag(unsigned char flag); /* 0x0041AAE0 */
 void BeginCameraSway(void);
 void EndCameraSway(void);
 
-unsigned char IsLevelMovementStopped(void);
+bool IsLevelMovementStopped(void);
 unsigned char ConsumeLevelElapsedTime(float* real_elapsed, float* frame_elapsed);
 /* Retail tests level flag 0x008; when set both outputs are -1. */
 void GetLevelSoundEnvironment(char* environment, char* secondary);

@@ -181,9 +181,8 @@ void UpdateGameClock(int elapsed)
         }
 
         if (gXStatus.fSurprisePossible == 0 && !AnyCharacterEngaged() && AnyCharacterActive() &&
-            g_status.party_fatigued == 0 && HasLevelDataVector() == 0 &&
-            static_cast<char>(HasLevelWalkableContact()) != 0 &&
-            static_cast<char>(IsScreenIdle()) != 0) {
+            g_status.party_fatigued == 0 && !HasLevelDataVector() && HasLevelWalkableContact() &&
+            IsScreenIdle()) {
             BeginPartyCamping();
         }
     }
@@ -213,11 +212,11 @@ void RequestCamp(void)
         ShowNotice(0xc, gppStringList[0x774], -1, 0xffffffff, 0);
         return;
     }
-    if (HasLevelDataVector() == 0 && static_cast<char>(HasLevelWalkableContact()) != 0) {
+    if (!HasLevelDataVector() && HasLevelWalkableContact()) {
         if (DispatchWorldCursorNodeCommand(0, 3) != 0) {
             return;
         }
-        if (static_cast<char>(IsScreenIdle()) == 0) {
+        if (!IsScreenIdle()) {
             return;
         }
         BeginPartyCamping();
@@ -736,11 +735,11 @@ void GameTurnsPassedChar(int party_slot, unsigned int minutes)
 
     W8ItemInstance* found;
     W8Character* holder;
-    if (FindItemOnParty(0x243, &found, &holder, 2, static_cast<W8ItemInstance*>(0)) != 0 &&
+    if (FindItemOnParty(0x243, &found, &holder, 2, static_cast<W8ItemInstance*>(0)) &&
         found != &g_status.item_in_hand) {
         if (holder == static_cast<W8Character*>(0) ||
-            FindItemOnCharacter(holder, 0x239, static_cast<W8ItemInstance**>(0), 0,
-                                static_cast<W8ItemInstance*>(0)) == 0) {
+            !FindItemOnCharacter(holder, 0x239, static_cast<W8ItemInstance**>(0), 0,
+                                 static_cast<W8ItemInstance*>(0))) {
             if (character->uiCondition[W8_CONDITION_INSANE] < W8_CONDITION_INDEFINITE) {
                 SetCharacterCondition(party_slot, W8_CONDITION_INSANE, W8_CONDITION_INDEFINITE, 0,
                                       0, 1);
@@ -802,7 +801,7 @@ void GameTurnsPassedChar(int party_slot, unsigned int minutes)
     }
     float stamina_scale = 0.0f;
 
-    if (CharacterHasTrait(character, W8_TRAIT_HEALTH_REGENERATION) != 0) {
+    if (CharacterHasTrait(character, W8_TRAIT_HEALTH_REGENERATION)) {
         if (health_scale == g_float_zero) {
             health_scale =
                 ScaleValueByProfessionLevel(character, W8_TRAIT_HEALTH_REGENERATION, 16.67f) *
@@ -813,15 +812,13 @@ void GameTurnsPassedChar(int party_slot, unsigned int minutes)
                 health_scale;
         }
     }
-    if (CharacterHasTrait(character, W8_TRAIT_STAMINA_REGENERATION) != 0 &&
-        gXStatus.fCombatMode != 0) {
+    if (CharacterHasTrait(character, W8_TRAIT_STAMINA_REGENERATION) && gXStatus.fCombatMode != 0) {
         stamina_scale = ScaleValueByProfessionLevel(character, W8_TRAIT_STAMINA_REGENERATION, 3.3f);
     }
-    if (CharacterHasTrait(character, static_cast<W8Trait>(0x1a)) != 0 &&
-        spell_scale > g_float_zero) {
+    if (CharacterHasTrait(character, static_cast<W8Trait>(0x1a)) && spell_scale > g_float_zero) {
         spell_scale *= g_fast_magic_recovery_scale;
     }
-    if (CharacterHasTrait(character, W8_TRAIT_LIZARDMAN_SLOW_MAGIC_RECOVERY) != 0 &&
+    if (CharacterHasTrait(character, W8_TRAIT_LIZARDMAN_SLOW_MAGIC_RECOVERY) &&
         spell_scale > g_float_zero) {
         spell_scale *= g_float_005ebccc;
     }
@@ -891,7 +888,7 @@ void GameTurnsPassedChar(int party_slot, unsigned int minutes)
         }
     }
 
-    if (CharacterHasTrait(character, W8_TRAIT_MAKE_POTIONS) != 0) {
+    if (CharacterHasTrait(character, W8_TRAIT_MAKE_POTIONS)) {
         if (gXStatus.fSurprisePossible != 0) {
             if (character->potion_brew_cooldown == 0) {
                 BrewAlchemistPotion(character);
@@ -946,7 +943,7 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, unsigned
             probe.y += g_float_005ebc64;
             GetCameraPosition(&camera);
             if (ProjectPointThroughCamera(&probe) == 0 &&
-                g_octree->HasLineOfSight(&camera, &probe, 1) == 0) {
+                !g_octree->HasLineOfSight(&camera, &probe, 1)) {
                 srVector3T<float> notify_position = last_seen;
                 unsigned int group_index = GetMonsterGroupIndexByID(
                     0x4d2, GAMEPLAYTIME_CPP, monster_info->monster_group_id, 1);
@@ -1007,7 +1004,7 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, unsigned
 
                             GetCameraPosition(&camera);
                             if (ProjectPointThroughCamera(&probe) == 0 &&
-                                g_octree->HasLineOfSight(&camera, &probe, 1) == 0) {
+                                !g_octree->HasLineOfSight(&camera, &probe, 1)) {
                                 srVector3T<float> notify_position = next_position;
                                 unsigned int group_index = GetMonsterGroupIndexByID(
                                     0x50f, GAMEPLAYTIME_CPP, monster_info->monster_group_id, 1);
@@ -1042,7 +1039,7 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, unsigned
                 probe = location2;
                 probe.y += g_float_005ebc64;
                 if (ProjectPointThroughCamera(&location2) == 0 &&
-                    g_octree->HasLineOfSight(&camera, &probe, 1) == 0) {
+                    !g_octree->HasLineOfSight(&camera, &probe, 1)) {
                     if (monster->formation.x == g_float_zero &&
                         monster->formation.y == g_float_zero &&
                         monster->formation.z == g_float_zero) {
@@ -1051,7 +1048,7 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, unsigned
                     probe = monster->formation;
                     probe.y += g_float_005ebc64;
                     if (ProjectPointThroughCamera(&location2) == 0 &&
-                        g_octree->HasLineOfSight(&camera, &probe, 1) == 0) {
+                        !g_octree->HasLineOfSight(&camera, &probe, 1)) {
                         if (monster->formation.x == g_float_zero &&
                             monster->formation.y == g_float_zero &&
                             monster->formation.z == g_float_zero) {
@@ -1296,8 +1293,8 @@ void UpdateCampFatigue(int ticks)
         if (g_status.buffers.XChar[slot].fOccupied != 0 && character->hp_current != 0 &&
             character->highest_condition < W8_CONDITION_DEAD &&
             character->iRace != W8_RACE_ANDROID &&
-            FindItemOnCharacter(character, 0x1e5, static_cast<W8ItemInstance**>(0), 0,
-                                static_cast<W8ItemInstance*>(0)) == 0) {
+            !FindItemOnCharacter(character, 0x1e5, static_cast<W8ItemInstance**>(0), 0,
+                                 static_cast<W8ItemInstance*>(0))) {
             W8Dice dice;
             dice.count = static_cast<unsigned char>(ticks);
             dice.sides = static_cast<unsigned char>(g_status.camp_fatigue_count / 6) + 2;
@@ -1342,10 +1339,10 @@ void UpdateCampFatigue(int ticks)
 // FUNCTION: WIZ8 0x00504670
 void UpdatePartyStamina(int ticks)
 {
-    if (static_cast<char>(IsLevelFastMovement()) != 0) {
+    if (IsLevelFastMovement()) {
         g_status.wait_state = 1;
     } else {
-        g_status.wait_state = static_cast<char>(LevelMovedThisUpdate()) != 0 ? 0 : 3;
+        g_status.wait_state = LevelMovedThisUpdate() ? 0 : 3;
     }
 
     for (unsigned int slot = 0; slot < 8; ++slot) {
@@ -1359,8 +1356,8 @@ void UpdatePartyStamina(int ticks)
             continue;
         }
         if (g_status.party_fatigued != 0 &&
-            FindItemOnCharacter(character, 0x1e5, static_cast<W8ItemInstance**>(0), 0,
-                                static_cast<W8ItemInstance*>(0)) == 0) {
+            !FindItemOnCharacter(character, 0x1e5, static_cast<W8ItemInstance**>(0), 0,
+                                 static_cast<W8ItemInstance*>(0))) {
             continue;
         }
         RegenCharacterStamina(slot, static_cast<unsigned int>(ticks));

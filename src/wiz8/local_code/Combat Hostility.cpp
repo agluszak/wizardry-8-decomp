@@ -289,7 +289,7 @@ bool CharacterActionTargetsEnemies(W8Character* character, W8ActionKind action_k
         break;
     case W8_ACTION_USE_ITEM:
         item = detail->item_use.item;
-        if (CanCharacterActivateItem(character, item) != 0) {
+        if (CanCharacterActivateItem(character, item)) {
             spell_id = g_item_records[item->iItemNo].spell_id;
             if (spell_id != 0) {
                 if (spell_id > 0x95) {
@@ -849,7 +849,7 @@ int CharacterPrayAction(int party_slot)
             prayed = true;
             break;
         case 9:
-            if (CombatHasCondition(0x3b) == 0 || CombatHasCondition(0x35) == 0) {
+            if (!CombatHasCondition(0x3b) || !CombatHasCondition(0x35)) {
                 target.iType = W8_TARGET_KIND_PARTY;
                 target.iChar = -1;
                 AppendToLastTextLine(gppStringList[0x17b], -1);
@@ -861,8 +861,8 @@ int CharacterPrayAction(int party_slot)
             }
             break;
         case 10:
-            if (PartyHasCondition(0x28) == 0 || PartyHasCondition(0x14) == 0 ||
-                PartyHasCondition(0x20) == 0 || PartyHasCondition(0x1a) == 0) {
+            if (!PartyHasCondition(0x28) || !PartyHasCondition(0x14) || !PartyHasCondition(0x20) ||
+                !PartyHasCondition(0x1a)) {
                 target.iType = W8_TARGET_KIND_PARTY;
                 target.iChar = -1;
                 AppendToLastTextLine(gppStringList[0x17b], -1);
@@ -935,7 +935,7 @@ void AlertSameFactionGroups(W8MonsterGroup* monster_group)
             if (other != monster_group &&
                 ((other_record->flags & W8_MONSTER_FLAG_NPC) == 0 || other->forced_neutral == 0) &&
                 record->faction_id == other_record->faction_id &&
-                MonsterGroupCanSeeGroup(other, monster_group) != 0) {
+                MonsterGroupCanSeeGroup(other, monster_group)) {
                 SetMonsterGroupHostility(other, monster_group->ubDisposition, 0);
             }
         }

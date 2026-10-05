@@ -686,7 +686,7 @@ void ActivateItem(W8WorldItem* item)
         }
     }
 
-    if (LoadItemFromFile(&info, zItemName, &item->p3D, 0) == 0) {
+    if (!LoadItemFromFile(&info, zItemName, &item->p3D, 0)) {
         srAssertFail("fSuccess", ITEM_MANAGER_CPP, 0x1f2,
                      FormatString("ActivateItem: ERROR - ItemRead %s failed", zItemName));
     }

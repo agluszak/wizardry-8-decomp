@@ -1691,7 +1691,7 @@ unsigned char W8TriggerItemPickerDialog::ProcessInput()
     MSYS_SGP_Mouse_Handler_Hook(MOUSE_POS, mouse.x, mouse.y, gfLeftButtonState, gfRightButtonState);
     while (DequeueEvent(&input) == 1) {
         if ((input.usEvent == LEFT_BUTTON_DOWN || input.usEvent == RIGHT_BUTTON_DOWN) &&
-            ProcessPendingEvent() != 0) {
+            ProcessPendingEvent()) {
             continue;
         }
         if (HitTestPartyPortrait(&input) != 0) {

@@ -171,14 +171,14 @@ void ActivateMonsterInWorld(W8MonsterInfo* monster_info)
     }
 
     record = MonsterDBFromSpecies(monster_info->monster_species);
-    if (monster_info->p3D == 0 || monster_info->p3D->IsPendingFinalize() != 0) {
+    if (monster_info->p3D == 0 || monster_info->p3D->IsPendingFinalize()) {
         registry_before = GetUsedPageFileBytes();
         ActivateMonster(monster_info, 0);
         MonsterSetLocationId(monster_info->p3D, monster_info->location_id);
         MonsterSetAdjustedPosition(monster_info->p3D, &monster_info->position);
 
         if (PListIndexOf(gXStatus.plsUnbornMonsterList, monster_info) != -1) {
-            if (MonsterIsCycleSupported(monster_info->p3D, 0) == 0) {
+            if (!MonsterIsCycleSupported(monster_info->p3D, 0)) {
                 srAssertFail("MonsterIsCycleSupported(pMonsterInfo->p3D, CYCLE_BIRTH)",
                              MONSTER_MANAGER_CPP, 0x190, "Unborn monsters must have CYCLE_BIRTH!");
             }
@@ -215,7 +215,7 @@ void ActivateMonsterInWorld(W8MonsterInfo* monster_info)
         registry_after = GetUsedPageFileBytes();
         monster_info->p3D->registry_weight = registry_after - registry_before;
         g_monster_cycle_registry_weight += registry_after - registry_before;
-        if (IsMipeActive() != 0) {
+        if (IsMipeActive()) {
             ShowNoticef(7, L"(%dK)",
                         static_cast<unsigned int>(registry_after - registry_before) >> 10);
         }
@@ -334,7 +334,7 @@ void ClearMonsterPathAndResume(W8MonsterInfo* monster_info)
 // FUNCTION: WIZ8 0x004e4690
 void MonsterStartsDying(W8MonsterInfo* monster_info, char display_message)
 {
-    if (monster_info->p3D->IsDying() == 0) {
+    if (!monster_info->p3D->IsDying()) {
         StartMonsterCycle(monster_info, 0x15, 1);
         DeactivateMonster(monster_info);
         RecordMonsterKill(monster_info, display_message);
@@ -897,7 +897,7 @@ void MoveMonsterToLiveList(W8MonsterInfo* monster_info)
     }
 
     PLAdoptAppend(gXStatus.plsMonsterList, monster_info);
-    if (MonsterIsCycleSupported(monster_info->p3D, 0) != 0) {
+    if (MonsterIsCycleSupported(monster_info->p3D, 0)) {
         MonsterSetCycle(monster_info->p3D, 0);
         MonsterSetCycleBehaviour(monster_info->p3D, 1);
     } else {
@@ -1020,7 +1020,7 @@ void TryStartMonsterCycle2(W8MonsterInfo* monster_info, W8Monster* monster, int 
 
         if (result != 0 && monster_info->fMotionless == 0) {
             monster->flags1 |= 0x80;
-            if (MonsterIsCycleSupported(monster, 2) != 0) {
+            if (MonsterIsCycleSupported(monster, 2)) {
                 signed char cycle = monster->m_pRep->pending_cycle;
 
                 if (cycle == 2 || monster->IsCycleInterruptable(cycle) == 0 ||
@@ -1062,7 +1062,7 @@ bool AnyMonsterDying(void)
 
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
-        if (monster_info != 0 && monster_info->p3D->IsDying() != 0) {
+        if (monster_info != 0 && monster_info->p3D->IsDying()) {
             return true;
         }
     }
@@ -1131,7 +1131,7 @@ unsigned char ShutdownMonsterManager(void)
         srAssertFail("gXStatus.plsMonsterList != NULL", MONSTER_MANAGER_CPP, 0x5d, 0);
     }
     while (static_cast<int>(PLLength(gXStatus.plsMonsterList)) > 0) {
-        if (RemoveMonster(0, 1) == 0) {
+        if (!RemoveMonster(0, 1)) {
             return 0;
         }
     }
@@ -1386,7 +1386,7 @@ void ToggleCombatMode(void)
              ++group_list_index) {
             monster_group = GetMonsterGroupByListIndex(group_list_index);
             if (monster_group->members_active != 0 && monster_group->fInCombat != 0 &&
-                MonsterGroupCanEngage(monster_group) != 0) {
+                MonsterGroupCanEngage(monster_group)) {
                 ShowNotice(0xc, gppStringList[W8_NOTICE_COMBAT_CANNOT_END], -1, -1, 0);
                 return;
             }
@@ -1395,7 +1395,7 @@ void ToggleCombatMode(void)
     for (missile = NextMissile(1); missile != 0; missile = NextMissile(0)) {
         if ((missile == g_combat_state->engaged_missile ||
              g_missile_table[missile->missile_table_index].spell_missile != 0) &&
-            missile->BlocksEndingCombat() != 0) {
+            missile->BlocksEndingCombat()) {
             ShowNotice(0xc, gppStringList[W8_NOTICE_COMBAT_CANNOT_END_ENGAGED], -1, -1, 0);
             return;
         }
@@ -1570,7 +1570,7 @@ wchar_t* GetMonsterName(W8MonsterInfo* monster_info, W8MonsterRecord* record,
         return g_status.monster_name_buffer;
     }
     if (monster_info->monster_group_id == 0) {
-        if (monster_info->p3D->IsDying() == 0) {
+        if (!monster_info->p3D->IsDying()) {
             FormatDebugMessage(1, "ERROR: Monster ID %d has no group", monster_info->location_id);
         }
     } else {
@@ -1694,7 +1694,7 @@ void DetectMonsterGroups(void)
         if (group->members_active == 0 ||
             (group->alternate_name != 0 && group->group_state[0] != 0) ||
             (gXStatus.fCombatMode != 0 && group->fInCombat == 0) ||
-            MonsterGroupHasRenderableMember(group, 0) == 0) {
+            !MonsterGroupHasRenderableMember(group, 0)) {
             continue;
         }
         if (group->alternate_name == 0) {

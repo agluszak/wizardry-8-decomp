@@ -1184,7 +1184,7 @@ unsigned short W8PathingService::FindPath(W8NavigatorAttachment* attachment, uns
                                      "Waypoint index out of range (2)");
                     }
                     if ((usNext != 0) && (usNext != usCurrent) &&
-                        (m_rendered_waypoints->Test(usNextNode) == 0)) {
+                        (!m_rendered_waypoints->Test(usNextNode))) {
                         if (m_visible_waypoints->Set(usNextNode) == 0) {
                             m_pSurfaces[usNextNode].cost =
                                 m_pEdges[link].distance + m_pSurfaces[current].cost;
@@ -1457,7 +1457,7 @@ unsigned short W8PathingService::RecurseTargetLinks(unsigned short waypoint)
                       (((link_flags & 0x380000) == 0x380000 ||
                         ((link_flags & path_flags0 & 0x380000) != 0))))) &&
                     (destination != 0)) {
-                    if (m_rendered_waypoints->Test(destination) == 0) {
+                    if (!m_rendered_waypoints->Test(destination)) {
                         m_pSurfaces[destination].cost =
                             link->distance + m_pSurfaces[waypoint].cost;
                         m_pSurfaces[destination].parent = waypoint;
@@ -1634,7 +1634,7 @@ unsigned short W8PathingService::RecursePatrolLinks(unsigned short waypoint)
                                            (((edge_flags & 0x380000) == 0x380000) ||
                                             ((edge_flags & path_flags0 & 0x380000) != 0)))) &&
                 (next != 0)) {
-                if (m_rendered_waypoints->Test(next) == 0) {
+                if (!m_rendered_waypoints->Test(next)) {
                     if (m_ulNumWayPoints <= static_cast<unsigned int>(next)) {
                         srAssertFail("usNextNode < m_ulNumWayPoints", OCTPATH_CPP, 0x1dd9,
                                      "Waypoint index out of range");
@@ -1719,7 +1719,7 @@ void W8PathingService::ReduceWaypointCosts(unsigned int waypoint, float amount)
         while (edge_index != 0) {
             W8PathEdge* edge = &m_pEdges[edge_index];
             unsigned short child = edge->destination;
-            if (child != 0 && m_visible_waypoints->Test(child) != 0 &&
+            if (child != 0 && m_visible_waypoints->Test(child) &&
                 m_pSurfaces[child].parent == waypoint) {
                 ReduceWaypointCosts(child, amount);
             }
@@ -6485,7 +6485,7 @@ unsigned char W8PathParameters::PredictNavigatorCollision()
             } else {
                 navigator = monster;
             }
-            if (this->monster->IsLinkedToNavigator(navigator) != 0) {
+            if (this->monster->IsLinkedToNavigator(navigator)) {
                 continue;
             }
             navigator = monster;
@@ -6695,7 +6695,7 @@ void W8PathParameters::AccumulateGroupRepulsion()
             } else {
                 navigator = monster;
             }
-            if (this->monster->IsLinkedToNavigator(navigator) == 0) {
+            if (!this->monster->IsLinkedToNavigator(navigator)) {
                 continue;
             }
             position = monster->GetPosition();

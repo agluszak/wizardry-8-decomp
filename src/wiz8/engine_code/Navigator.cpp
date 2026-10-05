@@ -237,11 +237,10 @@ void SetNavigatorLinkMode(unsigned char mode)
                         0x508, NAVIGATOR_CPP, monster_info->monster_group_id, 1));
                     srVector3T<float> position = navigator->movement.position;
 
-                    if ((group->fInCombat == 0 ||
-                         PositionMonsterGroupNearCamera(group, 0.0f, navigator->movement.yaw,
-                                                        0) == 0) &&
-                        (MoveMonsterGroupToPosition(group, &position, navigator->movement.yaw,
-                                                    0, 1, 0, 0),
+                    if ((group->fInCombat == 0 || !PositionMonsterGroupNearCamera(
+                                                      group, 0.0f, navigator->movement.yaw, 0)) &&
+                        (MoveMonsterGroupToPosition(group, &position, navigator->movement.yaw, 0, 1,
+                                                    0, 0),
                          g_combat_inactive != 0)) {
                         navigator->linked_update_time = 0;
                         g_navigator_group.Clear();
@@ -1751,7 +1750,7 @@ unsigned char W8Navigator::SetMovementTarget(const srVector3T<float>* target, bo
                                                       static_cast<float>(collision_margin));
         }
     }
-    if (result == 0 || IsNavigatorAtTarget(&movement) != 0) {
+    if (result == 0 || IsNavigatorAtTarget(&movement)) {
         radius = movement.alternate_radius;
     }
     if (result == 0) {
@@ -2105,10 +2104,9 @@ void W8Navigator::UpdateNavigation(unsigned char skip_movement, bool slowed)
     }
 
     if (movement.attachment != 0 &&
-        movement.attachment->path_cursor >=
-            movement.attachment->path_position_index &&
+        movement.attachment->path_cursor >= movement.attachment->path_position_index &&
         (movement.attachment->flags & W8_NAV_ATTACHMENT_START_WAYPOINT) == 0 &&
-        PathAIIsComplete(path_ai) != 0) {
+        PathAIIsComplete(path_ai)) {
         radius = movement.alternate_radius;
     }
     if ((flags & 0x100000) != 0) {

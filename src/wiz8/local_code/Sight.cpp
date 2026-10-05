@@ -941,7 +941,7 @@ bool MonsterGroupCanSeeGroup(W8MonsterGroup* source, W8MonsterGroup* target)
         if (distance <= far_clip) {
             memset(&record, 0, sizeof(record));
             record.sight_state = W8_SIGHT_SEEN;
-            if (CanMonsterSeeMonster(source_info, target_info, &record) != 0 &&
+            if (CanMonsterSeeMonster(source_info, target_info, &record) &&
                 source_monster->HasLineOfSightToMonster(target_monster) != 0) {
                 return 1;
             }

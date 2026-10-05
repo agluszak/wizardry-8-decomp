@@ -143,8 +143,8 @@ Controls* g_camp_secondary_panel;
 
 /* The camp screen's three panels and their controls: the top secondary panel
    carries the page tabs, help line, attribute rows and secondary labels; the
-   bottom-left action panel carries two buttons; the right realm panel carries
-   the six realm tabs and the sort button. */
+   bottom-left action panel carries two buttons; the right item-filter panel carries
+   the six filters and the sort button. */
 // GLOBAL: WIZ8 0x0069c42c
 W8Widget* g_camp_info_labels[4];
 // GLOBAL: WIZ8 0x0069c43c
@@ -158,9 +158,9 @@ Controls* g_camp_action_panel;
 // GLOBAL: WIZ8 0x0069c468
 W8TextControl* g_camp_action_buttons[2];
 // GLOBAL: WIZ8 0x0069c470
-W8TextControl* g_camp_realm_tabs[7];
+W8TextControl* g_camp_item_filter_buttons[7];
 // GLOBAL: WIZ8 0x0069c48c
-Controls* g_camp_realm_tab_panel;
+Controls* g_camp_item_filter_panel;
 
 /* 0x00648C48: the font-state palette index selected for each load category
    while the weight line is drawn; zero leaves the default palette in place. */
@@ -553,10 +553,10 @@ void RedrawCampItemsPage(void)
         g_camp_action_panel->Redraw();
     }
     if ((g_camp_screen->redraw_flags & W8_CAMP_REDRAW_REALM_TABS) != 0) {
-        g_camp_realm_tab_panel->Invalidate(0);
-        g_camp_realm_tab_panel->Redraw();
+        g_camp_item_filter_panel->Invalidate(0);
+        g_camp_item_filter_panel->Redraw();
     } else {
-        g_camp_realm_tab_panel->Redraw();
+        g_camp_item_filter_panel->Redraw();
     }
 }
 
@@ -707,7 +707,7 @@ void DrawCampBackpackItems(void)
         }
         InvalidateRegion(left, top, right, bottom, 0);
         item_id = character->backpack[slot].iItemNo;
-        if (item_id == -1 || CanCharacterUseItem(character, item_id) != 0) {
+        if (item_id == -1 || CanCharacterUseItem(character, item_id)) {
             BlitCatalogSurfaceRectTo16BPP(-14, left, top, right, bottom, 0x1b6, 0, 0);
         } else {
             DrawCatalogImage(-14, 0x11a, 0, 0, left, top, 2, 0);
@@ -889,7 +889,7 @@ void DrawCampItemPool(void)
             continue;
         }
         InvalidateRegion(left, top, right, bottom, 0);
-        if (CanCharacterUseItem(character, item->iItemNo) == 0) {
+        if (!CanCharacterUseItem(character, item->iItemNo)) {
             DrawCatalogImage(-14, 0x11a, 0, 0, left, top, 2, 0);
         } else {
             BlitCatalogSurfaceRectTo16BPP(-14, left, top, right, bottom, 0x1b6, 0, 0);
@@ -1333,7 +1333,7 @@ unsigned char CampScreenEnter(void)
     g_camp_screen->entry_mode = entry_mode;
     MSYS_Init();
     for (unsigned int realm = 0; realm < 6; ++realm) {
-        g_camp_screen->realm_flags[realm] = 0;
+        g_camp_screen->item_filters[realm] = 0;
     }
     g_camp_screen->item_timer_active = false;
     g_camp_screen->item_timer_expired = false;
@@ -1536,7 +1536,7 @@ void DismissSelectedPartyCharacter(void)
 {
     if (g_camp_character_pending != 0) {
         SelectCampCharacter(CharacterPointerToPartySlot(g_camp_character));
-        if (IsPartySlotEligible(giReviewCharSlot) != 0) {
+        if (IsPartySlotEligible(giReviewCharSlot)) {
             QueueCharacterEvent(g_camp_character, g_effect36, 0, g_effect_argument0,
                                 g_character_event_full_volume);
             return;
@@ -1627,7 +1627,7 @@ void DrawCampScreen(void)
     if (gXStatus.fCombatMode == 0) {
         if (giReviewCharSlot != -1) {
             if (g_status.game_started != 0 || (g_previous_screen_id == W8_SCREEN_PARTY_SELECTION &&
-                                               PartySelectionInReviewMode() != 0)) {
+                                               PartySelectionInReviewMode())) {
                 UpdateRcsLevelUpPanel();
             }
             if (gXStatus.fCombatMode != 0) {
@@ -1695,7 +1695,7 @@ void ActivateCampPage(void)
     case 0:
         RegionSetEnable(0x2a);
         EnableCampActionButtons();
-        UpdateItemsRealmTabs();
+        UpdateCampItemFilters();
         EnableCampSecondaryPanel();
         SetCampInfoPageMode(state->item_mode);
         state->item_range->m_range->EnableRegionSet(1);
@@ -1796,24 +1796,20 @@ void DrawCampRegenStats(void)
     }
 }
 
-/* Kicked off by the post-quake camera-shake callback: latches the endgame
-   flags, resets input regions, then starts the fade whose completion runs
-   ShowEndingScreen - the ending sequence picker. Fact 0x1a2 forces the long
-   fade, fact 0x2f4 swaps the timing and marks the variant. */
-/* Realm filters 2-5 are exclusive: selecting one clears the others. */
+/* Equip-slot-group item filters are exclusive: selecting one clears the others. */
 // FUNCTION: WIZ8 0x005a49d0
-void ClearOtherRealmFilters(unsigned int realm)
+void ClearOtherCampItemGroupFilters(unsigned int filter)
 {
     unsigned int index;
 
     for (index = 2; index < 6; ++index) {
-        if (index != realm) {
-            g_camp_screen->realm_flags[index] = 0;
+        if (index != filter) {
+            g_camp_screen->item_filters[index] = 0;
         }
     }
 }
 
-/* Rebuild the visible item list from the party pool under the realm filters:
+/* Rebuild the visible item list from the party pool under the item filters:
    flag 0 restricts to items the displayed character can use, flag 1 to
    unidentified items, and flags 2-5 each admit one equip-slot group. The
    scrollbar's range and value track the count; the scroll position snaps back
@@ -1830,16 +1826,16 @@ void RebuildCampItemList(void)
     g_camp_screen->item_list_count = 0;
     filter = 0;
     for (index = 0; index < 6; ++index) {
-        if (index != 0 && index != 1 && g_camp_screen->realm_flags[index] != 0) {
+        if (index != 0 && index != 1 && g_camp_screen->item_filters[index] != 0) {
             filter |= 1 << index;
         }
     }
     pool = g_status.party_item_pool;
     for (index = 0; index < g_status.party_item_count; ++index, ++pool) {
         if (pool->iItemNo != -1 &&
-            (g_camp_screen->realm_flags[0] == 0 ||
-             CanCharacterUseItem(g_review_character, pool->iItemNo) != 0) &&
-            (g_camp_screen->realm_flags[1] == 0 || !pool->identified) &&
+            (g_camp_screen->item_filters[0] == 0 ||
+             CanCharacterUseItem(g_review_character, pool->iItemNo)) &&
+            (g_camp_screen->item_filters[1] == 0 || !pool->identified) &&
             (filter == 0 || (filter & static_cast<unsigned char>(
                                           1 << GetItemEquipSlotGroup(pool->iItemNo))) != 0)) {
             g_camp_screen->item_list[g_camp_screen->item_list_count] = index;
@@ -1898,7 +1894,7 @@ void ShowCampNoticeLine(const wchar_t* text, W8DialogDestroyCallback callback, i
 static void SelectPendingCampCharacter()
 {
     SelectCampCharacter(CharacterPointerToPartySlot(g_camp_character));
-    if (IsPartySlotEligible(giReviewCharSlot) != 0) {
+    if (IsPartySlotEligible(giReviewCharSlot)) {
         QueueCharacterEvent(g_camp_character, g_effect36, 0, g_effect_argument0,
                             g_character_event_full_volume);
     } else {
@@ -1952,11 +1948,10 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
     }
     if (origin == 1 && g_status.item_in_cursor && g_camp_screen->entry_mode != 1) {
         if (same_kind == 0 &&
-            CanEquipItemInSlot(g_review_character, g_status.item_in_hand.iItemNo, slot_index,
-                               1) == 0) {
+            !CanEquipItemInSlot(g_review_character, g_status.item_in_hand.iItemNo, slot_index, 1)) {
             return;
         }
-        if (CanCharacterUseItem(g_review_character, g_status.item_in_hand.iItemNo) == 0) {
+        if (!CanCharacterUseItem(g_review_character, g_status.item_in_hand.iItemNo)) {
             return;
         }
     }
@@ -2003,8 +1998,8 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
               g_item_records[g_status.item_in_hand.iItemNo].equip_class ==
                   W8_ITEM_EQUIP_CLASS_AMMUNITION) &&
              gXStatus.held_item_source == giReviewCharSlot &&
-             (origin != 1 || HeldItemFitsPairedSlot(giReviewCharSlot,
-                                                    static_cast<W8EquipSlot>(slot_index)) != 0))) {
+             (origin != 1 ||
+              HeldItemFitsPairedSlot(giReviewCharSlot, static_cast<W8EquipSlot>(slot_index))))) {
             if (item->iItemNo == -1 ||
                 g_item_records[item->iItemNo].equip_class == W8_ITEM_EQUIP_CLASS_THROWN_WEAPON ||
                 g_item_records[item->iItemNo].equip_class == W8_ITEM_EQUIP_CLASS_AMMUNITION ||
@@ -2013,7 +2008,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
             }
         }
     }
-    if (gated != 0 && IsCampActionAllowed(giReviewCharSlot) == 0) {
+    if (gated != 0 && !IsCampActionAllowed(giReviewCharSlot)) {
         return;
     }
     if (gfKeyState[0x10] != 0) {
@@ -2022,7 +2017,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
     }
     if (g_camp_screen->entry_mode == 2) {
         party_slot = CharacterPointerToPartySlot(g_camp_entry_parameter);
-        if (CanItemLeaveItsSlot(item) == 0) {
+        if (!CanItemLeaveItsSlot(item)) {
             QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_character_event_kind2,
                                 0, g_character_event_no_flags, g_character_event_full_volume);
             return;
@@ -2108,7 +2103,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
     /* Equipped items that may not be removed get one warning dialog and a
        bound mark; the next click then unequips them. */
     if (item->iItemNo != -1 && origin == 1) {
-        if (CanUnequipSlotItem(g_review_character, static_cast<W8EquipSlot>(slot_index)) == 0) {
+        if (!CanUnequipSlotItem(g_review_character, static_cast<W8EquipSlot>(slot_index))) {
             text = gppStringList[0x90b];
             ShowCampNoticeLine(text, 0, 1, 0);
             if (item->bound) {
@@ -2146,8 +2141,8 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
             }
             if (merged == 0 && origin == 2) {
                 for (index = 0; index < g_status.party_item_count; ++index) {
-                    if (MergeItemStacks(&g_status.party_item_pool[index],
-                                        &g_status.item_in_hand, &partially_merged) != 0) {
+                    if (MergeItemStacks(&g_status.party_item_pool[index], &g_status.item_in_hand,
+                                        &partially_merged)) {
                         merged = 1;
                         break;
                     }
@@ -2189,7 +2184,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                     g_camp_character_pending = 0;
                     if (item->iItemNo != -1 && (giReviewCharSlot == 0 || giReviewCharSlot == 1)) {
                         npc = GetNpcState(g_status.buffers.XChar[giReviewCharSlot].npc_index);
-                        if (npc != 0 && NpcWantsItem(npc, item) != 0) {
+                        if (npc != 0 && NpcWantsItem(npc, item)) {
                             g_camp_character_pending = 1;
                             g_camp_character = g_review_character;
                         }
@@ -2200,11 +2195,11 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                                                        choose_character, g_review_character);
                     }
                     if (origin == 1 && g_status.item_in_cursor &&
-                        HeldItemFitsPairedSlot(giReviewCharSlot,
-                                               static_cast<W8EquipSlot>(slot_index)) == 0) {
+                        !HeldItemFitsPairedSlot(giReviewCharSlot,
+                                                static_cast<W8EquipSlot>(slot_index))) {
                         paired_slot = GetPairedEquipSlot(static_cast<W8EquipSlot>(slot_index));
                         paired = &g_review_character->EquippedItem[paired_slot];
-                        if (CanUnequipSlotItem(g_review_character, paired_slot) == 0) {
+                        if (!CanUnequipSlotItem(g_review_character, paired_slot)) {
                             text = gppStringList[0x916];
                             ShowCampNoticeLine(text, 0, 1, 0);
                             if (paired->bound) {
@@ -2222,7 +2217,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                                 (giReviewCharSlot == 0 || giReviewCharSlot == 1)) {
                                 npc =
                                     GetNpcState(g_status.buffers.XChar[giReviewCharSlot].npc_index);
-                                if (npc != 0 && NpcWantsItem(npc, paired) != 0) {
+                                if (npc != 0 && NpcWantsItem(npc, paired)) {
                                     g_camp_character_pending = 1;
                                     g_camp_character = g_review_character;
                                 }
@@ -2230,7 +2225,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                             SwapItemInstances(paired, &g_status.item_in_hand,
                                               g_review_character, 1);
                             changed = 1;
-                        } else if (AddItemToCharacter(g_review_character, paired, 0, 0, 1) != 0) {
+                        } else if (AddItemToCharacter(g_review_character, paired, 0, 0, 1)) {
                             SwapItemInstances(item, &g_status.item_in_hand, g_review_character,
                                               1);
                             changed = 1;
@@ -2239,13 +2234,13 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                                 if (NpcWantsItem(
                                         GetNpcState(
                                             g_status.buffers.XChar[giReviewCharSlot].npc_index),
-                                        paired) != 0) {
+                                        paired)) {
                                     text = gppStringList[0x90c];
                                     ShowCampNoticeLine(text, 0, 1, 0);
                                     return;
                                 }
                             }
-                            if (AddItemToParty(paired, 0, 1) == 0) {
+                            if (!AddItemToParty(paired, 0, 1)) {
                                 text = gppStringList[0x90c];
                                 ShowCampNoticeLine(text, 0, 1, 0);
                                 return;
@@ -2336,7 +2331,7 @@ void TakeItemUnitToHand(W8ItemInstance* item, unsigned short slot, unsigned int 
     if (item->iItemNo == -1) {
         return;
     }
-    if (CanSplitItemStack(item) == 0) {
+    if (!CanSplitItemStack(item)) {
         return;
     }
     if (!g_status.item_in_cursor) {
@@ -2385,7 +2380,7 @@ bool ResolvePendingCampCharacter(bool force)
     if (g_camp_character_pending != 0 && (g_camp_character != g_review_character || force != 0)) {
         slot = CharacterPointerToPartySlot(g_camp_character);
         SelectCampCharacter(slot);
-        if (IsPartySlotEligible(giReviewCharSlot) != 0) {
+        if (IsPartySlotEligible(giReviewCharSlot)) {
             QueueCharacterEvent(g_camp_character, g_effect36, 0, g_effect_argument0,
                                 g_character_event_full_volume);
             return 0;
@@ -2408,7 +2403,7 @@ void MarkCampCharacterPending(W8ItemInstance* item)
     g_camp_character_pending = 0;
     if (item->iItemNo != -1 && (giReviewCharSlot == 0 || giReviewCharSlot == 1)) {
         npc = GetNpcState(g_status.buffers.XChar[giReviewCharSlot].npc_index);
-        if (npc != 0 && NpcWantsItem(npc, item) != 0) {
+        if (npc != 0 && NpcWantsItem(npc, item)) {
             g_camp_character_pending = 1;
             g_camp_character = g_review_character;
         }

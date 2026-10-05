@@ -645,7 +645,7 @@ void stParticle::Update()
                 srVector4T<float> transformed = transform.Transform(local);
                 srVector3T<float> local_point;
                 local_point = transformed.xyz();
-                if (PointInsideBounds(&local_point, &minimum1, &maximum1) == 0) {
+                if (!PointInsideBounds(&local_point, &minimum1, &maximum1)) {
                     particle_active[index] = 0;
                     update_flags |= W8_PARTICLE_ACTIVE_TRIANGLES_DIRTY;
                     --active_particle_count;

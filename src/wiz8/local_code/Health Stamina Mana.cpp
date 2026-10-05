@@ -141,7 +141,7 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, bool qu
 
     applied = character->hp_current;
     if (applied <= amount) {
-        if (CharacterHasTrait(character, W8_TRAIT_CHEAT_DEATH) != 0 &&
+        if (CharacterHasTrait(character, W8_TRAIT_CHEAT_DEATH) &&
             character->uiCondition[W8_CONDITION_UNCONSCIOUS] < 7) {
             CheatDeathRevive(party_slot);
             RecordCharacterDamage(party_slot, amount);
@@ -386,7 +386,7 @@ unsigned int ApplyDamageToMonster(W8MonsterInfo* monster_info, unsigned int amou
         if (gXStatus.fCombatMode != 0 || monster_info->party_threat.visible_to_player != 0) {
             PointCameraAtMonster(monster_info, 0, 1);
             category = 9;
-            if (TargetSourceIsCharacter(source, 0) != 0 && source->iChar != -1) {
+            if (TargetSourceIsCharacter(source, 0) && source->iChar != -1) {
                 category = 8;
             }
             if (in_combat != 0) {
@@ -405,7 +405,7 @@ unsigned int ApplyDamageToMonster(W8MonsterInfo* monster_info, unsigned int amou
         if (source->fBackfire == 0 && source->fReflection == 0 && source->target_diverted == 0 &&
             quiet == 0) {
             monster_info->condition_target = *source;
-            if (monster_info->fInCombat != 0 && TargetSourceIsCharacter(source, 0) != 0 &&
+            if (monster_info->fInCombat != 0 && TargetSourceIsCharacter(source, 0) &&
                 source->iChar != -1) {
                 monster_info->pCombat->character_hate[source->iChar] += amount;
             }

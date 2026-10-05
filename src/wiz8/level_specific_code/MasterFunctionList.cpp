@@ -219,7 +219,7 @@ unsigned char DispatchWorldCursorNodeCommand(W8MonsterInfo* info, int command, .
     va_start(arguments, command);
     // reinterpret-ok: retail passes the optional argument slot as context.
     context = reinterpret_cast<int>(arguments);
-    if (IsMipeActive() != 0) {
+    if (IsMipeActive()) {
         va_end(arguments);
         return handled;
     }

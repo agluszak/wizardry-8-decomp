@@ -1577,7 +1577,7 @@ static void LinkSurfaceEdge(int polygon, int edge, W8HashTable<unsigned int, int
             if (linked) {
                 return;
             }
-            if (ShareSurfaceEdge(surfaces + index, surface, vertices) != 0) {
+            if (ShareSurfaceEdge(surfaces + index, surface, vertices)) {
                 linked = true;
             } else {
                 index = table->FindNextEntry(&key, index);

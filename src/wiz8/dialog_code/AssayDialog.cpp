@@ -582,7 +582,7 @@ unsigned char W8AssayDialog::PopulateText()
         (m_item->identified || m_item->spell_hint) && m_character != 0) {
         if (m_character->spell_learned[record->spell_id] == 1) {
             m_text_area.AddEntry(0, gppStringList[0x8ed], 10, 1, 0);
-        } else if (CanCharacterLearnSpell(m_character, record->spell_id) == 0 &&
+        } else if (!CanCharacterLearnSpell(m_character, record->spell_id) &&
                    CanCastFromItem(m_character, m_item)) {
             m_text_area.AddEntry(0, gppStringList[0x8ec], 10, 0, 0);
         }

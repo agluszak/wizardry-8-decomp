@@ -183,7 +183,7 @@ void UpdateSubMenuButton(int index)
         break;
     }
     if (gXStatus.fNpcDialogueMode != 0 &&
-        (index != 0 || IsNpcDialogueCursorActive() != 0 || CanOpenNpcDialogue() != 0)) {
+        (index != 0 || IsNpcDialogueCursorActive() != 0 || CanOpenNpcDialogue())) {
         g_submenu_buttons[index]->SetEnabled(0);
         return;
     }
@@ -249,7 +249,7 @@ void UpdateSubMenuButton(int index)
         }
         break;
     case 3:
-        if (IsPartySlotEligible(g_status.selected_character) == 0) {
+        if (!IsPartySlotEligible(g_status.selected_character)) {
             g_submenu_buttons[3]->SetEnabled(0);
             break;
         }
@@ -268,8 +268,8 @@ void UpdateSubMenuButton(int index)
         break;
     case 4:
         g_submenu_buttons[4]->SetEnabled(
-            IsPartySlotEligible(g_status.selected_character) != 0 &&
-            CharacterHasCastableSpell(&g_status.buffers.Char[g_status.selected_character]) != 0);
+            IsPartySlotEligible(g_status.selected_character) &&
+            CharacterHasCastableSpell(&g_status.buffers.Char[g_status.selected_character]));
         /* As case 2, with fSpellCastMode: 0x00594FA0/0x00594FB5 then
            0x00594FBC/0x00594FCD. This case's SetEnabled stays a single call -
            the retail's `? :` collapses into one at 0x00594F8C. */
@@ -286,7 +286,7 @@ void UpdateSubMenuButton(int index)
     case 5:
     case 6:
         g_submenu_buttons[index]->SetEnabled(gXStatus.fCombatMode != 0);
-        if (IsPartySlotEligible(g_status.selected_character) == 0) {
+        if (!IsPartySlotEligible(g_status.selected_character)) {
             g_submenu_buttons[index]->SetEnabled(0);
         }
         break;
@@ -353,7 +353,7 @@ static void SubMenuButtonUseItem(W8DialogButton* button)
 // FUNCTION: WIZ8 0x00595280
 static void SubMenuButtonSpellView(W8DialogButton* button)
 {
-    if (CharacterHasCastableSpell(&g_status.buffers.Char[g_status.selected_character]) != 0) {
+    if (CharacterHasCastableSpell(&g_status.buffers.Char[g_status.selected_character])) {
         if (gXStatus.fSpellCastMode != 0) {
             CloseSpellCastingView();
         } else {

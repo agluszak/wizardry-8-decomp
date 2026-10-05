@@ -397,55 +397,55 @@ unsigned char ShowTargetMarker(const srVector3T<float>* eye, const srVector3T<fl
 
     point = (*lower + *upper) * g_double_005ebe80;
     if (ProjectPointThroughCamera(&point) != 0) {
-        if (g_octree->HasLineOfSight(eye, &point, 1) != 0) {
+        if (g_octree->HasLineOfSight(eye, &point, 1)) {
             return 1;
         }
     }
     point = *upper;
     if (ProjectPointThroughCamera(&point) != 0) {
-        if (g_octree->HasLineOfSight(eye, &point, 1) != 0) {
+        if (g_octree->HasLineOfSight(eye, &point, 1)) {
             return 1;
         }
     }
     point = *lower;
     if (ProjectPointThroughCamera(&point) != 0) {
-        if (g_octree->HasLineOfSight(eye, &point, 1) != 0) {
+        if (g_octree->HasLineOfSight(eye, &point, 1)) {
             return 1;
         }
     }
     point.Set(lower->x, upper->y, upper->z);
     if (ProjectPointThroughCamera(&point) != 0) {
-        if (g_octree->HasLineOfSight(eye, &point, 1) != 0) {
+        if (g_octree->HasLineOfSight(eye, &point, 1)) {
             return 1;
         }
     }
     point.Set(lower->x, upper->y, lower->z);
     if (ProjectPointThroughCamera(&point) != 0) {
-        if (g_octree->HasLineOfSight(eye, &point, 1) != 0) {
+        if (g_octree->HasLineOfSight(eye, &point, 1)) {
             return 1;
         }
     }
     point.Set(upper->x, upper->y, lower->z);
     if (ProjectPointThroughCamera(&point) != 0) {
-        if (g_octree->HasLineOfSight(eye, &point, 1) != 0) {
+        if (g_octree->HasLineOfSight(eye, &point, 1)) {
             return 1;
         }
     }
     point.Set(upper->x, lower->y, upper->z);
     if (ProjectPointThroughCamera(&point) != 0) {
-        if (g_octree->HasLineOfSight(eye, &point, 1) != 0) {
+        if (g_octree->HasLineOfSight(eye, &point, 1)) {
             return 1;
         }
     }
     point.Set(lower->x, lower->y, upper->z);
     if (ProjectPointThroughCamera(&point) != 0) {
-        if (g_octree->HasLineOfSight(eye, &point, 1) != 0) {
+        if (g_octree->HasLineOfSight(eye, &point, 1)) {
             return 1;
         }
     }
     point.Set(upper->x, lower->y, lower->z);
     if (ProjectPointThroughCamera(&point) != 0) {
-        if (g_octree->HasLineOfSight(eye, &point, 1) != 0) {
+        if (g_octree->HasLineOfSight(eye, &point, 1)) {
             return 1;
         }
     }

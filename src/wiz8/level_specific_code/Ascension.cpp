@@ -127,7 +127,7 @@ unsigned char SpawnAlfieChaos(int unused)
 {
     srVector3T<float> position;
 
-    if (FindItemOnParty(0x244, 0, 0, 2, 0) == 0) {
+    if (!FindItemOnParty(0x244, 0, 0, 2, 0)) {
         return 0;
     }
     if (FindEntityByName("NP_AlfieChaos", &position, 0, 0)) {
@@ -143,7 +143,7 @@ unsigned char SpawnAlfieLife(int unused)
 {
     srVector3T<float> position;
 
-    if (FindEntityByName("NP_AlfieLife", &position, 0, 0) != 0) {
+    if (FindEntityByName("NP_AlfieLife", &position, 0, 0)) {
         SpawnMonsters(0xaf, 1, &position, 0, 1, 0, 0);
     }
     return 1;
@@ -156,7 +156,7 @@ unsigned char SpawnAlfieKnow(int unused)
 {
     srVector3T<float> position;
 
-    if (FindEntityByName("NP_AlfieKnow", &position, 0, 0) != 0) {
+    if (FindEntityByName("NP_AlfieKnow", &position, 0, 0)) {
         SpawnMonsters(0xb0, 1, &position, 0, 1, 0, 0);
     }
     return 1;
@@ -293,7 +293,7 @@ bool AscensionChaosATrigger(Trigger* pTrigger)
     }
     QueueNpcMessageLine(W8_NPC_MSG_FINISH_ACTION, 1);
     QueueNpcMessageLine(W8_NPC_MSG_PORTRAIT_STRING, 0x71e);
-    if (FindItemOnParty(0x244, 0, 0, 2, 0) == 0) {
+    if (!FindItemOnParty(0x244, 0, 0, 2, 0)) {
         QueueNpcMessageLine(W8_NPC_MSG_PORTRAIT_STRING, 0x71f);
     } else {
         SetTriggerVariableByName("AlethidiesChaosActive", 1);
@@ -338,7 +338,7 @@ bool AscensionLifeATrigger(Trigger* pTrigger)
     }
     QueueNpcMessageLine(W8_NPC_MSG_FINISH_ACTION, 1);
     QueueNpcMessageLine(W8_NPC_MSG_PORTRAIT_STRING, 0x71e);
-    if (FindItemOnParty(0x242, 0, 0, 2, 0) == 0) {
+    if (!FindItemOnParty(0x242, 0, 0, 2, 0)) {
         QueueNpcMessageLine(W8_NPC_MSG_PORTRAIT_STRING, 0x71f);
     } else {
         SetTriggerVariableByName("AlethidiesLifeActive", 1);
@@ -383,7 +383,7 @@ bool AscensionKnowATrigger(Trigger* pTrigger)
     }
     QueueNpcMessageLine(W8_NPC_MSG_FINISH_ACTION, 1);
     QueueNpcMessageLine(W8_NPC_MSG_PORTRAIT_STRING, 0x71e);
-    if (FindItemOnParty(0x243, 0, 0, 2, 0) == 0) {
+    if (!FindItemOnParty(0x243, 0, 0, 2, 0)) {
         QueueNpcMessageLine(W8_NPC_MSG_PORTRAIT_STRING, 0x71f);
     } else {
         SetTriggerVariableByName("AlethidiesKnowActive", 1);
@@ -430,7 +430,7 @@ bool AscensionPath1Camera(Trigger* pTrigger)
         W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(index);
 
         if (info->fActive != 0 && info->fInCombat != 0 &&
-            info->ubDisposition == W8_DISPOSITION_HOSTILE && info->p3D->IsDying() == 0) {
+            info->ubDisposition == W8_DISPOSITION_HOSTILE && !info->p3D->IsDying()) {
             MonsterStartsDying(info, 1);
         }
     }

@@ -105,7 +105,7 @@ struct W8CampScreenState {
     unsigned int redraw_flags;
     unsigned int item_redraw_flags;
     W8LearnedSpellState learned_spells; /* 0x100 */
-    unsigned char realm_flags[6];       /* 0x4dc */
+    unsigned char item_filters[6];      /* 0x4dc */
     unsigned char padding_4e2[2];
     unsigned int item_scroll;
     /* 0x4e8: the displayed item-pool indices - the count and the list of pool
@@ -186,8 +186,8 @@ extern W8HelpTextControl* g_camp_help_text;
 extern W8Widget* g_camp_stat_labels[7];
 extern Controls* g_camp_action_panel;
 extern W8TextControl* g_camp_action_buttons[2];
-extern W8TextControl* g_camp_realm_tabs[7];
-extern Controls* g_camp_realm_tab_panel;
+extern W8TextControl* g_camp_item_filter_buttons[7];
+extern Controls* g_camp_item_filter_panel;
 extern unsigned int g_camp_secondary_region_set;
 /* One gppStringList id per primary attribute row; defined in
    ReviewCharacterScreen.cpp, drawn by RCSStatsPage.cpp's stats page. */
@@ -217,7 +217,7 @@ extern int g_load_category_palettes[5];
 extern int g_race_portrait_images[0x30];
 
 void SwitchCampPage(int page);
-void ClearOtherRealmFilters(unsigned int realm);
+void ClearOtherCampItemGroupFilters(unsigned int filter);
 void RebuildCampItemList(void);
 void SetCampInputMode(int mode);
 void DisplayCampDialog(W8DialogBase* dialog);

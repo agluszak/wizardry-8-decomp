@@ -2532,7 +2532,7 @@ void RefreshTextBoxMode(unsigned short mode)
     }
     if (mode == 0xffff) {
         if ((gXStatus.fNpcDialogueMode == 0 || CanOpenNpcDialogue()) && gXStatus.fCampMode == 0) {
-            if (IsMipeActive() == 0) {
+            if (!IsMipeActive()) {
                 mode = gXStatus.fCombatMode != 0;
             } else {
                 mode = 0;

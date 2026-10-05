@@ -163,7 +163,7 @@ void HandleFactChange(W8FactId fact_id, unsigned char value)
         QueueNpcMessageLine(W8_NPC_MSG_TRIGGER_FIX, 0);
         return;
     case W8_FACT_CROCK_KIDNAPPED_PLAYER:
-        if (value != 0 && FindEntityByName("NP_BlueFlowers", &position, 0, 0) != 0) {
+        if (value != 0 && FindEntityByName("NP_BlueFlowers", &position, 0, 0)) {
             world_item = SpawnItem(0x2eb, &position, 3, 1);
             if (world_item != 0) {
                 ActivateItem(world_item);
@@ -176,7 +176,7 @@ void HandleFactChange(W8FactId fact_id, unsigned char value)
         return;
     case W8_FACT_CROCK_BREKEK_ASSIGN:
         fact_value = GetFact(W8_FACT_CROCK_BREKEK_DEAD);
-        if (fact_value == 0 && FindEntityByName("Brekek", &position, 0, 0) != 0) {
+        if (fact_value == 0 && FindEntityByName("Brekek", &position, 0, 0)) {
             SpawnMonsters(0x131, 1, &position, 1, 1, 1, 0);
         }
         return;
@@ -956,7 +956,7 @@ void HandleScriptedNpcDeath(unsigned int monster_list_index)
         return;
     }
     int lead_index = -1;
-    if (NpcLeadHasNameStyle(0x18) != 0) {
+    if (NpcLeadHasNameStyle(0x18)) {
         W8NpcState* lead = GetNpcStateByKind(W8_NPC_VI_DOMINA);
         if (lead != 0) {
             lead_index = lead->group_index;
@@ -1010,7 +1010,7 @@ void HandleScriptedNpcDeath(unsigned int monster_list_index)
          ++entry_index) {
         W8MonsterInfo* entry = MonsterGetScriptPartByLocationIndex(entry_index);
         if (entry->fActive && entry->ubDisposition == W8_DISPOSITION_HOSTILE &&
-            entry->p3D->IsDying() == 0) {
+            !entry->p3D->IsDying()) {
             TintHighlightedMonster(entry->p3D, W8_TARGET_HIGHLIGHT_NONE);
             MonsterStartsDying(entry, 1);
         }

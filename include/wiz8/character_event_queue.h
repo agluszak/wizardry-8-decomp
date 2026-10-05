@@ -114,7 +114,7 @@ struct W8CharacterEventQueue {
     bool HasEventCharacter(unsigned int event_type, unsigned int party_slot); /* 0x0052DD90 */
     void ProcessDeferredCharacterEvents();                                    /* 0x0052DDD0 */
     unsigned char TryAdjustQueuedEvent(W8CharacterEvent* entry);              /* 0x0052DC80 */
-    unsigned char IsMainQueueEmpty() const;                                   /* 0x0052E470 */
+    bool IsMainQueueEmpty() const;                                            /* 0x0052E470 */
     void CompleteActiveEvent(W8CharacterEvent* entry);
     void CompleteFirstActiveEvent();
     void RestartFollowUpClock(W8CharacterEvent* entry);
@@ -122,7 +122,7 @@ struct W8CharacterEventQueue {
        completed, the rest deleted. Runs when a character dies. */
     void RemoveCharacterEvents(W8Character* character); /* 0x0052D970 */
     void CompleteAllActiveEvents();                     /* 0x0052DB30 */
-    unsigned char HasActiveEvents();                    /* 0x0052E460 */
+    bool HasActiveEvents();                             /* 0x0052E460 */
     /* Advances the ambient follow-up exchange: arms it, then on each clock
        expiry queues another middle-band event on a random member, excluding
        the previous speaker. */

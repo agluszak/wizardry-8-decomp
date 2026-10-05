@@ -407,7 +407,7 @@ void RedrawCombatPortraits(void)
         }
         DrawCatalogImageAndInvalidate(-0xe, 0x8a, 0, portrait_image, portrait_x, row_y + 0x44, 2,
                                       0);
-        if (CharacterCanSwitchTo(slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0, 0) == 0) {
+        if (!CharacterCanSwitchTo(slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0, 0)) {
             DrawCatalogImageAndInvalidate(-0xe, 0x8b, 0, 0, badge_x, row_y + 0x37, 2, 0);
         } else if (party_row->target_in_combat.iType == W8_TARGET_KIND_CHARACTER) {
             DrawCatalogImageAndInvalidate(
@@ -670,7 +670,7 @@ void StageMonsterCastIcon(unsigned int party_slot, W8SpellRealm realm, bool alte
 bool PreparePartyPortraitOverlay(unsigned int party_slot, unsigned int left, unsigned int top)
 {
     if (gXStatus.fNpcDialogueMode != 0 && (party_slot & 1) != 0 &&
-        IsPortraitObscuredByNpcDialogue(party_slot) != 0) {
+        IsPortraitObscuredByNpcDialogue(party_slot)) {
         return 0;
     }
     if ((g_level_block == 0 ||
@@ -686,7 +686,7 @@ bool PreparePartyPortraitOverlay(unsigned int party_slot, unsigned int left, uns
                 (g_portrait_descriptors[portrait].render_mode == 2 && (party_slot & 1) != 0)) {
                 flags = 0x1002;
             }
-            if (BlitPartyPortraitAnimation(portrait, left, top, flags, party_slot, 0) != 0 &&
+            if (BlitPartyPortraitAnimation(portrait, left, top, flags, party_slot, 0) &&
                 ((gXStatus.fCombatMode != 0 && g_combat_state->characters[party_slot].dead != 0) ||
                  gXStatus.fSurprisePossible != 0 ||
                  character->highest_condition == W8_CONDITION_MISSING)) {

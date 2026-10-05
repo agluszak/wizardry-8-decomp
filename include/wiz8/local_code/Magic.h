@@ -61,7 +61,7 @@ int PointCastSpell(srVector3T<float> position, int spell_id, unsigned int power_
 
 bool CanCastFromItem(const W8Character* caster, const W8ItemInstance* item);
 
-char CanCharacterLearnSpell(W8Character* character, int spell_id);
+bool CanCharacterLearnSpell(W8Character* character, int spell_id);
 void LearnSpell(W8Character* character, int spell_id, bool announce);
 /* 0x00500060: learns the spell a spell-source item holds and empties the
    item. Retail callers push two arguments; the earlier three-parameter decl

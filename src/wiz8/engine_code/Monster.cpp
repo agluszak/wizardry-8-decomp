@@ -1484,7 +1484,7 @@ void W8Monster::Update()
         }
     }
 
-    if (IsMipeActive() == 0) {
+    if (!IsMipeActive()) {
         if ((cycle == W8_MONSTER_CYCLE_IDLE || cycle == W8_MONSTER_CYCLE_SPICE) &&
             m_pRep->pending_cycle == -1 && movement_stopped == 0 && halted == 0) {
             flags |= 0x100000;
@@ -1506,8 +1506,7 @@ void W8Monster::Update()
             switch (cycle) {
             case W8_MONSTER_CYCLE_TALK:
                 if (Query(7) != 0) {
-                    if (talk_duration < GetTickCount() - talk_start &&
-                        IsCycleSupported(0x17) != 0) {
+                    if (talk_duration < GetTickCount() - talk_start && IsCycleSupported(0x17)) {
                         m_pRep->pending_cycle = 0x17;
                     } else {
                         m_pRep->pending_cycle = 0x18;
@@ -1557,7 +1556,7 @@ void W8Monster::Update()
                             SoundStop(*values.GetAt(0));
                             values.RemoveAt(0);
                         }
-                        if (IsCycleSupported(3) == 0) {
+                        if (!IsCycleSupported(3)) {
                             m_pRep->pending_behaviour = 3;
                             m_pRep->pending_cycle = 1;
                         } else {
@@ -1579,7 +1578,7 @@ void W8Monster::Update()
                 if (movement_stopped == 0 && halted == 0 &&
                     (Query(2) != 0 || wrapped != 0)) {
                     flags &= ~0x100000;
-                    if (IsCycleSupported(3) == 0) {
+                    if (!IsCycleSupported(3)) {
                         m_pRep->pending_behaviour = 3;
                         m_pRep->pending_cycle = 4;
                     } else {
@@ -1766,16 +1765,16 @@ unsigned char W8Monster::GetProjectilePosition(srVector3T<float>* position)
     if (position == 0) {
         return 0;
     }
-    if (IsCycleSupported(0x11) != 0 && IsCycleSupported(0x0d) != 0) {
+    if (IsCycleSupported(0x11) && IsCycleSupported(0x0d)) {
         srAssertFail("!(IsCycleSupported(CYCLE_ATTACK_SHOOT) && "
                      "IsCycleSupported(CYCLE_ATTACK_THROW))",
                      MONSTER_CPP, 0x18b1, 0);
     }
-    if (IsCycleSupported(0x0d) != 0) {
+    if (IsCycleSupported(0x0d)) {
         cycle = W8_MONSTER_CYCLE_ATTACK_THROW;
-    } else if (IsCycleSupported(0x11) != 0) {
+    } else if (IsCycleSupported(0x11)) {
         cycle = W8_MONSTER_CYCLE_ATTACK_SHOOT;
-    } else if (IsCycleSupported(7) != 0) {
+    } else if (IsCycleSupported(7)) {
         cycle = W8_MONSTER_CYCLE_ATTACK_RANGED;
     } else {
         return 0;
@@ -1884,7 +1883,7 @@ bool W8Monster::ResolveScriptPosition(const char* name, srVector3T<float>* posit
         *position = formation;
     } else if (_stricmp(name, "off_camera") == 0) {
         position->x = position->y = position->z = -10000000.0f;
-    } else if (FindEntityByName(name, position, 0, 0) == 0) {
+    } else if (!FindEntityByName(name, position, 0, 0)) {
         return false;
     }
     return true;
@@ -1922,10 +1921,10 @@ void W8Monster::ProcessScript()
             if (script_line > 0) {
                 --script_line;
             }
-        } else if (CanContinueScript() == 0) {
+        } else if (!CanContinueScript()) {
             return;
         }
-    } else if (CanContinueScript() == 0) {
+    } else if (!CanContinueScript()) {
         return;
     }
 
@@ -2507,7 +2506,7 @@ bool W8Monster::CanContinueScript()
         }
         break;
     case 3:
-        if (ShouldDeferCharacterEventForNpcScript(0) != 0) {
+        if (ShouldDeferCharacterEventForNpcScript(0)) {
             return 0;
         }
         break;
@@ -2534,7 +2533,7 @@ bool W8Monster::CanContinueScript()
         }
         break;
     case 0x29:
-        if (sound->IsPlaying() != 0) {
+        if (sound->IsPlaying()) {
             return 0;
         }
         sound->release();
@@ -3095,7 +3094,7 @@ unsigned char W8Monster::CanEnterCycle(signed char cycle)
         MonsterGetIndexByLocationID(0x969, MONSTER_CPP, location_id, 1);
     W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
 
-    if (gXStatus.fCombatMode != 0 && IsCameraTransitionActive() != 0) {
+    if (gXStatus.fCombatMode != 0 && IsCameraTransitionActive()) {
         return 0;
     }
     if (m_pRep->animation_playing == 0) {
@@ -3131,7 +3130,7 @@ unsigned char W8Monster::IsCycleInterruptable(signed char cycle)
     const char* current_name;
     const char* requested_name;
 
-    if (IsMipeActive() != 0) {
+    if (IsMipeActive()) {
         return 1;
     }
     if (m_pRep->animation_playing == 0) {
@@ -3182,7 +3181,7 @@ void W8Monster::ApplyRemovalStateEffects()
 
     switch (removal_state) {
     case 2:
-        if (FindEntityByName("NP_Balbrakhome", &position, 0, 0) != 0) {
+        if (FindEntityByName("NP_Balbrakhome", &position, 0, 0)) {
             SetPosition(&position);
         }
         break;
@@ -5147,7 +5146,7 @@ void W8Monster::InitializeAnimatedTexture()
 
             instance = SelectCycleFrameLod(m_pRep->current_cycle, 0, m_pRep->m_bLOD);
             model = static_cast<srMeshModel*>(instance->getModel());
-            if (MeshHasAnimatedTexture(model) == 0) {
+            if (!MeshHasAnimatedTexture(model)) {
                 flags1 &= ~W8_MONSTER_ANIMATED_TEXTURE;
             } else {
                 flags1 |= W8_MONSTER_ANIMATED_TEXTURE;

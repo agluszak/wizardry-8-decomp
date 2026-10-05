@@ -582,7 +582,7 @@ void UpdateNpcPartyMember(int party_slot)
         RemoveCharacterFromParty(party_slot, 0);
         return;
     }
-    if (ProbeNpcPlacementNearParty(party_slot, 0, &position) == 0) {
+    if (!ProbeNpcPlacementNearParty(party_slot, 0, &position)) {
         ShowNoticef(0, gppStringList[0x7d5]);
         return;
     }
@@ -1033,8 +1033,7 @@ void ProcessNpcPendingEvents(void)
                         W8NpcState* bound = GetNpcState(row->npc_index);
                         if (bound != 0 && bound->service_flags[service] == 0) {
                             bound->service_flags[service] = 1;
-                            if (NpcOffersService(bound, GetLevelBand(g_status.current_level)) ==
-                                    0 &&
+                            if (!NpcOffersService(bound, GetLevelBand(g_status.current_level)) &&
                                 service != 0xc && service != 0xd) {
                                 QueueCharacterEvent(
                                     character,
@@ -2471,7 +2470,7 @@ unsigned char RestoreNpcMonster(W8NpcState* npc, const char* entity_name)
         if (index == gXStatus.uiMonstersInDatabase) {
             return 0;
         }
-        if (FindEntityByName(entity_name, &position, 0, 0) == 0) {
+        if (!FindEntityByName(entity_name, &position, 0, 0)) {
             return 0;
         }
         copied = position;
@@ -2489,7 +2488,7 @@ unsigned char RestoreNpcMonster(W8NpcState* npc, const char* entity_name)
         if (monster_info == 0) {
             return 0;
         }
-        if (FindEntityByName(entity_name, &position, 0, 0) == 0) {
+        if (!FindEntityByName(entity_name, &position, 0, 0)) {
             return 0;
         }
         monster_info->p3D->SetPosition(&position);

@@ -256,11 +256,11 @@ void CloseUseItemSelectView(void)
         gXStatus.dragged_item = 0;
         gXStatus.dragged_item_origin = 0xff;
         gXStatus.dragged_character_slot = -1;
-        if (gXStatus.fLockInteract != 0 && IsScreenTransitionPending() == 0) {
+        if (gXStatus.fLockInteract != 0 && !IsScreenTransitionPending()) {
             OpenLockInteraction(0);
             return;
         }
-        if (gXStatus.fTrapInteract != 0 && IsScreenTransitionPending() == 0) {
+        if (gXStatus.fTrapInteract != 0 && !IsScreenTransitionPending()) {
             OpenTrapInteraction(0);
             return;
         }
@@ -960,11 +960,11 @@ void SelectUseItemLine(int iTextLine)
         return;
     }
     g_use_item_selected = g_use_item_list[iTextLine];
-    if (Trynnie2UseItem(g_use_item_selected) != 0) {
+    if (Trynnie2UseItem(g_use_item_selected)) {
         CloseUseItemSelectView();
         return;
     }
-    if (IsUsableItemClass(g_use_item_selected) != 0) {
+    if (IsUsableItemClass(g_use_item_selected)) {
         TakeUseItemIntoHand();
         CloseUseItemSelectView();
         return;

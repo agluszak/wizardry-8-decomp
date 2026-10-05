@@ -63,7 +63,7 @@ stTextureAnim::stTextureAnim(const stTextureAnim& other)
 // FUNCTION: WIZ8 0x00485290
 stTextureAnim::~stTextureAnim()
 {
-    if (IsTextureInReadMeshScratch(this) != 0) {
+    if (IsTextureInReadMeshScratch(this)) {
         ReleaseReadMeshScratch();
     }
 

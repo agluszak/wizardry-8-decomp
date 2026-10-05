@@ -251,7 +251,7 @@ void W8GameData::ApplyCameraMotionFlags(unsigned int flags, srMatrix3T<float>* r
     if (g_level_data != 0) {
         g_level_data->flags &= ~W8_LEVEL_FLAG_MOVED_THIS_UPDATE;
         level = g_level_data;
-        if (AnyCharacterEngaged() == 0 || ((level_flags = level->flags) & 0xc0) != 0) {
+        if (!AnyCharacterEngaged() || ((level_flags = level->flags) & 0xc0) != 0) {
             level_flags = level->flags;
             flags &= 0xff00;
             if ((level_flags & W8_LEVEL_FLAG_MOVEMENT_ACTIVE) == 0) {
@@ -377,7 +377,7 @@ unsigned char W8GameData::ApplyCameraMotion(unsigned int flags, srVector3T<float
         return 0;
     }
 
-    if (AnyCharacterEngaged() == 0 || ((level_flags = level->flags) & 0xc0) != 0) {
+    if (!AnyCharacterEngaged() || ((level_flags = level->flags) & 0xc0) != 0) {
         level_flags = level->flags;
         flags &= 0xff00;
         if ((level_flags & W8_LEVEL_FLAG_MOVEMENT_ACTIVE) == 0) {
@@ -1136,7 +1136,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
                 index = pending_trigger_bits->NextSetBit(1);
                 while (index != 0) {
                     unsigned int trigger_index = static_cast<unsigned int>(index - 1);
-                    if (active_trigger_bits->Test(trigger_index) == 0) {
+                    if (!active_trigger_bits->Test(trigger_index)) {
                         if (m_ppTriggers != 0) {
                             m_ppTriggers[trigger_index]->FinishAction();
                         }
@@ -1176,7 +1176,7 @@ int W8GameData::TestPropSurfaces(int count, unsigned long* ids, W8OctreeTrace* t
         return -1;
     }
     do {
-        if (TestProp(*ids, trace, skip_flag, gate) != 0) {
+        if (TestProp(*ids, trace, skip_flag, gate)) {
             last_hit = *ids;
         }
         ++ids;
@@ -1299,7 +1299,7 @@ bool W8GameData::TestTraceResult(int count, unsigned long* surface_ids, W8Octree
                     vertices[0] = m_pVertices[surface->vertex_indices[0]];
                     vertices[1] = m_pVertices[surface->vertex_indices[1]];
                     vertices[2] = m_pVertices[surface->vertex_indices[2]];
-                    if (PointInsideTriangle(vertices, surface->flags & 3, &contact) != 0 &&
+                    if (PointInsideTriangle(vertices, surface->flags & 3, &contact) &&
                         hit_distance < trace->hit_limit) {
                         last_hit_surface = surface->index;
                         hit = true;
@@ -1625,7 +1625,7 @@ unsigned char W8GDSurface::TestSegment(srVector3T<float>* from, const srVector3T
             break;
         }
         short next = (edge + 1) % 3;
-        if (SegmentCrossesEdge(&start_proj, &end_proj, &verts[edge], &verts[next], axis) != 0) {
+        if (SegmentCrossesEdge(&start_proj, &end_proj, &verts[edge], &verts[next], axis)) {
             crossed = 1;
         }
         float edge_low = (&verts[edge].x)[comp_v];
@@ -2195,12 +2195,12 @@ void ResetInactiveLevelDataVectors(void)
 
 /* Fast movement is shared by camera motion, stamina and combat movement. */
 // FUNCTION: WIZ8 0x0041efb0
-unsigned char IsLevelFastMovement(void)
+bool IsLevelFastMovement(void)
 {
     if (g_level_data != 0) {
-        return (g_level_data->flags >> 8) & 1;
+        return (g_level_data->flags & W8_LEVEL_FLAG_FAST_MOVEMENT) != 0;
     }
-    return 0;
+    return false;
 }
 
 // FUNCTION: WIZ8 0x0041efd0
@@ -2220,22 +2220,22 @@ void SetLevelFastMovement(void)
 }
 
 // FUNCTION: WIZ8 0x0041eff0
-unsigned char LevelMovedThisUpdate(void)
+bool LevelMovedThisUpdate(void)
 {
     if (g_level_data != 0) {
-        return (g_level_data->flags >> 9) & 1;
+        return (g_level_data->flags & W8_LEVEL_FLAG_MOVED_THIS_UPDATE) != 0;
     }
-    return 0;
+    return false;
 }
 
-/* Walkable-surface contact, read out of the low byte. */
+/* Whether the last motion update found walkable-surface contact. */
 // FUNCTION: WIZ8 0x0041f070
-unsigned char HasLevelWalkableContact(void)
+bool HasLevelWalkableContact(void)
 {
     if (g_level_data != 0) {
-        return (static_cast<unsigned char>(g_level_data->flags) >> 4) & 1;
+        return (g_level_data->flags & W8_LEVEL_FLAG_WALKABLE_CONTACT) != 0;
     }
-    return 0;
+    return false;
 }
 
 /* Clear active, stopped and reset movement state together. */
@@ -2248,12 +2248,12 @@ void ClearLevelMovementState(void)
 }
 
 // FUNCTION: WIZ8 0x0041f140
-unsigned char IsLevelMovementStopped(void)
+bool IsLevelMovementStopped(void)
 {
     if (g_level_data != 0) {
-        return (static_cast<unsigned char>(g_level_data->flags) >> 6) & 1;
+        return (g_level_data->flags & W8_LEVEL_FLAG_MOVEMENT_STOPPED) != 0;
     }
-    return 0;
+    return false;
 }
 
 // FUNCTION: WIZ8 0x0041f160

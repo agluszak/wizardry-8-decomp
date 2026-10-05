@@ -51,7 +51,7 @@ void EnsureTrynnie1KilledVar(void)
     if (GetFact(W8_FACT_TRYNNIE_SHAMAN_DIES) == 1) {
         if (GetLocationVarIDByName("Trynnie1Killed") == -1) {
             KillTrynnieGroups();
-            if (FindEntityByName("VOC_SHAMAN_DYING", &vPos, 0, 0) == 0) {
+            if (!FindEntityByName("VOC_SHAMAN_DYING", &vPos, 0, 0)) {
                 srAssertFail("WorldGetNamedPosition(\"VOC_SHAMAN_DYING\", vPos)", TRYNNIE1_CPP,
                              0x12, 0);
             }

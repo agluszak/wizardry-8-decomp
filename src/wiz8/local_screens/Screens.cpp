@@ -94,12 +94,12 @@ void RequestScreenTransition(void)
 }
 
 // FUNCTION: WIZ8 0x0055EC70
-unsigned char IsScreenTransitionPending(void)
+bool IsScreenTransitionPending(void)
 {
     if (g_pending_screen_state.id == W8_SCREEN_NONE && g_screen_return_requested == 0) {
-        return 0;
+        return false;
     }
-    return 1;
+    return true;
 }
 
 /* Route one redraw bit to the active camp or main-game screen state. The slot

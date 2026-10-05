@@ -119,16 +119,16 @@ unsigned char EvaluateFact(W8FactId fact_id)
             break;
         }
         case W8_FACT_PEACE_DRAZIC_IN_PARTY:
-            return NpcLeadHasNameStyle(0x10) != 0;
+            return NpcLeadHasNameStyle(0x10);
         case W8_FACT_PEACE_RODAN_IN_PARTY:
-            return NpcLeadHasNameStyle(0x11) != 0;
+            return NpcLeadHasNameStyle(0x11);
         case W8_FACT_PEACE_TWO_IN_PARTY:
-            if (NpcLeadHasNameStyle(0x11) == 0 || NpcLeadHasNameStyle(0x10) == 0) {
+            if (!NpcLeadHasNameStyle(0x11) || !NpcLeadHasNameStyle(0x10)) {
                 return 0;
             }
             break;
         case W8_FACT_VI_IN_PARTY:
-            return NpcLeadHasNameStyle(0x18) != 0;
+            return NpcLeadHasNameStyle(0x18);
         case W8_FACT_GLUMPH_DEAD: {
             W8NpcState* npc = GetNpcStateByKind(0x2b);
             if (npc == 0) {
@@ -140,8 +140,8 @@ unsigned char EvaluateFact(W8FactId fact_id)
             value = GetFact(W8_FACT_UMISSION_TRAIN_COVERT_ASSIGN);
             if (value == 0) {
                 value = GetFact(W8_FACT_UMISSION_TRAIN_FIRE_ASSIGN);
-                if (value != 0 && FindItemOnParty(0x271, 0, 0, 2, 0) == 0 &&
-                    FindItemOnParty(0x272, 0, 0, 2, 0) == 0) {
+                if (value != 0 && !FindItemOnParty(0x271, 0, 0, 2, 0) &&
+                    !FindItemOnParty(0x272, 0, 0, 2, 0)) {
                     return 1;
                 }
             }
@@ -160,22 +160,22 @@ unsigned char EvaluateFact(W8FactId fact_id)
         case W8_FACT_UMISSION_IUFPASS_LEVEL2:
             return FindItemOnParty(0x268, 0, 0, 2, 0);
         case W8_FACT_RAPAX_AWAY_CAMP_EXISTS:
-            count = FindItemOnParty(0x242, 0, 0, 2, 0) != 0;
-            if (FindItemOnParty(0x243, 0, 0, 2, 0) != 0) {
+            count = FindItemOnParty(0x242, 0, 0, 2, 0);
+            if (FindItemOnParty(0x243, 0, 0, 2, 0)) {
                 ++count;
             }
-            if (FindItemOnParty(0x244, 0, 0, 2, 0) != 0) {
+            if (FindItemOnParty(0x244, 0, 0, 2, 0)) {
                 ++count;
             }
             return count >= 2;
         case W8_FACT_DEVICE_THREE:
         case W8_FACT_DEVICE_TWO:
         triple:
-            count = FindItemOnParty(0x243, 0, 0, 2, 0) != 0;
-            if (FindItemOnParty(0x242, 0, 0, 2, 0) != 0) {
+            count = FindItemOnParty(0x243, 0, 0, 2, 0);
+            if (FindItemOnParty(0x242, 0, 0, 2, 0)) {
                 ++count;
             }
-            if (FindItemOnParty(0x244, 0, 0, 2, 0) != 0) {
+            if (FindItemOnParty(0x244, 0, 0, 2, 0)) {
                 ++count;
             }
             if (fact_id == W8_FACT_DEVICE_ONE) {
@@ -205,7 +205,7 @@ unsigned char EvaluateFact(W8FactId fact_id)
         case W8_FACT_FACTION_HIGARDI_FELLOW_FRIENDLY:
             return GetFactionDisposition(W8_FACTION_BROTHERHOOD) == W8_FACTION_FRIENDLY;
         case W8_FACT_MYLES_IN_PARTY:
-            return NpcLeadHasNameStyle(7) != 0;
+            return NpcLeadHasNameStyle(7);
         case W8_FACT_FATHER_IN_PARTY:
             if (g_status.rpc_active != 0) {
                 unsigned int slot = 0;
@@ -241,15 +241,15 @@ unsigned char EvaluateFact(W8FactId fact_id)
         }
     } else if (fact_id < W8_FACT_QUEST_SHAMAN_BRIDGE_EASY) {
         if (fact_id == W8_FACT_QUEST_SHAMAN_GET_HELM) {
-            return FindItemOnParty(0x239, 0, 0, 2, 0) == 0;
+            return !FindItemOnParty(0x239, 0, 0, 2, 0);
         }
         switch (fact_id) {
         case W8_FACT_FACTION_RAPAX_COMMON_FRIENDLY:
             return GetFactionDisposition(W8_FACTION_RAPAX_COMMON) == W8_FACTION_FRIENDLY;
         case W8_FACT_TRYNNIE_SPARKLE_IN_PARTY:
-            return NpcLeadHasNameStyle(0x38) != 0;
+            return NpcLeadHasNameStyle(0x38);
         case W8_FACT_VI_IS_DEAD: {
-            if (NpcLeadHasNameStyle(0x18) == 0) {
+            if (!NpcLeadHasNameStyle(0x18)) {
                 return g_fact_values[fact_id];
             }
             W8NpcState* npc = GetNpcStateByKind(0x18);

@@ -275,7 +275,7 @@ unsigned char OpenSpellCastingView(int party_slot)
 {
     W8MainUiMode mode;
 
-    if (IsPartySlotEligible(party_slot) == 0) {
+    if (!IsPartySlotEligible(party_slot)) {
         return 0;
     }
     if (gpSCSV == 0) {
@@ -357,16 +357,16 @@ void CloseSpellCastingView(void)
         free(gpSCSV);
         gpSCSV = 0;
         ResumeMainGameWorld();
-        if (IsWorldCursorVisible() != 0) {
+        if (IsWorldCursorVisible()) {
             ToggleWorldCursor();
         }
-        if (gXStatus.fLockInteract != 0 && IsScreenTransitionPending() == 0) {
+        if (gXStatus.fLockInteract != 0 && !IsScreenTransitionPending()) {
             OpenLockInteraction(0);
         }
-        if (gXStatus.fTrapInteract != 0 && IsScreenTransitionPending() == 0) {
+        if (gXStatus.fTrapInteract != 0 && !IsScreenTransitionPending()) {
             OpenTrapInteraction(0);
         }
-        if (interact_id != -1 && IsScreenTransitionPending() == 0) {
+        if (interact_id != -1 && !IsScreenTransitionPending()) {
             monster_index = MonsterGetIndexByLocationID(0x1cf, SPELLCASTING_CPP, location_id, 1);
             npc = FindNpcBindingForMonster(monster_index);
             BeginNpcDialogue(npc, 0, -1, 0, 1);
@@ -415,8 +415,8 @@ void SelectSpellCastingCharacter(int party_slot)
 {
     W8SpellRealm realm;
 
-    if (CharacterHasCastableSpell(&g_status.buffers.Char[party_slot]) == 0 ||
-        IsPartySlotEligible(party_slot) == 0) {
+    if (!CharacterHasCastableSpell(&g_status.buffers.Char[party_slot]) ||
+        !IsPartySlotEligible(party_slot)) {
         ResetEditorStatusLine(-1);
         CloseSpellCastingView();
         return;
@@ -606,15 +606,14 @@ static void RebuildSpellCastingList(int spell_id)
                 gpSCSV->override_spell = id;
                 spell = &g_spell_records[id];
                 if (spell->spell_point_cost <= gpSCSV->caster->iSPLeft[realm] &&
-                    SpellUsableNow(id, 0) != 0 &&
-                    SpellHasAnyValidTarget(CharacterPointerToPartySlot(gpSCSV->caster), id, 0) !=
-                        0 &&
+                    SpellUsableNow(id, 0) &&
+                    SpellHasAnyValidTarget(CharacterPointerToPartySlot(gpSCSV->caster), id, 0) &&
                     !IsTeleportCastMissingAnchor(gpSCSV->caster, id)) {
-                    if (IsSpellBlockedForCharacter(gpSCSV->caster, id) != 0) {
+                    if (IsSpellBlockedForCharacter(gpSCSV->caster, id)) {
                         if (pass == 1 &&
                             ((gXStatus.fCampMode == 0 && gXStatus.fLockInteract == 0 &&
                               gXStatus.fTrapInteract == 0) ||
-                             SpellUsableNow(id, 0) != 0) &&
+                             SpellUsableNow(id, 0)) &&
                             gpSCSV->uiSpellsInList + 1 <= 0x15e) {
                             ++gpSCSV->uiSpellsInList;
                             gpSCSV->uiSpells[gpSCSV->uiSpellsInList - 1] = id;
@@ -648,7 +647,7 @@ static void RebuildSpellCastingList(int spell_id)
                 } else if (pass == 1 &&
                            ((gXStatus.fCampMode == 0 && gXStatus.fLockInteract == 0 &&
                              gXStatus.fTrapInteract == 0) ||
-                            SpellUsableNow(id, 0) != 0) &&
+                            SpellUsableNow(id, 0)) &&
                            gpSCSV->uiSpellsInList + 1 <= 0x15e) {
                     ++gpSCSV->uiSpellsInList;
                     gpSCSV->uiSpells[gpSCSV->uiSpellsInList - 1] = id;
@@ -756,7 +755,7 @@ void BeginSpellCast(int spell_id, int location_id, int interact_id)
     }
     gpSCSV->interact_id = interact_id;
     gpSCSV->location_id = location_id;
-    if (CanCharacterCastSpell(&g_status.buffers.Char[g_status.selected_character], spell_id) == 0) {
+    if (!CanCharacterCastSpell(&g_status.buffers.Char[g_status.selected_character], spell_id)) {
         return;
     }
     realm = W8_SPELL_REALM_NONE;
@@ -1393,18 +1392,17 @@ void TryCommitSpellCast(void)
     ready = false;
     if (gpSCSV->uiSpellToCast != 0 &&
         (gpSCSV->iSpellPower != -1 || gpSCSV->iSpellPowerClass == 3)) {
-        ready = IsSpellTargetOfNeededKind(g_status.selected_character, gpSCSV->uiSpellToCast) != 0;
+        ready = IsSpellTargetOfNeededKind(g_status.selected_character, gpSCSV->uiSpellToCast);
     }
     if (gpSCSV->uiSpellToCast == 0x4b && gpSCSV->dialog_confirmed == 0) {
-        if (IsModalOpen() == 0 &&
+        if (!IsModalOpen() &&
             g_status.buffers.Char[g_status.selected_character].has_saved_location) {
             ShowMainGameNoticeLine(gppStringList[0x7a4], SpellCastingDialogResult, 1, 1);
         }
-    } else if (gpSCSV->uiSpellToCast == 0x49 && gpSCSV->dialog_confirmed == 0 &&
-               IsModalOpen() == 0) {
+    } else if (gpSCSV->uiSpellToCast == 0x49 && gpSCSV->dialog_confirmed == 0 && !IsModalOpen()) {
         ShowMainGameNoticeLine(gppStringList[0x7a5], SpellCastingDialogResult, 1, 1);
     }
-    if (ready && IsModalOpen() == 0) {
+    if (ready && !IsModalOpen()) {
         gpSCSV->closing = true;
         CommitSelectedSpellTarget();
         gpSCSV->closing = false;
@@ -1426,17 +1424,16 @@ void TryCommitSpellCast(void)
 void ShowSpellCastingError(int spell_id)
 {
     gpSCSV->override_spell = spell_id;
-    if (SpellUsableNow(spell_id, 0) == 0) {
+    if (!SpellUsableNow(spell_id, 0)) {
         ShowMainGameNoticeLine(gppStringList[0x79e], SpellCastingNoticeClosed, 1, 0);
     } else if (GetCharacterRealmSpellPoints(gpSCSV->caster, gpSCSV->iSpellRealm) <
                g_spell_records[spell_id].spell_point_cost) {
         ShowMainGameNoticeLine(gppStringList[0x7a0], SpellCastingNoticeClosed, 1, 0);
-    } else if (SpellHasAnyValidTarget(CharacterPointerToPartySlot(gpSCSV->caster), spell_id, 0) ==
-               0) {
+    } else if (!SpellHasAnyValidTarget(CharacterPointerToPartySlot(gpSCSV->caster), spell_id, 0)) {
         ShowMainGameNoticeLine(gppStringList[0x7a1], SpellCastingNoticeClosed, 1, 0);
     } else if (IsTeleportCastMissingAnchor(gpSCSV->caster, spell_id)) {
         ShowMainGameNoticeLine(gppStringList[0x7a2], SpellCastingNoticeClosed, 1, 0);
-    } else if (IsSpellBlockedForCharacter(gpSCSV->caster, spell_id) != 0) {
+    } else if (IsSpellBlockedForCharacter(gpSCSV->caster, spell_id)) {
         ShowMainGameNoticeLine(gppStringList[0x79f], SpellCastingNoticeClosed, 1, 0);
     }
     gpSCSV->override_spell = 0;

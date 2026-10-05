@@ -243,7 +243,7 @@ bool OctPreTree::TestCollectedPolygons(W8OctreeTrace* trace)
                 vertices[0] = polygon->vertices[0]->position;
                 vertices[1] = polygon->vertices[1]->position;
                 vertices[2] = polygon->vertices[2]->position;
-                if (PointInsideTriangle(vertices, polygon->flags & 3, &contact) != 0) {
+                if (PointInsideTriangle(vertices, polygon->flags & 3, &contact)) {
                     blocked = 1;
                 }
             }

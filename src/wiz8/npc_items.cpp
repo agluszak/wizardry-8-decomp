@@ -590,7 +590,7 @@ unsigned char SellItemToNpc(W8NpcState* npc, W8ItemInstance* item, unsigned char
     int amount;
 
     if ((g_item_records[item->iItemNo].flags & W8_ITEM_FLAG_NO_DISCARD) == 0) {
-        if (NpcAcceptsTradeItemClass(npc, item) != 0) {
+        if (NpcAcceptsTradeItemClass(npc, item)) {
             ReplaceOrCreateItem(&stack, item->iItemNo, 0, item->identified, 0);
             stack.stack_count = quantity;
             amount = CalculateTradeStackPrice(npc, &stack, 0);

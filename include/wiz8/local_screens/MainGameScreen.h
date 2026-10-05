@@ -198,7 +198,7 @@ public:
        band for an odd party slot (1 -> 0x67, 3 -> 0xbc, 5 -> 0x111, 7 ->
        always covered). Callers use it to skip portrait work on rows the
        open transcript covers. */
-    unsigned char IsSlotPortraitTranscriptCovered(unsigned int party_slot); /* 0x0055E410 */
+    bool IsSlotPortraitTranscriptCovered(unsigned int party_slot); /* 0x0055E410 */
     /* Re-apply the category filter, rebuild the expansion and restate the
        scroll widgets. */
     void SetTranscriptCategoryFilter(signed char category); /* 0x0055E7C0 */
@@ -700,7 +700,7 @@ void ShowMainGameNoticeLine(wchar_t* text, W8DialogDestroyCallback callback, int
 
 unsigned char CombatBarRegionEvent(const InputAtom* event, struct W8Region* region);
 unsigned char DialogueTranscriptRegionEvent(const InputAtom* event, struct W8Region* region);
-void SetNpcDialogueSubMode4(void);
+void SelectNpcBuyMode(void);
 void ConfirmNpcTradeItem(void);
 void RestockNpcTradeStock(void);
 void OpenNpcTradeQuantityDialog(void);

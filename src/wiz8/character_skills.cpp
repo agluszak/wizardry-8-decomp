@@ -376,7 +376,7 @@ void BrewAlchemistPotion(W8Character* character)
 
     if (g_status.buffers.XChar[slot].fOccupied != 0 &&
         character->highest_condition < W8_CONDITION_UNCONSCIOUS &&
-        CharacterHasTrait(character, W8_TRAIT_MAKE_POTIONS) != 0) {
+        CharacterHasTrait(character, W8_TRAIT_MAKE_POTIONS)) {
         alchemy = character->profession_levels[W8_PROFESSION_ALCHEMIST];
         recipes = 0;
         for (recipe = &g_alchemist_brew_recipes[0][2]; recipe[-2] != -1; recipe += 3) {
@@ -690,7 +690,7 @@ void PracticeCharacterSkill(W8Character* character, W8Skill skill_id, int usage_
         W8CharacterSkill* skill = &character->skills[skill_id];
         skill->available = true;
         if (skill->active == 0) {
-            if (IsCharacterSkillAvailable(character, skill_id, NULL) == 0) {
+            if (!IsCharacterSkillAvailable(character, skill_id, NULL)) {
                 return;
             }
             skill->active = 1;
@@ -725,9 +725,9 @@ void PracticeCharacterSkill(W8Character* character, W8Skill skill_id, int usage_
                 UnequipUnusableItems(character);
                 RecalculateCharacterDerivedStats(character);
                 slot = CharacterPointerToPartySlot(character);
-                if (gXStatus.fCombatMode == 0 && IsModalOpen() == 0 &&
+                if (gXStatus.fCombatMode == 0 && !IsModalOpen() &&
                     gXStatus.item_pick_pending == 0 &&
-                    g_current_screen_state.id == W8_SCREEN_MAIN_GAME && IsScreenIdle() != 0 &&
+                    g_current_screen_state.id == W8_SCREEN_MAIN_GAME && IsScreenIdle() &&
                     suppress_notification == 0) {
                     wchar_t* text = new wchar_t[0x200];
                     memset(text, 0, 0x400);

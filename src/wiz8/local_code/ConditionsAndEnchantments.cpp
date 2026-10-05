@@ -143,7 +143,7 @@ void RemoveCharacterCondition(int party_slot, W8Condition condition, bool announ
                 return;
             }
         } else if (condition == W8_CONDITION_INSANE &&
-                   FindItemOnParty(0x243, &found_item, &found_character, 2, 0) != 0 &&
+                   FindItemOnParty(0x243, &found_item, &found_character, 2, 0) &&
                    found_item != &g_status.item_in_hand) {
             if (found_character == 0) {
                 found_character = FindPartyMemberWithLowestResistance4();
@@ -190,7 +190,7 @@ void RemoveCharacterCondition(int party_slot, W8Condition condition, bool announ
         if (!can_rest && party_slot > -1 && party_slot < 8 && row->fOccupied != 0 &&
             character->hp_current != 0 && character->highest_condition < W8_CONDITION_TURNCOAT &&
             gXStatus.fCombatMode != 0 &&
-            CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0, 0) != 0) {
+            CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0, 0)) {
             RefreshCombatTargetHighlights(party_slot, &row->target_in_combat);
         }
     }
@@ -535,7 +535,7 @@ void SetMonsterCondition(int location_id, W8Condition condition, int duration, i
             SetMonsterSpellIcon(monster_info->p3D, static_cast<W8MonsterSpellIconId>(condition - 1),
                                 1);
         }
-        if (monster_info->fInCombat != 0 && TargetSourceIsCharacter(target, 0) != 0 &&
+        if (monster_info->fInCombat != 0 && TargetSourceIsCharacter(target, 0) &&
             target->iChar != -1) {
             int* hate = &monster_info->pCombat->character_hate[target->iChar];
             record = GetMonsterDataForInfo(monster_info);
@@ -545,7 +545,7 @@ void SetMonsterCondition(int location_id, W8Condition condition, int duration, i
     } else {
         handled = 0;
     }
-    if (TargetSourceIsCharacter(target, 0) != 0 || TargetSourceIsMonster(target, 0) != 0) {
+    if (TargetSourceIsCharacter(target, 0) || TargetSourceIsMonster(target, 0)) {
         if (target->fBackfire == 0 && target->fReflection == 0 && target->target_diverted == 0) {
             monster_info->condition_target = *target;
         }
@@ -708,7 +708,7 @@ unsigned char SetCharacterCondition(int party_slot, W8Condition condition, int d
     if (condition == W8_CONDITION_POISONED && argument == 0) {
         return 0;
     }
-    if (condition == W8_CONDITION_DEAD && CharacterHasTrait(character, W8_TRAIT_CHEAT_DEATH) != 0 &&
+    if (condition == W8_CONDITION_DEAD && CharacterHasTrait(character, W8_TRAIT_CHEAT_DEATH) &&
         character->uiCondition[W8_CONDITION_UNCONSCIOUS] < 7) {
         CheatDeathRevive(party_slot);
         return 0;
@@ -733,7 +733,7 @@ unsigned char SetCharacterCondition(int party_slot, W8Condition condition, int d
     }
     switch (condition) {
     case W8_CONDITION_AFRAID:
-        if (CharacterHasTrait(character, W8_TRAIT_FEARLESS) != 0) {
+        if (CharacterHasTrait(character, W8_TRAIT_FEARLESS)) {
             PostCharacterNotice(party_slot, gppStringList[0x180]);
             return 0;
         }
@@ -743,7 +743,7 @@ unsigned char SetCharacterCondition(int party_slot, W8Condition condition, int d
     case W8_CONDITION_NAUSEATED:
     case W8_CONDITION_POISONED:
     case W8_CONDITION_ASLEEP:
-        if (CharacterHasTrait(character, static_cast<W8Trait>(0x1e)) != 0) {
+        if (CharacterHasTrait(character, static_cast<W8Trait>(0x1e))) {
             return 0;
         }
         break;
@@ -753,7 +753,7 @@ unsigned char SetCharacterCondition(int party_slot, W8Condition condition, int d
         }
         /* fall through */
     case W8_CONDITION_TURNCOAT:
-        if (CharacterHasTrait(character, W8_TRAIT_MENTAL_CONDITION_IMMUNITY) != 0) {
+        if (CharacterHasTrait(character, W8_TRAIT_MENTAL_CONDITION_IMMUNITY)) {
             PostCharacterNotice(party_slot, gppStringList[0x181]);
             return 0;
         }

@@ -709,7 +709,7 @@ bool W8CharacterScreen::ValidateName()
 }
 
 // FUNCTION: WIZ8 0x005b0120
-unsigned char W8CharacterScreen::HasDialog()
+bool W8CharacterScreen::HasDialog()
 {
     return m_dialog != 0;
 }

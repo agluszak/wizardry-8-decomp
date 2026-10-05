@@ -289,7 +289,7 @@ void RefreshMonsterGroupHostility(W8MonsterGroup* monster_group)
     while (true) {
         monster_info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
             0x830, MONSTER_GROUP_CPP, IListGetAt(monster_group->monsters, index), 1));
-        if (monster_info != 0 && monster_info->p3D->IsDying() == 0) {
+        if (monster_info != 0 && !monster_info->p3D->IsDying()) {
             break;
         }
         ++index;
@@ -302,7 +302,7 @@ void RefreshMonsterGroupHostility(W8MonsterGroup* monster_group)
         (record->flags & W8_MONSTER_FLAG_NPC) == 0 && record->faction_id == 0 &&
         record->hostility_radius != 0 && record->hostility_radius != -1 &&
         GetGroupNearestDistance(monster_group) <= record->hostility_radius * g_world_scale &&
-        MonsterGroupHasVisibleTarget(monster_group, 1, 3, 0) != 0) {
+        MonsterGroupHasVisibleTarget(monster_group, 1, 3, 0)) {
         SetMonsterGroupHostility(monster_group, W8_DISPOSITION_HOSTILE, 0);
     }
     cooldown = IntegerPower(record->attribute_values[W8_MONSTER_ATTRIBUTE_INTELLIGENCE], 2) * 0x3c;
@@ -547,8 +547,7 @@ bool IsMonsterGroupLive(W8MonsterGroup* monster_group)
 {
     if (monster_group->members_active != 0 && monster_group->fInCombat != 0 &&
         monster_group->member_count > 0) {
-        if (monster_group->ubDisposition != W8_DISPOSITION_HOSTILE &&
-            CombatAllowsLiveGroups() == 0) {
+        if (monster_group->ubDisposition != W8_DISPOSITION_HOSTILE && !CombatAllowsLiveGroups()) {
             return 0;
         }
         return 1;
@@ -815,7 +814,7 @@ void SetMonsterGroupControlState(W8MonsterGroup* monster_group, int control_stat
         int location_id = IListGetAt(monster_group->monsters, index);
         W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(0x818, MONSTER_GROUP_CPP, location_id, 1));
-        if (info != 0 && info->p3D->IsDying() == 0) {
+        if (info != 0 && !info->p3D->IsDying()) {
             SetMonsterControlState(info, control_state);
         }
     }
@@ -830,7 +829,7 @@ bool MonsterGroupHasRenderableMember(W8MonsterGroup* monster_group, bool require
     for (unsigned int index = 0; index < ILLength(monster_group->monsters); ++index) {
         W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
             0x8e6, MONSTER_GROUP_CPP, IListGetAt(monster_group->monsters, index), 1));
-        if (info->p3D->IsWithinWorldRange() != 0 && info->p3D->IsRenderable(1) != 0 &&
+        if (info->p3D->IsWithinWorldRange() && info->p3D->IsRenderable(1) != 0 &&
             (require_threat == 0 || info->party_threat.los_flags[1] != 0)) {
             return true;
         }
@@ -1392,7 +1391,7 @@ void MonsterGroupEnterCombat(W8MonsterGroup* monster_group)
             monster_group->ubDisposition == W8_DISPOSITION_HOSTILE && gXStatus.fCombatMode == 0) {
             return;
         }
-        if (IsMipeActive() != 0) {
+        if (IsMipeActive()) {
             return;
         }
         if (monster_group->fInCombat != 0) {
@@ -1445,7 +1444,7 @@ void MonsterGroupEnterCombat(W8MonsterGroup* monster_group)
             int member_id = IListGetAt(monster_group->monsters, index);
             W8MonsterInfo* member_info = MonsterGetScriptPartByLocationIndex(
                 MonsterGetIndexByLocationID(0x830, MONSTER_GROUP_CPP, member_id, 1));
-            if (member_info != 0 && member_info->p3D->IsDying() == 0) {
+            if (member_info != 0 && !member_info->p3D->IsDying()) {
                 break;
             }
             ++index;
@@ -1472,7 +1471,7 @@ void MonsterGroupEnterCombat(W8MonsterGroup* monster_group)
                     if (other->members_active != 0 && other->fInCombat != 0 &&
                         other->member_count != 0 &&
                         (other->ubDisposition == W8_DISPOSITION_HOSTILE ||
-                         CombatAllowsLiveGroups() != 0)) {
+                         CombatAllowsLiveGroups())) {
                         ++live_groups;
                     }
                     ++group_list_index;
@@ -1618,7 +1617,7 @@ void MarkMonsterGroupForRemoval(int group_id)
     for (index = 0; index < ILLength(group->monsters); ++index) {
         member_info =
             MonsterInfoFromID(0x854, MONSTER_GROUP_CPP, IListGetAt(group->monsters, index), 1);
-        if (member_info != 0 && member_info->p3D->IsDying() == 0) {
+        if (member_info != 0 && !member_info->p3D->IsDying()) {
             member_info->p3D->flags1 |= W8_MONSTER_REMOVE_NOW;
         }
     }

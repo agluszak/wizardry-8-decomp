@@ -52,14 +52,14 @@ void UpdateItemCursorForState(int flag, W8ItemInstance* item, int slot);
 void SetHandCursors(char mode);
 void UnequipBothHands(void);
 void TogglePartyRowFlag(void);
-void SelectCampRealmTab0(void);
-void SelectCampRealmTab1(void);
-void SelectCampRealmTab2(void);
-void SelectCampRealmTab3(void);
-void SelectCampRealmTab4(void);
-void SelectCampRealmTab5(void);
+void ToggleCampHandItemFilter(void);
+void ToggleCampBodyItemFilter(void);
+void ToggleCampOtherItemFilter(void);
+void ToggleCampAccessoryItemFilter(void);
+void ToggleCampUsabilityFilter(void);
+void ToggleCampUnidentifiedItemFilter(void);
 void SortCampItemPool(void);
-void SelectCampRealmTab(int tab);
+void ToggleCampItemFilter(int tab);
 unsigned char BackpackRegionHandler(const InputAtom* event, W8Region* region);
 unsigned char EquipSlotRegionHandler(const InputAtom* event, W8Region* region);
 unsigned char ItemPoolRegionHandler(const InputAtom* event, W8Region* region);
@@ -84,7 +84,7 @@ void DisableCampActionButtons(void);             /* 0x005B9310 */
 void RefreshCampActionPanel(bool invalidate);    /* 0x005B9330 */
 int CreateItemsTabPanel(void);                   /* 0x005B9350 */
 void ReleaseItemsTabPanel(void);                 /* 0x005B9760 */
-void UpdateItemsRealmTabs(void);                 /* 0x005B97B0 */
+void UpdateCampItemFilters(void);                /* 0x005B97B0 */
 void DisableItemsRealmTabs(void);                /* 0x005B98C0 */
 void RefreshItemsTabPanel(bool invalidate);      /* 0x005B98E0 */
 int CreateCampSecondaryPanel(void);              /* 0x005B9900 */
