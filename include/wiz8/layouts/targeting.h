@@ -143,6 +143,7 @@ enum W8TargetingContext {
     W8_TARGETING_CONTEXT_ITEM = 4,
     W8_TARGETING_CONTEXT_BREATH = 5,
     W8_TARGETING_CONTEXT_CURRENT = 6,
-    W8_TARGETING_CONTEXT_DIALOGUE = 7
+    W8_TARGETING_CONTEXT_DIALOGUE = 7,
+    W8_TARGETING_CONTEXT_ATTACK = 8 /* fixed basic attack, without a target/detail block */
 };
 #endif

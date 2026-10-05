@@ -81,7 +81,7 @@ const float g_float_005ec35c = 12500.0f;
    party for an opposing-side member the chosen action could actually
    strike. */
 // FUNCTION: WIZ8 0x00518e30
-bool CanPartySlotAttackAnyTarget(int party_slot, int category, int flag, bool hand)
+bool CanPartySlotAttackAnyTarget(int party_slot, W8TargetingContext category, int flag, bool hand)
 {
     char side;
     int first = party_slot;
@@ -110,7 +110,7 @@ bool CanPartySlotAttackAnyTarget(int party_slot, int category, int flag, bool ha
             }
         }
     }
-    if (category == 0 || category == 8) {
+    if (category == W8_TARGETING_CONTEXT_OUT_OF_COMBAT || category == W8_TARGETING_CONTEXT_ATTACK) {
         W8Character* character = &g_status.buffers.Char[first];
         for (int slot = 0; slot < W8_PARTY_SLOT_COUNT; ++slot) {
             W8Character* candidate = &g_status.buffers.Char[slot];
@@ -265,8 +265,8 @@ bool CharacterActionReachesTarget(int party_slot, int hand, W8TargetingContext c
    rows between slot and monster) and selects the aim flag. An allowed aim
    then has to pass the band distance to the monster. */
 // FUNCTION: WIZ8 0x005194e0
-bool CanPartyMemberAimAtMonster(int party_slot, int hand, W8MonsterInfo* monster_info, int context,
-                                char notify_failure)
+bool CanPartyMemberAimAtMonster(int party_slot, int hand, W8MonsterInfo* monster_info,
+                                W8TargetingContext context, char notify_failure)
 {
     W8ActionDetailBlock* detail_block;
     bool flag;
@@ -358,7 +358,8 @@ bool CanPartyMemberAimAtMonster(int party_slot, int hand, W8MonsterInfo* monster
    chosen action has to have a range, and melee range additionally has to get
    past the front rank. */
 // FUNCTION: WIZ8 0x005197c0
-bool CharacterActionReachesSlot(int party_slot, int hand, int target_slot, int context)
+bool CharacterActionReachesSlot(int party_slot, int hand, int target_slot,
+                                W8TargetingContext context)
 {
     if (static_cast<char>(party_slot) == target_slot) {
         return 1;
@@ -851,28 +852,28 @@ float CalcRangeDistanceFromParty(W8RangeCategory range_category)
    stand between the monster and `party_slot`. Exhausting the category marks it
    unreachable (-1). */
 // FUNCTION: WIZ8 0x0051abe0
-void CloseFormationGap(W8MonsterInfo* monster_info, int party_slot, W8RangeCategory* range)
+void CloseFormationGap(W8MonsterInfo* monster_info, int party_slot, W8RangeCategory* range_category)
 {
     char crossable;
 
     if (gXStatus.fCombatMode == 0) {
         return;
     }
-    if (*range < W8_RANGE_TOUCH || *range >= W8_RANGE_LONG) {
+    if (*range_category < W8_RANGE_TOUCH || *range_category >= W8_RANGE_LONG) {
         return;
     }
     crossable = CountRowsBetween(party_slot, monster_info);
     if (crossable == 0) {
         return;
     }
-    while (*range != W8_RANGE_TOUCH) {
+    while (*range_category != W8_RANGE_TOUCH) {
         --crossable;
-        *range = static_cast<W8RangeCategory>(static_cast<int>(*range) - 1);
+        *range_category = static_cast<W8RangeCategory>(*range_category - 1);
         if (crossable == 0) {
             return;
         }
     }
-    *range = W8_RANGE_NONE;
+    *range_category = W8_RANGE_NONE;
 }
 
 /* Whether anybody standing ahead of this position is still in formation. */
@@ -1009,7 +1010,8 @@ int PickReachableSlotByDisposition(int party_slot, char relationship)
             if (!CanHandReachTarget(party_slot, hand)) {
                 continue;
             }
-            if (!CharacterActionReachesSlot(party_slot, hand, slot, 0)) {
+            if (!CharacterActionReachesSlot(party_slot, hand, slot,
+                                            W8_TARGETING_CONTEXT_OUT_OF_COMBAT)) {
                 continue;
             }
             ++count;
@@ -1046,11 +1048,11 @@ void InitializeMonsterRangeCapabilities(W8MonsterInfo* monster_info, const W8Mon
     monster_info->unknown_379 = 1;
     monster_info->unknown_37b = 1;
 
-    int best_range = W8_RANGE_NONE;
+    W8RangeCategory best_range = W8_RANGE_NONE;
     for (unsigned int attack = 0; attack < W8_MAX_MONSTER_ATTACKS; ++attack) {
         if (record->attacks[attack].fHasAttack != 0 &&
             best_range < record->attacks[attack].range_category) {
-            best_range = record->attacks[attack].range_category;
+            best_range = static_cast<W8RangeCategory>(record->attacks[attack].range_category);
         }
     }
 

@@ -2005,8 +2005,9 @@ def integer_report(facts: ScalarFacts, claims: list[dict]) -> dict:
 def enum_propagation_report(facts: ScalarFacts, names: list[str]) -> dict:
     """Propagate accepted source enum owners, without claiming historical evidence.
 
-    Only same-width builtin locals whose complete producers are typed copies are
-    editable. Storage and signatures remain review boundaries. Existing enum
+    Only same-width builtin locals whose complete producers are typed copies or
+    explicit casts into accepted enums are editable. Storage and signatures remain
+    review boundaries. Existing enum
     owners terminate the producer walk; their authored operations are not new
     recovery claims. Unknown producers and cycles never establish an identity.
     """
@@ -2019,6 +2020,27 @@ def enum_propagation_report(facts: ScalarFacts, names: list[str]) -> dict:
     missing = selected - set(anchors.values())
     if missing:
         raise ValueError("unknown source enum owners: " + ", ".join(sorted(missing)))
+    enum_types = {}
+    for key, identity in anchors.items():
+        if key not in facts.inconsistent:
+            enum_types[identity.removeprefix("enum:")] = facts.declarations[key]
+    conversions: dict[tuple[str, str], set[str]] = defaultdict(set)
+    for target, source, _, type_name in facts.conversions:
+        conversions[target, source].add(type_name.removeprefix("enum "))
+    # A cast terminates inference at its result type. It never promotes the
+    # packed/numeric input storage, nor seeds independent historical recovery.
+    enum_casts = {}
+    for flow in facts.flows:
+        types = conversions[flow.target, flow.source]
+        if (
+            flow.role == "explicit-conversion"
+            and len(types) == 1
+            and flow.source in facts.declarations
+            and flow.source not in facts.inconsistent
+        ):
+            type_name = next(iter(types))
+            if type_name in enum_types:
+                enum_casts[flow] = enum_types[type_name]
     incoming: dict[str, list[Flow]] = defaultdict(list)
     outgoing_flows: dict[str, list[Flow]] = defaultdict(list)
     outgoing: dict[str, set[str]] = defaultdict(set)
@@ -2027,7 +2049,9 @@ def enum_propagation_report(facts: ScalarFacts, names: list[str]) -> dict:
         outgoing_flows[flow.source].append(flow)
         outgoing[flow.source].add(flow.target)
     identities = {key: {value} for key, value in anchors.items()}
-    pending = deque(anchors)
+    for flow, declaration in enum_casts.items():
+        identities.setdefault(flow.target, set()).add(semantic_domain(declaration, facts))
+    pending = deque(identities)
     while pending:
         source = pending.popleft()
         for target in outgoing[source]:
@@ -2035,8 +2059,17 @@ def enum_propagation_report(facts: ScalarFacts, names: list[str]) -> dict:
             if target in anchors or declaration is None or declaration.domain != "integer":
                 continue
             values = identities.setdefault(target, set())
-            if not identities[source] <= values:
-                values.update(identities[source])
+            producer_values = set().union(
+                *(
+                    {semantic_domain(enum_casts[flow], facts)}
+                    if flow in enum_casts
+                    else identities[source]
+                    for flow in incoming[target]
+                    if flow.source == source
+                )
+            )
+            if not producer_values <= values:
+                values.update(producer_values)
                 pending.append(target)
     index = _indexes(facts)
     blockers: dict[str, list[dict]] = defaultdict(list)
@@ -2062,13 +2095,16 @@ def enum_propagation_report(facts: ScalarFacts, names: list[str]) -> dict:
         if facts.constants[key] or facts.source_domains[key]:
             reasons.append({"reason": "producer outside named enum domain"})
         for flow in incoming[key]:
-            source = facts.declarations.get(flow.source)
+            source = enum_casts.get(flow, facts.declarations.get(flow.source))
             if (
                 source is None
                 or source.width != declaration.width
                 or source.signedness != declaration.signedness
-                or edge_class(facts, flow)
-                not in {"copy", "sign-change", "alias-change", "domain-change"}
+                or (
+                    flow not in enum_casts
+                    and edge_class(facts, flow)
+                    not in {"copy", "sign-change", "alias-change", "domain-change"}
+                )
             ):
                 reasons.append({"reason": "conversion or unknown producer", "source": flow.source})
         for flow in outgoing_flows[key]:
@@ -2096,17 +2132,17 @@ def enum_propagation_report(facts: ScalarFacts, names: list[str]) -> dict:
     # A typed producer is accepted; an integer producer must itself be safe to
     # promote. This prevents a numeric write upstream from seeding a pure copy.
     complete = set(anchors) - facts.inconsistent
-    pending = deque(sorted(complete))
-    while pending:
-        source = pending.popleft()
-        for target in outgoing[source] & candidates - complete:
+    changed = True
+    while changed:
+        changed = False
+        for target in sorted(candidates - complete):
             if (
                 not blockers[target]
                 and incoming[target]
-                and all(flow.source in complete for flow in incoming[target])
+                and all(flow in enum_casts or flow.source in complete for flow in incoming[target])
             ):
                 complete.add(target)
-                pending.append(target)
+                changed = True
     changes = candidates & complete
     # Connected editable locals are one patch group: shared atoms and upstream
     # dependencies must all survive the patch writer's snapshot/atom checks.
@@ -2393,8 +2429,8 @@ def write_recovery_patch(
             difflib.unified_diff(
                 original.decode().splitlines(keepends=True),
                 updated.decode().splitlines(keepends=True),
-                fromfile="a/" + label,
-                tofile="b/" + label,
+                fromfile="a/" + label + "\t",
+                tofile="b/" + label + "\t",
             )
         )
     destination.parent.mkdir(parents=True, exist_ok=True)

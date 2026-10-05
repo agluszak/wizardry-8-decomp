@@ -390,7 +390,9 @@ bool CharacterHasAttackOn(int party_slot, W8CombatSlot* target)
             return 0;
         }
         if (CanPartyMemberAimAtMonster(party_slot, 0, monster_info,
-                                       g_combat_state->characters[party_slot].dead == 0,
+                                       g_combat_state->characters[party_slot].dead == 0
+                                           ? W8_TARGETING_CONTEXT_IN_COMBAT
+                                           : W8_TARGETING_CONTEXT_OUT_OF_COMBAT,
                                        0) == 0) {
             return 0;
         }
@@ -3208,7 +3210,8 @@ void BuildCharacterTargetList(int party_slot, int action, W8PList* out_list)
             } else {
                 if ((row->target_out_of_combat.iType == W8_TARGET_KIND_CHARACTER &&
                      row->target_out_of_combat.iChar == i) ||
-                    CharacterActionReachesSlot(party_slot, action, i, 0) == 0) {
+                    CharacterActionReachesSlot(party_slot, action, i,
+                                               W8_TARGETING_CONTEXT_OUT_OF_COMBAT) == 0) {
                     continue;
                 }
                 AppendCombatTargetEntry(out_list, W8_TARGET_KIND_CHARACTER, i, -1);
@@ -3224,7 +3227,8 @@ void BuildCharacterTargetList(int party_slot, int action, W8PList* out_list)
                  W8_TARGET_KIND_MONSTER ||
              g_status.buffers.XChar[party_slot].target_out_of_combat.iMonsterID !=
                  monster_info->location_id) &&
-            CanPartyMemberAimAtMonster(party_slot, action, monster_info, 0, 0) != 0) {
+            CanPartyMemberAimAtMonster(party_slot, action, monster_info,
+                                       W8_TARGETING_CONTEXT_OUT_OF_COMBAT, 0) != 0) {
             AppendCombatTargetEntry(out_list, W8_TARGET_KIND_MONSTER, -1,
                                     monster_info->location_id);
         }

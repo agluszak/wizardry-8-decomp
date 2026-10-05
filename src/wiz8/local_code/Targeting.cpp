@@ -2930,8 +2930,8 @@ void RefreshMonsterTargetCounts(void)
                 on_screen_count += 1;
             }
             if (g_status.selected_character == -1 ||
-                CanPartyMemberAimAtMonster(g_status.selected_character, 2, monster_info, 6, 0) !=
-                    0) {
+                CanPartyMemberAimAtMonster(g_status.selected_character, 2, monster_info,
+                                           W8_TARGETING_CONTEXT_CURRENT, 0) != 0) {
                 selectable_count += 1;
             }
         }

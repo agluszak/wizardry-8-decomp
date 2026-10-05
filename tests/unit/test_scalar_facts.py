@@ -104,6 +104,99 @@ def test_source_enum_copy_chain_is_separate_from_historical_recovery(scalar, tmp
     )
 
 
+@pytest.mark.parametrize("source_problem", ["missing", "inconsistent"])
+def test_source_enum_cast_requires_consistent_input_facts(scalar, tmp_path, source_problem):
+    facts = source_enum_facts(
+        scalar,
+        tmp_path,
+        declaration("packed", width=8, spelling="char"),
+        declaration("copy"),
+        "F\tcopy\towner\tinitializer\tsrc/wiz8/test.cpp\t1\t1",
+        "V\tcopy\tpacked\tchar\tenum W8Condition",
+        "F\tcopy\tpacked\texplicit-conversion\tsrc/wiz8/test.cpp\t2\t1",
+    )
+    if source_problem == "missing":
+        del facts.declarations["packed"]
+    else:
+        facts.inconsistent.add("packed")
+    assert (
+        scalar.enum_propagation_report(facts, ["W8Condition"])["proposals"][0]["status"]
+        == "blocked"
+    )
+
+
+def test_source_enum_cast_result_propagates_without_widening_packed_input(scalar, tmp_path):
+    facts = source_enum_facts(
+        scalar,
+        tmp_path,
+        declaration(
+            "packed", kind="field", width=8, signedness="unsigned", spelling="unsigned char"
+        ),
+        declaration("first"),
+        declaration("second"),
+        "V\tfirst\tpacked\tunsigned char\tenum W8Condition",
+        "F\tfirst\tpacked\texplicit-conversion\tsrc/wiz8/test.cpp\t2\t1",
+        "A\tfirst\texplicit conversion\tsrc/wiz8/test.cpp\t2\t1",
+        "F\tsecond\tfirst\tassignment\tsrc/wiz8/test.cpp\t3\t1",
+    )
+    proposals = scalar.enum_propagation_report(facts, ["W8Condition"])["proposals"]
+    assert len(proposals) == 1
+    assert proposals[0]["status"] == "candidate"
+    assert proposals[0]["changes"] == ["first", "second"]
+    assert all(
+        row["status"] == "unknown"
+        for row in scalar.integer_report(facts, [])["integer_components"]["domain"]
+    )
+
+
+@pytest.mark.parametrize(
+    "extra",
+    [
+        "K\tfirst\t0",
+        "F\tfirst\tpacked\tassignment\tsrc/wiz8/test.cpp\t3\t1",
+        "V\tfirst\tpacked\tunsigned char\tint",  # ambiguous conversion destinations
+        "U\tfirst\t++\tsrc/wiz8/test.cpp\t3\t1",
+        "A\tfirst\taddress taken\tsrc/wiz8/test.cpp\t3\t1",
+    ],
+)
+def test_source_enum_cast_keeps_mixed_producers_and_unsafe_uses_blocked(scalar, tmp_path, extra):
+    facts = source_enum_facts(
+        scalar,
+        tmp_path,
+        declaration(
+            "packed", kind="field", width=8, signedness="unsigned", spelling="unsigned char"
+        ),
+        declaration("first"),
+        "F\tfirst\towner\tinitializer\tsrc/wiz8/test.cpp\t1\t1",
+        "V\tfirst\tpacked\tunsigned char\tenum W8Condition",
+        "F\tfirst\tpacked\texplicit-conversion\tsrc/wiz8/test.cpp\t2\t1",
+        extra,
+    )
+    assert (
+        scalar.enum_propagation_report(facts, ["W8Condition"])["proposals"][0]["status"]
+        == "blocked"
+    )
+
+
+@pytest.mark.parametrize(
+    "kind,width,signedness",
+    [("field", 32, "signed"), ("variable", 8, "signed"), ("variable", 32, "unsigned")],
+)
+def test_source_enum_cast_preserves_destination_storage(scalar, tmp_path, kind, width, signedness):
+    facts = source_enum_facts(
+        scalar,
+        tmp_path,
+        declaration("packed", width=8, signedness="unsigned", spelling="unsigned char"),
+        declaration("copy", kind=kind, width=width, signedness=signedness),
+        "V\tcopy\tpacked\tunsigned char\tenum W8Condition",
+        "F\tcopy\tpacked\texplicit-conversion\tsrc/wiz8/test.cpp\t2\t1",
+    )
+    assert (
+        scalar.enum_propagation_report(facts, ["W8Condition"])["proposals"][0]["status"]
+        == "blocked"
+    )
+
+
 @pytest.mark.parametrize(
     "extra",
     [
@@ -1479,6 +1572,29 @@ def test_source_enum_patch_uses_existing_snapshot_and_shared_atom_guards(scalar,
     )
     assert not result["changed_declarations"]
     assert "every changed declaration" in result["rejected"][0]["reason"]
+
+
+def test_source_enum_patch_applies_to_filename_with_spaces(scalar, tmp_path):
+    source = "int copy;\n"
+    name = "Combat Range.cpp"
+    (tmp_path / name).write_text(source)
+    facts = source_enum_facts(
+        scalar,
+        tmp_path,
+        declaration("copy"),
+        "F\tcopy\towner\tinitializer\ttest.cpp\t1\t1",
+        span("copy", name, 0, "int", source),
+    )
+    patch = tmp_path / "recovery.patch"
+    scalar.write_recovery_patch(facts, [], tmp_path, patch, propagate_enums=["W8Condition"])
+    subprocess.run(
+        ["patch", "--batch", "-p1", "-i", str(patch)],
+        cwd=tmp_path,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert (tmp_path / name).read_text() == "W8Condition copy;\n"
 
 
 @pytest.mark.parametrize("kind", ["sign", "wide-consumer"])
