@@ -1477,6 +1477,15 @@ unsigned char MainScreenControlRegionEvent(const InputAtom* event, W8Region* reg
    assay/keyword lookup helpers, and MOUSE_POS tracks the hovered line or
    notice word. Left release falls through into RIGHT_BUTTON_DOWN and also
    raises the right-held flag (retail bug). */
+static void HighlightNpcDialogueLine(int line)
+{
+    ClearTextSlot1D8(2);
+    if (line < static_cast<int>(g_status.text_box_lines_shown[2])) {
+        SelectTextSlot1D8(g_level_block->text_lines[2] + line, 2);
+    }
+    RedrawTextBox();
+}
+
 // FUNCTION: WIZ8 0x0056F1D0
 unsigned char NpcDialogueTextBoxRegionEvent(const InputAtom* event, W8Region* region)
 {
@@ -1527,11 +1536,7 @@ unsigned char NpcDialogueTextBoxRegionEvent(const InputAtom* event, W8Region* re
             y = (event->uiParam >> 16) & 0xffff;
             if (y >= g_level_block->text_box_top && y <= g_level_block->text_box_bottom) {
                 line = (y - g_level_block->text_box_top) / 11;
-                ClearTextSlot1D8(2);
-                if (line < static_cast<int>(g_status.text_box_lines_shown[2])) {
-                    SelectTextSlot1D8(g_level_block->text_lines[2] + line, 2);
-                }
-                RedrawTextBox();
+                HighlightNpcDialogueLine(line);
                 g_npc_interaction_state->hovered_text_line = line;
             }
         }
@@ -1553,11 +1558,7 @@ unsigned char NpcDialogueTextBoxRegionEvent(const InputAtom* event, W8Region* re
         if (y >= g_level_block->text_box_top && y <= g_level_block->text_box_bottom) {
             line = (y - g_level_block->text_box_top) / 11;
             if (line != g_npc_interaction_state->hovered_text_line) {
-                ClearTextSlot1D8(2);
-                if (line < static_cast<int>(g_status.text_box_lines_shown[2])) {
-                    SelectTextSlot1D8(g_level_block->text_lines[2] + line, 2);
-                }
-                RedrawTextBox();
+                HighlightNpcDialogueLine(line);
             }
             g_npc_interaction_state->hovered_text_line = line;
         }
@@ -1581,13 +1582,27 @@ void NpcDialogueTextBoxWheelAt(short x, unsigned short y, bool flag)
     }
     line = (static_cast<int>(y) - g_level_block->text_box_top) / 11;
     if (line != g_npc_interaction_state->hovered_text_line || flag != 0) {
-        ClearTextSlot1D8(2);
-        if (line < static_cast<int>(g_status.text_box_lines_shown[2])) {
-            SelectTextSlot1D8(g_level_block->text_lines[2] + line, 2);
-        }
-        RedrawTextBox();
+        HighlightNpcDialogueLine(line);
     }
     g_npc_interaction_state->hovered_text_line = line;
+}
+
+static void SelectNpcDialogueKeyword(W8NoticeWord* word, int line)
+{
+    wchar_t word_text[200];
+    wchar_t field_text[200];
+    wchar_t combined[400];
+    word->keyword = W8_NOTICE_WORD_SELECTED;
+    CopyNoticeWordText(word, word_text, 0xc8, 3, line);
+    Get16BitStringFromField(0, field_text);
+    StripNpcKeywordPunctuation(field_text);
+    if (wcslen(field_text) != 0) {
+        swprintf(combined, L"%s %s", field_text, word_text);
+        SetInputFieldStringWith16BitString(0, combined);
+    } else {
+        SetInputFieldStringWith16BitString(0, word_text);
+    }
+    RedrawTextBoxBody(1);
 }
 
 /* Left release inside the NPC text box: in the transcript layout a hovered
@@ -1597,8 +1612,6 @@ void NpcDialogueTextBoxWheelAt(short x, unsigned short y, bool flag)
 void NpcDialogueTextBoxLeftUp(int x, int y)
 {
     wchar_t word_text[200];
-    wchar_t field_text[200];
-    wchar_t combined[400];
     int line;
     W8NoticeWord* word;
     int slot;
@@ -1606,7 +1619,7 @@ void NpcDialogueTextBoxLeftUp(int x, int y)
     switch (g_npc_interaction_state->dialogue_layout) {
     case W8_DIALOGUE_LAYOUT_TRANSCRIPT:
         word = HitTestNoticeWord(3, x, y, &line);
-        if (word == 0 || word->keyword != 1) {
+        if (word == 0 || word->keyword != W8_NOTICE_WORD_HOVERED) {
             return;
         }
         if (gfKeyState[0x10] == 0) {
@@ -1614,17 +1627,7 @@ void NpcDialogueTextBoxLeftUp(int x, int y)
             word_text[0] = 0;
             SetInputFieldStringWith16BitString(0, word_text);
         }
-        word->keyword = W8_NOTICE_WORD_SELECTED;
-        CopyNoticeWordText(word, word_text, 0xc8, 3, line);
-        Get16BitStringFromField(0, field_text);
-        StripNpcKeywordPunctuation(field_text);
-        if (wcslen(field_text) != 0) {
-            swprintf(combined, L"%s %s", field_text, word_text);
-            SetInputFieldStringWith16BitString(0, combined);
-        } else {
-            SetInputFieldStringWith16BitString(0, word_text);
-        }
-        RedrawTextBoxBody(1);
+        SelectNpcDialogueKeyword(word, line);
         return;
     case W8_DIALOGUE_LAYOUT_SERVICES:
     case W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX:
@@ -1689,8 +1692,6 @@ void NpcDialogueTextBoxRightUp(int x, int y)
 void NpcDialogueTextBoxDoubleClick(int x, int y)
 {
     wchar_t word_text[200];
-    wchar_t field_text[200];
-    wchar_t combined[400];
     int line;
     W8NoticeWord* word;
     int slot;
@@ -1711,18 +1712,8 @@ void NpcDialogueTextBoxDoubleClick(int x, int y)
             word_text[0] = 0;
             SetInputFieldStringWith16BitString(0, word_text);
         }
-        if (word->keyword != 2) {
-            word->keyword = W8_NOTICE_WORD_SELECTED;
-            CopyNoticeWordText(word, word_text, 0xc8, 3, line);
-            Get16BitStringFromField(0, field_text);
-            StripNpcKeywordPunctuation(field_text);
-            if (wcslen(field_text) != 0) {
-                swprintf(combined, L"%s %s", field_text, word_text);
-                SetInputFieldStringWith16BitString(0, combined);
-            } else {
-                SetInputFieldStringWith16BitString(0, word_text);
-            }
-            RedrawTextBoxBody(1);
+        if (word->keyword != W8_NOTICE_WORD_SELECTED) {
+            SelectNpcDialogueKeyword(word, line);
         }
         HandleNpcDialogueInput();
         return;
@@ -1732,11 +1723,7 @@ void NpcDialogueTextBoxDoubleClick(int x, int y)
     y &= 0xffff;
     if (y >= g_level_block->text_box_top && y <= g_level_block->text_box_bottom) {
         line = (y - g_level_block->text_box_top) / 11;
-        ClearTextSlot1D8(2);
-        if (line < static_cast<int>(g_status.text_box_lines_shown[2])) {
-            SelectTextSlot1D8(g_level_block->text_lines[2] + line, 2);
-        }
-        RedrawTextBox();
+        HighlightNpcDialogueLine(line);
         g_npc_interaction_state->hovered_text_line = line;
     }
     slot = GetTextSlot1D8(2);
@@ -3052,7 +3039,7 @@ W8ItemInstance* ResolveNpcTradeRow(int index, bool pick, char decrement, char co
 // FUNCTION: WIZ8 0x00573190
 bool NpcTradeItemAllowed(W8ItemInstance* item)
 {
-    int group;
+    W8ItemEquipSlotGroup group;
 
     if (g_npc_interaction_state->dialogue_npc->name_style == ',' &&
         GetFact(W8_FACT_ALIGNMENT_UMPANI) == 0 && item->iItemNo != 0x290) {
@@ -3062,8 +3049,8 @@ bool NpcTradeItemAllowed(W8ItemInstance* item)
         return false;
     }
     if (item->iItemNo != -1) {
-        if ((g_npc_interaction_state->trade_filter & 1) == 0) {
-            if ((g_npc_interaction_state->trade_filter & 0x40) != 0 &&
+        if ((g_npc_interaction_state->trade_filter & W8_NPC_TRADE_USABLE_BY_CHARACTER) == 0) {
+            if ((g_npc_interaction_state->trade_filter & W8_NPC_TRADE_USABLE_BY_PARTY) != 0 &&
                 AnyPartyMemberCanUseItem(item->iItemNo) != 0) {
                 return true;
             }
@@ -3073,23 +3060,23 @@ bool NpcTradeItemAllowed(W8ItemInstance* item)
                 return true;
             }
         }
-        if ((g_npc_interaction_state->trade_filter & 0x3c) == 0) {
+        if ((g_npc_interaction_state->trade_filter & W8_NPC_TRADE_CATEGORY_MASK) == 0) {
             return false;
         }
         group = GetItemEquipSlotGroup(item->iItemNo);
-        if (group == 2) {
-            if ((g_npc_interaction_state->trade_filter & 4) != 0) {
+        if (group == W8_ITEM_EQUIP_GROUP_HAND) {
+            if ((g_npc_interaction_state->trade_filter & W8_NPC_TRADE_HAND) != 0) {
                 return false;
             }
-        } else if (group == 3) {
-            if ((g_npc_interaction_state->trade_filter & 8) != 0) {
+        } else if (group == W8_ITEM_EQUIP_GROUP_BODY) {
+            if ((g_npc_interaction_state->trade_filter & W8_NPC_TRADE_BODY) != 0) {
                 return false;
             }
-        } else if (group == 4) {
-            if ((g_npc_interaction_state->trade_filter & 0x10) != 0) {
+        } else if (group == W8_ITEM_EQUIP_GROUP_ACCESSORY) {
+            if ((g_npc_interaction_state->trade_filter & W8_NPC_TRADE_ACCESSORY) != 0) {
                 return false;
             }
-        } else if ((g_npc_interaction_state->trade_filter & 0x20) != 0) {
+        } else if ((g_npc_interaction_state->trade_filter & W8_NPC_TRADE_OTHER) != 0) {
             return false;
         }
     }
@@ -3183,112 +3170,68 @@ void EnableNpcTradeFilterButtons(void)
    secondary state is raised it becomes the exclusive slot-group bit in
    trade_filter (the previously active sibling is dimmed and cleared), and when it
    is lowered the bit comes off again; RebuildNpcTradeItemList(1) refreshes the list. */
+static void ToggleNpcTradeCategory(int button, W8NpcTradeFilter filter)
+{
+    W8TextControl* control = static_cast<W8TextControl*>(
+        g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + button]);
+    if (static_cast<unsigned char>(control->m_stateFlags & g_W8TextControlStateSecondary) != 0) {
+        int previous = g_npc_interaction_state->trade_filter & W8_NPC_TRADE_CATEGORY_MASK;
+        if (previous != filter) {
+            int previous_button;
+            switch (previous) {
+            case W8_NPC_TRADE_HAND:
+                previous_button = 0;
+                break;
+            case W8_NPC_TRADE_BODY:
+                previous_button = 3;
+                break;
+            case W8_NPC_TRADE_ACCESSORY:
+                previous_button = 1;
+                break;
+            case W8_NPC_TRADE_OTHER:
+                previous_button = 4;
+                break;
+            default:
+                previous_button = -1;
+                break;
+            }
+            if (previous_button != -1) {
+                static_cast<W8TextControl*>(
+                    g_npc_interaction_state
+                        ->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + previous_button])
+                    ->DisableSecondaryState(1);
+                g_npc_interaction_state->trade_filter &= ~previous;
+            }
+        }
+        g_npc_interaction_state->trade_filter |= filter;
+    } else {
+        g_npc_interaction_state->trade_filter &= ~filter;
+    }
+    RebuildNpcTradeItemList(1);
+}
+
 // FUNCTION: WIZ8 0x00573660
 void ToggleNpcTradeFilterButton0(void)
 {
-    if (static_cast<unsigned char>(static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 0])->m_stateFlags &
-                                   g_W8TextControlStateSecondary) != 0) {
-        switch (g_npc_interaction_state->trade_filter & 0x3c) {
-        case 8:
-            static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 3])->DisableSecondaryState(1);
-            g_npc_interaction_state->trade_filter &= ~8;
-            break;
-        case 16:
-            static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 1])->DisableSecondaryState(1);
-            g_npc_interaction_state->trade_filter &= ~0x10;
-            break;
-        case 32:
-            static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 4])->DisableSecondaryState(1);
-            g_npc_interaction_state->trade_filter &= ~0x20;
-            break;
-        }
-        g_npc_interaction_state->trade_filter |= 4;
-        RebuildNpcTradeItemList(1);
-        return;
-    }
-    g_npc_interaction_state->trade_filter &= ~4;
-    RebuildNpcTradeItemList(1);
+    ToggleNpcTradeCategory(0, W8_NPC_TRADE_HAND);
 }
 
 // FUNCTION: WIZ8 0x00573730
 void ToggleNpcTradeFilterButton1(void)
 {
-    if (static_cast<unsigned char>(static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 1])->m_stateFlags &
-                                   g_W8TextControlStateSecondary) != 0) {
-        switch (g_npc_interaction_state->trade_filter & 0x3c) {
-        case 4:
-            static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 0])->DisableSecondaryState(1);
-            g_npc_interaction_state->trade_filter &= ~4;
-            break;
-        case 8:
-            static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 3])->DisableSecondaryState(1);
-            g_npc_interaction_state->trade_filter &= ~8;
-            break;
-        case 32:
-            static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 4])->DisableSecondaryState(1);
-            g_npc_interaction_state->trade_filter &= ~0x20;
-            break;
-        }
-        g_npc_interaction_state->trade_filter |= 0x10;
-        RebuildNpcTradeItemList(1);
-        return;
-    }
-    g_npc_interaction_state->trade_filter &= ~0x10;
-    RebuildNpcTradeItemList(1);
+    ToggleNpcTradeCategory(1, W8_NPC_TRADE_ACCESSORY);
 }
 
 // FUNCTION: WIZ8 0x00573800
 void ToggleNpcTradeFilterButton3(void)
 {
-    if (static_cast<unsigned char>(static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 3])->m_stateFlags &
-                                   g_W8TextControlStateSecondary) != 0) {
-        switch (g_npc_interaction_state->trade_filter & 0x3c) {
-        case 4:
-            static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 0])->DisableSecondaryState(1);
-            g_npc_interaction_state->trade_filter &= ~4;
-            break;
-        case 16:
-            static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 1])->DisableSecondaryState(1);
-            g_npc_interaction_state->trade_filter &= ~0x10;
-            break;
-        case 32:
-            static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 4])->DisableSecondaryState(1);
-            g_npc_interaction_state->trade_filter &= ~0x20;
-            break;
-        }
-        g_npc_interaction_state->trade_filter |= 8;
-        RebuildNpcTradeItemList(1);
-        return;
-    }
-    g_npc_interaction_state->trade_filter &= ~8;
-    RebuildNpcTradeItemList(1);
+    ToggleNpcTradeCategory(3, W8_NPC_TRADE_BODY);
 }
 
 // FUNCTION: WIZ8 0x005738D0
 void ToggleNpcTradeFilterButton4(void)
 {
-    if (static_cast<unsigned char>(static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 4])->m_stateFlags &
-                                   g_W8TextControlStateSecondary) != 0) {
-        switch (g_npc_interaction_state->trade_filter & 0x3c) {
-        case 4:
-            static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 0])->DisableSecondaryState(1);
-            g_npc_interaction_state->trade_filter &= ~4;
-            break;
-        case 8:
-            static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 3])->DisableSecondaryState(1);
-            g_npc_interaction_state->trade_filter &= ~8;
-            break;
-        case 16:
-            static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 1])->DisableSecondaryState(1);
-            g_npc_interaction_state->trade_filter &= ~0x10;
-            break;
-        }
-        g_npc_interaction_state->trade_filter |= 0x20;
-        RebuildNpcTradeItemList(1);
-        return;
-    }
-    g_npc_interaction_state->trade_filter &= ~0x20;
-    RebuildNpcTradeItemList(1);
+    ToggleNpcTradeCategory(4, W8_NPC_TRADE_OTHER);
 }
 
 /* The "usable by the selected character" toggle is exclusive with the
@@ -3300,12 +3243,12 @@ void ToggleNpcTradeFilterButton2(void)
     if (static_cast<unsigned char>(static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 2])->m_stateFlags &
                                    g_W8TextControlStateSecondary) != 0) {
         static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 5])->DisableSecondaryState(1);
-        g_npc_interaction_state->trade_filter &= ~0x40;
-        g_npc_interaction_state->trade_filter |= 1;
+        g_npc_interaction_state->trade_filter &= ~W8_NPC_TRADE_USABLE_BY_PARTY;
+        g_npc_interaction_state->trade_filter |= W8_NPC_TRADE_USABLE_BY_CHARACTER;
         RebuildNpcTradeItemList(1);
         return;
     }
-    g_npc_interaction_state->trade_filter &= ~1;
+    g_npc_interaction_state->trade_filter &= ~W8_NPC_TRADE_USABLE_BY_CHARACTER;
     RebuildNpcTradeItemList(1);
 }
 
@@ -3315,12 +3258,12 @@ void ToggleNpcTradeFilterButton5(void)
     if (static_cast<unsigned char>(static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 5])->m_stateFlags &
                                    g_W8TextControlStateSecondary) != 0) {
         static_cast<W8TextControl*>(g_npc_interaction_state->dialogue_controls[W8_NPC_CONTROL_OPTION_BUTTONS + 2])->DisableSecondaryState(1);
-        g_npc_interaction_state->trade_filter &= ~1;
-        g_npc_interaction_state->trade_filter |= 0x40;
+        g_npc_interaction_state->trade_filter &= ~W8_NPC_TRADE_USABLE_BY_CHARACTER;
+        g_npc_interaction_state->trade_filter |= W8_NPC_TRADE_USABLE_BY_PARTY;
         RebuildNpcTradeItemList(1);
         return;
     }
-    g_npc_interaction_state->trade_filter &= ~0x40;
+    g_npc_interaction_state->trade_filter &= ~W8_NPC_TRADE_USABLE_BY_PARTY;
     RebuildNpcTradeItemList(1);
 }
 

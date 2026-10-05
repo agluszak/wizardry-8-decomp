@@ -861,20 +861,25 @@ void W8OptionsKeyboardPanel::OnSelectionChanged(W8ControlSelection*, int selecte
     g_options_screen->m_key_capture = this;
 }
 
+void W8OptionsKeyboardPanel::RefreshBindingLabels()
+{
+    int count = m_controls.count - 1;
+    for (int index = 0; index < count; ++index) {
+        W8OptionsKeyButton* button = static_cast<W8OptionsKeyButton*>(ControlAt(index));
+        MGSKeyBinding* binding =
+            g_mgs_keyboard->GetBinding(g_mgs_keyboard->FindBinding(button->m_primary_binding));
+        if (binding != 0) {
+            button->SetKeyText(binding->key);
+        }
+    }
+}
+
 // FUNCTION: WIZ8 0x005abd90
 void W8OptionsKeyboardPanel::SetActive(unsigned char active)
 {
     W8OptionsPanel::SetActive(active);
     if (active != 0) {
-        int count = m_controls.count - 1;
-        for (int index = 0; index < count; ++index) {
-            W8OptionsKeyButton* button = static_cast<W8OptionsKeyButton*>(ControlAt(index));
-            MGSKeyBinding* binding =
-                g_mgs_keyboard->GetBinding(g_mgs_keyboard->FindBinding(button->m_primary_binding));
-            if (binding != 0) {
-                button->SetKeyText(binding->key);
-            }
-        }
+        RefreshBindingLabels();
     }
     m_selection.SetSelected(-1);
 }
@@ -899,15 +904,7 @@ void W8OptionsKeyboardPanel::OnDialogClosed(unsigned char reason, int)
     m_selection.SetSelected(-1);
     if (reason != 0) {
         ResetMGSKeyboardBindings();
-        int count = m_controls.count - 1;
-        for (int index = 0; index < count; ++index) {
-            W8OptionsKeyButton* button = static_cast<W8OptionsKeyButton*>(ControlAt(index));
-            MGSKeyBinding* binding =
-                g_mgs_keyboard->GetBinding(g_mgs_keyboard->FindBinding(button->m_primary_binding));
-            if (binding != 0) {
-                button->SetKeyText(binding->key);
-            }
-        }
+        RefreshBindingLabels();
     }
 }
 
@@ -933,15 +930,7 @@ void W8OptionsKeyboardPanel::ClearDuplicateBinding(unsigned short key)
                 }
             }
 
-            int count = m_controls.count - 1;
-            for (int index = 0; index < count; ++index) {
-                W8OptionsKeyButton* button = static_cast<W8OptionsKeyButton*>(ControlAt(index));
-                binding = g_mgs_keyboard->GetBinding(
-                    g_mgs_keyboard->FindBinding(button->m_primary_binding));
-                if (binding != 0) {
-                    button->SetKeyText(binding->key);
-                }
-            }
+            RefreshBindingLabels();
             return;
         }
 

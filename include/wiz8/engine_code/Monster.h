@@ -230,6 +230,7 @@ public:
     float GetPointDistanceToMonster(W8Monster* monster, srVector3T<float> point);
     unsigned char SetScript(const char* script_name, bool reset_orders);
     void ProcessScript();
+    bool ResolveScriptPosition(const char* name, srVector3T<float>* position);
     unsigned char GetProjectilePosition(srVector3T<float>* position);
     unsigned char GetSpellPosition(srVector3T<float>* position);
     unsigned char GetCycleMappedPosition(signed char cycle, int mapped_index,

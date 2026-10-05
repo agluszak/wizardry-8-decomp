@@ -298,6 +298,7 @@ public:
     virtual unsigned char OnKey(unsigned short key, unsigned short modifiers) override;
     virtual void OnDialogClosed(unsigned char reason, int value) override;
     void ClearDuplicateBinding(unsigned short key);
+    void RefreshBindingLabels();
     int m_panel;
     W8ControlSelection m_selection;
     W8OptionsKeyButton* m_captured_button;

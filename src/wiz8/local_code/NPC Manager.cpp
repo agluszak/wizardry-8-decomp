@@ -420,7 +420,8 @@ W8NpcServiceRow g_npc_services[] = {
 };
 
 // GLOBAL: WIZ8 0x00619EAC
-unsigned char g_npc_join_races[5] = {13, 12, 14, 15, 11};
+unsigned char g_npc_join_races[5] = {W8_RACE_UMPANI, W8_RACE_T_RANG, W8_RACE_RAPAX, W8_RACE_ANDROID,
+                                     W8_RACE_TRYNNIE};
 
 /* Whether the NPC wants the offered item: it matches one of the record's
    three wanted entries by id or by the shared 0x83 name kind, and a grouped

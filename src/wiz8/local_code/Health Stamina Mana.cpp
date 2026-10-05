@@ -1281,7 +1281,8 @@ void RecalculateCharacterStamina(W8Character* character)
 void RecalculateRealmSpellPoints(W8Character* character)
 {
     W8Profession profession = character->iProfession;
-    if (profession != 0 && (profession < 7 || profession > 9)) {
+    if (profession != W8_PROFESSION_FIGHTER &&
+        (profession < W8_PROFESSION_ROGUE || profession > W8_PROFESSION_BARD)) {
         character->skill_unlocks[0x24] = RebuildRealmSpellPointCeilings(character);
         return;
     }

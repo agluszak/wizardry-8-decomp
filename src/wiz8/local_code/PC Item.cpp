@@ -144,9 +144,11 @@ W8EquipSlot GetItemDefaultEquipSlot(int item_id)
     case W8_ITEM_EQUIP_CLASS_EXTENDED_WEAPON:
         return W8_EQUIP_SLOT_PRIMARY_WEAPON;
     case W8_ITEM_EQUIP_CLASS_RANGED_WEAPON:
-        return g_status.game_started ? W8_EQUIP_SLOT_ALTERNATE_PRIMARY_WEAPON : W8_EQUIP_SLOT_PRIMARY_WEAPON;
+        return g_status.game_started ? W8_EQUIP_SLOT_ALTERNATE_PRIMARY_WEAPON
+                                     : W8_EQUIP_SLOT_PRIMARY_WEAPON;
     case W8_ITEM_EQUIP_CLASS_AMMUNITION:
-        return g_status.game_started ? W8_EQUIP_SLOT_ALTERNATE_SECONDARY_WEAPON : W8_EQUIP_SLOT_SECONDARY_WEAPON;
+        return g_status.game_started ? W8_EQUIP_SLOT_ALTERNATE_SECONDARY_WEAPON
+                                     : W8_EQUIP_SLOT_SECONDARY_WEAPON;
     case W8_ITEM_EQUIP_CLASS_THROWN_WEAPON:
         return W8_EQUIP_SLOT_ALTERNATE_PRIMARY_WEAPON;
     case W8_ITEM_EQUIP_CLASS_MISC:
@@ -638,7 +640,8 @@ bool CanEquipItemInSlot(W8Character* character, int item_id, unsigned char equip
     primary_off_hand_free =
         character->EquippedItem[W8_EQUIP_SLOT_SECONDARY_WEAPON].iItemNo == -1 || ignore_worn_items;
     alternate_off_hand_free =
-        character->EquippedItem[W8_EQUIP_SLOT_ALTERNATE_SECONDARY_WEAPON].iItemNo == -1 || ignore_worn_items;
+        character->EquippedItem[W8_EQUIP_SLOT_ALTERNATE_SECONDARY_WEAPON].iItemNo == -1 ||
+        ignore_worn_items;
     primary_main_hand_free =
         character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].iItemNo == -1 ||
         (g_item_records[character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].iItemNo].flags &
@@ -646,7 +649,8 @@ bool CanEquipItemInSlot(W8Character* character, int item_id, unsigned char equip
         ignore_worn_items;
     alternate_main_hand_free =
         character->EquippedItem[W8_EQUIP_SLOT_ALTERNATE_PRIMARY_WEAPON].iItemNo == -1 ||
-        (g_item_records[character->EquippedItem[W8_EQUIP_SLOT_ALTERNATE_PRIMARY_WEAPON].iItemNo].flags &
+        (g_item_records[character->EquippedItem[W8_EQUIP_SLOT_ALTERNATE_PRIMARY_WEAPON].iItemNo]
+             .flags &
          W8_ITEM_FLAG_TWO_HANDED) == 0 ||
         ignore_worn_items;
 
@@ -1023,26 +1027,26 @@ bool AreAllHandSlotsEmpty(const W8Character* character)
    share one group and the rest split two ways; what the groups are used for is
    not established here, only which slots fall together. */
 // FUNCTION: WIZ8 0x0051c850
-int GetItemEquipSlotGroup(int item_id)
+W8ItemEquipSlotGroup GetItemEquipSlotGroup(int item_id)
 {
     switch (GetItemDefaultEquipSlot(item_id)) {
     case W8_EQUIP_SLOT_PRIMARY_WEAPON:
     case W8_EQUIP_SLOT_SECONDARY_WEAPON:
     case W8_EQUIP_SLOT_ALTERNATE_PRIMARY_WEAPON:
     case W8_EQUIP_SLOT_ALTERNATE_SECONDARY_WEAPON:
-        return 2;
+        return W8_ITEM_EQUIP_GROUP_HAND;
     case W8_EQUIP_SLOT_HEAD:
     case W8_EQUIP_SLOT_TORSO:
     case W8_EQUIP_SLOT_HANDS:
     case W8_EQUIP_SLOT_LEGS:
     case W8_EQUIP_SLOT_FEET:
-        return 3;
+        return W8_ITEM_EQUIP_GROUP_BODY;
     case W8_EQUIP_SLOT_MISC_1:
     case W8_EQUIP_SLOT_MISC_2:
     case W8_EQUIP_SLOT_CLOAK:
-        return 4;
+        return W8_ITEM_EQUIP_GROUP_ACCESSORY;
     default:
-        return 5;
+        return W8_ITEM_EQUIP_GROUP_OTHER;
     }
 }
 
@@ -1931,7 +1935,8 @@ bool IsItemWornByCharacter(W8Character* character, const W8ItemInstance* item)
     }
     for (slot = 0; slot < 12; ++slot) {
         if (&character->EquippedItem[slot] == item) {
-            return slot != W8_EQUIP_SLOT_ALTERNATE_PRIMARY_WEAPON && slot != W8_EQUIP_SLOT_ALTERNATE_SECONDARY_WEAPON;
+            return slot != W8_EQUIP_SLOT_ALTERNATE_PRIMARY_WEAPON &&
+                   slot != W8_EQUIP_SLOT_ALTERNATE_SECONDARY_WEAPON;
         }
     }
     return false;
@@ -2276,8 +2281,9 @@ void EquipMatchingPartnerItem(W8Character* character, W8ItemInstance* item, int 
     }
 
     if (character->EquippedItem[W8_EQUIP_SLOT_ALTERNATE_SECONDARY_WEAPON].iItemNo != -1 &&
-        CompatiblePartnerItems(item->iItemNo,
-                               character->EquippedItem[W8_EQUIP_SLOT_ALTERNATE_SECONDARY_WEAPON].iItemNo)) {
+        CompatiblePartnerItems(
+            item->iItemNo,
+            character->EquippedItem[W8_EQUIP_SLOT_ALTERNATE_SECONDARY_WEAPON].iItemNo)) {
         pair = &character->EquippedItem[W8_EQUIP_SLOT_ALTERNATE_SECONDARY_WEAPON];
     } else if (item_id == -1 || !FindItemOnCharacter(character, item_id, &pair, 1, 0)) {
         QueueCharacterEvent(character, g_effect26, 0, g_character_event_no_flags,
@@ -3476,7 +3482,8 @@ void UnequipUnusableItems(W8Character* character)
 W8EquipSlot ChooseCharacterEquipSlot(W8Character* character, int item_id)
 {
     W8EquipSlot slot = GetItemDefaultEquipSlot(item_id);
-    if (g_status.game_started != 0 || (slot != W8_EQUIP_SLOT_PRIMARY_WEAPON && slot != W8_EQUIP_SLOT_SECONDARY_WEAPON)) {
+    if (g_status.game_started != 0 ||
+        (slot != W8_EQUIP_SLOT_PRIMARY_WEAPON && slot != W8_EQUIP_SLOT_SECONDARY_WEAPON)) {
         return slot;
     }
 
@@ -3508,14 +3515,15 @@ W8EquipSlot ChooseCharacterEquipSlot(W8Character* character, int item_id)
             } else {
                 if (primary_right != -1 && primary_left == -1 &&
                     CanEquipItemInSlot(character, primary_right, 7, 0)) {
-                    CopyItemInstance(&character->EquippedItem[W8_EQUIP_SLOT_SECONDARY_WEAPON], &character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON], 0,
-                                     1);
+                    CopyItemInstance(&character->EquippedItem[W8_EQUIP_SLOT_SECONDARY_WEAPON],
+                                     &character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON], 0, 1);
                     return W8_EQUIP_SLOT_PRIMARY_WEAPON;
                 }
                 if (alternate_right != -1 && alternate_left == -1 &&
                     CanEquipItemInSlot(character, alternate_right, 9, 0)) {
-                    CopyItemInstance(&character->EquippedItem[W8_EQUIP_SLOT_ALTERNATE_SECONDARY_WEAPON], &character->EquippedItem[W8_EQUIP_SLOT_ALTERNATE_PRIMARY_WEAPON], 0,
-                                     1);
+                    CopyItemInstance(
+                        &character->EquippedItem[W8_EQUIP_SLOT_ALTERNATE_SECONDARY_WEAPON],
+                        &character->EquippedItem[W8_EQUIP_SLOT_ALTERNATE_PRIMARY_WEAPON], 0, 1);
                     return W8_EQUIP_SLOT_ALTERNATE_PRIMARY_WEAPON;
                 }
             }
@@ -3840,7 +3848,8 @@ void SplitThrowableStackBetweenHands(W8Character* character, W8EquipSlot equip_s
     int item_id;
     unsigned char moved;
 
-    if (equip_slot != W8_EQUIP_SLOT_PRIMARY_WEAPON && equip_slot != W8_EQUIP_SLOT_SECONDARY_WEAPON) {
+    if (equip_slot != W8_EQUIP_SLOT_PRIMARY_WEAPON &&
+        equip_slot != W8_EQUIP_SLOT_SECONDARY_WEAPON) {
         return;
     }
     source_slot = GetPairedEquipSlot(equip_slot);
@@ -4166,7 +4175,8 @@ unsigned char SwapWeaponSetSlots(int party_slot, char announce, bool refresh)
     if (alternate_right_item == -1 &&
         character->EquippedItem[W8_EQUIP_SLOT_ALTERNATE_SECONDARY_WEAPON].iItemNo != -1) {
         blocked_primary = CanHoldItemsTogether(
-            primary_right_item, character->EquippedItem[W8_EQUIP_SLOT_ALTERNATE_SECONDARY_WEAPON].iItemNo);
+            primary_right_item,
+            character->EquippedItem[W8_EQUIP_SLOT_ALTERNATE_SECONDARY_WEAPON].iItemNo);
     }
     if (character->EquippedItem[W8_EQUIP_SLOT_ALTERNATE_SECONDARY_WEAPON].iItemNo == -1 &&
         alternate_right_item != -1) {
@@ -4178,15 +4188,15 @@ unsigned char SwapWeaponSetSlots(int party_slot, char announce, bool refresh)
          alternate_right_item != -1) &&
         !blocked_primary) {
         SwapItemInstances(&character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON],
-                          &character->EquippedItem[W8_EQUIP_SLOT_ALTERNATE_PRIMARY_WEAPON], character,
-                          refresh);
+                          &character->EquippedItem[W8_EQUIP_SLOT_ALTERNATE_PRIMARY_WEAPON],
+                          character, refresh);
     }
     if ((character->EquippedItem[W8_EQUIP_SLOT_SECONDARY_WEAPON].iItemNo != -1 ||
          character->EquippedItem[W8_EQUIP_SLOT_ALTERNATE_SECONDARY_WEAPON].iItemNo != -1) &&
         !blocked_alternate) {
         SwapItemInstances(&character->EquippedItem[W8_EQUIP_SLOT_SECONDARY_WEAPON],
-                          &character->EquippedItem[W8_EQUIP_SLOT_ALTERNATE_SECONDARY_WEAPON], character,
-                          refresh);
+                          &character->EquippedItem[W8_EQUIP_SLOT_ALTERNATE_SECONDARY_WEAPON],
+                          character, refresh);
     }
 
     if (refresh) {

@@ -624,13 +624,7 @@ void ShowNoticef(unsigned int font_palette, const wchar_t* format, ...)
     vswprintf(text, format, arguments);
     va_end(arguments);
 
-    if ((gXStatus.fNpcDialogueMode != 0 && !CanOpenNpcDialogue()) || gXStatus.fCampMode != 0) {
-        text_box = IsNpcDialogueTextBoxActive() ? 0 : 2;
-    } else if (IsMipeActive()) {
-        text_box = 0;
-    } else {
-        text_box = gXStatus.fCombatMode != 0;
-    }
+    text_box = ResolveNoticeTextBox(-1);
     ShowNotice(font_palette, text, text_box, -1, false);
 }
 
@@ -891,49 +885,13 @@ int GetTextBoxVisibleLineCount(void)
     return 7;
 }
 
-// FUNCTION: WIZ8 0x00590950
-void PostCharacterNotice(int party_slot, const wchar_t* format, ...)
+static void PostCharacterNoticeText(int party_slot, int context, const wchar_t* text)
 {
     wchar_t separator[2];
-    wchar_t text[4096];
-    va_list arguments;
-    int stop;
-
-    va_start(arguments, format);
-    vswprintf(text, format, arguments);
-    va_end(arguments);
-
-    wcscpy(separator,
-           (text[0] == L'\'' || text[0] == L':') ? &g_empty_wide_string : g_W8TextSeparator);
-    ShowNoticef(8, L"%s%s%s", g_status.buffers.Char[party_slot].name, separator, text);
-    stop = wcslen(g_status.buffers.Char[party_slot].name);
-    if (text[0] == L'\'') {
-        ++stop;
-        if (text[1] == L's') {
-            ++stop;
-        }
-    }
-    HighlightTextBoxRange(g_status.buffers.XChar[party_slot].party_order_index, 0, stop, -1);
-}
-
-/* PostCharacterNotice with an explicit context instead of the automatic -1
-   box; the weapon-set swap paths post it under the dialogue context. */
-// FUNCTION: WIZ8 0x00590A40
-void PostCharacterNoticeInContext(int party_slot, int context, const wchar_t* format, ...)
-{
-    wchar_t separator[2];
-    wchar_t text[4096];
-    va_list arguments;
-    int stop;
-
-    va_start(arguments, format);
-    vswprintf(text, format, arguments);
-    va_end(arguments);
-
     wcscpy(separator,
            (text[0] == L'\'' || text[0] == L':') ? &g_empty_wide_string : g_W8TextSeparator);
     FormatNotice(8, context, L"%s%s%s", g_status.buffers.Char[party_slot].name, separator, text);
-    stop = wcslen(g_status.buffers.Char[party_slot].name);
+    int stop = wcslen(g_status.buffers.Char[party_slot].name);
     if (text[0] == L'\'') {
         ++stop;
         if (text[1] == L's') {
@@ -941,6 +899,34 @@ void PostCharacterNoticeInContext(int party_slot, int context, const wchar_t* fo
         }
     }
     HighlightTextBoxRange(g_status.buffers.XChar[party_slot].party_order_index, 0, stop, context);
+}
+
+// FUNCTION: WIZ8 0x00590950
+void PostCharacterNotice(int party_slot, const wchar_t* format, ...)
+{
+    wchar_t text[4096];
+    va_list arguments;
+
+    va_start(arguments, format);
+    vswprintf(text, format, arguments);
+    va_end(arguments);
+
+    PostCharacterNoticeText(party_slot, -1, text);
+}
+
+/* PostCharacterNotice with an explicit context instead of the automatic -1
+   box; the weapon-set swap paths post it under the dialogue context. */
+// FUNCTION: WIZ8 0x00590A40
+void PostCharacterNoticeInContext(int party_slot, int context, const wchar_t* format, ...)
+{
+    wchar_t text[4096];
+    va_list arguments;
+
+    va_start(arguments, format);
+    vswprintf(text, format, arguments);
+    va_end(arguments);
+
+    PostCharacterNoticeText(party_slot, context, text);
 }
 
 /* Retail expands this calculation at its callers and has no separate emission. */
@@ -1385,6 +1371,17 @@ static void RewrapDialogueTextFromLine(unsigned int line)
     } while (true);
 }
 
+static bool DialogueCursorJoinsPreviousLine()
+{
+    unsigned int line = FindDialogueTextLine(g_level_block->dialogue_text_input);
+    if (line > 1) {
+        unsigned int previous_start = g_level_block->dialogue_text_input->line_offsets[line - 1];
+        return wcscspn(g_level_block->dialogue_text_input->text + previous_start, L" ") >=
+               g_level_block->dialogue_text_input->cursor - previous_start;
+    }
+    return false;
+}
+
 // FUNCTION: WIZ8 0x0058D9C0
 static void InsertDialogueTextCharacter(wchar_t character)
 {
@@ -1412,14 +1409,7 @@ static void InsertDialogueTextCharacter(wchar_t character)
 
     bool joins_previous_line = 0;
     if (character == L' ') {
-        unsigned int word_line = FindDialogueTextLine(g_level_block->dialogue_text_input);
-        if (word_line > 1) {
-            unsigned int previous_start =
-                g_level_block->dialogue_text_input->line_offsets[word_line - 1];
-            joins_previous_line =
-                wcscspn(g_level_block->dialogue_text_input->text + previous_start, L" ") >=
-                g_level_block->dialogue_text_input->cursor - previous_start;
-        }
+        joins_previous_line = DialogueCursorJoinsPreviousLine();
     }
 
     for (int index = static_cast<int>(length);
@@ -1462,15 +1452,7 @@ void DeleteDialogueTextCharacter(unsigned int key)
     if (key == 8) {
         if (g_level_block->dialogue_text_input->cursor != 0) {
             unsigned int line = FindDialogueTextLine(g_level_block->dialogue_text_input);
-            unsigned int word_line = FindDialogueTextLine(g_level_block->dialogue_text_input);
-            bool joins_previous_line = 0;
-            if (word_line > 1) {
-                unsigned int previous_start =
-                    g_level_block->dialogue_text_input->line_offsets[word_line - 1];
-                joins_previous_line =
-                    wcscspn(g_level_block->dialogue_text_input->text + previous_start, L" ") >=
-                    g_level_block->dialogue_text_input->cursor - previous_start;
-            }
+            bool joins_previous_line = DialogueCursorJoinsPreviousLine();
             for (unsigned int index = g_level_block->dialogue_text_input->cursor; index <= length;
                  ++index) {
                 g_level_block->dialogue_text_input->text[index - 1] =
@@ -1486,15 +1468,7 @@ void DeleteDialogueTextCharacter(unsigned int key)
     } else if (key == 0x2e) {
         if (g_level_block->dialogue_text_input->cursor < length) {
             unsigned int line = FindDialogueTextLine(g_level_block->dialogue_text_input);
-            unsigned int word_line = FindDialogueTextLine(g_level_block->dialogue_text_input);
-            bool joins_previous_line = 0;
-            if (word_line > 1) {
-                unsigned int previous_start =
-                    g_level_block->dialogue_text_input->line_offsets[word_line - 1];
-                joins_previous_line =
-                    wcscspn(g_level_block->dialogue_text_input->text + previous_start, L" ") >=
-                    g_level_block->dialogue_text_input->cursor - previous_start;
-            }
+            bool joins_previous_line = DialogueCursorJoinsPreviousLine();
             for (unsigned int index = g_level_block->dialogue_text_input->cursor; index < length;
                  ++index) {
                 g_level_block->dialogue_text_input->text[index] =

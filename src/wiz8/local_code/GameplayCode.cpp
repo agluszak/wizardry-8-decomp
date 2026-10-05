@@ -61,10 +61,6 @@
 
 #define GAMEPLAY_CODE_CPP "C:\\Projects\\Wizardry 8\\Local Code\\GameplayCode.cpp"
 
-/* PC_RACE_COUNT, named by the assertion that bounds the race field, and the
-   eleven playable races out of the sixteen the race tables carry. */
-enum { W8_PC_RACE_COUNT = 11 };
-
 /* How much one level in a profession is worth towards physical combat
    experience. The professions split three ways. */
 enum {

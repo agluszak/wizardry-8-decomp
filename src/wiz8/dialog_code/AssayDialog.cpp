@@ -1004,7 +1004,7 @@ void W8AssayDialog::SetRaceIconsVisible(int show)
     int button_index;
     const W8ItemDatabaseRecord* record = &g_item_records[m_item->iItemNo];
 
-    for (race = 0; race < 16; ++race) {
+    for (race = 0; race < W8_RACE_COUNT; ++race) {
         switch (race) {
         case 0:
             button_index = 0x15;

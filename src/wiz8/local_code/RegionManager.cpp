@@ -533,6 +533,24 @@ void ReleaseDefaultHelpText(void)
     }
 }
 
+static bool FindEnabledRegionAtPoint(unsigned short x, unsigned short y, unsigned int* found_region)
+{
+    for (unsigned int set_index = 0; set_index < g_region_set_count; ++set_index) {
+        W8RegionSet* set = &g_region_sets[set_index];
+        if (set->enabled != 1 || set->first_region > set->last_region) {
+            continue;
+        }
+        for (unsigned int region_index = set->first_region; region_index <= set->last_region;
+             ++region_index) {
+            if (RegionContainsPoint(region_index, x, y)) {
+                *found_region = region_index;
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 /* Dispatch one mouse-position event through the enabled region sets. A forced
    modal region bypasses hit testing; otherwise the first containing region
    receives leave/enter transitions, hover help timing, and the ordinary
@@ -541,7 +559,6 @@ void ReleaseDefaultHelpText(void)
 unsigned int UpdateRegionMousePosition(int x, int y)
 {
     InputAtom event;
-    unsigned int set_index;
     unsigned int region_index;
 
     event.uiTimeStamp = GetClock();
@@ -556,49 +573,39 @@ unsigned int UpdateRegionMousePosition(int x, int y)
         return g_current_region_index;
     }
 
-    for (set_index = 0; set_index < g_region_set_count; ++set_index) {
-        W8RegionSet* set = &g_region_sets[set_index];
-        if (set->enabled != 1 || set->first_region > set->last_region) {
-            continue;
+    if (FindEnabledRegionAtPoint(static_cast<unsigned short>(x), static_cast<unsigned short>(y),
+                                 &region_index)) {
+        W8Region* region = &g_regions[region_index];
+        unsigned int previous_index = g_hover_region_index;
+        g_current_region_index = region_index;
+        if (previous_index != 0 && previous_index != region_index) {
+            W8Region* previous = &g_regions[previous_index];
+            previous->flags = (previous->flags & 0xff0f) | W8_REGION_MOUSE_LEAVE;
+            previous->callback(&event, previous);
+            if ((previous->flags & W8_REGION_HELP_SHOWN) != 0) {
+                VideoRemoveToolTip();
+                previous->flags &= ~W8_REGION_HELP_SHOWN;
+            }
+            PlayButtonSound(1);
+            g_region_help_delay = static_cast<unsigned short>(g_settings.tooltip_delay_ms);
+            previous->flags &= ~W8_REGION_MOUSE_STATE_MASK;
+            SetRegionHelpForceEnabled(0);
         }
-        for (region_index = set->first_region; region_index <= set->last_region; ++region_index) {
-            if (!RegionContainsPoint(region_index, static_cast<unsigned short>(x),
-                                     static_cast<unsigned short>(y))) {
-                continue;
-            }
-
-            W8Region* region = &g_regions[region_index];
-            unsigned int previous_index = g_hover_region_index;
-            g_current_region_index = region_index;
-            if (previous_index != 0 && previous_index != region_index) {
-                W8Region* previous = &g_regions[previous_index];
-                previous->flags = (previous->flags & 0xff0f) | W8_REGION_MOUSE_LEAVE;
-                previous->callback(&event, previous);
-                if ((previous->flags & W8_REGION_HELP_SHOWN) != 0) {
-                    VideoRemoveToolTip();
-                    previous->flags &= ~W8_REGION_HELP_SHOWN;
-                }
-                PlayButtonSound(1);
-                g_region_help_delay = static_cast<unsigned short>(g_settings.tooltip_delay_ms);
-                previous->flags &= ~W8_REGION_MOUSE_STATE_MASK;
-                SetRegionHelpForceEnabled(0);
-            }
-            if (previous_index != region_index) {
-                region->flags |= W8_REGION_MOUSE_ENTER;
-                SetRegionHelpText(FormatWideString(L"Region %d", region_index));
-            }
-            region->callback(&event, region);
-            if (g_current_region_index != previous_index) {
-                if (region->help_enabled != 0 &&
-                    (g_settings.tooltips_enabled != 0 || g_region_help_force_enabled != 0)) {
-                    g_region_help_clock = SetCountdownClock(g_region_help_delay);
-                }
-                PlayButtonSound(0);
-            }
-            region->flags &= ~W8_REGION_MOUSE_TRANSITION_MASK;
-            g_hover_region_index = g_current_region_index;
-            return g_current_region_index;
+        if (previous_index != region_index) {
+            region->flags |= W8_REGION_MOUSE_ENTER;
+            SetRegionHelpText(FormatWideString(L"Region %d", region_index));
         }
+        region->callback(&event, region);
+        if (g_current_region_index != previous_index) {
+            if (region->help_enabled != 0 &&
+                (g_settings.tooltips_enabled != 0 || g_region_help_force_enabled != 0)) {
+                g_region_help_clock = SetCountdownClock(g_region_help_delay);
+            }
+            PlayButtonSound(0);
+        }
+        region->flags &= ~W8_REGION_MOUSE_TRANSITION_MASK;
+        g_hover_region_index = g_current_region_index;
+        return g_current_region_index;
     }
 
     g_current_region_index = 0;
@@ -627,7 +634,6 @@ unsigned int UpdateRegionMousePosition(int x, int y)
 unsigned int FindRegionAtPoint(unsigned short x, unsigned short y)
 {
     InputAtom event;
-    unsigned int set_index;
     unsigned int region_index;
 
     event.uiTimeStamp = GetClock();
@@ -639,31 +645,22 @@ unsigned int FindRegionAtPoint(unsigned short x, unsigned short y)
         return g_captured_region_index;
     }
 
-    for (set_index = 0; set_index < g_region_set_count; ++set_index) {
-        W8RegionSet* set = &g_region_sets[set_index];
-        if (set->enabled != 1 || set->first_region > set->last_region) {
-            continue;
-        }
-        for (region_index = set->first_region; region_index <= set->last_region; ++region_index) {
-            if (!RegionContainsPoint(region_index, x, y)) {
-                continue;
+    if (FindEnabledRegionAtPoint(x, y, &region_index)) {
+        if (g_hover_region_index != 0 && g_hover_region_index != region_index) {
+            W8Region* previous = &g_regions[g_hover_region_index];
+            previous->flags = (previous->flags & 0xff0f) | W8_REGION_MOUSE_LEAVE;
+            previous->callback(&event, previous);
+            if ((previous->flags & W8_REGION_HELP_SHOWN) != 0) {
+                VideoRemoveToolTip();
+                previous->flags &= ~W8_REGION_HELP_SHOWN;
             }
-            if (g_hover_region_index != 0 && g_hover_region_index != region_index) {
-                W8Region* previous = &g_regions[g_hover_region_index];
-                previous->flags = (previous->flags & 0xff0f) | W8_REGION_MOUSE_LEAVE;
-                previous->callback(&event, previous);
-                if ((previous->flags & W8_REGION_HELP_SHOWN) != 0) {
-                    VideoRemoveToolTip();
-                    previous->flags &= ~W8_REGION_HELP_SHOWN;
-                }
-                g_region_help_delay = static_cast<unsigned short>(g_settings.tooltip_delay_ms);
-                previous->flags &= ~W8_REGION_MOUSE_STATE_MASK;
-                SetRegionHelpForceEnabled(0);
-                g_hover_region_index = 0;
-                g_current_region_index = 0;
-            }
-            return region_index;
+            g_region_help_delay = static_cast<unsigned short>(g_settings.tooltip_delay_ms);
+            previous->flags &= ~W8_REGION_MOUSE_STATE_MASK;
+            SetRegionHelpForceEnabled(0);
+            g_hover_region_index = 0;
+            g_current_region_index = 0;
         }
+        return region_index;
     }
 
     if (g_hover_region_index != 0 &&
@@ -684,7 +681,6 @@ unsigned int FindRegionAtPoint(unsigned short x, unsigned short y)
 unsigned char DispatchRegionInput(const InputAtom* event)
 {
     unsigned int region_index = g_captured_region_index;
-    unsigned int set_index;
     int sound_id = -1;
     unsigned short x = static_cast<unsigned short>(event->uiParam) + g_cursor_hotspot_x;
     unsigned short y = static_cast<unsigned short>(event->uiParam >> 16) + g_cursor_hotspot_y;
@@ -707,16 +703,8 @@ unsigned char DispatchRegionInput(const InputAtom* event)
         goto dispatch;
     }
 
-    for (set_index = 0; set_index < g_region_set_count; ++set_index) {
-        W8RegionSet* set = &g_region_sets[set_index];
-        if (set->enabled != 1 || set->first_region > set->last_region) {
-            continue;
-        }
-        for (region_index = set->first_region; region_index <= set->last_region; ++region_index) {
-            if (RegionContainsPoint(region_index, x, y)) {
-                goto dispatch;
-            }
-        }
+    if (FindEnabledRegionAtPoint(x, y, &region_index)) {
+        goto dispatch;
     }
     return 0;
 

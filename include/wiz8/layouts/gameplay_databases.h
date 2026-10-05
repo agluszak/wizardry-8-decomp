@@ -67,6 +67,8 @@ enum W8Race {
     W8_RACE_COUNT = 16
 };
 
+static_assert(sizeof(W8Race) == 4, "W8Race_storage");
+
 /* A character's sex. Zero is male and one is female, which is what the quote
    lookup, the item record's sex mask and the female-only profession all agree
    on. A character or template that has not been assigned one carries UNSET. */

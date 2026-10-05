@@ -1878,6 +1878,18 @@ unsigned char W8Monster::GetCycleMappedPosition(signed char cycle, int mapped_in
     return 0;
 }
 
+bool W8Monster::ResolveScriptPosition(const char* name, srVector3T<float>* position)
+{
+    if (_stricmp(name, "home") == 0) {
+        *position = formation;
+    } else if (_stricmp(name, "off_camera") == 0) {
+        position->x = position->y = position->z = -10000000.0f;
+    } else if (FindEntityByName(name, position, 0, 0) == 0) {
+        return false;
+    }
+    return true;
+}
+
 /* Execute source lines until a command starts an asynchronous operation, ends
    the script, or the runaway-command guard trips. The two command modes share
    the original table: normal mode performs actions, while BEGINORDERS records
@@ -1975,11 +1987,7 @@ void W8Monster::ProcessScript()
                 if (token == 0) {
                     break;
                 }
-                if (_stricmp(token, "home") == 0) {
-                    position = formation;
-                } else if (_stricmp(token, "off_camera") == 0) {
-                    position.x = position.y = position.z = -10000000.0f;
-                } else if (FindEntityByName(token, &position, 0, 0) == 0) {
+                if (!ResolveScriptPosition(token, &position)) {
                     ShutdownWithErrorBox(FormatString(
                         "MonScript %s Line %d: Unknown location %s", script->getName(),
                         script->GetSourceLine(script_line - 1), token));
@@ -2004,11 +2012,7 @@ void W8Monster::ProcessScript()
                 if (token == 0) {
                     break;
                 }
-                if (_stricmp(token, "home") == 0) {
-                    position = formation;
-                } else if (_stricmp(token, "off_camera") == 0) {
-                    position.x = position.y = position.z = -10000000.0f;
-                } else if (FindEntityByName(token, &position, 0, 0) == 0) {
+                if (!ResolveScriptPosition(token, &position)) {
                     ShutdownWithErrorBox(FormatString(
                         "MonScript %s Line %d: Unknown location %s", script->getName(),
                         script->GetSourceLine(script_line - 1), token));
@@ -2092,11 +2096,7 @@ void W8Monster::ProcessScript()
                 if (token == 0) {
                     break;
                 }
-                if (_stricmp(token, "home") == 0) {
-                    target = formation;
-                } else if (_stricmp(token, "off_camera") == 0) {
-                    target.x = target.y = target.z = -10000000.0f;
-                } else if (FindEntityByName(token, &target, 0, 0) == 0) {
+                if (!ResolveScriptPosition(token, &target)) {
                     break;
                 }
                 if (GetProjectilePosition(&source) == 0) {
@@ -2118,11 +2118,7 @@ void W8Monster::ProcessScript()
                 srVector3T<float> position;
                 token = strtok(0, " \t");
                 if (token != 0) {
-                    if (_stricmp(token, "home") == 0) {
-                        position = formation;
-                    } else if (_stricmp(token, "off_camera") == 0) {
-                        position.x = position.y = position.z = -10000000.0f;
-                    } else if (FindEntityByName(token, &position, 0, 0) == 0) {
+                    if (!ResolveScriptPosition(token, &position)) {
                         ShutdownWithErrorBox(FormatString(
                             "MonScript %s Line %d: Unknown location %s", script->getName(),
                             script->GetSourceLine(script_line - 1), token));
@@ -2417,11 +2413,7 @@ void W8Monster::ProcessScript()
                     vector.Clear();
                 while ((token = strtok(0, " \t")) != 0) {
                     srVector3T<float> position;
-                    if (_stricmp(token, "home") == 0) {
-                        position = formation;
-                    } else if (_stricmp(token, "off_camera") == 0) {
-                        position.x = position.y = position.z = -10000000.0f;
-                    } else if (FindEntityByName(token, &position, 0, 0) == 0) {
+                    if (!ResolveScriptPosition(token, &position)) {
                         ShutdownWithErrorBox(FormatString(
                             "MonScript %s Line %d: Unknown location %s", script->getName(),
                             script->GetSourceLine(script_line - 1), token));

@@ -45,7 +45,7 @@ void DrawPortraitEffectIcon(unsigned int party_slot);        /* 0x0059B0F0 */
 /* 0x006488D0: dead-character portrait catalog ids, two per race - the small
    party-strip image at [race][0] and the large header portrait at [race][1]. */
 // GLOBAL: WIZ8 0x006488D0
-int g_dead_portrait_catalog_ids[16][2] = {
+int g_dead_portrait_catalog_ids[W8_RACE_COUNT][2] = {
     {20, 31}, {20, 31}, {20, 31}, {20, 31}, {20, 31}, {20, 31}, {23, 34}, {21, 32},
     {22, 33}, {25, 36}, {24, 35}, {27, 38}, {26, 37}, {28, 39}, {29, 40}, {30, 41},
 };

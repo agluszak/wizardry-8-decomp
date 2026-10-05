@@ -347,6 +347,7 @@ public:
                                 float maximum);
     unsigned short ResolveSearchNodeCollisions(W8NavigatorMovementState* movement,
                                                unsigned short node, float radius, float separation);
+    srVector3T<float> GetSearchTraceOffset(float bearing);
     unsigned char TestSearchPositionVisibility(const srVector3T<float>* position,
                                                W8NavigatorMovementState* movement);
     unsigned short ConfigureMovementSearch(W8NavigatorMovementState* movement, int target_location,
