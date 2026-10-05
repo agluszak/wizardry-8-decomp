@@ -86,6 +86,7 @@ struct W8MonsterAttack {
 }; /* 0x22 */
 
 enum W8SpellRealm {
+    W8_SPELL_REALM_NONE = -1,
     W8_SPELL_REALM_FIRE = 0,
     W8_SPELL_REALM_WATER = 1,
     W8_SPELL_REALM_AIR = 2,
@@ -146,6 +147,7 @@ enum { W8_SPELL_NONE = 0 };
    trap (Knock Knock, Divine Trap). This is not the targeting-need domain
    GetTargetNeededForSpellFriendly maps these onto. */
 enum W8SpellTargetType {
+    W8_TARGET_TYPE_NONE = -1,
     W8_TARGET_TYPE_CASTER = 0,
     W8_TARGET_TYPE_ALLY = 1,
     W8_TARGET_TYPE_PARTY = 2,

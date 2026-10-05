@@ -250,7 +250,7 @@ void RestorePartyStaminaByDice(unsigned char count, unsigned char sides, short b
 /* Spend spell points from one realm. Spending more than is left is a caller
    error rather than something to clamp. */
 // FUNCTION: WIZ8 0x0052b480
-void SpendCharacterSpellPoints(int party_slot, int realm, int amount)
+void SpendCharacterSpellPoints(int party_slot, W8SpellRealm realm, int amount)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
 
@@ -266,7 +266,7 @@ void SpendCharacterSpellPoints(int party_slot, int realm, int amount)
 
 /* Give spell points back to one realm, never past its ceiling. */
 // FUNCTION: WIZ8 0x0052b4f0
-void RestoreCharacterRealmSpellPoints(int party_slot, int realm, int amount)
+void RestoreCharacterRealmSpellPoints(int party_slot, W8SpellRealm realm, int amount)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
 
@@ -523,7 +523,7 @@ enum {
 enum { W8_STAMINA_TO_SHAKE_OFF_EXHAUSTION = 9 };
 
 // FUNCTION: WIZ8 0x0052a710
-int GetCharacterRealmSpellPoints(const W8Character* character, int realm)
+int GetCharacterRealmSpellPoints(const W8Character* character, W8SpellRealm realm)
 {
     int points = character->iSPLeft[realm];
     return points > 0 ? points : 0;
@@ -684,7 +684,7 @@ void DrainCharacterSpellPoints(int party_slot, unsigned int amount, char announc
     unsigned int remaining = amount;
     unsigned int taken;
     int attempts;
-    int realm;
+    W8SpellRealm realm;
 
     if (character->hp_current == 0) {
         return;
@@ -695,7 +695,7 @@ void DrainCharacterSpellPoints(int party_slot, unsigned int amount, char announc
     }
 
     for (attempts = 0x32; remaining != 0 && attempts != 0; --attempts) {
-        realm = Random(W8_SPELL_REALM_COUNT);
+        realm = static_cast<W8SpellRealm>(Random(W8_SPELL_REALM_COUNT));
         if (character->iSPLeft[realm] > 0) {
             taken = remaining;
             if (static_cast<unsigned int>(character->iSPLeft[realm]) <= remaining) {
@@ -1087,7 +1087,8 @@ unsigned int CharacterActionFatigueCost(int party_slot, W8ActionKind action_kind
 /* Drain spell points from one named realm, taking no more than it holds.
    Announced with the realm's own name. */
 // FUNCTION: WIZ8 0x0052b6d0
-void DrainCharacterRealmSpellPoints(int party_slot, int realm, unsigned int amount, bool announce)
+void DrainCharacterRealmSpellPoints(int party_slot, W8SpellRealm realm, unsigned int amount,
+                                    bool announce)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
     unsigned int available;

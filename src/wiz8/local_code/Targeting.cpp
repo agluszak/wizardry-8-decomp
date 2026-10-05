@@ -3289,23 +3289,23 @@ int CollectConeMonsterTargets(const W8TargetSource* source, const srVector3T<flo
    target for the spell's target type, aim the selected slot at it, then pick
    the cursor, cone and world-pause state the resulting mode needs. */
 // FUNCTION: WIZ8 0x0053a440
-void ConfigureSpellTargetFilter(int target_type, unsigned int needed_kind)
+void ConfigureSpellTargetFilter(W8SpellTargetType target_type, unsigned int needed_kind)
 {
     W8CombatSlot target;
     int cursor = -1;
     int selected = g_status.selected_character;
 
     switch (target_type) {
-    case 0:
+    case W8_TARGET_TYPE_CASTER:
         ResetCombatSlot(&target);
         target.iType = W8_TARGET_KIND_CHARACTER;
         target.iChar = selected;
         break;
-    case 2:
+    case W8_TARGET_TYPE_PARTY:
         ResetCombatSlot(&target);
         target.iType = W8_TARGET_KIND_PARTY;
         break;
-    case 3:
+    case W8_TARGET_TYPE_ENEMY:
         if (gXStatus.fCampMode != 0) {
             ResetCombatSlot(&target);
             target.iType = W8_TARGET_KIND_MONSTER;
@@ -3319,11 +3319,11 @@ void ConfigureSpellTargetFilter(int target_type, unsigned int needed_kind)
             PointCameraAtCombatTarget(&source, &g_status.buffers.XChar[selected].target_in_combat);
         }
         goto aim_done;
-    case 7:
+    case W8_TARGET_TYPE_ALL_ENEMIES:
         ResetCombatSlot(&target);
         target.iType = W8_TARGET_KIND_ALL_ENEMIES;
         break;
-    case 10:
+    case W8_TARGET_TYPE_LOCK_OR_TRAP:
         ResetCombatSlot(&target);
         target.iType = W8_TARGET_KIND_EIGHT;
         break;

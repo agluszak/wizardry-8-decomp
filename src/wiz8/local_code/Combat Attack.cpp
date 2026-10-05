@@ -2911,17 +2911,17 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                 }
                 switch (i) {
                 case 0:
-                    resisted = ResolveAttackOnTarget(source, target, W8_CONDITION_ASLEEP, 2,
-                                                     definition->power_level, 0, magnitude, verbose,
-                                                     announce, 0);
+                    resisted = ResolveAttackOnTarget(source, target, W8_CONDITION_ASLEEP,
+                                                     W8_SPELL_REALM_AIR, definition->power_level, 0,
+                                                     magnitude, verbose, announce, 0);
                     if (accumulator != NULL) {
                         accumulator->condition_counts[W8_CONDITION_ASLEEP] += (resisted == 0);
                     }
                     break;
                 case 1:
-                    resisted = ResolveAttackOnTarget(source, target, W8_CONDITION_PARALYZED, 1,
-                                                     definition->power_level, 0, magnitude, verbose,
-                                                     announce, 0);
+                    resisted = ResolveAttackOnTarget(source, target, W8_CONDITION_PARALYZED,
+                                                     W8_SPELL_REALM_WATER, definition->power_level,
+                                                     0, magnitude, verbose, announce, 0);
                     if (accumulator != NULL) {
                         accumulator->condition_counts[W8_CONDITION_PARALYZED] += (resisted == 0);
                     }
@@ -2933,33 +2933,34 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                                 definition->magnitude_base);
                         magnitude = RollEffectMagnitude(definition) + 1;
                     }
-                    resisted = ResolveAttackOnTarget(
-                        source, target, W8_CONDITION_POISONED, 1, definition->power_level,
-                        definition->magnitude_base, magnitude, verbose, announce, 0);
+                    resisted = ResolveAttackOnTarget(source, target, W8_CONDITION_POISONED,
+                                                     W8_SPELL_REALM_WATER, definition->power_level,
+                                                     definition->magnitude_base, magnitude, verbose,
+                                                     announce, 0);
                     if (accumulator != NULL) {
                         accumulator->condition_counts[W8_CONDITION_POISONED] += (resisted == 0);
                     }
                     break;
                 case 3:
-                    resisted = ResolveAttackOnTarget(source, target, W8_CONDITION_HEXED, 5,
-                                                     definition->power_level, 0, magnitude, verbose,
-                                                     announce, 0);
+                    resisted = ResolveAttackOnTarget(source, target, W8_CONDITION_HEXED,
+                                                     W8_SPELL_REALM_DIVINE, definition->power_level,
+                                                     0, magnitude, verbose, announce, 0);
                     if (accumulator != NULL) {
                         accumulator->condition_counts[W8_CONDITION_HEXED] += (resisted == 0);
                     }
                     break;
                 case 4:
-                    resisted = ResolveAttackOnTarget(source, target, W8_CONDITION_DISEASED, 1,
-                                                     definition->power_level, 0,
-                                                     W8_CONDITION_INDEFINITE, verbose, announce, 0);
+                    resisted = ResolveAttackOnTarget(
+                        source, target, W8_CONDITION_DISEASED, W8_SPELL_REALM_WATER,
+                        definition->power_level, 0, W8_CONDITION_INDEFINITE, verbose, announce, 0);
                     if (accumulator != NULL) {
                         accumulator->condition_counts[W8_CONDITION_DISEASED] += (resisted == 0);
                     }
                     break;
                 case 5:
-                    resisted = ResolveAttackOnTarget(source, target, W8_CONDITION_DEAD, 5,
-                                                     definition->power_level, 0,
-                                                     W8_CONDITION_INDEFINITE, verbose, 0, 0);
+                    resisted = ResolveAttackOnTarget(source, target, W8_CONDITION_DEAD,
+                                                     W8_SPELL_REALM_DIVINE, definition->power_level,
+                                                     0, W8_CONDITION_INDEFINITE, verbose, 0, 0);
                     if (resisted == 0) {
                         if (source->iType == W8_TARGET_SOURCE_CHARACTER) {
                             ShowNoticef(8, gppStringList[0x17f]);
@@ -2989,25 +2990,25 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                     }
                     break;
                 case 6:
-                    resisted = ResolveAttackOnTarget(source, target, W8_CONDITION_UNCONSCIOUS, 3,
-                                                     definition->power_level, 0, magnitude, verbose,
-                                                     announce, 0);
+                    resisted = ResolveAttackOnTarget(source, target, W8_CONDITION_UNCONSCIOUS,
+                                                     W8_SPELL_REALM_EARTH, definition->power_level,
+                                                     0, magnitude, verbose, announce, 0);
                     if (accumulator != NULL) {
                         accumulator->condition_counts[W8_CONDITION_UNCONSCIOUS] += (resisted == 0);
                     }
                     break;
                 case 7:
-                    resisted = ResolveAttackOnTarget(source, target, W8_CONDITION_BLIND, 0,
-                                                     definition->power_level, 0, magnitude, verbose,
-                                                     announce, 0);
+                    resisted = ResolveAttackOnTarget(source, target, W8_CONDITION_BLIND,
+                                                     W8_SPELL_REALM_FIRE, definition->power_level,
+                                                     0, magnitude, verbose, announce, 0);
                     if (accumulator != NULL) {
                         accumulator->condition_counts[W8_CONDITION_BLIND] += (resisted == 0);
                     }
                     break;
                 case 8:
-                    resisted = ResolveAttackOnTarget(source, target, W8_CONDITION_AFRAID, 4,
-                                                     definition->power_level, 0, magnitude, verbose,
-                                                     announce, 0);
+                    resisted = ResolveAttackOnTarget(source, target, W8_CONDITION_AFRAID,
+                                                     W8_SPELL_REALM_MENTAL, definition->power_level,
+                                                     0, magnitude, verbose, announce, 0);
                     if (accumulator != NULL) {
                         accumulator->condition_counts[W8_CONDITION_AFRAID] += (resisted == 0);
                     }
@@ -3016,8 +3017,9 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                     if (TargetSourceIsMonster(source, 0)) {
                         if (target->iType == W8_TARGET_KIND_CHARACTER) {
                             resisted = ResolveAttackOnTarget(
-                                source, target, W8_CONDITION_MISSING, 5, definition->power_level, 0,
-                                W8_CONDITION_INDEFINITE, verbose, announce, 1);
+                                source, target, W8_CONDITION_MISSING, W8_SPELL_REALM_DIVINE,
+                                definition->power_level, 0, W8_CONDITION_INDEFINITE, verbose,
+                                announce, 1);
                             if (resisted == 0) {
                                 if (accumulator != NULL) {
                                     accumulator->condition_counts[W8_CONDITION_MISSING]++;
@@ -3026,8 +3028,8 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                                                                  source->iMonsterID);
                             }
                         } else if (target->iType == W8_TARGET_KIND_MONSTER) {
-                            ResolveAttackOnTarget(source, target, W8_CONDITION_DEAD, 5,
-                                                  definition->power_level, 0,
+                            ResolveAttackOnTarget(source, target, W8_CONDITION_DEAD,
+                                                  W8_SPELL_REALM_DIVINE, definition->power_level, 0,
                                                   W8_CONDITION_INDEFINITE, verbose, announce, 0);
                         }
                     }
@@ -3035,9 +3037,9 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                 case 10:
                     if (TargetSourceIsMonster(source, 0) &&
                         target->iType == W8_TARGET_KIND_CHARACTER) {
-                        resisted = ResolveAttackOnTarget(source, target, W8_CONDITION_TURNCOAT, 5,
-                                                         definition->power_level, 0, magnitude,
-                                                         verbose, announce, 0);
+                        resisted = ResolveAttackOnTarget(
+                            source, target, W8_CONDITION_TURNCOAT, W8_SPELL_REALM_DIVINE,
+                            definition->power_level, 0, magnitude, verbose, announce, 0);
                         if (accumulator != NULL) {
                             accumulator->condition_counts[W8_CONDITION_TURNCOAT] += (resisted == 0);
                         }
@@ -3045,15 +3047,16 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                     break;
                 case 0xb:
                     if (target->iType == W8_TARGET_KIND_CHARACTER) {
-                        resisted = TargetResistsCondition(target, 3, definition->power_level,
-                                                          W8_CONDITION_NONE);
+                        resisted =
+                            TargetResistsCondition(target, W8_SPELL_REALM_EARTH,
+                                                   definition->power_level, W8_CONDITION_NONE);
                         if (resisted == 0) {
                             magnitude = RollEffectDuration(definition);
                             if (magnitude < 2) {
                                 SetDice(&definition->magnitude, count_base, 2, 0);
                                 magnitude = RollEffectMagnitude(definition) + 1;
                             }
-                            ReduceMagnitudeByResistance(&magnitude, target, 3,
+                            ReduceMagnitudeByResistance(&magnitude, target, W8_SPELL_REALM_EARTH,
                                                         definition->power_level);
                             if (magnitude != 0) {
                                 DamageCharacter(target->iChar, magnitude, 1);
@@ -3066,15 +3069,16 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                     }
                     break;
                 case 0xc:
-                    resisted = TargetResistsCondition(target, 1, definition->power_level,
-                                                      W8_CONDITION_NONE);
+                    resisted = TargetResistsCondition(target, W8_SPELL_REALM_WATER,
+                                                      definition->power_level, W8_CONDITION_NONE);
                     if (resisted == 0) {
                         magnitude = RollEffectDuration(definition);
                         if (magnitude < 2) {
                             SetDice(&definition->magnitude, count_base * 2, 5, count_base * 3);
                             magnitude = RollEffectMagnitude(definition) + 1;
                         }
-                        ReduceMagnitudeByResistance(&magnitude, target, 1, definition->power_level);
+                        ReduceMagnitudeByResistance(&magnitude, target, W8_SPELL_REALM_WATER,
+                                                    definition->power_level);
                         if (magnitude != 0) {
                             if (target->iType == W8_TARGET_KIND_MONSTER) {
                                 monster_info =
@@ -3093,15 +3097,16 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                     break;
                 case 0xd:
                     if (target->iType == W8_TARGET_KIND_CHARACTER) {
-                        resisted = TargetResistsCondition(target, 5, definition->power_level,
-                                                          W8_CONDITION_NONE);
+                        resisted =
+                            TargetResistsCondition(target, W8_SPELL_REALM_DIVINE,
+                                                   definition->power_level, W8_CONDITION_NONE);
                         if (resisted == 0) {
                             magnitude = RollEffectDuration(definition);
                             if (magnitude < 2) {
                                 SetDice(&definition->magnitude, count_base, 6, count_base);
                                 magnitude = RollEffectMagnitude(definition) + 1;
                             }
-                            ReduceMagnitudeByResistance(&magnitude, target, 5,
+                            ReduceMagnitudeByResistance(&magnitude, target, W8_SPELL_REALM_DIVINE,
                                                         definition->power_level);
                             if (magnitude != 0) {
                                 DrainCharacterSpellPoints(target->iChar, magnitude, 1);
@@ -3117,17 +3122,17 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                     }
                     break;
                 case 0xe:
-                    resisted = ResolveAttackOnTarget(source, target, W8_CONDITION_NAUSEATED, 2,
-                                                     definition->power_level, 0, magnitude, verbose,
-                                                     announce, 0);
+                    resisted = ResolveAttackOnTarget(source, target, W8_CONDITION_NAUSEATED,
+                                                     W8_SPELL_REALM_AIR, definition->power_level, 0,
+                                                     magnitude, verbose, announce, 0);
                     if (accumulator != NULL) {
                         accumulator->condition_counts[W8_CONDITION_NAUSEATED] += (resisted == 0);
                     }
                     break;
                 case 0xf:
-                    resisted = ResolveAttackOnTarget(source, target, W8_CONDITION_INSANE, 4,
-                                                     definition->power_level, 0, magnitude, verbose,
-                                                     announce, 0);
+                    resisted = ResolveAttackOnTarget(source, target, W8_CONDITION_INSANE,
+                                                     W8_SPELL_REALM_MENTAL, definition->power_level,
+                                                     0, magnitude, verbose, announce, 0);
                     if (accumulator != NULL) {
                         accumulator->condition_counts[W8_CONDITION_INSANE] += (resisted == 0);
                     }

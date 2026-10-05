@@ -217,11 +217,11 @@ bool CharacterActionReachesTarget(int party_slot, int hand, W8TargetingContext c
             srAssertFail("uiSpell != SPELL_NONE", COMBAT_RANGE_CPP, 0xee, 0);
         }
         W8SpellTargetType target_type = GetSpellTargetType(spell_id, 0);
-        if (target_type == 5) {
+        if (target_type == W8_TARGET_TYPE_CONE) {
             trace = false;
             distance = g_float_005ec35c;
         } else {
-            if (target_type != 6 && target_type != 8) {
+            if (target_type != W8_TARGET_TYPE_RADIUS && target_type != W8_TARGET_TYPE_POINT) {
                 srAssertFail("FALSE", COMBAT_RANGE_CPP, 0x101, 0);
                 return false;
             }

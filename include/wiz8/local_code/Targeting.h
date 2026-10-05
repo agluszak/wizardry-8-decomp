@@ -1,6 +1,7 @@
 #pragma once
 
 #include "wiz8/layouts/targeting.h"
+#include "wiz8/layouts/gameplay_databases.h"
 
 struct W8CombatSlot;
 struct W8MonsterInfo;
@@ -113,7 +114,7 @@ bool IsItemTargetOfNeededKind(int party_slot, const W8ItemInstance* item); /* 0x
 /* 0x0053AF40: select the party slot the spell-casting view is casting for. */
 void SelectSpellCastingPartySlot(int party_slot);
 /* 0x0053A440: set the targeting filter for the spell being aimed. */
-void ConfigureSpellTargetFilter(int target_type, unsigned int needed_kind);
+void ConfigureSpellTargetFilter(W8SpellTargetType target_type, unsigned int needed_kind);
 /* 0x0053A830: commit the chosen spell target. */
 void CommitSelectedSpellTarget(void);
 void RefreshMonsterTargetCounts(void);

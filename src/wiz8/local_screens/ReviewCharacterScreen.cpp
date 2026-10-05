@@ -305,9 +305,11 @@ void DrawCampSpellPages(void)
                     character->skills[0x1c + realm].level);
             width = StringPixLengthArg(
                 g_wiz_text_font_secondary, 7, Wiz8ToSgpWideText(g_format_d_slash_d),
-                GetCharacterRealmSpellPoints(character, realm), character->sp_max[realm]);
+                GetCharacterRealmSpellPoints(character, static_cast<W8SpellRealm>(realm)),
+                character->sp_max[realm]);
             gprintf(left + 0xc8 - width, top + 8, Wiz8ToSgpWideText(g_format_d_slash_d),
-                    GetCharacterRealmSpellPoints(character, realm), character->sp_max[realm]);
+                    GetCharacterRealmSpellPoints(character, static_cast<W8SpellRealm>(realm)),
+                    character->sp_max[realm]);
             visible = character->skill_unlocks[0x1c + realm];
             if (visible >= 8) {
                 visible = 8;
@@ -653,7 +655,8 @@ void DrawCampCharacterInfo(void)
             frame = g_spell_realm_animations[realm].frame_count;
         } else {
             swprintf(state->caption, g_format_d_slash_d,
-                     GetCharacterRealmSpellPoints(character, realm), character->sp_max[realm]);
+                     GetCharacterRealmSpellPoints(character, static_cast<W8SpellRealm>(realm)),
+                     character->sp_max[realm]);
             DrawTallRcsText(state->caption, 0x242, top, 0x32,
                             g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter);
             frame = g_spell_realm_animations[realm].initial_frame;

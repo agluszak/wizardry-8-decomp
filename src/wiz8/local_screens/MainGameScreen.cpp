@@ -4582,7 +4582,8 @@ void DrawPortraitVitalsOverlay(int party_slot)
     int realm;
     for (realm = 0; realm < 6; ++realm) {
         swprintf(g_level_block->text_paint_scratch, g_format_d_slash_d,
-                 GetCharacterRealmSpellPoints(character, realm), character->sp_max[realm]);
+                 GetCharacterRealmSpellPoints(character, static_cast<W8SpellRealm>(realm)),
+                 character->sp_max[realm]);
         width = StringPixLength(g_level_block->text_paint_scratch, g_wiz_text_font);
         if (label_width < static_cast<unsigned int>(width)) {
             width = StringPixLength(g_level_block->text_paint_scratch, g_wiz_text_font);
@@ -4624,7 +4625,8 @@ void DrawPortraitVitalsOverlay(int party_slot)
                          static_cast<short>(g_spell_realm_animations[realm].initial_frame), text_x,
                          row_y, 2, 0);
         swprintf(g_level_block->text_paint_scratch, g_format_d_slash_d,
-                 GetCharacterRealmSpellPoints(character, realm), character->sp_max[realm]);
+                 GetCharacterRealmSpellPoints(character, static_cast<W8SpellRealm>(realm)),
+                 character->sp_max[realm]);
         int text_y = (0x12 - GetFontHeight(g_wiz_text_font)) / 2 + row_y;
         width = StringPixLength(g_level_block->text_paint_scratch, g_wiz_text_font);
         gprintf(value_center - width / 2 + text_x + label_width, text_y,

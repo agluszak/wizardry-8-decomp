@@ -1,5 +1,7 @@
 #pragma once
 
+#include "wiz8/layouts/gameplay_databases.h"
+
 #include "wiz8/monster_spell_icons.h"
 #include "wiz8/conditions.h"
 #include "surrender/srMath.h"
@@ -26,26 +28,26 @@ bool IsScreenBusy(void);
 
 /* 0x00552250: shrink a rolled magnitude by the share of it the target's
    resistance in the realm turns aside; a permanent magnitude is left alone. */
-void ReduceMagnitudeByResistance(unsigned int* magnitude, W8CombatSlot* target, int realm,
+void ReduceMagnitudeByResistance(unsigned int* magnitude, W8CombatSlot* target, W8SpellRealm realm,
                                  int power_level);
 void AnnounceEffectResisted(W8CombatSlot* target);       /* 0x00552070 */
 void ClearMonsterEffect2DE(W8MonsterInfo* monster_info); /* 0x005523D0 */
-void ApplyEffectAndAnnounce(unsigned int* result, W8CombatSlot* target, int realm,
+void ApplyEffectAndAnnounce(unsigned int* result, W8CombatSlot* target, W8SpellRealm realm,
                             int power_level); /* 0x00552340 */
 /* 0x00551BA0 sits before the unit's assertion hull rather than inside it;
    its own assertion names Magic Effects.cpp, which attributes it to this
    unit. GroupAttacks.cpp's call sites need the declaration. */
 bool ResolveAttackOnTarget(const W8TargetSource* source, W8CombatSlot* target,
-                           W8Condition condition_id, int realm, unsigned int power_level,
+                           W8Condition condition_id, W8SpellRealm realm, unsigned int power_level,
                            int argument, int magnitude, char announce_resistance,
                            char announce_condition, int duration);
 /* 0x005520D0: the saving throw against a condition. A dead target is beyond
    reach and counts as resisting. */
-bool TargetResistsCondition(W8CombatSlot* target, int realm, unsigned int power_level,
+bool TargetResistsCondition(W8CombatSlot* target, W8SpellRealm realm, unsigned int power_level,
                             W8Condition condition_id);
 /* 0x00551EB0: land a condition whose saving throw failed. `source_character`
    is part of the call but nothing in the body reads it. */
-char InflictConditionOnTarget(W8CombatSlot* target, W8Condition condition_id, int realm,
+char InflictConditionOnTarget(W8CombatSlot* target, W8Condition condition_id, W8SpellRealm realm,
                               unsigned int power_level, int argument, unsigned int magnitude,
                               int source_character, int duration, char announce);
 /* Each scales the value by seven fifths or three fifths on the easy and hard settings and leaves
