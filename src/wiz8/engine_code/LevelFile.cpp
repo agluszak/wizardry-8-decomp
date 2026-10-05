@@ -1,3 +1,4 @@
+#include "wiz8/engine_code/stLight.hpp"
 #include "wiz8/engine_code/LevelFile.h"
 #include "wiz8/engine_code/ReadMesh.h"
 #include "wiz8/engine_code/OctMeshModel.h"
@@ -554,7 +555,7 @@ BOOLEAN ReadMeshFile(int hFile, W8LevelFileMesh* pMesh)
     if (fSuccess == 0) {
         return FALSE;
     }
-    if ((pMesh->flags & 1) == 0) {
+    if ((pMesh->flags & W8_LEVEL_MESH_LOD_VERTICES) == 0) {
         pMesh->pstVertices = static_cast<srVector3T<float>*>(
             malloc(pMesh->num_vertices * 2 * sizeof(*pMesh->pstVertices)));
         if (pMesh->pstVertices == 0) {
@@ -568,7 +569,7 @@ BOOLEAN ReadMeshFile(int hFile, W8LevelFileMesh* pMesh)
     } else {
         fSuccess &= FileRead(hFile, &pMesh->lod_mode, 1, 0);
         fSuccess &= FileRead(hFile, &pMesh->num_lods, 2, 0);
-        if ((pMesh->flags & 2) == 0) {
+        if ((pMesh->flags & W8_LEVEL_MESH_SHORT_LOD_VERTICES) == 0) {
             srVector3T<float>** pLods =
                 static_cast<srVector3T<float>**>(malloc(pMesh->num_lods * sizeof(*pLods)));
             if (pLods == 0) {
@@ -607,7 +608,7 @@ BOOLEAN ReadMeshFile(int hFile, W8LevelFileMesh* pMesh)
             pMesh->lod_shorts = pLods;
         }
     }
-    if ((pMesh->flags & 4) != 0) {
+    if ((pMesh->flags & W8_LEVEL_MESH_COMPRESSED_FACES) != 0) {
         pMesh->pstCompFaces = static_cast<W8LevelFileCompressedFace*>(
             malloc(pMesh->num_faces * sizeof(W8LevelFileCompressedFace)));
         if (pMesh->pstCompFaces == 0) {
@@ -653,7 +654,7 @@ BOOLEAN WriteMeshFile(int hFile, W8LevelFileMesh* pMesh)
     if (fSuccess == 0) {
         return FALSE;
     }
-    if ((pMesh->flags & 1) == 0) {
+    if ((pMesh->flags & W8_LEVEL_MESH_LOD_VERTICES) == 0) {
         if (pMesh->pstVertices == 0) {
             srAssertFail("pMesh->pstVertices", LEVELFILE_CPP, 0x315, 0);
         }
@@ -667,7 +668,7 @@ BOOLEAN WriteMeshFile(int hFile, W8LevelFileMesh* pMesh)
         if (pMesh->lod_mode >= 2) {
             fSuccess &= FileWrite(hFile, &pMesh->lod_scale, 4, 0);
         }
-        if ((pMesh->flags & 2) == 0) {
+        if ((pMesh->flags & W8_LEVEL_MESH_SHORT_LOD_VERTICES) == 0) {
             srVector3T<float>** pLods = pMesh->lods;
             if (pLods == 0) {
                 return FALSE;
@@ -700,7 +701,7 @@ BOOLEAN WriteMeshFile(int hFile, W8LevelFileMesh* pMesh)
         }
     }
     free(pMesh->pstVertices);
-    if ((pMesh->flags & 4) != 0) {
+    if ((pMesh->flags & W8_LEVEL_MESH_COMPRESSED_FACES) != 0) {
         if (pMesh->pstCompFaces == 0) {
             srAssertFail("pMesh->pstCompFaces", LEVELFILE_CPP, 799, 0);
         }
@@ -734,7 +735,7 @@ BOOLEAN ReadLightFile(int hFile, W8LevelFileLight* pLight)
     }
     if (pLight->version >= 2) {
         fSuccess = FileRead(hFile, pLight->name, 0x14, 0) != 0;
-        if ((pLight->flags & 2) != 0) {
+        if ((pLight->flags & W8_LEVEL_LIGHT_HAS_DEFINITION) != 0) {
             pLight->create = 1;
             pLight->pExtra =
                 static_cast<W8LevelFileLightExtra*>(malloc(sizeof(W8LevelFileLightExtra)));
@@ -745,7 +746,7 @@ BOOLEAN ReadLightFile(int hFile, W8LevelFileLight* pLight)
             if (fSuccess == 0) {
                 return FALSE;
             }
-            if ((pLight->pExtra->flags & 0x10) != 0) {
+            if ((pLight->pExtra->flags & W8_PARAM_LIGHT_HAS_PATH) != 0) {
                 pLight->pPathAI =
                     static_cast<W8LevelFilePathAI*>(malloc(sizeof(W8LevelFilePathAI)));
                 if (pLight->pPathAI == 0) {
@@ -777,12 +778,13 @@ BOOLEAN WriteLightFile(int hFile, W8LevelFileLight* pLight)
     }
     if (pLight->version >= 2) {
         fSuccess = FileWrite(hFile, pLight->name, 0x14, 0) != 0;
-        if (((pLight->flags & 2) != 0) && (pLight->pExtra != 0)) {
+        if (((pLight->flags & W8_LEVEL_LIGHT_HAS_DEFINITION) != 0) && (pLight->pExtra != 0)) {
             fSuccess &= FileWrite(hFile, pLight->pExtra, sizeof(W8LevelFileLightExtra), 0);
             if (fSuccess == 0) {
                 return FALSE;
             }
-            if (((pLight->pExtra->flags & 0x10) != 0) && (pLight->pPathAI != 0)) {
+            if (((pLight->pExtra->flags & W8_PARAM_LIGHT_HAS_PATH) != 0) &&
+                (pLight->pPathAI != 0)) {
                 fSuccess = WritePathAIFile(hFile, pLight->pPathAI);
                 free(pLight->pPathAI);
             }
@@ -1676,8 +1678,8 @@ BOOLEAN ReadAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj)
                                     return FALSE;
                                 }
                             }
-                            if ((usFrame == 0) &&
-                                ((pMorph->LODMesh.pFrames->mesh.flags & 1) != 0)) {
+                            if ((usFrame == 0) && ((pMorph->LODMesh.pFrames->mesh.flags &
+                                                    W8_LEVEL_MESH_LOD_VERTICES) != 0)) {
                                 usFrame = pMorph->num_frames;
                             }
                             ++usFrame;
@@ -1871,7 +1873,8 @@ BOOLEAN WriteAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj)
                             free(pFrame->pTextures);
                             pFrame->pTextures = 0;
                         }
-                        if ((usFrame == 0) && ((pMorph->LODMesh.pFrames->mesh.flags & 1) != 0)) {
+                        if ((usFrame == 0) && ((pMorph->LODMesh.pFrames->mesh.flags &
+                                                W8_LEVEL_MESH_LOD_VERTICES) != 0)) {
                             usFrame = pMorph->num_frames;
                         }
                         ++usFrame;

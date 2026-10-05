@@ -1719,7 +1719,7 @@ bool W8PropRepresentation::LoadProp(W8ReadLevelInfo* info, W8Prop* prop)
             trigger = Trigger::CreateAndLoadLevelTrigger(hFile, info->world);
             /* Retail writes the attach fields first, then tests type at +0x22a
                (the stores do not touch that word). */
-            trigger->m_bRepType = 2;
+            trigger->m_bRepType = W8_TRIGGER_REP_PROP;
             trigger->m_pProp = prop;
             if (trigger->initial_action == 0x40) {
                 InitializeStateDrivenPropVariables(trigger);

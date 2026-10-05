@@ -501,7 +501,7 @@ void GDProp::ApplyAnimFrame(unsigned short frame, W8LevelFileAnimObj* anim)
 
     for (index = 0; index < anim->num_transforms; ++index) {
         W8LevelFileMesh* mesh = &anim->pTransforms[index].LODMesh.pFrames->mesh;
-        if ((mesh->flags & 1) != 0) {
+        if ((mesh->flags & W8_LEVEL_MESH_LOD_VERTICES) != 0) {
             srAssertFail("FALSE", "C:\\Projects\\Wizardry 8\\Engine Code\\GDProp.cpp", 0x355,
                          "Transform prop made collideable!!!");
             m_surface_count += mesh->num_lods * mesh->num_faces;
@@ -560,7 +560,8 @@ void GDProp::TransformMeshGeometry(const W8LevelFileScaledPathNode* node, W8Leve
                     node->path.position.y * g_double_005ec150,
                     node->path.position.z * g_double_005ec150);
 
-    if ((mesh->flags & 1) != 0 && (mesh->flags & 2) != 0) {
+    if ((mesh->flags & W8_LEVEL_MESH_LOD_VERTICES) != 0 &&
+        (mesh->flags & W8_LEVEL_MESH_SHORT_LOD_VERTICES) != 0) {
         factor = mesh->lod_scale * g_world_scale;
     } else {
         factor = static_cast<float>(g_double_005ec150);
@@ -571,10 +572,10 @@ void GDProp::TransformMeshGeometry(const W8LevelFileScaledPathNode* node, W8Leve
     matrix.SetTranslation(translation);
     matrix.Scale(scale);
 
-    if ((mesh->flags & 1) != 0) {
+    if ((mesh->flags & W8_LEVEL_MESH_LOD_VERTICES) != 0) {
         for (int lod = 0; lod < mesh->num_lods; ++lod) {
             int vertex_base = m_vertex_count;
-            if ((mesh->flags & 2) != 0) {
+            if ((mesh->flags & W8_LEVEL_MESH_SHORT_LOD_VERTICES) != 0) {
                 short* vertices = mesh->lod_shorts[lod];
                 for (int vertex = 0; vertex < mesh->num_vertices; ++vertex) {
                     m_pVertices[m_vertex_count] = matrix.TransformPoint(
@@ -590,7 +591,8 @@ void GDProp::TransformMeshGeometry(const W8LevelFileScaledPathNode* node, W8Leve
                     ++m_vertex_count;
                 }
             }
-            if ((mesh->flags & 2) != 0) {
+            /* Retail tests the short-LOD bit here for the face representation. */
+            if ((mesh->flags & W8_LEVEL_MESH_SHORT_LOD_VERTICES) != 0) {
                 W8LevelFileCompressedFace* faces = mesh->pstCompFaces;
                 for (int face = 0; face < mesh->num_faces; ++face) {
                     W8GDSurface* surface = &m_pGDSurfaces[m_surface_count];
@@ -617,7 +619,7 @@ void GDProp::TransformMeshGeometry(const W8LevelFileScaledPathNode* node, W8Leve
             m_pVertices[m_vertex_count] = matrix.TransformPoint(vertices[vertex]);
             ++m_vertex_count;
         }
-        if ((mesh->flags & 2) != 0) {
+        if ((mesh->flags & W8_LEVEL_MESH_SHORT_LOD_VERTICES) != 0) {
             W8LevelFileCompressedFace* faces = mesh->pstCompFaces;
             for (int face = 0; face < mesh->num_faces; ++face) {
                 W8GDSurface* surface = &m_pGDSurfaces[m_surface_count];

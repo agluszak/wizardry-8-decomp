@@ -11,6 +11,16 @@ class Trigger;
 struct W8PathAI;
 extern unsigned int g_light_update_flags;
 
+enum W8ParametricLightFlag {
+    W8_PARAM_LIGHT_MODE_MASK = 3,
+    W8_PARAM_LIGHT_OSCILLATE = 0,
+    W8_PARAM_LIGHT_FLICKER = 1,
+    W8_PARAM_LIGHT_RAMP = 3,
+    W8_PARAM_LIGHT_COLOR = 8,
+    W8_PARAM_LIGHT_HAS_PATH = 0x10,
+    W8_PARAM_LIGHT_PING_PONG_PATH = 0x20
+};
+
 enum W8LightDefinitionKind {
     W8_LIGHT_DEFINITION_NONE = 0,
     W8_LIGHT_DEFINITION_PARAMETRIC = 1,

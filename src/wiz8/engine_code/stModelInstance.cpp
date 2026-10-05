@@ -586,7 +586,7 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
         }
 
         srVector3T<float>* poly_normals;
-        if ((model->flags >> 2) & 1) {
+        if ((model->flags & W8_MESH_HAS_FRAME_STORAGE) != 0) {
             mesh.positions =
                 model->GetVertexLocations(frame_index, 1, frame_interpolation);
             mesh.normals = model->GetVertexNormals(frame_index, 1);
@@ -692,7 +692,7 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
                     }
 
                     const srVector3T<float>* poly_normals = 0;
-                    if ((model->flags >> 2) & 1) {
+                    if ((model->flags & W8_MESH_HAS_FRAME_STORAGE) != 0) {
                         mesh.dig[0] =
                             model->GetVertexLocations(frame_index, 1, frame_interpolation);
                         mesh.dig[1] = model->GetVertexNormals(frame_index, 1);

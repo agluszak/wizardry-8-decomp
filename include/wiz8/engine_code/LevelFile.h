@@ -12,6 +12,14 @@
 
 #include <stddef.h>
 
+enum W8LevelMeshFlag {
+    W8_LEVEL_MESH_LOD_VERTICES = 1,
+    W8_LEVEL_MESH_SHORT_LOD_VERTICES = 2,
+    W8_LEVEL_MESH_COMPRESSED_FACES = 4
+};
+
+enum W8LevelLightFlag { W8_LEVEL_LIGHT_HAS_DEFINITION = 2 };
+
 #pragma pack(push, 1)
 
 struct W8ReadMeshFace;

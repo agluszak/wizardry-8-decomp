@@ -125,23 +125,17 @@ bool MtGigas1PressurePlate(Trigger* pTrigger)
         pPlateTrigger = FindTriggerByName("secretDoor-01");
         if (pPlateTrigger != 0) {
             pPlateTrigger->Run(-1);
-            if (pPlateTrigger->m_bRepType != 2) {
-                srAssertFail("m_bRepType == TRIGGER_REP_PROP",
-                             "..\\Engine Code\\Include\\Trigger.hpp", 0x3ed, 0);
-            }
-            if (pPlateTrigger->m_pProp != 0) {
-                pPlateTrigger->m_pProp->SetSetting6E(1);
+            W8Prop* prop = pPlateTrigger->GetProp();
+            if (prop != 0) {
+                prop->SetSetting6E(1);
             }
         }
         pPlateTrigger = FindTriggerByName("plate");
         if (pPlateTrigger != 0) {
             pPlateTrigger->Run(-1);
-            if (pPlateTrigger->m_bRepType != 2) {
-                srAssertFail("m_bRepType == TRIGGER_REP_PROP",
-                             "..\\Engine Code\\Include\\Trigger.hpp", 0x3ed, 0);
-            }
-            if (pPlateTrigger->m_pProp != 0) {
-                pPlateTrigger->m_pProp->SetSetting6E(1);
+            W8Prop* prop = pPlateTrigger->GetProp();
+            if (prop != 0) {
+                prop->SetSetting6E(1);
             }
         }
         g_plate_down = 1;
@@ -156,23 +150,17 @@ bool MtGigas1PressurePlate(Trigger* pTrigger)
     pPlateTrigger = FindTriggerByName("secretDoor-01");
     if (pPlateTrigger != 0) {
         pPlateTrigger->Run(-1);
-        if (pPlateTrigger->m_bRepType != 2) {
-            srAssertFail("m_bRepType == TRIGGER_REP_PROP", "..\\Engine Code\\Include\\Trigger.hpp",
-                         0x3ed, 0);
-        }
-        if (pPlateTrigger->m_pProp != 0) {
-            pPlateTrigger->m_pProp->SetSetting6E(3);
+        W8Prop* prop = pPlateTrigger->GetProp();
+        if (prop != 0) {
+            prop->SetSetting6E(3);
         }
     }
     pPlateTrigger = FindTriggerByName("plate");
     if (pPlateTrigger != 0) {
         pPlateTrigger->Run(-1);
-        if (pPlateTrigger->m_bRepType != 2) {
-            srAssertFail("m_bRepType == TRIGGER_REP_PROP", "..\\Engine Code\\Include\\Trigger.hpp",
-                         0x3ed, 0);
-        }
-        if (pPlateTrigger->m_pProp != 0) {
-            pPlateTrigger->m_pProp->SetSetting6E(3);
+        W8Prop* prop = pPlateTrigger->GetProp();
+        if (prop != 0) {
+            prop->SetSetting6E(3);
         }
     }
     g_plate_down = 0;
