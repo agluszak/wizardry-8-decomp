@@ -1098,10 +1098,11 @@ unsigned char W8PathingService::TestAttachmentHopDoor(W8NavigatorAttachment* att
                     }
                 }
                 W8TriggerActionData* action_data = selected->m_pActionData;
-                if (action_data == 0 || action_data->type != 10) {
+                if (action_data == 0 || action_data->type != W8_TRIGGER_PAYLOAD_DOOR) {
                     action_data = 0;
                 }
-                if ((static_cast<W8DoorTriggerActionData*>(action_data)->door_flags & 1) == 0) {
+                if ((static_cast<W8DoorTriggerActionData*>(action_data)->door_flags &
+                     W8_DOOR_OPEN) == 0) {
                     return 1;
                 }
             }
@@ -4650,7 +4651,7 @@ void W8PathingService::ActivateMovementTrigger(W8NavigatorMovementState* movemen
     if (count == 1) {
         W8Prop* prop = *g_world->collidable_props->GetAt(candidates[0]);
         Trigger* trigger = prop->GetGDPropOwnerTrigger();
-        if (prop->GetSetting6C() == 0 || trigger == 0 ||
+        if (prop->GetActivationState() == 0 || trigger == 0 ||
             (trigger->flags & W8_TRIGGER_ENABLED) == 0) {
             return;
         }
@@ -4663,7 +4664,7 @@ void W8PathingService::ActivateMovementTrigger(W8NavigatorMovementState* movemen
         for (int index = 0; index < count; ++index) {
             W8Prop* prop = *g_world->collidable_props->GetAt(candidates[index]);
             Trigger* trigger = prop->GetGDPropOwnerTrigger();
-            if (prop->GetSetting6C() != 0 && trigger != 0 &&
+            if (prop->GetActivationState() != 0 && trigger != 0 &&
                 (trigger->flags & W8_TRIGGER_ENABLED) != 0) {
                 srVector3T<float> center;
                 prop->GetPosition(&center);

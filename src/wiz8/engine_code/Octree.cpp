@@ -260,11 +260,11 @@ void W8Octree::UpdateVisibility()
             }
         }
         for (index = 0; index < m_usNumPropsLoaded; ++index) {
-            m_papProps[index]->SetSetting6C(0);
+            m_papProps[index]->SetActivationState(0);
         }
         if (m_pusMeshProps != 0) {
             for (index = 0; m_pusMeshProps[index] != 0; ++index) {
-                m_papProps[m_pusMeshProps[index] - 1]->SetSetting6C(1);
+                m_papProps[m_pusMeshProps[index] - 1]->SetActivationState(1);
             }
         }
         for (index = 0; index < m_usNumParticlesLoaded; ++index) {
@@ -379,13 +379,13 @@ void W8Octree::UpdateVisibility()
         while (bit != 0) {
             --bit;
             if (!m_visible_props->Test(bit)) {
-                m_papProps[bit]->SetSetting6C(1);
+                m_papProps[bit]->SetActivationState(1);
             }
             bit = m_linked_props->NextSetBit(0);
         }
         bit = m_props_to_disable->NextSetBit(1);
         while (bit != 0) {
-            m_papProps[bit - 1]->SetSetting6C(0);
+            m_papProps[bit - 1]->SetActivationState(0);
             bit = m_props_to_disable->NextSetBit(0);
         }
         m_visible_props->CopyFrom(*m_linked_props);
@@ -1375,7 +1375,7 @@ void W8Octree::BuildRegionLinks(bool rebuild_all)
     unsigned short rows =
         static_cast<unsigned short>(static_cast<int>(m_spatial.m_extent / stride));
     for (unsigned int prop = 0; prop < m_usNumPropsLoaded; ++prop) {
-        m_papProps[prop]->SetSetting6C(0);
+        m_papProps[prop]->SetActivationState(0);
     }
     for (unsigned int particle = 0; particle < m_usNumParticlesLoaded; ++particle) {
         m_papParticles[particle]->SetTraversalEnabled(0);
@@ -4348,7 +4348,7 @@ unsigned char W8Octree::TestBoxOccupied(const srVector3T<float>* lower,
         index = 0;
         do {
             W8Prop* prop = *g_world->collidable_props->GetAt(objects[index]);
-            if (prop->GetSetting6C() != 0 && prop->m_gd_prop != 0) {
+            if (prop->GetActivationState() != 0 && prop->m_gd_prop != 0) {
                 GDProp* gd_prop = prop->m_gd_prop;
                 for (int surface_index = 0; surface_index < gd_prop->m_surface_count;
                      ++surface_index) {

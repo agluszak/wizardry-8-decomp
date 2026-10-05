@@ -98,7 +98,7 @@ public:
     /* Frame-advance timestamp; GrCycle subtracts it from the current time. */
     unsigned int timer;
     unsigned char
-        active; /* bool-byte-ok: SetSetting6C stores and GetSetting6C returns the caller's byte. */
+        active; /* bool-byte-ok: SetActivationState stores and GetActivationState returns the caller's byte. */
     unsigned char
         animation_playing; /* bool-byte-ok: copied directly from file-backed W8AnimObj byte. */
     /* W8AnimationDirection, retained as a byte in the representation. */

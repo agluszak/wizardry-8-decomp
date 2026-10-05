@@ -1205,7 +1205,7 @@ void EndNpcDialogueSession(bool param_1)
     RequestRedrawCombatBar();
     RequestRedraw(W8_MAIN_REDRAW_SUBMENU_BUTTONS);
     for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterList); index++) {
-        ClearMonsterEffect2DE(MonsterGetScriptPartByLocationIndex(index));
+        ClearMonsterCharm(MonsterGetScriptPartByLocationIndex(index));
     }
     GetNpcMonsterInfo(g_npc_interaction_state->dialogue_npc);
     KillTextInputMode();
@@ -4252,7 +4252,7 @@ void OpenNpcDialog(W8NpcQuoteEntry* request, int aux_data)
         monster_info = GetNpcMonsterInfo(g_npc_interaction_state->dialogue_npc);
         if (monster_info != 0) {
             g_npc_interaction_state->pending_price -= static_cast<int>(
-                monster_info->effect * 0.01f * g_npc_interaction_state->pending_price);
+                monster_info->charm_strength * 0.01f * g_npc_interaction_state->pending_price);
         }
         g_npc_interaction_state->pending_price -=
             GetBestPartySkillLevel(W8_SKILL_COMMUNICATION, 0) *

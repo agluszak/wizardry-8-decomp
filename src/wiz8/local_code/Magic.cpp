@@ -3788,7 +3788,7 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
     } else if (TargetSourceIsMonster(source, 0)) {
         centre = monster->GetPosition();
         fVertextAvail = 0;
-        if (source->point_source == 0 && spell_id != 0x77 && monster_info->has_spell != 0) {
+        if (source->point_source == 0 && spell_id != 0x77 && monster_info->has_spell_origin != 0) {
             fVertextAvail = monster->GetSpellPosition(&eye);
             if (fVertextAvail == 0) {
                 srAssertFail("fVertextAvail", MAGIC_CPP, 0x951, 0);

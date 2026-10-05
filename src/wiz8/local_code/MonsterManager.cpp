@@ -125,7 +125,7 @@ W8MonsterInfo* CreateMonsterInfo(W8MonsterGroup* group, W8MonsterRecord* record,
     memset(monster_info->enchantments, 0, sizeof(monster_info->enchantments));
     monster_info->highest_condition = W8_CONDITION_NONE;
     monster_info->condition_argument = 0;
-    monster_info->effect = 0;
+    monster_info->charm_strength = 0;
     memset(&monster_info->modifiers, 0, sizeof(monster_info->modifiers));
     monster_info->fMotionless = 0;
     monster_info->ai_mode = 0;

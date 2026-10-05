@@ -671,33 +671,37 @@ bool CreateMessageBox(wchar_t* text, int font, unsigned int shade, bool has_acce
     return true;
 }
 
+static void ReleaseMessageBoxControls()
+{
+    SGPRect rect;
+    if (g_message_box_accept_button != -1) {
+        RemoveButton(g_message_box_accept_button);
+        UnloadButtonImage(g_message_box_accept_image);
+    }
+    if (g_message_box_cancel_button != -1) {
+        RemoveButton(g_message_box_cancel_button);
+        UnloadButtonImage(g_message_box_cancel_image);
+    }
+    if (g_message_box_background_button != -1) {
+        GetButtonArea(g_message_box_background_button, &rect);
+        ClearSurfaceRect(rect.iLeft, rect.iTop, rect.iRight, rect.iBottom);
+        InvalidateRegion(rect.iLeft, rect.iTop, rect.iRight, rect.iBottom, 1);
+        RemoveButton(g_message_box_background_button);
+    }
+    if (g_message_box_background_image != -1) {
+        UnloadGenericButtonImage(g_message_box_background_image);
+        g_message_box_background_image = -1;
+    }
+}
+
 /* Force-dismiss an open message box (state 2 -> 3): remove the buttons and
    images, clear and invalidate the background rect, and drop the accepted
    latch so RenderMessageBox never fires the callback. */
 // FUNCTION: WIZ8 0x005187E0
 void CloseMessageBox(void)
 {
-    SGPRect rect;
-
     if (g_message_box_state == 2) {
-        if (g_message_box_accept_button != -1) {
-            RemoveButton(g_message_box_accept_button);
-            UnloadButtonImage(g_message_box_accept_image);
-        }
-        if (g_message_box_cancel_button != -1) {
-            RemoveButton(g_message_box_cancel_button);
-            UnloadButtonImage(g_message_box_cancel_image);
-        }
-        if (g_message_box_background_button != -1) {
-            GetButtonArea(g_message_box_background_button, &rect);
-            ClearSurfaceRect(rect.iLeft, rect.iTop, rect.iRight, rect.iBottom);
-            InvalidateRegion(rect.iLeft, rect.iTop, rect.iRight, rect.iBottom, 1);
-            RemoveButton(g_message_box_background_button);
-        }
-        if (g_message_box_background_image != -1) {
-            UnloadGenericButtonImage(g_message_box_background_image);
-            g_message_box_background_image = -1;
-        }
+        ReleaseMessageBoxControls();
         g_message_box_state = 3;
         g_message_box_accepted = 0;
     }
@@ -759,25 +763,7 @@ bool IsMessageBoxActive(void)
 void RenderMessageBox(void)
 {
     if (g_message_box_state == 1) {
-        if (g_message_box_accept_button != -1) {
-            RemoveButton(g_message_box_accept_button);
-            UnloadButtonImage(g_message_box_accept_image);
-        }
-        if (g_message_box_cancel_button != -1) {
-            RemoveButton(g_message_box_cancel_button);
-            UnloadButtonImage(g_message_box_cancel_image);
-        }
-        if (g_message_box_background_button != -1) {
-            SGPRect rect;
-            GetButtonArea(g_message_box_background_button, &rect);
-            ClearSurfaceRect(rect.iLeft, rect.iTop, rect.iRight, rect.iBottom);
-            InvalidateRegion(rect.iLeft, rect.iTop, rect.iRight, rect.iBottom, 1);
-            RemoveButton(g_message_box_background_button);
-        }
-        if (g_message_box_background_image != -1) {
-            UnloadGenericButtonImage(g_message_box_background_image);
-            g_message_box_background_image = -1;
-        }
+        ReleaseMessageBoxControls();
         g_message_box_state = 3;
     } else if (g_message_box_state == 2) {
         HVOBJECT font;

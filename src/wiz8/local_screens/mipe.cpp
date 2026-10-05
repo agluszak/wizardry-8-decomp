@@ -2139,7 +2139,7 @@ void HandleMipeLockTrapKey(unsigned short key)
     lock_state = &trigger->lock_state;
     action_trigger = g_mipe_state->prop->GetTrigger();
     action = action_trigger->m_pActionData;
-    if (action == 0 || action->type != '\n') {
+    if (action == 0 || action->type != W8_TRIGGER_PAYLOAD_DOOR) {
         action = 0;
     }
     switch (key) {
@@ -2163,7 +2163,8 @@ void HandleMipeLockTrapKey(unsigned short key)
                 pending = 1;
             }
             static_cast<W8DoorTriggerActionData*>(action)->door_flags =
-                (pending << 2) | (static_cast<W8DoorTriggerActionData*>(action)->door_flags & 0xfb);
+                (pending << 2) |
+                (static_cast<W8DoorTriggerActionData*>(action)->door_flags & ~W8_DOOR_KEY_REQUIRED);
             static_cast<W8DoorTriggerActionData*>(action)->item =
                 static_cast<short>(trigger->lock_state.key_id);
         }
@@ -2201,7 +2202,7 @@ void EditTriggerKeyID(unsigned int key)
 
     trigger = g_mipe_state->prop->GetTrigger();
     action = g_mipe_state->prop->GetTrigger()->m_pActionData;
-    if (action == 0 || action->type != '\n') {
+    if (action == 0 || action->type != W8_TRIGGER_PAYLOAD_DOOR) {
         action = 0;
     }
     key_id = trigger->lock_state.key_id;
@@ -2239,7 +2240,8 @@ void EditTriggerKeyID(unsigned int key)
             pending = 1;
         }
         static_cast<W8DoorTriggerActionData*>(action)->door_flags =
-            (pending << 2) | (static_cast<W8DoorTriggerActionData*>(action)->door_flags & 0xfb);
+            (pending << 2) |
+            (static_cast<W8DoorTriggerActionData*>(action)->door_flags & ~W8_DOOR_KEY_REQUIRED);
         static_cast<W8DoorTriggerActionData*>(action)->item =
             static_cast<short>(trigger->lock_state.key_id);
     }

@@ -118,7 +118,7 @@ char GetNpcDisposition(W8NpcState* npc)
         monster_info = MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(0x2a1, NPC_MANAGER_CPP, npc->location_id, 1));
         if (monster_info != 0) {
-            disposition += monster_info->effect;
+            disposition += monster_info->charm_strength;
             if (monster_info->uiCondition[W8_CONDITION_TURNCOAT] > 0) {
                 disposition = 0x64;
             }

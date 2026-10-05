@@ -529,7 +529,7 @@ W8RangeCategory GetBestHandRangeCategory(const W8Character* character)
 bool RangeCategoryUsesSightCondition(const W8MonsterInfo* monster, W8RangeCategory range_category)
 {
     if (range_category >= W8_RANGE_LONG && range_category <= W8_RANGE_EXTREME) {
-        return GetSightCondition37A(monster);
+        return MonsterHasProjectileOrigin(monster);
     }
     return 0;
 }
@@ -599,7 +599,7 @@ static int GetMonsterActionSightIndex(W8MonsterInfo* monster_info, unsigned int 
             monster_info, static_cast<W8RangeCategory>(record->attacks[attack].range_category));
     }
     if (monster_info->action_kind == W8_MONSTER_ACTION_SPELL) {
-        return GetSightCondition37CIndex(monster_info);
+        return GetMonsterSpellSightIndex(monster_info);
     }
     return monster_info->action_kind == W8_MONSTER_ACTION_SPECIAL_ATTACK ? 2 : 0;
 }
@@ -732,7 +732,7 @@ W8RangeCategory GetMonsterBestRangeCategory(W8MonsterInfo* monster_info,
     }
 
     if (best >= W8_RANGE_LONG && best <= W8_RANGE_EXTREME) {
-        *out_sight = GetSightCondition37A(monster_info);
+        *out_sight = MonsterHasProjectileOrigin(monster_info);
     } else {
         *out_sight = 0;
     }
@@ -767,7 +767,7 @@ W8RangeCategory GetMonsterBestRangeCategory(W8MonsterInfo* monster_info,
         }
         if (static_cast<int>(best) < static_cast<int>(g_spell_records[spell_id].range_category)) {
             best = g_spell_records[spell_id].range_category;
-            *out_sight = GetSightCondition37CIndex(monster_info);
+            *out_sight = GetMonsterSpellSightIndex(monster_info);
         }
     }
     return best;
@@ -1071,12 +1071,12 @@ void InitializeMonsterRangeCapabilities(W8MonsterInfo* monster_info, const W8Mon
     }
 
     srVector3T<float> position;
-    monster_info->has_missile =
+    monster_info->has_projectile_origin =
         best_range > W8_RANGE_SHORT && monster_info->p3D->GetProjectilePosition(&position) == 1;
 
-    monster_info->has_spell = record->spell_chance != 0 &&
-                                  MonsterIsCycleSupported(monster_info->p3D, 0x19) &&
-                                  monster_info->p3D->GetSpellPosition(&position) == 1;
+    monster_info->has_spell_origin = record->spell_chance != 0 &&
+                                     MonsterIsCycleSupported(monster_info->p3D, 0x19) &&
+                                     monster_info->p3D->GetSpellPosition(&position) == 1;
 }
 
 // FUNCTION: WIZ8 0x0051b3f0

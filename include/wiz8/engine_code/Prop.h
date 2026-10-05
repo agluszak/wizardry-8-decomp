@@ -123,15 +123,17 @@ public:
     /* The prop's current animation value; -1 when it has none. */
     int GetAnimationState() const; /* 0x0044EBE0 */
     void AttachAnimationInstances(W8World* world);
-    unsigned char GetSetting6C();
+    /* Raw activation byte, also persisted in prop animation state. */
+    unsigned char GetActivationState();
     srModelInstance* ToggleRepAnimation(int argument);
     srModelInstance* ToggleRepAnimationDefault();
     unsigned char PlayRepAnimation(srVector3T<float>* minimum, srVector3T<float>* maximum);
     void SetAnimationDirection(W8AnimationDirection direction);
     void SetRepresentationActive(unsigned char active, bool update_animation);
     bool CanBeUsedFrom(int arg_2, int arg_3, bool notify);
-    void SetSetting6C(unsigned char value);
-    void SetSetting66(char value);
+    void SetActivationState(unsigned char value);
+    /* Queues the signed byte as a short; -1 becomes the 0xffff sentinel. */
+    void SetPendingAnimationSubcycle(char value);
     void SetAnimationSpeed(float speed);
     bool IsAnimationPingPong();
     void ReverseAnimationDirection();

@@ -216,21 +216,21 @@ static void MtGigas2WireShock(void)
         prop = pTrigger->GetProp();
     }
     if (prop != 0) {
-        prop->SetSetting66(0);
+        prop->SetPendingAnimationSubcycle(0);
     }
     pTrigger = FindTriggerByName("bluewire");
     if (pTrigger != 0) {
         prop = pTrigger->GetProp();
     }
     if (prop != 0) {
-        prop->SetSetting66(0);
+        prop->SetPendingAnimationSubcycle(0);
     }
     pTrigger = FindTriggerByName("yellowire");
     if (pTrigger != 0) {
         prop = pTrigger->GetProp();
     }
     if (prop != 0) {
-        prop->SetSetting66(0);
+        prop->SetPendingAnimationSubcycle(0);
     }
     SetDice(&dice, 2, 4, 1);
     ApplyRolledHealthChangeToParty(&dice, 0, 1);
