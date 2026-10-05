@@ -120,6 +120,8 @@ class W8MainGameTextPanel : public Controls,
                             public W8TextControl::Listener,
                             public W8RangeListener {
 public:
+    void BeginProgress(const wchar_t* text, float duration, float hold);
+
     W8MainGameTextPanel();          /* 0x005884D0 */
     virtual ~W8MainGameTextPanel(); /* 0x00588790 */
     virtual void Redraw() override;
@@ -666,7 +668,7 @@ void RefreshFormationPanel(bool show_portraits); /* 0x005B2980 */
 void EndLockInteractMode(char suspend);          /* 0x005879A0 */
 void UpdateMainGameScreen(void);                 /* 0x0058A750 */
 void EndTrapInteractMode(char suspend);          /* 0x0058A790 */
-int GetPartySlotSkill10Level(int slot);
+int GetPartySlotLocksTrapsLevel(int slot);
 int OpenLockInteraction(Trigger* trigger);
 int OpenTrapInteraction(Trigger* trigger);
 /* 0x0056A770: when a slot's committed action cannot execute, re-choose a

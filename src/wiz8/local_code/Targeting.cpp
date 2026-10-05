@@ -830,6 +830,19 @@ void SetMonsterHighlight(int party_slot, int location_id, bool on)
     NotifyMonsterHighlight(party_slot, location_id, 0);
 }
 
+static bool IsMonsterHoverSelectable(W8MonsterInfo* monster_info)
+{
+    if (monster_info->fActive == 0 || monster_info->p3D->IsDying() != 0 ||
+        monster_info->p3D->hostility_preserved != 0 ||
+        !MonsterUsesCurrentModelInstance(monster_info->p3D)) {
+        return false;
+    }
+    if (monster_info->party_threat.use_bounds == 0) {
+        UpdateMonsterSight(monster_info, 1, 1);
+    }
+    return monster_info->p3D->IsRenderable(1) != 0;
+}
+
 /* The location id of the nearest live monster whose current model instance is
    under the cursor, or -1. Born monsters come first; the unborn list joins the
    scan only while g_dev_mode is set. The cursor coordinates are carried but
@@ -847,22 +860,7 @@ int PickNearestMonsterUnderCursor(int cursor_x, int cursor_y)
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
         float distance;
 
-        if (monster_info->fActive == 0) {
-            continue;
-        }
-        if (monster_info->p3D->IsDying() != 0) {
-            continue;
-        }
-        if (monster_info->p3D->hostility_preserved != 0) {
-            continue;
-        }
-        if (!MonsterUsesCurrentModelInstance(monster_info->p3D)) {
-            continue;
-        }
-        if (monster_info->party_threat.use_bounds == 0) {
-            UpdateMonsterSight(monster_info, 1, 1);
-        }
-        if (monster_info->p3D->IsRenderable(1) == 0) {
+        if (!IsMonsterHoverSelectable(monster_info)) {
             continue;
         }
         distance = MonsterDistanceToCamera(GetWorld(), monster_info->p3D);
@@ -876,22 +874,7 @@ int PickNearestMonsterUnderCursor(int cursor_x, int cursor_y)
             W8MonsterInfo* monster_info = GetUnbornMonsterEntry(index);
             float distance;
 
-            if (monster_info->fActive == 0) {
-                continue;
-            }
-            if (monster_info->p3D->IsDying() != 0) {
-                continue;
-            }
-            if (monster_info->p3D->hostility_preserved != 0) {
-                continue;
-            }
-            if (!MonsterUsesCurrentModelInstance(monster_info->p3D)) {
-                continue;
-            }
-            if (monster_info->party_threat.use_bounds == 0) {
-                UpdateMonsterSight(monster_info, 1, 1);
-            }
-            if (monster_info->p3D->IsRenderable(1) == 0) {
+            if (!IsMonsterHoverSelectable(monster_info)) {
                 continue;
             }
             distance = MonsterDistanceToCamera(GetWorld(), monster_info->p3D);

@@ -3496,7 +3496,7 @@ int ChooseCharacterEquipSlot(W8Character* character, int item_id)
     switch (g_item_records[item_id].equip_class) {
     case W8_ITEM_EQUIP_CLASS_SHORT_WEAPON:
     case W8_ITEM_EQUIP_CLASS_EXTENDED_WEAPON:
-        if (character->skills[0x12].points != 0) {
+        if (character->skills[W8_SKILL_DUAL_WEAPONS].points != 0) {
             if (CanEquipItemInSlot(character, item_id, 7, 0)) {
                 if (primary_right != -1 && primary_left == -1 &&
                     (g_item_records[primary_right].equip_class ==

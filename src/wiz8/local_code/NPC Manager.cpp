@@ -1811,7 +1811,7 @@ void ApplyNpcInteraction(W8NpcState* npc, int kind, int value, W8ItemInstance* i
         } else {
             npc->disposition += static_cast<char>(delta);
         }
-        PracticeCharacterSkill(&g_status.buffers.Char[kind], 0x16, 8, 0);
+        PracticeCharacterSkill(&g_status.buffers.Char[kind], W8_SKILL_COMMUNICATION, 8, 0);
         GetNpcDisposition(npc);
         return;
     }
@@ -1875,7 +1875,7 @@ void ApplyNpcInteraction(W8NpcState* npc, int kind, int value, W8ItemInstance* i
         } else {
             npc->disposition += static_cast<char>(delta);
         }
-        PracticeCharacterSkill(&g_status.buffers.Char[value], 0x16, 5, 0);
+        PracticeCharacterSkill(&g_status.buffers.Char[value], W8_SKILL_COMMUNICATION, 5, 0);
         GetNpcDisposition(npc);
         return;
     }
@@ -1965,7 +1965,7 @@ char ScoreNpcTheft(W8Character* character, W8NpcState* npc, int item_id, int cou
     W8ItemInstance item;
     int score;
 
-    unsigned int skill = character->skills[0xd].level;
+    unsigned int skill = character->skills[W8_SKILL_PICKPOCKET].level;
     if (character->iProfession == W8_PROFESSION_ROGUE) {
         skill += character->attributes[W8_ATTRIBUTE_DEXTERITY].effective / 10;
     } else if (static_cast<int>(skill) >= 1) {
@@ -1975,7 +1975,7 @@ char ScoreNpcTheft(W8Character* character, W8NpcState* npc, int item_id, int cou
     score -= (Random(5) + 10) * static_cast<signed char>(npc->suspicion);
     W8MonsterInfo* monster_info = GetNpcMonsterInfo(npc);
     W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
-    unsigned int penalty = character->skills[0xd].level >> 2;
+    unsigned int penalty = character->skills[W8_SKILL_PICKPOCKET].level >> 2;
     score += (character->uiExpLevel - record->effective_level) * 5;
     if (item_id != -1) {
         unsigned int weight = g_item_records[item_id].weight * count;
@@ -1996,6 +1996,22 @@ char ScoreNpcTheft(W8Character* character, W8NpcState* npc, int item_id, int cou
     return result;
 }
 
+static void SeedNpcTheftRoll(W8Character* character, W8NpcState* npc)
+{
+    int spins = CharacterPointerToPartySlot(character) + npc->name_style * 0xb +
+                static_cast<signed char>(npc->suspicion) * 7;
+    unsigned int seed = 0;
+    for (int index = 2; index < 8; ++index) {
+        if (g_status.buffers.XChar[index].fOccupied != 0) {
+            seed += g_status.buffers.Char[index].experience;
+        }
+    }
+    srand(seed);
+    for (; spins != 0; --spins) {
+        Random(100);
+    }
+}
+
 /* Resolve one pickpocket attempt against the NPC's stock: the PRNG is reseeded
    from the living party's experience and spun by the NPC's naming style and
    suspicion, then either the purse or a random eligible item is scored.
@@ -2009,18 +2025,7 @@ int AttemptNpcPickpocket(W8Character* character, W8NpcState* npc, W8ItemInstance
     unsigned int picked = 0xffffffff;
     int index;
 
-    int spins = CharacterPointerToPartySlot(character) + npc->name_style * 0xb +
-                static_cast<signed char>(npc->suspicion) * 7;
-    unsigned int seed = 0;
-    for (index = 2; index < 8; ++index) {
-        if (g_status.buffers.XChar[index].fOccupied != 0) {
-            seed += g_status.buffers.Char[index].experience;
-        }
-    }
-    srand(seed);
-    for (; spins != 0; --spins) {
-        Random(100);
-    }
+    SeedNpcTheftRoll(character, npc);
     for (index = 0; index < 40; ++index) {
         short item_id = npc->item_ids[index];
         if (item_id != -1 && item_id != 0x242 && item_id != 0x244 && item_id != 0x243) {
@@ -2049,7 +2054,7 @@ int AttemptNpcPickpocket(W8Character* character, W8NpcState* npc, W8ItemInstance
     }
     if (empty_pick) {
         if (npc->gold != 0) {
-            PracticeCharacterSkill(character, 0xd, 5, 0);
+            PracticeCharacterSkill(character, W8_SKILL_PICKPOCKET, 5, 0);
             unsigned int taken = Random(100) * 7;
             if (static_cast<unsigned int>(npc->gold) < taken) {
                 taken = npc->gold;
@@ -2075,7 +2080,7 @@ int AttemptNpcPickpocket(W8Character* character, W8NpcState* npc, W8ItemInstance
             ReplaceOrCreateItem(item_out, item_id, 1, 1, 0);
         }
         npc->item_ids[picked & 0xff] = -1;
-        PracticeCharacterSkill(character, 0xd, 5, 0);
+        PracticeCharacterSkill(character, W8_SKILL_PICKPOCKET, 5, 0);
     }
     return 0;
 }
@@ -2085,20 +2090,7 @@ int AttemptNpcPickpocket(W8Character* character, W8NpcState* npc, W8ItemInstance
 // FUNCTION: WIZ8 0x0050C040
 char AttemptNpcItemTheft(W8Character* character, W8NpcState* npc, int item_id, int count)
 {
-    int index;
-
-    int spins = CharacterPointerToPartySlot(character) + npc->name_style * 0xb +
-                static_cast<signed char>(npc->suspicion) * 7;
-    unsigned int seed = 0;
-    for (index = 2; index < 8; ++index) {
-        if (g_status.buffers.XChar[index].fOccupied != 0) {
-            seed += g_status.buffers.Char[index].experience;
-        }
-    }
-    srand(seed);
-    for (; spins != 0; --spins) {
-        Random(100);
-    }
+    SeedNpcTheftRoll(character, npc);
     char score = ScoreNpcTheft(character, npc, item_id, count);
     if (static_cast<signed char>(npc->suspicion) < 'd') {
         ++npc->suspicion;
@@ -2106,7 +2098,7 @@ char AttemptNpcItemTheft(W8Character* character, W8NpcState* npc, int item_id, i
     char roll = static_cast<char>(Random(100));
     if (roll < '`' && roll <= score * 2) {
         if (roll < score) {
-            PracticeCharacterSkill(character, 0xd, 5, 0);
+            PracticeCharacterSkill(character, W8_SKILL_PICKPOCKET, 5, 0);
             return 0;
         }
         return 1;
@@ -2427,6 +2419,23 @@ void ClearPendingNpcLevelFlags(void)
     }
 }
 
+static void ReleaseNpcCompanionMonster(W8NpcState* npc)
+{
+    if (npc->has_monster) {
+        if (npc->is_present) {
+            unsigned int index =
+                MonsterGetIndexByLocationID(0x2a1, NPC_MANAGER_CPP, npc->location_id, 1);
+            W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(index);
+            if (monster != 0) {
+                RemoveMonster(
+                    MonsterGetIndexByLocationID(0x9bb, NPC_MANAGER_CPP, monster->location_id, 1),
+                    1);
+            }
+        }
+        ReleaseNpcBinding(npc->partner_index);
+    }
+}
+
 /* Release the monster binding of every NPC whose stamped release flag matches
    the loaded level. The companion NPC is found by the record kind matching the
    NPC's naming style; its live monster is destroyed and its own binding is
@@ -2449,41 +2458,8 @@ void ReleaseNpcMonsterBindings(void)
 
         if (npc->pending_release != 0 && npc->binding_unavailable == 0 &&
             npc->pending_release_level == g_status.current_level) {
-            W8NpcState* companion = 0;
-            bool found = false;
-
-            for (unsigned int index = 0; index < count; ++index) {
-                W8NpcState** candidate_slot = g_npc_states->data;
-
-                if (index < count) {
-                    candidate_slot += index;
-                }
-                companion = *candidate_slot;
-                if (static_cast<unsigned int>(companion->record->kind) == npc->name_style) {
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) {
-                companion = 0;
-            }
-            if (companion->has_monster) {
-                if (companion->is_present) {
-                    unsigned int monster_index = MonsterGetIndexByLocationID(
-                        0x2a1, NPC_MANAGER_CPP, companion->location_id, 1);
-                    W8MonsterInfo* monster_info =
-                        MonsterGetScriptPartByLocationIndex(monster_index);
-
-                    if (monster_info != 0) {
-                        bool destroy = 1;
-
-                        monster_index = MonsterGetIndexByLocationID(0x9bb, NPC_MANAGER_CPP,
-                                                                    monster_info->location_id, 1);
-                        RemoveMonster(monster_index, destroy);
-                    }
-                }
-                ReleaseNpcBinding(companion->partner_index);
-            }
+            W8NpcState* companion = GetNpcStateByKind(npc->name_style);
+            ReleaseNpcCompanionMonster(companion);
         }
         count = g_npc_states->count;
         ++npc_index;
@@ -2497,33 +2473,8 @@ void ReleaseNpcMonsterBindings(void)
 void ReleaseNpcMonsterBinding(W8NpcState* npc, char level)
 {
     if (level == g_status.current_level) {
-        unsigned int count = g_npc_states->count;
-        W8NpcState* companion = 0;
-        for (unsigned int index = 0; index < count; ++index) {
-            W8NpcState** slot = g_npc_states->data;
-            if (index < count) {
-                slot += index;
-            }
-            W8NpcState* candidate = *slot;
-            if (static_cast<unsigned int>(candidate->record->kind) == npc->name_style) {
-                companion = candidate;
-                break;
-            }
-        }
-        if (companion->has_monster) {
-            if (companion->is_present) {
-                unsigned int monster_index =
-                    MonsterGetIndexByLocationID(0x2a1, NPC_MANAGER_CPP, companion->location_id, 1);
-                W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-
-                if (monster_info != 0) {
-                    RemoveMonster(MonsterGetIndexByLocationID(0x9bb, NPC_MANAGER_CPP,
-                                                              monster_info->location_id, 1),
-                                  1);
-                }
-            }
-            ReleaseNpcBinding(companion->partner_index);
-        }
+        W8NpcState* companion = GetNpcStateByKind(npc->name_style);
+        ReleaseNpcCompanionMonster(companion);
     } else {
         npc->pending_release = 1;
         npc->pending_release_level = level;
@@ -2536,27 +2487,8 @@ void ReleaseNpcMonsterBinding(W8NpcState* npc, char level)
 // FUNCTION: WIZ8 0x0050C680
 void ReleaseNpcMonsterByKind(int kind)
 {
-    W8NpcState* npc = 0;
-
-    for (int index = 0; index < g_npc_states->count; ++index) {
-        W8NpcState* candidate = *g_npc_states->GetAt(index);
-        if (candidate->record->kind == kind) {
-            npc = candidate;
-            break;
-        }
-    }
-    if (npc->has_monster) {
-        if (npc->is_present) {
-            W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(
-                MonsterGetIndexByLocationID(0x2a1, NPC_MANAGER_CPP, npc->location_id, 1));
-            if (monster_info != 0) {
-                RemoveMonster(MonsterGetIndexByLocationID(0x9bb, NPC_MANAGER_CPP,
-                                                          monster_info->location_id, 1),
-                              1);
-            }
-        }
-        ReleaseNpcBinding(npc->partner_index);
-    }
+    W8NpcState* npc = GetNpcStateByKind(kind);
+    ReleaseNpcCompanionMonster(npc);
 }
 
 /* Place or move this NPC's monster at the named world entity. Without a live
@@ -2686,35 +2618,8 @@ void HandleMarkedNpcEvent(W8NpcState* npc, char mode)
         }
     }
     if (mode != 0) {
-        unsigned int count = g_npc_states->count;
-        W8NpcState* companion = 0;
-
-        for (unsigned int index = 0; index < count; ++index) {
-            W8NpcState** slot = g_npc_states->data;
-
-            if (index < count) {
-                slot += index;
-            }
-            W8NpcState* candidate = *slot;
-            if (static_cast<unsigned int>(candidate->record->kind) == npc->name_style) {
-                companion = candidate;
-                break;
-            }
-        }
-        if (companion->has_monster) {
-            if (companion->is_present) {
-                unsigned int monster_index =
-                    MonsterGetIndexByLocationID(0x2a1, NPC_MANAGER_CPP, companion->location_id, 1);
-                W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(monster_index);
-
-                if (info != 0) {
-                    RemoveMonster(
-                        MonsterGetIndexByLocationID(0x9bb, NPC_MANAGER_CPP, info->location_id, 1),
-                        1);
-                }
-            }
-            ReleaseNpcBinding(companion->partner_index);
-        }
+        W8NpcState* companion = GetNpcStateByKind(npc->name_style);
+        ReleaseNpcCompanionMonster(companion);
     } else {
         npc->restored = true;
         g_status.npc_restore_pending = 1;
@@ -2756,41 +2661,8 @@ void ReleaseMarkedNpcBindings(void)
                 HandleMarkedNpcEvent(npc, 1);
             }
             if (npc->pending_restore != 0) {
-                W8NpcState* companion = 0;
-                bool found = false;
-
-                for (unsigned int index = 0; index < count; ++index) {
-                    W8NpcState** candidate_slot = g_npc_states->data;
-
-                    if (index < count) {
-                        candidate_slot += index;
-                    }
-                    companion = *candidate_slot;
-                    if (static_cast<unsigned int>(companion->record->kind) == npc->name_style) {
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found) {
-                    companion = 0;
-                }
-                if (companion->has_monster) {
-                    if (companion->is_present) {
-                        unsigned int monster_index = MonsterGetIndexByLocationID(
-                            0x2a1, NPC_MANAGER_CPP, companion->location_id, 1);
-                        W8MonsterInfo* monster_info =
-                            MonsterGetScriptPartByLocationIndex(monster_index);
-
-                        if (monster_info != 0) {
-                            bool destroy = 1;
-
-                            monster_index = MonsterGetIndexByLocationID(
-                                0x9bb, NPC_MANAGER_CPP, monster_info->location_id, 1);
-                            RemoveMonster(monster_index, destroy);
-                        }
-                    }
-                    ReleaseNpcBinding(companion->partner_index);
-                }
+                W8NpcState* companion = GetNpcStateByKind(npc->name_style);
+                ReleaseNpcCompanionMonster(companion);
             }
         }
         count = g_npc_states->count;

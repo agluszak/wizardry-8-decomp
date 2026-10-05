@@ -635,13 +635,14 @@ void ImportEquipment(W8Character* character, const W8Wiz7Character* imported)
     give = -1;
     if (character->EquippedItem[6].iItemNo == -1) {
         if (character->iProfession == W8_PROFESSION_FIGHTER) {
-            if (character->skills[0].level < character->skills[1].level) {
+            if (character->skills[W8_SKILL_SWORD].level < character->skills[W8_SKILL_AXE].level) {
                 give = 0x12;
             } else {
                 give = 7;
             }
         } else if (character->iProfession == W8_PROFESSION_PRIEST) {
-            if (character->skills[3].level <= character->skills[5].level) {
+            if (character->skills[W8_SKILL_MACE_FLAIL].level <=
+                character->skills[W8_SKILL_STAFF_WAND].level) {
                 give = 0x52;
             } else {
                 give = 0x16;

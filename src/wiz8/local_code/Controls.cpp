@@ -867,23 +867,23 @@ void W8TextControl::GetTextOrigin(int* px, int* py)
             goto plain;
         }
         GetCatalogImageSize(m_imageObject, m_imageFrame, handle, measured, &m_measured_h);
-        if ((m_flags & 0x80) != 0) {
+        if ((m_flags & g_W8TextControlLayoutImageAtOrigin) != 0) {
             *px = *px + m_left;
             *py = *py + m_top;
             return;
         }
-        if ((m_flags & 4) != 0) {
+        if ((m_flags & g_W8TextControlLayoutImageLeft) != 0) {
             x = m_left;
             goto aligned;
         }
         width = *measured;
     } else {
-        if ((m_flags & 0x80) != 0) {
+        if ((m_flags & g_W8TextControlLayoutImageAtOrigin) != 0) {
             *px = *px + m_left;
             *py = *py + m_top;
             return;
         }
-        if ((m_flags & 4) != 0) {
+        if ((m_flags & g_W8TextControlLayoutImageLeft) != 0) {
             x = m_left;
             goto aligned;
         }
@@ -908,7 +908,7 @@ void W8TextControl::Redraw(unsigned char full_redraw)
     }
 
     int text_state = 0;
-    if ((m_stateFlags & 1) != 0 && (m_flags & 2) == 0) {
+    if ((m_stateFlags & 1) != 0 && (m_flags & g_W8TextControlLayoutTextBesideImage) == 0) {
         text_state = m_pressedTextOffset;
     }
 
@@ -992,12 +992,33 @@ void W8TextControl::SetBoundsFromRect(const W8ControlsRect* bounds)
     }
 }
 
-// FUNCTION: WIZ8 0x004f44d0
-void W8TextControl::SetBounds(int left, int top, int right, int bottom)
+void W8TextControl::UpdateTextLayout()
 {
     short measured_width;
     short measured_height;
+    int absolute_left = m_pPanel->m_bounds.left + m_left;
+    int absolute_top = m_pPanel->m_bounds.top + m_top;
+    int absolute_right = m_pPanel->m_bounds.left + m_right;
+    int absolute_bottom = m_pPanel->m_bounds.top + m_bottom;
+    if (m_imageObject != -1 && m_imageFrame != -1) {
+        GetCatalogImageSize(m_imageObject, m_imageFrame, m_normalSprite, &measured_width,
+                            &measured_height);
+        if ((m_flags & g_W8TextControlLayoutImageLeft) != 0) {
+            absolute_left += 2 + static_cast<unsigned short>(measured_width);
+        } else {
+            absolute_right -= 2 + static_cast<unsigned short>(measured_width);
+        }
+    }
+    m_textBuffer.SetLayoutBounds(absolute_left, absolute_top, absolute_right, absolute_bottom);
+    if (m_textBuffer.HasBuffer()) {
+        m_textBuffer.UpdateLayout();
+    }
+    m_textBuffer.MarkGeometryDirty(9);
+}
 
+// FUNCTION: WIZ8 0x004f44d0
+void W8TextControl::SetBounds(int left, int top, int right, int bottom)
+{
     W8Widget::SetBounds(left, top, right, bottom);
     if (m_pPanel != 0) {
         if (m_region != -1) {
@@ -1012,26 +1033,8 @@ void W8TextControl::SetBounds(int left, int top, int right, int bottom)
                 static_cast<unsigned short>(static_cast<short>(bottom) +
                                             static_cast<short>(m_pPanel->m_bounds.top)));
         }
-        if ((m_flags & 2) != 0) {
-            int absolute_left = m_pPanel->m_bounds.left + left;
-            int absolute_top = m_pPanel->m_bounds.top + top;
-            int absolute_right = m_pPanel->m_bounds.left + right;
-            int absolute_bottom = m_pPanel->m_bounds.top + bottom;
-            if (m_imageObject != -1 && m_imageFrame != -1) {
-                GetCatalogImageSize(m_imageObject, m_imageFrame, m_normalSprite, &measured_width,
-                                    &measured_height);
-                if ((m_flags & 4) != 0) {
-                    absolute_left += 2 + static_cast<unsigned short>(measured_width);
-                } else {
-                    absolute_right -= 2 + static_cast<unsigned short>(measured_width);
-                }
-            }
-            m_textBuffer.SetLayoutBounds(absolute_left, absolute_top, absolute_right,
-                                         absolute_bottom);
-            if (m_textBuffer.HasBuffer()) {
-                m_textBuffer.UpdateLayout();
-            }
-            m_textBuffer.MarkGeometryDirty(9);
+        if ((m_flags & g_W8TextControlLayoutTextBesideImage) != 0) {
+            UpdateTextLayout();
         }
     }
 }
@@ -1054,36 +1057,16 @@ void W8TextControl::SetFlaggedRegionBounds(int left, int top, int right)
 // FUNCTION: WIZ8 0x004f46a0
 void W8TextControl::AddLayoutFlags(unsigned int flags)
 {
-    short measured_width;
-    short measured_height;
-
     m_flags |= flags;
-    if (m_pPanel != 0 && (m_flags & 2) != 0) {
-        int absolute_left = m_pPanel->m_bounds.left + m_left;
-        int absolute_top = m_pPanel->m_bounds.top + m_top;
-        int absolute_right = m_pPanel->m_bounds.left + m_right;
-        int absolute_bottom = m_pPanel->m_bounds.top + m_bottom;
-        if (m_imageObject != -1 && m_imageFrame != -1) {
-            GetCatalogImageSize(m_imageObject, m_imageFrame, m_normalSprite, &measured_width,
-                                &measured_height);
-            if ((m_flags & 4) != 0) {
-                absolute_left += 2 + static_cast<unsigned short>(measured_width);
-            } else {
-                absolute_right -= 2 + static_cast<unsigned short>(measured_width);
-            }
-        }
-        m_textBuffer.SetLayoutBounds(absolute_left, absolute_top, absolute_right, absolute_bottom);
-        if (m_textBuffer.HasBuffer()) {
-            m_textBuffer.UpdateLayout();
-        }
-        m_textBuffer.MarkGeometryDirty(9);
+    if (m_pPanel != 0 && (m_flags & g_W8TextControlLayoutTextBesideImage) != 0) {
+        UpdateTextLayout();
     }
 }
 
 // FUNCTION: WIZ8 0x004f4780
 void W8TextControl::RemoveLayoutFlags(unsigned int flags)
 {
-    if ((flags & 2) != 0 && m_pPanel != 0) {
+    if ((flags & g_W8TextControlLayoutTextBesideImage) != 0 && m_pPanel != 0) {
         m_textBuffer.SetLayoutBounds(
             m_pPanel->m_bounds.left + m_left, m_pPanel->m_bounds.top + m_top,
             m_pPanel->m_bounds.left + m_right, m_pPanel->m_bounds.top + m_bottom);
@@ -1098,7 +1081,7 @@ void W8TextControl::RemoveLayoutFlags(unsigned int flags)
 // FUNCTION: WIZ8 0x004f4c40
 void W8TextControl::EnableSecondaryState(unsigned char immediate)
 {
-    if ((m_flags & 1) != 0 && (m_stateFlags & 2) == 0) {
+    if ((m_flags & g_W8TextControlLayoutToggle) != 0 && (m_stateFlags & 2) == 0) {
         m_stateFlags |= g_W8TextControlStatePressed;
         m_stateFlags |= g_W8TextControlStateSecondary;
         InvalidateCore(immediate);
@@ -1108,7 +1091,7 @@ void W8TextControl::EnableSecondaryState(unsigned char immediate)
 // FUNCTION: WIZ8 0x004f4cb0
 void W8TextControl::DisableSecondaryState(unsigned char immediate)
 {
-    if ((m_flags & 1) != 0 && (m_stateFlags & 2) != 0) {
+    if ((m_flags & g_W8TextControlLayoutToggle) != 0 && (m_stateFlags & 2) != 0) {
         m_stateFlags &= ~g_W8TextControlStatePressed;
         m_stateFlags &= ~g_W8TextControlStateSecondary;
         InvalidateCore(immediate);
@@ -1150,7 +1133,7 @@ void W8TextControl::OnMouseLeave(int event)
     }
     if (!m_enabled) {
         PushButtonSoundScheme(0, 1);
-        if ((m_flags & 1) == 0) {
+        if ((m_flags & g_W8TextControlLayoutToggle) == 0) {
             m_stateFlags &= ~g_W8TextControlStatePressed;
         }
         SetAlternateTextEnabled(0);
@@ -1203,7 +1186,7 @@ void W8TextControl::OnLeftButtonDown(int event)
         PushButtonSoundScheme(0, 1);
     }
 
-    if ((m_flags & 1) == 0) {
+    if ((m_flags & g_W8TextControlLayoutToggle) == 0) {
         m_stateFlags |= g_W8TextControlStatePressed;
         if (m_imageObject != -1 && m_imageFrame != -1) {
             InvalidateCore(static_cast<unsigned char>(event));
@@ -1247,7 +1230,7 @@ void W8TextControl::OnLeftButtonUp(int event)
     }
     if (!m_enabled) {
         PushButtonSoundScheme(0, 1);
-        if ((m_flags & 1) == 0) {
+        if ((m_flags & g_W8TextControlLayoutToggle) == 0) {
             m_stateFlags &= ~g_W8TextControlStatePressed;
         }
         return;
@@ -1259,7 +1242,7 @@ void W8TextControl::OnLeftButtonUp(int event)
         PushButtonSoundScheme(0, 1);
     }
 
-    if ((m_flags & 1) == 0) {
+    if ((m_flags & g_W8TextControlLayoutToggle) == 0) {
         m_stateFlags &= ~g_W8TextControlStatePressed;
         InvalidateCore(static_cast<unsigned char>(event));
     } else if ((m_stateFlags & 2) == 0) {
@@ -1268,7 +1251,7 @@ void W8TextControl::OnLeftButtonUp(int event)
         if ((m_flags & 0x10) != 0) {
             InvalidateCore(static_cast<unsigned char>(event));
         }
-    } else if ((m_flags & 8) == 0) {
+    } else if ((m_flags & g_W8TextControlLayoutStayLatched) == 0) {
         m_stateFlags &= ~g_W8TextControlStatePressed;
         m_stateFlags &= ~g_W8TextControlStateSecondary;
         InvalidateCore(static_cast<unsigned char>(event));
@@ -1342,7 +1325,7 @@ void W8TextControl::OnLeftButtonDoubleClick(int)
         if ((m_flags & 0x20) != 0) {
             PushButtonSoundScheme(0, 1);
         }
-        if ((m_flags & 1) != 0 && (m_stateFlags & 2) == 0) {
+        if ((m_flags & g_W8TextControlLayoutToggle) != 0 && (m_stateFlags & 2) == 0) {
             return;
         }
         if (m_leftDoubleClickCallback != 0) {

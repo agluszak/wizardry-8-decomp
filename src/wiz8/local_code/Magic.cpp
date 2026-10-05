@@ -2737,14 +2737,14 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
         return 0;
     }
     if (character->uiCondition[8] != 0 &&
-        (record->alchemy_spell == 0 || character->skills[0x1a].level == 0)) {
+        (record->alchemy_spell == 0 || character->skills[W8_SKILL_SPELLBOOK_ALCHEMY].level == 0)) {
         return 0;
     }
     SetTargetSourceToCharacter(party_slot, &source);
-    if (character->skills[0x23].active == 0) {
+    if (character->skills[W8_SKILL_POWER_CAST].active == 0) {
         power_cast_bonus = 0;
     } else {
-        power_cast_bonus = (character->skills[0x23].level >> 2) + 1;
+        power_cast_bonus = (character->skills[W8_SKILL_POWER_CAST].level >> 2) + 1;
     }
     if (power_level == 8) {
         power_level = ChooseSpellPowerLevelForTarget(party_slot, spell_id, power_cast_bonus);
@@ -2862,8 +2862,8 @@ finish_difficulty_adjustment:
             }
             PracticeCharacterSkill(character, best_skill, (index + 2) >> 2, 0);
             PracticeCharacterSkill(character, realm_skill, index, 0);
-            if (character->skills[0x23].active != 0) {
-                PracticeCharacterSkill(character, 0x23, (index + 2) >> 2, 0);
+            if (character->skills[W8_SKILL_POWER_CAST].active != 0) {
+                PracticeCharacterSkill(character, W8_SKILL_POWER_CAST, (index + 2) >> 2, 0);
             }
         }
     }

@@ -299,33 +299,40 @@ void InvalidateMainGameEffectHud(void)
     }
 }
 
-// FUNCTION: WIZ8 0x005AED90
-void ShowPartyEffectIconHelp(int slot_index)
+static void ShowEffectIconHelp(const W8EffectSlot* slot, bool show_duration, int assertion_line)
 {
     W8SpellRuntimeRecord* records = g_spell_records;
-    W8EffectSlot* slot = &g_status.effect_slots[slot_index];
     int amount = slot->amount;
     unsigned int duration = slot->duration;
     int effect_id = slot->effect_id;
-    wchar_t* name;
-    wchar_t* detail;
-    unsigned int name_len;
-    unsigned int detail_len;
-    wchar_t* text;
-
     g_effect_icon_help_duration = duration;
-    name = FormatWideString(g_format_s_spaced_colon, records[effect_id].display_name);
-    name_len = wcslen(name);
-    detail = FormatWideString(gppStringList[0x79c], amount, g_effect_icon_help_duration);
-    detail_len = wcslen(detail);
-    text = static_cast<wchar_t*>(operator new((name_len + detail_len) * 2 + 2));
+    wchar_t* name = FormatWideString(g_format_s_spaced_colon, records[effect_id].display_name);
+    unsigned int name_len = wcslen(name);
+    wchar_t* detail;
+    if (show_duration) {
+        detail = FormatWideString(gppStringList[0x79c], amount, g_effect_icon_help_duration);
+    } else {
+        detail = FormatWideString(gppStringList[0x79d], amount);
+    }
+    unsigned int detail_len = wcslen(detail);
+    wchar_t* text = static_cast<wchar_t*>(operator new((name_len + detail_len) * 2 + 2));
     if (text == 0) {
-        srAssertFail("pText", MGSSPELLICONS_CPP, 0x15c, 0);
+        srAssertFail("pText", MGSSPELLICONS_CPP, assertion_line, 0);
     }
     wcscpy(text, FormatWideString(g_format_s_colon, records[effect_id].display_name));
-    wcscat(text, FormatWideString(gppStringList[0x79c], amount, g_effect_icon_help_duration));
+    if (show_duration) {
+        wcscat(text, FormatWideString(gppStringList[0x79c], amount, g_effect_icon_help_duration));
+    } else {
+        wcscat(text, FormatWideString(gppStringList[0x79d], amount));
+    }
     SetRegionHelpText(text);
     operator delete(text);
+}
+
+// FUNCTION: WIZ8 0x005AED90
+void ShowPartyEffectIconHelp(int slot_index)
+{
+    ShowEffectIconHelp(&g_status.effect_slots[slot_index], true, 0x15c);
 }
 
 // FUNCTION: WIZ8 0x005AEEA0
@@ -369,59 +376,13 @@ unsigned char PartyEffectIconRegionEvent(const InputAtom* event, W8Region* regio
 // FUNCTION: WIZ8 0x005AF300
 void ShowCombatLeftEffectIconHelp(int slot_index)
 {
-    W8SpellRuntimeRecord* records = g_spell_records;
-    W8EffectSlot* slot = &g_combat_state->effect_slots[slot_index];
-    int amount = slot->amount;
-    unsigned int duration = slot->duration;
-    int effect_id = slot->effect_id;
-    wchar_t* name;
-    wchar_t* detail;
-    unsigned int name_len;
-    unsigned int detail_len;
-    wchar_t* text;
-
-    g_effect_icon_help_duration = duration;
-    name = FormatWideString(g_format_s_spaced_colon, records[effect_id].display_name);
-    name_len = wcslen(name);
-    detail = FormatWideString(gppStringList[0x79d], amount);
-    detail_len = wcslen(detail);
-    text = static_cast<wchar_t*>(operator new((name_len + detail_len) * 2 + 2));
-    if (text == 0) {
-        srAssertFail("pText", MGSSPELLICONS_CPP, 0x2e1, 0);
-    }
-    wcscpy(text, FormatWideString(g_format_s_colon, records[effect_id].display_name));
-    wcscat(text, FormatWideString(gppStringList[0x79d], amount));
-    SetRegionHelpText(text);
-    operator delete(text);
+    ShowEffectIconHelp(&g_combat_state->effect_slots[slot_index], false, 0x2e1);
 }
 
 // FUNCTION: WIZ8 0x005AF410
 void ShowCombatRightEffectIconHelp(int slot_index)
 {
-    W8SpellRuntimeRecord* records = g_spell_records;
-    W8EffectSlot* slot = &g_combat_state->effect_slots0[slot_index];
-    int amount = slot->amount;
-    unsigned int duration = slot->duration;
-    int effect_id = slot->effect_id;
-    wchar_t* name;
-    wchar_t* detail;
-    unsigned int name_len;
-    unsigned int detail_len;
-    wchar_t* text;
-
-    g_effect_icon_help_duration = duration;
-    name = FormatWideString(g_format_s_spaced_colon, records[effect_id].display_name);
-    name_len = wcslen(name);
-    detail = FormatWideString(gppStringList[0x79c], amount, g_effect_icon_help_duration);
-    detail_len = wcslen(detail);
-    text = static_cast<wchar_t*>(operator new((name_len + detail_len) * 2 + 2));
-    if (text == 0) {
-        srAssertFail("pText", MGSSPELLICONS_CPP, 0x30d, 0);
-    }
-    wcscpy(text, FormatWideString(g_format_s_colon, records[effect_id].display_name));
-    wcscat(text, FormatWideString(gppStringList[0x79c], amount, g_effect_icon_help_duration));
-    SetRegionHelpText(text);
-    operator delete(text);
+    ShowEffectIconHelp(&g_combat_state->effect_slots0[slot_index], true, 0x30d);
 }
 
 /* Top-row party effect icons: map callback_id onto the Nth active party

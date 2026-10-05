@@ -437,7 +437,7 @@ int OpenLockInteraction(Trigger* trigger)
     g_lock_interaction->m_tumbler_panel->Invalidate(0);
     g_lock_interaction->m_info_panel->RefreshInfo();
     g_lock_interaction->m_action_panel->Invalidate(0);
-    skill = GetPartySlotSkill10Level(g_status.selected_character);
+    skill = GetPartySlotLocksTrapsLevel(g_status.selected_character);
     panel = g_lock_interaction->m_tumbler_panel;
     for (i = 0; i < panel->m_tumbler_count; ++i) {
         panel->m_tumblers[i]->SetEnabled(skill > -1);
@@ -505,6 +505,21 @@ void EndLockInteractMode(char suspend)
     RequestRedraw(0x1000);
 }
 
+static unsigned int CanSelectedCharacterCastKnockKnock(W8Character* character)
+{
+    if (IsPartySlotEligible(g_status.selected_character) && character->spell_learned[0x27] == 1) {
+        unsigned int book = GetBestSpellbookSkillForSpell(character, 0x27, 1, 0, 7);
+        unsigned int realm =
+            character->skills[W8_SKILL_FIRE_MAGIC + g_spell_records[0x27].realm].level;
+        book = character->skills[book].level;
+        int power = (book + realm * 4) / 5;
+        if (power > -1) {
+            return CanCharacterCastSpell(character, 0x27);
+        }
+    }
+    return 0;
+}
+
 /* Re-derive the lock interaction's control enables for the selected
    character, matching the constructor's initial pass: tumblers need lockpick
    skill, the spell button needs a castable knock-knock, and the force button
@@ -516,40 +531,16 @@ void RefreshLockInteractionControls(void)
     W8LockInteraction* interaction = g_lock_interaction;
     W8Character* character;
     int level;
-    int power;
     unsigned int figure;
-    unsigned int book;
-    unsigned int realm;
     int divisor;
     int i;
 
-    if (!IsPartySlotEligible(g_status.selected_character)) {
-        level = -1;
-    } else {
-        character = &g_status.buffers.Char[g_status.selected_character];
-        if (character->skills[10].active == 0 && character->skills[10].level == 0) {
-            level = -1;
-        } else {
-            level = character->skills[10].level;
-        }
-    }
+    level = GetPartySlotLocksTrapsLevel(g_status.selected_character);
     for (i = 0; i < interaction->m_tumbler_panel->m_tumbler_count; i++) {
         interaction->m_tumbler_panel->m_tumblers[i]->SetEnabled(level > -1);
     }
     character = &g_status.buffers.Char[g_status.selected_character];
-    if (IsPartySlotEligible(g_status.selected_character) && character->spell_learned[0x27] == 1) {
-        book = GetBestSpellbookSkillForSpell(character, 0x27, 1, 0, 7);
-        realm = character->skills[0x1c + g_spell_records[0x27].realm].level;
-        book = character->skills[book].level;
-        power = (book + realm * 4) / 5;
-        if (power > -1) {
-            figure = CanCharacterCastSpell(character, 0x27);
-        } else {
-            figure = 0;
-        }
-    } else {
-        figure = 0;
-    }
+    figure = CanSelectedCharacterCastKnockKnock(character);
     interaction->m_spell_button->SetEnabled(figure);
     if (!IsPartySlotEligible(g_status.selected_character)) {
         figure = 0xffffffff;
@@ -832,14 +823,16 @@ void W8LockInfoPanel::RefreshInfo()
 
     m_text0->SetText(character->name, g_wiz_text_font_secondary);
     if (!IsPartySlotEligible(g_status.selected_character) ||
-        (character->skills[10].active == 0 && character->skills[10].level == 0) ||
-        static_cast<int>(character->skills[10].level) < 0) {
+        (character->skills[W8_SKILL_LOCKS_TRAPS].active == 0 &&
+         character->skills[W8_SKILL_LOCKS_TRAPS].level == 0) ||
+        static_cast<int>(character->skills[W8_SKILL_LOCKS_TRAPS].level) < 0) {
         m_text2->SetFontStateIndex(0);
         m_text2->SetText(g_dash, g_wiz_text_font_secondary);
     } else {
         m_text2->SetFontStateIndex(-1);
-        m_text2->SetText(FormatWideString(g_format_d_percent, character->skills[10].level),
-                            g_wiz_text_font_secondary);
+        m_text2->SetText(
+            FormatWideString(g_format_d_percent, character->skills[W8_SKILL_LOCKS_TRAPS].level),
+            g_wiz_text_font_secondary);
     }
     if (!IsPartySlotEligible(g_status.selected_character) || character->spell_learned[0x27] != 1) {
         m_text4->SetFontStateIndex(0);
@@ -893,11 +886,8 @@ W8LockInteraction::W8LockInteraction(Trigger* trigger) : m_timer()
 {
     W8Character* character;
     int level;
-    int power;
     unsigned int figure;
     int divisor;
-    unsigned int book;
-    unsigned int realm;
     int i;
 
     m_trigger = trigger;
@@ -941,29 +931,11 @@ W8LockInteraction::W8LockInteraction(Trigger* trigger) : m_timer()
         m_slot_attempts[i] = 0;
     }
     character = &g_status.buffers.Char[g_status.selected_character];
-    if (!IsPartySlotEligible(g_status.selected_character)) {
-        level = -1;
-    } else if (character->skills[10].active == 0 && character->skills[10].level == 0) {
-        level = -1;
-    } else {
-        level = character->skills[10].level;
-    }
+    level = GetPartySlotLocksTrapsLevel(g_status.selected_character);
     for (i = 0; i < m_tumbler_panel->m_tumbler_count; i++) {
         m_tumbler_panel->m_tumblers[i]->SetEnabled(level > -1);
     }
-    if (IsPartySlotEligible(g_status.selected_character) && character->spell_learned[0x27] == 1) {
-        book = GetBestSpellbookSkillForSpell(character, 0x27, 1, 0, 7);
-        realm = character->skills[0x1c + g_spell_records[0x27].realm].level;
-        book = character->skills[book].level;
-        power = (book + realm * 4) / 5;
-        if (power > -1) {
-            figure = CanCharacterCastSpell(character, 0x27);
-        } else {
-            figure = 0;
-        }
-    } else {
-        figure = 0;
-    }
+    figure = CanSelectedCharacterCastKnockKnock(character);
     m_spell_button->SetEnabled(figure);
     if (!IsPartySlotEligible(g_status.selected_character) || character->stamina < 0x50 ||
         character->attributes[W8_ATTRIBUTE_STRENGTH].effective <= 0x32) {
@@ -1133,10 +1105,11 @@ void W8LockInteraction::OnTumblerPicked(int index)
         return;
     }
     character = &g_status.buffers.Char[g_status.selected_character];
-    if (character->skills[10].active == 0 && character->skills[10].level == 0) {
+    if (character->skills[W8_SKILL_LOCKS_TRAPS].active == 0 &&
+        character->skills[W8_SKILL_LOCKS_TRAPS].level == 0) {
         return;
     }
-    if (static_cast<int>(character->skills[10].level) < 0) {
+    if (static_cast<int>(character->skills[W8_SKILL_LOCKS_TRAPS].level) < 0) {
         return;
     }
     if (m_selected_slot != g_status.selected_character) {
@@ -1192,7 +1165,7 @@ void W8LockInteraction::ResolvePick()
     for (i = 0; i < m_tumbler_count; i++) {
         if (m_tumbler_owner[i] == m_selected_slot && m_tumbler_locked[i] == 0) {
             character = &g_status.buffers.Char[m_selected_slot];
-            chance = character->skills[10].level + g_settings.difficulty * -5 + 5;
+            chance = character->skills[W8_SKILL_LOCKS_TRAPS].level + g_settings.difficulty * -5 + 5;
             if ((chance < 0 ? 0 : static_cast<unsigned char>(chance)) <=
                 static_cast<int>(Random(100))) {
                 m_tumbler_owner[i] = -1;
@@ -1207,9 +1180,9 @@ void W8LockInteraction::ResolvePick()
     m_tumbler_owner[m_picked_tumbler] = m_selected_slot;
     if (Random(5) == 0 && m_trigger->lock_state.ConsumeCountdown()) {
         character = &g_status.buffers.Char[m_selected_slot];
-        level = character->skills[10].level;
-        PracticeCharacterSkill(character, 10, 1, 0);
-        if (level != static_cast<int>(character->skills[10].level)) {
+        level = character->skills[W8_SKILL_LOCKS_TRAPS].level;
+        PracticeCharacterSkill(character, W8_SKILL_LOCKS_TRAPS, 1, 0);
+        if (level != static_cast<int>(character->skills[W8_SKILL_LOCKS_TRAPS].level)) {
             m_info_panel->RefreshInfo();
         }
     }
@@ -1256,10 +1229,11 @@ void W8LockInteraction::AttemptForce()
             ShowString(FormatWideString(g_format_s_space_s, character->name, gppStringList[0x7ad]));
             if (!IsPartySlotEligible(g_status.selected_character)) {
                 level = -1;
-            } else if (character->skills[10].active == 0 && character->skills[10].level == 0) {
+            } else if (character->skills[W8_SKILL_LOCKS_TRAPS].active == 0 &&
+                       character->skills[W8_SKILL_LOCKS_TRAPS].level == 0) {
                 level = -1;
             } else {
-                level = character->skills[10].level;
+                level = character->skills[W8_SKILL_LOCKS_TRAPS].level;
             }
             for (i = 0; i < m_tumbler_panel->m_tumbler_count; i++) {
                 m_tumbler_panel->m_tumblers[i]->SetEnabled(level > -1);
@@ -1381,10 +1355,11 @@ void W8LockInteraction::ApplyKnockKnock(int level, int /*flag*/, char backfire)
         pins = -1;
     } else {
         character = &g_status.buffers.Char[slot];
-        if (character->skills[10].active == 0 && character->skills[10].level == 0) {
+        if (character->skills[W8_SKILL_LOCKS_TRAPS].active == 0 &&
+            character->skills[W8_SKILL_LOCKS_TRAPS].level == 0) {
             pins = -1;
         } else {
-            pins = character->skills[10].level;
+            pins = character->skills[W8_SKILL_LOCKS_TRAPS].level;
         }
     }
     panel = m_tumbler_panel;
@@ -1392,18 +1367,7 @@ void W8LockInteraction::ApplyKnockKnock(int level, int /*flag*/, char backfire)
         panel->m_tumblers[i]->SetEnabled(pins > -1);
     }
     character = &g_status.buffers.Char[g_status.selected_character];
-    if (IsPartySlotEligible(g_status.selected_character) && character->spell_learned[0x27] == 1) {
-        book = GetBestSpellbookSkillForSpell(character, 0x27, 1, 0, 7);
-        realm = character->skills[0x1c + g_spell_records[0x27].realm].level;
-        power = (character->skills[book].level + realm * 4) / 5;
-        if (power > -1) {
-            figure = CanCharacterCastSpell(character, 0x27);
-        } else {
-            figure = 0;
-        }
-    } else {
-        figure = 0;
-    }
+    figure = CanSelectedCharacterCastKnockKnock(character);
     m_spell_button->SetEnabled(figure);
     slot = g_status.selected_character;
     pins = m_tumbler_count;
@@ -1681,6 +1645,23 @@ void W8MainGameTextEntry::Redraw(unsigned char full_redraw)
     }
 }
 
+void W8MainGameTextPanel::BeginProgress(const wchar_t* text, float duration, float hold)
+{
+    m_progress_display = true;
+    m_text_buffer.SetText(text, g_wiz_text_font_secondary);
+    m_progress_duration = duration;
+    m_progress_elapsed = 0.0f;
+    m_progress_drawn = 0;
+    m_timer0.SetDuration(hold);
+    m_timer0.Restart();
+    for (int i = 0; i < 8; ++i) {
+        if ((static_cast<unsigned char>(m_entries[i]->m_stateFlags) &
+             g_W8TextControlStateSecondary) == 0) {
+            m_entries[i]->m_input_blocked = true;
+        }
+    }
+}
+
 // FUNCTION: WIZ8 0x00588440
 void W8MainGameTextEntry::OnLeftButtonDown(int event)
 {
@@ -1904,7 +1885,7 @@ W8MainGameStatusPanel::~W8MainGameStatusPanel()
 void W8MainGameStatusPanel::RefreshStatusTexts()
 {
     W8Character* character = &g_status.buffers.Char[g_status.selected_character];
-    int level = GetPartySlotSkill10Level(g_status.selected_character);
+    int level = GetPartySlotLocksTrapsLevel(g_status.selected_character);
     unsigned int book;
     unsigned int realm;
     unsigned int figure;
@@ -1956,7 +1937,7 @@ void W8MainGameStatusPanel::RefreshStatusTexts()
 }
 
 // FUNCTION: WIZ8 0x00589090
-int GetPartySlotSkill10Level(int slot)
+int GetPartySlotLocksTrapsLevel(int slot)
 {
     W8Character* character;
 
@@ -1964,10 +1945,11 @@ int GetPartySlotSkill10Level(int slot)
         return -1;
     }
     character = &g_status.buffers.Char[slot];
-    if (character->skills[10].active == 0 && character->skills[10].level == 0) {
+    if (character->skills[W8_SKILL_LOCKS_TRAPS].active == 0 &&
+        character->skills[W8_SKILL_LOCKS_TRAPS].level == 0) {
         return -1;
     }
-    return static_cast<int>(character->skills[10].level);
+    return static_cast<int>(character->skills[W8_SKILL_LOCKS_TRAPS].level);
 }
 
 // FUNCTION: WIZ8 0x005890e0
@@ -2047,13 +2029,13 @@ void W8MainGameScreen::SelectTextEntry(int index)
     int i;
 
     m_selected_character = slot;
-    skill = GetPartySlotSkill10Level(slot);
+    skill = GetPartySlotLocksTrapsLevel(slot);
     hold = g_navigator_linked_radius_scale - skill * g_float_005ec258;
     chance = m_difficulty;
     if (chance < 0) {
         chance = 0;
     }
-    skill = GetPartySlotSkill10Level(m_selected_character);
+    skill = GetPartySlotLocksTrapsLevel(m_selected_character);
     if (skill > -1) {
         skill += ((m_target_difficulty + 1) / 2) * 6;
     }
@@ -2083,19 +2065,7 @@ void W8MainGameScreen::SelectTextEntry(int index)
     m_action_controls[3]->SetEnabled(0);
     m_action_controls[4]->SetEnabled(0);
     m_action_panel->Invalidate(0);
-    m_text_panel->m_progress_display = 1;
-    m_text_panel->m_text_buffer.SetText(gppStringList[0x7b5], g_wiz_text_font_secondary);
-    m_text_panel->m_progress_duration = duration;
-    m_text_panel->m_progress_elapsed = 0.0f;
-    m_text_panel->m_progress_drawn = 0;
-    m_text_panel->m_timer0.SetDuration(hold);
-    m_text_panel->m_timer0.Restart();
-    for (i = 0; i < 8; ++i) {
-        if ((static_cast<unsigned char>(m_text_panel->m_entries[i]->m_stateFlags) &
-             g_W8TextControlStateSecondary) == 0) {
-            m_text_panel->m_entries[i]->m_input_blocked = true;
-        }
-    }
+    m_text_panel->BeginProgress(gppStringList[0x7b5], duration, hold);
     m_sound_handle = static_cast<int>(
         SoundPlay((STR)g_trap_sounds[index] /* c-style-cast-ok: SGP STR boundary */, 0));
 }
@@ -2109,7 +2079,6 @@ void W8MainGameScreen::OnPrimary(W8TextControl* control)
     int roll;
     float hold;
     float duration;
-    int i;
 
     if (control == m_action_controls[0]) {
         m_disarm_state = 0xa;
@@ -2131,13 +2100,13 @@ void W8MainGameScreen::OnPrimary(W8TextControl* control)
     }
     slot = g_status.selected_character;
     m_selected_character = slot;
-    skill = GetPartySlotSkill10Level(slot);
+    skill = GetPartySlotLocksTrapsLevel(slot);
     hold = g_float_005ebca0 - skill * g_camera_snap_epsilon;
     chance = m_difficulty;
     if (chance < 0) {
         chance = 0;
     }
-    skill = GetPartySlotSkill10Level(m_selected_character);
+    skill = GetPartySlotLocksTrapsLevel(m_selected_character);
     if (skill > -1) {
         skill += m_target_difficulty * 6;
     }
@@ -2161,19 +2130,7 @@ void W8MainGameScreen::OnPrimary(W8TextControl* control)
     m_action_controls[3]->SetEnabled(0);
     m_action_controls[4]->SetEnabled(0);
     m_action_panel->Invalidate(0);
-    m_text_panel->m_progress_display = 1;
-    m_text_panel->m_text_buffer.SetText(gppStringList[0x7b6], g_wiz_text_font_secondary);
-    m_text_panel->m_progress_duration = duration;
-    m_text_panel->m_progress_elapsed = 0.0f;
-    m_text_panel->m_progress_drawn = 0;
-    m_text_panel->m_timer0.SetDuration(hold);
-    m_text_panel->m_timer0.Restart();
-    for (i = 0; i < 8; ++i) {
-        if ((static_cast<unsigned char>(m_text_panel->m_entries[i]->m_stateFlags) &
-             g_W8TextControlStateSecondary) == 0) {
-            m_text_panel->m_entries[i]->m_input_blocked = true;
-        }
-    }
+    m_text_panel->BeginProgress(gppStringList[0x7b6], duration, hold);
     m_sound_handle = static_cast<int>(SoundPlayStreamedFile(
         (STR)g_trap_inspection_sound /* c-style-cast-ok: SGP STR boundary */, 0));
 }
@@ -2240,7 +2197,8 @@ void W8MainGameScreen::Update()
     case 2:
         m_disarm_state = 0;
         m_sound_handle = 0;
-        PracticeCharacterSkill(&g_status.buffers.Char[m_selected_character], 10, 1, 0);
+        PracticeCharacterSkill(&g_status.buffers.Char[m_selected_character], W8_SKILL_LOCKS_TRAPS,
+                               1, 0);
         RefreshActionPanel();
         for (column = 0; column < 8; ++column) {
             if (GetTable650434Entry(m_device_id, column) != 0 &&
@@ -2302,7 +2260,7 @@ void W8MainGameScreen::Update()
 void W8MainGameScreen::RefreshActionPanel()
 {
     int slot = g_status.selected_character;
-    int skill = GetPartySlotSkill10Level(slot);
+    int skill = GetPartySlotLocksTrapsLevel(slot);
     W8Character* character = &g_status.buffers.Char[slot];
     int can_cast;
     int column;
@@ -2384,13 +2342,14 @@ void W8MainGameScreen::ApplyInspectSuccess()
     int roll;
 
     m_sound_handle = 0;
-    PracticeCharacterSkill(&g_status.buffers.Char[m_selected_character], 10, 1, 0);
+    PracticeCharacterSkill(&g_status.buffers.Char[m_selected_character], W8_SKILL_LOCKS_TRAPS, 1,
+                           0);
     RefreshActionPanel();
     chance = m_difficulty;
     if (chance < 0) {
         chance = 0;
     }
-    skill = GetPartySlotSkill10Level(m_selected_character);
+    skill = GetPartySlotLocksTrapsLevel(m_selected_character);
     if (skill > -1) {
         skill += m_target_difficulty * 6;
     }

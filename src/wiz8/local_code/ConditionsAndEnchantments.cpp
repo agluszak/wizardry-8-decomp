@@ -873,29 +873,9 @@ void ClearCharacterEnchantmentSlot(int party_slot, int slot)
 void TickCharacterEnchantmentSlot(int party_slot, int slot, unsigned int turns)
 {
     unsigned int remaining = g_status.buffers.Char[party_slot].enchantments[slot].turns;
-    W8Character* character;
-    int scan;
 
     if (remaining <= turns) {
-        memset(&g_status.buffers.Char[party_slot].enchantments[slot], 0, sizeof(W8Enchantment));
-
-        character = &g_status.buffers.Char[party_slot];
-        for (scan = 7; scan >= 0; --scan) {
-            if (character->enchantments[scan].turns > 0 || scan == 0) {
-                character->enchantment_top = scan;
-                break;
-            }
-        }
-
-        RequestPartySlotRedraw(party_slot);
-        if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
-            RequestRedraw(0x200000);
-            RequestRedraw(0x8000);
-        }
-        RebuildConditionsAndDerivedStats(party_slot);
-        if (slot == W8_ENCHANTMENT_SLOT_SPECIAL) {
-            gXStatus.sight_refresh_pending = 1;
-        }
+        ClearCharacterEnchantmentSlot(party_slot, slot);
     } else {
         g_status.buffers.Char[party_slot].enchantments[slot].turns = remaining - turns;
     }
@@ -968,14 +948,7 @@ void TickMonsterEnchantmentSlot(int location_id, int slot, unsigned int turns)
         return;
     }
 
-    monster_info = MonsterGetScriptPartByLocationIndex(
-        MonsterGetIndexByLocationID(948, CONDITIONS_CPP, location_id, 1));
-    memset(&monster_info->enchantments[slot], 0, sizeof(W8Enchantment));
-    SetMonsterSpellIcon(monster_info->p3D, slot + 0x10, 0);
-    RebuildMonsterDerivedStats(location_id);
-    if (slot == W8_ENCHANTMENT_SLOT_SPECIAL) {
-        RefreshMonsterSight(monster_info);
-    }
+    ClearMonsterEnchantmentSlot(location_id, slot);
 }
 
 /* Lift one condition from everybody in the party who is under it. */

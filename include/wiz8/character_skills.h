@@ -20,8 +20,8 @@ enum W8Attribute {
     W8_ATTRIBUTE_COUNT = 7
 };
 
-/* The 41 character skills in database/index order. The ordering is corroborated
-   by the recovered 0x29-entry skill tables, the spellbook/realm boundaries at
+/* The 41 character skills in database/index order. The retail name table at 0x0061E454 indexes labels 738..778 in this
+   order. This also agrees with the recovered 0x29-entry skill tables, the spellbook/realm boundaries at
    0x18/0x1c, the expert-skill run at 0x22..0x28, and the retail manual's skill
    appendix. The four spellbook skills use an explicit SPELLBOOK qualifier here
    to avoid colliding with older TU-local aliases in Magic.cpp. */
@@ -36,11 +36,11 @@ enum W8Skill {
     W8_SKILL_MODERN_WEAPONS = 0x07,
     W8_SKILL_BOW = 0x08,
     W8_SKILL_THROWING_SLING = 0x09,
-    W8_SKILL_MARTIAL_ARTS = 0x0a,
-    W8_SKILL_LOCKS_TRAPS = 0x0b,
-    W8_SKILL_STEALTH = 0x0c,
-    W8_SKILL_MUSIC = 0x0d,
-    W8_SKILL_PICKPOCKET = 0x0e,
+    W8_SKILL_LOCKS_TRAPS = 0x0a,
+    W8_SKILL_STEALTH = 0x0b,
+    W8_SKILL_MUSIC = 0x0c,
+    W8_SKILL_PICKPOCKET = 0x0d,
+    W8_SKILL_MARTIAL_ARTS = 0x0e,
     W8_SKILL_SCOUTING = 0x0f,
     W8_SKILL_CLOSE_COMBAT = 0x10,
     W8_SKILL_RANGED_COMBAT = 0x11,

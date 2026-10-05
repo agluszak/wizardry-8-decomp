@@ -643,10 +643,10 @@ void ApplyInsanityEffect(W8SpellEffectEntry* effect)
     weights[3] = 20;
     if (TargetSourceIsCharacter(&effect->Source, 0)) {
         caster = &g_status.buffers.Char[effect->Source.iChar];
-        weights[0] = caster->skills[28].level + 20;
-        weights[1] = caster->skills[29].level + 20;
-        weights[2] = caster->skills[30].level + 20;
-        weights[3] = caster->skills[31].level + 20;
+        weights[0] = caster->skills[W8_SKILL_FIRE_MAGIC].level + 20;
+        weights[1] = caster->skills[W8_SKILL_WATER_MAGIC].level + 20;
+        weights[2] = caster->skills[W8_SKILL_AIR_MAGIC].level + 20;
+        weights[3] = caster->skills[W8_SKILL_EARTH_MAGIC].level + 20;
     }
     if (g_camera_sway_active) {
         weights[0] = 0;
@@ -2342,19 +2342,49 @@ void DamageTargetsAndReport(W8SpellEffectEntry* effect)
     }
 }
 
-/* The missile-destroying spell: every arrow, bolt and bullet stack held by
-   the listed characters or sitting in the party pool rolls `argument * 10`
+static void DestroyItemConsumables(W8ItemInstance* item, W8Character* owner, unsigned int chance,
+                                   int* totals)
+{
+    unsigned int destroyed;
+    unsigned int unit;
+    if (item->iItemNo != -1 &&
+        (g_item_records[item->iItemNo].equip_class == W8_ITEM_EQUIP_CLASS_POTION ||
+         (g_item_records[item->iItemNo].equip_class > W8_ITEM_EQUIP_CLASS_POWDER &&
+          g_item_records[item->iItemNo].equip_class < W8_ITEM_EQUIP_CLASS_FOOD))) {
+        destroyed = 0;
+        for (unit = 0; unit < item->stack_count; ++unit) {
+            if (Random(100) < chance) {
+                ++destroyed;
+            }
+        }
+        if (destroyed != 0) {
+            if (destroyed == item->stack_count) {
+                EmptyItemRecord(item, owner, 1);
+            } else {
+                item->stack_count -= static_cast<char>(destroyed);
+            }
+        }
+        if (g_item_records[item->iItemNo].equip_class == W8_ITEM_EQUIP_CLASS_POTION) {
+            totals[0] += destroyed;
+        } else if (g_item_records[item->iItemNo].equip_class == W8_ITEM_EQUIP_CLASS_SPELLBOOK) {
+            totals[2] += destroyed;
+        } else if (g_item_records[item->iItemNo].equip_class == W8_ITEM_EQUIP_CLASS_SCROLL) {
+            totals[1] += destroyed;
+        }
+    }
+}
+
+/* Destroy potion, scroll and spellbook stacks held by
+   the listed characters or sitting in the party pool. Roll `argument * 10`
    percent per unit and sheds what fails. The three class totals each get
    their own summary line. */
 // FUNCTION: WIZ8 0x005510b0
-void DestroyMissilesOnTargets(W8SpellEffectEntry* effect)
+void DestroyConsumablesOnTargets(W8SpellEffectEntry* effect)
 {
     W8Character* character;
     W8ItemInstance* item;
     unsigned char verbose;
     unsigned int chance;
-    unsigned int destroyed;
-    unsigned int unit;
     int totals[3];
     int index;
     int slot;
@@ -2372,96 +2402,18 @@ void DestroyMissilesOnTargets(W8SpellEffectEntry* effect)
         character = &g_status.buffers.Char[party_slot];
         for (slot = 0; slot < 12; ++slot) {
             item = &character->EquippedItem[slot];
-            if (item->iItemNo != -1 &&
-                (g_item_records[item->iItemNo].equip_class == W8_ITEM_EQUIP_CLASS_POTION ||
-                 (g_item_records[item->iItemNo].equip_class > W8_ITEM_EQUIP_CLASS_POWDER &&
-                  g_item_records[item->iItemNo].equip_class < W8_ITEM_EQUIP_CLASS_FOOD))) {
-                destroyed = 0;
-                for (unit = 0; unit < item->stack_count; ++unit) {
-                    if (Random(100) < chance) {
-                        ++destroyed;
-                    }
-                }
-                if (destroyed != 0) {
-                    if (destroyed == item->stack_count) {
-                        EmptyItemRecord(item, character, 1);
-                    } else {
-                        item->stack_count -= static_cast<char>(destroyed);
-                    }
-                }
-                if (g_item_records[item->iItemNo].equip_class == W8_ITEM_EQUIP_CLASS_POTION) {
-                    totals[0] += destroyed;
-                } else if (g_item_records[item->iItemNo].equip_class ==
-                           W8_ITEM_EQUIP_CLASS_SPELLBOOK) {
-                    totals[2] += destroyed;
-                } else if (g_item_records[item->iItemNo].equip_class ==
-                           W8_ITEM_EQUIP_CLASS_SCROLL) {
-                    totals[1] += destroyed;
-                }
-            }
+            DestroyItemConsumables(item, character, chance, totals);
         }
         for (slot = 0; slot < 8; ++slot) {
             item = &character->backpack[slot];
-            if (item->iItemNo != -1 &&
-                (g_item_records[item->iItemNo].equip_class == W8_ITEM_EQUIP_CLASS_POTION ||
-                 (g_item_records[item->iItemNo].equip_class > W8_ITEM_EQUIP_CLASS_POWDER &&
-                  g_item_records[item->iItemNo].equip_class < W8_ITEM_EQUIP_CLASS_FOOD))) {
-                destroyed = 0;
-                for (unit = 0; unit < item->stack_count; ++unit) {
-                    if (Random(100) < chance) {
-                        ++destroyed;
-                    }
-                }
-                if (destroyed != 0) {
-                    if (destroyed == item->stack_count) {
-                        EmptyItemRecord(item, character, 1);
-                    } else {
-                        item->stack_count -= static_cast<char>(destroyed);
-                    }
-                }
-                if (g_item_records[item->iItemNo].equip_class == W8_ITEM_EQUIP_CLASS_POTION) {
-                    totals[0] += destroyed;
-                } else if (g_item_records[item->iItemNo].equip_class ==
-                           W8_ITEM_EQUIP_CLASS_SPELLBOOK) {
-                    totals[2] += destroyed;
-                } else if (g_item_records[item->iItemNo].equip_class ==
-                           W8_ITEM_EQUIP_CLASS_SCROLL) {
-                    totals[1] += destroyed;
-                }
-            }
+            DestroyItemConsumables(item, character, chance, totals);
         }
     }
     if (effect->target_indices.GetCount() > 0) {
         for (index = 0; static_cast<unsigned int>(index) < g_status.party_item_count;
              ++index) {
             item = &g_status.party_item_pool[index];
-            if (item->iItemNo != -1 &&
-                (g_item_records[item->iItemNo].equip_class == W8_ITEM_EQUIP_CLASS_POTION ||
-                 (g_item_records[item->iItemNo].equip_class > W8_ITEM_EQUIP_CLASS_POWDER &&
-                  g_item_records[item->iItemNo].equip_class < W8_ITEM_EQUIP_CLASS_FOOD))) {
-                destroyed = 0;
-                for (unit = 0; unit < item->stack_count; ++unit) {
-                    if (Random(100) < chance) {
-                        ++destroyed;
-                    }
-                }
-                if (destroyed != 0) {
-                    if (destroyed == item->stack_count) {
-                        EmptyItemRecord(item, 0, 1);
-                    } else {
-                        item->stack_count -= static_cast<char>(destroyed);
-                    }
-                }
-                if (g_item_records[item->iItemNo].equip_class == W8_ITEM_EQUIP_CLASS_POTION) {
-                    totals[0] += destroyed;
-                } else if (g_item_records[item->iItemNo].equip_class ==
-                           W8_ITEM_EQUIP_CLASS_SPELLBOOK) {
-                    totals[2] += destroyed;
-                } else if (g_item_records[item->iItemNo].equip_class ==
-                           W8_ITEM_EQUIP_CLASS_SCROLL) {
-                    totals[1] += destroyed;
-                }
-            }
+            DestroyItemConsumables(item, 0, chance, totals);
         }
     }
     if (totals[2] + totals[1] + totals[0] != 0) {
@@ -3642,7 +3594,7 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
         DamageTargetsAndReport(effect);
         break;
     case 0x7e:
-        DestroyMissilesOnTargets(effect);
+        DestroyConsumablesOnTargets(effect);
         break;
     case 0x7f:
         amount = effect->definition.duration_scale * 0x32;

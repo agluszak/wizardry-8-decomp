@@ -1772,7 +1772,7 @@ void PracticeCombatRoundSkills(int party_slot)
         W8CombatHandRecord* hand_record = &row->hand_records[hand];
         unsigned int chance;
         if (hand_record->dual_wielding == 0) {
-            chance = hand_record->weapon_skill != W8_SKILL_PICKPOCKET ? 100 : 50;
+            chance = hand_record->weapon_skill != W8_SKILL_MARTIAL_ARTS ? 100 : 50;
         } else {
             chance = 0x4b;
         }
@@ -1798,7 +1798,7 @@ void PracticeCombatRoundSkills(int party_slot)
     }
     for (int skill_id = 0; skill_id < W8_SKILL_COUNT; ++skill_id) {
         if (row->skill_use_flags[skill_id] != 0 &&
-            (skill_id == W8_SKILL_SHIELD || skill_id == W8_SKILL_LOCKS_TRAPS ||
+            (skill_id == W8_SKILL_SHIELD || skill_id == W8_SKILL_STEALTH ||
              skill_id == W8_SKILL_REFLEXTION)) {
             PracticeCharacterSkill(character, skill_id, 2, 0);
             row->skill_use_flags[skill_id] = 0;

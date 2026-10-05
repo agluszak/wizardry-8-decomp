@@ -912,32 +912,8 @@ int ComputeStartingEquipmentCost(W8Character* character)
 // FUNCTION: WIZ8 0x005586b0
 bool CanAffordStartingEquipment(W8Character* character)
 {
-    W8ItemInstance* item;
-    unsigned int total;
-    int count;
-
-    total = 0;
-    AddCharacterStartingEquipment(character);
-    item = character->EquippedItem;
-    count = 0xc;
-    do {
-        if (item->iItemNo != -1) {
-            total += GetItemStackValue(item);
-        }
-        ++item;
-        --count;
-    } while (count != 0);
-    item = character->backpack;
-    count = 8;
-    do {
-        if (item->iItemNo != -1) {
-            total += GetItemStackValue(item);
-        }
-        ++item;
-        --count;
-    } while (count != 0);
-    EmptyAllCarriedItems(character);
-    return total <= g_status.party_gold;
+    return static_cast<unsigned int>(ComputeStartingEquipmentCost(character)) <=
+           g_status.party_gold;
 }
 
 /* Recompute the level-up pools after a profession change, refunding every
@@ -1260,14 +1236,15 @@ void AddCharacterStartingEquipment(W8Character* character)
 
     switch (character->iProfession) {
     case 10:
-        if (character->skills[5].level > character->skills[3].level) {
+        if (character->skills[W8_SKILL_STAFF_WAND].level >
+            character->skills[W8_SKILL_MACE_FLAIL].level) {
             ReplaceOrCreateItem(&item, 0x16, 1, 1, 1);
         } else {
             ReplaceOrCreateItem(&item, 0x52, 1, 1, 1);
         }
         break;
     case 0:
-        if (character->skills[1].level > character->skills[0].level) {
+        if (character->skills[W8_SKILL_AXE].level > character->skills[W8_SKILL_SWORD].level) {
             ReplaceOrCreateItem(&item, 0x12, 1, 1, 1);
         } else {
             ReplaceOrCreateItem(&item, 7, 1, 1, 1);

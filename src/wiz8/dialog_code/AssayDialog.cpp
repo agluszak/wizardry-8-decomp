@@ -188,6 +188,29 @@ void W8AssayDialog::DestroyControls()
     }
 }
 
+static int AppendAssayRequirements(const W8ItemRequirement* requirement, int count)
+{
+    for (int index = 0; index < 2; ++index, ++requirement) {
+        if (requirement->stat_id != 0xff) {
+            if (count != 0 && wcslen(g_assay_entry_text) + 1 + wcslen(g_comma_space) < 0x101) {
+                wcscat(g_assay_entry_text, g_comma_space);
+            }
+            wchar_t* text =
+                gppStringList[g_character_description_first_ids[static_cast<signed char>(
+                    requirement->stat_id)]];
+            if (wcslen(text) + 1 + wcslen(g_assay_entry_text) < 0x101) {
+                wcscat(g_assay_entry_text, text);
+            }
+            text = FormatWideString(L" %d", requirement->minimum);
+            if (wcslen(text) + 1 + wcslen(g_assay_entry_text) < 0x101) {
+                wcscat(g_assay_entry_text, text);
+            }
+            ++count;
+        }
+    }
+    return count;
+}
+
 // FUNCTION: WIZ8 0x005d7310
 unsigned char W8AssayDialog::PopulateText()
 {
@@ -526,42 +549,8 @@ unsigned char W8AssayDialog::PopulateText()
     }
     count = 0;
     wcscpy(g_assay_entry_text, &g_empty_wide_string);
-    requirement = record->attribute_requirements;
-    for (index = 0; index < 2; ++index, ++requirement) {
-        if (requirement->stat_id != 0xff) {
-            if (count != 0 && wcslen(g_assay_entry_text) + 1 + wcslen(g_comma_space) < 0x101) {
-                wcscat(g_assay_entry_text, g_comma_space);
-            }
-            text = gppStringList[g_character_description_first_ids[static_cast<signed char>(
-                requirement->stat_id)]];
-            if (wcslen(text) + 1 + wcslen(g_assay_entry_text) < 0x101) {
-                wcscat(g_assay_entry_text, text);
-            }
-            text = FormatWideString(L" %d", requirement->minimum);
-            if (wcslen(text) + 1 + wcslen(g_assay_entry_text) < 0x101) {
-                wcscat(g_assay_entry_text, text);
-            }
-            ++count;
-        }
-    }
-    requirement = record->skill_requirements;
-    for (index = 0; index < 2; ++index, ++requirement) {
-        if (requirement->stat_id != 0xff) {
-            if (count != 0 && wcslen(g_assay_entry_text) + 1 + wcslen(g_comma_space) < 0x101) {
-                wcscat(g_assay_entry_text, g_comma_space);
-            }
-            text = gppStringList[g_character_description_first_ids[static_cast<signed char>(
-                requirement->stat_id)]];
-            if (wcslen(text) + 1 + wcslen(g_assay_entry_text) < 0x101) {
-                wcscat(g_assay_entry_text, text);
-            }
-            text = FormatWideString(L" %d", requirement->minimum);
-            if (wcslen(text) + 1 + wcslen(g_assay_entry_text) < 0x101) {
-                wcscat(g_assay_entry_text, text);
-            }
-            ++count;
-        }
-    }
+    count = AppendAssayRequirements(record->attribute_requirements, count);
+    count = AppendAssayRequirements(record->skill_requirements, count);
     if (record->category == W8_ITEM_CATEGORY_CASTER_ITEM_6 ||
         record->category == W8_ITEM_CATEGORY_CASTER_ITEM_8) {
         if (record->spell_id == 0) {

@@ -283,9 +283,6 @@ unsigned char RateMonsterBestAttack(W8MonsterInfo* monster_info, W8MonsterRecord
 /* HAND_COUNT, named by the assertion that bounds every hand argument here. */
 enum { W8_HAND_COUNT = 2 };
 
-/* The skill practised whenever the character's own damage reduction is used. */
-enum { W8_SKILL_DAMAGE_REDUCTION = 0x25 };
-
 /* Whether one of a character's hands can reach the target it is aimed at: the
    hand has to be in play and to have a range category at all. */
 // FUNCTION: WIZ8 0x0053d2a0
@@ -307,11 +304,7 @@ bool CanAnyHandReachTarget(int party_slot)
     unsigned int hand;
 
     for (hand = 0; hand < W8_HAND_COUNT; ++hand) {
-        if (hand >= W8_HAND_COUNT) {
-            srAssertFail("uiHand < HAND_COUNT", COMBAT_ATTACK_CPP, 102, 0);
-        }
-        if (g_status.buffers.Char[party_slot].Hand[hand].in_play != 0 &&
-            GetCharAttackRange(&g_status.buffers.Char[party_slot], hand) != W8_RANGE_NONE) {
+        if (CanHandReachTarget(party_slot, hand)) {
             return true;
         }
     }
@@ -322,11 +315,7 @@ bool CanAnyHandReachTarget(int party_slot)
 // FUNCTION: WIZ8 0x0053d7f0
 int GetHandAttackValue(int party_slot, unsigned int hand)
 {
-    if (hand >= W8_HAND_COUNT) {
-        srAssertFail("uiHand < HAND_COUNT", COMBAT_ATTACK_CPP, 102, 0);
-    }
-    if (g_status.buffers.Char[party_slot].Hand[hand].in_play != 0 &&
-        GetCharAttackRange(&g_status.buffers.Char[party_slot], hand) != W8_RANGE_NONE) {
+    if (CanHandReachTarget(party_slot, hand)) {
         return g_status.buffers.Char[party_slot].Hand[hand].attacks;
     }
     return 0;
@@ -344,8 +333,8 @@ int ApplyCharacterDamageReduction(W8Character* character, int damage)
     if (damage < 0) {
         damage = 0;
     }
-    if (character->skills[W8_SKILL_DAMAGE_REDUCTION].active != 0) {
-        PracticeCharacterSkill(character, W8_SKILL_DAMAGE_REDUCTION, 1, 0);
+    if (character->skills[W8_SKILL_IRON_SKIN].active != 0) {
+        PracticeCharacterSkill(character, W8_SKILL_IRON_SKIN, 1, 0);
     }
     return damage;
 }
@@ -1593,6 +1582,52 @@ void ReportCharacterAttackResult(int party_slot, W8SpellEffectResult* report)
     memset(report, 0, sizeof(*report));
 }
 
+static int GetCombatFumbleChance(W8PList* targets, int attack_score)
+{
+    int chance;
+    if (attack_score < 100) {
+        chance = static_cast<int>(pow(100 - attack_score, 3.0) * 1e-5 + 0.5);
+        unsigned int count = PLLength(targets);
+        if (count == 0) {
+            srAssertFail("uiNumTargets > 0", COMBAT_ATTACK_CPP, 0x11d0, 0);
+        }
+        chance = count * chance * 10 / 100;
+    } else {
+        chance = 0;
+    }
+    ClampInteger(&chance, 0, 100);
+    return chance;
+}
+
+static W8CombatSlot ChooseCombatFumbleTarget(W8PList* targets)
+{
+    unsigned int count = PLLength(targets);
+    if (count == 0) {
+        srAssertFail("uiChoices > 0", COMBAT_ATTACK_CPP, 0x127e, 0);
+    }
+    W8CombatSlot* target = static_cast<W8CombatSlot*>(PLGet(targets, Random(count)));
+    if (target == NULL) {
+        srAssertFail("pListElement != NULL", COMBAT_ATTACK_CPP, 0x1282, 0);
+    }
+    return *target;
+}
+
+static int RollBackstabExtraDice(int chance)
+{
+    unsigned int roll = Random(100);
+    int extra = 0;
+    if (roll + 15 < static_cast<unsigned int>(chance)) {
+        extra = 1;
+        if (roll + 75 < static_cast<unsigned int>(chance)) {
+            extra = 2;
+            if (roll + 95 < static_cast<unsigned int>(chance)) {
+                extra = 3;
+            }
+        }
+    }
+    return extra;
+}
+
 /* Resolve one queued swing of the monster's attack: rolls the hit chance and
    the fumble redirection, resolves guardian interception, picks the hit
    location, rolls penetration, applies damage and the struck target's
@@ -1639,9 +1674,8 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
     entry_target = monster_info->Target;
     if (entry_target.iType == W8_TARGET_KIND_CHARACTER) {
         W8Character* defender = &g_status.buffers.Char[entry_target.iChar];
-        if (defender->skills[W8_SKILL_LOCKS_TRAPS].active != 0) {
-            g_combat_state->characters[entry_target.iChar].skill_use_flags[W8_SKILL_LOCKS_TRAPS] =
-                1;
+        if (defender->skills[W8_SKILL_STEALTH].active != 0) {
+            g_combat_state->characters[entry_target.iChar].skill_use_flags[W8_SKILL_STEALTH] = 1;
         }
         if (defender->skills[W8_SKILL_SHIELD].active != 0 && g_combat_state->unaware == 0 &&
             g_combat_state->natural_attack == 0 && defender->armor_class_components[3] > 0) {
@@ -1663,18 +1697,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
         }
         BuildMonsterTargetList(monster_info, record, attack_index, fumble_list);
         int redirect_chance = GetMonsterAttackScore(monster_info, attack, action_detail, 1);
-        int fumble_chance;
-        if (redirect_chance < 100) {
-            fumble_chance = static_cast<int>(pow(100 - redirect_chance, 3.0) * 1e-5 + 0.5);
-            unsigned int target_count = PLLength(fumble_list);
-            if (target_count == 0) {
-                srAssertFail("uiNumTargets > 0", COMBAT_ATTACK_CPP, 0x11d0, 0);
-            }
-            fumble_chance = target_count * fumble_chance * 10 / 100;
-        } else {
-            fumble_chance = 0;
-        }
-        ClampInteger(&fumble_chance, 0, 100);
+        int fumble_chance = GetCombatFumbleChance(fumble_list, redirect_chance);
         fumbled = roll > 100 - fumble_chance;
         CombatLog("TO HIT: Chance %d, Rolled %d (fumble %d%%)", to_hit, roll, fumble_chance);
         if (guaranteed_hit == 0 && fumbled != 0) {
@@ -1682,15 +1705,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                 memset(&local_report, 0, sizeof(local_report));
                 report = &local_report;
             }
-            unsigned int choices = PLLength(fumble_list);
-            if (choices == 0) {
-                srAssertFail("uiChoices > 0", COMBAT_ATTACK_CPP, 0x127e, 0);
-            }
-            W8CombatSlot* element = static_cast<W8CombatSlot*>(PLGet(fumble_list, Random(choices)));
-            if (element == NULL) {
-                srAssertFail("pListElement != NULL", COMBAT_ATTACK_CPP, 0x1282, 0);
-            }
-            g_combat_state->TargetHit = *element;
+            g_combat_state->TargetHit = ChooseCombatFumbleTarget(fumble_list);
             AnnounceAccidentalStrike(&source, &g_combat_state->TargetHit);
             guaranteed_hit = 1;
             guaranteed_penetration = 0;
@@ -2541,18 +2556,7 @@ int ResolveCharacterAttackDamage(int party_slot, int hand, unsigned int attack_m
         if (g_combat_state->natural_attack != 0) {
             int chance =
                 static_cast<int>(ScaleValueByProfessionLevel(pPC, W8_TRAIT_BACKSTAB, 100.0f));
-            unsigned int roll = Random(100);
-            int extra = 0;
-            if (roll + 15 < static_cast<unsigned int>(chance)) {
-                extra = 1;
-                if (roll + 75 < static_cast<unsigned int>(chance)) {
-                    extra = 2;
-                    if (roll + 95 < static_cast<unsigned int>(chance)) {
-                        extra = 3;
-                    }
-                }
-            }
-            dice_count += extra;
+            dice_count += RollBackstabExtraDice(chance);
         }
     }
     if (attack_mode == 3) {
@@ -2662,15 +2666,7 @@ int ResolveCharacterAttackDamage(int party_slot, int hand, unsigned int attack_m
             damage = 0;
         }
     } else {
-        if (target->damage_reduction != 0) {
-            damage = ((100 - target->damage_reduction) * damage + 50) / 100;
-        }
-        if (damage < 0) {
-            damage = 0;
-        }
-        if (target->skills[W8_SKILL_IRON_SKIN].active != 0) {
-            PracticeCharacterSkill(target, W8_SKILL_IRON_SKIN, 1, 0);
-        }
+        damage = ApplyCharacterDamageReduction(target, damage);
     }
     if (damage < 0) {
         *out_dice_count = dice_count;
@@ -2809,18 +2805,7 @@ int ResolveMonsterAttackDamage(W8MonsterInfo* monster_info, W8MonsterAttack* att
         if (g_combat_state->natural_attack != 0) {
             int chance = static_cast<int>(
                 ScaleValueByMonsterLevel(GetMonsterDataForInfo(monster_info), 9, 100.0f));
-            unsigned int roll = Random(100);
-            int extra = 0;
-            if (roll + 15 < static_cast<unsigned int>(chance)) {
-                extra = 1;
-                if (roll + 75 < static_cast<unsigned int>(chance)) {
-                    extra = 2;
-                    if (roll + 95 < static_cast<unsigned int>(chance)) {
-                        extra = 3;
-                    }
-                }
-            }
-            dice_count += extra;
+            dice_count += RollBackstabExtraDice(chance);
         }
     }
     if (attack_mode == 3) {
@@ -2847,15 +2832,7 @@ int ResolveMonsterAttackDamage(W8MonsterInfo* monster_info, W8MonsterAttack* att
             rolled = 0;
         }
     } else {
-        if (target->damage_reduction != 0) {
-            rolled = ((100 - target->damage_reduction) * rolled + 50) / 100;
-        }
-        if (rolled < 0) {
-            rolled = 0;
-        }
-        if (target->skills[W8_SKILL_IRON_SKIN].active != 0) {
-            PracticeCharacterSkill(target, W8_SKILL_IRON_SKIN, 1, 0);
-        }
+        rolled = ApplyCharacterDamageReduction(target, rolled);
     }
     if (rolled < 0) {
         *out_dice_count = dice_count;
@@ -3989,8 +3966,8 @@ int ResolveCharacterAttack(int party_slot)
         range = GetCharAttackRange(character, hand);
         if (target.iType == W8_TARGET_KIND_CHARACTER) {
             W8Character* defender = &g_status.buffers.Char[target.iChar];
-            if (defender->skills[W8_SKILL_LOCKS_TRAPS].active != 0) {
-                g_combat_state->characters[target.iChar].skill_use_flags[W8_SKILL_LOCKS_TRAPS] = 1;
+            if (defender->skills[W8_SKILL_STEALTH].active != 0) {
+                g_combat_state->characters[target.iChar].skill_use_flags[W8_SKILL_STEALTH] = 1;
             }
             if (defender->skills[W8_SKILL_SHIELD].active != 0 &&
                 g_combat_state->unaware == 0 && g_combat_state->natural_attack == 0 &&
@@ -4012,18 +3989,7 @@ int ResolveCharacterAttack(int party_slot)
             }
             BuildCharacterTargetList(party_slot, hand, fumble_list);
             int redirect_chance = GetTargetAttackAttributes(party_slot, hand, attack_mode, 1);
-            int fumble_chance;
-            if (redirect_chance < 100) {
-                fumble_chance = static_cast<int>(pow(100 - redirect_chance, 3.0) * 1e-5 + 0.5);
-                unsigned int target_count = PLLength(fumble_list);
-                if (target_count == 0) {
-                    srAssertFail("uiNumTargets > 0", COMBAT_ATTACK_CPP, 0x11d0, 0);
-                }
-                fumble_chance = target_count * fumble_chance * 10 / 100;
-            } else {
-                fumble_chance = 0;
-            }
-            ClampInteger(&fumble_chance, 0, 100);
+            int fumble_chance = GetCombatFumbleChance(fumble_list, redirect_chance);
             if (character->iRace == 0xf) {
                 W8NpcState* npc_state = GetNpcState(
                     g_status.buffers.XChar[CharacterPointerToPartySlot(character)].npc_index);
@@ -4038,16 +4004,7 @@ int ResolveCharacterAttack(int party_slot)
                     memset(&local_report, 0, sizeof(local_report));
                     report = &local_report;
                 }
-                unsigned int choices = PLLength(fumble_list);
-                if (choices == 0) {
-                    srAssertFail("uiChoices > 0", COMBAT_ATTACK_CPP, 0x127e, 0);
-                }
-                W8CombatSlot* element =
-                    static_cast<W8CombatSlot*>(PLGet(fumble_list, Random(choices)));
-                if (element == NULL) {
-                    srAssertFail("pListElement != NULL", COMBAT_ATTACK_CPP, 0x1282, 0);
-                }
-                g_combat_state->TargetHit = *element;
+                g_combat_state->TargetHit = ChooseCombatFumbleTarget(fumble_list);
                 AnnounceAccidentalStrike(&source, &g_combat_state->TargetHit);
                 guaranteed_hit = 1;
                 guaranteed_penetration = 0;

@@ -71,6 +71,30 @@
  * from Sight.cpp: the retail body pushes this file's path string.
  */
 
+static void BeginPartyCamping()
+{
+    if (gXStatus.world_update_blocked != 0) {
+        ResumeMainGameWorld();
+    }
+    if (!AnyCharacterEngaged()) {
+        gXStatus.surprise_unengaged = 1;
+        ShowNotice(0xc, gppStringList[0x794], -1, 0xffffffff, 0);
+    } else {
+        gXStatus.surprise_unengaged = 0;
+        ShowNoticef(0xc, gppStringList[0x790], 8);
+    }
+    SetNpcQuoteBubbleVisible(false, 0, 0, -1, 0xffffffff);
+    BeginSurprise();
+    gXStatus.fSurprisePossible = true;
+    EnableRegionInput(0x137);
+    ActivateDialogRegion(0x137);
+    gXStatus.surprise_deadline_turns = 0;
+    CreateSurpriseFade();
+    gXStatus.surprise_phase = 0;
+    StartMusicResource("Camping.MPL", 0, 1);
+    gXStatus.combat_countdown = 0;
+}
+
 /* The per-frame game-time driver: folds the elapsed milliseconds into the
    world clock, fires the 120-second aging tick, the hourly item recharge,
    the 2500ms camping-fatigue and 1400ms stamina ticks, and runs the surprise
@@ -159,26 +183,7 @@ void UpdateGameClock(int elapsed)
         if (gXStatus.fSurprisePossible == 0 && !AnyCharacterEngaged() && AnyCharacterActive() &&
             g_status.party_fatigued == 0 && HasLevelDataVector() == 0 &&
             static_cast<char>(GetLevelDataFlag4()) != 0 && static_cast<char>(IsScreenIdle()) != 0) {
-            if (gXStatus.world_update_blocked != 0) {
-                ResumeMainGameWorld();
-            }
-            if (!AnyCharacterEngaged()) {
-                gXStatus.surprise_unengaged = 1;
-                ShowNotice(0xc, gppStringList[0x794], -1, 0xffffffff, 0);
-            } else {
-                gXStatus.surprise_unengaged = 0;
-                ShowNoticef(0xc, gppStringList[0x790], 8);
-            }
-            SetNpcQuoteBubbleVisible(false, 0, 0, -1, 0xffffffff);
-            BeginSurprise();
-            gXStatus.fSurprisePossible = true;
-            EnableRegionInput(0x137);
-            ActivateDialogRegion(0x137);
-            gXStatus.surprise_deadline_turns = 0;
-            CreateSurpriseFade();
-            gXStatus.surprise_phase = 0;
-            StartMusicResource("Camping.MPL", 0, 1);
-            gXStatus.combat_countdown = 0;
+            BeginPartyCamping();
         }
     }
 
@@ -214,26 +219,7 @@ void RequestCamp(void)
         if (static_cast<char>(IsScreenIdle()) == 0) {
             return;
         }
-        if (gXStatus.world_update_blocked != 0) {
-            ResumeMainGameWorld();
-        }
-        if (!AnyCharacterEngaged()) {
-            gXStatus.surprise_unengaged = 1;
-            ShowNotice(0xc, gppStringList[0x794], -1, 0xffffffff, 0);
-        } else {
-            gXStatus.surprise_unengaged = 0;
-            ShowNoticef(0xc, gppStringList[0x790], 8);
-        }
-        SetNpcQuoteBubbleVisible(false, 0, 0, -1, 0xffffffff);
-        BeginSurprise();
-        gXStatus.fSurprisePossible = true;
-        EnableRegionInput(0x137);
-        ActivateDialogRegion(0x137);
-        gXStatus.surprise_deadline_turns = 0;
-        CreateSurpriseFade();
-        gXStatus.surprise_phase = 0;
-        StartMusicResource("Camping.MPL", 0, 1);
-        gXStatus.combat_countdown = 0;
+        BeginPartyCamping();
         return;
     }
     ShowNotice(0xc, gppStringList[0x796], -1, 0xffffffff, 0);
