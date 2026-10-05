@@ -1013,6 +1013,9 @@ private:
         srArray<Texture*> chunks;
         unsigned long pool_count;
     };
+    /* VC6 needs an explicit grant for the pool's out-of-line operations
+       to name and allocate GERD's private Texture record. */
+    friend struct TexturePool;
 
     /* +0x21b0: the registered srVertexProcessor pointers plus the live count
        share one constructed record — the ctor helper zeroes all three words
