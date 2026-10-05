@@ -4410,7 +4410,7 @@ bool MonsterIsScalingY(W8Monster* monster)
 }
 
 // FUNCTION: WIZ8 0x004c6160
-void MonsterSetStateA0(W8Monster* monster, bool state)
+void MonsterSetActive(W8Monster* monster, bool state)
 {
     if (monster != 0) {
         monster->active = state;
@@ -4492,7 +4492,7 @@ void MonsterSelectLOD(W8Monster* monster, const srVector3T<float>* position)
 
 /* Set the forced subcycle; if no cycle is pending, use the current cycle. */
 // FUNCTION: WIZ8 0x004c6c00
-void W8Monster::SetForcedSubcycleA6(signed char value)
+void W8Monster::SetForcedSubcycle(signed char value)
 {
     m_pRep->forced_subcycle = value;
     if (m_pRep->pending_cycle == -1) {
@@ -4514,10 +4514,9 @@ void MonsterSetHighlightColour(W8Monster* monster, srVector4T<float> block)
     }
 }
 
-/* The engine object a monster holds at 0x0c, or nothing when there is no
-   monster to ask. */
+/* Return the monster's AI record, or nothing for an absent monster. */
 // FUNCTION: WIZ8 0x004c5b30
-W8AIRecord* MonsterGetObject0C(W8Monster* monster)
+W8AIRecord* MonsterGetAIRecord(W8Monster* monster)
 {
     if (monster != 0) {
         return monster->m_pAI;
@@ -4525,9 +4524,9 @@ W8AIRecord* MonsterGetObject0C(W8Monster* monster)
     return 0;
 }
 
-/* Expose the first Navigator angle through the enclosing Monster. */
+/* Expose Navigator yaw through the enclosing Monster. */
 // FUNCTION: WIZ8 0x004c5770
-float MonsterGetAngleD4(W8Monster* monster)
+float MonsterGetYaw(W8Monster* monster)
 {
     return monster->GetYaw();
 }
@@ -4676,10 +4675,10 @@ void MonsterAddPathPoint(W8Monster* monster, const srVector3T<float>* argument)
 }
 
 // FUNCTION: WIZ8 0x004c5fd0
-void MonsterSetNavigatorObjectFlag38(W8Monster* monster, char value)
+void MonsterSetPathLooping(W8Monster* monster, char value)
 {
     if (monster != 0) {
-        monster->SetObject68Flag38(value);
+        monster->SetPathLooping(value);
     }
 }
 

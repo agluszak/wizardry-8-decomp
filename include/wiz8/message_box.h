@@ -57,9 +57,9 @@ enum W8NpcMessageKind {
     W8_NPC_MSG_GROUP_ACTION = 7,         /* argument: NPC party slot to dismiss */
     W8_NPC_MSG_JOURNAL_QUOTE = 8,        /* quote bubble + journal-entry.wav */
     W8_NPC_MSG_PORTRAIT_STRING = 9,      /* argument: gppStringList index */
-    W8_NPC_MSG_SPAWN_ALFIE_CHAOS = 0x0a,       /* SpawnAlfieChaos(text) */
-    W8_NPC_MSG_SPAWN_ALFIE_LIFE = 0x0b,       /* SpawnAlfieLife */
-    W8_NPC_MSG_SPAWN_ALFIE_KNOW = 0x0c,       /* SpawnAlfieKnow */
+    W8_NPC_MSG_SPAWN_ALFIE_CHAOS = 0x0a, /* SpawnAlfieChaos(text) */
+    W8_NPC_MSG_SPAWN_ALFIE_LIFE = 0x0b,  /* SpawnAlfieLife */
+    W8_NPC_MSG_SPAWN_ALFIE_KNOW = 0x0c,  /* SpawnAlfieKnow */
     W8_NPC_MSG_FINISH_ACTION = 0x0d,     /* text null: clear targets, else scripted action */
     W8_NPC_MSG_PATH2_TRIGGER = 0x0e,     /* run trigger "Path2Trigger" */
     W8_NPC_MSG_MOVE_SAVANT = 0x0f,       /* MoveSavant.msf on monster group 0xc2 */
@@ -75,8 +75,9 @@ enum W8NpcMessageKind {
     W8_NPC_MSG_PILLARGATE_LURE = 0x1a,   /* pillargate05 + fade Al-Lure (npc 0x3f) */
     W8_NPC_MSG_PILLARGATE_MADEUS = 0x1b, /* pillargate04 + fade Al-Madeus (npc 0x3e) */
     W8_NPC_MSG_PILLARGATE_ASAIZ = 0x1c,  /* pillargate01 + fade Al-Asaiz (npc 0x3d) */
-    W8_NPC_MSG_RESET_LEVEL_STATE = 0x1d, /* text null: ClearLevelDataFlag6, else reset vectors */
-    W8_NPC_MSG_SET_CONDITION_13 = 0x1e,  /* argument: party slot; condition 0x13, 9999 */
+    W8_NPC_MSG_RESET_LEVEL_STATE =
+        0x1d, /* text null: ClearLevelMovementStopped, else reset vectors */
+    W8_NPC_MSG_SET_CONDITION_13 = 0x1e, /* argument: party slot; condition 0x13, 9999 */
     W8_NPC_MSG_SHOW_DIALOGUE_PANEL = 0x1f,
     W8_NPC_MSG_PRINCE_DISAPPEARS = 0x20,   /* fade group 0x1ab; hostile group 0x15d */
     W8_NPC_MSG_REMOVE_SELF = 0x21,         /* fade the speaking NPC's monster */

@@ -980,7 +980,7 @@ unsigned char W8Navigator::UpdateLinkedPosition()
     movement.yaw = linked_navigator->movement.yaw;
     movement.velocity = linked_navigator->movement.velocity * 0.5;
     SetPosition(&position);
-    g_octree->QueueOctreeKind13(movement.location_id, &position);
+    g_octree->RegisterNavigatorCell(movement.location_id, &position);
     linked_update_time = 0;
     return 1;
 }
@@ -1802,7 +1802,7 @@ void W8Navigator::AddPathPoint(const srVector3T<float>* position)
 }
 
 // FUNCTION: WIZ8 0x004537c0
-void W8Navigator::SetObject68Flag38(char value)
+void W8Navigator::SetPathLooping(char value)
 {
     if (path_ai != 0) {
         if (value != 0) {
@@ -1906,7 +1906,7 @@ void W8Navigator::ClearMovement()
         flags = 0;
     }
     movement.attachment->RecordPosition(&movement.position);
-    g_octree->QueueOctreeKind13(movement.location_id, &movement.position);
+    g_octree->RegisterNavigatorCell(movement.location_id, &movement.position);
     movement_complete = 1;
 }
 
@@ -2342,7 +2342,7 @@ int W8Navigator::ResolveMovement()
                 flags = 0;
             }
             movement.attachment->RecordPosition(&movement.position);
-            g_octree->QueueOctreeKind13(movement.location_id, &movement.position);
+            g_octree->RegisterNavigatorCell(movement.location_id, &movement.position);
             flags |= 5;
             movement_complete = 1;
             return 1;

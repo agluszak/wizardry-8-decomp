@@ -1935,7 +1935,7 @@ void W8PathingService::AdjustFinalPathEndpoint(W8NavigatorMovementState* movemen
         if ((attachment->flags & 0x08000000) == 0) {
             attachment->flags |= W8_NAV_ATTACHMENT_POSITION_RECORDED;
             attachment->position6 = adjusted;
-            g_octree->QueueOctreeKind13(movement->location_id, &adjusted);
+            g_octree->RegisterNavigatorCell(movement->location_id, &adjusted);
         }
     }
 }
@@ -2417,7 +2417,7 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
         attachment->position6 = movement->position;
         attachment->position7[attachment->path_position_index] = movement->position;
         attachment->position1 = attachment->position7[attachment->path_position_index];
-        g_octree->QueueOctreeKind13(movement->location_id, &movement->position);
+        g_octree->RegisterNavigatorCell(movement->location_id, &movement->position);
         g_startup_world->radius = g_startup_world->movement.alternate_radius;
         attachment->flags &= ~W8_NAV_ATTACHMENT_RESULT_MASK;
         if (search_visualization != 0 && m_pPathModelInstance != 0) {
@@ -2507,8 +2507,8 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
     if ((attachment->flags & 0x08000000) == 0) {
         attachment->flags |= W8_NAV_ATTACHMENT_POSITION_RECORDED;
         attachment->position6 = m_search_nodes[m_probe_cell_key].position;
-        g_octree->QueueOctreeKind13(movement->location_id,
-                                    &m_search_nodes[m_probe_cell_key].position);
+        g_octree->RegisterNavigatorCell(movement->location_id,
+                                        &m_search_nodes[m_probe_cell_key].position);
     }
     if (movement->target_location_id >= 0 && explicit_target == 0) {
         AdjustFinalPathEndpoint(movement, radius, separation);

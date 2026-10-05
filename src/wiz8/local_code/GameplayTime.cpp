@@ -182,7 +182,8 @@ void UpdateGameClock(int elapsed)
 
         if (gXStatus.fSurprisePossible == 0 && !AnyCharacterEngaged() && AnyCharacterActive() &&
             g_status.party_fatigued == 0 && HasLevelDataVector() == 0 &&
-            static_cast<char>(GetLevelDataFlag4()) != 0 && static_cast<char>(IsScreenIdle()) != 0) {
+            static_cast<char>(HasLevelWalkableContact()) != 0 &&
+            static_cast<char>(IsScreenIdle()) != 0) {
             BeginPartyCamping();
         }
     }
@@ -212,7 +213,7 @@ void RequestCamp(void)
         ShowNotice(0xc, gppStringList[0x774], -1, 0xffffffff, 0);
         return;
     }
-    if (HasLevelDataVector() == 0 && static_cast<char>(GetLevelDataFlag4()) != 0) {
+    if (HasLevelDataVector() == 0 && static_cast<char>(HasLevelWalkableContact()) != 0) {
         if (DispatchWorldCursorNodeCommand(0, 3) != 0) {
             return;
         }
@@ -1335,16 +1336,16 @@ void UpdateCampFatigue(int ticks)
     g_status.camp_tick_ms = 0;
 }
 
-/* The stamina-tick driver: refreshes the wait state from the level's
-   rest flags, then ticks each eligible character. While the party is
+/* The stamina-tick driver: refreshes the wait state from fast movement and
+   motion in the last update, then ticks each eligible character. While the party is
    fatigued, characters lacking the rest item are skipped. */
 // FUNCTION: WIZ8 0x00504670
 void UpdatePartyStamina(int ticks)
 {
-    if (static_cast<char>(GetLevelDataFlag8()) != 0) {
+    if (static_cast<char>(IsLevelFastMovement()) != 0) {
         g_status.wait_state = 1;
     } else {
-        g_status.wait_state = static_cast<char>(GetLevelDataFlag9()) != 0 ? 0 : 3;
+        g_status.wait_state = static_cast<char>(LevelMovedThisUpdate()) != 0 ? 0 : 3;
     }
 
     for (unsigned int slot = 0; slot < 8; ++slot) {

@@ -196,7 +196,7 @@ public:
     virtual void SetPosition(const srVector3T<float>* position) override;
 
     int Query(int query);                        /* 0x004C4660 */
-    void SetForcedSubcycleA6(signed char value); /* 0x004C6C00 */
+    void SetForcedSubcycle(signed char value);   /* 0x004C6C00 */
     void SpawnDamageNumber(unsigned int amount); /* 0x004C6C30 */
     bool IsDying();                              /* 0x004CA4C0 */
     unsigned char IsCycleInterruptable(signed char cycle);
@@ -395,7 +395,7 @@ unsigned char LoadMonsterCycle(const W8GrCycleLoadContext* context, const char* 
 bool MonsterUsesCurrentModelInstance(W8GrCycle* cycle);
 void MonsterGetLocation(W8Monster* monster, srVector3T<float>* location);
 /* Expose the first Navigator angle through the enclosing Monster. */
-float MonsterGetAngleD4(W8Monster* monster); /* 0x004C5770 */
+float MonsterGetYaw(W8Monster* monster); /* 0x004C5770 */
 void MonsterGetLocalLocation(W8Monster* monster, srVector3T<float>* location);
 void UpdateMonster(W8Monster* monster);
 bool MonsterIsCycleSupported(W8Monster* monster, signed char cycle);
@@ -419,7 +419,7 @@ unsigned short MonsterConfigureMovementToMonster(W8Monster* monster, W8Monster* 
                                                  unsigned char* probe_result);
 void MonsterAimAtMonster(W8Monster* monster, W8Monster* target, bool alternate);
 void MonsterSetCycle(W8Monster* monster, signed char cycle);
-void MonsterSetStateA0(W8Monster* monster, bool state); /* 0x004C6160 */
+void MonsterSetActive(W8Monster* monster, bool state); /* 0x004C6160 */
 void MonsterSetCycleBehaviour(W8GrCycle* cycle, signed char behaviour);
 void MonsterSetCycleSubCycle(W8GrCycle* cycle, unsigned char subcycle);
 void SetCombatInactiveFlag(unsigned char value);
@@ -481,14 +481,14 @@ void MonsterSelectLOD(W8Monster* monster, const srVector3T<float>* position);
    stack. */
 void UpdateCycleRepresentation(W8GrCycle* cycle, W8World* world);
 void MonsterSetNavigatorHalted(W8Monster* monster, bool value);
-W8AIRecord* MonsterGetObject0C(W8Monster* monster);                     /* 0x004C5B30 */
+W8AIRecord* MonsterGetAIRecord(W8Monster* monster);                     /* 0x004C5B30 */
 void MonsterSetNavigatorMovementScale(W8Monster* monster, float value); /* 0x004C5F50 */
 float MonsterGetNavigatorMovementScale(W8Monster* monster);             /* 0x004C5F70 */
 unsigned char
 MonsterConfigureMovementToPosition(W8Monster* monster,
                                    const srVector3T<float>* position);           /* 0x004C5F90 */
 void MonsterAddPathPoint(W8Monster* monster, const srVector3T<float>* argument); /* 0x004C5FB0 */
-void MonsterSetNavigatorObjectFlag38(W8Monster* monster, char value);            /* 0x004C5FD0 */
+void MonsterSetPathLooping(W8Monster* monster, char value);                      /* 0x004C5FD0 */
 void MonsterResumeAllNavigators(void);
 
 void SetMonsterPartySlotMarker(int party_slot, int location_id, char on);

@@ -111,26 +111,21 @@ float GetGroundSurfaceInfo(const srVector3T<float>* position, char* surface, cha
     return height;
 }
 
-/*
- * Engine Code\GameData.cpp.
- *
- * The bits of the level the party is currently standing in. One global points
- * at that record, and the accessors below read and write single bits of the
- * flag word that leads it. Nothing here establishes what the bits mean, so
- * each is named for the bit it touches; three of them are read together by
- * bodies that do say something about the record.
- */
+/* Current-level movement state. Contact is refreshed by walkable-surface
+   response; movement can stop at its distance limit or through a reset.
+   Fast movement selects the running stamina/noise path. */
 
 enum {
     W8_LEVEL_FLAG_0 = 0x001,
     W8_LEVEL_FLAG_NO_SOUND_ENVIRONMENT = 0x008,
-    W8_LEVEL_FLAG_4 = 0x010,
+    W8_LEVEL_FLAG_WALKABLE_CONTACT = 0x010,
     W8_LEVEL_FLAG_MOVEMENT_ACTIVE = 0x020,
-    W8_LEVEL_FLAG_5_TO_7 = 0x0e0,
-    W8_LEVEL_FLAG_6 = 0x040,
+    W8_LEVEL_FLAG_MOVEMENT_STOPPED = 0x040,
     W8_LEVEL_FLAG_MOVEMENT_RESET = 0x080,
-    W8_LEVEL_FLAG_8 = 0x100,
-    W8_LEVEL_FLAG_9 = 0x200
+    W8_LEVEL_MOVEMENT_STATE_MASK = W8_LEVEL_FLAG_MOVEMENT_ACTIVE | W8_LEVEL_FLAG_MOVEMENT_STOPPED |
+                                   W8_LEVEL_FLAG_MOVEMENT_RESET,
+    W8_LEVEL_FLAG_FAST_MOVEMENT = 0x100,
+    W8_LEVEL_FLAG_MOVED_THIS_UPDATE = 0x200
 };
 
 // GLOBAL: WIZ8 0x00652dba
@@ -254,24 +249,24 @@ void W8GameData::ApplyCameraMotionFlags(unsigned int flags, srMatrix3T<float>* r
     }
 
     if (g_level_data != 0) {
-        g_level_data->flags &= ~W8_LEVEL_FLAG_9;
+        g_level_data->flags &= ~W8_LEVEL_FLAG_MOVED_THIS_UPDATE;
         level = g_level_data;
         if (AnyCharacterEngaged() == 0 || ((level_flags = level->flags) & 0xc0) != 0) {
             level_flags = level->flags;
             flags &= 0xff00;
             if ((level_flags & W8_LEVEL_FLAG_MOVEMENT_ACTIVE) == 0) {
-                level->flags = level_flags & ~W8_LEVEL_FLAG_8;
+                level->flags = level_flags & ~W8_LEVEL_FLAG_FAST_MOVEMENT;
             }
         } else if ((level_flags & W8_LEVEL_FLAG_MOVEMENT_ACTIVE) != 0) {
-            if ((level_flags & W8_LEVEL_FLAG_8) != 0) {
+            if ((level_flags & W8_LEVEL_FLAG_FAST_MOVEMENT) != 0) {
                 flags |= 0x80u;
             } else {
                 flags &= ~0x80u;
             }
         } else if ((flags & 0x80) != 0) {
-            level->flags = level_flags | W8_LEVEL_FLAG_8;
+            level->flags = level_flags | W8_LEVEL_FLAG_FAST_MOVEMENT;
         } else {
-            level->flags = level_flags & ~W8_LEVEL_FLAG_8;
+            level->flags = level_flags & ~W8_LEVEL_FLAG_FAST_MOVEMENT;
         }
     }
 
@@ -295,7 +290,7 @@ void W8GameData::ApplyCameraMotionFlags(unsigned int flags, srMatrix3T<float>* r
     }
 
     if ((pitch_input != g_float_zero || yaw_input != g_float_zero) &&
-        (g_level_data->flags & W8_LEVEL_FLAG_6) == 0) {
+        (g_level_data->flags & W8_LEVEL_FLAG_MOVEMENT_STOPPED) == 0) {
         g_navigator_position_changed = 1;
     }
     if (g_mouselook_manual != 0) {
@@ -375,7 +370,8 @@ unsigned char W8GameData::ApplyCameraMotion(unsigned int flags, srVector3T<float
 
     level = g_level_data;
     level_flags = level->flags;
-    if ((((level_flags & W8_LEVEL_FLAG_6) != 0 && (level_flags & W8_LEVEL_FLAG_4) != 0) &&
+    if ((((level_flags & W8_LEVEL_FLAG_MOVEMENT_STOPPED) != 0 &&
+          (level_flags & W8_LEVEL_FLAG_WALKABLE_CONTACT) != 0) &&
          ((level_flags & W8_LEVEL_FLAG_0) == 0 && !g_animated_prop_present)) ||
         (g_game_time_accumulator->m_flags & 0x10) != 0) {
         return 0;
@@ -385,16 +381,16 @@ unsigned char W8GameData::ApplyCameraMotion(unsigned int flags, srVector3T<float
         level_flags = level->flags;
         flags &= 0xff00;
         if ((level_flags & W8_LEVEL_FLAG_MOVEMENT_ACTIVE) == 0) {
-            level_flags &= ~W8_LEVEL_FLAG_8;
+            level_flags &= ~W8_LEVEL_FLAG_FAST_MOVEMENT;
             level->flags = level_flags;
         }
     } else if ((level_flags & W8_LEVEL_FLAG_MOVEMENT_ACTIVE) == 0) {
         if ((flags & 0x80) == 0) {
-            level->flags = level_flags & ~W8_LEVEL_FLAG_8;
+            level->flags = level_flags & ~W8_LEVEL_FLAG_FAST_MOVEMENT;
         } else {
-            level->flags = level_flags | W8_LEVEL_FLAG_8;
+            level->flags = level_flags | W8_LEVEL_FLAG_FAST_MOVEMENT;
         }
-    } else if ((level_flags & W8_LEVEL_FLAG_8) == 0) {
+    } else if ((level_flags & W8_LEVEL_FLAG_FAST_MOVEMENT) == 0) {
         flags &= ~0x80u;
     } else {
         flags |= 0x80u;
@@ -532,9 +528,9 @@ after_move:
     }
     UpdateLevelMovementAudio();
     if (moved == 0) {
-        g_level_data->flags &= ~W8_LEVEL_FLAG_9;
+        g_level_data->flags &= ~W8_LEVEL_FLAG_MOVED_THIS_UPDATE;
     } else {
-        g_level_data->flags |= W8_LEVEL_FLAG_9;
+        g_level_data->flags |= W8_LEVEL_FLAG_MOVED_THIS_UPDATE;
     }
     return moved;
 }
@@ -1876,7 +1872,7 @@ unsigned char W8GDSurface::ResolveCollision(srVector3T<float>* origin,
             g_environ->motion_factor = slope;
         }
         g_environ->airborne = 1;
-        g_level_data->flags |= 0x10;
+        g_level_data->flags |= W8_LEVEL_FLAG_WALKABLE_CONTACT;
         g_level_data->sound_environment = footstep_surface;
         g_level_data->sound_environment_alt = footstep_material;
     }
@@ -2109,7 +2105,7 @@ unsigned char W8GDSurface::ApplyEnvironContact(srVector3T<float>* direction)
         level->vector5.SetZero();
         return 0;
     }
-    level->flags |= 0x10;
+    level->flags |= W8_LEVEL_FLAG_WALKABLE_CONTACT;
     level->sound_environment = footstep_surface;
     level->sound_environment_alt = footstep_material;
     srVector3T<float> normal;
@@ -2175,9 +2171,9 @@ void ResetLevelMovement(float movement_limit, bool reset, bool fast_move)
             level->flags &= ~W8_LEVEL_FLAG_MOVEMENT_RESET;
         }
         if (fast_move != 0) {
-            level->flags |= W8_LEVEL_FLAG_8;
+            level->flags |= W8_LEVEL_FLAG_FAST_MOVEMENT;
         } else {
-            level->flags &= ~W8_LEVEL_FLAG_8;
+            level->flags &= ~W8_LEVEL_FLAG_FAST_MOVEMENT;
         }
     }
 }
@@ -2197,9 +2193,9 @@ void ResetInactiveLevelDataVectors(void)
     }
 }
 
-/* Bit eight: read, cleared and set by three neighbouring bodies. */
+/* Fast movement is shared by camera motion, stamina and combat movement. */
 // FUNCTION: WIZ8 0x0041efb0
-unsigned char GetLevelDataFlag8(void)
+unsigned char IsLevelFastMovement(void)
 {
     if (g_level_data != 0) {
         return (g_level_data->flags >> 8) & 1;
@@ -2208,23 +2204,23 @@ unsigned char GetLevelDataFlag8(void)
 }
 
 // FUNCTION: WIZ8 0x0041efd0
-void ClearLevelDataFlag8(void)
+void ClearLevelFastMovement(void)
 {
     if (g_level_data != 0) {
-        g_level_data->flags &= ~W8_LEVEL_FLAG_8;
+        g_level_data->flags &= ~W8_LEVEL_FLAG_FAST_MOVEMENT;
     }
 }
 
 // FUNCTION: WIZ8 0x0041efe0
-void SetLevelDataFlag8(void)
+void SetLevelFastMovement(void)
 {
     if (g_level_data != 0) {
-        g_level_data->flags |= W8_LEVEL_FLAG_8;
+        g_level_data->flags |= W8_LEVEL_FLAG_FAST_MOVEMENT;
     }
 }
 
 // FUNCTION: WIZ8 0x0041eff0
-unsigned char GetLevelDataFlag9(void)
+unsigned char LevelMovedThisUpdate(void)
 {
     if (g_level_data != 0) {
         return (g_level_data->flags >> 9) & 1;
@@ -2232,9 +2228,9 @@ unsigned char GetLevelDataFlag9(void)
     return 0;
 }
 
-/* Bit four, read out of the low byte rather than the whole word. */
+/* Walkable-surface contact, read out of the low byte. */
 // FUNCTION: WIZ8 0x0041f070
-unsigned char GetLevelDataFlag4(void)
+unsigned char HasLevelWalkableContact(void)
 {
     if (g_level_data != 0) {
         return (static_cast<unsigned char>(g_level_data->flags) >> 4) & 1;
@@ -2242,17 +2238,17 @@ unsigned char GetLevelDataFlag4(void)
     return 0;
 }
 
-/* Bits five through seven together, cleared as a group. */
+/* Clear active, stopped and reset movement state together. */
 // FUNCTION: WIZ8 0x0041f0c0
-void ClearLevelDataFlags5To7(void)
+void ClearLevelMovementState(void)
 {
     if (g_level_data != 0) {
-        g_level_data->flags &= ~W8_LEVEL_FLAG_5_TO_7;
+        g_level_data->flags &= ~W8_LEVEL_MOVEMENT_STATE_MASK;
     }
 }
 
 // FUNCTION: WIZ8 0x0041f140
-unsigned char GetLevelDataFlag6(void)
+unsigned char IsLevelMovementStopped(void)
 {
     if (g_level_data != 0) {
         return (static_cast<unsigned char>(g_level_data->flags) >> 6) & 1;
@@ -2261,10 +2257,10 @@ unsigned char GetLevelDataFlag6(void)
 }
 
 // FUNCTION: WIZ8 0x0041f160
-void ClearLevelDataFlag6(void)
+void ClearLevelMovementStopped(void)
 {
     if (g_level_data != 0) {
-        g_level_data->flags &= ~W8_LEVEL_FLAG_6;
+        g_level_data->flags &= ~W8_LEVEL_FLAG_MOVEMENT_STOPPED;
     }
 }
 
@@ -2297,7 +2293,7 @@ int IsLevelDataFlag4EffectivelySet(void)
     if (g_level_data == 0) {
         return 0;
     }
-    if ((g_level_data->flags & W8_LEVEL_FLAG_4) == 0 && g_level_override != 0) {
+    if ((g_level_data->flags & W8_LEVEL_FLAG_WALKABLE_CONTACT) == 0 && g_level_override != 0) {
         return 0;
     }
     return 1;
@@ -2420,7 +2416,7 @@ unsigned char SetEnvironmentLoadFlag(unsigned char flag)
 void ResetLevelDataVectors(void)
 {
     if (g_level_data != 0) {
-        g_level_data->flags |= 0x40;
+        g_level_data->flags |= W8_LEVEL_FLAG_MOVEMENT_STOPPED;
         if ((g_level_data->flags & 1) == 0) {
             g_level_data->vector2.SetZero();
             g_level_data->camera_forward.SetZero();
@@ -2429,7 +2425,7 @@ void ResetLevelDataVectors(void)
             g_level_data->scaled_camera_forward.SetZero();
             g_level_data->vector8.SetZero();
         }
-        g_level_data->flags &= ~0x100U;
+        g_level_data->flags &= ~W8_LEVEL_FLAG_FAST_MOVEMENT;
     }
 }
 
@@ -2853,13 +2849,14 @@ unsigned char W8LevelDataRecord::UpdateFootstepFromMotion()
         dy = scaled_camera_forward.y - vector6.y;
         dz = scaled_camera_forward.z - vector6.z;
     }
-    if ((flags & W8_LEVEL_FLAG_NO_SOUND_ENVIRONMENT) != 0 || (flags & W8_LEVEL_FLAG_4) == 0) {
+    if ((flags & W8_LEVEL_FLAG_NO_SOUND_ENVIRONMENT) != 0 ||
+        (flags & W8_LEVEL_FLAG_WALKABLE_CONTACT) == 0) {
         return 0;
     }
     distance = sqrtf(dx * dx + dy * dy + dz * dz) + footstep_accumulator;
     footstep_accumulator = distance;
     if (g_float_005ebcdc < distance) {
-        if (g_status.search_mode == 0 && (flags & W8_LEVEL_FLAG_8) == 0) {
+        if (g_status.search_mode == 0 && (flags & W8_LEVEL_FLAG_FAST_MOVEMENT) == 0) {
             large_radius = 0;
         } else {
             large_radius = 1;
@@ -2932,7 +2929,8 @@ void W8LevelDataRecord::UpdateMotionProgress(unsigned char fast_move, unsigned c
         }
     }
     if (moved == 0) {
-        if ((flags & W8_LEVEL_FLAG_NO_SOUND_ENVIRONMENT) != 0 || (flags & W8_LEVEL_FLAG_4) == 0) {
+        if ((flags & W8_LEVEL_FLAG_NO_SOUND_ENVIRONMENT) != 0 ||
+            (flags & W8_LEVEL_FLAG_WALKABLE_CONTACT) == 0) {
             allow_override = false;
         }
         camera_forward.SetZero();
@@ -2964,13 +2962,13 @@ void W8LevelDataRecord::UpdateMotionProgress(unsigned char fast_move, unsigned c
         vector4.SetZero();
     }
     if ((flags & W8_LEVEL_FLAG_MOVEMENT_ACTIVE) == 0) {
-        if ((flags & W8_LEVEL_FLAG_8) == 0) {
+        if ((flags & W8_LEVEL_FLAG_FAST_MOVEMENT) == 0) {
             real_elapsed += speed;
         } else {
             frame_elapsed += speed;
         }
-    } else if ((flags & W8_LEVEL_FLAG_4) != 0) {
-        if ((flags & W8_LEVEL_FLAG_8) == 0) {
+    } else if ((flags & W8_LEVEL_FLAG_WALKABLE_CONTACT) != 0) {
+        if ((flags & W8_LEVEL_FLAG_FAST_MOVEMENT) == 0) {
             real_elapsed += speed;
         } else {
             frame_elapsed += speed;
@@ -2981,7 +2979,7 @@ void W8LevelDataRecord::UpdateMotionProgress(unsigned char fast_move, unsigned c
             camera_forward.SetZero();
             scaled_camera_forward.SetZero();
             footstep_accumulator = 2000.0f;
-            flags |= W8_LEVEL_FLAG_6;
+            flags |= W8_LEVEL_FLAG_MOVEMENT_STOPPED;
             if (gXStatus.fPartyMovementMode != 0) {
                 UpdateActivePartyMovement();
             }
@@ -3011,9 +3009,8 @@ void UpdateLevelMovementAudio(void)
         return;
     }
     if (((g_gd_camera->m_state >> 6) & 1) == 0 ||
-        (g_level_data->flags & W8_LEVEL_FLAG_4) == 0 ||
-        g_level_data->vector4.x != g_float_zero ||
-        g_level_data->vector4.y != g_float_zero ||
+        (g_level_data->flags & W8_LEVEL_FLAG_WALKABLE_CONTACT) == 0 ||
+        g_level_data->vector4.x != g_float_zero || g_level_data->vector4.y != g_float_zero ||
         g_level_data->vector4.z != g_float_zero) {
         if (g_level_footstep_sound != -1) {
             SoundSetFadeVolume(g_level_footstep_sound, 0, 500, 1);

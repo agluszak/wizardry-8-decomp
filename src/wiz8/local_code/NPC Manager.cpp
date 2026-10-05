@@ -2843,7 +2843,7 @@ char QueueNpcDepartureEvents(int destination_level)
 // FUNCTION: WIZ8 0x0050E230
 void QueueNpcTravelRefusals(int destination_level)
 {
-    ClearLevelDataFlag6();
+    ClearLevelMovementStopped();
     for (int slot = 0; slot < 2; ++slot) {
         W8PartySlotRow* row = &g_status.buffers.XChar[slot];
         W8Character* character = &g_status.buffers.Char[slot];

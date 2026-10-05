@@ -2259,7 +2259,7 @@ bool ValidateSpellTarget(int party_slot, int spell_id, unsigned int power, bool 
     }
 
     if (spell_id == 0x4b &&
-        ((g_level_data->flags & 1) != 0 || !GetLevelDataFlag4() || GetLevelDataFlag9())) {
+        ((g_level_data->flags & 1) != 0 || !HasLevelWalkableContact() || LevelMovedThisUpdate())) {
         valid = false;
     }
     if (!valid && (!gXStatus.fCombatMode || !MonsterCanAimSpell(spell_id) ||

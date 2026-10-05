@@ -464,7 +464,7 @@ void ShowMonsterSpeedStatus(void)
         ShowNoticef(8, L"No monster available.");
         return;
     }
-    path = static_cast<W8PathAI*>(MonsterGetObject0C(g_mipe_state->monster));
+    path = static_cast<W8PathAI*>(MonsterGetAIRecord(g_mipe_state->monster));
     if (path != 0 && GetAIRecordKind(path) == W8_AI_RECORD_PATH) {
         speed = PathAIGetScale(path);
     } else {
@@ -1175,7 +1175,7 @@ void HandleMonsterDebugKey(unsigned short key)
             MonsterAddPathPoint(monster, &position);
             MonsterSetAnimating(monster, 1);
             MonsterSetCycle(monster, 4);
-            MonsterSetNavigatorObjectFlag38(monster, 1);
+            MonsterSetPathLooping(monster, 1);
             g_mipe_state->monster = monster;
             return;
         }
@@ -1201,7 +1201,7 @@ void HandleMonsterDebugKey(unsigned short key)
                     do {
                         if (monster->m_pRep->GetNumSubsPerCycle(cycle) != 0) {
                             monster->SetCycle(cycle);
-                            monster->SetForcedSubcycleA6(0);
+                            monster->SetForcedSubcycle(0);
                             monster->flags1 |= 0x10;
                             goto cycle_done;
                         }
@@ -1211,7 +1211,7 @@ void HandleMonsterDebugKey(unsigned short key)
                     cycle = 0;
                 } while (true);
             }
-            monster->SetForcedSubcycleA6(cycle + 1);
+            monster->SetForcedSubcycle(cycle + 1);
         cycle_done:
             monster->SetSubCycle(0);
             monster->m_pRep->pending_subcycle = 0;
@@ -1236,7 +1236,7 @@ void AdjustMonsterSpeed(unsigned short key)
     if (g_mipe_state->monster == 0) {
         return;
     }
-    path = static_cast<W8PathAI*>(MonsterGetObject0C(g_mipe_state->monster));
+    path = static_cast<W8PathAI*>(MonsterGetAIRecord(g_mipe_state->monster));
     if (path == 0) {
         factor = 1.0f;
         speed = MonsterGetNavigatorMovementScale(g_mipe_state->monster);

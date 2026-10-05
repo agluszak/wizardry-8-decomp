@@ -318,21 +318,21 @@ void UpdateSharedGameDataObject();
 void UpdateGameDataRuntime();
 unsigned char LoadSurfaceVertices(srVector3T<float>* output, const int* vertex_indices);
 
-void ClearLevelDataFlag6(void);
+void ClearLevelMovementStopped(void);
 void ResetLevelDataVectors(void);
 int IsLevelDataFlag4EffectivelySet(void);
-unsigned char GetLevelDataFlag4(void); /* 0x0041F070 */
-unsigned char GetLevelDataFlag8(void); /* 0x0041EFB0 */
-void ClearLevelDataFlag8(void);        /* 0x0041EFD0 */
-void SetLevelDataFlag8(void);          /* 0x0041EFE0 */
-unsigned char GetLevelDataFlag9(void); /* 0x0041EFF0 */
+unsigned char HasLevelWalkableContact(void); /* 0x0041F070 */
+unsigned char IsLevelFastMovement(void);     /* 0x0041EFB0 */
+void ClearLevelFastMovement(void);           /* 0x0041EFD0 */
+void SetLevelFastMovement(void);             /* 0x0041EFE0 */
+unsigned char LevelMovedThisUpdate(void);    /* 0x0041EFF0 */
 bool HasLevelDataVector(void);         /* 0x0041F010 */
 void ResetCurrentEnvironment(void);
 unsigned char SetEnvironmentLoadFlag(unsigned char flag); /* 0x0041AAE0 */
 void BeginCameraSway(void);
 void EndCameraSway(void);
 
-unsigned char GetLevelDataFlag6(void);
+unsigned char IsLevelMovementStopped(void);
 unsigned char ConsumeLevelElapsedTime(float* real_elapsed, float* frame_elapsed);
 /* Retail tests level flag 0x008; when set both outputs are -1. */
 void GetLevelSoundEnvironment(char* environment, char* secondary);
@@ -345,7 +345,7 @@ float SettlePositionToGround(const srVector3T<float>* position, bool* hit);
    returning the resulting height. */
 float SettlePositionToGroundMutable(srVector3T<float>* position, bool* hit);
 
-void ClearLevelDataFlags5To7(void); /* 0x0041F0C0 */
+void ClearLevelMovementState(void); /* 0x0041F0C0 */
 srCamera* CreateOrSetGameCamera(srNode* parent, srCamera* camera);
 float GetCameraYawInDegrees();
 float GetCameraYawRadians();

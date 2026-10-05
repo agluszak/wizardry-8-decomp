@@ -496,7 +496,7 @@ void EndLockInteractMode(char suspend)
             delete g_lock_interaction;
         }
         g_lock_interaction = 0;
-        ClearLevelDataFlag6();
+        ClearLevelMovementStopped();
     }
     SelectTextBox(0);
     ApplyMainGameModeFlag(g_ui_mode_current, 1);
@@ -998,7 +998,7 @@ void W8LockInteraction::Process()
             delete g_lock_interaction;
         }
         g_lock_interaction = 0;
-        ClearLevelDataFlag6();
+        ClearLevelMovementStopped();
         SelectTextBox(0);
         ApplyMainGameModeFlag(g_ui_mode_current, 1);
         RequestRedraw(W8_MAIN_REDRAW_LAYOUT);
@@ -2157,7 +2157,7 @@ void W8MainGameScreen::Update()
             delete g_main_game_screen;
         }
         g_main_game_screen = 0;
-        ClearLevelDataFlag6();
+        ClearLevelMovementStopped();
         SelectTextBox(0);
         ApplyMainGameModeFlag(g_ui_mode_saved, 1);
         RequestRedraw(W8_MAIN_REDRAW_LAYOUT);
@@ -2222,7 +2222,7 @@ void W8MainGameScreen::Update()
             delete g_main_game_screen;
         }
         g_main_game_screen = 0;
-        ClearLevelDataFlag6();
+        ClearLevelMovementStopped();
         SelectTextBox(0);
         ApplyMainGameModeFlag(g_ui_mode_saved, 1);
         RequestRedraw(W8_MAIN_REDRAW_LAYOUT);
@@ -2563,7 +2563,7 @@ void EndTrapInteractMode(char suspend)
             delete g_main_game_screen;
         }
         g_main_game_screen = 0;
-        ClearLevelDataFlag6();
+        ClearLevelMovementStopped();
     }
     SelectTextBox(0);
     ApplyMainGameModeFlag(g_ui_mode_saved, 1);
@@ -2678,7 +2678,7 @@ unsigned char W8NpcDialogueTextController::AddTranscriptEntry(const wchar_t* tex
     added = text_area.AddEntry(0, text, 0, 7, category);
     InvalidateLayout();
     if (mark != 0) {
-        text_area.SetEntryState60(added, true);
+        text_area.SetEntryMarked(added, true);
     }
     if (1u < (unsigned)text_area.m_all_lines.count) {
         for (index = 0; index < text_area.m_all_lines.count; ++index) {
@@ -7649,7 +7649,7 @@ void ResumeMainGameWorld(void)
             MonsterResumeAllNavigators();
             if (gXStatus.fLockInteractMode == 0 && gXStatus.fTrapInteractMode == 0 &&
                 gXStatus.fLockInteract == 0 && gXStatus.fTrapInteract == 0) {
-                ClearLevelDataFlag6();
+                ClearLevelMovementStopped();
             }
         }
         gXStatus.world_update_blocked = false;
@@ -7884,8 +7884,8 @@ void W8NpcDialogueTextController::ClearTranscriptEntries()
 // FUNCTION: WIZ8 0x0055EA70
 void W8NpcDialogueTextController::RemoveSelectedTranscriptEntry()
 {
-    if (text_area.m_state_5d_entry != -1) {
-        int index = text_area.GetOwningEntryIndex(text_area.m_state_5d_entry);
+    if (text_area.m_highlighted_entry != -1) {
+        int index = text_area.GetOwningEntryIndex(text_area.m_highlighted_entry);
         if (index != -1) {
             text_area.RemoveEntry(index);
             Invalidate(0);
@@ -7896,7 +7896,7 @@ void W8NpcDialogueTextController::RemoveSelectedTranscriptEntry()
 // FUNCTION: WIZ8 0x0055EAB0
 int W8NpcDialogueTextController::GetSelectedTranscriptEntryIndex()
 {
-    return text_area.m_state_5d_entry;
+    return text_area.m_highlighted_entry;
 }
 
 // FUNCTION: WIZ8 0x0055EAC0
@@ -8379,9 +8379,8 @@ bool AttemptNpcItemTrade(W8ItemInstance* item, unsigned char quantity, int index
     return false;
 }
 
-/* Condition orb on a party portrait (help 25): press while highest_condition
-   is set arms the overlay slot; release and leave dismiss the hover plate;
-   enter drives tooltip kind 1 and region help. */
+/* Highlight a clicked transcript keyword; clicking it again submits it to
+   the dialogue input handler and clears its marked-entry palette. */
 
 // FUNCTION: WIZ8 0x0055E490
 void W8NpcDialogueTextController::SelectTranscriptKeywordAtPoint(int x, int y)
@@ -8398,20 +8397,20 @@ void W8NpcDialogueTextController::SelectTranscriptKeywordAtPoint(int x, int y)
         return;
     }
 
-    if (text_area.m_state_5d_entry == static_cast<int>(hit)) {
+    if (text_area.m_highlighted_entry == static_cast<int>(hit)) {
         text_area.CopyVisibleEntryText(hit, keyword);
-        text_area.ClearEntryState5D();
-        text_area.SetEntryState5D(static_cast<int>(hit));
+        text_area.ClearEntryHighlight();
+        text_area.HighlightVisibleEntry(static_cast<int>(hit));
         SetDialogueFieldKeyword(keyword, 0);
         HandleNpcDialogueInput();
-        text_area.SetEntryState60(text_area.GetOwningEntryIndex(static_cast<int>(hit)), false);
+        text_area.SetEntryMarked(text_area.GetOwningEntryIndex(static_cast<int>(hit)), false);
         InvalidateLayout();
         return;
     }
 
     text_area.CopyVisibleEntryText(hit, keyword);
-    text_area.ClearEntryState5D();
-    text_area.SetEntryState5D(static_cast<int>(hit));
+    text_area.ClearEntryHighlight();
+    text_area.HighlightVisibleEntry(static_cast<int>(hit));
     SetDialogueFieldKeyword(keyword, 0);
     InvalidateLayout();
 }

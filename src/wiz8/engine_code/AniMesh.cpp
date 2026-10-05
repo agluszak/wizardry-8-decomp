@@ -526,16 +526,16 @@ bool AniMeshRadius(W8AniMesh* mesh, float* radius)
 }
 
 // FUNCTION: WIZ8 0x004b6860
-void AniMeshSetFlag10(W8AniMesh* mesh, bool enabled)
+void SetAniMeshCacheProtected(W8AniMesh* mesh, bool enabled)
 {
     if (mesh == 0) {
         srAssertFail("pAniMesh", ANI_MESH_CPP, 0x3b7, 0);
     }
     if (enabled != 0) {
-        mesh->flags |= W8_ANI_MESH_FLAG_10;
+        mesh->flags |= W8_ANI_MESH_CACHE_PROTECTED;
         return;
     }
-    mesh->flags &= ~W8_ANI_MESH_FLAG_10;
+    mesh->flags &= ~W8_ANI_MESH_CACHE_PROTECTED;
 }
 
 // FUNCTION: WIZ8 0x004b6770
@@ -553,7 +553,7 @@ void EnforceAniMeshMemoryLimit(W8AniMesh* current)
                 if (candidate == 0) {
                     srAssertFail("pAniMesh", ANI_MESH_CPP, 0x3d0, 0);
                 }
-                if ((candidate->flags & W8_ANI_MESH_FLAG_10) == 0 &&
+                if ((candidate->flags & W8_ANI_MESH_CACHE_PROTECTED) == 0 &&
                     (oldest_index == -1 || static_cast<unsigned int>(candidate->last_used) <
                                                static_cast<unsigned int>(oldest->last_used))) {
                     oldest = candidate;

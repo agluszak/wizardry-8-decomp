@@ -28,7 +28,7 @@ public:
     virtual unsigned int ApplyEmitterSetting(signed char emitter) = 0;
     /* Not a stop: both overrides tail-return AnimObjEntry's result,
        and GrCycle's 0x004A7470 hands that result straight to
-       AniMeshSetFlag10, which types it. */
+       SetAniMeshCacheProtected, which types it. */
     virtual W8AniMesh* GetEmitterAniMesh(signed char emitter) = 0;
 
     /* 0x6c: the host is live; the spell side checks it before starting. */

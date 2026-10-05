@@ -271,7 +271,7 @@ void CheckGameplayReadyOnGameThread(void* opaque)
     GameplayReadyCheck* check = static_cast<GameplayReadyCheck*>(opaque);
     check->calls = ++*(volatile unsigned int*)&g_ready_check_calls;
     // StartCombat and QuickSave require ground contact, not merely an entered screen.
-    /* GetLevelDataFlag4 is set by the collision path while a motion step
+    /* HasLevelWalkableContact is set by the collision path while a motion step
        resolves ground contact. A party spawned exactly at rest may never
        collide, so the flag can stay clear indefinitely even though the game
        is otherwise up - report that separately so the driver can nudge the
@@ -319,7 +319,7 @@ void CheckGameplayReadyOnGameThread(void* opaque)
        it at the top of each motion step. If it stays clear the party has no
        ground contact at all - input may still register but world motion is
        dead, so readiness must wait for the collision pipeline to resolve. */
-    check->ready = settled && GetLevelDataFlag4() != 0;
+    check->ready = settled && HasLevelWalkableContact();
     check->waiting_on_ground = settled && !check->ready;
 }
 

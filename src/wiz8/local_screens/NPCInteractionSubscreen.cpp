@@ -4796,7 +4796,7 @@ void BeginScriptedWorldAction(void)
 void ClearMainGameTargetState(void)
 {
     g_status.world_cursor_gate = 0;
-    ClearLevelDataFlag6();
+    ClearLevelMovementStopped();
     SetTargetCursor(W8_CURSOR_NONE);
 }
 

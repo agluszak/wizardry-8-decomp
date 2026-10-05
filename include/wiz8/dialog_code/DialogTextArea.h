@@ -36,11 +36,11 @@ public:
     unsigned char UpdateSelectionFromPoint(int x, int y);
     unsigned char ClearPointSelection();
     unsigned char CopyVisibleEntryText(unsigned int index, wchar_t* output);
-    unsigned char SetEntryState5D(int index);
-    unsigned char ClearEntryState5D();
+    unsigned char HighlightVisibleEntry(int index);
+    unsigned char ClearEntryHighlight();
     W8DialogTextEntry* GetEntry(unsigned int index);
     int GetOwningEntryIndex(int visible_index);
-    void SetEntryState60(int index, bool state);
+    void SetEntryMarked(int index, bool state);
     int AddEntry(const wchar_t* prefix, const wchar_t* text, unsigned int prefix_palette,
                  unsigned int text_palette, unsigned char category);
     void RemoveEntry(unsigned int index);
@@ -70,7 +70,7 @@ private:
     int m_behavior_flags;            /* 0x44 */
     int m_line_height_override;      /* 0x48 */
     int m_selected_visible_entry;    /* 0x4c */
-    int m_state_5d_entry;            /* 0x50 */
+    int m_highlighted_entry;         /* 0x50: visible entry index, -1 when clear */
     bool m_relayout_needed; /* 0x54 */
     signed char m_category_filter;   /* 0x55 */
     unsigned char m_sorted;          /* 0x56 */
