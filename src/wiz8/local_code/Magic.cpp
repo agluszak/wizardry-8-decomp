@@ -3496,7 +3496,7 @@ void PrepareSpellTarget(int spell_id, W8TargetSource* source, W8CombatSlot* targ
         if (TargetSourceIsCharacter(source, 0)) {
             GetCameraPosition(&from);
         } else if (TargetSourceIsMonster(source, 0)) {
-            if (monster_info->p3D->GetSpellPosition(&from) == 0) {
+            if (!monster_info->p3D->GetSpellPosition(&from)) {
                 monster_info->p3D->GetMappedPosition(&from);
             }
         } else {
@@ -3753,7 +3753,7 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
     int slot;
     unsigned int index;
     bool marked;
-    unsigned char fVertextAvail;
+    bool fVertextAvail;
 
     monster = 0;
     marked = false;
@@ -3785,14 +3785,14 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
         eye = camera;
     } else if (TargetSourceIsMonster(source, 0)) {
         centre = monster->GetPosition();
-        fVertextAvail = 0;
+        fVertextAvail = false;
         if (source->point_source == 0 && spell_id != 0x77 && monster_info->has_spell_origin) {
             fVertextAvail = monster->GetSpellPosition(&eye);
-            if (fVertextAvail == 0) {
+            if (!fVertextAvail) {
                 srAssertFail("fVertextAvail", MAGIC_CPP, 0x951, 0);
             }
         }
-        if (fVertextAvail != 0) {
+        if (fVertextAvail) {
             sight_flag = 3;
         } else {
             eye = monster->movement.position;
@@ -4084,7 +4084,7 @@ void PruneSpellTargetMarkers(int spell_id, W8GrowableVector<int>* monster_marker
             break;
         case 0x4d:
             if (record->kind != 0x14 && record->kind != 0x15 && record->kind != 0x1c &&
-                monster_info->summoned == 0) {
+                monster_info->summoned == W8_MONSTER_SUMMON_NONE) {
                 monster_markers->RemoveAt(index);
             }
             break;

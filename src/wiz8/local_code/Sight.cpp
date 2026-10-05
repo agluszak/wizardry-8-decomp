@@ -536,11 +536,10 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, bool direction,
 
                     distance = monster->GetDistanceToMonster(other->p3D);
                     if (viewing_distance >= distance) {
-                        unsigned char line_of_sight =
-                            monster->HasLineOfSightToMonster(other_monster);
+                        bool line_of_sight = monster->HasLineOfSightToMonster(other_monster);
 
                         entry->line_of_sight = line_of_sight;
-                        if (line_of_sight != 0) {
+                        if (line_of_sight) {
                             can_see = CanMonsterSeeMonster(monster_info, other, entry);
                             entry->can_see = can_see;
                         }
@@ -565,10 +564,10 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, bool direction,
                         monster->GetMonsterSightFlags(other->p3D, entry->los_flags,
                                                       entry->los_flags + 2);
                         if (monster_info->has_projectile_origin) {
-                            unsigned char found = monster->GetProjectilePosition(&trace_position);
+                            bool found = monster->GetProjectilePosition(&trace_position);
                             bool clear;
 
-                            if (found == 0) {
+                            if (!found) {
                                 srAssertFail("fFoundMissileVertex", SIGHT_CPP, 0x1f5, 0);
                                 clear = false;
                             } else {
@@ -581,9 +580,9 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, bool direction,
                             entry->los_flags[1] = clear;
                         }
                         if (monster_info->has_spell_origin) {
-                            unsigned char found = monster->GetSpellPosition(&trace_position);
+                            bool found = monster->GetSpellPosition(&trace_position);
 
-                            if (found == 0) {
+                            if (!found) {
                                 srAssertFail("fFoundSpellVertex", SIGHT_CPP, 0x1fd, 0);
                                 entry->los_flags[3] = false;
                             } else {
@@ -690,10 +689,10 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, bool direction,
         monster->GetPlayerSightFlags(monster_info->player_visibility.los_flags,
                                      monster_info->player_visibility.los_flags + 2);
         if (monster_info->has_projectile_origin) {
-            unsigned char found = monster->GetProjectilePosition(&trace_position);
+            bool found = monster->GetProjectilePosition(&trace_position);
             bool clear;
 
-            if (found == 0) {
+            if (!found) {
                 srAssertFail("fFoundMissileVertex", SIGHT_CPP, 0x9b, 0);
                 clear = false;
             } else {
@@ -705,9 +704,9 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, bool direction,
             monster_info->player_visibility.los_flags[1] = clear;
         }
         if (monster_info->has_spell_origin) {
-            unsigned char found = monster->GetSpellPosition(&trace_position);
+            bool found = monster->GetSpellPosition(&trace_position);
 
-            if (found == 0) {
+            if (!found) {
                 srAssertFail("fFoundSpellVertex", SIGHT_CPP, 0xa3, 0);
                 monster_info->player_visibility.los_flags[3] = false;
             } else {
@@ -720,19 +719,19 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, bool direction,
     }
 
     {
-        unsigned char in_range = monster_info->within_viewing_distance;
+        bool in_range = monster_info->within_viewing_distance;
         bool seen_by_party = false;
 
-        monster_info->party_threat.party_detected = 0;
+        monster_info->party_threat.party_detected = false;
         monster_info->party_threat.visible_to_player = false;
-        monster_info->party_threat.use_bounds = 0;
-        if (in_range != 0) {
+        monster_info->party_threat.use_bounds = false;
+        if (in_range) {
             if (monster_info->party_threat.sight_state != W8_SIGHT_UNSEEN) {
                 use_bounds = true;
             }
             monster_info->party_threat.use_bounds = use_bounds;
-            seen_by_party = monster->IsVisibleToPlayer(use_bounds) != 0;
-            monster_info->party_threat.visible_to_player = seen_by_party ? 1 : 0;
+            seen_by_party = monster->IsVisibleToPlayer(use_bounds);
+            monster_info->party_threat.visible_to_player = seen_by_party;
             if (seen_by_party) {
                 float yaw;
                 float distance;
@@ -776,7 +775,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, bool direction,
                         }
                     }
                 }
-                monster_info->party_threat.party_detected = seen_by_party ? 1 : 0;
+                monster_info->party_threat.party_detected = seen_by_party;
                 if (seen_by_party) {
                     if (GetViewDistance() == g_sight_default) {
                         if (record == 0 ||
@@ -941,7 +940,7 @@ bool MonsterGroupCanSeeGroup(W8MonsterGroup* source, W8MonsterGroup* target)
             memset(&record, 0, sizeof(record));
             record.sight_state = W8_SIGHT_SEEN;
             if (CanMonsterSeeMonster(source_info, target_info, &record) &&
-                source_monster->HasLineOfSightToMonster(target_monster) != 0) {
+                source_monster->HasLineOfSightToMonster(target_monster)) {
                 return true;
             }
         }

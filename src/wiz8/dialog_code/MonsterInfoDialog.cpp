@@ -143,7 +143,7 @@ bool W8MonsterInfoDialog::PopulateText()
         (npc = GetNpcStateByKind(record->npc_kind)) != 0 && npc->record->has_group != 0) {
         is_npc = true;
     }
-    if (monster_info->summoned == 1) {
+    if (monster_info->summoned == W8_MONSTER_SUMMON_FRIENDLY) {
         knowledge = 0x7d;
     } else {
         knowledge = GetBestPartySkillLevel(W8_SKILL_MYTHOLOGY, &best_party_slot);
@@ -275,7 +275,7 @@ bool W8MonsterInfoDialog::PopulateText()
         wcscat(text, gppStringList[0x145]);
         ++count;
     }
-    if (monster_info->summoned != 0) {
+    if (monster_info->summoned != W8_MONSTER_SUMMON_NONE) {
         if (count > 0) {
             wcscat(text, g_comma_space);
         }

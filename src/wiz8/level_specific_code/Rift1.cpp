@@ -65,7 +65,7 @@ bool Rift1Hotstuff(Trigger* pTrigger)
             group = SpawnMonsters(0x175, 1, &position, 0, true, false, false);
             if (group != 0) {
                 monster = GetMonsterByLocationID(IListGetAt(group->monsters, 0));
-                if (monster != 0 && monster->SetScript("MoveLavalord.MSF", true) != 0) {
+                if (monster != 0 && monster->SetScript("MoveLavalord.MSF", true)) {
                     BeginScriptedWorldAction();
                 }
             }

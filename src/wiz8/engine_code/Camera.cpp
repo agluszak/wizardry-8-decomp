@@ -181,7 +181,7 @@ void PointCameraAtMonster(W8MonsterInfo* monster_info, bool force, bool animate)
         }
     }
     monster = monster_info->p3D;
-    if (monster->IsRenderable(true) == 0) {
+    if (!monster->IsRenderable(true)) {
         return;
     }
     if (monster->movement.height_offset -

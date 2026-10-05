@@ -193,23 +193,23 @@ public:
     virtual void Update();
     virtual void SetCurrentAnimationScale(float scale);
     virtual void GetMappedPosition(srVector3T<float>* position);
-    virtual unsigned char GetAnimationCenter(srVector3T<float>* center);
+    virtual bool GetAnimationCenter(srVector3T<float>* center);
     virtual void SetPosition(const srVector3T<float>* position) override;
 
     int Query(int query);                        /* 0x004C4660 */
     void SetForcedSubcycle(signed char value);   /* 0x004C6C00 */
     void SpawnDamageNumber(unsigned int amount); /* 0x004C6C30 */
     bool IsDying();                              /* 0x004CA4C0 */
-    unsigned char IsCycleInterruptable(signed char cycle);
+    bool IsCycleInterruptable(signed char cycle);
     void ApplyRemovalStateEffects();
     void CollectModelInstances(W8GrowableVector<stModelInstance*>* instances);
     void SetDamageStage(int stage);
     int GetDamageStageCount();
-    unsigned char ReplaceSkinTexture(int stage, const char* old_name, const char* new_name);
+    bool ReplaceSkinTexture(int stage, const char* old_name, const char* new_name);
     int AddDamageStage(const char* base_name, int stage);
     void RemoveCycleSkinTables();
     void RandomizeAppearanceAndMotion();
-    unsigned char IsRenderable(bool alternate);
+    bool IsRenderable(bool alternate);
     void InitializeAnimatedTexture();
     void HandleAnimationThreshold();
     void HandleAnimationFrame(unsigned char frame);
@@ -218,37 +218,36 @@ public:
     void UpdateAttachedObjects();
     void BeginFadeIn(float duration);
     void BeginDelayedRemoval();
-    void BeginFadeOutAndRemove(signed char state);
+    void BeginFadeOutAndRemove(W8MonsterRemovalState state);
     void BeginFadeOut(float duration);
     void StartTalking(bool animate_mouth);
     void StopTalking();
     void SetCycleCallback(int cycle, CycleCallback callback);
-    unsigned char GetPatrolPoint(srVector3T<float>* point);
+    bool GetPatrolPoint(srVector3T<float>* point);
     void TrackSoundHandle(int handle);
     float GetDistanceToPlayer();
     float GetPointDistanceToPlayer(srVector3T<float> point);
     float GetDistanceToMonster(W8Monster* monster);
     float GetPointDistanceToMonster(W8Monster* monster, srVector3T<float> point);
-    unsigned char SetScript(const char* script_name, bool reset_orders);
+    bool SetScript(const char* script_name, bool reset_orders);
     void ProcessScript();
     bool ResolveScriptPosition(const char* name, srVector3T<float>* position);
-    unsigned char GetProjectilePosition(srVector3T<float>* position);
-    unsigned char GetSpellPosition(srVector3T<float>* position);
-    unsigned char GetCycleMappedPosition(signed char cycle, int mapped_index,
-                                         srVector3T<float>* position);
-    unsigned char EvaluateScriptCondition(const char* expression);
+    bool GetProjectilePosition(srVector3T<float>* position);
+    bool GetSpellPosition(srVector3T<float>* position);
+    bool GetCycleMappedPosition(signed char cycle, int mapped_index, srVector3T<float>* position);
+    bool EvaluateScriptCondition(const char* expression);
     bool CanContinueScript();
-    unsigned char SetScriptLabel(const char* label);
+    bool SetScriptLabel(const char* label);
     bool IsPendingFinalize() const;
     bool IsWithinWorldRange();
     bool CheckLineOfSightToPlayer();
     void GetPlayerSightFlags(bool* primary, bool* secondary);
-    unsigned char IsVisibleToPlayer(bool use_bounds);
+    bool IsVisibleToPlayer(bool use_bounds);
     void GetPlayerToMonsterSightFlags(bool* primary, bool* secondary,
                                       const srVector3T<float>* source);
-    unsigned char HasLineOfSightToMonster(W8Monster* monster);
+    bool HasLineOfSightToMonster(W8Monster* monster);
     void GetMonsterSightFlags(W8Monster* monster, bool* primary, bool* secondary);
-    unsigned char HasLineOfSightFromPoint(srVector3T<float> point);
+    bool HasLineOfSightFromPoint(srVector3T<float> point);
     int IsFacingMonster(W8Monster* monster);
     int IsFacingPlayer();
     void ApplyRepresentationScale();
@@ -285,7 +284,7 @@ public:
     bool talking;
     /* 0x1fd: the StartTalking argument; mouth texture animation only runs
        while it is set. */
-    unsigned char animate_mouth;
+    bool animate_mouth;
     unsigned char padding_1fe[2];
     /* 0x200/0x204: the 120 ms clock and the last frame of the random mouth
        flicker used while the gap track reports the mouth closed. */
@@ -298,13 +297,13 @@ public:
        active W8MouthGapTrack; forces mouth frame 0 while open. */
     unsigned char mouth_open; // bool-byte-ok: copied raw from the C gap track byte
     /* 0x215: set while the monster is deactivated (active cleared). */
-    unsigned char inactive;
+    bool inactive;
     /* 0x216: raised at construction; cleared once AddMonsterToWorld and the
        spawn bookkeeping finish - iteration skips monsters still pending. */
     bool pending_finalize;
     /* 0x217: suppresses rendering and radar/automap display. */
     bool disabled;
-    unsigned char nearest_to_party;
+    bool nearest_to_party;
     unsigned char padding_219[3];
     /* 0x21c/0x220: hover base-height random range (scaled by
        g_world_scale into movement.vertical_base). */
@@ -318,14 +317,14 @@ public:
     bool spell_vertex_warned;
     /* 0x22d: the missing missile-start-point warning already fired once. */
     bool missile_point_warned;
-    signed char removal_state;
+    W8MonsterRemovalState removal_state;
     unsigned char padding_22f;
     CycleCallback cycle_callback;
     int callback_cycle;
     stScript* script;
     int script_line;
-    int script_wait;
-    W8GrowableVector<unsigned char> script_conditions;
+    W8MonsterScriptCommand script_wait;
+    W8GrowableVector<bool> script_conditions;
     W8GameTimer script_delay_timer;
     Trigger* trigger;
     int registry_weight;
@@ -352,7 +351,7 @@ public:
     int look_duration;
     /* 0x2d0: sun-visibility state for the model light-scale lerp: -1
        uninitialized, 1 lit (scale toward 0.75), 0 shadowed (toward 0). */
-    int sunlit_state;
+    W8MonsterSunlightState sunlit_state;
     bool move_dirty;
     unsigned char padding_2d5[3];
     W8GameTimer light_scale_timer;
@@ -368,13 +367,13 @@ public:
        This is not the inherited navigator scene node. */
     srNode* sector_mesh;
     W8GameTimer fade_timer;
-    signed char fade_state;
+    W8MonsterFadeState fade_state;
     /* 0x331: this monster is the highlighted target; exempt from the
        attachment distance-scale clamp. */
     bool target_highlighted;
     /* 0x332: copied from the source monster; blocks hostility recompute in
        Targeting and Combat Hostility. */
-    unsigned char hostility_preserved;
+    bool hostility_preserved;
     unsigned char padding_333;
     stSound3D* sound;
     W8GrowableVector<int> values;

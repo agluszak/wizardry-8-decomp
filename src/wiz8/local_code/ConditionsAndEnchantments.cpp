@@ -566,7 +566,7 @@ void SetMonsterCondition(int location_id, W8Condition condition, int duration, i
         wchar_t* name = GetMonsterName(monster_info, 0, 0);
         ShowNoticef(9, L"%s %s!", name, gppStringList[g_condition_notices[condition * 4 + 1]]);
     }
-    if (monster_info->p3D->IsCycleInterruptable(monster_info->p3D->m_pRep->pending_cycle) != 0) {
+    if (monster_info->p3D->IsCycleInterruptable(monster_info->p3D->m_pRep->pending_cycle)) {
         StartMonsterCycle(monster_info, 0x14, 1);
     }
 }

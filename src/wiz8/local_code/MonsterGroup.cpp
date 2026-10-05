@@ -828,7 +828,7 @@ bool MonsterGroupHasRenderableMember(W8MonsterGroup* monster_group, bool require
     for (unsigned int index = 0; index < ILLength(monster_group->monsters); ++index) {
         W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
             0x8e6, MONSTER_GROUP_CPP, IListGetAt(monster_group->monsters, index), true));
-        if (info->p3D->IsWithinWorldRange() && info->p3D->IsRenderable(true) != 0 &&
+        if (info->p3D->IsWithinWorldRange() && info->p3D->IsRenderable(true) &&
             (!require_threat || info->party_threat.los_flags[1])) {
             return true;
         }

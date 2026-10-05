@@ -828,8 +828,7 @@ void HandleFactChange(W8FactId fact_id, unsigned char value)
         if (monster_info == 0) {
             return;
         }
-        if (monster_info->p3D->IsCycleInterruptable(monster_info->p3D->m_pRep->pending_cycle) ==
-            0) {
+        if (!monster_info->p3D->IsCycleInterruptable(monster_info->p3D->m_pRep->pending_cycle)) {
             return;
         }
         StartMonsterCycle(monster_info, 0x14, 1);

@@ -248,54 +248,6 @@ static W8Vector<stModelInstance*> g_monster_model_instances;
 
 #define MONSTER_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\Monster.cpp"
 
-enum W8MonsterScriptCommand {
-    MONSCR_GOTO,
-    MONSCR_WALKTO,
-    MONSCR_FACE,
-    MONSCR_SAY,
-    MONSCR_CYCLE,
-    MONSCR_SHOOT,
-    MONSCR_GIVE,
-    MONSCR_TELEPORT,
-    MONSCR_CAST,
-    MONSCR_DIE,
-    MONSCR_END,
-    MONSCR_IF,
-    MONSCR_ELSE,
-    MONSCR_ENDIF,
-    MONSCR_NPCINTERACTION,
-    MONSCR_DISPOSITION,
-    MONSCR_DISAPPEAR,
-    MONSCR_LOOKHERE,
-    MONSCR_NPCNUMBER,
-    MONSCR_FOLLOW,
-    MONSCR_PATROL,
-    MONSCR_STOPPATROL,
-    MONSCR_TRIGGER,
-    MONSCR_DELAY,
-    MONSCR_BEGINORDERS,
-    MONSCR_ENDORDERS,
-    MONSCR_GUARD,
-    MONSCR_POINTPATROL,
-    MONSCR_RANDOMPOINTPATROL,
-    MONSCR_DEAF,
-    MONSCR_DOACTION,
-    MONSCR_EAST,
-    MONSCR_NORTHEAST,
-    MONSCR_NORTH,
-    MONSCR_NORTHWEST,
-    MONSCR_WEST,
-    MONSCR_SOUTHWEST,
-    MONSCR_SOUTH,
-    MONSCR_SOUTHEAST,
-    MONSCR_TURNTOFACEPARTY,
-    MONSCR_LOOKABOUT,
-    MONSCR_PLAY,
-    MONSCR_FADEOUT,
-    MONSCR_STAYHOME,
-    MONSCR_COUNT
-};
-
 /* Highlight triangle bitmaps indexed by the slot's marching-order position:
    the marker SetMonsterPartySlotMarker hangs on a monster. */
 // GLOBAL: WIZ8 0x0060e938
@@ -584,7 +536,7 @@ unsigned char ReadOrCloneMonsterCycles(const W8GrCycleLoadContext* context,
                 char new_name[64];
                 sscanf(line, "%s %s %s", command, old_name, new_name);
                 if (damage_stage != -1 &&
-                    (*monster)->ReplaceSkinTexture(damage_stage, old_name, new_name) == 0) {
+                    !(*monster)->ReplaceSkinTexture(damage_stage, old_name, new_name)) {
                     ShutdownWithErrorBox(reinterpret_cast<const char*>(
                         String( // reinterpret-ok: String returns a logging buffer
                             "The skin texture %s not found in monster %s!", old_name,
@@ -828,7 +780,7 @@ unsigned char ReadOrCloneMonsterCycles(const W8GrCycleLoadContext* context,
         navigation_mode = 6;
     (*monster)->SetNavigationMode(navigation_mode);
     if (spice_monster) {
-        (*monster)->hostility_preserved = 1;
+        (*monster)->hostility_preserved = true;
         (*monster)->owned_object = 0;
         (*monster)->movement.pitch_enabled = false;
     }
@@ -1246,7 +1198,7 @@ W8Monster::W8Monster()
     pending_finalize = true;
     script = 0;
     script_line = 0;
-    script_wait = -1;
+    script_wait = MONSCR_NONE;
     trigger = 0;
     registry_weight = 0;
     formation.SetZero();
@@ -1258,20 +1210,18 @@ W8Monster::W8Monster()
 
 // FUNCTION: WIZ8 0x004bfe00
 W8Monster::W8Monster(const W8Monster& rhs)
-    : W8GrCycle(rhs), flags1(rhs.flags1), value_1e0(rhs.value_1e0),
-      location_id(rhs.location_id), scale_x(1.0f), scale_y(1.0f), scale_z(1.0f),
-      missile_frame(rhs.missile_frame), spell_frame(rhs.spell_frame), talking(0),
-      animate_mouth(0), mouth_frame_clock(0), mouth_frame(0), talk_start(0), talk_state(-1),
-      inactive(rhs.inactive), pending_finalize(1), disabled(0),
-      nearest_to_party(0), hover_base_min(rhs.hover_base_min),
+    : W8GrCycle(rhs), flags1(rhs.flags1), value_1e0(rhs.value_1e0), location_id(rhs.location_id),
+      scale_x(1.0f), scale_y(1.0f), scale_z(1.0f), missile_frame(rhs.missile_frame),
+      spell_frame(rhs.spell_frame), talking(0), animate_mouth(false), mouth_frame_clock(0),
+      mouth_frame(0), talk_start(0), talk_state(-1), inactive(rhs.inactive), pending_finalize(1),
+      disabled(0), nearest_to_party(false), hover_base_min(rhs.hover_base_min),
       hover_base_max(rhs.hover_base_max), bob_amplitude_min(rhs.bob_amplitude_min),
-      bob_amplitude_max(rhs.bob_amplitude_max), spell_vertex_warned(0),
-      missile_point_warned(0), script(0), script_wait(-1), trigger(0),
-      registry_weight(rhs.registry_weight), spell_effect_armed(0), sector_mesh(0),
-      sound(0)
+      bob_amplitude_max(rhs.bob_amplitude_max), spell_vertex_warned(0), missile_point_warned(0),
+      script(0), script_wait(MONSCR_NONE), trigger(0), registry_weight(rhs.registry_weight),
+      spell_effect_armed(0), sector_mesh(0), sound(0)
 {
     formation.SetZero();
-    fade_state = 0;
+    fade_state = W8_MONSTER_FADE_IDLE;
     target_highlighted = false;
     hostility_preserved = rhs.hostility_preserved;
 
@@ -1293,15 +1243,15 @@ W8Monster::W8Monster(const W8Monster& rhs)
     direction_z = 0;
     look_frequency = 0;
     look_duration = 0;
-    sunlit_state = -1;
+    sunlit_state = W8_MONSTER_SUNLIGHT_UNKNOWN;
     move_dirty = true;
     target_scale = 1.0f;
     current_scale = 1.0f;
     flags1 &= ~(W8_MONSTER_KEEP_FRAME_DIRECTION | W8_MONSTER_SCALING_Y | W8_MONSTER_PARKED |
                    W8_MONSTER_REMOVE_AFTER_FADE | W8_MONSTER_REMOVE_NOW);
-    removal_state = 0;
+    removal_state = W8_MONSTER_REMOVAL_NONE;
     cycle_callback = 0;
-    if (hostility_preserved != 0) {
+    if (hostility_preserved) {
         active = false;
     }
 }
@@ -1326,7 +1276,7 @@ W8Monster::~W8Monster()
     }
     flags1 &= ~W8_MONSTER_SCRIPT_WAIT;
     script_line = 0;
-    script_wait = -1;
+    script_wait = MONSCR_NONE;
     if (sound != 0) {
         sound->release();
         sound = 0;
@@ -1370,7 +1320,7 @@ void W8Monster::Update()
     }
     distance = (monster_position - party_position).Length();
 
-    if (sunlit_state == -1 || g_monster_light_scale < g_float_one) {
+    if (sunlit_state == W8_MONSTER_SUNLIGHT_UNKNOWN || g_monster_light_scale < g_float_one) {
         current_scale = 0.75f;
         g_monster_model_instances.Clear();
         CollectModelInstances(&g_monster_model_instances);
@@ -1381,7 +1331,7 @@ void W8Monster::Update()
         target_scale = 0.75f;
         light_scale_timer.SetDuration(0.025f);
         light_scale_timer.Restart();
-        sunlit_state = 1;
+        sunlit_state = W8_MONSTER_SUNLIGHT_LIT;
         move_dirty = true;
     }
 
@@ -1398,17 +1348,17 @@ void W8Monster::Update()
                 GetMappedPosition(&mapped_position);
                 sun_position = sun_location;
                 if (g_octree->HasLineOfSight(&mapped_position, &sun_position, true)) {
-                    if (sunlit_state == 0) {
+                    if (sunlit_state == W8_MONSTER_SUNLIGHT_SHADOWED) {
                         target_scale = 0.75f;
                         light_scale_timer.SetDuration(0.025f);
                         light_scale_timer.Restart();
-                        sunlit_state = 1;
+                        sunlit_state = W8_MONSTER_SUNLIGHT_LIT;
                     }
-                } else if (sunlit_state == 1) {
+                } else if (sunlit_state == W8_MONSTER_SUNLIGHT_LIT) {
                     target_scale = 0.0f;
                     light_scale_timer.SetDuration(0.025f);
                     light_scale_timer.Restart();
-                    sunlit_state = 0;
+                    sunlit_state = W8_MONSTER_SUNLIGHT_SHADOWED;
                 }
             }
         }
@@ -1435,44 +1385,45 @@ void W8Monster::Update()
         light_scale_timer.Restart();
     }
 
-    if (fade_state != 0) {
+    if (fade_state != W8_MONSTER_FADE_IDLE) {
         float progress = fade_timer.GetProgress();
         if (progress > g_float_one) {
             progress = g_float_one;
         }
-        if (fade_state == -2) {
+        if (fade_state == W8_MONSTER_FADE_DELAYED_REMOVAL) {
             if (progress == g_float_one) {
-                fade_state = 0;
+                fade_state = W8_MONSTER_FADE_IDLE;
                 fade_timer.SetDuration(3.0f);
                 fade_timer.Restart();
-                if (fade_state < 1) {
+                if (fade_state < W8_MONSTER_FADE_IN) {
                     m_pRep->instance_scale = g_float_one;
                     m_pRep->apply_instance_scale = true;
-                    fade_state = -1;
+                    fade_state = W8_MONSTER_FADE_OUT;
                 } else {
                     fade_timer.SetProgress(g_float_one - m_pRep->instance_scale);
-                    fade_state = -1;
+                    fade_state = W8_MONSTER_FADE_OUT;
                 }
             }
         } else {
-            if (fade_state < 1) {
+            if (fade_state < W8_MONSTER_FADE_IN) {
                 m_pRep->instance_scale = g_float_one - progress;
             } else {
                 m_pRep->instance_scale = progress;
             }
             m_pRep->apply_instance_scale = true;
             if (progress == g_float_one) {
-                if (fade_state < 0) {
+                if (fade_state < W8_MONSTER_FADE_IDLE) {
                     flags1 |= W8_MONSTER_FADED_OUT;
                 }
-                fade_state = 0;
+                fade_state = W8_MONSTER_FADE_IDLE;
             }
         }
     }
 
     cycle = Query(6);
     SetGroundShadowVisible(cycle != W8_MONSTER_CYCLE_BIRTH && cycle != W8_MONSTER_CYCLE_DIE &&
-                           fade_state == 0 && (flags1 & W8_MONSTER_FADED_OUT) == 0);
+                           fade_state == W8_MONSTER_FADE_IDLE &&
+                           (flags1 & W8_MONSTER_FADED_OUT) == 0);
 
     {
         unsigned int monster_index =
@@ -1649,7 +1600,7 @@ void W8Monster::Update()
    optional comma-separated float list. The retail interpreter supports the
    two predicates below and treats every other name as false. */
 // FUNCTION: WIZ8 0x004C9DC0
-unsigned char W8Monster::EvaluateScriptCondition(const char* expression)
+bool W8Monster::EvaluateScriptCondition(const char* expression)
 {
     W8GrowableVector<float> parameters;
     char buffer[512] = {0};
@@ -1691,7 +1642,7 @@ unsigned char W8Monster::EvaluateScriptCondition(const char* expression)
             (party_position - monster_position).Length() < *parameters.GetAt(0) * g_world_scale &&
             MonsterInfoFromID(7533, MONSTER_CPP, location_id, true)
                     ->player_visibility.line_of_sight != 0) {
-            return 1;
+            return true;
         }
     } else if (_strnicmp(buffer, "RANDOM", 6) == 0) {
         if (parameters.GetCount() == 0) {
@@ -1700,10 +1651,10 @@ unsigned char W8Monster::EvaluateScriptCondition(const char* expression)
                                       script->getName(), script_line));
         }
         if (Chance(static_cast<unsigned int>(*parameters.GetAt(0))) != 0) {
-            return 1;
+            return true;
         }
     }
-    return 0;
+    return false;
 }
 
 /* Replace the current Monster script with an existing named runtime object or
@@ -1711,7 +1662,7 @@ unsigned char W8Monster::EvaluateScriptCondition(const char* expression)
    is balanced the same way on both paths: a newly loaded script is marked for
    automatic release, then the Monster takes its own reference. */
 // FUNCTION: WIZ8 0x004C7F10
-unsigned char W8Monster::SetScript(const char* script_name, bool reset_orders)
+bool W8Monster::SetScript(const char* script_name, bool reset_orders)
 {
     srRegistry* registry;
     char path[256] = "Data\\Monsters\\Scripts\\";
@@ -1722,7 +1673,7 @@ unsigned char W8Monster::SetScript(const char* script_name, bool reset_orders)
     }
     flags1 &= ~W8_MONSTER_SCRIPT_WAIT;
     script_line = 0;
-    script_wait = -1;
+    script_wait = MONSCR_NONE;
     if (sound != 0) {
         sound->release();
         sound = 0;
@@ -1747,20 +1698,20 @@ unsigned char W8Monster::SetScript(const char* script_name, bool reset_orders)
         }
     }
     if (script == 0) {
-        return 0;
+        return false;
     }
     script->addReference();
-    return 1;
+    return true;
 }
 
 // FUNCTION: WIZ8 0x004C77F0
-unsigned char W8Monster::GetProjectilePosition(srVector3T<float>* position)
+bool W8Monster::GetProjectilePosition(srVector3T<float>* position)
 {
     signed char cycle;
-    unsigned char result;
+    bool result;
 
     if (position == 0) {
-        return 0;
+        return false;
     }
     if (IsCycleSupported(0x11) && IsCycleSupported(0x0d)) {
         srAssertFail("!(IsCycleSupported(CYCLE_ATTACK_SHOOT) && "
@@ -1774,11 +1725,11 @@ unsigned char W8Monster::GetProjectilePosition(srVector3T<float>* position)
     } else if (IsCycleSupported(7)) {
         cycle = W8_MONSTER_CYCLE_ATTACK_RANGED;
     } else {
-        return 0;
+        return false;
     }
 
     result = GetCycleMappedPosition(cycle, 5, position);
-    if (result == 0 && !missile_point_warned) {
+    if (!result && !missile_point_warned) {
         if (g_dev_mode) {
             W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(
                 MonsterGetIndexByLocationID(0x18c3, MONSTER_CPP, location_id, true));
@@ -1791,17 +1742,17 @@ unsigned char W8Monster::GetProjectilePosition(srVector3T<float>* position)
 }
 
 /* Cycle 25 mapping six is the spell launch vertex. Missing mappings warn at
-   most once per Monster, while the returned byte remains the mapping result. */
+   most once per Monster, while the result reports whether a launch position was found. */
 // FUNCTION: WIZ8 0x004c78e0
-unsigned char W8Monster::GetSpellPosition(srVector3T<float>* position)
+bool W8Monster::GetSpellPosition(srVector3T<float>* position)
 {
-    unsigned char found;
+    bool found;
 
     if (position == 0) {
-        return 0;
+        return false;
     }
     found = GetCycleMappedPosition(0x19, 6, position);
-    if (found == 0 && !spell_vertex_warned) {
+    if (!found && !spell_vertex_warned) {
         if (g_dev_mode) {
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(
                 MonsterGetIndexByLocationID(0x18e4, MONSTER_CPP, location_id, true));
@@ -1814,8 +1765,8 @@ unsigned char W8Monster::GetSpellPosition(srVector3T<float>* position)
 }
 
 // FUNCTION: WIZ8 0x004C7960
-unsigned char W8Monster::GetCycleMappedPosition(signed char cycle, int mapped_index,
-                                                srVector3T<float>* position)
+bool W8Monster::GetCycleMappedPosition(signed char cycle, int mapped_index,
+                                       srVector3T<float>* position)
 {
     srModelInstance* current_model = GetCurrentModelInstance();
     W8GrowableVector<W8AnimObj*>* animations;
@@ -1846,7 +1797,7 @@ unsigned char W8Monster::GetCycleMappedPosition(signed char cycle, int mapped_in
         dispatch_value = 0;
     }
     if (animation == 0) {
-        return 0;
+        return false;
     }
     if (AnimationIsRunning(animation) != 0) {
         return GetAnimationCenter(position);
@@ -1867,11 +1818,11 @@ unsigned char W8Monster::GetCycleMappedPosition(signed char cycle, int mapped_in
                 position->Set(rotated.x + owner_position.x,
                               rotated.y + owner_position.y + movement.vertical_base,
                               rotated.z + owner_position.z);
-                return 1;
+                return true;
             }
         }
     }
-    return 0;
+    return false;
 }
 
 bool W8Monster::ResolveScriptPosition(const char* name, srVector3T<float>* position)
@@ -1925,13 +1876,13 @@ void W8Monster::ProcessScript()
         return;
     }
 
-    script_wait = -1;
+    script_wait = MONSCR_NONE;
     stop = false;
     command_count = 0;
-    while (script != 0 && script_wait == -1 && !stop) {
+    while (script != 0 && script_wait == MONSCR_NONE && !stop) {
         char line[256];
         char* token;
-        int command;
+        W8MonsterScriptCommand command;
         stScriptLine* source_line;
 
         if (script_line >= script->lines.GetCount()) {
@@ -1947,15 +1898,15 @@ void W8Monster::ProcessScript()
             continue;
         }
 
-        command = -1;
+        command = MONSCR_NONE;
         for (int index = 0; index < MONSCR_COUNT; ++index) {
             if (_stricmp(token, g_monster_script_commands[index]) == 0) {
-                command = index;
+                command = static_cast<W8MonsterScriptCommand>(index);
                 break;
             }
         }
 
-        if (script_conditions.GetCount() != 0 && *script_conditions.GetAt(0) == 0 &&
+        if (script_conditions.GetCount() != 0 && !(*script_conditions.GetAt(0)) &&
             command != MONSCR_ELSE && command != MONSCR_ENDIF) {
             if (++command_count > 50) {
                 stop = true;
@@ -2095,7 +2046,7 @@ void W8Monster::ProcessScript()
                 if (!ResolveScriptPosition(token, &target)) {
                     break;
                 }
-                if (GetProjectilePosition(&source) == 0) {
+                if (!GetProjectilePosition(&source)) {
                     GetMappedPosition(&source);
                 }
                 FireMissile(owner, &source, &target, 0, 0, 1, 50000.0f);
@@ -2137,19 +2088,19 @@ void W8Monster::ProcessScript()
                 break;
             case MONSCR_IF: {
                 bool invert = false;
-                unsigned char value;
+                bool value;
                 token = strtok(0, " \t");
                 if (token != 0 && _strnicmp(token, "NOT", 3) == 0) {
                     invert = true;
                     token = strtok(0, " \t");
                 }
                 value = EvaluateScriptCondition(token);
-                script_conditions.InsertAt(0, invert ? value == 0 : value != 0);
+                script_conditions.InsertAt(0, invert ? !value : value);
                 break;
             }
             case MONSCR_ELSE:
                 if (script_conditions.GetCount() != 0) {
-                    *script_conditions.GetAt(0) = *script_conditions.GetAt(0) == 0;
+                    *script_conditions.GetAt(0) = !(*script_conditions.GetAt(0));
                 } else {
                     ShutdownWithErrorBox(FormatString(
                         "MonScript %s Line %d: ELSE without matching IF", script->getName(),
@@ -2339,16 +2290,16 @@ void W8Monster::ProcessScript()
             }
             case MONSCR_FADEOUT:
                 flags1 |= W8_MONSTER_REMOVE_AFTER_FADE;
-                if (fade_state >= 0) {
+                if (fade_state >= W8_MONSTER_FADE_IDLE) {
                     fade_timer.SetDuration(3.0f);
                     fade_timer.Restart();
-                    if (fade_state < 1) {
+                    if (fade_state < W8_MONSTER_FADE_IN) {
                         m_pRep->instance_scale = 1.0f;
                         m_pRep->apply_instance_scale = true;
                     } else {
                         fade_timer.SetProgress(1.0f - m_pRep->instance_scale);
                     }
-                    fade_state = -1;
+                    fade_state = W8_MONSTER_FADE_OUT;
                 }
                 RemoveMonster(MonsterGetIndexByLocationID(0x1021, MONSTER_CPP, location_id, true),
                               false);
@@ -2472,13 +2423,12 @@ void W8Monster::ProcessScript()
         }
     }
 
-    if (script != 0 && script_line >= script->lines.GetCount() &&
-        script_wait == -1) {
+    if (script != 0 && script_line >= script->lines.GetCount() && script_wait == MONSCR_NONE) {
         script->release();
         script = 0;
         flags1 &= ~W8_MONSTER_SCRIPT_WAIT;
         script_line = 0;
-        script_wait = -1;
+        script_wait = MONSCR_NONE;
         if (sound != 0) {
             sound->release();
             sound = 0;
@@ -2493,57 +2443,59 @@ void W8Monster::ProcessScript()
 bool W8Monster::CanContinueScript()
 {
     switch (script_wait) {
-    case 1:
+    case MONSCR_WALKTO:
         if (!movement_stopped) {
             return false;
         }
         break;
-    case 2:
+    case MONSCR_FACE:
         if (static_cast<float>(fabs(movement.target_yaw - movement.yaw)) >=
             g_camera_transition_epsilon) {
             return false;
         }
         break;
-    case 3:
+    case MONSCR_SAY:
         if (ShouldDeferCharacterEventForNpcScript(false)) {
             return false;
         }
         break;
-    case 4:
+    case MONSCR_CYCLE:
         if (Query(2) == 0) {
             return false;
         }
         flags1 &= ~W8_MONSTER_SCRIPT_WAIT;
         return true;
-    case 0x0e:
+    case MONSCR_NPCINTERACTION:
         if (gXStatus.fNpcDialogueMode) {
             return false;
         }
         break;
-    case 0x16:
+    case MONSCR_TRIGGER:
         if (trigger != 0 && (trigger->flags & W8_TRIGGER_RUNNING) != 0) {
             return false;
         }
         trigger = 0;
         return true;
-    case 0x17:
+    case MONSCR_DELAY:
         if (script_delay_timer.GetProgress() < g_float_one) {
             return false;
         }
         break;
-    case 0x29:
+    case MONSCR_PLAY:
         if (sound->IsPlaying()) {
             return false;
         }
         sound->release();
         sound = 0;
         break;
+    default:
+        break;
     }
     return true;
 }
 
 // FUNCTION: WIZ8 0x004CA260
-unsigned char W8Monster::SetScriptLabel(const char* label)
+bool W8Monster::SetScriptLabel(const char* label)
 {
     int line;
 
@@ -2551,10 +2503,10 @@ unsigned char W8Monster::SetScriptLabel(const char* label)
         line = script->FindLabelLine(label);
         if (line >= 0) {
             script_line = line;
-            return 1;
+            return true;
         }
     }
-    return 0;
+    return false;
 }
 
 // FUNCTION: WIZ8 0x004CA290
@@ -2623,7 +2575,7 @@ void W8Monster::GetPlayerSightFlags(bool* primary, bool* secondary)
    detailed path tests the translated animation bounds at their centre and
    corners. */
 // FUNCTION: WIZ8 0x004c4920
-unsigned char W8Monster::IsVisibleToPlayer(bool use_bounds)
+bool W8Monster::IsVisibleToPlayer(bool use_bounds)
 {
     srVector3T<float> player_position;
 
@@ -2683,7 +2635,7 @@ void W8Monster::GetPlayerToMonsterSightFlags(bool* primary, bool* secondary,
 }
 
 // FUNCTION: WIZ8 0x004c4af0
-unsigned char W8Monster::HasLineOfSightToMonster(W8Monster* monster)
+bool W8Monster::HasLineOfSightToMonster(W8Monster* monster)
 {
     srVector3T<float> from;
     srVector3T<float> to;
@@ -2721,7 +2673,7 @@ void W8Monster::GetMonsterSightFlags(W8Monster* monster, bool* primary, bool* se
 }
 
 // FUNCTION: WIZ8 0x004c4c40
-unsigned char W8Monster::HasLineOfSightFromPoint(srVector3T<float> point)
+bool W8Monster::HasLineOfSightFromPoint(srVector3T<float> point)
 {
     srVector3T<float> monster_position;
 
@@ -2808,10 +2760,10 @@ void SetMonsterPartySlotMarker(int party_slot, int location_id, char on)
 // FUNCTION: WIZ8 0x004c4f80
 void W8Monster::BeginFadeIn(float duration)
 {
-    if (fade_state <= 0) {
+    if (fade_state <= W8_MONSTER_FADE_IDLE) {
         fade_timer.SetDuration(duration);
         fade_timer.Restart();
-        if (fade_state < 0) {
+        if (fade_state < W8_MONSTER_FADE_IDLE) {
             W8MonsterRep* rep = m_pRep;
             fade_timer.SetProgress(rep->instance_scale);
         } else {
@@ -2819,7 +2771,7 @@ void W8Monster::BeginFadeIn(float duration)
             rep->instance_scale = 0.0f;
             rep->apply_instance_scale = true;
         }
-        fade_state = 1;
+        fade_state = W8_MONSTER_FADE_IN;
         flags1 &= ~W8_MONSTER_FADED_OUT;
     }
 }
@@ -2828,7 +2780,7 @@ void W8Monster::BeginFadeIn(float duration)
 void W8Monster::BeginDelayedRemoval()
 {
     flags1 |= W8_MONSTER_REMOVE_AFTER_FADE;
-    fade_state = -2;
+    fade_state = W8_MONSTER_FADE_DELAYED_REMOVAL;
     fade_timer.SetDuration(5.0f);
     fade_timer.Restart();
 }
@@ -2837,20 +2789,20 @@ void W8Monster::BeginDelayedRemoval()
    from the manager without destroying it, and retain the requested terminal
    state for the transition's completion. */
 // FUNCTION: WIZ8 0x004c5040
-void W8Monster::BeginFadeOutAndRemove(signed char state)
+void W8Monster::BeginFadeOutAndRemove(W8MonsterRemovalState state)
 {
     flags1 |= W8_MONSTER_REMOVE_AFTER_FADE;
-    if (fade_state >= 0) {
+    if (fade_state >= W8_MONSTER_FADE_IDLE) {
         fade_timer.SetDuration(3.0f);
         fade_timer.Restart();
         W8MonsterRep* rep = m_pRep;
-        if (fade_state > 0) {
+        if (fade_state > W8_MONSTER_FADE_IDLE) {
             fade_timer.SetProgress(1.0f - rep->instance_scale);
         } else {
             rep->instance_scale = 1.0f;
             rep->apply_instance_scale = true;
         }
-        fade_state = -1;
+        fade_state = W8_MONSTER_FADE_OUT;
     }
     RemoveMonster(MonsterGetIndexByLocationID(0x1021, MONSTER_CPP, location_id, true), false);
     removal_state = state;
@@ -2859,21 +2811,21 @@ void W8Monster::BeginFadeOutAndRemove(signed char state)
 // FUNCTION: WIZ8 0x004c5150
 void W8Monster::BeginFadeOut(float duration)
 {
-    if (fade_state < 0) {
+    if (fade_state < W8_MONSTER_FADE_IDLE) {
         return;
     }
     fade_timer.SetDuration(duration);
     fade_timer.Restart();
-    if (fade_state > 0) {
+    if (fade_state > W8_MONSTER_FADE_IDLE) {
         W8MonsterRep* rep = m_pRep;
         fade_timer.SetProgress(1.0f - rep->instance_scale);
-        fade_state = -1;
+        fade_state = W8_MONSTER_FADE_OUT;
         return;
     }
     W8MonsterRep* rep = m_pRep;
     rep->instance_scale = 1.0f;
     rep->apply_instance_scale = true;
-    fade_state = -1;
+    fade_state = W8_MONSTER_FADE_OUT;
 }
 
 // FUNCTION: WIZ8 0x004c73f0
@@ -2923,12 +2875,12 @@ void W8Monster::SetCycleCallback(int cycle, CycleCallback callback)
 }
 
 // FUNCTION: WIZ8 0x004ca360
-unsigned char W8Monster::GetPatrolPoint(srVector3T<float>* point)
+bool W8Monster::GetPatrolPoint(srVector3T<float>* point)
 {
     srVector3T<float>* patrol_point;
 
     if (!orders_finished || patrol_index < 0) {
-        return 0;
+        return false;
     }
     if (vector.GetCount() == 0) {
         if (IsZeroVector(&formation) != 0) {
@@ -2944,11 +2896,11 @@ unsigned char W8Monster::GetPatrolPoint(srVector3T<float>* point)
                order_mode < W8_MONSTER_ORDER_FACE_DIRECTION) {
         patrol_point = vector.GetAt(patrol_index);
     } else {
-        return 0;
+        return false;
     }
 
     *point = *patrol_point;
-    return 1;
+    return true;
 }
 
 // FUNCTION: WIZ8 0x004ca4f0
@@ -3023,12 +2975,12 @@ void UpdateNearestMonsterGroupMembers()
                         nearest_distance = distance;
                         nearest = member;
                     } else {
-                        member->p3D->nearest_to_party = 0;
+                        member->p3D->nearest_to_party = false;
                     }
                 }
             }
             if (nearest != 0) {
-                nearest->p3D->nearest_to_party = 1;
+                nearest->p3D->nearest_to_party = true;
             }
         }
     }
@@ -3098,7 +3050,7 @@ unsigned char W8Monster::CanEnterCycle(signed char cycle)
     }
     if (m_pRep->animation_playing == 0) {
         if (cycle != W8_MONSTER_CYCLE_GET_HIT && cycle != W8_MONSTER_CYCLE_DIE &&
-            cycle != W8_MONSTER_CYCLE_BIRTH && monster_info->fMotionless != 0) {
+            cycle != W8_MONSTER_CYCLE_BIRTH && monster_info->fMotionless) {
             if (!g_dev_mode) {
                 return 0;
             }
@@ -3106,7 +3058,7 @@ unsigned char W8Monster::CanEnterCycle(signed char cycle)
             return 0;
         }
     } else {
-        if (IsCycleInterruptable(static_cast<signed char>(Query(6))) == 0 && Query(7) == 0) {
+        if (!IsCycleInterruptable(static_cast<signed char>(Query(6))) && Query(7) == 0) {
             return 0;
         }
         if (cycle == W8_MONSTER_CYCLE_DIE && monster_info->monster_species == 0x199 &&
@@ -3121,7 +3073,7 @@ unsigned char W8Monster::CanEnterCycle(signed char cycle)
    this operation `Monster::CycleInterruptable`; its spelling is retained here
    because it is the only source-level name available. */
 // FUNCTION: WIZ8 0x004c2cf0
-unsigned char W8Monster::IsCycleInterruptable(signed char cycle)
+bool W8Monster::IsCycleInterruptable(signed char cycle)
 {
     signed char current_cycle;
     signed char pending_cycle;
@@ -3130,7 +3082,7 @@ unsigned char W8Monster::IsCycleInterruptable(signed char cycle)
     const char* requested_name;
 
     if (IsMipeActive()) {
-        return 1;
+        return true;
     }
     if (m_pRep->animation_playing == 0) {
         current_cycle = static_cast<signed char>(Query(6));
@@ -3155,7 +3107,7 @@ unsigned char W8Monster::IsCycleInterruptable(signed char cycle)
                                static_cast<int>(current_cycle), current_name,
                                static_cast<int>(pending_cycle), pending_name);
         }
-        return 1;
+        return true;
     }
 
     switch (cycle) {
@@ -3165,9 +3117,9 @@ unsigned char W8Monster::IsCycleInterruptable(signed char cycle)
     case W8_MONSTER_CYCLE_TRANSITION:
     case W8_MONSTER_CYCLE_WALK:
     case W8_MONSTER_CYCLE_TURN:
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 /* Apply the two script-specific side effects selected before an ungrouped
@@ -3179,12 +3131,12 @@ void W8Monster::ApplyRemovalStateEffects()
     srVector3T<float> position;
 
     switch (removal_state) {
-    case 2:
+    case W8_MONSTER_REMOVAL_RETURN_BALBRAK_HOME:
         if (FindEntityByName("NP_Balbrakhome", &position, 0, 0)) {
             SetPosition(&position);
         }
         break;
-    case 3:
+    case W8_MONSTER_REMOVAL_CLEAR_SCREG_ACTIVE:
         SetTriggerVariableByName("ScregActive", 0);
         break;
     }
@@ -3289,7 +3241,7 @@ void W8Monster::UpdateRepresentation(W8World* world)
         this->scale_y -= g_float_005ebc3c;
     }
 
-    if (talking && animate_mouth != 0) {
+    if (talking && animate_mouth) {
         if (mouth_open != 0) {
             model = GetCurrentModelInstance();
             if (model != 0 &&
@@ -3320,7 +3272,7 @@ void W8Monster::UpdateRepresentation(W8World* world)
         g_octree->UpdateMonsterLocation(static_cast<unsigned short>(location_id), &position);
     }
 
-    if ((node == 0 || node->testFlag(srNode::FLAG_DISABLE) == 0) && IsRenderable(false) != 0) {
+    if ((node == 0 || node->testFlag(srNode::FLAG_DISABLE) == 0) && IsRenderable(false)) {
         W8GrCycle::UpdateRepresentation(world);
         model = GetCurrentModelInstance();
         if (model != 0) {
@@ -3650,7 +3602,7 @@ unsigned char W8Monster::GetAnimationRadius(float* arg_radius)
 static const float g_monster_bounds_vertical_factor = 0.66f;
 
 // FUNCTION: WIZ8 0x004c3e60
-unsigned char W8Monster::GetAnimationCenter(srVector3T<float>* center)
+bool W8Monster::GetAnimationCenter(srVector3T<float>* center)
 {
     srVector3T<float> minimum;
     srVector3T<float> maximum;
@@ -3660,9 +3612,9 @@ unsigned char W8Monster::GetAnimationCenter(srVector3T<float>* center)
 
         *center = position;
         center->y += (maximum.y - minimum.y) * g_monster_bounds_vertical_factor;
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 /* Keep equipped items, spell icons, and temporary poster model instances in
@@ -4889,7 +4841,7 @@ void W8Monster::CollectModelInstances(W8GrowableVector<stModelInstance*>* instan
 /* Replace one named texture in a damage stage. Model instances own the normal
    skin tables; shake particles are the fallback when no model uses the name. */
 // FUNCTION: WIZ8 0x004c6700
-unsigned char W8Monster::ReplaceSkinTexture(int stage, const char* old_name, const char* new_name)
+bool W8Monster::ReplaceSkinTexture(int stage, const char* old_name, const char* new_name)
 {
     char path[200];
     bool replaced = false;
@@ -4898,7 +4850,7 @@ unsigned char W8Monster::ReplaceSkinTexture(int stage, const char* old_name, con
     srTextureIFace* texture = LoadTextureFromPath(path, 0, true);
     if (texture == 0) {
         ShutdownWithErrorBox(FormatString("Missing skin texture: %s", new_name));
-        return 0;
+        return false;
     }
 
     W8Vector<stModelInstance*> instances;
@@ -5095,7 +5047,7 @@ void W8Monster::SpawnDamageNumber(unsigned int amount)
    runtime overrides. The alternate argument selects the secondary live-info
    flag used by the world-update path. */
 // FUNCTION: WIZ8 0x004c7c00
-unsigned char W8Monster::IsRenderable(bool alternate)
+bool W8Monster::IsRenderable(bool alternate)
 {
     bool disabled = this->disabled;
     int location_id = this->location_id;
@@ -5103,19 +5055,19 @@ unsigned char W8Monster::IsRenderable(bool alternate)
     W8MonsterRecord* record;
 
     if (disabled) {
-        return 0;
+        return false;
     }
-    if (inactive != 0) {
-        return 1;
+    if (inactive) {
+        return true;
     }
     if (location_id == -1) {
-        return 1;
+        return true;
     }
     if ((flags1 & W8_MONSTER_REMOVE_AFTER_FADE) != 0) {
-        return 1;
+        return true;
     }
-    if (fade_state != 0) {
-        return 1;
+    if (fade_state != W8_MONSTER_FADE_IDLE) {
+        return true;
     }
 
     monster_info = MonsterGetScriptPartByLocationIndex(

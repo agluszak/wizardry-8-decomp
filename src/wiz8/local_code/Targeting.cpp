@@ -820,14 +820,14 @@ void SetMonsterHighlight(int party_slot, int location_id, bool on)
 static bool IsMonsterHoverSelectable(W8MonsterInfo* monster_info)
 {
     if (!monster_info->fActive || monster_info->p3D->IsDying() ||
-        monster_info->p3D->hostility_preserved != 0 ||
+        monster_info->p3D->hostility_preserved ||
         !MonsterUsesCurrentModelInstance(monster_info->p3D)) {
         return false;
     }
-    if (monster_info->party_threat.use_bounds == 0) {
+    if (!monster_info->party_threat.use_bounds) {
         UpdateMonsterSight(monster_info, true, true);
     }
-    return monster_info->p3D->IsRenderable(true) != 0;
+    return monster_info->p3D->IsRenderable(true);
 }
 
 /* The location id of the nearest live monster whose current model instance is
@@ -2964,7 +2964,7 @@ void UpdateTargetMarkerHighlight(void)
         W8Monster* monster;
         monster = GetMonsterByLocationID(location_id);
         point = gXStatus.target_position;
-        if (monster->HasLineOfSightFromPoint(point) != 0) {
+        if (monster->HasLineOfSightFromPoint(point)) {
             block.Set(0.0f, 1.0f, 0.0f, 1.0f);
             MonsterSetHighlightColour(monster, block);
             return;

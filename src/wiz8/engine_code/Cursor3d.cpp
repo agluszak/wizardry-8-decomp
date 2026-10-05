@@ -131,7 +131,7 @@ void InitializeWorldCursor(void)
             gp3DCursor->last_published = -100000000.0f;
             gp3DCursor->position.SetZero();
             gp3DCursor->cam_rel_offset.SetZero();
-            gp3DCursor->monster->inactive = 1;
+            gp3DCursor->monster->inactive = true;
             WarpSystemCursor(0x140, 0xf0);
             gp3DCursor->input_delta.x = 0;
             gp3DCursor->input_delta.y = 0;
@@ -489,7 +489,7 @@ void BindCursorMonsterToGroup(void)
                                                 monster_group->leader_location_id, true);
             monster_info = MonsterGetScriptPartByLocationIndex(index);
             if (monster_info != 0 && monster_info->p3D != 0 &&
-                monster_info->p3D->SetScript("Test.msf", true) == 0) {
+                !monster_info->p3D->SetScript("Test.msf", true)) {
                 ApplyToMonsterGroupLeader(monster_group, &position, true);
             }
         }

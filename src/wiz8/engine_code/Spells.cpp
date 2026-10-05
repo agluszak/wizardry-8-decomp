@@ -299,7 +299,7 @@ void W8SpellVisual::UpdateRepresentation(W8World* world)
                 W8Monster* monster = GetMonsterByLocationID(location_id);
 
                 if (monster != 0) {
-                    if (monster->Query(6) == 0x19 && monster->GetSpellPosition(&position) != 0) {
+                    if (monster->Query(6) == 0x19 && monster->GetSpellPosition(&position)) {
                         SetCyclePosition(&position);
                     }
 
@@ -1042,7 +1042,7 @@ W8SpellVisual* CreateAttachedSpellEffect(const char* mls_name, int power_level, 
                 height = width;
             }
             visual->scale0 = height * g_float_005ec128;
-            if (parent->GetSpellPosition(&position) == 0) {
+            if (!parent->GetSpellPosition(&position)) {
                 parent->GetMappedPosition(&position);
             }
             visual->SetCyclePosition(&position);

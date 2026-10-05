@@ -469,7 +469,8 @@ bool CombatHasContinuingEffects(void)
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(index);
         if (monster->fActive && monster->hp_current != 0 &&
-            monster->uiCondition[W8_CONDITION_DEAD] == 0 && monster->summoned != 0) {
+            monster->uiCondition[W8_CONDITION_DEAD] == 0 &&
+            monster->summoned != W8_MONSTER_SUMMON_NONE) {
             return true;
         }
     }
@@ -2553,7 +2554,7 @@ void ExecuteMonsterAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
             }
             break;
         case W8_MONSTER_ACTION_RETURN_TO_START:
-            if (monster_info->summoned != 0 ||
+            if (monster_info->summoned != W8_MONSTER_SUMMON_NONE ||
                 (monster_info->ubDisposition == W8_DISPOSITION_FRIENDLY &&
                  gXStatus.hostile_monster_count == 0)) {
                 ShowNoticef(9, gppStringList[0x23c], GetMonsterName(monster_info, NULL, 0));
@@ -3362,7 +3363,7 @@ void ScheduleCombatActor(void)
                 }
                 if (monster_info->hp_current != 0 &&
                     monster_info->highest_condition < W8_CONDITION_ASLEEP &&
-                    monster_info->fMotionless == 0) {
+                    !monster_info->fMotionless) {
                     g_combat_state->eCombatActionStatus = 1;
                     g_combat_state->pActionMonsterInfo = monster_info;
                     break;
@@ -3540,8 +3541,8 @@ short GetCombatActionProgress(int* out_total)
     for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info->fInCombat && monster_info->hp_current != 0 &&
-            monster_info->highest_condition < W8_CONDITION_ASLEEP &&
-            monster_info->fMotionless == 0 && monster_info->action_kind != W8_MONSTER_ACTION_WAIT &&
+            monster_info->highest_condition < W8_CONDITION_ASLEEP && !monster_info->fMotionless &&
+            monster_info->action_kind != W8_MONSTER_ACTION_WAIT &&
             monster_info->action_kind != W8_MONSTER_ACTION_PROTECT &&
             monster_info->action_kind != W8_MONSTER_ACTION_NONE) {
             total += monster_info->action_kind == W8_MONSTER_ACTION_ATTACK

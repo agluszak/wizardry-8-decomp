@@ -370,7 +370,7 @@ void UpdateRadarBlips(void)
     while (info != 0) {
         W8Monster* monster = info->p3D;
 
-        if (monster != 0 && info->fActive && info->within_viewing_distance != 0 &&
+        if (monster != 0 && info->fActive && info->within_viewing_distance &&
             (!monster->disabled || detect_all)) {
             bool hostile = false;
 
@@ -380,7 +380,7 @@ void UpdateRadarBlips(void)
                  MonsterGetHighlightMask(monster)) != 0) {
                 hostile = true;
             }
-            if (monster->IsRenderable(true) == 0 && !detect_all) {
+            if (!monster->IsRenderable(true) && !detect_all) {
                 if (info->party_threat.sight_state == W8_SIGHT_RECENT) {
                     monster->GetAnimationBounds(&bounds_min, &bounds_max);
                     center.Set((bounds_min.x + bounds_max.x) * g_double_005ebe80,
