@@ -475,8 +475,8 @@ void CalcInitiative(W8Character* character)
                             character->attributes[W8_ATTRIBUTE_SENSES].effective / 5 - 10 +
                             character->attributes[W8_ATTRIBUTE_SPEED].effective / 5;
 
-    if (character->skills[39].active != 0) {
-        character->initiative += character->skills[39].level / 10 + 1;
+    if (character->skills[W8_SKILL_SNAKESPEED].active != 0) {
+        character->initiative += character->skills[W8_SKILL_SNAKESPEED].level / 10 + 1;
     }
     character->initiative += character->bonus.damage_bonus;
 
@@ -599,7 +599,7 @@ void CalcAttacks(W8Character* character)
             divisor = 25;
         }
         if (character->dual_wielding) {
-            score += character->skills[18].level;
+            score += character->skills[W8_SKILL_DUAL_WEAPONS].level;
             divisor += 10;
         }
         attack->combined_skill = score * 10 / divisor;
@@ -629,7 +629,8 @@ void CalcAttacks(W8Character* character)
         }
 
         if (character->dual_wielding) {
-            dual_penalty = -10 * (hand + 1) - (100 - character->skills[18].level) / 4;
+            dual_penalty =
+                -10 * (hand + 1) - (100 - character->skills[W8_SKILL_DUAL_WEAPONS].level) / 4;
         } else {
             dual_penalty = 0;
         }
@@ -767,11 +768,11 @@ void CalcAttacks(W8Character* character)
             load_penalty /= 2;
         }
         attack->hit_bonus += load_penalty;
-        if (character->skills[40].active && attack->combat_skill == 17) {
-            attack->hit_bonus += character->skills[40].level / 20 + 1;
+        if (character->skills[W8_SKILL_EAGLE_EYE].active && attack->combat_skill == 17) {
+            attack->hit_bonus += character->skills[W8_SKILL_EAGLE_EYE].level / 20 + 1;
         }
-        if (character->skills[34].active && attack->combat_skill == 16) {
-            attack->hit_bonus += character->skills[34].level / 20 + 1;
+        if (character->skills[W8_SKILL_POWER_STRIKE].active && attack->combat_skill == 16) {
+            attack->hit_bonus += character->skills[W8_SKILL_POWER_STRIKE].level / 20 + 1;
         }
     }
 }
@@ -823,15 +824,17 @@ void CalcArmorClasses(W8Character* character)
             --character->armor_class_components[1];
         }
 
-        character->armor_class_components[2] += character->skills[11].level / 10;
-        if (character->skills[38].active) {
-            character->armor_class_components[11] += character->skills[38].level / 20 + 1;
+        character->armor_class_components[2] += character->skills[W8_SKILL_STEALTH].level / 10;
+        if (character->skills[W8_SKILL_REFLEXTION].active) {
+            character->armor_class_components[11] +=
+                character->skills[W8_SKILL_REFLEXTION].level / 20 + 1;
         }
 
         int shield = character->armor_class_components[3];
         if (shield > 0) {
-            int skill_bonus = defensive_action ? static_cast<int>(character->skills[6].level / 15)
-                                               : static_cast<int>(character->skills[6].level / 25);
+            int skill_bonus = defensive_action
+                                  ? static_cast<int>(character->skills[W8_SKILL_SHIELD].level / 15)
+                                  : static_cast<int>(character->skills[W8_SKILL_SHIELD].level / 25);
             int ceiling = defensive_action ? shield * 3 / 2 : shield;
             if (skill_bonus > ceiling) {
                 skill_bonus = ceiling;

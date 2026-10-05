@@ -1173,7 +1173,7 @@ void BuildMonsterActionQueue(W8MonsterInfo* monster_info, char target_locked, ch
         }
     }
     for (index = char_lo; index < char_hi; ++index) {
-        if (Random(100) < g_status.buffers.Char[index].skills[0xb].level * 75 / 100) {
+        if (Random(100) < g_status.buffers.Char[index].skills[W8_SKILL_STEALTH].level * 75 / 100) {
             avoided[index] = 1;
         }
     }
@@ -1227,7 +1227,7 @@ targets_chosen:
     if (scan_chars != 0) {
         for (index = char_lo; index < char_hi; ++index) {
             if (resisted[index] != 0 && Random(2) == 0) {
-                PracticeCharacterSkill(&g_status.buffers.Char[index], 0xb, 1, 0);
+                PracticeCharacterSkill(&g_status.buffers.Char[index], W8_SKILL_STEALTH, 1, 0);
             }
         }
     }
@@ -1619,7 +1619,7 @@ bool MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id, W8CombatSlo
             }
             return 0;
         }
-        if (character->skills[0xc].level != 0) {
+        if (character->skills[W8_SKILL_MUSIC].level != 0) {
             return 1;
         }
         for (index = 0; index < 0x72; ++index) {
@@ -1630,7 +1630,8 @@ bool MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id, W8CombatSlo
         if (index > 0x71) {
             return 0;
         }
-        if (g_spell_records[spell_id].alchemy_spell != 0 && character->skills[0x1a].level != 0) {
+        if (g_spell_records[spell_id].alchemy_spell != 0 &&
+            character->skills[W8_SKILL_SPELLBOOK_ALCHEMY].level != 0) {
             return 0;
         }
         break;

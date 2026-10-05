@@ -1260,14 +1260,15 @@ void AddCharacterStartingEquipment(W8Character* character)
 
     switch (character->iProfession) {
     case 10:
-        if (character->skills[5].level > character->skills[3].level) {
+        if (character->skills[W8_SKILL_STAFF_WAND].level >
+            character->skills[W8_SKILL_MACE_FLAIL].level) {
             ReplaceOrCreateItem(&item, 0x16, 1, 1, 1);
         } else {
             ReplaceOrCreateItem(&item, 0x52, 1, 1, 1);
         }
         break;
     case 0:
-        if (character->skills[1].level > character->skills[0].level) {
+        if (character->skills[W8_SKILL_AXE].level > character->skills[W8_SKILL_SWORD].level) {
             ReplaceOrCreateItem(&item, 0x12, 1, 1, 1);
         } else {
             ReplaceOrCreateItem(&item, 7, 1, 1, 1);

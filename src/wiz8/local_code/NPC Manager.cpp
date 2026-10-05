@@ -1811,7 +1811,7 @@ void ApplyNpcInteraction(W8NpcState* npc, int kind, int value, W8ItemInstance* i
         } else {
             npc->disposition += static_cast<char>(delta);
         }
-        PracticeCharacterSkill(&g_status.buffers.Char[kind], 0x16, 8, 0);
+        PracticeCharacterSkill(&g_status.buffers.Char[kind], W8_SKILL_COMMUNICATION, 8, 0);
         GetNpcDisposition(npc);
         return;
     }
@@ -1875,7 +1875,7 @@ void ApplyNpcInteraction(W8NpcState* npc, int kind, int value, W8ItemInstance* i
         } else {
             npc->disposition += static_cast<char>(delta);
         }
-        PracticeCharacterSkill(&g_status.buffers.Char[value], 0x16, 5, 0);
+        PracticeCharacterSkill(&g_status.buffers.Char[value], W8_SKILL_COMMUNICATION, 5, 0);
         GetNpcDisposition(npc);
         return;
     }
@@ -1965,7 +1965,7 @@ char ScoreNpcTheft(W8Character* character, W8NpcState* npc, int item_id, int cou
     W8ItemInstance item;
     int score;
 
-    unsigned int skill = character->skills[0xd].level;
+    unsigned int skill = character->skills[W8_SKILL_PICKPOCKET].level;
     if (character->iProfession == W8_PROFESSION_ROGUE) {
         skill += character->attributes[W8_ATTRIBUTE_DEXTERITY].effective / 10;
     } else if (static_cast<int>(skill) >= 1) {
@@ -1975,7 +1975,7 @@ char ScoreNpcTheft(W8Character* character, W8NpcState* npc, int item_id, int cou
     score -= (Random(5) + 10) * static_cast<signed char>(npc->suspicion);
     W8MonsterInfo* monster_info = GetNpcMonsterInfo(npc);
     W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
-    unsigned int penalty = character->skills[0xd].level >> 2;
+    unsigned int penalty = character->skills[W8_SKILL_PICKPOCKET].level >> 2;
     score += (character->uiExpLevel - record->effective_level) * 5;
     if (item_id != -1) {
         unsigned int weight = g_item_records[item_id].weight * count;
@@ -2049,7 +2049,7 @@ int AttemptNpcPickpocket(W8Character* character, W8NpcState* npc, W8ItemInstance
     }
     if (empty_pick) {
         if (npc->gold != 0) {
-            PracticeCharacterSkill(character, 0xd, 5, 0);
+            PracticeCharacterSkill(character, W8_SKILL_PICKPOCKET, 5, 0);
             unsigned int taken = Random(100) * 7;
             if (static_cast<unsigned int>(npc->gold) < taken) {
                 taken = npc->gold;
@@ -2075,7 +2075,7 @@ int AttemptNpcPickpocket(W8Character* character, W8NpcState* npc, W8ItemInstance
             ReplaceOrCreateItem(item_out, item_id, 1, 1, 0);
         }
         npc->item_ids[picked & 0xff] = -1;
-        PracticeCharacterSkill(character, 0xd, 5, 0);
+        PracticeCharacterSkill(character, W8_SKILL_PICKPOCKET, 5, 0);
     }
     return 0;
 }
@@ -2106,7 +2106,7 @@ char AttemptNpcItemTheft(W8Character* character, W8NpcState* npc, int item_id, i
     char roll = static_cast<char>(Random(100));
     if (roll < '`' && roll <= score * 2) {
         if (roll < score) {
-            PracticeCharacterSkill(character, 0xd, 5, 0);
+            PracticeCharacterSkill(character, W8_SKILL_PICKPOCKET, 5, 0);
             return 0;
         }
         return 1;

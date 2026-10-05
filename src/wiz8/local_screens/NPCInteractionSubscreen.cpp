@@ -877,8 +877,8 @@ void SelectNpcDialogueSpeaker(W8NpcState* npc, int flags)
             if (speaker == -1) {
                 speaker = slot;
             }
-            if (g_status.buffers.Char[slot].skills[0x16].level > best) {
-                best = g_status.buffers.Char[slot].skills[0x16].level;
+            if (g_status.buffers.Char[slot].skills[W8_SKILL_COMMUNICATION].level > best) {
+                best = g_status.buffers.Char[slot].skills[W8_SKILL_COMMUNICATION].level;
                 speaker = slot;
             }
         }
@@ -4871,7 +4871,7 @@ void HandleNpcDialogueDeparture(unsigned char value)
                     character = &g_status.buffers.Char[index];
                     if (g_status.buffers.XChar[index].fOccupied != 0 &&
                         character->hp_current != 0 && character->highest_condition < 0xf) {
-                        PracticeCharacterSkill(character, 0x16, 0xf, 0);
+                        PracticeCharacterSkill(character, W8_SKILL_COMMUNICATION, 0xf, 0);
                     }
                 }
             }

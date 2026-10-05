@@ -224,8 +224,8 @@ void HandleFactChange(int fact_id, unsigned char value)
                 if (g_status.buffers.XChar[slot].fOccupied != 0 &&
                     character->highest_condition < 0x12 &&
                     g_profession_skill_availability[7][character->iProfession] != 0 &&
-                    character->skills[7].points < 10) {
-                    character->skills[7].points = 10;
+                    character->skills[W8_SKILL_MODERN_WEAPONS].points < 10) {
+                    character->skills[W8_SKILL_MODERN_WEAPONS].points = 10;
                     ApplySkillChange(character, 7);
                 }
             }

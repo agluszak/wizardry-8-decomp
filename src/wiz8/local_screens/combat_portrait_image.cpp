@@ -37,7 +37,7 @@ short GetCombatPortraitImage(W8ActionKind action, int detail, char status, short
         case W8_SKILL_MODERN_WEAPONS:
             image = 0x70;
             break;
-        case W8_SKILL_PICKPOCKET:
+        case W8_SKILL_MARTIAL_ARTS:
             image = 0x46;
             break;
         default:
