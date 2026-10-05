@@ -959,7 +959,7 @@ void SelectUseItemLine(int iTextLine)
     if (ValidateItemSpellUse(g_use_item_owner_index, g_use_item_list[iTextLine],
                              SpellCastingNoticeClosed) != 0) {
         QueueCharacterEvent(&g_status.buffers.Char[g_use_item_owner_index],
-                            g_character_event_kind_005ee65c, 0,
+                            g_character_event_kind2, 0,
                             g_character_event_flags_mask | g_character_event_no_flags,
                             g_character_event_full_volume);
         return;

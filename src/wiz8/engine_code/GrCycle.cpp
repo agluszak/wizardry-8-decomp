@@ -73,13 +73,13 @@ W8GameTimer* g_shake_timer;
    is seeded from the source's speed rather than its remaining time. */
 // FUNCTION: WIZ8 0x004ae000
 W8CameraShakeEffect::W8CameraShakeEffect(const W8CameraShakeEffect& other)
-    : flags_00(other.flags_00), intensity_04(other.intensity_04),
-      distance_cap_08(other.distance_cap_08), position_0c(other.position_0c),
-      timer(other.timer.m_duration_seconds, 0), cycle_3c(other.cycle_3c),
-      frame_40(other.frame_40), subcycle_44(other.subcycle_44),
-      completion_callback_48(other.completion_callback_48)
+    : flags(other.flags), intensity(other.intensity),
+      distance_cap(other.distance_cap), position(other.position),
+      timer(other.timer.m_duration_seconds, 0), cycle(other.cycle),
+      frame(other.frame), subcycle(other.subcycle),
+      completion_callback(other.completion_callback)
 {
-    flags_00 &= ~1u;
+    flags &= ~1u;
 }
 
 /* The first effect built also builds the shared live list and its timer; every
@@ -89,8 +89,8 @@ W8CameraShakeEffect::W8CameraShakeEffect(const W8CameraShakeEffect& other)
 // FUNCTION: WIZ8 0x004aded0
 W8CameraShakeEffect::W8CameraShakeEffect(float duration, bool preset, float intensity,
                                          float distance_cap, const srVector3T<float>* position)
-    : flags_00(0), intensity_04(intensity), distance_cap_08(distance_cap), timer(duration, 0),
-      cycle_3c(0), frame_40(0), subcycle_44(0), completion_callback_48(0)
+    : flags(0), intensity(intensity), distance_cap(distance_cap), timer(duration, 0),
+      cycle(0), frame(0), subcycle(0), completion_callback(0)
 {
     if (g_shake_effects == 0) {
         g_shake_effects = new W8Vector<W8CameraShakeEffect*>(5);
@@ -98,10 +98,10 @@ W8CameraShakeEffect::W8CameraShakeEffect(float duration, bool preset, float inte
         g_shake_timer->Restart();
     }
     if (preset != 0) {
-        flags_00 |= 0x1c;
+        flags |= 0x1c;
     }
     if (position != 0) {
-        position_0c = *position;
+        this->position = *position;
     }
 }
 
@@ -115,7 +115,7 @@ W8CameraShakeEffect* CreateCameraShakeEffect(float duration, bool preset, float 
     W8CameraShakeEffect* effect =
         new W8CameraShakeEffect(duration, preset, intensity, distance_cap, position);
 
-    effect->flags_00 |= 3;
+    effect->flags |= 3;
     effect->timer.Restart();
     g_shake_effects->Add(effect);
     return effect;
@@ -132,13 +132,13 @@ void TriggerShakeEffects(W8GrowableVector<W8CameraShakeEffect*>* effects, int cy
     for (index = 0; index < effects->GetCount(); ++index) {
         W8CameraShakeEffect* effect = *effects->GetAt(index);
 
-        if (effect->cycle_3c == cycle && effect->frame_40 == static_cast<int>(frame) &&
-            effect->subcycle_44 == subcycle) {
-            if ((effect->flags_00 & 1) == 0) {
+        if (effect->cycle == cycle && effect->frame == static_cast<int>(frame) &&
+            effect->subcycle == subcycle) {
+            if ((effect->flags & 1) == 0) {
                 g_shake_effects->Add(effect);
             }
-            effect->position_0c = *position;
-            effect->flags_00 |= 1;
+            effect->position = *position;
+            effect->flags |= 1;
             effect->timer.Restart();
         }
     }
@@ -155,12 +155,12 @@ void StopShakeEffects(W8GrowableVector<W8CameraShakeEffect*>* effects)
     for (index = 0; index < effects->GetCount(); ++index) {
         W8CameraShakeEffect* effect = *effects->GetAt(index);
 
-        if ((effect->flags_00 & 1) != 0) {
+        if ((effect->flags & 1) != 0) {
             unsigned int flags;
 
             g_shake_effects->RemoveAt(g_shake_effects->IndexOf(effect));
-            flags = effect->flags_00;
-            effect->flags_00 = flags & ~1u;
+            flags = effect->flags;
+            effect->flags = flags & ~1u;
             if ((flags >> 1 & 1) != 0 && effect != 0) {
                 delete effect;
             }
@@ -190,11 +190,11 @@ void UpdateShakeEffects()
             if (effect->Evaluate(&camera, &amount) == 0) {
                 g_shake_effects->RemoveAt(index);
                 --index;
-                effect->flags_00 &= ~1u;
-                if (effect->completion_callback_48 != 0) {
-                    effect->completion_callback_48();
+                effect->flags &= ~1u;
+                if (effect->completion_callback != 0) {
+                    effect->completion_callback();
                 }
-                if ((effect->flags_00 >> 1 & 1) != 0 && effect != 0) {
+                if ((effect->flags >> 1 & 1) != 0 && effect != 0) {
                     delete effect;
                 }
             } else {
@@ -224,15 +224,15 @@ unsigned char W8CameraShakeEffect::Evaluate(const srVector3T<float>* position, f
     if (g_float_one <= progress) {
         return 0;
     }
-    if ((flags_00 >> 2 & 1) != 0) {
-        float dx = position_0c.x - position->x;
-        float dy = position_0c.y - position->y;
-        float dz = position_0c.z - position->z;
+    if ((flags >> 2 & 1) != 0) {
+        float dx = this->position.x - position->x;
+        float dy = this->position.y - position->y;
+        float dz = this->position.z - position->z;
         float distance = sqrtf(dx * dx + dy * dy + dz * dz);
-        if (distance_cap_08 < distance) {
+        if (distance_cap < distance) {
             *out_amount = 0.0f;
-        } else if ((flags_00 >> 3 & 1) != 0) {
-            float weight = distance / distance_cap_08 - g_float_one;
+        } else if ((flags >> 3 & 1) != 0) {
+            float weight = distance / distance_cap - g_float_one;
             *out_amount = weight * weight;
         } else {
             *out_amount = 1.0f;
@@ -240,11 +240,11 @@ unsigned char W8CameraShakeEffect::Evaluate(const srVector3T<float>* position, f
     } else {
         *out_amount = 1.0f;
     }
-    if ((flags_00 >> 4 & 1) != 0) {
+    if ((flags >> 4 & 1) != 0) {
         *out_amount = (g_float_one - progress) * *out_amount;
         return 1;
     }
-    if ((flags_00 >> 5 & 1) != 0) {
+    if ((flags >> 5 & 1) != 0) {
         *out_amount = progress * *out_amount;
     }
     return 1;
@@ -286,7 +286,7 @@ bool LoadGrCycle(const W8GrCycleLoadContext* context, const char* mon_name, W8Gr
         ShutdownWithErrorBox(FormatString("Couldn't open %s", mon_path));
     }
 
-    info.world = context->world_00;
+    info.world = context->world;
     info.hFile = handle;
     info.bitmap_folder = bitmap_path;
     info.mesh_filename = mon_path;
@@ -380,12 +380,12 @@ unsigned char ReadGrCycleData(W8ReadLevelInfo* info, W8GrCycle** cycle, int cycl
                     srAssertFail("pPartSys", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp",
                                  0x201, 0);
                 }
-                event->cycle_00 = cycle_index;
-                event->subcycle_04 = -1;
+                event->cycle = cycle_index;
+                event->subcycle = -1;
                 event->m_pstParticles = particle;
                 location = particle->getLocation();
-                event->position_0c = location;
-                particle->getRotation(event->rotation_18);
+                event->position = location;
+                particle->getRotation(event->rotation);
                 (*cycle)->m_plsParticles->Add(event);
             }
         }
@@ -423,7 +423,7 @@ W8GrCycle::W8GrCycle()
     aim_set = 0;
     m_ground_shadow = 0;
     frame_fraction = 0;
-    scale_1cc = 1.0f;
+    scale = 1.0f;
 }
 
 /* A copy keeps none of the source's live scene state. The model instance, the
@@ -450,7 +450,7 @@ W8GrCycle::W8GrCycle(const W8GrCycle& other) : W8GrObject(other), W8Navigator(ot
     enabled = true;
     mirror_x = other.mirror_x;
     aim_set = 0;
-    scale_1cc = other.scale_1cc;
+    scale = other.scale;
     m_ground_shadow = 0;
     frame_fraction = 0;
     if (other.m_plsLights != 0 && other.m_plsLights->GetCount() != 0 && m_fDeleteLights != 0) {
@@ -511,11 +511,11 @@ W8GrCycle::W8GrCycle(const W8GrCycle& other) : W8GrObject(other), W8Navigator(ot
             if (event != 0) {
                 W8GrCycleParticleAttachment* source_event = *other.m_plsParticles->GetAt(index);
 
-                event->cycle_00 = source_event->cycle_00;
-                event->subcycle_04 = source_event->subcycle_04;
+                event->cycle = source_event->cycle;
+                event->subcycle = source_event->subcycle;
                 event->m_pstParticles = new stParticle(*source_event->m_pstParticles);
-                event->position_0c = source_event->position_0c;
-                event->rotation_18 = source_event->rotation_18;
+                event->position = source_event->position;
+                event->rotation = source_event->rotation;
                 if (event->m_pstParticles == 0) {
                     srAssertFail("m_pstParticles",
                                  "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x66, 0);
@@ -752,17 +752,17 @@ void W8GrCycle::UpdateLights()
 }
 
 // FUNCTION: WIZ8 0x004a7dd0
-unsigned char W8GrCycle::GetAnimationBounds(srVector3T<float>* minimum, srVector3T<float>* maximum)
+unsigned char W8GrCycle::GetAnimationBounds(srVector3T<float>* arg_minimum, srVector3T<float>* arg_maximum)
 {
     W8AnimObj* animation = GetCurrentAnimation();
     W8EmitterHost* representation = GetRepresentation();
 
     return AnimObjGetBounds(animation, representation->m_bLOD, representation->subcycle,
-                            (srVector3T<float>*)minimum, (srVector3T<float>*)maximum);
+                            (srVector3T<float>*)arg_minimum, (srVector3T<float>*)arg_maximum);
 }
 
 // FUNCTION: WIZ8 0x004a7e10
-unsigned char W8GrCycle::GetAnimationRadius(float* radius)
+unsigned char W8GrCycle::GetAnimationRadius(float* arg_radius)
 {
     W8AniMesh* mesh = GetCurrentAniMesh();
 
@@ -770,7 +770,7 @@ unsigned char W8GrCycle::GetAnimationRadius(float* radius)
         srAssertFail("0", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x541, 0);
         return 0;
     }
-    return AniMeshRadius(mesh, radius);
+    return AniMeshRadius(mesh, arg_radius);
 }
 
 // FUNCTION: WIZ8 0x004a72f0
@@ -903,9 +903,9 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
             if (path != 0) {
                 PathAIApply(path, psrMesh);
             }
-            vecPos = movement_0c0.position_040;
+            vecPos = movement.position;
             location.SetFromFloat(&vecPos);
-            location.y += movement_0c0.vertical_offset;
+            location.y += movement.vertical_offset;
             psrMesh->setLocation(location);
             pRep->GetRotation(&rotation);
             psrMesh->getRotation(current);
@@ -931,9 +931,9 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
                 psrMesh->diffuse_scale = pRep->instance_scale;
             }
         }
-        vecPos = movement_0c0.position_040;
+        vecPos = movement.position;
         location.SetFromFloat(&vecPos);
-        location.y += movement_0c0.vertical_offset;
+        location.y += movement.vertical_offset;
         pRep->GetRotation(&rotation);
         child = psrMesh->first_child_;
         if (child == 0) {
@@ -968,14 +968,14 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
         if (AnimationIsRunning(animation) == 1) {
             pRep->GetLocation(&origin);
         } else {
-            vecPos = movement_0c0.position_040;
+            vecPos = movement.position;
             origin = vecPos;
-            origin.y += movement_0c0.vertical_offset;
+            origin.y += movement.vertical_offset;
         }
         pRep->GetRotation(&rotation);
         for (index = 0; index < count; ++index) {
             stLight* light = *m_plsLights->GetAt(index);
-            srVector3T<float> offset = light->m_position_228;
+            srVector3T<float> offset = light->m_position;
 
             srVector3T<float> placed = rotation.Transform(offset) + origin;
             location.SetFromFloat(&placed);
@@ -1115,11 +1115,11 @@ void W8GrCycle::UpdateParticleAttachments()
             vertex = -1;
         }
         if (pMeshModel == 0 || vertex == -1) {
-            offset = attachment->position_0c;
+            offset = attachment->position;
         } else {
             srVector3T<float>* locations;
 
-            if ((pMeshModel->flags_3a0 >> 2 & 1) == 0) {
+            if ((pMeshModel->flags >> 2 & 1) == 0) {
                 locations = pMeshModel->getVertexLoc();
             } else {
                 locations = pMeshModel->GetVertexLocations(pRep->subcycle, 1, 0);
@@ -1144,7 +1144,7 @@ void W8GrCycle::UpdateParticleAttachments()
             particle->setRotation(axis, target, 0.0);
         } else if (particle->direction_mode != W8_PARTICLE_DIRECTION_RANDOM) {
             combined = rotation;
-            combined.MultiplyBy(attachment->rotation_18);
+            combined.MultiplyBy(attachment->rotation);
             world.vectors[0].SetFromFloat(&combined.vectors[0]);
             world.vectors[1].SetFromFloat(&combined.vectors[1]);
             world.vectors[2].SetFromFloat(&combined.vectors[2]);
@@ -1168,7 +1168,7 @@ void W8GrCycle::UpdateParticleAttachments()
 void W8GrCycle::SelectLOD(const srVector3T<float>* position)
 {
     W8EmitterHost* pRep = GetRepresentation();
-    srVector3T<float> delta = pRep->location_004 - *position;
+    srVector3T<float> delta = pRep->location - *position;
     float distance = delta.Length();
     bool has_lod_2 = pRep->SetCycleFrameLod(pRep->current_cycle, 0, 2) != 0;
     bool has_lod_1 = pRep->SetCycleFrameLod(pRep->current_cycle, 0, 1) != 0;
@@ -1504,7 +1504,7 @@ void W8GrCycle::CreateGroundShadow(float width, float depth)
 {
     m_ground_shadow = new stGroundShadow(0);
     m_ground_shadow->setName("Ground Shadow");
-    m_ground_shadow->width_140 = width;
+    m_ground_shadow->width = width;
     m_ground_shadow->depth = depth;
 }
 

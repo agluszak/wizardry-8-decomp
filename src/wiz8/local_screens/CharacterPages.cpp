@@ -54,8 +54,8 @@ W8PortraitDescriptor g_portrait_descriptors[80] = {
 
 // FUNCTION: WIZ8 0x005af690
 W8CharacterPageEntry::W8CharacterPageEntry(Controls* owner, int x, int y, bool compact)
-    : m_listener_004(0), m_first(0), m_second(0), m_third(0), m_id(-1),
-      m_draw_background(compact), m_dirty(1), m_enabled_03a(0), m_increment_allowed(1)
+    : m_listener(0), m_first(0), m_second(0), m_third(0), m_id(-1),
+      m_draw_background(compact), m_dirty(1), m_enabled(0), m_increment_allowed(1)
 {
     m_x = owner->m_bounds.left + x;
     m_y = owner->m_bounds.top + y;
@@ -121,7 +121,7 @@ void W8CharacterPageEntry::SetIncrementAllowed(bool allowed)
 // FUNCTION: WIZ8 0x005afa90
 void W8CharacterPageEntry::SetEnabled(bool enabled)
 {
-    m_enabled_03a = enabled;
+    m_enabled = enabled;
     m_increment->SetActive(enabled);
     m_decrement->SetActive(enabled);
     m_help->SetActive(enabled);
@@ -137,7 +137,7 @@ void W8CharacterPageEntry::SetHelpActive(bool active)
 // FUNCTION: WIZ8 0x005afaf0
 void W8CharacterPageEntry::Redraw()
 {
-    if (m_enabled_03a && m_dirty) {
+    if (m_enabled && m_dirty) {
         if (m_draw_background) {
             DrawCatalogImageAndInvalidate(-14, 0x108, 0, 2, m_x, m_y, 2, 0);
         }
@@ -174,7 +174,7 @@ void W8CharacterPageEntry::MarkDirty()
 // FUNCTION: WIZ8 0x005afd10
 void W8CharacterPageEntry::UpdateButtons()
 {
-    if (m_enabled_03a) {
+    if (m_enabled) {
         bool enabled = *m_second > 0;
         if (m_decrement->m_enabled != enabled) {
             m_decrement->SetEnabled(enabled);
@@ -193,11 +193,11 @@ void W8CharacterPageEntry::UpdateButtons()
 void W8CharacterPageEntry::OnPrimary(W8TextControl* control)
 {
     if (control == m_increment) {
-        if (m_listener_004 != 0)
-            m_listener_004->AdjustEntry(this, 1);
+        if (m_listener != 0)
+            m_listener->AdjustEntry(this, 1);
     } else if (control == m_decrement) {
-        if (m_listener_004 != 0)
-            m_listener_004->AdjustEntry(this, -1);
+        if (m_listener != 0)
+            m_listener->AdjustEntry(this, -1);
     }
     UpdateButtons();
     MarkDirty();
@@ -207,17 +207,17 @@ void W8CharacterPageEntry::OnPrimary(W8TextControl* control)
 void W8CharacterPageEntry::OnSecondary(W8TextControl* control)
 {
     if (control == m_increment) {
-        if (m_listener_004 != 0)
-            m_listener_004->AdjustEntry(this, 5);
+        if (m_listener != 0)
+            m_listener->AdjustEntry(this, 5);
         UpdateButtons();
         MarkDirty();
     } else if (control == m_decrement) {
-        if (m_listener_004 != 0)
-            m_listener_004->AdjustEntry(this, -5);
+        if (m_listener != 0)
+            m_listener->AdjustEntry(this, -5);
         UpdateButtons();
         MarkDirty();
-    } else if (m_listener_004 != 0) {
-        m_listener_004->ShowEntryInfo(this);
+    } else if (m_listener != 0) {
+        m_listener->ShowEntryInfo(this);
     }
 }
 
@@ -229,7 +229,7 @@ void W8CharacterPageEntry::OnSecondary(W8TextControl* control)
 
 // FUNCTION: WIZ8 0x005afd90
 W8CharacterPage::W8CharacterPage(int render_target)
-    : Controls(0xc3, 0x2b, 0x280, 0x1c1, render_target, 0, 0), m_screen_05c(0)
+    : Controls(0xc3, 0x2b, 0x280, 0x1c1, render_target, 0, 0), m_screen(0)
 {
 }
 
@@ -274,7 +274,7 @@ void W8CharacterPage::Invalidate(const W8ControlsRect* rect)
 void W8CharacterPage::Prepare()
 {
     Invalidate(0);
-    m_dirty_06d = 1;
+    m_dirty = 1;
     m_prepared = 1;
 }
 

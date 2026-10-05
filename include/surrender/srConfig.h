@@ -78,7 +78,7 @@ private:
 
     Entry* first_entry;
     EntryPool entry_pool;
-    mutable Index* index_18;
+    mutable Index* index;
 };
 
 static_assert(sizeof(srConfig) == 0x1c, "srConfig_must_be_0x1c");

@@ -116,7 +116,7 @@ public:
     unsigned char m_hide_navigation;
     bool m_active; /* set once the set's panels are built */
     unsigned char pad_00b;
-    int m_current_00c;
+    int m_current;
     W8Vector<W8OptionsPanel*> m_panels;
 };
 
@@ -176,7 +176,7 @@ public:
     W8OptionsSlider* AddSlider(int label, float* value, bool alternate);
     void AddChoices(int label, int count, const int* choices, int* value);
 
-    int m_current_04c;
+    int m_current;
     int m_content_top;
     int unknown_054;
     W8Vector<W8TextBuffer*> m_text_buffers;
@@ -413,9 +413,9 @@ public:
     virtual void OnPrimary(W8TextControl* control) override;
 
     W8OptionsPanelSet* m_pMenuSet; /* 0x50: OptionsScreen.cpp:1481 */
-    W8TextControl* m_next_054;
-    W8TextControl* m_previous_058;
-    W8TextBuffer* m_page_text_05c;
+    W8TextControl* m_next;
+    W8TextControl* m_previous;
+    W8TextBuffer* m_page_text;
 
     void UpdateMenuSet();
 };
@@ -457,11 +457,11 @@ public:
     bool m_modal_closing;
     unsigned char padding_01e[2];
     int m_selected_panel;
-    Controls* m_controls_024;
+    Controls* m_controls;
     W8OptionsMenuSet* m_menu_set;
     W8ControlSelection* m_menu_selection;
     unsigned char unknown_030[8];
-    W8OptionsPanelSet* m_panel_038[8];
+    W8OptionsPanelSet* m_panel[8];
     W8MessageDialogBase* m_active_modal; /* 0x58: frame/leave own and clear it */
     W8OptionsTextEditor* m_text_editor;
     W8OptionsKeyCapture* m_key_capture;

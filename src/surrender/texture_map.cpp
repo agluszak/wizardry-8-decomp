@@ -7,12 +7,12 @@
 // FUNCTION: SURRENDER 0x10060270
 srTextureMap::srTextureMap(srColorSurfaceIFace* surface)
 {
-    frame_handle_58_ = getNewFrameHandle();
+    frame_handle = getNewFrameHandle();
     setSurfacePtr(surface);
 }
 
 /* Retail delegates to operator= then memberwise-copies its own members;
-   the surface_54_ tail uses srPtr copy-constructor semantics (addref, no
+   the surface tail uses srPtr copy-constructor semantics (addref, no
    release), which a source-level member assignment cannot reproduce. */
 
 // FUNCTION: SURRENDER 0x10060210
@@ -20,7 +20,7 @@ srTextureMap& srTextureMap::operator=(const srTextureMap& other)
 {
     if (this != &other) {
         srTexture::operator=(other);
-        surface_54_ = other.surface_54_;
+        surface = other.surface;
     }
     return *this;
 }
@@ -34,8 +34,8 @@ srTextureMap::~srTextureMap()
 // FUNCTION: SURRENDER 0x100601C0
 void srTextureMap::getMipmapData(MultiRequest& request)
 {
-    if (surface_54_ != 0) {
-        request.destinations[request.mipmap_level]->copy(*surface_54_.get());
+    if (surface != 0) {
+        request.destinations[request.mipmap_level]->copy(*surface.get());
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsign-compare"
         /* Retail compares the signed level against the unsigned last level
@@ -52,9 +52,9 @@ void srTextureMap::getMipmapData(MultiRequest& request)
 // FUNCTION: SURRENDER 0x100604E0
 void srTextureMap::setSurfacePtr(srColorSurfaceIFace* surface)
 {
-    if (surface != surface_54_) {
+    if (surface != this->surface) {
         invalidate();
-        surface_54_ = surface;
+        this->surface = surface;
         setupDefaultValues();
     }
 }
@@ -62,25 +62,25 @@ void srTextureMap::setSurfacePtr(srColorSurfaceIFace* surface)
 // FUNCTION: SURRENDER 0x10060490
 srColorSurfaceIFace* srTextureMap::getSurfacePtr() const
 {
-    return surface_54_;
+    return surface;
 }
 
 // FUNCTION: SURRENDER 0x100604A0
 void srTextureMap::invalidate()
 {
-    invalidateFrameHandle(frame_handle_58_);
+    invalidateFrameHandle(frame_handle);
 }
 
 // FUNCTION: SURRENDER 0x100604B0
 unsigned long srTextureMap::getTextureFrameHandle()
 {
-    return frame_handle_58_;
+    return frame_handle;
 }
 
 // FUNCTION: SURRENDER 0x100604C0
 void srTextureMap::setupDefaultValues()
 {
-    setupDefaultValuesFromSurface(surface_54_);
+    setupDefaultValuesFromSurface(surface);
     texture_flags_ &= ~(1 << FLAG_DIRTY_DEFAULTS);
 }
 
@@ -91,7 +91,7 @@ void srTextureMap::dump(std::ostream& stream)
     std::ios::fmtflags flags = stream.flags();
     stream.setf(std::ios::left, std::ios::adjustfield);
     stream.width(0x20);
-    stream << "  Surface: " << surface_54_->getName() << '\n';
+    stream << "  Surface: " << surface->getName() << '\n';
     stream.flags(static_cast<std::ios::fmtflags>(flags & 0x7fff));
 }
 

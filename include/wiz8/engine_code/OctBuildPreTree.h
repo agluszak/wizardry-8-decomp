@@ -18,11 +18,11 @@ struct W8OctPreTreeGeometry;
 struct W8OctRegionPolygon {
     /* & 3 selects the axis the plane test uses; bit2 marks a vertex shared
        across regions (cleared with bit3 after the duplicate pass). */
-    unsigned long flags_00;
+    unsigned long flags;
     /* 1-based ordinal into the geometry polygon array. */
     unsigned long ordinal;
     W8Plane plane; /* unit normal plus signed distance */
-    srVector3T<float> position_18;
+    srVector3T<float> position;
     /* Canonical material-group index assigned by the material sort. */
     unsigned long material;
     /* The per-polygon texture/material index CreateSubMeshes copies into
@@ -120,7 +120,7 @@ struct OctBuildPreTree : W8OctBuildTree {
        and counts it on the volume. Answers the polygon's region. */
     unsigned short SplitSharedPolygon(W8OctPreTreeGeometry* geometry, int index);
 
-    unsigned long path_capacity_bc;
+    unsigned long path_capacity;
     unsigned short selected_depth;
     unsigned short padding_c2;
     unsigned long level_counts[10];
@@ -141,7 +141,7 @@ struct OctBuildPreTree : W8OctBuildTree {
     unsigned short* mesh_props;
     unsigned short mesh_prop_count;
     unsigned short padding_11a;
-    unsigned long particle_count_11c;
+    unsigned long particle_count;
     unsigned long prop_count;
     W8HashTable<unsigned short, unsigned long>* region_path_map;
     /* Allocated next to region_path_map but never read, inserted into, or

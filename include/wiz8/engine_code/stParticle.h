@@ -55,7 +55,7 @@ public:
     srVector3T<float>* particle_positions;
     srMaterialIFace* retained;
     srShader render_flags;
-    srTextureIFace* texture_154;
+    srTextureIFace* texture;
     unsigned int vertex_count;
     /* particle_count * 2 - the billboard triangle count, and the length of
        texture_frames where consecutive pairs share one frame. */
@@ -81,13 +81,13 @@ public:
     unsigned int emission_count;
     unsigned int active_particle_count;
     bool release_when_done;
-    bool replace_when_full_191;
+    bool replace_when_full;
     bool persisted;
     unsigned char padding_193;
     /* Per-particle liveness flag byte; the update loop retires it when the
        birth tick plus lifetime expires. */
     bool* particle_active;
-    /* Per-particle velocity; acceleration_1f4 integrates it each update. */
+    /* Per-particle velocity; acceleration integrates it each update. */
     srVector3T<float>* velocities;
     /* Unsigned millisecond birth ticks, one per particle. */
     unsigned int* birth_ticks;
@@ -107,10 +107,10 @@ public:
     unsigned int emission_interval;
     /* Lifetime added to each absolute unsigned birth tick. */
     unsigned int lifetime_ms;
-    srVector3T<float> minimum_1d0;
-    srVector3T<float> maximum_1dc;
-    srVector3T<float> direction_1e8;
-    srVector3T<float> acceleration_1f4;
+    srVector3T<float> minimum0;
+    srVector3T<float> maximum0;
+    srVector3T<float> direction;
+    srVector3T<float> acceleration;
     float flutter_amplitude;
     /* 0x00498DD0 uses this as an unsigned modulus period. */
     unsigned int flutter_period;
@@ -119,8 +119,8 @@ public:
     float initial_speed;
     float speed_min;
     float speed_max;
-    srVector3T<float> minimum_21c;
-    srVector3T<float> maximum_228;
+    srVector3T<float> minimum1;
+    srVector3T<float> maximum1;
     srVector3T<float> bounds_origin;
     float bounds_radius;
     /* Added to the camera position when camera_relative selects camera-relative

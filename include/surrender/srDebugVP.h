@@ -26,7 +26,7 @@ public:
     /* Destruction is consistent with base-only cleanup; the reconstruction
        leaves the derived destructor implicit. */
 
-    /* Every override below wraps the same-numbered call on processor_444 in
+    /* Every override below wraps the same-numbered call on processor in
        a ScopeTimer; declaration order mirrors the retail vtable slots. The
        _max(const SRDWORD*)/_min(const SRDWORD*) bodies are swapped in retail
        (each logs the other's command index and forwards to the other's
@@ -357,9 +357,9 @@ protected:
         ~ScopeTimer();
 
     private:
-        SRDWORD elements_00;
-        srDebugVP* owner_04;
-        int index_08;
+        SRDWORD elements;
+        srDebugVP* owner;
+        int index;
         double start_time;
     };
     /* VC6 does not grant a nested class access to the enclosing class's
@@ -371,7 +371,7 @@ protected:
        construction; zero disables the ScopeTimer alignment counters and
        makes dump print "misAlignments not checked". */
     int check_misalignments;
-    srVP* processor_444;
+    srVP* processor;
     double call_overhead;
     double call_times[0xa6];
     double element_counts[0xa6];

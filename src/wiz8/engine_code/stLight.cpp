@@ -57,7 +57,7 @@ stLight::stLight(srNode* parent)
     m_direction = 1;
     m_path_index = 0;
     m_path_direction = 1;
-    m_position_228.SetZero();
+    m_position.SetZero();
     m_level = 0;
     m_definition = 0;
     m_unknown_238 = 0;
@@ -88,7 +88,7 @@ stLight& stLight::operator=(const stLight& other)
 {
     srLight::operator=(other);
     setParent(other.parent_, 0);
-    m_position_228 = other.m_position_228;
+    m_position = other.m_position;
     if (other.m_definition != 0) {
         m_definition = other.m_definition->Clone();
     } else {
@@ -118,7 +118,7 @@ void stLight::traverse(srNode::TraverseInfo& info)
     }
 
     if (!testFlag(FLAG_TERMINATE)) {
-        if (testFlag(FLAG_DISABLE) || fabs(intensity_1d0) <= g_double_005ebc70 ||
+        if (testFlag(FLAG_DISABLE) || fabs(intensity) <= g_double_005ebc70 ||
             (g_light_update_flags & 1) == 0) {
             if (first_child_ != 0) {
                 first_child_->traverse(info);
@@ -153,10 +153,10 @@ void stLight::process(const srNode::ProcessInfo& info, srNode::e_processType typ
 {
     if ((type == PROCESS_PUSH || type == PROCESS_PUSH_GLOBAL) &&
         g_monster_light_scale != g_float_one) {
-        float saved_scale = intensity_1d0;
-        intensity_1d0 = saved_scale * g_monster_light_scale;
+        float saved_scale = intensity;
+        intensity = saved_scale * g_monster_light_scale;
         srLight::process(info, type);
-        intensity_1d0 = saved_scale;
+        intensity = saved_scale;
         return;
     }
     srLight::process(info, type);
@@ -166,7 +166,7 @@ void stLight::process(const srNode::ProcessInfo& info, srNode::e_processType typ
 void stLight::SetDefinitionTime(float time)
 {
     if (m_definition != 0 && m_definition->kind == W8_LIGHT_DEFINITION_KEYFRAMED) {
-        static_cast<stKeyframedLightDefinition*>(m_definition)->time_4c = time;
+        static_cast<stKeyframedLightDefinition*>(m_definition)->time = time;
     }
 }
 
@@ -185,7 +185,7 @@ void stLight::Update()
     if (m_definition != 0 && m_definition->kind == W8_LIGHT_DEFINITION_KEYFRAMED) {
         stKeyframedLightDefinition* definition =
             static_cast<stKeyframedLightDefinition*>(m_definition);
-        float time = definition->time_4c;
+        float time = definition->time;
         int count = definition->key_frames.count;
         int last = count - 1;
         int* slot = definition->key_frames.GetAt(last);
@@ -222,7 +222,7 @@ void stLight::Update()
             float* key_from = definition->key_intensities.GetAt(index);
             float* key_to = definition->key_intensities.GetAt(index + 1);
             float inverse = g_float_one - blend;
-            intensity_1d0 = inverse * *key_from + blend * *key_to;
+            intensity = inverse * *key_from + blend * *key_to;
             index = definition->keyframe_index;
             srVector3T<float>* color_to = definition->key_colors.GetAt(index + 1);
             srVector3T<float>* color_from = definition->key_colors.GetAt(index);
@@ -238,10 +238,10 @@ void stLight::Update()
             if (g_float_one < blue) {
                 blue = 1.0f;
             }
-            diffuse_1a4.Set(red, green, blue);
+            diffuse.Set(red, green, blue);
             return;
         }
-        intensity_1d0 = g_float_zero;
+        intensity = g_float_zero;
         return;
     }
 
@@ -279,7 +279,7 @@ void stLight::Update()
                     blend = g_float_one;
                 }
             }
-            intensity_1d0 = (definition->intensity_to - definition->intensity) * blend +
+            intensity = (definition->intensity_to - definition->intensity) * blend +
                             definition->intensity;
             m_level = blend;
             if ((definition->flags & 8) == 0) {
@@ -298,7 +298,7 @@ void stLight::Update()
                 if (g_float_one < blue) {
                     blue = 1.0f;
                 }
-                diffuse_1a4.Set(red, green, blue);
+                diffuse.Set(red, green, blue);
                 m_level_time = seconds;
             }
         }
@@ -308,7 +308,7 @@ void stLight::Update()
             float blend = (g_float_one / definition->period) * step + m_level;
             if (blend <= g_float_one) {
                 float level = blend;
-                intensity_1d0 = (definition->intensity_to - definition->intensity) * level +
+                intensity = (definition->intensity_to - definition->intensity) * level +
                                 definition->intensity;
                 m_level = level;
                 if ((definition->flags & 8) != 0) {
@@ -328,7 +328,7 @@ void stLight::Update()
                     if (g_float_one < blue) {
                         blue = 1.0f;
                     }
-                    diffuse_1a4.Set(red, green, blue);
+                    diffuse.Set(red, green, blue);
                 }
                 m_level_time = seconds;
             }
@@ -345,7 +345,7 @@ void stLight::Update()
             }
         }
         if ((definition->flags & 8) != 0) {
-            diffuse_1a4 = definition->color;
+            diffuse = definition->color;
         }
         if (testFlag(FLAG_DISABLE) == 0) {
             setFlag(FLAG_DISABLE);
@@ -403,16 +403,16 @@ void stLight::Reset()
         if (m_definition->kind == W8_LIGHT_DEFINITION_KEYFRAMED) {
             stKeyframedLightDefinition* definition =
                 static_cast<stKeyframedLightDefinition*>(m_definition);
-            definition->time_4c = 0.0f;
+            definition->time = 0.0f;
             definition->keyframe_index = 0;
             m_path_index = 0;
             m_path_direction = 1;
         } else {
             stParametricLightDefinition* definition =
                 static_cast<stParametricLightDefinition*>(m_definition);
-            intensity_1d0 = definition->intensity;
+            intensity = definition->intensity;
             if ((definition->flags & 8) != 0) {
-                diffuse_1a4 = definition->color;
+                diffuse = definition->color;
             }
         }
     }

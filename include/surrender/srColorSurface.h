@@ -96,10 +96,10 @@ private:
 
     srPixelConvert::ConversionFunc pixel_write;
     srPixelConvert::ConversionFunc pixel_read;
-    srPtr<srPalette> palette_4c;
+    srPtr<srPalette> palette;
     unsigned long surface_flags;
     long data_size;
-    void* data_58;
+    void* data;
 };
 
 static_assert((sizeof(srColorSurface) == 0x5c), "srColorSurface_must_be_0x5c");

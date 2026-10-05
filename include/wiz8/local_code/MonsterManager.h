@@ -227,7 +227,7 @@ struct W8MonsterCombatState {
     bool active; /* 0x004 */
     /* 0x005: the round's attack count staged beside attacks_per_round when a
        chosen attack is committed; a four-byte store. */
-    unsigned int attacks_per_round_005; /* runtime copy of the record field */
+    unsigned int attacks_per_round0; /* runtime copy of the record field */
     /* 0x009: how many attacks it gets this round, which is what divides the
        remaining phases between them. */
     int attacks_per_round;
@@ -239,11 +239,11 @@ struct W8MonsterCombatState {
     /* 0x011: the attack index Monster.cpp launches when combat has already
        selected this monster. It is asserted below MAX_MONSTER_ATTACKS before
        indexing the database record. */
-    unsigned int attack_index_11;
+    unsigned int attack_index;
     /* Berserk latch: interrupt case 8 raises it so the monster attacks
        indiscriminately (friends included); Combat Range counts allies as
        hostile while set. */
-    bool berserk_015;
+    bool berserk;
     /* 0x016: the queue of actions the monster's AI has decided on, one
        W8MonsterAction each. The AI owns the list and destroys it outright. */
     W8PList* plsCombatActionList;
@@ -309,7 +309,7 @@ struct W8PartyThreatRecord {
     /* 0x28d: the party-detection result after the per-observer threshold and
        camouflage checks run. */
     unsigned char party_detected;
-    int last_seen_clock_08;               /* 0x28e: cleared by the per-turn reset */
+    int last_seen_clock;               /* 0x28e: cleared by the per-turn reset */
     srVector3T<float> camera_position; /* 0x292 */
     srVector3T<float> own_position;    /* 0x29e */
     /* 0x2aa: the use-bounds mode the last UpdateMonsterSight pass handed to
@@ -337,7 +337,7 @@ struct W8VisibilityRecord {
     /* 0x0b: the CanMonsterSeeMonster result for mon-to-mon records; the
        party-facing record stores its visible_to_player result here. */
     bool can_see;
-    int last_seen_clock_0c;                /* 0x0c */
+    int last_seen_clock;                /* 0x0c */
     srVector3T<float> subject_position; /* 0x10: the observer */
     srVector3T<float> target_position;  /* 0x1c: the observed */
     bool line_of_sight;                 /* 0x28 */
@@ -367,8 +367,8 @@ struct W8MonsterInfo {
     /* 0x17: the spawn position, unaligned. 0x004e3930 copies the caller's three
        floats here and hands the same triple to GetCameraFacingYaw,
        whose result it stores next, and to 0x0042e620 with the new entry's id. */
-    srVector3T<float> position_17;
-    float derived; /* 0x23: camera-facing yaw over position_17 */
+    srVector3T<float> position;
+    float derived; /* 0x23: camera-facing yaw over position */
     /* 0x27: uiHPMax, named by the Targeting.cpp:0xeac assertion
        "pMonsterInfo->uiHPMax > 0"; signed divisor at 00531657 and 004E5A7A. */
     int uiHPMax;

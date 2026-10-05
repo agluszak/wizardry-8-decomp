@@ -271,7 +271,7 @@ void CompletePartyMovementTurns(void)
         }
         combat_row->dead = 1;
         combat_row->phase = 0;
-        party_row->pending_event_type_ff = static_cast<unsigned int>(-1);
+        party_row->pending_event_type = static_cast<unsigned int>(-1);
     }
     RequestRedraw(0x1000ff);
 }
@@ -436,7 +436,7 @@ void InterruptActivePartyMovement(void)
         if (row->phase > W8_PHASES_PER_ROUND) {
             row->dead = 1;
             row->phase = 0;
-            party_row->pending_event_type_ff = static_cast<unsigned int>(-1);
+            party_row->pending_event_type = static_cast<unsigned int>(-1);
             RequestRedraw((1 << party_slot) | 0x100000);
         }
     }

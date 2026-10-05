@@ -37,8 +37,8 @@ MonsterLight::MonsterLight(srNode* parent, bool cycle_color, float range,
     far_start = 0.0;
     safe_range = 5000.0f;
     setLinearAttenuation(range, 0.0019569471f);
-    specular_1b0.SetZero();
-    diffuse_1a4 = *first_color;
+    specular.SetZero();
+    diffuse = *first_color;
     setFlag(srNode::FLAG_DISABLE);
     m_start_time = g_game_time_accumulator->GetElapsed();
 }
@@ -61,13 +61,13 @@ MonsterLight::MonsterLight(const MonsterLight& other) : srLight(0)
     far_attenuation = other.far_attenuation;
     opengl_attenuation = other.opengl_attenuation;
     enable_flags = other.enable_flags;
-    ambient_198 = other.ambient_198;
-    diffuse_1a4 = other.diffuse_1a4;
-    specular_1b0 = other.specular_1b0;
+    ambient = other.ambient;
+    diffuse = other.diffuse;
+    specular = other.specular;
     spot_direction = other.spot_direction;
     spot_angle = other.spot_angle;
     spot_exponent = other.spot_exponent;
-    intensity_1d0 = other.intensity_1d0;
+    intensity = other.intensity;
     safe_range = other.safe_range;
     scaled_ambient = other.scaled_ambient;
     scaled_diffuse = other.scaled_diffuse;
@@ -86,7 +86,7 @@ MonsterLight::MonsterLight(const MonsterLight& other) : srLight(0)
     m_fade_out = 0;
 
     setParent(other.getParent(), 1);
-    intensity_1d0 = 1.0f;
+    intensity = 1.0f;
     setFlag(srNode::FLAG_DISABLE);
     m_start_time = g_game_time_accumulator->GetElapsed();
 }
@@ -119,7 +119,7 @@ void MonsterLight::Update(const srVector3T<float>* position)
         if (fade > g_float_one) {
             fade = g_float_one;
         }
-        intensity_1d0 = g_float_one - fade;
+        intensity = g_float_one - fade;
     } else if (m_cycle_color != 0) {
         float cycle = elapsed * g_monster_light_cycle_rate;
         double whole = floor(cycle);
@@ -128,9 +128,9 @@ void MonsterLight::Update(const srVector3T<float>* position)
             g_float_005ebc7c;
         float second_weight = g_float_one - first_weight;
 
-        diffuse_1a4.x = m_color_first.x * first_weight + m_color_second.x * second_weight;
-        diffuse_1a4.y = m_color_first.y * first_weight + m_color_second.y * second_weight;
-        diffuse_1a4.z = m_color_first.z * first_weight + m_color_second.z * second_weight;
+        diffuse.x = m_color_first.x * first_weight + m_color_second.x * second_weight;
+        diffuse.y = m_color_first.y * first_weight + m_color_second.y * second_weight;
+        diffuse.z = m_color_first.z * first_weight + m_color_second.z * second_weight;
     }
 
     srVector3T<double> location;

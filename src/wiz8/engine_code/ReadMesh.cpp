@@ -710,10 +710,10 @@ BuildSingleLevelMesh(int face_count, W8ReadMeshFace* faces, int vertex_count, in
 
         model->setDirtyAll();
         if ((polygon_types.GetAt(type)->value & 0x6000) == 0x4000) {
-            model->flags_3a0 |= 1;
+            model->flags |= 1;
             model->enable(srMeshModel::CONTROL_STARTUP);
         } else {
-            model->flags_3a0 &= ~1U;
+            model->flags &= ~1U;
         }
         if (previous_model != 0) {
             previous_model->LinkTo(model);
@@ -1186,8 +1186,8 @@ void ClearMaterialRecordPadding(W8MaterialRecord* material)
     }
     memset(material->texture_name, 0, sizeof(material->texture_name));
     for (int index = 0; index < 4; ++index) {
-        char* name = material->texture_names_029[index];
-        memset(name + strlen(name), 0, sizeof(material->texture_names_029[index]) - strlen(name));
+        char* name = material->texture_names[index];
+        memset(name + strlen(name), 0, sizeof(material->texture_names[index]) - strlen(name));
     }
 }
 

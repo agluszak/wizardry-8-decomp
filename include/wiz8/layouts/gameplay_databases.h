@@ -71,7 +71,7 @@ struct W8MonsterAttack {
        adds it alongside the modifier hit bonus and re-reads it inside the
        surprise repick penalty. */
     unsigned char attack_score;
-    unsigned char missile_values_05[0x10]; /* 0x05 */
+    unsigned char missile_values[0x10]; /* 0x05 */
     unsigned short attack_modes;           /* 0x15 */
     /* 0x17: the attack's damage dice, packed; the missile path copies it
        into the attack block and the melee path rolls it. */
@@ -281,7 +281,7 @@ struct W8NpcDatabaseRecord {
     unsigned short
         version; /* 0x000: two in the corpus; the rule tail loads only when this exceeds 1 */
     /* 0x002: trade-pool stock count; CreateNpcRuntimeNode copies it into the
-       runtime state's trade_pool_ca. */
+       runtime state's trade_pool. */
     short trade_pool;
     /* 0x004: the wide source name the level-entry rebinding prefixes with an
        underscore to build the NPC's trigger name. */
@@ -438,10 +438,10 @@ enum W8MonsterRecordFlag {
 };
 
 struct W8MonsterRecord {
-    wchar_t name_00[24]; /* 0x000: suffix after '#' removed at load */
-    wchar_t name_30[24]; /* 0x030: suffix after '#' removed at load */
-    wchar_t name_60[24]; /* 0x060: suffix after '#' removed at load */
-    wchar_t name_90[24]; /* 0x090: suffix after '#' removed at load */
+    wchar_t name0[24]; /* 0x000: suffix after '#' removed at load */
+    wchar_t name1[24]; /* 0x030: suffix after '#' removed at load */
+    wchar_t name2[24]; /* 0x060: suffix after '#' removed at load */
+    wchar_t name3[24]; /* 0x090: suffix after '#' removed at load */
     /* Cosmic Forge's Monster Editor exposes this byte as 'Can open doors'. */
     unsigned char can_open_doors;
     /* 0x0c1: rolled by the group-attack summon to size the spawned group. */
@@ -449,7 +449,7 @@ struct W8MonsterRecord {
     W8EncounterCompanionRecord companions[2];
     /* 0x0cb: the monster's kind. The alchemy-casting rule admits kinds four,
        five and thirteen and no others, which is the only body that reads it. */
-    unsigned char kind_0cb;
+    unsigned char kind;
     /* 0x0cc: selects this monster's row in the name-prefix table at 0x0061E436,
        the same table a character indexes by sex. */
     unsigned char name_group;
@@ -469,7 +469,7 @@ struct W8MonsterRecord {
        a use of an attribute rather than a separate field at 0x0d2. */
     unsigned char attribute_values[5]; /* 0x0d1 */
     W8Dice hit_points;                 /* 0x0d6: rolled into uiHPMax/hp_current */
-    W8Dice stamina_dice_da;               /* 0x0da: initializes maximum and current stamina */
+    W8Dice stamina_dice;               /* 0x0da: initializes maximum and current stamina */
     unsigned char unknown_0de[2];
     /* 0x0e0/0x0e1: the percentage chances the AI casts a spell or flees each
        round; a monster with a usable attack ignores them and always tries. */
@@ -492,10 +492,10 @@ struct W8MonsterRecord {
     W8MonsterAttack attacks[W8_MAX_MONSTER_ATTACKS]; /* 0x0e7 */
     /* 0x14d: the ten spells the AI may cast, zero for none; ChooseMonsterSpell
        weights them by the fixed table at 0x0061CC14. */
-    unsigned char spells_14d[10];
+    unsigned char spells[10];
     unsigned char attack_body_part_chances[5];
     unsigned char special_attack_cooldown;
-    signed char evasion_ac;
+    signed char evasion;
     /* 0x15e: Monster Editor Constitution selector; retail uses it to choose
        the body-specific hit-location label row. */
     unsigned char constitution;
@@ -503,7 +503,7 @@ struct W8MonsterRecord {
        hit locations; the total is reported when it falls short of 100. */
     unsigned char hit_location_chances[7];
     /* 0x166/0x16d: the monster's armour per hit location and per attack mode,
-       the terms TargetArmorClassAtLocation subtracts on top of evasion_ac. */
+       the terms TargetArmorClassAtLocation subtracts on top of evasion. */
     signed char armor_class_by_location[7];
     signed char armor_class_by_attack_mode[9];
     /* 0x176: the monster's own resistance per realm, read alongside the
@@ -540,8 +540,8 @@ struct W8MonsterRecord {
     W8MonsterTreasureBlock treasure;
     unsigned char attack_multiple_targets;
     /* 0x248: Monster Editor camouflage rating; retail sight code consumes it. */
-    unsigned char camouflage_248;
-    unsigned char camouflage_249;
+    unsigned char camouflage0;
+    unsigned char camouflage1;
     /* 0x24a: the monster cannot be targeted at all. Every sweep that gathers
        candidates drops it before any other test. */
     unsigned char untargetable;
@@ -578,7 +578,7 @@ struct W8MonsterRecord {
 
 static_assert(sizeof(W8MonsterRecord) == 0x297, "W8MonsterRecord_size_must_be_0x297");
 static_assert(offsetof(W8MonsterRecord, flags) == 0xd0, "W8MonsterRecord_flags_offset");
-static_assert(offsetof(W8MonsterRecord, stamina_dice_da) == 0xda,
+static_assert(offsetof(W8MonsterRecord, stamina_dice) == 0xda,
               "W8MonsterRecord_stamina_dice_offset");
 static_assert(offsetof(W8MonsterRecord, remains_model_name) == 0x1c3,
               "W8MonsterRecord_remains_model_name_offset");

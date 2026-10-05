@@ -4,8 +4,8 @@ static_assert(sizeof(W8OctSpatialState) == 0x9c, "W8OctSpatialState_must_be_0x9c
 static_assert(sizeof(W8OctRegionVolume) == 0xe8, "W8OctRegionVolume_must_be_0xe8");
 static_assert(sizeof(W8OctPreTreeVertex) == 0x60, "W8OctPreTreeVertex_must_be_0x60");
 static_assert(sizeof(W8OctSubmeshBuild) == 0x34, "W8OctSubmeshBuild_must_be_0x34");
-static_assert(offsetof(W8OctSubmeshBuild, flags_00) == 0x00, "W8OctSubmeshBuild_flags_00");
-static_assert(offsetof(W8OctSubmeshBuild, index_04) == 0x04, "W8OctSubmeshBuild_index_04");
+static_assert(offsetof(W8OctSubmeshBuild, flags) == 0x00, "W8OctSubmeshBuild_flags_00");
+static_assert(offsetof(W8OctSubmeshBuild, index) == 0x04, "W8OctSubmeshBuild_index_04");
 static_assert(offsetof(W8OctSubmeshBuild, m_kind) == 0x08, "W8OctSubmeshBuild_kind_08");
 static_assert(offsetof(W8OctSubmeshBuild, m_prev_link) == 0x0c, "W8OctSubmeshBuild_prev_link_0c");
 static_assert(offsetof(W8OctSubmeshBuild, m_next_link) == 0x10, "W8OctSubmeshBuild_next_link_10");

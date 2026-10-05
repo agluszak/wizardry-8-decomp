@@ -258,7 +258,7 @@ void W8CharacterSpellsPage::Activate()
     for (int realm = 0; realm < 6; ++realm) {
         m_realms[realm]->m_range->EnableRegionSet(1);
     }
-    m_dirty_06d = 1;
+    m_dirty = 1;
     m_prepared = 1;
 }
 
@@ -281,8 +281,8 @@ void W8CharacterSpellsPage::Accept()
     }
     ResetSpellSelections(m_character, m_creation_state);
     Invalidate(0);
-    m_dirty_06d = 1;
-    m_screen_05c->UpdateNavigation(this);
+    m_dirty = 1;
+    m_screen->UpdateNavigation(this);
 }
 
 /* Rebuilds each realm's list from the character's spell_learned states: pass
@@ -318,7 +318,7 @@ void W8CharacterSpellsPage::Redraw()
         m_prepared = 0;
     }
 
-    if (m_dirty_06d) {
+    if (m_dirty) {
         bounds.left = 0x8f;
         bounds.top = 0x173;
         bounds.right = 0xbf;
@@ -330,7 +330,7 @@ void W8CharacterSpellsPage::Redraw()
                                       m_creation_state->spell_points_total),
                      g_options_detail_font);
         text.RenderToTarget(0, 1, -14);
-        m_dirty_06d = 0;
+        m_dirty = 0;
     }
 
     if (redraw) {
@@ -345,7 +345,7 @@ void W8CharacterSpellsPage::Redraw()
             bounds.bottom = bounds.top + 0x0e;
             text.SetLayoutBounds(&bounds, 1, 1);
             text.SetFontStateIndex(1);
-            text.SetText(FormatWideString(g_format_s_0064dd28, gppStringList[0xf2]),
+            text.SetText(FormatWideString(g_format_s0, gppStringList[0xf2]),
                          g_wiz_text_font_secondary);
             text.RenderToTarget(0, 0, -14);
             text.SetFontStateIndex(-1);
@@ -360,7 +360,7 @@ void W8CharacterSpellsPage::Redraw()
             bounds.right = bounds.left + 0x53;
             text.SetLayoutBounds(&bounds, 1, 1);
             text.SetFontStateIndex(1);
-            text.SetText(FormatWideString(g_format_s_0064dd28, gppStringList[0xf3]),
+            text.SetText(FormatWideString(g_format_s0, gppStringList[0xf3]),
                          g_wiz_text_font_secondary);
             text.RenderToTarget(0, 0, -14);
             text.SetFontStateIndex(-1);
@@ -381,7 +381,7 @@ void W8CharacterSpellsPage::Redraw()
                 m_animation_frames[realm] =
                     (m_animation_frames[realm] + elapsed) % animation.frame_count;
             }
-            if (!m_screen_05c->HasDialog() || realm < 2) {
+            if (!m_screen->HasDialog() || realm < 2) {
                 DrawCatalogImageAndInvalidate(-14, animation.image, 0,
                                               m_animation_frames[realm],
                                               m_bounds.left + 0x0f + (realm % 2) * 0xd7,
@@ -478,15 +478,15 @@ void W8CharacterSpellsPage::SelectSpell(unsigned int uiSelected)
         m_last_selected = uiSelected;
     }
     UpdateSpellLists();
-    m_dirty_06d = 1;
-    m_screen_05c->UpdateNavigation(this);
+    m_dirty = 1;
+    m_screen->UpdateNavigation(this);
     Invalidate(0);
 }
 
 // FUNCTION: WIZ8 0x005c88a0
 void W8CharacterSpellsPage::ShowSpellInfo(unsigned int entry)
 {
-    m_screen_05c->ShowSpellInfo(m_SpellData[entry].spell);
+    m_screen->ShowSpellInfo(m_SpellData[entry].spell);
 }
 
 // FUNCTION: WIZ8 0x005C8DE0

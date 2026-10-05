@@ -37,9 +37,9 @@ struct W8Item : public W8GrObject {
     W8Item();
     virtual ~W8Item() override;
 
-    Trigger* trigger_018;
+    Trigger* trigger;
     /* 0x1c: countdown clock; IsTicking reports whether it is running. */
-    TIMER countdown_01c;
+    TIMER countdown;
 
     void DetachMesh(W8World* world);
     void ApplyRepTransform();
@@ -72,8 +72,8 @@ static_assert(offsetof(W8ItemRep, bounds_maximum) == 0x74, "W8ItemRep_bounds_max
 static_assert(offsetof(W8ItemRep, bounds_radius) == 0x80, "W8ItemRep_bounds_radius_offset");
 static_assert(offsetof(W8ItemRep, pulse_level) == 0x88, "W8ItemRep_pulse_level_offset");
 static_assert(offsetof(W8ItemRep, flags) == 0x90, "W8ItemRep_flags_offset");
-static_assert(offsetof(W8Item, trigger_018) == 0x18, "W8Item_trigger_offset");
-static_assert(offsetof(W8Item, countdown_01c) == 0x1c, "W8Item_countdown_01c_offset");
+static_assert(offsetof(W8Item, trigger) == 0x18, "W8Item_trigger_offset");
+static_assert(offsetof(W8Item, countdown) == 0x1c, "W8Item_countdown_01c_offset");
 
 bool ReadItemFromFile(W8ReadLevelInfo* info, W8Item** item, bool anonymous_mesh);
 /* Run the item's trigger, if any, and report its action state. */

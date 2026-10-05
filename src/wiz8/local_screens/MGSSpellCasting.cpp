@@ -1347,7 +1347,7 @@ static void SelectSpellCastingListRow(int index)
         ConfigureSpellTargetFilter(-1, 0);
         ShowSpellCastingError(spell_id);
         QueueCharacterEvent(&g_status.buffers.Char[g_status.selected_character],
-                            g_character_event_kind_005ee65c, 0,
+                            g_character_event_kind2, 0,
                             g_character_event_flags_mask | g_character_event_no_flags,
                             g_character_event_full_volume);
         return;

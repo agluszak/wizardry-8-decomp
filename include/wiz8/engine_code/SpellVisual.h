@@ -77,15 +77,15 @@ public:
     /* Set when the caller supplied the position and rotation directly;
        mode-3 updates then skip the monster/camera follow logic. */
     bool fixed_transform;
-    float scale_1e8;
+    float scale0;
     int location_id;
     int effect_value; /* 0x1f0: spawn `value` payload */
-    int flags_1f4;        /* 0x1f4 */
+    int flags0;        /* 0x1f4 */
 };
 
 static_assert(sizeof(W8SpellVisual) == 0x1f8, "W8SpellVisual_size_must_be_0x1f8");
 /* Secondary vftable 0x005ecf2c keeps the W8Navigator subobject at +0x18. */
-W8_ASSERT_BASE_OFFSET(W8SpellVisual, W8Navigator, navigation_mode_008, 0x18);
+W8_ASSERT_BASE_OFFSET(W8SpellVisual, W8Navigator, navigation_mode, 0x18);
 
 inline W8SpellVisual::W8SpellVisual(const W8SpellVisual& other) : W8GrCycle(other)
 {
@@ -94,7 +94,7 @@ inline W8SpellVisual::W8SpellVisual(const W8SpellVisual& other) : W8GrCycle(othe
     flag = false;
     auto_release = other.auto_release;
     fixed_transform = other.fixed_transform;
-    scale_1e8 = other.scale_1e8;
+    scale0 = other.scale0;
     location_id = 0;
     host = static_cast<W8SpellEmitterHost*>(other.host->Clone());
     id = AllocateGrObjectId();

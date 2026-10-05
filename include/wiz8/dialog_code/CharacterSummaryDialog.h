@@ -40,11 +40,11 @@ private:
     W8TextBuffer* m_quote_text;
     W8DialogNumericInput* m_numeric_input;
     void* m_field_060;
-    int m_remaining_064;
-    int m_taken_068;
-    int m_total_06c;
+    int m_remaining;
+    int m_taken;
+    int m_total;
     int m_field_070;
-    W8Character* m_character_074;
+    W8Character* m_character;
     W8Character m_saved_character;
     W8MonsterManagerEntry m_saved_monster_entry;
     W8PartySlotRow m_saved_party_row;

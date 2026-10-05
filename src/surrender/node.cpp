@@ -17,7 +17,7 @@ long srNode::sceneGraphLockCount;
    are zero-initialized on disk; the constructor lazily installs the flag
    names. */
 // GLOBAL: SURRENDER 0x100A4A00
-static const char* s_flag_names_100a4a00;
+static const char* s_flag_names1;
 
 // GLOBAL: SURRENDER 0x100A4A04
 static const char* s_notify_names;
@@ -55,9 +55,9 @@ void srNode::notifyChildren(const srFlags<e_notify>& notifications)
 {
     /* Only the bits this node has not seen yet propagate; the new set is
        re-masked at every recursion level. */
-    unsigned long pending = ~notifications_120.value & notifications.value;
+    unsigned long pending = ~this->notifications.value & notifications.value;
     if (pending != 0) {
-        notifications_120.value |= pending;
+        this->notifications.value |= pending;
         for (srNode* child = first_child_; child != 0; child = child->next_sibling_) {
             child->notifyChildren(srFlags<e_notify>(pending));
         }
@@ -67,9 +67,9 @@ void srNode::notifyChildren(const srFlags<e_notify>& notifications)
 // FUNCTION: SURRENDER 0x10050410
 void srNode::notifyParents(const srFlags<e_notify>& notifications)
 {
-    unsigned long pending = ~notifications_120.value & notifications.value;
+    unsigned long pending = ~this->notifications.value & notifications.value;
     if (pending != 0) {
-        notifications_120.value |= pending;
+        this->notifications.value |= pending;
         if (parent_ != 0) {
             parent_->notifyParents(srFlags<e_notify>(pending));
         }
@@ -79,19 +79,19 @@ void srNode::notifyParents(const srFlags<e_notify>& notifications)
 // FUNCTION: SURRENDER 0x10050450
 void srNode::setNotify(e_notify notification)
 {
-    notifications_120.value |= 1 << notification;
+    notifications.value |= 1 << notification;
 }
 
 // FUNCTION: SURRENDER 0x10050470
 void srNode::clearNotify(e_notify notification)
 {
-    notifications_120.value &= ~(1 << notification);
+    notifications.value &= ~(1 << notification);
 }
 
 // FUNCTION: SURRENDER 0x10050490
 int srNode::testNotify(e_notify notification) const
 {
-    return (notifications_120.value & (1 << notification)) != 0;
+    return (notifications.value & (1 << notification)) != 0;
 }
 
 // FUNCTION: SURRENDER 0x100504B0
@@ -100,7 +100,7 @@ void srNode::traverse(TraverseInfo& info)
     if (next_sibling_ != 0) {
         next_sibling_->traverse(info);
     }
-    if ((flags_124.value & (1 << FLAG_TERMINATE)) == 0 && first_child_ != 0) {
+    if ((flags.value & (1 << FLAG_TERMINATE)) == 0 && first_child_ != 0) {
         first_child_->traverse(info);
     }
 }
@@ -134,10 +134,10 @@ srNode& srNode::operator=(const srNode& other)
     if (this != &other) {
         srCriticalSectionAccess access(&sceneGraphCSect);
         srClass::operator=(other);
-        flags_124.value = other.flags_124.value;
-        location_60 = other.location_60;
-        scale_78 = other.scale_78;
-        rotation_18 = other.rotation_18;
+        flags.value = other.flags.value;
+        location = other.location;
+        scale = other.scale;
+        rotation = other.rotation;
         notifyDependent();
     }
     return *this;
@@ -188,20 +188,20 @@ long srNode::getHierarchyLevel() const
 // FUNCTION: SURRENDER 0x10050C10
 srNode::srNode(srNode* parent)
 {
-    world_transform_90.SetIdentity();
-    world_transform_f0.SetIdentity();
-    if (s_flag_names_100a4a00 == 0) {
-        s_flag_names_100a4a00 = "DISABLE,TERMINATE,GLOBAL,IGNORE_TRANSFORM";
+    world_transform0.SetIdentity();
+    world_transform1.SetIdentity();
+    if (s_flag_names1 == 0) {
+        s_flag_names1 = "DISABLE,TERMINATE,GLOBAL,IGNORE_TRANSFORM";
     }
     srCriticalSectionAccess access(&sceneGraphCSect);
     next_sibling_ = 0;
     previous_sibling_ = 0;
     parent_ = 0;
     first_child_ = 0;
-    location_60.SetZero();
-    rotation_18.SetIdentity();
-    scale_78 = 1.0;
-    notifications_120.value = 0;
+    location.SetZero();
+    rotation.SetIdentity();
+    scale = 1.0;
+    notifications.value = 0;
     setParent(parent, 0);
 }
 
@@ -233,7 +233,7 @@ int srNode::setParent(srNode* parent, int preserve_world_transform)
         return 0;
     }
     if (preserve_world_transform != 0) {
-        getWorldSpaceCoordinates(rotation_18, location_60, scale_78);
+        getWorldSpaceCoordinates(rotation, location, scale);
     }
     unlink();
     if (parent != 0 || ((parent = srCore.getRootNode()) != this && parent != 0)) {
@@ -260,31 +260,31 @@ int srNode::setParent(srNode* parent, int preserve_world_transform)
             columns[2].z = parent_rotation.vectors[2].z;
             srVector3T<double> rows[3];
             for (int row = 0; row < 3; ++row) {
-                rows[row].x = DotProduct(columns[0], rotation_18.vectors[row]);
-                rows[row].y = DotProduct(columns[1], rotation_18.vectors[row]);
-                rows[row].z = DotProduct(columns[2], rotation_18.vectors[row]);
+                rows[row].x = DotProduct(columns[0], rotation.vectors[row]);
+                rows[row].y = DotProduct(columns[1], rotation.vectors[row]);
+                rows[row].z = DotProduct(columns[2], rotation.vectors[row]);
             }
-            rotation_18.SetRows(rows[0], rows[1], rows[2]);
+            rotation.SetRows(rows[0], rows[1], rows[2]);
             for (int axis = 0; axis < 3; ++axis) {
                 for (int prior = 0; prior < axis; ++prior) {
-                    rotation_18.vectors[axis] -=
-                        rotation_18.vectors[prior] *
-                        DotProduct(rotation_18.vectors[axis], rotation_18.vectors[prior]);
+                    rotation.vectors[axis] -=
+                        rotation.vectors[prior] *
+                        DotProduct(rotation.vectors[axis], rotation.vectors[prior]);
                 }
-                rotation_18.vectors[axis] /= rotation_18.vectors[axis].Length();
+                rotation.vectors[axis] /= rotation.vectors[axis].Length();
             }
             srVector3T<double> inverse_scale;
             inverse_scale.x = 1.0 / parent_scale.x;
             inverse_scale.y = 1.0 / parent_scale.y;
             inverse_scale.z = 1.0 / parent_scale.z;
-            location_60 -= parent_location;
-            location_60.x *= inverse_scale.x;
-            location_60.y *= inverse_scale.y;
-            location_60.z *= inverse_scale.z;
-            location_60 = parent_rotation.TransformTransposed(location_60);
-            scale_78.x *= inverse_scale.x;
-            scale_78.y *= inverse_scale.y;
-            scale_78.z *= inverse_scale.z;
+            location -= parent_location;
+            location.x *= inverse_scale.x;
+            location.y *= inverse_scale.y;
+            location.z *= inverse_scale.z;
+            location = parent_rotation.TransformTransposed(location);
+            scale.x *= inverse_scale.x;
+            scale.y *= inverse_scale.y;
+            scale.z *= inverse_scale.z;
         }
     }
     notifyDependent();
@@ -432,11 +432,11 @@ void srNode::dump(std::ostream& stream)
            << '\n';
     stream.width(0x20);
     stream << "  Flags: ";
-    dumpFlags(stream, flags_124.value, s_flag_names_100a4a00);
+    dumpFlags(stream, this->flags.value, s_flag_names1);
     stream << '\n';
     stream.width(0x20);
     stream << "  Notify: ";
-    dumpFlags(stream, notifications_120.value, s_notify_names);
+    dumpFlags(stream, notifications.value, s_notify_names);
     stream << '\n';
     stream.flags(flags & 0x7fff);
     delete[] path;
@@ -475,7 +475,7 @@ void srNode::setScale(double scale)
 // FUNCTION: SURRENDER 0x10051A90
 void srNode::checkTransformation() const
 {
-    if ((notifications_120.value & 2) != 0) {
+    if ((notifications.value & 2) != 0) {
         updateTransformation();
     }
 }
@@ -483,7 +483,7 @@ void srNode::checkTransformation() const
 // FUNCTION: SURRENDER 0x10051C50
 void srNode::setFlag(e_flag flag)
 {
-    flags_124.value |= 1 << flag;
+    flags.value |= 1 << flag;
     if (flag == FLAG_IGNORE_TRANSFORM) {
         setWSDirty();
     }
@@ -492,7 +492,7 @@ void srNode::setFlag(e_flag flag)
 // FUNCTION: SURRENDER 0x10051C80
 void srNode::clearFlag(e_flag flag)
 {
-    flags_124.value &= ~(1 << flag);
+    flags.value &= ~(1 << flag);
     if (flag == FLAG_IGNORE_TRANSFORM) {
         setWSDirty();
     }
@@ -501,7 +501,7 @@ void srNode::clearFlag(e_flag flag)
 // FUNCTION: SURRENDER 0x10051CB0
 int srNode::testFlag(e_flag flag) const
 {
-    return (flags_124.value & (1 << flag)) != 0;
+    return (flags.value & (1 << flag)) != 0;
 }
 
 // FUNCTION: SURRENDER 0x10051CD0
@@ -521,10 +521,10 @@ void srNode::setWSDirty()
 {
     /* The dirty fan-out to parents and children can rewrite the notification
        word, so retail saves the positional bit first and restores it after. */
-    int bounds_dirty = notifications_120.value & (1 << NOTIFY_BOUNDS_DIRTY);
+    int bounds_dirty = notifications.value & (1 << NOTIFY_BOUNDS_DIRTY);
     notifyParents(srFlags<e_notify>(1));
     notifyChildren(srFlags<e_notify>(2));
-    notifications_120.set(NOTIFY_BOUNDS_DIRTY, bounds_dirty);
+    notifications.set(NOTIFY_BOUNDS_DIRTY, bounds_dirty);
 }
 
 // FUNCTION: SURRENDER 0x10051DB0
@@ -537,7 +537,7 @@ double srNode::getDistance(const srNode& node) const
 // FUNCTION: SURRENDER 0x100536B0
 void srNode::setRotation(const srMatrix3T<double>& rotation)
 {
-    rotation_18 = rotation;
+    this->rotation = rotation;
     setWSDirty();
 }
 
@@ -549,7 +549,7 @@ void srNode::setRotation(const srMatrix3T<float>& rotation)
     widened.vectors[0] = rotation.vectors[0];
     widened.vectors[1] = rotation.vectors[1];
     widened.vectors[2] = rotation.vectors[2];
-    rotation_18 = widened;
+    this->rotation = widened;
     setWSDirty();
 }
 
@@ -558,10 +558,10 @@ void srNode::setRotation(const srMatrix3T<float>& rotation)
 // FUNCTION: SURRENDER 0x10053740
 void srNode::setRotation(double x, double y, double z)
 {
-    rotation_18.SetIdentity();
-    rotation_18.RotateAboutX(x);
-    rotation_18.RotateAboutY(y);
-    rotation_18.RotateAboutZ(z);
+    rotation.SetIdentity();
+    rotation.RotateAboutX(x);
+    rotation.RotateAboutY(y);
+    rotation.RotateAboutZ(z);
     setWSDirty();
 }
 
@@ -570,9 +570,9 @@ void srNode::setRotation(double amount, const srVector3T<double>& direction)
 {
     srVector3T<double> axis = direction;
     axis.Normalize();
-    rotation_18.SetIdentity();
+    rotation.SetIdentity();
     if (amount != 0.0) {
-        rotation_18.RotateAroundAxis(sin(amount), cos(amount), axis);
+        rotation.RotateAroundAxis(sin(amount), cos(amount), axis);
     }
     setWSDirty();
 }
@@ -582,18 +582,18 @@ void srNode::setRotation(const srVector3T<double>& direction, double amount)
 {
     srVector3T<double> axis = direction;
     axis.Normalize();
-    rotation_18.SetIdentity();
+    rotation.SetIdentity();
     double angle = atan2(axis.x, axis.z);
     if (angle != 0.0) {
-        rotation_18.RotateAboutY(sin(angle), cos(angle));
+        rotation.RotateAboutY(sin(angle), cos(angle));
     }
-    axis = rotation_18.TransformTransposed(axis);
+    axis = rotation.TransformTransposed(axis);
     angle = -atan2(axis.y, axis.z);
     if (angle != 0.0) {
-        rotation_18.RotateAboutX(sin(angle), cos(angle));
+        rotation.RotateAboutX(sin(angle), cos(angle));
     }
     if (amount != 0.0) {
-        rotation_18.RotateAboutZ(amount);
+        rotation.RotateAboutZ(amount);
     }
     setWSDirty();
 }
@@ -604,15 +604,15 @@ void srNode::setRotation(const srVector3T<double>& first, const srVector3T<doubl
 {
     srVector3T<double> axis = first - second;
     axis.Normalize();
-    rotation_18.SetIdentity();
+    rotation.SetIdentity();
     double angle = atan2(axis.x, axis.z);
     if (angle != 0.0) {
-        rotation_18.RotateAboutY(sin(angle), cos(angle));
+        rotation.RotateAboutY(sin(angle), cos(angle));
     }
-    axis = rotation_18.TransformTransposed(axis);
-    rotation_18.RotateAboutX(-atan2(axis.y, axis.z));
+    axis = rotation.TransformTransposed(axis);
+    rotation.RotateAboutX(-atan2(axis.y, axis.z));
     if (amount != 0.0) {
-        rotation_18.RotateAboutZ(amount);
+        rotation.RotateAboutZ(amount);
     }
     setWSDirty();
 }
@@ -620,37 +620,37 @@ void srNode::setRotation(const srVector3T<double>& first, const srVector3T<doubl
 // FUNCTION: SURRENDER 0x10053D70
 double srNode::getLocationX() const
 {
-    return location_60.x;
+    return location.x;
 }
 
 // FUNCTION: SURRENDER 0x10053D80
 double srNode::getLocationY() const
 {
-    return location_60.y;
+    return location.y;
 }
 
 // FUNCTION: SURRENDER 0x10053D90
 double srNode::getLocationZ() const
 {
-    return location_60.z;
+    return location.z;
 }
 
 // FUNCTION: SURRENDER 0x10053DA0
 srVector3T<double> srNode::getLocation() const
 {
-    return location_60;
+    return location;
 }
 
 // FUNCTION: SURRENDER 0x10053DD0
 void srNode::getLocation(srVector3T<double>& location) const
 {
-    location = location_60;
+    location = this->location;
 }
 
 // FUNCTION: SURRENDER 0x10053DF0
 void srNode::getLocation(srVector3T<float>& location) const
 {
-    location.Set(location_60.x, location_60.y, location_60.z);
+    location.Set(this->location.x, this->location.y, this->location.z);
 }
 
 // FUNCTION: SURRENDER 0x10053E10
@@ -658,29 +658,29 @@ void srNode::getRotation(srMatrix3T<float>& rotation) const
 {
     /* Retail narrows into a float temporary, then copy-assigns the result. */
     srMatrix3T<float> narrowed;
-    narrowed.vectors[0] = rotation_18.vectors[0];
-    narrowed.vectors[1] = rotation_18.vectors[1];
-    narrowed.vectors[2] = rotation_18.vectors[2];
+    narrowed.vectors[0] = this->rotation.vectors[0];
+    narrowed.vectors[1] = this->rotation.vectors[1];
+    narrowed.vectors[2] = this->rotation.vectors[2];
     rotation = narrowed;
 }
 
 // FUNCTION: SURRENDER 0x10053E70
 void srNode::getRotation(srMatrix3T<double>& rotation) const
 {
-    rotation = rotation_18;
+    rotation = this->rotation;
 }
 
 // FUNCTION: SURRENDER 0x10053E90
 srVector3T<double> srNode::getScale() const
 {
-    return scale_78;
+    return scale;
 }
 
 // FUNCTION: SURRENDER 0x10053EB0
 void srNode::offsetLocation(const srVector3T<double>& offset)
 {
     if (offset.x != 0.0 || offset.y != 0.0 || offset.z != 0.0) {
-        location_60 += offset;
+        location += offset;
         setWSDirty();
     }
 }
@@ -689,9 +689,9 @@ void srNode::offsetLocation(const srVector3T<double>& offset)
 void srNode::offsetLocation(double x, double y, double z)
 {
     if (x != 0.0 || y != 0.0 || z != 0.0) {
-        location_60.x += x;
-        location_60.y += y;
-        location_60.z += z;
+        location.x += x;
+        location.y += y;
+        location.z += z;
         setWSDirty();
     }
 }
@@ -699,8 +699,8 @@ void srNode::offsetLocation(double x, double y, double z)
 // FUNCTION: SURRENDER 0x10054790
 void srNode::setLocation(const srVector3T<double>& location)
 {
-    if (!(location == location_60)) {
-        location_60 = location;
+    if (!(location == this->location)) {
+        this->location = location;
         setWSDirty();
     }
 }
@@ -708,8 +708,8 @@ void srNode::setLocation(const srVector3T<double>& location)
 // FUNCTION: SURRENDER 0x100547E0
 void srNode::setLocation(double x, double y, double z)
 {
-    if (x != location_60.x || y != location_60.y || z != location_60.z) {
-        location_60.Set(x, y, z);
+    if (x != location.x || y != location.y || z != location.z) {
+        location.Set(x, y, z);
         setWSDirty();
     }
 }
@@ -717,8 +717,8 @@ void srNode::setLocation(double x, double y, double z)
 // FUNCTION: SURRENDER 0x10054840
 void srNode::setLocationX(double x)
 {
-    if (x != location_60.x) {
-        location_60.x = x;
+    if (x != location.x) {
+        location.x = x;
         setWSDirty();
     }
 }
@@ -726,8 +726,8 @@ void srNode::setLocationX(double x)
 // FUNCTION: SURRENDER 0x10054870
 void srNode::setLocationY(double y)
 {
-    if (y != location_60.y) {
-        location_60.y = y;
+    if (y != location.y) {
+        location.y = y;
         setWSDirty();
     }
 }
@@ -735,8 +735,8 @@ void srNode::setLocationY(double y)
 // FUNCTION: SURRENDER 0x100548A0
 void srNode::setLocationZ(double z)
 {
-    if (z != location_60.z) {
-        location_60.z = z;
+    if (z != location.z) {
+        location.z = z;
         setWSDirty();
     }
 }
@@ -744,8 +744,8 @@ void srNode::setLocationZ(double z)
 // FUNCTION: SURRENDER 0x100548D0
 void srNode::setScale(const srVector3T<double>& scale)
 {
-    if (!(scale_78 == scale)) {
-        scale_78 = scale;
+    if (!(this->scale == scale)) {
+        this->scale = scale;
         setWSDirty();
     }
 }
@@ -776,17 +776,17 @@ void srNode::getWorldSpaceCoordinates(srMatrix3T<float>& rotation, srVector3T<fl
 srVector3T<double> srNode::getWorldSpaceLocation() const
 {
     checkTransformation();
-    return srVector3T<double>(world_transform_90.rows[0].w, world_transform_90.rows[1].w,
-                              world_transform_90.rows[2].w);
+    return srVector3T<double>(world_transform0.rows[0].w, world_transform0.rows[1].w,
+                              world_transform0.rows[2].w);
 }
 
 // FUNCTION: SURRENDER 0x10054FC0
 void srNode::getWorldSpaceRotation(srMatrix3T<double>& rotation) const
 {
     checkTransformation();
-    rotation.vectors[0] = world_transform_90.rows[0].xyz();
-    rotation.vectors[1] = world_transform_90.rows[1].xyz();
-    rotation.vectors[2] = world_transform_90.rows[2].xyz();
+    rotation.vectors[0] = world_transform0.rows[0].xyz();
+    rotation.vectors[1] = world_transform0.rows[1].xyz();
+    rotation.vectors[2] = world_transform0.rows[2].xyz();
     srVector3T<double> scale = getWorldSpaceScale();
     srVector3T<double> inverse_scale(1.0 / scale.x, 1.0 / scale.y, 1.0 / scale.z);
     rotation.vectors[0] *= inverse_scale;
@@ -798,9 +798,9 @@ void srNode::getWorldSpaceRotation(srMatrix3T<double>& rotation) const
 void srNode::getWorldSpaceRotation(srMatrix3T<float>& rotation) const
 {
     checkTransformation();
-    rotation.vectors[0] = world_transform_f0.rows[0].xyz();
-    rotation.vectors[1] = world_transform_f0.rows[1].xyz();
-    rotation.vectors[2] = world_transform_f0.rows[2].xyz();
+    rotation.vectors[0] = world_transform1.rows[0].xyz();
+    rotation.vectors[1] = world_transform1.rows[1].xyz();
+    rotation.vectors[2] = world_transform1.rows[2].xyz();
     srVector3T<double> scale = getWorldSpaceScale();
     float inverse_x = 1.0f / (float)scale.x;
     float inverse_y = 1.0f / (float)scale.y;
@@ -820,8 +820,8 @@ void srNode::getWorldSpaceRotation(srMatrix3T<float>& rotation) const
 srVector3T<double> srNode::getWorldSpaceDOF() const
 {
     checkTransformation();
-    srVector3T<double> direction(world_transform_90.rows[0].z, world_transform_90.rows[1].z,
-                                 world_transform_90.rows[2].z);
+    srVector3T<double> direction(world_transform0.rows[0].z, world_transform0.rows[1].z,
+                                 world_transform0.rows[2].z);
     direction.Normalize();
     return direction;
 }
@@ -830,38 +830,38 @@ srVector3T<double> srNode::getWorldSpaceDOF() const
 srVector3T<double> srNode::getWorldSpaceScale() const
 {
     checkTransformation();
-    return srVector3T<double>(sqrt(world_transform_90.rows[0].x * world_transform_90.rows[0].x +
-                                   world_transform_90.rows[1].x * world_transform_90.rows[1].x +
-                                   world_transform_90.rows[2].x * world_transform_90.rows[2].x),
-                              sqrt(world_transform_90.rows[0].y * world_transform_90.rows[0].y +
-                                   world_transform_90.rows[1].y * world_transform_90.rows[1].y +
-                                   world_transform_90.rows[2].y * world_transform_90.rows[2].y),
-                              sqrt(world_transform_90.rows[0].z * world_transform_90.rows[0].z +
-                                   world_transform_90.rows[1].z * world_transform_90.rows[1].z +
-                                   world_transform_90.rows[2].z * world_transform_90.rows[2].z));
+    return srVector3T<double>(sqrt(world_transform0.rows[0].x * world_transform0.rows[0].x +
+                                   world_transform0.rows[1].x * world_transform0.rows[1].x +
+                                   world_transform0.rows[2].x * world_transform0.rows[2].x),
+                              sqrt(world_transform0.rows[0].y * world_transform0.rows[0].y +
+                                   world_transform0.rows[1].y * world_transform0.rows[1].y +
+                                   world_transform0.rows[2].y * world_transform0.rows[2].y),
+                              sqrt(world_transform0.rows[0].z * world_transform0.rows[0].z +
+                                   world_transform0.rows[1].z * world_transform0.rows[1].z +
+                                   world_transform0.rows[2].z * world_transform0.rows[2].z));
 }
 
 // FUNCTION: SURRENDER 0x10054D10
 void srNode::getWorldSpaceMatrix(srMatrix4x3T<double>& matrix) const
 {
     checkTransformation();
-    matrix = world_transform_90;
+    matrix = world_transform0;
 }
 
 // FUNCTION: SURRENDER 0x10054D40
 void srNode::getWorldSpaceMatrix(srMatrix4x3T<float>& matrix) const
 {
     checkTransformation();
-    matrix = world_transform_f0;
+    matrix = world_transform1;
 }
 
 // FUNCTION: SURRENDER 0x10054D70
 void srNode::getWorldSpaceMatrix(srMatrix4T<double>& matrix) const
 {
     checkTransformation();
-    matrix.vectors[0] = world_transform_90.rows[0];
-    matrix.vectors[1] = world_transform_90.rows[1];
-    matrix.vectors[2] = world_transform_90.rows[2];
+    matrix.vectors[0] = world_transform0.rows[0];
+    matrix.vectors[1] = world_transform0.rows[1];
+    matrix.vectors[2] = world_transform0.rows[2];
     matrix.vectors[3].Set(0.0, 0.0, 0.0, 1.0);
 }
 
@@ -869,111 +869,111 @@ void srNode::getWorldSpaceMatrix(srMatrix4T<double>& matrix) const
 void srNode::getWorldSpaceMatrix(srMatrix4T<float>& matrix) const
 {
     checkTransformation();
-    matrix.vectors[0] = world_transform_f0.rows[0];
-    matrix.vectors[1] = world_transform_f0.rows[1];
-    matrix.vectors[2] = world_transform_f0.rows[2];
+    matrix.vectors[0] = world_transform1.rows[0];
+    matrix.vectors[1] = world_transform1.rows[1];
+    matrix.vectors[2] = world_transform1.rows[2];
     matrix.vectors[3].Set(0.0f, 0.0f, 0.0f, 1.0f);
 }
 
 // FUNCTION: SURRENDER 0x10054920
 void srNode::updateTransformation() const
 {
-    notifications_120.value &= ~2;
+    notifications.value &= ~2;
     srNode* parent = parent_;
     if (parent == 0) {
         if (testFlag(FLAG_IGNORE_TRANSFORM) == 0) {
-            world_transform_90.SetRotation(rotation_18);
-            world_transform_90.SetTranslation(location_60);
-            world_transform_90.Scale(scale_78);
+            world_transform0.SetRotation(rotation);
+            world_transform0.SetTranslation(location);
+            world_transform0.Scale(scale);
         } else {
-            world_transform_90.SetIdentity();
+            world_transform0.SetIdentity();
         }
     } else if (testFlag(FLAG_IGNORE_TRANSFORM) == 0) {
-        if ((parent->notifications_120.value & 2) != 0) {
+        if ((parent->notifications.value & 2) != 0) {
             parent->updateTransformation();
         }
-        world_transform_90.rows[0].x =
-            (parent->world_transform_90.rows[0].x * rotation_18.vectors[0].x +
-             parent->world_transform_90.rows[0].y * rotation_18.vectors[1].x +
-             parent->world_transform_90.rows[0].z * rotation_18.vectors[2].x) *
-            scale_78.x;
-        world_transform_90.rows[1].x =
-            (parent->world_transform_90.rows[1].x * rotation_18.vectors[0].x +
-             parent->world_transform_90.rows[1].y * rotation_18.vectors[1].x +
-             parent->world_transform_90.rows[1].z * rotation_18.vectors[2].x) *
-            scale_78.x;
-        world_transform_90.rows[2].x =
-            (parent->world_transform_90.rows[2].x * rotation_18.vectors[0].x +
-             parent->world_transform_90.rows[2].y * rotation_18.vectors[1].x +
-             parent->world_transform_90.rows[2].z * rotation_18.vectors[2].x) *
-            scale_78.x;
-        world_transform_90.rows[0].y =
-            (parent->world_transform_90.rows[0].x * rotation_18.vectors[0].y +
-             parent->world_transform_90.rows[0].y * rotation_18.vectors[1].y +
-             parent->world_transform_90.rows[0].z * rotation_18.vectors[2].y) *
-            scale_78.y;
-        world_transform_90.rows[1].y =
-            (parent->world_transform_90.rows[1].x * rotation_18.vectors[0].y +
-             parent->world_transform_90.rows[1].y * rotation_18.vectors[1].y +
-             parent->world_transform_90.rows[1].z * rotation_18.vectors[2].y) *
-            scale_78.y;
-        world_transform_90.rows[2].y =
-            (parent->world_transform_90.rows[2].x * rotation_18.vectors[0].y +
-             parent->world_transform_90.rows[2].y * rotation_18.vectors[1].y +
-             parent->world_transform_90.rows[2].z * rotation_18.vectors[2].y) *
-            scale_78.y;
-        world_transform_90.rows[0].z =
-            (parent->world_transform_90.rows[0].x * rotation_18.vectors[0].z +
-             parent->world_transform_90.rows[0].y * rotation_18.vectors[1].z +
-             parent->world_transform_90.rows[0].z * rotation_18.vectors[2].z) *
-            scale_78.z;
-        world_transform_90.rows[1].z =
-            (parent->world_transform_90.rows[1].x * rotation_18.vectors[0].z +
-             parent->world_transform_90.rows[1].y * rotation_18.vectors[1].z +
-             parent->world_transform_90.rows[1].z * rotation_18.vectors[2].z) *
-            scale_78.z;
-        world_transform_90.rows[2].z =
-            (parent->world_transform_90.rows[2].x * rotation_18.vectors[0].z +
-             parent->world_transform_90.rows[2].y * rotation_18.vectors[1].z +
-             parent->world_transform_90.rows[2].z * rotation_18.vectors[2].z) *
-            scale_78.z;
-        world_transform_90.rows[0].w = parent->world_transform_90.rows[0].x * location_60.x +
-                                       parent->world_transform_90.rows[0].y * location_60.y +
-                                       parent->world_transform_90.rows[0].z * location_60.z +
-                                       parent->world_transform_90.rows[0].w;
-        world_transform_90.rows[1].w = parent->world_transform_90.rows[1].x * location_60.x +
-                                       parent->world_transform_90.rows[1].y * location_60.y +
-                                       parent->world_transform_90.rows[1].z * location_60.z +
-                                       parent->world_transform_90.rows[1].w;
-        world_transform_90.rows[2].w = parent->world_transform_90.rows[2].x * location_60.x +
-                                       parent->world_transform_90.rows[2].y * location_60.y +
-                                       parent->world_transform_90.rows[2].z * location_60.z +
-                                       parent->world_transform_90.rows[2].w;
+        world_transform0.rows[0].x =
+            (parent->world_transform0.rows[0].x * rotation.vectors[0].x +
+             parent->world_transform0.rows[0].y * rotation.vectors[1].x +
+             parent->world_transform0.rows[0].z * rotation.vectors[2].x) *
+            scale.x;
+        world_transform0.rows[1].x =
+            (parent->world_transform0.rows[1].x * rotation.vectors[0].x +
+             parent->world_transform0.rows[1].y * rotation.vectors[1].x +
+             parent->world_transform0.rows[1].z * rotation.vectors[2].x) *
+            scale.x;
+        world_transform0.rows[2].x =
+            (parent->world_transform0.rows[2].x * rotation.vectors[0].x +
+             parent->world_transform0.rows[2].y * rotation.vectors[1].x +
+             parent->world_transform0.rows[2].z * rotation.vectors[2].x) *
+            scale.x;
+        world_transform0.rows[0].y =
+            (parent->world_transform0.rows[0].x * rotation.vectors[0].y +
+             parent->world_transform0.rows[0].y * rotation.vectors[1].y +
+             parent->world_transform0.rows[0].z * rotation.vectors[2].y) *
+            scale.y;
+        world_transform0.rows[1].y =
+            (parent->world_transform0.rows[1].x * rotation.vectors[0].y +
+             parent->world_transform0.rows[1].y * rotation.vectors[1].y +
+             parent->world_transform0.rows[1].z * rotation.vectors[2].y) *
+            scale.y;
+        world_transform0.rows[2].y =
+            (parent->world_transform0.rows[2].x * rotation.vectors[0].y +
+             parent->world_transform0.rows[2].y * rotation.vectors[1].y +
+             parent->world_transform0.rows[2].z * rotation.vectors[2].y) *
+            scale.y;
+        world_transform0.rows[0].z =
+            (parent->world_transform0.rows[0].x * rotation.vectors[0].z +
+             parent->world_transform0.rows[0].y * rotation.vectors[1].z +
+             parent->world_transform0.rows[0].z * rotation.vectors[2].z) *
+            scale.z;
+        world_transform0.rows[1].z =
+            (parent->world_transform0.rows[1].x * rotation.vectors[0].z +
+             parent->world_transform0.rows[1].y * rotation.vectors[1].z +
+             parent->world_transform0.rows[1].z * rotation.vectors[2].z) *
+            scale.z;
+        world_transform0.rows[2].z =
+            (parent->world_transform0.rows[2].x * rotation.vectors[0].z +
+             parent->world_transform0.rows[2].y * rotation.vectors[1].z +
+             parent->world_transform0.rows[2].z * rotation.vectors[2].z) *
+            scale.z;
+        world_transform0.rows[0].w = parent->world_transform0.rows[0].x * location.x +
+                                       parent->world_transform0.rows[0].y * location.y +
+                                       parent->world_transform0.rows[0].z * location.z +
+                                       parent->world_transform0.rows[0].w;
+        world_transform0.rows[1].w = parent->world_transform0.rows[1].x * location.x +
+                                       parent->world_transform0.rows[1].y * location.y +
+                                       parent->world_transform0.rows[1].z * location.z +
+                                       parent->world_transform0.rows[1].w;
+        world_transform0.rows[2].w = parent->world_transform0.rows[2].x * location.x +
+                                       parent->world_transform0.rows[2].y * location.y +
+                                       parent->world_transform0.rows[2].z * location.z +
+                                       parent->world_transform0.rows[2].w;
     } else {
-        parent->getWorldSpaceMatrix(world_transform_90);
+        parent->getWorldSpaceMatrix(world_transform0);
     }
-    world_transform_f0.rows[0].Set(
-        (float)world_transform_90.rows[0].x, (float)world_transform_90.rows[0].y,
-        (float)world_transform_90.rows[0].z, (float)world_transform_90.rows[0].w);
-    world_transform_f0.rows[1].Set(
-        (float)world_transform_90.rows[1].x, (float)world_transform_90.rows[1].y,
-        (float)world_transform_90.rows[1].z, (float)world_transform_90.rows[1].w);
-    world_transform_f0.rows[2].Set(
-        (float)world_transform_90.rows[2].x, (float)world_transform_90.rows[2].y,
-        (float)world_transform_90.rows[2].z, (float)world_transform_90.rows[2].w);
+    world_transform1.rows[0].Set(
+        (float)world_transform0.rows[0].x, (float)world_transform0.rows[0].y,
+        (float)world_transform0.rows[0].z, (float)world_transform0.rows[0].w);
+    world_transform1.rows[1].Set(
+        (float)world_transform0.rows[1].x, (float)world_transform0.rows[1].y,
+        (float)world_transform0.rows[1].z, (float)world_transform0.rows[1].w);
+    world_transform1.rows[2].Set(
+        (float)world_transform0.rows[2].x, (float)world_transform0.rows[2].y,
+        (float)world_transform0.rows[2].z, (float)world_transform0.rows[2].w);
 }
 
 // FUNCTION: SURRENDER 0x10051E10
 void srNode::setWorldSpaceLocation(const srVector3T<double>& location)
 {
     if (parent_ == 0) {
-        location_60 = location;
+        this->location = location;
     } else {
         srMatrix4T<double> parent_world;
         parent_->getWorldSpaceMatrix(parent_world);
         srMatrix4T<double> inverse;
         inverse.Inverse(parent_world);
-        location_60 = inverse.TransformPoint(location);
+        this->location = inverse.TransformPoint(location);
     }
     setWSDirty();
 }
@@ -983,7 +983,7 @@ void srNode::applyWorldSpaceMatrix(srGERD& renderer)
 {
     checkTransformation();
     renderer.matrixMode(srGERD::MATRIX_MODELVIEW);
-    renderer.pushMultMatrix(world_transform_f0);
+    renderer.pushMultMatrix(world_transform1);
 }
 
 // FUNCTION: SURRENDER 0x100505B0
@@ -1164,7 +1164,7 @@ srNode* srNode::findParentByTypeInternal(unsigned long class_id)
 void srNode::move(const srVector3T<double>& offset)
 {
     if (offset.x != 0.0 || offset.y != 0.0 || offset.z != 0.0) {
-        location_60 += rotation_18.Transform(offset);
+        location += rotation.Transform(offset);
         setWSDirty();
     }
 }
@@ -1173,9 +1173,9 @@ void srNode::move(const srVector3T<double>& offset)
 void srNode::moveForward(double distance)
 {
     if (distance != 0.0) {
-        srVector3T<double> direction(rotation_18.vectors[0].z, rotation_18.vectors[1].z,
-                                     rotation_18.vectors[2].z);
-        location_60 += direction * distance;
+        srVector3T<double> direction(rotation.vectors[0].z, rotation.vectors[1].z,
+                                     rotation.vectors[2].z);
+        location += direction * distance;
         setWSDirty();
     }
 }
@@ -1184,9 +1184,9 @@ void srNode::moveForward(double distance)
 void srNode::moveBackward(double distance)
 {
     if (distance != 0.0) {
-        srVector3T<double> direction(rotation_18.vectors[0].z, rotation_18.vectors[1].z,
-                                     rotation_18.vectors[2].z);
-        location_60 -= direction * distance;
+        srVector3T<double> direction(rotation.vectors[0].z, rotation.vectors[1].z,
+                                     rotation.vectors[2].z);
+        location -= direction * distance;
         setWSDirty();
     }
 }
@@ -1195,9 +1195,9 @@ void srNode::moveBackward(double distance)
 void srNode::moveLeft(double distance)
 {
     if (distance != 0.0) {
-        srVector3T<double> direction(rotation_18.vectors[0].x, rotation_18.vectors[1].x,
-                                     rotation_18.vectors[2].x);
-        location_60 -= direction * distance;
+        srVector3T<double> direction(rotation.vectors[0].x, rotation.vectors[1].x,
+                                     rotation.vectors[2].x);
+        location -= direction * distance;
         setWSDirty();
     }
 }
@@ -1206,9 +1206,9 @@ void srNode::moveLeft(double distance)
 void srNode::moveRight(double distance)
 {
     if (distance != 0.0) {
-        srVector3T<double> direction(rotation_18.vectors[0].x, rotation_18.vectors[1].x,
-                                     rotation_18.vectors[2].x);
-        location_60 += direction * distance;
+        srVector3T<double> direction(rotation.vectors[0].x, rotation.vectors[1].x,
+                                     rotation.vectors[2].x);
+        location += direction * distance;
         setWSDirty();
     }
 }
@@ -1217,9 +1217,9 @@ void srNode::moveRight(double distance)
 void srNode::moveUp(double distance)
 {
     if (distance != 0.0) {
-        srVector3T<double> direction(rotation_18.vectors[0].y, rotation_18.vectors[1].y,
-                                     rotation_18.vectors[2].y);
-        location_60 += direction * distance;
+        srVector3T<double> direction(rotation.vectors[0].y, rotation.vectors[1].y,
+                                     rotation.vectors[2].y);
+        location += direction * distance;
         setWSDirty();
     }
 }
@@ -1228,9 +1228,9 @@ void srNode::moveUp(double distance)
 void srNode::moveDown(double distance)
 {
     if (distance != 0.0) {
-        srVector3T<double> direction(rotation_18.vectors[0].y, rotation_18.vectors[1].y,
-                                     rotation_18.vectors[2].y);
-        location_60 -= direction * distance;
+        srVector3T<double> direction(rotation.vectors[0].y, rotation.vectors[1].y,
+                                     rotation.vectors[2].y);
+        location -= direction * distance;
         setWSDirty();
     }
 }
@@ -1241,7 +1241,7 @@ void srNode::rotate(const srMatrix3T<double>& rotation)
     srMatrix3T<double> identity;
     identity.SetIdentity();
     if (!(rotation == identity)) {
-        rotation_18.MultiplyBy(rotation);
+        this->rotation.MultiplyBy(rotation);
         setWSDirty();
     }
 }
@@ -1252,7 +1252,7 @@ void srNode::rotate(double angle, const srVector3T<double>& axis)
     if (angle != 0.0) {
         srVector3T<double> normalized = axis;
         normalized.Normalize();
-        rotation_18.RotateAroundAxis(sin(angle), cos(angle), normalized);
+        rotation.RotateAroundAxis(sin(angle), cos(angle), normalized);
         setWSDirty();
     }
 }
@@ -1261,7 +1261,7 @@ void srNode::rotate(double angle, const srVector3T<double>& axis)
 void srNode::rotateX(double angle)
 {
     if (angle != 0.0) {
-        rotation_18.RotateAboutX(sin(angle), cos(angle));
+        rotation.RotateAboutX(sin(angle), cos(angle));
         setWSDirty();
     }
 }
@@ -1270,7 +1270,7 @@ void srNode::rotateX(double angle)
 void srNode::rotateY(double angle)
 {
     if (angle != 0.0) {
-        rotation_18.RotateAboutY(sin(angle), cos(angle));
+        rotation.RotateAboutY(sin(angle), cos(angle));
         setWSDirty();
     }
 }
@@ -1279,7 +1279,7 @@ void srNode::rotateY(double angle)
 void srNode::rotateZ(double angle)
 {
     if (angle != 0.0) {
-        rotation_18.RotateAboutZ(sin(angle), cos(angle));
+        rotation.RotateAboutZ(sin(angle), cos(angle));
         setWSDirty();
     }
 }
@@ -1288,20 +1288,20 @@ void srNode::rotateZ(double angle)
 void srNode::setWorldSpaceRotation(const srMatrix3T<double>& rotation)
 {
     if (parent_ == 0) {
-        rotation_18 = rotation;
+        this->rotation = rotation;
     } else {
         srMatrix4T<double> world;
-        world.vectors[0].x = rotation.vectors[0].x * scale_78.x;
-        world.vectors[0].y = rotation.vectors[0].y * scale_78.y;
-        world.vectors[0].z = rotation.vectors[0].z * scale_78.z;
+        world.vectors[0].x = rotation.vectors[0].x * scale.x;
+        world.vectors[0].y = rotation.vectors[0].y * scale.y;
+        world.vectors[0].z = rotation.vectors[0].z * scale.z;
         world.vectors[0].w = 0.0;
-        world.vectors[1].x = rotation.vectors[1].x * scale_78.x;
-        world.vectors[1].y = rotation.vectors[1].y * scale_78.y;
-        world.vectors[1].z = rotation.vectors[1].z * scale_78.z;
+        world.vectors[1].x = rotation.vectors[1].x * scale.x;
+        world.vectors[1].y = rotation.vectors[1].y * scale.y;
+        world.vectors[1].z = rotation.vectors[1].z * scale.z;
         world.vectors[1].w = 0.0;
-        world.vectors[2].x = rotation.vectors[2].x * scale_78.x;
-        world.vectors[2].y = rotation.vectors[2].y * scale_78.y;
-        world.vectors[2].z = rotation.vectors[2].z * scale_78.z;
+        world.vectors[2].x = rotation.vectors[2].x * scale.x;
+        world.vectors[2].y = rotation.vectors[2].y * scale.y;
+        world.vectors[2].z = rotation.vectors[2].z * scale.z;
         world.vectors[2].w = 0.0;
         world.vectors[3].Set(0.0, 0.0, 0.0, 1.0);
         srMatrix4T<double> local;
@@ -1316,22 +1316,22 @@ void srNode::setWorldSpaceRotation(const srMatrix3T<double>& rotation)
         local.MultiplyBy(world);
         srMatrix3T<double> result;
         result.SetRows(local.vectors[0].xyz(), local.vectors[1].xyz(), local.vectors[2].xyz());
-        rotation_18 = result;
+        this->rotation = result;
         srVector3T<double> column_x;
         srVector3T<double> column_y;
         srVector3T<double> column_z;
-        column_z = srVector3T<double>(rotation_18.vectors[0].z, rotation_18.vectors[1].z,
-                                      rotation_18.vectors[2].z);
-        column_y = srVector3T<double>(rotation_18.vectors[0].y, rotation_18.vectors[1].y,
-                                      rotation_18.vectors[2].y);
-        column_x = srVector3T<double>(rotation_18.vectors[0].x, rotation_18.vectors[1].x,
-                                      rotation_18.vectors[2].x);
+        column_z = srVector3T<double>(this->rotation.vectors[0].z, this->rotation.vectors[1].z,
+                                      this->rotation.vectors[2].z);
+        column_y = srVector3T<double>(this->rotation.vectors[0].y, this->rotation.vectors[1].y,
+                                      this->rotation.vectors[2].y);
+        column_x = srVector3T<double>(this->rotation.vectors[0].x, this->rotation.vectors[1].x,
+                                      this->rotation.vectors[2].x);
         srVector3T<double> inverse_scale;
         inverse_scale.Set(1.0 / column_x.Length(), 1.0 / column_y.Length(),
                           1.0 / column_z.Length());
-        rotation_18.vectors[0] *= inverse_scale;
-        rotation_18.vectors[1] *= inverse_scale;
-        rotation_18.vectors[2] *= inverse_scale;
+        this->rotation.vectors[0] *= inverse_scale;
+        this->rotation.vectors[1] *= inverse_scale;
+        this->rotation.vectors[2] *= inverse_scale;
     }
     setWSDirty();
 }
@@ -1351,23 +1351,23 @@ void srNode::setWorldSpaceMatrix(const srMatrix4T<double>& matrix)
     }
     srMatrix3T<double> result;
     result.SetRows(local.vectors[0].xyz(), local.vectors[1].xyz(), local.vectors[2].xyz());
-    rotation_18 = result;
-    location_60 = srVector3T<double>(local.vectors[0].w, local.vectors[1].w, local.vectors[2].w);
+    rotation = result;
+    location = srVector3T<double>(local.vectors[0].w, local.vectors[1].w, local.vectors[2].w);
     srVector3T<double> column_x;
     srVector3T<double> column_y;
     srVector3T<double> column_z;
-    column_z = srVector3T<double>(rotation_18.vectors[0].z, rotation_18.vectors[1].z,
-                                  rotation_18.vectors[2].z);
-    column_y = srVector3T<double>(rotation_18.vectors[0].y, rotation_18.vectors[1].y,
-                                  rotation_18.vectors[2].y);
-    column_x = srVector3T<double>(rotation_18.vectors[0].x, rotation_18.vectors[1].x,
-                                  rotation_18.vectors[2].x);
-    scale_78.Set(column_x.Length(), column_y.Length(), column_z.Length());
+    column_z = srVector3T<double>(rotation.vectors[0].z, rotation.vectors[1].z,
+                                  rotation.vectors[2].z);
+    column_y = srVector3T<double>(rotation.vectors[0].y, rotation.vectors[1].y,
+                                  rotation.vectors[2].y);
+    column_x = srVector3T<double>(rotation.vectors[0].x, rotation.vectors[1].x,
+                                  rotation.vectors[2].x);
+    scale.Set(column_x.Length(), column_y.Length(), column_z.Length());
     srVector3T<double> inverse_scale;
-    inverse_scale.Set(1.0 / scale_78.x, 1.0 / scale_78.y, 1.0 / scale_78.z);
-    rotation_18.vectors[0] *= inverse_scale;
-    rotation_18.vectors[1] *= inverse_scale;
-    rotation_18.vectors[2] *= inverse_scale;
+    inverse_scale.Set(1.0 / scale.x, 1.0 / scale.y, 1.0 / scale.z);
+    rotation.vectors[0] *= inverse_scale;
+    rotation.vectors[1] *= inverse_scale;
+    rotation.vectors[2] *= inverse_scale;
     setWSDirty();
 }
 

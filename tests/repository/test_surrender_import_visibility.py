@@ -102,10 +102,10 @@ AUDITED_MIXED_MEMBER_IMPORTS = {
 # These accessors are proven header bodies in retail callers. SR.DLL may also
 # export an out-of-line identity, but consumers read the field directly.
 INLINE_CORE_ACCESSORS = {
-    "getMaterial": "material_170",
+    "getMaterial": "material",
     "getRegistry": "registry_",
-    "getStatisticsManager": "statistics_manager_28",
-    "getTimer": "timer_08",
+    "getStatisticsManager": "statistics_manager",
+    "getTimer": "timer",
 }
 
 

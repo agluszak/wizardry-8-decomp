@@ -7,8 +7,8 @@
 extern int g_shared_timer_pause_base;
 extern int g_shared_timer_pause_time;
 extern bool g_shared_timer_paused;
-extern bool g_shared_timer_flag_d1;
-extern bool g_shared_timer_flag_d2;
+extern bool g_shared_timer_flag0;
+extern bool g_shared_timer_flag1;
 extern srTimer* g_shared_timer_base;
 
 void PauseSharedGameTimers(void);

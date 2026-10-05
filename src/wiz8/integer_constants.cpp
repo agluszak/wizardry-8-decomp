@@ -7,16 +7,16 @@
 const int g_character_event_no_flags = 0;
 
 // GLOBAL: WIZ8 0x005ed8cc
-const int g_effect_argument_005ed8cc = 1;
+const int g_effect_argument0 = 1;
 
 // GLOBAL: WIZ8 0x005ED8D0
-const int g_effect_argument_005ed8d0 = 2;
+const int g_effect_argument1 = 2;
 
 // GLOBAL: WIZ8 0x005ED8D4
-const int g_effect_argument_005ed8d4 = 1;
+const int g_effect_argument2 = 1;
 
 // GLOBAL: WIZ8 0x005ED8D8
-const int g_effect_argument_005ed8d8 = 2;
+const int g_effect_argument3 = 2;
 
 // GLOBAL: WIZ8 0x005ED8E0
 const unsigned int g_character_event_no_npc_defer = 8;
@@ -37,12 +37,12 @@ const unsigned int g_flee_hp_fraction = 50;
 const unsigned int g_value_005ed8fc = 20;
 
 // GLOBAL: WIZ8 0x005ed900
-const unsigned int g_effect_threshold_005ed900 = 70;
+const unsigned int g_effect_threshold0 = 70;
 
 /* Two effects the party is holding that a wounded character can no longer
    sustain, and the third that only the deeper threshold breaks. */
 // GLOBAL: WIZ8 0x005ed904
-const unsigned int g_effect_threshold_005ed904 = 50;
+const unsigned int g_effect_threshold1 = 50;
 
 /* 0x004C62C0 */
 // GLOBAL: WIZ8 0x005ed908
@@ -52,19 +52,19 @@ const unsigned int g_flee_chance = 15;
 const int g_character_event_full_volume = 127;
 
 // GLOBAL: WIZ8 0x005ee588
-const int g_effect_005ee588 = 0;
+const int g_effect0 = 0;
 
 // GLOBAL: WIZ8 0x005EE58C
-const int g_effect_005ee58c = 1;
+const int g_effect1 = 1;
 
 // GLOBAL: WIZ8 0x005EE590
-const int g_effect_005ee590 = 2;
+const int g_effect2 = 2;
 
 // GLOBAL: WIZ8 0x005EE594
-const int g_effect_005ee594 = 3;
+const int g_effect3 = 3;
 
 // GLOBAL: WIZ8 0x005ee598
-const int g_effect_005ee598 = 4;
+const int g_effect4 = 4;
 
 // GLOBAL: WIZ8 0x005ee59c
 const int g_condition_reaction = 5;
@@ -73,7 +73,7 @@ const int g_condition_reaction = 5;
 const int g_condition_reaction_alt = 6;
 
 // GLOBAL: WIZ8 0x005EE5A4
-const int g_effect_005ee5a4 = 7;
+const int g_effect5 = 7;
 
 /* The "carrying too much" camp event id. Outside camp the live special
    event slot supplies it instead. */
@@ -81,37 +81,37 @@ const int g_effect_005ee5a4 = 7;
 const int g_camp_overload_event_id = 8;
 
 // GLOBAL: WIZ8 0x005EE5AC
-const int g_effect_005ee5ac = 9;
+const int g_effect6 = 9;
 
 // GLOBAL: WIZ8 0x005EE5B4
-const int g_effect_005ee5b4 = 11;
+const int g_effect7 = 11;
 
 // GLOBAL: WIZ8 0x005EE5B8
-const int g_effect_005ee5b8 = 12;
+const int g_effect8 = 12;
 
 // GLOBAL: WIZ8 0x005EE5BC
-const int g_effect_005ee5bc = 13;
+const int g_effect9 = 13;
 
 // GLOBAL: WIZ8 0x005EE5C8
-const int g_item_message_005ee5c8 = 16;
+const int g_item_message0 = 16;
 
 // GLOBAL: WIZ8 0x005EE5CC
-const int g_item_message_005ee5cc = 17;
+const int g_item_message1 = 17;
 
 // GLOBAL: WIZ8 0x005EE5D0
-const int g_effect_005ee5d0 = 18;
+const int g_effect10 = 18;
 
 // GLOBAL: WIZ8 0x005EE5D4
-const int g_effect_005ee5d4 = 19;
+const int g_effect11 = 19;
 
 // GLOBAL: WIZ8 0x005EE5D8
-const int g_effect_005ee5d8 = 20;
+const int g_effect12 = 20;
 
 // GLOBAL: WIZ8 0x005EE5DC
-const int g_effect_005ee5dc = 0x15;
+const int g_effect13 = 0x15;
 
 // GLOBAL: WIZ8 0x005EE5E0
-const int g_effect_005ee5e0 = 0x16;
+const int g_effect14 = 0x16;
 
 /* Search-pulse event ids: the two found-item variants queued to the
    searcher. */
@@ -122,104 +122,104 @@ const int g_search_found_item_event = 0x17;
 const int g_search_found_item_event_alt = 0x18;
 
 // GLOBAL: WIZ8 0x005EE5EC
-const int g_effect_005ee5ec = 0x19;
+const int g_effect15 = 0x19;
 
 // GLOBAL: WIZ8 0x005EE5F0
-const int g_effect_005ee5f0 = 0x1a;
+const int g_effect16 = 0x1a;
 
 // GLOBAL: WIZ8 0x005EE5F8
-const int g_effect_005ee5f8 = 28;
+const int g_effect17 = 28;
 
 // GLOBAL: WIZ8 0x005EE5FC
-const int g_effect_005ee5fc = 29;
+const int g_effect18 = 29;
 
 // GLOBAL: WIZ8 0x005EE600
-const int g_effect_005ee600 = 30;
+const int g_effect19 = 30;
 
 // GLOBAL: WIZ8 0x005EE604
-const int g_effect_005ee604 = 31;
+const int g_effect20 = 31;
 
 // GLOBAL: WIZ8 0x005EE60C
-const int g_effect_005ee60c = 33;
+const int g_effect21 = 33;
 
 // GLOBAL: WIZ8 0x005ee610
-const int g_effect_005ee610 = 34;
+const int g_effect22 = 34;
 
 // GLOBAL: WIZ8 0x005EE614
-const int g_effect_005ee614 = 35;
+const int g_effect23 = 35;
 
 // GLOBAL: WIZ8 0x005EE618
-const int g_effect_005ee618 = 36;
+const int g_effect24 = 36;
 
 // GLOBAL: WIZ8 0x005EE61C
-const int g_effect_005ee61c = 37;
+const int g_effect25 = 37;
 
 // GLOBAL: WIZ8 0x005ee620
-const int g_sight_effect_005ee620 = 0x26;
+const int g_sight_effect0 = 0x26;
 
 /* 0x005EE624: the character event an item use queues when the attempt ends
    without casting anything. */
 // GLOBAL: WIZ8 0x005EE624
-const int g_effect_005ee624 = 39;
+const int g_effect26 = 39;
 
 // GLOBAL: WIZ8 0x005EE628
-const int g_effect_005ee628 = 40;
+const int g_effect27 = 40;
 
 // GLOBAL: WIZ8 0x005EE630
-const int g_effect_005ee630 = 42;
+const int g_effect28 = 42;
 
 // GLOBAL: WIZ8 0x005EE634
-const int g_effect_005ee634 = 43;
+const int g_effect29 = 43;
 
 // GLOBAL: WIZ8 0x005EE638
-const int g_effect_005ee638 = 44;
+const int g_effect30 = 44;
 
 // GLOBAL: WIZ8 0x005ee640
-const int g_item_message_005ee640 = 46;
+const int g_item_message2 = 46;
 
 // GLOBAL: WIZ8 0x005ee644
-const int g_item_message_005ee644 = 47;
+const int g_item_message3 = 47;
 
 // GLOBAL: WIZ8 0x005ee648
-const int g_item_message_005ee648 = 48;
+const int g_item_message4 = 48;
 
 // GLOBAL: WIZ8 0x005ee64c
-const int g_item_message_005ee64c = 49;
+const int g_item_message5 = 49;
 
 // GLOBAL: WIZ8 0x005EE654
-const int g_effect_005ee654 = 51;
+const int g_effect31 = 51;
 
 // GLOBAL: WIZ8 0x005EE658
-const int g_effect_005ee658 = 52;
+const int g_effect32 = 52;
 
 // GLOBAL: WIZ8 0x005EE65C
-const int g_character_event_kind_005ee65c = 0x35;
+const int g_character_event_kind2 = 0x35;
 
 // GLOBAL: WIZ8 0x005ee664
-const int g_item_message_005ee664 = 55;
+const int g_item_message6 = 55;
 
 // GLOBAL: WIZ8 0x005EE668
-const int g_item_message_005ee668 = 56;
+const int g_item_message7 = 56;
 
 // GLOBAL: WIZ8 0x005ee66c
-const int g_sight_effect_005ee66c = 0x39;
+const int g_sight_effect1 = 0x39;
 
 // GLOBAL: WIZ8 0x005ee68c
-const int g_item_message_005ee68c = 65;
+const int g_item_message8 = 65;
 
 // GLOBAL: WIZ8 0x005ee690
-const int g_item_message_005ee690 = 66;
+const int g_item_message9 = 66;
 
 /* The effect ids the two "someone noticed you" notices post. Their slots are
    the four consecutive dwords the producer reads. */
 // GLOBAL: WIZ8 0x005ee694
-const int g_sight_effect_005ee694 = 0x43;
+const int g_sight_effect2 = 0x43;
 
 // GLOBAL: WIZ8 0x005ee698
-const int g_sight_effect_005ee698 = 0x44;
+const int g_sight_effect3 = 0x44;
 
 // GLOBAL: WIZ8 0x005ee69c
-const int g_effect_005ee69c = 69;
+const int g_effect33 = 69;
 
 /* Quote indices 'F'..'R' fall outside the scripted world-action dispatch in
    RunNpcScriptLine's kind-0x0d/0x14 entries. */
@@ -230,19 +230,19 @@ const int g_world_action_quote_min = 'F';
 const int g_world_action_quote_max = 'R';
 
 // GLOBAL: WIZ8 0x005EE6D8
-const int g_effect_005ee6d8 = 0x54;
+const int g_effect34 = 0x54;
 
 // GLOBAL: WIZ8 0x005EE6DC
-const int g_effect_005ee6dc = 0x55;
+const int g_effect35 = 0x55;
 
 // GLOBAL: WIZ8 0x005ee6ec
-const int g_effect_005ee6ec = 109;
+const int g_effect36 = 109;
 
 // GLOBAL: WIZ8 0x005ee6f8
-const int g_effect_005ee6f8 = 131;
+const int g_effect37 = 131;
 
 // GLOBAL: WIZ8 0x005ee6fc
-const int g_item_message_005ee6fc = 132;
+const int g_item_message10 = 132;
 
 // GLOBAL: WIZ8 0x005EE710
 const unsigned int g_remapped_event_count = 31;

@@ -204,9 +204,9 @@ srMaterial* g_blit_material;
 // GLOBAL: WIZ8 0x654adc
 srNode* g_surface_nodes[0x12c0];
 // GLOBAL: WIZ8 0x6595dc
-int g_surface_state_6595dc;
+int g_surface_state1;
 // GLOBAL: WIZ8 0x654ad8
-int g_surface_state_654ad8;
+int g_surface_state0;
 // GLOBAL: WIZ8 0x6595e8
 W8ViewportRect g_viewport;
 // GLOBAL: WIZ8 0x00659AB4
@@ -235,9 +235,9 @@ int g_paired_render_mode;
 // GLOBAL: WIZ8 0x659668
 const int* g_overlay_viewport;
 // GLOBAL: WIZ8 0x65966c
-srClass* g_render_object_65966c;
+srClass* g_render_object0;
 // GLOBAL: WIZ8 0x659678
-srClass* g_render_object_659678;
+srClass* g_render_object1;
 // GLOBAL: WIZ8 0x659720
 HWND g_render_window;
 // GLOBAL: WIZ8 0x65409c
@@ -521,13 +521,13 @@ void ShutdownVideoScenes(void)
         g_scene_prerender1->release();
         g_scene_prerender1 = 0;
     }
-    if (g_render_object_65966c) {
-        g_render_object_65966c->release();
-        g_render_object_65966c = 0;
+    if (g_render_object0) {
+        g_render_object0->release();
+        g_render_object0 = 0;
     }
-    if (g_render_object_659678) {
-        g_render_object_659678->release();
-        g_render_object_659678 = 0;
+    if (g_render_object1) {
+        g_render_object1->release();
+        g_render_object1 = 0;
     }
     if (g_blit_material) {
         g_blit_material->release();
@@ -1232,13 +1232,13 @@ void RenderFrame(void)
             int half_width = (g_viewport.right - g_viewport.left) / 2;
             int half_height = (g_viewport.bottom - g_viewport.top) / 2;
             srGERD::Pick pick;
-            pick.position_00.x =
+            pick.position.x =
                 (g_cursor_hotspot_x - half_width - g_viewport.left + g_cursor_width) /
                 static_cast<float>(half_width);
-            pick.position_00.y = -static_cast<float>(g_cursor_hotspot_y - half_height -
+            pick.position.y = -static_cast<float>(g_cursor_hotspot_y - half_height -
                                                      g_viewport.top + g_cursor_height) /
                                  half_height;
-            pick.position_00.z = 1.0f;
+            pick.position.z = 1.0f;
             pick.selected_model = 0;
             pick.value_10 = 0;
             g_gerd->setPickKey(0);
@@ -1482,7 +1482,7 @@ srModelInstance* MakePolygonBrush(srNode* parent, srColorSurfaceIFace* surface, 
     g_modeler->convert(*model, 1);
     g_modeler->discard();
 
-    shader.value = overlay ? g_surface_state_654ad8 : g_surface_state_6595dc;
+    shader.value = overlay ? g_surface_state0 : g_surface_state1;
     if (!surface) {
         shader.value &= ~srShader::MASK_TEXTURING;
     } else {
@@ -1539,7 +1539,7 @@ stModelInstance2D* CreateSpriteFromTexture(srTextureIFace* texture, double width
     g_modeler->convert(*model, 1);
     g_modeler->discard();
 
-    shader.value = keep_aspect ? g_surface_state_654ad8 : g_surface_state_6595dc;
+    shader.value = keep_aspect ? g_surface_state0 : g_surface_state1;
     if (!texture) {
         shader.value &= ~srShader::MASK_TEXTURING;
     } else {
@@ -2532,8 +2532,8 @@ unsigned char InitializeRendererSceneObjects(void)
     g_viewport.left = 0;
     g_viewport.top = 0;
     g_viewport.right = 0;
-    g_surface_state_6595dc = 0x100a017;
-    g_surface_state_654ad8 = 0x100c0b7;
+    g_surface_state1 = 0x100a017;
+    g_surface_state0 = 0x100c0b7;
     g_dirty_tile_count = 0;
     g_viewport.bottom = 0;
 
@@ -3731,14 +3731,14 @@ srNode* MakePosterQuad(srTextureIFace* texture, float width, float height, bool 
 struct Video2PosterQuadInfo {
     unsigned long width;
     unsigned long height;
-    srClass* pointer_08;
+    srClass* pointer;
 };
 
 // FUNCTION: WIZ8 0x00424EA0
 void __fastcall ReleaseOwnedMember(Video2PosterQuadInfo* object)
 {
-    if (object->pointer_08 != 0) {
-        object->pointer_08->release();
+    if (object->pointer != 0) {
+        object->pointer->release();
     }
 }
 

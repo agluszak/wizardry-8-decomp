@@ -40,12 +40,12 @@ private:
     void checkBounds();
     void getChildBoundingBox(srNode* node);
 
-    e_boundMode bound_mode_138_;
-    BoundInfo bounds_13c_;
+    e_boundMode bound_mode;
+    BoundInfo bounds;
     /* updateBounds stores the inverse of this node's world matrix here;
        getChildBoundingBox composes it with each child's world matrix to bring
        child bounding boxes into bounder space. */
-    srMatrix4T<float> inverse_world_168_;
+    srMatrix4T<float> inverse_world;
 };
 
 static_assert((sizeof(srBounder) == 0x1a8), "srBounder_must_be_0x1a8");

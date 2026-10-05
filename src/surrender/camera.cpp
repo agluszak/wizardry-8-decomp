@@ -34,17 +34,17 @@ void srCamera::process(const ProcessInfo& info, e_processType type)
 // FUNCTION: SURRENDER 0x10047E10
 srCamera::e_project srCamera::getProjectionType() const
 {
-    return static_cast<e_project>(flags_138.value & (1UL << FLAG_PROJECTION_TYPE));
+    return static_cast<e_project>(flags.value & (1UL << FLAG_PROJECTION_TYPE));
 }
 
 // FUNCTION: SURRENDER 0x10047E20
 void srCamera::setProjectionType(e_project projection)
 {
     if (projection == PROJECT_PERSPECTIVE) {
-        flags_138.value &= ~(1UL << FLAG_PROJECTION_TYPE);
+        flags.value &= ~(1UL << FLAG_PROJECTION_TYPE);
         return;
     }
-    flags_138.value |= 1UL << FLAG_PROJECTION_TYPE;
+    flags.value |= 1UL << FLAG_PROJECTION_TYPE;
 }
 
 // FUNCTION: SURRENDER 0x10047E50
@@ -86,7 +86,7 @@ void srCamera::processPush(srGERD* renderer)
     rectangle.top *= scale;
     rectangle.bottom *= scale;
 
-    if ((flags_138.value & (1UL << FLAG_PROJECTION_TYPE)) == 0) {
+    if ((flags.value & (1UL << FLAG_PROJECTION_TYPE)) == 0) {
         renderer->frustum(rectangle.left, rectangle.right, rectangle.bottom, rectangle.top,
                           near_plane, far_plane);
     } else {
@@ -130,9 +130,9 @@ double srCamera::getAspectRatio() const
 srCamera::srCamera(srNode* parent)
     : srClassSupport<srCamera, srNode, 0, 0x1400>(static_cast<srNode*>(0))
 {
-    flags_138.value = 0;
-    near_clip_168 = 0.1;
-    far_clip_170 = 1000.0;
+    flags.value = 0;
+    near_clip = 0.1;
+    far_clip = 1000.0;
     environment_near = 0.0f;
     environment_far = 1000.0f;
     environment_near_scale = 0.0f;
@@ -203,26 +203,26 @@ void srCamera::getEnvironmentScale(float& near_scale, float& far_scale) const
 // FUNCTION: SURRENDER 0x10048740
 void srCamera::setClipRange(double near_plane, double far_plane)
 {
-    near_clip_168 = near_plane;
-    far_clip_170 = far_plane;
-    if (near_clip_168 > far_clip_170) {
-        double swap = near_clip_168;
-        near_clip_168 = far_clip_170;
-        far_clip_170 = swap;
+    near_clip = near_plane;
+    far_clip = far_plane;
+    if (near_clip > far_clip) {
+        double swap = near_clip;
+        near_clip = far_clip;
+        far_clip = swap;
     }
-    if (near_clip_168 < 5.9604644775390625e-08) {
-        near_clip_168 = 5.9604644775390625e-08;
+    if (near_clip < 5.9604644775390625e-08) {
+        near_clip = 5.9604644775390625e-08;
     }
-    if (far_clip_170 < 5.9604644775390625e-08) {
-        far_clip_170 = 5.9604644775390625e-08;
+    if (far_clip < 5.9604644775390625e-08) {
+        far_clip = 5.9604644775390625e-08;
     }
 }
 
 // FUNCTION: SURRENDER 0x100487F0
 void srCamera::getClipRange(double& near_plane, double& far_plane) const
 {
-    near_plane = near_clip_168;
-    far_plane = far_clip_170;
+    near_plane = near_clip;
+    far_plane = far_clip;
 }
 
 // FUNCTION: SURRENDER 0x10048820
@@ -332,14 +332,14 @@ void srCamera::dump(std::ostream& stream)
     stream.flags((flags & 0xfffffe7fL) | 0x40);
     stream.width(0x20);
     stream << "Control flags: ";
-    if (flags_138.value == 0) {
+    if (this->flags.value == 0) {
         stream << "[NONE]";
     } else {
         stream << '[';
         int first = 1;
         const char* names = flag_names;
         for (unsigned long bit = 0; bit < 0x20; ++bit) {
-            if ((flags_138.value & (1UL << bit)) != 0) {
+            if ((this->flags.value & (1UL << bit)) != 0) {
                 if (first == 0) {
                     stream << ',';
                 } else {
@@ -399,8 +399,8 @@ srCamera::e_projectionResult srCamera::project(srVector3T<float>& output,
     srVector3T<double> delta = input - location;
     srVector3T<double> point = rotation.Transform(delta);
 
-    double near_clip = near_clip_168 < far_clip_170 ? near_clip_168 : far_clip_170;
-    double far_clip = near_clip_168 < far_clip_170 ? far_clip_170 : near_clip_168;
+    double near_clip = this->near_clip < this->far_clip ? this->near_clip : this->far_clip;
+    double far_clip = this->near_clip < this->far_clip ? this->far_clip : this->near_clip;
     if (near_clip <= point.z && point.z <= far_clip) {
         double inverse_distance = 1.0 / view_plane_distance;
         double bottom = inverse_distance * view_plane.bottom;
@@ -442,8 +442,8 @@ int srCamera::unproject(srVector3T<float>& output, const srVector3T<double>& inp
     double depth = input.z;
     double x = ((right - left) * input.x + left) * depth;
     double y = ((bottom - top) * input.y + top) * depth;
-    double near_clip = near_clip_168 < far_clip_170 ? near_clip_168 : far_clip_170;
-    double far_clip = near_clip_168 < far_clip_170 ? far_clip_170 : near_clip_168;
+    double near_clip = this->near_clip < this->far_clip ? this->near_clip : this->far_clip;
+    double far_clip = this->near_clip < this->far_clip ? this->far_clip : this->near_clip;
     output.SetZero();
     if (near_clip <= depth && depth <= far_clip) {
         double x_upper = left;

@@ -17,7 +17,7 @@ class SR_DLL_IMPORT srModeler {
 #endif
 public:
     /* Axis selector indexing the position components: getAxialBounds and the
-       mapping functions read (&vertex.position_00.x)[axis], proving X=0,
+       mapping functions read (&vertex.position.x)[axis], proving X=0,
        Y=1, Z=2. */
     enum e_axis { AXIS_X = 0, AXIS_Y = 1, AXIS_Z = 2 };
 
@@ -38,19 +38,19 @@ public:
         // ??0MappingInfo@srModeler@@QAE@W4e_axis@1@0MMMM@Z
         MappingInfo(e_axis axis_u = AXIS_X, e_axis axis_v = AXIS_Y, float u_scale = 1.0f,
                     float v_scale = 1.0f, float u_offset = 0.0f, float v_offset = 0.0f)
-            : axis_u_00(axis_u), axis_v_04(axis_v), u_scale_08(u_scale), v_scale_0c(v_scale),
-              u_offset_10(u_offset), v_offset_14(v_offset)
+            : axis_u(axis_u), axis_v(axis_v), u_scale(u_scale), v_scale(v_scale),
+              u_offset(u_offset), v_offset(v_offset)
         {
         }
 
         /* The assignment body copies the six fields. */
 
-        e_axis axis_u_00;
-        e_axis axis_v_04;
-        float u_scale_08;
-        float v_scale_0c;
-        float u_offset_10;
-        float v_offset_14;
+        e_axis axis_u;
+        e_axis axis_v;
+        float u_scale;
+        float v_scale;
+        float u_offset;
+        float v_offset;
     };
 
     /* A triangle vertex: position, the per-pass material pair (side-indexed),
@@ -65,7 +65,7 @@ public:
         Vertex {
     public:
         /* Retail inlines the reset() call into the modeler-TU
-           new Vertex[]/vertices_30[3] array-construction loops
+           new Vertex[]/vertices[3] array-construction loops
            (Polygon::Polygon 0x10038890, Triangle::Triangle 0x10038B50) while
            Wiz8.exe imports the standalone copy - so the body is an inline
            definition in modeler.cpp, not visible to consumers. */
@@ -81,14 +81,14 @@ public:
 
         /* stCube.cpp writes the modelled position and the first of the eight
            UV slots the Polygon constructor layout-initializes at +0xC0. */
-        srVector3T<float> position_00;
-        unsigned long shade_index_0c;
-        srMaterialIFace* materials_10[4][2];
-        srVector3T<float> dcg_30[4];
-        srVector3T<float> dig_60[4];
-        srVector3T<float> scg_90[4];
-        srVector2T<float> uv_c0[8];
-        float weights_100[4];
+        srVector3T<float> position;
+        unsigned long shade_index;
+        srMaterialIFace* materials[4][2];
+        srVector3T<float> dcg[4];
+        srVector3T<float> dig[4];
+        srVector3T<float> scg[4];
+        srVector2T<float> uv[8];
+        float weights[4];
     };
 
     /* Retail exports Triangle lifecycle, including copy/assignment bodies. */
@@ -107,11 +107,11 @@ public:
            copies the four shader words individually. Original special-member
            declarations are unresolved. */
 
-        srTextureIFace* textures_00[4][2];
-        srShader shaders_20[4];
-        Vertex vertices_30[3];
-        unsigned long flags_360;
-        unsigned long disabled_364;
+        srTextureIFace* textures[4][2];
+        srShader shaders[4];
+        Vertex vertices[3];
+        unsigned long flags;
+        unsigned long disabled;
     };
 
     /* Retail exports Polygon lifecycle, including copy/assignment bodies. */
@@ -128,15 +128,15 @@ public:
 
         /* Copy bodies are consistent with memberwise copying, as for Triangle above. */
 
-        srTextureIFace* textures_00[4][2];
-        srShader shaders_20[4];
+        srTextureIFace* textures[4][2];
+        srShader shaders[4];
         /* Engine Code\stCube.cpp assigns positions and UVs through this table
            after Polygon(4) allocates it. */
-        Vertex* vertices_30;
-        int vertex_count_34;
-        unsigned long flags_38;
-        unsigned long disabled_3c;
-        int capacity_40;
+        Vertex* vertices;
+        int vertex_count;
+        unsigned long flags;
+        unsigned long disabled;
+        int capacity;
     };
 
     srModeler();
@@ -187,7 +187,7 @@ public:
     void tesselateEdges(unsigned long triangle, double threshold);
     /* Delegates to the file-local AutoSmoother worker in modeler.cpp: it
        builds per-shade-vertex triangle adjacency, tests each coincident pair's
-       facing/materials, and floods group bits back into flags_360. */
+       facing/materials, and floods group bits back into flags. */
     void autoSmooth(double threshold, int smooth);
 
     void addPolygon(const Polygon& polygon);
@@ -203,18 +203,18 @@ public:
 
     /* getUniqueVertexList's deduplication table: a raw entry pool, 1024
        position-hash buckets chaining entries, and the per-source-vertex
-       result table written through during hashing. entries_00[i].shade_04 is
+       result table written through during hashing. entries[i].shade_index is
        the representative index convert() copies into the mesh's vertex shade
        table. */
     struct VertexHash {
         struct Entry {
-            unsigned long flags_00;
+            unsigned long flags;
             /* Signed: the AutoSmoother worker's max scan in modeler.cpp
                compares it against its long vertex count with a signed JGE. */
             long shade_index;
-            Vertex* vertex_08;
-            Entry* next_0c;
-            unsigned long index_10;
+            Vertex* vertex;
+            Entry* next;
+            unsigned long index;
         };
 
         VertexHash(unsigned long vertex_count);
@@ -222,9 +222,9 @@ public:
 
         static unsigned long hash(double x, double y, double z);
 
-        Entry* entries_00;
+        Entry* entries;
         Entry* buckets[1024];
-        Entry** table_1004;
+        Entry** table;
         unsigned long unique_count;
     };
 
@@ -232,8 +232,8 @@ private:
     VertexHash* getUniqueVertexList();
     int isClockwise(srVector2T<float>* points, int count);
 
-    unsigned long triangle_count_04;
-    srArray<Triangle> triangles_08;
+    unsigned long triangle_count;
+    srArray<Triangle> triangles;
     long pass_count;
 };
 

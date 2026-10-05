@@ -353,8 +353,8 @@ bool CombatMayAdvanceContinuously(void)
         W8Character* character = &g_status.buffers.Char[slot];
         if (row->fOccupied && character->hp_current != 0 &&
             CharacterCanSwitchTo(slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0, 0) &&
-            CharacterActionTargetsEnemies(character, row->action, row->action_detail_041,
-                                          &row->action_detail_045)) {
+            CharacterActionTargetsEnemies(character, row->action, row->action_detail0,
+                                          &row->action_detail1)) {
             return true;
         }
     }
@@ -449,7 +449,7 @@ bool CombatHasContinuingEffects(void)
         }
     }
     for (slot = 0; slot < 6; ++slot) {
-        if (g_combat_state->effect_slots_85a[slot].active) {
+        if (g_combat_state->effect_slots0[slot].active) {
             return true;
         }
         for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
@@ -482,10 +482,10 @@ void ApplyCombatEndEffects(void)
                 W8Character* character = &g_status.buffers.Char[slot];
                 if (character->highest_condition == 0x12) {
                     if (npc->healer_assist) {
-                        ApplyItemEffectToRandomCharacter(g_effect_005ee5bc, -1, 0,
+                        ApplyItemEffectToRandomCharacter(g_effect9, -1, 0,
                                                          g_character_event_no_flags);
                     } else if (npc->item_assist) {
-                        ApplyItemEffectToRandomCharacter(g_effect_005ee5d8, -1, 0,
+                        ApplyItemEffectToRandomCharacter(g_effect12, -1, 0,
                                                          g_character_event_no_flags);
                     }
                 }
@@ -500,7 +500,7 @@ void ApplyCombatEndEffects(void)
             gXStatus.monster_manager_entries[slot].condition_19_latch == 0 &&
             (!g_status.condition13_clock ||
              g_status.pending_condition_party_slot != slot)) {
-            ApplyItemEffectToRandomCharacter(g_effect_005ee628, slot, 0,
+            ApplyItemEffectToRandomCharacter(g_effect27, slot, 0,
                                              g_character_event_no_flags);
         }
     }
@@ -562,7 +562,7 @@ void BeginCombatExecution(void)
         W8CombatCharacterRow* row = &g_combat_state->characters[slot];
         if (party->fOccupied) {
             row->alternate_hand = 0;
-            row->berserk_80 = 0;
+            row->berserk = 0;
             row->spot_attempts = 0;
             row->pending_action_repick_count = 0;
             row->interception_count = 0;
@@ -594,7 +594,7 @@ void BeginCombatExecution(void)
         W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(index);
         if (monster->fInCombat) {
             W8MonsterCombatState* state = monster->pCombat;
-            state->berserk_015 = false;
+            state->berserk = false;
             state->spot_attempts = 0;
             state->pending_action_repick_count = 0;
             state->interception_count = 0;
@@ -896,7 +896,7 @@ unsigned char TryPanicWoundedCharacter(const W8CombatSlot* target)
     if (Random(100) >= g_flee_chance) {
         return 0;
     }
-    QueueCharacterEvent(character, g_effect_005ee610, 0, g_character_event_no_flags,
+    QueueCharacterEvent(character, g_effect22, 0, g_character_event_no_flags,
                         g_character_event_full_volume);
     return 1;
 }
@@ -966,7 +966,7 @@ void SetUpMonsterTurn(W8MonsterInfo* monster_info)
 
     monster_info->p3D->SetMonsterTurnSpeed(speed * scale * g_movement_speed_step);
     /* Four bytes inside cycle eight's block, cleared together. */
-    monster_info->p3D->movement_0c0.callback_progress = 0.0f;
+    monster_info->p3D->movement.callback_progress = 0.0f;
     monster_info->pCombat->turn_started = 1;
     monster_info->p3D->movement_complete = 0;
 }
@@ -1206,7 +1206,7 @@ void ChooseAction(int party_slot, W8ActionKind action, int detail, const W8Actio
         return;
     case W8_ACTION_WALK:
     case W8_ACTION_RUN:
-        ApplyItemEffectToRandomCharacter(g_special_event_0068c50c, -1, 0,
+        ApplyItemEffectToRandomCharacter(g_special_event2, -1, 0,
                                          g_character_event_no_flags);
         break;
     default:
@@ -1284,13 +1284,13 @@ void SetCharacterCombatAction(int party_slot, W8ActionKind action_kind, int acti
                      "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp", 0x484, 0);
     }
     g_status.buffers.XChar[party_slot].action = action_kind;
-    g_status.buffers.XChar[party_slot].action_detail_041 = action_detail;
+    g_status.buffers.XChar[party_slot].action_detail0 = action_detail;
     if (data == 0) {
-        memset(&g_status.buffers.XChar[party_slot].action_detail_045, 0,
-               sizeof(g_status.buffers.XChar[party_slot].action_detail_045));
+        memset(&g_status.buffers.XChar[party_slot].action_detail1, 0,
+               sizeof(g_status.buffers.XChar[party_slot].action_detail1));
     } else {
-        memcpy(&g_status.buffers.XChar[party_slot].action_detail_045, data,
-               sizeof(g_status.buffers.XChar[party_slot].action_detail_045));
+        memcpy(&g_status.buffers.XChar[party_slot].action_detail1, data,
+               sizeof(g_status.buffers.XChar[party_slot].action_detail1));
     }
     row->action_changed = 1;
     W8Character* character = &g_status.buffers.Char[party_slot];
@@ -1352,9 +1352,9 @@ void ChooseCombatAction(int party_slot, int context, int* out_kind, int* out_act
         break;
     case 1:
         kind = row->action;
-        value_a = row->action_detail_041;
+        value_a = row->action_detail0;
         target = &row->target_in_combat;
-        detail = &row->action_detail_045;
+        detail = &row->action_detail1;
         break;
     case 2:
         if (gXStatus.fSpellCastMode == 0) {
@@ -1644,7 +1644,7 @@ bool AnyCombatMonsterBusy(void)
                     return true;
                 }
             }
-            if (fabsf(monster->movement_0c0.target_yaw - monster->movement_0c0.yaw) >=
+            if (fabsf(monster->movement.target_yaw - monster->movement.yaw) >=
                     g_camera_transition_epsilon &&
                 monster_info->highest_condition < 0xe) {
                 return true;
@@ -1982,8 +1982,8 @@ int CheckCombatEnd(unsigned int arg_1)
             StartLevelMusic(1, 0);
             if (gXStatus.combat_difficulty != 0 &&
                 GetRandomPartySlots(0, 0, -1, &party_slot, 1, 0) != 0 &&
-                (event = QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_effect_005ee614,
-                                             g_effect_argument_005ed8d8, g_effect_argument_005ed8cc,
+                (event = QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_effect23,
+                                             g_effect_argument3, g_effect_argument0,
                                              g_character_event_full_volume),
                  event != 0)) {
                 event->dispatch_delay_ms = 0x5dc;
@@ -2096,18 +2096,18 @@ void ExecuteCharacterAction(int party_slot)
     int interrupt = -1;
     int fatigue_cost = -1;
     unsigned char result = 1;
-    bool saved_dead_34;
+    bool saved_dead;
     W8ActionKind action;
     int detail;
 
     FaceCameraToSelection(party_slot);
     if (gXStatus.fCombatMode != 0) {
-        saved_dead_34 = g_combat_state->characters[party_slot].dead;
-        if (saved_dead_34 == 0) {
+        saved_dead = g_combat_state->characters[party_slot].dead;
+        if (saved_dead == 0) {
             slot->pending_action = slot->action;
-            slot->attack_mode[0] = slot->action_detail_041;
+            slot->attack_mode[0] = slot->action_detail0;
             slot->attack_mode[1] = -1;
-            slot->pending_action_detail = slot->action_detail_045;
+            slot->pending_action_detail = slot->action_detail1;
             slot->target_out_of_combat = slot->target_in_combat;
             g_combat_state->characters[party_slot].action_changed = 0;
             if ((slot->pending_action == W8_ACTION_ATTACK ||
@@ -2159,7 +2159,7 @@ void ExecuteCharacterAction(int party_slot)
                 RemoveCharacterCondition(party_slot, 0xe, 1);
                 break;
             case 8:
-                g_combat_state->characters[party_slot].berserk_80 = 1;
+                g_combat_state->characters[party_slot].berserk = 1;
                 relationship = 2;
                 break;
             case 9:
@@ -2185,7 +2185,7 @@ void ExecuteCharacterAction(int party_slot)
                     slot->pending_action = W8_ACTION_NONE;
                     action = W8_ACTION_NONE;
                 } else {
-                    if (saved_dead_34 == 0) {
+                    if (saved_dead == 0) {
                         PrepareCharacterAttacks(party_slot);
                     }
                     AimAtCharacter(party_slot, target, W8_TARGETING_CONTEXT_OUT_OF_COMBAT);
@@ -2199,7 +2199,7 @@ void ExecuteCharacterAction(int party_slot)
     if (CharacterActionTargetsEnemies(character, action, detail,
                                       &slot->pending_action_detail) != 0 &&
         (gXStatus.fCombatMode == 0 ||
-         (interrupt == -1 && g_combat_state->characters[party_slot].berserk_80 == 0))) {
+         (interrupt == -1 && g_combat_state->characters[party_slot].berserk == 0))) {
         SetTargetSourceToCharacter(party_slot, &enemy_source);
         MakeTargetGroupHostile(&enemy_source, &slot->target_out_of_combat);
     }
@@ -2274,7 +2274,7 @@ void ExecuteCharacterAction(int party_slot)
        it or the slot had already acted. */
     if (result == 0) {
         action = W8_ACTION_NONE;
-        if (interrupt == -1 && saved_dead_34 == 0) {
+        if (interrupt == -1 && saved_dead == 0) {
             action = W8_ACTION_DEFEND;
             slot->pending_action = W8_ACTION_DEFEND;
             if (g_settings.verbose_combat_messages != 0) {
@@ -2409,8 +2409,8 @@ void ExecuteMonsterAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
             ClearMonsterCondition(monster_info->location_id, 0xe);
             break;
         case 8:
-            if (monster_info->pCombat->berserk_015 == 0) {
-                monster_info->pCombat->berserk_015 = 1;
+            if (monster_info->pCombat->berserk == 0) {
+                monster_info->pCombat->berserk = 1;
                 berserked = 1;
             }
             break;
@@ -2421,13 +2421,13 @@ void ExecuteMonsterAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
             monster_info->action_kind = 4;
             break;
         }
-        if (monster_info->pCombat->berserk_015 != 0) {
+        if (monster_info->pCombat->berserk != 0) {
             monster_info->action_kind = 0;
             if (ChooseRandomMonsterAction(monster_info, 1, 0, berserked) == 0) {
                 if (interrupt == 8) {
                     FormatDebugMessage(
                         1, "ERROR: %ls (ID %d) is attacking friends with nobody in range",
-                        record->name_00, monster_info->location_id);
+                        record->name0, monster_info->location_id);
                 }
                 monster_info->action_kind = -1;
             }
@@ -2439,14 +2439,14 @@ void ExecuteMonsterAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
         }
         if (MonsterActionTargetsEnemies(monster_info->action_kind, monster_info->action_detail,
                                         &monster_info->spell_power_level) != 0 &&
-            interrupt == -1 && monster_info->pCombat->berserk_015 == 0) {
+            interrupt == -1 && monster_info->pCombat->berserk == 0) {
             SetTargetSourceToMonster(monster_info, &monster_source);
             MakeTargetGroupHostile(&monster_source, &monster_info->Target);
         }
         switch (monster_info->action_kind) {
         case 5:
         case 7:
-            if (monster_info->uiCondition[0xc] == 0 || record->kind_0cb == '\f') {
+            if (monster_info->uiCondition[0xc] == 0 || record->kind == '\f') {
                 if (record->prefer_ranged_actions == 0) {
                     range = GetBestMonsterAttackRange(record, 1);
                     sight = 0;
@@ -2665,10 +2665,10 @@ void AimMonsterBreathAtTarget(W8MonsterInfo* monster_info)
     }
     if (!no_target) {
         target_monster = GetMonsterByLocationID(location_id);
-        monster_info->p3D->m_axis.x = target_monster->movement_0c0.position_040.x;
-        monster_info->p3D->m_axis.y = target_monster->movement_0c0.position_040.y +
-                                          target_monster->movement_0c0.height_offset;
-        monster_info->p3D->m_axis.z = target_monster->movement_0c0.position_040.z;
+        monster_info->p3D->m_axis.x = target_monster->movement.position.x;
+        monster_info->p3D->m_axis.y = target_monster->movement.position.y +
+                                          target_monster->movement.height_offset;
+        monster_info->p3D->m_axis.z = target_monster->movement.position.z;
         monster_info->p3D->aim_set = 1;
     }
 }
@@ -2829,15 +2829,15 @@ void StepMonsterCombatAction(W8MonsterInfo* monster_info)
         RefreshAllSight();
         monster = monster_info->p3D;
         combat = monster_info->pCombat;
-        if (static_cast<int>((monster->movement_0c0.callback_threshold <= g_float_zero
-                                  ? monster->movement_0c0.callback_progress /
-                                        monster->movement_0c0.callback_threshold
+        if (static_cast<int>((monster->movement.callback_threshold <= g_float_zero
+                                  ? monster->movement.callback_progress /
+                                        monster->movement.callback_threshold
                                   : g_float_zero) *
                              g_octree_cell_scale) < 100) {
             progress_pct =
-                static_cast<int>((monster->movement_0c0.callback_threshold <= g_float_zero
-                                      ? monster->movement_0c0.callback_progress /
-                                            monster->movement_0c0.callback_threshold
+                static_cast<int>((monster->movement.callback_threshold <= g_float_zero
+                                      ? monster->movement.callback_progress /
+                                            monster->movement.callback_threshold
                                       : g_float_zero) *
                                  g_octree_cell_scale);
         } else {
@@ -2919,7 +2919,7 @@ int GetConditionInterrupt(W8TargetSource* source)
             can_attack = CanPartySlotAttackAnyTarget(party_slot, 8, 1, 0) != 0;
             second_hand_attack = CanPartySlotAttackAnyTarget(party_slot, 8, 1, 1) != 0;
         }
-        secondary_flag = g_combat_state->characters[party_slot].berserk_80;
+        secondary_flag = g_combat_state->characters[party_slot].berserk;
         attribute = character->attributes[W8_ATTRIBUTE_STRENGTH].effective;
         controlled = false;
     } else {
@@ -2937,7 +2937,7 @@ int GetConditionInterrupt(W8TargetSource* source)
         condition_turns = monster_info->uiCondition;
         can_attack =
             RateMonsterBestAttack(monster_info, GetMonsterDataForInfo(monster_info), 0) == 0;
-        secondary_flag = monster_info->pCombat->berserk_015;
+        secondary_flag = monster_info->pCombat->berserk;
         attribute = monster_info->attributes[W8_MONSTER_ATTRIBUTE_STRENGTH];
         second_hand_attack =
             RateMonsterBestAttack(monster_info, GetMonsterDataForInfo(monster_info), 1) == 0;
@@ -2955,7 +2955,7 @@ int GetConditionInterrupt(W8TargetSource* source)
             return 2;
         }
         if (source->iType == W8_TARGET_SOURCE_MONSTER &&
-            GetMonsterDataForInfo(monster_info)->kind_0cb != 12) {
+            GetMonsterDataForInfo(monster_info)->kind != 12) {
             return 2;
         }
     }
@@ -3072,7 +3072,7 @@ void UpdateCombat(void)
     }
     if (g_combat_state->engaged_missile != 0 &&
         g_combat_state->engaged_missile->BlocksEndingCombat() == 0) {
-        g_combat_state->engaged_missile->block_released_1e2 = 1;
+        g_combat_state->engaged_missile->block_released = 1;
         g_combat_state->engaged_missile = 0;
     }
     if (g_combat_state->uiCurrentPartyActionStatus == 1) {
@@ -3100,7 +3100,7 @@ void UpdateCombat(void)
         W8Missile* missile = NextMissile(1);
         while (missile != 0) {
             if ((missile == g_combat_state->engaged_missile ||
-                 g_missile_table[missile->missile_table_index_1d8].spell_missile != 0) &&
+                 g_missile_table[missile->missile_table_index].spell_missile != 0) &&
                 missile->BlocksEndingCombat() != 0) {
                 return;
             }
@@ -3488,10 +3488,10 @@ short GetCombatActionProgress(int* out_total)
             monster_info->action_kind != 1 && monster_info->action_kind != 8 &&
             monster_info->action_kind != -1) {
             total +=
-                monster_info->action_kind == 0 ? monster_info->pCombat->attacks_per_round_005 : 1;
+                monster_info->action_kind == 0 ? monster_info->pCombat->attacks_per_round0 : 1;
             if (monster_info->pCombat->active != 0) {
                 completed += monster_info->action_kind == 0
-                                 ? monster_info->pCombat->attacks_per_round_005 -
+                                 ? monster_info->pCombat->attacks_per_round0 -
                                        monster_info->pCombat->attacks_per_round
                                  : 1;
             }

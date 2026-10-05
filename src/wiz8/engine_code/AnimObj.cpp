@@ -196,12 +196,12 @@ unsigned char AnimObjReadFromFile(W8ReadLevelInfo* info, W8AnimObj* animation, i
                              "AnimObjReadFromFile: Where is the light list?");
             } else {
                 stLight* light = CreateWorldLight(0, "MonsterLight");
-                light->diffuse_1a4 = color;
-                light->specular_1b0 = srVector3T<float>(0.0f, 0.0f, 0.0f);
+                light->diffuse = color;
+                light->specular = srVector3T<float>(0.0f, 0.0f, 0.0f);
                 ConfigureWorldLight(light, range * g_world_scale);
-                light->intensity_1d0 = intensity;
+                light->intensity = intensity;
                 light->setLocation(position.x, position.y, position.z);
-                light->m_position_228 = position;
+                light->m_position = position;
                 light->m_definition = definition;
                 light->setGroupMask(2);
                 light_list->Add(light);
@@ -798,7 +798,7 @@ stLightDefinition* stKeyframedLightDefinition::Clone() const
         copy->key_colors.Add(*key_colors.GetAt(index));
     }
     copy->keyframe_index = keyframe_index;
-    copy->time_4c = time_4c;
+    copy->time = time;
     copy->start_frame = start_frame;
     copy->end_frame = end_frame;
     return copy;
@@ -807,8 +807,8 @@ stLightDefinition* stKeyframedLightDefinition::Clone() const
 // FUNCTION: WIZ8 0x004a2580
 bool stKeyframedLightDefinition::IsEnabledForSubcycle(unsigned char subcycle)
 {
-    if (*key_frames.GetAt(0) <= time_4c &&
-        time_4c <= *key_frames.GetAt(key_frames.GetCount() - 1)) {
+    if (*key_frames.GetAt(0) <= time &&
+        time <= *key_frames.GetAt(key_frames.GetCount() - 1)) {
         return true;
     }
     return false;

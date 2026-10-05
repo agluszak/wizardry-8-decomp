@@ -175,11 +175,11 @@ static unsigned char WorldCursorNodePartyVoice(int command, W8WorldCursorNode* n
 
 /* The character-event kind constants the cursor-node handlers queue. */
 // GLOBAL: WIZ8 0x005EE5F4
-const int g_character_event_kind_005ee5f4 = 0x1b;
+const int g_character_event_kind0 = 0x1b;
 // GLOBAL: WIZ8 0x005EE63C
-const int g_character_event_kind_005ee63c = 0x2d;
+const int g_character_event_kind1 = 0x2d;
 // GLOBAL: WIZ8 0x005EE688
-const int g_character_event_kind_005ee688 = 0x40;
+const int g_character_event_kind3 = 0x40;
 
 // GLOBAL: WIZ8 0x006109F4
 static W8WorldCursorNodeHandler g_world_cursor_node_handlers[10] = {
@@ -402,7 +402,7 @@ static unsigned char WorldCursorNodeApplyItemEffect(int command, W8WorldCursorNo
                                                      int context)
 {
     if (command == 1) {
-        ApplyItemEffectToRandomCharacter(g_character_event_kind_005ee5f4, -1, 0,
+        ApplyItemEffectToRandomCharacter(g_character_event_kind0, -1, 0,
                                          g_character_event_no_flags);
     }
     return 1;
@@ -418,7 +418,7 @@ static unsigned char WorldCursorNodeMaleCharacterEvent(int command, W8WorldCurso
     if (command == 1 && g_status.rpc_active != 0) {
         character = g_status.buffers.Char + g_status.sedexus_party_slot;
         if (character->gender == W8_GENDER_MALE) {
-            QueueCharacterEvent(character, g_character_event_kind_005ee63c, 0,
+            QueueCharacterEvent(character, g_character_event_kind1, 0,
                                 g_character_event_no_flags, g_character_event_full_volume);
         }
     }
@@ -443,7 +443,7 @@ static unsigned char WorldCursorNodeSeenBodies(int command, W8WorldCursorNode* n
         if (GetLocationVarIDByName("AP_SeenBodies") == -1) {
             if (CountAscensionPeakItems() == 3) {
                 if (GetFact(0x5c) != 0 || GetFact(0x97) != 0) {
-                    ApplyItemEffectToRandomCharacter(g_character_event_kind_005ee688, -1, 0,
+                    ApplyItemEffectToRandomCharacter(g_character_event_kind3, -1, 0,
                                                      g_character_event_no_flags);
                     CreateLocationVar("AP_SeenBodies", 1);
                     if (GetFact(0x133) != 0) {
@@ -466,7 +466,7 @@ static unsigned char WorldCursorNodeApplyType6ItemEffect(int command, W8WorldCur
                                                      int context)
 {
     if (command == 1) {
-        ApplyItemEffectToRandomCharacter(g_character_event_kind_005ee688, -1, 0,
+        ApplyItemEffectToRandomCharacter(g_character_event_kind3, -1, 0,
                                          g_character_event_no_flags);
     }
     return 1;

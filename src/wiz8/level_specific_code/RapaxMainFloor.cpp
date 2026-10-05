@@ -81,7 +81,7 @@ bool RapaxMainFloorPlatform(Trigger* pTrigger)
     }
     ram_trigger = FindTriggerByName("RAM03");
     if (ram_trigger != 0) {
-        ram_trigger->flags_0a0 |= W8_TRIGGER_ENABLED;
+        ram_trigger->flags |= W8_TRIGGER_ENABLED;
     }
     return true;
 }
@@ -94,11 +94,11 @@ bool RapaxMainFloorPlatform01(Trigger* pTrigger)
 
     ram_trigger = FindTriggerByName("RAM03");
     if (ram_trigger != 0) {
-        ram_trigger->flags_0a0 &= ~W8_TRIGGER_ENABLED;
+        ram_trigger->flags &= ~W8_TRIGGER_ENABLED;
     }
     ram_trigger = FindTriggerByName("RAM07");
     if (ram_trigger != 0) {
-        ram_trigger->flags_0a0 |= W8_TRIGGER_ENABLED;
+        ram_trigger->flags |= W8_TRIGGER_ENABLED;
     }
     return true;
 }
@@ -111,11 +111,11 @@ bool RapaxMainFloorPlatform02(Trigger* pTrigger)
 
     ram_trigger = FindTriggerByName("RAM07");
     if (ram_trigger != 0) {
-        ram_trigger->flags_0a0 &= ~W8_TRIGGER_ENABLED;
+        ram_trigger->flags &= ~W8_TRIGGER_ENABLED;
     }
     ram_trigger = FindTriggerByName("RAM11");
     if (ram_trigger != 0) {
-        ram_trigger->flags_0a0 |= W8_TRIGGER_ENABLED;
+        ram_trigger->flags |= W8_TRIGGER_ENABLED;
     }
     return true;
 }

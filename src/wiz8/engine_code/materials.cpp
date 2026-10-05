@@ -96,7 +96,7 @@ void W8NormalTexcoordMapper::process(srVertexPipe& pipe)
     normals = pipe.getEyeSpaceNormal();
     coordinates = pipe.getST(0, 0);
     count = pipe.getVertexCount();
-    srCore.getStatisticsManager()->statistics_00.texture_coordinate_operations += count;
+    srCore.getStatisticsManager()->statistics.texture_coordinate_operations += count;
     for (index = 0; index < count; ++index) {
         coordinates[index].Set((normals[index].x + g_float_one) * g_float_005ebc7c,
                                (normals[index].y + g_float_one) * g_float_005ebc7c);
@@ -392,12 +392,12 @@ static unsigned char PreprocessLevel(int handle, char* stem)
             redundant = 0;
             for (i = 1; i < mesh->num_vertices; ++i) {
                 const srVector3T<float>& source = mesh->pstVertices[i - 1];
-                vertices[i].position_0c.Set(source.x * g_world_scale, source.y * g_world_scale,
+                vertices[i].position.Set(source.x * g_world_scale, source.y * g_world_scale,
                                             source.z * g_world_scale);
                 vertices[i].m_original_position.Set(source.x, source.y, source.z);
                 vertices[i].m_visited = 0;
                 for (j = 0; j < 3; ++j) {
-                    float v = (&vertices[i].position_0c.x)[j];
+                    float v = (&vertices[i].position.x)[j];
                     if (v <= (&maximum.x)[j]) {
                         if (v < (&minimum.x)[j]) {
                             (&minimum.x)[j] = v;
@@ -452,11 +452,11 @@ static unsigned char PreprocessLevel(int handle, char* stem)
                 ReportBuildStatus(7, "\n Error -- Cannot load or find game data.\n");
             } else {
                 for (i = 0; i < 3; ++i) {
-                    if ((&value->minimum_08.x)[i] < (&minimum.x)[i]) {
-                        (&minimum.x)[i] = (&value->minimum_08.x)[i];
+                    if ((&value->minimum.x)[i] < (&minimum.x)[i]) {
+                        (&minimum.x)[i] = (&value->minimum.x)[i];
                     }
-                    if ((&maximum.x)[i] < (&value->maximum_14.x)[i]) {
-                        (&maximum.x)[i] = (&value->maximum_14.x)[i];
+                    if ((&maximum.x)[i] < (&value->maximum.x)[i]) {
+                        (&maximum.x)[i] = (&value->maximum.x)[i];
                     }
                 }
                 ReportBuildStatus(6, "\nBuilding OctBuildPreTree ---------------------\n");
@@ -468,7 +468,7 @@ static unsigned char PreprocessLevel(int handle, char* stem)
                     if (g_option_mesh_linking == 0) {
                         build_tree->mesh_linking = 0;
                     }
-                    build_tree->spatial_00.m_region_grid_cell = g_option_auto_region_size;
+                    build_tree->spatial.m_region_grid_cell = g_option_auto_region_size;
                     int alpha_polys = BuildRegionPolygons(level, &geometry, classify);
                     build_tree->SortGeometry(&geometry);
                     short light_total = level->nLights;
@@ -484,7 +484,7 @@ static unsigned char PreprocessLevel(int handle, char* stem)
                             src_light = lights + i;
                             src_light->position *= g_world_scale;
                             src_light->colour.x = src_light->colour.x * g_world_scale;
-                            strcpy(name, src_light->name_28);
+                            strcpy(name, src_light->name);
                             name[19] = 0;
                             TrimAndLowercaseString(name);
                             if (strstr(name, "sun") != 0 || strstr(name, "moon") != 0 ||
@@ -513,34 +513,34 @@ static unsigned char PreprocessLevel(int handle, char* stem)
                     }
                     ReportBuildStatus(6, "\nOctree Statistics:\n==========================\n");
                     sprintf(message, "Width of Level: %f\t\tTree Depth: %d\n",
-                            build_tree->spatial_00.m_extent, build_tree->spatial_00.m_depth);
+                            build_tree->spatial.m_extent, build_tree->spatial.m_depth);
                     ReportBuildStatus(6, message);
                     sprintf(message, "Width of Leaves: %f,  %f metres\n",
-                            build_tree->spatial_00.m_node_extent,
-                            (build_tree->spatial_00.m_node_extent * g_float_005ebc60));
+                            build_tree->spatial.m_node_extent,
+                            (build_tree->spatial.m_node_extent * g_float_005ebc60));
                     ReportBuildStatus(6, message);
                     sprintf(message, "Width of auto-generated regions: %f metres\n",
-                            (build_tree->spatial_00.m_region_grid_cell * g_float_005ebc60));
+                            (build_tree->spatial.m_region_grid_cell * g_float_005ebc60));
                     g_oct_node_count = GetBuildNodeInstanceCount();
                     g_oct_max_objects = build_tree->deepest_link_list;
                     ReportBuildStatus(3, message);
                     sprintf(message, "World Minimum Corner: \t%f  \t%f  \t%f\n",
-                            build_tree->spatial_00.m_minimum.x, build_tree->spatial_00.m_minimum.y,
-                            build_tree->spatial_00.m_minimum.z);
+                            build_tree->spatial.m_minimum.x, build_tree->spatial.m_minimum.y,
+                            build_tree->spatial.m_minimum.z);
                     ReportBuildStatus(6, message);
                     sprintf(message, "World Maximum Corner: \t%f  \t%f  \t%f\n",
-                            build_tree->spatial_00.m_maximum.x, build_tree->spatial_00.m_maximum.y,
-                            build_tree->spatial_00.m_maximum.z);
+                            build_tree->spatial.m_maximum.x, build_tree->spatial.m_maximum.y,
+                            build_tree->spatial.m_maximum.z);
                     ReportBuildStatus(6, message);
                     sprintf(message, "World Dimensions:\n\tX: %fm  \tY: %fm  \tZ: %fm\n",
-                            ((build_tree->spatial_00.m_clipped_maximum.x -
-                              build_tree->spatial_00.m_clipped_minimum.x) *
+                            ((build_tree->spatial.m_clipped_maximum.x -
+                              build_tree->spatial.m_clipped_minimum.x) *
                              g_float_005ebc60),
-                            ((build_tree->spatial_00.m_clipped_maximum.y -
-                              build_tree->spatial_00.m_clipped_minimum.y) *
+                            ((build_tree->spatial.m_clipped_maximum.y -
+                              build_tree->spatial.m_clipped_minimum.y) *
                              g_float_005ebc60),
-                            ((build_tree->spatial_00.m_clipped_maximum.z -
-                              build_tree->spatial_00.m_clipped_minimum.z) *
+                            ((build_tree->spatial.m_clipped_maximum.z -
+                              build_tree->spatial.m_clipped_minimum.z) *
                              g_float_005ebc60));
                     ReportBuildStatus(6, message);
                     for (i = 0; i < level->num_switch_triggers; ++i) {
@@ -566,19 +566,19 @@ static unsigned char PreprocessLevel(int handle, char* stem)
                                     "Warning: GD Polygon %d cannot be inserted into tree\n", i);
                             ReportBuildStatus(6, message);
                             sprintf(message, "\tVertex 1: \t%f  \t%f  \t%f\n",
-                                    surface->vertices[0]->position_0c.x,
-                                    surface->vertices[0]->position_0c.y,
-                                    surface->vertices[0]->position_0c.z);
+                                    surface->vertices[0]->position.x,
+                                    surface->vertices[0]->position.y,
+                                    surface->vertices[0]->position.z);
                             ReportBuildStatus(6, message);
                             sprintf(message, "\tVertex 2: \t%f  \t%f  \t%f\n",
-                                    surface->vertices[1]->position_0c.x,
-                                    surface->vertices[1]->position_0c.y,
-                                    surface->vertices[1]->position_0c.z);
+                                    surface->vertices[1]->position.x,
+                                    surface->vertices[1]->position.y,
+                                    surface->vertices[1]->position.z);
                             ReportBuildStatus(6, message);
                             sprintf(message, "\tVertex 3: \t%f  \t%f  \t%f\n\n",
-                                    surface->vertices[2]->position_0c.x,
-                                    surface->vertices[2]->position_0c.y,
-                                    surface->vertices[2]->position_0c.z);
+                                    surface->vertices[2]->position.x,
+                                    surface->vertices[2]->position.y,
+                                    surface->vertices[2]->position.z);
                             ReportBuildStatus(6, message);
                         }
                     }
@@ -589,8 +589,8 @@ static unsigned char PreprocessLevel(int handle, char* stem)
                     build_tree->BuildGeometryRegions(level->pProps, level->nProps, 0, 0);
                     build_tree->BuildGeometryRegions(level->pBitmaps, level->nBitmaps,
                                                      level->nProps, 1);
-                    build_tree->spatial_00.m_root->RearrangeNodePolys(
-                        0, build_tree->spatial_00.m_depth);
+                    build_tree->spatial.m_root->RearrangeNodePolys(
+                        0, build_tree->spatial.m_depth);
                     /* Both of these walk their count unsigned - the retail
                        guards with jbe at 0x00493D24 and 0x00493D45 and closes
                        each with jc at 0x00493D3B and 0x00493D5C - so the index
@@ -613,7 +613,7 @@ static unsigned char PreprocessLevel(int handle, char* stem)
                     tree->SetPathStem(stem);
                     tree->m_spatial.SetWorkingBounds(&g_weld_min, &g_weld_max);
                     tree->m_alpha_polygon_count = alpha_polys;
-                    value->octree_04 = tree;
+                    value->octree = tree;
                     sprintf(message, "Poly List Len: %d\n",
                             static_cast<int>(tree->polygon_cursor));
                     ReportBuildStatus(6, message);
@@ -1072,11 +1072,11 @@ static int WeldVertex(W8HashTable<unsigned int, int>* table, W8OctPreTreeVertex*
     }
     current = vertices + vertex;
     cell_x =
-        static_cast<unsigned int>(((current->position_0c.x - g_weld_min.x) * g_float_005ecbb4));
+        static_cast<unsigned int>(((current->position.x - g_weld_min.x) * g_float_005ecbb4));
     cell_y =
-        static_cast<unsigned int>(((current->position_0c.y - g_weld_min.y) * g_float_005ecbb4));
+        static_cast<unsigned int>(((current->position.y - g_weld_min.y) * g_float_005ecbb4));
     cell_z =
-        static_cast<unsigned int>(((current->position_0c.z - g_weld_min.z) * g_float_005ecbb4));
+        static_cast<unsigned int>(((current->position.z - g_weld_min.z) * g_float_005ecbb4));
     key = cell_z * g_weld_stride_z + cell_y * g_weld_stride_y + cell_x * g_weld_stride_x;
     start_x = cell_x;
     if (cell_x != 0) {
@@ -1100,15 +1100,15 @@ static int WeldVertex(W8HashTable<unsigned int, int>* table, W8OctPreTreeVertex*
                     match_index = table->entries[slot].value - 1;
                     if (match_index >= 0 && matched == 0) {
                         candidate = vertices + match_index;
-                        if (fabs(current->position_0c.x - candidate->position_0c.x) <
+                        if (fabs(current->position.x - candidate->position.x) <
                                 g_float_005ecbb8 &&
-                            fabs(current->position_0c.y - candidate->position_0c.y) <
+                            fabs(current->position.y - candidate->position.y) <
                                 g_float_005ecbb8 &&
-                            fabs(current->position_0c.z - candidate->position_0c.z) <
+                            fabs(current->position.z - candidate->position.z) <
                                 g_float_005ecbb8) {
                             if (link == 0xffffffff) {
                                 vertices[index].m_vertex_index = match_index;
-                                vertices[index].flags_00 |= 1;
+                                vertices[index].flags |= 1;
                             }
                             found = 1;
                         }
@@ -1216,12 +1216,12 @@ static int BuildRegionPolygons(W8LevelFile* level, W8OctPreTreeGeometry* geometr
                 }
                 vertex_index[corner] = index;
                 polygon->vertices[corner] = vertices + index;
-                polygon->position_18.x =
-                    vertices[index].position_0c.x * g_float_005ec410 + polygon->position_18.x;
-                polygon->position_18.y =
-                    vertices[index].position_0c.y * g_float_005ec410 + polygon->position_18.y;
-                polygon->position_18.z =
-                    vertices[index].position_0c.z * g_float_005ec410 + polygon->position_18.z;
+                polygon->position.x =
+                    vertices[index].position.x * g_float_005ec410 + polygon->position.x;
+                polygon->position.y =
+                    vertices[index].position.y * g_float_005ec410 + polygon->position.y;
+                polygon->position.z =
+                    vertices[index].position.z * g_float_005ec410 + polygon->position.z;
             }
             polygon->degenerate = 0;
             if (vertex_index[0] == vertex_index[1] || vertex_index[0] == vertex_index[2] ||
@@ -1251,8 +1251,8 @@ static int BuildRegionPolygons(W8LevelFile* level, W8OctPreTreeGeometry* geometr
                 offset = 0.0f;
                 for (corner = 0; corner < 3; ++corner) {
                     current = vertices + vertex_index[corner];
-                    offset = normal.z * current->position_0c.z + normal.y * current->position_0c.y +
-                             normal.x * current->position_0c.x + offset;
+                    offset = normal.z * current->position.z + normal.y * current->position.y +
+                             normal.x * current->position.x + offset;
                 }
                 offset *= g_float_005ec1a8;
                 axis = 0;
@@ -1266,7 +1266,7 @@ static int BuildRegionPolygons(W8LevelFile* level, W8OctPreTreeGeometry* geometr
                     }
                 }
                 polygon->plane.w = offset;
-                polygon->flags_00 = axis;
+                polygon->flags = axis;
                 opposing = 0;
                 for (corner = 0; corner < 3; ++corner) {
                     current = vertices + vertex_index[corner];
@@ -1306,10 +1306,10 @@ static int BuildRegionPolygons(W8LevelFile* level, W8OctPreTreeGeometry* geometr
                             created = vertices + mesh->num_vertices;
                             *created = *current;
                             created->m_vertex_index = mesh->num_vertices;
-                            current->flags_00 |= 2;
+                            current->flags |= 2;
                             vertex_index[corner] = mesh->num_vertices;
                             ++mesh->num_vertices;
-                            created->flags_00 |= 2;
+                            created->flags |= 2;
                             created->m_normal.SetZero();
                             created->m_normal_count = 0;
                         } else {
@@ -1509,7 +1509,7 @@ static int AccumulateVertexLight(OctPreTree* tree, W8OctPreTreeVertex* vertex, s
     sun = sun_map;
     do {
         if ((light->version < 2) || ((light->create == 0) && (light->visible != 0))) {
-            delta = light->position - vertex->position_0c;
+            delta = light->position - vertex->position;
             distance = delta.Length();
             if ((distance < light->range) || ((sun_map != 0) && (*sun != 0))) {
                 ++g_light_candidates;
@@ -1519,7 +1519,7 @@ static int AccumulateVertexLight(OctPreTree* tree, W8OctPreTreeVertex* vertex, s
                 if (g_float_zero < dot) {
                     ++g_lights_facing;
                     if (g_option_shadow_test != 0) {
-                        if (!tree->SegmentClear(&light->position, &vertex->position_0c)) {
+                        if (!tree->SegmentClear(&light->position, &vertex->position)) {
                             goto next_light;
                         }
                     }
@@ -1631,24 +1631,24 @@ static unsigned char* ClassifyTextures(W8MaterialRecord* textures, int count, ch
             if (record->texture_name[0] != 0) {
                 strcpy(texture, record->texture_name);
             }
-            if (record->texture_names_029[0][0] == '\0') {
-                if (record->texture_names_029[1][0] == '\0') {
-                    if (record->texture_names_029[2][0] == '\0') {
-                        if (record->texture_names_029[3][0] == '\0') {
+            if (record->texture_names[0][0] == '\0') {
+                if (record->texture_names[1][0] == '\0') {
+                    if (record->texture_names[2][0] == '\0') {
+                        if (record->texture_names[3][0] == '\0') {
                             goto probe;
                         }
-                        strcpy(texture, record->texture_names_029[3]);
+                        strcpy(texture, record->texture_names[3]);
                         kind = 2;
                     } else {
-                        strcpy(texture, record->texture_names_029[2]);
+                        strcpy(texture, record->texture_names[2]);
                         kind = 2;
                     }
                 } else {
-                    strcpy(texture, record->texture_names_029[1]);
+                    strcpy(texture, record->texture_names[1]);
                     kind = 1;
                 }
             } else {
-                strcpy(texture, record->texture_names_029[0]);
+                strcpy(texture, record->texture_names[0]);
                 if (opaque != 0) {
                     goto probe;
                 }
@@ -1763,16 +1763,16 @@ static unsigned char MaterialSort(W8OctPreTreeGeometry* geometry, W8MaterialReco
             ++material_slot;
             texture_name = record->texture_name;
             if (*texture_name == '\0') {
-                texture_name = record->texture_names_029[0];
+                texture_name = record->texture_names[0];
             }
             if (*texture_name == '\0') {
-                texture_name = record->texture_names_029[1];
+                texture_name = record->texture_names[1];
             }
             if (*texture_name == '\0') {
-                texture_name = record->texture_names_029[2];
+                texture_name = record->texture_names[2];
             }
             if (*texture_name == '\0') {
-                texture_name = record->texture_names_029[3];
+                texture_name = record->texture_names[3];
             }
             if (*texture_name == '\0') {
                 ReportBuildStatus(7, "MaterialSort: Missing Texture Name\n");
@@ -2111,11 +2111,11 @@ unsigned char LoadMaterial(const char* bitmap_folder, const W8MaterialRecord* so
 
     render_flags->value = 0x0100a51b; /* packed srShader; TEXTURING set until no texture */
     for (index = 0; index < 4; ++index) {
-        if (source->texture_names_029[index][0] != '\0') {
+        if (source->texture_names[index][0] != '\0') {
             if (bitmap_folder[0] == '\0') {
-                strcpy(texture_path, source->texture_names_029[index]);
+                strcpy(texture_path, source->texture_names[index]);
             } else {
-                sprintf(texture_path, "%s\\%s", bitmap_folder, source->texture_names_029[index]);
+                sprintf(texture_path, "%s\\%s", bitmap_folder, source->texture_names[index]);
             }
             texture_index = index;
             break;
@@ -2428,7 +2428,7 @@ stTextureAnim* LoadAnimatedTexture(const char* folder, const char* name,
         animation->animation_mode = source->animation_mode;
         int frame = source->animation_frame;
         animation->initial_frame = frame;
-        animation->frame_58 = frame;
+        animation->frame = frame;
         animation->frame_rate = source->animation_rate;
     }
     return animation;

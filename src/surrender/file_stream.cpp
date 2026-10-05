@@ -20,38 +20,38 @@
 // FUNCTION: SURRENDER 0x1002E010
 srFileManager::Path::Path(const char* name)
 {
-    next_04 = 0;
+    next = 0;
     previous = 0;
     if (name != 0 && *name != '\0') {
-        name_00 = new char[strlen(name) + 1];
-        strcpy(name_00, name);
+        name0 = new char[strlen(name) + 1];
+        strcpy(name0, name);
     } else {
-        name_00 = 0;
+        name0 = 0;
     }
 }
 
 // FUNCTION: SURRENDER 0x1002E080
 srFileManager::Path::~Path()
 {
-    if (name_00 != 0) {
-        delete[] name_00;
+    if (name0 != 0) {
+        delete[] name0;
     }
 }
 
 // FUNCTION: SURRENDER 0x1002E090
 const char* srFileManager::Path::getName() const
 {
-    return name_00;
+    return name0;
 }
 
 // FUNCTION: SURRENDER 0x1002E0A0
 srFileManager::Path* srFileManager::Path::getNext() const
 {
-    return next_04;
+    return next;
 }
 
-/* Retail 0x100163A0 copies name_00, next_04 and previous memberwise,
-   preserving the pointer aliasing even though Path owns name_00. */
+/* Retail 0x100163A0 copies name0, next and previous memberwise,
+   preserving the pointer aliasing even though Path owns name0. */
 
 // FUNCTION: SURRENDER 0x1002E0B0
 void srFileManager::addPath(const char* path)
@@ -68,13 +68,13 @@ void srFileManager::addPath(const char* path)
                 local_path[index] = '/';
             }
         }
-        for (Path* node = first_path; node != 0; node = node->next_04) {
+        for (Path* node = first_path; node != 0; node = node->next) {
             if (strcmp(local_path, node->getName()) == 0) {
                 return;
             }
         }
         Path* new_node = new Path(local_path);
-        new_node->next_04 = first_path;
+        new_node->next = first_path;
         new_node->previous = 0;
         if (first_path != 0) {
             first_path->previous = new_node;
@@ -95,19 +95,19 @@ void srFileManager::removePath(const char* path)
         Path* node = first_path;
         while (node != 0) {
             if (strcmp(local_path, node->getName()) == 0) {
-                if (node->next_04 != 0) {
-                    node->next_04->previous = node->previous;
+                if (node->next != 0) {
+                    node->next->previous = node->previous;
                 }
                 if (node->previous != 0) {
-                    node->previous->next_04 = node->next_04;
+                    node->previous->next = node->next;
                 }
                 if (node == first_path) {
-                    first_path = node->next_04;
+                    first_path = node->next;
                 }
                 delete node;
                 return;
             }
-            node = node->next_04;
+            node = node->next;
         }
     }
 }
@@ -117,7 +117,7 @@ void srFileManager::setPath(const char* path)
 {
     while (first_path != 0) {
         Path* node = first_path;
-        Path* next = node->next_04;
+        Path* next = node->next;
         delete node;
         first_path = next;
     }
@@ -219,11 +219,11 @@ class ReadJob : public srScheduler::Job {
 public:
     ReadJob(srBinIStream* stream, void* buffer, unsigned long size)
     {
-        stream_04 = stream;
-        buffer_08 = buffer;
-        size_0c = size;
+        this->stream = stream;
+        this->buffer = buffer;
+        this->size = size;
         critical_section = new srCriticalSection;
-        status_10 = 0;
+        status = 0;
     }
 
     // FUNCTION: SURRENDER 0x1002EC70
@@ -240,12 +240,12 @@ public:
     virtual void execute() override
     {
         critical_section->getAccess();
-        if (buffer_08 != 0 && size_0c != 0) {
-            if (stream_04->good()) {
-                stream_04->read(buffer_08, size_0c);
+        if (buffer != 0 && size != 0) {
+            if (stream->good()) {
+                stream->read(buffer, size);
             }
         }
-        status_10 = 2 - stream_04->good();
+        status = 2 - stream->good();
         critical_section->releaseAccess();
     }
 
@@ -254,17 +254,17 @@ public:
     {
         srCriticalSection* lock = critical_section;
         lock->getAccess();
-        status_10 = 2;
+        status = 2;
         lock->releaseAccess();
     }
 
     unsigned long getStatus();
 
 private:
-    srBinIStream* stream_04;
-    void* buffer_08;
-    unsigned long size_0c;
-    unsigned long status_10;
+    srBinIStream* stream;
+    void* buffer;
+    unsigned long size;
+    unsigned long status;
     srCriticalSection* critical_section;
 };
 
@@ -273,7 +273,7 @@ unsigned long ReadJob::getStatus()
 {
     srCriticalSection* lock = critical_section;
     lock->getAccess();
-    unsigned long status = status_10;
+    unsigned long status = this->status;
     lock->releaseAccess();
     return status;
 }
@@ -283,23 +283,23 @@ unsigned long ReadJob::getStatus()
 // FUNCTION: SURRENDER 0x1002E7E0
 srBinIAsyncStream::srBinIAsyncStream(const char* path)
 {
-    position_14 = 0;
-    size_18 = 0;
-    job_0c = 0;
-    buffer_08 = 0;
-    stream_10 = 0;
-    finished_1c = 0;
+    position = 0;
+    size = 0;
+    job = 0;
+    buffer = 0;
+    stream = 0;
+    finished = 0;
     if (path != 0 && *path != '\0') {
-        stream_10 = srCore.getIStreamOpener()->open(path);
+        stream = srCore.getIStreamOpener()->open(path);
     }
     e_state state = SR_STREAM_ERROR;
-    if (stream_10 != 0 && stream_10->good()) {
+    if (stream != 0 && stream->good()) {
         /* Retail does not branch on either allocation result before queueing
-           job_0c and setting SR_STREAM_OK. */
-        size_18 = stream_10->getSize();
-        buffer_08 = static_cast<unsigned char*>(srHeap.allocate(size_18));
-        job_0c = new ReadJob(stream_10, buffer_08, size_18);
-        srCore.getScheduler()->queue(*job_0c);
+           job and setting SR_STREAM_OK. */
+        size = stream->getSize();
+        buffer = static_cast<unsigned char*>(srHeap.allocate(size));
+        job = new ReadJob(stream, buffer, size);
+        srCore.getScheduler()->queue(*job);
         state = SR_STREAM_OK;
     }
     setState(state);
@@ -308,14 +308,14 @@ srBinIAsyncStream::srBinIAsyncStream(const char* path)
 // FUNCTION: SURRENDER 0x1002E960
 srBinIAsyncStream::~srBinIAsyncStream()
 {
-    if (job_0c != 0) {
-        srCore.getScheduler()->cancel(*job_0c);
-        delete job_0c;
+    if (job != 0) {
+        srCore.getScheduler()->cancel(*job);
+        delete job;
     }
-    if (stream_10 != 0) {
-        delete stream_10;
+    if (stream != 0) {
+        delete stream;
     }
-    srHeap.free(buffer_08);
+    srHeap.free(buffer);
 }
 
 // FUNCTION: SURRENDER 0x1002EA00
@@ -327,11 +327,11 @@ srBinStream& srBinIAsyncStream::seek(unsigned long position, e_seekDir direction
     unsigned long new_position = position;
     if (direction != SR_SEEK_BEGIN) {
         if (direction == SR_SEEK_CURRENT) {
-            new_position = position_14 + position;
+            new_position = this->position + position;
         } else {
             new_position = 0;
             if (direction == SR_SEEK_END) {
-                new_position = size_18 - position;
+                new_position = size - position;
             }
         }
     }
@@ -342,8 +342,8 @@ srBinStream& srBinIAsyncStream::seek(unsigned long position, e_seekDir direction
 // FUNCTION: SURRENDER 0x1002EA90
 srBinStream& srBinIAsyncStream::seek(unsigned long position)
 {
-    if (position <= size_18) {
-        position_14 = position;
+    if (position <= size) {
+        this->position = position;
     } else {
         setState(SR_STREAM_ERROR);
     }
@@ -353,81 +353,81 @@ srBinStream& srBinIAsyncStream::seek(unsigned long position)
 // FUNCTION: SURRENDER 0x1002EAD0
 unsigned long srBinIAsyncStream::tell()
 {
-    return position_14;
+    return position;
 }
 
 // FUNCTION: SURRENDER 0x1002EAE0
 unsigned long srBinIAsyncStream::vread(void* destination, unsigned long size)
 {
-    if (size_18 <= position_14 + size) {
-        size = size_18 - position_14;
+    if (this->size <= position + size) {
+        size = this->size - position;
     }
     if (static_cast<int>(size) < 1) {
         return 0;
     }
-    if (finished_1c == 0) {
-        finished_1c = 1;
-        srCore.getScheduler()->finish(*job_0c);
-        int status = static_cast<ReadJob*>(job_0c)->getStatus();
-        if (job_0c != 0) {
-            delete job_0c;
+    if (finished == 0) {
+        finished = 1;
+        srCore.getScheduler()->finish(*job);
+        int status = static_cast<ReadJob*>(job)->getStatus();
+        if (job != 0) {
+            delete job;
         }
-        if (stream_10 != 0) {
-            delete stream_10;
+        if (stream != 0) {
+            delete stream;
         }
-        job_0c = 0;
-        stream_10 = 0;
+        job = 0;
+        stream = 0;
         if (status != 1) {
             return 0;
         }
     }
-    unsigned char* source = buffer_08 + position_14;
+    unsigned char* source = buffer + position;
     if (size != 0 && destination != source) {
         srVectorProcessor::memcopy(destination, source, size);
     }
-    position_14 += size;
+    position += size;
     return size;
 }
 
 // FUNCTION: SURRENDER 0x1002EBB0
 int srBinIAsyncStream::isFinished()
 {
-    if (finished_1c != 0) {
+    if (finished != 0) {
         return 1;
     }
-    return static_cast<ReadJob*>(job_0c)->getStatus() != 0;
+    return static_cast<ReadJob*>(job)->getStatus() != 0;
 }
 
 // FUNCTION: SURRENDER 0x1002EFB0
 int srBinFStream::isOpen()
 {
-    return file_08 != 0;
+    return file != 0;
 }
 
 // FUNCTION: SURRENDER 0x1002EFC0
 void srBinFStream::close()
 {
-    fclose(file_08);
-    file_08 = 0;
+    fclose(file);
+    file = 0;
     /* Retail inlines the empty-state sequence: release non-inline storage,
        zero inline_, repoint data_, size 1. reset() itself stays out of line
        in this unit (0x10012C80), so the authored spelling here is the
        null-string assignment, which folds to that sequence; the stream
        stays usable afterwards, so it is not member teardown. */
-    path_0c = 0;
+    path = 0;
     setState(SR_STREAM_STATE_2);
 }
 
 // FUNCTION: SURRENDER 0x1002F010
 const char* srBinFStream::getPath() const
 {
-    return path_0c.data();
+    return path.data();
 }
 
 // FUNCTION: SURRENDER 0x1002F020
 void srBinFStream::setPath(const char* path)
 {
-    path_0c = path;
+    this->path = path;
 }
 
 // FUNCTION: SURRENDER 0x1002F0A0
@@ -456,8 +456,8 @@ void srBinFStream::mopen(const char* path, e_mode mode, int search_paths)
         }
         mode_string[length] = 'b';
         mode_string[length + 1] = '\0';
-        file_08 = _fsopen(path, mode_string, _SH_DENYWR);
-        if (file_08 != 0) {
+        file = _fsopen(path, mode_string, _SH_DENYWR);
+        if (file != 0) {
             setState(SR_STREAM_OK);
             return;
         }
@@ -479,8 +479,8 @@ void srBinFStream::mopen(const char* path, e_mode mode, int search_paths)
                                     search_extension);
                 char candidate[_MAX_PATH];
                 srSystem::makePath(candidate, drive, directory, full_name, extension);
-                file_08 = _fsopen(candidate, mode_string, _SH_DENYWR);
-                if (file_08 != 0) {
+                file = _fsopen(candidate, mode_string, _SH_DENYWR);
+                if (file != 0) {
                     setPath(candidate);
                     setState(SR_STREAM_OK);
                     return;
@@ -494,7 +494,7 @@ void srBinFStream::mopen(const char* path, e_mode mode, int search_paths)
 // FUNCTION: SURRENDER 0x1002F250
 srBinFStream::srBinFStream()
 {
-    file_08 = 0;
+    file = 0;
     setState(SR_STREAM_STATE_2);
 }
 
@@ -523,7 +523,7 @@ srBinStream& srBinFStream::pseek(unsigned long position, e_seekDir direction)
     default:
         return *this;
     }
-    if (fseek(file_08, position, whence) != 0) {
+    if (fseek(file, position, whence) != 0) {
         setState(SR_STREAM_ERROR);
     }
     return *this;
@@ -532,7 +532,7 @@ srBinStream& srBinFStream::pseek(unsigned long position, e_seekDir direction)
 // FUNCTION: SURRENDER 0x1002F3B0
 srBinStream& srBinFStream::pseek(unsigned long position)
 {
-    if (fseek(file_08, position, SEEK_SET) != 0) {
+    if (fseek(file, position, SEEK_SET) != 0) {
         setState(SR_STREAM_ERROR);
     }
     return *this;
@@ -541,7 +541,7 @@ srBinStream& srBinFStream::pseek(unsigned long position)
 // FUNCTION: SURRENDER 0x1002F400
 unsigned long srBinFStream::ptell()
 {
-    unsigned long position = ftell(file_08);
+    unsigned long position = ftell(file);
     if (position == 0xffffffff) {
         setState(SR_STREAM_ERROR);
     }
@@ -566,7 +566,7 @@ void srBinIFStream::open(const char* path)
 // FUNCTION: SURRENDER 0x1002F850
 unsigned short srBinIFStream::vget()
 {
-    int result = fgetc(file_08);
+    int result = fgetc(file);
     if (result == -1) {
         return 0xffff;
     }
@@ -576,7 +576,7 @@ unsigned short srBinIFStream::vget()
 // FUNCTION: SURRENDER 0x1002F870
 unsigned long srBinIFStream::vread(void* destination, unsigned long size)
 {
-    return fread(destination, 1, size, file_08);
+    return fread(destination, 1, size, file);
 }
 
 // FUNCTION: SURRENDER 0x1002F890
@@ -615,19 +615,19 @@ void srBinIOFStream::open(const char* path)
 // FUNCTION: SURRENDER 0x1002FE30
 unsigned long srBinIOFStream::vwrite(const void* source, unsigned long size)
 {
-    return fwrite(source, 1, size, file_08);
+    return fwrite(source, 1, size, file);
 }
 
 // FUNCTION: SURRENDER 0x1002FE50
 unsigned short srBinIOFStream::vput(char character)
 {
-    return fputc(character, file_08) != -1 ? 0 : 0xffff;
+    return fputc(character, file) != -1 ? 0 : 0xffff;
 }
 
 // FUNCTION: SURRENDER 0x1002FE80
 unsigned short srBinIOFStream::vget()
 {
-    int result = fgetc(file_08);
+    int result = fgetc(file);
     if (result == -1) {
         return 0xffff;
     }
@@ -637,7 +637,7 @@ unsigned short srBinIOFStream::vget()
 // FUNCTION: SURRENDER 0x1002FEA0
 unsigned long srBinIOFStream::vread(void* destination, unsigned long size)
 {
-    return fread(destination, 1, size, file_08);
+    return fread(destination, 1, size, file);
 }
 
 // FUNCTION: SURRENDER 0x1002FEC0
@@ -676,13 +676,13 @@ void srBinOFStream::open(const char* path)
 // FUNCTION: SURRENDER 0x10030510
 unsigned long srBinOFStream::vwrite(const void* source, unsigned long size)
 {
-    return fwrite(source, 1, size, file_08);
+    return fwrite(source, 1, size, file);
 }
 
 // FUNCTION: SURRENDER 0x10030540
 unsigned short srBinOFStream::vput(char character)
 {
-    return fputc(character, file_08) != -1 ? 0 : 0xffff;
+    return fputc(character, file) != -1 ? 0 : 0xffff;
 }
 
 // FUNCTION: SURRENDER 0x10030570

@@ -48,15 +48,15 @@ OctPreTree* g_oct_pre_tree = 0;
 // FUNCTION: WIZ8 0x004679e0
 OctPreTree::OctPreTree() : W8Octree(0, 0)
 {
-    game_data_3a4 = 0;
+    game_data = 0;
     unknown_3a8 = 0;
     unknown_3ac = 0;
     deepest_link_list = 0;
     m_region_cell = 0.0f;
-    path_node_extent_3b4 = 0;
+    path_node_extent = 0;
     automesh_cells = 0;
-    pre_pathing_2a0 = 0;
-    props_3b8 = new W8GrowableVector<GDProp*>;
+    pre_pathing = 0;
+    props = new W8GrowableVector<GDProp*>;
     g_oct_pre_tree = this;
 }
 
@@ -69,12 +69,12 @@ OctPreTree::~OctPreTree()
         delete automesh_cells;
         automesh_cells = 0;
     }
-    if (pre_pathing_2a0 != 0) {
-        delete pre_pathing_2a0;
-        pre_pathing_2a0 = 0;
+    if (pre_pathing != 0) {
+        delete pre_pathing;
+        pre_pathing = 0;
     }
-    if (props_3b8 != 0) {
-        delete props_3b8;
+    if (props != 0) {
+        delete props;
     }
     g_oct_pre_tree = 0;
 }
@@ -147,9 +147,9 @@ bool OctPreTree::SegmentClear(const srVector3T<float>* from, const srVector3T<fl
         }
     } else {
         BuildCellWalk(*from, *to, &walk);
-        int error_a = walk.error_2c;
-        int error_b = walk.error_38;
-        for (int index = 0; index < walk.count_24; ++index) {
+        int error_a = walk.error0;
+        int error_b = walk.error1;
+        for (int index = 0; index < walk.count; ++index) {
             if (blocked != 0) {
                 break;
             }
@@ -159,15 +159,15 @@ bool OctPreTree::SegmentClear(const srVector3T<float>* from, const srVector3T<fl
             }
             if (error_a < error_b) {
                 if (error_a < 0 && !blocked) {
-                    (&cell.x)[walk.minor_axis_1c] += (&walk.step_0c.x)[walk.minor_axis_1c];
-                    error_a += walk.error_reset_30;
+                    (&cell.x)[walk.minor_axis0] += (&walk.step.x)[walk.minor_axis0];
+                    error_a += walk.error_reset0;
                     CollectLeafPolygons(&cell);
                     if (m_gd_result_count != 0) {
                         blocked = TestCollectedPolygons(&trace);
                     }
                     if (error_b < 0 && !blocked) {
-                        (&cell.x)[walk.minor_axis_20] += (&walk.step_0c.x)[walk.minor_axis_20];
-                        error_b += walk.error_reset_3c;
+                        (&cell.x)[walk.minor_axis1] += (&walk.step.x)[walk.minor_axis1];
+                        error_b += walk.error_reset1;
                         CollectLeafPolygons(&cell);
                         if (m_gd_result_count != 0) {
                             blocked = TestCollectedPolygons(&trace);
@@ -176,15 +176,15 @@ bool OctPreTree::SegmentClear(const srVector3T<float>* from, const srVector3T<fl
                 }
             } else {
                 if (error_b < 0 && !blocked) {
-                    (&cell.x)[walk.minor_axis_20] += (&walk.step_0c.x)[walk.minor_axis_20];
-                    error_b += walk.error_reset_3c;
+                    (&cell.x)[walk.minor_axis1] += (&walk.step.x)[walk.minor_axis1];
+                    error_b += walk.error_reset1;
                     CollectLeafPolygons(&cell);
                     if (m_gd_result_count != 0) {
                         blocked = TestCollectedPolygons(&trace);
                     }
                     if (error_a < 0 && !blocked) {
-                        (&cell.x)[walk.minor_axis_1c] += (&walk.step_0c.x)[walk.minor_axis_1c];
-                        error_a += walk.error_reset_30;
+                        (&cell.x)[walk.minor_axis0] += (&walk.step.x)[walk.minor_axis0];
+                        error_a += walk.error_reset0;
                         CollectLeafPolygons(&cell);
                         if (m_gd_result_count != 0) {
                             blocked = TestCollectedPolygons(&trace);
@@ -192,9 +192,9 @@ bool OctPreTree::SegmentClear(const srVector3T<float>* from, const srVector3T<fl
                     }
                 }
             }
-            (&cell.x)[walk.major_axis_18] += (&walk.step_0c.x)[walk.major_axis_18];
-            error_a -= walk.error_delta_28;
-            error_b -= walk.error_delta_34;
+            (&cell.x)[walk.major_axis] += (&walk.step.x)[walk.major_axis];
+            error_a -= walk.error_delta0;
+            error_b -= walk.error_delta1;
         }
     }
     return blocked == 0;
@@ -202,29 +202,29 @@ bool OctPreTree::SegmentClear(const srVector3T<float>* from, const srVector3T<fl
 
 /* Tests the collected region polygons' planes against the trace segment.  A
    polygon blocks only when its plane faces the ray, the crossing lies inside
-   the segment's `length_28 - 1.0f` window, and either the start point sits
+   the segment's `length - 1.0f` window, and either the start point sits
    within 1.0f of the plane or the ray exits at least 5.0f behind it, with the
    resulting contact point landing inside the polygon. */
 // FUNCTION: WIZ8 0x004681e0
 bool OctPreTree::TestCollectedPolygons(W8OctreeTrace* trace)
 {
-    float limit = trace->length_28 - g_float_one;
+    float limit = trace->length - g_float_one;
     bool blocked = false;
 
     for (unsigned long index = 0; index < m_gd_result_count; ++index) {
         if (blocked != 0) {
             break;
         }
-        W8OctRegionPolygon* polygon = &game_data_3a4->m_polygons[m_aulGDObjs[index]];
+        W8OctRegionPolygon* polygon = &game_data->m_polygons[m_aulGDObjs[index]];
         const W8Plane* plane = &polygon->plane;
-        if (plane->normal.x * trace->step_18.x + trace->step_18.y * plane->normal.y +
-                trace->step_18.z * plane->normal.z <=
+        if (plane->normal.x * trace->step.x + trace->step.y * plane->normal.y +
+                trace->step.z * plane->normal.z <=
             g_float_zero) {
             float front = SignedPlaneDistance(*plane, trace->start);
             if (front <= limit && g_float_zero < front) {
                 srVector3T<float> contact;
                 if (g_float_one <= front) {
-                    float back = SignedPlaneDistance(*plane, trace->end_0c);
+                    float back = SignedPlaneDistance(*plane, trace->end);
                     if (g_float_005ebc28 <= back) {
                         continue;
                     }
@@ -232,18 +232,18 @@ bool OctPreTree::TestCollectedPolygons(W8OctreeTrace* trace)
                     if (back < g_float_005ebc28) {
                         continue;
                     }
-                    front = front / (back + front) * trace->length_28;
-                    contact.Set(trace->step_18.x * front + trace->start.x,
-                                trace->step_18.y * front + trace->start.y,
-                                trace->step_18.z * front + trace->start.z);
+                    front = front / (back + front) * trace->length;
+                    contact.Set(trace->step.x * front + trace->start.x,
+                                trace->step.y * front + trace->start.y,
+                                trace->step.z * front + trace->start.z);
                 } else {
                     contact = trace->start;
                 }
                 srVector3T<float> vertices[3];
-                vertices[0] = polygon->vertices[0]->position_0c;
-                vertices[1] = polygon->vertices[1]->position_0c;
-                vertices[2] = polygon->vertices[2]->position_0c;
-                if (PointInsideTriangle(vertices, polygon->flags_00 & 3, &contact) != 0) {
+                vertices[0] = polygon->vertices[0]->position;
+                vertices[1] = polygon->vertices[1]->position;
+                vertices[2] = polygon->vertices[2]->position;
+                if (PointInsideTriangle(vertices, polygon->flags & 3, &contact) != 0) {
                     blocked = 1;
                 }
             }
@@ -268,7 +268,7 @@ unsigned char OctPreTree::WriteOctFile(W8OctPreTreeGeometry* geometry, W8GameDat
 
     if (m_leaf_count != 0) {
         for (unsigned long index = 0; index < m_leaf_count; ++index) {
-            m_leaves[index].flags_00 &= 0xfffffffe;
+            m_leaves[index].flags &= 0xfffffffe;
         }
     }
     header.m_extent = m_spatial.m_extent;
@@ -308,12 +308,12 @@ unsigned char OctPreTree::WriteOctFile(W8OctPreTreeGeometry* geometry, W8GameDat
     header.m_particle_count = m_ulNumParticles;
     header.m_kind1_submesh_count = m_kind1_submesh_count;
     header.m_zero = 0;
-    if (pre_pathing_2a0 == 0) {
+    if (pre_pathing == 0) {
         header.m_path_nodes = 0;
         header.m_edge_node_count = 0;
     } else {
-        header.m_path_nodes = pre_pathing_2a0->path_node_count;
-        header.m_edge_node_count = pre_pathing_2a0->edge_node_count_008;
+        header.m_path_nodes = pre_pathing->path_node_count;
+        header.m_edge_node_count = pre_pathing->edge_node_count;
     }
     file = FileOpen("NewLevel.oct", FILE_ACCESS_WRITE | FILE_CREATE_ALWAYS, 0);
     if (file == 0) {
@@ -414,7 +414,7 @@ unsigned char OctPreTree::WriteOctFile(W8OctPreTreeGeometry* geometry, W8GameDat
                           "WriteOctFile: Couldn't write Terminator after Mesh Prop Link Table.\n");
         return 0;
     }
-    if (pre_pathing_2a0 != 0 && pre_pathing_2a0->WritePathNodes(file) == 0) {
+    if (pre_pathing != 0 && pre_pathing->WritePathNodes(file) == 0) {
         ReportBuildStatus(7, "WriteOctFile: Couldn't write Path Nodes.\n");
         return 0;
     }
@@ -520,7 +520,7 @@ OctMeshModel* OctPreTree::CreateSubMeshes(W8OctPreTreeGeometry* geometry)
                             FreeSubmeshBuildArrays(records, m_spatial.submesh_count);
                             goto cleanup;
                         }
-                        submesh->mesh_04 = model_index;
+                        submesh->mesh = model_index;
                         submesh->polygon_count = record->m_polygon_count;
                         submesh->next_link = record->m_next_link;
                         model->m_packed_header = record->m_kind;
@@ -597,7 +597,7 @@ OctMeshModel* OctPreTree::CreateSubMeshes(W8OctPreTreeGeometry* geometry)
                         for (unsigned long vertex = 0; vertex < record->vertex_count; ++vertex) {
                             W8OctPreTreeVertex* source =
                                 &geometry->m_vertices[record->m_vertex_ids[vertex]];
-                            model->m_vertex_locations[vertex] = source->position_0c;
+                            model->m_vertex_locations[vertex] = source->position;
                             model->m_vertex_normals[vertex] = source->m_normal;
                             model->m_vertex_lights[vertex] = source->m_light;
                             model->m_vertex_materials[vertex] = source->m_material;
@@ -699,7 +699,7 @@ unsigned long OctPreTree::SplitMeshes(W8OctPreTreeGeometry* geometry, W8OctSubme
                 }
                 continue;
             }
-            record->index_04 = index;
+            record->index = index;
             record->m_kind = 0;
             record->m_prev_link = 0;
             for (unsigned long face = 0; face < record->m_polygon_count; ++face) {
@@ -763,13 +763,13 @@ unsigned long OctPreTree::SplitMeshes(W8OctPreTreeGeometry* geometry, W8OctSubme
                         --m_spatial.submesh_count;
                         slot = candidate->m_next_link;
                         candidate = records + slot;
-                        candidate->flags_00 |= 1;
+                        candidate->flags |= 1;
                         if (candidate->m_prev_link != 0) {
                             candidate->m_prev_link = records[candidate->m_prev_link].m_prev_link;
                         }
                         continue;
                     }
-                    if (slot != index || (candidate->flags_00 & 1) == 0) {
+                    if (slot != index || (candidate->flags & 1) == 0) {
                         if (slot > 1) {
                             for (unsigned long i = 1; i < slot; ++i) {
                                 if (records[i].m_next_link == slot) {
@@ -994,7 +994,7 @@ unsigned long OctPreTree::AllocateSubMesh(W8OctSubmeshBuild* records)
 {
     if (m_spatial.m_polygon_count > 1) {
         for (unsigned long poly = 1; poly < m_spatial.m_polygon_count; ++poly) {
-            unsigned short region = game_data_3a4->m_polygons[poly].region;
+            unsigned short region = game_data->m_polygons[poly].region;
             if (region == 0 || region >= m_spatial.submesh_count) {
                 char text[1024];
                 sprintf(text, "Polygon %d in invalid submesh %d\n", static_cast<int>(poly),
@@ -1023,7 +1023,7 @@ unsigned long OctPreTree::AllocateSubMesh(W8OctSubmeshBuild* records)
             unsigned short found = 0;
             if (m_spatial.m_polygon_count > 1) {
                 for (unsigned long poly = 1; poly < m_spatial.m_polygon_count; ++poly) {
-                    if (game_data_3a4->m_polygons[poly].region == index) {
+                    if (game_data->m_polygons[poly].region == index) {
                         record->m_polygon_ids[found] = poly;
                         ++found;
                         if (found == 5000) {
@@ -1032,7 +1032,7 @@ unsigned long OctPreTree::AllocateSubMesh(W8OctSubmeshBuild* records)
                         }
                         for (int corner = 0; corner < 3; ++corner) {
                             const srVector3T<float>* position =
-                                &game_data_3a4->m_polygons[poly].vertices[corner]->position_0c;
+                                &game_data->m_polygons[poly].vertices[corner]->position;
                             if (maximum.x < position->x) {
                                 maximum.x = position->x;
                             }
@@ -1092,16 +1092,16 @@ void OctPreTree::VerifyPolygonRegions()
     for (unsigned long level = m_spatial.m_leaf_level; level != 0; --level) {
         m_region_mask = m_region_mask * 2 + 1;
     }
-    for (unsigned long poly = 1; poly < game_data_3a4->m_polygon_count; ++poly) {
-        W8OctRegionPolygon* polygon = &game_data_3a4->m_polygons[poly];
+    for (unsigned long poly = 1; poly < game_data->m_polygon_count; ++poly) {
+        W8OctRegionPolygon* polygon = &game_data->m_polygons[poly];
         if (polygon->region >= m_spatial.m_region_count) {
             unsigned int cell[4];
             cell[0] = m_region_mask;
-            cell[1] = static_cast<unsigned int>((polygon->position_18.x - m_spatial.m_minimum.x) /
+            cell[1] = static_cast<unsigned int>((polygon->position.x - m_spatial.m_minimum.x) /
                                                 m_spatial.m_region_grid_cell);
-            cell[2] = static_cast<unsigned int>((polygon->position_18.y - m_spatial.m_minimum.y) /
+            cell[2] = static_cast<unsigned int>((polygon->position.y - m_spatial.m_minimum.y) /
                                                 m_spatial.m_region_grid_cell);
-            cell[3] = static_cast<unsigned int>((polygon->position_18.z - m_spatial.m_minimum.z) /
+            cell[3] = static_cast<unsigned int>((polygon->position.z - m_spatial.m_minimum.z) /
                                                 m_spatial.m_region_grid_cell);
             int node = DescendByMask(cell);
             if (m_branches[node].region != polygon->region) {
@@ -1143,7 +1143,7 @@ void OctPreTree::VerifyAutoMeshes(W8OctPreTreeGeometry* geometry, W8OctSubmeshBu
                     W8OctSubmeshBuild* record = records + link;
                     for (unsigned long i = 0; i < record->vertex_count; ++i) {
                         const srVector3T<float>* position =
-                            &geometry->m_vertices[record->m_vertex_ids[i]].position_0c;
+                            &geometry->m_vertices[record->m_vertex_ids[i]].position;
                         if (maximum.x < position->x) {
                             maximum.x = position->x;
                         }
@@ -1194,11 +1194,11 @@ unsigned char OctPreTree::BuildPathLists(W8GameData* game_data, W8LevelFile* lev
     SetOctreeGameData(game_data);
     delete m_visited_object_bits;
     m_visited_object_bits = new BitArray(m_spatial.m_item_count + 0x14);
-    pre_pathing_2a0 = new PrePathing;
-    pre_pathing_2a0->SnapNamedPositions(level->pNamedPositions, level->nNamedPositions,
+    pre_pathing = new PrePathing;
+    pre_pathing->SnapNamedPositions(level->pNamedPositions, level->nNamedPositions,
                                         min_component_percent, this);
     ReportBuildStatus(6, "\nBuilding Path Lists:\n=======================\n");
-    path_node_extent_3b4 = m_region_cell + m_region_cell;
+    path_node_extent = m_region_cell + m_region_cell;
     float level_height = (m_spatial.m_maximum.y - m_spatial.m_minimum.y) * g_path_span_scale;
     int x_cells =
         static_cast<int>((m_spatial.m_maximum.x - m_spatial.m_minimum.x) / m_region_cell) + 1;
@@ -1206,9 +1206,9 @@ unsigned char OctPreTree::BuildPathLists(W8GameData* game_data, W8LevelFile* lev
         static_cast<int>((m_spatial.m_maximum.z - m_spatial.m_minimum.z) / m_region_cell) + 1;
 
     int prop_count = CreatePathProps(level, &preprops);
-    W8PrePathNode* record = pre_pathing_2a0->GetPathNode();
+    W8PrePathNode* record = pre_pathing->GetPathNode();
     W8PrePathNode* head = record;
-    path_node_count_2a4 = 1;
+    path_node_count = 1;
     int last_percent = 0;
     if (x_cells > 0) {
         float x_cells_f = static_cast<float>(x_cells);
@@ -1217,7 +1217,7 @@ unsigned char OctPreTree::BuildPathLists(W8GameData* game_data, W8LevelFile* lev
             if (last_percent < percent) {
                 ++last_percent;
                 sprintf(message, "  %d%% Complete:  %d Path Nodes Created \r", last_percent,
-                        path_node_count_2a4);
+                        path_node_count);
                 ReportStartupMessage(message);
             }
             unsigned int cell = static_cast<unsigned int>(x);
@@ -1237,7 +1237,7 @@ unsigned char OctPreTree::BuildPathLists(W8GameData* game_data, W8LevelFile* lev
                         node.y = snapped;
                     }
                     if (PathNodeObstructed(&node) != 1) {
-                        W8PrePathNode* next = pre_pathing_2a0->GetPathNode();
+                        W8PrePathNode* next = pre_pathing->GetPathNode();
                         record->next = next;
                         record = next;
                         record->cell = cell;
@@ -1252,10 +1252,10 @@ unsigned char OctPreTree::BuildPathLists(W8GameData* game_data, W8LevelFile* lev
                         }
                         int slot = node_map.FindNextEntry(&cell, -1);
                         if (slot == -1 || node_map.entries[slot].value == 0) {
-                            node_map.Insert(&cell, &path_node_count_2a4);
+                            node_map.Insert(&cell, &path_node_count);
                             record->level_flags |= 0x10000000;
                         }
-                        ++path_node_count_2a4;
+                        ++path_node_count;
                     }
                     node.y -=
                         m_lNumSupports != 0 ? NAVIGATOR_MINIMUM_HORIZONTAL_DISTANCE : g_world_scale;
@@ -1264,24 +1264,24 @@ unsigned char OctPreTree::BuildPathLists(W8GameData* game_data, W8LevelFile* lev
             }
         }
     }
-    sprintf(message, "%d Path Nodes Created               \n", path_node_count_2a4);
+    sprintf(message, "%d Path Nodes Created               \n", path_node_count);
     ReportBuildStatus(6, message);
-    if (path_node_count_2a4 != 0) {
-        if (pre_pathing_2a0 == 0) {
+    if (path_node_count != 0) {
+        if (pre_pathing == 0) {
             ReportBuildStatus(7, "Could not create PrePathing object\n");
         }
-        pre_pathing_2a0->ConfigureForLevel(path_node_count_2a4, m_region_cell,
+        pre_pathing->ConfigureForLevel(path_node_count, m_region_cell,
                                            static_cast<int>(m_path_clearance), &m_spatial.m_minimum,
                                            m_owned_0c0);
         /* Verified retail behavior: this early return runs only the two
            local hash-table destructors.  preprops (and its pStopMeshes
            arrays), object_registry and g_octree_game_data are all
            left behind - the registry pointer and global stay live. */
-        if (!pre_pathing_2a0->BuildPathList(head, &node_map)) {
+        if (!pre_pathing->BuildPathList(head, &node_map)) {
             return 0;
         }
-        pre_pathing_2a0->LinkCollideableProps(prop_count, preprops, &cond_map);
-        pre_pathing_2a0->CreateAutomapNodes(level);
+        pre_pathing->LinkCollideableProps(prop_count, preprops, &cond_map);
+        pre_pathing->CreateAutomapNodes(level);
     }
     for (int i = 0; i < prop_count; ++i) {
         /* Verified retail oddity: the binary tests pStopMeshes twice around
@@ -1483,10 +1483,10 @@ char OctPreTree::TestPathPropBounds(const srVector3T<float>* minimum,
     int count = QueryObjects(&ids, minimum, maximum, 3, -1);
     for (int i = 0; i < count && hit == 0; ++i) {
         W8GDSurface* surface = g_octree_game_data->m_pSurfaces + ids[i];
-        if ((surface->flags_00 & 0x1080) == 0) {
-            triangle[0] = g_octree_game_data->m_pVertices[surface->vertex_indices_18[0]];
-            triangle[1] = g_octree_game_data->m_pVertices[surface->vertex_indices_18[1]];
-            triangle[2] = g_octree_game_data->m_pVertices[surface->vertex_indices_18[2]];
+        if ((surface->flags & 0x1080) == 0) {
+            triangle[0] = g_octree_game_data->m_pVertices[surface->vertex_indices[0]];
+            triangle[1] = g_octree_game_data->m_pVertices[surface->vertex_indices[1]];
+            triangle[2] = g_octree_game_data->m_pVertices[surface->vertex_indices[2]];
             hit = TestSpatialTriangle(bounds, triangle, surface->Normal());
         }
     }
@@ -1498,7 +1498,7 @@ char OctPreTree::TestPathPropBounds(const srVector3T<float>* minimum,
     bool prop_hit = false;
     for (int k = 0; k < count; ++k) {
         int id = ids[k];
-        GDProp* prop = *props_3b8->GetAt(id);
+        GDProp* prop = *props->GetAt(id);
         if (prop->BoundsOverlap(minimum, maximum) != 0) {
             prop_hit = true;
             if ((prop->m_flags & 1) != 0)
@@ -1519,7 +1519,7 @@ char OctPreTree::TestPathPropBounds(const srVector3T<float>* minimum,
 
 /* Builds one W8PreProp per level prop flagged for pathing: allocates the
    per-frame GDPreProp stop meshes, applies each anim frame to seed bounds,
-   and registers every element in props_3b8. Returns the record count and the
+   and registers every element in props. Returns the record count and the
    malloc'd array through `preprops`. */
 // FUNCTION: WIZ8 0x0046c0f0
 int OctPreTree::CreatePathProps(W8LevelFile* level, W8PreProp** preprops)
@@ -1549,12 +1549,12 @@ int OctPreTree::CreatePathProps(W8LevelFile* level, W8PreProp** preprops)
                 record->pStopMeshes[0].ApplyAnimFrame(0, &prop->anim_obj);
                 record->pStopMeshes[0].ComputeBounds(&bounds.minimum, &bounds.maximum);
                 AddCollidablePropBounds(prop_number, &bounds);
-                props_3b8->Add(record->pStopMeshes);
+                props->Add(record->pStopMeshes);
                 if (record->num_stop_meshes == 2) {
                     record->pStopMeshes[1].ApplyAnimFrame(0xffff, &prop->anim_obj);
                     record->pStopMeshes[1].ComputeBounds(&bounds.minimum, &bounds.maximum);
                     AddCollidablePropBounds(static_cast<unsigned short>(prop_number + 1), &bounds);
-                    props_3b8->Add(record->pStopMeshes + 1);
+                    props->Add(record->pStopMeshes + 1);
                     prop_number += 2;
                 } else {
                     record->pStopMeshes[0].m_flags |= 1;
@@ -1595,7 +1595,7 @@ int OctPreTree::CreatePathProps(W8LevelFile* level, W8PreProp** preprops)
                     record->pStopMeshes[j].ComputeBounds(&bounds.minimum, &bounds.maximum);
                     AddCollidablePropBounds(prop_number, &bounds);
                     ++prop_number;
-                    props_3b8->Add(record->pStopMeshes + j);
+                    props->Add(record->pStopMeshes + j);
                 }
             }
         }
@@ -1638,9 +1638,9 @@ char OctPreTree::PropFramesDiffer(W8LevelFileAnimObj* anim, unsigned short first
                 a.path = t->pathAI.pPaths[first];
                 b.path = t->pathAI.pPaths[last];
             }
-            if (g_float_005ebc7c < fabsf(a.path.position_00.x - b.path.position_00.x) ||
-                g_float_005ebc7c < fabsf(a.path.position_00.y - b.path.position_00.y) ||
-                g_float_005ebc7c < fabsf(a.path.position_00.z - b.path.position_00.z)) {
+            if (g_float_005ebc7c < fabsf(a.path.position.x - b.path.position.x) ||
+                g_float_005ebc7c < fabsf(a.path.position.y - b.path.position.y) ||
+                g_float_005ebc7c < fabsf(a.path.position.z - b.path.position.z)) {
                 differ = 1;
             }
             if (g_camera_snap_epsilon < fabsf(a.path.angle - b.path.angle) ||
@@ -1690,7 +1690,7 @@ W8OctSpatialState::W8OctSpatialState(const W8OctSpatialState* source)
         m_root = source->m_root;
         m_node_index = source->m_node_index;
         m_triangle_vertices = source->m_triangle_vertices;
-        flags_00 = source->flags_00;
+        flags = source->flags;
         m_item_count = source->m_item_count;
         submesh_count = source->submesh_count;
         m_region_count = source->m_region_count;

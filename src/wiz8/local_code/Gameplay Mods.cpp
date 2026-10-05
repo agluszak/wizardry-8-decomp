@@ -63,7 +63,7 @@ void RebuildPartyEffectBlock(void)
                 g_status.party_modifiers.armor_matchup = value;
             }
         }
-        ApplyCombatEffectSlots(g_combat_state->effect_slots_85a, &g_status.party_modifiers);
+        ApplyCombatEffectSlots(g_combat_state->effect_slots0, &g_status.party_modifiers);
     }
     int active = 0;
     unsigned int slot_byte = 0;

@@ -32,11 +32,11 @@ private:
     // GLOBAL: SURRENDER 0x100A45EC
     static srExtension* firstExt;
 
-    srPlugin* plugin_00;
-    char* name_04;
-    HMODULE module_08;
+    srPlugin* plugin;
+    char* name;
+    HMODULE module;
     srExtension* previous;
-    srExtension* next_10;
+    srExtension* next;
 };
 
 static_assert(sizeof(srExtension) == 0x14,

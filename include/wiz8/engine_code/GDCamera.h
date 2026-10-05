@@ -48,7 +48,7 @@ public:
     /* 0x000: camera state bits: bit0 manual-input control latch, bit5
        orientation-transition keep, bit6 level-movement audio, bit7
        orientation snapped (renderer marked ready next update). */
-    unsigned long m_state_000;
+    unsigned long m_state;
     float m_yaw;                        /* 0x004 */
     float m_pitch;                      /* 0x008 */
     srMatrix3T<float> m_pitch_rotation; /* 0x00c */

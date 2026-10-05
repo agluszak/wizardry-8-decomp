@@ -21,8 +21,8 @@ public:
         friend class srRegistry;
 
         struct ChildLink {
-            ClassNode* node_00;
-            ChildLink* next_04;
+            ClassNode* node;
+            ChildLink* next;
             ChildLink* previous;
         };
 
@@ -31,33 +31,33 @@ public:
            this+0 when initialize() throws, and ~ClassNode's state-0 region
            covers the whole body while the list teardown runs at the end. */
         struct ChildList {
-            unsigned long count_00;
-            ChildLink* first_04;
+            unsigned long count;
+            ChildLink* first;
             ChildLink* last;
 
-            ChildList() : first_04(new ChildLink), last(first_04)
+            ChildList() : first(new ChildLink), last(first)
             {
-                first_04->next_04 = 0;
-                first_04->previous = 0;
-                count_00 = 0;
+                first->next = 0;
+                first->previous = 0;
+                count = 0;
             }
 
             // FUNCTION: SURRENDER 0x10010780
             ~ChildList()
             {
-                while (first_04 != last) {
-                    ChildLink* link = first_04;
-                    first_04 = link->next_04;
+                while (first != last) {
+                    ChildLink* link = first;
+                    first = link->next;
                     if (link->previous != 0) {
-                        link->previous->next_04 = link->next_04;
+                        link->previous->next = link->next;
                     }
-                    if (link->next_04 != 0) {
-                        link->next_04->previous = link->previous;
+                    if (link->next != 0) {
+                        link->next->previous = link->previous;
                     }
                     delete link;
-                    --count_00;
+                    --count;
                 }
-                delete first_04;
+                delete first;
             }
         };
 
@@ -98,10 +98,10 @@ public:
             srHeap.free(node);
         }
 
-        ChildList children_00;
-        ClassNode* parent_0c;
-        unsigned long class_id_10;
-        const char* class_name_14;
+        ChildList children;
+        ClassNode* parent;
+        unsigned long class_id;
+        const char* class_name;
         NameIndex* named_instances;
         NameIndex* inherited_named_instances;
         IDIndex* instances_by_id;
@@ -230,8 +230,8 @@ protected:
 private:
     static SR_DLL_IMPORT unsigned long sGetClassID();
 
-    char* name_04;
-    unsigned long id_08;
+    char* name;
+    unsigned long id;
 };
 
 static_assert(sizeof(srRuntimeClass) == 0x0c, "srRuntimeClass_must_be_0x0c");
@@ -304,9 +304,9 @@ protected:
 private:
     struct Update {
         double last_update_time;
-        double interval_08;
-        UpdateCallBack callback_10;
-        srClass* instance_14;
+        double interval;
+        UpdateCallBack callback;
+        srClass* instance;
         Update* previous;
         Update* next;
     };
@@ -318,8 +318,8 @@ private:
     static SR_DLL_IMPORT unsigned long _timestampCtr;
 
     mutable long reference_count;
-    unsigned long timestamp_10;
-    Update* update_14;
+    unsigned long timestamp;
+    Update* update;
 };
 
 static_assert(sizeof(srClass) == 0x18, "srClass_must_be_0x18");
@@ -388,7 +388,7 @@ public:
 
     explicit srClientSupport(srNode* parent) : Base(parent) {}
 
-    explicit srClientSupport(srColorSurfaceIFace* surface) : Base(surface) {}
+    explicit srClientSupport(srColorSurfaceIFace* arg_surface) : Base(arg_surface) {}
 
     template <class A0, class A1> srClientSupport(A0 a0, A1 a1) : Base(a0, a1) {}
 

@@ -226,12 +226,12 @@ void W8JournalPanel::Refresh()
             g_journal_page_count = page_count;
             g_journal_page = last_page;
         }
-        m_next_050->SetEnabled(g_journal_page < last_page);
-        m_previous_054->SetEnabled(g_journal_page > 0);
+        m_next->SetEnabled(g_journal_page < last_page);
+        m_previous->SetEnabled(g_journal_page > 0);
 
         wchar_t page_text[20];
         swprintf(page_text, g_journal_page_format, g_journal_page + 1, page_count);
-        m_page_text_060->SetText(page_text, g_options_detail_font);
+        m_page_text->SetText(page_text, g_options_detail_font);
         DrawCatalogImageAndInvalidate(-14, 0x1b8, 0, 0, 0, 0, 2, 0);
         DrawJournalLine(gppStringList[0x6db], 0, 0x19, 0, 1);
         DrawJournalLine(gppStringList[0x6dc], 1, 0x19, 0, 1);
@@ -264,9 +264,9 @@ void W8JournalPanel::Refresh()
             previous_level = entry->level;
         }
     } else {
-        m_next_050->SetEnabled(0);
-        m_previous_054->SetEnabled(0);
-        m_page_text_060->SetText(g_journal_alternate_page, g_options_detail_font);
+        m_next->SetEnabled(0);
+        m_previous->SetEnabled(0);
+        m_page_text->SetText(g_journal_alternate_page, g_options_detail_font);
         DrawCatalogImageAndInvalidate(-14, 0x1b8, 0, 0, 0, 0, 2, 0);
         DrawJournalLine(gppStringList[0x6de], 0, 0x19, 0, 1);
         DrawJournalLine(gppStringList[0x6df], 1, 0x19, 0, 1);
@@ -305,8 +305,8 @@ void W8JournalPanel::Refresh()
 
 // FUNCTION: WIZ8 0x005bd530
 W8JournalPanel::W8JournalPanel(unsigned int* region_set)
-    : Controls(0x66, 0x1bb, 0, 0, 0xf3, 0, 0), m_next_050(0), m_previous_054(0), m_close(0),
-      m_mode(0), m_page_text_060(0), m_alternate_mode(0)
+    : Controls(0x66, 0x1bb, 0, 0, 0xf3, 0, 0), m_next(0), m_previous(0), m_close(0),
+      m_mode(0), m_page_text(0), m_alternate_mode(0)
 {
     short width;
     short height;
@@ -316,14 +316,14 @@ W8JournalPanel::W8JournalPanel(unsigned int* region_set)
     m_bounds.right = m_bounds.left + static_cast<unsigned short>(width);
     m_bounds.bottom = m_bounds.top + static_cast<unsigned short>(height);
 
-    m_previous_054 = new W8TextControl(this, 0xffffffff, 3, 3, 0, 0, 0xf4, 0, 0, 2, 1, -1, 3);
-    m_previous_054->m_listener = this;
+    m_previous = new W8TextControl(this, 0xffffffff, 3, 3, 0, 0, 0xf4, 0, 0, 2, 1, -1, 3);
+    m_previous->m_listener = this;
 
-    m_next_050 = new W8TextControl(this, 0xffffffff, 0x11f, 3, 0, 0, 0xf4, 0, 4, 6, 5, -1, 7);
-    m_next_050->m_listener = this;
+    m_next = new W8TextControl(this, 0xffffffff, 0x11f, 3, 0, 0, 0xf4, 0, 4, 6, 5, -1, 7);
+    m_next->m_listener = this;
 
     W8ControlsRect bounds = {m_bounds.left, m_bounds.top, m_bounds.right, m_bounds.bottom};
-    m_page_text_060 = new W8TextBuffer(&bounds, &g_empty_wide_string, g_options_detail_font,
+    m_page_text = new W8TextBuffer(&bounds, &g_empty_wide_string, g_options_detail_font,
                                        g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter, 4);
 
     m_mode = new W8TextControl(this, 0xffffffff, 0x1b0, -2, 0, 0, 0x1bb, 0, 0, 2, 1, 2, 3);
@@ -347,7 +347,7 @@ W8JournalPanel::W8JournalPanel(unsigned int* region_set)
 W8JournalPanel::~W8JournalPanel()
 {
     DestroyAllControls();
-    delete m_page_text_060;
+    delete m_page_text;
 }
 
 // FUNCTION: WIZ8 0x005bdbf0
@@ -355,19 +355,19 @@ void W8JournalPanel::Redraw()
 {
     if (m_fEnabled && (m_fDirty || m_fLayoutDirty)) {
         Controls::Redraw();
-        m_page_text_060->RenderToTarget(0, 1, -14);
+        m_page_text->RenderToTarget(0, 1, -14);
     }
 }
 
 // FUNCTION: WIZ8 0x005bdc20
 void W8JournalPanel::OnPrimary(W8TextControl* control)
 {
-    if (control == m_previous_054) {
+    if (control == m_previous) {
         if (g_journal_page > 0) {
             --g_journal_page;
             Refresh();
         }
-    } else if (control == m_next_050) {
+    } else if (control == m_next) {
         if (g_journal_page < (g_journal_entries->count - 1) / 12) {
             ++g_journal_page;
             Refresh();

@@ -186,14 +186,14 @@ bool MtGigas2YellowWire(Trigger* pTrigger)
     }
     SetFact(0xa7, 1, 0);
     SetTriggerVariableByName("WirePanel", 3);
-    pTrigger->flags_0a0 &= ~W8_TRIGGER_ENABLED;
+    pTrigger->flags &= ~W8_TRIGGER_ENABLED;
     wire = FindTriggerByName("redwire");
     if (wire != 0) {
-        wire->flags_0a0 &= ~W8_TRIGGER_ENABLED;
+        wire->flags &= ~W8_TRIGGER_ENABLED;
     }
     wire = FindTriggerByName("bluewire");
     if (wire != 0) {
-        wire->flags_0a0 &= ~W8_TRIGGER_ENABLED;
+        wire->flags &= ~W8_TRIGGER_ENABLED;
     }
     return true;
 }

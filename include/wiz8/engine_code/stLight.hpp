@@ -119,7 +119,7 @@ static_assert(offsetof(stParametricLightDefinition, subcycle_max) == 0x40,
 // VTABLE: WIZ8 0x005ecda0
 class stKeyframedLightDefinition : public stLightDefinition {
 public:
-    stKeyframedLightDefinition() : keyframe_index(0), time_4c(0.0f)
+    stKeyframedLightDefinition() : keyframe_index(0), time(0.0f)
     {
         kind = W8_LIGHT_DEFINITION_KEYFRAMED;
     }
@@ -131,7 +131,7 @@ public:
     W8GrowableVector<float> key_intensities;
     W8GrowableVector<srVector3T<float> > key_colors;
     int keyframe_index;
-    float time_4c;
+    float time;
     int start_frame;
     float end_frame;
 };
@@ -148,7 +148,7 @@ static_assert(offsetof(stKeyframedLightDefinition, key_colors) == 0x38,
               "stKeyframedLightDefinition_values_38");
 static_assert(offsetof(stKeyframedLightDefinition, keyframe_index) == 0x48,
               "stKeyframedLightDefinition_keyframe_index");
-static_assert(offsetof(stKeyframedLightDefinition, time_4c) == 0x4c,
+static_assert(offsetof(stKeyframedLightDefinition, time) == 0x4c,
               "stKeyframedLightDefinition_time_4c");
 static_assert(offsetof(stKeyframedLightDefinition, start_frame) == 0x50,
               "stKeyframedLightDefinition_start_frame");
@@ -198,15 +198,15 @@ public:
 
     float positionalX() const
     {
-        return m_position_228.x;
+        return m_position.x;
     }
     float positionalY() const
     {
-        return m_position_228.y;
+        return m_position.y;
     }
     float positionalZ() const
     {
-        return m_position_228.z;
+        return m_position.z;
     }
     stLightDefinition* definition() const
     {
@@ -223,7 +223,7 @@ public:
     /* One value, not three floats: 0x0049C690 copies it through the base-pointer
        form VC6 emits for a class type's memberwise assignment, not through three
        independent displacement loads. */
-    srVector3T<float> m_position_228;    /* 0x228 */
+    srVector3T<float> m_position;    /* 0x228 */
     stLightDefinition* m_definition;     /* 0x234: owned */
     unsigned char m_unknown_238;         /* 0x238 */
     /* Oscillation direction: zero sweeps intensity down, nonzero sweeps up. */
@@ -234,7 +234,7 @@ public:
     unsigned char m_padding_23b;
     /* GetTickCount()/1000 timestamp of the last intensity/color update. */
     float m_level_time;
-    /* Current 0..1 sweep level driving intensity_1d0 and the color lerp. */
+    /* Current 0..1 sweep level driving intensity and the color lerp. */
     float m_level;
     W8PathAI* path_ai; /* 0x244 */
     /* Current path entry index, advanced by m_path_direction. */

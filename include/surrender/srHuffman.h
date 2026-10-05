@@ -47,8 +47,8 @@ public:
         unsigned long getDWord(long position);
         unsigned long getWordOrLess(unsigned long bits);
 
-        srBinIStream* stream_00;
-        unsigned char cache_04[0x80];
+        srBinIStream* stream;
+        unsigned char cache[0x80];
         long cache_base;
         long bit_pos;
     };
@@ -74,12 +74,12 @@ public:
         void flushBuffer();
         void putBit(unsigned long bit);
 
-        srBinOStream* stream_00;
-        unsigned long bytes_04;
-        unsigned long bit_count_08;
-        unsigned long pending_0c;
-        unsigned char buffer_10[0x40];
-        unsigned long buffered_50;
+        srBinOStream* stream;
+        unsigned long bytes;
+        unsigned long bit_count;
+        unsigned long pending;
+        unsigned char buffer[0x40];
+        unsigned long buffered;
     };
 
     class
@@ -89,7 +89,7 @@ public:
         Sampler {
     public:
         struct Symbol {
-            unsigned long symbol_00;
+            unsigned long symbol;
             unsigned long frequency;
         };
 
@@ -106,9 +106,9 @@ public:
         SR_DLL_IMPORT unsigned long getSymbolFrequency(unsigned long index) const;
 
     private:
-        srHashTable<unsigned long, int> table_00;
-        srArray<Symbol> symbols_10;
-        int count_18;
+        srHashTable<unsigned long, int> table;
+        srArray<Symbol> symbols;
+        int count;
     };
 
     class
@@ -118,12 +118,12 @@ public:
         Compressor {
     public:
         struct Node {
-            unsigned long symbol_00;
+            unsigned long symbol;
             unsigned long frequency;
-            unsigned long code_08;
-            unsigned long bits_0c;
-            Node* next_10;
-            Node* children_14[2];
+            unsigned long code;
+            unsigned long bits;
+            Node* next;
+            Node* children[2];
         };
 
         SR_DLL_IMPORT Compressor(const Sampler& sampler);
@@ -139,19 +139,19 @@ public:
         // FUNCTION: SURRENDER 0x10001430
         void compressSymbol(BitOStream& stream, unsigned long symbol)
         {
-            Node* node = table_00.Lookup(&symbol);
+            Node* node = table.Lookup(&symbol);
             if (node != 0) {
-                stream.put(node->code_08, node->bits_0c);
+                stream.put(node->code, node->bits);
             }
         }
 
-        srHashTable<unsigned long, Node*> table_00;
-        Node* nodes_10;
+        srHashTable<unsigned long, Node*> table;
+        Node* nodes;
         Node* free_list;
-        Node* root_18;
+        Node* root;
         unsigned long num_symbols;
         unsigned long code_width;
-        unsigned long total_24;
+        unsigned long total;
 
     private:
         Compressor(const Compressor& other);
@@ -184,15 +184,15 @@ public:
 
         void setupSymbolTable(Symbol* node);
 
-        BitIStream* stream_00;
-        Symbol* symbols_04;
-        unsigned long next_node_08;
+        BitIStream* stream;
+        Symbol* symbols;
+        unsigned long next_node;
         unsigned long code_width;
         unsigned long unknown_10;
         unsigned long num_symbols;
         unsigned long data_count;
-        Symbol* lookup_1c[0x100];
-        unsigned char depth_41c[0x100];
+        Symbol* lookup[0x100];
+        unsigned char depth[0x100];
     };
 };
 

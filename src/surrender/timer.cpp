@@ -14,7 +14,7 @@ typedef BOOL(__stdcall* QueryFrequency)(LARGE_INTEGER*);
    CPUID side when the stored signature does not describe the running CPU. */
 struct srTimerConfig {
     long use_stored;               /* +0x00 */
-    long unused_04;                /* +0x04 */
+    long unused;                /* +0x04 */
     long save;                     /* +0x08 */
     long cpuid_support;            /* +0x0c */
     long cpu_count;                /* +0x10 */
@@ -277,7 +277,7 @@ int srTimer::reset(int detect, int argument_1, int save)
     srTimerConfig config;
     config.cpuid_support = getCPUIDSupport();
     config.save = save;
-    config.unused_04 = 0;
+    config.unused = 0;
     config.cpu_count = m_cpu_count;
     strcpy(config.cpu_vendor, storage_class);
     strcpy(config.os_ident, storage_class);

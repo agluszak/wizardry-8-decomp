@@ -23,10 +23,10 @@
    zero-initialized pointers here; no in-range provider code ever stores to
    them, so dump prints numeric bit indices. */
 // GLOBAL: SURRENDER 0x100A4998
-static const char* s_control_names_100a4998;
+static const char* s_control_names;
 
 // GLOBAL: SURRENDER 0x100A499C
-static const char* s_flag_names_100a499c;
+static const char* s_flag_names0;
 
 /* Retail's guarded dword fill — identical emission to renderer.cpp's
    file-local fillConstant; the linker folds the two copies. */
@@ -82,7 +82,7 @@ template <class T> static void permuteObjects(T* table, const unsigned long* ind
 void srMeshModel::setShader(srShader shader, long pass)
 {
     if (pass >= 0 && pass < 4) {
-        shaders_5c[pass] = shader;
+        shaders[pass] = shader;
     }
 }
 
@@ -90,7 +90,7 @@ void srMeshModel::setShader(srShader shader, long pass)
 srShader srMeshModel::getShader(long pass) const
 {
     if (pass >= 0 && pass < 4) {
-        return shaders_5c[pass];
+        return shaders[pass];
     }
     srShader shader;
     shader.value = 0x0100241b;
@@ -101,7 +101,7 @@ srShader srMeshModel::getShader(long pass) const
 srMaterialIFace* srMeshModel::getMaterial(long pass, e_side side) const
 {
     if (pass >= 0 && pass < 4 && (int)side >= 0 && (int)side < 2) {
-        return materials_1c[pass][side];
+        return materials[pass][side];
     }
     return 0;
 }
@@ -110,7 +110,7 @@ srMaterialIFace* srMeshModel::getMaterial(long pass, e_side side) const
 void srMeshModel::setMaterial(srMaterialIFace* material, long pass, e_side side)
 {
     if (pass >= 0 && pass < 4 && (int)side >= 0 && (int)side < 2) {
-        materials_1c[pass][side] = material;
+        materials[pass][side] = material;
     }
 }
 
@@ -118,7 +118,7 @@ void srMeshModel::setMaterial(srMaterialIFace* material, long pass, e_side side)
 srTextureIFace* srMeshModel::getTexture(long pass, long layer) const
 {
     if (pass >= 0 && pass < 4 && layer >= 0 && layer < 2) {
-        return textures_3c[pass][layer];
+        return textures[pass][layer];
     }
     return 0;
 }
@@ -127,7 +127,7 @@ srTextureIFace* srMeshModel::getTexture(long pass, long layer) const
 void srMeshModel::setTexture(srTextureIFace* texture, long pass, long layer)
 {
     if (pass >= 0 && pass < 4 && layer >= 0 && layer < 2) {
-        textures_3c[pass][layer] = texture;
+        textures[pass][layer] = texture;
     }
 }
 
@@ -151,7 +151,7 @@ void srMeshModel::setUVCount(long count)
     }
     if (count != uv_count) {
         uv_count = count;
-        MeshTable<srVector2T<float> >* table = &texcoords_13c[0][0];
+        MeshTable<srVector2T<float> >* table = &texcoords[0][0];
         for (long pass = 0; pass < 4; ++pass) {
             for (long side = 0; side < 2; ++side, ++table) {
                 if (table->data != 0) {
@@ -217,13 +217,13 @@ srVector4T<float>* srMeshModel::getPolyEq()
     if (polygon_count == 0) {
         return 0;
     }
-    if (poly_equations_134.data == 0) {
-        poly_equations_134.Resize(polygon_count, 1);
+    if (poly_equations.data == 0) {
+        poly_equations.Resize(polygon_count, 1);
     }
     if ((dirty_flags.value & 2) != 0) {
         calculatePolygonNormals();
     }
-    return poly_equations_134.data;
+    return poly_equations.data;
 }
 
 // FUNCTION: SURRENDER 0x10040250
@@ -263,7 +263,7 @@ srPtr<srMaterialIFace>* srMeshModel::getVertexMaterial(long vertex, e_side side,
     if (vertex < 0 || vertex > 3 || (int)side < 0 || (int)side > 1) {
         return 0;
     }
-    MeshTable<srPtr<srMaterialIFace> >& slot = vertex_materials_cc[vertex][side];
+    MeshTable<srPtr<srMaterialIFace> >& slot = vertex_materials[vertex][side];
     if (slot.data == 0) {
         if (table != 0) {
             slot.Resize(vertex_location_count, 0);
@@ -281,7 +281,7 @@ srPtr<srTextureIFace>* srMeshModel::getPolyTexture(long polygon, long layer, int
     if (polygon < 0 || polygon > 3 || layer < 0 || layer > 1) {
         return 0;
     }
-    MeshTable<srPtr<srTextureIFace> >& slot = poly_textures_6c[polygon][layer];
+    MeshTable<srPtr<srTextureIFace> >& slot = poly_textures[polygon][layer];
     if (slot.data == 0) {
         if (table != 0) {
             slot.Resize(polygon_count, 0);
@@ -299,7 +299,7 @@ srShader* srMeshModel::getPolyShader(long polygon, int layer)
     if (polygon < 0 || polygon > 3) {
         return 0;
     }
-    MeshTable<srShader>& slot = poly_shaders_ac[polygon];
+    MeshTable<srShader>& slot = poly_shaders[polygon];
     if (slot.data == 0) {
         if (layer != 0) {
             slot.Resize(polygon_count, 0);
@@ -333,7 +333,7 @@ srVector3T<float>* srMeshModel::getVertexDIG(long vertex, int table)
     if (vertex < 0 || vertex > 3) {
         return 0;
     }
-    MeshTable<srVector3T<float> >& slot = dig_17c[vertex];
+    MeshTable<srVector3T<float> >& slot = dig[vertex];
     if (slot.data == 0) {
         if (table != 0) {
             slot.Resize(vertex_location_count, 0);
@@ -351,7 +351,7 @@ srVector2T<float>* srMeshModel::getVertexTexCoords(long vertex, long layer, int 
     if (vertex < 0 || vertex > 3 || layer < 0 || layer > 1) {
         return 0;
     }
-    MeshTable<srVector2T<float> >& slot = texcoords_13c[vertex][layer];
+    MeshTable<srVector2T<float> >& slot = texcoords[vertex][layer];
     if (slot.data == 0) {
         if (table != 0) {
             slot.Resize(uv_count, 1);
@@ -407,22 +407,22 @@ void srMeshModel::freeAll()
     setDirty(static_cast<e_flags>(3));
     active_polygons.Release();
     poly_vertices.Release();
-    poly_equations_134.Release();
+    poly_equations.Release();
     vertex_locations.Release();
     vertex_normals.Release();
     vertex_shade_indices.Release();
     for (long pass = 0; pass < 4; ++pass) {
-        vertex_materials_cc[pass][0].Release();
-        vertex_materials_cc[pass][1].Release();
-        poly_textures_6c[pass][0].Release();
-        poly_textures_6c[pass][1].Release();
-        texcoords_13c[pass][0].Release();
-        texcoords_13c[pass][1].Release();
+        vertex_materials[pass][0].Release();
+        vertex_materials[pass][1].Release();
+        poly_textures[pass][0].Release();
+        poly_textures[pass][1].Release();
+        texcoords[pass][0].Release();
+        texcoords[pass][1].Release();
         poly_uv_indices[pass].Release();
-        poly_shaders_ac[pass].Release();
-        dig_17c[pass].Release();
-        dcg_19c[pass].Release();
-        scg_1bc[pass].Release();
+        poly_shaders[pass].Release();
+        dig[pass].Release();
+        dcg[pass].Release();
+        scg[pass].Release();
     }
 }
 
@@ -433,11 +433,11 @@ srMeshModel::srMeshModel(long polygons, long vertices)
     reset(polygons, vertices);
     sort_bias = 0.0f;
     for (long pass = 0; pass < 4; ++pass) {
-        materials_1c[pass][0] = 0;
-        materials_1c[pass][1] = 0;
-        textures_3c[pass][0] = 0;
-        textures_3c[pass][1] = 0;
-        shaders_5c[pass] = srShader();
+        materials[pass][0] = 0;
+        materials[pass][1] = 0;
+        textures[pass][0] = 0;
+        textures[pass][1] = 0;
+        shaders[pass] = srShader();
     }
 }
 
@@ -481,27 +481,27 @@ srMeshModel& srMeshModel::operator=(const srMeshModel& other)
         active_polygon_count = other.active_polygon_count;
         active_polygons = other.active_polygons;
         poly_vertices = other.poly_vertices;
-        poly_equations_134 = other.poly_equations_134;
+        poly_equations = other.poly_equations;
         vertex_locations = other.vertex_locations;
         vertex_normals = other.vertex_normals;
         vertex_shade_indices = other.vertex_shade_indices;
         for (long pass = 0; pass < 4; ++pass) {
             long side;
             for (side = 0; side < 2; ++side) {
-                materials_1c[pass][side] = other.materials_1c[pass][side];
-                vertex_materials_cc[pass][side] = other.vertex_materials_cc[pass][side];
+                materials[pass][side] = other.materials[pass][side];
+                vertex_materials[pass][side] = other.vertex_materials[pass][side];
             }
             for (side = 0; side < 2; ++side) {
-                textures_3c[pass][side] = other.textures_3c[pass][side];
-                poly_textures_6c[pass][side] = other.poly_textures_6c[pass][side];
-                texcoords_13c[pass][side] = other.texcoords_13c[pass][side];
+                textures[pass][side] = other.textures[pass][side];
+                poly_textures[pass][side] = other.poly_textures[pass][side];
+                texcoords[pass][side] = other.texcoords[pass][side];
             }
-            shaders_5c[pass] = other.shaders_5c[pass];
-            poly_shaders_ac[pass] = other.poly_shaders_ac[pass];
+            shaders[pass] = other.shaders[pass];
+            poly_shaders[pass] = other.poly_shaders[pass];
             poly_uv_indices[pass] = other.poly_uv_indices[pass];
-            dig_17c[pass] = other.dig_17c[pass];
-            dcg_19c[pass] = other.dcg_19c[pass];
-            scg_1bc[pass] = other.scg_1bc[pass];
+            dig[pass] = other.dig[pass];
+            dcg[pass] = other.dcg[pass];
+            scg[pass] = other.scg[pass];
         }
     }
     return *this;
@@ -826,23 +826,23 @@ void srMeshModel::updateTriMesh()
     tri_mesh.pass_count = pass_count;
     tri_mesh.control_flags = render_control.value;
     tri_mesh.sort_bias = sort_bias;
-    tri_mesh.poly_vertices_10 = getPolyVertex();
-    tri_mesh.poly_equations_14 = getPolyEq();
+    tri_mesh.poly_vertices = getPolyVertex();
+    tri_mesh.poly_equations = getPolyEq();
     tri_mesh.positions = getVertexLoc();
     tri_mesh.normals = getVertexNormal();
     for (long pass = 0; pass < 4; pass++) {
         for (long side = 0; side < 2; side++) {
-            tri_mesh.materials_70[pass][side] =
-                (srMaterial*)(srMaterialIFace*)materials_1c[pass][side];
-            tri_mesh.vertex_materials_c0[pass][side] =
+            tri_mesh.materials[pass][side] =
+                static_cast<srMaterial*>(materials[pass][side].get());
+            tri_mesh.vertex_materials[pass][side] =
                 getVertexMaterial(pass, static_cast<e_side>(side), 0);
         }
         for (long layer = 0; layer < 2; layer++) {
-            tri_mesh.textures_90[pass][layer] = (srTextureIFace*)textures_3c[pass][layer];
-            tri_mesh.poly_textures_e0[pass][layer] = getPolyTexture(pass, layer, 0);
-            tri_mesh.texcoords_18[pass][layer] = getVertexTexCoords(pass, layer, 0);
+            tri_mesh.textures[pass][layer] = (srTextureIFace*)textures[pass][layer];
+            tri_mesh.poly_textures[pass][layer] = getPolyTexture(pass, layer, 0);
+            tri_mesh.texcoords[pass][layer] = getVertexTexCoords(pass, layer, 0);
         }
-        tri_mesh.shaders[pass] = shaders_5c[pass];
+        tri_mesh.shaders[pass] = shaders[pass];
         tri_mesh.poly_uv[pass] = getPolyUVIndex(pass, 0);
         tri_mesh.poly_shaders[pass] = getPolyShader(pass, 0);
         tri_mesh.dig[pass] = getVertexDIG(pass, 0);
@@ -901,7 +901,7 @@ srVector4T<float>* srMeshModel::getVertexSCG(long vertex, int table)
     if (vertex < 0 || vertex > 3) {
         return 0;
     }
-    MeshTable<srVector4T<float> >& slot = scg_1bc[vertex];
+    MeshTable<srVector4T<float> >& slot = scg[vertex];
     if (slot.data == 0) {
         if (table != 0) {
             slot.Resize(vertex_location_count, 0);
@@ -920,7 +920,7 @@ srVector4T<float>* srMeshModel::getVertexDCG(long vertex, int table)
     if (vertex < 0 || vertex > 3) {
         return 0;
     }
-    MeshTable<srVector4T<float> >& slot = dcg_19c[vertex];
+    MeshTable<srVector4T<float> >& slot = dcg[vertex];
     if (slot.data == 0) {
         if (table != 0) {
             slot.Resize(vertex_location_count, 0);
@@ -1129,11 +1129,11 @@ void srMeshModel::verify(srRuntimeClass::e_verify mode)
                 }
             }
         }
-        if (t.poly_vertices_10 == 0) {
+        if (t.poly_vertices == 0) {
             srAssertFail("t.pVertex", "D:\\srsdk1x\\sources\\corelib\\srMeshModel.cpp", 0x5e5, 0);
         }
         for (i = 0; i < t.polygon_count; ++i) {
-            int* component = &t.poly_vertices_10[i].x;
+            int* component = &t.poly_vertices[i].x;
             for (j = 0; j < 3; ++j, ++component) {
                 if (*component < 0 || t.vertex_count <= *component) {
                     srAssertFail("t.pVertex[i][j] >= 0 && t.pVertex[i][j] < t.vnum",
@@ -1141,11 +1141,11 @@ void srMeshModel::verify(srRuntimeClass::e_verify mode)
                 }
             }
         }
-        if (t.poly_equations_14 == 0) {
+        if (t.poly_equations == 0) {
             srAssertFail("t.pEq", "D:\\srsdk1x\\sources\\corelib\\srMeshModel.cpp", 0x5f1, 0);
         }
         for (i = 0; i < t.polygon_count; ++i) {
-            if (!t.poly_equations_14[i].isValid()) {
+            if (!t.poly_equations[i].isValid()) {
                 srAssertFail("t.pEq[i].isValid()", "D:\\srsdk1x\\sources\\corelib\\srMeshModel.cpp",
                              0x5f6, 0);
             }
@@ -1194,18 +1194,18 @@ void srMeshModel::verify(srRuntimeClass::e_verify mode)
                 }
             }
             for (j = 0; j < 2; ++j) {
-                if (t.texcoords_18[p][j] != 0) {
+                if (t.texcoords[p][j] != 0) {
                     for (i = 0; i < t.vertex_count; ++i) {
-                        if (!t.texcoords_18[p][j][i].isValid()) {
+                        if (!t.texcoords[p][j][i].isValid()) {
                             srAssertFail("t.vUV[p][j][i].isValid()",
                                          "D:\\srsdk1x\\sources\\corelib\\srMeshModel.cpp", 0x620,
                                          0);
                         }
                     }
                 }
-                if (t.poly_textures_e0[p][j] != 0) {
+                if (t.poly_textures[p][j] != 0) {
                     for (i = 0; i < t.polygon_count; ++i) {
-                        if (!t.poly_textures_e0[p][j][i]) {
+                        if (!t.poly_textures[p][j][i]) {
                             srAssertFail("t.pTexture[p][j][i]",
                                          "D:\\srsdk1x\\sources\\corelib\\srMeshModel.cpp", 0x625,
                                          0);
@@ -1214,9 +1214,9 @@ void srMeshModel::verify(srRuntimeClass::e_verify mode)
                 }
             }
             for (s = 0; s < 2; ++s) {
-                if (t.vertex_materials_c0[p][s] != 0) {
+                if (t.vertex_materials[p][s] != 0) {
                     for (v = 0; v < t.vertex_count; ++v) {
-                        if (!t.vertex_materials_c0[p][s][v]) {
+                        if (!t.vertex_materials[p][s][v]) {
                             srAssertFail("t.vMaterial[p][s][v]",
                                          "D:\\srsdk1x\\sources\\corelib\\srMeshModel.cpp", 0x62f,
                                          0);
@@ -1289,7 +1289,7 @@ void srMeshModel::dump(std::ostream& stream)
     } else {
         stream << '[';
         bool first = true;
-        const char* names = s_flag_names_100a499c;
+        const char* names = s_flag_names0;
         const char* name = names;
         for (unsigned long bit = 0; bit < 0x20; ++bit) {
             if ((dirty_flags.value & (1 << bit)) == 0) {
@@ -1330,7 +1330,7 @@ void srMeshModel::dump(std::ostream& stream)
     } else {
         stream << '[';
         bool first = true;
-        const char* names = s_control_names_100a4998;
+        const char* names = s_control_names;
         const char* name = names;
         for (unsigned long bit = 0; bit < 0x20; ++bit) {
             if ((render_control.value & (1 << bit)) == 0) {
@@ -1367,33 +1367,33 @@ void srMeshModel::dump(std::ostream& stream)
     stream << "  Materials, textures, shaders\n";
     stream << "  ----------------------------\n";
     for (pass = 0; pass < 4; ++pass) {
-        bool defined = (materials_1c[pass][0] != 0) || (materials_1c[pass][1] != 0);
+        bool defined = (this->materials[pass][0] != 0) || (this->materials[pass][1] != 0);
         for (stage = 0; stage < 2; ++stage) {
-            if (textures_3c[pass][stage] != 0) {
+            if (this->textures[pass][stage] != 0) {
                 defined = true;
             }
         }
         if (defined) {
             stream << "    Pass " << pass << '\n';
         }
-        if (materials_1c[pass][0] != 0) {
+        if (this->materials[pass][0] != 0) {
             stream.width(0x20);
-            stream << "      Front material: " << materials_1c[pass][0]->getName() << '\n';
+            stream << "      Front material: " << this->materials[pass][0]->getName() << '\n';
         }
-        if (materials_1c[pass][1] != 0) {
+        if (this->materials[pass][1] != 0) {
             stream.width(0x20);
-            stream << "      Back material: " << materials_1c[pass][1]->getName() << '\n';
+            stream << "      Back material: " << this->materials[pass][1]->getName() << '\n';
         }
         if (defined) {
             stream.width(0x20);
-            stream << "      Shader: " << shaders_5c[pass] << '\n';
+            stream << "      Shader: " << this->shaders[pass] << '\n';
         }
         for (stage = 0; stage < 2; ++stage) {
-            if (textures_3c[pass][stage] != 0) {
+            if (this->textures[pass][stage] != 0) {
                 char label[36];
                 sprintf(label, "      Texture %d", stage);
                 stream.width(0x20);
-                stream << label << textures_3c[pass][stage]->getName() << '\n';
+                stream << label << this->textures[pass][stage]->getName() << '\n';
             }
         }
     }
@@ -1594,7 +1594,7 @@ srTriMeshPipeline* srTriMeshPipeline::pipe = 0;
 
 srTriMeshPipeline::srTriMeshPipeline()
 {
-    flags_28 = 0;
+    flags = 0;
     vertex_pipe = new srVertexPipe();
     flushing = 0;
     Reset(0);
@@ -1613,7 +1613,7 @@ srTriMeshPipeline::~srTriMeshPipeline()
 // FUNCTION: SURRENDER 0x10044070
 void srTriMeshPipeline::SetFlags(srShader shader)
 {
-    shader_74 = shader;
+    this->shader = shader;
     current_pass->flags = shader;
 }
 
@@ -1622,10 +1622,10 @@ void srTriMeshPipeline::SetFlags(srShader shader)
 void srTriMeshPipeline::Reset(srGERD* renderer)
 {
     slot_count = 0;
-    renderer_88 = renderer;
-    flags_28 = 0;
-    flags_28 |= 1;
-    flags_28 |= 2;
+    this->renderer = renderer;
+    flags = 0;
+    flags |= 1;
+    flags |= 2;
     triangle_count = 0;
     active_triangles = 0;
     projected_vertices = 0;
@@ -1635,10 +1635,10 @@ void srTriMeshPipeline::Reset(srGERD* renderer)
     vertex_extras = 0;
     bounds_state = 0;
     sort_bias = 0.0f;
-    shader_74.value = 0x0100241b;
-    texture_78 = 0;
-    texture_7c = 0;
-    material_80 = srCore.getMaterial();
+    shader.value = 0x0100241b;
+    texture0 = 0;
+    texture1 = 0;
+    material = srCore.getMaterial();
 
     PrepareSlot();
 }
@@ -1661,15 +1661,15 @@ void srTriMeshPipeline::PrepareSlot()
     current_record = &records[slot_count];
     current_pass = &passes[slot_count];
 
-    current_record->flags_00 = 0;
-    current_record->disable_mask_04 = 0;
-    current_record->material_08 = material_80;
-    current_pass->texture_00 = texture_78;
-    current_pass->texture = texture_7c;
-    current_pass->flags.value = shader_74.value;
+    current_record->flags = 0;
+    current_record->disable_mask = 0;
+    current_record->material = material;
+    current_pass->texture0 = texture0;
+    current_pass->texture = texture1;
+    current_pass->flags.value = shader.value;
     current_pass->tex_table_0 = 0;
     current_pass->tex_table_1 = 0;
-    current_pass->shader_14 = 0;
+    current_pass->shaders = 0;
     current_pass->st = 0;
     current_pass->poly_uv = 0;
 }
@@ -1704,16 +1704,16 @@ void srTriMeshPipeline::FlushSlots()
     srMatrix4T<float> project_clip_near;
     srMatrix4T<float> normal_matrix;
 
-    renderer_88->getEyeSpaceBounds(eye_center, eye_radius, bounds_center, bounds_radius);
-    renderer_88->getMatrix(srGERD::MATRIX_MODELVIEW, model_view);
-    renderer_88->getInverseModelViewMatrix(inverse_model_view);
-    renderer_88->getClipPlanes(clip_planes);
-    renderer_88->getProjectClipNearMatrix(project_clip_near);
-    renderer_88->getNormalMatrix(normal_matrix);
+    this->renderer->getEyeSpaceBounds(eye_center, eye_radius, bounds_center, bounds_radius);
+    this->renderer->getMatrix(srGERD::MATRIX_MODELVIEW, model_view);
+    this->renderer->getInverseModelViewMatrix(inverse_model_view);
+    this->renderer->getClipPlanes(clip_planes);
+    this->renderer->getProjectClipNearMatrix(project_clip_near);
+    this->renderer->getNormalMatrix(normal_matrix);
 
-    srMatrix4T<float>::e_scaleType scale_type = renderer_88->getModelViewScaleType();
-    srGERD::e_cullMode cull_mode = renderer_88->getCullMode();
-    srGERD::e_winding winding = renderer_88->getWinding();
+    srMatrix4T<float>::e_scaleType scale_type = this->renderer->getModelViewScaleType();
+    srGERD::e_cullMode cull_mode = this->renderer->getCullMode();
+    srGERD::e_winding winding = this->renderer->getWinding();
 
     srTriangleCuller::Input culler_input;
     if (cull_mode == srGERD::CULL_NONE) {
@@ -1724,19 +1724,19 @@ void srTriMeshPipeline::FlushSlots()
         culler_input.cull_mode = winding != srGERD::WINDING_POSITIONAL_0;
     }
 
-    culler_input.vertex_count_04 = vertex_count;
-    culler_input.vertices_1c = positions;
-    culler_input.clip_planes = clip_planes.planes_000;
+    culler_input.vertex_count = vertex_count;
+    culler_input.vertices = positions;
+    culler_input.clip_planes = clip_planes.planes;
     culler_input.model_view = &model_view;
     culler_input.inverse_model_view = &inverse_model_view;
-    culler_input.scale_type_2c = scale_type;
+    culler_input.scale_type = scale_type;
 
-    if ((flags_28 & 1) == 0) {
+    if ((this->flags & 1) == 0) {
         culler_input.clip_mask = 0;
     } else {
         float depth;
         unsigned long clip_mask = srTriangleCuller::getClipMask(
-            eye_center, eye_radius, clip_planes.planes_000, clip_planes.mask_200, depth);
+            eye_center, eye_radius, clip_planes.planes, clip_planes.mask, depth);
         int retain_clip_mask =
             clip_mask != 0 && ((clip_mask & 0xffffffc0UL) != 0 ||
                                (slot_count * triangle_count > 45 && depth > 0.23f));
@@ -1744,19 +1744,19 @@ void srTriMeshPipeline::FlushSlots()
     }
 
     if (active_triangles == 0) {
-        srCore.getStatisticsManager()->statistics_00.triangles_submitted +=
+        srCore.getStatisticsManager()->statistics.triangles_submitted +=
             slot_count * triangle_count;
     } else {
-        srCore.getStatisticsManager()->statistics_00.triangles_submitted +=
+        srCore.getStatisticsManager()->statistics.triangles_submitted +=
             slot_count * active_triangle_count;
     }
-    ++srCore.getStatisticsManager()->statistics_00.meshes_submitted;
-    srCore.getStatisticsManager()->statistics_00.vertices_submitted +=
+    ++srCore.getStatisticsManager()->statistics.meshes_submitted;
+    srCore.getStatisticsManager()->statistics.vertices_submitted +=
         slot_count * vertex_count;
 
     unsigned long total = active_triangles == 0 ? triangle_count : active_triangle_count;
     unsigned long batch_limit = total;
-    if ((flags_28 & 2) != 0) {
+    if ((this->flags & 2) != 0) {
         double ratio = static_cast<double>(vertex_count) / triangle_count;
         if (ratio > 3.0f) {
             ratio = 3.0f;
@@ -1772,9 +1772,9 @@ void srTriMeshPipeline::FlushSlots()
 
     unsigned long* scratch = culler_scratch.ensure(batch_limit + vertex_count * 2);
     srTriangleCuller::Output culler_output;
-    culler_output.indices_00 = scratch;
-    culler_output.avt_04 = scratch + batch_limit;
-    culler_output.clip_flags_08 = culler_output.avt_04 + vertex_count;
+    culler_output.indices = scratch;
+    culler_output.avt = scratch + batch_limit;
+    culler_output.clip_flags = culler_output.avt + vertex_count;
 
     unsigned long processed = 0;
     while (processed < total) {
@@ -1784,53 +1784,53 @@ void srTriMeshPipeline::FlushSlots()
         }
 
         if (active_triangles == 0) {
-            culler_input.triangle_count_00 = batch_count;
+            culler_input.triangle_count = batch_count;
             culler_input.active_triangle_count = 0;
             culler_input.active_triangles = 0;
             culler_input.projected_vertices = projected_vertices + processed;
-            culler_input.triangles_18 = triangles + processed;
+            culler_input.triangles = triangles + processed;
         } else {
-            culler_input.triangle_count_00 = triangle_count;
+            culler_input.triangle_count = triangle_count;
             culler_input.active_triangle_count = batch_count;
             culler_input.active_triangles = active_triangles + processed;
             culler_input.projected_vertices = projected_vertices;
-            culler_input.triangles_18 = triangles;
+            culler_input.triangles = triangles;
         }
 
         if (srTriangleCuller::cull(culler_output, culler_input)) {
-            srCore.getStatisticsManager()->statistics_00.triangles_after_culling +=
-                slot_count * culler_output.triangle_count_0c;
-            srCore.getStatisticsManager()->statistics_00.vertices_after_culling +=
-                slot_count * culler_output.vertex_count_10;
+            srCore.getStatisticsManager()->statistics.triangles_after_culling +=
+                slot_count * culler_output.triangle_count;
+            srCore.getStatisticsManager()->statistics.vertices_after_culling +=
+                slot_count * culler_output.vertex_count;
 
-            srGERD::Renderer* renderer = renderer_88->lockRenderer();
+            srGERD::Renderer* renderer = this->renderer->lockRenderer();
 
-            (void)vertex_arrays_a4[slot_count];
-            srVertexArray* vertex_arrays = &vertex_arrays_a4[0];
+            (void)this->vertex_arrays[slot_count];
+            srVertexArray* vertex_arrays = &this->vertex_arrays[0];
             renderer->allocVertexArray(vertex_arrays[0],
-                                       slot_count * culler_output.vertex_count_10);
+                                       slot_count * culler_output.vertex_count);
 
             /* Retail grows and re-reads the member array through
-               vertex_arrays_a4[slot] on the left while the right side keeps
+               vertex_arrays[slot] on the left while the right side keeps
                the vertex_arrays snapshot taken before the loop. */
             for (unsigned long slot = 1; slot < slot_count; ++slot) {
-                unsigned long offset = slot * culler_output.vertex_count_10;
-                vertex_arrays_a4[slot].eye_locations =
+                unsigned long offset = slot * culler_output.vertex_count;
+                this->vertex_arrays[slot].eye_locations =
                     vertex_arrays[0].eye_locations + offset;
-                vertex_arrays_a4[slot].diffuse_04 = vertex_arrays[0].diffuse_04 + offset;
-                vertex_arrays_a4[slot].specular_08 = vertex_arrays[0].specular_08 + offset;
-                vertex_arrays_a4[slot].st0 = vertex_arrays[0].st0 + offset;
-                vertex_arrays_a4[slot].st1_10 = vertex_arrays[0].st1_10 + offset;
-                vertex_arrays_a4[slot].q0 = vertex_arrays[0].q0 + offset;
-                vertex_arrays_a4[slot].q1 = vertex_arrays[0].q1 + offset;
-                vertex_arrays_a4[slot].packed = vertex_arrays[0].packed + offset;
+                this->vertex_arrays[slot].diffuse = vertex_arrays[0].diffuse + offset;
+                this->vertex_arrays[slot].specular = vertex_arrays[0].specular + offset;
+                this->vertex_arrays[slot].st0 = vertex_arrays[0].st0 + offset;
+                this->vertex_arrays[slot].st1 = vertex_arrays[0].st1 + offset;
+                this->vertex_arrays[slot].q0 = vertex_arrays[0].q0 + offset;
+                this->vertex_arrays[slot].q1 = vertex_arrays[0].q1 + offset;
+                this->vertex_arrays[slot].packed = vertex_arrays[0].packed + offset;
             }
 
-            unsigned long processor_count = renderer_88->getVertexProcessorCount();
+            unsigned long processor_count = this->renderer->getVertexProcessorCount();
             srVertexProcessor** processors = 0;
             if (processor_count != 0) {
                 processors = vertex_processors.ensure(processor_count);
-                renderer_88->getVertexProcessors(processors);
+                this->renderer->getVertexProcessors(processors);
             }
 
             srVector4T<float> ambient_light;
@@ -1838,23 +1838,23 @@ void srTriMeshPipeline::FlushSlots()
             float environment_maximum;
             float environment_scale;
             float environment_inverse_scale;
-            renderer_88->getAmbientLight(ambient_light);
-            renderer_88->getEnvironmentRange(environment_minimum, environment_maximum);
-            renderer_88->getEnvironmentScaleFactor(environment_scale, environment_inverse_scale);
-            unsigned long exclusion_mask = renderer_88->getExclusionMask();
+            this->renderer->getAmbientLight(ambient_light);
+            this->renderer->getEnvironmentRange(environment_minimum, environment_maximum);
+            this->renderer->getEnvironmentScaleFactor(environment_scale, environment_inverse_scale);
+            unsigned long exclusion_mask = this->renderer->getExclusionMask();
 
             srVertexPipe::Input pipe_input;
             pipe_input.record_count = slot_count;
-            pipe_input.vertex_count_04 = culler_output.vertex_count_10;
-            pipe_input.indices_08 = culler_output.avt_04;
+            pipe_input.vertex_count = culler_output.vertex_count;
+            pipe_input.indices = culler_output.avt;
             pipe_input.position_is_float3 = culler_output.linear == 0;
-            pipe_input.positions_10 = positions;
-            pipe_input.values_14 = vertex_extras;
+            pipe_input.positions = positions;
+            pipe_input.values = vertex_extras;
             pipe_input.eye_center = eye_center;
             pipe_input.eye_radius = eye_radius;
             pipe_input.model_view = &model_view;
             pipe_input.normal_matrix = &normal_matrix;
-            pipe_input.vertex_arrays = &vertex_arrays_a4[0];
+            pipe_input.vertex_arrays = &this->vertex_arrays[0];
             pipe_input.exclusion_mask = exclusion_mask;
             pipe_input.ambient_light = ambient_light;
             pipe_input.records = &records[0];
@@ -1867,12 +1867,12 @@ void srTriMeshPipeline::FlushSlots()
 
             if (active_triangles == 0 && processed != 0) {
                 for (unsigned long index = 0; index < batch_count; ++index) {
-                    culler_output.indices_00[index] += processed;
+                    culler_output.indices[index] += processed;
                 }
             }
 
             unsigned long renderer_disable_mask = 0;
-            if (renderer_88->getMaxTextureStages() == 1) {
+            if (this->renderer->getMaxTextureStages() == 1) {
                 renderer_disable_mask = 0x140;
             }
 
@@ -1880,35 +1880,35 @@ void srTriMeshPipeline::FlushSlots()
                 passes[pass_index].st = records[pass_index].st0;
 
                 unsigned long disable_mask;
-                if (passes[pass_index].shader_14 != 0) {
+                if (passes[pass_index].shaders != 0) {
                     srFlags<srVertexProcessor::e_channel> flags =
-                        srVertexPipe::getShaderDisableMask(passes[pass_index].shader_14,
-                                                           culler_output.indices_00,
-                                                           culler_output.triangle_count_0c);
+                        srVertexPipe::getShaderDisableMask(passes[pass_index].shaders,
+                                                           culler_output.indices,
+                                                           culler_output.triangle_count);
                     disable_mask = flags.value;
                 } else {
                     srFlags<srVertexProcessor::e_channel> flags =
                         srVertexPipe::getShaderDisableMask(passes[pass_index].flags);
                     disable_mask = flags.value;
                 }
-                records[pass_index].disable_mask_04 = disable_mask | renderer_disable_mask;
+                records[pass_index].disable_mask = disable_mask | renderer_disable_mask;
             }
 
             vertex_pipe->process(pipe_input);
 
             srGERD::Renderer::TriInput render_input;
-            render_input.triangle_count_00 = culler_output.triangle_count_0c;
+            render_input.triangle_count = culler_output.triangle_count;
             render_input.record_count = slot_count;
-            render_input.vertex_count = culler_output.vertex_count_10;
-            render_input.indices_0c = culler_output.indices_00;
+            render_input.vertex_count = culler_output.vertex_count;
+            render_input.indices = culler_output.indices;
             render_input.triangles = triangles;
-            render_input.vertices_14 = culler_output.clip_flags_08;
+            render_input.vertices = culler_output.clip_flags;
             render_input.passes = &passes[0];
             render_input.position_is_float3 = culler_output.linear == 0;
             render_input.project_clip_near = &project_clip_near;
             render_input.sort_bias = sort_bias;
             renderer->render(render_input);
-            renderer_88->unlockRenderer(renderer, 0);
+            this->renderer->unlockRenderer(renderer, 0);
         }
 
         processed += batch_limit;
@@ -1953,12 +1953,12 @@ void srMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
             if ((mesh.control_flags & (1u << side)) != 0) {
                 srTriMeshPipeline* pipeline = srTriMeshPipeline::Get(&renderer);
                 pipeline->sort_bias = mesh.sort_bias;
-                pipeline->triangles = mesh.poly_vertices_10;
+                pipeline->triangles = mesh.poly_vertices;
                 pipeline->triangle_count = static_cast<unsigned long>(mesh.polygon_count);
                 pipeline->positions = mesh.positions;
                 pipeline->vertex_count = static_cast<unsigned long>(mesh.vertex_count);
                 pipeline->vertex_extras = mesh.normals;
-                pipeline->projected_vertices = mesh.poly_equations_14;
+                pipeline->projected_vertices = mesh.poly_equations;
 
                 if (mesh.active_polygons != 0) {
                     pipeline->active_triangles = mesh.active_polygons;
@@ -2000,33 +2000,33 @@ void srMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
                 }
 
                 for (long pass = 0; pass < mesh.pass_count; ++pass) {
-                    pipeline->current_record->flags_00 = 0;
-                    pipeline->current_pass->shader_14 = 0;
+                    pipeline->current_record->flags = 0;
+                    pipeline->current_pass->shaders = 0;
                     pipeline->current_pass->tex_table_0 = 0;
                     pipeline->current_pass->tex_table_1 = 0;
 
                     if (mesh.dig[pass] != 0) {
-                        pipeline->current_record->colors_0c = mesh.dig[pass];
+                        pipeline->current_record->colors = mesh.dig[pass];
                         pipeline->current_record->color_format = 1;
-                        pipeline->current_record->flags_00 |= 1;
+                        pipeline->current_record->flags |= 1;
                     }
                     if (mesh.dcg[pass] != 0) {
                         pipeline->current_record->dcg = mesh.dcg[pass];
-                        pipeline->current_record->flags_00 |= 2;
+                        pipeline->current_record->flags |= 2;
                     }
                     if (mesh.scg[pass] != 0) {
                         pipeline->current_record->scg = mesh.scg[pass];
-                        pipeline->current_record->flags_00 |= 4;
+                        pipeline->current_record->flags |= 4;
                     }
 
-                    if (mesh.vertex_materials_c0[pass][material_side] == 0) {
-                        srMaterialIFace* material = mesh.materials_70[pass][material_side];
-                        pipeline->material_80 = material;
-                        pipeline->current_record->material_08 = material;
+                    if (mesh.vertex_materials[pass][material_side] == 0) {
+                        srMaterialIFace* material = mesh.materials[pass][material_side];
+                        pipeline->material = material;
+                        pipeline->current_record->material = material;
                     } else {
                         pipeline->current_record->vertex_materials =
-                            mesh.vertex_materials_c0[pass][material_side];
-                        pipeline->current_record->flags_00 |= 0x40;
+                            mesh.vertex_materials[pass][material_side];
+                        pipeline->current_record->flags |= 0x40;
                     }
 
                     if (mesh.poly_uv[pass] != 0) {
@@ -2036,26 +2036,26 @@ void srMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
                     if (mesh.poly_shaders[pass] == 0) {
                         pipeline->SetFlags(mesh.shaders[pass]);
                     } else {
-                        pipeline->current_pass->shader_14 = mesh.poly_shaders[pass];
+                        pipeline->current_pass->shaders = mesh.poly_shaders[pass];
                     }
 
-                    if (mesh.texcoords_18[pass][0] != 0) {
-                        pipeline->current_record->st0 = mesh.texcoords_18[pass][0];
-                        pipeline->current_record->flags_00 |= 0x10;
+                    if (mesh.texcoords[pass][0] != 0) {
+                        pipeline->current_record->st0 = mesh.texcoords[pass][0];
+                        pipeline->current_record->flags |= 0x10;
                     }
-                    if (mesh.texcoords_18[pass][1] != 0) {
-                        pipeline->current_record->flags_00 |= 0x20;
-                        pipeline->current_record->st1_24 = mesh.texcoords_18[pass][1];
+                    if (mesh.texcoords[pass][1] != 0) {
+                        pipeline->current_record->flags |= 0x20;
+                        pipeline->current_record->st1 = mesh.texcoords[pass][1];
                     }
 
                     for (long layer = 0; layer < 2; ++layer) {
-                        if (mesh.poly_textures_e0[pass][layer] == 0) {
-                            srTextureIFace* texture = mesh.textures_90[pass][layer];
-                            (&pipeline->texture_78)[layer] = texture;
-                            (&pipeline->current_pass->texture_00)[layer] = texture;
+                        if (mesh.poly_textures[pass][layer] == 0) {
+                            srTextureIFace* texture = mesh.textures[pass][layer];
+                            (&pipeline->texture0)[layer] = texture;
+                            (&pipeline->current_pass->texture0)[layer] = texture;
                         } else {
                             (&pipeline->current_pass->tex_table_0)[layer] =
-                                mesh.poly_textures_e0[pass][layer];
+                                mesh.poly_textures[pass][layer];
                         }
                     }
 

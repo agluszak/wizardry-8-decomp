@@ -39,8 +39,8 @@ public:
        bindPalette; invalidatePalette hands the same record to deletePalette.
     */
     struct Palette {
-        const srARGB* data_00;
-        unsigned long size_04;
+        const srARGB* data;
+        unsigned long size;
         unsigned long flags;
     };
     /* Device pixel format written by srGERD::convertPixelFormat: the channel
@@ -65,13 +65,13 @@ public:
        evaluateTexturePixelFormat fill it from the interface's Dimensions;
        allocTextureData lays out per-level data pointers in levels. */
     struct Texture {
-        unsigned long flags_00;
-        PixelFormat format_04;
+        unsigned long flags;
+        PixelFormat format;
         float priority;
         unsigned long last_use;
-        unsigned long size_1c;
-        unsigned long width_20;
-        unsigned long height_24;
+        unsigned long size;
+        unsigned long width;
+        unsigned long height;
         unsigned long first_level;
         unsigned long last_level;
         unsigned long format_index;
@@ -89,29 +89,29 @@ public:
     };
     /* Six-dword buffer command handed to bufferOp. The lock/unlock
        commands write only the leading dwords and leave the rest
-       uninitialized; LockSurface's pixel transfers fill data_08/x_0c/
-       y_10/count_14. Opcode values seen in retail: 0 lock, 1 unlock,
+       uninitialized; LockSurface's pixel transfers fill data/x/
+       y/count. Opcode values seen in retail: 0 lock, 1 unlock,
        2 read row, 3 write row, 4 horizontal fill, 6 read column,
        7 write column. */
     struct BufferCommand {
-        unsigned long flags_00;
+        unsigned long flags;
         unsigned long opcode;
-        void* data_08;
-        long x_0c;
-        long y_10;
-        long count_14;
+        void* data;
+        long x;
+        long y;
+        long count;
     };
     /* getDriverInfo block. The caller writes the requested API version
        (0x128), a capability flag and a debug callback before the call; the
        device reports its DD API version, driver id, name and API version
        string back into the same record. */
     struct DriverInfo {
-        /* srGERD's constructor emits the single flags_04 zero-store as this
+        /* srGERD's constructor emits the single flags zero-store as this
            record's member init (0x2d0 inside the +0x2cc embedding). */
-        DriverInfo() : flags_04(0) {}
+        DriverInfo() : flags(0) {}
 
         unsigned long api_version;
-        unsigned long flags_04;
+        unsigned long flags;
         void (*debug_write)(const char* text);
         unsigned long dd_api_version;
         unsigned long driver_id;
@@ -124,9 +124,9 @@ public:
        to srDD::getInfo). The nine trailing 0x40-byte strings are the device
        identity fields initDDInfo fills with "Unknown". */
     struct Info {
-        /* srGERD's constructor emits the single flags_18_ zero-store as this
+        /* srGERD's constructor emits the single flags zero-store as this
            record's member init (0x68 inside the +0x50 embedding). */
-        Info() : flags_18_(0) {}
+        Info() : flags(0) {}
 
         /* openWindowInternal rejects back-buffer dimensions above these
            maximums. */
@@ -141,29 +141,29 @@ public:
         float unknown_14_;
         /* initDDInfo defaults: 0. changeTexture tests bit 5;
            getDepthBufferType reads bit 3 of the low byte. */
-        unsigned long flags_18_;
+        unsigned long flags;
         /* initDDInfo defaults: 0x100; createRenderer passes it to each
            Renderer as its batch limit. */
-        unsigned long renderer_batch_limit_1c_;
+        unsigned long renderer_batch_limit;
         /* initDDInfo defaults: 0x3b808081 / 0x200000. */
         unsigned long unknown_20_;
         /* Device texture RAM in bytes; dumpTextureCache prints it in kB and
            treats 0 as "infinite" (no residency percentage). */
-        unsigned long texture_ram_24_;
+        unsigned long texture_ram;
         /* initDDInfo defaults: 1, 1, 0x100, 1; texture-dimension clamps
            applied by evaluateTextureDimensions. initDDInfo clamps
            max_texture_stages to 2 after getInfo. */
-        unsigned long max_texture_stages_28_;
-        unsigned long texture_min_dim_2c_;
-        unsigned long texture_max_dim_30_;
-        unsigned long texture_max_aspect_34_;
+        unsigned long max_texture_stages;
+        unsigned long texture_min_dim;
+        unsigned long texture_max_dim;
+        unsigned long texture_max_aspect;
         /* initDDInfo defaults: 1. getHardwareID result; e_hardwareID is an
            empty enum and cannot be the field type. */
-        unsigned long hardware_id_38_;
+        unsigned long hardware_id;
         /* Device identity strings in getter order: device name, vendor,
            platform, driver name, vendor, version, hardware chipset, name,
            vendor. */
-        char text_3c_[9][0x40];
+        char text[9][0x40];
     };
     static_assert(sizeof(Info) == 0x27c, "srDD_Info_must_be_0x27c");
     /* getStatistics output record, 0x28 bytes: srGERD::getStatistics
@@ -209,16 +209,16 @@ public:
         unsigned long back_buffer_type;
     };
     /* GERD embeds this verbatim at +0x1b08: setClearColor clamps into
-       color_00, the accumulation-buffer clear color occupies accum
+       color, the accumulation-buffer clear color occupies accum
        (accumClear clamps it to [-1,1] per channel), setClearDepth clamps
-       depth_20 to [0,1] and setClearStencil writes stencil. */
+       depth to [0,1] and setClearStencil writes stencil. */
 #pragma pack(push, 4)
     /* Retail packs the double at 4-byte alignment: the record occupies
        exactly 0x2c bytes in front of GERD's palette block. */
     struct ClearValues {
-        srVector4T<float> color_00;
+        srVector4T<float> color;
         srVector4T<float> accum;
-        double depth_20;
+        double depth;
         unsigned long stencil;
     };
 #pragma pack(pop)
@@ -240,7 +240,7 @@ public:
        a constant 1.0f, swap interval, antialias mode and enable bit 0 into
        this 0x20-byte block and passes it to update(). */
     struct Update {
-        unsigned long flags_00;
+        unsigned long flags;
         srVector3T<float> gamma;
         float value_10;
         unsigned long swap_interval;

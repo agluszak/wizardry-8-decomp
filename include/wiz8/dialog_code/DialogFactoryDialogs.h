@@ -94,7 +94,7 @@ private:
 
 public:
     /* 0x054: the displayed text lines; the dialog owns and frees each one. */
-    W8GrowableVector<wchar_t*> m_lines_054;
+    W8GrowableVector<wchar_t*> m_lines;
     /* 0x064: pointer vector of the W8MasterFunction (void (*)(int)) pointer
        specialization emitted by MasterFunctionList.cpp (vtable 0x005ED43C,
        ctor 0x004D9A70, scalar deleting destructor 0x004D9A40). This unit only
@@ -126,8 +126,8 @@ public:
     /* 0x0c4 and 0x0dc are click rectangles read by ProcessInput. The audited
        ctor/lifecycle/callback bodies contain no writes to either range. */
     W8ControlsRect m_ok_rect;
-    int m_cancel_button_0d4; /* 0x0d4 */
-    int m_cancel_image_0d8;  /* 0x0d8 */
+    int m_cancel_button; /* 0x0d4 */
+    int m_cancel_image;  /* 0x0d8 */
     W8ControlsRect m_cancel_rect;
     bool m_scrollable; /* 0x0ec: scrolling area is scrollable */
     unsigned char padding_0ed[3];
@@ -139,7 +139,7 @@ public:
 
 // VTABLE: WIZ8 0x005ef9f0
 class W8SplitAmountDialog : public W8DialogBase {
-    /* NPCInteractionSubscreen's destroy callback reads m_taken_084 and
+    /* NPCInteractionSubscreen's destroy callback reads m_taken and
        m_result back out of the closing dialog. */
     friend void OnNpcTradeSplitDialogDestroy(W8DialogBase* dialog);
 
@@ -179,16 +179,16 @@ private:
     static void SplitActivateField(W8DialogButton* button);
 
 private:
-    W8DialogButton* m_buttons_054[6];
+    W8DialogButton* m_buttons[6];
     /* 0x06c: the labels named by g_split_amount_string_ids; [2] shows the
        amount still remaining. */
-    W8TextBuffer* m_text_buffers_06c[3];
+    W8TextBuffer* m_text_buffers[3];
     W8DialogNumericInput* m_split_input;
     /* 0x07c: the numeric field while the cursor or keyboard owns it. */
     W8DialogNumericInput* m_active_field;
-    int m_remaining_080; /* 0x080: total minus the field value */
-    int m_taken_084;     /* 0x084: the field value */
-    int m_total_088;     /* 0x088 */
+    int m_remaining; /* 0x080: total minus the field value */
+    int m_taken;     /* 0x084: the field value */
+    int m_total;     /* 0x088 */
     int m_result;    /* 0x08c: 1 confirms, 2 cancels */
 }; /* 0x90 */
 
@@ -257,7 +257,7 @@ private:
 public:
     W8Vector<W8WorldItem*> items;
     W8GrowableVector<unsigned char> flags;
-    W8DialogButton* m_buttons_74[13];
+    W8DialogButton* m_buttons[13];
     int m_first_item;
     W8WorldItem* m_item_group;
 };
@@ -312,19 +312,19 @@ private:
     static void OnCountFieldClick(W8DialogButton* button);    /* 0x005DE9F0 */
 
 public:
-    W8DialogButton* m_buttons_054[10];       /* 0x054: minus/plus, frames, accept/cancel */
+    W8DialogButton* m_buttons[10];       /* 0x054: minus/plus, frames, accept/cancel */
     W8TextBuffer* m_texts[14];           /* 0x07c */
     W8DialogNumericInput* m_count_input; /* 0x0b4 */
     /* 0x0b8: the numeric field while a click or keypress owns it. */
     W8DialogNumericInput* m_active_input;
-    int m_remaining_0bc; /* 0x0bc: the count left in the source stack */
+    int m_remaining; /* 0x0bc: the count left in the source stack */
     int split_count;
     int m_stack_total; /* 0x0c4: stack_count when the dialog opened */
     int split_result;
 
 private:
     unsigned int m_kind;        /* 0x0cc: 0 inventory, 1 and 2 trade modes */
-    W8ItemInstance* m_item_0d0;     /* 0x0d0 */
+    W8ItemInstance* m_item;     /* 0x0d0 */
     bool m_first_draw; /* 0x0d4: draw the item icon once */
     unsigned char padding_0d5[3];
 };

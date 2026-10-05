@@ -114,7 +114,7 @@ int g_combat_effect_slot_spells[9] = {
 };
 
 /* The same mapping for the second combat effect block, indexed against
-   W8CombatState::effect_slots_85a and the monster's combat_effects_2. One
+   W8CombatState::effect_slots0 and the monster's combat_effects_2. One
    retail array: [0..6) are spell ids, [6..23) — the retail sub-table at
    0x00616DF0 — is the spell-point budget/failure percentage indexed by cost
    band that Magic.cpp's failure and power-level readers consume. */
@@ -402,7 +402,7 @@ void DoMonsterRTAI(W8MonsterInfo* monster_info, bool engage)
         if (mode != 6 &&
             (monster_info->p3D->face_party == 0 || monster_info->pathing_cooldown != 0 ||
              mode != 0xa || monster_info->player_visibility.line_of_sight == 0 ||
-             (monster_info->p3D->movement_0c0.position_040 - g_startup_world->GetPosition())
+             (monster_info->p3D->movement.position - g_startup_world->GetPosition())
                      .Length() >= g_float_005ec2f8)) {
             monster_info->ai_mode &= 0x7f;
         }
@@ -440,7 +440,7 @@ char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
         monster_info->player_visibility.line_of_sight != 0) {
         srVector3T<float> delta;
 
-        delta = monster->movement_0c0.position_040 - g_startup_world->GetPosition();
+        delta = monster->movement.position - g_startup_world->GetPosition();
         if (delta.Length() < g_float_005ec2f8) {
             srVector3T<float> camera;
             srVector3T<float> position;
@@ -480,7 +480,7 @@ char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
         return 0;
     }
     if (monster_info->ai_mode == 8 &&
-        fabsf(monster->movement_0c0.target_yaw - monster->movement_0c0.yaw) >=
+        fabsf(monster->movement.target_yaw - monster->movement.yaw) >=
             g_camera_transition_epsilon) {
         mode = 8;
     } else {
@@ -739,7 +739,7 @@ void ApplyMonsterRTAIDecision(W8MonsterInfo* monster_info, unsigned char decisio
         decision = 0;
         break;
     case 8:
-        monster->flags_00c &= ~0x20000000;
+        monster->flags &= ~0x20000000;
         monster->ClearMovement();
         position = monster_info->heard_noise_position;
         monster_info->heard_noise_radius = 0;
@@ -763,7 +763,7 @@ void ApplyMonsterRTAIDecision(W8MonsterInfo* monster_info, unsigned char decisio
         }
         break;
     case 10:
-        monster->flags_00c &= ~0x20000000;
+        monster->flags &= ~0x20000000;
         monster->ClearMovement();
         position = monster->GetPosition();
         position += monster->move_direction;
@@ -844,7 +844,7 @@ void UpdateMonsterAI(W8MonsterInfo* monster_info)
         goto validate;
     }
     if (monster_info->ubDisposition == 0) {
-        if (record->camouflage_249 != 0) {
+        if (record->camouflage1 != 0) {
             monster_info->action_kind = -1;
             monster_info->pCombat->phase = 0;
             monster_info->pCombat->active = 1;
@@ -855,7 +855,7 @@ void UpdateMonsterAI(W8MonsterInfo* monster_info)
     }
     if (record->prefer_ranged_actions == 0 &&
         (range_category = GetBestMonsterAttackRange(record, 1)) != W8_RANGE_NONE &&
-        (monster_info->uiCondition[0xc] == 0 || record->kind_0cb == 0xc) &&
+        (monster_info->uiCondition[0xc] == 0 || record->kind == 0xc) &&
         MonsterChooseTarget(monster_info, &chosen, 2) > CalcRangeDistance(range_category)) {
         record = GetMonsterDataForInfo(monster_info);
         hp_ratio = monster_info->hp_current / static_cast<float>(monster_info->uiHPMax);
@@ -896,7 +896,7 @@ void UpdateMonsterAI(W8MonsterInfo* monster_info)
                     }
                 } else {
                     for (spell = 0; spell < 10; ++spell) {
-                        if (IsSpellUsableByMonster(monster_info, record->spells_14d[spell], 1)) {
+                        if (IsSpellUsableByMonster(monster_info, record->spells[spell], 1)) {
                             if (Random(100) < chance) {
                                 monster_info->action_kind = W8_MONSTER_ACTION_SPELL;
                                 monster_info->action_detail =
@@ -915,7 +915,7 @@ void UpdateMonsterAI(W8MonsterInfo* monster_info)
         }
         if (rating != 0) {
             if (rating == W8_MONSTER_ATTACK_OUT_OF_REACH) {
-                if (monster_info->uiCondition[0xc] != 0 && record->kind_0cb != 0xc) {
+                if (monster_info->uiCondition[0xc] != 0 && record->kind != 0xc) {
                     monster_info->action_kind = 6;
                 } else {
                     record = GetMonsterDataForInfo(monster_info);
@@ -990,8 +990,8 @@ members:
                 }
             } else {
                 for (spell = 0; spell < 10; ++spell) {
-                    if (MonsterCanAimSpell(record->spells_14d[spell]) != 0 &&
-                        IsSpellUsableByMonster(member, record->spells_14d[spell], 1) != 0) {
+                    if (MonsterCanAimSpell(record->spells[spell]) != 0 &&
+                        IsSpellUsableByMonster(member, record->spells[spell], 1) != 0) {
                         return 1;
                     }
                 }
@@ -1137,10 +1137,10 @@ void BuildMonsterActionQueue(W8MonsterInfo* monster_info, char target_locked, ch
         attack_lo = 0;
         attack_hi = W8_MAX_MONSTER_ATTACKS;
     } else {
-        attack_lo = monster_info->pCombat->attack_index_11;
+        attack_lo = monster_info->pCombat->attack_index;
         attack_hi = attack_lo + 1;
     }
-    if (target_locked == 0 || attack_locked != 0 || monster_info->pCombat->berserk_015 != 0 ||
+    if (target_locked == 0 || attack_locked != 0 || monster_info->pCombat->berserk != 0 ||
         monster_info->attributes[W8_MONSTER_ATTRIBUTE_DEXTERITY] >= 0x4b) {
         char_lo = 0;
         char_hi = 8;
@@ -1178,7 +1178,7 @@ void BuildMonsterActionQueue(W8MonsterInfo* monster_info, char target_locked, ch
         }
     }
 targets_chosen:
-    hostile_only = monster_info->fInCombat != 0 && monster_info->pCombat->berserk_015 != 0;
+    hostile_only = monster_info->fInCombat != 0 && monster_info->pCombat->berserk != 0;
     disposition_needed = hostile_only + 1;
     for (attack = attack_lo; attack < attack_hi; ++attack) {
         if (RateMonsterAttack(monster_info, record, attack, 1, hostile_only) != 0) {
@@ -1289,10 +1289,10 @@ unsigned char ChooseRandomMonsterAction(W8MonsterInfo* monster_info, int arg_2, 
     monster_info->action_kind = entry->action_kind;
     switch (entry->action_kind) {
     case W8_MONSTER_ACTION_ATTACK:
-        monster_info->pCombat->attack_index_11 = entry->attack_index;
+        monster_info->pCombat->attack_index = entry->attack_index;
         monster_info->action_detail = entry->action_detail;
         if (set_attack_rate != 0) {
-            monster_info->pCombat->attacks_per_round_005 = record->attacks_per_round;
+            monster_info->pCombat->attacks_per_round0 = record->attacks_per_round;
             monster_info->pCombat->attacks_per_round = record->attacks_per_round;
         }
         break;
@@ -1482,7 +1482,7 @@ bool MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id, W8CombatSlo
         for (index = 0; index < 9; ++index) {
             if (spell_id == g_combat_effect_slot_spells_and_cast_success[index]) {
                 if (combat_slot->iType == W8_TARGET_KIND_CHARACTER) {
-                    duration = g_combat_state->effect_slots_85a[index].duration;
+                    duration = g_combat_state->effect_slots0[index].duration;
                 } else {
                     if (target->fInCombat == 0) {
                         continue;
@@ -1597,7 +1597,7 @@ bool MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id, W8CombatSlo
         }
         if (combat_slot->iType != W8_TARGET_KIND_CHARACTER) {
             if (combat_slot->iType == W8_TARGET_KIND_MONSTER) {
-                if (3 < record->kind_0cb && (record->kind_0cb < 6 || record->kind_0cb == 0xd)) {
+                if (3 < record->kind && (record->kind < 6 || record->kind == 0xd)) {
                     return 0;
                 }
                 if (record->spell_chance != 0) {
@@ -1610,7 +1610,7 @@ bool MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id, W8CombatSlo
                         }
                     } else {
                         for (index = 0; index < 10; ++index) {
-                            if (IsSpellUsableByMonster(target, record->spells_14d[index], 0) != 0) {
+                            if (IsSpellUsableByMonster(target, record->spells[index], 0) != 0) {
                                 return 1;
                             }
                         }
@@ -1713,7 +1713,7 @@ bool MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id, W8CombatSlo
         if (combat_slot->iType == W8_TARGET_KIND_CHARACTER) {
             return 0;
         }
-        if (record->kind_0cb != 0x14 && record->kind_0cb != 0x15 && record->kind_0cb != 0x1c &&
+        if (record->kind != 0x14 && record->kind != 0x15 && record->kind != 0x1c &&
             target->summoned == 0) {
             return 0;
         }
@@ -1828,7 +1828,7 @@ int ChooseMonsterSpell(W8MonsterInfo* monster_info, W8MonsterRecord* record)
     unsigned int index;
 
     for (slot = 0; slot < 10; ++slot) {
-        int spell_id = record->spells_14d[slot];
+        int spell_id = record->spells[slot];
         if (IsSpellUsableByMonster(monster_info, spell_id, 1) != 0) {
             weights[count] = g_spell_cast_weights[slot];
             spell_ids[count] = spell_id;
@@ -2529,7 +2529,7 @@ bool MonsterGroupHasReinforcement(W8MonsterGroup* monster_group)
     for (index = 0; index < ILLength(monster_group->monsters); ++index) {
         member = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
             0xe1d, MONSTER_AI_CPP, IListGetAt(monster_group->monsters, index), 1));
-        if ((member->ubDisposition == 0 && GetMonsterDataForInfo(member)->camouflage_249 != 0) ||
+        if ((member->ubDisposition == 0 && GetMonsterDataForInfo(member)->camouflage1 != 0) ||
             member->party_threat.los_flags[1] == 0) {
             continue;
         }
@@ -2719,7 +2719,7 @@ bool ShouldMonsterGroupEnterCombat(W8MonsterGroup* monster_group)
                     reach = minimum;
                 }
                 party = g_startup_world->GetPosition();
-                if ((leader->p3D->movement_0c0.position_040 - party).Length() <= reach &&
+                if ((leader->p3D->movement.position - party).Length() <= reach &&
                     leader->p3D->FindNavigatorPathDistance(750.0f, &path_distance) &&
                     path_distance <= reach) {
                     return 1;

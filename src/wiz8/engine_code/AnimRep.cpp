@@ -6,10 +6,10 @@
 #include "wiz8/sr_api.h"
 
 // GLOBAL: WIZ8 0x0060e608
-float g_lod_range_default_0060e608 = 3500.0f;
+float g_lod_range_default0 = 3500.0f;
 
 // GLOBAL: WIZ8 0x0060e60c
-float g_lod_range_default_0060e60c = 8500.0f;
+float g_lod_range_default1 = 8500.0f;
 
 // VTABLE: WIZ8 0x005ec1d8 W8AnimRepBase
 // class W8AnimRepBase
@@ -23,10 +23,10 @@ float g_lod_range_default_0060e60c = 8500.0f;
 // FUNCTION: WIZ8 0x004b86e0
 W8AnimRepBase::W8AnimRepBase()
 {
-    location_004.SetZero();
+    location.SetZero();
     local_location.SetZero();
     parent_location.SetZero();
-    rotation_028.SetIdentity();
+    rotation.SetIdentity();
     highlight_colour.Set(0.0f, 0.0f, 0.0f, 0.0f);
     instance_scale = 1.0f;
     flag = false;
@@ -48,8 +48,8 @@ void W8AnimRep::SetFrameMethod(signed char method)
    not touched by the canonical constructor. */
 // FUNCTION: WIZ8 0x004b87c0
 W8AnimRepBase::W8AnimRepBase(const W8AnimRepBase& other)
-    : location_004(other.location_004), local_location(other.local_location),
-      parent_location(other.parent_location), rotation_028(other.rotation_028),
+    : location(other.location), local_location(other.local_location),
+      parent_location(other.parent_location), rotation(other.rotation),
       highlight_colour(other.highlight_colour), instance_scale(1.0f), flag(false),
       apply_instance_scale(0)
 {
@@ -62,13 +62,13 @@ W8AnimRepBase::W8AnimRepBase(const W8AnimRepBase& other)
 void W8AnimRepBase::SetLocation(const srVector3T<float>* location)
 {
     local_location = *location;
-    location_004 = parent_location + local_location;
+    this->location = parent_location + local_location;
 }
 
 // FUNCTION: WIZ8 0x004b8890
 void W8AnimRepBase::GetLocation(srVector3T<float>* location) const
 {
-    *location = location_004;
+    *location = this->location;
 }
 
 // FUNCTION: WIZ8 0x004b88b0
@@ -80,13 +80,13 @@ void W8AnimRepBase::GetLocalLocation(srVector3T<float>* location) const
 // FUNCTION: WIZ8 0x004b88d0
 void W8AnimRepBase::SetRotation(const srMatrix3T<float>* rotation)
 {
-    rotation_028 = *rotation;
+    this->rotation = *rotation;
 }
 
 // FUNCTION: WIZ8 0x004b88f0
 void W8AnimRepBase::GetRotation(srMatrix3T<float>* rotation)
 {
-    *rotation = rotation_028;
+    *rotation = this->rotation;
 }
 
 // FUNCTION: WIZ8 0x004b53d0
@@ -144,8 +144,8 @@ W8EmitterHost::W8EmitterHost(const W8EmitterHost& other)
 
 // FUNCTION: WIZ8 0x004b5600
 W8EmitterHost::W8EmitterHost()
-    : m_bLOD(0), lod_near(g_lod_range_default_0060e608),
-      lod_far(g_lod_range_default_0060e60c), current_cycle(0), current_subcycle(0),
+    : m_bLOD(0), lod_near(g_lod_range_default0),
+      lod_far(g_lod_range_default1), current_cycle(0), current_subcycle(0),
       forced_subcycle(-1), pending_cycle(-1), animation_radius(0)
 {
 }

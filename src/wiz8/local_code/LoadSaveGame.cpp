@@ -828,7 +828,7 @@ static unsigned char SaveMonsterRecord(W8Chunk* chunks, unsigned int index)
     if (info->fActive != 0) {
         MonsterGetLocation(info->p3D, &location);
         location.y = SettlePositionToGround(&location, 0);
-        info->position_17 = location;
+        info->position = location;
         info->derived = MonsterGetAngleD4(info->p3D);
     }
     record_size = sizeof(*info);
@@ -2139,7 +2139,7 @@ void LoadGameStatus(W8Chunk* chunks, W8GlobalStatus* status)
                                            static_cast<unsigned short>(item_slot));
             }
             party_row->pending_action_detail.item_use.item = item;
-            party_row->action_detail_045.item_use.item = 0;
+            party_row->action_detail1.item_use.item = 0;
             party_row->spell_target.pPCItem = 0;
             party_row->item_target.pPCItem = 0;
             party_row->breath_target.pPCItem = 0;

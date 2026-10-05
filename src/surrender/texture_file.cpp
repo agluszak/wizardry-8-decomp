@@ -8,11 +8,11 @@
 
 // FUNCTION: SURRENDER 0x1005F8E0
 srTextureFile::srTextureFile(const char* file_name, int cached)
-    : cached_54(0), file_name_58(0), surface_5c(0), frame_handle_60(getNewFrameHandle())
+    : cached(0), file_name(0), surface(0), frame_handle(getNewFrameHandle())
 {
-    cached_54 = 0;
+    this->cached = 0;
     if (cached != 0) {
-        cached_54 = 1;
+        this->cached = 1;
     }
     setFileName(file_name);
     if (file_name != 0) {
@@ -29,10 +29,10 @@ srTextureFile& srTextureFile::operator=(const srTextureFile& other)
     if (this != &other) {
         srTexture::operator=(other);
         setFileName(0);
-        if (other.file_name_58 != 0) {
-            setFileName(other.file_name_58);
+        if (other.file_name != 0) {
+            setFileName(other.file_name);
         }
-        cached_54 = other.cached_54;
+        cached = other.cached;
     }
     return *this;
 }
@@ -53,7 +53,7 @@ srClass* srTextureFile::vInstance()
 // FUNCTION: SURRENDER 0x1005F9F0
 const char* srTextureFile::getFileName() const
 {
-    return file_name_58;
+    return file_name;
 }
 
 /* The filename is an ordinary CRT string: retail allocates it with the
@@ -62,14 +62,14 @@ const char* srTextureFile::getFileName() const
 void srTextureFile::setFileName(const char* file_name)
 {
     invalidate();
-    if (file_name_58 != 0) {
-        delete file_name_58;
+    if (this->file_name != 0) {
+        delete this->file_name;
     }
     if (file_name == 0 || *file_name == 0) {
-        file_name_58 = 0;
+        this->file_name = 0;
     } else {
-        file_name_58 = static_cast<char*>(::operator new(strlen(file_name) + 1));
-        memcpy(file_name_58, file_name, strlen(file_name) + 1);
+        this->file_name = static_cast<char*>(::operator new(strlen(file_name) + 1));
+        memcpy(this->file_name, file_name, strlen(file_name) + 1);
     }
     texture_flags_ &= ~1;
     texture_flags_ |= 1 << FLAG_DIRTY_DEFAULTS;
@@ -79,42 +79,42 @@ void srTextureFile::setFileName(const char* file_name)
 void srTextureFile::setCached(int cached)
 {
     if (cached != 0) {
-        cached_54 |= 1;
+        this->cached |= 1;
         return;
     }
-    cached_54 &= ~1;
+    this->cached &= ~1;
 }
 
 // FUNCTION: SURRENDER 0x1005FF00
 int srTextureFile::isSurfaceLoaded() const
 {
-    return surface_5c != 0;
+    return surface != 0;
 }
 
 // FUNCTION: SURRENDER 0x1005F7E0
 void srTextureFile::loadSurface()
 {
-    if (surface_5c != 0) {
+    if (surface != 0) {
         invalidate();
     }
-    if (file_name_58 != 0) {
-        surface_5c = 0;
+    if (file_name != 0) {
+        surface = 0;
         try {
             srSurfaceIOManager::ImportInfo info;
             info.unknown_00 = 0;
-            surface_5c = srCore.getSurfaceIOManager()->importSurface(file_name_58, info);
+            surface = srCore.getSurfaceIOManager()->importSurface(file_name, info);
         }
         catch (const srIOManager::Error&) {
             texture_flags_ |= 1 << FLAG_GENERATESURFACE_FAILURE;
-            surface_5c = 0;
+            surface = 0;
         }
         catch (...) {
             texture_flags_ |= 1 << FLAG_GENERATESURFACE_FAILURE;
-            surface_5c = 0;
+            surface = 0;
         }
-        if (surface_5c != 0) {
+        if (surface != 0) {
             setupDefaultValues();
-            surface_5c->setFilter(getFilter());
+            surface->setFilter(getFilter());
         }
     }
 }
@@ -122,9 +122,9 @@ void srTextureFile::loadSurface()
 // FUNCTION: SURRENDER 0x1005F7C0
 void srTextureFile::releaseSurface()
 {
-    if (surface_5c != 0) {
-        surface_5c->release();
-        surface_5c = 0;
+    if (surface != 0) {
+        surface->release();
+        surface = 0;
     }
 }
 
@@ -134,14 +134,14 @@ unsigned long srTextureFile::getTextureFrameHandle()
     if ((texture_flags_ & (1 << FLAG_GENERATESURFACE_FAILURE)) != 0) {
         return 0;
     }
-    return frame_handle_60;
+    return frame_handle;
 }
 
 // FUNCTION: SURRENDER 0x1005FA80
 void srTextureFile::invalidate()
 {
     releaseSurface();
-    invalidateFrameHandle(frame_handle_60);
+    invalidateFrameHandle(frame_handle);
     texture_flags_ &= ~1;
 }
 
@@ -150,21 +150,21 @@ void srTextureFile::setupDefaultValues()
 {
     if ((texture_flags_ & (1 << FLAG_DIRTY_DEFAULTS)) != 0) {
         texture_flags_ &= ~(1 << FLAG_DIRTY_DEFAULTS);
-        if (surface_5c == 0) {
+        if (surface == 0) {
             loadSurface();
         }
-        setupDefaultValuesFromSurface(surface_5c);
+        setupDefaultValuesFromSurface(surface);
     }
 }
 
 // FUNCTION: SURRENDER 0x1005FCB0
 void srTextureFile::getMipmapData(MultiRequest& request)
 {
-    if (surface_5c == 0) {
+    if (surface == 0) {
         loadSurface();
     }
-    if (surface_5c != 0 && request.destinations[request.mipmap_level] != 0) {
-        request.destinations[request.mipmap_level]->copy(*surface_5c);
+    if (surface != 0 && request.destinations[request.mipmap_level] != 0) {
+        request.destinations[request.mipmap_level]->copy(*surface);
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsign-compare"
         /* Retail compares the signed level against the unsigned last level
@@ -175,7 +175,7 @@ void srTextureFile::getMipmapData(MultiRequest& request)
             }
         }
 #pragma clang diagnostic pop
-        if ((cached_54 & 1) == 0) {
+        if ((cached & 1) == 0) {
             releaseSurface();
         }
     }
@@ -191,10 +191,10 @@ void srTextureFile::dump(std::ostream& stream)
     std::ios::fmtflags flags = stream.flags();
     stream.setf(std::ios::left, std::ios::adjustfield);
     stream.width(0x20);
-    stream << "  Filename: " << file_name_58 << '\n';
+    stream << "  Filename: " << file_name << '\n';
     stream.width(0x20);
-    stream << "  Caching enabled: " << ((cached_54 & 1) != 0 ? "yes\n" : "no\n");
+    stream << "  Caching enabled: " << ((cached & 1) != 0 ? "yes\n" : "no\n");
     stream.width(0x20);
-    stream << "  Cached: " << (surface_5c != 0 ? "yes\n" : "no\n");
+    stream << "  Cached: " << (surface != 0 ? "yes\n" : "no\n");
     stream.flags(static_cast<std::ios::fmtflags>(flags & 0x7fff));
 }

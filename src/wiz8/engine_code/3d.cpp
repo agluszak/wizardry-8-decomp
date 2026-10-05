@@ -165,7 +165,7 @@ unsigned char BakeInstanceVertexLighting(stModelInstance* instance, srNode* ligh
 
         srVector3T<float>* vertices;
         srVector3T<float>* normals;
-        if ((mesh->flags_3a0 & 4) != 0) {
+        if ((mesh->flags & 4) != 0) {
             vertices = mesh->GetVertexLocations(0, 1, 0.0f);
             normals = mesh->GetVertexNormals(0, 1);
         } else {
@@ -261,8 +261,8 @@ unsigned char BakeInstanceVertexLighting(stModelInstance* instance, srNode* ligh
                                                  -light_position.z);
                         OffsetVertices(directions, world_vertices, &offset, count);
                     }
-                    srVector3T<float> light_color = light->diffuse_1a4;
-                    float intensity = light->intensity_1d0;
+                    srVector3T<float> light_color = light->diffuse;
+                    float intensity = light->intensity;
                     for (unsigned long index = 0; index < count; ++index) {
                         srVector3T<float> direction = directions[index];
                         float distance = direction.Length();
@@ -321,7 +321,7 @@ unsigned char BakeInstanceVertexLighting(stModelInstance* instance, srNode* ligh
         if (directions != 0) {
             free(directions);
             directions = 0;
-            mesh->flags_3a0 |= 2;
+            mesh->flags |= 2;
         }
         mesh = mesh->next;
     }
@@ -363,7 +363,7 @@ unsigned char BakeInstanceVertexLightingIfNeeded(stModelInstance* instance, srNo
 
 /* Walk every live world mesh (octree mesh table, or the update-mesh chain when
    there is no octree) and point its vertex-light table index at `table`, then
-   raise flags_3a0 bit 1 so the next bake uses that table. */
+   raise flags bit 1 so the next bake uses that table. */
 // FUNCTION: WIZ8 0x0046F760
 void SetWorldMeshVertexLightTable(W8World* world, int table)
 {
@@ -371,7 +371,7 @@ void SetWorldMeshVertexLightTable(W8World* world, int table)
         for (stMeshModel* model = static_cast<stMeshModel*>(world->update_mesh_source->getModel());
              model != 0; model = model->next) {
             model->vertex_light_table = table;
-            model->flags_3a0 |= 2;
+            model->flags |= 2;
         }
     } else {
         for (unsigned int mesh = 0; mesh < world->octree->m_meshCount; ++mesh) {
@@ -380,7 +380,7 @@ void SetWorldMeshVertexLightTable(W8World* world, int table)
                 for (stMeshModel* model = static_cast<stMeshModel*>(instance->getModel());
                      model != 0; model = model->next) {
                     model->vertex_light_table = table;
-                    model->flags_3a0 |= 2;
+                    model->flags |= 2;
                 }
             }
         }
@@ -778,7 +778,7 @@ void SetWorldSceneMeshShaderBit3(W8World* owner, int argument)
 }
 
 /* Walk one scene subtree and toggle shader DEPTH_WRITE on every mesh model of
-   every model instance; the instance's flags_3a0 bit zero selects the off
+   every model instance; the instance's flags bit zero selects the off
    state. */
 // FUNCTION: WIZ8 0x0046e640
 void SetSceneMeshShaderBit3(srNode* node, int argument)
@@ -790,7 +790,7 @@ void SetSceneMeshShaderBit3(srNode* node, int argument)
             for (stMeshModel* mesh = static_cast<stMeshModel*>(instance->getModel()); mesh != 0;
                  mesh = mesh->next) {
                 srShader* polygon_shader = mesh->getPolyShader(0, 0);
-                bool clear = argument == 0 || (mesh->flags_3a0 & 1) != 0;
+                bool clear = argument == 0 || (mesh->flags & 1) != 0;
 
                 if (polygon_shader == 0) {
                     shader = mesh->getShader(0);
@@ -828,7 +828,7 @@ void SetSceneMeshShaderLowBits(srNode* node, int argument)
             stModelInstance* instance = static_cast<stModelInstance*>(node);
             for (stMeshModel* mesh = static_cast<stMeshModel*>(instance->getModel()); mesh != 0;
                  mesh = mesh->next) {
-                if ((mesh->flags_3a0 & 1) != 0) {
+                if ((mesh->flags & 1) != 0) {
                     continue;
                 }
                 srShader* polygon_shader = mesh->getPolyShader(0, 0);
@@ -883,7 +883,7 @@ void WorldSetRenderRange(W8World* world, float value)
         srAssertFail("pWorld", THREE_D_CPP, 0x28b, 0);
     }
     if (value != 0.0f) {
-        world->render_range_74 = value;
+        world->render_range0 = value;
         world->render_range = value;
         MarkRendererReady();
     }

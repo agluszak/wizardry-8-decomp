@@ -3,7 +3,7 @@
 template <class Enum> class srFlags {
 public:
     /* Retail's srGERD constructor emits __ehvector_ctor over
-       enable_stack_216c_ with the standalone srFlags<e_enable>::srFlags
+       enable_stack with the standalone srFlags<e_enable>::srFlags
        emission (0x1001EF50) as the element callback; clang-cl folds the
        provably-constant body to a rep stos — a documented lowering gap. */
     srFlags();

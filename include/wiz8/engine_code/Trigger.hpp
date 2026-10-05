@@ -23,13 +23,13 @@ public:
     virtual ~W8TriggerEvent();
     virtual void Update();
 
-    short action_004;
+    short action;
     unsigned short unknown_006;
     W8GameTimer timer;
     W8GameTimer* m_pCountdown;
-    Trigger* trigger_030;
+    Trigger* trigger;
     bool repeat;
-    bool completed_035;
+    bool completed;
 };
 
 static_assert(sizeof(W8TriggerEvent) == 0x38, "W8TriggerEvent_must_be_0x38");
@@ -65,7 +65,7 @@ public:
     unsigned char extra_flags;
     short item;
     char linked_trigger[0x80];
-    srVector3T<float> position_08c;
+    srVector3T<float> position;
 };
 
 static_assert(sizeof(W8DoorTriggerActionData) == 0x98, "W8DoorTriggerActionData_must_be_0x98");
@@ -79,7 +79,7 @@ public:
 
 static_assert(sizeof(W8StringTriggerActionData) == 0x0c, "W8StringTriggerActionData_must_be_0x0c");
 
-/* The flags_0a0 bits whose roles are established by recovered producers and
+/* The flags bits whose roles are established by recovered producers and
    consumers:
    - ON arms a trigger plane / state-driven prop; scripts toggle it, mipe uses
      it for the rep item's highlight state.
@@ -88,13 +88,13 @@ static_assert(sizeof(W8StringTriggerActionData) == 0x0c, "W8StringTriggerActionD
      RunLinkedTriggers; LINK_ON_DEACTIVATE selects the latter path.
    - ENABLED makes the trigger interactable (picking, prop activation, door
      pathing); scripts clear it to retire spent levers and triggers.
-   - POSITIONED records that position_118 is live (kind-2 record or
+   - POSITIONED records that position is live (kind-2 record or
      SetPosition); the proximity scan requires it.
    - EXCLUSIVE lets at most one flagged proximity trigger run per update scan.
    - CAN_RUN_LINKED is the bit CanRunLinkedTriggers reports.
    - REACTIVATE_LINKED re-fires linked recipients when a finished trigger
      reactivates.
-   - ALTERNATE_ACTION alternates action_data_128 with
+   - ALTERNATE_ACTION alternates action_data with
      alternate_action_data, tracked by ALTERNATE_SELECTED.
    - ITEM_PICKER marks the item-picker dialog open for this trigger.
    - SEARCHED marks an already-searched trigger; loading unregisters it.
@@ -202,7 +202,7 @@ public:
     void FinishAction();
     void GetPosition(srVector3T<float>* position) const;
     bool CanRunLinkedTriggers();
-    /* flag_0a0_17: loaded from the level record's message packed flag; gates
+    /* flags: loaded from the level record's message packed flag; gates
        the m_lData1..3 action message at the end of Run. */
     bool HasActionMessage();
     /* Whether the trigger takes an item: required_item_id >= 0 (the special-item
@@ -218,12 +218,12 @@ public:
     void Run(int source);
 
     int trigger_kind;
-    char name_01c[0x80];
-    int trigger_id_09c;
+    char name[0x80];
+    int trigger_id;
     /* W8TriggerFlag bits with established producer/consumer semantics. The
        rest of the word is record-loaded or unresolved state and stays masked
        by literal. */
-    unsigned int flags_0a0;
+    unsigned int flags;
     float range_minimum;
     float range_maximum;
     int action_value;
@@ -240,22 +240,22 @@ public:
     unsigned short searchable;
     unsigned char unknown_0ca[2];
     srVector3T<float> representation_vectors[4];
-    float angle_0fc;
+    float angle;
     srVector3T<float> direction;
     unsigned char m_bRepType;
     unsigned char unknown_10d[3];
     W8Prop* m_pProp;
     W8Item* rep_item;
-    srVector3T<float> position_118;
+    srVector3T<float> position;
     W8World* m_pWorld;
-    char action_data_128[0x80];
+    char action_data[0x80];
     char alternate_action_data[0x80];
     signed char action_data_mode;
     signed char sound_volume;
-    unsigned short initial_action_22a;
+    unsigned short initial_action;
     unsigned short alternate_action;
-    unsigned short fallback_action_22e;
-    unsigned short action_230;
+    unsigned short fallback_action;
+    unsigned short action;
     unsigned char action_state;
     unsigned char unknown_233;
     W8TriggerActionData* m_pActionData;

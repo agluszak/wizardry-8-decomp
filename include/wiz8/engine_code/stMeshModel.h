@@ -73,7 +73,7 @@ public:
 
     stMeshModel* next;     /* 0x398 */
     stMeshModel* previous; /* 0x39c */
-    unsigned int flags_3a0;
+    unsigned int flags;
     srVector3T<float> ambient_color;
     int vertex_light_table;
     /* m_pVertLights: per-vertex static lighting, zero-filled on demand; table

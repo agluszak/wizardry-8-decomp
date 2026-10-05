@@ -5,8 +5,8 @@
 #include "wiz8/geometry.h"
 
 struct W8OctBuildLink {
-    void* surface_00; /* region polygons and GD surfaces share the build links */
-    W8OctBuildLink* next_04;
+    void* surface; /* region polygons and GD surfaces share the build links */
+    W8OctBuildLink* next;
 };
 
 class OctPreTree;
@@ -31,14 +31,14 @@ struct W8OctBuildNode {
     unsigned long ConvertToOctPreTree(unsigned short depth, OctPreTree* tree);
 
     union {
-        W8OctBuildNode* children_00[8];
-        W8OctBuildLink* links_00[8];
+        W8OctBuildNode* children[8];
+        W8OctBuildLink* links[8];
         void** surface_arrays[8]; /* elements follow the insert mode */
         unsigned short* region_arrays[8];
     };
     unsigned long padding_20;
     unsigned long padding_24;
-    unsigned short region_28;
+    unsigned short region;
     unsigned short leaf_kind;
     unsigned short provisional_region;
     unsigned short positional;
@@ -85,12 +85,12 @@ struct W8OctBuildTree {
        scan at the bottom octree level. */
     int ClassifyBoxBounds(const srVector3T<float>* box, const srVector3T<float>* bounds, bool leaf);
 
-    W8OctSpatialState spatial_00;
+    W8OctSpatialState spatial;
     W8OctBuildLinkLists* link_lists;
     unsigned long leaf_polygon_count;
     unsigned long gd_surface_count;
     unsigned long leaf_count;
-    unsigned short max_leaf_regions_ac;
+    unsigned short max_leaf_regions;
     unsigned short unknown_ae;
     unsigned long region_assignments;
     bool use_owned_nodes;

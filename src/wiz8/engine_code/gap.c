@@ -30,7 +30,7 @@ void LoadMouthGapTrack(char* path, W8MouthGapTrack* track)
     W8MouthGapRange* range;
 
     track->range_count = 0;
-    track->unused_04 = 0;
+    track->unused = 0;
     track->head = 0;
     track->cursor = 0;
     track->mouth_open = 0;
@@ -68,7 +68,7 @@ void LoadMouthGapTrack(char* path, W8MouthGapTrack* track)
             FileRead(file, &start, 4, &bytes_read);
         }
         track->mouth_open = 0;
-        track->unused_04 = 0;
+        track->unused = 0;
         FileClose(file);
     }
 }

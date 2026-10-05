@@ -36,7 +36,7 @@ void __stdcall LoadSurfacePixels(int handle, srColorSurface* surface, const W8Tg
     }
 
     int rle = header->image_type == 9 || header->image_type == 10 || header->image_type == 11;
-    long pixel_step = surface->pixel_format_30.bytes_per_pixel_minus_one + 1;
+    long pixel_step = surface->pixel_format.bytes_per_pixel_minus_one + 1;
     long file_bpp = header->pixel_depth >> 3;
     if (file_bpp <= 0 || file_bpp > 4) {
         return;
@@ -250,21 +250,21 @@ srColorSurface* __stdcall LoadSurface(int handle, long* unused_out)
 // FUNCTION: WIZ8 0x0047BBD0
 void stTextureFile::releaseSurface()
 {
-    if (surface_5c != 0) {
-        surface_5c->release();
-        surface_5c = 0;
+    if (surface != 0) {
+        surface->release();
+        surface = 0;
     }
     texture_flags_ |= DEFAULTS_PENDING;
 }
 
 // FUNCTION: WIZ8 0x0047C630
 stTextureFile::stTextureFile(const char* file_name, int cached)
-    : cached_54(0), file_name_58(0), surface_5c(0), frame_handle_60(getNewFrameHandle()),
+    : cached(0), file_name(0), surface(0), frame_handle(getNewFrameHandle()),
       has_alpha(0)
 {
     /* Retail stores 0 then conditionally stores 1: the authored value is the
        normalized predicate, not the raw parameter. */
-    cached_54 = (cached != 0);
+    this->cached = (cached != 0);
     invalidate();
     setFileName(file_name);
     if (file_name != 0) {
@@ -279,8 +279,8 @@ stTextureFile& stTextureFile::operator=(const stTextureFile& other)
 {
     if (this != &other) {
         srTexture::operator=(other);
-        setFileName(other.file_name_58);
-        cached_54 = other.cached_54;
+        setFileName(other.file_name);
+        cached = other.cached;
     }
     return *this;
 }
@@ -291,7 +291,7 @@ unsigned long stTextureFile::getTextureFrameHandle()
     if ((texture_flags_ & LOAD_FAILED) != 0) {
         return 0;
     }
-    return frame_handle_60;
+    return frame_handle;
 }
 
 // FUNCTION: WIZ8 0x0047C600
@@ -302,10 +302,10 @@ void stTextureFile::setupDefaultValues()
     }
 
     texture_flags_ &= ~DEFAULTS_PENDING;
-    if (surface_5c == 0) {
+    if (surface == 0) {
         loadSurface();
     }
-    setupDefaultValuesFromSurface(surface_5c);
+    setupDefaultValuesFromSurface(surface);
 }
 
 // FUNCTION: WIZ8 0x0047C7A0
@@ -318,12 +318,12 @@ srClass* stTextureFile::vInstance()
 void stTextureFile::setFileName(const char* file_name)
 {
     invalidate();
-    delete[] file_name_58;
-    file_name_58 = 0;
+    delete[] this->file_name;
+    this->file_name = 0;
 
     if (file_name != 0 && file_name[0] != 0) {
-        file_name_58 = new char[strlen(file_name) + 1];
-        strcpy(file_name_58, file_name);
+        this->file_name = new char[strlen(file_name) + 1];
+        strcpy(this->file_name, file_name);
     }
 
     texture_flags_ &= ~LOAD_FAILED;
@@ -334,7 +334,7 @@ void stTextureFile::setFileName(const char* file_name)
 void stTextureFile::invalidate()
 {
     releaseSurface();
-    invalidateFrameHandle(frame_handle_60);
+    invalidateFrameHandle(frame_handle);
     texture_flags_ &= ~LOAD_FAILED;
 }
 
@@ -355,44 +355,44 @@ void stTextureFile::loadSurface()
 {
     /* The second LoadSurface argument is an out-pointer the callee ignores;
        the caller still initializes the dword it passes. */
-    long unused_04 = 0;
+    long unused = 0;
 
-    if (surface_5c != 0) {
+    if (surface != 0) {
         invalidate();
     }
     /* A missing file name lands on the same LOAD_FAILED tail as a failed
        load; retail has no silent early return here. */
-    if (file_name_58 == 0) {
+    if (file_name == 0) {
         texture_flags_ |= LOAD_FAILED;
         return;
     }
 
-    surface_5c = 0;
-    int handle = FileOpen(file_name_58, 0x41, 0);
+    surface = 0;
+    int handle = FileOpen(file_name, 0x41, 0);
     if (handle != 0) {
-        surface_5c = LoadSurface(handle, &unused_04);
+        surface = LoadSurface(handle, &unused);
         FileClose(handle);
     }
 
-    if (surface_5c == 0) {
+    if (surface == 0) {
         texture_flags_ |= LOAD_FAILED;
         return;
     }
 
     setupDefaultValues();
-    surface_5c->setFilter(getFilter());
+    surface->setFilter(getFilter());
     /* Retail reads the alpha channel count straight out of the surface's
        pixel format (unsigned SETA): the authored comparison is `> 0`. */
-    has_alpha = (surface_5c->pixel_format_30.alpha_bits > 0);
+    has_alpha = (surface->pixel_format.alpha_bits > 0);
 }
 
 // FUNCTION: WIZ8 0x0047CA50
 void stTextureFile::getMipmapData(MultiRequest& request)
 {
-    if (surface_5c == 0) {
+    if (surface == 0) {
         loadSurface();
     }
-    if (surface_5c == 0) {
+    if (surface == 0) {
         return;
     }
 
@@ -400,7 +400,7 @@ void stTextureFile::getMipmapData(MultiRequest& request)
        unsigned, and last_level is already unsigned in the request record. */
     unsigned long level = static_cast<unsigned long>(request.mipmap_level);
     if (request.destinations[level] != 0) {
-        request.destinations[level]->copy(*surface_5c);
+        request.destinations[level]->copy(*surface);
     }
     for (++level; level <= request.last_level; ++level) {
         if (request.destinations[level] != 0 && request.destinations[level - 1] != 0) {
@@ -411,7 +411,7 @@ void stTextureFile::getMipmapData(MultiRequest& request)
     /* Retail tests the flag with TEST byte ptr [+0x54],0x1 even though the
        constructor stores the field dword-wide: the authored predicate is a
        bit test, not a zero compare. */
-    if ((cached_54 & 1) == 0) {
+    if ((cached & 1) == 0) {
         releaseSurface();
     }
 }

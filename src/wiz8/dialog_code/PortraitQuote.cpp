@@ -25,7 +25,7 @@ struct W8PortraitQuoteBubble {
     UINT32 surface;                    /* 0x00 */
     unsigned short width;              /* 0x04 */
     unsigned short height;             /* 0x06 */
-    unsigned char background_index_08; /* 0x08 */
+    unsigned char background_index; /* 0x08 */
     unsigned char object_index;     /* 0x09 */
     UINT32 background_surface;         /* 0x0c */
     UINT32 object;                     /* 0x10 */
@@ -495,12 +495,12 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
             return -1;
         }
         g_current_portrait_quote->has_resources = true;
-        g_current_portrait_quote->background_index_08 = background_index;
+        g_current_portrait_quote->background_index = background_index;
         g_current_portrait_quote->object_index = edge_index;
     } else {
         bubble = g_portrait_quotes[quote_handle];
         g_current_portrait_quote = bubble;
-        if (background_index != bubble->background_index_08 ||
+        if (background_index != bubble->background_index ||
             edge_index != bubble->object_index || bubble->has_resources == 0) {
             if (bubble != 0 && bubble->has_resources != 0) {
                 DeleteVideoSurfaceFromIndex(bubble->background_surface);
@@ -518,7 +518,7 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
                 return -1;
             }
             g_current_portrait_quote->has_resources = true;
-            g_current_portrait_quote->background_index_08 = background_index;
+            g_current_portrait_quote->background_index = background_index;
             g_current_portrait_quote->object_index = edge_index;
         }
     }

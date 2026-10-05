@@ -10,7 +10,7 @@
 #include <ostream>
 
 /* Comma-separated operation names srMaterial::dump walks while printing the
-   operations_6c bits. Retail .data holds a zero-initialized pointer here; no
+   operations bits. Retail .data holds a zero-initialized pointer here; no
    in-range provider code ever stores to it, so the source spelling stays
    unresolved beyond the address binding. */
 // GLOBAL: SURRENDER 0x100A48C0
@@ -119,8 +119,8 @@ srMaterial& srMaterial::operator=(const srMaterial& other)
     if (&other != this) {
         srMaterialIFace::operator=(other);
         parms = other.parms;
-        operations_6c.value = other.operations_6c.value;
-        mapper_70 = other.mapper_70;
+        operations.value = other.operations.value;
+        mapper = other.mapper;
         dirty = 1;
         return *this;
     }
@@ -139,21 +139,21 @@ void srMaterial::getMaterialInfo(srVertexProcessor::MaterialInfo& info)
 // FUNCTION: SURRENDER 0x10033C00
 void srMaterial::preProcess(srVertexPipe& pipe)
 {
-    if ((operations_6c.value & 0x10) != 0) {
+    if ((operations.value & 0x10) != 0) {
         pipe.enableChannel(srVertexProcessor::CHANNEL_DIFFUSE);
         pipe.enableChannel(srVertexProcessor::CHANNEL_LIGHT_DIFFUSE);
         pipe.enableChannel(srVertexProcessor::CHANNEL_LIGHT_AMBIENT);
         pipe.enableChannel(srVertexProcessor::CHANNEL_SPECULAR);
         return;
     }
-    if ((operations_6c.value & 8) != 0) {
+    if ((operations.value & 8) != 0) {
         pipe.enableChannel(srVertexProcessor::CHANNEL_DIFFUSE);
         pipe.enableChannel(srVertexProcessor::CHANNEL_LIGHT_DIFFUSE);
         pipe.enableChannel(srVertexProcessor::CHANNEL_LIGHT_AMBIENT);
         pipe.disableChannel(srVertexProcessor::CHANNEL_SPECULAR);
         return;
     }
-    if ((operations_6c.value & 4) != 0) {
+    if ((operations.value & 4) != 0) {
         pipe.disableChannel(srVertexProcessor::CHANNEL_DIFFUSE);
         pipe.disableChannel(srVertexProcessor::CHANNEL_LIGHT_DIFFUSE);
         pipe.disableChannel(srVertexProcessor::CHANNEL_LIGHT_AMBIENT);
@@ -170,13 +170,13 @@ void srMaterial::postProcess(srVertexPipe& pipe)
     srVector4T<float>* color;
     float* channel;
 
-    if (mapper_70 != 0) {
-        if (mapper_70->isActive(pipe) != 0) {
-            mapper_70->process(pipe);
+    if (mapper != 0) {
+        if (mapper->isActive(pipe) != 0) {
+            mapper->process(pipe);
         }
     }
-    operations = operations_6c.value;
-    vertex_count = pipe.vertex_count_88;
+    operations = this->operations.value;
+    vertex_count = pipe.vertex_count;
     blend = operations & 1;
     if (operations != 0) {
         if ((operations & 0x10) == 0) {
@@ -185,19 +185,19 @@ void srMaterial::postProcess(srVertexPipe& pipe)
                     goto channels_done;
                 }
                 if (blend != 0) {
-                    if ((pipe.scratch_00->flags & 0x10) == 0) {
+                    if ((pipe.scratch->flags & 0x10) == 0) {
                         pipe.setupDepthCue();
                     }
-                    srCore.getStatisticsManager()->statistics_00.specular_operations +=
-                        pipe.vertex_count_88;
+                    srCore.getStatisticsManager()->statistics.specular_operations +=
+                        pipe.vertex_count;
                     if ((pipe.lazy_setup_mask & 4) == 0) {
                         pipe.setupSpecular();
                     }
-                    color = pipe.vertex_array->specular_08 + pipe.batch_base +
+                    color = pipe.vertex_array->specular + pipe.batch_base +
                             pipe.sub_batch_offset;
                     if (vertex_count != 0) {
                         srVectorProcessor::vp->_mul(
-                            color, color, pipe.scratch_00->depth_cue + pipe.sub_batch_offset,
+                            color, color, pipe.scratch->depth_cue + pipe.sub_batch_offset,
                             vertex_count);
                     }
                     blend = 0;
@@ -206,19 +206,19 @@ void srMaterial::postProcess(srVertexPipe& pipe)
                 pipe.enableChannel(srVertexProcessor::CHANNEL_DIFFUSE);
             } else {
                 if (blend != 0) {
-                    if ((pipe.scratch_00->flags & 0x10) == 0) {
+                    if ((pipe.scratch->flags & 0x10) == 0) {
                         pipe.setupDepthCue();
                     }
-                    srCore.getStatisticsManager()->statistics_00.diffuse_operations +=
-                        pipe.vertex_count_88;
+                    srCore.getStatisticsManager()->statistics.diffuse_operations +=
+                        pipe.vertex_count;
                     if ((pipe.lazy_setup_mask & 2) == 0) {
                         pipe.setupDiffuse();
                     }
-                    color = pipe.vertex_array->diffuse_04 + pipe.batch_base +
+                    color = pipe.vertex_array->diffuse + pipe.batch_base +
                             pipe.sub_batch_offset;
                     if (vertex_count != 0) {
                         srVectorProcessor::vp->_mul(
-                            color, color, pipe.scratch_00->depth_cue + pipe.sub_batch_offset,
+                            color, color, pipe.scratch->depth_cue + pipe.sub_batch_offset,
                             vertex_count);
                     }
                     blend = 0;
@@ -233,52 +233,52 @@ void srMaterial::postProcess(srVertexPipe& pipe)
 channels_done:
     if (blend != 0) {
         if ((pipe.channel_mask & 2) != 0) {
-            if ((pipe.scratch_00->flags & 0x10) == 0) {
+            if ((pipe.scratch->flags & 0x10) == 0) {
                 pipe.setupDepthCue();
             }
-            srCore.getStatisticsManager()->statistics_00.diffuse_operations +=
-                pipe.vertex_count_88;
+            srCore.getStatisticsManager()->statistics.diffuse_operations +=
+                pipe.vertex_count;
             if ((pipe.lazy_setup_mask & 2) == 0) {
                 pipe.setupDiffuse();
             }
             color =
-                pipe.vertex_array->diffuse_04 + pipe.batch_base + pipe.sub_batch_offset;
+                pipe.vertex_array->diffuse + pipe.batch_base + pipe.sub_batch_offset;
             if (vertex_count != 0) {
                 srVectorProcessor::vp->_mul(
-                    color, color, pipe.scratch_00->depth_cue + pipe.sub_batch_offset,
+                    color, color, pipe.scratch->depth_cue + pipe.sub_batch_offset,
                     vertex_count);
             }
         }
         if ((pipe.channel_mask & 4) != 0) {
-            if ((pipe.scratch_00->flags & 0x10) == 0) {
+            if ((pipe.scratch->flags & 0x10) == 0) {
                 pipe.setupDepthCue();
             }
-            srCore.getStatisticsManager()->statistics_00.specular_operations +=
-                pipe.vertex_count_88;
+            srCore.getStatisticsManager()->statistics.specular_operations +=
+                pipe.vertex_count;
             if ((pipe.lazy_setup_mask & 4) == 0) {
                 pipe.setupSpecular();
             }
             color =
-                pipe.vertex_array->specular_08 + pipe.batch_base + pipe.sub_batch_offset;
+                pipe.vertex_array->specular + pipe.batch_base + pipe.sub_batch_offset;
             if (vertex_count != 0) {
                 srVectorProcessor::vp->_mul(
-                    color, color, pipe.scratch_00->depth_cue + pipe.sub_batch_offset,
+                    color, color, pipe.scratch->depth_cue + pipe.sub_batch_offset,
                     vertex_count);
             }
         }
     }
-    if ((operations_6c.value & 2) != 0 && (pipe.channel_mask & 8) != 0) {
-        if ((pipe.scratch_00->flags & 0x10) == 0) {
+    if ((this->operations.value & 2) != 0 && (pipe.channel_mask & 8) != 0) {
+        if ((pipe.scratch->flags & 0x10) == 0) {
             pipe.setupDepthCue();
         }
-        srCore.getStatisticsManager()->statistics_00.alpha_operations += pipe.vertex_count_88;
+        srCore.getStatisticsManager()->statistics.alpha_operations += pipe.vertex_count;
         if ((pipe.lazy_setup_mask & 8) == 0) {
             pipe.setupAlpha();
         }
-        channel = pipe.scratch_00->alpha + pipe.sub_batch_offset;
+        channel = pipe.scratch->alpha + pipe.sub_batch_offset;
         if (vertex_count != 0) {
             srVectorProcessor::vp->_mul(channel, channel,
-                                        pipe.scratch_00->depth_cue + pipe.sub_batch_offset,
+                                        pipe.scratch->depth_cue + pipe.sub_batch_offset,
                                         vertex_count);
         }
     }
@@ -296,8 +296,8 @@ void srMaterial::reset()
     parms.flags = 0;
     parms.value_38 = 0.0f;
     dirty = 1;
-    operations_6c.value = 0;
-    mapper_70 = 0;
+    operations.value = 0;
+    mapper = 0;
 }
 
 // FUNCTION: SURRENDER 0x10033FC0
@@ -326,7 +326,7 @@ void srMaterial::dump(std::ostream& stream)
     stream << "  Translucency: " << parms.translucency << '\n';
     stream.width(0x20);
     stream << "  Op. Control Flags: ";
-    if (operations_6c.value == 0) {
+    if (operations.value == 0) {
         stream << "<NONE>";
     } else {
         stream << '[';
@@ -334,7 +334,7 @@ void srMaterial::dump(std::ostream& stream)
         const char* names = s_oper_names;
         const char* name = names;
         for (unsigned long bit = 0; bit < 0x20; ++bit) {
-            if ((operations_6c.value & (1 << bit)) == 0) {
+            if ((operations.value & (1 << bit)) == 0) {
                 if (name != 0) {
                     while (*name != 0 && *name != ',') {
                         ++name;
@@ -366,7 +366,7 @@ void srMaterial::dump(std::ostream& stream)
     }
     stream << '\n';
     stream.width(0x20);
-    stream << "  Texture mapper: " << mapper_70 << '\n';
+    stream << "  Texture mapper: " << mapper << '\n';
     stream.width(0x20);
     stream << "  Dirty: " << srBoolToString(dirty) << '\n';
     stream.flags(flags & 0x7fff);
@@ -501,27 +501,27 @@ void srMaterial::setVector(srVector4T<float>& destination, const srVector4T<floa
 // FUNCTION: SURRENDER 0x10034AD0
 void srMaterial::disable(e_oper operation)
 {
-    operations_6c.value &= ~(1 << (operation & 0x1f));
+    operations.value &= ~(1 << (operation & 0x1f));
     dirty = 1;
 }
 
 // FUNCTION: SURRENDER 0x10034B00
 void srMaterial::enable(e_oper operation)
 {
-    operations_6c.value |= 1 << (operation & 0x1f);
+    operations.value |= 1 << (operation & 0x1f);
     dirty = 1;
 }
 
 // FUNCTION: SURRENDER 0x10034B20
 int srMaterial::isEnabled(e_oper operation) const
 {
-    return (operations_6c.value & (1 << (operation & 0x1f))) != 0;
+    return (operations.value & (1 << (operation & 0x1f))) != 0;
 }
 
 // FUNCTION: SURRENDER 0x10034B50
 srVertexProcessor* srMaterial::getMapper() const
 {
-    return mapper_70;
+    return mapper;
 }
 
 // FUNCTION: SURRENDER 0x10034DA0

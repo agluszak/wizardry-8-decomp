@@ -65,10 +65,10 @@ static char s_delete_log[] = "DELETE LOG";
 /* 0x006504E8: per-device spell/notice table; TriggerTrapDevice reads
    the effect spell id at index device + 0xb. */
 // GLOBAL: WIZ8 0x006504E8
-int g_table_6504e8[] = {10,  25, 35, 40, 50, 60, 70, 80,  90,  100, 110, 121, 122,
+int g_table2[] = {10,  25, 35, 40, 50, 60, 70, 80,  90,  100, 110, 121, 122,
                         123, 24, 47, 36, 37, 60, 70, 124, 125, 126, 86,  127, 91};
 // GLOBAL: WIZ8 0x00650434
-static unsigned char g_table_650434[15][8] = {
+static unsigned char g_table1[15][8] = {
     {0, 1, 0, 0, 0, 1, 0, 0}, {0, 1, 0, 1, 0, 0, 0, 0}, {0, 0, 1, 0, 0, 1, 0, 0},
     {0, 0, 0, 0, 1, 1, 0, 0}, {0, 0, 1, 1, 0, 0, 0, 1}, {1, 1, 0, 0, 1, 0, 0, 0},
     {0, 0, 1, 0, 1, 0, 1, 0}, {1, 0, 0, 1, 0, 1, 0, 0}, {0, 0, 1, 1, 1, 0, 0, 0},
@@ -222,7 +222,7 @@ char HandleRecordModeKey(const InputAtom* input, void (*prompt)(void))
 // FUNCTION: WIZ8 0x005E3730
 unsigned char GetTable650434Entry(int row, int column)
 {
-    return g_table_650434[row][column];
+    return g_table1[row][column];
 }
 
 /* Per-type device floor for the sprung-trap discharge: the type's entry is
@@ -367,5 +367,5 @@ void ResolveSprungTrap(Trigger* trigger)
     }
     GetCameraPosition(&camera);
     g_octree->TraceLineOfSight(&camera, &point, 1, -3, -3, 1, 0);
-    DischargeTrapSpell(point, g_table_6504e8[type + 11], power, count);
+    DischargeTrapSpell(point, g_table2[type + 11], power, count);
 }

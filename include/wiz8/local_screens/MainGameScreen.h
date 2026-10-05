@@ -78,7 +78,7 @@ public:
     virtual char HandleKey(unsigned short key);
     virtual void OnRangeChanged(W8RangeControl* control) override;
 
-    W8RangeControl m_range_038;
+    W8RangeControl m_range;
     int m_line_count;
     int m_visible_lines;
     const unsigned short* m_line_string_ids;
@@ -89,7 +89,7 @@ public:
 };
 static_assert(sizeof(W8MainGameTextKeyHandler) == 0xc0, "W8MainGameTextKeyHandler_size");
 /* The secondary W8RangeListener subobject sits at +0x34. */
-W8_ASSERT_BASE_END(W8MainGameTextKeyHandler, W8RangeListener, m_range_038, 0x34);
+W8_ASSERT_BASE_END(W8MainGameTextKeyHandler, W8RangeListener, m_range, 0x34);
 
 /* 0xc0-byte text-panel cell. W8TextControl is 0xb8; the extra dword at +0xb8
    holds the displayed catalog image (or -1) and +0xbc gates mouse handling.
@@ -105,7 +105,7 @@ public:
     virtual void OnLeftButtonUp(int event) override;
 
     int m_image;
-    bool m_input_blocked_bc;
+    bool m_input_blocked;
     unsigned char m_pad_bd[3];
 };
 static_assert(sizeof(W8MainGameTextEntry) == 0xc0, "W8MainGameTextEntry_size");
@@ -127,21 +127,21 @@ public:
     virtual void OnSecondary(W8TextControl*) override {}
     virtual void OnRangeChanged(W8RangeControl* control) override;
 
-    W8MainGameTextEntry* m_entries_054[8];
+    W8MainGameTextEntry* m_entries[8];
     W8MainGameTextKeyHandler* m_key_handler;
-    int m_selection_078;
-    W8MainGameScreen* m_screen_07c;
-    int* m_values_080;
+    int m_selection;
+    W8MainGameScreen* m_screen;
+    int* m_values;
     /* 0x84: the timed progress text block is displayed. */
     bool m_progress_display;
     unsigned char m_pad_085[3];
     float m_progress_duration;
     float m_progress_elapsed;
     int m_progress_drawn; /* widest progress extent drawn so far */
-    W8GameTimer m_timer_094;
+    W8GameTimer m_timer0;
     W8ControlsRect m_text_bounds;
     W8TextBuffer m_text_buffer;
-    W8GameTimer m_timer_118;
+    W8GameTimer m_timer1;
     int m_marker_anim_time; /* drives the 12-frame target-changed marker */
     bool m_target_changed;
     /* 0x141: draw the animated target-changed marker this frame;
@@ -152,7 +152,7 @@ public:
 static_assert(sizeof(W8MainGameTextPanel) == 0x144, "W8MainGameTextPanel_size");
 /* Retail secondary vftable 0x005eeba0 places W8TextControl::Listener at +0x4c
    and W8RangeListener at +0x50; the panel's own members begin at +0x54. */
-W8_ASSERT_BASE_END(W8MainGameTextPanel, W8RangeListener, m_entries_054, 0x50);
+W8_ASSERT_BASE_END(W8MainGameTextPanel, W8RangeListener, m_entries, 0x50);
 
 /* The 0x00588A90 constructor establishes a Controls-derived status panel.
    Ordinary destructor 0x00588DB0; 0x00588D90 is the scalar deleting wrapper. */
@@ -165,12 +165,12 @@ public:
     void RefreshStatusTexts(); /* 0x00588E60 */
 
     W8TextBuffer* m_text;
-    W8TextBuffer* m_text_050;
-    W8TextBuffer* m_text_054;
-    W8TextBuffer* m_text_058;
-    W8TextBuffer* m_text_05c;
-    W8TextBuffer* m_text_060;
-    W8TextBuffer* m_text_064;
+    W8TextBuffer* m_text0;
+    W8TextBuffer* m_text1;
+    W8TextBuffer* m_text2;
+    W8TextBuffer* m_text3;
+    W8TextBuffer* m_text4;
+    W8TextBuffer* m_text5;
     int m_target;
 };
 static_assert(sizeof(W8MainGameStatusPanel) == 0x6c, "W8MainGameStatusPanel_size");
@@ -249,7 +249,7 @@ static_assert(offsetof(W8NpcDialogueTextController, text_area) == 0x64,
    (constructed by 0x0055E570, stored in W8NpcInteractionState at +0x130, parented
    to the +0x1b0 controller). Entering selects the first visible entry,
    leaving clears the selection, and the button handlers track the press in
-   m_flags_34 before firing the widget callbacks. */
+   m_flags before firing the widget callbacks. */
 // VTABLE: WIZ8 0x005ee92c
 class W8NpcDialogueScrollWidget : public W8Widget {
 public:
@@ -263,10 +263,10 @@ public:
     virtual void OnLeftButtonDown(int event) override; /* 0x0055E640 */
     virtual void OnLeftButtonUp(int event) override;   /* 0x0055E660 */
 
-    unsigned int m_flags_34; /* 0x34: bit 0 while the primary button is held */
+    unsigned int m_flags; /* 0x34: bit 0 while the primary button is held */
 };
 static_assert(sizeof(W8NpcDialogueScrollWidget) == 0x38, "W8NpcDialogueScrollWidget_size");
-static_assert(offsetof(W8NpcDialogueScrollWidget, m_flags_34) == 0x34,
+static_assert(offsetof(W8NpcDialogueScrollWidget, m_flags) == 0x34,
               "W8NpcDialogueScrollWidget_flags_34");
 
 class W8LockTumbler;
@@ -296,8 +296,8 @@ public:
        below; no standalone derived body exists. */
     W8LockTumbler(Controls* panel, int left, int top, int right, int bottom, int pin_index)
         : W8Widget(panel, 0xffffffff, left, top, right, bottom), m_pin_set(0), m_rising(0),
-          m_falling(0), m_at_top(0), m_hovered_38(0), m_pin_index(pin_index),
-          m_pin_height(0x22), m_listener_44(0)
+          m_falling(0), m_at_top(0), m_hovered(0), m_pin_index(pin_index),
+          m_pin_height(0x22), m_listener(0)
     {
     }
     virtual void Redraw(unsigned char full_redraw) override; /* 0x005854B0 */
@@ -311,10 +311,10 @@ public:
     bool m_rising;                     /* 0x35: animating toward its target height */
     bool m_falling;                    /* 0x36: dropping back to rest */
     bool m_at_top;                     /* 0x37: redrawn against the shared tumble phase */
-    bool m_hovered_38;                    /* 0x38 */
+    bool m_hovered;                    /* 0x38 */
     int m_pin_index;                   /* 0x3c: column into the pin pattern tables */
     int m_pin_height;                  /* 0x40: pixel offset, 0x22 at rest */
-    W8LockTumblerListener* m_listener_44; /* 0x44 */
+    W8LockTumblerListener* m_listener; /* 0x44 */
 };
 static_assert(sizeof(W8LockTumbler) == 0x48, "W8LockTumbler_size");
 
@@ -341,7 +341,7 @@ public:
     virtual void OnTumblerReleased(W8LockTumbler* tumbler) override; /* 0x00585950 */
     void UpdateTumblerAnimation();                                   /* 0x00585990 */
 
-    int m_tumbler_count_50;          /* 0x50: pins in use, clamped to [2,8] */
+    int m_tumbler_count;          /* 0x50: pins in use, clamped to [2,8] */
     W8LockTumbler* m_tumblers[8]; /* 0x54 */
     bool m_animating;             /* 0x74: a pin is in flight; input is locked out */
     unsigned char unknown_75[3];
@@ -349,14 +349,14 @@ public:
     W8GameTimer m_phase_timer;              /* 0x7c: 0.04s */
     W8GameTimer m_rise_timer;               /* 0xa0: 0.03s */
     W8GameTimer m_fall_timer;               /* 0xc4: 0.01s */
-    W8LockTumblerPanelListener* m_listener_e8; /* 0xe8 */
+    W8LockTumblerPanelListener* m_listener; /* 0xe8 */
 };
 static_assert(sizeof(W8LockTumblerPanel) == 0xec, "W8LockTumblerPanel_size");
 /* The secondary W8LockTumblerListener subobject sits at +0x4c (secondary
    vftable 0x005eeaa8). */
-W8_ASSERT_BASE_END(W8LockTumblerPanel, W8LockTumblerListener, m_tumbler_count_50, 0x4c);
+W8_ASSERT_BASE_END(W8LockTumblerPanel, W8LockTumblerListener, m_tumbler_count, 0x4c);
 static_assert(offsetof(W8LockTumblerPanel, m_tumblers) == 0x54, "W8LockTumblerPanel_tumblers");
-static_assert(offsetof(W8LockTumblerPanel, m_listener_e8) == 0xe8, "W8LockTumblerPanel_listener");
+static_assert(offsetof(W8LockTumblerPanel, m_listener) == 0xe8, "W8LockTumblerPanel_listener");
 
 /* The lock interaction's readout column (0x6c bytes, ctor 0x00585B00): the
    selected character's name plus the lockpick-skill, spell-power and
@@ -370,13 +370,13 @@ public:
     virtual void Redraw() override; /* 0x00586120 */
     void RefreshInfo();             /* 0x00585ED0 */
 
-    int m_tumbler_count_4c;   /* 0x4c */
-    W8TextBuffer* m_text_050; /* 0x50: character name */
-    W8TextBuffer* m_text_054; /* 0x54 */
-    W8TextBuffer* m_text_058; /* 0x58: lockpick skill */
-    W8TextBuffer* m_text_05c; /* 0x5c */
-    W8TextBuffer* m_text_060; /* 0x60: spell power */
-    W8TextBuffer* m_text_064; /* 0x64 */
+    int m_tumbler_count;   /* 0x4c */
+    W8TextBuffer* m_text0; /* 0x50: character name */
+    W8TextBuffer* m_text1; /* 0x54 */
+    W8TextBuffer* m_text2; /* 0x58: lockpick skill */
+    W8TextBuffer* m_text3; /* 0x5c */
+    W8TextBuffer* m_text4; /* 0x60: spell power */
+    W8TextBuffer* m_text5; /* 0x64 */
     W8TextBuffer* m_text; /* 0x68: force chance */
 };
 static_assert(sizeof(W8LockInfoPanel) == 0x6c, "W8LockInfoPanel_size");
@@ -406,7 +406,7 @@ public:
     void ApplyKnockKnock(int level, int flag, char backfire); /* 0x005871A0 */
 
     Trigger* m_trigger;  /* 0x08 */
-    int m_tumbler_count_0c; /* 0x0c: trigger->lock_state.difficulty clamped to [2,8] */
+    int m_tumbler_count; /* 0x0c: trigger->lock_state.difficulty clamped to [2,8] */
     W8LockTumblerPanel* m_tumbler_panel;
     W8LockInfoPanel* m_info_panel;
     Controls* m_action_panel;
@@ -416,11 +416,11 @@ public:
     W8TextControl* m_cancel_button;    /* 0x28: OnPrimary target, state 5 (cancel) */
     int m_selected_slot;               /* 0x2c: party slot owning the raised pins */
     int m_picked_tumbler;              /* 0x30: index OnTumblerPicked recorded */
-    int m_state_34;                       /* 0x34: Process() state */
+    int m_state;                       /* 0x34: Process() state */
     int m_tumbler_owner[8];            /* 0x38: owning party slot per pin, -1 unset */
     unsigned char m_tumbler_locked[8]; /* 0x58: pin kept when the slot is released */
     int m_slot_attempts[8];            /* 0x60: pick attempts per party slot */
-    W8GameTimer m_timer_80;               /* 0x80: state-8 completion delay */
+    W8GameTimer m_timer;               /* 0x80: state-8 completion delay */
 };
 static_assert(sizeof(W8LockInteraction) == 0xa4, "W8LockInteraction_size");
 /* Retail secondary vftable 0x005eead0 places W8TextControl::Listener at +0x4. */
@@ -428,8 +428,8 @@ W8_ASSERT_BASE_END(W8LockInteraction, W8TextControl::Listener, m_trigger, 0x4);
 static_assert(offsetof(W8LockInteraction, m_trigger) == 0x08, "W8LockInteraction_trigger");
 static_assert(offsetof(W8LockInteraction, m_tumbler_panel) == 0x10,
               "W8LockInteraction_tumbler_panel");
-static_assert(offsetof(W8LockInteraction, m_state_34) == 0x34, "W8LockInteraction_state");
-static_assert(offsetof(W8LockInteraction, m_timer_80) == 0x80, "W8LockInteraction_timer");
+static_assert(offsetof(W8LockInteraction, m_state) == 0x34, "W8LockInteraction_state");
+static_assert(offsetof(W8LockInteraction, m_timer) == 0x80, "W8LockInteraction_timer");
 
 /* 0x005eebdc is the construction-phase primary table installed at the start
    of 0x00589160; 0x005eebd8 is the complete-object table. Slot 0 is a pure
@@ -474,7 +474,7 @@ public:
     int m_slot_columns[8][8];
     int m_target_difficulty;
     int m_sound_handle;
-    W8GameTimer m_timer_154;
+    W8GameTimer m_timer;
 };
 static_assert(sizeof(W8MainGameScreen) == 0x178, "W8MainGameScreen_size");
 /* Retail secondary vftable 0x005eebd0 places W8TextControl::Listener at +0x4. */

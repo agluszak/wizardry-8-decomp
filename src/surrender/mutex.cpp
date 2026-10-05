@@ -4,36 +4,36 @@
 srMutex::srMutex()
 {
     access_count = 0;
-    handle_04 = CreateMutexA(0, 0, 0);
+    handle = CreateMutexA(0, 0, 0);
 }
 
 // FUNCTION: SURRENDER 0x10045A70
 srMutex::~srMutex()
 {
-    WaitForSingleObject(handle_04, INFINITE);
-    CloseHandle(handle_04);
+    WaitForSingleObject(handle, INFINITE);
+    CloseHandle(handle);
 }
 
 // FUNCTION: SURRENDER 0x10045AA0
 int srMutex::accessAvailable()
 {
-    if (WaitForSingleObject(handle_04, 0) == WAIT_ABANDONED) {
+    if (WaitForSingleObject(handle, 0) == WAIT_ABANDONED) {
         return 0;
     }
-    ReleaseMutex(handle_04);
+    ReleaseMutex(handle);
     return 1;
 }
 
 // FUNCTION: SURRENDER 0x10045AD0
 void srMutex::getAccess()
 {
-    WaitForSingleObject(handle_04, INFINITE);
+    WaitForSingleObject(handle, INFINITE);
     access_count++;
 }
 
 // FUNCTION: SURRENDER 0x10045AF0
 void srMutex::releaseAccess()
 {
-    ReleaseMutex(handle_04);
+    ReleaseMutex(handle);
     access_count--;
 }

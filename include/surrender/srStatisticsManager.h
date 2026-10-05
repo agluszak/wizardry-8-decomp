@@ -28,7 +28,7 @@ public:
         std::ostream& stream, const Statistics& statistics);
 
     /* SurRender's submission pipeline updates these counters directly. */
-    Statistics statistics_00;
+    Statistics statistics;
 };
 
 static_assert(sizeof(srStatisticsManager::Statistics) == 0x38,

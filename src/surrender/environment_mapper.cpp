@@ -15,8 +15,8 @@ int srEnvironmentMapper::isActive(srVertexPipe&)
 // FUNCTION: SURRENDER 0x100352f0
 void srEnvironmentMapper::process(srVertexPipe& pipe)
 {
-    unsigned long count = pipe.vertex_count_88;
-    srVertexPipe::Scratch* scratch = pipe.scratch_00;
+    unsigned long count = pipe.vertex_count;
+    srVertexPipe::Scratch* scratch = pipe.scratch;
     if ((scratch->flags & 1) == 0) {
         pipe.setupEyeSpaceDirAndDist();
     }
@@ -27,7 +27,7 @@ void srEnvironmentMapper::process(srVertexPipe& pipe)
     const srVector3T<float>* normals = scratch->normals + pipe.sub_batch_offset;
     srVector2T<float>* st =
         pipe.vertex_array->st0 + pipe.batch_base + pipe.sub_batch_offset;
-    srCore.getStatisticsManager()->statistics_00.texture_coordinate_operations += count;
+    srCore.getStatisticsManager()->statistics.texture_coordinate_operations += count;
     pipe.lazy_setup_mask |= 1 << srVertexProcessor::CHANNEL_ST0;
     for (unsigned long index = 0; index < count; ++index) {
         float projection = directions[index].x * normals[index].x +

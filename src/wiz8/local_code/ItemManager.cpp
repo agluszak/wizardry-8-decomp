@@ -980,7 +980,7 @@ unsigned char InteractWithWorldItem(int runtime_id)
         g_modal_owner = dialog;
         return 1;
     }
-    if (item->p3D->trigger_018 != 0) {
+    if (item->p3D->trigger != 0) {
         result = RunItemTrigger(item->p3D);
         if (result == 0) {
             return result;

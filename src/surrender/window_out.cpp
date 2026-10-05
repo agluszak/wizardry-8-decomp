@@ -77,10 +77,10 @@ private:
         pending.text[index] = ch;
     }
 
-    unsigned long disabled_38;    /* 0x38: emit()/clear/save gate */
+    unsigned long disabled;    /* 0x38: emit()/clear/save gate */
     WNDCLASSA window_class;    /* 0x3c */
-    HINSTANCE instance_64;        /* 0x64 */
-    HWND parent_68;               /* 0x68 */
+    HINSTANCE instance;        /* 0x64 */
+    HWND parent;               /* 0x68 */
     HWND edit_window;          /* 0x6c */
     HWND frame_window;         /* 0x70 */
     unsigned long field_74;       /* 0x74 */
@@ -156,7 +156,7 @@ long __stdcall srWindowOutStreamBuf::windowProc(HWND window, unsigned int messag
         }
     } else if (message == WM_KEYDOWN) {
         if (wparam == VK_ESCAPE && self != 0)
-            SetFocus(self->parent_68);
+            SetFocus(self->parent);
     } else if (message == WM_COMMAND) {
         if ((short)wparam == 2) {
             if (self != 0) {
@@ -192,7 +192,7 @@ unsigned long __stdcall srWindowOutStreamBuf::streamOutCallback(unsigned long st
 // FUNCTION: SURRENDER 0x10046D10
 void srWindowOutStreamBuf::clearText()
 {
-    if (disabled_38 != 0)
+    if (disabled != 0)
         return;
     pending.reserve(1);
     *pending.c_str() = 0;
@@ -210,7 +210,7 @@ void srWindowOutStreamBuf::scrollCaret()
 // FUNCTION: SURRENDER 0x10046EC0
 void srWindowOutStreamBuf::emit(int ch)
 {
-    if (disabled_38 != 0)
+    if (disabled != 0)
         return;
     if ((char)ch == '\n') {
         scroll = 1;
@@ -239,14 +239,14 @@ void srWindowOutStreamBuf::emit(int ch)
 // FUNCTION: SURRENDER 0x100469C0
 void srWindowOutStreamBuf::saveText()
 {
-    if (disabled_38 != 0)
+    if (disabled != 0)
         return;
     OPENFILENAMEA info;
     char file[300];
     for (unsigned long index = 0; index < 300; ++index)
         file[index] = 0;
     info.hwndOwner = frame_window;
-    info.hInstance = instance_64;
+    info.hInstance = instance;
     info.lpstrFile = file;
     info.lStructSize = sizeof(info);
     info.lpstrFilter = 0;
@@ -291,7 +291,7 @@ void srWindowOutStreamBuf::saveText()
 // FUNCTION: SURRENDER 0x10047790
 void srWindowOutStreamBuf::closeWindow()
 {
-    disabled_38 = 1;
+    disabled = 1;
     if (frame_window == 0)
         return;
     if (srWindow::isWindow((unsigned long)frame_window)) {
@@ -314,15 +314,15 @@ srWindowOutStreamBuf::srWindowOutStreamBuf(unsigned long instance, unsigned long
     pending.capacity = 0;
     buffer_size = 1;
     length = 0;
-    disabled_38 = 1;
+    disabled = 1;
     scroll = 1;
     line_buffer = new char;
     edit_window = 0;
     frame_window = 0;
     riched_module = 0;
     font = 0;
-    instance_64 = (HINSTANCE)instance;
-    parent_68 = (HWND)parent;
+    this->instance = (HINSTANCE)instance;
+    this->parent = (HWND)parent;
 
     char class_name[256];
     sprintf(class_name, "%s%i", "srDebugWndClass", class_counter++);
@@ -389,7 +389,7 @@ srWindowOutStreamBuf::srWindowOutStreamBuf(unsigned long instance, unsigned long
     /* Retail stores the window height into crTextColor. */
     format.crTextColor = height;
     SendMessageA(edit_window, EM_SETCHARFORMAT, SCF_ALL, (LPARAM)&format);
-    disabled_38 = 0;
+    disabled = 0;
 
     menu = CreateMenu();
     file_menu = CreateMenu();

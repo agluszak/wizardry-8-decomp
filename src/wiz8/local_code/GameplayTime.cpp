@@ -374,7 +374,7 @@ void EndSurprise(void)
         g_status.skip_next_condition_reaction = 1;
         int party_slot = g_status.pending_condition_party_slot;
         RemoveCharacterCondition(party_slot, 0x13, 0);
-        QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_effect_005ee658, 0,
+        QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_effect32, 0,
                             g_character_event_no_flags, g_character_event_full_volume);
         SetFact(0xb6, 1, 0);
     }
@@ -531,7 +531,7 @@ void AdvanceTimedEffects(unsigned int minutes)
         ResetCombatSlot(&target);
         target.iType = W8_TARGET_KIND_PARTY;
         TickCombatEffectSlots(g_combat_state->effect_slots, &target);
-        TickRadiusBlastEffectSlots(g_combat_state->effect_slots_85a);
+        TickRadiusBlastEffectSlots(g_combat_state->effect_slots0);
     }
 
     for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
@@ -579,7 +579,7 @@ void AdvanceTimedEffects(unsigned int minutes)
             combat_changed = true;
         }
         for (i = 0; i < 6; ++i) {
-            W8EffectSlot* slot = &g_combat_state->effect_slots_85a[i];
+            W8EffectSlot* slot = &g_combat_state->effect_slots0[i];
             if (slot->active == 0) {
                 continue;
             }
@@ -999,11 +999,11 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, unsigned
 
         MonsterGetLocation(monster, &location);
         previous = monster_info->movement_watch_position;
-        monster_info->position_17.y = location.y;
+        monster_info->position.y = location.y;
         cycle = monster_info->movement_stall_ticks;
         delta = location - previous;
-        monster_info->position_17.x = location.x;
-        monster_info->position_17.z = location.z;
+        monster_info->position.x = location.x;
+        monster_info->position.z = location.z;
         if (static_cast<signed char>(cycle) > 1) {
             bool cycle_cleared = false;
             bool flags_cleared = false;
@@ -1018,7 +1018,7 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, unsigned
                         monster_info->party_threat.visible_to_player == 0) {
                         srVector3T<float> next_position;
 
-                        monster->movement_0c0.attachment_0ac->GetNextPosition(&next_position);
+                        monster->movement.attachment->GetNextPosition(&next_position);
                         if (next_position.Length() == static_cast<float>(g_double_zero)) {
                             next_position = monster->GetPosition();
                         }
@@ -1112,7 +1112,7 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, unsigned
         if (monster_info->movement_stall_ticks > 0) {
             ++monster_info->movement_stall_ticks;
         }
-        monster_info->movement_watch_position = monster_info->position_17;
+        monster_info->movement_watch_position = monster_info->position;
     }
 
     /* The monster alternates between a looking spell and a pause; each timer

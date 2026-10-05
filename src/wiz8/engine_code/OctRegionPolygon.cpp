@@ -12,7 +12,7 @@
 unsigned char W8OctRegionPolygon::InsideFrustumPlanes(const W8Plane* planes) const
 {
     for (short plane = 0; plane < 6; ++plane) {
-        float distance = DotProduct(planes[plane].normal, position_18) + planes[plane].w;
+        float distance = DotProduct(planes[plane].normal, position) + planes[plane].w;
         if (distance < g_float_zero) {
             return 0;
         }
@@ -26,7 +26,7 @@ unsigned char W8OctRegionPolygon::InsideFrustumPlanes(const W8Plane* planes) con
 unsigned char W8OctRegionPolygon::ContainsPoint(const srVector3T<float>* bounds) const
 {
     for (short axis = 0; axis < 3; ++axis) {
-        float value = (&position_18.x)[axis];
+        float value = (&position.x)[axis];
         if (value < (&bounds[0].x)[axis] || (&bounds[1].x)[axis] < value) {
             return 0;
         }

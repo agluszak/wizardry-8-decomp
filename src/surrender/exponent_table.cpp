@@ -56,11 +56,11 @@ float srCachedExponentTable::lastQuery = -19192304.0f;
 // FUNCTION: SURRENDER 0x10002EC0
 srCachedExponentTable::srCachedExponentTable(float exponent) : srExponentTable(exponent)
 {
-    previous_1008 = 0;
-    next_100c = first;
+    previous = 0;
+    next = first;
     first = this;
-    if (next_100c != 0) {
-        next_100c->previous_1008 = this;
+    if (next != 0) {
+        next->previous = this;
     }
     ref_count = 1;
     count += 1;
@@ -72,14 +72,14 @@ srCachedExponentTable::~srCachedExponentTable()
     if (this == lastResult) {
         lastResult = 0;
     }
-    if (previous_1008 != 0) {
-        previous_1008->next_100c = next_100c;
+    if (previous != 0) {
+        previous->next = next;
     }
-    if (next_100c != 0) {
-        next_100c->previous_1008 = previous_1008;
+    if (next != 0) {
+        next->previous = previous;
     }
     if (this == first) {
-        first = next_100c;
+        first = next;
     }
     count -= 1;
 }
@@ -97,7 +97,7 @@ void srCachedExponentTable::freeUnused()
 {
     srCachedExponentTable* table = first;
     while (table != 0) {
-        srCachedExponentTable* next = table->next_100c;
+        srCachedExponentTable* next = table->next;
         if (table->ref_count <= 0) {
             delete table;
         }
@@ -119,7 +119,7 @@ srCachedExponentTable* srCachedExponentTable::get(float exponent)
         return lastResult;
     }
     lastQuery = exponent;
-    for (srCachedExponentTable* table = first; table != 0; table = table->next_100c) {
+    for (srCachedExponentTable* table = first; table != 0; table = table->next) {
         if (table->exponent_ == exponent) {
             lastResult = table;
             table->ref_count += 1;
@@ -127,7 +127,7 @@ srCachedExponentTable* srCachedExponentTable::get(float exponent)
         }
     }
     if (count > 0xf) {
-        for (srCachedExponentTable* table = first; table != 0; table = table->next_100c) {
+        for (srCachedExponentTable* table = first; table != 0; table = table->next) {
             if (table->ref_count < 1) {
                 table->setExponent(exponent);
                 table->ref_count += 1;

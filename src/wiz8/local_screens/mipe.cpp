@@ -175,8 +175,8 @@ void ToggleMipePanel(void)
         if (entry == 0) {
             srAssertFail("pMonRec", "C:\\Projects\\Wizardry 8\\Local Screens\\mipe.cpp", 0xeab, 0);
         }
-        wcscpy(entry->name, records[index].name_00);
-        entry->kind = records[index].kind_0cb;
+        wcscpy(entry->name, records[index].name0);
+        entry->kind = records[index].kind;
         entry->selectable = records[index].deleted == 0 && records[index].editor_index == -1;
         PLAdoptAppend(g_mipe_monster_entries, entry);
     }
@@ -1243,7 +1243,7 @@ void HandleMonsterDebugKey(unsigned short key)
                         if (monster->m_pRep->GetNumSubsPerCycle(cycle) != 0) {
                             monster->SetCycle(cycle);
                             monster->SetForcedSubcycleA6(0);
-                            monster->flags_1dc |= 0x10;
+                            monster->flags1 |= 0x10;
                             goto cycle_done;
                         }
                     scan_wrap:
@@ -1333,8 +1333,8 @@ void HandleWaypointKey(unsigned short key)
 
     if (key == 0x43) {
         monster = 0;
-        context.directory_08 = "Data\\Monsters";
-        context.world_00 = GetWorld();
+        context.directory = "Data\\Monsters";
+        context.world = GetWorld();
         LoadMonsterCycle(&context, "waypoint", &monster, -1, 1);
         GetWorldCursorPosition(&position);
         monster->SetCyclePosition(&position);
@@ -3465,9 +3465,9 @@ bool MipeWorldViewEvent(int event, const POINT* point)
                 Trigger* trigger = g_mipe_state->trigger;
                 W8Item* item;
 
-                trigger->flags_0a0 &= ~0x20u;
+                trigger->flags &= ~0x20u;
                 item = trigger->rep_item;
-                if ((trigger->flags_0a0 & W8_TRIGGER_ON) != 0 && item != 0) {
+                if ((trigger->flags & W8_TRIGGER_ON) != 0 && item != 0) {
                     static_cast<W8ItemRep*>(item->m_pRep)->SetFlags(0x10, 0);
                     item->SetHighlight(0);
                 }

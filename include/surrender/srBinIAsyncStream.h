@@ -28,12 +28,12 @@ public:
     /* The emitted copy body is consistent with memberwise copying. */
 
 private:
-    unsigned char* buffer_08;
-    srScheduler::Job* job_0c;
-    srBinIStream* stream_10;
-    unsigned long position_14;
-    unsigned long size_18;
-    int finished_1c;
+    unsigned char* buffer;
+    srScheduler::Job* job;
+    srBinIStream* stream;
+    unsigned long position;
+    unsigned long size;
+    int finished;
 };
 
 static_assert(sizeof(srBinIAsyncStream) == 0x34, "srBinIAsyncStream_must_be_0x34");

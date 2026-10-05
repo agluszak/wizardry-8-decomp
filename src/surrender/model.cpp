@@ -7,9 +7,9 @@
 // FUNCTION: SURRENDER 0x1003C2F0
 srModel::Client::Client()
 {
-    model_04 = 0;
+    model = 0;
     previous = 0;
-    next_0c = 0;
+    next = 0;
 }
 
 // FUNCTION: SURRENDER 0x1003C350
@@ -21,25 +21,25 @@ srModel::Client::~Client()
 // FUNCTION: SURRENDER 0x1003C3B0
 void srModel::Client::setModel(srModel* model)
 {
-    srModel* old = model_04;
+    srModel* old = this->model;
     if (old != model) {
         if (old != 0) {
             if (previous != 0) {
-                previous->next_0c = next_0c;
+                previous->next = next;
             }
-            if (next_0c != 0) {
-                next_0c->previous = previous;
+            if (next != 0) {
+                next->previous = previous;
             }
             if (this == old->first_client) {
-                old->first_client = next_0c;
+                old->first_client = next;
             }
         }
-        model_04 = model;
+        this->model = model;
         if (model != 0) {
             previous = 0;
-            next_0c = model->first_client;
-            if (next_0c != 0) {
-                next_0c->previous = this;
+            next = model->first_client;
+            if (next != 0) {
+                next->previous = this;
             }
             model->first_client = this;
         }
@@ -52,13 +52,13 @@ void srModel::Client::updateClient(e_update update) {}
 // FUNCTION: SURRENDER 0x1003C6C0
 srModel* srModel::Client::getModel() const
 {
-    return model_04;
+    return model;
 }
 
 // FUNCTION: SURRENDER 0x1003C6D0
 srModel::Client* srModel::Client::getNextClient() const
 {
-    return next_0c;
+    return next;
 }
 
 // FUNCTION: SURRENDER 0x1003C6E0
@@ -101,7 +101,7 @@ void srModel::dump(std::ostream& stream)
 // FUNCTION: SURRENDER 0x1003C440
 void srModel::updateAllClients(Client::e_update update)
 {
-    for (Client* client = first_client; client != 0; client = client->next_0c) {
+    for (Client* client = first_client; client != 0; client = client->next) {
         client->updateClient(update);
     }
 }

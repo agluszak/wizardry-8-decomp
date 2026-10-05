@@ -12,7 +12,7 @@
 srHeap::srHeap()
 {
     critical_section = new srCriticalSection;
-    system_block_count_ac = 0;
+    system_block_count = 0;
     block_sequence = 0;
     active_block_count = 0;
     large_blocks = 0;
@@ -23,7 +23,7 @@ srHeap::srHeap()
     current_block = 0;
     current_block_offset = 0;
     partial_blocks = 0;
-    block_90 = 0;
+    block = 0;
     medium_blocks = 0;
 }
 
@@ -67,10 +67,10 @@ srHeap::Block* srHeap::allocateBlock(unsigned long size)
         }
         // reinterpret-ok: block header pointer rounding to the 0x20-aligned
         // allocation payload.
-        block->allocation_00 =
+        block->allocation =
             reinterpret_cast<void*>((reinterpret_cast<unsigned long>(block) + 0x3f) & 0xffffffe0);
         block->alloc_size = allocation_size;
-        ++system_block_count_ac;
+        ++system_block_count;
     } else {
         cached_block = 0;
     }
@@ -78,8 +78,8 @@ srHeap::Block* srHeap::allocateBlock(unsigned long size)
     block->next = 0;
     block->largest_free_size = 0;
     block->largest_free_block = 0;
-    block->guard_18 = 0xdeadbabe;
-    block->guard_1c = 0xcafed00d;
+    block->guard0 = 0xdeadbabe;
+    block->guard1 = 0xcafed00d;
     ++active_block_count;
     return block;
 }
@@ -143,28 +143,28 @@ void srHeap::dump(std::ostream& stream)
     unsigned long total = 0;
     Block* block;
     for (block = small_blocks; block != 0; block = block->next) {
-        srStreamPrintf(stream, "%p  bytes %-8d  (small heap)\n", block->allocation_00,
+        srStreamPrintf(stream, "%p  bytes %-8d  (small heap)\n", block->allocation,
                        block->alloc_size);
         total += block->alloc_size;
     }
     block = current_block;
     if (block != 0) {
-        srStreamPrintf(stream, "%p  bytes %-8d  (small heap/active)\n", block->allocation_00,
+        srStreamPrintf(stream, "%p  bytes %-8d  (small heap/active)\n", block->allocation,
                        block->alloc_size);
         total += block->alloc_size;
     }
     for (block = medium_blocks; block != 0; block = block->next) {
-        srStreamPrintf(stream, "%p  bytes %-8d  (medium heap)\n", block->allocation_00,
+        srStreamPrintf(stream, "%p  bytes %-8d  (medium heap)\n", block->allocation,
                        block->alloc_size);
         total += block->alloc_size;
     }
     for (block = partial_blocks; block != 0; block = block->next) {
-        srStreamPrintf(stream, "%p  bytes %-8d  (medium heap/partial)\n", block->allocation_00,
+        srStreamPrintf(stream, "%p  bytes %-8d  (medium heap/partial)\n", block->allocation,
                        block->alloc_size);
         total += block->alloc_size;
     }
     for (block = large_blocks; block != 0; block = block->next) {
-        srStreamPrintf(stream, "%p  bytes %-8d  (large heap)\n", block->allocation_00,
+        srStreamPrintf(stream, "%p  bytes %-8d  (large heap)\n", block->allocation,
                        block->alloc_size);
         total += block->alloc_size;
     }
@@ -181,12 +181,12 @@ void srHeap::freePooled(void* allocation)
     // reinterpret-ok: pooled chunks carry their 0x20-byte header immediately
     // before the user pointer.
     Chunk* chunk = reinterpret_cast<Chunk*>(allocation) - 1;
-    Block* block = chunk->owner_00;
+    Block* block = chunk->owner;
     checkBlock(block);
     int largest_below = block->largest_free_size < 0x220;
     Chunk* previous = chunk->previous;
     Chunk* merged;
-    if (previous == 0 || previous->free_18 == 0) {
+    if (previous == 0 || previous->free == 0) {
         chunk->free_previous = 0;
         Chunk* largest = block->largest_free_block;
         chunk->free_next = largest;
@@ -194,23 +194,23 @@ void srHeap::freePooled(void* allocation)
             largest->free_previous = chunk;
         }
         block->largest_free_block = chunk;
-        block->largest_free_size = chunk->size_04;
-        chunk->free_18 = 1;
+        block->largest_free_size = chunk->size;
+        chunk->free = 1;
         merged = chunk;
     } else {
-        previous->size_04 += chunk->size_04;
-        previous->next_0c = chunk->next_0c;
-        if (chunk->next_0c != 0) {
-            chunk->next_0c->previous = previous;
+        previous->size += chunk->size;
+        previous->next = chunk->next;
+        if (chunk->next != 0) {
+            chunk->next->previous = previous;
         }
         merged = previous;
     }
-    Chunk* next = merged->next_0c;
-    if (next != 0 && next->free_18 != 0) {
-        merged->size_04 += next->size_04;
-        merged->next_0c = next->next_0c;
-        if (next->next_0c != 0) {
-            next->next_0c->previous = merged;
+    Chunk* next = merged->next;
+    if (next != 0 && next->free != 0) {
+        merged->size += next->size;
+        merged->next = next->next;
+        if (next->next != 0) {
+            next->next->previous = merged;
         }
         if (next->free_previous != 0) {
             next->free_previous->free_next = next->free_next;
@@ -224,10 +224,10 @@ void srHeap::freePooled(void* allocation)
     if (block->largest_free_block == 0) {
         block->largest_free_size = 0;
     } else {
-        block->largest_free_size = block->largest_free_block->size_04;
+        block->largest_free_size = block->largest_free_block->size;
     }
-    if (block->largest_free_size < merged->size_04) {
-        block->largest_free_size = merged->size_04;
+    if (block->largest_free_size < merged->size) {
+        block->largest_free_size = merged->size;
         if (merged->free_previous != 0) {
             merged->free_previous->free_next = merged->free_next;
         }
@@ -253,12 +253,12 @@ void srHeap::freePooled(void* allocation)
             medium_blocks = block->next;
         }
         block->next = 0;
-        Block* previous = block_90;
+        Block* previous = this->block;
         block->previous = previous;
         if (previous != 0) {
             previous->next = block;
         }
-        block_90 = block;
+        this->block = block;
         if (block->previous == 0) {
             partial_blocks = block;
         }
@@ -270,24 +270,24 @@ void* srHeap::splitFree(Block* block, unsigned long size)
 {
     checkBlock(block);
     Chunk* chunk = block->largest_free_block;
-    if (chunk->size_04 >= size + 0x20) {
+    if (chunk->size >= size + 0x20) {
         // reinterpret-ok: the carved chunk starts at a byte offset inside the
         // block's raw allocation payload.
         Chunk* carved =
-            reinterpret_cast<Chunk*>(reinterpret_cast<char*>(chunk) + chunk->size_04 - size);
-        carved->owner_00 = block;
+            reinterpret_cast<Chunk*>(reinterpret_cast<char*>(chunk) + chunk->size - size);
+        carved->owner = block;
         carved->previous = chunk;
-        carved->next_0c = chunk->next_0c;
+        carved->next = chunk->next;
         carved->free_previous = 0;
         carved->free_next = 0;
-        carved->size_04 = size;
-        carved->free_18 = 0;
-        if (chunk->next_0c != 0) {
-            chunk->next_0c->previous = carved;
+        carved->size = size;
+        carved->free = 0;
+        if (chunk->next != 0) {
+            chunk->next->previous = carved;
         }
-        unsigned long remaining = chunk->size_04 - size;
-        chunk->size_04 = remaining;
-        chunk->next_0c = carved;
+        unsigned long remaining = chunk->size - size;
+        chunk->size = remaining;
+        chunk->next = carved;
         block->largest_free_size = remaining;
         carved->tag = '\xfe';
         return carved + 1;
@@ -302,7 +302,7 @@ void* srHeap::splitFree(Block* block, unsigned long size)
     }
     chunk->free_previous = 0;
     chunk->free_next = 0;
-    chunk->free_18 = 0;
+    chunk->free = 0;
     block->largest_free_size = 0;
     chunk->tag = '\xfe';
     return chunk + 1;
@@ -331,24 +331,24 @@ void* srHeap::allocatePooled(unsigned long size)
         if (previous != 0) {
             previous->previous = block;
         } else {
-            block_90 = block;
+            this->block = block;
         }
         partial_blocks = block;
-        Chunk* chunk = static_cast<Chunk*>(block->allocation_00);
+        Chunk* chunk = static_cast<Chunk*>(block->allocation);
         block->largest_free_size = block_size;
         block->largest_free_block = chunk;
-        chunk->owner_00 = block;
-        chunk->size_04 = block_size;
+        chunk->owner = block;
+        chunk->size = block_size;
         chunk->previous = 0;
-        chunk->next_0c = 0;
+        chunk->next = 0;
         chunk->free_previous = 0;
         chunk->free_next = 0;
-        chunk->free_18 = 1;
+        chunk->free = 1;
     }
     void* allocation = splitFree(block, needed);
     if (block->largest_free_size < 0x220) {
-        if (block == block_90) {
-            block_90 = block->previous;
+        if (block == this->block) {
+            this->block = block->previous;
         }
         if (block == partial_blocks) {
             partial_blocks = block->next;
@@ -369,9 +369,9 @@ void* srHeap::allocatePooled(unsigned long size)
         return allocation;
     }
     if (block != partial_blocks) {
-        block_90->next = partial_blocks;
-        partial_blocks->previous = block_90;
-        block_90 = block->previous;
+        this->block->next = partial_blocks;
+        partial_blocks->previous = this->block;
+        this->block = block->previous;
         block->previous->next = 0;
         block->previous = 0;
         partial_blocks = block;
@@ -404,7 +404,7 @@ void* srHeap::allocateSystem(unsigned long size)
     if (block == 0) {
         return 0;
     }
-    char* tag = static_cast<char*>(block->allocation_00) + 0x1f;
+    char* tag = static_cast<char*>(block->allocation) + 0x1f;
     *tag = '\xff';
     // reinterpret-ok: the unaligned back-pointer slot overlaps the chunk tail;
     // freeSystem() and msize() read it through the same byte offset.
@@ -434,7 +434,7 @@ unsigned long srHeap::msize(void* allocation)
     case 0xfe: {
         // reinterpret-ok: pooled chunks carry their 0x20-byte header
         // immediately before the user pointer.
-        unsigned long size = (reinterpret_cast<Chunk*>(allocation) - 1)->size_04;
+        unsigned long size = (reinterpret_cast<Chunk*>(allocation) - 1)->size;
         lock->releaseAccess();
         return size;
     }
@@ -480,7 +480,7 @@ void* srHeap::allocate(unsigned long size)
                 current_block_offset = 0xf;
             }
             char* chunk =
-                static_cast<char*>(current_block->allocation_00) + current_block_offset;
+                static_cast<char*>(current_block->allocation) + current_block_offset;
             *chunk = static_cast<char>(index);
             current_block_offset += (size | 0xf) + 1;
             lock->releaseAccess();
@@ -533,7 +533,7 @@ srMemoryAllocator::srMemoryAllocator()
     first_block = 0;
     allocated_bytes = 0;
     allocation_count = 0;
-    alignment_0c = ALIGN_SIZE_32;
+    alignment = ALIGN_SIZE_32;
     clear = 1;
 }
 
@@ -543,18 +543,18 @@ srMemoryAllocator::~srMemoryAllocator() {}
 // FUNCTION: SURRENDER 0x100042D0
 void srMemoryAllocator::setAlignment(e_alignSize alignment)
 {
-    alignment_0c = alignment;
+    this->alignment = alignment;
 }
 
 // FUNCTION: SURRENDER 0x10036530
 srMemoryAllocator::Block* srMemoryAllocator::align(void* allocation)
 {
     /* Block headers sit 0x20 bytes below the user pointer; the user address is
-       rounded up to alignment_0c. */
+       rounded up to alignment. */
     // reinterpret-ok: block alignment is computed on the raw allocation bits.
     return reinterpret_cast<Block*>(
-        ((reinterpret_cast<unsigned long>(allocation) + alignment_0c + 0x1f) &
-         ~(alignment_0c - 1)) -
+        ((reinterpret_cast<unsigned long>(allocation) + alignment + 0x1f) &
+         ~(alignment - 1)) -
         0x20);
 }
 
@@ -562,7 +562,7 @@ srMemoryAllocator::Block* srMemoryAllocator::align(void* allocation)
 void* srMemoryAllocator::allocate(unsigned long count, unsigned long size, const char* name)
 {
     unsigned long requested = count * size;
-    unsigned long allocation_size = alignment_0c + 0x1f + requested;
+    unsigned long allocation_size = alignment + 0x1f + requested;
     if (name != 0) {
         allocation_size += strlen(name) + 1;
     }
@@ -576,16 +576,16 @@ void* srMemoryAllocator::allocate(unsigned long count, unsigned long size, const
     block->raw_allocation = raw;
     block->total_size = allocation_size;
     if (name == 0) {
-        block->name_0c = 0;
+        block->name = 0;
     } else {
         // reinterpret-ok: the name string is stored right after the user area.
-        block->name_0c = reinterpret_cast<char*>(block) + 0x20 + requested;
-        strcpy(block->name_0c, name);
+        block->name = reinterpret_cast<char*>(block) + 0x20 + requested;
+        strcpy(block->name, name);
     }
-    block->next_00 = first_block;
-    block->previous_04 = 0;
+    block->next = first_block;
+    block->previous = 0;
     if (first_block != 0) {
-        first_block->previous_04 = block;
+        first_block->previous = block;
     }
     first_block = block;
     ++allocation_count;
@@ -608,7 +608,7 @@ unsigned long srMemoryAllocator::getSize(void* allocation) const
 // FUNCTION: SURRENDER 0x10036700
 const char* srMemoryAllocator::getName(void* allocation) const
 {
-    return (static_cast<Block*>(allocation) - 1)->name_0c;
+    return (static_cast<Block*>(allocation) - 1)->name;
 }
 
 // FUNCTION: SURRENDER 0x10036710
@@ -617,8 +617,8 @@ void srMemoryAllocator::dump() const
     srPrintf("Memory dump\n");
     srPrintf("\nAddress      Size    Tag  Name\n");
     srPrintf("-------------------------------------------------------------------\n");
-    for (Block* block = first_block; block != 0; block = block->next_00) {
-        const char* name = block->name_0c;
+    for (Block* block = first_block; block != 0; block = block->next) {
+        const char* name = block->name;
         if (name == 0) {
             name = "<unnamed>";
         }
@@ -627,21 +627,21 @@ void srMemoryAllocator::dump() const
     srPrintf("-------------------------------------------------------------------\n");
     srPrintf("Total memory used %d bytes (%d Kb) for %d entries.\n", allocated_bytes,
              (long)(allocated_bytes + 0x3ff) / 1024, allocation_count);
-    srPrintf("Alignment: %d Clear: %s\n", alignment_0c, clear != 0 ? "Yes" : "No");
+    srPrintf("Alignment: %d Clear: %s\n", alignment, clear != 0 ? "Yes" : "No");
 }
 
 // FUNCTION: SURRENDER 0x100366A0
 void srMemoryAllocator::free(void* allocation)
 {
     Block* block = static_cast<Block*>(allocation) - 1;
-    if (block->next_00 != 0) {
-        block->next_00->previous_04 = block->previous_04;
+    if (block->next != 0) {
+        block->next->previous = block->previous;
     }
-    if (block->previous_04 != 0) {
-        block->previous_04->next_00 = block->next_00;
+    if (block->previous != 0) {
+        block->previous->next = block->next;
     }
     if (block == first_block) {
-        first_block = block->next_00;
+        first_block = block->next;
     }
     allocated_bytes -= block->total_size;
     --allocation_count;

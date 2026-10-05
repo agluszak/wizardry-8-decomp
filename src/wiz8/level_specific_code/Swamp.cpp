@@ -131,8 +131,8 @@ static bool SwampGasFireSpawn(Trigger* pTrigger)
             monster_info->p3D->m_pRep->apply_instance_scale = 1;
             g_swamp_spawned_monster->BeginFadeIn(2.0f);
             g_swamp_spawned_monster->GetMappedPosition(&mapped);
-            look_target = monster_info->p3D->movement_0c0.position_040;
-            look_target.y += monster_info->p3D->movement_0c0.height_offset;
+            look_target = monster_info->p3D->movement.position;
+            look_target.y += monster_info->p3D->movement.height_offset;
             g_gd_camera->LookAt(&look_target, 0);
             g_npc_dialogue_closed = false;
             g_master_functions->Add(SwampGasFireItemDrop);

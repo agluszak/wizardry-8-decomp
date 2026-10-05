@@ -316,12 +316,12 @@ void ClearHeldItemDisplay(void)
    GetTable647CCCEntry, and the held-item cursor bookkeeping. */
 
 // GLOBAL: WIZ8 0x00647ccc
-static unsigned char g_table_647ccc[8] = {7, 4, 6, 2, 5, 8, 9, 3};
+static unsigned char g_table0[8] = {7, 4, 6, 2, 5, 8, 9, 3};
 
 // FUNCTION: WIZ8 0x0055F2B0
 unsigned char GetTable647CCCEntry(signed char index)
 {
-    return g_table_647ccc[index];
+    return g_table0[index];
 }
 
 /* Point the mouse cursor at an item's video object, blitting it down as well.
@@ -377,7 +377,7 @@ void InitializeMainGameLevelBlock(void)
     g_level_block->camera_mode = 7;
     g_level_block->message_box_pending = IsMessageBoxActive();
     g_level_block->portrait_strip_dirty = 0;
-    g_level_block->flag_210 = false;
+    g_level_block->flag3 = false;
     g_level_block->value_194 = -1;
     g_level_block->highlight_override = -1;
     g_level_block->condition_hover_party_slot = -1;
@@ -415,10 +415,10 @@ void InitializeMainGameLevelBlock(void)
     ApplyMainGameModeFlag(previous_mode, 1);
     g_level_block->character_update_timer = SetCountdownClock(0);
     g_level_block->world_update_timer = SetCountdownClock(0);
-    g_level_block->countdown_258 = SetCountdownClock(60000);
-    g_level_block->countdown_25c = SetCountdownClock(0);
-    g_level_block->countdown_26c = SetCountdownClock(0xfa);
-    g_level_block->flag_270 = true;
+    g_level_block->countdown0 = SetCountdownClock(60000);
+    g_level_block->countdown1 = SetCountdownClock(0);
+    g_level_block->countdown2 = SetCountdownClock(0xfa);
+    g_level_block->flag4 = true;
     g_level_block->text_box_visible = 1;
     g_level_block->dialogue_text_input_open = 0;
     g_level_block->mipe_editing = 0;
@@ -442,8 +442,8 @@ void InitializeMainGameLevelBlock(void)
         g_level_block->text_lines[line] = 0;
     }
     for (int slot_index = 0; slot_index < 4; ++slot_index) {
-        g_level_block->text_slots_1d8[slot_index] = -1;
-        g_level_block->text_slots_1e8[slot_index] = -1;
+        g_level_block->text_slots0[slot_index] = -1;
+        g_level_block->text_slots1[slot_index] = -1;
     }
     g_level_block->unknown_2e4[0] = 0;
     g_level_block->text_box_font = g_wiz_text_font_secondary;
@@ -455,16 +455,16 @@ void InitializeMainGameLevelBlock(void)
     g_level_block->tooltip_pending = false;
     g_level_block->tooltip_subject = -1;
     g_level_block->tooltip_kind = -1;
-    g_level_block->countdown_30c = SetCountdownClock(0);
+    g_level_block->countdown3 = SetCountdownClock(0);
     g_level_block->combat_slot = -1;
     g_level_block->keyboard_menu_open = 0;
     g_level_block->hover_combat_slot = -1;
     g_level_block->cursor_grace = 0;
-    g_level_block->countdown_320 = SetCountdownClock(0);
+    g_level_block->countdown4 = SetCountdownClock(0);
     g_level_block->portrait_right_hold_armed = false;
     g_level_block->formation_board_alternate = 0;
     g_level_block->radar_map_alternate = 0;
     g_level_block->review_transition_active = 0;
-    g_level_block->countdown_32c = SetCountdownClock(0);
+    g_level_block->countdown5 = SetCountdownClock(0);
     ResetMessageStorage();
 }

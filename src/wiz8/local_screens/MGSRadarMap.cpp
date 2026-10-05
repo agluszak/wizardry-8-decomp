@@ -374,7 +374,7 @@ void UpdateRadarBlips(void)
         W8Monster* monster = info->p3D;
 
         if (monster != 0 && info->fActive != 0 && info->within_viewing_distance != 0 &&
-            (monster->disabled_217 == 0 || detect_all != 0)) {
+            (monster->disabled == 0 || detect_all != 0)) {
             bool hostile = false;
 
             if (gXStatus.fCombatMode != 0 && g_status.selected_character != -1 &&
@@ -393,16 +393,16 @@ void UpdateRadarBlips(void)
                     party = g_startup_world->GetPosition();
                     delta = position - party;
                     float distance = delta.Length();
-                    if (distance - monster->radius_084 < g_radar_outer_radius) {
-                        distance /= distance - monster->radius_084;
+                    if (distance - monster->radius < g_radar_outer_radius) {
+                        distance /= distance - monster->radius;
                         delta.x *= distance;
                         delta.z *= distance;
                         PlaceRadarBlip(&delta, 3, hostile);
                     } else {
                         delta.y = 0.0f;
                         distance = delta.Length();
-                        if (distance - monster->radius_084 > g_radar_outer_radius) {
-                            distance = g_radar_outer_radius / (distance - monster->radius_084);
+                        if (distance - monster->radius > g_radar_outer_radius) {
+                            distance = g_radar_outer_radius / (distance - monster->radius);
                             delta.x *= distance;
                             delta.z *= distance;
                             PlaceRadarBlip(&delta, 3, hostile);
@@ -419,16 +419,16 @@ void UpdateRadarBlips(void)
                 party = g_startup_world->GetPosition();
                 delta = position - party;
                 float distance = delta.Length();
-                if (distance - monster->radius_084 < g_radar_outer_radius) {
-                    distance /= distance - monster->radius_084;
+                if (distance - monster->radius < g_radar_outer_radius) {
+                    distance /= distance - monster->radius;
                     delta.x *= distance;
                     delta.z *= distance;
                     PlaceRadarBlip(&delta, g_radar_disposition_class[info->ubDisposition], hostile);
                 } else {
                     delta.y = 0.0f;
                     distance = delta.Length();
-                    if (distance - monster->radius_084 > g_radar_outer_radius) {
-                        distance = g_radar_outer_radius / (distance - monster->radius_084);
+                    if (distance - monster->radius > g_radar_outer_radius) {
+                        distance = g_radar_outer_radius / (distance - monster->radius);
                         delta.x *= distance;
                         delta.z *= distance;
                         PlaceRadarBlip(&delta, g_radar_disposition_class[info->ubDisposition],
@@ -519,7 +519,7 @@ static unsigned char PlaceRadarBlip(srVector3T<float>* delta, int group, bool li
 void ToggleRadarMapZoom(void)
 {
     if (g_radar_zoomed == 0) {
-        float radius = g_startup_world->radius_084;
+        float radius = g_startup_world->radius;
 
         g_radar_zoomed = true;
         g_radar_map_scale = 13.0f;
@@ -536,15 +536,15 @@ void ZoomRadarMapIn(void)
 {
     g_radar_zoomed = true;
     g_radar_map_scale = 13.0f;
-    g_radar_inner_radius = CalcRangeDistance(W8_RANGE_TOUCH) + g_startup_world->radius_084;
-    g_radar_outer_radius = CalcRangeDistance(W8_RANGE_LONG) + g_startup_world->radius_084;
+    g_radar_inner_radius = CalcRangeDistance(W8_RANGE_TOUCH) + g_startup_world->radius;
+    g_radar_outer_radius = CalcRangeDistance(W8_RANGE_LONG) + g_startup_world->radius;
     RefreshRadarMap();
 }
 
 // FUNCTION: WIZ8 0x005a3470
 void ZoomRadarMapOut(void)
 {
-    float radius = g_startup_world->radius_084;
+    float radius = g_startup_world->radius;
 
     g_radar_zoomed = false;
     g_radar_map_scale = 2.0f;

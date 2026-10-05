@@ -14,7 +14,7 @@ class SR_STRING_TABLE_API srStringTable {
 public:
     srStringTable();
     /* srArray's copy constructor itself default-constructs then assigns, so
-       retail's strings_00 assignment plus count copy is the implicit memberwise
+       retail's strings assignment plus count copy is the implicit memberwise
        copy of this class. */
 
     ~srStringTable();
@@ -26,7 +26,7 @@ public:
     // FUNCTION: SURRENDER 0x10003A60
     long getCount() const
     {
-        return count_08;
+        return count;
     }
     char* getString(long index) const;
     void reset();
@@ -34,8 +34,8 @@ public:
 private:
     /* Copy construction uses srArray assignment and destruction includes the
        implicit srArray teardown, identifying this slot storage as srArray<char*>. */
-    srArray<char*> strings_00;
-    long count_08;
+    srArray<char*> strings;
+    long count;
 };
 
 static_assert((sizeof(srStringTable) == 0x0c), "srStringTable_must_be_0x0c");

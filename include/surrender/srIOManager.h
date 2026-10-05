@@ -49,13 +49,13 @@ private:
     struct Registration {
         Registration()
         {
-            extension_00 = 0;
+            extension = 0;
         }
 
-        char* extension_00;
+        char* extension;
         union {
-            Importer* importer_04;
-            Exporter* exporter_04;
+            Importer* importer;
+            Exporter* exporter;
         };
         Registration* next;
         Registration* previous;
@@ -67,21 +67,21 @@ private:
        0x1002D360) as __thiscall on the {count, first, sentinel} triple at
        +0x04/+0x10: two distinct typed list objects, not flat fields. */
     struct ImporterList {
-        unsigned long count_00;
-        Registration* first_04;
+        unsigned long count;
+        Registration* first;
         Registration* sentinel;
         void insert(Registration* position, char* extension, Importer* importer);
     };
 
     struct ExporterList {
-        unsigned long count_00;
-        Registration* first_04;
+        unsigned long count;
+        Registration* first;
         Registration* sentinel;
         void insert(Registration* position, char* extension, Exporter* exporter);
     };
 
-    ImporterList importers_04_;
-    ExporterList exporters_10_;
+    ImporterList importers;
+    ExporterList exporters;
 };
 
 /* Retail exports Error assignment at 0x1002CC70 as a single-field copy. */
@@ -95,13 +95,13 @@ public:
        every throw site. */
     // FUNCTION: SURRENDER 0x1002CB00
     // ??0Error@srIOManager@@QAE@PBD@Z
-    Error(const char* description) { description_00 = description; }
+    Error(const char* description) { this->description = description; }
     SR_DLL_IMPORT const char* getDescription();
 
     /* The emitted body is consistent with memberwise assignment. */
 
 private:
-    const char* description_00;
+    const char* description;
 };
 
 /* Retail exports trivial lifecycle bodies at 0x1002CC80-0x1002CCA0, consistent

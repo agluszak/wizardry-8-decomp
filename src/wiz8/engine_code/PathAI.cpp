@@ -29,7 +29,7 @@ unsigned char PathAIUpdate(W8AIRecord* record, signed char direction)
     if (record == 0) {
         return 0;
     }
-    switch (record->kind_00) {
+    switch (record->kind) {
     case W8_AI_RECORD_PATH:
         return PathAITick(static_cast<W8PathAI*>(record), direction);
     case 1:
@@ -123,7 +123,7 @@ bool LoadPathAI(W8PathAI** output, int handle)
 // FUNCTION: WIZ8 0x004a9720
 void PathAIResetRecord(W8PathAI* path)
 {
-    if (path != 0 && path->kind_00 == W8_AI_RECORD_PATH) {
+    if (path != 0 && path->kind == W8_AI_RECORD_PATH) {
         path->position = 0;
     }
 }
@@ -131,14 +131,14 @@ void PathAIResetRecord(W8PathAI* path)
 // FUNCTION: WIZ8 0x004a9740
 W8AIRecordKind GetAIRecordKind(const W8AIRecord* record)
 {
-    return record->kind_00;
+    return record->kind;
 }
 
 // FUNCTION: WIZ8 0x004a91f0
 void PathAIApplyToRep(W8AIRecord* record, W8AnimRepBase* representation)
 {
-    if (record->kind_00 != W8_AI_RECORD_PATH) {
-        if (record->kind_00 == W8_AI_RECORD_MISSILE) {
+    if (record->kind != W8_AI_RECORD_PATH) {
+        if (record->kind == W8_AI_RECORD_MISSILE) {
             NoOp(record, representation);
         }
         return;
@@ -148,7 +148,7 @@ void PathAIApplyToRep(W8AIRecord* record, W8AnimRepBase* representation)
         srAssertFail("pPathAI&&pRep", PATH_AI_CPP, 0x595, 0);
     }
     PathAIPosition(path, &representation->parent_location);
-    representation->location_004 = representation->parent_location;
+    representation->location = representation->parent_location;
 }
 
 // FUNCTION: WIZ8 0x004a9810
@@ -187,7 +187,7 @@ void DestroyOwnedPathAI(W8PathAI* path)
 {
     W8GrowableVector<srVector3T<float>*>* nodes;
 
-    if (path != 0 && path->kind_00 == W8_AI_RECORD_PATH) {
+    if (path != 0 && path->kind == W8_AI_RECORD_PATH) {
         nodes = path->nodes;
         if (nodes != 0) {
             while (nodes->count != 0) {
@@ -224,7 +224,7 @@ W8PathAI* ClonePathAI(const W8PathAI* source)
     if (copy == 0) {
         srAssertFail("pPathAI", PATH_AI_CPP, 0x1ef, 0);
     }
-    copy->kind_00 = source->kind_00;
+    copy->kind = source->kind;
     copy->version = source->version;
     copy->position = source->position;
     copy->unknown_08 = source->unknown_08;
@@ -289,7 +289,7 @@ W8AIRecord* CloneAIRecord(const W8AIRecord* record)
     if (record == 0) {
         return 0;
     }
-    switch (record->kind_00) {
+    switch (record->kind) {
     case W8_AI_RECORD_PATH:
         return ClonePathAI(static_cast<const W8PathAI*>(record));
     case W8_AI_RECORD_MISSILE:

@@ -224,9 +224,9 @@ protected:
 private:
     SR_DLL_IMPORT void updateQuantizer();
 
-    unsigned long flags_18;
-    srARGB* colors_1c;
-    long color_count_20;
+    unsigned long flags;
+    srARGB* colors;
+    long color_count;
     Quantizer* quantizer;
 };
 

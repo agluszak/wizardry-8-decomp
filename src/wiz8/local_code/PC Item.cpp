@@ -1182,10 +1182,10 @@ unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_use
 
     if (record->quantity_kind == 2 && item->uses_or_charges == 0) {
         PostCharacterNotice(party_slot, gppStringList[0x1f1], GetItemDisplayName(item));
-        event_type = g_special_event_0068c558;
+        event_type = g_special_event13;
     } else if (record->quantity_kind == 4 && item->uses_or_charges == 0) {
         PostCharacterNotice(party_slot, gppStringList[0x1f2], GetItemDisplayName(item));
-        event_type = g_effect_005ee624;
+        event_type = g_effect26;
     } else {
         if (record->equip_class == 0xd &&
             character->uiCondition[W8_CONDITION_SPELLCASTING_BLOCKED] != 0) {
@@ -1325,7 +1325,7 @@ unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_use
     }
 
     QueueCharacterEvent(&g_status.buffers.Char[party_slot], event_type, 0,
-                        g_effect_argument_005ed8cc, g_character_event_full_volume);
+                        g_effect_argument0, g_character_event_full_volume);
     *out_uses = fatigue_cost;
     return used;
 }
@@ -2310,7 +2310,7 @@ void EquipMatchingPartnerItem(W8Character* character, W8ItemInstance* item, int 
                                character->EquippedItem[W8_EQUIP_SLOT_ALTERNATE_LEFT].iItemNo)) {
         pair = &character->EquippedItem[W8_EQUIP_SLOT_ALTERNATE_LEFT];
     } else if (item_id == -1 || !FindItemOnCharacter(character, item_id, &pair, 1, 0)) {
-        QueueCharacterEvent(character, g_effect_005ee624, 0, g_character_event_no_flags,
+        QueueCharacterEvent(character, g_effect26, 0, g_character_event_no_flags,
                             g_character_event_full_volume);
         return;
     }
@@ -3017,7 +3017,7 @@ void RefreshAfterItemRecordChange(W8ItemInstance* item, W8Character* character,
     RebuildEquipmentAndDerivedStatsForSlot(party_slot);
 
     W8PartySlotRow* row = &g_status.buffers.XChar[party_slot];
-    if (row->action == W8_ACTION_USE_ITEM && row->action_detail_045.item_use.item == item) {
+    if (row->action == W8_ACTION_USE_ITEM && row->action_detail1.item_use.item == item) {
         DropCharacterFromRound(party_slot);
     }
 
@@ -3180,20 +3180,20 @@ void DeliverExceptionalItemReaction(W8ItemInstance* item, bool choose_character,
 
     switch (item->iItemNo) {
     case 0x239:
-        message = g_item_message_005ee6fc;
+        message = g_item_message10;
         break;
     case 0x242:
-        message = g_item_message_005ee640;
+        message = g_item_message2;
         break;
     case 0x243:
-        message = g_item_message_005ee644;
+        message = g_item_message3;
         break;
     case 0x244:
-        message = GetFactionDispositionScore(W8_FACTION_MOOK) != 0 ? g_item_message_005ee648
-                                                                   : g_item_message_005ee64c;
+        message = GetFactionDispositionScore(W8_FACTION_MOOK) != 0 ? g_item_message4
+                                                                   : g_item_message5;
         break;
     case 0x264:
-        message = g_item_message_005ee690;
+        message = g_item_message9;
         break;
     case 0x27c: {
         SetFact(0xe5, 1, 0);
@@ -3205,7 +3205,7 @@ void DeliverExceptionalItemReaction(W8ItemInstance* item, bool choose_character,
             return;
         }
         signed char npc_slot = npc->group_index;
-        QueueCharacterEvent(&g_status.buffers.Char[npc_slot], g_item_message_005ee68c, 0,
+        QueueCharacterEvent(&g_status.buffers.Char[npc_slot], g_item_message8, 0,
                             g_character_event_no_flags, g_character_event_full_volume);
         return;
     }
@@ -3215,7 +3215,7 @@ void DeliverExceptionalItemReaction(W8ItemInstance* item, bool choose_character,
             item->identified == 0) {
             return;
         }
-        message = g_item_message_005ee664;
+        message = g_item_message6;
         break;
     }
 
@@ -3713,7 +3713,7 @@ void MergeMatchingPartnerItem(W8Character* character, W8ItemInstance* item)
         return;
     }
 
-    QueueCharacterEvent(character, g_effect_005ee624, 0, g_character_event_no_flags,
+    QueueCharacterEvent(character, g_effect26, 0, g_character_event_no_flags,
                         g_character_event_full_volume);
     CalcAttacks(character);
 }

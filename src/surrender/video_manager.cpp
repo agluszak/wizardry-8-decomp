@@ -6,44 +6,44 @@
 srVideoManager::Stream::Stream(const char* path)
 {
     loaded = 0;
-    parameter_08 = 0;
+    parameter = 0;
     reset_pending = 1;
-    clamp_14 = 0;
+    clamp = 0;
     index = 0;
-    position_18 = 0;
+    position = 0;
 }
 
 // FUNCTION: SURRENDER 0x1002DE00
 void srVideoManager::VStream::decompress(srColorSurfaceIFace& surface)
 {
     Stream::Target target;
-    target.flags_00 = 0;
-    target.source_04.left = 0;
-    target.source_04.top = 0;
-    target.source_04.right = info_04.width_14;
-    target.source_04.bottom = info_04.height_18;
-    target.surface_14.left = 0;
-    target.surface_14.top = 0;
-    target.surface_14.right = surface.getWidth();
-    target.surface_14.bottom = surface.getHeight();
-    stream_00->decompress(surface, target, stream_00->getIndex() + 1);
+    target.flags = 0;
+    target.source.left = 0;
+    target.source.top = 0;
+    target.source.right = info.width;
+    target.source.bottom = info.height;
+    target.surface.left = 0;
+    target.surface.top = 0;
+    target.surface.right = surface.getWidth();
+    target.surface.bottom = surface.getHeight();
+    stream->decompress(surface, target, stream->getIndex() + 1);
 }
 
 // FUNCTION: SURRENDER 0x1002DE60
 void srVideoManager::VStream::init(Stream* stream)
 {
-    info_04.width_14 = 1;
-    info_04.height_18 = 1;
-    info_04.frame_count = 0;
-    info_04.field_64 = 0;
-    info_04.field_68 = 0;
-    info_04.field_6c = 0;
-    info_04.field_70 = 0;
-    info_04.field_74 = 0;
-    info_04.field_78 = 0;
-    info_04.frames_per_second = 15.0f;
-    stream_00 = stream;
-    stream_00->getInfo(&info_04);
+    info.width = 1;
+    info.height = 1;
+    info.frame_count = 0;
+    info.field_64 = 0;
+    info.field_68 = 0;
+    info.field_6c = 0;
+    info.field_70 = 0;
+    info.field_74 = 0;
+    info.field_78 = 0;
+    info.frames_per_second = 15.0f;
+    this->stream = stream;
+    this->stream->getInfo(&info);
 }
 
 // FUNCTION: SURRENDER 0x1002DEA0

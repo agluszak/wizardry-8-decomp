@@ -140,7 +140,7 @@ void W8Item::SetLocation(const srVector3T<float>* location)
 // FUNCTION: WIZ8 0x004A0050
 bool W8Item::IsRadarBlipLit()
 {
-    return ClockIsTicking(countdown_01c) != 0;
+    return ClockIsTicking(countdown) != 0;
 }
 
 // VTABLE: WIZ8 0x005ECD70 W8ItemRep
@@ -198,11 +198,11 @@ void W8ItemRep::RefreshBounds()
 // FUNCTION: WIZ8 0x0049F350
 W8Item::W8Item()
 {
-    trigger_018 = 0;
-    kind_004 = 2;
+    trigger = 0;
+    kind = 2;
     m_pRep = new W8ItemRep;
     id = AllocateGrObjectId();
-    countdown_01c = SetCountdownClock(0);
+    countdown = SetCountdownClock(0);
 }
 
 // FUNCTION: WIZ8 0x0049F4A0
@@ -409,7 +409,7 @@ float W8Item::DistanceToCamera(W8World* world)
     srVector3T<double> camera = world->camera->getLocation();
     srVector3T<float> camera_location;
     camera_location.SetFromDouble(&camera);
-    srVector3T<float> center = m_pRep->location_004;
+    srVector3T<float> center = m_pRep->location;
     /* Unlike the selection-point helper, retail offsets Z by half the Z
        extent here, not Y by 0.66 of the Y extent. */
     center.z += (upper.z - lower.z) * 0.5f;
@@ -419,7 +419,7 @@ float W8Item::DistanceToCamera(W8World* world)
 // FUNCTION: WIZ8 0x004A0030
 void W8Item::LightRadarBlip()
 {
-    countdown_01c = SetCountdownClock(10000);
+    countdown = SetCountdownClock(10000);
 }
 
 /* Fire the item's trigger with no source and report its action state. States
@@ -433,7 +433,7 @@ unsigned char RunItemTrigger(W8Item* item)
     if (item == 0) {
         return 0;
     }
-    trigger = item->trigger_018;
+    trigger = item->trigger;
     if (trigger == 0) {
         return 1;
     }

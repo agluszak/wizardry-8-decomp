@@ -8,7 +8,7 @@
 
 // GLOBAL: SURRENDER 0x100A4A20
 // Lazy e_flag names, "GENERATESURFACE_FAILURE,DIRTY_DEFAULTS"
-static const char* s_flag_names_100a4a20;
+static const char* s_flag_names3;
 
 // GLOBAL: SURRENDER 0x100A4A1C
 // srTexture::_frameHandle
@@ -73,8 +73,8 @@ srTexture::srTexture()
     srPixelConvert::mapPixelFormat(static_cast<srPixelConvert::e_surfaceType>(0xb),
                                    texture_dimensions_.format);
     texture_flags_ = 0;
-    if (s_flag_names_100a4a20 == 0) {
-        s_flag_names_100a4a20 = "GENERATESURFACE_FAILURE,DIRTY_DEFAULTS";
+    if (s_flag_names3 == 0) {
+        s_flag_names3 = "GENERATESURFACE_FAILURE,DIRTY_DEFAULTS";
     }
     mipmap_bias = 0.0f;
     packed_state = 0xe43;
@@ -213,7 +213,7 @@ void srTexture::dump(std::ostream& stream)
     stream << getPriority() << '\n';
     stream.width(0x20);
     stream << "  Flags: ";
-    dumpFlags(stream, texture_flags_, s_flag_names_100a4a20);
+    dumpFlags(stream, texture_flags_, s_flag_names3);
     stream << '\n';
     stream.flags(static_cast<std::ios::fmtflags>(flags & 0x7fff));
 }

@@ -41,9 +41,9 @@ public:
     /* srGERD::setTextureSubImage packs the level-0 dimensions and the target
        mipmap level ahead of the clipped destination rect. */
     struct PartialRequest {
-        unsigned long width_00;
-        unsigned long height_04;
-        long mipmap_level_08;
+        unsigned long width;
+        unsigned long height;
+        long mipmap_level;
         long destination_x;
         long destination_y;
         long source_right;

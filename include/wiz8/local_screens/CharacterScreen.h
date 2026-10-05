@@ -58,7 +58,7 @@ public:
     virtual void OnSecondary(W8TextControl* control) override; /* 0x005AFCB0 */
     void SetHelpActive(bool active);                           /* 0x005AFAE0 */
 
-    W8CharacterPageEntryListener* m_listener_004;
+    W8CharacterPageEntryListener* m_listener;
     W8TextControl* m_increment;
     W8TextControl* m_decrement;
     W8TextControl* m_help;
@@ -73,7 +73,7 @@ public:
     int m_y;
     bool m_draw_background;
     bool m_dirty;
-    bool m_enabled_03a;
+    bool m_enabled;
     bool m_increment_allowed;
 };
 static_assert(sizeof(W8CharacterPageEntry) == 0x3c, "W8CharacterPageEntry_size");
@@ -96,12 +96,12 @@ public:
     virtual void Refresh();                     /* 0x005B1BF0 */
     virtual void Prepare();                     /* 0x005AFFA0 */
     W8Vector<W8CharacterPageEntry*> m_entries;
-    W8CharacterScreen* m_screen_05c;
+    W8CharacterScreen* m_screen;
     W8Character* m_character;
     W8CharacterCreationState* m_creation_state;
     int m_mode;
     bool m_prepared;
-    bool m_dirty_06d;
+    bool m_dirty;
     unsigned char pad_06e[2];
 
     void AddEntry(W8CharacterPageEntry* entry); /* 0x005AFFC0 */
@@ -122,7 +122,7 @@ struct W8CharacterStatsRecord {
     int image_enabled;
     int image_disabled;
     unsigned short name_id;
-    unsigned char enabled_0e;
+    unsigned char enabled;
     unsigned char pad_0f;
 };
 static_assert(sizeof(W8CharacterStatsRecord) == 0x10, "W8CharacterStatsRecord_size");
@@ -181,7 +181,7 @@ public:
     W8CharacterStatsValue* m_value_control;
     Controls* m_subpanel;
     W8TextControl** m_subpanel_entries;
-    W8CharacterStatsRowListener* m_listener_030;
+    W8CharacterStatsRowListener* m_listener;
 };
 static_assert(sizeof(W8CharacterStatsRow) == 0x34, "W8CharacterStatsRow_size");
 
@@ -321,10 +321,10 @@ public:
     virtual void OnPrimary(W8TextControl*) override;
 
 private:
-    W8TextControl* m_control_078;
-    W8TextControl* m_control_07c;
-    W8TextControl* m_control_080;
-    W8TextControl* m_control_084;
+    W8TextControl* m_control4;
+    W8TextControl* m_control5;
+    W8TextControl* m_control6;
+    W8TextControl* m_control7;
     W8TextControl* m_randomize;
     W8ControlSelection m_personality_selection;
     W8ControlSelection m_voice_selection;
@@ -443,8 +443,8 @@ public:
     bool m_force_transition;
     unsigned char pad_1aef;
     Controls* m_controls;
-    W8TextControl* m_previous_1af4;
-    W8TextControl* m_next_1af8;
+    W8TextControl* m_previous;
+    W8TextControl* m_next;
     W8TextControl* m_exit;
     W8TextControl* m_accept;
     W8TextControl* m_reset;

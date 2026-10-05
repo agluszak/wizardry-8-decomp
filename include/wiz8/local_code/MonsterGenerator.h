@@ -17,7 +17,7 @@ struct MonGen {
     short custom_interval_seconds;   /* 0x06: MIPE's custom "every N s" value */
     short unknown_08;                /* 0x08: persisted, initialized to -1 */
     /* 0x0c: world position, saved as three dwords and handed to GenerateEncounter. */
-    srVector3T<float> spawn_position_0c;
+    srVector3T<float> spawn_position;
     W8Item* marker_item;       /* 0x18: loaded Data\Items3D\Bitmaps\mongen.itm marker */
     int encounter_table_index; /* 0x1c: index into g_encounter_tables, -1 means none */
     /* 0x20: m_pTimer, named by the MonGen.cpp:535 assertion, whose message also

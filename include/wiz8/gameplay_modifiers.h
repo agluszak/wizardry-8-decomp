@@ -102,7 +102,7 @@ extern int g_being_effect_slot_spells[12];
    W8CombatState::effect_slots and the monster's combat_effects. */
 extern int g_combat_effect_slot_spells[9];
 /* The same mapping for the second combat effect block, indexed against
-   W8CombatState::effect_slots_85a and the monster's combat_effects_2. */
+   W8CombatState::effect_slots0 and the monster's combat_effects_2. */
 extern int g_combat_effect_slot_spells_and_cast_success[23];
 
 #endif

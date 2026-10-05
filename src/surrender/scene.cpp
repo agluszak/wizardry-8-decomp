@@ -25,8 +25,8 @@ srClass* srScene::vInstance()
 srScene::srScene(srNode* parent)
     : srClassSupport<srScene, srNode, 0, 0x1010>(static_cast<srNode*>(0))
 {
-    ambient_light_174 = 0.2f;
-    fog_color_180.Set(0.1f, 0.2f, 0.4f);
+    ambient_light = 0.2f;
+    fog_color.Set(0.1f, 0.2f, 0.4f);
     traversal.entry_count = 0;
     traversal.node_count = 0;
     traversal.renderer = 0;
@@ -42,8 +42,8 @@ srScene& srScene::operator=(const srScene& other)
 {
     if (this != &other) {
         srNode::operator=(other);
-        ambient_light_174 = other.ambient_light_174;
-        fog_color_180 = other.fog_color_180;
+        ambient_light = other.ambient_light;
+        fog_color = other.fog_color;
         enabled = other.enabled;
     }
     return *this;
@@ -93,8 +93,8 @@ void srScene::process(const ProcessInfo& info, e_processType type)
     srVector4T<float> ambient_light;
     renderer->getFogColor(fog_color);
     renderer->getAmbientLight(ambient_light);
-    renderer->setFogColor(fog_color_180);
-    renderer->setAmbientLight(ambient_light_174);
+    renderer->setFogColor(this->fog_color);
+    renderer->setAmbientLight(this->ambient_light);
     ProcessInfo process_info = info;
     long count = node_count;
     while (count > 0) {
@@ -124,9 +124,9 @@ void srScene::process(const ProcessInfo& info, e_processType type)
     renderer->setFogColor(fog_color);
     renderer->setAmbientLight(ambient_light);
     renderer->setPickKey(pick_key);
-    statistics_140.node_calls += node_count;
-    ++statistics_140.render_calls;
-    statistics_140.process_calls += entry_count;
+    statistics.node_calls += node_count;
+    ++statistics.render_calls;
+    statistics.process_calls += entry_count;
 }
 
 // FUNCTION: SURRENDER 0x100564A0
@@ -155,7 +155,7 @@ void srScene::render(srGERD& renderer, srCamera* camera)
 // FUNCTION: SURRENDER 0x10056520
 void srScene::getStatistics(Statistics& statistics)
 {
-    statistics = statistics_140;
+    statistics = this->statistics;
     statistics.elapsed =
         srCore.getTimer()->getTime(srTimer::TIMER_READ_DEFAULT) - statistics.elapsed;
 }
@@ -163,8 +163,8 @@ void srScene::getStatistics(Statistics& statistics)
 // FUNCTION: SURRENDER 0x10056550
 void srScene::resetStatistics()
 {
-    memset(&statistics_140, 0, sizeof(statistics_140));
-    statistics_140.elapsed = srCore.getTimer()->getTime(srTimer::TIMER_READ_DEFAULT);
+    memset(&statistics, 0, sizeof(statistics));
+    statistics.elapsed = srCore.getTimer()->getTime(srTimer::TIMER_READ_DEFAULT);
 }
 
 // FUNCTION: SURRENDER 0x10056750
@@ -175,11 +175,11 @@ void srScene::dump(std::ostream& stream)
     stream.flags((flags & 0xfffffe7fL) | 0x40);
     stream.width(0x20);
     stream << "  Ambient light: ";
-    stream << '{' << ambient_light_174.x << ',' << ambient_light_174.y << ',' << ambient_light_174.z
+    stream << '{' << ambient_light.x << ',' << ambient_light.y << ',' << ambient_light.z
            << '}' << '\n';
     stream.width(0x20);
     stream << "  Fog color: ";
-    stream << '{' << fog_color_180.x << ',' << fog_color_180.y << ',' << fog_color_180.z << '}'
+    stream << '{' << fog_color.x << ',' << fog_color.y << ',' << fog_color.z << '}'
            << '\n';
     Statistics statistics;
     getStatistics(statistics);
@@ -216,51 +216,51 @@ int srScene::isEnabled(e_enable option) const
 // FUNCTION: SURRENDER 0x10056C20
 void srScene::getAmbientLight(srVector3T<float>& color) const
 {
-    color = ambient_light_174;
+    color = ambient_light;
 }
 
 // FUNCTION: SURRENDER 0x10056C40
 srVector3T<float> srScene::getAmbientLight() const
 {
-    return ambient_light_174;
+    return ambient_light;
 }
 
 // FUNCTION: SURRENDER 0x10056C70
 void srScene::getFogColor(srVector3T<float>& color) const
 {
-    color = fog_color_180;
+    color = fog_color;
 }
 
 // FUNCTION: SURRENDER 0x10056C90
 srVector3T<float> srScene::getFogColor() const
 {
-    return fog_color_180;
+    return fog_color;
 }
 
 // FUNCTION: SURRENDER 0x10056CC0
 void srScene::setAmbientLight(float red, float green, float blue)
 {
-    ambient_light_174.x = red;
-    ambient_light_174.y = green;
-    ambient_light_174.z = blue;
+    ambient_light.x = red;
+    ambient_light.y = green;
+    ambient_light.z = blue;
 }
 
 // FUNCTION: SURRENDER 0x10056CF0
 void srScene::setAmbientLight(const srVector3T<float>& color)
 {
-    ambient_light_174 = color;
+    ambient_light = color;
 }
 
 // FUNCTION: SURRENDER 0x10056D10
 void srScene::setFogColor(float red, float green, float blue)
 {
-    fog_color_180.x = red;
-    fog_color_180.y = green;
-    fog_color_180.z = blue;
+    fog_color.x = red;
+    fog_color.y = green;
+    fog_color.z = blue;
 }
 
 // FUNCTION: SURRENDER 0x10056D40
 void srScene::setFogColor(const srVector3T<float>& color)
 {
-    fog_color_180 = color;
+    fog_color = color;
 }

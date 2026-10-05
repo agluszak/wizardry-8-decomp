@@ -210,10 +210,10 @@ unsigned char LoadMonsterDatabaseRecord(unsigned int uiMonsterIndex, W8MonsterRe
         return 0;
     }
     FileClose(handle);
-    StripMonsterNameSuffix(record->name_00);
-    StripMonsterNameSuffix(record->name_30);
-    StripMonsterNameSuffix(record->name_60);
-    StripMonsterNameSuffix(record->name_90);
+    StripMonsterNameSuffix(record->name0);
+    StripMonsterNameSuffix(record->name1);
+    StripMonsterNameSuffix(record->name2);
+    StripMonsterNameSuffix(record->name3);
     return 1;
 }
 

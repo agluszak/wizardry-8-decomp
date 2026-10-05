@@ -24,8 +24,8 @@ public:
     private:
         friend class srFileManager;
 
-        char* name_00;
-        Path* next_04;
+        char* name0;
+        Path* next;
         Path* previous;
     };
 

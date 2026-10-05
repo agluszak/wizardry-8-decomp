@@ -1337,9 +1337,9 @@ void W8ConditionButton::Redraw(unsigned char full_redraw)
     left += 2;
     top += 2;
     if (m_condition == 0) {
-        DrawCatalogImageAndInvalidate(-14, m_image_object_bc + 0xb6, 0, 0, left, top, 2, 0);
+        DrawCatalogImageAndInvalidate(-14, m_image_object + 0xb6, 0, 0, left, top, 2, 0);
     } else if (m_condition == 1) {
-        DrawCatalogImageAndInvalidate(-14, m_image_object_bc + 0xc9, 0, 0, left, top, 2, 0);
+        DrawCatalogImageAndInvalidate(-14, m_image_object + 0xc9, 0, 0, left, top, 2, 0);
     }
 }
 
@@ -1465,8 +1465,8 @@ void UpdateConditionButtons(void)
             if (image == 0) {
                 image = g_status.buffers.Char[slot].enchantment_top;
                 if (image != 0) {
-                    if (button->m_image_object_bc != image) {
-                        button->m_image_object_bc = image;
+                    if (button->m_image_object != image) {
+                        button->m_image_object = image;
                         button->Invalidate(0);
                     }
                     if (button->m_condition != 1) {
@@ -1475,8 +1475,8 @@ void UpdateConditionButtons(void)
                     }
                 }
             } else {
-                if (button->m_image_object_bc != image) {
-                    button->m_image_object_bc = image;
+                if (button->m_image_object != image) {
+                    button->m_image_object = image;
                     button->Invalidate(0);
                 }
                 if (button->m_condition != 0) {

@@ -38,11 +38,11 @@ private:
         CRITICAL_SECTION critical_section;
     };
 
-    CacheEntry entries_00[16];
+    CacheEntry entries[16];
     unsigned long used_mask;
     unsigned long cached_bytes;
-    unsigned long limit_88;
-    CriticalSection critical_section_8c;
+    unsigned long limit;
+    CriticalSection critical_section;
 };
 
 static_assert(sizeof(srGlobalRecycler) == 0xa4,

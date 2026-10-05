@@ -39,7 +39,7 @@ public:
     // FUNCTION: WIZ8 0x005DEBB0
     virtual ~W8ProfRaceInfoDialogBase() override
     {
-        m_scroll_bar_084.DestroyControls();
+        m_scroll_bar.DestroyControls();
         W8DialogBase::DestroyControls();
     }
     virtual int CreateControls() override;
@@ -65,9 +65,9 @@ protected:
     unsigned int m_uiHeadingId;                /* 0x060: gppStringList index */
     unsigned int m_uiDetailId;                 /* 0x064: gppStringList index */
     int m_minimums[W8_DIALOG_ATTRIBUTE_COUNT]; /* 0x068 */
-    W8DialogScrollBar m_scroll_bar_084;
+    W8DialogScrollBar m_scroll_bar;
     W8DialogButton m_button;
-    W8DialogTextArea m_text_area_118;
+    W8DialogTextArea m_text_area;
 };
 
 // VTABLE: WIZ8 0x005efbfc

@@ -15,8 +15,8 @@ void srExtension::dumpAll(std::ostream& stream)
 {
     srStreamPrintf(stream, "Handle      Extension Name        Description\n");
     srStreamPrintf(stream, "------------------------------------------------------------------\n");
-    for (srExtension* extension = firstExt; extension != 0; extension = extension->next_10) {
-        srStreamPrintf(stream, "%08x    %-20s  %s\n", extension->module_08,
+    for (srExtension* extension = firstExt; extension != 0; extension = extension->next) {
+        srStreamPrintf(stream, "%08x    %-20s  %s\n", extension->module,
                        extension->getName(), extension->getDescription());
     }
 }
@@ -24,7 +24,7 @@ void srExtension::dumpAll(std::ostream& stream)
 // FUNCTION: SURRENDER 0x100138A0
 const char* srExtension::getDescription()
 {
-    return plugin_00 != 0 ? plugin_00->getDescription() : "Something funny going on";
+    return plugin != 0 ? plugin->getDescription() : "Something funny going on";
 }
 
 // FUNCTION: SURRENDER 0x100138C0
@@ -36,7 +36,7 @@ srExtension* srExtension::getFirst()
 // FUNCTION: SURRENDER 0x100138D0
 srExtension* srExtension::getNext()
 {
-    return next_10;
+    return next;
 }
 
 // FUNCTION: SURRENDER 0x100138E0
@@ -48,7 +48,7 @@ long srExtension::getCount()
 // FUNCTION: SURRENDER 0x100138F0
 srExtension* srExtension::find(const char* name)
 {
-    for (srExtension* extension = firstExt; extension != 0; extension = extension->next_10) {
+    for (srExtension* extension = firstExt; extension != 0; extension = extension->next) {
         const char* extension_name = extension->getName();
         if (extension_name != 0 && strcmp(extension_name, name) == 0) {
             return extension;
@@ -62,7 +62,7 @@ void srExtension::releaseAll()
 {
     srExtension* extension = firstExt;
     while (extension != 0) {
-        srExtension* next = extension->next_10;
+        srExtension* next = extension->next;
         delete extension;
         extension = next;
     }
@@ -70,7 +70,7 @@ void srExtension::releaseAll()
 
 // FUNCTION: SURRENDER 0x10013990
 srExtension::srExtension(const char* name)
-    : module_08(0), previous(0), next_10(firstExt)
+    : module(0), previous(0), next(firstExt)
 {
     if (firstExt != 0) {
         firstExt->previous = this;
@@ -78,43 +78,43 @@ srExtension::srExtension(const char* name)
     firstExt = this;
     ++count;
     if (name != 0 && *name != '\0') {
-        name_04 = new char[strlen(name) + 1];
-        strcpy(name_04, name);
+        this->name = new char[strlen(name) + 1];
+        strcpy(this->name, name);
     }
     else {
-        name_04 = 0;
+        this->name = 0;
     }
-    plugin_00 = 0;
+    plugin = 0;
 }
 
 // FUNCTION: SURRENDER 0x10013A40
 srExtension::~srExtension()
 {
     if (previous != 0) {
-        previous->next_10 = next_10;
+        previous->next = next;
     }
-    if (next_10 != 0) {
-        next_10->previous = previous;
+    if (next != 0) {
+        next->previous = previous;
     }
     if (firstExt == this) {
-        firstExt = next_10;
+        firstExt = next;
     }
     --count;
-    delete plugin_00;
-    if (module_08 != 0 && !srDynamicLibrary::free(module_08)) {
+    delete plugin;
+    if (module != 0 && !srDynamicLibrary::free(module)) {
         char message[512];
         sprintf(message, "srExtension::~srExtension() -- call to srDynamicLibrary::free() failed for extension '%s'!!\n", getName());
         srDebugPrintf(0, message);
     }
-    if (name_04 != 0) {
-        delete[] name_04;
+    if (name != 0) {
+        delete[] name;
     }
 }
 
 // FUNCTION: SURRENDER 0x10013AE0
 const char* srExtension::getName()
 {
-    return name_04 != 0 ? name_04 : "anonymous extension";
+    return name != 0 ? name : "anonymous extension";
 }
 
 // FUNCTION: SURRENDER 0x10013AF0
@@ -170,8 +170,8 @@ srExtension* srExtension::load(const char* name, const char* path)
         return 0;
     }
     extension = new srExtension(name);
-    extension->plugin_00 = plugin;
-    extension->module_08 = static_cast<HMODULE>(module);
+    extension->plugin = plugin;
+    extension->module = static_cast<HMODULE>(module);
     srDebugPrintf(5, "srExtension::load() -- SurRender extension '%s' initialized.\n", extension->getName());
     return extension;
 }

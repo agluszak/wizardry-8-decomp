@@ -9,15 +9,15 @@
 srBinIMStream::srBinIMStream(const void* data, unsigned long size)
 {
     if (data == 0 || size == 0) {
-        data_08 = 0;
-        size_0c = 0;
+        this->data = 0;
+        this->size = 0;
         setState(SR_STREAM_ERROR);
     } else {
-        data_08 = static_cast<const unsigned char*>(data);
-        size_0c = size;
+        this->data = static_cast<const unsigned char*>(data);
+        this->size = size;
         setState(SR_STREAM_OK);
     }
-    position_10 = 0;
+    position0 = 0;
 }
 
 // FUNCTION: SURRENDER 0x10030AA0
@@ -29,10 +29,10 @@ srBinStream& srBinIMStream::seek(unsigned long position, e_seekDir direction)
         new_position = position;
         break;
     case SR_SEEK_CURRENT:
-        new_position = position_10 + position;
+        new_position = position0 + position;
         break;
     case SR_SEEK_END:
-        new_position = size_0c - position;
+        new_position = size - position;
         break;
     }
     seek(new_position);
@@ -42,8 +42,8 @@ srBinStream& srBinIMStream::seek(unsigned long position, e_seekDir direction)
 // FUNCTION: SURRENDER 0x10030B00
 srBinStream& srBinIMStream::seek(unsigned long position)
 {
-    if (position <= size_0c) {
-        position_10 = position;
+    if (position <= size) {
+        position0 = position;
     } else {
         setState(SR_STREAM_ERROR);
     }
@@ -53,20 +53,20 @@ srBinStream& srBinIMStream::seek(unsigned long position)
 // FUNCTION: SURRENDER 0x10030B40
 unsigned long srBinIMStream::tell()
 {
-    return position_10;
+    return position0;
 }
 
 // FUNCTION: SURRENDER 0x10030B50
 unsigned long srBinIMStream::vread(void* destination, unsigned long size)
 {
-    if (position_10 + size >= size_0c) {
-        size = size_0c - position_10;
+    if (position0 + size >= this->size) {
+        size = this->size - position0;
     }
     if (size != 0) {
         if (static_cast<int>(size) > 0) {
-            memcpy(destination, data_08 + position_10, size);
+            memcpy(destination, data + position0, size);
         }
-        position_10 += size;
+        position0 += size;
     }
     return size;
 }
@@ -74,27 +74,27 @@ unsigned long srBinIMStream::vread(void* destination, unsigned long size)
 // FUNCTION: SURRENDER 0x10030BA0
 unsigned long srBinIMStream::getSize()
 {
-    return size_0c;
+    return size;
 }
 
 // FUNCTION: SURRENDER 0x10030E00
 srBinOMStream::srBinOMStream()
 {
-    size_14 = 0;
-    position_10 = 0;
+    size = 0;
+    position0 = 0;
     setState(SR_STREAM_OK);
 }
 
 // FUNCTION: SURRENDER 0x10030EC0
 void* srBinOMStream::getPtr()
 {
-    return &buffer_08[0];
+    return &buffer[0];
 }
 
 // FUNCTION: SURRENDER 0x10030F30
 unsigned long srBinOMStream::getSize()
 {
-    return size_14;
+    return size;
 }
 
 // FUNCTION: SURRENDER 0x10030F40
@@ -106,10 +106,10 @@ srBinStream& srBinOMStream::seek(unsigned long position, e_seekDir direction)
         new_position = position;
         break;
     case SR_SEEK_CURRENT:
-        new_position = position_10 + position;
+        new_position = position0 + position;
         break;
     case SR_SEEK_END:
-        new_position = size_14 - position;
+        new_position = size - position;
         break;
     }
     seek(new_position);
@@ -119,28 +119,28 @@ srBinStream& srBinOMStream::seek(unsigned long position, e_seekDir direction)
 // FUNCTION: SURRENDER 0x10030FA0
 srBinStream& srBinOMStream::seek(unsigned long position)
 {
-    position_10 = position;
+    position0 = position;
     return *this;
 }
 
 // FUNCTION: SURRENDER 0x10030FC0
 unsigned long srBinOMStream::tell()
 {
-    return position_10;
+    return position0;
 }
 
 // FUNCTION: SURRENDER 0x10030FD0
 unsigned long srBinOMStream::vwrite(const void* source, unsigned long size)
 {
     if (size != 0) {
-        buffer_08[position_10 + size];
-        unsigned char* destination = &buffer_08[position_10];
+        buffer[position0 + size];
+        unsigned char* destination = &buffer[position0];
         if (static_cast<int>(size) > 0) {
             memcpy(destination, source, size);
         }
-        position_10 += size;
-        if (size_14 < position_10) {
-            size_14 = position_10;
+        position0 += size;
+        if (this->size < position0) {
+            this->size = position0;
         }
         return size;
     }
@@ -611,9 +611,9 @@ srBinOStream& srBinOStream::putDouble(double value)
 // FUNCTION: SURRENDER 0x10032180
 srBinStream::srBinStream()
 {
-    byte_order_0c = SR_BYTE_ORDER_0;
-    state_04 = SR_STREAM_STATE_2;
-    exceptions_08 = false;
+    byte_order = SR_BYTE_ORDER_0;
+    state = SR_STREAM_STATE_2;
+    exceptions0 = false;
 }
 
 // FUNCTION: SURRENDER 0x100321D0
@@ -625,19 +625,19 @@ bool srBinStream::byteOrderMatch() const
 // FUNCTION: SURRENDER 0x100321A0
 srBinStream::e_byteOrder srBinStream::getByteOrder() const
 {
-    return byte_order_0c;
+    return byte_order;
 }
 
 // FUNCTION: SURRENDER 0x100321B0
 void srBinStream::setByteOrder(e_byteOrder order)
 {
-    byte_order_0c = order;
+    byte_order = order;
 }
 
 // FUNCTION: SURRENDER 0x100321C0
 bool srBinStream::good() const
 {
-    return state_04 == SR_STREAM_OK;
+    return state == SR_STREAM_OK;
 }
 
 // FUNCTION: SURRENDER 0x100321E0
@@ -665,22 +665,22 @@ bool srBinStream::operator!() const
 // FUNCTION: SURRENDER 0x10032270
 void srBinStream::clear()
 {
-    state_04 = SR_STREAM_OK;
+    state = SR_STREAM_OK;
 }
 
 // FUNCTION: SURRENDER 0x100322A0
 bool srBinStream::exceptions(bool flag)
 {
-    bool old = exceptions_08;
-    exceptions_08 = flag;
+    bool old = exceptions0;
+    exceptions0 = flag;
     return old;
 }
 
 // FUNCTION: SURRENDER 0x100322B0
 void srBinStream::setState(e_state state)
 {
-    state_04 = state;
-    if (exceptions_08 && state == SR_STREAM_ERROR) {
+    this->state = state;
+    if (exceptions0 && state == SR_STREAM_ERROR) {
         throw Failure(state);
     }
 }
@@ -725,29 +725,29 @@ void srIStreamOpener::addStreamType(Opener* opener, const char* stream_type)
     char* type_copy = new char[strlen(stream_type) + 1];
     strcpy(type_copy, stream_type);
     StreamType* node = new StreamType;
-    node->opener_00 = opener;
-    node->extension_04 = type_copy;
-    StreamType* first = first_04;
+    node->opener = opener;
+    node->extension = type_copy;
+    StreamType* first = this->first;
     StreamType* previous = first->previous;
     node->next = first;
     node->previous = previous;
     if (previous != 0) {
         previous->next = node;
     } else {
-        first_04 = node;
+        this->first = node;
     }
     if (node->next != 0) {
         node->next->previous = node;
     }
-    ++count_00;
+    ++count;
 }
 
 // FUNCTION: SURRENDER 0x10032630
 srIStreamOpener::Opener* srIStreamOpener::findOpener(const char* stream_type)
 {
-    for (StreamType* node = first_04; node != end; node = node->next) {
-        if (_stricmp(node->extension_04, stream_type) == 0) {
-            return node->opener_00;
+    for (StreamType* node = first; node != end; node = node->next) {
+        if (_stricmp(node->extension, stream_type) == 0) {
+            return node->opener;
         }
     }
     return 0;
@@ -786,8 +786,8 @@ srBinIStream* srIStreamOpener::open(const char* prefix, const char* path)
         srBinIStream* stream = new srBinIFStream(local_path.data());
         if (!stream->good()) {
             delete stream;
-            for (StreamType* node = first_04; node != end; node = node->next) {
-                stream = node->opener_00->open(local_path.data());
+            for (StreamType* node = first; node != end; node = node->next) {
+                stream = node->opener->open(local_path.data());
                 if (stream != 0) {
                     return stream;
                 }
@@ -811,13 +811,13 @@ srBinIStream* srIStreamOpener::open(const char* prefix, const char* path)
 // FUNCTION: SURRENDER 0x10032A80
 srIStreamOpener::~srIStreamOpener()
 {
-    for (StreamType* node = first_04; node != end; node = node->next) {
-        delete[] node->extension_04;
-        node->extension_04 = 0;
+    for (StreamType* node = first; node != end; node = node->next) {
+        delete[] node->extension;
+        node->extension = 0;
     }
-    StreamType* entry = first_04;
+    StreamType* entry = first;
     while (entry != end) {
-        first_04 = entry->next;
+        first = entry->next;
         if (entry->previous != 0) {
             entry->previous->next = entry->next;
         }
@@ -825,10 +825,10 @@ srIStreamOpener::~srIStreamOpener()
             entry->next->previous = entry->previous;
         }
         delete entry;
-        entry = first_04;
-        --count_00;
+        entry = first;
+        --count;
     }
-    delete first_04;
+    delete first;
 }
 
 // FUNCTION: SURRENDER 0x10032B00

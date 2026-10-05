@@ -1287,12 +1287,12 @@ void DrawSubMenuCharacterAction(void)
         switch (action) {
         case 7:
             swprintf(text, L"%s - %s (%d)", gppStringList[g_action_kind_message_ids[7]],
-                     g_spell_records[row->action_detail_041].display_name,
-                     row->action_detail_045.spell.power_level);
+                     g_spell_records[row->action_detail0].display_name,
+                     row->action_detail1.spell.power_level);
             break;
         case 8:
             swprintf(text, L"%s - %s", gppStringList[g_action_kind_message_ids[8]],
-                     g_spell_records[g_item_records[row->action_detail_045.item_use.item->iItemNo]
+                     g_spell_records[g_item_records[row->action_detail1.item_use.item->iItemNo]
                                          .spell_id]
                          .display_name);
             break;

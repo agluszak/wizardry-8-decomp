@@ -430,13 +430,13 @@ protected:
         int row;
 
         for (row = 0; row < 0x12; ++row) {
-            memcpy(coefficients_08[row], coefficients[row], 0x20);
-            memcpy(points_248[row], points[row], 0x1c);
+            memcpy(this->coefficients[row], coefficients[row], 0x20);
+            memcpy(this->points[row], points[row], 0x1c);
         }
     }
 
-    double coefficients_08[0x12][4];
-    float points_248[0x12][7];
+    double coefficients[0x12][4];
+    float points[0x12][7];
 };
 
 inline srVP::~srVP() {} // pure virtual destructor body

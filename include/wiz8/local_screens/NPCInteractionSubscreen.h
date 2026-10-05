@@ -28,7 +28,7 @@ struct W8SkillNoticePayload;
    0x17,0x166-0xa4,0x1c2); it hosts the six option buttons at +0x170..+0x184.
    Its SetEnabled keeps those six inactive unless the expanded NPC dialogue
    layout (dialogue_layout == W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX) is up, and its Redraw substitutes m_main_text_box_image for
-   m_renderArg_20 in that mode. The constructor is inlined into 0x0056D1D0 as
+   m_renderArg1 in that mode. The constructor is inlined into 0x0056D1D0 as
    the Controls base call plus m_main_text_box_image = 0x11; no standalone derived body
    exists. */
 // VTABLE: WIZ8 0x005ee9f0
@@ -80,7 +80,7 @@ struct W8PendingNotice {
     int line;
     bool flag;
     unsigned char force;
-    unsigned char unused_16[2];
+    unsigned char unused[2];
 };
 extern W8PendingNotice g_pending_notice;
 extern wchar_t g_dialogue_empty_text[4];
@@ -391,7 +391,7 @@ void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuot
                               W8MessageBoxPayload payload, int npc_kind); /* 0x00576060 */
 void DrawNpcQuoteBubble(void);                                            /* 0x00576670 */
 /* 0x00575E60: OpenNpcDialog — the modal request is the script's
-   W8NpcQuoteEntry itself; the dialog discriminates kind_00 0x05 (option
+   W8NpcQuoteEntry itself; the dialog discriminates kind 0x05 (option
    list), 0x12/0x1e (price check) and 0x13 (keyword entry). */
 void LookAtDialogueNpc(void); /* 0x005767F0 */
 void BeginNpcDialogueInternal(W8NpcState* npc, W8ItemInstance* item, int quote, unsigned char flags,

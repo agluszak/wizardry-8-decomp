@@ -54,12 +54,12 @@ static unsigned long g_tick;
 
 /* The static and dynamic scene fogs owned by the environment. */
 // GLOBAL: WIZ8 0x0065B9B0
-static srFog* g_environment_object_0065b9b0;
+static srFog* g_environment_object0;
 /* Camera-light intensity ceiling for SetCameraLightMode; the linker
    folds it into the shared 50.0f constant Octree.cpp emits at 0x005EC02C. */
 static const float CAMERA_LIGHT_MAXIMUM_INTENSITY = 50.0f;
 // GLOBAL: WIZ8 0x0065B9B4
-static srFog* g_environment_object_0065b9b4;
+static srFog* g_environment_object1;
 // GLOBAL: WIZ8 0x0065B998
 W8Vector<stLight*> g_environment_lights(5);
 
@@ -126,14 +126,14 @@ void W8MaterialMapper::process(srVertexPipe& pipe)
 void ClearEnvironmentObjects(void)
 {
     ResetEnvironment();
-    if (g_environment_object_0065b9b0 != 0) {
-        g_environment_object_0065b9b0->release();
+    if (g_environment_object0 != 0) {
+        g_environment_object0->release();
     }
-    if (g_environment_object_0065b9b4 != 0) {
-        g_environment_object_0065b9b4->release();
+    if (g_environment_object1 != 0) {
+        g_environment_object1->release();
     }
-    g_environment_object_0065b9b0 = 0;
-    g_environment_object_0065b9b4 = 0;
+    g_environment_object0 = 0;
+    g_environment_object1 = 0;
     g_environment_lights.Clear();
 }
 
@@ -198,7 +198,7 @@ void AdvanceEnvironmentTime(int elapsed)
 
     for (int index = 0; index != 3; ++index, ++animation) {
         if (*animation != 0) {
-            (*animation)->frame_58 = static_cast<int>(phase);
+            (*animation)->frame = static_cast<int>(phase);
         }
     }
 }
@@ -284,12 +284,12 @@ BOOLEAN ReadLightColourTable(int hFile)
     }
 
     for (index = 0; index < 256; ++index) {
-        g_environment_colours_65ad98[index].x = components[index * 3] * (1.0f / 255.0f);
-        g_environment_colours_65ad98[index].y = components[index * 3 + 1] * (1.0f / 255.0f);
-        g_environment_colours_65ad98[index].z = components[index * 3 + 2] * (1.0f / 255.0f);
-        ClampEnvironmentComponent(g_environment_colours_65ad98[index].x);
-        ClampEnvironmentComponent(g_environment_colours_65ad98[index].y);
-        ClampEnvironmentComponent(g_environment_colours_65ad98[index].z);
+        g_environment_colours1[index].x = components[index * 3] * (1.0f / 255.0f);
+        g_environment_colours1[index].y = components[index * 3 + 1] * (1.0f / 255.0f);
+        g_environment_colours1[index].z = components[index * 3 + 2] * (1.0f / 255.0f);
+        ClampEnvironmentComponent(g_environment_colours1[index].x);
+        ClampEnvironmentComponent(g_environment_colours1[index].y);
+        ClampEnvironmentComponent(g_environment_colours1[index].z);
     }
     return 1;
 }
@@ -306,12 +306,12 @@ BOOLEAN ReadEnvironmentColourTable(int hFile)
     }
 
     for (index = 0; index < 256; ++index) {
-        g_environment_colours_65a178[index].x = components[index * 3] * (1.0f / 255.0f);
-        g_environment_colours_65a178[index].y = components[index * 3 + 1] * (1.0f / 255.0f);
-        g_environment_colours_65a178[index].z = components[index * 3 + 2] * (1.0f / 255.0f);
-        ClampEnvironmentComponent(g_environment_colours_65a178[index].x);
-        ClampEnvironmentComponent(g_environment_colours_65a178[index].y);
-        ClampEnvironmentComponent(g_environment_colours_65a178[index].z);
+        g_environment_colours0[index].x = components[index * 3] * (1.0f / 255.0f);
+        g_environment_colours0[index].y = components[index * 3 + 1] * (1.0f / 255.0f);
+        g_environment_colours0[index].z = components[index * 3 + 2] * (1.0f / 255.0f);
+        ClampEnvironmentComponent(g_environment_colours0[index].x);
+        ClampEnvironmentComponent(g_environment_colours0[index].y);
+        ClampEnvironmentComponent(g_environment_colours0[index].z);
     }
     return 1;
 }
@@ -324,17 +324,17 @@ void BuildEnvironmentColourRamp(void)
 
     for (index = 0; index < 128; ++index) {
         value = index * (1.0f / 127.0f);
-        g_environment_colours_65a178[index] = value;
-        ClampEnvironmentComponent(g_environment_colours_65a178[index].x);
-        ClampEnvironmentComponent(g_environment_colours_65a178[index].y);
-        ClampEnvironmentComponent(g_environment_colours_65a178[index].z);
+        g_environment_colours0[index] = value;
+        ClampEnvironmentComponent(g_environment_colours0[index].x);
+        ClampEnvironmentComponent(g_environment_colours0[index].y);
+        ClampEnvironmentComponent(g_environment_colours0[index].z);
     }
     for (; index < 256; ++index) {
         value = (255 - index) * (1.0f / 127.0f);
-        g_environment_colours_65a178[index] = value;
-        ClampEnvironmentComponent(g_environment_colours_65a178[index].x);
-        ClampEnvironmentComponent(g_environment_colours_65a178[index].y);
-        ClampEnvironmentComponent(g_environment_colours_65a178[index].z);
+        g_environment_colours0[index] = value;
+        ClampEnvironmentComponent(g_environment_colours0[index].x);
+        ClampEnvironmentComponent(g_environment_colours0[index].y);
+        ClampEnvironmentComponent(g_environment_colours0[index].z);
     }
 }
 
@@ -346,21 +346,21 @@ void BuildLightColourRamp(void)
 
     for (index = 0; index < 128; ++index) {
         value = index * (1.0f / 127.0f);
-        g_environment_colours_65ad98[index].x = value;
-        g_environment_colours_65ad98[index].y = value;
-        g_environment_colours_65ad98[index].z = value;
-        ClampEnvironmentComponent(g_environment_colours_65ad98[index].x);
-        ClampEnvironmentComponent(g_environment_colours_65ad98[index].y);
-        ClampEnvironmentComponent(g_environment_colours_65ad98[index].z);
+        g_environment_colours1[index].x = value;
+        g_environment_colours1[index].y = value;
+        g_environment_colours1[index].z = value;
+        ClampEnvironmentComponent(g_environment_colours1[index].x);
+        ClampEnvironmentComponent(g_environment_colours1[index].y);
+        ClampEnvironmentComponent(g_environment_colours1[index].z);
     }
     for (; index < 256; ++index) {
         value = (255 - index) * (1.0f / 127.0f);
-        g_environment_colours_65ad98[index].x = value;
-        g_environment_colours_65ad98[index].y = value;
-        g_environment_colours_65ad98[index].z = value;
-        ClampEnvironmentComponent(g_environment_colours_65ad98[index].x);
-        ClampEnvironmentComponent(g_environment_colours_65ad98[index].y);
-        ClampEnvironmentComponent(g_environment_colours_65ad98[index].z);
+        g_environment_colours1[index].x = value;
+        g_environment_colours1[index].y = value;
+        g_environment_colours1[index].z = value;
+        ClampEnvironmentComponent(g_environment_colours1[index].x);
+        ClampEnvironmentComponent(g_environment_colours1[index].y);
+        ClampEnvironmentComponent(g_environment_colours1[index].z);
     }
 }
 
@@ -379,8 +379,8 @@ void UpdateEnvironmentLight(void)
     }
     unsigned int phase = ((g_status.game_time_ms / 1000U) << 8) / 86400U;
     if (phase != static_cast<unsigned int>(g_last_light_phase)) {
-        g_light_direction = g_environment_colours_65ad98[phase];
-        PublishLightDirection(&g_environment_colours_65ad98[phase]);
+        g_light_direction = g_environment_colours1[phase];
+        PublishLightDirection(&g_environment_colours1[phase]);
         g_last_light_phase = static_cast<int>(phase);
     }
 }
@@ -392,14 +392,14 @@ void UpdateEnvironmentLight(void)
 void SetSkyEnabled(bool enabled)
 {
     if (enabled != 0) {
-        if (g_world == 0 || g_world->dynamic_scene == 0 || g_environment_object_0065b9b0 != 0) {
+        if (g_world == 0 || g_world->dynamic_scene == 0 || g_environment_object0 != 0) {
             return;
         }
 
-        g_environment_object_0065b9b0 = SR_NEW(srFog)(g_world->static_scene);
-        g_environment_object_0065b9b4 = SR_NEW(srFog)(g_world->dynamic_scene);
-        g_environment_object_0065b9b0->density_160 = 1.0f;
-        g_environment_object_0065b9b4->density_160 = 1.0f;
+        g_environment_object0 = SR_NEW(srFog)(g_world->static_scene);
+        g_environment_object1 = SR_NEW(srFog)(g_world->dynamic_scene);
+        g_environment_object0->density = 1.0f;
+        g_environment_object1->density = 1.0f;
 
         RefreshFogRanges();
 
@@ -413,14 +413,14 @@ void SetSkyEnabled(bool enabled)
         return;
     }
 
-    if (g_environment_object_0065b9b0 != 0) {
-        g_environment_object_0065b9b0->release();
+    if (g_environment_object0 != 0) {
+        g_environment_object0->release();
     }
-    if (g_environment_object_0065b9b4 != 0) {
-        g_environment_object_0065b9b4->release();
+    if (g_environment_object1 != 0) {
+        g_environment_object1->release();
     }
-    g_environment_object_0065b9b0 = 0;
-    g_environment_object_0065b9b4 = 0;
+    g_environment_object0 = 0;
+    g_environment_object1 = 0;
 
     EnvironmentColour direction;
     direction = 0.0;
@@ -499,7 +499,7 @@ void RefreshEnvironment(void)
     }
     unsigned int phase = ((g_status.game_time_ms / 1000U) << 8) / 86400U;
     if (phase != static_cast<unsigned int>(g_last_environment_colour_phase)) {
-        EnvironmentColour colour = g_environment_colours_65a178[phase];
+        EnvironmentColour colour = g_environment_colours0[phase];
         SetWorldEnvironmentColour(g_world, colour);
         g_last_environment_colour_phase = static_cast<int>(phase);
     }
@@ -723,14 +723,14 @@ bool IsSkyEnabled(void)
 // FUNCTION: WIZ8 0x004836A0
 void RefreshFogRanges(void)
 {
-    if (g_environment_object_0065b9b0 != 0 && g_world != 0) {
-        g_environment_object_0065b9b0->fog_end =
+    if (g_environment_object0 != 0 && g_world != 0) {
+        g_environment_object0->fog_end =
             WorldGetFarClip(g_world) * g_world->environment_range_end;
-        g_environment_object_0065b9b0->fog_start =
+        g_environment_object0->fog_start =
             WorldGetFarClip(g_world) * g_world->environment_range_start;
-        g_environment_object_0065b9b4->fog_start =
+        g_environment_object1->fog_start =
             WorldGetFarClip(g_world) * g_world->environment_range_start;
-        g_environment_object_0065b9b4->fog_end =
+        g_environment_object1->fog_end =
             WorldGetFarClip(g_world) * g_world->environment_range_end;
     }
 }
@@ -789,14 +789,14 @@ void GetWorldLightValue(const W8World* world, EnvironmentColour* pLightValue)
 // FUNCTION: WIZ8 0x004826e0
 void ReleaseEnvironmentObjects(void)
 {
-    if (g_environment_object_0065b9b0 != 0) {
-        g_environment_object_0065b9b0->release();
+    if (g_environment_object0 != 0) {
+        g_environment_object0->release();
     }
-    if (g_environment_object_0065b9b4 != 0) {
-        g_environment_object_0065b9b4->release();
+    if (g_environment_object1 != 0) {
+        g_environment_object1->release();
     }
-    g_environment_object_0065b9b0 = 0;
-    g_environment_object_0065b9b4 = 0;
+    g_environment_object0 = 0;
+    g_environment_object1 = 0;
     g_environment_lights.Clear();
 }
 
@@ -875,7 +875,7 @@ void ApplyEnvironmentColour(W8World* world, float intensity, const EnvironmentCo
 
         scaled *= static_cast<double>(intensity);
         SaturateColor(&scaled);
-        light->ambient_198 = scaled;
+        light->ambient = scaled;
     }
     {
         srRegistry* registry = srCore.getRegistry();
@@ -908,7 +908,7 @@ void ApplyEnvironmentColour(W8World* world, float intensity, const EnvironmentCo
 void SetCameraLightIntensity(float value)
 {
     if (g_world->camera_light != 0) {
-        g_world->camera_light->intensity_1d0 = value;
+        g_world->camera_light->intensity = value;
     }
 }
 
@@ -947,20 +947,20 @@ void SetCameraLightMode(int mode)
             camera_light = g_world->camera_light;
             intensity = g_float_zero;
             if (camera_light != 0) {
-                intensity = camera_light->intensity_1d0;
+                intensity = camera_light->intensity;
             }
             intensity += g_float_005ebc7c;
             if (CAMERA_LIGHT_MAXIMUM_INTENSITY < intensity) {
                 intensity = CAMERA_LIGHT_MAXIMUM_INTENSITY;
             }
             if (camera_light != 0) {
-                camera_light->intensity_1d0 = intensity;
+                camera_light->intensity = intensity;
             }
             return;
         case 1:
-            intensity = camera_light->intensity_1d0 - g_float_005ebc7c;
+            intensity = camera_light->intensity - g_float_005ebc7c;
             if (g_float_zero < intensity) {
-                camera_light->intensity_1d0 = intensity;
+                camera_light->intensity = intensity;
                 return;
             }
             /* fall through */
@@ -1050,7 +1050,7 @@ void InitializeLevelEnvironment(void)
     }
     {
         unsigned int phase = (g_status.game_time_ms / 1000U << 8) / 0x15180;
-        EnvironmentColour colour = g_environment_colours_65a178[phase];
+        EnvironmentColour colour = g_environment_colours0[phase];
 
         if (g_world == 0) {
             srAssertFail("pWorld", ENVIRONMENT_CPP, 0x27a, 0);
@@ -1058,8 +1058,8 @@ void InitializeLevelEnvironment(void)
         }
         ApplyEnvironmentColour(g_world, g_world->environment_intensity, &colour);
         {
-            g_light_direction = g_environment_colours_65ad98[phase];
-            PublishLightDirection(&g_environment_colours_65ad98[phase]);
+            g_light_direction = g_environment_colours1[phase];
+            PublishLightDirection(&g_environment_colours1[phase]);
         }
     }
 }

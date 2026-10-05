@@ -56,7 +56,7 @@ struct W8NpcState {
     /* 0x22/0x23: two bytes 0x0056D030 clears when the dialogue NPC is
        staged. */
     bool flag;
-    bool flag_23;
+    bool flag0;
     /* 0x24: the level-band byte GetLevelBand returns for the bound level. */
     unsigned char level_band;
     bool is_present; /* 0x25 */
@@ -104,7 +104,7 @@ struct W8NpcState {
     bool talk_cooldown_active;
     bool trade_cooldown_active;
     /* 0x0ca: the record's word at 0x002, copied by CreateNpcRuntimeNode. */
-    unsigned short trade_pool_ca;
+    unsigned short trade_pool;
     int talk_cooldown_clock;
     int trade_cooldown_clock;
     unsigned char service_flags[0x14];
@@ -117,11 +117,11 @@ struct W8NpcState {
     /* 0x0ea: this NPC is a candidate for the scripted event pass. */
     /* 0xea: the NPC is restored into the current level and available for
        binding; cleared while a restore is pending. */
-    bool restored_ea;
+    bool restored;
     /* 0x0eb: world clock of the last event that ran for this NPC. */
-    int event_clock_eb;
+    int event_clock;
     /* 0x0ef: disposition band snapshot taken when dialogue opens. */
-    unsigned char disposition_at_open_ef;
+    unsigned char disposition_at_open;
     /* 0x0f0/0x0f1: death-save assist offer, selected by name style. */
     unsigned char healer_assist;
     unsigned char item_assist;

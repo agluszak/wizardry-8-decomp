@@ -32,11 +32,11 @@ enum { ATTR_COUNT = 7 };
 enum { SKILL_COUNT = 0x29 };
 
 // GLOBAL: WIZ8 0x0061e4fc
-static unsigned short g_attr_table_61E4FC[8] = {
+static unsigned short g_attr_table0[8] = {
     0x6a0, 0x6a1, 0x6a2, 0x6a3, 0x6a4, 0x6a5, 0x6a6, 0,
 };
 // GLOBAL: WIZ8 0x0061e50c
-unsigned short g_attr_table_61E50C[18] = {
+unsigned short g_attr_table1[18] = {
     0x6a7, 0x6a8, 0x6a9, 0x6aa, 0x6ab, 0,     0x30b, 0x30c, 0x30d,
     0x30e, 0x30f, 0x310, 0x311, 0x312, 0x313, 0x314, 0x315, 0x316,
 };
@@ -180,7 +180,7 @@ W8AttributeInfoDialog::W8AttributeInfoDialog(unsigned int uiIndex)
     }
     m_uiIndex = uiIndex;
     m_title_id = g_character_description_first_ids[uiIndex];
-    m_detail_id = g_attr_table_61E4FC[uiIndex];
+    m_detail_id = g_attr_table0[uiIndex];
 }
 
 // FUNCTION: WIZ8 0x005dfd20
@@ -245,7 +245,7 @@ W8SecondaryAttributeInfoDialog::W8SecondaryAttributeInfoDialog(unsigned int uiIn
     }
     m_uiIndex = uiIndex;
     m_title_id = g_character_description_first_ids[16 + uiIndex];
-    m_detail_id = g_attr_table_61E50C[uiIndex];
+    m_detail_id = g_attr_table1[uiIndex];
 }
 
 // FUNCTION: WIZ8 0x005e0230

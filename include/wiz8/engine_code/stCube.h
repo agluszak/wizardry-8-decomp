@@ -18,19 +18,19 @@ public:
     W8WorldCursorNode()
     {
         pUserdata = 0;
-        size_1c = 0;
+        size = 0;
     }
     virtual ~W8WorldCursorNode() {}
     /* 0x0048D050: copy the node's world location out; answers 0 when the node
        chain is absent. */
     unsigned char GetLocation(srVector3T<float>* position);
-    srNode* node_04; /* 0x04 */
+    srNode* node; /* 0x04 */
     unsigned int value_08;
     int numbers[3];      /* 0x0c, 0x10, 0x14 */
     void* pUserdata;        /* 0x18 */
-    int size_1c;            /* 0x1c */
-    unsigned long color_20; /* 0x20 */
-    char name_24[0x20];
+    int size;            /* 0x1c */
+    unsigned long color; /* 0x20 */
+    char name[0x20];
 };
 static_assert(sizeof(W8WorldCursorNode) == 0x44, "W8WorldCursorNode_size");
 
@@ -61,7 +61,7 @@ void RefreshWorldCursorNodeLabel(W8WorldCursorNode* entry);
 /* Return the indexed cursor node, or the first node when the index is past the end. */
 W8WorldCursorNode* GetWorldCursorNode(int index);
 void AttachWorldCursorNode(W8WorldCursorNode* entry, bool attached);
-/* 0x0048F110: copy `name` into the node's 0x20-byte name_24 with a forced
+/* 0x0048F110: copy `name` into the node's 0x20-byte name with a forced
    terminator. */
 void SetWorldCursorNodeName(W8WorldCursorNode* entry, const char* name);
 void SetWorldCursorNodeColor(W8WorldCursorNode* entry, unsigned long color);
