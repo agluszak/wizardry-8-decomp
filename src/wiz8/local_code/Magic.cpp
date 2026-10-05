@@ -61,13 +61,13 @@
 /* Local Code\Magic.cpp, named by the assertion this body embeds. */
 
 // FUNCTION: WIZ8 0x004ff3b0
-int GetProfessionCasterLevel(const W8Character* character, int profession_id)
+int GetProfessionCasterLevel(const W8Character* character, W8Profession profession_id)
 {
     int magic_level_offset;
 
-    if (profession_id == -1) {
+    if (profession_id == W8_PROFESSION_NONE) {
         profession_id = character->iProfession;
-        if (profession_id == -1) {
+        if (profession_id == W8_PROFESSION_NONE) {
             srAssertFail("iProfession != -1", "C:\\Projects\\Wizardry 8\\Local Code\\Magic.cpp",
                          0xe13, 0);
         }
@@ -128,29 +128,17 @@ enum {
     W8_MONSTER_KIND_ALCHEMY_OTHER = 0xd
 };
 
-/* The skill whose presence exempts a character's alchemy from the same block.
-   Only its index is established. */
-/* The four spellbook skills sit in the order the spellbook mask numbers them,
-   which is what makes the alchemy one 26 - the third bit, the third skill. The
-   spellcasting block spares alchemy in the hands of someone who has it. */
-enum {
-    W8_SKILL_WIZARDRY = 0x18,
-    W8_SKILL_DIVINITY = 0x19,
-    W8_SKILL_ALCHEMY = 0x1a,
-    W8_SKILL_PSIONICS = 0x1b
-};
-
 /* Whether a spellcasting block stops this character casting this spell. The
    block stops everything except alchemy in the hands of someone who has the
    skill for it. */
 // FUNCTION: WIZ8 0x004fae70
 bool IsSpellBlockedForCharacter(const W8Character* character, int spell_id)
 {
-    if (character->uiCondition[W8_CONDITION_SPELLCASTING_BLOCKED] != 0) {
+    if (character->uiCondition[W8_CONDITION_SILENCED] != 0) {
         if (g_spell_records[spell_id].alchemy_spell == 0) {
             return true;
         }
-        return character->skills[W8_SKILL_ALCHEMY].level == 0;
+        return character->skills[W8_SKILL_SPELLBOOK_ALCHEMY].level == 0;
     }
     return false;
 }
@@ -162,7 +150,7 @@ bool IsSpellBlockedForMonster(W8MonsterInfo* monster_info, int spell_id)
 {
     unsigned char kind;
 
-    if (monster_info->uiCondition[W8_CONDITION_SPELLCASTING_BLOCKED] != 0) {
+    if (monster_info->uiCondition[W8_CONDITION_SILENCED] != 0) {
         if (g_spell_records[spell_id].alchemy_spell == 0) {
             return true;
         }
@@ -193,7 +181,7 @@ bool MonsterOKToCastSpell(W8MonsterInfo* monster_info, int spell_id, int power_l
         return false;
     }
 
-    if (monster_info->uiCondition[W8_CONDITION_SPELLCASTING_BLOCKED] != 0) {
+    if (monster_info->uiCondition[W8_CONDITION_SILENCED] != 0) {
         if (g_spell_records[spell_id].alchemy_spell == 0) {
             return false;
         }
@@ -448,11 +436,11 @@ void TickSpellEffects(void)
 }
 
 // FUNCTION: WIZ8 0x005012b0
-bool PartyHasCondition(int condition_id)
+bool PartyHasCondition(int effect_id)
 {
     W8EffectSlot* slot = g_status.effect_slots;
 
-    while (slot->active == 0 || slot->effect_id != condition_id) {
+    while (slot->active == 0 || slot->effect_id != effect_id) {
         ++slot;
         if (slot > &g_status.effect_slots[W8_PARTY_CONDITION_SLOTS - 1]) {
             return false;
@@ -464,7 +452,7 @@ bool PartyHasCondition(int condition_id)
 /* Whether either side of the current fight is under one particular condition.
    Both tables are searched, the party's first. */
 // FUNCTION: WIZ8 0x00501250
-bool CombatHasCondition(int condition_id)
+bool CombatHasCondition(int effect_id)
 {
     W8EffectSlot* slot;
     unsigned int index;
@@ -472,7 +460,7 @@ bool CombatHasCondition(int condition_id)
     if (g_combat_state != 0) {
         slot = g_combat_state->effect_slots;
         for (index = 0; index < W8_COMBAT_CONDITION_SLOTS; ++index, ++slot) {
-            if (slot->active != 0 && slot->effect_id == condition_id) {
+            if (slot->active != 0 && slot->effect_id == effect_id) {
                 return true;
             }
         }
@@ -483,7 +471,7 @@ bool CombatHasCondition(int condition_id)
         // clang-format off
         for (index = 0; index < W8_COMBAT_CONDITION_SLOTS; ++index) {
             slot = g_combat_state->effect_slots0 + index;
-            if (slot->active != 0 && slot->effect_id == condition_id) {
+            if (slot->active != 0 && slot->effect_id == effect_id) {
                 return true;
             }
         }
@@ -1011,18 +999,6 @@ int GetTotalCasterLevel(const W8Character* character, int spellbook, bool includ
 /* The trait that stops a character learning anything at all. */
 enum { W8_TRAIT_CANNOT_LEARN = 0x1f };
 
-/* The first of the six realm skills. A spell's realm names its skill by
-   sitting this far along, which is what LearnSpellFromItem's practice call
-   establishes. */
-enum { W8_SKILL_FIRST_REALM = 0x1c };
-
-/* The four spellbook skills, one per book, practised together for a spell that
-   belongs to more than one. */
-enum { W8_SKILL_FIRST_SPELLBOOK = W8_SKILL_WIZARDRY, W8_SKILL_AFTER_SPELLBOOK = 0x1c };
-
-/* The skill every learned spell practises regardless of its book. */
-enum { W8_SKILL_SPELL_LEARNING = 0x14 };
-
 /* Which spellbooks a spell belongs to, as the mask the profession table is
    tested against. A spell in no book at all answers nothing, which is what
    makes the test below a membership test rather than a comparison. */
@@ -1102,7 +1078,7 @@ char CanCharacterLearnSpell(W8Character* character, int spell_id)
     unsigned int skill_ceiling;
     unsigned int ceiling;
     unsigned int spell_level;
-    int spellbook_skill;
+    W8Skill spellbook_skill;
 
     if ((g_profession_spellbooks[character->iProfession] & book) == W8_SPELLBOOK_NONE) {
         return 0;
@@ -1111,12 +1087,12 @@ char CanCharacterLearnSpell(W8Character* character, int spell_id)
         return 0;
     }
 
-    caster_level = GetProfessionCasterLevel(character, -1);
+    caster_level = GetProfessionCasterLevel(character, W8_PROFESSION_NONE);
     if (caster_level > 0) {
         for (other = 0; other < 15; ++other) {
             if (character->profession_levels[other] != 0 && other != character->iProfession &&
                 (g_profession_spellbooks[other] & book) != W8_SPELLBOOK_NONE) {
-                other_level = GetProfessionCasterLevel(character, other);
+                other_level = GetProfessionCasterLevel(character, static_cast<W8Profession>(other));
                 if (other_level > 0) {
                     caster_level += other_level;
                 }
@@ -1138,7 +1114,7 @@ char CanCharacterLearnSpell(W8Character* character, int spell_id)
 
     spellbook_skill = GetBestSpellbookSkillForSpell(character, spell_id, 0, 0, 0);
     skill_ceiling =
-        (character->skills[W8_SKILL_FIRST_REALM + g_spell_records[spell_id].realm].points / 10 +
+        (character->skills[W8_SKILL_FIRE_MAGIC + g_spell_records[spell_id].realm].points / 10 +
          character->skills[spellbook_skill].level) /
             15 +
         1;
@@ -1178,8 +1154,8 @@ void LearnSpell(W8Character* character, int spell_id, bool announce)
 
     character->spell_learned[spell_id] = 1;
     realm = g_spell_records[spell_id].realm;
-    ++character->skill_unlocks[W8_SKILL_FIRST_REALM + realm];
-    character->skill_unlocks[W8_RESISTANCE_BONUS_SKILL] = RebuildRealmSpellPointCeilings(character);
+    ++character->skill_unlocks[W8_SKILL_FIRE_MAGIC + realm];
+    character->skill_unlocks[W8_SKILL_IRON_WILL] = RebuildRealmSpellPointCeilings(character);
 
     if (announce == 0) {
         return;
@@ -1234,12 +1210,13 @@ void LearnSpellFromItem(W8Character* character, W8ItemInstance* item)
 
     LearnSpell(character, spell_id, 1);
     usage_points = g_spell_records[spell_id].spell_level;
-    PracticeCharacterSkill(character, W8_SKILL_SPELL_LEARNING, usage_points * 2, 0);
-    PracticeCharacterSkill(character, W8_SKILL_FIRST_REALM + g_spell_records[spell_id].realm,
-                           usage_points, 0);
-    for (skill_id = W8_SKILL_FIRST_SPELLBOOK; skill_id < W8_SKILL_AFTER_SPELLBOOK; ++skill_id) {
+    PracticeCharacterSkill(character, W8_SKILL_ARTIFACTS, usage_points * 2, 0);
+    PracticeCharacterSkill(
+        character, static_cast<W8Skill>(W8_SKILL_FIRE_MAGIC + g_spell_records[spell_id].realm),
+        usage_points, 0);
+    for (skill_id = W8_SKILL_SPELLBOOK_WIZARDRY; skill_id < W8_SKILL_FIRE_MAGIC; ++skill_id) {
         if (g_spell_records[spell_id].wizardry_spell != 0) {
-            PracticeCharacterSkill(character, skill_id, usage_points, 0);
+            PracticeCharacterSkill(character, static_cast<W8Skill>(skill_id), usage_points, 0);
         }
     }
     EmptyItemRecord(item, character, 1);
@@ -1557,42 +1534,42 @@ int PointCastSpell(srVector3T<float> position, int spell_id, unsigned int power_
    The alchemy shortcut ahead of all of it: a character the alchemy-exempting
    field marks is answered with the fixed skill outright. */
 // FUNCTION: WIZ8 0x004ff7f0
-unsigned int GetBestSpellbookSkillForSpell(W8Character* character, int spell_id, bool pricing,
-                                           bool prefer_unlocked, unsigned int power_level)
+W8Skill GetBestSpellbookSkillForSpell(W8Character* character, int spell_id, bool pricing,
+                                      bool prefer_unlocked, unsigned int power_level)
 {
     unsigned char book = SpellbookMaskForSpell(spell_id);
     unsigned char probe;
     unsigned int skill_id;
-    unsigned int best_skill = 0xffffffff;
+    W8Skill best_skill = W8_SKILL_NONE;
     unsigned int best_level = 0xffffffff;
-    unsigned int unlocked_skill = 0xffffffff;
+    W8Skill unlocked_skill = W8_SKILL_NONE;
     unsigned int unlocked_level = 0xffffffff;
     unsigned int level;
     int party_slot;
 
-    if (pricing != 0 && character->uiCondition[W8_CONDITION_SPELLCASTING_BLOCKED] != 0 &&
+    if (pricing != 0 && character->uiCondition[W8_CONDITION_SILENCED] != 0 &&
         g_spell_records[spell_id].alchemy_spell != 0) {
-        return W8_SKILL_ALCHEMY;
+        return W8_SKILL_SPELLBOOK_ALCHEMY;
     }
 
     probe = 1;
-    for (skill_id = W8_SKILL_FIRST_SPELLBOOK; skill_id < W8_SKILL_AFTER_SPELLBOOK; ++skill_id) {
+    for (skill_id = W8_SKILL_SPELLBOOK_WIZARDRY; skill_id < W8_SKILL_FIRE_MAGIC; ++skill_id) {
         if ((probe & book) != 0) {
             level = character->skills[skill_id].points;
             if (static_cast<int>(best_level) < static_cast<int>(level)) {
-                best_skill = skill_id;
+                best_skill = static_cast<W8Skill>(skill_id);
                 best_level = level;
             }
             if (prefer_unlocked != 0 && character->skills[skill_id].active != 0 &&
                 static_cast<int>(unlocked_level) < static_cast<int>(level)) {
-                unlocked_skill = skill_id;
+                unlocked_skill = static_cast<W8Skill>(skill_id);
                 unlocked_level = level;
             }
         }
         probe = static_cast<unsigned char>(probe << 1);
     }
 
-    if (prefer_unlocked != 0 && unlocked_skill != 0xffffffff && best_skill != unlocked_skill) {
+    if (prefer_unlocked != 0 && unlocked_skill != W8_SKILL_NONE && best_skill != unlocked_skill) {
         if (pricing != 0) {
             unsigned int failure;
             int shortfall;
@@ -1605,7 +1582,7 @@ unsigned int GetBestSpellbookSkillForSpell(W8Character* character, int spell_id,
                    g_spell_records[spell_id].spell_level;
             skill_figure =
                 (character->skills[unlocked_skill].level +
-                 character->skills[W8_SKILL_FIRST_REALM + g_spell_records[spell_id].realm].level *
+                 character->skills[W8_SKILL_FIRE_MAGIC + g_spell_records[spell_id].realm].level *
                      4) /
                 5;
             if (band > 16) {
@@ -1637,7 +1614,7 @@ unsigned int GetBestSpellbookSkillForSpell(W8Character* character, int spell_id,
         }
     }
 
-    if (best_skill == 0xffffffff) {
+    if (best_skill == W8_SKILL_NONE) {
         srAssertFail("(iHighestSkill != SKILL_NONE)", MAGIC_CPP, 0xf29,
                      FormatString("Failed on spell %ld, usability byte %ld", spell_id, book));
     }
@@ -1662,7 +1639,7 @@ unsigned int GetBestSpellbookSkillForSpell(W8Character* character, int spell_id,
 // FUNCTION: WIZ8 0x004ff4b0
 unsigned int GetSpellCastRating(W8Character* character, int spell_id, unsigned int power_level)
 {
-    int skill;
+    W8Skill skill;
     int party_slot;
     unsigned int skill_figure;
     unsigned int chance;
@@ -1676,7 +1653,7 @@ unsigned int GetSpellCastRating(W8Character* character, int spell_id, unsigned i
     party_slot = CharacterPointerToPartySlot(character);
     skill_figure =
         (character->skills[skill].level +
-         character->skills[W8_SKILL_FIRST_REALM + g_spell_records[spell_id].realm].level * 4) /
+         character->skills[W8_SKILL_FIRE_MAGIC + g_spell_records[spell_id].realm].level * 4) /
         5;
     chance = GetSpellFailureChance(skill_figure, spell_id, static_cast<int>(power_level));
 
@@ -1737,12 +1714,11 @@ static unsigned int GetCastFailureChance(W8Character* character, int spell_id,
                                          unsigned int power_level)
 {
     const W8SpellRuntimeRecord* record = &g_spell_records[spell_id];
-    unsigned int skill = GetBestSpellbookSkillForSpell(character, spell_id, 1, 1, power_level);
+    W8Skill skill = GetBestSpellbookSkillForSpell(character, spell_id, 1, 1, power_level);
     int party_slot = CharacterPointerToPartySlot(character);
-    unsigned int skill_figure =
-        (character->skills[skill].level +
-         character->skills[W8_SKILL_FIRST_REALM + record->realm].level * 4) /
-        5;
+    unsigned int skill_figure = (character->skills[skill].level +
+                                 character->skills[W8_SKILL_FIRE_MAGIC + record->realm].level * 4) /
+                                5;
     int band = record->spell_point_cost / 2 + record->spell_level;
     unsigned int needed;
     unsigned int chance;
@@ -1769,11 +1745,11 @@ static unsigned int GetCastFailureChance(W8Character* character, int spell_id,
 
     book = (record->psionics_spell != 0 ? 8 : 0) | (record->divinity_spell != 0 ? 2 : 0) |
            (record->wizardry_spell != 0 ? 1 : 0) | (record->alchemy_spell != 0 ? 4 : 0);
-    caster_level = GetProfessionCasterLevel(character, -1);
+    caster_level = GetProfessionCasterLevel(character, W8_PROFESSION_NONE);
     for (profession = 0; profession < W8_PROFESSION_COUNT; ++profession) {
         if (character->profession_levels[profession] != 0 && profession != character->iProfession &&
             (g_profession_spellbooks[profession] & book) != 0) {
-            level = GetProfessionCasterLevel(character, profession);
+            level = GetProfessionCasterLevel(character, static_cast<W8Profession>(profession));
             if (level > 0) {
                 caster_level += level;
             }
@@ -2280,12 +2256,12 @@ void ReportSpellResult(W8SpellEffectEntry* effect)
                 SetTextBoxMode(0, -1);
                 PostCharacterNotice(
                     report->value, g_format_s_bang,
-                    gppStringList[g_spell_condition_text[W8_CONDITION_EXHAUSTED * 4]]);
+                    gppStringList[g_spell_condition_text[W8_CONDITION_UNCONSCIOUS * 4]]);
                 effect->reported = true;
             } else if (report->kind == 3) {
                 SetTextBoxMode(0, -1);
                 ShowNoticef(9, L"%s %s!", report->text,
-                            gppStringList[g_spell_condition_text[W8_CONDITION_EXHAUSTED * 4]]);
+                            gppStringList[g_spell_condition_text[W8_CONDITION_UNCONSCIOUS * 4]]);
                 effect->reported = true;
             }
             free(report);
@@ -2430,8 +2406,8 @@ bool SpellAffectedTarget(W8Character* character, int spell_id, W8CombatSlot* aim
                 monster_info = MonsterInfoFromID(0x18a, MAGIC_CPP, aim->iMonsterID, 1);
                 enchantments = monster_info->enchantments;
             }
-            index = GetConditionDisplaySlot(spell_id);
-            affected = enchantments[index].turns / static_cast<float>(duration) <=
+            W8EnchantmentSlot enchantment = GetConditionDisplaySlot(spell_id);
+            affected = enchantments[enchantment].turns / static_cast<float>(duration) <=
                        g_navigator_vertical_phase_step;
             break;
         }
@@ -2471,7 +2447,8 @@ bool SpellAffectedTarget(W8Character* character, int spell_id, W8CombatSlot* aim
     case 0x44:
         for (index = 0; index < 8; ++index) {
             target = &g_status.buffers.Char[index];
-            if (g_status.buffers.XChar[index].fOccupied && target->highest_condition <= 0x12 &&
+            if (g_status.buffers.XChar[index].fOccupied &&
+                target->highest_condition <= W8_CONDITION_DEAD &&
                 target->hp_current < static_cast<unsigned int>(target->uiHPMax)) {
                 return true;
             }
@@ -2493,7 +2470,8 @@ bool SpellAffectedTarget(W8Character* character, int spell_id, W8CombatSlot* aim
         if (gXStatus.fCombatMode != 0) {
             for (index = 0; index < 8; ++index) {
                 target = &g_status.buffers.Char[index];
-                if (g_status.buffers.XChar[index].fOccupied && target->highest_condition <= 0x12 &&
+                if (g_status.buffers.XChar[index].fOccupied &&
+                    target->highest_condition <= W8_CONDITION_DEAD &&
                     static_cast<unsigned int>(target->stamina) <
                         static_cast<unsigned int>(target->uiStaminaMax)) {
                     return true;
@@ -2669,9 +2647,9 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
     unsigned int sp_cost;
     int sp_needed;
     unsigned int chance;
-    unsigned int best_skill;
+    W8Skill best_skill;
     unsigned int skill_score;
-    int realm_skill;
+    W8Skill realm_skill;
     int slot;
     int realm;
     int level_index;
@@ -2771,7 +2749,7 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
                             SpellTargetString(&source, aim));
     }
     best_skill = GetBestSpellbookSkillForSpell(character, spell_id, 1, 1, power_level);
-    realm_skill = realm + 0x1c;
+    realm_skill = static_cast<W8Skill>(realm + 0x1c);
     slot = CharacterPointerToPartySlot(character);
     level_index = record->spell_point_cost / 2 + record->spell_level;
     skill_score =
@@ -2791,7 +2769,7 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
         chance = 0;
     }
     minimum_level = GetMinimumCasterLevelForSpell(spell_id);
-    caster_level = GetProfessionCasterLevel(character, -1);
+    caster_level = GetProfessionCasterLevel(character, W8_PROFESSION_NONE);
     spellbook = (record->psionics_spell != 0 ? 8U : 0U) | (record->divinity_spell != 0 ? 2U : 0U) |
                 (record->wizardry_spell != 0 ? 1U : 0U) | (record->alchemy_spell != 0 ? 4U : 0U);
     profession_level = character->profession_levels;
@@ -2799,7 +2777,8 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
     do {
         if (*profession_level != 0 && profession != character->iProfession &&
             (g_profession_spellbooks[profession] & spellbook) != 0 &&
-            (index = GetProfessionCasterLevel(character, profession), 0 < index)) {
+            (index = GetProfessionCasterLevel(character, static_cast<W8Profession>(profession)),
+             0 < index)) {
             caster_level += index;
         }
         ++profession;
@@ -2810,12 +2789,12 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
         chance += record->spell_level * index;
     }
     if (gXStatus.fCombatMode != 0) {
-        if (g_settings.difficulty == 0) {
+        if (g_settings.difficulty == W8_DIFFICULTY_NOVICE) {
             morale = 0x50;
-        } else if (g_settings.difficulty == 1) {
+        } else if (g_settings.difficulty == W8_DIFFICULTY_NORMAL) {
             morale = 0x3c;
         } else {
-            if (g_settings.difficulty != 2) {
+            if (g_settings.difficulty != W8_DIFFICULTY_EXPERT) {
                 srAssertFail("FALSE", MAGIC_CPP, 0x14e8, 0);
                 goto finish_difficulty_adjustment;
             }
@@ -3101,7 +3080,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                                        target->point.z);
                 point_target.iType = W8_TARGET_KIND_PLACE;
                 missile = FireMissileSourceToTarget(missile_index, source, &point_target, &block, 1,
-                                                    0xffffffff, 9999);
+                                                    W8_RANGE_NONE, 9999);
                 if (missile != 0) {
                     owner->missiles.Add(missile);
                 }
@@ -3333,7 +3312,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                 }
             }
         }
-        if (g_current_screen_state.id == 7 && gXStatus.fNpcDialogueMode == 0 &&
+        if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && gXStatus.fNpcDialogueMode == 0 &&
             gXStatus.fCampMode == 0) {
             g_spell_effects.Add(owner);
         } else {
@@ -4116,7 +4095,7 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
             if (g_status.buffers.XChar[slot].fOccupied != 0 &&
                 g_status.buffers.Char[slot].hp_current != 0 &&
                 g_status.buffers.Char[slot].highest_condition < W8_CONDITION_DEAD &&
-                (g_status.buffers.Char[slot].uiCondition[W8_CONDITION_HOSTILE] == 0 ||
+                (g_status.buffers.Char[slot].uiCondition[W8_CONDITION_TURNCOAT] == 0 ||
                  !MonsterCanAimSpell(spell_id) || static_cast<char>(side) == 3)) {
                 party_markers->Add(slot);
             }

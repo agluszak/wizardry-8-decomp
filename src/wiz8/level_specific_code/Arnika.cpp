@@ -127,7 +127,7 @@ void ArnikaLevelSetup(void)
             SetTriggerVariableByName("ScregActive", 0);
         }
     }
-    if (GetFact(0xc1) != 0) {
+    if (GetFact(W8_FACT_VI_RESCUED) != 0) {
         npc = GetNpcStateByKind(0x18);
         if (npc != 0) {
             monster_info = GetNpcMonsterInfo(npc);
@@ -394,7 +394,7 @@ bool ArnikaVaultAlarmDoor(Trigger* pTrigger)
         SetMonsterGroupHostility(group, 1, 0);
         group = FindNextExistingMonsterByID(0xc, group);
     }
-    SetFact(0xe0, 1, 0);
+    SetFact(W8_FACT_ARNIKA_VAULT_ENTERED, 1, 0);
     return 1;
 }
 
@@ -422,8 +422,8 @@ bool ArnikaExitButton(Trigger* pTrigger)
         g_master_functions->Add(ArnikaTeleportWatch);
     }
     g_trigger_feedback = 1;
-    SetFact(0xcd, 1, 0);
-    SetFact(0xe0, 1, 0);
+    SetFact(W8_FACT_ARNIKA_VAULT_TELEPORT, 1, 0);
+    SetFact(W8_FACT_ARNIKA_VAULT_ENTERED, 1, 0);
     return 1;
 }
 
@@ -569,7 +569,7 @@ bool ArnikaRedButton(Trigger* pTrigger)
         return false;
     }
     g_red_button_armed = 0;
-    SetFact(0xc7, 1, 0);
+    SetFact(W8_FACT_ARNIKA_SAFETY_DEPOSIT_OPEN, 1, 0);
     g_red_button_armed = 1;
     g_trigger_feedback = 1;
     if (gEl01.state != 3) {

@@ -13,8 +13,8 @@ struct FlowEntryState {
 };
 
 struct CharacterFlowState {
-    int current;
-    int pending;
+    W8ScreenId current;
+    W8ScreenId pending;
     int party_selection_ready;
     int party_selection_set;
     int left_action_set;

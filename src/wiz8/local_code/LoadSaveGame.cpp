@@ -1249,30 +1249,30 @@ unsigned char LoadMonster(W8Chunk* chunk)
         }
         ++monster_group->member_count;
         RequestRedrawParty();
-        if (monster_info->highest_condition < 0xd) {
+        if (monster_info->highest_condition < W8_CONDITION_TURNCOAT) {
             ++monster_group->active_member_count;
         }
     }
     ActivateMonster(monster_info, 0);
     ActivateMonsterInWorld(monster_info);
     monster = monster_info->p3D;
-    if (monster_info->highest_condition != 0) {
+    if (monster_info->highest_condition != W8_CONDITION_NONE) {
         for (index = 0; index < W8_CONDITION_COUNT; ++index) {
             if (monster_info->uiCondition[index] != 0) {
-                SetMonsterSpellIcon(monster, index - 1, 1);
+                SetMonsterSpellIcon(monster, static_cast<W8MonsterSpellIconId>(index - 1), 1);
             }
         }
     }
     for (index = 0; index < 8; ++index) {
         if (monster_info->enchantments[index].turns != 0) {
-            SetMonsterSpellIcon(monster, index + 0x10, 1);
+            SetMonsterSpellIcon(monster, static_cast<W8MonsterSpellIconId>(index + 0x10), 1);
         }
     }
     for (index = 0; index < 12; ++index) {
         if (monster_info->effect_slots[index].duration != 0) {
             SetMonsterSpellIcon(
-                monster, g_effect_visual_table[monster_info->effect_slots[index].effect_id][1],
-                1);
+                monster,
+                g_effect_visual_table[monster_info->effect_slots[index].effect_id].monster_icon, 1);
         }
     }
     if (monster_info->effect > 0) {

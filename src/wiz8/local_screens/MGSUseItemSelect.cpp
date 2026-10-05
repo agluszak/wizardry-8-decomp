@@ -264,7 +264,7 @@ void CloseUseItemSelectView(void)
             OpenTrapInteraction(0);
             return;
         }
-        if (gXStatus.fCampMode != 0 && g_pending_screen_state.id != 6) {
+        if (gXStatus.fCampMode != 0 && g_pending_screen_state.id != W8_SCREEN_CAMP) {
             SyncDialogueNpcState();
         }
     }

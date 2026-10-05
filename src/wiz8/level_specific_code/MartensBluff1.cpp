@@ -266,10 +266,10 @@ bool MartensBluff1JDoorController(Trigger* pTrigger)
 // FUNCTION: WIZ8 0x004DF120
 bool MartensBluff1Controller(Trigger* pTrigger)
 {
-    if (GetFact(0x42) == 0) {
-        SetFact(0x42, 1, 0);
+    if (GetFact(W8_FACT_NARGISST_MONITOR_OVERFLOW_ON) == 0) {
+        SetFact(W8_FACT_NARGISST_MONITOR_OVERFLOW_ON, 1, 0);
     } else {
-        SetFact(0x42, 0, 0);
+        SetFact(W8_FACT_NARGISST_MONITOR_OVERFLOW_ON, 0, 0);
     }
     g_trigger_feedback = 1;
     return true;
@@ -288,7 +288,7 @@ bool MartensBluff1TransportSpawn(void)
     W8MonsterInfo* info;
     int location_id;
 
-    if (GetFact(0x43)) {
+    if (GetFact(W8_FACT_TRANG_TELEPORTER_TOAST)) {
         return false;
     }
     if (gXStatus.fCombatMode != 0) {
@@ -327,7 +327,7 @@ void MartensBluff1Transporter(int command)
         int progress = 0;
 
         if (command == static_cast<int>(0xEFFFFFFF)) {
-            if (GetFact(0x43)) {
+            if (GetFact(W8_FACT_TRANG_TELEPORTER_TOAST)) {
                 return;
             }
             if (g_transport_gate != 0) {
@@ -557,6 +557,6 @@ bool MartensBluff1WireTrigger(Trigger* pTrigger)
 // FUNCTION: WIZ8 0x004DF7E0
 bool MartensBluff1MartenBook(Trigger* pTrigger)
 {
-    SetFact(0x268, 1, 0);
+    SetFact(W8_FACT_QUEST_MARTEN_DIARY, 1, 0);
     return true;
 }

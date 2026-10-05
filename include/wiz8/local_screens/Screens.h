@@ -1,4 +1,5 @@
 #pragma once
+#include "wiz8/layouts/screen_state.h"
 #include "wiz8/dialog_code/DialogBase.h"
 
 void RefreshPartySlotDisplay(unsigned int party_slot); /* 0x0055EC90 */
@@ -9,8 +10,8 @@ void RequestPartySlotRedraw(int bit);                  /* 0x0055EE30 */
 unsigned char GetTable647CCCEntry(signed char index);  /* 0x0055F2B0 */
 unsigned char ScreenLifecycleSuccess(void); // bool-byte-ok: screen-table unsigned char (*)() slot
 void NoOp(void);
-int GetPendingScreenState(void);
-void SetPendingScreenState(int value);
+W8ScreenId GetPendingScreenState(void);
+void SetPendingScreenState(W8ScreenId value);
 void RequestScreenTransition(void);
 // bool-byte-ok: screen-table unsigned char (*)() slot
 unsigned char IsScreenTransitionPending(void);

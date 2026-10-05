@@ -118,7 +118,7 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, bool qu
 
         PostCharacterNotice(party_slot, gppStringList[0x193 - (quiet != 0)], absorbed);
         amount -= absorbed;
-        ClearCharacterEnchantmentSlot(party_slot, 2);
+        ClearCharacterEnchantmentSlot(party_slot, W8_ENCHANTMENT_GUARDIAN_ANGEL);
         PostCharacterNotice(party_slot, gppStringList[0x194]);
     }
 
@@ -142,7 +142,7 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, bool qu
     applied = character->hp_current;
     if (applied <= amount) {
         if (CharacterHasTrait(character, W8_TRAIT_CHEAT_DEATH) != 0 &&
-            character->uiCondition[W8_CONDITION_EXHAUSTED] < 7) {
+            character->uiCondition[W8_CONDITION_UNCONSCIOUS] < 7) {
             CheatDeathRevive(party_slot);
             RecordCharacterDamage(party_slot, amount);
             return applied;
@@ -376,7 +376,7 @@ unsigned int ApplyDamageToMonster(W8MonsterInfo* monster_info, unsigned int amou
         }
         PostMonsterNotice(monster_info, gppStringList[0x193 - (quiet != 0)], absorbed);
         amount -= absorbed;
-        ClearMonsterEnchantmentSlot(monster_info->location_id, 2);
+        ClearMonsterEnchantmentSlot(monster_info->location_id, W8_ENCHANTMENT_GUARDIAN_ANGEL);
     }
     if (result_stats != 0) {
         result_stats->amount += amount;
@@ -504,7 +504,7 @@ int MonsterActionFatigueCost(const W8MonsterInfo* monster_info)
         break;
     }
 
-    if (monster_info->uiCondition[W8_CONDITION_FATIGUE_DOUBLED] == 0) {
+    if (monster_info->uiCondition[W8_CONDITION_DISEASED] == 0) {
         return cost;
     }
     return cost * 2;
@@ -667,9 +667,9 @@ void RestoreCharacterStamina(int party_slot, int amount, char announce)
     if (band != previous_band) {
         CalcArmorClasses(character);
     }
-    if (character->uiCondition[W8_CONDITION_EXHAUSTED] == W8_CONDITION_INDEFINITE &&
+    if (character->uiCondition[W8_CONDITION_UNCONSCIOUS] == W8_CONDITION_INDEFINITE &&
         character->stamina > W8_STAMINA_TO_SHAKE_OFF_EXHAUSTION) {
-        RemoveCharacterCondition(party_slot, W8_CONDITION_EXHAUSTED, 1);
+        RemoveCharacterCondition(party_slot, W8_CONDITION_UNCONSCIOUS, 1);
     }
 }
 
@@ -797,7 +797,8 @@ void DamageCharacter(int party_slot, unsigned int damage, char announce)
         character->hp_adjustment -= damage;
         RecalculateCharacterHitPoints(character);
         if (character->uiCondition[1] == 0) {
-            SetCharacterCondition(party_slot, 1, W8_CONDITION_INDEFINITE, 0, 0, 0);
+            SetCharacterCondition(party_slot, W8_CONDITION_DRAINED, W8_CONDITION_INDEFINITE, 0, 0,
+                                  0);
         }
         if (character->hp_current != 0) {
             QueueDamageReactionEvents(character);
@@ -831,12 +832,12 @@ void FatigueMonster(W8MonsterInfo* monster_info, unsigned int amount,
                                static_cast<unsigned int>(monster_info->stamina_max)));
 
     if (monster_info->stamina == 0 &&
-        monster_info->uiCondition[W8_CONDITION_EXHAUSTED] < W8_CONDITION_INDEFINITE) {
+        monster_info->uiCondition[W8_CONDITION_UNCONSCIOUS] < W8_CONDITION_INDEFINITE) {
         ResetTargetSource(&target_block);
-        SetMonsterCondition(monster_info->location_id, W8_CONDITION_EXHAUSTED,
+        SetMonsterCondition(monster_info->location_id, W8_CONDITION_UNCONSCIOUS,
                             W8_CONDITION_INDEFINITE, 0, &target_block, report_to == 0);
         if (report_to != 0) {
-            ++report_to->condition_counts[W8_CONDITION_EXHAUSTED];
+            ++report_to->condition_counts[W8_CONDITION_UNCONSCIOUS];
         }
     }
 }
@@ -884,9 +885,9 @@ void RestoreMonsterStamina(W8MonsterInfo* monster_info, int amount, bool announc
         100 - static_cast<int>((monster_info->stamina * 100) /
                                static_cast<unsigned int>(monster_info->stamina_max)));
 
-    if (monster_info->uiCondition[W8_CONDITION_EXHAUSTED] == W8_CONDITION_INDEFINITE &&
+    if (monster_info->uiCondition[W8_CONDITION_UNCONSCIOUS] == W8_CONDITION_INDEFINITE &&
         static_cast<unsigned int>(monster_info->stamina) > W8_STAMINA_TO_SHAKE_OFF_EXHAUSTION) {
-        ClearMonsterCondition(monster_info->location_id, W8_CONDITION_EXHAUSTED);
+        ClearMonsterCondition(monster_info->location_id, W8_CONDITION_UNCONSCIOUS);
     }
 }
 
@@ -912,15 +913,15 @@ void MonsterReactsToBeingStruck(W8MonsterInfo* monster_info, W8TargetSource* att
         return;
     }
     if (attacker->fBackfire == 0 && attacker->fReflection == 0 && attacker->target_diverted == 0 &&
-        quiet == 0 && monster_info->uiCondition[W8_CONDITION_HOSTILE] != 0) {
+        quiet == 0 && monster_info->uiCondition[W8_CONDITION_TURNCOAT] != 0) {
         if (TargetSourceIsCharacter(attacker, 0)) {
             if (MonsterVsCharDisposition(attacker->iChar, monster_info) == 2) {
-                TickMonsterCondition(monster_info->location_id, 0xd, 1);
+                TickMonsterCondition(monster_info->location_id, W8_CONDITION_TURNCOAT, 1);
             }
         } else if (MonsterHostility(
                        MonsterInfoFromID(1570, HEALTH_STAMINA_MANA_CPP, attacker->iMonsterID, 1),
                        monster_info) == 2) {
-            TickMonsterCondition(monster_info->location_id, 0xd, 1);
+            TickMonsterCondition(monster_info->location_id, W8_CONDITION_TURNCOAT, 1);
         }
     }
 }
@@ -971,7 +972,7 @@ void FatigueCharacter(int party_slot, int amount, bool scale_by_load,
                          "FatigueCharacter: ERROR - Invalid load category");
             break;
         }
-        if (character->uiCondition[W8_CONDITION_LOAD_EASED] == 0) {
+        if (character->uiCondition[W8_CONDITION_SLOWED] == 0) {
             if (character->enchantments[5].turns != 0) {
                 load_percent += 0x19;
             }
@@ -999,11 +1000,11 @@ void FatigueCharacter(int party_slot, int amount, bool scale_by_load,
     }
 
     if (character->stamina < 1) {
-        if (character->uiCondition[W8_CONDITION_EXHAUSTED] < W8_CONDITION_INDEFINITE) {
-            SetCharacterCondition(party_slot, W8_CONDITION_EXHAUSTED, W8_CONDITION_INDEFINITE, 0, 0,
-                                  report_to == 0);
+        if (character->uiCondition[W8_CONDITION_UNCONSCIOUS] < W8_CONDITION_INDEFINITE) {
+            SetCharacterCondition(party_slot, W8_CONDITION_UNCONSCIOUS, W8_CONDITION_INDEFINITE, 0,
+                                  0, report_to == 0);
             if (report_to != 0) {
-                ++report_to->condition_counts[W8_CONDITION_EXHAUSTED];
+                ++report_to->condition_counts[W8_CONDITION_UNCONSCIOUS];
             }
         }
     } else if (band != previous_band && band > W8_FATIGUE_BAND_DEEP) {
@@ -1077,7 +1078,7 @@ unsigned int CharacterActionFatigueCost(int party_slot, W8ActionKind action_kind
         cost = 0;
     }
 
-    if (g_status.buffers.Char[party_slot].uiCondition[W8_CONDITION_FATIGUE_DOUBLED] != 0) {
+    if (g_status.buffers.Char[party_slot].uiCondition[W8_CONDITION_DISEASED] != 0) {
         cost *= 2;
     }
     return cost;
@@ -1139,7 +1140,7 @@ void CharacterDies(int party_slot)
     ++character->death_count;
     for (condition = 0; condition < W8_CONDITION_CLEARABLE_COUNT; ++condition) {
         if (condition != 10 && character->uiCondition[condition] != 0) {
-            RemoveCharacterCondition(party_slot, condition, 0);
+            RemoveCharacterCondition(party_slot, static_cast<W8Condition>(condition), 0);
         }
     }
     character->hp_current = 0;

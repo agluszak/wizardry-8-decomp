@@ -72,7 +72,8 @@ void MtGigas2Setup(void)
             MtGigas2UmpaniAlarm(alarm);
         }
     }
-    if (GetFact(0x89) == 0 && GetLocationVarIDByName("CODESgtRubbleTeleport") != -1 &&
+    if (GetFact(W8_FACT_UMISSION_IUFPASS_LEVEL4) == 0 &&
+        GetLocationVarIDByName("CODESgtRubbleTeleport") != -1 &&
         GetLocationVarValueByName("CODESgtRubbleTeleport") == 2) {
         W8NpcState* npc;
         W8MonsterInfo* info;
@@ -83,7 +84,7 @@ void MtGigas2Setup(void)
         if (pTrigger != 0) {
             pTrigger->Run(-1);
         }
-        SetFact(0x21e, 0, 0);
+        SetFact(W8_FACT_UMISSION_MOVE_RUBBLE_COVERT, 0, 0);
         npc = GetNpcStateByKind(0x29);
         if (npc != 0) {
             info = GetNpcMonsterInfo(npc);
@@ -184,7 +185,7 @@ bool MtGigas2YellowWire(Trigger* pTrigger)
         MtGigas2WireShock();
         return false;
     }
-    SetFact(0xa7, 1, 0);
+    SetFact(W8_FACT_UMISSION_TRAIN_MACHINE_FIXED, 1, 0);
     SetTriggerVariableByName("WirePanel", 3);
     pTrigger->flags &= ~W8_TRIGGER_ENABLED;
     wire = FindTriggerByName("redwire");
@@ -361,7 +362,7 @@ bool MtGigas2Officer2(Trigger* pTrigger)
 bool MtGigas2LaserAlarm(Trigger* pTrigger)
 {
     g_trigger_feedback = 1;
-    if (GetFact(0xa5) != 0) {
+    if (GetFact(W8_FACT_LOCATION_GIGAS_MOTION_SENSORS_OFF) != 0) {
         return false;
     }
     if (GetLocationVarIDByName("UmpaniAlarm") != -1) {

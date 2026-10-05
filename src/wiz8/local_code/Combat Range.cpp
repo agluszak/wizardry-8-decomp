@@ -98,7 +98,7 @@ bool CanPartySlotAttackAnyTarget(int party_slot, int category, int flag, bool ha
         for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
             if (monster_info->fActive != 0 && monster_info->hp_current != 0 &&
-                monster_info->highest_condition < 0x12 &&
+                monster_info->highest_condition < W8_CONDITION_DEAD &&
                 (live_groups || MonsterVsCharDisposition(first, monster_info) == side)) {
                 for (unsigned int reach_hand = 0; reach_hand < 2; ++reach_hand) {
                     if (CanHandReachTarget(first, reach_hand) != 0 &&
@@ -115,7 +115,7 @@ bool CanPartySlotAttackAnyTarget(int party_slot, int category, int flag, bool ha
         for (int slot = 0; slot < W8_PARTY_SLOT_COUNT; ++slot) {
             W8Character* candidate = &g_status.buffers.Char[slot];
             if (slot != first && g_status.buffers.XChar[slot].fOccupied != 0 &&
-                candidate->hp_current != 0 && candidate->highest_condition < 0x12 &&
+                candidate->hp_current != 0 && candidate->highest_condition < W8_CONDITION_DEAD &&
                 CharacterVsCharacterDisposition(first, slot) == side) {
                 for (unsigned int reach_hand = 0; reach_hand < 2; ++reach_hand) {
                     if (CanHandReachTarget(first, reach_hand) == 0) {
@@ -562,7 +562,7 @@ bool MonsterAttackReachesAnyone(W8MonsterInfo* monster_info, unsigned int attack
         if (character->hp_current == 0) {
             continue;
         }
-        if (character->highest_condition >= 0x12) {
+        if (character->highest_condition >= W8_CONDITION_DEAD) {
             continue;
         }
         if (MonsterVsCharDisposition(party_slot, monster_info) != disposition_needed) {
@@ -578,7 +578,7 @@ bool MonsterAttackReachesAnyone(W8MonsterInfo* monster_info, unsigned int attack
         other = MonsterGetScriptPartByLocationIndex(index);
         GetMonsterDataForInfo(other);
         if (other != monster_info && other->fActive != 0 && other->fInCombat != 0 &&
-            other->hp_current != 0 && other->highest_condition < 0x12 &&
+            other->hp_current != 0 && other->highest_condition < W8_CONDITION_DEAD &&
             MonsterHostility(monster_info, other) == disposition_needed &&
             MonsterAttackReachesMonster(monster_info, record, attack, other) != 0) {
             return 1;
@@ -821,9 +821,9 @@ float CalcRangeDistance(W8RangeCategory range_category)
    the source's navigator radius - the party navigator for a character source,
    the individual monster's for a monster source. */
 // FUNCTION: WIZ8 0x0051AA30
-float CalcRangeDistance(int range_category, W8TargetSource* source)
+float CalcRangeDistance(W8RangeCategory range_category, W8TargetSource* source)
 {
-    float distance = CalcRangeDistance(static_cast<W8RangeCategory>(range_category));
+    float distance = CalcRangeDistance(range_category);
     if (TargetSourceIsCharacter(source, 0)) {
         return g_startup_world->movement.alternate_radius + distance;
     }
@@ -1001,7 +1001,7 @@ int PickReachableSlotByDisposition(int party_slot, char relationship)
     for (int slot = 0; slot < W8_PARTY_SLOT_COUNT; ++slot) {
         if (slot == party_slot || g_status.buffers.XChar[slot].fOccupied == 0 ||
             g_status.buffers.Char[slot].hp_current == 0 ||
-            g_status.buffers.Char[slot].highest_condition >= 0x12 ||
+            g_status.buffers.Char[slot].highest_condition >= W8_CONDITION_DEAD ||
             CharacterVsCharacterDisposition(party_slot, slot) != relationship) {
             continue;
         }

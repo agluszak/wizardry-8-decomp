@@ -838,9 +838,9 @@ void W8LockInfoPanel::RefreshInfo()
         m_text4->SetFontStateIndex(0);
         m_text4->SetText(g_dash, g_wiz_text_font_secondary);
     } else {
-        book = GetBestSpellbookSkillForSpell(character, 0x27, 1, 0, 7);
+        W8Skill book_skill = GetBestSpellbookSkillForSpell(character, 0x27, 1, 0, 7);
         realm = character->skills[0x1c + g_spell_records[0x27].realm].level;
-        book = character->skills[book].level;
+        book = character->skills[book_skill].level;
         m_text4->SetFontStateIndex(-1);
         m_text4->SetText(FormatWideString(g_format_d_percent, (book + realm * 4) / 5),
                             g_wiz_text_font_secondary);
@@ -1074,7 +1074,7 @@ void W8LockInteraction::Process()
 int GetKnockKnockSpellPower(int slot)
 {
     W8Character* character = &g_status.buffers.Char[slot];
-    unsigned int book;
+    W8Skill book;
 
     if (!IsPartySlotEligible(slot)) {
         return -1;
@@ -1204,7 +1204,7 @@ void W8LockInteraction::AttemptForce()
 {
     W8Character* character;
     unsigned int chance;
-    unsigned int book;
+    W8Skill book;
     int level;
     int power;
     int divisor;
@@ -1284,7 +1284,7 @@ void W8LockInteraction::ApplyKnockKnock(int level, int /*flag*/, char backfire)
     unsigned int count;
     unsigned int chance;
     unsigned int figure;
-    unsigned int book;
+    W8Skill book;
     unsigned int realm;
     int power;
     int divisor;
@@ -1905,16 +1905,16 @@ void W8MainGameStatusPanel::RefreshStatusTexts()
         m_text3->SetFontStateIndex(0);
         m_text3->SetText(g_dash, g_wiz_text_font_secondary);
     } else {
-        book = GetBestSpellbookSkillForSpell(character, 0x27, 1, 0, 7);
+        W8Skill book_skill = GetBestSpellbookSkillForSpell(character, 0x27, 1, 0, 7);
         realm = character->skills[0x1c + g_spell_records[0x27].realm].level;
-        book = character->skills[book].level;
+        book = character->skills[book_skill].level;
         m_text3->SetFontStateIndex(-1);
         m_text3->SetText(FormatWideString(g_format_d_percent, (book + realm * 4) / 5),
                             g_wiz_text_font_secondary);
     }
     if (IsPartySlotEligible(g_status.selected_character) && character->spell_learned[0x12] == 1) {
-        figure = GetBestSpellbookSkillForSpell(character, 0x12, 1, 0, 7);
-        figure = (character->skills[figure].level +
+        W8Skill figure_skill = GetBestSpellbookSkillForSpell(character, 0x12, 1, 0, 7);
+        figure = (character->skills[figure_skill].level +
                   character->skills[0x1c + g_spell_records[0x12].realm].level * 4) /
                  5;
         if (static_cast<int>(figure) >= 0) {
@@ -2388,7 +2388,7 @@ void W8MainGameScreen::CastTrapSpell()
 {
     int slot = g_status.selected_character;
     W8Character* character = &g_status.buffers.Char[slot];
-    unsigned int book;
+    W8Skill book;
     unsigned int figure;
     int spell;
     W8MainGameScreen* screen;
@@ -3026,7 +3026,7 @@ void ResetMainGameScreenState(void)
 unsigned char MainGameScreenEnter(void)
 {
     int display_mode;
-    int difficulty = g_status.difficulty;
+    W8Difficulty difficulty = g_status.difficulty;
 
     if (!g_level_block) {
         g_level_block = static_cast<W8LevelRuntimeBlock*>(malloc(sizeof(W8LevelRuntimeBlock)));
@@ -3061,13 +3061,13 @@ unsigned char MainGameScreenEnter(void)
     if (g_settings.difficulty != difficulty) {
         g_settings.difficulty = difficulty;
         switch (difficulty) {
-        case 0:
+        case W8_DIFFICULTY_NOVICE:
             display_mode = 0x7f8;
             break;
-        case 1:
+        case W8_DIFFICULTY_NORMAL:
             display_mode = 0x7f9;
             break;
-        case 2:
+        case W8_DIFFICULTY_EXPERT:
             display_mode = 0x7fa;
             break;
         }
@@ -3147,7 +3147,7 @@ void BeginLevelTransition(void)
     g_pending_screen_state.parameter = g_level_block->pending_level;
     g_pending_screen_state.parameter_2 = g_level_block->pending_entry_id;
     SetMainGameMode(0);
-    SetPendingScreenState(4);
+    SetPendingScreenState(W8_SCREEN_PLEASE_WAIT);
 }
 
 // FUNCTION: WIZ8 0x00561330
@@ -3364,7 +3364,7 @@ update_screen:
     if (gXStatus.fCombatMode) {
         for (int slot = 0; slot < 8; ++slot) {
             if (!g_status.buffers.XChar[slot].fOccupied ||
-                g_status.buffers.Char[slot].highest_condition > 0x11 ||
+                g_status.buffers.Char[slot].highest_condition > W8_CONDITION_UNCONSCIOUS ||
                 (g_level_block->keyboard_menu_open && g_level_block->combat_slot == slot)) {
                 DisableRegionInput(slot + 10);
             } else {
@@ -4250,7 +4250,7 @@ void SelectPartyCharacter(int party_slot)
                         "C:\\Projects\\Wizardry 8\\Local Screens\\MainGameScreen.cpp", 0x1053);
     }
     character = &g_status.buffers.Char[party_slot];
-    if (character->highest_condition >= 0x13) {
+    if (character->highest_condition >= W8_CONDITION_MISSING) {
         return;
     }
     if (g_status.selected_character == party_slot) {
@@ -5158,7 +5158,8 @@ void UpdateCombatPortraitStatus(void)
         int alternate = -1;
         char status = -1;
 
-        if (row->fOccupied && character->hp_current > 0 && character->highest_condition <= 0x11) {
+        if (row->fOccupied && character->hp_current > 0 &&
+            character->highest_condition <= W8_CONDITION_UNCONSCIOUS) {
             if (g_combat_state->eCombatActionStatus == 0 || g_combat_state->iActionChar != slot ||
                 ClockIsTicking(g_combat_state->action_clock) > 800) {
                 if (IsPartySlotEligible(slot)) {
@@ -5898,7 +5899,7 @@ unsigned char PortraitConditionOrbRegionEvent(const InputAtom* event, W8Region* 
     W8Character* character = &g_status.buffers.Char[slot];
     unsigned int us_event;
 
-    if (character->highest_condition == 0) {
+    if (character->highest_condition == W8_CONDITION_NONE) {
         PushButtonSoundScheme(0, 1);
     }
 
@@ -5922,7 +5923,7 @@ unsigned char PortraitConditionOrbRegionEvent(const InputAtom* event, W8Region* 
                 }
             } else {
                 if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
-                    if (character->highest_condition != 0) {
+                    if (character->highest_condition != W8_CONDITION_NONE) {
                         if (g_level_block->tooltip_kind != 1 ||
                             g_level_block->tooltip_subject != static_cast<int>(slot)) {
                             g_level_block->tooltip_pending = true;
@@ -5930,7 +5931,8 @@ unsigned char PortraitConditionOrbRegionEvent(const InputAtom* event, W8Region* 
                             g_level_block->tooltip_subject = slot;
                             g_level_block->tooltip_kind = 1;
                         }
-                        if (gfLeftButtonState != 0 && character->highest_condition != 0) {
+                        if (gfLeftButtonState != 0 &&
+                            character->highest_condition != W8_CONDITION_NONE) {
                             g_level_block->condition_orb_party_slot = slot;
                             if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
                                 g_level_block != 0) {
@@ -5956,7 +5958,7 @@ unsigned char PortraitConditionOrbRegionEvent(const InputAtom* event, W8Region* 
         return 1;
     }
 
-    if (character->highest_condition == 0) {
+    if (character->highest_condition == W8_CONDITION_NONE) {
         return 1;
     }
     g_level_block->condition_orb_party_slot = slot;
@@ -5973,7 +5975,7 @@ unsigned char PortraitEnchantmentOrbRegionEvent(const InputAtom* event, W8Region
     W8Character* character = &g_status.buffers.Char[slot];
     unsigned int us_event;
 
-    if (character->enchantment_top == 0) {
+    if (character->enchantment_top == W8_ENCHANTMENT_NONE) {
         PushButtonSoundScheme(0, 1);
     }
 
@@ -5997,7 +5999,7 @@ unsigned char PortraitEnchantmentOrbRegionEvent(const InputAtom* event, W8Region
                 }
             } else {
                 if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
-                    if (character->enchantment_top != 0) {
+                    if (character->enchantment_top != W8_ENCHANTMENT_NONE) {
                         if (g_level_block->tooltip_kind != 2 ||
                             g_level_block->tooltip_subject != static_cast<int>(slot)) {
                             g_level_block->tooltip_pending = true;
@@ -6005,7 +6007,8 @@ unsigned char PortraitEnchantmentOrbRegionEvent(const InputAtom* event, W8Region
                             g_level_block->tooltip_subject = slot;
                             g_level_block->tooltip_kind = 2;
                         }
-                        if (gfLeftButtonState != 0 && character->enchantment_top != 0) {
+                        if (gfLeftButtonState != 0 &&
+                            character->enchantment_top != W8_ENCHANTMENT_NONE) {
                             g_level_block->enchantment_orb_party_slot = slot;
                             if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
                                 g_level_block != 0) {
@@ -6031,7 +6034,7 @@ unsigned char PortraitEnchantmentOrbRegionEvent(const InputAtom* event, W8Region
         return 1;
     }
 
-    if (character->enchantment_top == 0) {
+    if (character->enchantment_top == W8_ENCHANTMENT_NONE) {
         return 1;
     }
     g_level_block->enchantment_orb_party_slot = slot;
@@ -6571,7 +6574,7 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
                         if (g_status.item_in_cursor) {
                             item = &g_status.item_in_hand;
                         }
-                        if (monster_info->highest_condition < 0xf) {
+                        if (monster_info->highest_condition < W8_CONDITION_ASLEEP) {
                             W8NpcState* npc = FindNpcBindingForMonster(MonsterGetIndexByLocationID(
                                 0x16fe, MAIN_GAME_SCREEN_CPP, g_level_block->highlighted_item, 1));
                             QueueNpcScriptNotice(npc, item, -1, 0, 0);
@@ -7793,7 +7796,7 @@ void OpenCharacterScreenForPartySlot(unsigned int party_slot, bool flag)
     g_pending_screen_state.parameter_4 =
         flag != 0 ? static_cast<W8Character*>(g_pending_screen_state.parameter_3) : 0;
     SetMainGameMode(0);
-    SetPendingScreenState(6);
+    SetPendingScreenState(W8_SCREEN_CAMP);
     UpdateScreenOverlays(1);
     SetPrimarySurfaceTextureHint2Enabled(0);
 }
@@ -8097,7 +8100,7 @@ void ConfirmNpcTradeItem(void)
 // FUNCTION: WIZ8 0x005AD950
 void ShowNpcTradeItemNotice(W8ItemInstance* item)
 {
-    int mode = g_npc_interaction_state->trade_mode;
+    W8NpcTradeMode mode = g_npc_interaction_state->trade_mode;
     unsigned int font_palette = 0xf;
     unsigned int price;
     int sell_mode = 0;

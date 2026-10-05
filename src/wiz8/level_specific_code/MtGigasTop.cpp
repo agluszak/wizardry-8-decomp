@@ -51,7 +51,7 @@ bool OnEwaxxLandingActivated(Trigger* trigger)
 // FUNCTION: WIZ8 0x004DC710
 bool OnCatchCordActivated(Trigger* trigger)
 {
-    SetFact(0x177, 1, 0);
+    SetFact(W8_FACT_TMISSION_KILL_UMPANI_CORD_SEVERED, 1, 0);
     return true;
 }
 

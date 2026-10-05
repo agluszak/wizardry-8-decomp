@@ -1,5 +1,6 @@
 #pragma once
 
+#include "wiz8/character_skills.h"
 #include "wiz8/dialog_code/DialogBase.h"
 #include "wiz8/dialog_code/DialogButton.h"
 #include "wiz8/dialog_code/DialogScrollBar.h"
@@ -36,11 +37,11 @@ protected:
 // VTABLE: WIZ8 0x005efcc8
 class W8AttributeInfoDialog : public W8StatInfoDialogBase {
 public:
-    W8AttributeInfoDialog(unsigned int uiIndex);
+    W8AttributeInfoDialog(W8Attribute uiIndex);
     virtual ~W8AttributeInfoDialog() override;
 
 private:
-    unsigned int m_uiIndex; /* 0x148 */
+    W8Attribute m_uiIndex; /* 0x148 */
 };
 
 // VTABLE: WIZ8 0x005efd48
@@ -56,15 +57,14 @@ private:
 // VTABLE: WIZ8 0x005efd08
 class W8SkillInfoDialog : public W8StatInfoDialogBase {
 public:
-    W8SkillInfoDialog(unsigned int skill, bool first, bool second,
-                      bool bonus);
+    W8SkillInfoDialog(W8Skill skill, bool first, bool second, bool bonus);
     virtual ~W8SkillInfoDialog() override;
 
 protected:
     virtual unsigned char PopulateText() override;
 
 private:
-    unsigned int m_skill;
+    W8Skill m_skill;
     bool m_first;
     bool m_second;
     bool m_bonus;

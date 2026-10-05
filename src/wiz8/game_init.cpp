@@ -64,8 +64,8 @@ unsigned char InitializeGame(void)
     memset(buffer, 0, count * 0x1e0);
     UnlockPrimarySurface();
     LoadGameConfiguration();
-    g_current_screen_state.id = -1;
-    g_pending_screen_state.id = -1;
+    g_current_screen_state.id = W8_SCREEN_NONE;
+    g_pending_screen_state.id = W8_SCREEN_NONE;
     g_screen_return_stack = CreateStack(5, sizeof(W8ScreenStateRuntime));
     if (!g_screen_return_stack) {
         return 0;

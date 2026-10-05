@@ -43,7 +43,7 @@ bool RapaxUpperFloorAirBox(Trigger* pTrigger)
     if (g_status.item_in_cursor) {
         item_id = GetItemInHand();
         if (item_id == 0x1cb || item_id == 0x1cd || item_id == 0x1cc || item_id == 0x1ce) {
-            SetFact(0x236, 1, 0);
+            SetFact(W8_FACT_RAPAX_TREASURY_RAIDED, 1, 0);
             SetFactionDispositionBand(0x12, 0);
             ClearHeldItemDisplay();
             if (item_id == 0x1cb) {

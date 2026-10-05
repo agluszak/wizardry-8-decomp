@@ -176,7 +176,7 @@ bool CanCharacterAttack(int party_slot)
     if (!IsPartySlotEligible(party_slot)) {
         return false;
     }
-    if (character->highest_condition > 0xb) {
+    if (character->highest_condition > W8_CONDITION_INSANE) {
         return false;
     }
     return character->Hand[0].in_play != 0;
@@ -190,7 +190,7 @@ bool CanMonsterProtect(W8MonsterInfo* monster_info)
     const W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
 
     if (monster_info->fActive == 0 || monster_info->fInCombat == 0 ||
-        monster_info->hp_current == 0 || monster_info->highest_condition >= 0xc ||
+        monster_info->hp_current == 0 || monster_info->highest_condition >= W8_CONDITION_BLIND ||
         (record->flags & W8_MONSTER_FLAG_BODYGUARD) == 0) {
         return false;
     }
@@ -466,7 +466,7 @@ bool CanMonsterProtectTarget(W8MonsterInfo* monster_info)
     const W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
 
     if (monster_info->fActive != 0 && monster_info->fInCombat != 0 &&
-        monster_info->hp_current != 0 && monster_info->highest_condition < 0xc &&
+        monster_info->hp_current != 0 && monster_info->highest_condition < W8_CONDITION_BLIND &&
         (record->flags & W8_MONSTER_FLAG_BODYGUARD) != 0 && record->attacks[0].fHasAttack != 0) {
         return CanMonsterProtectCombatant(monster_info, &monster_info->Target) != 0;
     }
@@ -501,7 +501,7 @@ int ResolveGuardianInterception(W8TargetSource* source, W8CombatSlot* target)
         W8Character* character = &g_status.buffers.Char[slot];
         W8CombatCharacterRow* row = &g_combat_state->characters[slot];
         W8PartySlotRow* party_row = &g_status.buffers.XChar[slot];
-        if (IsPartySlotEligible(slot) && character->highest_condition < 0xc &&
+        if (IsPartySlotEligible(slot) && character->highest_condition < W8_CONDITION_BLIND &&
             character->Hand[0].in_play != 0 &&
             TryCharacterAction(slot, W8_ACTION_PROTECT, 0) != 0 &&
             row->interception_count < character->Hand[0].attacks) {
@@ -522,7 +522,7 @@ int ResolveGuardianInterception(W8TargetSource* source, W8CombatSlot* target)
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
         W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
         if (monster_info->fActive != 0 && monster_info->fInCombat != 0 &&
-            monster_info->hp_current != 0 && monster_info->highest_condition < 0xc &&
+            monster_info->hp_current != 0 && monster_info->highest_condition < W8_CONDITION_BLIND &&
             (record->flags & W8_MONSTER_FLAG_BODYGUARD) != 0 &&
             record->attacks[0].fHasAttack != 0 && monster_info->action_kind == 8 &&
             monster_info->pCombat->interception_count < record->attacks_per_round &&
@@ -695,7 +695,7 @@ bool CanCharacterAttackItsTarget(int party_slot)
         return false;
     }
     character = &g_status.buffers.Char[party_slot];
-    if (character->highest_condition >= 0xc || character->Hand[0].in_play == 0) {
+    if (character->highest_condition >= W8_CONDITION_BLIND || character->Hand[0].in_play == 0) {
         return false;
     }
     return CharacterHasAttackOn(party_slot,
@@ -1941,7 +1941,8 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                         SetTargetSourceToMonster(target_info, &victim_source);
                         ApplyDiceDamageToMonster(monster_info, &victim_source, enchantment);
                         if (--enchantment->power == 0) {
-                            ClearMonsterEnchantmentSlot(target_info->location_id, 3);
+                            ClearMonsterEnchantmentSlot(target_info->location_id,
+                                                        W8_ENCHANTMENT_RAZOR_CLOAK);
                         }
                     }
                 } else {
@@ -1951,7 +1952,8 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                         SetTargetSourceToCharacter(g_combat_state->TargetHit.iChar, &victim_source);
                         ApplyDiceDamageToMonster(monster_info, &victim_source, enchantment);
                         if (--enchantment->power == 0) {
-                            ClearCharacterEnchantmentSlot(g_combat_state->TargetHit.iChar, 3);
+                            ClearCharacterEnchantmentSlot(g_combat_state->TargetHit.iChar,
+                                                          W8_ENCHANTMENT_RAZOR_CLOAK);
                         }
                     }
                 }
@@ -1963,7 +1965,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
         srAssertFail("pCmbt->uiSwingsRemaining > 0", COMBAT_ATTACK_CPP, 0x950, 0);
     }
     --combat->uiSwingsRemaining;
-    if (monster_info->hp_current == 0 && monster_info->highest_condition > 0xe) {
+    if (monster_info->hp_current == 0 && monster_info->highest_condition > W8_CONDITION_WEBBED) {
         combat->uiSwingsRemaining = 0;
     }
     if (combat->uiSwingsRemaining != 0) {
@@ -2189,7 +2191,7 @@ bool CharacterNoticesAttacker(int party_slot)
 
     if (g_status.buffers.Char[party_slot].hp_current == 0 ||
         g_status.buffers.Char[party_slot].stamina == 0 ||
-        g_status.buffers.Char[party_slot].highest_condition >= 0xe ||
+        g_status.buffers.Char[party_slot].highest_condition >= W8_CONDITION_WEBBED ||
         g_status.buffers.Char[party_slot].uiCondition[0xc] != 0) {
         return 0;
     }
@@ -2313,7 +2315,7 @@ void AnnounceMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record,
             second_combat = second->pCombat;
             notices = false;
             if (second->hp_current != 0 && second->stamina != 0 &&
-                second->highest_condition < 0xe && second->uiCondition[0xc] == 0 &&
+                second->highest_condition < W8_CONDITION_WEBBED && second->uiCondition[0xc] == 0 &&
                 second->action_kind == 1) {
                 attempts = second_combat->spot_attempts;
                 if (attempts == 0) {
@@ -2856,7 +2858,7 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
     W8SpellEffectResult* accumulator;
     W8MonsterInfo* monster_info;
     W8CharacterEvent* event;
-    unsigned int highest_condition;
+    W8Condition highest_condition;
     unsigned int magnitude;
     int count_base;
     bool resisted;
@@ -2890,7 +2892,7 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                 ->highest_condition;
     }
     for (i = 0; i < 0x10; ++i) {
-        if (highest_condition > 0x11) {
+        if (highest_condition > W8_CONDITION_UNCONSCIOUS) {
             break;
         }
         if (definition->condition_chances[i] != 0) {
@@ -3033,17 +3035,18 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                 case 10:
                     if (TargetSourceIsMonster(source, 0) &&
                         target->iType == W8_TARGET_KIND_CHARACTER) {
-                        resisted = ResolveAttackOnTarget(source, target, W8_CONDITION_HOSTILE, 5,
+                        resisted = ResolveAttackOnTarget(source, target, W8_CONDITION_TURNCOAT, 5,
                                                          definition->power_level, 0, magnitude,
                                                          verbose, announce, 0);
                         if (accumulator != NULL) {
-                            accumulator->condition_counts[W8_CONDITION_HOSTILE] += (resisted == 0);
+                            accumulator->condition_counts[W8_CONDITION_TURNCOAT] += (resisted == 0);
                         }
                     }
                     break;
                 case 0xb:
                     if (target->iType == W8_TARGET_KIND_CHARACTER) {
-                        resisted = TargetResistsCondition(target, 3, definition->power_level, 0);
+                        resisted = TargetResistsCondition(target, 3, definition->power_level,
+                                                          W8_CONDITION_NONE);
                         if (resisted == 0) {
                             magnitude = RollEffectDuration(definition);
                             if (magnitude < 2) {
@@ -3063,7 +3066,8 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                     }
                     break;
                 case 0xc:
-                    resisted = TargetResistsCondition(target, 1, definition->power_level, 0);
+                    resisted = TargetResistsCondition(target, 1, definition->power_level,
+                                                      W8_CONDITION_NONE);
                     if (resisted == 0) {
                         magnitude = RollEffectDuration(definition);
                         if (magnitude < 2) {
@@ -3089,7 +3093,8 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                     break;
                 case 0xd:
                     if (target->iType == W8_TARGET_KIND_CHARACTER) {
-                        resisted = TargetResistsCondition(target, 5, definition->power_level, 0);
+                        resisted = TargetResistsCondition(target, 5, definition->power_level,
+                                                          W8_CONDITION_NONE);
                         if (resisted == 0) {
                             magnitude = RollEffectDuration(definition);
                             if (magnitude < 2) {
@@ -3191,7 +3196,8 @@ void BuildCharacterTargetList(int party_slot, int action, W8PList* out_list)
     for (int i = 0; i < 8; i = i + 1) {
         W8PartySlotRow* row = &g_status.buffers.XChar[i];
         W8Character* pc = &g_status.buffers.Char[i];
-        if (row->fOccupied != 0 && pc->hp_current != 0 && pc->highest_condition < 0x12) {
+        if (row->fOccupied != 0 && pc->hp_current != 0 &&
+            pc->highest_condition < W8_CONDITION_DEAD) {
             if (i == party_slot) {
                 AppendCombatTargetEntry(out_list, W8_TARGET_KIND_CHARACTER, i, -1);
             } else {
@@ -3231,7 +3237,8 @@ void BuildMonsterTargetList(W8MonsterInfo* monster_info, W8MonsterRecord* record
     for (int i = 0; i < 8; i = i + 1) {
         W8PartySlotRow* row = &g_status.buffers.XChar[i];
         W8Character* pc = &g_status.buffers.Char[i];
-        if (row->fOccupied != 0 && pc->hp_current != 0 && pc->highest_condition < 0x12 &&
+        if (row->fOccupied != 0 && pc->hp_current != 0 &&
+            pc->highest_condition < W8_CONDITION_DEAD &&
             (monster_info->Target.iType != W8_TARGET_KIND_CHARACTER ||
              monster_info->Target.iChar != i) &&
             MonsterAttackReachesCharacter(monster_info, record, attack, i) != 0) {
@@ -3335,7 +3342,7 @@ void QueueFumbleReaction(int party_slot)
         party_slot == g_combat_state->TargetHit.iChar ||
         IsTargetStillPresent(&g_combat_state->TargetHit) == 0 ||
         (slot = g_combat_state->TargetHit.iChar,
-         g_status.buffers.Char[slot].highest_condition > 0xe)) {
+         g_status.buffers.Char[slot].highest_condition > W8_CONDITION_WEBBED)) {
         slot = GetRandomCharacter(0, 0, party_slot, -1);
     }
     if (slot == -1) {
@@ -3354,7 +3361,7 @@ void QueueFumbleReaction(int party_slot)
 // FUNCTION: WIZ8 0x00544630
 W8Missile* FireMissileSourceToTarget(int missile_type, W8TargetSource* source, W8CombatSlot* target,
                                      W8SpellEffectDefinition* attack, bool use_default_accuracy,
-                                     unsigned int range_category, int accuracy)
+                                     W8RangeCategory range_category, int accuracy)
 {
     unsigned int target_flag;
     bool blind = 0;
@@ -3464,7 +3471,7 @@ W8Missile* FireMissileSourceToTarget(int missile_type, W8TargetSource* source, W
     speed = sqrt((source_position.x - target_position.x) * (source_position.x - target_position.x) +
                  (source_position.y - target_position.y) * (source_position.y - target_position.y) +
                  (source_position.z - target_position.z) * (source_position.z - target_position.z));
-    if (range_category != 0xffffffff) {
+    if (range_category != W8_RANGE_NONE) {
         CalcRangeDistance(range_category, source);
         base_speed = CalcRangeDistance(range_category, source);
         if (base_speed <= speed) {
@@ -3497,7 +3504,7 @@ W8Missile* FireMissileSourceToTarget(int missile_type, W8TargetSource* source, W
    attack mode and fires at the slot's out-of-combat target. */
 // FUNCTION: WIZ8 0x00544b60
 void FireCharacterItemMissile(int party_slot, W8Character* pc, W8CombatCharacterRow* row,
-                              unsigned int range_category)
+                              W8RangeCategory range_category)
 {
     W8TargetSource source;
     W8SpellEffectDefinition attack_block;
@@ -3711,7 +3718,8 @@ char StartCharacterAttack(int party_slot, int attack_mode)
     row->uiSwingsRemaining = Random(character->Hand[hand].swings) + 1;
     range = GetCharAttackRange(character, hand);
     if (CharacterHasTrait(character, W8_TRAIT_BACKSTAB) != 0 && range <= W8_RANGE_TOUCH &&
-        (character->Hand[hand].weapon_skill == 0 || character->Hand[hand].weapon_skill == 4)) {
+        (character->Hand[hand].weapon_skill == W8_SKILL_SWORD ||
+         character->Hand[hand].weapon_skill == W8_SKILL_DAGGER)) {
         g_combat_state->natural_attack = 1;
     }
     if (character->EquippedItem[row->current_equip_slot].iItemNo != -1) {
@@ -3720,7 +3728,7 @@ char StartCharacterAttack(int party_slot, int attack_mode)
                 .swings_bonus;
     }
     if (row->extra_swings[0] != 0 && hand == 0) {
-        if (character->Hand[0].weapon_skill == 0 &&
+        if (character->Hand[0].weapon_skill == W8_SKILL_SWORD &&
             character->uiCondition[W8_CONDITION_SLOWED] == 0) {
             PostCharacterNotice(party_slot, gppStringList[0x203]);
             if (Random(0xb) + character->profession_levels[character->iProfession] < 0x14) {
@@ -3796,7 +3804,7 @@ char StartCharacterAttack(int party_slot, int attack_mode)
         PointCameraAtMonster(monster_info, 0, 1);
         if (range <= W8_RANGE_SHORT && !IsMonsterFacingParty(monster_info)) {
             if (monster_info->hp_current != 0 && monster_info->stamina != 0 &&
-                monster_info->highest_condition < 0xe &&
+                monster_info->highest_condition < W8_CONDITION_WEBBED &&
                 monster_info->uiCondition[W8_CONDITION_BLIND] == 0 &&
                 monster_info->action_kind == 1) {
                 if (monster_info->pCombat->spot_attempts == 0) {
@@ -3929,7 +3937,7 @@ int ResolveCharacterAttack(int party_slot)
     int message_id = 0;
     int to_hit = 0;
     int roll = 0;
-    int range = 0;
+    W8RangeCategory range = W8_RANGE_TOUCH;
     int attack_mode;
 
     SetTargetSourceToCharacter(party_slot, &source);
@@ -3993,7 +4001,8 @@ int ResolveCharacterAttack(int party_slot)
             if (character->iRace == 0xf) {
                 W8NpcState* npc_state = GetNpcState(
                     g_status.buffers.XChar[CharacterPointerToPartySlot(character)].npc_index);
-                if (npc_state != NULL && npc_state->name_style == ' ' && GetFact(0x44) == 0) {
+                if (npc_state != NULL && npc_state->name_style == ' ' &&
+                    GetFact(W8_FACT_RFS81_HAS_BEEN_FIXED) == 0) {
                     fumble_chance += 5;
                 }
             }
@@ -4313,7 +4322,8 @@ int ResolveCharacterAttack(int party_slot)
                         SetTargetSourceToMonster(monster_info, &target_source);
                         ApplyDiceDamageToCharacter(party_slot, &target_source, enchantment);
                         if (--enchantment->power == 0) {
-                            ClearMonsterEnchantmentSlot(monster_info->location_id, 3);
+                            ClearMonsterEnchantmentSlot(monster_info->location_id,
+                                                        W8_ENCHANTMENT_RAZOR_CLOAK);
                         }
                     }
                 } else {
@@ -4323,7 +4333,8 @@ int ResolveCharacterAttack(int party_slot)
                         SetTargetSourceToCharacter(g_combat_state->TargetHit.iChar, &target_source);
                         ApplyDiceDamageToCharacter(party_slot, &target_source, enchantment);
                         if (--enchantment->power == 0) {
-                            ClearCharacterEnchantmentSlot(g_combat_state->TargetHit.iChar, 3);
+                            ClearCharacterEnchantmentSlot(g_combat_state->TargetHit.iChar,
+                                                          W8_ENCHANTMENT_RAZOR_CLOAK);
                         }
                     }
                 }
@@ -4414,7 +4425,7 @@ int ResolveCharacterAttack(int party_slot)
         srAssertFail("pCmbt->uiSwingsRemaining > 0", COMBAT_ATTACK_CPP, 0x611, 0);
     }
     --row->uiSwingsRemaining;
-    if (character->hp_current == 0 || character->highest_condition >= 0xf) {
+    if (character->hp_current == 0 || character->highest_condition >= W8_CONDITION_ASLEEP) {
         row->uiSwingsRemaining = 0;
     }
     if (row->uiSwingsRemaining != 0) {

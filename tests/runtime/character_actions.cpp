@@ -79,7 +79,7 @@ static void ReadCharacterFlowOnGameThread(void* opaque)
             if (entry == 0) {
                 continue;
             }
-            out->enabled = entry->m_enabled_03a ? 1 : 0;
+            out->enabled = entry->m_enabled ? 1 : 0;
             out->increment_allowed = entry->m_increment_allowed ? 1 : 0;
             out->spent = entry->m_second != 0 ? *entry->m_second : 0;
             out->limit = entry->m_third != 0 ? *entry->m_third : 0;
@@ -100,7 +100,7 @@ static void ReadCharacterFlowOnGameThread(void* opaque)
             if (entry == 0) {
                 continue;
             }
-            out->enabled = entry->m_enabled_03a ? 1 : 0;
+            out->enabled = entry->m_enabled ? 1 : 0;
             out->increment_allowed = entry->m_increment_allowed ? 1 : 0;
             out->spent = entry->m_second != 0 ? *entry->m_second : 0;
             out->limit = entry->m_third != 0 ? *entry->m_third : 0;
@@ -187,7 +187,7 @@ static int FlowRegionForTarget(int target, int index)
         return control != 0 ? control->m_region : -1;
     }
     if (target == FLOW_TARGET_NEXT) {
-        control = screen->m_next_1af8;
+        control = screen->m_next;
         return control != 0 ? control->m_region : -1;
     }
     if (target == FLOW_TARGET_VOICE_SAMPLE) {

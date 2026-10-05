@@ -395,7 +395,7 @@ struct W8MonsterInfo {
     W8Enchantment enchantments[8]; /* 0x0a7 */
     /* 0x107: highest set uiCondition index; 0x12 when deactivated. The
        0x0056C5E0 gate compares it unsigned. */
-    unsigned int highest_condition;
+    W8Condition highest_condition;
     /* 0x10b: the argument a condition carries when a monster's conditions are
        copied onto a character. */
     int condition_argument;

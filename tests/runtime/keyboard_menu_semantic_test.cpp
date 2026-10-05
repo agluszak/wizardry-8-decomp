@@ -65,7 +65,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     int saved_cursor;
     int saved_confirmations;
     unsigned char saved_occupied1;
-    unsigned int saved_condition1;
+    W8Condition saved_condition1;
     unsigned char saved_entry_flag;
     unsigned char saved_keyboard_open;
     unsigned char saved_pending0;
@@ -241,7 +241,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     saved_clock_214 = g_level_block->clock;
 
     g_status.buffers.XChar[1].fOccupied = 1;
-    g_status.buffers.Char[1].highest_condition = 0;
+    g_status.buffers.Char[1].highest_condition = W8_CONDITION_NONE;
     g_status.selected_character = 0;
     g_settings.camera_rotation_mode = 1;
     gXStatus.iCurrentCursor = -1;
@@ -282,7 +282,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     saved_profession0 = g_status.buffers.Char[0].iProfession;
     saved_gender0 = g_status.buffers.Char[0].gender;
     saved_race0 = g_status.buffers.Char[0].iRace;
-    saved_condition8 = g_status.buffers.Char[0].uiCondition[W8_CONDITION_SPELLCASTING_BLOCKED];
+    saved_condition8 = g_status.buffers.Char[0].uiCondition[W8_CONDITION_SILENCED];
     saved_item_origin = g_status.buffers.XChar[0].item_origin;
     saved_item_slot = g_status.buffers.XChar[0].item_slot;
     saved_item_id = g_status.buffers.XChar[0].item_id;
@@ -299,7 +299,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     g_status.buffers.Char[0].iProfession = static_cast<W8Profession>(0);
     g_status.buffers.Char[0].gender = static_cast<W8Gender>(0);
     g_status.buffers.Char[0].iRace = 0;
-    g_status.buffers.Char[0].uiCondition[W8_CONDITION_SPELLCASTING_BLOCKED] = 0;
+    g_status.buffers.Char[0].uiCondition[W8_CONDITION_SILENCED] = 0;
     g_status.buffers.XChar[0].item_origin = W8_ITEM_ORIGIN_BACKPACK;
     g_status.buffers.XChar[0].item_slot = 0;
     g_status.buffers.XChar[0].item_id = item_id;
@@ -333,7 +333,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     g_status.buffers.Char[0].iProfession = saved_profession0;
     g_status.buffers.Char[0].gender = saved_gender0;
     g_status.buffers.Char[0].iRace = saved_race0;
-    g_status.buffers.Char[0].uiCondition[W8_CONDITION_SPELLCASTING_BLOCKED] = saved_condition8;
+    g_status.buffers.Char[0].uiCondition[W8_CONDITION_SILENCED] = saved_condition8;
     g_status.buffers.XChar[0].item_origin = saved_item_origin;
     g_status.buffers.XChar[0].item_slot = saved_item_slot;
     g_status.buffers.XChar[0].item_id = saved_item_id;

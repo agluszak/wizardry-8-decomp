@@ -2002,9 +2002,164 @@ def integer_report(facts: ScalarFacts, claims: list[dict]) -> dict:
     }
 
 
-def write_integer_report(directory: Path, evidence_path: Path | None, destination: Path) -> dict:
+def enum_propagation_report(facts: ScalarFacts, names: list[str]) -> dict:
+    """Propagate accepted source enum owners, without claiming historical evidence.
+
+    Only same-width builtin locals whose complete producers are typed copies are
+    editable. Storage and signatures remain review boundaries. Existing enum
+    owners terminate the producer walk; their authored operations are not new
+    recovery claims. Unknown producers and cycles never establish an identity.
+    """
+    selected = {"enum:" + name for name in names}
+    anchors = {
+        key: semantic_domain(declaration, facts)
+        for key, declaration in facts.declarations.items()
+        if declaration.domain == "enum"
+    }
+    missing = selected - set(anchors.values())
+    if missing:
+        raise ValueError("unknown source enum owners: " + ", ".join(sorted(missing)))
+    incoming: dict[str, list[Flow]] = defaultdict(list)
+    outgoing_flows: dict[str, list[Flow]] = defaultdict(list)
+    outgoing: dict[str, set[str]] = defaultdict(set)
+    for flow in sorted(facts.flows):
+        incoming[flow.target].append(flow)
+        outgoing_flows[flow.source].append(flow)
+        outgoing[flow.source].add(flow.target)
+    identities = {key: {value} for key, value in anchors.items()}
+    pending = deque(anchors)
+    while pending:
+        source = pending.popleft()
+        for target in outgoing[source]:
+            declaration = facts.declarations.get(target)
+            if target in anchors or declaration is None or declaration.domain != "integer":
+                continue
+            values = identities.setdefault(target, set())
+            if not identities[source] <= values:
+                values.update(identities[source])
+                pending.append(target)
+    index = _indexes(facts)
+    blockers: dict[str, list[dict]] = defaultdict(list)
+    overloads: dict[str, set[str]] = defaultdict(set)
+    for key, signature in facts.signatures.items():
+        overloads[signature[0]].add(key)
+    candidates = {
+        key for key, values in identities.items() if key not in anchors and values & selected
+    }
+    for key in sorted(candidates):
+        declaration = facts.declarations[key]
+        reasons = blockers[key]
+        if len(identities[key]) != 1:
+            reasons.append({"reason": "different enum producers"})
+        if declaration.kind != "variable" or key in facts.linkage:
+            reasons.append({"reason": "storage or signature boundary requires review"})
+        if not _BUILTIN_STORAGE.fullmatch(declaration.spelling):
+            reasons.append({"reason": "preserve existing nominal storage spelling"})
+        if key in facts.inconsistent:
+            reasons.append({"reason": "inconsistent cross-TU declaration"})
+        if facts.expected_units is None or not facts.expected_units <= facts.translation_units:
+            reasons.append({"reason": "incomplete source corpus"})
+        if facts.constants[key] or facts.source_domains[key]:
+            reasons.append({"reason": "producer outside named enum domain"})
+        for flow in incoming[key]:
+            source = facts.declarations.get(flow.source)
+            if (
+                source is None
+                or source.width != declaration.width
+                or source.signedness != declaration.signedness
+                or edge_class(facts, flow)
+                not in {"copy", "sign-change", "alias-change", "domain-change"}
+            ):
+                reasons.append({"reason": "conversion or unknown producer", "source": flow.source})
+        for flow in outgoing_flows[key]:
+            target = facts.declarations.get(flow.target)
+            if target is not None and target.width != declaration.width:
+                reasons.append({"reason": "width-sensitive consumer", "target": flow.target})
+            if target is not None and target.kind == "parameter":
+                signature = facts.signatures.get(target.key.split(":parameter:", 1)[0])
+                if signature is not None and len(overloads[signature[0]]) > 1:
+                    reasons.append(
+                        {"reason": "overloaded consumer requires review", "target": flow.target}
+                    )
+        for use in index["operations"][key]:
+            if use.detail not in {"==", "!=", "<", "<=", ">", ">=", "index", "case", "switch"}:
+                reasons.append(
+                    {
+                        "reason": "operation requires review: " + use.detail,
+                        "file": use.file,
+                        "line": use.line,
+                    }
+                )
+        for use in index["escapes"][key]:
+            if not _escape_modeled(facts, index, key, use, "domain", None):
+                reasons.append({"reason": use.detail, "file": use.file, "line": use.line})
+    # A typed producer is accepted; an integer producer must itself be safe to
+    # promote. This prevents a numeric write upstream from seeding a pure copy.
+    complete = set(anchors) - facts.inconsistent
+    pending = deque(sorted(complete))
+    while pending:
+        source = pending.popleft()
+        for target in outgoing[source] & candidates - complete:
+            if (
+                not blockers[target]
+                and incoming[target]
+                and all(flow.source in complete for flow in incoming[target])
+            ):
+                complete.add(target)
+                pending.append(target)
+    changes = candidates & complete
+    # Connected editable locals are one patch group: shared atoms and upstream
+    # dependencies must all survive the patch writer's snapshot/atom checks.
+    groups = []
+    remaining = set(changes)
+    while remaining:
+        members = {min(remaining)}
+        queue = deque(members)
+        while queue:
+            key = queue.popleft()
+            neighbors = outgoing[key] | {flow.source for flow in incoming[key]}
+            for neighbor in neighbors & changes - members:
+                members.add(neighbor)
+                queue.append(neighbor)
+        remaining -= members
+        groups.append(
+            {
+                "members": sorted(members),
+                "changes": sorted(members),
+                "value": next(iter(identities[min(members)])),
+                "status": "candidate",
+                "blockers": [],
+            }
+        )
+    for key in sorted(candidates - changes):
+        reasons = blockers[key] or [{"reason": "unknown, blocked or cyclic integer producer"}]
+        groups.append(
+            {
+                "members": [key],
+                "changes": [],
+                "status": "blocked",
+                "value": next(iter(identities[key])) if len(identities[key]) == 1 else None,
+                "blockers": reasons,
+            }
+        )
+    return {
+        "basis": "accepted current source enum owners; no independent historical evidence",
+        "owners": sorted(selected),
+        "proposals": groups,
+    }
+
+
+def write_integer_report(
+    directory: Path,
+    evidence_path: Path | None,
+    destination: Path,
+    *,
+    propagate_enums: list[str] | None = None,
+) -> dict:
     facts = read_scalar_facts(directory)
     report = integer_report(facts, read_evidence(evidence_path, facts))
+    if propagate_enums:
+        report["enum_propagation"] = enum_propagation_report(facts, propagate_enums)
     # A saved AST snapshot can outlive the source that produced it. Hash its
     # inputs for attribution without calling it current or retail evidence.
     report["input_snapshot"] = {
@@ -2071,6 +2226,7 @@ def write_recovery_patch(
     destination: Path,
     *,
     padding: bool = False,
+    propagate_enums: list[str] | None = None,
 ) -> dict:
     """Emit reviewable whole-component patches, never mutate source files.
 
@@ -2119,6 +2275,17 @@ def write_recovery_patch(
                         value,
                     )
                 )
+    if propagate_enums:
+        for proposal in enum_propagation_report(facts, propagate_enums)["proposals"]:
+            if proposal["status"] == "candidate":
+                groups.append(
+                    (
+                        proposal["members"],
+                        proposal["changes"],
+                        "domain",
+                        proposal["value"].removeprefix("enum:"),
+                    )
+                )
     # Evidence-free structural cleanup is requested separately from evidence proposals.
     for row in report["structural_inventory"]["padding"] if padding else []:
         if row["status"] == "candidate":
@@ -2141,6 +2308,14 @@ def write_recovery_patch(
         if hashlib.sha256(files[file]).hexdigest() != digest:
             raise ValueError(f"stale source facts for {file}; recollect before editing")
         return files[file]
+
+    if propagate_enums and any(changes for _, changes, _, _ in groups):
+        # The enum anchors and producer graph are current-source assumptions.
+        # Validate the collected corpus, not just files that receive edits: an
+        # unchanged local must not be promoted from a stale owner in a header.
+        for file, digest in sorted({(span[2], span[6]) for span in facts.spans}):
+            if (repository / file).resolve().is_relative_to(repository):
+                source(file, digest)
 
     proposed: dict[tuple[str, str], str] = {}
     rejected = []

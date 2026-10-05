@@ -1,6 +1,8 @@
 #ifndef WIZ8_LOCAL_CODE_MAGIC_H
 #define WIZ8_LOCAL_CODE_MAGIC_H
 
+#include "wiz8/character_skills.h"
+#include "wiz8/conditions.h"
 #include "wiz8/layouts/targeting.h"
 #include "wiz8/layouts/gameplay_databases.h"
 #include "surrender/srMath.h"
@@ -70,8 +72,8 @@ void LearnSpellFromItem(W8Character* character, W8ItemInstance* item);
    spell_learned array. */
 void RecountLearnedSpellsByRealm(W8Character* character);
 bool CanCharacterCastSpell(W8Character* character, int spell_id);
-unsigned int GetBestSpellbookSkillForSpell(W8Character* character, int spell_id, bool pricing,
-                                           bool prefer_unlocked, unsigned int power_level);
+W8Skill GetBestSpellbookSkillForSpell(W8Character* character, int spell_id, bool pricing,
+                                      bool prefer_unlocked, unsigned int power_level);
 
 int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* target,
                         unsigned int power_level, int power_cast_bonus, unsigned int failure_chance,
@@ -92,15 +94,15 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
 /* 0x00501B70: drop every marker that no longer names a live, targetable
    monster; a few spell ids prune on extra monster-record rules. */
 void PruneSpellTargetMarkers(int spell_id, W8GrowableVector<int>* monster_markers);
-int GetProfessionCasterLevel(const W8Character* character, int profession_id);
+int GetProfessionCasterLevel(const W8Character* character, W8Profession profession_id);
 /* 0x00501D60: the highest power level this slot can afford to cast the spell
    at for its current target; zero when none is castable. */
 unsigned int ChooseSpellPowerLevelForTarget(int party_slot, int spell_id, int identify_context);
 extern unsigned char g_profession_spellbooks[W8_PROFESSION_COUNT];
 /* 0x00501A60: the spell a missile type carries, or W8_SPELL_NONE. */
 int MissileSpellId(int missile_type);
-bool PartyHasCondition(int condition_id); /* 0x005012B0 */
-bool CombatHasCondition(int condition_id);                                   /* 0x00501250 */
+bool PartyHasCondition(int effect_id);                                       /* 0x005012B0 */
+bool CombatHasCondition(int effect_id);                                      /* 0x00501250 */
 int GetSpellDifficulty(unsigned int caster_figure, int spell_id, int bonus); /* 0x004FF790 */
 
 /* 0x004FAE70: whether a spellcasting-blocked condition stops this character

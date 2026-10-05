@@ -515,7 +515,7 @@ void QueueNpcScriptNotice(W8NpcState* npc, W8ItemInstance* item, int line, bool 
         return;
     }
     info = GetNpcMonsterInfo(npc);
-    if (info != 0 && info->highest_condition >= 0xf) {
+    if (info != 0 && info->highest_condition >= W8_CONDITION_ASLEEP) {
         return;
     }
     flag = suppress;
@@ -570,10 +570,10 @@ void BeginNpcDialogueInternal(W8NpcState* npc, W8ItemInstance* item, int quote, 
             if (g_status.buffers.XChar[slot].fOccupied != 0) {
                 bound = GetNpcState(g_status.buffers.XChar[slot].npc_index);
                 if ((bound->name_style == 0x11 || bound->name_style == 0x10) &&
-                    characters[slot].highest_condition >= 0xf) {
+                    characters[slot].highest_condition >= W8_CONDITION_ASLEEP) {
                     for (condition = 0; condition <= 0x12; ++condition) {
                         if (characters[slot].uiCondition[condition] != 0) {
-                            RemoveCharacterCondition(slot, condition, 0);
+                            RemoveCharacterCondition(slot, static_cast<W8Condition>(condition), 0);
                             if (condition == 0x12) {
                                 characters[slot].hp_current = 10;
                             }
@@ -1272,7 +1272,8 @@ void EndNpcDialogueSession(bool param_1)
     if (g_npc_interaction_state->camera_redirected != 0) {
         g_gd_camera->SetPitch(g_npc_interaction_state->saved_camera_pitch);
     }
-    if (g_npc_interaction_state->dialogue_npc->name_style == 0xf && GetFact(0x3c) != 0) {
+    if (g_npc_interaction_state->dialogue_npc->name_style == 0xf &&
+        GetFact(W8_FACT_ALIGNMENT_UMPANI) != 0) {
         g_status.trang_check_clock = g_status.world_clock;
         g_status.trang_check_pending = 1;
     }
@@ -3110,8 +3111,8 @@ bool NpcTradeItemAllowed(W8ItemInstance* item)
 {
     int group;
 
-    if (g_npc_interaction_state->dialogue_npc->name_style == ',' && GetFact(0x3c) == 0 &&
-        item->iItemNo != 0x290) {
+    if (g_npc_interaction_state->dialogue_npc->name_style == ',' &&
+        GetFact(W8_FACT_ALIGNMENT_UMPANI) == 0 && item->iItemNo != 0x290) {
         return true;
     }
     if (g_npc_interaction_state->trade_filter == 0) {
@@ -3481,7 +3482,7 @@ void CloseNpcDialogueMode1Layout(void)
 void RequestNpcSpellService3(void)
 {
     int location = g_npc_interaction_state->target_location_id;
-    int mode = g_npc_interaction_state->dialogue_layout;
+    W8NpcDialogueLayout mode = g_npc_interaction_state->dialogue_layout;
 
     gXStatus.fCampMode = true;
     CloseNpcDialogueMode1Layout();
@@ -3493,7 +3494,7 @@ void RequestNpcSpellService3(void)
 void RequestNpcSpellService41(void)
 {
     int location = g_npc_interaction_state->target_location_id;
-    int mode = g_npc_interaction_state->dialogue_layout;
+    W8NpcDialogueLayout mode = g_npc_interaction_state->dialogue_layout;
 
     gXStatus.fCampMode = true;
     CloseNpcDialogueMode1Layout();
@@ -3917,7 +3918,7 @@ void HandleNpcDialogueKeyEvent(const InputAtom* event)
             EndNpcDialogueSession(0);
             return;
         case W8_DIALOGUE_LAYOUT_SERVICES: {
-            int prev = g_npc_interaction_state->previous_dialogue_layout;
+            W8NpcDialogueLayout prev = g_npc_interaction_state->previous_dialogue_layout;
             CloseNpcDialogueMode1Layout();
             if (prev == W8_DIALOGUE_LAYOUT_TOPIC_MENU) {
                 ShowNpcDialogueTopicMenu();
@@ -4300,7 +4301,7 @@ void DrainNpcDialogueDeferralInput(void)
 {
     POINT mouse;
     InputAtom input;
-    int prior_layout;
+    W8NpcDialogueLayout prior_layout;
     bool reopen_topics;
 
     if (ShouldDeferCharacterEventForNpcScript(1) == 0 || gXStatus.fNpcDialogueMode == 0) {
@@ -4870,7 +4871,8 @@ void HandleNpcDialogueDeparture(unsigned char value)
                 for (index = 0; index < 8; ++index) {
                     character = &g_status.buffers.Char[index];
                     if (g_status.buffers.XChar[index].fOccupied != 0 &&
-                        character->hp_current != 0 && character->highest_condition < 0xf) {
+                        character->hp_current != 0 &&
+                        character->highest_condition < W8_CONDITION_ASLEEP) {
                         PracticeCharacterSkill(character, W8_SKILL_COMMUNICATION, 0xf, 0);
                     }
                 }
@@ -5012,9 +5014,9 @@ void RecordLevelEntryDialogueState(void)
         AddDialogueTranscriptKeyword(region_name, W8_DIALOGUE_CATEGORY_PLACES);
     }
     if (region == 14) {
-        SetFact(0x25b, 0, 0);
+        SetFact(W8_FACT_QUEST_ASCEND_TO_CIRCLE, 0, 0);
         if (!NpcLeadHasNameStyle(0x18)) {
-            SetFact(0x216, 1, 0);
+            SetFact(W8_FACT_VI_IS_DEAD, 1, 0);
         }
     }
 }

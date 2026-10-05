@@ -1,6 +1,7 @@
 #ifndef WIZ8_LAYOUTS_COMBAT_STATE_H
 #define WIZ8_LAYOUTS_COMBAT_STATE_H
 
+#include "wiz8/character_skills.h"
 #include "timer.h"
 #include "wiz8/gameplay_modifiers.h"
 #include "wiz8/layouts/character.h"
@@ -97,8 +98,8 @@ static_assert(sizeof(W8EffectSlot) == 0x11, "W8EffectSlot_must_be_0x11");
    are refreshed. */
 struct W8CombatHandRecord {
     int score;
-    int weapon_skill;
-    int combat_skill;
+    W8Skill weapon_skill;
+    W8Skill combat_skill;
     int dual_wielding;
 };
 

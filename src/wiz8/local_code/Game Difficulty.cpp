@@ -25,6 +25,8 @@ void ScaleValueForMonsterDifficulty(W8MonsterInfo* monster_info, int* value)
         case 2:
             *value = (*value * 7 * 20) / 100;
             break;
+        default:
+            break;
         }
     } else if (monster_info->ubDisposition == DISP_FRIENDLY) {
         switch (g_settings.difficulty) {
@@ -33,6 +35,8 @@ void ScaleValueForMonsterDifficulty(W8MonsterInfo* monster_info, int* value)
             break;
         case 2:
             *value = (*value * 3 * 20) / 100;
+            break;
+        default:
             break;
         }
     }

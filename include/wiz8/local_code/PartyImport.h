@@ -1,5 +1,6 @@
 #ifndef WIZ8_LOCAL_CODE_PARTYIMPORT_H
 #define WIZ8_LOCAL_CODE_PARTYIMPORT_H
+#include "wiz8/character_skills.h"
 
 struct W8Character;
 
@@ -49,7 +50,7 @@ static_assert(sizeof(W8Wiz7Character) == 0x248, "W8Wiz7Character_must_be_0x248")
 void ConvertAttribute(W8Character* character, const W8Wiz7Character* imported); /* 0x005592D0 */
 void GrantStartingSpells(W8Character* character, const W8Wiz7Character* imported);
 void ImportEquipment(W8Character* character, const W8Wiz7Character* imported);
-unsigned int ConvertSkill(unsigned int skill_id, W8Character* character,
+unsigned int ConvertSkill(W8Skill skill_id, W8Character* character,
                           const W8Wiz7Character* imported); /* 0x00559BC0 */
 void ImportWizardry7Character(W8Character* character, W8Wiz7Character* imported);
 

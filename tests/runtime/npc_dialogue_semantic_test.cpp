@@ -62,7 +62,7 @@ bool RunNpcDialogueSemanticTest(NpcDialogueSemanticResult* result)
     unsigned char saved_combat_mode;
     unsigned char saved_dialogue_mode;
     unsigned char saved_movement_ui;
-    int saved_screen_id;
+    W8ScreenId saved_screen_id;
     int index;
 
     memset(result, 0, sizeof(*result));
@@ -133,8 +133,8 @@ bool RunNpcDialogueSemanticTest(NpcDialogueSemanticResult* result)
     g_pending_notice.line = NOTICE_QUOTE;
     g_pending_notice.flag = 0;
     g_pending_notice.force = 0;
-    g_pending_notice.unused_16[0] = 0;
-    g_pending_notice.unused_16[1] = 0;
+    g_pending_notice.unused[0] = 0;
+    g_pending_notice.unused[1] = 0;
 
     result->state_ready = 1;
 

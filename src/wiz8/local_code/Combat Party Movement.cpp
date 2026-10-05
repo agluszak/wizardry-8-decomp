@@ -261,7 +261,7 @@ void CompletePartyMovementTurns(void)
         W8PartySlotRow* party_row = &g_status.buffers.XChar[party_slot];
         W8Character* character = &g_status.buffers.Char[party_slot];
         if (party_row->fOccupied == 0 || character->hp_current == 0 ||
-            character->highest_condition >= 0xf) {
+            character->highest_condition >= W8_CONDITION_ASLEEP) {
             continue;
         }
         W8CombatCharacterRow* combat_row = &g_combat_state->characters[party_slot];

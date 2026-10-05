@@ -223,7 +223,10 @@ unsigned short g_item_use_messages[25] = {
 // GLOBAL: WIZ8 0x0068C108
 wchar_t* g_generic_item_names[W8_GENERIC_ITEM_NAME_COUNT];
 // GLOBAL: WIZ8 0x00616e84
-int g_item_spell_presentation[11] = {-1, 20, 20, -1, -1, -1, 12, 9, 23, 7, 0};
+W8Skill g_item_spell_presentation[11] = {
+    W8_SKILL_NONE,        W8_SKILL_ARTIFACTS,      W8_SKILL_ARTIFACTS, W8_SKILL_NONE,
+    W8_SKILL_NONE,        W8_SKILL_NONE,           W8_SKILL_MUSIC,   W8_SKILL_THROWING_SLING,
+    W8_SKILL_ENGINEERING, W8_SKILL_MODERN_WEAPONS, W8_SKILL_SWORD};
 /* The twelve slots' paper-doll icons: the two alternate-set hand slots have
    none, which is the value the bound-item predicates refuse a binding behind. */
 // GLOBAL: WIZ8 0x00648c5c
@@ -956,7 +959,7 @@ bool AnyPartyMemberCanUseItem(int item_id)
     for (slot = 0; slot < 8; ++slot) {
         if (g_status.buffers.XChar[slot].fOccupied != 0 &&
             g_status.buffers.Char[slot].hp_current > 0 &&
-            g_status.buffers.Char[slot].highest_condition < 0x12) {
+            g_status.buffers.Char[slot].highest_condition < W8_CONDITION_DEAD) {
             if (CanCharacterUseItem(&g_status.buffers.Char[slot], item_id)) {
                 return true;
             }
@@ -1113,12 +1116,12 @@ bool ItemUsesShots(int item_id)
    category table. Two particular spells are excluded and answer with nothing
    at all. */
 // FUNCTION: WIZ8 0x0051dcb0
-int GetItemSpellPresentation(const W8ItemDatabaseRecord* record)
+W8Skill GetItemSpellPresentation(const W8ItemDatabaseRecord* record)
 {
     if (record->spell_id != 'X' && record->spell_id != 't') {
         return g_item_spell_presentation[record->category];
     }
-    return -1;
+    return W8_SKILL_NONE;
 }
 
 /* Use one item as a character's action. The attempts that cannot happen at all
@@ -1144,7 +1147,7 @@ unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_use
     unsigned int party_slot = CharacterPointerToPartySlot(character);
     unsigned int power;
     unsigned int chance;
-    int skill;
+    W8Skill skill;
     int event_type;
     int fatigue_cost = -1;
     W8TargetSource target;
@@ -1169,7 +1172,7 @@ unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_use
         event_type = g_effect26;
     } else {
         if (record->equip_class == W8_ITEM_EQUIP_CLASS_INSTRUMENT &&
-            character->uiCondition[W8_CONDITION_SPELLCASTING_BLOCKED] != 0) {
+            character->uiCondition[W8_CONDITION_SILENCED] != 0) {
             PostCharacterNotice(party_slot, gppStringList[0x166]);
             *out_uses = -1;
             return 0;
@@ -1186,8 +1189,8 @@ unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_use
             if (npc->name_style != 0x20) {
                 srAssertFail("pNPC->ubNPCDBaseID == NPC_RFS81A", PC_ITEM_CPP, 0x89e, 0);
             }
-            SetFact(0x44, 1, 0);
-            SetFact(0x284, 0, 0);
+            SetFact(W8_FACT_RFS81_HAS_BEEN_FIXED, 1, 0);
+            SetFact(W8_FACT_QUEST_ANDROID_BROKEN, 0, 0);
             RemoveCharacterItem(character, item, 1);
             return 1;
         }
@@ -1392,7 +1395,7 @@ char MergeItems(W8Character* character, W8ItemInstance* destination)
                 if (merged) {
                     QueueCharacterEvent(character, g_learn_sound, 0, g_character_event_no_flags,
                                         g_character_event_full_volume);
-                    PracticeCharacterSkill(character, recipe->merge_skill,
+                    PracticeCharacterSkill(character, static_cast<W8Skill>(recipe->merge_skill),
                                            recipe->merge_skill_level / 10, 0);
                 }
             }
@@ -1775,7 +1778,7 @@ unsigned char GiveHeldItemToCharacterOrParty(int uiChar, unsigned char party_fir
             }
             /* 0xb is the index the body bounds the sweep at: a member past it is
                too far gone to be offered the item. */
-            if (character->hp_current == 0 || character->highest_condition >= 0xb) {
+            if (character->hp_current == 0 || character->highest_condition >= W8_CONDITION_INSANE) {
                 continue;
             }
             if (identified == 0) {
@@ -2086,7 +2089,7 @@ char PartyAttemptsToIdentifyItem(W8ItemInstance* item, int argument_2)
     for (party_slot = 0; party_slot < 8; ++party_slot) {
         if (g_status.buffers.XChar[party_slot].fOccupied != 0 &&
             g_status.buffers.Char[party_slot].hp_current != 0 &&
-            g_status.buffers.Char[party_slot].highest_condition < 0xb) {
+            g_status.buffers.Char[party_slot].highest_condition < W8_CONDITION_INSANE) {
             if (result == 0) {
                 result = TryIdentifyItemFor(&g_status.buffers.Char[party_slot], item);
             } else {
@@ -2213,7 +2216,6 @@ bool ItemHasHiddenProperties(int item_id)
 
 /* The skill an identify attempt practises, and the one whose level supplies
    its strength - a sixth of it. */
-enum { W8_SKILL_IDENTIFY = 0x14 };
 
 /* The most of one item a character can hold at once: the record's own quantity
    dice taken at their maximum. */
@@ -2575,11 +2577,11 @@ bool TryIdentifyItemFor(W8Character* character, W8ItemInstance* item)
     if (item == 0) {
         srAssertFail("pPCItem", PC_ITEM_CPP, 4014, 0);
     }
-    if (character->hp_current == 0 || character->highest_condition >= 0xb) {
+    if (character->hp_current == 0 || character->highest_condition >= W8_CONDITION_INSANE) {
         return 0;
     }
 
-    strength = static_cast<char>(character->skills[W8_SKILL_IDENTIFY].level / 6);
+    strength = static_cast<char>(character->skills[W8_SKILL_ARTIFACTS].level / 6);
     if (static_cast<char>(g_item_records[item->iItemNo].identify_difficulty) > strength) {
         return 0;
     }
@@ -2596,7 +2598,7 @@ bool TryIdentifyItemFor(W8Character* character, W8ItemInstance* item)
 
     margin = strength - g_item_records[item->iItemNo].identify_difficulty;
     if (margin >= 0 && margin < 3) {
-        PracticeCharacterSkill(character, W8_SKILL_IDENTIFY, 2, 1);
+        PracticeCharacterSkill(character, W8_SKILL_ARTIFACTS, 2, 1);
     }
     return 1;
 }
@@ -3090,46 +3092,46 @@ void UpdateFactsAfterAcquiringItem(const W8ItemInstance* item)
 {
     switch (item->iItemNo) {
     case 0x243:
-        if (!GetFact(0x30)) {
-            SetFact(0x30, 1, 0);
+        if (!GetFact(W8_FACT_DESTINAE_POSSESS)) {
+            SetFact(W8_FACT_DESTINAE_POSSESS, 1, 0);
         }
-        if (GetFact(0x166)) {
-            SetFact(0x166, 0, 0);
+        if (GetFact(W8_FACT_QUEST_GET_DD)) {
+            SetFact(W8_FACT_QUEST_GET_DD, 0, 0);
         }
         break;
     case 0x242:
-        if (!GetFact(0x22)) {
-            SetFact(0x22, 1, 0);
+        if (!GetFact(W8_FACT_ASTRAL_POSSESS)) {
+            SetFact(W8_FACT_ASTRAL_POSSESS, 1, 0);
         }
-        if (GetFact(0x165)) {
-            SetFact(0x165, 0, 0);
+        if (GetFact(W8_FACT_QUEST_GET_AD)) {
+            SetFact(W8_FACT_QUEST_GET_AD, 0, 0);
         }
         break;
     case 0x244:
-        if (!GetFact(0x31)) {
-            SetFact(0x31, 1, 0);
+        if (!GetFact(W8_FACT_CHAOS_POSSESS)) {
+            SetFact(W8_FACT_CHAOS_POSSESS, 1, 0);
         }
-        if (GetFact(0x167)) {
-            SetFact(0x167, 0, 0);
+        if (GetFact(W8_FACT_QUEST_GET_CM)) {
+            SetFact(W8_FACT_QUEST_GET_CM, 0, 0);
         }
         g_status.fact_b8_pending = 1;
         g_status.fact_b8_clock = g_status.world_clock;
         break;
     case 0x264:
-        if (!GetFact(0x182)) {
-            SetFact(0x182, 1, 0);
-            SetFact(0x31e, 1, 0);
+        if (!GetFact(W8_FACT_ASTRAL_FAKE_POSSESS)) {
+            SetFact(W8_FACT_ASTRAL_FAKE_POSSESS, 1, 0);
+            SetFact(W8_FACT_ASTRAL_FAKE_POSSESS1, 1, 0);
         }
         break;
     case 0x201:
-        SetFact(0x242, 0, 0);
+        SetFact(W8_FACT_QUEST_BRAFFIT_CIERDAN, 0, 0);
         break;
     case 0x27c:
-        SetFact(0x24e, 0, 0);
+        SetFact(W8_FACT_QUEST_MYLES_FIND_DIAMOND, 0, 0);
         break;
     case 0x1d2:
-        if (GetFact(0x24f)) {
-            SetFact(0x24f, 0, 0);
+        if (GetFact(W8_FACT_QUEST_MYLES_WEAPONS_CACHE)) {
+            SetFact(W8_FACT_QUEST_MYLES_WEAPONS_CACHE, 0, 0);
         }
         break;
     }
@@ -3143,7 +3145,7 @@ void DeliverExceptionalItemReaction(W8ItemInstance* item, bool choose_character,
 {
     int message;
 
-    if (g_current_screen_state.id == 5) {
+    if (g_current_screen_state.id == W8_SCREEN_PARTY_SELECTION) {
         return;
     }
     if (choose_character) {
@@ -3175,8 +3177,8 @@ void DeliverExceptionalItemReaction(W8ItemInstance* item, bool choose_character,
         message = g_item_message9;
         break;
     case 0x27c: {
-        SetFact(0xe5, 1, 0);
-        if (!NpcLeadHasNameStyle(7) || !GetFact(0x24e)) {
+        SetFact(W8_FACT_DIAMOND_FOUND, 1, 0);
+        if (!NpcLeadHasNameStyle(7) || !GetFact(W8_FACT_QUEST_MYLES_FIND_DIAMOND)) {
             return;
         }
         W8NpcState* npc = GetNpcStateByKind(7);
@@ -3233,7 +3235,7 @@ bool CanUseItemForAction(int party_slot, const W8ItemInstance* item)
         return gXStatus.fCombatMode == 0 && gXStatus.fCampMode == 0 &&
                gXStatus.fLockInteract == 0 && gXStatus.fTrapInteract == 0;
     }
-    if (character->uiCondition[W8_CONDITION_SPELLCASTING_BLOCKED] != 0 &&
+    if (character->uiCondition[W8_CONDITION_SILENCED] != 0 &&
         record->equip_class == W8_ITEM_EQUIP_CLASS_INSTRUMENT) {
         return 0;
     }
@@ -3267,7 +3269,7 @@ char ValidateItemSpellUse(int character_index, W8ItemInstance* item,
         }
         return 0;
     }
-    if (character->uiCondition[W8_CONDITION_SPELLCASTING_BLOCKED] != 0 &&
+    if (character->uiCondition[W8_CONDITION_SILENCED] != 0 &&
         record->equip_class == W8_ITEM_EQUIP_CLASS_INSTRUMENT) {
         ShowNoticeLine(gppStringList[0x7a7], callback, 1, 0);
         return 1;
@@ -3560,8 +3562,9 @@ int ChooseCharacterEquipSlot(W8Character* character, int item_id)
    twenty is the most forgiving of the four and takes ten percent off, while
    skill nine takes twenty. */
 // FUNCTION: WIZ8 0x0051dcd0
-unsigned int GetItemUseDifficulty(const W8Character* character, int skill, unsigned int skill_level,
-                                  unsigned int spell_id, unsigned int power)
+unsigned int GetItemUseDifficulty(const W8Character* character, W8Skill skill,
+                                  unsigned int skill_level, unsigned int spell_id,
+                                  unsigned int power)
 {
     unsigned int failure = GetSpellFailureChance(skill_level, spell_id, power);
     unsigned int shortfall;
@@ -3570,24 +3573,27 @@ unsigned int GetItemUseDifficulty(const W8Character* character, int skill, unsig
     int adjusted_power;
 
     switch (skill) {
-    case 9:
+    case W8_SKILL_THROWING_SLING:
         return failure * 8 / 10;
-    case 0xc:
-    case 0x17:
+    case W8_SKILL_MUSIC:
+    case W8_SKILL_ENGINEERING:
         shortfall = g_spell_records[spell_id].spell_level * 0xf;
         if (skill_level < shortfall) {
             failure += (shortfall - skill_level) / 3;
         }
         minimum_caster_level = GetMinimumCasterLevelForSpell(spell_id);
-        caster_level = skill == 0xc ? character->profession_levels[W8_CASTER_PROFESSION_INDEX_9]
-                                    : character->profession_levels[W8_CASTER_PROFESSION_INDEX_8];
+        caster_level = skill == W8_SKILL_MUSIC
+                           ? character->profession_levels[W8_CASTER_PROFESSION_INDEX_9]
+                           : character->profession_levels[W8_CASTER_PROFESSION_INDEX_8];
         adjusted_power = (minimum_caster_level - caster_level) - 1 + static_cast<int>(power);
         if (adjusted_power > 0) {
             return failure + g_spell_records[spell_id].spell_level * adjusted_power;
         }
         break;
-    case 0x14:
+    case W8_SKILL_ARTIFACTS:
         failure = failure * 9 / 10;
+        break;
+    default:
         break;
     }
     return failure;
@@ -3758,7 +3764,7 @@ int CastItemSpell(W8Character* character, W8ItemInstance* item, unsigned int pow
     W8TargetSource target;
     bool rejected_spell;
     unsigned int difficulty = 0;
-    int skill;
+    W8Skill skill;
     int effect;
     int caster_figure;
     int difficulty_kind;
@@ -3775,10 +3781,10 @@ int CastItemSpell(W8Character* character, W8ItemInstance* item, unsigned int pow
     }
 
     if (record->spell_id == 'X' || record->spell_id == 't') {
-        skill = -1;
+        skill = W8_SKILL_NONE;
     } else {
         skill = g_item_spell_presentation[record->category];
-        if (skill == -1) {
+        if (skill == W8_SKILL_NONE) {
             difficulty = 0;
         } else {
             difficulty = GetItemUseDifficulty(character, skill, character->skills[skill].level,
@@ -3794,13 +3800,13 @@ int CastItemSpell(W8Character* character, W8ItemInstance* item, unsigned int pow
     target.item_cast = 1;
     TrackItemSpellSource(character, spell_id);
 
-    if (skill == 9) {
+    if (skill == W8_SKILL_THROWING_SLING) {
         difficulty_kind = 4;
         caster_figure = character->uiExpLevel;
-    } else if (skill == 0xc) {
+    } else if (skill == W8_SKILL_MUSIC) {
         difficulty_kind = 2;
         caster_figure = character->profession_levels[W8_CASTER_PROFESSION_INDEX_9];
-    } else if (skill == 0x17) {
+    } else if (skill == W8_SKILL_ENGINEERING) {
         difficulty_kind = 3;
         caster_figure = character->profession_levels[W8_CASTER_PROFESSION_INDEX_8];
     } else {
@@ -3841,7 +3847,7 @@ int CastItemSpell(W8Character* character, W8ItemInstance* item, unsigned int pow
                             FormatWideString(gppStringList[0x1a9], FormatItemDisplayName(item, 0)));
     }
 
-    if (skill != -1) {
+    if (skill != W8_SKILL_NONE) {
         if (SpellAffectedTarget(character, spell_id,
                                 &g_status.buffers.XChar[party_slot].target_out_of_combat, power)) {
             PracticeCharacterSkill(character, skill,

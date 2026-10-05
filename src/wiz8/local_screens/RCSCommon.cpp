@@ -875,13 +875,13 @@ void DrawCampHeader(void)
             RedrawRcsLevelUpPanel();
             RedrawRcsDismissPanel();
         }
-        if (character->highest_condition == 0) {
+        if (character->highest_condition == W8_CONDITION_NONE) {
             DrawCatalogImage(-14, 0x2f, 0, 0, 0xa5, 0xe, 2, 0);
         } else {
             DrawCatalogImage(-14, character->highest_condition + 0xb6, 0, 0, 0xa5, 0xe, 2, 0);
             DrawCatalogImage(-14, 0x61, 0, 0, 0xa4, 0xd, 2, 0);
         }
-        if (character->enchantment_top == 0) {
+        if (character->enchantment_top == W8_ENCHANTMENT_NONE) {
             DrawCatalogImage(-14, 0x30, 0, 0, 0xee, 0xe, 2, 0);
         } else {
             DrawCatalogImage(-14, character->enchantment_top + 0xc9, 0, 0, 0xee, 0xe, 2, 0);

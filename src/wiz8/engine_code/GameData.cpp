@@ -2465,7 +2465,7 @@ float MoveTimer(int value)
         }
     }
     if (g_shared_timers_paused != 0) {
-        if ((value == 8 && g_current_screen_state.id == 7) || value == 4) {
+        if ((value == 8 && g_current_screen_state.id == W8_SCREEN_MAIN_GAME) || value == 4) {
             ResumeSharedGameTimers();
             g_shared_timers_paused = false;
         } else {

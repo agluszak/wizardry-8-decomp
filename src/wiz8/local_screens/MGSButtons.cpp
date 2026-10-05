@@ -1051,7 +1051,7 @@ void DrawSubMenuCharacterAction(void)
     gprintf((0xb9 - StringPixLength(text, g_smfnt_font)) / 2 + 0x157, 0x1c6,
             Wiz8ToSgpWideText(g_format_s), text);
     if (gXStatus.fCombatMode != 1) {
-        if (character->highest_condition == 0) {
+        if (character->highest_condition == W8_CONDITION_NONE) {
             return;
         }
         swprintf(text, L"%s", gppStringList[g_condition_notices[character->highest_condition * 4]]);

@@ -1616,8 +1616,8 @@ void DrawCampScreen(void)
     RefreshCampItemActions(0);
     if (gXStatus.fCombatMode == 0) {
         if (giReviewCharSlot != -1) {
-            if (g_status.game_started != 0 ||
-                (g_previous_screen_id == 5 && PartySelectionInReviewMode() != 0)) {
+            if (g_status.game_started != 0 || (g_previous_screen_id == W8_SCREEN_PARTY_SELECTION &&
+                                               PartySelectionInReviewMode() != 0)) {
                 UpdateRcsLevelUpPanel();
             }
             if (gXStatus.fCombatMode != 0) {
@@ -1957,12 +1957,12 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
         ShowCampNoticeLine(text, 0, 1, 0);
         return;
     }
-    if (character->uiCondition[W8_CONDITION_HOSTILE] != 0 && (origin == 1 || origin == 0)) {
+    if (character->uiCondition[W8_CONDITION_TURNCOAT] != 0 && (origin == 1 || origin == 0)) {
         text = gppStringList[0x909];
         ShowCampNoticeLine(text, 0, 1, 0);
         return;
     }
-    if (character->highest_condition >= W8_CONDITION_HOSTILE && origin != 2 &&
+    if (character->highest_condition >= W8_CONDITION_TURNCOAT && origin != 2 &&
         g_status.item_in_cursor && gXStatus.held_item_source != giReviewCharSlot) {
         text = gppStringList[0x901];
         ShowCampNoticeLine(text, 0, 1, 0);
@@ -2429,7 +2429,7 @@ bool IsCampActionAllowed(int party_slot)
     }
     character = &g_status.buffers.Char[party_slot];
     if (character->uiCondition[W8_CONDITION_DEAD] != 0 ||
-        character->uiCondition[W8_CONDITION_EXHAUSTED] != 0 ||
+        character->uiCondition[W8_CONDITION_UNCONSCIOUS] != 0 ||
         character->uiCondition[W8_CONDITION_PARALYZED] != 0 ||
         character->uiCondition[W8_CONDITION_ASLEEP] != 0) {
         if (g_combat_state->equip_phase != 0) {
@@ -2561,9 +2561,9 @@ void BeginEndgameSequence(void)
 
     g_status.endgame_started = 1;
     UpdateHeldItemCursor();
-    if (GetFact(0x1a2) != 0) {
+    if (GetFact(W8_FACT_ENDING_BOFFO_ONE) != 0) {
         fade_to_black = 1;
-    } else if (GetFact(0x2f4) != 0) {
+    } else if (GetFact(W8_FACT_ENDGAME_JOIN_SAVANT) != 0) {
         fade_code = 1;
         endgame_variant = 1;
     }
@@ -2774,7 +2774,7 @@ void EndReviewTransition(void)
     ResetMainGameMode();
     g_level_block->review_transition_active = 0;
     if (g_ending_screen != 0) {
-        SetPendingScreenState(9);
+        SetPendingScreenState(W8_SCREEN_CREDITS);
         g_ending_screen = 0;
         return;
     }
@@ -2803,20 +2803,20 @@ void ShowEndingScreen(void)
     music = "EndCredit.MPL";
     g_ending_screen = 1;
     g_ending_autosave = 1;
-    if (GetFact(0x2f4) != 0) {
+    if (GetFact(W8_FACT_ENDGAME_JOIN_SAVANT) != 0) {
         image = 0x1e1;
         schedule_fade = false;
         wcscpy(text, gppStringList[0x787]);
         sound = "Data\\Sound\\NPCs\\VOC_ENDGAME1\\VOC_ENDGAME1_005.mp3";
-    } else if (GetFact(0x219) != 0) {
+    } else if (GetFact(W8_FACT_QUE_ENDGAME2) != 0) {
         image = 0x1e2;
         wcscpy(text, gppStringList[0x788]);
         sound = "Data\\Sound\\NPCs\\VOC_ENDGAME2\\VOC_ENDGAME2_005.mp3";
-    } else if (GetFact(0x21b) != 0) {
+    } else if (GetFact(W8_FACT_ENDGAME_SAVANT_PHOON_SPLIT) != 0) {
         image = 0x1e2;
         wcscpy(text, gppStringList[0x789]);
         sound = "Data\\Sound\\NPCs\\VOC_ENDGAME3\\VOC_ENDGAME3_000.mp3";
-    } else if (GetFact(0x1a2) != 0) {
+    } else if (GetFact(W8_FACT_ENDING_BOFFO_ONE) != 0) {
         image = 0x1e3;
         fade_to_black = 1;
         wcscpy(text, gppStringList[0x78a]);

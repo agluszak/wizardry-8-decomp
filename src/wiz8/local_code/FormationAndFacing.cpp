@@ -81,7 +81,7 @@ void ReconcilePartyFormation(W8PartyFormationState* edited, W8PartyFormationStat
         bool row_changed;
 
         if (g_status.buffers.XChar[slot].fOccupied == 0 || character->hp_current <= 0 ||
-            character->highest_condition >= W8_CONDITION_HOSTILE) {
+            character->highest_condition >= W8_CONDITION_TURNCOAT) {
             continue;
         }
         row = edited->positions[slot].bQuadrant;
@@ -104,7 +104,7 @@ void ReconcilePartyFormation(W8PartyFormationState* edited, W8PartyFormationStat
         W8PartyFormationPosition* edited_position = &edited->positions[slot];
 
         if (g_status.buffers.XChar[slot].fOccupied == 0 ||
-            (character->hp_current > 0 && character->highest_condition < W8_CONDITION_HOSTILE)) {
+            (character->hp_current > 0 && character->highest_condition < W8_CONDITION_TURNCOAT)) {
             continue;
         }
         if (character->highest_condition >= W8_CONDITION_DEAD) {
@@ -213,7 +213,7 @@ bool CanHoldFormationPlace(int party_slot)
 {
     const W8Character* character = &g_status.buffers.Char[party_slot];
 
-    return character->hp_current > 0 && character->highest_condition < W8_CONDITION_HOSTILE;
+    return character->hp_current > 0 && character->highest_condition < W8_CONDITION_TURNCOAT;
 }
 
 /* Remember the formation combat started with. */

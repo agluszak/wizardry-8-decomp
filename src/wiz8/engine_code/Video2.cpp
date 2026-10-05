@@ -298,7 +298,7 @@ void AssertFailureHandler(const char* expression, const char* file, long line, c
                   "Expression [ %s ] evaluates to false.\n",
                   file, line, expression);
     }
-    g_pending_screen_state.id = -1;
+    g_pending_screen_state.id = W8_SCREEN_NONE;
     ShutdownWithErrorBox(text);
 }
 

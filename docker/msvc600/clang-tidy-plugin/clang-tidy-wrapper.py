@@ -546,12 +546,23 @@ def main() -> None:
         )
         parser.add_argument("--repository", type=Path, default=Path.cwd())
         parser.add_argument(
+            "--propagate-enum",
+            action="append",
+            default=[],
+            help="propagate an accepted source enum through pure local copies; not historical evidence",
+        )
+        parser.add_argument(
             "--padding",
             action="store_true",
             help="also remove explicit padding members that natural layout reproduces",
         )
         options = parser.parse_args(sys.argv[2:])
-        report = write_integer_report(options.facts, options.evidence, options.output)
+        report = write_integer_report(
+            options.facts,
+            options.evidence,
+            options.output,
+            propagate_enums=options.propagate_enum,
+        )
         if options.patch:
             import json
 
@@ -562,6 +573,7 @@ def main() -> None:
                 options.repository,
                 options.patch,
                 padding=options.padding,
+                propagate_enums=options.propagate_enum,
             )
             options.output.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
         return

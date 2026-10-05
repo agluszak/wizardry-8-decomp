@@ -1493,7 +1493,7 @@ void W8Monster::Update()
         if (monster_info == 0) {
             UpdateNavigation(0, 0);
         } else {
-            UpdateNavigation(monster_info->highest_condition >= 0x0e,
+            UpdateNavigation(monster_info->highest_condition >= W8_CONDITION_WEBBED,
                              monster_info->uiCondition[5] != 0);
         }
 
@@ -3963,7 +3963,7 @@ void W8Monster::HandleAnimationThreshold()
     W8SpellEffectDefinition attack_block;
     W8MonsterAttack* attack;
     unsigned int attack_index;
-    unsigned int range_category;
+    W8RangeCategory range_category;
     int missile_type;
     int accuracy;
     bool selected_attack;
@@ -3998,7 +3998,7 @@ void W8Monster::HandleAnimationThreshold()
     }
 
     missile_type = 0;
-    range_category = 3;
+    range_category = W8_RANGE_EXTREME;
     ClearAttackBlock(&attack_block);
     accuracy = 50;
     goto fire_missile;
@@ -4015,7 +4015,7 @@ prepare_attack:
         missile_type = 0;
     }
 
-    range_category = attack->range_category;
+    range_category = static_cast<W8RangeCategory>(attack->range_category);
     ClearAttackBlock(&attack_block);
     attack_block.magnitude = attack->damage_dice;
     memcpy(attack_block.condition_chances, attack->missile_values, 0x10);

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "wiz8/character_skills.h"
 #include "wiz8/layouts/gameplay_databases.h"
 
 struct W8Character;
@@ -52,12 +53,12 @@ extern int g_starting_equipment[0x10][6];
 void RecomputeAttributeLimits(W8Character*, W8CharacterCreationState*);
 void ClampAttributesToBudget(W8Character*, W8CharacterCreationState*);
 void ApplyProfessionMinimumAttributes(W8Character*, W8CharacterCreationState*);
-void AdjustAllocatedAttribute(W8Character*, W8CharacterCreationState*, int, int);
+void AdjustAllocatedAttribute(W8Character*, W8CharacterCreationState*, W8Attribute, int);
 void RefundAllocatedAttributes(W8Character*, W8CharacterCreationState*);
 void RecomputeSkillLimits(W8Character*, W8CharacterCreationState*);
 void InitializeLevelUpAttributePool(W8Character*, W8CharacterCreationState*, unsigned int, int);
-void ResetSkillContribution(W8Character*, W8CharacterCreationState*, int);
-void RefundSkillAllocation(W8Character*, W8CharacterCreationState*, int);
+void ResetSkillContribution(W8Character*, W8CharacterCreationState*, W8Skill);
+void RefundSkillAllocation(W8Character*, W8CharacterCreationState*, W8Skill);
 void RebuildSkillAllocations(W8Character*, W8CharacterCreationState*);
 void ClampSkillsToBudget(W8Character*, W8CharacterCreationState*);
 void RefundAllSkillPoints(W8Character*, W8CharacterCreationState*);

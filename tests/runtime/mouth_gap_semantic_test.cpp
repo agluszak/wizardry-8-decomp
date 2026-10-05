@@ -57,7 +57,7 @@ bool RunMouthGapSemanticTest(MouthGapSemanticResult* result)
     LoadMouthGapTrack("Data\\Sound\\PCs\\F_AGGR10\\F_AGGR10_004.wav", &track);
     result->load_range_count = track.range_count == 8;
     result->load_cursor_head = track.head != 0 && track.cursor == track.head;
-    result->load_initial_state = track.mouth_open == 0 && track.unused_04 == 0;
+    result->load_initial_state = track.mouth_open == 0 && track.unused == 0;
     {
         W8MouthGapRange* range = track.head;
         unsigned char matches = 1;

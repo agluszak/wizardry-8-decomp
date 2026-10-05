@@ -738,7 +738,7 @@ void HighlightTextBoxRange(unsigned char color, unsigned char start, unsigned ch
     if (!(stop >= start)) {
         srAssertFail("ubStopChar >= ubStartChar", MGS_TEXT_BOX_CPP, 0x247, 0);
     }
-    if (g_current_screen_state.id != 7) {
+    if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME) {
         return;
     }
     text_box = ResolveNoticeTextBox(text_box);

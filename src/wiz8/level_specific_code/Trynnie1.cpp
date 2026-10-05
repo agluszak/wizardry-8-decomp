@@ -48,7 +48,7 @@ void EnsureTrynnie1KilledVar(void)
     srVector3T<float> vPos2;
     W8MonsterGroup* group;
 
-    if (GetFact(0x229) == 1) {
+    if (GetFact(W8_FACT_TRYNNIE_SHAMAN_DIES) == 1) {
         if (GetLocationVarIDByName("Trynnie1Killed") == -1) {
             KillTrynnieGroups();
             if (FindEntityByName("VOC_SHAMAN_DYING", &vPos, 0, 0) == 0) {
@@ -80,7 +80,7 @@ bool Trynnie1FountRandomFX(Trigger* pTrigger)
     if (roll < 25) {
         slot = GetRandomCharacter(0, 0, -1, -1);
         if (slot != -1) {
-            SetCharacterCondition(slot, 9, Random(5) + 10, 0, 0, 1);
+            SetCharacterCondition(slot, W8_CONDITION_HEXED, Random(5) + 10, 0, 0, 1);
             SoundPlay("Data\\Sound\\misc\\fountain_magic.wav", 0);
             return 1;
         }

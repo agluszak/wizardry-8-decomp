@@ -20,6 +20,8 @@ void ScaleValueForCharacterDifficulty(int party_slot, int* value)
         case 2:
             *value = (*value * 7 * 20) / 100;
             break;
+        default:
+            break;
         }
     } else {
         switch (g_settings.difficulty) {
@@ -28,6 +30,8 @@ void ScaleValueForCharacterDifficulty(int party_slot, int* value)
             break;
         case 2:
             *value = (*value * 3 * 20) / 100;
+            break;
+        default:
             break;
         }
     }

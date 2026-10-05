@@ -1,7 +1,8 @@
 #ifndef WIZ8_LAYOUTS_SCREEN_STATE_H
 #define WIZ8_LAYOUTS_SCREEN_STATE_H
 
-enum {
+enum W8ScreenId {
+    W8_SCREEN_NONE = -1,
     W8_SCREEN_INTRO = 0,
     W8_SCREEN_MAIN_MENU = 1,
     W8_SCREEN_GAME_START_ROUTER = 2,
@@ -39,7 +40,7 @@ static_assert(sizeof(W8ScreenStateHandlers) == 0x14, "W8ScreenStateHandlers_size
    review-character transitions, the save screenshot the Please Wait screen's
    mode 2 hands to SaveGame. */
 struct W8ScreenStateRuntime {
-    int id;            /* 0x00 */
+    W8ScreenId id;     /* 0x00 */
     int mode;          /* 0x04 */
     int parameter;     /* 0x08 */
     int parameter_2;   /* 0x0c */

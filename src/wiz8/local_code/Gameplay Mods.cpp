@@ -70,7 +70,8 @@ void RebuildPartyEffectBlock(void)
     while (slot_byte <= 0x82f) {
         W8Character* character = &g_status.buffers.Char[active];
         if (g_status.buffers.XChar[active].fOccupied != 0 && character->hp_current != 0 &&
-            character->highest_condition == 0 && CharacterHasTrait(character, W8_TRAIT_CAMP_RECOVERY_BONUS) != 0) {
+            character->highest_condition == W8_CONDITION_NONE &&
+            CharacterHasTrait(character, W8_TRAIT_CAMP_RECOVERY_BONUS) != 0) {
             break;
         }
         slot_byte += 0x106;
@@ -435,7 +436,7 @@ void ApplyConditionModifiers(W8Character* character, const unsigned int* conditi
             /* fall through */
         case W8_CONDITION_ASLEEP:
         case 0x10:
-        case W8_CONDITION_EXHAUSTED:
+        case W8_CONDITION_UNCONSCIOUS:
             target->out_of_formation = 1;
             break;
         case 0x13:

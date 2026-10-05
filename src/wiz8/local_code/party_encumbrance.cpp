@@ -106,7 +106,7 @@ void RecalculateCharacterDerivedStats(W8Character* character)
     CalcInitiative(character);
     CalcAttacks(character);
     CalcArmorClasses(character);
-    if (character->fInParty != 0 && g_current_screen_state.id != 3) {
+    if (character->fInParty != 0 && g_current_screen_state.id != W8_SCREEN_CHARACTER) {
         RequestPartySlotRedraw(CharacterPointerToPartySlot(character));
     }
 }
@@ -219,7 +219,7 @@ void RedistributePartyEncumbrance(void)
         character->total_carried_weight = carried;
         unsigned int percent =
             static_cast<unsigned int>(carried * 100) / character->carrying_capacity;
-        int old_band = character->load_category;
+        W8LoadCategory old_band = character->load_category;
         if (percent < 50) {
             character->load_category = W8_LOAD_NONE;
         } else if (percent < 70) {
@@ -227,7 +227,7 @@ void RedistributePartyEncumbrance(void)
         } else if (percent < 85) {
             character->load_category = W8_LOAD_MEDIUM;
         } else {
-            character->load_category = (percent > 100) + W8_LOAD_HEAVY;
+            character->load_category = static_cast<W8LoadCategory>((percent > 100) + W8_LOAD_HEAVY);
         }
         if (old_band != character->load_category) {
             CalcInitiative(character);

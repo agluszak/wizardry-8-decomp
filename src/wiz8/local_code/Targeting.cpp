@@ -532,7 +532,7 @@ void ApplyTarget(W8CombatSlot* target, bool in_combat)
         row = &g_status.buffers.XChar[party_slot];
         character = &g_status.buffers.Char[party_slot];
         if (row->fOccupied == 0 || character->hp_current == 0 ||
-            character->highest_condition >= 0x12) {
+            character->highest_condition >= W8_CONDITION_DEAD) {
             continue;
         }
         if (target->iType == W8_TARGET_KIND_MONSTER) {
@@ -662,7 +662,7 @@ void RepickInvalidCombatTargets(void)
         W8PartySlotRow* row = &g_status.buffers.XChar[party_slot];
         W8Character* character = &g_status.buffers.Char[party_slot];
         if (row->fOccupied == 0 || character->hp_current == 0 ||
-            character->highest_condition >= 0xd ||
+            character->highest_condition >= W8_CONDITION_TURNCOAT ||
             !CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 1, 0)) {
             continue;
         }
@@ -967,7 +967,7 @@ void UpdateAllMonsterHighlights(int party_slot, int location_id)
    does not compare. */
 struct W8MonsterTargetCandidate {
     int location_id;        /* 0x00 */
-    int state;           /* 0x04: the monster's own 0x107 */
+    W8Condition state;      /* 0x04: the monster's own 0x107 */
     unsigned char in_reach; /* 0x08: reachable with a real attack */
     unsigned char pad_09[3];
     unsigned int range_band;  /* 0x0c: the first band that covers it */
@@ -987,10 +987,10 @@ static int CompareMonsterTargetCandidates(const void* left, const void* right)
     const W8MonsterTargetCandidate* a = (const W8MonsterTargetCandidate*)left;
     const W8MonsterTargetCandidate* b = (const W8MonsterTargetCandidate*)right;
 
-    if (static_cast<unsigned int>(a->state) < static_cast<unsigned int>(b->state)) {
+    if (a->state < b->state) {
         return -1;
     }
-    if (static_cast<unsigned int>(a->state) > static_cast<unsigned int>(b->state)) {
+    if (a->state > b->state) {
         return 1;
     }
     if (a->in_reach != 0 && b->in_reach == 0) {
@@ -3511,7 +3511,7 @@ void ReconcilePartyEquipmentAfterCombat(void)
         W8PartySlotRow* row = &g_status.buffers.XChar[party_slot];
         W8Character* character = &g_status.buffers.Char[party_slot];
         if (row->fOccupied != 0 &&
-            (character->hp_current != 0 || character->highest_condition < 0xd) &&
+            (character->hp_current != 0 || character->highest_condition < W8_CONDITION_TURNCOAT) &&
             row->weapon_swap_pending != 0 && g_settings.autoswap_weapons != 0 &&
             row->item_action_pending == 0) {
             SwapWeaponSetSlots(party_slot, 0, 1);

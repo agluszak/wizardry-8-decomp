@@ -123,7 +123,7 @@ W8MonsterInfo* CreateMonsterInfo(W8MonsterGroup* group, W8MonsterRecord* record,
 
     memset(monster_info->uiCondition, 0, sizeof(monster_info->uiCondition));
     memset(monster_info->enchantments, 0, sizeof(monster_info->enchantments));
-    monster_info->highest_condition = 0;
+    monster_info->highest_condition = W8_CONDITION_NONE;
     monster_info->condition_argument = 0;
     monster_info->effect = 0;
     memset(&monster_info->modifiers, 0, sizeof(monster_info->modifiers));
@@ -721,12 +721,12 @@ void ConvertMonsterAttributes(W8MonsterInfo* monster_info)
 
     do {
         W8MonsterRecord* record;
-        int attribute_index;
+        W8Attribute attribute_index;
         int value;
 
         record = GetMonsterDataForInfo(monster_info);
         value = record->attribute_values[monster_attribute];
-        attribute_index = 0;
+        attribute_index = W8_ATTRIBUTE_STRENGTH;
 
         if (monster_attribute >= W8_MONSTER_ATTR_COUNT) {
             srAssertFail("uiMonsterAttribute < MONSTER_ATTR_COUNT", MONSTER_MANAGER_CPP, 0x78d, 0);
@@ -1214,7 +1214,7 @@ void DeactivateMonster(W8MonsterInfo* monster_info)
             srAssertFail("pMonsterInfo->p3D != NULL", MONSTER_MANAGER_CPP, 0x249, 0);
         }
         monster_info->uiCondition[W8_CONDITION_DEAD] = 9999;
-        monster_info->highest_condition = 0x12;
+        monster_info->highest_condition = W8_CONDITION_DEAD;
         monster_info->hp_current = 0;
         monster_info->stamina = 0;
         monster_info->p3D->active = 0;
@@ -1609,7 +1609,7 @@ unsigned int GetBestPartySkillLevel(W8Skill skill_index, int* party_slot)
     for (int index = 0; index < 8; ++index) {
         W8Character* character = &g_status.buffers.Char[index];
         if (g_status.buffers.XChar[index].fOccupied != 0 && character->hp_current != 0 &&
-            character->highest_condition < 0xd &&
+            character->highest_condition < W8_CONDITION_TURNCOAT &&
             (character->skills[skill_index].level > best_level || best_slot == -1)) {
             best_level = character->skills[skill_index].level;
             best_slot = index;
@@ -1703,7 +1703,7 @@ void DetectMonsterGroups(void)
             for (unsigned int slot = 0; slot < 8; ++slot) {
                 W8Character* character = &g_status.buffers.Char[slot];
                 if (g_status.buffers.XChar[slot].fOccupied == 0 || character->hp_current == 0 ||
-                    character->highest_condition >= 0xb ||
+                    character->highest_condition >= W8_CONDITION_INSANE ||
                     character->uiCondition[W8_CONDITION_BLIND] != 0) {
                     continue;
                 }
@@ -1755,7 +1755,7 @@ void DetectMonsterGroups(void)
             for (unsigned int slot = 0; slot < 8; ++slot) {
                 W8Character* character = &g_status.buffers.Char[slot];
                 if (g_status.buffers.XChar[slot].fOccupied == 0 || character->hp_current == 0 ||
-                    character->highest_condition >= 0xb ||
+                    character->highest_condition >= W8_CONDITION_INSANE ||
                     character->uiCondition[W8_CONDITION_BLIND] != 0) {
                     continue;
                 }
@@ -1787,7 +1787,7 @@ void EvaluateCombatDifficulty(void)
     for (monster_index = 0; monster_index < PLLength(gXStatus.plsMonsterList); ++monster_index) {
         W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(monster_index);
         if (monster->fInCombat && monster->ubDisposition == DISP_HOSTILE &&
-            monster->hp_current > 0 && monster->highest_condition < 0x12) {
+            monster->hp_current > 0 && monster->highest_condition < W8_CONDITION_DEAD) {
             unsigned int health_percent = monster->hp_current * 100 / monster->uiHPMax;
             hostile_experience +=
                 GetMonsterExperience(GetMonsterDataForInfo(monster)) * health_percent / 100;
@@ -1801,7 +1801,8 @@ void EvaluateCombatDifficulty(void)
     for (slot = 0; slot < 8; ++slot) {
         W8PartySlotRow* row = &g_status.buffers.XChar[slot];
         W8Character* character = &g_status.buffers.Char[slot];
-        if (!row->fOccupied || character->hp_current == 0 || character->highest_condition >= 0x12) {
+        if (!row->fOccupied || character->hp_current == 0 ||
+            character->highest_condition >= W8_CONDITION_DEAD) {
             continue;
         }
         bool count_character = true;
@@ -1883,7 +1884,7 @@ void EvaluateCombatDifficulty(void)
             W8NpcState* npc = GetNpcState(row->npc_index);
             if (npc != 0) {
                 W8Character* character = &g_status.buffers.Char[slot];
-                if (character->highest_condition == 0x12) {
+                if (character->highest_condition == W8_CONDITION_DEAD) {
                     npc->item_assist = 0;
                 } else if (npc->name_style == W8_NPC_VI_DOMINA ||
                            npc->name_style == W8_NPC_DRAZIC || npc->name_style == W8_NPC_RODAN) {

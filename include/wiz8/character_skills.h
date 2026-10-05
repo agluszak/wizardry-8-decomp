@@ -26,6 +26,7 @@ enum W8Attribute {
    appendix. The four spellbook skills use an explicit SPELLBOOK qualifier here
    to avoid colliding with older TU-local aliases in Magic.cpp. */
 enum W8Skill {
+    W8_SKILL_NONE = -1,
     W8_SKILL_SWORD = 0x00,
     W8_SKILL_AXE = 0x01,
     W8_SKILL_POLEARM = 0x02,
@@ -72,7 +73,7 @@ enum W8Skill {
 
 /* 0x00553F10: add usage points to one skill, roll its increase, and report
    the result; suppress_notification keeps silent practice calls silent. */
-void PracticeCharacterSkill(W8Character* character, int skill_id, int usage_points,
+void PracticeCharacterSkill(W8Character* character, W8Skill skill_id, int usage_points,
                             bool suppress_notification);
 
 unsigned int GetCharacterSkillNoticeValue(W8Character* character, int skill_id);
@@ -81,7 +82,7 @@ void PostSkillIncreaseNotices(const W8SkillNoticePayload* notices);
 /* 0x00554170: append one "race-icon Name's skill +level" clause to a notice
    buffer; when continue_line is set, insert a line break first. */
 void AppendSkillIncreaseNoticeText(wchar_t* text, unsigned int* length, int party_slot,
-                                   bool continue_line, int skill_id);
+                                   bool continue_line, W8Skill skill_id);
 
 /* 0x005542E0: drain the deferred per-slot skill-increase flags into one or
    more W8_NPC_MSG_SKILL_NOTICES message-box lines. */
@@ -145,17 +146,17 @@ void ResetCharacterAttributes(W8Character* character);
 /* 0x00553A60: rebuild every skill level from its base, the profession bonus
    and the race and profession skill adjustments. */
 void ResetCharacterSkills(W8Character* character);
-bool IsCharacterSkillAvailable(W8Character* character, unsigned int skill_id,
+bool IsCharacterSkillAvailable(W8Character* character, W8Skill skill_id,
                                const bool* expert_realm_flags);
 void InvalidateAndRecalculateCharacterClassData(W8Character* character);
 bool CharacterHasTrait(const W8Character* character, int trait);
 int RevealCharacterItemBindingsByProfession(int party_slot, unsigned int target_slot);
 /* 0x00553AD0: propagate a changed attribute base value - the at-maximum
    pseudo-skill flag, the effective value, equipment and derived state. */
-void ApplyAttributeChange(W8Character* character, int attribute);
+void ApplyAttributeChange(W8Character* character, W8Attribute attribute);
 /* 0x00553C10: propagate a changed skill investment - availability rescan,
    the level rebuild, equipment and derived state. */
-void ApplySkillChange(W8Character* character, int skill_id);
+void ApplySkillChange(W8Character* character, W8Skill skill_id);
 void InitializeSkillBaseLevels(W8Character* character);
 void RefreshCharacterSkillAvailability(W8Character* character);
-unsigned int GetSkillQuarterValue(W8Character* character, int skill_id);
+unsigned int GetSkillQuarterValue(W8Character* character, W8Skill skill_id);

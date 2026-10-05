@@ -83,7 +83,7 @@ static void ReplayEarthquakeShake(void)
 }
 
 // FUNCTION: WIZ8 0x00506670
-void HandleFactChange(int fact_id, unsigned char value)
+void HandleFactChange(W8FactId fact_id, unsigned char value)
 {
     W8NpcState* npc;
     W8MonsterGroup* group;
@@ -102,37 +102,37 @@ void HandleFactChange(int fact_id, unsigned char value)
     const char* trigger_name;
 
     switch (fact_id) {
-    case 0x17:
+    case W8_FACT_ANTONE_ZYNARYX_ALL_INGREDIENTS:
         if (value == 0) {
             return;
         }
         AddNpcItemWithDelay(GetNpcStateByKind(3), 0x28a, 1, 0x15180);
         return;
-    case 0x18:
+    case W8_FACT_ANTONE_STEELHIDE_ALL_INGREDIENTS:
         if (value == 0) {
             return;
         }
         AddNpcItemWithDelay(GetNpcStateByKind(3), 0x28b, 1, 0x15180);
         return;
-    case 0x19:
+    case W8_FACT_ANTONE_FEATHERWEIGHT_ALL_INGREDIENTS:
         if (value == 0) {
             return;
         }
         AddNpcItemWithDelay(GetNpcStateByKind(3), 0x28c, 1, 0x15180);
         return;
-    case 0x1a:
+    case W8_FACT_ANTONE_BEASTSLAYER_ALL_INGREDIENTS:
         if (value == 0) {
             return;
         }
         AddNpcItemWithDelay(GetNpcStateByKind(3), 0x28d, 1, 0x15180);
         return;
-    case 0x1b:
+    case W8_FACT_ANTONE_EBON_STAFF_ALL_INGREDIENTS:
         if (value == 0) {
             return;
         }
         AddNpcItemWithDelay(GetNpcStateByKind(3), 0x28e, 1, 0x15180);
         return;
-    case 0x1f:
+    case W8_FACT_RAPAX_MYLES_IN_JAIL:
         if (value == 0) {
             return;
         }
@@ -146,7 +146,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         ReleaseNpcMonsterBinding(npc, 0);
         RestoreNamedNpcAtLevel(npc->name_style, 0x11, "NP_MylesCell");
         return;
-    case 0x22:
+    case W8_FACT_ASTRAL_POSSESS:
         if (value == 0) {
             return;
         }
@@ -156,13 +156,13 @@ void HandleFactChange(int fact_id, unsigned char value)
         }
         ClearNpcScheduledItem(npc, 0x242, 0);
         return;
-    case 0x28:
+    case W8_FACT_PEACE_SAVANT_BLOWUP_DONE:
         if (value == 0) {
             return;
         }
         QueueNpcMessageLine(W8_NPC_MSG_TRIGGER_FIX, 0);
         return;
-    case 0x33:
+    case W8_FACT_CROCK_KIDNAPPED_PLAYER:
         if (value != 0 && FindEntityByName("NP_BlueFlowers", &position, 0, 0) != 0) {
             world_item = SpawnItem(0x2eb, &position, 3, 1);
             if (world_item != 0) {
@@ -174,25 +174,25 @@ void HandleFactChange(int fact_id, unsigned char value)
             }
         }
         return;
-    case 0x37:
-        fact_value = GetFact(0x36);
+    case W8_FACT_CROCK_BREKEK_ASSIGN:
+        fact_value = GetFact(W8_FACT_CROCK_BREKEK_DEAD);
         if (fact_value == 0 && FindEntityByName("Brekek", &position, 0, 0) != 0) {
             SpawnMonsters(0x131, 1, &position, 1, 1, 1, 0);
         }
         return;
-    case 0x39:
+    case W8_FACT_CROCK_PLAYER_RETURNED_TO_PARTY:
         if (value != 0 && g_status.buffers.Char[g_status.party_slot].uiCondition[0x13] != 0) {
-            RemoveCharacterCondition(g_status.party_slot, 0x13, 1);
+            RemoveCharacterCondition(g_status.party_slot, W8_CONDITION_MISSING, 1);
         }
         return;
-    case 0x3a:
+    case W8_FACT_ALIGNMENT_TRANG:
         trigger = FindTriggerByName("ZaHealthDoor");
         if (trigger == 0) {
             srAssertFail("pTrigger", NPC_SCRIPTING_FACTS_CPP, 0x640, 0);
         }
         trigger->Run(-1);
         return;
-    case 0x44:
+    case W8_FACT_RFS81_HAS_BEEN_FIXED:
         if (value != 0) {
             npc = GetNpcStateByKind(0x20);
             if (npc != 0) {
@@ -209,29 +209,29 @@ void HandleFactChange(int fact_id, unsigned char value)
             }
         }
         return;
-    case 0x64:
+    case W8_FACT_UMISSION_OBCOURSE_DONE:
         if (value != 0) {
             MarkNpcOfKind(0x29);
         }
         return;
-    case 0x72:
+    case W8_FACT_KUNAR_IS_DEAD:
         ReleaseNpcMonsterByKind(0x2c);
         return;
-    case 0x86:
+    case W8_FACT_UMISSION_TRAIN_COVERT_ASSIGN:
         if (value != 0) {
             for (slot = 0; slot < 8; ++slot) {
                 character = &g_status.buffers.Char[slot];
                 if (g_status.buffers.XChar[slot].fOccupied != 0 &&
-                    character->highest_condition < 0x12 &&
+                    character->highest_condition < W8_CONDITION_DEAD &&
                     g_profession_skill_availability[7][character->iProfession] != 0 &&
                     character->skills[W8_SKILL_MODERN_WEAPONS].points < 10) {
                     character->skills[W8_SKILL_MODERN_WEAPONS].points = 10;
-                    ApplySkillChange(character, 7);
+                    ApplySkillChange(character, W8_SKILL_MODERN_WEAPONS);
                 }
             }
         }
         return;
-    case 0x89:
+    case W8_FACT_UMISSION_IUFPASS_LEVEL4:
         if (value == 0) {
             return;
         }
@@ -241,7 +241,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         }
         MarkNpcOfKind(0x29);
         return;
-    case 0x91:
+    case W8_FACT_UMISSION_TRAIN_COVERT_OPEN:
         if (value != 0) {
             trigger = FindTriggerByName("Door08");
             if (trigger != 0 && (trigger->flags & W8_TRIGGER_FIRED) == 0) {
@@ -249,7 +249,7 @@ void HandleFactChange(int fact_id, unsigned char value)
             }
         }
         return;
-    case 0xa5:
+    case W8_FACT_LOCATION_GIGAS_MOTION_SENSORS_OFF:
         if (value != 0) {
             trigger = FindTriggerByName("SecurityLasers");
             if (trigger != 0) {
@@ -258,7 +258,7 @@ void HandleFactChange(int fact_id, unsigned char value)
             CreateLocationVar("LasersOff", 1);
         }
         return;
-    case 0xa6:
+    case W8_FACT_LOCATION_GIGAS_OUTER_GATE_OPEN:
         if (value == 0) {
             return;
         }
@@ -267,7 +267,7 @@ void HandleFactChange(int fact_id, unsigned char value)
             trigger->Run(-1);
         }
         return;
-    case 0xa8:
+    case W8_FACT_UMISSION_TRAIN_GUNNARY_OPEN:
         if (value == 0) {
             return;
         }
@@ -276,7 +276,7 @@ void HandleFactChange(int fact_id, unsigned char value)
             trigger->Run(-1);
         }
         return;
-    case 0xa9:
+    case W8_FACT_UMISSION_TRAIN_UTU_OPEN:
         if (value == 0) {
             return;
         }
@@ -285,7 +285,7 @@ void HandleFactChange(int fact_id, unsigned char value)
             trigger->Run(-1);
         }
         return;
-    case 0xac:
+    case W8_FACT_ARNIKA_HLL_OPEN:
         trigger = FindTriggerByName("scannerdoor");
         if (trigger != 0) {
             trigger->Run(-1);
@@ -296,17 +296,17 @@ void HandleFactChange(int fact_id, unsigned char value)
         }
         trigger->flags &= ~W8_TRIGGER_ENABLED;
         return;
-    case 0xb6:
+    case W8_FACT_MOOK_MOOK_PC_SWAP_COMPLETE:
         if (value != 0) {
-            SetFact(0x308, 1, 0);
+            SetFact(W8_FACT_QUEST_MOOK_BUDDY_TELLS_OF_CM, 1, 0);
         }
         return;
-    case 0xb7:
+    case W8_FACT_MOOK_MOOK_PC_REMOVED:
         if (value != 0) {
             QueueNpcMessageLine(W8_NPC_MSG_MOOK_COMMENT, 0);
         }
         return;
-    case 0xba:
+    case W8_FACT_MOOK_HALL_OPEN:
         trigger = FindTriggerByName("MookFrontDoor");
         if (trigger != 0) {
             trigger->Run(-1);
@@ -316,64 +316,64 @@ void HandleFactChange(int fact_id, unsigned char value)
             trigger->Run(-1);
         }
         return;
-    case 0xc4:
+    case W8_FACT_ARNIKA_BLACKBOX_RECEIVED:
         trigger = FindTriggerByName("blackboxrecorder");
         if (trigger != 0) {
             trigger->Run(-1);
         }
         return;
-    case 0xc6:
+    case W8_FACT_ARNIKA_MYLES_TROOPERS_HOSTILE:
         group = FindFirstMonsterByID(0x13);
         if (group != 0) {
             SetMonsterGroupHostility(group, 1, 0);
         }
         return;
-    case 0xc7:
+    case W8_FACT_ARNIKA_SAFETY_DEPOSIT_OPEN:
         trigger = FindTriggerByName("redbutton");
         if (trigger != 0) {
             trigger->Run(-1);
         }
         return;
-    case 0xc9:
+    case W8_FACT_FACTION_HIGARDI_HLL_FRIENDLY:
         if (value == 0) {
             SetFactionDispositionBand(0xb, 0);
             return;
         }
         SetFactionDispositionBand(0xb, 2);
         return;
-    case 0xca:
+    case W8_FACT_FACTION_HIGARDI_COMMON_FRIENDLY:
         if (value == 0) {
             SetFactionDispositionBand(0xc, 0);
             return;
         }
         SetFactionDispositionBand(0xc, 2);
         return;
-    case 0xcb:
+    case W8_FACT_FACTION_HIGARDI_BANK_FRIENDLY:
         if (value == 0) {
             SetFactionDispositionBand(10, 0);
             return;
         }
         SetFactionDispositionBand(10, 2);
         return;
-    case 0xcc:
+    case W8_FACT_FACTION_HIGARDI_FELLOW_FRIENDLY:
         if (value == 0) {
             SetFactionDispositionBand(9, 0);
             return;
         }
         SetFactionDispositionBand(9, 2);
         return;
-    case 0xcd:
-    case 0xe0:
+    case W8_FACT_ARNIKA_VAULT_TELEPORT:
+    case W8_FACT_ARNIKA_VAULT_ENTERED:
         if (value == 0) {
             return;
         }
-        fact_value = GetFact(0xd1);
+        fact_value = GetFact(W8_FACT_MYLES_IN_PARTY);
         if (fact_value != 0) {
-            SetFact(0xe2, 1, 0);
+            SetFact(W8_FACT_MYLES_IN_PARTY_WHEN_BANK_DONE, 1, 0);
         }
-        SetFact(0x24d, 0, 0);
+        SetFact(W8_FACT_QUEST_MYLES_BANK_VAULT, 0, 0);
         return;
-    case 0xdb:
+    case W8_FACT_MYLES_MISSION_RESCUE_VI_ASSIGNED:
         npc = GetNpcStateByKind(7);
         if (npc == 0) {
             return;
@@ -384,7 +384,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         }
         monster_info->p3D->SetScript("Guard.msf", 1);
         return;
-    case 0xe8:
+    case W8_FACT_MURAL_OPEN:
         if (value != 0) {
             trigger = FindTriggerByName("MartenMural");
             if (trigger != 0) {
@@ -402,17 +402,17 @@ void HandleFactChange(int fact_id, unsigned char value)
             trigger->Run(-1);
         }
         return;
-    case 0x11e:
+    case W8_FACT_FACTION_TRANG_COMMON_FRIENDLY:
         if (value == 0) {
             SetFactionDispositionBand(5, 0);
             return;
         }
         SetFactionDispositionBand(5, 2);
         return;
-    case 0x14f:
+    case W8_FACT_AP_GOLEM_ATTACK:
         QueueNpcMessageLine(W8_NPC_MSG_MOVE_GOLEM, 0);
         return;
-    case 0x151:
+    case W8_FACT_CM_RIDDLE2:
         trigger = FindTriggerByName("ChaosBTrigger");
         if (trigger != 0) {
             trigger->flags &= ~W8_TRIGGER_ENABLED;
@@ -423,7 +423,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         }
         QueueNpcMessageLine(W8_NPC_MSG_REMOVE_ALETHEIDES_AD, 0);
         return;
-    case 0x153:
+    case W8_FACT_DD_RIDDLE2:
         trigger = FindTriggerByName("KnowBTrigger");
         if (trigger != 0) {
             trigger->flags &= ~W8_TRIGGER_ENABLED;
@@ -434,7 +434,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         }
         QueueNpcMessageLine(W8_NPC_MSG_REMOVE_ALETHEIDES_DD, 0);
         return;
-    case 0x155:
+    case W8_FACT_AD_RIDDLE2:
         trigger = FindTriggerByName("LifeBTrigger");
         if (trigger != 0) {
             trigger->flags &= ~W8_TRIGGER_ENABLED;
@@ -445,48 +445,48 @@ void HandleFactChange(int fact_id, unsigned char value)
         }
         QueueNpcMessageLine(W8_NPC_MSG_REMOVE_ALETHEIDES_CM, 0);
         return;
-    case 0x157:
+    case W8_FACT_AP_SAVANT_DISAPPEARS:
         QueueNpcMessageLine(W8_NPC_MSG_MOVE_SAVANT, 0);
         return;
-    case 0x15f:
+    case W8_FACT_TEMPLAR:
         if (value == 0) {
             return;
         }
         MarkNpcOfKind(0x3b);
         SetFactionFlag(0x10, 1);
         return;
-    case 0x16c:
+    case W8_FACT_RATTKIN_HAVE_AD:
         if (value == 0) {
             return;
         }
         AddNpcItemWithDelay(GetNpcStateByKind(0x48), 0x242, 1, 0);
         return;
-    case 0x16f:
+    case W8_FACT_BAYJIN_JANETTE_DEAD:
         if (value == 0) {
             return;
         }
         QueueNpcMessageLine(W8_NPC_MSG_REMOVE_JANETTE, 0);
         return;
-    case 0x173:
+    case W8_FACT_MARTEN_FINISHED:
         if (value == 0) {
             return;
         }
         QueueNpcMessageLine(W8_NPC_MSG_REMOVE_MARTEN, 0);
         return;
-    case 0x179:
+    case W8_FACT_UMISSION_SCUBA_SOLVED_NO_ALIGN:
         if (value == 0) {
             return;
         }
         MarkNpcOfKind(0x2b);
         return;
-    case 0x183:
+    case W8_FACT_FACTION_UMPANI_COMMON_FRIENDLY:
         if (value == 0) {
             SetFactionDispositionBand(4, 0);
             return;
         }
         SetFactionDispositionBand(4, 2);
         return;
-    case 0x188:
+    case W8_FACT_LOCATION_GIGAS_TELEPORT_OPEN:
         if (value == 0) {
             return;
         }
@@ -499,20 +499,20 @@ void HandleFactChange(int fact_id, unsigned char value)
             trigger->Run(-1);
         }
         return;
-    case 0x195:
+    case W8_FACT_TRYNNIE_FOUNTAIN_ANSWERED_CORRECT:
         if (value == 0) {
             return;
         }
         for (slot = 0; slot < 8; ++slot) {
             character = &g_status.buffers.Char[slot];
             if (g_status.buffers.XChar[slot].fOccupied != 0 && character->hp_current != 0 &&
-                character->highest_condition < 0x12) {
+                character->highest_condition < W8_CONDITION_DEAD) {
                 added = 100 - character->attributes[W8_ATTRIBUTE_INTELLIGENCE].value;
                 if (added > 5) {
                     added = 5;
                 }
                 character->attributes[W8_ATTRIBUTE_INTELLIGENCE].value += added;
-                ApplyAttributeChange(character, 1);
+                ApplyAttributeChange(character, W8_ATTRIBUTE_INTELLIGENCE);
             }
         }
         ShowString(gppStringList[0x1dc]);
@@ -522,59 +522,59 @@ void HandleFactChange(int fact_id, unsigned char value)
         }
         trigger->flags &= ~W8_TRIGGER_ENABLED;
         return;
-    case 0x197:
+    case W8_FACT_RATTKIN_WHO_LOOKING_FOR:
         QueueNpcMessageLine(W8_NPC_MSG_MILANO_RAT_DOOR, 0);
         return;
-    case 0x19b:
+    case W8_FACT_TRYNNIE_KILL_RATS_DONE:
         if (value == 0) {
             return;
         }
-        SetFact(0x273, 1, 0);
+        SetFact(W8_FACT_QUEST_MADRAS_OPEXTERM, 1, 0);
         return;
-    case 0x19c:
+    case W8_FACT_TRYNNIE_KILL_RATS_ASSIGNED:
         QueueNpcMessageLine(W8_NPC_MSG_MOVE_GARI, 0);
         return;
-    case 0x19e:
+    case W8_FACT_TRYNNIE_FUZZFAS_POTION:
         if (value == 0) {
             return;
         }
         AddNpcItemWithDelay(GetNpcStateByKind(0x49), 0x1b0, 1, 0x15180);
         return;
-    case 0x1a0:
+    case W8_FACT_AP_BELA_DONE:
         QueueNpcMessageLine(W8_NPC_MSG_MOVE_BELA, 0);
         return;
-    case 0x1a5:
+    case W8_FACT_TRYNNIE_GOT_DESTINY:
         if (value == 0) {
             return;
         }
         QueueNpcMessageLine(W8_NPC_MSG_REMOVE_SHAMAN, 0);
         return;
-    case 0x1a8:
+    case W8_FACT_FACTION_RAPAX_COMMON_FRIENDLY:
         if (value == 0) {
             SetFactionDispositionBand(0xf, 0);
             return;
         }
         SetFactionDispositionBand(0xf, 2);
         return;
-    case 0x1b3:
+    case W8_FACT_RAPAX_RIDDLE1:
         if (value == 0) {
             return;
         }
         QueueNpcMessageLine(W8_NPC_MSG_PILLARGATE_ASAIZ, 0);
         return;
-    case 0x1b4:
+    case W8_FACT_RAPAX_RIDDLE3:
         if (value == 0) {
             return;
         }
         QueueNpcMessageLine(W8_NPC_MSG_PILLARGATE_LURE, 0);
         return;
-    case 0x1b5:
+    case W8_FACT_RAPAX_RIDDLE2:
         if (value == 0) {
             return;
         }
         QueueNpcMessageLine(W8_NPC_MSG_PILLARGATE_MADEUS, 0);
         return;
-    case 0x1b8:
+    case W8_FACT_RAPAX_INITIATES:
         if (value == 0) {
             return;
         }
@@ -584,7 +584,7 @@ void HandleFactChange(int fact_id, unsigned char value)
             trigger->Run(-1);
         }
         return;
-    case 0x1ba:
+    case W8_FACT_RAPAX_OPEN_TEMPLE:
         if (value == 0) {
             return;
         }
@@ -594,69 +594,69 @@ void HandleFactChange(int fact_id, unsigned char value)
             trigger->Run(-1);
         }
         return;
-    case 0x1bf:
+    case W8_FACT_ALSEDEXUS_SACRIFICE_SELECT:
         if (value == 0) {
             return;
         }
         BeginNpcScriptedScene();
         return;
-    case 0x1c2:
+    case W8_FACT_ALSEDEXUS_PARTY_PASSOUT:
         if (value == 0) {
             QueueNpcMessageLine(W8_NPC_MSG_SEDEXUS_PASSOUT, 0);
             return;
         }
         BeginSedexusCapture();
         return;
-    case 0x1c9:
+    case W8_FACT_RIFT_RAFE_FREE:
         if (value == 0) {
             return;
         }
         MarkNpcOfKind(0x44);
         return;
-    case 0x1dc:
+    case W8_FACT_FERRO_MIRROR_ARMOR_ALL_INGREDIENTS:
         if (value == 0) {
             return;
         }
         AddNpcItemWithDelay(GetNpcStateByKind(0x39), 500, 1, 0x15180);
         return;
-    case 0x1dd:
+    case W8_FACT_FERRO_IVORY_BLADE_ALL_INGREDIENTS:
         if (value == 0) {
             return;
         }
         AddNpcItemWithDelay(GetNpcStateByKind(0x39), 0x1f5, 1, 0x15180);
         return;
-    case 0x1de:
+    case W8_FACT_FERRO_VAMPIRE_CHAIN_ALL_INGREDIENTS:
         if (value == 0) {
             return;
         }
         AddNpcItemWithDelay(GetNpcStateByKind(0x39), 0x1f8, 1, 0x15180);
         return;
-    case 0x1e7:
+    case W8_FACT_ALETHEIDES_DISAPPEARS:
         QueueNpcMessageLine(W8_NPC_MSG_ALETHEIDES_LEAVES, 0);
         return;
-    case 0x1ec:
+    case W8_FACT_QUEEN_IS_FREE:
         if (value == 0) {
             return;
         }
         MarkNpcOfKind(0x56);
         return;
-    case 0x1f1:
+    case W8_FACT_PRINCE_NOT_IN_CASTLE:
         if (value == 0) {
             return;
         }
         ReleaseNpcMonsterByKind(0x55);
         QueueNpcMessageLine(W8_NPC_MSG_PRINCE_NOT_HOME, 0);
         return;
-    case 0x1f2:
+    case W8_FACT_PRINCE_DISAPPEARS:
         QueueNpcMessageLine(W8_NPC_MSG_PRINCE_DISAPPEARS, 0);
         return;
-    case 0x203:
+    case W8_FACT_UMPANI_INITIATE_LANDING:
         if (value == 0) {
             return;
         }
         position.Set(53550.0f, 3516.0f, 36936.0f);
         CameraLookAt(&position);
-        fact_value = GetFact(0x177);
+        fact_value = GetFact(W8_FACT_TMISSION_KILL_UMPANI_CORD_SEVERED);
         if (fact_value == 0) {
             trigger_name = "TR2ShipTrigger";
         } else {
@@ -667,43 +667,43 @@ void HandleFactChange(int fact_id, unsigned char value)
             trigger->Run(-1);
         }
         return;
-    case 0x204:
+    case W8_FACT_RATTUS_BANK_ROBBERY:
         if (value == 0) {
             return;
         }
         MarkNpcOfKind(0x52);
         return;
-    case 0x206:
+    case W8_FACT_HENCHMAN_DISAPPEARS:
         QueueNpcMessageLine(W8_NPC_MSG_HENCHMAN_LEAVES, 0);
         return;
-    case 0x208:
+    case W8_FACT_ALETHEIDES_CALLS_HENCHMAN:
         QueueNpcMessageLine(W8_NPC_MSG_CALL_HENCHMAN, 0);
         return;
-    case 0x20f:
+    case W8_FACT_ENDGAME_MOVE_TO_BOOK:
         QueueNpcMessageLine(W8_NPC_MSG_MOVE_TO_BOOK, 0);
         return;
-    case 0x213:
+    case W8_FACT_ENDGAME_TURN_TOWARD_BOOK_WRITE:
         QueueNpcMessageLine(W8_NPC_MSG_TURN_TO_BOOK, 0);
         return;
-    case 0x214:
+    case W8_FACT_SAVANT_HACK_ALETHEIDES:
         if (value == 0) {
             return;
         }
         QueueNpcMessageLine(W8_NPC_MSG_SAVANT_HACK, 0);
         return;
-    case 0x215:
+    case W8_FACT_ENDGAME_SAVANT_APPEARS:
         QueueNpcMessageLine(W8_NPC_MSG_SAVANT_APPEARS, 0);
         return;
-    case 0x219:
+    case W8_FACT_QUE_ENDGAME2:
         g_status.endgame2_queued = 1;
         return;
-    case 0x21b:
+    case W8_FACT_ENDGAME_SAVANT_PHOON_SPLIT:
         QueueNpcMessageLine(W8_NPC_MSG_PHOONZANG_SPLIT, 0);
         return;
-    case 0x21c:
+    case W8_FACT_QUE_ENDGAME3:
         g_status.endgame3_queued = 1;
         return;
-    case 0x21e:
+    case W8_FACT_UMISSION_MOVE_RUBBLE_COVERT:
         if (value == 0) {
             return;
         }
@@ -713,8 +713,8 @@ void HandleFactChange(int fact_id, unsigned char value)
         }
         MarkNpcOfKind(0x29);
         return;
-    case 0x220:
-    case 0x221:
+    case W8_FACT_LOCATION_GIGAS_TOGGLE_LIFT3:
+    case W8_FACT_LOCATION_GIGAS_TOGGLE_LIFT2:
         if (value == 0) {
             return;
         }
@@ -723,7 +723,7 @@ void HandleFactChange(int fact_id, unsigned char value)
             trigger->Run(-1);
         }
         return;
-    case 0x222:
+    case W8_FACT_LOCATION_GIGAS_TOGGLE_LIFT1:
         if (value == 0) {
             return;
         }
@@ -732,7 +732,7 @@ void HandleFactChange(int fact_id, unsigned char value)
             trigger->Run(-1);
         }
         return;
-    case 0x223:
+    case W8_FACT_LOCATION_GIGAS_OFFICERS_QUARTERS_GATE_OPEN2:
         if (value == 0) {
             return;
         }
@@ -756,7 +756,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         }
         CreateLocationVar("ObstacleDoors", 2);
         return;
-    case 0x224:
+    case W8_FACT_LOCATION_GIGAS_OFFICERS_QUARTERS_GATE_OPEN1:
         if (value == 0) {
             return;
         }
@@ -780,8 +780,8 @@ void HandleFactChange(int fact_id, unsigned char value)
         }
         CreateLocationVar("ObstacleDoors", 1);
         return;
-    case 0x225:
-    case 0x226:
+    case W8_FACT_LOCATION_GIGAS_TOP_DOOR_OPEN1:
+    case W8_FACT_LOCATION_GIGAS_TOP_DOOR_OPEN2:
         if (value == 0) {
             return;
         }
@@ -794,18 +794,18 @@ void HandleFactChange(int fact_id, unsigned char value)
             trigger->Run(-1);
         }
         return;
-    case 0x22a:
+    case W8_FACT_TRANG_INTRO_DISAPPEAR_GUARD:
         QueueNpcMessageLine(W8_NPC_MSG_REMOVE_SELF, 0);
         return;
-    case 0x22b:
+    case W8_FACT_INTRO_VI_DISAPPEARS:
         if (value == 0) {
             return;
         }
         MarkNpcOfKind(0x18);
         EndNpcDialogueSession(0);
         return;
-    case 0x234:
-    case 0x235:
+    case W8_FACT_FUZZFAS_BOOM1:
+    case W8_FACT_FUZZFAS_BOOM2:
         memset(&sound, -1, sizeof(sound));
         sound.EOSCallback = ClearPotionExplosionSoundFlag;
         if (SoundPlay("Data\\Sound\\misc\\potion_exploding.wav", &sound) != 0xffffffff) {
@@ -833,7 +833,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         }
         StartMonsterCycle(monster_info, 0x14, 1);
         return;
-    case 0x259:
+    case W8_FACT_QUEST_SAVANT_BOMB_DEACTIVATED:
         npc = GetNpcStateByKind(0x57);
         if (npc == 0) {
             return;
@@ -843,40 +843,40 @@ void HandleFactChange(int fact_id, unsigned char value)
         }
         ReleaseNpcMonsterByKind(0x57);
         return;
-    case 0x27c:
+    case W8_FACT_UMPANI_BALBRAK_INTRO_DISAPPEAR:
         if (value == 0) {
             return;
         }
         QueueNpcMessageLine(W8_NPC_MSG_BALBRAK_HOME, 0);
         return;
-    case 0x2a5:
+    case W8_FACT_UMPANI_MOVE_RUBBLE:
         QueueNpcMessageLine(W8_NPC_MSG_MOVE_RUBBLE, 0);
         return;
-    case 0x2a6:
+    case W8_FACT_QUEST_KILL_ALSEDEXUS:
         if (value != 0) {
             return;
         }
         QueueNpcMessageLine(W8_NPC_MSG_SPACER, 0);
         return;
-    case 0x2ed:
+    case W8_FACT_ALSEDEXUS_DISAPPEAR:
         if (value == 0) {
             return;
         }
         QueueNpcMessageLine(W8_NPC_MSG_SEDEXUS_LEAVES, 0);
         return;
-    case 0x2ef:
+    case W8_FACT_ALSEDEXUS_DISAPPEARS_RIFT:
         if (value == 0) {
             return;
         }
         QueueNpcMessageLine(W8_NPC_MSG_REMOVE_SEDEXUS_RIFT, 0);
         return;
-    case 0x2f0:
+    case W8_FACT_MOVE_TO_BOOK2:
         QueueNpcMessageLine(W8_NPC_MSG_MOVE_TO_BOOK2, 0);
         return;
-    case 0x2f3:
+    case W8_FACT_CC_REMOVE_RPC_VI:
         QueueNpcMessageLine(W8_NPC_MSG_REMOVE_RPC_VI, 0);
         return;
-    case 0x2f4:
+    case W8_FACT_ENDGAME_JOIN_SAVANT:
         if (value == 0) {
             return;
         }
@@ -895,7 +895,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         }
         GetNpcStateByKind(0x89);
         return;
-    case 0x314:
+    case W8_FACT_FACTION_RAPAX_TEMPLAR_FRIENDLY:
         if (value == 0) {
             SetFactionDispositionBand(0x10, 0);
             SetFactionDispositionBand(0xf, 0);
@@ -904,11 +904,11 @@ void HandleFactChange(int fact_id, unsigned char value)
         SetFactionDispositionBand(0x10, 2);
         SetFactionDispositionBand(0xf, 2);
         return;
-    case 0x320:
-    case 0x321:
+    case W8_FACT_ENDGAME_QUE_CONGRAT_TWO:
+    case W8_FACT_ENDGAME_QUE_CONGRAT_THREE:
         QueueNpcMessageLine(W8_NPC_MSG_BEGIN_ENDGAME, 0);
         return;
-    case 0x322:
+    case W8_FACT_ENDGAME_QUE_CONGRAT_FOUR:
         EndNpcDialogueSession(0);
         ResetLevelDataVectors();
         group = FindFirstMonsterByID(0xc2);
@@ -941,9 +941,9 @@ void HandleScriptedNpcDeath(unsigned int monster_list_index)
             npc->spawned = 1;
             if (npc->name_style == 0x18) {
                 wchar_t display_value[16];
-                unsigned char fact_ok = GetFact(0xc1);
+                unsigned char fact_ok = GetFact(W8_FACT_VI_RESCUED);
                 if (fact_ok == 0) {
-                    fact_ok = GetFact(0xdb);
+                    fact_ok = GetFact(W8_FACT_MYLES_MISSION_RESCUE_VI_ASSIGNED);
                     if (fact_ok == 0) {
                         npc->spawned = 0;
                     }
@@ -971,7 +971,7 @@ void HandleScriptedNpcDeath(unsigned int monster_list_index)
     for (slot = 0; slot < 8; ++slot) {
         W8Character* character = &g_status.buffers.Char[slot];
         if (g_status.buffers.XChar[slot].fOccupied != 0 && character->hp_current != 0 &&
-            character->highest_condition < 0xf) {
+            character->highest_condition < W8_CONDITION_ASLEEP) {
             eligible_slots[eligible_count] = slot;
             ++eligible_count;
         }
@@ -994,7 +994,7 @@ void HandleScriptedNpcDeath(unsigned int monster_list_index)
     for (slot = 0; slot < 8; ++slot) {
         W8Character* character = &g_status.buffers.Char[slot];
         if (g_status.buffers.XChar[slot].fOccupied != 0 && character->hp_current != 0 &&
-            character->highest_condition < 0xf) {
+            character->highest_condition < W8_CONDITION_ASLEEP) {
             QueueCharacterEvent(character, g_effect28, g_character_event_no_npc_defer,
                                 g_character_event_no_flags, g_character_event_full_volume);
         }
@@ -1025,11 +1025,11 @@ void MonsterKilled(int record_id, int killer_party_slot)
     unsigned char value;
 
     if (record_id == 0x131) {
-        SetFact(0x36, 1, 0);
+        SetFact(W8_FACT_CROCK_BREKEK_DEAD, 1, 0);
         return;
     }
     if (record_id == 0x1a9) {
-        SetFact(0x318, 1, 0);
+        SetFact(W8_FACT_QUEEN_IS_DEAD, 1, 0);
         ApplyFactionChange(2, 1, 0x10, 0x14);
         return;
     }
@@ -1039,31 +1039,32 @@ void MonsterKilled(int record_id, int killer_party_slot)
             return;
         }
         SetTriggerVariableByName("NumberRattkinBreedersKilled", 2);
-        SetFact(0x19b, 1, 0);
+        SetFact(W8_FACT_TRYNNIE_KILL_RATS_DONE, 1, 0);
         SetFactionDispositionBand(7, 0);
     } else {
         if (record_id == 0x22b) {
-            value = GetFact(0x1be);
+            value = GetFact(W8_FACT_ALSEDEXUS_ATTACK);
             if (value != 0) {
-                SetFact(0x2a6, 0, 0);
+                SetFact(W8_FACT_QUEST_KILL_ALSEDEXUS, 0, 0);
             }
             if (g_status.rpc_active != 0) {
                 if (g_status.buffers.Char[g_status.sedexus_party_slot].uiCondition[10] > 0) {
-                    RemoveCharacterCondition(g_status.sedexus_party_slot, 10, 0);
+                    RemoveCharacterCondition(g_status.sedexus_party_slot, W8_CONDITION_INFATUATED,
+                                             0);
                 }
                 QueueCharacterEvent(&g_status.buffers.Char[g_status.sedexus_party_slot],
                                     g_effect37, 0, g_character_event_no_flags,
                                     g_character_event_full_volume);
             }
-            SetFact(0x1b6, 1, 0);
+            SetFact(W8_FACT_RAPAX_ALSEDEXUS_DEAD, 1, 0);
             return;
         }
         if (record_id == 0x181) {
-            SetFact(0x1e8, 1, 0);
+            SetFact(W8_FACT_KING_IS_DEAD, 1, 0);
             return;
         }
         if (record_id == 0x175 || record_id == 0x222) {
-            SetFact(0x326, 1, 0);
+            SetFact(W8_FACT_LAVALORD_DIE, 1, 0);
             return;
         }
     }
@@ -1075,7 +1076,7 @@ void MonsterKilled(int record_id, int killer_party_slot)
 unsigned char g_fact_values[1000];
 
 // FUNCTION: WIZ8 0x00506280
-unsigned char GetFact(int fact_id)
+unsigned char GetFact(W8FactId fact_id)
 {
     unsigned char value;
     wchar_t display_value[10];
@@ -1098,7 +1099,7 @@ unsigned char GetFact(int fact_id)
 }
 
 // FUNCTION: WIZ8 0x005061a0
-void SetFact(int fact_id, unsigned char value, bool suppress_side_effects)
+void SetFact(W8FactId fact_id, unsigned char value, bool suppress_side_effects)
 {
     unsigned char previous_value;
     wchar_t display_value[10];
@@ -1158,31 +1159,31 @@ void InitializeFactState(void)
     memset(g_fact_values, 0, 1000);
     SetFactNotificationsSuppressed(1);
     if (g_status.skip_loose_character_check) {
-        SetFact(0x75, 1, 0);
+        SetFact(W8_FACT_IMPORT, 1, 0);
         switch (g_wiz7_ending) {
         case 1:
-            SetFact(0x4c, 1, 0);
+            SetFact(W8_FACT_IMPORT_UMPANI, 1, 0);
             break;
         case 2:
-            SetFact(0x4b, 1, 0);
+            SetFact(W8_FACT_IMPORT_TRANG, 1, 0);
             break;
         default:
-            SetFact(0x4d, 1, 0);
+            SetFact(W8_FACT_IMPORT_NOALIGN, 1, 0);
             break;
         }
         if (g_import_flags[0xb]) {
-            SetFact(0x199, 1, 0);
+            SetFact(W8_FACT_BARLONE_WAS_DEAD, 1, 0);
         }
         if (g_import_flags[5]) {
-            SetFact(0x7b, 1, 0);
+            SetFact(W8_FACT_RODAN_WAS_DEAD, 1, 0);
             SetFactNotificationsSuppressed(0);
             return;
         }
     } else {
-        SetFact(0x4e, 1, 0);
-        SetFact(0x279, 1, 0);
-        SetFact(0x27a, 1, 0);
-        SetFact(0x27b, 1, 0);
+        SetFact(W8_FACT_VIRGIN, 1, 0);
+        SetFact(W8_FACT_QUEST_VIRGIN_1, 1, 0);
+        SetFact(W8_FACT_QUEST_VIRGIN_2, 1, 0);
+        SetFact(W8_FACT_QUEST_VIRGIN_3, 1, 0);
     }
     SetFactNotificationsSuppressed(0);
 }

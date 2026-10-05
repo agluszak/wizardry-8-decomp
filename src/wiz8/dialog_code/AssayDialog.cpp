@@ -390,20 +390,20 @@ unsigned char W8AssayDialog::PopulateText()
                              gppStringList[g_spell_range_name_ids[record->range_category]], 10, 0xf,
                              0);
     }
-    index = GetItemSpellPresentation(record);
-    if (index == -1) {
-        if (record->weapon_skill != -1) {
+    W8Skill presentation_skill = GetItemSpellPresentation(record);
+    if (presentation_skill == W8_SKILL_NONE) {
+        if (record->weapon_skill != W8_SKILL_NONE) {
             m_text_area.AddEntry(gppStringList[0x8c8],
                                  gppStringList[g_character_skill_name_ids[record->weapon_skill]],
                                  10, 0xf, 0);
         }
     } else {
-        if (record->weapon_skill == -1) {
-            text = gppStringList[g_character_skill_name_ids[index]];
+        if (record->weapon_skill == W8_SKILL_NONE) {
+            text = gppStringList[g_character_skill_name_ids[presentation_skill]];
         } else {
-            text =
-                FormatWideString(L"%s, %s", gppStringList[g_character_skill_name_ids[index]],
-                                 gppStringList[g_character_skill_name_ids[record->weapon_skill]]);
+            text = FormatWideString(
+                L"%s, %s", gppStringList[g_character_skill_name_ids[presentation_skill]],
+                gppStringList[g_character_skill_name_ids[record->weapon_skill]]);
         }
         m_text_area.AddEntry(gppStringList[0x8c8], text, 10, 0xf, 0);
     }

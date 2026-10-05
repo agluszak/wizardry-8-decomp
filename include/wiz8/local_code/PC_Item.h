@@ -3,6 +3,7 @@
 void InitializeItemVideoObjects(void);
 void ReleaseGenericItemNames(void);
 
+#include "wiz8/character_skills.h"
 #include <wchar.h>
 
 #include "wiz8/layouts/item_instance.h"
@@ -37,7 +38,7 @@ enum W8EquipSlot {
 
 bool CanCharacterActivateItem(W8Character* character, const W8ItemInstance* item);
 
-extern int g_item_spell_presentation[11];
+extern W8Skill g_item_spell_presentation[11];
 /* 0x00648C5C: the paper-doll icon of each of the twelve equipment slots. The
    two alternate-set hand slots have none, which is exactly the value the
    bound-item predicates refuse to hold a binding behind. */
@@ -100,7 +101,7 @@ unsigned int GetItemUnitWeight(const W8ItemInstance* item);
 unsigned int GetItemStackWeight(const W8ItemInstance* item);
 unsigned char GetItemEquipClass(const W8ItemInstance* item);
 int GetItemDefaultEquipSlot(int item_id);
-int GetItemSpellPresentation(const W8ItemDatabaseRecord* record);
+W8Skill GetItemSpellPresentation(const W8ItemDatabaseRecord* record);
 unsigned short GetItemEquipSlotMask(int item_id, bool primary_off_hand_free,
                                     bool alternate_off_hand_free, bool primary_main_hand_free,
                                     bool alternate_main_hand_free);
@@ -230,8 +231,9 @@ unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_use
 /* 0x0051DCD0 rates how hard one attempt at an item's spell is for a character
    of this skill level. 0x0051EE70 applies the item's spell and consumes the
    uses it took. */
-unsigned int GetItemUseDifficulty(const W8Character* character, int skill, unsigned int skill_level,
-                                  unsigned int spell_id, unsigned int power);
+unsigned int GetItemUseDifficulty(const W8Character* character, W8Skill skill,
+                                  unsigned int skill_level, unsigned int spell_id,
+                                  unsigned int power);
 int CastItemSpell(W8Character* character, W8ItemInstance* item, unsigned int power);
 
 void AimItemUseAtCurrentTarget(W8Character* character, W8ItemInstance* item);

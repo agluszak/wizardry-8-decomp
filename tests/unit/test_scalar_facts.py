@@ -66,6 +66,102 @@ def property_report(scalar, facts, claims=(), property_="signedness"):
     return scalar.integer_report(facts, list(claims))["integer_components"][property_][0]
 
 
+def source_enum_facts(scalar, tmp_path, *rows):
+    facts = read(
+        scalar,
+        tmp_path,
+        "M\tsrc/wiz8/test.cpp",
+        declaration("owner", domain="enum", spelling="W8Condition"),
+        *rows,
+    )
+    facts.expected_units = {"src/wiz8/test.cpp"}
+    return facts
+
+
+def test_source_enum_copy_chain_is_separate_from_historical_recovery(scalar, tmp_path):
+    facts = source_enum_facts(
+        scalar,
+        tmp_path,
+        declaration("first"),
+        declaration("second"),
+        "F\tfirst\towner\tinitializer\tsrc/wiz8/test.cpp\t2\t1",
+        "F\tsecond\tfirst\tassignment\tsrc/wiz8/test.cpp\t3\t1",
+    )
+    result = scalar.enum_propagation_report(facts, ["W8Condition"])
+    assert result["proposals"] == [
+        {
+            "members": ["first", "second"],
+            "changes": ["first", "second"],
+            "value": "enum:W8Condition",
+            "status": "candidate",
+            "blockers": [],
+        }
+    ]
+    assert "no independent historical evidence" in result["basis"]
+    assert all(
+        row["status"] == "unknown"
+        for row in scalar.integer_report(facts, [])["integer_components"]["domain"]
+    )
+
+
+@pytest.mark.parametrize(
+    "extra",
+    [
+        "K\tfirst\t0",  # mixed enum/numeric producers
+        "U\tfirst\t++\tsrc/wiz8/test.cpp\t2\t1",
+        "A\tfirst\taddress taken\tsrc/wiz8/test.cpp\t2\t1",
+        "F\tfirst\tunknown\tassignment\tsrc/wiz8/test.cpp\t2\t1",
+        "F\tfirst\tsecond\tassignment\tsrc/wiz8/test.cpp\t2\t1",  # cycle
+    ],
+)
+def test_source_enum_blocks_unsafe_upstream_and_all_downstream(scalar, tmp_path, extra):
+    facts = source_enum_facts(
+        scalar,
+        tmp_path,
+        declaration("first"),
+        declaration("second"),
+        "F\tfirst\towner\tinitializer\tsrc/wiz8/test.cpp\t2\t1",
+        "F\tsecond\tfirst\tassignment\tsrc/wiz8/test.cpp\t3\t1",
+        extra,
+    )
+    proposals = scalar.enum_propagation_report(facts, ["W8Condition"])["proposals"]
+    assert len(proposals) == 2
+    assert all(row["status"] == "blocked" and not row["changes"] for row in proposals)
+
+
+@pytest.mark.parametrize("kind,width", [("field", 32), ("parameter", 32), ("variable", 8)])
+def test_source_enum_keeps_storage_signature_and_width_boundaries(scalar, tmp_path, kind, width):
+    facts = source_enum_facts(
+        scalar,
+        tmp_path,
+        declaration("consumer", kind=kind, width=width),
+        "F\tconsumer\towner\tassignment\tsrc/wiz8/test.cpp\t2\t1",
+    )
+    assert (
+        scalar.enum_propagation_report(facts, ["W8Condition"])["proposals"][0]["status"]
+        == "blocked"
+    )
+
+
+def test_source_enum_conflict_and_incomplete_corpus_block_patch(scalar, tmp_path):
+    facts = source_enum_facts(
+        scalar,
+        tmp_path,
+        declaration("other", domain="enum", spelling="W8Skill"),
+        declaration("consumer"),
+        "F\tconsumer\towner\tassignment\tsrc/wiz8/test.cpp\t2\t1",
+        "F\tconsumer\tother\tassignment\tsrc/wiz8/test.cpp\t3\t1",
+    )
+    row = scalar.enum_propagation_report(facts, ["W8Condition"])["proposals"][0]
+    assert row["status"] == "blocked"
+    assert {b["reason"] for b in row["blockers"]} == {"different enum producers"}
+    facts.expected_units.add("src/wiz8/missing.cpp")
+    assert any(
+        b["reason"] == "incomplete source corpus"
+        for b in scalar.enum_propagation_report(facts, ["W8Condition"])["proposals"][0]["blockers"]
+    )
+
+
 def test_unsigned_evidence_propagates_entire_copy_chain(scalar, tmp_path):
     facts = read(
         scalar,
@@ -1351,3 +1447,105 @@ def test_signedness_conversion_is_not_signedness_equality(scalar, tmp_path):
     assert {"count", "Count"} <= next(
         set(row["members"]) for row in scalar.component_report(facts, [], "width")
     )
+
+
+def test_source_enum_patch_uses_existing_snapshot_and_shared_atom_guards(scalar, tmp_path):
+    source = "int first;\nint second;\n"
+    (tmp_path / "test.cpp").write_text(source)
+    facts = source_enum_facts(
+        scalar,
+        tmp_path,
+        declaration("first"),
+        declaration("second"),
+        "F\tfirst\towner\tinitializer\ttest.cpp\t1\t1",
+        "F\tsecond\tfirst\tassignment\ttest.cpp\t2\t1",
+        span("first", "test.cpp", 0, "int", source),
+        span("second", "test.cpp", source.index("int second"), "int", source),
+    )
+    patch = tmp_path / "recovery.patch"
+    result = scalar.write_recovery_patch(
+        facts, [], tmp_path, patch, propagate_enums=["W8Condition"]
+    )
+    assert result["changed_declarations"] == ["first", "second"]
+    assert patch.read_text().count("+W8Condition") == 2
+    assert (tmp_path / "test.cpp").read_text() == source
+    (tmp_path / "test.cpp").write_text(source + "// new revision\n")
+    with pytest.raises(ValueError, match="stale source facts"):
+        scalar.write_recovery_patch(facts, [], tmp_path, patch, propagate_enums=["W8Condition"])
+    (tmp_path / "test.cpp").write_text(source)
+    facts.spans = {item for item in facts.spans if item[0] != "second"}
+    result = scalar.write_recovery_patch(
+        facts, [], tmp_path, patch, propagate_enums=["W8Condition"]
+    )
+    assert not result["changed_declarations"]
+    assert "every changed declaration" in result["rejected"][0]["reason"]
+
+
+@pytest.mark.parametrize("kind", ["sign", "wide-consumer"])
+def test_source_enum_patches_preserve_numeric_conversion_behavior(scalar, tmp_path, kind):
+    rows = [
+        declaration("consumer", signedness="unsigned" if kind == "sign" else "signed"),
+        "F\tconsumer\towner\tinitializer\tsrc/wiz8/test.cpp\t2\t1",
+    ]
+    if kind == "wide-consumer":
+        rows += [
+            declaration("wide", width=64),
+            "F\twide\tconsumer\tassignment\tsrc/wiz8/test.cpp\t3\t1",
+        ]
+    facts = source_enum_facts(scalar, tmp_path, *rows)
+    assert all(
+        row["status"] == "blocked"
+        for row in scalar.enum_propagation_report(facts, ["W8Condition"])["proposals"]
+    )
+
+
+@pytest.mark.parametrize("boundary", ["global", "overload"])
+def test_source_enum_preserves_globals_and_overload_resolution(scalar, tmp_path, boundary):
+    facts = source_enum_facts(
+        scalar,
+        tmp_path,
+        declaration("copy"),
+        "F\tcopy\towner\tinitializer\tsrc/wiz8/test.cpp\t2\t1",
+    )
+    if boundary == "global":
+        facts.linkage["copy"] = ("internal", "none")
+    else:
+        facts.declarations["callee:parameter:#0"] = scalar.DeclarationFact(
+            "callee:parameter:#0",
+            "test.cpp",
+            1,
+            1,
+            "parameter",
+            "p",
+            False,
+            False,
+            32,
+            "signed",
+            "integer",
+            "int",
+        )
+        facts.signatures.update(
+            {"callee": ("Overload", 1, 0, False, "one"), "other": ("Overload", 1, 0, False, "two")}
+        )
+        facts.flows.add(scalar.Flow("callee:parameter:#0", "copy", "argument", "test.cpp", 2, 1))
+    rows = scalar.enum_propagation_report(facts, ["W8Condition"])["proposals"]
+    assert all(row["status"] == "blocked" for row in rows)
+
+
+def test_source_enum_patch_rejects_stale_owner_even_when_local_is_unchanged(scalar, tmp_path):
+    source = "int copy;\n"
+    owner = "W8Condition owner;\n"
+    (tmp_path / "test.cpp").write_text(source)
+    (tmp_path / "owner.h").write_text("int owner;\n")
+    facts = source_enum_facts(
+        scalar,
+        tmp_path,
+        declaration("copy"),
+        "F\tcopy\towner\tinitializer\ttest.cpp\t1\t1",
+        span("copy", "test.cpp", 0, "int", source),
+        span("owner", "owner.h", 0, "W8Condition", owner),
+    )
+    with pytest.raises(ValueError, match="stale source facts for owner.h"):
+        scalar.write_recovery_patch(
+            facts, [], tmp_path, tmp_path / "recovery.patch", propagate_enums=["W8Condition"]
+        )

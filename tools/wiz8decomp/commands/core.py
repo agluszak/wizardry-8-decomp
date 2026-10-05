@@ -536,12 +536,26 @@ def scalar_facts_command(
         bool,
         typer.Option(help="Include layout-preserving explicit padding removal in the patch."),
     ] = False,
+    propagate_enum: Annotated[
+        list[str] | None,
+        typer.Option(
+            help="Propagate an accepted source enum through pure local copies (repeatable)."
+        ),
+    ] = None,
 ) -> None:
     """Collect the complete configured corpus and solve shared type constraints."""
     from .. import command_support as cli
     from ..build import scalar_campaign
 
-    cli.emit(scalar_campaign(cli.settings(), evidence=evidence, patch=patch, padding=padding))
+    cli.emit(
+        scalar_campaign(
+            cli.settings(),
+            evidence=evidence,
+            patch=patch,
+            padding=padding,
+            propagate_enums=propagate_enum,
+        )
+    )
 
 
 def scalar_evidence_command(

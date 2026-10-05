@@ -303,16 +303,17 @@ void ImportWizardry7Character(W8Character* character, W8Wiz7Character* imported)
     status = imported->status;
     if (status == 2 || status == 3) {
         character->uiCondition[0x12] = 9999;
-        character->highest_condition = 0x12;
+        character->highest_condition = W8_CONDITION_DEAD;
     } else {
-        character->highest_condition = 0;
+        character->highest_condition = W8_CONDITION_NONE;
     }
-    character->enchantment_top = 0;
+    character->enchantment_top = W8_ENCHANTMENT_NONE;
     ConvertAttribute(character, imported);
     GrantStartingSpells(character, imported);
     for (skill_id = 0; skill_id < 0x29; ++skill_id) {
         character->skills[skill_id].active = 0;
-        character->skills[skill_id].points = ConvertSkill(skill_id, character, imported);
+        character->skills[skill_id].points =
+            ConvertSkill(static_cast<W8Skill>(skill_id), character, imported);
     }
     RefreshCharacterSkillAvailability(character);
     ImportEquipment(character, imported);
@@ -659,8 +660,7 @@ void ImportEquipment(W8Character* character, const W8Wiz7Character* imported)
 /* Retail fell through the failed assert and read `imported->skills` by
    whatever `mapped` held; the recovery keeps that read. */
 // FUNCTION: WIZ8 0x00559BC0
-unsigned int ConvertSkill(unsigned int skill_id, W8Character* character,
-                          const W8Wiz7Character* imported)
+unsigned int ConvertSkill(W8Skill skill_id, W8Character* character, const W8Wiz7Character* imported)
 {
     int mapped;
     unsigned int unlocks;
@@ -677,91 +677,91 @@ unsigned int ConvertSkill(unsigned int skill_id, W8Character* character,
         return 0;
     }
     switch (skill_id) {
-    case 0:
+    case W8_SKILL_SWORD:
         mapped = 1;
         break;
-    case 1:
+    case W8_SKILL_AXE:
         mapped = 2;
         break;
-    case 2:
-    case 5:
+    case W8_SKILL_POLEARM:
+    case W8_SKILL_STAFF_WAND:
         mapped = 4;
         break;
-    case 3:
+    case W8_SKILL_MACE_FLAIL:
         mapped = 3;
         break;
-    case 4:
+    case W8_SKILL_DAGGER:
         mapped = 0;
         break;
-    case 6:
+    case W8_SKILL_SHIELD:
         mapped = 8;
         break;
-    case 7:
+    case W8_SKILL_MODERN_WEAPONS:
         mapped = 0x12;
         break;
-    case 8:
+    case W8_SKILL_BOW:
         mapped = 7;
         break;
-    case 10:
+    case W8_SKILL_MARTIAL_ARTS:
         mapped = 0x10;
         break;
-    case 0xb:
+    case W8_SKILL_LOCKS_TRAPS:
         mapped = 0x11;
         break;
-    case 0xc:
+    case W8_SKILL_STEALTH:
         mapped = 0xd;
         break;
-    case 0xd:
+    case W8_SKILL_MUSIC:
         mapped = 0xf;
         break;
-    case 0xe:
+    case W8_SKILL_PICKPOCKET:
         mapped = 9;
         break;
-    case 0xf:
+    case W8_SKILL_SCOUTING:
         mapped = 0xc;
         break;
-    case 0x13:
+    case W8_SKILL_CRITICAL_STRIKE:
         mapped = 0x21;
         break;
-    case 0x15:
+    case W8_SKILL_MYTHOLOGY:
         mapped = 0x19;
         break;
-    case 0x16:
+    case W8_SKILL_COMMUNICATION:
         mapped = 0x1c;
         break;
-    case 0x18:
+    case W8_SKILL_SPELLBOOK_WIZARDRY:
         mapped = 0x20;
         break;
-    case 0x19:
+    case W8_SKILL_SPELLBOOK_DIVINITY:
         mapped = 0x1e;
         break;
-    case 0x1a:
+    case W8_SKILL_SPELLBOOK_ALCHEMY:
         mapped = 0x1d;
         break;
-    case 0x1b:
+    case W8_SKILL_SPELLBOOK_PSIONICS:
         mapped = 0x1f;
         break;
-    case 9:
-    case 0x10:
-    case 0x11:
-    case 0x12:
-    case 0x14:
-    case 0x17:
-    case 0x1c:
-    case 0x1d:
-    case 0x1e:
-    case 0x1f:
-    case 0x20:
-    case 0x21:
+    case W8_SKILL_THROWING_SLING:
+    case W8_SKILL_CLOSE_COMBAT:
+    case W8_SKILL_RANGED_COMBAT:
+    case W8_SKILL_DUAL_WEAPONS:
+    case W8_SKILL_ARTIFACTS:
+    case W8_SKILL_ENGINEERING:
+    case W8_SKILL_FIRE_MAGIC:
+    case W8_SKILL_WATER_MAGIC:
+    case W8_SKILL_AIR_MAGIC:
+    case W8_SKILL_EARTH_MAGIC:
+    case W8_SKILL_MENTAL_MAGIC:
+    case W8_SKILL_DIVINE_MAGIC:
         routed = 1;
         switch (skill_id) {
-        case 9:
+        case W8_SKILL_THROWING_SLING:
             base_value = imported->skills[5];
             if (base_value <= imported->skills[6]) {
                 base_value = imported->skills[6];
             }
             break;
-        case 0x10:
+        case W8_SKILL_CLOSE_COMBAT:
             base_value = imported->skills[0];
             for (i = 1; i < 5; ++i) {
                 if (base_value <= imported->skills[i]) {
@@ -777,7 +777,7 @@ unsigned int ConvertSkill(unsigned int skill_id, W8Character* character,
                 base_value = 100;
             }
             break;
-        case 0x11:
+        case W8_SKILL_RANGED_COMBAT:
             base_value = imported->skills[7];
             if (base_value <= imported->skills[6]) {
                 base_value = imported->skills[6];
@@ -789,7 +789,7 @@ unsigned int ConvertSkill(unsigned int skill_id, W8Character* character,
                 base_value = 100;
             }
             break;
-        case 0x12:
+        case W8_SKILL_DUAL_WEAPONS:
             if (g_profession_skill_availability[0x12][character->iProfession] != 1) {
                 base_value = 0;
                 break;
@@ -811,23 +811,23 @@ unsigned int ConvertSkill(unsigned int skill_id, W8Character* character,
                 }
             }
             break;
-        case 0x14:
+        case W8_SKILL_ARTIFACTS:
             base_value =
                 (static_cast<unsigned int>(imported->skills[0x1b] + imported->skills[0x18] * 4) *
                  0x14) /
                 100;
             break;
-        case 0x17:
-        case 0x23:
-        case 0x25:
+        case W8_SKILL_ENGINEERING:
+        case W8_SKILL_POWER_CAST:
+        case W8_SKILL_IRON_SKIN:
             base_value = 0;
             break;
-        case 0x1c:
-        case 0x1d:
-        case 0x1e:
-        case 0x1f:
-        case 0x20:
-        case 0x21:
+        case W8_SKILL_FIRE_MAGIC:
+        case W8_SKILL_WATER_MAGIC:
+        case W8_SKILL_AIR_MAGIC:
+        case W8_SKILL_EARTH_MAGIC:
+        case W8_SKILL_MENTAL_MAGIC:
+        case W8_SKILL_DIVINE_MAGIC:
             unlocks = character->skill_unlocks[skill_id];
             if (unlocks == 0) {
                 base_value = 0;
@@ -858,8 +858,11 @@ unsigned int ConvertSkill(unsigned int skill_id, W8Character* character,
     }
     if (!routed) {
         base_value = imported->skills[mapped];
-        if (0x17 < skill_id && skill_id < 0x1c) {
-            if (character->iProfession == 0xc && (skill_id == 0x1a || skill_id == 0x1b) &&
+        if (0x17 < static_cast<unsigned int>(skill_id) &&
+            static_cast<unsigned int>(skill_id) < W8_SKILL_FIRE_MAGIC) {
+            if (character->iProfession == 0xc &&
+                (skill_id == W8_SKILL_SPELLBOOK_ALCHEMY ||
+                 skill_id == W8_SKILL_SPELLBOOK_PSIONICS) &&
                 base_value == 0) {
                 base_value =
                     (static_cast<unsigned int>(imported->skills[0x20] + imported->skills[0x1e])) /

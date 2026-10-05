@@ -423,7 +423,7 @@ void RecountActiveMonsterGroupMembers(W8MonsterGroup* monster_group)
     for (index = 0; index < ILLength(monster_group->monsters); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
             0x412, MONSTER_GROUP_CPP, IListGetAt(monster_group->monsters, index), 1));
-        if (monster_info->highest_condition < W8_CONDITION_HOSTILE &&
+        if (monster_info->highest_condition < W8_CONDITION_TURNCOAT &&
             monster_info->control_state != W8_MONSTER_CONTROL_EXCLUDED) {
             ++active;
         }
@@ -848,7 +848,8 @@ bool MonsterGroupHasIncapacitatedMember(int group_id)
     for (index = 0; index < ILLength(group->monsters); ++index) {
         W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
             0x967, MONSTER_GROUP_CPP, IListGetAt(group->monsters, index), 1));
-        if (info->highest_condition > 0xd && info->highest_condition < 0x12) {
+        if (info->highest_condition > W8_CONDITION_TURNCOAT &&
+            info->highest_condition < W8_CONDITION_DEAD) {
             return true;
         }
     }
@@ -1275,7 +1276,7 @@ void ElectGroupLeaderMember(W8MonsterGroup* monster_group)
             W8Monster* member = GetMonsterByLocationID(member_id);
             W8MonsterInfo* member_info = MonsterGetScriptPartByLocationIndex(
                 MonsterGetIndexByLocationID(0x443, MONSTER_GROUP_CPP, member_id, 1));
-            if (member_info->highest_condition < 0xd &&
+            if (member_info->highest_condition < W8_CONDITION_TURNCOAT &&
                 (member->flags1 & W8_MONSTER_REMOVE_NOW) == 0 &&
                 best < static_cast<unsigned int>(member->movement.leadership_rank)) {
                 best = member->movement.leadership_rank;

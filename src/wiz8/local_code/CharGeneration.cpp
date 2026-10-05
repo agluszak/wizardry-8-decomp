@@ -44,7 +44,7 @@ int ComputeRealmSkillDebt(W8Character* original, W8Character* edited)
 {
     int total = 0;
 
-    if (GetProfessionCasterLevel(edited, -1) != 0) {
+    if (GetProfessionCasterLevel(edited, W8_PROFESSION_NONE) != 0) {
         int index;
 
         for (index = 0x18; index <= 0x1b; ++index) {
@@ -58,7 +58,7 @@ int ComputeRealmSkillDebt(W8Character* original, W8Character* edited)
         }
         return total;
     }
-    if (GetProfessionCasterLevel(original, -1) < 1) {
+    if (GetProfessionCasterLevel(original, W8_PROFESSION_NONE) < 1) {
         return 0;
     }
     {
@@ -131,8 +131,8 @@ void InitializeCharacterCreation(W8Character* character, W8CharacterCreationStat
     character->iRace = -1;
     character->uiExpLevel = 1;
     character->level_band_base = 0;
-    character->highest_condition = 0;
-    character->enchantment_top = 0;
+    character->highest_condition = W8_CONDITION_NONE;
+    character->enchantment_top = W8_ENCHANTMENT_NONE;
     character->portrait_index = -1;
     character->unknown_007d = -1;
     character->personality = -1;
@@ -174,14 +174,14 @@ void InitializeCharacterLevelUp(W8Character* character, W8CharacterCreationState
    minimum five. */
 // FUNCTION: WIZ8 0x00557c90
 void ResetSkillContribution(W8Character* character, W8CharacterCreationState* creation_state,
-                            int skill_id)
+                            W8Skill skill_id)
 {
     /* Retail stores to byte 1 of the skill record (0x00557CAB), not to the
        active flag at byte 0. */
     character->skills[skill_id].reset_flag = true;
     creation_state->skill_points_spent[skill_id] = 0;
 
-    if (skill_id >= 0x18 && skill_id < 0x1c) {
+    if (skill_id >= W8_SKILL_SPELLBOOK_WIZARDRY && skill_id < W8_SKILL_FIRE_MAGIC) {
         int offset = g_profession_magic_level_offsets[character->iProfession];
         if (offset < 0 && offset > -0xff &&
             character->profession_levels[character->iProfession] + offset == 1) {
@@ -199,7 +199,7 @@ void ResetSkillContribution(W8Character* character, W8CharacterCreationState* cr
    value the assignment gave it. */
 // FUNCTION: WIZ8 0x00557d20
 void RefundSkillAllocation(W8Character* character, W8CharacterCreationState* creation_state,
-                           int skill_id)
+                           W8Skill skill_id)
 {
     int spent = creation_state->skill_points_spent[skill_id];
     if (spent > 0) {
@@ -217,7 +217,7 @@ void RefundAllocatedAttributes(W8Character* character, W8CharacterCreationState*
 {
     for (int index = 0; index < 7; ++index) {
         if (creation_state->attribute_values[index] > 0) {
-            AdjustAllocatedAttribute(character, creation_state, index,
+            AdjustAllocatedAttribute(character, creation_state, static_cast<W8Attribute>(index),
                                      -creation_state->attribute_values[index]);
         }
     }
@@ -464,7 +464,7 @@ void DetermineEligibleProfessions(W8Character* character, W8CharacterCreationSta
    the creation flow: never below zero, never above the pool or the limit. */
 // FUNCTION: WIZ8 0x005579e0
 void AdjustAllocatedAttribute(W8Character* character, W8CharacterCreationState* creation_state,
-                              int attribute, int modifier)
+                              W8Attribute attribute, int modifier)
 {
     int value = creation_state->attribute_values[attribute];
     if (value + modifier < 0) {
@@ -596,7 +596,7 @@ void ClampSkillsToBudget(W8Character* character, W8CharacterCreationState* creat
 void FinalizeSpellPointPool(W8Character* character, W8CharacterCreationState* creation_state)
 {
     int spent = creation_state->spell_points_total - creation_state->spell_points_remaining;
-    if (GetProfessionCasterLevel(character, -1) < 1) {
+    if (GetProfessionCasterLevel(character, W8_PROFESSION_NONE) < 1) {
         creation_state->spell_points_total = 0;
     } else {
         if (character->uiExpLevel == 1) {
@@ -606,7 +606,7 @@ void FinalizeSpellPointPool(W8Character* character, W8CharacterCreationState* cr
         }
         creation_state->magic_skill_bonus += g_spell_point_bonus;
         int total = 0;
-        if (GetProfessionCasterLevel(character, -1) > 0) {
+        if (GetProfessionCasterLevel(character, W8_PROFESSION_NONE) > 0) {
             for (unsigned int realm = 0x18; realm < 0x1c; ++realm) {
                 if (character->skills[realm].active != 0) {
                     total += character->skill_costs[realm - 0x18];
@@ -739,14 +739,14 @@ void RebuildSkillAllocations(W8Character* character, W8CharacterCreationState* c
     }
 
     for (index = 0; index < 4; ++index) {
-        int skill = g_profession_skills[profession][index];
-        if (skill != -1) {
+        W8Skill skill = g_profession_skills[profession][index];
+        if (skill != W8_SKILL_NONE) {
             int value = (character->skills[skill].base_level * step) / 100;
             character->skills[skill].points = value;
             character->skills[skill].level = value;
         }
     }
-    int bonus_skill = g_profession_bonus_skills[profession];
+    W8Skill bonus_skill = g_profession_bonus_skills[profession];
     int value = (character->skills[bonus_skill].base_level * step) / 100;
     character->skills[bonus_skill].points = value;
     character->skills[bonus_skill].level = value;
@@ -959,7 +959,7 @@ void RebuildLevelUpPoolsForProfession(W8Character* character,
                 creation_state->skill_baselines[index] = 0;
             }
         }
-        int bonus_skill = g_profession_bonus_skills[character->iProfession];
+        W8Skill bonus_skill = g_profession_bonus_skills[character->iProfession];
         int base = character->skills[bonus_skill].points;
         int missing = (creation_state->skill_points_spent[bonus_skill] - base) + 5;
         if (missing > 0) {
@@ -968,7 +968,7 @@ void RebuildLevelUpPoolsForProfession(W8Character* character,
             creation_state->skill_baselines[bonus_skill] += missing;
         }
         for (index = 0; index < 4; ++index) {
-            int skill = g_profession_skills[character->iProfession][index];
+            W8Skill skill = g_profession_skills[character->iProfession][index];
             int value = character->skills[skill].points;
             int missing = (creation_state->skill_points_spent[skill] - value) + 5;
             if (missing > 0) {

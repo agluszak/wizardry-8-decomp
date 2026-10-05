@@ -665,7 +665,8 @@ void W8CharacterStatsPage::AdjustEntry(W8CharacterPageEntry* entry, int delta)
 {
     entry->MarkDirty();
     m_dirty = 1;
-    AdjustAllocatedAttribute(m_character, m_creation_state, entry->m_id, delta);
+    AdjustAllocatedAttribute(m_character, m_creation_state, static_cast<W8Attribute>(entry->m_id),
+                             delta);
     Invalidate(0);
     m_screen->UpdateNavigation(this);
     if (m_character->attributes[entry->m_id].value >= 100) {
@@ -681,7 +682,7 @@ void W8CharacterStatsPage::AdjustEntry(W8CharacterPageEntry* entry, int delta)
 // FUNCTION: WIZ8 0x005ca7e0
 void W8CharacterStatsPage::ShowEntryInfo(W8CharacterPageEntry* entry)
 {
-    m_screen->ShowPrimaryAttributeInfo(entry->m_id);
+    m_screen->ShowPrimaryAttributeInfo(static_cast<W8Attribute>(entry->m_id));
 }
 
 /* A value row moved: rerun the whole creation rebuild for the new

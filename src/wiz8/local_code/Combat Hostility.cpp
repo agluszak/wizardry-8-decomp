@@ -630,9 +630,9 @@ int CharacterPrayAction(int party_slot)
     } else if (g_combat_state->round_count > 8) {
         roll += Random(10);
     }
-    if (g_settings.difficulty == 0) {
+    if (g_settings.difficulty == W8_DIFFICULTY_NOVICE) {
         roll -= 10;
-    } else if (g_settings.difficulty == 2) {
+    } else if (g_settings.difficulty == W8_DIFFICULTY_EXPERT) {
         roll += 10;
     }
     action = 0;
@@ -676,7 +676,8 @@ int CharacterPrayAction(int party_slot)
             for (index = 0; index < 8; ++index) {
                 W8Character* member = &g_status.buffers.Char[index];
                 if (g_status.buffers.XChar[index].fOccupied && member->hp_current != 0 &&
-                    member->highest_condition < 0x12 && member->enchantments[2].power == 0) {
+                    member->highest_condition < W8_CONDITION_DEAD &&
+                    member->enchantments[2].power == 0) {
                     ++in_range;
                     found = true;
                 }
@@ -686,8 +687,8 @@ int CharacterPrayAction(int party_slot)
                 for (index = 0; index < 8; ++index) {
                     W8Character* member = &g_status.buffers.Char[index];
                     if (g_status.buffers.XChar[index].fOccupied && member->hp_current != 0 &&
-                        member->highest_condition < 0x12 && member->enchantments[2].power == 0 &&
-                        --pick == 0) {
+                        member->highest_condition < W8_CONDITION_DEAD &&
+                        member->enchantments[2].power == 0 && --pick == 0) {
                         AppendToLastTextLine(
                             FormatWideString(gppStringList[0x17a], member->name, -1), -1);
                         target.iType = W8_TARGET_KIND_CHARACTER;
@@ -709,7 +710,7 @@ int CharacterPrayAction(int party_slot)
             for (index = 0; index < 8; ++index) {
                 W8Character* member = &g_status.buffers.Char[index];
                 if (g_status.buffers.XChar[index].fOccupied && member->hp_current != 0 &&
-                    member->highest_condition < 0x12 &&
+                    member->highest_condition < W8_CONDITION_DEAD &&
                     (member->uiCondition[0xb] != 0 || member->uiCondition[0xd] != 0)) {
                     ++in_range;
                     found = true;
@@ -720,7 +721,7 @@ int CharacterPrayAction(int party_slot)
                 for (index = 0; index < 8; ++index) {
                     W8Character* member = &g_status.buffers.Char[index];
                     if (g_status.buffers.XChar[index].fOccupied && member->hp_current != 0 &&
-                        member->highest_condition < 0x12 &&
+                        member->highest_condition < W8_CONDITION_DEAD &&
                         (member->uiCondition[0xb] != 0 || member->uiCondition[0xd] != 0) &&
                         --pick == 0) {
                         AppendToLastTextLine(gppStringList[0x179], -1);
@@ -757,7 +758,7 @@ int CharacterPrayAction(int party_slot)
             for (index = 0; index < 8; ++index) {
                 W8Character* member = &g_status.buffers.Char[index];
                 if (g_status.buffers.XChar[index].fOccupied && member->hp_current != 0 &&
-                    member->highest_condition < 0x12 &&
+                    member->highest_condition < W8_CONDITION_DEAD &&
                     member->hp_current < static_cast<unsigned int>(member->uiHPMax) &&
                     (best == -1 || member->hp_current < g_status.buffers.Char[best].hp_current)) {
                     best = index;
@@ -826,7 +827,7 @@ int CharacterPrayAction(int party_slot)
         case 8:
             AppendToLastTextLine(gppStringList[0x179], -1);
             for (index = 0; index < 0x12; ++index) {
-                RemoveConditionFromParty(index);
+                RemoveConditionFromParty(static_cast<W8Condition>(index));
             }
             if (g_combat_state != 0) {
                 for (index = 0; index < 9; ++index) {

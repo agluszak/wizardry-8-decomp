@@ -1,5 +1,7 @@
 #pragma once
 
+#include "wiz8/character_skills.h"
+
 #include "wiz8/dialog_code/DialogBase.h"
 #include "wiz8/integer_constants.h"
 #include "wiz8/layouts/item_instance.h"
@@ -33,7 +35,7 @@ void OpenSecondaryAttributeInfoDialog0(void);
 void OpenSecondaryAttributeInfoDialog1(void);
 void OpenSecondaryAttributeInfoDialog3(void);
 void OpenSecondaryAttributeInfoDialog4(void);
-void OpenAttributeInfoDialog(unsigned int uiIndex);
+void OpenAttributeInfoDialog(W8Attribute attribute);
 void OpenSecondaryAttributeInfoDialog(unsigned int uiIndex);
 void IdentifyAndOpenItemInfo(W8ItemInstance* item);
 void DropHeldCampItem(void);

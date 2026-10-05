@@ -382,9 +382,8 @@ void RedrawCombatPortraits(void)
         W8CombatCharacterRow* combat_row = &g_combat_state->characters[slot];
 
         if (party_row->fOccupied == 0 || character->hp_current == 0 ||
-            character->highest_condition >= W8_CONDITION_DEAD ||
-            combat_row->portrait_image == -1 || entry->combat_portrait_dirty == 0 ||
-            slot == g_level_block->combat_slot) {
+            character->highest_condition >= W8_CONDITION_DEAD || combat_row->portrait_image == -1 ||
+            entry->combat_portrait_dirty == 0 || slot == g_level_block->combat_slot) {
             continue;
         }
         if ((slot & 1) == 0) {
@@ -743,9 +742,9 @@ bool PreparePartyPortraitOverlay(unsigned int party_slot, unsigned int left, uns
                 flags = 0x1002;
             }
             if (BlitPartyPortraitAnimation(portrait, left, top, flags, party_slot, 0) != 0 &&
-                ((gXStatus.fCombatMode != 0 &&
-                  g_combat_state->characters[party_slot].dead != 0) ||
-                 gXStatus.fSurprisePossible != 0 || character->highest_condition == 0x13)) {
+                ((gXStatus.fCombatMode != 0 && g_combat_state->characters[party_slot].dead != 0) ||
+                 gXStatus.fSurprisePossible != 0 ||
+                 character->highest_condition == W8_CONDITION_MISSING)) {
                 return 1;
             }
         }
@@ -990,12 +989,12 @@ draw_condition_icons:
         condition_frame = 0x30;
     }
 
-    if (character->highest_condition != 0) {
+    if (character->highest_condition != W8_CONDITION_NONE) {
         condition_frame = static_cast<int>(character->highest_condition) + 0xb6;
     }
     DrawCatalogImage(-14, condition_frame, 0, 0, left_condition_x, menu_y + 3, 2, 0);
 
-    if (character->enchantment_top != 0) {
+    if (character->enchantment_top != W8_ENCHANTMENT_NONE) {
         enchantment_frame = character->enchantment_top + 0xc9;
     }
     DrawCatalogImage(-14, enchantment_frame, 0, 0, right_condition_x, menu_y + 3, 2, 0);
@@ -1003,13 +1002,13 @@ draw_condition_icons:
     if (party_row->fOccupied != 0 && g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
         if (g_level_block->condition_hover_party_slot == static_cast<int>(party_slot)) {
             DrawCatalogImage(-14, 0x60, 0, 0, left_condition_x - 1, menu_y + 2, 2, 0);
-        } else if (character->highest_condition != 0) {
+        } else if (character->highest_condition != W8_CONDITION_NONE) {
             DrawCatalogImage(-14, 0x61, 0, 0, left_condition_x - 1, menu_y + 2, 2, 0);
         }
 
         if (g_level_block->enchantment_hover_party_slot == static_cast<int>(party_slot)) {
             DrawCatalogImage(-14, 0x60, 0, 0, right_condition_x - 1, menu_y + 2, 2, 0);
-        } else if (character->highest_condition != 0) {
+        } else if (character->highest_condition != W8_CONDITION_NONE) {
             DrawCatalogImage(-14, 0x61, 0, 0, right_condition_x - 1, menu_y + 2, 2, 0);
         }
 

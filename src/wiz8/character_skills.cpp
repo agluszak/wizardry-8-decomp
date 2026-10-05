@@ -61,7 +61,7 @@ void PostSkillIncreaseNotices(const W8SkillNoticePayload* notices)
 
 // FUNCTION: WIZ8 0x00554170
 void AppendSkillIncreaseNoticeText(wchar_t* text, unsigned int* length, int party_slot,
-                                   bool continue_line, int skill_id)
+                                   bool continue_line, W8Skill skill_id)
 {
     unsigned int skill_level;
     W8Character* character = &g_status.buffers.Char[party_slot];
@@ -120,7 +120,7 @@ void FlushDeferredSkillNotices(void)
     for (slot = 0; slot < 8; ++slot) {
         W8Character* character = &g_status.buffers.Char[slot];
         if (g_status.buffers.XChar[slot].fOccupied == 0 || character->hp_current == 0 ||
-            character->highest_condition >= 0x12) {
+            character->highest_condition >= W8_CONDITION_DEAD) {
             continue;
         }
         for (skill_id = 0; skill_id < W8_SKILL_COUNT; ++skill_id) {
@@ -131,7 +131,7 @@ void FlushDeferredSkillNotices(void)
             extra->skills[count] = static_cast<signed char>(skill_id);
             ++count;
             AppendSkillIncreaseNoticeText(text, &length, slot, have_line,
-                                          static_cast<int>(skill_id));
+                                          static_cast<W8Skill>(skill_id));
             have_line = 1;
             if (count == 8) {
                 extra->count = 8;
@@ -345,7 +345,8 @@ void BrewAlchemistPotion(W8Character* character)
     unsigned int recipes;
     unsigned int pick;
 
-    if (g_status.buffers.XChar[slot].fOccupied != 0 && character->highest_condition < 0x11 &&
+    if (g_status.buffers.XChar[slot].fOccupied != 0 &&
+        character->highest_condition < W8_CONDITION_UNCONSCIOUS &&
         CharacterHasTrait(character, W8_TRAIT_MAKE_POTIONS) != 0) {
         alchemy = character->profession_levels[W8_PROFESSION_ALCHEMIST];
         recipes = 0;
@@ -378,7 +379,7 @@ void BrewAlchemistPotion(W8Character* character)
    attribute records instead, and count as available only once the attribute has
    reached its cap. */
 // FUNCTION: WIZ8 0x00553d90
-bool IsCharacterSkillAvailable(W8Character* character, unsigned int skill_id,
+bool IsCharacterSkillAvailable(W8Character* character, W8Skill skill_id,
                                const bool* expert_realm_flags)
 {
     W8Profession profession;
@@ -389,14 +390,17 @@ bool IsCharacterSkillAvailable(W8Character* character, unsigned int skill_id,
         return false;
     }
     if (CharacterHasTrait(character, 0x1f)) {
-        if (skill_id >= 0x18 && skill_id <= 0x1b) {
+        if (static_cast<unsigned int>(skill_id) >= W8_SKILL_SPELLBOOK_WIZARDRY &&
+            static_cast<unsigned int>(skill_id) <= W8_SKILL_SPELLBOOK_PSIONICS) {
             return false;
         }
-        if (skill_id >= 0x1c && skill_id <= 0x21) {
+        if (static_cast<unsigned int>(skill_id) >= W8_SKILL_FIRE_MAGIC &&
+            static_cast<unsigned int>(skill_id) <= W8_SKILL_DIVINE_MAGIC) {
             return false;
         }
     }
-    if (skill_id >= 0x1c && skill_id <= 0x21) {
+    if (static_cast<unsigned int>(skill_id) >= W8_SKILL_FIRE_MAGIC &&
+        static_cast<unsigned int>(skill_id) <= W8_SKILL_DIVINE_MAGIC) {
         for (index = 0x18; index <= 0x1b; ++index) {
             if (character->skills[index].active) {
                 break;
@@ -415,13 +419,14 @@ bool IsCharacterSkillAvailable(W8Character* character, unsigned int skill_id,
     }
 
     profession = character->iProfession;
-    if (skill_id != static_cast<unsigned int>(g_profession_bonus_skills[profession])) {
+    if (skill_id != g_profession_bonus_skills[profession]) {
         for (index = 0; index < 4; ++index) {
-            if (skill_id == static_cast<unsigned int>(g_profession_skills[profession][index])) {
+            if (skill_id == g_profession_skills[profession][index]) {
                 return true;
             }
         }
-        if (skill_id >= 0x22 && skill_id <= 0x28) {
+        if (static_cast<unsigned int>(skill_id) >= W8_SKILL_POWER_STRIKE &&
+            static_cast<unsigned int>(skill_id) <= W8_SKILL_EAGLE_EYE) {
             return character->attributes[skill_id - 0x22].value >= 100;
         }
         /* The canonical emits a byte index table over 0x00..0x1b, placed after
@@ -434,28 +439,30 @@ bool IsCharacterSkillAvailable(W8Character* character, unsigned int skill_id,
            and returning 1 merges the two bands into one range compare that
            costs 41 bytes more. */
         switch (skill_id) {
-        case 0x0a:
-        case 0x0b:
-        case 0x0c:
-        case 0x0d:
-        case 0x0e:
-        case 0x0f:
-        case 0x10:
-        case 0x11:
-        case 0x13:
-        case 0x14:
-        case 0x15:
-        case 0x16:
-        case 0x17:
+        case W8_SKILL_LOCKS_TRAPS:
+        case W8_SKILL_STEALTH:
+        case W8_SKILL_MUSIC:
+        case W8_SKILL_PICKPOCKET:
+        case W8_SKILL_MARTIAL_ARTS:
+        case W8_SKILL_SCOUTING:
+        case W8_SKILL_CLOSE_COMBAT:
+        case W8_SKILL_RANGED_COMBAT:
+        case W8_SKILL_CRITICAL_STRIKE:
+        case W8_SKILL_ARTIFACTS:
+        case W8_SKILL_MYTHOLOGY:
+        case W8_SKILL_COMMUNICATION:
+        case W8_SKILL_ENGINEERING:
             break;
-        case 0x18:
-        case 0x19:
-        case 0x1a:
-        case 0x1b:
+        case W8_SKILL_SPELLBOOK_WIZARDRY:
+        case W8_SKILL_SPELLBOOK_DIVINITY:
+        case W8_SKILL_SPELLBOOK_ALCHEMY:
+        case W8_SKILL_SPELLBOOK_PSIONICS:
             magic_offset = g_profession_magic_level_offsets[profession];
             if (magic_offset < 0 && magic_offset > -0xff) {
                 return character->profession_levels[profession] + magic_offset > 0;
             }
+            break;
+        default:
             break;
         }
     }
@@ -480,8 +487,8 @@ void ResetCharacterAttributes(W8Character* character)
         UnequipUnusableItems(character);
     }
     for (index = 0; index < 0x29; ++index) {
-        int first = g_skill_attributes[index].attribute_1;
-        int second = g_skill_attributes[index].attribute_2;
+        W8Attribute first = g_skill_attributes[index].attribute_1;
+        W8Attribute second = g_skill_attributes[index].attribute_2;
         character->skills[index].base_level =
             (character->attributes[first].value + character->attributes[second].value) >> 1;
     }
@@ -519,15 +526,15 @@ void ResetCharacterSkills(W8Character* character)
    adjustment clamped to 1..125, and refresh the equipment and derived state.
    Retail inlines InitializeSkillBaseLevels at the tail. */
 // FUNCTION: WIZ8 0x00553AD0
-void ApplyAttributeChange(W8Character* character, int attribute)
+void ApplyAttributeChange(W8Character* character, W8Attribute attribute)
 {
     int skill_id = attribute + 0x22;
 
     if (character->attributes[attribute].value >= 0x64) {
         if (character->skills[skill_id].active == 0) {
             character->skills[skill_id].active = 1;
-            if (g_current_screen_state.id == 3) {
-                ResetCharacterScreenSkill(skill_id);
+            if (g_current_screen_state.id == W8_SCREEN_CHARACTER) {
+                ResetCharacterScreenSkill(static_cast<W8Skill>(skill_id));
             }
             if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
                 ShowMainGameNoticeLine(
@@ -541,8 +548,8 @@ void ApplyAttributeChange(W8Character* character, int attribute)
     } else {
         if (character->skills[skill_id].active != 0) {
             character->skills[skill_id].active = 0;
-            if (g_current_screen_state.id == 3) {
-                RefundCharacterScreenSkill(skill_id);
+            if (g_current_screen_state.id == W8_SCREEN_CHARACTER) {
+                RefundCharacterScreenSkill(static_cast<W8Skill>(skill_id));
             }
         }
     }
@@ -561,7 +568,7 @@ void ApplyAttributeChange(W8Character* character, int attribute)
    equipment and derived state. The single-skill half of
    ResetCharacterSkills. */
 // FUNCTION: WIZ8 0x00553C10
-void ApplySkillChange(W8Character* character, int skill_id)
+void ApplySkillChange(W8Character* character, W8Skill skill_id)
 {
     RefreshCharacterSkillAvailability(character);
 
@@ -587,8 +594,8 @@ void ApplySkillChange(W8Character* character, int skill_id)
 void InitializeSkillBaseLevels(W8Character* character)
 {
     for (int index = 0; index < 0x29; ++index) {
-        int first = g_skill_attributes[index].attribute_1;
-        int second = g_skill_attributes[index].attribute_2;
+        W8Attribute first = g_skill_attributes[index].attribute_1;
+        W8Attribute second = g_skill_attributes[index].attribute_2;
         character->skills[index].base_level =
             (character->attributes[first].value + character->attributes[second].value) >> 1;
     }
@@ -612,18 +619,19 @@ void RefreshCharacterSkillAvailability(W8Character* character)
         }
     }
     for (index = 0; index < 0x29; ++index) {
-        bool available = IsCharacterSkillAvailable(character, index, expert_realm_flags);
+        bool available =
+            IsCharacterSkillAvailable(character, static_cast<W8Skill>(index), expert_realm_flags);
         if (!available) {
             if (character->skills[index].active) {
                 character->skills[index].active = 0;
                 if (g_current_screen_state.id == W8_SCREEN_CHARACTER) {
-                    RefundCharacterScreenSkill(index);
+                    RefundCharacterScreenSkill(static_cast<W8Skill>(index));
                 }
             }
         } else if (!character->skills[index].active) {
             character->skills[index].active = 1;
             if (g_current_screen_state.id == W8_SCREEN_CHARACTER) {
-                ResetCharacterScreenSkill(index);
+                ResetCharacterScreenSkill(static_cast<W8Skill>(index));
             }
         }
     }
@@ -632,7 +640,7 @@ void RefreshCharacterSkillAvailability(W8Character* character)
 /* A quarter of the skill's current value, never below one. The bonus skill's
    level gets this added after the profession assignment. */
 // FUNCTION: WIZ8 0x00553ee0
-unsigned int GetSkillQuarterValue(W8Character* character, int skill_id)
+unsigned int GetSkillQuarterValue(W8Character* character, W8Skill skill_id)
 {
     unsigned int value = (character->skills[skill_id].points * 0x19) / 100;
     if (value == 0) {
@@ -649,7 +657,7 @@ unsigned int GetSkillQuarterValue(W8Character* character, int skill_id)
    uses, then reports immediately on the idle main-game screen or defers the
    notice into the portrait slot's per-skill flag array. */
 // FUNCTION: WIZ8 0x00553F10
-void PracticeCharacterSkill(W8Character* character, int skill_id, int usage_points,
+void PracticeCharacterSkill(W8Character* character, W8Skill skill_id, int usage_points,
                             bool suppress_notification)
 {
     bool improved;
@@ -758,27 +766,47 @@ float g_profession_hit_point_factors[15] = {
 };
 // GLOBAL: WIZ8 0x006155b0
 W8SkillAttributes g_skill_attributes[0x29] = {
-    {0, W8_SKILL_IMPORT_POLICY_1, 0, 4},   {0, W8_SKILL_IMPORT_POLICY_1, 0, 4},
-    {0, W8_SKILL_IMPORT_POLICY_1, 0, 4},   {0, W8_SKILL_IMPORT_POLICY_1, 0, 4},
-    {0, W8_SKILL_IMPORT_POLICY_1, 4, 5},   {0, W8_SKILL_IMPORT_POLICY_0, 0, 4},
-    {0, W8_SKILL_IMPORT_POLICY_1, 0, 4},   {0, W8_SKILL_IMPORT_POLICY_1, 4, 5},
-    {0, W8_SKILL_IMPORT_POLICY_1, 4, 0},   {0, W8_SKILL_IMPORT_POLICY_0, 4, 0},
-    {1, W8_SKILL_IMPORT_POLICY_1, 4, 1},   {1, W8_SKILL_IMPORT_POLICY_1, 4, 1},
-    {1, W8_SKILL_IMPORT_PROFESSION, 4, 1}, {1, W8_SKILL_IMPORT_POLICY_1, 4, 5},
-    {0, W8_SKILL_IMPORT_POLICY_1, 4, 5},   {1, W8_SKILL_IMPORT_PROFESSION, 6, 1},
-    {2, W8_SKILL_IMPORT_POLICY_0, 6, 1},   {2, W8_SKILL_IMPORT_POLICY_0, 6, 1},
-    {2, W8_SKILL_IMPORT_POLICY_1, 4, 6},   {2, W8_SKILL_IMPORT_POLICY_1, 6, 5},
-    {2, W8_SKILL_IMPORT_POLICY_0, 1, 6},   {2, W8_SKILL_IMPORT_POLICY_0, 6, 1},
-    {2, W8_SKILL_IMPORT_POLICY_0, 1, 6},   {2, W8_SKILL_IMPORT_PROFESSION, 1, 4},
-    {3, W8_SKILL_IMPORT_POLICY_1, 1, 1},   {3, W8_SKILL_IMPORT_POLICY_1, 2, 2},
-    {3, W8_SKILL_IMPORT_POLICY_1, 4, 1},   {3, W8_SKILL_IMPORT_POLICY_1, 6, 1},
-    {3, W8_SKILL_IMPORT_POLICY_1, 1, 2},   {3, W8_SKILL_IMPORT_POLICY_1, 1, 2},
-    {3, W8_SKILL_IMPORT_POLICY_1, 1, 2},   {3, W8_SKILL_IMPORT_POLICY_1, 1, 2},
-    {3, W8_SKILL_IMPORT_POLICY_1, 1, 2},   {3, W8_SKILL_IMPORT_POLICY_1, 1, 2},
-    {4, W8_SKILL_IMPORT_DISABLED, 0, 0},   {4, W8_SKILL_IMPORT_DISABLED, 1, 1},
-    {4, W8_SKILL_IMPORT_DISABLED, 2, 2},   {4, W8_SKILL_IMPORT_DISABLED, 3, 3},
-    {4, W8_SKILL_IMPORT_DISABLED, 4, 4},   {4, W8_SKILL_IMPORT_DISABLED, 5, 5},
-    {4, W8_SKILL_IMPORT_DISABLED, 6, 6},
+    {0, W8_SKILL_IMPORT_POLICY_1, W8_ATTRIBUTE_STRENGTH, W8_ATTRIBUTE_DEXTERITY},
+    {0, W8_SKILL_IMPORT_POLICY_1, W8_ATTRIBUTE_STRENGTH, W8_ATTRIBUTE_DEXTERITY},
+    {0, W8_SKILL_IMPORT_POLICY_1, W8_ATTRIBUTE_STRENGTH, W8_ATTRIBUTE_DEXTERITY},
+    {0, W8_SKILL_IMPORT_POLICY_1, W8_ATTRIBUTE_STRENGTH, W8_ATTRIBUTE_DEXTERITY},
+    {0, W8_SKILL_IMPORT_POLICY_1, W8_ATTRIBUTE_DEXTERITY, W8_ATTRIBUTE_SPEED},
+    {0, W8_SKILL_IMPORT_POLICY_0, W8_ATTRIBUTE_STRENGTH, W8_ATTRIBUTE_DEXTERITY},
+    {0, W8_SKILL_IMPORT_POLICY_1, W8_ATTRIBUTE_STRENGTH, W8_ATTRIBUTE_DEXTERITY},
+    {0, W8_SKILL_IMPORT_POLICY_1, W8_ATTRIBUTE_DEXTERITY, W8_ATTRIBUTE_SPEED},
+    {0, W8_SKILL_IMPORT_POLICY_1, W8_ATTRIBUTE_DEXTERITY, W8_ATTRIBUTE_STRENGTH},
+    {0, W8_SKILL_IMPORT_POLICY_0, W8_ATTRIBUTE_DEXTERITY, W8_ATTRIBUTE_STRENGTH},
+    {1, W8_SKILL_IMPORT_POLICY_1, W8_ATTRIBUTE_DEXTERITY, W8_ATTRIBUTE_INTELLIGENCE},
+    {1, W8_SKILL_IMPORT_POLICY_1, W8_ATTRIBUTE_DEXTERITY, W8_ATTRIBUTE_INTELLIGENCE},
+    {1, W8_SKILL_IMPORT_PROFESSION, W8_ATTRIBUTE_DEXTERITY, W8_ATTRIBUTE_INTELLIGENCE},
+    {1, W8_SKILL_IMPORT_POLICY_1, W8_ATTRIBUTE_DEXTERITY, W8_ATTRIBUTE_SPEED},
+    {0, W8_SKILL_IMPORT_POLICY_1, W8_ATTRIBUTE_DEXTERITY, W8_ATTRIBUTE_SPEED},
+    {1, W8_SKILL_IMPORT_PROFESSION, W8_ATTRIBUTE_SENSES, W8_ATTRIBUTE_INTELLIGENCE},
+    {2, W8_SKILL_IMPORT_POLICY_0, W8_ATTRIBUTE_SENSES, W8_ATTRIBUTE_INTELLIGENCE},
+    {2, W8_SKILL_IMPORT_POLICY_0, W8_ATTRIBUTE_SENSES, W8_ATTRIBUTE_INTELLIGENCE},
+    {2, W8_SKILL_IMPORT_POLICY_1, W8_ATTRIBUTE_DEXTERITY, W8_ATTRIBUTE_SENSES},
+    {2, W8_SKILL_IMPORT_POLICY_1, W8_ATTRIBUTE_SENSES, W8_ATTRIBUTE_SPEED},
+    {2, W8_SKILL_IMPORT_POLICY_0, W8_ATTRIBUTE_INTELLIGENCE, W8_ATTRIBUTE_SENSES},
+    {2, W8_SKILL_IMPORT_POLICY_0, W8_ATTRIBUTE_SENSES, W8_ATTRIBUTE_INTELLIGENCE},
+    {2, W8_SKILL_IMPORT_POLICY_0, W8_ATTRIBUTE_INTELLIGENCE, W8_ATTRIBUTE_SENSES},
+    {2, W8_SKILL_IMPORT_PROFESSION, W8_ATTRIBUTE_INTELLIGENCE, W8_ATTRIBUTE_DEXTERITY},
+    {3, W8_SKILL_IMPORT_POLICY_1, W8_ATTRIBUTE_INTELLIGENCE, W8_ATTRIBUTE_INTELLIGENCE},
+    {3, W8_SKILL_IMPORT_POLICY_1, W8_ATTRIBUTE_PIETY, W8_ATTRIBUTE_PIETY},
+    {3, W8_SKILL_IMPORT_POLICY_1, W8_ATTRIBUTE_DEXTERITY, W8_ATTRIBUTE_INTELLIGENCE},
+    {3, W8_SKILL_IMPORT_POLICY_1, W8_ATTRIBUTE_SENSES, W8_ATTRIBUTE_INTELLIGENCE},
+    {3, W8_SKILL_IMPORT_POLICY_1, W8_ATTRIBUTE_INTELLIGENCE, W8_ATTRIBUTE_PIETY},
+    {3, W8_SKILL_IMPORT_POLICY_1, W8_ATTRIBUTE_INTELLIGENCE, W8_ATTRIBUTE_PIETY},
+    {3, W8_SKILL_IMPORT_POLICY_1, W8_ATTRIBUTE_INTELLIGENCE, W8_ATTRIBUTE_PIETY},
+    {3, W8_SKILL_IMPORT_POLICY_1, W8_ATTRIBUTE_INTELLIGENCE, W8_ATTRIBUTE_PIETY},
+    {3, W8_SKILL_IMPORT_POLICY_1, W8_ATTRIBUTE_INTELLIGENCE, W8_ATTRIBUTE_PIETY},
+    {3, W8_SKILL_IMPORT_POLICY_1, W8_ATTRIBUTE_INTELLIGENCE, W8_ATTRIBUTE_PIETY},
+    {4, W8_SKILL_IMPORT_DISABLED, W8_ATTRIBUTE_STRENGTH, W8_ATTRIBUTE_STRENGTH},
+    {4, W8_SKILL_IMPORT_DISABLED, W8_ATTRIBUTE_INTELLIGENCE, W8_ATTRIBUTE_INTELLIGENCE},
+    {4, W8_SKILL_IMPORT_DISABLED, W8_ATTRIBUTE_PIETY, W8_ATTRIBUTE_PIETY},
+    {4, W8_SKILL_IMPORT_DISABLED, W8_ATTRIBUTE_VITALITY, W8_ATTRIBUTE_VITALITY},
+    {4, W8_SKILL_IMPORT_DISABLED, W8_ATTRIBUTE_DEXTERITY, W8_ATTRIBUTE_DEXTERITY},
+    {4, W8_SKILL_IMPORT_DISABLED, W8_ATTRIBUTE_SPEED, W8_ATTRIBUTE_SPEED},
+    {4, W8_SKILL_IMPORT_DISABLED, W8_ATTRIBUTE_SENSES, W8_ATTRIBUTE_SENSES},
 };
 // GLOBAL: WIZ8 0x00615840
 int g_profession_skill_availability[0x29][15] = {
@@ -825,14 +853,41 @@ int g_profession_skill_availability[0x29][15] = {
     {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
 };
 // GLOBAL: WIZ8 0x006161dc
-int g_profession_bonus_skills[15] = {
-    16, 18, 2, 17, 0, 19, 14, 10, 7, 22, 25, 26, 20, 27, 24,
+W8Skill g_profession_bonus_skills[15] = {
+    W8_SKILL_CLOSE_COMBAT,
+    W8_SKILL_DUAL_WEAPONS,
+    W8_SKILL_POLEARM,
+    W8_SKILL_RANGED_COMBAT,
+    W8_SKILL_SWORD,
+    W8_SKILL_CRITICAL_STRIKE,
+    W8_SKILL_MARTIAL_ARTS,
+    W8_SKILL_LOCKS_TRAPS,
+    W8_SKILL_MODERN_WEAPONS,
+    W8_SKILL_COMMUNICATION,
+    W8_SKILL_SPELLBOOK_DIVINITY,
+    W8_SKILL_SPELLBOOK_ALCHEMY,
+    W8_SKILL_ARTIFACTS,
+    W8_SKILL_SPELLBOOK_PSIONICS,
+    W8_SKILL_SPELLBOOK_WIZARDRY,
 };
 // GLOBAL: WIZ8 0x00616218
-int g_profession_skills[15][4] = {
-    {17, 0, 1, 6},   {16, 0, 4, -1},  {16, 21, 1, -1},  {15, 8, 21, -1},  {16, 18, 19, -1},
-    {16, 14, 9, 11}, {16, 19, 5, 11}, {4, 18, 13, 11},  {17, 23, 10, -1}, {12, 21, 20, -1},
-    {3, 5, 22, -1},  {21, 9, -1, -1}, {26, 24, 25, 27}, {22, 21, 32, -1}, {28, 29, 30, 32},
+W8Skill g_profession_skills[15][4] = {
+    {W8_SKILL_RANGED_COMBAT, W8_SKILL_SWORD, W8_SKILL_AXE, W8_SKILL_SHIELD},
+    {W8_SKILL_CLOSE_COMBAT, W8_SKILL_SWORD, W8_SKILL_DAGGER, W8_SKILL_NONE},
+    {W8_SKILL_CLOSE_COMBAT, W8_SKILL_MYTHOLOGY, W8_SKILL_AXE, W8_SKILL_NONE},
+    {W8_SKILL_SCOUTING, W8_SKILL_BOW, W8_SKILL_MYTHOLOGY, W8_SKILL_NONE},
+    {W8_SKILL_CLOSE_COMBAT, W8_SKILL_DUAL_WEAPONS, W8_SKILL_CRITICAL_STRIKE, W8_SKILL_NONE},
+    {W8_SKILL_CLOSE_COMBAT, W8_SKILL_MARTIAL_ARTS, W8_SKILL_THROWING_SLING, W8_SKILL_STEALTH},
+    {W8_SKILL_CLOSE_COMBAT, W8_SKILL_CRITICAL_STRIKE, W8_SKILL_STAFF_WAND, W8_SKILL_STEALTH},
+    {W8_SKILL_DAGGER, W8_SKILL_DUAL_WEAPONS, W8_SKILL_PICKPOCKET, W8_SKILL_STEALTH},
+    {W8_SKILL_RANGED_COMBAT, W8_SKILL_ENGINEERING, W8_SKILL_LOCKS_TRAPS, W8_SKILL_NONE},
+    {W8_SKILL_MUSIC, W8_SKILL_MYTHOLOGY, W8_SKILL_ARTIFACTS, W8_SKILL_NONE},
+    {W8_SKILL_MACE_FLAIL, W8_SKILL_STAFF_WAND, W8_SKILL_COMMUNICATION, W8_SKILL_NONE},
+    {W8_SKILL_MYTHOLOGY, W8_SKILL_THROWING_SLING, W8_SKILL_NONE, W8_SKILL_NONE},
+    {W8_SKILL_SPELLBOOK_ALCHEMY, W8_SKILL_SPELLBOOK_WIZARDRY, W8_SKILL_SPELLBOOK_DIVINITY,
+     W8_SKILL_SPELLBOOK_PSIONICS},
+    {W8_SKILL_COMMUNICATION, W8_SKILL_MYTHOLOGY, W8_SKILL_MENTAL_MAGIC, W8_SKILL_NONE},
+    {W8_SKILL_FIRE_MAGIC, W8_SKILL_WATER_MAGIC, W8_SKILL_AIR_MAGIC, W8_SKILL_MENTAL_MAGIC},
 };
 // GLOBAL: WIZ8 0x00616310
 int g_profession_magic_level_offsets[15] = {

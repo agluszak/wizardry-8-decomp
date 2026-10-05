@@ -40,9 +40,8 @@ extern unsigned short g_special_category_name_ids[42];
    per-condition chances ride the same record a spell effect definition does. */
 void ClearAttackBlock(W8SpellEffectDefinition* block); /* 0x00543260 */
 W8Missile* FireMissileSourceToTarget(int missile_type, W8TargetSource* source, W8CombatSlot* target,
-                                     W8SpellEffectDefinition* attack,
-                                     bool use_default_accuracy,
-                                     unsigned int range_category, int accuracy); /* 0x00544630 */
+                                     W8SpellEffectDefinition* attack, bool use_default_accuracy,
+                                     W8RangeCategory range_category, int accuracy); /* 0x00544630 */
 void ScatterMissileAimPoint(const srVector3T<float>* from, srVector3T<float>* to, int accuracy,
                             bool blind);
 
@@ -182,4 +181,4 @@ void QueueFumbleReaction(int party_slot);
    become the struck target instead; answers whether the target changed. */
 int ResolveGuardianInterception(W8TargetSource* source, W8CombatSlot* target);
 void FireCharacterItemMissile(int party_slot, W8Character* pc, W8CombatCharacterRow* row,
-                              unsigned int range_category); /* 0x00544B60 */
+                              W8RangeCategory range_category); /* 0x00544B60 */

@@ -1037,43 +1037,43 @@ void MatureNpcDelayedItems(W8NpcState* npc)
         if (npc->record->kind == 3) {
             switch (entry->item.iItemNo) {
             case 0x28a:
-                SetFact(0xb0, 1, 0);
+                SetFact(W8_FACT_ZYNARYX_PLATE_COMPLETE, 1, 0);
                 break;
             case 0x28b:
-                SetFact(0xb1, 1, 0);
+                SetFact(W8_FACT_STEELHIDE_COMPLETE, 1, 0);
                 break;
             case 0x28c:
-                SetFact(0xb2, 1, 0);
+                SetFact(W8_FACT_FEATHERWEIGHT_COMPLETE, 1, 0);
                 break;
             case 0x28d:
-                SetFact(0xb3, 1, 0);
+                SetFact(W8_FACT_BEASTSLAYER_COMPLETE, 1, 0);
                 break;
             case 0x28e:
-                SetFact(0xb4, 1, 0);
+                SetFact(W8_FACT_EBON_STAFF_COMPLETE, 1, 0);
                 break;
             default:
                 break;
             }
         } else if (npc->record->kind == 0x49) {
             if (entry->item.iItemNo == 0x1b0) {
-                SetFact(0x19d, 1, 0);
-                SetFact(0x19e, 0, 0);
+                SetFact(W8_FACT_TRYNNIE_FUZZFAS_POTION_DONE, 1, 0);
+                SetFact(W8_FACT_TRYNNIE_FUZZFAS_POTION, 0, 0);
                 return;
             }
         } else if (npc->record->kind == 0x39) {
             if (entry->item.iItemNo == 500) {
-                SetFact(0x1dc, 0, 0);
-                SetFact(0x1ca, 1, 0);
+                SetFact(W8_FACT_FERRO_MIRROR_ARMOR_ALL_INGREDIENTS, 0, 0);
+                SetFact(W8_FACT_MIRROR_ARMOR_COMPLETE, 1, 0);
                 return;
             }
             if (entry->item.iItemNo == 0x1f5) {
-                SetFact(0x1dd, 0, 0);
-                SetFact(0x1cb, 1, 0);
+                SetFact(W8_FACT_FERRO_IVORY_BLADE_ALL_INGREDIENTS, 0, 0);
+                SetFact(W8_FACT_IVORY_BLADE_COMPLETE, 1, 0);
                 return;
             }
             if (entry->item.iItemNo == 0x1f8) {
-                SetFact(0x1de, 0, 0);
-                SetFact(0x1cc, 1, 0);
+                SetFact(W8_FACT_FERRO_VAMPIRE_CHAIN_ALL_INGREDIENTS, 0, 0);
+                SetFact(W8_FACT_VAMPIRE_CHAIN_COMPLETE, 1, 0);
                 return;
             }
         }

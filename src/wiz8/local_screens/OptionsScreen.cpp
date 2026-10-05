@@ -1500,12 +1500,12 @@ void W8OptionsValues::TransferSettings()
     if (applying == 0) {
         difficulty = g_status.difficulty;
     } else {
-        g_status.difficulty = difficulty;
+        g_status.difficulty = static_cast<W8Difficulty>(difficulty);
     }
     if (applying == 0) {
         difficulty = g_settings.difficulty;
     } else {
-        g_settings.difficulty = difficulty;
+        g_settings.difficulty = static_cast<W8Difficulty>(difficulty);
     }
     TransferRenderOption(&render_options[0], 4);
     TransferRenderOption(&render_options[1], 9);

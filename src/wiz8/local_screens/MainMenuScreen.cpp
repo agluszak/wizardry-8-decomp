@@ -182,7 +182,7 @@ unsigned char MainMenuScreenEnter(void)
         srAssertFail("gXStatus.uiMonstersInDatabase <= MAX_MONSTERS_IN_DATABASE",
                      "C:\\Projects\\Wizardry 8\\Local Screens\\MainMenuScreen.cpp", 0x87, 0);
     }
-    if (g_previous_screen_id != 10) {
+    if (g_previous_screen_id != W8_SCREEN_OPTIONS) {
         StartMusicResource("MainMenu.MPL", 0, 1);
     }
     UpdateHeldItemCursor();

@@ -1,6 +1,7 @@
 #ifndef WIZ8_LAYOUTS_GAMEPLAY_DATABASES_H
 #define WIZ8_LAYOUTS_GAMEPLAY_DATABASES_H
 
+#include "wiz8/fact_state.h"
 #include <stddef.h>
 
 #include "wiz8/layouts/plist.h"
@@ -223,7 +224,7 @@ static_assert(offsetof(W8SpellRuntimeRecord, show_effect_dice) == 0x147,
               "W8SpellRuntimeRecord_show_effect_dice");
 
 struct W8FactDatabaseRecord {
-    unsigned int identifier;  /* 0x000 */
+    W8FactId identifier;      /* 0x000 */
     char symbolic_name[0x32]; /* 0x004 .. 0x035 */
     /* 0x036: the journal shades this fact's text when its value is true. */
     unsigned char highlight_when_true;

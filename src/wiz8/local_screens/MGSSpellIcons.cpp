@@ -155,7 +155,7 @@ void RebuildSpellIconHudRows(void)
     for (slot = 0; slot < 12; ++slot) {
         effect = &g_status.effect_slots[slot];
         if (effect->active != 0) {
-            icon = g_effect_visual_table[effect->effect_id][0];
+            icon = g_effect_visual_table[effect->effect_id].hud_icon;
             if (icon == -1) {
                 ReportAssertion("iSpellIcon != BAD_INDEX", MGSSPELLICONS_CPP, 0x108);
             }
@@ -217,7 +217,7 @@ static void RebuildCombatEffectHudRows(void)
     for (slot = 0; slot < 9; ++slot) {
         effect = &g_combat_state->effect_slots[slot];
         if (effect->active != 0) {
-            icon = g_effect_visual_table[effect->effect_id][0];
+            icon = g_effect_visual_table[effect->effect_id].hud_icon;
             if (icon == -1) {
                 ReportAssertion("iSpellIcon != BAD_INDEX", MGSSPELLICONS_CPP, 0x228);
             }
@@ -239,7 +239,7 @@ static void RebuildCombatEffectHudRows(void)
     for (slot = 0; slot < 6; ++slot) {
         effect = &g_combat_state->effect_slots0[slot];
         if (effect->active != 0) {
-            icon = g_effect_visual_table[effect->effect_id][0];
+            icon = g_effect_visual_table[effect->effect_id].hud_icon;
             if (icon == -1) {
                 ReportAssertion("iSpellIcon != BAD_INDEX", MGSSPELLICONS_CPP, 0x25e);
             }
@@ -293,7 +293,7 @@ void DestroyCombatEffectHudRows(void)
 // FUNCTION: WIZ8 0x005af2d0
 void InvalidateMainGameEffectHud(void)
 {
-    if (g_current_screen_state.id == 7) {
+    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
         ClearSurfaceRect(0x7f, 0x14, 0x201, 0x28);
         InvalidateRegion(0x7f, 0x14, 0x201, 0x28, 0);
     }
