@@ -18,5 +18,5 @@ public:
 // recoveries and the host therefore use __cdecl. These zero-argument x86
 // calls use plain RET under either convention, so the convention is
 // invisible in the emitted bodies and only the export/host agreement pins it.
-typedef unsigned long (__cdecl *srGetLibraryVersionCdeclFn)();
-typedef srPlugin* (__cdecl *srInitPluginCdeclFn)();
+typedef unsigned long(__cdecl* srGetLibraryVersionCdeclFn)();
+typedef srPlugin*(__cdecl* srInitPluginCdeclFn)();

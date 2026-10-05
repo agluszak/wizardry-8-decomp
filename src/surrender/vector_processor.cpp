@@ -93,8 +93,8 @@ void srVectorProcessor::dump(std::ostream& stream)
     int used = 0;
     for (command = 0; command < 0xa6; ++command) {
         if (debug->call_counts[command] != 0) {
-            double time = debug->call_times[command] -
-                          debug->call_counts[command] * debug->call_overhead;
+            double time =
+                debug->call_times[command] - debug->call_counts[command] * debug->call_overhead;
             if (time <= 0.0) {
                 time = 0.0;
             }
@@ -110,8 +110,8 @@ void srVectorProcessor::dump(std::ostream& stream)
     index = 0;
     for (command = 0; command < 0xa6; ++command) {
         if (debug->call_counts[command] != 0) {
-            double time = debug->call_times[command] -
-                          debug->call_counts[command] * debug->call_overhead;
+            double time =
+                debug->call_times[command] - debug->call_counts[command] * debug->call_overhead;
             if (time <= 0.0) {
                 time = 0.0;
             }

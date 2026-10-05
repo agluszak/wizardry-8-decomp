@@ -36,8 +36,8 @@ public:
     srVector3T<float> m_color_first;  /* 0x22c */
     srVector3T<float> m_color_second; /* 0x238 */
     float m_start_time;               /* 0x244 */
-    bool m_cycle_color;      /* 0x248 */
-    bool m_fade_out;         /* 0x249 */
+    bool m_cycle_color;               /* 0x248 */
+    bool m_fade_out;                  /* 0x249 */
     unsigned char m_padding_24a[6];
 };
 

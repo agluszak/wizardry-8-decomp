@@ -122,8 +122,7 @@ void AccumulateEquipmentModifiers(W8Character* character, W8GameplayModifierBloc
         equipment_bonus->stamina_regen_adjustment += record->stamina_regen_bonus;
         equipment_bonus->spell_regen_adjustment += record->spell_regen_bonus;
         if (record->modifier_0b1_index != -1) {
-            equipment_bonus->skill_bonus[record->modifier_0b1_index] +=
-                record->modifier_0b1_value;
+            equipment_bonus->skill_bonus[record->modifier_0b1_index] += record->modifier_0b1_value;
         }
         if (record->modifier_0b3_index != -1) {
             equipment_bonus->attribute_adjustments[record->modifier_0b3_index] +=
@@ -427,7 +426,8 @@ void ApplyConditionModifiers(W8Character* character, const unsigned int* conditi
                 target->out_of_formation = 1;
             } else {
                 target->attribute_adjustments[W8_ATTRIBUTE_SENSES] +=
-                    static_cast<signed char>(ScaleValueByProfessionLevel(character, W8_TRAIT_EFFECTIVE_WHILE_BLIND, 50.0f)) -
+                    static_cast<signed char>(ScaleValueByProfessionLevel(
+                        character, W8_TRAIT_EFFECTIVE_WHILE_BLIND, 50.0f)) -
                     0x32;
             }
             break;

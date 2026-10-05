@@ -371,8 +371,8 @@ void UseHeldItemOnItem(W8ItemInstance* item)
                 OpenItemInfoDialog(item, 0);
                 if (!item->identified) {
                     QueueCharacterEvent(g_status.buffers.Char + giCasterCharSlot,
-                                        g_character_event_kind2, 0,
-                                        g_character_event_no_flags, g_character_event_full_volume);
+                                        g_character_event_kind2, 0, g_character_event_no_flags,
+                                        g_character_event_full_volume);
                 }
             }
             RebuildCampItemList();
@@ -381,9 +381,8 @@ void UseHeldItemOnItem(W8ItemInstance* item)
             giCasterCharSlot = -1;
             return;
         }
-        QueueCharacterEvent(g_status.buffers.Char + giCasterCharSlot,
-                            g_character_event_kind2, 0, g_character_event_no_flags,
-                            g_character_event_full_volume);
+        QueueCharacterEvent(g_status.buffers.Char + giCasterCharSlot, g_character_event_kind2, 0,
+                            g_character_event_no_flags, g_character_event_full_volume);
     }
 }
 
@@ -1195,9 +1194,8 @@ void DrawCampItemIcons(void)
         if ((index & 1) == 0) {
             y = (index >> 1) * 0x39 + 0xd2;
         }
-        DrawCampItemLabel(
-            &g_status.party_item_pool[state->item_list[state->item_scroll + index]],
-            (index & 1) * 0x31 + 0x22c, y, 1);
+        DrawCampItemLabel(&g_status.party_item_pool[state->item_list[state->item_scroll + index]],
+                          (index & 1) * 0x31 + 0x22c, y, 1);
         ++index;
     }
     region = g_camp_screen_regions;

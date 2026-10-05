@@ -48,14 +48,14 @@ public:
         // FUNCTION: WIZ8 0x00424A80
         inline MaterialInfo() : disabled_channels(0) {}
 
-        srVector4T<float> diffuse;  /* 0x00 */
-        srVector4T<float> ambient;  /* 0x10 */
-        srVector4T<float> specular; /* 0x20 */
-        float translucency;         /* 0x30 */
-        float shininess;            /* 0x34 */
-        float value_38;             /* 0x38 */
-        srVector4T<float> emissive; /* 0x3c */
-        float fog_scale;            /* 0x4c */
+        srVector4T<float> diffuse;       /* 0x00 */
+        srVector4T<float> ambient;       /* 0x10 */
+        srVector4T<float> specular;      /* 0x20 */
+        float translucency;              /* 0x30 */
+        float shininess;                 /* 0x34 */
+        float value_38;                  /* 0x38 */
+        srVector4T<float> emissive;      /* 0x3c */
+        float fog_scale;                 /* 0x4c */
         unsigned long disabled_channels; /* 0x50 */
     };
 

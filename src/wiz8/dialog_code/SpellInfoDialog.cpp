@@ -32,7 +32,7 @@ static unsigned short g_spellbook_name_ids[4] = {791, 792, 793, 794};
 static unsigned short g_spell_usage_name_ids[5] = {795, 797, 796, 796, 796};
 // GLOBAL: WIZ8 0x0060d4b4
 static unsigned short g_spell_target_type_name_ids[11] = {798, 799, 800, 801, 802, 803,
-                                                   804, 805, 806, 807, 807};
+                                                          804, 805, 806, 807, 807};
 // GLOBAL: WIZ8 0x0060d4cc
 static wchar_t g_spell_target_mark4[] = {0xfff4, 0};
 // GLOBAL: WIZ8 0x0060d4d0
@@ -45,10 +45,9 @@ static wchar_t g_spell_target_mark2[] = {0xfff2, 0};
 static wchar_t g_spell_target_mark3[] = {0xfff3, 0};
 // GLOBAL: WIZ8 0x0060d4e0
 const wchar_t* g_spell_target_parentheticals[11] = {
-    g_spell_target_mark4, g_spell_target_mark2, g_spell_target_mark4,
-    g_spell_target_mark2, g_spell_target_mark3, g_spell_target_mark1,
-    g_spell_target_mark0, g_spell_target_mark4, g_spell_target_mark0,
-    g_spell_target_mark4, g_spell_target_mark4,
+    g_spell_target_mark4, g_spell_target_mark2, g_spell_target_mark4, g_spell_target_mark2,
+    g_spell_target_mark3, g_spell_target_mark1, g_spell_target_mark0, g_spell_target_mark4,
+    g_spell_target_mark0, g_spell_target_mark4, g_spell_target_mark4,
 };
 // GLOBAL: WIZ8 0x0061e9a0
 unsigned short g_spell_range_name_ids[4] = {1307, 1308, 1309, 1310};
@@ -95,7 +94,7 @@ int W8SpellInfoDialog::CreateControls()
     m_scroll_bar.CreateControls(&resources);
     int x = m_x;
     m_scroll_bar.SetLayout(x + 0x12b, m_y + 0x43, m_text_area.GetTotalLineCount(), 0,
-                               m_text_area.GetLineHeight(), 0xb9);
+                           m_text_area.GetLineHeight(), 0xb9);
     m_scroll_bar.m_owner = this;
 
     m_button.Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 0, 1, 4, 2,
@@ -187,33 +186,31 @@ bool W8SpellInfoDialog::PopulateText()
     }
     m_text_area.AddEntry(gppStringList[0x11c], text, 10, 0xf, 0);
     m_text_area.AddEntry(gppStringList[0x11d],
-                             gppStringList[g_spell_usage_name_ids[record->usable_when]], 10, 0xf,
-                             0);
+                         gppStringList[g_spell_usage_name_ids[record->usable_when]], 10, 0xf, 0);
 
     target_type = GetSpellTargetType(m_spell, false);
-    m_text_area.AddEntry(
-        gppStringList[0x11e],
-        FormatWideString(g_format_s_space_s,
-                         gppStringList[g_spell_target_type_name_ids[target_type]],
-                         g_spell_target_parentheticals[target_type]),
-        10, 0xf, 0);
+    m_text_area.AddEntry(gppStringList[0x11e],
+                         FormatWideString(g_format_s_space_s,
+                                          gppStringList[g_spell_target_type_name_ids[target_type]],
+                                          g_spell_target_parentheticals[target_type]),
+                         10, 0xf, 0);
     m_text_area.AddEntry(gppStringList[0x11f],
-                             gppStringList[g_spell_range_name_ids[record->range_category]], 10, 0xf,
-                             0);
+                         gppStringList[g_spell_range_name_ids[record->range_category]], 10, 0xf, 0);
 
     if (record->show_effect_dice != 0 &&
         (record->effect_dice.base != 0 || record->effect_dice.count != 0)) {
         if (record->effect_dice.count == 0) {
             m_text_area.AddEntry(gppStringList[0x120],
-                                     FormatWideString(g_format_d_s,
-                                                      static_cast<int>(record->effect_dice.base),
-                                                      gppStringList[0x121]),
-                                     10, 0xf, 0);
+                                 FormatWideString(g_format_d_s,
+                                                  static_cast<int>(record->effect_dice.base),
+                                                  gppStringList[0x121]),
+                                 10, 0xf, 0);
         } else {
             m_text_area.AddEntry(
                 gppStringList[0x120],
                 FormatWideString(g_format_d_d_s,
-                                 record->effect_dice.count + static_cast<int>(record->effect_dice.base),
+                                 record->effect_dice.count +
+                                     static_cast<int>(record->effect_dice.base),
                                  record->effect_dice.sides * record->effect_dice.count +
                                      static_cast<int>(record->effect_dice.base),
                                  gppStringList[0x121]),

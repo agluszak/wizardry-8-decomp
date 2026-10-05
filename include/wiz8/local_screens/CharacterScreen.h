@@ -169,8 +169,8 @@ public:
     /* Descriptive names for the collapse operations expanded in row/page input. */
     void Collapse();
     void CollapseIfNotHovered();
-    void BuildSubpanel();            /* 0x005c94e0 */
-    void SetValue(int index);        /* 0x005c96c0 */
+    void BuildSubpanel();     /* 0x005c94e0 */
+    void SetValue(int index); /* 0x005c96c0 */
 
     int m_index; /* current stat index */
     unsigned short m_count;
@@ -410,7 +410,7 @@ public:
     W8CharacterScreen(int mode, W8Character* character);             /* 0x005B0040 */
     void BuildControls();                                            /* 0x005B0140 */
     void UpdateDialog();                                             /* 0x005B04B0 */
-    void AdvancePage(bool forward);                         /* 0x005B0B50 */
+    void AdvancePage(bool forward);                                  /* 0x005B0B50 */
     void SelectPage(int index);                                      /* 0x005B0D50 */
     void SyncCharacterForPage(int index);                            /* 0x005B0F30 */
     bool CommitCharacter();                                          /* 0x005B0FD0 */

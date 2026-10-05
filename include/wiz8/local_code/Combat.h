@@ -15,10 +15,10 @@ void SetCharacterCombatAction(int party_slot, W8ActionKind action_kind, int acti
 void EndCombat(bool forced_cleanup);                                        /* 0x004EA310 */
 void BeginCombatExecution(void);
 void AssignCombatPhases(void);
-void UpdateCombat(void);                            /* 0x004E8EA0 */
+void UpdateCombat(void);                                     /* 0x004E8EA0 */
 void SwitchCharacterTo(int party_slot, W8ActionKind action); /* 0x004ED390 */
-void ApplyCombatEndEffects(void);                   /* 0x004EA1F0 */
-bool CombatHasContinuingEffects(void);              /* 0x004ED550 */
+void ApplyCombatEndEffects(void);                            /* 0x004EA1F0 */
+bool CombatHasContinuingEffects(void);                       /* 0x004ED550 */
 /* 0x004ED460: whether continuous-combat stance may advance past the pending
    NPC-script / engagement gate. */
 bool CombatMayAdvanceContinuously(void);
@@ -74,10 +74,10 @@ char CreateCharacterBreathEffect(int party_slot);
 /* 0x004EBFE0: the character's committed breath attack against the marker
    lists plus every hostile monster; returns the action outcome code. */
 int ExecuteCharacterSpecialAttack(int party_slot);
-void ApplyPartyCombatAction(int party_slot, W8ActionKind action, int detail, const W8ActionDetailBlock* data,
-                            int notify); /* 0x004E7EE0 */
-int IsPartyEngaged(void);                /* 0x004E7E70 */
-W8PartyAction GetEffectivePartyAction(void); /* 0x004ED2B0 */
+void ApplyPartyCombatAction(int party_slot, W8ActionKind action, int detail,
+                            const W8ActionDetailBlock* data, int notify); /* 0x004E7EE0 */
+int IsPartyEngaged(void);                                                 /* 0x004E7E70 */
+W8PartyAction GetEffectivePartyAction(void);                              /* 0x004ED2B0 */
 void RecordCharacterDeath(int party_slot);
 void DropCharacterFromRound(int party_slot);
 /* 0x004E79A0: whether one party slot may switch to the given targeting

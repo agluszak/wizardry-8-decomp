@@ -262,8 +262,8 @@ void MakeTargetGroupHostile(W8TargetSource* source, W8CombatSlot* target)
 /* Whether a party action aims at enemies: the four melee kinds do, as do
    spells (and item-spells) whose target type sits in the enemy band. */
 // FUNCTION: WIZ8 0x00547310
-bool CharacterActionTargetsEnemies(W8Character* character, W8ActionKind action_kind, int action_detail,
-                                   W8ActionDetailBlock* detail)
+bool CharacterActionTargetsEnemies(W8Character* character, W8ActionKind action_kind,
+                                   int action_detail, W8ActionDetailBlock* detail)
 {
     W8ItemInstance* item;
     unsigned char spell_id;

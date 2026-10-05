@@ -2,6 +2,7 @@
    Consolidate the reconstructed platform declarations at their source owner.
    Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
    Remove the unused local configuration include, 2026-10-04.
+   Formatting normalized for the Wizardry 8 reconstruction, 2026-10-06.
    Distributed under the accompanying SFI Source Code license agreement. */
 #ifndef __SGP_
 #define __SGP_
@@ -30,17 +31,16 @@
 extern "C" {
 #endif
 
-extern BOOLEAN		gfProgramIsRunning; // Turn this to FALSE to exit program
-extern UINT32			giStartMem;
-extern CHAR8			gzCommandLine[100];	// Command line given
-extern UINT8			gbPixelDepth;				// GLOBAL RUN-TIME SETTINGS
-extern BOOLEAN		gfDontUseDDBlits;		// GLOBAL FOR USE OF DD BLITTING
+extern BOOLEAN gfProgramIsRunning; // Turn this to FALSE to exit program
+extern UINT32 giStartMem;
+extern CHAR8 gzCommandLine[100]; // Command line given
+extern UINT8 gbPixelDepth;       // GLOBAL RUN-TIME SETTINGS
+extern BOOLEAN gfDontUseDDBlits; // GLOBAL FOR USE OF DD BLITTING
 
-extern BOOLEAN		gfLoadAtStartup;
-extern CHAR8		*gzStringDataOverride;
-extern BOOLEAN		gfUsingBoundsChecker;
-extern BOOLEAN		gfCapturingVideo;
-
+extern BOOLEAN gfLoadAtStartup;
+extern CHAR8* gzStringDataOverride;
+extern BOOLEAN gfUsingBoundsChecker;
+extern BOOLEAN gfCapturingVideo;
 
 extern HINSTANCE ghInstance;
 extern BOOLEAN gfApplicationActive;
@@ -57,7 +57,7 @@ void GetRuntimeSettings(void);
 
 // function prototypes
 void SGPExit(void);
-void ShutdownWithErrorBox(const CHAR8 *pcMessage);
+void ShutdownWithErrorBox(const CHAR8* pcMessage);
 
 #ifdef __cplusplus
 }

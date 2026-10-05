@@ -28,8 +28,8 @@ public:
     unsigned char AddSoundEvent(W8SoundEvent* event);
 
 public:
-    unsigned char kind;                    /* 0x04 */
-    int id;                                /* 0x08 */
+    unsigned char kind;                        /* 0x04 */
+    int id;                                    /* 0x08 */
     W8AIRecord* m_pAI;                         /* 0x0c: GrObject::GetAI() assertion */
     W8Vector<W8SoundEvent*>* m_plsSoundEvents; /* 0x10 */
     /* +0x14 remains deliberately uninitialized and unowned by this base.

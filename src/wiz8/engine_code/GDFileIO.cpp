@@ -270,8 +270,7 @@ unsigned char W8GameData::ReadWGDList(HANDLE file, int poly_type)
                     } else {
                         surface->flags = 0;
                     }
-                    surface->plane.normal.Set(header.plane.x, header.plane.y,
-                                                 header.plane.z);
+                    surface->plane.normal.Set(header.plane.x, header.plane.y, header.plane.z);
                     float largest = static_cast<float>(fabs(surface->plane.normal.x));
                     unsigned int axis = 0;
                     if (largest < static_cast<float>(fabs(surface->plane.normal.y))) {
@@ -814,12 +813,10 @@ void W8GameData::CreateGDEnviron(const W8GDSurface* surface, float scale)
     if (m_ppEnvirons[m_iNumEnvirons] == 0) {
         ReportBuildStatus(7, "CreateGDEnviron: Could not allocate GD_Environ.");
     }
-    m_ppEnvirons[m_iNumEnvirons]->gravity_x =
-        g_navigator_gravity * surface->plane.normal.x * scale;
+    m_ppEnvirons[m_iNumEnvirons]->gravity_x = g_navigator_gravity * surface->plane.normal.x * scale;
     m_ppEnvirons[m_iNumEnvirons]->gravity_y =
         (scale * surface->plane.normal.y - g_float_one) * g_navigator_gravity;
-    m_ppEnvirons[m_iNumEnvirons]->gravity_z =
-        g_navigator_gravity * surface->plane.normal.z * scale;
+    m_ppEnvirons[m_iNumEnvirons]->gravity_z = g_navigator_gravity * surface->plane.normal.z * scale;
 }
 
 struct W8ProcessedGameDataHeader {
@@ -1369,10 +1366,10 @@ void W8GameData::CompileGameData()
                 progress += 10;
             }
             found = false;
-            unsigned int key = static_cast<unsigned int>(
-                vertex->position.z * g_float_005ebc60 * g_float_005ec1b4 +
-                vertex->position.y * g_float_005ebc60 * g_float_005ec1b0 +
-                vertex->position.x * g_float_005ebc60 * g_float_005ec1ac);
+            unsigned int key =
+                static_cast<unsigned int>(vertex->position.z * g_float_005ebc60 * g_float_005ec1b4 +
+                                          vertex->position.y * g_float_005ebc60 * g_float_005ec1b0 +
+                                          vertex->position.x * g_float_005ebc60 * g_float_005ec1ac);
             int linked = weld_table.Lookup(&key);
             if (linked == 0) {
                 int vertex_id = i + 1;
@@ -1385,12 +1382,9 @@ void W8GameData::CompileGameData()
                     }
                     int candidate_index = linked - 1;
                     W8OctPreTreeVertex* candidate = weld_records + candidate_index;
-                    if (fabs(vertex->position.x - candidate->position.x) >=
-                            g_camera_snap_epsilon ||
-                        fabs(vertex->position.y - candidate->position.y) >=
-                            g_camera_snap_epsilon ||
-                        fabs(vertex->position.z - candidate->position.z) >=
-                            g_camera_snap_epsilon) {
+                    if (fabs(vertex->position.x - candidate->position.x) >= g_camera_snap_epsilon ||
+                        fabs(vertex->position.y - candidate->position.y) >= g_camera_snap_epsilon ||
+                        fabs(vertex->position.z - candidate->position.z) >= g_camera_snap_epsilon) {
                         last = candidate_index;
                         linked = candidate->m_kind;
                     } else {
@@ -1427,8 +1421,7 @@ void W8GameData::CompileGameData()
     for (i = 0; i < m_iNumSurfaces; ++i) {
         W8GDSurface* surface = m_pSurfaces + i;
         for (j = 0; j < 3; ++j) {
-            surface->vertex_indices[j] =
-                weld_records[surface->vertex_indices[j]].m_vertex_index;
+            surface->vertex_indices[j] = weld_records[surface->vertex_indices[j]].m_vertex_index;
         }
     }
     m_iNumVertices = weld_count;
@@ -1570,8 +1563,7 @@ static void LinkSurfaceEdge(int polygon, int edge, W8HashTable<unsigned int, int
         low = next;
         high = edge;
     }
-    unsigned int key =
-        surface->vertex_indices[low] * multiplier + surface->vertex_indices[high];
+    unsigned int key = surface->vertex_indices[low] * multiplier + surface->vertex_indices[high];
     int index = table->Lookup(&key);
     if (index != 0) {
         bool linked = false;

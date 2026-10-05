@@ -7,7 +7,7 @@ from wiz8decomp import build
 from wiz8decomp.config import Settings
 
 
-@pytest.mark.parametrize("failure", [None, "pyright", "pytest"])
+@pytest.mark.parametrize("failure", [None, "clang-format", "pyright", "pytest"])
 def test_check_uses_completed_index_and_propagates_command_failures(
     tmp_path: Path, monkeypatch, failure: str | None
 ) -> None:
@@ -61,6 +61,31 @@ def _settings(repository: Path) -> Settings:
         input_dir=repository / "input",
         ghidra_install_dir=repository / "ghidra",
     )
+
+
+def test_cpp_format_files_owns_reconstruction_and_excludes_oracles(tmp_path: Path) -> None:
+    owned = [
+        "include/wiz8/example.h",
+        "src/sgp/DEBUG.H",
+        "src/wiz8/Combat Attack.cpp",
+        "src/srext_unzip/plugin.cpp",
+        "tests/runtime/example.cpp",
+        "tools/lint/include/Windows.h",
+    ]
+    excluded = [
+        "third_party/sgp/example.c",
+        "vendor/example.h",
+        "src/sgp/README.md",
+        "src/sgp/ddraw.h",
+        "src/sgp/Mss.h",
+        "src/sgp/ZLIB.H",
+        "src/sgp/ZCONF.H",
+    ]
+    for name in owned + excluded:
+        path = tmp_path / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.touch()
+    assert build.cpp_format_files(tmp_path) == sorted(owned)
 
 
 def _prepare_sources(settings: Settings) -> None:

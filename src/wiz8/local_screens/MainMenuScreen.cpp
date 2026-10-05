@@ -256,7 +256,8 @@ void MainMenuScreenFrame()
                 if (HandleDeveloperModeKey(&input)) {
                     if (g_dev_mode) {
                         SetFont(g_wiz_text_font_secondary);
-                        SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_wiz_text_font_secondary_palette);
+                        SetFontObjectPalette16BPP(g_wiz_text_font_secondary,
+                                                  g_wiz_text_font_secondary_palette);
                         gprintfDirty(5, 5, L"Developer mode enabled.");
                     }
                 } else {

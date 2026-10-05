@@ -148,7 +148,8 @@ void RemoveCharacterCondition(int party_slot, W8Condition condition, bool announ
             if (found_character == 0) {
                 found_character = FindPartyMemberWithLowestResistance4();
             }
-            if (CharacterPointerToPartySlot(found_character) == static_cast<unsigned int>(party_slot) &&
+            if (CharacterPointerToPartySlot(found_character) ==
+                    static_cast<unsigned int>(party_slot) &&
                 !FindItemOnCharacter(found_character, 0x239, 0, 0, 0)) {
                 return;
             }
@@ -376,8 +377,8 @@ void ApplyCharacterCondition(int party_slot, W8EnchantmentSlot slot, int argumen
             enchantment->magnitude =
                 static_cast<short>(RollDice(&g_spell_records[0x15].effect_dice) * argument);
             enchantment->magnitude =
-                static_cast<short>(
-                    (static_cast<unsigned int>(enchantment->magnitude) * percent) / 100) +
+                static_cast<short>((static_cast<unsigned int>(enchantment->magnitude) * percent) /
+                                   100) +
                 enchantment->magnitude;
         }
         for (int scan = 7; scan >= 0; --scan) {
@@ -548,7 +549,8 @@ void SetMonsterCondition(int location_id, W8Condition condition, int duration, i
             monster_info->condition_target = *target;
         }
     }
-    if (static_cast<unsigned int>(argument) > static_cast<unsigned int>(monster_info->condition_argument)) {
+    if (static_cast<unsigned int>(argument) >
+        static_cast<unsigned int>(monster_info->condition_argument)) {
         monster_info->condition_argument = argument;
         handled = true;
     }
@@ -776,7 +778,8 @@ unsigned char SetCharacterCondition(int party_slot, W8Condition condition, int d
     } else {
         handled = false;
     }
-    if (static_cast<unsigned int>(character->condition_argument) < static_cast<unsigned int>(argument)) {
+    if (static_cast<unsigned int>(character->condition_argument) <
+        static_cast<unsigned int>(argument)) {
         character->condition_argument = argument;
     }
     RebuildConditionsAndDerivedStats(party_slot);
@@ -1113,8 +1116,8 @@ void BindMonsterToCharacterDependence(unsigned int party_slot, unsigned int depe
 
     monster_info = MonsterGetScriptPartByLocationIndex(
         MonsterGetIndexByLocationID(0x44b, CONDITIONS_CPP, monster_id, true));
-    monster_info->condition_binding_mask = static_cast<unsigned char>(
-        monster_info->condition_binding_mask | (1 << dependence_slot));
+    monster_info->condition_binding_mask =
+        static_cast<unsigned char>(monster_info->condition_binding_mask | (1 << dependence_slot));
     if (dependence_slot == 1) {
         RetireMonsterGroupAndAllies(GetMonsterGroupByListIndex(
             GetMonsterGroupIndexByID(0x455, CONDITIONS_CPP, monster_info->monster_group_id, true)));
@@ -1122,8 +1125,7 @@ void BindMonsterToCharacterDependence(unsigned int party_slot, unsigned int depe
 
     g_status.buffers.Char[party_slot].conditions[dependence_slot].level_acquired =
         g_status.current_level;
-    g_status.buffers.Char[party_slot].conditions[dependence_slot].source_monster =
-        monster_id;
+    g_status.buffers.Char[party_slot].conditions[dependence_slot].source_monster = monster_id;
     g_status.buffers.Char[party_slot].conditions[dependence_slot].active = true;
     RebuildConditionsAndDerivedStats(party_slot);
 }

@@ -400,8 +400,7 @@ void srGERD::popEnable()
     unsigned long flags = 0;
     if (environment_state.enable_depth != 0) {
         environment_state.enable_depth -= 1;
-        flags = environment_state.enable_stack[environment_state.enable_depth]
-                    .value;
+        flags = environment_state.enable_stack[environment_state.enable_depth].value;
     }
     if (flags != enable_flags.value) {
         for (e_enable option = static_cast<e_enable>(0); static_cast<int>(option) < 7;
@@ -688,8 +687,7 @@ void srGERD::invalidateResidentTexture(Texture& texture)
             getDD()->deleteTexture(texture.device);
             texture.device.resident_data = 0;
             texture.device.resident_size = 0;
-            for (unsigned long stage = 0; stage < device.info.max_texture_stages;
-                 ++stage) {
+            for (unsigned long stage = 0; stage < device.info.max_texture_stages; ++stage) {
                 if (texture_slots[stage] == &texture) {
                     texture_slots[stage] = 0;
                 }
@@ -811,8 +809,7 @@ void srGERD::setTextureSubImage(srTextureIFace* texture, long mipmap, long x, lo
         }
         request.destination_x = x;
         request.destination_y = y;
-        unsigned long shift =
-            (unsigned long)((char)mipmap - (char)resident->device.first_level);
+        unsigned long shift = (unsigned long)((char)mipmap - (char)resident->device.first_level);
         unsigned long level_width = request.width >> (shift & 0x1f);
         if (level_width == 0) {
             level_width = 1;
@@ -833,8 +830,8 @@ void srGERD::setTextureSubImage(srTextureIFace* texture, long mipmap, long x, lo
         if (resident->surface_data == 0) {
             void* staging =
                 srCore.getGlobalRecycler()->allocate(bytes_per_pixel * level_height * level_width);
-            request.destination = new srColorSurface(resident->pixel_format, staging,
-                                                     level_width, level_height, pitch);
+            request.destination = new srColorSurface(resident->pixel_format, staging, level_width,
+                                                     level_height, pitch);
             texture->getMipmapLevelPartial(request);
             request.destination->release();
             resident->device.levels[mipmap] = staging;
@@ -898,8 +895,7 @@ void srGERD::pushMatrix()
 {
     MatrixStack& stack = state.matrix_stacks[state.matrix_mode];
     if (stack.depth < 0x20) {
-        stack.stack[stack.depth] =
-            state.matrix_current[state.matrix_mode];
+        stack.stack[stack.depth] = state.matrix_current[state.matrix_mode];
         stack.depth++;
     }
 }
@@ -1099,7 +1095,8 @@ srGERD::e_error srGERD::beginFrame()
         return ERROR_INVALID_WHANDLE;
     }
     if ((state_flags & STATE_FRAME_STARTED) == 0) {
-        if ((enable_flags.value & (1UL << ENABLE_AUTO_FLIP)) != 0 && (state_flags & STATE_FRAME_FLIPPED) == 0) {
+        if ((enable_flags.value & (1UL << ENABLE_AUTO_FLIP)) != 0 &&
+            (state_flags & STATE_FRAME_FLIPPED) == 0) {
             flipFrame();
         }
         checkFrameStateChanges();
@@ -1485,20 +1482,14 @@ void srGERD::getNormalMatrix(srMatrix4T<float>& matrix)
     checkViewStateChanges();
     if ((enable_flags.value & (1UL << ENABLE_REVERSE_NORMALS)) != 0) {
         srVector4T<float> negated;
-        negated.Set(-state.normal_matrix.vectors[0].x,
-                    -state.normal_matrix.vectors[0].y,
-                    -state.normal_matrix.vectors[0].z,
-                    -state.normal_matrix.vectors[0].w);
+        negated.Set(-state.normal_matrix.vectors[0].x, -state.normal_matrix.vectors[0].y,
+                    -state.normal_matrix.vectors[0].z, -state.normal_matrix.vectors[0].w);
         matrix.vectors[0] = negated;
-        negated.Set(-state.normal_matrix.vectors[1].x,
-                    -state.normal_matrix.vectors[1].y,
-                    -state.normal_matrix.vectors[1].z,
-                    -state.normal_matrix.vectors[1].w);
+        negated.Set(-state.normal_matrix.vectors[1].x, -state.normal_matrix.vectors[1].y,
+                    -state.normal_matrix.vectors[1].z, -state.normal_matrix.vectors[1].w);
         matrix.vectors[1] = negated;
-        negated.Set(-state.normal_matrix.vectors[2].x,
-                    -state.normal_matrix.vectors[2].y,
-                    -state.normal_matrix.vectors[2].z,
-                    -state.normal_matrix.vectors[2].w);
+        negated.Set(-state.normal_matrix.vectors[2].x, -state.normal_matrix.vectors[2].y,
+                    -state.normal_matrix.vectors[2].z, -state.normal_matrix.vectors[2].w);
         matrix.vectors[2] = negated;
         matrix.vectors[3] = state.normal_matrix.vectors[3];
         return;
@@ -1741,8 +1732,7 @@ void srGERD::accumAlloc()
 {
     if (getWidth() != 0) {
         if (getHeight() != 0) {
-            accum_buffer =
-                static_cast<AccumPixel*>(srHeap.allocate(getWidth() * getHeight() * 8));
+            accum_buffer = static_cast<AccumPixel*>(srHeap.allocate(getWidth() * getHeight() * 8));
             unsigned long* scratch = static_cast<unsigned long*>(srHeap.allocate(getWidth() * 4));
             if (scratch != 0) {
                 accum_scratch = scratch;
@@ -2284,19 +2274,16 @@ void srGERD::setScissor(unsigned long x, unsigned long y, unsigned long width, u
 // FUNCTION: SURRENDER 0x100204C0
 void srGERD::recalcScissor()
 {
-    if (state.scissor.left == 0 &&
-        state.scissor.right == (unsigned long)getWidth() &&
-        state.scissor.top == 0 &&
-        state.scissor.bottom == (unsigned long)getHeight()) {
+    if (state.scissor.left == 0 && state.scissor.right == (unsigned long)getWidth() &&
+        state.scissor.top == 0 && state.scissor.bottom == (unsigned long)getHeight()) {
         state.scissor_flags |= 2;
     } else {
         state.scissor_flags &= ~2UL;
     }
     getDD()->setScissor(state.scissor);
     if (lock_surface != 0) {
-        lock_surface->setScissor(state.scissor.left, state.scissor.top,
-                                       state.scissor.right,
-                                       state.scissor.bottom);
+        lock_surface->setScissor(state.scissor.left, state.scissor.top, state.scissor.right,
+                                 state.scissor.bottom);
     }
 }
 
@@ -2768,24 +2755,22 @@ void srGERD::applyClipPlaneChanges()
               (1.0f - projection.vectors[0].z)) *
             near_left,
         0.0f);
-    state.clip_planes[2].Set(
-        0.0f, -slope,
-        -(((projection.vectors[1].w - 1.0f) * projection.vectors[3].w) / top +
-          ((projection.vectors[1].z + 1.0f) * projection.vectors[3].z) /
-              (1.0f - projection.vectors[1].z)) *
-            near_top,
-        0.0f);
+    state.clip_planes[2].Set(0.0f, -slope,
+                             -(((projection.vectors[1].w - 1.0f) * projection.vectors[3].w) / top +
+                               ((projection.vectors[1].z + 1.0f) * projection.vectors[3].z) /
+                                   (1.0f - projection.vectors[1].z)) *
+                                 near_top,
+                             0.0f);
     state.clip_planes[3].Set(0.0f, slope, near_top, 0.0f);
     state.clip_planes[4].Set(0.0f, 0.0f, -1.0f, slope);
     state.clip_planes[5].Set(0.0f, 0.0f, 1.0f,
-                                        (projection.vectors[2].w - projection.vectors[3].w) /
-                                            (projection.vectors[2].z - projection.vectors[3].z));
+                             (projection.vectors[2].w - projection.vectors[3].w) /
+                                 (projection.vectors[2].z - projection.vectors[3].z));
     for (int plane = 0; plane != 4; ++plane) {
-        float length =
-            sqrt(state.clip_planes[plane].z * state.clip_planes[plane].z +
-                 state.clip_planes[plane].y * state.clip_planes[plane].y +
-                 state.clip_planes[plane].w * state.clip_planes[plane].w +
-                 state.clip_planes[plane].x * state.clip_planes[plane].x);
+        float length = sqrt(state.clip_planes[plane].z * state.clip_planes[plane].z +
+                            state.clip_planes[plane].y * state.clip_planes[plane].y +
+                            state.clip_planes[plane].w * state.clip_planes[plane].w +
+                            state.clip_planes[plane].x * state.clip_planes[plane].x);
         if (length != 0.0f) {
             float inverse_length = 1.0f / length;
             state.clip_planes[plane].x *= inverse_length;
@@ -2830,26 +2815,20 @@ void srGERD::pushClipPlane(const srVector4T<float>& plane, e_clipMode mode)
         float y = plane.y * inverse_length;
         float z = plane.z * inverse_length;
         float w = inverse_length * plane.w;
-        srVector4T<float>& eye_plane =
-            state.clip_planes[state.clip_plane_count + 6];
-        eye_plane.x = x * state.inverse_modelview.vectors[0].x +
-                      y * state.inverse_modelview.vectors[1].x +
-                      z * state.inverse_modelview.vectors[2].x +
-                      w * state.inverse_modelview.vectors[3].x;
-        eye_plane.y = x * state.inverse_modelview.vectors[0].y +
-                      y * state.inverse_modelview.vectors[1].y +
-                      z * state.inverse_modelview.vectors[2].y +
-                      w * state.inverse_modelview.vectors[3].y;
-        eye_plane.z = x * state.inverse_modelview.vectors[0].z +
-                      y * state.inverse_modelview.vectors[1].z +
-                      z * state.inverse_modelview.vectors[2].z +
-                      w * state.inverse_modelview.vectors[3].z;
-        eye_plane.w = x * state.inverse_modelview.vectors[0].w +
-                      y * state.inverse_modelview.vectors[1].w +
-                      z * state.inverse_modelview.vectors[2].w +
-                      w * state.inverse_modelview.vectors[3].w;
-        state.clip_modes[state.clip_plane_count] =
-            static_cast<unsigned char>(mode);
+        srVector4T<float>& eye_plane = state.clip_planes[state.clip_plane_count + 6];
+        eye_plane.x =
+            x * state.inverse_modelview.vectors[0].x + y * state.inverse_modelview.vectors[1].x +
+            z * state.inverse_modelview.vectors[2].x + w * state.inverse_modelview.vectors[3].x;
+        eye_plane.y =
+            x * state.inverse_modelview.vectors[0].y + y * state.inverse_modelview.vectors[1].y +
+            z * state.inverse_modelview.vectors[2].y + w * state.inverse_modelview.vectors[3].y;
+        eye_plane.z =
+            x * state.inverse_modelview.vectors[0].z + y * state.inverse_modelview.vectors[1].z +
+            z * state.inverse_modelview.vectors[2].z + w * state.inverse_modelview.vectors[3].z;
+        eye_plane.w =
+            x * state.inverse_modelview.vectors[0].w + y * state.inverse_modelview.vectors[1].w +
+            z * state.inverse_modelview.vectors[2].w + w * state.inverse_modelview.vectors[3].w;
+        state.clip_modes[state.clip_plane_count] = static_cast<unsigned char>(mode);
         state.clip_mask |= bit;
         if (mode == 1) {
             state.clip_mode1_mask |= bit;
@@ -2894,9 +2873,7 @@ void srGERD::getClipPlanes(ClipPlanes& planes)
 void srGERD::pushEnvironment()
 {
     if (environment_state.environment_depth < 0x10) {
-        environment_state
-            .environment_stack[environment_state.environment_depth] =
-            environment;
+        environment_state.environment_stack[environment_state.environment_depth] = environment;
         environment_state.environment_depth += 1;
     }
 }
@@ -2906,9 +2883,7 @@ void srGERD::popEnvironment()
 {
     if (environment_state.environment_depth != 0) {
         environment_state.environment_depth -= 1;
-        environment =
-            environment_state
-                .environment_stack[environment_state.environment_depth];
+        environment = environment_state.environment_stack[environment_state.environment_depth];
     }
 }
 
@@ -3033,32 +3008,26 @@ srGERD::e_visibility srGERD::testBoundingSphere(const srVector3T<float>& center,
     float eye_z = modelview.vectors[2].z * center.z + modelview.vectors[2].y * center.y +
                   modelview.vectors[2].x * center.x + modelview.vectors[2].w;
     float negative_radius = -(radius * state.max_modelview_scale);
-    if (eye_z * state.clip_planes[4].z + state.clip_planes[4].w <=
-        negative_radius) {
+    if (eye_z * state.clip_planes[4].z + state.clip_planes[4].w <= negative_radius) {
         return VISIBILITY_OUTSIDE;
     }
-    if (eye_z * state.clip_planes[5].z + state.clip_planes[5].w <=
-        negative_radius) {
+    if (eye_z * state.clip_planes[5].z + state.clip_planes[5].w <= negative_radius) {
         return VISIBILITY_OUTSIDE;
     }
     float eye_x = modelview.vectors[0].x * center.x + modelview.vectors[0].z * center.z +
                   modelview.vectors[0].y * center.y + modelview.vectors[0].w;
-    if (eye_x * state.clip_planes[0].x + eye_z * state.clip_planes[0].z <=
-        negative_radius) {
+    if (eye_x * state.clip_planes[0].x + eye_z * state.clip_planes[0].z <= negative_radius) {
         return VISIBILITY_OUTSIDE;
     }
-    if (eye_z * state.clip_planes[1].z + eye_x * state.clip_planes[1].x <=
-        negative_radius) {
+    if (eye_z * state.clip_planes[1].z + eye_x * state.clip_planes[1].x <= negative_radius) {
         return VISIBILITY_OUTSIDE;
     }
     float eye_y = modelview.vectors[1].z * center.z + modelview.vectors[1].y * center.y +
                   modelview.vectors[1].x * center.x + modelview.vectors[1].w;
-    if (eye_z * state.clip_planes[2].z + eye_y * state.clip_planes[2].y <=
-        negative_radius) {
+    if (eye_z * state.clip_planes[2].z + eye_y * state.clip_planes[2].y <= negative_radius) {
         return VISIBILITY_OUTSIDE;
     }
-    if (eye_z * state.clip_planes[3].z + eye_y * state.clip_planes[3].y <=
-        negative_radius) {
+    if (eye_z * state.clip_planes[3].z + eye_y * state.clip_planes[3].y <= negative_radius) {
         return VISIBILITY_OUTSIDE;
     }
     unsigned long remaining = state.clip_mask & 0xffffffc0;
@@ -3243,8 +3212,7 @@ srGERD::Texture* srGERD::findLowestPriority()
     }
     do {
         if (texture->device.priority < lowest ||
-            (texture->device.priority == lowest &&
-             texture->device.last_use < last_use)) {
+            (texture->device.priority == lowest && texture->device.last_use < last_use)) {
             int bound = 0;
             if (device.info.max_texture_stages != 0) {
                 Texture** slot = texture_slots;
@@ -3622,8 +3590,8 @@ void srGERD::dump(std::ostream& stream, const srFlags<e_info>& info)
             stream << "two (triple-buffered)" << std::endl;
         }
         stream << "Swap interval      : " << display.swap_interval << std::endl;
-        stream << "Gamma              : " << '{' << display.gamma.x << ','
-               << display.gamma.y << ',' << display.gamma.z << '}' << std::endl;
+        stream << "Gamma              : " << '{' << display.gamma.x << ',' << display.gamma.y << ','
+               << display.gamma.z << '}' << std::endl;
     }
     if ((info.value & INFO_STATISTICS) != 0) {
         Statistics statistics = frame_statistics;
@@ -3632,8 +3600,8 @@ void srGERD::dump(std::ostream& stream, const srFlags<e_info>& info)
             stream << "Seconds since reset             : " << statistics.elapsed << '\n';
             stream << "Frames since reset              : " << statistics.frames << '\n';
             stream << "Statistics (average per second)" << '\n';
-            stream << "Frames                          : "
-                   << statistics.frames / statistics.elapsed << '\n';
+            stream << "Frames                          : " << statistics.frames / statistics.elapsed
+                   << '\n';
             stream << "Triangle chunks rendered        : "
                    << statistics.triangle_chunks / statistics.elapsed << '\n';
             stream << "Triangles in                    : "
@@ -3706,16 +3674,15 @@ void srGERD::dump(std::ostream& stream, const srFlags<e_info>& info)
             stream << "Function calls to DD            : "
                    << statistics.device_calls / statistics.elapsed << std::endl;
         }
-        if ((info.value & INFO_DEBUG_DD) != 0 && (enable_flags.value & (1UL << ENABLE_DEBUG_DD)) != 0 &&
-            device.debug_dd != 0) {
+        if ((info.value & INFO_DEBUG_DD) != 0 &&
+            (enable_flags.value & (1UL << ENABLE_DEBUG_DD)) != 0 && device.debug_dd != 0) {
             double total = 0.0;
             srStreamPrintf(stream, "\nFunction                        Calls/sec  Time used\n");
             srStreamPrintf(stream,
                            "---------------------------------------------------------------\n");
             for (long i = 0; i < 0x2b; i++) {
                 unsigned long calls = device.debug_dd->call_counts[i];
-                double used = device.debug_dd->call_times[i] -
-                              calls * device.debug_dd->time_scale;
+                double used = device.debug_dd->call_times[i] - calls * device.debug_dd->time_scale;
                 if (used <= 0.0) {
                     used = 0.0;
                 }
@@ -3754,8 +3721,7 @@ void srGERD::dumpTextureCache(std::ostream& stream)
     srStreamPrintf(stream, "GERD Texture cache:\n\n");
     srStreamPrintf(stream, "Cached textures:          %d\n", count);
     srStreamPrintf(stream, "Hash table size           %d\n", texture_lookup.bucket_count);
-    srStreamPrintf(stream, "GERD Cache memory used:   %d kB\n",
-                   (texture_cache_used + 0x3ff) >> 10);
+    srStreamPrintf(stream, "GERD Cache memory used:   %d kB\n", (texture_cache_used + 0x3ff) >> 10);
     if (texture_cache_size == 0) {
         srStreamPrintf(stream, "Max cache size:           infinite\n");
     } else {
@@ -3763,8 +3729,7 @@ void srGERD::dumpTextureCache(std::ostream& stream)
                        (texture_cache_size + 0x3ff) >> 10);
     }
     srStreamPrintf(stream, "\n");
-    srStreamPrintf(stream, "Device TMUs:              %d\n",
-                   device.info.max_texture_stages);
+    srStreamPrintf(stream, "Device TMUs:              %d\n", device.info.max_texture_stages);
     if (device.info.texture_ram == 0) {
         srStreamPrintf(stream, "Device texture RAM:       infinite\n");
     } else {
@@ -3798,12 +3763,11 @@ void srGERD::dumpTextureCache(std::ostream& stream)
         } else {
             srStreamPrintf(stream, "%.1f   ", kb);
         }
-        int resident =
-            entry->device.resident_data != 0 && entry->device.resident_size != 0;
+        int resident = entry->device.resident_data != 0 && entry->device.resident_size != 0;
         srStreamPrintf(stream, "%-2d    %.4f     %08x   %-5s     %08x   ",
                        entry->device.last_level - entry->device.first_level + 1,
-                       entry->device.priority, entry->device.last_use,
-                       srBoolToString(resident), entry->id);
+                       entry->device.priority, entry->device.last_use, srBoolToString(resident),
+                       entry->id);
         if (entry->name == 0) {
             srStreamPrintf(stream, "anon\n");
         } else {
@@ -4200,8 +4164,7 @@ srGERD::e_error srGERD::openWindowInternal(const OpenInfo& info)
         return ERROR_NO_CONTEXT;
     }
     closeWindow(static_cast<e_closeHint>(1));
-    if (info.width != 0 && info.height != 0 && info.window_width != 0 &&
-        info.window_height != 0) {
+    if (info.width != 0 && info.height != 0 && info.window_width != 0 && info.window_height != 0) {
         if (srWindow::isWindow(device.window) == 0) {
             return ERROR_INVALID_WHANDLE;
         }
@@ -4406,8 +4369,7 @@ void srGERD::evaluateTexturePixelFormat(Texture& texture,
     } else {
         texture.palette = 0;
     }
-    texture.device.parameter =
-        texture_state.default_texture_params[dimensions.compression];
+    texture.device.parameter = texture_state.default_texture_params[dimensions.compression];
 }
 
 // FUNCTION: SURRENDER 0x10028E60
@@ -4449,8 +4411,7 @@ unsigned long srGERD::getTextureBytesNeeded(Texture& texture) const
 void srGERD::allocTextureData(Texture& texture)
 {
     unsigned long size = getTextureBytesNeeded(texture);
-    if (texture_cache_size != 0 &&
-        texture_cache_size < size + texture_cache_used) {
+    if (texture_cache_size != 0 && texture_cache_size < size + texture_cache_used) {
         float priority = texture.device.priority;
         texture.device.priority = 1.2f;
         releaseTextureMemory((long)(size - texture_cache_size + texture_cache_used));
@@ -5355,8 +5316,7 @@ void srGERD::accumulate(e_accum operation, float scale)
         setError(ERROR_BUFFER_LOCK_FAILED);
         return;
     }
-    AccumPixel* row = accum_buffer + getWidth() * state.scissor.top +
-                      state.scissor.left;
+    AccumPixel* row = accum_buffer + getWidth() * state.scissor.top + state.scissor.left;
     /* reinterpret-ok: the accum row scratch is raw dword storage reused as
        an ARGB pixel row. */
     srARGB* pixels = reinterpret_cast<srARGB*>(accum_scratch);
@@ -5368,8 +5328,7 @@ void srGERD::accumulate(e_accum operation, float scale)
                 surface->getPixelRow(
                     reinterpret_cast<unsigned long*>(
                         pixels), // reinterpret-ok: ARGB row buffer through the dword pixel-row ABI
-                    state.scissor.top + y, state.scissor.left,
-                    state.scissor.right);
+                    state.scissor.top + y, state.scissor.left, state.scissor.right);
                 __asm {
                     mov edi, row
                     mov esi, pixels
@@ -5409,8 +5368,7 @@ void srGERD::accumulate(e_accum operation, float scale)
                 surface->getPixelRow(
                     reinterpret_cast<unsigned long*>(
                         pixels), // reinterpret-ok: ARGB row buffer through the dword pixel-row ABI
-                    state.scissor.top + y, state.scissor.left,
-                    state.scissor.right);
+                    state.scissor.top + y, state.scissor.left, state.scissor.right);
                 __asm {
                     mov edi, row
                     mov esi, pixels
@@ -5531,8 +5489,7 @@ void srGERD::accumulate(e_accum operation, float scale)
                 surface->setPixelRow(
                     reinterpret_cast<const unsigned long*>(
                         pixels), // reinterpret-ok: ARGB row buffer through the dword pixel-row ABI
-                    state.scissor.top + y, state.scissor.left,
-                    state.scissor.right);
+                    state.scissor.top + y, state.scissor.left, state.scissor.right);
                 row += getWidth();
             }
             break;
@@ -5552,8 +5509,7 @@ void srGERD::accumulate(e_accum operation, float scale)
                 surface->getPixelRow(
                     reinterpret_cast<unsigned long*>(
                         pixels), // reinterpret-ok: ARGB row buffer through the dword pixel-row ABI
-                    state.scissor.top + y, state.scissor.left,
-                    state.scissor.right);
+                    state.scissor.top + y, state.scissor.left, state.scissor.right);
                 for (long x = 0; x < width; x++) {
                     row[x].red = row[x].red + table[pixels[x].blue];
                     row[x].green = row[x].green + table[pixels[x].green];
@@ -5573,8 +5529,7 @@ void srGERD::accumulate(e_accum operation, float scale)
                 surface->getPixelRow(
                     reinterpret_cast<unsigned long*>(
                         pixels), // reinterpret-ok: ARGB row buffer through the dword pixel-row ABI
-                    state.scissor.top + y, state.scissor.left,
-                    state.scissor.right);
+                    state.scissor.top + y, state.scissor.left, state.scissor.right);
                 for (long x = 0; x < width; x++) {
                     row[x].red = table[pixels[x].blue];
                     row[x].green = table[pixels[x].green];
@@ -5630,8 +5585,7 @@ void srGERD::accumulate(e_accum operation, float scale)
                 surface->setPixelRow(
                     reinterpret_cast<const unsigned long*>(
                         pixels), // reinterpret-ok: ARGB row buffer through the dword pixel-row ABI
-                    state.scissor.top + y, state.scissor.left,
-                    state.scissor.right);
+                    state.scissor.top + y, state.scissor.left, state.scissor.right);
                 row += getWidth();
             }
             break;

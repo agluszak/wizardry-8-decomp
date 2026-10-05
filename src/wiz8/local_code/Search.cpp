@@ -234,13 +234,11 @@ void RunSearchPulse(void)
                         W8Character* character = &g_status.buffers.Char[slot];
                         if (searchable->world_item == 0) {
                             if (searchable->trigger == 0) {
-                                QueueCharacterEvent(character, g_effect16, 0,
-                                                    g_effect_argument0,
+                                QueueCharacterEvent(character, g_effect16, 0, g_effect_argument0,
                                                     g_character_event_full_volume);
                                 found = true;
                             } else {
-                                QueueCharacterEvent(character, g_effect16, 0,
-                                                    g_effect_argument0,
+                                QueueCharacterEvent(character, g_effect16, 0, g_effect_argument0,
                                                     g_character_event_full_volume);
                                 int message = searchable->trigger->m_lData1;
                                 found = true;
@@ -264,9 +262,9 @@ void RunSearchPulse(void)
                             if (Random(2) != 0) {
                                 event_type = g_search_found_item_event_alt;
                             }
-                            W8CharacterEvent* event = new W8CharacterEvent(
-                                character, event_type, 0, g_effect_argument0,
-                                g_character_event_full_volume);
+                            W8CharacterEvent* event =
+                                new W8CharacterEvent(character, event_type, 0, g_effect_argument0,
+                                                     g_character_event_full_volume);
                             if (searchable->world_item != 0) {
                                 event->item = searchable->world_item->item;
                             }

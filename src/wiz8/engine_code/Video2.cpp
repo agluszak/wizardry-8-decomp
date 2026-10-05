@@ -1183,16 +1183,15 @@ void RenderFrame(void)
             goto clear_viewport;
         }
     } else if (g_world_blacked_out || !g_render_mesh_sky || g_secondary_world == 0) {
-    clear_viewport:
-        {
-            unsigned long height = g_gerd->getHeight();
-            unsigned long width = g_gerd->getWidth();
-            g_gerd->setScissor(g_viewport.left * width / 640, g_viewport.top * height / 480,
-                               (g_viewport.right - g_viewport.left) * width / 640,
-                               (g_viewport.bottom - g_viewport.top) * height / 480);
-            g_gerd->clear(srFlags<srGERD::e_buffer>(srGERD::BUFFER_COLOR | srGERD::BUFFER_DEPTH));
-            g_gerd->setScissor(0, 0, width, height);
-        }
+    clear_viewport: {
+        unsigned long height = g_gerd->getHeight();
+        unsigned long width = g_gerd->getWidth();
+        g_gerd->setScissor(g_viewport.left * width / 640, g_viewport.top * height / 480,
+                           (g_viewport.right - g_viewport.left) * width / 640,
+                           (g_viewport.bottom - g_viewport.top) * height / 480);
+        g_gerd->clear(srFlags<srGERD::e_buffer>(srGERD::BUFFER_COLOR | srGERD::BUFFER_DEPTH));
+        g_gerd->setScissor(0, 0, width, height);
+    }
     }
 
     first_page = g_active_page ? g_scene_prerender0 : g_scene_prerender1;
@@ -1220,9 +1219,8 @@ void RenderFrame(void)
             int half_width = (g_viewport.right - g_viewport.left) / 2;
             int half_height = (g_viewport.bottom - g_viewport.top) / 2;
             srGERD::Pick pick;
-            pick.position.x =
-                (g_cursor_hotspot_x - half_width - g_viewport.left + g_cursor_width) /
-                static_cast<float>(half_width);
+            pick.position.x = (g_cursor_hotspot_x - half_width - g_viewport.left + g_cursor_width) /
+                              static_cast<float>(half_width);
             pick.position.y = -static_cast<float>(g_cursor_hotspot_y - half_height -
                                                   g_viewport.top + g_cursor_height) /
                               half_height;

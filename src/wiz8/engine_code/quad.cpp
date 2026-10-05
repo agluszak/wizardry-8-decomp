@@ -67,8 +67,7 @@ W8QuadCell* GetPolygonQuadCell(W8Quad* quad, srModelInstance* instance, int poly
 
 // FUNCTION: WIZ8 0x004BE200
 W8Quad* BuildWorldQuad(srModelInstance* instance, int, float minimum_x, float minimum_y,
-                       float minimum_z, float maximum_x, float, float maximum_z, srScene*,
-                       int)
+                       float minimum_z, float maximum_x, float, float maximum_z, srScene*, int)
 {
     unsigned int row_count =
         static_cast<unsigned int>((maximum_x - minimum_x) / g_quad_cell_size) + 1;

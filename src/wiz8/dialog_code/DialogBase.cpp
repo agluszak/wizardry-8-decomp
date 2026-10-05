@@ -153,14 +153,10 @@ int W8DialogBase::CreateControls()
         return m_error = 4;
     }
     if (m_border == -1) {
-        m_border = LoadGenericButtonImages(
-            0,
-            Wiz8ToSgpText("Data\\Dialogs\\DialogBorder.STI"),
-            0,
-            Wiz8ToSgpText("Data\\Dialogs\\DialogBorder.STI"),
-            0,
-            Wiz8ToSgpText(m_background_path),
-            static_cast<short>(m_background_flags), 0, 0);
+        m_border = LoadGenericButtonImages(0, Wiz8ToSgpText("Data\\Dialogs\\DialogBorder.STI"), 0,
+                                           Wiz8ToSgpText("Data\\Dialogs\\DialogBorder.STI"), 0,
+                                           Wiz8ToSgpText(m_background_path),
+                                           static_cast<short>(m_background_flags), 0, 0);
         if (m_border == -1) {
             return m_error = 4;
         }

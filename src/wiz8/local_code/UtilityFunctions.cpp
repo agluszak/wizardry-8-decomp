@@ -609,13 +609,8 @@ bool CreateMessageBox(wchar_t* text, int font, unsigned int shade, bool has_acce
         width = 0x78;
     }
     g_message_box_background_image = LoadGenericButtonImages(
-        0,
-        Wiz8ToSgpText(DEFAULT_GENERIC_BUTTON_OFF),
-        0,
-        Wiz8ToSgpText(DEFAULT_GENERIC_BUTTON_ON),
-        0,
-        Wiz8ToSgpText("Data\\Dialogs\\DialogBackground.STI"),
-        0, 0, 0);
+        0, Wiz8ToSgpText(DEFAULT_GENERIC_BUTTON_OFF), 0, Wiz8ToSgpText(DEFAULT_GENERIC_BUTTON_ON),
+        0, Wiz8ToSgpText("Data\\Dialogs\\DialogBackground.STI"), 0, 0, 0);
     int yloc = (0x1e0 - height) / 2;
     g_message_box_background_button = CreateTextButton(
         text, static_cast<unsigned short>(font), 0xff, 0, g_message_box_background_image,
@@ -626,9 +621,7 @@ bool CreateMessageBox(wchar_t* text, int font, unsigned int shade, bool has_acce
     SpecifyButtonMultiColorFont(g_message_box_background_button, 1);
     if (has_accept) {
         strcpy(filename, "Data\\Message Box\\Ok.sti");
-        g_message_box_accept_image = LoadButtonImage(
-            Wiz8ToSgpText(filename),
-            0, 1, 2, 3, 4);
+        g_message_box_accept_image = LoadButtonImage(Wiz8ToSgpText(filename), 0, 1, 2, 3, 4);
         if (g_message_box_accept_image < 0) {
             return false;
         }
@@ -643,9 +636,7 @@ bool CreateMessageBox(wchar_t* text, int font, unsigned int shade, bool has_acce
     }
     if (has_cancel) {
         strcpy(filename, "Data\\Message Box\\Cancel.sti");
-        g_message_box_cancel_image = LoadButtonImage(
-            Wiz8ToSgpText(filename),
-            0, 1, 2, 3, 4);
+        g_message_box_cancel_image = LoadButtonImage(Wiz8ToSgpText(filename), 0, 1, 2, 3, 4);
         if (g_message_box_cancel_image < 0) {
             return false;
         }

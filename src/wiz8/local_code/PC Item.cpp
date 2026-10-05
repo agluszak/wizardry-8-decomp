@@ -73,7 +73,6 @@
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/local_screens/Screens.h"
 
-
 /* Items of equipment class four are priced and carried by the bundle rather
    than singly, so a stack of them divides its bundle value out - rounding up,
    which is where the addend comes from. */
@@ -217,7 +216,7 @@ wchar_t* g_generic_item_names[W8_GENERIC_ITEM_NAME_COUNT];
 // GLOBAL: WIZ8 0x00616e84
 W8Skill g_item_spell_presentation[11] = {
     W8_SKILL_NONE,        W8_SKILL_ARTIFACTS,      W8_SKILL_ARTIFACTS, W8_SKILL_NONE,
-    W8_SKILL_NONE,        W8_SKILL_NONE,           W8_SKILL_MUSIC,   W8_SKILL_THROWING_SLING,
+    W8_SKILL_NONE,        W8_SKILL_NONE,           W8_SKILL_MUSIC,     W8_SKILL_THROWING_SLING,
     W8_SKILL_ENGINEERING, W8_SKILL_MODERN_WEAPONS, W8_SKILL_SWORD};
 /* The twelve slots' paper-doll icons: the two alternate-set hand slots have
    none, which is the value the bound-item predicates refuse a binding behind. */
@@ -489,7 +488,8 @@ wchar_t* FormatItemDisplayName(const W8ItemInstance* item, bool include_quantity
     }
 
     if (include_quantity && item->stack_count > 1) {
-        swprintf(g_item_display_name_buffer, L"%s (%d)", name, static_cast<unsigned int>(item->stack_count));
+        swprintf(g_item_display_name_buffer, L"%s (%d)", name,
+                 static_cast<unsigned int>(item->stack_count));
     } else {
         swprintf(g_item_display_name_buffer, L"%s", name);
     }
@@ -897,15 +897,17 @@ bool CanCharacterUseItem(const W8Character* character, int item_id)
 
     for (index = 0; index < 2; ++index) {
         if (record->attribute_requirements[index].stat_id != W8_ITEM_REQUIREMENT_NONE &&
-            character->attributes[static_cast<signed char>(record->attribute_requirements[index].stat_id)]
+            character
+                    ->attributes[static_cast<signed char>(
+                        record->attribute_requirements[index].stat_id)]
                     .effective < record->attribute_requirements[index].minimum) {
             return false;
         }
     }
     for (index = 0; index < 2; ++index) {
         if (record->skill_requirements[index].stat_id != W8_ITEM_REQUIREMENT_NONE &&
-            character->skills[static_cast<signed char>(record->skill_requirements[index].stat_id)].level <
-                record->skill_requirements[index].minimum) {
+            character->skills[static_cast<signed char>(record->skill_requirements[index].stat_id)]
+                    .level < record->skill_requirements[index].minimum) {
             return false;
         }
     }
@@ -1303,8 +1305,8 @@ unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_use
         return used;
     }
 
-    QueueCharacterEvent(&g_status.buffers.Char[party_slot], event_type, 0,
-                        g_effect_argument0, g_character_event_full_volume);
+    QueueCharacterEvent(&g_status.buffers.Char[party_slot], event_type, 0, g_effect_argument0,
+                        g_character_event_full_volume);
     *out_uses = fatigue_cost;
     return used;
 }
@@ -1821,8 +1823,7 @@ unsigned char GiveHeldItemToCharacterOrParty(int uiChar, unsigned char party_fir
    item is stored: the item in hand clears the cursor state instead, and a party
    pool entry that was already empty is shifted out of the packed array. */
 // FUNCTION: WIZ8 0x0051bc00
-unsigned char GiveItemToCharacterOrParty(int uiChar, W8ItemInstance* item,
-                                         bool party_first)
+unsigned char GiveItemToCharacterOrParty(int uiChar, W8ItemInstance* item, bool party_first)
 {
     bool stored;
 
@@ -1858,8 +1859,7 @@ unsigned char GiveItemToCharacterOrParty(int uiChar, W8ItemInstance* item,
 // FUNCTION: WIZ8 0x0051be50
 bool DropItemInHand(int arg_1)
 {
-    if ((g_item_records[g_status.item_in_hand.iItemNo].flags & W8_ITEM_FLAG_NO_DISCARD) !=
-        0) {
+    if ((g_item_records[g_status.item_in_hand.iItemNo].flags & W8_ITEM_FLAG_NO_DISCARD) != 0) {
         ShowNoticeLine(gppStringList[0x4ef], 0, true, false);
         return false;
     }
@@ -2008,9 +2008,9 @@ void ReplaceOrCreateItem(W8ItemInstance* item, int item_id, bool maximum_quantit
         if (maximum >= 256) {
             srAssertFail("uiMAX_DICE(pMulti) < 256", PC_ITEM_CPP, 578, 0);
         }
-        unsigned char quantity = maximum_quantity
-                                     ? static_cast<unsigned char>(maximum)
-                                     : static_cast<unsigned char>(RollDice(&record->initial_quantity));
+        unsigned char quantity =
+            maximum_quantity ? static_cast<unsigned char>(maximum)
+                             : static_cast<unsigned char>(RollDice(&record->initial_quantity));
         if (record->quantity_kind == W8_ITEM_QUANTITY_STACK) {
             item->stack_count = quantity;
         } else if (record->quantity_kind >= W8_ITEM_QUANTITY_CHARGES &&
@@ -2202,8 +2202,8 @@ bool ItemHasHiddenProperties(int item_id)
             return true;
         }
     }
-    if (record->binds_on_equip != 0 || record->health_regen_bonus != 0 || record->stamina_regen_bonus != 0 ||
-        record->spell_regen_bonus != 0) {
+    if (record->binds_on_equip != 0 || record->health_regen_bonus != 0 ||
+        record->stamina_regen_bonus != 0 || record->spell_regen_bonus != 0) {
         return true;
     }
     return false;
@@ -2739,8 +2739,7 @@ void NormalizeItemStack(W8ItemInstance* item)
             item->stack_count = record->maximum_quantity;
             return;
         }
-        W8ItemInstance* destination =
-            &g_status.party_item_pool[g_status.party_item_count];
+        W8ItemInstance* destination = &g_status.party_item_pool[g_status.party_item_count];
         memset(destination, 0, sizeof(*destination));
         destination->iItemNo = -1;
         CopyItemInstance(destination, &split, 0, true);
@@ -2959,8 +2958,7 @@ unsigned int GetEquipmentBindingDifficulty(int character_index)
    been emptied.  With no character owner this intentionally does nothing;
    that is the path used while the new-game reset clears the carried pool. */
 // FUNCTION: WIZ8 0x00520d10
-void RefreshAfterItemRecordChange(W8ItemInstance* item, W8Character* character,
-                                  bool refresh)
+void RefreshAfterItemRecordChange(W8ItemInstance* item, W8Character* character, bool refresh)
 {
     if (!character) {
         return;
@@ -3165,8 +3163,8 @@ void DeliverExceptionalItemReaction(W8ItemInstance* item, bool choose_character,
         message = g_item_message3;
         break;
     case 0x244:
-        message = GetFactionDispositionScore(W8_FACTION_MOOK) != 0 ? g_item_message4
-                                                                   : g_item_message5;
+        message =
+            GetFactionDispositionScore(W8_FACTION_MOOK) != 0 ? g_item_message4 : g_item_message5;
         break;
     case 0x264:
         message = g_item_message9;
@@ -3431,18 +3429,22 @@ void UnequipUnusableItems(W8Character* character)
 
         for (index = 0; index < 2; ++index) {
             if (record->attribute_requirements[index].stat_id != W8_ITEM_REQUIREMENT_NONE &&
-                character->attributes[static_cast<signed char>(record->attribute_requirements[index].stat_id)]
+                character
+                        ->attributes[static_cast<signed char>(
+                            record->attribute_requirements[index].stat_id)]
                         .effective < record->attribute_requirements[index].minimum) {
-                message_id = g_character_description_first_ids
-                    [static_cast<signed char>(record->attribute_requirements[index].stat_id)];
+                message_id = g_character_description_first_ids[static_cast<signed char>(
+                    record->attribute_requirements[index].stat_id)];
                 unmet = true;
                 break;
             }
         }
         for (index = 0; !unmet && index < 2; ++index) {
             if (record->skill_requirements[index].stat_id != W8_ITEM_REQUIREMENT_NONE &&
-                character->skills[static_cast<signed char>(record->skill_requirements[index].stat_id)].level <
-                    record->skill_requirements[index].minimum) {
+                character
+                        ->skills[static_cast<signed char>(
+                            record->skill_requirements[index].stat_id)]
+                        .level < record->skill_requirements[index].minimum) {
                 message_id = g_character_skill_name_ids[static_cast<signed char>(
                     record->skill_requirements[index].stat_id)];
                 unmet = true;
@@ -3798,9 +3800,9 @@ int CastItemSpell(W8Character* character, W8ItemInstance* item, unsigned int pow
 
     if (strlen(record->video_object_name + 0x18) != 0) {
         // reinterpret-ok: SGP's String returns UINT8* and SoundPlay takes char*
-        SoundPlay(reinterpret_cast<char*>(
-                      String(s_spell_sound_format, record->video_object_name + 0x18)),
-                  0);
+        SoundPlay(
+            reinterpret_cast<char*>(String(s_spell_sound_format, record->video_object_name + 0x18)),
+            0);
     }
 
     {
@@ -3892,14 +3894,12 @@ void RemovePartyPoolEntry(unsigned int index)
 {
     W8ItemInstance shifted[500];
 
-    if (g_status.party_item_pool[index].iItemNo == -1 &&
-        index < g_status.party_item_count) {
+    if (g_status.party_item_pool[index].iItemNo == -1 && index < g_status.party_item_count) {
         memcpy(&shifted[index], &g_status.party_item_pool[index + 1],
                (g_status.party_item_count - index - 1) * sizeof(W8ItemInstance));
         memcpy(&g_status.party_item_pool[index], &shifted[index],
                (g_status.party_item_count - index - 1) * sizeof(W8ItemInstance));
-        memset(&g_status.party_item_pool[g_status.party_item_count - 1], 0,
-               sizeof(W8ItemInstance));
+        memset(&g_status.party_item_pool[g_status.party_item_count - 1], 0, sizeof(W8ItemInstance));
         g_status.party_item_pool[g_status.party_item_count - 1].iItemNo = -1;
         --g_status.party_item_count;
         RedistributePartyEncumbrance();

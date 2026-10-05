@@ -300,8 +300,7 @@ void srHuffman::Compressor::buildSymbolTree()
                 ++slot;
                 picked->next = 0;
             }
-            node->frequency =
-                node->children[1]->frequency + node->children[0]->frequency;
+            node->frequency = node->children[1]->frequency + node->children[0]->frequency;
             if (tails[1] == 0) {
                 heads[1] = node;
             } else {

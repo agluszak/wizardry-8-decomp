@@ -58,7 +58,6 @@ public:
                         const ImportInfo& options);
 
     /* The emitted lifecycle is consistent with ordinary base-subobject operations. */
-
 };
 
 static_assert((sizeof(srSurfaceIOManager::ImportInfo) == 0x04), "srSurfaceImportInfo_must_be_0x04");
@@ -97,7 +96,6 @@ public:
 #endif
         ImportInfo {
     public:
-
         unsigned char unknown_00;
     };
     class
@@ -106,7 +104,6 @@ public:
 #endif
         ExportInfo {
     public:
-
         unsigned char unknown_00;
     };
 
@@ -132,7 +129,6 @@ class
 #endif
     __declspec(novtable) srHierarchyIOManager::HierarchyImporter : public srIOManager::Importer {
 public:
-
     /* Exported lifecycle bodies contain ordinary base-only operations. */
 
     /* importHierarchy's call site dispatches through vtable slot 2. */
@@ -156,7 +152,6 @@ public:
 #endif
         ImportInfo {
     public:
-
         unsigned char unknown_00;
     };
     class
@@ -165,7 +160,6 @@ public:
 #endif
         ExportInfo {
     public:
-
         unsigned char unknown_00;
     };
 
@@ -189,7 +183,6 @@ class
 #endif
     __declspec(novtable) srModelIOManager::ModelImporter : public srIOManager::Importer {
 public:
-
     /* Exported lifecycle bodies contain ordinary base-only operations. */
 
     /* importModel's call site dispatches through vtable slot 2. */

@@ -210,10 +210,10 @@ public:
        dialogue_transcript records (text plus category byte). */
     void SaveTranscriptEntries(); /* 0x0055E940 */
     /* Drop every transcript line from the text area and invalidate. */
-    void ClearTranscriptEntries();                  /* 0x0055EA40 */
-    int GetSelectedTranscriptEntryIndex();          /* 0x0055EAB0 */
-    void SetTranscriptSorted(bool sorted);          /* 0x0055EAC0 */
-    void RemoveSelectedTranscriptEntry();           /* 0x0055EA70 */
+    void ClearTranscriptEntries();         /* 0x0055EA40 */
+    int GetSelectedTranscriptEntryIndex(); /* 0x0055EAB0 */
+    void SetTranscriptSorted(bool sorted); /* 0x0055EAC0 */
+    void RemoveSelectedTranscriptEntry();  /* 0x0055EA70 */
     /* Open the transcript upward to fit its lines (capped at 0xff pixels)
        and enable its scroll region. */
     void Expand(); /* 0x0055E1E0 */
@@ -298,8 +298,8 @@ public:
        below; no standalone derived body exists. */
     W8LockTumbler(Controls* panel, int left, int top, int right, int bottom, int pin_index)
         : W8Widget(panel, 0xffffffff, left, top, right, bottom), m_pin_set(0), m_rising(0),
-          m_falling(0), m_at_top(0), m_hovered(0), m_pin_index(pin_index),
-          m_pin_height(0x22), m_listener(0)
+          m_falling(0), m_at_top(0), m_hovered(0), m_pin_index(pin_index), m_pin_height(0x22),
+          m_listener(0)
     {
     }
     virtual void Redraw(unsigned char full_redraw) override; /* 0x005854B0 */
@@ -379,7 +379,7 @@ public:
     W8TextBuffer* m_text3; /* 0x5c */
     W8TextBuffer* m_text4; /* 0x60: spell power */
     W8TextBuffer* m_text5; /* 0x64 */
-    W8TextBuffer* m_text; /* 0x68: force chance */
+    W8TextBuffer* m_text;  /* 0x68: force chance */
 };
 static_assert(sizeof(W8LockInfoPanel) == 0x6c, "W8LockInfoPanel_size");
 
@@ -398,11 +398,11 @@ public:
     virtual void OnTumblerPicked(int index) override;        /* 0x00586B10 */
     virtual void OnPrimary(W8TextControl* control) override; /* 0x00586C00 */
     int ReleaseOwnedTumblers(int slot);
-    void Process();                                          /* 0x00586740 */
-    void ResolvePick();                                      /* 0x00586C60 */
-    void AttemptForce();                                     /* 0x00586E40 */
-    void EnablePanels(int enable);                           /* 0x00586AF0 */
-    void BeginUnlock();                                      /* 0x005874D0 */
+    void Process();                /* 0x00586740 */
+    void ResolvePick();            /* 0x00586C60 */
+    void AttemptForce();           /* 0x00586E40 */
+    void EnablePanels(int enable); /* 0x00586AF0 */
+    void BeginUnlock();            /* 0x005874D0 */
     /* Knock-knock resolution: rolls the per-level chance over a shuffled pin
        order, raising (or on backfire dropping) them, then re-derives the
        control enables and enters state 7. The flag parameter is unused. */
@@ -460,9 +460,9 @@ public:
     void RefreshActionPanel();               /* 0x00589D90 */
     void EnablePanelRegionSets(bool enable); /* 0x0058A030 */
     int GetTrapInteractionChance() const;
-    void ApplyInspectSuccess();              /* 0x0058A060 */
-    void CastTrapSpell();                    /* 0x0058A200 */
-    void UseTrapItem();                      /* 0x0058A3E0 */
+    void ApplyInspectSuccess(); /* 0x0058A060 */
+    void CastTrapSpell();       /* 0x0058A200 */
+    void UseTrapItem();         /* 0x0058A3E0 */
 
     Trigger* m_owner;
     W8MainGameTextPanel* m_text_panel;
@@ -519,7 +519,7 @@ struct W8NpcQuoteEntry;
 void RefreshTrackedPortraitOverlay(void); /* 0x00563890 */
 /* Which party portrait the pointer is over, if any. */
 unsigned char HitTestPartyPortrait(const InputAtom* event);
-void ClearCombatSelection(void);                                       /* 0x0056A5A0 */
+void ClearCombatSelection(void);                                                /* 0x0056A5A0 */
 void UpdateWorldViewCursor(const InputAtom* event, W8TargetNeed target_needed); /* 0x0056A5D0 */
 void RequestRefreshPartyState(void);
 void RefreshFlaggedMainGameState(void);

@@ -103,12 +103,10 @@ void srTextureFile::loadSurface()
             srSurfaceIOManager::ImportInfo info;
             info.unknown_00 = 0;
             surface = srCore.getSurfaceIOManager()->importSurface(file_name, info);
-        }
-        catch (const srIOManager::Error&) {
+        } catch (const srIOManager::Error&) {
             texture_flags_ |= 1 << FLAG_GENERATESURFACE_FAILURE;
             surface = 0;
-        }
-        catch (...) {
+        } catch (...) {
             texture_flags_ |= 1 << FLAG_GENERATESURFACE_FAILURE;
             surface = 0;
         }

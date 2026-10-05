@@ -188,9 +188,9 @@ private:
     unsigned long channel_mask;                    /* 0x0c */
     unsigned long lazy_setup_mask;                 /* 0x10 */
     srVertexProcessor::MaterialInfo material_info; /* 0x14 through 0x67 */
-    srMaterialIFace* material; /* 0x68 */
-    const Input* input;        /* 0x6c */
-    const unsigned long* avt;  /* 0x70 */
+    srMaterialIFace* material;                     /* 0x68 */
+    const Input* input;                            /* 0x6c */
+    const unsigned long* avt;                      /* 0x70 */
     const Record* current_record;                  /* 0x74 */
     srVertexArray* vertex_array;                   /* 0x78 */
     srVector4T<float>* eye_space_locations;        /* 0x7c */

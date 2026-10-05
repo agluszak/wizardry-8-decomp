@@ -166,8 +166,7 @@ static_assert(offsetof(W8SpellEffectEntry, OrigSource) == 0x008, "W8SpellEffectE
 static_assert(offsetof(W8SpellEffectEntry, Source) == 0x05c, "W8SpellEffectEntry_Source");
 static_assert(offsetof(W8SpellEffectEntry, target) == 0x090, "W8SpellEffectEntry_target");
 static_assert(offsetof(W8SpellEffectEntry, definition) == 0x0b0, "W8SpellEffectEntry_definition");
-static_assert(offsetof(W8SpellEffectEntry, monster_ids) == 0x0e0,
-              "W8SpellEffectEntry_monster_ids");
+static_assert(offsetof(W8SpellEffectEntry, monster_ids) == 0x0e0, "W8SpellEffectEntry_monster_ids");
 static_assert(offsetof(W8SpellEffectEntry, target_indices) == 0x0f0,
               "W8SpellEffectEntry_target_indices");
 static_assert(offsetof(W8SpellEffectEntry, spell_visuals) == 0x100,

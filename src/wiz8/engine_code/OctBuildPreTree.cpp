@@ -108,8 +108,8 @@ int W8OctBuildNode::CollectLinkedSurfaces(short current_depth, short target_dept
     } else {
         for (int child = 0; child != 8; ++child) {
             if (children[child] != 0) {
-                count += children[child]->CollectLinkedSurfaces(current_depth + 1, target_depth,
-                                                                   mode);
+                count +=
+                    children[child]->CollectLinkedSurfaces(current_depth + 1, target_depth, mode);
             }
         }
     }
@@ -1549,17 +1549,15 @@ void OctBuildPreTree::ValidatePolygonRegions()
 // FUNCTION: WIZ8 0x004b35b0
 void OctBuildPreTree::ValidateRegionBounds(const W8BoundingBox* region_bounds)
 {
-    for (unsigned long region_index = 1; region_index < spatial.submesh_count;
-         ++region_index) {
+    for (unsigned long region_index = 1; region_index < spatial.submesh_count; ++region_index) {
         unsigned short region = static_cast<unsigned short>(region_index);
         int entry = -1;
         while ((entry = region_path_map->FindNextEntry(&region, entry)) != -1) {
             unsigned long path = region_path_map->entries[entry].value;
             srVector3T<float> minimum;
-            minimum.Set(
-                ((path >> 16) & 0xff) * spatial.m_region_grid_cell + spatial.m_minimum.x,
-                ((path >> 8) & 0xff) * spatial.m_region_grid_cell + spatial.m_minimum.y,
-                (path & 0xff) * spatial.m_region_grid_cell + spatial.m_minimum.z);
+            minimum.Set(((path >> 16) & 0xff) * spatial.m_region_grid_cell + spatial.m_minimum.x,
+                        ((path >> 8) & 0xff) * spatial.m_region_grid_cell + spatial.m_minimum.y,
+                        (path & 0xff) * spatial.m_region_grid_cell + spatial.m_minimum.z);
             srVector3T<float> maximum;
             maximum.Set(minimum.x + spatial.m_region_grid_cell,
                         minimum.y + spatial.m_region_grid_cell,
@@ -1654,8 +1652,7 @@ unsigned char OctBuildPreTree::BuildParticleRegions(const W8LevelFileParticleSys
                             bool corner_mapped = false;
                             for (unsigned short region_index = 1;
                                  region_index < spatial.m_region_count; ++region_index) {
-                                W8OctRegionVolume* volume =
-                                    spatial.m_region_volumes + region_index;
+                                W8OctRegionVolume* volume = spatial.m_region_volumes + region_index;
                                 if (volume->ContainsPoint(&corner)) {
                                     unsigned short region = volume->m_region;
                                     inside_region_map->InsertUnique(&region, &particle_value);
@@ -1800,8 +1797,7 @@ unsigned char OctBuildPreTree::BuildGeometryRegions(const W8LevelFileProp* recor
                     mesh_prop_lookup[region_value] = g_region_id_count;
                     first = false;
                 }
-                g_region_id_list[g_region_id_count++] =
-                    overlap_region_map->entries[entry].value;
+                g_region_id_list[g_region_id_count++] = overlap_region_map->entries[entry].value;
             }
             if (!first) {
                 g_region_id_list[g_region_id_count++] = 0;

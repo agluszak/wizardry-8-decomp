@@ -415,10 +415,10 @@ void SetCameraSwayMode(srCamera* camera, int mode)
 
     if (mode != 0) {
         if (mode > 0) {
-            g_camera_base_horizontal_fov =
-                static_cast<float>(camera->getHorizontalFOV() * (g_double_005ebce8 / g_double_005ec1f8));
-            g_camera_base_vertical_fov =
-                static_cast<float>(camera->getVerticalFOV() * (g_double_005ebce8 / g_double_005ec1f8));
+            g_camera_base_horizontal_fov = static_cast<float>(
+                camera->getHorizontalFOV() * (g_double_005ebce8 / g_double_005ec1f8));
+            g_camera_base_vertical_fov = static_cast<float>(
+                camera->getVerticalFOV() * (g_double_005ebce8 / g_double_005ec1f8));
             if (!g_camera_sway_active) {
                 g_camera_sway_horizontal_phase = 0.0f;
                 g_camera_sway_vertical_phase = 0.0f;
@@ -504,8 +504,7 @@ void DestroyWorldCollections(W8World* world)
 
     if (world->plsCameras != 0) {
         while (PLLength(world->plsCameras) != 0) {
-            W8CameraPath* entry =
-                GetWorldCameraPath(world, 0);
+            W8CameraPath* entry = GetWorldCameraPath(world, 0);
             PLRemoveAt(world->plsCameras, 0);
             DestroyPathAI(entry->path);
             free(entry);
@@ -517,8 +516,7 @@ void DestroyWorldCollections(W8World* world)
     StopAllAmbientSounds();
     if (world->plsAmbientSounds != 0) {
         while (PLLength(world->plsAmbientSounds) != 0) {
-            W8AmbientSound* ambient_sound =
-                GetWorldAmbientSound(world, 0);
+            W8AmbientSound* ambient_sound = GetWorldAmbientSound(world, 0);
             PLRemoveAt(world->plsAmbientSounds, 0);
             DestroyAmbientSound(ambient_sound);
         }
@@ -645,7 +643,7 @@ void UpdateWorldCameraAndPaths(W8World* world, unsigned int flags)
             g_startup_world->SetAngles(yaw);
             g_startup_world->SetPitch(pitch);
             if (world->game_data->ApplyCameraMotion(flags, &camera_position, &delta,
-                                                      &motion_saved) != 0) {
+                                                    &motion_saved) != 0) {
                 camera_position += delta;
                 navigator_position.Set(camera_position.x,
                                        camera_position.y - g_default_world_height,
@@ -1135,8 +1133,8 @@ unsigned char AdjustWorldCollisionPosition(float radius, srVector3T<float>* posi
 /* Try the requested point first, then the two retail half-turn probe points
    around it; only an unobstructed probe is handed to the overlap resolver. */
 // FUNCTION: WIZ8 0x00451800
-unsigned char FindNearbyFreePosition(float radius, srVector3T<float>* position,
-                                     bool check_items, bool check_monsters)
+unsigned char FindNearbyFreePosition(float radius, srVector3T<float>* position, bool check_items,
+                                     bool check_monsters)
 {
     srVector3T<float> candidate = *position;
     if (AdjustWorldCollisionPosition(radius, &candidate, check_items, check_monsters)) {

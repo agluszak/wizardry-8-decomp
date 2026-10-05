@@ -90,21 +90,29 @@ baseline:
 - not retained and not referenced by any retained or product code (335).
 
 The unreferenced, unretained bodies and their prototypes were removed, except
-in `DirectDraw Calls.cpp`. There, retail `ATTEMPT` `__LINE__` immediates keep the
-released spacing between retained functions (for example `DDGetSurfaceDescription`
-120 → `DDRestoreSurface` 224 in retail). So the eleven unretained bodies between
-them were present in Wizardry's file, and they stay. Elsewhere, absence from the
-link proves only that a body was not retained; the original fork may still have
-contained it.
+in `DirectDraw Calls.cpp`. The historical spacing inferred from retail line
+immediates supported the presence of its eleven intervening unretained bodies;
+those bodies remain. Elsewhere, absence from the link proves only that a body
+was not retained; the original fork may still have contained it.
+
+## Formatting and diagnostic coordinates (2026-10-06)
+
+The reconstruction uses the root clang-format configuration. Imported DirectDraw,
+Miles and zlib headers remain outside formatter ownership; the released baseline
+is unchanged. Modified SGP files carry modification notices.
+
+Retained `DirectDraw Calls.cpp` diagnostics use `ATTEMPT_AT(expression, line)`
+with line constants read from retail instructions at `0x0040f0b0..0x0040f3e0`.
+For example, `DDCreateSurface` passes 28 and 31, and `DDRestoreSurface` passes 224.
+Fourteen retained calls have explicit coordinates. Unretained calls still use
+`ATTEMPT`, which forwards the current `__LINE__`; debug-only assertion, allocation
+and video-recording macros also retain current-source coordinates. Blank lines
+and recovery annotations no longer determine retained diagnostic line arguments.
+`__FILE__` remains the ordinary compilation path; reccmp normalizes diagnostic
+source coordinates as build context.
 
 SGP comparison findings after the delta recovery are classified:
 
-- `DirectDraw Calls.cpp` `ATTEMPT` line numbers exceed retail by exactly one per
-  `// FUNCTION:` marker above the call (plus the modification notice): the
-  drift is our annotation, not authored source. The released macro still uses
-  `__LINE__`/`__FILE__`; the unit now compiles from its ordinary checkout path.
-  reccmp normalizes diagnostic source coordinates as build context, without
-  hard-coded historical coordinates or a simulated retail source tree.
 - Past-the-end loop bounds (`pSoundList`, `pSampleList`, `gFileDataBase`) and
   calls into the `0x004023a0`/`0x005a1140` folds are relocation/fold noise.
   reccmp names identical reference-free stubs symmetrically across both images;

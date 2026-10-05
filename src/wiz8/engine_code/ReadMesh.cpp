@@ -766,8 +766,7 @@ static int ReadMeshMaterials(W8ReadLevelInfo* info, srMaterialIFace*** materials
             FileRead(info->hFile, records + index, 0x11a, 0);
         }
     } else {
-        FileRead(info->hFile, records[0].texture_modes, sizeof(records[0].texture_modes),
-                 0);
+        FileRead(info->hFile, records[0].texture_modes, sizeof(records[0].texture_modes), 0);
         if (count > 1) {
             FileRead(info->hFile, records + 1, (count - 1) * sizeof(W8MaterialRecord), 0);
         }

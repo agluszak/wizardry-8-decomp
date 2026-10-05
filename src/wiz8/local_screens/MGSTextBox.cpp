@@ -255,8 +255,7 @@ static void AppendNoticeLine(unsigned char font_palette, const wchar_t* text, sh
         --g_status.text_box_lines_used[text_box];
         if (g_status.text_box_lines_shown[text_box] != 0) {
             --g_status.text_box_lines_shown[text_box];
-            if (g_status.text_box_lines_shown[text_box] <
-                g_level_block->text_lines[text_box]) {
+            if (g_status.text_box_lines_shown[text_box] < g_level_block->text_lines[text_box]) {
                 g_level_block->text_lines[text_box] = g_status.text_box_lines_shown[text_box];
             }
         }
@@ -292,16 +291,14 @@ static void AppendNoticeLine(unsigned char font_palette, const wchar_t* text, sh
     record->link = wrapped_line;
     record->length = -1;
     ++g_notice_line_count;
-    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
-        g_status.text_line_cursor == text_box) {
+    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_status.text_line_cursor == text_box) {
         if (ScreenLifecycleSuccess()) {
             AdvanceNoticeLine(text_box);
         }
     } else if (text_box == 3) {
         g_status.text_box_lines_shown[3] = g_status.text_box_lines_used[3];
         g_level_block->text_lines[3] = g_status.text_box_lines_used[3];
-        W8MessageStorageRecord* last =
-            &g_message_storage[3][g_status.text_box_lines_shown[3] - 1];
+        W8MessageStorageRecord* last = &g_message_storage[3][g_status.text_box_lines_shown[3] - 1];
         unsigned int delay =
             g_settings.text_display_delay_ms * (wcslen(last->wString) * 100 / 20 + 100) / 100;
         if (delay > 60000) {
@@ -1196,8 +1193,7 @@ void RedrawDialogueTextInput(void)
     W8DialogueTextState* input = g_level_block->dialogue_text_input;
     if ((input->dirty || input->cursor_dirty != 0)) {
         short text_box = g_status.text_line_cursor;
-        int offset =
-            g_status.text_box_lines_shown[text_box] - g_level_block->text_lines[text_box];
+        int offset = g_status.text_box_lines_shown[text_box] - g_level_block->text_lines[text_box];
         if (offset < 7) {
             SaveFontSettings();
             SetFontDestBuffer(0xfffffff2, g_level_block->text_box_left, g_level_block->text_box_top,
@@ -1303,8 +1299,7 @@ void InvalidateDialogueTextCursor(void)
     W8ControlsRect bounds;
     bounds.left = g_level_block->text_box_left;
     bounds.top = g_status.text_box_lines_shown[g_status.text_line_cursor] -
-                 g_level_block->text_lines[g_status.text_line_cursor] +
-                 g_level_block->text_box_top;
+                 g_level_block->text_lines[g_status.text_line_cursor] + g_level_block->text_box_top;
     bounds.right =
         StringPixLength(g_level_block->dialogue_text_input->text, g_level_block->text_box_font) +
         bounds.left;
@@ -2189,8 +2184,7 @@ int FindStoppedTextLine(void)
         return -1;
     }
     while (--index >= 0) {
-        if (ClockIsTicking(g_message_storage[g_status.text_line_cursor][index].clock) ==
-            0) {
+        if (ClockIsTicking(g_message_storage[g_status.text_line_cursor][index].clock) == 0) {
             return index;
         }
     }

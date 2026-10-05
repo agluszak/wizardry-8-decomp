@@ -590,7 +590,7 @@ bool ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
             }
             case W8_MONSTER_ORDER_FACE_DIRECTION:
                 monster->move_direction.Set(monster->direction_x, monster->direction_y,
-                                                monster->direction_z);
+                                            monster->direction_z);
                 mode = W8_RT_AI_FACE_DIRECTION;
                 changed = true;
                 break;
@@ -697,8 +697,7 @@ void ApplyMonsterRTAIDecision(W8MonsterInfo* monster_info, unsigned char decisio
             monster->formation = monster->GetPosition();
         }
         position = monster->formation;
-        if (monster->StartPatrol(&position, monster->patrol_distance,
-                                 monster->patrol_variation)) {
+        if (monster->StartPatrol(&position, monster->patrol_distance, monster->patrol_variation)) {
             break;
         }
         HandleMonsterPatrolFailure(monster_info);
@@ -1780,7 +1779,7 @@ bool MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id, W8CombatSlo
    by accident. */
 // FUNCTION: WIZ8 0x005330E0
 bool SpellAreaHitsNeutralMonster(W8MonsterInfo* monster_info, int spell_id,
-                                          W8CombatSlot* combat_slot)
+                                 W8CombatSlot* combat_slot)
 {
     W8GrowableVector<int> monster_markers;
     W8GrowableVector<int> party_markers;
@@ -2303,8 +2302,7 @@ bool CanMonsterFlee(W8MonsterInfo* monster_info, W8MonsterRecord* record, bool e
         MonsterSpecialAttackHonorsCastingBlock(record->special_attack_kind)) {
         return false;
     }
-    if (g_special_attack_table[record->special_attack_kind][0] ==
-        W8_SPECIAL_ATTACK_EFFECT_SUMMON) {
+    if (g_special_attack_table[record->special_attack_kind][0] == W8_SPECIAL_ATTACK_EFFECT_SUMMON) {
         if (CalcRangeDistance(W8_RANGE_LONG) < monster_info->p3D->GetDistanceToPlayer()) {
             return false;
         }
@@ -2330,8 +2328,7 @@ bool AimFleeingMonster(W8MonsterInfo* monster_info, const W8MonsterRecord* recor
 {
     srVector3T<float> position;
 
-    if (g_special_attack_table[record->special_attack_kind][0] ==
-        W8_SPECIAL_ATTACK_EFFECT_SUMMON) {
+    if (g_special_attack_table[record->special_attack_kind][0] == W8_SPECIAL_ATTACK_EFFECT_SUMMON) {
         position = monster_info->p3D->GetPosition();
         ResetCombatSlot(&monster_info->Target);
         monster_info->Target.iType = W8_TARGET_KIND_PLACE;
@@ -2370,8 +2367,8 @@ bool IsMonsterActionUsable(W8MonsterInfo* monster_info)
         }
         break;
     case W8_MONSTER_ACTION_SPECIAL_ATTACK:
-        if (g_special_attack_table[GetMonsterDataForInfo(monster_info)->special_attack_kind]
-                                  [0] == W8_SPECIAL_ATTACK_EFFECT_SUMMON) {
+        if (g_special_attack_table[GetMonsterDataForInfo(monster_info)->special_attack_kind][0] ==
+            W8_SPECIAL_ATTACK_EFFECT_SUMMON) {
             return false;
         }
         spell_id = W8_AI_SPELL_PLACE;
@@ -2540,7 +2537,8 @@ bool MonsterGroupHasReinforcement(W8MonsterGroup* monster_group)
                 other->ubDisposition == W8_DISPOSITION_HOSTILE) {
                 other_distance = other->p3D->GetDistanceToPlayer();
                 monster_distance = member->p3D->GetDistanceToMonster(other->p3D);
-                if (monster_distance + member_distance < other_distance * g_reinforcement_distance_slack &&
+                if (monster_distance + member_distance <
+                        other_distance * g_reinforcement_distance_slack &&
                     (member_distance < other_distance || monster_distance < other_distance)) {
                     return true;
                 }

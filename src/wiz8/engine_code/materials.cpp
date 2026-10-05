@@ -393,7 +393,7 @@ static unsigned char PreprocessLevel(int handle, char* stem)
             for (i = 1; i < mesh->num_vertices; ++i) {
                 const srVector3T<float>& source = mesh->pstVertices[i - 1];
                 vertices[i].position.Set(source.x * g_world_scale, source.y * g_world_scale,
-                                            source.z * g_world_scale);
+                                         source.z * g_world_scale);
                 vertices[i].m_original_position.Set(source.x, source.y, source.z);
                 vertices[i].m_visited = false;
                 for (j = 0; j < 3; ++j) {
@@ -496,8 +496,8 @@ static unsigned char PreprocessLevel(int handle, char* stem)
                         }
                         --sun_count;
                         if (sun_count != 0) {
-                            sun_pool = static_cast<float*>(
-                                malloc(geometry.vertex_count * sun_count * 4));
+                            sun_pool =
+                                static_cast<float*>(malloc(geometry.vertex_count * sun_count * 4));
                             if (sun_pool == 0) {
                                 ReportBuildStatus(7, "Could not allocate pflSunLights!\n");
                             }
@@ -589,8 +589,7 @@ static unsigned char PreprocessLevel(int handle, char* stem)
                     build_tree->BuildGeometryRegions(level->pProps, level->nProps, 0, false);
                     build_tree->BuildGeometryRegions(level->pBitmaps, level->nBitmaps,
                                                      level->nProps, true);
-                    build_tree->spatial.m_root->RearrangeNodePolys(
-                        0, build_tree->spatial.m_depth);
+                    build_tree->spatial.m_root->RearrangeNodePolys(0, build_tree->spatial.m_depth);
                     /* Both of these walk their count unsigned - the retail
                        guards with jbe at 0x00493D24 and 0x00493D45 and closes
                        each with jc at 0x00493D3B and 0x00493D5C - so the index
@@ -614,8 +613,7 @@ static unsigned char PreprocessLevel(int handle, char* stem)
                     tree->m_spatial.SetWorkingBounds(&g_weld_min, &g_weld_max);
                     tree->m_alpha_polygon_count = alpha_polys;
                     value->octree = tree;
-                    sprintf(message, "Poly List Len: %d\n",
-                            static_cast<int>(tree->polygon_cursor));
+                    sprintf(message, "Poly List Len: %d\n", static_cast<int>(tree->polygon_cursor));
                     ReportBuildStatus(6, message);
                     tree->m_spatial.m_polygon_count = geometry.m_polygon_count;
                     SetOctreeGameData(value);
@@ -684,8 +682,7 @@ static unsigned char PreprocessLevel(int handle, char* stem)
                                     "%d (%d percent) of vertices actually receive "
                                     "light\n",
                                     lit_vertices,
-                                    lit_vertices * 100 /
-                                        static_cast<int>(geometry.vertex_count));
+                                    lit_vertices * 100 / static_cast<int>(geometry.vertex_count));
                             ReportBuildStatus(6, message);
                         }
                         sun_bits = new BitArray(level->nBitmaps + level->nProps);
@@ -1067,12 +1064,9 @@ static int WeldVertex(W8HashTable<unsigned int, int>* table, W8OctPreTreeVertex*
         vertex = index;
     }
     current = vertices + vertex;
-    cell_x =
-        static_cast<unsigned int>(((current->position.x - g_weld_min.x) * g_float_005ecbb4));
-    cell_y =
-        static_cast<unsigned int>(((current->position.y - g_weld_min.y) * g_float_005ecbb4));
-    cell_z =
-        static_cast<unsigned int>(((current->position.z - g_weld_min.z) * g_float_005ecbb4));
+    cell_x = static_cast<unsigned int>(((current->position.x - g_weld_min.x) * g_float_005ecbb4));
+    cell_y = static_cast<unsigned int>(((current->position.y - g_weld_min.y) * g_float_005ecbb4));
+    cell_z = static_cast<unsigned int>(((current->position.z - g_weld_min.z) * g_float_005ecbb4));
     key = cell_z * g_weld_stride_z + cell_y * g_weld_stride_y + cell_x * g_weld_stride_x;
     start_x = cell_x;
     if (cell_x != 0) {
@@ -1096,12 +1090,9 @@ static int WeldVertex(W8HashTable<unsigned int, int>* table, W8OctPreTreeVertex*
                     match_index = table->entries[slot].value - 1;
                     if (match_index >= 0 && !matched) {
                         candidate = vertices + match_index;
-                        if (fabs(current->position.x - candidate->position.x) <
-                                g_float_005ecbb8 &&
-                            fabs(current->position.y - candidate->position.y) <
-                                g_float_005ecbb8 &&
-                            fabs(current->position.z - candidate->position.z) <
-                                g_float_005ecbb8) {
+                        if (fabs(current->position.x - candidate->position.x) < g_float_005ecbb8 &&
+                            fabs(current->position.y - candidate->position.y) < g_float_005ecbb8 &&
+                            fabs(current->position.z - candidate->position.z) < g_float_005ecbb8) {
                             if (link == 0xffffffff) {
                                 vertices[index].m_vertex_index = match_index;
                                 vertices[index].flags |= W8OctPreTreeVertex::EXCLUDED;
@@ -1478,8 +1469,7 @@ static unsigned char SplitVerticesByMaterial(W8OctPreTreeGeometry* geometry)
         polygon = geometry->m_polygons + 1;
         for (source = 1; source < geometry->m_polygon_count; ++source, ++polygon) {
             for (corner = 0; corner < 3; ++corner) {
-                polygon->vertices[corner] =
-                    vertices + polygon->vertices[corner]->m_vertex_index;
+                polygon->vertices[corner] = vertices + polygon->vertices[corner]->m_vertex_index;
             }
         }
     }
@@ -2204,8 +2194,8 @@ unsigned char LoadMaterial(const char* bitmap_folder, const W8MaterialRecord* so
             concrete->setName(material_name);
             concrete->autoRelease();
 
-            concrete->parms.specular.Set(source->specular.x, source->specular.y,
-                                         source->specular.z, 0.0f);
+            concrete->parms.specular.Set(source->specular.x, source->specular.y, source->specular.z,
+                                         0.0f);
             concrete->dirty = 1;
             concrete->parms.shininess = 1.0f;
             concrete->dirty = 1;
@@ -2218,16 +2208,16 @@ unsigned char LoadMaterial(const char* bitmap_folder, const W8MaterialRecord* so
             concrete->setOpacity(source->opacity == 0.0f ? 0.7f : source->opacity);
 
             if (texture_path[0] == '\0') {
-                concrete->parms.ambient.Set(source->diffuse.x, source->diffuse.y,
-                                            source->diffuse.z, 1.0f);
+                concrete->parms.ambient.Set(source->diffuse.x, source->diffuse.y, source->diffuse.z,
+                                            1.0f);
                 concrete->dirty = 1;
                 concrete->parms.emissive = 0.0f;
             } else {
-                concrete->parms.ambient.Set(source->ambient.x, source->ambient.y,
-                                            source->ambient.z, 0.0f);
+                concrete->parms.ambient.Set(source->ambient.x, source->ambient.y, source->ambient.z,
+                                            0.0f);
                 concrete->dirty = 1;
-                concrete->parms.emissive.Set(source->emission, source->emission,
-                                             source->emission, 1.0f);
+                concrete->parms.emissive.Set(source->emission, source->emission, source->emission,
+                                             1.0f);
             }
             concrete->dirty = 1;
             concrete->m_surface_flags = source->surface_flags;

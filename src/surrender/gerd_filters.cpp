@@ -23,8 +23,7 @@ void srGERD::setTextureDefaultCompression(srTextureIFace::e_compression compress
     compression = static_cast<srTextureIFace::e_compression>(
         compression & ((compression == srTextureIFace::COMPRESSION_DEFAULT) - 1));
     texture_state.default_compression = compression;
-    texture_state.default_texture_params[4] =
-        texture_state.default_texture_params[compression];
+    texture_state.default_texture_params[4] = texture_state.default_texture_params[compression];
     resetTexture();
 }
 

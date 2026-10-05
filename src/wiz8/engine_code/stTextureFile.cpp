@@ -260,8 +260,7 @@ void stTextureFile::releaseSurface()
 
 // FUNCTION: WIZ8 0x0047C630
 stTextureFile::stTextureFile(const char* file_name, int cached)
-    : cached(0), file_name(0), surface(0), frame_handle(getNewFrameHandle()),
-      has_alpha(0)
+    : cached(0), file_name(0), surface(0), frame_handle(getNewFrameHandle()), has_alpha(0)
 {
     /* Retail stores 0 then conditionally stores 1: the authored value is the
        normalized predicate, not the raw parameter. */

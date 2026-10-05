@@ -1,3 +1,6 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-10-06.
+   Normalize formatting of the reconstructed source.
+   Distributed under the accompanying SFI Source Code license agreement. */
 //**************************************************************************
 //
 // Filename :	impTGA.h
@@ -44,11 +47,10 @@
 extern "C" {
 #endif
 
-BOOLEAN LoadTGAFileToImage( HIMAGE hImage,  UINT16 fContents );
+BOOLEAN LoadTGAFileToImage(HIMAGE hImage, UINT16 fContents);
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif
-

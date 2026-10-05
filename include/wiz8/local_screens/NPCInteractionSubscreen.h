@@ -375,8 +375,7 @@ static_assert(offsetof(W8NpcInteractionState, last_notice_npc_kind) == 0x264,
 
 extern W8NpcInteractionState* g_npc_interaction_state;
 
-void ForwardNpcScriptNotice(W8NpcState* npc, W8ItemInstance* item, int line,
-                            bool suppress);
+void ForwardNpcScriptNotice(W8NpcState* npc, W8ItemInstance* item, int line, bool suppress);
 void QueueNpcScriptNotice(W8NpcState* npc, W8ItemInstance* item, int line, bool suppress,
                           unsigned char arg); /* 0x0056C5E0 */
 void FlushPendingNoticeLines(void);           /* 0x005766B0 */
@@ -411,8 +410,8 @@ void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuot
 void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuote* quote,
                               int quote_id, unsigned int font_palette,
                               W8NpcQuoteNoticeKind notice_kind, W8MessageBoxPayload payload,
-                              int npc_kind);                              /* 0x00576060 */
-void DrawNpcQuoteBubble(void);                                            /* 0x00576670 */
+                              int npc_kind); /* 0x00576060 */
+void DrawNpcQuoteBubble(void);               /* 0x00576670 */
 /* 0x00575E60: OpenNpcDialog — the modal request is the script's
    W8NpcQuoteEntry itself; the dialog discriminates kind 0x05 (option
    list), 0x12/0x1e (price check) and 0x13 (keyword entry). */
@@ -424,7 +423,7 @@ void CloseNpcDialogueLayout(void);                  /* 0x00570A20 */
 void OpenNpcDialogueTranscriptLayout(void);         /* 0x00570CF0 */
 void DispatchPendingNpcScriptNotice(void);          /* 0x0056CA90 */
 bool CanOpenNpcDialogue(void);
-bool IsNpcDialogueTextInputActive(void);                   /* 0x00577830 */
+bool IsNpcDialogueTextInputActive(void);                       /* 0x00577830 */
 bool IsNpcDialogueTextBoxActive(void);                         /* 0x0056EFD0 */
 unsigned char SetNpcDialoguePanelVisible(unsigned char value); /* 0x00577880 */
 bool ProcessPendingEvent(void);
@@ -441,7 +440,7 @@ void SwitchNpcDialogueLayout(int interact_id);                       /* 0x005701
 void BeginNpcDialogue(W8NpcState* npc, W8ItemInstance* item, int quote, unsigned char flags,
                       unsigned char force); /* 0x0056CA60 */
 unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item,
-                                   bool force);            /* 0x0056CAD0 */
+                                   bool force);                     /* 0x0056CAD0 */
 void SelectNpcDialogueSpeaker(W8NpcState* npc, int flags);          /* 0x0056D030 */
 void CreateNpcDialogueControls(void);                               /* 0x0056D1D0 */
 void InvalidateMainGameActionPanelRect(const W8ControlsRect* rect); /* 0x0056ECD0 */
@@ -506,7 +505,7 @@ void ShortenTextToWidth(wchar_t* output, const wchar_t* text, unsigned int width
 unsigned char NpcQuoteBubbleRegionEvent(const InputAtom* event, W8Region* region);
 void SetDialogueFieldKeyword(wchar_t* keyword, bool append);
 void ActivateNpcDialoguePanels(bool active); /* 0x0056ECF0 */
-bool HasNpcDialogueDirtyPanels(void);                 /* 0x0056ED80 */
+bool HasNpcDialogueDirtyPanels(void);        /* 0x0056ED80 */
 unsigned char NpcDialogueTextBoxRegionEvent(const InputAtom* event,
                                             W8Region* region);        /* 0x0056F1D0 */
 void NpcDialogueTextBoxWheelAt(short x, unsigned short y, bool flag); /* 0x0056F490 */

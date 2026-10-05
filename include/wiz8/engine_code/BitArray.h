@@ -22,28 +22,28 @@ public:
     void SetSize(unsigned int bit_count); /* 0x0043ADA0 */
     /* Frees the index buffer. All lifetime-ending callers destroy the
        object immediately after, so this is the owning destructor. */
-    ~BitArray(); /* 0x0043AD90 */
+    ~BitArray();                    /* 0x0043AD90 */
     void CopyFrom(BitArray& other); /* 0x0043AE80 */
     unsigned char Load(int handle); /* 0x0043AEC0 */
     /* Write the same Huffman payload Load reads. Octree assertions name
        m_pAlphaBits->Save(hOctFile) and m_pPropSunBits->Save(hOctFile). */
     unsigned char Save(int handle); /* 0x0043B0E0 */
 
-    bool Set(unsigned int bit); /* 0x0043B390 */
+    bool Set(unsigned int bit);        /* 0x0043B390 */
     bool SetAndGrow(unsigned int bit); /* 0x0043B3D0 */
     bool SetAll();                     /* 0x0043B420 */
-    bool Clear(unsigned int bit); /* 0x0043B450 */
-    void ClearAll();             /* 0x0043B490 */
-    bool Test(unsigned int bit); /* 0x0043B620 */
+    bool Clear(unsigned int bit);      /* 0x0043B450 */
+    void ClearAll();                   /* 0x0043B490 */
+    bool Test(unsigned int bit);       /* 0x0043B620 */
 
     bool IntersectWith(BitArray& other); /* 0x0043B4C0 */
-    bool UnionWith(BitArray& other); /* 0x0043B510 */
+    bool UnionWith(BitArray& other);     /* 0x0043B510 */
     /* Become the complement of another array, masked back to whichever of the
        two ends sooner so the bits past the end stay down. */
     void SetToComplementOf(BitArray& other); /* 0x0043B560 */
 
-    int CountSetBits(); /* 0x0043B5F0 */
-    int NextSetBit(bool restart); /* 0x0043B660 */
+    int CountSetBits();                                            /* 0x0043B5F0 */
+    int NextSetBit(bool restart);                                  /* 0x0043B660 */
     void Grow(unsigned int bit_count, unsigned int new_bit_count); /* 0x0043B700 */
 
     int set_count;            /* 0x00: how many bits are up */

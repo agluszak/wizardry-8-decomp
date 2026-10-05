@@ -388,7 +388,7 @@ unsigned char MonsterReadAllCycles(const W8GrCycleLoadContext* context, const ch
 unsigned short ChooseDifferentMonsterDirection(unsigned short previous_direction);
 
 bool MonsterGetWorldAnimationBounds(W8Monster* monster, srVector3T<float>* minimum,
-                                             srVector3T<float>* maximum);
+                                    srVector3T<float>* maximum);
 unsigned char LoadMonsterCycle(const W8GrCycleLoadContext* context, const char* mon_name,
                                W8Monster** monster, int cycle, int value);
 

@@ -7,7 +7,7 @@
 #pragma pack(push, 1)
 
 struct W8ItemTableEntry {
-    short selector;      /* 0x00: zero disables the slot */
+    short selector;         /* 0x00: zero disables the slot */
     unsigned short item_id; /* 0x02: index into Items.dbs */
     unsigned char weight;   /* 0x04 */
 }; /* 0x05 */
@@ -149,8 +149,8 @@ struct W8ItemDatabaseRecord {
     signed char spell_regen_bonus;
     signed char resistance_bonus[6]; /* 0x06f .. 0x074 */
     unsigned char property;          /* assay special-property label index */
-    unsigned short profession_mask;      /* 0x076 */
-    unsigned int race_mask;              /* 0x078 */
+    unsigned short profession_mask;  /* 0x076 */
+    unsigned int race_mask;          /* 0x078 */
     /* 0x07c: one bit per sex; three admits either, and
        CanCharacterUseItem indexes it with the character's own field. */
     unsigned char gender_mask;
@@ -181,9 +181,9 @@ struct W8ItemDatabaseRecord {
     /* 0x0c5: the weapon's attack sound class; combat sound bounds it against
        the 38-entry swing table and the 28 impact rows. */
     int weapon_sound_class;
-    signed char merge_skill;           /* 0x0c9: skill required to create this item, -1 for none */
-    unsigned char merge_skill_level;   /* 0x0ca: level of merge_skill required */
-    unsigned char editor_excluded; /* hidden from the MIPE item list */
+    signed char merge_skill;         /* 0x0c9: skill required to create this item, -1 for none */
+    unsigned char merge_skill_level; /* 0x0ca: level of merge_skill required */
+    unsigned char editor_excluded;   /* hidden from the MIPE item list */
     /* 0x0cc: the missile table entry the item fires; the missile resolver
        bounds it against g_missile_table_count. */
     signed char missile_type;

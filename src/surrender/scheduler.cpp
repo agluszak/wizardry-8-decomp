@@ -208,8 +208,7 @@ void srScheduler::wakeWorker()
         if ((busy < job_count) && (busy < worker_count)) {
             for (int index = 0; index < worker_count; ++index) {
                 if (workers[index].thread_handle == -1) {
-                    workers[index].thread_handle =
-                        srThread::begin(workerEntry, &workers[index]);
+                    workers[index].thread_handle = srThread::begin(workerEntry, &workers[index]);
                     break;
                 }
             }

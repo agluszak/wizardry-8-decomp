@@ -62,13 +62,11 @@ static W8GroundShadowMapper g_ground_shadow_material_parameters;
 // FUNCTION: WIZ8 0x004D6090
 void W8GroundShadowMapper::process(srVertexPipe& pipe)
 {
-    srCore.getStatisticsManager()->statistics.texture_coordinate_operations +=
-        pipe.vertex_count;
+    srCore.getStatisticsManager()->statistics.texture_coordinate_operations += pipe.vertex_count;
     pipe.lazy_setup_mask |= 1 << CHANNEL_ST0;
 
     const unsigned long* index = pipe.avt + pipe.sub_batch_offset;
-    srVector2T<float>* output =
-        pipe.vertex_array->st0 + pipe.batch_base + pipe.sub_batch_offset;
+    srVector2T<float>* output = pipe.vertex_array->st0 + pipe.batch_base + pipe.sub_batch_offset;
     unsigned long count = pipe.vertex_count;
     if (count == 0) {
         return;
@@ -78,9 +76,9 @@ void W8GroundShadowMapper::process(srVertexPipe& pipe)
         float dz = vertex->z - center_z;
         float dx = vertex->x - center_x;
         srVector2T<float> coordinate;
-        coordinate.Set(
-            dz * transform.vectors[0].x + dx * transform.vectors[0].y + g_float_005ebc7c,
-            dx * transform.vectors[1].x + dz * transform.vectors[1].y + g_float_005ebc7c);
+        coordinate.Set(dz * transform.vectors[0].x + dx * transform.vectors[0].y + g_float_005ebc7c,
+                       dx * transform.vectors[1].x + dz * transform.vectors[1].y +
+                           g_float_005ebc7c);
         ++index;
         *output++ = coordinate;
     } while (--count != 0);
@@ -191,10 +189,8 @@ void stGroundShadow::renderGroundShadow(srGERD* renderer)
     saved_offset = renderer->getPolygonOffset();
     renderer->setPolygonOffset(2);
 
-    g_ground_shadow_material_parameters.transform.vectors[0].Set(g_float_005ebc7c / width,
-                                                                    0);
-    g_ground_shadow_material_parameters.transform.vectors[1].Set(0,
-                                                                    g_float_005ebc7c / depth);
+    g_ground_shadow_material_parameters.transform.vectors[0].Set(g_float_005ebc7c / width, 0);
+    g_ground_shadow_material_parameters.transform.vectors[1].Set(0, g_float_005ebc7c / depth);
     cosine = cos(-angle);
     sine = sin(-angle);
     rotation.vectors[0].Set(cosine, -sine);

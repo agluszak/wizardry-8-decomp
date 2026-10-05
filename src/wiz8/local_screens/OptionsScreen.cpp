@@ -198,8 +198,7 @@ static W8OptionsKeyboardPage g_options_keyboard_pages[5] = {
     {0x839, W8_MGS_COMMAND_START_COMBAT_ROUND, W8_MGS_COMMAND_REPEAT_ACTION}};
 
 W8OptionsPanelSet::W8OptionsPanelSet()
-    : m_page_count(0), m_compact_layout(0), m_hide_navigation(0), m_active(false),
-      m_current(0)
+    : m_page_count(0), m_compact_layout(0), m_hide_navigation(0), m_active(false), m_current(0)
 {
 }
 
@@ -1266,8 +1265,8 @@ void W8OptionsAdvancedGraphicsPanel::Populate()
 void W8OptionsUnavailablePanel::Populate()
 {
     m_content_top += 44;
-    W8ControlsRect bounds = {m_bounds.left + 30, m_bounds.top + m_content_top,
-                             m_bounds.right - 30, m_bounds.bottom};
+    W8ControlsRect bounds = {m_bounds.left + 30, m_bounds.top + m_content_top, m_bounds.right - 30,
+                             m_bounds.bottom};
     W8TextBuffer* text = new W8TextBuffer(&bounds, gppStringList[m_message], g_options_detail_font,
                                           g_W8TextBufferAlignTop | g_W8TextBufferAlignCenter, 4);
     m_text_buffers.Add(text);
@@ -1276,8 +1275,8 @@ void W8OptionsUnavailablePanel::Populate()
 
 // FUNCTION: WIZ8 0x005a9090
 W8OptionsScreen::W8OptionsScreen()
-    : m_redraw_pending(1), m_modal_closing(0), m_selected_panel(-1), m_controls(0),
-      m_menu_set(0), m_menu_selection(0), m_active_modal(0), m_text_editor(0), m_key_capture(0)
+    : m_redraw_pending(1), m_modal_closing(0), m_selected_panel(-1), m_controls(0), m_menu_set(0),
+      m_menu_selection(0), m_active_modal(0), m_text_editor(0), m_key_capture(0)
 {
     for (int index = 0; index < 8; ++index) {
         m_panel[index] = 0;
@@ -1828,7 +1827,7 @@ W8OptionsMenuSet::W8OptionsMenuSet(unsigned int* shared_region_set)
     m_next->m_listener = this;
 
     m_page_text = new W8TextBuffer(&m_bounds, &g_empty_wide_string, g_options_detail_font,
-                                       g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle, 4);
+                                   g_W8TextBufferAlignCenter | g_W8TextBufferAlignMiddle, 4);
 }
 
 /* The menu-set table has its own deleting destructor; the normal destructor

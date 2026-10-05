@@ -282,8 +282,7 @@ void W8CharacterStatsRow::Initialize(Controls* owner, unsigned int* region_set, 
         srAssertFail("usItemsInList", CGS_STATS_PAGE_CPP, 0x1d6, 0);
     }
 
-    m_decrement =
-        new W8TextControl(owner, 0xffffffff, x + 1, y + 4, 0, 0, 0x10a, 0, 0, 2, 1, 4, 3);
+    m_decrement = new W8TextControl(owner, 0xffffffff, x + 1, y + 4, 0, 0, 0x10a, 0, 0, 2, 1, 4, 3);
     m_decrement->m_listener = this;
     m_decrement->EnableRegionHelp(help_first);
 
@@ -308,9 +307,8 @@ void W8CharacterStatsRow::Initialize(Controls* owner, unsigned int* region_set, 
 void W8CharacterStatsRow::BuildSubpanel()
 {
     if (m_subpanel == 0) {
-        m_subpanel =
-            new Controls(m_x + 0x9e, m_y + 1, m_x + 0x11c,
-                         m_y + 5 + static_cast<unsigned int>(m_count) * 0x16, -1, 0, -1);
+        m_subpanel = new Controls(m_x + 0x9e, m_y + 1, m_x + 0x11c,
+                                  m_y + 5 + static_cast<unsigned int>(m_count) * 0x16, -1, 0, -1);
         m_subpanel->AcquireRegionSet(m_region_set);
         m_subpanel_entries = new W8TextControl*[m_count];
 
@@ -331,8 +329,8 @@ void W8CharacterStatsRow::BuildSubpanel()
                 top = index * 0x16 + 2;
                 height = 0x16;
             }
-            m_subpanel_entries[index] = new W8CharacterStatsRecordControl(
-                m_subpanel, top, height, &m_table[index], variant);
+            m_subpanel_entries[index] = new W8CharacterStatsRecordControl(m_subpanel, top, height,
+                                                                          &m_table[index], variant);
             m_subpanel_entries[index]->m_listener = this;
         }
     }
@@ -484,8 +482,8 @@ void W8CharacterStatsRow::OnSecondary(W8TextControl* control)
 
 /* The row's default state: no selection, no table, no child controls. */
 W8CharacterStatsRow::W8CharacterStatsRow()
-    : m_index(-1), m_count(0), m_table(0), m_decrement(0), m_increment(0),
-      m_value_control(0), m_subpanel(0), m_subpanel_entries(0), m_listener(0)
+    : m_index(-1), m_count(0), m_table(0), m_decrement(0), m_increment(0), m_value_control(0),
+      m_subpanel(0), m_subpanel_entries(0), m_listener(0)
 {
 }
 
@@ -610,8 +608,8 @@ void W8CharacterStatsPage::GetNavigationState(bool* next_enabled, bool* exit_ena
     } else {
         *next_enabled = true;
     }
-    *exit_enabled = m_creation_state->attribute_points_remaining <
-                    m_creation_state->attribute_points_total;
+    *exit_enabled =
+        m_creation_state->attribute_points_remaining < m_creation_state->attribute_points_total;
     if (*next_enabled != nav_next_state) {
         for (int index = 0; index < m_entries.count; ++index) {
             m_entries.data[index]->SetIncrementAllowed(!*next_enabled);
@@ -784,14 +782,14 @@ void W8CharacterStatsPage::SetCharacter(W8Character* character,
     m_gender_row = new W8CharacterStatsRow;
     AcquireRegionSet(&g_character_stats_region_set);
     m_profession_row->Initialize(this, &g_character_stats_profession_region_set, 0x16, 10, 0xf,
-                                     g_character_profession_records,
-                                     &g_character_profession_default_record, 0xf7, 0xf6, 0xf8);
+                                 g_character_profession_records,
+                                 &g_character_profession_default_record, 0xf7, 0xf6, 0xf8);
     m_race_row->Initialize(this, &g_character_stats_race_region_set, 0x16, 0x3d, 0xb,
-                               g_character_race_records, &g_character_race_default_record, 0xfa,
-                               0xf9, 0xfb);
+                           g_character_race_records, &g_character_race_default_record, 0xfa, 0xf9,
+                           0xfb);
     m_gender_row->Initialize(this, &g_character_stats_gender_region_set, 0x16, 0x70, 2,
-                                 g_character_gender_records, &g_character_gender_default_record,
-                                 0xfd, 0xfc, 0xfe);
+                             g_character_gender_records, &g_character_gender_default_record, 0xfd,
+                             0xfc, 0xfe);
     m_profession_row->m_listener = this;
     m_race_row->m_listener = this;
     m_gender_row->m_listener = this;
@@ -912,9 +910,8 @@ void W8CharacterStatsPage::Redraw()
             bounds.left = left + 0xf9;
             bounds.right = left + 0x10f;
             text.SetLayoutBounds(&bounds, true, true);
-            text.SetText(
-                FormatWideString(g_format_d, m_creation_state->attribute_points_remaining),
-                g_wiz_text_font_secondary);
+            text.SetText(FormatWideString(g_format_d, m_creation_state->attribute_points_remaining),
+                         g_wiz_text_font_secondary);
             text.RenderToTarget(0, false, -14);
         }
 
@@ -959,9 +956,8 @@ void W8CharacterStatsPage::Redraw()
                 text.SetText(
                     FormatWideString(
                         g_format_s_space_s,
-                        gppStringList
-                            [g_character_skill_name_ids
-                                 [g_profession_bonus_skills[m_character->iProfession]]],
+                        gppStringList[g_character_skill_name_ids
+                                          [g_profession_bonus_skills[m_character->iProfession]]],
                         gppStringList[0xb2]),
                     g_wiz_text_font_secondary);
                 text.RenderToTarget(0, false, -14);
@@ -1104,10 +1100,9 @@ void W8CharacterStatsPage::Redraw()
             bounds.left = left + 0xf6;
             bounds.right = left + 0x1a9;
             text.SetLayoutBounds(&bounds, true, true);
-            text.SetText(
-                gppStringList[g_character_skill_name_ids
-                                  [g_profession_bonus_skills[m_character->iProfession]]],
-                g_wiz_text_font_secondary);
+            text.SetText(gppStringList[g_character_skill_name_ids
+                                           [g_profession_bonus_skills[m_character->iProfession]]],
+                         g_wiz_text_font_secondary);
             text.RenderToTarget(0, false, -14);
             for (int index = 0; index < 4; ++index) {
                 if (g_profession_skills[m_character->iProfession][index] != -1) {
@@ -1115,9 +1110,8 @@ void W8CharacterStatsPage::Redraw()
                     bounds.bottom += 0xe;
                     text.SetLayoutBounds(&bounds, true, true);
                     text.SetText(
-                        gppStringList
-                            [g_character_skill_name_ids
-                                 [g_profession_skills[m_character->iProfession][index]]],
+                        gppStringList[g_character_skill_name_ids
+                                          [g_profession_skills[m_character->iProfession][index]]],
                         g_wiz_text_font_secondary);
                     text.RenderToTarget(0, false, -14);
                 }

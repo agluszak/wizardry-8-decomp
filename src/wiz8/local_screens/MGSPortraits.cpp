@@ -645,10 +645,9 @@ void StageMonsterCastIcon(unsigned int party_slot, W8SpellRealm realm, bool alte
     }
     entry->effect_icon_catalog = catalog;
     entry->effect_icon_end_frame = GetCatalogVideoObject(catalog, 0, 0)->usNumberOfObjects;
-    char* sound =
-        spell_id != 0 && g_spell_records[spell_id].sound_name[0] != 0
-            ? FormatString(s_spell_sound_format, g_spell_records[spell_id].sound_name)
-            : s_general_magic_sound;
+    char* sound = spell_id != 0 && g_spell_records[spell_id].sound_name[0] != 0
+                      ? FormatString(s_spell_sound_format, g_spell_records[spell_id].sound_name)
+                      : s_general_magic_sound;
     SoundPlay(sound, 0);
     if (g_settings.main_ui_mode != W8_MAIN_UI_MODE_PORTRAITS &&
         g_level_block->portrait_refresh_pending[party_slot] == 0) {
@@ -866,7 +865,8 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, bool highlighted, bool 
 
             SetFont(g_wiz_text_font_secondary);
             if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME ||
-                (SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_wiz_text_font_secondary_palette),
+                (SetFontObjectPalette16BPP(g_wiz_text_font_secondary,
+                                           g_wiz_text_font_secondary_palette),
                  g_current_screen_state.id != W8_SCREEN_MAIN_GAME) ||
                 (text_shade = 1,
                  g_level_block->name_hover_party_slot != static_cast<int>(party_slot))) {

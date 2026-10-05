@@ -47,8 +47,8 @@ struct Controls {
     unsigned char pad_07;
     W8ControlsRect m_bounds;        /* 0x08: widget rectangles are relative to its origin */
     int m_renderTarget;             /* 0x18: -1 skips target-backed drawing */
-    int m_renderArg0;             /* 0x1c: forwarded with the target */
-    int m_renderArg1;             /* 0x20: forwarded with the target */
+    int m_renderArg0;               /* 0x1c: forwarded with the target */
+    int m_renderArg1;               /* 0x20: forwarded with the target */
     W8ControlsRect m_dirtyRect;     /* 0x24 */
     bool m_fWholeAreaDirty;         /* 0x34: set when a caller passes no rectangle */
     W8Vector<W8Widget*> m_controls; /* 0x38 */

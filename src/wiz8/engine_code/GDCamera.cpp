@@ -232,8 +232,7 @@ srCamera* GDCamera::CreateOrAttachCamera(srNode* parent, srCamera* camera)
         g_game_camera->setClipRange(250.0, 75000.0);
         g_game_camera->setRotation(0.0, 0.0, 0.0);
         g_game_camera->setEnvironmentRange(0.0f, 1.0f);
-        double view = g_camera_view_factor2 * g_camera_view_factor0 *
-                      g_camera_view_factor1;
+        double view = g_camera_view_factor2 * g_camera_view_factor0 * g_camera_view_factor1;
         g_game_camera->setViewPlane(view, view);
     } else {
         srVector3T<double> position;
@@ -265,8 +264,7 @@ void GDCamera::ApplyRotationMatrix(srMatrix3T<float>* rotation, W8LevelDataRecor
     float angle = 0.0f;
     float pitch = 0.0f;
 
-    if (forward_x != g_float_zero || forward_y != g_float_zero ||
-        forward_z != g_float_one) {
+    if (forward_x != g_float_zero || forward_y != g_float_zero || forward_z != g_float_one) {
         if (context != 0) {
             context->camera_motion_velocity.Set(forward_x * g_camera_level_forward_scale,
                                                 forward_y * g_camera_level_forward_scale,
@@ -438,12 +436,11 @@ unsigned char GDCamera::ComputeTrackingOrientation(const srVector3T<float>* targ
         lower_margin = -g_camera_vertical_margin * g_float_005ebc7c;
     }
 
-    float angle_delta = (NormalizeAngle(GetHeadingAngle(&m_position, target)) +
-                         g_camera_angle_period) -
-                        (NormalizeAngle(m_yaw) + g_camera_angle_period);
-    float pitch_delta =
-        (GetElevationAngle(&m_position, target) + g_camera_angle_period) -
-        (m_pitch + g_camera_angle_period);
+    float angle_delta =
+        (NormalizeAngle(GetHeadingAngle(&m_position, target)) + g_camera_angle_period) -
+        (NormalizeAngle(m_yaw) + g_camera_angle_period);
+    float pitch_delta = (GetElevationAngle(&m_position, target) + g_camera_angle_period) -
+                        (m_pitch + g_camera_angle_period);
     if (fabs(angle_delta) > g_camera_pi) {
         if (angle_delta >= 0.0f) {
             angle_delta -= g_camera_angle_period;
@@ -539,7 +536,7 @@ unsigned char GDCamera::BeginOrientationTransition(float target_pitch, float tar
         if (m_yaw_distance <= m_pitch_distance) {
             m_pitch_velocity = speed;
             m_transition_duration = m_pitch_distance * g_camera_transition_duration_scale *
-                                        g_camera_transition_duration_factor;
+                                    g_camera_transition_duration_factor;
             if (m_yaw_distance <= g_camera_angle_dead_zone) {
                 m_yaw_velocity = 0.0f;
             } else {
@@ -794,8 +791,7 @@ void GDCamera::BrakePitchAtLimit()
         braking_time = -braking_time;
     }
     if (m_frame_elapsed <= braking_time) {
-        float next_velocity =
-            (g_float_one - m_frame_elapsed / braking_time) * m_pitch_velocity;
+        float next_velocity = (g_float_one - m_frame_elapsed / braking_time) * m_pitch_velocity;
         m_pitch += (next_velocity + m_pitch_velocity) * m_frame_elapsed * g_float_005ebc7c;
         m_pitch_velocity = next_velocity;
     } else {

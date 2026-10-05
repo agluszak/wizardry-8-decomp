@@ -3,6 +3,7 @@
    Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
    Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
    Recover retail path and file-age arithmetic and control flow.
+   Formatting normalized for the Wizardry 8 reconstruction, 2026-10-06.
    Distributed under the accompanying SFI Source Code license agreement. */
 //**************************************************************************
 //
@@ -51,13 +52,24 @@
 //
 //**************************************************************************
 
-#define FILENAME_LENGTH					600
+#define FILENAME_LENGTH 600
 
-#define CHECKF(exp)  if (!(exp)) { return(FALSE); }
-#define CHECKV(exp)  if (!(exp)) { return; }
-#define CHECKN(exp)  if (!(exp)) { return(NULL); }
-#define CHECKBI(exp) if (!(exp)) { return(-1); }
-
+#define CHECKF(exp)                                                                                \
+    if (!(exp)) {                                                                                  \
+        return (FALSE);                                                                            \
+    }
+#define CHECKV(exp)                                                                                \
+    if (!(exp)) {                                                                                  \
+        return;                                                                                    \
+    }
+#define CHECKN(exp)                                                                                \
+    if (!(exp)) {                                                                                  \
+        return (NULL);                                                                             \
+    }
+#define CHECKBI(exp)                                                                               \
+    if (!(exp)) {                                                                                  \
+        return (-1);                                                                               \
+    }
 
 //**************************************************************************
 //
@@ -65,25 +77,23 @@
 //
 //**************************************************************************
 
-typedef struct FMFileInfoTag
-{
-	CHAR		strFilename[FILENAME_LENGTH];
-	UINT8		uiFileAccess;
-	UINT32	uiFilePosition;
-	HANDLE	hFileHandle;
-	HDBFILE	hDBFile;
+typedef struct FMFileInfoTag {
+    CHAR strFilename[FILENAME_LENGTH];
+    UINT8 uiFileAccess;
+    UINT32 uiFilePosition;
+    HANDLE hFileHandle;
+    HDBFILE hDBFile;
 
-} FMFileInfo;	// for 'File Manager File Information'
+} FMFileInfo; // for 'File Manager File Information'
 
-typedef struct FileSystemTag
-{
-	FMFileInfo	*pFileInfo;
-	UINT32	uiNumHandles;
-	BOOLEAN	fDebug;
-	BOOLEAN	fDBInitialized;
+typedef struct FileSystemTag {
+    FMFileInfo* pFileInfo;
+    UINT32 uiNumHandles;
+    BOOLEAN fDebug;
+    BOOLEAN fDBInitialized;
 
-	CHAR		*pcFileNames;
-	UINT32	uiNumFilesInDirectory;
+    CHAR* pcFileNames;
+    UINT32 uiNumFilesInDirectory;
 } FileSystem;
 
 //**************************************************************************
@@ -92,33 +102,24 @@ typedef struct FileSystemTag
 //
 //**************************************************************************
 
-
 //The FileDatabaseHeader
 // GLOBAL: WIZ8 0x006eb720
 DatabaseManagerHeaderStruct gFileDataBase;
-
 
 //FileSystem gfs;
 
 // GLOBAL: WIZ8 0x006eb740
 WIN32_FIND_DATA Win32FindInfo[20];
 // GLOBAL: WIZ8 0x00650e08
-BOOLEAN fFindInfoInUse[20] = {FALSE,FALSE,FALSE,FALSE,FALSE,
-															FALSE,FALSE,FALSE,FALSE,FALSE,
-															FALSE,FALSE,FALSE,FALSE,FALSE,
-															FALSE,FALSE,FALSE,FALSE,FALSE };
+BOOLEAN fFindInfoInUse[20] = {FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,
+                              FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE};
 // GLOBAL: WIZ8 0x005ff574
-HANDLE hFindInfoHandle[20] = {INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE,
-															INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE,
-															INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE,
-															INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE,
-															INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE,
-															INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE,
-															INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE,
-															INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE,
-															INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE,
-															INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE };
-
+HANDLE hFindInfoHandle[20] = {
+    INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE,
+    INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE,
+    INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE,
+    INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE,
+    INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE};
 
 //**************************************************************************
 //
@@ -126,10 +127,10 @@ HANDLE hFindInfoHandle[20] = {INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE,
 //
 //**************************************************************************
 
-void W32toSGPFileFind( GETFILESTRUCT *pGFStruct, WIN32_FIND_DATA *pW32Struct );
+void W32toSGPFileFind(GETFILESTRUCT* pGFStruct, WIN32_FIND_DATA* pW32Struct);
 
-HWFILE	CreateFileHandle( HANDLE hRealFile, BOOLEAN fDatabaseFile );
-void		DestroyFileHandle( HWFILE hFile );
+HWFILE CreateFileHandle(HANDLE hRealFile, BOOLEAN fDatabaseFile);
+void DestroyFileHandle(HWFILE hFile);
 //**************************************************************************
 //
 //				Functions
@@ -150,13 +151,11 @@ void		DestroyFileHandle( HWFILE hFile );
 //
 //**************************************************************************
 
-BOOLEAN	InitializeFileManager( STR strIndexFilename )
+BOOLEAN InitializeFileManager(STR strIndexFilename)
 {
-	RegisterDebugTopic( TOPIC_FILE_MANAGER, "File Manager" );
-	return( TRUE );
+    RegisterDebugTopic(TOPIC_FILE_MANAGER, "File Manager");
+    return (TRUE);
 }
-
-
 
 //**************************************************************************
 //
@@ -174,9 +173,9 @@ BOOLEAN	InitializeFileManager( STR strIndexFilename )
 //
 //**************************************************************************
 
-void ShutdownFileManager( void )
+void ShutdownFileManager(void)
 {
-	UnRegisterDebugTopic( TOPIC_FILE_MANAGER, "File Manager" );
+    UnRegisterDebugTopic(TOPIC_FILE_MANAGER, "File Manager");
 }
 
 //**************************************************************************
@@ -217,33 +216,32 @@ void ShutdownFileManager( void )
 //**************************************************************************
 
 // FUNCTION: WIZ8 0x00404bf0
-BOOLEAN FileExists( STR strFilename )
+BOOLEAN FileExists(STR strFilename)
 {
-	BOOLEAN	fExists = FALSE;
-	FILE		*file;
-	//HANDLE	hRealFile;
+    BOOLEAN fExists = FALSE;
+    FILE* file;
+    //HANDLE	hRealFile;
 
-	//open up the file to see if it exists on the disk
-	file = fopen( strFilename, "r" );
-	//hRealFile = CreateFile( strFilename, GENERIC_READ, 0, NULL, OPEN_EXISTING,
-	//								FILE_FLAG_RANDOM_ACCESS, NULL );
-	if ( file )
-	//if ( hRealFile != INVALID_HANDLE_VALUE )
-	{
-		fExists = TRUE;
-		fclose( file );
-		//CloseHandle( hRealFile );
-	}
+    //open up the file to see if it exists on the disk
+    file = fopen(strFilename, "r");
+    //hRealFile = CreateFile( strFilename, GENERIC_READ, 0, NULL, OPEN_EXISTING,
+    //								FILE_FLAG_RANDOM_ACCESS, NULL );
+    if (file)
+    //if ( hRealFile != INVALID_HANDLE_VALUE )
+    {
+        fExists = TRUE;
+        fclose(file);
+        //CloseHandle( hRealFile );
+    }
 
-	//if the file wasnt on disk, check to see if its in a library
-	if( fExists == FALSE )
-	{
-		//if the database is initialized
-		if( gFileDataBase.fInitialized )
-			fExists = CheckIfFileExistInLibrary( strFilename );
-	}
+    //if the file wasnt on disk, check to see if its in a library
+    if (fExists == FALSE) {
+        //if the database is initialized
+        if (gFileDataBase.fInitialized)
+            fExists = CheckIfFileExistInLibrary(strFilename);
+    }
 
-	return( fExists );
+    return (fExists);
 }
 
 //**************************************************************************
@@ -268,26 +266,25 @@ BOOLEAN FileExists( STR strFilename )
 //**************************************************************************
 
 // FUNCTION: WIZ8 0x00404c40
-BOOLEAN FileExistsNoDB( STR strFilename )
+BOOLEAN FileExistsNoDB(STR strFilename)
 {
-	BOOLEAN	fExists = FALSE;
-	FILE		*file;
-	//HANDLE	hRealFile;
+    BOOLEAN fExists = FALSE;
+    FILE* file;
+    //HANDLE	hRealFile;
 
-	//open up the file to see if it exists on the disk
-	file = fopen( strFilename, "r" );
-	//hRealFile = CreateFile( strFilename, GENERIC_READ, 0, NULL, OPEN_EXISTING,
-	//								FILE_FLAG_RANDOM_ACCESS, NULL );
-	if ( file )
-	//if ( hRealFile != INVALID_HANDLE_VALUE )
-	{
-		fExists = TRUE;
-		fclose( file );
-		//CloseHandle( hRealFile );
-	}
+    //open up the file to see if it exists on the disk
+    file = fopen(strFilename, "r");
+    //hRealFile = CreateFile( strFilename, GENERIC_READ, 0, NULL, OPEN_EXISTING,
+    //								FILE_FLAG_RANDOM_ACCESS, NULL );
+    if (file)
+    //if ( hRealFile != INVALID_HANDLE_VALUE )
+    {
+        fExists = TRUE;
+        fclose(file);
+        //CloseHandle( hRealFile );
+    }
 
-	return( fExists );
-
+    return (fExists);
 }
 
 //**************************************************************************
@@ -312,9 +309,9 @@ BOOLEAN FileExistsNoDB( STR strFilename )
 //**************************************************************************
 
 // FUNCTION: WIZ8 0x00404c70
-BOOLEAN FileDelete( STR strFilename )
+BOOLEAN FileDelete(STR strFilename)
 {
-	return( DeleteFile( strFilename ) );
+    return (DeleteFile(strFilename));
 }
 
 //**************************************************************************
@@ -342,136 +339,114 @@ BOOLEAN FileDelete( STR strFilename )
 //**************************************************************************
 
 // FUNCTION: WIZ8 0x00404C80
-HWFILE FileOpen( STR strFilename, UINT32 uiOptions, BOOLEAN fDeleteOnClose )
+HWFILE FileOpen(STR strFilename, UINT32 uiOptions, BOOLEAN fDeleteOnClose)
 {
-	HWFILE	hFile;
-	HANDLE	hRealFile;
-	DWORD		dwAccess;
-	DWORD		dwFlagsAndAttributes;
-	HDBFILE	hDBFile;
-	BOOLEAN	fExists;
-	DWORD		dwCreationFlags;
-	HWFILE hLibFile;
+    HWFILE hFile;
+    HANDLE hRealFile;
+    DWORD dwAccess;
+    DWORD dwFlagsAndAttributes;
+    HDBFILE hDBFile;
+    BOOLEAN fExists;
+    DWORD dwCreationFlags;
+    HWFILE hLibFile;
 
-	hFile = 0;
-	hDBFile = 0;
-	dwCreationFlags = 0;
+    hFile = 0;
+    hDBFile = 0;
+    dwCreationFlags = 0;
 
-	// check if the file exists - note that we use the function FileExistsNoDB
-	// because it doesn't check the databases, and we don't want to do that here
-	fExists = FileExistsNoDB( strFilename );
+    // check if the file exists - note that we use the function FileExistsNoDB
+    // because it doesn't check the databases, and we don't want to do that here
+    fExists = FileExistsNoDB(strFilename);
 
-	dwAccess = 0;
-	if ( uiOptions & FILE_ACCESS_READ )
-		dwAccess |= GENERIC_READ;
-	if ( uiOptions & FILE_ACCESS_WRITE )
-		dwAccess |= GENERIC_WRITE;
+    dwAccess = 0;
+    if (uiOptions & FILE_ACCESS_READ)
+        dwAccess |= GENERIC_READ;
+    if (uiOptions & FILE_ACCESS_WRITE)
+        dwAccess |= GENERIC_WRITE;
 
-	dwFlagsAndAttributes = FILE_FLAG_RANDOM_ACCESS;
-	if ( fDeleteOnClose )
-		dwFlagsAndAttributes |= FILE_FLAG_DELETE_ON_CLOSE;
+    dwFlagsAndAttributes = FILE_FLAG_RANDOM_ACCESS;
+    if (fDeleteOnClose)
+        dwFlagsAndAttributes |= FILE_FLAG_DELETE_ON_CLOSE;
 
-	//if the file is on the disk
-	if ( fExists )
-	{
-		hRealFile = CreateFile( strFilename, dwAccess, 0, NULL, OPEN_ALWAYS,
-										dwFlagsAndAttributes, NULL );
+    //if the file is on the disk
+    if (fExists) {
+        hRealFile =
+            CreateFile(strFilename, dwAccess, 0, NULL, OPEN_ALWAYS, dwFlagsAndAttributes, NULL);
 
-		if ( hRealFile == INVALID_HANDLE_VALUE )
-		{
-			return(0);
-		}
+        if (hRealFile == INVALID_HANDLE_VALUE) {
+            return (0);
+        }
 
-		//create a file handle for the 'real file'
-		hFile = CreateRealFileHandle( hRealFile );
-	}
+        //create a file handle for the 'real file'
+        hFile = CreateRealFileHandle(hRealFile);
+    }
 
-	// if the file did not exist, try to open it from the database
-	else if ( gFileDataBase.fInitialized )
-	{
-		//if the file is to be opened for writing, return an error cause you cant write a file that is in the database library
-		if( fDeleteOnClose )
-		{
-			return( 0 );
-		}
+    // if the file did not exist, try to open it from the database
+    else if (gFileDataBase.fInitialized) {
+        //if the file is to be opened for writing, return an error cause you cant write a file that is in the database library
+        if (fDeleteOnClose) {
+            return (0);
+        }
 
-		//if the file doesnt exist on the harddrive, but it is to be created, dont try to load it from the file database
-		if( uiOptions & FILE_ACCESS_WRITE )
-		{
-			//if the files is to be written to
-			if( ( uiOptions & FILE_CREATE_NEW ) || ( uiOptions & FILE_OPEN_ALWAYS ) || ( uiOptions & FILE_CREATE_ALWAYS ) || ( uiOptions & FILE_TRUNCATE_EXISTING ) )
-			{
-				hFile = 0;
-			}
-		}
-		//else if the file is to be opened using FILE_OPEN_EXISTING, and the file doesnt exists, fail out of the function)
-//		else if( uiOptions & FILE_OPEN_EXISTING )
-//		{
-			//fail out of the function
-//			return( 0 );
-//		}
-		else
-		{
-			//If the file is in the library, get a handle to it.
-			hLibFile = OpenFileFromLibrary( strFilename );
+        //if the file doesnt exist on the harddrive, but it is to be created, dont try to load it from the file database
+        if (uiOptions & FILE_ACCESS_WRITE) {
+            //if the files is to be written to
+            if ((uiOptions & FILE_CREATE_NEW) || (uiOptions & FILE_OPEN_ALWAYS) ||
+                (uiOptions & FILE_CREATE_ALWAYS) || (uiOptions & FILE_TRUNCATE_EXISTING)) {
+                hFile = 0;
+            }
+        }
+        //else if the file is to be opened using FILE_OPEN_EXISTING, and the file doesnt exists, fail out of the function)
+        //		else if( uiOptions & FILE_OPEN_EXISTING )
+        //		{
+        //fail out of the function
+        //			return( 0 );
+        //		}
+        else {
+            //If the file is in the library, get a handle to it.
+            hLibFile = OpenFileFromLibrary(strFilename);
 
-			//tried to open a file that wasnt in the database
-			if( !hLibFile )
-				return( 0 );
-			else
-				return( hLibFile );		//return the file handle
-		}
-	}
+            //tried to open a file that wasnt in the database
+            if (!hLibFile)
+                return (0);
+            else
+                return (hLibFile); //return the file handle
+        }
+    }
 
-	if ( !hFile )
-	{
-		if ( uiOptions & FILE_CREATE_NEW )
-		{
-			dwCreationFlags = CREATE_NEW;
-		}
-		else if ( uiOptions & FILE_CREATE_ALWAYS )
-		{
-			dwCreationFlags = CREATE_ALWAYS;
-		}
-		else if ( uiOptions & FILE_OPEN_EXISTING || uiOptions & FILE_ACCESS_READ )
-		{
-			dwCreationFlags = OPEN_EXISTING;
-		}
-		else if ( uiOptions & FILE_OPEN_ALWAYS )
-		{
-			dwCreationFlags = OPEN_ALWAYS;
-		}
-		else if ( uiOptions & FILE_TRUNCATE_EXISTING )
-		{
-			dwCreationFlags = TRUNCATE_EXISTING;
-		}
-		else
-		{
-			dwCreationFlags = OPEN_ALWAYS;
-		}
+    if (!hFile) {
+        if (uiOptions & FILE_CREATE_NEW) {
+            dwCreationFlags = CREATE_NEW;
+        } else if (uiOptions & FILE_CREATE_ALWAYS) {
+            dwCreationFlags = CREATE_ALWAYS;
+        } else if (uiOptions & FILE_OPEN_EXISTING || uiOptions & FILE_ACCESS_READ) {
+            dwCreationFlags = OPEN_EXISTING;
+        } else if (uiOptions & FILE_OPEN_ALWAYS) {
+            dwCreationFlags = OPEN_ALWAYS;
+        } else if (uiOptions & FILE_TRUNCATE_EXISTING) {
+            dwCreationFlags = TRUNCATE_EXISTING;
+        } else {
+            dwCreationFlags = OPEN_ALWAYS;
+        }
 
+        hRealFile =
+            CreateFile(strFilename, dwAccess, 0, NULL, dwCreationFlags, dwFlagsAndAttributes, NULL);
+        if (hRealFile == INVALID_HANDLE_VALUE) {
+            UINT32 uiLastError = GetLastError();
+            char zString[1024];
+            FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0, uiLastError, 0, zString, 1024, NULL);
 
-		hRealFile = CreateFile( strFilename, dwAccess, 0, NULL, dwCreationFlags,
-										dwFlagsAndAttributes, NULL );
-		if ( hRealFile == INVALID_HANDLE_VALUE )
-		{
-				UINT32 uiLastError = GetLastError();
-				char zString[1024];
-				FormatMessage( FORMAT_MESSAGE_FROM_SYSTEM, 0, uiLastError, 0, zString, 1024, NULL);
+            return (0);
+        }
 
-			return(0);
-		}
+        hFile = CreateRealFileHandle(hRealFile);
+    }
 
-		hFile = CreateRealFileHandle( hRealFile );
-	}
+    if (!hFile)
+        return (0);
 
-	if ( !hFile )
-		return(0);
-
-	return(hFile);
+    return (hFile);
 }
-
-
 
 //**************************************************************************
 //
@@ -492,37 +467,32 @@ HWFILE FileOpen( STR strFilename, UINT32 uiOptions, BOOLEAN fDeleteOnClose )
 //**************************************************************************
 
 // FUNCTION: WIZ8 0x00404e10
-void FileClose( HWFILE hFile )
+void FileClose(HWFILE hFile)
 {
-	INT16 sLibraryID;
-	UINT32 uiFileNum;
+    INT16 sLibraryID;
+    UINT32 uiFileNum;
 
-	GetLibraryAndFileIDFromLibraryFileHandle( hFile, &sLibraryID, &uiFileNum );
+    GetLibraryAndFileIDFromLibraryFileHandle(hFile, &sLibraryID, &uiFileNum);
 
-	//if its the 'real file' library
-	if( sLibraryID == REAL_FILE_LIBRARY_ID )
-	{
-		//if its not already closed
-		if( gFileDataBase.RealFiles.pRealFilesOpen != NULL &&
-			gFileDataBase.RealFiles.pRealFilesOpen[ uiFileNum ].uiFileID != 0 )
-		{
-			CloseHandle( gFileDataBase.RealFiles.pRealFilesOpen[ uiFileNum ].hRealFileHandle );
-			gFileDataBase.RealFiles.pRealFilesOpen[ uiFileNum ].uiFileID = 0;
-			gFileDataBase.RealFiles.pRealFilesOpen[ uiFileNum ].hRealFileHandle= 0;
-			gFileDataBase.RealFiles.iNumFilesOpen--;
-			if( gFileDataBase.RealFiles.iNumFilesOpen < 0 )
-			{
-				//if for some reason we are below 0, report an error ( should never be )
-				Assert( 0 );
-			}
-		}
-	}
-	else
-	{
-		//if the database is initialized
-		if( gFileDataBase.fInitialized )
-			CloseLibraryFile( sLibraryID, uiFileNum );
-	}
+    //if its the 'real file' library
+    if (sLibraryID == REAL_FILE_LIBRARY_ID) {
+        //if its not already closed
+        if (gFileDataBase.RealFiles.pRealFilesOpen != NULL &&
+            gFileDataBase.RealFiles.pRealFilesOpen[uiFileNum].uiFileID != 0) {
+            CloseHandle(gFileDataBase.RealFiles.pRealFilesOpen[uiFileNum].hRealFileHandle);
+            gFileDataBase.RealFiles.pRealFilesOpen[uiFileNum].uiFileID = 0;
+            gFileDataBase.RealFiles.pRealFilesOpen[uiFileNum].hRealFileHandle = 0;
+            gFileDataBase.RealFiles.iNumFilesOpen--;
+            if (gFileDataBase.RealFiles.iNumFilesOpen < 0) {
+                //if for some reason we are below 0, report an error ( should never be )
+                Assert(0);
+            }
+        }
+    } else {
+        //if the database is initialized
+        if (gFileDataBase.fInitialized)
+            CloseLibraryFile(sLibraryID, uiFileNum);
+    }
 }
 
 //**************************************************************************
@@ -552,69 +522,59 @@ void FileClose( HWFILE hFile )
 //
 //**************************************************************************
 
-
 // FUNCTION: WIZ8 0x00404ea0
-BOOLEAN FileRead( HWFILE hFile, PTR pDest, UINT32 uiBytesToRead, UINT32 *puiBytesRead )
+BOOLEAN FileRead(HWFILE hFile, PTR pDest, UINT32 uiBytesToRead, UINT32* puiBytesRead)
 {
-	HANDLE	hRealFile;
-	DWORD		dwNumBytesToRead, dwNumBytesRead;
-	BOOLEAN	fRet = FALSE;
-	INT16 sLibraryID;
-	UINT32 uiFileNum;
+    HANDLE hRealFile;
+    DWORD dwNumBytesToRead, dwNumBytesRead;
+    BOOLEAN fRet = FALSE;
+    INT16 sLibraryID;
+    UINT32 uiFileNum;
 
+    //init the variables
+    dwNumBytesToRead = dwNumBytesRead = 0;
 
-	//init the variables
-	dwNumBytesToRead = dwNumBytesRead = 0;
+    GetLibraryAndFileIDFromLibraryFileHandle(hFile, &sLibraryID, &uiFileNum);
 
-	GetLibraryAndFileIDFromLibraryFileHandle( hFile, &sLibraryID, &uiFileNum );
+    dwNumBytesToRead = (DWORD)uiBytesToRead;
 
-	dwNumBytesToRead	= (DWORD)uiBytesToRead;
+    //if its a real file, read the data from the file
+    if (sLibraryID == REAL_FILE_LIBRARY_ID) {
+        //if the file is opened
+        if (uiFileNum != 0) {
+            hRealFile = gFileDataBase.RealFiles.pRealFilesOpen[uiFileNum].hRealFileHandle;
 
-	//if its a real file, read the data from the file
-	if( sLibraryID == REAL_FILE_LIBRARY_ID )
-	{
-		//if the file is opened
-		if( uiFileNum != 0 )
-		{
-			hRealFile = gFileDataBase.RealFiles.pRealFilesOpen[ uiFileNum ].hRealFileHandle;
+            fRet = ReadFile(hRealFile, pDest, dwNumBytesToRead, &dwNumBytesRead, NULL);
+            if (dwNumBytesToRead != dwNumBytesRead) {
+                UINT32 uiLastError = GetLastError();
+                char zString[1024];
+                FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0, uiLastError, 0, zString, 1024, NULL);
 
-			fRet = ReadFile( hRealFile, pDest, dwNumBytesToRead, &dwNumBytesRead, NULL );
-			if ( dwNumBytesToRead != dwNumBytesRead )
-			{
-				UINT32 uiLastError = GetLastError();
-				char zString[1024];
-				FormatMessage( FORMAT_MESSAGE_FROM_SYSTEM, 0, uiLastError, 0, zString, 1024, NULL);
+                fRet = FALSE;
+            }
 
-				fRet = FALSE;
-			}
+            if (puiBytesRead)
+                *puiBytesRead = (UINT32)dwNumBytesRead;
+        }
+    } else {
+        //if the database is initialized
+        if (gFileDataBase.fInitialized) {
+            //if the library is open
+            if (IsLibraryOpened(sLibraryID)) {
+                //if the file is opened
+                if (gFileDataBase.pLibraries[sLibraryID].pOpenFiles[uiFileNum].uiFileID != 0) {
+                    //read the data from the library
+                    fRet = LoadDataFromLibrary(sLibraryID, uiFileNum, pDest, dwNumBytesToRead,
+                                               (UINT32*)&dwNumBytesRead);
+                    if (puiBytesRead) {
+                        *puiBytesRead = (UINT32)dwNumBytesRead;
+                    }
+                }
+            }
+        }
+    }
 
-			if ( puiBytesRead )
-				*puiBytesRead = (UINT32)dwNumBytesRead;
-		}
-	}
-	else
-	{
-		//if the database is initialized
-		if( gFileDataBase.fInitialized )
-		{
-			//if the library is open
-			if( IsLibraryOpened( sLibraryID ) )
-			{
-				//if the file is opened
-				if( gFileDataBase.pLibraries[ sLibraryID ].pOpenFiles[ uiFileNum ].uiFileID != 0 )
-				{
-					//read the data from the library
-					fRet = LoadDataFromLibrary( sLibraryID, uiFileNum, pDest, dwNumBytesToRead, (UINT32 *)&dwNumBytesRead );
-					if ( puiBytesRead )
-					{
-						*puiBytesRead = (UINT32)dwNumBytesRead;
-					}
-				}
-			}
-		}
-	}
-
-	return(fRet);
+    return (fRet);
 }
 
 //**************************************************************************
@@ -645,42 +605,38 @@ BOOLEAN FileRead( HWFILE hFile, PTR pDest, UINT32 uiBytesToRead, UINT32 *puiByte
 //**************************************************************************
 
 // FUNCTION: WIZ8 0x00404FB0
-BOOLEAN FileWrite( HWFILE hFile, PTR pDest, UINT32 uiBytesToWrite, UINT32 *puiBytesWritten )
+BOOLEAN FileWrite(HWFILE hFile, PTR pDest, UINT32 uiBytesToWrite, UINT32* puiBytesWritten)
 {
-	HANDLE	hRealFile;
-	DWORD		dwNumBytesToWrite, dwNumBytesWritten;
-	BOOLEAN	fRet;
-	INT16 sLibraryID;
-	UINT32 uiFileNum;
+    HANDLE hRealFile;
+    DWORD dwNumBytesToWrite, dwNumBytesWritten;
+    BOOLEAN fRet;
+    INT16 sLibraryID;
+    UINT32 uiFileNum;
 
+    GetLibraryAndFileIDFromLibraryFileHandle(hFile, &sLibraryID, &uiFileNum);
 
-	GetLibraryAndFileIDFromLibraryFileHandle( hFile, &sLibraryID, &uiFileNum );
+    //if its a real file, read the data from the file
+    if (sLibraryID == REAL_FILE_LIBRARY_ID) {
+        dwNumBytesToWrite = (DWORD)uiBytesToWrite;
 
-	//if its a real file, read the data from the file
-	if( sLibraryID == REAL_FILE_LIBRARY_ID )
-	{
-		dwNumBytesToWrite = (DWORD)uiBytesToWrite;
+        //get the real file handle to the file
+        hRealFile = gFileDataBase.RealFiles.pRealFilesOpen[uiFileNum].hRealFileHandle;
 
-		//get the real file handle to the file
-		hRealFile = gFileDataBase.RealFiles.pRealFilesOpen[ uiFileNum ].hRealFileHandle;
+        fRet = WriteFile(hRealFile, pDest, dwNumBytesToWrite, &dwNumBytesWritten, NULL);
 
-		fRet = WriteFile( hRealFile, pDest, dwNumBytesToWrite, &dwNumBytesWritten, NULL );
+        if (dwNumBytesToWrite != dwNumBytesWritten)
+            fRet = FALSE;
 
-		if (dwNumBytesToWrite != dwNumBytesWritten)
-			fRet = FALSE;
+        if (puiBytesWritten)
+            *puiBytesWritten = (UINT32)dwNumBytesWritten;
+    } else {
+        //we cannot write to a library file
+        if (puiBytesWritten)
+            *puiBytesWritten = 0;
+        return (FALSE);
+    }
 
-		if ( puiBytesWritten )
-			*puiBytesWritten = (UINT32)dwNumBytesWritten;
-	}
-	else
-	{
-		//we cannot write to a library file
-		if ( puiBytesWritten )
-			*puiBytesWritten = 0;
-		return(FALSE);
-	}
-
-	return(fRet);
+    return (fRet);
 }
 
 //**************************************************************************
@@ -754,50 +710,45 @@ BOOLEAN FileWrite( HWFILE hFile, PTR pDest, UINT32 uiBytesToWrite, UINT32 *puiBy
 //**************************************************************************
 
 // FUNCTION: WIZ8 0x00405030
-BOOLEAN FileSeek( HWFILE hFile, UINT32 uiDistance, UINT8 uiHow )
+BOOLEAN FileSeek(HWFILE hFile, UINT32 uiDistance, UINT8 uiHow)
 {
-	HANDLE	hRealFile;
-	LONG		lDistanceToMove;
-	DWORD		dwMoveMethod;
-	INT32		iDistance=0;
+    HANDLE hRealFile;
+    LONG lDistanceToMove;
+    DWORD dwMoveMethod;
+    INT32 iDistance = 0;
 
-	INT16 sLibraryID;
-	UINT32 uiFileNum;
+    INT16 sLibraryID;
+    UINT32 uiFileNum;
 
-	GetLibraryAndFileIDFromLibraryFileHandle( hFile, &sLibraryID, &uiFileNum );
+    GetLibraryAndFileIDFromLibraryFileHandle(hFile, &sLibraryID, &uiFileNum);
 
-	//if its a real file, read the data from the file
-	if( sLibraryID == REAL_FILE_LIBRARY_ID )
-	{
-		//Get the handle to the real file
-		hRealFile = gFileDataBase.RealFiles.pRealFilesOpen[ uiFileNum ].hRealFileHandle;
+    //if its a real file, read the data from the file
+    if (sLibraryID == REAL_FILE_LIBRARY_ID) {
+        //Get the handle to the real file
+        hRealFile = gFileDataBase.RealFiles.pRealFilesOpen[uiFileNum].hRealFileHandle;
 
-		iDistance = (INT32) uiDistance;
+        iDistance = (INT32)uiDistance;
 
-		if ( uiHow == FILE_SEEK_FROM_START )
-			dwMoveMethod = FILE_BEGIN;
-		else if ( uiHow == FILE_SEEK_FROM_END )
-		{
-			dwMoveMethod = FILE_END;
-			if( iDistance > 0 )
-				iDistance = -(iDistance);
-		}
-		else
-			dwMoveMethod = FILE_CURRENT;
+        if (uiHow == FILE_SEEK_FROM_START)
+            dwMoveMethod = FILE_BEGIN;
+        else if (uiHow == FILE_SEEK_FROM_END) {
+            dwMoveMethod = FILE_END;
+            if (iDistance > 0)
+                iDistance = -(iDistance);
+        } else
+            dwMoveMethod = FILE_CURRENT;
 
-		lDistanceToMove = (LONG)uiDistance;
+        lDistanceToMove = (LONG)uiDistance;
 
-		if ( SetFilePointer( hRealFile, iDistance, NULL, dwMoveMethod ) == 0xFFFFFFFF )
-			return(FALSE);
-	}
-	else
-	{
-		//if the database is initialized
-		if( gFileDataBase.fInitialized )
-			LibraryFileSeek( sLibraryID, uiFileNum, uiDistance, uiHow );
-	}
+        if (SetFilePointer(hRealFile, iDistance, NULL, dwMoveMethod) == 0xFFFFFFFF)
+            return (FALSE);
+    } else {
+        //if the database is initialized
+        if (gFileDataBase.fInitialized)
+            LibraryFileSeek(sLibraryID, uiFileNum, uiDistance, uiHow);
+    }
 
-	return(TRUE);
+    return (TRUE);
 }
 
 //**************************************************************************
@@ -824,44 +775,39 @@ BOOLEAN FileSeek( HWFILE hFile, UINT32 uiDistance, UINT8 uiHow )
 //**************************************************************************
 
 // FUNCTION: WIZ8 0x004050d0
-INT32 FileGetPos( HWFILE hFile )
+INT32 FileGetPos(HWFILE hFile)
 {
-	HANDLE	hRealFile;
-	UINT32	uiPositionInFile=0;
+    HANDLE hRealFile;
+    UINT32 uiPositionInFile = 0;
 
-	INT16 sLibraryID;
-	UINT32 uiFileNum;
+    INT16 sLibraryID;
+    UINT32 uiFileNum;
 
-	GetLibraryAndFileIDFromLibraryFileHandle( hFile, &sLibraryID, &uiFileNum );
+    GetLibraryAndFileIDFromLibraryFileHandle(hFile, &sLibraryID, &uiFileNum);
 
-	//if its a real file, read the data from the file
-	if( sLibraryID == REAL_FILE_LIBRARY_ID )
-	{
-		//Get the handle to the real file
-		hRealFile = gFileDataBase.RealFiles.pRealFilesOpen[ uiFileNum ].hRealFileHandle;
+    //if its a real file, read the data from the file
+    if (sLibraryID == REAL_FILE_LIBRARY_ID) {
+        //Get the handle to the real file
+        hRealFile = gFileDataBase.RealFiles.pRealFilesOpen[uiFileNum].hRealFileHandle;
 
-		uiPositionInFile = SetFilePointer( hRealFile, 0, NULL, FILE_CURRENT);
-		if( uiPositionInFile == 0xFFFFFFFF )
-		{
-			uiPositionInFile = 0;
-		}
-		return( uiPositionInFile );
-	}
-	else
-	{
-		//if the library is open
-		if( IsLibraryOpened( sLibraryID ) )
-		{
-			//check if the file is open
-			if( gFileDataBase.pLibraries[ sLibraryID ].pOpenFiles[ uiFileNum ].uiFileID != 0 )
-			{
-				uiPositionInFile = gFileDataBase.pLibraries[ sLibraryID ].pOpenFiles[ uiFileNum ].uiFilePosInFile;
-				return( uiPositionInFile );
-			}
-		}
-	}
+        uiPositionInFile = SetFilePointer(hRealFile, 0, NULL, FILE_CURRENT);
+        if (uiPositionInFile == 0xFFFFFFFF) {
+            uiPositionInFile = 0;
+        }
+        return (uiPositionInFile);
+    } else {
+        //if the library is open
+        if (IsLibraryOpened(sLibraryID)) {
+            //check if the file is open
+            if (gFileDataBase.pLibraries[sLibraryID].pOpenFiles[uiFileNum].uiFileID != 0) {
+                uiPositionInFile =
+                    gFileDataBase.pLibraries[sLibraryID].pOpenFiles[uiFileNum].uiFilePosInFile;
+                return (uiPositionInFile);
+            }
+        }
+    }
 
-	return(BAD_INDEX);
+    return (BAD_INDEX);
 }
 
 //**************************************************************************
@@ -888,36 +834,34 @@ INT32 FileGetPos( HWFILE hFile )
 //**************************************************************************
 
 // FUNCTION: WIZ8 0x00405150
-UINT32 FileGetSize( HWFILE hFile )
+UINT32 FileGetSize(HWFILE hFile)
 {
-	HANDLE  hRealHandle;
-	UINT32	uiFileSize = 0xFFFFFFFF;
+    HANDLE hRealHandle;
+    UINT32 uiFileSize = 0xFFFFFFFF;
 
-	INT16 sLibraryID;
-	UINT32 uiFileNum;
+    INT16 sLibraryID;
+    UINT32 uiFileNum;
 
-	GetLibraryAndFileIDFromLibraryFileHandle( hFile, &sLibraryID, &uiFileNum );
+    GetLibraryAndFileIDFromLibraryFileHandle(hFile, &sLibraryID, &uiFileNum);
 
-	//if its a real file, read the data from the file
-	if( sLibraryID == REAL_FILE_LIBRARY_ID )
-	{
-		//Get the handle to a real file
-		hRealHandle = gFileDataBase.RealFiles.pRealFilesOpen[ uiFileNum ].hRealFileHandle;
+    //if its a real file, read the data from the file
+    if (sLibraryID == REAL_FILE_LIBRARY_ID) {
+        //Get the handle to a real file
+        hRealHandle = gFileDataBase.RealFiles.pRealFilesOpen[uiFileNum].hRealFileHandle;
 
-		uiFileSize = GetFileSize( hRealHandle, NULL );
-	}
-	else
-	{
-		//if the library is open
-		if( IsLibraryOpened( sLibraryID ) )
-			uiFileSize = gFileDataBase.pLibraries[ sLibraryID ].pOpenFiles[ uiFileNum ].pFileHeader->uiFileLength;
-	}
+        uiFileSize = GetFileSize(hRealHandle, NULL);
+    } else {
+        //if the library is open
+        if (IsLibraryOpened(sLibraryID))
+            uiFileSize = gFileDataBase.pLibraries[sLibraryID]
+                             .pOpenFiles[uiFileNum]
+                             .pFileHeader->uiFileLength;
+    }
 
-
-	if ( uiFileSize == 0xFFFFFFFF )
-		return(0);
-	else
-		return( uiFileSize );
+    if (uiFileSize == 0xFFFFFFFF)
+        return (0);
+    else
+        return (uiFileSize);
 }
 
 //**************************************************************************
@@ -1037,8 +981,6 @@ void DestroyFileHandle( HWFILE hFile )
 }
 */
 
-
-
 //**************************************************************************
 //
 // BuildFileDirectory
@@ -1067,206 +1009,187 @@ void DestroyFileHandle( HWFILE hFile )
 //
 //**************************************************************************
 
-
-
 // FUNCTION: WIZ8 0x004051d0
-BOOLEAN DirectoryExists( STRING512 pcDirectory )
+BOOLEAN DirectoryExists(STRING512 pcDirectory)
 {
-	UINT32	uiAttribs;
-	DWORD		uiLastError;
+    UINT32 uiAttribs;
+    DWORD uiLastError;
 
-	uiAttribs = GetFileAttributes( pcDirectory );
+    uiAttribs = GetFileAttributes(pcDirectory);
 
-	if ( uiAttribs == 0xFFFFFFFF )
-	{
-		// an error, make sure it's the right error
-		uiLastError =	GetLastError();
+    if (uiAttribs == 0xFFFFFFFF) {
+        // an error, make sure it's the right error
+        uiLastError = GetLastError();
 
-		if (uiLastError != ERROR_FILE_NOT_FOUND)
-		{
-   		FastDebugMsg(String("DirectoryExists: ERROR - GetFileAttributes failed, error #%d on file %s", uiLastError, pcDirectory));
-		}
-	}
-	else
-	{
-		// something's there, make sure it's a directory
-		if ( uiAttribs & FILE_ATTRIBUTE_DIRECTORY )
-		{
-			return TRUE;
-		}
-	}
+        if (uiLastError != ERROR_FILE_NOT_FOUND) {
+            FastDebugMsg(
+                String("DirectoryExists: ERROR - GetFileAttributes failed, error #%d on file %s",
+                       uiLastError, pcDirectory));
+        }
+    } else {
+        // something's there, make sure it's a directory
+        if (uiAttribs & FILE_ATTRIBUTE_DIRECTORY) {
+            return TRUE;
+        }
+    }
 
-	// this could also mean that the name given is that of a file, or that an error occurred
-	return FALSE;
+    // this could also mean that the name given is that of a file, or that an error occurred
+    return FALSE;
 }
-
 
 // FUNCTION: WIZ8 0x004051f0
-BOOLEAN MakeFileManDirectory( STRING512 pcDirectory )
+BOOLEAN MakeFileManDirectory(STRING512 pcDirectory)
 {
-	return CreateDirectory( pcDirectory, NULL );
+    return CreateDirectory(pcDirectory, NULL);
 }
-
-
-
 
 // FUNCTION: WIZ8 0x00405200
-BOOLEAN GetExecutableDirectory( STRING512 pcDirectory )
+BOOLEAN GetExecutableDirectory(STRING512 pcDirectory)
 {
-	SGPFILENAME	ModuleFilename;
-	UINT32 cnt;
+    SGPFILENAME ModuleFilename;
+    UINT32 cnt;
 
-	if ( GetModuleFileName( NULL, ModuleFilename, sizeof( ModuleFilename ) ) == 0 )
-	{
-		return( FALSE );
-	}
+    if (GetModuleFileName(NULL, ModuleFilename, sizeof(ModuleFilename)) == 0) {
+        return (FALSE);
+    }
 
-	// Now get directory
-	strcpy( pcDirectory, ModuleFilename );
+    // Now get directory
+    strcpy(pcDirectory, ModuleFilename);
 
-	for ( cnt = strlen( pcDirectory ) - 1; cnt >= 0; cnt -- )
-	{
-		if ( pcDirectory[ cnt ] == '\\' )
-		{
-			 pcDirectory[ cnt ] = '\0';
-			 break;
-		}
-	}
+    for (cnt = strlen(pcDirectory) - 1; cnt >= 0; cnt--) {
+        if (pcDirectory[cnt] == '\\') {
+            pcDirectory[cnt] = '\0';
+            break;
+        }
+    }
 
-	return( TRUE );
+    return (TRUE);
 }
 
-
 // FUNCTION: WIZ8 0x00405270
-BOOLEAN GetFileFirst( CHAR8 *pSpec, GETFILESTRUCT *pGFStruct )
+BOOLEAN GetFileFirst(CHAR8* pSpec, GETFILESTRUCT* pGFStruct)
 {
-	INT32 x,iWhich=0;
-	BOOLEAN fFound;
+    INT32 x, iWhich = 0;
+    BOOLEAN fFound;
 
-	CHECKF( pSpec != NULL );
-	CHECKF( pGFStruct != NULL );
+    CHECKF(pSpec != NULL);
+    CHECKF(pGFStruct != NULL);
 
-	fFound = FALSE;
-	for( x = 0; x < 20 && !fFound; x++)
-	{
-		if( !fFindInfoInUse[x] )
-		{
-			iWhich = x;
-			fFound = TRUE;
-		}
-	}
+    fFound = FALSE;
+    for (x = 0; x < 20 && !fFound; x++) {
+        if (!fFindInfoInUse[x]) {
+            iWhich = x;
+            fFound = TRUE;
+        }
+    }
 
-	if ( !fFound )
-		return(FALSE);
+    if (!fFound)
+        return (FALSE);
 
-	pGFStruct->iFindHandle = iWhich;
+    pGFStruct->iFindHandle = iWhich;
 
-	hFindInfoHandle[iWhich] = FindFirstFile( pSpec, &Win32FindInfo[iWhich] );
+    hFindInfoHandle[iWhich] = FindFirstFile(pSpec, &Win32FindInfo[iWhich]);
 
-	if ( hFindInfoHandle[iWhich] == INVALID_HANDLE_VALUE )
-		return(FALSE);
-	fFindInfoInUse[iWhich] = TRUE;
+    if (hFindInfoHandle[iWhich] == INVALID_HANDLE_VALUE)
+        return (FALSE);
+    fFindInfoInUse[iWhich] = TRUE;
 
-	W32toSGPFileFind( pGFStruct, &Win32FindInfo[iWhich] );
+    W32toSGPFileFind(pGFStruct, &Win32FindInfo[iWhich]);
 
-	return(TRUE);
+    return (TRUE);
 }
 
 // FUNCTION: WIZ8 0x00405300
-BOOLEAN GetFileNext( GETFILESTRUCT *pGFStruct )
+BOOLEAN GetFileNext(GETFILESTRUCT* pGFStruct)
 {
-	CHECKF( pGFStruct != NULL );
+    CHECKF(pGFStruct != NULL);
 
-	if ( FindNextFile(hFindInfoHandle[pGFStruct->iFindHandle], &Win32FindInfo[pGFStruct->iFindHandle]) )
-	{
-		W32toSGPFileFind( pGFStruct, &Win32FindInfo[pGFStruct->iFindHandle] );
-		return(TRUE);
-	}
-	return(FALSE);
+    if (FindNextFile(hFindInfoHandle[pGFStruct->iFindHandle],
+                     &Win32FindInfo[pGFStruct->iFindHandle])) {
+        W32toSGPFileFind(pGFStruct, &Win32FindInfo[pGFStruct->iFindHandle]);
+        return (TRUE);
+    }
+    return (FALSE);
 }
 
 // FUNCTION: WIZ8 0x00405350
-void GetFileClose( GETFILESTRUCT *pGFStruct )
+void GetFileClose(GETFILESTRUCT* pGFStruct)
 {
-	if ( pGFStruct == NULL )
-		return;
+    if (pGFStruct == NULL)
+        return;
 
-	FindClose( hFindInfoHandle[pGFStruct->iFindHandle] );
-	hFindInfoHandle[pGFStruct->iFindHandle] = INVALID_HANDLE_VALUE;
-	fFindInfoInUse[pGFStruct->iFindHandle] = FALSE;
+    FindClose(hFindInfoHandle[pGFStruct->iFindHandle]);
+    hFindInfoHandle[pGFStruct->iFindHandle] = INVALID_HANDLE_VALUE;
+    fFindInfoInUse[pGFStruct->iFindHandle] = FALSE;
 
-	return;
+    return;
 }
 
 // FUNCTION: WIZ8 0x00405390
-void W32toSGPFileFind( GETFILESTRUCT *pGFStruct, WIN32_FIND_DATA *pW32Struct )
+void W32toSGPFileFind(GETFILESTRUCT* pGFStruct, WIN32_FIND_DATA* pW32Struct)
 {
-	UINT32 uiAttribMask;
+    UINT32 uiAttribMask;
 
-	// Copy the filename
-	strcpy(pGFStruct->zFileName, pW32Struct->cFileName);
+    // Copy the filename
+    strcpy(pGFStruct->zFileName, pW32Struct->cFileName);
 
-	// Get file size
-	if ( pW32Struct->nFileSizeHigh != 0 )
-		pGFStruct->uiFileSize = 0xffffffff;
-	else
-		pGFStruct->uiFileSize = pW32Struct->nFileSizeLow;
+    // Get file size
+    if (pW32Struct->nFileSizeHigh != 0)
+        pGFStruct->uiFileSize = 0xffffffff;
+    else
+        pGFStruct->uiFileSize = pW32Struct->nFileSizeLow;
 
-	// Copy the file attributes
-	pGFStruct->uiFileAttribs = 0;
+    // Copy the file attributes
+    pGFStruct->uiFileAttribs = 0;
 
-	for( uiAttribMask = 0x80000000; uiAttribMask > 0; uiAttribMask >>= 1)
-	{
-		switch( pW32Struct->dwFileAttributes & uiAttribMask )
-		{
-			case FILE_ATTRIBUTE_ARCHIVE:
-				pGFStruct->uiFileAttribs |= FILE_IS_ARCHIVE;
-				break;
+    for (uiAttribMask = 0x80000000; uiAttribMask > 0; uiAttribMask >>= 1) {
+        switch (pW32Struct->dwFileAttributes & uiAttribMask) {
+        case FILE_ATTRIBUTE_ARCHIVE:
+            pGFStruct->uiFileAttribs |= FILE_IS_ARCHIVE;
+            break;
 
-			case FILE_ATTRIBUTE_DIRECTORY:
-				pGFStruct->uiFileAttribs |= FILE_IS_DIRECTORY;
-				break;
+        case FILE_ATTRIBUTE_DIRECTORY:
+            pGFStruct->uiFileAttribs |= FILE_IS_DIRECTORY;
+            break;
 
-			case FILE_ATTRIBUTE_HIDDEN:
-				pGFStruct->uiFileAttribs |= FILE_IS_HIDDEN;
-				break;
+        case FILE_ATTRIBUTE_HIDDEN:
+            pGFStruct->uiFileAttribs |= FILE_IS_HIDDEN;
+            break;
 
-			case FILE_ATTRIBUTE_NORMAL:
-				pGFStruct->uiFileAttribs |= FILE_IS_NORMAL;
-				break;
+        case FILE_ATTRIBUTE_NORMAL:
+            pGFStruct->uiFileAttribs |= FILE_IS_NORMAL;
+            break;
 
-			case FILE_ATTRIBUTE_READONLY:
-				pGFStruct->uiFileAttribs |= FILE_IS_READONLY;
-				break;
+        case FILE_ATTRIBUTE_READONLY:
+            pGFStruct->uiFileAttribs |= FILE_IS_READONLY;
+            break;
 
-			case FILE_ATTRIBUTE_SYSTEM:
-				pGFStruct->uiFileAttribs |= FILE_IS_SYSTEM;
-				break;
+        case FILE_ATTRIBUTE_SYSTEM:
+            pGFStruct->uiFileAttribs |= FILE_IS_SYSTEM;
+            break;
 
-			case FILE_ATTRIBUTE_TEMPORARY:
-				pGFStruct->uiFileAttribs |= FILE_IS_TEMPORARY;
-				break;
+        case FILE_ATTRIBUTE_TEMPORARY:
+            pGFStruct->uiFileAttribs |= FILE_IS_TEMPORARY;
+            break;
 
-			case FILE_ATTRIBUTE_COMPRESSED:
-				pGFStruct->uiFileAttribs |= FILE_IS_COMPRESSED;
-				break;
+        case FILE_ATTRIBUTE_COMPRESSED:
+            pGFStruct->uiFileAttribs |= FILE_IS_COMPRESSED;
+            break;
 
-			case FILE_ATTRIBUTE_OFFLINE:
-				pGFStruct->uiFileAttribs |= FILE_IS_OFFLINE;
-				break;
-		}
-	}
+        case FILE_ATTRIBUTE_OFFLINE:
+            pGFStruct->uiFileAttribs |= FILE_IS_OFFLINE;
+            break;
+        }
+    }
 }
-
-
 
 // FUNCTION: WIZ8 0x004054d0
 BOOLEAN FileCopy(STR strSrcFile, STR strDstFile, BOOLEAN fFailIfExists)
 {
-	return(CopyFile(strSrcFile, strDstFile, fFailIfExists));
+    return (CopyFile(strSrcFile, strDstFile, fFailIfExists));
 
-// Not needed, use Windows CopyFile
-/*
+    // Not needed, use Windows CopyFile
+    /*
 	HWFILE hFile;
 	UINT32 uiSize;
 	CHAR *pBuffer;
@@ -1337,198 +1260,177 @@ BOOLEAN FileCopy(STR strSrcFile, STR strDstFile, BOOLEAN fFailIfExists)
 */
 }
 
-
 // FUNCTION: WIZ8 0x004054f0
-UINT32 FileGetAttributes( STR strFilename )
+UINT32 FileGetAttributes(STR strFilename)
 {
-	UINT32	uiAttribs = 0;
-	UINT32	uiFileAttrib = 0;
+    UINT32 uiAttribs = 0;
+    UINT32 uiFileAttrib = 0;
 
-	uiAttribs = GetFileAttributes( strFilename );
+    uiAttribs = GetFileAttributes(strFilename);
 
-	if( uiAttribs == 0xFFFFFFFF )
-		return( uiAttribs );
+    if (uiAttribs == 0xFFFFFFFF)
+        return (uiAttribs);
 
-	if( uiAttribs & FILE_ATTRIBUTE_ARCHIVE )
-		uiFileAttrib |= FILE_ATTRIBUTES_ARCHIVE;
+    if (uiAttribs & FILE_ATTRIBUTE_ARCHIVE)
+        uiFileAttrib |= FILE_ATTRIBUTES_ARCHIVE;
 
-	if( uiAttribs & FILE_ATTRIBUTE_HIDDEN )
-		uiFileAttrib |= FILE_ATTRIBUTES_HIDDEN;
+    if (uiAttribs & FILE_ATTRIBUTE_HIDDEN)
+        uiFileAttrib |= FILE_ATTRIBUTES_HIDDEN;
 
-	if( uiAttribs & FILE_ATTRIBUTE_NORMAL )
-		uiFileAttrib |= FILE_ATTRIBUTES_NORMAL;
+    if (uiAttribs & FILE_ATTRIBUTE_NORMAL)
+        uiFileAttrib |= FILE_ATTRIBUTES_NORMAL;
 
-	if( uiAttribs & FILE_ATTRIBUTE_OFFLINE )
-		uiFileAttrib |= FILE_ATTRIBUTES_OFFLINE;
+    if (uiAttribs & FILE_ATTRIBUTE_OFFLINE)
+        uiFileAttrib |= FILE_ATTRIBUTES_OFFLINE;
 
-	if( uiAttribs & FILE_ATTRIBUTE_READONLY )
-		uiFileAttrib |= FILE_ATTRIBUTES_READONLY;
+    if (uiAttribs & FILE_ATTRIBUTE_READONLY)
+        uiFileAttrib |= FILE_ATTRIBUTES_READONLY;
 
-	if( uiAttribs & FILE_ATTRIBUTE_SYSTEM	)
-		uiFileAttrib |= FILE_ATTRIBUTES_SYSTEM;
+    if (uiAttribs & FILE_ATTRIBUTE_SYSTEM)
+        uiFileAttrib |= FILE_ATTRIBUTES_SYSTEM;
 
-	if( uiAttribs & FILE_ATTRIBUTE_TEMPORARY )
-		uiFileAttrib |= FILE_ATTRIBUTES_TEMPORARY;
+    if (uiAttribs & FILE_ATTRIBUTE_TEMPORARY)
+        uiFileAttrib |= FILE_ATTRIBUTES_TEMPORARY;
 
-	if( uiAttribs & FILE_ATTRIBUTE_DIRECTORY )
-		uiFileAttrib |= FILE_ATTRIBUTES_DIRECTORY;
+    if (uiAttribs & FILE_ATTRIBUTE_DIRECTORY)
+        uiFileAttrib |= FILE_ATTRIBUTES_DIRECTORY;
 
-
-
-	return( uiFileAttrib );
+    return (uiFileAttrib);
 }
-
-
-
 
 // FUNCTION: WIZ8 0x00405550
-BOOLEAN FileClearAttributes( STR strFilename )
+BOOLEAN FileClearAttributes(STR strFilename)
 {
-	return SetFileAttributes( strFilename, FILE_ATTRIBUTE_NORMAL );
+    return SetFileAttributes(strFilename, FILE_ATTRIBUTE_NORMAL);
 }
-
 
 //returns true if at end of file, else false
 // FUNCTION: WIZ8 0x00405570
-BOOLEAN	FileCheckEndOfFile( HWFILE hFile )
+BOOLEAN FileCheckEndOfFile(HWFILE hFile)
 {
-	INT16 sLibraryID;
-	UINT32 uiFileNum;
-	HANDLE	hRealFile;
-//	UINT8		Data;
-	UINT32	uiNumberOfBytesRead=0;
-	UINT32	uiOldFilePtrLoc=0;
-	UINT32	uiEndOfFilePtrLoc=0;
-	UINT32	temp=0;
+    INT16 sLibraryID;
+    UINT32 uiFileNum;
+    HANDLE hRealFile;
+    //	UINT8		Data;
+    UINT32 uiNumberOfBytesRead = 0;
+    UINT32 uiOldFilePtrLoc = 0;
+    UINT32 uiEndOfFilePtrLoc = 0;
+    UINT32 temp = 0;
 
-	GetLibraryAndFileIDFromLibraryFileHandle( hFile, &sLibraryID, &uiFileNum );
+    GetLibraryAndFileIDFromLibraryFileHandle(hFile, &sLibraryID, &uiFileNum);
 
-	//if its a real file, read the data from the file
-	if( sLibraryID == REAL_FILE_LIBRARY_ID )
-	{
-		//Get the handle to the real file
-		hRealFile = gFileDataBase.RealFiles.pRealFilesOpen[ uiFileNum ].hRealFileHandle;
+    //if its a real file, read the data from the file
+    if (sLibraryID == REAL_FILE_LIBRARY_ID) {
+        //Get the handle to the real file
+        hRealFile = gFileDataBase.RealFiles.pRealFilesOpen[uiFileNum].hRealFileHandle;
 
-		//Get the current position of the file pointer
-		uiOldFilePtrLoc = SetFilePointer( hRealFile, 0, NULL, FILE_CURRENT );
+        //Get the current position of the file pointer
+        uiOldFilePtrLoc = SetFilePointer(hRealFile, 0, NULL, FILE_CURRENT);
 
-		//Get the end of file ptr location
-		uiEndOfFilePtrLoc = SetFilePointer( hRealFile, 0, NULL, FILE_END );
+        //Get the end of file ptr location
+        uiEndOfFilePtrLoc = SetFilePointer(hRealFile, 0, NULL, FILE_END);
 
-		//reset back to the original location
-		temp = SetFilePointer( hRealFile, -( (INT32)( uiEndOfFilePtrLoc - uiOldFilePtrLoc ) ), NULL, FILE_END );
+        //reset back to the original location
+        temp = SetFilePointer(hRealFile, -((INT32)(uiEndOfFilePtrLoc - uiOldFilePtrLoc)), NULL,
+                              FILE_END);
 
-		//if the 2 pointers are the same, we are at the end of a file
-		if( uiEndOfFilePtrLoc <= uiOldFilePtrLoc )
-		{
-			return( 1 );
-		}
-	}
+        //if the 2 pointers are the same, we are at the end of a file
+        if (uiEndOfFilePtrLoc <= uiOldFilePtrLoc) {
+            return (1);
+        }
+    }
 
-	//else it is a library file
-	else
-	{
-		//if the database is initialized
-		if( gFileDataBase.fInitialized )
-		{
-			//if the library is open
-			if( IsLibraryOpened( sLibraryID ) )
-			{
-				//if the file is opened
-				if( gFileDataBase.pLibraries[ sLibraryID ].pOpenFiles[ uiFileNum ].uiFileID != 0 )
-				{
-					UINT32	uiLength;					//uiOffsetInLibrary
-//					HANDLE	hLibraryFile;
-//					UINT32	uiNumBytesRead;
-					UINT32	uiCurPos;
+    //else it is a library file
+    else {
+        //if the database is initialized
+        if (gFileDataBase.fInitialized) {
+            //if the library is open
+            if (IsLibraryOpened(sLibraryID)) {
+                //if the file is opened
+                if (gFileDataBase.pLibraries[sLibraryID].pOpenFiles[uiFileNum].uiFileID != 0) {
+                    UINT32 uiLength; //uiOffsetInLibrary
+                                     //					HANDLE	hLibraryFile;
+                                     //					UINT32	uiNumBytesRead;
+                    UINT32 uiCurPos;
 
-					uiLength = gFileDataBase.pLibraries[ sLibraryID ].pOpenFiles[ uiFileNum ].pFileHeader->uiFileLength;
-					uiCurPos = gFileDataBase.pLibraries[ sLibraryID ].pOpenFiles[ uiFileNum ].uiFilePosInFile;
+                    uiLength = gFileDataBase.pLibraries[sLibraryID]
+                                   .pOpenFiles[uiFileNum]
+                                   .pFileHeader->uiFileLength;
+                    uiCurPos =
+                        gFileDataBase.pLibraries[sLibraryID].pOpenFiles[uiFileNum].uiFilePosInFile;
 
-					//if we are trying to read more data then the size of the file, return an error
-					if( uiCurPos >= uiLength )
-					{
-						return( TRUE );
-					}
-				}
-			}
-		}
-	}
+                    //if we are trying to read more data then the size of the file, return an error
+                    if (uiCurPos >= uiLength) {
+                        return (TRUE);
+                    }
+                }
+            }
+        }
+    }
 
-	//we are not and the end of a file
-	return( 0 );
+    //we are not and the end of a file
+    return (0);
 }
-
-
 
 // FUNCTION: WIZ8 0x00405630
-BOOLEAN GetFileManFileTime( HWFILE hFile, SGP_FILETIME	*pCreationTime, SGP_FILETIME *pLastAccessedTime, SGP_FILETIME *pLastWriteTime )
+BOOLEAN GetFileManFileTime(HWFILE hFile, SGP_FILETIME* pCreationTime,
+                           SGP_FILETIME* pLastAccessedTime, SGP_FILETIME* pLastWriteTime)
 {
-	HANDLE	hRealFile;
-	INT16 sLibraryID;
-	UINT32 uiFileNum;
+    HANDLE hRealFile;
+    INT16 sLibraryID;
+    UINT32 uiFileNum;
 
-	FILETIME	sCreationUtcFileTime;
-	FILETIME	sLastAccessedUtcFileTime;
-	FILETIME	sLastWriteUtcFileTime;
+    FILETIME sCreationUtcFileTime;
+    FILETIME sLastAccessedUtcFileTime;
+    FILETIME sLastWriteUtcFileTime;
 
-	//Initialize the passed in variables
-	memset( pCreationTime, 0, sizeof( SGP_FILETIME ) );
-	memset( pLastAccessedTime, 0, sizeof( SGP_FILETIME ) );
-	memset( pLastWriteTime, 0, sizeof( SGP_FILETIME ) );
+    //Initialize the passed in variables
+    memset(pCreationTime, 0, sizeof(SGP_FILETIME));
+    memset(pLastAccessedTime, 0, sizeof(SGP_FILETIME));
+    memset(pLastWriteTime, 0, sizeof(SGP_FILETIME));
 
+    GetLibraryAndFileIDFromLibraryFileHandle(hFile, &sLibraryID, &uiFileNum);
 
-	GetLibraryAndFileIDFromLibraryFileHandle( hFile, &sLibraryID, &uiFileNum );
+    //if its a real file, read the data from the file
+    if (sLibraryID == REAL_FILE_LIBRARY_ID) {
+        //get the real file handle to the file
+        hRealFile = gFileDataBase.RealFiles.pRealFilesOpen[uiFileNum].hRealFileHandle;
 
-	//if its a real file, read the data from the file
-	if( sLibraryID == REAL_FILE_LIBRARY_ID )
-	{
-		//get the real file handle to the file
-		hRealFile = gFileDataBase.RealFiles.pRealFilesOpen[ uiFileNum ].hRealFileHandle;
+        //Gets the UTC file time for the 'real' file
+        GetFileTime(hRealFile, &sCreationUtcFileTime, &sLastAccessedUtcFileTime,
+                    &sLastWriteUtcFileTime);
 
-		//Gets the UTC file time for the 'real' file
-		GetFileTime( hRealFile, &sCreationUtcFileTime, &sLastAccessedUtcFileTime, &sLastWriteUtcFileTime );
+        //converts the creation UTC file time to the current time used for the file
+        FileTimeToLocalFileTime(&sCreationUtcFileTime, pCreationTime);
 
-		//converts the creation UTC file time to the current time used for the file
-		FileTimeToLocalFileTime( &sCreationUtcFileTime, pCreationTime );
+        //converts the accessed UTC file time to the current time used for the file
+        FileTimeToLocalFileTime(&sLastAccessedUtcFileTime, pLastAccessedTime);
 
-		//converts the accessed UTC file time to the current time used for the file
-		FileTimeToLocalFileTime( &sLastAccessedUtcFileTime, pLastAccessedTime );
+        //converts the write UTC file time to the current time used for the file
+        FileTimeToLocalFileTime(&sLastWriteUtcFileTime, pLastWriteTime);
+    } else {
+        //if the database is initialized
+        if (gFileDataBase.fInitialized) {
+            //if the library is open
+            if (IsLibraryOpened(sLibraryID)) {
+                //if the file is opened
+                if (gFileDataBase.pLibraries[sLibraryID].pOpenFiles[uiFileNum].uiFileID != 0) {
+                    if (!GetLibraryFileTime(sLibraryID, uiFileNum, pLastWriteTime)) {
+                        return (FALSE);
+                    }
+                }
+            }
+        }
+    }
 
-		//converts the write UTC file time to the current time used for the file
-		FileTimeToLocalFileTime( &sLastWriteUtcFileTime, pLastWriteTime );
-	}
-	else
-	{
-		//if the database is initialized
-		if( gFileDataBase.fInitialized )
-		{
-			//if the library is open
-			if( IsLibraryOpened( sLibraryID ) )
-			{
-				//if the file is opened
-				if( gFileDataBase.pLibraries[ sLibraryID ].pOpenFiles[ uiFileNum ].uiFileID != 0 )
-				{
-					if( !GetLibraryFileTime( sLibraryID, uiFileNum, pLastWriteTime ) )
-					{
-						return( FALSE );
-					}
-				}
-			}
-		}
-	}
-
-	return( TRUE );
+    return (TRUE);
 }
-
 
 // FUNCTION: WIZ8 0x00405720
-INT32	CompareSGPFileTimes( SGP_FILETIME	*pFirstFileTime, SGP_FILETIME *pSecondFileTime )
+INT32 CompareSGPFileTimes(SGP_FILETIME* pFirstFileTime, SGP_FILETIME* pSecondFileTime)
 {
-	return( CompareFileTime( pFirstFileTime, pSecondFileTime ) );
+    return (CompareFileTime(pFirstFileTime, pSecondFileTime));
 }
-
-
 
 //**************************************************************************
 //
@@ -1569,7 +1471,7 @@ BOOLEAN AddSubdirectoryToPath(CHAR8* subdirectory)
 }
 
 // FUNCTION: WIZ8 0x004058a0
-BOOLEAN FileIsOlderThanFile(CHAR8 *pcFileName1, CHAR8 *pcFileName2, UINT32 ulNumSeconds)
+BOOLEAN FileIsOlderThanFile(CHAR8* pcFileName1, CHAR8* pcFileName2, UINT32 ulNumSeconds)
 {
     WIN32_FIND_DATA first;
     WIN32_FIND_DATA second;
@@ -1592,8 +1494,10 @@ BOOLEAN FileIsOlderThanFile(CHAR8 *pcFileName1, CHAR8 *pcFileName2, UINT32 ulNum
             }
         } else {
             /* FILETIME counts 100ns units. */
-            difference = ((ULONGLONG)second.ftLastWriteTime.dwHighDateTime - first.ftLastWriteTime.dwHighDateTime) * 0x100000000
-                - first.ftLastWriteTime.dwLowDateTime + second.ftLastWriteTime.dwLowDateTime;
+            difference = ((ULONGLONG)second.ftLastWriteTime.dwHighDateTime -
+                          first.ftLastWriteTime.dwHighDateTime) *
+                             0x100000000 -
+                         first.ftLastWriteTime.dwLowDateTime + second.ftLastWriteTime.dwLowDateTime;
             if (difference / 10000000 >= ulNumSeconds) {
                 return TRUE;
             }
@@ -1601,8 +1505,3 @@ BOOLEAN FileIsOlderThanFile(CHAR8 *pcFileName1, CHAR8 *pcFileName2, UINT32 ulNum
     }
     return FALSE;
 }
-
-
-
-
-

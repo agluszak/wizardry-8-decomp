@@ -14,9 +14,7 @@ public:
     unsigned long value;
 };
 
-template <class Enum> srFlags<Enum>::srFlags() : value(0)
-{
-}
+template <class Enum> srFlags<Enum>::srFlags() : value(0) {}
 
 /* Set or clear one flag bit. The 0x004CA880 srFlags<int>::set body in WIZ8 is
    an ordinary primary-template emission, not evidence of an authored int

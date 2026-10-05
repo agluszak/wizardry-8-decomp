@@ -175,12 +175,11 @@ void srScene::dump(std::ostream& stream)
     stream.flags((flags & 0xfffffe7fL) | 0x40);
     stream.width(0x20);
     stream << "  Ambient light: ";
-    stream << '{' << ambient_light.x << ',' << ambient_light.y << ',' << ambient_light.z
-           << '}' << '\n';
+    stream << '{' << ambient_light.x << ',' << ambient_light.y << ',' << ambient_light.z << '}'
+           << '\n';
     stream.width(0x20);
     stream << "  Fog color: ";
-    stream << '{' << fog_color.x << ',' << fog_color.y << ',' << fog_color.z << '}'
-           << '\n';
+    stream << '{' << fog_color.x << ',' << fog_color.y << ',' << fog_color.z << '}' << '\n';
     Statistics statistics;
     getStatistics(statistics);
     stream.width(0x20);
@@ -190,8 +189,7 @@ void srScene::dump(std::ostream& stream)
     stream.width(0x20);
     stream << "  Global calls/sec: " << statistics.node_calls / statistics.elapsed << '\n';
     stream.width(0x20);
-    stream << "  Process calls/sec: " << statistics.process_calls / statistics.elapsed
-           << '\n';
+    stream << "  Process calls/sec: " << statistics.process_calls / statistics.elapsed << '\n';
     stream.flags(flags & 0x7fff);
 }
 

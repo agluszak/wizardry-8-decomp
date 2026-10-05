@@ -66,7 +66,8 @@ unsigned char MGSKeyboard::LoadDefaults(const char* path)
 
         unsigned short key = *token;
         int index;
-        for (index = 0; index < static_cast<int>(sizeof(g_mgs_key_names) / sizeof(g_mgs_key_names[0]));
+        for (index = 0;
+             index < static_cast<int>(sizeof(g_mgs_key_names) / sizeof(g_mgs_key_names[0]));
              ++index) {
             if (wcscmp(token, g_mgs_key_names[index].name) == 0) {
                 key = g_mgs_key_names[index].key;

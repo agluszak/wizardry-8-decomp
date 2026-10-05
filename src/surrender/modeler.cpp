@@ -208,12 +208,12 @@ int AutoSmoother::isSmooth(unsigned long first, unsigned long second, double cos
             }
         }
     }
-    srVector3T<float> first_normal = CrossProduct(
-        first_triangle->vertices[0].position - first_triangle->vertices[1].position,
-        first_triangle->vertices[2].position - first_triangle->vertices[1].position);
-    srVector3T<float> second_normal = CrossProduct(
-        second_triangle->vertices[0].position - second_triangle->vertices[1].position,
-        second_triangle->vertices[2].position - second_triangle->vertices[1].position);
+    srVector3T<float> first_normal =
+        CrossProduct(first_triangle->vertices[0].position - first_triangle->vertices[1].position,
+                     first_triangle->vertices[2].position - first_triangle->vertices[1].position);
+    srVector3T<float> second_normal =
+        CrossProduct(second_triangle->vertices[0].position - second_triangle->vertices[1].position,
+                     second_triangle->vertices[2].position - second_triangle->vertices[1].position);
     float magnitude = first_normal.Length() * second_normal.Length();
     if (0.0 < magnitude) {
         if (DotProduct(first_normal, second_normal) / magnitude <= cosine) {
@@ -235,16 +235,14 @@ void AutoSmoother::markEdge(Edge* edge, long group)
     for (index = 0; index < entries[edge->first].count; ++index) {
         Edge* other = &edges[entries[edge->first].edges[index]];
         if (other->smooth == 0) {
-            unsigned long triangle =
-                other->first == edge->first ? other->second : other->first;
+            unsigned long triangle = other->first == edge->first ? other->second : other->first;
             entries[triangle].blocked |= bit;
         }
     }
     for (index = 0; index < entries[edge->second].count; ++index) {
         Edge* other = &edges[entries[edge->second].edges[index]];
         if (other->smooth == 0) {
-            unsigned long triangle =
-                other->first == edge->second ? other->second : other->first;
+            unsigned long triangle = other->first == edge->second ? other->second : other->first;
             entries[triangle].blocked |= bit;
         }
     }
@@ -363,8 +361,7 @@ int srModeler::Vertex::operator==(const Vertex& other) const
     if (shade_index == other.shade_index) {
         for (int pass = 0; pass < 4; ++pass) {
             if (!(dcg[pass] == other.dcg[pass] && dig[pass] == other.dig[pass] &&
-                  scg[pass] == other.scg[pass] &&
-                  weights[pass] == other.weights[pass])) {
+                  scg[pass] == other.scg[pass] && weights[pass] == other.weights[pass])) {
                 return 0;
             }
             for (int side = 0; side < 2; ++side) {
@@ -397,26 +394,17 @@ void srModeler::Vertex::interpolate(const Vertex& first, const Vertex& second, f
     position.y = (second.position.y - first.position.y) * fraction + first.position.y;
     position.z = (second.position.z - first.position.z) * fraction + first.position.z;
     for (int pass = 0; pass < 4; ++pass) {
-        dig[pass].x =
-            (second.dig[pass].x - first.dig[pass].x) * fraction + first.dig[pass].x;
-        dig[pass].y =
-            (second.dig[pass].y - first.dig[pass].y) * fraction + first.dig[pass].y;
-        dig[pass].z =
-            (second.dig[pass].z - first.dig[pass].z) * fraction + first.dig[pass].z;
-        scg[pass].x =
-            (second.scg[pass].x - first.scg[pass].x) * fraction + first.scg[pass].x;
-        scg[pass].y =
-            (second.scg[pass].y - first.scg[pass].y) * fraction + first.scg[pass].y;
-        scg[pass].z =
-            (second.scg[pass].z - first.scg[pass].z) * fraction + first.scg[pass].z;
-        dcg[pass].x =
-            (second.dcg[pass].x - first.dcg[pass].x) * fraction + first.dcg[pass].x;
-        dcg[pass].y =
-            (second.dcg[pass].y - first.dcg[pass].y) * fraction + first.dcg[pass].y;
-        dcg[pass].z =
-            (second.dcg[pass].z - first.dcg[pass].z) * fraction + first.dcg[pass].z;
-        weights[pass] = (second.weights[pass] - first.weights[pass]) * fraction +
-                            first.weights[pass];
+        dig[pass].x = (second.dig[pass].x - first.dig[pass].x) * fraction + first.dig[pass].x;
+        dig[pass].y = (second.dig[pass].y - first.dig[pass].y) * fraction + first.dig[pass].y;
+        dig[pass].z = (second.dig[pass].z - first.dig[pass].z) * fraction + first.dig[pass].z;
+        scg[pass].x = (second.scg[pass].x - first.scg[pass].x) * fraction + first.scg[pass].x;
+        scg[pass].y = (second.scg[pass].y - first.scg[pass].y) * fraction + first.scg[pass].y;
+        scg[pass].z = (second.scg[pass].z - first.scg[pass].z) * fraction + first.scg[pass].z;
+        dcg[pass].x = (second.dcg[pass].x - first.dcg[pass].x) * fraction + first.dcg[pass].x;
+        dcg[pass].y = (second.dcg[pass].y - first.dcg[pass].y) * fraction + first.dcg[pass].y;
+        dcg[pass].z = (second.dcg[pass].z - first.dcg[pass].z) * fraction + first.dcg[pass].z;
+        weights[pass] =
+            (second.weights[pass] - first.weights[pass]) * fraction + first.weights[pass];
         for (int layer = 0; layer < 2; ++layer) {
             uv[pass * 2 + layer].x =
                 (second.uv[pass * 2 + layer].x - first.uv[pass * 2 + layer].x) * fraction +
@@ -730,8 +718,7 @@ void srModeler::rotate(unsigned long triangle, const srMatrix3T<float>& matrix)
     if (triangle < triangle_count) {
         Triangle* element = &triangles[triangle];
         for (int index = 0; index < 3; ++index) {
-            element->vertices[index].position =
-                matrix.Transform(element->vertices[index].position);
+            element->vertices[index].position = matrix.Transform(element->vertices[index].position);
         }
     }
 }
@@ -767,8 +754,7 @@ void srModeler::findClosestVertex(const srVector3T<float>& position, unsigned lo
         float best = (current->vertices[0].position - position).LengthSquared();
         for (unsigned long index = 0; index < triangle_count; ++index) {
             for (unsigned long slot = 0; slot < 3; ++slot) {
-                float distance =
-                    (current->vertices[slot].position - position).LengthSquared();
+                float distance = (current->vertices[slot].position - position).LengthSquared();
                 if (distance < best) {
                     triangle = index;
                     vertex = slot;
@@ -886,17 +872,15 @@ srModeler::VertexHash* srModeler::getUniqueVertexList()
         for (int vertex = 0; vertex < 3; ++vertex) {
             Vertex* source = &triangle->vertices[vertex];
             unsigned long group = 0xffffffff;
-            unsigned long bucket =
-                VertexHash::hash(source->position.x * scale, source->position.y * scale,
-                                 source->position.z * scale);
+            unsigned long bucket = VertexHash::hash(
+                source->position.x * scale, source->position.y * scale, source->position.z * scale);
             VertexHash::Entry* entry;
             for (entry = hash->buckets[bucket]; entry != 0; entry = entry->next) {
                 Vertex* other = entry->vertex;
                 if (fabs((source->position.x - other->position.x) * scale) < 0.0001f &&
                     fabs((source->position.y - other->position.y) * scale) < 0.0001f &&
                     fabs((source->position.z - other->position.z) * scale) < 0.0001f &&
-                    (entry->flags & flags) != 0 &&
-                    source->shade_index == other->shade_index) {
+                    (entry->flags & flags) != 0 && source->shade_index == other->shade_index) {
                     group = entry->shade_index;
                 }
                 if (*source == *other && (entry->flags & flags) != 0) {
@@ -1252,22 +1236,20 @@ void srModeler::createSphere(long detail)
                     double next_sine = sin(angle);
                     double ring = radius1 * 0.5;
                     triangle.vertices[0].position.Set(cosine * ring, sine * ring, z1);
-                    triangle.vertices[1].position.Set(next_cosine * ring, next_sine * ring,
-                                                            z1);
+                    triangle.vertices[1].position.Set(next_cosine * ring, next_sine * ring, z1);
                     triangle.vertices[2].position.Set(cosine * radius2, sine * radius2, z2);
                     addTriangle(triangle);
-                    triangle.vertices[0].position.Set(next_cosine * radius2,
-                                                            next_sine * radius2, z2);
+                    triangle.vertices[0].position.Set(next_cosine * radius2, next_sine * radius2,
+                                                      z2);
                     triangle.flipFacing();
                     addTriangle(triangle);
                     triangle.vertices[0].position.Set(cosine * ring, sine * ring, nz1);
-                    triangle.vertices[1].position.Set(next_cosine * ring, next_sine * ring,
-                                                            nz1);
+                    triangle.vertices[1].position.Set(next_cosine * ring, next_sine * ring, nz1);
                     triangle.vertices[2].position.Set(cosine * radius2, sine * radius2, nz2);
                     triangle.flipFacing();
                     addTriangle(triangle);
-                    triangle.vertices[0].position.Set(next_cosine * radius2,
-                                                            next_sine * radius2, nz2);
+                    triangle.vertices[0].position.Set(next_cosine * radius2, next_sine * radius2,
+                                                      nz2);
                     triangle.flipFacing();
                     addTriangle(triangle);
                     --segment;
@@ -1314,13 +1296,12 @@ void srModeler::createTorus(long major_segments, long minor_segments, double rad
                     double depth = sin(minor_angle) * radius;
                     double next_depth = sin(next_minor) * radius;
                     triangle.vertices[0].position.Set(tube * cosine, tube * sine, depth);
-                    triangle.vertices[1].position.Set(tube * next_cosine, tube * next_sine,
-                                                            depth);
+                    triangle.vertices[1].position.Set(tube * next_cosine, tube * next_sine, depth);
                     triangle.vertices[2].position.Set(next_tube * cosine, next_tube * sine,
-                                                            next_depth);
+                                                      next_depth);
                     addTriangle(triangle);
                     triangle.vertices[0].position.Set(next_tube * next_cosine,
-                                                            next_tube * next_sine, next_depth);
+                                                      next_tube * next_sine, next_depth);
                     triangle.flipFacing();
                     addTriangle(triangle);
                     minor_angle = next_minor;
@@ -1342,12 +1323,12 @@ void srModeler::tesselateEdges(unsigned long triangle, double threshold)
         int vertex = 0;
         do {
             int next = (vertex + 1) % 3;
-            double dx = source->vertices[vertex].position.x -
-                        (double)source->vertices[next].position.x;
-            double dy = source->vertices[vertex].position.y -
-                        (double)source->vertices[next].position.y;
-            double dz = source->vertices[vertex].position.z -
-                        (double)source->vertices[next].position.z;
+            double dx =
+                source->vertices[vertex].position.x - (double)source->vertices[next].position.x;
+            double dy =
+                source->vertices[vertex].position.y - (double)source->vertices[next].position.y;
+            double dz =
+                source->vertices[vertex].position.z - (double)source->vertices[next].position.z;
             double distance = sqrt(dx * dx + dy * dy + dz * dz);
             if (longest < distance) {
                 longest = distance;
@@ -1366,8 +1347,8 @@ void srModeler::tesselateEdges(unsigned long triangle, double threshold)
             child.flags = source->flags;
             child.vertices[0] = source->vertices[(edge + 2) % 3];
             child.vertices[1] = source->vertices[edge];
-            child.vertices[2].interpolate(source->vertices[edge],
-                                             source->vertices[(edge + 1) % 3], 0.5f);
+            child.vertices[2].interpolate(source->vertices[edge], source->vertices[(edge + 1) % 3],
+                                          0.5f);
             source->vertices[edge] = child.vertices[2];
             unsigned long added = addTriangle(child);
             tesselateEdges(triangle, threshold);

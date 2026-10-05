@@ -137,6 +137,41 @@ _PINNED_WORD = re.compile(
     r"bool|wchar_t|true|false|class|struct|reinterpret_cast|static_cast|const_cast|"
     r"dynamic_cast)$"
 )
+_CPP_LEXEME = re.compile(
+    _CPP_STRING_LITERAL.pattern + r"|[A-Za-z_][A-Za-z0-9_]*|\d+(?:\.\d+)?|"
+    r"->\*|<<=|>>=|\.\.\.|::|->|\+\+|--|&&|\|\||==|!=|<=|>=|<<|>>|"
+    r"[+*/%&|^\-]=|[^\s]"
+)
+
+
+def _wrapped_cast_key(
+    lines: list[str], position: int, needle: re.Pattern[str], *, descriptive: bool = False
+) -> tuple[str, ...]:
+    """Retain whole-statement tokens across formatter line breaks.
+
+    This is textual relocation detection, not a claim of semantic equivalence.
+    Missing statement ends are deliberately not matched.
+    """
+    text = "\n".join(lines)
+    match = needle.search(lines[position])
+    assert match is not None
+    offset = sum(len(line) + 1 for line in lines[:position]) + match.start()
+    start = 0
+    for token in _STATEMENT_TOKEN.finditer(text, 0, offset):
+        if token.group() in {";", "{", "}"}:
+            start = token.end()
+    end = None
+    for token in _STATEMENT_TOKEN.finditer(text, offset):
+        if token.group() in {";", "{", "}"}:
+            end = token.end()
+            break
+    if end is None:
+        return ()
+    fragment = text[start:end]
+    fragment = _STATEMENT_TOKEN.sub(
+        lambda token: " " if token.group().startswith(("//", "/*")) else token.group(), fragment
+    )
+    return tuple(_CPP_LEXEME.findall(_rename_key(fragment, descriptive=descriptive)))
 
 
 def _rename_key(text: str, *, descriptive: bool = False) -> str:
@@ -256,6 +291,10 @@ def added_lines_without_marker(
     """
     added: list[dict[str, Any]] = []
     removed: list[tuple[int, str]] = []
+    old_hunks: dict[int, list[str]] = {}
+    new_hunks: dict[int, list[str]] = {}
+    added_positions: list[int] = []
+    removed_positions: list[int] = []
     rename_casts = needle in (_CAST, _C_STYLE_CAST)
     current: str | None = None
     line_number = 0
@@ -267,6 +306,8 @@ def added_lines_without_marker(
             # source line (``+++i`` for ``++i``) from a ``+++`` file header.
             if raw.startswith("+"):
                 content = raw[1:]
+                position = len(new_hunks[hunk_index])
+                new_hunks[hunk_index].append(content)
                 stripped = content.strip()
                 scanned = _CPP_STRING_LITERAL.sub(lambda match: " " * len(match.group()), content)
                 if (
@@ -283,15 +324,21 @@ def added_lines_without_marker(
                             "hunk": hunk_index,
                         }
                     )
+                    added_positions.append(position)
                 new_remaining -= 1
                 line_number += 1
             elif raw.startswith("-"):
                 content = raw[1:]
+                position = len(old_hunks[hunk_index])
+                old_hunks[hunk_index].append(content)
                 scanned = _CPP_STRING_LITERAL.sub(lambda match: " " * len(match.group()), content)
                 if needle.search(scanned if code_only else content):
                     removed.append((hunk_index, content.strip()))
+                    removed_positions.append(position)
                 old_remaining -= 1
             elif raw.startswith(" "):
+                old_hunks[hunk_index].append(raw[1:])
+                new_hunks[hunk_index].append(raw[1:])
                 old_remaining -= 1
                 new_remaining -= 1
                 line_number += 1
@@ -312,6 +359,8 @@ def added_lines_without_marker(
                 new_remaining = int(hunk.group(4) or 1)
                 line_number = int(hunk.group(3))
                 hunk_index += 1
+                old_hunks[hunk_index] = []
+                new_hunks[hunk_index] = []
     if ignore_moved:
         # All matching modes consume the same occurrence inventory. Match exact
         # lines first so a renamed addition cannot steal an unchanged cast's
@@ -338,6 +387,37 @@ def added_lines_without_marker(
                 if bucket:
                     consumed.add(bucket.pop())
                     matched.add(index)
+        if rename_casts:
+            # A formatter may move the cast or its operand onto continuation
+            # lines. Compare literal tokens through the statement boundary,
+            # consuming each removed occurrence at most once as above.
+            for descriptive in (False, True):
+                wrapped: dict[object, list[int]] = {}
+                for index, (hunk, _text) in enumerate(removed):
+                    if index not in consumed:
+                        tokens = _wrapped_cast_key(
+                            old_hunks[hunk],
+                            removed_positions[index],
+                            needle,
+                            descriptive=descriptive,
+                        )
+                        if tokens:
+                            wrapped.setdefault(
+                                (hunk, tokens) if descriptive else tokens, []
+                            ).append(index)
+                for index, item in enumerate(added):
+                    if index in matched:
+                        continue
+                    tokens = _wrapped_cast_key(
+                        new_hunks[item["hunk"]],
+                        added_positions[index],
+                        needle,
+                        descriptive=descriptive,
+                    )
+                    bucket = wrapped.get((item["hunk"], tokens) if descriptive else tokens)
+                    if bucket:
+                        consumed.add(bucket.pop())
+                        matched.add(index)
         added = [item for index, item in enumerate(added) if index not in matched]
     return [
         {"file": item["file"], "line": item["line"], "text": item["text"][:200]} for item in added

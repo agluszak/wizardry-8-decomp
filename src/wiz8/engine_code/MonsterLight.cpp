@@ -23,9 +23,8 @@ const double g_double_005ec318 = 6.2831852;
 MonsterLight::MonsterLight(srNode* parent, bool cycle_color, float range,
                            const srVector3T<float>* first_color,
                            const srVector3T<float>* second_color)
-    : srLight(parent, srLight::PRESET_POINT), m_vertical_offset(0.0f),
-      m_color_first(*first_color), m_color_second(*second_color), m_start_time(0.0f),
-      m_cycle_color(cycle_color), m_fade_out(0)
+    : srLight(parent, srLight::PRESET_POINT), m_vertical_offset(0.0f), m_color_first(*first_color),
+      m_color_second(*second_color), m_start_time(0.0f), m_cycle_color(cycle_color), m_fade_out(0)
 {
     setName("MonFixedLight");
     attenuation_model = srLight::ATTENUATION_3DSTUDIO_MAX;

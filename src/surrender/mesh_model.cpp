@@ -528,9 +528,8 @@ void srMeshModel::calculateBounds()
             do {
                 float dy = vertices->y - bounds_center.y;
                 float dz = vertices->z - bounds_center.z;
-                float radius =
-                    (vertices->x - bounds_center.x) * (vertices->x - bounds_center.x) +
-                    dy * dy + dz * dz;
+                float radius = (vertices->x - bounds_center.x) * (vertices->x - bounds_center.x) +
+                               dy * dy + dz * dz;
                 if (bounds_radius < radius) {
                     bounds_radius = radius;
                 }
@@ -832,8 +831,7 @@ void srMeshModel::updateTriMesh()
     tri_mesh.normals = getVertexNormal();
     for (long pass = 0; pass < 4; pass++) {
         for (long side = 0; side < 2; side++) {
-            tri_mesh.materials[pass][side] =
-                static_cast<srMaterial*>(materials[pass][side].get());
+            tri_mesh.materials[pass][side] = static_cast<srMaterial*>(materials[pass][side].get());
             tri_mesh.vertex_materials[pass][side] =
                 getVertexMaterial(pass, static_cast<e_side>(side), 0);
         }
@@ -1751,8 +1749,7 @@ void srTriMeshPipeline::FlushSlots()
             slot_count * active_triangle_count;
     }
     ++srCore.getStatisticsManager()->statistics.meshes_submitted;
-    srCore.getStatisticsManager()->statistics.vertices_submitted +=
-        slot_count * vertex_count;
+    srCore.getStatisticsManager()->statistics.vertices_submitted += slot_count * vertex_count;
 
     unsigned long total = active_triangles == 0 ? triangle_count : active_triangle_count;
     unsigned long batch_limit = total;
@@ -1807,16 +1804,14 @@ void srTriMeshPipeline::FlushSlots()
 
             (void)this->vertex_arrays[slot_count];
             srVertexArray* vertex_arrays = &this->vertex_arrays[0];
-            renderer->allocVertexArray(vertex_arrays[0],
-                                       slot_count * culler_output.vertex_count);
+            renderer->allocVertexArray(vertex_arrays[0], slot_count * culler_output.vertex_count);
 
             /* Retail grows and re-reads the member array through
                vertex_arrays[slot] on the left while the right side keeps
                the vertex_arrays snapshot taken before the loop. */
             for (unsigned long slot = 1; slot < slot_count; ++slot) {
                 unsigned long offset = slot * culler_output.vertex_count;
-                this->vertex_arrays[slot].eye_locations =
-                    vertex_arrays[0].eye_locations + offset;
+                this->vertex_arrays[slot].eye_locations = vertex_arrays[0].eye_locations + offset;
                 this->vertex_arrays[slot].diffuse = vertex_arrays[0].diffuse + offset;
                 this->vertex_arrays[slot].specular = vertex_arrays[0].specular + offset;
                 this->vertex_arrays[slot].st0 = vertex_arrays[0].st0 + offset;

@@ -106,8 +106,7 @@ W8PropRepresentation::W8PropRepresentation(const W8PropRepresentation& other)
     : W8AnimRep(), animation_speed(other.animation_speed), frame_index(other.frame_index),
       animation_running(other.animation_running), random_play(other.random_play),
       play_chance(other.play_chance), saved_subcycle(other.saved_subcycle),
-      frame_steps(other.frame_steps), slots(5),
-      footstep_surface(other.footstep_surface),
+      frame_steps(other.frame_steps), slots(5), footstep_surface(other.footstep_surface),
       footstep_material(other.footstep_material)
 {
     animation = CloneAnimObj(other.animation);
@@ -392,8 +391,8 @@ bool ResolvePickedProp(W8World* world)
                 srVector3T<float> maximum;
                 float distance;
 
-                AnimObjGetBounds(representation->animation, 2, representation->subcycle,
-                                 &minimum, &maximum);
+                AnimObjGetBounds(representation->animation, 2, representation->subcycle, &minimum,
+                                 &maximum);
                 distance = ((minimum + maximum) * 0.5 - camera_position).Length();
                 if (trigger->range_minimum <= distance) {
                     g_selected_prop_index = prop_index;
@@ -758,23 +757,19 @@ void W8Prop::AdvanceAnimationValue(int frames, char total)
                     rep->subcycle = static_cast<unsigned char>(frame);
                 } else if (behaviour == W8_ANIMATION_PING_PONG) {
                     rep->frame_direction = W8_ANIMATION_REVERSE;
-                    rep->subcycle =
-                        static_cast<unsigned char>(2 * end - static_cast<int>(frame));
+                    rep->subcycle = static_cast<unsigned char>(2 * end - static_cast<int>(frame));
                 } else {
-                    rep->subcycle =
-                        static_cast<unsigned char>(static_cast<int>(frame) - range - 1);
+                    rep->subcycle = static_cast<unsigned char>(static_cast<int>(frame) - range - 1);
                 }
             } else if (rep->frame_direction == W8_ANIMATION_REVERSE) {
                 frame -= frames;
                 if (static_cast<int>(frame) >= start) {
                     rep->subcycle = static_cast<unsigned char>(frame);
                 } else if (behaviour == W8_ANIMATION_PING_PONG) {
-                    rep->subcycle =
-                        static_cast<unsigned char>(2 * start - static_cast<int>(frame));
+                    rep->subcycle = static_cast<unsigned char>(2 * start - static_cast<int>(frame));
                     rep->frame_direction = W8_ANIMATION_FORWARD;
                 } else {
-                    rep->subcycle =
-                        static_cast<unsigned char>(range + static_cast<int>(frame) + 1);
+                    rep->subcycle = static_cast<unsigned char>(range + static_cast<int>(frame) + 1);
                 }
             }
         } else if (rep->frame_direction == W8_ANIMATION_FORWARD) {
@@ -791,8 +786,8 @@ void W8Prop::AdvanceAnimationValue(int frames, char total)
                     rep->subcycle = static_cast<unsigned char>(end - remainder);
                 }
             } else {
-                rep->subcycle = static_cast<unsigned char>(
-                    start + effective - effective / (range + 1) * (range + 1));
+                rep->subcycle = static_cast<unsigned char>(start + effective -
+                                                           effective / (range + 1) * (range + 1));
             }
         } else if (rep->frame_direction == W8_ANIMATION_REVERSE) {
             int effective = 2 * start - static_cast<int>(frame) + frames;
@@ -1059,8 +1054,7 @@ void W8Prop::AttachAnimationInstances(W8World* world)
             next = path->rotations[next_frame];
             instance->getRotation(previous_animation_rotation);
             if (!(rotation == next)) {
-                W8Quaternion::InterpolateRotation(rotation, next, anim_frame_fraction,
-                                                  &rotation);
+                W8Quaternion::InterpolateRotation(rotation, next, anim_frame_fraction, &rotation);
             }
             animation_rotation = rotation;
             current = **path->nodes->GetAt(Rep()->subcycle);
@@ -1364,8 +1358,7 @@ bool W8Prop::IsTriggerInView(srVector3T<float>* position)
     float distance;
 
     if (trigger != 0 && (trigger->flags & W8_TRIGGER_ENABLED) != 0 &&
-        ((trigger->flags & W8_TRIGGER_ONCE) == 0 ||
-         (trigger->flags & W8_TRIGGER_FIRED) == 0)) {
+        ((trigger->flags & W8_TRIGGER_ONCE) == 0 || (trigger->flags & W8_TRIGGER_FIRED) == 0)) {
         AnimObjGetBounds(Rep()->animation, 2, Rep()->subcycle, &minimum, &maximum);
         center.Set((minimum.x + maximum.x) * g_double_005ebe80,
                    (minimum.y + maximum.y) * g_double_005ebe80,

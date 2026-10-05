@@ -10,7 +10,7 @@ unsigned char AscensionPeakInit(void);            /* 0x004DF870 */
 unsigned char SpawnAlfieChaos(int unused);        /* 0x004DFAE0 */
 unsigned char SpawnAlfieLife(int unused);         /* 0x004DFB40 */
 unsigned char SpawnAlfieKnow(int unused);         /* 0x004DFB80 */
-void AscensionAvalanche(bool command);   /* 0x004DFBC0 */
+void AscensionAvalanche(bool command);            /* 0x004DFBC0 */
 void AscensionLandShaker(int command);            /* 0x004DFD70 */
 bool AscensionRampUp(Trigger* pTrigger);          /* 0x004DFE60 */
 unsigned char SpawnAscensionAmbush(void);         /* 0x004DFEA0 */

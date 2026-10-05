@@ -36,8 +36,7 @@ extern "C" size_t __cdecl fread(void* destination, size_t size, size_t count, FI
         }
         try {
             srJPEG_active_input_stream->read(destination, requested);
-        }
-        catch (...) {
+        } catch (...) {
             throw "srJPEGImporter::importSurface: Input stream is corrupt";
         }
         return requested;
@@ -52,8 +51,7 @@ extern "C" size_t __cdecl fwrite(const void* source, size_t size, size_t count, 
         size_t bytes = size * count;
         try {
             srJPEG_active_output_stream->write(source, bytes);
-        }
-        catch (...) {
+        } catch (...) {
             throw "srJPEGImporter::exportSurface: Output stream is corrupt";
         }
         return bytes;

@@ -692,3 +692,51 @@ def test_raw_offset_rename_preserves_offset_changes(tmp_path: Path) -> None:
         "+" + line,
     )
     assert len(_raw_offset_violations(tmp_path, diff)) == 1
+
+
+@pytest.mark.parametrize(
+    ("before", "after"),
+    [
+        (
+            "return reinterpret_cast<const unsigned long *>(raw + offset);",
+            "return reinterpret_cast<const unsigned long*>(\n    raw + offset);",
+        ),
+        (
+            "return (float)(left +\n    right);",
+            "return (float)(left + right);",
+        ),
+    ],
+)
+def test_formatter_wrapped_cast_is_not_new(before: str, after: str) -> None:
+    old = before.splitlines()
+    new = after.splitlines()
+    diff = _diff(
+        "src/wiz8/example.cpp",
+        f"@@ -1,{len(old)} +1,{len(new)} @@",
+        *(f"-{line}" for line in old),
+        *(f"+{line}" for line in new),
+    )
+    assert _added_casts(diff) == []
+    assert _added_c_style_casts(diff) == []
+
+
+@pytest.mark.parametrize(("replacement", "offset"), [("double", 4), ("float", 8)])
+def test_wrapped_cast_preserves_types_and_literals(replacement: str, offset: int) -> None:
+    diff = _diff(
+        "src/wiz8/example.cpp",
+        "@@ -1,1 +1,2 @@",
+        "-return reinterpret_cast<float*>(raw + 4);",
+        f"+return reinterpret_cast<{replacement}*>(\n+    raw + {offset});",
+    )
+    assert len(_added_casts(diff)) == 1
+
+
+def test_wrapped_cast_does_not_reuse_removed_occurrence() -> None:
+    diff = _diff(
+        "src/wiz8/example.cpp",
+        "@@ -1,1 +1,4 @@",
+        "-consume(reinterpret_cast<int*>(raw));",
+        "+consume(reinterpret_cast<int*>(\n+    raw));",
+        "+consume(reinterpret_cast<int*>(\n+    raw));",
+    )
+    assert len(_added_casts(diff)) == 1

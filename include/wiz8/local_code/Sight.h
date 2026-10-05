@@ -29,9 +29,8 @@ bool CanMonsterSeeMonster(W8MonsterInfo* source, W8MonsterInfo* target,
    skip_field_of_view, and sight_override forces full range. */
 float ComputeSightThreshold(srVector3T<float> observer_position, srVector3T<float> target_position,
                             float observer_yaw, unsigned int perception_attribute,
-                            unsigned char ranged_bonus, bool blinded,
-                            bool extended_sight_active, int penalty_source,
-                            int penalty_modifier, int skip_field_of_view,
+                            unsigned char ranged_bonus, bool blinded, bool extended_sight_active,
+                            int penalty_source, int penalty_modifier, int skip_field_of_view,
                             unsigned char sight_override, float distance); /* 0x00505A40 */
 
 bool MonsterGroupHasVisibleThreat(W8MonsterGroup* group);

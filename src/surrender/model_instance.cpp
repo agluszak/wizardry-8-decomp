@@ -158,8 +158,7 @@ void srModelInstance::dump(std::ostream& stream)
     if ((alignment_flags.value & 1) != 0) {
         stream.width(0x20);
         stream << "    Align axis: ";
-        stream << '{' << align_axis.x << ',' << align_axis.y << ',' << align_axis.z
-               << '}' << '\n';
+        stream << '{' << align_axis.x << ',' << align_axis.y << ',' << align_axis.z << '}' << '\n';
         stream.width(0x20);
         stream << "    Align angle: " << (double)align_angle << '\n';
     }
@@ -216,9 +215,8 @@ void srModelInstance::setAlignAngle(double angle)
 void srModelInstance::setAlignAxis(srVector3T<float> axis)
 {
     align_axis = axis;
-    float length_squared = align_axis.z * align_axis.z +
-                           align_axis.y * align_axis.y +
-                           align_axis.x * align_axis.x;
+    float length_squared =
+        align_axis.z * align_axis.z + align_axis.y * align_axis.y + align_axis.x * align_axis.x;
     if (length_squared != 0.0) {
         float scale = (float)(1.0 / sqrt(length_squared));
         align_axis *= scale;

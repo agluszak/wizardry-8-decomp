@@ -92,8 +92,7 @@ void AddPartyGold(int amount, bool announce);
 void CopyItemInstance(W8ItemInstance* destination, W8ItemInstance* source, W8Character* character,
                       bool refresh);
 void SortPartyItemPool(void);
-void RefreshAfterItemRecordChange(W8ItemInstance* item, W8Character* character,
-                                  bool refresh);
+void RefreshAfterItemRecordChange(W8ItemInstance* item, W8Character* character, bool refresh);
 void ReplaceOrCreateItem(W8ItemInstance* item, int item_id, bool maximum_quantity,
                          bool force_identified, bool mark_special);
 void SwapItemInstances(W8ItemInstance* item, W8ItemInstance* destination, W8Character* character,
@@ -198,8 +197,7 @@ void MergeMatchingPartnerItem(W8Character* character, W8ItemInstance* item); /* 
 /* 0x0051BC00: hand one item to a party member, preferring the character or the
    party pool according to the flag exactly as StoreItemWithCharacterOrParty
    does, and then consume the source record. */
-unsigned char GiveItemToCharacterOrParty(int uiChar, W8ItemInstance* item,
-                                         bool party_first);
+unsigned char GiveItemToCharacterOrParty(int uiChar, W8ItemInstance* item, bool party_first);
 
 /* 0x0051BA00: the item-in-hand form of the same store, reached from the
    portrait screen, after the whole party has had its identification attempt. */

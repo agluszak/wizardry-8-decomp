@@ -70,26 +70,26 @@ W8Monster* GetNpcMonster(W8NpcState* npc);
 void ChooseNewGameStartLocation(int* level, int* entrance);                         /* 0x005092F0 */
 void SelectStartNpcGreeting(void);                                                  /* 0x00509560 */
 int SelectNewGameStartLevel(void);                                                  /* 0x00509750 */
-void BindNpcToMonster(unsigned char value, bool enabled, int location_id); /* 0x00509CD0 */
+void BindNpcToMonster(unsigned char value, bool enabled, int location_id);          /* 0x00509CD0 */
 bool RecruitNpcIntoParty(W8NpcState* npc);                                          /* 0x0050B160 */
 int DismissNpcFromParty(int party_slot, int unused, bool skip_spawn, bool neutral); /* 0x0050B590 */
 void ReturnDismissedNpcItems(W8NpcState* npc, W8Character* character);              /* 0x0050DDC0 */
 /* 0x0050B9B0: how many leading party slots are occupied. */
 unsigned char CountLeadingPartySlots(void);
-char GetNpcDisposition(W8NpcState* npc);               /* 0x0050A280 */
-bool NpcKnowsFact(W8NpcState* npc, W8FactId fact);     /* 0x0050DD10 */
-unsigned char FindNpcOfKind(int kind);                 /* 0x0050DD80 */
-bool CanNpcJoinParty(W8NpcState* npc);                 /* 0x0050C870 */
+char GetNpcDisposition(W8NpcState* npc);           /* 0x0050A280 */
+bool NpcKnowsFact(W8NpcState* npc, W8FactId fact); /* 0x0050DD10 */
+unsigned char FindNpcOfKind(int kind);             /* 0x0050DD80 */
+bool CanNpcJoinParty(W8NpcState* npc);             /* 0x0050C870 */
 bool ProbeNpcPlacementNearParty(int party_slot, int mode,
                                 srVector3T<float>* position_out); /* 0x0050B2F0 */
 bool CanPlaceNpcNearParty(int party_slot);                        /* 0x0050B2D0 */
 W8MonsterInfo* GetNpcMonsterInfo(W8NpcState* npc);                /* 0x0050A3C0 */
 W8NpcState* GetNpcStateForMonsterInfo(W8MonsterInfo* monster_info,
                                       bool allow_unavailable); /* 0x0050A4A0 */
-void ResumeNpc(W8NpcState* npc, int enabled);                           /* 0x0050AE40 */
-void QueueNpcTravelRefusals(int destination_level);                     /* 0x0050E230 */
-void MarkNpcOfKind(int kind);                                           /* 0x0050CA30 */
-W8Character* GetNpcGroupCharacter(W8NpcState* npc);                     /* 0x0050B8B0 */
+void ResumeNpc(W8NpcState* npc, int enabled);                  /* 0x0050AE40 */
+void QueueNpcTravelRefusals(int destination_level);            /* 0x0050E230 */
+void MarkNpcOfKind(int kind);                                  /* 0x0050CA30 */
+W8Character* GetNpcGroupCharacter(W8NpcState* npc);            /* 0x0050B8B0 */
 
 /* The NPC-side global frame operation: timed world events and the per-frame
    NPC state passes. */

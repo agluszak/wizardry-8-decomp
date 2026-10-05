@@ -109,8 +109,8 @@ bool LoadPathAI(W8PathAI** output, int handle)
             }
             path->rotations[index] = rotation;
             if (path->version == 2) {
-                success = success &&
-                          FileRead(handle, &path->scales[index], sizeof(srVector3T<float>), 0);
+                success =
+                    success && FileRead(handle, &path->scales[index], sizeof(srVector3T<float>), 0);
             }
             srHeap.free(point);
         }
@@ -252,8 +252,7 @@ W8PathAI* ClonePathAI(const W8PathAI* source)
     }
     copy->scales = 0;
     if (source->scales != 0) {
-        copy->scales =
-            new srVector3T<float>[count];
+        copy->scales = new srVector3T<float>[count];
         for (index = 0; index < count; ++index) {
             copy->scales[index] = source->scales[index];
         }
@@ -584,8 +583,7 @@ void PathAIPosition(W8PathAI* path, srVector3T<float>* value)
     }
     if (path->animated == 0) {
         if (path->discrete_mode == 0) {
-            index =
-                static_cast<int>((path->nodes->count - 1) * path->position + g_double_005ebe80);
+            index = static_cast<int>((path->nodes->count - 1) * path->position + g_double_005ebe80);
         } else {
             index = static_cast<int>(path->position + g_double_005ec3b0);
         }

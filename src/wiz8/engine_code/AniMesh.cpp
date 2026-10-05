@@ -216,9 +216,8 @@ unsigned char LoadAniMesh(int file, W8AniMesh* mesh, bool load_all)
     if (handle == 0) {
         handle = FileOpen(mesh->filename, FILE_ACCESS_READ | FILE_OPEN_EXISTING, 0);
         if (handle == 0) {
-            srAssertFail(
-                "0", ANI_MESH_CPP, 0x199,
-                reinterpret_cast<const char*>(String("Couldn't open %s", mesh->filename)));
+            srAssertFail("0", ANI_MESH_CPP, 0x199,
+                         reinterpret_cast<const char*>(String("Couldn't open %s", mesh->filename)));
             return 0;
         }
     }
@@ -263,8 +262,7 @@ unsigned char LoadAniMesh(int file, W8AniMesh* mesh, bool load_all)
         }
         mesh->meshes[0] = instance;
     } else {
-        mesh->meshes =
-            static_cast<stModelInstance**>(malloc(frame_count * sizeof(*mesh->meshes)));
+        mesh->meshes = static_cast<stModelInstance**>(malloc(frame_count * sizeof(*mesh->meshes)));
         if (mesh->meshes == 0) {
             srAssertFail("pAniMesh->ppsrMeshes", ANI_MESH_CPP, 0x1db, 0);
         }
@@ -324,8 +322,7 @@ unsigned char LoadAniMesh(int file, W8AniMesh* mesh, bool load_all)
                 srVector3T<float> maximum;
 
                 frame_model->getBoundingBox(minimum, maximum);
-                ExpandBounds(&mesh->bounds_minimum, &mesh->bounds_maximum, &minimum,
-                             &maximum);
+                ExpandBounds(&mesh->bounds_minimum, &mesh->bounds_maximum, &minimum, &maximum);
                 frame_model = frame_model->next;
             }
         }
@@ -389,9 +386,8 @@ unsigned char LoadAniMeshFrameCount(int file, W8AniMesh* mesh)
     if (handle == 0) {
         handle = FileOpen(mesh->filename, FILE_ACCESS_READ | FILE_OPEN_EXISTING, 0);
         if (handle == 0) {
-            srAssertFail(
-                "fi.hFile", ANI_MESH_CPP, 0x23f,
-                reinterpret_cast<const char*>(String("Couldn't open %s", mesh->filename)));
+            srAssertFail("fi.hFile", ANI_MESH_CPP, 0x23f,
+                         reinterpret_cast<const char*>(String("Couldn't open %s", mesh->filename)));
             return 0;
         }
     }

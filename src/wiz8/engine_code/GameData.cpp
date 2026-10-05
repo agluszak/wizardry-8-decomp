@@ -100,10 +100,10 @@ float GetGroundSurfaceInfo(const srVector3T<float>* position, char* surface, cha
         height = g_octree_game_data->octree->SettleToGround(&candidate, 0, 1, 500.0f);
     }
     if (g_octree_game_data->last_hit_surface != 0) {
-        *surface = g_octree_game_data->m_pSurfaces[g_octree_game_data->last_hit_surface]
-                       .footstep_surface;
-        *material = g_octree_game_data->m_pSurfaces[g_octree_game_data->last_hit_surface]
-                        .footstep_material;
+        *surface =
+            g_octree_game_data->m_pSurfaces[g_octree_game_data->last_hit_surface].footstep_surface;
+        *material =
+            g_octree_game_data->m_pSurfaces[g_octree_game_data->last_hit_surface].footstep_material;
         return height;
     }
     *material = 0;
@@ -653,8 +653,7 @@ W8GDSurface* W8GameData::ProbePropsAlongMotion(srVector3T<float>* direction,
             prop->GetDelta(&prop_delta, position);
             adjusted_direction = *direction - prop_delta;
             probe = *position;
-            if (adjusted_direction.x != g_float_zero ||
-                adjusted_direction.y != g_float_zero ||
+            if (adjusted_direction.x != g_float_zero || adjusted_direction.y != g_float_zero ||
                 adjusted_direction.z != g_float_zero) {
                 direction_zero = false;
             } else {
@@ -688,8 +687,7 @@ W8GDSurface* W8GameData::ProbePropsAlongMotion(srVector3T<float>* direction,
         projected.Set(scratch->x, scratch->y, scratch->z);
         residual.Set(scratch->x, scratch->y, scratch->z);
         along_normal.Set(scratch->x, scratch->y, scratch->z);
-        normal.Set(s_prop_hit_plane.normal.x, s_prop_hit_plane.normal.y,
-                   s_prop_hit_plane.normal.z);
+        normal.Set(s_prop_hit_plane.normal.x, s_prop_hit_plane.normal.y, s_prop_hit_plane.normal.z);
         if (g_float_005ebc58 < normal.LengthSquared()) {
             along_normal = normal * (DotProduct(along_normal, normal) / normal.LengthSquared());
         }
@@ -892,8 +890,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
     environ_record->motion_factor = environ_record->motion_step;
     environ_record->airborne = 0;
     environ_record->scale = level->camera_scale;
-    gravity.Set(environ_record->gravity_x, environ_record->gravity_y,
-                environ_record->gravity_z);
+    gravity.Set(environ_record->gravity_x, environ_record->gravity_y, environ_record->gravity_z);
     scaled = gravity * static_cast<double>(environ_record->scale);
     environ_record->vector += scaled;
     if (g_camera_motion_divisor < environ_record->vector.Length()) {
@@ -958,8 +955,8 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
                         hit_position = probe_position;
                     }
                     probe_position = camera_position;
-                    hit_count = octree->CollectObjectsAlongSegment(
-                        &octree_hits, &camera_position, &motion_delta, 1000.0f, 3);
+                    hit_count = octree->CollectObjectsAlongSegment(&octree_hits, &camera_position,
+                                                                   &motion_delta, 1000.0f, 3);
                 } else {
                     hit_count = 0;
                 }
@@ -1070,7 +1067,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
                 probe_position = adjusted_position;
                 motion_delta = environ_delta;
                 hit_count = octree->CollectObjectsAlongSegment(&octree_hits, &adjusted_position,
-                                                                  &environ_delta, 1000.0f, 3);
+                                                               &environ_delta, 1000.0f, 3);
                 crossed_count = 0;
                 for (index = 0; index < hit_count; ++index) {
                     surface = &m_pSurfaces[octree_hits[index]];
@@ -1263,15 +1260,14 @@ bool W8GameData::TestTraceResult(int count, unsigned long* surface_ids, W8Octree
                 if (hit_distance <= trace->hit_limit && g_float_zero < hit_distance) {
                     srVector3T<float> contact;
                     if (g_float_one <= hit_distance) {
-                        float back = DotProduct(surface->plane.normal, trace->end) +
-                                     surface->plane.w;
+                        float back =
+                            DotProduct(surface->plane.normal, trace->end) + surface->plane.w;
                         if (g_float_one <= back) {
                             goto next;
                         }
                         back = -back;
                         if (g_float_one <= back || trace->hit_limit < trace->length) {
-                            hit_distance =
-                                (hit_distance / (back + hit_distance)) * trace->length;
+                            hit_distance = (hit_distance / (back + hit_distance)) * trace->length;
                             contact.Set(trace->step.x * hit_distance + trace->start.x,
                                         trace->step.y * hit_distance + trace->start.y,
                                         trace->step.z * hit_distance + trace->start.z);
@@ -1977,8 +1973,7 @@ bool W8GDSurface::ResolveCollision(srVector3T<float>* origin, const srVector3T<f
                 *direction = slide;
                 return true;
             }
-            if (DotProduct(s_second_normal + s_first_normal, normal) <
-                g_camera_snap_epsilon) {
+            if (DotProduct(s_second_normal + s_first_normal, normal) < g_camera_snap_epsilon) {
                 direction->SetZero();
                 return false;
             }
@@ -2752,8 +2747,7 @@ bool W8LevelDataRecord::IntegrateCameraForward()
 }
 
 // FUNCTION: WIZ8 0x00420810
-unsigned char W8LevelDataRecord::ApplySavedMotionMatrix(unsigned char prior_fast,
-                                                        bool fast_move,
+unsigned char W8LevelDataRecord::ApplySavedMotionMatrix(unsigned char prior_fast, bool fast_move,
                                                         const srMatrix3T<float>* saved)
 {
     float horizontal;

@@ -1057,9 +1057,8 @@ void MonsterKilled(int record_id, int killer_party_slot)
                     RemoveCharacterCondition(g_status.sedexus_party_slot, W8_CONDITION_INFATUATED,
                                              false);
                 }
-                QueueCharacterEvent(&g_status.buffers.Char[g_status.sedexus_party_slot],
-                                    g_effect37, 0, g_character_event_no_flags,
-                                    g_character_event_full_volume);
+                QueueCharacterEvent(&g_status.buffers.Char[g_status.sedexus_party_slot], g_effect37,
+                                    0, g_character_event_no_flags, g_character_event_full_volume);
             }
             SetFact(W8_FACT_RAPAX_ALSEDEXUS_DEAD, 1, false);
             return;

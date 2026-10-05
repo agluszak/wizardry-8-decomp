@@ -1041,7 +1041,8 @@ unsigned int CharacterActionFatigueCost(int party_slot, W8ActionKind action_kind
     switch (action_kind) {
     case W8_ACTION_ATTACK:
     case W8_ACTION_BERSERK:
-        attack_mode = static_cast<W8AttackMode>(g_status.buffers.XChar[party_slot].attack_mode[combat_row->current_hand]);
+        attack_mode = static_cast<W8AttackMode>(
+            g_status.buffers.XChar[party_slot].attack_mode[combat_row->current_hand]);
         if (attack_mode == W8_ATTACK_MODE_PUNCH) {
             cost = Random(3) + 2;
         } else if (attack_mode == W8_ATTACK_MODE_KICK) {
@@ -1248,7 +1249,8 @@ void RecalculateCharacterStamina(W8Character* character)
 {
     unsigned int previous = character->uiStaminaMax;
     unsigned int value = static_cast<unsigned int>(
-        ((character->attributes[W8_ATTRIBUTE_STRENGTH].effective + character->attributes[W8_ATTRIBUTE_PIETY].effective +
+        ((character->attributes[W8_ATTRIBUTE_STRENGTH].effective +
+          character->attributes[W8_ATTRIBUTE_PIETY].effective +
           character->attributes[W8_ATTRIBUTE_VITALITY].effective) *
          (1.0f / 3.0f)) *
             (character->uiExpLevel * g_float_005ed8b8 + g_environment_near_scale) +

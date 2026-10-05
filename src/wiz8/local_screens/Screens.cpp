@@ -226,8 +226,7 @@ void UpdateHeldItemCursor(void)
         g_status.item_in_cursor) {
         if (g_status.item_in_hand.iItemNo != -1) {
             g_status.item_in_cursor = true;
-            object =
-                g_item_video_objects.GetOrCreateVideoObject(g_status.item_in_hand.iItemNo);
+            object = g_item_video_objects.GetOrCreateVideoObject(g_status.item_in_hand.iItemNo);
             SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(object, 0),
                                           GetCatalogVideoObjectYOffset(object), 0, 0);
             BlitToMouseCursor(GetCatalogVideoObjectHandle(0, 0), GetCatalogVideoObjectYOffset(0), 0,

@@ -115,14 +115,12 @@ W8AnimRepBase* W8AnimRepBase::Clone()
    that global `gpsrTimer`. */
 // FUNCTION: WIZ8 0x004b54a0
 W8AnimRep::W8AnimRep(const W8AnimRep& other)
-    : W8AnimRepBase(other), subcycle(other.subcycle),
-      pending_subcycle(other.pending_subcycle), timer(other.timer),
-      active(other.active), animation_playing(other.animation_playing),
+    : W8AnimRepBase(other), subcycle(other.subcycle), pending_subcycle(other.pending_subcycle),
+      timer(other.timer), active(other.active), animation_playing(other.animation_playing),
       frame_direction(other.frame_direction), frame_method(other.frame_method),
-      animation_behaviour(other.animation_behaviour),
-      pending_behaviour(other.pending_behaviour), bounds_min(other.bounds_min),
-      bounds_max(other.bounds_max), bounds_extent(other.bounds_extent),
-      value(other.value), first_frame(other.first_frame),
+      animation_behaviour(other.animation_behaviour), pending_behaviour(other.pending_behaviour),
+      bounds_min(other.bounds_min), bounds_max(other.bounds_max),
+      bounds_extent(other.bounds_extent), value(other.value), first_frame(other.first_frame),
       last_frame(other.last_frame)
 {
     if (g_shared_timer_base == 0) {
@@ -135,16 +133,15 @@ W8AnimRep::W8AnimRep(const W8AnimRep& other)
    selected emitter and the canonical 00 00 FF FF transient byte pattern. */
 // FUNCTION: WIZ8 0x004b5680
 W8EmitterHost::W8EmitterHost(const W8EmitterHost& other)
-    : W8AnimRep(other), m_bLOD(other.m_bLOD), lod_near(other.lod_near),
-      lod_far(other.lod_far), current_cycle(0), current_subcycle(0),
-      forced_subcycle(-1), pending_cycle(-1), animation_radius(other.animation_radius)
+    : W8AnimRep(other), m_bLOD(other.m_bLOD), lod_near(other.lod_near), lod_far(other.lod_far),
+      current_cycle(0), current_subcycle(0), forced_subcycle(-1), pending_cycle(-1),
+      animation_radius(other.animation_radius)
 {
 }
 
 // FUNCTION: WIZ8 0x004b5600
 W8EmitterHost::W8EmitterHost()
-    : m_bLOD(0), lod_near(g_lod_range_default0),
-      lod_far(g_lod_range_default1), current_cycle(0), current_subcycle(0),
-      forced_subcycle(-1), pending_cycle(-1), animation_radius(0)
+    : m_bLOD(0), lod_near(g_lod_range_default0), lod_far(g_lod_range_default1), current_cycle(0),
+      current_subcycle(0), forced_subcycle(-1), pending_cycle(-1), animation_radius(0)
 {
 }

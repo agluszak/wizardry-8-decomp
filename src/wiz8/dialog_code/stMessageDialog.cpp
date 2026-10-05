@@ -51,7 +51,8 @@ void W8MessageDialogBase::Draw()
     if (!m_show_confirm && !allow_cancel) {
         y = m_y + m_height / 2 - (GetFontHeight(g_dialog_interface_font) * m_line_count >> 1);
     } else {
-        y = m_y + (m_height - 0x21) / 2 - (GetFontHeight(g_dialog_interface_font) * m_line_count >> 1);
+        y = m_y + (m_height - 0x21) / 2 -
+            (GetFontHeight(g_dialog_interface_font) * m_line_count >> 1);
     }
     if (m_lines) {
         SaveFontSettings();
@@ -233,14 +234,10 @@ int W8MessageDialogBase::CreateControls()
 {
     W8DialogBase::CreateControls();
     if (m_edge_image == -1) {
-        m_edge_image = LoadGenericButtonImages(
-            0,
-            Wiz8ToSgpText("Data\\Dialogs\\DialogEdge.STI"),
-            0,
-            Wiz8ToSgpText("Data\\Dialogs\\DialogEdge.STI"),
-            0,
-            Wiz8ToSgpText(m_background_path),
-            static_cast<short>(m_background_flags), 0, 0);
+        m_edge_image = LoadGenericButtonImages(0, Wiz8ToSgpText("Data\\Dialogs\\DialogEdge.STI"), 0,
+                                               Wiz8ToSgpText("Data\\Dialogs\\DialogEdge.STI"), 0,
+                                               Wiz8ToSgpText(m_background_path),
+                                               static_cast<short>(m_background_flags), 0, 0);
         if (m_edge_image == -1) {
             return m_error = 3;
         }
@@ -252,17 +249,15 @@ int W8MessageDialogBase::CreateControls()
         BUTTON_NO_TOGGLE | BUTTON_IGNORE_CLICKS, MSYS_PRIORITY_HIGHEST - 1, BUTTON_NO_CALLBACK,
         BUTTON_NO_CALLBACK);
 
-    m_confirm_image = LoadButtonImage(
-        Wiz8ToSgpText("Data\\Dialogs\\DialogConfirmation.STI"),
-        3, 0, 1, 2, 2);
+    m_confirm_image =
+        LoadButtonImage(Wiz8ToSgpText("Data\\Dialogs\\DialogConfirmation.STI"), 3, 0, 1, 2, 2);
     if (m_confirm_image != -1) {
         m_confirm_button =
             QuickCreateButton(m_confirm_image, 0, 0, BUTTON_NO_TOGGLE, MSYS_PRIORITY_HIGHEST,
                               MessageDialogConfirmCallback, MessageDialogConfirmCallback);
     }
-    m_cancel_image = LoadButtonImage(
-        Wiz8ToSgpText("Data\\Dialogs\\DialogConfirmation.STI"),
-        7, 4, 5, 6, 6);
+    m_cancel_image =
+        LoadButtonImage(Wiz8ToSgpText("Data\\Dialogs\\DialogConfirmation.STI"), 7, 4, 5, 6, 6);
     if (m_cancel_image != -1) {
         m_cancel_button =
             QuickCreateButton(m_cancel_image, 0, 0, BUTTON_NO_TOGGLE, MSYS_PRIORITY_HIGHEST,

@@ -101,7 +101,7 @@ struct W8MonsterAttack {
        surprise repick penalty. */
     unsigned char attack_score;
     unsigned char missile_values[W8_ATTACK_EFFECT_COUNT]; /* 0x05 */
-    unsigned short attack_modes;           /* 0x15 */
+    unsigned short attack_modes;                          /* 0x15 */
     /* 0x17: the attack's damage dice, packed; the missile path copies it
        into the attack block and the melee path rolls it. */
     W8Dice damage_dice;
@@ -255,8 +255,7 @@ struct W8SpellRuntimeRecord {
     char sound_name[0x74]; /* 0x14b: relative to Data\Spells\Sounds */
 }; /* 0x1bf */
 static_assert(sizeof(W8SpellRuntimeRecord) == 0x1bf, "W8SpellRuntimeRecord_size");
-static_assert(offsetof(W8SpellRuntimeRecord, duration) == 0x044,
-              "W8SpellRuntimeRecord_duration");
+static_assert(offsetof(W8SpellRuntimeRecord, duration) == 0x044, "W8SpellRuntimeRecord_duration");
 static_assert(offsetof(W8SpellRuntimeRecord, duration_per_level) == 0x04d,
               "W8SpellRuntimeRecord_duration_per_level");
 static_assert(offsetof(W8SpellRuntimeRecord, show_effect_dice) == 0x147,
@@ -397,7 +396,7 @@ struct W8NpcDatabaseRecord {
     /* 0x2eb: the purse the NPC carries; 0x004F8CB0 hands it to AddPartyGold
        when the NPC's monster dies. */
     int gold;
-    unsigned char combat_script_notice_enabled; /* 0x2ef: hostile-NPC combat notice */
+    unsigned char combat_script_notice_enabled;       /* 0x2ef: hostile-NPC combat notice */
     unsigned char allow_dismissed_departure_dialogue; /* 0x2f0: permits dismissed-NPC dialogue */
     unsigned char unknown_2f1[0x18];
 }; /* 0x309 */
@@ -629,8 +628,7 @@ static_assert(offsetof(W8MonsterRecord, attack_body_part_chances) == 0x157,
               "W8MonsterRecord_attack_body_part_chances");
 static_assert(offsetof(W8MonsterRecord, effective_level) == 0x24f,
               "W8MonsterRecord_effective_level");
-static_assert(offsetof(W8MonsterRecord, display_level) == 0x251,
-              "W8MonsterRecord_display_level");
+static_assert(offsetof(W8MonsterRecord, display_level) == 0x251, "W8MonsterRecord_display_level");
 
 #pragma pack(pop)
 

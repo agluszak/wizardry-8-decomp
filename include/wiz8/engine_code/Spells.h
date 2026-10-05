@@ -10,7 +10,6 @@ struct W8Item;
 struct W8GrCycleLoadContext;
 struct W8World;
 
-
 /* Walks every registered stSound3D each audio update: releases finished
    auto-release nodes and re-aims/re-volumes playing voices relative to the
    camera. */
@@ -41,6 +40,6 @@ bool IsCombatEffectSlotSpell(int spell_id);
 int MinimumCasterLevelForSpellLevel(int spell_level);
 int GetMinimumCasterLevelForSpell(int spell_id);
 bool CanSpellBackfire(int spell_id);
-void ClearMonsterSpellIcons(W8Monster* monster);                  /* 0x004ACF90 */
+void ClearMonsterSpellIcons(W8Monster* monster);                                   /* 0x004ACF90 */
 void SetMonsterSpellIcon(W8Monster* monster, W8MonsterSpellIconId icon, bool add); /* 0x004ACD80 */
 void UpdateWorldSpellVisuals(W8World* world);

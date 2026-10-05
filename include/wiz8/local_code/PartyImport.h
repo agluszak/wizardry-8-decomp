@@ -62,10 +62,10 @@ unsigned char LoadWizardry7ImportFile(char* path);
    2 when the ending selector carries the value three. */
 unsigned char ImportWizardry7Party(char* path);
 
-extern int g_import_character_count;         /* 0x0068DE48 */
-extern bool g_import_ending_record; /* 0x0068DE4C */
-extern int g_wiz7_ending;                    /* 0x0068DE50: ending selector */
-extern int g_import_difficulty;              /* 0x0068DE54 */
+extern int g_import_character_count; /* 0x0068DE48 */
+extern bool g_import_ending_record;  /* 0x0068DE4C */
+extern int g_wiz7_ending;            /* 0x0068DE50: ending selector */
+extern int g_import_difficulty;      /* 0x0068DE54 */
 /* 0x0068DE58: the 96 file flags; index 5 doubles as the unsuppress byte and
    index 0xb as the loaded marker the fact seeder reads. */
 extern unsigned char g_import_flags[0x60];

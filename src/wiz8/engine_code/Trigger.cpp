@@ -446,8 +446,7 @@ bool Trigger::Save(int hFile)
     }
     header_ok = FileWrite(hFile, &version, sizeof(version), 0) &&
                 FileWrite(hFile, &trigger_count, sizeof(trigger_count), 0) &&
-                FileWrite(hFile, name, 0x80, 0) &&
-                FileWrite(hFile, &flags, sizeof(flags), 0) &&
+                FileWrite(hFile, name, 0x80, 0) && FileWrite(hFile, &flags, sizeof(flags), 0) &&
                 FileWrite(hFile, &state_index, sizeof(state_index), 0) &&
                 FileWrite(hFile, &state_direction, sizeof(state_direction), 0) &&
                 FileWrite(hFile, &action, sizeof(action), 0) &&
@@ -791,8 +790,7 @@ void SaveTriggerActionData(W8World* world, int handle)
         Trigger* trigger = *world->triggers->GetAt(index);
         if (trigger->inline_action_data[0] != '\0') {
             FileWrite(handle, trigger->name, 0x80, 0);
-            FileWrite(handle, trigger->inline_action_data,
-                      sizeof(trigger->inline_action_data), 0);
+            FileWrite(handle, trigger->inline_action_data, sizeof(trigger->inline_action_data), 0);
         }
     }
 }
@@ -819,8 +817,7 @@ bool LoadTriggerActionData(int handle)
         FileRead(handle, name, sizeof(name), 0);
         trigger = FindTriggerByName(name);
         if (trigger != 0) {
-            FileRead(handle, trigger->inline_action_data,
-                     sizeof(trigger->inline_action_data), 0);
+            FileRead(handle, trigger->inline_action_data, sizeof(trigger->inline_action_data), 0);
         } else {
             FileSeek(handle, 0x100, FILE_SEEK_FROM_CURRENT);
         }
@@ -931,8 +928,7 @@ static void OnItemDialogClosed(W8DialogBase* base)
 
     if (dialog != 0) {
         dialog->ReturnItemsToGroup();
-        static_cast<Trigger*>(dialog->m_destroy_callback_context)->flags &=
-            ~W8_TRIGGER_ITEM_PICKER;
+        static_cast<Trigger*>(dialog->m_destroy_callback_context)->flags &= ~W8_TRIGGER_ITEM_PICKER;
     }
 }
 
@@ -1202,15 +1198,14 @@ void W8TriggerEvent::Update()
             rotation.vectors[2].Set(0.0, 1.0, 0.0);
 
             if (trigger->angle != 0.0f) {
-                rotation.RotateAroundAxis(sin(trigger->angle), cos(trigger->angle),
-                                          axis);
+                rotation.RotateAroundAxis(sin(trigger->angle), cos(trigger->angle), axis);
             }
 
             transformed.x = DotProduct(rotation.vectors[1], target);
             transformed.y = DotProduct(rotation.vectors[2], target);
             transformed.z = DotProduct(axis, target);
-            FireMissile(static_cast<unsigned int>(trigger->m_lData1), &source, &transformed, 0,
-                        1, 1, 50000.0f);
+            FireMissile(static_cast<unsigned int>(trigger->m_lData1), &source, &transformed, 0, 1,
+                        1, 50000.0f);
         }
         break;
     }
@@ -1381,8 +1376,8 @@ void Trigger::RunLinkedTriggers()
     char* recipient;
 
     flags &= ~W8_TRIGGER_RUNNING;
-    if ((flags & W8_TRIGGER_FIRE_LINKED) != 0 &&
-        (flags & W8_TRIGGER_LINK_ON_DEACTIVATE) != 0 && m_pacRecipients != 0) {
+    if ((flags & W8_TRIGGER_FIRE_LINKED) != 0 && (flags & W8_TRIGGER_LINK_ON_DEACTIVATE) != 0 &&
+        m_pacRecipients != 0) {
         recipient = m_pacRecipients;
         while (recipient != 0) {
             Trigger* trigger = FindTriggerByName(NextTriggerRecipient(&recipient));
@@ -1966,8 +1961,7 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         int unused_value;
         FileRead(handle, &trigger->range_minimum, 4, 0);
         FileRead(handle, &trigger->range_maximum, 4, 0);
-        FileRead(handle, trigger->inline_action_data, sizeof(trigger->inline_action_data),
-                 0);
+        FileRead(handle, trigger->inline_action_data, sizeof(trigger->inline_action_data), 0);
         FileRead(handle, &unused_value, 4, 0);
         _strupr(trigger->inline_action_data);
         trigger->range_minimum *= 500.0f;
@@ -2059,8 +2053,8 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
                 srAssertFail(
                     "(pTrigger->m_lData2!=(-1))",
                     "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0xf15,
-                    reinterpret_cast<const char*>(String(
-                        "Trigger %s: You must enter a time value in Data2", trigger->name)));
+                    reinterpret_cast<const char*>(
+                        String("Trigger %s: You must enter a time value in Data2", trigger->name)));
             }
             if (trigger->m_lData2 < 0) {
                 trigger->m_pEvent = new W8TriggerEvent;
@@ -2178,8 +2172,7 @@ void Trigger::UpdateActionAnimation()
 {
     char* action_data = this->action_data;
 
-    if ((flags & W8_TRIGGER_ANIMATE_ACTION) == 0 &&
-        (flags & W8_TRIGGER_ALTERNATE_ACTION) == 0) {
+    if ((flags & W8_TRIGGER_ANIMATE_ACTION) == 0 && (flags & W8_TRIGGER_ALTERNATE_ACTION) == 0) {
         return;
     }
     if ((flags & W8_TRIGGER_ALTERNATE_ACTION) != 0) {
@@ -2280,9 +2273,9 @@ void Trigger::FinishAction()
                 srAssertFail("m_pActionData", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
                              2822, "Trigger.cpp: Dark Area doesn't have action data");
             }
-            SetWorldEnvironmentIntensity(g_world,
-                                         static_cast<W8EnvironmentTriggerActionData*>(m_pActionData)
-                                             ->previous_environment);
+            SetWorldEnvironmentIntensity(
+                g_world,
+                static_cast<W8EnvironmentTriggerActionData*>(m_pActionData)->previous_environment);
             delete m_pActionData;
             m_pActionData = 0;
             goto finish_linked_triggers;
@@ -2790,8 +2783,7 @@ void Trigger::Run(int source)
                 m_pEvent = new W8TriggerEvent;
                 m_pEvent->trigger = this;
                 m_pEvent->action = 2;
-                m_pEvent->timer.SetDuration(m_lData1 < 0 ? 10.0f
-                                                             : static_cast<float>(m_lData1));
+                m_pEvent->timer.SetDuration(m_lData1 < 0 ? 10.0f : static_cast<float>(m_lData1));
                 m_pEvent->timer.Restart();
                 m_pEvent->repeat = true;
                 g_timed_events.Add(m_pEvent);
@@ -3669,8 +3661,7 @@ bool Trigger::SelectAction()
         return false;
     }
 
-    if (((flags & W8_TRIGGER_RUNNING) != 0 && action != 0x39) ||
-        (flags & W8_TRIGGER_ON) == 0 ||
+    if (((flags & W8_TRIGGER_RUNNING) != 0 && action != 0x39) || (flags & W8_TRIGGER_ON) == 0 ||
         ((flags & W8_TRIGGER_ONCE) != 0 && (flags & W8_TRIGGER_FIRED) != 0)) {
         action_state = 1;
         return false;

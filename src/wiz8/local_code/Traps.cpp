@@ -67,7 +67,7 @@ static char s_delete_log[] = "DELETE LOG";
    the effect spell id at index device + 0xb. */
 // GLOBAL: WIZ8 0x006504E8
 int g_table2[] = {10,  25, 35, 40, 50, 60, 70, 80,  90,  100, 110, 121, 122,
-                        123, 24, 47, 36, 37, 60, 70, 124, 125, 126, 86,  127, 91};
+                  123, 24, 47, 36, 37, 60, 70, 124, 125, 126, 86,  127, 91};
 // GLOBAL: WIZ8 0x00650434
 static unsigned char g_table1[15][8] = {
     {0, 1, 0, 0, 0, 1, 0, 0}, {0, 1, 0, 1, 0, 0, 0, 0}, {0, 0, 1, 0, 0, 1, 0, 0},
@@ -100,8 +100,8 @@ void WriteRecordModeEntry(void)
                 // reinterpret-ok: raw low byte of the angle record's trailing slot
                 *reinterpret_cast<unsigned int*>(&state.pitch[5]) & 0xff);
         FileWrite(file, line, strlen(line), 0);
-        sprintf(line, s_record_mode_orientation_format, state.yaw[0], state.yaw[1],
-                state.yaw[2], state.yaw[3], state.yaw[4],
+        sprintf(line, s_record_mode_orientation_format, state.yaw[0], state.yaw[1], state.yaw[2],
+                state.yaw[3], state.yaw[4],
                 // reinterpret-ok: raw low byte of the angle record's trailing slot
                 *reinterpret_cast<unsigned int*>(&state.yaw[5]) & 0xff);
         FileWrite(file, line, strlen(line), 0);
@@ -275,7 +275,7 @@ void CompleteTrapDisarm(Trigger* trigger)
 
 // FUNCTION: WIZ8 0x005E3800
 static void DischargeTrapSpell(srVector3T<float> point, int spell_id, unsigned int power_level,
-                        int num_targets)
+                               int num_targets)
 {
     int index;
     int eligible;

@@ -17,8 +17,7 @@ struct W8ReadLevelInfo {
     const char* mesh_filename; /* 0x0c */
 };
 
-unsigned char ReadLevel(W8World* world, int handle, bool use_octree,
-                        const char* bitmap_folder);
+unsigned char ReadLevel(W8World* world, int handle, bool use_octree, const char* bitmap_folder);
 unsigned char ReadWorldParticles(W8ReadLevelInfo* info, srNode* scene,
                                  W8GrowableVector<stParticle*>* particles);
 

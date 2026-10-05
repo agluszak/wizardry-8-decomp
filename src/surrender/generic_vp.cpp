@@ -1722,10 +1722,10 @@ int srVP_generic::_srTestBoundingBox(const srMatrix4& matrix, const srVector3& m
         float zmax = maximum.z * row[1];
         float v = zmin + ymin + base_min;
         if (-w_000 < v) {
-            if (w_000 <= v && w_001 <= zmax + ymin + base_min &&
-                w_010 <= ymax + zmin + base_min && w_011 <= zmax + ymax + base_min &&
-                w_100 <= base_max + zmin + ymin && w_101 <= zmax + base_max + ymin &&
-                w_110 <= ymax + base_max + zmin && w_111 <= zmax + ymax + base_max) {
+            if (w_000 <= v && w_001 <= zmax + ymin + base_min && w_010 <= ymax + zmin + base_min &&
+                w_011 <= zmax + ymax + base_min && w_100 <= base_max + zmin + ymin &&
+                w_101 <= zmax + base_max + ymin && w_110 <= ymax + base_max + zmin &&
+                w_111 <= zmax + ymax + base_max) {
                 return 0;
             }
         } else if (zmax + ymin + base_min <= -w_001 && ymax + zmin + base_min <= -w_010 &&
@@ -1759,14 +1759,14 @@ void srVP_generic::_srSpecularPow(float* destination, const float* source, float
     int index = static_cast<int>(index_value);
     index_value -= index;
     double complement = 1.0 - index_value;
-    float coefficient_0 = (float)(index_value * coefficients[index + 1][0] +
-                                  complement * coefficients[index][0]);
-    float coefficient_1 = (float)(index_value * coefficients[index + 1][1] +
-                                  complement * coefficients[index][1]);
-    float coefficient_2 = (float)(index_value * coefficients[index + 1][2] +
-                                  complement * coefficients[index][2]);
-    float coefficient_3 = (float)(index_value * coefficients[index + 1][3] +
-                                  complement * coefficients[index][3]);
+    float coefficient_0 =
+        (float)(index_value * coefficients[index + 1][0] + complement * coefficients[index][0]);
+    float coefficient_1 =
+        (float)(index_value * coefficients[index + 1][1] + complement * coefficients[index][1]);
+    float coefficient_2 =
+        (float)(index_value * coefficients[index + 1][2] + complement * coefficients[index][2]);
+    float coefficient_3 =
+        (float)(index_value * coefficients[index + 1][3] + complement * coefficients[index][3]);
     float threshold = points[index + 1][squarings];
     for (SRDWORD element = 0; element < count; ++element) {
         if (source[element] > threshold) {

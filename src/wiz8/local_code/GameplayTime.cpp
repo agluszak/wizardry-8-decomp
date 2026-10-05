@@ -355,8 +355,7 @@ void EndSurprise(void)
     ShowNotice(W8_FONT_PALETTE_BEIGE, text);
 
     if (g_status.condition13_clock != 0 &&
-        0x15180 <
-            static_cast<unsigned int>(g_status.world_clock) - g_status.condition13_clock) {
+        0x15180 < static_cast<unsigned int>(g_status.world_clock) - g_status.condition13_clock) {
         g_status.condition13_clock = 0;
         g_status.skip_next_condition_reaction = 1;
         int party_slot = g_status.pending_condition_party_slot;
@@ -393,8 +392,9 @@ void ResolveSurpriseWake(void)
                 character->highest_condition >= W8_CONDITION_DEAD) {
                 continue;
             }
-            int roll = static_cast<int>(Random(100)) - 0x14 -
-                       static_cast<int>(character->attributes[W8_ATTRIBUTE_SENSES].effective * 0x46 / 100);
+            int roll =
+                static_cast<int>(Random(100)) - 0x14 -
+                static_cast<int>(character->attributes[W8_ATTRIBUTE_SENSES].effective * 0x46 / 100);
             if (roll < 1) {
                 PostCharacterNotice(slot, gppStringList[0x243],
                                     gppStringList[g_condition_notices[60]]);
@@ -839,8 +839,8 @@ void GameTurnsPassedChar(int party_slot, unsigned int minutes)
         character->stamina_regen_accumulator =
             minutes * character->stamina_regen_rate * stamina_scale +
             character->stamina_regen_accumulator;
-        RestoreCharacterStamina(party_slot,
-                                static_cast<int>(character->stamina_regen_accumulator), 0);
+        RestoreCharacterStamina(party_slot, static_cast<int>(character->stamina_regen_accumulator),
+                                0);
         character->stamina_regen_accumulator =
             character->stamina_regen_accumulator -
             static_cast<unsigned int>(character->stamina_regen_accumulator);
@@ -899,8 +899,7 @@ void GameTurnsPassedChar(int party_slot, unsigned int minutes)
             if (minutes >= character->potion_brew_cooldown) {
                 character->potion_brew_cooldown = 0;
             } else {
-                character->potion_brew_cooldown =
-                    character->potion_brew_cooldown - minutes;
+                character->potion_brew_cooldown = character->potion_brew_cooldown - minutes;
             }
         }
     }
@@ -1414,8 +1413,7 @@ void RegenCharacterStamina(int party_slot, unsigned int elapsed)
         }
     }
     if (scale > g_float_zero && character->stamina < character->uiStaminaMax) {
-        character->stamina_regen_accumulator +=
-            elapsed * character->stamina_regen_rate * scale;
+        character->stamina_regen_accumulator += elapsed * character->stamina_regen_rate * scale;
         int amount = static_cast<int>(character->stamina_regen_accumulator);
         RestoreCharacterStamina(party_slot, amount, 0);
         character->stamina_regen_accumulator -=

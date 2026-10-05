@@ -494,8 +494,7 @@ static unsigned char CheckPathNodeChunking()
     /* Deliberately leaked: ~W8PathingService frees g_path_scratch and
        clears g_pathing - globals this object does not own. */
     return first == prepath->node_chunks[0] && second == first + 1 && first->level_flags == 0 &&
-           first->cell == 0 && prepath->chunk_index == 0 &&
-           prepath->chunk_node_count == 2;
+           first->cell == 0 && prepath->chunk_index == 0 && prepath->chunk_node_count == 2;
 }
 
 /* Regression coverage for the BuildPathLists node store `record->y = node.y`:
@@ -631,10 +630,9 @@ static void RunOctFileRoundTrip(OctFileSemanticResult* result)
                                    loaded->m_region_index_stream[0] == 0x5a5a &&
                                    loaded->m_pSubmeshes[1].polygon_count == 5 &&
                                    memcmp(loaded->m_leaf_lookup, tree->m_leaf_lookup, 8 * 4) == 0;
-        result->gamedata_roundtrip = loaded_data->m_iNumEnvirons == 1 &&
-                                     loaded_data->m_ppEnvirons != 0 &&
-                                     loaded_data->m_ppEnvirons[0] != 0 &&
-                                     loaded_data->m_ppEnvirons[0]->motion_step == 0.05f;
+        result->gamedata_roundtrip =
+            loaded_data->m_iNumEnvirons == 1 && loaded_data->m_ppEnvirons != 0 &&
+            loaded_data->m_ppEnvirons[0] != 0 && loaded_data->m_ppEnvirons[0]->motion_step == 0.05f;
     }
 
 restore:

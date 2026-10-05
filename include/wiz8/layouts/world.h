@@ -116,5 +116,4 @@ inline W8AmbientSound* GetWorldAmbientSound(W8World* world, int index)
     return static_cast<W8AmbientSound*>(PLGet(world->plsAmbientSounds, index));
 }
 
-
 #endif

@@ -37,12 +37,11 @@ void srStatisticsManager::dump(std::ostream& stream, const Statistics& statistic
         stream << "Triangles submitted:            "
                << statistics.triangles_submitted / statistics.elapsed_time << '\n';
         stream << "Triangles after culling:        "
-               << statistics.triangles_after_culling / statistics.elapsed_time
-               << '\n';
+               << statistics.triangles_after_culling / statistics.elapsed_time << '\n';
         if (statistics.triangles_submitted != 0) {
             stream << "Triangle cull ratio:            "
                    << 100.0 - statistics.triangles_after_culling * 100.0 /
-                                 statistics.triangles_submitted
+                                  statistics.triangles_submitted
                    << "%" << '\n';
         }
         stream << "Vertices submitted:             "
@@ -51,22 +50,17 @@ void srStatisticsManager::dump(std::ostream& stream, const Statistics& statistic
                << statistics.vertices_after_culling / statistics.elapsed_time << '\n';
         if (statistics.vertices_submitted != 0) {
             stream << "Vertex cull ratio:              "
-                   << 100.0 - statistics.vertices_after_culling * 100.0 /
-                                 statistics.vertices_submitted
+                   << 100.0 -
+                          statistics.vertices_after_culling * 100.0 / statistics.vertices_submitted
                    << "%" << '\n';
         }
         stream << "Material processing stalls:     "
-               << statistics.material_processing_stalls / statistics.elapsed_time
-               << '\n';
+               << statistics.material_processing_stalls / statistics.elapsed_time << '\n';
         if (statistics.meshes_submitted != 0) {
             stream << "Avg. triangles per mesh:        "
-                   << statistics.triangles_submitted /
-                          (double)statistics.meshes_submitted
-                   << '\n';
+                   << statistics.triangles_submitted / (double)statistics.meshes_submitted << '\n';
             stream << "Avg. vertices per mesh:         "
-                   << statistics.vertices_submitted /
-                          (double)statistics.meshes_submitted
-                   << '\n';
+                   << statistics.vertices_submitted / (double)statistics.meshes_submitted << '\n';
         }
         if (statistics.vertices_after_culling != 0) {
             double inv_vertices = 1.0 / statistics.vertices_after_culling;
@@ -76,8 +70,8 @@ void srStatisticsManager::dump(std::ostream& stream, const Statistics& statistic
                    << statistics.alpha_operations * inv_vertices << '\n';
             stream << "Avg. specular ops per vertex:   "
                    << statistics.specular_operations * inv_vertices << '\n';
-            stream << "Avg. fog ops per vertex:        "
-                   << statistics.fog_operations * inv_vertices << '\n';
+            stream << "Avg. fog ops per vertex:        " << statistics.fog_operations * inv_vertices
+                   << '\n';
             stream << "Avg. texcoord ops per vertex:   "
                    << statistics.texture_coordinate_operations * inv_vertices << '\n';
         }

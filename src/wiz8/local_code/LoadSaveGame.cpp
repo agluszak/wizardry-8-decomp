@@ -432,8 +432,7 @@ bool SaveGame(const char* name, W8SaveScreenshot* screenshot)
     if (g_status.iron_man) {
         GetFileManFileTime(chunks.m_hFile, &creation_time, &access_time, &write_time);
         g_status.save_filetime_xor[0] = creation_time.dwLowDateTime ^ g_save_filetime_xor_low;
-        g_status.save_filetime_xor[1] =
-            creation_time.dwHighDateTime ^ g_save_filetime_xor_high;
+        g_status.save_filetime_xor[1] = creation_time.dwHighDateTime ^ g_save_filetime_xor_high;
     }
     cursor = g_status.text_line_cursor;
     if (cursor == 2) {

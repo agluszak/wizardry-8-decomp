@@ -264,8 +264,7 @@ void RecomputeAttributeLimits(W8Character* character, W8CharacterCreationState* 
     ClampAttributesToBudget(character, creation_state);
     if (creation_state->attribute_points_remaining > 0) {
         for (index = 0; index < 7; ++index) {
-            if (creation_state->attribute_values[index] <
-                creation_state->attribute_limits[index]) {
+            if (creation_state->attribute_values[index] < creation_state->attribute_limits[index]) {
                 creation_state->attributes_complete = false;
                 return;
             }
@@ -389,8 +388,7 @@ void PayDownAttributeDebt(W8Character* character, W8CharacterCreationState* crea
         character->attribute_point_deficit = total;
     }
     index = 0;
-    while (character->attribute_point_deficit < 0 &&
-           creation_state->attribute_points_total > 0) {
+    while (character->attribute_point_deficit < 0 && creation_state->attribute_points_total > 0) {
         if (deficits[index][0] < 1 ||
             (index != 6 && deficits[index][0] <= deficits[index + 1][0])) {
             index = (index + 1) % 7;
@@ -485,8 +483,7 @@ void AdjustAllocatedAttribute(W8Character* character, W8CharacterCreationState* 
 
     if (creation_state->attribute_points_remaining > 0) {
         for (int index = 0; index < 7; ++index) {
-            if (creation_state->attribute_values[index] <
-                creation_state->attribute_limits[index]) {
+            if (creation_state->attribute_values[index] < creation_state->attribute_limits[index]) {
                 creation_state->attributes_complete = false;
                 goto complete;
             }

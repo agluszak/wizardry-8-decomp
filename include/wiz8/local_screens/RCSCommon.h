@@ -53,7 +53,7 @@ unsigned char CampDismissPortraitRegionEvent(const InputAtom* event,
 unsigned char CampPortraitSlotRegionEvent(const InputAtom* event,
                                           W8Region* region); /* 0x005B5F10 */
 unsigned char CampOpenCharacterScreenRegionEvent(const InputAtom* event,
-                                                 W8Region* region);                /* 0x005B61A0 */
+                                                 W8Region* region); /* 0x005B61A0 */
 unsigned char CampProfessionHistoryRegionEvent(const InputAtom* event,
                                                W8Region* region);                  /* 0x005B6220 */
 unsigned char CampPageButtonRegionEvent(const InputAtom* event, W8Region* region); /* 0x005B62C0 */

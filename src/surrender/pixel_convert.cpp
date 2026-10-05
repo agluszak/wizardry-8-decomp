@@ -483,7 +483,7 @@ void srPixelConvert::PixelFormat::getName(char* const name)
     }
     text[length] = '\0';
     char tail[8];
-    sprintf(tail, "/%d", (int)(pixel_size * 8 + 8));
+    sprintf(tail, "/%d", pixel_size * 8 + 8);
     strcat(text, tail);
     strcpy(name, text);
 }

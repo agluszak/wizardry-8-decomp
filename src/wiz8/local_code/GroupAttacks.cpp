@@ -153,9 +153,9 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
         } else {
             value = 0xf;
         }
-        uiMinRoll = (static_cast<unsigned int>(monster_info->stamina) *
-                     (record->effective_level + value)) /
-                    static_cast<unsigned int>(monster_info->stamina_max);
+        uiMinRoll =
+            (static_cast<unsigned int>(monster_info->stamina) * (record->effective_level + value)) /
+            static_cast<unsigned int>(monster_info->stamina_max);
         if (uiMinRoll == 0) {
             uiMinRoll = 1;
         }
@@ -346,8 +346,7 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                                            g_special_attack_realm_table[special_attack_kind],
                                            uiMinRoll);
                     if (uiDamage != 0) {
-                        monster_info->spell_points =
-                            monster_info->spell_points - (uiDamage >> 1);
+                        monster_info->spell_points = monster_info->spell_points - (uiDamage >> 1);
                         if (announce == 0) {
                             uiTotals[i] += uiDamage;
                             ++uiHits[i];

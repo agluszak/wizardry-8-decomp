@@ -2,6 +2,7 @@
    Add matching markers for retained SGP functions and globals.
    Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
    Include the importer declaration to preserve its C linkage in C++ mode, 2026-10-04.
+   Formatting normalized for the Wizardry 8 reconstruction, 2026-10-06.
    Distributed under the accompanying SFI Source Code license agreement. */
 //**************************************************************************
 //
@@ -49,10 +50,14 @@
 //
 //**************************************************************************
 
-BOOLEAN ReadUncompColMapImage( HIMAGE hImage, HWFILE hFile, UINT8 uiImgID, UINT8 uiColMap, UINT16 fContents );
-BOOLEAN ReadUncompRGBImage( HIMAGE hImage, HWFILE hFile, UINT8 uiImgID, UINT8 uiColMap, UINT16 fContents );
-BOOLEAN ReadRLEColMapImage( HIMAGE hImage, HWFILE hFile, UINT8 uiImgID, UINT8 uiColMap, UINT16 fContents );
-BOOLEAN ReadRLERGBImage( HIMAGE hImage, HWFILE hFile, UINT8 uiImgID, UINT8 uiColMap, UINT16 fContents );
+BOOLEAN ReadUncompColMapImage(HIMAGE hImage, HWFILE hFile, UINT8 uiImgID, UINT8 uiColMap,
+                              UINT16 fContents);
+BOOLEAN ReadUncompRGBImage(HIMAGE hImage, HWFILE hFile, UINT8 uiImgID, UINT8 uiColMap,
+                           UINT16 fContents);
+BOOLEAN ReadRLEColMapImage(HIMAGE hImage, HWFILE hFile, UINT8 uiImgID, UINT8 uiColMap,
+                           UINT16 fContents);
+BOOLEAN ReadRLERGBImage(HIMAGE hImage, HWFILE hFile, UINT8 uiImgID, UINT8 uiColMap,
+                        UINT16 fContents);
 //BOOLEAN	ConvertTGAToSystemBPPFormat( HIMAGE hImage );
 
 //**************************************************************************
@@ -62,50 +67,49 @@ BOOLEAN ReadRLERGBImage( HIMAGE hImage, HWFILE hFile, UINT8 uiImgID, UINT8 uiCol
 //**************************************************************************
 
 // FUNCTION: WIZ8 0x00414c60
-BOOLEAN LoadTGAFileToImage( HIMAGE hImage, UINT16 fContents )
+BOOLEAN LoadTGAFileToImage(HIMAGE hImage, UINT16 fContents)
 {
-	HWFILE	hFile;
-	UINT8		uiImgID, uiColMap, uiType;
-	UINT32	uiBytesRead;
-	BOOLEAN fReturnVal = FALSE;
+    HWFILE hFile;
+    UINT8 uiImgID, uiColMap, uiType;
+    UINT32 uiBytesRead;
+    BOOLEAN fReturnVal = FALSE;
 
-	Assert( hImage != NULL );
+    Assert(hImage != NULL);
 
-	CHECKF( FileExists( hImage->ImageFile ) );
+    CHECKF(FileExists(hImage->ImageFile));
 
-	hFile = FileOpen( hImage->ImageFile, FILE_ACCESS_READ, FALSE );
-	CHECKF( hFile );
+    hFile = FileOpen(hImage->ImageFile, FILE_ACCESS_READ, FALSE);
+    CHECKF(hFile);
 
-	if ( !FileRead( hFile, &uiImgID, sizeof(UINT8), &uiBytesRead ) )
-		goto end;
-	if ( !FileRead( hFile, &uiColMap, sizeof(UINT8), &uiBytesRead ) )
-		goto end;
-	if ( !FileRead( hFile, &uiType, sizeof(UINT8), &uiBytesRead ) )
-		goto end;
+    if (!FileRead(hFile, &uiImgID, sizeof(UINT8), &uiBytesRead))
+        goto end;
+    if (!FileRead(hFile, &uiColMap, sizeof(UINT8), &uiBytesRead))
+        goto end;
+    if (!FileRead(hFile, &uiType, sizeof(UINT8), &uiBytesRead))
+        goto end;
 
-	switch( uiType )
-	{
-	case 1:
-		fReturnVal = ReadUncompColMapImage( hImage, hFile, uiImgID, uiColMap, fContents );
-		break;
-	case 2:
-		fReturnVal = ReadUncompRGBImage( hImage, hFile, uiImgID, uiColMap, fContents );
-		break;
-	case 9:
-		fReturnVal = ReadRLEColMapImage( hImage, hFile, uiImgID, uiColMap, fContents );
-		break;
-	case 10:
-		fReturnVal = ReadRLERGBImage( hImage, hFile, uiImgID, uiColMap, fContents );
-		break;
-	default:
-		break;
-	}
+    switch (uiType) {
+    case 1:
+        fReturnVal = ReadUncompColMapImage(hImage, hFile, uiImgID, uiColMap, fContents);
+        break;
+    case 2:
+        fReturnVal = ReadUncompRGBImage(hImage, hFile, uiImgID, uiColMap, fContents);
+        break;
+    case 9:
+        fReturnVal = ReadRLEColMapImage(hImage, hFile, uiImgID, uiColMap, fContents);
+        break;
+    case 10:
+        fReturnVal = ReadRLERGBImage(hImage, hFile, uiImgID, uiColMap, fContents);
+        break;
+    default:
+        break;
+    }
 
-  // Set remaining values
+    // Set remaining values
 
 end:
-	FileClose( hFile );
-	return( fReturnVal );
+    FileClose(hFile);
+    return (fReturnVal);
 }
 
 //**************************************************************************
@@ -122,9 +126,10 @@ end:
 //
 //**************************************************************************
 
-BOOLEAN ReadUncompColMapImage( HIMAGE hImage, HWFILE hFile, UINT8 uiImgID, UINT8 uiColMap, UINT16 fContents )
+BOOLEAN ReadUncompColMapImage(HIMAGE hImage, HWFILE hFile, UINT8 uiImgID, UINT8 uiColMap,
+                              UINT16 fContents)
 {
-	return( FALSE );
+    return (FALSE);
 }
 
 //**************************************************************************
@@ -142,139 +147,131 @@ BOOLEAN ReadUncompColMapImage( HIMAGE hImage, HWFILE hFile, UINT8 uiImgID, UINT8
 //**************************************************************************
 
 // FUNCTION: WIZ8 0x00414d70
-BOOLEAN ReadUncompRGBImage( HIMAGE hImage, HWFILE hFile, UINT8 uiImgID, UINT8 uiColMap, UINT16 fContents )
+BOOLEAN ReadUncompRGBImage(HIMAGE hImage, HWFILE hFile, UINT8 uiImgID, UINT8 uiColMap,
+                           UINT16 fContents)
 {
-	UINT8		*pBMData;
-	UINT8		*pBMPtr;
+    UINT8* pBMData;
+    UINT8* pBMPtr;
 
-	UINT16	uiColMapOrigin;
-	UINT16	uiColMapLength;
-	UINT8		uiColMapEntrySize;
-	UINT32	uiBytesRead;
-	UINT16	uiXOrg;
-	UINT16	uiYOrg;
-	UINT16	uiWidth;
-	UINT16	uiHeight;
-	UINT8		uiImagePixelSize;
-	UINT8		uiImageDescriptor;
-	UINT32	iNumValues;
-	UINT16  cnt;
+    UINT16 uiColMapOrigin;
+    UINT16 uiColMapLength;
+    UINT8 uiColMapEntrySize;
+    UINT32 uiBytesRead;
+    UINT16 uiXOrg;
+    UINT16 uiYOrg;
+    UINT16 uiWidth;
+    UINT16 uiHeight;
+    UINT8 uiImagePixelSize;
+    UINT8 uiImageDescriptor;
+    UINT32 iNumValues;
+    UINT16 cnt;
 
-	UINT32	i;
-	UINT8		r;
-	UINT8		g;
-	UINT8		b;
+    UINT32 i;
+    UINT8 r;
+    UINT8 g;
+    UINT8 b;
 
-	if ( !FileRead( hFile, &uiColMapOrigin, sizeof(UINT16), &uiBytesRead ) )
-		goto end;
-	if ( !FileRead( hFile, &uiColMapLength, sizeof(UINT16), &uiBytesRead ) )
-		goto end;
-	if ( !FileRead( hFile, &uiColMapEntrySize, sizeof(UINT8), &uiBytesRead ) )
-		goto end;
+    if (!FileRead(hFile, &uiColMapOrigin, sizeof(UINT16), &uiBytesRead))
+        goto end;
+    if (!FileRead(hFile, &uiColMapLength, sizeof(UINT16), &uiBytesRead))
+        goto end;
+    if (!FileRead(hFile, &uiColMapEntrySize, sizeof(UINT8), &uiBytesRead))
+        goto end;
 
-	if ( !FileRead( hFile, &uiXOrg, sizeof(UINT16), &uiBytesRead ) )
-		goto end;
-	if ( !FileRead( hFile, &uiYOrg, sizeof(UINT16), &uiBytesRead ) )
-		goto end;
-	if ( !FileRead( hFile, &uiWidth, sizeof(UINT16), &uiBytesRead ) )
-		goto end;
-	if ( !FileRead( hFile, &uiHeight, sizeof(UINT16), &uiBytesRead ) )
-		goto end;
-	if ( !FileRead( hFile, &uiImagePixelSize, sizeof(UINT8), &uiBytesRead ) )
-		goto end;
-	if ( !FileRead( hFile, &uiImageDescriptor, sizeof(UINT8), &uiBytesRead ) )
-		goto end;
+    if (!FileRead(hFile, &uiXOrg, sizeof(UINT16), &uiBytesRead))
+        goto end;
+    if (!FileRead(hFile, &uiYOrg, sizeof(UINT16), &uiBytesRead))
+        goto end;
+    if (!FileRead(hFile, &uiWidth, sizeof(UINT16), &uiBytesRead))
+        goto end;
+    if (!FileRead(hFile, &uiHeight, sizeof(UINT16), &uiBytesRead))
+        goto end;
+    if (!FileRead(hFile, &uiImagePixelSize, sizeof(UINT8), &uiBytesRead))
+        goto end;
+    if (!FileRead(hFile, &uiImageDescriptor, sizeof(UINT8), &uiBytesRead))
+        goto end;
 
-	// skip the id
-	FileSeek( hFile, uiImgID, FILE_SEEK_FROM_CURRENT );
+    // skip the id
+    FileSeek(hFile, uiImgID, FILE_SEEK_FROM_CURRENT);
 
-	// skip the colour map
-	if ( uiColMap != 0 )
-	{
-		FileSeek( hFile, uiColMapLength * (uiImagePixelSize / 8), FILE_SEEK_FROM_CURRENT );
-	}
+    // skip the colour map
+    if (uiColMap != 0) {
+        FileSeek(hFile, uiColMapLength * (uiImagePixelSize / 8), FILE_SEEK_FROM_CURRENT);
+    }
 
-	// Set some HIMAGE data values
-	hImage->usWidth = uiWidth;
-	hImage->usHeight = uiHeight;
-	hImage->ubBitDepth = uiImagePixelSize;
+    // Set some HIMAGE data values
+    hImage->usWidth = uiWidth;
+    hImage->usHeight = uiHeight;
+    hImage->ubBitDepth = uiImagePixelSize;
 
-	// Allocate memory based on bpp, height, width
+    // Allocate memory based on bpp, height, width
 
-	// Only do if contents flag is appropriate
-	if ( fContents & IMAGE_BITMAPDATA )
-	{
+    // Only do if contents flag is appropriate
+    if (fContents & IMAGE_BITMAPDATA) {
 
-		if ( uiImagePixelSize == 16 )
-		{
+        if (uiImagePixelSize == 16) {
 
-			iNumValues = uiWidth * uiHeight;
+            iNumValues = uiWidth * uiHeight;
 
-			hImage->p16BPPData = (UINT16 *)MemAlloc( iNumValues * (uiImagePixelSize / 8) );
+            hImage->p16BPPData = (UINT16*)MemAlloc(iNumValues * (uiImagePixelSize / 8));
 
-			if ( hImage->p16BPPData == NULL )
-				goto end;
+            if (hImage->p16BPPData == NULL)
+                goto end;
 
-			// Get data pointer
-			pBMData = hImage->p8BPPData;
+            // Get data pointer
+            pBMData = hImage->p8BPPData;
 
-			// Start at end
-			pBMData += uiWidth * ( uiHeight - 1 ) * (uiImagePixelSize / 8);
+            // Start at end
+            pBMData += uiWidth * (uiHeight - 1) * (uiImagePixelSize / 8);
 
-			// Data is stored top-bottom - reverse for SGP HIMAGE format
-			for ( cnt = 0; cnt < uiHeight-1; cnt++ )
-			{
-				if ( !FileRead( hFile, pBMData, uiWidth*2, &uiBytesRead ) )
-					goto freeEnd;
+            // Data is stored top-bottom - reverse for SGP HIMAGE format
+            for (cnt = 0; cnt < uiHeight - 1; cnt++) {
+                if (!FileRead(hFile, pBMData, uiWidth * 2, &uiBytesRead))
+                    goto freeEnd;
 
-				pBMData -= uiWidth * 2;
-			}
-			// Do first row
-			if ( !FileRead( hFile, pBMData, uiWidth*2, &uiBytesRead ) )
-					goto freeEnd;
+                pBMData -= uiWidth * 2;
+            }
+            // Do first row
+            if (!FileRead(hFile, pBMData, uiWidth * 2, &uiBytesRead))
+                goto freeEnd;
 
-			// Convert TGA 5,5,5 16 BPP data into current system 16 BPP Data
-			//ConvertTGAToSystemBPPFormat( hImage );
+            // Convert TGA 5,5,5 16 BPP data into current system 16 BPP Data
+            //ConvertTGAToSystemBPPFormat( hImage );
 
-			hImage->fFlags |= IMAGE_BITMAPDATA;
+            hImage->fFlags |= IMAGE_BITMAPDATA;
+        }
 
+        if (uiImagePixelSize == 24) {
+            hImage->p8BPPData = (UINT8*)MemAlloc(uiWidth * uiHeight * (uiImagePixelSize / 8));
 
-		}
+            if (hImage->p8BPPData == NULL)
+                goto end;
 
-		if ( uiImagePixelSize == 24 )
-		{
-			hImage->p8BPPData = (UINT8 *)MemAlloc( uiWidth * uiHeight * (uiImagePixelSize / 8) );
+            // Get data pointer
+            pBMData = (UINT8*)hImage->p8BPPData;
 
-			if ( hImage->p8BPPData == NULL )
-				goto end;
+            // Start at end
+            pBMPtr = pBMData + uiWidth * (uiHeight - 1) * 3;
 
-			// Get data pointer
-			pBMData = (UINT8*)hImage->p8BPPData;
+            iNumValues = uiWidth * uiHeight;
 
-			// Start at end
-			pBMPtr = pBMData + uiWidth * ( uiHeight - 1 ) * 3;
+            for (cnt = 0; cnt < uiHeight; cnt++) {
+                for (i = 0; i < uiWidth; i++) {
+                    if (!FileRead(hFile, &b, sizeof(UINT8), &uiBytesRead))
+                        goto freeEnd;
+                    if (!FileRead(hFile, &g, sizeof(UINT8), &uiBytesRead))
+                        goto freeEnd;
+                    if (!FileRead(hFile, &r, sizeof(UINT8), &uiBytesRead))
+                        goto freeEnd;
 
-			iNumValues = uiWidth * uiHeight;
-
-			for ( cnt = 0; cnt < uiHeight; cnt++ )
-			{
-				for ( i=0 ; i < uiWidth; i++ )
-				{
-					if ( !FileRead( hFile, &b, sizeof(UINT8), &uiBytesRead ) )
-						goto freeEnd;
-					if ( !FileRead( hFile, &g, sizeof(UINT8), &uiBytesRead ) )
-						goto freeEnd;
-					if ( !FileRead( hFile, &r, sizeof(UINT8), &uiBytesRead ) )
-						goto freeEnd;
-
-					pBMPtr[ i*3   ] = r;
-					pBMPtr[ i*3+1 ] = g;
-					pBMPtr[ i*3+2 ] = b;
-				}
-				pBMPtr -= uiWidth * 3;
-			}
-			hImage->fFlags |= IMAGE_BITMAPDATA;
-		}
+                    pBMPtr[i * 3] = r;
+                    pBMPtr[i * 3 + 1] = g;
+                    pBMPtr[i * 3 + 2] = b;
+                }
+                pBMPtr -= uiWidth * 3;
+            }
+            hImage->fFlags |= IMAGE_BITMAPDATA;
+        }
 
 #if 0
 		// 32 bit not yet allowed in SGP
@@ -299,16 +296,15 @@ BOOLEAN ReadUncompRGBImage( HIMAGE hImage, HWFILE hFile, UINT8 uiImgID, UINT8 ui
 			}
 		}
 #endif
-
-	}
-	return( TRUE );
+    }
+    return (TRUE);
 
 end:
-	return( FALSE );
+    return (FALSE);
 
 freeEnd:
-	MemFree( pBMData );
-	return( FALSE );
+    MemFree(pBMData);
+    return (FALSE);
 }
 
 //**************************************************************************
@@ -325,9 +321,10 @@ freeEnd:
 //
 //**************************************************************************
 
-BOOLEAN ReadRLEColMapImage( HIMAGE hImage, HWFILE hFile, UINT8 uiImgID, UINT8 uiColMap, UINT16 fContents )
+BOOLEAN ReadRLEColMapImage(HIMAGE hImage, HWFILE hFile, UINT8 uiImgID, UINT8 uiColMap,
+                           UINT16 fContents)
 {
-	return( FALSE );
+    return (FALSE);
 }
 
 //**************************************************************************
@@ -344,9 +341,10 @@ BOOLEAN ReadRLEColMapImage( HIMAGE hImage, HWFILE hFile, UINT8 uiImgID, UINT8 ui
 //
 //**************************************************************************
 
-BOOLEAN ReadRLERGBImage( HIMAGE hImage, HWFILE hFile, UINT8 uiImgID, UINT8 uiColMap, UINT16 fContents )
+BOOLEAN ReadRLERGBImage(HIMAGE hImage, HWFILE hFile, UINT8 uiImgID, UINT8 uiColMap,
+                        UINT16 fContents)
 {
-	return( FALSE );
+    return (FALSE);
 }
 
 /*

@@ -34,7 +34,7 @@ public:
        leaves m_active and padding_01e uninitialized. */
     W8DialogNumericInput(int control_id, const W8ControlsRect* bounds, int value, int font,
                          W8DialogBase* dialog, W8DialogButton* button);
-    void SetValue(int value);                                 /* 0x005E14C0 */
+    void SetValue(int value);                        /* 0x005E14C0 */
     void SetActive(bool active);                     /* 0x005E14D0 */
     void SetActive(bool active, const POINT* point); /* 0x005E1500 */
     void Draw(bool force);                           /* 0x005E15C0 */
@@ -54,9 +54,9 @@ public:
     /* 0x10: -1 while inactive; otherwise the count of characters to the right
        of the caret. */
     int m_caret;
-    int m_font;             /* 0x14 */
-    int m_value;            /* 0x18 */
-    bool m_dirty;           /* 0x1c */
+    int m_font;    /* 0x14 */
+    int m_value;   /* 0x18 */
+    bool m_dirty;  /* 0x1c */
     bool m_active; /* 0x1d */
     unsigned char padding_01e[2];
     /* 0x20: -1, then the stack total for the split dialogs. The acceptance
@@ -109,23 +109,23 @@ public:
        constructs, clears and destroys it; `void*` would erase the proven
        element type. */
     W8GrowableVector<void (*)(int)> m_field_064;
-    int m_field_074;              /* 0x074 */
-    float m_field_078;            /* 0x078: 0.05 */
-    float m_field_07c;            /* 0x07c: 0.2 */
-    float m_field_080;            /* 0x080: 0.9 */
-    float m_field_084;            /* 0x084: 0.75 */
+    int m_field_074;          /* 0x074 */
+    float m_field_078;        /* 0x078: 0.05 */
+    float m_field_07c;        /* 0x07c: 0.2 */
+    float m_field_080;        /* 0x080: 0.9 */
+    float m_field_084;        /* 0x084: 0.75 */
     int m_fill_colour;        /* 0x088: highlight fill colour */
     int m_text_button;        /* 0x08c */
     int m_second_text_button; /* 0x090 */
-    short area_inlay;      /* 0x094: DialogInlay inlay for 0x098 */
+    short area_inlay;         /* 0x094: DialogInlay inlay for 0x098 */
     short padding_096;
-    int m_area_button;   /* 0x098: scrolling text area */
-    int m_up_button;     /* 0x09c */
-    int m_up_image;      /* 0x0a0 */
-    int m_down_button;   /* 0x0a4 */
-    int m_down_image;    /* 0x0a8 */
-    int m_slider_button; /* 0x0ac */
-    int m_slider_image;  /* 0x0b0 */
+    int m_area_button;     /* 0x098: scrolling text area */
+    int m_up_button;       /* 0x09c */
+    int m_up_image;        /* 0x0a0 */
+    int m_down_button;     /* 0x0a4 */
+    int m_down_image;      /* 0x0a8 */
+    int m_slider_button;   /* 0x0ac */
+    int m_slider_image;    /* 0x0b0 */
     short third_btn_inlay; /* 0x0b4: DialogInlay inlay for 0x0b8 */
     short padding_0b6;
     int m_third_text_button; /* 0x0b8 */
@@ -141,7 +141,7 @@ public:
     unsigned char padding_0ed[3];
     int m_first_visible_line; /* 0x0f0 */
     int m_selected_line;      /* 0x0f4 */
-    short edge_inlay;      /* 0x0f8: DialogEdge inlay for the text buttons */
+    short edge_inlay;         /* 0x0f8: DialogEdge inlay for the text buttons */
     short flags;
 }; /* 0xfc */
 
@@ -194,9 +194,9 @@ private:
     W8DialogNumericInput* m_split_input;
     /* 0x07c: the numeric field while the cursor or keyboard owns it. */
     W8DialogNumericInput* m_active_field;
-    int m_remaining; /* 0x080: total minus the field value */
-    int m_taken;     /* 0x084: the field value */
-    int m_total;     /* 0x088 */
+    int m_remaining;              /* 0x080: total minus the field value */
+    int m_taken;                  /* 0x084: the field value */
+    int m_total;                  /* 0x088 */
     W8SplitDialogResult m_result; /* 0x08c: 1 confirms, 2 cancels */
 }; /* 0x90 */
 
@@ -289,12 +289,12 @@ static_assert(sizeof(W8TriggerItemPickerDialog) == 0xb0, "W8TriggerItemPickerDia
 class W8SplitItemDialog : public W8DialogBase {
 public:
     W8SplitItemDialog(W8ItemSplitMode mode, W8ItemInstance* item, int count); /* 0x005DCED0 */
-    virtual ~W8SplitItemDialog() override;                        /* 0x005DD030 */
-    virtual int CreateControls() override;                        /* 0x005DD130 */
-    virtual void DestroyControls() override;                      /* 0x005DD3C0 */
-    virtual void Draw() override;                                 /* 0x005DDB60 */
-    virtual bool ProcessInput() override;                         /* 0x005DE1B0 */
-    virtual void OnNumericInputChanged(int value) override;       /* 0x005DDFA0 */
+    virtual ~W8SplitItemDialog() override;                                    /* 0x005DD030 */
+    virtual int CreateControls() override;                                    /* 0x005DD130 */
+    virtual void DestroyControls() override;                                  /* 0x005DD3C0 */
+    virtual void Draw() override;                                             /* 0x005DDB60 */
+    virtual bool ProcessInput() override;                                     /* 0x005DE1B0 */
+    virtual void OnNumericInputChanged(int value) override;                   /* 0x005DDFA0 */
 
 private:
     /* 0x005DD480: create and place the arrow, frame, accept and cancel
@@ -338,9 +338,9 @@ public:
     W8SplitDialogResult split_result;
 
 private:
-    W8ItemSplitMode m_mode;     /* 0x0cc: 0 inventory, 1 and 2 trade modes */
-    W8ItemInstance* m_item;     /* 0x0d0 */
-    bool m_first_draw; /* 0x0d4: draw the item icon once */
+    W8ItemSplitMode m_mode; /* 0x0cc: 0 inventory, 1 and 2 trade modes */
+    W8ItemInstance* m_item; /* 0x0d0 */
+    bool m_first_draw;      /* 0x0d4: draw the item icon once */
     unsigned char padding_0d5[3];
 };
 

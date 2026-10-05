@@ -20,11 +20,11 @@ class srModelInstance;
  * consumers; remaining bytes stay positional until those uses are recovered.
  */
 struct W8AnimObj {
-    unsigned char group_count;          /* 0x00: mesh/list group count, max 3 */
+    unsigned char group_count;       /* 0x00: mesh/list group count, max 3 */
     unsigned char animation_playing; /* 0x01: copied onto monster/prop animation_playing */
     unsigned char frame_method;      /* 0x02: copied onto frame_method */
     unsigned char behaviour;         /* 0x03: copied onto animation_behaviour */
-    unsigned char cycle;                /* 0x04: default cycle/emitter index */
+    unsigned char cycle;             /* 0x04: default cycle/emitter index */
     unsigned char path_lists;        /* 0x05: 0 = mesh entries, nonzero = path lists */
     unsigned char padding_06[2];
     float playback_scale;      /* 0x08 */

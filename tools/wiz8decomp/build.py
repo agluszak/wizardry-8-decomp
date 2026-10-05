@@ -1241,6 +1241,26 @@ def build_toolchain(settings: Settings, toolchain_ids: list[str] | None = None) 
     return build_toolchain_images(settings, toolchain_ids)
 
 
+def cpp_format_files(repository: Path) -> list[str]:
+    """Formatter-owned reconstruction, runtime tests and local analysis headers.
+
+    Exclude vendored source and immutable source oracles, including imported
+    SDK/library headers colocated with SGP.
+    Use this list for both normalization and the public formatting gate.
+    """
+    suffixes = {".c", ".cc", ".cpp", ".cxx", ".h", ".hpp", ".hxx", ".inl"}
+    # Imported SDK/library headers colocated with their SGP consumers.
+    vendor_headers = {"src/sgp/ddraw.h", "src/sgp/Mss.h", "src/sgp/ZLIB.H", "src/sgp/ZCONF.H"}
+    return sorted(
+        str(path.relative_to(repository))
+        for root in ("include", "src", "tests", "tools/lint/include")
+        for path in (repository / root).rglob("*")
+        if path.is_file()
+        and path.suffix.lower() in suffixes
+        and str(path.relative_to(repository)) not in vendor_headers
+    )
+
+
 def check(repository: Path) -> dict[str, Any]:
     """Fast public validation: cheap host gates before compiler-backed indexing."""
 
@@ -1268,6 +1288,7 @@ def check(repository: Path) -> dict[str, Any]:
     timings_ms: dict[str, int] = {}
     cheap_commands = (
         ("format", ["ruff", "format", "--check", "."]),
+        ("cpp-format", ["clang-format", "--dry-run", "--Werror", *cpp_format_files(repository)]),
         ("ruff", ["ruff", "check", "."]),
     )
     gates: list[dict[str, str]] = []

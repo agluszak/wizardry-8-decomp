@@ -122,8 +122,7 @@ void srCamera::processPop(srGERD* renderer)
 // FUNCTION: SURRENDER 0x10048430
 double srCamera::getAspectRatio() const
 {
-    return (view_plane.right - view_plane.left) /
-           (view_plane.top - view_plane.bottom);
+    return (view_plane.right - view_plane.left) / (view_plane.top - view_plane.bottom);
 }
 
 // FUNCTION: SURRENDER 0x10048450

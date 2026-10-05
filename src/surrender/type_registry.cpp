@@ -34,9 +34,7 @@ struct srRegistry::ClassNode::NameIndex {
         srRuntimeClass* instance;
     };
 
-    NameIndex()
-        : entries(0), free(0), buckets(0), count(0), bucket_count(0),
-          case_sensitive(1)
+    NameIndex() : entries(0), free(0), buckets(0), count(0), bucket_count(0), case_sensitive(1)
     {
         resize(4);
     }
@@ -183,8 +181,7 @@ private:
             free = entries;
             if (this->buckets != 0 && old_bucket_count != 0) {
                 for (unsigned long bucket = 0; bucket < old_bucket_count; ++bucket) {
-                    for (NameEntry* entry = buckets[bucket]; entry != 0;
-                         entry = entry->next) {
+                    for (NameEntry* entry = buckets[bucket]; entry != 0; entry = entry->next) {
                         const char* name = entry->name;
                         NameEntry* reused = allocateEntry();
                         unsigned long new_bucket = bucketIndex(name);
@@ -247,11 +244,7 @@ struct srRegistry::ClassNode::IDIndex {
     static_assert(sizeof(InstanceLink) == 0x10,
                   "srRegistry_ClassNode_IDIndex_InstanceLink_must_be_0x10");
 
-    IDIndex()
-        : active_count(0), free(0), block_count(0), first(0), last(0),
-          list_count(0)
-    {
-    }
+    IDIndex() : active_count(0), free(0), block_count(0), first(0), last(0), list_count(0) {}
 
     /* Retail ~IDIndex (0x100109F0) is a callable body invoked by delete
        expressions, so its definition sits out-of-line below the struct. */
@@ -803,7 +796,7 @@ void srClass::performUpdates(double time)
                 for (double update_time = update->last_update_time + update->interval;
                      update_time <= time; update_time += update->interval) {
                     update->callback(update->instance, update_time,
-                                        update_time - update->last_update_time);
+                                     update_time - update->last_update_time);
                     update->last_update_time = update_time;
                 }
             }
@@ -981,8 +974,8 @@ srRegistry::ClassNode* srRegistry::registerClass(const char* class_name, ClassNo
 void srRegistry::dumpClassHierarchy(std::ostream& stream)
 {
     srCriticalSectionAccess access(critical_section);
-    for (ClassNode::ChildLink* link = root->children.first;
-         link != root->children.last; link = link->next) {
+    for (ClassNode::ChildLink* link = root->children.first; link != root->children.last;
+         link = link->next) {
         link->node->dump(stream, 0);
     }
 }
@@ -1172,8 +1165,7 @@ void srRegistry::ClassNode::initialize(ClassNode* parent, const char* class_name
 // FUNCTION: SURRENDER 0x1000F670
 srRegistry::ClassNode::~ClassNode()
 {
-    for (ChildLink* link = children.first; link != children.last;
-         link = link->next) {
+    for (ChildLink* link = children.first; link != children.last; link = link->next) {
         delete link->node;
     }
     delete named_instances;
@@ -1224,8 +1216,7 @@ void srRegistry::ClassNode::dump(std::ostream& stream, int indent)
         stream << ' ';
     }
     stream << "Nearest parent hash: " << inherited_named_instances << '\n';
-    for (ChildLink* link = children.first; link != children.last;
-         link = link->next) {
+    for (ChildLink* link = children.first; link != children.last; link = link->next) {
         link->node->dump(stream, indent + 2);
     }
 }
@@ -1424,8 +1415,7 @@ srRuntimeClass* srRegistry::ClassNode::findByID(ClassNode* requested_class, unsi
     IDIndex* index = getIDIndex();
     if (index == 0) {
         if (exact == 0) {
-            for (ChildLink* child = children.first; child != children.last;
-                 child = child->next) {
+            for (ChildLink* child = children.first; child != children.last; child = child->next) {
                 srRuntimeClass* found = child->node->findByID(requested_class, id, 0);
                 if (found != 0) {
                     return found;

@@ -72,7 +72,7 @@ int W8MonsterInfoDialog::CreateControls()
     m_scroll_bar.CreateControls(&resources);
     int x = m_x;
     m_scroll_bar.SetLayout(x + 0x12b, m_y + 0x26, m_text_area.GetTotalLineCount(), 0,
-                              m_text_area.GetLineHeight(), 0xb9);
+                           m_text_area.GetLineHeight(), 0xb9);
     m_scroll_bar.m_owner = this;
 
     m_button.Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 0, 1, 4, 2,
@@ -254,9 +254,8 @@ bool W8MonsterInfoDialog::PopulateText()
                 if (count > 0) {
                     wcscat(text, g_comma_space);
                 }
-                wcscat(text,
-                       g_spell_records[monster_info->pCombat->combat_effects[index].effect_id]
-                           .display_name);
+                wcscat(text, g_spell_records[monster_info->pCombat->combat_effects[index].effect_id]
+                                 .display_name);
                 ++count;
             }
         }
@@ -302,8 +301,7 @@ bool W8MonsterInfoDialog::PopulateText()
             if (count > 0) {
                 wcscat(text, g_comma_space);
             }
-            wcscat(text,
-                   g_spell_records[monster_info->effect_slots[index].effect_id].display_name);
+            wcscat(text, g_spell_records[monster_info->effect_slots[index].effect_id].display_name);
             ++count;
         }
     }
@@ -341,14 +339,14 @@ bool W8MonsterInfoDialog::PopulateText()
         W8RangeCategory best_range = GetMonsterBestRangeCategory(monster_info, true, &sight);
         if (best_range != W8_RANGE_NONE) {
             m_text_area.AddEntry(gppStringList[0x141],
-                                    gppStringList[g_spell_range_name_ids[best_range]], 10, 0xf, 0);
+                                 gppStringList[g_spell_range_name_ids[best_range]], 10, 0xf, 0);
         }
     }
     if (0x31 < knowledge && record->special_attack_kind != 0) {
         m_text_area.AddEntry(
             gppStringList[0x142],
-            gppStringList[g_monster_special_attack_name_ids[record->special_attack_kind]], 10,
-            0xf, 0);
+            gppStringList[g_monster_special_attack_name_ids[record->special_attack_kind]], 10, 0xf,
+            0);
     }
 
     if (9 < knowledge) {
@@ -428,8 +426,8 @@ bool W8MonsterInfoDialog::PopulateText()
     for (index = 0; index < 6; ++index) {
         if (g_monster_resistance_label_gates[index][0] <= static_cast<int>(knowledge)) {
             m_text_area.AddEntry(gppStringList[g_monster_resistance_label_gates[index][1]],
-                                    FormatWideString(g_format_d, record->resistances[index]), 10,
-                                    0xf, 0);
+                                 FormatWideString(g_format_d, record->resistances[index]), 10, 0xf,
+                                 0);
         }
     }
 
@@ -444,10 +442,10 @@ bool W8MonsterInfoDialog::PopulateText()
         leader_info = MonsterInfoFromID(0x1d6, MONSTER_INFO_DIALOG_CPP, leader_location_id, true);
         script = leader_info->p3D->script;
         m_text_area.AddEntry(L"Leader's Current Script",
-                                FormatWideString(L"<%S>", script != 0 ? script->getName() : 0), 5,
-                                0xf, 0);
+                             FormatWideString(L"<%S>", script != 0 ? script->getName() : 0), 5, 0xf,
+                             0);
         m_text_area.AddEntry(L"Leader's AI Mode",
-                                FormatWideString(g_format_d, leader_info->ai_mode), 5, 0xf, 0);
+                             FormatWideString(g_format_d, leader_info->ai_mode), 5, 0xf, 0);
         const wchar_t* strategy = L"Close";
         if (record->prefer_ranged_actions != 0) {
             strategy = L"Ranged";

@@ -329,8 +329,8 @@ bool CanPartyMemberAimAtMonster(int party_slot, int hand, W8MonsterInfo* monster
         }
         if (range == W8_RANGE_NONE) {
             if (notify_failure != 0) {
-                QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_event_target_out_of_range, 0,
-                                    g_character_event_no_flags, g_character_event_full_volume);
+                QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_event_target_out_of_range,
+                                    0, g_character_event_no_flags, g_character_event_full_volume);
             }
             return false;
         }
@@ -538,8 +538,7 @@ bool RangeCategoryUsesSightCondition(const W8MonsterInfo* monster, W8RangeCatego
    hostile filter is forced on. Party members and other monsters defer to the corresponding
    MonsterAttackReachesCharacter/Monster helpers. */
 // FUNCTION: WIZ8 0x00519c00
-bool MonsterAttackReachesAnyone(W8MonsterInfo* monster_info, unsigned int attack,
-                                         char hostile_only)
+bool MonsterAttackReachesAnyone(W8MonsterInfo* monster_info, unsigned int attack, char hostile_only)
 {
     W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
     char disposition_needed;
@@ -1138,7 +1137,7 @@ float MonsterChooseTarget(W8MonsterInfo* monster_info, W8CombatSlot* out, int ki
    every member. */
 // FUNCTION: WIZ8 0x00519f80
 bool MonsterActionReachesTarget(W8MonsterInfo* monster_info, W8MonsterRecord* record,
-                                         unsigned int attack, W8CombatSlot* target)
+                                unsigned int attack, W8CombatSlot* target)
 {
     W8RangeCategory range;
 

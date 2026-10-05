@@ -148,7 +148,7 @@ struct W8CampScreenState {
     unsigned int hover_region;
     unsigned int redraw_flags;
     unsigned int item_redraw_flags;
-    W8LearnedSpellState learned_spells; /* 0x100 */
+    W8LearnedSpellState learned_spells;                    /* 0x100 */
     unsigned char item_filters[W8_CAMP_ITEM_FILTER_COUNT]; /* 0x4dc */
     unsigned char padding_4e2[2];
     unsigned int item_scroll;
@@ -241,10 +241,10 @@ extern int g_attribute_label_ids[7];
    given as explicit rectangles. The region initializer reads the first four
    fields; the trailing five are never touched there and stay positional. */
 struct W8CampScreenRegion {
-    int x;                     /* 0x00 */
-    int y;                     /* 0x04 */
-    int width;                 /* 0x08 */
-    int height;                /* 0x0c */
+    int x;                  /* 0x00 */
+    int y;                  /* 0x04 */
+    int width;              /* 0x08 */
+    int height;             /* 0x0c */
     int frame;              /* 0x10: catalog frame for the slot border */
     int unidentified_frame; /* 0x14: overlay frame while the item is unidentified */
     int label_x;            /* 0x18: item label left */

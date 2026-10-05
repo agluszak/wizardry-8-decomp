@@ -25,7 +25,7 @@ extern unsigned short g_pc_hit_location_labels[5][2];
 /* 0x0061EA24: gppStringList indices naming each monster hit location for
    each body type. */
 extern unsigned short g_monster_hit_location_labels[W8_MONSTER_HIT_LOCATIONS]
-                                                         [W8_MONSTER_BODY_TYPES];
+                                                   [W8_MONSTER_BODY_TYPES];
 
 /* 0x0061E9CC: gppStringList indices naming the sixteen secondary hit effects the
    missile_values arrays on monster attacks and item records carry. */
@@ -126,8 +126,8 @@ W8AttackMode CharChooseHandAttackMode(W8Character* character, int hand);        
 wchar_t* SpellTargetString(W8TargetSource* source, W8CombatSlot* target);        /* 0x00546B40 */
 int GetTargetArmorClass(W8CombatSlot* target, W8AttackMode attack_mode);         /* 0x00542EE0 */
 bool BlockedForSpecialReason(int weapon_class, W8CombatSlot* target, int attack_value,
-                                      int armor_value, unsigned int palette);  /* 0x00543110 */
-unsigned int CapAttackDamageByTargetHealth(unsigned int damage);               /* 0x00545A00 */
+                             int armor_value, unsigned int palette); /* 0x00543110 */
+unsigned int CapAttackDamageByTargetHealth(unsigned int damage);     /* 0x00545A00 */
 void StartMonsterAttackCycle(W8MonsterInfo* monster_info,
                              W8AttackMode action_detail);                      /* 0x0053FFE0 */
 void ReportCharacterAttackResult(int party_slot, W8SpellEffectResult* report); /* 0x0053FB00 */

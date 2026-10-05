@@ -973,11 +973,9 @@ void ProcessNpcPendingEvents(void)
             } else {
                 char band = GetLevelBand(g_status.current_level);
                 if (band != 9 && band != 0xa) {
-                    W8Character* character =
-                        &g_status.buffers.Char[g_status.sedexus_party_slot];
+                    W8Character* character = &g_status.buffers.Char[g_status.sedexus_party_slot];
                     if (character->gender == W8_GENDER_MALE) {
-                        QueueCharacterEvent(character, g_effect30, 0,
-                                            g_character_event_no_flags,
+                        QueueCharacterEvent(character, g_effect30, 0, g_character_event_no_flags,
                                             g_character_event_full_volume);
                     }
                     SetCharacterCondition(g_status.sedexus_party_slot, W8_CONDITION_INFATUATED,

@@ -682,14 +682,12 @@ bool IsSkyEnabled(void)
 void RefreshFogRanges(void)
 {
     if (g_environment_object0 != 0 && g_world != 0) {
-        g_environment_object0->fog_end =
-            WorldGetFarClip(g_world) * g_world->environment_range_end;
+        g_environment_object0->fog_end = WorldGetFarClip(g_world) * g_world->environment_range_end;
         g_environment_object0->fog_start =
             WorldGetFarClip(g_world) * g_world->environment_range_start;
         g_environment_object1->fog_start =
             WorldGetFarClip(g_world) * g_world->environment_range_start;
-        g_environment_object1->fog_end =
-            WorldGetFarClip(g_world) * g_world->environment_range_end;
+        g_environment_object1->fog_end = WorldGetFarClip(g_world) * g_world->environment_range_end;
     }
 }
 

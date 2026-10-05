@@ -356,8 +356,8 @@ bool W8AssayDialog::PopulateText()
         }
         if (record->slays_kind != 0xff) {
             m_text_area.AddEntry(gppStringList[0x8d8],
-                                 gppStringList[g_special_category_name_ids[record->slays_kind]],
-                                 10, 0xf, 0);
+                                 gppStringList[g_special_category_name_ids[record->slays_kind]], 10,
+                                 0xf, 0);
         }
         if (record->equip_class == W8_ITEM_EQUIP_CLASS_SHIELD && m_character != 0 &&
             IsItemWornByCharacter(m_character, m_item)) {
@@ -375,10 +375,10 @@ bool W8AssayDialog::PopulateText()
         }
     }
     if (record->property != 0) {
-        m_text_area.AddEntry(gppStringList[0x8e9],
-                             gppStringList[g_item_use_messages[W8_ITEM_PROPERTY_MESSAGE_FIRST +
-                                                               record->property]],
-                             10, 0xf, 0);
+        m_text_area.AddEntry(
+            gppStringList[0x8e9],
+            gppStringList[g_item_use_messages[W8_ITEM_PROPERTY_MESSAGE_FIRST + record->property]],
+            10, 0xf, 0);
     }
     switch (record->equip_class) {
     case W8_ITEM_EQUIP_CLASS_SHORT_WEAPON:
@@ -463,30 +463,33 @@ bool W8AssayDialog::PopulateText()
         }
         if (record->health_regen_bonus > 0) {
             m_text_area.AddEntry(gppStringList[0x8d9],
-                                 FormatWideString(g_format_plus_d, record->health_regen_bonus), 10, 0xf,
-                                 0);
+                                 FormatWideString(g_format_plus_d, record->health_regen_bonus), 10,
+                                 0xf, 0);
         }
         if (record->health_regen_bonus < 0) {
             m_text_area.AddEntry(gppStringList[0x8da],
-                                 FormatWideString(g_format_d, record->health_regen_bonus), 10, 0xf, 0);
+                                 FormatWideString(g_format_d, record->health_regen_bonus), 10, 0xf,
+                                 0);
         }
         if (record->stamina_regen_bonus > 0) {
             m_text_area.AddEntry(gppStringList[0x8db],
-                                 FormatWideString(g_format_plus_d, record->stamina_regen_bonus), 10, 0xf,
-                                 0);
+                                 FormatWideString(g_format_plus_d, record->stamina_regen_bonus), 10,
+                                 0xf, 0);
         }
         if (record->stamina_regen_bonus < 0) {
             m_text_area.AddEntry(gppStringList[0x8dc],
-                                 FormatWideString(g_format_d, record->stamina_regen_bonus), 10, 0xf, 0);
+                                 FormatWideString(g_format_d, record->stamina_regen_bonus), 10, 0xf,
+                                 0);
         }
         if (record->spell_regen_bonus > 0) {
             m_text_area.AddEntry(gppStringList[0x8dd],
-                                 FormatWideString(g_format_plus_d, record->spell_regen_bonus), 10, 0xf,
-                                 0);
+                                 FormatWideString(g_format_plus_d, record->spell_regen_bonus), 10,
+                                 0xf, 0);
         }
         if (record->spell_regen_bonus < 0) {
             m_text_area.AddEntry(gppStringList[0x8de],
-                                 FormatWideString(g_format_d, record->spell_regen_bonus), 10, 0xf, 0);
+                                 FormatWideString(g_format_d, record->spell_regen_bonus), 10, 0xf,
+                                 0);
         }
         if (record->modifier_0b3_index != -1 && record->modifier_0b3_value > 0) {
             swprintf(modifier_text, L"%s %+d",

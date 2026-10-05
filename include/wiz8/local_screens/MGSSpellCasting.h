@@ -22,26 +22,26 @@ enum {
    the rest are unresolved. */
 struct W8SpellCastingView {
     unsigned char unknown_000[0xf8];
-    W8Character* caster;             /* 0x0f8 */
-    W8SpellRealm iSpellRealm;        /* 0x0fc: selected realm, -1 when none */
-    int uiSpellToCast;               /* 0x100 */
-    int override_spell;          /* 0x104: detail/commit override spell */
-    int iSpellPower;                 /* 0x108: chosen power index, -1 when unset */
+    W8Character* caster;                /* 0x0f8 */
+    W8SpellRealm iSpellRealm;           /* 0x0fc: selected realm, -1 when none */
+    int uiSpellToCast;                  /* 0x100 */
+    int override_spell;                 /* 0x104: detail/commit override spell */
+    int iSpellPower;                    /* 0x108: chosen power index, -1 when unset */
     W8SpellPowerClass iSpellPowerClass; /* 0x10c: the spell record's power class */
-    unsigned int uiPowerLevels;      /* 0x110: affordable power-level count */
-    TIMER realm_anim_timer;          /* 0x114 */
-    unsigned int realm_anim_frame;   /* 0x118 */
-    W8LearnedSpellState learned;     /* 0x11c */
-    int uiSpellIndex;                /* 0x4f8: clicked list row */
-    int selected_spell_index;        /* 0x4fc */
-    int field_500;                   /* 0x500 */
-    Controls* panels[3];             /* 0x504 */
-    W8TextControl* realm_buttons[6]; /* 0x510 */
-    W8TextControl* realm_icons[6];   /* 0x528 */
+    unsigned int uiPowerLevels;         /* 0x110: affordable power-level count */
+    TIMER realm_anim_timer;             /* 0x114 */
+    unsigned int realm_anim_frame;      /* 0x118 */
+    W8LearnedSpellState learned;        /* 0x11c */
+    int uiSpellIndex;                   /* 0x4f8: clicked list row */
+    int selected_spell_index;           /* 0x4fc */
+    int field_500;                      /* 0x500 */
+    Controls* panels[3];                /* 0x504 */
+    W8TextControl* realm_buttons[6];    /* 0x510 */
+    W8TextControl* realm_icons[6];      /* 0x528 */
     /* 0x540: indexed by region callback id. */
     W8TextControl* power_controls[W8_SPELL_POWER_CONTROL_COUNT];
-    W8MainUiMode saved_game_mode;    /* 0x56c */
-    bool input_blocked;          /* 0x570 */
+    W8MainUiMode saved_game_mode; /* 0x56c */
+    bool input_blocked;           /* 0x570 */
     unsigned char pad_571[3];
     int field_574;                 /* 0x574 */
     int interact_id;               /* 0x578 */
@@ -60,7 +60,7 @@ void CloseSpellCastingView(void);                                    /* 0x0059F2
 void RestoreSpellCastingRegions(void);                               /* 0x0059F440 */
 void SelectSpellCastingCharacter(int party_slot);                    /* 0x0059F490 */
 void BeginSpellCast(int spell_id, int location_id, int interact_id); /* 0x005A0110 */
-void SetSpellCastingPanelsActive(bool active);              /* 0x005A0270 */
+void SetSpellCastingPanelsActive(bool active);                       /* 0x005A0270 */
 void InvalidateSpellCastingDescription(void);                        /* 0x005A0300 */
 void SelectSpellPowerLevel(int power_level);                         /* 0x005A06F0 */
 void ResetSpellCastingSelection(void);                               /* 0x005A0B90 */

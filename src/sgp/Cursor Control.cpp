@@ -1,6 +1,7 @@
 /* Modified for the Wizardry 8 reconstruction, 2026-10-03.
    Collapse the released JA2, utility, and precompiled-header branches to the Wizardry build.
    Remove released functions that are neither retained in the Wizardry 8 retail image nor referenced by retained code.
+   Formatting normalized for the Wizardry 8 reconstruction, 2026-10-06.
    Distributed under the accompanying SFI Source Code license agreement. */
 #include "Cursor Control.h"
 
@@ -16,26 +17,22 @@
 
 BOOLEAN gfCursorDatabaseInit = FALSE;
 
-CursorFileData *gpCursorFileDatabase;
-CursorData		 *gpCursorDatabase;
-INT16					 gsGlobalCursorYOffset = 0;
-INT16					 gsCurMouseOffsetX = 0;
-INT16 				 gsCurMouseOffsetY = 0;
-UINT16				 gsCurMouseHeight = 0;
-UINT16				 gsCurMouseWidth = 0;
-UINT16				 gusNumDataFiles = 0;
-UINT32				 guiExternVo;
-UINT16				 gusExternVoSubIndex;
-UINT32				 guiExtern2Vo;
-UINT16				 gusExtern2VoSubIndex;
-UINT32				 guiOldSetCursor = 0;
-UINT32				 guiDelayTimer = 0;
+CursorFileData* gpCursorFileDatabase;
+CursorData* gpCursorDatabase;
+INT16 gsGlobalCursorYOffset = 0;
+INT16 gsCurMouseOffsetX = 0;
+INT16 gsCurMouseOffsetY = 0;
+UINT16 gsCurMouseHeight = 0;
+UINT16 gsCurMouseWidth = 0;
+UINT16 gusNumDataFiles = 0;
+UINT32 guiExternVo;
+UINT16 gusExternVoSubIndex;
+UINT32 guiExtern2Vo;
+UINT16 gusExtern2VoSubIndex;
+UINT32 guiOldSetCursor = 0;
+UINT32 guiDelayTimer = 0;
 
-
-MOUSEBLT_HOOK				gMouseBltOverride = NULL;
-
-
-
+MOUSEBLT_HOOK gMouseBltOverride = NULL;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -49,13 +46,9 @@ MOUSEBLT_HOOK				gMouseBltOverride = NULL;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-BOOLEAN SetCurrentCursorFromDatabase( UINT32 uiCursorIndex  )
+BOOLEAN SetCurrentCursorFromDatabase(UINT32 uiCursorIndex)
 {
-	return(0);
-
+    return (0);
 }
-
-
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

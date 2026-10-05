@@ -24,8 +24,7 @@ public:
 
     SR_DLL_IMPORT void reset();
     SR_DLL_IMPORT void getStatistics(Statistics& statistics) const;
-    SR_DLL_IMPORT void dump(
-        std::ostream& stream, const Statistics& statistics);
+    SR_DLL_IMPORT void dump(std::ostream& stream, const Statistics& statistics);
 
     /* SurRender's submission pipeline updates these counters directly. */
     Statistics statistics;
@@ -33,5 +32,4 @@ public:
 
 static_assert(sizeof(srStatisticsManager::Statistics) == 0x38,
               "srStatisticsManager_Statistics_must_be_0x38");
-static_assert(sizeof(srStatisticsManager) == 0x38,
-              "srStatisticsManager_must_be_0x38");
+static_assert(sizeof(srStatisticsManager) == 0x38, "srStatisticsManager_must_be_0x38");

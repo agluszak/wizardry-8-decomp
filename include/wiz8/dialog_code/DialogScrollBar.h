@@ -17,16 +17,16 @@ public:
     };
     W8DialogScrollBar(); /* 0x005E0C40 */
     ~W8DialogScrollBar();
-    bool CreateControls(const Resources* resources);          /* 0x005E0CA0 */
-    void DestroyControls();                                   /* 0x005E0E00 */
+    bool CreateControls(const Resources* resources); /* 0x005E0CA0 */
+    void DestroyControls();                          /* 0x005E0E00 */
     void SetLayout(int x, int y, int entry_count, int first_visible_entry, int entry_height,
                    int view_height); /* 0x005E0EB0 */
     void UpdateThumb();              /* 0x005E1000 */
-    void Draw(bool force);  /* 0x005E10B0 */
+    void Draw(bool force);           /* 0x005E10B0 */
     void ScrollUp();                 /* 0x005E1170 */
     void ScrollBy(int delta);
-    void ScrollDown();               /* 0x005E11A0 */
-    void ScrollToMouse();            /* 0x005E11E0 */
+    void ScrollDown();    /* 0x005E11A0 */
+    void ScrollToMouse(); /* 0x005E11E0 */
 
 private:
     static void UpButtonCallback(GUI_BUTTON* button, INT32 reason);
@@ -38,10 +38,10 @@ public:
     bool m_dirty; /* 0x02: owning dialogs set this before Draw */
 private:
     unsigned char unknown_003;
-    int m_entry_count;         /* 0x04 */
-    int m_first_visible_entry; /* 0x08 */
-    int m_entry_height;        /* 0x0c */
-    int m_view_height;         /* 0x10 */
+    int m_entry_count;             /* 0x04 */
+    int m_first_visible_entry;     /* 0x08 */
+    int m_entry_height;            /* 0x0c */
+    int m_view_height;             /* 0x10 */
     W8ControlsRect m_track_bounds; /* 0x14: left, top, right, bottom */
 public:
     /* Owning dialog; MonsterInfoDialog stores this so the scroll callback can

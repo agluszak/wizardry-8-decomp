@@ -30,8 +30,8 @@ bool IsScreenBusy(void);
    resistance in the realm turns aside; a permanent magnitude is left alone. */
 void ReduceMagnitudeByResistance(unsigned int* magnitude, W8CombatSlot* target, W8SpellRealm realm,
                                  int power_level);
-void AnnounceEffectResisted(W8CombatSlot* target);       /* 0x00552070 */
-void ClearMonsterCharm(W8MonsterInfo* monster_info);     /* 0x005523D0 */
+void AnnounceEffectResisted(W8CombatSlot* target);   /* 0x00552070 */
+void ClearMonsterCharm(W8MonsterInfo* monster_info); /* 0x005523D0 */
 void ApplyEffectAndAnnounce(unsigned int* result, W8CombatSlot* target, W8SpellRealm realm,
                             int power_level); /* 0x00552340 */
 /* 0x00551BA0 sits before the unit's assertion hull rather than inside it;
@@ -61,13 +61,13 @@ void FinishSpellEffectTargets(W8SpellEffectEntry* effect);  /* 0x0054C930 */
 char TryCureConditionOnTargets(W8SpellEffectEntry* effect, W8Condition condition,
                                bool force);                                       /* 0x0054DF00 */
 void ApplyConditionToTargets(W8SpellEffectEntry* effect, W8EnchantmentSlot slot); /* 0x0054E3F0 */
-void ApplyRandomAfflictionToTarget(W8SpellEffectEntry* effect);          /* 0x0054E610 */
-void ReportSpellEffectResult(W8SpellEffectEntry* effect);                /* 0x0054E710 */
-void ApplyDamageToTargets(W8SpellEffectEntry* effect);                   /* 0x0054E950 */
-void DrainTargetsLife(W8SpellEffectEntry* effect);                       /* 0x0054EC80 */
-char HealTargets(W8SpellEffectEntry* effect);                            /* 0x0054F190 */
-char RestoreTargetsStamina(W8SpellEffectEntry* effect);                  /* 0x0054F520 */
-void FatigueTargets(W8SpellEffectEntry* effect);                         /* 0x0054F8C0 */
+void ApplyRandomAfflictionToTarget(W8SpellEffectEntry* effect);                   /* 0x0054E610 */
+void ReportSpellEffectResult(W8SpellEffectEntry* effect);                         /* 0x0054E710 */
+void ApplyDamageToTargets(W8SpellEffectEntry* effect);                            /* 0x0054E950 */
+void DrainTargetsLife(W8SpellEffectEntry* effect);                                /* 0x0054EC80 */
+char HealTargets(W8SpellEffectEntry* effect);                                     /* 0x0054F190 */
+char RestoreTargetsStamina(W8SpellEffectEntry* effect);                           /* 0x0054F520 */
+void FatigueTargets(W8SpellEffectEntry* effect);                                  /* 0x0054F8C0 */
 void InflictConditionAttack(W8SpellEffectEntry* effect, W8Condition condition, int chance,
                             int argument); /* 0x0054D5C0 */
 /* 0x00553910: the target's own turns left on a condition; condition seven

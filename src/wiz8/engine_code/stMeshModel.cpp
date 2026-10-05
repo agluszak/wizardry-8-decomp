@@ -303,8 +303,7 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
                     if ((g_environment_offset.x != g_float_zero ||
                          g_environment_offset.y != g_float_zero ||
                          g_environment_offset.z != g_float_zero) &&
-                        vertex_light_table != 1 &&
-                        (count = vertex_location_count, count != 0) &&
+                        vertex_light_table != 1 && (count = vertex_location_count, count != 0) &&
                         IsZeroVector(&g_environment_offset) == 0) {
                         srVectorProcessor::add(dig, g_environment_offset, dig,
                                                static_cast<SRDWORD>(count));
@@ -404,8 +403,7 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
                 if ((g_environment_offset.x != g_float_zero ||
                      g_environment_offset.y != g_float_zero ||
                      g_environment_offset.z != g_float_zero) &&
-                    vertex_light_table != 1 &&
-                    (count = vertex_location_count, count != 0) &&
+                    vertex_light_table != 1 && (count = vertex_location_count, count != 0) &&
                     IsZeroVector(&g_environment_offset) == 0) {
                     srVectorProcessor::add(dig, g_environment_offset, dig,
                                            static_cast<SRDWORD>(count));
@@ -965,8 +963,7 @@ unsigned char stMeshModel::AllocateFrameStorage()
             srAssertFail("m_psCompVertexLoc[uiCount]",
                          "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp", 0x1ce, 0);
         }
-        memset(compressed_vertex_locations[frame], 0,
-               vertex_location_count * 3 * sizeof(short));
+        memset(compressed_vertex_locations[frame], 0, vertex_location_count * 3 * sizeof(short));
         compressed_vertex_normals[frame] = new unsigned char[vertex_location_count * 3];
         if (compressed_vertex_normals[frame] == 0) {
             srAssertFail("m_pbCompVertexNormal[uiCount]",
@@ -1345,8 +1342,8 @@ srVector3T<float>* stMeshModel::GetVertexLocations(unsigned int frame, bool load
                 if (interpolation == g_float_one) {
                     CopyDwordBuffer(lerp_buffer, next, vertex_location_count * 3);
                 } else {
-                    srVectorProcessor::lerp(&lerp_buffer->x, &next->x, &current->x,
-                                            interpolation, vertex_location_count * 3);
+                    srVectorProcessor::lerp(&lerp_buffer->x, &next->x, &current->x, interpolation,
+                                            vertex_location_count * 3);
                 }
             }
         }
@@ -1714,8 +1711,7 @@ void srTriMeshPipeline::FlushSlots()
             slot_count * active_triangle_count;
     }
     ++srCore.getStatisticsManager()->statistics.meshes_submitted;
-    srCore.getStatisticsManager()->statistics.vertices_submitted +=
-        slot_count * vertex_count;
+    srCore.getStatisticsManager()->statistics.vertices_submitted += slot_count * vertex_count;
 
     unsigned long total = active_triangles == 0 ? triangle_count : active_triangle_count;
     unsigned long batch_limit = total;
@@ -1770,8 +1766,7 @@ void srTriMeshPipeline::FlushSlots()
 
             (void)this->vertex_arrays[slot_count];
             srVertexArray* vertex_arrays = &this->vertex_arrays[0];
-            renderer->allocVertexArray(vertex_arrays[0],
-                                       slot_count * culler_output.vertex_count);
+            renderer->allocVertexArray(vertex_arrays[0], slot_count * culler_output.vertex_count);
 
             for (unsigned long slot = 1; slot < slot_count; ++slot) {
                 unsigned long offset = slot * culler_output.vertex_count;

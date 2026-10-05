@@ -205,9 +205,8 @@ bool CanMonsterSeeMonster(W8MonsterInfo* source, W8MonsterInfo* target, W8Visibi
 // FUNCTION: WIZ8 0x00505a40
 float ComputeSightThreshold(srVector3T<float> observer_position, srVector3T<float> target_position,
                             float observer_yaw, unsigned int perception_attribute,
-                            unsigned char ranged_bonus, bool blinded,
-                            bool extended_sight_active, int penalty_source,
-                            int penalty_modifier, int skip_field_of_view,
+                            unsigned char ranged_bonus, bool blinded, bool extended_sight_active,
+                            int penalty_source, int penalty_modifier, int skip_field_of_view,
                             unsigned char sight_override, float distance)
 {
     W8World* world;
@@ -463,8 +462,7 @@ const float g_sight_threat_scale = 0.6667f;
    nonzero is the player pass, which refreshes the party-facing record, stamps
    the notice and fade state, and ends in the player-to-monster flag pass. */
 // FUNCTION: WIZ8 0x005049c0
-void UpdateMonsterSight(W8MonsterInfo* monster_info, bool direction,
-                        bool use_bounds)
+void UpdateMonsterSight(W8MonsterInfo* monster_info, bool direction, bool use_bounds)
 {
     W8MonsterRecord* record;
     W8Monster* monster;
@@ -882,9 +880,8 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, bool direction,
                 monster_info->party_threat.sight_state = W8_SIGHT_UNSEEN;
             } else {
                 monster_info->party_threat.sight_state = static_cast<unsigned char>(
-                    (0x78U <
-                     static_cast<unsigned int>(g_status.world_clock -
-                                               monster_info->party_threat.last_seen_clock))
+                    (0x78U < static_cast<unsigned int>(g_status.world_clock -
+                                                       monster_info->party_threat.last_seen_clock))
                         ? W8_SIGHT_UNSEEN
                         : W8_SIGHT_RECENT);
             }

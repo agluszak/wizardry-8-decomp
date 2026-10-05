@@ -1016,17 +1016,17 @@ void W8CharacterPersonalityPage::SetCharacter(W8Character* character,
     m_control5 =
         new W8TextControl(this, 0xffffffff, 100, 0x19, 0, 0, 0x10a, 0, 10, 0xc, 0xb, 0xe, 0xd);
     m_control5->m_listener = action_listener;
-    m_control4 = new W8TextControl(this, 0xffffffff, 0x144, 0x19, 0, 0, 0x10a, 0, 0xf, 0x11,
-                                      0x10, 0x13, 0x12);
+    m_control4 = new W8TextControl(this, 0xffffffff, 0x144, 0x19, 0, 0, 0x10a, 0, 0xf, 0x11, 0x10,
+                                   0x13, 0x12);
     m_control4->m_listener = action_listener;
     m_control7 =
         new W8TextControl(this, 0xffffffff, 100, 0x67, 0, 0, 0x10a, 0, 10, 0xc, 0xb, 0xe, 0xd);
     m_control7->m_listener = action_listener;
-    m_control6 = new W8TextControl(this, 0xffffffff, 0x144, 0x67, 0, 0, 0x10a, 0, 0xf, 0x11,
-                                      0x10, 0x13, 0x12);
+    m_control6 = new W8TextControl(this, 0xffffffff, 0x144, 0x67, 0, 0, 0x10a, 0, 0xf, 0x11, 0x10,
+                                   0x13, 0x12);
     m_control6->m_listener = action_listener;
     m_randomize = new W8TextControl(this, 0xffffffff, 0x16d, 0x155, 0, 0, 0x10a, 0, 0x14, 0x16,
-                                        0x15, 0x18, 0x17);
+                                    0x15, 0x18, 0x17);
     m_randomize->m_listener = action_listener;
     m_randomize->EnableRegionHelp(0xf5);
 
@@ -1418,8 +1418,7 @@ void W8CharacterSkillsPage::Accept()
 void W8CharacterSkillsPage::GetNavigationState(bool* next_enabled, bool* exit_enabled)
 {
     *next_enabled = m_creation_state->skills_complete;
-    *exit_enabled =
-        m_creation_state->skill_points_remaining < m_creation_state->skill_points_total;
+    *exit_enabled = m_creation_state->skill_points_remaining < m_creation_state->skill_points_total;
     if (*next_enabled != nav_next_state) {
         for (int index = 0; index < m_entries.count; ++index) {
             m_entries.data[index]->SetIncrementAllowed(!*next_enabled);
@@ -1503,8 +1502,7 @@ void W8CharacterSkillsPage::Redraw()
         W8ControlsRect bounds = {0x8f, 0x184, 0xbf, 0x19b};
         DrawCatalogImage(-14, 0x107, 0, 5, 0x8f, 0x184, 2, 0);
         text.SetLayoutBounds(&bounds, true, true);
-        text.SetText(FormatWideString(g_format_d_slash_d,
-                                      m_creation_state->skill_points_remaining,
+        text.SetText(FormatWideString(g_format_d_slash_d, m_creation_state->skill_points_remaining,
                                       m_creation_state->skill_points_total),
                      g_options_detail_font);
         text.RenderToTarget(0, true, -14);

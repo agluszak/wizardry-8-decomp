@@ -21,5 +21,4 @@ public:
     /* Copy construction and assignment are consistent with basic_ios<char>'s
        memberwise copyfmt operations. The
        vbase/vector-deleting destructors carry the virtual-inheritance ABI. */
-
 };

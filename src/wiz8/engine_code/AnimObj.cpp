@@ -183,9 +183,7 @@ unsigned char AnimObjReadFromFile(W8ReadLevelInfo* info, W8AnimObj* animation, i
                         typed->frame_sums.Add(frame);
                     } else {
                         typed->frame_sums.Add(
-                            *typed->frame_sums.GetAt(typed->frame_sums.count -
-                                                                1) +
-                            frame);
+                            *typed->frame_sums.GetAt(typed->frame_sums.count - 1) + frame);
                     }
                 }
                 definition = typed;
@@ -355,7 +353,7 @@ W8AnimObj* CloneAnimObj(const W8AnimObj* source)
             count = static_cast<int>(PLLength(source->meshes[index]));
             for (entry = 0; entry < count; ++entry) {
                 PLAdoptAppend(copy->meshes[index], CopyAniMesh(static_cast<W8AniMesh*>(
-                                                          PLGet(source->meshes[index], entry))));
+                                                       PLGet(source->meshes[index], entry))));
             }
         }
     }
@@ -365,7 +363,7 @@ W8AnimObj* CloneAnimObj(const W8AnimObj* source)
             count = static_cast<int>(PLLength(source->paths[index]));
             for (entry = 0; entry < count; ++entry) {
                 PLAdoptAppend(copy->paths[index], ClonePathAI(static_cast<W8PathAI*>(
-                                                         PLGet(source->paths[index], entry))));
+                                                      PLGet(source->paths[index], entry))));
             }
         }
     }
@@ -476,9 +474,8 @@ unsigned char AnimObjGetBounds(W8AnimObj* animation, signed char list_index, uns
                      maximum);
     for (index = 0; static_cast<unsigned int>(index) < count; ++index) {
         if (index != 0) {
-            GetAniMeshBounds(
-                static_cast<W8AniMesh*>(PLGet(animation->meshes[list_index], index)),
-                &mesh_minimum, &mesh_maximum);
+            GetAniMeshBounds(static_cast<W8AniMesh*>(PLGet(animation->meshes[list_index], index)),
+                             &mesh_minimum, &mesh_maximum);
         }
         if (animation == 0) {
             srAssertFail("pao", ANIM_OBJ_CPP, 0x26c, 0);
@@ -807,8 +804,7 @@ stLightDefinition* stKeyframedLightDefinition::Clone() const
 // FUNCTION: WIZ8 0x004a2580
 bool stKeyframedLightDefinition::IsEnabledForSubcycle(unsigned char subcycle)
 {
-    if (*key_frames.GetAt(0) <= time &&
-        time <= *key_frames.GetAt(key_frames.GetCount() - 1)) {
+    if (*key_frames.GetAt(0) <= time && time <= *key_frames.GetAt(key_frames.GetCount() - 1)) {
         return true;
     }
     return false;

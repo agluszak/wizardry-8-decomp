@@ -297,8 +297,8 @@ void stLight::Update()
                     blend = g_float_one;
                 }
             }
-            intensity = (definition->intensity_to - definition->intensity) * blend +
-                            definition->intensity;
+            intensity =
+                (definition->intensity_to - definition->intensity) * blend + definition->intensity;
             m_level = blend;
             if ((definition->flags & W8_PARAM_LIGHT_COLOR) == 0) {
                 m_level_time = seconds;
@@ -314,7 +314,7 @@ void stLight::Update()
             if (blend <= g_float_one) {
                 float level = blend;
                 intensity = (definition->intensity_to - definition->intensity) * level +
-                                definition->intensity;
+                            definition->intensity;
                 m_level = level;
                 if ((definition->flags & W8_PARAM_LIGHT_COLOR) != 0) {
                     definition->GetInterpolatedColor(blend, &diffuse);

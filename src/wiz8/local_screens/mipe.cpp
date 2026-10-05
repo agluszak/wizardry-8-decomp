@@ -123,8 +123,7 @@ void ToggleMipePanel(void)
         }
         for (unsigned int monster_list_index = 0;
              monster_list_index < PLLength(gXStatus.plsMonsterList); ++monster_list_index) {
-            W8MonsterInfo* monster =
-                GetMonsterListEntry(monster_list_index);
+            W8MonsterInfo* monster = GetMonsterListEntry(monster_list_index);
             if (monster != 0 && monster->fInCombat) {
                 SetMonsterHighlight(0, monster->location_id, false);
             }
@@ -1023,9 +1022,8 @@ void HandleMipeMonsterCategoryKey(unsigned short key)
         if (g_mipe_state->creation_method != 1) {
             if (g_mipe_state->creation_method == 2) {
                 LoadMonsterDatabaseRecord(static_cast<int>(record.record_id), &selected);
-                g_mipe_count =
-                    selected.group_size_dice.sides * selected.group_size_dice.count +
-                    static_cast<int>(selected.group_size_dice.base);
+                g_mipe_count = selected.group_size_dice.sides * selected.group_size_dice.count +
+                               static_cast<int>(selected.group_size_dice.base);
             }
             ShowMipeMonsterStatus();
             g_mipe_mode = 1;

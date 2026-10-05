@@ -187,6 +187,6 @@ bool SaveRenderOptions(int handle)
     if (FileWrite(handle, &version, 4, &transferred) == 0) {
         return false;
     }
-    return FileWrite(handle, g_render_options->option_states, W8_RENDER_OPTION_COUNT, &transferred) !=
-           0;
+    return FileWrite(handle, g_render_options->option_states, W8_RENDER_OPTION_COUNT,
+                     &transferred) != 0;
 }

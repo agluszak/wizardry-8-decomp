@@ -296,8 +296,7 @@ void DrawCampSpellPages(void)
             DrawCatalogImageAndInvalidate(-14, 0x140, 0, 3, left, top, 2, 0);
             SetFontObjectPalette16BPP(g_wiz_text_font_secondary,
                                       g_font_state_palettes[W8_FONT_PALETTE_GREEN]);
-            gprintf(left + 0x1b, top + 8, Wiz8ToSgpWideText(g_format_s0),
-                    gppStringList[0x8c7]);
+            gprintf(left + 0x1b, top + 8, Wiz8ToSgpWideText(g_format_s0), gppStringList[0x8c7]);
             gprintf(left + 0x72, top + 8, gppStringList[0x8c9]);
             SetFontObjectPalette16BPP(g_wiz_text_font_secondary, g_wiz_text_font_secondary_palette);
             width = StringPixLengthArg(g_wiz_text_font_secondary, wcslen(gppStringList[0x8c7]) + 2,
@@ -1457,8 +1456,7 @@ void CampScreenFrame(void)
                                 FormatWideString(gppStringList[0x931], g_camp_character->name);
                             ShowCampNoticeLine(text, 0, true, false);
                         } else {
-                            QueueCharacterEvent(g_camp_character, g_effect36, 0,
-                                                g_effect_argument0,
+                            QueueCharacterEvent(g_camp_character, g_effect36, 0, g_effect_argument0,
                                                 g_character_event_full_volume);
                         }
                     }
@@ -2038,8 +2036,8 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, W8ItemOr
     if (g_camp_screen->item_action == W8_CAMP_ITEM_ACTION_IDENTIFY_SPELL) {
         party_slot = CharacterPointerToPartySlot(g_camp_identifying_character);
         if (!CanItemLeaveItsSlot(item)) {
-            QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_character_event_kind2,
-                                0, g_character_event_no_flags, g_character_event_full_volume);
+            QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_character_event_kind2, 0,
+                                g_character_event_no_flags, g_character_event_full_volume);
             return;
         }
         if (g_camp_identifying_character == 0) {
@@ -2055,18 +2053,17 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, W8ItemOr
         StartBreathCycle(party_slot, false);
         W8PartySlotRow* row = &g_status.buffers.XChar[party_slot];
         if (row->pending_action == W8_ACTION_USE_ITEM &&
-            g_item_records[row->pending_action_detail.item_use.item->iItemNo].spell_id ==
-                0x17) {
+            g_item_records[row->pending_action_detail.item_use.item->iItemNo].spell_id == 0x17) {
             reidentify = true;
-            result = CommitPartySlotItemUse(party_slot,
-                                            row->pending_action_detail.item_use.item, &target);
+            result = CommitPartySlotItemUse(party_slot, row->pending_action_detail.item_use.item,
+                                            &target);
         } else {
             result = CommitPartySlotSpell(party_slot, 0x17, 8, &target);
         }
         if (origin == W8_ITEM_ORIGIN_PARTY_POOL && reidentify &&
             old_pool_count != g_status.party_item_count) {
-            item = &g_status.party_item_pool[g_status.party_item_count - old_pool_count +
-                                                  slot_index];
+            item =
+                &g_status.party_item_pool[g_status.party_item_count - old_pool_count + slot_index];
             RebuildCampItemList();
             RecalculateCarriedWeight(g_review_character);
             RedistributePartyEncumbrance();
@@ -2076,9 +2073,8 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, W8ItemOr
         if (result == 1 && item->iItemNo != -1) {
             OpenItemInfoDialog(item, 0);
             if (!item->identified) {
-                QueueCharacterEvent(&g_status.buffers.Char[party_slot],
-                                    g_character_event_kind2, 0, g_character_event_no_flags,
-                                    g_character_event_full_volume);
+                QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_character_event_kind2, 0,
+                                    g_character_event_no_flags, g_character_event_full_volume);
             }
         }
         SetCampItemActionMode(W8_CAMP_ITEM_ACTION_NONE);
@@ -2211,8 +2207,8 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, W8ItemOr
                     }
                     if (g_status.item_in_cursor) {
                         choose_character = gXStatus.held_item_source == -1;
-                        DeliverExceptionalItemReaction(&g_status.item_in_hand,
-                                                       choose_character, g_review_character);
+                        DeliverExceptionalItemReaction(&g_status.item_in_hand, choose_character,
+                                                       g_review_character);
                     }
                     if (origin == W8_ITEM_ORIGIN_EQUIPPED && g_status.item_in_cursor &&
                         !HeldItemFitsPairedSlot(giReviewCharSlot, equip_slot)) {

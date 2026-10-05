@@ -52,8 +52,7 @@ int W8CharacterSummaryDialog::CreateControls()
     m_field_070 = 0;
     m_use_original_character = 0;
     memcpy(&m_saved_character, g_status.buffers.Char, sizeof(m_saved_character));
-    memcpy(&m_saved_monster_entry,
-           &gXStatus.monster_manager_entries[0],
+    memcpy(&m_saved_monster_entry, &gXStatus.monster_manager_entries[0],
            sizeof(m_saved_monster_entry));
     memcpy(&m_saved_party_row, g_status.buffers.XChar, sizeof(m_saved_party_row));
     memcpy(g_status.buffers.Char, m_character, sizeof(*m_character));
@@ -77,8 +76,7 @@ void W8CharacterSummaryDialog::DestroyControls()
     gXStatus.character_event_queue->CompleteAllActiveEvents();
     if (!m_use_original_character) {
         memcpy(g_status.buffers.Char, &m_saved_character, sizeof(m_saved_character));
-        memcpy(&gXStatus.monster_manager_entries[0],
-               &m_saved_monster_entry,
+        memcpy(&gXStatus.monster_manager_entries[0], &m_saved_monster_entry,
                sizeof(m_saved_monster_entry));
         memcpy(g_status.buffers.XChar, &m_saved_party_row, sizeof(m_saved_party_row));
     }
@@ -95,9 +93,8 @@ bool W8CharacterSummaryDialog::CreateQuoteText()
                                    g_character_summary_quote_bounds[index].right + m_x,
                                    g_character_summary_quote_bounds[index].bottom + m_y};
         W8Character* character = m_use_original_character ? m_character : g_status.buffers.Char;
-        W8CharacterEvent* event =
-            new W8CharacterEvent(character, g_effect0, 0, g_character_event_no_flags,
-                                 g_character_event_full_volume);
+        W8CharacterEvent* event = new W8CharacterEvent(
+            character, g_effect0, 0, g_character_event_no_flags, g_character_event_full_volume);
         *buffers[index] =
             new W8TextBuffer(&absolute, event->GetQuoteText(), g_wiz_text_font_secondary,
                              g_W8TextBufferAlignMiddle | g_W8TextBufferAlignCenter, 4);

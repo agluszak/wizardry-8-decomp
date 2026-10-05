@@ -47,10 +47,7 @@ enum W8TriggerPayloadKind {
 
 /* Only independently identified door bits are named; the other serialized
    bits retain their original numeric values. */
-enum W8DoorTriggerFlag {
-    W8_DOOR_OPEN = 1,
-    W8_DOOR_KEY_REQUIRED = 4
-};
+enum W8DoorTriggerFlag { W8_DOOR_OPEN = 1, W8_DOOR_KEY_REQUIRED = 4 };
 
 /* The common polymorphic prefix of the trigger action payload family. */
 class W8TriggerActionData {

@@ -37,9 +37,9 @@ struct W8Quad {
 static_assert(sizeof(W8Quad) == 0x1c, "W8Quad_must_be_0x1c");
 
 void DestroyWorldQuad(W8Quad* quad);
-W8Quad* BuildWorldQuad(srModelInstance* instance, int positional, float minimum_x,
-                       float minimum_y, float minimum_z, float maximum_x,
-                       float maximum_y, float maximum_z, srScene* scene, int positional8);
+W8Quad* BuildWorldQuad(srModelInstance* instance, int positional, float minimum_x, float minimum_y,
+                       float minimum_z, float maximum_x, float maximum_y, float maximum_z,
+                       srScene* scene, int positional8);
 
 /* Pick-angle helpers (GetHeadingAngle, GetElevationAngle, HeadingToTargetCPP,
    ElevationToTargetCPP) are declared in wiz8/engine_code/PolyPick.h. */

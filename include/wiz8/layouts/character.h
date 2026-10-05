@@ -13,7 +13,6 @@
 
 #pragma pack(push, 1)
 
-
 /* One enchantment slot. Both a character and a monster carry eight of them,
    and both clear a slot by zeroing all three dwords at once. */
 struct W8Enchantment {
@@ -115,10 +114,10 @@ struct W8HandAttack {
     int swings;                  /* 0x19 */
     int damage_bonus;            /* 0x1d */
     int hit_bonus;               /* 0x21 */
-    int attack_bonus;         /* 0x25: attack-score term, paired with modifier attack_bonus */
+    int attack_bonus;            /* 0x25: attack-score term, paired with modifier attack_bonus */
     int damage_percent; /* 0x29: percent damage multiplier, paired with modifier damage_percent */
-    W8Dice damage_dice;                  /* 0x2d */
-    unsigned short attack_flags;         /* 0x31 */
+    W8Dice damage_dice; /* 0x2d */
+    unsigned short attack_flags; /* 0x31 */
     unsigned char
         condition_chances[W8_ATTACK_EFFECT_COUNT]; /* 0x33: unarmed condition probabilities */
     unsigned char unknown_43[0x18];
@@ -229,11 +228,11 @@ struct W8Character {
     /* 0x0b0d..0x0b20: the two pools with a ceiling each, plus the adjustment
        damage is booked against before hit points are recalculated. A character
        whose hp_current is zero is treated as out of the fight everywhere. */
-    int uiHPMax;                       /* 0x0b0d: gpReviewPC->uiHPMax assertion */
-    unsigned int hp_current;           /* 0x0b11 */
-    int hp_adjustment;                 /* 0x0b15 */
-    int uiStaminaMax;                  /* 0x0b19: gpReviewPC->uiStaminaMax assertion */
-    int stamina;                       /* 0x0b1d */
+    int uiHPMax;                  /* 0x0b0d: gpReviewPC->uiHPMax assertion */
+    unsigned int hp_current;      /* 0x0b11 */
+    int hp_adjustment;            /* 0x0b15 */
+    int uiStaminaMax;             /* 0x0b19: gpReviewPC->uiStaminaMax assertion */
+    int stamina;                  /* 0x0b1d */
     unsigned int fatigue_penalty; /* 0x0b21: taken off the stamina ceiling */
     /* 0x0b25 and 0x0b45: the spell-point pools, one per spell realm. The left
        pool is spelled iSPLeft by the Health Stamina Mana.cpp:1067 assertion
@@ -336,7 +335,7 @@ struct W8Character {
     W8WorldCameraState saved_location; /* 0x17d7 */
     /* 0x1813: which level that anchor belongs to. The recall compares it
        against g_status.current_level and takes a different path when they differ. */
-    int saved_level;                               /* 0x1813 */
+    int saved_level;                          /* 0x1813 */
     W8CharacterConditionRecord conditions[4]; /* 0x1817 .. 0x185a */
     /* 0x185b: the deep-fatigue effect is already on this character, which is
        what stops FatigueCharacter re-applying it every turn. */

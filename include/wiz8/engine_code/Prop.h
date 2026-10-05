@@ -36,9 +36,9 @@ class W8PropRepresentation : public W8AnimRep {
 public:
     /* Default construction is inlined at Prop::Prop. */
     W8PropRepresentation()
-        : animation(0), animation_speed(0.0f), frame_index(0), animation_running(0),
-          random_play(0), play_chance(0.5f), saved_subcycle(0), frame_steps(0),
-          slots(5), footstep_surface(0xff), footstep_material(0xff)
+        : animation(0), animation_speed(0.0f), frame_index(0), animation_running(0), random_play(0),
+          play_chance(0.5f), saved_subcycle(0), frame_steps(0), slots(5), footstep_surface(0xff),
+          footstep_material(0xff)
     {
     }
     W8PropRepresentation(const W8PropRepresentation& other);
@@ -66,8 +66,8 @@ public:
     unsigned char frame_steps;    /* 0xad */
     unsigned char padding_0ae[2];
     W8Vector<W8PropAnimationSegment*> slots; /* 0xb0 */
-    unsigned char footstep_surface;      /* 0xc0 */
-    unsigned char footstep_material;     /* 0xc1 */
+    unsigned char footstep_surface;          /* 0xc0 */
+    unsigned char footstep_material;         /* 0xc1 */
     unsigned char padding_0c2[2];
 }; /* 0xc4 */
 
@@ -162,13 +162,13 @@ public:
 
     Trigger* trigger;   /* 0x18 */
     unsigned int flags; /* 0x1c */
-    char* m_name;          /* 0x20 */
+    char* m_name;       /* 0x20 */
     /* 0x24: UpdatePropAnimation stores the animation timer's progress here, then
        reduces it by the whole-frame count - the fractional remainder. */
     float anim_frame_fraction;
-    W8GameTimer* m_pTimer;          /* 0x28 */
-    srVector3T<float> animation_position; /* 0x2c: written by ApplyAnimationFrame */
-    GDProp* m_gd_prop;              /* 0x38 */
+    W8GameTimer* m_pTimer;                         /* 0x28 */
+    srVector3T<float> animation_position;          /* 0x2c: written by ApplyAnimationFrame */
+    GDProp* m_gd_prop;                             /* 0x38 */
     srVector3T<float> previous_animation_position; /* 0x3c */
     /* Prop::Prop writes two identity bases here as nine floats each. */
     srMatrix3T<float> previous_animation_rotation; /* 0x48 */

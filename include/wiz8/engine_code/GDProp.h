@@ -96,19 +96,19 @@ private:
        channel by ApplyAnimFrame. */
     void TransformMeshGeometry(const W8LevelFileScaledPathNode* node, W8LevelFileMesh* mesh);
 
-    unsigned short m_flags;           /* 0x00 */
-    unsigned short m_prop_number;     /* 0x02 */
-    unsigned int m_path_handle;       /* 0x04 */
-    unsigned short m_path_edge_count; /* 0x08 */
+    unsigned short m_flags;               /* 0x00 */
+    unsigned short m_prop_number;         /* 0x02 */
+    unsigned int m_path_handle;           /* 0x04 */
+    unsigned short m_path_edge_count;     /* 0x08 */
     unsigned short m_path_waypoint_count; /* 0x0a */
     unsigned short* m_path_edges;         /* 0x0c; released by CRT free */
     unsigned short* m_path_waypoints;     /* 0x10; released by CRT free */
-    int m_surface_count;              /* 0x14; m_pGDSurfaces count */
-    int m_vertex_count;               /* 0x18; m_pVertices count */
-    W8GDSurface* m_pGDSurfaces;          /* 0x1c */
-    srVector3T<float>* m_pVertices;      /* 0x20 */
-    Trigger* m_trigger;                  /* 0x24: installed by 0x004B7470 */
-    W8PathVerticalRange m_path_range; /* 0x28 */
+    int m_surface_count;                  /* 0x14; m_pGDSurfaces count */
+    int m_vertex_count;                   /* 0x18; m_pVertices count */
+    W8GDSurface* m_pGDSurfaces;           /* 0x1c */
+    srVector3T<float>* m_pVertices;       /* 0x20 */
+    Trigger* m_trigger;                   /* 0x24: installed by 0x004B7470 */
+    W8PathVerticalRange m_path_range;     /* 0x28 */
     /* Vertex AABB cached by ComputeBounds and tested by
        BoundsOverlap. */
     srVector3T<float> m_bound_min;  /* 0x34 */
