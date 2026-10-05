@@ -6,9 +6,10 @@ from pathlib import Path
 from dotenv import load_dotenv
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-REQUIRED_GHIDRA_VERSION = "12.1.4"
-REQUIRED_GHIDRA_RELEASE = "PUBLIC"
-REQUIRED_PYGHIDRA_VERSION = "3.1.0"
+REQUIRED_GHIDRA_VERSION = "12.3"
+REQUIRED_GHIDRA_RELEASE = "DEV"
+REQUIRED_GHIDRA_REVISION = "7de63e440dffd1c96c22fdebd9a59d974df8a543"
+REQUIRED_PYGHIDRA_VERSION = "3.3.0"
 
 
 def repository_root() -> Path:
@@ -92,13 +93,18 @@ def load_settings(*, require: bool = True, repository: Path | None = None) -> Se
     return Settings.model_validate({**values, "repo_dir": root})
 
 
-def ghidra_version(install_dir: Path) -> tuple[str | None, str | None]:
+def ghidra_properties(install_dir: Path) -> dict[str, str]:
     properties = install_dir / "Ghidra" / "application.properties"
     if not properties.is_file():
-        return None, None
+        return {}
     values: dict[str, str] = {}
     for line in properties.read_text(encoding="utf-8", errors="replace").splitlines():
         if "=" in line and not line.lstrip().startswith("#"):
             key, value = line.split("=", 1)
             values[key.strip()] = value.strip()
+    return values
+
+
+def ghidra_version(install_dir: Path) -> tuple[str | None, str | None]:
+    values = ghidra_properties(install_dir)
     return values.get("application.version"), values.get("application.release.name")
