@@ -557,30 +557,8 @@ unsigned char FormationActionRegionEvent(const InputAtom* event, W8Region* regio
     if (!gXStatus.fReviewCharacterMode) {
         return 0;
     }
-    switch (event->usEvent) {
-    case LEFT_BUTTON_DOWN:
-    case LEFT_BUTTON_REPEAT:
-        g_formation_action_buttons[region->callback_id]->OnLeftButtonDown(0);
-        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
-        return 1;
-    case LEFT_BUTTON_UP:
-        g_formation_action_buttons[region->callback_id]->OnLeftButtonUp(0);
-        if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
-            region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
-        }
-        return 1;
-    case MOUSE_POS:
-        if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
-            g_formation_action_buttons[region->callback_id]->OnMouseLeave(0);
-            return 1;
-        }
-        if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
-            g_formation_action_buttons[region->callback_id]->OnMouseEnter(0);
-            return 1;
-        }
-        break;
-    }
-    return 0;
+    return DispatchButtonRegionEvent(event, region,
+                                     g_formation_action_buttons[region->callback_id]);
 }
 
 // FUNCTION: WIZ8 0x005b2d70

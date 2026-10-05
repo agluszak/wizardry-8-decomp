@@ -762,15 +762,7 @@ static unsigned char CampStatsMouseWheel(const InputAtom* event, W8Region*)
     if (event->usEvent != 0x800) {
         return 0;
     }
-    int delta = GetMouseWheelDeltaValue(event->usParam);
-    while (delta > 0) {
-        g_camp_screen->stats_range->m_range->Decrement();
-        --delta;
-    }
-    while (delta < 0) {
-        g_camp_screen->stats_range->m_range->Increment();
-        ++delta;
-    }
+    g_camp_screen->stats_range->m_range->AdjustValue(GetMouseWheelDeltaValue(event->usParam));
     return 1;
 }
 

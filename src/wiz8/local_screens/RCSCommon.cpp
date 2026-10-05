@@ -453,66 +453,14 @@ unsigned char CampProfessionHistoryRegionEvent(const InputAtom* event, W8Region*
 // FUNCTION: WIZ8 0x005B62C0
 unsigned char CampPageButtonRegionEvent(const InputAtom* event, W8Region* region)
 {
-    int us_event = event->usEvent;
-    unsigned short callback_id = region->callback_id;
-
-    if (us_event <= LEFT_BUTTON_REPEAT) {
-        if (us_event == LEFT_BUTTON_REPEAT || us_event == LEFT_BUTTON_DOWN) {
-            g_camp_page_buttons[callback_id]->OnLeftButtonDown(0);
-            region->flags |= W8_REGION_LEFT_BUTTON_HELD;
-            return 1;
-        }
-        if (us_event == LEFT_BUTTON_UP) {
-            g_camp_page_buttons[callback_id]->OnLeftButtonUp(0);
-            if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
-                region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
-            }
-            return 1;
-        }
-    } else if (us_event == MOUSE_POS) {
-        if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
-            g_camp_page_buttons[callback_id]->OnMouseLeave(0);
-            return 1;
-        }
-        if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
-            g_camp_page_buttons[callback_id]->OnMouseEnter(0);
-            return 1;
-        }
-    }
-    return 0;
+    return DispatchButtonRegionEvent(event, region, g_camp_page_buttons[region->callback_id]);
 }
 
 /* Shared handler for the eight item-action buttons. */
 // FUNCTION: WIZ8 0x005B6360
 unsigned char CampItemActionRegionEvent(const InputAtom* event, W8Region* region)
 {
-    int us_event = event->usEvent;
-    unsigned short callback_id = region->callback_id;
-
-    if (us_event <= LEFT_BUTTON_REPEAT) {
-        if (us_event == LEFT_BUTTON_REPEAT || us_event == LEFT_BUTTON_DOWN) {
-            g_item_action_controls[callback_id]->OnLeftButtonDown(0);
-            region->flags |= W8_REGION_LEFT_BUTTON_HELD;
-            return 1;
-        }
-        if (us_event == LEFT_BUTTON_UP) {
-            g_item_action_controls[callback_id]->OnLeftButtonUp(0);
-            if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
-                region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
-            }
-            return 1;
-        }
-    } else if (us_event == MOUSE_POS) {
-        if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
-            g_item_action_controls[callback_id]->OnMouseLeave(0);
-            return 1;
-        }
-        if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
-            g_item_action_controls[callback_id]->OnMouseEnter(0);
-            return 1;
-        }
-    }
-    return 0;
+    return DispatchButtonRegionEvent(event, region, g_item_action_controls[region->callback_id]);
 }
 
 // FUNCTION: WIZ8 0x005b6400
@@ -592,30 +540,7 @@ void UpdateRcsLevelUpPanel(void)
 // FUNCTION: WIZ8 0x005B66B0
 unsigned char CampLevelUpButtonRegionEvent(const InputAtom* event, W8Region* region)
 {
-    switch (event->usEvent) {
-    case LEFT_BUTTON_DOWN:
-    case LEFT_BUTTON_REPEAT:
-        g_level_up_button->OnLeftButtonDown(0);
-        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
-        return 1;
-    case LEFT_BUTTON_UP:
-        g_level_up_button->OnLeftButtonUp(0);
-        if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
-            region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
-        }
-        return 1;
-    case MOUSE_POS:
-        if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
-            g_level_up_button->OnMouseLeave(0);
-            return 1;
-        }
-        if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
-            g_level_up_button->OnMouseEnter(0);
-            return 1;
-        }
-        break;
-    }
-    return 0;
+    return DispatchButtonRegionEvent(event, region, g_level_up_button);
 }
 
 // FUNCTION: WIZ8 0x005b6740
@@ -684,30 +609,7 @@ static void OnDismissCharacterDialogClosed(W8DialogBase* base)
 // FUNCTION: WIZ8 0x005B6AA0
 unsigned char CampDismissButtonRegionEvent(const InputAtom* event, W8Region* region)
 {
-    switch (event->usEvent) {
-    case LEFT_BUTTON_DOWN:
-    case LEFT_BUTTON_REPEAT:
-        g_dismiss_button->OnLeftButtonDown(0);
-        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
-        return 1;
-    case LEFT_BUTTON_UP:
-        g_dismiss_button->OnLeftButtonUp(0);
-        if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
-            region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
-        }
-        return 1;
-    case MOUSE_POS:
-        if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
-            g_dismiss_button->OnMouseLeave(0);
-            return 1;
-        }
-        if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
-            g_dismiss_button->OnMouseEnter(0);
-            return 1;
-        }
-        break;
-    }
-    return 0;
+    return DispatchButtonRegionEvent(event, region, g_dismiss_button);
 }
 
 /* The same for the second panel and its widget. */
@@ -1096,6 +998,31 @@ void DrawCampVitals(void)
     delete text;
 }
 
+/* Each hand uses the same equipment icon and stack-count rendering. The
+   caller supplies the two layouts and decides whether the off-hand is visible. */
+static void DrawCampHand(W8EquipSlot slot, int hand_index, int top, int count_center)
+{
+    int item_id = g_review_character->EquippedItem[slot].iItemNo;
+    if (item_id == -1) {
+        DrawCatalogImage(
+            FRAME_BUFFER,
+            g_empty_hand_catalog_ids[g_review_character->iRace * W8_RACE_DWARF + hand_index], 0, 0,
+            0x85, top, VO_BLT_SRCTRANSPARENCY, 0);
+    } else {
+        DrawCatalogImage(FRAME_BUFFER, g_item_video_objects.GetOrCreateVideoObject(item_id), 0, 2,
+                         0x84, top, VO_BLT_SRCTRANSPARENCY, 0);
+        unsigned char count = g_review_character->EquippedItem[slot].stack_count;
+        if (count != 0) {
+            wchar_t text[4];
+            swprintf(text, g_format_d, count);
+            SetFont(g_smfnt_font);
+            SetFontObjectPalette16BPP(g_smfnt_font, g_font_palette_smfnt);
+            gprintf(count_center - (StringPixLength(text, g_smfnt_font) + 1) / 2, top + 0xf,
+                    Wiz8ToSgpWideText(g_format_s), text);
+        }
+    }
+}
+
 /* The two hands under the vitals: each draws its equipment icon (or the
    race's empty-hand image), the stack count when the item has one, and the
    armor-class line under the left hand in the load-category palette. The
@@ -1104,7 +1031,6 @@ void DrawCampVitals(void)
 void DrawCampHands(void)
 {
     bool two_handed;
-    unsigned char count;
     int item_id;
     int hand_image;
     wchar_t text[4];
@@ -1119,42 +1045,9 @@ void DrawCampHands(void)
         hand_image = 2;
     }
     DrawCatalogImage(FRAME_BUFFER, 0x80, 0, hand_image, 0x81, 0xb, VO_BLT_SRCTRANSPARENCY, 0);
-    item_id = g_review_character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].iItemNo;
-    if (item_id == -1) {
-        DrawCatalogImage(FRAME_BUFFER,
-                         g_empty_hand_catalog_ids[g_review_character->iRace * W8_RACE_DWARF], 0, 0,
-                         0x85, 0x22, VO_BLT_SRCTRANSPARENCY, 0);
-    } else {
-        DrawCatalogImage(FRAME_BUFFER, g_item_video_objects.GetOrCreateVideoObject(item_id), 0, 2,
-                         0x84, 0x22, VO_BLT_SRCTRANSPARENCY, 0);
-        count = g_review_character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].stack_count;
-        if (count != 0) {
-            swprintf(text, g_format_d, count);
-            SetFont(g_smfnt_font);
-            SetFontObjectPalette16BPP(g_smfnt_font, g_font_palette_smfnt);
-            gprintf(0x89 - (StringPixLength(text, g_smfnt_font) + 1) / 2, 0x31,
-                    Wiz8ToSgpWideText(g_format_s), text);
-        }
-    }
+    DrawCampHand(W8_EQUIP_SLOT_PRIMARY_WEAPON, 0, 0x22, 0x89);
     if (!two_handed) {
-        item_id = g_review_character->EquippedItem[W8_EQUIP_SLOT_SECONDARY_WEAPON].iItemNo;
-        if (item_id == -1) {
-            DrawCatalogImage(
-                FRAME_BUFFER,
-                g_empty_hand_catalog_ids[g_review_character->iRace * W8_RACE_DWARF + 1], 0, 0, 0x85,
-                0x3a, VO_BLT_SRCTRANSPARENCY, 0);
-        } else {
-            DrawCatalogImage(FRAME_BUFFER, g_item_video_objects.GetOrCreateVideoObject(item_id), 0,
-                             2, 0x84, 0x3a, VO_BLT_SRCTRANSPARENCY, 0);
-            count = g_review_character->EquippedItem[W8_EQUIP_SLOT_SECONDARY_WEAPON].stack_count;
-            if (count != 0) {
-                swprintf(text, g_format_d, count);
-                SetFont(g_smfnt_font);
-                SetFontObjectPalette16BPP(g_smfnt_font, g_font_palette_smfnt);
-                gprintf(0x8c - (StringPixLength(text, g_smfnt_font) + 1) / 2, 0x49,
-                        Wiz8ToSgpWideText(g_format_s), text);
-            }
-        }
+        DrawCampHand(W8_EQUIP_SLOT_SECONDARY_WEAPON, 1, 0x3a, 0x8c);
     }
     SetFont(g_smfnt_font);
     swprintf(text, g_format_d, g_review_character->armor_class_average);

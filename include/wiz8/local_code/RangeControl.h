@@ -63,6 +63,18 @@ public:
     void Increment();
     void SetRangeEnabled(bool enabled);
 
+    void AdjustValue(int steps)
+    {
+        while (steps > 0) {
+            Decrement();
+            --steps;
+        }
+        while (steps < 0) {
+            Increment();
+            ++steps;
+        }
+    }
+
     int m_minimum;                 /* 0x4c */
     int m_maximum;                 /* 0x50 */
     int m_value;                   /* 0x54 */
@@ -120,7 +132,6 @@ public:
     W8HorizontalRangeThumbListener* m_listener;
 
 protected:
-    void InvalidateThumb();
     void ClampPositionAndInvalidate();
 };
 
