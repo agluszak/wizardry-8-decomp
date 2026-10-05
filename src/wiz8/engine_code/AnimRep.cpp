@@ -91,11 +91,10 @@ void W8AnimRepBase::GetRotation(srMatrix3T<float>* rotation)
 
 // FUNCTION: WIZ8 0x004b53d0
 W8AnimRep::W8AnimRep()
-    : subcycle(0), pending_subcycle(0xffff), timer(0), active(0),
-      animation_playing(0), frame_direction(0), frame_method(0),
-      animation_behaviour(0), pending_behaviour(-1), bounds_min(0.0f, 0.0f, 0.0f),
-      bounds_max(0.0f, 0.0f, 0.0f), bounds_extent(0), value(0), first_frame(0xff),
-      last_frame(0xff)
+    : subcycle(0), pending_subcycle(0xffff), timer(0), active(0), animation_playing(0),
+      frame_direction(W8_ANIMATION_DIRECTION_NONE), frame_method(0), animation_behaviour(0),
+      pending_behaviour(-1), bounds_min(0.0f, 0.0f, 0.0f), bounds_max(0.0f, 0.0f, 0.0f),
+      bounds_extent(0), value(0), first_frame(0xff), last_frame(0xff)
 {
     if (g_shared_timer_base == 0) {
         srAssertFail("gpsrTimer", "C:\\Projects\\Wizardry 8\\Engine Code\\AnimRep.cpp", 0x4e, 0);

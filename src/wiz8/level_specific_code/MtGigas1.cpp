@@ -42,11 +42,7 @@ void MtGigas1Setup(void)
     g_plate_down = 0;
     pTrigger = FindTriggerByName("plate");
     if (pTrigger != 0) {
-        if (pTrigger->m_bRepType != 2) {
-            srAssertFail("m_bRepType == TRIGGER_REP_PROP", "..\\Engine Code\\Include\\Trigger.hpp",
-                         0x3ed, 0);
-        }
-        prop = pTrigger->m_pProp;
+        prop = pTrigger->GetProp();
         if (prop != 0) {
             g_plate_prop = prop->m_gd_prop;
         }
@@ -101,8 +97,8 @@ bool MtGigas1Lift2(Trigger* pTrigger)
 /* Activation callback on PRESSUREPLATE: ticks the secret door. The plate
    counts as held while the camera stands inside the prop's XZ bounds or the
    prop still has list entries. On the down edge it opens secretDoor-01 and
-   drops the plate (setting 1, rumble + open sounds); on the release edge it
-   reverses both (setting 3, close + rumble sounds) and clears PPlateDown. */
+   drops the plate (forward animation, rumble + open sounds); on the release edge it
+   reverses both (reverse animation, close + rumble sounds) and clears PPlateDown. */
 // FUNCTION: WIZ8 0x004DBBD0
 bool MtGigas1PressurePlate(Trigger* pTrigger)
 {
@@ -129,23 +125,17 @@ bool MtGigas1PressurePlate(Trigger* pTrigger)
         pPlateTrigger = FindTriggerByName("secretDoor-01");
         if (pPlateTrigger != 0) {
             pPlateTrigger->Run(-1);
-            if (pPlateTrigger->m_bRepType != 2) {
-                srAssertFail("m_bRepType == TRIGGER_REP_PROP",
-                             "..\\Engine Code\\Include\\Trigger.hpp", 0x3ed, 0);
-            }
-            if (pPlateTrigger->m_pProp != 0) {
-                pPlateTrigger->m_pProp->SetSetting6E(1);
+            W8Prop* prop = pPlateTrigger->GetProp();
+            if (prop != 0) {
+                prop->SetAnimationDirection(W8_ANIMATION_FORWARD);
             }
         }
         pPlateTrigger = FindTriggerByName("plate");
         if (pPlateTrigger != 0) {
             pPlateTrigger->Run(-1);
-            if (pPlateTrigger->m_bRepType != 2) {
-                srAssertFail("m_bRepType == TRIGGER_REP_PROP",
-                             "..\\Engine Code\\Include\\Trigger.hpp", 0x3ed, 0);
-            }
-            if (pPlateTrigger->m_pProp != 0) {
-                pPlateTrigger->m_pProp->SetSetting6E(1);
+            W8Prop* prop = pPlateTrigger->GetProp();
+            if (prop != 0) {
+                prop->SetAnimationDirection(W8_ANIMATION_FORWARD);
             }
         }
         g_plate_down = 1;
@@ -160,23 +150,17 @@ bool MtGigas1PressurePlate(Trigger* pTrigger)
     pPlateTrigger = FindTriggerByName("secretDoor-01");
     if (pPlateTrigger != 0) {
         pPlateTrigger->Run(-1);
-        if (pPlateTrigger->m_bRepType != 2) {
-            srAssertFail("m_bRepType == TRIGGER_REP_PROP", "..\\Engine Code\\Include\\Trigger.hpp",
-                         0x3ed, 0);
-        }
-        if (pPlateTrigger->m_pProp != 0) {
-            pPlateTrigger->m_pProp->SetSetting6E(3);
+        W8Prop* prop = pPlateTrigger->GetProp();
+        if (prop != 0) {
+            prop->SetAnimationDirection(W8_ANIMATION_REVERSE);
         }
     }
     pPlateTrigger = FindTriggerByName("plate");
     if (pPlateTrigger != 0) {
         pPlateTrigger->Run(-1);
-        if (pPlateTrigger->m_bRepType != 2) {
-            srAssertFail("m_bRepType == TRIGGER_REP_PROP", "..\\Engine Code\\Include\\Trigger.hpp",
-                         0x3ed, 0);
-        }
-        if (pPlateTrigger->m_pProp != 0) {
-            pPlateTrigger->m_pProp->SetSetting6E(3);
+        W8Prop* prop = pPlateTrigger->GetProp();
+        if (prop != 0) {
+            prop->SetAnimationDirection(W8_ANIMATION_REVERSE);
         }
     }
     g_plate_down = 0;

@@ -298,12 +298,12 @@ void RefreshMonsterGroupHostility(W8MonsterGroup* monster_group)
         }
         return;
     }
-    if (monster_group->ubDisposition != DISP_HOSTILE &&
+    if (monster_group->ubDisposition != W8_DISPOSITION_HOSTILE &&
         (record->flags & W8_MONSTER_FLAG_NPC) == 0 && record->faction_id == 0 &&
         record->hostility_radius != 0 && record->hostility_radius != -1 &&
         GetGroupNearestDistance(monster_group) <= record->hostility_radius * g_world_scale &&
         MonsterGroupHasVisibleTarget(monster_group, 1, 3, 0) != 0) {
-        SetMonsterGroupHostility(monster_group, DISP_HOSTILE, 0);
+        SetMonsterGroupHostility(monster_group, W8_DISPOSITION_HOSTILE, 0);
     }
     cooldown = IntegerPower(record->attribute_values[W8_MONSTER_ATTRIBUTE_INTELLIGENCE], 2) * 0x3c;
     if (monster_group->hostility_set_at != 0 &&
@@ -547,7 +547,8 @@ bool IsMonsterGroupLive(W8MonsterGroup* monster_group)
 {
     if (monster_group->members_active != 0 && monster_group->fInCombat != 0 &&
         monster_group->member_count > 0) {
-        if (monster_group->ubDisposition != 1 && CombatAllowsLiveGroups() == 0) {
+        if (monster_group->ubDisposition != W8_DISPOSITION_HOSTILE &&
+            CombatAllowsLiveGroups() == 0) {
             return 0;
         }
         return 1;
@@ -1387,8 +1388,8 @@ void ElectAlliedLeaderGroup(W8MonsterGroup* monster_group, W8MonsterInfo* leader
 void MonsterGroupEnterCombat(W8MonsterGroup* monster_group)
 {
     while (true) {
-        if (g_status.world_suspended != 0 && monster_group->ubDisposition == 1 &&
-            gXStatus.fCombatMode == 0) {
+        if (g_status.world_suspended != 0 &&
+            monster_group->ubDisposition == W8_DISPOSITION_HOSTILE && gXStatus.fCombatMode == 0) {
             return;
         }
         if (IsMipeActive() != 0) {
@@ -1462,15 +1463,16 @@ void MonsterGroupEnterCombat(W8MonsterGroup* monster_group)
                 ++index;
             }
             monster_group->fInCombat = 1;
-            if (monster_group->ubDisposition == 1 && gXStatus.fCombatMode != 0 &&
-                g_combat_state->round_count != 0) {
+            if (monster_group->ubDisposition == W8_DISPOSITION_HOSTILE &&
+                gXStatus.fCombatMode != 0 && g_combat_state->round_count != 0) {
                 unsigned int live_groups = 0;
                 unsigned int group_list_index = 0;
                 while (group_list_index < PLLength(gXStatus.plsMonsterGroupList)) {
                     W8MonsterGroup* other = GetMonsterGroupByListIndex(group_list_index);
                     if (other->members_active != 0 && other->fInCombat != 0 &&
                         other->member_count != 0 &&
-                        (other->ubDisposition == 1 || CombatAllowsLiveGroups() != 0)) {
+                        (other->ubDisposition == W8_DISPOSITION_HOSTILE ||
+                         CombatAllowsLiveGroups() != 0)) {
                         ++live_groups;
                     }
                     ++group_list_index;

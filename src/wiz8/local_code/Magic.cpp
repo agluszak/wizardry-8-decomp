@@ -1572,32 +1572,15 @@ W8Skill GetBestSpellbookSkillForSpell(W8Character* character, int spell_id, bool
         if (pricing != 0) {
             unsigned int failure;
             int shortfall;
-            int band;
             unsigned int skill_figure;
-            unsigned int needed;
 
             party_slot = CharacterPointerToPartySlot(character);
-            band = g_spell_records[spell_id].spell_point_cost / 2 +
-                   g_spell_records[spell_id].spell_level;
             skill_figure =
                 (character->skills[unlocked_skill].level +
                  character->skills[W8_SKILL_FIRE_MAGIC + g_spell_records[spell_id].realm].level *
                      4) /
                 5;
-            if (band > 16) {
-                band = 16;
-            }
-            needed = (g_combat_effect_slot_spells_and_cast_success[6 + band] * power_level) / 7;
-            if (skill_figure < needed) {
-                failure = (needed * 70 - skill_figure * 70) / needed;
-                if (static_cast<int>(failure) < 0) {
-                    failure = 0;
-                } else if (static_cast<int>(failure) > 100) {
-                    failure = 100;
-                }
-            } else {
-                failure = 0;
-            }
+            failure = GetSpellFailureChance(skill_figure, spell_id, static_cast<int>(power_level));
 
             shortfall = GetMinimumCasterLevelForSpell(spell_id) -
                         GetTotalCasterLevel(character, book, 1) - 1 + power_level;
@@ -1718,42 +1701,14 @@ static unsigned int GetCastFailureChance(W8Character* character, int spell_id,
     unsigned int skill_figure = (character->skills[skill].level +
                                  character->skills[W8_SKILL_FIRE_MAGIC + record->realm].level * 4) /
                                 5;
-    int band = record->spell_point_cost / 2 + record->spell_level;
-    unsigned int needed;
     unsigned int chance;
     unsigned char book;
     int caster_level;
-    int profession;
-    int level;
     int shortfall;
 
-    if (band > 16) {
-        band = 16;
-    }
-    needed = (g_combat_effect_slot_spells_and_cast_success[6 + band] * power_level) / 7;
-    if (skill_figure < needed) {
-        chance = (needed * 70 - skill_figure * 70) / needed;
-        if (static_cast<int>(chance) < 0) {
-            chance = 0;
-        } else if (static_cast<int>(chance) > 100) {
-            chance = 100;
-        }
-    } else {
-        chance = 0;
-    }
-
-    book = (record->psionics_spell != 0 ? 8 : 0) | (record->divinity_spell != 0 ? 2 : 0) |
-           (record->wizardry_spell != 0 ? 1 : 0) | (record->alchemy_spell != 0 ? 4 : 0);
-    caster_level = GetProfessionCasterLevel(character, W8_PROFESSION_NONE);
-    for (profession = 0; profession < W8_PROFESSION_COUNT; ++profession) {
-        if (character->profession_levels[profession] != 0 && profession != character->iProfession &&
-            (g_profession_spellbooks[profession] & book) != 0) {
-            level = GetProfessionCasterLevel(character, static_cast<W8Profession>(profession));
-            if (level > 0) {
-                caster_level += level;
-            }
-        }
-    }
+    chance = GetSpellFailureChance(skill_figure, spell_id, static_cast<int>(power_level));
+    book = SpellbookMaskForSpell(spell_id);
+    caster_level = GetTotalCasterLevel(character, book, true);
     shortfall = GetMinimumCasterLevelForSpell(spell_id) - caster_level - 1 + power_level;
     if (shortfall > 0) {
         chance += record->spell_level * shortfall;
@@ -2420,7 +2375,7 @@ bool SpellAffectedTarget(W8Character* character, int spell_id, W8CombatSlot* aim
             affected = false;
             for (index = 0; index < 8; ++index) {
                 if (g_status.buffers.XChar[index].fOccupied &&
-                    g_status.buffers.Char[index].enchantments[3].turns /
+                    g_status.buffers.Char[index].enchantments[W8_ENCHANTMENT_RAZOR_CLOAK].turns /
                             static_cast<float>(duration) <=
                         g_navigator_vertical_phase_step) {
                     affected = true;
@@ -2713,7 +2668,7 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
     if (ValidateSpellTarget(party_slot, spell_id, power_level, false, false) == 0) {
         return 0;
     }
-    if (character->uiCondition[8] != 0 &&
+    if (character->uiCondition[W8_CONDITION_SILENCED] != 0 &&
         (record->alchemy_spell == 0 || character->skills[W8_SKILL_SPELLBOOK_ALCHEMY].level == 0)) {
         return 0;
     }
@@ -3717,7 +3672,7 @@ void CheckSpellBackfire(int spell_id, W8TargetSource* source, W8CombatSlot* targ
     monster_info = 0;
     if (source->iType == W8_TARGET_SOURCE_CHARACTER) {
         character = &g_status.buffers.Char[source->iChar];
-        if (character->uiCondition[0xc] == 0) {
+        if (character->uiCondition[W8_CONDITION_BLIND] == 0) {
             return;
         }
         if (target->iType == W8_TARGET_KIND_CHARACTER && target->iChar == source->iChar) {
@@ -3735,7 +3690,7 @@ void CheckSpellBackfire(int spell_id, W8TargetSource* source, W8CombatSlot* targ
             return;
         }
         monster_info = MonsterInfoFromID(0xdcf, MAGIC_CPP, source->iMonsterID, 1);
-        if (monster_info->uiCondition[0xc] == 0) {
+        if (monster_info->uiCondition[W8_CONDITION_BLIND] == 0) {
             return;
         }
         if (target->iType == W8_TARGET_KIND_MONSTER && target->iMonsterID == source->iMonsterID) {
@@ -3897,7 +3852,7 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
                 radius += g_startup_world->radius;
             }
         } else if (TargetSourceIsMonster(source, 0)) {
-            if (monster_info->ubDisposition == 2) {
+            if (monster_info->ubDisposition == W8_DISPOSITION_FRIENDLY) {
                 distance = (centre.x - player_pos.x) * (centre.x - player_pos.x) +
                            (centre.y - player_pos.y) * (centre.y - player_pos.y) +
                            (centre.z - player_pos.z) * (centre.z - player_pos.z);
@@ -3905,7 +3860,7 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
                     monster_info->player_visibility.los_flags[sight_flag] != '\0') {
                     marked = true;
                 }
-            } else if (monster_info->ubDisposition != 1) {
+            } else if (monster_info->ubDisposition != W8_DISPOSITION_HOSTILE) {
                 FormatDebugMessage(1,
                                    "InvalidMagicSource: Spell %d(%ls), Target Type %d(char %d, "
                                    "monster ID %d, group ID %d), Source Type %d(char %d,ID %d)",
@@ -3969,9 +3924,9 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
         if (TargetSourceIsCharacter(source, 0)) {
             side = 1;
         } else if (TargetSourceIsMonster(source, 0)) {
-            if (monster_info->ubDisposition == 2) {
+            if (monster_info->ubDisposition == W8_DISPOSITION_FRIENDLY) {
                 side = 1;
-            } else if (monster_info->ubDisposition == 1) {
+            } else if (monster_info->ubDisposition == W8_DISPOSITION_HOSTILE) {
                 side = 2;
                 if (TargetInRangeAndArcs(&camera, g_startup_world->radius, &eye,
                                          monster->radius, heading, elevation) != 0 &&
@@ -3994,7 +3949,7 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
                     side = 2;
                 } else if (source->iMonsterID != -1) {
                     if (MonsterInfoFromID(0x9f3, MAGIC_CPP, source->iMonsterID, 1)->ubDisposition !=
-                        2) {
+                        W8_DISPOSITION_FRIENDLY) {
                         side = 1;
                     } else {
                         side = 2;
@@ -4026,7 +3981,8 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
         if (TargetSourceIsCharacter(source, 1)) {
             side = (source->fBackfire != 0 || source->fReflection != 0) ? 1 : 2;
         } else if (TargetSourceIsMonster(source, 1)) {
-            if (monster_info->ubDisposition != 2 && monster_info->ubDisposition != 1) {
+            if (monster_info->ubDisposition != W8_DISPOSITION_FRIENDLY &&
+                monster_info->ubDisposition != W8_DISPOSITION_HOSTILE) {
                 FormatDebugMessage(1,
                                    "InvalidMagicSource: Spell %d(%ls), Target Type %d(char %d, "
                                    "monster ID %d, group ID %d), Source Type %d(char %d,ID %d)",
@@ -4062,7 +4018,8 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
         target->point = eye;
         radius = CalcRangeDistance(g_spell_records[spell_id].range_category, source);
         if (TargetSourceIsCharacter(source, 1) ||
-            (TargetSourceIsMonster(source, 1) && monster_info->ubDisposition == 2)) {
+            (TargetSourceIsMonster(source, 1) &&
+             monster_info->ubDisposition == W8_DISPOSITION_FRIENDLY)) {
             side = (source->fBackfire != 0 || source->fReflection != 0) ? 2 : 1;
         } else if (TargetSourceIsMonster(source, 1)) {
             side = (source->fBackfire != 0 || source->fReflection != 0) ? 1 : 2;

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "wiz8/character_skills.h"
+
 #include "timer.h"
 #include "input.h"
 
@@ -153,3 +155,5 @@ void MapSubMenuSelection(short menu, short item); /* 0x00596240 */
 /* Whether the slot may perform the pending command, in entry-state terms:
    USABLE/UNUSABLE or the _SELECTED variant when it is already queued. */
 W8SubMenuEntryState CheckSubMenuActionUsable(int party_slot); /* 0x00596360 */
+
+int GetAttackMenuWeaponOffset(W8Skill skill);

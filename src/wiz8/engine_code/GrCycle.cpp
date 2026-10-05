@@ -781,14 +781,14 @@ void W8GrCycle::AdvanceAnimationFrame(int, int)
     unsigned char frame;
 
     if (representation->animation_behaviour == 1) {
-        if (representation->frame_direction == 1) {
+        if (representation->frame_direction == W8_ANIMATION_FORWARD) {
             frame = representation->subcycle;
             if (frame < representation->last_frame) {
                 representation->subcycle = frame + 1;
             } else {
                 representation->animation_playing = 0;
             }
-        } else if (representation->frame_direction == 3) {
+        } else if (representation->frame_direction == W8_ANIMATION_REVERSE) {
             frame = representation->subcycle;
             if (frame > representation->first_frame) {
                 representation->subcycle = frame - 1;
@@ -796,25 +796,25 @@ void W8GrCycle::AdvanceAnimationFrame(int, int)
                 representation->animation_playing = 0;
             }
         }
-    } else if (representation->frame_direction == 1) {
+    } else if (representation->frame_direction == W8_ANIMATION_FORWARD) {
         frame = representation->subcycle;
         if (frame != representation->last_frame) {
             representation->subcycle = frame + 1;
-        } else if (representation->frame_method == 2) {
+        } else if (representation->frame_method == W8_ANIMATION_PING_PONG) {
             representation->subcycle = frame - 1;
-            representation->frame_direction = 3;
-        } else if (representation->frame_method == 1) {
+            representation->frame_direction = W8_ANIMATION_REVERSE;
+        } else if (representation->frame_method == W8_ANIMATION_WRAP) {
             representation->subcycle = representation->first_frame;
             wrapped = 1;
         }
-    } else if (representation->frame_direction == 3) {
+    } else if (representation->frame_direction == W8_ANIMATION_REVERSE) {
         frame = representation->subcycle;
         if (frame > representation->first_frame) {
             representation->subcycle = frame - 1;
-        } else if (representation->frame_method == 2) {
+        } else if (representation->frame_method == W8_ANIMATION_PING_PONG) {
             representation->subcycle = representation->first_frame + 1;
-            representation->frame_direction = 1;
-        } else if (representation->frame_method == 1) {
+            representation->frame_direction = W8_ANIMATION_FORWARD;
+        } else if (representation->frame_method == W8_ANIMATION_WRAP) {
             representation->subcycle = representation->last_frame;
         }
     }
@@ -842,7 +842,7 @@ void W8GrCycle::ResetRepresentation()
         srAssertFail("pRep", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x3ae, 0);
     }
     PathAIResetRecord(static_cast<W8PathAI*>(m_pAI));
-    target->frame_direction = 1;
+    target->frame_direction = W8_ANIMATION_FORWARD;
     target->subcycle = 0;
     target->timer = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
 }
@@ -1324,6 +1324,34 @@ void W8GrCycle::SetBehaviour(signed char bBehaviour)
                      "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x63e, 0);
     }
     target->animation_behaviour = bBehaviour;
+}
+
+void W8GrCycle::DetachCycleLights(W8GrowableVector<stLight*>* lights)
+{
+    if (lights != 0) {
+        for (int index = 0; index < lights->GetCount(); ++index) {
+            stLight* light = *lights->GetAt(index);
+
+            light->setParent(0, 1);
+            if (light->definition() != 0) {
+                g_world->lights_to_update->Remove(light);
+            }
+        }
+    }
+}
+
+void W8GrCycle::AttachCycleLights(W8GrowableVector<stLight*>* lights)
+{
+    if (g_render_missile_lights != 0 && lights != 0) {
+        for (int index = 0; index < lights->GetCount(); ++index) {
+            stLight* light = *lights->GetAt(index);
+
+            light->setParent(g_world->dynamic_scene, 1);
+            if (light->definition() != 0) {
+                g_world->lights_to_update->Add(light);
+            }
+        }
+    }
 }
 
 // FUNCTION: WIZ8 0x004a84c0

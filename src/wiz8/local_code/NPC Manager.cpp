@@ -420,7 +420,8 @@ W8NpcServiceRow g_npc_services[] = {
 };
 
 // GLOBAL: WIZ8 0x00619EAC
-unsigned char g_npc_join_races[5] = {13, 12, 14, 15, 11};
+unsigned char g_npc_join_races[5] = {W8_RACE_UMPANI, W8_RACE_T_RANG, W8_RACE_RAPAX, W8_RACE_ANDROID,
+                                     W8_RACE_TRYNNIE};
 
 /* Whether the NPC wants the offered item: it matches one of the record's
    three wanted entries by id or by the shared 0x83 name kind, and a grouped
@@ -538,7 +539,7 @@ int DismissNpcFromParty(int party_slot, int /*unused*/, bool skip_spawn, bool ne
             MonsterGetIndexByLocationID(0x6c7, NPC_MANAGER_CPP, group->leader_location_id, 1));
         if (monster != 0) {
             CopyCharacterConditionsToTarget(npc->character, &monster->location_id);
-            if (monster->uiCondition[17] == 9999) {
+            if (monster->uiCondition[W8_CONDITION_UNCONSCIOUS] == 9999) {
                 unsigned int stamina = static_cast<unsigned int>(npc->character->uiStaminaMax);
                 if (static_cast<unsigned int>(npc->character->stamina) < stamina) {
                     stamina = static_cast<unsigned int>(npc->character->stamina);
@@ -585,26 +586,16 @@ void UpdateNpcPartyMember(int party_slot)
         ShowNoticef(0, gppStringList[0x7d5]);
         return;
     }
-    int band = GetLevelBand(g_status.current_level);
-    int service = 0;
-    if (g_npc_services[0].service_id != 0xffffffff) {
-        while (g_npc_services[service].service_id != 0xffffffff) {
-            if (g_npc_services[service].service_id == static_cast<unsigned int>(band)) {
-                if ((npc->record->service_flags & g_npc_services[service].bit) != 0) {
-                    if (character->highest_condition > W8_CONDITION_WEBBED) {
-                        npc->event_pending = 1;
-                        BeginScriptedWorldAction();
-                        QueueNpcMessageLine(W8_NPC_MSG_GROUP_ACTION, party_slot);
-                        return;
-                    }
-                    QueueCharacterEvent(character, 0x53, 0, g_character_event_no_flags,
-                                        g_character_event_full_volume);
-                    return;
-                }
-                break;
-            }
-            ++service;
+    if (NpcOffersService(npc, GetLevelBand(g_status.current_level))) {
+        if (character->highest_condition > W8_CONDITION_WEBBED) {
+            npc->event_pending = 1;
+            BeginScriptedWorldAction();
+            QueueNpcMessageLine(W8_NPC_MSG_GROUP_ACTION, party_slot);
+            return;
         }
+        QueueCharacterEvent(character, 0x53, 0, g_character_event_no_flags,
+                            g_character_event_full_volume);
+        return;
     }
     if (character->highest_condition < W8_CONDITION_ASLEEP) {
         QueueCharacterEvent(character, g_effect33, 0, g_character_event_no_flags,
@@ -790,8 +781,6 @@ void MarkNpcOfKind(int kind)
 // FUNCTION: WIZ8 0x0050C870
 bool CanNpcJoinParty(W8NpcState* npc)
 {
-    int band;
-    int row;
     int index;
     unsigned int count;
     unsigned int total;
@@ -802,16 +791,8 @@ bool CanNpcJoinParty(W8NpcState* npc)
     }
     /* The service ids are the GetLevelBand region numbering: an NPC who offers
        the current region's service stays on duty and refuses to join. */
-    band = GetLevelBand(g_status.current_level);
-    row = 0;
-    while (g_npc_services[row].service_id != 0xffffffff) {
-        if (g_npc_services[row].service_id == static_cast<unsigned int>(band)) {
-            if ((npc->record->service_flags & g_npc_services[row].bit) != 0) {
-                return 0;
-            }
-            break;
-        }
-        ++row;
+    if (NpcOffersService(npc, GetLevelBand(g_status.current_level))) {
+        return 0;
     }
     if (npc->name_style == W8_NPC_GLUMPH && GetFact(W8_FACT_UMISSION_SCUBA_DONE) != 0) {
         return 0;
@@ -1778,6 +1759,43 @@ W8NpcState* GetNpcStateForMonsterInfo(W8MonsterInfo* monster_info, bool allow_un
     return 0;
 }
 
+static void AdjustNpcDisposition(W8NpcState* npc, signed char delta)
+{
+    int sum = npc->disposition + delta;
+    if (sum > 99) {
+        npc->disposition = 99;
+    } else if (sum < 0) {
+        npc->disposition = 0;
+    } else {
+        npc->disposition += delta;
+    }
+}
+
+static void DebitNpcTradePool(W8NpcState* npc, unsigned int price)
+{
+    int level = static_cast<int>(GetBestPartySkillLevel(W8_SKILL_COMMUNICATION, 0));
+    unsigned int adjusted = price + level * (static_cast<int>(price & 0xffff) / 5) / 100;
+    if (static_cast<int>(npc->trade_pool - (adjusted & 0xffff)) < 0) {
+        npc->trade_pool = 0;
+    } else {
+        npc->trade_pool = static_cast<unsigned short>(npc->trade_pool - adjusted);
+    }
+    if (npc->trade_pool != 0) {
+        return;
+    }
+    GetNpcDisposition(npc);
+    level = GetNpcDisposition(npc);
+    if (level < W8_NPC_DISPOSITION_HOSTILE) {
+        level = 2;
+    } else {
+        level = level < W8_NPC_DISPOSITION_FRIENDLY;
+    }
+    if (level != 0) {
+        npc->disposition = 0x4b;
+    }
+    npc->trade_pool = g_npc_records[npc->name_style].trade_pool;
+}
+
 /* One dialogue interaction against an NPC. The action kind selects the path:
    talking and the level-scaled charm shift disposition through the record's
    signed scale bytes, paying gold and selling an item draw the record's trade
@@ -1795,7 +1813,6 @@ void ApplyNpcInteraction(W8NpcState* npc, int kind, int value, W8ItemInstance* i
         int quotient;
         int level;
         int delta;
-        int sum;
 
         npc->talk_cooldown_active = 1;
         npc->talk_cooldown_clock = g_status.world_clock;
@@ -1807,14 +1824,7 @@ void ApplyNpcInteraction(W8NpcState* npc, int kind, int value, W8ItemInstance* i
             quotient = scale / 5;
         }
         delta = scale + level * quotient / 100;
-        sum = npc->disposition + static_cast<char>(delta);
-        if (sum > 99) {
-            npc->disposition = 99;
-        } else if (sum < 0) {
-            npc->disposition = 0;
-        } else {
-            npc->disposition += static_cast<char>(delta);
-        }
+        AdjustNpcDisposition(npc, static_cast<signed char>(delta));
         PracticeCharacterSkill(&g_status.buffers.Char[kind], W8_SKILL_COMMUNICATION, 8, 0);
         GetNpcDisposition(npc);
         return;
@@ -1830,7 +1840,6 @@ void ApplyNpcInteraction(W8NpcState* npc, int kind, int value, W8ItemInstance* i
         int quotient;
         int level;
         int delta;
-        int sum;
         int index;
 
         npc->trade_cooldown_active = 1;
@@ -1871,84 +1880,24 @@ void ApplyNpcInteraction(W8NpcState* npc, int kind, int value, W8ItemInstance* i
         if (delta > 0) {
             delta = static_cast<int>(average_level * delta / monster_level);
         }
-        sum = npc->disposition + static_cast<char>(delta);
-        if (sum > 99) {
-            npc->disposition = 99;
-        } else if (sum < 0) {
-            npc->disposition = 0;
-        } else {
-            npc->disposition += static_cast<char>(delta);
-        }
+        AdjustNpcDisposition(npc, static_cast<signed char>(delta));
         PracticeCharacterSkill(&g_status.buffers.Char[value], W8_SKILL_COMMUNICATION, 5, 0);
         GetNpcDisposition(npc);
         return;
     }
     case 4: {
-        int sum = npc->disposition + static_cast<char>(gold);
-        if (sum > 99) {
-            npc->disposition = 99;
-        } else if (sum < 0) {
-            npc->disposition = 0;
-        } else {
-            npc->disposition += static_cast<char>(gold);
-        }
+        AdjustNpcDisposition(npc, static_cast<signed char>(gold));
         GetNpcDisposition(npc);
         return;
     }
     case 2: {
-        int level;
-        unsigned int adjusted;
-
         SpendPartyGold(gold);
-        level = static_cast<int>(GetBestPartySkillLevel(W8_SKILL_COMMUNICATION, 0));
-        adjusted = gold + level * (static_cast<int>(gold & 0xffff) / 5) / 100;
-        if (static_cast<int>(npc->trade_pool - (adjusted & 0xffff)) < 0) {
-            npc->trade_pool = 0;
-        } else {
-            npc->trade_pool = static_cast<unsigned short>(npc->trade_pool - adjusted);
-        }
-        if (npc->trade_pool != 0) {
-            break;
-        }
-        GetNpcDisposition(npc);
-        level = GetNpcDisposition(npc);
-        if (level < W8_NPC_DISPOSITION_HOSTILE) {
-            level = 2;
-        } else {
-            level = level < W8_NPC_DISPOSITION_FRIENDLY;
-        }
-        if (level != 0) {
-            npc->disposition = 0x4b;
-        }
-        npc->trade_pool = g_npc_records[npc->name_style].trade_pool;
+        DebitNpcTradePool(npc, gold);
         break;
     }
     case 3: {
         unsigned int price = GetItemStackValue(item);
-        int level;
-        unsigned int adjusted;
-
-        level = static_cast<int>(GetBestPartySkillLevel(W8_SKILL_COMMUNICATION, 0));
-        adjusted = price + level * (static_cast<int>(price & 0xffff) / 5) / 100;
-        if (static_cast<int>(npc->trade_pool - (adjusted & 0xffff)) < 0) {
-            npc->trade_pool = 0;
-        } else {
-            npc->trade_pool = static_cast<unsigned short>(npc->trade_pool - adjusted);
-        }
-        if (npc->trade_pool != 0) {
-            break;
-        }
-        GetNpcDisposition(npc);
-        level = GetNpcDisposition(npc);
-        if (level < W8_NPC_DISPOSITION_HOSTILE) {
-            level = 2;
-        } else {
-            level = level < W8_NPC_DISPOSITION_FRIENDLY;
-        }
-        if (level != 0) {
-            npc->disposition = 0x4b;
-        }
-        npc->trade_pool = g_npc_records[npc->name_style].trade_pool;
+        DebitNpcTradePool(npc, price);
         break;
     }
     default:
@@ -2775,6 +2724,25 @@ unsigned char ClearNpcScheduledItem(W8NpcState* npc, int item_id, W8ItemInstance
     return 0;
 }
 
+static bool HasHealthyNpcPartner(unsigned char kind)
+{
+    if (g_status.buffers.XChar[0].fOccupied != 0) {
+        W8NpcState* lead = GetNpcState(g_status.buffers.XChar[0].npc_index);
+        if (lead->name_style == kind &&
+            g_status.buffers.Char[0].highest_condition < W8_CONDITION_ASLEEP) {
+            return true;
+        }
+    }
+    if (g_status.buffers.XChar[1].fOccupied != 0) {
+        W8NpcState* lead = GetNpcState(g_status.buffers.XChar[1].npc_index);
+        if (lead->name_style == kind &&
+            g_status.buffers.Char[1].highest_condition < W8_CONDITION_ASLEEP) {
+            return true;
+        }
+    }
+    return false;
+}
+
 /* Scan the two bound lead NPCs for ones that refuse the destination level: an
    NPC that serves the destination region but not the current one queues its
    departure event, and on level 13 a Rodan or Drazic travelling without its
@@ -2845,40 +2813,12 @@ char QueueNpcDepartureEvents(int destination_level)
         if (GetLevelBand(g_status.current_level) == 0xd) {
             int event = 0;
             if (npc->name_style == W8_NPC_RODAN) {
-                bool paired = false;
-                if (g_status.buffers.XChar[0].fOccupied != 0) {
-                    W8NpcState* lead = GetNpcState(g_status.buffers.XChar[0].npc_index);
-                    if (lead->name_style == W8_NPC_DRAZIC &&
-                        g_status.buffers.Char[0].highest_condition < W8_CONDITION_ASLEEP) {
-                        paired = true;
-                    }
-                }
-                if (!paired && g_status.buffers.XChar[1].fOccupied != 0) {
-                    W8NpcState* lead = GetNpcState(g_status.buffers.XChar[1].npc_index);
-                    if (lead->name_style == W8_NPC_DRAZIC &&
-                        g_status.buffers.Char[1].highest_condition < W8_CONDITION_ASLEEP) {
-                        paired = true;
-                    }
-                }
+                bool paired = HasHealthyNpcPartner(W8_NPC_DRAZIC);
                 if (!paired) {
                     event = 0x6c;
                 }
             } else if (npc->name_style == W8_NPC_DRAZIC) {
-                bool paired = false;
-                if (g_status.buffers.XChar[0].fOccupied != 0) {
-                    W8NpcState* lead = GetNpcState(g_status.buffers.XChar[0].npc_index);
-                    if (lead->name_style == W8_NPC_RODAN &&
-                        g_status.buffers.Char[0].highest_condition < W8_CONDITION_ASLEEP) {
-                        paired = true;
-                    }
-                }
-                if (!paired && g_status.buffers.XChar[1].fOccupied != 0) {
-                    W8NpcState* lead = GetNpcState(g_status.buffers.XChar[1].npc_index);
-                    if (lead->name_style == W8_NPC_RODAN &&
-                        g_status.buffers.Char[1].highest_condition < W8_CONDITION_ASLEEP) {
-                        paired = true;
-                    }
-                }
+                bool paired = HasHealthyNpcPartner(W8_NPC_RODAN);
                 if (!paired) {
                     event = 0x67;
                 }
@@ -2915,66 +2855,22 @@ void QueueNpcTravelRefusals(int destination_level)
         if (character->highest_condition >= W8_CONDITION_ASLEEP) {
             continue;
         }
-        int service = 0;
-        if (g_npc_services[0].service_id != 0xffffffff) {
-            while (g_npc_services[service].service_id != 0xffffffff) {
-                if (g_npc_services[service].service_id ==
-                    static_cast<unsigned int>(GetLevelBand(destination_level))) {
-                    if ((npc->record->service_flags & g_npc_services[service].bit) != 0) {
-                        BeginScriptedWorldAction();
-                        QueueNpcMessageLine(W8_NPC_MSG_GROUP_ACTION, slot);
-                    }
-                    break;
-                }
-                ++service;
-            }
+        if (NpcOffersService(npc, GetLevelBand(destination_level))) {
+            BeginScriptedWorldAction();
+            QueueNpcMessageLine(W8_NPC_MSG_GROUP_ACTION, slot);
         }
         if (npc->name_style == W8_NPC_RODAN) {
-            bool paired = false;
-            if (g_status.buffers.XChar[0].fOccupied != 0) {
-                W8NpcState* lead = GetNpcState(g_status.buffers.XChar[0].npc_index);
-                if (lead->name_style == W8_NPC_DRAZIC &&
-                    g_status.buffers.Char[0].highest_condition < W8_CONDITION_ASLEEP) {
-                    paired = true;
-                }
-            }
-            if (!paired) {
-                if (g_status.buffers.XChar[1].fOccupied == 0) {
-                    BeginScriptedWorldAction();
-                    QueueNpcMessageLine(W8_NPC_MSG_GROUP_ACTION, slot);
-                    return;
-                }
-                W8NpcState* lead = GetNpcState(g_status.buffers.XChar[1].npc_index);
-                if (lead->name_style != W8_NPC_DRAZIC ||
-                    g_status.buffers.Char[1].highest_condition >= W8_CONDITION_ASLEEP) {
-                    BeginScriptedWorldAction();
-                    QueueNpcMessageLine(W8_NPC_MSG_GROUP_ACTION, slot);
-                    return;
-                }
+            if (!HasHealthyNpcPartner(W8_NPC_DRAZIC)) {
+                BeginScriptedWorldAction();
+                QueueNpcMessageLine(W8_NPC_MSG_GROUP_ACTION, slot);
+                return;
             }
         }
         if (npc->name_style == W8_NPC_DRAZIC) {
-            bool paired = false;
-            if (g_status.buffers.XChar[0].fOccupied != 0) {
-                W8NpcState* lead = GetNpcState(g_status.buffers.XChar[0].npc_index);
-                if (lead->name_style == W8_NPC_RODAN &&
-                    g_status.buffers.Char[0].highest_condition < W8_CONDITION_ASLEEP) {
-                    paired = true;
-                }
-            }
-            if (!paired) {
-                if (g_status.buffers.XChar[1].fOccupied == 0) {
-                    BeginScriptedWorldAction();
-                    QueueNpcMessageLine(W8_NPC_MSG_GROUP_ACTION, slot);
-                    return;
-                }
-                W8NpcState* lead = GetNpcState(g_status.buffers.XChar[1].npc_index);
-                if (lead->name_style != W8_NPC_RODAN ||
-                    g_status.buffers.Char[1].highest_condition >= W8_CONDITION_ASLEEP) {
-                    BeginScriptedWorldAction();
-                    QueueNpcMessageLine(W8_NPC_MSG_GROUP_ACTION, slot);
-                    return;
-                }
+            if (!HasHealthyNpcPartner(W8_NPC_RODAN)) {
+                BeginScriptedWorldAction();
+                QueueNpcMessageLine(W8_NPC_MSG_GROUP_ACTION, slot);
+                return;
             }
         }
     }

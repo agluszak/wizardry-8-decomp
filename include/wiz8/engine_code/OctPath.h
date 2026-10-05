@@ -347,6 +347,7 @@ public:
                                 float maximum);
     unsigned short ResolveSearchNodeCollisions(W8NavigatorMovementState* movement,
                                                unsigned short node, float radius, float separation);
+    srVector3T<float> GetSearchTraceOffset(float bearing);
     unsigned char TestSearchPositionVisibility(const srVector3T<float>* position,
                                                W8NavigatorMovementState* movement);
     unsigned short ConfigureMovementSearch(W8NavigatorMovementState* movement, int target_location,
@@ -620,6 +621,7 @@ public:
        current one fills. */
     W8PrePathNode* GetPathNode();
     unsigned char BuildPathList(W8PrePathNode* nodes, W8HashTable<unsigned int, int>* cell_map);
+    W8PrePathNode* FindAdjacentPathNode(const W8PrePathNode* node, int direction);
     unsigned char LinkPathNodes();
     void PropagatePathNodeClearance(W8PrePathNode* node, unsigned int depth);
     unsigned int DeleteUnreachableAreas();

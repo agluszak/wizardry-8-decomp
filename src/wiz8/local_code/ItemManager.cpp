@@ -1082,16 +1082,32 @@ bool IsWorldItemWithinReach(W8Item* owner, const srVector3T<float>* from, float 
 // GLOBAL: WIZ8 0x00618E70
 static int g_last_visible_world_item = -1;
 
+static bool IsWorldItemMarkerVisible(W8WorldItem* item, const srVector3T<float>& camera)
+{
+    if (item->p3D != 0) {
+        srVector3T<float> position;
+        srVector3T<float> eye;
+        srVector3T<float> lower;
+        srVector3T<float> upper;
+        item->p3D->m_pRep->GetLocation(&position);
+        GetCameraPosition(&eye);
+        srVector3T<float> delta = position - camera;
+        if (delta.Length() < static_cast<float>(g_double_005ec030)) {
+            item->p3D->GetCachedLocalBounds(&lower, &upper);
+            lower += position;
+            upper += position;
+            return ShowTargetMarker(&eye, &lower, &upper) != 0;
+        }
+    }
+    return false;
+}
+
 /* Any live world item visible to the camera within g_double_005ec030, resuming
    the scan at the last match. */
 // FUNCTION: WIZ8 0x004f8650
 bool AnyWorldItemVisible(void)
 {
     srVector3T<float> camera;
-    srVector3T<float> position;
-    srVector3T<float> eye;
-    srVector3T<float> lower;
-    srVector3T<float> upper;
     int count;
     int index;
 
@@ -1102,36 +1118,16 @@ bool AnyWorldItemVisible(void)
     count = PLLength(gXStatus.plsItemList);
     if (0 <= g_last_visible_world_item && g_last_visible_world_item < count) {
         W8WorldItem* item = GetWorldItemListEntry(g_last_visible_world_item);
-        if (item->p3D != 0) {
-            item->p3D->m_pRep->GetLocation(&position);
-            GetCameraPosition(&eye);
-            srVector3T<float> delta = position - camera;
-            if (delta.Length() < static_cast<float>(g_double_005ec030)) {
-                item->p3D->GetCachedLocalBounds(&lower, &upper);
-                lower += position;
-                upper += position;
-                if (ShowTargetMarker(&eye, &lower, &upper) != 0) {
-                    return 1;
-                }
-            }
+        if (IsWorldItemMarkerVisible(item, camera)) {
+            return 1;
         }
     }
     for (index = 0; index < count; ++index) {
         W8WorldItem* item = GetWorldItemListEntry(index);
 
-        if (item->p3D != 0) {
-            item->p3D->m_pRep->GetLocation(&position);
-            GetCameraPosition(&eye);
-            srVector3T<float> delta = position - camera;
-            if (delta.Length() < static_cast<float>(g_double_005ec030)) {
-                item->p3D->GetCachedLocalBounds(&lower, &upper);
-                lower += position;
-                upper += position;
-                if (ShowTargetMarker(&eye, &lower, &upper) != 0) {
-                    g_last_visible_world_item = index;
-                    return 1;
-                }
-            }
+        if (IsWorldItemMarkerVisible(item, camera)) {
+            g_last_visible_world_item = index;
+            return 1;
         }
     }
     return 0;

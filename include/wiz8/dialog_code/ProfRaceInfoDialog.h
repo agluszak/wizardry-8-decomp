@@ -23,7 +23,7 @@ struct W8ProfRaceInfoRow {
 extern W8AttributeMinimums g_profession_attribute_minimums[];
 extern W8AttributeMinimums g_race_attribute_minimums[];
 extern W8ProfRaceInfoRow g_profession_info_rows[W8_PROFESSION_COUNT];
-extern W8ProfRaceInfoRow g_race_info_rows[16];
+extern W8ProfRaceInfoRow g_race_info_rows[W8_RACE_COUNT];
 
 /* Dialog Code\ProfRaceInfoDialog.cpp shared shell: the constructor fixes the
    popup frame and the derived dialogs fill the string ids, the attribute

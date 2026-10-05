@@ -127,14 +127,14 @@ public:
     srModelInstance* ToggleRepAnimation(int argument);
     srModelInstance* ToggleRepAnimationDefault();
     unsigned char PlayRepAnimation(srVector3T<float>* minimum, srVector3T<float>* maximum);
-    void SetSetting6E(unsigned char value);
+    void SetAnimationDirection(W8AnimationDirection direction);
     void SetRepresentationActive(unsigned char active, bool update_animation);
     bool CanBeUsedFrom(int arg_2, int arg_3, bool notify);
     void SetSetting6C(unsigned char value);
     void SetSetting66(char value);
     void SetAnimationSpeed(float speed);
-    bool IsSetting6FTwo();
-    void ToggleSetting6E();
+    bool IsAnimationPingPong();
+    void ReverseAnimationDirection();
     Trigger* GetTrigger();
     bool IsTriggerInView(srVector3T<float>* position);
     Trigger* GetGDPropOwnerTrigger();

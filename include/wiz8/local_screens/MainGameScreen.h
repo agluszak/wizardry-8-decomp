@@ -459,6 +459,7 @@ public:
     void Update();                           /* 0x00589A80 */
     void RefreshActionPanel();               /* 0x00589D90 */
     void EnablePanelRegionSets(bool enable); /* 0x0058A030 */
+    int GetTrapInteractionChance() const;
     void ApplyInspectSuccess();              /* 0x0058A060 */
     void CastTrapSpell();                    /* 0x0058A200 */
     void UseTrapItem();                      /* 0x0058A3E0 */

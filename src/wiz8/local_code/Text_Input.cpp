@@ -521,6 +521,21 @@ void ClearActiveField(void)
     gpActive = 0;
 }
 
+static void DeleteHighlightedText(unsigned char first, unsigned char last)
+{
+    if (last < first) {
+        unsigned char swap = first;
+        first = last;
+        last = swap;
+    }
+    memmove(gpActive->szString + first, gpActive->szString + last,
+            (gpActive->ubStrLen - last + 1) * sizeof(wchar_t));
+    gpActive->ubStrLen -= last - first;
+    gubStartHilite = 0;
+    gubEndHilite = 0;
+    SetTextInputCursor(first);
+}
+
 // FUNCTION: WIZ8 0x005D3F50
 unsigned int HandleTextInput(const InputAtom* input)
 {
@@ -662,19 +677,7 @@ unsigned int HandleTextInput(const InputAtom* input)
         }
         gfHiliteMode = false;
         if (gubStartHilite != selection_end) {
-            unsigned char first = gubStartHilite;
-            unsigned char last = selection_end;
-            if (last < first) {
-                unsigned char swap = first;
-                first = last;
-                last = swap;
-            }
-            memmove(gpActive->szString + first, gpActive->szString + last,
-                    (gpActive->ubStrLen - last + 1) * sizeof(wchar_t));
-            gpActive->ubStrLen -= last - first;
-            gubStartHilite = 0;
-            gubEndHilite = 0;
-            SetTextInputCursor(first);
+            DeleteHighlightedText(gubStartHilite, selection_end);
         }
         return 1;
 
@@ -693,22 +696,7 @@ unsigned int HandleTextInput(const InputAtom* input)
         } else {
             gfHiliteMode = false;
             if (gubStartHilite != selection_end) {
-                unsigned char first = gubStartHilite;
-                unsigned char last = selection_end;
-                if (last < first) {
-                    unsigned char swap = first;
-                    first = last;
-                    last = swap;
-                }
-                memmove(gpActive->szString + first, gpActive->szString + last,
-                        (gpActive->ubStrLen - last + 1) * sizeof(wchar_t));
-                gpActive->ubStrLen -= last - first;
-                gubStartHilite = 0;
-                gubEndHilite = 0;
-                gubCursorPos = first;
-                gubParkingPos = CalculateCursorPos(
-                    gpActive->region.RegionBottomRightX - gpActive->region.RegionTopLeftX - 10,
-                    first, gpActive->szString, &gsCursorX, &guiVisibleCount);
+                DeleteHighlightedText(gubStartHilite, selection_end);
                 return 1;
             }
         }
@@ -725,22 +713,7 @@ unsigned int HandleTextInput(const InputAtom* input)
         if (gfHiliteMode != 0) {
             gfHiliteMode = false;
             if (gubStartHilite != gubEndHilite) {
-                unsigned char first = gubStartHilite;
-                unsigned char last = gubEndHilite;
-                if (last < first) {
-                    unsigned char swap = first;
-                    first = last;
-                    last = swap;
-                }
-                memmove(gpActive->szString + first, gpActive->szString + last,
-                        (gpActive->ubStrLen - last + 1) * sizeof(wchar_t));
-                gpActive->ubStrLen -= last - first;
-                gubStartHilite = 0;
-                gubEndHilite = 0;
-                gubCursorPos = first;
-                gubParkingPos = CalculateCursorPos(
-                    gpActive->region.RegionBottomRightX - gpActive->region.RegionTopLeftX - 10,
-                    gubCursorPos, gpActive->szString, &gsCursorX, &guiVisibleCount);
+                DeleteHighlightedText(gubStartHilite, gubEndHilite);
             }
         }
 

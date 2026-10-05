@@ -454,19 +454,11 @@ void MartensBluff2MonsterCrusher(int command)
         g_dummy_rope_prop = 0;
         pTrigger = FindTriggerByName("Squisher-3");
         if (pTrigger != 0) {
-            if (pTrigger->m_bRepType != 2) {
-                srAssertFail("m_bRepType == TRIGGER_REP_PROP",
-                             "..\\Engine Code\\Include\\Trigger.hpp", 0x3ed, 0);
-            }
-            g_squisher3_prop = pTrigger->m_pProp;
+            g_squisher3_prop = pTrigger->GetProp();
         }
         pTrigger = FindTriggerByName("Squisher-4");
         if (pTrigger != 0) {
-            if (pTrigger->m_bRepType != 2) {
-                srAssertFail("m_bRepType == TRIGGER_REP_PROP",
-                             "..\\Engine Code\\Include\\Trigger.hpp", 0x3ed, 0);
-            }
-            g_squisher4_prop = pTrigger->m_pProp;
+            g_squisher4_prop = pTrigger->GetProp();
         }
         if (command != static_cast<int>(0xEFFFFFFF)) {
             g_crusher_state = command;
@@ -530,18 +522,10 @@ void MartensBluff2MonsterCrusher(int command)
         }
         g_running_trigger_from_script = true;
         pTrigger->Run(-1);
-        if (pTrigger->m_bRepType != 2) {
-            srAssertFail("m_bRepType == TRIGGER_REP_PROP", "..\\Engine Code\\Include\\Trigger.hpp",
-                         0x3ed, 0);
-        }
-        g_dummy_prop = pTrigger->m_pProp;
+        g_dummy_prop = pTrigger->GetProp();
         pTrigger = FindTriggerByName("DummyRope");
         pTrigger->Run(-1);
-        if (pTrigger->m_bRepType != 2) {
-            srAssertFail("m_bRepType == TRIGGER_REP_PROP", "..\\Engine Code\\Include\\Trigger.hpp",
-                         0x3ed, 0);
-        }
-        g_dummy_rope_prop = pTrigger->m_pProp;
+        g_dummy_rope_prop = pTrigger->GetProp();
         g_running_trigger_from_script = false;
         g_crusher_state = 2;
         return;

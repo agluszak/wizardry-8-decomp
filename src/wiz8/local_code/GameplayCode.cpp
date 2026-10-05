@@ -61,10 +61,6 @@
 
 #define GAMEPLAY_CODE_CPP "C:\\Projects\\Wizardry 8\\Local Code\\GameplayCode.cpp"
 
-/* PC_RACE_COUNT, named by the assertion that bounds the race field, and the
-   eleven playable races out of the sixteen the race tables carry. */
-enum { W8_PC_RACE_COUNT = 11 };
-
 /* How much one level in a profession is worth towards physical combat
    experience. The professions split three ways. */
 enum {
@@ -115,7 +111,7 @@ bool AnyMonsterEngaged(void)
 
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
-        if (monster_info->fInCombat != 0 && monster_info->ubDisposition == 1 &&
+        if (monster_info->fInCombat != 0 && monster_info->ubDisposition == W8_DISPOSITION_HOSTILE &&
             monster_info->hp_current != 0 &&
             monster_info->highest_condition < W8_CONDITION_WEBBED) {
             return true;

@@ -38,7 +38,7 @@ void RecalculateCharacterDerivedStats(W8Character* character)
 {
     int index;
 
-    if (character->iProfession >= 0xf || character->iRace >= 0x10 ||
+    if (character->iProfession >= W8_PROFESSION_COUNT || character->iRace >= W8_RACE_COUNT ||
         character->gender == W8_GENDER_UNSET) {
         return;
     }

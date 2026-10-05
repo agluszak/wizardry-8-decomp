@@ -143,6 +143,16 @@ void LoadParticleStates(int handle)
     }
 }
 
+static void SetParticleQuadTriangles(srVector3i* triangles, unsigned int vertex)
+{
+    triangles[0].x = vertex;
+    triangles[0].y = vertex + 1;
+    triangles[0].z = vertex + 2;
+    triangles[1].x = vertex + 2;
+    triangles[1].y = vertex + 3;
+    triangles[1].z = vertex;
+}
+
 // FUNCTION: WIZ8 0x00497AF0
 stParticle::stParticle(srNode* parent, int count)
     : srClassSupport<stParticle, srNode, 0, 0x10009>(static_cast<srNode*>(0))
@@ -199,12 +209,7 @@ stParticle::stParticle(srNode* parent, int count)
     for (i = 0; i < count; ++i) {
         unsigned int vertex = i * 4;
         unsigned int triangle = i * 2;
-        triangles[triangle].x = vertex;
-        triangles[triangle].y = vertex + 1;
-        triangles[triangle].z = vertex + 2;
-        triangles[triangle + 1].x = vertex + 2;
-        triangles[triangle + 1].y = vertex + 3;
-        triangles[triangle + 1].z = vertex;
+        SetParticleQuadTriangles(triangles + triangle, vertex);
 
         particle_positions[i] = 0.0f;
 
@@ -338,12 +343,7 @@ stParticle::stParticle(const stParticle& other)
     for (i = 0; i < count; ++i) {
         unsigned int vertex = i * 4;
         unsigned int triangle = i * 2;
-        triangles[triangle].x = vertex;
-        triangles[triangle].y = vertex + 1;
-        triangles[triangle].z = vertex + 2;
-        triangles[triangle + 1].x = vertex + 2;
-        triangles[triangle + 1].y = vertex + 3;
-        triangles[triangle + 1].z = vertex;
+        SetParticleQuadTriangles(triangles + triangle, vertex);
 
         particle_positions[i] = 0.0f;
         texcoords[vertex].Set(0.0f, 0.0f);

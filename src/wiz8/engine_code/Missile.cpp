@@ -924,7 +924,7 @@ unsigned char W8MissileRep::ReadCycleData(W8ReadLevelInfo* info, W8Missile* miss
     }
     emitter_playback_scales[emitter] = animation->playback_scale;
     active = 1;
-    frame_direction = 1;
+    frame_direction = W8_ANIMATION_FORWARD;
     timer = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
     animation_behaviour = animation->behaviour;
     frame_method = animation->frame_method;
@@ -1232,21 +1232,12 @@ void W8Missile::SetCycle(signed char cycle)
     }
 
     lights = *m_pRep->light_lists[m_pRep->current_cycle].GetAt(0);
-    if (lights != 0) {
-        for (index = 0; index < lights->GetCount(); ++index) {
-            stLight* light = *lights->GetAt(index);
-
-            light->setParent(0, 1);
-            if (light->definition() != 0) {
-                g_world->lights_to_update->Remove(light);
-            }
-        }
-    }
+    DetachCycleLights(lights);
 
     m_pRep->current_cycle = cycle;
     animation = m_pRep->emitters[cycle];
     m_pRep->active = 1;
-    m_pRep->frame_direction = 1;
+    m_pRep->frame_direction = W8_ANIMATION_FORWARD;
     if (m_pRep->SetCycleFrameLod(cycle, 0, 2) != 0) {
         m_pRep->m_bLOD = 2;
     } else if (m_pRep->SetCycleFrameLod(cycle, 0, 1) != 0) {
@@ -1261,16 +1252,7 @@ void W8Missile::SetCycle(signed char cycle)
 
     lights = *m_pRep->light_lists[cycle].GetAt(0);
     SetLights(lights);
-    if (g_render_missile_lights != 0 && lights != 0) {
-        for (index = 0; index < lights->GetCount(); ++index) {
-            stLight* light = *lights->GetAt(index);
-
-            light->setParent(g_world->dynamic_scene, 1);
-            if (light->definition() != 0) {
-                g_world->lights_to_update->Add(light);
-            }
-        }
-    }
+    AttachCycleLights(lights);
 
     if (m_plsParticles != 0) {
         for (index = 0; index < m_plsParticles->GetCount(); ++index) {

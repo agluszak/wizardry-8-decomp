@@ -353,14 +353,11 @@ void ResolveSprungTrap(Trigger* trigger)
             power = 7;
         }
     }
-    if (trigger->m_bRepType != 2) {
-        srAssertFail("m_bRepType == TRIGGER_REP_PROP", "..\\Engine Code\\Include\\Trigger.hpp",
-                     0x3ed, 0);
-    }
-    if (trigger->m_pProp == 0) {
+    W8Prop* prop = trigger->GetProp();
+    if (prop == 0) {
         GetCameraForwardPoint(1000.0f, &point);
     } else {
-        trigger->m_pProp->PlayRepAnimation(&minimum, &maximum);
+        prop->PlayRepAnimation(&minimum, &maximum);
         point.Set((minimum.x + maximum.x) * g_double_005ebe80,
                   (minimum.y + maximum.y) * g_double_005ebe80,
                   (minimum.z + maximum.z) * g_double_005ebe80);

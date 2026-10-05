@@ -522,6 +522,26 @@ void SetWorldEnvironmentIntensity(W8World* world, float value)
     ApplyEnvironmentColour(world, value, &world->environment_colour);
 }
 
+static float ApplyWorldLightingIntensity(W8World* world, float intensity)
+{
+    EnvironmentColour colour;
+    if (g_double_005ebc30 <= intensity || g_double_zero < intensity) {
+        if (g_double_005ebc30 <= intensity) {
+            intensity = static_cast<float>(g_double_005ebc30);
+        }
+    } else {
+        intensity = static_cast<float>(g_double_zero);
+    }
+    if (world->static_scene == 0) {
+        colour.SetZero();
+        SaturateColor(&colour);
+        ApplyEnvironmentColour(world, intensity, &colour);
+    } else {
+        ApplyEnvironmentColour(world, intensity, &world->environment_colour);
+    }
+    return intensity;
+}
+
 /* Arm or complete a lighting fade. A zero duration snaps back to day/night
    lighting with the current base intensity; any other duration stores
    1/duration as the per-millisecond rate and, for a fade-out, snapshots the
@@ -531,7 +551,6 @@ void BeginWorldLightingFade(float duration)
 {
     W8World* world;
     float intensity;
-    EnvironmentColour colour;
     EnvironmentColour direction;
 
     if (duration == g_float_zero) {
@@ -547,38 +566,12 @@ void BeginWorldLightingFade(float duration)
         if (world == 0) {
             srAssertFail("pWorld", ENVIRONMENT_CPP, 0x298, 0);
         }
-        if (g_double_005ebc30 <= intensity || g_double_zero < intensity) {
-            if (g_double_005ebc30 <= intensity) {
-                intensity = static_cast<float>(g_double_005ebc30);
-            }
-        } else {
-            intensity = static_cast<float>(g_double_zero);
-        }
-        if (world->static_scene == 0) {
-            colour.SetZero();
-            SaturateColor(&colour);
-            ApplyEnvironmentColour(world, intensity, &colour);
-        } else {
-            ApplyEnvironmentColour(world, intensity, &world->environment_colour);
-        }
+        intensity = ApplyWorldLightingIntensity(world, intensity);
 
         world = g_secondary_world;
         if (world != 0) {
             intensity = world->environment_base_intensity;
-            if (g_double_005ebc30 <= intensity || g_double_zero < intensity) {
-                if (g_double_005ebc30 <= intensity) {
-                    intensity = static_cast<float>(g_double_005ebc30);
-                }
-            } else {
-                intensity = static_cast<float>(g_double_zero);
-            }
-            if (world->static_scene == 0) {
-                colour.SetZero();
-                SaturateColor(&colour);
-                ApplyEnvironmentColour(world, intensity, &colour);
-            } else {
-                ApplyEnvironmentColour(world, intensity, &world->environment_colour);
-            }
+            intensity = ApplyWorldLightingIntensity(world, intensity);
         }
 
         direction = g_light_direction;
@@ -612,7 +605,6 @@ void UpdateEnvironmentLighting(void)
     W8World* world;
     float scale;
     float intensity;
-    EnvironmentColour colour;
     EnvironmentColour direction;
 
     if (elapsed == 0) {
@@ -632,38 +624,12 @@ void UpdateEnvironmentLighting(void)
     if (world == 0) {
         srAssertFail("pWorld", ENVIRONMENT_CPP, 0x298, 0);
     }
-    if (g_double_005ebc30 <= intensity || g_double_zero < intensity) {
-        if (g_double_005ebc30 <= intensity) {
-            intensity = static_cast<float>(g_double_005ebc30);
-        }
-    } else {
-        intensity = static_cast<float>(g_double_zero);
-    }
-    if (world->static_scene == 0) {
-        colour.SetZero();
-        SaturateColor(&colour);
-        ApplyEnvironmentColour(world, intensity, &colour);
-    } else {
-        ApplyEnvironmentColour(world, intensity, &world->environment_colour);
-    }
+    intensity = ApplyWorldLightingIntensity(world, intensity);
 
     world = g_secondary_world;
     if (world != 0) {
         float secondary = scale * world->environment_base_intensity;
-        if (g_double_005ebc30 <= secondary || g_double_zero < secondary) {
-            if (g_double_005ebc30 <= secondary) {
-                secondary = static_cast<float>(g_double_005ebc30);
-            }
-        } else {
-            secondary = static_cast<float>(g_double_zero);
-        }
-        if (world->static_scene == 0) {
-            colour.SetZero();
-            SaturateColor(&colour);
-            ApplyEnvironmentColour(world, secondary, &colour);
-        } else {
-            ApplyEnvironmentColour(world, secondary, &world->environment_colour);
-        }
+        secondary = ApplyWorldLightingIntensity(world, secondary);
     }
 
     direction.x = g_light_direction.x * scale;

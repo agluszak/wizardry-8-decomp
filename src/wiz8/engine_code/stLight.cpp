@@ -179,6 +179,24 @@ void stLight::SetDefinitionTime(float time)
    texture at a per-update probability. Any owned path advances once the
    elapsed seconds times the path rate exceed one whole step, wrapping or
    ping-ponging at the ends. */
+void stParametricLightDefinition::GetInterpolatedColor(float blend, srVector3T<float>* out) const
+{
+    float inverse = g_float_one - blend;
+    float red = blend * color_to.x + inverse * color.x;
+    float green = blend * color_to.y + inverse * color.y;
+    float blue = blend * color_to.z + inverse * color.z;
+    if (g_float_one < red) {
+        red = 1.0f;
+    }
+    if (g_float_one < green) {
+        green = 1.0f;
+    }
+    if (g_float_one < blue) {
+        blue = 1.0f;
+    }
+    out->Set(red, green, blue);
+}
+
 // FUNCTION: WIZ8 0x0049C960
 void stLight::Update()
 {
@@ -253,8 +271,8 @@ void stLight::Update()
     if (definition->period < g_float_005ebc90) {
         definition->period = 1.0f;
     }
-    unsigned int mode = definition->flags & 3;
-    if (mode == 0) {
+    unsigned int mode = definition->flags & W8_PARAM_LIGHT_MODE_MASK;
+    if (mode == W8_PARAM_LIGHT_OSCILLATE) {
         float step = (seconds - m_level_time) * definition->rate;
         if (g_float_zero < step) {
             float level = m_level;
@@ -282,27 +300,14 @@ void stLight::Update()
             intensity = (definition->intensity_to - definition->intensity) * blend +
                             definition->intensity;
             m_level = blend;
-            if ((definition->flags & 8) == 0) {
+            if ((definition->flags & W8_PARAM_LIGHT_COLOR) == 0) {
                 m_level_time = seconds;
             } else {
-                float inverse = g_float_one - blend;
-                float red = blend * definition->color_to.x + inverse * definition->color.x;
-                float green = blend * definition->color_to.y + inverse * definition->color.y;
-                float blue = blend * definition->color_to.z + inverse * definition->color.z;
-                if (g_float_one < red) {
-                    red = 1.0f;
-                }
-                if (g_float_one < green) {
-                    green = 1.0f;
-                }
-                if (g_float_one < blue) {
-                    blue = 1.0f;
-                }
-                diffuse.Set(red, green, blue);
+                definition->GetInterpolatedColor(blend, &diffuse);
                 m_level_time = seconds;
             }
         }
-    } else if (mode == 3) {
+    } else if (mode == W8_PARAM_LIGHT_RAMP) {
         float step = (seconds - m_level_time) * definition->rate;
         if (g_float_zero < step) {
             float blend = (g_float_one / definition->period) * step + m_level;
@@ -311,29 +316,13 @@ void stLight::Update()
                 intensity = (definition->intensity_to - definition->intensity) * level +
                                 definition->intensity;
                 m_level = level;
-                if ((definition->flags & 8) != 0) {
-                    float inverse = g_float_one - blend;
-                    float red =
-                        blend * definition->color_to.x + inverse * definition->color.x;
-                    float green =
-                        blend * definition->color_to.y + inverse * definition->color.y;
-                    float blue =
-                        blend * definition->color_to.z + inverse * definition->color.z;
-                    if (g_float_one < red) {
-                        red = 1.0f;
-                    }
-                    if (g_float_one < green) {
-                        green = 1.0f;
-                    }
-                    if (g_float_one < blue) {
-                        blue = 1.0f;
-                    }
-                    diffuse.Set(red, green, blue);
+                if ((definition->flags & W8_PARAM_LIGHT_COLOR) != 0) {
+                    definition->GetInterpolatedColor(blend, &diffuse);
                 }
                 m_level_time = seconds;
             }
         }
-    } else if ((definition->flags & 1) == 1) {
+    } else if ((definition->flags & W8_PARAM_LIGHT_FLICKER) == W8_PARAM_LIGHT_FLICKER) {
         W8Prop* prop = m_prop;
         srModelInstance* instance = 0;
         if (prop != 0) {
@@ -344,7 +333,7 @@ void stLight::Update()
                 instance = 0;
             }
         }
-        if ((definition->flags & 8) != 0) {
+        if ((definition->flags & W8_PARAM_LIGHT_COLOR) != 0) {
             diffuse = definition->color;
         }
         if (testFlag(FLAG_DISABLE) == 0) {
@@ -380,7 +369,7 @@ void stLight::Update()
             m_path_direction = 1;
             index = 0;
         }
-    } else if ((definition->flags & 0x20) != 0) {
+    } else if ((definition->flags & W8_PARAM_LIGHT_PING_PONG_PATH) != 0) {
         m_path_direction = -1;
         index = static_cast<int>(PathAIEntryCount(path)) - 2;
     } else {
@@ -411,7 +400,7 @@ void stLight::Reset()
             stParametricLightDefinition* definition =
                 static_cast<stParametricLightDefinition*>(m_definition);
             intensity = definition->intensity;
-            if ((definition->flags & 8) != 0) {
+            if ((definition->flags & W8_PARAM_LIGHT_COLOR) != 0) {
                 diffuse = definition->color;
             }
         }

@@ -624,7 +624,7 @@ static bool AppendUseItemListEntry(W8ItemInstance* item, W8ItemInstance* select,
         }
         g_use_item_list[g_use_item_list_count] = item;
         if (g_item_records[item->iItemNo].equip_class != W8_ITEM_EQUIP_CLASS_INSTRUMENT ||
-            g_status.buffers.Char[g_use_item_owner_index].uiCondition[8] == 0) {
+            g_status.buffers.Char[g_use_item_owner_index].uiCondition[W8_CONDITION_SILENCED] == 0) {
             color = 0;
         } else {
             color = 4;

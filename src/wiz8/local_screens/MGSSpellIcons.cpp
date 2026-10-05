@@ -81,11 +81,9 @@ unsigned char CreateSpellIconHudControls(void)
     return 1;
 }
 
-// FUNCTION: WIZ8 0x005AEB20
-void DestroySpellIconHudControls(void)
+static void ClearSpellIconHudRows()
 {
     unsigned int index;
-
     if (g_spell_icon_count != 0) {
         for (index = 0; index < g_spell_icon_count; ++index) {
             g_spell_icon_strip->RemoveControl(g_spell_icon_rows[index]);
@@ -98,6 +96,12 @@ void DestroySpellIconHudControls(void)
         DisableRegionInput(0xd5 - index);
     }
     g_spell_icon_count = 0;
+}
+
+// FUNCTION: WIZ8 0x005AEB20
+void DestroySpellIconHudControls(void)
+{
+    ClearSpellIconHudRows();
     if (g_spell_icon_strip != 0) {
         delete g_spell_icon_strip;
     }
@@ -116,20 +120,7 @@ void DestroySpellIconHudControls(void)
 // FUNCTION: WIZ8 0x005AEBE0
 void RefreshSpellIconHudRows(void)
 {
-    unsigned int index;
-
-    if (g_spell_icon_count != 0) {
-        for (index = 0; index < g_spell_icon_count; ++index) {
-            g_spell_icon_strip->RemoveControl(g_spell_icon_rows[index]);
-            if (g_spell_icon_rows[index] != 0) {
-                delete g_spell_icon_rows[index];
-            }
-        }
-    }
-    for (index = 0; index < 0xc; ++index) {
-        DisableRegionInput(0xd5 - index);
-    }
-    g_spell_icon_count = 0;
+    ClearSpellIconHudRows();
     RebuildSpellIconHudRows();
     g_spell_icon_strip->SetEnabled(true);
     if (g_spell_icon_count != 0) {

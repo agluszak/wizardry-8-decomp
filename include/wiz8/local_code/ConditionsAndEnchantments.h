@@ -25,7 +25,7 @@ extern W8ConditionImmunity g_condition_immunities[3];
 extern unsigned short g_condition_notices[128];
 
 void RemoveCharacterCondition(int party_slot, W8Condition condition, bool announce);
-void SetMonsterCondition(int location_id, int condition, int duration, int argument,
+void SetMonsterCondition(int location_id, W8Condition condition, int duration, int argument,
                          W8TargetSource* target, char announce);
 void ClearMonsterCondition(int location_id, W8Condition condition);
 void ClearMonsterEnchantmentSlot(int location_id, W8EnchantmentSlot slot);

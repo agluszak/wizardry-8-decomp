@@ -2965,20 +2965,25 @@ int W8Octree::ProbeCellForBlockers(const srVector3T<int>* cell)
     if (leaf_index != 0 && m_leaves[leaf_index].polygon_offset != 0) {
         const unsigned long* stream =
             m_polygon_index_stream + m_leaves[leaf_index].polygon_offset;
-        for (int remaining = *stream; remaining != 0; --remaining) {
-            ++stream;
-            if (m_visited_polygon_bits->Set(*stream) == 0) {
-                if (9999 < m_gd_result_count) {
-                    break;
-                }
-                unsigned int key = m_aulPolyLookup[*stream];
-                m_aulGDObjs[m_gd_result_count] = key;
-                ++m_gd_result_count;
-                m_current_regions->Set(key >> 0x10);
-            }
-        }
+        AppendBlockerStream(stream);
     }
     return m_gd_result_count;
+}
+
+void W8Octree::AppendBlockerStream(const unsigned long* stream)
+{
+    for (int remaining = *stream; remaining != 0; --remaining) {
+        ++stream;
+        if (m_visited_polygon_bits->Set(*stream) == 0) {
+            if (9999 < m_gd_result_count) {
+                break;
+            }
+            unsigned int key = m_aulPolyLookup[*stream];
+            m_aulGDObjs[m_gd_result_count] = key;
+            ++m_gd_result_count;
+            m_current_regions->Set(key >> 0x10);
+        }
+    }
 }
 
 // FUNCTION: WIZ8 0x00435da0
@@ -2988,18 +2993,7 @@ int W8Octree::ProbeCellForBlockersAppend(const srVector3T<int>* cell)
     if (leaf_index != 0 && m_leaves[leaf_index].polygon_offset != 0) {
         const unsigned long* stream =
             m_polygon_index_stream + m_leaves[leaf_index].polygon_offset;
-        for (int remaining = *stream; remaining != 0; --remaining) {
-            ++stream;
-            if (m_visited_polygon_bits->Set(*stream) == 0) {
-                if (9999 < m_gd_result_count) {
-                    break;
-                }
-                unsigned int key = m_aulPolyLookup[*stream];
-                m_aulGDObjs[m_gd_result_count] = key;
-                ++m_gd_result_count;
-                m_current_regions->Set(key >> 0x10);
-            }
-        }
+        AppendBlockerStream(stream);
     }
     return m_gd_result_count;
 }
@@ -4691,10 +4685,10 @@ void W8Octree::AdjustPortalDestination(srVector3T<float>* destination,
 /* The .oct writers stage at most 0x100 records through a stack buffer per
    FileWrite call. */
 
-// FUNCTION: WIZ8 0x004372E0
-BOOLEAN WriteVector4Array(int file, const srVector4T<float>* values, int count)
+template <class Vector>
+static BOOLEAN WriteStagedVectorArray(int file, const Vector* values, int count)
 {
-    srVector4T<float> staging[0x100];
+    Vector staging[0x100];
     int written = 0;
     int chunk_count;
     int index;
@@ -4714,56 +4708,24 @@ BOOLEAN WriteVector4Array(int file, const srVector4T<float>* values, int count)
         }
     }
     return success;
+}
+
+// FUNCTION: WIZ8 0x004372E0
+BOOLEAN WriteVector4Array(int file, const srVector4T<float>* values, int count)
+{
+    return WriteStagedVectorArray(file, values, count);
 }
 
 // FUNCTION: WIZ8 0x00437390
 BOOLEAN WriteVector3Array(int file, const srVector3T<float>* values, int count)
 {
-    srVector3T<float> staging[0x100];
-    int written = 0;
-    int chunk_count;
-    int index;
-    BOOLEAN success = TRUE;
-
-    while (success && written < count) {
-        chunk_count = count - written;
-        if (chunk_count > 0x100) {
-            chunk_count = 0x100;
-        }
-        if (chunk_count != 0) {
-            for (index = 0; index < chunk_count; ++index) {
-                staging[index] = values[written + index];
-            }
-            written += chunk_count;
-            success &= FileWrite(file, staging, chunk_count * sizeof(staging[0]), 0);
-        }
-    }
-    return success;
+    return WriteStagedVectorArray(file, values, count);
 }
 
 // FUNCTION: WIZ8 0x00437430
 BOOLEAN WriteVector2Array(int file, const srVector2T<float>* values, int count)
 {
-    srVector2T<float> staging[0x100];
-    int written = 0;
-    int chunk_count;
-    int index;
-    BOOLEAN success = TRUE;
-
-    while (success && written < count) {
-        chunk_count = count - written;
-        if (chunk_count > 0x100) {
-            chunk_count = 0x100;
-        }
-        if (chunk_count != 0) {
-            for (index = 0; index < chunk_count; ++index) {
-                staging[index] = values[written + index];
-            }
-            written += chunk_count;
-            success &= FileWrite(file, staging, chunk_count * sizeof(staging[0]), 0);
-        }
-    }
-    return success;
+    return WriteStagedVectorArray(file, values, count);
 }
 
 // FUNCTION: WIZ8 0x004374C0

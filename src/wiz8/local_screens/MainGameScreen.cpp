@@ -2070,6 +2070,29 @@ void W8MainGameScreen::SelectTextEntry(int index)
         SoundPlay((STR)g_trap_sounds[index] /* c-style-cast-ok: SGP STR boundary */, 0));
 }
 
+int W8MainGameScreen::GetTrapInteractionChance() const
+{
+    int chance;
+    int skill;
+
+    chance = m_difficulty;
+    if (chance < 0) {
+        chance = 0;
+    }
+    skill = GetPartySlotLocksTrapsLevel(m_selected_character);
+    if (skill > -1) {
+        skill += m_target_difficulty * 6;
+    }
+    skill -= g_table2[chance];
+    chance = (skill * 3) / 2 + (11 - g_settings.difficulty) * 10;
+    if (chance < 0) {
+        chance = 0;
+    } else if (chance > 0x63) {
+        chance = 0x63;
+    }
+    return chance;
+}
+
 // FUNCTION: WIZ8 0x005897f0
 void W8MainGameScreen::OnPrimary(W8TextControl* control)
 {
@@ -2102,21 +2125,7 @@ void W8MainGameScreen::OnPrimary(W8TextControl* control)
     m_selected_character = slot;
     skill = GetPartySlotLocksTrapsLevel(slot);
     hold = g_float_005ebca0 - skill * g_camera_snap_epsilon;
-    chance = m_difficulty;
-    if (chance < 0) {
-        chance = 0;
-    }
-    skill = GetPartySlotLocksTrapsLevel(m_selected_character);
-    if (skill > -1) {
-        skill += m_target_difficulty * 6;
-    }
-    skill -= g_table2[chance];
-    chance = (skill * 3) / 2 + (11 - g_settings.difficulty) * 10;
-    if (chance < 0) {
-        chance = 0;
-    } else if (chance > 0x63) {
-        chance = 0x63;
-    }
+    chance = GetTrapInteractionChance();
     roll = static_cast<int>(Random(0x64));
     if (roll < chance) {
         m_disarm_state = 1;
@@ -2336,7 +2345,6 @@ void EnableTrapInteractionPanelRegions(void)
 void W8MainGameScreen::ApplyInspectSuccess()
 {
     int chance;
-    int skill;
     int column;
     int* values;
     int roll;
@@ -2345,21 +2353,7 @@ void W8MainGameScreen::ApplyInspectSuccess()
     PracticeCharacterSkill(&g_status.buffers.Char[m_selected_character], W8_SKILL_LOCKS_TRAPS, 1,
                            0);
     RefreshActionPanel();
-    chance = m_difficulty;
-    if (chance < 0) {
-        chance = 0;
-    }
-    skill = GetPartySlotLocksTrapsLevel(m_selected_character);
-    if (skill > -1) {
-        skill += m_target_difficulty * 6;
-    }
-    skill -= g_table2[chance];
-    chance = (skill * 3) / 2 + (11 - g_settings.difficulty) * 10;
-    if (chance < 0) {
-        chance = 0;
-    } else if (chance > 0x63) {
-        chance = 0x63;
-    }
+    chance = GetTrapInteractionChance();
     for (column = 0; column < 8; ++column) {
         roll = static_cast<int>(Random(0x64));
         if (roll < chance) {
@@ -3638,14 +3632,7 @@ unsigned char MainGameScreenLeave(int leaving)
     }
 
     if (g_level_block->formation_board_visible) {
-        g_level_block->formation_board_visible = 0;
-        RegionSetDisable(0x13);
-        ReleaseFormationBoard();
-        RequestRedraw(0x8200);
-        if (g_formation_panel_shown) {
-            SetViewportMode(GetMainGameViewportMode());
-        }
-        g_formation_panel_shown = 0;
+        SetFormationBoardVisible(0);
     }
 
     if (g_level_block->radar_map_visible) {
@@ -4389,6 +4376,17 @@ void DismissHighlightOverlay(void)
     g_main_game_mode = 0;
 }
 
+static void DrawHighlightFrameRow(int left, int right, int y, unsigned int tiles)
+{
+    DrawCatalogImage(-0xe, 0x70, 0, 3, left, y, 2, 0);
+    int inner = left + 6;
+    for (unsigned int tile = tiles; tile != 0; --tile) {
+        DrawCatalogImage(-0xe, 0x70, 0, 8, inner, y, 2, 0);
+        inner += 6;
+    }
+    DrawCatalogImage(-0xe, 0x70, 0, 4, right, y, 2, 0);
+}
+
 /* Build the mode-6 hover panel over a portrait: the framed plate carrying the
    character's name and `row_count` content rows, plus the lazily created 0x72
    highlight sprite pinned to highlight_row. An active mode-3 NPC dialogue,
@@ -4469,13 +4467,7 @@ void DrawHighlightOverlay(unsigned int party_slot, int row_count, unsigned int m
     DrawCatalogImage(-0xe, 0x70, 0, 2, right, top, 2, 0);
     int row_y_pos = top + 6;
     for (row = 0; row < 2; ++row) {
-        DrawCatalogImage(-0xe, 0x70, 0, 3, left, row_y_pos, 2, 0);
-        inner = left + 6;
-        for (tile = tiles; tile != 0; --tile) {
-            DrawCatalogImage(-0xe, 0x70, 0, 8, inner, row_y_pos, 2, 0);
-            inner += 6;
-        }
-        DrawCatalogImage(-0xe, 0x70, 0, 4, right, row_y_pos, 2, 0);
+        DrawHighlightFrameRow(left, right, row_y_pos, tiles);
         row_y_pos += 6;
     }
 
@@ -4505,13 +4497,7 @@ void DrawHighlightOverlay(unsigned int party_slot, int row_count, unsigned int m
     row_y_pos += 6;
     g_level_block->dialogue_row_y = row_y_pos + 6;
     for (row = row_count * 3 + 1; row != 0; --row) {
-        DrawCatalogImage(-0xe, 0x70, 0, 3, left, row_y_pos, 2, 0);
-        inner = left + 6;
-        for (tile = tiles; tile != 0; --tile) {
-            DrawCatalogImage(-0xe, 0x70, 0, 8, inner, row_y_pos, 2, 0);
-            inner += 6;
-        }
-        DrawCatalogImage(-0xe, 0x70, 0, 4, right, row_y_pos, 2, 0);
+        DrawHighlightFrameRow(left, right, row_y_pos, tiles);
         row_y_pos += 6;
     }
     DrawCatalogImage(-0xe, 0x70, 0, 5, left, row_y_pos, 2, 0);
@@ -5335,14 +5321,7 @@ void ApplyMainGameModeFlag(W8MainUiMode mode, bool enable)
         g_level_block->tooltip_kind = 0;
     }
     if (g_level_block->formation_board_visible != 0) {
-        g_level_block->formation_board_visible = 0;
-        RegionSetDisable(0x13);
-        ReleaseFormationBoard();
-        RequestRedraw(0x8200);
-        if (g_formation_panel_shown != 0) {
-            SetViewportMode(GetMainGameViewportMode());
-        }
-        g_formation_panel_shown = 0;
+        SetFormationBoardVisible(0);
     }
     if (g_level_block->radar_map_visible != 0) {
         SetRadarMapVisible(0);
@@ -5367,15 +5346,7 @@ void ApplyMainGameModeFlag(W8MainUiMode mode, bool enable)
             g_level_block->action_panel_visible = g_settings.portraits_action_panel_preference;
             g_level_block->formation_board_visible = 1;
             if (g_level_block->formation_board_visible != 0) {
-                g_level_block->formation_board_visible = 1;
-                g_level_block->formation_board_alternate = 0;
-                RegionSetEnable(0x13);
-                RefreshFormationBoard();
-                RequestRedraw(0x8200);
-                if (g_formation_panel_shown != 1) {
-                    SetViewportMode(GetMainGameViewportMode());
-                }
-                g_formation_panel_shown = 1;
+                SetFormationBoardVisible(1);
             }
             if (g_level_block->radar_map_visible != 0) {
                 SetRadarMapVisible(1);
@@ -5394,15 +5365,7 @@ void ApplyMainGameModeFlag(W8MainUiMode mode, bool enable)
             g_level_block->action_panel_visible = g_settings.formation_action_panel_preference;
             g_level_block->formation_board_visible = g_settings.formation_board_preference;
             if (g_level_block->formation_board_visible != 0) {
-                g_level_block->formation_board_visible = 1;
-                g_level_block->formation_board_alternate = 0;
-                RegionSetEnable(0x13);
-                RefreshFormationBoard();
-                RequestRedraw(0x8200);
-                if (g_formation_panel_shown != 1) {
-                    SetViewportMode(GetMainGameViewportMode());
-                }
-                g_formation_panel_shown = 1;
+                SetFormationBoardVisible(1);
             }
             if (g_level_block->radar_map_visible != 0) {
                 SetRadarMapVisible(1);
@@ -6084,12 +6047,7 @@ unsigned char PortraitAssaySidebarRegionEvent(const InputAtom* event, W8Region* 
 
     us_event = event->usEvent;
     if (us_event < RIGHT_BUTTON_UP) {
-        if (us_event == RIGHT_BUTTON_DOWN) {
-            region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
-            return 1;
-        }
-        if (us_event == LEFT_BUTTON_DOWN) {
-            region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+        if (region->CaptureButtonDown(us_event)) {
             return 1;
         }
         if (us_event != LEFT_BUTTON_UP) {
@@ -6296,12 +6254,7 @@ unsigned char RadarMapButtonRegionEvent(const InputAtom* event, W8Region* region
     unsigned int us_event = event->usEvent;
 
     if (us_event <= RIGHT_BUTTON_DOWN) {
-        if (us_event == RIGHT_BUTTON_DOWN) {
-            region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
-            return 1;
-        }
-        if (us_event == LEFT_BUTTON_DOWN) {
-            region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+        if (region->CaptureButtonDown(us_event)) {
             return 1;
         }
         if (us_event != LEFT_BUTTON_UP) {
@@ -8205,6 +8158,30 @@ void RebuildNpcTradeItemList(bool scroll_to_top)
     }
 }
 
+static void ShowNpcPlayerTradeItem(W8ItemInstance* item, bool acceptable, unsigned int font_palette)
+{
+    if (g_npc_interaction_state->trade_mode == W8_NPC_TRADE_SELL) {
+        unsigned char count =
+            g_item_records[item->iItemNo].equip_class == W8_ITEM_EQUIP_CLASS_AMMUNITION
+                ? item->stack_count
+                : 1;
+        int price = CalculateNpcTradeStackPrice(g_npc_interaction_state->dialogue_npc,
+                                                item->iItemNo, 0, count, item->identified);
+        if (acceptable) {
+            swprintf(g_level_block->text_paint_scratch, L"%d%s", price, gppStringList[0x797]);
+        } else {
+            swprintf(g_level_block->text_paint_scratch, L"---");
+        }
+        ShowNotice(font_palette, FormatItemDisplayName(item, 1), 2,
+                   GetTextBoxScrollRange() -
+                       StringPixLength(g_level_block->text_paint_scratch, GetTextBoxFont()),
+                   false);
+        AppendTextBoxLine(g_level_block->text_paint_scratch, 2);
+    } else {
+        ShowNotice(font_palette, FormatItemDisplayName(item, 1), 2, 0xffffffff, false);
+    }
+}
+
 // FUNCTION: WIZ8 0x005ADBE0
 void PopulateNpcTradeList(void)
 {
@@ -8248,32 +8225,7 @@ void PopulateNpcTradeList(void)
                 if (shown > 0x15d) {
                     break;
                 }
-                if (g_npc_interaction_state->trade_mode == W8_NPC_TRADE_SELL) {
-                    unsigned char stack_count;
-                    if (g_item_records[item->iItemNo].equip_class ==
-                        W8_ITEM_EQUIP_CLASS_AMMUNITION) {
-                        stack_count = item->stack_count;
-                    } else {
-                        stack_count = 1;
-                    }
-                    int price = CalculateNpcTradeStackPrice(g_npc_interaction_state->dialogue_npc,
-                                                            item->iItemNo, 0, stack_count,
-                                                            item->identified);
-                    if (acceptable) {
-                        swprintf(g_level_block->text_paint_scratch, L"%d%s", price,
-                                 gppStringList[0x797]);
-                    } else {
-                        swprintf(g_level_block->text_paint_scratch, L"---");
-                    }
-                    ShowNotice(font_palette, FormatItemDisplayName(item, 1), 2,
-                               GetTextBoxScrollRange() -
-                                   StringPixLength(g_level_block->text_paint_scratch,
-                                                   GetTextBoxFont()),
-                               false);
-                    AppendTextBoxLine(g_level_block->text_paint_scratch, 2);
-                } else {
-                    ShowNotice(font_palette, FormatItemDisplayName(item, 1), 2, 0xffffffff, false);
-                }
+                ShowNpcPlayerTradeItem(item, acceptable, font_palette);
             }
         }
     } else {
@@ -8298,31 +8250,7 @@ void PopulateNpcTradeList(void)
             } else {
                 font_palette = 0xf;
             }
-            if (g_npc_interaction_state->trade_mode == W8_NPC_TRADE_SELL) {
-                unsigned char stack_count;
-                if (g_item_records[item->iItemNo].equip_class == W8_ITEM_EQUIP_CLASS_AMMUNITION) {
-                    stack_count = item->stack_count;
-                } else {
-                    stack_count = 1;
-                }
-                int price =
-                    CalculateNpcTradeStackPrice(g_npc_interaction_state->dialogue_npc,
-                                                item->iItemNo, 0, stack_count, item->identified);
-                if (acceptable) {
-                    swprintf(g_level_block->text_paint_scratch, L"%d%s", price,
-                             gppStringList[0x797]);
-                } else {
-                    swprintf(g_level_block->text_paint_scratch, L"---");
-                }
-                ShowNotice(
-                    font_palette, FormatItemDisplayName(item, 1), 2,
-                    GetTextBoxScrollRange() -
-                        StringPixLength(g_level_block->text_paint_scratch, GetTextBoxFont()),
-                    false);
-                AppendTextBoxLine(g_level_block->text_paint_scratch, 2);
-            } else {
-                ShowNotice(font_palette, FormatItemDisplayName(item, 1), 2, 0xffffffff, false);
-            }
+            ShowNpcPlayerTradeItem(item, acceptable, font_palette);
         }
     }
     g_npc_interaction_state->dialogue_panels[1]->Invalidate(0);

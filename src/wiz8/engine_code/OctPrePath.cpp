@@ -205,6 +205,20 @@ unsigned char PrePathing::BuildPathList(W8PrePathNode* nodes,
     return 1;
 }
 
+W8PrePathNode* PrePathing::FindAdjacentPathNode(const W8PrePathNode* node, int direction)
+{
+    int x = node->cell & 0xffff;
+    int z = node->cell >> 0x10;
+    StepPathCell(&x, &z, direction);
+    unsigned int key = (z << 0x10) + x;
+    W8PrePathNode* target = 0;
+    unsigned int index = cell_map->Lookup(&key);
+    if (index != 0 && index < static_cast<unsigned int>(path_node_count)) {
+        target = path_node_list[index];
+    }
+    return target;
+}
+
 // FUNCTION: WIZ8 0x004CD390
 unsigned char PrePathing::LinkPathNodes()
 {
@@ -227,15 +241,7 @@ unsigned char PrePathing::LinkPathNodes()
             continue;
         }
         for (int direction = 0; direction < 4; ++direction) {
-            int x = node->cell & 0xffff;
-            int z = node->cell >> 0x10;
-            StepPathCell(&x, &z, direction);
-            unsigned int key = (z << 0x10) + x;
-            W8PrePathNode* target = 0;
-            unsigned int index = cell_map->Lookup(&key);
-            if (index != 0 && index < static_cast<unsigned int>(path_node_count)) {
-                target = path_node_list[index];
-            }
+            W8PrePathNode* target = FindAdjacentPathNode(node, direction);
             if (target != 0) {
                 while (link_height < fabsf(target->y - node->y)) {
                     target = target->next;
@@ -300,15 +306,7 @@ void PrePathing::PropagatePathNodeClearance(W8PrePathNode* node, unsigned int de
     ++depth;
     float link_height = grid_scale * g_prepath_link_height;
     for (int direction = 0; direction < 4; ++direction) {
-        int x = node->cell & 0xffff;
-        int z = node->cell >> 0x10;
-        StepPathCell(&x, &z, direction);
-        unsigned int key = (z << 0x10) + x;
-        W8PrePathNode* neighbor = 0;
-        unsigned int index = cell_map->Lookup(&key);
-        if (index != 0 && index < static_cast<unsigned int>(path_node_count)) {
-            neighbor = path_node_list[index];
-        }
+        W8PrePathNode* neighbor = FindAdjacentPathNode(node, direction);
         if (neighbor != 0) {
             while (link_height < fabsf(neighbor->y - node->y)) {
                 unsigned int cell = neighbor->cell;

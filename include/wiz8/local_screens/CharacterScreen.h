@@ -466,7 +466,7 @@ extern W8CharacterScreen* g_character_screen;
 
 /* CharacterScreen.cpp GLOBAL at 0x0061E3F0: per-profession message indexes. */
 extern unsigned short g_profession_name_message_ids[32];
-extern unsigned short g_race_name_message_ids[16];
+extern unsigned short g_race_name_message_ids[W8_RACE_COUNT];
 /* CharacterScreen.cpp GLOBAL at 0x0061E688: per-profession level-name message
    indexes, one row per profession for the level bands. */
 extern unsigned short g_profession_level_name_message_ids[15][9];

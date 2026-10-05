@@ -104,11 +104,11 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, bool qu
         return 0;
     }
 
-    if (character->enchantments[2].turns != 0) {
-        absorbed = character->enchantments[2].magnitude;
+    if (character->enchantments[W8_ENCHANTMENT_GUARDIAN_ANGEL].turns != 0) {
+        absorbed = character->enchantments[W8_ENCHANTMENT_GUARDIAN_ANGEL].magnitude;
         if (amount <= absorbed) {
             PostCharacterNotice(party_slot, gppStringList[0x193 - (quiet != 0)], amount);
-            character->enchantments[2].magnitude =
+            character->enchantments[W8_ENCHANTMENT_GUARDIAN_ANGEL].magnitude =
                 static_cast<unsigned short>(absorbed - amount);
             if (result_stats != 0) {
                 ++result_stats->count;
@@ -363,11 +363,11 @@ unsigned int ApplyDamageToMonster(W8MonsterInfo* monster_info, unsigned int amou
     if (monster_info->hp_current == 0) {
         return 0;
     }
-    if (monster_info->enchantments[2].turns != 0) {
-        absorbed = monster_info->enchantments[2].magnitude;
+    if (monster_info->enchantments[W8_ENCHANTMENT_GUARDIAN_ANGEL].turns != 0) {
+        absorbed = monster_info->enchantments[W8_ENCHANTMENT_GUARDIAN_ANGEL].magnitude;
         if (amount <= absorbed) {
             PostMonsterNotice(monster_info, gppStringList[0x193 - (quiet != 0)], amount);
-            monster_info->enchantments[2].magnitude =
+            monster_info->enchantments[W8_ENCHANTMENT_GUARDIAN_ANGEL].magnitude =
                 static_cast<unsigned short>(absorbed - amount);
             if (result_stats != 0) {
                 ++result_stats->count;
@@ -473,29 +473,29 @@ int MonsterActionFatigueCost(const W8MonsterInfo* monster_info)
     int cost = 0;
 
     switch (monster_info->action_kind) {
-    case 4:
-    case 7:
+    case W8_MONSTER_ACTION_ADVANCE:
+    case W8_MONSTER_ACTION_BACK_OFF:
         cost = Random(5) + 5;
         break;
-    case 5:
-    case 6:
+    case W8_MONSTER_ACTION_APPROACH:
+    case W8_MONSTER_ACTION_RETURN_TO_START:
         cost = Random(3) + 3;
         break;
-    case 1:
-    case 9:
+    case W8_MONSTER_ACTION_WAIT:
+    case W8_MONSTER_ACTION_CONTROLLED_MOVE:
         cost = Random(2) + 1;
         break;
-    case 0:
+    case W8_MONSTER_ACTION_ATTACK:
         if (monster_info->action_detail == 3) {
             cost = Random(8) + 5;
         } else {
             cost = Random(3) + 2;
         }
         break;
-    case -1:
-    case 2:
-    case 3:
-    case 8:
+    case W8_MONSTER_ACTION_NONE:
+    case W8_MONSTER_ACTION_SPELL:
+    case W8_MONSTER_ACTION_SPECIAL_ATTACK:
+    case W8_MONSTER_ACTION_PROTECT:
         break;
     default:
         srAssertFail("FALSE", HEALTH_STAMINA_MANA_CPP, 1774,
@@ -796,7 +796,7 @@ void DamageCharacter(int party_slot, unsigned int damage, char announce)
         }
         character->hp_adjustment -= damage;
         RecalculateCharacterHitPoints(character);
-        if (character->uiCondition[1] == 0) {
+        if (character->uiCondition[W8_CONDITION_DRAINED] == 0) {
             SetCharacterCondition(party_slot, W8_CONDITION_DRAINED, W8_CONDITION_INDEFINITE, 0, 0,
                                   0);
         }
@@ -901,8 +901,9 @@ void MonsterReactsToBeingStruck(W8MonsterInfo* monster_info, W8TargetSource* att
 {
     StartMonsterCycle(monster_info, 0x14, 1);
 
-    if (monster_info->uiCondition[15] != 0 && quiet == 0 &&
-        Random(100) < static_cast<unsigned int>((monster_info->attributes[W8_MONSTER_ATTRIBUTE_SENSES] >> 1) + 0x32)) {
+    if (monster_info->uiCondition[W8_CONDITION_ASLEEP] != 0 && quiet == 0 &&
+        Random(100) < static_cast<unsigned int>(
+                          (monster_info->attributes[W8_MONSTER_ATTRIBUTE_SENSES] >> 1) + 0x32)) {
         ClearMonsterCondition(monster_info->location_id, W8_CONDITION_ASLEEP);
     }
     if (monster_info->control_state == 1) {
@@ -973,7 +974,7 @@ void FatigueCharacter(int party_slot, int amount, bool scale_by_load,
             break;
         }
         if (character->uiCondition[W8_CONDITION_SLOWED] == 0) {
-            if (character->enchantments[5].turns != 0) {
+            if (character->enchantments[W8_ENCHANTMENT_HASTE].turns != 0) {
                 load_percent += 0x19;
             }
         } else {
@@ -1280,7 +1281,8 @@ void RecalculateCharacterStamina(W8Character* character)
 void RecalculateRealmSpellPoints(W8Character* character)
 {
     W8Profession profession = character->iProfession;
-    if (profession != 0 && (profession < 7 || profession > 9)) {
+    if (profession != W8_PROFESSION_FIGHTER &&
+        (profession < W8_PROFESSION_ROGUE || profession > W8_PROFESSION_BARD)) {
         character->skill_unlocks[0x24] = RebuildRealmSpellPointCeilings(character);
         return;
     }

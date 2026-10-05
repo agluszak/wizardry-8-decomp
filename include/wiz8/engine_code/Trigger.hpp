@@ -5,6 +5,7 @@ class stLight;
 #include "surrender/srMath.h"
 #include "surrender/srTypeRegistry.h"
 #include "wiz8/dice.h"
+#include "wiz8/sr_api.h"
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/integer_constants.h"
 
@@ -174,6 +175,13 @@ static_assert(sizeof(W8LockState) == 0x24, "W8LockState_must_be_0x24");
    not an srNode: the temporary table installed while srClassSupport is under
    construction has the same +0 vptr as the final Trigger table, and neither
    table contains any srNode slots. */
+enum W8TriggerRepresentationKind {
+    W8_TRIGGER_REP_NONE = 0,
+    W8_TRIGGER_REP_ITEM = 1,
+    W8_TRIGGER_REP_PROP = 2,
+    W8_TRIGGER_REP_POSITION = 3
+};
+
 class Trigger : public srClassSupport<Trigger, srClass, 1, 0x10008> {
 public:
     typedef bool(__cdecl* ActivationCallback)(Trigger* trigger);
@@ -188,6 +196,15 @@ public:
     virtual srClass* vInstance() override;
 
     static Trigger* CreateAndLoadLevelTrigger(int handle, W8World* world);
+
+    W8Prop* GetProp() const
+    {
+        if (m_bRepType != W8_TRIGGER_REP_PROP) {
+            srAssertFail("m_bRepType == TRIGGER_REP_PROP", "..\\Engine Code\\Include\\Trigger.hpp",
+                         0x3ed, 0);
+        }
+        return m_pProp;
+    }
 
     bool HasActorWithinRadius(float radius, bool include_party);
     bool PlayActionSound(const char* sound_name, int volume);

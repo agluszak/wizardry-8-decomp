@@ -8,6 +8,14 @@
 /* Engine Code\stMeshModel.cpp. Only fields reached by reviewed bodies are
    modeled. The two short-vector pairs are parallel key/value tables; their
    semantic domain is not established, so the names stay positional. */
+enum W8MeshFrameData {
+    W8_MESH_FRAME_LOCATIONS = 1,
+    W8_MESH_FRAME_VERTEX_NORMALS = 2,
+    W8_MESH_FRAME_POLYGON_NORMALS = 4
+};
+
+enum W8MeshModelFlag { W8_MESH_VERTEX_LIGHTING_DIRTY = 2, W8_MESH_HAS_FRAME_STORAGE = 4 };
+
 // VTABLE: WIZ8 0x005ec454 stMeshModel
 // VTABLE: WIZ8 0x005ec4b0 srClassSupport<stMeshModel, srMeshModel, 0, 65539>
 class stMeshModel : public srClassSupport<stMeshModel, srMeshModel, false, 0x10003> {
@@ -52,6 +60,7 @@ public:
     srVector3T<float>* GetVertexLocations(unsigned int frame, bool load, float interpolation);
     srVector3T<float>* GetVertexNormals(unsigned int frame, bool load); /* 0x00471CA0 */
     srVector3T<float>* GetPolygonNormals(unsigned int frame, bool load);
+    void ClearVertexLights();
     void SetAmbientColor(const srVector3T<float>& color);
     unsigned char AllocateFrameBuffers(unsigned int uiFrame, unsigned char flags); /* 0x00471720 */
     srVector3T<float>* GetVertexLights(bool initialize, int table);                /* 0x00472100 */

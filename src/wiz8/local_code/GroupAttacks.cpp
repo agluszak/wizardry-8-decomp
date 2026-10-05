@@ -81,6 +81,14 @@ bool MonsterSpecialAttackHonorsCastingBlock(int special_attack_kind)
     return 0;
 }
 
+static unsigned int RollSpecialAttackSum(unsigned int bound)
+{
+    unsigned int first = Random(bound);
+    unsigned int second = Random(bound);
+    unsigned int third = Random(bound);
+    return first + second + third;
+}
+
 /* Resolve one kind-table entry against every character and monster target in
    the group's attack. The per-slot bound comes from the attacker's current
    stamina fraction - a character source scales off level and stamina, a
@@ -106,9 +114,6 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
     unsigned int uiMinRoll;
     unsigned int uiBound;
     unsigned int uiDamage;
-    unsigned int uiRollA;
-    unsigned int uiRollB;
-    unsigned int uiRollC;
     int extra;
     bool resolved;
     wchar_t* text;
@@ -209,10 +214,7 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                     break;
                 case 2:
                     uiBound = uiBounds[i];
-                    uiRollA = Random(uiBound);
-                    uiRollB = Random(uiBound);
-                    uiRollC = Random(uiBound);
-                    uiDamage = (uiRollA + uiRollB + uiRollC) / 3 + 1;
+                    uiDamage = RollSpecialAttackSum(uiBound) / 3 + 1;
                     ApplyEffectAndAnnounce(&uiDamage, &target,
                                            g_special_attack_realm_table[special_attack_kind],
                                            uiMinRoll);
@@ -228,10 +230,7 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                     break;
                 case 3:
                     uiBound = uiBounds[i];
-                    uiRollA = Random(uiBound);
-                    uiRollB = Random(uiBound);
-                    uiRollC = Random(uiBound);
-                    uiDamage = (uiRollA + uiRollB + uiRollC) / 3 + 1;
+                    uiDamage = RollSpecialAttackSum(uiBound) / 3 + 1;
                     ApplyEffectAndAnnounce(&uiDamage, &target,
                                            g_special_attack_realm_table[special_attack_kind],
                                            uiMinRoll);
@@ -251,10 +250,7 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                     break;
                 case 4:
                     uiBound = uiBounds[i];
-                    uiRollA = Random(uiBound);
-                    uiRollB = Random(uiBound);
-                    uiRollC = Random(uiBound);
-                    uiDamage = uiRollA + uiRollB + 1 + uiRollC;
+                    uiDamage = RollSpecialAttackSum(uiBound) + 1;
                     ApplyEffectAndAnnounce(&uiDamage, &target,
                                            g_special_attack_realm_table[special_attack_kind],
                                            uiMinRoll);
@@ -270,10 +266,7 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                     break;
                 case 5:
                     uiBound = uiBounds[i];
-                    uiRollA = Random(uiBound);
-                    uiRollB = Random(uiBound);
-                    uiRollC = Random(uiBound);
-                    uiDamage = (uiRollA + uiRollB + uiRollC) / 3 + 1;
+                    uiDamage = RollSpecialAttackSum(uiBound) / 3 + 1;
                     if (special_attack_kind != 10) {
                         ApplyEffectAndAnnounce(&uiDamage, &target,
                                                g_special_attack_realm_table[special_attack_kind],
@@ -330,10 +323,7 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                     break;
                 case 2:
                     uiBound = uiBounds[i];
-                    uiRollA = Random(uiBound);
-                    uiRollB = Random(uiBound);
-                    uiRollC = Random(uiBound);
-                    uiDamage = (uiRollA + uiRollB + uiRollC) / 3 + 1;
+                    uiDamage = RollSpecialAttackSum(uiBound) / 3 + 1;
                     ApplyEffectAndAnnounce(&uiDamage, &target,
                                            g_special_attack_realm_table[special_attack_kind],
                                            uiMinRoll);
@@ -349,10 +339,7 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                     break;
                 case 3:
                     uiBound = uiBounds[i];
-                    uiRollA = Random(uiBound);
-                    uiRollB = Random(uiBound);
-                    uiRollC = Random(uiBound);
-                    uiDamage = (uiRollA + uiRollB + uiRollC) / 6 + 1;
+                    uiDamage = RollSpecialAttackSum(uiBound) / 6 + 1;
                     ApplyEffectAndAnnounce(&uiDamage, &target,
                                            g_special_attack_realm_table[special_attack_kind],
                                            uiMinRoll);
@@ -369,10 +356,7 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                     break;
                 case 4:
                     uiBound = uiBounds[i];
-                    uiRollA = Random(uiBound);
-                    uiRollB = Random(uiBound);
-                    uiRollC = Random(uiBound);
-                    uiDamage = uiRollA + uiRollB + uiRollC;
+                    uiDamage = RollSpecialAttackSum(uiBound);
                     ApplyEffectAndAnnounce(&uiDamage, &target,
                                            g_special_attack_realm_table[special_attack_kind],
                                            uiMinRoll);
@@ -388,10 +372,7 @@ void ResolveMonsterGroupAttack(int special_attack_kind, W8TargetSource* pSource,
                     break;
                 case 5:
                     uiBound = uiBounds[i];
-                    uiRollA = Random(uiBound);
-                    uiRollB = Random(uiBound);
-                    uiRollC = Random(uiBound);
-                    uiDamage = (uiRollA + uiRollB + uiRollC) / 3 + 1;
+                    uiDamage = RollSpecialAttackSum(uiBound) / 3 + 1;
                     if (special_attack_kind != 10) {
                         ApplyEffectAndAnnounce(&uiDamage, &target,
                                                g_special_attack_realm_table[special_attack_kind],
@@ -513,7 +494,7 @@ void SpawnSummonedMonsterGroup(int special_attack_kind, W8TargetSource* pSource,
     }
     MonsterInfoFromID(0x25a, GROUP_ATTACKS_CPP, group->leader_location_id, 1);
     monster_info = MonsterInfoFromID(0x25b, GROUP_ATTACKS_CPP, pAttackerSlot->iMonsterID, 1);
-    if (monster_info->ubDisposition == 2) {
+    if (monster_info->ubDisposition == W8_DISPOSITION_FRIENDLY) {
         disposition = 2;
     } else {
         disposition = 1;

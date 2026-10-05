@@ -1271,7 +1271,7 @@ void InitializeStateDrivenPropVariables(Trigger* trigger)
         char name[132];
         int variable_id;
 
-        if (trigger->m_bRepType != 2) {
+        if (trigger->m_bRepType != W8_TRIGGER_REP_PROP) {
             srAssertFail("m_bRepType == TRIGGER_REP_PROP", "..\\Engine Code\\Include\\Trigger.hpp",
                          0x3ed, 0);
         }
@@ -1363,6 +1363,8 @@ W8StringTriggerActionData::~W8StringTriggerActionData()
     }
 }
 
+char* NextTriggerRecipient(char** cursor);
+
 /* Clear the running bit and run every comma-separated recipient trigger once
    when the link-out and state-gate bits are set. */
 // FUNCTION: WIZ8 0x00441590
@@ -1375,16 +1377,7 @@ void Trigger::RunLinkedTriggers()
         (flags & W8_TRIGGER_LINK_ON_DEACTIVATE) != 0 && m_pacRecipients != 0) {
         recipient = m_pacRecipients;
         while (recipient != 0) {
-            strcpy(g_trigger_parse_buffer, recipient);
-            char* comma = strchr(g_trigger_parse_buffer, ',');
-            if (comma == 0) {
-                recipient = 0;
-            } else {
-                recipient = strchr(recipient, ',') + 1;
-                *comma = '\0';
-            }
-
-            Trigger* trigger = FindTriggerByName(g_trigger_parse_buffer);
+            Trigger* trigger = FindTriggerByName(NextTriggerRecipient(&recipient));
             if (trigger != 0) {
                 trigger->Run(-1);
             }
@@ -1399,7 +1392,7 @@ void Trigger::SetPosition(srVector3T<float>* position)
 {
     flags |= W8_TRIGGER_POSITIONED;
     this->position = *position;
-    if (rep_item != 0 && m_bRepType == 1) {
+    if (rep_item != 0 && m_bRepType == W8_TRIGGER_REP_ITEM) {
         rep_item->SetLocation(position);
         rep_item->ApplyRepTransform();
     }
@@ -1672,7 +1665,7 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         trigger->trigger_kind = 2;
         trigger->position.Set(x * 500.0f, y * 500.0f, z * 500.0f);
         trigger->range_maximum = range * 500.0f;
-        trigger->m_bRepType = 3;
+        trigger->m_bRepType = W8_TRIGGER_REP_POSITION;
         trigger->action_value = value_ac;
         trigger->initial_action = static_cast<unsigned short>(action);
         trigger->searchable = value_c8;
@@ -2131,7 +2124,7 @@ Trigger::Trigger()
     state_mod_mode = 0;
     searchable = 0;
     angle = 0.0f;
-    m_bRepType = 0;
+    m_bRepType = W8_TRIGGER_REP_NONE;
     m_pProp = 0;
     rep_item = 0;
     m_pWorld = 0;
@@ -2296,16 +2289,7 @@ finish_linked_triggers:
     if ((flags & W8_TRIGGER_FIRE_LINKED) != 0) {
         recipient = m_pacRecipients;
         while (recipient != 0) {
-            strcpy(g_trigger_parse_buffer, recipient);
-            char* comma = strchr(g_trigger_parse_buffer, ',');
-            if (comma == 0) {
-                recipient = 0;
-            } else {
-                recipient = strchr(recipient, ',') + 1;
-                *comma = '\0';
-            }
-
-            Trigger* trigger = FindTriggerByName(g_trigger_parse_buffer);
+            Trigger* trigger = FindTriggerByName(NextTriggerRecipient(&recipient));
             if (trigger != 0) {
                 trigger->FinishAction();
             }
@@ -2317,16 +2301,7 @@ reactivate_linked_triggers:
         (flags & W8_TRIGGER_REACTIVATE_LINKED) != 0) {
         recipient = m_pacRecipients;
         while (recipient != 0) {
-            strcpy(g_trigger_parse_buffer, recipient);
-            char* comma = strchr(g_trigger_parse_buffer, ',');
-            if (comma == 0) {
-                recipient = 0;
-            } else {
-                recipient = strchr(recipient, ',') + 1;
-                *comma = '\0';
-            }
-
-            Trigger* trigger = FindTriggerByName(g_trigger_parse_buffer);
+            Trigger* trigger = FindTriggerByName(NextTriggerRecipient(&recipient));
             if (trigger != 0) {
                 trigger->Run(-1);
             }
@@ -2770,7 +2745,7 @@ void Trigger::Run(int source)
         case 1: {
             W8DoorTriggerActionData* action_data = 0;
 
-            if (m_bRepType != 2 || m_pProp == 0 || state_index != 0 ||
+            if (m_bRepType != W8_TRIGGER_REP_PROP || m_pProp == 0 || state_index != 0 ||
                 m_pProp->Rep()->animation_playing != 0) {
                 break;
             }
@@ -2820,7 +2795,7 @@ void Trigger::Run(int source)
         case 2: {
             bool active;
 
-            if (m_bRepType != 2 || m_pProp == 0) {
+            if (m_bRepType != W8_TRIGGER_REP_PROP || m_pProp == 0) {
                 break;
             }
             active = m_pProp->Rep()->animation_playing;
@@ -2858,7 +2833,7 @@ void Trigger::Run(int source)
                 }
                 action_data->door_flags &= ~4;
             }
-            if (m_bRepType != 2 || m_pProp == 0) {
+            if (m_bRepType != W8_TRIGGER_REP_PROP || m_pProp == 0) {
                 break;
             }
             was_active = m_pProp->Rep()->animation_playing;
@@ -2904,7 +2879,7 @@ void Trigger::Run(int source)
                 int count;
                 int index;
 
-                if (m_pProp == 0 || m_bRepType != 2) {
+                if (m_pProp == 0 || m_bRepType != W8_TRIGGER_REP_PROP) {
                     srAssertFail("m_pProp && m_bRepType == TRIGGER_REP_PROP",
                                  "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x592, 0);
                 }
@@ -2927,7 +2902,7 @@ void Trigger::Run(int source)
         case 0x37: {
             int tag = source == -1 ? m_lData1 : source;
 
-            if (m_bRepType == 2 && m_pProp != 0 && tag != -1) {
+            if (m_bRepType == W8_TRIGGER_REP_PROP && m_pProp != 0 && tag != -1) {
                 m_pProp->Rep()->SelectAnimationSlot(static_cast<unsigned char>(tag));
                 m_pProp->SetRepresentationActive(1, true);
                 state_index = static_cast<unsigned char>(tag);
@@ -3011,7 +2986,7 @@ void Trigger::Run(int source)
         bool was_active;
         bool action_succeeded = true;
 
-        if (m_bRepType != 2 || m_pProp == 0) {
+        if (m_bRepType != W8_TRIGGER_REP_PROP || m_pProp == 0) {
             return;
         }
         was_active = m_pProp->Rep()->animation_playing;
@@ -3105,7 +3080,7 @@ void Trigger::Run(int source)
 
     case 0x32:
     case 0x33:
-        if (m_bRepType != 2 || m_pProp == 0) {
+        if (m_bRepType != W8_TRIGGER_REP_PROP || m_pProp == 0) {
             return;
         }
         if ((action == 0x32 && m_pProp->Rep()->animation_playing != 0) ||
@@ -3446,7 +3421,7 @@ void Trigger::Run(int source)
         break;
 
     case 0x40:
-        if (m_bRepType != 2 || m_pProp == 0) {
+        if (m_bRepType != W8_TRIGGER_REP_PROP || m_pProp == 0) {
             return;
         }
         if (m_pacStateToMod != 0) {

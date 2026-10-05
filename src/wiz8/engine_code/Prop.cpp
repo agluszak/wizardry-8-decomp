@@ -220,18 +220,21 @@ void W8Prop::SetSetting66(char value)
     this->Rep()->pending_subcycle = value;
 }
 
-/* Whether the owned member is in the state the value two stands for. */
+/* Whether the animation bounces between its first and last frames. */
 // FUNCTION: WIZ8 0x0044e1c0
-bool W8Prop::IsSetting6FTwo()
+bool W8Prop::IsAnimationPingPong()
 {
-    return this->Rep()->frame_method == 2;
+    return this->Rep()->frame_method == W8_ANIMATION_PING_PONG;
 }
 
-/* Flip the owned member between the only two values it takes: one and three. */
+/* Switch between forward and reverse playback, preserving the retail
+   forward fallback for every state other than running forward. */
 // FUNCTION: WIZ8 0x0044e1d0
-void W8Prop::ToggleSetting6E()
+void W8Prop::ReverseAnimationDirection()
 {
-    this->Rep()->frame_direction = this->Rep()->frame_direction == 1 ? 3 : 1;
+    this->Rep()->frame_direction = this->Rep()->frame_direction == W8_ANIMATION_FORWARD
+                                       ? W8_ANIMATION_REVERSE
+                                       : W8_ANIMATION_FORWARD;
 }
 
 /* The prop's own trigger at 0x18. */
@@ -442,9 +445,9 @@ unsigned char W8PropRepresentation::SelectAnimationSlot(unsigned char tag)
                 first_frame = static_cast<unsigned char>(selected);
             }
             if (last_frame > subcycle) {
-                frame_direction = 1;
+                frame_direction = W8_ANIMATION_FORWARD;
             } else {
-                frame_direction = 3;
+                frame_direction = W8_ANIMATION_REVERSE;
             }
             animation_playing = 1;
             return 1;
@@ -497,7 +500,7 @@ unsigned char W8PropRepresentation::AdvanceAnimationSegment()
     }
     first_frame = (*slots.GetAt(segment))->frame;
     last_frame = (*slots.GetAt(segment + 1))->frame;
-    frame_direction = 1;
+    frame_direction = W8_ANIMATION_FORWARD;
     animation_playing = 1;
     subcycle = first_frame;
     return static_cast<unsigned char>(segment);
@@ -537,16 +540,14 @@ unsigned char W8Prop::PlayRepAnimation(srVector3T<float>* minimum, srVector3T<fl
     return 1;
 }
 
-/* Write the member's setting at 0x6e. The assertion names the member m_pRep,
-   and the guarded store is written after the assertion rather than instead of
-   it, so a null member writes through null on a build with assertions off. */
+/* Set the running direction or completed endpoint state of the animation. */
 // FUNCTION: WIZ8 0x0044e1f0
-void W8Prop::SetSetting6E(unsigned char value)
+void W8Prop::SetAnimationDirection(W8AnimationDirection direction)
 {
     if (m_pRep == 0) {
         srAssertFail("m_pRep", "C:\\Projects\\Wizardry 8\\Engine Code\\Prop.cpp", 2698, 0);
     }
-    Rep()->frame_direction = value;
+    Rep()->frame_direction = direction;
 }
 
 /* Set the live representation state. When requested, choose the direction
@@ -565,24 +566,28 @@ void W8Prop::SetRepresentationActive(unsigned char active, bool update_animation
     }
 
     if (Rep()->animation_behaviour == 1) {
-        if ((Rep()->frame_direction == 2 && Rep()->frame_method != 2) ||
-            (Rep()->frame_direction != 2 && Rep()->frame_method == 2)) {
-            Rep()->frame_direction = 1;
+        if ((Rep()->frame_direction == W8_ANIMATION_FORWARD_COMPLETE &&
+             Rep()->frame_method != W8_ANIMATION_PING_PONG) ||
+            (Rep()->frame_direction != W8_ANIMATION_FORWARD_COMPLETE &&
+             Rep()->frame_method == W8_ANIMATION_PING_PONG)) {
+            Rep()->frame_direction = W8_ANIMATION_FORWARD;
             Rep()->subcycle = Rep()->first_frame;
             return;
         }
-        Rep()->frame_direction = 3;
+        Rep()->frame_direction = W8_ANIMATION_REVERSE;
         Rep()->subcycle = Rep()->last_frame;
         return;
     }
     if (Rep()->animation_behaviour == 2) {
-        if ((Rep()->frame_direction == 2 && Rep()->frame_method != 2) ||
-            (Rep()->frame_direction != 2 && Rep()->frame_method == 2)) {
-            Rep()->frame_direction = 1;
+        if ((Rep()->frame_direction == W8_ANIMATION_FORWARD_COMPLETE &&
+             Rep()->frame_method != W8_ANIMATION_PING_PONG) ||
+            (Rep()->frame_direction != W8_ANIMATION_FORWARD_COMPLETE &&
+             Rep()->frame_method == W8_ANIMATION_PING_PONG)) {
+            Rep()->frame_direction = W8_ANIMATION_FORWARD;
             Rep()->subcycle = Rep()->first_frame;
             return;
         }
-        Rep()->frame_direction = 3;
+        Rep()->frame_direction = W8_ANIMATION_REVERSE;
         Rep()->subcycle = Rep()->last_frame;
     }
 }
@@ -618,12 +623,12 @@ void W8Prop::UpdatePropAnimation()
     }
     if (rep->animation_playing == 0 && rep->random_play != 0 &&
         rand() * (1.0f / RAND_MAX) < rep->play_chance) {
-        if (rep->frame_direction == 2) {
+        if (rep->frame_direction == W8_ANIMATION_FORWARD_COMPLETE) {
             rep->subcycle = rep->first_frame;
-            rep->frame_direction = 1;
+            rep->frame_direction = W8_ANIMATION_FORWARD;
         } else {
             rep->subcycle = rep->last_frame;
-            rep->frame_direction = 3;
+            rep->frame_direction = W8_ANIMATION_REVERSE;
         }
         m_pTimer->Restart();
         rep->animation_playing = 1;
@@ -716,28 +721,28 @@ void W8Prop::AdvanceAnimationValue(int frames, char total)
     unsigned int count;
     int index;
 
-    if (behaviour == 3) {
+    if (behaviour == W8_ANIMATION_RANDOM_FRAME) {
         rep->subcycle = static_cast<unsigned char>(Random(total));
     } else if (rep->animation_behaviour == 1) {
-        if (rep->frame_direction == 1) {
+        if (rep->frame_direction == W8_ANIMATION_FORWARD) {
             if (static_cast<int>(frame) + frames < end) {
                 rep->subcycle = static_cast<unsigned char>(frame + frames);
             } else {
                 rep->subcycle = rep->last_frame;
                 rep->animation_playing = 0;
-                rep->frame_direction = 2;
+                rep->frame_direction = W8_ANIMATION_FORWARD_COMPLETE;
                 if (trigger != 0) {
                     trigger->RunLinkedTriggers();
                 }
                 gXStatus.sight_refresh_pending = 1;
             }
-        } else if (rep->frame_direction == 3) {
+        } else if (rep->frame_direction == W8_ANIMATION_REVERSE) {
             if (static_cast<int>(frame) - frames > start) {
                 rep->subcycle = static_cast<unsigned char>(frame - frames);
             } else {
                 rep->subcycle = rep->first_frame;
                 rep->animation_playing = 0;
-                rep->frame_direction = 4;
+                rep->frame_direction = W8_ANIMATION_REVERSE_COMPLETE;
                 if (trigger != 0) {
                     trigger->RunLinkedTriggers();
                 }
@@ -748,58 +753,58 @@ void W8Prop::AdvanceAnimationValue(int frames, char total)
         int range = end - start;
 
         if (frames < range) {
-            if (rep->frame_direction == 1) {
+            if (rep->frame_direction == W8_ANIMATION_FORWARD) {
                 frame += frames;
                 if (static_cast<int>(frame) <= end) {
                     rep->subcycle = static_cast<unsigned char>(frame);
-                } else if (behaviour == 2) {
-                    rep->frame_direction = 3;
+                } else if (behaviour == W8_ANIMATION_PING_PONG) {
+                    rep->frame_direction = W8_ANIMATION_REVERSE;
                     rep->subcycle =
                         static_cast<unsigned char>(2 * end - static_cast<int>(frame));
                 } else {
                     rep->subcycle =
                         static_cast<unsigned char>(static_cast<int>(frame) - range - 1);
                 }
-            } else if (rep->frame_direction == 3) {
+            } else if (rep->frame_direction == W8_ANIMATION_REVERSE) {
                 frame -= frames;
                 if (static_cast<int>(frame) >= start) {
                     rep->subcycle = static_cast<unsigned char>(frame);
-                } else if (behaviour == 2) {
+                } else if (behaviour == W8_ANIMATION_PING_PONG) {
                     rep->subcycle =
                         static_cast<unsigned char>(2 * start - static_cast<int>(frame));
-                    rep->frame_direction = 1;
+                    rep->frame_direction = W8_ANIMATION_FORWARD;
                 } else {
                     rep->subcycle =
                         static_cast<unsigned char>(range + static_cast<int>(frame) + 1);
                 }
             }
-        } else if (rep->frame_direction == 1) {
+        } else if (rep->frame_direction == W8_ANIMATION_FORWARD) {
             int effective = static_cast<int>(frame) - start + frames;
 
-            if (behaviour == 2) {
+            if (behaviour == W8_ANIMATION_PING_PONG) {
                 int trips = effective / range;
                 int remainder = effective - trips * range;
 
                 if (trips % 2 == 0) {
                     rep->subcycle = static_cast<unsigned char>(start + remainder);
                 } else {
-                    rep->frame_direction = 3;
+                    rep->frame_direction = W8_ANIMATION_REVERSE;
                     rep->subcycle = static_cast<unsigned char>(end - remainder);
                 }
             } else {
                 rep->subcycle = static_cast<unsigned char>(
                     start + effective - effective / (range + 1) * (range + 1));
             }
-        } else if (rep->frame_direction == 3) {
+        } else if (rep->frame_direction == W8_ANIMATION_REVERSE) {
             int effective = 2 * start - static_cast<int>(frame) + frames;
 
-            if (behaviour == 2) {
+            if (behaviour == W8_ANIMATION_PING_PONG) {
                 int trips = effective / range;
                 int remainder = effective - trips * range;
 
                 if (trips % 2 == 0) {
                     rep->subcycle = static_cast<unsigned char>(start + remainder);
-                    rep->frame_direction = 1;
+                    rep->frame_direction = W8_ANIMATION_FORWARD;
                 } else {
                     rep->subcycle = static_cast<unsigned char>(end - remainder);
                 }
@@ -840,31 +845,31 @@ char W8Prop::NextAnimationValue()
     char direction = rep->frame_direction;
 
     if (rep->animation_behaviour == 1) {
-        if (direction == 1) {
+        if (direction == W8_ANIMATION_FORWARD) {
             if (rep->subcycle < rep->last_frame) {
                 return rep->subcycle + 1;
             }
-        } else if (direction == 3 && rep->first_frame < rep->subcycle) {
+        } else if (direction == W8_ANIMATION_REVERSE && rep->first_frame < rep->subcycle) {
             return rep->subcycle - 1;
         }
         return rep->subcycle;
     }
-    if (direction == 1) {
+    if (direction == W8_ANIMATION_FORWARD) {
         if (rep->subcycle != rep->last_frame) {
             return rep->subcycle + 1;
         }
-        if (rep->frame_method == 2) {
+        if (rep->frame_method == W8_ANIMATION_PING_PONG) {
             return rep->subcycle - 1;
         }
         return rep->first_frame;
     }
-    if (direction != 3) {
+    if (direction != W8_ANIMATION_REVERSE) {
         return rep->subcycle;
     }
     if (rep->subcycle > rep->first_frame) {
         return rep->subcycle - 1;
     }
-    if (rep->frame_method == 2) {
+    if (rep->frame_method == W8_ANIMATION_PING_PONG) {
         return 1;
     }
     return rep->last_frame;
@@ -1637,13 +1642,14 @@ bool W8PropRepresentation::LoadProp(W8ReadLevelInfo* info, W8Prop* prop)
     this->animation_behaviour = animation->behaviour;
     this->frame_method = animation->frame_method;
     this->animation_playing = animation->animation_playing;
-    this->frame_direction = 1;
+    this->frame_direction = W8_ANIMATION_FORWARD;
     this->animation_speed = animation->playback_scale;
     this->timer = GetTickCount();
     if (this->animation_behaviour == 1 || this->animation_behaviour == 2) {
         this->animation_playing = 0;
-        this->frame_direction =
-            static_cast<unsigned char>(((this->frame_method != 2) - 1U & 2) + 2);
+        this->frame_direction = this->frame_method == W8_ANIMATION_PING_PONG
+                                    ? W8_ANIMATION_REVERSE_COMPLETE
+                                    : W8_ANIMATION_FORWARD_COMPLETE;
     }
 
     if (animation->path_lists == 0) {
@@ -1719,7 +1725,7 @@ bool W8PropRepresentation::LoadProp(W8ReadLevelInfo* info, W8Prop* prop)
             trigger = Trigger::CreateAndLoadLevelTrigger(hFile, info->world);
             /* Retail writes the attach fields first, then tests type at +0x22a
                (the stores do not touch that word). */
-            trigger->m_bRepType = 2;
+            trigger->m_bRepType = W8_TRIGGER_REP_PROP;
             trigger->m_pProp = prop;
             if (trigger->initial_action == 0x40) {
                 InitializeStateDrivenPropVariables(trigger);

@@ -58,7 +58,7 @@ static W8CharacterStatsRecord g_character_profession_records[15] = {
     {0x0000010b, 0x0000001a, 0x0000001b, 0x02b2, 0, 0},
 };
 // GLOBAL: WIZ8 0x0064f118
-static W8CharacterStatsRecord g_character_race_records[11] = {
+static W8CharacterStatsRecord g_character_race_records[W8_RACE_PLAYABLE_COUNT] = {
     {0x0000010c, 0x00000008, 0x00000009, 0x0284, 1, 0},
     {0x0000010c, 0x00000004, 0x00000005, 0x0285, 1, 0},
     {0x0000010c, 0x0000000c, 0x0000000d, 0x0286, 1, 0},
@@ -397,14 +397,7 @@ void W8CharacterStatsRow::OnPrimary(W8TextControl* control)
             const W8CharacterStatsRecord* record = &m_table[index];
             do {
                 if (record->enabled != 0) {
-                    m_value_control->SetRecord(index == -1 ? 0 : &m_table[index]);
-                    bool changed = previous != index;
-                    m_index = index;
-                    m_value_control->Invalidate(1);
-                    if (m_listener == 0 || !changed) {
-                        return;
-                    }
-                    m_listener->OnRowValueChanged(this, index);
+                    SetValue(index);
                     return;
                 }
                 --index;
@@ -421,13 +414,7 @@ void W8CharacterStatsRow::OnPrimary(W8TextControl* control)
                     return;
                 }
             }
-            m_value_control->SetRecord(index == -1 ? 0 : &m_table[index]);
-            bool changed = previous != index;
-            m_index = index;
-            m_value_control->Invalidate(1);
-            if (m_listener != 0 && changed) {
-                m_listener->OnRowValueChanged(this, index);
-            }
+            SetValue(index);
         }
     } else if (control == m_increment) {
         int previous = m_index;
@@ -436,14 +423,7 @@ void W8CharacterStatsRow::OnPrimary(W8TextControl* control)
             const W8CharacterStatsRecord* record = &m_table[index];
             do {
                 if (record->enabled != 0) {
-                    m_value_control->SetRecord(index == -1 ? 0 : &m_table[index]);
-                    bool changed = previous != index;
-                    m_index = index;
-                    m_value_control->Invalidate(1);
-                    if (m_listener == 0 || !changed) {
-                        return;
-                    }
-                    m_listener->OnRowValueChanged(this, index);
+                    SetValue(index);
                     return;
                 }
                 ++index;
@@ -460,13 +440,7 @@ void W8CharacterStatsRow::OnPrimary(W8TextControl* control)
                     return;
                 }
             }
-            m_value_control->SetRecord(index == -1 ? 0 : &m_table[index]);
-            bool changed = previous != index;
-            m_index = index;
-            m_value_control->Invalidate(1);
-            if (m_listener != 0 && changed) {
-                m_listener->OnRowValueChanged(this, index);
-            }
+            SetValue(index);
         }
     } else if (control == m_value_control) {
         if ((m_value_control->m_stateFlags & g_W8TextControlStateSecondary) != 0) {

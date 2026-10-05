@@ -104,6 +104,8 @@ public:
 protected:
     void InvalidateCore(unsigned char immediate);
     void UpdateTextLayout();
+    void NotifyPrimaryActivation();
+    void NotifySecondaryActivation();
 };
 static_assert(sizeof(W8TextControl) == 0xb8, "W8TextControl_size");
 

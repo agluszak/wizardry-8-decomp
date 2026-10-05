@@ -127,68 +127,59 @@ void RefreshSubMenuPanel(bool invalidate)
     gpSubMenuPanel->Redraw();
 }
 
+static void ChooseSubMenuAction(W8ActionKind action)
+{
+    ChooseAction(g_status.selected_character, action, -1, 0, 0, 1);
+    DrawSubMenuCharacterAction();
+    DestroySubMenuControls();
+}
+
 // FUNCTION: WIZ8 0x00596430
 void SubMenuSelectAttack(void)
 {
-    ChooseAction(g_status.selected_character, W8_ACTION_ATTACK, -1, 0, 0, 1);
-    DrawSubMenuCharacterAction();
-    DestroySubMenuControls();
+    ChooseSubMenuAction(W8_ACTION_ATTACK);
 }
 
 // FUNCTION: WIZ8 0x005964D0
 void SubMenuSelectBerserk(void)
 {
-    ChooseAction(g_status.selected_character, W8_ACTION_BERSERK, -1, 0, 0, 1);
-    DrawSubMenuCharacterAction();
-    DestroySubMenuControls();
+    ChooseSubMenuAction(W8_ACTION_BERSERK);
 }
 
 // FUNCTION: WIZ8 0x00596570
 void SubMenuSelectBreathe(void)
 {
-    ChooseAction(g_status.selected_character, W8_ACTION_BREATHE, -1, 0, 0, 1);
-    DrawSubMenuCharacterAction();
-    DestroySubMenuControls();
+    ChooseSubMenuAction(W8_ACTION_BREATHE);
 }
 
 // FUNCTION: WIZ8 0x00596610
 void SubMenuSelectTurnUndead(void)
 {
-    ChooseAction(g_status.selected_character, W8_ACTION_TURN_UNDEAD, -1, 0, 0, 1);
-    DrawSubMenuCharacterAction();
-    DestroySubMenuControls();
+    ChooseSubMenuAction(W8_ACTION_TURN_UNDEAD);
 }
 
 // FUNCTION: WIZ8 0x005966B0
 void SubMenuSelectPray(void)
 {
-    ChooseAction(g_status.selected_character, W8_ACTION_PRAY, -1, 0, 0, 1);
-    DrawSubMenuCharacterAction();
-    DestroySubMenuControls();
+    ChooseSubMenuAction(W8_ACTION_PRAY);
 }
 
 // FUNCTION: WIZ8 0x00596750
 void SubMenuSelectDefend(void)
 {
-    ChooseAction(g_status.selected_character, W8_ACTION_DEFEND, -1, 0, 0, 1);
-    DrawSubMenuCharacterAction();
-    DestroySubMenuControls();
+    ChooseSubMenuAction(W8_ACTION_DEFEND);
 }
 
 // FUNCTION: WIZ8 0x00596800
 void SubMenuSelectProtect(void)
 {
-    ChooseAction(g_status.selected_character, W8_ACTION_PROTECT, -1, 0, 0, 1);
-    DrawSubMenuCharacterAction();
-    DestroySubMenuControls();
+    ChooseSubMenuAction(W8_ACTION_PROTECT);
 }
 
 // FUNCTION: WIZ8 0x005968A0
 void SubMenuSelectEquip(void)
 {
-    ChooseAction(g_status.selected_character, W8_ACTION_EQUIP, -1, 0, 0, 1);
-    DrawSubMenuCharacterAction();
-    DestroySubMenuControls();
+    ChooseSubMenuAction(W8_ACTION_EQUIP);
 }
 
 // FUNCTION: WIZ8 0x00596940
@@ -225,9 +216,7 @@ void SubMenuSelectRun(void)
     if (AnyCharacterEngaged() == 0) {
         return;
     }
-    ChooseAction(g_status.selected_character, W8_ACTION_RUN, -1, 0, 0, 1);
-    DrawSubMenuCharacterAction();
-    DestroySubMenuControls();
+    ChooseSubMenuAction(W8_ACTION_RUN);
 }
 
 // FUNCTION: WIZ8 0x00596C40
@@ -236,9 +225,7 @@ void SubMenuSelectWalk(void)
     if (AnyCharacterEngaged() == 0) {
         return;
     }
-    ChooseAction(g_status.selected_character, W8_ACTION_WALK, -1, 0, 0, 1);
-    DrawSubMenuCharacterAction();
-    DestroySubMenuControls();
+    ChooseSubMenuAction(W8_ACTION_WALK);
 }
 
 void OpenSubMenuPanel(short notification)
@@ -1409,6 +1396,41 @@ void EnableSubMenuRegions(void)
     }
 }
 
+int GetAttackMenuWeaponOffset(W8Skill skill)
+{
+    int base;
+    switch (skill) {
+    case W8_SKILL_MACE_FLAIL:
+        base = 3;
+        break;
+    case W8_SKILL_AXE:
+        base = 4;
+        break;
+    case W8_SKILL_POLEARM:
+        base = 7;
+        break;
+    case W8_SKILL_STAFF_WAND:
+        base = 6;
+        break;
+    case W8_SKILL_BOW:
+        base = 1;
+        break;
+    case W8_SKILL_THROWING_SLING:
+        base = 2;
+        break;
+    case W8_SKILL_MODERN_WEAPONS:
+        base = 8;
+        break;
+    case W8_SKILL_MARTIAL_ARTS:
+        base = 5;
+        break;
+    default:
+        base = 0;
+        break;
+    }
+    return base;
+}
+
 // FUNCTION: WIZ8 0x00595850
 unsigned char BuildSubMenuPanel(short notification)
 {
@@ -1508,35 +1530,8 @@ unsigned char BuildSubMenuPanel(short notification)
                            .realm *
                        7;
         } else if (menu == W8_SUBMENU_ATTACK && entry == 0) {
-            switch (g_status.buffers.Char[g_status.selected_character].Hand[0].weapon_skill) {
-            case 3:
-                base = 3;
-                break;
-            case 1:
-                base = 4;
-                break;
-            case 2:
-                base = 7;
-                break;
-            case 5:
-                base = 6;
-                break;
-            case 8:
-                base = 1;
-                break;
-            case 9:
-                base = 2;
-                break;
-            case 7:
-                base = 8;
-                break;
-            case 14:
-                base = 5;
-                break;
-            default:
-                base = 0;
-                break;
-            }
+            base = GetAttackMenuWeaponOffset(
+                g_status.buffers.Char[g_status.selected_character].Hand[0].weapon_skill);
             message += base * 7;
         }
         switch (state) {

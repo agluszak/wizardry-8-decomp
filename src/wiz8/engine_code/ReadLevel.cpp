@@ -216,7 +216,8 @@ void AssociateWorldLights(W8World* world)
         stLightDefinition* definition = light->m_definition;
 
         if (definition != 0 && definition->kind == W8_LIGHT_DEFINITION_PARAMETRIC &&
-            (static_cast<stParametricLightDefinition*>(definition)->flags & 1) != 0) {
+            (static_cast<stParametricLightDefinition*>(definition)->flags &
+             W8_PARAM_LIGHT_FLICKER) != 0) {
             int prop_count = PLLength(world->plsProps);
             int prop_index;
 
@@ -256,7 +257,7 @@ static unsigned char ReadWorldLights(W8World* world, int hFile)
             FileRead(hFile, name, sizeof(name), 0);
             _strupr(name);
 
-            if ((record.flags & 2) != 0) {
+            if ((record.flags & W8_LEVEL_LIGHT_HAS_DEFINITION) != 0) {
                 definition = new stParametricLightDefinition;
                 record.create = 1;
 
@@ -276,7 +277,7 @@ static unsigned char ReadWorldLights(W8World* world, int hFile)
                 FileRead(hFile, &definition->subcycle_min, 4, 0);
                 FileRead(hFile, &definition->subcycle_max, 4, 0);
 
-                if ((definition->flags & 0x10) != 0) {
+                if ((definition->flags & W8_PARAM_LIGHT_HAS_PATH) != 0) {
                     success = LoadPathAI(&path, hFile);
                     if (!success) {
                         srAssertFail("fSuccess", READ_LEVEL_CPP, 532, 0);
@@ -615,7 +616,7 @@ unsigned char ReadWorldItems(W8ReadLevelInfo* pInfo, W8World* pWorld)
                 }
             }
             if (trigger != 0 && item != 0) {
-                trigger->m_bRepType = 1;
+                trigger->m_bRepType = W8_TRIGGER_REP_ITEM;
                 trigger->rep_item = item;
                 item->trigger = trigger;
             }

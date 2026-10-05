@@ -1048,7 +1048,7 @@ unsigned char W8MonsterRep::ReadCycleData(W8ReadLevelInfo* info, W8Monster* mons
     }
 
     active = 1;
-    frame_direction = 1;
+    frame_direction = W8_ANIMATION_FORWARD;
     m_bLOD = 2;
     timer = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
     animation_behaviour = animation->behaviour;
@@ -1494,7 +1494,7 @@ void W8Monster::Update()
             UpdateNavigation(0, 0);
         } else {
             UpdateNavigation(monster_info->highest_condition >= W8_CONDITION_WEBBED,
-                             monster_info->uiCondition[5] != 0);
+                             monster_info->uiCondition[W8_CONDITION_SLOWED] != 0);
         }
 
         if (cycle != W8_MONSTER_CYCLE_DIE && script != 0 && gXStatus.fCombatMode == 0) {
@@ -1512,7 +1512,7 @@ void W8Monster::Update()
                     } else {
                         m_pRep->pending_cycle = 0x18;
                     }
-                    m_pRep->frame_direction = 1;
+                    m_pRep->frame_direction = W8_ANIMATION_FORWARD;
                     m_pRep->pending_behaviour = 1;
                     m_pRep->animation_playing = 1;
                     m_pRep->timer = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
@@ -1526,7 +1526,7 @@ void W8Monster::Update()
                         talk_start = GetTickCount();
                         talk_duration = Random(2000) + 2000;
                         m_pRep->pending_cycle = 0x18;
-                        m_pRep->frame_direction = 1;
+                        m_pRep->frame_direction = W8_ANIMATION_FORWARD;
                         m_pRep->pending_behaviour = 1;
                     } else {
                         m_pRep->pending_cycle = 1;
@@ -1539,7 +1539,7 @@ void W8Monster::Update()
             case W8_MONSTER_CYCLE_SPELL:
                 if (Query(7) != 0) {
                     m_pRep->pending_cycle = 1;
-                    m_pRep->frame_direction = 1;
+                    m_pRep->frame_direction = W8_ANIMATION_FORWARD;
                     m_pRep->animation_playing = 1;
                     m_pRep->timer = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
                     m_pRep->pending_behaviour = 3;
@@ -1562,7 +1562,7 @@ void W8Monster::Update()
                             m_pRep->pending_cycle = 1;
                         } else {
                             m_pRep->pending_cycle = 3;
-                            m_pRep->frame_direction = 3;
+                            m_pRep->frame_direction = W8_ANIMATION_REVERSE;
                             m_pRep->pending_behaviour = 1;
                             m_pRep->pending_subcycle =
                                 static_cast<unsigned short>(Query(0) - 1);
@@ -1584,7 +1584,7 @@ void W8Monster::Update()
                         m_pRep->pending_cycle = 4;
                     } else {
                         m_pRep->pending_cycle = 3;
-                        m_pRep->frame_direction = 1;
+                        m_pRep->frame_direction = W8_ANIMATION_FORWARD;
                         m_pRep->pending_behaviour = 1;
                         m_pRep->pending_subcycle = 0;
                     }
@@ -1594,8 +1594,8 @@ void W8Monster::Update()
                 break;
             case W8_MONSTER_CYCLE_TRANSITION:
                 if (Query(7) != 0) {
-                    if (m_pRep->frame_direction == 3) {
-                        m_pRep->frame_direction = 1;
+                    if (m_pRep->frame_direction == W8_ANIMATION_REVERSE) {
+                        m_pRep->frame_direction = W8_ANIMATION_FORWARD;
                         m_pRep->pending_cycle = 1;
                     } else {
                         m_pRep->pending_cycle = 4;
@@ -1634,7 +1634,7 @@ void W8Monster::Update()
         m_pRep->timer = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
     }
 
-    if (monster_info != 0 && monster_info->uiCondition[5] != 0) {
+    if (monster_info != 0 && monster_info->uiCondition[W8_CONDITION_SLOWED] != 0) {
         TickAnimation(Query(6) == 4 ? movement.movement_speed * g_float_005ebc7c : 0.5f);
     } else {
         TickAnimation(Query(6) == 4 ? movement.movement_speed : 1.0f);
@@ -1878,6 +1878,18 @@ unsigned char W8Monster::GetCycleMappedPosition(signed char cycle, int mapped_in
     return 0;
 }
 
+bool W8Monster::ResolveScriptPosition(const char* name, srVector3T<float>* position)
+{
+    if (_stricmp(name, "home") == 0) {
+        *position = formation;
+    } else if (_stricmp(name, "off_camera") == 0) {
+        position->x = position->y = position->z = -10000000.0f;
+    } else if (FindEntityByName(name, position, 0, 0) == 0) {
+        return false;
+    }
+    return true;
+}
+
 /* Execute source lines until a command starts an asynchronous operation, ends
    the script, or the runaway-command guard trips. The two command modes share
    the original table: normal mode performs actions, while BEGINORDERS records
@@ -1975,11 +1987,7 @@ void W8Monster::ProcessScript()
                 if (token == 0) {
                     break;
                 }
-                if (_stricmp(token, "home") == 0) {
-                    position = formation;
-                } else if (_stricmp(token, "off_camera") == 0) {
-                    position.x = position.y = position.z = -10000000.0f;
-                } else if (FindEntityByName(token, &position, 0, 0) == 0) {
+                if (!ResolveScriptPosition(token, &position)) {
                     ShutdownWithErrorBox(FormatString(
                         "MonScript %s Line %d: Unknown location %s", script->getName(),
                         script->GetSourceLine(script_line - 1), token));
@@ -2004,11 +2012,7 @@ void W8Monster::ProcessScript()
                 if (token == 0) {
                     break;
                 }
-                if (_stricmp(token, "home") == 0) {
-                    position = formation;
-                } else if (_stricmp(token, "off_camera") == 0) {
-                    position.x = position.y = position.z = -10000000.0f;
-                } else if (FindEntityByName(token, &position, 0, 0) == 0) {
+                if (!ResolveScriptPosition(token, &position)) {
                     ShutdownWithErrorBox(FormatString(
                         "MonScript %s Line %d: Unknown location %s", script->getName(),
                         script->GetSourceLine(script_line - 1), token));
@@ -2092,11 +2096,7 @@ void W8Monster::ProcessScript()
                 if (token == 0) {
                     break;
                 }
-                if (_stricmp(token, "home") == 0) {
-                    target = formation;
-                } else if (_stricmp(token, "off_camera") == 0) {
-                    target.x = target.y = target.z = -10000000.0f;
-                } else if (FindEntityByName(token, &target, 0, 0) == 0) {
+                if (!ResolveScriptPosition(token, &target)) {
                     break;
                 }
                 if (GetProjectilePosition(&source) == 0) {
@@ -2118,11 +2118,7 @@ void W8Monster::ProcessScript()
                 srVector3T<float> position;
                 token = strtok(0, " \t");
                 if (token != 0) {
-                    if (_stricmp(token, "home") == 0) {
-                        position = formation;
-                    } else if (_stricmp(token, "off_camera") == 0) {
-                        position.x = position.y = position.z = -10000000.0f;
-                    } else if (FindEntityByName(token, &position, 0, 0) == 0) {
+                    if (!ResolveScriptPosition(token, &position)) {
                         ShutdownWithErrorBox(FormatString(
                             "MonScript %s Line %d: Unknown location %s", script->getName(),
                             script->GetSourceLine(script_line - 1), token));
@@ -2292,7 +2288,8 @@ void W8Monster::ProcessScript()
                         monster_info = MonsterGetScriptPartByLocationIndex(
                             MonsterGetIndexByLocationID(0x1c3a, MONSTER_CPP, location_id, 1));
                         ResetTargetSource(&source);
-                        SetMonsterCondition(monster_info->location_id, 0xf, 6, 0, &source, 1);
+                        SetMonsterCondition(monster_info->location_id, W8_CONDITION_ASLEEP, 6, 0,
+                                            &source, 1);
                     } else if (_stricmp(token, "ENDBELAWALK") == 0) {
                         flags1 |= W8_MONSTER_PARKED;
                         ClearMainGameTargetState();
@@ -2416,11 +2413,7 @@ void W8Monster::ProcessScript()
                     vector.Clear();
                 while ((token = strtok(0, " \t")) != 0) {
                     srVector3T<float> position;
-                    if (_stricmp(token, "home") == 0) {
-                        position = formation;
-                    } else if (_stricmp(token, "off_camera") == 0) {
-                        position.x = position.y = position.z = -10000000.0f;
-                    } else if (FindEntityByName(token, &position, 0, 0) == 0) {
+                    if (!ResolveScriptPosition(token, &position)) {
                         ShutdownWithErrorBox(FormatString(
                             "MonScript %s Line %d: Unknown location %s", script->getName(),
                             script->GetSourceLine(script_line - 1), token));
@@ -3545,7 +3538,7 @@ void W8Monster::SetCycle(signed char cycle)
     if ((flags1 & W8_MONSTER_KEEP_FRAME_DIRECTION) != 0) {
         flags1 &= ~W8_MONSTER_KEEP_FRAME_DIRECTION;
     } else {
-        m_pRep->frame_direction = 1;
+        m_pRep->frame_direction = W8_ANIMATION_FORWARD;
     }
 
     lights = *m_pRep->light_lists[cycle].GetAt(subcycle);
@@ -3839,7 +3832,8 @@ int W8Monster::Query(int query)
         result = GetTotalAnimationCount();
         break;
     case 2:
-        if (m_pRep->frame_direction != 1 && m_pRep->frame_direction != 2) {
+        if (m_pRep->frame_direction != W8_ANIMATION_FORWARD &&
+            m_pRep->frame_direction != W8_ANIMATION_FORWARD_COMPLETE) {
             result = m_pRep->subcycle == 0;
             break;
         }
@@ -3847,7 +3841,8 @@ int W8Monster::Query(int query)
         result = m_pRep->subcycle == animation_value - 1;
         break;
     case 3:
-        if (m_pRep->frame_direction == 1 || m_pRep->frame_direction == 2) {
+        if (m_pRep->frame_direction == W8_ANIMATION_FORWARD ||
+            m_pRep->frame_direction == W8_ANIMATION_FORWARD_COMPLETE) {
             result = m_pRep->subcycle == 0;
             break;
         }
@@ -3877,9 +3872,11 @@ int W8Monster::Query(int query)
         }
 
         animation_value = m_pRep->ApplyEmitterSetting(m_pRep->current_cycle);
-        if ((m_pRep->frame_direction == 1 && m_pRep->subcycle == animation_value - 1) ||
-            (m_pRep->frame_direction == 3 && m_pRep->subcycle == 0) ||
-            m_pRep->frame_direction == 4 || m_pRep->frame_direction == 2) {
+        if ((m_pRep->frame_direction == W8_ANIMATION_FORWARD &&
+             m_pRep->subcycle == animation_value - 1) ||
+            (m_pRep->frame_direction == W8_ANIMATION_REVERSE && m_pRep->subcycle == 0) ||
+            m_pRep->frame_direction == W8_ANIMATION_REVERSE_COMPLETE ||
+            m_pRep->frame_direction == W8_ANIMATION_FORWARD_COMPLETE) {
             result = 1;
         }
         break;
@@ -3925,7 +3922,7 @@ static int g_spell_index;
 void W8Monster::HandleAnimationFrame(unsigned char previous_frame)
 {
     W8MonsterInfo* monster_info;
-    int action_kind;
+    W8MonsterActionKind action_kind;
     int action_detail;
     unsigned int power_level;
     unsigned int fatigue;
@@ -3945,7 +3942,7 @@ void W8Monster::HandleAnimationFrame(unsigned char previous_frame)
         action_kind = monster_info->action_kind;
         action_detail = monster_info->action_detail;
         power_level = monster_info->spell_power_level;
-        if (action_kind == 2 && action_detail != 0 && power_level != 0) {
+        if (action_kind == W8_MONSTER_ACTION_SPELL && action_detail != 0 && power_level != 0) {
             fatigue = MonsterCastsSpell(monster_info, action_detail, power_level);
             FatigueMonster(monster_info, fatigue, 0);
             monster_info->fSpellReleased = true;
@@ -4060,7 +4057,7 @@ void W8MonsterShakeCallback::RestoreAnimation()
     }
     representation->pending_behaviour = saved_behaviour;
     representation->SetFrameMethod(saved_frame_method);
-    representation->frame_direction = 1;
+    representation->frame_direction = W8_ANIMATION_FORWARD;
     representation->first_frame = 0;
     representation->last_frame = m_pMonster->GetNumSubCycles() - 1;
     delete this;
@@ -4112,9 +4109,9 @@ void W8Monster::UpdateShakeEvents(unsigned char previous_frame)
                     m_pRep->pending_behaviour = 3;
                     if (animation->start_frame == animation->end_frame) {
                         m_pRep->SetFrameMethod(4);
-                        m_pRep->frame_direction = 1;
+                        m_pRep->frame_direction = W8_ANIMATION_FORWARD;
                     } else {
-                        m_pRep->SetFrameMethod(2);
+                        m_pRep->SetFrameMethod(W8_ANIMATION_PING_PONG);
                         m_pRep->first_frame = animation->start_frame;
                         if (animation->end_frame < GetNumSubCycles()) {
                             m_pRep->last_frame = animation->end_frame;

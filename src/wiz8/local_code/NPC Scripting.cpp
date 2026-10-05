@@ -96,6 +96,19 @@ static W8NpcScriptRegionName g_npc_script_region_names[] = {{L"Monastery", 1},
                                                             {L"Cosmic Circle", 14},
                                                             {L"", 0}};
 
+static void ApplyScriptedDialogueKeyword(const char* text, signed char mode)
+{
+    if (g_settings.simplified_npc_interaction != 0) {
+        wchar_t keyword_text[100];
+        swprintf(keyword_text, L"%S", text);
+        if (gXStatus.fNpcDialogueMode == 0 || g_npc_interaction_state->scripted_dialogue == 0) {
+            AddNpcDialogueKeyword(keyword_text, mode, 1);
+        } else {
+            AddDialogueTranscriptKeyword(keyword_text, mode);
+        }
+    }
+}
+
 // FUNCTION: WIZ8 0x00528f10
 bool GetNpcScriptRegionName(int region, wchar_t* name)
 {
@@ -1132,100 +1145,28 @@ void RunNpcScriptLine(int script_line, bool force_npc_voice)
                     g_npc_scripting.message_lines.Add(line);
                 } break;
                 case 25:
-                    if (g_settings.simplified_npc_interaction != 0) {
-                        wchar_t keyword_text[100];
-                        swprintf(keyword_text, L"%S", entry->sub_entries->text);
-                        if (gXStatus.fNpcDialogueMode == 0 ||
-                            g_npc_interaction_state->scripted_dialogue == 0) {
-                            AddNpcDialogueKeyword(keyword_text, 1, 1);
-                        } else {
-                            AddDialogueTranscriptKeyword(keyword_text, 1);
-                        }
-                    }
+                    ApplyScriptedDialogueKeyword(entry->sub_entries->text, 1);
                     break;
                 case 26:
-                    if (g_settings.simplified_npc_interaction != 0) {
-                        wchar_t keyword_text[100];
-                        swprintf(keyword_text, L"%S", entry->sub_entries->text);
-                        if (gXStatus.fNpcDialogueMode == 0 ||
-                            g_npc_interaction_state->scripted_dialogue == 0) {
-                            AddNpcDialogueKeyword(keyword_text, 0, 1);
-                        } else {
-                            AddDialogueTranscriptKeyword(keyword_text, 0);
-                        }
-                    }
+                    ApplyScriptedDialogueKeyword(entry->sub_entries->text, 0);
                     break;
                 case 27:
-                    if (g_settings.simplified_npc_interaction != 0) {
-                        wchar_t keyword_text[100];
-                        swprintf(keyword_text, L"%S", entry->sub_entries->text);
-                        if (gXStatus.fNpcDialogueMode == 0 ||
-                            g_npc_interaction_state->scripted_dialogue == 0) {
-                            AddNpcDialogueKeyword(keyword_text, 2, 1);
-                        } else {
-                            AddDialogueTranscriptKeyword(keyword_text, 2);
-                        }
-                    }
+                    ApplyScriptedDialogueKeyword(entry->sub_entries->text, 2);
                     break;
                 case 28:
-                    if (g_settings.simplified_npc_interaction != 0) {
-                        wchar_t keyword_text[100];
-                        swprintf(keyword_text, L"%S", entry->sub_entries->text);
-                        if (gXStatus.fNpcDialogueMode == 0 ||
-                            g_npc_interaction_state->scripted_dialogue == 0) {
-                            AddNpcDialogueKeyword(keyword_text, 3, 1);
-                        } else {
-                            AddDialogueTranscriptKeyword(keyword_text, 3);
-                        }
-                    }
+                    ApplyScriptedDialogueKeyword(entry->sub_entries->text, 3);
                     break;
                 case 31:
-                    if (g_settings.simplified_npc_interaction != 0) {
-                        wchar_t keyword_text[100];
-                        swprintf(keyword_text, L"%S", entry->sub_entries->text);
-                        if (gXStatus.fNpcDialogueMode == 0 ||
-                            g_npc_interaction_state->scripted_dialogue == 0) {
-                            AddNpcDialogueKeyword(keyword_text, 1, 1);
-                        } else {
-                            AddDialogueTranscriptKeyword(keyword_text, 1);
-                        }
-                    }
+                    ApplyScriptedDialogueKeyword(entry->sub_entries->text, 1);
                     break;
                 case 32:
-                    if (g_settings.simplified_npc_interaction != 0) {
-                        wchar_t keyword_text[100];
-                        swprintf(keyword_text, L"%S", entry->sub_entries->text);
-                        if (gXStatus.fNpcDialogueMode == 0 ||
-                            g_npc_interaction_state->scripted_dialogue == 0) {
-                            AddNpcDialogueKeyword(keyword_text, 0, 1);
-                        } else {
-                            AddDialogueTranscriptKeyword(keyword_text, 0);
-                        }
-                    }
+                    ApplyScriptedDialogueKeyword(entry->sub_entries->text, 0);
                     break;
                 case 33:
-                    if (g_settings.simplified_npc_interaction != 0) {
-                        wchar_t keyword_text[100];
-                        swprintf(keyword_text, L"%S", entry->sub_entries->text);
-                        if (gXStatus.fNpcDialogueMode == 0 ||
-                            g_npc_interaction_state->scripted_dialogue == 0) {
-                            AddNpcDialogueKeyword(keyword_text, 2, 1);
-                        } else {
-                            AddDialogueTranscriptKeyword(keyword_text, 2);
-                        }
-                    }
+                    ApplyScriptedDialogueKeyword(entry->sub_entries->text, 2);
                     break;
                 case 34:
-                    if (g_settings.simplified_npc_interaction != 0) {
-                        wchar_t keyword_text[100];
-                        swprintf(keyword_text, L"%S", entry->sub_entries->text);
-                        if (gXStatus.fNpcDialogueMode == 0 ||
-                            g_npc_interaction_state->scripted_dialogue == 0) {
-                            AddNpcDialogueKeyword(keyword_text, 3, 1);
-                        } else {
-                            AddDialogueTranscriptKeyword(keyword_text, 3);
-                        }
-                    }
+                    ApplyScriptedDialogueKeyword(entry->sub_entries->text, 3);
                     break;
                 }
                 if (finished) {
@@ -1833,7 +1774,8 @@ void ProcessMessageBoxQueue(void)
         if (eligible > 1) {
             for (party_slot = 0; party_slot < 8; ++party_slot) {
                 W8Character* character = &g_status.buffers.Char[party_slot];
-                if (g_status.buffers.XChar[party_slot].fOccupied != 0 && character->iRace == W8_RACE_MOOK &&
+                if (g_status.buffers.XChar[party_slot].fOccupied != 0 &&
+                    character->iRace == W8_RACE_MOOK &&
                     character->highest_condition < W8_CONDITION_ASLEEP) {
                     QueueCharacterEvent(character, g_effect31,
                                         g_character_event_no_npc_defer, g_character_event_no_flags,

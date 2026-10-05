@@ -1895,6 +1895,18 @@ void ShowCampNoticeLine(const wchar_t* text, W8DialogDestroyCallback callback, i
    2. The screen's entry_mode picks the interpretation - plain handling,
    identify, stack split, use, use held item on item - and the held item can
    merge onto the clicked stack, swap with it, or drop into the pool. */
+static void SelectPendingCampCharacter()
+{
+    SelectCampCharacter(CharacterPointerToPartySlot(g_camp_character));
+    if (IsPartySlotEligible(giReviewCharSlot) != 0) {
+        QueueCharacterEvent(g_camp_character, g_effect36, 0, g_effect_argument0,
+                            g_character_event_full_volume);
+    } else {
+        wchar_t* text = FormatWideString(gppStringList[0x931], g_camp_character->name);
+        ShowCampNoticeLine(text, 0, 1, 0);
+    }
+}
+
 // FUNCTION: WIZ8 0x005a4c70
 void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned int origin)
 {
@@ -1957,12 +1969,12 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
         return;
     }
     character = &g_status.buffers.Char[giReviewCharSlot];
-    if (character->uiCondition[0x13] != 0 && (origin == 1 || origin == 0)) {
+    if (character->uiCondition[W8_CONDITION_MISSING] != 0 && (origin == 1 || origin == 0)) {
         text = gppStringList[0x907];
         ShowCampNoticeLine(text, 0, 1, 0);
         return;
     }
-    if (character->uiCondition[0xe] != 0 && (origin == 1 || origin == 0)) {
+    if (character->uiCondition[W8_CONDITION_WEBBED] != 0 && (origin == 1 || origin == 0)) {
         text = gppStringList[0x908];
         ShowCampNoticeLine(text, 0, 1, 0);
         return;
@@ -2081,14 +2093,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                 return;
             }
             if (g_camp_character_pending != 0) {
-                SelectCampCharacter(CharacterPointerToPartySlot(g_camp_character));
-                if (IsPartySlotEligible(giReviewCharSlot) != 0) {
-                    QueueCharacterEvent(g_camp_character, g_effect36, 0,
-                                        g_effect_argument0, g_character_event_full_volume);
-                } else {
-                    text = FormatWideString(gppStringList[0x931], g_camp_character->name);
-                    ShowCampNoticeLine(text, 0, 1, 0);
-                }
+                SelectPendingCampCharacter();
                 return;
             }
             MergeItemStacksWithHeld(item);
@@ -2153,15 +2158,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
             if (merged == 0) {
                 if (g_status.item_in_cursor) {
                     if (g_camp_character_pending != 0) {
-                        SelectCampCharacter(CharacterPointerToPartySlot(g_camp_character));
-                        if (IsPartySlotEligible(giReviewCharSlot) != 0) {
-                            QueueCharacterEvent(g_camp_character, g_effect36, 0,
-                                                g_effect_argument0,
-                                                g_character_event_full_volume);
-                        } else {
-                            text = FormatWideString(gppStringList[0x931], g_camp_character->name);
-                            ShowCampNoticeLine(text, 0, 1, 0);
-                        }
+                        SelectPendingCampCharacter();
                     } else if (InsertItemIntoPartyPool(&g_status.item_in_hand, slot_index) !=
                                0) {
                         changed = 1;
@@ -2268,15 +2265,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                         }
                     }
                 } else {
-                    SelectCampCharacter(CharacterPointerToPartySlot(g_camp_character));
-                    if (IsPartySlotEligible(giReviewCharSlot) != 0) {
-                        QueueCharacterEvent(g_camp_character, g_effect36, 0,
-                                            g_effect_argument0,
-                                            g_character_event_full_volume);
-                    } else {
-                        text = FormatWideString(gppStringList[0x931], g_camp_character->name);
-                        ShowCampNoticeLine(text, 0, 1, 0);
-                    }
+                    SelectPendingCampCharacter();
                 }
             }
             if (g_camp_screen->entry_mode == 6 && g_status.item_in_cursor) {

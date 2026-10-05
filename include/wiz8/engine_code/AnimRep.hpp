@@ -5,6 +5,25 @@
 
 #include <stddef.h>
 
+/* Direction state at AnimRep+0x6e. Props record completion at either
+   endpoint; GrCycle advances only the two running directions. Byte storage
+   is retained because prop save data reads/writes this field directly. */
+enum W8AnimationDirection {
+    W8_ANIMATION_DIRECTION_NONE = 0,
+    W8_ANIMATION_FORWARD = 1,
+    W8_ANIMATION_FORWARD_COMPLETE = 2,
+    W8_ANIMATION_REVERSE = 3,
+    W8_ANIMATION_REVERSE_COMPLETE = 4
+};
+
+/* Proven frame methods. The serialized domain also accepts four; its
+   original name remains unknown. */
+enum W8AnimationFrameMethod {
+    W8_ANIMATION_WRAP = 1,
+    W8_ANIMATION_PING_PONG = 2,
+    W8_ANIMATION_RANDOM_FRAME = 3
+};
+
 /* The 2D instance has a different sixteen-byte block at the same class offset. */
 struct W8ModelInstance2DRenderState {
     unsigned long render_depth;
@@ -82,8 +101,7 @@ public:
         active; /* bool-byte-ok: SetSetting6C stores and GetSetting6C returns the caller's byte. */
     unsigned char
         animation_playing; /* bool-byte-ok: copied directly from file-backed W8AnimObj byte. */
-    /* Direction 1 advances and 3 reverses in GrCycle. Other direction codes
-       also occur in monster completion checks, so this remains a byte. */
+    /* W8AnimationDirection, retained as a byte in the representation. */
     unsigned char frame_direction;
     /* SetFrameMethod checks the retail DIR_FIRST..DIR_LAST range; endpoint
        behavior 1 wraps and 2 reverses in AdvanceAnimationFrame. */

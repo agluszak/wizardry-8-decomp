@@ -213,33 +213,21 @@ static void MtGigas2WireShock(void)
     prop = 0;
     pTrigger = FindTriggerByName("redwire");
     if (pTrigger != 0) {
-        if (pTrigger->m_bRepType != 2) {
-            srAssertFail("m_bRepType == TRIGGER_REP_PROP", "..\\Engine Code\\Include\\Trigger.hpp",
-                         0x3ed, 0);
-        }
-        prop = pTrigger->m_pProp;
+        prop = pTrigger->GetProp();
     }
     if (prop != 0) {
         prop->SetSetting66(0);
     }
     pTrigger = FindTriggerByName("bluewire");
     if (pTrigger != 0) {
-        if (pTrigger->m_bRepType != 2) {
-            srAssertFail("m_bRepType == TRIGGER_REP_PROP", "..\\Engine Code\\Include\\Trigger.hpp",
-                         0x3ed, 0);
-        }
-        prop = pTrigger->m_pProp;
+        prop = pTrigger->GetProp();
     }
     if (prop != 0) {
         prop->SetSetting66(0);
     }
     pTrigger = FindTriggerByName("yellowire");
     if (pTrigger != 0) {
-        if (pTrigger->m_bRepType != 2) {
-            srAssertFail("m_bRepType == TRIGGER_REP_PROP", "..\\Engine Code\\Include\\Trigger.hpp",
-                         0x3ed, 0);
-        }
-        prop = pTrigger->m_pProp;
+        prop = pTrigger->GetProp();
     }
     if (prop != 0) {
         prop->SetSetting66(0);

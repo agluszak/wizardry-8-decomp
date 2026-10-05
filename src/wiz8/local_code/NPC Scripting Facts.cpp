@@ -181,7 +181,8 @@ void HandleFactChange(W8FactId fact_id, unsigned char value)
         }
         return;
     case W8_FACT_CROCK_PLAYER_RETURNED_TO_PARTY:
-        if (value != 0 && g_status.buffers.Char[g_status.party_slot].uiCondition[0x13] != 0) {
+        if (value != 0 &&
+            g_status.buffers.Char[g_status.party_slot].uiCondition[W8_CONDITION_MISSING] != 0) {
             RemoveCharacterCondition(g_status.party_slot, W8_CONDITION_MISSING, 1);
         }
         return;
@@ -1008,7 +1009,8 @@ void HandleScriptedNpcDeath(unsigned int monster_list_index)
     for (unsigned int entry_index = 0; entry_index < PLLength(gXStatus.plsMonsterList);
          ++entry_index) {
         W8MonsterInfo* entry = MonsterGetScriptPartByLocationIndex(entry_index);
-        if (entry->fActive && entry->ubDisposition == DISP_HOSTILE && entry->p3D->IsDying() == 0) {
+        if (entry->fActive && entry->ubDisposition == W8_DISPOSITION_HOSTILE &&
+            entry->p3D->IsDying() == 0) {
             TintHighlightedMonster(entry->p3D, W8_TARGET_HIGHLIGHT_NONE);
             MonsterStartsDying(entry, 1);
         }
@@ -1048,7 +1050,8 @@ void MonsterKilled(int record_id, int killer_party_slot)
                 SetFact(W8_FACT_QUEST_KILL_ALSEDEXUS, 0, 0);
             }
             if (g_status.rpc_active != 0) {
-                if (g_status.buffers.Char[g_status.sedexus_party_slot].uiCondition[10] > 0) {
+                if (g_status.buffers.Char[g_status.sedexus_party_slot]
+                        .uiCondition[W8_CONDITION_INFATUATED] > 0) {
                     RemoveCharacterCondition(g_status.sedexus_party_slot, W8_CONDITION_INFATUATED,
                                              0);
                 }

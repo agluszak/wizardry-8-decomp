@@ -1,3 +1,4 @@
+#include "wiz8/dialog_code/DialogButton.h"
 #include "wiz8/dialog_code/DialogScrollBar.h"
 #include "wiz8/sgp_text.h"
 #include "wiz8/dialog_code/ButtonUserData.h"
@@ -171,6 +172,19 @@ void W8DialogScrollBar::Draw(bool force)
     }
 }
 
+void W8DialogScrollBar::ScrollBy(int delta)
+{
+    if (delta > 0) {
+        for (int step = 0; step < delta; ++step) {
+            ScrollUp();
+        }
+    } else if (delta < 0) {
+        for (int step = 0; step < -delta; ++step) {
+            ScrollDown();
+        }
+    }
+}
+
 // FUNCTION: WIZ8 0x005e1170
 void W8DialogScrollBar::ScrollUp()
 {
@@ -226,20 +240,8 @@ void W8DialogScrollBar::UpButtonCallback(GUI_BUTTON* button, INT32 reason)
     if (bar) {
         if (reason & MSYS_CALLBACK_REASON_LBUTTON_DWN) {
             bar->ScrollUp();
-            if (!(button->uiFlags & BUTTON_CLICKED_ON)) {
-                button->uiFlags |= BUTTON_CLICKED_ON;
-                bar->m_dirty = true;
-            }
-        } else if (reason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
-            if (button->uiFlags & BUTTON_CLICKED_ON) {
-                button->uiFlags &= ~BUTTON_CLICKED_ON;
-                bar->m_dirty = true;
-            }
-        } else if (reason & MSYS_CALLBACK_REASON_GAIN_MOUSE) {
-            button->Area.uiFlags |= MSYS_MOUSE_IN_AREA;
-            bar->m_dirty = true;
-        } else if (reason & MSYS_CALLBACK_REASON_LOST_MOUSE) {
-            button->Area.uiFlags &= ~MSYS_MOUSE_IN_AREA;
+        }
+        if (UpdateDialogArrowState(button, reason)) {
             bar->m_dirty = true;
         }
     }
@@ -252,20 +254,8 @@ void W8DialogScrollBar::DownButtonCallback(GUI_BUTTON* button, INT32 reason)
     if (bar) {
         if (reason & MSYS_CALLBACK_REASON_LBUTTON_DWN) {
             bar->ScrollDown();
-            if (!(button->uiFlags & BUTTON_CLICKED_ON)) {
-                button->uiFlags |= BUTTON_CLICKED_ON;
-                bar->m_dirty = true;
-            }
-        } else if (reason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
-            if (button->uiFlags & BUTTON_CLICKED_ON) {
-                button->uiFlags &= ~BUTTON_CLICKED_ON;
-                bar->m_dirty = true;
-            }
-        } else if (reason & MSYS_CALLBACK_REASON_GAIN_MOUSE) {
-            button->Area.uiFlags |= MSYS_MOUSE_IN_AREA;
-            bar->m_dirty = true;
-        } else if (reason & MSYS_CALLBACK_REASON_LOST_MOUSE) {
-            button->Area.uiFlags &= ~MSYS_MOUSE_IN_AREA;
+        }
+        if (UpdateDialogArrowState(button, reason)) {
             bar->m_dirty = true;
         }
     }

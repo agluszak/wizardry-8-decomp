@@ -200,7 +200,7 @@ W8ProfessionAbilitySet g_profession_abilities[15] = {
 };
 
 // GLOBAL: WIZ8 0x00615130
-W8RaceAbilitySet g_race_abilities[16] = {
+W8RaceAbilitySet g_race_abilities[W8_RACE_COUNT] = {
     {{W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE}},
     {{W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE}},
     {{W8_TRAIT_DWARF_DAMAGE_RESISTANCE, W8_TRAIT_NONE, W8_TRAIT_NONE, W8_TRAIT_NONE,
@@ -224,7 +224,7 @@ W8RaceAbilitySet g_race_abilities[16] = {
 };
 
 // GLOBAL: WIZ8 0x00615270
-W8RaceResistanceProfile g_race_resistance_profiles[16] = {
+W8RaceResistanceProfile g_race_resistance_profiles[W8_RACE_COUNT] = {
     {{{-1, 0}, {-1, 0}, {-1, 0}, {-1, 0}, {-1, 0}, {-1, 0}}},
     {{{4, 20}, {2, 10}, {-1, 0}, {-1, 0}, {-1, 0}, {-1, 0}}},
     {{{0, 1003}, {-1, 0}, {-1, 0}, {-1, 0}, {-1, 0}, {-1, 0}}},
@@ -271,7 +271,8 @@ bool CharacterHasTrait(const W8Character* character, W8Trait trait)
             }
         }
     }
-    if (trait == W8_TRAIT_BREATHE && character->enchantments[1].turns != 0) {
+    if (trait == W8_TRAIT_BREATHE &&
+        character->enchantments[W8_ENCHANTMENT_DRACON_BREATH].turns != 0) {
         return true;
     }
     return false;
@@ -514,12 +515,22 @@ void ResetCharacterAttributes(W8Character* character)
         character->attributes[index].effective = value;
         UnequipUnusableItems(character);
     }
-    for (index = 0; index < 0x29; ++index) {
-        W8Attribute first = g_skill_attributes[index].attribute_1;
-        W8Attribute second = g_skill_attributes[index].attribute_2;
-        character->skills[index].base_level =
-            (character->attributes[first].value + character->attributes[second].value) >> 1;
+    InitializeSkillBaseLevels(character);
+}
+
+static int GetEffectiveSkillLevel(const W8Character* character, W8Skill skill_id)
+{
+    int level = character->skills[skill_id].points;
+    if (skill_id == g_profession_bonus_skills[character->iProfession]) {
+        unsigned int bonus = static_cast<unsigned int>(level * 0x19) / 100;
+        if (bonus == 0) {
+            bonus = 1;
+        }
+        level += bonus;
     }
+    level += character->bonus.skill_bonus[skill_id];
+    ClampInteger(&level, 0, 0x7d);
+    return level;
 }
 
 /* Rebuild every skill level from the value already spent on it, the
@@ -532,17 +543,8 @@ void ResetCharacterSkills(W8Character* character)
     unsigned int index;
 
     for (index = 0; index < 0x29; ++index) {
-        int value = character->skills[index].points;
-        if (index == static_cast<unsigned int>(g_profession_bonus_skills[character->iProfession])) {
-            unsigned int bonus = static_cast<unsigned int>(value * 0x19) / 100;
-            if (bonus == 0) {
-                bonus = 1;
-            }
-            value += bonus;
-        }
-        value += character->bonus.skill_bonus[index];
-        ClampInteger(&value, 0, 0x7d);
-        character->skills[index].level = value;
+        character->skills[index].level =
+            GetEffectiveSkillLevel(character, static_cast<W8Skill>(index));
         UnequipUnusableItems(character);
     }
 }
@@ -600,17 +602,7 @@ void ApplySkillChange(W8Character* character, W8Skill skill_id)
 {
     RefreshCharacterSkillAvailability(character);
 
-    int level = character->skills[skill_id].points;
-    if (skill_id == g_profession_bonus_skills[character->iProfession]) {
-        unsigned int bonus = static_cast<unsigned int>(level * 0x19) / 100;
-        if (bonus == 0) {
-            bonus = 1;
-        }
-        level += bonus;
-    }
-    level += character->bonus.skill_bonus[skill_id];
-    ClampInteger(&level, 0, 0x7d);
-    character->skills[skill_id].level = level;
+    character->skills[skill_id].level = GetEffectiveSkillLevel(character, skill_id);
     UnequipUnusableItems(character);
     RecalculateCharacterDerivedStats(character);
 }
@@ -729,17 +721,7 @@ void PracticeCharacterSkill(W8Character* character, W8Skill skill_id, int usage_
             } while (--usage_points != 0);
             if (improved) {
                 RefreshCharacterSkillAvailability(character);
-                int level = skill->points;
-                if (skill_id == g_profession_bonus_skills[character->iProfession]) {
-                    unsigned int bonus = static_cast<unsigned int>(level * 0x19) / 100;
-                    if (bonus == 0) {
-                        bonus = 1;
-                    }
-                    level += bonus;
-                }
-                level += character->bonus.skill_bonus[skill_id];
-                ClampInteger(&level, 0, 0x7d);
-                skill->level = level;
+                skill->level = GetEffectiveSkillLevel(character, skill_id);
                 UnequipUnusableItems(character);
                 RecalculateCharacterDerivedStats(character);
                 slot = CharacterPointerToPartySlot(character);

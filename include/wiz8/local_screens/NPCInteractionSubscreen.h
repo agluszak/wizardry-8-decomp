@@ -8,6 +8,18 @@
 #include "wiz8/local_code/Controls.h"
 #include "wiz8/xstatus.h"
 
+/* Usability filters and the exclusive equipment categories in the trade UI.
+   The category bits use the same positions as W8ItemEquipSlotGroup. */
+enum W8NpcTradeFilter {
+    W8_NPC_TRADE_USABLE_BY_CHARACTER = 0x01,
+    W8_NPC_TRADE_HAND = 0x04,
+    W8_NPC_TRADE_BODY = 0x08,
+    W8_NPC_TRADE_ACCESSORY = 0x10,
+    W8_NPC_TRADE_OTHER = 0x20,
+    W8_NPC_TRADE_CATEGORY_MASK = 0x3c,
+    W8_NPC_TRADE_USABLE_BY_PARTY = 0x40
+};
+
 /* Local Screens\NPCInteractionSubscreen.cpp owns the NPC dialogue state and
    the keyword/transcript tables. */
 

@@ -110,7 +110,7 @@ void ShadeStatusBarGap(int length, int left, int top);
 
 /* 0x006488D0: dead-character portrait catalog ids - the small party-strip
    image at [race][0] and the large header portrait at [race][1]. */
-extern int g_dead_portrait_catalog_ids[16][2];
+extern int g_dead_portrait_catalog_ids[W8_RACE_COUNT][2];
 /* 0x00649DD4: empty-hand portrait catalog ids - right hand at [race*2], left
    hand at [race*2+1]. */
 extern int g_empty_hand_catalog_ids[32];

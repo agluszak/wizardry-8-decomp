@@ -15,7 +15,7 @@
 #include "wiz8/video_object_catalog.h"
 
 // GLOBAL: WIZ8 0x00614cf0
-W8AttributeMinimums g_race_attribute_minimums[11] = {
+W8AttributeMinimums g_race_attribute_minimums[W8_RACE_PLAYABLE_COUNT] = {
     {{45, 45, 45, 45, 45, 45, 45}}, {{35, 50, 50, 35, 50, 45, 40}}, {{55, 30, 50, 60, 35, 35, 35}},
     {{35, 50, 40, 50, 50, 35, 45}}, {{40, 40, 30, 45, 55, 50, 50}}, {{25, 55, 35, 30, 50, 60, 45}},
     {{60, 25, 25, 70, 40, 50, 30}}, {{55, 35, 30, 60, 50, 40, 30}}, {{40, 40, 30, 35, 50, 60, 50}},
@@ -44,11 +44,10 @@ W8AttributeMinimums g_profession_attribute_minimums[W8_PROFESSION_COUNT] = {
 // GLOBAL: WIZ8 0x00650124
 static const char* g_popup_race_profession_path = "Data\\Dialogs\\popup_race_profession.sti";
 
-enum { ATTR_COUNT = 7, RACE_COUNT = 16 };
+enum { ATTR_COUNT = 7 };
 
 /* Only the first eleven races have their own minimums; the rest are shown as
    -1, which is the dialog's "no requirement" marker. */
-enum { RACE_MINIMUMS_COUNT = 11 };
 
 // GLOBAL: WIZ8 0x0064ffb0
 W8ProfRaceInfoRow g_profession_info_rows[W8_PROFESSION_COUNT] = {
@@ -58,7 +57,7 @@ W8ProfRaceInfoRow g_profession_info_rows[W8_PROFESSION_COUNT] = {
 };
 
 // GLOBAL: WIZ8 0x00650064
-W8ProfRaceInfoRow g_race_info_rows[16] = {
+W8ProfRaceInfoRow g_race_info_rows[W8_RACE_COUNT] = {
     {644, 660, 8},  {645, 661, 4},  {646, 662, 12}, {647, 663, 16}, {648, 664, 14}, {649, 665, 20},
     {650, 666, 0},  {651, 667, 10}, {652, 668, 2},  {653, 669, 18}, {654, 670, 6},  {655, 671, 30},
     {656, 672, 24}, {657, 673, 22}, {658, 674, 26}, {659, 675, 28},
@@ -186,15 +185,7 @@ void W8ProfRaceInfoDialogBase::OnRightButtonUp()
 // FUNCTION: WIZ8 0x005DF010
 void W8ProfRaceInfoDialogBase::OnMouseWheel(int delta)
 {
-    if (delta > 0) {
-        for (int step = 0; step < delta; ++step) {
-            m_scroll_bar.ScrollUp();
-        }
-    } else if (delta < 0) {
-        for (int step = 0; step < -delta; ++step) {
-            m_scroll_bar.ScrollDown();
-        }
-    }
+    m_scroll_bar.ScrollBy(delta);
 }
 
 // FUNCTION: WIZ8 0x005DF050
@@ -304,7 +295,7 @@ unsigned char W8ProfessionInfoDialog::PopulateText()
 // FUNCTION: WIZ8 0x005df570
 W8RaceInfoDialog::W8RaceInfoDialog(W8Race uiIndex)
 {
-    if (uiIndex >= RACE_COUNT) {
+    if (uiIndex >= W8_RACE_COUNT) {
         srAssertFail("uiIndex < RACE_COUNT", PROF_RACE_INFO_DIALOG_CPP, 0x199, 0);
     }
     m_uiIndex = uiIndex;
@@ -314,7 +305,7 @@ W8RaceInfoDialog::W8RaceInfoDialog(W8Race uiIndex)
     m_uiNameId = g_race_info_rows[uiIndex].name_id;
     m_uiDetailId = g_race_info_rows[uiIndex].detail_id;
     for (unsigned int attribute = 0; attribute < ATTR_COUNT; ++attribute) {
-        if (uiIndex < RACE_MINIMUMS_COUNT) {
+        if (uiIndex < W8_RACE_PLAYABLE_COUNT) {
             m_minimums[attribute] = g_race_attribute_minimums[uiIndex].values[attribute];
         } else {
             m_minimums[attribute] = -1;

@@ -1958,17 +1958,7 @@ void W8PathingService::UpdateConditionalPathFlags(unsigned int path_handle, unsi
             while (m_pulCondNodeKeys[key_index] != 0) {
                 unsigned int key = m_pulCondNodeKeys[key_index];
                 unsigned int wanted_value = m_pulCondNodeValues[key_index];
-                unsigned int current_value = 0;
-                int slot = index->FindNextEntry(&key, -1);
-                bool searching = true;
-                while (slot >= 0 && searching != 0) {
-                    unsigned int value = index->entries[slot].value;
-                    if (((value ^ wanted_value) & 0xffff) == 0) {
-                        searching = false;
-                        current_value = value;
-                    }
-                    slot = index->FindNextEntry(&key, slot);
-                }
+                unsigned int current_value = FindConditionalPathValue(key, wanted_value);
 
                 if ((current_value & 0x08000000) != 0) {
                     index->Remove(&key, &current_value);
@@ -1988,17 +1978,7 @@ void W8PathingService::UpdateConditionalPathFlags(unsigned int path_handle, unsi
             while (m_pulCondNodeKeys[key_index] != 0) {
                 unsigned int key = m_pulCondNodeKeys[key_index];
                 unsigned int wanted_value = m_pulCondNodeValues[key_index];
-                unsigned int current_value = 0;
-                int slot = index->FindNextEntry(&key, -1);
-                bool searching = true;
-                while (slot >= 0 && searching != 0) {
-                    unsigned int value = index->entries[slot].value;
-                    if (((value ^ wanted_value) & 0xffff) == 0) {
-                        searching = false;
-                        current_value = value;
-                    }
-                    slot = index->FindNextEntry(&key, slot);
-                }
+                unsigned int current_value = FindConditionalPathValue(key, wanted_value);
 
                 if ((flags & current_value) == 0) {
                     index->Remove(&key, &current_value);
@@ -2118,6 +2098,18 @@ unsigned int W8PathingService::CollectPathProbes(W8NavigatorMovementState* movem
    active attachment target. The open-chain index owns one search node per
    cell, the fixed-capacity minimum heap chooses the next node to expand, and
    the selected parent chain is collapsed into the attachment's route array. */
+srVector3T<float> W8PathingService::GetSearchTraceOffset(float bearing)
+{
+    float target_yaw = NormalizeAngle(m_trace_target_yaw);
+    srMatrix3T<float> rotation;
+    rotation.SetIdentity();
+    float angle = bearing - target_yaw;
+    if (angle != g_double_zero) {
+        rotation.RotateAboutY(sin(angle), cos(angle));
+    }
+    return rotation.Transform(trace_offset);
+}
+
 // FUNCTION: WIZ8 0x00463460
 unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement, float radius,
                                               float separation)
@@ -2388,14 +2380,7 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
                 trace_target.y += trace_height_offset;
                 float bearing =
                     NormalizeAngle(GetHeadingAngle(&m_search_nodes[walk].position, &trace_target));
-                float target_yaw = NormalizeAngle(m_trace_target_yaw);
-                srMatrix3T<float> rotation;
-                rotation.SetIdentity();
-                float angle = bearing - target_yaw;
-                if (angle != g_double_zero) {
-                    rotation.RotateAboutY(sin(angle), cos(angle));
-                }
-                srVector3T<float> transformed = rotation.Transform(trace_offset);
+                srVector3T<float> transformed = GetSearchTraceOffset(bearing);
                 srVector3T<float> trace_source;
                 trace_source = m_search_nodes[walk].position + transformed;
                 short trace =
@@ -2414,14 +2399,7 @@ unsigned short W8PathingService::PlanMovement(W8NavigatorMovementState* movement
             trace_target.y += trace_height_offset;
             float bearing =
                 NormalizeAngle(GetHeadingAngle(&m_search_nodes[walk].position, &trace_target));
-            float target_yaw = NormalizeAngle(m_trace_target_yaw);
-            srMatrix3T<float> rotation;
-            rotation.SetIdentity();
-            float angle = bearing - target_yaw;
-            if (angle != g_double_zero) {
-                rotation.RotateAboutY(sin(angle), cos(angle));
-            }
-            srVector3T<float> transformed = rotation.Transform(trace_offset);
+            srVector3T<float> transformed = GetSearchTraceOffset(bearing);
             srVector3T<float> trace_source;
             trace_source = m_search_nodes[walk].position + transformed;
             short trace = g_octree->TraceLineOfSight(&trace_source, &trace_target, 1, -3, -3, 1, 0);
@@ -2731,16 +2709,7 @@ unsigned char W8PathingService::TestSearchPositionVisibility(const srVector3T<fl
 
     srVector3T<float> movement_target = movement->target_position;
     float bearing = NormalizeAngle(GetHeadingAngle(position, &movement_target));
-    float target_yaw = NormalizeAngle(m_trace_target_yaw);
-
-    srMatrix3T<float> rotation;
-    rotation.SetIdentity();
-    float angle = bearing - target_yaw;
-    if (angle != g_double_zero) {
-        rotation.RotateAboutY(sin(angle), cos(angle));
-    }
-
-    srVector3T<float> transformed = rotation.Transform(trace_offset);
+    srVector3T<float> transformed = GetSearchTraceOffset(bearing);
 
     srVector3T<float> trace_source = *position + transformed;
     srVector3T<float> trace_target = movement->target_position;
@@ -3272,7 +3241,7 @@ unsigned int W8PathingService::StepMonsterAlongPath(W8NavigatorMovementState* mo
         float angle = NormalizeAngle(static_cast<float>(atan2(direction.x, direction.z)));
         movement->target_yaw = angle;
         movement->yaw = angle;
-        if (group->ubDisposition == DISP_HOSTILE) {
+        if (group->ubDisposition == W8_DISPOSITION_HOSTILE) {
             UpdateMonsterSight(monster_info, 1, 0);
             DoMonsterRTAI(monster_info, 1);
             if (monster_info->fInCombat != 0) {
@@ -4975,7 +4944,7 @@ stModelInstance* W8PathingService::BuildPathVisualization()
     }
     model->setActivePolygonCount(active_count);
     model->setDirtyAll();
-    model->flags &= ~2U;
+    model->flags &= ~W8_MESH_VERTEX_LIGHTING_DIRTY;
     return m_pPathModelInstance;
 }
 
@@ -5185,7 +5154,7 @@ void W8PathingService::BuildSearchVisualization()
     }
     model->setActivePolygonCount(active_count);
     model->setDirtyAll();
-    model->flags &= ~2U;
+    model->flags &= ~W8_MESH_VERTEX_LIGHTING_DIRTY;
 }
 
 /* Select the editor color for one waypoint. Disabled surfaces are black; the

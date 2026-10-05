@@ -485,6 +485,23 @@ void RebuildMonsterRegenRates(W8MonsterInfo* monster_info)
    real/frame elapsed accumulators hold at zero, ages each living character
    and monster, expires party and combat effect slots with expiry notices,
    ticks queued spell effects once per minute and runs the NPC-side passes. */
+static bool AgePartyEffectSlot(W8EffectSlot* slot, unsigned int minutes)
+{
+    if (slot->active == 0) {
+        return false;
+    }
+    if (minutes < slot->duration) {
+        slot->duration -= minutes;
+        return false;
+    }
+    ShowNoticef(0xc, gppStringList[0x1b4], g_spell_records[slot->effect_id].display_name);
+    if (GetViewDistance() != g_encounter_culling_rate) {
+        SoundPlay("Data\\Sound\\Misc\\Spell Expiry.wav", 0);
+    }
+    ResetPartyEffectBlock(slot);
+    return true;
+}
+
 // FUNCTION: WIZ8 0x00502d00
 void AdvanceTimedEffects(unsigned int minutes)
 {
@@ -507,7 +524,8 @@ void AdvanceTimedEffects(unsigned int minutes)
         W8Character* character = &g_status.buffers.Char[slot];
         if (g_status.buffers.XChar[slot].fOccupied != 0 &&
             (character->highest_condition < W8_CONDITION_DEAD ||
-             (character->uiCondition[0x12] == 0 && GetConditionRecordFlag(slot, 1) != 0))) {
+             (character->uiCondition[W8_CONDITION_DEAD] == 0 &&
+              GetConditionRecordFlag(slot, 1) != 0))) {
             GameTurnsPassedChar(slot, minutes);
         }
     }
@@ -532,53 +550,23 @@ void AdvanceTimedEffects(unsigned int minutes)
     unsigned int i;
     for (i = 0; i < 12; ++i) {
         W8EffectSlot* slot = &g_status.effect_slots[i];
-        if (slot->active == 0) {
-            continue;
+        if (AgePartyEffectSlot(slot, minutes)) {
+            party_changed = true;
         }
-        if (minutes < slot->duration) {
-            slot->duration -= minutes;
-            continue;
-        }
-        ShowNoticef(0xc, gppStringList[0x1b4], g_spell_records[slot->effect_id].display_name);
-        if (GetViewDistance() != g_encounter_culling_rate) {
-            SoundPlay("Data\\Sound\\Misc\\Spell Expiry.wav", 0);
-        }
-        ResetPartyEffectBlock(slot);
-        party_changed = true;
     }
 
     if (gXStatus.fCombatMode != 0) {
         for (i = 0; i < 9; ++i) {
             W8EffectSlot* slot = &g_combat_state->effect_slots[i];
-            if (slot->active == 0) {
-                continue;
+            if (AgePartyEffectSlot(slot, minutes)) {
+                combat_changed = true;
             }
-            if (minutes < slot->duration) {
-                slot->duration -= minutes;
-                continue;
-            }
-            ShowNoticef(0xc, gppStringList[0x1b4], g_spell_records[slot->effect_id].display_name);
-            if (GetViewDistance() != g_encounter_culling_rate) {
-                SoundPlay("Data\\Sound\\Misc\\Spell Expiry.wav", 0);
-            }
-            ResetPartyEffectBlock(slot);
-            combat_changed = true;
         }
         for (i = 0; i < 6; ++i) {
             W8EffectSlot* slot = &g_combat_state->effect_slots0[i];
-            if (slot->active == 0) {
-                continue;
+            if (AgePartyEffectSlot(slot, minutes)) {
+                combat_changed = true;
             }
-            if (minutes < slot->duration) {
-                slot->duration -= minutes;
-                continue;
-            }
-            ShowNoticef(0xc, gppStringList[0x1b4], g_spell_records[slot->effect_id].display_name);
-            if (GetViewDistance() != g_encounter_culling_rate) {
-                SoundPlay("Data\\Sound\\Misc\\Spell Expiry.wav", 0);
-            }
-            ResetPartyEffectBlock(slot);
-            combat_changed = true;
         }
     }
 
@@ -1150,7 +1138,7 @@ after_early: {
         ApplyDamageToMonster(monster_info, amount, &source, true, gXStatus.fCombatMode, 0, 0, 0);
     }
 }
-    if (monster_info->uiCondition[2] != 0) {
+    if (monster_info->uiCondition[W8_CONDITION_DISEASED] != 0) {
         frost_condition = true;
     }
     {
@@ -1365,7 +1353,8 @@ void UpdatePartyStamina(int ticks)
         }
         W8Character* character = &g_status.buffers.Char[slot];
         if (character->highest_condition >= W8_CONDITION_DEAD &&
-            (character->uiCondition[0x12] != 0 || GetConditionRecordFlag(slot, 1) == 0)) {
+            (character->uiCondition[W8_CONDITION_DEAD] != 0 ||
+             GetConditionRecordFlag(slot, 1) == 0)) {
             continue;
         }
         if (g_status.party_fatigued != 0 &&
@@ -1385,7 +1374,7 @@ void UpdatePartyStamina(int ticks)
 void RegenCharacterStamina(int party_slot, unsigned int elapsed)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
-    unsigned int frost = character->uiCondition[2];
+    unsigned int frost = character->uiCondition[W8_CONDITION_DISEASED];
     signed char stamina_mod = character->bonus.stamina_regen_adjustment;
     if (stamina_mod < 1) {
         if (stamina_mod < 0) {

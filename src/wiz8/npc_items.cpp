@@ -47,15 +47,96 @@ static W8NpcItemEntry* CreateNpcItemEntry(int item_id)
    entry is an ordinary cleared allocation rather than a constructed object.
 
    A zero-unit equipment request returns the item id after creating the list. */
+static int FindNpcStockItem(W8NpcState* npc, int item_id)
+{
+    unsigned int count = PLLength(npc->items);
+    for (unsigned int index = 0; index < count; ++index) {
+        W8NpcItemEntry* entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, index));
+        if (entry != 0 && entry->item.iItemNo == item_id) {
+            return index;
+        }
+    }
+    return -1;
+}
+
+static unsigned char GetNpcStockQuantity(W8NpcState* npc, int item_id)
+{
+    unsigned int count = PLLength(npc->items);
+    for (unsigned int index = 0; index < count; ++index) {
+        W8NpcItemEntry* entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, index));
+        if (entry != 0 && entry->item.iItemNo == item_id) {
+            return entry->quantity;
+        }
+    }
+    return 0;
+}
+
+static unsigned char GetNpcConfiguredStockQuantity(W8NpcState* npc, int item_id)
+{
+    unsigned int count = PLLength(npc->record->item_stock_rules);
+    for (unsigned int index = 0; index < count; ++index) {
+        W8NpcItemStockRule* rule =
+            static_cast<W8NpcItemStockRule*>(PLGet(npc->record->item_stock_rules, index));
+        if (rule->item_id == item_id) {
+            return rule->quantity;
+        }
+    }
+    return 0;
+}
+
+static char NpcStockChanceForTier(char tier)
+{
+    switch (tier) {
+    case 0:
+        return 0;
+    case 1:
+        return 25;
+    case 2:
+        return 50;
+    case 3:
+        return 75;
+    case 4:
+        return 100;
+    default:
+        return 0;
+    }
+}
+
+static unsigned char JitterNpcStockQuantity(unsigned char amount)
+{
+    int roll = Random(3);
+    if (roll == 0) {
+        unsigned char jitter = static_cast<unsigned char>(amount >> 1);
+        amount += jitter;
+    } else if (roll == 1) {
+        unsigned char jitter = static_cast<unsigned char>(-(amount >> 1));
+        amount += jitter;
+    }
+    return amount;
+}
+
+static void RemoveDepletedNpcStock(W8NpcState* npc)
+{
+    unsigned int count = PLLength(npc->items);
+    for (unsigned int index = 0; index < count; ++index) {
+        W8NpcItemEntry* entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, index));
+        if (entry != 0 && entry->quantity == 0) {
+            delete static_cast<W8NpcItemEntry*>(PLRemoveAt(npc->items, index));
+            if (index != 0) {
+                --index;
+            }
+            count = PLLength(npc->items);
+        }
+    }
+}
+
 // FUNCTION: WIZ8 0x0055a7b0
 int AddNpcItem(W8NpcState* npc, int item_id, unsigned int quantity)
 {
     W8ItemDatabaseRecord* record;
     W8NpcItemEntry* entry;
-    unsigned int existing_count;
     unsigned int repeats;
     unsigned int added;
-    unsigned int search;
     int index;
 
     if (npc == 0) {
@@ -77,14 +158,7 @@ int AddNpcItem(W8NpcState* npc, int item_id, unsigned int quantity)
     for (; added < repeats; ++added) {
         index = -1;
         if (record->equip_class != W8_ITEM_EQUIP_CLASS_AMMUNITION) {
-            existing_count = PLLength(npc->items);
-            for (search = 0; search < existing_count; ++search) {
-                entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, search));
-                if (entry != 0 && entry->item.iItemNo == item_id) {
-                    index = search;
-                    break;
-                }
-            }
+            index = FindNpcStockItem(npc, item_id);
         }
         if (index == -1) {
             entry = CreateNpcItemEntry(item_id);
@@ -129,17 +203,12 @@ unsigned char MaintainNpcStock(W8NpcState* npc, bool force)
 {
     W8NpcItemEntry* entry;
     W8NpcItemStockRule* rule;
-    W8NpcItemStockRule* candidate;
     unsigned int count;
     unsigned int index;
     unsigned int rule_index;
-    unsigned int search_count;
-    unsigned int search;
     int item_id;
     unsigned char configured;
     unsigned char held;
-    unsigned char jitter;
-    int roll;
 
     count = PLLength(npc->items);
     for (index = 0; index < count; ++index) {
@@ -162,37 +231,13 @@ unsigned char MaintainNpcStock(W8NpcState* npc, bool force)
                 static_cast<W8NpcItemStockRule*>(PLGet(npc->record->item_stock_rules, rule_index));
             if (rule->persistent != 0) {
                 item_id = rule->item_id;
-                configured = 0;
-                search_count = PLLength(npc->record->item_stock_rules);
-                for (search = 0; search < search_count; ++search) {
-                    candidate = static_cast<W8NpcItemStockRule*>(
-                        PLGet(npc->record->item_stock_rules, search));
-                    if (candidate->item_id == item_id) {
-                        configured = candidate->quantity;
-                        break;
-                    }
-                }
+                configured = GetNpcConfiguredStockQuantity(npc, item_id);
                 if (configured != 0) {
                     item_id = rule->item_id;
-                    held = 0;
-                    search_count = PLLength(npc->items);
-                    for (search = 0; search < search_count; ++search) {
-                        entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, search));
-                        if (entry != 0 && entry->item.iItemNo == item_id) {
-                            held = entry->quantity;
-                            break;
-                        }
-                    }
+                    held = GetNpcStockQuantity(npc, item_id);
                     if (held <= configured / 2) {
                         configured -= held;
-                        roll = Random(3);
-                        if (roll == 0) {
-                            jitter = static_cast<unsigned char>(configured >> 1);
-                            configured += jitter;
-                        } else if (roll == 1) {
-                            jitter = static_cast<unsigned char>(-(configured >> 1));
-                            configured += jitter;
-                        }
+                        configured = JitterNpcStockQuantity(configured);
                         if (configured != 0) {
                             AddNpcItem(npc, rule->item_id, configured);
                         }
@@ -208,17 +253,7 @@ unsigned char MaintainNpcStock(W8NpcState* npc, bool force)
     }
     DecayNpcInventory(npc);
     RestockNpcItems(npc);
-    count = PLLength(npc->items);
-    for (index = 0; index < count; ++index) {
-        entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, index));
-        if (entry != 0 && entry->quantity == 0) {
-            delete static_cast<W8NpcItemEntry*>(PLRemoveAt(npc->items, index));
-            if (index != 0) {
-                --index;
-            }
-            count = PLLength(npc->items);
-        }
-    }
+    RemoveDepletedNpcStock(npc);
     npc->maintenance_clock = g_status.world_clock;
     npc->restock_clock = g_status.world_clock;
     return 1;
@@ -274,26 +309,7 @@ unsigned char PopulateNpcStock(W8NpcState* npc)
                     } else {
                         tier = 4;
                     }
-                    switch (tier) {
-                    case 0:
-                        chance = 0;
-                        break;
-                    case 1:
-                        chance = 25;
-                        break;
-                    case 2:
-                        chance = 50;
-                        break;
-                    case 3:
-                        chance = 75;
-                        break;
-                    case 4:
-                        chance = 100;
-                        break;
-                    default:
-                        chance = 0;
-                        break;
-                    }
+                    chance = NpcStockChanceForTier(tier);
                     if (Random(100) < static_cast<unsigned int>(chance)) {
                         ++added;
                     }
@@ -393,8 +409,6 @@ void ClearNpcItems(W8NpcState* npc)
 int AddNpcItemFromInstance(W8NpcState* npc, const W8ItemInstance* item, char quantity)
 {
     W8NpcItemEntry* entry;
-    unsigned int existing_count;
-    unsigned int search;
     int item_id;
     int index;
 
@@ -410,14 +424,7 @@ int AddNpcItemFromInstance(W8NpcState* npc, const W8ItemInstance* item, char qua
     item_id = item->iItemNo;
     index = -1;
     if (g_item_records[item_id].equip_class != W8_ITEM_EQUIP_CLASS_AMMUNITION) {
-        existing_count = PLLength(npc->items);
-        for (search = 0; search < existing_count; ++search) {
-            entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, search));
-            if (entry != 0 && entry->item.iItemNo == item_id) {
-                index = search;
-                break;
-            }
-        }
+        index = FindNpcStockItem(npc, item_id);
     }
     if (index == -1) {
         item_id = item->iItemNo;
@@ -453,20 +460,14 @@ int AddNpcItemFromInstance(W8NpcState* npc, const W8ItemInstance* item, char qua
 int RestockNpcItems(W8NpcState* npc)
 {
     W8NpcItemStockRule* rule;
-    W8NpcItemStockRule* candidate;
-    W8NpcItemEntry* entry;
     unsigned int rule_count;
     unsigned int rule_index;
-    unsigned int search_count;
-    unsigned int search;
     int item_id;
     int configured;
     unsigned char held;
     unsigned char amount;
-    unsigned char jitter;
     char tier;
     char chance;
-    int roll;
 
     rule_count = PLLength(npc->record->item_stock_rules);
     for (rule_index = 0; rule_index < rule_count; ++rule_index) {
@@ -476,30 +477,13 @@ int RestockNpcItems(W8NpcState* npc)
         }
 
         item_id = rule->item_id;
-        configured = 0;
-        search_count = PLLength(npc->record->item_stock_rules);
-        for (search = 0; search < search_count; ++search) {
-            candidate =
-                static_cast<W8NpcItemStockRule*>(PLGet(npc->record->item_stock_rules, search));
-            if (candidate->item_id == item_id) {
-                configured = candidate->quantity;
-                break;
-            }
-        }
+        configured = GetNpcConfiguredStockQuantity(npc, item_id);
         if (configured <= 0) {
             continue;
         }
 
         item_id = rule->item_id;
-        held = 0;
-        search_count = PLLength(npc->items);
-        for (search = 0; search < search_count; ++search) {
-            entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, search));
-            if (entry != 0 && entry->item.iItemNo == item_id) {
-                held = entry->quantity;
-                break;
-            }
-        }
+        held = GetNpcStockQuantity(npc, item_id);
         if (held > configured / 2) {
             continue;
         }
@@ -509,39 +493,13 @@ int RestockNpcItems(W8NpcState* npc)
         } else {
             tier = 4;
         }
-        switch (tier) {
-        case 0:
-            chance = 0;
-            break;
-        case 1:
-            chance = 25;
-            break;
-        case 2:
-            chance = 50;
-            break;
-        case 3:
-            chance = 75;
-            break;
-        case 4:
-            chance = 100;
-            break;
-        default:
-            chance = 0;
-            break;
-        }
+        chance = NpcStockChanceForTier(tier);
         if (static_cast<unsigned int>(chance) <= Random(100)) {
             continue;
         }
 
         amount = configured - held;
-        roll = Random(3);
-        if (roll == 0) {
-            jitter = static_cast<unsigned char>(amount >> 1);
-            amount += jitter;
-        } else if (roll == 1) {
-            jitter = static_cast<unsigned char>(-(amount >> 1));
-            amount += jitter;
-        }
+        amount = JitterNpcStockQuantity(amount);
         if (amount != 0) {
             AddNpcItem(npc, rule->item_id, amount);
         }
@@ -861,9 +819,7 @@ bool CompleteNpcItemPurchase(W8NpcState* npc, int index, unsigned char quantity,
     unsigned char available;
     unsigned char moved;
     unsigned char unit;
-    unsigned int count;
     unsigned int price;
-    unsigned int i;
     W8ItemInstance hand;
     W8ItemInstance stack;
     W8NpcItemEntry* entry;
@@ -913,17 +869,7 @@ bool CompleteNpcItemPurchase(W8NpcState* npc, int index, unsigned char quantity,
             if (remaining_out != 0) {
                 *remaining_out = available - moved;
             }
-            count = PLLength(npc->items);
-            for (i = 0; i < count; ++i) {
-                entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, i));
-                if (entry != 0 && entry->quantity == 0) {
-                    delete static_cast<W8NpcItemEntry*>(PLRemoveAt(npc->items, i));
-                    if (i != 0) {
-                        --i;
-                    }
-                    count = PLLength(npc->items);
-                }
-            }
+            RemoveDepletedNpcStock(npc);
             return 1;
         }
     }

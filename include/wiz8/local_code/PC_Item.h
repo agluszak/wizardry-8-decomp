@@ -136,7 +136,13 @@ bool CanCharacterUseItem(const W8Character* character, int item_id);
 /* Equip-slot bucket used by the items-page realm filters: body locations are
    Head/Torso/Feet/Legs/Hands, accessory slots are Misc #1/#2 and Cloak, and
    the four weapon slots form the hand bucket. */
-int GetItemEquipSlotGroup(int item_id);
+enum W8ItemEquipSlotGroup {
+    W8_ITEM_EQUIP_GROUP_HAND = 2,
+    W8_ITEM_EQUIP_GROUP_BODY = 3,
+    W8_ITEM_EQUIP_GROUP_ACCESSORY = 4,
+    W8_ITEM_EQUIP_GROUP_OTHER = 5
+};
+W8ItemEquipSlotGroup GetItemEquipSlotGroup(int item_id);
 
 unsigned int CountIdentifyAttemptsNeeded(W8ItemInstance* item, unsigned int percent);
 

@@ -24,6 +24,7 @@ public:
     void UpdateThumb();              /* 0x005E1000 */
     void Draw(bool force);  /* 0x005E10B0 */
     void ScrollUp();                 /* 0x005E1170 */
+    void ScrollBy(int delta);
     void ScrollDown();               /* 0x005E11A0 */
     void ScrollToMouse();            /* 0x005E11E0 */
 

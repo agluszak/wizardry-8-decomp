@@ -101,11 +101,7 @@ bool OnCrankTriggerActivated(Trigger* trigger)
             srAssertFail("pFlagTrigger", MTGIGASOUTER_CPP, 0x54,
                          "Missing trigger 'flag'! It's not in the LVL file!");
         }
-        if (pFlagTrigger->m_bRepType != 2) {
-            srAssertFail("m_bRepType == TRIGGER_REP_PROP", "..\\Engine Code\\Include\\Trigger.hpp",
-                         0x3ed, 0);
-        }
-        prop = pFlagTrigger->m_pProp;
+        prop = pFlagTrigger->GetProp();
         prop->GetPosition(&position);
         position.y = LIFT_PARKED_Y;
         prop->SetPosition(&position);
@@ -159,11 +155,7 @@ void ControlLiftGate(int command)
             srAssertFail("pFlagTrigger", MTGIGASOUTER_CPP, 0x95,
                          "Missing trigger 'flag'! It's not in the LVL file!");
         }
-        if (pFlagTrigger->m_bRepType != 2) {
-            srAssertFail("m_bRepType == TRIGGER_REP_PROP", "..\\Engine Code\\Include\\Trigger.hpp",
-                         0x3ed, 0);
-        }
-        g_lift_prop = pFlagTrigger->m_pProp;
+        g_lift_prop = pFlagTrigger->GetProp();
         g_lift_prop->GetPosition(&position);
         if (value < 100) {
             g_master_functions->Add(ControlLiftGate);

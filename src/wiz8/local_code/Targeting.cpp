@@ -177,7 +177,8 @@ bool ShouldClearAimForAppliedTarget(W8TargetSource* source, W8CombatSlot* target
         if (source->iChar == BAD_INDEX) {
             srAssertFail("pSource->iChar != BAD_INDEX", TARGETING_CPP, 0xce3, 0);
         }
-        source_hostile = g_status.buffers.Char[source->iChar].uiCondition[13] != 0;
+        source_hostile =
+            g_status.buffers.Char[source->iChar].uiCondition[W8_CONDITION_TURNCOAT] != 0;
     } else {
         if (source->iType != W8_TARGET_SOURCE_MONSTER) {
             srAssertFail("FALSE", TARGETING_CPP, 0xdf9, 0);
@@ -189,19 +190,20 @@ bool ShouldClearAimForAppliedTarget(W8TargetSource* source, W8CombatSlot* target
         source_hostile =
             MonsterGetScriptPartByLocationIndex(
                 MonsterGetIndexByLocationID(0xdf3, TARGETING_CPP, source->iMonsterID, 1))
-                ->ubDisposition == DISP_HOSTILE;
+                ->ubDisposition == W8_DISPOSITION_HOSTILE;
     }
     if (target->iType == W8_TARGET_KIND_CHARACTER) {
-        target_hostile = g_status.buffers.Char[target->iChar].uiCondition[13] != 0;
+        target_hostile =
+            g_status.buffers.Char[target->iChar].uiCondition[W8_CONDITION_TURNCOAT] != 0;
     } else if (target->iType == W8_TARGET_KIND_MONSTER) {
         target_hostile =
             MonsterGetScriptPartByLocationIndex(
                 MonsterGetIndexByLocationID(0xe06, TARGETING_CPP, target->iMonsterID, 1))
-                ->ubDisposition == DISP_HOSTILE;
+                ->ubDisposition == W8_DISPOSITION_HOSTILE;
     } else if (target->iType == W8_TARGET_KIND_GROUP) {
         target_hostile = GetMonsterGroupByListIndex(
                              GetMonsterGroupIndexByID(0xe0b, TARGETING_CPP, target->iGroupID, 1))
-                             ->ubDisposition == DISP_HOSTILE;
+                             ->ubDisposition == W8_DISPOSITION_HOSTILE;
     } else {
         srAssertFail("FALSE", TARGETING_CPP, 0xe11, 0);
         return 0;
@@ -724,7 +726,6 @@ W8TargetNeed GetTargetNeededForAction(W8ActionKind action, int spell_id,
 W8TargetNeed GetTargetNeededForCurrentAction(int party_slot)
 {
     W8ActionDetailBlock* detail_block;
-    const W8ItemDatabaseRecord* record;
     W8TargetingContext context;
     W8ActionKind action;
     int detail;
@@ -735,30 +736,7 @@ W8TargetNeed GetTargetNeededForCurrentAction(int party_slot)
     }
     ChooseCombatAction(party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0,
                        &detail_block);
-    switch (action) {
-    case W8_ACTION_ATTACK:
-    case W8_ACTION_BERSERK:
-        return W8_TARGET_NEED_ENEMY;
-    case W8_ACTION_CAST_SPELL:
-        return GetTargetNeededForSpellFriendly(detail, 0, W8_TARGETING_CONTEXT_CURRENT);
-    case W8_ACTION_BREATHE:
-        return W8_TARGET_NEED_CONE;
-    case W8_ACTION_PROTECT:
-        return W8_TARGET_NEED_ALLY;
-    case W8_ACTION_USE_ITEM:
-        if (detail_block->item_use.item != 0 && detail_block->item_use.item->iItemNo != -1) {
-            record = &g_item_records[detail_block->item_use.item->iItemNo];
-            if (record->spell_id != 0) {
-                return GetTargetNeededForSpellFriendly(record->spell_id,
-                                                       ItemClassNormalizesTarget(record),
-                                                       W8_TARGETING_CONTEXT_CURRENT);
-            }
-        }
-        break;
-    default:
-        break;
-    }
-    return W8_TARGET_NEED_NONE;
+    return GetTargetNeededForAction(action, detail, detail_block);
 }
 
 /* Whether a slot's recorded target suits the item it would be used with. An
@@ -1088,7 +1066,7 @@ static int ChooseMonsterTarget(int party_slot, int group_id, W8TargetingContext 
 
         if (monster_info->fActive == 0 || monster_info->fInCombat == 0 ||
             monster_info->hp_current == 0 ||
-            MonsterVsCharDisposition(party_slot, monster_info) != DISP_HOSTILE ||
+            MonsterVsCharDisposition(party_slot, monster_info) != W8_DISPOSITION_HOSTILE ||
             !CanPartyMemberAimAtMonster(party_slot, 2, monster_info, context, 0)) {
             continue;
         }
@@ -2164,7 +2142,6 @@ bool RepickActionTarget(int party_slot, W8TargetingContext context, int arg)
     W8CombatSlot* target;
     W8CombatSlot* target_2;
     W8CombatSlot new_target;
-    W8ItemDatabaseRecord* record;
     W8MonsterInfo* monster_info;
     W8TargetingContext action_context;
     W8TargetingContext resolved;
@@ -2192,33 +2169,7 @@ bool RepickActionTarget(int party_slot, W8TargetingContext context, int arg)
     if (target == 0) {
         srAssertFail("pTarget", TARGETING_CPP, 0xfc, 0);
     }
-    switch (kind) {
-    case W8_ACTION_ATTACK:
-    case W8_ACTION_BERSERK:
-        needed = W8_TARGET_NEED_ENEMY;
-        break;
-    case W8_ACTION_BREATHE:
-        needed = W8_TARGET_NEED_CONE;
-        break;
-    case W8_ACTION_PROTECT:
-        needed = W8_TARGET_NEED_ALLY;
-        break;
-    case W8_ACTION_CAST_SPELL:
-        needed = GetTargetNeededForSpellFriendly(action, 0, W8_TARGETING_CONTEXT_CURRENT);
-        break;
-    case W8_ACTION_USE_ITEM:
-        if (detail_block->item_use.item != 0 && detail_block->item_use.item->iItemNo != -1 &&
-            (record = &g_item_records[detail_block->item_use.item->iItemNo],
-             record->spell_id != 0)) {
-            needed = GetTargetNeededForSpellFriendly(
-                record->spell_id, ItemClassNormalizesTarget(record), W8_TARGETING_CONTEXT_CURRENT);
-            break;
-        }
-        /* fall through */
-    default:
-        needed = W8_TARGET_NEED_NONE;
-        break;
-    }
+    needed = GetTargetNeededForAction(kind, action, detail_block);
     previous_kind = target->iType;
     if (gXStatus.fCombatMode != 0) {
         if (resolved == W8_TARGETING_CONTEXT_OUT_OF_COMBAT) {
@@ -2294,7 +2245,6 @@ bool TargetIsInPlay(int party_slot, int hand, W8TargetingContext context)
 {
     W8TargetingContext resolved;
     W8ActionDetailBlock* detail_block;
-    W8ItemDatabaseRecord* record;
     W8CombatSlot* target;
     W8ActionKind kind;
     int action;
@@ -2302,33 +2252,7 @@ bool TargetIsInPlay(int party_slot, int hand, W8TargetingContext context)
 
     resolved = ResolveTargetingContext(party_slot, context);
     ChooseCombatAction(party_slot, resolved, &kind, &action, &target, &detail_block);
-    switch (kind) {
-    case W8_ACTION_ATTACK:
-    case W8_ACTION_BERSERK:
-        needed = W8_TARGET_NEED_ENEMY;
-        break;
-    case W8_ACTION_BREATHE:
-        needed = W8_TARGET_NEED_CONE;
-        break;
-    case W8_ACTION_PROTECT:
-        needed = W8_TARGET_NEED_ALLY;
-        break;
-    case W8_ACTION_CAST_SPELL:
-        needed = GetTargetNeededForSpellFriendly(action, 0, W8_TARGETING_CONTEXT_CURRENT);
-        break;
-    case W8_ACTION_USE_ITEM:
-        if (detail_block->item_use.item != 0 && detail_block->item_use.item->iItemNo != -1 &&
-            (record = &g_item_records[detail_block->item_use.item->iItemNo],
-             record->spell_id != 0)) {
-            needed = GetTargetNeededForSpellFriendly(
-                record->spell_id, ItemClassNormalizesTarget(record), W8_TARGETING_CONTEXT_CURRENT);
-            break;
-        }
-        /* fall through */
-    default:
-        needed = W8_TARGET_NEED_NONE;
-        break;
-    }
+    needed = GetTargetNeededForAction(kind, action, detail_block);
     if (TargetMatchesNeeded(target, needed) == 0) {
         return 0;
     }
@@ -3272,7 +3196,7 @@ int CollectConeMonsterTargets(const W8TargetSource* source, const srVector3T<flo
     W8MonsterInfo* monster_info = GetNextMonsterInfo(1);
     while (monster_info != 0) {
         if (monster_info->fActive != 0 && monster_info->hp_current != 0 &&
-            monster_info->uiCondition[0x12] == 0) {
+            monster_info->uiCondition[W8_CONDITION_DEAD] == 0) {
             W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
             if (record->untargetable == 0 &&
                 (monster_info->ubDisposition == disposition || disposition == 3)) {

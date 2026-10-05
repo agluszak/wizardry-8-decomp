@@ -254,19 +254,11 @@ void stModelInstance2D::SetModel(srModel* model)
     }
 }
 
-/* Render the instance through SurRender's detached TriMesh value. Aligned
-   instances retain their screen-facing orientation while preserving the
-   current view matrix's translation, scale and handedness. The optional glow
-   path clones the mesh material once, oscillates between the two configured
-   emissive colors, and overrides only this draw's material and first shader. */
-// FUNCTION: WIZ8 0x00480920
-void stModelInstance2D::process(const ProcessInfo& info, e_processType)
+static void ApplyModelViewMatrix(srModelInstance* instance, srGERD* renderer, float align_angle,
+                                 const srVector3T<float>& align_axis)
 {
-    srMeshModel::TriMesh mesh;
-    srGERD* renderer = info.renderer;
-
-    if ((alignment_flags.value & 1) == 0) {
-        applyWorldSpaceMatrix(*renderer);
+    if ((instance->alignment_flags.value & 1) == 0) {
+        instance->applyWorldSpaceMatrix(*renderer);
     } else {
         srMatrix4T<float> view;
         srVector3T<double> world_location;
@@ -280,8 +272,8 @@ void stModelInstance2D::process(const ProcessInfo& info, e_processType)
         renderer->matrixMode(srGERD::MATRIX_MODELVIEW);
         renderer->pushMatrix();
         renderer->getMatrix(srGERD::MATRIX_MODELVIEW, view);
-        world_location = getWorldSpaceLocation();
-        world_scale = getWorldSpaceScale();
+        world_location = instance->getWorldSpaceLocation();
+        world_scale = instance->getWorldSpaceScale();
 
         srVector3T<float> location;
         location = world_location;
@@ -307,11 +299,25 @@ void stModelInstance2D::process(const ProcessInfo& info, e_processType)
         translation = transformed_location.xyz();
         renderer->translate(translation);
         if (align_angle != g_float_zero) {
-            renderer->rotate(static_cast<double>(align_angle), align_axis);
+            renderer->rotate(align_angle, align_axis);
         }
         renderer->scale(world_scale.x * basis_x, world_scale.y * basis_y,
                         -(world_scale.z * basis_z));
     }
+}
+
+/* Render the instance through SurRender's detached TriMesh value. Aligned
+   instances retain their screen-facing orientation while preserving the
+   current view matrix's translation, scale and handedness. The optional glow
+   path clones the mesh material once, oscillates between the two configured
+   emissive colors, and overrides only this draw's material and first shader. */
+// FUNCTION: WIZ8 0x00480920
+void stModelInstance2D::process(const ProcessInfo& info, e_processType)
+{
+    srMeshModel::TriMesh mesh;
+    srGERD* renderer = info.renderer;
+
+    ApplyModelViewMatrix(this, renderer, align_angle, align_axis);
 
     srMeshModel* model = static_cast<srMeshModel*>(getModel());
     model->getTriMesh(mesh);
@@ -488,53 +494,7 @@ void stModelInstance::process(const ProcessInfo& info, e_processType)
 {
     srGERD* renderer = info.renderer;
 
-    if ((alignment_flags.value & 1) == 0) {
-        applyWorldSpaceMatrix(*renderer);
-    } else {
-        srMatrix4T<float> view;
-        srVector3T<double> world_location;
-        srVector3T<double> world_scale;
-        srVector4T<float> transformed_location;
-        srVector3T<float> translation;
-        float basis_x;
-        float basis_y;
-        float basis_z;
-
-        renderer->matrixMode(srGERD::MATRIX_MODELVIEW);
-        renderer->pushMatrix();
-        renderer->getMatrix(srGERD::MATRIX_MODELVIEW, view);
-        world_location = getWorldSpaceLocation();
-        world_scale = getWorldSpaceScale();
-
-        srVector3T<float> location;
-        location = world_location;
-        transformed_location = view.Transform(location);
-
-        srVector3T<float> column_x(view.vectors[0].x, view.vectors[1].x, view.vectors[2].x);
-        srVector3T<float> column_y(view.vectors[0].y, view.vectors[1].y, view.vectors[2].y);
-        srVector3T<float> column_z(view.vectors[0].z, view.vectors[1].z, view.vectors[2].z);
-        basis_x = column_x.Length();
-        basis_y = column_y.Length();
-        basis_z = column_z.Length();
-
-        float determinant = Det3(view.vectors[0].x, view.vectors[0].y, view.vectors[0].z,
-                                 view.vectors[1].x, view.vectors[1].y, view.vectors[1].z,
-                                 view.vectors[2].x, view.vectors[2].y, view.vectors[2].z);
-        if (determinant > g_double_zero) {
-            basis_x = -basis_x;
-            basis_y = -basis_y;
-            basis_z = -basis_z;
-        }
-
-        renderer->loadIdentity();
-        translation = transformed_location.xyz();
-        renderer->translate(translation);
-        if (align_angle != g_float_zero) {
-            renderer->rotate(align_angle, align_axis);
-        }
-        renderer->scale(world_scale.x * basis_x, world_scale.y * basis_y,
-                        -(world_scale.z * basis_z));
-    }
+    ApplyModelViewMatrix(this, renderer, align_angle, align_axis);
 
     if (exclusion_mask != 0) {
         unsigned long previous_mask = renderer->getExclusionMask();
@@ -626,7 +586,7 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
         }
 
         srVector3T<float>* poly_normals;
-        if ((model->flags >> 2) & 1) {
+        if ((model->flags & W8_MESH_HAS_FRAME_STORAGE) != 0) {
             mesh.positions =
                 model->GetVertexLocations(frame_index, 1, frame_interpolation);
             mesh.normals = model->GetVertexNormals(frame_index, 1);
@@ -732,7 +692,7 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
                     }
 
                     const srVector3T<float>* poly_normals = 0;
-                    if ((model->flags >> 2) & 1) {
+                    if ((model->flags & W8_MESH_HAS_FRAME_STORAGE) != 0) {
                         mesh.dig[0] =
                             model->GetVertexLocations(frame_index, 1, frame_interpolation);
                         mesh.dig[1] = model->GetVertexNormals(frame_index, 1);

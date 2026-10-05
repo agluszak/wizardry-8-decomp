@@ -137,7 +137,8 @@ unsigned char W8MonsterInfoDialog::PopulateText()
     record = GetMonsterDataForInfo(monster_info);
     average_level = GetAveragePartyMemberLevel();
     monster_level = record->display_level;
-    if (monster_info->ubDisposition != 1 && (record->flags & W8_MONSTER_FLAG_NPC) != 0 &&
+    if (monster_info->ubDisposition != W8_DISPOSITION_HOSTILE &&
+        (record->flags & W8_MONSTER_FLAG_NPC) != 0 &&
         (npc = GetNpcStateByKind(record->npc_kind)) != 0 && npc->record->has_group != 0) {
         is_npc = true;
     }
@@ -466,15 +467,7 @@ void W8MonsterInfoDialog::OnRightButtonUp()
 // FUNCTION: WIZ8 0x005d6e70
 void W8MonsterInfoDialog::OnMouseWheel(int delta)
 {
-    if (delta > 0) {
-        for (int step = 0; step < delta; ++step) {
-            m_scroll_bar.ScrollUp();
-        }
-    } else if (delta < 0) {
-        for (int step = 0; step < -delta; ++step) {
-            m_scroll_bar.ScrollDown();
-        }
-    }
+    m_scroll_bar.ScrollBy(delta);
 }
 
 // FUNCTION: WIZ8 0x005d6ec0

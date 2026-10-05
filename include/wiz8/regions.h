@@ -40,6 +40,19 @@ struct W8Region;
 typedef unsigned char (*W8RegionCallback)(const InputAtom* event, struct W8Region* region);
 
 struct W8Region {
+    bool CaptureButtonDown(unsigned int event)
+    {
+        if (event == RIGHT_BUTTON_DOWN) {
+            flags |= W8_REGION_RIGHT_BUTTON_HELD;
+            return true;
+        }
+        if (event == LEFT_BUTTON_DOWN) {
+            flags |= W8_REGION_LEFT_BUTTON_HELD;
+            return true;
+        }
+        return false;
+    }
+
     unsigned int flags;
     short x1;
     short y1;

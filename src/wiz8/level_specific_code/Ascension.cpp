@@ -429,8 +429,8 @@ bool AscensionPath1Camera(Trigger* pTrigger)
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(index);
 
-        if (info->fActive != 0 && info->fInCombat != 0 && info->ubDisposition == DISP_HOSTILE &&
-            info->p3D->IsDying() == 0) {
+        if (info->fActive != 0 && info->fInCombat != 0 &&
+            info->ubDisposition == W8_DISPOSITION_HOSTILE && info->p3D->IsDying() == 0) {
             MonsterStartsDying(info, 1);
         }
     }
