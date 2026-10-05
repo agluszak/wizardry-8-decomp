@@ -12,7 +12,7 @@ public:
     struct Output {
         unsigned long* indices;
         unsigned long* avt;
-        unsigned long* clip_flags;
+        unsigned long* vertex_remap;
         unsigned long triangle_count;
         unsigned long vertex_count;
         int linear;
@@ -59,10 +59,10 @@ public:
                                                    unsigned long mask, float& depth);
     /* Builds the active-vertex table: marks the vertices referenced by the
        surviving triangle indices, collects their indices into avt, then
-       rewrites clip_flags as the vertex->avt inverse remap. Returns the
+       rewrites vertex_scratch as the vertex->avt inverse remap. Returns the
        active vertex count. */
     static SR_DLL_IMPORT unsigned long
-    buildAVT(unsigned long* avt, unsigned long* clip_flags, const unsigned long* indices,
+    buildAVT(unsigned long* avt, unsigned long* vertex_scratch, const unsigned long* indices,
              const srVector3i* triangles, unsigned long triangle_count, unsigned long vertex_count);
     static SR_DLL_IMPORT void setupLinearArray(unsigned long* indices, unsigned long count);
     static SR_DLL_IMPORT int cull(Output& output, const Input& input);

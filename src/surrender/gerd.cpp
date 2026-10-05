@@ -108,7 +108,7 @@ srGERD::srGERD(srDD* device, void* module, const char* device_name)
     this->device.debug_dd = 0;
     this->device.real_dd = 0;
     vertex_arrays_dirty = 0xffffffff;
-    vertex_arrays.clip.value = 0x3f;
+    vertex_arrays.clip.value = srRendererDefs::FRUSTUM_CLIP_MASK;
     vertex_arrays.count = 0;
     vertex_arrays.mask.value = 0;
     for (unsigned long index = 0; index < 6; ++index) {
@@ -152,7 +152,7 @@ srGERD::srGERD(srDD* device, void* module, const char* device_name)
     this->device.driver_info.dd_api_version = 0;
     this->device.driver_info.debug_write = debugWrite;
     this->device.driver_info.flags = 0;
-    if ((srCore.getTimer()->m_cpu_features & 0x800000) != 0) {
+    if ((srCore.getTimer()->m_cpu_features & (1UL << srTimer::CPU_FEATURE_MMX)) != 0) {
         this->device.driver_info.flags = 1;
     }
     getDD()->getDriverInfo(this->device.driver_info);
@@ -827,8 +827,7 @@ void srGERD::setTextureSubImage(srTextureIFace* texture, long mipmap, long x, lo
         if (level_height < (unsigned long)request.source_bottom) {
             request.source_bottom = (long)level_height;
         }
-        unsigned long bytes_per_pixel =
-            (unsigned long)resident->pixel_format.bytes_per_pixel_minus_one + 1;
+        unsigned long bytes_per_pixel = (unsigned long)resident->pixel_format.pixel_size + 1;
         unsigned long pitch = bytes_per_pixel * level_width;
         if (resident->surface_data == 0) {
             void* staging =
@@ -1231,7 +1230,8 @@ void srGERD::getPixelFormat(srPixelConvert::PixelFormat& format) const
 {
     if (isWindowOpen() != 0) {
         /* Default 8888 format the device getBufferPixelFormat refines. */
-        srDD::PixelFormat device = {8, 0x10, 8, 8, 8, 0, 8, 0x18, 0, 3};
+        srDD::PixelFormat device = {
+            8, 0x10, 8, 8, 8, 0, 8, 0x18, srPixelConvert::COLOR_RGB, srPixelConvert::PIXEL_SIZE_32};
         getDD()->getBufferPixelFormat(device);
         convertPixelFormat(format, device);
     }
@@ -1867,7 +1867,7 @@ srGERD::LockSurface::LockSurface(srGERD* gerd, const srPixelConvert::PixelFormat
     memset(&description, 0, sizeof(description));
     description.width = gerd->getWidth();
     description.height = gerd->getHeight();
-    description.pitch = (format.bytes_per_pixel_minus_one + 1) * description.width;
+    description.pitch = (format.pixel_size + 1) * description.width;
     description.pixel_format = format;
     setSurfaceDesc(description);
     this->gerd = gerd;
@@ -2035,8 +2035,7 @@ void srGERD::LockSurface::setPixelRowRaw(const void* pixels, long y, long x0, lo
         return;
     }
     if (x0 < (long)left) {
-        pixels =
-            (const char*)pixels + (pixel_format.bytes_per_pixel_minus_one + 1) * (left - x0);
+        pixels = (const char*)pixels + (pixel_format.pixel_size + 1) * (left - x0);
         x0 = left;
     }
     if (x1 > (long)right) {
@@ -2202,7 +2201,7 @@ void srGERD::applyViewStateChanges()
     statistics.view_state_applies += 1;
     if ((dirty & DIRTY_MODELVIEW) != 0) {
         classifyMatrix(MATRIX_MODELVIEW);
-        dirty = this->dirty & ~0x20UL;
+        dirty = this->dirty & ~DIRTY_MODELVIEW;
         this->dirty = dirty;
         if (dirty == 0) {
             return;
@@ -3453,8 +3452,8 @@ void srGERD::convertPixelFormat(srPixelConvert::PixelFormat& format,
     format.green_shift = device.green_shift;
     format.blue_shift = device.blue_shift;
     format.alpha_shift = device.alpha_shift;
-    format.conversion_class = device.conversion_class;
-    format.bytes_per_pixel_minus_one = device.bytes_per_pixel_minus_one;
+    format.color_model = device.color_model;
+    format.pixel_size = device.pixel_size;
 }
 
 // FUNCTION: SURRENDER 0x10018EE0
@@ -3469,8 +3468,8 @@ void srGERD::convertPixelFormat(srDD::PixelFormat& device,
     device.green_shift = format.green_shift;
     device.blue_shift = format.blue_shift;
     device.alpha_shift = format.alpha_shift;
-    device.conversion_class = format.conversion_class;
-    device.bytes_per_pixel_minus_one = format.bytes_per_pixel_minus_one;
+    device.color_model = format.color_model;
+    device.pixel_size = format.pixel_size;
 }
 
 // FUNCTION: SURRENDER 0x10018F30
@@ -3485,7 +3484,7 @@ void srGERD::initTextureFormats()
         device.texture_formats = new srPixelConvert::PixelFormat[count];
         long i;
         for (i = 0; i < count; i++) {
-            device.texture_formats[i].flags = 0;
+            device.texture_formats[i].fourcc = 0;
         }
         device.texture_format_count = count;
         for (i = 0; i < count; i++) {
@@ -4073,12 +4072,13 @@ srColorSurfaceIFace* srGERD::lockBuffer()
     srPixelConvert::PixelFormat format;
     getPixelFormat(format);
     lock_surface = new LockSurface(this, format);
-    lock_surface->setScissor(state.scissor.left, state.scissor.top,
-                                   state.scissor.right, state.scissor.bottom);
-    if (format.conversion_class == 0 && format.bytes_per_pixel_minus_one == 3 &&
-        format.red_bits == 8 && format.green_bits == 8 && format.blue_bits == 8 &&
-        format.alpha_bits == 8 && format.red_shift == 0x10 && format.green_shift == 8 &&
-        format.blue_shift == 0 && format.alpha_shift == 0x18) {
+    lock_surface->setScissor(state.scissor.left, state.scissor.top, state.scissor.right,
+                             state.scissor.bottom);
+    if (format.color_model == srPixelConvert::COLOR_RGB &&
+        format.pixel_size == srPixelConvert::PIXEL_SIZE_32 && format.red_bits == 8 &&
+        format.green_bits == 8 && format.blue_bits == 8 && format.alpha_bits == 8 &&
+        format.red_shift == 0x10 && format.green_shift == 8 && format.blue_shift == 0 &&
+        format.alpha_shift == 0x18) {
         lock_surface->argb32 = 1;
     }
     return lock_surface;
@@ -4375,12 +4375,13 @@ void srGERD::evaluateTexturePixelFormat(Texture& texture,
 {
     unsigned long flags = dimensions.hints;
     srPixelConvert::PixelFormat format = dimensions.format;
-    if ((flags & 0x100) != 0) {
-        srPixelConvert::mapPixelFormat(
-            static_cast<srPixelConvert::e_surfaceType>(format.alpha_bits != 0 ? 6 : 2), format);
+    if ((flags & (1UL << srTextureIFace::HINT_INTENSITY)) != 0) {
+        srPixelConvert::mapPixelFormat(format.alpha_bits != 0 ? srPixelConvert::SURFACE_AL88
+                                                              : srPixelConvert::SURFACE_L8,
+                                       format);
     }
-    if ((dimensions.hints & 0x10) != 0) {
-        srPixelConvert::mapPixelFormat(static_cast<srPixelConvert::e_surfaceType>(3), format);
+    if ((dimensions.hints & (1UL << srTextureIFace::HINT_ALPHA_ONLY)) != 0) {
+        srPixelConvert::mapPixelFormat(srPixelConvert::SURFACE_A8, format);
     }
     flags = dimensions.hints;
     if ((flags & (1UL << srTextureIFace::HINT_NO_ALPHA)) == 0) {
@@ -4399,7 +4400,7 @@ void srGERD::evaluateTexturePixelFormat(Texture& texture,
         format.match(device.texture_formats, (unsigned long)device.texture_format_count);
     texture.device.format_index = index;
     texture.pixel_format = device.texture_formats[index];
-    if (texture.pixel_format.conversion_class == 3) {
+    if (texture.pixel_format.color_model == srPixelConvert::COLOR_INDEXED) {
         texture.palette = dimensions.palette;
     } else {
         texture.palette = 0;
@@ -4434,7 +4435,7 @@ unsigned long srGERD::getTextureBytesNeeded(Texture& texture) const
     if (texture.device.first_level <= texture.device.last_level) {
         long count = (long)(texture.device.last_level - texture.device.first_level) + 1;
         do {
-            bytes += height * width * (texture.pixel_format.bytes_per_pixel_minus_one + 1);
+            bytes += height * width * (texture.pixel_format.pixel_size + 1);
             width >>= 1;
             height >>= 1;
             --count;
@@ -4457,7 +4458,7 @@ void srGERD::allocTextureData(Texture& texture)
     texture.surface_data = srHeap.allocate(size);
     texture.device.size = size;
     texture_cache_used += size;
-    long bytes_per_pixel = texture.pixel_format.bytes_per_pixel_minus_one;
+    long bytes_per_pixel = texture.pixel_format.pixel_size;
     unsigned char* data = (unsigned char*)texture.surface_data;
     unsigned long width = texture.device.width;
     unsigned long height = texture.device.height;
@@ -4483,8 +4484,7 @@ srGERD::Texture* srGERD::createNewTexture(srTextureIFace* texture)
     dimensions.filter = srCore.getFilter();
     dimensions.hints = 0;
     dimensions.compression = srTextureIFace::COMPRESSION_DEFAULT;
-    srPixelConvert::mapPixelFormat(static_cast<srPixelConvert::e_surfaceType>(0xb),
-                                   dimensions.format);
+    srPixelConvert::mapPixelFormat(srPixelConvert::SURFACE_ARGB4444, dimensions.format);
     Texture* result = allocTexture(texture->getTextureFrameHandle());
     const char* name = texture->getName();
     if (name == 0 || *name == 0) {
@@ -4512,9 +4512,9 @@ srGERD::Texture* srGERD::createNewTexture(srTextureIFace* texture)
     unsigned long height = result->device.height;
     long level = request.mipmap_level;
     for (; level <= (long)request.last_level; ++level) {
-        srColorSurface* surface = new srColorSurface(
-            result->pixel_format, result->device.levels[level], width, height,
-            (unsigned long)(result->pixel_format.bytes_per_pixel_minus_one + 1) * width);
+        srColorSurface* surface =
+            new srColorSurface(result->pixel_format, result->device.levels[level], width, height,
+                               (unsigned long)(result->pixel_format.pixel_size + 1) * width);
         request.destinations[level] = surface;
         if (result->palette != 0) {
             surface->setPalette(result->palette);
@@ -5092,7 +5092,7 @@ void srGERD::initView()
     state.depth_min = 0.0;
     state.depth_max = 1.0;
     state.clip_plane_count = 0;
-    state.clip_mask = 0x3f;
+    state.clip_mask = srRendererDefs::FRUSTUM_CLIP_MASK;
     state.clip_mode1_mask = 0;
     state.cull_mode = CULL_BACK;
     state.winding = static_cast<e_winding>(0);
@@ -5359,7 +5359,7 @@ void srGERD::accumulate(e_accum operation, float scale)
     /* reinterpret-ok: the accum row scratch is raw dword storage reused as
        an ARGB pixel row. */
     srARGB* pixels = reinterpret_cast<srARGB*>(accum_scratch);
-    if ((srCore.getTimer()->m_cpu_features & 0x800000) != 0) {
+    if ((srCore.getTimer()->m_cpu_features & (1UL << srTimer::CPU_FEATURE_MMX)) != 0) {
         long scale16 = (long)(scale * (operation == ACCUM_MULTIPLY ? 32767.0 : 65536.0));
         switch (operation) {
         case ACCUM_LOAD: {

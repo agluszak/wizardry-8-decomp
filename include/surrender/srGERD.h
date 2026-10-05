@@ -77,7 +77,7 @@ public:
             const srVector3i* triangles;
             const unsigned long* vertices;
             const srTriMeshPipeline::Pass* passes;
-            int position_is_float3;
+            int direct_vertex_indices;
             const srMatrix4T<float>* project_clip_near;
             float sort_bias;
         };
@@ -195,16 +195,15 @@ public:
             srArray<srVector4T<float> > positions;
             srArray<srVector2T<float> > st[2];
             srArray<float> q[2];
-            srArray<unsigned char> packed;
+            srArray<unsigned char> attributes;
             /* isBatchFull compares this signed against batch_limit. */
             long count;
             unsigned long capacity;
 
             /* Retail's constructor emission calls the reserve form with 0
-               on the vec4 streams and the packed byte array. */
+               on the vec4 streams and the attribute byte array. */
             VertexArrays()
-                : diffuse(0), specular(0), positions(0), packed(0), count(0),
-                  capacity(0)
+                : diffuse(0), specular(0), positions(0), attributes(0), count(0), capacity(0)
             {
             }
             void alloc(srVertexArray& arrays, unsigned long count);

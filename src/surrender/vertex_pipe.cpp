@@ -182,12 +182,13 @@ void srVertexPipe::processVertexBuffer()
         lazy_setup_mask |= 1 << srVertexProcessor::CHANNEL_Q1;
     }
     unsigned long packed = (mask >> 2) & 0xffffff7c;
-    packed |= ((mask >> 1) & 2) | ((mask & ((1 << srVertexProcessor::CHANNEL_DIFFUSE) |
-                                            (1 << srVertexProcessor::CHANNEL_ALPHA))) != 0
-                                       ? 1
-                                       : 0);
-    vector_processor->_memcopy(vertex_array->packed + batch_base + sub_batch_offset,
-                                  packed, vertex_count);
+    packed |= ((mask >> 1) & srVertexArray::ATTRIBUTE_SPECULAR) |
+              ((mask & ((1 << srVertexProcessor::CHANNEL_DIFFUSE) |
+                        (1 << srVertexProcessor::CHANNEL_ALPHA))) != 0
+                   ? srVertexArray::ATTRIBUTE_DIFFUSE
+                   : 0);
+    vector_processor->_memcopy(vertex_array->attributes + batch_base + sub_batch_offset, packed,
+                               vertex_count);
 }
 
 // FUNCTION: SURRENDER 0x1002AE90
@@ -246,9 +247,9 @@ void srVertexPipe::process(const Input& input)
         if (0x40 < vertex_count) {
             batch_count = 0x40;
         }
-        avt = input.indices + batch_base;
+        avt = input.active_vertices + batch_base;
         scratch->flags = 0;
-        if (this->input->position_is_float3 == 0) {
+        if (this->input->direct_vertex_indices == 0) {
             vector_processor->_transformIndexed(eye_space_locations + batch_base,
                                                    this->input->positions, avt,
                                                    *this->input->model_view, batch_count);
@@ -500,13 +501,13 @@ void srVertexPipe::finishSpecularFog()
 // FUNCTION: SURRENDER 0x1002B860
 void srVertexPipe::setupEyeSpaceNormal()
 {
-    const srVector3T<float>* normals = input->values;
+    const srVector3T<float>* normals = input->normals;
     Scratch* scratch = this->scratch;
     if (normals == 0) {
         srVector3T<float> constant;
         constant.Set(0.0f, 0.0f, -1.0f);
         vector_processor->_copy(scratch->normals, constant, batch_count);
-    } else if (input->position_is_float3 == 0) {
+    } else if (input->direct_vertex_indices == 0) {
         vector_processor->_transformIndexed(scratch->normals, normals, avt,
                                                *input->normal_matrix, batch_count);
     } else {

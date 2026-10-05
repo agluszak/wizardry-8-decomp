@@ -598,8 +598,8 @@ stLight* CreateLight(srNode* parent, const char* name)
     if (light != 0) {
         light->setName(name);
         light->attenuation_model = srLight::ATTENUATION_3DSTUDIO_MAX;
-        light->enable_flags |= 0x10; /* ENABLE_RANGE_FAR */
-        light->enable_flags |= 4;    /* ENABLE_BOUNDING_SPHERE */
+        light->enable_flags |= (1UL << srLight::ENABLE_RANGE_FAR);
+        light->enable_flags |= (1UL << srLight::ENABLE_BOUNDING_SPHERE);
     }
     return light;
 }
@@ -624,8 +624,8 @@ stLight* CreateWorldLight(W8World* world, const char* name)
     }
     light->setName(name);
     light->attenuation_model = srLight::ATTENUATION_3DSTUDIO_MAX;
-    light->enable_flags |= 0x10; /* ENABLE_RANGE_FAR */
-    light->enable_flags |= 4;    /* ENABLE_BOUNDING_SPHERE */
+    light->enable_flags |= (1UL << srLight::ENABLE_RANGE_FAR);
+    light->enable_flags |= (1UL << srLight::ENABLE_BOUNDING_SPHERE);
 
     if (world != 0) {
         PLAdoptAppend(&world->transient_lights, light);
@@ -651,8 +651,8 @@ stLight* CreateRangedWorldLight(W8World* world, const char* name)
     }
 
     light->attenuation_model = srLight::ATTENUATION_3DSTUDIO_MAX;
-    light->enable_flags |= 0x10; /* ENABLE_RANGE_FAR */
-    light->enable_flags |= 4;    /* ENABLE_BOUNDING_SPHERE */
+    light->enable_flags |= (1UL << srLight::ENABLE_RANGE_FAR);
+    light->enable_flags |= (1UL << srLight::ENABLE_BOUNDING_SPHERE);
     light->setName(name);
     light->near_start = 0.0;
     light->near_end = 0.0;

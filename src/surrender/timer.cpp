@@ -388,7 +388,8 @@ int srTimer::reset(int detect, int argument_1, int save)
                 sprintf(m_cpu_ident + strlen(m_cpu_ident), "i%d86", family);
             } else if (family == 5) {
                 sprintf(m_cpu_ident + strlen(m_cpu_ident), "Pentium%s",
-                        (m_cpu_features & 0x800000) != 0 ? " MMX" : storage_class);
+                        (m_cpu_features & (1UL << srTimer::CPU_FEATURE_MMX)) != 0 ? " MMX"
+                                                                                  : storage_class);
             } else if (family == 6) {
                 const char* name;
                 switch ((m_cpu_signature >> 4) & 0xf) {
@@ -397,7 +398,7 @@ int srTimer::reset(int detect, int argument_1, int save)
                     name = "Pentium Pro";
                     break;
                 case 2:
-                    if ((m_cpu_features & 0x800000) == 0) {
+                    if ((m_cpu_features & (1UL << srTimer::CPU_FEATURE_MMX)) == 0) {
                         name = "Pentium Pro";
                         break;
                     }
@@ -418,7 +419,7 @@ int srTimer::reset(int detect, int argument_1, int save)
                 strcat(m_cpu_ident, name);
             } else if (family > 7) {
                 sprintf(m_cpu_ident + strlen(m_cpu_ident), "x86 Family %d", family);
-                if ((m_cpu_features & 0x800000) != 0) {
+                if ((m_cpu_features & (1UL << srTimer::CPU_FEATURE_MMX)) != 0) {
                     strcat(m_cpu_ident, "/MMX");
                 }
             }

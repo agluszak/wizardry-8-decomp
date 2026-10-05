@@ -977,8 +977,8 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
 
     pipeline->current_record->flags = 0;
     pipeline->current_pass->shaders = 0;
-    pipeline->current_pass->tex_table_0 = 0;
-    pipeline->current_pass->tex_table_1 = 0;
+    pipeline->current_pass->texture_tables[0] = 0;
+    pipeline->current_pass->texture_tables[1] = 0;
 
     if (colors != 0) {
         pipeline->current_record->colors = colors;
@@ -1003,13 +1003,13 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
     }
 
     if (texture_frames != 0) {
-        pipeline->current_pass->tex_table_0 = texture_frames;
+        pipeline->current_pass->texture_tables[0] = texture_frames;
     } else {
         srTextureIFace* texture = this->texture;
 
         if (texture != 0) {
             pipeline->texture0 = texture;
-            pipeline->current_pass->texture0 = texture;
+            pipeline->current_pass->textures[0] = texture;
         }
     }
 

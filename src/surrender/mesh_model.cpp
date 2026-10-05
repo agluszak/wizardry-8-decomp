@@ -205,7 +205,7 @@ srVector3T<float>* srMeshModel::getVertexNormal()
     if (vertex_normals.data == 0) {
         vertex_normals.Resize(vertex_location_count, 0);
     }
-    if ((dirty_flags.value & 4) != 0) {
+    if ((dirty_flags.value & (1UL << DIRTY_VERTEX_NORMALS)) != 0) {
         calculateVertexNormals();
     }
     return vertex_normals.data;
@@ -220,7 +220,7 @@ srVector4T<float>* srMeshModel::getPolyEq()
     if (poly_equations.data == 0) {
         poly_equations.Resize(polygon_count, 1);
     }
-    if ((dirty_flags.value & 2) != 0) {
+    if ((dirty_flags.value & (1UL << DIRTY_POLYGON_NORMALS)) != 0) {
         calculatePolygonNormals();
     }
     return poly_equations.data;
@@ -451,8 +451,8 @@ void srMeshModel::reset(long polygons, long vertices)
     active_polygon_count = polygons;
     pass_count = 1;
     render_control.value = 0;
-    render_control.value |= 1;
-    render_control.value |= 0x10;
+    render_control.value |= 1UL << CONTROL_FRONT;
+    render_control.value |= 1UL << CONTROL_SKIP_AUTO_BOX;
 }
 
 // FUNCTION: SURRENDER 0x1003D320
@@ -473,7 +473,7 @@ srMeshModel& srMeshModel::operator=(const srMeshModel& other)
         dirty_flags = other.dirty_flags;
         render_control = other.render_control;
         pass_count = other.pass_count;
-        dirty_flags.value |= 8;
+        dirty_flags.value |= (1UL << DIRTY_TRI_MESH);
         bounds_minimum = other.bounds_minimum;
         bounds_maximum = other.bounds_maximum;
         bounds_center = other.bounds_center;
@@ -540,14 +540,14 @@ void srMeshModel::calculateBounds()
         }
         bounds_radius = sqrtf(bounds_radius) * 1.00001f;
         updateAllClients(Client::UPDATE_BOUNDS);
-        dirty_flags.value &= 0xfffffffe;
+        dirty_flags.value &= ~(1UL << DIRTY_BOUNDS);
     }
 }
 
 // FUNCTION: SURRENDER 0x1003E280
 void srMeshModel::calculatePolygonNormals()
 {
-    dirty_flags.value &= 0xfffffffd;
+    dirty_flags.value &= ~(1UL << DIRTY_POLYGON_NORMALS);
     srVector4T<float>* equations = getPolyEq();
     srVector3i* polygons = getPolyVertex();
     srVector3T<float>* vertices = getVertexLoc();
@@ -569,10 +569,10 @@ void srMeshModel::calculatePolygonNormals()
 void srMeshModel::calculateVertexNormals()
 {
     if ((polygon_count != 0) && (vertex_location_count != 0)) {
-        if ((dirty_flags.value & 2) != 0) {
+        if ((dirty_flags.value & (1UL << DIRTY_POLYGON_NORMALS)) != 0) {
             calculatePolygonNormals();
         }
-        dirty_flags.value &= 0xfffffffb;
+        dirty_flags.value &= ~(1UL << DIRTY_VERTEX_NORMALS);
         srVector4T<float>* equations = getPolyEq();
         srVector3T<float>* normals = getVertexNormal();
         srVector3i* polygons = getPolyVertex();
@@ -811,7 +811,7 @@ void srMeshModel::getTriMesh(TriMesh& mesh)
 // FUNCTION: SURRENDER 0x1003DC70
 const srMeshModel::TriMesh& srMeshModel::getTriMesh()
 {
-    if ((dirty_flags.value & 8) != 0) {
+    if ((dirty_flags.value & (1UL << DIRTY_TRI_MESH)) != 0) {
         updateTriMesh();
     }
     return tri_mesh;
@@ -857,7 +857,7 @@ void srMeshModel::updateTriMesh()
     }
     tri_mesh.active_polygons = getActivePolygonTable(0);
     tri_mesh.active_polygon_count = active_polygon_count;
-    dirty_flags.value &= 0xfffffff7;
+    dirty_flags.value &= ~(1UL << DIRTY_TRI_MESH);
 }
 
 // FUNCTION: SURRENDER 0x1003FDA0
@@ -876,7 +876,7 @@ void srMeshModel::setBounds(const srVector3T<float>& minimum, const srVector3T<f
 // FUNCTION: SURRENDER 0x1003FE40
 int srMeshModel::getBoundingBox(srVector3T<float>& minimum, srVector3T<float>& maximum)
 {
-    if ((dirty_flags.value & 1) != 0) {
+    if ((dirty_flags.value & (1UL << DIRTY_BOUNDS)) != 0) {
         calculateBounds();
     }
     minimum = bounds_minimum;
@@ -887,7 +887,7 @@ int srMeshModel::getBoundingBox(srVector3T<float>& minimum, srVector3T<float>& m
 // FUNCTION: SURRENDER 0x1003FE90
 int srMeshModel::getBoundingSphere(srVector3T<float>& center, float& radius)
 {
-    if ((dirty_flags.value & 1) != 0) {
+    if ((dirty_flags.value & (1UL << DIRTY_BOUNDS)) != 0) {
         calculateBounds();
     }
     center = bounds_center;
@@ -942,7 +942,7 @@ srClass* srMeshModel::vInstance()
 // FUNCTION: SURRENDER 0x1003CEA0
 void srMeshModel::render(srGERD& renderer)
 {
-    if ((render_control.value & 0x20) == 0) {
+    if ((render_control.value & (1UL << CONTROL_SKIP_AUTO_SPHERE)) == 0) {
         srVector3T<float> center;
         float radius;
         getBoundingSphere(center, radius);
@@ -950,7 +950,8 @@ void srMeshModel::render(srGERD& renderer)
             return;
         }
     }
-    if ((render_control.value & 0x10) == 0 && vertex_location_count >= 8) {
+    if ((render_control.value & (1UL << CONTROL_SKIP_AUTO_BOX)) == 0 &&
+        vertex_location_count >= 8) {
         srVector3T<float> minimum;
         srVector3T<float> maximum;
         getBoundingBox(minimum, maximum);
@@ -1614,7 +1615,7 @@ srTriMeshPipeline::~srTriMeshPipeline()
 void srTriMeshPipeline::SetFlags(srShader shader)
 {
     this->shader = shader;
-    current_pass->flags = shader;
+    current_pass->shader = shader;
 }
 
 /* Bind a renderer and rebuild the current slot through PrepareSlot. */
@@ -1633,7 +1634,7 @@ void srTriMeshPipeline::Reset(srGERD* renderer)
     vertex_count = 0;
     positions = 0;
     vertex_extras = 0;
-    bounds_state = 0;
+    bounds_source = srTriMeshPipeline::BOUNDS_FROM_VERTICES;
     sort_bias = 0.0f;
     shader.value = 0x0100241b;
     texture0 = 0;
@@ -1664,13 +1665,13 @@ void srTriMeshPipeline::PrepareSlot()
     current_record->flags = 0;
     current_record->disable_mask = 0;
     current_record->material = material;
-    current_pass->texture0 = texture0;
-    current_pass->texture = texture1;
-    current_pass->flags.value = shader.value;
-    current_pass->tex_table_0 = 0;
-    current_pass->tex_table_1 = 0;
+    current_pass->textures[0] = texture0;
+    current_pass->textures[1] = texture1;
+    current_pass->shader.value = shader.value;
+    current_pass->texture_tables[0] = 0;
+    current_pass->texture_tables[1] = 0;
     current_pass->shaders = 0;
-    current_pass->st = 0;
+    current_pass->texcoords = 0;
     current_pass->poly_uv = 0;
 }
 
@@ -1681,10 +1682,9 @@ void srTriMeshPipeline::FlushSlots()
         return;
     }
 
-    if (bounds_state != 1) {
-        if (bounds_state == 0 && vertex_count != 0) {
-            srVectorProcessor::minMax(positions, bounds_minimum, bounds_maximum,
-                                      vertex_count);
+    if (bounds_source != srTriMeshPipeline::BOUNDS_SPHERE) {
+        if (bounds_source == srTriMeshPipeline::BOUNDS_FROM_VERTICES && vertex_count != 0) {
+            srVectorProcessor::minMax(positions, bounds_minimum, bounds_maximum, vertex_count);
         }
 
         srVector3T<float> center;
@@ -1774,7 +1774,7 @@ void srTriMeshPipeline::FlushSlots()
     srTriangleCuller::Output culler_output;
     culler_output.indices = scratch;
     culler_output.avt = scratch + batch_limit;
-    culler_output.clip_flags = culler_output.avt + vertex_count;
+    culler_output.vertex_remap = culler_output.avt + vertex_count;
 
     unsigned long processed = 0;
     while (processed < total) {
@@ -1823,7 +1823,7 @@ void srTriMeshPipeline::FlushSlots()
                 this->vertex_arrays[slot].st1 = vertex_arrays[0].st1 + offset;
                 this->vertex_arrays[slot].q0 = vertex_arrays[0].q0 + offset;
                 this->vertex_arrays[slot].q1 = vertex_arrays[0].q1 + offset;
-                this->vertex_arrays[slot].packed = vertex_arrays[0].packed + offset;
+                this->vertex_arrays[slot].attributes = vertex_arrays[0].attributes + offset;
             }
 
             unsigned long processor_count = this->renderer->getVertexProcessorCount();
@@ -1846,10 +1846,10 @@ void srTriMeshPipeline::FlushSlots()
             srVertexPipe::Input pipe_input;
             pipe_input.record_count = slot_count;
             pipe_input.vertex_count = culler_output.vertex_count;
-            pipe_input.indices = culler_output.avt;
-            pipe_input.position_is_float3 = culler_output.linear == 0;
+            pipe_input.active_vertices = culler_output.avt;
+            pipe_input.direct_vertex_indices = culler_output.linear == 0;
             pipe_input.positions = positions;
-            pipe_input.values = vertex_extras;
+            pipe_input.normals = vertex_extras;
             pipe_input.eye_center = eye_center;
             pipe_input.eye_radius = eye_radius;
             pipe_input.model_view = &model_view;
@@ -1873,11 +1873,12 @@ void srTriMeshPipeline::FlushSlots()
 
             unsigned long renderer_disable_mask = 0;
             if (this->renderer->getMaxTextureStages() == 1) {
-                renderer_disable_mask = 0x140;
+                renderer_disable_mask = (1UL << srVertexProcessor::CHANNEL_ST1) |
+                                        (1UL << srVertexProcessor::CHANNEL_Q1);
             }
 
             for (unsigned long pass_index = 0; pass_index < slot_count; ++pass_index) {
-                passes[pass_index].st = records[pass_index].st0;
+                passes[pass_index].texcoords = records[pass_index].st0;
 
                 unsigned long disable_mask;
                 if (passes[pass_index].shaders != 0) {
@@ -1888,7 +1889,7 @@ void srTriMeshPipeline::FlushSlots()
                     disable_mask = flags.value;
                 } else {
                     srFlags<srVertexProcessor::e_channel> flags =
-                        srVertexPipe::getShaderDisableMask(passes[pass_index].flags);
+                        srVertexPipe::getShaderDisableMask(passes[pass_index].shader);
                     disable_mask = flags.value;
                 }
                 records[pass_index].disable_mask = disable_mask | renderer_disable_mask;
@@ -1902,9 +1903,9 @@ void srTriMeshPipeline::FlushSlots()
             render_input.vertex_count = culler_output.vertex_count;
             render_input.indices = culler_output.indices;
             render_input.triangles = triangles;
-            render_input.vertices = culler_output.clip_flags;
+            render_input.vertices = culler_output.vertex_remap;
             render_input.passes = &passes[0];
-            render_input.position_is_float3 = culler_output.linear == 0;
+            render_input.direct_vertex_indices = culler_output.linear == 0;
             render_input.project_clip_near = &project_clip_near;
             render_input.sort_bias = sort_bias;
             renderer->render(render_input);
@@ -1969,14 +1970,14 @@ void srMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
                 if ((mesh.control_flags & (1UL << srMeshModel::CONTROL_SKIP_AUTO_BOX)) == 0) {
                     pipeline->bounds_minimum = mesh.bounds_minimum;
                     pipeline->bounds_maximum = mesh.bounds_maximum;
-                    if (pipeline->bounds_state == 0) {
-                        pipeline->bounds_state = 2;
+                    if (pipeline->bounds_source == srTriMeshPipeline::BOUNDS_FROM_VERTICES) {
+                        pipeline->bounds_source = srTriMeshPipeline::BOUNDS_BOX;
                     }
                 }
                 if ((mesh.control_flags & (1UL << srMeshModel::CONTROL_SKIP_AUTO_SPHERE)) == 0) {
                     pipeline->bounds_center = mesh.bounds_center;
                     pipeline->bounds_radius = mesh.bounds_radius;
-                    pipeline->bounds_state = 1;
+                    pipeline->bounds_source = srTriMeshPipeline::BOUNDS_SPHERE;
                 }
 
                 material_side = side;
@@ -2003,8 +2004,8 @@ void srMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
                 for (long pass = 0; pass < mesh.pass_count; ++pass) {
                     pipeline->current_record->flags = 0;
                     pipeline->current_pass->shaders = 0;
-                    pipeline->current_pass->tex_table_0 = 0;
-                    pipeline->current_pass->tex_table_1 = 0;
+                    pipeline->current_pass->texture_tables[0] = 0;
+                    pipeline->current_pass->texture_tables[1] = 0;
 
                     if (mesh.dig[pass] != 0) {
                         pipeline->current_record->colors = mesh.dig[pass];
@@ -2057,9 +2058,9 @@ void srMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
                         if (mesh.poly_textures[pass][layer] == 0) {
                             srTextureIFace* texture = mesh.textures[pass][layer];
                             (&pipeline->texture0)[layer] = texture;
-                            (&pipeline->current_pass->texture0)[layer] = texture;
+                            pipeline->current_pass->textures[layer] = texture;
                         } else {
-                            (&pipeline->current_pass->tex_table_0)[layer] =
+                            pipeline->current_pass->texture_tables[layer] =
                                 mesh.poly_textures[pass][layer];
                         }
                     }

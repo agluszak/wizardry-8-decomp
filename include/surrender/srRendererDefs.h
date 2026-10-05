@@ -28,6 +28,8 @@ public:
         CLIP_NEAR = 4,
         CLIP_FAR = 5
     };
+    enum { FRUSTUM_CLIP_MASK = 0x3fu, FIRST_USER_CLIP_PLANE = 6 };
+
     /* OpenGL vertex-array setup uses GL_FLOAT (0x1406) for this value.
        Wizardry passes it for float[] position and texcoord arrays. */
     enum e_type { TYPE_FLOAT = 1 };

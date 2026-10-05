@@ -180,11 +180,8 @@ void srJPEGImporter::exportSurface(
         delete[] option_string;
     }
 
-    srColorSurface* copy =
-        SR_NEW(srColorSurface)(
-            srPixelConvert::SURFACE_COPY,
-            source.getWidth(),
-            source.getHeight());
+    srColorSurface* copy = SR_NEW(srColorSurface)(srPixelConvert::SURFACE_RGB24, source.getWidth(),
+                                                  source.getHeight());
     copy->copy(source);
 
     memset(&codec_, 0, sizeof(codec_));

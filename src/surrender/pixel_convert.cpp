@@ -11,7 +11,7 @@
 #include "surrender/srVectorProcessor.h"
 
 /* Conversion routines stored in the format table. The generic pair is
-   selected by PixelFormat::conversion_class; the per-entry overrides cover
+   selected by PixelFormat::color_model; the per-entry overrides cover
    formats whose converter does not fit a generic kernel. The MMX workers
    are installed by initFormats() when the CPU reports the feature bit. */
 void __cdecl writeRGB(const srPixelConvert::ConversionInfo& info);
@@ -187,7 +187,8 @@ const unsigned char* const channel_reduce[] = {
 void initFormat(unsigned long index, unsigned char red_bits, unsigned char red_shift,
                 unsigned char green_bits, unsigned char green_shift, unsigned char blue_bits,
                 unsigned char blue_shift, unsigned char alpha_bits, unsigned char alpha_shift,
-                long conversion_class, long bytes_per_pixel_minus_one, unsigned long flags)
+                srPixelConvert::e_colorModel color_model, srPixelConvert::e_pixelSize pixel_size,
+                unsigned long fourcc)
 {
     srPixelConvert::PixelFormat& format = format_table[index].format;
     format.red_bits = red_bits;
@@ -198,9 +199,9 @@ void initFormat(unsigned long index, unsigned char red_bits, unsigned char red_s
     format.blue_shift = blue_shift;
     format.alpha_bits = alpha_bits;
     format.alpha_shift = alpha_shift;
-    format.conversion_class = conversion_class;
-    format.bytes_per_pixel_minus_one = bytes_per_pixel_minus_one;
-    format.flags = flags;
+    format.color_model = color_model;
+    format.pixel_size = pixel_size;
+    format.fourcc = fourcc;
     format_table[index].write = 0;
     format_table[index].read = 0;
     format_table[index].next = 0;
@@ -316,79 +317,103 @@ void initFormats()
     if (formats_initialized != 0) {
         return;
     }
-    initFormat(0, 4, 0, 0, 0, 0, 0, 4, 4, 3, 0, 0);
-    initFormat(1, 4, 0, 0, 0, 0, 0, 4, 4, 2, 0, 0);
-    initFormat(2, 8, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0);
-    initFormat(3, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0);
-    initFormat(4, 8, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0);
-    initFormat(5, 8, 0, 0, 0, 0, 0, 8, 8, 3, 1, 0);
-    initFormat(6, 8, 0, 0, 0, 0, 0, 8, 8, 2, 1, 0);
-    initFormat(7, 5, 0xb, 6, 5, 5, 0, 0, 0, 0, 1, 0);
-    initFormat(8, 5, 10, 5, 5, 5, 0, 0, 0, 0, 1, 0);
-    initFormat(9, 5, 10, 5, 5, 5, 0, 1, 0xf, 0, 1, 0);
-    initFormat(10, 4, 8, 4, 4, 4, 0, 0, 0, 0, 1, 0);
-    initFormat(0xb, 4, 8, 4, 4, 4, 0, 4, 0xc, 0, 1, 0);
-    initFormat(0xc, 8, 0x10, 8, 8, 8, 0, 0, 0, 0, 2, 0);
-    initFormat(0xd, 8, 0x10, 8, 8, 8, 0, 0, 0, 0, 3, 0);
-    initFormat(0xe, 8, 0x10, 8, 8, 8, 0, 8, 0x18, 0, 3, 0);
-    initFormat(0xf, 4, 4, 2, 2, 2, 0, 0, 0, 1, 0, 0);
-    initFormat(0x10, 4, 4, 2, 2, 2, 0, 8, 8, 1, 1, 0);
-    initFormat(0x11, 3, 5, 3, 2, 2, 0, 0, 0, 0, 0, 0);
-    initFormat(0x12, 3, 5, 3, 2, 2, 0, 8, 0, 0, 1, 0);
-    initFormat(0x13, 5, 0, 6, 5, 5, 0xb, 0, 0, 0, 1, 0);
-    initFormat(0x14, 8, 8, 8, 0x10, 8, 0x18, 8, 0, 0, 3, 0);
-    initFormat(0x15, 5, 0, 5, 5, 5, 10, 0, 0, 0, 1, 0);
-    initFormat(0x16, 8, 0x18, 8, 0x10, 8, 8, 8, 0, 0, 3, 0);
-    initFormat(0x17, 8, 0, 8, 8, 8, 0x10, 8, 0x18, 0, 3, 0);
-    initFormat(0x18, 8, 0, 8, 8, 8, 0x10, 0, 0, 0, 2, 0);
+    initFormat(srPixelConvert::SURFACE_AP44, 4, 0, 0, 0, 0, 0, 4, 4, srPixelConvert::COLOR_INDEXED,
+               srPixelConvert::PIXEL_SIZE_8, 0);
+    initFormat(srPixelConvert::SURFACE_AL44, 4, 0, 0, 0, 0, 0, 4, 4,
+               srPixelConvert::COLOR_INTENSITY, srPixelConvert::PIXEL_SIZE_8, 0);
+    initFormat(srPixelConvert::SURFACE_L8, 8, 0, 0, 0, 0, 0, 0, 0, srPixelConvert::COLOR_INTENSITY,
+               srPixelConvert::PIXEL_SIZE_8, 0);
+    initFormat(srPixelConvert::SURFACE_A8, 0, 0, 0, 0, 0, 0, 8, 0, srPixelConvert::COLOR_RGB,
+               srPixelConvert::PIXEL_SIZE_8, 0);
+    initFormat(srPixelConvert::SURFACE_P8, 8, 0, 0, 0, 0, 0, 0, 0, srPixelConvert::COLOR_INDEXED,
+               srPixelConvert::PIXEL_SIZE_8, 0);
+    initFormat(srPixelConvert::SURFACE_AP88, 8, 0, 0, 0, 0, 0, 8, 8, srPixelConvert::COLOR_INDEXED,
+               srPixelConvert::PIXEL_SIZE_16, 0);
+    initFormat(srPixelConvert::SURFACE_AL88, 8, 0, 0, 0, 0, 0, 8, 8,
+               srPixelConvert::COLOR_INTENSITY, srPixelConvert::PIXEL_SIZE_16, 0);
+    initFormat(srPixelConvert::SURFACE_RGB565, 5, 0xb, 6, 5, 5, 0, 0, 0, srPixelConvert::COLOR_RGB,
+               srPixelConvert::PIXEL_SIZE_16, 0);
+    initFormat(srPixelConvert::SURFACE_RGB555, 5, 10, 5, 5, 5, 0, 0, 0, srPixelConvert::COLOR_RGB,
+               srPixelConvert::PIXEL_SIZE_16, 0);
+    initFormat(srPixelConvert::SURFACE_ARGB1555, 5, 10, 5, 5, 5, 0, 1, 0xf,
+               srPixelConvert::COLOR_RGB, srPixelConvert::PIXEL_SIZE_16, 0);
+    initFormat(srPixelConvert::SURFACE_RGB444, 4, 8, 4, 4, 4, 0, 0, 0, srPixelConvert::COLOR_RGB,
+               srPixelConvert::PIXEL_SIZE_16, 0);
+    initFormat(srPixelConvert::SURFACE_ARGB4444, 4, 8, 4, 4, 4, 0, 4, 0xc,
+               srPixelConvert::COLOR_RGB, srPixelConvert::PIXEL_SIZE_16, 0);
+    initFormat(srPixelConvert::SURFACE_BGR24, 8, 0x10, 8, 8, 8, 0, 0, 0, srPixelConvert::COLOR_RGB,
+               srPixelConvert::PIXEL_SIZE_24, 0);
+    initFormat(srPixelConvert::SURFACE_BGRX32, 8, 0x10, 8, 8, 8, 0, 0, 0, srPixelConvert::COLOR_RGB,
+               srPixelConvert::PIXEL_SIZE_32, 0);
+    initFormat(srPixelConvert::SURFACE_BGRA32, 8, 0x10, 8, 8, 8, 0, 8, 0x18,
+               srPixelConvert::COLOR_RGB, srPixelConvert::PIXEL_SIZE_32, 0);
+    initFormat(srPixelConvert::SURFACE_Y4U2V2, 4, 4, 2, 2, 2, 0, 0, 0, srPixelConvert::COLOR_YUV,
+               srPixelConvert::PIXEL_SIZE_8, 0);
+    initFormat(srPixelConvert::SURFACE_A8Y4U2V2, 4, 4, 2, 2, 2, 0, 8, 8, srPixelConvert::COLOR_YUV,
+               srPixelConvert::PIXEL_SIZE_16, 0);
+    initFormat(srPixelConvert::SURFACE_RGB332, 3, 5, 3, 2, 2, 0, 0, 0, srPixelConvert::COLOR_RGB,
+               srPixelConvert::PIXEL_SIZE_8, 0);
+    initFormat(0x12, 3, 5, 3, 2, 2, 0, 8, 0, srPixelConvert::COLOR_RGB,
+               srPixelConvert::PIXEL_SIZE_16, 0);
+    initFormat(srPixelConvert::SURFACE_BGR565, 5, 0, 6, 5, 5, 0xb, 0, 0, srPixelConvert::COLOR_RGB,
+               srPixelConvert::PIXEL_SIZE_16, 0);
+    initFormat(srPixelConvert::SURFACE_ARGB32, 8, 8, 8, 0x10, 8, 0x18, 8, 0,
+               srPixelConvert::COLOR_RGB, srPixelConvert::PIXEL_SIZE_32, 0);
+    initFormat(srPixelConvert::SURFACE_BGR555, 5, 0, 5, 5, 5, 10, 0, 0, srPixelConvert::COLOR_RGB,
+               srPixelConvert::PIXEL_SIZE_16, 0);
+    initFormat(srPixelConvert::SURFACE_ABGR32, 8, 0x18, 8, 0x10, 8, 8, 8, 0,
+               srPixelConvert::COLOR_RGB, srPixelConvert::PIXEL_SIZE_32, 0);
+    initFormat(srPixelConvert::SURFACE_RGBA32, 8, 0, 8, 8, 8, 0x10, 8, 0x18,
+               srPixelConvert::COLOR_RGB, srPixelConvert::PIXEL_SIZE_32, 0);
+    initFormat(srPixelConvert::SURFACE_RGB24, 8, 0, 8, 8, 8, 0x10, 0, 0, srPixelConvert::COLOR_RGB,
+               srPixelConvert::PIXEL_SIZE_24, 0);
     for (FormatEntry* entry = format_table; entry < format_table + 25; entry++) {
-        switch (entry->format.conversion_class) {
-        case 0:
+        switch (entry->format.color_model) {
+        case srPixelConvert::COLOR_RGB:
             entry->write = writeRGB;
             entry->read = readRGB;
             break;
-        case 1:
+        case srPixelConvert::COLOR_YUV:
             entry->write = writeYUV;
             entry->read = readYUV;
             break;
-        case 2:
+        case srPixelConvert::COLOR_INTENSITY:
             entry->write = writeIntensity;
             entry->read = readIntensity;
             break;
-        case 3:
+        case srPixelConvert::COLOR_INDEXED:
             entry->write = writeIndexed;
             entry->read = readIndexed;
         }
     }
-    format_table[8].write = writeRGB555;
-    format_table[8].read = readRGB555;
-    format_table[0xd].write = writeBGRX;
-    format_table[0xd].read = readBGRX;
-    format_table[0xe].write = writeBGRA;
-    format_table[0xe].read = readBGRA;
-    format_table[0x16].write = writeABGR;
-    format_table[0x16].read = readABGR;
-    format_table[0x18].write = writeRGB24;
-    format_table[0x18].read = readRGB24;
-    if ((srCore.getTimer()->m_cpu_features & 0x800000) != 0) {
-        format_table[2].write = writeL8MMX;
-        format_table[2].read = readL8MMX;
-        format_table[7].write = writeRGB565MMX;
-        format_table[7].read = readRGB565MMX;
-        format_table[9].write = writeARGB1555MMX;
-        format_table[9].read = readARGB1555MMX;
-        format_table[0xb].write = writeARGB4444MMX;
-        format_table[0xb].read = readARGB4444MMX;
-        format_table[0xc].write = writeBGR24MMX;
-        format_table[0xc].read = readBGR24MMX;
+    format_table[srPixelConvert::SURFACE_RGB555].write = writeRGB555;
+    format_table[srPixelConvert::SURFACE_RGB555].read = readRGB555;
+    format_table[srPixelConvert::SURFACE_BGRX32].write = writeBGRX;
+    format_table[srPixelConvert::SURFACE_BGRX32].read = readBGRX;
+    format_table[srPixelConvert::SURFACE_BGRA32].write = writeBGRA;
+    format_table[srPixelConvert::SURFACE_BGRA32].read = readBGRA;
+    format_table[srPixelConvert::SURFACE_ABGR32].write = writeABGR;
+    format_table[srPixelConvert::SURFACE_ABGR32].read = readABGR;
+    format_table[srPixelConvert::SURFACE_RGB24].write = writeRGB24;
+    format_table[srPixelConvert::SURFACE_RGB24].read = readRGB24;
+    if ((srCore.getTimer()->m_cpu_features & (1UL << srTimer::CPU_FEATURE_MMX)) != 0) {
+        format_table[srPixelConvert::SURFACE_L8].write = writeL8MMX;
+        format_table[srPixelConvert::SURFACE_L8].read = readL8MMX;
+        format_table[srPixelConvert::SURFACE_RGB565].write = writeRGB565MMX;
+        format_table[srPixelConvert::SURFACE_RGB565].read = readRGB565MMX;
+        format_table[srPixelConvert::SURFACE_ARGB1555].write = writeARGB1555MMX;
+        format_table[srPixelConvert::SURFACE_ARGB1555].read = readARGB1555MMX;
+        format_table[srPixelConvert::SURFACE_ARGB4444].write = writeARGB4444MMX;
+        format_table[srPixelConvert::SURFACE_ARGB4444].read = readARGB4444MMX;
+        format_table[srPixelConvert::SURFACE_BGR24].write = writeBGR24MMX;
+        format_table[srPixelConvert::SURFACE_BGR24].read = readBGR24MMX;
     }
     memset(format_hash, 0, sizeof(format_hash));
     for (FormatEntry* hashed = format_table; hashed < format_table + 25; hashed++) {
         const srPixelConvert::PixelFormat& format = hashed->format;
-        unsigned long hash = (format.alpha_shift + format.alpha_bits) ^
-                             (format.blue_shift + format.blue_bits) * 4 ^
-                             (format.red_shift + format.red_bits) ^ (format.conversion_class << 3) ^
-                             format.bytes_per_pixel_minus_one;
+        unsigned long hash =
+            (format.alpha_shift + format.alpha_bits) ^ (format.blue_shift + format.blue_bits) * 4 ^
+            (format.red_shift + format.red_bits) ^ (format.color_model << 3) ^ format.pixel_size;
         hash = (hash >> 5 & 0x1f) ^ (hash & 0x1f);
         hashed->next = format_hash[hash];
         format_hash[hash] = hashed;
@@ -401,8 +426,8 @@ void initFormats()
 // FUNCTION: SURRENDER 0x10007E40
 int srPixelConvert::PixelFormat::isValid() const
 {
-    if (0 <= bytes_per_pixel_minus_one && bytes_per_pixel_minus_one <= 3 && 0 <= conversion_class &&
-        conversion_class < 4 && red_bits <= 8 && green_bits <= 8 && blue_bits <= 8 &&
+    if (PIXEL_SIZE_8 <= pixel_size && pixel_size <= PIXEL_SIZE_32 && COLOR_RGB <= color_model &&
+        color_model <= COLOR_INDEXED && red_bits <= 8 && green_bits <= 8 && blue_bits <= 8 &&
         alpha_bits <= 8 && red_shift <= 0x1f && green_shift <= 0x1f && blue_shift <= 0x1f &&
         alpha_shift <= 0x1f) {
         return 1;
@@ -415,11 +440,11 @@ void srPixelConvert::PixelFormat::getName(char* const name)
 {
     static const char channel_letters[] = "RGBAYUVAIXXAPXXA";
 
-    if (flags != 0) {
-        name[0] = static_cast<char>(flags);
-        name[1] = static_cast<char>(flags >> 8);
-        name[2] = static_cast<char>(flags >> 0x10);
-        name[3] = static_cast<char>(flags >> 0x18);
+    if (fourcc != 0) {
+        name[0] = static_cast<char>(fourcc);
+        name[1] = static_cast<char>(fourcc >> 8);
+        name[2] = static_cast<char>(fourcc >> 0x10);
+        name[3] = static_cast<char>(fourcc >> 0x18);
         name[4] = '\0';
         return;
     }
@@ -448,7 +473,7 @@ void srPixelConvert::PixelFormat::getName(char* const name)
     int length = 0;
     for (int k = 0; k < 4; k++) {
         if (bits[k] != 0) {
-            text[length++] = channel_letters[conversion_class * 4 + order[k]];
+            text[length++] = channel_letters[color_model * 4 + order[k]];
         }
     }
     for (int j = 0; j < 4; j++) {
@@ -458,7 +483,7 @@ void srPixelConvert::PixelFormat::getName(char* const name)
     }
     text[length] = '\0';
     char tail[8];
-    sprintf(tail, "/%d", (int)(bytes_per_pixel_minus_one * 8 + 8));
+    sprintf(tail, "/%d", (int)(pixel_size * 8 + 8));
     strcat(text, tail);
     strcpy(name, text);
 }
@@ -470,9 +495,9 @@ unsigned long srPixelConvert::PixelFormat::match(const PixelFormat* formats,
     if (count < 2) {
         return 0;
     }
-    if (flags != 0) {
+    if (fourcc != 0) {
         for (unsigned long i = 0; i < count; i++) {
-            if (formats[i].flags == flags) {
+            if (formats[i].fourcc == fourcc) {
                 return i;
             }
         }
@@ -495,7 +520,7 @@ unsigned long srPixelConvert::PixelFormat::match(const PixelFormat* formats,
     int best_bytes = 5;
     for (unsigned long c = 0; c < count; c++) {
         const PixelFormat& candidate = formats[c];
-        if (candidate.conversion_class != conversion_class) {
+        if (candidate.color_model != color_model) {
             continue;
         }
         unsigned long have = 0;
@@ -534,10 +559,10 @@ unsigned long srPixelConvert::PixelFormat::match(const PixelFormat* formats,
         }
         int distance = dr * dr + dg * dg + db * db + da * da;
         if (distance < best_distance ||
-            (distance == best_distance && candidate.bytes_per_pixel_minus_one < best_bytes)) {
+            (distance == best_distance && candidate.pixel_size < best_bytes)) {
             best = c;
             best_distance = distance;
-            best_bytes = candidate.bytes_per_pixel_minus_one;
+            best_bytes = candidate.pixel_size;
         }
     }
     if (best_distance < 0x7fffffff) {
@@ -547,9 +572,9 @@ unsigned long srPixelConvert::PixelFormat::match(const PixelFormat* formats,
     unsigned long widest = 0;
     int widest_bytes = -1;
     for (unsigned long w = 0; w < count; w++) {
-        if (widest_bytes < formats[w].bytes_per_pixel_minus_one) {
+        if (widest_bytes < formats[w].pixel_size) {
             widest = w;
-            widest_bytes = formats[w].bytes_per_pixel_minus_one;
+            widest_bytes = formats[w].pixel_size;
         }
     }
     return widest;
@@ -564,7 +589,7 @@ srPixelConvert::e_surfaceType srPixelConvert::mapPixelFormat(const PixelFormat& 
             return static_cast<e_surfaceType>(i);
         }
     }
-    return static_cast<e_surfaceType>(0x19);
+    return SURFACE_INVALID;
 }
 
 // FUNCTION: SURRENDER 0x10008290
@@ -572,7 +597,7 @@ void srPixelConvert::mapPixelFormat(e_surfaceType type, PixelFormat& format)
 {
     initFormats();
     if (static_cast<int>(type) < 0 || static_cast<int>(type) > 0x18) {
-        type = static_cast<e_surfaceType>(0xe);
+        type = SURFACE_BGRA32;
     }
     format = format_table[type].format;
 }
@@ -582,10 +607,9 @@ void srPixelConvert::selectFuncs(const PixelFormat& format, ConversionFunc& writ
                                  ConversionFunc& read)
 {
     initFormats();
-    unsigned long hash = (format.alpha_shift + format.alpha_bits) ^
-                         (format.blue_shift + format.blue_bits) * 4 ^
-                         (format.red_shift + format.red_bits) ^ (format.conversion_class << 3) ^
-                         format.bytes_per_pixel_minus_one;
+    unsigned long hash =
+        (format.alpha_shift + format.alpha_bits) ^ (format.blue_shift + format.blue_bits) * 4 ^
+        (format.red_shift + format.red_bits) ^ (format.color_model << 3) ^ format.pixel_size;
     FormatEntry* entry = format_hash[(hash >> 5 & 0x1f) ^ (hash & 0x1f)];
     while (entry != 0) {
         if (entry->format == format) {
@@ -595,20 +619,20 @@ void srPixelConvert::selectFuncs(const PixelFormat& format, ConversionFunc& writ
         }
         entry = entry->next;
     }
-    switch (format.conversion_class) {
-    case 0:
+    switch (format.color_model) {
+    case srPixelConvert::COLOR_RGB:
         write = writeRGB;
         read = readRGB;
         return;
-    case 1:
+    case srPixelConvert::COLOR_YUV:
         write = writeYUV;
         read = readYUV;
         return;
-    case 2:
+    case srPixelConvert::COLOR_INTENSITY:
         write = writeIntensity;
         read = readIntensity;
         return;
-    case 3:
+    case srPixelConvert::COLOR_INDEXED:
         write = writeIndexed;
         read = readIndexed;
     }
@@ -647,8 +671,8 @@ void __cdecl writeYUV(const srPixelConvert::ConversionInfo& info)
     shifts[2] = format->blue_shift;
     shifts[3] = format->alpha_shift;
     const srARGB* source = static_cast<const srARGB*>(info.source);
-    switch (format->bytes_per_pixel_minus_one) {
-    case 0: {
+    switch (format->pixel_size) {
+    case srPixelConvert::PIXEL_SIZE_8: {
         unsigned char* dest = static_cast<unsigned char*>(info.dest);
         for (unsigned long i = info.count; i != 0; --i, ++source) {
             srARGB pixel = *source;
@@ -665,7 +689,7 @@ void __cdecl writeYUV(const srPixelConvert::ConversionInfo& info)
         }
         return;
     }
-    case 1: {
+    case srPixelConvert::PIXEL_SIZE_16: {
         unsigned short* dest = static_cast<unsigned short*>(info.dest);
         for (unsigned long i = info.count; i != 0; --i, ++source) {
             srARGB pixel = *source;
@@ -682,7 +706,7 @@ void __cdecl writeYUV(const srPixelConvert::ConversionInfo& info)
         }
         return;
     }
-    case 2: {
+    case srPixelConvert::PIXEL_SIZE_24: {
         unsigned char* dest = static_cast<unsigned char*>(info.dest);
         for (unsigned long i = info.count; i != 0; --i, ++source) {
             srARGB pixel = *source;
@@ -703,7 +727,7 @@ void __cdecl writeYUV(const srPixelConvert::ConversionInfo& info)
         }
         return;
     }
-    case 3: {
+    case srPixelConvert::PIXEL_SIZE_32: {
         unsigned long* dest = static_cast<unsigned long*>(info.dest);
         for (unsigned long i = info.count; i != 0; --i, ++source) {
             srARGB pixel = *source;
@@ -748,8 +772,8 @@ void __cdecl readYUV(const srPixelConvert::ConversionInfo& info)
     luts[2] = channel_expand[format->blue_bits];
     luts[3] = channel_expand[format->alpha_bits];
     unsigned long* dest = static_cast<unsigned long*>(info.dest);
-    switch (format->bytes_per_pixel_minus_one) {
-    case 0: {
+    switch (format->pixel_size) {
+    case srPixelConvert::PIXEL_SIZE_8: {
         const unsigned char* source = static_cast<const unsigned char*>(info.source);
         for (unsigned long i = 0; i < info.count; i++) {
             unsigned long pixel = source[i];
@@ -765,7 +789,7 @@ void __cdecl readYUV(const srPixelConvert::ConversionInfo& info)
         }
         return;
     }
-    case 1: {
+    case srPixelConvert::PIXEL_SIZE_16: {
         const unsigned short* source = static_cast<const unsigned short*>(info.source);
         for (unsigned long i = 0; i < info.count; i++) {
             unsigned long pixel = source[i];
@@ -781,7 +805,7 @@ void __cdecl readYUV(const srPixelConvert::ConversionInfo& info)
         }
         return;
     }
-    case 2: {
+    case srPixelConvert::PIXEL_SIZE_24: {
         const unsigned char* source = static_cast<const unsigned char*>(info.source);
         for (unsigned long i = 0; i < info.count; i++) {
             /* reinterpret-ok: 24-bit source records load their high two
@@ -801,7 +825,7 @@ void __cdecl readYUV(const srPixelConvert::ConversionInfo& info)
         }
         return;
     }
-    case 3: {
+    case srPixelConvert::PIXEL_SIZE_32: {
         const unsigned long* source = static_cast<const unsigned long*>(info.source);
         for (unsigned long i = 0; i < info.count; i++) {
             unsigned long pixel = source[i];
@@ -832,8 +856,8 @@ void __cdecl writeIndexed(const srPixelConvert::ConversionInfo& info)
     unsigned char index_shift = format->red_shift;
     const unsigned long* source = static_cast<const unsigned long*>(info.source);
     unsigned long count = info.count;
-    switch (format->bytes_per_pixel_minus_one) {
-    case 0: {
+    switch (format->pixel_size) {
+    case srPixelConvert::PIXEL_SIZE_8: {
         unsigned char* dest = static_cast<unsigned char*>(info.dest);
         for (unsigned long i = 0; i < count; i++) {
             unsigned long color = source[i] & 0xffffff;
@@ -845,7 +869,7 @@ void __cdecl writeIndexed(const srPixelConvert::ConversionInfo& info)
         }
         return;
     }
-    case 1: {
+    case srPixelConvert::PIXEL_SIZE_16: {
         unsigned short* dest = static_cast<unsigned short*>(info.dest);
         for (unsigned long i = 0; i < count; i++) {
             unsigned long color = source[i] & 0xffffff;
@@ -857,7 +881,7 @@ void __cdecl writeIndexed(const srPixelConvert::ConversionInfo& info)
         }
         return;
     }
-    case 2: {
+    case srPixelConvert::PIXEL_SIZE_24: {
         unsigned char* dest = static_cast<unsigned char*>(info.dest);
         for (unsigned long i = 0; i < count; i++) {
             unsigned long color = source[i];
@@ -872,7 +896,7 @@ void __cdecl writeIndexed(const srPixelConvert::ConversionInfo& info)
         }
         return;
     }
-    case 3: {
+    case srPixelConvert::PIXEL_SIZE_32: {
         unsigned long* dest = static_cast<unsigned long*>(info.dest);
         for (unsigned long i = 0; i < count; i++) {
             unsigned long color = source[i];
@@ -902,8 +926,8 @@ void __cdecl readIndexed(const srPixelConvert::ConversionInfo& info)
         reinterpret_cast<const unsigned long*>(info.palette->getPaletteDataPtr());
     unsigned long* dest = static_cast<unsigned long*>(info.dest);
     unsigned long count = info.count;
-    switch (format->bytes_per_pixel_minus_one) {
-    case 0: {
+    switch (format->pixel_size) {
+    case srPixelConvert::PIXEL_SIZE_8: {
         const unsigned char* source = static_cast<const unsigned char*>(info.source);
         for (unsigned long i = 0; i < count; i++) {
             unsigned long pixel = source[i];
@@ -913,7 +937,7 @@ void __cdecl readIndexed(const srPixelConvert::ConversionInfo& info)
         }
         return;
     }
-    case 1: {
+    case srPixelConvert::PIXEL_SIZE_16: {
         const unsigned short* source = static_cast<const unsigned short*>(info.source);
         for (unsigned long i = 0; i < count; i++) {
             unsigned long pixel = source[i];
@@ -923,7 +947,7 @@ void __cdecl readIndexed(const srPixelConvert::ConversionInfo& info)
         }
         return;
     }
-    case 2: {
+    case srPixelConvert::PIXEL_SIZE_24: {
         const unsigned char* source = static_cast<const unsigned char*>(info.source);
         for (unsigned long i = 0; i < count; i++) {
             unsigned long pixel = source[0] | source[1] << 8 | source[2] << 16;
@@ -934,7 +958,7 @@ void __cdecl readIndexed(const srPixelConvert::ConversionInfo& info)
         }
         return;
     }
-    case 3: {
+    case srPixelConvert::PIXEL_SIZE_32: {
         const unsigned long* source = static_cast<const unsigned long*>(info.source);
         for (unsigned long i = 0; i < count; i++) {
             unsigned long pixel = source[i];
@@ -959,8 +983,8 @@ void __cdecl writeIntensity(const srPixelConvert::ConversionInfo& info)
     const srARGB* source = static_cast<const srARGB*>(info.source);
     srARGB pixel;
     unsigned long count = info.count;
-    switch (format->bytes_per_pixel_minus_one) {
-    case 0: {
+    switch (format->pixel_size) {
+    case srPixelConvert::PIXEL_SIZE_8: {
         unsigned char* dest = static_cast<unsigned char*>(info.dest);
         unsigned long i = 0;
         if (has_alpha != 0) {
@@ -1003,15 +1027,15 @@ void __cdecl writeIntensity(const srPixelConvert::ConversionInfo& info)
         }
         return;
     }
-    case 1:
+    case srPixelConvert::PIXEL_SIZE_16:
         packIntensity16(static_cast<unsigned short*>(info.dest), source, alpha_lut, intensity_lut,
                         format->alpha_shift, format->red_shift, count, has_alpha);
         return;
-    case 2:
+    case srPixelConvert::PIXEL_SIZE_24:
         packIntensity24(static_cast<unsigned char*>(info.dest), source, alpha_lut, intensity_lut,
                         format->alpha_shift, format->red_shift, count, has_alpha);
         return;
-    case 3:
+    case srPixelConvert::PIXEL_SIZE_32:
         packIntensity32(static_cast<unsigned long*>(info.dest), source, alpha_lut, intensity_lut,
                         format->alpha_shift, format->red_shift, count, has_alpha);
     }
@@ -1030,8 +1054,8 @@ void __cdecl readIntensity(const srPixelConvert::ConversionInfo& info)
     const unsigned char* alpha_lut = channel_expand[format->alpha_bits];
     unsigned long* dest = static_cast<unsigned long*>(info.dest);
     unsigned long count = info.count;
-    switch (format->bytes_per_pixel_minus_one) {
-    case 0: {
+    switch (format->pixel_size) {
+    case srPixelConvert::PIXEL_SIZE_8: {
         const unsigned char* source = static_cast<const unsigned char*>(info.source);
         for (unsigned long i = 0; i < count; i++) {
             unsigned long pixel = source[i];
@@ -1046,7 +1070,7 @@ void __cdecl readIntensity(const srPixelConvert::ConversionInfo& info)
         }
         return;
     }
-    case 1: {
+    case srPixelConvert::PIXEL_SIZE_16: {
         const unsigned short* source = static_cast<const unsigned short*>(info.source);
         for (unsigned long i = 0; i < count; i++) {
             unsigned long pixel = source[i];
@@ -1061,7 +1085,7 @@ void __cdecl readIntensity(const srPixelConvert::ConversionInfo& info)
         }
         return;
     }
-    case 2: {
+    case srPixelConvert::PIXEL_SIZE_24: {
         const unsigned char* source = static_cast<const unsigned char*>(info.source);
         for (unsigned long i = 0; i < count; i++) {
             /* reinterpret-ok: 24-bit source records load their high two bytes as
@@ -1080,7 +1104,7 @@ void __cdecl readIntensity(const srPixelConvert::ConversionInfo& info)
         }
         return;
     }
-    case 3: {
+    case srPixelConvert::PIXEL_SIZE_32: {
         const unsigned long* source = static_cast<const unsigned long*>(info.source);
         for (unsigned long i = 0; i < count; i++) {
             unsigned long pixel = source[i];
@@ -1113,18 +1137,18 @@ void __cdecl writeRGB(const srPixelConvert::ConversionInfo& info)
     shifts[3] = format->alpha_shift;
     int has_alpha = format->alpha_bits != 0;
     const srARGB* source = static_cast<const srARGB*>(info.source);
-    switch (format->bytes_per_pixel_minus_one) {
-    case 0:
+    switch (format->pixel_size) {
+    case srPixelConvert::PIXEL_SIZE_8:
         pack8(static_cast<unsigned char*>(info.dest), source, luts, shifts, info.count, has_alpha);
         return;
-    case 1:
+    case srPixelConvert::PIXEL_SIZE_16:
         pack16(static_cast<unsigned short*>(info.dest), source, luts, shifts, info.count,
                has_alpha);
         return;
-    case 2:
+    case srPixelConvert::PIXEL_SIZE_24:
         pack24(static_cast<unsigned char*>(info.dest), source, luts, shifts, info.count, has_alpha);
         return;
-    case 3:
+    case srPixelConvert::PIXEL_SIZE_32:
         pack32(static_cast<unsigned long*>(info.dest), source, luts, shifts, info.count, has_alpha);
     }
 }
@@ -1149,8 +1173,8 @@ void __cdecl readRGB(const srPixelConvert::ConversionInfo& info)
     luts[2] = channel_expand[format->blue_bits];
     luts[3] = channel_expand[format->alpha_bits];
     unsigned long* dest = static_cast<unsigned long*>(info.dest);
-    switch (format->bytes_per_pixel_minus_one) {
-    case 0: {
+    switch (format->pixel_size) {
+    case srPixelConvert::PIXEL_SIZE_8: {
         const unsigned char* source = static_cast<const unsigned char*>(info.source);
         unsigned long i = 0;
         for (; i < (info.count & ~3UL); i += 4) {
@@ -1184,15 +1208,15 @@ void __cdecl readRGB(const srPixelConvert::ConversionInfo& info)
         }
         return;
     }
-    case 1:
+    case srPixelConvert::PIXEL_SIZE_16:
         unpack16(dest, static_cast<const unsigned short*>(info.source), luts, shifts, masks,
                  info.count);
         return;
-    case 2:
+    case srPixelConvert::PIXEL_SIZE_24:
         unpack24(dest, static_cast<const unsigned char*>(info.source), luts, shifts, masks,
                  info.count);
         return;
-    case 3:
+    case srPixelConvert::PIXEL_SIZE_32:
         unpack32(dest, static_cast<const unsigned long*>(info.source), luts, shifts, masks,
                  info.count);
     }
@@ -1230,7 +1254,7 @@ void __cdecl readRGB24(const srPixelConvert::ConversionInfo& info)
     }
 }
 
-/* format_table[0xe] write/read: straight dword copy for BGRA32. */
+/* format_table[srPixelConvert::SURFACE_BGRA32] write/read: straight dword copy for BGRA32. */
 // FUNCTION: SURRENDER 0x1000A950
 void __cdecl writeBGRA(const srPixelConvert::ConversionInfo& info)
 {
@@ -1261,7 +1285,7 @@ void __cdecl readBGRX(const srPixelConvert::ConversionInfo& info)
                                  static_cast<const SRDWORD*>(info.source), 0xff000000, info.count);
 }
 
-/* format_table[0x17] write/read: rotate each BGRA pixel one byte lane so
+/* format_table[srPixelConvert::SURFACE_RGBA32] write/read: rotate each BGRA pixel one byte lane so
    red leads the record on write and BGRA is restored on read. */
 // FUNCTION: SURRENDER 0x1000AA10
 void __cdecl writeABGR(const srPixelConvert::ConversionInfo& info)
@@ -1305,7 +1329,7 @@ void __cdecl readABGR(const srPixelConvert::ConversionInfo& info)
     }
 }
 
-/* format_table[8] write/read: 32-bit BGRA packed to RGB555 through the
+/* format_table[srPixelConvert::SURFACE_RGB555] write/read: 32-bit BGRA packed to RGB555 through the
    5-bit reduction table, and expanded back with alpha forced opaque. */
 // FUNCTION: SURRENDER 0x1000ACD0
 void __cdecl writeRGB555(const srPixelConvert::ConversionInfo& info)
@@ -1365,7 +1389,7 @@ void __cdecl readRGB555(const srPixelConvert::ConversionInfo& info)
    initFormats() when the CPU reports the feature bit. Each handles a
    scalar alignment head, an MMX main loop, then a scalar tail. */
 
-/* format_table[0xc] MMX read: BGR24 source records to srARGB with alpha
+/* format_table[srPixelConvert::SURFACE_BGR24] MMX read: BGR24 source records to srARGB with alpha
    forced opaque. */
 // FUNCTION: SURRENDER 0x1000B050
 void __cdecl readBGR24MMX(const srPixelConvert::ConversionInfo& info)
@@ -1458,7 +1482,7 @@ void __cdecl readBGR24MMX(const srPixelConvert::ConversionInfo& info)
     }
 }
 
-/* format_table[0xb] MMX read: ARGB4444 source words to srARGB with each
+/* format_table[srPixelConvert::SURFACE_ARGB4444] MMX read: ARGB4444 source words to srARGB with each
    nibble replicated into its byte lane. */
 // FUNCTION: SURRENDER 0x1000B150
 void __cdecl readARGB4444MMX(const srPixelConvert::ConversionInfo& info)
@@ -1544,7 +1568,7 @@ void __cdecl readARGB4444MMX(const srPixelConvert::ConversionInfo& info)
     }
 }
 
-/* format_table[2] MMX read: L8 source bytes to srARGB by triplicating the
+/* format_table[srPixelConvert::SURFACE_L8] MMX read: L8 source bytes to srARGB by triplicating the
    index and forcing alpha opaque. */
 // FUNCTION: SURRENDER 0x1000B250
 void __cdecl readL8MMX(const srPixelConvert::ConversionInfo& info)
@@ -1621,7 +1645,7 @@ void __cdecl readL8MMX(const srPixelConvert::ConversionInfo& info)
     }
 }
 
-/* format_table[9] MMX read: ARGB1555 source words to srARGB with bit
+/* format_table[srPixelConvert::SURFACE_ARGB1555] MMX read: ARGB1555 source words to srARGB with bit
    replication filling the low channel bits. */
 // FUNCTION: SURRENDER 0x1000B330
 void __cdecl readARGB1555MMX(const srPixelConvert::ConversionInfo& info)
@@ -1712,7 +1736,7 @@ void __cdecl readARGB1555MMX(const srPixelConvert::ConversionInfo& info)
     }
 }
 
-/* format_table[7] MMX read: RGB565 source words to srARGB with bit
+/* format_table[srPixelConvert::SURFACE_RGB565] MMX read: RGB565 source words to srARGB with bit
    replication and alpha forced opaque. */
 // FUNCTION: SURRENDER 0x1000B440
 void __cdecl readRGB565MMX(const srPixelConvert::ConversionInfo& info)
@@ -1815,7 +1839,7 @@ void __cdecl readRGB565MMX(const srPixelConvert::ConversionInfo& info)
     }
 }
 
-/* format_table[2] MMX write: srARGB to L8 intensity using the 54/183/19
+/* format_table[srPixelConvert::SURFACE_L8] MMX write: srARGB to L8 intensity using the 54/183/19
    luma weights. */
 // FUNCTION: SURRENDER 0x1000B570
 void __cdecl writeL8MMX(const srPixelConvert::ConversionInfo& info)
@@ -1913,7 +1937,7 @@ void __cdecl writeL8MMX(const srPixelConvert::ConversionInfo& info)
     }
 }
 
-/* format_table[7] MMX write: srARGB to RGB565. */
+/* format_table[srPixelConvert::SURFACE_RGB565] MMX write: srARGB to RGB565. */
 // FUNCTION: SURRENDER 0x1000B6A0
 void __cdecl writeRGB565MMX(const srPixelConvert::ConversionInfo& info)
 {
@@ -2002,7 +2026,7 @@ void __cdecl writeRGB565MMX(const srPixelConvert::ConversionInfo& info)
     }
 }
 
-/* format_table[0xb] MMX write: srARGB to ARGB4444 through the high
+/* format_table[srPixelConvert::SURFACE_ARGB4444] MMX write: srARGB to ARGB4444 through the high
    nibbles. */
 // FUNCTION: SURRENDER 0x1000B7C0
 void __cdecl writeARGB4444MMX(const srPixelConvert::ConversionInfo& info)
@@ -2081,7 +2105,7 @@ void __cdecl writeARGB4444MMX(const srPixelConvert::ConversionInfo& info)
     }
 }
 
-/* format_table[9] MMX write: srARGB to ARGB1555. */
+/* format_table[srPixelConvert::SURFACE_ARGB1555] MMX write: srARGB to ARGB1555. */
 // FUNCTION: SURRENDER 0x1000B8A0
 void __cdecl writeARGB1555MMX(const srPixelConvert::ConversionInfo& info)
 {
@@ -2183,7 +2207,7 @@ void __cdecl writeARGB1555MMX(const srPixelConvert::ConversionInfo& info)
     }
 }
 
-/* format_table[0xc] MMX write: srARGB to BGR24 triplets. */
+/* format_table[srPixelConvert::SURFACE_BGR24] MMX write: srARGB to BGR24 triplets. */
 // FUNCTION: SURRENDER 0x1000B9D0
 void __cdecl writeBGR24MMX(const srPixelConvert::ConversionInfo& info)
 {
@@ -2804,4 +2828,4 @@ static void unpack32(unsigned long* dest, const unsigned long* source,
 
 /* This unit's static-init emission chain: the CRT initterm table calls
    the thunks at 0x100075F0/0x100076B0/0x10007770, which tail-jump into the
-   bodies that write the YUV matrices and clear the format_table flags. */
+   bodies that write the YUV matrices and clear the format_table fourcc. */

@@ -36,7 +36,7 @@ void __stdcall LoadSurfacePixels(int handle, srColorSurface* surface, const W8Tg
     }
 
     int rle = header->image_type == 9 || header->image_type == 10 || header->image_type == 11;
-    long pixel_step = surface->pixel_format.bytes_per_pixel_minus_one + 1;
+    long pixel_step = surface->pixel_format.pixel_size + 1;
     long file_bpp = header->pixel_depth >> 3;
     if (file_bpp <= 0 || file_bpp > 4) {
         return;
@@ -201,14 +201,16 @@ srColorSurface* __stdcall LoadSurface(int handle, long* unused_out)
     case 2:
     case 10:
         if (header.pixel_depth == 16) {
-            surface = SR_NEW(W8ColorSurface)(static_cast<srPixelConvert::e_surfaceType>(
-                                                 (header.image_descriptor & 0xf) == 0 ? 8 : 9),
+            surface = SR_NEW(W8ColorSurface)((header.image_descriptor & 0xf) == 0
+                                                 ? srPixelConvert::SURFACE_RGB555
+                                                 : srPixelConvert::SURFACE_ARGB1555,
                                              width, height);
         } else if (header.pixel_depth == 24) {
             surface = SR_NEW(W8ColorSurface)(srPixelConvert::SURFACE_BGR24, width, height);
         } else if (header.pixel_depth == 32) {
-            surface = SR_NEW(W8ColorSurface)(static_cast<srPixelConvert::e_surfaceType>(
-                                                 (header.image_descriptor & 0xf) == 0 ? 0xd : 0xe),
+            surface = SR_NEW(W8ColorSurface)((header.image_descriptor & 0xf) == 0
+                                                 ? srPixelConvert::SURFACE_BGRX32
+                                                 : srPixelConvert::SURFACE_BGRA32,
                                              width, height);
         } else {
             return 0;
@@ -223,8 +225,7 @@ srColorSurface* __stdcall LoadSurface(int handle, long* unused_out)
     }
 
     if (header.image_type == 0 || header.image_type == 1 || header.image_type == 9) {
-        surface =
-            SR_NEW(W8ColorSurface)(static_cast<srPixelConvert::e_surfaceType>(4), width, height);
+        surface = SR_NEW(W8ColorSurface)(srPixelConvert::SURFACE_P8, width, height);
         if (surface != 0) {
             surface->setPalette(palette);
         }

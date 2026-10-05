@@ -194,7 +194,7 @@ protected:
 
     /* stTextureFile::loadSurface reads pixel_format.alpha_bits directly;
        Wiz8 imports no alpha accessor, so the read is a field access. The
-       file-scope pixel decoder reads bytes_per_pixel_minus_one the same way. */
+       file-scope pixel decoder reads pixel_size the same way. */
     friend class stTextureFile;
     friend void __stdcall LoadSurfacePixels(int handle, srColorSurface* surface,
                                             const W8TgaHeader* header);
