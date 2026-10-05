@@ -436,23 +436,21 @@ void srGERD::Renderer::assignTextureSets(unsigned long* texture_set, const unsig
         unsigned long* out = texture_set + done;
         unsigned long initialized = 0;
         if ((mask & TABLE_TEXTURE0) != 0) {
-            /* reinterpret-ok: the texture table is a dword stream to the
-               transition marker. */
             markTransitions(out, chunk_indices,
-                            reinterpret_cast<const unsigned long*>(pass->texture_tables[0]),
+                            static_cast<const unsigned long*>(pass->texture_tables[0]),
                             TABLE_TEXTURE0, chunk, initialized);
             initialized = 1;
         }
         if ((mask & TABLE_TEXTURE1) != 0) {
             markTransitions(out, chunk_indices,
-                            reinterpret_cast<const unsigned long*>(pass->texture_tables[1]),
+                            static_cast<const unsigned long*>(pass->texture_tables[1]),
                             TABLE_TEXTURE1, chunk, initialized);
             initialized += 1;
         }
         if ((mask & TABLE_SHADER) != 0) {
             markTransitions(out, chunk_indices,
                             reinterpret_cast<const unsigned long*>(pass->shaders), TABLE_SHADER,
-                            chunk, initialized);
+                            chunk, initialized); // reinterpret-ok: packed srShader words at 0x100278E0.
         }
         if (chunk != 0) {
             for (unsigned long index = 0; index < chunk; index++) {

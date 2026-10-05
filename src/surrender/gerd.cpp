@@ -827,7 +827,8 @@ void srGERD::setTextureSubImage(srTextureIFace* texture, long mipmap, long x, lo
         if (level_height < (unsigned long)request.source_bottom) {
             request.source_bottom = (long)level_height;
         }
-        unsigned long bytes_per_pixel = (unsigned long)resident->pixel_format.pixel_size + 1;
+        unsigned long bytes_per_pixel =
+            static_cast<unsigned long>(resident->pixel_format.pixel_size) + 1;
         unsigned long pitch = bytes_per_pixel * level_width;
         if (resident->surface_data == 0) {
             void* staging =
@@ -2035,7 +2036,7 @@ void srGERD::LockSurface::setPixelRowRaw(const void* pixels, long y, long x0, lo
         return;
     }
     if (x0 < (long)left) {
-        pixels = (const char*)pixels + (pixel_format.pixel_size + 1) * (left - x0);
+        pixels = static_cast<const char*>(pixels) + (pixel_format.pixel_size + 1) * (left - x0);
         x0 = left;
     }
     if (x1 > (long)right) {
