@@ -904,8 +904,8 @@ void MonsterReactsToBeingStruck(W8MonsterInfo* monster_info, W8TargetSource* att
                           (monster_info->attributes[W8_MONSTER_ATTRIBUTE_SENSES] >> 1) + 0x32)) {
         ClearMonsterCondition(monster_info->location_id, W8_CONDITION_ASLEEP);
     }
-    if (monster_info->control_state == 1) {
-        SetMonsterControlState(monster_info, 0);
+    if (monster_info->control_state == W8_MONSTER_CONTROL_LURED) {
+        SetMonsterControlState(monster_info, W8_MONSTER_CONTROL_NONE);
     }
 
     if (!TargetSourceIsCharacter(attacker, 0) && !TargetSourceIsMonster(attacker, 0)) {
@@ -914,12 +914,13 @@ void MonsterReactsToBeingStruck(W8MonsterInfo* monster_info, W8TargetSource* att
     if (!attacker->fBackfire && !attacker->fReflection && attacker->target_diverted == 0 &&
         !quiet && monster_info->uiCondition[W8_CONDITION_TURNCOAT] != 0) {
         if (TargetSourceIsCharacter(attacker, 0)) {
-            if (MonsterVsCharDisposition(attacker->iChar, monster_info) == 2) {
+            if (MonsterVsCharDisposition(attacker->iChar, monster_info) ==
+                W8_DISPOSITION_FRIENDLY) {
                 TickMonsterCondition(monster_info->location_id, W8_CONDITION_TURNCOAT, 1);
             }
         } else if (MonsterHostility(
                        MonsterInfoFromID(1570, HEALTH_STAMINA_MANA_CPP, attacker->iMonsterID, true),
-                       monster_info) == 2) {
+                       monster_info) == W8_DISPOSITION_FRIENDLY) {
             TickMonsterCondition(monster_info->location_id, W8_CONDITION_TURNCOAT, 1);
         }
     }

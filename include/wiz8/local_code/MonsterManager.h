@@ -466,7 +466,7 @@ struct W8MonsterInfo {
     /* 0x2f9: live spell-point pool; spell-budget calculations add it to the
        database base, and group attacks drain it. */
     unsigned int spell_points;
-    int control_state; /* 0x2fd: group-recomputed control state */
+    W8MonsterControlState control_state; /* 0x2fd: Lure success/resistance state */
     unsigned char cycle17_state;
     /* 0x302/0x303: the two alternating look-around timers the aging pass
        counts down and rearms from the monster's look frequency/duration. */
@@ -520,7 +520,7 @@ void ConvertMonsterAttributes(W8MonsterInfo* monster_info);
 W8MonsterInfo* FindMonsterInfoBySpecies(unsigned int monster_species);
 void ResetLivingMonstersAfterCombat(void);
 void DestroyUngroupedMonsters(void);
-void SetMonsterControlState(W8MonsterInfo* monster_info, int control_state);
+void SetMonsterControlState(W8MonsterInfo* monster_info, W8MonsterControlState control_state);
 void MonsterInfoSetMotionless(W8MonsterInfo* monster_info, bool motionless);
 void MoveMonsterToLiveList(W8MonsterInfo* monster_info);
 W8MonsterInfo* FindNearestMonsterInfo(const srVector3T<float>* position, double maximum_distance);

@@ -61,7 +61,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     W8SpellRealm saved_realm;
     int saved_spell_point_cost;
     int saved_selected;
-    int saved_rotation_mode;
+    W8CameraRotationMode saved_rotation_mode;
     int saved_cursor;
     int saved_confirmations;
     unsigned char saved_occupied1;
@@ -242,7 +242,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     g_status.buffers.XChar[1].fOccupied = true;
     g_status.buffers.Char[1].highest_condition = W8_CONDITION_NONE;
     g_status.selected_character = 0;
-    g_settings.camera_rotation_mode = 1;
+    g_settings.camera_rotation_mode = W8_CAMERA_ROTATION_ALL_TARGETS;
     gXStatus.iCurrentCursor = -1;
     g_settings.pc_confirmations = 0;
     g_level_block->combat_end_notification = -1;

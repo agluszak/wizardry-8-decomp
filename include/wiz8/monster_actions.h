@@ -18,3 +18,42 @@ enum W8MonsterActionKind {
 };
 
 static_assert(sizeof(W8MonsterActionKind) == 4, "W8MonsterActionKind_size");
+
+/* Lure success/resistance state, separate from real-time movement modes. */
+enum W8MonsterControlState {
+    W8_MONSTER_CONTROL_NONE = 0,
+    W8_MONSTER_CONTROL_LURED = 1,
+    W8_MONSTER_CONTROL_RESISTED = 2
+};
+
+/* BEGINORDERS scripts and save records store this signed byte. */
+typedef signed char W8MonsterOrderMode;
+
+enum {
+    W8_MONSTER_ORDER_NONE = -1,
+    W8_MONSTER_ORDER_GUARD = 0,
+    W8_MONSTER_ORDER_PATROL = 1,
+    W8_MONSTER_ORDER_POINT_PATROL = 2,
+    W8_MONSTER_ORDER_RANDOM_POINT_PATROL = 3,
+    W8_MONSTER_ORDER_FACE_DIRECTION = 4
+};
+
+/* Low nibble of ai_mode/decision; the higher bits carry independent flags. */
+enum W8MonsterRTAIMode {
+    W8_RT_AI_IDLE = 0,
+    W8_RT_AI_CHARGE_PARTY = 1,
+    W8_RT_AI_LINK_TO_PARTY = 2,
+    W8_RT_AI_APPROACH_PARTY = 3,
+    W8_RT_AI_INVESTIGATE_NOISE = 4,
+    W8_RT_AI_PATROL_AREA = 6,
+    W8_RT_AI_MOVE_TO_PATROL_POINT = 7,
+    W8_RT_AI_FACE_NOISE = 8,
+    W8_RT_AI_FOLLOW_LURE = 9,
+    W8_RT_AI_FACE_DIRECTION = 10
+};
+
+enum W8MonsterAIFlags {
+    W8_MONSTER_AI_MODE_MASK = 0x0f,
+    W8_MONSTER_AI_RESTORE_SCRIPT = 0x10,
+    W8_MONSTER_AI_REAPPLY_MODE = 0x80
+};

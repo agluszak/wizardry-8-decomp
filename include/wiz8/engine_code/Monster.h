@@ -2,6 +2,7 @@
 #define WIZ8_ENGINE_CODE_MONSTER_H
 
 #include "wiz8/monster_spell_icons.h"
+#include "wiz8/monster_actions.h"
 #include <stddef.h>
 
 #include "surrender/srMath.h"
@@ -329,12 +330,12 @@ public:
     Trigger* trigger;
     int registry_weight;
     srVector3T<float> formation;
-    unsigned char defining_orders;
-    unsigned char orders_finished;
-    signed char order_mode;
-    unsigned char deaf;
-    unsigned char face_party;
-    unsigned char stay_home;
+    bool defining_orders;
+    bool orders_finished;
+    W8MonsterOrderMode order_mode;
+    bool deaf;
+    bool face_party;
+    bool stay_home;
     unsigned char padding_292[2];
     float patrol_distance;
     float patrol_variation;

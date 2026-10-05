@@ -20,11 +20,11 @@ stTextureAnim::stTextureAnim()
     textures = 0;
     frame = 0;
     direction = 1;
-    animation_mode = 0;
+    animation_mode = W8_TEXTURE_ANIM_LOOP;
     initial_frame = 0;
     frame_rate = 15.0f;
     frame_tick = GetTickCount();
-    trigger_mode = 0;
+    trigger_mode = W8_TEXTURE_TRIGGER_CONTINUOUS;
     probability = -1.0f;
     running = false;
     textures = new W8Vector<srTextureIFace*>;
@@ -93,11 +93,11 @@ void stTextureAnim::UpdateFrame()
 {
     int elapsed_frames;
 
-    if (animation_mode == 3) {
+    if (animation_mode == W8_TEXTURE_ANIM_MANUAL) {
         return;
     }
 
-    if (trigger_mode == 1) {
+    if (trigger_mode == W8_TEXTURE_TRIGGER_RANDOM_FRAME) {
         if (rand() / static_cast<float>(RAND_MAX) < probability) {
             this->frame =
                 static_cast<int>(rand() / static_cast<float>(RAND_MAX) * textures->GetCount());
@@ -105,7 +105,7 @@ void stTextureAnim::UpdateFrame()
         return;
     }
 
-    if (trigger_mode == 2) {
+    if (trigger_mode == W8_TEXTURE_TRIGGER_RANDOM_START) {
         if (!running && rand() / static_cast<float>(RAND_MAX) < probability) {
             running = true;
             direction = 0;
@@ -121,7 +121,7 @@ void stTextureAnim::UpdateFrame()
 
     elapsed_frames =
         static_cast<int>((GetTickCount() - frame_tick) * frame_rate * g_float_005ec128);
-    if (animation_mode == 0) {
+    if (animation_mode == W8_TEXTURE_ANIM_LOOP) {
         int frame = (direction * elapsed_frames) % textures->GetCount();
         if (frame < this->frame) {
             this->frame = 0;
@@ -129,7 +129,7 @@ void stTextureAnim::UpdateFrame()
             return;
         }
         this->frame = frame;
-    } else if (animation_mode == 1) {
+    } else if (animation_mode == W8_TEXTURE_ANIM_PING_PONG) {
         if ((elapsed_frames / textures->GetCount() & 1) != 0) {
             direction = -1;
             this->frame = textures->GetCount() - elapsed_frames % textures->GetCount() - 1;
@@ -141,7 +141,7 @@ void stTextureAnim::UpdateFrame()
             direction = 1;
             this->frame = elapsed_frames % textures->GetCount();
         }
-    } else if (animation_mode == 2) {
+    } else if (animation_mode == W8_TEXTURE_ANIM_PLAY_ONCE) {
         if (elapsed_frames >= textures->GetCount()) {
             running = false;
             this->frame = textures->GetCount() - 1 < 0 ? 0 : textures->GetCount() - 1;
@@ -154,7 +154,7 @@ void stTextureAnim::UpdateFrame()
 // FUNCTION: WIZ8 0x00485730
 int stTextureAnim::IsFinished() const
 {
-    if (animation_mode != 2) {
+    if (animation_mode != W8_TEXTURE_ANIM_PLAY_ONCE) {
         return 0;
     }
 

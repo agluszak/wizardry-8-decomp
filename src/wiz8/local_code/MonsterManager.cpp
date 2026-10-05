@@ -128,7 +128,7 @@ W8MonsterInfo* CreateMonsterInfo(W8MonsterGroup* group, W8MonsterRecord* record,
     monster_info->charm_strength = 0;
     memset(&monster_info->modifiers, 0, sizeof(monster_info->modifiers));
     monster_info->fMotionless = 0;
-    monster_info->ai_mode = 0;
+    monster_info->ai_mode = W8_RT_AI_IDLE;
     monster_info->summoned = 0;
     monster_info->insanity_summon = -1;
     monster_info->movement_watch_position.SetZero();
@@ -785,8 +785,9 @@ void ResetLivingMonstersAfterCombat(void)
 
         if (monster_info->hp_current > 0) {
             monster_info->p3D->ResetMovementAndGroupState();
-            if (monster_info->ai_mode > 0 && monster_info->ai_mode <= 3) {
-                monster_info->ai_mode = 0;
+            if (monster_info->ai_mode > W8_RT_AI_IDLE &&
+                monster_info->ai_mode <= W8_RT_AI_APPROACH_PARTY) {
+                monster_info->ai_mode = W8_RT_AI_IDLE;
             }
         }
     }
@@ -840,18 +841,21 @@ void DestroyUngroupedMonsters(void)
 }
 
 // FUNCTION: WIZ8 0x004e6020
-void SetMonsterControlState(W8MonsterInfo* monster_info, int control_state)
+void SetMonsterControlState(W8MonsterInfo* monster_info, W8MonsterControlState control_state)
 {
     if (monster_info == 0) {
         srAssertFail("pMonsterInfo", MONSTER_MANAGER_CPP, 0x85b, 0);
     }
     switch (control_state) {
-    case 0:
-    case 2:
-        if (monster_info->control_state == 1 && monster_info->p3D->linked_navigator == 0) {
+    case W8_MONSTER_CONTROL_NONE:
+    case W8_MONSTER_CONTROL_RESISTED:
+        if (monster_info->control_state == W8_MONSTER_CONTROL_LURED &&
+            monster_info->p3D->linked_navigator == 0) {
             monster_info->p3D->ClearMovement();
-            monster_info->ai_mode = 0;
+            monster_info->ai_mode = W8_RT_AI_IDLE;
         }
+        break;
+    default:
         break;
     }
     monster_info->control_state = control_state;

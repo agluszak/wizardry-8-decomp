@@ -1,5 +1,16 @@
 #pragma once
 
+#include "wiz8/monster_actions.h"
+
+/* Disposition matches plus two wildcard selectors used by visibility scans. */
+enum W8VisibleTargetFilter {
+    W8_VISIBLE_TARGET_NEUTRAL = 0,
+    W8_VISIBLE_TARGET_HOSTILE = 1,
+    W8_VISIBLE_TARGET_FRIENDLY = 2,
+    W8_VISIBLE_TARGET_ANY = 3,
+    W8_VISIBLE_TARGET_NON_NEUTRAL = 4
+};
+
 struct W8MonsterInfo;
 struct W8MonsterRecord;
 struct W8CombatSlot;
@@ -33,8 +44,8 @@ bool MonsterGroupCanEngage(W8MonsterGroup* monster_group); /* 0x00531920 */
 /* Whether the monster has a living target it can see; `party_only` skips the
    monster scan, `hostility` selects the class (three and four are wildcards),
    and `within_reach` also requires the target inside engagement range. */
-bool MonsterHasVisibleTarget(W8MonsterInfo* monster_info, int party_only, int hostility,
-                             int within_reach);       /* 0x00534850 */
+bool MonsterHasVisibleTarget(W8MonsterInfo* monster_info, int party_only,
+                             W8VisibleTargetFilter hostility, int within_reach); /* 0x00534850 */
 float GetGroupNearestDistance(W8MonsterGroup* group); /* 0x005324B0 */
 
 /* MonsterAI.cpp GLOBAL at 0x0061EEFC: two dwords per special attack kind. */
@@ -55,7 +66,8 @@ bool MonsterSpellHasPartyTarget(W8MonsterInfo* monster_info, int spell_id,
                                 W8CombatSlot* slot); /* 0x005353E0 */
 /* Whether any live member of the group has a visible target; the arguments
    forward to MonsterHasVisibleTarget. */
-bool MonsterGroupHasVisibleTarget(W8MonsterGroup* monster_group, int party_only, int hostility,
+bool MonsterGroupHasVisibleTarget(W8MonsterGroup* monster_group, int party_only,
+                                  W8VisibleTargetFilter hostility,
                                   int within_reach); /* 0x005347A0 */
 /* The out-of-combat sweep: refreshes sight, alerts same-faction groups of
    groups already fighting, and enters combat for the groups that should. */

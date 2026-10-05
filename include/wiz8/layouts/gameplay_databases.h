@@ -124,6 +124,15 @@ enum W8SpellRealm {
     W8_SPELL_REALM_COUNT = 6
 };
 
+/* Power-pip selection and the cast loop share this signed dword domain. */
+enum W8SpellPowerClass {
+    W8_SPELL_POWER_CLASS_NONE = -1,
+    W8_SPELL_POWER_SELECTABLE = 0,
+    W8_SPELL_POWER_REPEAT_OUT_OF_COMBAT = 1,
+    W8_SPELL_POWER_MAXIMUM = 2,
+    W8_SPELL_POWER_FIXED = 3
+};
+
 /* The five situations a spell record can admit, numbered by the switch in
    SpellUsableNow. A spell usable at any time imposes no condition; the other
    four admit exactly one of combat, the field, camping, or a lock/trap
@@ -221,7 +230,7 @@ struct W8SpellRuntimeRecord {
        iSpellPowerClass (retail asserts it is not BAD_INDEX). It selects how
        power pips work: 2 prices a max cast, 3 is a fixed-cost spell, and
        SpellInfoDialog shows the alternate caption for 3. */
-    int power_class;
+    W8SpellPowerClass power_class;
     /* 0x12f: the range category a monster casting this spell needs. */
     W8RangeCategory range_category;
     W8SpellRealm realm;            /* 0x133 */

@@ -2153,9 +2153,9 @@ unsigned char LoadMaterial(const char* bitmap_folder, const W8MaterialRecord* so
             if (source->version > 3 && source->texture_modes[texture_index] > 0.0f) {
                 float mode = source->texture_modes[texture_index];
                 if (mode <= 1.0f) {
-                    animation->trigger_mode = 1;
+                    animation->trigger_mode = W8_TEXTURE_TRIGGER_RANDOM_FRAME;
                 } else {
-                    animation->trigger_mode = 2;
+                    animation->trigger_mode = W8_TEXTURE_TRIGGER_RANDOM_START;
                     mode -= 1.0f;
                 }
                 animation->probability = mode;

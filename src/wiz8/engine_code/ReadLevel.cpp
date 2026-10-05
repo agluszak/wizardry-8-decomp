@@ -227,7 +227,7 @@ void AssociateWorldLights(W8World* world)
                 if (prop->m_name != 0 && _stricmp(prop->m_name, light->getName()) == 0) {
                     srModelInstance* instance = prop->ToggleRepAnimationDefault();
                     light->m_prop = prop;
-                    GetModelAnimatedTexture(instance)->animation_mode = 3;
+                    GetModelAnimatedTexture(instance)->animation_mode = W8_TEXTURE_ANIM_MANUAL;
                 }
             }
         }

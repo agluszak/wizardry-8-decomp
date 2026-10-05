@@ -3,6 +3,14 @@
 #include "wiz8/difficulty.h"
 #include "wiz8/layouts/main_game_screen.h"
 
+enum W8CameraRotationMode {
+    W8_CAMERA_ROTATION_SELECTED_CHARACTER = 0,
+    W8_CAMERA_ROTATION_ALL_TARGETS = 1,
+    W8_CAMERA_ROTATION_DISABLED = 2
+};
+
+enum W8CameraRotationStyle { W8_CAMERA_ROTATION_SNAP = 0, W8_CAMERA_ROTATION_SMOOTH = 1 };
+
 void LoadGameConfiguration(void);
 unsigned char SaveGameConfiguration(void);
 /* Bodies live in music_playlist.cpp (address-interleaved with that fragment). */
@@ -31,8 +39,8 @@ struct W8GameSettings {
     unsigned int text_display_delay_ms;
     int combat_delay_ms;
     int continuous_combat_start_delay_ms;
-    int camera_rotation_mode;
-    int camera_rotation_style;
+    W8CameraRotationMode camera_rotation_mode;
+    W8CameraRotationStyle camera_rotation_style;
     int tooltip_delay_ms;
     unsigned char formation_action_panel_preference;
     unsigned char formation_radar_map_preference;

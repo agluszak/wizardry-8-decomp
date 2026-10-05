@@ -1555,16 +1555,18 @@ void W8OptionsValues::TransferSettings()
     TransferByte(&smooth_world_animations, &g_settings.smooth_world_animations);
     if (applying == 0) {
         combat_speed = (g_settings.combat_delay_ms - 5000) * -0.0002f;
-        camera_auto_rotation =
-            g_settings.camera_rotation_mode == 2 ? 2 : g_settings.camera_rotation_style;
+        camera_auto_rotation = g_settings.camera_rotation_mode == W8_CAMERA_ROTATION_DISABLED
+                                   ? 2
+                                   : g_settings.camera_rotation_style;
         TransferByte(&continuous_combat, &g_settings.continuous_combat);
     } else {
         g_settings.combat_delay_ms = 5000 - static_cast<int>(combat_speed * 5000.0f);
         if (camera_auto_rotation == 2) {
-            g_settings.camera_rotation_mode = 2;
+            g_settings.camera_rotation_mode = W8_CAMERA_ROTATION_DISABLED;
         } else {
-            g_settings.camera_rotation_mode = 1;
-            g_settings.camera_rotation_style = camera_auto_rotation;
+            g_settings.camera_rotation_mode = W8_CAMERA_ROTATION_ALL_TARGETS;
+            g_settings.camera_rotation_style =
+                static_cast<W8CameraRotationStyle>(camera_auto_rotation);
         }
         if (continuous_combat != g_settings.continuous_combat) {
             TogglePartyCombatStance();

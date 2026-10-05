@@ -2,6 +2,7 @@
 #define WIZ8_LOCAL_CODE_MONSTER_GROUP_H
 
 #include "wiz8/geometry.h"
+#include "wiz8/monster_actions.h"
 #include "wiz8/local_code/Factions.h"
 
 struct W8IList;
@@ -180,7 +181,8 @@ void ElectAlliedLeaderGroup(W8MonsterGroup* monster_group,
 /* Marks every live member of the group and of its allied groups for removal. */
 void MarkMonsterGroupForRemoval(int group_id); /* 0x005118E0 */
 /* 0x005117D0: write the control state onto every live member of the group. */
-void SetMonsterGroupControlState(W8MonsterGroup* monster_group, int control_state);
+void SetMonsterGroupControlState(W8MonsterGroup* monster_group,
+                                 W8MonsterControlState control_state);
 /* Nonzero when the group - or one of its allied groups - has a member whose
    highest condition is in the 0x0d..0x11 incapacitated band. */
 bool MonsterGroupHasIncapacitatedMember(int group_id); /* 0x00511D40 */

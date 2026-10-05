@@ -2991,7 +2991,7 @@ int GetConditionInterrupt(W8TargetSource* source)
         attribute = monster_info->attributes[W8_MONSTER_ATTRIBUTE_STRENGTH];
         second_hand_attack =
             RateMonsterBestAttack(monster_info, GetMonsterDataForInfo(monster_info), 1) == 0;
-        controlled = monster_info->control_state == 1;
+        controlled = monster_info->control_state == W8_MONSTER_CONTROL_LURED;
     }
     if (condition_turns[W8_CONDITION_NAUSEATED] != 0 && Random(100) < 0x19) {
         return 3;
@@ -3065,13 +3065,13 @@ void PointCameraAtCombatTarget(W8TargetSource* source, W8CombatSlot* target)
     W8MonsterGroup* group;
     srVector3T<float> position;
 
-    if (g_settings.camera_rotation_mode == 2) {
+    if (g_settings.camera_rotation_mode == W8_CAMERA_ROTATION_DISABLED) {
         return;
     }
     if (!IsTargetStillPresent(target)) {
         return;
     }
-    if (g_settings.camera_rotation_mode == 0 &&
+    if (g_settings.camera_rotation_mode == W8_CAMERA_ROTATION_SELECTED_CHARACTER &&
         (!TargetSourceIsCharacter(source, 0) || source->iChar != g_status.selected_character)) {
         if (target->iType != W8_TARGET_KIND_CHARACTER) {
             return;

@@ -396,7 +396,7 @@ void RestoreSpellCastingRegions(void)
 static void ClearSpellCastingChoice()
 {
     gpSCSV->uiSpellToCast = 0;
-    gpSCSV->iSpellPowerClass = -1;
+    gpSCSV->iSpellPowerClass = W8_SPELL_POWER_CLASS_NONE;
     gpSCSV->uiSpellIndex = -1;
     SelectSpellCastingRow(-1);
     gpSCSV->uiPowerLevels = 0;
@@ -489,24 +489,24 @@ static void RefreshAvailableSpellPowerPips()
 static void UpdateSpellPowerPips(void)
 {
     unsigned int pip;
-    unsigned int rating;
+    W8SpellCastRating rating;
 
-    if (gpSCSV->uiPowerLevels == 0 || gpSCSV->iSpellPowerClass == 3) {
+    if (gpSCSV->uiPowerLevels == 0 || gpSCSV->iSpellPowerClass == W8_SPELL_POWER_FIXED) {
         for (pip = 0; pip < W8_SPELL_POWER_PIP_COUNT; ++pip) {
             gpSCSV->power_controls[pip]->SetEnabled(false);
         }
     } else {
         RefreshSpellPowerPip(7);
         RefreshSpellPowerPip(8);
-        if (gpSCSV->iSpellPowerClass == 0) {
+        if (gpSCSV->iSpellPowerClass == W8_SPELL_POWER_SELECTABLE) {
             RefreshAvailableSpellPowerPips();
             gpSCSV->power_controls[7]->SetActive(false);
             gpSCSV->power_controls[8]->SetActive(false);
-        } else if (gpSCSV->iSpellPowerClass == 1) {
+        } else if (gpSCSV->iSpellPowerClass == W8_SPELL_POWER_REPEAT_OUT_OF_COMBAT) {
             gpSCSV->power_controls[7]->SetActive(!gXStatus.fCombatMode);
             RefreshAvailableSpellPowerPips();
             gpSCSV->power_controls[8]->SetActive(false);
-        } else if (gpSCSV->iSpellPowerClass == 2) {
+        } else if (gpSCSV->iSpellPowerClass == W8_SPELL_POWER_MAXIMUM) {
             for (pip = 0; pip < 7; ++pip) {
                 gpSCSV->power_controls[pip]->SetEnabled(false);
             }
@@ -514,7 +514,7 @@ static void UpdateSpellPowerPips(void)
             gpSCSV->power_controls[7]->SetActive(false);
         }
     }
-    if (gpSCSV->iSpellPowerClass == 2) {
+    if (gpSCSV->iSpellPowerClass == W8_SPELL_POWER_MAXIMUM) {
         if (gpSCSV->uiPowerLevels != 0) {
             for (pip = 0; pip < gpSCSV->uiPowerLevels; ++pip) {
                 if (gpSCSV->uiSpellToCast == 0) {
@@ -543,7 +543,7 @@ static void UpdateSpellPowerPips(void)
 // FUNCTION: WIZ8 0x0059F9D0
 static void RefreshSpellPowerPip(int pip)
 {
-    unsigned int rating;
+    W8SpellCastRating rating;
     int level;
     int frame;
     W8TextControl* control;
@@ -1004,7 +1004,7 @@ void SelectSpellPowerLevel(int power_level)
             gpSCSV->power_controls[pip]->DisableSecondaryState(false);
         }
         gpSCSV->iSpellPower = -1;
-        if (gpSCSV->iSpellPowerClass == 2) {
+        if (gpSCSV->iSpellPowerClass == W8_SPELL_POWER_MAXIMUM) {
             gpSCSV->power_controls[8]->EnableSecondaryState(false);
             if (static_cast<unsigned char>(gpSCSV->power_controls[8]->m_stateFlags &
                                            g_W8TextControlStateSecondary) == 0) {
@@ -1019,7 +1019,7 @@ void SelectSpellPowerLevel(int power_level)
             return;
         }
         gpSCSV->power_controls[W8_SPELL_NAME_CONTROL]->m_textBuffer.SetRenderMode(4);
-        if (gpSCSV->iSpellPowerClass == 3) {
+        if (gpSCSV->iSpellPowerClass == W8_SPELL_POWER_FIXED) {
             text = FormatWideString(g_format_d,
                                     g_spell_records[gpSCSV->uiSpellToCast].spell_point_cost);
         } else {
@@ -1057,7 +1057,8 @@ static void PreviewSpellPowerPipHover(int power_level)
     const wchar_t* text;
 
     if (power_level < 7) {
-        if ((gpSCSV->iSpellPowerClass == 0 || gpSCSV->iSpellPowerClass == 1) &&
+        if ((gpSCSV->iSpellPowerClass == W8_SPELL_POWER_SELECTABLE ||
+             gpSCSV->iSpellPowerClass == W8_SPELL_POWER_REPEAT_OUT_OF_COMBAT) &&
             (power_level == -1 || (gpSCSV->power_controls[power_level]->m_active &&
                                    gpSCSV->power_controls[power_level]->m_enabled))) {
             spell_name = gpSCSV->power_controls[W8_SPELL_NAME_CONTROL];
@@ -1075,7 +1076,7 @@ static void PreviewSpellPowerPipHover(int power_level)
                 spell_name->m_textBuffer.SetText(text, g_wiz_text_font_secondary);
                 return;
             }
-            if (gpSCSV->iSpellPowerClass == 0) {
+            if (gpSCSV->iSpellPowerClass == W8_SPELL_POWER_SELECTABLE) {
                 spell_name->m_textBuffer.SetRenderMode(4);
                 if (gpSCSV->iSpellPower != -1) {
                     text = FormatWideString(
@@ -1310,7 +1311,7 @@ static void SelectSpellCastingListRow(int index)
 {
     char color;
     int cost;
-    int power_class;
+    W8SpellPowerClass power_class;
     int previous;
     int spell_id;
     W8SpellTargetType target_type;
@@ -1342,7 +1343,7 @@ static void SelectSpellCastingListRow(int index)
     }
     SetSpellListLineColor(gpSCSV->uiSpellIndex, 3);
     power_class = g_spell_records[spell_id].power_class;
-    if (power_class == -1) {
+    if (power_class == W8_SPELL_POWER_CLASS_NONE) {
         srAssertFail("iSpellPowerClass != BAD_INDEX", SPELLCASTING_CPP, 0x834, 0);
     }
     cost = g_spell_records[spell_id].spell_point_cost;
@@ -1392,7 +1393,7 @@ void TryCommitSpellCast(void)
 
     ready = false;
     if (gpSCSV->uiSpellToCast != 0 &&
-        (gpSCSV->iSpellPower != -1 || gpSCSV->iSpellPowerClass == 3)) {
+        (gpSCSV->iSpellPower != -1 || gpSCSV->iSpellPowerClass == W8_SPELL_POWER_FIXED)) {
         ready = IsSpellTargetOfNeededKind(g_status.selected_character, gpSCSV->uiSpellToCast);
     }
     if (gpSCSV->uiSpellToCast == 0x4b && !gpSCSV->dialog_confirmed) {

@@ -96,15 +96,15 @@ static W8NpcScriptRegionName g_npc_script_region_names[] = {{L"Monastery", 1},
                                                             {L"Cosmic Circle", 14},
                                                             {L"", 0}};
 
-static void ApplyScriptedDialogueKeyword(const char* text, signed char mode)
+static void ApplyScriptedDialogueKeyword(const char* text, signed char category)
 {
     if (g_settings.simplified_npc_interaction != 0) {
         wchar_t keyword_text[100];
         swprintf(keyword_text, L"%S", text);
         if (!gXStatus.fNpcDialogueMode || !g_npc_interaction_state->scripted_dialogue) {
-            AddNpcDialogueKeyword(keyword_text, mode, 1);
+            AddNpcDialogueKeyword(keyword_text, category, 1);
         } else {
-            AddDialogueTranscriptKeyword(keyword_text, mode);
+            AddDialogueTranscriptKeyword(keyword_text, category);
         }
     }
 }
@@ -180,14 +180,16 @@ int FindNpcScriptItemQuote(int item_id, short* index, unsigned char* grants_item
         W8NpcScriptQuote* quote = g_npc_scripting.npc->script_file->quotes + quote_index;
         for (entry_index = 0; entry_index < static_cast<int>(quote->entry_count); ++entry_index) {
             W8NpcQuoteEntry* entry = quote->entries + entry_index;
-            if ((entry->kind == 0xb || entry->kind == 0xf) && entry->operand0 == item_id) {
+            if ((entry->kind == W8_NPC_ENTRY_ITEM_REQUEST ||
+                 entry->kind == W8_NPC_ENTRY_ITEM_MENTION) &&
+                entry->operand0 == item_id) {
                 if (index != 0) {
                     *index = static_cast<short>(entry_index);
                 }
                 if (grants_item == 0) {
                     return quote_index;
                 }
-                *grants_item = entry->kind != 0xf;
+                *grants_item = entry->kind != W8_NPC_ENTRY_ITEM_MENTION;
                 return quote_index;
             }
         }
@@ -943,7 +945,7 @@ int FindNpcScriptQuoteByKeyword(wchar_t* keyword, short* entry_index, short* sub
         quote = &script->quotes[quote_index];
         for (item_index = 0; item_index < quote->entry_count; item_index++) {
             entry = &quote->entries[item_index];
-            if (entry->kind == 4) {
+            if (entry->kind == W8_NPC_ENTRY_KEYWORD) {
                 for (sub_index = 0; sub_index < entry->sub_entry_count; sub_index++) {
                     swprintf(text, L"%S", entry->sub_entries[sub_index].text);
                     if (CompareWideTextIgnoreAsciiCase(text, translated) == 0) {
@@ -998,7 +1000,7 @@ void RunNpcScriptLine(int script_line, bool force_npc_voice)
             for (entry_index = 0; entry_index < quote->entry_count; entry_index++) {
                 entry = &quote->entries[entry_index];
                 switch (entry->kind) {
-                case 2:
+                case W8_NPC_ENTRY_NEXT_QUOTE:
                     if (entry->operand2 == 4) {
                         if (entry->operand1 != 2) {
                             QueueNpcQuoteEntry(entry, 0, false);
@@ -1015,22 +1017,22 @@ void RunNpcScriptLine(int script_line, bool force_npc_voice)
                     response = Random(response_count) + entry->operand0;
                     finished = true;
                     break;
-                case 3:
+                case W8_NPC_ENTRY_FACT_CONDITIONAL_QUOTE:
                     response = SelectNpcQuoteResponse(entry);
                     if (response != -1) {
                         finished = true;
                         break;
                     }
                     break;
-                case 5:
+                case W8_NPC_ENTRY_OPTIONS:
                     g_npc_interaction_state->script_busy = 0xff;
                     QueueNpcQuoteEntry(entry, 0, false);
                     finished = true;
                     break;
-                case 7:
+                case W8_NPC_ENTRY_SET_FACT:
                     SetFact(static_cast<W8FactId>(entry->operand0), entry->operand1, false);
                     break;
-                case 8:
+                case W8_NPC_ENTRY_CLOSE_DIALOGUE:
                     W8MessageBoxPayload close_dialogue_payload;
                     close_dialogue_payload.text = 0;
                     W8MessageBoxPayload close_dialogue_extra;
@@ -1046,13 +1048,13 @@ void RunNpcScriptLine(int script_line, bool force_npc_voice)
                         }
                     }
                     break;
-                case 9:
-                case 10:
-                case 16:
-                case 17:
+                case W8_NPC_ENTRY_GIVE_ITEM:
+                case W8_NPC_ENTRY_REMOVE_ITEM:
+                case W8_NPC_ENTRY_GIVE_GOLD:
+                case W8_NPC_ENTRY_GIVE_EXPERIENCE:
                     QueueNpcQuoteEntry(entry, 0, false);
                     break;
-                case 12:
+                case W8_NPC_ENTRY_MONSTER_SCRIPT_LABEL:
                     monster = GetNpcMonster(g_npc_scripting.npc);
                     if (monster != 0 && entry->operand2 != 4 &&
                         monster->SetScriptLabel(entry->sub_entries->text) == 0) {
@@ -1062,7 +1064,7 @@ void RunNpcScriptLine(int script_line, bool force_npc_voice)
                                  entry->sub_entries->text);
                     }
                     break;
-                case 13:
+                case W8_NPC_ENTRY_NPC_WORLD_ACTION:
                     if (g_npc_scripting.staging_restore.current_quote_index <
                             g_world_action_quote_min ||
                         g_world_action_quote_max <
@@ -1086,7 +1088,7 @@ void RunNpcScriptLine(int script_line, bool force_npc_voice)
                         }
                     }
                     break;
-                case 14:
+                case W8_NPC_ENTRY_CLOSE_AND_RESUME:
                     line = new W8MessageBoxLine;
                     memset(line, 0, sizeof(W8MessageBoxLine));
                     line->quote_index = -1;
@@ -1097,12 +1099,12 @@ void RunNpcScriptLine(int script_line, bool force_npc_voice)
                     g_npc_scripting.message_lines.Add(line);
                     finished = true;
                     break;
-                case 19:
+                case W8_NPC_ENTRY_KEYWORD_INPUT:
                     g_npc_interaction_state->script_busy = 0xff;
                     QueueNpcQuoteEntry(entry, 0, false);
                     finished = true;
                     break;
-                case 20:
+                case W8_NPC_ENTRY_SELF_GROUP_ACTION:
                     if (g_npc_scripting.staging_restore.current_quote_index <
                             g_world_action_quote_min ||
                         g_world_action_quote_max <
@@ -1117,7 +1119,7 @@ void RunNpcScriptLine(int script_line, bool force_npc_voice)
                                           group_action_extra);
                     }
                     break;
-                case 21: {
+                case W8_NPC_ENTRY_NPC_INTERACTION: {
                     char action_name[52];
                     sprintf(action_name, "%s", entry->sub_entries->text + 4);
                     target = FindNpcStateByName(action_name);
@@ -1125,13 +1127,13 @@ void RunNpcScriptLine(int script_line, bool force_npc_voice)
                         ApplyNpcInteraction(target, 4, 0, 0, entry->operand0);
                     }
                 } break;
-                case 22:
+                case W8_NPC_ENTRY_FACTION_CHANGE:
                     faction = FindFactionByName(entry->sub_entries->text);
                     if (faction != -1) {
                         ApplyFactionChange(3, 1, faction, entry->operand0);
                     }
                     break;
-                case 24: {
+                case W8_NPC_ENTRY_PARTY_SPEAKER_EVENT: {
                     int event_type = entry->operand0;
                     line = new W8MessageBoxLine;
                     memset(line, 0, sizeof(W8MessageBoxLine));
@@ -1142,29 +1144,37 @@ void RunNpcScriptLine(int script_line, bool force_npc_voice)
                     line->npc = g_npc_scripting.npc;
                     g_npc_scripting.message_lines.Add(line);
                 } break;
-                case 25:
-                    ApplyScriptedDialogueKeyword(entry->sub_entries->text, 1);
+                case W8_NPC_ENTRY_PERSON_KEYWORD:
+                    ApplyScriptedDialogueKeyword(entry->sub_entries->text,
+                                                 W8_DIALOGUE_CATEGORY_PEOPLE);
                     break;
-                case 26:
-                    ApplyScriptedDialogueKeyword(entry->sub_entries->text, 0);
+                case W8_NPC_ENTRY_ITEM_KEYWORD:
+                    ApplyScriptedDialogueKeyword(entry->sub_entries->text,
+                                                 W8_DIALOGUE_CATEGORY_ITEMS);
                     break;
-                case 27:
-                    ApplyScriptedDialogueKeyword(entry->sub_entries->text, 2);
+                case W8_NPC_ENTRY_PLACE_KEYWORD:
+                    ApplyScriptedDialogueKeyword(entry->sub_entries->text,
+                                                 W8_DIALOGUE_CATEGORY_PLACES);
                     break;
-                case 28:
-                    ApplyScriptedDialogueKeyword(entry->sub_entries->text, 3);
+                case W8_NPC_ENTRY_MISC_KEYWORD:
+                    ApplyScriptedDialogueKeyword(entry->sub_entries->text,
+                                                 W8_DIALOGUE_CATEGORY_MISC);
                     break;
                 case 31:
-                    ApplyScriptedDialogueKeyword(entry->sub_entries->text, 1);
+                    ApplyScriptedDialogueKeyword(entry->sub_entries->text,
+                                                 W8_DIALOGUE_CATEGORY_PEOPLE);
                     break;
                 case 32:
-                    ApplyScriptedDialogueKeyword(entry->sub_entries->text, 0);
+                    ApplyScriptedDialogueKeyword(entry->sub_entries->text,
+                                                 W8_DIALOGUE_CATEGORY_ITEMS);
                     break;
                 case 33:
-                    ApplyScriptedDialogueKeyword(entry->sub_entries->text, 2);
+                    ApplyScriptedDialogueKeyword(entry->sub_entries->text,
+                                                 W8_DIALOGUE_CATEGORY_PLACES);
                     break;
                 case 34:
-                    ApplyScriptedDialogueKeyword(entry->sub_entries->text, 3);
+                    ApplyScriptedDialogueKeyword(entry->sub_entries->text,
+                                                 W8_DIALOGUE_CATEGORY_MISC);
                     break;
                 }
                 if (finished) {
@@ -1220,7 +1230,7 @@ void ProcessNpcQuoteEntry(W8NpcQuoteEntry* entry, int continuation_quote)
     wchar_t notice_text[200];
 
     switch (entry->kind) {
-    case 2:
+    case W8_NPC_ENTRY_NEXT_QUOTE:
         if (entry->operand2 == 4 && entry->operand1 != 2) {
             sprintf(action_name, "%s", entry->sub_entries->text + 4);
             target = FindNpcStateByName(action_name);
@@ -1250,7 +1260,7 @@ void ProcessNpcQuoteEntry(W8NpcQuoteEntry* entry, int continuation_quote)
             }
         }
         break;
-    case 3:
+    case W8_NPC_ENTRY_FACT_CONDITIONAL_QUOTE:
         if (entry->operand2 == 4 && entry->operand1 != 2) {
             sprintf(action_name, "%s", entry->sub_entries->text + 4);
             target = FindNpcStateByName(action_name);
@@ -1278,15 +1288,15 @@ void ProcessNpcQuoteEntry(W8NpcQuoteEntry* entry, int continuation_quote)
             }
         }
         break;
-    case 5:
-    case 0x13:
+    case W8_NPC_ENTRY_OPTIONS:
+    case W8_NPC_ENTRY_KEYWORD_INPUT:
         continuation_quote = -1;
         /* fall through */
-    case 0x12:
-    case 0x1e:
+    case W8_NPC_ENTRY_PRICE_CHECK:
+    case W8_NPC_ENTRY_ALWAYS_PRICE_CHECK:
         OpenNpcDialog(entry, continuation_quote);
         break;
-    case 9:
+    case W8_NPC_ENTRY_GIVE_ITEM:
         ReplaceOrCreateItem(&item, entry->operand0, true, true, false);
         swprintf(notice_text, gppStringList[0x7ea], GetItemDisplayName(&item));
         if (!gXStatus.fNpcDialogueMode) {
@@ -1310,10 +1320,10 @@ void ProcessNpcQuoteEntry(W8NpcQuoteEntry* entry, int continuation_quote)
             RebuildNpcTradeItemList(false);
         }
         break;
-    case 10:
+    case W8_NPC_ENTRY_REMOVE_ITEM:
         RemoveNpcScriptItem(0, 1, entry->operand0);
         break;
-    case 0x10:
+    case W8_NPC_ENTRY_GIVE_GOLD:
         swprintf(notice_text, gppStringList[0x7e9], g_npc_scripting.npc->record->source_name,
                  entry->operand0);
         AddPartyGold(entry->operand0, false);
@@ -1328,7 +1338,7 @@ void ProcessNpcQuoteEntry(W8NpcQuoteEntry* entry, int continuation_quote)
         sound_parms.EOSCallback = 0;
         SoundPlay(sound_path, &sound_parms);
         break;
-    case 0x11:
+    case W8_NPC_ENTRY_GIVE_EXPERIENCE:
         AwardPartyExperience(entry->operand0, 0);
         break;
     }
@@ -1452,10 +1462,11 @@ void ProcessMessageBoxQueue(void)
             line->quote_index < script->quote_count) {
             W8NpcScriptQuote* quote = &script->quotes[line->quote_index];
             for (index = 0; index < quote->entry_count; ++index) {
-                unsigned char kind = quote->entries[index].kind;
-                if ((kind == 0x12 || kind == 0x1e) &&
-                    (kind == 0x1e || !NpcKnowsFact(g_npc_scripting.npc,
-                                                   static_cast<W8FactId>(line->quote_index)))) {
+                W8NpcQuoteEntryKind kind = quote->entries[index].kind;
+                if ((kind == W8_NPC_ENTRY_PRICE_CHECK || kind == W8_NPC_ENTRY_ALWAYS_PRICE_CHECK) &&
+                    (kind == W8_NPC_ENTRY_ALWAYS_PRICE_CHECK ||
+                     !NpcKnowsFact(g_npc_scripting.npc,
+                                   static_cast<W8FactId>(line->quote_index)))) {
                     RunNpcScriptLine(0x12, false);
                     g_npc_interaction_state->script_busy = 0xff;
                     W8MessageBoxLine* continuation = new W8MessageBoxLine;
@@ -1620,7 +1631,8 @@ void ProcessMessageBoxQueue(void)
             delete skill_changes;
         } else {
             g_npc_scripting.portrait_message_active = true;
-            SetNpcQuoteBubbleVisible(true, line->payload.text, 0, -1, -1, 2, line->extra, -1);
+            SetNpcQuoteBubbleVisible(true, line->payload.text, 0, -1, -1,
+                                     W8_QUOTE_NOTICE_SKILL_INCREASE, line->extra, -1);
             g_npc_scripting.message_duration_ms =
                 ComputePortraitMessageDuration(line->payload.text);
             g_npc_scripting.message_started_at = GetTickCount();
@@ -1659,7 +1671,8 @@ void ProcessMessageBoxQueue(void)
         break;
     case W8_NPC_MSG_PORTRAIT_EXTRA:
         g_npc_scripting.portrait_message_active = true;
-        SetNpcQuoteBubbleVisible(true, line->payload.text, 0, -1, -1, 1, line->extra, -1);
+        SetNpcQuoteBubbleVisible(true, line->payload.text, 0, -1, -1, W8_QUOTE_NOTICE_EXPERIENCE,
+                                 line->extra, -1);
         g_npc_scripting.message_duration_ms = ComputePortraitMessageDuration(line->payload.text);
         g_npc_scripting.message_started_at = GetTickCount();
         delete[] line->payload.text;
@@ -1673,7 +1686,8 @@ void ProcessMessageBoxQueue(void)
             delete[] line->payload.text;
         } else {
             g_npc_scripting.portrait_message_active = true;
-            SetNpcQuoteBubbleVisible(true, line->payload.text, 0, -1, -1, 3, line->extra, -1);
+            SetNpcQuoteBubbleVisible(true, line->payload.text, 0, -1, -1, W8_QUOTE_NOTICE_LEVEL_UP,
+                                     line->extra, -1);
             g_npc_scripting.message_duration_ms =
                 ComputePortraitMessageDuration(line->payload.text);
             g_npc_scripting.message_started_at = GetTickCount();
@@ -2246,7 +2260,7 @@ int FindNpcReplyQuote(wchar_t* text)
     quote = g_npc_scripting.npc->script_file->quotes + quote_index;
     for (index = 0; index < quote->entry_count; ++index) {
         entry = &quote->entries[index];
-        if (entry->kind == 5 || entry->kind == 0x13) {
+        if (entry->kind == W8_NPC_ENTRY_OPTIONS || entry->kind == W8_NPC_ENTRY_KEYWORD_INPUT) {
             break;
         }
     }
@@ -2261,7 +2275,8 @@ int FindNpcReplyQuote(wchar_t* text)
                answer. */
             for (index = 0; index < quote->entry_count; ++index) {
                 entry = &quote->entries[index];
-                if (entry->kind == 6 && entry->operand2 == 3 && entry->sub_entry_count != 0) {
+                if (entry->kind == W8_NPC_ENTRY_REPLY && entry->operand2 == 3 &&
+                    entry->sub_entry_count != 0) {
                     for (sub = 0; sub < entry->sub_entry_count; ++sub) {
                         swprintf(sub_text, L"%S", entry->sub_entries[sub].text);
                         if (CompareWideTextIgnoreAsciiCase(sub_text, text) == 0) {
@@ -2272,7 +2287,7 @@ int FindNpcReplyQuote(wchar_t* text)
             }
             for (index = 0; index < quote->entry_count; ++index) {
                 entry = &quote->entries[index];
-                if (entry->kind == 6 && entry->operand2 == 1) {
+                if (entry->kind == W8_NPC_ENTRY_REPLY && entry->operand2 == 1) {
                     return entry->operand0;
                 }
             }
@@ -2282,7 +2297,7 @@ int FindNpcReplyQuote(wchar_t* text)
 
     for (index = 0; index < quote->entry_count; ++index) {
         entry = &quote->entries[index];
-        if (entry->kind == 6 && entry->operand2 == 2) {
+        if (entry->kind == W8_NPC_ENTRY_REPLY && entry->operand2 == 2) {
             return entry->operand0;
         }
     }
@@ -2383,7 +2398,7 @@ void RunNpcQuoteDeclineActions(int quote_index)
 
     quote = g_npc_scripting.npc->script_file->quotes + quote_index;
     for (index = 0; index < quote->entry_count; ++index) {
-        if (quote->entries[index].kind == 0x17) {
+        if (quote->entries[index].kind == W8_NPC_ENTRY_DECLINE_QUOTE) {
             RunNpcScriptLine(quote->entries[index].operand0, false);
         }
     }

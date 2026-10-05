@@ -27,7 +27,7 @@ struct W8SpellCastingView {
     int uiSpellToCast;               /* 0x100 */
     int override_spell;          /* 0x104: detail/commit override spell */
     int iSpellPower;                 /* 0x108: chosen power index, -1 when unset */
-    int iSpellPowerClass;            /* 0x10c: the spell record's power class */
+    W8SpellPowerClass iSpellPowerClass; /* 0x10c: the spell record's power class */
     unsigned int uiPowerLevels;      /* 0x110: affordable power-level count */
     TIMER realm_anim_timer;          /* 0x114 */
     unsigned int realm_anim_frame;   /* 0x118 */

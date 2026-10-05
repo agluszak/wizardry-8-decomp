@@ -185,6 +185,16 @@ enum W8NpcDialogueControlSlot {
     W8_NPC_CONTROL_TEXT_38 = 38,
 };
 
+/* Payload ownership on portrait-quote dismissal; retained as a byte. */
+typedef unsigned char W8NpcQuoteNoticeKind;
+
+enum {
+    W8_QUOTE_NOTICE_TEXT = 0,
+    W8_QUOTE_NOTICE_EXPERIENCE = 1,
+    W8_QUOTE_NOTICE_SKILL_INCREASE = 2,
+    W8_QUOTE_NOTICE_LEVEL_UP = 3
+};
+
 struct W8NpcInteractionState {
     /* 0x000: a word 0x0056CAD0 clears while the dialogue opens. */
     short value_000;
@@ -304,7 +314,7 @@ struct W8NpcInteractionState {
        its close can restore them. */
     float saved_camera_pitch;
     float saved_camera_yaw;
-    unsigned char quote_notice_kind;
+    W8NpcQuoteNoticeKind quote_notice_kind;
     unsigned char unknown_249[3];
     /* 0x24c: notice payload discriminated by quote_notice_kind: 1 takes
        `experience`, 2 `skill_notices`, 3 `level_up_slot`; producers arrive
@@ -399,8 +409,9 @@ bool IsDialoguePlaceKeyword(const wchar_t* name);
 void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuote* quote,
                               int quote_id, unsigned int font_palette); /* 0x00576030 */
 void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuote* quote,
-                              int quote_id, unsigned int font_palette, unsigned char notice_kind,
-                              W8MessageBoxPayload payload, int npc_kind); /* 0x00576060 */
+                              int quote_id, unsigned int font_palette,
+                              W8NpcQuoteNoticeKind notice_kind, W8MessageBoxPayload payload,
+                              int npc_kind);                              /* 0x00576060 */
 void DrawNpcQuoteBubble(void);                                            /* 0x00576670 */
 /* 0x00575E60: OpenNpcDialog — the modal request is the script's
    W8NpcQuoteEntry itself; the dialog discriminates kind 0x05 (option

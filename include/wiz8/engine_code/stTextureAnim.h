@@ -2,6 +2,13 @@
 
 #include "surrender/srTexture.h"
 #include "wiz8/vector.h"
+#include "wiz8/texture_animation.h"
+
+enum W8TextureTriggerMode {
+    W8_TEXTURE_TRIGGER_CONTINUOUS = 0,
+    W8_TEXTURE_TRIGGER_RANDOM_FRAME = 1,
+    W8_TEXTURE_TRIGGER_RANDOM_START = 2
+};
 
 class stTextureAnim : public srClassSupport<stTextureAnim, srTexture, 0, 0x10000> {
 public:
@@ -38,11 +45,11 @@ public:
     W8Vector<srTextureIFace*>* textures;
     int frame;
     int direction;
-    unsigned char animation_mode;
+    W8TextureAnimationMode animation_mode;
     int initial_frame;
     float frame_rate;
     unsigned long frame_tick;
-    int trigger_mode;
+    W8TextureTriggerMode trigger_mode;
     float probability;
     bool running;
 };

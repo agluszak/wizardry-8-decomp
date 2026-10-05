@@ -81,30 +81,30 @@ char MonsterHostility(W8MonsterInfo* first, W8MonsterInfo* second)
 
     if (first->monster_species == W8_NEUTRAL_SPECIES_224 ||
         second->monster_species == W8_NEUTRAL_SPECIES_224) {
-        return 0;
+        return W8_DISPOSITION_NEUTRAL;
     }
     if (first->ubDisposition == second->ubDisposition) {
-        return 2;
+        return W8_DISPOSITION_FRIENDLY;
     }
     if (first->ubDisposition == W8_DISPOSITION_NEUTRAL ||
         second->ubDisposition == W8_DISPOSITION_NEUTRAL) {
-        return 0;
+        return W8_DISPOSITION_NEUTRAL;
     }
     first_record = GetMonsterDataForInfo(first);
     second_record = GetMonsterDataForInfo(second);
     first_faction = first_record->faction_id;
     if (first_faction == 0) {
-        return 1;
+        return W8_DISPOSITION_HOSTILE;
     }
     second_faction = second_record->faction_id;
     if (second_faction == 0 || first_faction != second_faction) {
-        return 1;
+        return W8_DISPOSITION_HOSTILE;
     }
     if ((first->uiCondition[W8_CONDITION_TURNCOAT] != 0) ==
         (second->uiCondition[W8_CONDITION_TURNCOAT] != 0)) {
-        return 0;
+        return W8_DISPOSITION_NEUTRAL;
     }
-    return 1;
+    return W8_DISPOSITION_HOSTILE;
 }
 
 /* Map a monster's disposition band onto the party character: while the
@@ -160,7 +160,7 @@ char GetOppositeDisposition(W8TargetSource* source)
         if (monster_list_index == 0xffffffff) {
             FormatDebugMessage(1, "GetOppositeDisposition - ERROR: checking obsolete Monster ID %d",
                                source->iMonsterID);
-            return 0;
+            return W8_DISPOSITION_NEUTRAL;
         }
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
         if (monster_info->uiCondition[W8_CONDITION_TURNCOAT] == 0) {
@@ -170,14 +170,14 @@ char GetOppositeDisposition(W8TargetSource* source)
             return W8_DISPOSITION_FRIENDLY;
         }
     }
-    return 0;
+    return W8_DISPOSITION_NEUTRAL;
 }
 
 // FUNCTION: WIZ8 0x00547120
 void ProvokeListedMonsterGroups(W8TargetSource* source, W8GrowableVector<int>* monsters)
 {
     int own_monster_id = -1;
-    if (GetOppositeDisposition(source) == 0) {
+    if (GetOppositeDisposition(source) == W8_DISPOSITION_NEUTRAL) {
         return;
     }
     if (TargetSourceIsMonster(source, 0)) {
