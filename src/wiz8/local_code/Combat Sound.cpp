@@ -233,19 +233,9 @@ void MakePCAttackSound(W8CombatCharacterRow* row, const W8HandAttack* hand_attac
     PlayCombatSound(g_weapon_attack_sounds[weapon_class], 1, store_handle, volume);
 }
 
-// FUNCTION: WIZ8 0x00549F50
-void MakePCMeleeHitSound(int iChar, const W8HandAttack* hand_attack, W8CombatSlot* target,
-                         int hit_location, int volume)
+static int GetCombatTargetMaterial(W8CombatSlot* target, int hit_location, int assertion_line)
 {
-    int weapon_class;
     int target_material = -1;
-
-    if (hand_attack->uiHolds == HOLDS_NOTHING) {
-        weapon_class = 9;
-    } else {
-        weapon_class = g_item_records[g_combat_state->characters[iChar].paired_item_id]
-                           .weapon_sound_class;
-    }
     if (target->iType == W8_TARGET_KIND_CHARACTER) {
         const W8Character* character = &g_status.buffers.Char[target->iChar];
         int item = PCItemInACSlot(character, hit_location);
@@ -254,8 +244,25 @@ void MakePCMeleeHitSound(int iChar, const W8HandAttack* hand_attack, W8CombatSlo
         const W8MonsterRecord* record = GetMonsterDataByLocationID(target->iMonsterID);
         target_material = record == 0 ? 0 : record->material;
     } else {
-        srAssertFail("FALSE", COMBAT_SOUND_CPP, 415, "MakePCHitSound : Unknown target type");
+        srAssertFail("FALSE", COMBAT_SOUND_CPP, assertion_line,
+                     "MakePCHitSound : Unknown target type");
     }
+    return target_material;
+}
+
+// FUNCTION: WIZ8 0x00549F50
+void MakePCMeleeHitSound(int iChar, const W8HandAttack* hand_attack, W8CombatSlot* target,
+                         int hit_location, int volume)
+{
+    int weapon_class;
+
+    if (hand_attack->uiHolds == HOLDS_NOTHING) {
+        weapon_class = 9;
+    } else {
+        weapon_class =
+            g_item_records[g_combat_state->characters[iChar].paired_item_id].weapon_sound_class;
+    }
+    int target_material = GetCombatTargetMaterial(target, hit_location, 415);
     PlayCombatSound(GetMaterialImpactSound(weapon_class, target_material), 1, 1, volume);
 }
 
@@ -263,20 +270,8 @@ void MakePCMeleeHitSound(int iChar, const W8HandAttack* hand_attack, W8CombatSlo
 void MakePCHitSound(W8Missile* missile, W8CombatSlot* target, int hit_location, int volume)
 {
     int weapon_class = g_missile_table[missile->missile_table_index].weapon_sound_class;
-    /* Defined so the assert-failure path still reaches the material lookup;
-       -1 is out of range and yields the retail "HIT" fallback. */
-    int target_material = -1;
 
-    if (target->iType == W8_TARGET_KIND_CHARACTER) {
-        const W8Character* character = &g_status.buffers.Char[target->iChar];
-        int item = PCItemInACSlot(character, hit_location);
-        target_material = item == -1 ? 0 : g_item_records[item].material;
-    } else if (target->iType == W8_TARGET_KIND_MONSTER) {
-        const W8MonsterRecord* record = GetMonsterDataByLocationID(target->iMonsterID);
-        target_material = record == 0 ? 0 : record->material;
-    } else {
-        srAssertFail("FALSE", COMBAT_SOUND_CPP, 465, "MakePCHitSound : Unknown target type");
-    }
+    int target_material = GetCombatTargetMaterial(target, hit_location, 465);
     PlayCombatSound(GetMaterialImpactSound(weapon_class, target_material), 1, 1, volume);
 }
 
@@ -285,9 +280,6 @@ void MakeMonsterHitSound(const W8MonsterAttack* attack, W8CombatSlot* target, in
                          int volume)
 {
     int weapon_class;
-    /* Defined so the assert-failure path still reaches the material lookup;
-       -1 is out of range and yields the retail "HIT" fallback. */
-    int target_material = -1;
 
     if (attack == 0) {
         return;
@@ -296,15 +288,6 @@ void MakeMonsterHitSound(const W8MonsterAttack* attack, W8CombatSlot* target, in
         return;
     }
     weapon_class = attack->weapon_class;
-    if (target->iType == W8_TARGET_KIND_CHARACTER) {
-        const W8Character* character = &g_status.buffers.Char[target->iChar];
-        int item = PCItemInACSlot(character, hit_location);
-        target_material = item == -1 ? 0 : g_item_records[item].material;
-    } else if (target->iType == W8_TARGET_KIND_MONSTER) {
-        const W8MonsterRecord* record = GetMonsterDataByLocationID(target->iMonsterID);
-        target_material = record == 0 ? 0 : record->material;
-    } else {
-        srAssertFail("FALSE", COMBAT_SOUND_CPP, 504, "MakePCHitSound : Unknown target type");
-    }
+    int target_material = GetCombatTargetMaterial(target, hit_location, 504);
     PlayCombatSound(GetMaterialImpactSound(weapon_class, target_material), 1, 1, volume);
 }

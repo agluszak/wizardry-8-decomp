@@ -227,6 +227,27 @@ int FindNpcNameOrPlaceQuote(W8NpcState* npc, wchar_t* text)
     return g_npc_region_quotes[1][band];
 }
 
+static void ShowConsumedItemQuote(wchar_t* text)
+{
+    char sound_path[128];
+    SOUNDPARMS sound_parms;
+    if (g_npc_interaction_state->dialogue_layout == W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX) {
+        RebuildNpcTradeItemList(0);
+        return;
+    }
+    SetNpcQuoteBubbleVisible(true, text, 0, -1, 0x47);
+    g_npc_scripting.voice_playing = false;
+    g_npc_scripting.message_duration_ms = 2000;
+    g_npc_scripting.last_tick = GetTickCount();
+    g_npc_scripting.message_started_at = GetTickCount();
+    memset(&sound_parms, 0xff, sizeof(SOUNDPARMS));
+    g_npc_scripting.quote_active = 1;
+    sprintf(sound_path, "Data\\Sound\\misc\\startgame.wav");
+    sound_parms.EOSCallback = 0;
+    SoundPlay(sound_path, &sound_parms);
+    return;
+}
+
 /* Remove one stack unit of the matching item: the character backpacks first
    (the slot whose address equals `item` wins, or any slot carrying `item_id`
    when `match_item_id` is set), then the party pool, then the pending
@@ -236,8 +257,6 @@ int FindNpcNameOrPlaceQuote(W8NpcState* npc, wchar_t* text)
 void RemoveNpcScriptItem(W8ItemInstance* item, int match_item_id, int item_id)
 {
     wchar_t text[200];
-    char sound_path[128];
-    SOUNDPARMS sound_parms;
     unsigned int slot;
     unsigned int index;
     W8ItemInstance* slot_item;
@@ -257,20 +276,7 @@ void RemoveNpcScriptItem(W8ItemInstance* item, int match_item_id, int item_id)
                     EmptyItemRecord(slot_item, &g_status.buffers.Char[slot], 1);
                 }
                 swprintf(text, gppStringList[0x7ec], g_status.buffers.Char[slot].name);
-                if (g_npc_interaction_state->dialogue_layout == W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX) {
-                    RebuildNpcTradeItemList(0);
-                    return;
-                }
-                SetNpcQuoteBubbleVisible(true, text, 0, -1, 0x47);
-                g_npc_scripting.voice_playing = false;
-                g_npc_scripting.message_duration_ms = 2000;
-                g_npc_scripting.last_tick = GetTickCount();
-                g_npc_scripting.message_started_at = GetTickCount();
-                memset(&sound_parms, 0xff, sizeof(SOUNDPARMS));
-                g_npc_scripting.quote_active = 1;
-                sprintf(sound_path, "Data\\Sound\\misc\\startgame.wav");
-                sound_parms.EOSCallback = 0;
-                SoundPlay(sound_path, &sound_parms);
+                ShowConsumedItemQuote(text);
                 return;
             }
         }
@@ -286,20 +292,7 @@ void RemoveNpcScriptItem(W8ItemInstance* item, int match_item_id, int item_id)
                 EmptyPartyPoolEntry(slot);
             }
             swprintf(text, gppStringList[0x7ed]);
-            if (g_npc_interaction_state->dialogue_layout == W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX) {
-                RebuildNpcTradeItemList(0);
-                return;
-            }
-            SetNpcQuoteBubbleVisible(true, text, 0, -1, 0x47);
-            g_npc_scripting.voice_playing = false;
-            g_npc_scripting.message_duration_ms = 2000;
-            g_npc_scripting.last_tick = GetTickCount();
-            g_npc_scripting.message_started_at = GetTickCount();
-            memset(&sound_parms, 0xff, sizeof(SOUNDPARMS));
-            g_npc_scripting.quote_active = 1;
-            sprintf(sound_path, "Data\\Sound\\misc\\startgame.wav");
-            sound_parms.EOSCallback = 0;
-            SoundPlay(sound_path, &sound_parms);
+            ShowConsumedItemQuote(text);
             return;
         }
     }

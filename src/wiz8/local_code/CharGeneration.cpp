@@ -912,32 +912,8 @@ int ComputeStartingEquipmentCost(W8Character* character)
 // FUNCTION: WIZ8 0x005586b0
 bool CanAffordStartingEquipment(W8Character* character)
 {
-    W8ItemInstance* item;
-    unsigned int total;
-    int count;
-
-    total = 0;
-    AddCharacterStartingEquipment(character);
-    item = character->EquippedItem;
-    count = 0xc;
-    do {
-        if (item->iItemNo != -1) {
-            total += GetItemStackValue(item);
-        }
-        ++item;
-        --count;
-    } while (count != 0);
-    item = character->backpack;
-    count = 8;
-    do {
-        if (item->iItemNo != -1) {
-            total += GetItemStackValue(item);
-        }
-        ++item;
-        --count;
-    } while (count != 0);
-    EmptyAllCarriedItems(character);
-    return total <= g_status.party_gold;
+    return static_cast<unsigned int>(ComputeStartingEquipmentCost(character)) <=
+           g_status.party_gold;
 }
 
 /* Recompute the level-up pools after a profession change, refunding every

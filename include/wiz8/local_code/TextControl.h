@@ -103,6 +103,7 @@ public:
 
 protected:
     void InvalidateCore(unsigned char immediate);
+    void UpdateTextLayout();
 };
 static_assert(sizeof(W8TextControl) == 0xb8, "W8TextControl_size");
 
