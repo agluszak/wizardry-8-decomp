@@ -2810,7 +2810,7 @@ bool NotifyNpcTriggerActivation(Trigger* trigger)
         W8NpcState* npc = *g_npc_states->GetAt(trigger->m_lData1);
 
         if ((trigger->flags & W8_TRIGGER_ENABLED) != 0 || npc->name_style == '{') {
-            if (g_status.item_in_cursor != 0) {
+            if (g_status.item_in_cursor) {
                 item = &g_status.item_in_hand;
             }
         }

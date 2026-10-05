@@ -1681,17 +1681,7 @@ void ProcessMessageBoxQueue(void)
     case W8_NPC_MSG_SKILL_NOTICES: {
         W8SkillNoticePayload* skill_changes = line->extra.skill_notices;
         if (g_settings.skill_increase_messages == 0) {
-            for (index = 0; index < skill_changes->count; ++index) {
-                int party_slot = skill_changes->party_slots[index];
-                int skill = skill_changes->skills[index];
-                W8Character* character = &g_status.buffers.Char[party_slot];
-                unsigned int value = character->skills[skill].points;
-                if (skill == g_profession_bonus_skills[character->iProfession]) {
-                    value = value * 125 / 100;
-                }
-                PostCharacterNotice(party_slot, gppStringList[0x1d9],
-                                    gppStringList[g_character_skill_name_ids[skill]], value);
-            }
+            PostSkillIncreaseNotices(skill_changes);
             delete skill_changes;
         } else {
             g_npc_scripting.portrait_message_active = true;

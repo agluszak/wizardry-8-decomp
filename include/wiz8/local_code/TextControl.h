@@ -33,6 +33,25 @@ public:
                   int text_40, int text_44, int text_48, int text_4c, int text_54, int text_50,
                   int text_58);
 
+    void SetImage(int object, int frame = 0)
+    {
+        m_imageObject = object;
+        m_measured_w = -1;
+        m_measured_h = -1;
+        m_imageFrame = frame;
+        m_normalSprite = 0;
+        m_pressedSprite = 0;
+    }
+    void ClearImage()
+    {
+        m_imageObject = -1;
+        m_measured_w = -1;
+        m_measured_h = -1;
+        m_imageFrame = -1;
+        m_normalSprite = -1;
+        m_pressedSprite = -1;
+    }
+
     unsigned char MeasureText();
     void GetTextOrigin(int* px, int* py);
     void Invalidate(unsigned char immediate);

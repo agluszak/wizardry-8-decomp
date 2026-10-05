@@ -382,7 +382,7 @@ unsigned char CampPortraitSlotRegionEvent(const InputAtom* event, W8Region* regi
             }
             return 0;
         }
-        if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0 && g_status.item_in_cursor != 0) {
+        if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0 && g_status.item_in_cursor) {
             TryGiveHeldItemToCampPortrait(static_cast<int>(target_slot));
         }
     }
@@ -1095,7 +1095,7 @@ void DrawCampHands(void)
     unsigned short* palette;
 
     item_id = g_review_character->EquippedItem[6].iItemNo;
-    if (item_id == -1 || (g_item_records[item_id].flags & 4) == 0) {
+    if (item_id == -1 || (g_item_records[item_id].flags & W8_ITEM_FLAG_TWO_HANDED) == 0) {
         two_handed = false;
         hand_image = 0;
     } else {
@@ -1295,7 +1295,7 @@ void RefreshCampItemActions(bool invalidate)
                                     IsPartySlotEligible(giReviewCharSlot) != 0);
                 continue;
             case 2:
-                if (g_status.item_in_cursor == 0) {
+                if (!g_status.item_in_cursor) {
                     control->SetEnabled(1);
                     continue;
                 }
@@ -1329,7 +1329,7 @@ void RefreshCampItemActions(bool invalidate)
                     control->SetEnabled(0);
                     continue;
                 }
-                if (g_status.item_in_cursor == 0) {
+                if (!g_status.item_in_cursor) {
                     control->SetEnabled(1);
                     continue;
                 }
@@ -1357,7 +1357,7 @@ void RefreshCampItemActions(bool invalidate)
                 if (SpellUsableNow(0x17, 0) == 0) {
                     break;
                 }
-                if (g_status.item_in_cursor == 0) {
+                if (!g_status.item_in_cursor) {
                     control->SetEnabled(1);
                     continue;
                 }
@@ -1445,7 +1445,7 @@ void SetCampItemActionMode(char mode)
         break;
     }
     SetTargetingMode(targeting);
-    if (mode == 0 && g_status.item_in_cursor != 0) {
+    if (mode == 0 && g_status.item_in_cursor) {
         SetItemCursor(0);
     }
     if (selected != -1 &&
@@ -1514,7 +1514,7 @@ static void OnCampItemActionButton0(void)
     if (static_cast<unsigned char>(g_item_action_controls[0]->m_stateFlags &
                                    g_W8TextControlStateSecondary) != 0) {
         g_camp_entry_parameter = g_review_character;
-        if (g_status.item_in_cursor != 0) {
+        if (g_status.item_in_cursor) {
             IdentifyAndOpenItemInfo(&g_status.item_in_hand);
             return;
         }
@@ -1530,7 +1530,7 @@ static void OnCampItemActionButton1(void)
     if (static_cast<unsigned char>(g_item_action_controls[1]->m_stateFlags &
                                    g_W8TextControlStateSecondary) != 0) {
         SetCampItemActionMode(1);
-        if (g_status.item_in_cursor != 0) {
+        if (g_status.item_in_cursor) {
             SetHandCursors(0);
             g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_EQUIPMENT;
         }
@@ -1544,7 +1544,7 @@ static void OnCampItemActionButton2(void)
 {
     if (static_cast<unsigned char>(g_item_action_controls[2]->m_stateFlags &
                                    g_W8TextControlStateSecondary) != 0) {
-        if (g_status.item_in_cursor != 0) {
+        if (g_status.item_in_cursor) {
             OpenSplitStackDialog(&g_status.item_in_hand);
             return;
         }
@@ -1559,7 +1559,7 @@ static void OnCampItemActionButton3(void)
 {
     if (static_cast<unsigned char>(g_item_action_controls[3]->m_stateFlags &
                                    g_W8TextControlStateSecondary) != 0) {
-        if (g_status.item_in_cursor != 0) {
+        if (g_status.item_in_cursor) {
             UseCampItem(&g_status.item_in_hand);
             return;
         }
@@ -1574,7 +1574,7 @@ static void OnCampItemActionButton4(void)
 {
     if (static_cast<unsigned char>(g_item_action_controls[4]->m_stateFlags &
                                    g_W8TextControlStateSecondary) != 0) {
-        if (g_status.item_in_cursor != 0) {
+        if (g_status.item_in_cursor) {
             if (ResolvePendingCampCharacter(1) != 0) {
                 DropHeldCampItem();
             }
@@ -1615,7 +1615,7 @@ static void OnCampItemActionButton6(void)
     if (static_cast<unsigned char>(g_item_action_controls[6]->m_stateFlags &
                                    g_W8TextControlStateSecondary) != 0) {
         giCasterCharSlot = giReviewCharSlot;
-        if (g_status.item_in_cursor != 0) {
+        if (g_status.item_in_cursor) {
             UseHeldItemOnItem(&g_status.item_in_hand);
             g_item_action_controls[6]->DisableSecondaryState(0);
             g_item_action_controls[6]->Invalidate(0);

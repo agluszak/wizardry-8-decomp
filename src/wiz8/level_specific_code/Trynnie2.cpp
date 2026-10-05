@@ -51,7 +51,7 @@ void EnsureTrynnie2KilledVar(void)
 // FUNCTION: WIZ8 0x004D9D70
 bool Trynnie2GoodaVineA(Trigger* pTrigger)
 {
-    if (g_status.item_in_cursor != 0) {
+    if (g_status.item_in_cursor) {
         return 0;
     }
     ReplaceOrCreateItem(&g_status.item_in_hand, 0x16d, 1, 1, 0);
@@ -64,7 +64,7 @@ bool Trynnie2GoodaVineA(Trigger* pTrigger)
 // FUNCTION: WIZ8 0x004D9DA0
 bool Trynnie2GoodaVineB(Trigger* pTrigger)
 {
-    if (g_status.item_in_cursor != 0) {
+    if (g_status.item_in_cursor) {
         return 0;
     }
     ReplaceOrCreateItem(&g_status.item_in_hand, 0x16e, 1, 1, 0);
@@ -77,7 +77,7 @@ bool Trynnie2GoodaVineB(Trigger* pTrigger)
 // FUNCTION: WIZ8 0x004D9DD0
 bool Trynnie2GiveZulu(Trigger* pTrigger)
 {
-    if (g_status.item_in_cursor != 0) {
+    if (g_status.item_in_cursor) {
         return 0;
     }
     ReplaceOrCreateItem(&g_status.item_in_hand, 0x1b3, 1, 1, 0);
@@ -115,7 +115,7 @@ bool Trynnie2MeatBox(Trigger* pTrigger)
     int item_id;
 
     group = FindFirstMonsterByID(0x1d4);
-    if (group == 0 || g_status.item_in_cursor == 0) {
+    if (group == 0 || !g_status.item_in_cursor) {
         ShowNotice(0xf, gppStringList[0x964]);
         return 1;
     }

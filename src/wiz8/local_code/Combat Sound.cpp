@@ -205,10 +205,10 @@ static int PCItemInACSlot(const W8Character* character, int hit_location)
         slot = W8_EQUIP_SLOT_LEGS;
         break;
     case 3:
-        slot = W8_EQUIP_SLOT_FEET;
+        slot = W8_EQUIP_SLOT_HANDS;
         break;
     case 4:
-        slot = W8_EQUIP_SLOT_HANDS;
+        slot = W8_EQUIP_SLOT_FEET;
         break;
     default:
         srAssertFail("FALSE", COMBAT_SOUND_CPP, 168, "PCItemInACSlot: ERROR - Invalid AC location");

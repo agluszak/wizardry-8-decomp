@@ -270,6 +270,6 @@ void ShowEndingScreen(void); /* 0x005A6B90 */
 /* 0x005A6580 */
 void BeginEndgameSequence(void);
 /* Camp and main-game notice dialogs ShowNoticeLine forwards into. */
-void ShowCampNoticeLine(wchar_t* text, W8DialogDestroyCallback callback, int confirmation,
+void ShowCampNoticeLine(const wchar_t* text, W8DialogDestroyCallback callback, int confirmation,
                         int cancel); /* 0x005A4C00 */
 void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned int origin);

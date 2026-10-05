@@ -111,7 +111,7 @@ bool MtGigas2Train(Trigger* pTrigger)
     npc = GetNpcStateByKind(0x5b);
     item = 0;
     item_id = 0;
-    if (g_status.item_in_cursor != 0) {
+    if (g_status.item_in_cursor) {
         item = &g_status.item_in_hand;
         item_id = GetItemInHand();
     }
@@ -259,7 +259,7 @@ bool MtGigas2Lift3(Trigger* pTrigger)
     W8NpcState* npc = GetNpcStateByKind(0x5c);
     W8ItemInstance* item = 0;
 
-    if (g_status.item_in_cursor != 0) {
+    if (g_status.item_in_cursor) {
         item = &g_status.item_in_hand;
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);
@@ -278,7 +278,7 @@ bool MtGigas2TopDoor1(Trigger* pTrigger)
     W8NpcState* npc = GetNpcStateByKind(0x5f);
     W8ItemInstance* item = 0;
 
-    if (g_status.item_in_cursor != 0) {
+    if (g_status.item_in_cursor) {
         item = &g_status.item_in_hand;
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);
@@ -312,7 +312,7 @@ bool MtGigas2Officer1(Trigger* pTrigger)
     }
     npc = GetNpcStateByKind(0x7c);
     item = 0;
-    if (g_status.item_in_cursor != 0) {
+    if (g_status.item_in_cursor) {
         item = &g_status.item_in_hand;
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);
@@ -346,7 +346,7 @@ bool MtGigas2Officer2(Trigger* pTrigger)
     }
     npc = GetNpcStateByKind(0x7d);
     item = 0;
-    if (g_status.item_in_cursor != 0) {
+    if (g_status.item_in_cursor) {
         item = &g_status.item_in_hand;
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);

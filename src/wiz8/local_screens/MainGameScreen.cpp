@@ -988,6 +988,25 @@ W8LockInteraction::~W8LockInteraction()
     delete m_action_panel;
 }
 
+int W8LockInteraction::ReleaseOwnedTumblers(int slot)
+{
+    int dropped = 0;
+    int i;
+    for (i = 0; i < m_tumbler_count; i++) {
+        if (m_tumbler_owner[i] == slot && m_tumbler_locked[i] != 0) {
+            m_tumbler_owner[i] = -1;
+            m_tumbler_locked[i] = 0;
+            m_tumbler_panel->m_tumblers[i]->m_at_top = 0;
+            m_tumbler_panel->m_tumblers[i]->m_pin_set = 0;
+            m_tumbler_panel->m_tumblers[i]->m_falling = 1;
+            m_tumbler_panel->m_animating = 1;
+            dropped = 1;
+        }
+    }
+    m_tumbler_panel->Invalidate(0);
+    return dropped;
+}
+
 // FUNCTION: WIZ8 0x00586740
 void W8LockInteraction::Process()
 {
@@ -1029,21 +1048,8 @@ void W8LockInteraction::Process()
         AttemptForce();
         return;
     case 3:
-        dropped = 0;
         m_state = 4;
-        slot = g_status.selected_character;
-        for (i = 0; i < m_tumbler_count; i++) {
-            if (m_tumbler_owner[i] == slot && m_tumbler_locked[i] != 0) {
-                m_tumbler_owner[i] = -1;
-                m_tumbler_locked[i] = 0;
-                m_tumbler_panel->m_tumblers[i]->m_at_top = 0;
-                m_tumbler_panel->m_tumblers[i]->m_pin_set = 0;
-                m_tumbler_panel->m_tumblers[i]->m_falling = 1;
-                m_tumbler_panel->m_animating = 1;
-                dropped = 1;
-            }
-        }
-        m_tumbler_panel->Invalidate(0);
+        dropped = ReleaseOwnedTumblers(g_status.selected_character);
         goto lock_release_done;
     case 4:
         m_state = 0;
@@ -1057,21 +1063,8 @@ void W8LockInteraction::Process()
         }
         break;
     case 5:
-        dropped = 0;
         m_state = 6;
-        slot = g_status.selected_character;
-        for (i = 0; i < m_tumbler_count; i++) {
-            if (m_tumbler_owner[i] == slot && m_tumbler_locked[i] != 0) {
-                m_tumbler_owner[i] = -1;
-                m_tumbler_locked[i] = 0;
-                m_tumbler_panel->m_tumblers[i]->m_at_top = 0;
-                m_tumbler_panel->m_tumblers[i]->m_pin_set = 0;
-                m_tumbler_panel->m_tumblers[i]->m_falling = 1;
-                m_tumbler_panel->m_animating = 1;
-                dropped = 1;
-            }
-        }
-        m_tumbler_panel->Invalidate(0);
+        dropped = ReleaseOwnedTumblers(g_status.selected_character);
     lock_release_done:
         if (dropped) {
             SoundPlay(s_lock_pin_falling, 0);
@@ -5794,7 +5787,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                                                 g_character_event_no_flags,
                                                 g_character_event_full_volume);
                         }
-                    } else if (g_status.item_in_cursor == 0 || gXStatus.iCurrentCursor != 7 ||
+                    } else if (!g_status.item_in_cursor || gXStatus.iCurrentCursor != 7 ||
                                gXStatus.dragged_item == &g_status.item_in_hand) {
                         if (g_settings.main_ui_mode != W8_MAIN_UI_MODE_PORTRAITS) {
                             RefreshSelectedPartyPortrait(slot);
@@ -5864,7 +5857,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                     }
                 } else {
                     if (g_level_block->portrait_refresh_pending[slot] == 0) {
-                        if (g_status.item_in_cursor == 0 || gXStatus.iCurrentCursor != 7 ||
+                        if (!g_status.item_in_cursor || gXStatus.iCurrentCursor != 7 ||
                             gXStatus.dragged_item == &g_status.item_in_hand) {
                             help_text = gppStringList[0x1d];
                         } else {
@@ -5922,7 +5915,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
         if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0 && targeting == 0 &&
             IsNpcDialogueCursorActive() == 0 && gXStatus.scripted_scene == 0) {
             g_level_block->portrait_right_hold_armed = false;
-            if (g_status.item_in_cursor == 0 || gfKeyState[0x11]) {
+            if (!g_status.item_in_cursor || gfKeyState[0x11]) {
                 OpenCharacterScreenForPartySlot(slot, false);
                 return 1;
             }
@@ -6105,7 +6098,7 @@ unsigned char PortraitAssaySidebarRegionEvent(const InputAtom* event, W8Region* 
 
     character = &g_status.buffers.Char[slot];
     item_id = character->EquippedItem[W8_EQUIP_SLOT_PRIMARY_WEAPON].iItemNo;
-    if (item_id == -1 || (g_item_records[item_id].flags & 4) == 0) {
+    if (item_id == -1 || (g_item_records[item_id].flags & W8_ITEM_FLAG_TWO_HANDED) == 0) {
         if (GetAtomCursorY(event) - region->y1 < 0x19) {
             g_level_block->portrait_assay_hover_mode = 1;
         } else {
@@ -6496,7 +6489,7 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
             OpenMonsterInfoDialog(g_level_block->highlighted_item);
             return 1;
         }
-        if (g_status.item_in_cursor == 0 && g_level_block->selected_item != -1 &&
+        if (!g_status.item_in_cursor && g_level_block->selected_item != -1 &&
             gXStatus.fSpellCastMode == 0 && gXStatus.fNpcDialogueMode == 0 &&
             gXStatus.fItemSelectMode == 0 && gXStatus.fLockInteractMode == 0 &&
             gXStatus.fTrapInteractMode == 0 &&
@@ -6584,9 +6577,8 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
                (needed == 4 && (event->usKeyState & CTRL_DOWN) != 0)) {
         AimAtGroundTarget(g_status.selected_character);
     } else if (g_level_block->highlighted_item == -1) {
-        if (g_status.item_in_cursor != 0 &&
-            ForwardSelectedPropIndex(GetWorld(), GetAtomCursorX(event), GetAtomCursorY(event)) ==
-                -1) {
+        if (g_status.item_in_cursor && ForwardSelectedPropIndex(GetWorld(), GetAtomCursorX(event),
+                                                                GetAtomCursorY(event)) == -1) {
             if (gXStatus.world_update_blocked == 0) {
                 DropItemInHand(1);
             }
@@ -6609,7 +6601,7 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
         if (gXStatus.fCombatMode == 0) {
             if (needed != 2 && needed != 1 && needed != 5) {
                 assign = 0;
-                if ((gXStatus.iCurrentCursor == 6 || g_status.item_in_cursor != 0) &&
+                if ((gXStatus.iCurrentCursor == 6 || g_status.item_in_cursor) &&
                     g_status.selected_character != -1 &&
                     CanPartyMemberAimAtMonster(g_status.selected_character, 2, monster_info, 6,
                                                0) != 0) {
@@ -6617,7 +6609,7 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
                         ShowNotice(0xc, gppStringList[0x7de], -1, -1, 0);
                     } else {
                         W8ItemInstance* item = 0;
-                        if (g_status.item_in_cursor != 0) {
+                        if (g_status.item_in_cursor) {
                             item = &g_status.item_in_hand;
                         }
                         if (monster_info->highest_condition < 0xf) {
@@ -6746,7 +6738,7 @@ void UpdateWorldViewCursor(const InputAtom* event, int target_needed)
                 W8Prop* prop = GetWorldProp(g_world, prop_index);
                 if (gXStatus.world_update_blocked == 0) {
                     if (prop != 0) {
-                        if (prop->TriggerRequiresItem() && g_status.item_in_cursor != 0) {
+                        if (prop->TriggerRequiresItem() && g_status.item_in_cursor) {
                             SetTargetCursor(0x10);
                             return;
                         }
@@ -7021,6 +7013,24 @@ void ApplyPendingTooltip(void)
     g_level_block->tooltip_kind = -1;
 }
 
+static void PositionSelectionToolTip(POINT point)
+{
+    int y = point.y - g_cursor_image_height / 2;
+    if (point.x < 0) {
+        point.x = 2;
+    }
+    if (point.x + g_help_box_width + 2 > 0x27f) {
+        point.x = 0x280 - (g_help_box_width + 2);
+    }
+    if (y < 0) {
+        y = 2;
+    }
+    if (y + g_help_box_height + 2 > 0x1df) {
+        y = 0x1e0 - (g_help_box_height + 2);
+    }
+    VideoPositionToolTip(point.x, y);
+}
+
 /* Re-picking the same monster while its tooltip clock is idle pops a
    name-plus-health tooltip at the cursor. A pick change drops the old
    monster's group or target highlight, and a valid new pick relights it in
@@ -7049,20 +7059,7 @@ void SetCombatSelection(int value)
                 wcscat(text, health);
                 wcscat(text, L")");
                 VideoToolTip(text);
-                int y = point.y - g_cursor_image_height / 2;
-                if (point.x < 0) {
-                    point.x = 2;
-                }
-                if (point.x + g_help_box_width + 2 > 0x27f) {
-                    point.x = 0x280 - (g_help_box_width + 2);
-                }
-                if (y < 0) {
-                    y = 2;
-                }
-                if (y + g_help_box_height + 2 > 0x1df) {
-                    y = 0x1e0 - (g_help_box_height + 2);
-                }
-                VideoPositionToolTip(point.x, y);
+                PositionSelectionToolTip(point);
             }
         }
         return;
@@ -7162,23 +7159,9 @@ void SetCombatTarget(int value)
         item = ItemInfo(ItemIndex(g_level_block->selected_item));
         if (item != 0) {
             wchar_t* text = FormatItemDisplayName(&item->item, 1);
-            int y;
 
             VideoToolTip(text);
-            y = point.y - g_cursor_image_height / 2;
-            if (point.x < 0) {
-                point.x = 2;
-            }
-            if (point.x + g_help_box_width + 2 > 0x27f) {
-                point.x = 0x280 - (g_help_box_width + 2);
-            }
-            if (y < 0) {
-                y = 2;
-            }
-            if (y + g_help_box_height + 2 > 0x1df) {
-                y = 0x1e0 - (g_help_box_height + 2);
-            }
-            VideoPositionToolTip(point.x, y);
+            PositionSelectionToolTip(point);
         }
     }
 }
@@ -8018,8 +8001,6 @@ void ConfirmNpcTradeItem(void)
     W8Character* trading;
     W8NpcState* npc;
     bool wants;
-    unsigned int count;
-    unsigned int i;
     int selected;
     int npc_kind;
     int moved;
@@ -8125,19 +8106,7 @@ void ConfirmNpcTradeItem(void)
         break;
     case W8_NPC_TRADE_BUY:
         slot = GetTextSlot1E8(2);
-        count = GetNpcItemCount(g_npc_interaction_state->dialogue_npc);
-        shown = 0;
-        index = -1;
-        for (i = 0; i < count; ++i) {
-            entry = GetNpcItemAt(g_npc_interaction_state->dialogue_npc, i);
-            if (entry != 0 && !NpcTradeItemAllowed(&entry->item) && entry->available_at == 0) {
-                if (shown == slot) {
-                    index = i;
-                    break;
-                }
-                ++shown;
-            }
-        }
+        index = ResolveNpcTradeStockIndex(slot);
         if (index != -1 && CompleteNpcItemPurchase(
                                g_npc_interaction_state->dialogue_npc, index,
                                static_cast<unsigned char>(g_npc_interaction_state->trade_quantity),
@@ -8151,19 +8120,7 @@ void ConfirmNpcTradeItem(void)
         break;
     case W8_NPC_TRADE_SHOPLIFT:
         slot = GetTextSlot1E8(2);
-        count = GetNpcItemCount(g_npc_interaction_state->dialogue_npc);
-        shown = 0;
-        index = -1;
-        for (i = 0; i < count; ++i) {
-            entry = GetNpcItemAt(g_npc_interaction_state->dialogue_npc, i);
-            if (entry != 0 && !NpcTradeItemAllowed(&entry->item) && entry->available_at == 0) {
-                if (shown == slot) {
-                    index = i;
-                    break;
-                }
-                ++shown;
-            }
-        }
+        index = ResolveNpcTradeStockIndex(slot);
         if (index != -1) {
             entry = GetNpcItemAt(g_npc_interaction_state->dialogue_npc, index);
             AttemptNpcItemTrade(&entry->item,
@@ -8191,7 +8148,7 @@ void ShowNpcTradeItemNotice(W8ItemInstance* item)
     }
     if (mode == W8_NPC_TRADE_BUY || mode == W8_NPC_TRADE_SHOPLIFT || mode == W8_NPC_TRADE_SELL) {
         unsigned char stack_count;
-        if (g_item_records[item->iItemNo].equip_class == 4) {
+        if (g_item_records[item->iItemNo].equip_class == W8_ITEM_EQUIP_CLASS_AMMUNITION) {
             stack_count = item->stack_count;
         } else {
             stack_count = 1;
@@ -8312,7 +8269,8 @@ void PopulateNpcTradeList(void)
                 }
                 if (g_npc_interaction_state->trade_mode == W8_NPC_TRADE_SELL) {
                     unsigned char stack_count;
-                    if (g_item_records[item->iItemNo].equip_class == 4) {
+                    if (g_item_records[item->iItemNo].equip_class ==
+                        W8_ITEM_EQUIP_CLASS_AMMUNITION) {
                         stack_count = item->stack_count;
                     } else {
                         stack_count = 1;
@@ -8361,7 +8319,7 @@ void PopulateNpcTradeList(void)
             }
             if (g_npc_interaction_state->trade_mode == W8_NPC_TRADE_SELL) {
                 unsigned char stack_count;
-                if (g_item_records[item->iItemNo].equip_class == 4) {
+                if (g_item_records[item->iItemNo].equip_class == W8_ITEM_EQUIP_CLASS_AMMUNITION) {
                     stack_count = item->stack_count;
                 } else {
                     stack_count = 1;

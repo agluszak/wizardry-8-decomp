@@ -40,7 +40,7 @@ static W8Monster* g_swamp_spawned_monster;
 // FUNCTION: WIZ8 0x004DA960
 bool SwampOilPool(Trigger* pTrigger)
 {
-    if (g_status.item_in_cursor != 0 && GetItemInHand() == 0x2d0) {
+    if (g_status.item_in_cursor && GetItemInHand() == 0x2d0) {
         ClearHeldItemDisplay();
         ReplaceOrCreateItem(&g_status.item_in_hand, 0x15e, 0, 1, 0);
         SetItemCursor(0);
@@ -168,7 +168,7 @@ static void SwampGasFireItemDrop(int command)
             position = g_swamp_spawned_monster->GetPosition();
             drop_position = position;
             item = SpawnItem(0x264, &drop_position, 3, 1);
-            item->item.identified = 0;
+            item->item.identified = false;
             ActivateItem(item);
             g_swamp_spawned_monster->BeginFadeOutAndRemove(0);
         }

@@ -1322,6 +1322,38 @@ speed_done:
     }
 }
 
+static void ShowMipeWaypointStatus()
+{
+    ResetEditorStatusLine(-1);
+    ShowNoticef(6, L"Type 'C' to create a waypoint.");
+    ShowNoticef(0xf, &g_empty_wide_string);
+    ShowNoticef(3, L"Laying down waypoint %d", g_mipe_state->waypoint_count);
+    ShowNoticef(0xf, &g_empty_wide_string);
+    ShowNoticef(0xf, &g_empty_wide_string);
+    ShowNoticef(0xf, &g_empty_wide_string);
+    ShowNoticef(0xf, L"Type X to delete last waypoint.");
+}
+
+static void ShowMipeLockTrapStatus()
+{
+    Trigger* trigger;
+    int key_id;
+    const wchar_t* key_name;
+
+    trigger = g_mipe_state->prop->GetTrigger();
+    ResetEditorStatusLine(-1);
+    ShowNoticef(6, L"Edit Locks & Traps");
+    ShowNoticef(0xf, L"1) Type: %s", g_lock_type_names[trigger->lock_state.lock_type]);
+    key_id = trigger->lock_state.key_id;
+    if (key_id < 0) {
+        key_name = &g_empty_wide_string;
+    } else {
+        key_name = g_item_records[key_id].display_name;
+    }
+    ShowNoticef(0xf, L"2) Key Id: (%d) %s", key_id, key_name);
+    ShowNoticef(0xf, L" Difficulty (3+/4-): %d", trigger->lock_state.difficulty);
+}
+
 /* 'C' drops a waypoint monster at the cursor, 'X' removes the newest one. */
 // FUNCTION: WIZ8 0x00579df0
 void HandleWaypointKey(unsigned short key)
@@ -1344,14 +1376,7 @@ void HandleWaypointKey(unsigned short key)
         UpdateCycleRepresentation(monster, world);
         ++g_mipe_state->waypoint_count;
         PLAdoptAppend(&g_mipe_state->waypoints, monster);
-        ResetEditorStatusLine(-1);
-        ShowNoticef(6, L"Type 'C' to create a waypoint.");
-        ShowNoticef(0xf, &g_empty_wide_string);
-        ShowNoticef(3, L"Laying down waypoint %d", g_mipe_state->waypoint_count);
-        ShowNoticef(0xf, &g_empty_wide_string);
-        ShowNoticef(0xf, &g_empty_wide_string);
-        ShowNoticef(0xf, &g_empty_wide_string);
-        ShowNoticef(0xf, L"Type X to delete last waypoint.");
+        ShowMipeWaypointStatus();
     } else if (key == 0x58) {
         if (g_mipe_state != 0) {
             unsigned int count = PLLength(&g_mipe_state->waypoints);
@@ -1367,14 +1392,7 @@ void HandleWaypointKey(unsigned short key)
                 }
             }
         }
-        ResetEditorStatusLine(-1);
-        ShowNoticef(6, L"Type 'C' to create a waypoint.");
-        ShowNoticef(0xf, &g_empty_wide_string);
-        ShowNoticef(3, L"Laying down waypoint %d", g_mipe_state->waypoint_count);
-        ShowNoticef(0xf, &g_empty_wide_string);
-        ShowNoticef(0xf, &g_empty_wide_string);
-        ShowNoticef(0xf, &g_empty_wide_string);
-        ShowNoticef(0xf, L"Type X to delete last waypoint.");
+        ShowMipeWaypointStatus();
     }
 }
 
@@ -1389,7 +1407,6 @@ void HandleMipePropEditKey(unsigned short key)
     W8Prop* prop;
     Trigger* trigger;
     W8ItemTableRecord* table;
-    const wchar_t* key_name;
     int index;
     int found;
     int count;
@@ -1416,18 +1433,7 @@ void HandleMipePropEditKey(unsigned short key)
             g_mipe_state->prop = prop;
             if (key == 0x31) {
                 g_mipe_mode = 0x1b;
-                trigger = g_mipe_state->prop->GetTrigger();
-                ResetEditorStatusLine(-1);
-                ShowNoticef(6, L"Edit Locks & Traps");
-                ShowNoticef(0xf, L"1) Type: %s", g_lock_type_names[trigger->lock_state.lock_type]);
-                index = trigger->lock_state.key_id;
-                if (index < 0) {
-                    key_name = &g_empty_wide_string;
-                } else {
-                    key_name = g_item_records[index].display_name;
-                }
-                ShowNoticef(0xf, L"2) Key Id: (%d) %s", index, key_name);
-                ShowNoticef(0xf, L" Difficulty (3+/4-): %d", trigger->lock_state.difficulty);
+                ShowMipeLockTrapStatus();
             } else if (key == 0x32) {
                 trigger = prop->GetTrigger();
                 table_index = FindItemTableByName(trigger->inline_action_data);
@@ -2185,7 +2191,6 @@ void HandleMipeLockTrapKey(unsigned short key)
     Trigger* trigger;
     Trigger* action_trigger;
     W8TriggerActionData* action;
-    const wchar_t* key_name;
     W8LockState* lock_state;
     int key_id;
     bool pending;
@@ -2242,18 +2247,7 @@ void HandleMipeLockTrapKey(unsigned short key)
             trigger->lock_state.difficulty = 0;
         }
     }
-    trigger = g_mipe_state->prop->GetTrigger();
-    ResetEditorStatusLine(-1);
-    ShowNoticef(6, L"Edit Locks & Traps");
-    ShowNoticef(0xf, L"1) Type: %s", g_lock_type_names[trigger->lock_state.lock_type]);
-    key_id = trigger->lock_state.key_id;
-    if (key_id < 0) {
-        key_name = &g_empty_wide_string;
-    } else {
-        key_name = g_item_records[key_id].display_name;
-    }
-    ShowNoticef(0xf, L"2) Key Id: (%d) %s", key_id, key_name);
-    ShowNoticef(0xf, L" Difficulty (3+/4-): %d", trigger->lock_state.difficulty);
+    ShowMipeLockTrapStatus();
 }
 
 /* The digit keys editing the selected prop trigger's key id. */
@@ -2461,9 +2455,7 @@ unsigned char HandleMipeKey(const InputAtom* event)
     unsigned short event_type;
     Trigger* trigger;
     W8Item* rep_item;
-    const wchar_t* key_name;
     wchar_t name[100];
-    int key_id;
     int shown;
 
     handled = 0;
@@ -2613,21 +2605,7 @@ unsigned char HandleMipeKey(const InputAtom* event)
                                         ShowMipePropMenu();
                                     } else if (g_mipe_mode == 0x1c) {
                                         g_mipe_mode = 0x1b;
-                                        trigger = g_mipe_state->prop->GetTrigger();
-                                        ResetEditorStatusLine(-1);
-                                        ShowNoticef(6, L"Edit Locks & Traps");
-                                        ShowNoticef(
-                                            0xf, L"1) Type: %s",
-                                            g_lock_type_names[trigger->lock_state.lock_type]);
-                                        key_id = trigger->lock_state.key_id;
-                                        if (key_id < 0) {
-                                            key_name = &g_empty_wide_string;
-                                        } else {
-                                            key_name = g_item_records[key_id].display_name;
-                                        }
-                                        ShowNoticef(0xf, L"2) Key Id: (%d) %s", key_id, key_name);
-                                        ShowNoticef(0xf, L" Difficulty (3+/4-): %d",
-                                                    trigger->lock_state.difficulty);
+                                        ShowMipeLockTrapStatus();
                                     } else {
                                         if (g_mipe_mode == 0x1d) {
                                             g_mipe_mode = 0xd;
@@ -2794,14 +2772,7 @@ unsigned char HandleMipeKey(const InputAtom* event)
         if (key == 0x35) {
             g_mipe_mode = 10;
             g_mipe_state->waypoint_count = 0;
-            ResetEditorStatusLine(-1);
-            ShowNoticef(6, L"Type 'C' to create a waypoint.");
-            ShowNoticef(0xf, &g_empty_wide_string);
-            ShowNoticef(3, L"Laying down waypoint %d", g_mipe_state->waypoint_count);
-            ShowNoticef(0xf, &g_empty_wide_string);
-            ShowNoticef(0xf, &g_empty_wide_string);
-            ShowNoticef(0xf, &g_empty_wide_string);
-            ShowNoticef(0xf, L"Type X to delete last waypoint.");
+            ShowMipeWaypointStatus();
             return handled;
         }
         break;

@@ -24,7 +24,7 @@ bool OnEwaxxCannon1Activated(Trigger* trigger)
     W8NpcState* npc = GetNpcStateByKind(0x58);
     W8ItemInstance* item = 0;
 
-    if (g_status.item_in_cursor != 0) {
+    if (g_status.item_in_cursor) {
         item = &g_status.item_in_hand;
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);
@@ -39,7 +39,7 @@ bool OnEwaxxLandingActivated(Trigger* trigger)
     W8NpcState* npc = GetNpcStateByKind(0x7f);
     W8ItemInstance* item = 0;
 
-    if (g_status.item_in_cursor != 0) {
+    if (g_status.item_in_cursor) {
         item = &g_status.item_in_hand;
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);
@@ -63,7 +63,7 @@ bool OnEwaxxTopDoor2Activated(Trigger* trigger)
     W8NpcState* npc = GetNpcStateByKind(0x60);
     W8ItemInstance* item = 0;
 
-    if (g_status.item_in_cursor != 0) {
+    if (g_status.item_in_cursor) {
         item = &g_status.item_in_hand;
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);

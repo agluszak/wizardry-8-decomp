@@ -294,9 +294,6 @@ int GenerateItemsFromTable(W8GrowableVector<W8WorldItem*>* output_items, unsigne
 // GLOBAL: WIZ8 0x00689b54
 int g_world_item_cursor;
 
-/* Bit 0x20 of the item record's flag word, which is the only bit
-   ItemInfoIsWorldPersistent reads. */
-enum { W8_ITEM_FLAG_PERSISTENT = 0x20 };
 /* Bit 1 of the world item's own flag word. */
 enum { W8_WORLD_ITEM_FLAG_02 = 2 };
 
@@ -411,7 +408,7 @@ bool ItemInfoIsWorldPersistent(const W8WorldItem* item)
     if (item == 0) {
         return false;
     }
-    return (g_item_records[item->item.iItemNo].flags & W8_ITEM_FLAG_PERSISTENT) != 0;
+    return (g_item_records[item->item.iItemNo].flags & W8_ITEM_FLAG_CONTAINER) != 0;
 }
 
 // FUNCTION: WIZ8 0x004f9210
@@ -971,7 +968,7 @@ unsigned char InteractWithWorldItem(int runtime_id)
     if (item == 0) {
         srAssertFail("pItemInfo != NULL", ITEM_MANAGER_CPP, 857, 0);
     }
-    if (g_item_records[item->item.iItemNo].flags & 0x20) {
+    if (g_item_records[item->item.iItemNo].flags & W8_ITEM_FLAG_CONTAINER) {
         W8TriggerItemPickerDialog* dialog = new W8TriggerItemPickerDialog;
         if (dialog != 0) {
             dialog->SetItemGroup(item);

@@ -264,8 +264,8 @@ void OpenSplitStackDialog(W8ItemInstance* item)
 
     g_split_item_source = 0;
     if (item->iItemNo != -1 && item->stack_count > 1 &&
-        (g_item_records[item->iItemNo].flags & 2) == 0 &&
-        g_item_records[item->iItemNo].quantity_kind == 1) {
+        (g_item_records[item->iItemNo].flags & W8_ITEM_FLAG_NO_DISCARD) == 0 &&
+        g_item_records[item->iItemNo].quantity_kind == W8_ITEM_QUANTITY_STACK) {
         g_split_item_source = item;
         dialog = new W8SplitItemDialog(g_split_dialog_kind, item, -1);
         dialog->SetText(&g_empty_wide_string);
@@ -294,7 +294,7 @@ void UseCampItem(W8ItemInstance* item)
             gXStatus.dragged_character_slot = static_cast<char>(giReviewCharSlot);
             GetOriginOfCharacterItem(giReviewCharSlot, item, &gXStatus.dragged_item_origin, &slot);
         } else {
-            if (g_status.item_in_cursor == 0) {
+            if (!g_status.item_in_cursor) {
                 MarkCampCharacterPending(item);
                 CopyItemInstance(&g_status.item_in_hand, item, g_review_character, 1);
             }
@@ -368,7 +368,7 @@ void UseHeldItemOnItem(W8ItemInstance* item)
             target.iType = W8_TARGET_KIND_ITEM;
             if (CommitPartySlotSpell(giCasterCharSlot, 0x17, 8, &target) == 1) {
                 OpenItemInfoDialog(item, 0);
-                if (item->identified == 0) {
+                if (!item->identified) {
                     QueueCharacterEvent(g_status.buffers.Char + giCasterCharSlot,
                                         g_character_event_kind2, 0,
                                         g_character_event_no_flags, g_character_event_full_volume);
@@ -435,10 +435,10 @@ int CanCharacterUseItemEntry(W8Character* character, W8ItemInstance* item)
 bool CanSplitItemStack(const W8ItemInstance* item)
 {
     const W8ItemDatabaseRecord* record = g_item_records + item->iItemNo;
-    if ((record->flags & 2) != 0) {
+    if ((record->flags & W8_ITEM_FLAG_NO_DISCARD) != 0) {
         return 0;
     }
-    return record->quantity_kind == 1;
+    return record->quantity_kind == W8_ITEM_QUANTITY_STACK;
 }
 
 // FUNCTION: WIZ8 0x005BAA80
@@ -460,7 +460,7 @@ void SplitStackDialogResult(W8DialogBase* dialog)
     if (count == 0) {
         return;
     }
-    if (g_status.item_in_cursor != 0) {
+    if (g_status.item_in_cursor) {
         if (count == g_split_item_source->stack_count) {
             return;
         }
@@ -568,7 +568,8 @@ void UpdateItemCursorForState(int flag, W8ItemInstance* item, int slot)
         }
         if (g_camp_screen->entry_mode == 4) {
             const W8ItemDatabaseRecord* record = g_item_records + item->iItemNo;
-            if ((record->flags & 2) != 0 || record->quantity_kind != 1) {
+            if ((record->flags & W8_ITEM_FLAG_NO_DISCARD) != 0 ||
+                record->quantity_kind != W8_ITEM_QUANTITY_STACK) {
                 return;
             }
             if (gXStatus.fCombatMode != 0 && IsEquippableItemClass(item) == 0 &&
@@ -590,7 +591,7 @@ void UpdateItemCursorForState(int flag, W8ItemInstance* item, int slot)
             return;
         }
         if (static_cast<char>(flag) == 0) {
-            if (g_status.item_in_cursor == 0) {
+            if (!g_status.item_in_cursor) {
                 SetTargetCursor(3);
                 return;
             }
@@ -598,7 +599,7 @@ void UpdateItemCursorForState(int flag, W8ItemInstance* item, int slot)
             SetItemCursor(0xe);
             return;
         }
-        if (g_status.item_in_cursor == 0) {
+        if (!g_status.item_in_cursor) {
             SetTargetCursor(4);
             return;
         }
@@ -619,7 +620,7 @@ void UpdateItemCursorForState(int flag, W8ItemInstance* item, int slot)
 void SetHandCursors(char mode)
 {
     if (mode == 0) {
-        if (g_status.item_in_cursor != 0) {
+        if (g_status.item_in_cursor) {
             SetTargetCursor(0xf);
             SetItemCursor(0xe);
             return;
@@ -627,7 +628,7 @@ void SetHandCursors(char mode)
         SetTargetCursor(3);
         return;
     }
-    if (g_status.item_in_cursor != 0) {
+    if (g_status.item_in_cursor) {
         SetTargetCursor(0xe);
         SetItemCursor(0xf);
         return;
@@ -803,7 +804,7 @@ unsigned char BackpackRegionHandler(const InputAtom* event, W8Region* region)
 
     slot = region->callback_id;
     item = g_review_character->backpack + slot;
-    if (item->iItemNo == -1 && g_status.item_in_cursor == 0) {
+    if (item->iItemNo == -1 && !g_status.item_in_cursor) {
         PushButtonSoundScheme(0, 1);
     }
     if (event->usEvent < 0x81) {
@@ -839,7 +840,7 @@ unsigned char BackpackRegionHandler(const InputAtom* event, W8Region* region)
     }
     if (event->usEvent == 0x400) {
         if ((region->flags & W8_REGION_MOUSE_TRANSITION_MASK) != 0) {
-            if (item->iItemNo != -1 || g_status.item_in_cursor != 0) {
+            if (item->iItemNo != -1 || g_status.item_in_cursor) {
                 g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_BACKPACK_CELL_FIRST
                                                     << (slot & 0x1f);
             }
@@ -871,7 +872,7 @@ unsigned char EquipSlotRegionHandler(const InputAtom* event, W8Region* region)
     slot = region->callback_id;
     item = g_review_character->EquippedItem + slot;
     if (item->iItemNo == -1 &&
-        (g_status.item_in_cursor == 0 || g_camp_screen->entry_mode == 1 ||
+        (!g_status.item_in_cursor || g_camp_screen->entry_mode == 1 ||
          CanEquipItemInSlot(g_review_character, g_status.item_in_hand.iItemNo,
                             static_cast<unsigned char>(slot), 1) == 0 ||
          CanCharacterUseItem(g_review_character, g_status.item_in_hand.iItemNo) == 0)) {
@@ -917,7 +918,7 @@ unsigned char EquipSlotRegionHandler(const InputAtom* event, W8Region* region)
                 return 0;
             }
             if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
-                if (item->iItemNo != -1 || g_status.item_in_cursor != 0) {
+                if (item->iItemNo != -1 || g_status.item_in_cursor) {
                     g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_EQUIPMENT_CELL_FIRST
                                                         << (slot & 0x1f);
                 }
@@ -940,7 +941,7 @@ unsigned char EquipSlotRegionHandler(const InputAtom* event, W8Region* region)
                 SetRegionHelpText(g_camp_screen->caption);
             }
             if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
-                if (item->iItemNo != -1 || g_status.item_in_cursor != 0) {
+                if (item->iItemNo != -1 || g_status.item_in_cursor) {
                     g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_EQUIPMENT_CELL_FIRST
                                                         << (slot & 0x1f);
                 }
@@ -975,7 +976,7 @@ unsigned char ItemPoolRegionHandler(const InputAtom* event, W8Region* region)
         pool_index = g_camp_screen->item_list[pool_index];
     }
     item = g_status.party_item_pool + pool_index;
-    if (item->iItemNo == -1 && g_status.item_in_cursor == 0) {
+    if (item->iItemNo == -1 && !g_status.item_in_cursor) {
         PushButtonSoundScheme(0, 1);
     }
     if (event->usEvent < 0x101) {
@@ -1009,7 +1010,7 @@ unsigned char ItemPoolRegionHandler(const InputAtom* event, W8Region* region)
     } else {
         if (event->usEvent == 0x400) {
             if ((region->flags & W8_REGION_MOUSE_TRANSITION_MASK) != 0) {
-                if (item->iItemNo != -1 || g_status.item_in_cursor != 0) {
+                if (item->iItemNo != -1 || g_status.item_in_cursor) {
                     g_camp_screen->item_redraw_flags |= W8_CAMP_ITEM_REDRAW_POOL_CELL_FIRST
                                                         << (slot & 0x1f);
                 }
@@ -1137,13 +1138,13 @@ void SetItemTooltip(W8ItemInstance* item, W8Region* region)
     name = FormatItemDisplayName(item, 0);
     wcscpy(g_camp_screen->caption, name);
     record = g_item_records + item->iItemNo;
-    if (record->category == 3) {
+    if (record->category == W8_ITEM_CATEGORY_SPELL_SOURCE) {
         if (record->spell_id == 0) {
             srAssertFail("ubSpell != SPELL_NONE",
                          "C:\\Projects\\Wizardry 8\\Local Screens\\RCSItemsPage.cpp", 0xa7a, 0);
         }
         if (g_review_character->spell_learned[record->spell_id] == 1 &&
-            (item->identified != 0 || item->spell_hint != 0)) {
+            (item->identified || item->spell_hint)) {
             wcscat(g_camp_screen->caption, L" (");
             wcscat(g_camp_screen->caption, gppStringList[0x930]);
             wcscat(g_camp_screen->caption, L")");

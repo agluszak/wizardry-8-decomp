@@ -831,7 +831,7 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, bool highlighted, bool 
                 g_level_block->portrait_refresh_pending[party_slot] != 0) {
                 main_hand_item_id = character->EquippedItem[6].iItemNo;
                 if (main_hand_item_id == -1 ||
-                    (g_item_records[main_hand_item_id].flags & 4) == 0) {
+                    (g_item_records[main_hand_item_id].flags & W8_ITEM_FLAG_TWO_HANDED) == 0) {
                     show_off_hand_row = 0;
                     hp_bar_frame = 0;
                 } else {

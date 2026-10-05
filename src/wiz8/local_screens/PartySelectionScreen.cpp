@@ -77,6 +77,8 @@ struct W8PartySelectionCharacterCollection {
     int FindPartySlot(int index);
     void DetachFromParty(int index);
     void DeleteAt(int index);
+    void ClearCharacters();
+    void ReloadCharacters();
     void LoadExternalCharacters();
     void SortCharactersByWriteTime();
 
@@ -109,6 +111,16 @@ unsigned int g_party_selection_character_grid_region_set;
 W8PartySelectionCharacterCollection::~W8PartySelectionCharacterCollection()
 {
     int index;
+    ClearCharacters();
+    for (index = 0; index < names.count; ++index) {
+        delete names.data[index];
+    }
+    names.Clear();
+}
+
+void W8PartySelectionCharacterCollection::ClearCharacters()
+{
+    int index;
     for (index = 0; index < characters.count; ++index) {
         W8Character* character = GetCharacter(index);
         if (!character->fInParty) {
@@ -116,10 +128,19 @@ W8PartySelectionCharacterCollection::~W8PartySelectionCharacterCollection()
         }
     }
     characters.Clear();
-    for (index = 0; index < names.count; ++index) {
-        delete names.data[index];
+}
+
+void W8PartySelectionCharacterCollection::ReloadCharacters()
+{
+    ClearCharacters();
+    W8PartySlotRow* rows = g_status.buffers.XChar;
+    for (int slot = 2; slot < 8; ++slot) {
+        if (rows[slot].fOccupied) {
+            characters.Add(&g_status.buffers.Char[slot]);
+        }
     }
-    names.Clear();
+    LoadExternalCharacters();
+    SortCharactersByWriteTime();
 }
 
 // FUNCTION: WIZ8 0x005be4b0
@@ -1709,16 +1730,7 @@ void W8PartySelectionController::OnPrimary(W8TextControl* control)
             continue;
         }
 
-        int slot = collection->FindPartySlot(index);
-        W8Character* replacement = new W8Character;
-        char path[128];
-        BuildCharacterPath(path, previous->name, -1);
-        if (!LoadCharacter(path, replacement, -1, 0)) {
-            memcpy(replacement, previous, sizeof(W8Character));
-        }
-        RemoveCharacterFromParty(slot + 2, 0);
-        replacement->fInParty = false;
-        collection->characters.SetAt(index, replacement);
+        collection->DetachFromParty(index);
     }
     SetMode(1);
     LoadImportedPartyFile(m_list->m_selection);
@@ -1907,16 +1919,7 @@ void W8PartySelectionController::ApplyPartySelectionConfirmation(int, unsigned c
             if (!previous->fInParty) {
                 continue;
             }
-            int slot = collection->FindPartySlot(index);
-            W8Character* replacement = new W8Character;
-            char path[128];
-            BuildCharacterPath(path, previous->name, -1);
-            if (!LoadCharacter(path, replacement, -1, 0)) {
-                memcpy(replacement, previous, sizeof(W8Character));
-            }
-            RemoveCharacterFromParty(slot + 2, 0);
-            replacement->fInParty = false;
-            collection->characters.SetAt(index, replacement);
+            collection->DetachFromParty(index);
         }
         SetMode(1);
         LoadImportedPartyFile(m_list->m_selection);
@@ -2042,41 +2045,13 @@ unsigned char PartySelectionScreenEnter(void)
         collection = new W8PartySelectionCharacterCollection;
         g_party_selection_character_collection = collection;
 
-        for (int index = 0; index < collection->characters.count; ++index) {
-            W8Character* character = collection->GetCharacter(index);
-            if (!character->fInParty) {
-                delete character;
-            }
-        }
-        collection->characters.Clear();
-        W8PartySlotRow* rows = g_status.buffers.XChar;
-        for (int slot = 2; slot < 8; ++slot) {
-            if (rows[slot].fOccupied) {
-                collection->characters.Add(&g_status.buffers.Char[slot]);
-            }
-        }
-        collection->LoadExternalCharacters();
-        collection->SortCharactersByWriteTime();
+        collection->ReloadCharacters();
 
         g_party_selection_controller = new W8PartySelectionController;
         g_party_selection_controller->Setup();
     } else {
         if (g_previous_screen_id == 3 && g_party_selection_controller->m_mode != 1) {
-            for (int index = 0; index < collection->characters.count; ++index) {
-                W8Character* character = collection->GetCharacter(index);
-                if (!character->fInParty) {
-                    delete character;
-                }
-            }
-            collection->characters.Clear();
-            W8PartySlotRow* rows = g_status.buffers.XChar;
-            for (int slot = 2; slot < 8; ++slot) {
-                if (rows[slot].fOccupied) {
-                    collection->characters.Add(&g_status.buffers.Char[slot]);
-                }
-            }
-            collection->LoadExternalCharacters();
-            collection->SortCharactersByWriteTime();
+            collection->ReloadCharacters();
             g_party_selection_controller->SetSelection(0, 0, 1);
         }
         g_party_selection_controller->SetMode(g_party_selection_controller->m_mode);

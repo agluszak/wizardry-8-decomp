@@ -2496,19 +2496,7 @@ void HighlightNoticeWordAt(int text_box, unsigned short x, unsigned short y)
     W8PList* list;
     unsigned int count;
 
-    for (int i = 0; i < 0x15e; ++i) {
-        list = g_message_storage[text_box][i].entries;
-        if (list != 0) {
-            count = PLLength(list);
-            for (int j = 0; j < static_cast<int>(count); ++j) {
-                W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(list, j));
-                if (word->keyword != 2) {
-                    word->keyword = 0;
-                    word->redraw = true;
-                }
-            }
-        }
-    }
+    ClearNoticeWordHover(text_box, false);
     if (g_level_block->text_box_top <= y && y <= g_level_block->text_box_bottom) {
         line = g_level_block->text_lines[text_box] + (y - g_level_block->text_box_top) / 0xb;
         if (line < static_cast<int>(g_status.text_box_lines_shown[text_box])) {
